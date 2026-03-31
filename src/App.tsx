@@ -650,6 +650,14 @@ export default function App() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50 font-sans">
+      <input 
+        type="file" 
+        ref={fileInputRef}
+        onChange={handleFileUpload}
+        accept=".pdf,.doc,.docx,.xls,.xlsx"
+        multiple
+        className="hidden"
+      />
       {/* Sidebar */}
       <motion.aside 
         initial={false}
@@ -1200,14 +1208,7 @@ export default function App() {
                   </button>
                 </div>
 
-                <input 
-                  type="file" 
-                  ref={fileInputRef}
-                  onChange={handleFileUpload}
-                  accept=".pdf,.doc,.docx"
-                  multiple
-                  className="hidden"
-                />
+
                 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   {data.templates.map(tpl => (
