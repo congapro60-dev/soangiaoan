@@ -44,8 +44,13 @@ import { cn } from './lib/utils';
 import { callGeminiAI, MODELS } from './lib/gemini';
 import { AppData, DEFAULT_DATA, LessonPlan, LessonTemplate, TemplateFile, CurriculumDistribution } from './types';
 
-// Set PDF.js worker using .mjs for v5+
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.mjs`;
+// Set PDF.js worker - try unpkg CDN, with fallback to disable worker
+try {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.mjs`;
+} catch (e) {
+  // fallback: no worker (slower but works)
+  pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+}
 
 // Icon mapping for subjects
 const ICON_MAP: Record<string, any> = {
@@ -103,15 +108,36 @@ export default function App() {
   // File parsing functions
   const extractTextFromPDF = async (file: File): Promise<string> => {
     const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    let fullText = '';
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const textContent = await page.getTextContent();
-      const pageText = textContent.items.map((item: any) => item.str).join(' ');
-      fullText += pageText + '\n';
+    try {
+      // Thử với worker hiện tại
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let fullText = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map((item: any) => item.str).join(' ');
+        fullText += pageText + '\n';
+      }
+      return fullText;
+    } catch (workerError) {
+      console.warn('PDF worker failed, retrying without worker:', workerError);
+      // Fallback: tắt worker, chạy trực tiếp
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+      try {
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer, useWorkerFetch: false, isEvalSupported: false, useSystemFonts: true }).promise;
+        let fullText = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          const pageText = textContent.items.map((item: any) => item.str).join(' ');
+          fullText += pageText + '\n';
+        }
+        return fullText;
+      } catch (fallbackError) {
+        console.error('PDF extraction failed completely:', fallbackError);
+        throw new Error(`Không thể đọc file PDF. Vui lòng đổi sang định dạng Word (.docx).`);
+      }
     }
-    return fullText;
   };
 
   const extractTextFromWord = async (file: File): Promise<string> => {
@@ -166,13 +192,18 @@ export default function App() {
         else if (file.name.endsWith('.xls') || file.name.endsWith('.xlsx')) type = 'excel';
         
         let content = '';
-
-        if (type === 'pdf') {
-          content = await extractTextFromPDF(file);
-        } else if (type === 'word') {
-          content = await extractTextFromWord(file);
-        } else if (type === 'excel') {
-          content = await extractTextFromExcel(file);
+        try {
+          if (type === 'pdf') {
+            content = await extractTextFromPDF(file);
+          } else if (type === 'word') {
+            content = await extractTextFromWord(file);
+          } else if (type === 'excel') {
+            content = await extractTextFromExcel(file);
+          }
+        } catch (fileError: any) {
+          console.error(`Error processing file ${file.name}:`, fileError);
+          showToast(`Lỗi đọc file "${file.name}": ${fileError.message || 'Lỗi không xác định'}`, 'error');
+          continue; // Bỏ qua file lỗi, tiếp tục với file khác
         }
 
         newFiles.push({
@@ -180,7 +211,7 @@ export default function App() {
           name: file.name,
           type,
           content,
-          category: uploadingFiles.category
+          category: uploadingFiles!.category
         });
       }
 
