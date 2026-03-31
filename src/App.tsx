@@ -37,6 +37,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import rehypeRaw from 'rehype-raw';
 import * as mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist';
 import * as XLSX from 'xlsx';
@@ -309,8 +310,14 @@ export default function App() {
 
           Yêu cầu chung:
           1. TỔNG HỢP KIẾN THỨC: Hãy sử dụng kiến thức cập nhật nhất từ internet để làm phong phú nội dung bài giảng.
-          2. TRÌNH BÀY: Sử dụng định dạng Markdown chuyên nghiệp, sử dụng bảng biểu nếu cần thiết. Font chữ Times New Roman cho mọi nội dung.
-          3. CÔNG THỨC TOÁN HỌC: Viết công thức dạng MathType/LaTeX inline ($...$) để giáo viên dễ copy vào Word. Ví dụ: $x^2 + y^2 = r^2$, $\\frac{a}{b}$, $\\sqrt{x}$.
+          2. ĐỊNH DẠNG MARKDOWN NGHIÊM NGẶT - CÁC QUY TẮC BẮT BUỘC:
+             a) TUYỆT ĐỐI KHÔNG sử dụng thẻ HTML như <br>, <div>, <span> trong nội dung.
+             b) Để xuống dòng đơn trong bảng: dùng ký tự | phân cách, KHÔNG dùng <br>.
+             c) Để tạo đoạn văn (paragraph) mới: để trống 1 dòng trắng giữa các đoạn.
+             d) Dùng dấu gạch đầu dòng (-) cho từng ý nhỏ, KHÔNG nhồi nhiều ý vào 1 câu.
+             e) Trong ô bảng nếu có nhiều dòng, dùng: <br/> (self-closing) HOẶC tách thành dòng riêng trong cột. 
+             f) Mỗi hoạt động/phần phải cách nhau bằng ít nhất 1 dòng trắng.
+          3. CÔNG THỨC TOÁN HỌC: Viết công thức dạng LaTeX inline ($...$) hoặc block ($$...$$). Ví dụ: $x^2 + y^2 = r^2$, $\\frac{a}{b}$, $\\sqrt{x}$.
           4. CHI TIẾT: Đảm bảo đầy đủ các bước lên lớp, mục tiêu, hoạt động học tập và đánh giá.
           5. HÌNH ẢNH MINH HỌA: Điểm xuyết 1-2 hình ảnh minh hoạ sinh động vào giáo án bằng cú pháp Markdown: ![Mô tả ảnh](https://image.pollinations.ai/prompt/{Mo_ta_anh_bang_tieng_anh_chi_tiet}?width=800&height=400&nologo=true).
           ${subject === 'Toán học' || subject.toLowerCase().includes('toán') ? `
@@ -398,7 +405,13 @@ F. KIỂM TRA CUỐI: Trước khi trả kết quả, AI phải tự kiểm tra:
 
         const result = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
         if (result) {
-          setCurrentPlan(prev => ({ ...prev, content: result }));
+          // Clean up improper <br> tags & HTML from AI output
+          const cleaned = result
+            .replace(/<br\s*\/?>/gi, '\n') // <br> / <br/> → newline
+            .replace(/<(?!img|table|thead|tbody|tr|th|td)[a-zA-Z][^>]*>/g, '') // strip non-table HTML open tags
+            .replace(/<\/(?!table|thead|tbody|tr|th|td)[a-zA-Z][^>]*>/g, '') // strip non-table HTML close tags
+            .replace(/\n{3,}/g, '\n\n'); // collapse 3+ blank lines to 2
+          setCurrentPlan(prev => ({ ...prev, content: cleaned }));
           showToast('Đã khởi tạo giáo án thành công!');
         }
       } else {
@@ -1233,7 +1246,7 @@ YÊU CẦU BẮT BUỘC:
                     <div id="lesson-content" className="prose prose-slate max-w-none markdown-body">
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm, remarkMath]}
-                        rehypePlugins={[rehypeKatex]}
+                        rehypePlugins={[rehypeRaw, rehypeKatex]}
                       >{currentPlan.content || ''}</ReactMarkdown>
                     </div>
 
@@ -1307,7 +1320,7 @@ YÊU CẦU BẮT BUỘC:
                           <div className="prose prose-slate max-w-none markdown-body max-h-[300px] overflow-y-auto pr-4">
                             <ReactMarkdown
                               remarkPlugins={[remarkGfm, remarkMath]}
-                              rehypePlugins={[rehypeKatex]}
+                              rehypePlugins={[rehypeRaw, rehypeKatex]}
                             >{result.content}</ReactMarkdown>
                           </div>
                         </motion.div>
@@ -1565,7 +1578,7 @@ YÊU CẦU BẮT BUỘC:
                           <div className="markdown-body">
                             <ReactMarkdown
                               remarkPlugins={[remarkGfm, remarkMath]}
-                              rehypePlugins={[rehypeKatex]}
+                              rehypePlugins={[rehypeRaw, rehypeKatex]}
                             >{msg.text}</ReactMarkdown>
                           </div>
                         ) : msg.text}
