@@ -38,7 +38,6 @@ import remarkGfm from 'remark-gfm';
 import * as mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist';
 import * as XLSX from 'xlsx';
-import { Document, Packer, Paragraph, TextRun, HeadingLevel } from 'docx';
 import pptxgen from 'pptxgenjs';
 import { saveAs } from 'file-saver';
 import { cn } from './lib/utils';
@@ -89,6 +88,8 @@ export default function App() {
   const [bulkResults, setBulkResults] = useState<LessonPlan[]>([]);
   const [singleRequirement, setSingleRequirement] = useState('');
   const [revisionPrompt, setRevisionPrompt] = useState('');
+  const [latexContent, setLatexContent] = useState('');
+  const [isLatexModalOpen, setIsLatexModalOpen] = useState(false);
 
   useEffect(() => {
     if (!data.settings.geminiApiKey) {
@@ -442,36 +443,103 @@ export default function App() {
   const exportToWord = async () => {
     if (!currentPlan.content) return;
     try {
-      const doc = new Document({
-        creator: "SmartPlan AI",
-        sections: [{
-          children: currentPlan.content.split('\n').filter(l => l.trim() !== '').map(line => {
-            let text = line.replace(/\*\*/g, '');
-            let heading = null;
-            if (line.startsWith('# ')) { heading = HeadingLevel.HEADING_1; text = text.replace('# ', ''); }
-            else if (line.startsWith('## ')) { heading = HeadingLevel.HEADING_2; text = text.replace('## ', ''); }
-            else if (line.startsWith('### ')) { heading = HeadingLevel.HEADING_3; text = text.replace('### ', ''); }
-            
-            if (line.trim().startsWith('- ')) {
-                 return new Paragraph({
-                     children: [new TextRun({ text: text.replace('- ', ''), font: "Arial", size: 24 })],
-                     bullet: { level: 0 }
-                 });
-            }
-            return new Paragraph({
-              heading: heading || undefined,
-              children: [new TextRun({ text, font: "Arial", size: 24 })]
-            });
-          })
-        }]
-      });
-      const blob = await Packer.toBlob(doc);
-      saveAs(blob, `${currentPlan.title || 'giao-an'}.docx`);
-      showToast('Đã xuất file Word!');
+      const contentEl = document.getElementById('lesson-content');
+      if (!contentEl) { showToast('Không tìm thấy nội dung giáo án', 'error'); return; }
+      const htmlContent = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+        <head><meta charset="utf-8"><style>
+          body { font-family: Arial, sans-serif; font-size: 12pt; line-height: 1.6; }
+          h1 { font-size: 18pt; font-weight: bold; color: #1a365d; margin-top: 12pt; }
+          h2 { font-size: 15pt; font-weight: bold; color: #2d3748; margin-top: 10pt; }
+          h3 { font-size: 13pt; font-weight: bold; color: #4a5568; margin-top: 8pt; }
+          table { border-collapse: collapse; width: 100%; margin: 8pt 0; }
+          th, td { border: 1px solid #718096; padding: 6pt 8pt; text-align: left; }
+          th { background-color: #e2e8f0; font-weight: bold; }
+          ul { margin-left: 20pt; }
+          ol { margin-left: 20pt; }
+          img { max-width: 100%; height: auto; }
+        </style></head>
+        <body>${contentEl.innerHTML}</body></html>
+      `;
+      const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
+      saveAs(blob, `${currentPlan.title || 'giao-an'}.doc`);
+      showToast('Đã xuất file Word (có bảng biểu)!');
     } catch (e) {
       console.error(e);
       showToast('Lỗi khi tải file Word', 'error');
     }
+  };
+
+  const exportToLaTeX = async () => {
+    if (!currentPlan.content) return;
+    if (!data.settings.geminiApiKey) {
+      setIsSettingsOpen(true);
+      showToast('Vui lòng nhập API Key!', 'warning');
+      return;
+    }
+    setIsLoading(true);
+    showToast('Đang chuyển đổi giáo án sang LaTeX...', 'info');
+    try {
+      const prompt = `
+Bạn là chuyên gia LaTeX. Hãy chuyển đổi CHÍNH XÁC nội dung giáo án Markdown sau sang mã nguồn LaTeX (.tex) hoàn chỉnh, có thể biên dịch trực tiếp trên Overleaf.
+
+NỘI DUNG GIÁO ÁN:
+---
+${currentPlan.content}
+---
+
+YÊU CẦU BẮT BUỘC:
+1. Tạo file .tex hoàn chỉnh với \\documentclass{article}, \\usepackage cần thiết (inputenc, babel, geometry, array, longtable, graphicx, hyperref, enumitem, titlesec, xcolor).
+2. Mọi BẢNG BIỂU phải được chuyển thành \\begin{tabular} hoặc \\begin{longtable} với đầy đủ cột, hàng, đường kẻ (\\hline).
+3. Công thức Toán phải bọc trong $ hoặc \\[ \\].
+4. Tiêu đề sử dụng \\section, \\subsection, \\subsubsection.
+5. Danh sách dùng \\begin{itemize} hoặc \\begin{enumerate}.
+6. Hình ảnh (nếu có URL) dùng \\includegraphics hoặc ghi chú URL.
+7. Sử dụng tiếng Việt với \\usepackage[vietnamese]{babel} hoặc \\usepackage{fontspec} nếu cần.
+8. CHỈ TRẢ VỀ MÃ NGUỒN LATEX THUẦN TÚY, không bọc trong markdown code block, không kèm giải thích.
+      `;
+      const result = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
+      if (result) {
+        const cleanLatex = result.replace(/^```(?:latex|tex)?\n?/i, '').replace(/\n?```$/i, '').trim();
+        setLatexContent(cleanLatex);
+        setIsLatexModalOpen(true);
+        showToast('Đã chuyển đổi sang LaTeX thành công!');
+      }
+    } catch (error) {
+      console.error(error);
+      showToast('Lỗi khi chuyển đổi sang LaTeX', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const downloadLaTeXFile = () => {
+    if (!latexContent) return;
+    const blob = new Blob([latexContent], { type: 'application/x-tex;charset=utf-8' });
+    saveAs(blob, `${currentPlan.title || 'giao-an'}.tex`);
+    showToast('Đã tải file .tex!');
+  };
+
+  const openInOverleaf = () => {
+    if (!latexContent) return;
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'https://www.overleaf.com/docs';
+    form.target = '_blank';
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'snip_uri';
+    input.value = 'data:application/x-tex;base64,' + btoa(unescape(encodeURIComponent(latexContent)));
+    form.appendChild(input);
+    const nameInput = document.createElement('input');
+    nameInput.type = 'hidden';
+    nameInput.name = 'snip_name';
+    nameInput.value = `${currentPlan.title || 'giao-an'}.tex`;
+    form.appendChild(nameInput);
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+    showToast('Đang mở Overleaf...');
   };
 
   const generatePPTX = async () => {
@@ -1039,6 +1107,13 @@ export default function App() {
                         >
                           <Layers className="w-4 h-4" /> Tạo Slide
                         </button>
+                        <button 
+                          onClick={exportToLaTeX}
+                          disabled={isLoading}
+                          className="px-4 py-2 bg-green-50 text-green-600 rounded-xl font-medium flex items-center gap-2 hover:bg-green-100 transition-colors disabled:opacity-50"
+                        >
+                          <FileSpreadsheet className="w-4 h-4" /> Xuất LaTeX
+                        </button>
                       </div>
                     </div>
                     <div id="lesson-content" className="prose prose-slate max-w-none markdown-body">
@@ -1501,6 +1576,65 @@ export default function App() {
                   className="flex-1 py-3 gradient-bg text-white rounded-xl font-bold shadow-lg shadow-blue-200"
                 >
                   Lưu thay đổi
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* LaTeX Modal */}
+      <AnimatePresence>
+        {isLatexModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            onClick={() => setIsLatexModalOpen(false)}
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-800">Mã nguồn LaTeX</h3>
+                  <p className="text-sm text-slate-500 mt-1">Có thể biên dịch trực tiếp trên Overleaf hoặc TeX Live</p>
+                </div>
+                <button onClick={() => setIsLatexModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+                  <X className="w-5 h-5 text-slate-400" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-6">
+                <pre className="bg-slate-900 text-green-300 p-6 rounded-2xl text-sm font-mono whitespace-pre-wrap overflow-x-auto leading-relaxed">
+                  {latexContent}
+                </pre>
+              </div>
+              <div className="p-6 bg-slate-50 flex gap-3 flex-wrap">
+                <button 
+                  onClick={downloadLaTeXFile}
+                  className="flex-1 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors"
+                >
+                  <Download className="w-5 h-5" /> Tải file .tex
+                </button>
+                <button 
+                  onClick={openInOverleaf}
+                  className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition-colors"
+                >
+                  <Layout className="w-5 h-5" /> Mở trên Overleaf
+                </button>
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(latexContent);
+                    showToast('Đã sao chép mã LaTeX!');
+                  }}
+                  className="flex-1 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors"
+                >
+                  <FileCheck className="w-5 h-5" /> Sao chép
                 </button>
               </div>
             </motion.div>
