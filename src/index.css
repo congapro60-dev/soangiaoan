@@ -103,3 +103,28 @@ body {
   border-top: 2px solid #e2e8f0;
   margin: 1.5rem 0;
 }
+
+/* KaTeX Math Rendering */
+.markdown-body .math {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.markdown-body .math-inline {
+  font-size: 1em;
+}
+.markdown-body .math-display {
+  font-size: 1.1em;
+  text-align: center;
+  padding: 1rem 0;
+  background: #f8fafc;
+  border-radius: 0.5rem;
+  margin: 0.75rem 0;
+  border-left: 3px solid #4A90E2;
+  padding-left: 1rem;
+}
+/* KaTeX in table cells */
+.markdown-body td .katex,
+.markdown-body th .katex {
+  font-size: 0.95em;
+}
+
