@@ -35,6 +35,8 @@ import Swal from 'sweetalert2';
 import dayjs from 'dayjs';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 import * as mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist';
 import * as XLSX from 'xlsx';
@@ -307,10 +309,91 @@ export default function App() {
 
           Yêu cầu chung:
           1. TỔNG HỢP KIẾN THỨC: Hãy sử dụng kiến thức cập nhật nhất từ internet để làm phong phú nội dung bài giảng.
-          2. TRÌNH BÀY: Sử dụng định dạng Markdown chuyên nghiệp, sử dụng bảng biểu nếu cần thiết.
-          3. CÔNG THỨC TOÁN HỌC: Đối với công thức Toán Học, KHÔNG được dùng LaTeX (như $x^2$ hay $$...$$). Bạn bắt buộc phải hiển thị công thức dạng text unicode phẳng (ví dụ x², √x, phân số dạng a/b, biểu thức dạng equation thông thường dễ đọc) để đảm bảo khi xuất ra file DOCX/PPTX sẽ không bị đứng lỗi định dạng.
+          2. TRÌNH BÀY: Sử dụng định dạng Markdown chuyên nghiệp, sử dụng bảng biểu nếu cần thiết. Font chữ Times New Roman cho mọi nội dung.
+          3. CÔNG THỨC TOÁN HỌC: Viết công thức dạng MathType/LaTeX inline ($...$) để giáo viên dễ copy vào Word. Ví dụ: $x^2 + y^2 = r^2$, $\\frac{a}{b}$, $\\sqrt{x}$.
           4. CHI TIẾT: Đảm bảo đầy đủ các bước lên lớp, mục tiêu, hoạt động học tập và đánh giá.
-          5. HÌNH ẢNH MINH HỌA: Điểm xuyết 1-2 hình ảnh minh hoạ sinh động vào giáo án bằng cú pháp Markdown: ![Mô tả ảnh](https://image.pollinations.ai/prompt/{Mo_ta_anh_bang_tieng_anh_chi_tiet}?width=800&height=400&nologo=true). Ví dụ: ![Học sinh làm thí nghiệm](https://image.pollinations.ai/prompt/students%20doing%20chemistry%20experiment%20in%20a%20modern%20lab?width=800&height=400&nologo=true)
+          5. HÌNH ẢNH MINH HỌA: Điểm xuyết 1-2 hình ảnh minh hoạ sinh động vào giáo án bằng cú pháp Markdown: ![Mô tả ảnh](https://image.pollinations.ai/prompt/{Mo_ta_anh_bang_tieng_anh_chi_tiet}?width=800&height=400&nologo=true).
+          ${subject === 'Toán học' || subject.toLowerCase().includes('toán') ? `
+          
+===========================================================
+YÊU CẦU ĐẶC BIỆT CHO GIÁO ÁN MÔN TOÁN - BẮT BUỘC TUÂN THỦ
+===========================================================
+
+A. THÔNG TIN CHUNG (Mục I)
+- Thời lượng: 40 phút/tiết
+- Gồm 3 phần bắt buộc:
+  1. NĂNG LỰC CỐT LÕI: Liệt kê các năng lực đặc thù môn Toán đạt được (tư duy logic, tư duy toán học, giải quyết vấn đề, giao tiếp toán học...)
+  2. MỤC TIÊU PHÂN HÓA (3 đối tượng):
+     - Học sinh Trung bình: Mục tiêu tối thiểu cần đạt
+     - Học sinh Khá: Mục tiêu ở mức vận dụng
+     - Học sinh Giỏi: Mục tiêu ở mức vận dụng cao, sáng tạo
+  3. CHUẨN BỊ: Công cụ, dụng cụ, phương tiện cụ thể (máy chiếu, phiếu học tập, thước, compa... tùy bài)
+
+B. CẤU TRÚC BẮT BUỘC của giáo án theo thứ tự:
+  I.   THÔNG TIN CHUNG
+  II.  TIẾN TRÌNH DẠY HỌC, gồm:
+       1. Hoạt động KHỞI ĐỘNG/TRẢI NGHIỆM
+       2. Xác định MỤC TIÊU HỌC TẬP (GV cho HS phát biểu mục tiêu)
+       3. [Câu hỏi ĐỊNH HƯỚNG cho cả bài - dẫn ra từ hoạt động khởi động]
+       4. Các Hoạt động HÌNH THÀNH KIẾN THỨC (chia nhỏ để giải quyết câu hỏi định hướng)
+       5. Hoạt động LUYỆN TẬP
+  III. CƠ HỘI HỌC TẬP MỞ RỘNG (TÙY CHỌN)
+  IV.  SƠ KẾT
+  V.   BÀI TẬP VỀ NHÀ
+
+  ★ Nếu là tiết LUYỆN TẬP: ĐỔI hoạt động 1 thành "Kiểm tra kiến thức bài cũ/Ôn tập"; hoạt động HÌNH THÀNH KIẾN THỨC thành "Phân dạng bài và phương pháp giải (có ví dụ đơn giản)".
+  ★ Nếu là tiết ĐỀ KIỂM TRA: Bắt buộc có ma trận kiến thức phân theo mức độ (Nhận biết - Thông hiểu - Vận dụng thấp - Vận dụng cao).
+  ★ Nếu là bài HÌNH HỌC: Bắt buộc vẽ hình minh họa trong các hoạt động/bài toán.
+
+C. CÁCH TRÌNH BÀY TỪNG HOẠT ĐỘNG (BẮT BUỘC):
+Mỗi hoạt động đều được trình bày theo thứ tự sau (KHÔNG được gộp chung):
+  [TÊN HOẠT ĐỘNG - in đậm, có số thứ tự]
+  - Mục tiêu: (mục tiêu riêng của hoạt động này)
+  - Đối chiếu khung đánh giá Danielson: (ghi rõ miền năng lực Danielson tương ứng, ví dụ: "Miền 3b - Đặt câu hỏi và thảo luận", "Miền 1e - Thiết kế học tập nhất quán")
+
+  Sau đó là BẢNG 3 CỘT (mỗi hoạt động 1 bảng riêng biệt, KHÔNG gộp):
+  | Thời gian | Hoạt động của Giáo viên và Học sinh | Nội dung ghi bảng/chiếu PPT |
+  |-----------|--------------------------------------|------------------------------|
+  - Cột THỜI GIAN: Ghi rõ số phút dành cho từng hoạt động nhỏ (ví dụ: 3 phút, 5 phút)
+  - Cột HOẠT ĐỘNG CỦA GV & HS: Chỉ ghi các CÂU HỎI định hướng GV định đặt ra, DỰ KIẾN câu trả lời của HS, PHƯƠNG ÁN GV sẽ xử lý, LƯU Ý/CHÚ THÍCH cho người đọc giáo án. KHÔNG ghi lý thuyết hay công thức vào đây.
+  - Cột NỘI DUNG GHI BẢNG/CHIẾU PPT: Chỉ ghi những gì chiếu lên màn hình cho HS xem: đầu mục, lý thuyết, công thức, đề bài, đáp án. Phải CHI TIẾT, KHÔNG ghi bừa "ghi công thức lên bảng". Công thức dùng cú pháp MathType ($...$).
+
+D. QUY TẮC NỘI DUNG:
+  1. CÂU HỎI ĐỊNH HƯỚNG: Đặt SAU hoạt động khởi động, DẪN RA từ tình huống khởi động.
+     - Nếu là bài toán → được giải trong phần Luyện tập
+     - Nếu là câu hỏi lý thuyết → được trả lời sau hình thành kiến thức
+     - SƠ KẾT phải nhắc lại câu hỏi định hướng để kiểm tra mức độ hiểu bài
+  2. HOẠT ĐỘNG KHỞI ĐỘNG: Đưa ra bài toán/tình huống mang tính "CÔNG DÂN TOÀN CẦU" (thực tiễn, gắn văn hóa/xã hội). Bài toán này sẽ tái xuất hiện trong phần hình thành kiến thức để làm ví dụ.
+  3. XÁC ĐỊNH MỤC TIÊU: Ngay sau khởi động, GV dẫn HS phát biểu mục tiêu. Cột "Nội dung" của bảng này là DANH SÁCH MỤC TIÊU chung cả bài, rõ ràng, cụ thể.
+  4. KIỂM TRA NHANH: Sau mỗi phần lý thuyết/công thức phải có câu hỏi kiểm tra nhanh (check-in) ngay trong bảng để HS ghi nhớ.
+  5. LUYỆN TẬP: Tối thiểu 3 bài tập phân hóa rõ ràng:
+     - Bài 1 (Trung bình): Áp dụng trực tiếp công thức/định lý
+     - Bài 2 (Khá): Vận dụng có biến tấu
+     - Bài 3 (Giỏi): Vận dụng cao, kết hợp nhiều kiến thức hoặc bài toán mở
+     Mỗi bài phải có đáp án chi tiết ở cột "Nội dung".
+  6. MỞ RỘNG: Đưa ra 1 câu hỏi vận dụng kiến thức vào thực tế/vấn đề xã hội liên quan đến kiến thức bài học (yếu tố CÔNG DÂN TOÀN CẦU và học tập liên văn hóa).
+  7. YẾU TỐ BẮT BUỘC (PHẢI CÓ ÍT NHẤT 1 hoạt động/câu hỏi thể hiện MỖI yếu tố, đánh dấu **[🌐 Công dân toàn cầu]**, **[💻 Công dân kỹ thuật số]**, **[⭐ Dạy học chất lượng cao]**):
+     - **Công dân toàn cầu & học tập liên văn hóa**: Tình huống thực tế mang tính toàn cầu
+     - **Công dân kỹ thuật số**: Sử dụng công cụ số, tra cứu online, phần mềm Toán (GeoGebra, Desmos...)
+     - **Dạy và học chất lượng cao**: Câu hỏi tư duy bậc cao, hoạt động hợp tác, phản ánh siêu nhận thức
+
+E. PHÂN BỔ THỜI GIAN tham khảo (điều chỉnh phù hợp nội dung bài):
+  - Khởi động: 5 phút
+  - Xác định mục tiêu: 2 phút
+  - Hình thành kiến thức: 15-18 phút
+  - Luyện tập: 12-15 phút
+  - Mở rộng: 3 phút (tùy chọn)
+  - Sơ kết + BTVN: 3-5 phút
+
+F. KIỂM TRA CUỐI: Trước khi trả kết quả, AI phải tự kiểm tra:
+  ✓ Kiến thức Toán học ĐÚNG không?
+  ✓ Đủ 3 bài tập phân hóa (TB/Khá/Giỏi) không?
+  ✓ Có câu hỏi định hướng sau khởi động không?
+  ✓ Mỗi hoạt động có đủ: Mục tiêu + Danielson + Bảng 3 cột không?
+  ✓ Đánh dấu đủ 3 yếu tố [🌐][💻][⭐] không?
+  ✓ Công thức dùng đúng MathType ($...$) không?
+===========================================================
+          ` : ''}
         `;
 
         const result = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
@@ -1148,7 +1231,10 @@ YÊU CẦU BẮT BUỘC:
                       </div>
                     </div>
                     <div id="lesson-content" className="prose prose-slate max-w-none markdown-body">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{currentPlan.content || ''}</ReactMarkdown>
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm, remarkMath]}
+                        rehypePlugins={[rehypeKatex]}
+                      >{currentPlan.content || ''}</ReactMarkdown>
                     </div>
 
                     {/* Feedback Form */}
@@ -1219,7 +1305,10 @@ YÊU CẦU BẮT BUỘC:
                             </button>
                           </div>
                           <div className="prose prose-slate max-w-none markdown-body max-h-[300px] overflow-y-auto pr-4">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{result.content}</ReactMarkdown>
+                            <ReactMarkdown
+                              remarkPlugins={[remarkGfm, remarkMath]}
+                              rehypePlugins={[rehypeKatex]}
+                            >{result.content}</ReactMarkdown>
                           </div>
                         </motion.div>
                       ))}
@@ -1474,7 +1563,10 @@ YÊU CẦU BẮT BUỘC:
                       )}>
                         {msg.role === 'ai' ? (
                           <div className="markdown-body">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
+                            <ReactMarkdown
+                              remarkPlugins={[remarkGfm, remarkMath]}
+                              rehypePlugins={[rehypeKatex]}
+                            >{msg.text}</ReactMarkdown>
                           </div>
                         ) : msg.text}
                       </div>
