@@ -34,6 +34,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import Swal from 'sweetalert2';
 import dayjs from 'dayjs';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import * as mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist';
 import * as XLSX from 'xlsx';
@@ -143,6 +144,12 @@ export default function App() {
 
       if (files.length > remainingSlots) {
         showToast(`Bạn chỉ có thể tải lên tối đa 10 tệp cho mỗi loại. Còn lại ${remainingSlots} slot.`, 'warning');
+        return;
+      }
+    } else if (uploadingFiles.category === 'lesson_doc') {
+      const remainingSlots = 10 - lessonDocs.length;
+      if (files.length > remainingSlots) {
+        showToast(`Bạn chỉ được tải lên tối đa 10 tài liệu tham khảo. Còn lại ${remainingSlots} slot.`, 'warning');
         return;
       }
     }
@@ -271,6 +278,7 @@ export default function App() {
           2. TRÌNH BÀY: Sử dụng định dạng Markdown chuyên nghiệp, sử dụng bảng biểu nếu cần thiết.
           3. CÔNG THỨC TOÁN HỌC: Đối với công thức Toán Học, KHÔNG được dùng LaTeX (như $x^2$ hay $$...$$). Bạn bắt buộc phải hiển thị công thức dạng text unicode phẳng (ví dụ x², √x, phân số dạng a/b, biểu thức dạng equation thông thường dễ đọc) để đảm bảo khi xuất ra file DOCX/PPTX sẽ không bị đứng lỗi định dạng.
           4. CHI TIẾT: Đảm bảo đầy đủ các bước lên lớp, mục tiêu, hoạt động học tập và đánh giá.
+          5. HÌNH ẢNH MINH HỌA: Điểm xuyết 1-2 hình ảnh minh hoạ sinh động vào giáo án bằng cú pháp Markdown: ![Mô tả ảnh](https://image.pollinations.ai/prompt/{Mo_ta_anh_bang_tieng_anh_chi_tiet}?width=800&height=400&nologo=true). Ví dụ: ![Học sinh làm thí nghiệm](https://image.pollinations.ai/prompt/students%20doing%20chemistry%20experiment%20in%20a%20modern%20lab?width=800&height=400&nologo=true)
         `;
 
         const result = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
@@ -1026,7 +1034,7 @@ export default function App() {
                       </div>
                     </div>
                     <div id="lesson-content" className="prose prose-slate max-w-none markdown-body">
-                      <ReactMarkdown>{currentPlan.content || ''}</ReactMarkdown>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{currentPlan.content || ''}</ReactMarkdown>
                     </div>
 
                     {/* Feedback Form */}
@@ -1097,7 +1105,7 @@ export default function App() {
                             </button>
                           </div>
                           <div className="prose prose-slate max-w-none markdown-body max-h-[300px] overflow-y-auto pr-4">
-                            <ReactMarkdown>{result.content}</ReactMarkdown>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{result.content}</ReactMarkdown>
                           </div>
                         </motion.div>
                       ))}
@@ -1359,7 +1367,7 @@ export default function App() {
                       )}>
                         {msg.role === 'ai' ? (
                           <div className="markdown-body">
-                            <ReactMarkdown>{msg.text}</ReactMarkdown>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
                           </div>
                         ) : msg.text}
                       </div>
