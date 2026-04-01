@@ -205,8 +205,7 @@ export default function App() {
           }
         } catch (fileError: any) {
           console.error(`Error processing file ${file.name}:`, fileError);
-      const errorMsg = error.message || JSON.stringify(error) || 'Lỗi không xác định';
-          continue; // Bỏ qua file lá»—i, tiếp tục vá»›i file khác
+          continue; // Bỏ qua file lỗi, tiếp tục với file khác
         }
 
         newFiles.push({
