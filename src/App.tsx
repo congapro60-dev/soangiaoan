@@ -112,7 +112,7 @@ export default function App() {
   const extractTextFromPDF = async (file: File): Promise<string> => {
     const arrayBuffer = await file.arrayBuffer();
     try {
-      // Thử vá»›i worker hiá»‡n tại
+      // Thử với worker hiện tại
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       let fullText = '';
       for (let i = 1; i <= pdf.numPages; i++) {
@@ -138,7 +138,7 @@ export default function App() {
         return fullText;
       } catch (fallbackError) {
         console.error('PDF extraction failed completely:', fallbackError);
-        throw new Error(`Không thá»ƒ Ä‘ọc file PDF. Vui lòng Ä‘á»•i sang Ä‘á»‹nh dạng Word (.docx).`);
+        throw new Error(`Không thể đọc file PDF. Vui lòng đổi sang định dạng Word (.docx).`);
       }
     }
   };
@@ -173,13 +173,13 @@ export default function App() {
       const remainingSlots = 10 - currentFilesCount;
 
       if (files.length > remainingSlots) {
-        showToast(`Bạn chá»‰ có thá»ƒ tải lên tá»‘i Ä‘a 10 tá»‡p cho má»—i loại. Còn lại ${remainingSlots} slot.`, 'warning');
+        showToast(`Bạn chỉ có thể tải lên tối đa 10 tệp cho má»—i loại. Còn lại ${remainingSlots} slot.`, 'warning');
         return;
       }
     } else if (uploadingFiles.category === 'lesson_doc') {
       const remainingSlots = 10 - lessonDocs.length;
       if (files.length > remainingSlots) {
-        showToast(`Bạn chá»‰ Ä‘ược tải lên tá»‘i Ä‘a 10 tài liá»‡u tham khảo. Còn lại ${remainingSlots} slot.`, 'warning');
+        showToast(`Bạn chỉ được tải lên tối đa 10 tài liệu tham khảo. Còn lại ${remainingSlots} slot.`, 'warning');
         return;
       }
     }
@@ -232,10 +232,10 @@ export default function App() {
         setDistributionFile(newFiles[0]);
       }
       
-      showToast(`Đã tải lên ${newFiles.length} tá»‡p thành công!`);
+      showToast(`Đã tải lên ${newFiles.length} tệp thành công!`);
     } catch (error) {
       console.error('File upload error:', error);
-      showToast('Lá»—i khi xử lý tá»‡p. Vui lòng thử lại.', 'error');
+      showToast('Lỗi khi xử lý tệp. Vui lòng thử lại.', 'error');
     } finally {
       setIsLoading(false);
       setUploadingFiles(null);
@@ -307,7 +307,7 @@ export default function App() {
         repaired.push(line);
       } else if (!isEmpty && inTable && prevIsTableRow && !prevIsSeparator) {
         // Orphaned content â€” should be inside the previous row's cell
-        // Heuristic: if content starts with GV:/HS:/Họạt Ä‘á»™ng: â†’ inject into col 2 (activity)
+        // Heuristic: if content starts with GV:/HS:/Họạt động: â†’ inject into col 2 (activity)
         //            otherwise â†’ inject into col 3 (board content)
         const row = repaired[prevIdx];
         const pipes = row.split('|');
@@ -354,12 +354,12 @@ export default function App() {
     }
 
     if (generationMode === 'single' && !currentPlan.title) {
-      showToast('Vui lòng nhập tiêu Ä‘ề giáo án!', 'warning');
+      showToast('Vui lòng nhập tiêu đề giáo án!', 'warning');
       return;
     }
 
     if (generationMode === 'bulk' && (!distributionFile || !bulkCommand)) {
-      showToast('Vui lòng tải lên phân phá»‘i chương trình và nhập yêu cầu soạn thảo!', 'warning');
+      showToast('Vui lòng tải lên phân phối chương trình và nhập yêu cầu soạn thảo!', 'warning');
       return;
     }
 
@@ -375,10 +375,10 @@ export default function App() {
         const samples = selectedTemplate.files.filter(f => f.category === 'sample').map(f => f.content).join('\n---\n');
         const criteria = selectedTemplate.files.filter(f => f.category === 'criteria').map(f => f.content).join('\n---\n');
         templateContext = `
-          DỰA TRÃŠN MẪU GIÁO ÁN SAU (Cấu trúc và phong cách):
+          DỰA TRÊN MẪU GIÁO ÁN SAU (Cấu trúc và phong cách):
           ${samples}
           
-          TUÃ‚N THỦ CÁC TIÃŠU CHÍ/QUY Đá»ŠNH SAU:
+          TUÂN THỦ CÁC TIÊU CHÍ/QUY ĐỊNH SAU:
           ${criteria}
         `;
       }
@@ -613,15 +613,15 @@ F. KIỂM TRA CUỐI: Trước khi trả kết quả, AI tự kiểm tra:
     setIsLoading(true);
 
     try {
-      const context = currentPlan.content ? `Dựa trên giáo án hiá»‡n tại: ${currentPlan.content.substring(0, 1000)}...` : '';
-      const prompt = `${context}\n\nNgười dùng hỏi: ${userMsg}\n\nHãy trả lời ngắn gọn và há»— trợ giáo viên tinh chá»‰nh giáo án.`;
+      const context = currentPlan.content ? `Dựa trên giáo án hiện tại: ${currentPlan.content.substring(0, 1000)}...` : '';
+      const prompt = `${context}\n\nNgười dùng hỏi: ${userMsg}\n\nHãy trả lời ngắn gọn và há»— trợ giáo viên tinh chỉnh giáo án.`;
       
       const result = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
       if (result) {
         setChatMessages(prev => [...prev, { role: 'ai', text: result }]);
       }
     } catch (error) {
-      showToast('Lá»—i AI Chat', 'error');
+      showToast('Lỗi AI Chat', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -648,7 +648,7 @@ F. KIỂM TRA CUỐI: Trước khi trả kết quả, AI tự kiểm tra:
     if (!currentPlan.content) return;
     try {
       const contentEl = document.getElementById('lesson-content');
-      if (!contentEl) { showToast('Không tìm thấy ná»™i dung giáo án', 'error'); return; }
+      if (!contentEl) { showToast('Không tìm thấy nội dung giáo án', 'error'); return; }
       const htmlContent = `
         <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
         <head><meta charset="utf-8"><style>
@@ -667,10 +667,10 @@ F. KIỂM TRA CUỐI: Trước khi trả kết quả, AI tự kiểm tra:
       `;
       const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
       saveAs(blob, `${currentPlan.title || 'giao-an'}.doc`);
-      showToast('Đã xuất file Word (có bảng biá»ƒu)!');
+      showToast('Đã xuất file Word (có bảng biểu)!');
     } catch (e) {
       console.error(e);
-      showToast('Lá»—i khi tải file Word', 'error');
+      showToast('Lỗi khi tải file Word', 'error');
     }
   };
 
@@ -682,36 +682,36 @@ F. KIỂM TRA CUỐI: Trước khi trả kết quả, AI tự kiểm tra:
       return;
     }
     setIsLoading(true);
-    showToast('Đang chuyá»ƒn Ä‘á»•i giáo án sang LaTeX...', 'info');
+    showToast('Đang chuyển đổi giáo án sang LaTeX...', 'info');
     try {
       const prompt = `
-Bạn là chuyên gia LaTeX. Hãy chuyá»ƒn Ä‘á»•i CHÍNH XÁC ná»™i dung giáo án Markdown sau sang mã nguá»“n LaTeX (.tex) hoàn chá»‰nh, có thá»ƒ biên dá»‹ch trực tiếp trên Overleaf.
+Bạn là chuyên gia LaTeX. Hãy chuyển đổi CHÍNH XÁC nội dung giáo án Markdown sau sang mã nguồn LaTeX (.tex) hoàn chỉnh, có thể biên dịch trực tiếp trên Overleaf.
 
-Ná»˜I DUNG GIÁO ÁN:
+NỘI DUNG GIÁO ÁN:
 ---
 ${currentPlan.content}
 ---
 
-YÃŠU CẦU BẮT BUá»˜C:
-1. Tạo file .tex hoàn chá»‰nh vá»›i \\documentclass{article}, \\usepackage cần thiết (inputenc, babel, geometry, array, longtable, graphicx, hyperref, enumitem, titlesec, xcolor).
-2. Mọi BẢNG BIá»‚U phải Ä‘ược chuyá»ƒn thành \\begin{tabular} hoặc \\begin{longtable} vá»›i Ä‘ầy Ä‘ủ cá»™t, hàng, Ä‘ường kẻ (\\hline).
+YÊU CẦU BẮT BUỘC:
+1. Tạo file .tex hoàn chỉnh với \\documentclass{article}, \\usepackage cần thiết (inputenc, babel, geometry, array, longtable, graphicx, hyperref, enumitem, titlesec, xcolor).
+2. Mọi BẢNG BIỔU phải được chuyển thành \\begin{tabular} hoặc \\begin{longtable} với đầy đủ cột, hàng, đường kẻ (\\hline).
 3. Công thức Toán phải bọc trong $ hoặc \\[ \\].
-4. Tiêu Ä‘ề sử dụng \\section, \\subsection, \\subsubsection.
+4. Tiêu đề sử dụng \\section, \\subsection, \\subsubsection.
 5. Danh sách dùng \\begin{itemize} hoặc \\begin{enumerate}.
 6. Hình ảnh (nếu có URL) dùng \\includegraphics hoặc ghi chú URL.
-7. Sử dụng tiếng Viá»‡t vá»›i \\usepackage[vietnamese]{babel} hoặc \\usepackage{fontspec} nếu cần.
-8. CHá»ˆ TRẢ Vá»€ MÃƒ NGUá»’N LATEX THUẦN TÃšY, không bọc trong markdown code block, không kèm giải thích.
+7. Sử dụng tiếng Việt với \\usepackage[vietnamese]{babel} hoặc \\usepackage{fontspec} nếu cần.
+8. CHỈ TRẢ VỀ MÃ NGUỒN LATEX THUẦN TÚY, không bọc trong markdown code block, không kèm giải thích.
       `;
       const result = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
       if (result) {
         const cleanLatex = result.replace(/^```(?:latex|tex)?\n?/i, '').replace(/\n?```$/i, '').trim();
         setLatexContent(cleanLatex);
         setIsLatexModalOpen(true);
-        showToast('Đã chuyá»ƒn Ä‘á»•i sang LaTeX thành công!');
+        showToast('Đã chuyển đổi sang LaTeX thành công!');
       }
     } catch (error) {
       console.error(error);
-      showToast('Lá»—i khi chuyá»ƒn Ä‘á»•i sang LaTeX', 'error');
+      showToast('Lỗi khi chuyển đổi sang LaTeX', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -743,13 +743,13 @@ YÃŠU CẦU BẮT BUá»˜C:
     document.body.appendChild(form);
     form.submit();
     document.body.removeChild(form);
-    showToast('Đang má»Ÿ Overleaf...');
+    showToast('Đang mở Overleaf...');
   };
 
   const generatePPTX = async () => {
     if (!currentPlan.title || !currentPlan.content) return;
     if (!data.settings.geminiApiKey) {
-      showToast('Vui lòng cung cấp API Key AI Ä‘á»ƒ tạo slide', 'warning');
+      showToast('Vui lòng cung cấp API Key AI để tạo slide', 'warning');
       return;
     }
     
@@ -758,16 +758,16 @@ YÃŠU CẦU BẮT BUá»˜C:
     
     try {
       const prompt = `
-        Dựa vào ná»™i dung giáo án sau, hãy tạo cấu trúc Slide bài giảng PowerPoint.
+        Dựa vào nội dung giáo án sau, hãy tạo cấu trúc Slide bài giảng PowerPoint.
         Giáo án:
         ${currentPlan.content}
 
-        YÃŠU CẦU BẮT BUá»˜C:
-        1. Trả về ĐÃšNG Ä‘á»‹nh dạng chuá»—i JSON thuần tuý là má»™t mảng object: [{"title": "Tiêu Ä‘ề Slide 1", "points": ["Ý 1", "Ý 2"]}, ...]
+        YÊU CẦU BẮT BUỘC:
+        1. Trả về ĐÃšNG định dạng chuá»—i JSON thuần tuý là một mảng object: [{"title": "Tiêu đề Slide 1", "points": ["Ý 1", "Ý 2"]}, ...]
         2. Tóm tắt súc tích, má»—i slide không vượt quá 5 ý.
-        3. TUYá»†T ĐỐI KHÃ”NG DÃ™NG LaTeX ($...$) CHO CÃ”NG THỨC TOÁN Há»ŒC. Bạn bắt buá»™c dùng Unicode thuần túy (VD: x², âˆš, âˆ«) Ä‘á»ƒ hiá»ƒn thá»‹ công thức ngay á»Ÿ text (equation format mode).
-        4. Tá»‘i Ä‘a 12 slides.
-        Chá»‰ trả về JSON, không kèm giải thích hay markdown code block chứa json.
+        3. TUYỆT ĐỐI KHÔNG DÃ™NG LaTeX ($...$) CHO CÔNG THỨC TOÁN HỌC. Bạn bắt buộc dùng Unicode thuần túy (VD: x², âˆš, âˆ«) để hiển thị công thức ngay ở text (equation format mode).
+        4. Tối đa 12 slides.
+        Chỉ trả về JSON, không kèm giải thích hay markdown code block chứa json.
       `;
       
       const response = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
@@ -792,10 +792,10 @@ YÃŠU CẦU BẮT BUá»˜C:
       });
       
       pptx.writeFile({ fileName: `${currentPlan.title || 'baigiang'}.pptx` });
-      showToast('Đã tải xuá»‘ng file trình chiếu PPTX thành công!');
+      showToast('Đã tải xuống file trình chiếu PPTX thành công!');
     } catch (e) {
       console.error(e);
-      showToast('Lá»—i cấu trúc hoặc kết ná»‘i AI, vui lòng thử lại', 'error');
+      showToast('Lỗi cấu trúc hoặc kết nối AI, vui lòng thử lại', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -812,20 +812,20 @@ YÃŠU CẦU BẮT BUá»˜C:
     setIsLoading(true);
     try {
       const prompt = `
-        Đây là ná»™i dung giáo án hiá»‡n tại bạn Ä‘ã soạn:
+        Đây là nội dung giáo án hiện tại bạn đã soạn:
         ---
         ${currentPlan.content}
         ---
         
-        Người dùng (Giáo viên) có yêu cầu sửa Ä‘á»•i, bá»• sung như sau:
+        Người dùng (Giáo viên) có yêu cầu sửa đổi, bổ sung như sau:
         "${revisionPrompt}"
         
-        Vui lòng viết lại toàn bá»™ giáo án Ä‘á»ƒ Ä‘áp ứng chính xác yêu cầu trên.
-        TUÃ‚N THỦ CÁC QUY TẮC BẮT BUá»˜C:
-        1. Giữ nguyên Ä‘á»‹nh dạng Markdown chuyên nghiá»‡p.
-        2. CÃ”NG THỨC TOÁN Há»ŒC: Đá»‘i vá»›i công thức Toán Học, KHÃ”NG Ä‘ược dùng LaTeX (như $x^2$ hay $$...$$). Bạn bắt buá»™c phải hiá»ƒn thá»‹ công thức dạng text unicode phẳng (ví dụ x², âˆšx, phân sá»‘ dạng a/b, biá»ƒu thức dạng equation thông thường dá»… Ä‘ọc)
+        Vui lòng viết lại toàn bộ giáo án để đáp ứng chính xác yêu cầu trên.
+        TUÂN THỦ CÁC QUY TẮC BẮT BUỘC:
+        1. Giữ nguyên định dạng Markdown chuyên nghiệp.
+        2. CÔNG THỨC TOÁN HỌC: Đối với công thức Toán Học, KHÔNG được dùng LaTeX (như $x^2$ hay $$...$$). Bạn bắt buộc phải hiển thị công thức dạng text unicode phẳng (ví dụ x², âˆšx, phân số dạng a/b, biểu thức dạng equation thông thường dá»… đọc)
         
-        Trình bày kết quả trực tiếp, không cần bắt Ä‘ầu bằng câu giá»›i thiá»‡u.
+        Trình bày kết quả trực tiếp, không cần bắt đầu bằng câu giới thiệu.
       `;
 
       const result = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
@@ -835,7 +835,7 @@ YÃŠU CẦU BẮT BUá»˜C:
         showToast('Đã cập nhật giáo án theo yêu cầu!');
       }
     } catch (error) {
-      showToast('Lá»—i khi sửa Ä‘á»•i giáo án. Vui lòng thử lại.', 'error');
+      showToast('Lỗi khi sửa đổi giáo án. Vui lòng thử lại.', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -843,7 +843,7 @@ YÃŠU CẦU BẮT BUá»˜C:
 
   const addTemplate = () => {
     Swal.fire({
-      title: 'Thêm mẫu giáo án má»›i',
+      title: 'Thêm mẫu giáo án mới',
       html: `
         <div class="space-y-4 text-left">
           <div>
@@ -883,7 +883,7 @@ YÃŠU CẦU BẮT BUá»˜C:
           ...prev,
           templates: [newTemplate, ...prev.templates]
         }));
-        showToast('Đã tạo mẫu má»›i. Hãy tải lên các tá»‡p giáo án mẫu và tiêu chí!');
+        showToast('Đã tạo mẫu mới. Hãy tải lên các tệp giáo án mẫu và tiêu chí!');
       }
     });
   };
@@ -891,7 +891,7 @@ YÃŠU CẦU BẮT BUá»˜C:
   const deleteTemplate = (id: string) => {
     Swal.fire({
       title: 'Xóa mẫu giáo án?',
-      text: "Tất cả tá»‡p Ä‘ính kèm trong mẫu này cũng sẽ bá»‹ xóa!",
+      text: "Tất cả tệp đính kèm trong mẫu này cũng sẽ bị xóa!",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
@@ -917,7 +917,7 @@ YÃŠU CẦU BẮT BUá»˜C:
           : t
       )
     }));
-    showToast('Đã xóa tá»‡p');
+    showToast('Đã xóa tệp');
   };
 
   return (
@@ -947,9 +947,9 @@ YÃŠU CẦU BẮT BUá»˜C:
 
         <nav className="flex-1 px-4 space-y-2 mt-4">
           {[
-            { id: 'dashboard', label: 'Tá»•ng quan', icon: LayoutDashboard },
+            { id: 'dashboard', label: 'Tổng quan', icon: LayoutDashboard },
             { id: 'creator', label: 'Soạn giáo án', icon: Plus },
-            { id: 'library', label: 'Thư viá»‡n', icon: FileText },
+            { id: 'library', label: 'Thư viện', icon: FileText },
             { id: 'templates', label: 'Mẫu giáo án', icon: Layout },
             { id: 'chat', label: 'AI Tutor', icon: MessageSquare },
           ].map((item) => (
@@ -975,7 +975,7 @@ YÃŠU CẦU BẮT BUá»˜C:
             className="w-full flex items-center gap-3 p-3 rounded-xl text-slate-500 hover:bg-slate-50 transition-all"
           >
             <Settings className="w-5 h-5 flex-shrink-0" />
-            {isSidebarOpen && <span>Cài Ä‘ặt</span>}
+            {isSidebarOpen && <span>Cài đặt</span>}
           </button>
           <button 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -991,15 +991,15 @@ YÃŠU CẦU BẮT BUá»˜C:
       <main className="flex-1 flex flex-col overflow-hidden relative">
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 shadow-sm z-20">
           <h2 className="text-lg font-semibold text-slate-800">
-            {activeTab === 'dashboard' && 'Bảng Ä‘iều khiá»ƒn'}
-            {activeTab === 'creator' && 'Soạn giáo án má»›i'}
-            {activeTab === 'library' && 'Thư viá»‡n giáo án'}
+            {activeTab === 'dashboard' && 'Bảng điều khiển'}
+            {activeTab === 'creator' && 'Soạn giáo án mới'}
+            {activeTab === 'library' && 'Thư viện giáo án'}
             {activeTab === 'templates' && 'Mẫu giáo án & Tiêu chí'}
             {activeTab === 'chat' && 'Trợ lý AI'}
           </h2>
           <div className="flex items-center gap-4">
             {!data.settings.geminiApiKey && (
-              <span className="text-red-500 text-sm font-semibold animate-pulse hidden sm:block">Lấy API key Ä‘á»ƒ sử dụng app</span>
+              <span className="text-red-500 text-sm font-semibold animate-pulse hidden sm:block">Lấy API key để sử dụng app</span>
             )}
             <button 
               onClick={() => setIsSettingsOpen(true)}
@@ -1030,10 +1030,10 @@ YÃŠU CẦU BẮT BUá»˜C:
                       <div className="p-3 bg-blue-50 rounded-xl text-blue-600">
                         <FileText className="w-6 h-6" />
                       </div>
-                      <span className="text-xs font-medium text-slate-400">Tá»•ng sá»‘</span>
+                      <span className="text-xs font-medium text-slate-400">Tổng số</span>
                     </div>
                     <div className="text-3xl font-bold text-slate-800">{data.lessonPlans.length}</div>
-                    <div className="text-sm text-slate-500 mt-1">Giáo án Ä‘ã soạn</div>
+                    <div className="text-sm text-slate-500 mt-1">Giáo án đã soạn</div>
                   </div>
                   <div className="p-6 bg-white rounded-2xl shadow-sm border border-slate-100">
                     <div className="flex items-center justify-between mb-4">
@@ -1043,17 +1043,17 @@ YÃŠU CẦU BẮT BUá»˜C:
                       <span className="text-xs font-medium text-slate-400">Tuân thủ</span>
                     </div>
                     <div className="text-3xl font-bold text-slate-800">98%</div>
-                    <div className="text-sm text-slate-500 mt-1">Đá»™ chính xác trung bình</div>
+                    <div className="text-sm text-slate-500 mt-1">Độ chính xác trung bình</div>
                   </div>
                   <div className="p-6 bg-white rounded-2xl shadow-sm border border-slate-100">
                     <div className="flex items-center justify-between mb-4">
                       <div className="p-3 bg-green-50 rounded-xl text-green-600">
                         <Zap className="w-6 h-6" />
                       </div>
-                      <span className="text-xs font-medium text-slate-400">Tiết kiá»‡m</span>
+                      <span className="text-xs font-medium text-slate-400">Tiết kiệm</span>
                     </div>
                     <div className="text-3xl font-bold text-slate-800">~12h</div>
-                    <div className="text-sm text-slate-500 mt-1">Thời gian chuẩn bá»‹/tuần</div>
+                    <div className="text-sm text-slate-500 mt-1">Thời gian chuẩn bị/tuần</div>
                   </div>
                 </div>
 
@@ -1086,7 +1086,7 @@ YÃŠU CẦU BẮT BUá»˜C:
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
                       <FileText className="w-5 h-5 text-orange-500" />
-                      Giáo án gần Ä‘ây
+                      Giáo án gần đây
                     </h3>
                     <div className="space-y-3">
                       {data.lessonPlans.slice(0, 4).map(plan => (
@@ -1105,7 +1105,7 @@ YÃŠU CẦU BẮT BUá»˜C:
                       ))}
                       {data.lessonPlans.length === 0 && (
                         <div className="p-8 text-center bg-white rounded-2xl border border-dashed border-slate-200 text-slate-400">
-                          Chưa có giáo án nào. Hãy bắt Ä‘ầu soạn thảo!
+                          Chưa có giáo án nào. Hãy bắt đầu soạn thảo!
                         </div>
                       )}
                     </div>
@@ -1148,7 +1148,7 @@ YÃŠU CẦU BẮT BUá»˜C:
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {generationMode === 'single' && (
                       <div className="space-y-2 md:col-span-1">
-                        <label className="text-sm font-semibold text-slate-700">Tiêu Ä‘ề bài học</label>
+                        <label className="text-sm font-semibold text-slate-700">Tiêu đề bài học</label>
                         <input 
                           type="text" 
                           value={currentPlan.title}
@@ -1189,7 +1189,7 @@ YÃŠU CẦU BẮT BUá»˜C:
                   {generationMode === 'single' ? (
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <label className="text-sm font-semibold text-slate-700">Tài liá»‡u tham khảo cho bài học (PDF/Word)</label>
+                        <label className="text-sm font-semibold text-slate-700">Tài liệu tham khảo cho bài học (PDF/Word)</label>
                         <div className="flex flex-wrap gap-2">
                           {lessonDocs.map(doc => (
                             <div key={doc.id} className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-sm">
@@ -1207,12 +1207,12 @@ YÃŠU CẦU BẮT BUá»˜C:
                             }}
                             className="px-4 py-1.5 border border-dashed border-slate-300 text-slate-500 rounded-lg text-sm hover:border-blue-500 hover:text-blue-500 transition-all flex items-center gap-2"
                           >
-                            <UploadCloud className="w-4 h-4" /> Tải tài liá»‡u
+                            <UploadCloud className="w-4 h-4" /> Tải tài liệu
                           </button>
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-semibold text-slate-700">Yêu cầu cụ thá»ƒ cho bài học này</label>
+                        <label className="text-sm font-semibold text-slate-700">Yêu cầu cụ thể cho bài học này</label>
                         <textarea 
                           value={singleRequirement}
                           onChange={(e) => setSingleRequirement(e.target.value)}
@@ -1224,7 +1224,7 @@ YÃŠU CẦU BẮT BUá»˜C:
                   ) : (
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <label className="text-sm font-semibold text-slate-700">Phân phá»‘i chương trình (Excel/Word/PDF)</label>
+                        <label className="text-sm font-semibold text-slate-700">Phân phối chương trình (Excel/Word/PDF)</label>
                         <div className="flex items-center gap-4">
                           {distributionFile ? (
                             <div className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 rounded-xl border border-green-100">
@@ -1243,7 +1243,7 @@ YÃŠU CẦU BẮT BUá»˜C:
                               className="w-full py-8 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center gap-2 text-slate-400 hover:border-blue-400 hover:text-blue-500 transition-all"
                             >
                               <UploadCloud className="w-8 h-8" />
-                              <span className="font-medium">Tải lên tá»‡p phân phá»‘i chương trình</span>
+                              <span className="font-medium">Tải lên tệp phân phối chương trình</span>
                               <span className="text-xs">Há»— trợ Excel, Word, PDF</span>
                             </button>
                           )}
@@ -1254,7 +1254,7 @@ YÃŠU CẦU BẮT BUá»˜C:
                         <textarea 
                           value={bulkCommand}
                           onChange={(e) => setBulkCommand(e.target.value)}
-                          placeholder="Ví dụ: Soạn cho tôi 5 bài từ bài sá»‘ 10; Soạn tất cả các bài trong tuần thứ 5..."
+                          placeholder="Ví dụ: Soạn cho tôi 5 bài từ bài số 10; Soạn tất cả các bài trong tuần thứ 5..."
                           className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all min-h-[100px]"
                         />
                       </div>
@@ -1272,7 +1272,7 @@ YÃŠU CẦU BẮT BUá»˜C:
                       ) : (
                         <Sparkles className="w-5 h-5" />
                       )}
-                      {isLoading ? 'Đang phân tích...' : generationMode === 'single' ? 'Khá»Ÿi tạo giáo án thông minh' : 'Soạn thảo hàng loạt theo phân phá»‘i'}
+                      {isLoading ? 'Đang phân tích...' : generationMode === 'single' ? 'Khởi tạo giáo án thông minh' : 'Soạn thảo hàng loạt theo phân phối'}
                     </button>
                   </div>
                 </div>
@@ -1291,7 +1291,7 @@ YÃŠU CẦU BẮT BUá»˜C:
                           onClick={saveLessonPlan}
                           className="px-4 py-2 bg-blue-50 text-blue-600 rounded-xl font-medium flex items-center gap-2 hover:bg-blue-100 transition-colors"
                         >
-                          <Save className="w-4 h-4" /> Lưu thư viá»‡n
+                          <Save className="w-4 h-4" /> Lưu thư viện
                         </button>
                         <button 
                           onClick={exportToPDF}
@@ -1331,13 +1331,13 @@ YÃŠU CẦU BẮT BUá»˜C:
                     <div className="pt-6 border-t border-slate-100 space-y-3">
                       <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                         <MessageSquare className="w-4 h-4 text-orange-500" />
-                        Chưa hài lòng? Yêu cầu AI sửa Ä‘á»•i giáo án này
+                        Chưa hài lòng? Yêu cầu AI sửa đổi giáo án này
                       </label>
                       <div className="flex flex-col gap-3">
                         <textarea
                           value={revisionPrompt}
                           onChange={(e) => setRevisionPrompt(e.target.value)}
-                          placeholder="Ví dụ: Rút ngắn phần khá»Ÿi Ä‘á»™ng lại thành 5 phút, thêm 1 trò chơi tương tác vào phần luyá»‡n tập, giải thích kỹ hơn phần công thức..."
+                          placeholder="Ví dụ: Rút ngắn phần khởi động lại thành 5 phút, thêm 1 trò chơi tương tác vào phần luyện tập, giải thích kỹ hơn phần công thức..."
                           className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-orange-500 outline-none transition-all min-h-[100px]"
                         />
                         <div className="flex justify-end">
@@ -1351,7 +1351,7 @@ YÃŠU CẦU BẮT BUá»˜C:
                             ) : (
                               <Sparkles className="w-5 h-5" />
                             )}
-                            Sửa Ä‘á»•i theo yêu cầu
+                            Sửa đổi theo yêu cầu
                           </button>
                         </div>
                       </div>
@@ -1363,12 +1363,12 @@ YÃŠU CẦU BẮT BUá»˜C:
                 {generationMode === 'bulk' && bulkResults.length > 0 && (
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xl font-bold text-slate-800">Danh sách giáo án Ä‘ã soạn ({bulkResults.length})</h3>
+                      <h3 className="text-xl font-bold text-slate-800">Danh sách giáo án đã soạn ({bulkResults.length})</h3>
                       <button 
                         onClick={saveBulkPlans}
                         className="px-6 py-3 gradient-bg text-white rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-blue-200"
                       >
-                        <Save className="w-5 h-5" /> Lưu tất cả vào thư viá»‡n
+                        <Save className="w-5 h-5" /> Lưu tất cả vào thư viện
                       </button>
                     </div>
                     <div className="grid grid-cols-1 gap-6">
@@ -1387,7 +1387,7 @@ YÃŠU CẦU BẮT BUá»˜C:
                                 const element = document.createElement('div');
                                 element.innerHTML = result.content;
                                 // Simple export for individual bulk items could be added here
-                                showToast('Chức nÄƒng xuất PDF lẻ Ä‘ang Ä‘ược cập nhật. Vui lòng lưu vào thư viá»‡n Ä‘á»ƒ xuất.');
+                                showToast('Chức năng xuất PDF lẻ đang được cập nhật. Vui lòng lưu vào thư viện để xuất.');
                               }}
                               className="p-2 text-slate-400 hover:text-blue-500 transition-colors"
                             >
@@ -1428,7 +1428,7 @@ YÃŠU CẦU BẮT BUá»˜C:
                     onClick={() => setActiveTab('creator')}
                     className="px-6 py-3 gradient-bg text-white rounded-2xl font-bold flex items-center gap-2"
                   >
-                    <Plus className="w-5 h-5" /> Soạn má»›i
+                    <Plus className="w-5 h-5" /> Soạn mới
                   </button>
                 </div>
 
@@ -1467,7 +1467,7 @@ YÃŠU CẦU BẮT BUá»˜C:
                 {data.lessonPlans.length === 0 && (
                   <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                     <FileText className="w-16 h-16 mb-4 opacity-20" />
-                    <p>Thư viá»‡n trá»‘ng. Hãy tạo giáo án Ä‘ầu tiên!</p>
+                    <p>Thư viện trống. Hãy tạo giáo án đầu tiên!</p>
                   </div>
                 )}
               </motion.div>
@@ -1483,13 +1483,13 @@ YÃŠU CẦU BẮT BUá»˜C:
                 <div className="flex justify-between items-center">
                   <div>
                     <h2 className="text-2xl font-bold text-slate-800">Mẫu giáo án & Tiêu chí</h2>
-                    <p className="text-sm text-slate-500">Tải lên giáo án mẫu và các tá»‡p tiêu chí (PDF/Word) Ä‘á»ƒ AI soạn thảo Ä‘úng chuẩn</p>
+                    <p className="text-sm text-slate-500">Tải lên giáo án mẫu và các tệp tiêu chí (PDF/Word) để AI soạn thảo đúng chuẩn</p>
                   </div>
                   <button 
                     onClick={addTemplate}
                     className="gradient-bg text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-blue-200 transition-all hover:opacity-90"
                   >
-                    <Plus size={20} /> Thêm mẫu má»›i
+                    <Plus size={20} /> Thêm mẫu mới
                   </button>
                 </div>
 
@@ -1568,7 +1568,7 @@ YÃŠU CẦU BẮT BUá»˜C:
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
                             <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                              <FileCheck size={14} className="text-green-500" /> Tiêu chí & Quy Ä‘á»‹nh
+                              <FileCheck size={14} className="text-green-500" /> Tiêu chí & Quy định
                             </h4>
                             <button 
                               onClick={() => {
@@ -1598,7 +1598,7 @@ YÃŠU CẦU BẮT BUá»˜C:
                             ))}
                             {tpl.files.filter(f => f.category === 'criteria').length === 0 && (
                               <div className="py-4 text-center border-2 border-dashed border-slate-100 rounded-xl text-[10px] text-slate-400">
-                                Chưa có tá»‡p tiêu chí (Tá»‘i Ä‘a 10 tá»‡p)
+                                Chưa có tệp tiêu chí (Tối đa 10 tệp)
                               </div>
                             )}
                           </div>
@@ -1610,7 +1610,7 @@ YÃŠU CẦU BẮT BUá»˜C:
                     <div className="lg:col-span-2 p-20 text-center bg-white rounded-[40px] border-2 border-dashed border-slate-100 text-slate-400">
                       <Layout className="w-16 h-16 mx-auto mb-4 opacity-10" />
                       <p className="text-lg font-medium">Chưa có mẫu giáo án nào</p>
-                      <p className="text-sm">Hãy thêm mẫu Ä‘ầu tiên và tải lên các tá»‡p hưá»›ng dẫn Ä‘á»ƒ AI học tập</p>
+                      <p className="text-sm">Hãy thêm mẫu đầu tiên và tải lên các tệp hướng dẫn để AI học tập</p>
                     </div>
                   )}
                 </div>
@@ -1640,7 +1640,7 @@ YÃŠU CẦU BẮT BUá»˜C:
                   {chatMessages.length === 0 && (
                     <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-4">
                       <MessageSquare className="w-16 h-16 opacity-10" />
-                      <p className="text-center max-w-xs">Chào thầy/cô! Tôi có thá»ƒ giúp gì trong viá»‡c tinh chá»‰nh giáo án hôm nay?</p>
+                      <p className="text-center max-w-xs">Chào thầy/cô! Tôi có thể giúp gì trong việc tinh chỉnh giáo án hôm nay?</p>
                     </div>
                   )}
                   {chatMessages.map((msg, idx) => (
@@ -1680,7 +1680,7 @@ YÃŠU CẦU BẮT BUá»˜C:
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleChat()}
-                      placeholder="Nhập yêu cầu (ví dụ: 'Hãy thêm hoạt Ä‘á»™ng trò chơi cho bài này'...)"
+                      placeholder="Nhập yêu cầu (ví dụ: 'Hãy thêm hoạt động trò chơi cho bài này'...)"
                       className="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
                     />
                     <button 
@@ -1715,7 +1715,7 @@ YÃŠU CẦU BẮT BUá»˜C:
               <div className="p-6 border-b border-slate-100 flex items-center justify-between">
                 <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                   <Settings className="w-5 h-5 text-blue-500" />
-                  Cài Ä‘ặt há»‡ thá»‘ng
+                  Cài đặt hệ thống
                 </h3>
                 <button onClick={() => setIsSettingsOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
                   <X className="w-5 h-5 text-slate-400" />
@@ -1725,7 +1725,7 @@ YÃŠU CẦU BẮT BUá»˜C:
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700 flex items-center justify-between">
                     <div className="flex items-center gap-2"><Key className="w-4 h-4" /> Gemini API Key</div>
-                    <a href="https://aistudio.google.com/api-keys" target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline">Lấy Key tại Ä‘ây</a>
+                    <a href="https://aistudio.google.com/api-keys" target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline">Lấy Key tại đây</a>
                   </label>
                   <input 
                     type="password" 
@@ -1734,15 +1734,15 @@ YÃŠU CẦU BẮT BUá»˜C:
                     placeholder="Nhập API Key của bạn..."
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
                   />
-                  <p className="text-[10px] text-slate-400">API Key Ä‘ược lưu an toàn trong trình duyá»‡t của bạn.</p>
+                  <p className="text-[10px] text-slate-400">API Key được lưu an toàn trong trình duyệt của bạn.</p>
                 </div>
                 <div className="space-y-3">
                   <label className="text-sm font-semibold text-slate-700">Mô hình AI</label>
                   <div className="grid grid-cols-1 gap-2">
                     {[
-                      { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash', desc: 'Nhanh, hiá»‡u suất cao (Default)' },
-                      { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro', desc: 'Thông minh, suy luận rất tá»‘t' },
-                      { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', desc: 'Phiên bản á»•n Ä‘á»‹nh' }
+                      { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash', desc: 'Nhanh, hiệu suất cao (Default)' },
+                      { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro', desc: 'Thông minh, suy luận rất tốt' },
+                      { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', desc: 'Phiên bản ổn định' }
                     ].map(m => (
                       <div 
                         key={m.id}
@@ -1762,7 +1762,7 @@ YÃŠU CẦU BẮT BUá»˜C:
                   </div>
                 </div>
                 <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
-                  <span className="text-sm font-medium text-slate-700">Tự Ä‘á»™ng lưu</span>
+                  <span className="text-sm font-medium text-slate-700">Tự động lưu</span>
                   <div 
                     onClick={() => setData(prev => ({ ...prev, settings: { ...prev.settings, autoSave: !prev.settings.autoSave } }))}
                     className={cn(
@@ -1784,11 +1784,11 @@ YÃŠU CẦU BẮT BUá»˜C:
                 <button 
                   onClick={() => {
                     setIsSettingsOpen(false);
-                    showToast('Đã lưu cài Ä‘ặt!');
+                    showToast('Đã lưu cài đặt!');
                   }}
                   className="flex-1 py-3 gradient-bg text-white rounded-xl font-bold shadow-lg shadow-blue-200"
                 >
-                  Lưu thay Ä‘á»•i
+                  Lưu thay đổi
                 </button>
               </div>
             </motion.div>
@@ -1815,8 +1815,8 @@ YÃŠU CẦU BẮT BUá»˜C:
             >
               <div className="p-6 border-b border-slate-100 flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-bold text-slate-800">Mã nguá»“n LaTeX</h3>
-                  <p className="text-sm text-slate-500 mt-1">Có thá»ƒ biên dá»‹ch trực tiếp trên Overleaf hoặc TeX Live</p>
+                  <h3 className="text-xl font-bold text-slate-800">Mã nguồn LaTeX</h3>
+                  <p className="text-sm text-slate-500 mt-1">Có thể biên dịch trực tiếp trên Overleaf hoặc TeX Live</p>
                 </div>
                 <button onClick={() => setIsLatexModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
                   <X className="w-5 h-5 text-slate-400" />
@@ -1838,7 +1838,7 @@ YÃŠU CẦU BẮT BUá»˜C:
                   onClick={openInOverleaf}
                   className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition-colors"
                 >
-                  <Layout className="w-5 h-5" /> Má»Ÿ trên Overleaf
+                  <Layout className="w-5 h-5" /> Mở trên Overleaf
                 </button>
                 <button 
                   onClick={() => {
