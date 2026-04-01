@@ -112,7 +112,7 @@ export default function App() {
   const extractTextFromPDF = async (file: File): Promise<string> => {
     const arrayBuffer = await file.arrayBuffer();
     try {
-      // Thử với worker hiện tại
+      // Thử vá»›i worker hiá»‡n tại
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       let fullText = '';
       for (let i = 1; i <= pdf.numPages; i++) {
@@ -138,7 +138,7 @@ export default function App() {
         return fullText;
       } catch (fallbackError) {
         console.error('PDF extraction failed completely:', fallbackError);
-        throw new Error(`Không thể đọc file PDF. Vui lòng đổi sang định dạng Word (.docx).`);
+        throw new Error(`Không thá»ƒ Ä‘ọc file PDF. Vui lòng Ä‘á»•i sang Ä‘á»‹nh dạng Word (.docx).`);
       }
     }
   };
@@ -173,13 +173,13 @@ export default function App() {
       const remainingSlots = 10 - currentFilesCount;
 
       if (files.length > remainingSlots) {
-        showToast(`Bạn chỉ có thể tải lên tối đa 10 tệp cho mỗi loại. Còn lại ${remainingSlots} slot.`, 'warning');
+        showToast(`Bạn chá»‰ có thá»ƒ tải lên tá»‘i Ä‘a 10 tá»‡p cho má»—i loại. Còn lại ${remainingSlots} slot.`, 'warning');
         return;
       }
     } else if (uploadingFiles.category === 'lesson_doc') {
       const remainingSlots = 10 - lessonDocs.length;
       if (files.length > remainingSlots) {
-        showToast(`Bạn chỉ được tải lên tối đa 10 tài liệu tham khảo. Còn lại ${remainingSlots} slot.`, 'warning');
+        showToast(`Bạn chá»‰ Ä‘ược tải lên tá»‘i Ä‘a 10 tài liá»‡u tham khảo. Còn lại ${remainingSlots} slot.`, 'warning');
         return;
       }
     }
@@ -205,8 +205,8 @@ export default function App() {
           }
         } catch (fileError: any) {
           console.error(`Error processing file ${file.name}:`, fileError);
-          showToast(`Lỗi đọc file "${file.name}": ${fileError.message || 'Lỗi không xác định'}`, 'error');
-          continue; // Bỏ qua file lỗi, tiếp tục với file khác
+      const errorMsg = error.message || JSON.stringify(error) || 'Lỗi không xác định';
+          continue; // Bỏ qua file lá»—i, tiếp tục vá»›i file khác
         }
 
         newFiles.push({
@@ -233,10 +233,10 @@ export default function App() {
         setDistributionFile(newFiles[0]);
       }
       
-      showToast(`Đã tải lên ${newFiles.length} tệp thành công!`);
+      showToast(`Đã tải lên ${newFiles.length} tá»‡p thành công!`);
     } catch (error) {
       console.error('File upload error:', error);
-      showToast('Lỗi khi xử lý tệp. Vui lòng thử lại.', 'error');
+      showToast('Lá»—i khi xử lý tá»‡p. Vui lòng thử lại.', 'error');
     } finally {
       setIsLoading(false);
       setUploadingFiles(null);
@@ -261,6 +261,92 @@ export default function App() {
     });
   };
 
+  // ============================================================
+  // Smart Markdown Table Repair
+  // Problem: AI generates \n inside table cells â†’ each \n becomes new row â†’ columns misalign
+  // Fix: detect orphaned lines adjacent to table rows, merge them back with <br/>
+  // Also: strip inline images that break table structure
+  // ============================================================
+  const cleanMarkdownOutput = (text: string): string => {
+    if (!text) return text;
+
+    // Step 1: Normalize <br> variants to <br/> (self-closing, works with rehype-raw)
+    let result = text.replace(/<br\s*\/?>/gi, '<br/>');
+
+    // Step 2: Strip image tags INSIDE table rows (images break table structure completely)
+    // Pattern: | cell |  ![alt](url) more text | => | cell | more text |
+    result = result.replace(
+      /\|([^|\n]*)!\[[^\]]*\]\([^)]*\)([^|\n]*)/g,
+      '|$1$2'
+    );
+
+    // Step 3: Repair orphaned lines that escaped from table cells
+    // When AI writes a newline inside what should be 1 table row, Markdown
+    // treats subsequent lines as new rows â€” columns completely misalign.
+    const lines = result.split('\n');
+    const repaired: string[] = [];
+    let inTable = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const trimmed = line.trim();
+      const prevIdx = repaired.length - 1;
+      const prevLine = prevIdx >= 0 ? repaired[prevIdx] : '';
+      const prevTrimmed = prevLine.trim();
+
+      const isTableRow = trimmed.startsWith('|');
+      const isSeparator = /^\|[\s\-:|]+\|/.test(trimmed);
+      const isEmpty = trimmed === '';
+      const prevIsTableRow = prevTrimmed.startsWith('|');
+      const prevIsSeparator = /^\|[\s\-:|]+\|/.test(prevTrimmed);
+
+      if (isSeparator) {
+        inTable = true;
+        repaired.push(line);
+      } else if (isTableRow) {
+        inTable = true;
+        repaired.push(line);
+      } else if (!isEmpty && inTable && prevIsTableRow && !prevIsSeparator) {
+        // Orphaned content â€” should be inside the previous row's cell
+        // Heuristic: if content starts with GV:/HS:/Họạt Ä‘á»™ng: â†’ inject into col 2 (activity)
+        //            otherwise â†’ inject into col 3 (board content)
+        const row = repaired[prevIdx];
+        const pipes = row.split('|');
+        // pipes[0]='', pipes[1]=col1, pipes[2]=col2, pipes[3]=col3, pipes[4]=''
+        if (pipes.length >= 4) {
+          // Determine which column to inject into
+          const isActivityContent = /^(GV|HS|Họ:|Lưu ý|\*{0,2}(GV|HS))/i.test(trimmed);
+          if (isActivityContent) {
+            // Inject into column 2 (activity column)
+            pipes[2] = pipes[2] + '<br/>' + trimmed;
+          } else {
+            // Inject into column 3 (board content column)
+            pipes[3] = pipes[3] + '<br/>' + trimmed;
+          }
+          repaired[prevIdx] = pipes.join('|');
+        } else {
+          // Fallback: merge before last pipe
+          const lastPipePos = row.lastIndexOf(' |');
+          if (lastPipePos > 0) {
+            repaired[prevIdx] = row.slice(0, lastPipePos) + '<br/>' + trimmed + row.slice(lastPipePos);
+          } else {
+            repaired.push(line);
+          }
+        }
+      } else {
+        if (isEmpty) inTable = false;
+        repaired.push(line);
+      }
+    }
+
+    result = repaired.join('\n');
+
+    // Step 4: Collapse 3+ blank lines to double blank
+    result = result.replace(/\n{3,}/g, '\n\n');
+
+    return result;
+  };
+
   const handleCreateLesson = async () => {
     if (!data.settings.geminiApiKey) {
       setIsSettingsOpen(true);
@@ -269,12 +355,12 @@ export default function App() {
     }
 
     if (generationMode === 'single' && !currentPlan.title) {
-      showToast('Vui lòng nhập tiêu đề giáo án!', 'warning');
+      showToast('Vui lòng nhập tiêu Ä‘ề giáo án!', 'warning');
       return;
     }
 
     if (generationMode === 'bulk' && (!distributionFile || !bulkCommand)) {
-      showToast('Vui lòng tải lên phân phối chương trình và nhập yêu cầu soạn thảo!', 'warning');
+      showToast('Vui lòng tải lên phân phá»‘i chương trình và nhập yêu cầu soạn thảo!', 'warning');
       return;
     }
 
@@ -290,10 +376,10 @@ export default function App() {
         const samples = selectedTemplate.files.filter(f => f.category === 'sample').map(f => f.content).join('\n---\n');
         const criteria = selectedTemplate.files.filter(f => f.category === 'criteria').map(f => f.content).join('\n---\n');
         templateContext = `
-          DỰA TRÊN MẪU GIÁO ÁN SAU (Cấu trúc và phong cách):
+          DỰA TRÃŠN MẪU GIÁO ÁN SAU (Cấu trúc và phong cách):
           ${samples}
           
-          TUÂN THỦ CÁC TIÊU CHÍ/QUY ĐỊNH SAU:
+          TUÃ‚N THỦ CÁC TIÃŠU CHÍ/QUY Đá»ŠNH SAU:
           ${criteria}
         `;
       }
@@ -310,16 +396,34 @@ export default function App() {
 
           Yêu cầu chung:
           1. TỔNG HỢP KIẾN THỨC: Hãy sử dụng kiến thức cập nhật nhất từ internet để làm phong phú nội dung bài giảng.
-          2. ĐỊNH DẠNG MARKDOWN NGHIÊM NGẶT - CÁC QUY TẮC BẮT BUỘC:
-             a) TUYỆT ĐỐI KHÔNG sử dụng thẻ HTML như <br>, <div>, <span> trong nội dung.
-             b) Để xuống dòng đơn trong bảng: dùng ký tự | phân cách, KHÔNG dùng <br>.
-             c) Để tạo đoạn văn (paragraph) mới: để trống 1 dòng trắng giữa các đoạn.
-             d) Dùng dấu gạch đầu dòng (-) cho từng ý nhỏ, KHÔNG nhồi nhiều ý vào 1 câu.
-             e) Trong ô bảng nếu có nhiều dòng, dùng: <br/> (self-closing) HOẶC tách thành dòng riêng trong cột. 
-             f) Mỗi hoạt động/phần phải cách nhau bằng ít nhất 1 dòng trắng.
-          3. CÔNG THỨC TOÁN HỌC: Viết công thức dạng LaTeX inline ($...$) hoặc block ($$...$$). Ví dụ: $x^2 + y^2 = r^2$, $\\frac{a}{b}$, $\\sqrt{x}$.
-          4. CHI TIẾT: Đảm bảo đầy đủ các bước lên lớp, mục tiêu, hoạt động học tập và đánh giá.
-          5. HÌNH ẢNH MINH HỌA: Điểm xuyết 1-2 hình ảnh minh hoạ sinh động vào giáo án bằng cú pháp Markdown: ![Mô tả ảnh](https://image.pollinations.ai/prompt/{Mo_ta_anh_bang_tieng_anh_chi_tiet}?width=800&height=400&nologo=true).
+
+          2. ĐỊNH DẠNG MARKDOWN - QUY TẮC BẮT BUỘC TỐI QUAN TRỌNG:
+             a) QUY TẮC SỐ 1 VỀ BẢNG 3 CỘT: Mỗi hàng bảng PHẢI nằm trên ĐÚNG 1 DÒNG. TUYỆT ĐỐI KHÔNG xuống dòng bằng Enter trong ô bảng.
+                - Để ngăn cách nội dung trong ô: Dùng "<br/>" (chính xác như vậy, không có dấu cách trong thẻ)
+                - Sai: | cell1 | GV: hỏi câu 1 \n GV: hỏi câu 2 | cell3 |   ← SAI (\n phá vỡ bảng)
+                - Đúng: | cell1 | GV: hỏi câu 1<br/>GV: hỏi câu 2 | cell3 | ← ĐÚNG
+             b) TUYỆT ĐỐI KHÔNG chèn hình ảnh ![...](url) vào trong ô bảng - ảnh chỉ được phép giữa các bảng.
+             c) Mỗi hoạt động cách nhau 1 dòng trắng.
+             d) KHÔNG dùng thẻ HTML như <br> (dạng không tự đóng), <div>, <span>.
+
+          3. CÔNG THỨC TOÁN HỌC:
+             - Công thức inline: $...$ (ví dụ: $x^2 + y^2 = r^2$)
+             - Công thức block độc lập (ngoài bảng): $$...$$
+             - Trong ô bảng: chỉ dùng $...$ (không dùng $$)
+
+          4. HÌNH ẢNH: Chỉ chèn hình ảnh vào ĐOẠN VĂN ngoài bảng. KHÔNG chèn hình ảnh vào trong bảng. Giới hạn tối đa 1 hình cho cả bài (phần mở rộng hoặc kết). Không để hình vào phần kiến thức Toán. Hình dùng API: ![Mô tả](https://image.pollinations.ai/prompt/{mô_tả_tiếng_anh}?width=600&height=300&nologo=true)
+
+          5. MỤC TIÊU HOẠT ĐỘNG: Viết theo dạng "Tôi có thể...". Ví dụ:
+             - "Tôi có thể phát biểu được công thức khai triển nhị thức Newton."
+             - "Tôi có thể vận dụng công thức để tính hệ số trong khai triển cho n = 4, 5."
+
+          6. KHUNG ĐÁNH GIÁ DANIELSON: Người dùng đã tải lên file Danielson ở phần "Tiêu chí và Quy định". Hãy đọc kĩ nội dung file đó và trích dẫn chính xác và cụ thể tên Miền + Các Chỉ số phụ (chữ cái a, b, c...) khi viết mục "Đối chiếu khung đánh giá Danielson". (Ví dụ: Miền 3b - Đặt câu hỏi và thảo luận, Miền 3c - Lôi cuốn học sinh...).
+
+          7. CHI TIẾT: Đảm bảo đầy đủ các bước lên lớp, mục tiêu, hoạt động học tập và đánh giá.
+
+          8. VÍ DỤ CÚ PHÁP BẢNG 3 CỘT ĐÚNG (BẮT BUỘC THEO MẪU NÀY):
+          | 5 phút | GV: Hỏi "Công thức $\\binom{n}{k}$ có ý nghĩa gì?"<br/>HS dự kiến: "Là số tổ hợp chọn k phần tử từ n phần tử"<br/>GV: Xác nhận và mở rộng sang khai triển nhị thức | **I. Công thức:**<br/>$(a+b)^n = \\sum_{k=0}^{n} \\binom{n}{k} a^{n-k}b^k$<br/>**Ví dụ:** $(a+b)^4 = a^4 + 4a^3b + 6a^2b^2 + 4ab^3 + b^4$ |
+          => Mỗi hàng bảng chỉ 1 dòng. Dùng <br/> (không có khoảng trắng bên trong) để ngăn cách nội dung trong ô.
           ${subject === 'Toán học' || subject.toLowerCase().includes('toán') ? `
           
 ===========================================================
@@ -329,12 +433,12 @@ YÊU CẦU ĐẶC BIỆT CHO GIÁO ÁN MÔN TOÁN - BẮT BUỘC TUÂN THỦ
 A. THÔNG TIN CHUNG (Mục I)
 - Thời lượng: 40 phút/tiết
 - Gồm 3 phần bắt buộc:
-  1. NĂNG LỰC CỐT LÕI: Liệt kê các năng lực đặc thù môn Toán đạt được (tư duy logic, tư duy toán học, giải quyết vấn đề, giao tiếp toán học...)
+  1. NĂNG LỰC CỐT LÕI: Liệt kê các năng lực đặc thù môn Toán đạt được
   2. MỤC TIÊU PHÂN HÓA (3 đối tượng):
      - Học sinh Trung bình: Mục tiêu tối thiểu cần đạt
      - Học sinh Khá: Mục tiêu ở mức vận dụng
      - Học sinh Giỏi: Mục tiêu ở mức vận dụng cao, sáng tạo
-  3. CHUẨN BỊ: Công cụ, dụng cụ, phương tiện cụ thể (máy chiếu, phiếu học tập, thước, compa... tùy bài)
+  3. CHUẨN BỊ: Công cụ, dụng cụ, phương tiện cụ thể.
 
 B. CẤU TRÚC BẮT BUỘC của giáo án theo thứ tự:
   I.   THÔNG TIN CHUNG
@@ -348,70 +452,45 @@ B. CẤU TRÚC BẮT BUỘC của giáo án theo thứ tự:
   IV.  SƠ KẾT
   V.   BÀI TẬP VỀ NHÀ
 
-  ★ Nếu là tiết LUYỆN TẬP: ĐỔI hoạt động 1 thành "Kiểm tra kiến thức bài cũ/Ôn tập"; hoạt động HÌNH THÀNH KIẾN THỨC thành "Phân dạng bài và phương pháp giải (có ví dụ đơn giản)".
-  ★ Nếu là tiết ĐỀ KIỂM TRA: Bắt buộc có ma trận kiến thức phân theo mức độ (Nhận biết - Thông hiểu - Vận dụng thấp - Vận dụng cao).
-  ★ Nếu là bài HÌNH HỌC: Bắt buộc vẽ hình minh họa trong các hoạt động/bài toán.
-
 C. CÁCH TRÌNH BÀY TỪNG HOẠT ĐỘNG (BẮT BUỘC):
 Mỗi hoạt động đều được trình bày theo thứ tự sau (KHÔNG được gộp chung):
   [TÊN HOẠT ĐỘNG - in đậm, có số thứ tự]
   - Mục tiêu: (mục tiêu riêng của hoạt động này)
-  - Đối chiếu khung đánh giá Danielson: (ghi rõ miền năng lực Danielson tương ứng, ví dụ: "Miền 3b - Đặt câu hỏi và thảo luận", "Miền 1e - Thiết kế học tập nhất quán")
+  - Đối chiếu khung đánh giá Danielson: (ghi rõ miền năng lực Danielson)
 
   Sau đó là BẢNG 3 CỘT (mỗi hoạt động 1 bảng riêng biệt, KHÔNG gộp):
   | Thời gian | Hoạt động của Giáo viên và Học sinh | Nội dung ghi bảng/chiếu PPT |
   |-----------|--------------------------------------|------------------------------|
-  - Cột THỜI GIAN: Ghi rõ số phút dành cho từng hoạt động nhỏ (ví dụ: 3 phút, 5 phút)
-  - Cột HOẠT ĐỘNG CỦA GV & HS: Chỉ ghi các CÂU HỎI định hướng GV định đặt ra, DỰ KIẾN câu trả lời của HS, PHƯƠNG ÁN GV sẽ xử lý, LƯU Ý/CHÚ THÍCH cho người đọc giáo án. KHÔNG ghi lý thuyết hay công thức vào đây.
-  - Cột NỘI DUNG GHI BẢNG/CHIẾU PPT: Chỉ ghi những gì chiếu lên màn hình cho HS xem: đầu mục, lý thuyết, công thức, đề bài, đáp án. Phải CHI TIẾT, KHÔNG ghi bừa "ghi công thức lên bảng". Công thức dùng cú pháp MathType ($...$).
+  - Cột THỜI GIAN: Ghi rõ số phút (ví dụ: 3 phút, 5 phút).
+  - Cột HOẠT ĐỘNG CỦA GV & HS: Ghi các CÂU HỎI định hướng, câu trả lời dự kiến. Chú ý ngăn cách bằng <br/>. Đặt câu hỏi phải thúc đẩy tư duy.
+  - Cột NỘI DUNG GHI BẢNG/CHIẾU PPT: Nội dung lý thuyết, công thức dùng MathType ($...$), ví dụ minh họa và đáp án.
 
 D. QUY TẮC NỘI DUNG:
-  1. CÂU HỎI ĐỊNH HƯỚNG: Đặt SAU hoạt động khởi động, DẪN RA từ tình huống khởi động.
-     - Nếu là bài toán → được giải trong phần Luyện tập
-     - Nếu là câu hỏi lý thuyết → được trả lời sau hình thành kiến thức
-     - SƠ KẾT phải nhắc lại câu hỏi định hướng để kiểm tra mức độ hiểu bài
-  2. HOẠT ĐỘNG KHỞI ĐỘNG: Đưa ra bài toán/tình huống mang tính "CÔNG DÂN TOÀN CẦU" (thực tiễn, gắn văn hóa/xã hội). Bài toán này sẽ tái xuất hiện trong phần hình thành kiến thức để làm ví dụ.
-  3. XÁC ĐỊNH MỤC TIÊU: Ngay sau khởi động, GV dẫn HS phát biểu mục tiêu. Cột "Nội dung" của bảng này là DANH SÁCH MỤC TIÊU chung cả bài, rõ ràng, cụ thể.
-  4. KIỂM TRA NHANH: Sau mỗi phần lý thuyết/công thức phải có câu hỏi kiểm tra nhanh (check-in) ngay trong bảng để HS ghi nhớ.
-  5. LUYỆN TẬP: Tối thiểu 3 bài tập phân hóa rõ ràng:
-     - Bài 1 (Trung bình): Áp dụng trực tiếp công thức/định lý
+  1. CÂU HỎI ĐỊNH HƯỚNG: Đặt SAU hoạt động khởi động, chỉ ra vấn đề cốt lõi cần giải quyết cho cả bài học.
+  2. HOẠT ĐỘNG KHỞI ĐỘNG: Đưa ra bài toán thực tiễn mang tính "CÔNG DÂN TOÀN CẦU".
+  3. KIỂM TRA NHANH: Sau mỗi phần lý thuyết/công thức phải có câu hỏi kiểm tra nhanh (chờ kết quả check-in bằng biểu đồ tay v.v).
+  4. LUYỆN TẬP: Đưa 3 bài tập phân hóa:
+     - Bài 1 (Trung bình): Áp dụng công thức
      - Bài 2 (Khá): Vận dụng có biến tấu
-     - Bài 3 (Giỏi): Vận dụng cao, kết hợp nhiều kiến thức hoặc bài toán mở
-     Mỗi bài phải có đáp án chi tiết ở cột "Nội dung".
-  6. MỞ RỘNG: Đưa ra 1 câu hỏi vận dụng kiến thức vào thực tế/vấn đề xã hội liên quan đến kiến thức bài học (yếu tố CÔNG DÂN TOÀN CẦU và học tập liên văn hóa).
-  7. YẾU TỐ BẮT BUỘC (PHẢI CÓ ÍT NHẤT 1 hoạt động/câu hỏi thể hiện MỖI yếu tố, đánh dấu **[🌐 Công dân toàn cầu]**, **[💻 Công dân kỹ thuật số]**, **[⭐ Dạy học chất lượng cao]**):
-     - **Công dân toàn cầu & học tập liên văn hóa**: Tình huống thực tế mang tính toàn cầu
-     - **Công dân kỹ thuật số**: Sử dụng công cụ số, tra cứu online, phần mềm Toán (GeoGebra, Desmos...)
-     - **Dạy và học chất lượng cao**: Câu hỏi tư duy bậc cao, hoạt động hợp tác, phản ánh siêu nhận thức
+     - Bài 3 (Giỏi): Vận dụng cao, kết hợp nhiều kiến thức.
+  5. YẾU TỐ BẮT BUỘC (Đánh dấu vào từng hoạt động):
+     - [🌐 Công dân toàn cầu]: Các vấn đề liên quan đời sống, thực tiễn chung.
+     - [💻 Công dân kỹ thuật số]: Ứng dụng công nghệ, máy tính bỏ túi.
+     - [⭐ Dạy học chất lượng cao]: Hoạt động suy ngẫm, thảo luận.
 
-E. PHÂN BỔ THỜI GIAN tham khảo (điều chỉnh phù hợp nội dung bài):
-  - Khởi động: 5 phút
-  - Xác định mục tiêu: 2 phút
-  - Hình thành kiến thức: 15-18 phút
-  - Luyện tập: 12-15 phút
-  - Mở rộng: 3 phút (tùy chọn)
-  - Sơ kết + BTVN: 3-5 phút
+E. PHÂN BỔ THỜI GIAN
+  - Khởi động: 5 phút | Xác định mục tiêu: 2 phút | Hình thành kiến thức: 15-18 phút | Luyện tập: 12-15 phút | Mở rộng: 3 phút | Sơ kết: 3-5 phút
 
-F. KIỂM TRA CUỐI: Trước khi trả kết quả, AI phải tự kiểm tra:
-  ✓ Kiến thức Toán học ĐÚNG không?
-  ✓ Đủ 3 bài tập phân hóa (TB/Khá/Giỏi) không?
-  ✓ Có câu hỏi định hướng sau khởi động không?
-  ✓ Mỗi hoạt động có đủ: Mục tiêu + Danielson + Bảng 3 cột không?
-  ✓ Đánh dấu đủ 3 yếu tố [🌐][💻][⭐] không?
-  ✓ Công thức dùng đúng MathType ($...$) không?
+F. KIỂM TRA CUỐI: Trước khi trả kết quả, AI tự kiểm tra:
+  ✓ Có Bảng 3 Cột không có dấu Enter xuống dòng (chỉ dùng <br/>) không?
+  ✓ Đủ [Câu hỏi ĐỊNH HƯỚNG cho cả bài] không?
+  ✓ Mục tiêu theo format "Tôi có thể" không?
 ===========================================================
           ` : ''}
         `;
-
         const result = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
         if (result) {
-          // Clean up improper <br> tags & HTML from AI output
-          const cleaned = result
-            .replace(/<br\s*\/?>/gi, '\n') // <br> / <br/> → newline
-            .replace(/<(?!img|table|thead|tbody|tr|th|td)[a-zA-Z][^>]*>/g, '') // strip non-table HTML open tags
-            .replace(/<\/(?!table|thead|tbody|tr|th|td)[a-zA-Z][^>]*>/g, '') // strip non-table HTML close tags
-            .replace(/\n{3,}/g, '\n\n'); // collapse 3+ blank lines to 2
-          setCurrentPlan(prev => ({ ...prev, content: cleaned }));
+          setCurrentPlan(prev => ({ ...prev, content: cleanMarkdownOutput(result) }));
           showToast('Đã khởi tạo giáo án thành công!');
         }
       } else {
@@ -430,7 +509,6 @@ F. KIỂM TRA CUỐI: Trước khi trả kết quả, AI phải tự kiểm tra:
           Ví dụ: [{"title": "Bài 1...", "content": "..."}, {"title": "Bài 2...", "content": "..."}]
           Chỉ trả về JSON, không kèm theo văn bản giải thích nào khác.
         `;
-
         const response = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
         if (response) {
           try {
@@ -536,15 +614,15 @@ F. KIỂM TRA CUỐI: Trước khi trả kết quả, AI phải tự kiểm tra:
     setIsLoading(true);
 
     try {
-      const context = currentPlan.content ? `Dựa trên giáo án hiện tại: ${currentPlan.content.substring(0, 1000)}...` : '';
-      const prompt = `${context}\n\nNgười dùng hỏi: ${userMsg}\n\nHãy trả lời ngắn gọn và hỗ trợ giáo viên tinh chỉnh giáo án.`;
+      const context = currentPlan.content ? `Dựa trên giáo án hiá»‡n tại: ${currentPlan.content.substring(0, 1000)}...` : '';
+      const prompt = `${context}\n\nNgười dùng hỏi: ${userMsg}\n\nHãy trả lời ngắn gọn và há»— trợ giáo viên tinh chá»‰nh giáo án.`;
       
       const result = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
       if (result) {
         setChatMessages(prev => [...prev, { role: 'ai', text: result }]);
       }
     } catch (error) {
-      showToast('Lỗi AI Chat', 'error');
+      showToast('Lá»—i AI Chat', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -571,7 +649,7 @@ F. KIỂM TRA CUỐI: Trước khi trả kết quả, AI phải tự kiểm tra:
     if (!currentPlan.content) return;
     try {
       const contentEl = document.getElementById('lesson-content');
-      if (!contentEl) { showToast('Không tìm thấy nội dung giáo án', 'error'); return; }
+      if (!contentEl) { showToast('Không tìm thấy ná»™i dung giáo án', 'error'); return; }
       const htmlContent = `
         <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
         <head><meta charset="utf-8"><style>
@@ -590,10 +668,10 @@ F. KIỂM TRA CUỐI: Trước khi trả kết quả, AI phải tự kiểm tra:
       `;
       const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
       saveAs(blob, `${currentPlan.title || 'giao-an'}.doc`);
-      showToast('Đã xuất file Word (có bảng biểu)!');
+      showToast('Đã xuất file Word (có bảng biá»ƒu)!');
     } catch (e) {
       console.error(e);
-      showToast('Lỗi khi tải file Word', 'error');
+      showToast('Lá»—i khi tải file Word', 'error');
     }
   };
 
@@ -605,36 +683,36 @@ F. KIỂM TRA CUỐI: Trước khi trả kết quả, AI phải tự kiểm tra:
       return;
     }
     setIsLoading(true);
-    showToast('Đang chuyển đổi giáo án sang LaTeX...', 'info');
+    showToast('Đang chuyá»ƒn Ä‘á»•i giáo án sang LaTeX...', 'info');
     try {
       const prompt = `
-Bạn là chuyên gia LaTeX. Hãy chuyển đổi CHÍNH XÁC nội dung giáo án Markdown sau sang mã nguồn LaTeX (.tex) hoàn chỉnh, có thể biên dịch trực tiếp trên Overleaf.
+Bạn là chuyên gia LaTeX. Hãy chuyá»ƒn Ä‘á»•i CHÍNH XÁC ná»™i dung giáo án Markdown sau sang mã nguá»“n LaTeX (.tex) hoàn chá»‰nh, có thá»ƒ biên dá»‹ch trực tiếp trên Overleaf.
 
-NỘI DUNG GIÁO ÁN:
+Ná»˜I DUNG GIÁO ÁN:
 ---
 ${currentPlan.content}
 ---
 
-YÊU CẦU BẮT BUỘC:
-1. Tạo file .tex hoàn chỉnh với \\documentclass{article}, \\usepackage cần thiết (inputenc, babel, geometry, array, longtable, graphicx, hyperref, enumitem, titlesec, xcolor).
-2. Mọi BẢNG BIỂU phải được chuyển thành \\begin{tabular} hoặc \\begin{longtable} với đầy đủ cột, hàng, đường kẻ (\\hline).
+YÃŠU CẦU BẮT BUá»˜C:
+1. Tạo file .tex hoàn chá»‰nh vá»›i \\documentclass{article}, \\usepackage cần thiết (inputenc, babel, geometry, array, longtable, graphicx, hyperref, enumitem, titlesec, xcolor).
+2. Mọi BẢNG BIá»‚U phải Ä‘ược chuyá»ƒn thành \\begin{tabular} hoặc \\begin{longtable} vá»›i Ä‘ầy Ä‘ủ cá»™t, hàng, Ä‘ường kẻ (\\hline).
 3. Công thức Toán phải bọc trong $ hoặc \\[ \\].
-4. Tiêu đề sử dụng \\section, \\subsection, \\subsubsection.
+4. Tiêu Ä‘ề sử dụng \\section, \\subsection, \\subsubsection.
 5. Danh sách dùng \\begin{itemize} hoặc \\begin{enumerate}.
 6. Hình ảnh (nếu có URL) dùng \\includegraphics hoặc ghi chú URL.
-7. Sử dụng tiếng Việt với \\usepackage[vietnamese]{babel} hoặc \\usepackage{fontspec} nếu cần.
-8. CHỈ TRẢ VỀ MÃ NGUỒN LATEX THUẦN TÚY, không bọc trong markdown code block, không kèm giải thích.
+7. Sử dụng tiếng Viá»‡t vá»›i \\usepackage[vietnamese]{babel} hoặc \\usepackage{fontspec} nếu cần.
+8. CHá»ˆ TRẢ Vá»€ MÃƒ NGUá»’N LATEX THUẦN TÃšY, không bọc trong markdown code block, không kèm giải thích.
       `;
       const result = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
       if (result) {
         const cleanLatex = result.replace(/^```(?:latex|tex)?\n?/i, '').replace(/\n?```$/i, '').trim();
         setLatexContent(cleanLatex);
         setIsLatexModalOpen(true);
-        showToast('Đã chuyển đổi sang LaTeX thành công!');
+        showToast('Đã chuyá»ƒn Ä‘á»•i sang LaTeX thành công!');
       }
     } catch (error) {
       console.error(error);
-      showToast('Lỗi khi chuyển đổi sang LaTeX', 'error');
+      showToast('Lá»—i khi chuyá»ƒn Ä‘á»•i sang LaTeX', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -666,13 +744,13 @@ YÊU CẦU BẮT BUỘC:
     document.body.appendChild(form);
     form.submit();
     document.body.removeChild(form);
-    showToast('Đang mở Overleaf...');
+    showToast('Đang má»Ÿ Overleaf...');
   };
 
   const generatePPTX = async () => {
     if (!currentPlan.title || !currentPlan.content) return;
     if (!data.settings.geminiApiKey) {
-      showToast('Vui lòng cung cấp API Key AI để tạo slide', 'warning');
+      showToast('Vui lòng cung cấp API Key AI Ä‘á»ƒ tạo slide', 'warning');
       return;
     }
     
@@ -681,16 +759,16 @@ YÊU CẦU BẮT BUỘC:
     
     try {
       const prompt = `
-        Dựa vào nội dung giáo án sau, hãy tạo cấu trúc Slide bài giảng PowerPoint.
+        Dựa vào ná»™i dung giáo án sau, hãy tạo cấu trúc Slide bài giảng PowerPoint.
         Giáo án:
         ${currentPlan.content}
 
-        YÊU CẦU BẮT BUỘC:
-        1. Trả về ĐÚNG định dạng chuỗi JSON thuần tuý là một mảng object: [{"title": "Tiêu đề Slide 1", "points": ["Ý 1", "Ý 2"]}, ...]
-        2. Tóm tắt súc tích, mỗi slide không vượt quá 5 ý.
-        3. TUYỆT ĐỐI KHÔNG DÙNG LaTeX ($...$) CHO CÔNG THỨC TOÁN HỌC. Bạn bắt buộc dùng Unicode thuần túy (VD: x², √, ∫) để hiển thị công thức ngay ở text (equation format mode).
-        4. Tối đa 12 slides.
-        Chỉ trả về JSON, không kèm giải thích hay markdown code block chứa json.
+        YÃŠU CẦU BẮT BUá»˜C:
+        1. Trả về ĐÃšNG Ä‘á»‹nh dạng chuá»—i JSON thuần tuý là má»™t mảng object: [{"title": "Tiêu Ä‘ề Slide 1", "points": ["Ý 1", "Ý 2"]}, ...]
+        2. Tóm tắt súc tích, má»—i slide không vượt quá 5 ý.
+        3. TUYá»†T ĐỐI KHÃ”NG DÃ™NG LaTeX ($...$) CHO CÃ”NG THỨC TOÁN Há»ŒC. Bạn bắt buá»™c dùng Unicode thuần túy (VD: x², âˆš, âˆ«) Ä‘á»ƒ hiá»ƒn thá»‹ công thức ngay á»Ÿ text (equation format mode).
+        4. Tá»‘i Ä‘a 12 slides.
+        Chá»‰ trả về JSON, không kèm giải thích hay markdown code block chứa json.
       `;
       
       const response = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
@@ -715,10 +793,10 @@ YÊU CẦU BẮT BUỘC:
       });
       
       pptx.writeFile({ fileName: `${currentPlan.title || 'baigiang'}.pptx` });
-      showToast('Đã tải xuống file trình chiếu PPTX thành công!');
+      showToast('Đã tải xuá»‘ng file trình chiếu PPTX thành công!');
     } catch (e) {
       console.error(e);
-      showToast('Lỗi cấu trúc hoặc kết nối AI, vui lòng thử lại', 'error');
+      showToast('Lá»—i cấu trúc hoặc kết ná»‘i AI, vui lòng thử lại', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -735,20 +813,20 @@ YÊU CẦU BẮT BUỘC:
     setIsLoading(true);
     try {
       const prompt = `
-        Đây là nội dung giáo án hiện tại bạn đã soạn:
+        Đây là ná»™i dung giáo án hiá»‡n tại bạn Ä‘ã soạn:
         ---
         ${currentPlan.content}
         ---
         
-        Người dùng (Giáo viên) có yêu cầu sửa đổi, bổ sung như sau:
+        Người dùng (Giáo viên) có yêu cầu sửa Ä‘á»•i, bá»• sung như sau:
         "${revisionPrompt}"
         
-        Vui lòng viết lại toàn bộ giáo án để đáp ứng chính xác yêu cầu trên.
-        TUÂN THỦ CÁC QUY TẮC BẮT BUỘC:
-        1. Giữ nguyên định dạng Markdown chuyên nghiệp.
-        2. CÔNG THỨC TOÁN HỌC: Đối với công thức Toán Học, KHÔNG được dùng LaTeX (như $x^2$ hay $$...$$). Bạn bắt buộc phải hiển thị công thức dạng text unicode phẳng (ví dụ x², √x, phân số dạng a/b, biểu thức dạng equation thông thường dễ đọc)
+        Vui lòng viết lại toàn bá»™ giáo án Ä‘á»ƒ Ä‘áp ứng chính xác yêu cầu trên.
+        TUÃ‚N THỦ CÁC QUY TẮC BẮT BUá»˜C:
+        1. Giữ nguyên Ä‘á»‹nh dạng Markdown chuyên nghiá»‡p.
+        2. CÃ”NG THỨC TOÁN Há»ŒC: Đá»‘i vá»›i công thức Toán Học, KHÃ”NG Ä‘ược dùng LaTeX (như $x^2$ hay $$...$$). Bạn bắt buá»™c phải hiá»ƒn thá»‹ công thức dạng text unicode phẳng (ví dụ x², âˆšx, phân sá»‘ dạng a/b, biá»ƒu thức dạng equation thông thường dá»… Ä‘ọc)
         
-        Trình bày kết quả trực tiếp, không cần bắt đầu bằng câu giới thiệu.
+        Trình bày kết quả trực tiếp, không cần bắt Ä‘ầu bằng câu giá»›i thiá»‡u.
       `;
 
       const result = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
@@ -758,7 +836,7 @@ YÊU CẦU BẮT BUỘC:
         showToast('Đã cập nhật giáo án theo yêu cầu!');
       }
     } catch (error) {
-      showToast('Lỗi khi sửa đổi giáo án. Vui lòng thử lại.', 'error');
+      showToast('Lá»—i khi sửa Ä‘á»•i giáo án. Vui lòng thử lại.', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -766,7 +844,7 @@ YÊU CẦU BẮT BUỘC:
 
   const addTemplate = () => {
     Swal.fire({
-      title: 'Thêm mẫu giáo án mới',
+      title: 'Thêm mẫu giáo án má»›i',
       html: `
         <div class="space-y-4 text-left">
           <div>
@@ -806,7 +884,7 @@ YÊU CẦU BẮT BUỘC:
           ...prev,
           templates: [newTemplate, ...prev.templates]
         }));
-        showToast('Đã tạo mẫu mới. Hãy tải lên các tệp giáo án mẫu và tiêu chí!');
+        showToast('Đã tạo mẫu má»›i. Hãy tải lên các tá»‡p giáo án mẫu và tiêu chí!');
       }
     });
   };
@@ -814,7 +892,7 @@ YÊU CẦU BẮT BUỘC:
   const deleteTemplate = (id: string) => {
     Swal.fire({
       title: 'Xóa mẫu giáo án?',
-      text: "Tất cả tệp đính kèm trong mẫu này cũng sẽ bị xóa!",
+      text: "Tất cả tá»‡p Ä‘ính kèm trong mẫu này cũng sẽ bá»‹ xóa!",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
@@ -840,7 +918,7 @@ YÊU CẦU BẮT BUỘC:
           : t
       )
     }));
-    showToast('Đã xóa tệp');
+    showToast('Đã xóa tá»‡p');
   };
 
   return (
@@ -870,9 +948,9 @@ YÊU CẦU BẮT BUỘC:
 
         <nav className="flex-1 px-4 space-y-2 mt-4">
           {[
-            { id: 'dashboard', label: 'Tổng quan', icon: LayoutDashboard },
+            { id: 'dashboard', label: 'Tá»•ng quan', icon: LayoutDashboard },
             { id: 'creator', label: 'Soạn giáo án', icon: Plus },
-            { id: 'library', label: 'Thư viện', icon: FileText },
+            { id: 'library', label: 'Thư viá»‡n', icon: FileText },
             { id: 'templates', label: 'Mẫu giáo án', icon: Layout },
             { id: 'chat', label: 'AI Tutor', icon: MessageSquare },
           ].map((item) => (
@@ -898,7 +976,7 @@ YÊU CẦU BẮT BUỘC:
             className="w-full flex items-center gap-3 p-3 rounded-xl text-slate-500 hover:bg-slate-50 transition-all"
           >
             <Settings className="w-5 h-5 flex-shrink-0" />
-            {isSidebarOpen && <span>Cài đặt</span>}
+            {isSidebarOpen && <span>Cài Ä‘ặt</span>}
           </button>
           <button 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -914,15 +992,15 @@ YÊU CẦU BẮT BUỘC:
       <main className="flex-1 flex flex-col overflow-hidden relative">
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 shadow-sm z-20">
           <h2 className="text-lg font-semibold text-slate-800">
-            {activeTab === 'dashboard' && 'Bảng điều khiển'}
-            {activeTab === 'creator' && 'Soạn giáo án mới'}
-            {activeTab === 'library' && 'Thư viện giáo án'}
+            {activeTab === 'dashboard' && 'Bảng Ä‘iều khiá»ƒn'}
+            {activeTab === 'creator' && 'Soạn giáo án má»›i'}
+            {activeTab === 'library' && 'Thư viá»‡n giáo án'}
             {activeTab === 'templates' && 'Mẫu giáo án & Tiêu chí'}
             {activeTab === 'chat' && 'Trợ lý AI'}
           </h2>
           <div className="flex items-center gap-4">
             {!data.settings.geminiApiKey && (
-              <span className="text-red-500 text-sm font-semibold animate-pulse hidden sm:block">Lấy API key để sử dụng app</span>
+              <span className="text-red-500 text-sm font-semibold animate-pulse hidden sm:block">Lấy API key Ä‘á»ƒ sử dụng app</span>
             )}
             <button 
               onClick={() => setIsSettingsOpen(true)}
@@ -953,10 +1031,10 @@ YÊU CẦU BẮT BUỘC:
                       <div className="p-3 bg-blue-50 rounded-xl text-blue-600">
                         <FileText className="w-6 h-6" />
                       </div>
-                      <span className="text-xs font-medium text-slate-400">Tổng số</span>
+                      <span className="text-xs font-medium text-slate-400">Tá»•ng sá»‘</span>
                     </div>
                     <div className="text-3xl font-bold text-slate-800">{data.lessonPlans.length}</div>
-                    <div className="text-sm text-slate-500 mt-1">Giáo án đã soạn</div>
+                    <div className="text-sm text-slate-500 mt-1">Giáo án Ä‘ã soạn</div>
                   </div>
                   <div className="p-6 bg-white rounded-2xl shadow-sm border border-slate-100">
                     <div className="flex items-center justify-between mb-4">
@@ -966,17 +1044,17 @@ YÊU CẦU BẮT BUỘC:
                       <span className="text-xs font-medium text-slate-400">Tuân thủ</span>
                     </div>
                     <div className="text-3xl font-bold text-slate-800">98%</div>
-                    <div className="text-sm text-slate-500 mt-1">Độ chính xác trung bình</div>
+                    <div className="text-sm text-slate-500 mt-1">Đá»™ chính xác trung bình</div>
                   </div>
                   <div className="p-6 bg-white rounded-2xl shadow-sm border border-slate-100">
                     <div className="flex items-center justify-between mb-4">
                       <div className="p-3 bg-green-50 rounded-xl text-green-600">
                         <Zap className="w-6 h-6" />
                       </div>
-                      <span className="text-xs font-medium text-slate-400">Tiết kiệm</span>
+                      <span className="text-xs font-medium text-slate-400">Tiết kiá»‡m</span>
                     </div>
                     <div className="text-3xl font-bold text-slate-800">~12h</div>
-                    <div className="text-sm text-slate-500 mt-1">Thời gian chuẩn bị/tuần</div>
+                    <div className="text-sm text-slate-500 mt-1">Thời gian chuẩn bá»‹/tuần</div>
                   </div>
                 </div>
 
@@ -1009,7 +1087,7 @@ YÊU CẦU BẮT BUỘC:
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
                       <FileText className="w-5 h-5 text-orange-500" />
-                      Giáo án gần đây
+                      Giáo án gần Ä‘ây
                     </h3>
                     <div className="space-y-3">
                       {data.lessonPlans.slice(0, 4).map(plan => (
@@ -1028,7 +1106,7 @@ YÊU CẦU BẮT BUỘC:
                       ))}
                       {data.lessonPlans.length === 0 && (
                         <div className="p-8 text-center bg-white rounded-2xl border border-dashed border-slate-200 text-slate-400">
-                          Chưa có giáo án nào. Hãy bắt đầu soạn thảo!
+                          Chưa có giáo án nào. Hãy bắt Ä‘ầu soạn thảo!
                         </div>
                       )}
                     </div>
@@ -1071,7 +1149,7 @@ YÊU CẦU BẮT BUỘC:
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {generationMode === 'single' && (
                       <div className="space-y-2 md:col-span-1">
-                        <label className="text-sm font-semibold text-slate-700">Tiêu đề bài học</label>
+                        <label className="text-sm font-semibold text-slate-700">Tiêu Ä‘ề bài học</label>
                         <input 
                           type="text" 
                           value={currentPlan.title}
@@ -1112,7 +1190,7 @@ YÊU CẦU BẮT BUỘC:
                   {generationMode === 'single' ? (
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <label className="text-sm font-semibold text-slate-700">Tài liệu tham khảo cho bài học (PDF/Word)</label>
+                        <label className="text-sm font-semibold text-slate-700">Tài liá»‡u tham khảo cho bài học (PDF/Word)</label>
                         <div className="flex flex-wrap gap-2">
                           {lessonDocs.map(doc => (
                             <div key={doc.id} className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-sm">
@@ -1130,12 +1208,12 @@ YÊU CẦU BẮT BUỘC:
                             }}
                             className="px-4 py-1.5 border border-dashed border-slate-300 text-slate-500 rounded-lg text-sm hover:border-blue-500 hover:text-blue-500 transition-all flex items-center gap-2"
                           >
-                            <UploadCloud className="w-4 h-4" /> Tải tài liệu
+                            <UploadCloud className="w-4 h-4" /> Tải tài liá»‡u
                           </button>
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-semibold text-slate-700">Yêu cầu cụ thể cho bài học này</label>
+                        <label className="text-sm font-semibold text-slate-700">Yêu cầu cụ thá»ƒ cho bài học này</label>
                         <textarea 
                           value={singleRequirement}
                           onChange={(e) => setSingleRequirement(e.target.value)}
@@ -1147,7 +1225,7 @@ YÊU CẦU BẮT BUỘC:
                   ) : (
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <label className="text-sm font-semibold text-slate-700">Phân phối chương trình (Excel/Word/PDF)</label>
+                        <label className="text-sm font-semibold text-slate-700">Phân phá»‘i chương trình (Excel/Word/PDF)</label>
                         <div className="flex items-center gap-4">
                           {distributionFile ? (
                             <div className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 rounded-xl border border-green-100">
@@ -1166,8 +1244,8 @@ YÊU CẦU BẮT BUỘC:
                               className="w-full py-8 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center gap-2 text-slate-400 hover:border-blue-400 hover:text-blue-500 transition-all"
                             >
                               <UploadCloud className="w-8 h-8" />
-                              <span className="font-medium">Tải lên tệp phân phối chương trình</span>
-                              <span className="text-xs">Hỗ trợ Excel, Word, PDF</span>
+                              <span className="font-medium">Tải lên tá»‡p phân phá»‘i chương trình</span>
+                              <span className="text-xs">Há»— trợ Excel, Word, PDF</span>
                             </button>
                           )}
                         </div>
@@ -1177,7 +1255,7 @@ YÊU CẦU BẮT BUỘC:
                         <textarea 
                           value={bulkCommand}
                           onChange={(e) => setBulkCommand(e.target.value)}
-                          placeholder="Ví dụ: Soạn cho tôi 5 bài từ bài số 10; Soạn tất cả các bài trong tuần thứ 5..."
+                          placeholder="Ví dụ: Soạn cho tôi 5 bài từ bài sá»‘ 10; Soạn tất cả các bài trong tuần thứ 5..."
                           className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all min-h-[100px]"
                         />
                       </div>
@@ -1195,7 +1273,7 @@ YÊU CẦU BẮT BUỘC:
                       ) : (
                         <Sparkles className="w-5 h-5" />
                       )}
-                      {isLoading ? 'Đang phân tích...' : generationMode === 'single' ? 'Khởi tạo giáo án thông minh' : 'Soạn thảo hàng loạt theo phân phối'}
+                      {isLoading ? 'Đang phân tích...' : generationMode === 'single' ? 'Khá»Ÿi tạo giáo án thông minh' : 'Soạn thảo hàng loạt theo phân phá»‘i'}
                     </button>
                   </div>
                 </div>
@@ -1214,7 +1292,7 @@ YÊU CẦU BẮT BUỘC:
                           onClick={saveLessonPlan}
                           className="px-4 py-2 bg-blue-50 text-blue-600 rounded-xl font-medium flex items-center gap-2 hover:bg-blue-100 transition-colors"
                         >
-                          <Save className="w-4 h-4" /> Lưu thư viện
+                          <Save className="w-4 h-4" /> Lưu thư viá»‡n
                         </button>
                         <button 
                           onClick={exportToPDF}
@@ -1254,13 +1332,13 @@ YÊU CẦU BẮT BUỘC:
                     <div className="pt-6 border-t border-slate-100 space-y-3">
                       <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
                         <MessageSquare className="w-4 h-4 text-orange-500" />
-                        Chưa hài lòng? Yêu cầu AI sửa đổi giáo án này
+                        Chưa hài lòng? Yêu cầu AI sửa Ä‘á»•i giáo án này
                       </label>
                       <div className="flex flex-col gap-3">
                         <textarea
                           value={revisionPrompt}
                           onChange={(e) => setRevisionPrompt(e.target.value)}
-                          placeholder="Ví dụ: Rút ngắn phần khởi động lại thành 5 phút, thêm 1 trò chơi tương tác vào phần luyện tập, giải thích kỹ hơn phần công thức..."
+                          placeholder="Ví dụ: Rút ngắn phần khá»Ÿi Ä‘á»™ng lại thành 5 phút, thêm 1 trò chơi tương tác vào phần luyá»‡n tập, giải thích kỹ hơn phần công thức..."
                           className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-orange-500 outline-none transition-all min-h-[100px]"
                         />
                         <div className="flex justify-end">
@@ -1274,7 +1352,7 @@ YÊU CẦU BẮT BUỘC:
                             ) : (
                               <Sparkles className="w-5 h-5" />
                             )}
-                            Sửa đổi theo yêu cầu
+                            Sửa Ä‘á»•i theo yêu cầu
                           </button>
                         </div>
                       </div>
@@ -1286,12 +1364,12 @@ YÊU CẦU BẮT BUỘC:
                 {generationMode === 'bulk' && bulkResults.length > 0 && (
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xl font-bold text-slate-800">Danh sách giáo án đã soạn ({bulkResults.length})</h3>
+                      <h3 className="text-xl font-bold text-slate-800">Danh sách giáo án Ä‘ã soạn ({bulkResults.length})</h3>
                       <button 
                         onClick={saveBulkPlans}
                         className="px-6 py-3 gradient-bg text-white rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-blue-200"
                       >
-                        <Save className="w-5 h-5" /> Lưu tất cả vào thư viện
+                        <Save className="w-5 h-5" /> Lưu tất cả vào thư viá»‡n
                       </button>
                     </div>
                     <div className="grid grid-cols-1 gap-6">
@@ -1310,7 +1388,7 @@ YÊU CẦU BẮT BUỘC:
                                 const element = document.createElement('div');
                                 element.innerHTML = result.content;
                                 // Simple export for individual bulk items could be added here
-                                showToast('Chức năng xuất PDF lẻ đang được cập nhật. Vui lòng lưu vào thư viện để xuất.');
+                                showToast('Chức nÄƒng xuất PDF lẻ Ä‘ang Ä‘ược cập nhật. Vui lòng lưu vào thư viá»‡n Ä‘á»ƒ xuất.');
                               }}
                               className="p-2 text-slate-400 hover:text-blue-500 transition-colors"
                             >
@@ -1351,7 +1429,7 @@ YÊU CẦU BẮT BUỘC:
                     onClick={() => setActiveTab('creator')}
                     className="px-6 py-3 gradient-bg text-white rounded-2xl font-bold flex items-center gap-2"
                   >
-                    <Plus className="w-5 h-5" /> Soạn mới
+                    <Plus className="w-5 h-5" /> Soạn má»›i
                   </button>
                 </div>
 
@@ -1381,7 +1459,7 @@ YÊU CẦU BẮT BUỘC:
                           {dayjs(plan.createdAt).format('DD MMM YYYY')}
                         </span>
                         <div className="flex items-center gap-1 text-green-500 text-[10px] font-bold">
-                          <CheckCircle2 className="w-3 h-3" /> HOÀN THÀNH
+                          <CheckCircle2 className="w-3 h-3" /> HOÃ€N THÃ€NH
                         </div>
                       </div>
                     </div>
@@ -1390,7 +1468,7 @@ YÊU CẦU BẮT BUỘC:
                 {data.lessonPlans.length === 0 && (
                   <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                     <FileText className="w-16 h-16 mb-4 opacity-20" />
-                    <p>Thư viện trống. Hãy tạo giáo án đầu tiên!</p>
+                    <p>Thư viá»‡n trá»‘ng. Hãy tạo giáo án Ä‘ầu tiên!</p>
                   </div>
                 )}
               </motion.div>
@@ -1406,13 +1484,13 @@ YÊU CẦU BẮT BUỘC:
                 <div className="flex justify-between items-center">
                   <div>
                     <h2 className="text-2xl font-bold text-slate-800">Mẫu giáo án & Tiêu chí</h2>
-                    <p className="text-sm text-slate-500">Tải lên giáo án mẫu và các tệp tiêu chí (PDF/Word) để AI soạn thảo đúng chuẩn</p>
+                    <p className="text-sm text-slate-500">Tải lên giáo án mẫu và các tá»‡p tiêu chí (PDF/Word) Ä‘á»ƒ AI soạn thảo Ä‘úng chuẩn</p>
                   </div>
                   <button 
                     onClick={addTemplate}
                     className="gradient-bg text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-blue-200 transition-all hover:opacity-90"
                   >
-                    <Plus size={20} /> Thêm mẫu mới
+                    <Plus size={20} /> Thêm mẫu má»›i
                   </button>
                 </div>
 
@@ -1491,7 +1569,7 @@ YÊU CẦU BẮT BUỘC:
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
                             <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                              <FileCheck size={14} className="text-green-500" /> Tiêu chí & Quy định
+                              <FileCheck size={14} className="text-green-500" /> Tiêu chí & Quy Ä‘á»‹nh
                             </h4>
                             <button 
                               onClick={() => {
@@ -1521,7 +1599,7 @@ YÊU CẦU BẮT BUỘC:
                             ))}
                             {tpl.files.filter(f => f.category === 'criteria').length === 0 && (
                               <div className="py-4 text-center border-2 border-dashed border-slate-100 rounded-xl text-[10px] text-slate-400">
-                                Chưa có tệp tiêu chí (Tối đa 10 tệp)
+                                Chưa có tá»‡p tiêu chí (Tá»‘i Ä‘a 10 tá»‡p)
                               </div>
                             )}
                           </div>
@@ -1533,7 +1611,7 @@ YÊU CẦU BẮT BUỘC:
                     <div className="lg:col-span-2 p-20 text-center bg-white rounded-[40px] border-2 border-dashed border-slate-100 text-slate-400">
                       <Layout className="w-16 h-16 mx-auto mb-4 opacity-10" />
                       <p className="text-lg font-medium">Chưa có mẫu giáo án nào</p>
-                      <p className="text-sm">Hãy thêm mẫu đầu tiên và tải lên các tệp hướng dẫn để AI học tập</p>
+                      <p className="text-sm">Hãy thêm mẫu Ä‘ầu tiên và tải lên các tá»‡p hưá»›ng dẫn Ä‘á»ƒ AI học tập</p>
                     </div>
                   )}
                 </div>
@@ -1563,7 +1641,7 @@ YÊU CẦU BẮT BUỘC:
                   {chatMessages.length === 0 && (
                     <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-4">
                       <MessageSquare className="w-16 h-16 opacity-10" />
-                      <p className="text-center max-w-xs">Chào thầy/cô! Tôi có thể giúp gì trong việc tinh chỉnh giáo án hôm nay?</p>
+                      <p className="text-center max-w-xs">Chào thầy/cô! Tôi có thá»ƒ giúp gì trong viá»‡c tinh chá»‰nh giáo án hôm nay?</p>
                     </div>
                   )}
                   {chatMessages.map((msg, idx) => (
@@ -1603,7 +1681,7 @@ YÊU CẦU BẮT BUỘC:
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleChat()}
-                      placeholder="Nhập yêu cầu (ví dụ: 'Hãy thêm hoạt động trò chơi cho bài này'...)"
+                      placeholder="Nhập yêu cầu (ví dụ: 'Hãy thêm hoạt Ä‘á»™ng trò chơi cho bài này'...)"
                       className="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
                     />
                     <button 
@@ -1638,7 +1716,7 @@ YÊU CẦU BẮT BUỘC:
               <div className="p-6 border-b border-slate-100 flex items-center justify-between">
                 <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                   <Settings className="w-5 h-5 text-blue-500" />
-                  Cài đặt hệ thống
+                  Cài Ä‘ặt há»‡ thá»‘ng
                 </h3>
                 <button onClick={() => setIsSettingsOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
                   <X className="w-5 h-5 text-slate-400" />
@@ -1648,7 +1726,7 @@ YÊU CẦU BẮT BUỘC:
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700 flex items-center justify-between">
                     <div className="flex items-center gap-2"><Key className="w-4 h-4" /> Gemini API Key</div>
-                    <a href="https://aistudio.google.com/api-keys" target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline">Lấy Key tại đây</a>
+                    <a href="https://aistudio.google.com/api-keys" target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline">Lấy Key tại Ä‘ây</a>
                   </label>
                   <input 
                     type="password" 
@@ -1657,15 +1735,15 @@ YÊU CẦU BẮT BUỘC:
                     placeholder="Nhập API Key của bạn..."
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
                   />
-                  <p className="text-[10px] text-slate-400">API Key được lưu an toàn trong trình duyệt của bạn.</p>
+                  <p className="text-[10px] text-slate-400">API Key Ä‘ược lưu an toàn trong trình duyá»‡t của bạn.</p>
                 </div>
                 <div className="space-y-3">
                   <label className="text-sm font-semibold text-slate-700">Mô hình AI</label>
                   <div className="grid grid-cols-1 gap-2">
                     {[
-                      { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash', desc: 'Nhanh, hiệu suất cao (Default)' },
-                      { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro', desc: 'Thông minh, suy luận rất tốt' },
-                      { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', desc: 'Phiên bản ổn định' }
+                      { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash', desc: 'Nhanh, hiá»‡u suất cao (Default)' },
+                      { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro', desc: 'Thông minh, suy luận rất tá»‘t' },
+                      { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', desc: 'Phiên bản á»•n Ä‘á»‹nh' }
                     ].map(m => (
                       <div 
                         key={m.id}
@@ -1685,7 +1763,7 @@ YÊU CẦU BẮT BUỘC:
                   </div>
                 </div>
                 <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
-                  <span className="text-sm font-medium text-slate-700">Tự động lưu</span>
+                  <span className="text-sm font-medium text-slate-700">Tự Ä‘á»™ng lưu</span>
                   <div 
                     onClick={() => setData(prev => ({ ...prev, settings: { ...prev.settings, autoSave: !prev.settings.autoSave } }))}
                     className={cn(
@@ -1707,11 +1785,11 @@ YÊU CẦU BẮT BUỘC:
                 <button 
                   onClick={() => {
                     setIsSettingsOpen(false);
-                    showToast('Đã lưu cài đặt!');
+                    showToast('Đã lưu cài Ä‘ặt!');
                   }}
                   className="flex-1 py-3 gradient-bg text-white rounded-xl font-bold shadow-lg shadow-blue-200"
                 >
-                  Lưu thay đổi
+                  Lưu thay Ä‘á»•i
                 </button>
               </div>
             </motion.div>
@@ -1738,8 +1816,8 @@ YÊU CẦU BẮT BUỘC:
             >
               <div className="p-6 border-b border-slate-100 flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-bold text-slate-800">Mã nguồn LaTeX</h3>
-                  <p className="text-sm text-slate-500 mt-1">Có thể biên dịch trực tiếp trên Overleaf hoặc TeX Live</p>
+                  <h3 className="text-xl font-bold text-slate-800">Mã nguá»“n LaTeX</h3>
+                  <p className="text-sm text-slate-500 mt-1">Có thá»ƒ biên dá»‹ch trực tiếp trên Overleaf hoặc TeX Live</p>
                 </div>
                 <button onClick={() => setIsLatexModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
                   <X className="w-5 h-5 text-slate-400" />
@@ -1761,7 +1839,7 @@ YÊU CẦU BẮT BUỘC:
                   onClick={openInOverleaf}
                   className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition-colors"
                 >
-                  <Layout className="w-5 h-5" /> Mở trên Overleaf
+                  <Layout className="w-5 h-5" /> Má»Ÿ trên Overleaf
                 </button>
                 <button 
                   onClick={() => {
@@ -1780,3 +1858,4 @@ YÊU CẦU BẮT BUỘC:
     </div>
   );
 }
+
