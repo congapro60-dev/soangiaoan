@@ -627,20 +627,81 @@ F. KIỂM TRA CUỐI: Trước khi trả kết quả, AI tự kiểm tra:
     }
   };
 
+  // Helper: Convert inline math $...$ and $$...$$ to readable Unicode text for Word export
+  const convertMathToUnicode = (text: string): string => {
+    // Map common LaTeX commands to Unicode
+    const replacements: [RegExp, string][] = [
+      [/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1)/($2)'],
+      [/\\sqrt\{([^}]+)\}/g, '√($1)'],
+      [/\\sqrt/g, '√'],
+      [/\\sum/g, 'Σ'],
+      [/\\prod/g, 'Π'],
+      [/\\int/g, '∫'],
+      [/\\infty/g, '∞'],
+      [/\\alpha/g, 'α'], [/\\beta/g, 'β'], [/\\gamma/g, 'γ'],
+      [/\\delta/g, 'δ'], [/\\Delta/g, 'Δ'], [/\\theta/g, 'θ'],
+      [/\\pi/g, 'π'], [/\\Pi/g, 'Π'], [/\\sigma/g, 'σ'], [/\\Sigma/g, 'Σ'],
+      [/\\mu/g, 'μ'], [/\\lambda/g, 'λ'], [/\\epsilon/g, 'ε'],
+      [/\\leq/g, '≤'], [/\\geq/g, '≥'], [/\\neq/g, '≠'],
+      [/\\approx/g, '≈'], [/\\equiv/g, '≡'], [/\\in/g, '∈'],
+      [/\\notin/g, '∉'], [/\\subset/g, '⊂'], [/\\cup/g, '∪'], [/\\cap/g, '∩'],
+      [/\\pm/g, '±'], [/\\times/g, '×'], [/\\div/g, '÷'], [/\\cdot/g, '·'],
+      [/\\left\(/g, '('], [/\\right\)/g, ')'],
+      [/\\left\[/g, '['], [/\\right\]/g, ']'],
+      [/\\binom\{([^}]+)\}\{([^}]+)\}/g, 'C($1,$2)'],
+      [/\^\{([^}]+)\}/g, '^($1)'],
+      [/\_\{([^}]+)\}/g, '_($1)'],
+      [/\^([0-9a-zA-Z])/g, '^$1'],
+      [/\_([0-9a-zA-Z])/g, '_$1'],
+      [/\\\\|\\,|\\;|\\!|\\quad|\\qquad/g, ' '],
+      [/\{|\}/g, ''],
+    ];
+    let result = text;
+    replacements.forEach(([pattern, replacement]) => {
+      result = result.replace(pattern, replacement);
+    });
+    return result;
+  };
+
   const exportToPDF = () => {
     const element = document.getElementById('lesson-content');
     if (!element) return;
+
+    // Inject page-break CSS to prevent tables from splitting across pages
+    const style = document.createElement('style');
+    style.id = 'pdf-print-style';
+    style.innerHTML = `
+      @media print {
+        table { page-break-inside: avoid !important; border-collapse: collapse !important; }
+        tr    { page-break-inside: avoid !important; }
+        td, th { page-break-inside: avoid !important; }
+        h1, h2, h3 { page-break-after: avoid !important; }
+        p  { orphans: 3; widows: 3; }
+      }
+      #lesson-content * { font-family: 'Times New Roman', Times, serif !important; font-size: 14pt !important; }
+      #lesson-content h1 { font-size: 20pt !important; }
+      #lesson-content h2 { font-size: 17pt !important; }
+      #lesson-content h3 { font-size: 15pt !important; }
+      #lesson-content table { page-break-inside: avoid !important; }
+      #lesson-content tr    { page-break-inside: avoid !important; }
+    `;
+    document.head.appendChild(style);
     
     const opt = {
-      margin: 1,
+      margin: [15, 12, 15, 12], // mm: top, right, bottom, left
       filename: `${currentPlan.title || 'giao-an'}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
     };
 
     // @ts-ignore
-    window.html2pdf().from(element).set(opt).save();
+    window.html2pdf().from(element).set(opt).save().then(() => {
+      // Clean up injected style
+      const injected = document.getElementById('pdf-print-style');
+      if (injected) injected.remove();
+    });
     showToast('Đang xuất file PDF...');
   };
 
@@ -649,25 +710,46 @@ F. KIỂM TRA CUỐI: Trước khi trả kết quả, AI tự kiểm tra:
     try {
       const contentEl = document.getElementById('lesson-content');
       if (!contentEl) { showToast('Không tìm thấy nội dung giáo án', 'error'); return; }
+
+      // Convert rendered HTML: replace KaTeX/math spans with readable Unicode text
+      const cloned = contentEl.cloneNode(true) as HTMLElement;
+
+      // Replace all rendered math (KaTeX annotation or .katex elements) with Unicode
+      cloned.querySelectorAll('.katex').forEach(el => {
+        const annotation = el.querySelector('annotation[encoding="application/x-tex"]');
+        if (annotation && annotation.textContent) {
+          const unicode = convertMathToUnicode(annotation.textContent);
+          const span = document.createElement('span');
+          span.textContent = unicode;
+          el.replaceWith(span);
+        }
+      });
+      // Remove leftover katex-html (duplicate renders)
+      cloned.querySelectorAll('.katex-html').forEach(el => el.remove());
+
       const htmlContent = `
-        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+        <html xmlns:o="urn:schemas-microsoft-com:office:office"
+              xmlns:w="urn:schemas-microsoft-com:office:word"
+              xmlns="http://www.w3.org/TR/REC-html40">
         <head><meta charset="utf-8"><style>
-          body { font-family: Arial, sans-serif; font-size: 12pt; line-height: 1.6; }
-          h1 { font-size: 18pt; font-weight: bold; color: #1a365d; margin-top: 12pt; }
-          h2 { font-size: 15pt; font-weight: bold; color: #2d3748; margin-top: 10pt; }
-          h3 { font-size: 13pt; font-weight: bold; color: #4a5568; margin-top: 8pt; }
-          table { border-collapse: collapse; width: 100%; margin: 8pt 0; }
-          th, td { border: 1px solid #718096; padding: 6pt 8pt; text-align: left; }
-          th { background-color: #e2e8f0; font-weight: bold; }
-          ul { margin-left: 20pt; }
-          ol { margin-left: 20pt; }
-          img { max-width: 100%; height: auto; }
+          body    { font-family: 'Times New Roman', Times, serif; font-size: 14pt; line-height: 1.8; margin: 2cm; }
+          h1      { font-family: 'Times New Roman', Times, serif; font-size: 20pt; font-weight: bold; color: #1a365d; margin-top: 14pt; margin-bottom: 6pt; text-align: center; }
+          h2      { font-family: 'Times New Roman', Times, serif; font-size: 17pt; font-weight: bold; color: #2d3748; margin-top: 12pt; margin-bottom: 4pt; }
+          h3      { font-family: 'Times New Roman', Times, serif; font-size: 15pt; font-weight: bold; color: #4a5568; margin-top: 10pt; margin-bottom: 4pt; }
+          p       { font-family: 'Times New Roman', Times, serif; font-size: 14pt; margin: 4pt 0; text-align: justify; }
+          table   { border-collapse: collapse; width: 100%; margin: 10pt 0; page-break-inside: avoid; }
+          th, td  { font-family: 'Times New Roman', Times, serif; font-size: 13pt; border: 1px solid #718096; padding: 6pt 8pt; text-align: left; vertical-align: top; }
+          th      { background-color: #e2e8f0; font-weight: bold; }
+          ul, ol  { font-family: 'Times New Roman', Times, serif; font-size: 14pt; margin-left: 20pt; }
+          li      { margin: 2pt 0; }
+          strong  { font-weight: bold; }
+          em      { font-style: italic; }
         </style></head>
-        <body>${contentEl.innerHTML}</body></html>
+        <body>${cloned.innerHTML}</body></html>
       `;
       const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
       saveAs(blob, `${currentPlan.title || 'giao-an'}.doc`);
-      showToast('Đã xuất file Word (có bảng biểu)!');
+      showToast('Đã xuất file Word – Times New Roman 14pt!');
     } catch (e) {
       console.error(e);
       showToast('Lỗi khi tải file Word', 'error');
@@ -781,14 +863,28 @@ YÊU CẦU BẮT BUỘC:
       
       const slideTitle = pptx.addSlide();
       slideTitle.background = { color: "0B2447" };
-      slideTitle.addText(currentPlan.title, { x: 1, y: 2.2, w: '80%', h: 1.5, fontSize: 48, color: "FFFFFF", bold: true, align: "center", fontFace: "Arial" });
+      slideTitle.addText(currentPlan.title, {
+        x: 1, y: 2.2, w: '80%', h: 1.5,
+        fontSize: 40, color: "FFFFFF", bold: true, align: "center",
+        fontFace: "Times New Roman"
+      });
       
       slidesData.forEach((s: any) => {
         const pSlide = pptx.addSlide();
         pSlide.background = { color: "F8F9FA" };
-        pSlide.addText(s.title, { x: 0.5, y: 0.5, w: '90%', h: 1, fontSize: 32, bold: true, color: "19376D", fontFace: "Arial" });
-        const bulletPoints = s.points.map((p: string) => ({ text: p, options: { bullet: true } }));
-        pSlide.addText(bulletPoints, { x: 0.5, y: 1.8, w: '90%', h: 4, fontSize: 24, color: "333333", valign: 'top', fontFace: "Arial" });
+        pSlide.addText(s.title, {
+          x: 0.5, y: 0.3, w: '90%', h: 0.9,
+          fontSize: 28, bold: true, color: "19376D",
+          fontFace: "Times New Roman"
+        });
+        const bulletPoints = s.points.map((p: string) => ({
+          text: p,
+          options: { bullet: true, fontSize: 18, fontFace: "Times New Roman", color: "333333" }
+        }));
+        pSlide.addText(bulletPoints, {
+          x: 0.5, y: 1.4, w: '90%', h: 4.8,
+          valign: 'top', fontFace: "Times New Roman", fontSize: 18
+        });
       });
       
       pptx.writeFile({ fileName: `${currentPlan.title || 'baigiang'}.pptx` });
@@ -1776,85 +1872,3 @@ YÊU CẦU BẮT BUỘC:
               </div>
               <div className="p-6 bg-slate-50 flex gap-3">
                 <button 
-                  onClick={() => setIsSettingsOpen(false)}
-                  className="flex-1 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold"
-                >
-                  Đóng
-                </button>
-                <button 
-                  onClick={() => {
-                    setIsSettingsOpen(false);
-                    showToast('Đã lưu cài đặt!');
-                  }}
-                  className="flex-1 py-3 gradient-bg text-white rounded-xl font-bold shadow-lg shadow-blue-200"
-                >
-                  Lưu thay đổi
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* LaTeX Modal */}
-      <AnimatePresence>
-        {isLatexModalOpen && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-            onClick={() => setIsLatexModalOpen(false)}
-          >
-            <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-bold text-slate-800">Mã nguồn LaTeX</h3>
-                  <p className="text-sm text-slate-500 mt-1">Có thể biên dịch trực tiếp trên Overleaf hoặc TeX Live</p>
-                </div>
-                <button onClick={() => setIsLatexModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
-                  <X className="w-5 h-5 text-slate-400" />
-                </button>
-              </div>
-              <div className="flex-1 overflow-y-auto p-6">
-                <pre className="bg-slate-900 text-green-300 p-6 rounded-2xl text-sm font-mono whitespace-pre-wrap overflow-x-auto leading-relaxed">
-                  {latexContent}
-                </pre>
-              </div>
-              <div className="p-6 bg-slate-50 flex gap-3 flex-wrap">
-                <button 
-                  onClick={downloadLaTeXFile}
-                  className="flex-1 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors"
-                >
-                  <Download className="w-5 h-5" /> Tải file .tex
-                </button>
-                <button 
-                  onClick={openInOverleaf}
-                  className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition-colors"
-                >
-                  <Layout className="w-5 h-5" /> Mở trên Overleaf
-                </button>
-                <button 
-                  onClick={() => {
-                    navigator.clipboard.writeText(latexContent);
-                    showToast('Đã sao chép mã LaTeX!');
-                  }}
-                  className="flex-1 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors"
-                >
-                  <FileCheck className="w-5 h-5" /> Sao chép
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
