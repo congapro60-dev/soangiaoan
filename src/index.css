@@ -25,6 +25,7 @@ body {
 
 .gradient-text {
   background: var(--bg-gradient);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

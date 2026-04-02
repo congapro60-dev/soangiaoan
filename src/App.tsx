@@ -547,7 +547,7 @@ Tại cột "Hoạt động GV & HS" và trong quá trình thiết kế bài t�
             if (detailResponse) {
               newPlans.push({
                 id: Math.random().toString(36).substr(2, 9),
-                subjectId: currentPlan.subjectId,
+                subjectId: currentPlan.subjectId!,
                 templateId: currentPlan.templateId,
                 title: title,
                 content: cleanMarkdownOutput(detailResponse),
