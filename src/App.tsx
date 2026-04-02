@@ -42,7 +42,19 @@ import * as mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist';
 import * as XLSX from 'xlsx';
 import pptxgen from 'pptxgenjs';
-import { saveAs } from 'file-saver';
+// Native download helper - no file-saver library needed
+const downloadBlob = (blob: Blob, filename: string) => {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 100);
+};
 import { cn } from './lib/utils';
 import { callGeminiAI, MODELS } from './lib/gemini';
 import { AppData, DEFAULT_DATA, LessonPlan, LessonTemplate, TemplateFile, CurriculumDistribution } from './types';
@@ -747,8 +759,10 @@ F. KIỂM TRA CUỐI: Trước khi trả kết quả, AI tự kiểm tra:
         </style></head>
         <body>${cloned.innerHTML}</body></html>
       `;
-      const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
-      saveAs(blob, `${currentPlan.title || 'giao-an'}.doc`);
+      const blob = new Blob(['\ufeff', htmlContent], {
+        type: 'application/vnd.ms-word;charset=utf-8'
+      });
+      downloadBlob(blob, `${currentPlan.title || 'giao-an'}.doc`);
       showToast('Đã xuất file Word – Times New Roman 14pt!');
     } catch (e) {
       console.error(e);
@@ -801,8 +815,8 @@ YÊU CẦU BẮT BUỘC:
 
   const downloadLaTeXFile = () => {
     if (!latexContent) return;
-    const blob = new Blob([latexContent], { type: 'application/x-tex;charset=utf-8' });
-    saveAs(blob, `${currentPlan.title || 'giao-an'}.tex`);
+    const blob = new Blob([latexContent], { type: 'text/plain;charset=utf-8' });
+    downloadBlob(blob, `${currentPlan.title || 'giao-an'}.tex`);
     showToast('Đã tải file .tex!');
   };
 
