@@ -452,6 +452,11 @@ B. HOẠT ĐỘNG LUYỆN TẬP
 - Luôn phải có 3 bài tập được phân độ khó rõ ràng (Bài 1: Trung bình, Bài 2: Khá, Bài 3: Giỏi) và có hướng dẫn giải (ẩn hoặc tóm tắt) nằm trực tiếp ở Cột 3 (Nội dung chiếu PPT).
 
 C. KIỂM TRA NHANH: Nêu rõ sau phần lý thuyết/ ví dụ, kèm theo việc check biểu đồ năng lực/giơ bảng nhanh của nhóm học sinh.
+
+D. KIỂM TRA CỐT LÕI (AI SELF-CHECK):
+  - [x] Có bảng 3 cột (Thời gian | Hoạt động GV&HS | Ghi bảng) phân hóa chuẩn không?
+  - [x] Các dòng ngắt nghỉ trong ô đã dùng <br/> thay cho xuống dòng chưa?
+  - [x] Đã format mục tiêu dạng năng lực "Tôi có thể..." chưa?
 ===========================================================
           ` : ''}
         `;
@@ -603,7 +608,9 @@ C. KIỂM TRA NHANH: Nêu rõ sau phần lý thuyết/ ví dụ, kèm theo việ
     style.id = 'pdf-print-style';
     style.innerHTML = `
       @media print {
-        table { border-collapse: collapse !important; width: 100% !important; }
+        table { page-break-inside: avoid !important; border-collapse: collapse !important; }
+        tr    { page-break-inside: avoid !important; }
+        td, th { page-break-inside: avoid !important; }
         h1, h2, h3 { page-break-after: avoid !important; }
         p  { orphans: 3; widows: 3; }
       }
@@ -611,7 +618,8 @@ C. KIỂM TRA NHANH: Nêu rõ sau phần lý thuyết/ ví dụ, kèm theo việ
       #lesson-content h1 { font-size: 20pt !important; }
       #lesson-content h2 { font-size: 17pt !important; }
       #lesson-content h3 { font-size: 15pt !important; }
-      #lesson-content table { width: 100% !important; }
+      #lesson-content table { page-break-inside: avoid !important; }
+      #lesson-content tr    { page-break-inside: avoid !important; }
     `;
     document.head.appendChild(style);
     
@@ -619,9 +627,9 @@ C. KIỂM TRA NHANH: Nêu rõ sau phần lý thuyết/ ví dụ, kèm theo việ
       margin: [15, 12, 15, 12], // mm: top, right, bottom, left
       filename: `${currentPlan.title || 'giao-an'}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, letterRendering: true, windowWidth: 1200 },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['css', 'legacy'] },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
     };
 
     // @ts-ignore
@@ -1890,4 +1898,3 @@ YÊU CẦU BẮT BUỘC:
     </div>
   );
 }
-
