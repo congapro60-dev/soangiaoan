@@ -110,6 +110,8 @@ export default function App() {
   const [revisionPrompt, setRevisionPrompt] = useState('');
   const [latexContent, setLatexContent] = useState('');
   const [isLatexModalOpen, setIsLatexModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [bulkProgress, setBulkProgress] = useState({ current: 0, total: 0 });
 
   useEffect(() => {
     if (!data.settings.geminiApiKey) {
@@ -473,48 +475,75 @@ Tại cột "Hoạt động GV & HS", hãy khéo léo lồng ghép và ghi rõ v
           showToast('Đã khởi tạo giáo án thành công!');
         }
       } else {
-        // Bulk mode
-        const prompt = `
-          Bạn là một chuyên gia giáo dục cao cấp.
+        // Bulk mode 2.0: Hệ thống Loop Pipeline
+        const plannerPrompt = `
+          Bạn là chuyên gia giáo dục.
           DỰA TRÊN PHÂN PHỐI CHƯƠNG TRÌNH SAU:\n${distributionFile?.content}
           
-          YÊU CẦU SOẠN THẢO HÀNG LOẠT: ${bulkCommand}
+          YÊU CẦU LÊN DANH SÁCH BÀI HỌC CẦN SOẠN: ${bulkCommand}
           MÔN HỌC: ${subject}
           
-          ${templateContext}
-
-          BẮT BUỘC: Đối với tiến trình dạy học, CHỈ SỬ DỤNG BẢNG DUY NHẤT CÓ ĐÚNG 3 CỘT ("Thời gian", "Hoạt động", "Nội dung"). KHÔNG ĐƯỢC xuống dòng bằng dấu Enter trong bảng (dùng thẻ <br/> thay thế).
-
-          ${mathRestrictions}
-          
-          Hãy soạn các giáo án theo yêu cầu trên. 
-          QUAN TRỌNG: Trả về kết quả dưới dạng một mảng JSON các đối tượng, mỗi đối tượng có 2 trường: "title" (tiêu đề bài học) và "content" (nội dung giáo án bằng Markdown).
-          Ví dụ: [{"title": "Bài 1...", "content": "..."}, {"title": "Bài 2...", "content": "..."}]
-          Chỉ trả về JSON, không kèm theo văn bản giải thích nào khác.
+          LƯU Ý: Nhiệm vụ của bạn bây giờ CHỈ LẬP DANH SÁCH CÁC TIÊU ĐỀ bài học cần soạn (dựa vào số lượng tôi yêu cầu). KHÔNG VIẾT NỘI DUNG CHI TIẾT LÚC NÀY.
+          QUAN TRỌNG: TRẢ VỀ DUY NHẤT một mảng JSON thuần túy (không có markdown \`\`\`json) chứa các chuỗi tiêu đề bài học.
+          Ví dụ: ["Bài 1: Khái niệm đạo hàm", "Bài 2: Các quy tắc tính đạo hàm"]
         `;
-        const response = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
-        if (response) {
-          try {
-            const jsonStr = response.replace(/```json/g, '').replace(/```/g, '').trim();
-            const results = JSON.parse(jsonStr);
-            if (Array.isArray(results)) {
-              const newPlans = results.map((r: any) => ({
+        
+        const planResponse = await callGeminiAI(plannerPrompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
+        if (!planResponse) {
+          showToast('Không tạo được danh sách kế hoạch.', 'error');
+          setIsLoading(false);
+          return;
+        }
+
+        try {
+          const jsonStr = planResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+          const titles = JSON.parse(jsonStr) as string[];
+          if (!Array.isArray(titles) || titles.length === 0) throw new Error("Invalid array format");
+
+          setBulkProgress({ current: 0, total: titles.length });
+          const newPlans: LessonPlan[] = [];
+
+          // Chạy vòng lặp soạn từng bài với toàn bộ 8000 token limit
+          for (let i = 0; i < titles.length; i++) {
+            const title = titles[i];
+            setBulkProgress({ current: i + 1, total: titles.length });
+            
+            const detailPrompt = `
+              Bạn là một chuyên gia giáo dục cao cấp. Hãy soạn một giáo án chi tiết và chuyên nghiệp cho môn học: ${subject}.
+              Tiêu đề bài học: ${title}.
+              
+              QUAN TRỌNG: Bạn đang nằm trong luồng soạn tự động hàng loạt Bulk Generation. Bạn phải giữ nguyên chất lượng cao nhất cho bài này, tuyệt đối không được viết ngắn lại hay làm ẩu!
+
+              ${templateContext}
+              BẮT BUỘC: ĐỊNH DẠNG MARKDOWN, tiến trình dạy học PHẢI LÀ BẢNG DUY NHẤT 3 CỘT ("Thời gian", "Hoạt động của Giáo viên và Học sinh", "Nội dung ghi bảng/chiếu PPT"). Dùng thẻ <br/> để xuống dòng trong ô bảng, cấm dùng phím Enter.
+              
+              Phân phối chương trình chung (nếu cần xem để biết context): \n${distributionFile?.content}
+
+              ${mathRestrictions}
+            `;
+
+            const detailResponse = await callGeminiAI(detailPrompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
+            if (detailResponse) {
+              newPlans.push({
                 id: Math.random().toString(36).substr(2, 9),
                 subjectId: currentPlan.subjectId,
                 templateId: currentPlan.templateId,
-                title: r.title,
-                content: r.content,
-                status: 'draft' as const,
+                title: title,
+                content: cleanMarkdownOutput(detailResponse),
+                status: 'draft',
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
-              }));
-              setBulkResults(newPlans);
-              showToast(`Đã soạn thảo thành công ${newPlans.length} giáo án!`);
+              });
             }
-          } catch (e) {
-            console.error('JSON parse error:', e, response);
-            showToast('Lỗi khi xử lý kết quả từ AI. Vui lòng thử lại.', 'error');
           }
+
+          setBulkResults(newPlans);
+          showToast(`Đã tự động soạn xong ${newPlans.length} giáo án chi tiết!`);
+          setBulkProgress({ current: 0, total: 0 });
+        } catch (e) {
+          console.error('Bulk generation error:', e);
+          showToast('Lỗi khi phân tích cấu trúc mảng từ AI.', 'error');
+          setBulkProgress({ current: 0, total: 0 });
         }
       }
     } catch (error: any) {
@@ -1126,7 +1155,7 @@ YÊU CẦU BẮT BUỘC:
                               </div>
                               <div>
                                 <div className="font-semibold text-slate-800">{subject.name}</div>
-                                <div className="text-xs text-slate-500">{subject.lessonCount} giáo án</div>
+                                <div className="text-xs text-slate-500">{data.lessonPlans.filter(p => p.subjectId === subject.id).length} giáo án</div>
                               </div>
                             </div>
                           </div>
@@ -1324,7 +1353,10 @@ YÊU CẦU BẮT BUỘC:
                       ) : (
                         <Sparkles className="w-5 h-5" />
                       )}
-                      {isLoading ? 'Đang phân tích...' : generationMode === 'single' ? 'Khởi tạo giáo án thông minh' : 'Soạn thảo hàng loạt theo phân phối'}
+                      {isLoading 
+                        ? (bulkProgress.total > 0 ? `Đang soạn (${bulkProgress.current}/${bulkProgress.total}) bài...` : 'Đang phân tích...') 
+                        : generationMode === 'single' ? 'Khởi tạo giáo án thông minh' : 'Soạn thảo hàng loạt theo phân phối'
+                      }
                     </button>
                   </div>
                 </div>
@@ -1472,7 +1504,9 @@ YÊU CẦU BẮT BUỘC:
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                     <input 
                       type="text" 
-                      placeholder="Tìm kiếm giáo án..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Tìm kiếm theo tiêu đề bài học..."
                       className="w-full pl-12 pr-4 py-3 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
                     />
                   </div>
@@ -1485,7 +1519,7 @@ YÊU CẦU BẮT BUỘC:
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {data.lessonPlans.map(plan => (
+                  {data.lessonPlans.filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase())).map(plan => (
                     <div key={plan.id} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
                       <div className="flex items-start justify-between mb-4">
                         <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center">
