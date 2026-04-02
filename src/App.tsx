@@ -409,93 +409,54 @@ export default function App() {
           1. TỔNG HỢP KIẾN THỨC: Hãy sử dụng kiến thức cập nhật nhất từ internet để làm phong phú nội dung bài giảng.
 
           2. ĐỊNH DẠNG MARKDOWN - QUY TẮC BẮT BUỘC TỐI QUAN TRỌNG:
-             a) QUY TẮC SỐ 1 VỀ BẢNG 3 CỘT: Mỗi hàng bảng PHẢI nằm trên ĐÚNG 1 DÒNG. TUYỆT ĐỐI KHÔNG xuống dòng bằng Enter trong ô bảng.
-                - Để ngăn cách nội dung trong ô: Dùng "<br/>" (chính xác như vậy, không có dấu cách trong thẻ)
-                - Sai: | cell1 | GV: hỏi câu 1 \n GV: hỏi câu 2 | cell3 |   ← SAI (\n phá vỡ bảng)
-                - Đúng: | cell1 | GV: hỏi câu 1<br/>GV: hỏi câu 2 | cell3 | ← ĐÚNG
-             b) TUYỆT ĐỐI KHÔNG chèn hình ảnh ![...](url) vào trong ô bảng - ảnh chỉ được phép giữa các bảng.
-             c) Mỗi hoạt động cách nhau 1 dòng trắng.
-             d) KHÔNG dùng thẻ HTML như <br> (dạng không tự đóng), <div>, <span>.
+             a) TIẾN TRÌNH DẠY HỌC PHẢI LUÔN LÀ BẢNG DUY NHẤT CÓ ĐÚNG 3 CỘT: "Thời gian", "Hoạt động của Giáo viên và Học sinh", "Nội dung ghi bảng/chiếu PPT".
+             b) QUY TẮC BẢNG: Mỗi hàng bảng PHẢI nằm trên ĐÚNG 1 DÒNG. TUYỆT ĐỐI KHÔNG xuống dòng bằng phím Enter trong ô bảng.
+                - Để ngăn cách nội dung (GV, HS) trong ô: Bạn bắt buộc phải dùng duy nhất thẻ "<br/>"
+             c) TUYỆT ĐỐI KHÔNG chèn hình ảnh ![...](url) vào trong ô bảng - ảnh chỉ được phép chèn tại các đoạn văn bổ sung bên dưới bảng.
+             d) Mỗi hoạt động (Khởi động, Hình thành kiến thức...) phải cách nhau 1 dòng trắng.
 
           3. CÔNG THỨC TOÁN HỌC:
-             - Công thức inline: $...$ (ví dụ: $x^2 + y^2 = r^2$)
-             - Công thức block độc lập (ngoài bảng): $$...$$
-             - Trong ô bảng: chỉ dùng $...$ (không dùng $$)
+             - Cả trong bảng và đoạn văn: Ưu tiên dùng biểu thức dạng Toán inline: $...$ (ví dụ: $x^2 + y^2 = 1$).
+             - TUYỆT ĐỐI KHÔNG dùng $$...$$ bên trong bảng vì nó sẽ phá vỡ định dạng bảng hiển thị.
 
-          4. HÌNH ẢNH: Chỉ chèn hình ảnh vào ĐOẠN VĂN ngoài bảng. KHÔNG chèn hình ảnh vào trong bảng. Giới hạn tối đa 1 hình cho cả bài (phần mở rộng hoặc kết). Không để hình vào phần kiến thức Toán. Hình dùng API: ![Mô tả](https://image.pollinations.ai/prompt/{mô_tả_tiếng_anh}?width=600&height=300&nologo=true)
+          4. HÌNH ẢNH: Chỉ chèn hình ảnh vào đoạn văn ngoài bảng, giới hạn 1 hình cho cả bài. Hình dùng API: ![Mô tả](https://image.pollinations.ai/prompt/{mô_tả_tiếng_anh}?width=600&height=300&nologo=true)
 
-          5. MỤC TIÊU HOẠT ĐỘNG: Viết theo dạng "Tôi có thể...". Ví dụ:
-             - "Tôi có thể phát biểu được công thức khai triển nhị thức Newton."
-             - "Tôi có thể vận dụng công thức để tính hệ số trong khai triển cho n = 4, 5."
+          5. MỤC TIÊU HOẠT ĐỘNG: Viết theo dạng "Tôi có thể...".
+             Ví dụ: "Tôi có thể phát biểu được công thức khai triển nhị thức Newton."
 
-          6. KHUNG ĐÁNH GIÁ DANIELSON: Người dùng đã tải lên file Danielson ở phần "Tiêu chí và Quy định". Hãy đọc kĩ nội dung file đó và trích dẫn chính xác và cụ thể tên Miền + Các Chỉ số phụ (chữ cái a, b, c...) khi viết mục "Đối chiếu khung đánh giá Danielson". (Ví dụ: Miền 3b - Đặt câu hỏi và thảo luận, Miền 3c - Lôi cuốn học sinh...).
+          6. KHUNG ĐÁNH GIÁ DANIELSON: Từ tài liệu "Tiêu chí và Quy định" người dùng cung cấp (nếu có), hãy trích dẫn chính xác và cụ thể tên Miền + Các Chỉ số phụ (chữ cái a, b, c...) khi viết mục "Đối chiếu khung đánh giá Danielson".
 
-          7. CHI TIẾT: Đảm bảo đầy đủ các bước lên lớp, mục tiêu, hoạt động học tập và đánh giá.
+          7. CHI TIẾT: Đảm bảo đầy đủ các bước (1. Khởi động, 2. Trình bày Mục tiêu, 3. Hoạt động chính, 4. Luyện tập, 5. Vận dụng). Mỗi bước đều phải có Bảng 3 Cột riêng biệt theo mẫu.
 
-          8. VÍ DỤ CÚ PHÁP BẢNG 3 CỘT ĐÚNG (BẮT BUỘC THEO MẪU NÀY):
-          | 5 phút | GV: Hỏi "Công thức $\\binom{n}{k}$ có ý nghĩa gì?"<br/>HS dự kiến: "Là số tổ hợp chọn k phần tử từ n phần tử"<br/>GV: Xác nhận và mở rộng sang khai triển nhị thức | **I. Công thức:**<br/>$(a+b)^n = \\sum_{k=0}^{n} \\binom{n}{k} a^{n-k}b^k$<br/>**Ví dụ:** $(a+b)^4 = a^4 + 4a^3b + 6a^2b^2 + 4ab^3 + b^4$ |
-          => Mỗi hàng bảng chỉ 1 dòng. Dùng <br/> (không có khoảng trắng bên trong) để ngăn cách nội dung trong ô.
+          8. VÍ DỤ CÚ PHÁP BẢNG 3 CỘT (MẪU CHUẨN MÀ BẠN PHẢI THEO):
+          | Thời gian | Hoạt động của Giáo viên và Học sinh | Nội dung ghi bảng/chiếu PPT |
+          |---|---|---|
+          | 5 phút | **GV:** Đặt vấn đề bằng bài toán thực tế.<br/>**GV hỏi:** "Các em tính $\\binom{n}{k}$ thế nào?"<br/>**HS suy nghĩ:** 1 phút<br/>**HS dự kiến trả lời:** "Số tổ hợp chập k của n phần tử"<br/>**GV chốt lại:** Trình bày định lý Nhị thức. | **I. Định lý Nhị thức Newton**<br/>Công thức:<br/>$(a+b)^n = \\sum_{k=0}^{n} \\binom{n}{k} a^{n-k}b^k$ |
+          => LUÔN NHỚ: Tuyệt đối không dùng dấu Enter xuống dòng trong ô. Mọi khoảng nghỉ tách dòng giữa GV, HS đều sử dụng "<br/>".
           ${subject === 'Toán học' || subject.toLowerCase().includes('toán') ? `
           
 ===========================================================
 YÊU CẦU ĐẶC BIỆT CHO GIÁO ÁN MÔN TOÁN - BẮT BUỘC TUÂN THỦ
 ===========================================================
 
-A. THÔNG TIN CHUNG (Mục I)
-- Thời lượng: 40 phút/tiết
+A. THÔNG TIN CHUNG (Nội dung mở đầu trước khi lập bảng)
 - Gồm 3 phần bắt buộc:
-  1. NĂNG LỰC CỐT LÕI: Liệt kê các năng lực đặc thù môn Toán đạt được
-  2. MỤC TIÊU PHÂN HÓA (3 đối tượng):
-     - Học sinh Trung bình: Mục tiêu tối thiểu cần đạt
-     - Học sinh Khá: Mục tiêu ở mức vận dụng
-     - Học sinh Giỏi: Mục tiêu ở mức vận dụng cao, sáng tạo
-  3. CHUẨN BỊ: Công cụ, dụng cụ, phương tiện cụ thể.
+  1. NĂNG LỰC: Liệt kê năng lực cốt lõi. Gắn thẻ [🌐 Công dân toàn cầu], [💻 Công dân kỹ thuật số] nếu phù hợp.
+  2. MỤC TIÊU PHÂN HÓA (Tôi có thể...):
+     - Học sinh Trung bình: (Áp dụng công thức căn bản)
+     - Học sinh Khá: (Vận dụng tương đối)
+     - Học sinh Giỏi: (Vận dụng linh hoạt, mở rộng)
+  3. CHUẨN BỊ: Công cụ, phương tiện (máy tính Casio, v.v).
 
-B. CẤU TRÚC BẮT BUỘC của giáo án theo thứ tự:
-  I.   THÔNG TIN CHUNG
-  II.  TIẾN TRÌNH DẠY HỌC, gồm:
-       1. Hoạt động KHỞI ĐỘNG/TRẢI NGHIỆM
-       2. Xác định MỤC TIÊU HỌC TẬP (GV cho HS phát biểu mục tiêu)
-       3. [Câu hỏi ĐỊNH HƯỚNG cho cả bài - dẫn ra từ hoạt động khởi động]
-       4. Các Hoạt động HÌNH THÀNH KIẾN THỨC (chia nhỏ để giải quyết câu hỏi định hướng)
-       5. Hoạt động LUYỆN TẬP
-  III. CƠ HỘI HỌC TẬP MỞ RỘNG (TÙY CHỌN)
-  IV.  SƠ KẾT
-  V.   BÀI TẬP VỀ NHÀ
+B. HOẠT ĐỘNG LUYỆN TẬP
+- Luôn phải có 3 bài tập được phân độ khó rõ ràng (Bài 1: Trung bình, Bài 2: Khá, Bài 3: Giỏi) và có hướng dẫn giải (ẩn hoặc tóm tắt) nằm trực tiếp ở Cột 3 (Nội dung chiếu PPT).
 
-C. CÁCH TRÌNH BÀY TỪNG HOẠT ĐỘNG (BẮT BUỘC):
-Mỗi hoạt động đều được trình bày theo thứ tự sau (KHÔNG được gộp chung):
-  [TÊN HOẠT ĐỘNG - in đậm, có số thứ tự]
-  - Mục tiêu: (mục tiêu riêng của hoạt động này)
-  - Đối chiếu khung đánh giá Danielson: (ghi rõ miền năng lực Danielson)
+C. KIỂM TRA NHANH: Nêu rõ sau phần lý thuyết/ ví dụ, kèm theo việc check biểu đồ năng lực/giơ bảng nhanh của nhóm học sinh.
 
-  Sau đó là BẢNG 3 CỘT (mỗi hoạt động 1 bảng riêng biệt, KHÔNG gộp):
-  | Thời gian | Hoạt động của Giáo viên và Học sinh | Nội dung ghi bảng/chiếu PPT |
-  |-----------|--------------------------------------|------------------------------|
-  - Cột THỜI GIAN: Ghi rõ số phút (ví dụ: 3 phút, 5 phút).
-  - Cột HOẠT ĐỘNG CỦA GV & HS: Ghi các CÂU HỎI định hướng, câu trả lời dự kiến. Chú ý ngăn cách bằng <br/>. Đặt câu hỏi phải thúc đẩy tư duy.
-  - Cột NỘI DUNG GHI BẢNG/CHIẾU PPT: Nội dung lý thuyết, công thức dùng MathType ($...$), ví dụ minh họa và đáp án.
-
-D. QUY TẮC NỘI DUNG:
-  1. CÂU HỎI ĐỊNH HƯỚNG: Đặt SAU hoạt động khởi động, chỉ ra vấn đề cốt lõi cần giải quyết cho cả bài học.
-  2. HOẠT ĐỘNG KHỞI ĐỘNG: Đưa ra bài toán thực tiễn mang tính "CÔNG DÂN TOÀN CẦU".
-  3. KIỂM TRA NHANH: Sau mỗi phần lý thuyết/công thức phải có câu hỏi kiểm tra nhanh (chờ kết quả check-in bằng biểu đồ tay v.v).
-  4. LUYỆN TẬP: Đưa 3 bài tập phân hóa:
-     - Bài 1 (Trung bình): Áp dụng công thức
-     - Bài 2 (Khá): Vận dụng có biến tấu
-     - Bài 3 (Giỏi): Vận dụng cao, kết hợp nhiều kiến thức.
-  5. YẾU TỐ BẮT BUỘC (Đánh dấu vào từng hoạt động):
-     - [🌐 Công dân toàn cầu]: Các vấn đề liên quan đời sống, thực tiễn chung.
-     - [💻 Công dân kỹ thuật số]: Ứng dụng công nghệ, máy tính bỏ túi.
-     - [⭐ Dạy học chất lượng cao]: Hoạt động suy ngẫm, thảo luận.
-
-E. PHÂN BỔ THỜI GIAN
-  - Khởi động: 5 phút | Xác định mục tiêu: 2 phút | Hình thành kiến thức: 15-18 phút | Luyện tập: 12-15 phút | Mở rộng: 3 phút | Sơ kết: 3-5 phút
-
-F. KIỂM TRA CUỐI: Trước khi trả kết quả, AI tự kiểm tra:
-  ✓ Có Bảng 3 Cột không có dấu Enter xuống dòng (chỉ dùng <br/>) không?
-  ✓ Đủ [Câu hỏi ĐỊNH HƯỚNG cho cả bài] không?
-  ✓ Mục tiêu theo format "Tôi có thể" không?
+D. KIỂM TRA CỐT LÕI (AI SELF-CHECK):
+  - [x] Có bảng 3 cột (Thời gian | Hoạt động GV&HS | Ghi bảng) phân hóa chuẩn không?
+  - [x] Các dòng ngắt nghỉ trong ô đã dùng <br/> thay cho xuống dòng chưa?
+  - [x] Đã format mục tiêu dạng năng lực "Tôi có thể..." chưa?
 ===========================================================
           ` : ''}
         `;
@@ -638,43 +599,6 @@ F. KIỂM TRA CUỐI: Trước khi trả kết quả, AI tự kiểm tra:
       setIsLoading(false);
     }
   };
-
-  // Helper: Convert inline math $...$ and $$...$$ to readable Unicode text for Word export
-  const convertMathToUnicode = (text: string): string => {
-    // Map common LaTeX commands to Unicode
-    const replacements: [RegExp, string][] = [
-      [/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1)/($2)'],
-      [/\\sqrt\{([^}]+)\}/g, '√($1)'],
-      [/\\sqrt/g, '√'],
-      [/\\sum/g, 'Σ'],
-      [/\\prod/g, 'Π'],
-      [/\\int/g, '∫'],
-      [/\\infty/g, '∞'],
-      [/\\alpha/g, 'α'], [/\\beta/g, 'β'], [/\\gamma/g, 'γ'],
-      [/\\delta/g, 'δ'], [/\\Delta/g, 'Δ'], [/\\theta/g, 'θ'],
-      [/\\pi/g, 'π'], [/\\Pi/g, 'Π'], [/\\sigma/g, 'σ'], [/\\Sigma/g, 'Σ'],
-      [/\\mu/g, 'μ'], [/\\lambda/g, 'λ'], [/\\epsilon/g, 'ε'],
-      [/\\leq/g, '≤'], [/\\geq/g, '≥'], [/\\neq/g, '≠'],
-      [/\\approx/g, '≈'], [/\\equiv/g, '≡'], [/\\in/g, '∈'],
-      [/\\notin/g, '∉'], [/\\subset/g, '⊂'], [/\\cup/g, '∪'], [/\\cap/g, '∩'],
-      [/\\pm/g, '±'], [/\\times/g, '×'], [/\\div/g, '÷'], [/\\cdot/g, '·'],
-      [/\\left\(/g, '('], [/\\right\)/g, ')'],
-      [/\\left\[/g, '['], [/\\right\]/g, ']'],
-      [/\\binom\{([^}]+)\}\{([^}]+)\}/g, 'C($1,$2)'],
-      [/\^\{([^}]+)\}/g, '^($1)'],
-      [/\_\{([^}]+)\}/g, '_($1)'],
-      [/\^([0-9a-zA-Z])/g, '^$1'],
-      [/\_([0-9a-zA-Z])/g, '_$1'],
-      [/\\\\|\\,|\\;|\\!|\\quad|\\qquad/g, ' '],
-      [/\{|\}/g, ''],
-    ];
-    let result = text;
-    replacements.forEach(([pattern, replacement]) => {
-      result = result.replace(pattern, replacement);
-    });
-    return result;
-  };
-
   const exportToPDF = () => {
     const element = document.getElementById('lesson-content');
     if (!element) return;
@@ -723,25 +647,32 @@ F. KIỂM TRA CUỐI: Trước khi trả kết quả, AI tự kiểm tra:
       const contentEl = document.getElementById('lesson-content');
       if (!contentEl) { showToast('Không tìm thấy nội dung giáo án', 'error'); return; }
 
-      // Convert rendered HTML: replace KaTeX/math spans with readable Unicode text
       const cloned = contentEl.cloneNode(true) as HTMLElement;
 
-      // Replace all rendered math (KaTeX annotation or .katex elements) with Unicode
+      // Extract KaTeX MathML natively and inject it with Microsoft Office OMML-compatible mml namespaces
       cloned.querySelectorAll('.katex').forEach(el => {
-        const annotation = el.querySelector('annotation[encoding="application/x-tex"]');
-        if (annotation && annotation.textContent) {
-          const unicode = convertMathToUnicode(annotation.textContent);
+        const mathmlNode = el.querySelector('.katex-mathml math');
+        if (mathmlNode) {
+          // Add mml namespaces to all math tags so Word automatically coerces them into Equation Objects
+          let mathStr = mathmlNode.outerHTML;
+          // Prefix all mathml tags with <mml:...>
+          mathStr = mathStr.replace(/<(\/?)(math|semantics|mrow|mi|mo|mn|ms|mspace|mtext|menclose|merror|mfenced|mfrac|mpadded|mphantom|mroot|msqrt|mstyle|msub|msup|msubsup|mtable|mtr|mtd|maligngroup|malignmark|mlabeledtr)/g, '<$1mml:$2');
+          
           const span = document.createElement('span');
-          span.textContent = unicode;
+          span.innerHTML = mathStr;
           el.replaceWith(span);
+        } else {
+          // Fallback if mathml is missing, just strip katex
+          const annotation = el.querySelector('annotation');
+          el.replaceWith(document.createTextNode(annotation ? annotation.textContent || '' : ''));
         }
       });
-      // Remove leftover katex-html (duplicate renders)
       cloned.querySelectorAll('.katex-html').forEach(el => el.remove());
 
       const htmlContent = `
         <html xmlns:o="urn:schemas-microsoft-com:office:office"
               xmlns:w="urn:schemas-microsoft-com:office:word"
+              xmlns:mml="http://www.w3.org/1998/Math/MathML"
               xmlns="http://www.w3.org/TR/REC-html40">
         <head><meta charset="utf-8"><style>
           body    { font-family: 'Times New Roman', Times, serif; font-size: 14pt; line-height: 1.8; margin: 2cm; }
@@ -763,7 +694,7 @@ F. KIỂM TRA CUỐI: Trước khi trả kết quả, AI tự kiểm tra:
         type: 'application/vnd.ms-word;charset=utf-8'
       });
       downloadBlob(blob, `${currentPlan.title || 'giao-an'}.doc`);
-      showToast('Đã xuất file Word – Times New Roman 14pt!');
+      showToast('Đã xuất file Word (có Công thức native)!');
     } catch (e) {
       console.error(e);
       showToast('Lỗi khi tải file Word', 'error');
@@ -1967,3 +1898,4 @@ YÊU CẦU BẮT BUỘC:
     </div>
   );
 }
+
