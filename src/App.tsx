@@ -789,9 +789,10 @@ ${currentPlan.content}
 ---
 
 YÊU CẦU BẮT BUỘC:
-1. Tạo file .tex hoàn chỉnh với \\documentclass{article}, \\usepackage cần thiết (inputenc, babel, geometry, array, longtable, graphicx, hyperref, enumitem, titlesec, xcolor).
-2. Mọi BẢNG BIỔU phải được chuyển thành \\begin{tabular} hoặc \\begin{longtable} với đầy đủ cột, hàng, đường kẻ (\\hline).
-3. Công thức Toán phải bọc trong $ hoặc \\[ \\].
+1. TUYỆT ĐỐI KHÔNG ĐƯỢC TÓM TẮT MỘT TỪ NÀO. Bắt buộc giữ nguyên 100% nội dung chữ, độ dài, toàn bộ các luồng hội thoại của GV/HS và bảng biểu.
+2. Tạo file .tex hoàn chỉnh với \\documentclass{article}, sử dụng \\usepackage{longtable} vì bảng giáo án rất dài và cần ngắt trang tự động.
+3. Mọi BẢNG BIỔU phải dùng môi trường \\begin{longtable} với đầy đủ cột, hàng, đường kẻ (\\hline).
+4. Công thức Toán phải bọc trong $ hoặc \\[ \\].
 4. Tiêu đề sử dụng \\section, \\subsection, \\subsubsection.
 5. Danh sách dùng \\begin{itemize} hoặc \\begin{enumerate}.
 6. Hình ảnh (nếu có URL) dùng \\includegraphics hoặc ghi chú URL.
@@ -1200,7 +1201,11 @@ YÊU CẦU BẮT BUỘC:
                     </h3>
                     <div className="space-y-3">
                       {data.lessonPlans.slice(0, 4).map(plan => (
-                        <div key={plan.id} className="p-4 bg-white rounded-2xl border border-slate-100 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                        <div 
+                          key={plan.id} 
+                          onClick={() => { setCurrentPlan(plan); setActiveTab('creator'); }}
+                          className="p-4 bg-white rounded-2xl border border-slate-100 flex items-center justify-between hover:bg-blue-50 transition-colors cursor-pointer group"
+                        >
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
                               <FileText className="w-5 h-5 text-blue-500" />
@@ -1210,7 +1215,7 @@ YÊU CẦU BẮT BUỘC:
                               <div className="text-xs text-slate-400">{dayjs(plan.createdAt).format('DD/MM/YYYY')}</div>
                             </div>
                           </div>
-                          <ChevronRight className="w-5 h-5 text-slate-300" />
+                          <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-blue-500 transition-colors" />
                         </div>
                       ))}
                       {data.lessonPlans.length === 0 && (
@@ -1976,3 +1981,4 @@ YÊU CẦU BẮT BUỘC:
     </div>
   );
 }
+
