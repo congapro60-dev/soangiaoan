@@ -665,18 +665,26 @@ Tại cột "Hoạt động GV & HS" và trong quá trình thiết kế bài t�
     style.id = 'pdf-print-style';
     style.innerHTML = `
       @media print {
-        table { page-break-inside: avoid !important; border-collapse: collapse !important; }
+        table { border-collapse: collapse !important; width: 100% !important; table-layout: fixed !important; }
         tr    { page-break-inside: avoid !important; }
-        td, th { page-break-inside: avoid !important; }
+        td, th { word-wrap: break-word !important; }
         h1, h2, h3 { page-break-after: avoid !important; }
         p  { orphans: 3; widows: 3; }
       }
-      #lesson-content * { font-family: 'Times New Roman', Times, serif !important; font-size: 14pt !important; }
-      #lesson-content h1 { font-size: 20pt !important; }
-      #lesson-content h2 { font-size: 17pt !important; }
-      #lesson-content h3 { font-size: 15pt !important; }
-      #lesson-content table { page-break-inside: avoid !important; }
-      #lesson-content tr    { page-break-inside: avoid !important; }
+      #lesson-content * { font-family: 'Times New Roman', Times, serif !important; font-size: 12pt !important; line-height: 1.5 !important; }
+      #lesson-content h1 { font-size: 16pt !important; }
+      #lesson-content h2 { font-size: 14pt !important; }
+      #lesson-content h3 { font-size: 13pt !important; }
+      #lesson-content tr { page-break-inside: avoid !important; }
+      
+      /* Column Split 12 - 44 - 44 */
+      #lesson-content table th:nth-child(1), #lesson-content table td:nth-child(1) { width: 12% !important; }
+      #lesson-content table th:nth-child(2), #lesson-content table td:nth-child(2) { width: 44% !important; }
+      #lesson-content table th:nth-child(3), #lesson-content table td:nth-child(3) { width: 44% !important; }
+      
+      /* Math height fix */
+      .katex { padding: 4px 0 !important; display: inline-block !important; }
+      .katex-display { margin: 8px 0 !important; }
     `;
     document.head.appendChild(style);
     
