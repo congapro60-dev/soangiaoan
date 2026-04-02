@@ -412,7 +412,7 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
 - NĂNG LỰC CỐT LÕI (5 Năng lực Toán học): Liệt kê và bám sát các năng lực: (1) Tư duy lập luận, (2) Mô hình hóa, (3) Giải quyết vấn đề, (4) Giao tiếp toán học, (5) Sử dụng công cụ.
 
 2. CẤU TRÚC BƯỚC BẮT BUỘC CHO MÔN TOÁN:
-AI phải trình bày Tiến trình giảng dạy thành BẢNG 3 CỘT (thời gian, hoạt động, nội dung) gồm đúng 4 giai đoạn sau:
+AI phải trình bày Tiến trình theo đúng 4 giai đoạn. BẮT BUỘC MỖI GIAI ĐOẠN PHẢI TẠO RA 1 BẢNG 3 CỘT RIÊNG BIỆT (Không được gộp cả 4 bước vào 1 bảng duy nhất). Cấu trúc mỗi giai đoạn gồm: Tiêu đề -> List mục tiêu -> Bảng 3 cột.
   - BƯỚC 1: TRẢI NGHIỆM (< 5 phút): Khởi động bằng 1 vấn đề thực tiễn gắn với tư duy [🌐 Công dân toàn cầu]. Phải có góc "Mistake of the Day" (Sửa lỗi sai phổ biến hôm nay), kết thúc bằng Khảo sát nhanh dùng "Bảng con".
   - BƯỚC 2: HÌNH THÀNH KIẾN THỨC (10 - 15 phút): Hạn chế thuyết trình, áp dụng mô hình "I do - We do - You do". Phát triển các bộ CÂU HỎI ĐỊNH HƯỚNG.
   - BƯỚC 3: RÈN LUYỆN VÀ PHÁT TRIỂN (20 - 25 phút): Tối thiểu 3 bài tập minh họa/luyện tập phân hóa (Xanh/Vàng/Hồng) từ thấp đến cao. Tránh bài toán cồng kềnh, ưu tiên tư duy mô hình hóa. Cần có thiết kế "Trạm giáo viên" (Teacher Station) và "Khay Phao cứu sinh" (Hint Station).
@@ -433,7 +433,13 @@ Tại cột "Hoạt động GV & HS", hãy khéo léo lồng ghép và ghi rõ v
   + Các nội dung giải bài tập ở Cột 3 (Bảng/PPT) PHẢI GHI RÕ TỪNG BƯỚC GIẢI CHI TIẾT, không được chỉ ghi đáp án cuối cùng.
 
 5. SỰ ỔN ĐỊNH CỦA CẤU TRÚC (BẤT BIẾN):
-- Bạn không được phép "tạo phản" cấu trúc 3 Cột và 4 Bước ở trên. 100% các giáo án sinh ra trong môn Toán học phải rập khuôn cấu trúc duy nhất này, không được thêm hay bớt bất kỳ một hàng/cột nào khác. Mọi thứ phải được nhồi nhét vào bảng 3 cột bằng thẻ <br/>.
+- Bắt buộc mỗi Hoạt động phải trình bày theo đúng khuôn mẫu sau:
+  **Tên hoạt động (Thời lượng)**
+  * Mục tiêu: ...
+  * Tiêu chí đánh giá / Năng lực: ...
+  (Rồi mới chèn 1 bảng 3 cột cho riêng hoạt động này)
+- Tại Cột 2 (Giáo viên và Học sinh) của mỗi bảng, KHÔNG xưng hô lộn xộn lẻ tẻ, mà GỘP LẠI THÀNH CỤM BẰNG THẺ THEO CẤU TRÚC:
+  **Hoạt động của GV:** <br/><br/> - ... <br/><br/> **Hoạt động của HS:** <br/><br/> - ... (Dùng <br/><br/> để cách dòng)
 ===========================================================
       ` : '';
 
@@ -451,9 +457,9 @@ Tại cột "Hoạt động GV & HS", hãy khéo léo lồng ghép và ghi rõ v
           1. TỔNG HỢP KIẾN THỨC: Hãy sử dụng kiến thức cập nhật nhất từ internet để làm phong phú nội dung bài giảng.
 
           2. ĐỊNH DẠNG MARKDOWN - QUY TẮC BẮT BUỘC TỐI QUAN TRỌNG:
-             a) TIẾN TRÌNH DẠY HỌC PHẢI LUÔN LÀ BẢNG DUY NHẤT CÓ ĐÚNG 3 CỘT: "Thời gian", "Hoạt động của Giáo viên và Học sinh", "Nội dung ghi bảng/chiếu PPT".
-             b) QUY TẮC BẢNG: Mỗi hàng bảng PHẢI nằm trên ĐÚNG 1 DÒNG. TUYỆT ĐỐI KHÔNG xuống dòng bằng phím Enter trong ô bảng.
-                - Để ngăn cách nội dung (GV, HS) trong ô: Bạn bắt buộc phải dùng duy nhất thẻ "<br/>"
+             a) Tiến trình dạy học bắt buộc phải CHIA THÀNH NHIỀU BẢNG (mỗi hoạt động 1 bảng 3 cột độc lập). Tên 3 Cột: "Thời gian thực" | "Giáo viên và Học sinh" | "Nội dung".
+             b) QUY TẮC BẢNG: Mỗi hàng bảng PHẢI nằm trên ĐÚNG 1 DÒNG CODE. TUYỆT ĐỐI KHÔNG xuống dòng bằng phím Enter trong ô bảng.
+                 - Để ngăn cách nội dung (GV, HS) trong ô sao cho tách bạch và thoáng đãng: Bạn bắt buộc phải dùng khoảng cách hai thẻ liên tiếp "<br/><br/>".
              c) TUYỆT ĐỐI KHÔNG chèn hình ảnh ![...](url) vào trong ô bảng - ảnh chỉ được phép chèn tại các đoạn văn bổ sung bên dưới bảng.
              d) Mỗi hoạt động (Khởi động, Hình thành kiến thức...) phải cách nhau 1 dòng trắng.
 
@@ -461,11 +467,16 @@ Tại cột "Hoạt động GV & HS", hãy khéo léo lồng ghép và ghi rõ v
              - Cả trong bảng và đoạn văn: Ưu tiên dùng biểu thức dạng Toán inline: $...$ (ví dụ: $x^2 + y^2 = 1$).
              - TUYỆT ĐỐI KHÔNG dùng $$...$$ bên trong bảng vì nó sẽ phá vỡ định dạng bảng hiển thị.
 
-          4. VÍ DỤ CÚ PHÁP BẢNG 3 CỘT (MẪU CHUẨN MÀ BẠN PHẢI THEO):
-          | Thời gian | Hoạt động của Giáo viên và Học sinh | Nội dung ghi bảng/chiếu PPT |
+          4. VÍ DỤ CÚ PHÁP (MẪU CHUẨN MÀ BẠN PHẢI THEO):
+          **1. TRẢI NGHIỆM Khởi động (5 phút)**
+          - **Mục tiêu:** Kích thích hứng thú...
+          - **Năng lực:** Tư duy phản biện...
+          
+          | Thời gian thực | Giáo viên và Học sinh | Nội dung |
           |---|---|---|
-          | 5 phút | **GV:** Đặt vấn đề.<br/>**GV hỏi:** "Tính $\\binom{n}{k}$ thế nào?"<br/>**HS suy nghĩ:** 1 phút<br/>**HS trả lời:** "Số tổ hợp"<br/>**GV chốt lại:** Trình bày định lý. | **I. Định lý Nhị thức Newton**<br/>Công thức:<br/>$(a+b)^n = \\sum_{k=0}^{n} \\binom{n}{k} a^{n-k}b^k$ |
-          => LUÔN NHỚ: Tuyệt đối không dùng dấu Enter xuống dòng trong ô. Mọi khoảng nghỉ tách dòng giữa GV, HS đều sử dụng "<br/>".
+          | 00:00 - 00:05 | **Hoạt động của GV:**<br/><br/> - Cho HS khởi động...<br/><br/> - Hỏi: "Tại sao..."<br/><br/>**Hoạt động của HS:**<br/><br/> - Trả lời nhanh... | **I. Khởi động**<br/><br/> Bài toán... |
+          
+          => LUÔN NHỚ: Các hoạt động phải là các bảng rời rạc. Tuyệt đối không dùng dấu Enter xuống dòng trong ô. Mọi khoảng nghỉ tách dòng trong bảng đều bắt buộc sử dụng "<br/><br/>" để chia tách các đoạn.
 
           ${mathRestrictions}
         `;
@@ -515,7 +526,7 @@ Tại cột "Hoạt động GV & HS", hãy khéo léo lồng ghép và ghi rõ v
               QUAN TRỌNG: Bạn đang nằm trong luồng soạn tự động hàng loạt Bulk Generation. Bạn phải giữ nguyên chất lượng cao nhất cho bài này, tuyệt đối không được viết ngắn lại hay làm ẩu!
 
               ${templateContext}
-              BẮT BUỘC: ĐỊNH DẠNG MARKDOWN, tiến trình dạy học PHẢI LÀ BẢNG DUY NHẤT 3 CỘT ("Thời gian", "Hoạt động của Giáo viên và Học sinh", "Nội dung ghi bảng/chiếu PPT"). Dùng thẻ <br/> để xuống dòng trong ô bảng, cấm dùng phím Enter.
+              BẮT BUỘC: ĐỊNH DẠNG MARKDOWN, tiến trình dạy học PHẢI CHIA LÀM NHIỀU BẢNG (mỗi phần 1 bảng riêng), mỗi bảng có đúng 3 CỘT ("Thời gian thực", "Giáo viên và Học sinh", "Nội dung"). Dùng 2 thẻ <br/><br/> liên tiếp để ghép các đoạn text trong ô bảng, cấm dùng phím Enter.
               
               Phân phối chương trình chung (nếu cần xem để biết context): \n${distributionFile?.content}
 
