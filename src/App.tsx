@@ -1549,7 +1549,11 @@ YÊU CẦU BẮT BUỘC:
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {data.lessonPlans.filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase())).map(plan => (
-                    <div key={plan.id} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
+                    <div 
+                      key={plan.id} 
+                      onClick={() => { setCurrentPlan(plan); setActiveTab('creator'); }}
+                      className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all group cursor-pointer"
+                    >
                       <div className="flex items-start justify-between mb-4">
                         <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center">
                           <FileText className="w-6 h-6 text-blue-500" />
@@ -1559,7 +1563,7 @@ YÊU CẦU BẮT BUỘC:
                             <Eye className="w-5 h-5" />
                           </button>
                           <button 
-                            onClick={() => deletePlan(plan.id)}
+                            onClick={(e) => { e.stopPropagation(); deletePlan(plan.id); }}
                             className="p-2 text-slate-400 hover:text-red-500 transition-colors"
                           >
                             <Trash2 className="w-5 h-5" />
@@ -1573,7 +1577,7 @@ YÊU CẦU BẮT BUỘC:
                           {dayjs(plan.createdAt).format('DD MMM YYYY')}
                         </span>
                         <div className="flex items-center gap-1 text-green-500 text-[10px] font-bold">
-                          <CheckCircle2 className="w-3 h-3" /> HOÃ€N THÃ€NH
+                          <CheckCircle2 className="w-3 h-3" /> HOÀN THÀNH
                         </div>
                       </div>
                     </div>
@@ -1972,4 +1976,3 @@ YÊU CẦU BẮT BUỘC:
     </div>
   );
 }
-
