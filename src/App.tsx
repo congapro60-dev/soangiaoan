@@ -395,6 +395,36 @@ export default function App() {
         `;
       }
 
+      const mathRestrictions = subject === 'Toán học' || subject.toLowerCase().includes('toán') ? `
+===========================================================
+YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
+(Chuẩn hóa theo CIS, TDS và Danielson Framework)
+===========================================================
+
+1. THÔNG TIN CHUNG BẮT BUỘC (Mục Tiêu & Tiêu Chí Thành Công):
+- WALT (We Are Learning To): Trình bày mục tiêu bài học hôm nay học gì. Bắt buộc có YẾU TỐ TOÀN CẦU. (Ví dụ: Ứng dụng quy tắc đếm vào logistics quốc tế).
+- WILF (What I'm Looking For): 3 mức độ (Biểu tượng trái ớt 🌶️):
+  + [1🌶️ Cơ bản - Must do]: Mức độ hiểu/nhận biết/áp dụng công thức.
+  + [2🌶️ Trọng tâm - Should do]: Mức độ vận dụng, phân tích.
+  + [3🌶️ Mở rộng - Could do]: Mức độ vận dụng cao, tự sáng tạo bài toán.
+- NĂNG LỰC CỐT LÕI (5 Năng lực Toán học): Liệt kê và bám sát các năng lực: (1) Tư duy lập luận, (2) Mô hình hóa, (3) Giải quyết vấn đề, (4) Giao tiếp toán học, (5) Sử dụng công cụ.
+
+2. CẤU TRÚC BƯỚC BẮT BUỘC CHO MÔN TOÁN:
+AI phải trình bày Tiến trình giảng dạy thành BẢNG 3 CỘT (thời gian, hoạt động, nội dung) gồm đúng 4 giai đoạn sau:
+  - BƯỚC 1: TRẢI NGHIỆM (< 5 phút): Khởi động bằng 1 vấn đề thực tiễn gắn với tư duy [🌐 Công dân toàn cầu]. Phải có góc "Mistake of the Day" (Sửa lỗi sai phổ biến hôm nay), kết thúc bằng Khảo sát nhanh dùng "Bảng con".
+  - BƯỚC 2: HÌNH THÀNH KIẾN THỨC (10 - 15 phút): Hạn chế thuyết trình, áp dụng mô hình "I do - We do - You do". Phát triển các bộ CÂU HỎI ĐỊNH HƯỚNG.
+  - BƯỚC 3: RÈN LUYỆN VÀ PHÁT TRIỂN (20 - 25 phút): Tối thiểu 3 bài tập minh họa/luyện tập phân hóa (Xanh/Vàng/Hồng) từ thấp đến cao. Tránh bài toán cồng kềnh, ưu tiên tư duy mô hình hóa. Cần có thiết kế "Trạm giáo viên" (Teacher Station) và "Khay Phao cứu sinh" (Hint Station).
+  - BƯỚC 4: SƠ KẾT (5 phút): Sử dụng Exit Ticket (Đánh giá phân hóa: cho HS lựa chọn 1 phương thức/câu hỏi trả lời phù hợp với năng lực).
+
+3. HÀNH ĐỘNG CỦA GIÁO VIÊN (DANIELSON & CIS):
+Tại cột "Hoạt động GV & HS", hãy khéo léo lồng ghép và ghi rõ vào ngoặc vuông các kỹ thuật sau:
+  - [Quét Radar] (Bao quát lớp khi HS làm bài)
+  - [Khen ngợi phi ngôn ngữ] (Thumbs up, gật đầu, vỗ tay)
+  - [Phản hồi Feed-forward] (Chỉ ra trực tiếp lỗi sai bằng bút màu để HS tự sửa)
+  - [Đánh giá đồng đẳng] (Lật cốc tín hiệu, Đổi phiếu chấm chéo bằng bút Xanh Lá Cây - Green pen)
+===========================================================
+      ` : '';
+
       if (generationMode === 'single') {
         const lessonDocsContent = lessonDocs.map(f => f.content).join('\n---\n');
         const prompt = `
@@ -419,46 +449,13 @@ export default function App() {
              - Cả trong bảng và đoạn văn: Ưu tiên dùng biểu thức dạng Toán inline: $...$ (ví dụ: $x^2 + y^2 = 1$).
              - TUYỆT ĐỐI KHÔNG dùng $$...$$ bên trong bảng vì nó sẽ phá vỡ định dạng bảng hiển thị.
 
-          4. HÌNH ẢNH: Chỉ chèn hình ảnh vào đoạn văn ngoài bảng, giới hạn 1 hình cho cả bài. Hình dùng API: ![Mô tả](https://image.pollinations.ai/prompt/{mô_tả_tiếng_anh}?width=600&height=300&nologo=true)
-
-          5. MỤC TIÊU HOẠT ĐỘNG: Viết theo dạng "Tôi có thể...".
-             Ví dụ: "Tôi có thể phát biểu được công thức khai triển nhị thức Newton."
-
-          6. KHUNG ĐÁNH GIÁ DANIELSON: Từ tài liệu "Tiêu chí và Quy định" người dùng cung cấp (nếu có), hãy trích dẫn chính xác và cụ thể tên Miền + Các Chỉ số phụ (chữ cái a, b, c...) khi viết mục "Đối chiếu khung đánh giá Danielson".
-
-          7. CHI TIẾT: Đảm bảo đầy đủ các bước (1. Khởi động, 2. Trình bày Mục tiêu, 3. Hoạt động chính, 4. Luyện tập, 5. Vận dụng). Mỗi bước đều phải có Bảng 3 Cột riêng biệt theo mẫu.
-
-          8. VÍ DỤ CÚ PHÁP BẢNG 3 CỘT (MẪU CHUẨN MÀ BẠN PHẢI THEO):
+          4. VÍ DỤ CÚ PHÁP BẢNG 3 CỘT (MẪU CHUẨN MÀ BẠN PHẢI THEO):
           | Thời gian | Hoạt động của Giáo viên và Học sinh | Nội dung ghi bảng/chiếu PPT |
           |---|---|---|
-          | 5 phút | **GV:** Đặt vấn đề bằng bài toán thực tế.<br/>**GV hỏi:** "Các em tính $\\binom{n}{k}$ thế nào?"<br/>**HS suy nghĩ:** 1 phút<br/>**HS dự kiến trả lời:** "Số tổ hợp chập k của n phần tử"<br/>**GV chốt lại:** Trình bày định lý Nhị thức. | **I. Định lý Nhị thức Newton**<br/>Công thức:<br/>$(a+b)^n = \\sum_{k=0}^{n} \\binom{n}{k} a^{n-k}b^k$ |
+          | 5 phút | **GV:** Đặt vấn đề.<br/>**GV hỏi:** "Tính $\\binom{n}{k}$ thế nào?"<br/>**HS suy nghĩ:** 1 phút<br/>**HS trả lời:** "Số tổ hợp"<br/>**GV chốt lại:** Trình bày định lý. | **I. Định lý Nhị thức Newton**<br/>Công thức:<br/>$(a+b)^n = \\sum_{k=0}^{n} \\binom{n}{k} a^{n-k}b^k$ |
           => LUÔN NHỚ: Tuyệt đối không dùng dấu Enter xuống dòng trong ô. Mọi khoảng nghỉ tách dòng giữa GV, HS đều sử dụng "<br/>".
-          ${subject === 'Toán học' || subject.toLowerCase().includes('toán') ? `
-          
-===========================================================
-YÊU CẦU ĐẶC BIỆT CHO GIÁO ÁN MÔN TOÁN - BẮT BUỘC TUÂN THỦ
-===========================================================
 
-A. THÔNG TIN CHUNG (Nội dung mở đầu trước khi lập bảng)
-- Gồm 3 phần bắt buộc:
-  1. NĂNG LỰC: Liệt kê năng lực cốt lõi. Gắn thẻ [🌐 Công dân toàn cầu], [💻 Công dân kỹ thuật số] nếu phù hợp.
-  2. MỤC TIÊU PHÂN HÓA (Tôi có thể...):
-     - Học sinh Trung bình: (Áp dụng công thức căn bản)
-     - Học sinh Khá: (Vận dụng tương đối)
-     - Học sinh Giỏi: (Vận dụng linh hoạt, mở rộng)
-  3. CHUẨN BỊ: Công cụ, phương tiện (máy tính Casio, v.v).
-
-B. HOẠT ĐỘNG LUYỆN TẬP
-- Luôn phải có 3 bài tập được phân độ khó rõ ràng (Bài 1: Trung bình, Bài 2: Khá, Bài 3: Giỏi) và có hướng dẫn giải (ẩn hoặc tóm tắt) nằm trực tiếp ở Cột 3 (Nội dung chiếu PPT).
-
-C. KIỂM TRA NHANH: Nêu rõ sau phần lý thuyết/ ví dụ, kèm theo việc check biểu đồ năng lực/giơ bảng nhanh của nhóm học sinh.
-
-D. KIỂM TRA CỐT LÕI (AI SELF-CHECK):
-  - [x] Có bảng 3 cột (Thời gian | Hoạt động GV&HS | Ghi bảng) phân hóa chuẩn không?
-  - [x] Các dòng ngắt nghỉ trong ô đã dùng <br/> thay cho xuống dòng chưa?
-  - [x] Đã format mục tiêu dạng năng lực "Tôi có thể..." chưa?
-===========================================================
-          ` : ''}
+          ${mathRestrictions}
         `;
         const result = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
         if (result) {
@@ -475,6 +472,10 @@ D. KIỂM TRA CỐT LÕI (AI SELF-CHECK):
           MÔN HỌC: ${subject}
           
           ${templateContext}
+
+          BẮT BUỘC: Đối với tiến trình dạy học, CHỈ SỬ DỤNG BẢNG DUY NHẤT CÓ ĐÚNG 3 CỘT ("Thời gian", "Hoạt động", "Nội dung"). KHÔNG ĐƯỢC xuống dòng bằng dấu Enter trong bảng (dùng thẻ <br/> thay thế).
+
+          ${mathRestrictions}
           
           Hãy soạn các giáo án theo yêu cầu trên. 
           QUAN TRỌNG: Trả về kết quả dưới dạng một mảng JSON các đối tượng, mỗi đối tượng có 2 trường: "title" (tiêu đề bài học) và "content" (nội dung giáo án bằng Markdown).
@@ -1898,3 +1899,4 @@ YÊU CẦU BẮT BUỘC:
     </div>
   );
 }
+
