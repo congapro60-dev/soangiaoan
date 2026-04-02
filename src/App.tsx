@@ -422,6 +422,16 @@ Tại cột "Hoạt động GV & HS", hãy khéo léo lồng ghép và ghi rõ v
   - [Khen ngợi phi ngôn ngữ] (Thumbs up, gật đầu, vỗ tay)
   - [Phản hồi Feed-forward] (Chỉ ra trực tiếp lỗi sai bằng bút màu để HS tự sửa)
   - [Đánh giá đồng đẳng] (Lật cốc tín hiệu, Đổi phiếu chấm chéo bằng bút Xanh Lá Cây - Green pen)
+
+4. ĐỘ CHI TIẾT TỰ SỰ BẮT BUỘC (TUYỆT ĐỐI KHÔNG VIẾT CHUNG CHUNG):
+- KHÔNG BAO GIỜ mô tả chung chung như: "GV đặt câu hỏi", "GV hướng dẫn", "HS làm bài", "HS thảo luận", "HS lên bảng".
+- YÊU CẦU ĐÓNG VAI BIÊN KỊCH CHI TIẾT 100%: 
+  + Bất kỳ lúc nào GV nói, PHẢI viết chính xác câu nói đó ra trong ngoặc kép (VD: **GV hỏi:** "Làm sao để tìm được số hạng thứ k+1 trong khai triển này các em?").
+  + Bất kỳ lúc nào HS trả lời, PHẢI viết đáp án chuyên môn (chứa công thức Toán học) dự kiến (VD: **HS trả lời:** "Dạ thưa thầy, áp dụng công thức $C_n^k a^{n-k} b^k$ ạ.").
+  + Các nội dung giải bài tập ở Cột 3 (Bảng/PPT) PHẢI GHI RÕ TỪNG BƯỚC GIẢI CHI TIẾT, không được chỉ ghi đáp án cuối cùng.
+
+5. SỰ ỔN ĐỊNH CỦA CẤU TRÚC (BẤT BIẾN):
+- Bạn không được phép "tạo phản" cấu trúc 3 Cột và 4 Bước ở trên. 100% các giáo án sinh ra trong môn Toán học phải rập khuôn cấu trúc duy nhất này, không được thêm hay bớt bất kỳ một hàng/cột nào khác. Mọi thứ phải được nhồi nhét vào bảng 3 cột bằng thẻ <br/>.
 ===========================================================
       ` : '';
 
@@ -1899,3 +1909,4 @@ YÊU CẦU BẮT BUỘC:
     </div>
   );
 }
+
