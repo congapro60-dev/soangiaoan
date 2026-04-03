@@ -1155,32 +1155,60 @@ YÊU CẦU BẮT BUỘC:
   }, [activeTab, libraryTab]);
 
   if (isAuthLoading) {
-    return <div className="h-screen w-screen flex items-center justify-center bg-slate-50"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
+    return (
+      <div style={{ height: '100vh', width: '100vw', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', fontFamily: '"Be Vietnam Pro", system-ui, sans-serif' }}>
+        <div style={{ width: 48, height: 48, border: '3px solid #e2e8f0', borderTopColor: '#3b82f6', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
   }
 
   if (!user) {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center bg-slate-50 font-sans p-4">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-white p-10 rounded-3xl shadow-lg border border-slate-100 max-w-sm w-full text-center space-y-8"
-        >
-          <div className="w-20 h-20 rounded-2xl md:rounded-3xl gradient-bg flex items-center justify-center mx-auto shadow-lg shadow-blue-200">
-            <Sparkles className="text-white w-10 h-10" />
+      <div style={{
+        height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center', 
+        background: 'linear-gradient(135deg, #f0f4ff 0%, #fdf2f8 50%, #fef3c7 100%)',
+        fontFamily: '"Be Vietnam Pro", system-ui, sans-serif', padding: '1rem'
+      }}>
+        <div style={{
+          background: 'white', padding: '3rem 2.5rem', borderRadius: '2rem',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.08)', border: '1px solid #e2e8f0',
+          maxWidth: '400px', width: '100%', textAlign: 'center'
+        }}>
+          <div style={{
+            width: 80, height: 80, borderRadius: '1.5rem',
+            background: 'linear-gradient(135deg, #4A90E2 0%, #FF9500 100%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 2rem auto',
+            boxShadow: '0 8px 30px rgba(74,144,226,0.3)'
+          }}>
+            <Sparkles style={{ color: 'white', width: 40, height: 40 }} />
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-slate-800 mb-2">SmartPlan AI</h1>
-            <p className="text-slate-500 text-sm">Cộng đồng siêu giáo viên chia sẻ sáng kiến. Vui lòng đăng nhập để bắt đầu.</p>
-          </div>
+          <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.5rem' }}>
+            SmartPlan AI
+          </h1>
+          <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '2rem' }}>
+            Nền tảng soạn giáo án thông minh bằng AI.<br/>Vui lòng đăng nhập để bắt đầu.
+          </p>
           <button 
             onClick={handleLogin}
-            className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white border border-slate-200 hover:border-blue-500 hover:bg-slate-50 rounded-2xl font-bold text-slate-700 transition-all shadow-sm active:scale-95"
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem',
+              padding: '1rem 1.5rem', background: 'white', border: '2px solid #e2e8f0',
+              borderRadius: '1rem', fontWeight: 700, fontSize: '1rem', color: '#334155',
+              cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'inherit'
+            }}
+            onMouseOver={(e) => { (e.target as HTMLElement).style.borderColor = '#3b82f6'; (e.target as HTMLElement).style.boxShadow = '0 4px 20px rgba(59,130,246,0.15)'; }}
+            onMouseOut={(e) => { (e.target as HTMLElement).style.borderColor = '#e2e8f0'; (e.target as HTMLElement).style.boxShadow = 'none'; }}
           >
-            <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
+            <img src="https://www.svgrepo.com/show/475656/google-color.svg" style={{ width: 22, height: 22 }} alt="Google" />
             Tiếp tục với Google
           </button>
-        </motion.div>
+          <p style={{ marginTop: '1.5rem', fontSize: '0.75rem', color: '#94a3b8' }}>
+            Dữ liệu được bảo mật bởi Google Firebase
+          </p>
+        </div>
       </div>
     );
   }
