@@ -15,6 +15,8 @@ export interface LessonPlan {
   createdAt: string;
   updatedAt: string;
   sourceDistributionId?: string; // If generated from a curriculum distribution
+  userId?: string;
+  isPublic?: boolean;
 }
 
 export interface CurriculumDistribution {
