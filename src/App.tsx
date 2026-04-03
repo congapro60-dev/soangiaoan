@@ -59,6 +59,11 @@ import { cn } from './lib/utils';
 import { callGeminiAI, MODELS } from './lib/gemini';
 import { AppData, DEFAULT_DATA, LessonPlan, LessonTemplate, TemplateFile, CurriculumDistribution } from './types';
 
+// Firebase Imports
+import { User, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
+import { collection, query, where, getDocs, doc, setDoc, deleteDoc, orderBy } from 'firebase/firestore';
+import { auth, db, googleProvider } from './lib/firebase';
+
 // Set PDF.js worker - try unpkg CDN, with fallback to disable worker
 try {
   pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.mjs`;
@@ -89,6 +94,14 @@ export default function App() {
   });
 
   const [activeTab, setActiveTab] = useState<'dashboard' | 'creator' | 'library' | 'chat' | 'templates'>('dashboard');
+  const [libraryTab, setLibraryTab] = useState<'personal' | 'community'>('personal'); // Tab Thư viện
+  
+  // Firebase Auth State
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  
+  // Cloud Data State for Community
+  const [communityPlans, setCommunityPlans] = useState<LessonPlan[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -114,10 +127,53 @@ export default function App() {
   const [bulkProgress, setBulkProgress] = useState({ current: 0, total: 0 });
 
   useEffect(() => {
-    if (!data.settings.geminiApiKey) {
-      setIsSettingsOpen(true);
-    }
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        // Fetch personal plans from Firebase
+        try {
+          const q = query(collection(db, 'lessonPlans'), where('userId', '==', currentUser.uid), orderBy('updatedAt', 'desc'));
+          const querySnapshot = await getDocs(q);
+          const cloudPlans: LessonPlan[] = [];
+          querySnapshot.forEach((doc) => {
+            cloudPlans.push(doc.data() as LessonPlan);
+          });
+          setData(prev => ({ ...prev, lessonPlans: cloudPlans }));
+        } catch (err) {
+          console.error("Error fetching personal plans", err);
+        }
+      }
+      setIsAuthLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
+
+  const handleLogin = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+      showToast('Đăng nhập thành công!');
+    } catch (err: any) {
+      showToast(err.message, 'error');
+    }
+  };
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    showToast('Đã đăng xuất');
+  };
+
+  useEffect(() => {
+    if (!data.settings.geminiApiKey) {
+      // Don't pop up settings if not logged in
+      if (user) setIsSettingsOpen(true);
+    }
+  }, [user]);
+
+  // Sync settings and templates to local, but NOT lesson plans
+  useEffect(() => {
+    const dataToSave = { ...data, lessonPlans: [] }; // Ignore lesson plans for localStorage
+    localStorage.setItem('smart_lesson_plan_data', JSON.stringify(dataToSave));
+  }, [data.settings, data.templates, data.subjects]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingFiles, setUploadingFiles] = useState<{ category: 'sample' | 'criteria' | 'lesson_doc' | 'distribution', templateId?: string } | null>(null);
@@ -547,7 +603,7 @@ Tại cột "Hoạt động GV & HS" và trong quá trình thiết kế bài t�
             if (detailResponse) {
               newPlans.push({
                 id: Math.random().toString(36).substr(2, 9),
-                subjectId: currentPlan.subjectId!,
+                subjectId: currentPlan.subjectId,
                 templateId: currentPlan.templateId,
                 title: title,
                 content: cleanMarkdownOutput(detailResponse),
@@ -580,62 +636,111 @@ Tại cột "Hoạt động GV & HS" và trong quá trình thiết kế bài t�
     }
   };
 
-  const saveBulkPlans = () => {
+  const saveBulkPlans = async () => {
     if (bulkResults.length === 0) return;
+    if (!user) { showToast('Vui lòng đăng nhập để lưu Cloud!', 'warning'); return; }
 
-    setData(prev => ({
-      ...prev,
-      lessonPlans: [...bulkResults.map(p => ({ ...p, status: 'completed' as const })), ...prev.lessonPlans]
-    }));
-    
-    setBulkResults([]);
-    setActiveTab('library');
-    showToast(`Đã lưu ${bulkResults.length} giáo án vào thư viện!`);
+    setIsLoading(true);
+    try {
+      const plansToSave: LessonPlan[] = bulkResults.map(p => ({
+        ...p,
+        status: 'completed',
+        userId: user.uid,
+        isPublic: false
+      }));
+
+      // For simplicity in bulk, saving iteratively
+      for (const plan of plansToSave) {
+        await setDoc(doc(db, 'lessonPlans', plan.id), plan);
+      }
+
+      setData(prev => ({
+        ...prev,
+        lessonPlans: [...plansToSave, ...prev.lessonPlans]
+      }));
+      
+      setBulkResults([]);
+      setActiveTab('library');
+      showToast(`Đã lưu ${plansToSave.length} giáo án lên Cloud!`);
+    } catch (e) {
+      showToast('Lỗi khi lưu hàng loạt!', 'error');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const saveLessonPlan = () => {
+  const saveLessonPlan = async () => {
     if (!currentPlan.title || !currentPlan.content) return;
+    if (!user) { showToast('Vui lòng đăng nhập để lưu!', 'warning'); return; }
 
+    const id = currentPlan.id || Math.random().toString(36).substr(2, 9);
     const newPlan: LessonPlan = {
-      id: Math.random().toString(36).substr(2, 9),
+      id,
       subjectId: currentPlan.subjectId || 'math',
       templateId: currentPlan.templateId,
       title: currentPlan.title,
       content: currentPlan.content,
       status: 'completed',
-      createdAt: new Date().toISOString(),
+      createdAt: currentPlan.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      userId: user.uid,
+      isPublic: currentPlan.isPublic || false
     };
 
-    setData(prev => ({
-      ...prev,
-      lessonPlans: [newPlan, ...prev.lessonPlans]
-    }));
-    
-    setCurrentPlan({ title: '', content: '', subjectId: 'math', templateId: '' });
-    setActiveTab('library');
-    showToast('Đã lưu giáo án vào thư viện!');
+    try {
+      await setDoc(doc(db, 'lessonPlans', id), newPlan);
+      setData(prev => ({
+        ...prev,
+        lessonPlans: prev.lessonPlans.some(p => p.id === id) ? prev.lessonPlans.map(p => p.id === id ? newPlan : p) : [newPlan, ...prev.lessonPlans]
+      }));
+      
+      setCurrentPlan({ title: '', content: '', subjectId: 'math', templateId: '' });
+      setActiveTab('library');
+      showToast('Đã lưu giáo án lên Thư viện Cloud!');
+    } catch (e) {
+      showToast('Lỗi khi lưu lên Cloud!', 'error');
+    }
   };
 
   const deletePlan = (id: string) => {
     Swal.fire({
       title: 'Xác nhận xóa?',
-      text: "Bạn không thể hoàn tác hành động này!",
+      text: "Giáo án sẽ rớt khỏi bộ nhớ Trái Đất vĩnh viễn!",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
       cancelButtonColor: '#64748b',
-      confirmButtonText: 'Xóa ngay',
-      cancelButtonText: 'Hủy'
-    }).then((result) => {
+      confirmButtonText: 'Xóa bốc hơi',
+      cancelButtonText: 'Quay xe'
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        setData(prev => ({
-          ...prev,
-          lessonPlans: prev.lessonPlans.filter(p => p.id !== id)
-        }));
-        showToast('Đã xóa giáo án');
+        try {
+          await deleteDoc(doc(db, 'lessonPlans', id));
+          setData(prev => ({
+            ...prev,
+            lessonPlans: prev.lessonPlans.filter(p => p.id !== id)
+          }));
+          showToast('Đã xóa giáo án khỏi Cloud!');
+        } catch (e) {
+          showToast('Không thể xóa! Có thể do mạng yếu.', 'error');
+        }
       }
     });
+  };
+
+  const toggleSharePlan = async (e: React.MouseEvent, plan: LessonPlan) => {
+    e.stopPropagation();
+    try {
+      const planRef = doc(db, 'lessonPlans', plan.id);
+      await setDoc(planRef, { isPublic: !plan.isPublic }, { merge: true });
+      setData(prev => ({
+        ...prev,
+        lessonPlans: prev.lessonPlans.map(p => p.id === plan.id ? { ...p, isPublic: !p.isPublic } : p)
+      }));
+      showToast(!plan.isPublic ? 'Lên xu hướng cộng đồng thành công!' : 'Đã thu hồi về quyền riêng tư.');
+    } catch (err) {
+      showToast('Lỗi kết nối khi thay đổi quyền!', 'error');
+    }
   };
 
   const handleChat = async () => {
@@ -1031,6 +1136,55 @@ YÊU CẦU BẮT BUỘC:
     showToast('Đã xóa tệp');
   };
 
+  useEffect(() => {
+    if (activeTab === 'library' && libraryTab === 'community') {
+      const fetchCommunity = async () => {
+        try {
+          // Bỏ qua lọc tạm thời nếu chưa thiết lập index (requires Firebase configuration)
+          const q = query(collection(db, 'lessonPlans'), where('isPublic', '==', true));
+          const snap = await getDocs(q);
+          const cp: LessonPlan[] = [];
+          snap.forEach(d => cp.push(d.data() as LessonPlan));
+          setCommunityPlans(cp.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+        } catch (e) {
+          console.error("Lỗi tải cộng đồng", e);
+        }
+      };
+      fetchCommunity();
+    }
+  }, [activeTab, libraryTab]);
+
+  if (isAuthLoading) {
+    return <div className="h-screen w-screen flex items-center justify-center bg-slate-50"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
+  }
+
+  if (!user) {
+    return (
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-slate-50 font-sans p-4">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white p-10 rounded-3xl shadow-lg border border-slate-100 max-w-sm w-full text-center space-y-8"
+        >
+          <div className="w-20 h-20 rounded-2xl md:rounded-3xl gradient-bg flex items-center justify-center mx-auto shadow-lg shadow-blue-200">
+            <Sparkles className="text-white w-10 h-10" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-slate-800 mb-2">SmartPlan AI</h1>
+            <p className="text-slate-500 text-sm">Cộng đồng siêu giáo viên chia sẻ sáng kiến. Vui lòng đăng nhập để bắt đầu.</p>
+          </div>
+          <button 
+            onClick={handleLogin}
+            className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white border border-slate-200 hover:border-blue-500 hover:bg-slate-50 rounded-2xl font-bold text-slate-700 transition-all shadow-sm active:scale-95"
+          >
+            <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
+            Tiếp tục với Google
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50 font-sans">
       <input 
@@ -1094,6 +1248,13 @@ YÊU CẦU BẮT BUỘC:
           >
             {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             {isSidebarOpen && <span>Thu gọn</span>}
+          </button>
+          <button 
+            onClick={handleLogout}
+            className="mt-2 w-full flex items-center gap-3 p-3 rounded-xl text-orange-500 hover:bg-orange-50 transition-all font-medium"
+          >
+            <Zap className="w-5 h-5" />
+            {isSidebarOpen && <span>Đăng xuất</span>}
           </button>
         </div>
       </motion.aside>
@@ -1533,6 +1694,22 @@ YÊU CẦU BẮT BUỘC:
                 animate={{ opacity: 1 }}
                 className="space-y-6"
               >
+                {/* Tabs Cá Nhân / Cộng Đồng */}
+                <div className="flex border-b border-slate-200">
+                  <button 
+                    onClick={() => setLibraryTab('personal')}
+                    className={cn("px-6 py-4 font-bold transition-all border-b-2", libraryTab === 'personal' ? "border-blue-600 text-blue-600" : "border-transparent text-slate-500 hover:text-slate-800")}
+                  >
+                    Góc của tôi
+                  </button>
+                  <button 
+                    onClick={() => setLibraryTab('community')}
+                    className={cn("px-6 py-4 font-bold transition-all border-b-2 flex items-center gap-2", libraryTab === 'community' ? "border-orange-500 text-orange-600" : "border-transparent text-slate-500 hover:text-slate-800")}
+                  >
+                    <UploadCloud className="w-4 h-4" /> Kho Chung (Community)
+                  </button>
+                </div>
+
                 <div className="flex items-center justify-between">
                   <div className="relative w-full max-w-md">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
@@ -1553,7 +1730,7 @@ YÊU CẦU BẮT BUỘC:
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {data.lessonPlans.filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase())).map(plan => (
+                  {(libraryTab === 'personal' ? data.lessonPlans : communityPlans).filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase())).map(plan => (
                     <div 
                       key={plan.id} 
                       onClick={() => { setCurrentPlan(plan); setActiveTab('creator'); }}
@@ -1564,19 +1741,36 @@ YÊU CẦU BẮT BUỘC:
                           <FileText className="w-6 h-6 text-blue-500" />
                         </div>
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {libraryTab === 'personal' && (
+                            <button 
+                              title={plan.isPublic ? "Thu hồi khỏi cộng đồng" : "Đóng góp phát hành lên Thư viện chung"}
+                              onClick={(e) => toggleSharePlan(e, plan)} 
+                              className={cn("p-2 transition-colors", plan.isPublic ? "text-orange-500 hover:text-orange-600" : "text-slate-400 hover:text-orange-500")}
+                            >
+                              <UploadCloud className="w-5 h-5" />
+                            </button>
+                          )}
                           <button className="p-2 text-slate-400 hover:text-blue-500 transition-colors">
                             <Eye className="w-5 h-5" />
                           </button>
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); deletePlan(plan.id); }}
-                            className="p-2 text-slate-400 hover:text-red-500 transition-colors"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
+                          {libraryTab === 'personal' && (
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); deletePlan(plan.id); }}
+                              className="p-2 text-slate-400 hover:text-red-500 transition-colors"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          )}
                         </div>
                       </div>
-                      <h4 className="font-bold text-slate-800 line-clamp-1 mb-1">{plan.title}</h4>
-                      <p className="text-xs text-slate-500 mb-4">Môn: {data.subjects.find(s => s.id === plan.subjectId)?.name}</p>
+                      <h4 className="font-bold text-slate-800 line-clamp-1 mb-1">
+                        {plan.title}
+                      </h4>
+                      <p className="text-xs text-slate-500 mb-4 flex items-center gap-2">
+                        Môn: {data.subjects.find(s => s.id === plan.subjectId)?.name || 'Chung'}
+                        {libraryTab === 'community' && plan.userId && <span className="text-orange-500">· Chia sẻ Community</span>}
+                        {libraryTab === 'personal' && plan.isPublic && <span className="text-orange-500">· Đang Public</span>}
+                      </p>
                       <div className="flex items-center justify-between pt-4 border-t border-slate-50">
                         <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400">
                           {dayjs(plan.createdAt).format('DD MMM YYYY')}
