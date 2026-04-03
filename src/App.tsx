@@ -1758,7 +1758,7 @@ YÊU CẦU BẮT BUỘC:
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {(libraryTab === 'personal' ? data.lessonPlans : communityPlans).filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase())).map(plan => (
+                  {(libraryTab === 'personal' ? data.lessonPlans : communityPlans).filter(p => (p.title || '').toLowerCase().includes((searchQuery || '').toLowerCase())).map(plan => (
                     <div 
                       key={plan.id} 
                       onClick={() => { setCurrentPlan(plan); setActiveTab('creator'); }}
