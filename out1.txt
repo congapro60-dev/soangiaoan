@@ -1,0 +1,128 @@
+=== DOCX 1 ===
+Ý TƯỞNG KẾ HOẠCH DỰ GIỜ CIS
+Trong 1 tiết dạy cần có đầy đủ các nhóm hoạt động như bên dưới. Trong mỗi nhóm sẽ có các tiêu chí cụ thể. 
+Nhóm 1: Mục tiêu và Sự tham gia (Learning Intent & Participation)
+1.1. Learning Intent & Success Criteria (Mục tiêu & Tiêu chí):
+Hành động trực quan: Góc trái bảng LUÔN có một khu vực cố định đóng khung. Viết bằng cả tiếng Việt và tiếng Anh ngắn gọn: WALT (We Are Learning To - Hôm nay học gì) và WILF (What I'm Looking For - Tiêu chí thành công).
+Hành động của GV: Khi chuyên gia bước vào, nếu đang chuyển phần, GV dùng thước chỉ thẳng vào ô này. Chuyên gia không cần hiểu tiếng Việt vẫn biết GV đang đối chiếu mục tiêu.
+1.2. Active Participation (Sự tham gia tích cực):
+Hành động trực quan: Sử dụng Bảng con (Mini-whiteboards) thay vì gọi học sinh phát biểu miệng.
+Hoạt động: GV đưa ra một phương trình. Thay vì 1 em làm, cả lớp cùng giải ra bảng con. GV đếm "3, 2, 1", cả lớp đồng loạt giơ bảng lên. Chuyên gia sẽ thấy 100% học sinh đang "active".
+1.3. A clear pedagogical approach (Phương pháp sư phạm rõ ràng):
+Hành động trực quan: Trình bày bảng theo mô hình "I do - We do - You do" (Thầy làm mẫu - Thầy trò cùng làm - Trò tự làm). Đánh số 1, 2, 3 rõ ràng cho các ví dụ tương ứng trên bảng.
+Nhóm 2: Dạy học phân hóa (Differentiation - Điểm cần kéo điểm)
+2.1. Tiered Support / Choice (Hỗ trợ phân tầng / Lựa chọn công cụ)
+Bản chất: Giáo viên cung cấp các "gợi ý" với mức độ khác nhau để học sinh có trình độ khác nhau vẫn có thể chạm tới cùng một mục tiêu bài học. Sự hỗ trợ này tồn tại ngay cả khi giáo viên không đứng cạnh học sinh.
+Hành động trực quan 1: Góc "Phao cứu sinh" (Hint Station / Scaffolding Tools)
+Hoạt động: Ở một góc lớp, giáo viên đặt các thẻ gợi ý (Hint cards) hoặc bảng công thức. Ví dụ: Khi giải bài toán Tổ hợp - Xác suất, có những thẻ ghi sẵn sơ đồ cây hoặc dấu hiệu nhận biết khi nào dùng Chỉnh hợp, khi nào dùng Tổ hợp.
+Góc nhìn CIS: Khi gặp câu khó, một số học sinh tự động rời chỗ ngồi, tiến về "Hint Station" lấy thẻ gợi ý về xem rồi làm tiếp. CIS sẽ đánh giá đây là sự hỗ trợ phân tầng tuyệt vời bằng công cụ, học sinh được hỗ trợ mà không cần phụ thuộc vào giáo viên.
+Hành động trực quan 2: Phiếu bài tập có giàn giáo (Tiered Worksheets)
+Hoạt động: Cùng một bài toán Hình học không gian, nhưng phiếu của nhóm yếu có vẽ sẵn hình và gợi ý sẵn bước 1 (kẻ đường cao). Phiếu của nhóm khá chỉ có đề bài bằng chữ, tự phải vẽ hình.
+Góc nhìn CIS: Chuyên gia đi ngang qua bàn học sinh, nhìn thấy các tờ phiếu bài tập có mức độ "bỏ trống" khác nhau.
+2.2. Targeted Teacher Support (Giáo viên hỗ trợ có mục tiêu)
+Bản chất: Thay vì đi dạo quanh lớp một cách ngẫu nhiên và hỏi chung chung "Các em làm được không?", giáo viên chủ động khoanh vùng và dành quỹ thời gian hữu hạn của mình cho một nhóm đối tượng cụ thể đang thực sự cần.
+Hành động trực quan 1: Thiết lập Trạm giáo viên (Teacher Station)
+Hoạt động: Trong 15 phút luyện tập, giáo viên cố định tại một bàn góc lớp (hoặc bàn giáo viên). Dựa trên kết quả chấm bảng con (hoặc thẻ tín hiệu đèn giao thông), giáo viên gọi tên 3-4 học sinh đang sai nếp tư duy lên ngồi quanh mình.
+Góc nhìn CIS: Chuyên gia thấy rõ sự phân vai: 80% lớp đang tự học độc lập (Independent learning), trong khi giáo viên đang tập trung "Targeted Support" cho 20% nhóm cần can thiệp sâu bằng giấy nháp và bút.
+Hành động trực quan 2: Hỗ trợ theo lịch trình kẹp giấy (Clipboard Tracking)
+Hoạt động: Giáo viên đi quanh lớp nhưng tay cầm một bìa kẹp hồ sơ (Clipboard) có sơ đồ lớp học. Giáo viên đi thẳng đến bàn của những em học sinh có tiền sử yếu môn Toán (đã được bôi màu trên sơ đồ), ngồi xổm xuống ngang tầm mắt các em và kiểm tra đúng một bước tính toán cụ thể.
+Góc nhìn CIS: Chuyên gia thấy hành động di chuyển của giáo viên có chủ đích rõ ràng, dựa trên dữ liệu (data-driven) chứ không phải đi dạo ngẫu nhiên.
+2.3. Differentiated Resources (Tài nguyên phân hóa):
+Hành động trực quan: Sử dụng hệ thống Khay màu học liệu (Color-coded trays).
+Hoạt động: Đặt ở cuối lớp 3 khay đựng phiếu bài tập Toán: Khay Xanh lá (Dễ) - Khay Vàng (Vừa) - Khay Đỏ (Khó). Học sinh tự bước xuống lấy phiếu có màu phù hợp. Chuyên gia thấy các màu giấy khác nhau trên bàn học sinh là minh chứng tuyệt đối.
+2.4. Tiered Objective (Mục tiêu phân tầng):
+Hành động trực quan: Dùng biểu tượng "Thử thách trái ớt" (Chilli Challenges) gắn cạnh các mục tiêu, bài tập trên bảng hoặc trên phiếu.
+Hoạt động: 1 quả ớt = Cơ bản (Must do), 2 quả ớt = Trọng tâm (Should do), 3 quả ớt = Vận dụng cao (Could do). Biểu tượng icon mang tính quốc tế, chuyên gia nước ngoài nhìn là hiểu ngay ý đồ phân hóa độ khó.
+Ví dụ thực tế (GHI LÊN BẢNG):
+Tiêu chí thành công (Tôi có thể...):
+Must do - Cơ bản (Tất cả học sinh): Tôi có thể sử dụng công thức hoặc bấm máy tính (fx 580) để tìm chính xác phương sai và độ lệch chuẩn.
+Should do - Trọng tâm (Hầu hết học sinh): Tôi có thể dùng độ lệch chuẩn để so sánh mức độ phân tán (sự đồng đều) của hai tập số liệu khác nhau.
+Could do - Mở rộng (Một số học sinh): Tôi có thể dự đoán và giải thích sự thay đổi của phương sai/độ lệch chuẩn khi dữ liệu bị cộng thêm hoặc nhân thêm một hằng số (bài toán thực tiễn).
+2.5. Flexible Grouping (Chia nhóm linh hoạt):
+Hành động trực quan: Kê bàn ghế theo Cụm (Pods) thay vì dãy ngang.
+Hoạt động: Trên mỗi bàn nhóm có các tấm thẻ vai trò bằng tiếng Anh (Leader - Trưởng nhóm, Timekeeper - Canh giờ, Checker - Kiểm tra đáp án). Chuyên gia thấy cấu trúc vật lý của lớp học phục vụ cho việc học nhóm linh hoạt.
+Nhóm 3: Môi trường và Quản lý lớp (Climate & Management)
+3.1. Safe & Respectful Climate (Môi trường an toàn, tôn trọng):
+Hành động trực quan: Có một bảng nhỏ trên tường ghi "Mistake of the Day" (Lỗi sai của ngày). Toán học rất dễ sai sót. Việc vinh danh một lỗi sai phổ biến và cùng nhau sửa chữa (không ghi tên HS mắc lỗi) cho chuyên gia thấy học sinh được quyền sai và an toàn khi mắc lỗi.
+3.2. Student Agency (Quyền tự chủ của học sinh):
+Hành động trực quan: Dùng hệ thống Mũ màu sắc.
+Hoạt động: Mỗi HS có 1 chiếc mũ có 4 mặt, 3 mặt là các màu sắc Xanh lá (Chưa hiểu lắm) - Vàng (Hơi hơi hiểu) - Khay Đỏ (Đã hiểu). Và 1 mặt ghi leader (dùng cho hoạt động nhóm). Trong quá trình học, HS tùy theo sự hiểu biết của mình đối với bài học mà xoay mặt tương ứng lên phía trước đối diện với giáo viên để GV có thể kiểm soát sự hiểu bài.
+3.3. Transitions & Routines (Chuyển hoạt động & Thói quen):
+Hành động trực quan: Bật Đồng hồ đếm ngược cỡ lớn (Visual Timer) trên màn hình máy chiếu mỗi khi giao nhiệm vụ.
+Hoạt động: "Các em có 5 phút làm câu 2". Khi đồng hồ hết giờ điểm chuông, HS tự động dừng bút. Sự chuyển đổi diễn ra mượt mà không cần GV hét lớn.
+3.4. Proactive Management (Quản lý lớp học chủ động)
+Bản chất: Là nghệ thuật "phòng bệnh hơn chữa bệnh". Giáo viên dự đoán trước những khoảnh khắc học sinh dễ mất tập trung (ví dụ: lúc chuyển hoạt động, lúc làm bài khó) để có hành động can thiệp trước khi sự lộn xộn thực sự xảy ra, thay vì đợi lớp ồn ào rồi mới quát tháo (đó là quản lý bị động - reactive).
+Hành động trực quan (Minh chứng cho CIS):
+Kỹ thuật "Quét Radar" (With-it-ness): Ngay cả khi giáo viên đang ngồi ở Trạm hỗ trợ (Teacher Station) để giảng lại bài cho 1 nhóm nhỏ, mắt giáo viên vẫn phải ngẩng lên "quét" quanh lớp mỗi 1-2 phút. Khi chuyên gia CIS thấy ánh mắt giáo viên bao quát toàn phòng, họ biết giáo viên này đang nắm quyền kiểm soát chủ động.
+Kiểm soát bằng khoảng cách (Proximity Control): Khi giáo viên phát hiện cụm bàn số 3 bắt đầu có dấu hiệu xao nhãng hoặc nói chuyện riêng, giáo viên không đứng từ bục giảng nhắc nhở. Giáo viên vừa tiếp tục giảng bài, vừa từ từ cầm tài liệu đi xuống và đứng ngay cạnh cụm bàn số 3. Sự hiện diện vật lý này ngay lập tức đưa học sinh vào nề nếp mà không cần một lời phán xét nào.
+Tín hiệu im lặng phi ngôn ngữ (Silent Signals): Khi cần thu hút sự chú ý của cả lớp (ví dụ: chuyển từ thảo luận nhóm sang nghe giáo viên chốt lại kiến thức), giáo viên không gõ thước hay vỗ tay to. Giáo viên giơ cao một tay và đếm ngược bằng ngón tay "5-4-3-2-1", hoặc giơ tay và đợi học sinh giơ tay theo cho đến khi cả lớp im lặng.
+3.5. Teacher uses positive language and reinforcement (Ngôn ngữ tích cực và củng cố)
+Bản chất: Là việc giáo viên tập trung vào những hành vi đúng, xây dựng sự tự tin cho học sinh, và khi cần sửa đổi hành vi, giáo viên dùng ngôn ngữ hướng dẫn điều cần làm (ví dụ: "Các em hãy nói nhỏ đủ nghe") thay vì cấm đoán (ví dụ: "Đừng có ồn ào nữa").
+Hành động trực quan (Minh chứng cho CIS bất chấp rào cản ngôn ngữ):
+Tường thuật tích cực (Positive Narration): Thay vì chú ý vào nhóm đang mất trật tự, giáo viên mỉm cười, hướng tay về phía một nhóm đang làm việc nghiêm túc và khen to: "Thầy/Cô rất khen ngợi nhóm 1 vì các em đang triển khai vẽ sơ đồ rất đúng tiến độ". Chuyên gia CIS tuy không hiểu nội dung lời nói, nhưng nhìn thấy cử chỉ hướng tay, nét mặt tươi tắn của giáo viên và việc học sinh nhóm 1 tự hào, các nhóm khác tự động điều chỉnh hành vi để được khen theo.
+Củng cố phi ngôn ngữ (Non-verbal Praise): Trong tiết Toán, khi một học sinh lên bảng giải đúng một phương trình khó hoặc bấm máy tính ra kết quả nhanh, giáo viên thể hiện sự công nhận rõ ràng: mỉm cười gật đầu, giơ ngón cái (thumbs up), hoặc vỗ tay nhẹ khích lệ. Âm điệu giọng nói (tone of voice) của giáo viên luôn giữ ở mức ấm áp, bình tĩnh, tuyệt đối không có sự mỉa mai hay cáu gắt.
+Sửa lỗi không bêu rếu (Private Correction): Khi một học sinh làm việc riêng, giáo viên đi ngang qua, gõ nhẹ ngón tay vào trang sách hoặc phiếu bài tập của em đó (chỉ vào nhiệm vụ cần làm) kèm theo một cái gật đầu nhẹ, rồi bước đi tiếp. Không nêu tên phê bình trước lớp. Chuyên gia CIS đánh giá cực kỳ cao sự tôn trọng (respectful) và tích cực trong cách xử lý này.
+NHÓM 4: BỐI CẢNH TOÀN CẦU & CÔNG NGHỆ (Global Context & Technology)
+4.1. Góc nhìn đa dạng (Diverse Perspectives/Global Context)
+Bản chất: Đưa môn Toán thoát khỏi những ví dụ nhàm chán (như đếm số quả cam, quả táo) để gắn vào bối cảnh văn hóa đa dạng hoặc các vấn đề toàn cầu (Global Issues).
+Hành động trực quan trong môn Toán:
+Thay vì dùng đề bài "Cho một tập dữ liệu ngẫu nhiên...", thầy hãy in lên phiếu bài tập hoặc chiếu lên bảng một biểu đồ thực tế có gắn logo của các tổ chức quốc tế (như WHO, Liên Hợp Quốc).
+Ví dụ: Khi học Thống kê, bối cảnh bài toán là: "Phân tích độ lệch chuẩn về lượng khí thải Carbon (CO2) giữa các quốc gia phát triển và đang phát triển", hoặc "So sánh hàm số tăng trưởng dân số toàn cầu".
+Góc nhìn CIS: Chuyên gia nhìn thấy các từ khóa quốc tế, cờ các quốc gia hoặc bản đồ thế giới xuất hiện trên học liệu môn Toán. Điều này đáp ứng tuyệt đối việc tích hợp vấn đề toàn cầu.
+4.2. Công nghệ/Phương tiện (Technology & Media)
+Bản chất: Không chỉ dùng máy chiếu để thay thế cái bảng đen, mà công nghệ phải thực sự giúp học sinh "tương tác" và hiểu sâu hơn về bản chất Toán học.
+Hành động trực quan trong môn Toán:
+Sử dụng phần mềm vẽ đồ thị động Desmos hoặc GeoGebra thay vì chỉ vẽ tay.
+Ví dụ: Khi dạy bài "Phương trình đường tròn" hoặc "Hàm số bậc 2", màn hình máy chiếu hiện giao diện Desmos. Giáo viên kéo thanh trượt thông số $a, b, c$ hoặc $R$, cả lớp ồ lên khi thấy đồ thị/đường tròn lập tức co giãn, dịch chuyển theo thời gian thực.
+Góc nhìn CIS: Chuyên gia thấy công nghệ được sử dụng làm công cụ khám phá, kết nối trực tiếp biến số đại số với hình ảnh trực quan (visualizing mathematics).
+NHÓM 5: ĐÁNH GIÁ (Assessment)
+5.1. Phản hồi trực tiếp (Direct/Formative Feedback)
+Bản chất: Lời phê không chỉ là "Đúng/Sai" mà phải có tính định hướng (Feed-forward) để học sinh biết "Cần làm gì tiếp theo để sửa".
+Hành động trực quan trong môn Toán (Phi ngôn ngữ):
+Khi đi quanh lớp hoặc ngồi tại Trạm giáo viên (Teacher Station), giáo viên cầm một chiếc bút đỏ hoặc bút dạ quang màu nổi bật.
+Khi phát hiện lỗi sai trong vở học sinh, giáo viên KHÔNG gạch chéo toàn bộ bài. Giáo viên chỉ khoanh tròn vị trí sai (ví dụ: khoanh tròn dấu "-" bị nhầm thành dấu "+"), sau đó vẽ một mũi tên chỉ sang lề vở và ghi chú nhanh một công thức hoặc một ký hiệu gợi ý ngắn gọn (VD: "Check formula!" hoặc "(x-a)² ?").
+Góc nhìn CIS: Chuyên gia thấy sự can thiệp tức thời. Các mũi tên chỉ dẫn trên giấy chứng tỏ giáo viên đang cung cấp bước tiếp theo (next step) để học sinh tự gỡ rối.
+5.2. Đánh giá đồng đẳng / Tự đánh giá (Peer/Self-Assessment)
+Bản chất: Học sinh tự chấm điểm cho mình hoặc cho bạn dựa trên một thang đo (Rubric/Checklist) rõ ràng.
+Hành động trực quan trong môn Toán:
+Hoạt động "Chấm chéo bằng bút màu xanh" (Green Pen Peer-Review). Sau khi giải xong một bài toán nhiều bước, giáo viên hô khẩu lệnh. Học sinh đổi phiếu bài tập cho bạn cùng bàn.
+Trên máy chiếu, giáo viên chiếu một "Checklist chấm điểm" (VD: Bước 1: Tìm tâm đúng (0.25đ) - Bước 2: Tính R đúng (0.5đ)). Hai học sinh cầm bút màu Xanh lá cây tự dò theo Checklist trên bảng để tick (✔) vào bài của bạn và ghi tổng điểm vào ô trống.
+Góc nhìn CIS: Nhìn thấy học sinh đang trao đổi bài, tay cầm bút khác màu và đối chiếu liên tục với tiêu chí trên bảng là minh chứng "sống" cho đánh giá đồng đẳng.
+5.3. Đánh giá phân hóa (Differentiated Assessment)
+Bản chất: Cho phép học sinh được chọn cách thức thể hiện sự hiểu bài của mình, không ép buộc 100% phải làm bài kiểm tra giấy giống hệt nhau.
+Hành động trực quan trong môn Toán:
+Ở cuối tiết học (phần Exit Ticket - Đánh giá nhanh trước khi ra về), giáo viên đưa ra một "Bảng lựa chọn Đánh giá" (Assessment Menu).
+Ví dụ bài Quy tắc đếm: Để chứng minh mình hiểu bài, học sinh được chọn 1 trong 2 hình thức nộp lại cho giáo viên:
+Lựa chọn A (Đại số truyền thống): Giải nhanh 2 phương trình bài tập nhỏ trên giấy.
+Lựa chọn B (Sáng tạo tình huống): Tự sáng tác một đề bài toán thực tế cho hội chợ của lớp 10 Victoria có sử dụng Quy tắc nhân.
+Góc nhìn CIS: Chuyên gia thấy trong cùng một thời điểm đánh giá, có học sinh cắm cúi giải toán, có học sinh lại cắm cúi viết một đoạn văn sáng tác đề bài. Sự đa dạng này chính là đỉnh cao của Đánh giá phân hóa.
+TIẾT DẠY VÍ DỤ
+
+BÀI DẠY: HAI QUY TẮC ĐẾM
+🛠️ GIAI ĐOẠN SETUP (TRƯỚC GIỜ G)
+Bảng đen: Viết sẵn WALT & WILF (chia 3 mức độ 🌶️), và góc "Mistake of the Day".
+Không gian lớp: Bàn ghép theo cụm (Pods), có thẻ vai trò. Cuối lớp có 3 khay học liệu (Xanh - Vàng - Hồng). Trạm giáo viên (Teacher Station) để góc trái.
+Bàn học sinh: Mỗi em có 1 bảng con, 1 bút dạ, bộ 3 cốc tín hiệu (Xanh-Vàng-Đỏ), và 1 bút màu xanh lá cây (Green pen).
+Màn hình: Bật sẵn công cụ bản đồ tương tác toàn cầu và Visual Timer.
+🎬 KỊCH BẢN SHOWTIME 15 PHÚT
+Phút 0 - 3: Khởi động bối cảnh Toàn cầu & Chốt mục tiêu
+Bối cảnh (Tình huống thực tế): Thầy bước vào lớp, chỉ lên màn hình bản đồ thế giới tương tác [4.2 - Công nghệ]. "Các em, để chuẩn bị cho Hội chợ Quốc tế của lớp 10 Victoria, chúng ta cần nhập khẩu vật phẩm văn hóa. Các em có thể chọn nhập từ 3 quốc gia châu Á, HOẶC 4 quốc gia châu Âu. Sau đó, mỗi vật phẩm phải được đóng gói bằng 1 trong 5 loại vật liệu tái chế thân thiện với môi trường toàn cầu. Hôm nay chúng ta sẽ dùng Toán học để tính toán bài toán Logistics này" [4.1 - Góc nhìn đa dạng/Toàn cầu].
+Chốt mục tiêu: Thầy dùng thước chỉ vào góc bảng: "WALT: Áp dụng Quy tắc cộng và nhân. WILF của chúng ta hôm nay có 3 thử thách (1🌶️: Phân biệt được 'Và/Hoặc'; 2🌶️: Kết hợp cả 2 quy tắc; 3🌶️: Tối ưu hóa lựa chọn) " [1.1 - Mục tiêu rõ ràng] & [2.4 - Mục tiêu phân tầng].
+Khảo sát nhanh: "Câu hỏi số 1: Có tổng cộng bao nhiêu sự lựa chọn về quốc gia (Á hoặc Âu)? Các em có 15 giây viết ra bảng con". Bật đồng hồ Visual Timer [3.3 - Thói quen/Chuyển đổi].
+Tương tác: "3, 2, 1, giơ bảng!". 100% học sinh giơ bảng [1.2 - Tham gia tích cực]. Thầy mỉm cười, giơ ngón tay cái (Thumbs up) và nói: "Thầy rất khen ngợi nhóm 2 vì các em đã giơ bảng rất đồng đều và ra đáp án là 7" [3.4 - Quản lý chủ động, quét radar] & [3.5 - Ngôn ngữ tích cực].
+Phút 3 - 5: Môi trường an toàn & Làm rõ phương pháp
+Phân tích lỗi sai: Thầy chỉ vào góc "Mistake of the Day" trên bảng: "Sáng nay có một bạn tính số cách tạo Combo (1 quốc gia VÀ 1 loại bao bì) bằng phép tính $7 + 5 = 12$. Tại sao đây là một sự nhầm lẫn?" [3.1 - Môi trường an toàn, học từ lỗi sai].
+Định hướng sư phạm: Học sinh phát hiện ra hành động "VÀ" (liên tiếp) phải dùng phép nhân ($7 \times 5 = 35$). Thầy chốt lại bằng sơ đồ cây vẽ nhanh trên bảng (Phương pháp: Thầy làm mẫu) [1.3 - Phương pháp sư phạm rõ ràng].
+Phút 5 - 10: Phân hóa, Tự chủ & Hỗ trợ trực tiếp (Đỉnh cao của tiết học)
+Kích hoạt tự chủ: "Bây giờ là thời gian thực hành. Hãy lật cốc tín hiệu để đánh giá mức độ hiểu bài của mình. Các em di chuyển lấy phiếu bài tập ở 3 khay Xanh, Vàng, Hồng tương ứng với 3 mức độ 🌶️. Nhóm trưởng và người canh giờ bắt đầu làm nhiệm vụ!" [3.2 - Tính tự chủ], [2.3 - Tài nguyên phân hóa] & [2.5 - Chia nhóm linh hoạt có vai trò].
+Hỗ trợ phân tầng (Scaffolding): Những em chọn phiếu Xanh lá gặp khó khăn có thể bước tới góc lớp lấy "Thẻ gợi ý sơ đồ cây" (Hint cards) để tự xem [2.1 - Hỗ trợ phân tầng bằng công cụ].
+Giáo viên hỗ trợ có mục tiêu: Thầy bao quát lớp, thấy 3 em lật cốc Đỏ. Thầy gọi: "Nhóm cốc Đỏ mang phiếu Xanh lên Trạm giáo viên (Teacher Station)". Tại đây, thầy kéo ghế ngồi ngang hàng, trực tiếp hướng dẫn 3 em vẽ lại từng nhánh của quy tắc nhân [2.2 - Hỗ trợ có mục tiêu].
+Phản hồi tức thời: Trước khi về Trạm, thầy đi ngang qua bàn của một em học sinh khá, thấy em ấy tính sai nhánh quy tắc cộng. Thầy dùng bút đỏ khoanh tròn lỗi sai, vẽ mũi tên ra lề giấy ghi: "Hành động này xảy ra đồng thời hay liên tiếp?", sau đó gật đầu khích lệ rồi rời đi ngay [5.1 - Phản hồi trực tiếp/Feed-forward].
+Phút 10 - 13: Đánh giá đồng đẳng
+Khẩu lệnh chuyển đổi: Visual timer reo hết 5 phút luyện tập. Thầy giơ 1 tay lên ra hiệu giữ im lặng (Phi ngôn ngữ) [3.4].
+Chấm chéo: "Các em lấy bút Xanh lá cây (Green pen). Đổi chéo phiếu cho bạn bên cạnh. Nhìn lên màn hình, dùng Checklist chấm điểm của thầy để kiểm tra xem bạn đã phân biệt đúng bước 1 (cộng) và bước 2 (nhân) chưa. Tick ✔️ vào bài của bạn" [5.2 - Đánh giá đồng đẳng].
+Phút 13 - 15: Đánh giá phân hóa (Exit Ticket)
+Thu hoạch cuối giờ: *"Trước khi kết thúc, để thầy biết các em đã nắm chắc bài chưa, hãy hoàn thành Exit Ticket. Các em được CHỌN 1 trong 2 cách sau để nộp lại cho thầy:
+Lựa chọn A: Lập phép tính đếm số vé máy bay cần chuẩn bị (Đề bài toán trên màn hình).
+Lựa chọn B: Đóng vai người quản lý, tự viết một bài toán vận chuyển logistics có áp dụng cả quy tắc cộng và nhân."*
+Học sinh nhanh chóng viết ra giấy nhớ (sticky note) và dán lên cửa lớp khi bước ra ngoài [5.3 - Đánh giá phân hóa].
