@@ -3,7 +3,7 @@ import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAtWzHyQWUahuteQ_6fnWHiwf1Iuxy4Z8c",
+  apiKey: "AIzaSyAtWzHYQWUahuteQ_6fnWHiwf1Iuxy4Z8c",
   authDomain: "smartplan-ai-14200.firebaseapp.com",
   projectId: "smartplan-ai-14200",
   storageBucket: "smartplan-ai-14200.firebasestorage.app",
