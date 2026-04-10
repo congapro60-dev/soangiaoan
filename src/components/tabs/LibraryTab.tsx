@@ -8,7 +8,10 @@ import {
   Eye, 
   Trash2, 
   CheckCircle2,
-  Copy 
+  Copy,
+  Edit3,
+  Check,
+  X 
 } from 'lucide-react';
 import dayjs from 'dayjs';
 import { cn } from '../../lib/utils';
@@ -23,9 +26,10 @@ interface LibraryTabProps {
   data: AppData;
   communityPlans: LessonPlan[];
   setCurrentPlan: (plan: Partial<LessonPlan>) => void;
-  toggleSharePlan: (e: React.MouseEvent, plan: LessonPlan) => void;
   deletePlan: (id: string) => void;
   duplicatePlan: (plan: LessonPlan) => void;
+  updatePlanMetadata: (id: string, updates: Partial<LessonPlan>) => void;
+  user: any;
 }
 
 export const LibraryTab = ({
@@ -37,12 +41,14 @@ export const LibraryTab = ({
   data,
   communityPlans,
   setCurrentPlan,
-  toggleSharePlan,
-  deletePlan,
-  duplicatePlan
+  duplicatePlan,
+  updatePlanMetadata,
+  user
 }: LibraryTabProps) => {
   const [selectedGrade, setSelectedGrade] = useState<string>('all');
   const [selectedWeek, setSelectedWeek] = useState<string>('all');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<Partial<LessonPlan>>({});
 
   const plansToDisplay = libraryTab === 'personal' ? data.lessonPlans : communityPlans;
   
@@ -166,6 +172,24 @@ export const LibraryTab = ({
                     <Copy className="w-5 h-5" />
                   </button>
                 )}
+                {(libraryTab === 'personal' || plan.userId === user?.uid) && (
+                  <button 
+                    title="Sửa thông tin nhanh"
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      setEditingId(plan.id); 
+                      setEditForm({ 
+                        title: plan.title, 
+                        grade: plan.grade, 
+                        week: plan.week, 
+                        authorName: plan.authorName 
+                      }); 
+                    }}
+                    className="p-2 text-slate-400 hover:text-blue-500 transition-colors"
+                  >
+                    <Edit3 className="w-5 h-5" />
+                  </button>
+                )}
                 {libraryTab === 'personal' && (
                   <button 
                     onClick={(e) => { e.stopPropagation(); deletePlan(plan.id); }}
@@ -176,18 +200,69 @@ export const LibraryTab = ({
                 )}
               </div>
             </div>
-            <h4 className="font-bold text-slate-800 line-clamp-2 mb-1 h-12 leading-tight">
-              {plan.title}
-            </h4>
-            <div className="space-y-1 mb-4">
-              <p className="text-[10px] text-slate-500 flex items-center gap-2">
-                <span className="font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">Lớp {plan.grade || '?'}</span>
-                <span className="font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-md">Tuần {plan.week || '?'}</span>
-              </p>
-              <p className="text-[10px] text-slate-400 flex items-center gap-1">
-                Người soạn: <span className="font-bold text-slate-600">{plan.authorName || 'Ẩn danh'}</span>
-              </p>
-            </div>
+            {editingId === plan.id ? (
+              <div className="space-y-4" onClick={(e) => e.stopPropagation()}>
+                <input 
+                  type="text"
+                  value={editForm.title || ''}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
+                  className="w-full px-3 py-2 text-sm font-bold border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Tên giáo án"
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <select 
+                    value={editForm.grade || ''}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, grade: e.target.value }))}
+                    className="px-2 py-1.5 text-xs border border-slate-200 rounded-lg outline-none"
+                  >
+                    {[...Array(12)].map((_, i) => <option key={i+1} value={(i+1).toString()}>Lớp {i+1}</option>)}
+                  </select>
+                  <select 
+                    value={editForm.week || ''}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, week: e.target.value }))}
+                    className="px-2 py-1.5 text-xs border border-slate-200 rounded-lg outline-none"
+                  >
+                    {[...Array(35)].map((_, i) => <option key={i+1} value={(i+1).toString()}>Tuần {i+1}</option>)}
+                  </select>
+                </div>
+                <input 
+                  type="text"
+                  value={editForm.authorName || ''}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, authorName: e.target.value }))}
+                  className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg outline-none"
+                  placeholder="Tên người soạn"
+                />
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => { updatePlanMetadata(plan.id, editForm); setEditingId(null); }}
+                    className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1 hover:bg-blue-700"
+                  >
+                    <Check className="w-3 h-3" /> Lưu
+                  </button>
+                  <button 
+                    onClick={() => setEditingId(null)}
+                    className="flex-1 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold flex items-center justify-center gap-1 hover:bg-slate-200"
+                  >
+                    <X className="w-3 h-3" /> Hủy
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <h4 className="font-bold text-slate-800 line-clamp-2 mb-1 h-12 leading-tight">
+                  {plan.title}
+                </h4>
+                <div className="space-y-1 mb-4">
+                  <p className="text-[10px] text-slate-500 flex items-center gap-2">
+                    <span className="font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">Lớp {plan.grade || '?'}</span>
+                    <span className="font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-md">Tuần {plan.week || '?'}</span>
+                  </p>
+                  <p className="text-[10px] text-slate-400 flex items-center gap-1">
+                    Người soạn: <span className="font-bold text-slate-600">{plan.authorName || 'Ẩn danh'}</span>
+                  </p>
+                </div>
+              </>
+            )}
             <div className="flex items-center justify-between pt-4 border-t border-slate-50">
               <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400">
                 {dayjs(plan.createdAt).format('DD MMM YYYY')}

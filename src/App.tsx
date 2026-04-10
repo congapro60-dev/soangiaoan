@@ -128,6 +128,25 @@ export default function App() {
     }
   };
 
+  const updatePlanMetadata = async (id: string, updates: Partial<LessonPlan>) => {
+    try {
+      await setDoc(doc(db, 'lessonPlans', id), updates, { merge: true });
+      
+      // Cập nhật state cá nhân
+      setData(prev => ({
+        ...prev,
+        lessonPlans: prev.lessonPlans.map(p => p.id === id ? { ...p, ...updates } : p)
+      }));
+
+      // Cập nhật state cộng đồng nếu đang hiển thị
+      setCommunityPlans(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
+      
+      showToast('Đã cập nhật thông tin!');
+    } catch (err) {
+      showToast('Lỗi cập nhật', 'error');
+    }
+  };
+
   const saveBulkPlans = async () => {
     if (creator.bulkResults.length === 0 || !user) return;
     setIsLoading(true);
@@ -332,6 +351,7 @@ export default function App() {
                 setActiveTab={setActiveTab} data={data} communityPlans={communityPlans}
                 setCurrentPlan={creator.setCurrentPlan} toggleSharePlan={toggleSharePlan} 
                 deletePlan={deletePlan} duplicatePlan={duplicatePlan}
+                updatePlanMetadata={updatePlanMetadata} user={user}
               />
             )}
 
