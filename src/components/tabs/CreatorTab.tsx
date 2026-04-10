@@ -8,7 +8,9 @@ import {
   Save, 
   Download, 
   MessageSquare, 
-  FileSpreadsheet 
+  FileSpreadsheet,
+  Plus,
+  Trash2
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
