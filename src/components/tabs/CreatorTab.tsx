@@ -160,7 +160,7 @@ export const CreatorTab = ({
               onChange={(e) => setCurrentPlan(prev => ({ ...prev, subjectId: e.target.value }))}
               className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
             >
-              {data.subjects.map(s => (
+              {data.subjects?.map(s => (
                 <option key={s.id} value={s.id}>{s.name}</option>
               ))}
             </select>
@@ -173,7 +173,7 @@ export const CreatorTab = ({
               className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
             >
               <option value="">-- Không sử dụng mẫu --</option>
-              {data.templates.map(t => (
+              {data.templates?.map(t => (
                 <option key={t.id} value={t.id}>{t.name}</option>
               ))}
             </select>
@@ -213,7 +213,7 @@ export const CreatorTab = ({
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
               >
                 <option value="">-- Không sử dụng phân phối --</option>
-                {data.distributions.map(d => (
+                {data.distributions?.map(d => (
                   <option key={d.id} value={d.id}>{d.name} (Lớp {d.grade})</option>
                 ))}
               </select>
@@ -257,7 +257,7 @@ export const CreatorTab = ({
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-700">Phân phối chương trình lưu trữ</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {data.distributions.map(dist => (
+                {data.distributions?.map(dist => (
                   <div key={dist.id} className={cn(
                     "p-4 rounded-xl border transition-all cursor-pointer flex items-center justify-between",
                     selectedDistributionId === dist.id ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200" : "border-slate-200 hover:border-blue-300 bg-white"

@@ -9,8 +9,13 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
     const saved = localStorage.getItem('smart_lesson_plan_data');
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (!parsed.templates) parsed.templates = DEFAULT_DATA.templates;
-      return parsed;
+      return {
+        ...DEFAULT_DATA,
+        ...parsed,
+        templates: parsed.templates || DEFAULT_DATA.templates,
+        distributions: parsed.distributions || [],
+        authorName: parsed.authorName || ''
+      };
     }
     return DEFAULT_DATA;
   });
