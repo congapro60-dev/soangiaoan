@@ -8,14 +8,23 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
   const [data, setData] = useState<AppData>(() => {
     const saved = localStorage.getItem('smart_lesson_plan_data');
     if (saved) {
-      const parsed = JSON.parse(saved);
-      return {
-        ...DEFAULT_DATA,
-        ...parsed,
-        templates: parsed.templates || DEFAULT_DATA.templates,
-        distributions: parsed.distributions || [],
-        authorName: parsed.authorName || ''
-      };
+      try {
+        const parsed = JSON.parse(saved);
+        // Đảm bảo cấu trúc dữ liệu mới nhất được hợp nhất với dữ liệu cũ
+        return {
+          ...DEFAULT_DATA,
+          ...parsed,
+          lessonPlans: parsed.lessonPlans || [],
+          subjects: parsed.subjects || DEFAULT_DATA.subjects,
+          templates: parsed.templates || DEFAULT_DATA.templates,
+          distributions: parsed.distributions || [],
+          settings: { ...DEFAULT_DATA.settings, ...(parsed.settings || {}) },
+          authorName: parsed.authorName || ''
+        };
+      } catch (e) {
+        console.error("Lỗi parse dữ liệu local", e);
+        return DEFAULT_DATA;
+      }
     }
     return DEFAULT_DATA;
   });
@@ -171,7 +180,8 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
 
   const updateTemplate = async (templateId: string, updatedTemplate: Partial<LessonTemplate>) => {
     setData(prev => {
-      const newTemplates = prev.templates.map(t => t.id === templateId ? { ...t, ...updatedTemplate } : t);
+      const currentTemplates = prev.templates || [];
+      const newTemplates = currentTemplates.map(t => t.id === templateId ? { ...t, ...updatedTemplate } : t);
       const target = newTemplates.find(t => t.id === templateId);
       if (user && target) {
         setDoc(doc(db, 'userTemplates', templateId), { ...target, userId: user.uid }, { merge: true });
@@ -182,8 +192,9 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
 
   const deleteFile = async (templateId: string, fileId: string) => {
     setData(prev => {
-      const newTemplates = prev.templates.map(t => 
-        t.id === templateId ? { ...t, files: t.files.filter(f => f.id !== fileId) } : t
+      const currentTemplates = prev.templates || [];
+      const newTemplates = currentTemplates.map(t => 
+        t.id === templateId ? { ...t, files: (t.files || []).filter(f => f.id !== fileId) } : t
       );
       const target = newTemplates.find(t => t.id === templateId);
       if (user && target) {

@@ -73,7 +73,7 @@ export const DashboardTab = ({ data, setCurrentPlan, setActiveTab }: DashboardTa
             Môn học của bạn
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {data.subjects.map(subject => {
+            {data.subjects?.map(subject => {
               const Icon = ICON_MAP[subject.icon] || BookOpen;
               return (
                 <div key={subject.id} className="p-4 bg-white rounded-2xl border border-slate-100 hover:shadow-md transition-all cursor-pointer group">
@@ -83,7 +83,7 @@ export const DashboardTab = ({ data, setCurrentPlan, setActiveTab }: DashboardTa
                     </div>
                     <div>
                       <div className="font-semibold text-slate-800">{subject.name}</div>
-                      <div className="text-xs text-slate-500">{data.lessonPlans.filter(p => p.subjectId === subject.id).length} giáo án</div>
+                      <div className="text-xs text-slate-500">{data.lessonPlans?.filter(p => p.subjectId === subject.id).length} giáo án</div>
                     </div>
                   </div>
                 </div>
@@ -98,7 +98,7 @@ export const DashboardTab = ({ data, setCurrentPlan, setActiveTab }: DashboardTa
             Giáo án gần đây
           </h3>
           <div className="space-y-3">
-            {data.lessonPlans.slice(0, 4).map(plan => (
+            {data.lessonPlans?.slice(0, 4).map(plan => (
               <div 
                 key={plan.id} 
                 onClick={() => { setCurrentPlan(plan); setActiveTab('creator'); }}
@@ -110,7 +110,7 @@ export const DashboardTab = ({ data, setCurrentPlan, setActiveTab }: DashboardTa
                   </div>
                   <div>
                     <div className="font-medium text-slate-800">{plan.title}</div>
-                    <div className="text-xs text-slate-500">{data.subjects.find(s => s.id === plan.subjectId)?.name}</div>
+                    <div className="text-xs text-slate-500">{data.subjects?.find(s => s.id === plan.subjectId)?.name}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-slate-400 group-hover:text-blue-500 transition-colors">
@@ -119,7 +119,7 @@ export const DashboardTab = ({ data, setCurrentPlan, setActiveTab }: DashboardTa
                 </div>
               </div>
             ))}
-            {data.lessonPlans.length === 0 && (
+            {data.lessonPlans?.length === 0 && (
               <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-slate-400 text-sm">
                 Bạn chưa soạn giáo án nào. Bắt đầu ngay!
               </div>

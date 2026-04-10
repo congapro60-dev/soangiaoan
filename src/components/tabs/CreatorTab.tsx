@@ -266,7 +266,7 @@ export const CreatorTab = ({
                       <FileSpreadsheet className={cn("w-5 h-5", selectedDistributionId === dist.id ? "text-blue-600" : "text-slate-400")} />
                       <div>
                         <p className="text-sm font-bold text-slate-800 line-clamp-1">{dist.name}</p>
-                        <p className="text-[10px] text-slate-500 uppercase">Lớp {dist.grade} · {data.subjects.find(s => s.id === dist.subjectId)?.name}</p>
+                        <p className="text-[10px] text-slate-500 uppercase">Lớp {dist.grade} · {data.subjects?.find(s => s.id === dist.subjectId)?.name}</p>
                       </div>
                     </div>
                     <button onClick={(e) => { e.stopPropagation(); deleteDistribution(dist.id); }} className="text-slate-300 hover:text-red-500">

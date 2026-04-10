@@ -48,30 +48,7 @@ export default function App() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Tự động hỏi tên người soạn sau khi đăng nhập
-  useEffect(() => {
-    if (user && !data.authorName) {
-      Swal.fire({
-        title: 'Chào mừng bạn!',
-        text: 'Vui lòng nhập tên người soạn giáo án của bạn:',
-        input: 'text',
-        inputPlaceholder: 'Ví dụ: Thầy Nguyễn Văn A',
-        allowOutsideClick: false,
-        confirmButtonText: 'Xác nhận',
-        preConfirm: (name) => {
-          if (!name) {
-            Swal.showValidationMessage('Vui lòng nhập tên!');
-          }
-          return name;
-        }
-      }).then((result) => {
-        if (result.isConfirmed) {
-          setAuthorName(result.value);
-          showToast(`Chào mừng ${result.value}!`);
-        }
-      });
-    }
-  }, [user, data.authorName]);
+  // Sync EVERYTHING to Cloud periodically or on major change (already handled in useAppState)
 
   const creator = useLessonCreator(data, setData, setIsLoading, showToast, setIsSettingsOpen);
   const chat = useChat(data, setIsLoading, showToast);
@@ -164,11 +141,48 @@ export default function App() {
 
   const toggleSharePlan = async (e: React.MouseEvent, plan: LessonPlan) => {
     e.stopPropagation();
+    if (!user) return;
+
+    // Nếu chưa có tên người soạn, yêu cầu nhập trước khi chia sẻ cộng đồng
+    let nameToUse = data.authorName;
+    if (!plan.isPublic && !data.authorName) {
+      const { value: name } = await Swal.fire({
+        title: 'Chia sẻ giáo án',
+        text: 'Vui lòng nhập tên thực của bạn để hiển thị trên giáo án cộng đồng:',
+        input: 'text',
+        inputPlaceholder: 'Ví dụ: Cô giáo Minh Anh...',
+        allowOutsideClick: false,
+        confirmButtonText: 'Lưu & Chia sẻ',
+        confirmButtonColor: '#3b82f6',
+        inputValidator: (value) => {
+          if (!value) return 'Bạn cần nhập tên để chia sẻ!';
+          if (value.length < 2) return 'Tên quá ngắn!';
+        }
+      });
+
+      if (name) {
+        setAuthorName(name);
+        nameToUse = name;
+        // Cập nhật local data ngay lập tức để sync lên Firestore
+        setData(prev => ({ ...prev, authorName: name }));
+      } else {
+        return; // Người dùng hủy, không chia sẻ nữa
+      }
+    }
+
     try {
-      await setDoc(doc(db, 'lessonPlans', plan.id), { isPublic: !plan.isPublic }, { merge: true });
+      const planRef = doc(db, 'lessonPlans', plan.id);
+      await setDoc(planRef, { 
+        ...plan, 
+        isPublic: !plan.isPublic,
+        authorName: nameToUse
+      }, { merge: true });
+      
       setData(prev => ({
         ...prev,
-        lessonPlans: prev.lessonPlans.map(p => p.id === plan.id ? { ...p, isPublic: !p.isPublic } : p)
+        lessonPlans: prev.lessonPlans.map(p => 
+          p.id === plan.id ? { ...p, isPublic: !p.isPublic, authorName: nameToUse } : p
+        )
       }));
       showToast(!plan.isPublic ? 'Đã chia sẻ cộng đồng!' : 'Đã thu hồi quyền riêng tư.');
     } catch (err) {

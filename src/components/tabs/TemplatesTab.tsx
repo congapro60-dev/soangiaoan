@@ -50,7 +50,7 @@ export const TemplatesTab = ({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {data.templates.map(tpl => (
+        {data.templates?.map(tpl => (
           <div key={tpl.id} className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-all group">
             <div className="flex justify-between items-start mb-6">
               <div className="flex items-center gap-4">
@@ -61,7 +61,7 @@ export const TemplatesTab = ({
                   <h3 className="text-lg font-bold text-slate-800">{tpl.name}</h3>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded text-[10px] font-bold uppercase">
-                      {data.subjects.find(s => s.id === tpl.subjectId)?.name || 'Chung'}
+                      {data.subjects?.find(s => s.id === tpl.subjectId)?.name || 'Chung'}
                     </span>
                     <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">
                       {dayjs(tpl.createdAt).format('DD/MM/YYYY')}
@@ -97,7 +97,7 @@ export const TemplatesTab = ({
                   </button>
                 </div>
                 <div className="space-y-2">
-                  {tpl.files.filter(f => f.category === 'sample').map(file => (
+                  {tpl.files?.filter(f => f.category === 'sample').map(file => (
                     <div key={file.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 group/file">
                       <div className="flex items-center gap-2 min-w-0">
                         <FileUp size={14} className="text-blue-400 shrink-0" />
@@ -111,7 +111,7 @@ export const TemplatesTab = ({
                       </button>
                     </div>
                   ))}
-                  {tpl.files.filter(f => f.category === 'sample').length === 0 && (
+                  {tpl.files?.filter(f => f.category === 'sample').length === 0 && (
                     <div className="py-4 text-center border-2 border-dashed border-slate-100 rounded-xl text-[10px] text-slate-400">
                       Chưa có giáo án mẫu
                     </div>
@@ -137,7 +137,7 @@ export const TemplatesTab = ({
                   </button>
                 </div>
                 <div className="space-y-2">
-                  {tpl.files.filter(f => f.category === 'criteria').map(file => (
+                  {tpl.files?.filter(f => f.category === 'criteria').map(file => (
                     <div key={file.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 group/file">
                       <div className="flex items-center gap-2 min-w-0">
                         <FileCheck size={14} className="text-green-400 shrink-0" />
@@ -151,7 +151,7 @@ export const TemplatesTab = ({
                       </button>
                     </div>
                   ))}
-                  {tpl.files.filter(f => f.category === 'criteria').length === 0 && (
+                  {tpl.files?.filter(f => f.category === 'criteria').length === 0 && (
                     <div className="py-4 text-center border-2 border-dashed border-slate-100 rounded-xl text-[10px] text-slate-400">
                       Chưa có tệp tiêu chí (Tối đa 10 tệp)
                     </div>
@@ -161,7 +161,7 @@ export const TemplatesTab = ({
             </div>
           </div>
         ))}
-        {data.templates.length === 0 && (
+        {data.templates?.length === 0 && (
           <div className="lg:col-span-2 p-20 text-center bg-white rounded-[40px] border-2 border-dashed border-slate-100 text-slate-400">
             <Layout className="w-16 h-16 mx-auto mb-4 opacity-10" />
             <p className="text-lg font-medium">Chưa có mẫu giáo án nào</p>
