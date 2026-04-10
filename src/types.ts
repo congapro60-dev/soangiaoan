@@ -9,12 +9,15 @@ export interface LessonPlan {
   id: string;
   subjectId: string;
   templateId?: string;
+  grade?: string;
+  week?: string;
+  authorName?: string;
   title: string;
   content: string;
   status: 'draft' | 'completed';
   createdAt: string;
   updatedAt: string;
-  sourceDistributionId?: string; // If generated from a curriculum distribution
+  sourceDistributionId?: string;
   userId?: string;
   isPublic?: boolean;
 }
@@ -23,16 +26,18 @@ export interface CurriculumDistribution {
   id: string;
   name: string;
   subjectId: string;
-  content: string; // Extracted text from PDF/Word/Excel
+  grade: string;
+  content: string; // Nội dung đã trích xuất từ văn bản
   createdAt: string;
+  userId: string;
 }
 
 export interface TemplateFile {
   id: string;
   name: string;
   type: 'pdf' | 'word' | 'excel';
-  content: string; // The extracted text content
-  category: 'sample' | 'criteria' | 'lesson_doc' | 'distribution'; // Added lesson_doc and distribution
+  content: string;
+  category: 'sample' | 'criteria' | 'lesson_doc' | 'distribution';
 }
 
 export interface LessonTemplate {
@@ -47,6 +52,8 @@ export interface AppData {
   subjects: Subject[];
   lessonPlans: LessonPlan[];
   templates: LessonTemplate[];
+  distributions: CurriculumDistribution[];
+  authorName: string;
   settings: {
     theme: 'light' | 'dark';
     autoSave: boolean;
@@ -63,34 +70,10 @@ export const DEFAULT_DATA: AppData = {
     { id: 'bio', name: 'Sinh học', icon: 'Dna', lessonCount: 4 },
     { id: 'lit', name: 'Ngữ văn', icon: 'BookOpen', lessonCount: 6 },
   ],
-  lessonPlans: [
-    {
-      id: 'demo-1',
-      subjectId: 'math',
-      title: 'Đạo hàm cấp 1 - Tiết 1',
-      content: '# Giáo án: Đạo hàm cấp 1\n\n## 1. Mục tiêu\n- Hiểu định nghĩa đạo hàm.\n- Tính được đạo hàm bằng định nghĩa.\n\n## 2. Hoạt động\n- Khởi động: Bài toán vận tốc tức thời.\n- Hình thành kiến thức: Định nghĩa giới hạn.',
-      status: 'completed',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }
-  ],
-  templates: [
-    {
-      id: 'tpl-default',
-      name: 'Mẫu giáo án chuẩn Bộ GD&ĐT',
-      subjectId: 'math',
-      files: [
-        {
-          id: 'file-1',
-          name: 'Mau_Giao_An_Chuan.pdf',
-          type: 'pdf',
-          content: '# Tên bài học\n## I. Mục tiêu\n## II. Thiết bị dạy học\n## III. Tiến trình dạy học',
-          category: 'sample'
-        }
-      ],
-      createdAt: new Date().toISOString()
-    }
-  ],
+  lessonPlans: [],
+  templates: [],
+  distributions: [],
+  authorName: '',
   settings: {
     theme: 'light',
     autoSave: true,

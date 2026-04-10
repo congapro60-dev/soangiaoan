@@ -20,11 +20,14 @@ export const useLessonCreator = (
     title: '',
     content: '',
     subjectId: 'math',
-    templateId: ''
+    templateId: '',
+    grade: '10',
+    week: '1'
   });
   const [lessonDocs, setLessonDocs] = useState<TemplateFile[]>([]);
   const [singleRequirement, setSingleRequirement] = useState('');
   const [distributionFile, setDistributionFile] = useState<TemplateFile | null>(null);
+  const [selectedDistributionId, setSelectedDistributionId] = useState<string>('');
   const [bulkCommand, setBulkCommand] = useState('');
   const [bulkResults, setBulkResults] = useState<LessonPlan[]>([]);
   const [bulkProgress, setBulkProgress] = useState({ current: 0, total: 0 });
@@ -42,8 +45,8 @@ export const useLessonCreator = (
       return;
     }
 
-    if (generationMode === 'bulk' && (!distributionFile || !bulkCommand)) {
-      showToast('Vui lòng tải lên phân phối chương trình và nhập yêu cầu soạn thảo!', 'warning');
+    if (generationMode === 'bulk' && (!distributionFile && !selectedDistributionId) && !bulkCommand) {
+      showToast('Vui lòng chọn hoặc tải lên phân phối chương trình!', 'warning');
       return;
     }
 
@@ -53,6 +56,9 @@ export const useLessonCreator = (
     try {
       const subject = data.subjects.find(s => s.id === currentPlan.subjectId)?.name || 'Chung';
       const selectedTemplate = data.templates.find(t => t.id === currentPlan.templateId);
+      const activeDist = selectedDistributionId 
+        ? data.distributions.find(d => d.id === selectedDistributionId) 
+        : distributionFile;
       
       let templateContext = '';
       if (selectedTemplate) {
@@ -82,9 +88,11 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
       if (generationMode === 'single') {
         const lessonDocsContent = lessonDocs.map(f => f.content).join('\n---\n');
         const prompt = `
-          Bạn là một chuyên gia giáo dục cao cấp. Hãy soạn một giáo án chi tiết và chuyên nghiệp cho môn học: ${subject}.
+          Bạn là một chuyên gia giáo dục cao cấp. Hãy soạn một giáo án chi tiết và chuyên nghiệp.
+          Môn học: ${subject}. Lớp: ${currentPlan.grade}. Tuần: ${currentPlan.week}.
           Tiêu đề bài học: ${currentPlan.title}.
           ${templateContext}
+          ${activeDist ? `THAM KHẢO PHÂN PHỐI CHƯƠNG TRÌNH SAU ĐỂ ĐẢM BẢO CHƯƠNG TRÌNH HỌC:\n${activeDist.content}` : ''}
           ${lessonDocsContent ? `TÀI LIỆU THAM KHẢO CHO BÀI HỌC:\n${lessonDocsContent}` : ''}
           ${singleRequirement ? `YÊU CẦU BỔ SUNG TỪ GIÁO VIÊN: ${singleRequirement}` : ''}
           ${mathRestrictions}
@@ -96,9 +104,10 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
           showToast('Đã khởi tạo giáo án thành công!');
         }
       } else {
+        const distContent = activeDist?.content || distributionFile?.content;
         const plannerPrompt = `
-          LẬP DANH SÁCH BÀI HỌC CẦN SOẠN dựa trên Phân phối chương trình:\n${distributionFile?.content}
-          Yêu cầu: ${bulkCommand}. Môn: ${subject}.
+          LẬP DANH SÁCH BÀI HỌC CẦN SOẠN dựa trên Phân phối chương trình:\n${distContent}
+          Yêu cầu: ${bulkCommand}. Môn: ${subject}. Lớp: ${currentPlan.grade}.
           Trả về duy nhất mảng JSON tiêu đề bài học.
         `;
         
@@ -115,13 +124,15 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
           const title = titles[i];
           setBulkProgress({ current: i + 1, total: titles.length });
           
-          const detailPrompt = `Soạn giáo án chi tiết cho bài: ${title}. ${templateContext} ${mathRestrictions} Định dạng nhiều bảng 3 cột.`;
+          const detailPrompt = `Soạn giáo án chi tiết bài: ${title}. ${templateContext} ${mathRestrictions} Lớp: ${currentPlan.grade}. Định dạng nhiều bảng 3 cột.`;
           const detailResponse = await callGeminiAI(detailPrompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
           if (detailResponse) {
             newPlans.push({
               id: Math.random().toString(36).substr(2, 9),
               subjectId: currentPlan.subjectId || 'math',
               templateId: currentPlan.templateId,
+              grade: currentPlan.grade,
+              week: currentPlan.week,
               title: title,
               content: cleanMarkdownOutput(detailResponse),
               status: 'draft',
@@ -165,6 +176,7 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
     lessonDocs, setLessonDocs,
     singleRequirement, setSingleRequirement,
     distributionFile, setDistributionFile,
+    selectedDistributionId, setSelectedDistributionId,
     bulkCommand, setBulkCommand,
     bulkResults, setBulkResults,
     bulkProgress,

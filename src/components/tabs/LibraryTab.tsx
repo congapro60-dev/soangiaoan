@@ -37,10 +37,17 @@ export const LibraryTab = ({
   toggleSharePlan,
   deletePlan
 }: LibraryTabProps) => {
+  const [selectedGrade, setSelectedGrade] = useState<string>('all');
+  const [selectedWeek, setSelectedWeek] = useState<string>('all');
+
   const plansToDisplay = libraryTab === 'personal' ? data.lessonPlans : communityPlans;
-  const filteredPlans = plansToDisplay.filter(p => 
-    (p.title || '').toLowerCase().includes((searchQuery || '').toLowerCase())
-  );
+  
+  const filteredPlans = plansToDisplay.filter(p => {
+    const matchesSearch = (p.title || '').toLowerCase().includes((searchQuery || '').toLowerCase());
+    const matchesGrade = selectedGrade === 'all' || p.grade === selectedGrade;
+    const matchesWeek = selectedWeek === 'all' || p.week === selectedWeek;
+    return matchesSearch && matchesGrade && matchesWeek;
+  });
 
   return (
     <motion.div 
@@ -71,23 +78,55 @@ export const LibraryTab = ({
         </button>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="relative w-full max-w-md">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-          <input 
-            type="text" 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm kiếm theo tiêu đề bài học..."
-            className="w-full pl-12 pr-4 py-3 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-          />
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="relative w-full max-w-md">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+            <input 
+              type="text" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Tìm kiếm theo tiêu đề bài học..."
+              className="w-full pl-12 pr-4 py-3 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+            />
+          </div>
+          <button 
+            onClick={() => setActiveTab('creator')}
+            className="w-full sm:w-auto px-6 py-3 gradient-bg text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-200 hover:opacity-90 transition-opacity"
+          >
+            <Plus className="w-5 h-5" /> Soạn mới
+          </button>
         </div>
-        <button 
-          onClick={() => setActiveTab('creator')}
-          className="w-full sm:w-auto px-6 py-3 gradient-bg text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-200 hover:opacity-90 transition-opacity"
-        >
-          <Plus className="w-5 h-5" /> Soạn mới
-        </button>
+
+        <div className="flex flex-wrap gap-3 items-center bg-white p-4 rounded-2xl border border-slate-100">
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider px-2">Lọc nhanh:</span>
+          <select 
+            value={selectedGrade}
+            onChange={(e) => setSelectedGrade(e.target.value)}
+            className="px-4 py-2 bg-slate-50 border-none rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none"
+          >
+            <option value="all">Tất cả Khối</option>
+            {[...Array(12)].map((_, i) => (
+              <option key={i+1} value={(i+1).toString()}>Lớp {i+1}</option>
+            ))}
+          </select>
+          <select 
+            value={selectedWeek}
+            onChange={(e) => setSelectedWeek(e.target.value)}
+            className="px-4 py-2 bg-slate-50 border-none rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none"
+          >
+            <option value="all">Tất cả Tuần</option>
+            {[...Array(35)].map((_, i) => (
+              <option key={i+1} value={(i+1).toString()}>Tuần {i+1}</option>
+            ))}
+          </select>
+          <button 
+            onClick={() => { setSelectedGrade('all'); setSelectedWeek('all'); setSearchQuery(''); }}
+            className="text-xs text-blue-600 font-bold hover:underline ml-auto"
+          >
+            Xóa lọc
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -124,14 +163,18 @@ export const LibraryTab = ({
                 )}
               </div>
             </div>
-            <h4 className="font-bold text-slate-800 line-clamp-1 mb-1">
+            <h4 className="font-bold text-slate-800 line-clamp-2 mb-1 h-12 leading-tight">
               {plan.title}
             </h4>
-            <p className="text-xs text-slate-500 mb-4 flex items-center gap-2">
-              Môn: {data.subjects.find(s => s.id === plan.subjectId)?.name || 'Chung'}
-              {libraryTab === 'community' && plan.userId && <span className="text-orange-500">· Chia sẻ Community</span>}
-              {libraryTab === 'personal' && plan.isPublic && <span className="text-orange-500">· Đang Public</span>}
-            </p>
+            <div className="space-y-1 mb-4">
+              <p className="text-[10px] text-slate-500 flex items-center gap-2">
+                <span className="font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">Lớp {plan.grade || '?'}</span>
+                <span className="font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-md">Tuần {plan.week || '?'}</span>
+              </p>
+              <p className="text-[10px] text-slate-400 flex items-center gap-1">
+                Người soạn: <span className="font-bold text-slate-600">{plan.authorName || 'Ẩn danh'}</span>
+              </p>
+            </div>
             <div className="flex items-center justify-between pt-4 border-t border-slate-50">
               <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400">
                 {dayjs(plan.createdAt).format('DD MMM YYYY')}

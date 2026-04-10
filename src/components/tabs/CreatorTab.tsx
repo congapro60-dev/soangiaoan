@@ -48,6 +48,9 @@ interface CreatorTabProps {
   fileInputRef: React.RefObject<HTMLInputElement>;
   setUploadingFiles: (val: { category: TemplateFile['category']; templateId?: string } | null) => void;
   showToast: (msg: string, type?: any) => void;
+  selectedDistributionId: string;
+  setSelectedDistributionId: (id: string) => void;
+  deleteDistribution: (id: string) => void;
 }
 
 export const CreatorTab = ({
@@ -79,7 +82,10 @@ export const CreatorTab = ({
   saveBulkPlans,
   fileInputRef,
   setUploadingFiles,
-  showToast
+  showToast,
+  selectedDistributionId,
+  setSelectedDistributionId,
+  deleteDistribution
 }: CreatorTabProps) => {
   return (
     <motion.div 
@@ -112,19 +118,40 @@ export const CreatorTab = ({
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {generationMode === 'single' && (
-            <div className="space-y-2 md:col-span-1">
-              <label className="text-sm font-semibold text-slate-700">Tiêu đề bài học</label>
-              <input 
-                type="text" 
-                value={currentPlan.title || ''}
-                onChange={(e) => setCurrentPlan(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Ví dụ: Đạo hàm cấp 2..."
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-              />
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-slate-700">Khối/Lớp</label>
+            <select 
+              value={currentPlan.grade || '10'}
+              onChange={(e) => setCurrentPlan(prev => ({ ...prev, grade: e.target.value }))}
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium"
+            >
+              {[...Array(12)].map((_, i) => (
+                <option key={i+1} value={(i+1).toString()}>Lớp {i+1}</option>
+              ))}
+              <option value="khac">Khác</option>
+            </select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-slate-700">Tuần học</label>
+            <select 
+              value={currentPlan.week || '1'}
+              onChange={(e) => setCurrentPlan(prev => ({ ...prev, week: e.target.value }))}
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium"
+            >
+              {[...Array(35)].map((_, i) => (
+                <option key={i+1} value={(i+1).toString()}>Tuần {i+1}</option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-slate-700">Người soạn</label>
+            <div className="px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-slate-600 font-bold truncate">
+              {data.authorName || 'Chưa đặt tên'}
             </div>
-          )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <label className="text-sm font-semibold text-slate-700">Môn học</label>
             <select 
@@ -155,6 +182,42 @@ export const CreatorTab = ({
         {/* Mode Specific Inputs */}
         {generationMode === 'single' ? (
           <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-700">Tiêu đề bài học</label>
+              <input 
+                type="text" 
+                value={currentPlan.title || ''}
+                onChange={(e) => setCurrentPlan(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Ví dụ: Đạo hàm cấp 2..."
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-700 flex items-center justify-between">
+                Sử dụng Phân phối môn đã lưu (Tùy chọn)
+                <button 
+                  onClick={() => {
+                    setUploadingFiles({ category: 'distribution' });
+                    fileInputRef.current?.click();
+                  }}
+                  className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                >
+                  <UploadCloud className="w-3 h-3" /> Tải lên bản mới
+                </button>
+              </label>
+              <select 
+                value={selectedDistributionId}
+                onChange={(e) => setSelectedDistributionId(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              >
+                <option value="">-- Không sử dụng phân phối --</option>
+                {data.distributions.map(d => (
+                  <option key={d.id} value={d.id}>{d.name} (Lớp {d.grade})</option>
+                ))}
+              </select>
+            </div>
+
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-700">Tài liệu tham khảo cho bài học (PDF/Word)</label>
               <div className="flex flex-wrap gap-2">
@@ -191,29 +254,35 @@ export const CreatorTab = ({
         ) : (
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">Phân phối chương trình (Excel/Word/PDF)</label>
-              <div className="flex items-center gap-4">
-                {distributionFile ? (
-                  <div className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 rounded-xl border border-green-100">
-                    <FileSpreadsheet className="w-5 h-5" />
-                    <span className="font-medium">{distributionFile.name}</span>
-                    <button onClick={() => setDistributionFile(null)} className="hover:text-red-500 ml-2">
-                      <X className="w-4 h-4" />
+              <label className="text-sm font-semibold text-slate-700">Phân phối chương trình lưu trữ</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {data.distributions.map(dist => (
+                  <div key={dist.id} className={cn(
+                    "p-4 rounded-xl border transition-all cursor-pointer flex items-center justify-between",
+                    selectedDistributionId === dist.id ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200" : "border-slate-200 hover:border-blue-300 bg-white"
+                  )} onClick={() => setSelectedDistributionId(dist.id)}>
+                    <div className="flex items-center gap-3">
+                      <FileSpreadsheet className={cn("w-5 h-5", selectedDistributionId === dist.id ? "text-blue-600" : "text-slate-400")} />
+                      <div>
+                        <p className="text-sm font-bold text-slate-800 line-clamp-1">{dist.name}</p>
+                        <p className="text-[10px] text-slate-500 uppercase">Lớp {dist.grade} · {data.subjects.find(s => s.id === dist.subjectId)?.name}</p>
+                      </div>
+                    </div>
+                    <button onClick={(e) => { e.stopPropagation(); deleteDistribution(dist.id); }} className="text-slate-300 hover:text-red-500">
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
-                ) : (
-                  <button 
-                    onClick={() => {
-                      setUploadingFiles({ category: 'distribution' });
-                      fileInputRef.current?.click();
-                    }}
-                    className="w-full py-8 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center gap-2 text-slate-400 hover:border-blue-400 hover:text-blue-500 transition-all"
-                  >
-                    <UploadCloud className="w-8 h-8" />
-                    <span className="font-medium">Tải lên tệp phân phối chương trình</span>
-                    <span className="text-xs">Hỗ trợ Excel, Word, PDF</span>
-                  </button>
-                )}
+                ))}
+                <button 
+                  onClick={() => {
+                    setUploadingFiles({ category: 'distribution' });
+                    fileInputRef.current?.click();
+                  }}
+                  className="p-4 border-2 border-dashed border-slate-200 rounded-xl flex items-center justify-center gap-2 text-slate-400 hover:border-blue-400 hover:text-blue-600 transition-all min-h-[66px]"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span className="text-sm font-medium">Tải phân phối mới</span>
+                </button>
               </div>
             </div>
             <div className="space-y-2">

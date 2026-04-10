@@ -33,7 +33,8 @@ export default function App() {
   const { user, isAuthLoading, handleLogin, handleLogout, showToast } = useAuth();
   const { 
     data, setData, communityPlans, isLoading, setIsLoading, 
-    fetchCommunityPlans, updateTemplate 
+    fetchCommunityPlans, updateTemplate, addTemplate, deleteTemplate, deleteFile,
+    setAuthorName, addDistribution, deleteDistribution
   } = useAppState(user, showToast);
   
   const [activeTab, setActiveTab] = useState<'dashboard' | 'creator' | 'library' | 'chat' | 'templates'>('dashboard');
@@ -46,6 +47,31 @@ export default function App() {
   const [uploadingFiles, setUploadingFiles] = useState<{ category: TemplateFile['category']; templateId?: string } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Tự động hỏi tên người soạn sau khi đăng nhập
+  useEffect(() => {
+    if (user && !data.authorName) {
+      Swal.fire({
+        title: 'Chào mừng bạn!',
+        text: 'Vui lòng nhập tên người soạn giáo án của bạn:',
+        input: 'text',
+        inputPlaceholder: 'Ví dụ: Thầy Nguyễn Văn A',
+        allowOutsideClick: false,
+        confirmButtonText: 'Xác nhận',
+        preConfirm: (name) => {
+          if (!name) {
+            Swal.showValidationMessage('Vui lòng nhập tên!');
+          }
+          return name;
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          setAuthorName(result.value);
+          showToast(`Chào mừng ${result.value}!`);
+        }
+      });
+    }
+  }, [user, data.authorName]);
 
   const creator = useLessonCreator(data, setData, setIsLoading, showToast, setIsSettingsOpen);
   const chat = useChat(data, setIsLoading, showToast);
@@ -73,6 +99,7 @@ export default function App() {
       createdAt: creator.currentPlan.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       userId: user.uid,
+      authorName: data.authorName,
       isPublic: creator.currentPlan.isPublic || false
     };
 
@@ -97,7 +124,7 @@ export default function App() {
     setIsLoading(true);
     try {
       const plansToSave = creator.bulkResults.map(p => ({
-        ...p, status: 'completed', userId: user.uid, isPublic: false
+        ...p, status: 'completed', userId: user.uid, authorName: data.authorName, isPublic: false
       }));
       for (const plan of plansToSave) {
         await setDoc(doc(db, 'lessonPlans', plan.id), plan);
@@ -164,7 +191,16 @@ export default function App() {
       if (uploadingFiles.category === 'lesson_doc') {
         creator.setLessonDocs(prev => [...prev, ...processedFiles]);
       } else if (uploadingFiles.category === 'distribution') {
-        creator.setDistributionFile(processedFiles[0]);
+        const newDist = {
+          id: `dist-${Date.now()}`,
+          name: files[0].name,
+          subjectId: creator.currentPlan.subjectId || 'math',
+          grade: creator.currentPlan.grade || '10',
+          content: processedFiles[0].content,
+          createdAt: new Date().toISOString(),
+          userId: user.uid
+        };
+        addDistribution(newDist);
       } else if (uploadingFiles.templateId) {
         const tId = uploadingFiles.templateId;
         setData(prev => ({
@@ -260,10 +296,22 @@ export default function App() {
                     title: 'Thêm mẫu mới',
                     html: `<input id="tpl-name" class="swal2-input" placeholder="Tên mẫu"><select id="tpl-subject" class="swal2-input">${data.subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}</select>`,
                     preConfirm: () => ({ name: (document.getElementById('tpl-name') as HTMLInputElement).value, subjectId: (document.getElementById('tpl-subject') as HTMLSelectElement).value })
-                  }).then(res => res.isConfirmed && res.value.name && creator.setCurrentPlan(prev => ({...prev, templateId: `tpl-${Date.now()}`})) && setData(prev => ({...prev, templates: [{id: `tpl-${Date.now()}`, name: res.value.name, subjectId: res.value.subjectId, files: [], createdAt: new Date().toISOString()}, ...prev.templates]})) )
+                  }).then(res => {
+                    if (res.isConfirmed && res.value.name) {
+                      const newId = `tpl-${Date.now()}`;
+                      addTemplate({
+                        id: newId,
+                        name: res.value.name,
+                        subjectId: res.value.subjectId,
+                        files: [],
+                        createdAt: new Date().toISOString()
+                      });
+                      creator.setCurrentPlan(prev => ({...prev, templateId: newId}));
+                    }
+                  });
                 }}
-                deleteTemplate={id => Swal.fire({title: 'Xóa mẫu?', showCancelButton: true}).then(res => res.isConfirmed && setData(prev => ({...prev, templates: prev.templates.filter(t => t.id !== id)})) )}
-                deleteFile={(tId, fId) => setData(prev => ({...prev, templates: prev.templates.map(t => t.id === tId ? {...t, files: t.files.filter(f => f.id !== fId)} : t)}))}
+                deleteTemplate={id => Swal.fire({title: 'Xóa mẫu?', showCancelButton: true}).then(res => res.isConfirmed && deleteTemplate(id) )}
+                deleteFile={(tId, fId) => deleteFile(tId, fId)}
               />
             )}
 
