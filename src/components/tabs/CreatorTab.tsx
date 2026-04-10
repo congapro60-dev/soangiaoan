@@ -118,6 +118,7 @@ export const CreatorTab = ({
           </button>
         </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-2">
             <label className="text-sm font-semibold text-slate-700">Khối/Lớp</label>
             <select 
