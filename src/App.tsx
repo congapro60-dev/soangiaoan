@@ -65,7 +65,12 @@ export default function App() {
     if (!creator.currentPlan.title || !creator.currentPlan.content) return;
     if (!user) { showToast('Vui lòng đăng nhập để lưu!', 'warning'); return; }
 
-    const id = creator.currentPlan.id || Math.random().toString(36).substr(2, 9);
+    // Logic Tách biệt ID: Nếu là giáo án từ kho chung (không phải của mình), tạo ID mới
+    const isEditingOthers = creator.currentPlan.userId && creator.currentPlan.userId !== user.uid;
+    const id = (isEditingOthers || !creator.currentPlan.id) 
+      ? Math.random().toString(36).substr(2, 9) 
+      : creator.currentPlan.id;
+
     const newPlan: LessonPlan = {
       id,
       subjectId: creator.currentPlan.subjectId || 'math',
@@ -77,7 +82,9 @@ export default function App() {
       updatedAt: new Date().toISOString(),
       userId: user.uid,
       authorName: data.authorName,
-      isPublic: creator.currentPlan.isPublic || false
+      isPublic: isEditingOthers ? false : (creator.currentPlan.isPublic || false),
+      grade: creator.currentPlan.grade,
+      week: creator.currentPlan.week
     };
 
     try {
@@ -90,9 +97,34 @@ export default function App() {
       }));
       creator.setCurrentPlan({ title: '', content: '', subjectId: 'math', templateId: '' });
       setActiveTab('library');
-      showToast('Đã lưu giáo án lên Thư viện Cloud!');
+      showToast(isEditingOthers ? 'Đã tạo bản sao riêng vào thư viện!' : 'Đã lưu giáo án thành công!');
     } catch (e) {
       showToast('Lỗi khi lưu lên Cloud!', 'error');
+    }
+  };
+
+  const duplicatePlan = async (plan: LessonPlan) => {
+    if (!user) return;
+    const newId = Math.random().toString(36).substr(2, 9);
+    const duplicatedPlan: LessonPlan = {
+      ...plan,
+      id: newId,
+      title: `Bản sao - ${plan.title}`,
+      userId: user.uid,
+      isPublic: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    try {
+      await setDoc(doc(db, 'lessonPlans', newId), duplicatedPlan);
+      setData(prev => ({
+        ...prev,
+        lessonPlans: [duplicatedPlan, ...prev.lessonPlans]
+      }));
+      showToast('Đã nhân bản giáo án thành công!');
+    } catch (err) {
+      showToast('Lỗi nhân bản', 'error');
     }
   };
 
@@ -298,7 +330,8 @@ export default function App() {
                 libraryTab={libraryTab} setLibraryTab={setLibraryTab} 
                 searchQuery={searchQuery} setSearchQuery={setSearchQuery}
                 setActiveTab={setActiveTab} data={data} communityPlans={communityPlans}
-                setCurrentPlan={creator.setCurrentPlan} toggleSharePlan={toggleSharePlan} deletePlan={deletePlan}
+                setCurrentPlan={creator.setCurrentPlan} toggleSharePlan={toggleSharePlan} 
+                deletePlan={deletePlan} duplicatePlan={duplicatePlan}
               />
             )}
 

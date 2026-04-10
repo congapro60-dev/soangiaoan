@@ -7,7 +7,8 @@ import {
   FileText, 
   Eye, 
   Trash2, 
-  CheckCircle2 
+  CheckCircle2,
+  Copy 
 } from 'lucide-react';
 import dayjs from 'dayjs';
 import { cn } from '../../lib/utils';
@@ -24,6 +25,7 @@ interface LibraryTabProps {
   setCurrentPlan: (plan: Partial<LessonPlan>) => void;
   toggleSharePlan: (e: React.MouseEvent, plan: LessonPlan) => void;
   deletePlan: (id: string) => void;
+  duplicatePlan: (plan: LessonPlan) => void;
 }
 
 export const LibraryTab = ({
@@ -36,7 +38,8 @@ export const LibraryTab = ({
   communityPlans,
   setCurrentPlan,
   toggleSharePlan,
-  deletePlan
+  deletePlan,
+  duplicatePlan
 }: LibraryTabProps) => {
   const [selectedGrade, setSelectedGrade] = useState<string>('all');
   const [selectedWeek, setSelectedWeek] = useState<string>('all');
@@ -154,6 +157,15 @@ export const LibraryTab = ({
                 <button className="p-2 text-slate-400 hover:text-blue-500 transition-colors">
                   <Eye className="w-5 h-5" />
                 </button>
+                {libraryTab === 'personal' && (
+                  <button 
+                    title="Nhân bản giáo án này"
+                    onClick={(e) => { e.stopPropagation(); duplicatePlan(plan); }}
+                    className="p-2 text-slate-400 hover:text-blue-500 transition-colors"
+                  >
+                    <Copy className="w-5 h-5" />
+                  </button>
+                )}
                 {libraryTab === 'personal' && (
                   <button 
                     onClick={(e) => { e.stopPropagation(); deletePlan(plan.id); }}
