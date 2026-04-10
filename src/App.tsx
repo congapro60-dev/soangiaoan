@@ -49,6 +49,13 @@ export default function App() {
 
   const creator = useLessonCreator(data, setData, setIsLoading, showToast, setIsSettingsOpen);
   const chat = useChat(data, setIsLoading, showToast);
+  
+  // Tự động tải Kho chung khi vào tab tương ứng
+  useEffect(() => {
+    if (activeTab === 'library' && libraryTab === 'community') {
+      fetchCommunityPlans();
+    }
+  }, [activeTab, libraryTab]);
 
   // Persistence Handlers
   const saveLessonPlan = async () => {
