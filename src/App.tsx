@@ -129,21 +129,54 @@ export default function App() {
   };
 
   const updatePlanMetadata = async (id: string, updates: Partial<LessonPlan>) => {
+    if (!user) return;
+    
     try {
-      await setDoc(doc(db, 'lessonPlans', id), updates, { merge: true });
+      // 1. Thử cập nhật trực tiếp (Nếu mình là chủ sở hữu thực sự của ID này)
+      await setDoc(doc(db, 'lessonPlans', id), { ...updates, updatedAt: new Date().toISOString() }, { merge: true });
       
-      // Cập nhật state cá nhân
+      // Cập nhật state cục bộ
       setData(prev => ({
         ...prev,
         lessonPlans: prev.lessonPlans.map(p => p.id === id ? { ...p, ...updates } : p)
       }));
-
-      // Cập nhật state cộng đồng nếu đang hiển thị
       setCommunityPlans(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
       
       showToast('Đã cập nhật thông tin!');
-    } catch (err) {
-      showToast('Lỗi cập nhật', 'error');
+    } catch (err: any) {
+      console.warn("Lỗi cập nhật ID cũ, đang thử tạo bản sao mới...", err);
+      
+      // 2. Nếu thất bại (thường do lỗi 403 Permission Denied trên ID giáo án gốc), 
+      // ta sẽ tự động 'Repair' bằng cách tạo một ID mới hoàn toàn cho người dùng này.
+      const newId = Math.random().toString(36).substr(2, 9);
+      const originalPlan = data.lessonPlans.find(p => p.id === id) || communityPlans.find(p => p.id === id);
+      
+      if (originalPlan) {
+        const repairedPlan: LessonPlan = {
+          ...originalPlan,
+          ...updates,
+          id: newId,
+          userId: user.uid,
+          isPublic: false, // Bài sửa lỗi luôn đưa về riêng tư để đảm bảo an toàn
+          updatedAt: new Date().toISOString()
+        };
+
+        try {
+          await setDoc(doc(db, 'lessonPlans', newId), repairedPlan);
+          
+          // Xóa bài cũ khỏi state Local (nếu nó là bài rác do lỗi ID cũ) và thêm bài mới
+          setData(prev => ({
+            ...prev,
+            lessonPlans: [repairedPlan, ...prev.lessonPlans.filter(p => p.id !== id)]
+          }));
+          
+          showToast('Đã đồng bộ và cập nhật bản sao của bạn!');
+        } catch (innerErr) {
+          showToast('Không thể cập nhật giáo án này', 'error');
+        }
+      } else {
+        showToast('Lỗi: Không tìm thấy dữ liệu giáo án', 'error');
+      }
     }
   };
 
