@@ -1,0 +1,49 @@
+=== DOCX 2 ===
+HƯỚNG DẪN CHUẨN BỊ KẾ HOẠCH DẠY HỌC MÔN TOÁN TDS
+Năm học 2025 - 2026
+Theo mẫu chung cho các môn của toàn hệ thống, đã được ban toán đơn giản phù hợp với đặc thù của môn. Mẫu Tại đây
+Đảm bảo tuân thủ đủ 4 bước của quy trình: Trải nghiệm - Hình thành - Rèn luyện, phát triển - Sơ kết. 
+Mục tiêu học tập (trong thông tin chung): xác định mục tiêu tối thiểu mà đa số học sinh trong lớp cần đạt được. Có mục tiêu trọng tâm, mục tiêu phân hóa cho học sinh yếu, học sinh giỏi trong lớp
+Hoạt động khởi động/ôn tập cái đã biết: cần rất ngắn gọn, tạo nền kiến thức hoặc khơi gợi tò mò cho học sinh để dẫn vào mục tiêu tiết học (tối đa 5 phút)
+	Lưu ý: 
+	1. Nếu hoạt động mở đầu chỉ là Khởi động để dẫn đến mục tiêu bài học (không phải là hoạt động Trải nghiệm, liên quan trực tiếp đến hình thành kiến thức) thì nên ngắn gọn, không quá 3 phút
+	2. Ưu tiên hoạt động Khởi động chính là Hoạt động Trải nghiệm, mà qua hoạt động đó, giáo viên có các câu hỏi định hướng để hình thành kiến thức. 
+3. Ngay sau hoạt động khởi động thì xác định mục tiêu tiết học cho học sinh
+4. Để kiểm soát thời gian, ở Kế hoạch dạy học, cột mốc thời gian ghi theo thời gian thực, tức ghi từ mấy giờ đến mấy giờ
+Hoạt động hình thành kiến thức/kĩ năng mới: 
+5.1. Hình hành kiến thức mới: Dẫn dắt để học sinh định hướng được nguồn gốc hình thành kiến thức, các kiến thức cũ có liên quan. Tại sao cần có kiến thức mới này?
+Lưu ý: 
+1. Cần có các câu hỏi định hướng và câu hỏi phân rã. Câu hỏi đáp ứng được các yêu cầu: 
+	+) Phù hợp với mục tiêu tiết học, mục tiêu hình thành kiến thức, kĩ năng mới 
+	+) Câu hỏi phát triển tư duy bậc cao cho học sinh (phân tích, so sánh, tổng hợp, tư duy phản biện …)
+	+) Hạn chế thuyết trình và áp đặt kiến thức mới, thay thuyết trình bằng câu hỏi. 
+	+) Tăng cường tư duy phản biện: hỏi ý kiến khác, cách làm khác, phản ví dụ …
+2. Quá trình hình thành công thức, có những bước phải biến đổi phức tạp, cồng kềnh thì khi đến bước đó có thể lược bớt, ghi kết quả ngay. Ví dụ như rút gọn để ra phương trình Elip, bước khai căn để tìm công thức nghiệm phương trình bậc hai với học sinh yếu. 
+3. Những ví dụ giáo viên chọn để hình thành kiến thức, thì tuyệt đối tránh những ví dụ có phép toán cồng kềnh phức tạp, sẽ gây lãng phí thời gian và gây áp lực không cần thiết lên học sinh. 
+5.2. Hình thành kĩ năng mới: Giáo viên cần trình bày mẫu, nhấn mạnh những chỗ cần lưu ý mà học sinh dễ nhầm lẫn hoặc quên. 
+Lưu ý: Kĩ năng mới như: 
++) Lần đầu học sinh vẽ góc lần đầu, sử dụng thước đo độ, vẽ hình không gian, sử dụng máy tính giải phương trình, hệ phương trình, tính tổ hợp, chỉnh hợp, hoán vị, hoặc để giải bài trắc nghiệm. 
++) Kĩ năng trình bày bài tự luận cho các kì thi tự luận. 
++) ….
+5.3. Ngay sau khi gv hình thành kiến thức, kĩ năng mới: 
++) Giáo viên cần có ít nhất 1 trong những câu hỏi thuộc dạng: Câu hỏi làm rõ, câu hỏi liên quan, câu hỏi mở rộng với kiến thức vừa được hình thành. 
++) GV cần có ví dụ minh họa ở mức nhận biết, hoặc phản ví dụ để học sinh thực hành, qua đó đánh giá sơ bộ  tỉ lệ % học sinh trong lớp đã nắm được cơ bản, học sinh nào chưa nắm được để có kế hoạch hỗ trợ.
+Hoạt động rèn luyện, củng cố (tối thiểu 3 ý)
+	+) Gv phải cân đối thời gian để tiết học bắt buộc phải có hoạt động rèn luyện, và tối thiểu hoàn thành 3 ý cho mục tiêu trọng tâm của tiết học. 
++) Ví dụ chọn để rèn luyện củng cố phải là những ví dụ đặc trưng nội dung bài học, phù hợp với mục tiêu tiết học. Ưu tiên những ví dụ phát triển tư duy thuật toán cho học sinh, phát triển năng lực mô hình hóa, hạn chế những ví dụ phức tạp, cồng kềnh về tính toán. 
+	+) Các ví dụ cần đa dạng cách hỏi, có thể cùng dạng bài nhưng diễn đạt ngôn ngữ khác nhau: hỏi xuôi rồi hỏi ngược, hỏi có rồi hỏi không….
++) Ví dụ từ đơn giản đến nâng cao, tránh tuyệt đối ngay từ ví dụ 1 đã lấy ví dụ vừa khó, vừa công kềnh về tính toán. Chẳng hạn, khi học phép chia đa thức, ví dụ 1 đã là ví dụ phép chia đa thức bậc 3 (khuyết hệ số), chia cho đa thức bậc hai là không nên. 
+Hướng dẫn ghi Năng lực cốt lõi môn toán
+Năng lực toán học là khả năng sử dụng kiến thức, kỹ năng và tư duy toán học để giải quyết các vấn đề trong học tập và cuộc sống. Nó bao gồm việc hiểu và áp dụng các khái niệm, quy tắc, thuật toán, suy luận, và các kỹ năng khác liên quan đến toán học. 
+Cụ thể, năng lực toán học bao gồm:
+Năng lực tư duy và lập luận toán học:
+Khả năng suy nghĩ logic, phân tích, đánh giá và đưa ra các kết luận toán học. Năng lực này có trong hầu hết các hoạt động.
+Năng lực mô hình hóa toán học:
+Khả năng sử dụng toán học để biểu diễn, giải thích và giải quyết các vấn đề thực tế. Học sinh có năng lực mô hình hóa tình huốn thực tế, giải bài toán mô hình đó và trả kết quả về tình huống thực tế. Gv không nhầm lẫn năng lực mô hình hóa toán học với năng lực hình học. 
+Năng lực giải quyết vấn đề toán học:
+Khả năng xác định, phân tích và giải quyết các vấn đề toán học, bao gồm cả những vấn đề mới và phức tạp. Năng lực có trong hầu hết các hoạt động, đặc biệt là hoạt động rèn luyện củng cố. 
+Năng lực giao tiếp toán học:
+Khả năng hiểu, diễn đạt và trao đổi các ý tưởng, kiến thức và giải pháp toán học. Năng lực này thể hiện nhiều nhất trong các hoạt động: thảo luận, thuyết trình, làm việc nhóm…
+Năng lực sử dụng công cụ và phương tiện học toán:
+Khả năng sử dụng các công cụ, phương tiện và công nghệ hỗ trợ việc học và giải toán. Năng lực này thể hiện qua: Sử dụng thước, compa vẽ hình, sử dụng máy tính để tính toán. 
+Năng lực toán học không chỉ giới hạn ở việc thực hiện các phép tính mà còn bao gồm khả năng tư duy, giải quyết vấn đề và áp dụng toán học vào thực tế. 
