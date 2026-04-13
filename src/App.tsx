@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { setDoc, doc, deleteDoc } from 'firebase/firestore';
 import { db } from './lib/firebase';
 import Swal from 'sweetalert2';
