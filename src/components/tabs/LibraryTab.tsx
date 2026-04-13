@@ -11,7 +11,9 @@ import {
   Copy,
   Edit3,
   Check,
-  X 
+  X,
+  Filter,
+  Users
 } from 'lucide-react';
 import dayjs from 'dayjs';
 import { cn } from '../../lib/utils';
@@ -30,6 +32,7 @@ interface LibraryTabProps {
   duplicatePlan: (plan: LessonPlan) => void;
   updatePlanMetadata: (id: string, updates: Partial<LessonPlan>) => void;
   user: any;
+  toggleSharePlan: (e: React.MouseEvent, plan: LessonPlan) => void;
 }
 
 export const LibraryTab = ({
@@ -41,9 +44,11 @@ export const LibraryTab = ({
   data,
   communityPlans,
   setCurrentPlan,
+  deletePlan,
   duplicatePlan,
   updatePlanMetadata,
-  user
+  user,
+  toggleSharePlan
 }: LibraryTabProps) => {
   const [selectedGrade, setSelectedGrade] = useState<string>('all');
   const [selectedWeek, setSelectedWeek] = useState<string>('all');
@@ -64,184 +69,180 @@ export const LibraryTab = ({
       key="library"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="space-y-6"
+      className="space-y-8 max-w-6xl mx-auto"
     >
-      {/* Tabs Cá Nhân / Cộng Đồng */}
-      <div className="flex border-b border-slate-200">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        {/* Tab Toggle */}
+        <div className="flex p-1 bg-white rounded-2xl shadow-sm border border-slate-100 w-fit">
+          <button 
+            onClick={() => setLibraryTab('personal')}
+            className={cn(
+              "px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2",
+              libraryTab === 'personal' ? "bg-blue-600 text-white shadow-lg shadow-blue-100" : "text-slate-500 hover:text-slate-800"
+            )}
+          >
+            <FileText className="w-5 h-5" /> Góc của tôi
+          </button>
+          <button 
+            onClick={() => setLibraryTab('community')}
+            className={cn(
+              "px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2",
+              libraryTab === 'community' ? "bg-blue-600 text-white shadow-lg shadow-blue-100" : "text-slate-500 hover:text-slate-800"
+            )}
+          >
+            <Users className="w-5 h-5" /> Kho Chung (Community)
+          </button>
+        </div>
+
         <button 
-          onClick={() => setLibraryTab('personal')}
-          className={cn(
-            "px-6 py-4 font-bold transition-all border-b-2", 
-            libraryTab === 'personal' ? "border-blue-600 text-blue-600" : "border-transparent text-slate-500 hover:text-slate-800"
-          )}
+          onClick={() => setActiveTab('creator')}
+          className="px-6 py-3 gradient-bg text-white rounded-2xl font-bold shadow-lg shadow-blue-200 flex items-center gap-2 hover:opacity-90 transition-all"
         >
-          Góc của tôi
-        </button>
-        <button 
-          onClick={() => setLibraryTab('community')}
-          className={cn(
-            "px-6 py-4 font-bold transition-all border-b-2 flex items-center gap-2", 
-            libraryTab === 'community' ? "border-orange-500 text-orange-600" : "border-transparent text-slate-500 hover:text-slate-800"
-          )}
-        >
-          <UploadCloud className="w-4 h-4" /> Kho Chung (Community)
+          <Plus className="w-5 h-5" /> Soạn mới
         </button>
       </div>
 
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="relative w-full max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+      {/* Filter & Search Bar */}
+      <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm space-y-4">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1 relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
             <input 
               type="text" 
+              placeholder="Tìm kiếm theo tiêu đề bài học..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Tìm kiếm theo tiêu đề bài học..."
-              className="w-full pl-12 pr-4 py-3 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-50 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/10 focus:bg-white transition-all text-sm font-medium"
             />
           </div>
-          <button 
-            onClick={() => setActiveTab('creator')}
-            className="w-full sm:w-auto px-6 py-3 gradient-bg text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-200 hover:opacity-90 transition-opacity"
-          >
-            <Plus className="w-5 h-5" /> Soạn mới
-          </button>
-        </div>
-
-        <div className="flex flex-wrap gap-3 items-center bg-white p-4 rounded-2xl border border-slate-100">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider px-2">Lọc nhanh:</span>
-          <select 
-            value={selectedGrade}
-            onChange={(e) => setSelectedGrade(e.target.value)}
-            className="px-4 py-2 bg-slate-50 border-none rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none"
-          >
-            <option value="all">Tất cả Khối</option>
-            {[...Array(12)].map((_, i) => (
-              <option key={i+1} value={(i+1).toString()}>Lớp {i+1}</option>
-            ))}
-          </select>
-          <select 
-            value={selectedWeek}
-            onChange={(e) => setSelectedWeek(e.target.value)}
-            className="px-4 py-2 bg-slate-50 border-none rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none"
-          >
-            <option value="all">Tất cả Tuần</option>
-            {[...Array(35)].map((_, i) => (
-              <option key={i+1} value={(i+1).toString()}>Tuần {i+1}</option>
-            ))}
-          </select>
-          <button 
-            onClick={() => { setSelectedGrade('all'); setSelectedWeek('all'); setSearchQuery(''); }}
-            className="text-xs text-blue-600 font-bold hover:underline ml-auto"
-          >
-            Xóa lọc
-          </button>
+          <div className="flex flex-wrap gap-2 items-center">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-xl text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+               <Filter className="w-3 h-3" /> Lọc nhanh:
+            </div>
+            <select 
+              value={selectedGrade}
+              onChange={(e) => setSelectedGrade(e.target.value)}
+              className="px-4 py-3 bg-white border border-slate-100 rounded-2xl text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none"
+            >
+              <option value="all">Tất cả Khối</option>
+              {[...Array(12)].map((_, i) => <option key={i+1} value={(i+1).toString()}>Khối {i+1}</option>)}
+            </select>
+            <select 
+              value={selectedWeek}
+              onChange={(e) => setSelectedWeek(e.target.value)}
+              className="px-4 py-3 bg-white border border-slate-100 rounded-2xl text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none"
+            >
+              <option value="all">Tất cả Tuần</option>
+              {[...Array(35)].map((_, i) => <option key={i+1} value={(i+1).toString()}>Tuần {i+1}</option>)}
+            </select>
+            {(selectedGrade !== 'all' || selectedWeek !== 'all') && (
+              <button 
+                onClick={() => { setSelectedGrade('all'); setSelectedWeek('all'); }}
+                className="px-4 py-3 text-red-500 font-bold text-xs hover:underline"
+              >
+                Xóa lọc
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredPlans?.map(plan => (
-          <div 
-            key={plan.id} 
+      {/* Grid Display */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 pb-20">
+        {filteredPlans.map((plan) => (
+          <motion.div 
+            key={plan.id}
+            layout
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
             onClick={() => { setCurrentPlan(plan); setActiveTab('creator'); }}
-            className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all group cursor-pointer"
+            className="group pro-card p-6 cursor-pointer overflow-hidden relative"
           >
-            <div className="flex items-start justify-between mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center">
-                <FileText className="w-6 h-6 text-blue-500" />
+            <div className="flex items-start justify-between mb-6">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center group-hover:bg-blue-600 transition-colors">
+                <FileText className="w-6 h-6 text-blue-500 group-hover:text-white transition-colors" />
               </div>
-              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity translate-y-2 group-hover:translate-y-0 duration-200">
                 {libraryTab === 'personal' && (
                   <button 
-                    title={plan.isPublic ? "Thu hồi khỏi cộng đồng" : "Đóng góp phát hành lên Thư viện chung"}
-                    onClick={(e) => toggleSharePlan(e, plan)} 
-                    className={cn("p-2 transition-colors", plan.isPublic ? "text-orange-500 hover:text-orange-600" : "text-slate-400 hover:text-orange-500")}
+                    title={plan.isPublic ? "Thu hồi khỏi cộng đồng" : "Chia sẻ lên Kho chung"}
+                    onClick={(e) => { e.stopPropagation(); toggleSharePlan(e, plan); }} 
+                    className={cn("p-2 rounded-xl transition-all", plan.isPublic ? "bg-orange-50 text-orange-600" : "bg-slate-50 text-slate-400 hover:bg-orange-50 hover:text-orange-600")}
                   >
                     <UploadCloud className="w-5 h-5" />
                   </button>
                 )}
-                <button className="p-2 text-slate-400 hover:text-blue-500 transition-colors">
+                <button className="p-2 bg-slate-50 text-slate-400 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all">
                   <Eye className="w-5 h-5" />
                 </button>
                 {libraryTab === 'personal' && (
-                  <button 
-                    title="Nhân bản giáo án này"
-                    onClick={(e) => { e.stopPropagation(); duplicatePlan(plan); }}
-                    className="p-2 text-slate-400 hover:text-blue-500 transition-colors"
-                  >
-                    <Copy className="w-5 h-5" />
-                  </button>
-                )}
-                {(libraryTab === 'personal' || plan.userId === user?.uid) && (
-                  <button 
-                    title="Sửa thông tin nhanh"
-                    onClick={(e) => { 
-                      e.stopPropagation(); 
-                      setEditingId(plan.id); 
-                      setEditForm({ 
-                        title: plan.title, 
-                        grade: plan.grade, 
-                        week: plan.week, 
-                        authorName: plan.authorName 
-                      }); 
-                    }}
-                    className="p-2 text-slate-400 hover:text-blue-500 transition-colors"
-                  >
-                    <Edit3 className="w-5 h-5" />
-                  </button>
-                )}
-                {libraryTab === 'personal' && (
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); deletePlan(plan.id); }}
-                    className="p-2 text-slate-400 hover:text-red-500 transition-colors"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
+                   <>
+                    <button 
+                      title="Nhân bản"
+                      onClick={(e) => { e.stopPropagation(); duplicatePlan(plan); }}
+                      className="p-2 bg-slate-50 text-slate-400 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all"
+                    >
+                      <Copy className="w-5 h-5" />
+                    </button>
+                    {(libraryTab === 'personal' || plan.userId === user?.uid) && (
+                      <button 
+                        title="Sửa nhanh"
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          setEditingId(plan.id); 
+                          setEditForm({ title: plan.title, grade: plan.grade, week: plan.week, authorName: plan.authorName }); 
+                        }}
+                        className="p-2 bg-slate-50 text-slate-400 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all"
+                      >
+                        <Edit3 className="w-5 h-5" />
+                      </button>
+                    )}
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); deletePlan(plan.id); }}
+                      className="p-2 bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </>
                 )}
               </div>
             </div>
+
             {editingId === plan.id ? (
               <div className="space-y-4" onClick={(e) => e.stopPropagation()}>
                 <input 
                   type="text"
                   value={editForm.title || ''}
                   onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
-                  className="w-full px-3 py-2 text-sm font-bold border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full px-3 py-2 text-sm font-bold border border-blue-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                   placeholder="Tên giáo án"
                 />
                 <div className="grid grid-cols-2 gap-2">
                   <select 
                     value={editForm.grade || ''}
                     onChange={(e) => setEditForm(prev => ({ ...prev, grade: e.target.value }))}
-                    className="px-2 py-1.5 text-xs border border-slate-200 rounded-lg outline-none"
+                    className="px-2 py-1.5 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none"
                   >
                     {[...Array(12)].map((_, i) => <option key={i+1} value={(i+1).toString()}>Lớp {i+1}</option>)}
                   </select>
                   <select 
                     value={editForm.week || ''}
                     onChange={(e) => setEditForm(prev => ({ ...prev, week: e.target.value }))}
-                    className="px-2 py-1.5 text-xs border border-slate-200 rounded-lg outline-none"
+                    className="px-2 py-1.5 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none"
                   >
                     {[...Array(35)].map((_, i) => <option key={i+1} value={(i+1).toString()}>Tuần {i+1}</option>)}
                   </select>
                 </div>
-                <input 
-                  type="text"
-                  value={editForm.authorName || ''}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, authorName: e.target.value }))}
-                  className="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg outline-none"
-                  placeholder="Tên người soạn"
-                />
                 <div className="flex gap-2">
                   <button 
                     onClick={() => { updatePlanMetadata(plan.id, editForm); setEditingId(null); }}
-                    className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1 hover:bg-blue-700"
+                    className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1 hover:bg-blue-700 shadow-lg shadow-blue-100"
                   >
                     <Check className="w-3 h-3" /> Lưu
                   </button>
                   <button 
                     onClick={() => setEditingId(null)}
-                    className="flex-1 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold flex items-center justify-center gap-1 hover:bg-slate-200"
+                    className="flex-1 py-2.5 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold flex items-center justify-center gap-1 hover:bg-slate-200"
                   >
                     <X className="w-3 h-3" /> Hủy
                   </button>
@@ -249,37 +250,31 @@ export const LibraryTab = ({
               </div>
             ) : (
               <>
-                <h4 className="font-bold text-slate-800 line-clamp-2 mb-1 h-12 leading-tight">
+                <h4 className="font-bold text-slate-900 line-clamp-2 h-12 leading-tight mb-2 group-hover:text-blue-600 transition-colors">
                   {plan.title}
                 </h4>
-                <div className="space-y-1 mb-4">
-                  <p className="text-[10px] text-slate-500 flex items-center gap-2">
-                    <span className="font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">Lớp {plan.grade || '?'}</span>
-                    <span className="font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-md">Tuần {plan.week || '?'}</span>
-                  </p>
-                  <p className="text-[10px] text-slate-400 flex items-center gap-1">
-                    Người soạn: <span className="font-bold text-slate-600">{plan.authorName || 'Ẩn danh'}</span>
-                  </p>
+                <div className="flex flex-wrap gap-2 mb-6">
+                  <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg uppercase">Lớp {plan.grade || '?'}</span>
+                  <span className="text-[10px] font-bold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-lg uppercase">Tuần {plan.week || '?'}</span>
+                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg uppercase">Hoàn thành</span>
+                </div>
+                
+                <div className="flex items-center justify-between pt-4 border-t border-slate-50">
+                   <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[8px] font-black text-slate-500">
+                         {plan.authorName?.charAt(0) || 'A'}
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-bold truncate max-w-[80px]">{plan.authorName || 'Ẩn danh'}</span>
+                   </div>
+                   <span className="text-[10px] uppercase font-bold text-slate-300">
+                    {dayjs(plan.updatedAt).format('DD/MM/YYYY')}
+                   </span>
                 </div>
               </>
             )}
-            <div className="flex items-center justify-between pt-4 border-t border-slate-50">
-              <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400">
-                {dayjs(plan.createdAt).format('DD MMM YYYY')}
-              </span>
-              <div className="flex items-center gap-1 text-green-500 text-[10px] font-bold">
-                <CheckCircle2 className="w-3 h-3" /> HOÀN THÀNH
-              </div>
-            </div>
-          </div>
+          </motion.div>
         ))}
       </div>
-      {filteredPlans.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-          <FileText className="w-16 h-16 mb-4 opacity-20" />
-          <p>{libraryTab === 'personal' ? 'Thư viện trống. Hãy tạo giáo án đầu tiên!' : 'Chưa có giáo án cộng đồng nào phù hợp.'}</p>
-        </div>
-      )}
     </motion.div>
   );
 };

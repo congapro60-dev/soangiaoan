@@ -2,128 +2,146 @@
 
 @theme {
   --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
-  --color-primary: #4A90E2;
-  --color-accent: #FF9500;
+  --color-primary: #3b82f6; /* Modern Blue */
+  --color-indigo-pro: #4338ca;
+  --color-slate-pro: #0f172a;
+  --color-accent: #f59e0b; /* Amber */
 }
 
 :root {
-  --bg-gradient: linear-gradient(135deg, #4A90E2 0%, #FF9500 100%);
+  --pro-gradient: linear-gradient(135deg, #1e40af 0%, #4338ca 100%);
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 body {
-  background-color: #f8fafc;
-  color: #1e293b;
+  background-color: #f1f5f9;
+  color: #0f172a;
   font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }
 
 .glass {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.pro-card {
+  background: white;
+  border-radius: 24px;
+  border: 1px solid rgba(241, 245, 249, 1);
+  box-shadow: var(--card-shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pro-card:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .gradient-text {
-  background: var(--bg-gradient);
+  background: var(--pro-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .gradient-bg {
-  background: var(--bg-gradient);
+  background: var(--pro-gradient);
 }
 
-/* Markdown styling */
+/* Markdown styling - Scientific & Pro */
 .markdown-body {
   line-height: 1.8;
+  color: #1e293b;
 }
-.markdown-body h1 { font-size: 1.5rem; font-weight: 700; margin-top: 1.2rem; margin-bottom: 0.6rem; color: #1a365d; }
-.markdown-body h2 { font-size: 1.25rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.5rem; color: #2d3748; }
-.markdown-body h3 { font-size: 1.1rem; font-weight: 600; margin-top: 0.8rem; margin-bottom: 0.4rem; color: #4a5568; }
-.markdown-body p { margin-bottom: 0.6rem; }
-.markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.5rem; }
-.markdown-body ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.5rem; }
-.markdown-body li { margin-bottom: 0.25rem; }
-.markdown-body strong { font-weight: 700; color: #1e293b; }
 
-/* Tables */
+.markdown-body h1 { 
+  font-size: 1.75rem; 
+  font-weight: 800; 
+  margin-top: 2rem; 
+  margin-bottom: 1rem; 
+  color: #0f172a;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 0.5rem;
+}
+
+.markdown-body h2 { 
+  font-size: 1.4rem; 
+  font-weight: 700; 
+  margin-top: 1.5rem; 
+  margin-bottom: 0.75rem; 
+  color: #1e40af; 
+}
+
+.markdown-body h3 { 
+  font-size: 1.2rem; 
+  font-weight: 600; 
+  margin-top: 1.2rem; 
+  margin-bottom: 0.5rem; 
+  color: #334155; 
+}
+
+.markdown-body p { margin-bottom: 1rem; }
+
+.markdown-body ul, .markdown-body ol { 
+  padding-left: 1.5rem; 
+  margin-bottom: 1rem; 
+}
+
+.markdown-body li { margin-bottom: 0.5rem; }
+
+/* Elegant Case-study tables */
 .markdown-body table {
   width: 100%;
-  border-collapse: collapse;
-  margin: 1rem 0;
-  font-size: 0.9rem;
-  border-radius: 0.75rem;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-}
-.markdown-body thead th {
-  background-color: #1e40af;
-  color: #ffffff;
-  font-weight: 600;
-  padding: 0.75rem 1rem;
-  text-align: left;
-  border: 1px solid #1e3a8a;
-  white-space: nowrap;
-}
-.markdown-body tbody td {
-  padding: 0.65rem 1rem;
-  border: 1px solid #e2e8f0;
-  vertical-align: top;
-}
-.markdown-body tbody tr:nth-child(even) {
-  background-color: #f8fafc;
-}
-.markdown-body tbody tr:hover {
-  background-color: #eff6ff;
-  transition: background-color 0.15s ease;
-}
-
-/* Images */
-.markdown-body img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 1rem;
-  margin: 1rem 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-/* Blockquotes */
-.markdown-body blockquote {
-  border-left: 4px solid #4A90E2;
-  padding: 0.5rem 1rem;
-  margin: 0.8rem 0;
-  background-color: #eff6ff;
-  border-radius: 0 0.5rem 0.5rem 0;
-  color: #1e40af;
-}
-
-/* Horizontal rules */
-.markdown-body hr {
-  border: none;
-  border-top: 2px solid #e2e8f0;
+  border-collapse: separate;
+  border-spacing: 0;
   margin: 1.5rem 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
-/* KaTeX Math Rendering */
-.markdown-body .math {
-  overflow-x: auto;
-  overflow-y: hidden;
-}
-.markdown-body .math-inline {
-  font-size: 1em;
-}
-.markdown-body .math-display {
-  font-size: 1.1em;
-  text-align: center;
-  padding: 1rem 0;
-  background: #f8fafc;
-  border-radius: 0.5rem;
-  margin: 0.75rem 0;
-  border-left: 3px solid #4A90E2;
-  padding-left: 1rem;
-}
-/* KaTeX in table cells */
-.markdown-body td .katex,
-.markdown-body th .katex {
-  font-size: 0.95em;
+.markdown-body thead th {
+  background-color: #f8fafc;
+  color: #475569;
+  font-weight: 700;
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
 }
 
+.markdown-body tbody td {
+  padding: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.9rem;
+}
+
+.markdown-body tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.markdown-body tbody tr:hover {
+  background-color: #f1f5f9;
+}
+
+/* Scrollbar refinement */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

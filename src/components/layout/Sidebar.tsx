@@ -9,7 +9,7 @@ import {
   Settings, 
   X, 
   Menu, 
-  Zap 
+  LogOut 
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -30,66 +30,84 @@ export const Sidebar = ({
   setIsSettingsOpen, 
   handleLogout 
 }: SidebarProps) => {
+  const menuItems = [
+    { id: 'dashboard', label: 'Tổng quan', icon: LayoutDashboard },
+    { id: 'creator', label: 'Soạn giáo án', icon: Plus },
+    { id: 'library', label: 'Thư viện', icon: FileText },
+    { id: 'templates', label: 'Mẫu giáo án', icon: Layout },
+    { id: 'chat', label: 'AI Tutor', icon: MessageSquare },
+  ];
+
   return (
     <motion.aside 
       initial={false}
-      animate={{ width: isSidebarOpen ? 260 : 80 }}
-      className="relative flex flex-col h-full bg-white border-r border-slate-200 shadow-sm z-30"
+      animate={{ width: isSidebarOpen ? 280 : 80 }}
+      className="relative flex flex-col h-full bg-white border-r border-slate-200 shadow-sm z-30 transition-all duration-300"
     >
+      {/* Brand area */}
       <div className="p-6 flex items-center gap-3 overflow-hidden">
-        <div className="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center flex-shrink-0">
+        <div className="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-200">
           <Sparkles className="text-white w-6 h-6" />
         </div>
         {isSidebarOpen && (
-          <span className="font-bold text-xl gradient-text whitespace-nowrap">SmartPlan AI</span>
+          <div className="flex flex-col">
+            <span className="font-bold text-xl text-slate-900 whitespace-nowrap tracking-tight">SmartPlan <span className="text-blue-600">AI</span></span>
+            <span className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Trợ lý sư phạm</span>
+          </div>
         )}
       </div>
 
-      <nav className="flex-1 px-4 space-y-2 mt-4">
-        {[
-          { id: 'dashboard', label: 'Tổng quan', icon: LayoutDashboard },
-          { id: 'creator', label: 'Soạn giáo án', icon: Plus },
-          { id: 'library', label: 'Thư viện', icon: FileText },
-          { id: 'templates', label: 'Mẫu giáo án', icon: Layout },
-          { id: 'chat', label: 'AI Tutor', icon: MessageSquare },
-        ].map((item) => (
+      {/* Main Nav */}
+      <nav className="flex-1 px-3 space-y-1.5 mt-6">
+        {menuItems.map((item) => (
           <button
             key={item.id}
             onClick={() => setActiveTab(item.id as any)}
             className={cn(
-              "w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200",
+              "w-full flex items-center gap-3 p-3.5 rounded-xl transition-all duration-200 group relative",
               activeTab === item.id 
-                ? "bg-blue-50 text-blue-600 font-medium" 
+                ? "bg-blue-600 text-white shadow-xl shadow-blue-100" 
                 : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
             )}
           >
-            <item.icon className="w-5 h-5 flex-shrink-0" />
-            {isSidebarOpen && <span>{item.label}</span>}
+            <item.icon className={cn("w-5 h-5 flex-shrink-0", activeTab === item.id ? "text-white" : "group-hover:text-blue-500")} />
+            {isSidebarOpen && <span className="font-semibold">{item.label}</span>}
+            
+            {/* Active Indicator Bar */}
+            {activeTab === item.id && (
+              <motion.div 
+                layoutId="activeTab"
+                className="absolute left-0 w-1 h-6 bg-white rounded-r-full"
+              />
+            )}
           </button>
         ))}
       </nav>
 
-      <div className="p-4 border-t border-slate-100">
+      {/* Footer Nav */}
+      <div className="p-4 space-y-2 border-t border-slate-50 mt-auto">
         <button 
           onClick={() => setIsSettingsOpen(true)}
-          className="w-full flex items-center gap-3 p-3 rounded-xl text-slate-500 hover:bg-slate-50 transition-all"
+          className="w-full flex items-center gap-3 p-3.5 rounded-xl text-slate-500 hover:bg-slate-50 transition-all group"
         >
-          <Settings className="w-5 h-5 flex-shrink-0" />
-          {isSidebarOpen && <span>Cài đặt</span>}
+          <Settings className="w-5 h-5 flex-shrink-0 group-hover:rotate-45 transition-transform" />
+          {isSidebarOpen && <span className="font-medium">Cài đặt</span>}
         </button>
+        
         <button 
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="mt-2 w-full flex items-center gap-3 p-3 rounded-xl text-slate-500 hover:bg-slate-50 transition-all"
+          className="w-full flex items-center gap-3 p-3.5 rounded-xl text-slate-500 hover:bg-slate-50 transition-all"
         >
           {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          {isSidebarOpen && <span>Thu gọn</span>}
+          {isSidebarOpen && <span className="font-medium">Thu gọn menu</span>}
         </button>
+
         <button 
           onClick={handleLogout}
-          className="mt-2 w-full flex items-center gap-3 p-3 rounded-xl text-orange-500 hover:bg-orange-50 transition-all font-medium"
+          className="w-full flex items-center gap-3 p-3.5 rounded-xl text-red-500 hover:bg-red-50 transition-all group mt-4 bg-red-50/10"
         >
-          <Zap className="w-5 h-5" />
-          {isSidebarOpen && <span>Đăng xuất</span>}
+          <LogOut className="w-5 h-5 flex-shrink-0 group-hover:-translate-x-1 transition-transform" />
+          {isSidebarOpen && <span className="font-bold">Đăng xuất</span>}
         </button>
       </div>
     </motion.aside>

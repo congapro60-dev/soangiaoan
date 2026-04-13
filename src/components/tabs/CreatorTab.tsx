@@ -10,7 +10,11 @@ import {
   MessageSquare, 
   FileSpreadsheet,
   Plus,
-  Trash2
+  Trash2,
+  FileDown,
+  ChevronRight,
+  Monitor,
+  Layout
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -65,8 +69,6 @@ export const CreatorTab = ({
   setLessonDocs,
   singleRequirement,
   setSingleRequirement,
-  distributionFile,
-  setDistributionFile,
   bulkCommand,
   setBulkCommand,
   isLoading,
@@ -89,361 +91,361 @@ export const CreatorTab = ({
   setSelectedDistributionId,
   deleteDistribution
 }: CreatorTabProps) => {
+
+  const hasResult = (generationMode === 'single' && currentPlan.content) || (generationMode === 'bulk' && bulkResults.length > 0);
+
   return (
     <motion.div 
       key="creator"
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      className="max-w-5xl mx-auto space-y-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="flex flex-col lg:flex-row gap-6 h-full"
     >
-      <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 space-y-8">
-        {/* Mode Toggle */}
-        <div className="flex p-1 bg-slate-100 rounded-2xl w-fit">
-          <button 
-            onClick={() => setGenerationMode('single')}
-            className={cn(
-              "px-6 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2",
-              generationMode === 'single' ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
-            )}
-          >
-            <FileText className="w-4 h-4" /> Soạn từng bài
-          </button>
-          <button 
-            onClick={() => setGenerationMode('bulk')}
-            className={cn(
-              "px-6 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2",
-              generationMode === 'bulk' ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
-            )}
-          >
-            <Layers className="w-4 h-4" /> Soạn hàng loạt
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Khối/Lớp</label>
-            <select 
-              value={currentPlan.grade || '10'}
-              onChange={(e) => setCurrentPlan(prev => ({ ...prev, grade: e.target.value }))}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium"
-            >
-              {[...Array(12)].map((_, i) => (
-                <option key={i+1} value={(i+1).toString()}>Lớp {i+1}</option>
-              ))}
-              <option value="khac">Khác</option>
-            </select>
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Tuần học</label>
-            <select 
-              value={currentPlan.week || '1'}
-              onChange={(e) => setCurrentPlan(prev => ({ ...prev, week: e.target.value }))}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium"
-            >
-              {[...Array(35)].map((_, i) => (
-                <option key={i+1} value={(i+1).toString()}>Tuần {i+1}</option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Người soạn</label>
-            <div className="px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-slate-600 font-bold truncate">
-              {data.authorName || 'Chưa đặt tên'}
+      {/* Sidebar Settings (350px - 400px) */}
+      <aside className="lg:w-[380px] flex-shrink-0 flex flex-col gap-6">
+        <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="p-2 bg-blue-50 rounded-lg">
+              <Sparkles className="w-5 h-5 text-blue-600" />
             </div>
+            <h3 className="font-bold text-slate-800">Cấu hình soạn thảo</h3>
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Môn học</label>
-            <select 
-              value={currentPlan.subjectId || ''}
-              onChange={(e) => setCurrentPlan(prev => ({ ...prev, subjectId: e.target.value }))}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+          {/* Mode Toggle */}
+          <div className="flex p-1 bg-slate-100 rounded-2xl">
+            <button 
+              onClick={() => setGenerationMode('single')}
+              className={cn(
+                "flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2",
+                generationMode === 'single' ? "bg-white text-blue-600 shadow-sm" : "text-slate-500"
+              )}
             >
-              {data.subjects?.map(s => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Chọn mẫu giáo án</label>
-            <select 
-              value={currentPlan.templateId || ''}
-              onChange={(e) => setCurrentPlan(prev => ({ ...prev, templateId: e.target.value }))}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              <FileText className="w-4 h-4" /> Đơn lẻ
+            </button>
+            <button 
+              onClick={() => setGenerationMode('bulk')}
+              className={cn(
+                "flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2",
+                generationMode === 'bulk' ? "bg-white text-blue-600 shadow-sm" : "text-slate-500"
+              )}
             >
-              <option value="">-- Không sử dụng mẫu --</option>
-              {data.templates?.map(t => (
-                <option key={t.id} value={t.id}>{t.name}</option>
-              ))}
-            </select>
+              <Layers className="w-4 h-4" /> Hàng loạt
+            </button>
           </div>
-        </div>
 
-        {/* Mode Specific Inputs */}
-        {generationMode === 'single' ? (
+          {/* Common Fields */}
           <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">Tiêu đề bài học</label>
-              <input 
-                type="text" 
-                value={currentPlan.title || ''}
-                onChange={(e) => setCurrentPlan(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Ví dụ: Đạo hàm cấp 2..."
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-              />
+            <div className="grid grid-cols-2 gap-3">
+               <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Khối/Lớp</label>
+                  <select 
+                    value={currentPlan.grade || '10'}
+                    onChange={(e) => setCurrentPlan(prev => ({ ...prev, grade: e.target.value }))}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-100 bg-slate-50 text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none"
+                  >
+                    {[...Array(12)].map((_, i) => (
+                      <option key={i+1} value={(i+1).toString()}>Lớp {i+1}</option>
+                    ))}
+                  </select>
+               </div>
+               <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tuần học</label>
+                  <select 
+                    value={currentPlan.week || '1'}
+                    onChange={(e) => setCurrentPlan(prev => ({ ...prev, week: e.target.value }))}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-100 bg-slate-50 text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none"
+                  >
+                    {[...Array(35)].map((_, i) => (
+                      <option key={i+1} value={(i+1).toString()}>Tuần {i+1}</option>
+                    ))}
+                  </select>
+               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700 flex items-center justify-between">
-                Sử dụng Phân phối môn đã lưu (Tùy chọn)
-                <button 
-                  onClick={() => {
-                    setUploadingFiles({ category: 'distribution' });
-                    fileInputRef.current?.click();
-                  }}
-                  className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-                >
-                  <UploadCloud className="w-3 h-3" /> Tải lên bản mới
-                </button>
-              </label>
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Môn học</label>
               <select 
-                value={selectedDistributionId}
-                onChange={(e) => setSelectedDistributionId(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                value={currentPlan.subjectId || ''}
+                onChange={(e) => setCurrentPlan(prev => ({ ...prev, subjectId: e.target.value }))}
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-100 bg-slate-50 text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none"
               >
-                <option value="">-- Không sử dụng phân phối --</option>
-                {data.distributions?.map(d => (
-                  <option key={d.id} value={d.id}>{d.name} (Lớp {d.grade})</option>
+                {data.subjects?.map(s => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
                 ))}
               </select>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">Tài liệu tham khảo cho bài học (PDF/Word)</label>
-              <div className="flex flex-wrap gap-2">
-                {lessonDocs.map(doc => (
-                  <div key={doc.id} className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-sm">
-                    <FileText className="w-4 h-4" />
-                    <span className="max-w-[150px] truncate">{doc.name}</span>
-                    <button onClick={() => setLessonDocs(prev => prev.filter(d => d.id !== doc.id))} className="hover:text-red-500">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Mẫu giáo án</label>
+              <select 
+                value={currentPlan.templateId || ''}
+                onChange={(e) => setCurrentPlan(prev => ({ ...prev, templateId: e.target.value }))}
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-100 bg-slate-50 text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none"
+              >
+                <option value="">-- Mẫu mặc định (AI) --</option>
+                {data.templates?.map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
-                <button 
-                  onClick={() => {
-                    setUploadingFiles({ category: 'lesson_doc' });
-                    fileInputRef.current?.click();
-                  }}
-                  className="px-4 py-1.5 border border-dashed border-slate-300 text-slate-500 rounded-lg text-sm hover:border-blue-500 hover:text-blue-500 transition-all flex items-center gap-2"
-                >
-                  <UploadCloud className="w-4 h-4" /> Tải tài liệu
-                </button>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">Yêu cầu cụ thể cho bài học này</label>
-              <textarea 
-                value={singleRequirement}
-                onChange={(e) => setSingleRequirement(e.target.value)}
-                placeholder="Ví dụ: Tập trung vào các ví dụ thực tế, thêm phần thảo luận nhóm..."
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all min-h-[100px]"
-              />
+              </select>
             </div>
           </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">Phân phối chương trình lưu trữ</label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {data.distributions?.map(dist => (
-                  <div key={dist.id} className={cn(
-                    "p-4 rounded-xl border transition-all cursor-pointer flex items-center justify-between",
-                    selectedDistributionId === dist.id ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200" : "border-slate-200 hover:border-blue-300 bg-white"
-                  )} onClick={() => setSelectedDistributionId(dist.id)}>
-                    <div className="flex items-center gap-3">
-                      <FileSpreadsheet className={cn("w-5 h-5", selectedDistributionId === dist.id ? "text-blue-600" : "text-slate-400")} />
-                      <div>
-                        <p className="text-sm font-bold text-slate-800 line-clamp-1">{dist.name}</p>
-                        <p className="text-[10px] text-slate-500 uppercase">Lớp {dist.grade} · {data.subjects?.find(s => s.id === dist.subjectId)?.name}</p>
-                      </div>
+
+          <div className="pt-2">
+             {generationMode === 'single' ? (
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tiêu đề bài học</label>
+                    <input 
+                      type="text" 
+                      value={currentPlan.title || ''}
+                      onChange={(e) => setCurrentPlan(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="Ví dụ: Đạo hàm cấp 2..."
+                      className="w-full px-4 py-3 rounded-xl border border-slate-100 bg-slate-50 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                  </div>
+                  
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                      Phân phối môn
+                      <button 
+                        onClick={() => { setUploadingFiles({ category: 'distribution' }); fileInputRef.current?.click(); }}
+                        className="text-[10px] text-blue-600 font-bold hover:underline"
+                      >
+                        + Mới
+                      </button>
+                    </label>
+                    <select 
+                      value={selectedDistributionId}
+                      onChange={(e) => setSelectedDistributionId(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-100 bg-slate-50 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    >
+                      <option value="">-- Tự chọn --</option>
+                      {data.distributions?.map(d => (
+                        <option key={d.id} value={d.id}>{d.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                      Tài liệu tham khảo
+                      <button 
+                         onClick={() => { setUploadingFiles({ category: 'lesson_doc' }); fileInputRef.current?.click(); }}
+                         className="text-[10px] text-blue-600 font-bold hover:underline"
+                      >
+                        + Thêm
+                      </button>
+                    </label>
+                    <div className="space-y-2">
+                       {lessonDocs.map(doc => (
+                        <div key={doc.id} className="flex items-center justify-between p-2 bg-slate-50 rounded-lg text-xs border border-slate-100">
+                          <span className="truncate flex-1 font-medium">{doc.name}</span>
+                          <button onClick={() => setLessonDocs(prev => prev.filter(d => d.id !== doc.id))} className="text-red-400 hover:text-red-600">
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                      {lessonDocs.length === 0 && <p className="text-[10px] text-slate-400 italic">Chưa có tài liệu đính kèm</p>}
                     </div>
-                    <button onClick={(e) => { e.stopPropagation(); deleteDistribution(dist.id); }} className="text-slate-300 hover:text-red-500">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
                   </div>
-                ))}
-                <button 
-                  onClick={() => {
-                    setUploadingFiles({ category: 'distribution' });
-                    fileInputRef.current?.click();
-                  }}
-                  className="p-4 border-2 border-dashed border-slate-200 rounded-xl flex items-center justify-center gap-2 text-slate-400 hover:border-blue-400 hover:text-blue-600 transition-all min-h-[66px]"
-                >
-                  <Plus className="w-5 h-5" />
-                  <span className="text-sm font-medium">Tải phân phối mới</span>
-                </button>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">Yêu cầu soạn thảo hàng loạt</label>
-              <textarea 
-                value={bulkCommand}
-                onChange={(e) => setBulkCommand(e.target.value)}
-                placeholder="Ví dụ: Soạn cho tôi 5 bài từ bài số 10; Soạn tất cả các bài trong tuần thứ 5..."
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all min-h-[100px]"
-              />
-            </div>
+                </div>
+             ) : (
+                <div className="space-y-4">
+                   <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Lên kế hoạch hàng loạt từ PPCN</label>
+                    <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
+                      {data.distributions?.map(dist => (
+                        <div 
+                          key={dist.id} 
+                          className={cn(
+                            "p-3 rounded-xl border text-xs cursor-pointer transition-all",
+                            selectedDistributionId === dist.id ? "border-blue-500 bg-blue-50" : "border-slate-100 hover:border-blue-200"
+                          )}
+                          onClick={() => setSelectedDistributionId(dist.id)}
+                        >
+                          <p className="font-bold line-clamp-1">{dist.name}</p>
+                          <p className="text-[9px] text-slate-400 uppercase mt-0.5">Lớp {dist.grade} · {data.subjects?.find(s => s.id === dist.subjectId)?.name}</p>
+                        </div>
+                      ))}
+                      <button 
+                         onClick={() => { setUploadingFiles({ category: 'distribution' }); fileInputRef.current?.click(); }}
+                         className="w-full p-3 border-2 border-dashed border-slate-100 rounded-xl text-[11px] text-slate-400 font-bold hover:border-blue-300 hover:text-blue-500 transition-all"
+                      >
+                         + Tải lên phân phối mới
+                      </button>
+                    </div>
+                  </div>
+                </div>
+             )}
           </div>
+
+          <div className="pt-4 border-t border-slate-50">
+             <button 
+              onClick={handleCreateLesson}
+              disabled={isLoading}
+              className="w-full py-4 gradient-bg text-white rounded-2xl font-bold shadow-xl shadow-blue-100 flex items-center justify-center gap-2 hover:opacity-90 transition-all disabled:opacity-50"
+            >
+              {isLoading ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <Sparkles className="w-5 h-5" />
+              )}
+              {isLoading ? 'Đang soạn thảo...' : (generationMode === 'single' ? 'Khởi tạo giáo án' : 'Soạn hàng loạt')}
+            </button>
+            {isLoading && bulkProgress.total > 0 && (
+              <div className="mt-3 text-center">
+                 <p className="text-[10px] font-bold text-blue-600 uppercase">Tiến độ: {bulkProgress.current}/{bulkProgress.total} bài</p>
+                 <div className="w-full h-1 bg-slate-100 rounded-full mt-1 overflow-hidden">
+                    <div className="h-full bg-blue-500 transition-all" style={{ width: `${(bulkProgress.current / bulkProgress.total) * 100}%` }} />
+                 </div>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Author Badge */}
+        <div className="p-4 bg-white border border-slate-100 rounded-2xl flex items-center gap-3">
+           <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-600 font-bold text-xs">
+              {data.authorName?.charAt(0) || 'A'}
+           </div>
+           <div>
+              <p className="text-[10px] text-slate-400 uppercase font-black">Người soạn bài</p>
+              <p className="text-sm font-bold text-slate-700 truncate">{data.authorName || 'Chưa đặt tên'}</p>
+           </div>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col min-w-0 h-full gap-6">
+        {/* Top Floating bar for mode description or search */}
+        {!hasResult && (
+           <div className="bg-blue-600 p-10 rounded-[40px] text-white overflow-hidden relative shadow-2xl shadow-blue-200">
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+                 <div className="max-w-xl">
+                    <h2 className="text-3xl font-black leading-tight italic">
+                       {generationMode === 'single' ? "Bắt đầu bài soạn sáng tạo cùng AI" : "Tự động hóa hoàn toàn bài soạn của thầy cô"}
+                    </h2>
+                    <p className="text-blue-100 mt-4 text-sm font-medium leading-relaxed">
+                       {generationMode === 'single' 
+                        ? "Hãy nhập yêu cầu chi tiết hoặc tải lên tài liệu tham khảo. Trợ lý AI sẽ giúp thầy cô xây dựng một giáo án khoa học, đầy đủ các hoạt động chỉ trong vài giây." 
+                        : "Chọn một Phân phối chương trình (PPCN) đã tải lên, Trợ lý AI sẽ đọc toàn bộ phân phối và soạn hàng loạt giáo án theo yêu cầu của thầy cô."}
+                    </p>
+                 </div>
+                 <div className="flex-shrink-0 flex items-center justify-center">
+                    {generationMode === 'single' ? <Monitor className="w-32 h-32 opacity-20" /> : <Layers className="w-32 h-32 opacity-20" />}
+                 </div>
+              </div>
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl animate-pulse" />
+           </div>
         )}
 
-        <div className="flex gap-4">
-          <button 
-            onClick={handleCreateLesson}
-            disabled={isLoading}
-            className="flex-1 py-4 gradient-bg text-white rounded-2xl font-bold shadow-lg shadow-blue-200 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
-          >
-            {isLoading ? (
-              <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <Sparkles className="w-5 h-5" />
-            )}
-            {isLoading 
-              ? (bulkProgress.total > 0 ? `Đang soạn (${bulkProgress.current}/${bulkProgress.total}) bài...` : 'Đang phân tích...') 
-              : generationMode === 'single' ? 'Khởi tạo giáo án thông minh' : 'Soạn thảo hàng loạt theo phân phối'
-            }
-          </button>
-        </div>
-      </div>
-
-      {/* Single Result */}
-      {generationMode === 'single' && currentPlan.content && (
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 space-y-6"
-        >
-          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-            <h3 className="text-xl font-bold text-slate-800">Kết quả giáo án</h3>
-            <div className="flex flex-wrap gap-2">
-              <button 
-                onClick={saveLessonPlan}
-                className="px-4 py-2 bg-blue-50 text-blue-600 rounded-xl font-medium flex items-center gap-2 hover:bg-blue-100 transition-colors"
-              >
-                <Save className="w-4 h-4" /> Lưu thư viện
-              </button>
-              <button 
-                onClick={exportToPDF}
-                className="px-4 py-2 bg-slate-50 text-slate-600 rounded-xl font-medium flex items-center gap-2 hover:bg-slate-100 transition-colors"
-              >
-                <Download className="w-4 h-4" /> Xuất PDF
-              </button>
-              <button 
-                onClick={exportToWord}
-                className="px-4 py-2 bg-blue-50 text-blue-600 rounded-xl font-medium flex items-center gap-2 hover:bg-blue-100 transition-colors"
-              >
-                <FileText className="w-4 h-4" /> Xuất Word
-              </button>
-              <button 
-                onClick={generatePPTX}
-                className="px-4 py-2 bg-orange-50 text-orange-600 rounded-xl font-medium flex items-center gap-2 hover:bg-orange-100 transition-colors"
-              >
-                <Layers className="w-4 h-4" /> Tạo Slide
-              </button>
-              <button 
-                onClick={exportToLaTeX}
-                disabled={isLoading}
-                className="px-4 py-2 bg-green-50 text-green-600 rounded-xl font-medium flex items-center gap-2 hover:bg-green-100 transition-colors disabled:opacity-50"
-              >
-                <FileSpreadsheet className="w-4 h-4" /> Xuất LaTeX
-              </button>
-            </div>
-          </div>
-          <div id="lesson-content" className="prose prose-slate max-w-none markdown-body">
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm, remarkMath]}
-              rehypePlugins={[rehypeRaw, rehypeKatex]}
-            >{currentPlan.content || ''}</ReactMarkdown>
-          </div>
-
-          {/* Feedback Form */}
-          <div className="pt-6 border-t border-slate-100 space-y-3">
-            <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 text-orange-500" />
-              Chưa hài lòng? Yêu cầu AI sửa đổi giáo án này
-            </label>
-            <div className="flex flex-col gap-3">
-              <textarea
-                value={revisionPrompt}
-                onChange={(e) => setRevisionPrompt(e.target.value)}
-                placeholder="Ví dụ: Rút ngắn phần khởi động lại thành 5 phút, thêm 1 trò chơi tương tác vào phần luyện tập, giải thích kỹ hơn phần công thức..."
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-orange-500 outline-none transition-all min-h-[100px]"
+        {/* Input Requirements Area */}
+        {!hasResult && (
+           <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm space-y-4">
+              <label className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                 <MessageSquare className="w-4 h-4 text-blue-500" />
+                 {generationMode === 'single' ? "Yêu cầu chi tiết cho bài soạn này" : "Lệnh điều khiển soạn thảo hàng loạt"}
+              </label>
+              <textarea 
+                value={generationMode === 'single' ? singleRequirement : bulkCommand}
+                onChange={(e) => generationMode === 'single' ? setSingleRequirement(e.target.value) : setBulkCommand(e.target.value)}
+                placeholder={generationMode === 'single' 
+                  ? "Ví dụ: Tập trung vào các ví dụ thực tế liên quan đến tài liệu đính kèm, thêm phần thảo luận nhóm và bài tập về nhà..." 
+                  : "Ví dụ: Hãy soạn cho tôi các bài từ bài 10 đến 15 dựa trên phân phối đã chọn..."}
+                className="w-full px-5 py-4 rounded-2xl border border-slate-100 bg-slate-50 text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 transition-all min-h-[150px] leading-relaxed"
               />
-              <div className="flex justify-end">
-                <button
-                  onClick={handleReviseLesson}
-                  disabled={isLoading || !revisionPrompt.trim()}
-                  className="px-6 py-2.5 bg-orange-50 text-orange-600 rounded-xl font-bold flex items-center gap-2 hover:bg-orange-100 transition-all disabled:opacity-50"
-                >
-                  {isLoading ? (
-                    <div className="w-5 h-5 border-2 border-orange-600/30 border-t-orange-600 rounded-full animate-spin" />
-                  ) : (
-                    <Sparkles className="w-5 h-5" />
-                  )}
-                  Sửa đổi theo yêu cầu
-                </button>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
+           </div>
+        )}
 
-      {/* Bulk Results */}
-      {generationMode === 'bulk' && bulkResults.length > 0 && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold text-slate-800">Danh sách giáo án đã soạn ({bulkResults.length})</h3>
-            <button 
-              onClick={saveBulkPlans}
-              className="px-6 py-3 gradient-bg text-white rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-blue-200"
-            >
-              <Save className="w-5 h-5" /> Lưu tất cả vào thư viện
-            </button>
-          </div>
-          <div className="grid grid-cols-1 gap-6">
-            {bulkResults.map((result, idx) => (
-              <motion.div 
-                key={result.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
-                className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 space-y-4"
-              >
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                  <h4 className="text-lg font-bold text-blue-600">{result.title}</h4>
-                  <button 
-                    onClick={() => {
-                      showToast('Chức năng xuất PDF lẻ đang được cập nhật. Vui lòng lưu vào thư viện để xuất.');
-                    }}
-                    className="p-2 text-slate-400 hover:text-blue-500 transition-colors"
-                  >
-                    <Download className="w-5 h-5" />
-                  </button>
+        {/* Result Area */}
+        {hasResult && (
+           <motion.div 
+             initial={{ opacity: 0, y: 30 }}
+             animate={{ opacity: 1, y: 0 }}
+             className="flex-1 flex flex-col bg-white rounded-[40px] border border-slate-100 shadow-2xl overflow-hidden min-h-0"
+           >
+              {/* Header with actions */}
+              <div className="p-6 border-b border-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50 backdrop-blur-md sticky top-0 z-20">
+                 <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-blue-600 rounded-xl">
+                       <FileText className="text-white w-5 h-5" />
+                    </div>
+                    <div>
+                       <h3 className="font-bold text-slate-900 line-clamp-1">{generationMode === 'single' ? currentPlan.title : `Kết quả soạn hàng loạt (${bulkResults.length} bài)`}</h3>
+                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Lớp {currentPlan.grade} · Tuần {currentPlan.week}</p>
+                    </div>
+                 </div>
+                 <div className="flex flex-wrap gap-2">
+                    <button 
+                      onClick={generationMode === 'single' ? saveLessonPlan : saveBulkPlans}
+                      className="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 transition-all text-sm shadow-lg shadow-blue-100"
+                    >
+                      <Save className="w-4 h-4" /> 
+                      {generationMode === 'single' ? 'Lưu bài này' : 'Lưu tất cả'}
+                    </button>
+                    {generationMode === 'single' && (
+                       <div className="flex gap-2">
+                          <button onClick={exportToPDF} className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm" title="Xuất PDF"><FileDown className="w-5 h-5" /></button>
+                          <button onClick={exportToWord} className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm" title="Xuất Word"><FileText className="w-5 h-5" /></button>
+                          <button onClick={generatePPTX} className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-orange-600 hover:border-orange-200 transition-all shadow-sm" title="Tạo Slide"><Layout className="w-5 h-5" /></button>
+                          <button onClick={exportToLaTeX} className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-emerald-600 hover:border-emerald-200 transition-all shadow-sm" title="Xuất LaTeX"><FileSpreadsheet className="w-5 h-5" /></button>
+                       </div>
+                    )}
+                 </div>
+              </div>
+
+              {/* Scrollable content */}
+              <div className="flex-1 overflow-y-auto p-10 custom-scrollbar scroll-smooth">
+                 {generationMode === 'single' ? (
+                    <div id="lesson-content" className="prose prose-slate max-w-none markdown-body">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm, remarkMath]}
+                        rehypePlugins={[rehypeRaw, rehypeKatex]}
+                      >{currentPlan.content || ''}</ReactMarkdown>
+                    </div>
+                 ) : (
+                    <div className="space-y-12">
+                       {bulkResults.map((result, idx) => (
+                        <div key={result.id} className="space-y-6">
+                           <div className="flex items-center gap-4 py-4 border-b border-slate-50">
+                              <span className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm">{idx + 1}</span>
+                              <h4 className="text-xl font-bold text-slate-900">{result.title}</h4>
+                           </div>
+                           <div className="prose prose-slate max-w-none markdown-body">
+                              <ReactMarkdown
+                                remarkPlugins={[remarkGfm, remarkMath]}
+                                rehypePlugins={[rehypeRaw, rehypeKatex]}
+                              >{result.content}</ReactMarkdown>
+                           </div>
+                        </div>
+                       ))}
+                    </div>
+                 )}
+              </div>
+
+              {/* Revision Prompt Area */}
+              {generationMode === 'single' && (
+                <div className="p-6 bg-slate-50 border-t border-slate-100">
+                   <div className="flex gap-3">
+                      <textarea
+                        value={revisionPrompt}
+                        onChange={(e) => setRevisionPrompt(e.target.value)}
+                        placeholder="Thưa trợ lý, hãy sửa bài này theo yêu cầu này..."
+                        className="flex-1 px-4 py-3 rounded-2xl border border-slate-100 bg-white text-sm outline-none focus:ring-2 focus:ring-blue-500 min-h-[50px] max-h-[150px] transition-all"
+                      />
+                      <button
+                        onClick={handleReviseLesson}
+                        disabled={isLoading || !revisionPrompt.trim()}
+                        className="self-end px-5 py-3 gradient-bg text-white rounded-xl font-bold flex items-center gap-2 hover:opacity-90 disabled:opacity-50 transition-all shadow-lg shadow-blue-100"
+                      >
+                       <Sparkles className="w-4 h-4" /> Gửi
+                      </button>
+                   </div>
                 </div>
-                <div className="prose prose-slate max-w-none markdown-body max-h-[300px] overflow-y-auto pr-4">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm, remarkMath]}
-                    rehypePlugins={[rehypeRaw, rehypeKatex]}
-                  >{result.content}</ReactMarkdown>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      )}
+              )}
+           </motion.div>
+        )}
+      </main>
     </motion.div>
   );
 };
