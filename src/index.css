@@ -101,6 +101,67 @@ body {
   overflow: hidden;
 }
 
+/* Professional Audit Report Styling (Based on PDF Sample) */
+.report-paper {
+  font-family: 'Times New Roman', Times, serif !important;
+  background-color: white;
+}
+
+.report-paper h1, .report-paper h2, .report-paper h3 {
+  color: #2F5496 !important;
+  font-family: 'Times New Roman', Times, serif !important;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.report-paper table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  border: 1.5px solid #000 !important;
+}
+
+.report-paper th {
+  background-color: #2F5496 !important;
+  color: white !important;
+  border: 1px solid #000 !important;
+  padding: 10px !important;
+  font-weight: bold !important;
+}
+
+.report-paper td {
+  border: 1px solid #000 !important;
+  padding: 8px !important;
+  vertical-align: top !important;
+}
+
+/* Status Highlighting based on PDF */
+.report-paper mark.ok, .report-paper span.ok {
+  background-color: #E2EFDA !important;
+  color: #375623 !important;
+  padding: 2px 8px !important;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.report-paper mark.fail, .report-paper span.fail {
+  background-color: #FCE4D6 !important;
+  color: #C00000 !important;
+  padding: 2px 8px !important;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+/* Math symbols sizing */
+.katex { font-size: 1.1em !important; }
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .report-paper {
+    padding: 20px !important;
+  }
+}
+
 .markdown-body thead th {
   background-color: #f8fafc;
   color: #475569;

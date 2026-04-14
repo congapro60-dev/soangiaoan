@@ -7,8 +7,15 @@ import {
 import * as mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist';
 import ReactMarkdown from 'react-markdown';
-import { AppData, TemplateFile } from '../../types';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import rehypeRaw from 'rehype-raw';
+import 'katex/dist/katex.min.css';
+
+import { AppData, TemplateFile, LessonPlan } from '../../types';
 import { examUtils } from '../../utils/examUtils';
+import { downloadBlob } from '../../utils/fileUtils';
 
 // Cấu hình worker cho PDF.js
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
@@ -29,6 +36,47 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
   const [requirement, setRequirement] = useState('');
   const [testResult, setTestResult] = useState<string | null>(null);
   const [shuffledCount, setShuffledCount] = useState(4);
+
+  const handleDownloadPDF = () => {
+    const element = document.getElementById('report-paper-container');
+    if (!element) return;
+    
+    showToast('Đang tạo bản in PDF...');
+    const opt = {
+      margin: 10,
+      filename: `Bao_cao_kiem_tra_${new Date().getTime()}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    // @ts-ignore
+    window.html2pdf().from(element).set(opt).save();
+  };
+
+  const handleDownloadWord = () => {
+    if (!testResult) return;
+    const element = document.getElementById('report-paper-container');
+    if (!element) return;
+    
+    // Tạo cấu trúc HTML giống Word với font Times New Roman
+    const htmlContent = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+      <head><meta charset="utf-8"><style>
+        body { font-family: 'Times New Roman', serif; font-size: 13pt; line-height: 1.5; padding: 2cm; }
+        h1, h2, h3 { color: #2F5496; }
+        table { border-collapse: collapse; width: 100%; border: 1px solid #000; }
+        th, td { border: 1px solid #000; padding: 8px; text-align: left; }
+        th { background-color: #2F5496; color: #ffffff; }
+        .status-ok { background-color: #E2EFDA; color: #375623; }
+        .status-error { background-color: #FCE4D6; color: #C00000; }
+      </style></head>
+      <body>${element.innerHTML}</body></html>
+    `;
+    
+    const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
+    downloadBlob(blob, `Bao_cao_kiem_tra_${new Date().getTime()}.doc`);
+    showToast('Đang tải bản Word (.doc)...');
+  };
 
   const extractTextFromFile = async (file: File): Promise<string> => {
     const extension = file.name.split('.').pop()?.toLowerCase();
@@ -304,9 +352,15 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
                     <CheckCircle2 className="w-5 h-5" />
                     <span className="font-bold">Đã hoàn tất quá trình tư duy và xử lý!</span>
                   </div>
-                  <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-2xl font-serif leading-relaxed text-slate-800 report-paper min-h-[800px]">
-                    <article className="prose prose-slate max-w-none prose-p:my-2 prose-table:border prose-table:rounded-xl overflow-hidden">
-                        <ReactMarkdown>
+                  <div 
+                    id="report-paper-container"
+                    className="bg-white p-12 rounded-[40px] border border-slate-100 shadow-2xl font-serif leading-relaxed text-slate-800 report-paper min-h-[800px]"
+                  >
+                    <article className="prose prose-slate max-w-none prose-p:my-2 prose-table:border-collapse prose-table:border-slate-300 prose-th:bg-[#2F5496] prose-th:text-white prose-td:border-slate-300 overflow-hidden">
+                        <ReactMarkdown 
+                          remarkPlugins={[remarkGfm, remarkMath]} 
+                          rehypePlugins={[rehypeKatex, rehypeRaw]}
+                        >
                             {testResult || ''}
                         </ReactMarkdown>
                     </article>
@@ -317,10 +371,16 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
 
            {testResult && (
              <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-               <button onClick={() => showToast('Chức năng đang khởi tạo...')} className="px-6 py-3 bg-white text-slate-600 rounded-2xl font-bold border border-slate-200 hover:bg-slate-100 transition-all flex items-center gap-2">
+               <button 
+                 onClick={handleDownloadPDF} 
+                 className="px-6 py-3 bg-white text-slate-600 rounded-2xl font-bold border border-slate-200 hover:bg-slate-100 transition-all flex items-center gap-2"
+               >
                  <Download className="w-4 h-4" /> Tải báo cáo (.pdf)
                </button>
-               <button onClick={() => showToast('Chức năng đang khởi tạo...')} className="px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all flex items-center gap-2">
+               <button 
+                 onClick={handleDownloadWord} 
+                 className="px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all flex items-center gap-2"
+               >
                  <Download className="w-4 h-4" /> Xuất bản Word (.docx)
                </button>
              </div>
