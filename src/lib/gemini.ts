@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 
-export const MODELS = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash-exp'];
+export const MODELS = ['gemini-3-flash', 'gemini-3.1-pro', 'gemini-2.5-flash'];
 
 export async function callGeminiAI(prompt: string, apiKey: string, modelIndex = 0): Promise<string | null> {
   if (!apiKey) return null;

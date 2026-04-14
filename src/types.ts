@@ -79,7 +79,7 @@ export const DEFAULT_DATA: AppData = {
     theme: 'light',
     autoSave: true,
     geminiApiKey: '',
-    selectedModel: 'gemini-1.5-flash',
-    models: ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash-exp'],
+    selectedModel: 'gemini-3-flash',
+    models: ['gemini-3-flash', 'gemini-3.1-pro', 'gemini-2.5-flash'],
   },
 };

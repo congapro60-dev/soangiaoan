@@ -65,9 +65,9 @@ export const SettingsModal = ({
                 <label className="text-sm font-semibold text-slate-700">Mô hình AI</label>
                 <div className="grid grid-cols-1 gap-2">
                   {[
-                    { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', desc: 'Nhanh, hiệu suất cao (Default)' },
-                    { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', desc: 'Thông minh, suy luận chuyên sâu' },
-                    { id: 'gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash Exp', desc: 'Sáng tạo, tốc độ phản hồi cực nhanh' }
+                    { id: 'gemini-3-flash', name: 'Gemini 3 Flash', desc: 'Nhanh, hiệu suất cao (Default)' },
+                    { id: 'gemini-3.1-pro', name: 'Gemini 3.1 Pro', desc: 'Thông minh, suy luận đa tầng chuyên sâu' },
+                    { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', desc: 'Phiên bản ổn định, tốc độ phản hồi tốt' }
                   ].map(m => (
                     <div 
                       key={m.id}
