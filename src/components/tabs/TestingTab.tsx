@@ -4,8 +4,12 @@ import {
   FileCheck, FilePlus, Shuffle, Upload, Download, 
   Search, ShieldCheck, AlertCircle, Loader2, X, CheckCircle2, ChevronRight
 } from 'lucide-react';
-import { AppData, TemplateFile } from '../../types';
-import { examUtils } from '../../utils/examUtils';
+import * as mammoth from 'mammoth';
+import * as pdfjsLib from 'pdfjs-dist';
+import ReactMarkdown from 'react-markdown';
+
+// Cấu hình worker cho PDF.js
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
 interface TestingTabProps {
   data: AppData;
@@ -24,13 +28,41 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
   const [testResult, setTestResult] = useState<string | null>(null);
   const [shuffledCount, setShuffledCount] = useState(4);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, category: 'test' | 'matrix') => {
+  const extractTextFromFile = async (file: File): Promise<string> => {
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    
+    if (extension === 'docx') {
+       const arrayBuffer = await file.arrayBuffer();
+       const result = await mammoth.extractRawText({ arrayBuffer });
+       return result.value;
+    } 
+    
+    if (extension === 'pdf') {
+       const arrayBuffer = await file.arrayBuffer();
+       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+       let fullText = '';
+       for (let i = 1; i <= pdf.numPages; i++) {
+         const page = await pdf.getPage(i);
+         const textContent = await page.getTextContent();
+         fullText += textContent.items.map((item: any) => item.str).join(' ') + '\n';
+       }
+       return fullText;
+    }
+
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target?.result as string);
+      reader.readAsText(file);
+    });
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, category: 'test' | 'matrix') => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const content = event.target?.result as string;
+    setIsLoading(true);
+    try {
+      const content = await extractTextFromFile(file);
       const newFile: TemplateFile = {
         id: Math.random().toString(36).substr(2, 9),
         name: file.name,
@@ -46,8 +78,11 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
         setUploadedFiles(prev => [...prev, newFile]);
         showToast('Đã tải lên tệp đề thi!');
       }
-    };
-    reader.readAsText(file);
+    } catch (err) {
+      showToast('Lỗi khi đọc tệp!', 'error');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleExamAction = async () => {
@@ -266,10 +301,12 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
                     <CheckCircle2 className="w-5 h-5" />
                     <span className="font-bold">Đã hoàn tất quá trình tư duy và xử lý!</span>
                   </div>
-                  <div className="bg-slate-50 p-8 rounded-[32px] border border-slate-100 font-serif leading-relaxed text-slate-800">
-                    <div className="whitespace-pre-wrap text-sm leading-7">
-                        {testResult}
-                    </div>
+                  <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-2xl font-serif leading-relaxed text-slate-800 report-paper min-h-[800px]">
+                    <article className="prose prose-slate max-w-none prose-p:my-2 prose-table:border prose-table:rounded-xl overflow-hidden">
+                        <ReactMarkdown>
+                            {testResult || ''}
+                        </ReactMarkdown>
+                    </article>
                   </div>
                 </div>
               )}
