@@ -96,16 +96,18 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
 
     try {
       let result = '';
-      const modelIdx = 0; // Tạm thời dùng model đầu tiên, có thể mở rộng menu chọn model
+      const modelIdx = Math.max(0, data.settings.models?.indexOf(data.settings.selectedModel) || 0);
 
       if (activeMode === 'create') {
         result = await examUtils.generateExam(matrixFile, requirement, data.settings.geminiApiKey, modelIdx);
       } else if (activeMode === 'audit') {
         const fullContent = uploadedFiles.map(f => f.content).join('\n---\n');
+        if (!fullContent.trim()) throw new Error("Nội dung tệp trống hoặc không thể trích xuất.");
         result = await examUtils.auditExam(fullContent, data.settings.geminiApiKey, modelIdx);
       } else if (activeMode === 'shuffle') {
         const fullContent = uploadedFiles.map(f => f.content).join('\n---\n');
-        await examUtils.shuffleExam(fullContent, shuffledCount);
+        if (!fullContent.trim()) throw new Error("Nội dung tệp trống.");
+        await examUtils.shuffleExam(fullContent, shuffledCount, data.settings.geminiApiKey, modelIdx);
         showToast(`Đã hoán vị thành ${shuffledCount} mã đề!`);
         setIsLoading(false);
         return;
@@ -113,21 +115,21 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
 
       if (result) {
         // Tách kết quả từ các thẻ XML (Claude-style)
-        const thinkingMatch = result.match(/<thinking>([\s\S]*?)<\/thinking>/);
-        const contentMatch = result.match(/<exam_content>([\s\S]*?)<\/exam_content>/) || 
-                           result.match(/<audit_report>([\s\S]*?)<\/audit_report>/);
+        const contentMatch = result.match(/<audit_report>([\s\S]*?)<\/audit_report>/) || 
+                           result.match(/<exam_content>([\s\S]*?)<\/exam_content>/);
         
         const finalOutput = contentMatch ? contentMatch[1] : result;
         setTestResult(finalOutput);
         showToast('Xử lý hoàn tất!');
       }
-    } catch (err) {
-      showToast('Lỗi xử lý hệ đại học', 'error');
+    } catch (err: any) {
+      console.error("Exam Action Error:", err);
+      showToast(`Lỗi hệ thống: ${err.message || 'Vui lòng kiểm tra lại API Key hoặc tệp tin'}`, 'error');
     } finally {
       setIsLoading(false);
     }
   };
-
+ Broadway Broadway 2026-04-14 15:04:08
   const modeContent = {
     create: {
       title: "Soạn đề Kiểm tra",
