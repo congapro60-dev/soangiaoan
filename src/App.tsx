@@ -367,12 +367,11 @@ export default function App() {
 
             {activeTab === 'creator' && (
               <CreatorTab 
-                {...creator} data={data} isLoading={isLoading} fileInputRef={fileInputRef} 
+                {...creator} data={data} isLoading={isLoading} setIsLoading={setIsLoading} fileInputRef={fileInputRef} 
                 setUploadingFiles={setUploadingFiles} showToast={showToast}
                 saveLessonPlan={saveLessonPlan} saveBulkPlans={saveBulkPlans}
                 exportToPDF={() => exportUtils.exportToPDF(creator.currentPlan, showToast)}
                 exportToWord={() => exportUtils.exportToWord(creator.currentPlan, showToast)}
-                generatePPTX={() => exportUtils.generatePPTX(creator.currentPlan, data, setIsLoading, showToast)}
                 exportToLaTeX={() => exportUtils.exportToLaTeX(creator.currentPlan, data, setIsLoading, setIsSettingsOpen, showToast, setLatexContent, setIsLatexModalOpen)}
               />
             )}

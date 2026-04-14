@@ -23,7 +23,16 @@ export const useChat = (data: AppData, setIsLoading: (val: boolean) => void, sho
     setIsLoading(true);
 
     try {
-      const prompt = `Bạn là AI Tutor giúp giáo viên soạn giáo án. Câu hỏi: "${chatInput}"`;
+      const prompt = `
+        BẠN LÀ CHUYÊN GIA SƯ PHẠM VÀ PHỤ TÁ NGHIÊN CỨU (LIKE NOTEBOOK LM).
+        Câu hỏi của người dùng: "${chatInput}"
+        
+        YÊU CẦU QUAN TRỌNG NHẤT:
+        1. Bạn phải luôn trả lời DỰA TRÊN NGỮ CẢNH CỦA GIÁO ÁN HIỆN TẠI (nếu người dùng hỏi về bài học).
+        2. BẮT BUỘC TRÍCH DẪN NGUỒN CỤ THỂ. (VD: "Dựa vào mục X của giáo án...", "Theo tiêu chí 1a của hệ thống Danielson về...")
+        3. Văn phong thân thiện, mang tính xây dựng, định hướng phát triển chuyên môn.
+        4. Trả lời cực kỳ ngắn gọn, đi thẳng vào trọng tâm, bôi đậm từ khóa.
+      `;
       const result = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
       if (result) {
         setChatMessages(prev => [...prev, { role: 'ai', text: result }]);

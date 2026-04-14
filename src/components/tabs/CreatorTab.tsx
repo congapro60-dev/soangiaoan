@@ -1,4 +1,5 @@
-import { motion } from 'motion/react';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   FileText, 
   Layers, 
@@ -14,15 +15,22 @@ import {
   FileDown,
   ChevronRight,
   Monitor,
-  Layout
+  Layout,
+  Presentation,
+  CheckCircle2,
+  Image as ImageIcon,
+  BookOpen,
+  Headphones
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import rehypeRaw from 'rehype-raw';
-import { cn } from '../../lib/utils';
 import { AppData, LessonPlan, TemplateFile } from '../../types';
+import * as exportUtils from '../../utils/exportUtils';
+import { callGeminiAI } from '../../lib/gemini';
+import { AudioOverview } from '../features/AudioOverview';
 
 interface CreatorTabProps {
   data: AppData;
@@ -39,12 +47,12 @@ interface CreatorTabProps {
   bulkCommand: string;
   setBulkCommand: (val: string) => void;
   isLoading: boolean;
+  setIsLoading: (val: boolean) => void;
   bulkProgress: { current: number; total: number };
   handleCreateLesson: () => void;
   saveLessonPlan: () => void;
   exportToPDF: () => void;
   exportToWord: () => void;
-  generatePPTX: () => void;
   exportToLaTeX: () => void;
   handleReviseLesson: () => void;
   revisionPrompt: string;
@@ -72,12 +80,12 @@ export const CreatorTab = ({
   bulkCommand,
   setBulkCommand,
   isLoading,
+  setIsLoading,
   bulkProgress,
   handleCreateLesson,
   saveLessonPlan,
   exportToPDF,
   exportToWord,
-  generatePPTX,
   exportToLaTeX,
   handleReviseLesson,
   revisionPrompt,
@@ -91,6 +99,55 @@ export const CreatorTab = ({
   setSelectedDistributionId,
   deleteDistribution
 }: CreatorTabProps) => {
+
+  const [slidePreview, setSlidePreview] = useState<any[] | null>(null);
+  const [showAudioOverview, setShowAudioOverview] = useState(false);
+  const [studyGuide, setStudyGuide] = useState<string | null>(null);
+
+  const handleGenerateSlide = async () => {
+    const slides = await exportUtils.generateSlideData(currentPlan, data, setIsLoading, showToast);
+    if (slides) setSlidePreview(slides);
+  };
+
+  const handleDownloadSlide = () => {
+    if (slidePreview) {
+      exportUtils.downloadPPTX(slidePreview, currentPlan.title || 'baigiang');
+      showToast('Đã lưu file trình chiếu!', 'success');
+      setSlidePreview(null);
+    }
+  };
+
+  const handleGenerateStudyGuide = async () => {
+    if(!currentPlan.content || !data.settings.geminiApiKey) {
+       showToast("Vui lòng soạn giáo án và cài API Key trước!", "warning");
+       return;
+    }
+    setIsLoading(true);
+    showToast("Đang trích xuất cốt lõi bài học để làm hướng dẫn ôn tập...", "info");
+    try {
+      const prompt = `BẠN LÀ CHUYÊN GIA BIÊN SOẠN TÀI LIỆU HỌC TẬP (NOTEBOOK LM STYLE).
+ Hãy trích xuất từ Giáo án sau đây thành một bản "Hướng dẫn Học tập (Study Guide)" dành trực tiếp cho Học sinh.
+ Giáo án:
+ ${currentPlan.content}
+ 
+ Yêu cầu:
+ 1. Định dạng Markdown rõ ràng, dễ đọc.
+ 2. Cấu trúc gồm 3 phần:
+    - 🎯 Tóm tắt Kiến thức Trọng tâm (Bullet points).
+    - ❓ Câu hỏi Thường gặp (FAQ - giải đáp 2-3 thắc mắc phổ biến).
+    - 📝 Gợi ý Tự học / Luyện tập thêm.
+ 3. Văn phong thân thiện, tạo động lực cho học sinh.`;
+      const doc = await callGeminiAI(prompt, data.settings.geminiApiKey, 0);
+      if(doc) {
+        setStudyGuide(doc);
+        showToast("Đã tạo Hướng dẫn ôn tập!");
+      }
+    } catch(e) {
+      showToast("Lỗi khi tạo Study Guide", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const hasResult = (generationMode === 'single' && currentPlan.content) || (generationMode === 'bulk' && bulkResults.length > 0);
 
@@ -387,8 +444,13 @@ export const CreatorTab = ({
                        <div className="flex gap-2">
                           <button onClick={exportToPDF} className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm" title="Xuất PDF"><FileDown className="w-5 h-5" /></button>
                           <button onClick={exportToWord} className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm" title="Xuất Word"><FileText className="w-5 h-5" /></button>
-                          <button onClick={generatePPTX} className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-orange-600 hover:border-orange-200 transition-all shadow-sm" title="Tạo Slide"><Layout className="w-5 h-5" /></button>
+                          <button onClick={handleGenerateSlide} className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-orange-600 hover:border-orange-200 transition-all shadow-sm" title="Tạo Slide"><Presentation className="w-5 h-5" /></button>
                           <button onClick={exportToLaTeX} className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-emerald-600 hover:border-emerald-200 transition-all shadow-sm" title="Xuất LaTeX"><FileSpreadsheet className="w-5 h-5" /></button>
+                          
+                          <div className="w-[1px] h-8 bg-slate-200 mx-1"></div>
+                          
+                          <button onClick={handleGenerateStudyGuide} className="p-2.5 bg-indigo-50 border border-indigo-100 rounded-xl text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shadow-sm" title="Tạo Hướng dẫn ôn tập (Study Guide)"><BookOpen className="w-5 h-5" /></button>
+                          <button onClick={() => setShowAudioOverview(true)} className="p-2.5 bg-purple-50 border border-purple-100 rounded-xl text-purple-600 hover:bg-purple-600 hover:text-white transition-all shadow-sm" title="Bản tin Audio bài giảng"><Headphones className="w-5 h-5" /></button>
                        </div>
                     )}
                  </div>
@@ -396,7 +458,66 @@ export const CreatorTab = ({
 
               {/* Scrollable content */}
               <div className="flex-1 overflow-y-auto p-10 custom-scrollbar scroll-smooth">
-                 {generationMode === 'single' ? (
+                 {studyGuide ? (
+                   <div className="space-y-6">
+                     <div className="flex items-center justify-between mb-8 border-b border-slate-100 pb-4">
+                       <h2 className="text-2xl font-black text-indigo-700 flex items-center gap-2"><BookOpen className="w-6 h-6"/>Hướng dẫn Học tập</h2>
+                       <button onClick={() => setStudyGuide(null)} className="p-2 hover:bg-slate-100 rounded-full transition-colors"><X className="w-5 h-5 text-slate-500" /></button>
+                     </div>
+                     <div className="prose prose-indigo max-w-none markdown-body bg-indigo-50/30 p-8 rounded-3xl border border-indigo-100">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{studyGuide}</ReactMarkdown>
+                     </div>
+                   </div>
+                 ) : slidePreview ? (
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between mb-8">
+                         <div className="flex items-center gap-4">
+                            <button onClick={() => setSlidePreview(null)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                               <X className="w-5 h-5 text-slate-500" />
+                            </button>
+                            <div>
+                               <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2"><Presentation className="w-6 h-6 text-orange-500"/>Bản thảo Slide ({slidePreview.length} trang)</h2>
+                               <p className="text-slate-500 text-sm mt-1">Vui lòng kiểm tra lại cấu trúc slide trước khi xuất bản.</p>
+                            </div>
+                         </div>
+                         <button onClick={handleDownloadSlide} className="px-5 py-3 bg-gradient-to-r from-orange-500 to-rose-500 text-white rounded-xl font-bold flex items-center gap-2 hover:opacity-90 shadow-lg shadow-orange-200/50">
+                           <Download className="w-5 h-5" /> Tải file PPTX
+                         </button>
+                      </div>
+                      <div className="grid gap-6">
+                         {slidePreview.map((slide, idx) => (
+                           <div key={idx} className="bg-slate-50 rounded-2xl p-6 border border-slate-100 shadow-sm flex flex-col md:flex-row gap-6">
+                              <div className="flex-1 space-y-4">
+                                 <div className="flex items-start gap-3">
+                                    <div className="w-8 h-8 shrink-0 bg-white border-2 border-slate-200 rounded-full flex items-center justify-center font-black text-slate-400">{idx + 1}</div>
+                                    <h3 className="text-lg font-bold text-slate-800 pt-1">{slide.title}</h3>
+                                 </div>
+                                 <ul className="space-y-2 pl-11">
+                                    {slide.points.map((pt: string, pIdx: number) => (
+                                      <li key={pIdx} className="flex items-start gap-2 text-slate-600">
+                                         <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                                         <span className="leading-relaxed">{pt}</span>
+                                      </li>
+                                    ))}
+                                 </ul>
+                              </div>
+                              <div className="md:w-1/3 space-y-4">
+                                 <div className="bg-white p-4 rounded-xl border border-blue-100 shadow-sm">
+                                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-blue-400 flex items-center gap-1.5 mb-2"><ImageIcon className="w-3.5 h-3.5"/> Gợi ý hình ảnh</h4>
+                                    <p className="text-xs text-slate-600 leading-relaxed">{slide.visualSuggestion || 'Không có gợi ý.'}</p>
+                                 </div>
+                                 {slide.speakerNotes && (
+                                   <div className="bg-white p-4 rounded-xl border border-orange-100 shadow-sm">
+                                      <h4 className="text-[11px] font-bold uppercase tracking-wider text-orange-400 flex items-center gap-1.5 mb-2"><MessageSquare className="w-3.5 h-3.5"/> Gợi ý lời thoại</h4>
+                                      <p className="text-xs text-slate-600 leading-relaxed italic">"{slide.speakerNotes}"</p>
+                                   </div>
+                                 )}
+                              </div>
+                           </div>
+                         ))}
+                      </div>
+                    </div>
+                 ) : generationMode === 'single' ? (
                     <div id="lesson-content" className="prose prose-slate max-w-none markdown-body">
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm, remarkMath]}
@@ -446,6 +567,15 @@ export const CreatorTab = ({
            </motion.div>
         )}
       </main>
+      
+      {showAudioOverview && currentPlan.content && (
+        <AudioOverview 
+          content={currentPlan.content}
+          apiKey={data.settings.geminiApiKey}
+          modelIndex={0}
+          onClose={() => setShowAudioOverview(false)}
+        />
+      )}
     </motion.div>
   );
 };

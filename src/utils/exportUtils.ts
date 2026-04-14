@@ -157,78 +157,101 @@ YÊU CẦU BẮT BUỘC:
   }
 };
 
-export const generatePPTX = async (
+export const generateSlideData = async (
   currentPlan: Partial<LessonPlan>,
   data: AppData,
   setIsLoading: (val: boolean) => void,
   showToast: (msg: string, type?: any) => void
-) => {
-  if (!currentPlan.title || !currentPlan.content) return;
+): Promise<any[] | null> => {
+  if (!currentPlan.title || !currentPlan.content) return null;
   if (!data.settings.geminiApiKey) {
     showToast('Vui lòng cung cấp API Key AI để tạo slide', 'warning');
-    return;
+    return null;
   }
   
   setIsLoading(true);
-  showToast('Đang thiết kế slide bài giảng từ giáo án, vui lòng chờ...', 'info');
+  showToast('AI đang thiết kế khung slide bài giảng, vui lòng chờ...', 'info');
   
   try {
     const prompt = `
-      Dựa vào nội dung giáo án sau, hãy tạo cấu trúc Slide bài giảng PowerPoint.
+      BẠN LÀ CHUYÊN GIA THIẾT KẾ BÀI TRÌNH CHIẾU SƯ PHẠM (SLIDE).
+      Dựa vào nội dung giáo án sau, hãy tạo cấu trúc Slide bài giảng thuyết trình.
       Giáo án:
+      ---
       ${currentPlan.content}
+      ---
 
       YÊU CẦU BẮT BUỘC:
-      1. Trả về ĐÚNG định dạng chuỗi JSON thuần tuý là một mảng object: [{"title": "Tiêu đề Slide 1", "points": ["Ý 1", "Ý 2"]}, ...]
-      2. Tóm tắt súc tích, mỗi slide không vượt quá 5 ý.
-      3. TUYỆT ĐỐI KHÔNG DÙNG LaTeX ($...$) CHO CÔNG THỨC TOÁN HỌC. Bạn bắt buộc dùng Unicode thuần túy (VD: x², √, ∫) để hiển thị công thức ngay ở text (equation format mode).
-      4. Tối đa 12 slides.
-      Chỉ trả về JSON, không kèm giải thích hay markdown code block chứa json.
+      1. Trả về ĐÚNG định dạng chuỗi JSON thuần tuý là một mảng object: 
+      [
+        {
+          "title": "Tiêu đề Slide 1", 
+          "points": ["Ý 1", "Ý 2"], 
+          "speakerNotes": "Gợi ý lời nói cho giáo viên khi chiếu Slide này...", 
+          "visualSuggestion": "Gợi ý hình ảnh: sơ đồ tư duy hình cây / một bức ảnh thực tế về..."
+        }
+      ]
+      2. Cấu trúc slide phải khoa học: Khởi động -> Vấn đề -> Giải pháp/Kiến thức -> Luyện tập -> Kết luận.
+      3. Tóm tắt súc tích bằng ngôn ngữ TRÌNH CHIẾU (ngắn gọn, từ khóa), mỗi slide không vượt quá 5 ý.
+      4. TUYỆT ĐỐI KHÔNG DÙNG LaTeX ($...$) CHO CÔNG THỨC TOÁN HỌC. Bạn bắt buộc dùng Unicode thuần túy (VD: x², √, ∫) .
+      5. Tối đa 12 slides.
+      CHỈ TRẢ VỀ JSON KHÔNG BỌC BỞI \`\`\`json.
     `;
     
+    // We use a high temperature for creativity, but let's stick to the selected model
     const response = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
     if (!response) throw new Error("No response");
     
     const jsonStr = response.replace(/```json/g, '').replace(/```/g, '').trim();
     const slidesData = JSON.parse(jsonStr);
     
-    const pptx = new pptxgen();
-    pptx.layout = 'LAYOUT_16x9';
-    
-    const slideTitle = pptx.addSlide();
-    slideTitle.background = { color: "0B2447" };
-    slideTitle.addText(currentPlan.title, {
-      x: 1, y: 2.2, w: '80%', h: 1.5,
-      fontSize: 40, color: "FFFFFF", bold: true, align: "center",
-      fontFace: "Times New Roman"
-    });
-    
-    slidesData.forEach((s: any) => {
-      const pSlide = pptx.addSlide();
-      pSlide.background = { color: "F8F9FA" };
-      pSlide.addText(s.title, {
-        x: 0.5, y: 0.3, w: '90%', h: 0.9,
-        fontSize: 28, bold: true, color: "19376D",
-        fontFace: "Times New Roman"
-      });
-      const bulletPoints = s.points.map((p: string) => ({
-        text: p,
-        options: { bullet: true, fontSize: 18, fontFace: "Times New Roman", color: "333333" }
-      }));
-      pSlide.addText(bulletPoints, {
-        x: 0.5, y: 1.4, w: '90%', h: 4.8,
-        valign: 'top', fontFace: "Times New Roman", fontSize: 18
-      });
-    });
-    
-    pptx.writeFile({ fileName: `${currentPlan.title || 'baigiang'}.pptx` });
-    showToast('Đã tải xuống file trình chiếu PPTX thành công!');
+    showToast('Đã thiết kế xong cấu trúc Slide!');
+    return slidesData;
   } catch (e) {
     console.error(e);
     showToast('Lỗi cấu trúc hoặc kết nối AI, vui lòng thử lại', 'error');
+    return null;
   } finally {
     setIsLoading(false);
   }
+};
+
+export const downloadPPTX = (slidesData: any[], title: string) => {
+  if (!slidesData || slidesData.length === 0) return;
+  
+  const pptx = new pptxgen();
+  pptx.layout = 'LAYOUT_16x9';
+  
+  const slideTitle = pptx.addSlide();
+  slideTitle.background = { color: "0B2447" };
+  slideTitle.addText(title, {
+    x: 1, y: 2.2, w: '80%', h: 1.5,
+    fontSize: 40, color: "FFFFFF", bold: true, align: "center",
+    fontFace: "Times New Roman"
+  });
+  
+  slidesData.forEach((s: any) => {
+    const pSlide = pptx.addSlide();
+    pSlide.background = { color: "F8F9FA" };
+    pSlide.addText(s.title, {
+      x: 0.5, y: 0.3, w: '90%', h: 0.9,
+      fontSize: 28, bold: true, color: "19376D",
+      fontFace: "Times New Roman"
+    });
+    const bulletPoints = s.points.map((p: string) => ({
+      text: p,
+      options: { bullet: true, fontSize: 18, fontFace: "Times New Roman", color: "333333" }
+    }));
+    pSlide.addText(bulletPoints, {
+      x: 0.5, y: 1.4, w: '90%', h: 4.8,
+      valign: 'top', fontFace: "Times New Roman", fontSize: 18
+    });
+    if (s.speakerNotes) {
+      pSlide.addNotes(s.speakerNotes);
+    }
+  });
+  
+  pptx.writeFile({ fileName: \`\${title || 'baigiang'}.pptx\` });
 };
 
 export const openInOverleaf = (latexContent: string, currentPlan: Partial<LessonPlan>, showToast: (msg: string) => void) => {

@@ -97,6 +97,16 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
           ${singleRequirement ? `YÊU CẦU BỔ SUNG TỪ GIÁO VIÊN: ${singleRequirement}` : ''}
           ${mathRestrictions}
           Yêu cầu: Định dạng Markdown, tiến trình nhiều bảng 3 cột, dùng <br/><br/> để cách dòng trong bảng.
+          
+          PHẦN QUAN TRỌNG: Ở CUỐI GIÁO ÁN, BẮT BUỘC PHẢI THÊM PHẦN:
+          "## Đánh giá của tổ trưởng chuyên môn"
+          Dựa trên khung Danielson Miền 1 (Lên kế hoạch và chuẩn bị), hãy tự chấm điểm môn giáo án này theo 6 tiêu chí (Thang 1-4, 4 là Tốt nhất) và đưa ra nhận xét ngắn:
+          1a: Áp dụng kiến thức chuyên môn và sư phạm
+          1b: Thấu hiểu học sinh
+          1c: Thiết lập mục tiêu giảng dạy
+          1d: Sử dụng tài nguyên hiệu quả
+          1e: Thiết kế bài giảng mạch lạc
+          1f: Đánh giá quá trình học tập
         `;
         const result = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
         if (result) {
@@ -153,6 +163,16 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
             1. NỘI DUNG PHẢI TUÂN THỦ HOÀN TOÀN THEO "MỤC TIÊU/KIẾN THỨC TRỌNG TÂM" ĐÃ TRÍCH XUẤT TRÊN.
             2. Định dạng: Nhiều bảng 3 cột. Chi tiết từng hoạt động.
             3. Tiêu đề bài soạn phải khớp 100% với tên bài được cung cấp.
+            
+            PHẦN QUAN TRỌNG: Ở CUỐI GIÁO ÁN, BẮT BUỘC PHẢI THÊM PHẦN:
+            "## Đánh giá của tổ trưởng chuyên môn"
+            Dựa trên khung Danielson Miền 1 (Lên kế hoạch và chuẩn bị), hãy tự chấm điểm môn giáo án này theo 6 tiêu chí (Thang 1-4, 4 là Tốt nhất) và đưa ra nhận xét ngắn:
+            1a: Áp dụng kiến thức chuyên môn và sư phạm
+            1b: Thấu hiểu học sinh
+            1c: Thiết lập mục tiêu giảng dạy
+            1d: Sử dụng tài nguyên hiệu quả
+            1e: Thiết kế bài giảng mạch lạc
+            1f: Đánh giá quá trình học tập
           `;
 
           const detailResponse = await callGeminiAI(detailPrompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
