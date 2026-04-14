@@ -47,7 +47,7 @@ export const LatexModal = ({
                    <p className="font-bold text-emerald-700">🚀 Hướng dẫn biên dịch sang PDF cực đẹp:</p>
                    <ol className="list-decimal pl-5 space-y-1">
                       <li>Cách 1 (Nhanh nhất): Bấm nút <strong>"Mở thẳng trên Overleaf"</strong> bên dưới. Website sẽ tự tạo dự án mới cho bạn. Dán mã nguồn vào đây và bấm <em>Compile</em>.</li>
-                      <li>Cách 2 (Thủ công): Bấm <strong>"Sao chép"</strong> -> Truy cập <a href="https://www.overleaf.com" target="_blank" rel="noreferrer" className="text-blue-500 hover:underline">Overleaf.com</a> -> New Project -> Dán đè toàn bộ mã -> File pdf sẽ tự tạo ở bên phải.</li>
+                      <li>Cách 2 (Thủ công): Bấm <strong>"Sao chép"</strong> -&gt; Truy cập <a href="https://www.overleaf.com" target="_blank" rel="noreferrer" className="text-blue-500 hover:underline">Overleaf.com</a> -&gt; New Project -&gt; Dán đè toàn bộ mã -&gt; File pdf sẽ tự tạo ở bên phải.</li>
                    </ol>
                 </div>
               </div>

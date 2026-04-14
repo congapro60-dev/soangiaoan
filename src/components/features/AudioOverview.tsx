@@ -39,17 +39,17 @@ export const AudioOverview = ({ content, apiKey, modelIndex, onClose }: AudioOve
 
     setIsLoading(true);
     try {
-      const prompt = \`
+      const prompt = `
         Bạn là chuyên gia giáo dục đang thu âm một đoạn Podcast tóm tắt cực hay, cực truyền cảm hứng về Giáo án này.
         Giáo án:
-        \${content}
+        ${content}
 
         Yêu cầu:
         1. Viết một kịch bản ngắn (khoảng 150-200 từ).
         2. Bắt đầu bằng: "Chào các thầy cô, hôm nay chúng ta sẽ cùng khám phá một bài giảng tuyệt vời về..."
         3. Nêu bật 2-3 điểm sáng tạo nhất của giáo án.
         4. Trả về DUY NHẤT LỜI ĐỌC (plain text, không dùng markdown, không dùng ký tự đặc biệt như ** hay # để máy đọc trơn tru).
-      \`;
+      `;
       const result = await callGeminiAI(prompt, apiKey, modelIndex);
       if (result) {
         setScript(result);

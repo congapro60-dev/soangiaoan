@@ -202,7 +202,10 @@ export const generateSlideData = async (
     const response = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
     if (!response) throw new Error("No response");
     
-    const jsonStr = response.replace(/```json/g, '').replace(/```/g, '').trim();
+    // An toàn hơn: Tìm chính xác đoạn text bắt đầu bằng [ và kết thúc bằng ]
+    const match = response.match(/\[[\s\S]*\]/);
+    const jsonStr = match ? match[0] : response.replace(/```json/g, '').replace(/```/g, '').trim();
+    
     const slidesData = JSON.parse(jsonStr);
     
     showToast('Đã thiết kế xong cấu trúc Slide!');
@@ -251,7 +254,7 @@ export const downloadPPTX = (slidesData: any[], title: string) => {
     }
   });
   
-  pptx.writeFile({ fileName: \`\${title || 'baigiang'}.pptx\` });
+  pptx.writeFile({ fileName: `${title || 'baigiang'}.pptx` });
 };
 
 export const openInOverleaf = (latexContent: string, currentPlan: Partial<LessonPlan>, showToast: (msg: string) => void) => {

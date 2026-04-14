@@ -140,7 +140,6 @@ export default function App() {
         ...prev,
         lessonPlans: prev.lessonPlans.map(p => p.id === id ? { ...p, ...updates } : p)
       }));
-      setCommunityPlans(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
       
       showToast('Đã cập nhật thông tin!');
     } catch (err: any) {
@@ -149,7 +148,7 @@ export default function App() {
       // 2. Nếu thất bại (thường do lỗi 403 Permission Denied trên ID giáo án gốc), 
       // ta sẽ tự động 'Repair' bằng cách tạo một ID mới hoàn toàn cho người dùng này.
       const newId = Math.random().toString(36).substr(2, 9);
-      const originalPlan = data.lessonPlans.find(p => p.id === id) || communityPlans.find(p => p.id === id);
+      const originalPlan = data.lessonPlans.find(p => p.id === id);
       
       if (originalPlan) {
         const repairedPlan: LessonPlan = {
@@ -185,7 +184,7 @@ export default function App() {
     setIsLoading(true);
     try {
       const plansToSave = creator.bulkResults.map(p => ({
-        ...p, status: 'completed', userId: user.uid, authorName: data.authorName, isPublic: false
+        ...p, status: 'completed' as 'draft' | 'completed', userId: user.uid, authorName: data.authorName, isPublic: false
       }));
       for (const plan of plansToSave) {
         await setDoc(doc(db, 'lessonPlans', plan.id), plan);
@@ -370,6 +369,7 @@ export default function App() {
                 {...creator} data={data} isLoading={isLoading} setIsLoading={setIsLoading} fileInputRef={fileInputRef} 
                 setUploadingFiles={setUploadingFiles} showToast={showToast}
                 saveLessonPlan={saveLessonPlan} saveBulkPlans={saveBulkPlans}
+                deleteDistribution={deleteDistribution}
                 exportToPDF={() => exportUtils.exportToPDF(creator.currentPlan, showToast)}
                 exportToWord={() => exportUtils.exportToWord(creator.currentPlan, showToast)}
                 exportToLaTeX={() => exportUtils.exportToLaTeX(creator.currentPlan, data, setIsLoading, setIsSettingsOpen, showToast, setLatexContent, setIsLatexModalOpen)}

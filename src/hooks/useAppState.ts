@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { AppData, DEFAULT_DATA, LessonPlan, Subject, LessonTemplate } from '../types';
+import { AppData, DEFAULT_DATA, LessonPlan, Subject, LessonTemplate, CurriculumDistribution } from '../types';
 import { collection, query, where, getDocs, doc, setDoc, deleteDoc, orderBy } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { User } from 'firebase/auth';
