@@ -7,6 +7,8 @@ import {
 import * as mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist';
 import ReactMarkdown from 'react-markdown';
+import { AppData, TemplateFile } from '../../types';
+import { examUtils } from '../../utils/examUtils';
 
 // Cấu hình worker cho PDF.js
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
