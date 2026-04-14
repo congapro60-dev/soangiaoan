@@ -41,5 +41,17 @@ export const useAuth = () => {
     showToast('Đã đăng xuất');
   };
 
-  return { user, isAuthLoading, handleLogin, handleLogout, showToast };
+  const handleDemoLogin = () => {
+    // Mock user for AI Agent testing or rapid dev
+    const mockUser: any = {
+      uid: 'demo-agent-001',
+      displayName: 'Senior AI Agent',
+      email: 'agent@smartplan.ai',
+      photoURL: 'https://cdn-icons-png.flaticon.com/512/4712/4712139.png'
+    };
+    setUser(mockUser);
+    showToast('Đã vào chế độ Demo Engineer!', 'info');
+  };
+
+  return { user, isAuthLoading, handleLogin, handleLogout, handleDemoLogin, showToast };
 };

@@ -156,6 +156,14 @@ export const CreatorTab = (props: CreatorTabProps) => {
                   : "Ví dụ: Hãy soạn cho tôi các bài từ bài 10 đến 15 dựa trên phân phối đã chọn..."}
                 className="w-full px-5 py-4 rounded-2xl border border-slate-100 bg-slate-50 text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 transition-all min-h-[150px] leading-relaxed"
               />
+              <button 
+                onClick={props.handleCreateLesson}
+                disabled={props.isLoading || (props.generationMode === 'bulk' && !props.selectedDistributionId)}
+                className="w-full py-4 gradient-bg text-white rounded-2xl font-bold shadow-lg shadow-blue-200 hover:opacity-90 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+              >
+                <Sparkles className="w-5 h-5" />
+                {props.generationMode === 'single' ? 'Bắt đầu Soạn giáo án (AI Single)' : 'Bắt đầu Soạn hàng loạt (AI Bulk)'}
+              </button>
            </div>
         )}
 
@@ -200,16 +208,34 @@ export const CreatorTab = (props: CreatorTabProps) => {
 
               {/* View area switching */}
               {studyGuide ? (
-                <div className="flex-1 overflow-y-auto p-10 custom-scrollbar scroll-smooth">
-                  {/* Study Guide can just be rendered here inline or in a separate Component, but to keep refactor clean we can inline or pass it to LessonContentBoard. Let's just render it directly for simplicity */}
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between mb-8 border-b border-slate-100 pb-4">
-                      <h2 className="text-2xl font-black text-indigo-700 flex items-center gap-2">Hướng dẫn Học tập</h2>
-                      <button onClick={() => setStudyGuide(null)} className="p-2 hover:bg-slate-100 rounded-full transition-colors"><X className="w-5 h-5 text-slate-500" /></button>
+                <div className="flex-1 overflow-y-auto p-4 sm:p-10 custom-scrollbar scroll-smooth">
+                  <div className="max-w-4xl mx-auto space-y-8">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-indigo-50 pb-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-100">
+                          <BookOpen className="text-white w-6 h-6" />
+                        </div>
+                        <div>
+                          <h2 className="text-2xl font-black text-slate-800 tracking-tight">Hướng dẫn Học tập</h2>
+                          <p className="text-sm text-slate-500 font-medium">Bản tinh hoa dành cho Học sinh (NotebookLM Style)</p>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => setStudyGuide(null)} 
+                        className="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-200 transition-all text-sm"
+                      >
+                        <X className="w-4 h-4" /> Quay lại giáo án
+                      </button>
                     </div>
-                    <div className="prose prose-indigo max-w-none markdown-body bg-indigo-50/30 p-8 rounded-3xl border border-indigo-100">
+                    
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="prose prose-indigo max-w-none markdown-body bg-white p-8 sm:p-12 rounded-[40px] border border-slate-100 shadow-xl relative overflow-hidden"
+                    >
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full -mr-16 -mt-16 blur-2xl" />
                       <ReactMarkdown>{studyGuide}</ReactMarkdown>
-                    </div>
+                    </motion.div>
                   </div>
                 </div>
               ) : slidePreview ? (

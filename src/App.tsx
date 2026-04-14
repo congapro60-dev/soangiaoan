@@ -10,6 +10,9 @@ import { useAppState } from './hooks/useAppState';
 import { useLessonCreator } from './hooks/useLessonCreator';
 import { useChat } from './hooks/useChat';
 
+// Utils
+import { validateLessonPlan } from './utils/dataValidators';
+
 // Components
 import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
@@ -30,7 +33,7 @@ import { downloadBlob } from './utils/fileUtils';
 import { LessonPlan, TemplateFile } from './types';
 
 export default function App() {
-  const { user, isAuthLoading, handleLogin, handleLogout, showToast } = useAuth();
+  const { user, isAuthLoading, handleLogin, handleLogout, handleDemoLogin, showToast } = useAuth();
   const { 
     data, setData, communityPlans, isLoading, setIsLoading, 
     fetchCommunityPlans, updateTemplate, addTemplate, deleteTemplate, deleteFile,
@@ -88,6 +91,7 @@ export default function App() {
     };
 
     try {
+      validateLessonPlan(newPlan);
       await setDoc(doc(db, 'lessonPlans', id), newPlan);
       setData(prev => ({
         ...prev,
@@ -98,8 +102,12 @@ export default function App() {
       creator.setCurrentPlan({ title: '', content: '', subjectId: 'math', templateId: '' });
       setActiveTab('library');
       showToast(isEditingOthers ? 'Đã tạo bản sao riêng vào thư viện!' : 'Đã lưu giáo án thành công!');
-    } catch (e) {
-      showToast('Lỗi khi lưu lên Cloud!', 'error');
+    } catch (e: any) {
+      if (e.name === 'DataValidationError') {
+        showToast(e.message, 'error');
+      } else {
+        showToast('Lỗi khi lưu lên Cloud!', 'error');
+      }
     }
   };
 
@@ -117,6 +125,7 @@ export default function App() {
     };
 
     try {
+      validateLessonPlan(duplicatedPlan);
       await setDoc(doc(db, 'lessonPlans', newId), duplicatedPlan);
       setData(prev => ({
         ...prev,
@@ -187,6 +196,7 @@ export default function App() {
         ...p, status: 'completed' as 'draft' | 'completed', userId: user.uid, authorName: data.authorName, isPublic: false
       }));
       for (const plan of plansToSave) {
+        validateLessonPlan(plan);
         await setDoc(doc(db, 'lessonPlans', plan.id), plan);
       }
       setData(prev => ({ ...prev, lessonPlans: [...plansToSave, ...prev.lessonPlans] }));
@@ -340,6 +350,11 @@ export default function App() {
           <button onClick={handleLogin} className="w-full py-4 gradient-bg text-white rounded-2xl font-bold shadow-lg shadow-blue-200 hover:opacity-90 transition-opacity flex items-center justify-center gap-3">
             Đăng nhập với Google để bắt đầu
           </button>
+          <div className="pt-4 border-t border-slate-100">
+             <button onClick={handleDemoLogin} className="text-xs text-slate-400 hover:text-blue-500 transition-colors font-medium">
+                Chế độ dùng thử (Demo / Developer Mode)
+             </button>
+          </div>
         </motion.div>
       </div>
     );

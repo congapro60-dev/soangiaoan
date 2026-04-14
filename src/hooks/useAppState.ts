@@ -46,12 +46,12 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
           // 1. Fetch Personal Plans
           const qPlans = query(
             collection(db, 'lessonPlans'), 
-            where('userId', '==', user.uid)
+            where('userId', '==', user.uid),
+            orderBy('updatedAt', 'desc')
           );
           const snapPlans = await getDocs(qPlans);
           const cloudPlans: LessonPlan[] = [];
           snapPlans.forEach((doc) => cloudPlans.push(doc.data() as LessonPlan));
-          cloudPlans.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 
           // 2. Fetch User Templates
           const qTemplates = query(
@@ -101,11 +101,15 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
 
   const fetchCommunityPlans = async () => {
     try {
-      const q = query(collection(db, 'lessonPlans'), where('isPublic', '==', true));
+      const q = query(
+        collection(db, 'lessonPlans'), 
+        where('isPublic', '==', true),
+        orderBy('createdAt', 'desc')
+      );
       const snap = await getDocs(q);
       const cp: LessonPlan[] = [];
       snap.forEach(d => cp.push(d.data() as LessonPlan));
-      setCommunityPlans(cp.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+      setCommunityPlans(cp);
     } catch (e) {
       console.error("Lỗi tải cộng đồng", e);
     }

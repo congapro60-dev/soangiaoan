@@ -174,8 +174,8 @@ export const generateSlideData = async (
   
   try {
     const prompt = `
-      BẠN LÀ CHUYÊN GIA THIẾT KẾ BÀI TRÌNH CHIẾU SƯ PHẠM (SLIDE).
-      Dựa vào nội dung giáo án sau, hãy tạo cấu trúc Slide bài giảng thuyết trình.
+      BẠN LÀ CHUYÊN GIA THIẾT KẾ BÀI TRÌNH CHIẾU SƯ PHẠM (SLIDE) ĐẲNG CẤP QUỐC TẾ.
+      Dựa vào nội dung giáo án sau, hãy tạo cấu trúc Slide bài giảng thuyết trình theo phong cách NotebookLM/TED Talk: Súc tích, hình ảnh hóa và truyền cảm hứng.
       Giáo án:
       ---
       ${currentPlan.content}
@@ -185,16 +185,15 @@ export const generateSlideData = async (
       1. Trả về ĐÚNG định dạng chuỗi JSON thuần tuý là một mảng object: 
       [
         {
-          "title": "Tiêu đề Slide 1", 
-          "points": ["Ý 1", "Ý 2"], 
-          "speakerNotes": "Gợi ý lời nói cho giáo viên khi chiếu Slide này...", 
-          "visualSuggestion": "Gợi ý hình ảnh: sơ đồ tư duy hình cây / một bức ảnh thực tế về..."
+          "title": "TIÊU ĐỀ SLIDE (Viết hoa, gây ấn tượng)", 
+          "points": ["Ý chính 1 (Ngắn gọn)", "Ý chính 2 (Cụm từ then chốt)"], 
+          "speakerNotes": "LỜI DẪN CỦA GIÁO VIÊN: Gợi ý cách đặt câu hỏi tương tác hoặc câu chuyện dẫn dắt cho slide này...", 
+          "visualSuggestion": "HÌNH ẢNH MINH HỌA: Mô tả một hình ảnh ẩn dụ hoặc sơ đồ cụ thể để giáo viên tìm kiếm (Ví dụ: Một chiếc đồng hồ cát đang chảy để nói về thời gian...)"
         }
       ]
-      2. Cấu trúc slide phải khoa học: Khởi động -> Vấn đề -> Giải pháp/Kiến thức -> Luyện tập -> Kết luận.
-      3. Tóm tắt súc tích bằng ngôn ngữ TRÌNH CHIẾU (ngắn gọn, từ khóa), mỗi slide không vượt quá 5 ý.
-      4. TUYỆT ĐỐI KHÔNG DÙNG LaTeX ($...$) CHO CÔNG THỨC TOÁN HỌC. Bạn bắt buộc dùng Unicode thuần túy (VD: x², √, ∫) .
-      5. Tối đa 12 slides.
+      2. Cấu trúc slide: Ổn định tâm lý -> Kích thích tò mò -> Chiếm lĩnh kiến thức -> Thực hành -> Đúc rút.
+      3. TUYỆT ĐỐI KHÔNG DÙNG LaTeX ($...$) . Bạn bắt buộc dùng Unicode thuần túy (x², √, ∫).
+      4. Tối đa 10 slides để đảm bảo sự tinh gọn.
       CHỈ TRẢ VỀ JSON KHÔNG BỌC BỞI \`\`\`json.
     `;
     
