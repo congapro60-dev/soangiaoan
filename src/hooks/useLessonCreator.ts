@@ -106,25 +106,55 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
       } else {
         const distContent = activeDist?.content || distributionFile?.content;
         const plannerPrompt = `
-          LẬP DANH SÁCH BÀI HỌC CẦN SOẠN dựa trên Phân phối chương trình:\n${distContent}
-          Yêu cầu: ${bulkCommand}. Môn: ${subject}. Lớp: ${currentPlan.grade}.
-          Trả về duy nhất mảng JSON tiêu đề bài học.
+          BẠN LÀ CHUYÊN GIA TRÍ TUỆ NHÂN TẠO TRÍCH XUẤT DỮ LIỆU GIÁO DỤC.
+          NHIỆM VỤ: Lập danh sách các bài học cần soạn từ Phân phối chương trình (PPCN) sau đây:
+          ---
+          NỘI DUNG PPCN:
+          ${distContent}
+          ---
+          YÊU CẦU LỌC CỦA GIÁO VIÊN: ${bulkCommand}
+          MÔN: ${subject}. LỚP: ${currentPlan.grade}.
+
+          QUY TẮC TRÍCH XUẤT (CỰC KỲ QUAN TRỌNG):
+          1. Văn bản PPCN trên thường có dạng bảng với các cột: [Tuần | Tiết | Tên bài dạy | Yêu cầu cần đạt/Mục tiêu].
+          2. Bạn phải xác định đúng số TUẦN. Ví dụ nếu đề yêu cầu "Tuần 2", hãy tìm tất cả các bài thuộc Tuần 2 trong văn bản.
+          3. TRÍCH XUẤT NGUYÊN VĂN TÊN BÀI DẠY. Không được tự ý tóm tắt hay đổi tên.
+          4. TRÍCH XUẤT TÓM TẮT phần "Yêu cầu cần đạt" hoặc "Nội dung kiến thức" tương ứng với bài đó.
+
+          ĐỊNH DẠNG TRẢ VỀ: Một mảng JSON duy nhất. KHÔNG GIẢI THÍCH GÌ THÊM.
+          MẪU: [{"week": "2", "title": "...", "objectives": "..."}]
         `;
         
         const planResponse = await callGeminiAI(plannerPrompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
-        if (!planResponse) throw new Error("Không tạo được kế hoạch");
+        if (!planResponse) throw new Error("Không trích xuất được kế hoạch từ PPCN");
 
         const jsonStr = planResponse.replace(/```json/g, '').replace(/```/g, '').trim();
-        const titles = JSON.parse(jsonStr) as string[];
+        const extractedLessons = JSON.parse(jsonStr) as { week: string, title: string, objectives: string }[];
         
-        setBulkProgress({ current: 0, total: titles.length });
+        setBulkProgress({ current: 0, total: extractedLessons.length });
         const newPlans: LessonPlan[] = [];
 
-        for (let i = 0; i < titles.length; i++) {
-          const title = titles[i];
-          setBulkProgress({ current: i + 1, total: titles.length });
+        for (let i = 0; i < extractedLessons.length; i++) {
+          const lesson = extractedLessons[i];
+          setBulkProgress({ current: i + 1, total: extractedLessons.length });
           
-          const detailPrompt = `Soạn giáo án chi tiết bài: ${title}. ${templateContext} ${mathRestrictions} Lớp: ${currentPlan.grade}. Định dạng nhiều bảng 3 cột.`;
+          const detailPrompt = `
+            BẠN LÀ CHUYÊN GIA BIÊN SOẠN GIÁO ÁN CAO CẤP.
+            HÃY SOẠN GIÁO ÁN CHI TIẾT CHO BÀI: "${lesson.title}"
+            THÔNG TIN TỪ PHÂN PHỐI CHƯƠNG TRÌNH:
+            - Tuần: ${lesson.week}
+            - Mục tiêu/Kiến thức trọng tâm: ${lesson.objectives}
+            
+            ${templateContext}
+            ${mathRestrictions}
+            Lớp: ${currentPlan.grade}.
+            
+            YÊU CẦU NGHIÊM NGẶT:
+            1. NỘI DUNG PHẢI TUÂN THỦ HOÀN TOÀN THEO "MỤC TIÊU/KIẾN THỨC TRỌNG TÂM" ĐÃ TRÍCH XUẤT TRÊN.
+            2. Định dạng: Nhiều bảng 3 cột. Chi tiết từng hoạt động.
+            3. Tiêu đề bài soạn phải khớp 100% với tên bài được cung cấp.
+          `;
+
           const detailResponse = await callGeminiAI(detailPrompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
           if (detailResponse) {
             newPlans.push({
@@ -132,8 +162,8 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
               subjectId: currentPlan.subjectId || 'math',
               templateId: currentPlan.templateId,
               grade: currentPlan.grade,
-              week: currentPlan.week,
-              title: title,
+              week: lesson.week || currentPlan.week,
+              title: lesson.title,
               content: cleanMarkdownOutput(detailResponse),
               status: 'draft',
               createdAt: new Date().toISOString(),

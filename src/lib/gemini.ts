@@ -13,7 +13,7 @@ export async function callGeminiAI(prompt: string, apiKey: string, modelIndex = 
       model: modelName,
       contents: [{ parts: [{ text: prompt }] }],
       config: {
-        temperature: 0.7,
+        temperature: 0.1,
       },
     });
 

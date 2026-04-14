@@ -46,12 +46,12 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
           // 1. Fetch Personal Plans
           const qPlans = query(
             collection(db, 'lessonPlans'), 
-            where('userId', '==', user.uid), 
-            orderBy('updatedAt', 'desc')
+            where('userId', '==', user.uid)
           );
           const snapPlans = await getDocs(qPlans);
           const cloudPlans: LessonPlan[] = [];
           snapPlans.forEach((doc) => cloudPlans.push(doc.data() as LessonPlan));
+          cloudPlans.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 
           // 2. Fetch User Templates
           const qTemplates = query(
