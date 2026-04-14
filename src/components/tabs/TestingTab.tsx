@@ -129,7 +129,6 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
       setIsLoading(false);
     }
   };
- Broadway Broadway 2026-04-14 15:04:08
   const modeContent = {
     create: {
       title: "Soạn đề Kiểm tra",
