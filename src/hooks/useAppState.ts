@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { AppData, DEFAULT_DATA, LessonPlan, Subject, LessonTemplate, CurriculumDistribution } from '../types';
 import { collection, query, where, getDocs, doc, setDoc, deleteDoc, orderBy } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -99,10 +99,10 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
     }
   }, [user]);
 
-  const fetchCommunityPlans = async () => {
+  const fetchCommunityPlans = useCallback(async () => {
     try {
       const q = query(
-        collection(db, 'lessonPlans'), 
+        collection(db, 'lessonPlans'),
         where('isPublic', '==', true),
         orderBy('createdAt', 'desc')
       );
@@ -113,7 +113,7 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
     } catch (e) {
       console.error("Lỗi tải cộng đồng", e);
     }
-  };
+  }, []);
 
   const updateSettings = async (newSettings: Partial<AppData['settings']>) => {
     const updated = { ...data.settings, ...newSettings };
@@ -186,26 +186,40 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
     setData(prev => {
       const currentTemplates = prev.templates || [];
       const newTemplates = currentTemplates.map(t => t.id === templateId ? { ...t, ...updatedTemplate } : t);
-      const target = newTemplates.find(t => t.id === templateId);
-      if (user && target) {
-        setDoc(doc(db, 'userTemplates', templateId), { ...target, userId: user.uid }, { merge: true });
-      }
       return { ...prev, templates: newTemplates };
     });
+    if (user) {
+      const target = data.templates.find(t => t.id === templateId);
+      if (target) {
+        const updated = { ...target, ...updatedTemplate };
+        try {
+          await setDoc(doc(db, 'userTemplates', templateId), { ...updated, userId: user.uid }, { merge: true });
+        } catch (e) {
+          console.error("Lỗi cập nhật mẫu Cloud", e);
+        }
+      }
+    }
   };
 
   const deleteFile = async (templateId: string, fileId: string) => {
     setData(prev => {
       const currentTemplates = prev.templates || [];
-      const newTemplates = currentTemplates.map(t => 
+      const newTemplates = currentTemplates.map(t =>
         t.id === templateId ? { ...t, files: (t.files || []).filter(f => f.id !== fileId) } : t
       );
-      const target = newTemplates.find(t => t.id === templateId);
-      if (user && target) {
-        setDoc(doc(db, 'userTemplates', templateId), { ...target, userId: user.uid }, { merge: true });
-      }
       return { ...prev, templates: newTemplates };
     });
+    if (user) {
+      const target = data.templates.find(t => t.id === templateId);
+      if (target) {
+        const updatedFiles = (target.files || []).filter(f => f.id !== fileId);
+        try {
+          await setDoc(doc(db, 'userTemplates', templateId), { ...target, files: updatedFiles, userId: user.uid }, { merge: true });
+        } catch (e) {
+          console.error("Lỗi xóa file Cloud", e);
+        }
+      }
+    }
   };
 
   return { 

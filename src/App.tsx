@@ -63,7 +63,7 @@ export default function App() {
     if (activeTab === 'library' && libraryTab === 'community') {
       fetchCommunityPlans();
     }
-  }, [activeTab, libraryTab]);
+  }, [activeTab, libraryTab, fetchCommunityPlans]);
 
   // Persistence Handlers
   const saveLessonPlan = async () => {

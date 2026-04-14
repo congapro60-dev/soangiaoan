@@ -88,7 +88,7 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
       if (generationMode === 'single') {
         const lessonDocsContent = lessonDocs.map(f => f.content).join('\n---\n');
         const prompt = `
-          BẠN LÀ MỘT CHUYÊN GIA GIÁO DỤC CAO CẤP VỚI TƯ DUY CỦA CLAUDE 4.5 SONNET. 
+          BẠN LÀ MỘT CHUYÊN GIA GIÁO DỤC CAO CẤP.
           NHIỆM VỤ: Soạn một giáo án "Masterpiece" (Kiệt tác sư phạm).
 
           BỐ CỤC PHẢN HỒI (BẮT BUỘC):
@@ -126,7 +126,7 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
       } else {
         const distContent = activeDist?.content || distributionFile?.content;
         const plannerPrompt = `
-          BẠN LÀ CHUYÊN GIA TRÍ TUỆ NHÂN TẠO TRÍCH XUẤT DỮ LIỆU GIÁO DỤC (CLAUDE AGENT STYLE).
+          BẠN LÀ CHUYÊN GIA TRÍ TUỆ NHÂN TẠO TRÍCH XUẤT DỮ LIỆU GIÁO DỤC.
           NHIỆM VỤ: Lập danh sách các bài học từ Phân phối chương trình (PPCN).
 
           BỐ CỤC PHẢN HỒI:
@@ -147,8 +147,17 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
         const planResponse = await callGeminiAI(plannerPrompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
         if (!planResponse) throw new Error("Không trích xuất được kế hoạch từ PPCN");
 
-        const jsonStr = planResponse.replace(/```json/g, '').replace(/```/g, '').trim();
-        const extractedLessons = JSON.parse(jsonStr) as { week: string, title: string, objectives: string }[];
+        let extractedLessons: { week: string, title: string, objectives: string }[] = [];
+        try {
+          const jsonMatch = planResponse.match(/\[[\s\S]*\]/);
+          const jsonStr = jsonMatch ? jsonMatch[0] : planResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+          extractedLessons = JSON.parse(jsonStr);
+          if (!Array.isArray(extractedLessons) || extractedLessons.length === 0) {
+            throw new Error("Danh sách bài học trích xuất rỗng");
+          }
+        } catch {
+          throw new Error("AI không trả về danh sách bài học hợp lệ. Vui lòng thử lại hoặc kiểm tra lại file PPCN.");
+        }
         
         setBulkProgress({ current: 0, total: extractedLessons.length });
         const newPlans: LessonPlan[] = [];
