@@ -21,6 +21,7 @@ import { CreatorTab } from './components/tabs/CreatorTab';
 import { LibraryTab } from './components/tabs/LibraryTab';
 import { TemplatesTab } from './components/tabs/TemplatesTab';
 import { ChatTab } from './components/tabs/ChatTab';
+import { TestingTab } from './components/tabs/TestingTab';
 import { SettingsModal } from './components/modals/SettingsModal';
 import { LatexModal } from './components/modals/LatexModal';
 
@@ -388,6 +389,12 @@ export default function App() {
                 exportToPDF={() => exportUtils.exportToPDF(creator.currentPlan, showToast)}
                 exportToWord={() => exportUtils.exportToWord(creator.currentPlan, showToast)}
                 exportToLaTeX={() => exportUtils.exportToLaTeX(creator.currentPlan, data, setIsLoading, setIsSettingsOpen, showToast, setLatexContent, setIsLatexModalOpen)}
+              />
+            )}
+
+            {activeTab === 'testing' && (
+              <TestingTab 
+                data={data} isLoading={isLoading} setIsLoading={setIsLoading} showToast={showToast}
               />
             )}
 

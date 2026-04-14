@@ -88,51 +88,60 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
       if (generationMode === 'single') {
         const lessonDocsContent = lessonDocs.map(f => f.content).join('\n---\n');
         const prompt = `
-          Bạn là một chuyên gia giáo dục cao cấp. Hãy soạn một giáo án chi tiết và chuyên nghiệp.
-          Môn học: ${subject}. Lớp: ${currentPlan.grade}. Tuần: ${currentPlan.week}.
-          Tiêu đề bài học: ${currentPlan.title}.
+          BẠN LÀ MỘT CHUYÊN GIA GIÁO DỤC CAO CẤP VỚI TƯ DUY CỦA CLAUDE 4.5 SONNET. 
+          NHIỆM VỤ: Soạn một giáo án "Masterpiece" (Kiệt tác sư phạm).
+
+          BỐ CỤC PHẢN HỒI (BẮT BUỘC):
+          1. <thinking>: Phân tích mục tiêu bài học, đặc điểm HS lớp ${currentPlan.grade}, lựa chọn phương pháp (VARK, 5E, Gagne...) và kế hoạch "gây nghiện" cho bài giảng.
+          2. <lesson_content>: Nội dung giáo án chi tiết (Markdown).
+          3. <pedagogical_review>: Tự đánh giá giáo án dựa trên Danielson Framework Domain 1.
+
+          THÔNG TIN BÀI HỌC:
+          - Môn học: ${subject}. Lớp: ${currentPlan.grade}. Tuần: ${currentPlan.week}.
+          - Tiêu đề: ${currentPlan.title}.
           ${templateContext}
-          ${activeDist ? `THAM KHẢO PHÂN PHỐI CHƯƠNG TRÌNH SAU ĐỂ ĐẢM BẢO CHƯƠNG TRÌNH HỌC:\n${activeDist.content}` : ''}
-          ${lessonDocsContent ? `TÀI LIỆU THAM KHẢO CHO BÀI HỌC:\n${lessonDocsContent}` : ''}
-          ${singleRequirement ? `YÊU CẦU BỔ SUNG TỪ GIÁO VIÊN: ${singleRequirement}` : ''}
+          ${activeDist ? `PHÂN PHỐI CHƯƠNG TRÌNH:\n${activeDist.content}` : ''}
+          ${lessonDocsContent ? `TÀI LIỆU THAM KHẢO:\n${lessonDocsContent}` : ''}
+          ${singleRequirement ? `YÊU CẦU BỔ SUNG: ${singleRequirement}` : ''}
           ${mathRestrictions}
-          Yêu cầu: Định dạng Markdown, tiến trình nhiều bảng 3 cột, dùng <br/><br/> để cách dòng trong bảng.
-          
-          PHẦN QUAN TRỌNG: Ở CUỐI GIÁO ÁN, BẮT BUỘC PHẢI THÊM PHẦN:
-          "## Đánh giá của tổ trưởng chuyên môn"
-          Dựa trên khung Danielson Miền 1 (Lên kế hoạch và chuẩn bị), hãy tự chấm điểm môn giáo án này theo 6 tiêu chí (Thang 1-4, 4 là Tốt nhất) và đưa ra nhận xét ngắn:
-          1a: Áp dụng kiến thức chuyên môn và sư phạm
-          1b: Thấu hiểu học sinh
-          1c: Thiết lập mục tiêu giảng dạy
-          1d: Sử dụng tài nguyên hiệu quả
-          1e: Thiết kế bài giảng mạch lạc
-          1f: Đánh giá quá trình học tập
+
+          YÊU CẦU NỘI DUNG (<lesson_content>):
+          - Tiến trình 4 bước chuyên sâu (Mở đầu, Hình thành kiến thức, Luyện tập, Vận dụng).
+          - Mỗi bước trình bày dạng BẢNG 3 CỘT (Hoạt động GV | Hoạt động HS | Công cụ & Đánh giá).
+          - Ngôn ngữ biên kịch hội thoại 100%. Dùng <br/><br/> để cách dòng trong bảng.
+          - Tích hợp kỹ năng thế kỷ 21 và năng lực cốt lõi.
+
+          YÊU CẦU ĐÁNH GIÁ (<pedagogical_review>):
+          Tự chấm điểm theo 6 tiêu chí Danielson (1a-1f) và đưa ra nhận xét chuyên môn.
         `;
         const result = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
         if (result) {
-          setCurrentPlan(prev => ({ ...prev, content: cleanMarkdownOutput(result) }));
-          showToast('Đã khởi tạo giáo án thành công!');
+          // Trích xuất nội dung từ thẻ <lesson_content> để hiển thị chính
+          const contentMatch = result.match(/<lesson_content>([\s\S]*?)<\/lesson_content>/);
+          const finalContent = contentMatch ? contentMatch[1] : result;
+          
+          setCurrentPlan(prev => ({ ...prev, content: cleanMarkdownOutput(finalContent) }));
+          showToast('Đã khởi tạo giáo án cấp độ Senior!');
         }
       } else {
         const distContent = activeDist?.content || distributionFile?.content;
         const plannerPrompt = `
-          BẠN LÀ CHUYÊN GIA TRÍ TUỆ NHÂN TẠO TRÍCH XUẤT DỮ LIỆU GIÁO DỤC.
-          NHIỆM VỤ: Lập danh sách các bài học cần soạn từ Phân phối chương trình (PPCN) sau đây:
-          ---
+          BẠN LÀ CHUYÊN GIA TRÍ TUỆ NHÂN TẠO TRÍCH XUẤT DỮ LIỆU GIÁO DỤC (CLAUDE AGENT STYLE).
+          NHIỆM VỤ: Lập danh sách các bài học từ Phân phối chương trình (PPCN).
+
+          BỐ CỤC PHẢN HỒI:
+          1. <thinking>: Phân tích cấu trúc bảng trong PPCN, xác định cột tuần, cột bài, cột yêu cầu cần đạt.
+          2. <extraction_list>: Trả về mảng JSON các bài học.
+
           NỘI DUNG PPCN:
           ${distContent}
           ---
-          YÊU CẦU LỌC CỦA GIÁO VIÊN: ${bulkCommand}
+          YÊU CẦU LỌC: ${bulkCommand}
           MÔN: ${subject}. LỚP: ${currentPlan.grade}.
 
-          QUY TẮC TRÍCH XUẤT (CỰC KỲ QUAN TRỌNG):
-          1. Văn bản PPCN trên thường có dạng bảng với các cột: [Tuần | Tiết | Tên bài dạy | Yêu cầu cần đạt/Mục tiêu].
-          2. Bạn phải xác định đúng số TUẦN. Ví dụ nếu đề yêu cầu "Tuần 2", hãy tìm tất cả các bài thuộc Tuần 2 trong văn bản.
-          3. TRÍCH XUẤT NGUYÊN VĂN TÊN BÀI DẠY. Không được tự ý tóm tắt hay đổi tên.
-          4. TRÍCH XUẤT TÓM TẮT phần "Yêu cầu cần đạt" hoặc "Nội dung kiến thức" tương ứng với bài đó.
-
-          ĐỊNH DẠNG TRẢ VỀ: Một mảng JSON duy nhất. KHÔNG GIẢI THÍCH GÌ THÊM.
-          MẪU: [{"week": "2", "title": "...", "objectives": "..."}]
+          ĐỊNH DẠNG JSON TRONG <extraction_list>:
+          [{"week": "2", "title": "...", "objectives": "..."}]
+          KHÔNG TRẢ VỀ GÌ QUÁ NGOÀI XML.
         `;
         
         const planResponse = await callGeminiAI(plannerPrompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
