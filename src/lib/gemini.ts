@@ -48,3 +48,52 @@ export async function callGeminiAI(prompt: string, apiKey: string, modelIndex = 
 
   return executeCall(modelIndex);
 }
+
+export async function callGeminiAIStream(
+  prompt: string, 
+  apiKey: string, 
+  onChunk: (chunk: string) => void,
+  modelIndex = 0
+): Promise<void> {
+  if (!apiKey) return;
+
+  const ai = new GoogleGenAI({ apiKey });
+  const maxRetries = 2;
+  let retryCount = 0;
+
+  async function executeStream(idx: number): Promise<void> {
+    const modelName = idx >= 0 && idx < MODELS.length ? MODELS[idx] : MODELS[0];
+    
+    try {
+      const result = await ai.models.generateContentStream({
+        model: modelName,
+        contents: [{ parts: [{ text: prompt }] }],
+        config: { temperature: 0.1 },
+      });
+
+      for await (const chunk of result) {
+        const chunkText = chunk.text;
+        if (chunkText) onChunk(chunkText);
+      }
+    } catch (error: any) {
+      console.error(`Stream error with model ${modelName}:`, error);
+      
+      const isOverloaded = error.message?.includes('503') || error.message?.includes('high demand') || error.message?.includes('UNAVAILABLE');
+      
+      if (isOverloaded && retryCount < maxRetries) {
+        retryCount++;
+        await new Promise(r => setTimeout(r, 3000 * retryCount));
+        return executeStream(idx);
+      }
+
+      if (idx < MODELS.length - 1) {
+        console.log(`Stream fallback to: ${MODELS[idx + 1]}`);
+        return executeStream(idx + 1);
+      }
+      
+      throw new Error(isOverloaded ? "Hệ thống AI đang quá tải. Vui lòng thử lại sau." : error.message);
+    }
+  }
+
+  return executeStream(modelIndex);
+}

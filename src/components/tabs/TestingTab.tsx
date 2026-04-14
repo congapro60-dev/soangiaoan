@@ -16,6 +16,7 @@ import 'katex/dist/katex.min.css';
 import { AppData, TemplateFile, LessonPlan } from '../../types';
 import { examUtils } from '../../utils/examUtils';
 import { downloadBlob } from '../../utils/fileUtils';
+import { callGeminiAIStream } from '../../lib/gemini';
 
 // Cấu hình worker cho PDF.js
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
@@ -36,6 +37,7 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
   const [requirement, setRequirement] = useState('');
   const [testResult, setTestResult] = useState<string | null>(null);
   const [shuffledCount, setShuffledCount] = useState(4);
+  const [processStatus, setProcessStatus] = useState<string>('');
 
   const handleDownloadPDF = () => {
     const element = document.getElementById('report-paper-container');
@@ -111,6 +113,7 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
     if (!file) return;
     
     setIsLoading(true);
+    setProcessStatus('Đang trích xuất dữ liệu tệp...');
     try {
       const content = await extractTextFromFile(file);
       const newFile: TemplateFile = {
@@ -132,6 +135,7 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
       showToast('Lỗi khi đọc tệp!', 'error');
     } finally {
       setIsLoading(false);
+      setProcessStatus('');
     }
   };
 
@@ -142,41 +146,51 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
     }
     
     setIsLoading(true);
-    setTestResult(null);
+    setTestResult('');
+    setProcessStatus('Đang chuẩn bị câu hỏi và gửi AI...');
 
     try {
-      let result = '';
       const modelIdx = Math.max(0, data.settings.models?.indexOf(data.settings.selectedModel) || 0);
+      let cumulativeText = '';
+
+      const onChunk = (chunk: string) => {
+        setProcessStatus('Đang phân tích & soạn báo cáo...');
+        cumulativeText += chunk;
+        // Loại bỏ thẻ XML giả định trong quá trình stream
+        const cleaned = cumulativeText
+          .replace(/<audit_report>/g, '')
+          .replace(/<\/audit_report>/g, '')
+          .replace(/<exam_content>/g, '')
+          .replace(/<\/exam_content>/g, '');
+        setTestResult(cleaned);
+      };
 
       if (activeMode === 'create') {
-        result = await examUtils.generateExam(matrixFile, requirement, data.settings.geminiApiKey, modelIdx);
+        const prompt = await examUtils.getGeneratePrompt(matrixFile, requirement);
+        await callGeminiAIStream(prompt, data.settings.geminiApiKey, onChunk, modelIdx);
       } else if (activeMode === 'audit') {
         const fullContent = uploadedFiles.map(f => f.content).join('\n---\n');
-        if (!fullContent.trim()) throw new Error("Nội dung tệp trống hoặc không thể trích xuất.");
-        result = await examUtils.auditExam(fullContent, data.settings.geminiApiKey, modelIdx);
+        if (!fullContent.trim()) throw new Error("Nội dung tệp trống.");
+        const prompt = await examUtils.getAuditPrompt(fullContent);
+        await callGeminiAIStream(prompt, data.settings.geminiApiKey, onChunk, modelIdx);
       } else if (activeMode === 'shuffle') {
+        setProcessStatus('Đang thực hiện hoán vị đề...');
         const fullContent = uploadedFiles.map(f => f.content).join('\n---\n');
         if (!fullContent.trim()) throw new Error("Nội dung tệp trống.");
         await examUtils.shuffleExam(fullContent, shuffledCount, data.settings.geminiApiKey, modelIdx);
         showToast(`Đã hoán vị thành ${shuffledCount} mã đề!`);
         setIsLoading(false);
+        setProcessStatus('');
         return;
       }
 
-      if (result) {
-        // Tách kết quả từ các thẻ XML (Claude-style)
-        const contentMatch = result.match(/<audit_report>([\s\S]*?)<\/audit_report>/) || 
-                           result.match(/<exam_content>([\s\S]*?)<\/exam_content>/);
-        
-        const finalOutput = contentMatch ? contentMatch[1] : result;
-        setTestResult(finalOutput);
-        showToast('Xử lý hoàn tất!');
-      }
+      showToast('Xử lý hoàn tất!');
     } catch (err: any) {
       console.error("Exam Action Error:", err);
-      showToast(`Lỗi hệ thống: ${err.message || 'Vui lòng kiểm tra lại API Key hoặc tệp tin'}`, 'error');
+      showToast(`Lỗi: ${err.message}`, 'error');
     } finally {
       setIsLoading(false);
+      setProcessStatus('');
     }
   };
   const modeContent = {
@@ -315,11 +329,34 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
             <button 
               onClick={handleExamAction}
               disabled={isLoading || (activeMode !== 'create' && uploadedFiles.length === 0)}
-              className="w-full py-4 bg-slate-900 text-white rounded-3xl font-black shadow-xl shadow-slate-200 hover:bg-slate-800 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale"
+              className="w-full py-4 bg-slate-900 text-white rounded-3xl font-black shadow-xl shadow-slate-200 hover:bg-slate-800 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale relative overflow-hidden"
             >
+              {isLoading && (
+                <motion.div 
+                  initial={{ width: 0 }}
+                  animate={{ width: '100%' }}
+                  transition={{ duration: 30, ease: "linear" }}
+                  className="absolute bottom-0 left-0 h-1 bg-blue-500/50"
+                />
+              )}
               {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : modeContent[activeMode].icon}
               {modeContent[activeMode].action}
             </button>
+
+            {processStatus && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center justify-center gap-2 text-[11px] font-bold text-blue-600 bg-blue-50 py-2 rounded-xl border border-blue-100 italic"
+              >
+                <div className="flex gap-1">
+                  <span className="w-1 h-1 bg-blue-600 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                  <span className="w-1 h-1 bg-blue-600 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                  <span className="w-1 h-1 bg-blue-600 rounded-full animate-bounce"></span>
+                </div>
+                {processStatus}
+              </motion.div>
+            )}
           </div>
         </div>
 

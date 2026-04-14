@@ -7,13 +7,8 @@ export const examUtils = {
   /**
    * SOẠN ĐỀ KIỂM TRA (Claude-style Agentic)
    */
-  generateExam: async (
-    matrix: TemplateFile | null, 
-    requirement: string, 
-    apiKey: string, 
-    modelIndex: number
-  ) => {
-    const prompt = `
+  getGeneratePrompt: (matrix: TemplateFile | null, requirement: string) => {
+    return `
       BẠN LÀ MỘT CHUYÊN GIA KHẢO THÍ CAO CẤP (CLAUDE 4.5 SONNET STYLE).
       NHIỆM VỤ: Thiết kế một bộ đề thi chuẩn mực.
 
@@ -30,18 +25,23 @@ export const examUtils = {
       - Cấu trúc: Phần I (Trắc nghiệm), Phần II (Đúng/Sai), Phần III (Trả lời ngắn).
       - Ký hiệu toán học: Sử dụng LaTeX chuẩn.
     `;
+  },
+
+  generateExam: async (
+    matrix: TemplateFile | null, 
+    requirement: string, 
+    apiKey: string, 
+    modelIndex: number
+  ) => {
+    const prompt = examUtils.getGeneratePrompt(matrix, requirement);
     return await callGeminiAI(prompt, apiKey, modelIndex);
   },
 
   /**
    * SOÁT ĐỀ KIỂM TRA (Strict Auditor Persona - Claude 4.5 Standard)
    */
-  auditExam: async (
-    testContent: string, 
-    apiKey: string, 
-    modelIndex: number
-  ) => {
-    const prompt = `
+  getAuditPrompt: (testContent: string) => {
+    return `
       BẠN LÀ BIÊN TẬP VIÊN KIỂM ĐỊNH ĐỀ THI CAO CẤP. 
       TƯ DUY: Claude 4.5 Sonnet (Meticulous, Strict, Reasoning-first).
 
@@ -73,6 +73,14 @@ export const examUtils = {
       ${testContent}
       ---
     `;
+  },
+
+  auditExam: async (
+    testContent: string, 
+    apiKey: string, 
+    modelIndex: number
+  ) => {
+    const prompt = examUtils.getAuditPrompt(testContent);
     return await callGeminiAI(prompt, apiKey, modelIndex);
   },
 
