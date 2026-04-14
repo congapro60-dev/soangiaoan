@@ -48,6 +48,27 @@ export interface LessonTemplate {
   createdAt: string;
 }
 
+export interface GradingResult {
+  id: string;
+  studentName: string;
+  score: number;
+  maxScore: number;
+  strengths: string[];
+  weaknesses: string[];
+  improvementPlan: string;
+  details: string; // Markdown report
+  status: 'pending' | 'processing' | 'completed' | 'error';
+  fileName: string;
+}
+
+export interface GradingSession {
+  id: string;
+  title: string;
+  testFile: TemplateFile | null;
+  results: GradingResult[];
+  createdAt: string;
+}
+
 export interface AppData {
   subjects: Subject[];
   lessonPlans: LessonPlan[];
@@ -61,6 +82,7 @@ export interface AppData {
     selectedModel: string;
     models?: string[];
   };
+  gradingSessions: GradingSession[];
 }
 
 export const DEFAULT_DATA: AppData = {
@@ -82,4 +104,5 @@ export const DEFAULT_DATA: AppData = {
     selectedModel: 'gemini-3-flash',
     models: ['gemini-3-flash', 'gemini-3.1-pro', 'gemini-2.5-flash'],
   },
+  gradingSessions: [],
 };

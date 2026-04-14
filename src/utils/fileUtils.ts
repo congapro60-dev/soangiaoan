@@ -84,23 +84,32 @@ export const extractTextFromExcel = async (file: File): Promise<string> => {
   return fullText;
 };
 
+export const extractBase64FromImage = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
 export const processUploadedFile = async (
   file: File, 
   category: TemplateFile['category'], 
   index: number
 ): Promise<TemplateFile> => {
-  let type: 'pdf' | 'word' | 'excel' = 'pdf';
-  if (file.name.endsWith('.pdf')) type = 'pdf';
-  else if (file.name.endsWith('.doc') || file.name.endsWith('.docx')) type = 'word';
-  else if (file.name.endsWith('.xls') || file.name.endsWith('.xlsx')) type = 'excel';
+  const extension = file.name.split('.').pop()?.toLowerCase();
+  let type: string = extension || 'unknown';
   
   let content = '';
   if (type === 'pdf') {
     content = await extractTextFromPDF(file);
-  } else if (type === 'word') {
+  } else if (type === 'docx' || type === 'doc') {
     content = await extractTextFromWord(file);
-  } else if (type === 'excel') {
+  } else if (type === 'xlsx' || type === 'xls') {
     content = await extractTextFromExcel(file);
+  } else if (['png', 'jpg', 'jpeg', 'webp'].includes(type)) {
+    content = await extractBase64FromImage(file);
   }
 
   return {

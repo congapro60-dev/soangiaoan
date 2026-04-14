@@ -22,6 +22,7 @@ import { LibraryTab } from './components/tabs/LibraryTab';
 import { TemplatesTab } from './components/tabs/TemplatesTab';
 import { ChatTab } from './components/tabs/ChatTab';
 import { TestingTab } from './components/tabs/TestingTab';
+import { GradingTab } from './components/tabs/GradingTab';
 import { SettingsModal } from './components/modals/SettingsModal';
 import { LatexModal } from './components/modals/LatexModal';
 
@@ -41,7 +42,7 @@ export default function App() {
     setAuthorName, addDistribution, deleteDistribution
   } = useAppState(user, showToast);
   
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'creator' | 'library' | 'chat' | 'templates' | 'testing'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading'>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [libraryTab, setLibraryTab] = useState<'personal' | 'community'>('personal');
@@ -395,6 +396,12 @@ export default function App() {
             {activeTab === 'testing' && (
               <TestingTab 
                 data={data} isLoading={isLoading} setIsLoading={setIsLoading} showToast={showToast}
+              />
+            )}
+
+            {activeTab === 'grading' && (
+              <GradingTab 
+                data={data} setData={setData} isLoading={isLoading} setIsLoading={setIsLoading} showToast={showToast}
               />
             )}
 

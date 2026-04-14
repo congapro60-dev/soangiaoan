@@ -10,7 +10,8 @@ import {
   X, 
   Menu, 
   LogOut,
-  GraduationCap
+  GraduationCap,
+  ClipboardCheck
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -35,6 +36,7 @@ export const Sidebar = ({
     { id: 'dashboard', label: 'Tổng quan', icon: LayoutDashboard },
     { id: 'creator', label: 'Soạn giáo án', icon: Plus },
     { id: 'testing', label: 'Bảng Kiểm tra', icon: GraduationCap },
+    { id: 'grading', label: 'Chấm điểm AI', icon: ClipboardCheck },
     { id: 'library', label: 'Thư viện', icon: FileText },
     { id: 'templates', label: 'Mẫu giáo án', icon: Layout },
     { id: 'chat', label: 'AI Tutor', icon: MessageSquare },
