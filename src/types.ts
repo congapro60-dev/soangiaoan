@@ -35,9 +35,9 @@ export interface CurriculumDistribution {
 export interface TemplateFile {
   id: string;
   name: string;
-  type: 'pdf' | 'word' | 'excel';
+  type: string;
   content: string;
-  category: 'sample' | 'criteria' | 'lesson_doc' | 'distribution';
+  category: 'sample' | 'criteria' | 'lesson_doc' | 'distribution' | 'test' | 'matrix';
 }
 
 export interface LessonTemplate {
@@ -59,6 +59,7 @@ export interface AppData {
     autoSave: boolean;
     geminiApiKey: string;
     selectedModel: string;
+    models?: string[];
   };
 }
 
@@ -78,6 +79,7 @@ export const DEFAULT_DATA: AppData = {
     theme: 'light',
     autoSave: true,
     geminiApiKey: '',
-    selectedModel: 'gemini-3-flash-preview',
+    selectedModel: 'gemini-1.5-flash',
+    models: ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash-exp'],
   },
 };
