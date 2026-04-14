@@ -6,27 +6,45 @@ export async function callGeminiAI(prompt: string, apiKey: string, modelIndex = 
   if (!apiKey) return null;
 
   const ai = new GoogleGenAI({ apiKey });
-  const modelName = modelIndex >= 0 && modelIndex < MODELS.length ? MODELS[modelIndex] : MODELS[0];
+  const maxRetries = 2;
+  let retryCount = 0;
 
-  try {
-    const response = await ai.models.generateContent({
-      model: modelName,
-      contents: [{ parts: [{ text: prompt }] }],
-      config: {
-        temperature: 0.1,
-      },
-    });
-
-    return response.text || '';
-  } catch (error: any) {
-    console.error(`Error with model ${modelName}:`, error);
+  async function executeCall(idx: number): Promise<string | null> {
+    const modelName = idx >= 0 && idx < MODELS.length ? MODELS[idx] : MODELS[0];
     
-    // Fallback cơ chế: tự động thử lại model kế tiếp
-    if (modelIndex < MODELS.length - 1) {
-      console.log(`Fallback: Đang chuyển từ ${modelName} sang model dự phòng ${MODELS[modelIndex + 1]}...`);
-      return callGeminiAI(prompt, apiKey, modelIndex + 1);
+    try {
+      const response = await ai.models.generateContent({
+        model: modelName,
+        contents: [{ parts: [{ text: prompt }] }],
+        config: { temperature: 0.1 },
+      });
+      return response.text || '';
+    } catch (error: any) {
+      console.error(`Error with model ${modelName}:`, error);
+      
+      const isOverloaded = error.message?.includes('503') || error.message?.includes('high demand') || error.message?.includes('UNAVAILABLE');
+      
+      if (isOverloaded && retryCount < maxRetries) {
+        retryCount++;
+        const delay = 3000 * retryCount;
+        console.log(`Model ${modelName} quá tải. Thử lại lần ${retryCount} sau ${delay}ms...`);
+        await new Promise(r => setTimeout(r, delay));
+        return executeCall(idx);
+      }
+
+      // Fallback sang model tiếp theo nếu vẫn lỗi
+      if (idx < MODELS.length - 1) {
+        console.log(`Chuyển sang model dự phòng: ${MODELS[idx + 1]}`);
+        return executeCall(idx + 1);
+      }
+      
+      let friendlyMessage = error.message || JSON.stringify(error);
+      if (isOverloaded) {
+        friendlyMessage = "Hệ thống AI của Google đang quá tải (503). Thầy/cô vui lòng bấm 'Bắt đầu' lại sau 1-2 phút hoặc đổi Model khác trong phần Cài đặt.";
+      }
+      throw new Error(friendlyMessage);
     }
-    
-    throw new Error(error.message || JSON.stringify(error));
   }
+
+  return executeCall(modelIndex);
 }
