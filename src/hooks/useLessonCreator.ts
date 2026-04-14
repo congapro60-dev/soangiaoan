@@ -196,7 +196,7 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
           const detailResponse = await callGeminiAI(detailPrompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
           if (detailResponse) {
             newPlans.push({
-              id: Math.random().toString(36).substr(2, 9),
+              id: crypto.randomUUID(),
               subjectId: currentPlan.subjectId || 'math',
               templateId: currentPlan.templateId,
               grade: currentPlan.grade,

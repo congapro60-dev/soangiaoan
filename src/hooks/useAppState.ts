@@ -32,9 +32,12 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
   const [communityPlans, setCommunityPlans] = useState<LessonPlan[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Sync ALL data to local cache
+  // Sync ALL data to local cache — đợi 1 giây sau khi ngừng thao tác mới ghi
   useEffect(() => {
-    localStorage.setItem('smart_lesson_plan_data', JSON.stringify(data));
+    const timer = setTimeout(() => {
+      localStorage.setItem('smart_lesson_plan_data', JSON.stringify(data));
+    }, 1000);
+    return () => clearTimeout(timer);
   }, [data]);
 
   // Fetch Cloud data (Plans, Templates, Settings, Distributions) when user logs in

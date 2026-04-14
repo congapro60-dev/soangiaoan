@@ -57,7 +57,7 @@ export const GradingTab = ({ data, setData, isLoading, setIsLoading, showToast }
       
       // Khởi tạo kết quả ở trạng thái pending
       const newResults: GradingResult[] = processedList.map(f => ({
-        id: Math.random().toString(36).substr(2, 9),
+        id: crypto.randomUUID(),
         studentName: f.name.split('.')[0],
         score: 0,
         maxScore: 10,

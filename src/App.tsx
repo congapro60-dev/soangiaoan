@@ -73,7 +73,7 @@ export default function App() {
     // Logic Tách biệt ID: Nếu là giáo án từ kho chung (không phải của mình), tạo ID mới
     const isEditingOthers = creator.currentPlan.userId && creator.currentPlan.userId !== user.uid;
     const id = (isEditingOthers || !creator.currentPlan.id) 
-      ? Math.random().toString(36).substr(2, 9) 
+      ? crypto.randomUUID() 
       : creator.currentPlan.id;
 
     const newPlan: LessonPlan = {
@@ -115,7 +115,7 @@ export default function App() {
 
   const duplicatePlan = async (plan: LessonPlan) => {
     if (!user) return;
-    const newId = Math.random().toString(36).substr(2, 9);
+    const newId = crypto.randomUUID();
     const duplicatedPlan: LessonPlan = {
       ...plan,
       id: newId,
@@ -158,7 +158,7 @@ export default function App() {
       
       // 2. Nếu thất bại (thường do lỗi 403 Permission Denied trên ID giáo án gốc), 
       // ta sẽ tự động 'Repair' bằng cách tạo một ID mới hoàn toàn cho người dùng này.
-      const newId = Math.random().toString(36).substr(2, 9);
+      const newId = crypto.randomUUID();
       const originalPlan = data.lessonPlans.find(p => p.id === id);
       
       if (originalPlan) {

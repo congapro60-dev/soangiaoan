@@ -117,7 +117,7 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
     try {
       const content = await extractTextFromFile(file);
       const newFile: TemplateFile = {
-        id: Math.random().toString(36).substr(2, 9),
+        id: crypto.randomUUID(),
         name: file.name,
         type: file.name.split('.').pop() || '',
         content: content,
