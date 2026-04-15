@@ -80,7 +80,7 @@ export const GradingTab = ({ data, setData, isLoading, setIsLoading, showToast }
   const startGrading = async () => {
     if (!masterFile || studentFiles.length === 0) return;
     if (!data.settings.geminiApiKey) {
-      showToast('Vui lòng cấu hình Gemini API Key trong Cài đặt', 'error');
+      showToast('Chức năng chấm bài yêu cầu Gemini API Key (hỗ trợ đa phương thức)', 'error');
       return;
     }
 

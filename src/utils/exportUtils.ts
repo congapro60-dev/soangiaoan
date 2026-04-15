@@ -1,7 +1,7 @@
 import pptxgen from 'pptxgenjs';
 import { LessonPlan, AppData } from '../types';
 import { downloadBlob } from './fileUtils';
-import { callGeminiAI, MODELS } from '../lib/gemini';
+import { callAI, getActiveApiKey } from '../lib/aiProviders';
 
 export const exportToPDF = (currentPlan: Partial<LessonPlan>, showToast: (msg: string, type?: any) => void) => {
   const element = document.getElementById('lesson-content');
@@ -115,7 +115,7 @@ export const exportToLaTeX = async (
   setIsLatexModalOpen: (val: boolean) => void
 ) => {
   if (!currentPlan.content) return;
-  if (!data.settings.geminiApiKey) {
+  if (!getActiveApiKey(data.settings)) {
     setIsSettingsOpen(true);
     showToast('Vui lòng nhập API Key!', 'warning');
     return;
@@ -142,7 +142,7 @@ YÊU CẦU BẮT BUỘC:
 7. Sử dụng tiếng Việt với \\usepackage[vietnamese]{babel} hoặc \\usepackage{fontspec} nếu cần.
 8. CHỈ TRẢ VỀ MÃ NGUỒN LATEX THUẦN TÚY, không bọc trong markdown code block, không kèm giải thích.
     `;
-    const result = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
+    const result = await callAI(prompt, data.settings);
     if (result) {
       const cleanLatex = result.replace(/^```(?:latex|tex)?\n?/i, '').replace(/\n?```$/i, '').trim();
       setLatexContent(cleanLatex);
@@ -164,7 +164,7 @@ export const generateSlideData = async (
   showToast: (msg: string, type?: any) => void
 ): Promise<any[] | null> => {
   if (!currentPlan.title || !currentPlan.content) return null;
-  if (!data.settings.geminiApiKey) {
+  if (!getActiveApiKey(data.settings)) {
     showToast('Vui lòng cung cấp API Key AI để tạo slide', 'warning');
     return null;
   }
@@ -198,7 +198,7 @@ export const generateSlideData = async (
     `;
     
     // We use a high temperature for creativity, but let's stick to the selected model
-    const response = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
+    const response = await callAI(prompt, data.settings);
     if (!response) throw new Error("No response");
     
     // An toàn hơn: Tìm chính xác đoạn text bắt đầu bằng [ và kết thúc bằng ]

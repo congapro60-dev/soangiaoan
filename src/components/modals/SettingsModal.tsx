@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Settings, X, Key, CheckCircle2 } from 'lucide-react';
+import { Settings, X, Key, CheckCircle2, ExternalLink } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { AppData } from '../../types';
+import { GEMINI_MODELS, CLAUDE_MODELS, OPENAI_MODELS } from '../../lib/aiProviders';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -11,6 +13,26 @@ interface SettingsModalProps {
   showToast: (msg: string) => void;
 }
 
+type Provider = 'gemini' | 'claude' | 'openai';
+
+const PROVIDERS: { id: Provider; label: string; color: string; bg: string; border: string }[] = [
+  { id: 'gemini', label: 'Gemini', color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-500' },
+  { id: 'claude', label: 'Claude', color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-500' },
+  { id: 'openai', label: 'ChatGPT', color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-500' },
+];
+
+const PROVIDER_MODELS: Record<Provider, { id: string; name: string; desc: string }[]> = {
+  gemini: GEMINI_MODELS,
+  claude: CLAUDE_MODELS,
+  openai: OPENAI_MODELS,
+};
+
+const PROVIDER_LINKS: Record<Provider, { url: string; label: string }> = {
+  gemini: { url: 'https://aistudio.google.com/app/apikey', label: 'Lấy Gemini API Key' },
+  claude: { url: 'https://console.anthropic.com/settings/keys', label: 'Lấy Claude API Key' },
+  openai: { url: 'https://platform.openai.com/api-keys', label: 'Lấy OpenAI API Key' },
+};
+
 export const SettingsModal = ({
   isOpen,
   onClose,
@@ -18,95 +40,179 @@ export const SettingsModal = ({
   setData,
   showToast
 }: SettingsModalProps) => {
+  const currentProvider: Provider = (data.settings.selectedProvider as Provider) ?? 'gemini';
+  const [activeTab, setActiveTab] = useState<Provider>(currentProvider);
+
+  const handleSelectProvider = (provider: Provider) => {
+    setActiveTab(provider);
+    const models = PROVIDER_MODELS[provider];
+    const currentModelValid = models.some(m => m.id === data.settings.selectedModel);
+    setData(prev => ({
+      ...prev,
+      settings: {
+        ...prev.settings,
+        selectedProvider: provider,
+        selectedModel: currentModelValid ? prev.settings.selectedModel : models[0].id,
+      }
+    }));
+  };
+
+  const handleApiKeyChange = (provider: Provider, value: string) => {
+    if (provider === 'gemini') {
+      setData(prev => ({ ...prev, settings: { ...prev.settings, geminiApiKey: value } }));
+    } else if (provider === 'claude') {
+      setData(prev => ({ ...prev, settings: { ...prev.settings, claudeApiKey: value } }));
+    } else {
+      setData(prev => ({ ...prev, settings: { ...prev.settings, openaiApiKey: value } }));
+    }
+  };
+
+  const getApiKey = (provider: Provider): string => {
+    if (provider === 'gemini') return data.settings.geminiApiKey || '';
+    if (provider === 'claude') return data.settings.claudeApiKey || '';
+    return data.settings.openaiApiKey || '';
+  };
+
+  const models = PROVIDER_MODELS[activeTab];
+  const link = PROVIDER_LINKS[activeTab];
+  const providerStyle = PROVIDERS.find(p => p.id === activeTab)!;
+
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
         >
-          <motion.div 
+          <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden"
+            className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden"
           >
+            {/* Header */}
             <div className="p-6 border-b border-slate-100 flex items-center justify-between">
               <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                 <Settings className="w-5 h-5 text-blue-500" />
                 Cài đặt hệ thống
               </h3>
-              <button 
-                onClick={onClose} 
+              <button
+                onClick={onClose}
                 className="p-2 hover:bg-slate-100 rounded-full transition-colors"
                 title="Đóng"
               >
                 <X className="w-5 h-5 text-slate-400" />
               </button>
             </div>
-            <div className="p-8 space-y-6">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700 flex items-center justify-between">
-                  <div className="flex items-center gap-2"><Key className="w-4 h-4" /> Gemini API Key</div>
-                  <a href="https://aistudio.google.com/api-keys" target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline">Lấy Key tại đây</a>
-                </label>
-                <input 
-                  type="password" 
-                  value={data.settings.geminiApiKey}
-                  onChange={(e) => setData(prev => ({ ...prev, settings: { ...prev.settings, geminiApiKey: e.target.value } }))}
-                  placeholder="Nhập API Key của bạn..."
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
-                />
-                <p className="text-[10px] text-slate-400">API Key được lưu an toàn trong trình duyệt của bạn.</p>
-              </div>
-              <div className="space-y-3">
-                <label className="text-sm font-semibold text-slate-700">Mô hình AI</label>
-                <div className="grid grid-cols-1 gap-2">
-                  {[
-                    { id: 'gemini-3-flash', name: 'Gemini 3 Flash', desc: 'Nhanh, hiệu suất cao (Default)' },
-                    { id: 'gemini-3.1-pro', name: 'Gemini 3.1 Pro', desc: 'Thông minh, suy luận đa tầng chuyên sâu' },
-                    { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', desc: 'Phiên bản ổn định, tốc độ phản hồi tốt' }
-                  ].map(m => (
-                    <div 
-                      key={m.id}
-                      onClick={() => setData(prev => ({ ...prev, settings: { ...prev.settings, selectedModel: m.id } }))}
+
+            <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto custom-scrollbar">
+              {/* Provider Tabs */}
+              <div>
+                <label className="text-sm font-semibold text-slate-700 block mb-3">Nền tảng AI đang dùng</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {PROVIDERS.map(p => (
+                    <button
+                      key={p.id}
+                      onClick={() => handleSelectProvider(p.id)}
                       className={cn(
-                        "p-3 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between",
-                        data.settings.selectedModel === m.id ? "border-blue-500 bg-blue-50" : "border-slate-100 hover:border-slate-200"
+                        'py-2.5 px-3 rounded-xl border-2 text-sm font-bold transition-all',
+                        currentProvider === p.id
+                          ? `${p.border} ${p.bg} ${p.color}`
+                          : 'border-slate-100 text-slate-500 hover:border-slate-200'
                       )}
                     >
-                      <div>
-                        <div className={cn("font-bold text-sm", data.settings.selectedModel === m.id ? "text-blue-700" : "text-slate-700")}>{m.name}</div>
-                        <div className="text-xs text-slate-500">{m.desc}</div>
-                      </div>
-                      {data.settings.selectedModel === m.id && <CheckCircle2 className="w-5 h-5 text-blue-500" />}
-                    </div>
+                      {p.label}
+                      {currentProvider === p.id && (
+                        <span className="ml-1.5 text-[10px] font-normal opacity-70">đang dùng</span>
+                      )}
+                    </button>
                   ))}
                 </div>
               </div>
+
+              {/* API Key Input */}
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Key className="w-4 h-4" />
+                    API Key — {activeTab === 'gemini' ? 'Google Gemini' : activeTab === 'claude' ? 'Anthropic Claude' : 'OpenAI ChatGPT'}
+                  </div>
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={cn('text-xs hover:underline flex items-center gap-0.5', providerStyle.color)}
+                  >
+                    {link.label} <ExternalLink className="w-3 h-3" />
+                  </a>
+                </label>
+                <input
+                  type="password"
+                  value={getApiKey(activeTab)}
+                  onChange={(e) => handleApiKeyChange(activeTab, e.target.value)}
+                  placeholder={`Nhập ${activeTab === 'gemini' ? 'Gemini' : activeTab === 'claude' ? 'Claude' : 'OpenAI'} API Key...`}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                />
+                <p className="text-[10px] text-slate-400">API Key được lưu an toàn trong trình duyệt của bạn.</p>
+              </div>
+
+              {/* Model Selection */}
+              <div className="space-y-3">
+                <label className="text-sm font-semibold text-slate-700">
+                  Mô hình — {activeTab === 'gemini' ? 'Google Gemini' : activeTab === 'claude' ? 'Anthropic Claude' : 'OpenAI'}
+                </label>
+                <div className="grid grid-cols-1 gap-2">
+                  {models.map(m => {
+                    const isSelected = data.settings.selectedModel === m.id && currentProvider === activeTab;
+                    return (
+                      <div
+                        key={m.id}
+                        onClick={() => {
+                          handleSelectProvider(activeTab);
+                          setData(prev => ({ ...prev, settings: { ...prev.settings, selectedModel: m.id, selectedProvider: activeTab } }));
+                        }}
+                        className={cn(
+                          'p-3 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between',
+                          isSelected ? `${providerStyle.border} ${providerStyle.bg}` : 'border-slate-100 hover:border-slate-200'
+                        )}
+                      >
+                        <div>
+                          <div className={cn('font-bold text-sm', isSelected ? providerStyle.color : 'text-slate-700')}>{m.name}</div>
+                          <div className="text-xs text-slate-500">{m.desc}</div>
+                        </div>
+                        {isSelected && <CheckCircle2 className={cn('w-5 h-5', providerStyle.color)} />}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Auto Save Toggle */}
               <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
                 <span className="text-sm font-medium text-slate-700">Tự động lưu</span>
-                <div 
+                <div
                   onClick={() => setData(prev => ({ ...prev, settings: { ...prev.settings, autoSave: !prev.settings.autoSave } }))}
                   className={cn(
-                    "w-12 h-6 rounded-full p-1 cursor-pointer transition-colors",
-                    data.settings.autoSave ? "bg-blue-600" : "bg-slate-300"
+                    'w-12 h-6 rounded-full p-1 cursor-pointer transition-colors',
+                    data.settings.autoSave ? 'bg-blue-600' : 'bg-slate-300'
                   )}
                 >
-                  <div className={cn("w-4 h-4 bg-white rounded-full transition-transform", data.settings.autoSave ? "translate-x-6" : "translate-x-0")} />
+                  <div className={cn('w-4 h-4 bg-white rounded-full transition-transform', data.settings.autoSave ? 'translate-x-6' : 'translate-x-0')} />
                 </div>
               </div>
             </div>
+
+            {/* Footer */}
             <div className="p-6 bg-slate-50 flex gap-3">
-              <button 
+              <button
                 onClick={onClose}
                 className="flex-1 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold"
               >
                 Đóng
               </button>
-              <button 
+              <button
                 onClick={() => {
                   onClose();
                   showToast('Đã lưu cài đặt!');

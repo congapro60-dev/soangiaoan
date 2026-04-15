@@ -4,7 +4,7 @@ import { FileText, Save, MessageSquare, Monitor, Layers, Loader2, Sparkles, X, B
 import ReactMarkdown from 'react-markdown';
 import { AppData, LessonPlan, TemplateFile } from '../../types';
 import * as exportUtils from '../../utils/exportUtils';
-import { callGeminiAI } from '../../lib/gemini';
+import { callAI, getActiveApiKey } from '../../lib/aiProviders';
 import { AudioOverview } from '../features/AudioOverview';
 
 // Subcomponents
@@ -68,7 +68,7 @@ export const CreatorTab = (props: CreatorTabProps) => {
   };
 
   const handleGenerateStudyGuide = async () => {
-    if(!props.currentPlan.content || !props.data.settings.geminiApiKey) {
+    if(!props.currentPlan.content || !getActiveApiKey(props.data.settings)) {
        props.showToast("Vui lòng soạn giáo án và cài API Key trước!", "warning");
        return;
     }
@@ -87,7 +87,7 @@ export const CreatorTab = (props: CreatorTabProps) => {
     - ❓ Câu hỏi Thường gặp (FAQ - giải đáp 2-3 thắc mắc phổ biến).
     - 📝 Gợi ý Tự học / Luyện tập thêm.
  3. Văn phong thân thiện, tạo động lực cho học sinh.`;
-      const doc = await callGeminiAI(prompt, props.data.settings.geminiApiKey, 0);
+      const doc = await callAI(prompt, props.data.settings);
       if(doc) {
         setStudyGuide(doc);
         props.showToast("Đã tạo Hướng dẫn ôn tập!");
@@ -262,10 +262,9 @@ export const CreatorTab = (props: CreatorTabProps) => {
       </main>
       
       {showAudioOverview && props.currentPlan.content && (
-        <AudioOverview 
+        <AudioOverview
           content={props.currentPlan.content}
-          apiKey={props.data.settings.geminiApiKey}
-          modelIndex={0}
+          settings={props.data.settings}
           onClose={() => setShowAudioOverview(false)}
         />
       )}

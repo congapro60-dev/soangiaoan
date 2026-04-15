@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { LessonPlan, AppData, TemplateFile } from '../types';
-import { callGeminiAI, MODELS } from '../lib/gemini';
+import { callAI, getActiveApiKey } from '../lib/aiProviders';
 import { cleanMarkdownOutput } from '../utils/markdownUtils';
 import Swal from 'sweetalert2';
 
@@ -34,9 +34,9 @@ export const useLessonCreator = (
   const [revisionPrompt, setRevisionPrompt] = useState('');
 
   const handleCreateLesson = async () => {
-    if (!data.settings.geminiApiKey) {
+    if (!getActiveApiKey(data.settings)) {
       setIsSettingsOpen(true);
-      showToast('Vui lòng nhập API Key!', 'warning');
+      showToast('Vui lòng nhập API Key trong Cài đặt!', 'warning');
       return;
     }
 
@@ -114,7 +114,7 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
           YÊU CẦU ĐÁNH GIÁ (<pedagogical_review>):
           Tự chấm điểm theo 6 tiêu chí Danielson (1a-1f) và đưa ra nhận xét chuyên môn.
         `;
-        const result = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
+        const result = await callAI(prompt, data.settings);
         if (result) {
           // Trích xuất nội dung từ thẻ <lesson_content> để hiển thị chính
           const contentMatch = result.match(/<lesson_content>([\s\S]*?)<\/lesson_content>/);
@@ -144,7 +144,7 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
           KHÔNG TRẢ VỀ GÌ QUÁ NGOÀI XML.
         `;
         
-        const planResponse = await callGeminiAI(plannerPrompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
+        const planResponse = await callAI(plannerPrompt, data.settings);
         if (!planResponse) throw new Error("Không trích xuất được kế hoạch từ PPCN");
 
         let extractedLessons: { week: string, title: string, objectives: string }[] = [];
@@ -193,7 +193,7 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
             1f: Đánh giá quá trình học tập
           `;
 
-          const detailResponse = await callGeminiAI(detailPrompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
+          const detailResponse = await callAI(detailPrompt, data.settings);
           if (detailResponse) {
             newPlans.push({
               id: Math.random().toString(36).substr(2, 9),
@@ -221,11 +221,11 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
   };
 
   const handleReviseLesson = async () => {
-    if (!revisionPrompt.trim() || !currentPlan.content || !data.settings.geminiApiKey) return;
+    if (!revisionPrompt.trim() || !currentPlan.content || !getActiveApiKey(data.settings)) return;
     setIsLoading(true);
     try {
       const prompt = `Viết lại giáo án sau theo yêu cầu: "${revisionPrompt}". \nNội dung cũ: ${currentPlan.content}`;
-      const result = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
+      const result = await callAI(prompt, data.settings);
       if (result) {
         setCurrentPlan(prev => ({ ...prev, content: cleanMarkdownOutput(result) }));
         setRevisionPrompt('');

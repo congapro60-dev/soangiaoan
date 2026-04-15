@@ -1,0 +1,101 @@
+import { callGeminiAI, callGeminiAIStream, MODELS } from './gemini';
+import type { AppData } from '../types';
+
+type Settings = AppData['settings'];
+
+export const CLAUDE_MODELS = [
+  { id: 'claude-opus-4-6', name: 'Claude Opus 4.6', desc: 'Mạnh nhất, suy luận chuyên sâu' },
+  { id: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6', desc: 'Cân bằng tốc độ & chất lượng (Default)' },
+  { id: 'claude-haiku-4-5-20251001', name: 'Claude Haiku 4.5', desc: 'Nhanh, tiết kiệm chi phí' },
+];
+
+export const OPENAI_MODELS = [
+  { id: 'gpt-4o', name: 'GPT-4o', desc: 'Đa phương thức, mạnh nhất (Default)' },
+  { id: 'gpt-4o-mini', name: 'GPT-4o Mini', desc: 'Nhanh, tiết kiệm chi phí' },
+  { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', desc: 'Hiệu suất cao, context dài' },
+];
+
+export const GEMINI_MODELS = [
+  { id: 'gemini-3-flash', name: 'Gemini 3 Flash', desc: 'Nhanh, hiệu suất cao (Default)' },
+  { id: 'gemini-3.1-pro', name: 'Gemini 3.1 Pro', desc: 'Thông minh, suy luận đa tầng' },
+  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', desc: 'Phiên bản ổn định, tốc độ tốt' },
+];
+
+export function getActiveApiKey(settings: Settings): string {
+  const provider = settings.selectedProvider ?? 'gemini';
+  if (provider === 'claude') return settings.claudeApiKey || '';
+  if (provider === 'openai') return settings.openaiApiKey || '';
+  return settings.geminiApiKey || '';
+}
+
+export async function callAI(prompt: string, settings: Settings): Promise<string> {
+  const provider = settings.selectedProvider ?? 'gemini';
+
+  if (provider === 'claude') {
+    const Anthropic = (await import('@anthropic-ai/sdk')).default;
+    const client = new Anthropic({ apiKey: settings.claudeApiKey, dangerouslyAllowBrowser: true });
+    const msg = await client.messages.create({
+      model: settings.selectedModel || 'claude-sonnet-4-6',
+      max_tokens: 8096,
+      messages: [{ role: 'user', content: prompt }],
+    });
+    return msg.content[0].type === 'text' ? msg.content[0].text : '';
+  }
+
+  if (provider === 'openai') {
+    const OpenAI = (await import('openai')).default;
+    const client = new OpenAI({ apiKey: settings.openaiApiKey, dangerouslyAllowBrowser: true });
+    const res = await client.chat.completions.create({
+      model: settings.selectedModel || 'gpt-4o',
+      messages: [{ role: 'user', content: prompt }],
+    });
+    return res.choices[0]?.message?.content ?? '';
+  }
+
+  // default: gemini
+  const idx = MODELS.indexOf(settings.selectedModel);
+  return (await callGeminiAI(prompt, settings.geminiApiKey, idx >= 0 ? idx : 0)) ?? '';
+}
+
+export async function callAIStream(
+  prompt: string,
+  settings: Settings,
+  onChunk: (chunk: string) => void
+): Promise<void> {
+  const provider = settings.selectedProvider ?? 'gemini';
+
+  if (provider === 'claude') {
+    const Anthropic = (await import('@anthropic-ai/sdk')).default;
+    const client = new Anthropic({ apiKey: settings.claudeApiKey, dangerouslyAllowBrowser: true });
+    const stream = client.messages.stream({
+      model: settings.selectedModel || 'claude-sonnet-4-6',
+      max_tokens: 8096,
+      messages: [{ role: 'user', content: prompt }],
+    });
+    for await (const event of stream) {
+      if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+        onChunk(event.delta.text);
+      }
+    }
+    return;
+  }
+
+  if (provider === 'openai') {
+    const OpenAI = (await import('openai')).default;
+    const client = new OpenAI({ apiKey: settings.openaiApiKey, dangerouslyAllowBrowser: true });
+    const stream = await client.chat.completions.create({
+      model: settings.selectedModel || 'gpt-4o',
+      messages: [{ role: 'user', content: prompt }],
+      stream: true,
+    });
+    for await (const chunk of stream) {
+      const text = chunk.choices[0]?.delta?.content ?? '';
+      if (text) onChunk(text);
+    }
+    return;
+  }
+
+  // default: gemini
+  const idx = MODELS.indexOf(settings.selectedModel);
+  return callGeminiAIStream(prompt, settings.geminiApiKey, onChunk, idx >= 0 ? idx : 0);
+}
