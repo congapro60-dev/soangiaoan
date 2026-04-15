@@ -75,13 +75,31 @@ export const useLessonCreator = (
 
       const mathRestrictions = subject === 'Toán học' || subject.toLowerCase().includes('toán') ? `
 ===========================================================
-YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
-(Chuẩn hóa theo CIS, TDS và Danielson Framework)
+QUY TẮC SOẠN GIÁO ÁN MÔN TOÁN — BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI
 ===========================================================
-1. THÔNG TIN CHUNG BẮT BUỘC: WALT, WILF (3 mức độ 🌶️), NĂNG LỰC CỐT LÕI.
-2. CẤU TRÚC BƯỚC: 4 giai đoạn, mỗi giai đoạn 1 bảng 3 cột riêng.
-3. HÀNH ĐỘNG SƯ PHẠM: [Quét Radar], [🌐 Công dân toàn cầu], v.v.
-4. ĐỘ CHI TIẾT: Biên kịch hội thoại GV/HS 100%.
+
+I. CẤU TRÚC MỤC TIÊU BÀI HỌC (bắt buộc có đầy đủ):
+   A. NĂNG LỰC CỐT LÕI: Tư duy toán học, Mô hình hóa toán học, Giao tiếp toán học, Giải quyết vấn đề toán học, Sử dụng công cụ & phương tiện học toán.
+   B. Phẩm chất: Chăm chỉ, trung thực, trách nhiệm.
+   C. MỤC TIÊU PHÂN HÓA (BẮT BUỘC — không được bỏ qua):
+      - Học sinh khá/giỏi: [Yêu cầu nâng cao, bài toán mở rộng cụ thể]
+      - Học sinh trung bình/yếu: [Yêu cầu tối thiểu cần đạt, hỗ trợ cụ thể]
+
+II. ĐỊNH DẠNG BẢNG 3 CỘT — BẮT BUỘC cho TẤT CẢ 4 hoạt động:
+   (Khởi động / Hình thành kiến thức / Luyện tập / Vận dụng)
+
+   MỖI hoạt động PHẢI trình bày theo đúng bảng Markdown 3 cột sau:
+   | Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng/Sản phẩm dự kiến |
+   |---|---|---|
+   | ... | ... | ... |
+
+   LƯU Ý: "Nội dung ghi bảng" là những nội dung trọng tâm mà Giáo viên sẽ ghi lên bảng để Học sinh ghi chép vào vở. KHÔNG được để trống cột này.
+
+III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
+   - Công thức trên cùng dòng văn bản: dùng $...$ (ví dụ: $f(x) = x^2 + 1$)
+   - Công thức đứng riêng một dòng: dùng $$...$$ (ví dụ: $$\\int_0^1 x^2\\,dx = \\frac{1}{3}$$)
+   - TUYỆT ĐỐI KHÔNG viết công thức dưới dạng plain text (sai: "x^2 + 1", đúng: "$x^2 + 1$")
+
 ===========================================================
       ` : '';
 
@@ -103,13 +121,13 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
           ${activeDist ? `PHÂN PHỐI CHƯƠNG TRÌNH:\n${activeDist.content}` : ''}
           ${lessonDocsContent ? `TÀI LIỆU THAM KHẢO:\n${lessonDocsContent}` : ''}
           ${singleRequirement ? `YÊU CẦU BỔ SUNG: ${singleRequirement}` : ''}
-          ${mathRestrictions}
 
           YÊU CẦU NỘI DUNG (<lesson_content>):
           - Tiến trình 4 bước chuyên sâu (Mở đầu, Hình thành kiến thức, Luyện tập, Vận dụng).
           - Mỗi bước trình bày dạng BẢNG 3 CỘT (Hoạt động GV | Hoạt động HS | Công cụ & Đánh giá).
           - Ngôn ngữ biên kịch hội thoại 100%. Dùng <br/><br/> để cách dòng trong bảng.
           - Tích hợp kỹ năng thế kỷ 21 và năng lực cốt lõi.
+          ${mathRestrictions}
 
           YÊU CẦU ĐÁNH GIÁ (<pedagogical_review>):
           Tự chấm điểm theo 6 tiêu chí Danielson (1a-1f) và đưa ra nhận xét chuyên môn.
@@ -174,13 +192,13 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
             - Mục tiêu/Kiến thức trọng tâm: ${lesson.objectives}
             
             ${templateContext}
-            ${mathRestrictions}
             Lớp: ${currentPlan.grade}.
-            
+
             YÊU CẦU NGHIÊM NGẶT:
             1. NỘI DUNG PHẢI TUÂN THỦ HOÀN TOÀN THEO "MỤC TIÊU/KIẾN THỨC TRỌNG TÂM" ĐÃ TRÍCH XUẤT TRÊN.
             2. Định dạng: Nhiều bảng 3 cột. Chi tiết từng hoạt động.
             3. Tiêu đề bài soạn phải khớp 100% với tên bài được cung cấp.
+            ${mathRestrictions}
             
             PHẦN QUAN TRỌNG: Ở CUỐI GIÁO ÁN, BẮT BUỘC PHẢI THÊM PHẦN:
             "## Đánh giá của tổ trưởng chuyên môn"
