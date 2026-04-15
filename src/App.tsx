@@ -146,8 +146,12 @@ export default function App() {
     <div className="h-screen w-full flex bg-slate-50 font-sans overflow-hidden">
       <input type="file" ref={fileInputRef} onChange={handleFileUpload} multiple className="hidden" />
       
-      <Sidebar 
-        activeTab={activeTab} setActiveTab={setActiveTab} 
+      <Sidebar
+        activeTab={activeTab} setActiveTab={setActiveTab}
+        onCreatorTabClick={() => {
+          creator.setCurrentPlan({ title: '', content: '', subjectId: creator.currentPlan.subjectId || 'math', templateId: '', grade: creator.currentPlan.grade || '10', week: creator.currentPlan.week || '1' });
+          setActiveTab('creator');
+        }}
         isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}
         setIsSettingsOpen={setIsSettingsOpen} handleLogout={handleLogout}
       />
