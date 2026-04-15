@@ -129,19 +129,21 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
   const handleDownloadPDF = async () => {
     const element = document.getElementById('report-paper-container');
     if (!element) return;
-    showToast('Đang tạo bản in PDF...');
+    showToast('Đang tạo PDF, vui lòng chờ...');
     try {
-      const html2pdf = (await import('html2pdf.js')).default;
+      const mod = await import('html2pdf.js');
+      const html2pdf = (mod.default ?? mod) as any;
       const opt = {
-        margin: 12,
+        margin: [15, 12, 15, 12] as [number, number, number, number],
         filename: `Bao_cao_kiem_tra_${Date.now()}.pdf`,
-        image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
+        image: { type: 'jpeg' as const, quality: 0.92 },
+        html2canvas: { scale: 1.5, useCORS: true, logging: false },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
       };
       await html2pdf().from(element).set(opt).save();
       showToast('Đã tải PDF thành công!', 'success');
     } catch (e) {
+      console.error('PDF export error:', e);
       showToast('Lỗi xuất PDF. Vui lòng thử lại.', 'error');
     }
   };
@@ -151,21 +153,23 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
     showToast('Đang tạo file Word...');
     try {
       const htmlBody = await marked(testResult);
-      const htmlContent = `
-        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
-        <head><meta charset="utf-8"><style>
-          body { font-family: 'Times New Roman', serif; font-size: 13pt; line-height: 1.6; padding: 2cm; }
-          h1 { text-align: center; font-size: 16pt; color: #1F3864; }
-          h2 { font-size: 13pt; color: #2F5496; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
-          h3 { font-size: 12pt; color: #2F5496; }
-          table { border-collapse: collapse; width: 100%; margin: 8px 0; }
-          th, td { border: 1px solid #000; padding: 6px 8px; text-align: left; font-size: 11pt; }
-          th { background-color: #2F5496; color: #ffffff; }
-          p { margin: 4px 0; }
-        </style></head>
-        <body>${htmlBody}</body></html>
-      `;
-      const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
+      const htmlContent = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style>
+  body { font-family: 'Times New Roman', serif; font-size: 13pt; line-height: 1.6; padding: 2cm; }
+  h1 { text-align: center; font-size: 16pt; color: #1F3864; }
+  h2 { font-size: 13pt; color: #2F5496; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+  h3 { font-size: 12pt; color: #2F5496; }
+  table { border-collapse: collapse; width: 100%; margin: 8px 0; }
+  th { border: 1px solid #000; padding: 6px 8px; text-align: left; font-size: 11pt; background-color: #2F5496; color: #ffffff; }
+  td { border: 1px solid #000; padding: 6px 8px; text-align: left; font-size: 11pt; }
+  p { margin: 4px 0; }
+</style></head>
+<body>${htmlBody}</body></html>`;
+      const encoder = new TextEncoder();
+      const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+      const encoded = encoder.encode(htmlContent);
+      const blob = new Blob([bom, encoded], { type: 'application/msword' });
       downloadBlob(blob, `Bao_cao_kiem_tra_${Date.now()}.doc`);
       showToast('Đã tải file Word thành công!', 'success');
     } catch (e) {

@@ -33,7 +33,8 @@ export const exportToPDF = async (currentPlan: Partial<LessonPlan>, showToast: (
   document.head.appendChild(style);
 
   try {
-    const html2pdf = (await import('html2pdf.js')).default;
+    const mod = await import('html2pdf.js');
+    const html2pdf = (mod.default ?? mod) as any;
     const opt = {
       margin: [15, 12, 15, 12] as [number, number, number, number],
       filename: `${currentPlan.title || 'giao-an'}.pdf`,
@@ -98,9 +99,10 @@ export const exportToWord = (currentPlan: Partial<LessonPlan>, showToast: (msg: 
       </style></head>
       <body>${cloned.innerHTML}</body></html>
     `;
-    const blob = new Blob(['\ufeff', htmlContent], {
-      type: 'application/vnd.ms-word;charset=utf-8'
-    });
+    const encoder = new TextEncoder();
+    const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+    const encoded = encoder.encode(htmlContent);
+    const blob = new Blob([bom, encoded], { type: 'application/msword' });
     downloadBlob(blob, `${currentPlan.title || 'giao-an'}.doc`);
     showToast('Đã xuất file Word (có Công thức native)!');
   } catch (e) {
