@@ -23,6 +23,10 @@ interface LibraryTabProps {
   libraryTab: 'personal' | 'community';
   setLibraryTab: (tab: 'personal' | 'community') => void;
   searchQuery: string;
+  loadMorePlans: () => void;
+  hasMorePlans: boolean;
+  loadMoreCommunity: () => void;
+  hasMoreCommunity: boolean;
   setSearchQuery: (query: string) => void;
   setActiveTab: (tab: any) => void;
   data: AppData;
@@ -48,7 +52,11 @@ export const LibraryTab = ({
   duplicatePlan,
   updatePlanMetadata,
   user,
-  toggleSharePlan
+  toggleSharePlan,
+  loadMorePlans,
+  hasMorePlans,
+  loadMoreCommunity,
+  hasMoreCommunity
 }: LibraryTabProps) => {
   const [selectedGrade, setSelectedGrade] = useState<string>('all');
   const [selectedWeek, setSelectedWeek] = useState<string>('all');
@@ -148,7 +156,7 @@ export const LibraryTab = ({
       </div>
 
       {/* Grid Display */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 pb-20">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {filteredPlans.map((plan) => (
           <motion.div 
             key={plan.id}
@@ -275,6 +283,18 @@ export const LibraryTab = ({
           </motion.div>
         ))}
       </div>
+
+      {/* Nút Tải thêm */}
+      {(libraryTab === 'personal' ? hasMorePlans : hasMoreCommunity) && (
+        <div className="flex justify-center pb-12">
+          <button
+            onClick={libraryTab === 'personal' ? loadMorePlans : loadMoreCommunity}
+            className="px-8 py-3 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold text-sm hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-all shadow-sm"
+          >
+            Tải thêm giáo án...
+          </button>
+        </div>
+      )}
     </motion.div>
   );
 };
