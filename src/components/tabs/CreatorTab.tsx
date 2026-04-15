@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { FileText, Save, MessageSquare, Monitor, Layers, Loader2, Sparkles, X, BookOpen } from 'lucide-react';
+import { FileText, Save, MessageSquare, Monitor, Layers, Loader2, Sparkles, X, BookOpen, FilePlus } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { AppData, LessonPlan, TemplateFile } from '../../types';
 import * as exportUtils from '../../utils/exportUtils';
@@ -186,11 +186,18 @@ export const CreatorTab = (props: CreatorTabProps) => {
                     </div>
                  </div>
                  <div className="flex flex-wrap gap-2">
-                    <button 
+                    <button
+                      onClick={() => props.setCurrentPlan({ title: '', content: '', subjectId: props.currentPlan.subjectId || 'math', templateId: '', grade: props.currentPlan.grade || '10', week: props.currentPlan.week || '1' })}
+                      className="px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-50 transition-all text-sm"
+                      title="Xóa nội dung hiện tại và soạn bài mới"
+                    >
+                      <FilePlus className="w-4 h-4" /> Soạn bài mới
+                    </button>
+                    <button
                       onClick={props.generationMode === 'single' ? props.saveLessonPlan : props.saveBulkPlans}
                       className="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 transition-all text-sm shadow-lg shadow-blue-100"
                     >
-                      <Save className="w-4 h-4" /> 
+                      <Save className="w-4 h-4" />
                       {props.generationMode === 'single' ? 'Lưu bài này' : 'Lưu tất cả'}
                     </button>
                     {props.generationMode === 'single' && (
