@@ -3,9 +3,11 @@ import { LessonPlan, AppData } from '../types';
 import { downloadBlob } from './fileUtils';
 import { callGeminiAI, MODELS } from '../lib/gemini';
 
-export const exportToPDF = (currentPlan: Partial<LessonPlan>, showToast: (msg: string, type?: any) => void) => {
+export const exportToPDF = async (currentPlan: Partial<LessonPlan>, showToast: (msg: string, type?: any) => void) => {
   const element = document.getElementById('lesson-content');
   if (!element) return;
+
+  showToast('Đang tạo PDF, vui lòng chờ...');
 
   const style = document.createElement('style');
   style.id = 'pdf-print-style';
@@ -22,31 +24,33 @@ export const exportToPDF = (currentPlan: Partial<LessonPlan>, showToast: (msg: s
     #lesson-content h2 { font-size: 14pt !important; }
     #lesson-content h3 { font-size: 13pt !important; }
     #lesson-content tr { page-break-inside: avoid !important; }
-    
     #lesson-content table th:nth-child(1), #lesson-content table td:nth-child(1) { width: 12% !important; }
     #lesson-content table th:nth-child(2), #lesson-content table td:nth-child(2) { width: 44% !important; }
     #lesson-content table th:nth-child(3), #lesson-content table td:nth-child(3) { width: 44% !important; }
-    
     .katex { padding: 4px 0 !important; display: inline-block !important; }
     .katex-display { margin: 8px 0 !important; }
   `;
   document.head.appendChild(style);
-  
-  const opt = {
-    margin: [15, 12, 15, 12],
-    filename: `${currentPlan.title || 'giao-an'}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
-  };
 
-  // @ts-ignore
-  window.html2pdf().from(element).set(opt).save().then(() => {
+  try {
+    const html2pdf = (await import('html2pdf.js')).default;
+    const opt = {
+      margin: [15, 12, 15, 12] as [number, number, number, number],
+      filename: `${currentPlan.title || 'giao-an'}.pdf`,
+      image: { type: 'jpeg' as const, quality: 0.92 },
+      html2canvas: { scale: 1.5, useCORS: true, letterRendering: true, logging: false },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+    };
+    await html2pdf().from(element).set(opt).save();
+    showToast('Đã tải xuống file PDF!', 'success');
+  } catch (e) {
+    console.error(e);
+    showToast('Lỗi khi xuất PDF, vui lòng thử lại.', 'error');
+  } finally {
     const injected = document.getElementById('pdf-print-style');
     if (injected) injected.remove();
-  });
-  showToast('Đang xuất file PDF...');
+  }
 };
 
 export const exportToWord = (currentPlan: Partial<LessonPlan>, showToast: (msg: string, type?: any) => void) => {
