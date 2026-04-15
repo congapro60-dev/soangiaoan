@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { 
-  UploadCloud, 
-  Search, 
-  Plus, 
-  FileText, 
-  Eye, 
-  Trash2, 
-  CheckCircle2,
+import {
+  UploadCloud,
+  Search,
+  Plus,
+  FileText,
+  Eye,
+  Trash2,
   Copy,
   Edit3,
   Check,
@@ -18,6 +17,7 @@ import {
 import dayjs from 'dayjs';
 import { cn } from '../../lib/utils';
 import { AppData, LessonPlan } from '../../types';
+import { ViewPlanModal } from '../modals/ViewPlanModal';
 
 interface LibraryTabProps {
   libraryTab: 'personal' | 'community';
@@ -62,6 +62,7 @@ export const LibraryTab = ({
   const [selectedWeek, setSelectedWeek] = useState<string>('all');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<LessonPlan>>({});
+  const [viewingPlan, setViewingPlan] = useState<LessonPlan | null>(null);
 
   const plansToDisplay = libraryTab === 'personal' ? data.lessonPlans : communityPlans;
   
@@ -163,7 +164,7 @@ export const LibraryTab = ({
             layout
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            onClick={() => { setCurrentPlan(plan); setActiveTab('creator'); }}
+            onClick={() => setViewingPlan(plan)}
             className="group pro-card p-6 cursor-pointer overflow-hidden relative"
           >
             <div className="flex items-start justify-between mb-6">
@@ -180,7 +181,11 @@ export const LibraryTab = ({
                     <UploadCloud className="w-5 h-5" />
                   </button>
                 )}
-                <button className="p-2 bg-slate-50 text-slate-400 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all">
+                <button
+                  title="Xem giáo án"
+                  onClick={(e) => { e.stopPropagation(); setViewingPlan(plan); }}
+                  className="p-2 bg-slate-50 text-slate-400 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all"
+                >
                   <Eye className="w-5 h-5" />
                 </button>
                 {libraryTab === 'personal' && (
@@ -295,6 +300,16 @@ export const LibraryTab = ({
           </button>
         </div>
       )}
+
+      <ViewPlanModal
+        plan={viewingPlan}
+        onClose={() => setViewingPlan(null)}
+        onEdit={(plan) => {
+          setCurrentPlan(plan);
+          setActiveTab('creator');
+          setViewingPlan(null);
+        }}
+      />
     </motion.div>
   );
 };
