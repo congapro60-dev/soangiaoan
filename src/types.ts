@@ -107,8 +107,8 @@ export const DEFAULT_DATA: AppData = {
     claudeApiKey: '',
     openaiApiKey: '',
     selectedProvider: 'gemini',
-    selectedModel: 'gemini-3-flash',
-    models: ['gemini-3-flash', 'gemini-3.1-pro', 'gemini-2.5-flash'],
+    selectedModel: 'gemini-3.1-flash-lite-preview',
+    models: ['gemini-3.1-flash-lite-preview', 'gemini-3.1-pro-preview', 'gemini-2.5-flash'],
   },
   gradingSessions: [],
 };

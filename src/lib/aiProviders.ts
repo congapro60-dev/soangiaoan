@@ -16,8 +16,8 @@ export const OPENAI_MODELS = [
 ];
 
 export const GEMINI_MODELS = [
-  { id: 'gemini-3-flash', name: 'Gemini 3 Flash', desc: 'Nhanh, hiệu suất cao (Default)' },
-  { id: 'gemini-3.1-pro', name: 'Gemini 3.1 Pro', desc: 'Thông minh, suy luận đa tầng' },
+  { id: 'gemini-3.1-flash-lite-preview', name: 'Gemini 3.1 Flash Lite', desc: 'Nhanh, hiệu suất cao (Default)' },
+  { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro', desc: 'Thông minh, suy luận đa tầng' },
   { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', desc: 'Phiên bản ổn định, tốc độ tốt' },
 ];
 
