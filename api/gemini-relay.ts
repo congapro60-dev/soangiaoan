@@ -5,33 +5,66 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const apiKey = process.env.GEMINI_FALLBACK_KEY;
-  if (!apiKey) {
-    return res.status(503).json({ error: 'Fallback service unavailable' });
-  }
-
   const { prompt, model, imageBase64, imageMimeType } = req.body || {};
   if (!prompt || typeof prompt !== 'string') {
     return res.status(400).json({ error: 'Missing prompt' });
   }
 
-  try {
-    const { GoogleGenAI } = await import('@google/genai');
-    const ai = new GoogleGenAI({ apiKey });
+  const geminiKey = process.env.GEMINI_FALLBACK_KEY;
+  const grokKey = process.env.GROK_FALLBACK_KEY;
 
-    const parts: any[] = [{ text: prompt }];
-    if (imageBase64 && imageMimeType) {
-      parts.push({ inlineData: { data: imageBase64, mimeType: imageMimeType } });
+  if (!geminiKey && !grokKey) {
+    return res.status(503).json({ error: 'Fallback service unavailable' });
+  }
+
+  // Try Gemini first
+  if (geminiKey) {
+    try {
+      const { GoogleGenAI } = await import('@google/genai');
+      const ai = new GoogleGenAI({ apiKey: geminiKey });
+
+      const parts: any[] = [{ text: prompt }];
+      if (imageBase64 && imageMimeType) {
+        parts.push({ inlineData: { data: imageBase64, mimeType: imageMimeType } });
+      }
+
+      const result = await ai.models.generateContent({
+        model: typeof model === 'string' ? model : 'gemini-3.1-flash-lite-preview',
+        contents: [{ parts }],
+        config: { temperature: 0.1 },
+      });
+
+      return res.status(200).json({ text: result.text || '' });
+    } catch (geminiErr: any) {
+      const msg = String(geminiErr?.message || '');
+      const isQuota = msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED') || msg.includes('quota');
+      // Only fall through to Grok on quota errors; hard errors bubble up
+      if (!isQuota || !grokKey) {
+        return res.status(500).json({ error: geminiErr.message || 'Gemini error' });
+      }
+      // Fall through to Grok below
     }
+  }
 
-    const result = await ai.models.generateContent({
-      model: typeof model === 'string' ? model : 'gemini-3.1-flash-lite-preview',
-      contents: [{ parts }],
-      config: { temperature: 0.1 },
+  // Grok fallback (xAI — OpenAI-compatible)
+  try {
+    const OpenAI = (await import('openai')).default;
+    const client = new OpenAI({ apiKey: grokKey, baseURL: 'https://api.x.ai/v1' });
+
+    const content: any[] = [];
+    if (imageBase64 && imageMimeType) {
+      content.push({ type: 'image_url', image_url: { url: `data:${imageMimeType};base64,${imageBase64}` } });
+    }
+    content.push({ type: 'text', text: prompt });
+
+    const grokModel = imageBase64 ? 'grok-2-vision' : 'grok-3';
+    const result = await client.chat.completions.create({
+      model: grokModel,
+      messages: [{ role: 'user', content }],
     });
 
-    return res.status(200).json({ text: result.text || '' });
-  } catch (error: any) {
-    return res.status(500).json({ error: error.message || 'Internal server error' });
+    return res.status(200).json({ text: result.choices[0]?.message?.content || '' });
+  } catch (grokErr: any) {
+    return res.status(500).json({ error: grokErr.message || 'Fallback error' });
   }
 }
