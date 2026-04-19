@@ -157,7 +157,7 @@ export default function App() {
       />
 
       <main className="flex-1 flex flex-col overflow-hidden relative">
-        <Header activeTab={activeTab} data={data} setIsSettingsOpen={setIsSettingsOpen} />
+        <Header activeTab={activeTab} data={data} setIsSettingsOpen={setIsSettingsOpen} setActiveTab={setActiveTab} />
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-8">
           <AnimatePresence mode="wait">
