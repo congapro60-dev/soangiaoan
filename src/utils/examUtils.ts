@@ -1,5 +1,7 @@
-import { callGeminiAI, MODELS } from '../lib/gemini';
-import { TemplateFile } from '../types';
+import { callAI } from '../lib/aiProviders';
+import { AppData, TemplateFile } from '../types';
+
+type Settings = AppData['settings'];
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
@@ -28,13 +30,12 @@ export const examUtils = {
   },
 
   generateExam: async (
-    matrix: TemplateFile | null, 
-    requirement: string, 
-    apiKey: string, 
-    modelIndex: number
+    matrix: TemplateFile | null,
+    requirement: string,
+    settings: Settings
   ) => {
     const prompt = examUtils.getGeneratePrompt(matrix, requirement);
-    return await callGeminiAI(prompt, apiKey, modelIndex);
+    return await callAI(prompt, settings);
   },
 
   /**
@@ -152,24 +153,22 @@ ${testContent}
   },
 
   auditExam: async (
-    testContent: string, 
-    apiKey: string, 
-    modelIndex: number
+    testContent: string,
+    settings: Settings
   ) => {
     const prompt = examUtils.getAuditPrompt(testContent);
-    return await callGeminiAI(prompt, apiKey, modelIndex);
+    return await callAI(prompt, settings);
   },
 
   /**
    * TRỘN ĐỀ HOÁN VỊ (AI-Assisted Shuffling)
    */
   shuffleExam: async (
-    originalContent: string, 
+    originalContent: string,
     count: number,
-    apiKey: string,
-    modelIndex: number
+    settings: Settings
   ) => {
-    // Bước 1: Dùng tư duy Claude để tách đề thi thành mảng JSON câu hỏi
+    // Bước 1: Tách đề thi thành mảng JSON câu hỏi
     const parserPrompt = `
       BẠN LÀ CHUYÊN GIA DỮ LIỆU ĐỀ THI. 
       NHIỆM VỤ: Chuyển đổi văn bản sau đây thành mảng JSON các câu hỏi.
@@ -183,7 +182,7 @@ ${testContent}
       ${originalContent}
     `;
 
-    const jsonResponse = await callGeminiAI(parserPrompt, apiKey, modelIndex);
+    const jsonResponse = await callAI(parserPrompt, settings);
     if (!jsonResponse) throw new Error("Không thể trích xuất câu hỏi");
 
     const jsonMatch = jsonResponse.match(/\[[\s\S]*\]/);

@@ -17,7 +17,7 @@ import 'katex/dist/katex.min.css';
 import { AppData, TemplateFile } from '../../types';
 import { examUtils } from '../../utils/examUtils';
 import { downloadBlob } from '../../utils/fileUtils';
-import { callGeminiAIStream } from '../../lib/gemini';
+import { callAIStream, getActiveApiKey } from '../../lib/aiProviders';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
@@ -232,8 +232,8 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
   };
 
   const handleExamAction = async () => {
-    if (!data.settings.geminiApiKey) {
-      showToast('Cần nhập Gemini API Key trong Cài đặt', 'error');
+    if (!getActiveApiKey(data.settings)) {
+      showToast('Cần nhập API Key trong Cài đặt', 'error');
       return;
     }
     setIsLoading(true);
@@ -241,7 +241,7 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
     setProcessStatus('Đang chuẩn bị và gửi AI...');
 
     try {
-      const modelIdx = Math.max(0, data.settings.models?.indexOf(data.settings.selectedModel) || 0);
+      // modelIdx unused — provider routing handled inside callAIStream
       let cumulativeText = '';
 
       const onChunk = (chunk: string) => {
@@ -251,7 +251,7 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
 
       if (activeMode === 'create') {
         const prompt = await examUtils.getGeneratePrompt(matrixFile, requirement);
-        await callGeminiAIStream(prompt, data.settings.geminiApiKey, onChunk, modelIdx);
+        await callAIStream(prompt, data.settings, onChunk);
         const match = cumulativeText.match(/<exam_content>([\s\S]*?)<\/exam_content>/);
         const final = match ? match[1].trim() : cumulativeText.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
         setTestResult(final);
@@ -261,7 +261,7 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
         const fullContent = uploadedFiles.map(f => f.content).join('\n---\n');
         if (!fullContent.trim()) throw new Error('Nội dung tệp trống.');
         const prompt = await examUtils.getAuditPrompt(fullContent);
-        await callGeminiAIStream(prompt, data.settings.geminiApiKey, onChunk, modelIdx);
+        await callAIStream(prompt, data.settings, onChunk);
         const match = cumulativeText.match(/<audit_report>([\s\S]*?)<\/audit_report>/);
         const final = match
           ? match[1].trim()
@@ -273,7 +273,7 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
         setProcessStatus('Đang thực hiện hoán vị đề...');
         const fullContent = uploadedFiles.map(f => f.content).join('\n---\n');
         if (!fullContent.trim()) throw new Error('Nội dung tệp trống.');
-        await examUtils.shuffleExam(fullContent, shuffledCount, data.settings.geminiApiKey, modelIdx);
+        await examUtils.shuffleExam(fullContent, shuffledCount, data.settings);
         addToHistory('shuffle', `[Đã tải xuống bộ ${shuffledCount} mã đề hoán vị]`);
         showToast(`Đã hoán vị thành ${shuffledCount} mã đề!`);
         setIsLoading(false);

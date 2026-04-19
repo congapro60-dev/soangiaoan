@@ -79,6 +79,9 @@ export interface AppData {
     theme: 'light' | 'dark';
     autoSave: boolean;
     geminiApiKey: string;
+    claudeApiKey: string;
+    openaiApiKey: string;
+    selectedProvider: 'gemini' | 'claude' | 'openai';
     selectedModel: string;
     models?: string[];
   };
@@ -101,6 +104,9 @@ export const DEFAULT_DATA: AppData = {
     theme: 'light',
     autoSave: true,
     geminiApiKey: '',
+    claudeApiKey: '',
+    openaiApiKey: '',
+    selectedProvider: 'gemini',
     selectedModel: 'gemini-3-flash',
     models: ['gemini-3-flash', 'gemini-3.1-pro', 'gemini-2.5-flash'],
   },

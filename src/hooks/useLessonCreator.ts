@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { LessonPlan, AppData, TemplateFile } from '../types';
-import { callGeminiAI, MODELS } from '../lib/gemini';
+import { callAI, getActiveApiKey } from '../lib/aiProviders';
 import { cleanMarkdownOutput } from '../utils/markdownUtils';
 import Swal from 'sweetalert2';
 
@@ -34,9 +34,9 @@ export const useLessonCreator = (
   const [revisionPrompt, setRevisionPrompt] = useState('');
 
   const handleCreateLesson = async () => {
-    if (!data.settings.geminiApiKey) {
+    if (!getActiveApiKey(data.settings)) {
       setIsSettingsOpen(true);
-      showToast('Vui lòng nhập API Key!', 'warning');
+      showToast('Vui lòng nhập API Key trong Cài đặt!', 'warning');
       return;
     }
 
@@ -132,7 +132,7 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
           YÊU CẦU ĐÁNH GIÁ (<pedagogical_review>):
           Tự chấm điểm theo 6 tiêu chí Danielson (1a-1f) và đưa ra nhận xét chuyên môn.
         `;
-        const result = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
+        const result = await callAI(prompt, data.settings);
         if (result) {
           // Trích xuất nội dung từ thẻ <lesson_content> để hiển thị chính
           const contentMatch = result.match(/<lesson_content>([\s\S]*?)<\/lesson_content>/);
@@ -162,7 +162,7 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
           KHÔNG TRẢ VỀ GÌ QUÁ NGOÀI XML.
         `;
         
-        const planResponse = await callGeminiAI(plannerPrompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
+        const planResponse = await callAI(plannerPrompt, data.settings);
         if (!planResponse) throw new Error("Không trích xuất được kế hoạch từ PPCN");
 
         let extractedLessons: { week: string, title: string, objectives: string }[] = [];
@@ -211,7 +211,7 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
             1f: Đánh giá quá trình học tập
           `;
 
-          const detailResponse = await callGeminiAI(detailPrompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
+          const detailResponse = await callAI(detailPrompt, data.settings);
           if (detailResponse) {
             newPlans.push({
               id: crypto.randomUUID(),
@@ -239,11 +239,11 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
   };
 
   const handleReviseLesson = async () => {
-    if (!revisionPrompt.trim() || !currentPlan.content || !data.settings.geminiApiKey) return;
+    if (!revisionPrompt.trim() || !currentPlan.content || !getActiveApiKey(data.settings)) return;
     setIsLoading(true);
     try {
       const prompt = `Viết lại giáo án sau theo yêu cầu: "${revisionPrompt}". \nNội dung cũ: ${currentPlan.content}`;
-      const result = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
+      const result = await callAI(prompt, data.settings);
       if (result) {
         setCurrentPlan(prev => ({ ...prev, content: cleanMarkdownOutput(result) }));
         setRevisionPrompt('');

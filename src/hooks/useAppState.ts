@@ -177,8 +177,8 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
     setData(prev => ({ ...prev, settings: updated }));
     if (user) {
       try {
-        // Loại bỏ geminiApiKey trước khi ghi lên Firebase — API Key chỉ lưu cục bộ
-        const { geminiApiKey: _key, ...settingsToSync } = updated;
+        // Loại bỏ API Keys trước khi ghi lên Firebase — chỉ lưu cục bộ
+        const { geminiApiKey: _k1, claudeApiKey: _k2, openaiApiKey: _k3, ...settingsToSync } = updated;
         await setDoc(doc(db, 'userSettings', user.uid), { userId: user.uid, settings: settingsToSync, authorName: data.authorName }, { merge: true });
       } catch (e) {
         console.error("Lỗi lưu cài đặt", e);

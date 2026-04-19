@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { callGeminiAI, MODELS } from '../lib/gemini';
+import { callAI, getActiveApiKey } from '../lib/aiProviders';
 import { AppData } from '../types';
 
 interface ChatMessage {
@@ -12,8 +12,8 @@ export const useChat = (data: AppData, setIsLoading: (val: boolean) => void, sho
   const [chatInput, setChatInput] = useState('');
 
   const handleChat = async () => {
-    if (!chatInput.trim() || !data.settings.geminiApiKey) {
-      if (!data.settings.geminiApiKey) showToast('Vui lòng nhập API Key trong phần Cài đặt!', 'warning');
+    if (!chatInput.trim() || !getActiveApiKey(data.settings)) {
+      if (!getActiveApiKey(data.settings)) showToast('Vui lòng nhập API Key trong phần Cài đặt!', 'warning');
       return;
     }
 
@@ -33,7 +33,7 @@ export const useChat = (data: AppData, setIsLoading: (val: boolean) => void, sho
         3. Văn phong thân thiện, mang tính xây dựng, định hướng phát triển chuyên môn.
         4. Trả lời cực kỳ ngắn gọn, đi thẳng vào trọng tâm, bôi đậm từ khóa.
       `;
-      const result = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
+      const result = await callAI(prompt, data.settings);
       if (result) {
         setChatMessages(prev => [...prev, { role: 'ai', text: result }]);
       }
