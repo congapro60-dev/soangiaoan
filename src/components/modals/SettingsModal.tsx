@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Settings, X, Key, CheckCircle2, ExternalLink } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { AppData } from '../../types';
-import { GEMINI_MODELS, CLAUDE_MODELS, OPENAI_MODELS } from '../../lib/aiProviders';
+import { GEMINI_MODELS, CLAUDE_MODELS, OPENAI_MODELS, GROK_MODELS } from '../../lib/aiProviders';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -13,24 +13,27 @@ interface SettingsModalProps {
   showToast: (msg: string) => void;
 }
 
-type Provider = 'gemini' | 'claude' | 'openai';
+type Provider = 'gemini' | 'claude' | 'openai' | 'grok';
 
 const PROVIDERS: { id: Provider; label: string; color: string; bg: string; border: string }[] = [
   { id: 'gemini', label: 'Gemini', color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-500' },
   { id: 'claude', label: 'Claude', color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-500' },
   { id: 'openai', label: 'ChatGPT', color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-500' },
+  { id: 'grok', label: 'Grok', color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-500' },
 ];
 
 const PROVIDER_MODELS: Record<Provider, { id: string; name: string; desc: string }[]> = {
   gemini: GEMINI_MODELS,
   claude: CLAUDE_MODELS,
   openai: OPENAI_MODELS,
+  grok: GROK_MODELS,
 };
 
 const PROVIDER_LINKS: Record<Provider, { url: string; label: string }> = {
   gemini: { url: 'https://aistudio.google.com/app/apikey', label: 'Lấy Gemini API Key' },
   claude: { url: 'https://console.anthropic.com/settings/keys', label: 'Lấy Claude API Key' },
   openai: { url: 'https://platform.openai.com/api-keys', label: 'Lấy OpenAI API Key' },
+  grok: { url: 'https://console.x.ai/', label: 'Lấy Grok API Key' },
 };
 
 export const SettingsModal = ({
@@ -62,6 +65,8 @@ export const SettingsModal = ({
       setData(prev => ({ ...prev, settings: { ...prev.settings, geminiApiKey: value } }));
     } else if (provider === 'claude') {
       setData(prev => ({ ...prev, settings: { ...prev.settings, claudeApiKey: value } }));
+    } else if (provider === 'grok') {
+      setData(prev => ({ ...prev, settings: { ...prev.settings, grokApiKey: value } }));
     } else {
       setData(prev => ({ ...prev, settings: { ...prev.settings, openaiApiKey: value } }));
     }
@@ -70,6 +75,7 @@ export const SettingsModal = ({
   const getApiKey = (provider: Provider): string => {
     if (provider === 'gemini') return data.settings.geminiApiKey || '';
     if (provider === 'claude') return data.settings.claudeApiKey || '';
+    if (provider === 'grok') return data.settings.grokApiKey || '';
     return data.settings.openaiApiKey || '';
   };
 
@@ -111,7 +117,7 @@ export const SettingsModal = ({
               {/* Provider Tabs */}
               <div>
                 <label className="text-sm font-semibold text-slate-700 block mb-3">Nền tảng AI đang dùng</label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-4 gap-2">
                   {PROVIDERS.map(p => (
                     <button
                       key={p.id}
@@ -137,7 +143,7 @@ export const SettingsModal = ({
                 <label className="text-sm font-semibold text-slate-700 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Key className="w-4 h-4" />
-                    API Key — {activeTab === 'gemini' ? 'Google Gemini' : activeTab === 'claude' ? 'Anthropic Claude' : 'OpenAI ChatGPT'}
+                    API Key — {activeTab === 'gemini' ? 'Google Gemini' : activeTab === 'claude' ? 'Anthropic Claude' : activeTab === 'grok' ? 'xAI Grok' : 'OpenAI ChatGPT'}
                   </div>
                   <a
                     href={link.url}
@@ -152,7 +158,7 @@ export const SettingsModal = ({
                   type="password"
                   value={getApiKey(activeTab)}
                   onChange={(e) => handleApiKeyChange(activeTab, e.target.value)}
-                  placeholder={`Nhập ${activeTab === 'gemini' ? 'Gemini' : activeTab === 'claude' ? 'Claude' : 'OpenAI'} API Key...`}
+                  placeholder={`Nhập ${activeTab === 'gemini' ? 'Gemini' : activeTab === 'claude' ? 'Claude' : activeTab === 'grok' ? 'Grok' : 'OpenAI'} API Key...`}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
                 />
                 <p className="text-[10px] text-slate-400">API Key được lưu an toàn trong trình duyệt của bạn.</p>
@@ -161,7 +167,7 @@ export const SettingsModal = ({
               {/* Model Selection */}
               <div className="space-y-3">
                 <label className="text-sm font-semibold text-slate-700">
-                  Mô hình — {activeTab === 'gemini' ? 'Google Gemini' : activeTab === 'claude' ? 'Anthropic Claude' : 'OpenAI'}
+                  Mô hình — {activeTab === 'gemini' ? 'Google Gemini' : activeTab === 'claude' ? 'Anthropic Claude' : activeTab === 'grok' ? 'xAI Grok' : 'OpenAI'}
                 </label>
                 <div className="grid grid-cols-1 gap-2">
                   {models.map(m => {

@@ -44,6 +44,12 @@ export const OPENAI_MODELS = [
   { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', desc: 'Hiệu suất cao, context dài' },
 ];
 
+export const GROK_MODELS = [
+  { id: 'grok-3', name: 'Grok 3', desc: 'Mạnh nhất của xAI, suy luận sâu (Default)' },
+  { id: 'grok-3-mini', name: 'Grok 3 Mini', desc: 'Nhanh, tiết kiệm chi phí' },
+  { id: 'grok-2-vision', name: 'Grok 2 Vision', desc: 'Hỗ trợ hình ảnh (vision)' },
+];
+
 export const GEMINI_MODELS = [
   { id: 'gemini-3.1-flash-lite-preview', name: 'Gemini 3.1 Flash Lite', desc: 'Nhanh, hiệu suất cao (Default)' },
   { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro', desc: 'Thông minh, suy luận đa tầng' },
@@ -54,6 +60,7 @@ export function getActiveApiKey(settings: Settings): string {
   const provider = settings.selectedProvider ?? 'gemini';
   if (provider === 'claude') return settings.claudeApiKey || '';
   if (provider === 'openai') return settings.openaiApiKey || '';
+  if (provider === 'grok') return settings.grokApiKey || '';
   return settings.geminiApiKey || '';
 }
 
@@ -78,6 +85,16 @@ export async function callAI(prompt: string, settings: Settings): Promise<string
       const client = new OpenAI({ apiKey: settings.openaiApiKey, dangerouslyAllowBrowser: true });
       const res = await client.chat.completions.create({
         model: settings.selectedModel || 'gpt-4o',
+        messages: [{ role: 'user', content: prompt }],
+      });
+      return res.choices[0]?.message?.content ?? '';
+    }
+
+    if (provider === 'grok') {
+      const OpenAI = (await import('openai')).default;
+      const client = new OpenAI({ apiKey: settings.grokApiKey, baseURL: 'https://api.x.ai/v1', dangerouslyAllowBrowser: true });
+      const res = await client.chat.completions.create({
+        model: settings.selectedModel || 'grok-3',
         messages: [{ role: 'user', content: prompt }],
       });
       return res.choices[0]?.message?.content ?? '';
@@ -144,6 +161,22 @@ export async function callAIWithVision(
     return res.choices[0]?.message?.content ?? '';
   }
 
+  if (provider === 'grok') {
+    const OpenAI = (await import('openai')).default;
+    const client = new OpenAI({ apiKey: settings.grokApiKey, baseURL: 'https://api.x.ai/v1', dangerouslyAllowBrowser: true });
+    const res = await client.chat.completions.create({
+      model: settings.selectedModel || 'grok-2-vision',
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image_url', image_url: { url: imageDataUrl } },
+          { type: 'text', text: prompt },
+        ],
+      }],
+    });
+    return res.choices[0]?.message?.content ?? '';
+  }
+
   // Gemini
   const { GoogleGenAI } = await import('@google/genai');
   const ai = new GoogleGenAI({ apiKey: settings.geminiApiKey });
@@ -193,6 +226,21 @@ export async function callAIStream(
       const client = new OpenAI({ apiKey: settings.openaiApiKey, dangerouslyAllowBrowser: true });
       const stream = await client.chat.completions.create({
         model: settings.selectedModel || 'gpt-4o',
+        messages: [{ role: 'user', content: prompt }],
+        stream: true,
+      });
+      for await (const chunk of stream) {
+        const text = chunk.choices[0]?.delta?.content ?? '';
+        if (text) onChunk(text);
+      }
+      return;
+    }
+
+    if (provider === 'grok') {
+      const OpenAI = (await import('openai')).default;
+      const client = new OpenAI({ apiKey: settings.grokApiKey, baseURL: 'https://api.x.ai/v1', dangerouslyAllowBrowser: true });
+      const stream = await client.chat.completions.create({
+        model: settings.selectedModel || 'grok-3',
         messages: [{ role: 'user', content: prompt }],
         stream: true,
       });
