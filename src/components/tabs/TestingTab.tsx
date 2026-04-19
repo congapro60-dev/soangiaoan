@@ -70,6 +70,7 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
   );
   const [uploadedFiles, setUploadedFiles] = useState<TemplateFile[]>([]);
   const [matrixFile, setMatrixFile] = useState<TemplateFile | null>(null);
+  const [sampleFile, setSampleFile] = useState<TemplateFile | null>(null);
   const [requirement, setRequirement] = useState('');
   const [testResult, setTestResult] = useState<string | null>(
     () => localStorage.getItem(LAST_RESULT_KEY)
@@ -202,7 +203,7 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
     });
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, category: 'test' | 'matrix') => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, category: 'test' | 'matrix' | 'sample') => {
     const file = e.target.files?.[0];
     if (!file) return;
     setIsLoading(true);
@@ -219,6 +220,9 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
       if (category === 'matrix') {
         setMatrixFile(newFile);
         showToast('Đã nhận diện Ma trận đề!');
+      } else if (category === 'sample') {
+        setSampleFile(newFile);
+        showToast('Đã nhận diện Đề mẫu định dạng!');
       } else {
         setUploadedFiles(prev => [...prev, newFile]);
         showToast('Đã tải lên tệp đề thi!');
@@ -250,7 +254,7 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
       };
 
       if (activeMode === 'create') {
-        const prompt = await examUtils.getGeneratePrompt(matrixFile, requirement);
+        const prompt = examUtils.getGeneratePrompt(matrixFile, requirement, sampleFile);
         await callAIStream(prompt, data.settings, onChunk);
         const match = cumulativeText.match(/<exam_content>([\s\S]*?)<\/exam_content>/);
         const final = match ? match[1].trim() : cumulativeText.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
@@ -352,15 +356,38 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
             </h4>
 
             {activeMode === 'create' && (
-              <div className="space-y-2">
-                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Ma trận đề (Tùy chọn)</label>
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-100 rounded-3xl cursor-pointer hover:bg-slate-50 transition-colors">
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <FilePlus className="w-8 h-8 text-slate-200 mb-2" />
-                    <p className="text-xs text-slate-400 font-medium">{matrixFile ? matrixFile.name : 'Tải lên Ma trận (Docx/Xlsx)'}</p>
-                  </div>
-                  <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'matrix')} />
-                </label>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Đề mẫu định dạng (Khuyên dùng)</label>
+                  <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-blue-100 rounded-3xl cursor-pointer hover:bg-blue-50/40 transition-colors bg-blue-50/10">
+                    <div className="flex flex-col items-center justify-center pt-4 pb-4">
+                      <FileCheck className="w-7 h-7 text-blue-300 mb-1" />
+                      <p className="text-xs text-slate-500 font-semibold">{sampleFile ? sampleFile.name : 'Tải lên Đề mẫu (Docx/Pdf/Txt)'}</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">AI sẽ giữ nguyên format, tiêu đề, cách đánh số</p>
+                    </div>
+                    <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'sample')} />
+                  </label>
+                  {sampleFile && (
+                    <button onClick={() => setSampleFile(null)} className="text-[11px] text-slate-400 hover:text-red-500 flex items-center gap-1">
+                      <X className="w-3 h-3" /> Xóa đề mẫu
+                    </button>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Ma trận đề (Tùy chọn)</label>
+                  <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-slate-100 rounded-3xl cursor-pointer hover:bg-slate-50 transition-colors">
+                    <div className="flex flex-col items-center justify-center pt-4 pb-4">
+                      <FilePlus className="w-7 h-7 text-slate-200 mb-1" />
+                      <p className="text-xs text-slate-400 font-medium">{matrixFile ? matrixFile.name : 'Tải lên Ma trận (Docx/Xlsx)'}</p>
+                    </div>
+                    <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'matrix')} />
+                  </label>
+                  {matrixFile && (
+                    <button onClick={() => setMatrixFile(null)} className="text-[11px] text-slate-400 hover:text-red-500 flex items-center gap-1">
+                      <X className="w-3 h-3" /> Xóa ma trận
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 

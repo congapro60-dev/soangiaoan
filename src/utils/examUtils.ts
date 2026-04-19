@@ -9,32 +9,64 @@ export const examUtils = {
   /**
    * SOẠN ĐỀ KIỂM TRA (Claude-style Agentic)
    */
-  getGeneratePrompt: (matrix: TemplateFile | null, requirement: string) => {
+  getGeneratePrompt: (matrix: TemplateFile | null, requirement: string, sampleFile?: TemplateFile | null) => {
+    const sampleSection = sampleFile?.content ? `
+===== ĐỀ MẪU ĐỊNH DẠNG (BẮT BUỘC TUÂN THỦ) =====
+${sampleFile.content}
+===== KẾT THÚC ĐỀ MẪU =====
+
+⚠️ RÀNG BUỘC ĐỊNH DẠNG CỨNG:
+- Tiêu đề đề thi, tên trường, môn học, lớp, thời gian: sao chép CHÍNH XÁC cấu trúc từ ĐỀ MẪU, chỉ thay nội dung cụ thể nếu có yêu cầu.
+- Cách đánh số câu (Câu 1, Câu 2... hoặc 1., 2....): PHẢI giống hệt ĐỀ MẪU.
+- Tên các phần/mục (Phần I, Phần II... hoặc A, B, C...): PHẢI giống hệt ĐỀ MẪU.
+- Cách trình bày phương án A/B/C/D: PHẢI giống hệt ĐỀ MẪU.
+- Font chữ, in đậm, in nghiêng tên mục: PHẢI giống hệt ĐỀ MẪU.
+- KHÔNG được tự ý thêm phần, đổi tên mục, hoặc thay đổi bất kỳ element định dạng nào.
+` : '';
+
+    const matrixSection = matrix?.content ? `
+===== MA TRẬN ĐỀ (BẮT BUỘC TUÂN THỦ) =====
+${matrix.content}
+===== KẾT THÚC MA TRẬN =====
+
+⚠️ RÀNG BUỘC MA TRẬN CỨNG:
+- Số câu mỗi phần: PHẢI khớp chính xác với ma trận.
+- Phân bổ mức Bloom (Nhận biết/Thông hiểu/Vận dụng/Vận dụng cao): PHẢI đúng tỉ lệ.
+- Chủ đề/bài/chương: PHẢI đúng theo cột ma trận.
+- KHÔNG được thêm câu, bỏ câu hoặc đổi chủ đề.
+` : '- Không có ma trận (AI tự cân đối theo chương trình GDPT 2018)';
+
     return `
-      BẠN LÀ MỘT CHUYÊN GIA KHẢO THÍ CAO CẤP (CLAUDE 4.5 SONNET STYLE).
-      NHIỆM VỤ: Thiết kế một bộ đề thi chuẩn mực.
+BẠN LÀ CHUYÊN GIA KHẢO THÍ CAO CẤP.
+NHIỆM VỤ: Soạn đề thi theo đúng định dạng mẫu và ma trận được cung cấp.
 
-      BỐ CỤC PHẢN HỒI:
-      1. <thinking>: Phân tích Ma trận đề (nếu có), phân bổ tỉ lệ câu hỏi theo Bloom (Nhận biết/Thông hiểu/Vận dụng).
-      2. <exam_content>: Nội dung đề thi chi tiết (Markdown).
-      3. <answer_key>: Bảng đáp án và hướng dẫn giải.
+BỐ CỤC PHẢN HỒI BẮT BUỘC:
+1. <thinking>: Phân tích ma trận, đối chiếu với đề mẫu, lập kế hoạch soạn câu hỏi.
+2. <exam_content>: Toàn bộ nội dung đề thi (Markdown, đúng định dạng mẫu).
+3. <answer_key>: Bảng đáp án đầy đủ kèm hướng dẫn giải ngắn gọn.
 
-      DỮ LIỆU ĐẦU VÀO:
-      - Ma trận tham khảo: ${matrix ? matrix.content : 'Không có (AI tự tối ưu)'}
-      - Yêu cầu bổ sung: ${requirement || 'Soạn đề thi giữa học kỳ chuẩn chương trình GDPT 2018'}
+${sampleSection}
 
-      YÊU CẦU ĐỀ THI:
-      - Cấu trúc: Phần I (Trắc nghiệm), Phần II (Đúng/Sai), Phần III (Trả lời ngắn).
-      - Ký hiệu toán học: Sử dụng LaTeX chuẩn.
+MA TRẬN ĐỀ:
+${matrixSection}
+
+YÊU CẦU BỔ SUNG:
+${requirement || 'Soạn đề thi chuẩn chương trình GDPT 2018'}
+
+QUY TẮC NỘI DUNG:
+- Công thức toán học: dùng LaTeX inline $...$ và display $$...$$, KHÔNG dùng ký hiệu khác.
+- Ngôn ngữ: tiếng Việt chuẩn, không lỗi chính tả.
+- Độ khó: phân bổ đúng theo ma trận hoặc cân đối nếu không có ma trận.
     `;
   },
 
   generateExam: async (
     matrix: TemplateFile | null,
     requirement: string,
-    settings: Settings
+    settings: Settings,
+    sampleFile?: TemplateFile | null
   ) => {
-    const prompt = examUtils.getGeneratePrompt(matrix, requirement);
+    const prompt = examUtils.getGeneratePrompt(matrix, requirement, sampleFile);
     return await callAI(prompt, settings);
   },
 
