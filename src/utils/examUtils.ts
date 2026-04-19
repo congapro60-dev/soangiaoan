@@ -199,58 +199,102 @@ ${testContent}
     originalContent: string,
     count: number,
     settings: Settings
-  ) => {
-    // Bước 1: Tách đề thi thành mảng JSON câu hỏi
+  ): Promise<string> => {
+    // Bước 1: Dùng AI tách đề thành mảng JSON câu hỏi
     const parserPrompt = `
-      BẠN LÀ CHUYÊN GIA DỮ LIỆU ĐỀ THI. 
-      NHIỆM VỤ: Chuyển đổi văn bản sau đây thành mảng JSON các câu hỏi.
+BẠN LÀ CHUYÊN GIA DỮ LIỆU ĐỀ THI.
+NHIỆM VỤ: Chuyển đổi văn bản đề thi thành mảng JSON.
 
-      YÊU CẦU:
-      1. Nhận diện đề thi toán học phức tạp (Câu 1, Câu 2... A, B, C, D).
-      2. Giữ nguyên công thức LaTeX trong nội dung.
-      3. Định dạng JSON: [{"id": 1, "text": "...", "options": ["A. ..", "B. .."], "answer": "A"}]
+YÊU CẦU NGHIÊM NGẶT:
+1. Nhận diện từng câu hỏi trắc nghiệm (Câu 1, Câu 2... hoặc 1., 2., ...).
+2. Giữ nguyên công thức LaTeX ($...$, $$...$$) trong nội dung.
+3. Trường "answer" là CHỮ CÁI đáp án đúng: "A", "B", "C" hoặc "D".
+4. Trường "options" là mảng 4 phần tử, mỗi phần tử bắt đầu bằng "A. ", "B. ", "C. ", "D. ".
+5. Chỉ trả về mảng JSON thuần, không giải thích thêm.
 
-      NỘI DUNG ĐỀ GỐC:
-      ${originalContent}
+ĐỊNH DẠNG OUTPUT BẮT BUỘC:
+[{"id":1,"text":"Nội dung câu hỏi","options":["A. ...","B. ...","C. ...","D. ..."],"answer":"A"},...]
+
+NỘI DUNG ĐỀ GỐC:
+${originalContent}
     `;
 
     const jsonResponse = await callAI(parserPrompt, settings);
-    if (!jsonResponse) throw new Error("Không thể trích xuất câu hỏi");
+    if (!jsonResponse) throw new Error("AI không trả về dữ liệu câu hỏi");
 
-    const jsonMatch = jsonResponse.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) throw new Error("Dữ liệu JSON không hợp lệ");
-    
-    const questions = JSON.parse(jsonMatch[0]) as any[];
+    // Tìm mảng JSON đầu tiên hợp lệ trong response
+    const jsonMatch = jsonResponse.match(/\[[\s\S]*?\](?=\s*$|\s*\n\s*[^[\]])/);
+    const jsonStr = jsonMatch ? jsonMatch[0] : jsonResponse.match(/\[[\s\S]*\]/)?.[0];
+    if (!jsonStr) throw new Error("Không tìm thấy dữ liệu JSON câu hỏi trong response");
+
+    const questions = JSON.parse(jsonStr) as Array<{
+      id: number; text: string; options: string[]; answer: string;
+    }>;
+    if (!questions.length) throw new Error("Đề thi không có câu hỏi nào");
 
     const zip = new JSZip();
     const folder = zip.folder("Bo_De_Hoan_Vi_SmartPlan_AI");
 
-    // Hàm xáo trộn mảng (Fisher-Yates)
-    const shuffleArray = (array: any[]) => {
-      for (let i = array.length - 1; i > 0; i--) {
+    const shuffleArray = <T>(array: T[]): T[] => {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+        [arr[i], arr[j]] = [arr[j], arr[i]];
       }
-      return array;
+      return arr;
     };
+
+    const summaryLines: string[] = [
+      `## Kết quả Trộn đề — ${count} mã đề`,
+      `Tổng số câu hỏi gốc: **${questions.length} câu**`,
+      '',
+      '| Mã đề | File đề | File đáp án |',
+      '|-------|---------|-------------|',
+    ];
 
     for (let i = 1; i <= count; i++) {
       const code = 100 + i;
-      const shuffledQuestions = shuffleArray([...questions]);
-      
-      // Tạo nội dung đề mới từ mảng đã trộn
-      const examText = shuffledQuestions.map((q, idx) => {
-         // Xáo trộn phương án bên trong từng câu
-         const shuffledOptions = shuffleArray([...q.options]);
-         return `Câu ${idx + 1}: ${q.text}\n${shuffledOptions.join('\n')}\n`;
-      }).join('\n');
+      const shuffledQuestions = shuffleArray(questions);
+      const answerLines: string[] = [`ĐÁP ÁN — MÃ ĐỀ: ${code}`, ''];
 
-      folder?.file(`De_Thi_Ma_So_${code}.docx`, `HỆ THỐNG SMARTPLAN AI\nMÃ ĐỀ: ${code}\n\n${examText}`);
-      // (Trong thực tế sẽ dùng thư viện 'docx' để tạo file Word chuẩn, 
-      // ở đây tôi demo luồng ZIP để thầy/cô thấy kết quả trước)
+      const examLines: string[] = [`HỆ THỐNG SMARTPLAN AI`, `MÃ ĐỀ: ${code}`, ''];
+
+      shuffledQuestions.forEach((q, idx) => {
+        // Tìm text của phương án đúng trong mảng options gốc
+        const correctOptionText = q.options.find(
+          (o) => o.startsWith(q.answer + '.') || o.startsWith(q.answer + ' ')
+        );
+        const shuffledOptions = shuffleArray(q.options);
+
+        // Xác định vị trí mới của đáp án đúng sau khi shuffle
+        const newIdx = correctOptionText ? shuffledOptions.indexOf(correctOptionText) : -1;
+        const newLabel = newIdx >= 0 ? ['A', 'B', 'C', 'D'][newIdx] : q.answer;
+
+        examLines.push(`Câu ${idx + 1}: ${q.text}`);
+        shuffledOptions.forEach((opt, optIdx) => {
+          // Gán lại nhãn A/B/C/D theo thứ tự mới
+          const label = ['A', 'B', 'C', 'D'][optIdx];
+          const content = opt.replace(/^[A-D][. ]\s*/, '');
+          examLines.push(`${label}. ${content}`);
+        });
+        examLines.push('');
+
+        answerLines.push(`Câu ${idx + 1}: ${newLabel}`);
+      });
+
+      const examFileName = `De_Thi_Ma_So_${code}.txt`;
+      const answerFileName = `Da_An_Ma_So_${code}.txt`;
+      folder?.file(examFileName, examLines.join('\n'));
+      folder?.file(answerFileName, answerLines.join('\n'));
+
+      summaryLines.push(`| ${code} | ${examFileName} | ${answerFileName} |`);
     }
 
-    const content = await zip.generateAsync({ type: "blob" });
-    saveAs(content, "SmartPlan_AI_Exam_Pack.zip");
+    summaryLines.push('', '> File ZIP đã được tải xuống. Mở từng file .txt để xem nội dung đề và đáp án.');
+
+    const content = await zip.generateAsync({ type: 'blob' });
+    saveAs(content, 'SmartPlan_AI_Exam_Pack.zip');
+
+    return summaryLines.join('\n');
   }
 };

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import katex from 'katex';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   FileCheck, FilePlus, Shuffle, Upload, Download,
@@ -153,7 +154,13 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
     if (!testResult) return;
     showToast('Đang tạo file Word...');
     try {
-      const htmlBody = await marked(testResult);
+      // Pre-process LaTeX → HTML trước khi marked() để giữ công thức trong Word
+      const withKatex = testResult
+        .replace(/\$\$([^$]+)\$\$/gs, (_, tex) =>
+          katex.renderToString(tex, { displayMode: true, throwOnError: false, output: 'html' }))
+        .replace(/\$([^$\n]+)\$/g, (_, tex) =>
+          katex.renderToString(tex, { throwOnError: false, output: 'html' }));
+      const htmlBody = await marked(withKatex);
       const htmlContent = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <style>
@@ -269,20 +276,21 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
         const match = cumulativeText.match(/<audit_report>([\s\S]*?)<\/audit_report>/);
         const final = match
           ? match[1].trim()
-          : cumulativeText.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').replace(/<\/?[a-z_]+>/g, '').trim();
+          : cumulativeText
+              .replace(/<thinking>[\s\S]*?<\/thinking>/g, '')
+              .replace(/<\/?(?:thinking|audit_report|exam_content|answer_key)>/g, '')
+              .trim();
         setTestResult(final);
         addToHistory('audit', final);
 
       } else if (activeMode === 'shuffle') {
-        setProcessStatus('Đang thực hiện hoán vị đề...');
-        const fullContent = uploadedFiles.map(f => f.content).join('\n---\n');
+        setProcessStatus('Đang trích xuất câu hỏi và thực hiện hoán vị...');
+        const fullContent = uploadedFiles.map(f => f.content).join('\n===FILE_SEPARATOR===\n');
         if (!fullContent.trim()) throw new Error('Nội dung tệp trống.');
-        await examUtils.shuffleExam(fullContent, shuffledCount, data.settings);
-        addToHistory('shuffle', `[Đã tải xuống bộ ${shuffledCount} mã đề hoán vị]`);
-        showToast(`Đã hoán vị thành ${shuffledCount} mã đề!`);
-        setIsLoading(false);
-        setProcessStatus('');
-        return;
+        const summary = await examUtils.shuffleExam(fullContent, shuffledCount, data.settings);
+        setTestResult(summary);
+        addToHistory('shuffle', summary);
+        showToast(`Đã hoán vị thành ${shuffledCount} mã đề — ZIP đã tải xuống!`);
       }
 
       showToast('Xử lý hoàn tất!');
