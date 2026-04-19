@@ -2,11 +2,13 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { Search, History, BookOpen, FileText, GraduationCap } from 'lucide-react';
 import { AppData } from '../../types';
 
+type ActiveTab = 'dashboard' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading';
+
 interface HeaderProps {
   activeTab: string;
   data: AppData;
   setIsSettingsOpen: (val: boolean) => void;
-  setActiveTab: (tab: string) => void;
+  setActiveTab: (tab: ActiveTab) => void;
 }
 
 const timeAgo = (ts: number) => {
@@ -142,7 +144,7 @@ export const Header = ({ activeTab, data, setIsSettingsOpen, setActiveTab }: Hea
                     activityFeed.map(item => (
                       <button
                         key={item.id}
-                        onClick={() => { setActiveTab(item.tab); setShowHistory(false); }}
+                        onClick={() => { setActiveTab(item.tab as ActiveTab); setShowHistory(false); }}
                         className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors text-left border-b border-slate-50 last:border-0"
                       >
                         <span className={`flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-lg shrink-0 ${item.color}`}>
