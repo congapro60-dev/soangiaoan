@@ -63,7 +63,7 @@ export const gradingUtils = {
     masterFile: TemplateFile,
     studentFile: TemplateFile,
     apiKey: string,
-    modelName: string = 'gemini-1.5-pro'
+    modelName: string = 'gemini-2.5-flash'
   ): Promise<Partial<GradingResult>> => {
     if (!apiKey) throw new Error("API Key empty");
 
@@ -77,15 +77,25 @@ export const gradingUtils = {
         contents: [{ parts: [{ text: prompt }, studentPart] }],
         config: { temperature: 0.1 }
       });
-      const text = result.text;
-      
-      // Trích xuất JSON từ phản hồi AI
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error("AI did not return structured data");
-      
-      const parsed = JSON.parse(jsonMatch[0]);
+      const text = result.text || '';
+      if (!text) throw new Error("AI trả về phản hồi rỗng");
+
+      // Ưu tiên tìm JSON trong code block, sau đó fallback greedy
+      const codeBlockMatch = text.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+      const jsonStr = codeBlockMatch
+        ? codeBlockMatch[1]
+        : text.match(/\{[\s\S]*"studentName"[\s\S]*\}/)?.[0];
+      if (!jsonStr) throw new Error("AI không trả về dữ liệu JSON hợp lệ");
+
+      const parsed = JSON.parse(jsonStr);
       return {
-        ...parsed,
+        studentName: parsed.studentName || 'Ẩn danh',
+        score: typeof parsed.score === 'number' ? parsed.score : 0,
+        maxScore: typeof parsed.maxScore === 'number' ? parsed.maxScore : 10,
+        strengths: Array.isArray(parsed.strengths) ? parsed.strengths : [],
+        weaknesses: Array.isArray(parsed.weaknesses) ? parsed.weaknesses : [],
+        improvementPlan: parsed.improvementPlan || '',
+        details: parsed.details || '',
         status: 'completed' as const,
         fileName: studentFile.name
       };

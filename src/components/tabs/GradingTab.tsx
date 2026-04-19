@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ClipboardCheck, Upload, Users, FileText, CheckCircle2, 
@@ -6,8 +6,9 @@ import {
   TrendingUp, Award, AlertTriangle, User, Eye
 } from 'lucide-react';
 import { AppData, TemplateFile, GradingResult, GradingSession } from '../../types';
-import { processUploadedFile } from '../../utils/fileUtils';
+import { processUploadedFile, downloadBlob } from '../../utils/fileUtils';
 import { gradingUtils } from '../../utils/gradingUtils';
+import { MODELS } from '../../lib/gemini';
 import ReactMarkdown from 'react-markdown';
 
 interface GradingTabProps {
@@ -77,10 +78,16 @@ export const GradingTab = ({ data, setData, isLoading, setIsLoading, showToast }
     }
   };
 
+  // Chọn Gemini model phù hợp (grading cần multimodal → luôn dùng Gemini)
+  const gradingModel = useMemo(() => {
+    const current = data.settings.selectedModel;
+    return MODELS.includes(current) ? current : 'gemini-2.5-flash';
+  }, [data.settings.selectedModel]);
+
   const startGrading = async () => {
     if (!masterFile || studentFiles.length === 0) return;
     if (!data.settings.geminiApiKey) {
-      showToast('Chức năng chấm bài yêu cầu Gemini API Key (hỗ trợ đa phương thức)', 'error');
+      showToast('Chấm bài yêu cầu Gemini API Key (hỗ trợ ảnh/đa phương thức)', 'error');
       return;
     }
 
@@ -90,19 +97,18 @@ export const GradingTab = ({ data, setData, isLoading, setIsLoading, showToast }
     for (let i = 0; i < studentFiles.length; i++) {
       const studentFile = studentFiles[i];
       const resultIndex = updatedResults.findIndex(r => r.fileName === studentFile.name);
-      
+
       if (resultIndex === -1 || updatedResults[resultIndex].status === 'completed') continue;
 
-      // Cập nhật trạng thái đang xử lý
       updatedResults[resultIndex].status = 'processing';
       setResults([...updatedResults]);
 
       try {
         const gradeData = await gradingUtils.gradeSubmission(
-          masterFile, 
-          studentFile, 
+          masterFile,
+          studentFile,
           data.settings.geminiApiKey,
-          'gemini-1.5-pro'
+          gradingModel
         );
         
         updatedResults[resultIndex] = {
@@ -135,11 +141,28 @@ export const GradingTab = ({ data, setData, isLoading, setIsLoading, showToast }
     }));
   };
 
+  const completed = results.filter(r => r.status === 'completed');
   const stats = {
-    avg: results.length ? (results.reduce((acc, r) => acc + (r.score || 0), 0) / results.length).toFixed(1) : 0,
-    completed: results.filter(r => r.status === 'completed').length,
-    total: results.length
+    avg: completed.length ? (completed.reduce((acc, r) => acc + (r.score || 0), 0) / completed.length).toFixed(1) : '—',
+    completed: completed.length,
+    total: results.length,
+    above8: completed.filter(r => r.score >= 8).length,
+    below5: completed.filter(r => r.score < 5).length,
+    topWeaknesses: completed
+      .flatMap(r => r.weaknesses || [])
+      .reduce((acc: Record<string, number>, w) => { acc[w] = (acc[w] || 0) + 1; return acc; }, {}),
   };
+
+  const classInsights = useMemo(() => {
+    if (!completed.length) return [];
+    const insights: string[] = [];
+    if (stats.above8 > 0) insights.push(`${stats.above8} học sinh đạt điểm giỏi (≥8)`);
+    if (stats.below5 > 0) insights.push(`${stats.below5} học sinh dưới trung bình (<5) — cần hỗ trợ thêm`);
+    const topWeak = Object.entries(stats.topWeaknesses).sort((a, b) => b[1] - a[1]).slice(0, 2);
+    topWeak.forEach(([w, count]) => insights.push(`${count} em gặp vấn đề: ${w}`));
+    if (!insights.length) insights.push('Chưa có đủ dữ liệu phân tích');
+    return insights;
+  }, [completed.length, stats.above8, stats.below5]);
 
   return (
     <motion.div 
@@ -217,16 +240,16 @@ export const GradingTab = ({ data, setData, isLoading, setIsLoading, showToast }
              </button>
           </div>
 
-          {/* Quick Analysis Summary */}
-          {results.some(r => r.status === 'completed') && (
+          {/* Quick Analysis Summary — dynamic */}
+          {completed.length > 0 && (
             <div className="bg-amber-50 p-8 rounded-[40px] border border-amber-100 space-y-4">
                <h4 className="font-bold text-amber-800 flex items-center gap-2 text-sm uppercase">
-                  <AlertTriangle className="w-4 h-4" /> Điểm lưu ý lớp học
+                  <AlertTriangle className="w-4 h-4" /> Phân tích lớp học ({completed.length}/{results.length} đã chấm)
                </h4>
                <ul className="text-xs text-amber-700 space-y-2 font-medium">
-                  <li className="flex items-start gap-2">• 60% học sinh sai phần Câu 12 (Giải tích)</li>
-                  <li className="flex items-start gap-2">• Cách lập luận bài tự luận số 2 còn yếu</li>
-                  <li className="flex items-start gap-2">• Điểm sáng: Khả năng tính toán cơ bản rất tốt</li>
+                  {classInsights.map((insight, i) => (
+                    <li key={i} className="flex items-start gap-2">• {insight}</li>
+                  ))}
                </ul>
             </div>
           )}
@@ -352,11 +375,39 @@ export const GradingTab = ({ data, setData, isLoading, setIsLoading, showToast }
                  </div>
 
                  <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-                    <button className="px-6 py-3 bg-white text-slate-600 rounded-2xl font-bold border border-slate-200 hover:bg-slate-100 transition-all flex items-center gap-2">
-                       <Download className="w-4 h-4" /> Bản PDF học sinh
+                    <button
+                      onClick={() => {
+                        if (!viewingResult) return;
+                        const content = [
+                          `BÁO CÁO CHẤM ĐIỂM`,
+                          `Học sinh: ${viewingResult.studentName}`,
+                          `Điểm: ${viewingResult.score}/${viewingResult.maxScore}`,
+                          `File: ${viewingResult.fileName}`,
+                          '',
+                          '--- ĐIỂM MẠNH ---',
+                          ...(viewingResult.strengths || []).map(s => `• ${s}`),
+                          '',
+                          '--- CẦN CẢI THIỆN ---',
+                          ...(viewingResult.weaknesses || []).map(w => `• ${w}`),
+                          '',
+                          '--- LỘ TRÌNH ---',
+                          viewingResult.improvementPlan || '',
+                          '',
+                          '--- BÁO CÁO CHI TIẾT ---',
+                          viewingResult.details || '',
+                        ].join('\n');
+                        const blob = new Blob(['\uFEFF' + content], { type: 'text/plain;charset=utf-8' });
+                        downloadBlob(blob, `BaoCao_${viewingResult.studentName}_${Date.now()}.txt`);
+                      }}
+                      className="px-6 py-3 bg-white text-slate-600 rounded-2xl font-bold border border-slate-200 hover:bg-slate-100 transition-all flex items-center gap-2"
+                    >
+                       <Download className="w-4 h-4" /> Tải báo cáo (.txt)
                     </button>
-                    <button className="px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold border border-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all flex items-center gap-2">
-                       Gửi email cho PHHS
+                    <button
+                      onClick={() => setViewingResult(null)}
+                      className="px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold border border-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all flex items-center gap-2"
+                    >
+                       Đóng
                     </button>
                  </div>
               </motion.div>
