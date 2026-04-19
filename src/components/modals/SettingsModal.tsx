@@ -161,7 +161,7 @@ export const SettingsModal = ({
                   placeholder={`Nhập ${activeTab === 'gemini' ? 'Gemini' : activeTab === 'claude' ? 'Claude' : activeTab === 'grok' ? 'Grok' : 'OpenAI'} API Key...`}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
                 />
-                <p className="text-[10px] text-slate-400">API Key được lưu an toàn trong trình duyệt của bạn.</p>
+                <p className="text-[10px] text-slate-400">API Key chỉ lưu cục bộ trong trình duyệt, không gửi lên máy chủ của chúng tôi.</p>
               </div>
 
               {/* Model Selection */}

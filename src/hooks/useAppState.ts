@@ -93,14 +93,19 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
           // Combine with default templates (keep unique)
           const combinedTemplates = [...userTemplates, ...DEFAULT_DATA.templates.filter(dt => !userTemplates.some(ut => ut.id === dt.id))];
 
-          setData(prev => ({ 
-            ...prev, 
-            lessonPlans: cloudPlans,
-            templates: combinedTemplates,
-            distributions: cloudDist,
-            authorName: cloudAuthorName,
-            settings: { ...prev.settings, ...cloudSettings }
-          }));
+          setData(prev => {
+            // Giữ lại các giáo án local chưa có trên cloud (tạo offline hoặc chưa kịp sync)
+            const cloudPlanIds = new Set(cloudPlans.map(p => p.id));
+            const localOnlyPlans = prev.lessonPlans.filter(p => !cloudPlanIds.has(p.id));
+            return {
+              ...prev,
+              lessonPlans: [...cloudPlans, ...localOnlyPlans],
+              templates: combinedTemplates,
+              distributions: cloudDist,
+              authorName: cloudAuthorName,
+              settings: { ...prev.settings, ...cloudSettings }
+            };
+          });
         } catch (err) {
           console.error("Error fetching cloud data", err);
         } finally {
@@ -178,7 +183,7 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
     if (user) {
       try {
         // Loại bỏ API Keys trước khi ghi lên Firebase — chỉ lưu cục bộ
-        const { geminiApiKey: _k1, claudeApiKey: _k2, openaiApiKey: _k3, ...settingsToSync } = updated;
+        const { geminiApiKey: _k1, claudeApiKey: _k2, openaiApiKey: _k3, grokApiKey: _k4, ...settingsToSync } = updated;
         await setDoc(doc(db, 'userSettings', user.uid), { userId: user.uid, settings: settingsToSync, authorName: data.authorName }, { merge: true });
       } catch (e) {
         console.error("Lỗi lưu cài đặt", e);
