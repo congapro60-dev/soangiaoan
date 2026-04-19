@@ -1,111 +1,93 @@
-import { GoogleGenAI } from "@google/genai";
-import { TemplateFile, GradingResult } from "../types";
+import { callAI, callAIWithVision, getActiveApiKey } from '../lib/aiProviders';
+import { TemplateFile, GradingResult, AppData } from '../types';
+
+type Settings = AppData['settings'];
+
+const IMAGE_TYPES = new Set(['png', 'jpg', 'jpeg', 'webp']);
 
 export const gradingUtils = {
   /**
-   * Chuyển đổi tệp sang định dạng AI (Base64 cho ảnh, Text cho docx/pdf)
+   * Prompt chấm điểm — output JSON chuẩn bất kể provider nào
    */
-  fileToPart: async (file: TemplateFile): Promise<any> => {
-    const isImage = ['png', 'jpg', 'jpeg', 'webp'].includes(file.type.toLowerCase());
-    
-    if (isImage) {
-      // Content trong TemplateFile là dữ liệu thô hoặc base64 tùy lúc upload
-      // Giả định content đã là base64 (sẽ xử lý ở bước upload)
-      return {
-        inlineData: {
-          data: file.content.split(',').pop() || file.content,
-          mimeType: `image/${file.type === 'jpg' ? 'jpeg' : file.type}`
-        }
-      };
-    }
-    
-    return { text: file.content };
-  },
+  getGradingPrompt: (masterContent: string, studentText?: string): string => {
+    const studentSection = studentText
+      ? `\nBÀI LÀM HỌC SINH (văn bản):\n---\n${studentText}\n---`
+      : '\nBÀI LÀM HỌC SINH: [xem ảnh đính kèm]';
 
-  /**
-   * Xây dựng Prompt chấm điểm chuyên sâu
-   */
-  getGradingPrompt: (masterContent: string) => {
     return `
-      BẠN LÀ CHUYÊN GIA KHẢO THÍ VÀ GIÁO DỤC HỌC CAO CẤP.
-      NHIỆM VỤ: Chấm điểm bài làm của học sinh dựa trên Đề bài & Đáp án chuẩn dưới đây.
+BẠN LÀ CHUYÊN GIA KHẢO THÍ VÀ GIÁO DỤC HỌC CAO CẤP.
+NHIỆM VỤ: Chấm điểm bài làm của học sinh theo đúng đề bài và đáp án chuẩn.
 
-      ĐỀ BÀI & ĐÁP ÁN CHUẨN:
-      ---
-      ${masterContent}
-      ---
+ĐỀ BÀI & ĐÁP ÁN CHUẨN:
+---
+${masterContent}
+---
+${studentSection}
 
-      YÊU CẦU CHẤM ĐIỂM (CỰC KỲ CHI TIẾT):
-      1. TRẮC NGHIỆM: Đối soát đáp án A, B, C, D. Nếu sai, ghi rõ câu nào sai.
-      2. TỰ LUẬN: 
-         - Đọc kỹ các bước giải, đánh giá logic và phương pháp.
-         - Cho điểm thành phần nếu học sinh làm đúng một phần.
-         - Nhận xét về ưu điểm (cách trình bày, lập luận) và nhược điểm (hổng kiến thức, sai sót nhỏ).
-      3. TỔNG HỢP: Đưa ra lời khuyên cá nhân hóa để học sinh cải thiện.
+QUY TẮC CHẤM ĐIỂM:
+1. TRẮC NGHIỆM: Đối soát từng đáp án A/B/C/D. Ghi rõ câu nào đúng, câu nào sai.
+2. TỰ LUẬN: Đánh giá logic, phương pháp, cho điểm thành phần khi làm đúng một phần.
+3. Nhận xét điểm mạnh (trình bày, lập luận) và điểm yếu (hổng kiến thức, sai sót).
+4. Đưa lộ trình cải thiện cá nhân hóa cho học sinh.
 
-      ĐỊNH DẠNG PHẢN HỒI (BẮT BUỘC JSON):
-      {
-        "studentName": "Tên học sinh (nếu tìm thấy trong bài, không thì để 'Ẩn danh')",
-        "score": 0.0,
-        "maxScore": 10.0,
-        "strengths": ["...", "..."],
-        "weaknesses": ["...", "..."],
-        "improvementPlan": "Lộ trình cải thiện...",
-        "details": "Toàn bộ báo cáo chi tiết định dạng Markdown"
-      }
-    `;
+ĐỊNH DẠNG PHẢN HỒI — BẮT BUỘC JSON THUẦN (không giải thích thêm):
+{
+  "studentName": "Tên học sinh (tìm trong bài, không có thì để 'Ẩn danh')",
+  "score": 0.0,
+  "maxScore": 10.0,
+  "strengths": ["điểm mạnh 1", "điểm mạnh 2"],
+  "weaknesses": ["điểm yếu 1", "điểm yếu 2"],
+  "improvementPlan": "Lộ trình cải thiện chi tiết...",
+  "details": "Báo cáo chấm điểm đầy đủ định dạng Markdown"
+}
+    `.trim();
   },
 
   /**
-   * Chấm điểm một bài nộp
+   * Chấm điểm một bài — tự động route tới provider đang chọn
+   * Ảnh → callAIWithVision, văn bản → callAI
    */
   gradeSubmission: async (
     masterFile: TemplateFile,
     studentFile: TemplateFile,
-    apiKey: string,
-    modelName: string = 'gemini-2.5-flash'
+    settings: Settings
   ): Promise<Partial<GradingResult>> => {
-    if (!apiKey) throw new Error("API Key empty");
+    const apiKey = getActiveApiKey(settings);
+    if (!apiKey) throw new Error('Chưa nhập API Key cho provider đang chọn');
 
-    const ai = new GoogleGenAI({ apiKey });
-    const prompt = gradingUtils.getGradingPrompt(masterFile.content);
-    const studentPart = await gradingUtils.fileToPart(studentFile);
+    const isImage = IMAGE_TYPES.has(studentFile.type.toLowerCase());
+    let text: string;
 
-    try {
-      const result = await ai.models.generateContent({
-        model: modelName,
-        contents: [{ parts: [{ text: prompt }, studentPart] }],
-        config: { temperature: 0.1 }
-      });
-      const text = result.text || '';
-      if (!text) throw new Error("AI trả về phản hồi rỗng");
-
-      // Ưu tiên tìm JSON trong code block, sau đó fallback greedy
-      const codeBlockMatch = text.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
-      const jsonStr = codeBlockMatch
-        ? codeBlockMatch[1]
-        : text.match(/\{[\s\S]*"studentName"[\s\S]*\}/)?.[0];
-      if (!jsonStr) throw new Error("AI không trả về dữ liệu JSON hợp lệ");
-
-      const parsed = JSON.parse(jsonStr);
-      return {
-        studentName: parsed.studentName || 'Ẩn danh',
-        score: typeof parsed.score === 'number' ? parsed.score : 0,
-        maxScore: typeof parsed.maxScore === 'number' ? parsed.maxScore : 10,
-        strengths: Array.isArray(parsed.strengths) ? parsed.strengths : [],
-        weaknesses: Array.isArray(parsed.weaknesses) ? parsed.weaknesses : [],
-        improvementPlan: parsed.improvementPlan || '',
-        details: parsed.details || '',
-        status: 'completed' as const,
-        fileName: studentFile.name
-      };
-    } catch (error: any) {
-      console.error("Grading Error:", error);
-      return {
-        status: 'error' as const,
-        details: `Lỗi khi chấm bài: ${error.message}`,
-        fileName: studentFile.name
-      };
+    if (isImage) {
+      // Bài nộp là ảnh chụp — dùng vision API
+      const prompt = gradingUtils.getGradingPrompt(masterFile.content);
+      text = await callAIWithVision(prompt, studentFile.content, settings);
+    } else {
+      // Bài nộp là văn bản (PDF/docx đã trích xuất) — nhúng vào prompt
+      const prompt = gradingUtils.getGradingPrompt(masterFile.content, studentFile.content);
+      text = await callAI(prompt, settings);
     }
-  }
+
+    if (!text) throw new Error('AI trả về phản hồi rỗng');
+
+    // Parse JSON: ưu tiên code block, fallback anchor bằng "studentName"
+    const codeBlockMatch = text.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+    const jsonStr = codeBlockMatch
+      ? codeBlockMatch[1]
+      : text.match(/\{[\s\S]*"studentName"[\s\S]*?\}/)?.[0];
+    if (!jsonStr) throw new Error('AI không trả về JSON hợp lệ');
+
+    const parsed = JSON.parse(jsonStr);
+    return {
+      studentName: String(parsed.studentName || 'Ẩn danh'),
+      score: Number(parsed.score) || 0,
+      maxScore: Number(parsed.maxScore) || 10,
+      strengths: Array.isArray(parsed.strengths) ? parsed.strengths : [],
+      weaknesses: Array.isArray(parsed.weaknesses) ? parsed.weaknesses : [],
+      improvementPlan: String(parsed.improvementPlan || ''),
+      details: String(parsed.details || ''),
+      status: 'completed' as const,
+      fileName: studentFile.name,
+    };
+  },
 };

@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo } from 'react'; // useMemo dùng cho classInsights
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ClipboardCheck, Upload, Users, FileText, CheckCircle2, 
@@ -8,7 +8,7 @@ import {
 import { AppData, TemplateFile, GradingResult, GradingSession } from '../../types';
 import { processUploadedFile, downloadBlob } from '../../utils/fileUtils';
 import { gradingUtils } from '../../utils/gradingUtils';
-import { MODELS } from '../../lib/gemini';
+import { getActiveApiKey } from '../../lib/aiProviders';
 import ReactMarkdown from 'react-markdown';
 
 interface GradingTabProps {
@@ -78,16 +78,10 @@ export const GradingTab = ({ data, setData, isLoading, setIsLoading, showToast }
     }
   };
 
-  // Chọn Gemini model phù hợp (grading cần multimodal → luôn dùng Gemini)
-  const gradingModel = useMemo(() => {
-    const current = data.settings.selectedModel;
-    return MODELS.includes(current) ? current : 'gemini-2.5-flash';
-  }, [data.settings.selectedModel]);
-
   const startGrading = async () => {
     if (!masterFile || studentFiles.length === 0) return;
-    if (!data.settings.geminiApiKey) {
-      showToast('Chấm bài yêu cầu Gemini API Key (hỗ trợ ảnh/đa phương thức)', 'error');
+    if (!getActiveApiKey(data.settings)) {
+      showToast('Cần nhập API Key trong Cài đặt trước khi chấm bài', 'error');
       return;
     }
 
@@ -107,8 +101,7 @@ export const GradingTab = ({ data, setData, isLoading, setIsLoading, showToast }
         const gradeData = await gradingUtils.gradeSubmission(
           masterFile,
           studentFile,
-          data.settings.geminiApiKey,
-          gradingModel
+          data.settings
         );
         
         updatedResults[resultIndex] = {

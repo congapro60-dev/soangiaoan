@@ -57,6 +57,67 @@ export async function callAI(prompt: string, settings: Settings): Promise<string
   return (await callGeminiAI(prompt, settings.geminiApiKey, idx >= 0 ? idx : 0)) ?? '';
 }
 
+/**
+ * Gọi AI với ảnh đính kèm (multimodal / vision).
+ * imageDataUrl: full data URL — data:image/jpeg;base64,...
+ * Nếu provider không hỗ trợ vision, fallback về text-only.
+ */
+export async function callAIWithVision(
+  prompt: string,
+  imageDataUrl: string,
+  settings: Settings
+): Promise<string> {
+  const provider = settings.selectedProvider ?? 'gemini';
+  const [header, base64Data] = imageDataUrl.split(',');
+  const mimeType = (header.match(/data:([^;]+)/)?.[1] || 'image/jpeg') as
+    | 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
+
+  if (provider === 'claude') {
+    const Anthropic = (await import('@anthropic-ai/sdk')).default;
+    const client = new Anthropic({ apiKey: settings.claudeApiKey, dangerouslyAllowBrowser: true });
+    const msg = await client.messages.create({
+      model: settings.selectedModel || 'claude-sonnet-4-6',
+      max_tokens: 8096,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: mimeType, data: base64Data } },
+          { type: 'text', text: prompt },
+        ],
+      }],
+    });
+    return msg.content[0].type === 'text' ? msg.content[0].text : '';
+  }
+
+  if (provider === 'openai') {
+    const OpenAI = (await import('openai')).default;
+    const client = new OpenAI({ apiKey: settings.openaiApiKey, dangerouslyAllowBrowser: true });
+    const res = await client.chat.completions.create({
+      model: settings.selectedModel || 'gpt-4o',
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image_url', image_url: { url: imageDataUrl } },
+          { type: 'text', text: prompt },
+        ],
+      }],
+    });
+    return res.choices[0]?.message?.content ?? '';
+  }
+
+  // Gemini
+  const { GoogleGenAI } = await import('@google/genai');
+  const ai = new GoogleGenAI({ apiKey: settings.geminiApiKey });
+  const idx = MODELS.indexOf(settings.selectedModel);
+  const modelName = idx >= 0 ? MODELS[idx] : MODELS[0];
+  const result = await ai.models.generateContent({
+    model: modelName,
+    contents: [{ parts: [{ text: prompt }, { inlineData: { data: base64Data, mimeType } }] }],
+    config: { temperature: 0.1 },
+  });
+  return result.text || '';
+}
+
 export async function callAIStream(
   prompt: string,
   settings: Settings,
