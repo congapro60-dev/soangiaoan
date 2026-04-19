@@ -28,9 +28,7 @@ export const exportToPDF = async (currentPlan: Partial<LessonPlan>, showToast: (
       vertical-align: top !important;
       padding: 6px 8px !important;
     }
-    #lesson-content table th:nth-child(1), #lesson-content table td:nth-child(1) { width: 25% !important; }
-    #lesson-content table th:nth-child(2), #lesson-content table td:nth-child(2) { width: 42% !important; }
-    #lesson-content table th:nth-child(3), #lesson-content table td:nth-child(3) { width: 33% !important; }
+    #lesson-content table th, #lesson-content table td { width: 33.33% !important; }
     .katex { padding: 4px 0 !important; display: inline-block !important; }
     .katex-display { margin: 8px 0 !important; }
   `;
