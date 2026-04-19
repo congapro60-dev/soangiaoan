@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import katex from 'katex';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-  FileCheck, FilePlus, Shuffle, Upload, Download,
+  FileCheck, FilePlus, Shuffle, Upload, Download, FileCode,
   ShieldCheck, AlertCircle, Loader2, X, CheckCircle2, History, Trash2
 } from 'lucide-react';
 import * as mammoth from 'mammoth';
@@ -15,10 +15,12 @@ import rehypeRaw from 'rehype-raw';
 import { marked } from 'marked';
 import 'katex/dist/katex.min.css';
 
-import { AppData, TemplateFile } from '../../types';
+import { AppData, TemplateFile, LessonPlan } from '../../types';
 import { examUtils } from '../../utils/examUtils';
 import { downloadBlob } from '../../utils/fileUtils';
-import { callAIStream, getActiveApiKey } from '../../lib/aiProviders';
+import { callAI, callAIStream, getActiveApiKey } from '../../lib/aiProviders';
+import { LatexModal } from '../modals/LatexModal';
+import { openInOverleaf } from '../../utils/exportUtils';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
@@ -80,6 +82,8 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
   const [processStatus, setProcessStatus] = useState<string>('');
   const [history, setHistory] = useState<HistoryEntry[]>(() => loadHistory());
   const [showHistory, setShowHistory] = useState(false);
+  const [latexContent, setLatexContent] = useState('');
+  const [isLatexModalOpen, setIsLatexModalOpen] = useState(false);
 
   // Tự xóa entries hết hạn khi mount
   useEffect(() => {
@@ -182,6 +186,26 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
       showToast('Đã tải file Word thành công!', 'success');
     } catch (e) {
       showToast('Lỗi xuất Word. Vui lòng thử lại.', 'error');
+    }
+  };
+
+  const handleExportOverleaf = async () => {
+    if (!testResult) return;
+    setIsLoading(true);
+    try {
+      const prompt = `Chuyển đổi nội dung Markdown sau sang mã LaTeX hoàn chỉnh, có thể biên dịch ngay trên Overleaf. Yêu cầu bắt buộc:
+- \\documentclass{article} với các gói: inputenc (utf8), fontenc (T5), babel (vietnamese), amsmath, amssymb, geometry (a4paper, margin=2cm), longtable, booktabs, array
+- Giữ nguyên 100% nội dung, không tóm tắt hay bỏ bớt
+- Công thức toán dùng $...$ (inline) hoặc \\[...\\] (display)
+- Trả về CHỈ mã LaTeX thuần, không bọc trong markdown\n\n${testResult}`;
+      const latex = await callAI(prompt, data.settings);
+      const clean = latex.replace(/^```(?:latex)?\n?/m, '').replace(/\n?```$/m, '').trim();
+      setLatexContent(clean);
+      setIsLatexModalOpen(true);
+    } catch {
+      showToast('Lỗi chuyển đổi LaTeX. Vui lòng thử lại.', 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -607,11 +631,34 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
                 >
                   <Download className="w-4 h-4" /> Xuất Word (.doc)
                 </button>
+                <button
+                  onClick={handleExportOverleaf}
+                  disabled={isLoading}
+                  className="px-5 py-2.5 bg-emerald-600 text-white rounded-2xl font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all flex items-center gap-2 text-sm disabled:opacity-50"
+                >
+                  <FileCode className="w-4 h-4" /> Overleaf / LaTeX
+                </button>
               </div>
             </div>
           )}
         </div>
       </div>
+
+      <LatexModal
+        isOpen={isLatexModalOpen}
+        onClose={() => setIsLatexModalOpen(false)}
+        latexContent={latexContent}
+        currentPlan={{ title: 'De_thi_kiem_tra' } as Partial<LessonPlan>}
+        downloadLaTeXFile={() => {
+          const blob = new Blob([latexContent], { type: 'text/plain' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url; a.download = 'De_thi_kiem_tra.tex'; a.click();
+          URL.revokeObjectURL(url);
+        }}
+        openInOverleaf={() => openInOverleaf(latexContent, { title: 'De_thi_kiem_tra' } as Partial<LessonPlan>, showToast)}
+        showToast={showToast}
+      />
     </motion.div>
   );
 };
