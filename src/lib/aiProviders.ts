@@ -3,6 +3,35 @@ import type { AppData } from '../types';
 
 type Settings = AppData['settings'];
 
+// --- Fallback relay helpers (quota exhaustion) ---
+
+function isQuotaError(error: any): boolean {
+  const msg = String(error?.message || error || '');
+  return (
+    msg.includes('429') ||
+    msg.includes('RESOURCE_EXHAUSTED') ||
+    msg.includes('quota') ||
+    msg.includes('Quota') ||
+    msg.includes('rateLimitExceeded')
+  );
+}
+
+async function callRelay(
+  prompt: string,
+  model: string,
+  imageBase64?: string,
+  imageMimeType?: string
+): Promise<string> {
+  const res = await fetch('/api/gemini-relay', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt, model, imageBase64, imageMimeType }),
+  });
+  if (!res.ok) throw new Error(`Relay unavailable (${res.status})`);
+  const data = await res.json();
+  return data.text || '';
+}
+
 export const CLAUDE_MODELS = [
   { id: 'claude-opus-4-6', name: 'Claude Opus 4.6', desc: 'Mạnh nhất, suy luận chuyên sâu' },
   { id: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6', desc: 'Cân bằng tốc độ & chất lượng (Default)' },
@@ -30,31 +59,39 @@ export function getActiveApiKey(settings: Settings): string {
 
 export async function callAI(prompt: string, settings: Settings): Promise<string> {
   const provider = settings.selectedProvider ?? 'gemini';
+  const fallbackModel = MODELS[0];
 
-  if (provider === 'claude') {
-    const Anthropic = (await import('@anthropic-ai/sdk')).default;
-    const client = new Anthropic({ apiKey: settings.claudeApiKey, dangerouslyAllowBrowser: true });
-    const msg = await client.messages.create({
-      model: settings.selectedModel || 'claude-sonnet-4-6',
-      max_tokens: 8096,
-      messages: [{ role: 'user', content: prompt }],
-    });
-    return msg.content[0].type === 'text' ? msg.content[0].text : '';
+  try {
+    if (provider === 'claude') {
+      const Anthropic = (await import('@anthropic-ai/sdk')).default;
+      const client = new Anthropic({ apiKey: settings.claudeApiKey, dangerouslyAllowBrowser: true });
+      const msg = await client.messages.create({
+        model: settings.selectedModel || 'claude-sonnet-4-6',
+        max_tokens: 8096,
+        messages: [{ role: 'user', content: prompt }],
+      });
+      return msg.content[0].type === 'text' ? msg.content[0].text : '';
+    }
+
+    if (provider === 'openai') {
+      const OpenAI = (await import('openai')).default;
+      const client = new OpenAI({ apiKey: settings.openaiApiKey, dangerouslyAllowBrowser: true });
+      const res = await client.chat.completions.create({
+        model: settings.selectedModel || 'gpt-4o',
+        messages: [{ role: 'user', content: prompt }],
+      });
+      return res.choices[0]?.message?.content ?? '';
+    }
+
+    // default: gemini
+    const idx = MODELS.indexOf(settings.selectedModel);
+    return (await callGeminiAI(prompt, settings.geminiApiKey, idx >= 0 ? idx : 0)) ?? '';
+  } catch (err) {
+    if (isQuotaError(err)) {
+      return callRelay(prompt, fallbackModel);
+    }
+    throw err;
   }
-
-  if (provider === 'openai') {
-    const OpenAI = (await import('openai')).default;
-    const client = new OpenAI({ apiKey: settings.openaiApiKey, dangerouslyAllowBrowser: true });
-    const res = await client.chat.completions.create({
-      model: settings.selectedModel || 'gpt-4o',
-      messages: [{ role: 'user', content: prompt }],
-    });
-    return res.choices[0]?.message?.content ?? '';
-  }
-
-  // default: gemini
-  const idx = MODELS.indexOf(settings.selectedModel);
-  return (await callGeminiAI(prompt, settings.geminiApiKey, idx >= 0 ? idx : 0)) ?? '';
 }
 
 /**
@@ -71,7 +108,9 @@ export async function callAIWithVision(
   const [header, base64Data] = imageDataUrl.split(',');
   const mimeType = (header.match(/data:([^;]+)/)?.[1] || 'image/jpeg') as
     | 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
+  const fallbackModel = MODELS[0];
 
+  try {
   if (provider === 'claude') {
     const Anthropic = (await import('@anthropic-ai/sdk')).default;
     const client = new Anthropic({ apiKey: settings.claudeApiKey, dangerouslyAllowBrowser: true });
@@ -116,6 +155,12 @@ export async function callAIWithVision(
     config: { temperature: 0.1 },
   });
   return result.text || '';
+  } catch (err) {
+    if (isQuotaError(err)) {
+      return callRelay(prompt, fallbackModel, base64Data, mimeType);
+    }
+    throw err;
+  }
 }
 
 export async function callAIStream(
@@ -124,39 +169,50 @@ export async function callAIStream(
   onChunk: (chunk: string) => void
 ): Promise<void> {
   const provider = settings.selectedProvider ?? 'gemini';
+  const fallbackModel = MODELS[0];
 
-  if (provider === 'claude') {
-    const Anthropic = (await import('@anthropic-ai/sdk')).default;
-    const client = new Anthropic({ apiKey: settings.claudeApiKey, dangerouslyAllowBrowser: true });
-    const stream = client.messages.stream({
-      model: settings.selectedModel || 'claude-sonnet-4-6',
-      max_tokens: 8096,
-      messages: [{ role: 'user', content: prompt }],
-    });
-    for await (const event of stream) {
-      if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
-        onChunk(event.delta.text);
+  try {
+    if (provider === 'claude') {
+      const Anthropic = (await import('@anthropic-ai/sdk')).default;
+      const client = new Anthropic({ apiKey: settings.claudeApiKey, dangerouslyAllowBrowser: true });
+      const stream = client.messages.stream({
+        model: settings.selectedModel || 'claude-sonnet-4-6',
+        max_tokens: 8096,
+        messages: [{ role: 'user', content: prompt }],
+      });
+      for await (const event of stream) {
+        if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+          onChunk(event.delta.text);
+        }
       }
+      return;
     }
-    return;
-  }
 
-  if (provider === 'openai') {
-    const OpenAI = (await import('openai')).default;
-    const client = new OpenAI({ apiKey: settings.openaiApiKey, dangerouslyAllowBrowser: true });
-    const stream = await client.chat.completions.create({
-      model: settings.selectedModel || 'gpt-4o',
-      messages: [{ role: 'user', content: prompt }],
-      stream: true,
-    });
-    for await (const chunk of stream) {
-      const text = chunk.choices[0]?.delta?.content ?? '';
-      if (text) onChunk(text);
+    if (provider === 'openai') {
+      const OpenAI = (await import('openai')).default;
+      const client = new OpenAI({ apiKey: settings.openaiApiKey, dangerouslyAllowBrowser: true });
+      const stream = await client.chat.completions.create({
+        model: settings.selectedModel || 'gpt-4o',
+        messages: [{ role: 'user', content: prompt }],
+        stream: true,
+      });
+      for await (const chunk of stream) {
+        const text = chunk.choices[0]?.delta?.content ?? '';
+        if (text) onChunk(text);
+      }
+      return;
     }
-    return;
-  }
 
-  // default: gemini
-  const idx = MODELS.indexOf(settings.selectedModel);
-  return callGeminiAIStream(prompt, settings.geminiApiKey, onChunk, idx >= 0 ? idx : 0);
+    // default: gemini
+    const idx = MODELS.indexOf(settings.selectedModel);
+    return callGeminiAIStream(prompt, settings.geminiApiKey, onChunk, idx >= 0 ? idx : 0);
+  } catch (err) {
+    if (isQuotaError(err)) {
+      // Relay không hỗ trợ streaming — lấy full text rồi deliver một lần
+      const text = await callRelay(prompt, fallbackModel);
+      onChunk(text);
+      return;
+    }
+    throw err;
+  }
 }
