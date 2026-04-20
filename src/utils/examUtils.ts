@@ -9,7 +9,12 @@ export const examUtils = {
   /**
    * SOẠN ĐỀ KIỂM TRA (Claude-style Agentic)
    */
-  getGeneratePrompt: (matrix: TemplateFile | null, requirement: string, sampleFile?: TemplateFile | null) => {
+  getGeneratePrompt: (
+    matrix: TemplateFile | null,
+    requirement: string,
+    sampleFile?: TemplateFile | null,
+    structure?: { mcq: number; trueFalse4: number; shortAnswer: number; essay: number }
+  ) => {
     const sampleSection = sampleFile?.content ? `
 ===== ĐỀ MẪU ĐỊNH DẠNG (BẮT BUỘC TUÂN THỦ) =====
 ${sampleFile.content}
@@ -49,6 +54,16 @@ ${sampleSection}
 
 MA TRẬN ĐỀ:
 ${matrixSection}
+
+CẤU TRÚC ĐỀ BẮT BUỘC:
+${structure && (structure.mcq + structure.trueFalse4 + structure.shortAnswer + structure.essay) > 0
+  ? [
+      structure.mcq > 0 ? `- ${structure.mcq} câu TRẮC NGHIỆM 4 phương án (A/B/C/D, mỗi câu chỉ 1 đáp án đúng)` : '',
+      structure.trueFalse4 > 0 ? `- ${structure.trueFalse4} câu ĐÚNG/SAI 4 ý (mỗi câu có 4 phát biểu a/b/c/d, học sinh đánh Đúng hoặc Sai cho từng ý)` : '',
+      structure.shortAnswer > 0 ? `- ${structure.shortAnswer} câu TRẢ LỜI NGẮN (điền số hoặc đáp án cụ thể)` : '',
+      structure.essay > 0 ? `- ${structure.essay} câu TỰ LUẬN (trình bày đầy đủ lời giải)` : '',
+    ].filter(Boolean).join('\n')
+  : '- Không có ràng buộc cụ thể (AI tự cân đối theo ma trận hoặc chương trình)'}
 
 YÊU CẦU BỔ SUNG:
 ${requirement || 'Soạn đề thi chuẩn chương trình GDPT 2018'}

@@ -79,6 +79,7 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
     () => localStorage.getItem(LAST_RESULT_KEY)
   );
   const [shuffledCount, setShuffledCount] = useState(4);
+  const [questionStructure, setQuestionStructure] = useState({ mcq: 28, trueFalse4: 4, shortAnswer: 0, essay: 0 });
   const [processStatus, setProcessStatus] = useState<string>('');
   const [history, setHistory] = useState<HistoryEntry[]>(() => loadHistory());
   const [showHistory, setShowHistory] = useState(false);
@@ -285,7 +286,7 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
       };
 
       if (activeMode === 'create') {
-        const prompt = examUtils.getGeneratePrompt(matrixFile, requirement, sampleFile);
+        const prompt = examUtils.getGeneratePrompt(matrixFile, requirement, sampleFile, questionStructure);
         await callAIStream(prompt, data.settings, onChunk);
         const match = cumulativeText.match(/<exam_content>([\s\S]*?)<\/exam_content>/);
         const final = match ? match[1].trim() : cumulativeText.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
@@ -466,6 +467,51 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
                   />
                   <span className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-black">{shuffledCount}</span>
                 </div>
+              </div>
+            )}
+
+            {activeMode === 'create' && (
+              <div className="space-y-3">
+                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Cấu trúc câu hỏi</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {([
+                    { key: 'mcq', label: 'TN 4 phương án', color: 'text-blue-600 bg-blue-50' },
+                    { key: 'trueFalse4', label: 'Đúng/Sai 4 ý', color: 'text-purple-600 bg-purple-50' },
+                    { key: 'shortAnswer', label: 'Trả lời ngắn', color: 'text-emerald-600 bg-emerald-50' },
+                    { key: 'essay', label: 'Tự luận', color: 'text-orange-600 bg-orange-50' },
+                  ] as const).map(({ key, label, color }) => (
+                    <div key={key} className={`flex flex-col items-center rounded-2xl p-3 ${color}`}>
+                      <span className="text-[10px] font-bold uppercase tracking-wider mb-1.5 text-center leading-tight">{label}</span>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setQuestionStructure(s => ({ ...s, [key]: Math.max(0, s[key] - 1) }))}
+                          className="w-6 h-6 rounded-lg bg-white/60 hover:bg-white font-black text-base flex items-center justify-center leading-none"
+                        >−</button>
+                        <input
+                          type="number"
+                          min={0}
+                          max={99}
+                          value={questionStructure[key]}
+                          onChange={e => setQuestionStructure(s => ({ ...s, [key]: Math.max(0, parseInt(e.target.value) || 0) }))}
+                          className="w-10 text-center font-black text-lg bg-transparent outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setQuestionStructure(s => ({ ...s, [key]: s[key] + 1 }))}
+                          className="w-6 h-6 rounded-lg bg-white/60 hover:bg-white font-black text-base flex items-center justify-center leading-none"
+                        >+</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {(questionStructure.mcq + questionStructure.trueFalse4 + questionStructure.shortAnswer + questionStructure.essay) > 0 && (
+                  <p className="text-[10px] text-slate-400 text-center">
+                    Tổng: <strong className="text-slate-600">
+                      {questionStructure.mcq + questionStructure.trueFalse4 + questionStructure.shortAnswer + questionStructure.essay} câu
+                    </strong>
+                  </p>
+                )}
               </div>
             )}
 
