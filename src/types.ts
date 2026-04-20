@@ -69,6 +69,62 @@ export interface GradingSession {
   createdAt: string;
 }
 
+export type QuestionType = 'multiple_choice' | 'true_false' | 'short_answer' | 'essay';
+
+export interface ExamQuestion {
+  id: string;
+  type: QuestionType;
+  content: string;
+  options?: string[];
+  correctAnswer?: string;
+  points: number;
+  explanation?: string;
+}
+
+export interface Exam {
+  id: string;
+  code: string;
+  title: string;
+  subjectId: string;
+  grade?: string;
+  teacherId: string;
+  teacherName: string;
+  questions: ExamQuestion[];
+  durationMinutes: number;
+  startAt?: string;
+  endAt?: string;
+  maxScore: number;
+  isActive: boolean;
+  allowReview: boolean;
+  shuffleQuestions: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StudentAnswer {
+  questionId: string;
+  answer: string;
+  autoScore?: number;
+  aiScore?: number;
+  aiFeedback?: string;
+}
+
+export interface ExamSubmission {
+  id: string;
+  examId: string;
+  examCode: string;
+  studentName: string;
+  studentClass?: string;
+  studentId?: string;
+  startedAt: string;
+  submittedAt?: string;
+  answers: StudentAnswer[];
+  totalScore?: number;
+  maxScore: number;
+  status: 'in_progress' | 'submitted' | 'graded';
+  tabSwitches?: number;
+}
+
 export interface AppData {
   subjects: Subject[];
   lessonPlans: LessonPlan[];
@@ -87,6 +143,7 @@ export interface AppData {
     models?: string[];
   };
   gradingSessions: GradingSession[];
+  exams: Exam[];
 }
 
 export const DEFAULT_DATA: AppData = {
@@ -113,4 +170,5 @@ export const DEFAULT_DATA: AppData = {
     models: ['gemini-3.1-flash-lite-preview', 'gemini-3.1-pro-preview', 'gemini-2.5-flash'],
   },
   gradingSessions: [],
+  exams: [],
 };

@@ -1,0 +1,58 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Giáo án cá nhân — chỉ owner đọc/ghi, cộng đồng đọc khi isPublic=true
+    match /lessonPlans/{planId} {
+      allow read: if resource.data.isPublic == true
+                  || (request.auth != null && request.auth.uid == resource.data.userId);
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+
+    // Mẫu giáo án cá nhân
+    match /userTemplates/{templateId} {
+      allow read, write: if request.auth != null
+                         && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null
+                    && request.auth.uid == request.resource.data.userId;
+    }
+
+    // Cài đặt người dùng — document id = uid
+    match /userSettings/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Phân phối chương trình
+    match /distributions/{distId} {
+      allow read, write: if request.auth != null
+                         && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null
+                    && request.auth.uid == request.resource.data.userId;
+    }
+
+    // === CHỨC NĂNG THI ONLINE ===
+
+    // Đề thi — học sinh đọc khi đã phát hành; chỉ giáo viên chủ đề được ghi
+    match /exams/{examId} {
+      allow read: if resource.data.isActive == true
+                  || (request.auth != null && request.auth.uid == resource.data.teacherId);
+      allow create: if request.auth != null
+                    && request.auth.uid == request.resource.data.teacherId;
+      allow update, delete: if request.auth != null
+                            && request.auth.uid == resource.data.teacherId;
+    }
+
+    // Bài làm học sinh
+    //  - create: ai cũng tạo được (học sinh nặc danh)
+    //  - update: chỉ khi bài còn 'in_progress' (không sửa được sau khi nộp)
+    //  - read: chỉ giáo viên chủ đề đọc được
+    match /examSubmissions/{subId} {
+      allow create: if request.resource.data.status == 'in_progress';
+      allow update: if resource.data.status == 'in_progress';
+      allow read: if request.auth != null
+                  && request.auth.uid == get(/databases/$(database)/documents/exams/$(resource.data.examId)).data.teacherId;
+    }
+  }
+}
