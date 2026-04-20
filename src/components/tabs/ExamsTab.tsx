@@ -1,14 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'motion/react';
 import Swal from 'sweetalert2';
+import * as XLSX from 'xlsx';
 import {
   Plus, Link as LinkIcon, Power, PowerOff, Trash2, Users, Clock,
-  Copy, Loader2, FileText, BarChart3, CheckCircle2, X, ChevronRight, History
+  Copy, Loader2, FileText, BarChart3, CheckCircle2, X, ChevronRight,
+  History, Download, Brain, RefreshCw
 } from 'lucide-react';
 import { User } from 'firebase/auth';
-import { AppData, Exam, ExamSubmission } from '../../types';
-import { useExams } from '../../hooks/useExams';
+import { AppData, Exam, ExamSubmission, ExamQuestion, StudentAnswer } from '../../types';
+import { useExams, updateSubmission } from '../../hooks/useExams';
 import { parseMarkdownToQuestions, generateExamCode, calculateMaxScore } from '../../lib/examParser';
+import { callAI } from '../../lib/aiProviders';
 
 interface ExamsTabProps {
   user: User;
@@ -33,20 +36,120 @@ const loadTestingHistory = (): TestingHistoryEntry[] => {
   } catch { return []; }
 };
 
+const buildEssayGradingPrompt = (question: ExamQuestion, answer: string): string => `
+BẠN LÀ GIÁO VIÊN CHẤM BÀI CHUYÊN NGHIỆP.
+NHIỆM VỤ: Chấm điểm câu tự luận sau đây.
+
+CÂU HỎI (${question.points} điểm):
+${question.content}
+
+${question.explanation ? `GỢI Ý ĐÁP ÁN:\n${question.explanation}\n` : ''}
+BÀI LÀM HỌC SINH:
+${answer || '(bỏ trống)'}
+
+YÊU CẦU:
+- Chấm điểm từ 0 đến ${question.points}, có thể cho điểm lẻ 0.25
+- Nhận xét ngắn gọn (1-2 câu) bằng tiếng Việt
+
+CHỈ TRẢ VỀ JSON THUẦN:
+{"score": 0.0, "feedback": "Nhận xét..."}
+`.trim();
+
+const gradeEssays = async (
+  exam: Exam,
+  submission: ExamSubmission,
+  settings: AppData['settings']
+): Promise<ExamSubmission> => {
+  const updatedAnswers: StudentAnswer[] = [...submission.answers];
+
+  for (let i = 0; i < updatedAnswers.length; i++) {
+    const ans = updatedAnswers[i];
+    const question = exam.questions.find(q => q.id === ans.questionId);
+    if (!question || question.type !== 'essay') continue;
+    if (ans.aiScore !== undefined) continue;
+
+    const prompt = buildEssayGradingPrompt(question, ans.answer);
+    const raw = await callAI(prompt, settings);
+
+    try {
+      const jsonMatch = raw.match(/\{[\s\S]*?\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        const score = Math.min(question.points, Math.max(0, Number(parsed.score) || 0));
+        updatedAnswers[i] = { ...ans, aiScore: score, aiFeedback: parsed.feedback || '' };
+      }
+    } catch {
+      updatedAnswers[i] = { ...ans, aiScore: 0, aiFeedback: 'AI không chấm được câu này.' };
+    }
+  }
+
+  const totalScore = updatedAnswers.reduce((sum, a) => {
+    if (a.autoScore !== undefined) return sum + a.autoScore;
+    if (a.aiScore !== undefined) return sum + a.aiScore;
+    return sum;
+  }, 0);
+
+  const hasUngraded = updatedAnswers.some(a => {
+    const q = exam.questions.find(q => q.id === a.questionId);
+    return q?.type === 'essay' && a.aiScore === undefined;
+  });
+
+  return {
+    ...submission,
+    answers: updatedAnswers,
+    totalScore: Math.round(totalScore * 100) / 100,
+    status: hasUngraded ? 'submitted' : 'graded',
+  };
+};
+
+const exportToExcel = (exam: Exam, submissions: ExamSubmission[]) => {
+  const completed = submissions.filter(s => s.status !== 'in_progress');
+
+  const rows = completed.map((s, idx) => ({
+    'STT': idx + 1,
+    'Họ và tên': s.studentName,
+    'Lớp': s.studentClass || '',
+    'Bắt đầu': new Date(s.startedAt).toLocaleString('vi-VN'),
+    'Nộp lúc': s.submittedAt ? new Date(s.submittedAt).toLocaleString('vi-VN') : '',
+    'Trạng thái': s.status === 'graded' ? 'Đã chấm' : 'Đã nộp',
+    'Điểm': s.totalScore !== undefined ? s.totalScore.toFixed(2) : '',
+    'Tổng điểm': s.maxScore,
+    'Đổi tab': s.tabSwitches || 0,
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+  ws['!cols'] = [
+    { wch: 5 }, { wch: 25 }, { wch: 10 }, { wch: 20 },
+    { wch: 20 }, { wch: 12 }, { wch: 10 }, { wch: 10 }, { wch: 10 },
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Kết quả');
+  XLSX.writeFile(wb, `KetQua_${exam.title}_${exam.code}.xlsx`);
+};
+
+// ─────────────────────────────────────────────
 export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
-  const { exams, loading, saveExam, deleteExam, toggleActive, getSubmissions } = useExams(user);
+  const { exams, loading, saveExam, deleteExam, toggleActive, getSubmissions, fetchMyExams } = useExams(user);
   const [creating, setCreating] = useState(false);
   const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
   const [submissions, setSubmissions] = useState<ExamSubmission[]>([]);
   const [loadingSubs, setLoadingSubs] = useState(false);
 
+  const reloadSubmissions = useCallback(async (exam: Exam) => {
+    setLoadingSubs(true);
+    try {
+      const subs = await getSubmissions(exam.id);
+      setSubmissions(subs);
+    } finally {
+      setLoadingSubs(false);
+    }
+  }, [getSubmissions]);
+
   useEffect(() => {
     if (!selectedExam) { setSubmissions([]); return; }
-    setLoadingSubs(true);
-    getSubmissions(selectedExam.id)
-      .then(setSubmissions)
-      .finally(() => setLoadingSubs(false));
-  }, [selectedExam, getSubmissions]);
+    reloadSubmissions(selectedExam);
+  }, [selectedExam, reloadSubmissions]);
 
   const handleCreateFromHistory = async () => {
     const history = loadTestingHistory();
@@ -136,7 +239,7 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
   const copyLink = (code: string) => {
     const url = `${window.location.origin}/exam/${code}`;
     navigator.clipboard.writeText(url);
-    showToast(`Đã sao chép liên kết: ${url}`);
+    showToast(`Đã sao chép: ${url}`);
   };
 
   const confirmDelete = async (exam: Exam) => {
@@ -162,13 +265,17 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
         exam={selectedExam}
         submissions={submissions}
         loading={loadingSubs}
+        data={data}
+        showToast={showToast}
         onBack={() => setSelectedExam(null)}
         onCopy={() => copyLink(selectedExam.code)}
         onToggle={async () => {
           await toggleActive(selectedExam.id, !selectedExam.isActive);
-          setSelectedExam({ ...selectedExam, isActive: !selectedExam.isActive });
+          setSelectedExam(prev => prev ? { ...prev, isActive: !prev.isActive } : prev);
           showToast(selectedExam.isActive ? 'Đã tắt phát hành.' : 'Đã phát hành đề!');
         }}
+        onSubmissionsChange={setSubmissions}
+        onReload={() => reloadSubmissions(selectedExam)}
       />
     );
   }
@@ -180,14 +287,19 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
           <h1 className="text-2xl font-black text-slate-800">Thi online</h1>
           <p className="text-sm text-slate-500 mt-1">Phát hành đề cho học sinh làm bài trực tuyến, hệ thống tự chấm.</p>
         </div>
-        <button
-          onClick={handleCreateFromHistory}
-          disabled={creating}
-          className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-100 hover:bg-blue-700 disabled:opacity-60"
-        >
-          {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-          {creating ? 'AI đang phân tích...' : 'Tạo đề từ Bảng Kiểm tra'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={fetchMyExams} className="p-2.5 text-slate-400 hover:bg-slate-50 rounded-xl" title="Tải lại">
+            <RefreshCw className="w-4 h-4" />
+          </button>
+          <button
+            onClick={handleCreateFromHistory}
+            disabled={creating}
+            className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-100 hover:bg-blue-700 disabled:opacity-60"
+          >
+            {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+            {creating ? 'AI đang phân tích...' : 'Tạo đề từ Bảng Kiểm tra'}
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -214,14 +326,12 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${exam.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
                 <FileText className="w-6 h-6" />
               </div>
-
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="font-bold text-slate-800 truncate">{exam.title}</h3>
                   {exam.isActive ? (
                     <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-700 uppercase tracking-wider">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      Đang mở
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />Đang mở
                     </span>
                   ) : (
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 uppercase tracking-wider">Nháp</span>
@@ -234,7 +344,6 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
                   <span>Điểm: {exam.maxScore}</span>
                 </div>
               </div>
-
               <div className="flex items-center gap-2 shrink-0">
                 <button onClick={() => copyLink(exam.code)} className="p-2 text-slate-400 hover:bg-blue-50 hover:text-blue-600 rounded-lg" title="Copy link">
                   <LinkIcon className="w-4 h-4" />
@@ -243,6 +352,7 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
                   onClick={async () => {
                     await toggleActive(exam.id, !exam.isActive);
                     showToast(exam.isActive ? 'Đã tắt phát hành.' : 'Đã phát hành đề!');
+                    fetchMyExams();
                   }}
                   className={`p-2 rounded-lg ${exam.isActive ? 'text-emerald-600 hover:bg-emerald-50' : 'text-slate-400 hover:bg-slate-50'}`}
                   title={exam.isActive ? 'Tắt phát hành' : 'Phát hành'}
@@ -264,20 +374,85 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
   );
 };
 
+// ─────────────────────────────────────────────
 interface ExamDetailProps {
   exam: Exam;
   submissions: ExamSubmission[];
   loading: boolean;
+  data: AppData;
+  showToast: (msg: string, type?: any) => void;
   onBack: () => void;
   onCopy: () => void;
   onToggle: () => void;
+  onSubmissionsChange: (subs: ExamSubmission[]) => void;
+  onReload: () => void;
 }
 
-const ExamDetail = ({ exam, submissions, loading, onBack, onCopy, onToggle }: ExamDetailProps) => {
+const ExamDetail = ({
+  exam, submissions, loading, data, showToast,
+  onBack, onCopy, onToggle, onSubmissionsChange, onReload
+}: ExamDetailProps) => {
+  const [gradingId, setGradingId] = useState<string | null>(null);
+
   const completed = submissions.filter(s => s.status !== 'in_progress');
   const avgScore = completed.length > 0
     ? (completed.reduce((sum, s) => sum + (s.totalScore || 0), 0) / completed.length).toFixed(2)
     : '—';
+  const hasEssayQuestions = exam.questions.some(q => q.type === 'essay');
+  const pendingGrade = submissions.filter(s => s.status === 'submitted');
+
+  const handleGradeOne = async (sub: ExamSubmission) => {
+    setGradingId(sub.id);
+    try {
+      const updated = await gradeEssays(exam, sub, data.settings);
+      await updateSubmission(sub.id, {
+        answers: updated.answers,
+        totalScore: updated.totalScore,
+        status: updated.status,
+      });
+      onSubmissionsChange(submissions.map(s => s.id === sub.id ? updated : s));
+      showToast(`Đã chấm xong bài của ${sub.studentName}!`);
+    } catch (err: any) {
+      showToast(`Lỗi chấm bài: ${err.message}`, 'error');
+    } finally {
+      setGradingId(null);
+    }
+  };
+
+  const handleGradeAll = async () => {
+    if (pendingGrade.length === 0) {
+      showToast('Không có bài nào cần chấm tự luận.', 'warning');
+      return;
+    }
+    const res = await Swal.fire({
+      title: `AI chấm ${pendingGrade.length} bài?`,
+      text: 'Hệ thống sẽ gọi AI để chấm tất cả các câu tự luận chưa có điểm.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Bắt đầu',
+      cancelButtonText: 'Hủy',
+    });
+    if (!res.isConfirmed) return;
+
+    let updated = [...submissions];
+    for (const sub of pendingGrade) {
+      setGradingId(sub.id);
+      try {
+        const result = await gradeEssays(exam, sub, data.settings);
+        await updateSubmission(sub.id, {
+          answers: result.answers,
+          totalScore: result.totalScore,
+          status: result.status,
+        });
+        updated = updated.map(s => s.id === sub.id ? result : s);
+        onSubmissionsChange([...updated]);
+      } catch (err: any) {
+        showToast(`Lỗi bài ${sub.studentName}: ${err.message}`, 'error');
+      }
+    }
+    setGradingId(null);
+    showToast('Hoàn thành chấm AI tất cả bài!');
+  };
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-5xl mx-auto">
@@ -286,7 +461,7 @@ const ExamDetail = ({ exam, submissions, loading, onBack, onCopy, onToggle }: Ex
       </button>
 
       <div className="bg-white rounded-3xl border border-slate-100 p-6 mb-6">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="flex-1 min-w-0">
             <h2 className="text-2xl font-black text-slate-800">{exam.title}</h2>
             <div className="flex items-center gap-3 mt-2 text-sm text-slate-500 flex-wrap">
@@ -294,17 +469,43 @@ const ExamDetail = ({ exam, submissions, loading, onBack, onCopy, onToggle }: Ex
               <span>{exam.questions.length} câu</span>
               <span>{exam.durationMinutes} phút</span>
               <span>Tổng {exam.maxScore} điểm</span>
+              {hasEssayQuestions && (
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-purple-100 text-purple-700">Có tự luận</span>
+              )}
             </div>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+            <button onClick={onReload} className="p-2 text-slate-400 hover:bg-slate-50 rounded-xl" title="Tải lại">
+              <RefreshCw className="w-4 h-4" />
+            </button>
             <button onClick={onCopy} className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-bold">
               <Copy className="w-3.5 h-3.5" /> Copy link
             </button>
+            {completed.length > 0 && (
+              <button
+                onClick={() => exportToExcel(exam, submissions)}
+                className="flex items-center gap-2 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-bold"
+              >
+                <Download className="w-3.5 h-3.5" /> Xuất Excel
+              </button>
+            )}
+            {hasEssayQuestions && pendingGrade.length > 0 && (
+              <button
+                onClick={handleGradeAll}
+                disabled={gradingId !== null}
+                className="flex items-center gap-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold disabled:opacity-60"
+              >
+                {gradingId ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Brain className="w-3.5 h-3.5" />}
+                AI chấm tất cả ({pendingGrade.length})
+              </button>
+            )}
             <button
               onClick={onToggle}
               className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold ${exam.isActive ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}
             >
-              {exam.isActive ? <><X className="w-3.5 h-3.5" /> Tắt phát hành</> : <><CheckCircle2 className="w-3.5 h-3.5" /> Phát hành</>}
+              {exam.isActive
+                ? <><X className="w-3.5 h-3.5" /> Tắt phát hành</>
+                : <><CheckCircle2 className="w-3.5 h-3.5" /> Phát hành</>}
             </button>
           </div>
         </div>
@@ -317,44 +518,71 @@ const ExamDetail = ({ exam, submissions, loading, onBack, onCopy, onToggle }: Ex
       </div>
 
       <div className="bg-white rounded-3xl border border-slate-100 overflow-hidden">
-        <h3 className="font-bold text-slate-800 px-6 py-4 border-b border-slate-50">Bài làm học sinh</h3>
+        <div className="px-6 py-4 border-b border-slate-50 flex items-center justify-between">
+          <h3 className="font-bold text-slate-800">Bài làm học sinh</h3>
+          {completed.length > 0 && <span className="text-xs text-slate-400">{completed.length} bài đã nộp</span>}
+        </div>
         {loading ? (
           <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-blue-500" /></div>
         ) : submissions.length === 0 ? (
           <p className="text-center text-sm text-slate-400 py-12">Chưa có học sinh nào làm bài.</p>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
-              <tr>
-                <th className="text-left px-6 py-3 font-bold">Họ tên</th>
-                <th className="text-left px-6 py-3 font-bold">Lớp</th>
-                <th className="text-left px-6 py-3 font-bold">Bắt đầu</th>
-                <th className="text-left px-6 py-3 font-bold">Trạng thái</th>
-                <th className="text-right px-6 py-3 font-bold">Điểm</th>
-              </tr>
-            </thead>
-            <tbody>
-              {submissions.map(s => (
-                <tr key={s.id} className="border-t border-slate-50 hover:bg-slate-50/50">
-                  <td className="px-6 py-3 font-medium text-slate-800">{s.studentName}</td>
-                  <td className="px-6 py-3 text-slate-500">{s.studentClass || '—'}</td>
-                  <td className="px-6 py-3 text-slate-500 text-xs">{new Date(s.startedAt).toLocaleString('vi-VN')}</td>
-                  <td className="px-6 py-3">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${
-                      s.status === 'submitted' ? 'bg-emerald-100 text-emerald-700'
-                        : s.status === 'graded' ? 'bg-blue-100 text-blue-700'
-                          : 'bg-amber-100 text-amber-700'
-                    }`}>
-                      {s.status === 'submitted' ? 'Đã nộp' : s.status === 'graded' ? 'Đã chấm' : 'Đang làm'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-3 text-right font-bold text-slate-800">
-                    {s.totalScore !== undefined ? `${s.totalScore.toFixed(2)} / ${s.maxScore}` : '—'}
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+                <tr>
+                  <th className="text-left px-6 py-3 font-bold">Họ tên</th>
+                  <th className="text-left px-6 py-3 font-bold">Lớp</th>
+                  <th className="text-left px-6 py-3 font-bold">Bắt đầu</th>
+                  <th className="text-left px-6 py-3 font-bold">Trạng thái</th>
+                  <th className="text-right px-6 py-3 font-bold">Điểm</th>
+                  {hasEssayQuestions && <th className="text-center px-6 py-3 font-bold">AI Chấm</th>}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {submissions.map(s => (
+                  <tr key={s.id} className="border-t border-slate-50 hover:bg-slate-50/50">
+                    <td className="px-6 py-3 font-medium text-slate-800">{s.studentName}</td>
+                    <td className="px-6 py-3 text-slate-500">{s.studentClass || '—'}</td>
+                    <td className="px-6 py-3 text-slate-500 text-xs">{new Date(s.startedAt).toLocaleString('vi-VN')}</td>
+                    <td className="px-6 py-3">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${
+                        s.status === 'graded' ? 'bg-blue-100 text-blue-700'
+                          : s.status === 'submitted' ? 'bg-emerald-100 text-emerald-700'
+                            : 'bg-amber-100 text-amber-700'
+                      }`}>
+                        {s.status === 'graded' ? 'Đã chấm' : s.status === 'submitted' ? 'Đã nộp' : 'Đang làm'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-3 text-right font-bold text-slate-800">
+                      {s.totalScore !== undefined ? `${s.totalScore.toFixed(2)} / ${s.maxScore}` : '—'}
+                    </td>
+                    {hasEssayQuestions && (
+                      <td className="px-6 py-3 text-center">
+                        {s.status === 'submitted' ? (
+                          <button
+                            onClick={() => handleGradeOne(s)}
+                            disabled={gradingId !== null}
+                            className="flex items-center gap-1 mx-auto px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg text-xs font-bold disabled:opacity-50"
+                          >
+                            {gradingId === s.id
+                              ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Đang chấm...</>
+                              : <><Brain className="w-3.5 h-3.5" /> AI chấm</>}
+                          </button>
+                        ) : s.status === 'graded' ? (
+                          <span className="text-xs text-emerald-600 font-bold flex items-center gap-1 justify-center">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Xong
+                          </span>
+                        ) : (
+                          <span className="text-xs text-slate-300">—</span>
+                        )}
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </motion.div>
