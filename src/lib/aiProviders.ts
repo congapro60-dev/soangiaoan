@@ -50,6 +50,11 @@ export const GROK_MODELS = [
   { id: 'grok-2-vision', name: 'Grok 2 Vision', desc: 'Hỗ trợ hình ảnh (vision)' },
 ];
 
+export const DEEPSEEK_MODELS = [
+  { id: 'deepseek-chat', name: 'DeepSeek V3 (Chat)', desc: 'Nhanh, đa năng (Default)' },
+  { id: 'deepseek-reasoner', name: 'DeepSeek R1 (Reasoner)', desc: 'Suy luận chuyên sâu, chậm hơn' },
+];
+
 export const GEMINI_MODELS = [
   { id: 'gemini-3.1-flash-lite-preview', name: 'Gemini 3.1 Flash Lite', desc: 'Nhanh, hiệu suất cao (Default)' },
   { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro', desc: 'Thông minh, suy luận đa tầng' },
@@ -61,6 +66,7 @@ export function getActiveApiKey(settings: Settings): string {
   if (provider === 'claude') return settings.claudeApiKey || '';
   if (provider === 'openai') return settings.openaiApiKey || '';
   if (provider === 'grok') return settings.grokApiKey || '';
+  if (provider === 'deepseek') return settings.deepseekApiKey || '';
   return settings.geminiApiKey || '';
 }
 
@@ -95,6 +101,16 @@ export async function callAI(prompt: string, settings: Settings): Promise<string
       const client = new OpenAI({ apiKey: settings.grokApiKey, baseURL: 'https://api.x.ai/v1', dangerouslyAllowBrowser: true });
       const res = await client.chat.completions.create({
         model: settings.selectedModel || 'grok-3',
+        messages: [{ role: 'user', content: prompt }],
+      });
+      return res.choices[0]?.message?.content ?? '';
+    }
+
+    if (provider === 'deepseek') {
+      const OpenAI = (await import('openai')).default;
+      const client = new OpenAI({ apiKey: settings.deepseekApiKey, baseURL: 'https://api.deepseek.com', dangerouslyAllowBrowser: true });
+      const res = await client.chat.completions.create({
+        model: settings.selectedModel || 'deepseek-chat',
         messages: [{ role: 'user', content: prompt }],
       });
       return res.choices[0]?.message?.content ?? '';
@@ -177,6 +193,11 @@ export async function callAIWithVision(
     return res.choices[0]?.message?.content ?? '';
   }
 
+  if (provider === 'deepseek') {
+    // DeepSeek không hỗ trợ vision — fallback về text-only
+    return callAI(prompt, settings);
+  }
+
   // Gemini
   const { GoogleGenAI } = await import('@google/genai');
   const ai = new GoogleGenAI({ apiKey: settings.geminiApiKey });
@@ -241,6 +262,21 @@ export async function callAIStream(
       const client = new OpenAI({ apiKey: settings.grokApiKey, baseURL: 'https://api.x.ai/v1', dangerouslyAllowBrowser: true });
       const stream = await client.chat.completions.create({
         model: settings.selectedModel || 'grok-3',
+        messages: [{ role: 'user', content: prompt }],
+        stream: true,
+      });
+      for await (const chunk of stream) {
+        const text = chunk.choices[0]?.delta?.content ?? '';
+        if (text) onChunk(text);
+      }
+      return;
+    }
+
+    if (provider === 'deepseek') {
+      const OpenAI = (await import('openai')).default;
+      const client = new OpenAI({ apiKey: settings.deepseekApiKey, baseURL: 'https://api.deepseek.com', dangerouslyAllowBrowser: true });
+      const stream = await client.chat.completions.create({
+        model: settings.selectedModel || 'deepseek-chat',
         messages: [{ role: 'user', content: prompt }],
         stream: true,
       });

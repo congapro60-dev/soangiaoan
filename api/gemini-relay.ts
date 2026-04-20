@@ -47,24 +47,53 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // Grok fallback (xAI — OpenAI-compatible)
-  try {
-    const OpenAI = (await import('openai')).default;
-    const client = new OpenAI({ apiKey: grokKey, baseURL: 'https://api.x.ai/v1' });
+  let grokFailed = false;
+  if (grokKey) {
+    try {
+      const OpenAI = (await import('openai')).default;
+      const client = new OpenAI({ apiKey: grokKey, baseURL: 'https://api.x.ai/v1' });
 
-    const content: any[] = [];
-    if (imageBase64 && imageMimeType) {
-      content.push({ type: 'image_url', image_url: { url: `data:${imageMimeType};base64,${imageBase64}` } });
+      const content: any[] = [];
+      if (imageBase64 && imageMimeType) {
+        content.push({ type: 'image_url', image_url: { url: `data:${imageMimeType};base64,${imageBase64}` } });
+      }
+      content.push({ type: 'text', text: prompt });
+
+      const grokModel = imageBase64 ? 'grok-2-vision' : 'grok-3';
+      const result = await client.chat.completions.create({
+        model: grokModel,
+        messages: [{ role: 'user', content }],
+      });
+
+      return res.status(200).json({ text: result.choices[0]?.message?.content || '' });
+    } catch {
+      grokFailed = true;
     }
-    content.push({ type: 'text', text: prompt });
-
-    const grokModel = imageBase64 ? 'grok-2-vision' : 'grok-3';
-    const result = await client.chat.completions.create({
-      model: grokModel,
-      messages: [{ role: 'user', content }],
-    });
-
-    return res.status(200).json({ text: result.choices[0]?.message?.content || '' });
-  } catch (grokErr: any) {
-    return res.status(500).json({ error: grokErr.message || 'Fallback error' });
+  } else {
+    grokFailed = true;
   }
+
+  // DeepSeek pool fallback (text-only — no vision support)
+  if (grokFailed && !imageBase64) {
+    const deepseekKeys = (process.env.DEEPSEEK_FALLBACK_KEYS || '')
+      .split(',')
+      .map((k: string) => k.trim())
+      .filter(Boolean);
+
+    for (const dsKey of deepseekKeys) {
+      try {
+        const OpenAI = (await import('openai')).default;
+        const client = new OpenAI({ apiKey: dsKey, baseURL: 'https://api.deepseek.com' });
+        const result = await client.chat.completions.create({
+          model: 'deepseek-chat',
+          messages: [{ role: 'user', content: prompt }],
+        });
+        return res.status(200).json({ text: result.choices[0]?.message?.content || '' });
+      } catch {
+        // try next key
+      }
+    }
+  }
+
+  return res.status(500).json({ error: 'All fallback providers exhausted' });
 }

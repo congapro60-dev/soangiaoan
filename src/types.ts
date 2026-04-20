@@ -137,9 +137,10 @@ export interface AppData {
     geminiApiKey: string;
     claudeApiKey: string;
     openaiApiKey: string;
-    selectedProvider: 'gemini' | 'claude' | 'openai' | 'grok';
+    selectedProvider: 'gemini' | 'claude' | 'openai' | 'grok' | 'deepseek';
     selectedModel: string;
     grokApiKey: string;
+    deepseekApiKey: string;
     models?: string[];
   };
   gradingSessions: GradingSession[];
@@ -165,6 +166,7 @@ export const DEFAULT_DATA: AppData = {
     claudeApiKey: '',
     openaiApiKey: '',
     grokApiKey: '',
+    deepseekApiKey: '',
     selectedProvider: 'gemini',
     selectedModel: 'gemini-3.1-flash-lite-preview',
     models: ['gemini-3.1-flash-lite-preview', 'gemini-3.1-pro-preview', 'gemini-2.5-flash'],
