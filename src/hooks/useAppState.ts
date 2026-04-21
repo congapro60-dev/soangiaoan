@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { AppData, DEFAULT_DATA, LessonPlan, Subject, LessonTemplate, CurriculumDistribution } from '../types';
+import { AppData, DEFAULT_DATA, LessonPlan, Subject, LessonTemplate, CurriculumDistribution, GradingSession } from '../types';
 import { collection, query, where, getDocs, doc, setDoc, deleteDoc, orderBy, limit, startAfter, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { User } from 'firebase/auth';
@@ -98,17 +98,32 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
           // Combine with default templates (keep unique)
           const combinedTemplates = [...userTemplates, ...DEFAULT_DATA.templates.filter(dt => !userTemplates.some(ut => ut.id === dt.id))];
 
+          // 5. Fetch Grading Sessions
+          const qSessions = query(
+            collection(db, 'gradingSessions'),
+            where('userId', '==', user.uid),
+            orderBy('createdAt', 'desc'),
+            limit(50)
+          );
+          const snapSessions = await getDocs(qSessions);
+          const cloudSessions: GradingSession[] = [];
+          snapSessions.forEach(d => cloudSessions.push(d.data() as GradingSession));
+
           setData(prev => {
             // Giữ lại các giáo án local chưa có trên cloud (tạo offline hoặc chưa kịp sync)
             const cloudPlanIds = new Set(cloudPlans.map(p => p.id));
             const localOnlyPlans = prev.lessonPlans.filter(p => !cloudPlanIds.has(p.id));
+            // Merge grading sessions — cloud takes priority
+            const cloudSessionIds = new Set(cloudSessions.map(s => s.id));
+            const localOnlySessions = (prev.gradingSessions || []).filter(s => !cloudSessionIds.has(s.id));
             return {
               ...prev,
               lessonPlans: [...cloudPlans, ...localOnlyPlans],
               templates: combinedTemplates,
               distributions: cloudDist,
               authorName: cloudAuthorName,
-              settings: { ...prev.settings, ...cloudSettings }
+              settings: { ...prev.settings, ...cloudSettings },
+              gradingSessions: [...cloudSessions, ...localOnlySessions],
             };
           });
         } catch (err) {
@@ -291,6 +306,57 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
     }
   };
 
+  const saveGradingSession = async (session: GradingSession) => {
+    setData(prev => ({
+      ...prev,
+      gradingSessions: [session, ...(prev.gradingSessions || []).filter(s => s.id !== session.id)]
+    }));
+    if (user) {
+      try {
+        // Strip file content before saving to Firestore (too large)
+        const sessionToSave = {
+          ...session,
+          userId: user.uid,
+          masterFiles: (session.masterFiles || []).map(f => ({ ...f, content: '' })),
+        };
+        await setDoc(doc(db, 'gradingSessions', session.id), sessionToSave);
+      } catch (e) {
+        console.error('Lỗi lưu phiên chấm Cloud', e);
+      }
+    }
+  };
+
+  const deleteGradingSession = async (id: string) => {
+    setData(prev => ({
+      ...prev,
+      gradingSessions: (prev.gradingSessions || []).filter(s => s.id !== id)
+    }));
+    if (user) {
+      try {
+        await deleteDoc(doc(db, 'gradingSessions', id));
+      } catch (e) {
+        console.error('Lỗi xóa phiên chấm Cloud', e);
+      }
+    }
+  };
+
+  const deleteGradingResult = async (sessionId: string, resultId: string) => {
+    const session = data.gradingSessions?.find(s => s.id === sessionId);
+    if (!session) return;
+    const updatedSession = { ...session, results: session.results.filter(r => r.id !== resultId) };
+    setData(prev => ({
+      ...prev,
+      gradingSessions: (prev.gradingSessions || []).map(s => s.id === sessionId ? updatedSession : s)
+    }));
+    if (user) {
+      try {
+        await setDoc(doc(db, 'gradingSessions', sessionId), updatedSession);
+      } catch (e) {
+        console.error('Lỗi xóa kết quả Cloud', e);
+      }
+    }
+  };
+
   return {
     data,
     setData,
@@ -309,7 +375,10 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
     loadMorePlans,
     hasMorePlans,
     loadMoreCommunity,
-    hasMoreCommunity
+    hasMoreCommunity,
+    saveGradingSession,
+    deleteGradingSession,
+    deleteGradingResult,
   };
 };
 

@@ -64,9 +64,11 @@ export interface GradingResult {
 export interface GradingSession {
   id: string;
   title: string;
-  testFile: TemplateFile | null;
+  testFile?: TemplateFile | null; // deprecated — kept for backward compat
+  masterFiles: TemplateFile[];
   results: GradingResult[];
   createdAt: string;
+  userId?: string;
 }
 
 export type QuestionType = 'multiple_choice' | 'true_false' | 'short_answer' | 'essay';

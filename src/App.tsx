@@ -37,7 +37,8 @@ export default function App() {
     data, setData, communityPlans, isLoading, setIsLoading,
     fetchCommunityPlans, updateTemplate, addTemplate, deleteTemplate, deleteFile,
     setAuthorName, addDistribution, deleteDistribution,
-    loadMorePlans, hasMorePlans, loadMoreCommunity, hasMoreCommunity
+    loadMorePlans, hasMorePlans, loadMoreCommunity, hasMoreCommunity,
+    saveGradingSession, deleteGradingSession, deleteGradingResult,
   } = useAppState(user, showToast);
   
   const [activeTab, setActiveTab] = useState<'dashboard' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading' | 'exams'>('dashboard');
@@ -194,6 +195,8 @@ export default function App() {
             {activeTab === 'grading' && (
               <GradingTab
                 data={data} setData={setData} isLoading={isLoading} setIsLoading={setIsLoading} showToast={showToast}
+                user={user} saveGradingSession={saveGradingSession}
+                deleteGradingSession={deleteGradingSession} deleteGradingResult={deleteGradingResult}
               />
             )}
 
