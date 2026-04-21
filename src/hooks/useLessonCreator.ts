@@ -323,7 +323,7 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
       showToast(error.message || 'Lỗi soạn thảo', 'error');
     } finally {
       setIsLoading(false);
-      setBulkProgress({ current: 0, total: 0 });
+      setBulkProgress({ current: 0, total: 0, currentTitle: '' });
     }
   };
 
