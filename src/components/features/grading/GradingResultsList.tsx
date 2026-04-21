@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { motion } from 'motion/react';
-import { Users, FileText, Loader2, User, Eye, Trash2 } from 'lucide-react';
+import { Users, FileText, Loader2, User, Eye, Trash2, RefreshCw } from 'lucide-react';
 import { GradingResult } from '../../../types';
 
 export type FilterScore = 'all' | 'above8' | '5to8' | 'below5';
@@ -11,9 +11,10 @@ interface Props {
   setFilterScore: (f: FilterScore) => void;
   onView: (result: GradingResult) => void;
   onDelete: (result: GradingResult) => void;
+  onRegrade?: (result: GradingResult) => void;
 }
 
-export const GradingResultsList = ({ results, filterScore, setFilterScore, onView, onDelete }: Props) => {
+export const GradingResultsList = ({ results, filterScore, setFilterScore, onView, onDelete, onRegrade }: Props) => {
   const filtered = useMemo(() => {
     if (filterScore === 'above8') return results.filter(r => r.score >= 8);
     if (filterScore === '5to8') return results.filter(r => r.score >= 5 && r.score < 8);
@@ -108,6 +109,15 @@ export const GradingResultsList = ({ results, filterScore, setFilterScore, onVie
                 >
                   <Eye className="w-4 h-4" />
                 </button>
+                {onRegrade && (res.status === 'completed' || res.status === 'error') && (
+                  <button
+                    onClick={() => onRegrade(res)}
+                    className="p-2 bg-slate-50 text-slate-400 rounded-xl hover:bg-amber-50 hover:text-amber-500 transition-all opacity-0 group-hover:opacity-100"
+                    title="Chấm lại"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                  </button>
+                )}
                 <button
                   onClick={() => onDelete(res)}
                   className="p-2 bg-slate-50 text-slate-400 rounded-xl hover:bg-red-50 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100"

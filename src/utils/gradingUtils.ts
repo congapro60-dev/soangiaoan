@@ -16,29 +16,47 @@ export const gradingUtils = {
 
     return `
 BẠN LÀ CHUYÊN GIA KHẢO THÍ VÀ GIÁO DỤC HỌC CAO CẤP.
-NHIỆM VỤ: Chấm điểm bài làm của học sinh theo đúng đề bài và đáp án chuẩn.
+NHIỆM VỤ: Chấm điểm bài làm của học sinh dựa trên tài liệu sau.
 
-ĐỀ BÀI & ĐÁP ÁN CHUẨN:
+ĐỀ BÀI / ĐÁP ÁN CHUẨN (giáo viên cung cấp):
 ---
 ${masterContent}
 ---
 ${studentSection}
 
-QUY TẮC CHẤM ĐIỂM:
-1. TRẮC NGHIỆM: Đối soát từng đáp án A/B/C/D. Ghi rõ câu nào đúng, câu nào sai.
-2. TỰ LUẬN: Đánh giá logic, phương pháp, cho điểm thành phần khi làm đúng một phần.
-3. Nhận xét điểm mạnh (trình bày, lập luận) và điểm yếu (hổng kiến thức, sai sót).
-4. Đưa lộ trình cải thiện cá nhân hóa cho học sinh.
+BƯỚC 1 — KIỂM TRA ĐÁP ÁN:
+- Nếu tài liệu trên CÓ đáp án chuẩn rõ ràng: chấm điểm CHÍNH XÁC theo đáp án đó.
+- Nếu KHÔNG có đáp án chuẩn: tự giải đề rồi chấm, và ghi rõ "(Chấm theo đáp án tự suy luận — độ chính xác có thể thấp hơn)" vào đầu trường "details".
 
-ĐỊNH DẠNG PHẢN HỒI — BẮT BUỘC JSON THUẦN (không giải thích thêm):
+BƯỚC 2 — QUY TẮC CHẤM:
+1. TRẮC NGHIỆM: Đối soát từng câu, ghi đúng/sai kèm đáp án chuẩn.
+2. TỰ LUẬN: Cho điểm thành phần (partial credit) khi làm đúng một phần.
+3. Tổng điểm phải BẰNG tổng các câu đã chấm — không ước lượng cảm tính.
+
+BƯỚC 3 — ĐỊNH DẠNG TRƯỜNG "details" (Markdown):
+Bắt buộc bao gồm:
+## Kết quả từng câu
+| Câu | Học sinh trả lời | Đáp án chuẩn | Điểm | Nhận xét |
+|-----|-----------------|--------------|------|---------|
+| 1   | B               | A            | 0    | Sai — nhầm ... |
+| 2   | C               | C            | 0.25 | Đúng |
+(liệt kê tất cả câu có trong bài)
+
+## Phân tích lỗi chính
+- Câu X: [giải thích rõ tại sao sai, học sinh hiểu nhầm khái niệm gì]
+
+## Lộ trình cải thiện
+[cụ thể cho học sinh này]
+
+ĐỊNH DẠNG PHẢN HỒI — BẮT BUỘC JSON THUẦN (không thêm gì ngoài JSON):
 {
   "studentName": "Tên học sinh (tìm trong bài, không có thì để 'Ẩn danh')",
   "score": 0.0,
   "maxScore": 10.0,
   "strengths": ["điểm mạnh 1", "điểm mạnh 2"],
-  "weaknesses": ["điểm yếu 1", "điểm yếu 2"],
-  "improvementPlan": "Lộ trình cải thiện chi tiết...",
-  "details": "Báo cáo chấm điểm đầy đủ định dạng Markdown"
+  "weaknesses": ["câu X sai vì ...", "câu Y thiếu ..."],
+  "improvementPlan": "Tóm tắt lộ trình 2-3 câu",
+  "details": "Markdown đầy đủ theo cấu trúc trên"
 }
     `.trim();
   },

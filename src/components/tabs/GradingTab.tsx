@@ -162,6 +162,35 @@ export const GradingTab = ({
     showToast('Đã xóa phiên chấm');
   };
 
+  const handleRegrade = async (result: GradingResult) => {
+    if (masterFiles.length === 0) {
+      showToast('Cần có file đề/đáp án trong phiên hiện tại để chấm lại', 'error');
+      return;
+    }
+    const studentFile = studentFiles.find(f => f.name === result.fileName);
+    if (!studentFile) {
+      showToast('Không tìm thấy file bài làm — vui lòng tải lên lại', 'error');
+      return;
+    }
+    setResults(prev => prev.map(r => r.id === result.id ? { ...r, status: 'processing' } : r));
+    try {
+      const combined: TemplateFile = {
+        id: 'combined', name: masterFiles.map(f => f.name).join(' + '),
+        type: 'text',
+        content: masterFiles.map(f => `=== ${f.name} ===\n${f.content}`).join('\n\n'),
+        category: 'test',
+      };
+      const graded = await gradingUtils.gradeSubmission(combined, studentFile, data.settings);
+      setResults(prev => prev.map(r =>
+        r.id === result.id ? { ...r, ...graded, status: 'completed' } as GradingResult : r
+      ));
+      showToast(`Đã chấm lại: ${result.studentName}`);
+    } catch {
+      setResults(prev => prev.map(r => r.id === result.id ? { ...r, status: 'error' } : r));
+      showToast('Lỗi khi chấm lại', 'error');
+    }
+  };
+
   const handleDeleteResult = async (result: GradingResult) => {
     if (panelMode === 'view' && selectedSessionId) {
       if (deleteGradingResult) {
@@ -216,6 +245,7 @@ export const GradingTab = ({
             onExportExcel={() => exportToExcel(results, sessionTitle)}
             onViewResult={setViewingResult}
             onDeleteResult={handleDeleteResult}
+            onRegradeResult={handleRegrade}
           />
         ) : selectedSession ? (
           <GradingViewSession

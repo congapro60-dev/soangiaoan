@@ -33,6 +33,7 @@ interface Props {
   onExportExcel: () => void;
   onViewResult: (r: GradingResult) => void;
   onDeleteResult: (r: GradingResult) => void;
+  onRegradeResult: (r: GradingResult) => void;
 }
 
 export const GradingNewSession = ({
@@ -40,7 +41,7 @@ export const GradingNewSession = ({
   results, setResults, sessionTitle, setSessionTitle,
   isProcessing, sessionSaved, filterScore, setFilterScore,
   data, setIsLoading, showToast,
-  onStartGrading, onSaveSession, onExportExcel, onViewResult, onDeleteResult,
+  onStartGrading, onSaveSession, onExportExcel, onViewResult, onDeleteResult, onRegradeResult,
 }: Props) => {
   const masterRef = useRef<HTMLInputElement>(null);
   const studentRef = useRef<HTMLInputElement>(null);
@@ -222,6 +223,7 @@ export const GradingNewSession = ({
         setFilterScore={setFilterScore}
         onView={onViewResult}
         onDelete={onDeleteResult}
+        onRegrade={onRegradeResult}
       />
     </div>
   );
