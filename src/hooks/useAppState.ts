@@ -83,6 +83,11 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
             cloudSettings = settingsData.settings;
             cloudAuthorName = settingsData.authorName || '';
           }
+          // Auto-populate từ Google profile nếu chưa có tên
+          if (!cloudAuthorName && user.displayName) {
+            cloudAuthorName = user.displayName;
+            await setDoc(doc(db, 'userSettings', user.uid), { authorName: cloudAuthorName }, { merge: true });
+          }
 
           // 4. Fetch Distributions
           const qDist = query(collection(db, 'distributions'), where('userId', '==', user.uid));

@@ -17,6 +17,8 @@ interface CreatorTabProps {
   data: AppData;
   generationMode: 'single' | 'bulk';
   setGenerationMode: (mode: 'single' | 'bulk') => void;
+  builtinFormat: 'default' | 'cv5512';
+  setBuiltinFormat: (f: 'default' | 'cv5512') => void;
   currentPlan: Partial<LessonPlan>;
   setCurrentPlan: React.Dispatch<React.SetStateAction<Partial<LessonPlan>>>;
   lessonDocs: TemplateFile[];

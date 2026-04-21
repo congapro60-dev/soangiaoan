@@ -159,6 +159,13 @@ export default function App() {
 
       <main className="flex-1 flex flex-col overflow-hidden relative">
         <Header activeTab={activeTab} data={data} setIsSettingsOpen={setIsSettingsOpen} setActiveTab={setActiveTab} />
+        {/* Banner nhắc nhập API Key khi chưa cấu hình */}
+        {user && !data.settings.geminiApiKey && !data.settings.claudeApiKey && !data.settings.openaiApiKey && !data.settings.grokApiKey && !data.settings.deepseekApiKey && (
+          <div className="mx-4 mt-2 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-2xl flex items-center justify-between gap-3 text-sm">
+            <span className="text-amber-800 font-medium">⚠️ Bạn chưa nhập API Key — AI sẽ dùng key dự phòng (có thể chậm). Vui lòng thêm key của bạn để có trải nghiệm tốt nhất.</span>
+            <button onClick={() => setIsSettingsOpen(true)} className="shrink-0 px-3 py-1 bg-amber-500 text-white rounded-xl font-bold text-xs hover:bg-amber-600 transition-colors">Cài đặt</button>
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-8">
           <AnimatePresence mode="wait">

@@ -29,6 +29,7 @@ export const useAuth = () => {
 
   const handleLogin = async () => {
     try {
+      googleProvider.setCustomParameters({ prompt: 'select_account' });
       await signInWithPopup(auth, googleProvider);
       showToast('Đăng nhập thành công!');
     } catch (err: any) {

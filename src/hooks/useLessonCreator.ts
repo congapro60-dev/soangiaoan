@@ -16,6 +16,7 @@ export const useLessonCreator = (
   setIsSettingsOpen: (val: boolean) => void
 ) => {
   const [generationMode, setGenerationMode] = useState<'single' | 'bulk'>('single');
+  const [builtinFormat, setBuiltinFormat] = useState<'default' | 'cv5512'>('default');
   const [currentPlan, setCurrentPlan] = useState<Partial<LessonPlan>>({
     title: '',
     content: '',
@@ -60,14 +61,90 @@ export const useLessonCreator = (
         ? data.distributions.find(d => d.id === selectedDistributionId) 
         : distributionFile;
       
+      const CV5512_FORMAT = `
+===== MẪU GIÁO ÁN THEO CÔNG VĂN 5512/BGDĐT-GDTrH (BẮT BUỘC TUÂN THỦ) =====
+
+BỐ CỤC BẮT BUỘC:
+Trường: ...          Họ và tên GV: [Tên giáo viên]
+Tổ: ...              Ngày soạn: ...
+
+BÀI [Số bài]: [TÊN BÀI HỌC]
+Thời lượng: [X] tiết
+
+I. MỤC TIÊU
+1. Về kiến thức:
+   - [Học sinh biết/hiểu/vận dụng được...]
+2. Về năng lực:
+   a. Năng lực đặc thù môn [Tên môn]:
+      - [Năng lực cụ thể theo môn]
+   b. Năng lực chung:
+      - Tự học, giao tiếp, hợp tác, giải quyết vấn đề và sáng tạo.
+3. Về phẩm chất:
+   - Chăm chỉ, trung thực, trách nhiệm với bản thân và cộng đồng.
+
+II. THIẾT BỊ DẠY HỌC VÀ HỌC LIỆU
+1. Giáo viên: [Bảng, máy chiếu, phiếu học tập, ...]
+2. Học sinh: [SGK, vở ghi, dụng cụ học tập, ...]
+
+III. TIẾN TRÌNH DẠY HỌC
+
+A. HOẠT ĐỘNG 1: KHỞI ĐỘNG (~ 5 phút)
+a) Mục tiêu: Tạo hứng thú, kết nối kiến thức cũ với bài mới.
+b) Nội dung: [Mô tả tình huống/câu hỏi khởi động]
+c) Sản phẩm: [Câu trả lời / ý kiến của HS]
+d) Tổ chức thực hiện:
+| Hoạt động của GV | Hoạt động của HS |
+|---|---|
+| ... | ... |
+
+B. HOẠT ĐỘNG 2: HÌNH THÀNH KIẾN THỨC MỚI (~ [X] phút)
+a) Mục tiêu: [Học sinh nắm được ...]
+b) Nội dung: [Nội dung kiến thức cần hình thành]
+c) Sản phẩm: [Ghi chép / bài làm / sơ đồ tư duy của HS]
+d) Tổ chức thực hiện:
+| Hoạt động của GV | Hoạt động của HS |
+|---|---|
+| ... | ... |
+
+C. HOẠT ĐỘNG 3: LUYỆN TẬP (~ [X] phút)
+a) Mục tiêu: [Củng cố, rèn kỹ năng vận dụng kiến thức vừa học]
+b) Nội dung: [Bài tập / câu hỏi luyện tập cụ thể]
+c) Sản phẩm: [Kết quả bài tập của HS]
+d) Tổ chức thực hiện:
+| Hoạt động của GV | Hoạt động của HS |
+|---|---|
+| ... | ... |
+
+D. HOẠT ĐỘNG 4: VẬN DỤNG (~ [X] phút)
+a) Mục tiêu: [Giúp HS vận dụng kiến thức vào thực tiễn]
+b) Nội dung: [Bài toán thực tiễn / dự án mini]
+c) Sản phẩm: [Bài trình bày / sản phẩm của HS]
+d) Tổ chức thực hiện:
+| Hoạt động của GV | Hoạt động của HS |
+|---|---|
+| ... | ... |
+
+IV. PHỤ LỤC (nếu có)
+[Phiếu học tập, bảng kiểm, bài tập về nhà, ...]
+
+QUY TẮC NGHIÊM NGẶT:
+- Mỗi hoạt động PHẢI có đủ 4 mục: a) Mục tiêu, b) Nội dung, c) Sản phẩm, d) Tổ chức thực hiện.
+- Bảng "Tổ chức thực hiện" PHẢI có 2 cột: "Hoạt động của GV" và "Hoạt động của HS".
+- Thời lượng mỗi hoạt động phải được ghi rõ.
+- KHÔNG rút gọn hoặc bỏ bất kỳ mục nào trong bố cục trên.
+===== KẾT THÚC MẪU CÔNG VĂN 5512 =====
+`;
+
       let templateContext = '';
-      if (selectedTemplate) {
+      if (builtinFormat === 'cv5512') {
+        templateContext = CV5512_FORMAT;
+      } else if (selectedTemplate) {
         const samples = selectedTemplate.files.filter(f => f.category === 'sample').map(f => f.content).join('\n---\n');
         const criteria = selectedTemplate.files.filter(f => f.category === 'criteria').map(f => f.content).join('\n---\n');
         templateContext = `
           DỰA TRÊN MẪU GIÁO ÁN SAU (Cấu trúc và phong cách):
           ${samples}
-          
+
           TUÂN THỦ CÁC TIÊU CHÍ/QUY ĐỊNH SAU:
           ${criteria}
         `;
@@ -258,6 +335,7 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
 
   return {
     generationMode, setGenerationMode,
+    builtinFormat, setBuiltinFormat,
     currentPlan, setCurrentPlan,
     lessonDocs, setLessonDocs,
     singleRequirement, setSingleRequirement,
