@@ -12,7 +12,12 @@ function isQuotaError(error: any): boolean {
     msg.includes('RESOURCE_EXHAUSTED') ||
     msg.includes('quota') ||
     msg.includes('Quota') ||
-    msg.includes('rateLimitExceeded')
+    msg.includes('rateLimitExceeded') ||
+    msg.includes('INVALID_API_KEY') ||
+    msg.includes('API_KEY_INVALID') ||
+    msg.includes('expired') ||
+    msg.includes('Invalid API key') ||
+    msg.includes('invalid_api_key')
   );
 }
 
