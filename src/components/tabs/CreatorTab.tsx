@@ -31,7 +31,7 @@ interface CreatorTabProps {
   setBulkCommand: (val: string) => void;
   isLoading: boolean;
   setIsLoading: (val: boolean) => void;
-  bulkProgress: { current: number; total: number };
+  bulkProgress: { current: number; total: number; currentTitle: string };
   handleCreateLesson: () => void;
   saveLessonPlan: () => void;
   exportToPDF: () => void;
@@ -280,30 +280,38 @@ export const CreatorTab = (props: CreatorTabProps) => {
       )}
       
       {props.isLoading && (
-        <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm z-50 flex items-center justify-center rounded-[40px]">
-          <div className="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center gap-4">
-            <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
-            <div className="text-center">
-              <h3 className="font-bold text-slate-800">Hệ thống AI đang xử lý...</h3>
-              <p className="text-sm text-slate-500 font-medium">Bạn có thấy tiến độ đang chạy không?</p>
-            </div>
-            {props.generationMode === 'bulk' && props.bulkProgress.total > 0 && (
-              <div className="w-full mt-2">
-                <div className="flex justify-between text-xs font-bold text-slate-500 mb-2">
-                  <span>Tiến độ</span>
-                  <span>{props.bulkProgress.current} / {props.bulkProgress.total}</span>
-                </div>
-                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${(props.bulkProgress.current / props.bulkProgress.total) * 100}%` }}
-                    className="h-full gradient-bg"
-                  />
-                </div>
+        props.generationMode === 'bulk' && props.bulkProgress.total > 0 ? (
+          /* Bulk mode: compact sticky progress bar — don't block content */
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 w-[480px] max-w-[90%] bg-white rounded-2xl shadow-2xl border border-slate-100 p-4 flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-4 h-4 text-blue-600 animate-spin shrink-0" />
+                <span className="text-xs font-bold text-slate-700 truncate max-w-[280px]">
+                  Đang soạn: {props.bulkProgress.currentTitle}
+                </span>
               </div>
-            )}
+              <span className="text-xs font-black text-blue-600 shrink-0">{props.bulkProgress.current}/{props.bulkProgress.total}</span>
+            </div>
+            <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${(props.bulkProgress.current / props.bulkProgress.total) * 100}%` }}
+                className="h-full gradient-bg"
+              />
+            </div>
           </div>
-        </div>
+        ) : (
+          /* Single mode or parsing phase: full overlay */
+          <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm z-50 flex items-center justify-center rounded-[40px]">
+            <div className="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center gap-4">
+              <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+              <div className="text-center">
+                <h3 className="font-bold text-slate-800">Hệ thống AI đang xử lý...</h3>
+                <p className="text-sm text-slate-500 font-medium">Vui lòng không đóng trang này</p>
+              </div>
+            </div>
+          </div>
+        )
       )}
     </motion.div>
   );

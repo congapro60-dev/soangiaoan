@@ -31,7 +31,7 @@ export const useLessonCreator = (
   const [selectedDistributionId, setSelectedDistributionId] = useState<string>('');
   const [bulkCommand, setBulkCommand] = useState('');
   const [bulkResults, setBulkResults] = useState<LessonPlan[]>([]);
-  const [bulkProgress, setBulkProgress] = useState({ current: 0, total: 0 });
+  const [bulkProgress, setBulkProgress] = useState({ current: 0, total: 0, currentTitle: '' });
   const [revisionPrompt, setRevisionPrompt] = useState('');
 
   const handleCreateLesson = async () => {
@@ -254,12 +254,13 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
           throw new Error("AI không trả về danh sách bài học hợp lệ. Vui lòng thử lại hoặc kiểm tra lại file PPCN.");
         }
         
-        setBulkProgress({ current: 0, total: extractedLessons.length });
+        setBulkProgress({ current: 0, total: extractedLessons.length, currentTitle: '' });
+        setBulkResults([]);
         const newPlans: LessonPlan[] = [];
 
         for (let i = 0; i < extractedLessons.length; i++) {
           const lesson = extractedLessons[i];
-          setBulkProgress({ current: i + 1, total: extractedLessons.length });
+          setBulkProgress({ current: i + 1, total: extractedLessons.length, currentTitle: lesson.title });
           
           const detailPrompt = `
             BẠN LÀ CHUYÊN GIA BIÊN SOẠN GIÁO ÁN CAO CẤP.
@@ -290,7 +291,7 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
 
           const detailResponse = await callAI(detailPrompt, data.settings);
           if (detailResponse) {
-            newPlans.push({
+            const newPlan: LessonPlan = {
               id: crypto.randomUUID(),
               subjectId: currentPlan.subjectId || 'math',
               templateId: currentPlan.templateId,
@@ -301,10 +302,12 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
               status: 'draft',
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString()
-            });
+            };
+            newPlans.push(newPlan);
+            // Stream partial results so user sees each lesson as it finishes
+            setBulkResults([...newPlans]);
           }
         }
-        setBulkResults(newPlans);
         showToast(`Đã tự động soạn xong ${newPlans.length} giáo án!`);
       }
     } catch (error: any) {
