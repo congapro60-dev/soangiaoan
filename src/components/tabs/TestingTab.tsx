@@ -3,7 +3,7 @@ import katex from 'katex';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   FileCheck, FilePlus, Shuffle, Upload, Download, FileCode,
-  ShieldCheck, AlertCircle, Loader2, X, CheckCircle2, History, Trash2
+  ShieldCheck, AlertCircle, Loader2, X, CheckCircle2, History, Trash2, Sparkles
 } from 'lucide-react';
 import * as mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -85,6 +85,8 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
   const [showHistory, setShowHistory] = useState(false);
   const [latexContent, setLatexContent] = useState('');
   const [isLatexModalOpen, setIsLatexModalOpen] = useState(false);
+  const [refineRequest, setRefineRequest] = useState('');
+  const [isRefining, setIsRefining] = useState(false);
 
   // Tự xóa entries hết hạn khi mount
   useEffect(() => {
@@ -283,7 +285,8 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
         const prompt = examUtils.getGeneratePrompt(matrixFile, requirement, sampleFile, questionStructure);
         await callAIStream(prompt, data.settings, onChunk);
         const match = cumulativeText.match(/<exam_content>([\s\S]*?)<\/exam_content>/);
-        const final = match ? match[1].trim() : cumulativeText.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
+        const raw = match ? match[1].trim() : cumulativeText.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
+        const final = raw.normalize('NFC');
         setTestResult(final);
         addToHistory('create', final);
 
@@ -293,12 +296,13 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
         const prompt = await examUtils.getAuditPrompt(fullContent);
         await callAIStream(prompt, data.settings, onChunk);
         const match = cumulativeText.match(/<audit_report>([\s\S]*?)<\/audit_report>/);
-        const final = match
+        const raw = match
           ? match[1].trim()
           : cumulativeText
               .replace(/<thinking>[\s\S]*?<\/thinking>/g, '')
               .replace(/<\/?(?:thinking|audit_report|exam_content|answer_key)>/g, '')
               .trim();
+        const final = raw.normalize('NFC');
         setTestResult(final);
         addToHistory('audit', final);
 
@@ -306,7 +310,7 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
         setProcessStatus('Đang trích xuất câu hỏi và thực hiện hoán vị...');
         const fullContent = uploadedFiles.map(f => f.content).join('\n===FILE_SEPARATOR===\n');
         if (!fullContent.trim()) throw new Error('Nội dung tệp trống.');
-        const summary = await examUtils.shuffleExam(fullContent, shuffledCount, data.settings);
+        const summary = (await examUtils.shuffleExam(fullContent, shuffledCount, data.settings)).normalize('NFC');
         setTestResult(summary);
         addToHistory('shuffle', summary);
         showToast(`Đã hoán vị thành ${shuffledCount} mã đề — ZIP đã tải xuống!`);
@@ -318,6 +322,31 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
     } finally {
       setIsLoading(false);
       setProcessStatus('');
+    }
+  };
+
+  const handleRefine = async () => {
+    if (!testResult || !refineRequest.trim()) return;
+    if (!getActiveApiKey(data.settings)) {
+      showToast('Cần nhập API Key trong Cài đặt', 'error');
+      return;
+    }
+    setIsRefining(true);
+    try {
+      const prompt = examUtils.getRefinePrompt(testResult, refineRequest.trim());
+      let cumulativeText = '';
+      await callAIStream(prompt, data.settings, (chunk) => { cumulativeText += chunk; });
+      const match = cumulativeText.match(/<exam_content>([\s\S]*?)<\/exam_content>/);
+      const raw = match ? match[1].trim() : cumulativeText.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
+      const final = raw.normalize('NFC');
+      setTestResult(final);
+      addToHistory(activeMode, final);
+      setRefineRequest('');
+      showToast('Đã cập nhật đề theo yêu cầu!', 'success');
+    } catch (err: any) {
+      showToast(`Lỗi chỉnh sửa: ${err.message || err}`, 'error');
+    } finally {
+      setIsRefining(false);
     }
   };
 
@@ -649,6 +678,32 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
               </div>
             )}
           </div>
+
+          {testResult && (
+            <div className="px-5 pt-5 pb-0 bg-slate-50 border-t border-slate-100">
+              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                <Sparkles className="w-3.5 h-3.5 text-purple-500" />
+                Chỉnh sửa đề theo yêu cầu (tùy chọn)
+              </label>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <textarea
+                  value={refineRequest}
+                  onChange={(e) => setRefineRequest(e.target.value)}
+                  placeholder="Ví dụ: Đổi câu 3 sang mức độ vận dụng cao, thêm 1 câu về đạo hàm, sửa lỗi chính tả ở câu 7..."
+                  disabled={isRefining}
+                  className="flex-1 px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-700 outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm resize-none min-h-[60px] disabled:opacity-50"
+                />
+                <button
+                  onClick={handleRefine}
+                  disabled={isRefining || !refineRequest.trim()}
+                  className="px-5 py-3 bg-purple-600 text-white rounded-2xl font-bold shadow-lg shadow-purple-100 hover:bg-purple-700 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed shrink-0 sm:self-stretch"
+                >
+                  {isRefining ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  {isRefining ? 'Đang sửa...' : 'AI chỉnh sửa'}
+                </button>
+              </div>
+            </div>
+          )}
 
           {testResult && (
             <div className="p-5 bg-slate-50 border-t border-slate-100 flex flex-wrap justify-between gap-3">

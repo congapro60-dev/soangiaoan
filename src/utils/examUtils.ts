@@ -122,6 +122,29 @@ QUY TẮC NỘI DUNG:
   },
 
   /**
+   * CHỈNH SỬA ĐỀ THI theo yêu cầu của giáo viên
+   */
+  getRefinePrompt: (currentExam: string, refineRequest: string) => `
+BẠN LÀ CHUYÊN GIA KHẢO THÍ. Giáo viên đã có một đề thi và muốn bạn chỉnh sửa theo yêu cầu cụ thể.
+
+===== ĐỀ THI HIỆN TẠI =====
+${currentExam}
+===== KẾT THÚC ĐỀ THI =====
+
+===== YÊU CẦU CHỈNH SỬA =====
+${refineRequest}
+===== KẾT THÚC YÊU CẦU =====
+
+QUY TẮC BẮT BUỘC:
+1. CHỈ chỉnh sửa những gì giáo viên yêu cầu. Giữ nguyên toàn bộ các phần khác.
+2. Bảo toàn định dạng gốc (header, phần, cách đánh số, công thức LaTeX, dấu HẾT).
+3. Công thức toán giữ LaTeX $...$ và $$...$$.
+4. Ngôn ngữ: tiếng Việt chuẩn, không sai chính tả, dùng dạng Unicode hợp nhất (NFC).
+5. Trả về TOÀN BỘ đề thi đã chỉnh sửa (không chỉ phần sửa), để thay thế hoàn toàn bản cũ.
+6. Bọc nội dung trong thẻ <exam_content>...</exam_content>.
+    `,
+
+  /**
    * SOÁT ĐỀ KIỂM TRA
    */
   getAuditPrompt: (testContent: string) => {
