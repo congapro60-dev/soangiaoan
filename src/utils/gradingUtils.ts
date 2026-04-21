@@ -9,7 +9,7 @@ export const gradingUtils = {
   /**
    * Prompt chấm điểm — output JSON chuẩn bất kể provider nào
    */
-  getGradingPrompt: (masterContent: string, studentText?: string): string => {
+  getGradingPrompt: (masterContent: string, studentText?: string, targetMaxScore = 10): string => {
     const studentSection = studentText
       ? `\nBÀI LÀM HỌC SINH (văn bản):\n---\n${studentText}\n---`
       : '\nBÀI LÀM HỌC SINH: [xem ảnh đính kèm]';
@@ -48,11 +48,13 @@ Bắt buộc bao gồm:
 ## Lộ trình cải thiện
 [cụ thể cho học sinh này]
 
+THANG ĐIỂM: Tổng điểm tối đa là ${targetMaxScore} điểm. Quy đổi điểm về thang này.
+
 ĐỊNH DẠNG PHẢN HỒI — BẮT BUỘC JSON THUẦN (không thêm gì ngoài JSON):
 {
   "studentName": "Tên học sinh (tìm trong bài, không có thì để 'Ẩn danh')",
   "score": 0.0,
-  "maxScore": 10.0,
+  "maxScore": ${targetMaxScore},
   "strengths": ["điểm mạnh 1", "điểm mạnh 2"],
   "weaknesses": ["câu X sai vì ...", "câu Y thiếu ..."],
   "improvementPlan": "Tóm tắt lộ trình 2-3 câu",
@@ -68,7 +70,8 @@ Bắt buộc bao gồm:
   gradeSubmission: async (
     masterFile: TemplateFile,
     studentFile: TemplateFile,
-    settings: Settings
+    settings: Settings,
+    targetMaxScore = 10
   ): Promise<Partial<GradingResult>> => {
     const apiKey = getActiveApiKey(settings);
     if (!apiKey) throw new Error('Chưa nhập API Key cho provider đang chọn');
@@ -77,12 +80,10 @@ Bắt buộc bao gồm:
     let text: string;
 
     if (isImage) {
-      // Bài nộp là ảnh chụp — dùng vision API
-      const prompt = gradingUtils.getGradingPrompt(masterFile.content);
+      const prompt = gradingUtils.getGradingPrompt(masterFile.content, undefined, targetMaxScore);
       text = await callAIWithVision(prompt, studentFile.content, settings);
     } else {
-      // Bài nộp là văn bản (PDF/docx đã trích xuất) — nhúng vào prompt
-      const prompt = gradingUtils.getGradingPrompt(masterFile.content, studentFile.content);
+      const prompt = gradingUtils.getGradingPrompt(masterFile.content, studentFile.content, targetMaxScore);
       text = await callAI(prompt, settings);
     }
 

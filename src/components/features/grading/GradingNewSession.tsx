@@ -21,8 +21,11 @@ interface Props {
   setResults: React.Dispatch<React.SetStateAction<GradingResult[]>>;
   sessionTitle: string;
   setSessionTitle: (t: string) => void;
+  maxScore: number;
+  setMaxScore: (v: number) => void;
   isProcessing: boolean;
   sessionSaved: boolean;
+  eta: string;
   filterScore: FilterScore;
   setFilterScore: (f: FilterScore) => void;
   data: AppData;
@@ -34,6 +37,7 @@ interface Props {
   onViewResult: (r: GradingResult) => void;
   onDeleteResult: (r: GradingResult) => void;
   onRegradeResult: (r: GradingResult) => void;
+  onRenameResult: (r: GradingResult, name: string) => void;
 }
 
 export const GradingNewSession = ({
@@ -41,7 +45,8 @@ export const GradingNewSession = ({
   results, setResults, sessionTitle, setSessionTitle,
   isProcessing, sessionSaved, filterScore, setFilterScore,
   data, setIsLoading, showToast,
-  onStartGrading, onSaveSession, onExportExcel, onViewResult, onDeleteResult, onRegradeResult,
+  maxScore, setMaxScore, eta,
+  onStartGrading, onSaveSession, onExportExcel, onViewResult, onDeleteResult, onRegradeResult, onRenameResult,
 }: Props) => {
   const masterRef = useRef<HTMLInputElement>(null);
   const studentRef = useRef<HTMLInputElement>(null);
@@ -121,12 +126,21 @@ export const GradingNewSession = ({
 
       {/* Upload row */}
       <div className="grid grid-cols-3 gap-4 flex-shrink-0">
-        {/* Session title */}
+        {/* Session title + maxScore */}
         <div className="space-y-1">
           <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tên phiên chấm</label>
           <input type="text" value={sessionTitle} onChange={e => setSessionTitle(e.target.value)}
             placeholder="VD: Kiểm tra 15p Toán 10A1..."
             className="w-full px-3 py-2.5 rounded-xl border border-slate-100 bg-white text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none" />
+          <div className="flex items-center gap-2 mt-1">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Thang điểm</label>
+            <input
+              type="number" min={1} max={1000} value={maxScore}
+              onChange={e => setMaxScore(Math.max(1, Number(e.target.value)))}
+              className="w-20 px-2 py-1 rounded-lg border border-slate-100 bg-white text-sm font-bold text-center focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+            <span className="text-[10px] text-slate-400">điểm</span>
+          </div>
         </div>
 
         {/* Master files */}
@@ -199,6 +213,11 @@ export const GradingNewSession = ({
             {sessionSaved && <span className="text-xs text-green-600 font-medium">✓ Đã lưu</span>}
           </>
         )}
+        {isProcessing && (
+          <span className="text-xs text-slate-400 font-medium ml-1">
+            {eta ? `⏱ Còn khoảng ${eta}` : stats.total > 0 ? '⏱ Đang ước tính...' : ''}
+          </span>
+        )}
         {stats.total > 0 && (
           <div className="flex items-center gap-4 ml-auto">
             {[
@@ -224,6 +243,7 @@ export const GradingNewSession = ({
         onView={onViewResult}
         onDelete={onDeleteResult}
         onRegrade={onRegradeResult}
+        onRename={onRenameResult}
       />
     </div>
   );

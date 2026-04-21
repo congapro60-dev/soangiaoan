@@ -39,6 +39,10 @@ export const GradingTab = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [sessionSaved, setSessionSaved] = useState(false);
 
+  // Grading config
+  const [maxScore, setMaxScore] = useState(10);
+  const [eta, setEta] = useState('');
+
   // Shared UI state
   const [filterScore, setFilterScore] = useState<FilterScore>('all');
   const [viewingResult, setViewingResult] = useState<GradingResult | null>(null);
@@ -103,6 +107,7 @@ export const GradingTab = ({
     }
     setIsProcessing(true);
     setSessionSaved(false);
+    setEta('');
 
     // Combine all master files into one context block
     const combined: TemplateFile = {
@@ -114,20 +119,37 @@ export const GradingTab = ({
     };
 
     const updated = [...results];
+    const startTime = Date.now();
+    let processed = 0;
     for (let i = 0; i < studentFiles.length; i++) {
       const idx = updated.findIndex(r => r.fileName === studentFiles[i].name);
       if (idx === -1 || updated[idx].status === 'completed') continue;
       updated[idx] = { ...updated[idx], status: 'processing' };
       setResults([...updated]);
       try {
-        const graded = await gradingUtils.gradeSubmission(combined, studentFiles[i], data.settings);
+        const graded = await gradingUtils.gradeSubmission(combined, studentFiles[i], data.settings, maxScore);
         updated[idx] = { ...updated[idx], ...graded, status: graded.status || 'completed' } as GradingResult;
       } catch {
         updated[idx] = { ...updated[idx], status: 'error' };
       }
+      processed++;
       setResults([...updated]);
+      // Update ETA after each submission
+      const elapsed = Date.now() - startTime;
+      const avgMs = elapsed / processed;
+      const remaining = studentFiles.filter((_, j) => {
+        const r = updated.find(r => r.fileName === studentFiles[j].name);
+        return r && r.status !== 'completed' && r.status !== 'error' && j > i;
+      }).length;
+      if (remaining > 0) {
+        const etaMs = avgMs * remaining;
+        const etaMins = Math.floor(etaMs / 60000);
+        const etaSecs = Math.ceil((etaMs % 60000) / 1000);
+        setEta(etaMins > 0 ? `${etaMins}p${etaSecs}s` : `${etaSecs}s`);
+      }
     }
 
+    setEta('');
     setIsProcessing(false);
     showToast('Đã hoàn thành chấm điểm!');
     // Auto-save
@@ -180,7 +202,7 @@ export const GradingTab = ({
         content: masterFiles.map(f => `=== ${f.name} ===\n${f.content}`).join('\n\n'),
         category: 'test',
       };
-      const graded = await gradingUtils.gradeSubmission(combined, studentFile, data.settings);
+      const graded = await gradingUtils.gradeSubmission(combined, studentFile, data.settings, maxScore);
       setResults(prev => prev.map(r =>
         r.id === result.id ? { ...r, ...graded, status: 'completed' } as GradingResult : r
       ));
@@ -188,6 +210,21 @@ export const GradingTab = ({
     } catch {
       setResults(prev => prev.map(r => r.id === result.id ? { ...r, status: 'error' } : r));
       showToast('Lỗi khi chấm lại', 'error');
+    }
+  };
+
+  const handleRename = (result: GradingResult, newName: string) => {
+    if (panelMode === 'new') {
+      setResults(prev => prev.map(r => r.id === result.id ? { ...r, studentName: newName } : r));
+    } else if (selectedSessionId) {
+      setData((prev: AppData) => ({
+        ...prev,
+        gradingSessions: prev.gradingSessions.map(s =>
+          s.id === selectedSessionId
+            ? { ...s, results: s.results.map(r => r.id === result.id ? { ...r, studentName: newName } : r) }
+            : s
+        ),
+      }));
     }
   };
 
@@ -237,6 +274,7 @@ export const GradingTab = ({
             studentFiles={studentFiles} setStudentFiles={setStudentFiles}
             results={results} setResults={setResults}
             sessionTitle={sessionTitle} setSessionTitle={setSessionTitle}
+            maxScore={maxScore} setMaxScore={setMaxScore} eta={eta}
             isProcessing={isProcessing} sessionSaved={sessionSaved}
             filterScore={filterScore} setFilterScore={setFilterScore}
             data={data} setIsLoading={setIsLoading} showToast={showToast}
@@ -246,6 +284,7 @@ export const GradingTab = ({
             onViewResult={setViewingResult}
             onDeleteResult={handleDeleteResult}
             onRegradeResult={handleRegrade}
+            onRenameResult={handleRename}
           />
         ) : selectedSession ? (
           <GradingViewSession
@@ -256,6 +295,7 @@ export const GradingTab = ({
             onExportExcel={() => exportToExcel(selectedSession.results, selectedSession.title)}
             onViewResult={setViewingResult}
             onDeleteResult={handleDeleteResult}
+            onRenameResult={handleRename}
           />
         ) : null}
       </div>

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { Users, FileText, Loader2, User, Eye, Trash2, RefreshCw } from 'lucide-react';
 import { GradingResult } from '../../../types';
@@ -12,9 +12,22 @@ interface Props {
   onView: (result: GradingResult) => void;
   onDelete: (result: GradingResult) => void;
   onRegrade?: (result: GradingResult) => void;
+  onRename?: (result: GradingResult, newName: string) => void;
 }
 
-export const GradingResultsList = ({ results, filterScore, setFilterScore, onView, onDelete, onRegrade }: Props) => {
+export const GradingResultsList = ({ results, filterScore, setFilterScore, onView, onDelete, onRegrade, onRename }: Props) => {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState('');
+
+  const startEdit = (res: GradingResult) => {
+    setEditingId(res.id);
+    setEditingName(res.studentName);
+  };
+  const commitEdit = (res: GradingResult) => {
+    if (editingName.trim() && editingName !== res.studentName) onRename?.(res, editingName.trim());
+    setEditingId(null);
+  };
+
   const filtered = useMemo(() => {
     if (filterScore === 'above8') return results.filter(r => r.score >= 8);
     if (filterScore === '5to8') return results.filter(r => r.score >= 5 && r.score < 8);
@@ -81,7 +94,22 @@ export const GradingResultsList = ({ results, filterScore, setFilterScore, onVie
                     : <User className="w-4 h-4" />}
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-slate-800">{res.studentName}</p>
+                  {editingId === res.id ? (
+                    <input
+                      autoFocus
+                      value={editingName}
+                      onChange={e => setEditingName(e.target.value)}
+                      onBlur={() => commitEdit(res)}
+                      onKeyDown={e => { if (e.key === 'Enter') commitEdit(res); if (e.key === 'Escape') setEditingId(null); }}
+                      className="text-sm font-bold text-slate-800 bg-blue-50 border border-blue-300 rounded-lg px-2 py-0.5 outline-none w-40"
+                    />
+                  ) : (
+                    <p
+                      className="text-sm font-bold text-slate-800 cursor-text hover:text-blue-600 transition-colors"
+                      title="Double-click để sửa tên"
+                      onDoubleClick={() => startEdit(res)}
+                    >{res.studentName}</p>
+                  )}
                   <p className="text-[10px] text-slate-400">{res.fileName}</p>
                 </div>
               </div>

@@ -11,11 +11,12 @@ interface Props {
   onExportExcel: () => void;
   onViewResult: (r: GradingResult) => void;
   onDeleteResult: (r: GradingResult) => void;
+  onRenameResult?: (r: GradingResult, name: string) => void;
 }
 
 export const GradingViewSession = ({
   session, filterScore, setFilterScore,
-  onBack, onDelete, onExportExcel, onViewResult, onDeleteResult,
+  onBack, onDelete, onExportExcel, onViewResult, onDeleteResult, onRenameResult,
 }: Props) => {
   const done = session.results.filter(r => r.status === 'completed');
   const avg = done.length
@@ -82,6 +83,7 @@ export const GradingViewSession = ({
         setFilterScore={setFilterScore}
         onView={onViewResult}
         onDelete={onDeleteResult}
+        onRename={onRenameResult}
       />
     </div>
   );
