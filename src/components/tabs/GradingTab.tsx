@@ -1,15 +1,16 @@
 import { useState, useRef, useMemo } from 'react'; // useMemo dùng cho classInsights
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  ClipboardCheck, Upload, Users, FileText, CheckCircle2, 
+import {
+  ClipboardCheck, Upload, Users, FileText, CheckCircle2,
   AlertCircle, Loader2, Download, Search, ChevronRight,
-  TrendingUp, Award, AlertTriangle, User, Eye
+  TrendingUp, Award, AlertTriangle, User, Eye, FileDown
 } from 'lucide-react';
 import { AppData, TemplateFile, GradingResult, GradingSession } from '../../types';
 import { processUploadedFile, downloadBlob } from '../../utils/fileUtils';
 import { gradingUtils } from '../../utils/gradingUtils';
 import { getActiveApiKey } from '../../lib/aiProviders';
 import ReactMarkdown from 'react-markdown';
+import { generateAnswerSheetHTML, generateAnswerKeyTemplateHTML } from '../../utils/answerSheetTemplate';
 
 interface GradingTabProps {
   data: AppData;
@@ -18,6 +19,13 @@ interface GradingTabProps {
   setIsLoading: (val: boolean) => void;
   showToast: (msg: string, type?: any) => void;
 }
+
+const openInNewTab = (html: string) => {
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+};
 
 export const GradingTab = ({ data, setData, isLoading, setIsLoading, showToast }: GradingTabProps) => {
   const [masterFile, setMasterFile] = useState<TemplateFile | null>(null);
@@ -190,6 +198,31 @@ export const GradingTab = ({ data, setData, isLoading, setIsLoading, showToast }
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Side: Uploads & Control */}
         <div className="lg:col-span-4 space-y-6">
+          {/* Tải mẫu phiếu */}
+          <div className="bg-blue-50 p-5 rounded-[32px] border border-blue-100 space-y-3">
+            <h4 className="text-xs font-black text-blue-700 uppercase tracking-wider flex items-center gap-2">
+              <FileDown className="w-4 h-4" /> Tải mẫu trước khi chấm
+            </h4>
+            <p className="text-[11px] text-blue-600 leading-relaxed">
+              Dùng <strong>Phiếu trả lời</strong> để học sinh điền bài → chụp ảnh → tải lên chấm.<br/>
+              Dùng <strong>Mẫu đáp án</strong> để điền đáp án + thang điểm → tải lên cùng đề bài.
+            </p>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => openInNewTab(generateAnswerSheetHTML())}
+                className="w-full py-2.5 bg-white text-blue-700 border border-blue-200 rounded-2xl font-bold text-xs hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center gap-2"
+              >
+                <Download className="w-3.5 h-3.5" /> Phiếu trả lời học sinh (In/PDF)
+              </button>
+              <button
+                onClick={() => openInNewTab(generateAnswerKeyTemplateHTML())}
+                className="w-full py-2.5 bg-white text-emerald-700 border border-emerald-200 rounded-2xl font-bold text-xs hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center gap-2"
+              >
+                <Download className="w-3.5 h-3.5" /> Mẫu đáp án + thang điểm (In/PDF)
+              </button>
+            </div>
+          </div>
+
           <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm space-y-6">
              <div className="space-y-4">
                 <label className="text-xs font-black text-slate-400 uppercase tracking-widest block">Bước 1: Đề bài & Đáp án chuẩn</label>
