@@ -71,13 +71,17 @@ export const GradingTab = ({
   };
 
   const persistSession = async (s: GradingSession) => {
-    if (saveGradingSession) {
-      await saveGradingSession(s);
-    } else {
-      setData((prev: AppData) => ({
-        ...prev,
-        gradingSessions: [s, ...(prev.gradingSessions || []).filter(x => x.id !== s.id)],
-      }));
+    try {
+      if (saveGradingSession) {
+        await saveGradingSession(s);
+      } else {
+        setData((prev: AppData) => ({
+          ...prev,
+          gradingSessions: [s, ...(prev.gradingSessions || []).filter(x => x.id !== s.id)],
+        }));
+      }
+    } catch {
+      showToast('Lỗi lưu phiên chấm — vui lòng thử lại', 'error');
     }
   };
 
@@ -217,14 +221,17 @@ export const GradingTab = ({
     if (panelMode === 'new') {
       setResults(prev => prev.map(r => r.id === result.id ? { ...r, studentName: newName } : r));
     } else if (selectedSessionId) {
+      const session = data.gradingSessions?.find(s => s.id === selectedSessionId);
+      if (!session) return;
+      const updatedSession: GradingSession = {
+        ...session,
+        results: session.results.map(r => r.id === result.id ? { ...r, studentName: newName } : r),
+      };
       setData((prev: AppData) => ({
         ...prev,
-        gradingSessions: prev.gradingSessions.map(s =>
-          s.id === selectedSessionId
-            ? { ...s, results: s.results.map(r => r.id === result.id ? { ...r, studentName: newName } : r) }
-            : s
-        ),
+        gradingSessions: prev.gradingSessions.map(s => s.id === selectedSessionId ? updatedSession : s),
       }));
+      persistSession(updatedSession);
     }
   };
 

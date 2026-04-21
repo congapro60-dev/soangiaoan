@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { LessonPlan, AppData, TemplateFile } from '../types';
 import { callAI, getActiveApiKey } from '../lib/aiProviders';
 import { cleanMarkdownOutput } from '../utils/markdownUtils';
@@ -33,6 +33,9 @@ export const useLessonCreator = (
   const [bulkResults, setBulkResults] = useState<LessonPlan[]>([]);
   const [bulkProgress, setBulkProgress] = useState({ current: 0, total: 0, currentTitle: '' });
   const [revisionPrompt, setRevisionPrompt] = useState('');
+  const cancelBulkRef = useRef(false);
+
+  const cancelBulk = () => { cancelBulkRef.current = true; };
 
   const handleCreateLesson = async () => {
     if (!getActiveApiKey(data.settings)) {
@@ -53,6 +56,7 @@ export const useLessonCreator = (
 
     setIsLoading(true);
     setBulkResults([]);
+    cancelBulkRef.current = false;
 
     try {
       const subject = data.subjects.find(s => s.id === currentPlan.subjectId)?.name || 'Chung';
@@ -259,6 +263,7 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
         const newPlans: LessonPlan[] = [];
 
         for (let i = 0; i < extractedLessons.length; i++) {
+          if (cancelBulkRef.current) break;
           const lesson = extractedLessons[i];
           setBulkProgress({ current: i + 1, total: extractedLessons.length, currentTitle: lesson.title });
           
@@ -308,7 +313,11 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
             setBulkResults([...newPlans]);
           }
         }
-        showToast(`Đã tự động soạn xong ${newPlans.length} giáo án!`);
+        if (cancelBulkRef.current) {
+          showToast(`Đã hủy — lưu lại ${newPlans.length} giáo án đã soạn xong`, 'warning');
+        } else {
+          showToast(`Đã tự động soạn xong ${newPlans.length} giáo án!`);
+        }
       }
     } catch (error: any) {
       showToast(error.message || 'Lỗi soạn thảo', 'error');
@@ -348,6 +357,7 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
     bulkResults, setBulkResults,
     bulkProgress,
     handleCreateLesson,
+    cancelBulk,
     handleReviseLesson,
     revisionPrompt, setRevisionPrompt
   };

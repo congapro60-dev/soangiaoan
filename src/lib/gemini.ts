@@ -27,14 +27,14 @@ export async function callGeminiAI(prompt: string, apiKey: string, modelIndex = 
       if (isOverloaded && retryCount < maxRetries) {
         retryCount++;
         const delay = 3000 * retryCount;
-        console.log(`Model ${modelName} quá tải. Thử lại lần ${retryCount} sau ${delay}ms...`);
+        // retry overloaded model silently
         await new Promise(r => setTimeout(r, delay));
         return executeCall(idx);
       }
 
       // Fallback sang model tiếp theo nếu vẫn lỗi
       if (idx < MODELS.length - 1) {
-        console.log(`Chuyển sang model dự phòng: ${MODELS[idx + 1]}`);
+        // fallback to next model silently
         return executeCall(idx + 1);
       }
       
@@ -87,7 +87,7 @@ export async function callGeminiAIStream(
       }
 
       if (idx < MODELS.length - 1) {
-        console.log(`Stream fallback to: ${MODELS[idx + 1]}`);
+        // stream fallback to next model silently
         return executeStream(idx + 1);
       }
       

@@ -33,6 +33,7 @@ interface CreatorTabProps {
   setIsLoading: (val: boolean) => void;
   bulkProgress: { current: number; total: number; currentTitle: string };
   handleCreateLesson: () => void;
+  cancelBulk: () => void;
   saveLessonPlan: () => void;
   exportToPDF: () => void;
   exportToWord: () => void;
@@ -282,15 +283,24 @@ export const CreatorTab = (props: CreatorTabProps) => {
       {props.isLoading && (
         props.generationMode === 'bulk' && props.bulkProgress.total > 0 ? (
           /* Bulk mode: compact sticky progress bar — don't block content */
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 w-[480px] max-w-[90%] bg-white rounded-2xl shadow-2xl border border-slate-100 p-4 flex flex-col gap-2">
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 w-[500px] max-w-[90%] bg-white rounded-2xl shadow-2xl border border-slate-100 p-4 flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 min-w-0">
                 <Loader2 className="w-4 h-4 text-blue-600 animate-spin shrink-0" />
-                <span className="text-xs font-bold text-slate-700 truncate max-w-[280px]">
+                <span className="text-xs font-bold text-slate-700 truncate">
                   Đang soạn: {props.bulkProgress.currentTitle}
                 </span>
               </div>
-              <span className="text-xs font-black text-blue-600 shrink-0">{props.bulkProgress.current}/{props.bulkProgress.total}</span>
+              <div className="flex items-center gap-2 shrink-0 ml-2">
+                <span className="text-xs font-black text-blue-600">{props.bulkProgress.current}/{props.bulkProgress.total}</span>
+                <button
+                  onClick={props.cancelBulk}
+                  className="p-1 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-colors"
+                  title="Hủy soạn hàng loạt"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
             <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
               <motion.div

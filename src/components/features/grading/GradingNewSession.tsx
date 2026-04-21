@@ -63,6 +63,9 @@ export const GradingNewSession = ({
     };
   })();
 
+  const MAX_FILE_MB = 20;
+  const MAX_FILE_BYTES = MAX_FILE_MB * 1024 * 1024;
+
   const handleMasterUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
@@ -70,6 +73,10 @@ export const GradingNewSession = ({
     try {
       const list: TemplateFile[] = [];
       for (let i = 0; i < files.length; i++) {
+        if (files[i].size > MAX_FILE_BYTES) {
+          showToast(`"${files[i].name}" vượt quá ${MAX_FILE_MB}MB — bỏ qua`, 'error');
+          continue;
+        }
         list.push(await processUploadedFile(files[i], 'test', i));
       }
       setMasterFiles(prev => [...prev, ...list]);
@@ -86,6 +93,10 @@ export const GradingNewSession = ({
     try {
       const list: TemplateFile[] = [];
       for (let i = 0; i < files.length; i++) {
+        if (files[i].size > MAX_FILE_BYTES) {
+          showToast(`"${files[i].name}" vượt quá ${MAX_FILE_MB}MB — bỏ qua`, 'error');
+          continue;
+        }
         list.push(await processUploadedFile(files[i], 'sample', i));
       }
       setStudentFiles(prev => [...prev, ...list]);
