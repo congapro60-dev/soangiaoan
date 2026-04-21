@@ -411,9 +411,9 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
                   <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-slate-100 rounded-3xl cursor-pointer hover:bg-slate-50 transition-colors">
                     <div className="flex flex-col items-center justify-center pt-4 pb-4">
                       <FilePlus className="w-7 h-7 text-slate-200 mb-1" />
-                      <p className="text-xs text-slate-400 font-medium">{matrixFile ? matrixFile.name : 'Tải lên Ma trận (Docx/Xlsx)'}</p>
+                      <p className="text-xs text-slate-400 font-medium">{matrixFile ? matrixFile.name : 'Tải lên Ma trận (Docx/Pdf/Xlsx)'}</p>
                     </div>
-                    <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'matrix')} />
+                    <input type="file" accept=".docx,.pdf,.xlsx" className="hidden" onChange={(e) => handleFileUpload(e, 'matrix')} />
                   </label>
                   {matrixFile && (
                     <button onClick={() => setMatrixFile(null)} className="text-[11px] text-slate-400 hover:text-red-500 flex items-center gap-1">
