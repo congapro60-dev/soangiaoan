@@ -256,9 +256,10 @@ export const CreatorTab = (props: CreatorTabProps) => {
                    />
                 </div>
               ) : (
-                 <LessonContentBoard 
+                 <LessonContentBoard
                     generationMode={props.generationMode}
                     currentPlan={props.currentPlan}
+                    setCurrentPlan={props.setCurrentPlan}
                     bulkResults={props.bulkResults}
                     revisionPrompt={props.revisionPrompt}
                     setRevisionPrompt={props.setRevisionPrompt}
