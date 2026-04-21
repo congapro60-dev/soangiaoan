@@ -3,6 +3,7 @@ import { CheckCircle2, Upload, Users, Loader2, ClipboardCheck, Download, Plus, X
 import { AppData, TemplateFile, GradingResult } from '../../../types';
 import { processUploadedFile } from '../../../utils/fileUtils';
 import { GradingResultsList, FilterScore } from './GradingResultsList';
+import { GradingWeaknessPanel } from './GradingWeaknessPanel';
 import { generateAnswerSheetHTML, generateAnswerKeyTemplateHTML } from '../../../utils/answerSheetTemplate';
 
 const openInNewTab = (html: string) => {
@@ -234,6 +235,9 @@ export const GradingNewSession = ({
           </div>
         )}
       </div>
+
+      {/* Weakness aggregation */}
+      <GradingWeaknessPanel results={results} />
 
       {/* Results list */}
       <GradingResultsList

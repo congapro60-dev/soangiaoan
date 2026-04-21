@@ -1,6 +1,7 @@
 import { ChevronLeft, Download, Trash2 } from 'lucide-react';
 import { GradingResult, GradingSession } from '../../../types';
 import { GradingResultsList, FilterScore } from './GradingResultsList';
+import { GradingWeaknessPanel } from './GradingWeaknessPanel';
 
 interface Props {
   session: GradingSession;
@@ -75,6 +76,9 @@ export const GradingViewSession = ({
           </button>
         </div>
       </div>
+
+      {/* Weakness aggregation */}
+      <GradingWeaknessPanel results={session.results} />
 
       {/* Results */}
       <GradingResultsList
