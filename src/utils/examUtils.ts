@@ -27,7 +27,43 @@ ${sampleFile.content}
 - Cách trình bày phương án A/B/C/D: PHẢI giống hệt ĐỀ MẪU.
 - Font chữ, in đậm, in nghiêng tên mục: PHẢI giống hệt ĐỀ MẪU.
 - KHÔNG được tự ý thêm phần, đổi tên mục, hoặc thay đổi bất kỳ element định dạng nào.
-` : '';
+` : `
+===== ĐỊNH DẠNG CHUẨN MẶC ĐỊNH (CÔNG VĂN 5636/BGDĐT-GDTrH) =====
+Không có đề mẫu → AI tự áp dụng định dạng chuẩn của Bộ GD&ĐT năm 2025 như sau:
+
+**HEADER (căn giữa):**
+SỞ GIÁO DỤC VÀ ĐÀO TẠO ...       |  ĐỀ KIỂM TRA [HỌC KÌ I / HỌC KÌ II / GIỮA KÌ ...]
+TRƯỜNG THPT ...                   |  NĂM HỌC 20XX - 20XX
+                                  |  Môn: [Tên môn] — Lớp: [10/11/12]
+                                  |  Thời gian làm bài: [XX] phút
+                                  |  (Không kể thời gian phát đề)
+                                  |  Mã đề: [XXX]
+
+**BỐ CỤC CÁC PHẦN (theo cấu trúc được yêu cầu, chỉ hiện phần có câu hỏi):**
+- **PHẦN I. CÂU TRẮC NGHIỆM NHIỀU PHƯƠNG ÁN LỰA CHỌN** (nếu có MCQ 4 phương án)
+  _Thí sinh trả lời từ câu 1 đến câu N. Mỗi câu hỏi thí sinh chỉ chọn một phương án._
+- **PHẦN II. CÂU TRẮC NGHIỆM ĐÚNG SAI** (nếu có True/False 4 ý)
+  _Thí sinh trả lời từ câu 1 đến câu N. Trong mỗi ý a), b), c), d) ở mỗi câu, thí sinh chọn Đúng hoặc Sai._
+- **PHẦN III. CÂU TRẮC NGHIỆM TRẢ LỜI NGẮN** (nếu có)
+  _Thí sinh trả lời từ câu 1 đến câu N._
+- **PHẦN IV. TỰ LUẬN** (nếu có)
+  _Thí sinh trình bày đầy đủ lời giải cho các câu hỏi._
+
+**ĐÁNH SỐ VÀ TRÌNH BÀY:**
+- Đánh số: "Câu 1.", "Câu 2."... (có dấu chấm, in đậm).
+- MCQ 4 phương án: mỗi phương án một dòng, bắt đầu "A. ", "B. ", "C. ", "D. ".
+- Đúng/Sai 4 ý: mỗi ý một dòng, bắt đầu "a) ", "b) ", "c) ", "d) ".
+- Trả lời ngắn: để khoảng trống "……………" cuối câu hoặc ghi rõ yêu cầu tính toán.
+- Tự luận: mỗi câu một đoạn, ghi rõ số điểm ở đầu câu, VD: "**Câu 1** (2,0 điểm). ..."
+- Kết thúc đề: dòng "--- HẾT ---" căn giữa, in đậm.
+- Dưới dòng HẾT: "Thí sinh không được sử dụng tài liệu. Cán bộ coi thi không giải thích gì thêm."
+
+**QUY TẮC KHÁC:**
+- Ngôn ngữ trang trọng, chuẩn mực sư phạm.
+- Công thức toán dùng LaTeX: inline $...$, display $$...$$.
+- Hình vẽ (nếu có): mô tả bằng TikZ hoặc chú thích rõ ràng để giáo viên tự chèn.
+===== KẾT THÚC ĐỊNH DẠNG MẶC ĐỊNH =====
+`;
 
     const matrixSection = matrix?.content ? `
 ===== MA TRẬN ĐỀ (BẮT BUỘC TUÂN THỦ) =====
