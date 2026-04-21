@@ -13,6 +13,14 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import rehypeRaw from 'rehype-raw';
 import { marked } from 'marked';
+import { generateAnswerSheetHTML, generateAnswerKeyTemplateHTML } from '../../utils/answerSheetTemplate';
+
+const openInNewTab = (html: string) => {
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+};
 import 'katex/dist/katex.min.css';
 
 import { AppData, TemplateFile, LessonPlan } from '../../types';
@@ -706,35 +714,53 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
           )}
 
           {testResult && (
-            <div className="p-5 bg-slate-50 border-t border-slate-100 flex flex-wrap justify-between gap-3">
-              <button
-                onClick={clearResult}
-                className="px-5 py-2.5 bg-white text-red-500 rounded-2xl font-bold border border-red-100 hover:bg-red-50 transition-all flex items-center gap-2 text-sm"
-              >
-                <Trash2 className="w-4 h-4" /> Xóa kết quả
-              </button>
-              <div className="flex gap-3">
+            <>
+              <div className="p-5 bg-slate-50 border-t border-slate-100 flex flex-wrap justify-between gap-3">
                 <button
-                  onClick={handleDownloadPDF}
-                  className="px-5 py-2.5 bg-white text-slate-600 rounded-2xl font-bold border border-slate-200 hover:bg-slate-100 transition-all flex items-center gap-2 text-sm"
+                  onClick={clearResult}
+                  className="px-5 py-2.5 bg-white text-red-500 rounded-2xl font-bold border border-red-100 hover:bg-red-50 transition-all flex items-center gap-2 text-sm"
                 >
-                  <Download className="w-4 h-4" /> Tải PDF
+                  <Trash2 className="w-4 h-4" /> Xóa kết quả
+                </button>
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleDownloadPDF}
+                    className="px-5 py-2.5 bg-white text-slate-600 rounded-2xl font-bold border border-slate-200 hover:bg-slate-100 transition-all flex items-center gap-2 text-sm"
+                  >
+                    <Download className="w-4 h-4" /> Tải PDF
+                  </button>
+                  <button
+                    onClick={handleDownloadWord}
+                    className="px-5 py-2.5 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all flex items-center gap-2 text-sm"
+                  >
+                    <Download className="w-4 h-4" /> Xuất Word (.doc)
+                  </button>
+                  <button
+                    onClick={handleExportOverleaf}
+                    disabled={isLoading}
+                    className="px-5 py-2.5 bg-emerald-600 text-white rounded-2xl font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all flex items-center gap-2 text-sm disabled:opacity-50"
+                  >
+                    <FileCode className="w-4 h-4" /> Overleaf / LaTeX
+                  </button>
+                </div>
+              </div>
+              {/* Mẫu phiếu làm bài & đáp án */}
+              <div className="px-5 pb-4 bg-slate-50 flex flex-wrap gap-2 border-t border-slate-100 pt-3">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest w-full">Tải mẫu đi kèm đề thi</span>
+                <button
+                  onClick={() => openInNewTab(generateAnswerSheetHTML())}
+                  className="px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-2xl font-bold text-xs hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2"
+                >
+                  <Download className="w-3.5 h-3.5" /> Phiếu trả lời học sinh
                 </button>
                 <button
-                  onClick={handleDownloadWord}
-                  className="px-5 py-2.5 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all flex items-center gap-2 text-sm"
+                  onClick={() => openInNewTab(generateAnswerKeyTemplateHTML())}
+                  className="px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-2xl font-bold text-xs hover:bg-emerald-600 hover:text-white transition-all flex items-center gap-2"
                 >
-                  <Download className="w-4 h-4" /> Xuất Word (.doc)
-                </button>
-                <button
-                  onClick={handleExportOverleaf}
-                  disabled={isLoading}
-                  className="px-5 py-2.5 bg-emerald-600 text-white rounded-2xl font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all flex items-center gap-2 text-sm disabled:opacity-50"
-                >
-                  <FileCode className="w-4 h-4" /> Overleaf / LaTeX
+                  <Download className="w-3.5 h-3.5" /> Mẫu đáp án + thang điểm
                 </button>
               </div>
-            </div>
+            </>
           )}
         </div>
       </div>
