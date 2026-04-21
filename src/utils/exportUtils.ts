@@ -35,17 +35,10 @@ export const exportToPDF = async (currentPlan: Partial<LessonPlan>, showToast: (
   document.head.appendChild(style);
 
   try {
-    const mod = await import('html2pdf.js');
-    const html2pdf = (mod.default ?? mod) as any;
-    const opt = {
-      margin: [15, 12, 15, 12] as [number, number, number, number],
+    const { exportElementToPdf } = await import('./pdfExport');
+    await exportElementToPdf(element, {
       filename: `${currentPlan.title || 'giao-an'}.pdf`,
-      image: { type: 'jpeg' as const, quality: 0.92 },
-      html2canvas: { scale: 1.5, useCORS: true, letterRendering: true, logging: false },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
-      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
-    };
-    await html2pdf().from(element).set(opt).save();
+    });
     showToast('Đã tải xuống file PDF!', 'success');
   } catch (e) {
     console.error(e);
