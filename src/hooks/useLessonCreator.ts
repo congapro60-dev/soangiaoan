@@ -237,7 +237,11 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
           - CỘT 3 "Nội dung ghi bảng" là những nội dung trọng tâm mà GV sẽ chiếu slide hoặc viết lên bảng để HS nhìn và ghi chép vào vở. KHÔNG được để trống cột này.
           - HOẠT ĐỘNG 5 (Sơ kết — Dặn dò): GV giúp HS tổng kết lại những vấn đề chính và quan trọng đã học trong bài, sau đó dặn dò và giao bài tập về nhà. Cột 3 ghi rõ nội dung tóm tắt kiến thức trọng tâm và bài tập về nhà.
           - KHÔNG ĐƯỢC viết dạng đoạn văn tự do. PHẢI là bảng.
-          - Ngôn ngữ biên kịch hội thoại 100%. Dùng <br/><br/> để cách dòng trong ô bảng.
+          - YÊU CẦU ĐỘ CHI TIẾT CỰC CAO (Ngôn ngữ biên kịch hội thoại 100%):
+            + KHÔNG viết chung chung kiểu "GV yêu cầu HS làm bài".
+            + PHẢI viết rõ lời thoại: GV nói gì ("Các em hãy..."), HS trả lời gì, phản ứng ra sao.
+            + Bắt buộc chèn các thẻ hành động sư phạm như \`[Quét Radar]\`, \`[🌐 Công dân toàn cầu]\`, \`[Chờ đợi 3 giây]\` vào cột Hoạt động của GV để giáo án sinh động như một kịch bản phim.
+          - Dùng <br/><br/> để cách dòng trong ô bảng.
           - Tích hợp kỹ năng thế kỷ 21 và năng lực cốt lõi.
           ${mathRestrictions}
 
@@ -335,7 +339,10 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
             6. CỘT 3 là những nội dung GV chiếu slide hoặc viết lên bảng cho HS nhìn và ghi chép. KHÔNG để trống.
             7. HĐ5 (Sơ kết — Dặn dò): GV giúp HS tổng kết những vấn đề chính đã học, sau đó dặn dò và giao bài tập về nhà.
             8. KHÔNG ĐƯỢC viết dạng đoạn văn tự do. PHẢI là bảng.
-            9. Ngôn ngữ biên kịch hội thoại 100%. Dùng <br/><br/> để cách dòng trong ô bảng.
+            9. YÊU CẦU ĐỘ CHI TIẾT CỰC CAO (Ngôn ngữ biên kịch hội thoại 100%):
+               + KHÔNG viết chung chung kiểu "GV yêu cầu HS...". PHẢI viết trích dẫn lời thoại cụ thể của GV và HS.
+               + Sử dụng các thẻ sư phạm như \`[Quét Radar]\`, \`[🌐 Công dân toàn cầu]\` trong cột GV.
+            10. Dùng <br/><br/> để cách dòng trong ô bảng.
             ${mathRestrictions}
 
             B. PHẦN ĐÁNH GIÁ DANIELSON (BẮT BUỘC, VIẾT Ở CUỐI BÊN TRONG <lesson_content>):
