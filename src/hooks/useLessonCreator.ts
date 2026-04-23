@@ -112,48 +112,57 @@ II. THIẾT BỊ DẠY HỌC VÀ HỌC LIỆU
 
 III. TIẾN TRÌNH DẠY HỌC
 
-A. HOẠT ĐỘNG 1: KHỞI ĐỘNG (~ 5 phút)
+A. HOẠT ĐỘNG 1: MỞ ĐẦU (~ 5 phút)
 a) Mục tiêu: Tạo hứng thú, kết nối kiến thức cũ với bài mới.
 b) Nội dung: [Mô tả tình huống/câu hỏi khởi động]
 c) Sản phẩm: [Câu trả lời / ý kiến của HS]
 d) Tổ chức thực hiện:
-| Hoạt động của GV | Hoạt động của HS |
-|---|---|
-| ... | ... |
+| Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
+|---|---|---|
+| ... | ... | ... |
 
 B. HOẠT ĐỘNG 2: HÌNH THÀNH KIẾN THỨC MỚI (~ [X] phút)
 a) Mục tiêu: [Học sinh nắm được ...]
 b) Nội dung: [Nội dung kiến thức cần hình thành]
 c) Sản phẩm: [Ghi chép / bài làm / sơ đồ tư duy của HS]
 d) Tổ chức thực hiện:
-| Hoạt động của GV | Hoạt động của HS |
-|---|---|
-| ... | ... |
+| Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
+|---|---|---|
+| ... | ... | ... |
 
 C. HOẠT ĐỘNG 3: LUYỆN TẬP (~ [X] phút)
 a) Mục tiêu: [Củng cố, rèn kỹ năng vận dụng kiến thức vừa học]
 b) Nội dung: [Bài tập / câu hỏi luyện tập cụ thể]
 c) Sản phẩm: [Kết quả bài tập của HS]
 d) Tổ chức thực hiện:
-| Hoạt động của GV | Hoạt động của HS |
-|---|---|
-| ... | ... |
+| Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
+|---|---|---|
+| ... | ... | ... |
 
 D. HOẠT ĐỘNG 4: VẬN DỤNG (~ [X] phút)
 a) Mục tiêu: [Giúp HS vận dụng kiến thức vào thực tiễn]
 b) Nội dung: [Bài toán thực tiễn / dự án mini]
 c) Sản phẩm: [Bài trình bày / sản phẩm của HS]
 d) Tổ chức thực hiện:
-| Hoạt động của GV | Hoạt động của HS |
-|---|---|
-| ... | ... |
+| Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
+|---|---|---|
+| ... | ... | ... |
+
+E. HOẠT ĐỘNG 5: SƠ KẾT — DẶN DÒ (~ 5 phút)
+a) Mục tiêu: [Tổng kết bài học, giao bài tập về nhà]
+b) Nội dung: [Hệ thống hóa kiến thức]
+c) Sản phẩm: [Ghi chép của HS]
+d) Tổ chức thực hiện:
+| Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
+|---|---|---|
+| ... | ... | ... |
 
 IV. PHỤ LỤC (nếu có)
 [Phiếu học tập, bảng kiểm, bài tập về nhà, ...]
 
 QUY TẮC NGHIÊM NGẶT:
 - Mỗi hoạt động PHẢI có đủ 4 mục: a) Mục tiêu, b) Nội dung, c) Sản phẩm, d) Tổ chức thực hiện.
-- Bảng "Tổ chức thực hiện" PHẢI có 2 cột: "Hoạt động của GV" và "Hoạt động của HS".
+- Bảng "Tổ chức thực hiện" BẮT BUỘC có 3 cột: "Hoạt động của GV", "Hoạt động của HS" và "Nội dung ghi bảng / Sản phẩm dự kiến".
 - Thời lượng mỗi hoạt động phải được ghi rõ.
 - KHÔNG rút gọn hoặc bỏ bất kỳ mục nào trong bố cục trên.
 ===== KẾT THÚC MẪU CÔNG VĂN 5512 =====
