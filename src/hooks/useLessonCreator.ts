@@ -248,10 +248,8 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
           - KHÔNG ĐƯỢC viết dạng đoạn văn tự do. PHẢI là bảng.
           - YÊU CẦU ĐỘ CHI TIẾT CỰC CAO (Ngôn ngữ biên kịch hội thoại 100%):
             + KHÔNG viết chung chung kiểu "GV yêu cầu HS làm bài".
-            + BẮT BUỘC mỗi hoạt động phải có ÍT NHẤT 4-5 lượt trao đổi qua lại giữa GV và HS.
-            + PHẢI viết rõ lời thoại: GV nói gì ("Các em hãy..."), HS trả lời gì, phản ứng ra sao. Giáo án phải dài và chi tiết như kịch bản phim.
-            + TUYỆT ĐỐI KHÔNG LÀM NGẮN GỌN HAY TÓM TẮT. Hãy viết càng dài, càng sâu sắc, càng phân tích kỹ càng tốt.
-            + Bắt buộc chèn các thẻ hành động sư phạm như \`[Quét Radar]\`, \`[🌐 Công dân toàn cầu]\`, \`[Chờ đợi 3 giây]\` vào cột Hoạt động của GV để giáo án sinh động.
+            + PHẢI viết rõ lời thoại: GV nói gì ("Các em hãy..."), HS trả lời gì, phản ứng ra sao.
+            + Bắt buộc chèn các thẻ hành động sư phạm như \`[Quét Radar]\`, \`[🌐 Công dân toàn cầu]\`, \`[Chờ đợi 3 giây]\` vào cột Hoạt động của GV để giáo án sinh động như một kịch bản phim.
           - Dùng <br/><br/> để cách dòng trong ô bảng.
           - LỒNG GHÉP 3 TUYÊN NGÔN DEWEY (BẮT BUỘC):
             1. Tuyên ngôn Công dân kĩ thuật số
@@ -367,9 +365,7 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
             7. HĐ5 (Sơ kết — Dặn dò): GV giúp HS tổng kết những vấn đề chính đã học, sau đó dặn dò và giao bài tập về nhà.
             8. KHÔNG ĐƯỢC viết dạng đoạn văn tự do. PHẢI là bảng.
             9. YÊU CẦU ĐỘ CHI TIẾT CỰC CAO (Ngôn ngữ biên kịch hội thoại 100%):
-               + BẮT BUỘC mỗi hoạt động phải có ÍT NHẤT 4-5 lượt trao đổi qua lại giữa GV và HS.
                + KHÔNG viết chung chung kiểu "GV yêu cầu HS...". PHẢI viết trích dẫn lời thoại cụ thể của GV và HS.
-               + TUYỆT ĐỐI KHÔNG LÀM NGẮN GỌN HAY TÓM TẮT. Hãy viết càng dài, càng chi tiết càng tốt.
                + Sử dụng các thẻ sư phạm như \`[Quét Radar]\`, \`[🌐 Công dân toàn cầu]\` trong cột GV.
             10. LỒNG GHÉP 3 TUYÊN NGÔN DEWEY (BẮT BUỘC): Công dân kĩ thuật số, Công dân toàn cầu & Học tập liên văn hóa, Dạy và học chất lượng cao. PHẢI dùng thẻ \`[💡 Tuyên ngôn: ...]\` để chỉ rõ câu nói/hành động nào đáp ứng tuyên ngôn nào.
             11. Dùng <br/><br/> để cách dòng trong ô bảng.

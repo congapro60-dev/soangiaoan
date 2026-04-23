@@ -16,7 +16,7 @@ export async function callGeminiAI(prompt: string, apiKey: string, modelIndex = 
       const response = await ai.models.generateContent({
         model: modelName,
         contents: [{ parts: [{ text: prompt }] }],
-        config: { temperature: 0.1 },
+        config: { temperature: 0.1, maxOutputTokens: 8192 },
       });
       return response.text || '';
     } catch (error: any) {
@@ -68,7 +68,7 @@ export async function callGeminiAIStream(
       const result = await ai.models.generateContentStream({
         model: modelName,
         contents: [{ parts: [{ text: prompt }] }],
-        config: { temperature: 0.1 },
+        config: { temperature: 0.1, maxOutputTokens: 8192 },
       });
 
       for await (const chunk of result) {

@@ -211,7 +211,7 @@ export async function callAIWithVision(
   const result = await ai.models.generateContent({
     model: modelName,
     contents: [{ parts: [{ text: prompt }, { inlineData: { data: base64Data, mimeType } }] }],
-    config: { temperature: 0.1 },
+    config: { temperature: 0.1, maxOutputTokens: 8192 },
   });
   return result.text || '';
   } catch (err) {
