@@ -242,6 +242,11 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
             + PHẢI viết rõ lời thoại: GV nói gì ("Các em hãy..."), HS trả lời gì, phản ứng ra sao.
             + Bắt buộc chèn các thẻ hành động sư phạm như \`[Quét Radar]\`, \`[🌐 Công dân toàn cầu]\`, \`[Chờ đợi 3 giây]\` vào cột Hoạt động của GV để giáo án sinh động như một kịch bản phim.
           - Dùng <br/><br/> để cách dòng trong ô bảng.
+          - LỒNG GHÉP 3 TUYÊN NGÔN DEWEY (BẮT BUỘC):
+            1. Tuyên ngôn Công dân kĩ thuật số
+            2. Tuyên ngôn Công dân toàn cầu và Học tập liên văn hóa
+            3. Tuyên ngôn Dạy và học chất lượng cao
+            => PHẢI chỉ rõ trong cột Hoạt động của GV/HS (dùng in đậm hoặc thẻ ghi chú như \`[💡 Tuyên ngôn: ...]\`) xem chỗ nào, câu nói hay hành động nào đáp ứng các tuyên ngôn này để người đọc thấy ngay.
           - Tích hợp kỹ năng thế kỷ 21 và năng lực cốt lõi.
           ${mathRestrictions}
 
@@ -343,7 +348,8 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
             9. YÊU CẦU ĐỘ CHI TIẾT CỰC CAO (Ngôn ngữ biên kịch hội thoại 100%):
                + KHÔNG viết chung chung kiểu "GV yêu cầu HS...". PHẢI viết trích dẫn lời thoại cụ thể của GV và HS.
                + Sử dụng các thẻ sư phạm như \`[Quét Radar]\`, \`[🌐 Công dân toàn cầu]\` trong cột GV.
-            10. Dùng <br/><br/> để cách dòng trong ô bảng.
+            10. LỒNG GHÉP 3 TUYÊN NGÔN DEWEY (BẮT BUỘC): Công dân kĩ thuật số, Công dân toàn cầu & Học tập liên văn hóa, Dạy và học chất lượng cao. PHẢI dùng thẻ \`[💡 Tuyên ngôn: ...]\` để chỉ rõ câu nói/hành động nào đáp ứng tuyên ngôn nào.
+            11. Dùng <br/><br/> để cách dòng trong ô bảng.
             ${mathRestrictions}
 
             B. PHẦN ĐÁNH GIÁ DANIELSON (BẮT BUỘC, VIẾT Ở CUỐI BÊN TRONG <lesson_content>):
