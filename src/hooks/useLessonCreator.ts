@@ -8,6 +8,28 @@ import Swal from 'sweetalert2';
 // In App.tsx it was MODELS.indexOf(data.settings.selectedModel)
 // I'll keep that logic.
 
+/**
+ * Trích xuất nội dung giáo án từ phản hồi AI có thể chứa thẻ XML.
+ * Ưu tiên lấy <lesson_content>, gộp <pedagogical_review> nếu AI tách riêng,
+ * fallback sang toàn bộ text nếu AI không dùng XML.
+ */
+const extractLessonContent = (rawResult: string): string => {
+  const contentMatch = rawResult.match(/<lesson_content>([\s\S]*?)<\/lesson_content>/);
+  let finalContent = '';
+  if (contentMatch) {
+    finalContent = contentMatch[1];
+    // Nếu AI vẫn tách riêng phần pedagogical_review, gộp lại
+    const reviewMatch = rawResult.match(/<pedagogical_review>([\s\S]*?)<\/pedagogical_review>/);
+    if (reviewMatch && !finalContent.includes('Danielson') && !finalContent.includes('tổ trưởng chuyên môn')) {
+      finalContent += '\n\n## Đánh giá của tổ trưởng chuyên môn\n' + reviewMatch[1];
+    }
+  } else {
+    // Fallback: AI không dùng thẻ XML, lấy toàn bộ và loại bỏ thẻ thinking
+    finalContent = rawResult.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
+  }
+  return finalContent;
+};
+
 export const useLessonCreator = (
   data: AppData, 
   setData: React.Dispatch<React.SetStateAction<AppData>>,
@@ -93,8 +115,7 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
 
           BỐ CỤC PHẢN HỒI (BẮT BUỘC):
           1. <thinking>: Phân tích mục tiêu bài học, đặc điểm HS lớp ${currentPlan.grade}, lựa chọn phương pháp (VARK, 5E, Gagne...) và kế hoạch "gây nghiện" cho bài giảng.
-          2. <lesson_content>: Nội dung giáo án chi tiết (Markdown).
-          3. <pedagogical_review>: Tự đánh giá giáo án dựa trên Danielson Framework Domain 1.
+          2. <lesson_content>: TOÀN BỘ nội dung giáo án chi tiết (Markdown), BAO GỒM CẢ phần đánh giá Danielson ở cuối.
 
           THÔNG TIN BÀI HỌC:
           - Môn học: ${subject}. Lớp: ${currentPlan.grade}. Tuần: ${currentPlan.week}.
@@ -105,21 +126,31 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
           ${singleRequirement ? `YÊU CẦU BỔ SUNG: ${singleRequirement}` : ''}
           ${mathRestrictions}
 
-          YÊU CẦU NỘI DUNG (<lesson_content>):
-          - Tiến trình 4 bước chuyên sâu (Mở đầu, Hình thành kiến thức, Luyện tập, Vận dụng).
-          - Mỗi bước trình bày dạng BẢNG 3 CỘT (Hoạt động GV | Hoạt động HS | Công cụ & Đánh giá).
-          - Ngôn ngữ biên kịch hội thoại 100%. Dùng <br/><br/> để cách dòng trong bảng.
+          ===== YÊU CẦU ĐỊNH DẠNG NỘI DUNG BÊN TRONG <lesson_content> (TUYỆT ĐỐI TUÂN THỦ) =====
+          A. CẤU TRÚC GIÁO ÁN:
+          - Phần đầu: Thông tin chung (WALT, WILF 3 mức độ 🌶️, Năng lực cốt lõi) nếu là môn Toán.
+          - Tiến trình 4 bước: Mở đầu → Hình thành kiến thức → Luyện tập → Vận dụng.
+          - MỖI BƯỚC phải trình bày dạng BẢNG MARKDOWN 3 CỘT:
+            | Hoạt động của GV | Hoạt động của HS | Công cụ & Đánh giá |
+          - KHÔNG ĐƯỢC viết dạng đoạn văn tự do. PHẢI là bảng.
+          - Ngôn ngữ biên kịch hội thoại 100%. Dùng <br/><br/> để cách dòng trong ô bảng.
           - Tích hợp kỹ năng thế kỷ 21 và năng lực cốt lõi.
 
-          YÊU CẦU ĐÁNH GIÁ (<pedagogical_review>):
-          Tự chấm điểm theo 6 tiêu chí Danielson (1a-1f) và đưa ra nhận xét chuyên môn.
+          B. PHẦN ĐÁNH GIÁ DANIELSON (BẮT BUỘC, VIẾT Ở CUỐI BÊN TRONG <lesson_content>):
+          Sau nội dung giáo án, PHẢI thêm phần:
+          "## Đánh giá của tổ trưởng chuyên môn"
+          Tự chấm điểm theo khung Danielson Miền 1 (Lên kế hoạch và chuẩn bị), 6 tiêu chí (Thang 1-4, 4 là Tốt nhất):
+          1a: Áp dụng kiến thức chuyên môn và sư phạm
+          1b: Thấu hiểu học sinh
+          1c: Thiết lập mục tiêu giảng dạy
+          1d: Sử dụng tài nguyên hiệu quả
+          1e: Thiết kế bài giảng mạch lạc
+          1f: Đánh giá quá trình học tập
+          ===== HẾT YÊU CẦU ĐỊNH DẠNG =====
         `;
         const result = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
         if (result) {
-          // Trích xuất nội dung từ thẻ <lesson_content> để hiển thị chính
-          const contentMatch = result.match(/<lesson_content>([\s\S]*?)<\/lesson_content>/);
-          const finalContent = contentMatch ? contentMatch[1] : result;
-          
+          const finalContent = extractLessonContent(result);
           setCurrentPlan(prev => ({ ...prev, content: cleanMarkdownOutput(finalContent) }));
           showToast('Đã khởi tạo giáo án cấp độ Senior!');
         }
@@ -158,7 +189,12 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
           setBulkProgress({ current: i + 1, total: extractedLessons.length });
           
           const detailPrompt = `
-            BẠN LÀ CHUYÊN GIA BIÊN SOẠN GIÁO ÁN CAO CẤP.
+            BẠN LÀ CHUYÊN GIA BIÊN SOẠN GIÁO ÁN CAO CẤP VỚI TƯ DUY CỦA CLAUDE 4.5 SONNET.
+            
+            BỐ CỤC PHẢN HỒI:
+            1. <thinking>: Phân tích ngắn mục tiêu bài, đặc điểm HS, phương pháp phù hợp.
+            2. <lesson_content>: TOÀN BỘ giáo án (Markdown), BAO GỒM đánh giá Danielson ở cuối.
+
             HÃY SOẠN GIÁO ÁN CHI TIẾT CHO BÀI: "${lesson.title}"
             THÔNG TIN TỪ PHÂN PHỐI CHƯƠNG TRÌNH:
             - Tuần: ${lesson.week}
@@ -168,20 +204,26 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
             ${mathRestrictions}
             Lớp: ${currentPlan.grade}.
             
-            YÊU CẦU NGHIÊM NGẶT:
+            ===== YÊU CẦU ĐỊNH DẠNG BÊN TRONG <lesson_content> (TUYỆT ĐỐI TUÂN THỦ) =====
+            A. YÊU CẦU NGHIÊM NGẶT:
             1. NỘI DUNG PHẢI TUÂN THỦ HOÀN TOÀN THEO "MỤC TIÊU/KIẾN THỨC TRỌNG TÂM" ĐÃ TRÍCH XUẤT TRÊN.
-            2. Định dạng: Nhiều bảng 3 cột. Chi tiết từng hoạt động.
-            3. Tiêu đề bài soạn phải khớp 100% với tên bài được cung cấp.
-            
-            PHẦN QUAN TRỌNG: Ở CUỐI GIÁO ÁN, BẮT BUỘC PHẢI THÊM PHẦN:
+            2. Tiêu đề bài soạn phải khớp 100% với tên bài được cung cấp.
+            3. Tiến trình 4 bước: Mở đầu → Hình thành kiến thức → Luyện tập → Vận dụng.
+            4. MỖI BƯỚC phải trình bày dạng BẢNG MARKDOWN 3 CỘT:
+              | Hoạt động của GV | Hoạt động của HS | Công cụ & Đánh giá |
+            5. KHÔNG ĐƯỢC viết dạng đoạn văn tự do. PHẢI là bảng.
+            6. Ngôn ngữ biên kịch hội thoại 100%. Dùng <br/><br/> để cách dòng trong ô bảng.
+
+            B. PHẦN ĐÁNH GIÁ DANIELSON (BẮT BUỘC, VIẾT Ở CUỐI BÊN TRONG <lesson_content>):
             "## Đánh giá của tổ trưởng chuyên môn"
-            Dựa trên khung Danielson Miền 1 (Lên kế hoạch và chuẩn bị), hãy tự chấm điểm môn giáo án này theo 6 tiêu chí (Thang 1-4, 4 là Tốt nhất) và đưa ra nhận xét ngắn:
+            Tự chấm điểm theo khung Danielson Miền 1, 6 tiêu chí (Thang 1-4):
             1a: Áp dụng kiến thức chuyên môn và sư phạm
             1b: Thấu hiểu học sinh
             1c: Thiết lập mục tiêu giảng dạy
             1d: Sử dụng tài nguyên hiệu quả
             1e: Thiết kế bài giảng mạch lạc
             1f: Đánh giá quá trình học tập
+            ===== HẾT YÊU CẦU =====
           `;
 
           const detailResponse = await callGeminiAI(detailPrompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
@@ -193,7 +235,7 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
               grade: currentPlan.grade,
               week: lesson.week || currentPlan.week,
               title: lesson.title,
-              content: cleanMarkdownOutput(detailResponse),
+              content: cleanMarkdownOutput(extractLessonContent(detailResponse)),
               status: 'draft',
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString()
