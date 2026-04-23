@@ -1,6 +1,9 @@
 import { StrictMode, Component } from 'react';
 import { createRoot } from 'react-dom/client';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App.tsx';
+import { StudentExamPage } from './pages/StudentExamPage';
+import { StudentResultPage } from './pages/StudentResultPage';
 import './index.css';
 
 // Error Boundary để ngăn màn trắng khi có lỗi bất ngờ
@@ -49,7 +52,13 @@ class ErrorBoundary extends Component {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
-      <App />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/exam/:code/result/:submissionId" element={<StudentResultPage />} />
+          <Route path="/exam/:code" element={<StudentExamPage />} />
+          <Route path="*" element={<App />} />
+        </Routes>
+      </BrowserRouter>
     </ErrorBoundary>
   </StrictMode>,
 );

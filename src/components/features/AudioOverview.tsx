@@ -1,16 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Headphones, Play, Square, Loader2, X } from 'lucide-react';
-import { callGeminiAI } from '../../lib/gemini';
+import { callAI } from '../../lib/aiProviders';
+import type { AppData } from '../../types';
 
 interface AudioOverviewProps {
   content: string;
-  apiKey: string;
-  modelIndex: number;
+  settings: AppData['settings'];
   onClose: () => void;
 }
 
-export const AudioOverview = ({ content, apiKey, modelIndex, onClose }: AudioOverviewProps) => {
+export const AudioOverview = ({ content, settings, onClose }: AudioOverviewProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [script, setScript] = useState<string | null>(null);
@@ -50,7 +50,7 @@ export const AudioOverview = ({ content, apiKey, modelIndex, onClose }: AudioOve
         3. Nêu bật 2-3 điểm sáng tạo nhất của giáo án.
         4. Trả về DUY NHẤT LỜI ĐỌC (plain text, không dùng markdown, không dùng ký tự đặc biệt như ** hay # để máy đọc trơn tru).
       `;
-      const result = await callGeminiAI(prompt, apiKey, modelIndex);
+      const result = await callAI(prompt, settings);
       if (result) {
         setScript(result);
         speakContent(result);

@@ -64,9 +64,67 @@ export interface GradingResult {
 export interface GradingSession {
   id: string;
   title: string;
-  testFile: TemplateFile | null;
+  testFile?: TemplateFile | null; // deprecated — kept for backward compat
+  masterFiles: TemplateFile[];
   results: GradingResult[];
   createdAt: string;
+  userId?: string;
+}
+
+export type QuestionType = 'multiple_choice' | 'true_false' | 'short_answer' | 'essay';
+
+export interface ExamQuestion {
+  id: string;
+  type: QuestionType;
+  content: string;
+  options?: string[];
+  correctAnswer?: string;
+  points: number;
+  explanation?: string;
+}
+
+export interface Exam {
+  id: string;
+  code: string;
+  title: string;
+  subjectId: string;
+  grade?: string;
+  teacherId: string;
+  teacherName: string;
+  questions: ExamQuestion[];
+  durationMinutes: number;
+  startAt?: string;
+  endAt?: string;
+  maxScore: number;
+  isActive: boolean;
+  allowReview: boolean;
+  shuffleQuestions: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StudentAnswer {
+  questionId: string;
+  answer: string;
+  autoScore?: number;
+  aiScore?: number;
+  aiFeedback?: string;
+}
+
+export interface ExamSubmission {
+  id: string;
+  examId: string;
+  examCode: string;
+  studentName: string;
+  studentClass?: string;
+  studentId?: string;
+  startedAt: string;
+  submittedAt?: string;
+  answers: StudentAnswer[];
+  totalScore?: number;
+  maxScore: number;
+  status: 'in_progress' | 'submitted' | 'graded';
+  tabSwitches?: number;
 }
 
 export interface AppData {
@@ -79,10 +137,16 @@ export interface AppData {
     theme: 'light' | 'dark';
     autoSave: boolean;
     geminiApiKey: string;
+    claudeApiKey: string;
+    openaiApiKey: string;
+    selectedProvider: 'gemini' | 'claude' | 'openai' | 'grok' | 'deepseek';
     selectedModel: string;
+    grokApiKey: string;
+    deepseekApiKey: string;
     models?: string[];
   };
   gradingSessions: GradingSession[];
+  exams: Exam[];
 }
 
 export const DEFAULT_DATA: AppData = {
@@ -101,8 +165,14 @@ export const DEFAULT_DATA: AppData = {
     theme: 'light',
     autoSave: true,
     geminiApiKey: '',
-    selectedModel: 'gemini-3-flash',
-    models: ['gemini-3-flash', 'gemini-3.1-pro', 'gemini-2.5-flash'],
+    claudeApiKey: '',
+    openaiApiKey: '',
+    grokApiKey: '',
+    deepseekApiKey: '',
+    selectedProvider: 'gemini',
+    selectedModel: 'gemini-3.1-flash-lite-preview',
+    models: ['gemini-3.1-flash-lite-preview', 'gemini-3.1-pro-preview', 'gemini-2.5-flash'],
   },
   gradingSessions: [],
+  exams: [],
 };

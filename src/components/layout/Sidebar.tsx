@@ -6,36 +6,40 @@ import {
   FileText, 
   Layout, 
   MessageSquare, 
-  Settings, 
-  X, 
-  Menu, 
+  Settings,
+  X,
+  Menu,
   LogOut,
   GraduationCap,
-  ClipboardCheck
+  ClipboardCheck,
+  Globe
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: any) => void;
+  onCreatorTabClick: () => void;
   isSidebarOpen: boolean;
   setIsSidebarOpen: (val: boolean) => void;
   setIsSettingsOpen: (val: boolean) => void;
   handleLogout: () => void;
 }
 
-export const Sidebar = ({ 
-  activeTab, 
-  setActiveTab, 
-  isSidebarOpen, 
-  setIsSidebarOpen, 
-  setIsSettingsOpen, 
-  handleLogout 
+export const Sidebar = ({
+  activeTab,
+  setActiveTab,
+  onCreatorTabClick,
+  isSidebarOpen,
+  setIsSidebarOpen,
+  setIsSettingsOpen,
+  handleLogout
 }: SidebarProps) => {
   const menuItems = [
     { id: 'dashboard', label: 'Tổng quan', icon: LayoutDashboard },
     { id: 'creator', label: 'Soạn giáo án', icon: Plus },
     { id: 'testing', label: 'Bảng Kiểm tra', icon: GraduationCap },
+    { id: 'exams', label: 'Thi online', icon: Globe },
     { id: 'grading', label: 'Chấm điểm AI', icon: ClipboardCheck },
     { id: 'library', label: 'Thư viện', icon: FileText },
     { id: 'templates', label: 'Mẫu giáo án', icon: Layout },
@@ -66,7 +70,7 @@ export const Sidebar = ({
         {menuItems.map((item) => (
           <button
             key={item.id}
-            onClick={() => setActiveTab(item.id as any)}
+            onClick={() => item.id === 'creator' ? onCreatorTabClick() : setActiveTab(item.id as any)}
             className={cn(
               "w-full flex items-center gap-3 p-3.5 rounded-xl transition-all duration-200 group relative",
               activeTab === item.id 

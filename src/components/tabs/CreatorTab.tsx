@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { FileText, Save, MessageSquare, Monitor, Layers, Loader2, Sparkles, X, BookOpen } from 'lucide-react';
+import { FileText, Save, MessageSquare, Monitor, Layers, Loader2, Sparkles, X, BookOpen, FilePlus } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { AppData, LessonPlan, TemplateFile } from '../../types';
 import * as exportUtils from '../../utils/exportUtils';
-import { callGeminiAI } from '../../lib/gemini';
+import { callAI, getActiveApiKey } from '../../lib/aiProviders';
 import { AudioOverview } from '../features/AudioOverview';
 
 // Subcomponents
@@ -17,6 +17,8 @@ interface CreatorTabProps {
   data: AppData;
   generationMode: 'single' | 'bulk';
   setGenerationMode: (mode: 'single' | 'bulk') => void;
+  builtinFormat: 'default' | 'cv5512';
+  setBuiltinFormat: (f: 'default' | 'cv5512') => void;
   currentPlan: Partial<LessonPlan>;
   setCurrentPlan: React.Dispatch<React.SetStateAction<Partial<LessonPlan>>>;
   lessonDocs: TemplateFile[];
@@ -29,8 +31,9 @@ interface CreatorTabProps {
   setBulkCommand: (val: string) => void;
   isLoading: boolean;
   setIsLoading: (val: boolean) => void;
-  bulkProgress: { current: number; total: number };
+  bulkProgress: { current: number; total: number; currentTitle: string };
   handleCreateLesson: () => void;
+  cancelBulk: () => void;
   saveLessonPlan: () => void;
   exportToPDF: () => void;
   exportToWord: () => void;
@@ -68,7 +71,7 @@ export const CreatorTab = (props: CreatorTabProps) => {
   };
 
   const handleGenerateStudyGuide = async () => {
-    if(!props.currentPlan.content || !props.data.settings.geminiApiKey) {
+    if(!props.currentPlan.content || !getActiveApiKey(props.data.settings)) {
        props.showToast("Vui lòng soạn giáo án và cài API Key trước!", "warning");
        return;
     }
@@ -87,7 +90,7 @@ export const CreatorTab = (props: CreatorTabProps) => {
     - ❓ Câu hỏi Thường gặp (FAQ - giải đáp 2-3 thắc mắc phổ biến).
     - 📝 Gợi ý Tự học / Luyện tập thêm.
  3. Văn phong thân thiện, tạo động lực cho học sinh.`;
-      const doc = await callGeminiAI(prompt, props.data.settings.geminiApiKey, 0);
+      const doc = await callAI(prompt, props.data.settings);
       if(doc) {
         setStudyGuide(doc);
         props.showToast("Đã tạo Hướng dẫn ôn tập!");
@@ -186,11 +189,18 @@ export const CreatorTab = (props: CreatorTabProps) => {
                     </div>
                  </div>
                  <div className="flex flex-wrap gap-2">
-                    <button 
+                    <button
+                      onClick={() => props.setCurrentPlan({ title: '', content: '', subjectId: props.currentPlan.subjectId || 'math', templateId: '', grade: props.currentPlan.grade || '10', week: props.currentPlan.week || '1' })}
+                      className="px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-50 transition-all text-sm"
+                      title="Xóa nội dung hiện tại và soạn bài mới"
+                    >
+                      <FilePlus className="w-4 h-4" /> Soạn bài mới
+                    </button>
+                    <button
                       onClick={props.generationMode === 'single' ? props.saveLessonPlan : props.saveBulkPlans}
                       className="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 transition-all text-sm shadow-lg shadow-blue-100"
                     >
-                      <Save className="w-4 h-4" /> 
+                      <Save className="w-4 h-4" />
                       {props.generationMode === 'single' ? 'Lưu bài này' : 'Lưu tất cả'}
                     </button>
                     {props.generationMode === 'single' && (
@@ -247,9 +257,10 @@ export const CreatorTab = (props: CreatorTabProps) => {
                    />
                 </div>
               ) : (
-                 <LessonContentBoard 
+                 <LessonContentBoard
                     generationMode={props.generationMode}
                     currentPlan={props.currentPlan}
+                    setCurrentPlan={props.setCurrentPlan}
                     bulkResults={props.bulkResults}
                     revisionPrompt={props.revisionPrompt}
                     setRevisionPrompt={props.setRevisionPrompt}
@@ -262,39 +273,55 @@ export const CreatorTab = (props: CreatorTabProps) => {
       </main>
       
       {showAudioOverview && props.currentPlan.content && (
-        <AudioOverview 
+        <AudioOverview
           content={props.currentPlan.content}
-          apiKey={props.data.settings.geminiApiKey}
-          modelIndex={0}
+          settings={props.data.settings}
           onClose={() => setShowAudioOverview(false)}
         />
       )}
       
       {props.isLoading && (
-        <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm z-50 flex items-center justify-center rounded-[40px]">
-          <div className="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center gap-4">
-            <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
-            <div className="text-center">
-              <h3 className="font-bold text-slate-800">Hệ thống AI đang xử lý...</h3>
-              <p className="text-sm text-slate-500 font-medium">Bạn có thấy tiến độ đang chạy không?</p>
-            </div>
-            {props.generationMode === 'bulk' && props.bulkProgress.total > 0 && (
-              <div className="w-full mt-2">
-                <div className="flex justify-between text-xs font-bold text-slate-500 mb-2">
-                  <span>Tiến độ</span>
-                  <span>{props.bulkProgress.current} / {props.bulkProgress.total}</span>
-                </div>
-                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${(props.bulkProgress.current / props.bulkProgress.total) * 100}%` }}
-                    className="h-full gradient-bg"
-                  />
-                </div>
+        props.generationMode === 'bulk' && props.bulkProgress.total > 0 ? (
+          /* Bulk mode: compact sticky progress bar — don't block content */
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 w-[500px] max-w-[90%] bg-white rounded-2xl shadow-2xl border border-slate-100 p-4 flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 min-w-0">
+                <Loader2 className="w-4 h-4 text-blue-600 animate-spin shrink-0" />
+                <span className="text-xs font-bold text-slate-700 truncate">
+                  Đang soạn: {props.bulkProgress.currentTitle}
+                </span>
               </div>
-            )}
+              <div className="flex items-center gap-2 shrink-0 ml-2">
+                <span className="text-xs font-black text-blue-600">{props.bulkProgress.current}/{props.bulkProgress.total}</span>
+                <button
+                  onClick={props.cancelBulk}
+                  className="p-1 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-colors"
+                  title="Hủy soạn hàng loạt"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+            <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${(props.bulkProgress.current / props.bulkProgress.total) * 100}%` }}
+                className="h-full gradient-bg"
+              />
+            </div>
           </div>
-        </div>
+        ) : (
+          /* Single mode or parsing phase: full overlay */
+          <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm z-50 flex items-center justify-center rounded-[40px]">
+            <div className="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center gap-4">
+              <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+              <div className="text-center">
+                <h3 className="font-bold text-slate-800">Hệ thống AI đang xử lý...</h3>
+                <p className="text-sm text-slate-500 font-medium">Vui lòng không đóng trang này</p>
+              </div>
+            </div>
+          </div>
+        )
       )}
     </motion.div>
   );

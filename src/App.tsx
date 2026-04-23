@@ -1,7 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { setDoc, doc, deleteDoc } from 'firebase/firestore';
-import { db } from './lib/firebase';
 import Swal from 'sweetalert2';
 
 // Hooks
@@ -9,9 +7,7 @@ import { useAuth } from './hooks/useAuth';
 import { useAppState } from './hooks/useAppState';
 import { useLessonCreator } from './hooks/useLessonCreator';
 import { useChat } from './hooks/useChat';
-
-// Utils
-import { validateLessonPlan } from './utils/dataValidators';
+import { useLessonPlanActions } from './hooks/useLessonPlanActions';
 
 // Components
 import { Sidebar } from './components/layout/Sidebar';
@@ -23,6 +19,7 @@ import { TemplatesTab } from './components/tabs/TemplatesTab';
 import { ChatTab } from './components/tabs/ChatTab';
 import { TestingTab } from './components/tabs/TestingTab';
 import { GradingTab } from './components/tabs/GradingTab';
+import { ExamsTab } from './components/tabs/ExamsTab';
 import { SettingsModal } from './components/modals/SettingsModal';
 import { LatexModal } from './components/modals/LatexModal';
 
@@ -32,17 +29,19 @@ import * as exportUtils from './utils/exportUtils';
 import { downloadBlob } from './utils/fileUtils';
 
 // Types
-import { LessonPlan, TemplateFile } from './types';
+import { TemplateFile } from './types';
 
 export default function App() {
   const { user, isAuthLoading, handleLogin, handleLogout, handleDemoLogin, showToast } = useAuth();
-  const { 
-    data, setData, communityPlans, isLoading, setIsLoading, 
+  const {
+    data, setData, communityPlans, isLoading, setIsLoading,
     fetchCommunityPlans, updateTemplate, addTemplate, deleteTemplate, deleteFile,
-    setAuthorName, addDistribution, deleteDistribution
+    setAuthorName, addDistribution, deleteDistribution,
+    loadMorePlans, hasMorePlans, loadMoreCommunity, hasMoreCommunity,
+    saveGradingSession, deleteGradingSession, deleteGradingResult,
   } = useAppState(user, showToast);
   
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading' | 'exams'>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [libraryTab, setLibraryTab] = useState<'personal' | 'community'>('personal');
@@ -57,233 +56,16 @@ export default function App() {
 
   const creator = useLessonCreator(data, setData, setIsLoading, showToast, setIsSettingsOpen);
   const chat = useChat(data, setIsLoading, showToast);
-  
+
+  const { saveLessonPlan, saveBulkPlans, duplicatePlan, deletePlan, updatePlanMetadata, toggleSharePlan } =
+    useLessonPlanActions({ user, data, setData, showToast, setIsLoading, setActiveTab, setAuthorName, creator });
+
   // Tự động tải Kho chung khi vào tab tương ứng
   useEffect(() => {
     if (activeTab === 'library' && libraryTab === 'community') {
       fetchCommunityPlans();
     }
-  }, [activeTab, libraryTab]);
-
-  // Persistence Handlers
-  const saveLessonPlan = async () => {
-    if (!creator.currentPlan.title || !creator.currentPlan.content) return;
-    if (!user) { showToast('Vui lòng đăng nhập để lưu!', 'warning'); return; }
-
-    // Logic Tách biệt ID: Nếu là giáo án từ kho chung (không phải của mình), tạo ID mới
-    const isEditingOthers = creator.currentPlan.userId && creator.currentPlan.userId !== user.uid;
-    const id = (isEditingOthers || !creator.currentPlan.id) 
-      ? Math.random().toString(36).substr(2, 9) 
-      : creator.currentPlan.id;
-
-    const newPlan: LessonPlan = {
-      id,
-      subjectId: creator.currentPlan.subjectId || 'math',
-      templateId: creator.currentPlan.templateId,
-      title: creator.currentPlan.title,
-      content: creator.currentPlan.content,
-      status: 'completed',
-      createdAt: creator.currentPlan.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      userId: user.uid,
-      authorName: data.authorName,
-      isPublic: isEditingOthers ? false : (creator.currentPlan.isPublic || false),
-      grade: creator.currentPlan.grade,
-      week: creator.currentPlan.week
-    };
-
-    try {
-      validateLessonPlan(newPlan);
-      await setDoc(doc(db, 'lessonPlans', id), newPlan);
-      setData(prev => ({
-        ...prev,
-        lessonPlans: prev.lessonPlans.some(p => p.id === id) 
-          ? prev.lessonPlans.map(p => p.id === id ? newPlan : p) 
-          : [newPlan, ...prev.lessonPlans]
-      }));
-      creator.setCurrentPlan({ title: '', content: '', subjectId: 'math', templateId: '' });
-      setActiveTab('library');
-      showToast(isEditingOthers ? 'Đã tạo bản sao riêng vào thư viện!' : 'Đã lưu giáo án thành công!');
-    } catch (e: any) {
-      if (e.name === 'DataValidationError') {
-        showToast(e.message, 'error');
-      } else {
-        showToast('Lỗi khi lưu lên Cloud!', 'error');
-      }
-    }
-  };
-
-  const duplicatePlan = async (plan: LessonPlan) => {
-    if (!user) return;
-    const newId = Math.random().toString(36).substr(2, 9);
-    const duplicatedPlan: LessonPlan = {
-      ...plan,
-      id: newId,
-      title: `Bản sao - ${plan.title}`,
-      userId: user.uid,
-      isPublic: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    try {
-      validateLessonPlan(duplicatedPlan);
-      await setDoc(doc(db, 'lessonPlans', newId), duplicatedPlan);
-      setData(prev => ({
-        ...prev,
-        lessonPlans: [duplicatedPlan, ...prev.lessonPlans]
-      }));
-      showToast('Đã nhân bản giáo án thành công!');
-    } catch (err) {
-      showToast('Lỗi nhân bản', 'error');
-    }
-  };
-
-  const updatePlanMetadata = async (id: string, updates: Partial<LessonPlan>) => {
-    if (!user) return;
-    
-    try {
-      // 1. Thử cập nhật trực tiếp (Nếu mình là chủ sở hữu thực sự của ID này)
-      await setDoc(doc(db, 'lessonPlans', id), { ...updates, updatedAt: new Date().toISOString() }, { merge: true });
-      
-      // Cập nhật state cục bộ
-      setData(prev => ({
-        ...prev,
-        lessonPlans: prev.lessonPlans.map(p => p.id === id ? { ...p, ...updates } : p)
-      }));
-      
-      showToast('Đã cập nhật thông tin!');
-    } catch (err: any) {
-      console.warn("Lỗi cập nhật ID cũ, đang thử tạo bản sao mới...", err);
-      
-      // 2. Nếu thất bại (thường do lỗi 403 Permission Denied trên ID giáo án gốc), 
-      // ta sẽ tự động 'Repair' bằng cách tạo một ID mới hoàn toàn cho người dùng này.
-      const newId = Math.random().toString(36).substr(2, 9);
-      const originalPlan = data.lessonPlans.find(p => p.id === id);
-      
-      if (originalPlan) {
-        const repairedPlan: LessonPlan = {
-          ...originalPlan,
-          ...updates,
-          id: newId,
-          userId: user.uid,
-          isPublic: false, // Bài sửa lỗi luôn đưa về riêng tư để đảm bảo an toàn
-          updatedAt: new Date().toISOString()
-        };
-
-        try {
-          await setDoc(doc(db, 'lessonPlans', newId), repairedPlan);
-          
-          // Xóa bài cũ khỏi state Local (nếu nó là bài rác do lỗi ID cũ) và thêm bài mới
-          setData(prev => ({
-            ...prev,
-            lessonPlans: [repairedPlan, ...prev.lessonPlans.filter(p => p.id !== id)]
-          }));
-          
-          showToast('Đã đồng bộ và cập nhật bản sao của bạn!');
-        } catch (innerErr) {
-          showToast('Không thể cập nhật giáo án này', 'error');
-        }
-      } else {
-        showToast('Lỗi: Không tìm thấy dữ liệu giáo án', 'error');
-      }
-    }
-  };
-
-  const saveBulkPlans = async () => {
-    if (creator.bulkResults.length === 0 || !user) return;
-    setIsLoading(true);
-    try {
-      const plansToSave = creator.bulkResults.map(p => ({
-        ...p, status: 'completed' as 'draft' | 'completed', userId: user.uid, authorName: data.authorName, isPublic: false
-      }));
-      for (const plan of plansToSave) {
-        validateLessonPlan(plan);
-        await setDoc(doc(db, 'lessonPlans', plan.id), plan);
-      }
-      setData(prev => ({ ...prev, lessonPlans: [...plansToSave, ...prev.lessonPlans] }));
-      creator.setBulkResults([]);
-      setActiveTab('library');
-      showToast(`Đã lưu ${plansToSave.length} bài lên Cloud!`);
-    } catch (e) {
-      showToast('Lỗi lưu hàng loạt', 'error');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const deletePlan = (id: string) => {
-    Swal.fire({
-      title: 'Xác nhận xóa?',
-      text: "Giáo án sẽ biến mất vĩnh viễn!",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#ef4444',
-      confirmButtonText: 'Xóa ngay',
-      cancelButtonText: 'Hủy'
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          await deleteDoc(doc(db, 'lessonPlans', id));
-          setData(prev => ({ ...prev, lessonPlans: prev.lessonPlans.filter(p => p.id !== id) }));
-          showToast('Đã xóa giáo án!');
-        } catch (e) {
-          showToast('Lỗi khi xóa', 'error');
-        }
-      }
-    });
-  };
-
-  const toggleSharePlan = async (e: React.MouseEvent, plan: LessonPlan) => {
-    e.stopPropagation();
-    if (!user) return;
-
-    // Nếu chưa có tên người soạn, yêu cầu nhập trước khi chia sẻ cộng đồng
-    let nameToUse = data.authorName;
-    if (!plan.isPublic && !data.authorName) {
-      const { value: name } = await Swal.fire({
-        title: 'Chia sẻ giáo án',
-        text: 'Vui lòng nhập tên thực của bạn để hiển thị trên giáo án cộng đồng:',
-        input: 'text',
-        inputPlaceholder: 'Ví dụ: Cô giáo Minh Anh...',
-        allowOutsideClick: false,
-        confirmButtonText: 'Lưu & Chia sẻ',
-        confirmButtonColor: '#3b82f6',
-        inputValidator: (value) => {
-          if (!value) return 'Bạn cần nhập tên để chia sẻ!';
-          if (value.length < 2) return 'Tên quá ngắn!';
-        }
-      });
-
-      if (name) {
-        setAuthorName(name);
-        nameToUse = name;
-        // Cập nhật local data ngay lập tức để sync lên Firestore
-        setData(prev => ({ ...prev, authorName: name }));
-      } else {
-        return; // Người dùng hủy, không chia sẻ nữa
-      }
-    }
-
-    try {
-      const planRef = doc(db, 'lessonPlans', plan.id);
-      await setDoc(planRef, { 
-        ...plan, 
-        isPublic: !plan.isPublic,
-        authorName: nameToUse
-      }, { merge: true });
-      
-      setData(prev => ({
-        ...prev,
-        lessonPlans: prev.lessonPlans.map(p => 
-          p.id === plan.id ? { ...p, isPublic: !p.isPublic, authorName: nameToUse } : p
-        )
-      }));
-      showToast(!plan.isPublic ? 'Đã chia sẻ cộng đồng!' : 'Đã thu hồi quyền riêng tư.');
-    } catch (err) {
-      showToast('Lỗi chia sẻ', 'error');
-    }
-  };
+  }, [activeTab, libraryTab, fetchCommunityPlans]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -366,14 +148,38 @@ export default function App() {
     <div className="h-screen w-full flex bg-slate-50 font-sans overflow-hidden">
       <input type="file" ref={fileInputRef} onChange={handleFileUpload} multiple className="hidden" />
       
-      <Sidebar 
-        activeTab={activeTab} setActiveTab={setActiveTab} 
+      <Sidebar
+        activeTab={activeTab} setActiveTab={setActiveTab}
+        onCreatorTabClick={() => {
+          creator.setCurrentPlan({ title: '', content: '', subjectId: creator.currentPlan.subjectId || 'math', templateId: '', grade: creator.currentPlan.grade || '10', week: creator.currentPlan.week || '1' });
+          setActiveTab('creator');
+        }}
         isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}
         setIsSettingsOpen={setIsSettingsOpen} handleLogout={handleLogout}
       />
 
       <main className="flex-1 flex flex-col overflow-hidden relative">
-        <Header activeTab={activeTab} data={data} setIsSettingsOpen={setIsSettingsOpen} />
+        <Header activeTab={activeTab} data={data} setIsSettingsOpen={setIsSettingsOpen} setActiveTab={setActiveTab} />
+        {/* Banner nhắc nhập API Key khi chưa cấu hình */}
+        {user && (() => {
+          const s = data.settings;
+          const allEmpty = !s.geminiApiKey && !s.claudeApiKey && !s.openaiApiKey && !s.grokApiKey && !s.deepseekApiKey;
+          const providerKey: Record<string, string> = { gemini: s.geminiApiKey, claude: s.claudeApiKey, openai: s.openaiApiKey, grok: s.grokApiKey, deepseek: s.deepseekApiKey };
+          const providerLabel: Record<string, string> = { gemini: 'Google Gemini', claude: 'Claude', openai: 'OpenAI', grok: 'Grok', deepseek: 'DeepSeek' };
+          const activeProvider = s.selectedProvider || 'gemini';
+          const activeKeyMissing = !allEmpty && !providerKey[activeProvider];
+          if (!allEmpty && !activeKeyMissing) return null;
+          return (
+            <div className="mx-4 mt-2 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-2xl flex items-center justify-between gap-3 text-sm">
+              <span className="text-amber-800 font-medium">
+                {allEmpty
+                  ? '⚠️ Bạn chưa nhập API Key — AI sẽ dùng key dự phòng (có thể chậm). Vui lòng thêm key của bạn để có trải nghiệm tốt nhất.'
+                  : `⚠️ Chưa nhập API Key cho ${providerLabel[activeProvider] || activeProvider} (đang chọn) — vui lòng thêm key hoặc đổi provider.`}
+              </span>
+              <button onClick={() => setIsSettingsOpen(true)} className="shrink-0 px-3 py-1 bg-amber-500 text-white rounded-xl font-bold text-xs hover:bg-amber-600 transition-colors">Cài đặt</button>
+            </div>
+          );
+        })()}
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-8">
           <AnimatePresence mode="wait">
@@ -400,19 +206,27 @@ export default function App() {
             )}
 
             {activeTab === 'grading' && (
-              <GradingTab 
+              <GradingTab
                 data={data} setData={setData} isLoading={isLoading} setIsLoading={setIsLoading} showToast={showToast}
+                user={user} saveGradingSession={saveGradingSession}
+                deleteGradingSession={deleteGradingSession} deleteGradingResult={deleteGradingResult}
               />
             )}
 
+            {activeTab === 'exams' && (
+              <ExamsTab user={user} data={data} showToast={showToast} />
+            )}
+
             {activeTab === 'library' && (
-              <LibraryTab 
-                libraryTab={libraryTab} setLibraryTab={setLibraryTab} 
+              <LibraryTab
+                libraryTab={libraryTab} setLibraryTab={setLibraryTab}
                 searchQuery={searchQuery} setSearchQuery={setSearchQuery}
                 setActiveTab={setActiveTab} data={data} communityPlans={communityPlans}
-                setCurrentPlan={creator.setCurrentPlan} toggleSharePlan={toggleSharePlan} 
+                setCurrentPlan={creator.setCurrentPlan} toggleSharePlan={toggleSharePlan}
                 deletePlan={deletePlan} duplicatePlan={duplicatePlan}
                 updatePlanMetadata={updatePlanMetadata} user={user}
+                loadMorePlans={loadMorePlans} hasMorePlans={hasMorePlans}
+                loadMoreCommunity={loadMoreCommunity} hasMoreCommunity={hasMoreCommunity}
               />
             )}
 

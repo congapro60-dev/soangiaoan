@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { 
-  UploadCloud, 
-  Search, 
-  Plus, 
-  FileText, 
-  Eye, 
-  Trash2, 
-  CheckCircle2,
+import {
+  UploadCloud,
+  Search,
+  Plus,
+  FileText,
+  Eye,
+  Trash2,
   Copy,
   Edit3,
   Check,
@@ -18,11 +17,16 @@ import {
 import dayjs from 'dayjs';
 import { cn } from '../../lib/utils';
 import { AppData, LessonPlan } from '../../types';
+import { ViewPlanModal } from '../modals/ViewPlanModal';
 
 interface LibraryTabProps {
   libraryTab: 'personal' | 'community';
   setLibraryTab: (tab: 'personal' | 'community') => void;
   searchQuery: string;
+  loadMorePlans: () => void;
+  hasMorePlans: boolean;
+  loadMoreCommunity: () => void;
+  hasMoreCommunity: boolean;
   setSearchQuery: (query: string) => void;
   setActiveTab: (tab: any) => void;
   data: AppData;
@@ -48,12 +52,17 @@ export const LibraryTab = ({
   duplicatePlan,
   updatePlanMetadata,
   user,
-  toggleSharePlan
+  toggleSharePlan,
+  loadMorePlans,
+  hasMorePlans,
+  loadMoreCommunity,
+  hasMoreCommunity
 }: LibraryTabProps) => {
   const [selectedGrade, setSelectedGrade] = useState<string>('all');
   const [selectedWeek, setSelectedWeek] = useState<string>('all');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<LessonPlan>>({});
+  const [viewingPlan, setViewingPlan] = useState<LessonPlan | null>(null);
 
   const plansToDisplay = libraryTab === 'personal' ? data.lessonPlans : communityPlans;
   
@@ -148,14 +157,39 @@ export const LibraryTab = ({
       </div>
 
       {/* Grid Display */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 pb-20">
+      {filteredPlans.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="w-20 h-20 rounded-[32px] bg-slate-100 flex items-center justify-center mb-4">
+            <FileText className="w-10 h-10 text-slate-300" />
+          </div>
+          <h3 className="text-lg font-black text-slate-400 mb-2">
+            {libraryTab === 'community' ? 'Kho chung đang trống' : searchQuery || selectedGrade !== 'all' || selectedWeek !== 'all' ? 'Không tìm thấy giáo án phù hợp' : 'Chưa có giáo án nào'}
+          </h3>
+          <p className="text-sm text-slate-400 max-w-sm">
+            {libraryTab === 'community'
+              ? 'Hãy chia sẻ giáo án của bạn lên Kho chung để cộng đồng cùng học hỏi.'
+              : searchQuery || selectedGrade !== 'all' || selectedWeek !== 'all'
+              ? 'Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm.'
+              : 'Nhấn "Soạn mới" để tạo giáo án đầu tiên với sự hỗ trợ của AI.'}
+          </p>
+          {libraryTab === 'personal' && !searchQuery && selectedGrade === 'all' && selectedWeek === 'all' && (
+            <button
+              onClick={() => setActiveTab('creator')}
+              className="mt-6 px-6 py-3 gradient-bg text-white rounded-2xl font-bold shadow-lg shadow-blue-200 flex items-center gap-2 hover:opacity-90 transition-all"
+            >
+              <Plus className="w-5 h-5" /> Soạn bài ngay
+            </button>
+          )}
+        </div>
+      ) : (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {filteredPlans.map((plan) => (
           <motion.div 
             key={plan.id}
             layout
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            onClick={() => { setCurrentPlan(plan); setActiveTab('creator'); }}
+            onClick={() => setViewingPlan(plan)}
             className="group pro-card p-6 cursor-pointer overflow-hidden relative"
           >
             <div className="flex items-start justify-between mb-6">
@@ -172,7 +206,11 @@ export const LibraryTab = ({
                     <UploadCloud className="w-5 h-5" />
                   </button>
                 )}
-                <button className="p-2 bg-slate-50 text-slate-400 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all">
+                <button
+                  title="Xem giáo án"
+                  onClick={(e) => { e.stopPropagation(); setViewingPlan(plan); }}
+                  className="p-2 bg-slate-50 text-slate-400 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all"
+                >
                   <Eye className="w-5 h-5" />
                 </button>
                 {libraryTab === 'personal' && (
@@ -275,6 +313,29 @@ export const LibraryTab = ({
           </motion.div>
         ))}
       </div>
+      )}
+
+      {/* Nút Tải thêm */}
+      {(libraryTab === 'personal' ? hasMorePlans : hasMoreCommunity) && (
+        <div className="flex justify-center pb-12">
+          <button
+            onClick={libraryTab === 'personal' ? loadMorePlans : loadMoreCommunity}
+            className="px-8 py-3 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold text-sm hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-all shadow-sm"
+          >
+            Tải thêm giáo án...
+          </button>
+        </div>
+      )}
+
+      <ViewPlanModal
+        plan={viewingPlan}
+        onClose={() => setViewingPlan(null)}
+        onEdit={(plan) => {
+          setCurrentPlan(plan);
+          setActiveTab('creator');
+          setViewingPlan(null);
+        }}
+      />
     </motion.div>
   );
 };

@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { LessonPlan, AppData, TemplateFile } from '../types';
-import { callGeminiAI, MODELS } from '../lib/gemini';
+import { callAI, getActiveApiKey } from '../lib/aiProviders';
 import { cleanMarkdownOutput } from '../utils/markdownUtils';
 import Swal from 'sweetalert2';
 
@@ -18,13 +18,11 @@ const extractLessonContent = (rawResult: string): string => {
   let finalContent = '';
   if (contentMatch) {
     finalContent = contentMatch[1];
-    // Nếu AI vẫn tách riêng phần pedagogical_review, gộp lại
     const reviewMatch = rawResult.match(/<pedagogical_review>([\s\S]*?)<\/pedagogical_review>/);
     if (reviewMatch && !finalContent.includes('Danielson') && !finalContent.includes('tổ trưởng chuyên môn')) {
       finalContent += '\n\n## Đánh giá của tổ trưởng chuyên môn\n' + reviewMatch[1];
     }
   } else {
-    // Fallback: AI không dùng thẻ XML, lấy toàn bộ và loại bỏ thẻ thinking
     finalContent = rawResult.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
   }
   return finalContent;
@@ -38,6 +36,7 @@ export const useLessonCreator = (
   setIsSettingsOpen: (val: boolean) => void
 ) => {
   const [generationMode, setGenerationMode] = useState<'single' | 'bulk'>('single');
+  const [builtinFormat, setBuiltinFormat] = useState<'default' | 'cv5512'>('default');
   const [currentPlan, setCurrentPlan] = useState<Partial<LessonPlan>>({
     title: '',
     content: '',
@@ -52,13 +51,16 @@ export const useLessonCreator = (
   const [selectedDistributionId, setSelectedDistributionId] = useState<string>('');
   const [bulkCommand, setBulkCommand] = useState('');
   const [bulkResults, setBulkResults] = useState<LessonPlan[]>([]);
-  const [bulkProgress, setBulkProgress] = useState({ current: 0, total: 0 });
+  const [bulkProgress, setBulkProgress] = useState({ current: 0, total: 0, currentTitle: '' });
   const [revisionPrompt, setRevisionPrompt] = useState('');
+  const cancelBulkRef = useRef(false);
+
+  const cancelBulk = () => { cancelBulkRef.current = true; };
 
   const handleCreateLesson = async () => {
-    if (!data.settings.geminiApiKey) {
+    if (!getActiveApiKey(data.settings)) {
       setIsSettingsOpen(true);
-      showToast('Vui lòng nhập API Key!', 'warning');
+      showToast('Vui lòng nhập API Key trong Cài đặt!', 'warning');
       return;
     }
 
@@ -74,6 +76,7 @@ export const useLessonCreator = (
 
     setIsLoading(true);
     setBulkResults([]);
+    cancelBulkRef.current = false;
 
     try {
       const subject = data.subjects.find(s => s.id === currentPlan.subjectId)?.name || 'Chung';
@@ -82,14 +85,90 @@ export const useLessonCreator = (
         ? data.distributions.find(d => d.id === selectedDistributionId) 
         : distributionFile;
       
+      const CV5512_FORMAT = `
+===== MẪU GIÁO ÁN THEO CÔNG VĂN 5512/BGDĐT-GDTrH (BẮT BUỘC TUÂN THỦ) =====
+
+BỐ CỤC BẮT BUỘC:
+Trường: ...          Họ và tên GV: [Tên giáo viên]
+Tổ: ...              Ngày soạn: ...
+
+BÀI [Số bài]: [TÊN BÀI HỌC]
+Thời lượng: [X] tiết
+
+I. MỤC TIÊU
+1. Về kiến thức:
+   - [Học sinh biết/hiểu/vận dụng được...]
+2. Về năng lực:
+   a. Năng lực đặc thù môn [Tên môn]:
+      - [Năng lực cụ thể theo môn]
+   b. Năng lực chung:
+      - Tự học, giao tiếp, hợp tác, giải quyết vấn đề và sáng tạo.
+3. Về phẩm chất:
+   - Chăm chỉ, trung thực, trách nhiệm với bản thân và cộng đồng.
+
+II. THIẾT BỊ DẠY HỌC VÀ HỌC LIỆU
+1. Giáo viên: [Bảng, máy chiếu, phiếu học tập, ...]
+2. Học sinh: [SGK, vở ghi, dụng cụ học tập, ...]
+
+III. TIẾN TRÌNH DẠY HỌC
+
+A. HOẠT ĐỘNG 1: KHỞI ĐỘNG (~ 5 phút)
+a) Mục tiêu: Tạo hứng thú, kết nối kiến thức cũ với bài mới.
+b) Nội dung: [Mô tả tình huống/câu hỏi khởi động]
+c) Sản phẩm: [Câu trả lời / ý kiến của HS]
+d) Tổ chức thực hiện:
+| Hoạt động của GV | Hoạt động của HS |
+|---|---|
+| ... | ... |
+
+B. HOẠT ĐỘNG 2: HÌNH THÀNH KIẾN THỨC MỚI (~ [X] phút)
+a) Mục tiêu: [Học sinh nắm được ...]
+b) Nội dung: [Nội dung kiến thức cần hình thành]
+c) Sản phẩm: [Ghi chép / bài làm / sơ đồ tư duy của HS]
+d) Tổ chức thực hiện:
+| Hoạt động của GV | Hoạt động của HS |
+|---|---|
+| ... | ... |
+
+C. HOẠT ĐỘNG 3: LUYỆN TẬP (~ [X] phút)
+a) Mục tiêu: [Củng cố, rèn kỹ năng vận dụng kiến thức vừa học]
+b) Nội dung: [Bài tập / câu hỏi luyện tập cụ thể]
+c) Sản phẩm: [Kết quả bài tập của HS]
+d) Tổ chức thực hiện:
+| Hoạt động của GV | Hoạt động của HS |
+|---|---|
+| ... | ... |
+
+D. HOẠT ĐỘNG 4: VẬN DỤNG (~ [X] phút)
+a) Mục tiêu: [Giúp HS vận dụng kiến thức vào thực tiễn]
+b) Nội dung: [Bài toán thực tiễn / dự án mini]
+c) Sản phẩm: [Bài trình bày / sản phẩm của HS]
+d) Tổ chức thực hiện:
+| Hoạt động của GV | Hoạt động của HS |
+|---|---|
+| ... | ... |
+
+IV. PHỤ LỤC (nếu có)
+[Phiếu học tập, bảng kiểm, bài tập về nhà, ...]
+
+QUY TẮC NGHIÊM NGẶT:
+- Mỗi hoạt động PHẢI có đủ 4 mục: a) Mục tiêu, b) Nội dung, c) Sản phẩm, d) Tổ chức thực hiện.
+- Bảng "Tổ chức thực hiện" PHẢI có 2 cột: "Hoạt động của GV" và "Hoạt động của HS".
+- Thời lượng mỗi hoạt động phải được ghi rõ.
+- KHÔNG rút gọn hoặc bỏ bất kỳ mục nào trong bố cục trên.
+===== KẾT THÚC MẪU CÔNG VĂN 5512 =====
+`;
+
       let templateContext = '';
-      if (selectedTemplate) {
+      if (builtinFormat === 'cv5512') {
+        templateContext = CV5512_FORMAT;
+      } else if (selectedTemplate) {
         const samples = selectedTemplate.files.filter(f => f.category === 'sample').map(f => f.content).join('\n---\n');
         const criteria = selectedTemplate.files.filter(f => f.category === 'criteria').map(f => f.content).join('\n---\n');
         templateContext = `
           DỰA TRÊN MẪU GIÁO ÁN SAU (Cấu trúc và phong cách):
           ${samples}
-          
+
           TUÂN THỦ CÁC TIÊU CHÍ/QUY ĐỊNH SAU:
           ${criteria}
         `;
@@ -97,20 +176,38 @@ export const useLessonCreator = (
 
       const mathRestrictions = subject === 'Toán học' || subject.toLowerCase().includes('toán') ? `
 ===========================================================
-YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
-(Chuẩn hóa theo CIS, TDS và Danielson Framework)
+QUY TẮC SOẠN GIÁO ÁN MÔN TOÁN — BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI
 ===========================================================
-1. THÔNG TIN CHUNG BẮT BUỘC: WALT, WILF (3 mức độ 🌶️), NĂNG LỰC CỐT LÕI.
-2. CẤU TRÚC BƯỚC: 4 giai đoạn, mỗi giai đoạn 1 bảng 3 cột riêng.
-3. HÀNH ĐỘNG SƯ PHẠM: [Quét Radar], [🌐 Công dân toàn cầu], v.v.
-4. ĐỘ CHI TIẾT: Biên kịch hội thoại GV/HS 100%.
+
+I. CẤU TRÚC MỤC TIÊU BÀI HỌC (bắt buộc có đầy đủ):
+   A. NĂNG LỰC CỐT LÕI: Tư duy toán học, Mô hình hóa toán học, Giao tiếp toán học, Giải quyết vấn đề toán học, Sử dụng công cụ & phương tiện học toán.
+   B. Phẩm chất: Chăm chỉ, trung thực, trách nhiệm.
+   C. MỤC TIÊU PHÂN HÓA (BẮT BUỘC — không được bỏ qua):
+      - Học sinh khá/giỏi: [Yêu cầu nâng cao, bài toán mở rộng cụ thể]
+      - Học sinh trung bình/yếu: [Yêu cầu tối thiểu cần đạt, hỗ trợ cụ thể]
+
+II. ĐỊNH DẠNG BẢNG 3 CỘT — BẮT BUỘC cho TẤT CẢ 4 hoạt động:
+   (Khởi động / Hình thành kiến thức / Luyện tập / Vận dụng)
+
+   MỖI hoạt động PHẢI trình bày theo đúng bảng Markdown 3 cột sau:
+   | Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng/Sản phẩm dự kiến |
+   |---|---|---|
+   | ... | ... | ... |
+
+   LƯU Ý: "Nội dung ghi bảng" là những nội dung trọng tâm mà Giáo viên sẽ ghi lên bảng để Học sinh ghi chép vào vở. KHÔNG được để trống cột này.
+
+III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
+   - Công thức trên cùng dòng văn bản: dùng $...$ (ví dụ: $f(x) = x^2 + 1$)
+   - Công thức đứng riêng một dòng: dùng $$...$$ (ví dụ: $$\\int_0^1 x^2\\,dx = \\frac{1}{3}$$)
+   - TUYỆT ĐỐI KHÔNG viết công thức dưới dạng plain text (sai: "x^2 + 1", đúng: "$x^2 + 1$")
+
 ===========================================================
       ` : '';
 
       if (generationMode === 'single') {
         const lessonDocsContent = lessonDocs.map(f => f.content).join('\n---\n');
         const prompt = `
-          BẠN LÀ MỘT CHUYÊN GIA GIÁO DỤC CAO CẤP VỚI TƯ DUY CỦA CLAUDE 4.5 SONNET. 
+          BẠN LÀ MỘT CHUYÊN GIA GIÁO DỤC CAO CẤP.
           NHIỆM VỤ: Soạn một giáo án "Masterpiece" (Kiệt tác sư phạm).
 
           BỐ CỤC PHẢN HỒI (BẮT BUỘC):
@@ -124,7 +221,6 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
           ${activeDist ? `PHÂN PHỐI CHƯƠNG TRÌNH:\n${activeDist.content}` : ''}
           ${lessonDocsContent ? `TÀI LIỆU THAM KHẢO:\n${lessonDocsContent}` : ''}
           ${singleRequirement ? `YÊU CẦU BỔ SUNG: ${singleRequirement}` : ''}
-          ${mathRestrictions}
 
           ===== YÊU CẦU ĐỊNH DẠNG NỘI DUNG BÊN TRONG <lesson_content> (TUYỆT ĐỐI TUÂN THỦ) =====
           A. CẤU TRÚC GIÁO ÁN:
@@ -135,6 +231,7 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
           - KHÔNG ĐƯỢC viết dạng đoạn văn tự do. PHẢI là bảng.
           - Ngôn ngữ biên kịch hội thoại 100%. Dùng <br/><br/> để cách dòng trong ô bảng.
           - Tích hợp kỹ năng thế kỷ 21 và năng lực cốt lõi.
+          ${mathRestrictions}
 
           B. PHẦN ĐÁNH GIÁ DANIELSON (BẮT BUỘC, VIẾT Ở CUỐI BÊN TRONG <lesson_content>):
           Sau nội dung giáo án, PHẢI thêm phần:
@@ -148,7 +245,7 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
           1f: Đánh giá quá trình học tập
           ===== HẾT YÊU CẦU ĐỊNH DẠNG =====
         `;
-        const result = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
+        const result = await callAI(prompt, data.settings);
         if (result) {
           const finalContent = extractLessonContent(result);
           setCurrentPlan(prev => ({ ...prev, content: cleanMarkdownOutput(finalContent) }));
@@ -157,7 +254,7 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
       } else {
         const distContent = activeDist?.content || distributionFile?.content;
         const plannerPrompt = `
-          BẠN LÀ CHUYÊN GIA TRÍ TUỆ NHÂN TẠO TRÍCH XUẤT DỮ LIỆU GIÁO DỤC (CLAUDE AGENT STYLE).
+          BẠN LÀ CHUYÊN GIA TRÍ TUỆ NHÂN TẠO TRÍCH XUẤT DỮ LIỆU GIÁO DỤC.
           NHIỆM VỤ: Lập danh sách các bài học từ Phân phối chương trình (PPCN).
 
           BỐ CỤC PHẢN HỒI:
@@ -175,21 +272,32 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
           KHÔNG TRẢ VỀ GÌ QUÁ NGOÀI XML.
         `;
         
-        const planResponse = await callGeminiAI(plannerPrompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
+        const planResponse = await callAI(plannerPrompt, data.settings);
         if (!planResponse) throw new Error("Không trích xuất được kế hoạch từ PPCN");
 
-        const jsonStr = planResponse.replace(/```json/g, '').replace(/```/g, '').trim();
-        const extractedLessons = JSON.parse(jsonStr) as { week: string, title: string, objectives: string }[];
+        let extractedLessons: { week: string, title: string, objectives: string }[] = [];
+        try {
+          const jsonMatch = planResponse.match(/\[[\s\S]*\]/);
+          const jsonStr = jsonMatch ? jsonMatch[0] : planResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+          extractedLessons = JSON.parse(jsonStr);
+          if (!Array.isArray(extractedLessons) || extractedLessons.length === 0) {
+            throw new Error("Danh sách bài học trích xuất rỗng");
+          }
+        } catch {
+          throw new Error("AI không trả về danh sách bài học hợp lệ. Vui lòng thử lại hoặc kiểm tra lại file PPCN.");
+        }
         
-        setBulkProgress({ current: 0, total: extractedLessons.length });
+        setBulkProgress({ current: 0, total: extractedLessons.length, currentTitle: '' });
+        setBulkResults([]);
         const newPlans: LessonPlan[] = [];
 
         for (let i = 0; i < extractedLessons.length; i++) {
+          if (cancelBulkRef.current) break;
           const lesson = extractedLessons[i];
-          setBulkProgress({ current: i + 1, total: extractedLessons.length });
+          setBulkProgress({ current: i + 1, total: extractedLessons.length, currentTitle: lesson.title });
           
           const detailPrompt = `
-            BẠN LÀ CHUYÊN GIA BIÊN SOẠN GIÁO ÁN CAO CẤP VỚI TƯ DUY CỦA CLAUDE 4.5 SONNET.
+            BẠN LÀ CHUYÊN GIA BIÊN SOẠN GIÁO ÁN CAO CẤP.
             
             BỐ CỤC PHẢN HỒI:
             1. <thinking>: Phân tích ngắn mục tiêu bài, đặc điểm HS, phương pháp phù hợp.
@@ -201,9 +309,8 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
             - Mục tiêu/Kiến thức trọng tâm: ${lesson.objectives}
             
             ${templateContext}
-            ${mathRestrictions}
             Lớp: ${currentPlan.grade}.
-            
+
             ===== YÊU CẦU ĐỊNH DẠNG BÊN TRONG <lesson_content> (TUYỆT ĐỐI TUÂN THỦ) =====
             A. YÊU CẦU NGHIÊM NGẶT:
             1. NỘI DUNG PHẢI TUÂN THỦ HOÀN TOÀN THEO "MỤC TIÊU/KIẾN THỨC TRỌNG TÂM" ĐÃ TRÍCH XUẤT TRÊN.
@@ -213,6 +320,7 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
               | Hoạt động của GV | Hoạt động của HS | Công cụ & Đánh giá |
             5. KHÔNG ĐƯỢC viết dạng đoạn văn tự do. PHẢI là bảng.
             6. Ngôn ngữ biên kịch hội thoại 100%. Dùng <br/><br/> để cách dòng trong ô bảng.
+            ${mathRestrictions}
 
             B. PHẦN ĐÁNH GIÁ DANIELSON (BẮT BUỘC, VIẾT Ở CUỐI BÊN TRONG <lesson_content>):
             "## Đánh giá của tổ trưởng chuyên môn"
@@ -226,10 +334,10 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
             ===== HẾT YÊU CẦU =====
           `;
 
-          const detailResponse = await callGeminiAI(detailPrompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
+          const detailResponse = await callAI(detailPrompt, data.settings);
           if (detailResponse) {
-            newPlans.push({
-              id: Math.random().toString(36).substr(2, 9),
+            const newPlan: LessonPlan = {
+              id: crypto.randomUUID(),
               subjectId: currentPlan.subjectId || 'math',
               templateId: currentPlan.templateId,
               grade: currentPlan.grade,
@@ -239,26 +347,32 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
               status: 'draft',
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString()
-            });
+            };
+            newPlans.push(newPlan);
+            // Stream partial results so user sees each lesson as it finishes
+            setBulkResults([...newPlans]);
           }
         }
-        setBulkResults(newPlans);
-        showToast(`Đã tự động soạn xong ${newPlans.length} giáo án!`);
+        if (cancelBulkRef.current) {
+          showToast(`Đã hủy — lưu lại ${newPlans.length} giáo án đã soạn xong`, 'warning');
+        } else {
+          showToast(`Đã tự động soạn xong ${newPlans.length} giáo án!`);
+        }
       }
     } catch (error: any) {
       showToast(error.message || 'Lỗi soạn thảo', 'error');
     } finally {
       setIsLoading(false);
-      setBulkProgress({ current: 0, total: 0 });
+      setBulkProgress({ current: 0, total: 0, currentTitle: '' });
     }
   };
 
   const handleReviseLesson = async () => {
-    if (!revisionPrompt.trim() || !currentPlan.content || !data.settings.geminiApiKey) return;
+    if (!revisionPrompt.trim() || !currentPlan.content || !getActiveApiKey(data.settings)) return;
     setIsLoading(true);
     try {
       const prompt = `Viết lại giáo án sau theo yêu cầu: "${revisionPrompt}". \nNội dung cũ: ${currentPlan.content}`;
-      const result = await callGeminiAI(prompt, data.settings.geminiApiKey, MODELS.indexOf(data.settings.selectedModel));
+      const result = await callAI(prompt, data.settings);
       if (result) {
         setCurrentPlan(prev => ({ ...prev, content: cleanMarkdownOutput(result) }));
         setRevisionPrompt('');
@@ -273,6 +387,7 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
 
   return {
     generationMode, setGenerationMode,
+    builtinFormat, setBuiltinFormat,
     currentPlan, setCurrentPlan,
     lessonDocs, setLessonDocs,
     singleRequirement, setSingleRequirement,
@@ -282,6 +397,7 @@ YÊU CẦU ĐẶC BIỆT THIẾT KẾ GIÁO ÁN MÔN TOÁN BẬC CAO
     bulkResults, setBulkResults,
     bulkProgress,
     handleCreateLesson,
+    cancelBulk,
     handleReviseLesson,
     revisionPrompt, setRevisionPrompt
   };

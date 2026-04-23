@@ -4,6 +4,8 @@ import { AppData, LessonPlan, TemplateFile } from '../../../types';
 interface LessonControlsProps {
   generationMode: 'single' | 'bulk';
   setGenerationMode: (mode: 'single' | 'bulk') => void;
+  builtinFormat: 'default' | 'cv5512';
+  setBuiltinFormat: (f: 'default' | 'cv5512') => void;
   currentPlan: Partial<LessonPlan>;
   setCurrentPlan: React.Dispatch<React.SetStateAction<Partial<LessonPlan>>>;
   data: AppData;
@@ -19,6 +21,8 @@ interface LessonControlsProps {
 export const LessonControls = ({
   generationMode,
   setGenerationMode,
+  builtinFormat,
+  setBuiltinFormat,
   currentPlan,
   setCurrentPlan,
   data,
@@ -89,17 +93,40 @@ export const LessonControls = ({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Mẫu giáo án</label>
-            <select 
+            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Định dạng giáo án</label>
+            <div className="grid grid-cols-2 gap-2">
+              {([
+                { value: 'default', label: 'Mặc định', sub: 'Toán chuẩn / AI tự chọn' },
+                { value: 'cv5512', label: 'Công văn 5512', sub: 'Chuẩn Bộ GD&ĐT 2020' },
+              ] as const).map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setBuiltinFormat(opt.value)}
+                  className={`p-3 rounded-xl border-2 text-left transition-all ${builtinFormat === opt.value ? 'border-blue-500 bg-blue-50' : 'border-slate-100 bg-slate-50 hover:border-slate-200'}`}
+                >
+                  <p className={`text-xs font-black ${builtinFormat === opt.value ? 'text-blue-700' : 'text-slate-700'}`}>{opt.label}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">{opt.sub}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Mẫu tùy chỉnh (tải lên)</label>
+            <select
               value={currentPlan.templateId || ''}
               onChange={(e) => setCurrentPlan(prev => ({ ...prev, templateId: e.target.value }))}
               className="w-full px-4 py-2.5 rounded-xl border border-slate-100 bg-slate-50 text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none"
             >
-              <option value="">-- Mẫu mặc định (AI) --</option>
+              <option value="">-- Không dùng mẫu tùy chỉnh --</option>
               {data.templates?.map(t => (
                 <option key={t.id} value={t.id}>{t.name}</option>
               ))}
             </select>
+            {currentPlan.templateId && (
+              <p className="text-[10px] text-blue-600 font-medium">✓ Mẫu tùy chỉnh sẽ ghi đè định dạng đã chọn ở trên.</p>
+            )}
           </div>
       </div>
 
