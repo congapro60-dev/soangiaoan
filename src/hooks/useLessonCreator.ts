@@ -226,8 +226,10 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
           A. CẤU TRÚC GIÁO ÁN:
           - Phần đầu: Thông tin chung (WALT, WILF 3 mức độ 🌶️, Năng lực cốt lõi) nếu là môn Toán.
           - Tiến trình 4 bước: Mở đầu → Hình thành kiến thức → Luyện tập → Vận dụng.
+          - TRƯỚC MỖI BẢNG, BẮT BUỘC ghi dòng "**Mục tiêu:**" nêu rõ hoạt động này dùng để làm gì (VD: Tạo hứng thú, kết nối kiến thức cũ; Hình thành công thức mới; Rèn kỹ năng giải bài tập; Vận dụng vào thực tiễn).
           - MỖI BƯỚC phải trình bày dạng BẢNG MARKDOWN 3 CỘT:
-            | Hoạt động của GV | Hoạt động của HS | Công cụ & Đánh giá |
+            | Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
+          - CỘT 3 "Nội dung ghi bảng" là những nội dung trọng tâm mà GV sẽ chiếu slide hoặc viết lên bảng để HS nhìn và ghi chép vào vở. KHÔNG được để trống cột này.
           - KHÔNG ĐƯỢC viết dạng đoạn văn tự do. PHẢI là bảng.
           - Ngôn ngữ biên kịch hội thoại 100%. Dùng <br/><br/> để cách dòng trong ô bảng.
           - Tích hợp kỹ năng thế kỷ 21 và năng lực cốt lõi.
@@ -316,10 +318,12 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
             1. NỘI DUNG PHẢI TUÂN THỦ HOÀN TOÀN THEO "MỤC TIÊU/KIẾN THỨC TRỌNG TÂM" ĐÃ TRÍCH XUẤT TRÊN.
             2. Tiêu đề bài soạn phải khớp 100% với tên bài được cung cấp.
             3. Tiến trình 4 bước: Mở đầu → Hình thành kiến thức → Luyện tập → Vận dụng.
-            4. MỖI BƯỚC phải trình bày dạng BẢNG MARKDOWN 3 CỘT:
-              | Hoạt động của GV | Hoạt động của HS | Công cụ & Đánh giá |
-            5. KHÔNG ĐƯỢC viết dạng đoạn văn tự do. PHẢI là bảng.
-            6. Ngôn ngữ biên kịch hội thoại 100%. Dùng <br/><br/> để cách dòng trong ô bảng.
+            4. TRƯỚC MỖI BẢNG, BẮT BUỘC ghi dòng "**Mục tiêu:**" nêu rõ hoạt động này dùng để làm gì.
+            5. MỖI BƯỚC phải trình bày dạng BẢNG MARKDOWN 3 CỘT:
+              | Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
+            6. CỘT 3 là những nội dung GV chiếu slide hoặc viết lên bảng cho HS nhìn và ghi chép. KHÔNG để trống.
+            7. KHÔNG ĐƯỢC viết dạng đoạn văn tự do. PHẢI là bảng.
+            8. Ngôn ngữ biên kịch hội thoại 100%. Dùng <br/><br/> để cách dòng trong ô bảng.
             ${mathRestrictions}
 
             B. PHẦN ĐÁNH GIÁ DANIELSON (BẮT BUỘC, VIẾT Ở CUỐI BÊN TRONG <lesson_content>):
