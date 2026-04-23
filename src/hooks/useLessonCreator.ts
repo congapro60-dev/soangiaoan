@@ -225,11 +225,17 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
           ===== YÊU CẦU ĐỊNH DẠNG NỘI DUNG BÊN TRONG <lesson_content> (TUYỆT ĐỐI TUÂN THỦ) =====
           A. CẤU TRÚC GIÁO ÁN:
           - Phần đầu: Thông tin chung (WALT, WILF 3 mức độ 🌶️, Năng lực cốt lõi) nếu là môn Toán.
-          - Tiến trình 4 bước: Mở đầu → Hình thành kiến thức → Luyện tập → Vận dụng.
-          - TRƯỚC MỖI BẢNG, BẮT BUỘC ghi dòng "**Mục tiêu:**" nêu rõ hoạt động này dùng để làm gì (VD: Tạo hứng thú, kết nối kiến thức cũ; Hình thành công thức mới; Rèn kỹ năng giải bài tập; Vận dụng vào thực tiễn).
-          - MỖI BƯỚC phải trình bày dạng BẢNG MARKDOWN 3 CỘT:
+          - TỔNG THỜI LƯỢNG: 40 PHÚT. Phân bổ hợp lý cho 5 hoạt động:
+            + HĐ1: Mở đầu (~5 phút)
+            + HĐ2: Hình thành kiến thức (~15 phút)
+            + HĐ3: Luyện tập (~10 phút)
+            + HĐ4: Vận dụng (~5 phút)
+            + HĐ5: Sơ kết — Dặn dò về nhà (~5 phút)
+          - TRƯỚC MỖI BẢNG, BẮT BUỘC ghi dòng "**Mục tiêu:**" nêu rõ hoạt động này dùng để làm gì.
+          - MỖI HOẠT ĐỘNG phải trình bày dạng BẢNG MARKDOWN 3 CỘT:
             | Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
           - CỘT 3 "Nội dung ghi bảng" là những nội dung trọng tâm mà GV sẽ chiếu slide hoặc viết lên bảng để HS nhìn và ghi chép vào vở. KHÔNG được để trống cột này.
+          - HOẠT ĐỘNG 5 (Sơ kết — Dặn dò): GV giúp HS tổng kết lại những vấn đề chính và quan trọng đã học trong bài, sau đó dặn dò và giao bài tập về nhà. Cột 3 ghi rõ nội dung tóm tắt kiến thức trọng tâm và bài tập về nhà.
           - KHÔNG ĐƯỢC viết dạng đoạn văn tự do. PHẢI là bảng.
           - Ngôn ngữ biên kịch hội thoại 100%. Dùng <br/><br/> để cách dòng trong ô bảng.
           - Tích hợp kỹ năng thế kỷ 21 và năng lực cốt lõi.
@@ -317,13 +323,19 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
             A. YÊU CẦU NGHIÊM NGẶT:
             1. NỘI DUNG PHẢI TUÂN THỦ HOÀN TOÀN THEO "MỤC TIÊU/KIẾN THỨC TRỌNG TÂM" ĐÃ TRÍCH XUẤT TRÊN.
             2. Tiêu đề bài soạn phải khớp 100% với tên bài được cung cấp.
-            3. Tiến trình 4 bước: Mở đầu → Hình thành kiến thức → Luyện tập → Vận dụng.
+            3. TỔNG THỜI LƯỢNG: 40 PHÚT. Phân bổ hợp lý cho 5 hoạt động:
+              + HĐ1: Mở đầu (~5 phút)
+              + HĐ2: Hình thành kiến thức (~15 phút)
+              + HĐ3: Luyện tập (~10 phút)
+              + HĐ4: Vận dụng (~5 phút)
+              + HĐ5: Sơ kết — Dặn dò về nhà (~5 phút)
             4. TRƯỚC MỖI BẢNG, BẮT BUỘC ghi dòng "**Mục tiêu:**" nêu rõ hoạt động này dùng để làm gì.
-            5. MỖI BƯỚC phải trình bày dạng BẢNG MARKDOWN 3 CỘT:
+            5. MỖI HOẠT ĐỘNG phải trình bày dạng BẢNG MARKDOWN 3 CỘT:
               | Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
             6. CỘT 3 là những nội dung GV chiếu slide hoặc viết lên bảng cho HS nhìn và ghi chép. KHÔNG để trống.
-            7. KHÔNG ĐƯỢC viết dạng đoạn văn tự do. PHẢI là bảng.
-            8. Ngôn ngữ biên kịch hội thoại 100%. Dùng <br/><br/> để cách dòng trong ô bảng.
+            7. HĐ5 (Sơ kết — Dặn dò): GV giúp HS tổng kết những vấn đề chính đã học, sau đó dặn dò và giao bài tập về nhà.
+            8. KHÔNG ĐƯỢC viết dạng đoạn văn tự do. PHẢI là bảng.
+            9. Ngôn ngữ biên kịch hội thoại 100%. Dùng <br/><br/> để cách dòng trong ô bảng.
             ${mathRestrictions}
 
             B. PHẦN ĐÁNH GIÁ DANIELSON (BẮT BUỘC, VIẾT Ở CUỐI BÊN TRONG <lesson_content>):
