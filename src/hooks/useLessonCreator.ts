@@ -248,7 +248,8 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
           B. PHẦN ĐÁNH GIÁ DANIELSON (BẮT BUỘC, VIẾT Ở CUỐI BÊN TRONG <lesson_content>):
           Sau nội dung giáo án, PHẢI thêm phần:
           "## Đánh giá của tổ trưởng chuyên môn"
-          Tự chấm điểm theo khung Danielson Miền 1 (Lên kế hoạch và chuẩn bị), 6 tiêu chí (Thang 1-4, 4 là Tốt nhất):
+          BẮT BUỘC trình bày dưới dạng BẢNG MARKDOWN 3 CỘT (Tiêu chí | Điểm | Nhận xét).
+          Tự chấm điểm theo khung Danielson Miền 1 (Thang 1-4, 4 là Tốt nhất) cho 6 tiêu chí:
           1a: Áp dụng kiến thức chuyên môn và sư phạm
           1b: Thấu hiểu học sinh
           1c: Thiết lập mục tiêu giảng dạy
@@ -347,7 +348,8 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
 
             B. PHẦN ĐÁNH GIÁ DANIELSON (BẮT BUỘC, VIẾT Ở CUỐI BÊN TRONG <lesson_content>):
             "## Đánh giá của tổ trưởng chuyên môn"
-            Tự chấm điểm theo khung Danielson Miền 1, 6 tiêu chí (Thang 1-4):
+            BẮT BUỘC trình bày dưới dạng BẢNG MARKDOWN 3 CỘT (Tiêu chí | Điểm | Nhận xét).
+            Tự chấm điểm theo khung Danielson Miền 1 (Thang 1-4) cho 6 tiêu chí:
             1a: Áp dụng kiến thức chuyên môn và sư phạm
             1b: Thấu hiểu học sinh
             1c: Thiết lập mục tiêu giảng dạy
