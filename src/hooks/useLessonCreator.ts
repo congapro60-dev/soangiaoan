@@ -246,10 +246,10 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
           - CỘT 3 "Nội dung ghi bảng" là những nội dung trọng tâm mà GV sẽ chiếu slide hoặc viết lên bảng để HS nhìn và ghi chép vào vở. KHÔNG được để trống cột này.
           - HOẠT ĐỘNG 5 (Sơ kết — Dặn dò): GV giúp HS tổng kết lại những vấn đề chính và quan trọng đã học trong bài, sau đó dặn dò và giao bài tập về nhà. Cột 3 ghi rõ nội dung tóm tắt kiến thức trọng tâm và bài tập về nhà.
           - KHÔNG ĐƯỢC viết dạng đoạn văn tự do. PHẢI là bảng.
-          - YÊU CẦU ĐỘ CHI TIẾT CỰC CAO (Ngôn ngữ biên kịch hội thoại 100%):
-            + KHÔNG viết chung chung kiểu "GV yêu cầu HS làm bài".
-            + PHẢI viết rõ lời thoại: GV nói gì ("Các em hãy..."), HS trả lời gì, phản ứng ra sao.
-            + Bắt buộc chèn các thẻ hành động sư phạm như \`[Quét Radar]\`, \`[🌐 Công dân toàn cầu]\`, \`[Chờ đợi 3 giây]\` vào cột Hoạt động của GV để giáo án sinh động như một kịch bản phim.
+          - YÊU CẦU ĐỘ CHI TIẾT CỰC CAO (GIÁO ÁN KỊCH BẢN TỪNG PHÚT - MINUTE-BY-MINUTE):
+            + MỖI HOẠT ĐỘNG PHẢI CÓ ÍT NHẤT 5-8 LƯỢT HỘI THOẠI QUA LẠI GIỮA GV VÀ HS. BẠN SẼ BỊ PHẠT NẾU VIẾT QUÁ NGẮN.
+            + TUYỆT ĐỐI KHÔNG viết chung chung kiểu "GV yêu cầu HS làm bài". Không được tóm tắt.
+            + Bắt buộc chèn các thẻ hành động sư phạm như \`[Quét Radar]\`, \`[Chờ đợi 3 giây]\`, \`[Quan sát]\` vào giữa các câu nói để kịch bản thật sống động.
           - Dùng <br/><br/> để cách dòng trong ô bảng.
           - LỒNG GHÉP 3 TUYÊN NGÔN DEWEY (BẮT BUỘC):
             1. Tuyên ngôn Công dân kĩ thuật số
@@ -364,9 +364,9 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
             6. CỘT 3 là những nội dung GV chiếu slide hoặc viết lên bảng cho HS nhìn và ghi chép. KHÔNG để trống.
             7. HĐ5 (Sơ kết — Dặn dò): GV giúp HS tổng kết những vấn đề chính đã học, sau đó dặn dò và giao bài tập về nhà.
             8. KHÔNG ĐƯỢC viết dạng đoạn văn tự do. PHẢI là bảng.
-            9. YÊU CẦU ĐỘ CHI TIẾT CỰC CAO (Ngôn ngữ biên kịch hội thoại 100%):
-               + KHÔNG viết chung chung kiểu "GV yêu cầu HS...". PHẢI viết trích dẫn lời thoại cụ thể của GV và HS.
-               + Sử dụng các thẻ sư phạm như \`[Quét Radar]\`, \`[🌐 Công dân toàn cầu]\` trong cột GV.
+            9. YÊU CẦU ĐỘ CHI TIẾT CỰC CAO (GIÁO ÁN KỊCH BẢN TỪNG PHÚT - MINUTE-BY-MINUTE):
+               + MỖI HOẠT ĐỘNG PHẢI CÓ ÍT NHẤT 5-8 LƯỢT HỘI THOẠI QUA LẠI GIỮA GV VÀ HS. KHÔNG ĐƯỢC TÓM TẮT.
+               + Sử dụng liên tục các thẻ sư phạm như \`[Quét Radar]\`, \`[Chờ đợi 3 giây]\` trong cột GV.
             10. LỒNG GHÉP 3 TUYÊN NGÔN DEWEY (BẮT BUỘC): Công dân kĩ thuật số, Công dân toàn cầu & Học tập liên văn hóa, Dạy và học chất lượng cao. PHẢI dùng thẻ \`[💡 Tuyên ngôn: ...]\` để chỉ rõ câu nói/hành động nào đáp ứng tuyên ngôn nào.
             11. Dùng <br/><br/> để cách dòng trong ô bảng.
             ${mathRestrictions}
