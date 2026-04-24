@@ -195,9 +195,7 @@ I. CẤU TRÚC MỤC TIÊU BÀI HỌC (bắt buộc có đầy đủ):
       - Học sinh khá/giỏi: [Yêu cầu nâng cao, bài toán mở rộng cụ thể]
       - Học sinh trung bình/yếu: [Yêu cầu tối thiểu cần đạt, hỗ trợ cụ thể]
 
-II. ĐỊNH DẠNG BẢNG 3 CỘT — BẮT BUỘC cho TẤT CẢ 4 hoạt động:
-   (Khởi động / Hình thành kiến thức / Luyện tập / Vận dụng)
-
+II. ĐỊNH DẠNG BẢNG 3 CỘT — BẮT BUỘC cho TẤT CẢ hoạt động:
    MỖI hoạt động PHẢI trình bày theo đúng bảng Markdown 3 cột sau:
    | Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng/Sản phẩm dự kiến |
    |---|---|---|
@@ -205,10 +203,11 @@ II. ĐỊNH DẠNG BẢNG 3 CỘT — BẮT BUỘC cho TẤT CẢ 4 hoạt độ
 
    LƯU Ý: "Nội dung ghi bảng" là những nội dung trọng tâm mà Giáo viên sẽ ghi lên bảng để Học sinh ghi chép vào vở. KHÔNG được để trống cột này.
 
-III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
+III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
    - Công thức trên cùng dòng văn bản: dùng $...$ (ví dụ: $f(x) = x^2 + 1$)
-   - Công thức đứng riêng một dòng: dùng $$...$$ (ví dụ: $$\\int_0^1 x^2\\,dx = \\frac{1}{3}$$)
-   - TUYỆT ĐỐI KHÔNG viết công thức dưới dạng plain text (sai: "x^2 + 1", đúng: "$x^2 + 1$")
+   - Công thức đứng riêng một dòng: dùng $$...$$ (ví dụ: $$\int_0^1 x^2\,dx = \frac{1}{3}$$)
+   - TUYỆT ĐỐI KHÔNG dùng ký tự gạch đứng "|" trong công thức Toán vì sẽ làm vỡ bảng Markdown. Bắt buộc dùng "\\mid" (ví dụ: viết $P(A \\mid B)$ thay vì $P(A|B)$).
+   - Văn bản Tiếng Việt phải gõ liền mạch chuẩn xác, TUYỆT ĐỐI KHÔNG được viết tách rời dấu (ví dụ sai: "b a ˘ ˋ n g", đúng: "bằng").
 
 ===========================================================
       ` : '';
@@ -232,39 +231,38 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
           ${singleRequirement ? `YÊU CẦU BỔ SUNG: ${singleRequirement}` : ''}
 
           ===== YÊU CẦU ĐỊNH DẠNG NỘI DUNG BÊN TRONG <lesson_content> (TUYỆT ĐỐI TUÂN THỦ) =====
-          A. CẤU TRÚC GIÁO ÁN:
-          - Phần đầu: Thông tin chung (WALT, WILF 3 mức độ 🌶️, Năng lực cốt lõi) nếu là môn Toán.
-          - TỔNG THỜI LƯỢNG: 40 PHÚT. Phân bổ hợp lý cho 5 hoạt động:
-            + HĐ1: Mở đầu (~5 phút). BẮT BUỘC: Giáo viên phải đặt câu hỏi khơi gợi để học sinh tự xác định được mục tiêu tiết học (WALT/WILF).
-            + HĐ2: Hình thành kiến thức (~15 phút). PHẦN NÀY ĐẶC BIỆT QUAN TRỌNG: Phải cực kỳ chi tiết, diễn giải từng bước tư duy của học sinh, cách giáo viên dẫn dắt từ cái đã biết đến kiến thức mới.
-            + HĐ3: Luyện tập (~10 phút). BẮT BUỘC: Phải đưa ra TỐI THIỂU 3 bài tập cụ thể tương ứng với 3 mức độ (Cơ bản 🌶️, Nâng cao 🌶️🌶️, Thách thức 🌶️🌶️🌶️). Cột 3 phải có lời giải chi tiết.
-            + HĐ4: Vận dụng (~5 phút)
-            + HĐ5: Sơ kết — Dặn dò về nhà (~5 phút). BẮT BUỘC: Giáo viên phải đặt câu hỏi để học sinh đối chiếu và tự xác nhận xem các mục tiêu đặt ra ở đầu giờ đã hoàn thành chưa.
-          - TRƯỚC MỖI BẢNG, BẮT BUỘC ghi dòng "**Mục tiêu:**" nêu rõ hoạt động này dùng để làm gì.
-          - MỖI HOẠT ĐỘNG phải trình bày dạng BẢNG MARKDOWN 3 CỘT:
+          A. CẤU TRÚC GIÁO ÁN (GIỮ NGUYÊN BẢN MẪU, CHỈ THÊM CHI TIẾT):
+          - Phần đầu: WALT và WILF phải chia làm 3 tiêu chí KHÁC NHAU tương ứng 3 mức độ (🌶️ Cơ bản, 🌶️🌶️ Nâng cao, 🌶️🌶️🌶️ Thách thức). TUYỆT ĐỐI KHÔNG lặp lại 1 tiêu chí 3 lần.
+          - TỔNG THỜI LƯỢNG: 40 PHÚT. TẤT CẢ 5 HĐ (HĐ1 đến HĐ5) đều PHẢI có kịch bản đối thoại chi tiết (5-8 lượt thoại), KHÔNG ĐƯỢC viết sơ sài ở HĐ1, HĐ4, HĐ5:
+            + HĐ1 (Mở đầu): GV đặt câu hỏi khơi gợi WALT/WILF.
+            + HĐ2 (Hình thành KT): Diễn giải từng bước tư duy của HS.
+            + HĐ3 (Luyện tập): Tối thiểu 3 bài tập (3 mức 🌶️). Cột 3 ghi lời giải.
+            + HĐ4 (Vận dụng): Có hội thoại hướng dẫn thực tế.
+            + HĐ5 (Sơ kết): Hội thoại HS tự kiểm tra mục tiêu đầu giờ.
+          - KHUNG SƯ PHẠM CIS (CHỌN LỌC): Để đảm bảo thời gian, CHỌN NGẪU NHIÊN 1 HOẶC 2 KỸ THUẬT sau để lồng ghép (KHÔNG dùng cả 5 vào 1 bài):
+            1. "Thông tin viên" (HĐ1): Dùng ảnh/vấn đề thực tế.
+            2. "Thực đơn Toán học" (HĐ3): Giao bài tập theo dạng Menu. Bố trí "Phao cứu sinh".
+            3. "Chuyên gia & Phản biện" (HĐ2/HĐ3): HS đóng vai chất vấn "Tại sao?".
+            4. "Check-var Công nghệ" (HĐ2): Dùng Desmos/Casio cố tình đưa lỗi sai.
+            5. "Vé ra cửa 3-2-1" (HĐ5): Cuối giờ ghi 3 từ khóa, 2 kỹ năng, 1 câu hỏi.
+          - TRƯỚC MỖI BẢNG, BẮT BUỘC ghi dòng "**Mục tiêu:**".
+          - MỖI HOẠT ĐỘNG trình bày BẢNG MARKDOWN 3 CỘT: 
             | Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
-          - CỘT 3 "Nội dung ghi bảng" là những nội dung trọng tâm mà GV sẽ chiếu slide hoặc viết lên bảng để HS nhìn và ghi chép vào vở. KHÔNG được để trống cột này.
-          - HOẠT ĐỘNG 5 (Sơ kết — Dặn dò): GV giúp HS tổng kết lại những vấn đề chính và quan trọng đã học trong bài, sau đó dặn dò và giao bài tập về nhà. Cột 3 ghi rõ nội dung tóm tắt kiến thức trọng tâm và bài tập về nhà.
-          - KHÔNG ĐƯỢC viết dạng đoạn văn tự do. PHẢI là bảng.
-          - YÊU CẦU ĐỘ CHI TIẾT CỰC CAO (GIÁO ÁN KỊCH BẢN TỪNG PHÚT - MINUTE-BY-MINUTE):
-            + MỖI HOẠT ĐỘNG PHẢI CÓ ÍT NHẤT 5-8 LƯỢT HỘI THOẠI QUA LẠI GIỮA GV VÀ HS. BẠN SẼ BỊ PHẠT NẾU VIẾT QUÁ NGẮN.
-            + CỘT "HOẠT ĐỘNG CỦA GV" CẦN NÊU RÕ HỆ THỐNG CÂU HỎI ĐỊNH HƯỚNG: Thay vì giảng giải trực tiếp, GV phải dùng các câu hỏi dẫn dắt (Scaffolding questions) đi từ dễ đến khó để khơi gợi tư duy HS. Ghi rõ từng câu hỏi cụ thể ra.
-            + TUYỆT ĐỐI KHÔNG viết chung chung kiểu "GV yêu cầu HS làm bài". Không được tóm tắt.
-            + Bắt buộc chèn các thẻ hành động sư phạm như \`[Quét Radar]\`, \`[Chờ đợi 3 giây]\`, \`[Quan sát]\` vào giữa các câu nói để kịch bản thật sống động.
-          - Dùng <br/><br/> để cách dòng trong ô bảng.
-          - LỒNG GHÉP 3 TUYÊN NGÔN DEWEY (BẮT BUỘC):
-            1. Tuyên ngôn Công dân kĩ thuật số
-            2. Tuyên ngôn Công dân toàn cầu và Học tập liên văn hóa
-            3. Tuyên ngôn Dạy và học chất lượng cao
-            => PHẢI chỉ rõ trong cột Hoạt động của GV/HS (dùng in đậm hoặc thẻ ghi chú như \`[💡 Tuyên ngôn: ...]\`) xem chỗ nào, câu nói hay hành động nào đáp ứng các tuyên ngôn này để người đọc thấy ngay.
-          - Tích hợp kỹ năng thế kỷ 21 và năng lực cốt lõi.
+          - YÊU CẦU KHÔNG NHẦM CỘT CỦA BẢNG: 
+            + Đề bài tập/Menu, lời giải chi tiết phải nằm ở Cột 3 (Nội dung ghi bảng).
+            + Lời nói/Hành động của thầy cô ("Phao cứu sinh", "Quét radar") CHỈ NẰM Ở Cột 1.
+            + Lời nói/Hành động của học sinh CHỈ NẰM Ở Cột 2.
+          - YÊU CẦU ĐỘ CHI TIẾT CỰC CAO (MINUTE-BY-MINUTE):
+            + MỖI HOẠT ĐỘNG (Kể cả HĐ1, HĐ4, HĐ5) PHẢI CÓ 5-8 LƯỢT THOẠI QUA LẠI.
+            + Cột GV phải dùng hệ thống câu hỏi dẫn dắt (Scaffolding) đi từ dễ đến khó. Chèn các thẻ \`[Quét Radar]\`, \`[Mistake of the Day]\`, \`[Chấm chéo]\`.
+          - LỒNG GHÉP 3 TUYÊN NGÔN DEWEY (BẮT BUỘC): dùng thẻ \`[💡 Tuyên ngôn: ...]\` để chỉ rõ câu nói/hành động nào đáp ứng tuyên ngôn nào.
           ${mathRestrictions}
 
           B. PHẦN ĐÁNH GIÁ DANIELSON (BẮT BUỘC, VIẾT Ở CUỐI BÊN TRONG <lesson_content>):
           Sau nội dung giáo án, PHẢI thêm phần:
           "## Đánh giá của tổ trưởng chuyên môn"
           BẮT BUỘC trình bày dưới dạng BẢNG MARKDOWN 3 CỘT (Tiêu chí | Điểm | Nhận xét).
-          YÊU CẦU ĐỐI VỚI CỘT NHẬN XÉT: Phải viết chi tiết, cụ thể như một tổ trưởng chuyên môn thực thụ (ít nhất 2-3 câu mỗi tiêu chí). CHỈ RÕ giáo án đã làm tốt chỗ nào (ví dụ: "Phân hóa tốt ở HĐ3 với 3 mức độ bài tập", "Lời thoại GV dẫn dắt khéo léo ở HĐ2..."). TUYỆT ĐỐI KHÔNG viết chung chung.
+          YÊU CẦU ĐỐI VỚI CỘT NHẬN XÉT: Phải viết chi tiết, cụ thể như một tổ trưởng chuyên môn thực thụ (ít nhất 2-3 câu mỗi tiêu chí). CHỈ RÕ giáo án đã làm tốt chỗ nào. TUYỆT ĐỐI KHÔNG viết chung chung.
           Tự chấm điểm theo khung Danielson Miền 1 (Thang 1-4, 4 là Tốt nhất) cho 6 tiêu chí:
           1a: Áp dụng kiến thức chuyên môn và sư phạm
           1b: Thấu hiểu học sinh
@@ -274,14 +272,14 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
           1f: Đánh giá quá trình học tập
 
           C. VÍ DỤ MẪU (BẮT BUỘC BẮT CHƯỚC PHONG CÁCH NÀY CHO TẤT CẢ CÁC HOẠT ĐỘNG):
-          \`\`\`markdown
+          ```markdown
           ## 🚀 HOẠT ĐỘNG 2: HÌNH THÀNH KIẾN THỨC MỚI (~15 phút)
           **Mục tiêu:** Học sinh tự khám phá ra công thức tổng quát và tính chất cơ bản.
 
           | Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
           |---|---|---|
-          | **[Quét Radar]** *Quan sát biểu cảm học sinh để xem mức độ hiểu bài.* <br/><br/> **GV:** "Các em hãy nhìn vào bảng hệ số ta vừa lập ở HĐ1. Ai phát hiện ra quy luật của các con số này?" <br/><br/> **[💡 Tuyên ngôn Dạy và học chất lượng cao: GV đóng vai trò người xúc tác, không áp đặt kiến thức]** <br/><br/> **GV:** "Tuyệt vời! Vậy hệ số của số hạng thứ $k+1$ chính là gì?" | **HS1:** "Thưa thầy, các hệ số này chính là các số trong tam giác Pascal ạ!" <br/><br/> **HS2:** "Nó tương ứng với tổ hợp $C_n^k$ ạ!" <br/><br/> **HS:** Ghi chép công thức tổng quát vào vở một cách hào hứng vì tự mình tìm ra. | **1. Định lý:** <br/> Công thức tổng quát: <br/> $(a+b)^n = \sum_{k=0}^{n} C_n^k a^{n-k} b^k$ <br/><br/> *Lưu ý:* Có $(n+1)$ số hạng. |
-          \`\`\`
+          | **[Quét Radar]** *Quan sát biểu cảm học sinh để xem mức độ hiểu bài.* <br/><br/> **GV:** "Các em hãy nhìn vào bảng hệ số ta vừa lập ở HĐ1. Ai phát hiện ra quy luật của các con số này?" <br/><br/> **[💡 Tuyên ngôn Dạy và học chất lượng cao: GV đóng vai trò người xúc tác, không áp đặt kiến thức]** <br/><br/> **GV:** "Tuyệt vời! Vậy hệ số của số hạng thứ $k+1$ chính là gì?" | **HS1:** "Thưa thầy, các hệ số này chính là các số trong tam giác Pascal ạ!" <br/><br/> **HS2:** "Nó tương ứng với tổ hợp $C_n^k$ ạ!" <br/><br/> **HS:** Ghi chép công thức tổng quát vào vở một cách hào hứng. | **1. Định lý:** <br/> Công thức tổng quát: <br/> $(a+b)^n = \sum_{k=0}^{n} C_n^k a^{n-k} b^k$ <br/><br/> *Lưu ý:* Có $(n+1)$ số hạng. |
+          ```
           ===== HẾT YÊU CẦU ĐỊNH DẠNG =====
         `;
         let fullResult = '';
