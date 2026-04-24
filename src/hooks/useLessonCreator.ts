@@ -235,11 +235,11 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
           A. CẤU TRÚC GIÁO ÁN:
           - Phần đầu: Thông tin chung (WALT, WILF 3 mức độ 🌶️, Năng lực cốt lõi) nếu là môn Toán.
           - TỔNG THỜI LƯỢNG: 40 PHÚT. Phân bổ hợp lý cho 5 hoạt động:
-            + HĐ1: Mở đầu (~5 phút)
+            + HĐ1: Mở đầu (~5 phút). BẮT BUỘC: Giáo viên phải đặt câu hỏi khơi gợi để học sinh tự xác định được mục tiêu tiết học (WALT/WILF).
             + HĐ2: Hình thành kiến thức (~15 phút). PHẦN NÀY ĐẶC BIỆT QUAN TRỌNG: Phải cực kỳ chi tiết, diễn giải từng bước tư duy của học sinh, cách giáo viên dẫn dắt từ cái đã biết đến kiến thức mới.
             + HĐ3: Luyện tập (~10 phút). BẮT BUỘC: Phải đưa ra TỐI THIỂU 3 bài tập cụ thể tương ứng với 3 mức độ (Cơ bản 🌶️, Nâng cao 🌶️🌶️, Thách thức 🌶️🌶️🌶️). Cột 3 phải có lời giải chi tiết.
             + HĐ4: Vận dụng (~5 phút)
-            + HĐ5: Sơ kết — Dặn dò về nhà (~5 phút)
+            + HĐ5: Sơ kết — Dặn dò về nhà (~5 phút). BẮT BUỘC: Giáo viên phải đặt câu hỏi để học sinh đối chiếu và tự xác nhận xem các mục tiêu đặt ra ở đầu giờ đã hoàn thành chưa.
           - TRƯỚC MỖI BẢNG, BẮT BUỘC ghi dòng "**Mục tiêu:**" nêu rõ hoạt động này dùng để làm gì.
           - MỖI HOẠT ĐỘNG phải trình bày dạng BẢNG MARKDOWN 3 CỘT:
             | Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
@@ -330,91 +330,105 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
         setBulkResults([]);
         const newPlans: LessonPlan[] = [];
 
-        for (let i = 0; i < extractedLessons.length; i++) {
+        const CONCURRENCY = 3;
+        for (let i = 0; i < extractedLessons.length; i += CONCURRENCY) {
           if (cancelBulkRef.current) break;
-          const lesson = extractedLessons[i];
-          setBulkProgress({ current: i + 1, total: extractedLessons.length, currentTitle: lesson.title });
           
-          const detailPrompt = `
-            BẠN LÀ CHUYÊN GIA BIÊN SOẠN GIÁO ÁN CAO CẤP.
-            
-            BỐ CỤC PHẢN HỒI:
-            1. <thinking>: Phân tích ngắn mục tiêu bài, đặc điểm HS, phương pháp phù hợp.
-            2. <lesson_content>: TOÀN BỘ giáo án (Markdown), BAO GỒM đánh giá Danielson ở cuối.
+          const chunk = extractedLessons.slice(i, i + CONCURRENCY);
+          const chunkPromises = chunk.map(async (lesson, index) => {
+            const detailPrompt = `
+              BẠN LÀ CHUYÊN GIA BIÊN SOẠN GIÁO ÁN CAO CẤP.
+              
+              BỐ CỤC PHẢN HỒI:
+              1. <thinking>: Phân tích ngắn mục tiêu bài, đặc điểm HS, phương pháp phù hợp.
+              2. <lesson_content>: TOÀN BỘ giáo án (Markdown), BAO GỒM đánh giá Danielson ở cuối.
 
-            HÃY SOẠN GIÁO ÁN CHI TIẾT CHO BÀI: "${lesson.title}"
-            THÔNG TIN TỪ PHÂN PHỐI CHƯƠNG TRÌNH:
-            - Tuần: ${lesson.week}
-            - Mục tiêu/Kiến thức trọng tâm: ${lesson.objectives}
-            
-            ${templateContext}
-            Lớp: ${currentPlan.grade}.
+              HÃY SOẠN GIÁO ÁN CHI TIẾT CHO BÀI: "${lesson.title}"
+              THÔNG TIN TỪ PHÂN PHỐI CHƯƠNG TRÌNH:
+              - Tuần: ${lesson.week}
+              - Mục tiêu/Kiến thức trọng tâm: ${lesson.objectives}
+              
+              ${templateContext}
+              Lớp: ${currentPlan.grade}.
 
-            ===== YÊU CẦU ĐỊNH DẠNG BÊN TRONG <lesson_content> (TUYỆT ĐỐI TUÂN THỦ) =====
-            A. YÊU CẦU NGHIÊM NGẶT:
-            1. NỘI DUNG PHẢI TUÂN THỦ HOÀN TOÀN THEO "MỤC TIÊU/KIẾN THỨC TRỌNG TÂM" ĐÃ TRÍCH XUẤT TRÊN.
-            2. Tiêu đề bài soạn phải khớp 100% với tên bài được cung cấp.
-            3. TỔNG THỜI LƯỢNG: 40 PHÚT. Phân bổ hợp lý cho 5 hoạt động:
-              + HĐ1: Mở đầu (~5 phút)
-              + HĐ2: Hình thành kiến thức (~15 phút). PHẦN NÀY ĐẶC BIỆT QUAN TRỌNG: Phải cực kỳ chi tiết, diễn giải từng bước tư duy của học sinh.
-              + HĐ3: Luyện tập (~10 phút). BẮT BUỘC: Đưa ra TỐI THIỂU 3 bài tập cụ thể tương ứng 3 mức độ (Cơ bản 🌶️, Nâng cao 🌶️🌶️, Thách thức 🌶️🌶️🌶️) kèm lời giải.
-              + HĐ4: Vận dụng (~5 phút)
-              + HĐ5: Sơ kết — Dặn dò về nhà (~5 phút)
-            4. TRƯỚC MỖI BẢNG, BẮT BUỘC ghi dòng "**Mục tiêu:**" nêu rõ hoạt động này dùng để làm gì.
-            5. MỖI HOẠT ĐỘNG phải trình bày dạng BẢNG MARKDOWN 3 CỘT:
+              ===== YÊU CẦU ĐỊNH DẠNG BÊN TRONG <lesson_content> (TUYỆT ĐỐI TUÂN THỦ) =====
+              A. YÊU CẦU NGHIÊM NGẶT:
+              1. NỘI DUNG PHẢI TUÂN THỦ HOÀN TOÀN THEO "MỤC TIÊU/KIẾN THỨC TRỌNG TÂM" ĐÃ TRÍCH XUẤT TRÊN.
+              2. Tiêu đề bài soạn phải khớp 100% với tên bài được cung cấp.
+              3. TỔNG THỜI LƯỢNG: 40 PHÚT. Phân bổ hợp lý cho 5 hoạt động:
+                + HĐ1: Mở đầu (~5 phút). BẮT BUỘC: Giáo viên phải đặt câu hỏi khơi gợi để học sinh tự xác định được mục tiêu tiết học.
+                + HĐ2: Hình thành kiến thức (~15 phút). PHẦN NÀY ĐẶC BIỆT QUAN TRỌNG: Phải cực kỳ chi tiết, diễn giải từng bước tư duy của học sinh.
+                + HĐ3: Luyện tập (~10 phút). BẮT BUỘC: Đưa ra TỐI THIỂU 3 bài tập cụ thể tương ứng 3 mức độ (Cơ bản 🌶️, Nâng cao 🌶️🌶️, Thách thức 🌶️🌶️🌶️) kèm lời giải.
+                + HĐ4: Vận dụng (~5 phút)
+                + HĐ5: Sơ kết — Dặn dò về nhà (~5 phút). BẮT BUỘC: Giáo viên phải đặt câu hỏi để học sinh đối chiếu và tự xác nhận xem các mục tiêu đặt ra ở đầu giờ đã hoàn thành chưa.
+              4. TRƯỚC MỖI BẢNG, BẮT BUỘC ghi dòng "**Mục tiêu:**" nêu rõ hoạt động này dùng để làm gì.
+              5. MỖI HOẠT ĐỘNG phải trình bày dạng BẢNG MARKDOWN 3 CỘT:
+                | Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
+              6. CỘT 3 là những nội dung GV chiếu slide hoặc viết lên bảng cho HS nhìn và ghi chép. KHÔNG để trống.
+              7. HĐ5 (Sơ kết — Dặn dò): GV giúp HS tổng kết những vấn đề chính đã học, sau đó dặn dò và giao bài tập về nhà.
+              8. KHÔNG ĐƯỢC viết dạng đoạn văn tự do. PHẢI là bảng.
+              9. YÊU CẦU ĐỘ CHI TIẾT CỰC CAO (GIÁO ÁN KỊCH BẢN TỪNG PHÚT - MINUTE-BY-MINUTE):
+                 + MỖI HOẠT ĐỘNG PHẢI CÓ ÍT NHẤT 5-8 LƯỢT HỘI THOẠI QUA LẠI GIỮA GV VÀ HS. KHÔNG ĐƯỢC TÓM TẮT.
+                 + Sử dụng liên tục các thẻ sư phạm như \`[Quét Radar]\`, \`[Chờ đợi 3 giây]\` trong cột GV.
+              10. LỒNG GHÉP 3 TUYÊN NGÔN DEWEY (BẮT BUỘC): Công dân kĩ thuật số, Công dân toàn cầu & Học tập liên văn hóa, Dạy và học chất lượng cao. PHẢI dùng thẻ \`[💡 Tuyên ngôn: ...]\` để chỉ rõ câu nói/hành động nào đáp ứng tuyên ngôn nào.
+              11. Dùng <br/><br/> để cách dòng trong ô bảng.
+              ${mathRestrictions}
+
+              B. PHẦN ĐÁNH GIÁ DANIELSON (BẮT BUỘC, VIẾT Ở CUỐI BÊN TRONG <lesson_content>):
+              "## Đánh giá của tổ trưởng chuyên môn"
+              BẮT BUỘC trình bày dưới dạng BẢNG MARKDOWN 3 CỘT (Tiêu chí | Điểm | Nhận xét).
+              YÊU CẦU ĐỐI VỚI CỘT NHẬN XÉT: Phải viết chi tiết, cụ thể (ít nhất 2-3 câu mỗi tiêu chí). CHỈ RÕ giáo án đã làm tốt chỗ nào. TUYỆT ĐỐI KHÔNG viết chung chung.
+              Tự chấm điểm theo khung Danielson Miền 1 (Thang 1-4) cho 6 tiêu chí:
+              1a: Áp dụng kiến thức chuyên môn và sư phạm
+              1b: Thấu hiểu học sinh
+              1c: Thiết lập mục tiêu giảng dạy
+              1d: Sử dụng tài nguyên hiệu quả
+              1e: Thiết kế bài giảng mạch lạc
+              1f: Đánh giá quá trình học tập
+
+              C. VÍ DỤ MẪU (BẮT BUỘC BẮT CHƯỚC PHONG CÁCH NÀY CHO TẤT CẢ CÁC HOẠT ĐỘNG):
+              \`\`\`markdown
+              ## 🚀 HOẠT ĐỘNG 2: HÌNH THÀNH KIẾN THỨC MỚI (~15 phút)
+              **Mục tiêu:** Học sinh tự khám phá ra công thức tổng quát và tính chất cơ bản.
+
               | Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
-            6. CỘT 3 là những nội dung GV chiếu slide hoặc viết lên bảng cho HS nhìn và ghi chép. KHÔNG để trống.
-            7. HĐ5 (Sơ kết — Dặn dò): GV giúp HS tổng kết những vấn đề chính đã học, sau đó dặn dò và giao bài tập về nhà.
-            8. KHÔNG ĐƯỢC viết dạng đoạn văn tự do. PHẢI là bảng.
-            9. YÊU CẦU ĐỘ CHI TIẾT CỰC CAO (GIÁO ÁN KỊCH BẢN TỪNG PHÚT - MINUTE-BY-MINUTE):
-               + MỖI HOẠT ĐỘNG PHẢI CÓ ÍT NHẤT 5-8 LƯỢT HỘI THOẠI QUA LẠI GIỮA GV VÀ HS. KHÔNG ĐƯỢC TÓM TẮT.
-               + Sử dụng liên tục các thẻ sư phạm như \`[Quét Radar]\`, \`[Chờ đợi 3 giây]\` trong cột GV.
-            10. LỒNG GHÉP 3 TUYÊN NGÔN DEWEY (BẮT BUỘC): Công dân kĩ thuật số, Công dân toàn cầu & Học tập liên văn hóa, Dạy và học chất lượng cao. PHẢI dùng thẻ \`[💡 Tuyên ngôn: ...]\` để chỉ rõ câu nói/hành động nào đáp ứng tuyên ngôn nào.
-            11. Dùng <br/><br/> để cách dòng trong ô bảng.
-            ${mathRestrictions}
+              |---|---|---|
+              | **[Quét Radar]** *Quan sát biểu cảm học sinh để xem mức độ hiểu bài.* <br/><br/> **GV:** "Các em hãy nhìn vào bảng hệ số ta vừa lập ở HĐ1. Ai phát hiện ra quy luật của các con số này?" <br/><br/> **[💡 Tuyên ngôn Dạy và học chất lượng cao: GV đóng vai trò người xúc tác, không áp đặt kiến thức]** <br/><br/> **GV:** "Tuyệt vời! Vậy hệ số của số hạng thứ $k+1$ chính là gì?" | **HS1:** "Thưa thầy, các hệ số này chính là các số trong tam giác Pascal ạ!" <br/><br/> **HS2:** "Nó tương ứng với tổ hợp $C_n^k$ ạ!" <br/><br/> **HS:** Ghi chép công thức tổng quát vào vở một cách hào hứng. | **1. Định lý:** <br/> Công thức tổng quát: <br/> $(a+b)^n = \sum_{k=0}^{n} C_n^k a^{n-k} b^k$ <br/><br/> *Lưu ý:* Có $(n+1)$ số hạng. |
+              \`\`\`
+              ===== HẾT YÊU CẦU =====
+            `;
+            try {
+              const detailResponse = await callAI(detailPrompt, data.settings);
+              if (detailResponse && !cancelBulkRef.current) {
+                return {
+                  id: crypto.randomUUID(),
+                  subjectId: currentPlan.subjectId || 'math',
+                  templateId: currentPlan.templateId,
+                  grade: currentPlan.grade,
+                  week: lesson.week || currentPlan.week,
+                  title: lesson.title,
+                  content: cleanMarkdownOutput(extractLessonContent(detailResponse)),
+                  status: 'draft',
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+                } as LessonPlan;
+              }
+            } catch (err) {
+              console.error(`Lỗi soạn bài ${lesson.title}:`, err);
+            }
+            return null;
+          });
 
-            B. PHẦN ĐÁNH GIÁ DANIELSON (BẮT BUỘC, VIẾT Ở CUỐI BÊN TRONG <lesson_content>):
-            "## Đánh giá của tổ trưởng chuyên môn"
-            BẮT BUỘC trình bày dưới dạng BẢNG MARKDOWN 3 CỘT (Tiêu chí | Điểm | Nhận xét).
-            YÊU CẦU ĐỐI VỚI CỘT NHẬN XÉT: Phải viết chi tiết, cụ thể (ít nhất 2-3 câu mỗi tiêu chí). CHỈ RÕ giáo án đã làm tốt chỗ nào. TUYỆT ĐỐI KHÔNG viết chung chung.
-            Tự chấm điểm theo khung Danielson Miền 1 (Thang 1-4) cho 6 tiêu chí:
-            1a: Áp dụng kiến thức chuyên môn và sư phạm
-            1b: Thấu hiểu học sinh
-            1c: Thiết lập mục tiêu giảng dạy
-            1d: Sử dụng tài nguyên hiệu quả
-            1e: Thiết kế bài giảng mạch lạc
-            1f: Đánh giá quá trình học tập
+          setBulkProgress({ current: i, total: extractedLessons.length, currentTitle: \`Đang xử lý ${chunk.length} bài cùng lúc...\` });
+          
+          const results = await Promise.all(chunkPromises);
+          if (cancelBulkRef.current) break;
 
-            C. VÍ DỤ MẪU (BẮT BUỘC BẮT CHƯỚC PHONG CÁCH NÀY CHO TẤT CẢ CÁC HOẠT ĐỘNG):
-            \`\`\`markdown
-            ## 🚀 HOẠT ĐỘNG 2: HÌNH THÀNH KIẾN THỨC MỚI (~15 phút)
-            **Mục tiêu:** Học sinh tự khám phá ra công thức tổng quát và tính chất cơ bản.
-
-            | Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
-            |---|---|---|
-            | **[Quét Radar]** *Quan sát biểu cảm học sinh để xem mức độ hiểu bài.* <br/><br/> **GV:** "Các em hãy nhìn vào bảng hệ số ta vừa lập ở HĐ1. Ai phát hiện ra quy luật của các con số này?" <br/><br/> **[💡 Tuyên ngôn Dạy và học chất lượng cao: GV đóng vai trò người xúc tác, không áp đặt kiến thức]** <br/><br/> **GV:** "Tuyệt vời! Vậy hệ số của số hạng thứ $k+1$ chính là gì?" | **HS1:** "Thưa thầy, các hệ số này chính là các số trong tam giác Pascal ạ!" <br/><br/> **HS2:** "Nó tương ứng với tổ hợp $C_n^k$ ạ!" <br/><br/> **HS:** Ghi chép công thức tổng quát vào vở một cách hào hứng. | **1. Định lý:** <br/> Công thức tổng quát: <br/> $(a+b)^n = \sum_{k=0}^{n} C_n^k a^{n-k} b^k$ <br/><br/> *Lưu ý:* Có $(n+1)$ số hạng. |
-            \`\`\`
-            ===== HẾT YÊU CẦU =====
-          `;
-
-          const detailResponse = await callAI(detailPrompt, data.settings);
-          if (detailResponse) {
-            const newPlan: LessonPlan = {
-              id: crypto.randomUUID(),
-              subjectId: currentPlan.subjectId || 'math',
-              templateId: currentPlan.templateId,
-              grade: currentPlan.grade,
-              week: lesson.week || currentPlan.week,
-              title: lesson.title,
-              content: cleanMarkdownOutput(extractLessonContent(detailResponse)),
-              status: 'draft',
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
-            };
-            newPlans.push(newPlan);
-            // Stream partial results so user sees each lesson as it finishes
-            setBulkResults([...newPlans]);
-          }
+          const validPlans = results.filter(p => p !== null) as LessonPlan[];
+          newPlans.push(...validPlans);
+          
+          setBulkProgress({ current: Math.min(i + CONCURRENCY, extractedLessons.length), total: extractedLessons.length, currentTitle: chunk[chunk.length - 1].title });
+          setBulkResults([...newPlans]);
         }
         if (cancelBulkRef.current) {
           showToast(`Đã hủy — lưu lại ${newPlans.length} giáo án đã soạn xong`, 'warning');
