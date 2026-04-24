@@ -248,6 +248,7 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
           - KHÔNG ĐƯỢC viết dạng đoạn văn tự do. PHẢI là bảng.
           - YÊU CẦU ĐỘ CHI TIẾT CỰC CAO (GIÁO ÁN KỊCH BẢN TỪNG PHÚT - MINUTE-BY-MINUTE):
             + MỖI HOẠT ĐỘNG PHẢI CÓ ÍT NHẤT 5-8 LƯỢT HỘI THOẠI QUA LẠI GIỮA GV VÀ HS. BẠN SẼ BỊ PHẠT NẾU VIẾT QUÁ NGẮN.
+            + CỘT "HOẠT ĐỘNG CỦA GV" CẦN NÊU RÕ HỆ THỐNG CÂU HỎI ĐỊNH HƯỚNG: Thay vì giảng giải trực tiếp, GV phải dùng các câu hỏi dẫn dắt (Scaffolding questions) đi từ dễ đến khó để khơi gợi tư duy HS. Ghi rõ từng câu hỏi cụ thể ra.
             + TUYỆT ĐỐI KHÔNG viết chung chung kiểu "GV yêu cầu HS làm bài". Không được tóm tắt.
             + Bắt buộc chèn các thẻ hành động sư phạm như \`[Quét Radar]\`, \`[Chờ đợi 3 giây]\`, \`[Quan sát]\` vào giữa các câu nói để kịch bản thật sống động.
           - Dùng <br/><br/> để cách dòng trong ô bảng.
@@ -369,6 +370,7 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
               8. KHÔNG ĐƯỢC viết dạng đoạn văn tự do. PHẢI là bảng.
               9. YÊU CẦU ĐỘ CHI TIẾT CỰC CAO (GIÁO ÁN KỊCH BẢN TỪNG PHÚT - MINUTE-BY-MINUTE):
                  + MỖI HOẠT ĐỘNG PHẢI CÓ ÍT NHẤT 5-8 LƯỢT HỘI THOẠI QUA LẠI GIỮA GV VÀ HS. KHÔNG ĐƯỢC TÓM TẮT.
+                 + CỘT "HOẠT ĐỘNG CỦA GV" CẦN NÊU RÕ HỆ THỐNG CÂU HỎI ĐỊNH HƯỚNG: Phải ghi rõ các câu hỏi dẫn dắt (Scaffolding questions) đi từ dễ đến khó để khơi gợi tư duy, tuyệt đối không giảng giải trực tiếp một chiều.
                  + Sử dụng liên tục các thẻ sư phạm như \`[Quét Radar]\`, \`[Chờ đợi 3 giây]\` trong cột GV.
               10. LỒNG GHÉP 3 TUYÊN NGÔN DEWEY (BẮT BUỘC): Công dân kĩ thuật số, Công dân toàn cầu & Học tập liên văn hóa, Dạy và học chất lượng cao. PHẢI dùng thẻ \`[💡 Tuyên ngôn: ...]\` để chỉ rõ câu nói/hành động nào đáp ứng tuyên ngôn nào.
               11. Dùng <br/><br/> để cách dòng trong ô bảng.
