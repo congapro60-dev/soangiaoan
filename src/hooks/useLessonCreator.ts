@@ -236,8 +236,8 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
           - Phần đầu: Thông tin chung (WALT, WILF 3 mức độ 🌶️, Năng lực cốt lõi) nếu là môn Toán.
           - TỔNG THỜI LƯỢNG: 40 PHÚT. Phân bổ hợp lý cho 5 hoạt động:
             + HĐ1: Mở đầu (~5 phút)
-            + HĐ2: Hình thành kiến thức (~15 phút)
-            + HĐ3: Luyện tập (~10 phút)
+            + HĐ2: Hình thành kiến thức (~15 phút). PHẦN NÀY ĐẶC BIỆT QUAN TRỌNG: Phải cực kỳ chi tiết, diễn giải từng bước tư duy của học sinh, cách giáo viên dẫn dắt từ cái đã biết đến kiến thức mới.
+            + HĐ3: Luyện tập (~10 phút). BẮT BUỘC: Phải đưa ra TỐI THIỂU 3 bài tập cụ thể tương ứng với 3 mức độ (Cơ bản 🌶️, Nâng cao 🌶️🌶️, Thách thức 🌶️🌶️🌶️). Cột 3 phải có lời giải chi tiết.
             + HĐ4: Vận dụng (~5 phút)
             + HĐ5: Sơ kết — Dặn dò về nhà (~5 phút)
           - TRƯỚC MỖI BẢNG, BẮT BUỘC ghi dòng "**Mục tiêu:**" nêu rõ hoạt động này dùng để làm gì.
@@ -263,6 +263,7 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
           Sau nội dung giáo án, PHẢI thêm phần:
           "## Đánh giá của tổ trưởng chuyên môn"
           BẮT BUỘC trình bày dưới dạng BẢNG MARKDOWN 3 CỘT (Tiêu chí | Điểm | Nhận xét).
+          YÊU CẦU ĐỐI VỚI CỘT NHẬN XÉT: Phải viết chi tiết, cụ thể như một tổ trưởng chuyên môn thực thụ (ít nhất 2-3 câu mỗi tiêu chí). CHỈ RÕ giáo án đã làm tốt chỗ nào (ví dụ: "Phân hóa tốt ở HĐ3 với 3 mức độ bài tập", "Lời thoại GV dẫn dắt khéo léo ở HĐ2..."). TUYỆT ĐỐI KHÔNG viết chung chung.
           Tự chấm điểm theo khung Danielson Miền 1 (Thang 1-4, 4 là Tốt nhất) cho 6 tiêu chí:
           1a: Áp dụng kiến thức chuyên môn và sư phạm
           1b: Thấu hiểu học sinh
@@ -354,8 +355,8 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
             2. Tiêu đề bài soạn phải khớp 100% với tên bài được cung cấp.
             3. TỔNG THỜI LƯỢNG: 40 PHÚT. Phân bổ hợp lý cho 5 hoạt động:
               + HĐ1: Mở đầu (~5 phút)
-              + HĐ2: Hình thành kiến thức (~15 phút)
-              + HĐ3: Luyện tập (~10 phút)
+              + HĐ2: Hình thành kiến thức (~15 phút). PHẦN NÀY ĐẶC BIỆT QUAN TRỌNG: Phải cực kỳ chi tiết, diễn giải từng bước tư duy của học sinh.
+              + HĐ3: Luyện tập (~10 phút). BẮT BUỘC: Đưa ra TỐI THIỂU 3 bài tập cụ thể tương ứng 3 mức độ (Cơ bản 🌶️, Nâng cao 🌶️🌶️, Thách thức 🌶️🌶️🌶️) kèm lời giải.
               + HĐ4: Vận dụng (~5 phút)
               + HĐ5: Sơ kết — Dặn dò về nhà (~5 phút)
             4. TRƯỚC MỖI BẢNG, BẮT BUỘC ghi dòng "**Mục tiêu:**" nêu rõ hoạt động này dùng để làm gì.
@@ -374,6 +375,7 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
             B. PHẦN ĐÁNH GIÁ DANIELSON (BẮT BUỘC, VIẾT Ở CUỐI BÊN TRONG <lesson_content>):
             "## Đánh giá của tổ trưởng chuyên môn"
             BẮT BUỘC trình bày dưới dạng BẢNG MARKDOWN 3 CỘT (Tiêu chí | Điểm | Nhận xét).
+            YÊU CẦU ĐỐI VỚI CỘT NHẬN XÉT: Phải viết chi tiết, cụ thể (ít nhất 2-3 câu mỗi tiêu chí). CHỈ RÕ giáo án đã làm tốt chỗ nào. TUYỆT ĐỐI KHÔNG viết chung chung.
             Tự chấm điểm theo khung Danielson Miền 1 (Thang 1-4) cho 6 tiêu chí:
             1a: Áp dụng kiến thức chuyên môn và sư phạm
             1b: Thấu hiểu học sinh
