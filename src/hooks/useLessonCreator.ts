@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { LessonPlan, AppData, TemplateFile } from '../types';
-import { callAI, getActiveApiKey } from '../lib/aiProviders';
+import { callAI, callAIStream, getActiveApiKey } from '../lib/aiProviders';
 import { cleanMarkdownOutput } from '../utils/markdownUtils';
 import Swal from 'sweetalert2';
 
@@ -283,12 +283,13 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
           \`\`\`
           ===== HẾT YÊU CẦU ĐỊNH DẠNG =====
         `;
-        const result = await callAI(prompt, data.settings);
-        if (result) {
-          const finalContent = extractLessonContent(result);
-          setCurrentPlan(prev => ({ ...prev, content: cleanMarkdownOutput(finalContent) }));
-          showToast('Đã khởi tạo giáo án cấp độ Senior!');
-        }
+        let fullResult = '';
+        await callAIStream(prompt, data.settings, (chunk) => {
+          fullResult += chunk;
+          const currentExtracted = extractLessonContent(fullResult);
+          setCurrentPlan(prev => ({ ...prev, content: cleanMarkdownOutput(currentExtracted) }));
+        });
+        showToast('Đã khởi tạo giáo án cấp độ Senior!');
       } else {
         const distContent = activeDist?.content || distributionFile?.content;
         const plannerPrompt = `
