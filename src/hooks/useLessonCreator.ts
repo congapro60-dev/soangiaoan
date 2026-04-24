@@ -421,7 +421,7 @@ III. QUY TẮC LATEX — BẮT BUỘC cho MỌI biểu thức toán học:
             return null;
           });
 
-          setBulkProgress({ current: i, total: extractedLessons.length, currentTitle: \`Đang xử lý ${chunk.length} bài cùng lúc...\` });
+          setBulkProgress({ current: i, total: extractedLessons.length, currentTitle: `Đang xử lý ${chunk.length} bài cùng lúc...` });
           
           const results = await Promise.all(chunkPromises);
           if (cancelBulkRef.current) break;
