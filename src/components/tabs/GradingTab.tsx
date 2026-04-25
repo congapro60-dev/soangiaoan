@@ -42,6 +42,7 @@ export const GradingTab = ({
   // Grading config
   const [maxScore, setMaxScore] = useState(10);
   const [eta, setEta] = useState('');
+  const [gradingRubric, setGradingRubric] = useState('');
 
   // Shared UI state
   const [filterScore, setFilterScore] = useState<FilterScore>('all');
@@ -93,6 +94,7 @@ export const GradingTab = ({
     setStudentFiles([]);
     setResults([]);
     setSessionTitle('');
+    setGradingRubric('');
     setSessionSaved(false);
     setFilterScore('all');
   };
@@ -131,7 +133,7 @@ export const GradingTab = ({
       updated[idx] = { ...updated[idx], status: 'processing' };
       setResults([...updated]);
       try {
-        const graded = await gradingUtils.gradeSubmission(combined, studentFiles[i], data.settings, maxScore);
+        const graded = await gradingUtils.gradeSubmission(combined, studentFiles[i], data.settings, maxScore, gradingRubric);
         updated[idx] = { ...updated[idx], ...graded, status: graded.status || 'completed' } as GradingResult;
       } catch {
         updated[idx] = { ...updated[idx], status: 'error' };
@@ -165,6 +167,7 @@ export const GradingTab = ({
       id: `session-${Date.now()}`,
       title: sessionTitle || masterFiles[0]?.name.replace(/\.[^.]+$/, '') || `Phiên ${new Date().toLocaleDateString('vi-VN')}`,
       masterFiles: masterFiles.map(f => ({ ...f, content: '' })),
+      gradingRubric: gradingRubric || undefined,
       results: res,
       createdAt: new Date().toISOString(),
       userId: user?.uid,
@@ -285,6 +288,7 @@ export const GradingTab = ({
             isProcessing={isProcessing} sessionSaved={sessionSaved}
             filterScore={filterScore} setFilterScore={setFilterScore}
             data={data} setIsLoading={setIsLoading} showToast={showToast}
+            gradingRubric={gradingRubric} setGradingRubric={setGradingRubric}
             onStartGrading={handleStartGrading}
             onSaveSession={() => handleSaveSession(results)}
             onExportExcel={() => exportToExcel(results, sessionTitle)}

@@ -9,10 +9,14 @@ export const gradingUtils = {
   /**
    * Prompt chấm điểm — output JSON chuẩn bất kể provider nào
    */
-  getGradingPrompt: (masterContent: string, studentText?: string, targetMaxScore = 10): string => {
+  getGradingPrompt: (masterContent: string, studentText?: string, targetMaxScore = 10, gradingRubric?: string): string => {
     const studentSection = studentText
       ? `\nBÀI LÀM HỌC SINH (văn bản):\n---\n${studentText}\n---`
       : '\nBÀI LÀM HỌC SINH: [xem ảnh đính kèm]';
+
+    const rubricSection = gradingRubric?.trim()
+      ? `\nHƯỚNG DẪN CHẤM (giáo viên quy định — BẮT BUỘC tuân thủ tuyệt đối):\n---\n${gradingRubric.trim()}\n---\n`
+      : '';
 
     return `
 BẠN LÀ CHUYÊN GIA KHẢO THÍ VÀ GIÁO DỤC HỌC CAO CẤP.
@@ -22,10 +26,11 @@ NHIỆM VỤ: Chấm điểm bài làm của học sinh dựa trên tài liệu 
 ---
 ${masterContent}
 ---
-${studentSection}
+${rubricSection}${studentSection}
 
-BƯỚC 1 — KIỂM TRA ĐÁP ÁN:
-- Nếu tài liệu trên CÓ đáp án chuẩn rõ ràng: chấm điểm CHÍNH XÁC theo đáp án đó.
+BƯỚC 1 — KIỂM TRA ĐÁP ÁN & HƯỚNG DẪN CHẤM:
+- Nếu CÓ "HƯỚNG DẪN CHẤM" bên trên: ÁP DỤNG NGUYÊN VĂN các quy tắc tính điểm, thang điểm từng phần, quy tắc partial credit được nêu trong đó. KHÔNG được tự chế quy tắc khác.
+- Nếu tài liệu CÓ đáp án chuẩn rõ ràng: chấm điểm CHÍNH XÁC theo đáp án đó.
 - Nếu KHÔNG có đáp án chuẩn: tự giải đề rồi chấm, và ghi rõ "(Chấm theo đáp án tự suy luận — độ chính xác có thể thấp hơn)" vào đầu trường "details".
 
 BƯỚC 2 — QUY TẮC CHẤM:
@@ -71,7 +76,8 @@ THANG ĐIỂM: Tổng điểm tối đa là ${targetMaxScore} điểm. Quy đổ
     masterFile: TemplateFile,
     studentFile: TemplateFile,
     settings: Settings,
-    targetMaxScore = 10
+    targetMaxScore = 10,
+    gradingRubric?: string
   ): Promise<Partial<GradingResult>> => {
     const apiKey = getActiveApiKey(settings);
     if (!apiKey) throw new Error('Chưa nhập API Key cho provider đang chọn');
@@ -80,10 +86,10 @@ THANG ĐIỂM: Tổng điểm tối đa là ${targetMaxScore} điểm. Quy đổ
     let text: string;
 
     if (isImage) {
-      const prompt = gradingUtils.getGradingPrompt(masterFile.content, undefined, targetMaxScore);
+      const prompt = gradingUtils.getGradingPrompt(masterFile.content, undefined, targetMaxScore, gradingRubric);
       text = await callAIWithVision(prompt, studentFile.content, settings);
     } else {
-      const prompt = gradingUtils.getGradingPrompt(masterFile.content, studentFile.content, targetMaxScore);
+      const prompt = gradingUtils.getGradingPrompt(masterFile.content, studentFile.content, targetMaxScore, gradingRubric);
       text = await callAI(prompt, settings);
     }
 

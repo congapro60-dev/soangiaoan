@@ -66,6 +66,7 @@ export interface GradingSession {
   title: string;
   testFile?: TemplateFile | null; // deprecated — kept for backward compat
   masterFiles: TemplateFile[];
+  gradingRubric?: string; // Hướng dẫn chấm — quy tắc tính điểm, partial credit...
   results: GradingResult[];
   createdAt: string;
   userId?: string;
