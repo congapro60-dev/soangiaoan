@@ -39,6 +39,8 @@ interface Props {
   onDeleteResult: (r: GradingResult) => void;
   onRegradeResult: (r: GradingResult) => void;
   onRenameResult: (r: GradingResult, name: string) => void;
+  gradingRubric: string;
+  setGradingRubric: (v: string) => void;
 }
 
 export const GradingNewSession = ({
@@ -47,6 +49,7 @@ export const GradingNewSession = ({
   isProcessing, sessionSaved, filterScore, setFilterScore,
   data, setIsLoading, showToast,
   maxScore, setMaxScore, eta,
+  gradingRubric, setGradingRubric,
   onStartGrading, onSaveSession, onExportExcel, onViewResult, onDeleteResult, onRegradeResult, onRenameResult,
 }: Props) => {
   const masterRef = useRef<HTMLInputElement>(null);
@@ -200,6 +203,20 @@ export const GradingNewSession = ({
           </div>
           <input ref={studentRef} type="file" multiple accept=".pdf,.docx,.jpg,.jpeg,.png" className="hidden" onChange={handleStudentUpload} />
         </div>
+      </div>
+
+      {/* Grading rubric */}
+      <div className="flex-shrink-0">
+        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
+          Hướng dẫn chấm <span className="normal-case font-normal">(tuỳ chọn)</span>
+        </label>
+        <textarea
+          rows={3}
+          value={gradingRubric}
+          onChange={e => setGradingRubric(e.target.value)}
+          placeholder="VD: Câu 1 = 0.5đ, câu 2 = 1đ. Sai chính tả trừ 0.25đ/lỗi. Phần tự luận: đủ ý = 100%, thiếu 1 ý = 50%..."
+          className="w-full px-3 py-2 rounded-xl border border-slate-100 bg-white text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none resize-none placeholder:text-slate-300"
+        />
       </div>
 
       {/* Action bar */}
