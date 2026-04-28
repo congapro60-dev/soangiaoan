@@ -1,7 +1,7 @@
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, HeadingLevel, BorderStyle } from 'docx';
 import { marked, Token } from 'marked';
-import { saveAs } from 'file-saver';
 import { LessonPlan } from '../types';
+import { downloadBlob } from './fileUtils';
 
 export const exportToWordA4 = async (currentPlan: Partial<LessonPlan>, showToast: (msg: string, type?: any) => void) => {
   if (!currentPlan.content) return;
@@ -182,7 +182,7 @@ export const exportToWordA4 = async (currentPlan: Partial<LessonPlan>, showToast
     });
 
     const blob = await Packer.toBlob(doc);
-    saveAs(blob, `${currentPlan.title || 'giao-an'}_A4.docx`);
+    downloadBlob(blob, `${currentPlan.title || 'giao-an'}_A4.docx`);
     showToast('Đã tải xuống file Word chuẩn A4 thành công!', 'success');
   } catch (err) {
     console.error("Lỗi xuất Word A4:", err);
