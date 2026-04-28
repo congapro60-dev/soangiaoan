@@ -28,11 +28,36 @@ function buildForbiddenZones(
   scale: number
 ): Zone[] {
   const raw: Zone[] = [];
+
+  // Standard zones: each matched element must not be split
   selectors.forEach((sel) => {
     container.querySelectorAll<HTMLElement>(sel).forEach((el) => {
       const rect = el.getBoundingClientRect();
       const start = Math.floor((rect.top - containerTop) * scale);
       const end = Math.ceil((rect.bottom - containerTop) * scale);
+      if (end > start + 2) raw.push({ start, end });
+    });
+  });
+
+  // Orphan protection: for each heading in selectors, extend zone to include the next
+  // visible sibling. This prevents a heading being the last thing on a page with its
+  // table/paragraph pushed to the next page ("orphaned heading").
+  const headingSelectors = selectors.filter((s) => /^h[1-6]$/i.test(s));
+  headingSelectors.forEach((sel) => {
+    container.querySelectorAll<HTMLElement>(sel).forEach((el) => {
+      const rect = el.getBoundingClientRect();
+      const start = Math.floor((rect.top - containerTop) * scale);
+      let end = Math.ceil((rect.bottom - containerTop) * scale);
+      // Walk next siblings until we find one with visible height
+      let next = el.nextElementSibling as HTMLElement | null;
+      while (next) {
+        const nr = next.getBoundingClientRect();
+        if (nr.height > 0) {
+          end = Math.ceil((nr.bottom - containerTop) * scale);
+          break;
+        }
+        next = next.nextElementSibling as HTMLElement | null;
+      }
       if (end > start + 2) raw.push({ start, end });
     });
   });
@@ -99,9 +124,10 @@ function findBreakPoint(
       // Priority 3: Page is too empty AND stretch isn't viable — accept natural break
       return naturalBreak;
     } else {
-      // Zone started before current page (we're already inside it)
-      // Move break to end of zone if it's not too far
-      if (z.end - pageStart <= sliceHeightPx * 1.5) {
+      // Zone started before current page (we're already inside it — pushed here from prev break).
+      // Extend to z.end to avoid splitting a row mid-content.
+      // Allow up to 2x page height so tall multi-paragraph rows are not cut.
+      if (z.end - pageStart <= sliceHeightPx * 2.0) {
         return z.end;
       }
       return naturalBreak;
@@ -203,15 +229,14 @@ export const exportElementToPdf = async (
     }
   }
 
-  // Phase D: Đánh số trang chuẩn Nghị định 30/2020/NĐ-CP.
-  // Cỡ 13, căn giữa lề trên, không hiển thị ở trang đầu.
+  // Đánh số trang: cỡ 13, căn giữa, đặt ở chân trang (lề dưới), không hiện trang 1.
   const totalPages = pdf.getNumberOfPages();
   if (totalPages > 1) {
     pdf.setFont('times', 'normal');
     pdf.setFontSize(13);
     for (let i = 2; i <= totalPages; i++) {
       pdf.setPage(i);
-      pdf.text(String(i), pageWidth / 2, mTop / 2 + 3, { align: 'center' });
+      pdf.text(String(i), pageWidth / 2, pageHeight - mBottom / 2, { align: 'center' });
     }
   }
 
