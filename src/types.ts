@@ -68,6 +68,7 @@ export interface GradingSession {
   masterFiles: TemplateFile[];
   gradingRubric?: string; // Hướng dẫn chấm — quy tắc tính điểm, partial credit...
   results: GradingResult[];
+  warnings?: GradingWarning[];
   createdAt: string;
   userId?: string;
 }
@@ -139,6 +140,14 @@ export interface ParsedExamBundle {
   schoolName: string;
   parsedAt: string;
   questions: ExamQuestion[];
+}
+
+export interface GradingWarning {
+  level: 'error' | 'warning' | 'info';
+  studentId?: string;
+  questionId?: string;
+  message: string;
+  suggestion?: string;
 }
 
 export interface AppData {

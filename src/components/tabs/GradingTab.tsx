@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'motion/react';
 import * as XLSXLib from 'xlsx';
-import { AppData, TemplateFile, GradingResult, GradingSession } from '../../types';
+import { AppData, TemplateFile, GradingResult, GradingSession, GradingWarning } from '../../types';
 import { gradingUtils } from '../../utils/gradingUtils';
 import { getActiveApiKey } from '../../lib/aiProviders';
 import { User as FirebaseUser } from 'firebase/auth';
@@ -10,6 +10,8 @@ import { GradingNewSession } from '../features/grading/GradingNewSession';
 import { GradingViewSession } from '../features/grading/GradingViewSession';
 import { GradingResultDetail } from '../features/grading/GradingResultDetail';
 import { FilterScore } from '../features/grading/GradingResultsList';
+import { SmartGradingMode } from '../features/grading/SmartGradingMode';
+import { WarningPanel } from '../features/grading/WarningPanel';
 
 interface GradingTabProps {
   data: AppData;
@@ -30,6 +32,8 @@ export const GradingTab = ({
   // Panel state
   const [panelMode, setPanelMode] = useState<'new' | 'view'>('new');
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [gradingMode, setGradingMode] = useState<'normal' | 'smart'>('normal');
+  const [smartWarnings, setSmartWarnings] = useState<GradingWarning[]>([]);
 
   // New-session state
   const [masterFiles, setMasterFiles] = useState<TemplateFile[]>([]);
@@ -97,6 +101,7 @@ export const GradingTab = ({
     setGradingRubric('');
     setSessionSaved(false);
     setFilterScore('all');
+    setSmartWarnings([]);
   };
 
   const loadSession = (session: GradingSession) => {
@@ -160,6 +165,25 @@ export const GradingTab = ({
     showToast('Đã hoàn thành chấm điểm!');
     // Auto-save
     await handleSaveSession(updated);
+  };
+
+  const handleSmartGradingComplete = async (
+    res: GradingResult[],
+    warnings: GradingWarning[],
+    title: string
+  ) => {
+    setSmartWarnings(warnings);
+    setResults(res);
+    setSessionTitle(title);
+    setSessionSaved(false);
+    const errorCount = warnings.filter(w => w.level === 'error').length;
+    const warnCount = warnings.filter(w => w.level === 'warning').length;
+    if (errorCount > 0) {
+      showToast(`Đã chấm ${res.length} bài — ${errorCount} lỗi cần xử lý`, 'warning');
+    } else {
+      showToast(`Đã chấm xong ${res.length} bài${warnCount > 0 ? ` — ${warnCount} lưu ý` : ''}`, 'success');
+    }
+    if (res.length > 0) await handleSaveSession(res);
   };
 
   const handleSaveSession = async (res: GradingResult[]) => {
@@ -279,24 +303,56 @@ export const GradingTab = ({
       {/* RIGHT: main panel */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {panelMode === 'new' ? (
-          <GradingNewSession
-            masterFiles={masterFiles} setMasterFiles={setMasterFiles}
-            studentFiles={studentFiles} setStudentFiles={setStudentFiles}
-            results={results} setResults={setResults}
-            sessionTitle={sessionTitle} setSessionTitle={setSessionTitle}
-            maxScore={maxScore} setMaxScore={setMaxScore} eta={eta}
-            isProcessing={isProcessing} sessionSaved={sessionSaved}
-            filterScore={filterScore} setFilterScore={setFilterScore}
-            data={data} setIsLoading={setIsLoading} showToast={showToast}
-            gradingRubric={gradingRubric} setGradingRubric={setGradingRubric}
-            onStartGrading={handleStartGrading}
-            onSaveSession={() => handleSaveSession(results)}
-            onExportExcel={() => exportToExcel(results, sessionTitle)}
-            onViewResult={setViewingResult}
-            onDeleteResult={handleDeleteResult}
-            onRegradeResult={handleRegrade}
-            onRenameResult={handleRename}
-          />
+          <div className="flex flex-col gap-3 h-full overflow-hidden">
+            {/* Mode toggle */}
+            <div className="flex gap-2 flex-shrink-0">
+              {(['normal', 'smart'] as const).map(mode => (
+                <button
+                  key={mode}
+                  onClick={() => { setGradingMode(mode); setSmartWarnings([]); }}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-2xl text-sm font-bold transition-all ${
+                    gradingMode === mode
+                      ? 'bg-slate-900 text-white shadow-lg shadow-slate-200'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {mode === 'normal' ? '📝 Chấm thường' : '⚡ Chấm thông minh'}
+                </button>
+              ))}
+            </div>
+
+            {gradingMode === 'normal' ? (
+              <GradingNewSession
+                masterFiles={masterFiles} setMasterFiles={setMasterFiles}
+                studentFiles={studentFiles} setStudentFiles={setStudentFiles}
+                results={results} setResults={setResults}
+                sessionTitle={sessionTitle} setSessionTitle={setSessionTitle}
+                maxScore={maxScore} setMaxScore={setMaxScore} eta={eta}
+                isProcessing={isProcessing} sessionSaved={sessionSaved}
+                filterScore={filterScore} setFilterScore={setFilterScore}
+                data={data} setIsLoading={setIsLoading} showToast={showToast}
+                gradingRubric={gradingRubric} setGradingRubric={setGradingRubric}
+                onStartGrading={handleStartGrading}
+                onSaveSession={() => handleSaveSession(results)}
+                onExportExcel={() => exportToExcel(results, sessionTitle)}
+                onViewResult={setViewingResult}
+                onDeleteResult={handleDeleteResult}
+                onRegradeResult={handleRegrade}
+                onRenameResult={handleRename}
+              />
+            ) : (
+              <div className="flex flex-col gap-3 overflow-y-auto">
+                <SmartGradingMode
+                  data={data}
+                  isProcessing={isProcessing}
+                  setIsProcessing={setIsProcessing}
+                  showToast={showToast}
+                  onGradingComplete={handleSmartGradingComplete}
+                />
+                <WarningPanel warnings={smartWarnings} />
+              </div>
+            )}
+          </div>
         ) : selectedSession ? (
           <GradingViewSession
             session={selectedSession}
