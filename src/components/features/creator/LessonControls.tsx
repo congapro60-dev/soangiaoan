@@ -4,8 +4,8 @@ import { AppData, LessonPlan, TemplateFile } from '../../../types';
 interface LessonControlsProps {
   generationMode: 'single' | 'bulk';
   setGenerationMode: (mode: 'single' | 'bulk') => void;
-  builtinFormat: 'default' | 'cv5512';
-  setBuiltinFormat: (f: 'default' | 'cv5512') => void;
+  builtinFormat: 'default' | 'cv5512' | 'claude';
+  setBuiltinFormat: (f: 'default' | 'cv5512' | 'claude') => void;
   currentPlan: Partial<LessonPlan>;
   setCurrentPlan: React.Dispatch<React.SetStateAction<Partial<LessonPlan>>>;
   data: AppData;
@@ -94,9 +94,10 @@ export const LessonControls = ({
 
           <div className="space-y-1.5">
             <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Định dạng giáo án</label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {([
                 { value: 'default', label: 'Mặc định', sub: 'Toán chuẩn / AI tự chọn' },
+                { value: 'claude', label: 'Mẫu Claude', sub: 'WALT/WILF · Phân hóa 🌶️🌶️🌶️' },
                 { value: 'cv5512', label: 'Công văn 5512', sub: 'Chuẩn Bộ GD&ĐT 2020' },
               ] as const).map(opt => (
                 <button
