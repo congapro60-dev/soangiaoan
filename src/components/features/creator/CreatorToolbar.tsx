@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FileDown, FileText, Presentation, FileSpreadsheet, BookOpen, Headphones, ChevronDown } from 'lucide-react';
 
 interface CreatorToolbarProps {
@@ -21,34 +21,47 @@ export const CreatorToolbar = ({
   setShowAudioOverview
 }: CreatorToolbarProps) => {
   const [showWordMenu, setShowWordMenu] = useState(false);
+  const wordMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showWordMenu) return;
+    const handleOutside = (e: MouseEvent) => {
+      if (wordMenuRef.current && !wordMenuRef.current.contains(e.target as Node)) {
+        setShowWordMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutside);
+    return () => document.removeEventListener('mousedown', handleOutside);
+  }, [showWordMenu]);
 
   return (
     <div className="flex gap-2">
       <button onClick={exportToPDF} className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm" title="Xuất PDF">
         <FileDown className="w-5 h-5" />
       </button>
-      
-      <div className="relative">
-        <button 
-          onClick={() => setShowWordMenu(!showWordMenu)} 
-          onBlur={() => setTimeout(() => setShowWordMenu(false), 200)}
-          className="flex items-center gap-1 p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm" 
+
+      <div className="relative" ref={wordMenuRef}>
+        <button
+          onClick={() => setShowWordMenu(v => !v)}
+          className="flex items-center gap-1 p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm"
           title="Tùy chọn xuất Word"
         >
           <FileText className="w-5 h-5" />
           <ChevronDown className="w-3 h-3" />
         </button>
-        
+
         {showWordMenu && (
           <div className="absolute top-full left-0 mt-1 w-56 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50">
-            <button 
-              onClick={() => { exportToWord(); setShowWordMenu(false); }}
+            <button
+              type="button"
+              onClick={() => { setShowWordMenu(false); exportToWord(); }}
               className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600"
             >
               Dạng thông thường (Có Toán)
             </button>
-            <button 
-              onClick={() => { exportToWordA4(); setShowWordMenu(false); }}
+            <button
+              type="button"
+              onClick={() => { setShowWordMenu(false); exportToWordA4(); }}
               className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600"
             >
               Chuẩn A4 (Bảng không vỡ - Mới)
@@ -63,9 +76,9 @@ export const CreatorToolbar = ({
       <button onClick={exportToLaTeX} className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-emerald-600 hover:border-emerald-200 transition-all shadow-sm" title="Xuất LaTeX">
         <FileSpreadsheet className="w-5 h-5" />
       </button>
-      
+
       <div className="w-[1px] h-8 bg-slate-200 mx-1"></div>
-      
+
       <button onClick={handleGenerateStudyGuide} className="p-2.5 bg-indigo-50 border border-indigo-100 rounded-xl text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shadow-sm" title="Tạo Hướng dẫn ôn tập (Study Guide)">
         <BookOpen className="w-5 h-5" />
       </button>
