@@ -72,6 +72,56 @@ THANG ĐIỂM: Tổng điểm tối đa là ${targetMaxScore} điểm. Quy đổ
    * Chấm điểm một bài — tự động route tới provider đang chọn
    * Ảnh → callAIWithVision, văn bản → callAI
    */
+  analyzeClass: async (
+    results: GradingResult[],
+    settings: Settings,
+    sessionTitle: string
+  ): Promise<string> => {
+    const apiKey = getActiveApiKey(settings);
+    if (!apiKey) throw new Error('Chưa nhập API Key cho provider đang chọn');
+
+    const done = results.filter(r => r.status === 'completed');
+    if (done.length === 0) throw new Error('Chưa có bài nào được chấm xong');
+
+    const avg = (done.reduce((a, r) => a + r.score, 0) / done.length).toFixed(2);
+    const gioi = done.filter(r => r.score >= 8).length;
+    const kha = done.filter(r => r.score >= 6.5 && r.score < 8).length;
+    const tb = done.filter(r => r.score >= 5 && r.score < 6.5).length;
+    const yeu = done.filter(r => r.score < 5).length;
+
+    const summaries = done.map(r =>
+      [`**${r.studentName}**: ${r.score}/${r.maxScore}`, ...(r.weaknesses?.slice(0, 2) || [])].join(' — ')
+    ).join('\n');
+
+    const prompt = `Bạn là chuyên gia giáo dục. Phân tích kết quả bài kiểm tra của cả lớp và đưa ra báo cáo tổng hợp.
+
+**Bài kiểm tra:** ${sessionTitle || 'Không rõ tên'}
+**Tổng số học sinh đã chấm:** ${done.length}
+**Điểm trung bình:** ${avg}
+**Phân loại:** Giỏi (≥8): ${gioi} | Khá (6.5-7.9): ${kha} | TB (5-6.4): ${tb} | Yếu (<5): ${yeu}
+
+**Kết quả từng học sinh:**
+${summaries}
+
+Viết báo cáo phân tích theo cấu trúc Markdown (đầy đủ, không bỏ phần nào):
+
+## 📊 Tổng quan kết quả
+(Bảng điểm trung bình + phân loại Giỏi/Khá/TB/Yếu với số lượng và phần trăm)
+
+## ⚠️ Điểm yếu phổ biến nhất
+(Top 3 lỗi hoặc kiến thức nhiều học sinh mắc phải — phân tích cụ thể)
+
+## 💡 Đề xuất cho giáo viên
+(Khuyến nghị cụ thể: nên ôn lại chủ đề gì, cách khắc phục lỗi phổ biến)
+
+## 📋 Học sinh cần chú ý thêm
+(Liệt kê các em điểm yếu — nếu có, kèm lý do ngắn gọn)`;
+
+    const text = await callAI(prompt, settings);
+    if (!text) throw new Error('AI trả về phản hồi rỗng');
+    return text;
+  },
+
   gradeSubmission: async (
     masterFile: TemplateFile,
     studentFile: TemplateFile,

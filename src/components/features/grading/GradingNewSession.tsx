@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { CheckCircle2, Upload, Users, Loader2, ClipboardCheck, Download, Plus, X, FileDown } from 'lucide-react';
+import { CheckCircle2, Upload, Users, Loader2, ClipboardCheck, Download, Plus, X, FileDown, BarChart3 } from 'lucide-react';
 import { AppData, TemplateFile, GradingResult } from '../../../types';
 import { processUploadedFile } from '../../../utils/fileUtils';
 import { GradingResultsList, FilterScore } from './GradingResultsList';
@@ -35,6 +35,7 @@ interface Props {
   onStartGrading: () => void;
   onSaveSession: () => void;
   onExportExcel: () => void;
+  onAnalyzeClass: () => void;
   onViewResult: (r: GradingResult) => void;
   onDeleteResult: (r: GradingResult) => void;
   onRegradeResult: (r: GradingResult) => void;
@@ -50,7 +51,7 @@ export const GradingNewSession = ({
   data, setIsLoading, showToast,
   maxScore, setMaxScore, eta,
   gradingRubric, setGradingRubric,
-  onStartGrading, onSaveSession, onExportExcel, onViewResult, onDeleteResult, onRegradeResult, onRenameResult,
+  onStartGrading, onSaveSession, onExportExcel, onAnalyzeClass, onViewResult, onDeleteResult, onRegradeResult, onRenameResult,
 }: Props) => {
   const masterRef = useRef<HTMLInputElement>(null);
   const studentRef = useRef<HTMLInputElement>(null);
@@ -233,6 +234,12 @@ export const GradingNewSession = ({
               className="px-4 py-2.5 bg-emerald-600 text-white rounded-2xl font-bold text-sm hover:bg-emerald-700 transition-all flex items-center gap-2">
               <Download className="w-4 h-4" /> Excel
             </button>
+            {results.filter(r => r.status === 'completed').length > 0 && (
+              <button onClick={onAnalyzeClass}
+                className="px-4 py-2.5 bg-violet-600 text-white rounded-2xl font-bold text-sm hover:bg-violet-700 transition-all flex items-center gap-2">
+                <BarChart3 className="w-4 h-4" /> Phân tích lớp
+              </button>
+            )}
             {!sessionSaved && (
               <button onClick={onSaveSession}
                 className="px-4 py-2.5 bg-blue-100 text-blue-700 rounded-2xl font-bold text-sm hover:bg-blue-200 transition-all">

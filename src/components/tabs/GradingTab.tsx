@@ -12,6 +12,7 @@ import { GradingResultDetail } from '../features/grading/GradingResultDetail';
 import { FilterScore } from '../features/grading/GradingResultsList';
 import { SmartGradingMode } from '../features/grading/SmartGradingMode';
 import { WarningPanel } from '../features/grading/WarningPanel';
+import { ClassAnalysisModal } from '../features/grading/ClassAnalysisModal';
 
 interface GradingTabProps {
   data: AppData;
@@ -51,6 +52,11 @@ export const GradingTab = ({
   // Shared UI state
   const [filterScore, setFilterScore] = useState<FilterScore>('all');
   const [viewingResult, setViewingResult] = useState<GradingResult | null>(null);
+
+  // Class analysis state
+  const [classAnalysisOpen, setClassAnalysisOpen] = useState(false);
+  const [classAnalysisLoading, setClassAnalysisLoading] = useState(false);
+  const [classAnalysisContent, setClassAnalysisContent] = useState('');
 
   const sessions = data.gradingSessions || [];
   const selectedSession = useMemo(
@@ -282,6 +288,24 @@ export const GradingTab = ({
     }
   };
 
+  const handleAnalyzeClass = async (res: GradingResult[], title: string) => {
+    if (!getActiveApiKey(data.settings)) {
+      showToast('Cần nhập API Key trong Cài đặt', 'error');
+      return;
+    }
+    setClassAnalysisOpen(true);
+    setClassAnalysisLoading(true);
+    setClassAnalysisContent('');
+    try {
+      const analysis = await gradingUtils.analyzeClass(res, data.settings, title);
+      setClassAnalysisContent(analysis);
+    } catch (err: any) {
+      setClassAnalysisContent(`*Lỗi phân tích: ${err?.message || 'Không rõ nguyên nhân'}*`);
+    } finally {
+      setClassAnalysisLoading(false);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -335,6 +359,7 @@ export const GradingTab = ({
                 onStartGrading={handleStartGrading}
                 onSaveSession={() => handleSaveSession(results)}
                 onExportExcel={() => exportToExcel(results, sessionTitle)}
+                onAnalyzeClass={() => handleAnalyzeClass(results, sessionTitle)}
                 onViewResult={setViewingResult}
                 onDeleteResult={handleDeleteResult}
                 onRegradeResult={handleRegrade}
@@ -360,6 +385,7 @@ export const GradingTab = ({
             onBack={startNewSession}
             onDelete={() => handleDeleteSession(selectedSession.id)}
             onExportExcel={() => exportToExcel(selectedSession.results, selectedSession.title)}
+            onAnalyzeClass={() => handleAnalyzeClass(selectedSession.results, selectedSession.title)}
             onViewResult={setViewingResult}
             onDeleteResult={handleDeleteResult}
             onRenameResult={handleRename}
@@ -369,6 +395,15 @@ export const GradingTab = ({
 
       {/* Detail modal */}
       <GradingResultDetail result={viewingResult} onClose={() => setViewingResult(null)} />
+
+      {/* Class analysis modal */}
+      <ClassAnalysisModal
+        isOpen={classAnalysisOpen}
+        isLoading={classAnalysisLoading}
+        content={classAnalysisContent}
+        sessionTitle={sessionTitle || selectedSession?.title || ''}
+        onClose={() => setClassAnalysisOpen(false)}
+      />
     </motion.div>
   );
 };

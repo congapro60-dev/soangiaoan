@@ -1,4 +1,4 @@
-import { ChevronLeft, Download, Trash2 } from 'lucide-react';
+import { ChevronLeft, Download, Trash2, BarChart3 } from 'lucide-react';
 import { GradingResult, GradingSession } from '../../../types';
 import { GradingResultsList, FilterScore } from './GradingResultsList';
 import { GradingWeaknessPanel } from './GradingWeaknessPanel';
@@ -10,6 +10,7 @@ interface Props {
   onBack: () => void;
   onDelete: () => void;
   onExportExcel: () => void;
+  onAnalyzeClass: () => void;
   onViewResult: (r: GradingResult) => void;
   onDeleteResult: (r: GradingResult) => void;
   onRenameResult?: (r: GradingResult, name: string) => void;
@@ -17,7 +18,7 @@ interface Props {
 
 export const GradingViewSession = ({
   session, filterScore, setFilterScore,
-  onBack, onDelete, onExportExcel, onViewResult, onDeleteResult, onRenameResult,
+  onBack, onDelete, onExportExcel, onAnalyzeClass, onViewResult, onDeleteResult, onRenameResult,
 }: Props) => {
   const done = session.results.filter(r => r.status === 'completed');
   const avg = done.length
@@ -67,6 +68,12 @@ export const GradingViewSession = ({
             className="px-4 py-2 bg-emerald-600 text-white rounded-2xl font-bold text-xs hover:bg-emerald-700 transition-all flex items-center gap-1.5"
           >
             <Download className="w-3.5 h-3.5" /> Excel
+          </button>
+          <button
+            onClick={onAnalyzeClass}
+            className="px-4 py-2 bg-violet-600 text-white rounded-2xl font-bold text-xs hover:bg-violet-700 transition-all flex items-center gap-1.5"
+          >
+            <BarChart3 className="w-3.5 h-3.5" /> Phân tích lớp
           </button>
           <button
             onClick={onDelete}
