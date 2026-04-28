@@ -209,7 +209,7 @@ export const GradingTab = ({
         content: masterFiles.map(f => `=== ${f.name} ===\n${f.content}`).join('\n\n'),
         category: 'test',
       };
-      const graded = await gradingUtils.gradeSubmission(combined, studentFile, data.settings, maxScore);
+      const graded = await gradingUtils.gradeSubmission(combined, studentFile, data.settings, maxScore, gradingRubric);
       setResults(prev => prev.map(r =>
         r.id === result.id ? { ...r, ...graded, status: 'completed' } as GradingResult : r
       ));
