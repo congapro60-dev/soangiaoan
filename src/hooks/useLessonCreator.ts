@@ -239,9 +239,12 @@ BẮT BUỘC có **3 BÀI TẬP** tương ứng 3 mức 🌶️ trong WILF:
 
 | Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
 |---|---|---|
-| **🌶️ Bài 1 (Cơ bản — [X] phút):** <br/> "[Đề bài cụ thể]" <br/><br/> **GV:** "[Hướng dẫn tiếp cận]" | **HS:** [Lời giải từng bước] | **Bài 1:** [Đáp án rút gọn] ✅ |
-| **🌶️🌶️ Bài 2 (Nâng cao — [X] phút):** <br/> "[Đề bài cụ thể]" <br/><br/> **GV:** "[Gợi ý chiến lược]" | **HS:** [Lời giải có biện luận] | **Bài 2:** [Đáp án + chú thích] ✅ |
-| **🌶️🌶️🌶️ Bài 3 (Thách thức — [X] phút, cho HS khá/giỏi):** <br/> "[Đề bài chứng minh / mở rộng]" <br/><br/> **GV:** "[Gợi ý cao]" | **HS:** [Chứng minh đầy đủ] | **Bài 3:** [Lời giải hoàn chỉnh] ∎ |
+| **🌶️ Bài 1 (Cơ bản — [X] phút):** "[Đề bài cụ thể]" | **HS:** [Tự làm] | **Bài 1:** [Đáp án rút gọn] ✅ |
+| **GV:** "[Hướng dẫn tiếp cận nếu HS lúng túng]" | **HS:** [Lời giải từng bước] | |
+| **🌶️🌶️ Bài 2 (Nâng cao — [X] phút):** "[Đề bài cụ thể]" | **HS:** [Tự làm] | **Bài 2:** [Đáp án + chú thích] ✅ |
+| **GV:** "[Gợi ý chiến lược]" | **HS:** [Lời giải có biện luận] | |
+| **🌶️🌶️🌶️ Bài 3 (Thách thức — [X] phút):** "[Đề bài chứng minh / mở rộng]" | **HS:** [Tự làm] | **Bài 3:** [Lời giải hoàn chỉnh] ∎ |
+| **GV:** "[Gợi ý cao — chỉ khi cần]" | **HS:** [Chứng minh đầy đủ] | |
 
 ---
 
@@ -342,7 +345,7 @@ II. ĐỊNH DẠNG BẢNG 3 CỘT — BẮT BUỘC cho TẤT CẢ hoạt động
    | ... | ... | ... |
 
    LƯU Ý: "Nội dung ghi bảng" là những nội dung trọng tâm mà Giáo viên sẽ ghi lên bảng để Học sinh ghi chép vào vở. KHÔNG được để trống cột này.
-   LƯU Ý CĂNG HÀNG: Mỗi lượt trao đổi GV↔HS = 1 hàng riêng biệt. TUYỆT ĐỐI KHÔNG dùng <br/><br/> để gộp nhiều lượt vào 1 hàng.
+   LƯU Ý CĂN HÀNG: Mỗi lượt trao đổi GV↔HS = 1 hàng riêng biệt. TUYỆT ĐỐI KHÔNG dùng <br/><br/> để gộp nhiều lượt vào 1 hàng.
 
 III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
    - Công thức trên cùng dòng văn bản: dùng $...$ (ví dụ: $f(x) = x^2 + 1$)
