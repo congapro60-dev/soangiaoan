@@ -4,48 +4,129 @@ import { downloadBlob } from './fileUtils';
 import { callAI, getActiveApiKey } from '../lib/aiProviders';
 
 export const exportToPDF = async (currentPlan: Partial<LessonPlan>, showToast: (msg: string, type?: any) => void) => {
-  const element = document.getElementById('lesson-content');
-  if (!element) return;
+  const original = document.getElementById('lesson-content');
+  if (!original) return;
 
   showToast('Đang tạo PDF, vui lòng chờ...');
+
+  // Clone content into an offscreen container with EXACT A4 usable width (186mm @ 96dpi = 703px).
+  // This way html2canvas captures at the same width that jsPDF will place on the page,
+  // so 14pt in DOM renders as 14pt in PDF (no shrinking).
+  const clone = original.cloneNode(true) as HTMLElement;
+  // Remove the floating "Chỉnh sửa" toggle button that lives inside #lesson-content
+  clone.querySelectorAll('button').forEach((b) => b.remove());
+
+  const container = document.createElement('div');
+  container.id = 'pdf-render-container';
+  container.style.cssText = [
+    'position: fixed',
+    'top: 0',
+    'left: -10000px',
+    'width: 703px',
+    'background: #ffffff',
+    'padding: 0',
+    'margin: 0',
+    'z-index: -1',
+    'box-sizing: border-box',
+  ].join(';');
+  container.appendChild(clone);
 
   const style = document.createElement('style');
   style.id = 'pdf-print-style';
   style.innerHTML = `
-    #lesson-content * { font-family: 'Times New Roman', Times, serif !important; font-size: 12pt !important; line-height: 1.5 !important; }
-    #lesson-content h1 { font-size: 16pt !important; }
-    #lesson-content h2 { font-size: 14pt !important; }
-    #lesson-content h3 { font-size: 13pt !important; }
-    #lesson-content table {
+    #pdf-render-container, #pdf-render-container * {
+      font-family: 'Times New Roman', Times, serif !important;
+      color: #000 !important;
+      box-sizing: border-box;
+    }
+    #pdf-render-container { font-size: 14pt !important; line-height: 1.55 !important; }
+    #pdf-render-container h1 {
+      font-size: 20pt !important; font-weight: bold !important;
+      text-align: center !important; margin: 14pt 0 10pt !important;
+    }
+    #pdf-render-container h2 {
+      font-size: 16pt !important; font-weight: bold !important;
+      margin: 12pt 0 6pt !important; color: #1a365d !important;
+    }
+    #pdf-render-container h3 {
+      font-size: 14pt !important; font-weight: bold !important;
+      margin: 10pt 0 5pt !important;
+    }
+    #pdf-render-container h4, #pdf-render-container h5, #pdf-render-container h6 {
+      font-size: 14pt !important; font-weight: bold !important;
+      margin: 8pt 0 4pt !important;
+    }
+    #pdf-render-container p {
+      font-size: 14pt !important; margin: 6pt 0 !important;
+      text-align: justify !important;
+    }
+    #pdf-render-container ul, #pdf-render-container ol {
+      margin: 6pt 0 6pt 22pt !important; padding: 0 !important;
+    }
+    #pdf-render-container li { font-size: 14pt !important; margin: 3pt 0 !important; }
+    #pdf-render-container strong { font-weight: bold !important; }
+    #pdf-render-container em { font-style: italic !important; }
+    #pdf-render-container table {
       border-collapse: collapse !important;
       width: 100% !important;
       table-layout: fixed !important;
+      margin: 8pt 0 !important;
+      page-break-inside: avoid;
     }
-    #lesson-content table th,
-    #lesson-content table td {
+    #pdf-render-container table th,
+    #pdf-render-container table td {
+      border: 1px solid #555 !important;
+      padding: 7pt 9pt !important;
+      vertical-align: top !important;
+      text-align: left !important;
+      font-size: 13pt !important;
+      line-height: 1.5 !important;
       word-wrap: break-word !important;
       overflow-wrap: break-word !important;
-      vertical-align: top !important;
-      padding: 6px 8px !important;
     }
-    #lesson-content table th, #lesson-content table td { width: 33.33% !important; }
-    .katex { padding: 4px 0 !important; display: inline-block !important; }
-    .katex-display { margin: 8px 0 !important; }
+    #pdf-render-container table th {
+      background: #e2e8f0 !important; font-weight: bold !important;
+    }
+    #pdf-render-container blockquote {
+      border-left: 3px solid #94a3b8 !important;
+      padding-left: 12pt !important; margin: 8pt 0 !important;
+      font-style: italic !important;
+    }
+    #pdf-render-container code {
+      font-family: 'Courier New', monospace !important;
+      background: #f1f5f9 !important;
+      padding: 1pt 4pt !important;
+      border-radius: 3px;
+      font-size: 13pt !important;
+    }
+    #pdf-render-container pre {
+      background: #f8fafc !important;
+      padding: 8pt !important;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 12pt !important;
+      line-height: 1.45 !important;
+    }
+    #pdf-render-container .katex { font-size: 1em !important; padding: 2pt 0 !important; }
+    #pdf-render-container .katex-display { margin: 6pt 0 !important; }
   `;
   document.head.appendChild(style);
+  document.body.appendChild(container);
 
   try {
     const { exportElementToPdf } = await import('./pdfExport');
-    await exportElementToPdf(element, {
+    await exportElementToPdf(container, {
       filename: `${currentPlan.title || 'giao-an'}.pdf`,
+      scale: 2, // higher resolution for crisp text
+      marginMm: [15, 12, 15, 12],
     });
     showToast('Đã tải xuống file PDF!', 'success');
   } catch (e) {
     console.error(e);
     showToast('Lỗi khi xuất PDF, vui lòng thử lại.', 'error');
   } finally {
-    const injected = document.getElementById('pdf-print-style');
-    if (injected) injected.remove();
+    if (style.parentNode) style.remove();
+    if (container.parentNode) container.remove();
   }
 };
 
