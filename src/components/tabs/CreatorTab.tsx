@@ -4,6 +4,7 @@ import { FileText, Save, MessageSquare, Monitor, Layers, Loader2, Sparkles, X, B
 import ReactMarkdown from 'react-markdown';
 import { AppData, LessonPlan, TemplateFile } from '../../types';
 import * as exportUtils from '../../utils/exportUtils';
+import { exportToWordA4 } from '../../utils/wordExportA4';
 import { callAI, getActiveApiKey } from '../../lib/aiProviders';
 import { AudioOverview } from '../features/AudioOverview';
 
@@ -207,6 +208,7 @@ export const CreatorTab = (props: CreatorTabProps) => {
                        <CreatorToolbar 
                           exportToPDF={props.exportToPDF}
                           exportToWord={props.exportToWord}
+                          exportToWordA4={() => exportToWordA4(props.currentPlan, props.showToast)}
                           handleGenerateSlide={handleGenerateSlide}
                           exportToLaTeX={props.exportToLaTeX}
                           handleGenerateStudyGuide={handleGenerateStudyGuide}
