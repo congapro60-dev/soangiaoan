@@ -106,17 +106,32 @@ export const exportToWordA4 = async (currentPlan: Partial<LessonPlan>, showToast
                      }
 
                      const cellParagraphs: Paragraph[] = [];
-                     const textContent = td.text || "";
                      
-                     // Bẻ dòng thủ công cho thẻ <br/> trong markdown
-                     const lines = textContent.split(/<br\s*\/?>/ig);
-                     lines.forEach((line: string) => {
-                        if (line.trim()) {
+                     // Use td.tokens (parsed by marked) for clean text with formatting
+                     if (td.tokens && td.tokens.length > 0) {
+                       td.tokens.forEach((inlineToken: any) => {
+                         if (inlineToken.type === 'br') {
+                           // <br/> tags create paragraph breaks inside cell
+                           return;
+                         }
+                         // Recursively extract text runs from inline tokens
+                         const runs = processInlineTokens(inlineToken.tokens || [{ type: 'text', text: inlineToken.text || inlineToken.raw || '' }]);
+                         if (runs.length > 0) {
+                           cellParagraphs.push(new Paragraph({ children: runs }));
+                         }
+                       });
+                     } else {
+                       // Fallback: use raw text, split by <br/> tags
+                       const textContent = td.text || "";
+                       const lines = textContent.split(/<br\s*\/?>/ig);
+                       lines.forEach((line: string) => {
+                         if (line.trim()) {
                            cellParagraphs.push(new Paragraph({
-                               children: [new TextRun({ text: line.trim().replaceAll('\\|', '|').replaceAll('\\\\', '\\'), size: 28, font: "Times New Roman" })]
+                             children: [new TextRun({ text: line.trim(), size: 28, font: "Times New Roman" })]
                            }));
-                        }
-                     });
+                         }
+                       });
+                     }
                      
                      if (cellParagraphs.length === 0) {
                          cellParagraphs.push(new Paragraph({ children: [] }));
