@@ -113,7 +113,7 @@ export const exportToWordA4 = async (currentPlan: Partial<LessonPlan>, showToast
                      lines.forEach((line: string) => {
                         if (line.trim()) {
                            cellParagraphs.push(new Paragraph({
-                               children: [new TextRun({ text: line.trim().replace(/\\|/g, '|').replace(/\\\\/g, '\\'), size: 28, font: "Times New Roman" })]
+                               children: [new TextRun({ text: line.trim().replaceAll('\\|', '|').replaceAll('\\\\', '\\'), size: 28, font: "Times New Roman" })]
                            }));
                         }
                      });
