@@ -128,6 +128,19 @@ export interface ExamSubmission {
   tabSwitches?: number;
 }
 
+export type GradeLevel = 'cap2' | 'lop1011' | 'lop12';
+
+export interface ParsedExamBundle {
+  id: string;
+  title: string;
+  gradeLevel: GradeLevel;
+  subject?: string;
+  durationMinutes: number;
+  schoolName: string;
+  parsedAt: string;
+  questions: ExamQuestion[];
+}
+
 export interface AppData {
   subjects: Subject[];
   lessonPlans: LessonPlan[];
