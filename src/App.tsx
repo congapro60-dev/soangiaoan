@@ -193,8 +193,7 @@ export default function App() {
                 setUploadingFiles={setUploadingFiles} showToast={showToast}
                 saveLessonPlan={saveLessonPlan} saveBulkPlans={saveBulkPlans}
                 deleteDistribution={deleteDistribution}
-                exportToPDF={() => exportUtils.exportToPDF(creator.currentPlan, showToast)}
-                exportToWord={() => exportUtils.exportToWord(creator.currentPlan, showToast)}
+                exportToPDF={(orientation) => exportUtils.exportToPDF(creator.currentPlan, showToast, orientation)}
                 exportToLaTeX={() => exportUtils.exportToLaTeX(creator.currentPlan, data, setIsLoading, setIsSettingsOpen, showToast, setLatexContent, setIsLatexModalOpen)}
               />
             )}

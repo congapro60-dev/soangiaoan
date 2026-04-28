@@ -10,6 +10,7 @@ import {
   HeadingLevel,
   BorderStyle,
   AlignmentType,
+  PageOrientation,
 } from 'docx';
 import { marked, Token, Tokens } from 'marked';
 import { LessonPlan } from '../types';
@@ -296,9 +297,12 @@ const processTokens = (tokens: Token[], context: any[]) => {
   }
 };
 
+export type WordOrientation = 'portrait' | 'landscape';
+
 export const exportToWordA4 = async (
   currentPlan: Partial<LessonPlan>,
-  showToast: (msg: string, type?: any) => void
+  showToast: (msg: string, type?: any) => void,
+  orientation: WordOrientation = 'portrait'
 ) => {
   if (!currentPlan.content) {
     showToast('Không có nội dung giáo án để xuất', 'warning');
@@ -331,6 +335,10 @@ export const exportToWordA4 = async (
 
     processTokens(tokens, docElements);
 
+    // Lề chuẩn Nghị định 30/2020/NĐ-CP (twips, 1cm = 567 twips):
+    // Trên 20mm = 1134, dưới 20mm = 1134, trái 30mm = 1701, phải 18mm = 1021.
+    // A4 dọc: 11906 x 16838 twips. Ngang: swap.
+    const isLandscape = orientation === 'landscape';
     const doc = new Document({
       creator: 'SmartPlan AI',
       title: currentPlan.title || 'Giao an',
@@ -346,7 +354,10 @@ export const exportToWordA4 = async (
         {
           properties: {
             page: {
-              margin: { top: 1134, right: 1134, bottom: 1134, left: 1134 }, // 2cm margins on A4
+              size: isLandscape
+                ? { width: 16838, height: 11906, orientation: PageOrientation.LANDSCAPE }
+                : { width: 11906, height: 16838, orientation: PageOrientation.PORTRAIT },
+              margin: { top: 1134, right: 1021, bottom: 1134, left: 1701 },
             },
           },
           children: docElements,

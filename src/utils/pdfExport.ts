@@ -11,6 +11,8 @@ export interface PdfExportOptions {
   jpegQuality?: number;
   /** CSS selectors whose matched elements must not be split across pages. Default: table rows + headings. */
   noBreakSelectors?: string[];
+  /** Page orientation. Default: 'portrait' */
+  orientation?: 'portrait' | 'landscape';
 }
 
 interface Zone {
@@ -52,12 +54,14 @@ function buildForbiddenZones(
 /**
  * Find the best break point near `naturalBreak` that avoids splitting a forbidden zone.
  *
- * Rules (in priority order):
- * 1. If the break falls inside a zone AND the zone started within this page (z.start > pageStart):
- *    → move break to z.start (push zone to next page). Acceptable when z.start fills ≥ 25% of page.
- * 2. If the zone started before this page (already mid-zone) OR moving before is too wasteful:
- *    → move break to z.end (include the whole zone in this page, even if it extends past natural boundary).
- * 3. If the zone is larger than 1.5x a page: give up — accept the natural break.
+ * Priority order (designed to avoid both broken zones AND wasted whitespace):
+ * 1. If zone is small (≤ 40% page) and we can stretch the page slightly to fit it
+ *    (extending up to 1.05x page height) → stretch. Avoids leaving big white blocks.
+ * 2. If page is already ≥ 60% full → break before the zone (push to next page).
+ * 3. If page is < 60% full and stretch isn't viable → accept natural break.
+ *    Better to clip a row than to throw away half a page of paper.
+ * 4. If zone started before this page (we're mid-zone) → extend to z.end if reasonable.
+ * 5. Zone larger than 1.5 pages — can't keep whole, accept natural break.
  */
 function findBreakPoint(
   naturalBreak: number,
@@ -79,16 +83,20 @@ function findBreakPoint(
     if (z.start > pageStart) {
       // Zone starts within the current page
       const pageUsed = z.start - pageStart;
-      if (pageUsed >= sliceHeightPx * 0.25) {
-        // Current page is ≥ 25% full before the zone → break before zone
-        return z.start;
-      }
-      // Current page would be nearly empty — better to extend page to include whole zone
       const extendedEnd = z.end;
-      if (extendedEnd - pageStart <= sliceHeightPx * 1.8) {
+      const extendedTotal = extendedEnd - pageStart;
+
+      // Priority 1: Stretch page to fit small zone — avoids whitespace
+      if (zoneHeight <= sliceHeightPx * 0.4 && extendedTotal <= sliceHeightPx * 1.05) {
         return extendedEnd;
       }
-      // Zone pushes page to > 1.8x height — accept natural break
+
+      // Priority 2: Page is sufficiently full — break before the zone
+      if (pageUsed >= sliceHeightPx * 0.6) {
+        return z.start;
+      }
+
+      // Priority 3: Page is too empty AND stretch isn't viable — accept natural break
       return naturalBreak;
     } else {
       // Zone started before current page (we're already inside it)
@@ -115,6 +123,7 @@ export const exportElementToPdf = async (
     // Protect: each table row (tr) and headings — keeps header rows intact; large tables still
     // get broken between rows, but never inside a row or heading.
     noBreakSelectors = ['tr', 'h1', 'h2', 'h3', 'h4'],
+    orientation = 'portrait',
   } = options;
 
   // 1. Measure forbidden zones BEFORE html2canvas (DOM layout is stable at this point).
@@ -136,7 +145,7 @@ export const exportElementToPdf = async (
     backgroundColor: '#ffffff',
   });
 
-  const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+  const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation });
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
   const [mTop, mRight, mBottom, mLeft] = marginMm;
@@ -191,6 +200,18 @@ export const exportElementToPdf = async (
 
       isFirstPage = false;
       pageStart = breakAt;
+    }
+  }
+
+  // Phase D: Đánh số trang chuẩn Nghị định 30/2020/NĐ-CP.
+  // Cỡ 13, căn giữa lề trên, không hiển thị ở trang đầu.
+  const totalPages = pdf.getNumberOfPages();
+  if (totalPages > 1) {
+    pdf.setFont('times', 'normal');
+    pdf.setFontSize(13);
+    for (let i = 2; i <= totalPages; i++) {
+      pdf.setPage(i);
+      pdf.text(String(i), pageWidth / 2, mTop / 2 + 3, { align: 'center' });
     }
   }
 

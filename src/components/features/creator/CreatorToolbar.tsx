@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { FileDown, FileText, Presentation, FileSpreadsheet, BookOpen, Headphones, ChevronDown } from 'lucide-react';
+import { FileDown, FileText, Presentation, FileSpreadsheet, BookOpen, Headphones, ChevronDown, RotateCcw } from 'lucide-react';
+
+export type PaperOrientation = 'portrait' | 'landscape';
 
 interface CreatorToolbarProps {
-  exportToPDF: () => void;
-  exportToWord: () => void;
-  exportToWordA4: () => void;
+  exportToPDF: (orientation: PaperOrientation) => void;
+  exportToWordA4: (orientation: PaperOrientation) => void;
   handleGenerateSlide: () => void;
   exportToLaTeX: () => void;
   handleGenerateStudyGuide: () => void;
@@ -13,62 +14,79 @@ interface CreatorToolbarProps {
 
 export const CreatorToolbar = ({
   exportToPDF,
-  exportToWord,
   exportToWordA4,
   handleGenerateSlide,
   exportToLaTeX,
   handleGenerateStudyGuide,
   setShowAudioOverview
 }: CreatorToolbarProps) => {
-  const [showWordMenu, setShowWordMenu] = useState(false);
-  const wordMenuRef = useRef<HTMLDivElement>(null);
+  const [orientation, setOrientation] = useState<PaperOrientation>('portrait');
+  const [showOrientationMenu, setShowOrientationMenu] = useState(false);
+  const orientationMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!showWordMenu) return;
+    if (!showOrientationMenu) return;
     const handleOutside = (e: MouseEvent) => {
-      if (wordMenuRef.current && !wordMenuRef.current.contains(e.target as Node)) {
-        setShowWordMenu(false);
+      if (orientationMenuRef.current && !orientationMenuRef.current.contains(e.target as Node)) {
+        setShowOrientationMenu(false);
       }
     };
     document.addEventListener('mousedown', handleOutside);
     return () => document.removeEventListener('mousedown', handleOutside);
-  }, [showWordMenu]);
+  }, [showOrientationMenu]);
+
+  const orientationLabel = orientation === 'portrait' ? 'Dọc' : 'Ngang';
 
   return (
-    <div className="flex gap-2">
-      <button onClick={exportToPDF} className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm" title="Xuất PDF">
-        <FileDown className="w-5 h-5" />
-      </button>
-
-      <div className="relative" ref={wordMenuRef}>
+    <div className="flex gap-2 items-center">
+      <div className="relative" ref={orientationMenuRef}>
         <button
-          onClick={() => setShowWordMenu(v => !v)}
-          className="flex items-center gap-1 p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm"
-          title="Tùy chọn xuất Word"
+          onClick={() => setShowOrientationMenu(v => !v)}
+          className="flex items-center gap-1.5 px-3 py-2.5 bg-white border border-slate-100 rounded-xl text-slate-600 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm text-sm font-medium"
+          title="Khổ giấy"
         >
-          <FileText className="w-5 h-5" />
+          <RotateCcw className="w-4 h-4" />
+          <span>Khổ: {orientationLabel}</span>
           <ChevronDown className="w-3 h-3" />
         </button>
 
-        {showWordMenu && (
-          <div className="absolute top-full left-0 mt-1 w-56 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50">
+        {showOrientationMenu && (
+          <div className="absolute top-full left-0 mt-1 w-40 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50">
             <button
               type="button"
-              onClick={() => { setShowWordMenu(false); exportToWord(); }}
-              className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600"
+              onClick={() => { setOrientation('portrait'); setShowOrientationMenu(false); }}
+              className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${orientation === 'portrait' ? 'text-blue-600 font-semibold' : 'text-slate-700'}`}
             >
-              Dạng thông thường (Có Toán)
+              Dọc (chuẩn)
             </button>
             <button
               type="button"
-              onClick={() => { setShowWordMenu(false); exportToWordA4(); }}
-              className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600"
+              onClick={() => { setOrientation('landscape'); setShowOrientationMenu(false); }}
+              className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${orientation === 'landscape' ? 'text-blue-600 font-semibold' : 'text-slate-700'}`}
             >
-              Chuẩn A4 (Bảng không vỡ - Mới)
+              Ngang
             </button>
           </div>
         )}
       </div>
+
+      <div className="w-[1px] h-8 bg-slate-200 mx-1"></div>
+
+      <button
+        onClick={() => exportToPDF(orientation)}
+        className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm"
+        title={`Xuất PDF (${orientationLabel})`}
+      >
+        <FileDown className="w-5 h-5" />
+      </button>
+
+      <button
+        onClick={() => exportToWordA4(orientation)}
+        className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm"
+        title={`Xuất Word chuẩn A4 (${orientationLabel})`}
+      >
+        <FileText className="w-5 h-5" />
+      </button>
 
       <button onClick={handleGenerateSlide} className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-orange-600 hover:border-orange-200 transition-all shadow-sm" title="Tạo Slide">
         <Presentation className="w-5 h-5" />

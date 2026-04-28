@@ -36,8 +36,7 @@ interface CreatorTabProps {
   handleCreateLesson: () => void;
   cancelBulk: () => void;
   saveLessonPlan: () => void;
-  exportToPDF: () => void;
-  exportToWord: () => void;
+  exportToPDF: (orientation: 'portrait' | 'landscape') => void;
   exportToLaTeX: () => void;
   handleReviseLesson: () => void;
   revisionPrompt: string;
@@ -205,10 +204,9 @@ export const CreatorTab = (props: CreatorTabProps) => {
                       {props.generationMode === 'single' ? 'Lưu bài này' : 'Lưu tất cả'}
                     </button>
                     {props.generationMode === 'single' && (
-                       <CreatorToolbar 
+                       <CreatorToolbar
                           exportToPDF={props.exportToPDF}
-                          exportToWord={props.exportToWord}
-                          exportToWordA4={() => exportToWordA4(props.currentPlan, props.showToast)}
+                          exportToWordA4={(orientation) => exportToWordA4(props.currentPlan, props.showToast, orientation)}
                           handleGenerateSlide={handleGenerateSlide}
                           exportToLaTeX={props.exportToLaTeX}
                           handleGenerateStudyGuide={handleGenerateStudyGuide}
