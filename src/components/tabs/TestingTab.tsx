@@ -3,7 +3,7 @@ import katex from 'katex';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   FileCheck, FilePlus, Shuffle, Upload, Download, FileCode,
-  ShieldCheck, AlertCircle, Loader2, X, CheckCircle2, History, Trash2, Sparkles
+  ShieldCheck, AlertCircle, Loader2, X, CheckCircle2, History, Trash2, Sparkles, LibraryBig
 } from 'lucide-react';
 import * as mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -14,6 +14,7 @@ import rehypeKatex from 'rehype-katex';
 import rehypeRaw from 'rehype-raw';
 import { marked } from 'marked';
 import { generateAnswerSheetHTML, generateAnswerKeyTemplateHTML } from '../../utils/answerSheetTemplate';
+import { ExamDocsModal } from '../features/testing/ExamDocsModal';
 
 const openInNewTab = (html: string) => {
   const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
@@ -95,6 +96,7 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
   const [isLatexModalOpen, setIsLatexModalOpen] = useState(false);
   const [refineRequest, setRefineRequest] = useState('');
   const [isRefining, setIsRefining] = useState(false);
+  const [docModalEntry, setDocModalEntry] = useState<HistoryEntry | null>(null);
 
   // Tự xóa entries hết hạn khi mount
   useEffect(() => {
@@ -637,6 +639,15 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
                           >
                             Xem lại
                           </button>
+                          {entry.mode === 'create' && (
+                            <button
+                              onClick={() => setDocModalEntry(entry)}
+                              title="Sinh bộ tài liệu"
+                              className="text-slate-400 hover:text-indigo-600 shrink-0 transition-colors"
+                            >
+                              <LibraryBig className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                           <button onClick={() => deleteHistoryEntry(entry.id)} className="text-slate-300 hover:text-red-500 shrink-0">
                             <X className="w-3.5 h-3.5" />
                           </button>
@@ -780,6 +791,15 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast }: Testing
         openInOverleaf={() => openInOverleaf(latexContent, { title: 'De_thi_kiem_tra' } as Partial<LessonPlan>, showToast)}
         showToast={showToast}
       />
+
+      {docModalEntry && (
+        <ExamDocsModal
+          entry={docModalEntry}
+          onClose={() => setDocModalEntry(null)}
+          settings={data.settings}
+          showToast={showToast}
+        />
+      )}
     </motion.div>
   );
 };
