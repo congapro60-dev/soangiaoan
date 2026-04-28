@@ -1,7 +1,41 @@
-import { callGeminiAI, callGeminiAIStream, MODELS } from './gemini';
+import { callGeminiAIRaw, callGeminiAIStream, MODELS } from './gemini';
 import type { AppData } from '../types';
 
 type Settings = AppData['settings'];
+
+// --- Token limits per provider (kịch trần model hỗ trợ) ---
+const CLAUDE_MAX_TOKENS = 32768;
+const OPENAI_MAX_TOKENS = 16384;
+const GROK_MAX_TOKENS = 16384;
+const DEEPSEEK_CHAT_MAX_TOKENS = 8192;       // hard cap của deepseek-chat (V3)
+const DEEPSEEK_REASONER_MAX_TOKENS = 32768;  // deepseek-reasoner (R1) hỗ trợ tới 64K
+
+// Số lần auto-continue tối đa khi output bị cắt (an toàn ngân sách)
+const MAX_CONTINUATIONS = 3;
+
+function deepseekMaxTokens(model: string | undefined): number {
+  return model === 'deepseek-reasoner' ? DEEPSEEK_REASONER_MAX_TOKENS : DEEPSEEK_CHAT_MAX_TOKENS;
+}
+
+interface RawResult {
+  text: string;
+  truncated: boolean;  // true nếu API báo dừng do hết max_tokens
+}
+
+function buildContinuationPrompt(combined: string): string {
+  // Lấy 800 ký tự cuối làm "neo" để model viết tiếp đúng văn phong/format.
+  const tail = combined.slice(-800);
+  return `BẠN VỪA TẠO MỘT NỘI DUNG DÀI NHƯNG BỊ CẮT GIỮA CHỪNG (do hết quota token).
+NHIỆM VỤ: VIẾT TIẾP NGAY TỪ CHỖ KẾT THÚC — KHÔNG lặp lại, KHÔNG tóm tắt, KHÔNG mở đầu lại, KHÔNG đổi văn phong/format markdown.
+
+ĐOẠN CUỐI CỦA NỘI DUNG ĐÃ VIẾT (giữ nguyên để bạn nối tiếp đúng vị trí):
+
+---BẮT ĐẦU ĐOẠN TRƯỚC---
+${tail}
+---KẾT THÚC ĐOẠN TRƯỚC---
+
+VIẾT TIẾP NGAY (không thêm dấu xuống dòng dư thừa, không lặp lại bất kỳ ký tự nào ở "đoạn trước" trên):`;
+}
 
 // --- Fallback relay helpers (quota exhaustion) ---
 
@@ -75,7 +109,7 @@ export function getActiveApiKey(settings: Settings): string {
   return settings.geminiApiKey || '';
 }
 
-export async function callAI(prompt: string, settings: Settings): Promise<string> {
+async function callAIOnce(prompt: string, settings: Settings): Promise<RawResult> {
   const provider = settings.selectedProvider ?? 'gemini';
   const fallbackModel = MODELS[0];
 
@@ -85,10 +119,11 @@ export async function callAI(prompt: string, settings: Settings): Promise<string
       const client = new Anthropic({ apiKey: settings.claudeApiKey, dangerouslyAllowBrowser: true });
       const msg = await client.messages.create({
         model: settings.selectedModel || 'claude-sonnet-4-6',
-        max_tokens: 8096,
+        max_tokens: CLAUDE_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
       });
-      return msg.content[0].type === 'text' ? msg.content[0].text : '';
+      const text = msg.content[0]?.type === 'text' ? msg.content[0].text : '';
+      return { text, truncated: msg.stop_reason === 'max_tokens' };
     }
 
     if (provider === 'openai') {
@@ -96,9 +131,11 @@ export async function callAI(prompt: string, settings: Settings): Promise<string
       const client = new OpenAI({ apiKey: settings.openaiApiKey, dangerouslyAllowBrowser: true });
       const res = await client.chat.completions.create({
         model: settings.selectedModel || 'gpt-4o',
+        max_tokens: OPENAI_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
       });
-      return res.choices[0]?.message?.content ?? '';
+      const choice = res.choices[0];
+      return { text: choice?.message?.content ?? '', truncated: choice?.finish_reason === 'length' };
     }
 
     if (provider === 'grok') {
@@ -106,30 +143,59 @@ export async function callAI(prompt: string, settings: Settings): Promise<string
       const client = new OpenAI({ apiKey: settings.grokApiKey, baseURL: 'https://api.x.ai/v1', dangerouslyAllowBrowser: true });
       const res = await client.chat.completions.create({
         model: settings.selectedModel || 'grok-3',
+        max_tokens: GROK_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
       });
-      return res.choices[0]?.message?.content ?? '';
+      const choice = res.choices[0];
+      return { text: choice?.message?.content ?? '', truncated: choice?.finish_reason === 'length' };
     }
 
     if (provider === 'deepseek') {
       const OpenAI = (await import('openai')).default;
       const client = new OpenAI({ apiKey: settings.deepseekApiKey, baseURL: 'https://api.deepseek.com', dangerouslyAllowBrowser: true });
+      const model = settings.selectedModel || 'deepseek-chat';
       const res = await client.chat.completions.create({
-        model: settings.selectedModel || 'deepseek-chat',
+        model,
+        max_tokens: deepseekMaxTokens(model),
         messages: [{ role: 'user', content: prompt }],
       });
-      return res.choices[0]?.message?.content ?? '';
+      const choice = res.choices[0];
+      return { text: choice?.message?.content ?? '', truncated: choice?.finish_reason === 'length' };
     }
 
     // default: gemini
     const idx = MODELS.indexOf(settings.selectedModel);
-    return (await callGeminiAI(prompt, settings.geminiApiKey, idx >= 0 ? idx : 0)) ?? '';
+    const result = await callGeminiAIRaw(prompt, settings.geminiApiKey, idx >= 0 ? idx : 0);
+    return result ?? { text: '', truncated: false };
   } catch (err) {
     if (isQuotaError(err)) {
-      return callRelay(prompt, fallbackModel);
+      const text = await callRelay(prompt, fallbackModel);
+      return { text, truncated: false };  // relay không expose finish_reason
     }
     throw err;
   }
+}
+
+export async function callAI(prompt: string, settings: Settings): Promise<string> {
+  let combined = '';
+  let nextPrompt = prompt;
+
+  for (let i = 0; i <= MAX_CONTINUATIONS; i++) {
+    const { text, truncated } = await callAIOnce(nextPrompt, settings);
+    combined += text;
+
+    if (!truncated) return combined;
+
+    if (i === MAX_CONTINUATIONS) {
+      console.warn(`[callAI] Output vẫn bị cắt sau ${MAX_CONTINUATIONS} lần auto-continue — dừng để bảo vệ ngân sách token.`);
+      return combined;
+    }
+
+    console.log(`[callAI] Output bị cắt — auto-continue lần ${i + 1}/${MAX_CONTINUATIONS}`);
+    nextPrompt = buildContinuationPrompt(combined);
+  }
+
+  return combined;
 }
 
 /**
@@ -154,7 +220,7 @@ export async function callAIWithVision(
     const client = new Anthropic({ apiKey: settings.claudeApiKey, dangerouslyAllowBrowser: true });
     const msg = await client.messages.create({
       model: settings.selectedModel || 'claude-sonnet-4-6',
-      max_tokens: 8096,
+      max_tokens: CLAUDE_MAX_TOKENS,
       messages: [{
         role: 'user',
         content: [
@@ -171,6 +237,7 @@ export async function callAIWithVision(
     const client = new OpenAI({ apiKey: settings.openaiApiKey, dangerouslyAllowBrowser: true });
     const res = await client.chat.completions.create({
       model: settings.selectedModel || 'gpt-4o',
+      max_tokens: OPENAI_MAX_TOKENS,
       messages: [{
         role: 'user',
         content: [
@@ -187,6 +254,7 @@ export async function callAIWithVision(
     const client = new OpenAI({ apiKey: settings.grokApiKey, baseURL: 'https://api.x.ai/v1', dangerouslyAllowBrowser: true });
     const res = await client.chat.completions.create({
       model: settings.selectedModel || 'grok-2-vision',
+      max_tokens: GROK_MAX_TOKENS,
       messages: [{
         role: 'user',
         content: [
@@ -211,7 +279,7 @@ export async function callAIWithVision(
   const result = await ai.models.generateContent({
     model: modelName,
     contents: [{ parts: [{ text: prompt }, { inlineData: { data: base64Data, mimeType } }] }],
-    config: { temperature: 0.1, maxOutputTokens: 8192 },
+    config: { temperature: 0.1, maxOutputTokens: 65536 },
   });
   return result.text || '';
   } catch (err) {
@@ -236,7 +304,7 @@ export async function callAIStream(
       const client = new Anthropic({ apiKey: settings.claudeApiKey, dangerouslyAllowBrowser: true });
       const stream = client.messages.stream({
         model: settings.selectedModel || 'claude-sonnet-4-6',
-        max_tokens: 8096,
+        max_tokens: CLAUDE_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
       });
       for await (const event of stream) {
@@ -252,6 +320,7 @@ export async function callAIStream(
       const client = new OpenAI({ apiKey: settings.openaiApiKey, dangerouslyAllowBrowser: true });
       const stream = await client.chat.completions.create({
         model: settings.selectedModel || 'gpt-4o',
+        max_tokens: OPENAI_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
         stream: true,
       });
@@ -267,6 +336,7 @@ export async function callAIStream(
       const client = new OpenAI({ apiKey: settings.grokApiKey, baseURL: 'https://api.x.ai/v1', dangerouslyAllowBrowser: true });
       const stream = await client.chat.completions.create({
         model: settings.selectedModel || 'grok-3',
+        max_tokens: GROK_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
         stream: true,
       });
@@ -280,8 +350,10 @@ export async function callAIStream(
     if (provider === 'deepseek') {
       const OpenAI = (await import('openai')).default;
       const client = new OpenAI({ apiKey: settings.deepseekApiKey, baseURL: 'https://api.deepseek.com', dangerouslyAllowBrowser: true });
+      const model = settings.selectedModel || 'deepseek-chat';
       const stream = await client.chat.completions.create({
-        model: settings.selectedModel || 'deepseek-chat',
+        model,
+        max_tokens: deepseekMaxTokens(model),
         messages: [{ role: 'user', content: prompt }],
         stream: true,
       });
