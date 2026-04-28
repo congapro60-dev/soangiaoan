@@ -210,7 +210,9 @@ BỐ CỤC BẮT BUỘC: 5 HOẠT ĐỘNG + ĐÁNH GIÁ DANIELSON
 
 | Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
 |---|---|---|
-| **GV:** "[Câu thoại VERBATIM trong dấu nháy kép]" <br/><br/> **GV:** "[Câu hỏi gợi mở tiếp theo]" <br/><br/> **GV:** "[Câu chốt vấn đề]" | **HS1:** "[Phản hồi dự kiến cụ thể của HS đầu tiên]" <br/><br/> **HS2:** "[Phản hồi của HS thứ hai]" <br/><br/> **HS:** [Hành động: ghi bài / suy nghĩ / thảo luận] | [Nội dung trên bảng: công thức, sơ đồ, câu hỏi mở] <br/><br/> ❓ [Vấn đề đặt ra → cần công cụ mới!] |
+| **GV:** "[Câu thoại VERBATIM trong dấu nháy kép]" | **HS1:** "[Phản hồi dự kiến cụ thể của HS đầu tiên]" | [Nội dung trên bảng: công thức, sơ đồ, câu hỏi mở] |
+| **GV:** "[Câu hỏi gợi mở tiếp theo]" | **HS2:** "[Phản hồi của HS thứ hai]" | ❓ [Vấn đề đặt ra → cần công cụ mới!] |
+| **GV:** "[Câu chốt vấn đề]" | **HS:** [Hành động: ghi bài / suy nghĩ / thảo luận] | |
 
 ---
 
@@ -222,7 +224,10 @@ BỐ CỤC BẮT BUỘC: 5 HOẠT ĐỘNG + ĐÁNH GIÁ DANIELSON
 
 | Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
 |---|---|---|
-| **📌 Phần 1: [Tên phần] ([X] phút)** <br/><br/> **GV:** "[Dẫn dắt khám phá]" <br/><br/> **GV:** Dẫn dắt HS phát hiện: [Quy luật/định lý] <br/><br/> **GV:** "[Câu chốt công thức]" | **HS:** [Hoạt động khám phá cụ thể] <br/><br/> **HS:** "[Phát biểu quy luật]" <br/><br/> **HS:** Ghi công thức vào vở. | **📋 [TÊN ĐỊNH LÝ/CÔNG THỨC]:** <br/><br/> $$\\boxed{[công thức chính]}$$ <br/><br/> **Lưu ý:** [Điểm cần nhớ] |
+| **📌 Phần 1: [Tên phần] ([X] phút)** | | |
+| **GV:** "[Dẫn dắt khám phá]" | **HS:** [Hoạt động khám phá cụ thể] | **📋 [TÊN ĐỊNH LÝ/CÔNG THỨC]:** <br/> $$\\boxed{[công thức chính]}$$ |
+| **GV:** Dẫn dắt HS phát hiện: [Quy luật/định lý] | **HS:** "[Phát biểu quy luật]" | **Lưu ý:** [Điểm cần nhớ] |
+| **GV:** "[Câu chốt công thức]" | **HS:** Ghi công thức vào vở. | |
 
 ---
 
@@ -246,7 +251,9 @@ BẮT BUỘC có **3 BÀI TẬP** tương ứng 3 mức 🌶️ trong WILF:
 
 | Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
 |---|---|---|
-| **GV:** "[Tình huống thực tế cụ thể: y học, kinh tế, kỹ thuật, AI, môi trường...]" <br/><br/> **GV:** "[Liên hệ với kiến thức vừa học]" <br/><br/> **GV:** "[Mở rộng tầm quan trọng]" | **HS:** [Tính toán / phân tích cụ thể] <br/><br/> **HS:** "[Phát hiện kết nối]" | **Bài toán thực tế:** <br/> [Phát biểu tình huống] <br/><br/> $$[Công thức / kết quả]$$ <br/><br/> 💡 Liên hệ: [Tên ngành / khái niệm liên môn] |
+| **GV:** "[Tình huống thực tế cụ thể: y học, kinh tế, kỹ thuật, AI, môi trường...]" | **HS:** [Tính toán / phân tích cụ thể] | **Bài toán thực tế:** <br/> [Phát biểu tình huống] <br/> $$[Công thức / kết quả]$$ |
+| **GV:** "[Liên hệ với kiến thức vừa học]" | **HS:** "[Phát hiện kết nối]" | 💡 Liên hệ: [Tên ngành / khái niệm liên môn] |
+| **GV:** "[Mở rộng tầm quan trọng]" | **HS:** [Ghi chép / nhận xét] | |
 
 ---
 
@@ -256,7 +263,12 @@ BẮT BUỘC có **3 BÀI TẬP** tương ứng 3 mức 🌶️ trong WILF:
 
 | Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
 |---|---|---|
-| **GV:** "[Yêu cầu HS tóm tắt 3 ý chính]" <br/><br/> **GV:** Chốt nội dung trọng tâm. <br/><br/> **GV:** "[Giao BTVN, dặn dò kiểm tra tiết sau]" <br/><br/> **GV:** "[Khuyến khích HS giỏi làm bài ⭐]" | **HS1:** "[Ý 1]" <br/> **HS2:** "[Ý 2]" <br/> **HS3:** "[Ý 3]" <br/><br/> **HS:** Ghi BTVN. | **📋 TÓM TẮT BÀI HỌC:** <br/> 1️⃣ [Ý chính 1] <br/> 2️⃣ [Ý chính 2] <br/> 3️⃣ [Ý chính 3] <br/><br/> **📌 BÀI TẬP VỀ NHÀ:** <br/> 1. [Bài cơ bản] <br/> 2. [Bài nâng cao] <br/> ⭐ [Bài thách thức cho HS khá/giỏi] |
+| **GV:** "[Yêu cầu HS tóm tắt 3 ý chính]" | **HS1:** "[Ý 1]" | **📋 TÓM TẮT BÀI HỌC:** <br/> 1️⃣ [Ý chính 1] |
+| | **HS2:** "[Ý 2]" | 2️⃣ [Ý chính 2] |
+| | **HS3:** "[Ý 3]" | 3️⃣ [Ý chính 3] |
+| **GV:** Chốt nội dung trọng tâm. | **HS:** Ghi bài. | |
+| **GV:** "[Giao BTVN, dặn dò kiểm tra tiết sau]" | **HS:** Ghi BTVN. | **📌 BÀI TẬP VỀ NHÀ:** <br/> 1. [Bài cơ bản] <br/> 2. [Bài nâng cao] <br/> ⭐ [Bài thách thức cho HS khá/giỏi] |
+| **GV:** "[Khuyến khích HS giỏi làm bài ⭐]" | **HS:** [Ghi chú bài ⭐] | |
 
 ---
 
@@ -290,7 +302,7 @@ QUY TẮC NGHIÊM NGẶT (KHÔNG ĐƯỢC VI PHẠM):
 10. Phần Danielson cuối bài: chấm điểm THỰC (3-4/4), kèm nhận xét DỰA TRÊN nội dung giáo án vừa soạn (không generic).
 11. Dùng emoji icon đầu mỗi mục đúng chuẩn: 🎯 (info) 🚀 (HĐ1) 📚 (HĐ2) ✏️ (HĐ3) 🌍 (HĐ4) 📝 (HĐ5) 📋 (Danielson).
 12. Dùng phân cách "---" giữa các hoạt động.
-13. Dùng <br/><br/> để xuống dòng trong ô bảng.
+13. Mỗi lượt trao đổi GV↔HS (1 câu nói/câu hỏi GV + phản hồi HS tương ứng + nội dung bảng tương ứng) = 1 HÀNG RIÊNG BIỆT trong bảng. TUYỆT ĐỐI KHÔNG dồn nhiều lượt trao đổi vào 1 hàng bằng <br/><br/>. Bảng 5-8 lượt thoại = 5-8 hàng riêng biệt. Trong ô bảng, chỉ dùng <br/> đơn để xuống dòng nội dung trong cùng 1 lượt (ví dụ: công thức nhiều dòng ở cột 3).
 ===== KẾT THÚC MẪU CLAUDE =====
 `;
 
@@ -330,6 +342,7 @@ II. ĐỊNH DẠNG BẢNG 3 CỘT — BẮT BUỘC cho TẤT CẢ hoạt động
    | ... | ... | ... |
 
    LƯU Ý: "Nội dung ghi bảng" là những nội dung trọng tâm mà Giáo viên sẽ ghi lên bảng để Học sinh ghi chép vào vở. KHÔNG được để trống cột này.
+   LƯU Ý CĂNG HÀNG: Mỗi lượt trao đổi GV↔HS = 1 hàng riêng biệt. TUYỆT ĐỐI KHÔNG dùng <br/><br/> để gộp nhiều lượt vào 1 hàng.
 
 III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
    - Công thức trên cùng dòng văn bản: dùng $...$ (ví dụ: $f(x) = x^2 + 1$)
@@ -406,7 +419,10 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
 
           | Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
           |---|---|---|
-          | **[Quét Radar]** *Quan sát biểu cảm học sinh để xem mức độ hiểu bài.* <br/><br/> **GV:** "Các em hãy nhìn vào bảng hệ số ta vừa lập ở HĐ1. Ai phát hiện ra quy luật của các con số này?" <br/><br/> **[💡 Tuyên ngôn Dạy và học chất lượng cao: GV đóng vai trò người xúc tác, không áp đặt kiến thức]** <br/><br/> **GV:** "Tuyệt vời! Vậy hệ số của số hạng thứ $k+1$ chính là gì?" | **HS1:** "Thưa thầy, các hệ số này chính là các số trong tam giác Pascal ạ!" <br/><br/> **HS2:** "Nó tương ứng với tổ hợp $C_n^k$ ạ!" <br/><br/> **HS:** Ghi chép công thức tổng quát vào vở một cách hào hứng. | **1. Định lý:** <br/> Công thức tổng quát: <br/> $(a+b)^n = \\sum_{k=0}^{n} C_n^k a^{n-k} b^k$ <br/><br/> *Lưu ý:* Có $(n+1)$ số hạng. |
+          | **[Quét Radar]** *Quan sát biểu cảm học sinh để xem mức độ hiểu bài.* | | |
+          | **GV:** "Các em hãy nhìn vào bảng hệ số ta vừa lập ở HĐ1. Ai phát hiện ra quy luật của các con số này?" | **HS1:** "Thưa thầy, các hệ số này chính là các số trong tam giác Pascal ạ!" | **1. Định lý:** <br/> Công thức tổng quát: <br/> $(a+b)^n = \\sum_{k=0}^{n} C_n^k a^{n-k} b^k$ |
+          | **[💡 Tuyên ngôn Dạy và học chất lượng cao: GV đóng vai trò người xúc tác, không áp đặt kiến thức]** <br/> **GV:** "Tuyệt vời! Vậy hệ số của số hạng thứ $k+1$ chính là gì?" | **HS2:** "Nó tương ứng với tổ hợp $C_n^k$ ạ!" | *Lưu ý:* Có $(n+1)$ số hạng. |
+          | **GV:** Chốt: "Đây chính là Định lý Nhị thức Newton!" | **HS:** Ghi chép công thức vào vở. | |
           \`\`\`
           ===== HẾT YÊU CẦU ĐỊNH DẠNG =====
         `;
