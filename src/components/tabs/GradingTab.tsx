@@ -115,6 +115,7 @@ export const GradingTab = ({
     setSessionSaved(false);
     setFilterScore('all');
     setSmartWarnings([]);
+    setNoAnswerKey(false);
   };
 
   const loadSession = (session: GradingSession) => {

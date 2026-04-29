@@ -29,9 +29,9 @@ export const GradingResultsList = ({ results, filterScore, setFilterScore, onVie
   };
 
   const filtered = useMemo(() => {
-    if (filterScore === 'above8') return results.filter(r => r.score >= 8);
-    if (filterScore === '5to8') return results.filter(r => r.score >= 5 && r.score < 8);
-    if (filterScore === 'below5') return results.filter(r => r.score < 5);
+    if (filterScore === 'above8') return results.filter(r => r.status === 'completed' && r.score >= 8);
+    if (filterScore === '5to8') return results.filter(r => r.status === 'completed' && r.score >= 5 && r.score < 8);
+    if (filterScore === 'below5') return results.filter(r => r.status === 'completed' && r.score < 5);
     return results;
   }, [results, filterScore]);
 
