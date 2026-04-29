@@ -145,11 +145,11 @@ Viết báo cáo phân tích theo cấu trúc Markdown (đầy đủ, không b�
 
     if (!text) throw new Error('AI trả về phản hồi rỗng');
 
-    // Parse JSON: ưu tiên code block, fallback anchor bằng "studentName"
-    const codeBlockMatch = text.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+    // Parse JSON — greedy match to capture full object (non-greedy stops at first })
+    const codeBlockMatch = text.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
     const jsonStr = codeBlockMatch
       ? codeBlockMatch[1]
-      : text.match(/\{[\s\S]*"studentName"[\s\S]*?\}/)?.[0];
+      : text.match(/\{[\s\S]*"studentName"[\s\S]*\}/)?.[0];
     if (!jsonStr) throw new Error('AI không trả về JSON hợp lệ');
 
     const parsed = JSON.parse(jsonStr);

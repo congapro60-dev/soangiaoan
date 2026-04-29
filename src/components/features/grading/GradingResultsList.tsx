@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'motion/react';
-import { Users, FileText, Loader2, User, Eye, Trash2, RefreshCw } from 'lucide-react';
+import { Users, FileText, Loader2, User, Eye, Trash2, RefreshCw, AlertTriangle } from 'lucide-react';
 import { GradingResult } from '../../../types';
 
 export type FilterScore = 'all' | 'above8' | '5to8' | 'below5';
@@ -86,11 +86,13 @@ export const GradingResultsList = ({ results, filterScore, setFilterScore, onVie
                     ? res.score >= 8 ? 'bg-emerald-50 text-emerald-600'
                       : res.score >= 5 ? 'bg-blue-50 text-blue-600'
                       : 'bg-red-50 text-red-600'
+                    : res.status === 'error' ? 'bg-amber-50 text-amber-500'
                     : 'bg-slate-50 text-slate-400'
                 }`}>
                   {res.status === 'processing'
                     ? <Loader2 className="w-4 h-4 animate-spin" />
                     : res.status === 'completed' ? res.score
+                    : res.status === 'error' ? <AlertTriangle className="w-4 h-4" />
                     : <User className="w-4 h-4" />}
                 </div>
                 <div>
@@ -137,11 +139,11 @@ export const GradingResultsList = ({ results, filterScore, setFilterScore, onVie
                 >
                   <Eye className="w-4 h-4" />
                 </button>
-                {onRegrade && (res.status === 'completed' || res.status === 'error') && (
+                {onRegrade && res.status !== 'processing' && (
                   <button
                     onClick={() => onRegrade(res)}
                     className="p-2 bg-slate-50 text-slate-400 rounded-xl hover:bg-amber-50 hover:text-amber-500 transition-all opacity-0 group-hover:opacity-100"
-                    title="Chấm lại"
+                    title={res.status === 'error' ? 'Chấm lại (lỗi lần trước)' : res.status === 'pending' ? 'Bắt đầu chấm bài này' : 'Chấm lại'}
                   >
                     <RefreshCw className="w-4 h-4" />
                   </button>
