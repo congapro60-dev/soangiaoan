@@ -291,6 +291,7 @@ export default function App() {
         openInOverleaf={() => exportUtils.openInOverleaf(latexContent, creator.currentPlan, showToast)}
         showToast={showToast}
       />
+      <FloatingChatWidget {...chat} />
     </div>
   );
 }
