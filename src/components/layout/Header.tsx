@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { Search, History, BookOpen, FileText, GraduationCap } from 'lucide-react';
+import { Search, History, BookOpen, FileText, GraduationCap, Menu } from 'lucide-react';
 import { AppData } from '../../types';
 
 type ActiveTab = 'dashboard' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading' | 'exams';
@@ -9,6 +9,7 @@ interface HeaderProps {
   data: AppData;
   setIsSettingsOpen: (val: boolean) => void;
   setActiveTab: (tab: ActiveTab) => void;
+  onMenuClick?: () => void;
 }
 
 const timeAgo = (ts: number) => {
@@ -20,7 +21,7 @@ const timeAgo = (ts: number) => {
   return `${Math.floor(h / 24)} ngày trước`;
 };
 
-export const Header = ({ activeTab, data, setIsSettingsOpen, setActiveTab }: HeaderProps) => {
+export const Header = ({ activeTab, data, setIsSettingsOpen, setActiveTab, onMenuClick }: HeaderProps) => {
   const [showHistory, setShowHistory] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -97,6 +98,13 @@ export const Header = ({ activeTab, data, setIsSettingsOpen, setActiveTab }: Hea
   return (
     <header className="h-20 bg-white border-b border-slate-100 flex items-center justify-between px-8 sticky top-0 z-20 backdrop-blur-md bg-white/80">
       <div className="flex items-center gap-4">
+        <button
+          onClick={onMenuClick}
+          className="p-2 text-slate-500 hover:bg-slate-50 rounded-xl transition-all md:hidden"
+          aria-label="Mở menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
         <h1 className="text-xl font-black text-slate-800 tracking-tight">{getTitle()}</h1>
         {activeTab === 'creator' && (
           <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-green-50 text-green-600 rounded-full text-[10px] font-bold uppercase tracking-widest border border-green-100">

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import Swal from 'sweetalert2';
 
@@ -13,15 +13,17 @@ import { useLessonPlanActions } from './hooks/useLessonPlanActions';
 import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
 import { DashboardTab } from './components/tabs/DashboardTab';
-import { CreatorTab } from './components/tabs/CreatorTab';
-import { LibraryTab } from './components/tabs/LibraryTab';
-import { TemplatesTab } from './components/tabs/TemplatesTab';
-import { ChatTab } from './components/tabs/ChatTab';
-import { TestingTab } from './components/tabs/TestingTab';
-import { GradingTab } from './components/tabs/GradingTab';
-import { ExamsTab } from './components/tabs/ExamsTab';
 import { SettingsModal } from './components/modals/SettingsModal';
 import { LatexModal } from './components/modals/LatexModal';
+
+// Lazy-loaded tabs (splits heavy chunks, loaded on first visit)
+const CreatorTab = lazy(() => import('./components/tabs/CreatorTab').then(m => ({ default: m.CreatorTab })));
+const LibraryTab = lazy(() => import('./components/tabs/LibraryTab').then(m => ({ default: m.LibraryTab })));
+const TemplatesTab = lazy(() => import('./components/tabs/TemplatesTab').then(m => ({ default: m.TemplatesTab })));
+const ChatTab = lazy(() => import('./components/tabs/ChatTab').then(m => ({ default: m.ChatTab })));
+const TestingTab = lazy(() => import('./components/tabs/TestingTab').then(m => ({ default: m.TestingTab })));
+const GradingTab = lazy(() => import('./components/tabs/GradingTab').then(m => ({ default: m.GradingTab })));
+const ExamsTab = lazy(() => import('./components/tabs/ExamsTab').then(m => ({ default: m.ExamsTab })));
 
 // Utils
 import { processUploadedFile } from './utils/fileUtils';
@@ -42,7 +44,7 @@ export default function App() {
   } = useAppState(user, showToast);
   
   const [activeTab, setActiveTab] = useState<'dashboard' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading' | 'exams'>('dashboard');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth >= 768);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [libraryTab, setLibraryTab] = useState<'personal' | 'community'>('personal');
   const [searchQuery, setSearchQuery] = useState('');
@@ -154,6 +156,14 @@ export default function App() {
     <div className="h-screen w-full flex bg-slate-50 font-sans overflow-hidden">
       <input type="file" ref={fileInputRef} onChange={handleFileUpload} multiple className="hidden" />
       
+      {/* Mobile backdrop — closes sidebar when tapping outside */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/30 z-40 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       <Sidebar
         activeTab={activeTab} setActiveTab={setActiveTab}
         onCreatorTabClick={() => {
@@ -165,7 +175,7 @@ export default function App() {
       />
 
       <main className="flex-1 flex flex-col overflow-hidden relative">
-        <Header activeTab={activeTab} data={data} setIsSettingsOpen={setIsSettingsOpen} setActiveTab={setActiveTab} />
+        <Header activeTab={activeTab} data={data} setIsSettingsOpen={setIsSettingsOpen} setActiveTab={setActiveTab} onMenuClick={() => setIsSidebarOpen(true)} />
         {/* Banner nhắc nhập API Key khi chưa cấu hình */}
         {user && (() => {
           const s = data.settings;
@@ -188,6 +198,7 @@ export default function App() {
         })()}
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-8">
+          <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" /></div>}>
           <AnimatePresence mode="wait">
             {activeTab === 'dashboard' && (
               <DashboardTab data={data} setCurrentPlan={creator.setCurrentPlan} setActiveTab={setActiveTab} />
@@ -267,6 +278,7 @@ export default function App() {
 
             {activeTab === 'chat' && <ChatTab {...chat} isLoading={isLoading} />}
           </AnimatePresence>
+          </Suspense>
         </div>
       </main>
 

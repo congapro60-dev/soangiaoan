@@ -47,10 +47,15 @@ export const Sidebar = ({
   ];
 
   return (
-    <motion.aside 
+    <motion.aside
       initial={false}
       animate={{ width: isSidebarOpen ? 280 : 80 }}
-      className="relative flex flex-col h-full bg-white border-r border-slate-200 shadow-sm z-30 transition-all duration-300"
+      className={cn(
+        "flex flex-col h-full bg-white border-r border-slate-200 shadow-sm z-50 md:z-30",
+        "fixed inset-y-0 left-0 md:relative md:inset-auto",
+        "transition-transform duration-300",
+        !isSidebarOpen ? "-translate-x-full md:translate-x-0" : "translate-x-0"
+      )}
     >
       {/* Brand area */}
       <div className="p-6 flex items-center gap-3 overflow-hidden">

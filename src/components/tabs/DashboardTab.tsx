@@ -1,14 +1,15 @@
 import { motion } from 'motion/react';
-import { 
-  FileText, 
-  CheckCircle2, 
-  Zap, 
+import {
+  FileText,
+  CheckCircle2,
+  Zap,
   BookOpen,
   ArrowRight,
   Sparkles,
   Users,
   Layout,
-  PlusCircle
+  PlusCircle,
+  ClipboardCheck
 } from 'lucide-react';
 import { AppData, LessonPlan } from '../../types';
 import { cn } from '../../lib/utils';
@@ -22,11 +23,16 @@ interface DashboardTabProps {
 }
 
 export const DashboardTab = ({ data, setCurrentPlan, setActiveTab }: DashboardTabProps) => {
+  const totalGraded = (data.gradingSessions || []).reduce(
+    (sum, s) => sum + s.results.filter(r => r.status === 'completed').length, 0
+  );
+
   const stats = [
     { label: 'Tổng giáo án', value: data.lessonPlans?.length || 0, icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' },
     { label: 'Bài chia sẻ', value: data.lessonPlans?.filter(p => p.isPublic)?.length || 0, icon: Users, color: 'text-orange-600', bg: 'bg-orange-50' },
     { label: 'Mẫu tài liệu', value: data.templates?.length || 0, icon: Layout, color: 'text-purple-600', bg: 'bg-purple-50' },
     { label: 'Môn học', value: data.subjects?.length || 0, icon: BookOpen, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Bài đã chấm', value: totalGraded, icon: ClipboardCheck, color: 'text-rose-600', bg: 'bg-rose-50' },
   ];
 
   const quickActions = [
@@ -60,7 +66,7 @@ export const DashboardTab = ({ data, setCurrentPlan, setActiveTab }: DashboardTa
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
         {stats.map((stat, idx) => (
           <motion.div 
             key={stat.label}
