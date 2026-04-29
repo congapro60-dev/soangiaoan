@@ -2,8 +2,6 @@
 // Replaces html2pdf.js because html2pdf.js depends on the original html2canvas
 // which fails to parse oklch() color values introduced by Tailwind v4.
 
-import { downloadBlob } from './fileUtils';
-
 export interface PdfExportOptions {
   filename: string;
   marginMm?: [number, number, number, number]; // [top, right, bottom, left]
@@ -240,6 +238,8 @@ export const exportElementToPdf = async (
     }
   }
 
-  const blob = pdf.output('blob');
-  downloadBlob(blob, filename);
+  // Use jsPDF's built-in save() — cross-browser tested. Chrome sometimes ignores
+  // the `download` attribute on <a> elements with Blob URLs and falls back to
+  // the UUID in the blob URL as filename; pdf.save() avoids that path.
+  pdf.save(filename);
 };
