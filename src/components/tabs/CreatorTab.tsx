@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { FileText, Save, MessageSquare, Monitor, Layers, Loader2, Sparkles, X, BookOpen, FilePlus } from 'lucide-react';
+import { FileText, Save, MessageSquare, Monitor, Layers, Loader2, Sparkles, X, BookOpen, FilePlus, Download } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import rehypeRaw from 'rehype-raw';
 import { AppData, LessonPlan, TemplateFile } from '../../types';
 import * as exportUtils from '../../utils/exportUtils';
 import { exportToWordA4 } from '../../utils/wordExportA4';
@@ -110,6 +114,14 @@ export const CreatorTab = (props: CreatorTabProps) => {
     } finally {
       props.setIsLoading(false);
     }
+  };
+
+  const handleDownloadStudyGuidePDF = async () => {
+    if (!studyGuide) return;
+    await exportUtils.exportToPDF(
+      { title: 'Hướng dẫn Học tập', content: studyGuide },
+      props.showToast
+    );
   };
 
   const hasResult = (props.generationMode === 'single' && props.currentPlan.content) || (props.generationMode === 'bulk' && props.bulkResults.length > 0);
@@ -241,12 +253,20 @@ export const CreatorTab = (props: CreatorTabProps) => {
                           <p className="text-sm text-slate-500 font-medium">Bản tinh hoa dành cho Học sinh (NotebookLM Style)</p>
                         </div>
                       </div>
-                      <button 
-                        onClick={() => setStudyGuide(null)} 
-                        className="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-200 transition-all text-sm"
-                      >
-                        <X className="w-4 h-4" /> Quay lại giáo án
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={handleDownloadStudyGuidePDF}
+                          className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-indigo-700 transition-all text-sm shadow-sm shadow-indigo-200"
+                        >
+                          <Download className="w-4 h-4" /> Tải PDF
+                        </button>
+                        <button
+                          onClick={() => setStudyGuide(null)}
+                          className="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-200 transition-all text-sm"
+                        >
+                          <X className="w-4 h-4" /> Quay lại giáo án
+                        </button>
+                      </div>
                     </div>
                     
                     <motion.div 
@@ -255,7 +275,10 @@ export const CreatorTab = (props: CreatorTabProps) => {
                       className="prose prose-indigo max-w-none markdown-body bg-white p-8 sm:p-12 rounded-[40px] border border-slate-100 shadow-xl relative overflow-hidden"
                     >
                       <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full -mr-16 -mt-16 blur-2xl" />
-                      <ReactMarkdown>{studyGuide}</ReactMarkdown>
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm, remarkMath]}
+                        rehypePlugins={[rehypeRaw, rehypeKatex]}
+                      >{studyGuide}</ReactMarkdown>
                     </motion.div>
                   </div>
                 </div>
