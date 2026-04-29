@@ -5,6 +5,7 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import rehypeRaw from 'rehype-raw';
+import MDEditor from '@uiw/react-md-editor';
 import { LessonPlan } from '../../../types';
 
 interface LessonContentBoardProps {
@@ -34,30 +35,20 @@ export const LessonContentBoard = ({
     <>
       <div className="flex-1 overflow-y-auto p-10 custom-scrollbar scroll-smooth">
         {generationMode === 'single' ? (
-          <div id="lesson-content" className="relative">
-            {/* Edit / Preview toggle */}
-            <button
-              onClick={() => setIsEditing(v => !v)}
-              className="absolute top-0 right-0 z-10 flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-500 hover:text-blue-600 hover:border-blue-300 transition-all shadow-sm"
-            >
-              {isEditing ? <><Eye className="w-3.5 h-3.5" /> Xem trước</> : <><Pencil className="w-3.5 h-3.5" /> Chỉnh sửa</>}
-            </button>
-
-            {isEditing ? (
-              <textarea
-                value={currentPlan.content || ''}
-                onChange={e => setCurrentPlan(prev => ({ ...prev, content: e.target.value }))}
-                className="w-full min-h-[70vh] px-6 py-8 rounded-[24px] border border-blue-200 bg-slate-50 text-sm font-mono leading-relaxed focus:ring-2 focus:ring-blue-400 outline-none resize-none"
-                spellCheck={false}
-              />
-            ) : (
-              <div className="prose prose-slate max-w-none markdown-body">
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm, remarkMath]}
-                  rehypePlugins={[rehypeRaw, rehypeKatex]}
-                >{currentPlan.content || ''}</ReactMarkdown>
-              </div>
-            )}
+          <div id="lesson-content" className="relative" data-color-mode="light">
+            <MDEditor
+              value={currentPlan.content || ''}
+              onChange={val => setCurrentPlan(prev => ({ ...prev, content: val || '' }))}
+              previewOptions={{
+                remarkPlugins: [remarkGfm, remarkMath],
+                rehypePlugins: [rehypeRaw, rehypeKatex]
+              }}
+              height={700}
+              className="w-full border-blue-200 shadow-sm"
+              textareaProps={{
+                placeholder: 'Bắt đầu soạn thảo giáo án bằng Markdown...'
+              }}
+            />
           </div>
         ) : (
           <div className="space-y-12">
