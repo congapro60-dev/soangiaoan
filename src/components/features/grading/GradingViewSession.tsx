@@ -1,3 +1,4 @@
+import { useState, useRef } from 'react';
 import { ChevronLeft, Download, Trash2, BarChart3 } from 'lucide-react';
 import { GradingResult, GradingSession } from '../../../types';
 import { GradingResultsList, FilterScore } from './GradingResultsList';
@@ -20,6 +21,20 @@ export const GradingViewSession = ({
   session, filterScore, setFilterScore,
   onBack, onDelete, onExportExcel, onAnalyzeClass, onViewResult, onDeleteResult, onRenameResult,
 }: Props) => {
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleDeleteClick = () => {
+    if (confirmingDelete) {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      setConfirmingDelete(false);
+      onDelete();
+    } else {
+      setConfirmingDelete(true);
+      timerRef.current = setTimeout(() => setConfirmingDelete(false), 3000);
+    }
+  };
+
   const done = session.results.filter(r => r.status === 'completed');
   const avg = done.length
     ? (done.reduce((a, r) => a + r.score, 0) / done.length).toFixed(1)
@@ -76,10 +91,15 @@ export const GradingViewSession = ({
             <BarChart3 className="w-3.5 h-3.5" /> Phân tích lớp
           </button>
           <button
-            onClick={onDelete}
-            className="px-3 py-2 bg-red-50 text-red-500 rounded-2xl font-bold text-xs hover:bg-red-100 transition-all flex items-center gap-1.5"
+            onClick={handleDeleteClick}
+            className={`px-3 py-2 rounded-2xl font-bold text-xs transition-all flex items-center gap-1.5 ${
+              confirmingDelete
+                ? 'bg-red-600 text-white hover:bg-red-700'
+                : 'bg-red-50 text-red-500 hover:bg-red-100'
+            }`}
           >
-            <Trash2 className="w-3.5 h-3.5" /> Xóa phiên
+            <Trash2 className="w-3.5 h-3.5" />
+            {confirmingDelete ? 'Xác nhận xóa?' : 'Xóa phiên'}
           </button>
         </div>
       </div>

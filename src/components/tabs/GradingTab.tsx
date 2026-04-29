@@ -208,7 +208,6 @@ export const GradingTab = ({
   };
 
   const handleDeleteSession = async (id: string) => {
-    if (!window.confirm('Xóa phiên chấm này? Không thể khôi phục.')) return;
     if (deleteGradingSession) {
       await deleteGradingSession(id);
     } else {
