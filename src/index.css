@@ -207,7 +207,8 @@ body {
   background: #94a3b8;
 }
 
-/* Fix MDEditor fullscreen z-index conflict by hiding the button */
-.w-md-editor-toolbar li button[data-name="fullscreen"] {
-  display: none !important;
+/* Fix MDEditor fullscreen z-index conflict: lower Sidebar and Header z-index when fullscreen is active */
+body:has(.w-md-editor-fullscreen) aside,
+body:has(.w-md-editor-fullscreen) header {
+  z-index: 0 !important;
 }
