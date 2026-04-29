@@ -12,6 +12,7 @@ import { useLessonPlanActions } from './hooks/useLessonPlanActions';
 // Components
 import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
+import { FloatingChatWidget } from './components/layout/FloatingChatWidget';
 import { DashboardTab } from './components/tabs/DashboardTab';
 import { SettingsModal } from './components/modals/SettingsModal';
 import { LatexModal } from './components/modals/LatexModal';
