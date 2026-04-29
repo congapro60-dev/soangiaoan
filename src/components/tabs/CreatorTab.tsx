@@ -63,11 +63,20 @@ export const CreatorTab = (props: CreatorTabProps) => {
     if (slides) setSlidePreview(slides);
   };
 
-  const handleDownloadSlide = () => {
+  const handleDownloadSlide = async () => {
     if (slidePreview) {
-      exportUtils.downloadPPTX(slidePreview, props.currentPlan.title || 'baigiang');
-      props.showToast('Đã lưu file trình chiếu!', 'success');
-      setSlidePreview(null);
+      props.setIsLoading(true);
+      props.showToast('Đang tạo file PPTX (đang render công thức Toán)...', 'info');
+      try {
+        await exportUtils.downloadPPTX(slidePreview, props.currentPlan.title || 'baigiang');
+        props.showToast('Đã lưu file trình chiếu!', 'success');
+      } catch (e) {
+        console.error(e);
+        props.showToast('Lỗi khi tạo file PPTX, vui lòng thử lại.', 'error');
+      } finally {
+        props.setIsLoading(false);
+        setSlidePreview(null);
+      }
     }
   };
 

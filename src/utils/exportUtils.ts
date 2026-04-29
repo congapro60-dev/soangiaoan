@@ -259,45 +259,68 @@ export const generateSlideData = async (
     showToast('Vui lòng cung cấp API Key AI để tạo slide', 'warning');
     return null;
   }
-  
+
   setIsLoading(true);
   showToast('AI đang thiết kế khung slide bài giảng, vui lòng chờ...', 'info');
-  
+
   try {
     const prompt = `
-      BẠN LÀ CHUYÊN GIA THIẾT KẾ BÀI TRÌNH CHIẾU SƯ PHẠM (SLIDE) ĐẲNG CẤP QUỐC TẾ.
-      Dựa vào nội dung giáo án sau, hãy tạo cấu trúc Slide bài giảng thuyết trình theo phong cách NotebookLM/TED Talk: Súc tích, hình ảnh hóa và truyền cảm hứng.
-      Giáo án:
-      ---
-      ${currentPlan.content}
-      ---
+BẠN LÀ CHUYÊN GIA THIẾT KẾ BÀI TRÌNH CHIẾU SƯ PHẠM ĐẲNG CẤP QUỐC TẾ.
+Dựa vào nội dung giáo án sau, hãy tạo cấu trúc Slide bài giảng theo phong cách TED Talk: Súc tích, hình ảnh hóa và truyền cảm hứng.
 
-      YÊU CẦU BẮT BUỘC:
-      1. Trả về ĐÚNG định dạng chuỗi JSON thuần tuý là một mảng object: 
-      [
-        {
-          "title": "TIÊU ĐỀ SLIDE (Viết hoa, gây ấn tượng)", 
-          "points": ["Ý chính 1 (Ngắn gọn)", "Ý chính 2 (Cụm từ then chốt)"], 
-          "speakerNotes": "LỜI DẪN CỦA GIÁO VIÊN: Gợi ý cách đặt câu hỏi tương tác hoặc câu chuyện dẫn dắt cho slide này...", 
-          "visualSuggestion": "HÌNH ẢNH MINH HỌA: Mô tả một hình ảnh ẩn dụ hoặc sơ đồ cụ thể để giáo viên tìm kiếm (Ví dụ: Một chiếc đồng hồ cát đang chảy để nói về thời gian...)"
-        }
-      ]
-      2. Cấu trúc slide: Ổn định tâm lý -> Kích thích tò mò -> Chiếm lĩnh kiến thức -> Thực hành -> Đúc rút.
-      3. TUYỆT ĐỐI KHÔNG DÙNG LaTeX ($...$) . Bạn bắt buộc dùng Unicode thuần túy (x², √, ∫).
-      4. Tối đa 10 slides để đảm bảo sự tinh gọn.
-      CHỈ TRẢ VỀ JSON KHÔNG BỌC BỞI \`\`\`json.
+Giáo án:
+---
+${currentPlan.content}
+---
+
+YÊU CẦU BẮT BUỘC:
+1. Trả về JSON thuần tuý là một mảng object theo đúng schema sau:
+[
+  {
+    "type": "walt",
+    "title": "MỤC TIÊU BÀI HỌC",
+    "icon": "🎯",
+    "points": ["Sau bài này, HS sẽ hiểu được...", "HS sẽ vận dụng được..."],
+    "formulas": [],
+    "speakerNotes": "Lời dẫn mở đầu...",
+    "visualSuggestion": "Mô tả hình ảnh cụ thể để GV tìm kiếm (vd: sơ đồ tư duy hình cây...)"
+  },
+  {
+    "type": "content",
+    "title": "TIÊU ĐỀ SLIDE (VIẾT HOA)",
+    "icon": "📐",
+    "points": ["Ý chính 1 — ngắn gọn", "Ý chính 2 — cụm từ then chốt"],
+    "formulas": ["\\\\frac{a+b}{2}", "\\\\sum_{k=0}^{n} C_n^k a^{n-k} b^k"],
+    "speakerNotes": "Lời dẫn chi tiết cho GV...",
+    "visualSuggestion": "Mô tả hình ảnh minh họa cụ thể..."
+  },
+  {
+    "type": "wrapup",
+    "title": "TỔNG KẾT & BÀI TẬP VỀ NHÀ",
+    "icon": "✅",
+    "points": ["Kiến thức trọng tâm cần nhớ...", "Bài tập: ..."],
+    "formulas": [],
+    "speakerNotes": "Tổng kết bài...",
+    "visualSuggestion": "Hình ảnh tổng kết..."
+  }
+]
+
+2. TRÌNH TỰ BẮT BUỘC: slide đầu là "type":"walt", slide cuối là "type":"wrapup", các slide giữa là "type":"content".
+3. Tối đa 10 slides (1 walt + tối đa 8 content + 1 wrapup).
+4. Trường "formulas": Nếu slide có công thức Toán, hãy viết LATEX THUẦN TÚY (không bao $, không dùng \\( \\)). Ví dụ: "\\\\frac{a}{b}", "x^2 + y^2 = r^2". Nếu không có công thức thì để mảng rỗng [].
+5. Trường "points": Viết UNICODE thuần túy (x², √2, ∞), KHÔNG viết LaTeX trong points.
+6. Trường "icon": Một emoji phù hợp với nội dung slide.
+CHỈ TRẢ VỀ JSON, KHÔNG BỌC BỞI \`\`\`json.
     `;
-    
-    // We use a high temperature for creativity, but let's stick to the selected model
+
     const response = await callAI(prompt, data.settings);
     if (!response) throw new Error("No response");
-    
-    // An toàn hơn: Tìm chính xác đoạn text bắt đầu bằng [ và kết thúc bằng ]
+
     const match = response.match(/\[[\s\S]*\]/);
     const jsonStr = match ? match[0] : response.replace(/```json/g, '').replace(/```/g, '').trim();
-    
+
     const slidesData = JSON.parse(jsonStr);
-    
+
     showToast('Đã thiết kế xong cấu trúc Slide!');
     return slidesData;
   } catch (e) {
@@ -309,42 +332,171 @@ export const generateSlideData = async (
   }
 };
 
-export const downloadPPTX = (slidesData: any[], title: string) => {
+const PALETTE = {
+  primary:   '1B4F72',
+  accent:    '2E86AB',
+  light:     'D6EAF8',
+  white:     'FFFFFF',
+  dark:      '17202A',
+  gray:      '85929E',
+  green:     '1A5276',
+  orange:    '784212',
+  lightGray: 'F2F3F4',
+};
+const FONT = 'Times New Roman';
+
+// Renders a LaTeX string to a base64 PNG using KaTeX + html2canvas-pro.
+// Returns null on failure — callers fall back to plain text.
+const renderFormulaToBase64 = async (latex: string): Promise<{ data: string; aspect: number } | null> => {
+  try {
+    const [{ default: katex }, { default: html2canvas }] = await Promise.all([
+      import('katex'),
+      import('html2canvas-pro'),
+    ]);
+
+    const div = document.createElement('div');
+    div.style.cssText = [
+      'position:fixed', 'left:-9999px', 'top:0',
+      'background:white', 'padding:12px 20px',
+      'font-size:26px', 'display:inline-block',
+    ].join(';');
+    div.innerHTML = katex.renderToString(latex, { throwOnError: false, displayMode: true });
+    document.body.appendChild(div);
+
+    await document.fonts.ready;
+
+    const canvas = await (html2canvas as any)(div, {
+      scale: 3, backgroundColor: '#ffffff', logging: false, useCORS: true,
+    });
+    document.body.removeChild(div);
+
+    return { data: canvas.toDataURL('image/png'), aspect: canvas.width / canvas.height };
+  } catch {
+    return null;
+  }
+};
+
+export const downloadPPTX = async (slidesData: any[], title: string) => {
   if (!slidesData || slidesData.length === 0) return;
-  
+
   const pptx = new pptxgen();
   pptx.layout = 'LAYOUT_16x9';
-  
-  const slideTitle = pptx.addSlide();
-  slideTitle.background = { color: "0B2447" };
-  slideTitle.addText(title, {
-    x: 1, y: 2.2, w: '80%', h: 1.5,
-    fontSize: 40, color: "FFFFFF", bold: true, align: "center",
-    fontFace: "Times New Roman"
+  // Slide size: 10 × 5.625 inches
+
+  // ── Title slide ──────────────────────────────────────────────────────────
+  const tSlide = pptx.addSlide();
+  tSlide.addShape(pptx.ShapeType.rect, {
+    x: 0, y: 0, w: '100%', h: '100%', fill: { color: PALETTE.primary },
   });
-  
-  slidesData.forEach((s: any) => {
+  // Accent strip bottom
+  tSlide.addShape(pptx.ShapeType.rect, {
+    x: 0, y: 4.9, w: '100%', h: 0.725, fill: { color: PALETTE.accent },
+  });
+  tSlide.addText(title, {
+    x: 1, y: 1.2, w: 8, h: 2.4,
+    fontSize: 38, color: PALETTE.white, bold: true,
+    align: 'center', valign: 'middle', fontFace: FONT,
+  });
+  tSlide.addText('SmartPlan AI', {
+    x: 1, y: 4.9, w: 8, h: 0.5,
+    fontSize: 16, color: PALETTE.light, align: 'center', fontFace: FONT,
+  });
+
+  // ── Content slides ────────────────────────────────────────────────────────
+  for (let i = 0; i < slidesData.length; i++) {
+    const s = slidesData[i];
     const pSlide = pptx.addSlide();
-    pSlide.background = { color: "F8F9FA" };
-    pSlide.addText(s.title, {
-      x: 0.5, y: 0.3, w: '90%', h: 0.9,
-      fontSize: 28, bold: true, color: "19376D",
-      fontFace: "Times New Roman"
+    pSlide.background = { color: PALETTE.white };
+
+    // Header bar color by slide type
+    const headerColor =
+      s.type === 'walt'   ? '1A5276' :
+      s.type === 'wrapup' ? '4A235A' :
+                            PALETTE.primary;
+
+    pSlide.addShape(pptx.ShapeType.rect, {
+      x: 0, y: 0, w: '100%', h: 1.05, fill: { color: headerColor },
     });
-    const bulletPoints = s.points.map((p: string) => ({
-      text: p,
-      options: { bullet: true, fontSize: 18, fontFace: "Times New Roman", color: "333333" }
-    }));
-    pSlide.addText(bulletPoints, {
-      x: 0.5, y: 1.4, w: '90%', h: 4.8,
-      valign: 'top', fontFace: "Times New Roman", fontSize: 18
+
+    // Icon + title in header
+    const headerText = s.icon ? `${s.icon}  ${s.title}` : s.title;
+    pSlide.addText(headerText, {
+      x: 0.35, y: 0.1, w: 9.3, h: 0.85,
+      fontSize: 24, color: PALETTE.white, bold: true,
+      valign: 'middle', fontFace: FONT,
     });
-    if (s.speakerNotes) {
-      pSlide.addNotes(s.speakerNotes);
+
+    // Slide counter
+    pSlide.addText(`${i + 1} / ${slidesData.length}`, {
+      x: 8.8, y: 5.3, w: 0.9, h: 0.2,
+      fontSize: 10, color: PALETTE.gray, align: 'right', fontFace: FONT,
+    });
+
+    // Render formulas → base64 PNGs (parallel)
+    const rawFormulas: string[] = Array.isArray(s.formulas) ? s.formulas.filter(Boolean) : [];
+    const formulaImages = rawFormulas.length > 0
+      ? await Promise.all(rawFormulas.map(renderFormulaToBase64))
+      : [];
+    const hasFormulas = formulaImages.some(Boolean);
+
+    // Layout widths
+    const contentX = 0.35;
+    const contentW = hasFormulas ? 5.5 : 9.3;
+    const panelX   = 6.05;
+    const panelW   = 3.6;
+    const contentY = 1.15;
+    const contentH = 4.25;
+
+    // Bullet points
+    if (Array.isArray(s.points) && s.points.length > 0) {
+      const items = s.points.map((p: string) => ({
+        text: p,
+        options: { bullet: { indent: 18 }, fontSize: 17, color: PALETTE.dark, fontFace: FONT },
+      }));
+      pSlide.addText(items, {
+        x: contentX, y: contentY, w: contentW, h: contentH, valign: 'top',
+      });
     }
-  });
-  
-  pptx.writeFile({ fileName: `${title || 'baigiang'}.pptx` });
+
+    // Formula panel (right side)
+    if (hasFormulas) {
+      // Light panel background
+      pSlide.addShape(pptx.ShapeType.rect, {
+        x: panelX, y: contentY, w: panelW, h: contentH,
+        fill: { color: PALETTE.light },
+        line: { color: PALETTE.accent, width: 1 },
+      });
+
+      let imgY = contentY + 0.15;
+      const maxImgW = panelW - 0.2;
+      const maxImgH = 1.5;
+      const gap     = 0.18;
+
+      for (const img of formulaImages) {
+        if (!img) continue;
+        const imgH = Math.min(maxImgW / img.aspect, maxImgH);
+        if (imgY + imgH > contentY + contentH - 0.1) break;
+        try {
+          pSlide.addImage({ data: img.data, x: panelX + 0.1, y: imgY, w: maxImgW, h: imgH });
+        } catch {
+          // skip unrenderable formula
+        }
+        imgY += imgH + gap;
+      }
+    }
+
+    // Visual suggestion hint (small footer, only when no formula panel)
+    if (!hasFormulas && s.visualSuggestion) {
+      pSlide.addText(`💡 ${s.visualSuggestion}`, {
+        x: contentX, y: 5.25, w: 9.3, h: 0.3,
+        fontSize: 9, color: PALETTE.gray, italic: true, fontFace: FONT,
+      });
+    }
+
+    if (s.speakerNotes) pSlide.addNotes(s.speakerNotes);
+  }
+
+  pptx.writeFile({ fileName: `${safeFilename(title, 'baigiang')}.pptx` });
 };
 
 export const openInOverleaf = (latexContent: string, currentPlan: Partial<LessonPlan>, showToast: (msg: string) => void) => {
