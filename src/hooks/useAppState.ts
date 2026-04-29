@@ -3,6 +3,7 @@ import { AppData, DEFAULT_DATA, LessonPlan, Subject, LessonTemplate, CurriculumD
 import { collection, query, where, getDocs, doc, setDoc, deleteDoc, orderBy, limit, startAfter, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { User } from 'firebase/auth';
+import { normalizePlanTitle } from '../utils/fileUtils';
 
 const PAGE_SIZE = 20;
 
@@ -61,7 +62,10 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
           );
           const snapPlans = await getDocs(qPlans);
           const cloudPlans: LessonPlan[] = [];
-          snapPlans.forEach((doc) => cloudPlans.push(doc.data() as LessonPlan));
+          snapPlans.forEach((doc) => {
+            const p = doc.data() as LessonPlan;
+            cloudPlans.push({ ...p, title: normalizePlanTitle(p.title) });
+          });
           setLastPlanDoc(snapPlans.docs[snapPlans.docs.length - 1] || null);
           setHasMorePlans(snapPlans.docs.length === PAGE_SIZE);
 
@@ -148,7 +152,10 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
       );
       const snap = await getDocs(q);
       const morePlans: LessonPlan[] = [];
-      snap.forEach(d => morePlans.push(d.data() as LessonPlan));
+      snap.forEach(d => {
+        const p = d.data() as LessonPlan;
+        morePlans.push({ ...p, title: normalizePlanTitle(p.title) });
+      });
       setLastPlanDoc(snap.docs[snap.docs.length - 1] || null);
       setHasMorePlans(snap.docs.length === PAGE_SIZE);
       setData(prev => ({ ...prev, lessonPlans: [...prev.lessonPlans, ...morePlans] }));
@@ -167,7 +174,10 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
       );
       const snap = await getDocs(q);
       const cp: LessonPlan[] = [];
-      snap.forEach(d => cp.push(d.data() as LessonPlan));
+      snap.forEach(d => {
+        const p = d.data() as LessonPlan;
+        cp.push({ ...p, title: normalizePlanTitle(p.title) });
+      });
       setLastCommunityDoc(snap.docs[snap.docs.length - 1] || null);
       setHasMoreCommunity(snap.docs.length === PAGE_SIZE);
       setCommunityPlans(cp);

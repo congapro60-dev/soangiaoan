@@ -20,6 +20,10 @@ export const safeFilename = (title: string | undefined, fallback = 'giao-an'): s
   return title.replace(/[<>:"/\\|?*\x00-\x1f]/g, '').trim() || fallback;
 };
 
+/** Clear UUID titles on load so corrupted Firestore plans show as untitled rather than a UUID string. */
+export const normalizePlanTitle = (title: string | undefined): string =>
+  !title || UUID_RE.test(title.trim()) ? '' : title;
+
 export const downloadBlob = (blob: Blob, filename: string) => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
