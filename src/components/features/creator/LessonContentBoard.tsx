@@ -113,6 +113,7 @@ export const LessonContentBoard = ({
             <MDEditor
               value={currentPlan.content || ''}
               onChange={val => setCurrentPlan(prev => ({ ...prev, content: val || '' }))}
+              preview="edit"
               previewOptions={{
                 remarkPlugins: [remarkGfm, remarkMath],
                 rehypePlugins: [rehypeRaw, rehypeKatex]
