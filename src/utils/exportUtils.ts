@@ -63,12 +63,16 @@ export const exportToPDF = async (
   // CSS chuẩn Nghị định 30/2020/NĐ-CP: Times New Roman 14pt, line-height ≤ 1.5,
   // spacing đoạn ≥ 6pt, đầu dòng thụt 1cm, justify.
   style.innerHTML = `
-    #pdf-render-container, #pdf-render-container * {
-      font-family: 'Times New Roman', Times, serif !important;
-      color: #000 !important;
+    #pdf-render-container {
+      font-family: 'Times New Roman', Times, serif;
+      color: #000;
+      font-size: 14pt;
+      line-height: 1.5;
       box-sizing: border-box;
     }
-    #pdf-render-container { font-size: 14pt !important; line-height: 1.5 !important; }
+    #pdf-render-container * { box-sizing: border-box; }
+    /* Do NOT set font-family with !important — it would break KaTeX's own inline
+       font-family declarations (KaTeX_Math, KaTeX_Main, etc.) causing math blanks. */
     #pdf-render-container h1 {
       font-size: 18pt !important; font-weight: bold !important;
       text-align: center !important; margin: 10pt 0 6pt !important;
@@ -169,6 +173,10 @@ export const exportToPDF = async (
         )
       );
     });
+
+    // Wait for KaTeX web fonts (@font-face) to finish loading before html2canvas
+    // captures. Without this, math glyphs render as blank rectangles in the PDF.
+    await document.fonts.ready;
 
     const { exportElementToPdf } = await import('./pdfExport');
     await exportElementToPdf(container, {
