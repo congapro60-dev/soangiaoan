@@ -1,6 +1,7 @@
 import pptxgen from 'pptxgenjs';
 import { LessonPlan, AppData } from '../types';
 import { callAI, getActiveApiKey } from '../lib/aiProviders';
+import { safeFilename } from './fileUtils';
 
 export type PdfOrientation = 'portrait' | 'landscape';
 
@@ -134,7 +135,7 @@ export const exportToPDF = async (
   try {
     const { exportElementToPdf } = await import('./pdfExport');
     await exportElementToPdf(container, {
-      filename: `${currentPlan.title || 'giao-an'}.pdf`,
+      filename: `${safeFilename(currentPlan.title)}.pdf`,
       scale: 2, // higher resolution for crisp text
       marginMm,
       orientation,

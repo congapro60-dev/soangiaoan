@@ -29,7 +29,7 @@ const ExamsTab = lazy(() => import('./components/tabs/ExamsTab').then(m => ({ de
 // Utils
 import { processUploadedFile } from './utils/fileUtils';
 import * as exportUtils from './utils/exportUtils';
-import { downloadBlob } from './utils/fileUtils';
+import { downloadBlob, safeFilename } from './utils/fileUtils';
 
 // Types
 import { TemplateFile } from './types';
@@ -294,7 +294,7 @@ export default function App() {
       <LatexModal 
         isOpen={isLatexModalOpen} onClose={() => setIsLatexModalOpen(false)} 
         latexContent={latexContent} currentPlan={creator.currentPlan}
-        downloadLaTeXFile={() => downloadBlob(new Blob([latexContent], {type: 'text/plain;charset=utf-8'}), `${creator.currentPlan.title}.tex`)}
+        downloadLaTeXFile={() => downloadBlob(new Blob([latexContent], {type: 'text/plain;charset=utf-8'}), `${safeFilename(creator.currentPlan.title)}.tex`)}
         openInOverleaf={() => exportUtils.openInOverleaf(latexContent, creator.currentPlan, showToast)}
         showToast={showToast}
       />
