@@ -1,6 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { History, Plus, Clock, Trash2, FolderOpen } from 'lucide-react';
 import { GradingSession } from '../../../types';
+import { ConfirmDialog } from '../../modals/ConfirmDialog';
 
 interface Props {
   sessions: GradingSession[];
@@ -18,21 +19,7 @@ export const GradingSessionList = ({
   masterFileCount, studentFileCount,
   onSelectSession, onDeleteSession, onNewSession,
 }: Props) => {
-  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const handleDeleteClick = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    if (pendingDeleteId === id) {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      setPendingDeleteId(null);
-      onDeleteSession(id);
-    } else {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      setPendingDeleteId(id);
-      timerRef.current = setTimeout(() => setPendingDeleteId(null), 3000);
-    }
-  };
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const sessionStats = (s: GradingSession) => {
     const done = s.results.filter(r => r.status === 'completed');
@@ -98,14 +85,10 @@ export const GradingSessionList = ({
                   📋 {session.title}
                 </p>
                 <button
-                  onClick={e => handleDeleteClick(e, session.id)}
-                  className={`p-1 rounded transition-all ${
-                    pendingDeleteId === session.id
-                      ? 'opacity-100 text-red-600 bg-red-50 text-[9px] font-bold px-1.5'
-                      : 'opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600'
-                  }`}
+                  onClick={e => { e.stopPropagation(); setDeletingId(session.id); }}
+                  className="opacity-0 group-hover:opacity-100 p-1 text-red-400 hover:text-red-600 rounded transition-all"
                 >
-                  {pendingDeleteId === session.id ? 'Xóa?' : <Trash2 className="w-3 h-3" />}
+                  <Trash2 className="w-3 h-3" />
                 </button>
               </div>
               <div className="flex items-center gap-2 mt-1.5">
@@ -122,6 +105,14 @@ export const GradingSessionList = ({
           );
         })}
       </div>
+
+      <ConfirmDialog
+        isOpen={deletingId !== null}
+        title="Xóa phiên chấm này?"
+        description="Dữ liệu điểm và nhận xét của tất cả học sinh sẽ bị xóa vĩnh viễn."
+        onConfirm={() => { if (deletingId) onDeleteSession(deletingId); setDeletingId(null); }}
+        onCancel={() => setDeletingId(null)}
+      />
     </div>
   );
 };
