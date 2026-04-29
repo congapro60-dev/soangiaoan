@@ -31,7 +31,6 @@ export const LessonContentBoard = ({
   handleReviseLesson,
   isLoading
 }: LessonContentBoardProps) => {
-  const [isEditing, setIsEditing] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const handleImageUpload = async (file: File, e: React.SyntheticEvent) => {
