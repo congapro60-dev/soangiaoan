@@ -63,7 +63,13 @@ export default function App() {
   // Sync EVERYTHING to Cloud periodically or on major change (already handled in useAppState)
 
   const creator = useLessonCreator(data, setData, setIsLoading, showToast, setIsSettingsOpen);
-  const chat = useChat(data, setIsLoading, showToast);
+  const chat = useChat(
+    data, 
+    setIsLoading, 
+    showToast,
+    () => activeTab === 'creator' ? creator.currentPlan.content || null : null,
+    (newContent) => creator.setCurrentPlan(prev => ({ ...prev, content: newContent }))
+  );
 
   const { saveLessonPlan, saveBulkPlans, duplicatePlan, deletePlan, updatePlanMetadata, toggleSharePlan } =
     useLessonPlanActions({ user, data, setData, showToast, setIsLoading, setActiveTab, setAuthorName, creator });
@@ -291,7 +297,7 @@ export default function App() {
         openInOverleaf={() => exportUtils.openInOverleaf(latexContent, creator.currentPlan, showToast)}
         showToast={showToast}
       />
-      <FloatingChatWidget {...chat} />
+      <FloatingChatWidget {...chat} isLoading={isLoading} />
     </div>
   );
 }
