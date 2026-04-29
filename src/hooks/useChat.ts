@@ -44,6 +44,7 @@ export const useChat = (
         Nếu người dùng yêu cầu BẠN SỬA ĐỔI, THÊM, BỚT nội dung trực tiếp vào giáo án:
         1. Hãy viết lại TOÀN BỘ giáo án đã được cập nhật nội dung.
         2. BẮT BUỘC phải bọc toàn bộ giáo án mới đó bên trong cặp thẻ HTML: <UPDATE_EDITOR> (nội dung mới) </UPDATE_EDITOR>.
+        3. ĐỂ GIỮ NGUYÊN CÁC PHẦN KHÔNG CÓ THAY ĐỔI, BẮT BUỘC SAO CHÉP NGUYÊN VĂN 100% NỘI DUNG GỐC của phần đó. TUYỆT ĐỐI KHÔNG được viết các cụm từ kiểu "(Giữ nguyên như bản gốc)", "[Nội dung cũ]", "(unchanged)", "[...]" hay bất kỳ dạng placeholder nào thay thế cho nội dung thật. Việc dùng placeholder là LỖI NGHIÊM TRỌNG gây mất dữ liệu của giáo viên.
         Nếu người dùng chỉ hỏi tư vấn bình thường, hãy trả lời bình thường và TUYỆT ĐỐI KHÔNG dùng thẻ <UPDATE_EDITOR>.` : ''}
         
         YÊU CẦU QUAN TRỌNG NHẤT:
