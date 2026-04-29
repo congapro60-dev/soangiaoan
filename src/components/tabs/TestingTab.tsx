@@ -39,6 +39,7 @@ interface TestingTabProps {
   setIsLoading: (val: boolean) => void;
   showToast: (msg: string, type?: any) => void;
   initialContent?: string;
+  onConsumeInitialContent?: () => void;
 }
 
 type TestingMode = 'create' | 'audit' | 'shuffle';
@@ -77,7 +78,7 @@ const modeBadge: Record<TestingMode, { label: string; color: string }> = {
   shuffle:{ label: 'Trộn đề', color: 'bg-orange-100 text-orange-700' },
 };
 
-export const TestingTab = ({ data, isLoading, setIsLoading, showToast, initialContent }: TestingTabProps) => {
+export const TestingTab = ({ data, isLoading, setIsLoading, showToast, initialContent, onConsumeInitialContent }: TestingTabProps) => {
   const [activeMode, setActiveMode] = useState<TestingMode>(
     () => (localStorage.getItem(LAST_MODE_KEY) as TestingMode) || 'create'
   );
@@ -106,9 +107,12 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast, initialCo
     saveHistory(cleaned);
   }, []);
 
-  // Pre-fill requirement khi được chuyển từ giáo án
+  // Pre-fill requirement khi được chuyển từ giáo án, xóa sau khi dùng
   useEffect(() => {
-    if (initialContent) setRequirement(initialContent);
+    if (initialContent) {
+      setRequirement(initialContent);
+      onConsumeInitialContent?.();
+    }
   }, [initialContent]);
 
   // Lưu kết quả vào localStorage

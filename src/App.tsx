@@ -209,6 +209,7 @@ export default function App() {
               <TestingTab
                 data={data} isLoading={isLoading} setIsLoading={setIsLoading} showToast={showToast}
                 initialContent={testingInitialContent}
+                onConsumeInitialContent={() => setTestingInitialContent(undefined)}
               />
             )}
 
