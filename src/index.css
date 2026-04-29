@@ -206,3 +206,8 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* Fix MDEditor fullscreen z-index conflict by hiding the button */
+.w-md-editor-toolbar li button[data-name="fullscreen"] {
+  display: none !important;
+}
