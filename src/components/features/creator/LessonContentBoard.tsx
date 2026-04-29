@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sparkles, Pencil, Eye } from 'lucide-react';
+import { Sparkles, Pencil, Eye, Loader2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
@@ -7,6 +7,8 @@ import rehypeKatex from 'rehype-katex';
 import rehypeRaw from 'rehype-raw';
 import MDEditor from '@uiw/react-md-editor';
 import { LessonPlan } from '../../../types';
+import { auth, storage } from '../../../lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 interface LessonContentBoardProps {
   generationMode: 'single' | 'bulk';
@@ -30,12 +32,84 @@ export const LessonContentBoard = ({
   isLoading
 }: LessonContentBoardProps) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+  const handleImageUpload = async (file: File, e: React.SyntheticEvent) => {
+    e.preventDefault();
+    if (isUploadingImage) return;
+
+    try {
+      setIsUploadingImage(true);
+      const user = auth.currentUser;
+      const folder = currentPlan.id ?? `temp_${user?.uid || 'anonymous'}`;
+      const timestamp = Date.now();
+      const filename = `${timestamp}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+      const storageRef = ref(storage, `lesson_images/${folder}/${filename}`);
+      
+      const textarea = document.querySelector<HTMLTextAreaElement>('.w-md-editor-text-input');
+      const pos = textarea?.selectionStart ?? (currentPlan.content || '').length;
+      const uploadingText = `\n![Đang tải ảnh lên...](${filename})\n`;
+      const currentContent = currentPlan.content || '';
+      setCurrentPlan(prev => ({ 
+        ...prev, 
+        content: currentContent.slice(0, pos) + uploadingText + currentContent.slice(pos) 
+      }));
+
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      
+      setCurrentPlan(prev => {
+        const text = prev.content || '';
+        return {
+          ...prev,
+          content: text.replace(uploadingText, `\n![${file.name}](${url})\n`)
+        };
+      });
+    } catch (error) {
+      console.error("Lỗi khi tải ảnh:", error);
+      const uploadingText = `\n![Đang tải ảnh lên...](${file.name.replace(/[^a-zA-Z0-9.]/g, '_')})\n`;
+      setCurrentPlan(prev => ({
+        ...prev,
+        content: (prev.content || '').replace(uploadingText, '\n*(Lỗi: Không thể tải ảnh)*\n')
+      }));
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const file = items[i].getAsFile();
+        if (file) {
+          handleImageUpload(file, e);
+          break;
+        }
+      }
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    const items = e.dataTransfer?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const file = items[i].getAsFile();
+        if (file) {
+          handleImageUpload(file, e);
+          break;
+        }
+      }
+    }
+  };
 
   return (
     <>
       <div className="flex-1 overflow-y-auto p-10 custom-scrollbar scroll-smooth">
         {generationMode === 'single' ? (
-          <div id="lesson-content" className="relative" data-color-mode="light">
+          <div id="lesson-content" className="relative" data-color-mode="light" onPaste={handlePaste} onDrop={handleDrop}>
             <MDEditor
               value={currentPlan.content || ''}
               onChange={val => setCurrentPlan(prev => ({ ...prev, content: val || '' }))}
