@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { CheckCircle2, Upload, Users, Loader2, ClipboardCheck, Download, Plus, X, BarChart3 } from 'lucide-react';
+import { CheckCircle2, Upload, Users, Loader2, ClipboardCheck, Download, Plus, X, BarChart3, Sparkles } from 'lucide-react';
 import { AppData, TemplateFile, GradingResult } from '../../../types';
 import { processUploadedFile } from '../../../utils/fileUtils';
 import { GradingResultsList, FilterScore } from './GradingResultsList';
@@ -34,6 +34,8 @@ interface Props {
   onRenameResult: (r: GradingResult, name: string) => void;
   gradingRubric: string;
   setGradingRubric: (v: string) => void;
+  noAnswerKey: boolean;
+  setNoAnswerKey: (v: boolean) => void;
 }
 
 export const GradingNewSession = ({
@@ -43,6 +45,7 @@ export const GradingNewSession = ({
   data, setIsLoading, showToast,
   maxScore, setMaxScore, eta,
   gradingRubric, setGradingRubric,
+  noAnswerKey, setNoAnswerKey,
   onStartGrading, onSaveSession, onExportExcel, onAnalyzeClass, onViewResult, onDeleteResult, onRegradeResult, onRenameResult,
 }: Props) => {
   const masterRef = useRef<HTMLInputElement>(null);
@@ -157,6 +160,18 @@ export const GradingNewSession = ({
             ))}
           </div>
           <input ref={masterRef} type="file" multiple accept=".pdf,.docx,.jpg,.jpeg,.png" className="hidden" onChange={handleMasterUpload} />
+          <button
+            type="button"
+            onClick={() => setNoAnswerKey(!noAnswerKey)}
+            className={`flex items-center gap-1.5 mt-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all w-fit ${
+              noAnswerKey
+                ? 'bg-violet-100 text-violet-700 border border-violet-200'
+                : 'bg-slate-50 text-slate-400 border border-slate-100 hover:border-violet-200 hover:text-violet-500'
+            }`}
+          >
+            <Sparkles className="w-3 h-3" />
+            {noAnswerKey ? 'AI tự giải đề ✓' : 'Chưa có đáp án — AI tự giải'}
+          </button>
         </div>
 
         {/* Student files */}

@@ -13,6 +13,7 @@ import { FilterScore } from '../features/grading/GradingResultsList';
 import { SmartGradingMode } from '../features/grading/SmartGradingMode';
 import { WarningPanel } from '../features/grading/WarningPanel';
 import { ClassAnalysisModal } from '../features/grading/ClassAnalysisModal';
+import { AISolveExamModal } from '../features/grading/AISolveExamModal';
 
 interface GradingTabProps {
   data: AppData;
@@ -57,6 +58,12 @@ export const GradingTab = ({
   const [classAnalysisOpen, setClassAnalysisOpen] = useState(false);
   const [classAnalysisLoading, setClassAnalysisLoading] = useState(false);
   const [classAnalysisContent, setClassAnalysisContent] = useState('');
+
+  // AI solve exam state
+  const [noAnswerKey, setNoAnswerKey] = useState(false);
+  const [aiSolveModalOpen, setAiSolveModalOpen] = useState(false);
+  const [aiSolveLoading, setAiSolveLoading] = useState(false);
+  const [aiSolveContent, setAiSolveContent] = useState('');
 
   const sessions = data.gradingSessions || [];
   const selectedSession = useMemo(
@@ -116,22 +123,16 @@ export const GradingTab = ({
     setFilterScore('all');
   };
 
-  const handleStartGrading = async () => {
-    if (masterFiles.length === 0 || studentFiles.length === 0) return;
-    if (!getActiveApiKey(data.settings)) {
-      showToast('Cần nhập API Key trong Cài đặt trước khi chấm bài', 'error');
-      return;
-    }
+  const gradeAllStudents = async (allMasterFiles: TemplateFile[]) => {
     setIsProcessing(true);
     setSessionSaved(false);
     setEta('');
 
-    // Combine all master files into one context block
     const combined: TemplateFile = {
       id: 'combined',
-      name: masterFiles.map(f => f.name).join(' + '),
+      name: allMasterFiles.map(f => f.name).join(' + '),
       type: 'text',
-      content: masterFiles.map(f => `=== ${f.name} ===\n${f.content}`).join('\n\n'),
+      content: allMasterFiles.map(f => `=== ${f.name} ===\n${f.content}`).join('\n\n'),
       category: 'test',
     };
 
@@ -151,7 +152,6 @@ export const GradingTab = ({
       }
       processed++;
       setResults([...updated]);
-      // Update ETA after each submission
       const elapsed = Date.now() - startTime;
       const avgMs = elapsed / processed;
       const remaining = studentFiles.filter((_, j) => {
@@ -169,8 +169,45 @@ export const GradingTab = ({
     setEta('');
     setIsProcessing(false);
     showToast('Đã hoàn thành chấm điểm!');
-    // Auto-save
     await handleSaveSession(updated);
+  };
+
+  const handleStartGrading = async () => {
+    if (masterFiles.length === 0 || studentFiles.length === 0) return;
+    if (!getActiveApiKey(data.settings)) {
+      showToast('Cần nhập API Key trong Cài đặt trước khi chấm bài', 'error');
+      return;
+    }
+
+    if (noAnswerKey) {
+      setAiSolveModalOpen(true);
+      setAiSolveLoading(true);
+      setAiSolveContent('');
+      try {
+        const solution = await gradingUtils.solveExam(masterFiles, data.settings);
+        setAiSolveContent(solution);
+      } catch (err: any) {
+        showToast(`Lỗi khi AI giải đề: ${err?.message || 'Không rõ nguyên nhân'}`, 'error');
+        setAiSolveModalOpen(false);
+      } finally {
+        setAiSolveLoading(false);
+      }
+      return;
+    }
+
+    await gradeAllStudents(masterFiles);
+  };
+
+  const handleConfirmAISolve = async () => {
+    setAiSolveModalOpen(false);
+    const answerKeyFile: TemplateFile = {
+      id: `ai-answer-key-${Date.now()}`,
+      name: 'Đáp án AI',
+      type: 'text',
+      content: aiSolveContent,
+      category: 'test',
+    };
+    await gradeAllStudents([...masterFiles, answerKeyFile]);
   };
 
   const handleSmartGradingComplete = async (
@@ -355,6 +392,7 @@ export const GradingTab = ({
                 filterScore={filterScore} setFilterScore={setFilterScore}
                 data={data} setIsLoading={setIsLoading} showToast={showToast}
                 gradingRubric={gradingRubric} setGradingRubric={setGradingRubric}
+                noAnswerKey={noAnswerKey} setNoAnswerKey={setNoAnswerKey}
                 onStartGrading={handleStartGrading}
                 onSaveSession={() => handleSaveSession(results)}
                 onExportExcel={() => exportToExcel(results, sessionTitle)}
@@ -402,6 +440,16 @@ export const GradingTab = ({
         content={classAnalysisContent}
         sessionTitle={sessionTitle || selectedSession?.title || ''}
         onClose={() => setClassAnalysisOpen(false)}
+      />
+
+      {/* AI solve exam modal */}
+      <AISolveExamModal
+        isOpen={aiSolveModalOpen}
+        isLoading={aiSolveLoading}
+        content={aiSolveContent}
+        onChange={setAiSolveContent}
+        onCancel={() => setAiSolveModalOpen(false)}
+        onConfirm={handleConfirmAISolve}
       />
     </motion.div>
   );

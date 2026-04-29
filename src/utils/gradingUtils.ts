@@ -72,6 +72,65 @@ THANG ĐIỂM: Tổng điểm tối đa là ${targetMaxScore} điểm. Quy đổ
    * Chấm điểm một bài — tự động route tới provider đang chọn
    * Ảnh → callAIWithVision, văn bản → callAI
    */
+  solveExam: async (
+    masterFiles: TemplateFile[],
+    settings: Settings
+  ): Promise<string> => {
+    const apiKey = getActiveApiKey(settings);
+    if (!apiKey) throw new Error('Chưa nhập API Key cho provider đang chọn');
+
+    const imageFile = masterFiles.find(f => IMAGE_TYPES.has(f.type.toLowerCase()));
+    const textContent = masterFiles
+      .filter(f => !IMAGE_TYPES.has(f.type.toLowerCase()))
+      .map(f => `=== ${f.name} ===\n${f.content}`)
+      .join('\n\n');
+
+    const prompt = `Bạn là chuyên gia khảo thí và giáo dục. Nhiệm vụ: **giải chi tiết đề kiểm tra** và tạo **đáp án chuẩn đầy đủ** để giáo viên sử dụng chấm bài.
+
+${textContent ? `NỘI DUNG ĐỀ:\n---\n${textContent}\n---` : ''}${imageFile ? '\n[Xem đề trong ảnh đính kèm]' : ''}
+
+Tạo đáp án theo cấu trúc Markdown sau (chỉ bao gồm các phần có trong đề):
+
+## 📝 TRẮC NGHIỆM
+| Câu | Đáp án | Giải thích ngắn |
+|-----|--------|----------------|
+| 1   | A      | ... |
+
+## ✅ ĐÚNG / SAI
+| Câu | Ý | Đáp án | Giải thích |
+|-----|---|--------|-----------|
+| 1   | a | Đúng   | ... |
+
+## 🔢 TRẢ LỜI NGẮN
+| Câu | Đáp án | Cách giải tóm tắt |
+|-----|--------|--------------------|
+| 1   | 42     | ... |
+
+## 📖 TỰ LUẬN
+### Câu X (X điểm)
+**Lời giải:**
+[Các bước giải đầy đủ]
+
+**Thang điểm chi tiết:**
+- Ý 1: X điểm — [yêu cầu cụ thể]
+- Ý 2: X điểm — [yêu cầu cụ thể]
+
+## 📊 TỔNG HỢP THANG ĐIỂM
+| Phần | Số câu/ý | Điểm | Tổng |
+|------|----------|------|------|
+| Trắc nghiệm | X | X/câu | X |
+| Tổng cộng | | | 10 |
+
+Giải chi tiết, rõ ràng từng bước để giáo viên dễ kiểm tra và chỉnh sửa nếu cần.`;
+
+    const text = imageFile
+      ? await callAIWithVision(prompt, imageFile.content, settings)
+      : await callAI(prompt, settings);
+
+    if (!text) throw new Error('AI trả về phản hồi rỗng');
+    return text;
+  },
+
   analyzeClass: async (
     results: GradingResult[],
     settings: Settings,
