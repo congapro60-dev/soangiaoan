@@ -48,6 +48,12 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLatexModalOpen, setIsLatexModalOpen] = useState(false);
   const [latexContent, setLatexContent] = useState('');
+  const [testingInitialContent, setTestingInitialContent] = useState<string | undefined>();
+
+  const navigateToTesting = (lessonContent: string, lessonTitle: string) => {
+    setTestingInitialContent(`Soạn đề kiểm tra từ giáo án: "${lessonTitle}"\n\nNội dung bài học:\n${lessonContent}`);
+    setActiveTab('testing');
+  };
   const [uploadingFiles, setUploadingFiles] = useState<{ category: TemplateFile['category']; templateId?: string } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -188,19 +194,21 @@ export default function App() {
             )}
 
             {activeTab === 'creator' && (
-              <CreatorTab 
-                {...creator} data={data} isLoading={isLoading} setIsLoading={setIsLoading} fileInputRef={fileInputRef} 
+              <CreatorTab
+                {...creator} data={data} isLoading={isLoading} setIsLoading={setIsLoading} fileInputRef={fileInputRef}
                 setUploadingFiles={setUploadingFiles} showToast={showToast}
                 saveLessonPlan={saveLessonPlan} saveBulkPlans={saveBulkPlans}
                 deleteDistribution={deleteDistribution}
                 exportToPDF={(orientation) => exportUtils.exportToPDF(creator.currentPlan, showToast, orientation)}
                 exportToLaTeX={() => exportUtils.exportToLaTeX(creator.currentPlan, data, setIsLoading, setIsSettingsOpen, showToast, setLatexContent, setIsLatexModalOpen)}
+                onCreateExam={() => navigateToTesting(creator.currentPlan.content || '', creator.currentPlan.title || '')}
               />
             )}
 
             {activeTab === 'testing' && (
-              <TestingTab 
+              <TestingTab
                 data={data} isLoading={isLoading} setIsLoading={setIsLoading} showToast={showToast}
+                initialContent={testingInitialContent}
               />
             )}
 

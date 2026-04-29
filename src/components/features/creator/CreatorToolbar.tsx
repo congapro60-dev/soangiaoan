@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { FileDown, FileText, Presentation, FileSpreadsheet, BookOpen, Headphones, ChevronDown, RotateCcw } from 'lucide-react';
+import { FileDown, FileText, Presentation, FileSpreadsheet, BookOpen, Headphones, ChevronDown, RotateCcw, ClipboardList } from 'lucide-react';
 
 export type PaperOrientation = 'portrait' | 'landscape';
 
@@ -10,6 +10,7 @@ interface CreatorToolbarProps {
   exportToLaTeX: () => void;
   handleGenerateStudyGuide: () => void;
   setShowAudioOverview: (val: boolean) => void;
+  onCreateExam?: () => void;
 }
 
 export const CreatorToolbar = ({
@@ -18,7 +19,8 @@ export const CreatorToolbar = ({
   handleGenerateSlide,
   exportToLaTeX,
   handleGenerateStudyGuide,
-  setShowAudioOverview
+  setShowAudioOverview,
+  onCreateExam,
 }: CreatorToolbarProps) => {
   const [orientation, setOrientation] = useState<PaperOrientation>('portrait');
   const [showOrientationMenu, setShowOrientationMenu] = useState(false);
@@ -71,6 +73,16 @@ export const CreatorToolbar = ({
       </div>
 
       <div className="w-[1px] h-8 bg-slate-200 mx-1"></div>
+
+      {onCreateExam && (
+        <button
+          onClick={onCreateExam}
+          className="p-2.5 bg-teal-50 border border-teal-100 rounded-xl text-teal-600 hover:bg-teal-600 hover:text-white transition-all shadow-sm"
+          title="Tạo đề kiểm tra từ giáo án này"
+        >
+          <ClipboardList className="w-5 h-5" />
+        </button>
+      )}
 
       <button
         onClick={() => exportToPDF(orientation)}

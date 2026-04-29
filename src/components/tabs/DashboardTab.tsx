@@ -13,6 +13,7 @@ import {
 import { AppData, LessonPlan } from '../../types';
 import { cn } from '../../lib/utils';
 import dayjs from 'dayjs';
+import { LearningAnalytics } from '../features/LearningAnalytics';
 
 interface DashboardTabProps {
   data: AppData;
@@ -152,6 +153,11 @@ export const DashboardTab = ({ data, setCurrentPlan, setActiveTab }: DashboardTa
           </div>
         </div>
       </div>
+
+      {/* Learning Analytics */}
+      {(data.gradingSessions?.length ?? 0) > 0 && (
+        <LearningAnalytics sessions={data.gradingSessions} />
+      )}
     </motion.div>
   );
 };

@@ -49,6 +49,7 @@ interface CreatorTabProps {
   selectedDistributionId: string;
   setSelectedDistributionId: (id: string) => void;
   deleteDistribution: (id: string) => void;
+  onCreateExam?: () => void;
 }
 
 export const CreatorTab = (props: CreatorTabProps) => {
@@ -211,6 +212,7 @@ export const CreatorTab = (props: CreatorTabProps) => {
                           exportToLaTeX={props.exportToLaTeX}
                           handleGenerateStudyGuide={handleGenerateStudyGuide}
                           setShowAudioOverview={setShowAudioOverview}
+                          onCreateExam={props.onCreateExam}
                        />
                     )}
                  </div>
