@@ -10,24 +10,39 @@ export const exportToPDF = async (
   showToast: (msg: string, type?: any) => void,
   orientation: PdfOrientation = 'portrait'
 ) => {
-  const original = document.getElementById('lesson-content');
-  if (!original) return;
+  if (!currentPlan.content) {
+    showToast('Không có nội dung giáo án để xuất', 'warning');
+    return;
+  }
 
   showToast('Đang tạo PDF, vui lòng chờ...');
 
   // Theo Nghị định 30/2020/NĐ-CP: A4 (210×297mm), lề trên/dưới 20mm, lề trái 30mm, lề phải 18mm.
-  // Usable width = 210 - 30 - 18 = 162mm (dọc) hoặc 297 - 30 - 18 = 249mm (ngang).
-  // Render width = usableWidth * 96/25.4 (px @ 96dpi).
   const isLandscape = orientation === 'landscape';
   const renderWidthPx = isLandscape ? 941 : 612; // 249mm hoặc 162mm @ 96dpi
-  const marginMm: [number, number, number, number] = [20, 18, 20, 30]; // top, right, bottom, left
+  const marginMm: [number, number, number, number] = [20, 18, 20, 30];
 
-  // Clone content into an offscreen container with EXACT A4 usable width.
-  // This way html2canvas captures at the same width that jsPDF will place on the page,
-  // so 14pt in DOM renders as 14pt in PDF (no shrinking).
-  const clone = original.cloneNode(true) as HTMLElement;
-  // Remove the floating "Chỉnh sửa" toggle button that lives inside #lesson-content
-  clone.querySelectorAll('button').forEach((b) => b.remove());
+  // Load React rendering stack. These modules are already in the bundle (used by
+  // LessonContentBoard) so this is just reference resolution, not extra download.
+  const [
+    { createRoot },
+    { flushSync },
+    { default: React },
+    { default: ReactMarkdown },
+    { default: remarkGfm },
+    { default: remarkMath },
+    { default: rehypeKatex },
+    { default: rehypeRaw },
+  ] = await Promise.all([
+    import('react-dom/client'),
+    import('react-dom'),
+    import('react'),
+    import('react-markdown'),
+    import('remark-gfm'),
+    import('remark-math'),
+    import('rehype-katex'),
+    import('rehype-raw'),
+  ]);
 
   const container = document.createElement('div');
   container.id = 'pdf-render-container';
@@ -42,7 +57,6 @@ export const exportToPDF = async (
     'z-index: -1',
     'box-sizing: border-box',
   ].join(';');
-  container.appendChild(clone);
 
   const style = document.createElement('style');
   style.id = 'pdf-print-style';
@@ -132,11 +146,34 @@ export const exportToPDF = async (
   document.head.appendChild(style);
   document.body.appendChild(container);
 
+  const root = createRoot(container);
   try {
+    // Render markdown through the same ReactMarkdown pipeline used in LessonContentBoard
+    // so the PDF always shows the formatted view (tables, bold, math) regardless of
+    // which editor mode the user has open.
+    flushSync(() => {
+      root.render(
+        React.createElement(
+          React.Fragment,
+          null,
+          currentPlan.title &&
+            React.createElement('h1', null, currentPlan.title),
+          React.createElement(
+            ReactMarkdown as any,
+            {
+              remarkPlugins: [remarkGfm, remarkMath],
+              rehypePlugins: [rehypeRaw, rehypeKatex],
+              children: currentPlan.content,
+            }
+          )
+        )
+      );
+    });
+
     const { exportElementToPdf } = await import('./pdfExport');
     await exportElementToPdf(container, {
       filename: `${safeFilename(currentPlan.title)}.pdf`,
-      scale: 2, // higher resolution for crisp text
+      scale: 2,
       marginMm,
       orientation,
     });
@@ -145,6 +182,7 @@ export const exportToPDF = async (
     console.error(e);
     showToast('Lỗi khi xuất PDF, vui lòng thử lại.', 'error');
   } finally {
+    root.unmount();
     if (style.parentNode) style.remove();
     if (container.parentNode) container.remove();
   }
