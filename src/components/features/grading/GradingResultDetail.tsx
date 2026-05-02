@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { User, Award, AlertTriangle, Download, Printer, X, Minimize2, BrainCircuit, ListChecks, Loader2, Save } from 'lucide-react';
+import { User, Award, AlertTriangle, Download, Printer, X, Sparkles, Rocket, CircleHelp, Loader2, Save } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { marked } from 'marked';
@@ -165,7 +165,8 @@ export const GradingResultDetail = ({ result, onClose, settings, onSaveDetails }
 
   const canAI = !!settings;
   const r10 = result ? (result.maxScore > 0 ? (result.score / result.maxScore) * 10 : result.score) : 0;
-  const isHighScore = r10 >= 7;
+  const isHighScore = r10 >= 8;   // Mở rộng tư duy — chỉ khi ≥ 8/10
+  const isLowScore  = r10 < 5;   // Gợi ý từng bước — chỉ khi < 5/10
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
@@ -241,30 +242,35 @@ export const GradingResultDetail = ({ result, onClose, settings, onSaveDetails }
                     <div className="flex items-center gap-2">
                       <ActionButton
                         label="Rút gọn & Nhân hóa"
-                        icon={<Minimize2 className="w-3.5 h-3.5" />}
+                        icon={<Sparkles className="w-3.5 h-3.5" />}
                         loading={actionLoading === 'shorten'}
                         colorCls="text-slate-600 border-slate-200 hover:bg-slate-100"
                         onClick={() => runAction('shorten', () =>
                           feedbackActions.shortenHumanize(editedDetails, settings!)
                         )}
                       />
-                      <ActionButton
-                        label={isHighScore ? 'Mở rộng tư duy' : 'Gợi ý từng bước'}
-                        icon={isHighScore
-                          ? <BrainCircuit className="w-3.5 h-3.5" />
-                          : <ListChecks className="w-3.5 h-3.5" />
-                        }
-                        loading={actionLoading === 'adaptive'}
-                        colorCls={isHighScore
-                          ? 'text-blue-600 border-blue-200 hover:bg-blue-50'
-                          : 'text-amber-600 border-amber-200 hover:bg-amber-50'
-                        }
-                        onClick={() => runAction('adaptive', () =>
-                          isHighScore
-                            ? feedbackActions.expandThinking(editedDetails, result.score, result.maxScore, settings!)
-                            : feedbackActions.addGuidance(editedDetails, result.weaknesses ?? [], settings!)
-                        )}
-                      />
+                      {isHighScore && (
+                        <ActionButton
+                          label="Mở rộng tư duy"
+                          icon={<Rocket className="w-3.5 h-3.5" />}
+                          loading={actionLoading === 'expand'}
+                          colorCls="text-blue-600 border-blue-200 hover:bg-blue-50"
+                          onClick={() => runAction('expand', () =>
+                            feedbackActions.expandThinking(editedDetails, result.score, result.maxScore, settings!)
+                          )}
+                        />
+                      )}
+                      {isLowScore && (
+                        <ActionButton
+                          label="Gợi ý từng bước"
+                          icon={<CircleHelp className="w-3.5 h-3.5" />}
+                          loading={actionLoading === 'scaffold'}
+                          colorCls="text-amber-600 border-amber-200 hover:bg-amber-50"
+                          onClick={() => runAction('scaffold', () =>
+                            feedbackActions.addGuidance(editedDetails, result.weaknesses ?? [], settings!)
+                          )}
+                        />
+                      )}
                     </div>
                   )}
                 </div>
