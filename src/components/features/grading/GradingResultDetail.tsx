@@ -13,52 +13,74 @@ type Settings = AppData['settings'];
 // ── API layer ──────────────────────────────────────────────────────────────────
 // Tách biệt logic gọi AI khỏi UI để dễ bảo trì và kiểm thử độc lập.
 
+const COMMON_RULES = `
+QUY TẮC BẮT BUỘC (không được vi phạm):
+- Viết hoàn toàn bằng tiếng Việt. Không dùng bất kỳ từ tiếng Anh nào (ví dụ: dùng "Bảng biến thiên" thay vì "Sign chart", "Đạo hàm" thay vì "Derivative").
+- Biểu diễn biểu thức, phương trình Toán học bằng cú pháp Markdown thông thường, không dùng LaTeX (ví dụ: x^2 + 2x - 3 = 0, phân số viết dạng a/b).
+- Không dùng biểu tượng cảm xúc (emoji).
+- Không dùng các cụm mở đầu mang tính AI như "Chào bạn", "Dưới đây là", "Hy vọng giúp ích", "Tất nhiên", "Rất vui được".
+- Chỉ trả về văn bản nội dung thuần túy, không kèm tiêu đề giải thích hay dòng mở đầu thừa.`.trim();
+
 export const feedbackActions = {
-  /** Rút gọn và nhân hóa: làm nhận xét tự nhiên, bớt máy móc, ngắn gọn hơn. */
+  /** Rút gọn & nhân hóa: viết lại ngắn gọn, tự nhiên theo giọng giáo viên Toán. */
   shortenHumanize: (text: string, settings: Settings): Promise<string | null> =>
     callAI(
-      `Bạn là giáo viên đang viết lại nhận xét bài làm cho học sinh.
-Hãy rút gọn và viết lại đoạn nhận xét sau theo văn phong tự nhiên, thân thiện, bớt máy móc.
-Giữ nguyên bảng chấm điểm và các con số cụ thể.
-Không thêm thông tin mới. Không dùng các cụm từ sáo rỗng như "Nhìn chung", "Tóm lại".
+      `Bạn là giáo viên bộ môn Toán đang viết lại nhận xét bài làm.
+
+${COMMON_RULES}
+
+NHIỆM VỤ:
+1. Xác định bước làm đúng cuối cùng và vị trí bắt đầu sai (nếu có lỗi).
+2. Viết lại nhận xét theo đúng trình tự: khen ngắn gọn nỗ lực → chỉ rõ lỗi → hướng sửa.
+3. Giữ nguyên tất cả điểm số và số liệu cụ thể từ nhận xét gốc.
+4. Tổng độ dài: tối đa 3–4 câu.
 
 Nhận xét gốc:
 ---
 ${text}
----
-Chỉ trả về nội dung đã viết lại, không kèm giải thích.`,
+---`,
       settings
     ),
 
-  /** Mở rộng tư duy: thêm câu hỏi nâng cao hoặc hướng giải quyết khác — dùng cho bài điểm cao. */
+  /** Mở rộng tư duy: gợi ý phương pháp thay thế hoặc biến thể bài toán — dùng cho bài điểm cao. */
   expandThinking: (text: string, score: number, maxScore: number, settings: Settings): Promise<string | null> =>
     callAI(
-      `Học sinh này đạt ${score}/${maxScore} điểm — kết quả tốt.
-Dựa trên nhận xét chấm bài sau, hãy thêm vào cuối MỘT đoạn ngắn (2–4 câu):
-hoặc đặt ra một câu hỏi nâng cao để học sinh tư duy sâu hơn,
-hoặc gợi ý một cách tiếp cận/giải pháp thay thế thú vị hơn.
+      `Bạn là giáo viên bộ môn Toán. Học sinh đạt ${score}/${maxScore} điểm — kết quả tốt.
+
+${COMMON_RULES}
+
+NHIỆM VỤ: Thêm vào cuối nhận xét hiện tại MỘT đoạn ngắn (2–3 câu) theo một trong hai hướng:
+- Gợi ý một phương pháp giải ngắn hơn hoặc tinh gọn hơn mà học sinh chưa dùng, hoặc
+- Mở rộng bài toán bằng cách thay đổi một giả thiết (ví dụ: "Nếu thay đổi tham số m thành...").
+Không lặp lại lời khen. Không giải lại bài toán.
 
 Nhận xét hiện tại:
 ---
 ${text}
 ---
-Trả về toàn bộ nhận xét đã bổ sung, không kèm giải thích.`,
+Trả về toàn bộ nhận xét đã bổ sung phần mở rộng tư duy.`,
       settings
     ),
 
-  /** Gợi ý từng bước: bổ sung hướng dẫn gỡ lỗi cụ thể — dùng cho bài điểm thấp. */
+  /** Gợi ý từng bước (giàn giáo): nhắc định lý hoặc bước đầu tiên — dùng cho bài điểm thấp. */
   addGuidance: (text: string, weaknesses: string[], settings: Settings): Promise<string | null> =>
     callAI(
-      `Học sinh này có các điểm yếu sau: ${weaknesses.join('; ')}.
-Dựa trên nhận xét chấm bài sau, hãy thêm vào cuối một phần "## Hướng dẫn gỡ rối"
-với 3–5 bước cụ thể, rõ ràng giúp học sinh biết cách sửa lại từng lỗi sai.
-Văn phong khích lệ, không phê phán.
+      `Bạn là giáo viên bộ môn Toán. Học sinh có các lỗi sau: ${weaknesses.join('; ')}.
+
+${COMMON_RULES}
+
+NHIỆM VỤ: Thêm vào cuối nhận xét hiện tại một phần "Hướng dẫn gỡ rối" với 3–4 gợi ý nhỏ.
+QUY TẮC RIÊNG (bắt buộc):
+- Tuyệt đối không giải hộ, không cung cấp đáp án cuối cùng.
+- Mỗi gợi ý chỉ nhắc lại một định lý trọng tâm hoặc hướng dẫn thao tác đầu tiên cần thực hiện (ví dụ: "Để tìm giao điểm, em lập phương trình hoành độ giao điểm bằng cách cho hai biểu thức y bằng nhau...").
+- Mục đích: giúp học sinh tự gỡ lỗi, không làm thay.
+- Giọng văn khích lệ, không phê phán.
 
 Nhận xét hiện tại:
 ---
 ${text}
 ---
-Trả về toàn bộ nhận xét đã bổ sung, không kèm giải thích.`,
+Trả về toàn bộ nhận xét đã bổ sung phần hướng dẫn.`,
       settings
     ),
 };
