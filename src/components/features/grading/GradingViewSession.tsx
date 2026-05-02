@@ -17,11 +17,14 @@ interface Props {
   onViewResult: (r: GradingResult) => void;
   onDeleteResult: (r: GradingResult) => void;
   onRenameResult?: (r: GradingResult, name: string) => void;
+  onCheckPlagiarism?: () => void;
+  isCheckingPlagiarism?: boolean;
 }
 
 export const GradingViewSession = ({
   session, filterScore, setFilterScore,
   onBack, onDelete, onExportExcel, onAnalyzeClass, onViewResult, onDeleteResult, onRenameResult,
+  onCheckPlagiarism, isCheckingPlagiarism,
 }: Props) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -178,6 +181,8 @@ export const GradingViewSession = ({
         onView={onViewResult}
         onDelete={onDeleteResult}
         onRename={onRenameResult}
+        onCheckPlagiarism={onCheckPlagiarism}
+        isCheckingPlagiarism={isCheckingPlagiarism}
       />
 
       <ConfirmDialog

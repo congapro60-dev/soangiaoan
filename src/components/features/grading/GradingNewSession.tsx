@@ -32,6 +32,8 @@ interface Props {
   onDeleteResult: (r: GradingResult) => void;
   onRegradeResult: (r: GradingResult) => void;
   onRenameResult: (r: GradingResult, name: string) => void;
+  onCheckPlagiarism?: () => void;
+  isCheckingPlagiarism?: boolean;
   gradingRubric: string;
   setGradingRubric: (v: string) => void;
   noAnswerKey: boolean;
@@ -47,6 +49,7 @@ export const GradingNewSession = ({
   gradingRubric, setGradingRubric,
   noAnswerKey, setNoAnswerKey,
   onStartGrading, onSaveSession, onExportExcel, onAnalyzeClass, onViewResult, onDeleteResult, onRegradeResult, onRenameResult,
+  onCheckPlagiarism, isCheckingPlagiarism,
 }: Props) => {
   const masterRef = useRef<HTMLInputElement>(null);
   const studentRef = useRef<HTMLInputElement>(null);
@@ -270,6 +273,8 @@ export const GradingNewSession = ({
         onDelete={onDeleteResult}
         onRegrade={onRegradeResult}
         onRename={onRenameResult}
+        onCheckPlagiarism={onCheckPlagiarism}
+        isCheckingPlagiarism={isCheckingPlagiarism}
       />
     </div>
   );

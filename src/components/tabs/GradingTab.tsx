@@ -14,6 +14,8 @@ import { SmartGradingMode } from '../features/grading/SmartGradingMode';
 import { WarningPanel } from '../features/grading/WarningPanel';
 import { ClassAnalysisModal } from '../features/grading/ClassAnalysisModal';
 import { AISolveExamModal } from '../features/grading/AISolveExamModal';
+import { PlagiarismDashboard } from '../features/grading/PlagiarismDashboard';
+import { detectPlagiarism, PlagiarismReport } from '../../utils/plagiarismUtils';
 
 interface GradingTabProps {
   data: AppData;
@@ -64,6 +66,9 @@ export const GradingTab = ({
   const [aiSolveModalOpen, setAiSolveModalOpen] = useState(false);
   const [aiSolveLoading, setAiSolveLoading] = useState(false);
   const [aiSolveContent, setAiSolveContent] = useState('');
+  const [plagiarismReport, setPlagiarismReport] = useState<PlagiarismReport | null>(null);
+  const [plagiarismOpen, setPlagiarismOpen] = useState(false);
+  const [isCheckingPlagiarism, setIsCheckingPlagiarism] = useState(false);
 
   const sessions = data.gradingSessions || [];
   const selectedSession = useMemo(
@@ -345,6 +350,24 @@ export const GradingTab = ({
     }
   };
 
+  const handleCheckPlagiarism = async () => {
+    const activeResults = panelMode === 'new' ? results : (selectedSession?.results ?? []);
+    if (!getActiveApiKey(data.settings)) {
+      showToast('Chưa cấu hình API Key', 'error');
+      return;
+    }
+    setIsCheckingPlagiarism(true);
+    try {
+      const report = await detectPlagiarism(activeResults, data.settings);
+      setPlagiarismReport(report);
+      setPlagiarismOpen(true);
+    } catch {
+      showToast('Rà soát sao chép thất bại. Thử lại sau.', 'error');
+    } finally {
+      setIsCheckingPlagiarism(false);
+    }
+  };
+
   const handleAnalyzeClass = async (res: GradingResult[], title: string) => {
     if (!getActiveApiKey(data.settings)) {
       showToast('Cần nhập API Key trong Cài đặt', 'error');
@@ -422,6 +445,8 @@ export const GradingTab = ({
                 onDeleteResult={handleDeleteResult}
                 onRegradeResult={handleRegrade}
                 onRenameResult={handleRename}
+                onCheckPlagiarism={handleCheckPlagiarism}
+                isCheckingPlagiarism={isCheckingPlagiarism}
               />
             ) : (
               <div className="flex flex-col gap-3 overflow-y-auto">
@@ -447,9 +472,18 @@ export const GradingTab = ({
             onViewResult={setViewingResult}
             onDeleteResult={handleDeleteResult}
             onRenameResult={handleRename}
+            onCheckPlagiarism={handleCheckPlagiarism}
+            isCheckingPlagiarism={isCheckingPlagiarism}
           />
         ) : null}
       </div>
+
+      {/* Plagiarism dashboard */}
+      <PlagiarismDashboard
+        isOpen={plagiarismOpen}
+        report={plagiarismReport}
+        onClose={() => setPlagiarismOpen(false)}
+      />
 
       {/* Detail modal */}
       <GradingResultDetail

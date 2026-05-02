@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'motion/react';
-import { Users, FileText, Loader2, User, Eye, Trash2, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Users, FileText, Loader2, User, Eye, Trash2, RefreshCw, AlertTriangle, ShieldAlert } from 'lucide-react';
 import { GradingResult } from '../../../types';
 
 export type FilterScore = 'all' | 'above7' | '5to7' | 'below5';
@@ -13,6 +13,8 @@ interface Props {
   onDelete: (result: GradingResult) => void;
   onRegrade?: (result: GradingResult) => void;
   onRename?: (result: GradingResult, newName: string) => void;
+  onCheckPlagiarism?: () => void;
+  isCheckingPlagiarism?: boolean;
 }
 
 // Tỷ lệ điểm quy về thang 10
@@ -49,7 +51,13 @@ const getBadge = (r10: number): BadgeConfig => {
 
 export const GradingResultsList = ({
   results, filterScore, setFilterScore, onView, onDelete, onRegrade, onRename,
+  onCheckPlagiarism, isCheckingPlagiarism,
 }: Props) => {
+  const canCheckPlagiarism =
+    !!onCheckPlagiarism &&
+    results.length >= 2 &&
+    results.filter(r => r.status === 'completed').length >= 2 &&
+    results.every(r => r.status !== 'processing');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
 
@@ -77,26 +85,48 @@ export const GradingResultsList = ({
     <div className="flex-1 bg-white rounded-[32px] border border-slate-100 flex flex-col overflow-hidden shadow-sm min-h-0">
 
       {/* Header */}
-      <div className="p-4 border-b border-slate-50 flex items-center justify-between flex-shrink-0">
-        <h3 className="text-sm font-black text-slate-800 flex items-center gap-2">
-          <Users className="w-4 h-4 text-blue-500" />
-          Danh sách ({filtered.length}/{results.length})
-        </h3>
-        <div className="flex bg-slate-100 p-0.5 rounded-xl">
-          {FILTERS.map(opt => (
-            <button
-              key={opt.value}
-              onClick={() => setFilterScore(opt.value)}
-              className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
-                filterScore === opt.value
-                  ? 'bg-white text-slate-800 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
+      <div className="p-4 border-b border-slate-50 flex-shrink-0 space-y-2">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-black text-slate-800 flex items-center gap-2">
+            <Users className="w-4 h-4 text-blue-500" />
+            Danh sách ({filtered.length}/{results.length})
+          </h3>
+          <div className="flex bg-slate-100 p-0.5 rounded-xl">
+            {FILTERS.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => setFilterScore(opt.value)}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                  filterScore === opt.value
+                    ? 'bg-white text-slate-800 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
+
+        {canCheckPlagiarism && (
+          <button
+            onClick={onCheckPlagiarism}
+            disabled={isCheckingPlagiarism}
+            className="w-full flex items-center justify-center gap-2 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 text-xs font-semibold hover:bg-slate-100 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
+          >
+            {isCheckingPlagiarism ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                Đang phân tích dữ liệu...
+              </>
+            ) : (
+              <>
+                <ShieldAlert className="w-3.5 h-3.5 text-slate-500" />
+                Rà soát sao chép
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {/* List */}
