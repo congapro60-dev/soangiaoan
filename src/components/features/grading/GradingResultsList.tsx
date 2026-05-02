@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { Users, FileText, Loader2, User, Eye, Trash2, RefreshCw, AlertTriangle } from 'lucide-react';
 import { GradingResult } from '../../../types';
 
-export type FilterScore = 'all' | 'above8' | '5to8' | 'below5';
+export type FilterScore = 'all' | 'above7' | '5to7' | 'below5';
 
 interface Props {
   results: GradingResult[];
@@ -15,35 +15,68 @@ interface Props {
   onRename?: (result: GradingResult, newName: string) => void;
 }
 
-export const GradingResultsList = ({ results, filterScore, setFilterScore, onView, onDelete, onRegrade, onRename }: Props) => {
+// Tỷ lệ điểm quy về thang 10
+const ratio10 = (r: GradingResult) =>
+  r.maxScore > 0 ? (r.score / r.maxScore) * 10 : r.score;
+
+interface BadgeConfig {
+  label: string;
+  badgeCls: string;
+  avatarCls: string;
+  borderCls: string;
+}
+
+const getBadge = (r10: number): BadgeConfig => {
+  if (r10 >= 7) return {
+    label: 'Đạt',
+    badgeCls: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    avatarCls: 'bg-emerald-50 text-emerald-700',
+    borderCls: 'border-l-emerald-400',
+  };
+  if (r10 >= 5) return {
+    label: 'T.Bình',
+    badgeCls: 'bg-amber-50 text-amber-700 border border-amber-200',
+    avatarCls: 'bg-amber-50 text-amber-700',
+    borderCls: 'border-l-amber-400',
+  };
+  return {
+    label: 'Chưa đạt',
+    badgeCls: 'bg-red-50 text-red-700 border border-red-200',
+    avatarCls: 'bg-red-50 text-red-700',
+    borderCls: 'border-l-red-400',
+  };
+};
+
+export const GradingResultsList = ({
+  results, filterScore, setFilterScore, onView, onDelete, onRegrade, onRename,
+}: Props) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
 
-  const startEdit = (res: GradingResult) => {
-    setEditingId(res.id);
-    setEditingName(res.studentName);
-  };
+  const startEdit = (res: GradingResult) => { setEditingId(res.id); setEditingName(res.studentName); };
   const commitEdit = (res: GradingResult) => {
     if (editingName.trim() && editingName !== res.studentName) onRename?.(res, editingName.trim());
     setEditingId(null);
   };
 
   const filtered = useMemo(() => {
-    if (filterScore === 'above8') return results.filter(r => r.status === 'completed' && r.score >= 8);
-    if (filterScore === '5to8') return results.filter(r => r.status === 'completed' && r.score >= 5 && r.score < 8);
-    if (filterScore === 'below5') return results.filter(r => r.status === 'completed' && r.score < 5);
+    if (filterScore === 'above7') return results.filter(r => r.status === 'completed' && ratio10(r) >= 7);
+    if (filterScore === '5to7')   return results.filter(r => r.status === 'completed' && ratio10(r) >= 5 && ratio10(r) < 7);
+    if (filterScore === 'below5') return results.filter(r => r.status === 'completed' && ratio10(r) < 5);
     return results;
   }, [results, filterScore]);
 
   const FILTERS = [
-    { value: 'all', label: 'Tất cả' },
-    { value: 'above8', label: '≥8' },
-    { value: '5to8', label: '5–8' },
-    { value: 'below5', label: '<5' },
+    { value: 'all',    label: 'Tất cả' },
+    { value: 'above7', label: '≥ 7' },
+    { value: '5to7',   label: '5 – 7' },
+    { value: 'below5', label: '< 5' },
   ] as const;
 
   return (
     <div className="flex-1 bg-white rounded-[32px] border border-slate-100 flex flex-col overflow-hidden shadow-sm min-h-0">
+
+      {/* Header */}
       <div className="p-4 border-b border-slate-50 flex items-center justify-between flex-shrink-0">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2">
           <Users className="w-4 h-4 text-blue-500" />
@@ -66,6 +99,7 @@ export const GradingResultsList = ({ results, filterScore, setFilterScore, onVie
         </div>
       </div>
 
+      {/* List */}
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
         {filtered.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center p-8 opacity-30">
@@ -73,91 +107,106 @@ export const GradingResultsList = ({ results, filterScore, setFilterScore, onVie
             <p className="text-sm font-medium text-slate-400">Chưa có bài làm nào</p>
           </div>
         ) : (
-          filtered.map(res => (
-            <motion.div
-              key={res.id}
-              initial={{ opacity: 0, x: -5 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center justify-between p-3 bg-white rounded-2xl border border-slate-100 hover:border-blue-200/50 hover:shadow-md transition-all group"
-            >
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm ${
-                  res.status === 'completed'
-                    ? res.score >= 8 ? 'bg-emerald-50 text-emerald-600'
-                      : res.score >= 5 ? 'bg-blue-50 text-blue-600'
-                      : 'bg-red-50 text-red-600'
-                    : res.status === 'error' ? 'bg-amber-50 text-amber-500'
-                    : 'bg-slate-50 text-slate-400'
-                }`}>
-                  {res.status === 'processing'
-                    ? <Loader2 className="w-4 h-4 animate-spin" />
-                    : res.status === 'completed' ? res.score
-                    : res.status === 'error' ? <AlertTriangle className="w-4 h-4" />
-                    : <User className="w-4 h-4" />}
-                </div>
-                <div>
-                  {editingId === res.id ? (
-                    <input
-                      autoFocus
-                      value={editingName}
-                      onChange={e => setEditingName(e.target.value)}
-                      onBlur={() => commitEdit(res)}
-                      onKeyDown={e => { if (e.key === 'Enter') commitEdit(res); if (e.key === 'Escape') setEditingId(null); }}
-                      className="text-sm font-bold text-slate-800 bg-blue-50 border border-blue-300 rounded-lg px-2 py-0.5 outline-none w-40"
-                    />
-                  ) : (
-                    <p
-                      className="text-sm font-bold text-slate-800 cursor-text hover:text-blue-600 transition-colors"
-                      title="Double-click để sửa tên"
-                      onDoubleClick={() => startEdit(res)}
-                    >{res.studentName}</p>
-                  )}
-                  <p className="text-[10px] text-slate-400">{res.fileName}</p>
-                </div>
-              </div>
+          filtered.map(res => {
+            const r10   = ratio10(res);
+            const badge = res.status === 'completed' ? getBadge(r10) : null;
 
-              <div className="flex items-center gap-2">
-                {res.status === 'completed' && (
-                  <div className="text-right mr-1">
-                    <div className="text-sm font-black text-slate-700">
-                      {res.score}<span className="text-[10px] text-slate-400">/10</span>
-                    </div>
-                    <div className={`text-[9px] font-bold uppercase ${
-                      res.score >= 8 ? 'text-emerald-500'
-                        : res.score >= 6.5 ? 'text-blue-500'
-                        : res.score >= 5 ? 'text-amber-500'
-                        : 'text-red-500'
-                    }`}>
-                      {res.score >= 8 ? 'Giỏi' : res.score >= 6.5 ? 'Khá' : res.score >= 5 ? 'TB' : 'Yếu'}
-                    </div>
+            return (
+              <motion.div
+                key={res.id}
+                initial={{ opacity: 0, x: -5 }}
+                animate={{ opacity: 1, x: 0 }}
+                className={`flex items-center justify-between p-3 bg-white rounded-2xl border border-slate-100 border-l-2 hover:shadow-md transition-all group ${
+                  badge ? badge.borderCls : 'border-l-slate-200'
+                }`}
+              >
+                {/* Left — avatar + name */}
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0 ${
+                    res.status === 'completed' && badge
+                      ? badge.avatarCls
+                      : res.status === 'error'
+                        ? 'bg-amber-50 text-amber-500'
+                        : 'bg-slate-50 text-slate-400'
+                  }`}>
+                    {res.status === 'processing'
+                      ? <Loader2 className="w-4 h-4 animate-spin" />
+                      : res.status === 'completed'
+                        ? res.score
+                        : res.status === 'error'
+                          ? <AlertTriangle className="w-4 h-4" />
+                          : <User className="w-4 h-4" />}
                   </div>
-                )}
-                <button
-                  onClick={() => onView(res)}
-                  className="p-2 bg-slate-50 text-slate-400 rounded-xl hover:bg-blue-600 hover:text-white transition-all"
-                  title="Xem chi tiết"
-                >
-                  <Eye className="w-4 h-4" />
-                </button>
-                {onRegrade && res.status !== 'processing' && (
+
+                  <div className="min-w-0">
+                    {editingId === res.id ? (
+                      <input
+                        autoFocus
+                        value={editingName}
+                        onChange={e => setEditingName(e.target.value)}
+                        onBlur={() => commitEdit(res)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') commitEdit(res);
+                          if (e.key === 'Escape') setEditingId(null);
+                        }}
+                        className="text-sm font-bold text-slate-800 bg-blue-50 border border-blue-300 rounded-lg px-2 py-0.5 outline-none w-40"
+                      />
+                    ) : (
+                      <p
+                        className="text-sm font-bold text-slate-800 cursor-text hover:text-blue-600 transition-colors truncate"
+                        title="Double-click để sửa tên"
+                        onDoubleClick={() => startEdit(res)}
+                      >
+                        {res.studentName}
+                      </p>
+                    )}
+                    <p className="text-[10px] text-slate-400 truncate">{res.fileName}</p>
+                  </div>
+                </div>
+
+                {/* Right — score + badge + actions */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {res.status === 'completed' && badge && (
+                    <div className="flex flex-col items-end gap-1 mr-1">
+                      {/* Score */}
+                      <span className="text-sm font-black text-slate-700 leading-none">
+                        {res.score}
+                        <span className="text-[10px] font-normal text-slate-400">/{res.maxScore}</span>
+                      </span>
+                      {/* Classification badge */}
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-semibold tracking-wide ${badge.badgeCls}`}>
+                        {badge.label}
+                      </span>
+                    </div>
+                  )}
+
                   <button
-                    onClick={() => onRegrade(res)}
-                    className="p-2 bg-slate-50 text-slate-400 rounded-xl hover:bg-amber-50 hover:text-amber-500 transition-all opacity-0 group-hover:opacity-100"
-                    title={res.status === 'error' ? 'Chấm lại (lỗi lần trước)' : res.status === 'pending' ? 'Bắt đầu chấm bài này' : 'Chấm lại'}
+                    onClick={() => onView(res)}
+                    className="p-2 bg-slate-50 text-slate-400 rounded-xl hover:bg-blue-600 hover:text-white transition-all"
+                    title="Xem chi tiết"
                   >
-                    <RefreshCw className="w-4 h-4" />
+                    <Eye className="w-4 h-4" />
                   </button>
-                )}
-                <button
-                  onClick={() => onDelete(res)}
-                  className="p-2 bg-slate-50 text-slate-400 rounded-xl hover:bg-red-50 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100"
-                  title="Xóa bài này"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </motion.div>
-          ))
+                  {onRegrade && res.status !== 'processing' && (
+                    <button
+                      onClick={() => onRegrade(res)}
+                      className="p-2 bg-slate-50 text-slate-400 rounded-xl hover:bg-amber-50 hover:text-amber-500 transition-all opacity-0 group-hover:opacity-100"
+                      title={res.status === 'error' ? 'Chấm lại (lỗi lần trước)' : res.status === 'pending' ? 'Bắt đầu chấm bài này' : 'Chấm lại'}
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => onDelete(res)}
+                    className="p-2 bg-slate-50 text-slate-400 rounded-xl hover:bg-red-50 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100"
+                    title="Xóa bài này"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </motion.div>
+            );
+          })
         )}
       </div>
     </div>
