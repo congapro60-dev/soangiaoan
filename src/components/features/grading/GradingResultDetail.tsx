@@ -1,69 +1,147 @@
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { User, Award, AlertTriangle, Download, Printer, X } from 'lucide-react';
+import { User, Award, AlertTriangle, Download, Printer, X, Minimize2, BrainCircuit, ListChecks, Loader2, Save } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { marked } from 'marked';
-import { GradingResult } from '../../../types';
+import { GradingResult, AppData } from '../../../types';
 import { downloadBlob } from '../../../utils/fileUtils';
+import { callAI } from '../../../lib/aiProviders';
+
+type Settings = AppData['settings'];
+
+// ── API layer ──────────────────────────────────────────────────────────────────
+// Tách biệt logic gọi AI khỏi UI để dễ bảo trì và kiểm thử độc lập.
+
+export const feedbackActions = {
+  /** Rút gọn và nhân hóa: làm nhận xét tự nhiên, bớt máy móc, ngắn gọn hơn. */
+  shortenHumanize: (text: string, settings: Settings): Promise<string | null> =>
+    callAI(
+      `Bạn là giáo viên đang viết lại nhận xét bài làm cho học sinh.
+Hãy rút gọn và viết lại đoạn nhận xét sau theo văn phong tự nhiên, thân thiện, bớt máy móc.
+Giữ nguyên bảng chấm điểm và các con số cụ thể.
+Không thêm thông tin mới. Không dùng các cụm từ sáo rỗng như "Nhìn chung", "Tóm lại".
+
+Nhận xét gốc:
+---
+${text}
+---
+Chỉ trả về nội dung đã viết lại, không kèm giải thích.`,
+      settings
+    ),
+
+  /** Mở rộng tư duy: thêm câu hỏi nâng cao hoặc hướng giải quyết khác — dùng cho bài điểm cao. */
+  expandThinking: (text: string, score: number, maxScore: number, settings: Settings): Promise<string | null> =>
+    callAI(
+      `Học sinh này đạt ${score}/${maxScore} điểm — kết quả tốt.
+Dựa trên nhận xét chấm bài sau, hãy thêm vào cuối MỘT đoạn ngắn (2–4 câu):
+hoặc đặt ra một câu hỏi nâng cao để học sinh tư duy sâu hơn,
+hoặc gợi ý một cách tiếp cận/giải pháp thay thế thú vị hơn.
+
+Nhận xét hiện tại:
+---
+${text}
+---
+Trả về toàn bộ nhận xét đã bổ sung, không kèm giải thích.`,
+      settings
+    ),
+
+  /** Gợi ý từng bước: bổ sung hướng dẫn gỡ lỗi cụ thể — dùng cho bài điểm thấp. */
+  addGuidance: (text: string, weaknesses: string[], settings: Settings): Promise<string | null> =>
+    callAI(
+      `Học sinh này có các điểm yếu sau: ${weaknesses.join('; ')}.
+Dựa trên nhận xét chấm bài sau, hãy thêm vào cuối một phần "## Hướng dẫn gỡ rối"
+với 3–5 bước cụ thể, rõ ràng giúp học sinh biết cách sửa lại từng lỗi sai.
+Văn phong khích lệ, không phê phán.
+
+Nhận xét hiện tại:
+---
+${text}
+---
+Trả về toàn bộ nhận xét đã bổ sung, không kèm giải thích.`,
+      settings
+    ),
+};
+
+// ── Props ──────────────────────────────────────────────────────────────────────
 
 interface Props {
   result: GradingResult | null;
   onClose: () => void;
+  settings?: Settings;
+  onSaveDetails?: (resultId: string, details: string) => void;
 }
 
-export const GradingResultDetail = ({ result, onClose }: Props) => {
+// ── Component ──────────────────────────────────────────────────────────────────
+
+export const GradingResultDetail = ({ result, onClose, settings, onSaveDetails }: Props) => {
+  const [editedDetails, setEditedDetails] = useState('');
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [saveFlash, setSaveFlash] = useState(false);
+
+  // Sync textarea khi mở bài khác
+  useEffect(() => {
+    setEditedDetails(result?.details ?? result?.improvementPlan ?? '');
+  }, [result?.id]);
+
+  const isDirty = result != null && editedDetails !== (result.details ?? result.improvementPlan ?? '');
+
+  // Chạy một action AI, cập nhật textarea với kết quả
+  const runAction = async (key: string, fn: () => Promise<string | null>) => {
+    if (!settings) return;
+    setActionLoading(key);
+    try {
+      const output = await fn();
+      if (output) setEditedDetails(output);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleSave = () => {
+    if (!result || !onSaveDetails) return;
+    onSaveDetails(result.id, editedDetails);
+    setSaveFlash(true);
+    setTimeout(() => setSaveFlash(false), 1500);
+  };
+
+  // ── Print / Download dùng nội dung đã chỉnh sửa ──
   const handlePrint = () => {
     if (!result) return;
-    const grade = result.score >= 8 ? 'Giỏi' : result.score >= 6.5 ? 'Khá' : result.score >= 5 ? 'Trung bình' : 'Yếu';
-    const detailsHtml = marked.parse(result.details || result.improvementPlan || '');
+    const r10 = result.maxScore > 0 ? (result.score / result.maxScore) * 10 : result.score;
+    const grade = r10 >= 7 ? 'Đạt' : r10 >= 5 ? 'Trung bình' : 'Chưa đạt';
+    const detailsHtml = marked.parse(editedDetails || '');
     const html = `<!DOCTYPE html>
-<html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <title>Báo cáo: ${result.studentName}</title>
+<html lang="vi"><head>
+  <meta charset="UTF-8"><title>Báo cáo: ${result.studentName}</title>
   <style>
-    body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 720px; margin: 40px auto; color: #1e293b; font-size: 13px; }
-    h1 { font-size: 20px; font-weight: 900; margin: 0 0 4px; }
-    .meta { color: #64748b; font-size: 12px; margin-bottom: 24px; }
-    .score-box { display: inline-flex; align-items: baseline; gap: 6px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 10px 20px; margin-bottom: 24px; }
-    .score-num { font-size: 36px; font-weight: 900; color: #1d4ed8; }
-    .score-max { font-size: 14px; color: #64748b; }
-    .grade { font-size: 14px; font-weight: 700; padding: 2px 10px; border-radius: 20px; background: ${result.score >= 8 ? '#d1fae5' : result.score >= 5 ? '#fef9c3' : '#fee2e2'}; color: ${result.score >= 8 ? '#065f46' : result.score >= 5 ? '#713f12' : '#991b1b'}; }
-    .section { margin-bottom: 20px; }
-    .section h2 { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px; }
-    .strengths h2 { color: #047857; }
-    .weaknesses h2 { color: #b45309; }
-    ul { margin: 0; padding-left: 18px; line-height: 1.8; }
-    .details { border-top: 1px solid #e2e8f0; padding-top: 20px; }
-    .details table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    .details th, .details td { border: 1px solid #e2e8f0; padding: 6px 10px; text-align: left; }
-    .details th { background: #f8fafc; font-weight: 700; }
-    @media print { body { margin: 20px; } }
+    body{font-family:'Segoe UI',Arial,sans-serif;max-width:720px;margin:40px auto;color:#1e293b;font-size:13px}
+    h1{font-size:20px;font-weight:900;margin:0 0 4px}
+    .meta{color:#64748b;font-size:12px;margin-bottom:24px}
+    .score-box{display:inline-flex;align-items:baseline;gap:6px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:10px 20px;margin-bottom:24px}
+    .score-num{font-size:36px;font-weight:900;color:#1d4ed8}
+    .score-max{font-size:14px;color:#64748b}
+    .grade{font-size:14px;font-weight:700;padding:2px 10px;border-radius:20px;background:${r10>=7?'#d1fae5':r10>=5?'#fef9c3':'#fee2e2'};color:${r10>=7?'#065f46':r10>=5?'#713f12':'#991b1b'}}
+    .section{margin-bottom:20px}.section h2{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin:0 0 10px}
+    .strengths h2{color:#047857}.weaknesses h2{color:#b45309}
+    ul{margin:0;padding-left:18px;line-height:1.8}
+    .details{border-top:1px solid #e2e8f0;padding-top:20px}
+    .details table{width:100%;border-collapse:collapse;font-size:12px}
+    .details th,.details td{border:1px solid #e2e8f0;padding:6px 10px;text-align:left}
+    .details th{background:#f8fafc;font-weight:700}
+    @media print{body{margin:20px}}
   </style>
-</head>
-<body>
+</head><body>
   <h1>${result.studentName}</h1>
   <div class="meta">${result.fileName} — Ngày in: ${new Date().toLocaleDateString('vi-VN')}</div>
-  <div class="score-box">
-    <span class="score-num">${result.score}</span>
-    <span class="score-max">/ ${result.maxScore}</span>
-    <span class="grade">${grade}</span>
-  </div>
-  <div class="section strengths">
-    <h2>✓ Điểm mạnh</h2>
-    <ul>${(result.strengths || []).map(s => `<li>${s}</li>`).join('')}</ul>
-  </div>
-  <div class="section weaknesses">
-    <h2>⚠ Cần khắc phục</h2>
-    <ul>${(result.weaknesses || []).map(w => `<li>${w}</li>`).join('')}</ul>
-  </div>
+  <div class="score-box"><span class="score-num">${result.score}</span><span class="score-max">/ ${result.maxScore}</span><span class="grade">${grade}</span></div>
+  <div class="section strengths"><h2>✓ Điểm mạnh</h2><ul>${(result.strengths||[]).map(s=>`<li>${s}</li>`).join('')}</ul></div>
+  <div class="section weaknesses"><h2>⚠ Cần khắc phục</h2><ul>${(result.weaknesses||[]).map(w=>`<li>${w}</li>`).join('')}</ul></div>
   <div class="section details">${detailsHtml}</div>
-  <script>window.onload = () => window.print();</script>
-</body>
-</html>`;
+  <script>window.onload=()=>window.print();</script>
+</body></html>`;
     const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
-    setTimeout(() => URL.revokeObjectURL(url), 30000);
+    window.open(URL.createObjectURL(blob), '_blank');
   };
 
   const handleDownload = () => {
@@ -72,15 +150,12 @@ export const GradingResultDetail = ({ result, onClose }: Props) => {
       'BÁO CÁO CHẤM ĐIỂM',
       `Học sinh: ${result.studentName}`,
       `Điểm: ${result.score}/${result.maxScore}`,
-      '',
-      '--- ĐIỂM MẠNH ---',
+      '', '--- ĐIỂM MẠNH ---',
       ...(result.strengths || []).map(s => `• ${s}`),
-      '',
-      '--- CẦN CẢI THIỆN ---',
+      '', '--- CẦN CẢI THIỆN ---',
       ...(result.weaknesses || []).map(w => `• ${w}`),
-      '',
-      '--- BÁO CÁO CHI TIẾT ---',
-      result.details || result.improvementPlan || '',
+      '', '--- BÁO CÁO CHI TIẾT ---',
+      editedDetails,
     ].join('\n');
     downloadBlob(
       new Blob(['﻿' + content], { type: 'text/plain;charset=utf-8' }),
@@ -88,6 +163,11 @@ export const GradingResultDetail = ({ result, onClose }: Props) => {
     );
   };
 
+  const canAI = !!settings;
+  const r10 = result ? (result.maxScore > 0 ? (result.score / result.maxScore) * 10 : result.score) : 0;
+  const isHighScore = r10 >= 7;
+
+  // ── Render ───────────────────────────────────────────────────────────────────
   return (
     <AnimatePresence>
       {result && (
@@ -98,8 +178,8 @@ export const GradingResultDetail = ({ result, onClose }: Props) => {
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className="bg-white w-full max-w-4xl max-h-[90vh] rounded-[48px] shadow-2xl overflow-hidden flex flex-col"
           >
-            {/* Header */}
-            <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
+            {/* ── Header ── */}
+            <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/50 flex-shrink-0">
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 bg-blue-600 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-blue-100">
                   <User className="w-6 h-6" />
@@ -122,8 +202,9 @@ export const GradingResultDetail = ({ result, onClose }: Props) => {
               </button>
             </div>
 
-            {/* Body */}
+            {/* ── Body ── */}
             <div className="flex-1 overflow-y-auto p-8 space-y-6">
+              {/* Strengths / Weaknesses */}
               <div className="grid grid-cols-2 gap-6">
                 <div className="bg-green-50/80 p-6 rounded-[32px] border border-green-100">
                   <h4 className="font-bold text-green-700 text-sm mb-3 flex items-center gap-2">
@@ -142,29 +223,103 @@ export const GradingResultDetail = ({ result, onClose }: Props) => {
                   </ul>
                 </div>
               </div>
-              <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm prose prose-slate max-w-none">
-                <ReactMarkdown>{result.details || result.improvementPlan}</ReactMarkdown>
+
+              {/* ── Feedback editor ── */}
+              <div className="rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
+                {/* Editor header */}
+                <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/60 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <h4 className="text-sm font-bold text-slate-700">Lời nhận xét</h4>
+                    {isDirty && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-600 border border-amber-200">
+                        Đã chỉnh sửa
+                      </span>
+                    )}
+                  </div>
+                  {/* AI action buttons */}
+                  {canAI && (
+                    <div className="flex items-center gap-2">
+                      <ActionButton
+                        label="Rút gọn & Nhân hóa"
+                        icon={<Minimize2 className="w-3.5 h-3.5" />}
+                        loading={actionLoading === 'shorten'}
+                        colorCls="text-slate-600 border-slate-200 hover:bg-slate-100"
+                        onClick={() => runAction('shorten', () =>
+                          feedbackActions.shortenHumanize(editedDetails, settings!)
+                        )}
+                      />
+                      <ActionButton
+                        label={isHighScore ? 'Mở rộng tư duy' : 'Gợi ý từng bước'}
+                        icon={isHighScore
+                          ? <BrainCircuit className="w-3.5 h-3.5" />
+                          : <ListChecks className="w-3.5 h-3.5" />
+                        }
+                        loading={actionLoading === 'adaptive'}
+                        colorCls={isHighScore
+                          ? 'text-blue-600 border-blue-200 hover:bg-blue-50'
+                          : 'text-amber-600 border-amber-200 hover:bg-amber-50'
+                        }
+                        onClick={() => runAction('adaptive', () =>
+                          isHighScore
+                            ? feedbackActions.expandThinking(editedDetails, result.score, result.maxScore, settings!)
+                            : feedbackActions.addGuidance(editedDetails, result.weaknesses ?? [], settings!)
+                        )}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Textarea */}
+                <textarea
+                  value={editedDetails}
+                  onChange={e => setEditedDetails(e.target.value)}
+                  disabled={actionLoading !== null}
+                  rows={10}
+                  className="w-full p-6 text-sm text-slate-700 font-mono leading-relaxed resize-y outline-none bg-white disabled:opacity-60 disabled:cursor-wait"
+                  placeholder="Nội dung nhận xét..."
+                />
+
+                {/* Save row */}
+                {onSaveDetails && (
+                  <div className="px-6 py-3 border-t border-slate-100 bg-slate-50/40 flex justify-end">
+                    <button
+                      onClick={handleSave}
+                      disabled={!isDirty || actionLoading !== null}
+                      className={`px-4 py-1.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all ${
+                        saveFlash
+                          ? 'bg-emerald-500 text-white'
+                          : isDirty
+                            ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm shadow-blue-100'
+                            : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                      }`}
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                      {saveFlash ? 'Đã lưu' : 'Lưu thay đổi'}
+                    </button>
+                  </div>
+                )}
               </div>
+
+              {/* Read-only markdown preview (collapsed under editor) */}
+              <details className="group">
+                <summary className="text-xs font-semibold text-slate-400 cursor-pointer select-none hover:text-slate-600 transition-colors">
+                  Xem trước định dạng Markdown ▸
+                </summary>
+                <div className="mt-4 bg-white p-6 rounded-[24px] border border-slate-100 prose prose-slate max-w-none text-sm">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{editedDetails}</ReactMarkdown>
+                </div>
+              </details>
             </div>
 
-            {/* Footer */}
-            <div className="p-6 border-t border-slate-100 flex justify-end gap-3">
-              <button
-                onClick={handlePrint}
-                className="px-5 py-2.5 bg-white text-slate-600 rounded-2xl font-bold border border-slate-200 hover:bg-slate-50 text-sm flex items-center gap-2"
-              >
+            {/* ── Footer ── */}
+            <div className="p-6 border-t border-slate-100 flex justify-end gap-3 flex-shrink-0">
+              <button onClick={handlePrint} className="px-5 py-2.5 bg-white text-slate-600 rounded-2xl font-bold border border-slate-200 hover:bg-slate-50 text-sm flex items-center gap-2">
                 <Printer className="w-4 h-4" /> In / PDF
               </button>
-              <button
-                onClick={handleDownload}
-                className="px-5 py-2.5 bg-white text-slate-600 rounded-2xl font-bold border border-slate-200 hover:bg-slate-50 text-sm flex items-center gap-2"
-              >
+              <button onClick={handleDownload} className="px-5 py-2.5 bg-white text-slate-600 rounded-2xl font-bold border border-slate-200 hover:bg-slate-50 text-sm flex items-center gap-2">
                 <Download className="w-4 h-4" /> Tải (.txt)
               </button>
-              <button
-                onClick={onClose}
-                className="px-5 py-2.5 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-100 text-sm"
-              >
+              <button onClick={onClose} className="px-5 py-2.5 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-100 text-sm">
                 Đóng
               </button>
             </div>
@@ -174,3 +329,24 @@ export const GradingResultDetail = ({ result, onClose }: Props) => {
     </AnimatePresence>
   );
 };
+
+// ── Sub-component: ActionButton ────────────────────────────────────────────────
+
+interface ActionButtonProps {
+  label: string;
+  icon: React.ReactNode;
+  loading: boolean;
+  colorCls: string;
+  onClick: () => void;
+}
+
+const ActionButton = ({ label, icon, loading, colorCls, onClick }: ActionButtonProps) => (
+  <button
+    onClick={onClick}
+    disabled={loading}
+    className={`px-3 py-1.5 rounded-xl text-[11px] font-semibold border flex items-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-wait ${colorCls}`}
+  >
+    {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : icon}
+    {label}
+  </button>
+);
