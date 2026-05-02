@@ -7,8 +7,8 @@ type Settings = AppData['settings'];
 
 /** Một đoạn văn/công thức được phát hiện là trùng giữa hai bài làm. */
 export interface SharedSegment {
-  textA: string;           // trích dẫn chính xác từ báo cáo học sinh A
-  textB: string;           // trích dẫn chính xác từ báo cáo học sinh B
+  textA: string;           // trích dẫn chính xác từ bài nộp / báo cáo học sinh A
+  textB: string;           // trích dẫn chính xác từ bài nộp / báo cáo học sinh B
   isWrongReasoning: boolean; // true = cùng lỗi sai → cảnh báo đỏ
   reason: string;          // giải thích ngắn tại sao đánh dấu
 }
@@ -22,25 +22,34 @@ export interface SuspiciousPair {
   level: 'red' | 'yellow';
   similarityPercent: number; // 0–100
   sharedSegments: SharedSegment[];
+  /** true nếu cả hai bài đều có rawText (văn bản gốc) — kết quả đáng tin hơn */
+  hasRawText: boolean;
 }
 
 /** Kết quả toàn bộ đợt kiểm tra sao chép cho một buổi chấm. */
 export interface PlagiarismReport {
   checkedPairs: number;
-  redFlags: SuspiciousPair[];   // cùng lỗi sai bất thường
+  redFlags: SuspiciousPair[];    // cùng lỗi sai bất thường
   yellowFlags: SuspiciousPair[]; // chỉ giống bước đúng thông thường
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-/** Tỷ lệ Jaccard shingle tối thiểu để đưa một cặp vào danh sách candidate. */
-const JACCARD_THRESHOLD = 0.20;
+/**
+ * Ngưỡng Jaccard tối thiểu để đưa một cặp vào Tầng 2 (AI).
+ * Dùng rawText → 0.30, fallback details → 0.20 (AI văn phong khuôn mẫu hơn).
+ */
+const JACCARD_THRESHOLD_RAW = 0.30;
+const JACCARD_THRESHOLD_DETAILS = 0.20;
 
-/** Số cặp tối đa trong một lần gọi AI (để tránh vượt token limit). */
-const BATCH_SIZE = 6;
+/** Số cặp tối đa trong một lần gọi AI (giới hạn token). */
+const BATCH_SIZE = 5;
 
-/** Số ký tự trích từ mỗi báo cáo gửi lên AI (tiết kiệm token). */
-const DETAILS_MAX_CHARS = 1500;
+/** Số ký tự tối đa của raw text gửi lên AI mỗi bài. */
+const RAW_TEXT_MAX_CHARS = 2000;
+
+/** Số ký tự tối đa của details gửi lên AI mỗi bài. */
+const DETAILS_MAX_CHARS = 800;
 
 // ── Jaccard shingle similarity ────────────────────────────────────────────────
 
@@ -67,35 +76,97 @@ function shingleSimilarity(a: string, b: string, k = 4): number {
   return intersection / (sa.size + sb.size - intersection);
 }
 
+/** Chọn text tốt nhất để chạy Jaccard và trả về cả flag hasRaw. */
+function getComparisonTexts(a: GradingResult, b: GradingResult): {
+  textA: string;
+  textB: string;
+  hasRawText: boolean;
+  threshold: number;
+} {
+  if (a.rawText && b.rawText) {
+    return {
+      textA: a.rawText,
+      textB: b.rawText,
+      hasRawText: true,
+      threshold: JACCARD_THRESHOLD_RAW,
+    };
+  }
+  // Fallback: dùng details (kém chính xác hơn, ngưỡng thấp hơn)
+  return {
+    textA: a.details,
+    textB: b.details,
+    hasRawText: false,
+    threshold: JACCARD_THRESHOLD_DETAILS,
+  };
+}
+
 // ── AI batch analysis ─────────────────────────────────────────────────────────
 
 async function analyzeBatch(
-  pairs: Array<[GradingResult, GradingResult]>,
+  pairs: Array<{ a: GradingResult; b: GradingResult; hasRawText: boolean }>,
   settings: Settings
 ): Promise<SuspiciousPair[]> {
-  const payload = pairs.map(([a, b], idx) => ({
-    index: idx,
-    A: { id: a.id, name: a.studentName, report: a.details.slice(0, DETAILS_MAX_CHARS) },
-    B: { id: b.id, name: b.studentName, report: b.details.slice(0, DETAILS_MAX_CHARS) },
-  }));
+  const payload = pairs.map(({ a, b, hasRawText }, idx) => {
+    const base = { index: idx, hasRawText };
 
-  const prompt = `Bạn là chuyên gia phát hiện gian lận thi cử. Tôi cung cấp ${pairs.length} cặp báo cáo chấm điểm bài làm học sinh từ CÙNG MỘT đề kiểm tra.
+    if (hasRawText) {
+      return {
+        ...base,
+        A: {
+          id: a.id,
+          name: a.studentName,
+          rawText: a.rawText!.slice(0, RAW_TEXT_MAX_CHARS),
+          errorSummary: a.weaknesses.join('; '),
+        },
+        B: {
+          id: b.id,
+          name: b.studentName,
+          rawText: b.rawText!.slice(0, RAW_TEXT_MAX_CHARS),
+          errorSummary: b.weaknesses.join('; '),
+        },
+      };
+    }
 
-NHIỆM VỤ: Với mỗi cặp, xác định mức độ nghi ngờ sao chép:
-- "red": Cả hai cùng mắc MỘT LỖI BIẾN ĐỔI CÔNG THỨC SAI giống hệt nhau, hoặc cùng có suy luận bất thường/hiếm gặp trùng khớp. Đây là dấu hiệu mạnh nhất của việc sao chép.
-- "yellow": Chỉ giống nhau ở các BƯỚC GIẢI ĐÚNG thông thường (học sinh khác nhau có thể tự tìm ra) — ít đáng lo ngại.
-- "clean": Không có điểm tương đồng đáng ngờ nào.
+    // Fallback khi không có raw text (bài nộp dạng ảnh)
+    return {
+      ...base,
+      note: 'Không có văn bản gốc (bài nộp dạng ảnh) — chỉ có báo cáo AI',
+      A: {
+        id: a.id,
+        name: a.studentName,
+        aiReport: a.details.slice(0, DETAILS_MAX_CHARS),
+        errorSummary: a.weaknesses.join('; '),
+      },
+      B: {
+        id: b.id,
+        name: b.studentName,
+        aiReport: b.details.slice(0, DETAILS_MAX_CHARS),
+        errorSummary: b.weaknesses.join('; '),
+      },
+    };
+  });
 
-LƯU Ý QUAN TRỌNG:
-- Không đánh dấu "red" nếu sự trùng lặp đến từ các phương pháp chuẩn, đáp án đúng, hoặc câu trích dẫn đề bài.
-- CHỈ đánh dấu "red" khi phát hiện lỗi sai đặc thù/hiếm xuất hiện ở CẢ HAI bài.
+  const prompt = `Bạn là chuyên gia phát hiện gian lận thi cử. Tôi cung cấp ${pairs.length} cặp bài làm học sinh từ CÙNG MỘT đề kiểm tra.
+
+Với mỗi cặp có rawText (văn bản gốc bài nộp), hãy so sánh trực tiếp nội dung bài làm.
+Với cặp không có rawText (bài ảnh), chỉ dựa vào báo cáo AI và tóm tắt lỗi sai.
+
+TIÊU CHÍ ĐÁNH GIÁ:
+- "red": Cả hai cùng mắc MỘT LỖI BIẾN ĐỔI SAI giống hệt (ví dụ: cùng sai x²-4=(x-2)²), hoặc cùng có suy luận logic bất thường/hiếm gặp trùng khớp. Đây là bằng chứng mạnh của việc sao chép.
+- "yellow": Chỉ giống ở các BƯỚC ĐÚNG THÔNG THƯỜNG mà nhiều học sinh độc lập đều có thể tự viết ra.
+- "clean": Không có điểm tương đồng đáng ngờ.
+
+QUAN TRỌNG:
+- KHÔNG đánh "red" nếu sự trùng lặp đến từ công thức chuẩn, đáp án đúng, hoặc cấu trúc bài giải thông thường.
+- CHỈ "red" khi LỖI SAI ĐẶC THÙ/HIẾM GẶP xuất hiện ở CẢ HAI bài.
+- Trích dẫn chính xác từ văn bản gốc (rawText) khi có, hoặc từ aiReport khi không có rawText.
 
 Dữ liệu:
 \`\`\`json
 ${JSON.stringify(payload, null, 2)}
 \`\`\`
 
-Trả về JSON array (KHÔNG kèm giải thích hay markdown ngoài code block):
+Trả về JSON array (KHÔNG kèm text ngoài code block):
 \`\`\`json
 [
   {
@@ -104,8 +175,8 @@ Trả về JSON array (KHÔNG kèm giải thích hay markdown ngoài code block)
     "similarityPercent": 85,
     "sharedSegments": [
       {
-        "textA": "đoạn trích chính xác từ báo cáo A",
-        "textB": "đoạn trích chính xác từ báo cáo B",
+        "textA": "đoạn trích chính xác từ bài A",
+        "textB": "đoạn trích chính xác từ bài B",
         "isWrongReasoning": true,
         "reason": "Cả hai cùng biến đổi sai x²-4 = (x-2)² thay vì (x-2)(x+2)"
       }
@@ -116,7 +187,7 @@ Trả về JSON array (KHÔNG kèm giải thích hay markdown ngoài code block)
 
   const text = await callAI(prompt, settings);
 
-  // Extract JSON array from response
+  // Extract JSON array
   const codeBlock = text.match(/```(?:json)?\s*(\[[\s\S]*?\])\s*```/);
   const jsonStr = codeBlock ? codeBlock[1] : text.match(/\[[\s\S]*\]/)?.[0];
   if (!jsonStr) return [];
@@ -128,7 +199,7 @@ Trả về JSON array (KHÔNG kèm giải thích hay markdown ngoài code block)
   return parsed
     .filter((item: any) => item.level === 'red' || item.level === 'yellow')
     .map((item: any): SuspiciousPair => {
-      const [a, b] = pairs[item.index];
+      const { a, b, hasRawText } = pairs[item.index];
       return {
         studentAId: a.id,
         studentBId: b.id,
@@ -136,6 +207,7 @@ Trả về JSON array (KHÔNG kèm giải thích hay markdown ngoài code block)
         studentBName: b.studentName,
         level: item.level,
         similarityPercent: Math.min(100, Math.max(0, Number(item.similarityPercent) || 0)),
+        hasRawText,
         sharedSegments: Array.isArray(item.sharedSegments)
           ? item.sharedSegments.map((seg: any) => ({
               textA: String(seg.textA || ''),
@@ -155,35 +227,46 @@ Trả về JSON array (KHÔNG kèm giải thích hay markdown ngoài code block)
  *
  * Luồng xử lý:
  *  1. Lọc bài đã chấm xong.
- *  2. Sinh tất cả các cặp O(n²).
- *  3. Jaccard shingle pre-filter: loại cặp similarity < 20%.
- *  4. Batch AI: phân tích semantic từng nhóm 6 cặp candidate.
- *  5. Trả về PlagiarismReport phân loại red/yellow.
+ *  2. Sinh tất cả cặp O(n²).
+ *  3. Tầng 1 — Jaccard shingle pre-filter:
+ *     - Có rawText → so sánh văn bản gốc, ngưỡng 30%
+ *     - Không có rawText → so sánh details, ngưỡng 20%
+ *  4. Tầng 2 — AI batch (5 cặp/lần): AI phân biệt "cùng sai hiếm gặp" (🔴) vs
+ *     "cùng đúng thông thường" (🟡/bỏ qua), dựa trên rawText + weaknesses.
+ *  5. Trả về PlagiarismReport phân loại red/yellow, sort theo similarity%.
  */
 export async function detectPlagiarism(
   results: GradingResult[],
   settings: Settings
 ): Promise<PlagiarismReport> {
-  const completed = results.filter(r => r.status === 'completed' && r.details.trim().length > 0);
+  const completed = results.filter(
+    r => r.status === 'completed' && r.details.trim().length > 0
+  );
 
   // Generate all unique pairs
-  const allPairs: Array<[GradingResult, GradingResult]> = [];
+  type Pair = { a: GradingResult; b: GradingResult; hasRawText: boolean };
+  const allPairs: Pair[] = [];
   for (let i = 0; i < completed.length; i++) {
     for (let j = i + 1; j < completed.length; j++) {
-      allPairs.push([completed[i], completed[j]]);
+      allPairs.push({
+        a: completed[i],
+        b: completed[j],
+        hasRawText: !!(completed[i].rawText && completed[j].rawText),
+      });
     }
   }
 
-  // Jaccard pre-filter — keep only candidate pairs
-  const candidates = allPairs.filter(
-    ([a, b]) => shingleSimilarity(a.details, b.details) >= JACCARD_THRESHOLD
-  );
+  // Tầng 1: Jaccard pre-filter
+  const candidates = allPairs.filter(({ a, b }) => {
+    const { textA, textB, threshold } = getComparisonTexts(a, b);
+    return shingleSimilarity(textA, textB) >= threshold;
+  });
 
   if (candidates.length === 0) {
     return { checkedPairs: allPairs.length, redFlags: [], yellowFlags: [] };
   }
 
-  // Batch AI analysis
+  // Tầng 2: AI batch — sequential (không parallel) để tránh rate-limit timeout
   const redFlags: SuspiciousPair[] = [];
   const yellowFlags: SuspiciousPair[] = [];
 
@@ -191,12 +274,10 @@ export async function detectPlagiarism(
     const batch = candidates.slice(start, start + BATCH_SIZE);
     const batchResults = await analyzeBatch(batch, settings);
     for (const r of batchResults) {
-      if (r.level === 'red') redFlags.push(r);
-      else yellowFlags.push(r);
+      (r.level === 'red' ? redFlags : yellowFlags).push(r);
     }
   }
 
-  // Sort by similarity descending
   const bySimilarity = (a: SuspiciousPair, b: SuspiciousPair) =>
     b.similarityPercent - a.similarityPercent;
   redFlags.sort(bySimilarity);

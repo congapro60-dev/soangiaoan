@@ -220,6 +220,7 @@ Viết báo cáo phân tích theo cấu trúc Markdown (đầy đủ, không b�
       weaknesses: Array.isArray(parsed.weaknesses) ? parsed.weaknesses : [],
       improvementPlan: String(parsed.improvementPlan || ''),
       details: String(parsed.details || ''),
+      rawText: isImage ? undefined : studentFile.content,
       status: 'completed' as const,
       fileName: studentFile.name,
     };

@@ -57,6 +57,7 @@ export interface GradingResult {
   weaknesses: string[];
   improvementPlan: string;
   details: string; // Markdown report
+  rawText?: string; // Văn bản gốc bài nộp (chỉ có cho file text, không có cho ảnh)
   status: 'pending' | 'processing' | 'completed' | 'error';
   fileName: string;
 }
