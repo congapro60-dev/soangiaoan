@@ -305,6 +305,26 @@ export const GradingTab = ({
     }
   };
 
+  const handleSaveDetails = (resultId: string, details: string) => {
+    if (panelMode === 'new') {
+      setResults(prev => prev.map(r => r.id === resultId ? { ...r, details } : r));
+      setViewingResult(prev => prev?.id === resultId ? { ...prev, details } : prev);
+    } else if (selectedSessionId) {
+      const session = data.gradingSessions?.find(s => s.id === selectedSessionId);
+      if (!session) return;
+      const updatedSession: GradingSession = {
+        ...session,
+        results: session.results.map(r => r.id === resultId ? { ...r, details } : r),
+      };
+      setData((prev: AppData) => ({
+        ...prev,
+        gradingSessions: prev.gradingSessions.map(s => s.id === selectedSessionId ? updatedSession : s),
+      }));
+      setViewingResult(prev => prev?.id === resultId ? { ...prev, details } : prev);
+      persistSession(updatedSession);
+    }
+  };
+
   const handleDeleteResult = async (result: GradingResult) => {
     if (panelMode === 'view' && selectedSessionId) {
       if (deleteGradingResult) {
@@ -432,7 +452,12 @@ export const GradingTab = ({
       </div>
 
       {/* Detail modal */}
-      <GradingResultDetail result={viewingResult} onClose={() => setViewingResult(null)} />
+      <GradingResultDetail
+        result={viewingResult}
+        onClose={() => setViewingResult(null)}
+        settings={data.settings}
+        onSaveDetails={handleSaveDetails}
+      />
 
       {/* Class analysis modal */}
       <ClassAnalysisModal
