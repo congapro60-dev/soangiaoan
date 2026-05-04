@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import katex from 'katex';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   FileCheck, FilePlus, Shuffle, Upload, Download, FileCode,
@@ -19,7 +18,6 @@ const openInNewTab = (html: string) => {
   window.open(url, '_blank');
   setTimeout(() => URL.revokeObjectURL(url), 30000);
 };
-import 'katex/dist/katex.min.css';
 
 import { AppData, TemplateFile, LessonPlan } from '../../types';
 import { examUtils } from '../../utils/examUtils';
@@ -172,27 +170,26 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast, initialCo
     if (!testResult) return;
     showToast('Đang tạo file Word...');
     try {
-      // Pre-process LaTeX → HTML trước khi marked() để giữ công thức trong Word
-      const withKatex = testResult
-        .replace(/\$\$([^$]+)\$\$/gs, (_, tex) =>
-          katex.renderToString(tex, { displayMode: true, throwOnError: false, output: 'html' }))
-        .replace(/\$([^$\n]+)\$/g, (_, tex) =>
-          katex.renderToString(tex, { throwOnError: false, output: 'html' }));
-      const htmlBody = await marked(withKatex);
+      // Keep LaTeX as-is ($...$ and $$...$$) — Word cannot render KaTeX HTML.
+      // Teachers open the .doc and use MathType "Toggle TeX" to convert LaTeX → native Word equations.
+      const htmlBody = await marked(testResult);
       const htmlContent = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<style>${WORD_EXPORT_STYLES}</style></head>
+<style>${WORD_EXPORT_STYLES}
+/* LaTeX delimiters — visible as plain text; use MathType Toggle TeX to convert */
+</style></head>
 <body>${htmlBody}</body></html>`;
       const encoder = new TextEncoder();
       const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
       const encoded = encoder.encode(htmlContent);
       const blob = new Blob([bom, encoded], { type: 'application/msword' });
-      downloadBlob(blob, `Bao_cao_kiem_tra_${Date.now()}.doc`);
-      showToast('Đã tải file Word thành công!', 'success');
+      downloadBlob(blob, `De_thi_${Date.now()}.doc`);
+      showToast('Đã tải file Word! Mở Word → MathType → Toggle TeX để hiển thị công thức.', 'success');
     } catch (e) {
       showToast('Lỗi xuất Word. Vui lòng thử lại.', 'error');
     }
   };
+
 
   const handleExportOverleaf = async () => {
     if (!testResult) return;

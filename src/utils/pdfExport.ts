@@ -167,6 +167,11 @@ export const exportElementToPdf = async (
     useCORS: true,
     logging: false,
     backgroundColor: '#ffffff',
+    // Fix: capture the FULL scrollable content, not just the visible viewport.
+    // Without these, html2canvas only renders what's currently in view,
+    // producing a single-page PDF that cuts off the rest of the exam.
+    windowWidth: element.scrollWidth,
+    windowHeight: element.scrollHeight,
   });
 
   const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation });

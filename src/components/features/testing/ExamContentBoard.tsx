@@ -19,9 +19,9 @@ interface Props {
  * Split-pane exam editor: Markdown textarea (left) + A4-styled live preview (right).
  * Mirrors the LessonContentBoard pattern from CreatorTab.
  *
- * Layout note: This component is placed inside the lg:w-2/3 right panel of TestingTab.
- * MDEditor preview="live" automatically creates a 50/50 split within that panel.
- * The parent panel must have overflow-hidden so the MDEditor fills it cleanly.
+ * Layout note: This component is placed inside the flex-1 right panel of TestingTab.
+ * flex-1 + min-h-0 allows MDEditor to fill all available vertical space without
+ * overflowing (fixing the "frozen screen" bug where content below was unreachable).
  */
 export const ExamContentBoard = ({
   testResult,
@@ -38,22 +38,23 @@ export const ExamContentBoard = ({
     {/*
       exam-board: scope anchor for MD_EDITOR_A4_CSS rules
       data-color-mode="light": forces MDEditor into light theme
-      overflow-hidden: prevents MDEditor from breaking the flex layout
+      flex-1 + min-h-0: lets this div fill remaining space inside the flex parent
+      overflow-hidden: clips MDEditor chrome so only the editor scrolls internally
     */}
     <div
-      className="overflow-hidden exam-board"
+      className="flex-1 min-h-0 overflow-hidden exam-board flex flex-col"
       data-color-mode="light"
     >
       <MDEditor
         value={testResult}
         onChange={val => setTestResult(val ?? '')}
         preview="live"
-        height={580}
+        height="100%"
         previewOptions={{
           remarkPlugins: [remarkGfm, remarkMath],
           rehypePlugins: [rehypeRaw, rehypeKatex],
         }}
-        style={{ borderRadius: 0, border: 'none', boxShadow: 'none' }}
+        style={{ borderRadius: 0, border: 'none', boxShadow: 'none', flex: 1, display: 'flex', flexDirection: 'column' }}
       />
     </div>
 

@@ -27,19 +27,29 @@ export const MD_EDITOR_A4_CSS = `
     padding: 28px 20px !important;
   }
 
-  /* The A4 sheet */
+  /* The A4 sheet — fixed 210mm width so split-view never squishes the page */
   .exam-board .w-md-editor-preview .wmde-markdown {
-    font-family: 'Times New Roman', Times, serif !important;
+    /* No font-family !important here — lets KaTeX use its own font stack */
     font-size: 13pt !important;
     line-height: 1.75 !important;
     color: #111 !important;
     background: #ffffff !important;
-    max-width: 210mm !important;
+    width: 210mm !important;
+    max-width: none !important;
     min-height: 240px !important;
     margin: 0 auto 28px auto !important;
     padding: 18mm 20mm 22mm 20mm !important;
     box-shadow: 0 4px 28px rgba(0,0,0,0.18), 0 1px 6px rgba(0,0,0,0.08) !important;
     border-radius: 1px !important;
+  }
+
+  /* Apply Times New Roman only to prose elements — NOT to KaTeX spans */
+  .exam-board .w-md-editor-preview .wmde-markdown p,
+  .exam-board .w-md-editor-preview .wmde-markdown li,
+  .exam-board .w-md-editor-preview .wmde-markdown td,
+  .exam-board .w-md-editor-preview .wmde-markdown th,
+  .exam-board .w-md-editor-preview .wmde-markdown blockquote {
+    font-family: 'Times New Roman', Times, serif !important;
   }
 
   /* Headings */
