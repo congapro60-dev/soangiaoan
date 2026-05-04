@@ -3,18 +3,15 @@ import katex from 'katex';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   FileCheck, FilePlus, Shuffle, Upload, Download, FileCode,
-  ShieldCheck, AlertCircle, Loader2, X, CheckCircle2, History, Trash2, Sparkles, LibraryBig
+  ShieldCheck, AlertCircle, Loader2, X, CheckCircle2, History, Trash2, LibraryBig
 } from 'lucide-react';
 import * as mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
-import rehypeRaw from 'rehype-raw';
 import { marked } from 'marked';
 import { generateAnswerSheetHTML, generateAnswerKeyTemplateHTML } from '../../utils/answerSheetTemplate';
 import { ExamDocsModal } from '../features/testing/ExamDocsModal';
+import { ExamContentBoard } from '../features/testing/ExamContentBoard';
+import { WORD_EXPORT_STYLES } from '../../utils/examPaperStyles';
 
 const openInNewTab = (html: string) => {
   const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
@@ -156,7 +153,7 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast, initialCo
   };
 
   const handleDownloadPDF = async () => {
-    const element = document.getElementById('report-paper-container');
+    const element = document.querySelector<HTMLElement>('.exam-board .w-md-editor-preview .wmde-markdown');
     if (!element) return;
     showToast('Đang tạo PDF, vui lòng chờ...');
     try {
@@ -184,16 +181,7 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast, initialCo
       const htmlBody = await marked(withKatex);
       const htmlContent = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<style>
-  body { font-family: 'Times New Roman', serif; font-size: 13pt; line-height: 1.6; padding: 2cm; }
-  h1 { text-align: center; font-size: 16pt; color: #1F3864; }
-  h2 { font-size: 13pt; color: #2F5496; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
-  h3 { font-size: 12pt; color: #2F5496; }
-  table { border-collapse: collapse; width: 100%; margin: 8px 0; }
-  th { border: 1px solid #000; padding: 6px 8px; text-align: left; font-size: 11pt; background-color: #2F5496; color: #ffffff; }
-  td { border: 1px solid #000; padding: 6px 8px; text-align: left; font-size: 11pt; }
-  p { margin: 4px 0; }
-</style></head>
+<style>${WORD_EXPORT_STYLES}</style></head>
 <body>${htmlBody}</body></html>`;
       const encoder = new TextEncoder();
       const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
@@ -395,10 +383,10 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast, initialCo
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="max-w-6xl mx-auto p-2 sm:p-6"
+      className="h-full flex flex-col gap-0 overflow-hidden"
     >
       {/* Mode Selector */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-4 pb-0 flex-shrink-0">
         {(Object.keys(modeContent) as TestingMode[]).map((mode) => (
           <button
             key={mode}
@@ -422,10 +410,10 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast, initialCo
         ))}
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Left Control Panel */}
-        <div className="lg:w-1/3 space-y-6">
-          <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm space-y-6">
+      <div className="flex flex-col lg:flex-row gap-4 p-4 flex-1 min-h-0 overflow-hidden">
+        {/* Left Control Panel — fixed 320px so MDEditor gets ≥640px */}
+        <div className="lg:w-80 shrink-0 overflow-y-auto space-y-4">
+          <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm space-y-5">
             <h4 className="font-bold text-slate-800 flex items-center gap-2">
               <Upload className="w-5 h-5 text-blue-500" />
               Thiết lập dữ liệu đầu vào
@@ -602,8 +590,8 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast, initialCo
           </div>
         </div>
 
-        {/* Right Result Panel */}
-        <div className="lg:w-2/3 flex flex-col bg-white rounded-[40px] border border-slate-100 shadow-sm overflow-hidden min-h-[600px]">
+        {/* Right Result Panel — flex-1 so MDEditor's 3-pane split gets max room */}
+        <div className="flex-1 min-w-0 flex flex-col bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden min-h-[600px]">
           <div className="p-6 border-b border-slate-50 bg-slate-50/30 backdrop-blur-md flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-blue-600 rounded-2xl text-white shadow-lg shadow-blue-100">
@@ -676,62 +664,23 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast, initialCo
             )}
           </AnimatePresence>
 
-          <div className="flex-1 p-8 overflow-y-auto">
-            {!testResult ? (
-              <div className="h-full flex flex-col items-center justify-center text-center space-y-6">
-                <div className="w-20 h-20 bg-slate-50 rounded-[32px] flex items-center justify-center mx-auto">
-                  <AlertCircle className="w-10 h-10 text-slate-200" />
-                </div>
-                <h3 className="text-lg font-bold text-slate-300">Chưa có kết quả xử lý</h3>
-                <p className="text-sm text-slate-400">Hãy thiết lập dữ liệu bên trái và bấm nút bắt đầu để AI thực hiện phân tích.</p>
+          {!testResult ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6 p-8">
+              <div className="w-20 h-20 bg-slate-50 rounded-[32px] flex items-center justify-center mx-auto">
+                <AlertCircle className="w-10 h-10 text-slate-200" />
               </div>
-            ) : (
-              <div className="w-full text-left space-y-6">
-                <div className="p-4 bg-green-50 text-green-700 rounded-2xl border border-green-100 flex items-center gap-3">
-                  <CheckCircle2 className="w-5 h-5 shrink-0" />
-                  <span className="font-bold text-sm">Đã hoàn tất phân tích!</span>
-                </div>
-                <div
-                  id="report-paper-container"
-                  className="bg-white p-10 rounded-[32px] border border-slate-100 shadow-lg font-serif leading-relaxed text-slate-800 min-h-[600px]"
-                >
-                  <article className="prose prose-slate max-w-none prose-p:my-2 prose-table:border-collapse prose-th:bg-[#2F5496] prose-th:text-white prose-td:border-slate-300 overflow-hidden">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm, remarkMath]}
-                      rehypePlugins={[rehypeKatex, rehypeRaw]}
-                    >
-                      {testResult}
-                    </ReactMarkdown>
-                  </article>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {testResult && (
-            <div className="px-5 pt-5 pb-0 bg-slate-50 border-t border-slate-100">
-              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                <Sparkles className="w-3.5 h-3.5 text-purple-500" />
-                Chỉnh sửa đề theo yêu cầu (tùy chọn)
-              </label>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <textarea
-                  value={refineRequest}
-                  onChange={(e) => setRefineRequest(e.target.value)}
-                  placeholder="Ví dụ: Đổi câu 3 sang mức độ vận dụng cao, thêm 1 câu về đạo hàm, sửa lỗi chính tả ở câu 7..."
-                  disabled={isRefining}
-                  className="flex-1 px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-700 outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm resize-none min-h-[60px] disabled:opacity-50"
-                />
-                <button
-                  onClick={handleRefine}
-                  disabled={isRefining || !refineRequest.trim()}
-                  className="px-5 py-3 bg-purple-600 text-white rounded-2xl font-bold shadow-lg shadow-purple-100 hover:bg-purple-700 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed shrink-0 sm:self-stretch"
-                >
-                  {isRefining ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                  {isRefining ? 'Đang sửa...' : 'AI chỉnh sửa'}
-                </button>
-              </div>
+              <h3 className="text-lg font-bold text-slate-300">Chưa có kết quả xử lý</h3>
+              <p className="text-sm text-slate-400">Hãy thiết lập dữ liệu bên trái và bấm nút bắt đầu để AI thực hiện phân tích.</p>
             </div>
+          ) : (
+            <ExamContentBoard
+              testResult={testResult}
+              setTestResult={v => setTestResult(v)}
+              refineRequest={refineRequest}
+              setRefineRequest={setRefineRequest}
+              onRefine={handleRefine}
+              isRefining={isRefining}
+            />
           )}
 
           {testResult && (
