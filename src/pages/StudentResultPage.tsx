@@ -5,9 +5,31 @@ import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import { Loader2, CheckCircle2, XCircle, AlertTriangle, Trophy, Clock } from 'lucide-react';
-import { Exam, ExamSubmission } from '../types';
+import {
+  Loader2, CheckCircle2, XCircle, AlertTriangle, Trophy, Clock,
+  ChevronDown, ChevronUp,
+} from 'lucide-react';
+import { Exam, ExamSubmission, ExamQuestion } from '../types';
 import { findExamByCode, getSubmission } from '../hooks/useExams';
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const normalizeText = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
+
+const isCompoundTF = (q: ExamQuestion) =>
+  q.type === 'true_false' && Array.isArray(q.options) && q.options.length > 0;
+
+const parseTFSub = (v: string): Partial<Record<'a' | 'b' | 'c' | 'd', 'Đ' | 'S'>> => {
+  try { return JSON.parse(v); } catch { return {}; }
+};
+
+const formatTime = (seconds: number) => {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m} phút ${s} giây`;
+};
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
 
 export const StudentResultPage = () => {
   const { code, submissionId } = useParams<{ code: string; submissionId: string }>();
@@ -18,6 +40,7 @@ export const StudentResultPage = () => {
   const [submission, setSubmission] = useState<ExamSubmission | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showReview, setShowReview] = useState(false);
 
   useEffect(() => {
     if (!code || !submissionId) { setError('Thiếu thông tin'); setLoading(false); return; }
@@ -25,124 +48,130 @@ export const StudentResultPage = () => {
       .then(([e, s]) => {
         if (!e) { setError('Không tìm thấy đề thi'); return; }
         if (!s) { setError('Không tìm thấy bài làm'); return; }
-        setExam(e);
-        setSubmission(s);
+        setExam(e); setSubmission(s);
       })
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
   }, [code, submissionId]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+    </div>
+  );
 
-  if (error || !exam || !submission) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-        <div className="max-w-md w-full bg-white rounded-3xl border border-slate-100 p-8 text-center">
-          <AlertTriangle className="w-10 h-10 text-red-500 mx-auto mb-4" />
-          <h1 className="text-xl font-black text-slate-800">Không tải được kết quả</h1>
-          <p className="text-sm text-slate-500 mt-2">{error}</p>
-        </div>
+  if (error || !exam || !submission) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+      <div className="max-w-md w-full bg-white rounded-3xl border border-slate-100 p-8 text-center">
+        <AlertTriangle className="w-10 h-10 text-red-500 mx-auto mb-4" />
+        <h1 className="text-xl font-black text-slate-800">Không tải được kết quả</h1>
+        <p className="text-sm text-slate-500 mt-2">{error}</p>
       </div>
-    );
-  }
+    </div>
+  );
 
   const score = submission.totalScore ?? 0;
   const pct = exam.maxScore > 0 ? (score / exam.maxScore) * 100 : 0;
   const pending = submission.status === 'submitted';
 
+  const startMs = new Date(submission.startedAt).getTime();
+  const endMs = submission.submittedAt ? new Date(submission.submittedAt).getTime() : Date.now();
+  const timeTakenSec = Math.round((endMs - startMs) / 1000);
+
+  const autoCount = submission.answers.filter(a => a.autoScore !== undefined && a.autoScore === exam.questions.find(q => q.id === a.questionId)?.points).length;
+  const gradableCount = exam.questions.filter(q => q.type !== 'essay').length;
+
   return (
-    <div className="min-h-screen bg-slate-50 py-10 px-4">
-      <div className="max-w-3xl mx-auto">
-        <div className="bg-white rounded-3xl border border-slate-100 p-8 mb-6 text-center">
-          <div className={`w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4 ${pct >= 50 ? 'bg-emerald-50 text-emerald-500' : 'bg-red-50 text-red-500'}`}>
-            <Trophy className="w-8 h-8" />
-          </div>
-          <h1 className="text-2xl font-black text-slate-800">{exam.title}</h1>
-          <p className="text-sm text-slate-500 mt-1">{submission.studentName} {submission.studentClass && `• ${submission.studentClass}`}</p>
+    <div className="min-h-screen bg-slate-50 py-8 px-4">
+      <div className="max-w-4xl mx-auto">
+        {/* 2-column: score card + leaderboard */}
+        <div className="grid md:grid-cols-[1fr_280px] gap-5 mb-6">
+          {/* Score card */}
+          <div className="bg-white rounded-3xl border border-slate-100 p-8">
+            <p className="text-sm font-bold text-slate-500 mb-1">Bài làm của bạn đã được gửi đi</p>
+            <h1 className="text-xl font-black text-slate-800 mb-4">{exam.title}</h1>
 
-          {autoSubmitted && (
-            <div className="mt-4 inline-flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700">
-              <Clock className="w-3.5 h-3.5" /> Hết giờ — bài đã tự nộp
+            {autoSubmitted && (
+              <div className="mb-4 inline-flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700">
+                <Clock className="w-3.5 h-3.5" /> Hết giờ — bài đã tự nộp
+              </div>
+            )}
+
+            <div className="flex items-end gap-3 my-6">
+              <p className="text-5xl font-black text-slate-800">
+                {score.toFixed(2)}
+              </p>
+              <p className="text-xl text-slate-400 pb-1">/ {exam.maxScore}</p>
+              <div className={`ml-2 px-3 py-1 rounded-xl text-sm font-black ${
+                pct >= 50 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+              }`}>
+                {pct.toFixed(0)}%
+              </div>
             </div>
-          )}
 
-          <div className="my-8">
-            <p className="text-6xl font-black text-slate-800">
-              {score.toFixed(2)}
-              <span className="text-2xl text-slate-400"> / {exam.maxScore}</span>
-            </p>
             {pending && (
-              <p className="text-xs text-amber-600 mt-3 font-medium">
+              <p className="text-xs text-amber-600 mb-4 font-medium bg-amber-50 px-3 py-2 rounded-xl">
                 * Phần tự luận đang chờ giáo viên chấm — điểm cuối có thể thay đổi.
               </p>
             )}
+
+            <div className="space-y-2 text-sm border-t border-slate-100 pt-4">
+              <div className="flex justify-between">
+                <span className="text-slate-500">Thí sinh</span>
+                <span className="font-bold text-slate-800">{submission.studentName}{submission.studentClass && ` • ${submission.studentClass}`}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Thời gian làm bài</span>
+                <span className="font-bold text-slate-800">{formatTime(timeTakenSec)}</span>
+              </div>
+              {gradableCount > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Số câu trắc nghiệm đúng</span>
+                  <span className="font-bold text-emerald-700">{autoCount}/{gradableCount}</span>
+                </div>
+              )}
+            </div>
+
+            {exam.allowReview && (
+              <button onClick={() => setShowReview(v => !v)}
+                className="mt-5 w-full py-2.5 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-2">
+                {showReview ? <><ChevronUp className="w-4 h-4" /> Ẩn đáp án</> : <><ChevronDown className="w-4 h-4" /> Xem đáp án</>}
+              </button>
+            )}
+          </div>
+
+          {/* Leaderboard placeholder */}
+          <div className="bg-white rounded-3xl border border-slate-100 p-6">
+            <h2 className="text-base font-black text-slate-800 flex items-center gap-2 mb-4">
+              <Trophy className="w-5 h-5 text-amber-500" /> Bảng xếp hạng
+            </h2>
+            <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+              <Trophy className="w-10 h-10 opacity-30 mb-2" />
+              <p className="text-sm font-medium">Chưa có dữ liệu!</p>
+            </div>
           </div>
         </div>
 
-        {exam.allowReview && (
-          <div className="bg-white rounded-3xl border border-slate-100 p-6">
-            <h2 className="text-lg font-black text-slate-800 mb-4">Xem lại bài làm</h2>
-            <div className="space-y-4">
-              {exam.questions.map((q, idx) => {
-                const sa = submission.answers.find(a => a.questionId === q.id);
-                const isCorrect = sa?.autoScore !== undefined && sa.autoScore === q.points;
-                const isWrong = sa?.autoScore !== undefined && sa.autoScore < q.points;
+        {/* Answer review */}
+        {exam.allowReview && showReview && (
+          <div className="bg-white rounded-3xl border border-slate-100 p-6 space-y-4">
+            <h2 className="text-lg font-black text-slate-800 mb-2">Xem lại bài làm</h2>
+            {exam.questions.map((q, idx) => {
+              const sa = submission.answers.find(a => a.questionId === q.id);
+              const isCorrect = sa?.autoScore !== undefined && sa.autoScore === q.points;
+              const isWrong = sa?.autoScore !== undefined && sa.autoScore < q.points;
 
-                return (
-                  <div key={q.id} className="border border-slate-100 rounded-2xl p-4">
-                    <div className="flex items-start gap-3">
-                      <div className="shrink-0">
-                        {isCorrect ? (
-                          <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                        ) : isWrong ? (
-                          <XCircle className="w-5 h-5 text-red-500" />
-                        ) : (
-                          <Clock className="w-5 h-5 text-amber-500" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-xs font-bold text-slate-500">Câu {idx + 1}</span>
-                          <span className="text-xs text-slate-400">• {q.points} điểm</span>
-                        </div>
-                        <div className="prose prose-sm max-w-none text-slate-800">
-                          <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>
-                            {q.content}
-                          </ReactMarkdown>
-                        </div>
-                        <div className="mt-3 space-y-1 text-xs">
-                          <p>
-                            <span className="font-bold text-slate-500">Bạn trả lời: </span>
-                            <span className={isCorrect ? 'text-emerald-700' : isWrong ? 'text-red-700' : 'text-slate-700'}>
-                              {sa?.answer || '(bỏ trống)'}
-                            </span>
-                          </p>
-                          {q.correctAnswer && !isCorrect && (
-                            <p>
-                              <span className="font-bold text-slate-500">Đáp án đúng: </span>
-                              <span className="text-emerald-700">{q.correctAnswer}</span>
-                            </p>
-                          )}
-                          {q.explanation && (
-                            <div className="mt-2 p-3 bg-blue-50 rounded-lg text-slate-700 prose prose-xs max-w-none">
-                              <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>
-                                {q.explanation}
-                              </ReactMarkdown>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+              return (
+                <QuestionReview
+                  key={q.id}
+                  num={idx + 1}
+                  question={q}
+                  studentAnswer={sa?.answer || ''}
+                  isCorrect={isCorrect}
+                  isWrong={isWrong}
+                />
+              );
+            })}
           </div>
         )}
 
@@ -152,6 +181,145 @@ export const StudentResultPage = () => {
           </Link>
         </div>
       </div>
+    </div>
+  );
+};
+
+// ─── QuestionReview ───────────────────────────────────────────────────────────
+
+const QuestionReview = ({ num, question, studentAnswer, isCorrect, isWrong }: {
+  num: number;
+  question: ExamQuestion;
+  studentAnswer: string;
+  isCorrect: boolean;
+  isWrong: boolean;
+}) => {
+  const [showExplanation, setShowExplanation] = useState(false);
+
+  return (
+    <div className={`border rounded-2xl p-4 ${
+      isCorrect ? 'border-emerald-200 bg-emerald-50/30'
+        : isWrong ? 'border-red-200 bg-red-50/30'
+          : 'border-slate-100'
+    }`}>
+      <div className="flex items-center gap-3 mb-3">
+        <div className="shrink-0">
+          {isCorrect ? <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+            : isWrong ? <XCircle className="w-5 h-5 text-red-500" />
+              : <Clock className="w-5 h-5 text-amber-500" />}
+        </div>
+        <span className="text-xs font-bold text-slate-500">Câu {num}</span>
+        <span className="text-xs text-slate-400">• {question.points} điểm</span>
+      </div>
+
+      <div className="prose prose-sm max-w-none text-slate-800 mb-4">
+        <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>
+          {question.content}
+        </ReactMarkdown>
+      </div>
+
+      {/* MCQ: show 4 options with correct/wrong highlighting */}
+      {question.type === 'multiple_choice' && question.options && (
+        <div className="grid grid-cols-2 gap-2 mb-3">
+          {question.options.map((opt, i) => {
+            const letter = ['A', 'B', 'C', 'D'][i];
+            const isStudentChoice = normalizeText(studentAnswer) === letter.toLowerCase();
+            const isCorrectChoice = normalizeText(question.correctAnswer || '') === letter.toLowerCase();
+            return (
+              <div key={i} className={`flex items-start gap-2 p-2 rounded-xl text-xs border ${
+                isCorrectChoice ? 'border-emerald-400 bg-emerald-50 text-emerald-800 font-bold'
+                  : isStudentChoice && !isCorrectChoice ? 'border-red-400 bg-red-50 text-red-700'
+                    : 'border-slate-100 text-slate-600'
+              }`}>
+                <span className="font-bold shrink-0">{letter}.</span>
+                <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}
+                  components={{ p: ({ children }) => <span>{children}</span> }}>
+                  {opt.replace(/^[A-D][.)]\s*/, '')}
+                </ReactMarkdown>
+                {isCorrectChoice && <CheckCircle2 className="w-3.5 h-3.5 shrink-0 ml-auto text-emerald-600 mt-0.5" />}
+                {isStudentChoice && !isCorrectChoice && <XCircle className="w-3.5 h-3.5 shrink-0 ml-auto text-red-500 mt-0.5" />}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Compound T/F */}
+      {isCompoundTF(question) && question.options && (
+        <div className="border border-slate-100 rounded-xl overflow-hidden mb-3">
+          {(['a', 'b', 'c', 'd'] as const).map((key, i) => {
+            const sub = parseTFSub(studentAnswer);
+            const correctParts = (question.correctAnswer || '').split(',');
+            const correctForKey = (correctParts[i] || '').trim().toUpperCase();
+            const studentForKey = (sub[key] || '').toString().toUpperCase();
+            const subCorrect = studentForKey && (
+              (correctForKey === 'Đ' || correctForKey === 'ĐÚNG') === (studentForKey === 'Đ' || studentForKey === 'ĐÚNG')
+            );
+            return (
+              <div key={key} className={`flex items-center gap-3 px-4 py-2.5 text-xs ${i < 3 ? 'border-b border-slate-100' : ''}`}>
+                <span className="font-bold text-slate-500 w-5 shrink-0">{key})</span>
+                <span className="flex-1 text-slate-700">{question.options![i].replace(/^[a-d][.)]\s*/i, '')}</span>
+                <span className={`font-bold px-2 py-0.5 rounded-lg ${
+                  sub[key] ? (subCorrect ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700') : 'bg-slate-100 text-slate-400'
+                }`}>
+                  {sub[key] === 'Đ' ? 'Đúng' : sub[key] === 'S' ? 'Sai' : '—'}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Individual T/F + short answer */}
+      {question.type === 'true_false' && !isCompoundTF(question) && (
+        <div className="flex gap-4 text-sm mb-3">
+          <span><span className="text-slate-500">Bạn chọn: </span>
+            <span className={isCorrect ? 'text-emerald-700 font-bold' : 'text-red-700 font-bold'}>
+              {studentAnswer || '(chưa chọn)'}
+            </span></span>
+          {!isCorrect && question.correctAnswer && (
+            <span><span className="text-slate-500">Đáp án: </span>
+              <span className="text-emerald-700 font-bold">{question.correctAnswer}</span></span>
+          )}
+        </div>
+      )}
+
+      {question.type === 'short_answer' && (
+        <div className="flex gap-4 text-sm mb-3">
+          <span><span className="text-slate-500">Bạn nhập: </span>
+            <span className={isCorrect ? 'text-emerald-700 font-bold' : 'text-red-700 font-bold'}>
+              {studentAnswer || '(bỏ trống)'}
+            </span></span>
+          {!isCorrect && question.correctAnswer && (
+            <span><span className="text-slate-500">Đáp án đúng: </span>
+              <span className="text-emerald-700 font-bold">[{question.correctAnswer}]</span></span>
+          )}
+        </div>
+      )}
+
+      {question.type === 'essay' && studentAnswer && (
+        <div className="p-3 bg-slate-50 rounded-xl text-xs text-slate-700 mb-3 whitespace-pre-wrap border border-slate-100">
+          {studentAnswer}
+        </div>
+      )}
+
+      {/* Explanation accordion */}
+      {question.explanation && (
+        <div>
+          <button onClick={() => setShowExplanation(v => !v)}
+            className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700">
+            {showExplanation ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            Giải thích
+          </button>
+          {showExplanation && (
+            <div className="mt-2 p-3 bg-blue-50 rounded-xl text-xs text-slate-700 prose prose-xs max-w-none border border-blue-100">
+              <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>
+                {question.explanation}
+              </ReactMarkdown>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
