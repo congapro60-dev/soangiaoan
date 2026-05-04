@@ -382,24 +382,24 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast, initialCo
       animate={{ opacity: 1 }}
       className="h-full flex flex-col gap-0 overflow-hidden"
     >
-      {/* Mode Selector */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-4 pb-0 flex-shrink-0">
+      {/* Mode Selector — compact horizontal cards to save vertical space */}
+      <div className="grid grid-cols-3 gap-2 p-4 pb-0 flex-shrink-0">
         {(Object.keys(modeContent) as TestingMode[]).map((mode) => (
           <button
             key={mode}
             onClick={() => setActiveMode(mode)}
-            className={`p-6 rounded-[32px] border-2 transition-all flex flex-col items-start gap-3 text-left ${
+            className={`p-3 rounded-2xl border-2 transition-all flex items-center gap-2.5 text-left ${
               activeMode === mode
-                ? 'bg-blue-600 border-blue-600 text-white shadow-xl shadow-blue-100 scale-[1.02]'
-                : 'bg-white border-slate-50 text-slate-600 hover:border-blue-200 shadow-sm'
+                ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-100'
+                : 'bg-white border-slate-100 text-slate-600 hover:border-blue-200 shadow-sm'
             }`}
           >
-            <div className={`p-3 rounded-2xl ${activeMode === mode ? 'bg-white/20' : 'bg-blue-50 text-blue-600'}`}>
+            <div className={`p-2 rounded-xl shrink-0 ${activeMode === mode ? 'bg-white/20' : 'bg-blue-50 text-blue-600'}`}>
               {modeContent[mode].icon}
             </div>
-            <div>
-              <h3 className="font-black text-lg">{modeContent[mode].title}</h3>
-              <p className={`text-xs mt-1 leading-relaxed ${activeMode === mode ? 'text-blue-100' : 'text-slate-400'}`}>
+            <div className="min-w-0">
+              <h3 className="font-black text-sm leading-tight truncate">{modeContent[mode].title}</h3>
+              <p className={`text-[10px] mt-0.5 leading-tight line-clamp-1 ${activeMode === mode ? 'text-blue-100' : 'text-slate-400'}`}>
                 {modeContent[mode].desc}
               </p>
             </div>
