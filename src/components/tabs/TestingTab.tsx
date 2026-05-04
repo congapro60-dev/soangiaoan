@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   FileCheck, FilePlus, Shuffle, Upload, Download, FileCode,
-  ShieldCheck, AlertCircle, Loader2, X, CheckCircle2, History, Trash2, LibraryBig
+  ShieldCheck, AlertCircle, Loader2, X, CheckCircle2, History, Trash2, LibraryBig, BookMarked
 } from 'lucide-react';
 import * as mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -30,11 +30,13 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLi
 
 interface TestingTabProps {
   data: AppData;
+  user: any;
   isLoading: boolean;
   setIsLoading: (val: boolean) => void;
   showToast: (msg: string, type?: any) => void;
   initialContent?: string;
   onConsumeInitialContent?: () => void;
+  onSaveExam?: (content: string, title: string) => void;
 }
 
 type TestingMode = 'create' | 'audit' | 'shuffle';
@@ -73,7 +75,7 @@ const modeBadge: Record<TestingMode, { label: string; color: string }> = {
   shuffle:{ label: 'Trộn đề', color: 'bg-orange-100 text-orange-700' },
 };
 
-export const TestingTab = ({ data, isLoading, setIsLoading, showToast, initialContent, onConsumeInitialContent }: TestingTabProps) => {
+export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, initialContent, onConsumeInitialContent, onSaveExam }: TestingTabProps) => {
   const [activeMode, setActiveMode] = useState<TestingMode>(
     () => (localStorage.getItem(LAST_MODE_KEY) as TestingMode) || 'create'
   );
@@ -685,12 +687,22 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast, initialCo
             {testResult && (
               <>
                 <div className="p-5 pr-20 bg-slate-50 border-t border-slate-100 flex flex-wrap justify-between gap-3 flex-shrink-0">
-                  <button
-                    onClick={clearResult}
-                    className="px-5 py-2.5 bg-white text-red-500 rounded-2xl font-bold border border-red-100 hover:bg-red-50 transition-all flex items-center gap-2 text-sm"
-                  >
-                    <Trash2 className="w-4 h-4" /> Xóa kết quả
-                  </button>
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={clearResult}
+                      className="px-5 py-2.5 bg-white text-red-500 rounded-2xl font-bold border border-red-100 hover:bg-red-50 transition-all flex items-center gap-2 text-sm"
+                    >
+                      <Trash2 className="w-4 h-4" /> Xóa kết quả
+                    </button>
+                    {onSaveExam && testResult && (
+                      <button
+                        onClick={() => onSaveExam(testResult, '')}
+                        className="px-5 py-2.5 bg-violet-600 text-white rounded-2xl font-bold shadow-lg shadow-violet-100 hover:bg-violet-700 transition-all flex items-center gap-2 text-sm"
+                      >
+                        <BookMarked className="w-4 h-4" /> Lưu vào Thư viện
+                      </button>
+                    )}
+                  </div>
                   <div className="flex flex-wrap gap-3">
                     <button
                       onClick={handleDownloadPDF}

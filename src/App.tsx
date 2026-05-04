@@ -8,6 +8,7 @@ import { useAppState } from './hooks/useAppState';
 import { useLessonCreator } from './hooks/useLessonCreator';
 import { useChat } from './hooks/useChat';
 import { useLessonPlanActions } from './hooks/useLessonPlanActions';
+import { useSavedExams, estimateQuestionCount } from './hooks/useSavedExams';
 
 // Components
 import { Sidebar } from './components/layout/Sidebar';
@@ -74,6 +75,50 @@ export default function App() {
 
   const { saveLessonPlan, saveBulkPlans, duplicatePlan, deletePlan, updatePlanMetadata, toggleSharePlan } =
     useLessonPlanActions({ user, data, setData, showToast, setIsLoading, setActiveTab, setAuthorName, creator });
+
+  const { savedExams, communityExams, fetchCommunityExams, saveExam: saveExamToLib, deleteExam: deleteExamFromLib, toggleShareExam } =
+    useSavedExams(user);
+
+  const handleSaveExam = async (content: string, _hint: string) => {
+    if (!user) { showToast('Vui lòng đăng nhập để lưu đề thi.', 'error'); return; }
+    const { value: formValues } = await Swal.fire({
+      title: 'Lưu đề thi vào Thư viện',
+      html: `
+        <input id="ex-title" class="swal2-input" placeholder="Tên đề thi (VD: Đề kiểm tra HK2 Toán 12)">
+        <select id="ex-subject" class="swal2-input">${data.subjects.map(s => `<option value="${s.name}">${s.name}</option>`).join('')}</select>
+        <select id="ex-grade" class="swal2-input">${[...Array(12)].map((_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('')}</select>
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: 'Lưu',
+      cancelButtonText: 'Hủy',
+      preConfirm: () => ({
+        title: (document.getElementById('ex-title') as HTMLInputElement).value.trim(),
+        subject: (document.getElementById('ex-subject') as HTMLSelectElement).value,
+        grade: (document.getElementById('ex-grade') as HTMLSelectElement).value,
+      }),
+    });
+    if (!formValues || !formValues.title) return;
+    const now = new Date().toISOString();
+    try {
+      await saveExamToLib({
+        id: `savedExam-${Date.now()}`,
+        title: formValues.title,
+        content,
+        subject: formValues.subject,
+        grade: formValues.grade,
+        authorName: data.authorName || user.displayName || 'Giáo viên',
+        userId: user.uid,
+        isPublic: false,
+        questionCount: estimateQuestionCount(content),
+        createdAt: now,
+        updatedAt: now,
+      });
+      showToast(`Đã lưu "${formValues.title}" vào Thư viện!`, 'success');
+    } catch (e: any) {
+      showToast(`Lỗi lưu: ${e.message}`, 'error');
+    }
+  };
 
   // Tự động tải Kho chung khi vào tab tương ứng
   useEffect(() => {
@@ -225,9 +270,10 @@ export default function App() {
 
             {activeTab === 'testing' && (
               <TestingTab
-                data={data} isLoading={isLoading} setIsLoading={setIsLoading} showToast={showToast}
+                data={data} user={user} isLoading={isLoading} setIsLoading={setIsLoading} showToast={showToast}
                 initialContent={testingInitialContent}
                 onConsumeInitialContent={() => setTestingInitialContent(undefined)}
+                onSaveExam={handleSaveExam}
               />
             )}
 
@@ -253,6 +299,15 @@ export default function App() {
                 updatePlanMetadata={updatePlanMetadata} user={user}
                 loadMorePlans={loadMorePlans} hasMorePlans={hasMorePlans}
                 loadMoreCommunity={loadMoreCommunity} hasMoreCommunity={hasMoreCommunity}
+                savedExams={savedExams}
+                communityExams={communityExams}
+                onDeleteExam={deleteExamFromLib}
+                onToggleShareExam={toggleShareExam}
+                onFetchCommunityExams={fetchCommunityExams}
+                onOpenExamInEditor={(exam) => {
+                  setTestingInitialContent(exam.content);
+                  setActiveTab('testing');
+                }}
               />
             )}
 
