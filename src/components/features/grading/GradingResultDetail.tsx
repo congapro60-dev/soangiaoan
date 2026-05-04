@@ -3,6 +3,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { User, Award, AlertTriangle, Download, Printer, X, Sparkles, Rocket, CircleHelp, Loader2, Save } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 import { marked } from 'marked';
 import { GradingResult, AppData } from '../../../types';
 import { downloadBlob } from '../../../utils/fileUtils';
@@ -16,7 +19,7 @@ type Settings = AppData['settings'];
 const COMMON_RULES = `
 QUY TẮC BẮT BUỘC (không được vi phạm):
 - Viết hoàn toàn bằng tiếng Việt. Không dùng bất kỳ từ tiếng Anh nào (ví dụ: dùng "Bảng biến thiên" thay vì "Sign chart", "Đạo hàm" thay vì "Derivative").
-- Biểu diễn biểu thức, phương trình Toán học bằng cú pháp Markdown thông thường, không dùng LaTeX (ví dụ: x^2 + 2x - 3 = 0, phân số viết dạng a/b).
+- Biểu diễn mọi biểu thức, phương trình Toán học bằng cú pháp LaTeX chuẩn: dùng $...$ cho công thức nằm cùng dòng văn bản (ví dụ: $x^2 + 2x - 3 = 0$, $\frac{a}{b}$), dùng $$...$$ cho công thức đứng độc lập trên một dòng riêng.
 - Không dùng biểu tượng cảm xúc (emoji).
 - Không dùng các cụm mở đầu mang tính AI như "Chào bạn", "Dưới đây là", "Hy vọng giúp ích", "Tất nhiên", "Rất vui được".
 - Chỉ trả về văn bản nội dung thuần túy, không kèm tiêu đề giải thích hay dòng mở đầu thừa.`.trim();
@@ -334,7 +337,7 @@ export const GradingResultDetail = ({ result, onClose, settings, onSaveDetails }
                   Xem trước định dạng Markdown ▸
                 </summary>
                 <div className="mt-4 bg-white p-6 rounded-[24px] border border-slate-100 prose prose-slate max-w-none text-sm">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{editedDetails}</ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>{editedDetails}</ReactMarkdown>
                 </div>
               </details>
             </div>
