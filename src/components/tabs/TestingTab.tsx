@@ -661,74 +661,77 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast, initialCo
             )}
           </AnimatePresence>
 
-          {!testResult ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6 p-8">
-              <div className="w-20 h-20 bg-slate-50 rounded-[32px] flex items-center justify-center mx-auto">
-                <AlertCircle className="w-10 h-10 text-slate-200" />
+          {/* Scrollable body: editor + action buttons always reachable */}
+          <div className="flex-1 min-h-0 overflow-y-auto flex flex-col">
+            {!testResult ? (
+              <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6 p-8">
+                <div className="w-20 h-20 bg-slate-50 rounded-[32px] flex items-center justify-center mx-auto">
+                  <AlertCircle className="w-10 h-10 text-slate-200" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-300">Chưa có kết quả xử lý</h3>
+                <p className="text-sm text-slate-400">Hãy thiết lập dữ liệu bên trái và bấm nút bắt đầu để AI thực hiện phân tích.</p>
               </div>
-              <h3 className="text-lg font-bold text-slate-300">Chưa có kết quả xử lý</h3>
-              <p className="text-sm text-slate-400">Hãy thiết lập dữ liệu bên trái và bấm nút bắt đầu để AI thực hiện phân tích.</p>
-            </div>
-          ) : (
-            <ExamContentBoard
-              testResult={testResult}
-              setTestResult={v => setTestResult(v)}
-              refineRequest={refineRequest}
-              setRefineRequest={setRefineRequest}
-              onRefine={handleRefine}
-              isRefining={isRefining}
-            />
-          )}
+            ) : (
+              <ExamContentBoard
+                testResult={testResult}
+                setTestResult={v => setTestResult(v)}
+                refineRequest={refineRequest}
+                setRefineRequest={setRefineRequest}
+                onRefine={handleRefine}
+                isRefining={isRefining}
+              />
+            )}
 
-          {testResult && (
-            <>
-              <div className="p-5 bg-slate-50 border-t border-slate-100 flex flex-wrap justify-between gap-3">
-                <button
-                  onClick={clearResult}
-                  className="px-5 py-2.5 bg-white text-red-500 rounded-2xl font-bold border border-red-100 hover:bg-red-50 transition-all flex items-center gap-2 text-sm"
-                >
-                  <Trash2 className="w-4 h-4" /> Xóa kết quả
-                </button>
-                <div className="flex gap-3">
+            {testResult && (
+              <>
+                <div className="p-5 bg-slate-50 border-t border-slate-100 flex flex-wrap justify-between gap-3 flex-shrink-0">
                   <button
-                    onClick={handleDownloadPDF}
-                    className="px-5 py-2.5 bg-white text-slate-600 rounded-2xl font-bold border border-slate-200 hover:bg-slate-100 transition-all flex items-center gap-2 text-sm"
+                    onClick={clearResult}
+                    className="px-5 py-2.5 bg-white text-red-500 rounded-2xl font-bold border border-red-100 hover:bg-red-50 transition-all flex items-center gap-2 text-sm"
                   >
-                    <Download className="w-4 h-4" /> Tải PDF
+                    <Trash2 className="w-4 h-4" /> Xóa kết quả
+                  </button>
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={handleDownloadPDF}
+                      className="px-5 py-2.5 bg-white text-slate-600 rounded-2xl font-bold border border-slate-200 hover:bg-slate-100 transition-all flex items-center gap-2 text-sm"
+                    >
+                      <Download className="w-4 h-4" /> Tải PDF
+                    </button>
+                    <button
+                      onClick={handleDownloadWord}
+                      className="px-5 py-2.5 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all flex items-center gap-2 text-sm"
+                    >
+                      <Download className="w-4 h-4" /> Xuất Word (.doc)
+                    </button>
+                    <button
+                      onClick={handleExportOverleaf}
+                      disabled={isLoading}
+                      className="px-5 py-2.5 bg-emerald-600 text-white rounded-2xl font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all flex items-center gap-2 text-sm disabled:opacity-50"
+                    >
+                      <FileCode className="w-4 h-4" /> Overleaf / LaTeX
+                    </button>
+                  </div>
+                </div>
+                {/* Mẫu phiếu làm bài & đáp án */}
+                <div className="px-5 pb-4 bg-slate-50 flex flex-wrap gap-2 border-t border-slate-100 pt-3 flex-shrink-0">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest w-full">Tải mẫu đi kèm đề thi</span>
+                  <button
+                    onClick={() => openInNewTab(generateAnswerSheetHTML())}
+                    className="px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-2xl font-bold text-xs hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2"
+                  >
+                    <Download className="w-3.5 h-3.5" /> Phiếu trả lời học sinh
                   </button>
                   <button
-                    onClick={handleDownloadWord}
-                    className="px-5 py-2.5 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all flex items-center gap-2 text-sm"
+                    onClick={() => openInNewTab(generateAnswerKeyTemplateHTML())}
+                    className="px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-2xl font-bold text-xs hover:bg-emerald-600 hover:text-white transition-all flex items-center gap-2"
                   >
-                    <Download className="w-4 h-4" /> Xuất Word (.doc)
-                  </button>
-                  <button
-                    onClick={handleExportOverleaf}
-                    disabled={isLoading}
-                    className="px-5 py-2.5 bg-emerald-600 text-white rounded-2xl font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all flex items-center gap-2 text-sm disabled:opacity-50"
-                  >
-                    <FileCode className="w-4 h-4" /> Overleaf / LaTeX
+                    <Download className="w-3.5 h-3.5" /> Mẫu đáp án + thang điểm
                   </button>
                 </div>
-              </div>
-              {/* Mẫu phiếu làm bài & đáp án */}
-              <div className="px-5 pb-4 bg-slate-50 flex flex-wrap gap-2 border-t border-slate-100 pt-3">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest w-full">Tải mẫu đi kèm đề thi</span>
-                <button
-                  onClick={() => openInNewTab(generateAnswerSheetHTML())}
-                  className="px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-2xl font-bold text-xs hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2"
-                >
-                  <Download className="w-3.5 h-3.5" /> Phiếu trả lời học sinh
-                </button>
-                <button
-                  onClick={() => openInNewTab(generateAnswerKeyTemplateHTML())}
-                  className="px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-2xl font-bold text-xs hover:bg-emerald-600 hover:text-white transition-all flex items-center gap-2"
-                >
-                  <Download className="w-3.5 h-3.5" /> Mẫu đáp án + thang điểm
-                </button>
-              </div>
-            </>
-          )}
+              </>
+            )}
+          </div>
         </div>
       </div>
 
