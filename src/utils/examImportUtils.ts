@@ -13,7 +13,7 @@ if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
 
 export const MAX_IMPORT_MB = 20;
 
-/** Extract plain text from PDF / DOCX / TXT / image (best-effort) */
+/** Extract plain text from PDF / DOCX / TXT (best-effort) */
 export const extractTextFromFile = async (file: File): Promise<string> => {
   const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
   if (ext === 'docx') {
@@ -128,9 +128,9 @@ const extractJSON = (raw: string): RawQ[] => {
 
 /**
  * Parse exam questions from uploaded files.
- * @param examFile   - file containing the exam (PDF/DOCX/TXT)
- * @param answerKeyFile - optional separate answer key file; pass null if answer key is inside examFile
- * @param settings   - AI provider settings
+ * @param examFile      - file containing the exam (PDF/DOCX/TXT)
+ * @param answerKeyFile - optional separate answer key; pass null if included in exam file
+ * @param settings      - AI provider settings
  */
 export const parseExamFromFiles = async (
   examFile: File,
@@ -160,7 +160,7 @@ export const parseExamFromFiles = async (
     const rawAnswer = (q.correctAnswer ?? q.answer ?? '').toString().trim();
 
     const question: ExamQuestion = {
-      id: q.id ? String(q.id) : \`q\${idx + 1}\`,
+      id: q.id ? String(q.id) : `q${idx + 1}`,
       type,
       content,
       points,

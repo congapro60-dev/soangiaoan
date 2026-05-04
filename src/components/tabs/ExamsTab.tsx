@@ -5,13 +5,14 @@ import * as XLSX from 'xlsx';
 import {
   Plus, Link as LinkIcon, Power, PowerOff, Trash2, Users, Clock,
   Copy, Loader2, FileText, BarChart3, CheckCircle2, X, ChevronRight,
-  History, Download, Brain, RefreshCw
+  History, Download, Brain, RefreshCw, Upload
 } from 'lucide-react';
 import { User } from 'firebase/auth';
 import { AppData, Exam, ExamSubmission, ExamQuestion, StudentAnswer } from '../../types';
 import { useExams, updateSubmission } from '../../hooks/useExams';
 import { parseMarkdownToQuestions, generateExamCode, calculateMaxScore } from '../../lib/examParser';
 import { callAI } from '../../lib/aiProviders';
+import { ImportExamModal } from '../features/testing/ImportExamModal';
 
 interface ExamsTabProps {
   user: User;
@@ -135,6 +136,7 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
   const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
   const [submissions, setSubmissions] = useState<ExamSubmission[]>([]);
   const [loadingSubs, setLoadingSubs] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const reloadSubmissions = useCallback(async (exam: Exam) => {
     setLoadingSubs(true);
@@ -236,6 +238,65 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
     }
   };
 
+  const handleImportExam = async (questions: ExamQuestion[], title: string) => {
+    const { value: formValues } = await Swal.fire({
+      title: 'Thông tin phòng thi',
+      html: `
+        <input id="e-title" class="swal2-input" placeholder="Tiêu đề" value="${title.replace(/"/g, '&quot;')}">
+        <select id="e-subject" class="swal2-input">${data.subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}</select>
+        <input id="e-grade" class="swal2-input" placeholder="Khối (VD: 12)" value="12">
+        <input id="e-duration" class="swal2-input" type="number" placeholder="Thời gian (phút)" value="90">
+        <label style="display:flex;gap:8px;align-items:center;font-size:14px;margin-top:8px;">
+          <input id="e-shuffle" type="checkbox"> Đảo thứ tự câu hỏi
+        </label>
+        <label style="display:flex;gap:8px;align-items:center;font-size:14px;">
+          <input id="e-review" type="checkbox" checked> Cho xem đáp án sau khi nộp
+        </label>
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: 'Tạo phòng thi',
+      cancelButtonText: 'Hủy',
+      preConfirm: () => ({
+        title: (document.getElementById('e-title') as HTMLInputElement).value,
+        subjectId: (document.getElementById('e-subject') as HTMLSelectElement).value,
+        grade: (document.getElementById('e-grade') as HTMLInputElement).value,
+        duration: parseInt((document.getElementById('e-duration') as HTMLInputElement).value) || 90,
+        shuffle: (document.getElementById('e-shuffle') as HTMLInputElement).checked,
+        review: (document.getElementById('e-review') as HTMLInputElement).checked,
+      }),
+    });
+    if (!formValues || !formValues.title) return;
+
+    setCreating(true);
+    try {
+      const now = new Date().toISOString();
+      const exam: Exam = {
+        id: `exam-${Date.now()}`,
+        code: generateExamCode(),
+        title: formValues.title,
+        subjectId: formValues.subjectId,
+        grade: formValues.grade,
+        teacherId: user.uid,
+        teacherName: data.authorName || user.displayName || 'Giáo viên',
+        questions,
+        durationMinutes: formValues.duration,
+        maxScore: questions.reduce((s, q) => s + (q.points ?? 0), 0),
+        isActive: false,
+        allowReview: formValues.review,
+        shuffleQuestions: formValues.shuffle,
+        createdAt: now,
+        updatedAt: now,
+      };
+      await saveExam(exam);
+      showToast(`Đã tạo đề "${exam.title}" với ${questions.length} câu hỏi!`, 'success');
+    } catch (err: any) {
+      showToast(`Lỗi tạo đề: ${err.message}`, 'error');
+    } finally {
+      setCreating(false);
+    }
+  };
+
   const copyLink = (code: string) => {
     const url = `${window.location.origin}/exam/${code}`;
     navigator.clipboard.writeText(url);
@@ -290,6 +351,14 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
         <div className="flex items-center gap-2">
           <button onClick={fetchMyExams} className="p-2.5 text-slate-400 hover:bg-slate-50 rounded-xl" title="Tải lại">
             <RefreshCw className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setShowImportModal(true)}
+            disabled={creating}
+            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-emerald-100 hover:bg-emerald-700 disabled:opacity-60"
+          >
+            <Upload className="w-4 h-4" />
+            Nhập đề từ file
           </button>
           <button
             onClick={handleCreateFromHistory}
@@ -369,6 +438,15 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
             </motion.div>
           ))}
         </div>
+      )}
+
+      {showImportModal && (
+        <ImportExamModal
+          onClose={() => setShowImportModal(false)}
+          onImport={handleImportExam}
+          settings={data.settings}
+          showToast={showToast}
+        />
       )}
     </motion.div>
   );
