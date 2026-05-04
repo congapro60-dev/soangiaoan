@@ -684,7 +684,7 @@ export const TestingTab = ({ data, isLoading, setIsLoading, showToast, initialCo
 
             {testResult && (
               <>
-                <div className="p-5 bg-slate-50 border-t border-slate-100 flex flex-wrap justify-between gap-3 flex-shrink-0">
+                <div className="p-5 pr-20 bg-slate-50 border-t border-slate-100 flex flex-wrap justify-between gap-3 flex-shrink-0">
                   <button
                     onClick={clearResult}
                     className="px-5 py-2.5 bg-white text-red-500 rounded-2xl font-bold border border-red-100 hover:bg-red-50 transition-all flex items-center gap-2 text-sm"
