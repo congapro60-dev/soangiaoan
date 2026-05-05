@@ -9,7 +9,7 @@ import 'katex/dist/katex.min.css';
 import { Clock, AlertTriangle, CheckCircle2, Loader2, Send } from 'lucide-react';
 import { Exam, ExamQuestion, ExamSubmission, StudentAnswer, QuestionType } from '../types';
 import { findExamByCode, createSubmission, updateSubmission } from '../hooks/useExams';
-import { computeAutoScore, isCompoundTF, parseTFSub } from '../utils/examScoring';
+import { computeAutoScore, isCompoundTF, parseTFSub, ensureMathWrapped } from '../utils/examScoring';
 
 type PageState = 'loading' | 'not_found' | 'intro' | 'taking' | 'submitting';
 
@@ -325,7 +325,7 @@ export const StudentExamPage = () => {
 
                   <div className="prose prose-sm max-w-none mb-4 text-slate-800">
                     <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>
-                      {q.content}
+                      {ensureMathWrapped(q.content)}
                     </ReactMarkdown>
                   </div>
 
@@ -468,7 +468,7 @@ const QuestionInput = ({ question, value, onChange }: {
                 onChange={() => onChange(letter)} className="sr-only" />
               <div className="flex-1 prose prose-sm max-w-none">
                 <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
-                  {opt}
+                  {ensureMathWrapped(opt)}
                 </ReactMarkdown>
               </div>
             </label>
@@ -493,13 +493,12 @@ const QuestionInput = ({ question, value, onChange }: {
           Chọn Đúng hoặc Sai cho mỗi ý
         </p>
         {keys.map((key, i) => {
-          const optText = question.options![i].replace(/^[a-dA-D][.)]\s*/, '');
           return (
             <div key={key} className={`flex items-center gap-3 px-4 py-3 ${i < 3 ? 'border-b border-slate-100' : ''}`}>
               <span className="text-xs font-bold text-slate-500 shrink-0 w-5">{key})</span>
               <div className="flex-1 prose prose-sm max-w-none text-slate-700">
                 <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
-                  {optText}
+                  {ensureMathWrapped(question.options![i].replace(/^[a-dA-D][.)]\s*/, ''))}
                 </ReactMarkdown>
               </div>
               <div className="flex gap-1.5 shrink-0">

@@ -11,6 +11,22 @@ export const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
 export const isCompoundTF = (q: ExamQuestion) =>
   q.type === 'true_false' && Array.isArray(q.options) && q.options.length > 0;
 
+/** Fail-safe to wrap un-wrapped LaTeX commands */
+export const ensureMathWrapped = (text: string) => {
+  if (!text) return '';
+  // If it already has $, trust it
+  if (text.includes('$')) return text;
+  
+  // Pattern for common LaTeX commands
+  const latexPattern = /\\(frac|sqrt|alpha|beta|gamma|delta|epsilon|zeta|eta|theta|iota|kappa|lambda|mu|nu|xi|omicron|pi|rho|sigma|tau|upsil|phi|chi|psi|omega|infty|partial|sum|prod|int|oint|iint|iiint|diff|nabla|times|div|pm|mp|cdot|cap|cup|subset|supset|in|notin|exists|forall|neg|wedge|vee|to|gets|mapsto|leftarrow|rightarrow|long|Left|Right|iff|equiv|sim|approx|ne|le|ge|circ|deg|text|mathbf|mathit|mathrm|mathsf|mathtt|mathbb|mathcal|mathscr|mathfrak|binom|cases|matrix|vmatrix|Vmatrix|array|begin|end|sin|cos|tan|cot|arcsin|arccos|arctan|log|ln|lim|max|min|sup|inf|vert|Vert|langle|rangle|lceil|rceil|lfloor|rfloor|dots|cdots|ldots|ddots|vdots|over|under|bar|hat|tilde|vec|dot|ddot|acute|grave|check|breve|mathstrut|phantom|vphantom|hphantom|smash|rule|color|hspace|vspace|quad|qquad|label|ref|cite|nonumber|intertext|tag|mathcal)/g;
+  
+  if (latexPattern.test(text)) {
+    // Attempt to wrap inline LaTeX commands
+    return text.replace(/(\\[a-zA-Z]+(?:\{[^{}]*\}|\[[^\[\]]*\])*)/g, '$$$1$$');
+  }
+  return text;
+};
+
 export const parseTFSub = (v: string): Partial<Record<'a' | 'b' | 'c' | 'd', 'Đ' | 'S'>> => {
   try { return JSON.parse(v); } catch { return {}; }
 };
