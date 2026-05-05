@@ -10,7 +10,7 @@ import {
   ChevronDown, ChevronUp,
 } from 'lucide-react';
 import { Exam, ExamSubmission, ExamQuestion } from '../types';
-import { findExamByCode, getSubmission } from '../hooks/useExams';
+import { findExamByCode, getSubmission, getSubmissions } from '../hooks/useExams';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -42,6 +42,7 @@ export const StudentResultPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showReview, setShowReview] = useState(false);
+  const [leaderboard, setLeaderboard] = useState<ExamSubmission[]>([]);
 
   useEffect(() => {
     if (!code || !submissionId) { setError('Thiếu thông tin'); setLoading(false); return; }
@@ -54,6 +55,19 @@ export const StudentResultPage = () => {
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
   }, [code, submissionId]);
+
+  useEffect(() => {
+    if (!exam) return;
+    getSubmissions(exam.id)
+      .then(subs => {
+        const done = subs
+          .filter(s => s.status !== 'in_progress' && s.totalScore !== undefined)
+          .sort((a, b) => (b.totalScore ?? 0) - (a.totalScore ?? 0))
+          .slice(0, 10);
+        setLeaderboard(done);
+      })
+      .catch(() => {});
+  }, [exam]);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -149,15 +163,40 @@ export const StudentResultPage = () => {
             )}
           </div>
 
-          {/* Leaderboard placeholder */}
+          {/* Leaderboard */}
           <div className="bg-white rounded-3xl border border-slate-100 p-6">
             <h2 className="text-base font-black text-slate-800 flex items-center gap-2 mb-4">
               <Trophy className="w-5 h-5 text-amber-500" /> Bảng xếp hạng
             </h2>
-            <div className="flex flex-col items-center justify-center py-8 text-slate-400">
-              <Trophy className="w-10 h-10 opacity-30 mb-2" />
-              <p className="text-sm font-medium">Chưa có dữ liệu!</p>
-            </div>
+            {leaderboard.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+                <Trophy className="w-10 h-10 opacity-30 mb-2" />
+                <p className="text-sm font-medium">Chưa có dữ liệu!</p>
+              </div>
+            ) : (
+              <ol className="space-y-2">
+                {leaderboard.map((s, i) => {
+                  const isMe = s.id === submissionId;
+                  const medal = ['🥇', '🥈', '🥉'][i];
+                  return (
+                    <li key={s.id} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
+                      isMe ? 'bg-blue-50 border border-blue-200' : 'bg-slate-50'
+                    }`}>
+                      <span className="text-base shrink-0 w-6 text-center">
+                        {medal ?? <span className="text-xs font-bold text-slate-400">{i + 1}</span>}
+                      </span>
+                      <span className={`flex-1 truncate font-medium ${isMe ? 'text-blue-800 font-bold' : 'text-slate-700'}`}>
+                        {s.studentName}
+                        {isMe && <span className="ml-1 text-[10px] font-black text-blue-500">(bạn)</span>}
+                      </span>
+                      <span className={`font-black shrink-0 ${isMe ? 'text-blue-700' : 'text-slate-700'}`}>
+                        {s.totalScore?.toFixed(2)}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
           </div>
         </div>
 

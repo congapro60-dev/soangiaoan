@@ -648,6 +648,7 @@ const ExamDetail = ({
                     <th className="text-left px-6 py-3 font-bold">Bắt đầu</th>
                     <th className="text-left px-6 py-3 font-bold">Trạng thái</th>
                     <th className="text-right px-6 py-3 font-bold">Điểm</th>
+                    <th className="text-center px-4 py-3 font-bold">Vi phạm</th>
                     {hasEssayQuestions && <th className="text-center px-6 py-3 font-bold">AI Chấm</th>}
                   </tr>
                 </thead>
@@ -668,6 +669,14 @@ const ExamDetail = ({
                       </td>
                       <td className="px-6 py-3 text-right font-bold text-slate-800">
                         {s.totalScore !== undefined ? `${s.totalScore.toFixed(2)} / ${s.maxScore}` : '—'}
+                      </td>
+                      <td className="px-4 py-3 text-center text-xs font-bold">
+                        {(() => {
+                          const n = s.tabSwitches ?? 0;
+                          if (n === 0) return <span className="text-emerald-600">🟢 OK</span>;
+                          if (n <= 2) return <span className="text-amber-600">🟡 {n} lần</span>;
+                          return <span className="text-red-600">🔴 {n} lần</span>;
+                        })()}
                       </td>
                       {hasEssayQuestions && (
                         <td className="px-6 py-3 text-center">

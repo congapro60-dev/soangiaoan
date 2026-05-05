@@ -108,6 +108,7 @@ export const StudentExamPage = () => {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [tabSwitches, setTabSwitches] = useState(0);
+  const [showTabWarning, setShowTabWarning] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const questionRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -149,6 +150,13 @@ export const StudentExamPage = () => {
     document.addEventListener('visibilitychange', handler);
     return () => document.removeEventListener('visibilitychange', handler);
   }, [pageState]);
+
+  useEffect(() => {
+    if (tabSwitches === 0) return;
+    setShowTabWarning(true);
+    const t = setTimeout(() => setShowTabWarning(false), 5000);
+    return () => clearTimeout(t);
+  }, [tabSwitches]);
 
   // ── Submit ────────────────────────────────────────────────────────────────
   const handleSubmit = useCallback(async (auto = false) => {
@@ -401,6 +409,16 @@ export const StudentExamPage = () => {
           <TimerCard seconds={remainingSeconds} />
         </aside>
       </div>
+
+      {/* Anti-cheat warning banner */}
+      {showTabWarning && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 animate-bounce">
+          <div className="flex items-center gap-3 px-5 py-3 bg-red-600 text-white rounded-2xl shadow-2xl text-sm font-bold">
+            <AlertTriangle className="w-5 h-5 shrink-0" />
+            <span>⚠️ Cảnh báo: bạn vừa thoát trang thi! Lần {tabSwitches}</span>
+          </div>
+        </div>
+      )}
 
       {/* Submit confirmation modal */}
       {confirmOpen && (
