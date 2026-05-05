@@ -41,6 +41,7 @@ VIẾT TIẾP NGAY (không thêm dấu xuống dòng dư thừa, không lặp l�
 
 function isQuotaError(error: any): boolean {
   const msg = String(error?.message || error || '').toLowerCase();
+  // Chỉ match các lỗi quota thực sự để tránh relay fallback sai cho 404/auth
   return (
     msg.includes('429') ||
     msg.includes('resource_exhausted') ||
@@ -94,9 +95,9 @@ export const DEEPSEEK_MODELS = [
 ];
 
 export const GEMINI_MODELS = [
-  { id: 'gemini-3-flash-latest', name: 'Gemini 3 Flash', desc: 'Tốc độ cực nhanh, tối ưu chi phí (Default)' },
-  { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro', desc: 'Suy luận toán học phức tạp, chuyên sâu' },
-  { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash-Lite', desc: 'Phiên bản siêu nhẹ, độ trễ thấp' },
+  { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash (Preview)', desc: 'Tốc độ cực nhanh, bóc tách ảnh tốt nhất (Default)' },
+  { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro (Preview)', desc: 'Suy luận toán học phức tạp, chuyên sâu' },
+  { id: 'gemini-3.1-flash-lite-preview', name: 'Gemini 3.1 Flash-Lite', desc: 'Phiên bản siêu nhẹ, độ trễ thấp' },
 ];
 
 export function getActiveApiKey(settings: Settings): string {
@@ -281,7 +282,7 @@ export async function callAIWithVision(
 
     // Gemini
     const { GoogleGenAI } = await import('@google/genai');
-    const ai = new GoogleGenAI({ apiKey: settings.geminiApiKey });
+    const ai = new GoogleGenAI({ apiKey: settings.geminiApiKey, httpOptions: { apiVersion: 'v1alpha' } });
     const idx = MODELS.indexOf(settings.selectedModel);
     const modelName = idx >= 0 ? MODELS[idx] : MODELS[0];
     

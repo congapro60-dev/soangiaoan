@@ -25,7 +25,9 @@ if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
 
 export const MAX_IMPORT_MB = 20;
 
-const MAX_PDF_PAGES = 10;
+const MAX_PDF_PAGES = 6;
+const PDF_SCALE = 1.2;
+const IMG_QUALITY = 0.65;
 
 /** Convert PDF pages to data URLs */
 export const pdfToImages = async (file: File): Promise<string[]> => {

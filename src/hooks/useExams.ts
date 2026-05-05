@@ -18,6 +18,14 @@ const normalizeExam = (e: Exam): Exam => ({
   ...e,
 });
 
+export const getSubmissions = async (examId: string): Promise<ExamSubmission[]> => {
+  const q = query(collection(db, 'examSubmissions'), where('examId', '==', examId));
+  const snap = await getDocs(q);
+  const list: ExamSubmission[] = [];
+  snap.forEach(d => list.push(d.data() as ExamSubmission));
+  return list.sort((a, b) => (b.startedAt || '').localeCompare(a.startedAt || ''));
+};
+
 export const useExams = (user: User | null) => {
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(false);
@@ -70,15 +78,7 @@ export const useExams = (user: User | null) => {
     setExams(prev => prev.map(e => e.id === id ? { ...e, isActive } : e));
   };
 
-  const getSubmissions = async (examId: string): Promise<ExamSubmission[]> => {
-    const q = query(collection(db, 'examSubmissions'), where('examId', '==', examId));
-    const snap = await getDocs(q);
-    const list: ExamSubmission[] = [];
-    snap.forEach(d => list.push(d.data() as ExamSubmission));
-    return list.sort((a, b) => (b.startedAt || '').localeCompare(a.startedAt || ''));
-  };
-
-  return { exams, loading, fetchMyExams, saveExam, deleteExam, toggleActive, getSubmissions };
+  return { exams, loading, fetchMyExams, saveExam, deleteExam, toggleActive };
 };
 
 export const findExamByCode = async (code: string): Promise<Exam | null> => {
@@ -115,12 +115,4 @@ export const getExamById = async (id: string): Promise<Exam | null> => {
 
 export const updateExam = async (id: string, patch: Partial<Exam>): Promise<void> => {
   await updateDoc(doc(db, 'exams', id), { ...patch, updatedAt: new Date().toISOString() });
-};
-
-export const getSubmissions = async (examId: string): Promise<ExamSubmission[]> => {
-  const q = query(collection(db, 'examSubmissions'), where('examId', '==', examId));
-  const snap = await getDocs(q);
-  const list: ExamSubmission[] = [];
-  snap.forEach(d => list.push(d.data() as ExamSubmission));
-  return list.sort((a, b) => (b.startedAt || '').localeCompare(a.startedAt || ''));
 };

@@ -29,7 +29,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const result = await ai.models.generateContent({
-        model: typeof model === 'string' ? model : 'gemini-3.1-flash',
+        model: typeof model === 'string' ? model : 'gemini-1.5-flash',
         contents: [{ parts }],
         config: { temperature: 0.1 },
       });
