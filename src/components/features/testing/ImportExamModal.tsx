@@ -7,7 +7,7 @@ import type { AppData } from '../../../types';
 
 interface Props {
   onClose: () => void;
-  onImport: (questions: ExamQuestion[], title: string) => void;
+  onImport: (questions: ExamQuestion[], title: string, pageImages?: string[]) => void;
   settings: AppData['settings'];
   showToast: (msg: string, type?: any) => void;
 }
@@ -105,6 +105,7 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
   const [examTitle, setExamTitle] = useState('');
   const [error, setError] = useState('');
   const [parsing, setParsing] = useState(false);
+  const [pageImages, setPageImages] = useState<string[]>([]);
 
   const examRef = useRef<HTMLInputElement>(null);
   const answerRef = useRef<HTMLInputElement>(null);
@@ -130,6 +131,13 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
     setStep('parsing');
     setError('');
     try {
+      // For PDF, we need to extract page images for multimodal AI and later manual cropping
+      const ext = examFile.name.split('.').pop()?.toLowerCase() ?? '';
+      if (ext === 'pdf') {
+        const imgs = await pdfToImages(examFile);
+        setPageImages(imgs);
+      }
+      
       const parsed = await parseExamFromFiles(examFile, answerFile, settings);
       setQuestions(parsed);
       setStep('review');
@@ -156,7 +164,7 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
 
   const handleConfirm = () => {
     if (questions.length === 0) return;
-    onImport(questions, examTitle || 'Đề thi nhập từ file');
+    onImport(questions, examTitle || 'Đề thi nhập từ file', pageImages);
     onClose();
   };
 

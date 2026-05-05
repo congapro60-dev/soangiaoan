@@ -249,7 +249,10 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
     }
   };
 
-  const handleImportExam = async (questions: ExamQuestion[], title: string) => {
+  const [pageImages, setPageImages] = useState<string[]>([]);
+
+  const handleImportExam = async (questions: ExamQuestion[], title: string, imgs?: string[]) => {
+    if (imgs) setPageImages(imgs);
     const { value: formValues } = await Swal.fire({
       title: 'Thông tin phòng thi',
       html: `
@@ -338,7 +341,8 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
         data={data}
         saveExam={saveExam}
         showToast={showToast}
-        onBack={() => { setCreateView(null); fetchMyExams(); }}
+        pageImages={pageImages}
+        onBack={() => { setCreateView(null); setPageImages([]); fetchMyExams(); }}
       />
     );
   }

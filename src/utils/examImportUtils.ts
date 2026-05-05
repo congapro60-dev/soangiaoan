@@ -1,5 +1,7 @@
 import * as mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist';
+import { ref, uploadString, getDownloadURL } from 'firebase/storage';
+import { storage } from '../lib/firebase';
 import { callAI, callAIWithVision } from '../lib/aiProviders';
 import { AppData, ExamQuestion, QuestionType } from '../types';
 
@@ -22,6 +24,56 @@ if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
 }
 
 export const MAX_IMPORT_MB = 20;
+
+/** Convert PDF pages to data URLs */
+export const pdfToImages = async (file: File): Promise<string[]> => {
+  const ab = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+  const images: string[] = [];
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const viewport = page.getViewport({ scale: 2.0 }); // High res for AI
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) continue;
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+    await page.render({ canvasContext: ctx, viewport }).promise;
+    images.push(canvas.toDataURL('image/jpeg', 0.8));
+  }
+  return images;
+};
+
+/** Crop image from data URL and bounding box [ymin, xmin, ymax, xmax] (0-1000) */
+export const cropImage = async (dataUrl: string, box: number[]): Promise<string> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const [ymin, xmin, ymax, xmax] = box;
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d')!;
+      const w = img.width;
+      const h = img.height;
+      const left = (xmin / 1000) * w;
+      const top = (ymin / 1000) * h;
+      const width = ((xmax - xmin) / 1000) * w;
+      const height = ((ymax - ymin) / 1000) * h;
+      
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(img, left, top, width, height, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', 0.9));
+    };
+    img.src = dataUrl;
+  });
+};
+
+const uploadBase64 = async (base64: string, name: string): Promise<string> => {
+  const path = `exam-images/${Date.now()}_${name}.jpg`;
+  const storageRef = ref(storage, path);
+  await uploadString(storageRef, base64.split(',')[1], 'base64', { contentType: 'image/jpeg' });
+  return getDownloadURL(storageRef);
+};
 
 /** Extract plain text from PDF / DOCX / TXT (best-effort) */
 export const extractTextFromFile = async (file: File): Promise<string> => {
@@ -54,7 +106,7 @@ export const extractTextFromFile = async (file: File): Promise<string> => {
 
 const buildImportPrompt = (examText: string, answerKeyText: string, isVision = false): string => `
 BẠN LÀ CHUYÊN GIA PHÂN TÍCH ĐỀ THI VIỆT NAM.
-NHIỆM VỤ: Chuyển đổi ${isVision ? 'ẢNH đề thi đính kèm' : 'nội dung đề thi'} thành mảng JSON câu hỏi cho hệ thống thi trực tuyến.
+NHIỆM VỤ: Chuyển đổi ${isVision ? 'ẢNH đề thi đính kèm' : 'nội dung đề thi'} thành mảng JSON câu hỏi.
 
 ${answerKeyText ? `=== ĐÁP ÁN (FILE RIÊNG) ===\n${answerKeyText}\n\n` : ''}
 ${isVision
@@ -63,42 +115,27 @@ ${isVision
 }
 
 QUY TẮC PHÂN TÍCH:
+1. NHẬN DIỆN CÂU HỎI: Quét toàn bộ văn bản, nhận diện theo "Câu 1", "Câu 2"...
+2. PHÂN LOẠI TYPE: "multiple_choice", "true_false" (4 ý a,b,c,d), "short_answer", "essay".
+3. HÌNH ẢNH (QUAN TRỌNG): 
+   - Nếu một câu hỏi có hình minh họa (đồ thị, hình học, bảng biến thiên...), hãy tìm tọa độ của hình đó trên ảnh.
+   - Trả về trường \`imageBox\`: [ymin, xmin, ymax, xmax] với các giá trị 0-1000.
+   - Nếu ảnh trải dài trên nhiều trang, hãy chỉ định trang chứa hình trong trường \`pageIndex\` (0-based).
+4. CÔNG THỨC TOÁN: Giữ nguyên LaTeX $...$ và $$...$$.
+5. OUTPUT BẮT BUỘC: Chỉ trả về mảng JSON thuần.
 
-1. NHẬN DIỆN CÂU HỎI: Quét toàn bộ văn bản, nhận diện theo "Câu 1", "Câu 2"... hoặc số thứ tự 1./2./...
-
-2. PHÂN LOẠI TYPE:
-   • "multiple_choice" — có đúng 4 phương án A/B/C/D
-   • "true_false"      — câu Đúng/Sai có 4 ý a, b, c, d
-     → KHÔNG TÁCH thành câu riêng. Giữ nguyên 1 câu, nhét 4 ý vào mảng options:
-        options: ["a. [nội dung ý a]", "b. [nội dung ý b]", "c. [nội dung ý c]", "d. [nội dung ý d]"]
-        correctAnswer: chuỗi 4 giá trị "Đ" hoặc "S" cách nhau bằng dấu phẩy theo thứ tự a,b,c,d
-        VD: "Đ,S,Đ,S" nghĩa là ý a Đúng, ý b Sai, ý c Đúng, ý d Sai
-   • "short_answer"    — điền số, điền từ, trả lời ngắn (1-3 từ)
-   • "essay"           — tự luận dài, không có đáp án cố định
-
-3. ĐÁNH SỐ ID: "q1", "q2", "q3"... (true_false KHÔNG dùng q2a/q2b nữa)
-
-4. CÔNG THỨC TOÁN: Giữ nguyên LaTeX $...$ và $$...$$
-
-5. correctAnswer:
-   • multiple_choice: một chữ cái "A", "B", "C", hoặc "D"
-   • true_false: chuỗi "Đ,S,Đ,S" theo thứ tự 4 ý a,b,c,d
-   • short_answer: chuỗi đáp án ngắn (có thể là số, ví dụ "3.14")
-   • essay: KHÔNG có trường correctAnswer
-
-6. ĐIỂM (points):
-   • Đọc từ đề nếu ghi rõ (VD: "0.5 điểm", "(1đ)")
-   • Nếu không ghi: phân bổ đều tổng 10 điểm theo từng phần
-
-7. explanation: trích lời giải / gợi ý đáp án nếu có trong đề
-
-OUTPUT BẮT BUỘC: Chỉ trả về mảng JSON thuần, không bọc markdown, không chú thích.
 Ví dụ format:
 [
-  {"id":"q1","type":"multiple_choice","content":"Nội dung câu 1","options":["A. ...","B. ...","C. ...","D. ..."],"correctAnswer":"B","points":0.25},
-  {"id":"q2","type":"true_false","content":"Nội dung câu 2 (thân câu chung)","options":["a. Nội dung ý a","b. Nội dung ý b","c. Nội dung ý c","d. Nội dung ý d"],"correctAnswer":"Đ,S,Đ,S","points":1},
-  {"id":"q3","type":"short_answer","content":"Nội dung câu 3","correctAnswer":"42","points":0.5},
-  {"id":"q4","type":"essay","content":"Nội dung câu tự luận","points":2}
+  {
+    "id":"q1",
+    "type":"multiple_choice",
+    "content":"Cho đồ thị hàm số như hình vẽ...",
+    "imageBox": [120, 450, 380, 850],
+    "pageIndex": 0,
+    "options":["A. ...","B. ...","C. ...","D. ..."],
+    "correctAnswer":"B",
+    "points":0.25
+  }
 ]
 `.trim();
 
@@ -114,6 +151,8 @@ interface RawQ {
   answer?: string;
   points?: number;
   explanation?: string;
+  imageBox?: number[];
+  pageIndex?: number;
 }
 
 const normalizeType = (t: string | undefined, hasOptions: boolean): QuestionType => {
@@ -151,72 +190,100 @@ export const parseExamFromFiles = async (
 
   let response: string;
 
-  if (isImage) {
-    // Vision path: send image directly to AI
+  if (isImage || ext === 'pdf') {
+    // Hybrid Vision path for Image and PDF
+    const pages = ext === 'pdf' ? await pdfToImages(examFile) : [await fileToDataUrl(examFile)];
+    const examText = ext === 'pdf' ? await extractTextFromFile(examFile) : '';
+    
     const answerKeyText = answerKeyFile && !IMAGE_EXTS.includes(
       (answerKeyFile.name.split('.').pop() ?? '').toLowerCase()
     ) ? await extractTextFromFile(answerKeyFile) : '';
 
-    const examDataUrl = await fileToDataUrl(examFile);
-    const prompt = buildImportPrompt('', answerKeyText, true);
-    response = await callAIWithVision(prompt, examDataUrl, settings);
+    const prompt = buildImportPrompt(examText, answerKeyText, true);
+    // Send all pages to Vision model
+    response = await callAIWithVision(prompt, pages, settings);
+    
+    const rawList = extractJSON(response);
+    const fallbackPoints = Math.max(0.25, Math.round((10 / rawList.length) * 4) / 4);
+
+    return Promise.all(rawList.map(async (q, idx): Promise<ExamQuestion> => {
+      const type = normalizeType(q.type, Array.isArray(q.options) && q.options.length > 0);
+      const question: ExamQuestion = {
+        id: q.id ? String(q.id) : `q${idx + 1}`,
+        type,
+        content: (q.content ?? q.text ?? '').toString().trim(),
+        points: typeof q.points === 'number' && q.points > 0 ? q.points : fallbackPoints,
+      };
+
+      // Auto-crop image if detected
+      if (q.imageBox && Array.isArray(q.imageBox) && q.imageBox.length === 4) {
+        try {
+          const pIdx = q.pageIndex ?? 0;
+          const sourceImage = pages[pIdx] || pages[0];
+          const croppedBase64 = await cropImage(sourceImage, q.imageBox);
+          question.imageUrl = await uploadBase64(croppedBase64, `auto_${question.id}`);
+        } catch (err) {
+          console.error("Auto-crop failed for", question.id, err);
+        }
+      }
+
+      if (type === 'multiple_choice' && Array.isArray(q.options)) {
+        question.options = q.options.map(o => o.toString());
+        const ans = (q.correctAnswer ?? q.answer ?? '').toString().trim();
+        if (ans) question.correctAnswer = ans.toUpperCase().charAt(0);
+      } else if (type === 'true_false') {
+        const ans = (q.correctAnswer ?? q.answer ?? '').toString().trim();
+        if (Array.isArray(q.options) && q.options.length > 0) {
+          question.options = q.options.map(o => o.toString());
+          question.correctAnswer = ans;
+        } else {
+          question.correctAnswer = /^(đ|d|t|true|1)/i.test(ans) ? 'Đúng' : 'Sai';
+        }
+      } else if (type === 'short_answer') {
+        question.correctAnswer = (q.correctAnswer ?? q.answer ?? '').toString().trim();
+      }
+
+      if (q.explanation) question.explanation = q.explanation.toString();
+      return question;
+    }));
   } else {
-    // Text path: extract text then call AI
+    // Legacy Text path for DOCX/TXT
     const examText = await extractTextFromFile(examFile);
-    if (!examText.trim()) {
-      const isPdf = ext === 'pdf';
-      throw new Error(
-        isPdf
-          ? 'PDF này có vẻ là ảnh scan. Hãy chụp ảnh (JPG/PNG) rồi upload lại để dùng tính năng Vision AI.'
-          : 'Không trích xuất được nội dung từ file đề.'
-      );
-    }
     const answerKeyText = answerKeyFile ? await extractTextFromFile(answerKeyFile) : '';
     const prompt = buildImportPrompt(examText, answerKeyText);
     response = await callAI(prompt, settings);
-  }
 
-  if (!response) throw new Error('AI không trả về dữ liệu.');
+    if (!response) throw new Error('AI không trả về dữ liệu.');
+    const rawList = extractJSON(response);
+    const fallbackPoints = Math.max(0.25, Math.round((10 / rawList.length) * 4) / 4);
 
-  const rawList = extractJSON(response);
-  if (!Array.isArray(rawList) || rawList.length === 0)
-    throw new Error('Không nhận diện được câu hỏi nào. Vui lòng kiểm tra lại file đề.');
-
-  const totalQ = rawList.length;
-  const fallbackPoints = Math.max(0.25, Math.round((10 / totalQ) * 4) / 4);
-
-  return rawList.map((q, idx): ExamQuestion => {
-    const type = normalizeType(q.type, Array.isArray(q.options) && q.options.length > 0);
-    const content = (q.content ?? q.text ?? '').toString().trim();
-    const points = typeof q.points === 'number' && q.points > 0 ? q.points : fallbackPoints;
-    const rawAnswer = (q.correctAnswer ?? q.answer ?? '').toString().trim();
-
-    const question: ExamQuestion = {
-      id: q.id ? String(q.id) : `q${idx + 1}`,
-      type,
-      content,
-      points,
-    };
-
-    if (type === 'multiple_choice' && Array.isArray(q.options)) {
-      question.options = q.options.map(o => o.toString());
-      if (rawAnswer) question.correctAnswer = rawAnswer.toUpperCase().charAt(0);
-    } else if (type === 'true_false') {
-      if (Array.isArray(q.options) && q.options.length > 0) {
-        // Compound T/F: keep options + correctAnswer as "Đ,S,Đ,S"
+    return rawList.map((q, idx): ExamQuestion => {
+      const type = normalizeType(q.type, Array.isArray(q.options) && q.options.length > 0);
+      const question: ExamQuestion = {
+        id: q.id ? String(q.id) : `q${idx + 1}`,
+        type,
+        content: (q.content ?? q.text ?? '').toString().trim(),
+        points: typeof q.points === 'number' && q.points > 0 ? q.points : fallbackPoints,
+      };
+      if (type === 'multiple_choice' && Array.isArray(q.options)) {
         question.options = q.options.map(o => o.toString());
-        question.correctAnswer = rawAnswer; // already "Đ,S,Đ,S" from AI
-      } else {
-        // Simple T/F (no sub-items)
-        question.correctAnswer = /^(đ|d|t|true|1)/i.test(rawAnswer) ? 'Đúng' : 'Sai';
+        const ans = (q.correctAnswer ?? q.answer ?? '').toString().trim();
+        if (ans) question.correctAnswer = ans.toUpperCase().charAt(0);
+      } else if (type === 'true_false') {
+        const ans = (q.correctAnswer ?? q.answer ?? '').toString().trim();
+        if (Array.isArray(q.options) && q.options.length > 0) {
+          question.options = q.options.map(o => o.toString());
+          question.correctAnswer = ans;
+        } else {
+          question.correctAnswer = /^(đ|d|t|true|1)/i.test(ans) ? 'Đúng' : 'Sai';
+        }
+      } else if (type === 'short_answer') {
+        question.correctAnswer = (q.correctAnswer ?? q.answer ?? '').toString().trim();
       }
-    } else if (type === 'short_answer' && rawAnswer) {
-      question.correctAnswer = rawAnswer;
-    }
-
-    if (q.explanation) question.explanation = q.explanation.toString();
-    return question;
-  });
+      if (q.explanation) question.explanation = q.explanation.toString();
+      return question;
+    });
+  }
 };
 
 /** Count question types for display in the review step */

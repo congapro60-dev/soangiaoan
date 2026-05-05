@@ -1,14 +1,15 @@
 import { useState, useCallback } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowLeft, Plus, Trash2, ChevronUp, ChevronDown, Save, Loader2,
-  Image as ImageIcon, XCircle, FileImage
+  Image as ImageIcon, XCircle, FileImage, Scissors
 } from 'lucide-react';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, deleteObject, uploadString } from 'firebase/storage';
 import { storage } from '../../../lib/firebase';
 import { User } from 'firebase/auth';
 import { AppData, Exam, ExamQuestion, QuestionType } from '../../../types';
 import { generateExamCode, calculateMaxScore } from '../../../lib/examParser';
+import { ManualCropModal } from './ManualCropModal';
 
 interface ExamEditorViewProps {
   user: User;
@@ -16,6 +17,7 @@ interface ExamEditorViewProps {
   saveExam: (exam: Exam) => Promise<void>;
   showToast: (msg: string, type?: any) => void;
   onBack: () => void;
+  pageImages?: string[];
 }
 
 const EMPTY_QUESTION = (): ExamQuestion => ({
@@ -42,6 +44,7 @@ export const ExamEditorView = ({ user, data, saveExam, showToast, onBack }: Exam
   const [questions, setQuestions] = useState<ExamQuestion[]>([EMPTY_QUESTION()]);
   const [expandedId, setExpandedId] = useState<string>(questions[0]?.id ?? '');
   const [saving, setSaving] = useState(false);
+  const [croppingId, setCroppingId] = useState<string | null>(null);
 
   const updateQuestion = useCallback((id: string, patch: Partial<ExamQuestion>) => {
     setQuestions(qs => qs.map(q => q.id === id ? { ...q, ...patch } : q));
@@ -110,6 +113,23 @@ export const ExamEditorView = ({ user, data, saveExam, showToast, onBack }: Exam
         ← Quay lại
       </button>
 
+      {/* Manual Crop Modal */}
+      <AnimatePresence>
+        {croppingId && pageImages && pageImages.length > 0 && (
+          <ManualCropModal 
+            pageImages={pageImages}
+            onClose={() => setCroppingId(null)}
+            onCrop={async (base64) => {
+              const path = `exam-images/${Date.now()}_manual_${croppingId}.jpg`;
+              const storageRef = ref(storage, path);
+              await uploadString(storageRef, base64.split(',')[1], 'base64', { contentType: 'image/jpeg' });
+              const url = await getDownloadURL(storageRef);
+              updateQuestion(croppingId, { imageUrl: url });
+            }}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Meta */}
       <div className="bg-white rounded-2xl border border-slate-100 p-5 mb-4 space-y-4">
         <h2 className="text-sm font-black text-slate-700">Thông tin đề thi</h2>
@@ -168,8 +188,9 @@ export const ExamEditorView = ({ user, data, saveExam, showToast, onBack }: Exam
             onToggle={() => setExpandedId(expandedId === q.id ? '' : q.id)}
             onChange={patch => updateQuestion(q.id, patch)}
             onRemove={() => removeQuestion(q.id)}
-            onMoveUp={i > 0 ? () => moveQuestion(q.id, -1) : undefined}
-            onMoveDown={i < questions.length - 1 ? () => moveQuestion(q.id, 1) : undefined}
+            onMove={dir => moveQuestion(q.id, dir)}
+            onStartCrop={() => setCroppingId(q.id)}
+            hasPageImages={!!pageImages && pageImages.length > 0}
           />
         ))}
       </div>
@@ -208,13 +229,14 @@ interface QuestionCardProps {
   onToggle: () => void;
   onChange: (patch: Partial<ExamQuestion>) => void;
   onRemove: () => void;
-  onMoveUp?: () => void;
-  onMoveDown?: () => void;
+  onMove: (dir: -1 | 1) => void;
+  onStartCrop?: () => void;
+  hasPageImages: boolean;
 }
 
 const OPTION_LABELS = ['A', 'B', 'C', 'D'];
 
-const QuestionCard = ({ question, num, isExpanded, onToggle, onChange, onRemove, onMoveUp, onMoveDown }: QuestionCardProps) => {
+const QuestionCard = ({ question, num, isExpanded, onToggle, onChange, onRemove, onMove, onStartCrop, hasPageImages }: QuestionCardProps) => {
   const preview = question.content.slice(0, 80) || '(chưa có nội dung)';
 
   return (
@@ -310,7 +332,15 @@ const QuestionCard = ({ question, num, isExpanded, onToggle, onChange, onRemove,
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="text-xs font-bold text-slate-500">Nội dung câu hỏi *</label>
-              <div className="flex items-center gap-2">
+                 {hasPageImages && (
+                   <button 
+                    onClick={onStartCrop}
+                    className="flex items-center gap-1.5 px-2 py-1 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-lg text-[10px] font-bold transition-all border border-transparent hover:border-purple-200"
+                   >
+                     <Scissors className="w-3.5 h-3.5" /> Cắt từ PDF
+                   </button>
+                 )}
+
                  <label className="flex items-center gap-1.5 px-2 py-1 bg-slate-50 hover:bg-blue-50 text-slate-500 hover:text-blue-600 rounded-lg cursor-pointer transition-all border border-transparent hover:border-blue-100">
                     <ImageIcon className="w-3.5 h-3.5" />
                     <span className="text-[10px] font-bold">Tải ảnh</span>
@@ -347,7 +377,23 @@ const QuestionCard = ({ question, num, isExpanded, onToggle, onChange, onRemove,
               rows={3}
               value={question.content}
               onChange={e => onChange({ content: e.target.value })}
-              placeholder="Nhập câu hỏi... (hỗ trợ LaTeX: $x^2$, **in đậm**)"
+              onPaste={async (e) => {
+                const item = e.clipboardData.items[0];
+                if (item?.type.startsWith('image/')) {
+                  const file = item.getAsFile();
+                  if (!file) return;
+                  try {
+                    const path = `exam-images/${Date.now()}_paste_${question.id}.jpg`;
+                    const storageRef = ref(storage, path);
+                    await uploadBytes(storageRef, file);
+                    const url = await getDownloadURL(storageRef);
+                    onChange({ imageUrl: url });
+                  } catch (err) {
+                    console.error("Paste upload failed", err);
+                  }
+                }
+              }}
+              placeholder="Nhập câu hỏi... (hỗ trợ LaTeX: $x^2$, **in đậm**, Dán ảnh Ctrl+V)"
               className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             />
             
