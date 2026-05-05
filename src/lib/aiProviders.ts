@@ -199,33 +199,39 @@ export async function callAI(prompt: string, settings: Settings): Promise<string
 
 /**
  * Gọi AI với ảnh đính kèm (multimodal / vision).
- * imageDataUrl: full data URL — data:image/jpeg;base64,...
+ * imageDataUrls: single data URL hoặc mảng data URL (multi-page PDF).
  * Nếu provider không hỗ trợ vision, fallback về text-only.
  */
 export async function callAIWithVision(
   prompt: string,
-  imageDataUrl: string,
+  imageDataUrls: string | string[],
   settings: Settings
 ): Promise<string> {
   const provider = settings.selectedProvider ?? 'gemini';
-  const [header, base64Data] = imageDataUrl.split(',');
-  const mimeType = (header.match(/data:([^;]+)/)?.[1] || 'image/jpeg') as
-    | 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
+  const urls = Array.isArray(imageDataUrls) ? imageDataUrls : [imageDataUrls];
+  const parsedImages = urls.map(url => {
+    const [header, base64Data] = url.split(',');
+    const mimeType = (header.match(/data:([^;]+)/)?.[1] || 'image/jpeg') as
+      'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
+    return { base64Data, mimeType, url };
+  });
+  const { base64Data: firstBase64, mimeType: firstMime } = parsedImages[0];
   const fallbackModel = MODELS[0];
 
   try {
   if (provider === 'claude') {
     const Anthropic = (await import('@anthropic-ai/sdk')).default;
     const client = new Anthropic({ apiKey: settings.claudeApiKey, dangerouslyAllowBrowser: true });
+    const imageBlocks = parsedImages.map(({ base64Data, mimeType }) => ({
+      type: 'image' as const,
+      source: { type: 'base64' as const, media_type: mimeType, data: base64Data },
+    }));
     const msg = await client.messages.create({
       model: settings.selectedModel || 'claude-sonnet-4-7',
       max_tokens: CLAUDE_MAX_TOKENS,
       messages: [{
         role: 'user',
-        content: [
-          { type: 'image', source: { type: 'base64', media_type: mimeType, data: base64Data } },
-          { type: 'text', text: prompt },
-        ],
+        content: [...imageBlocks, { type: 'text' as const, text: prompt }],
       }],
     });
     return msg.content[0].type === 'text' ? msg.content[0].text : '';
@@ -234,15 +240,16 @@ export async function callAIWithVision(
   if (provider === 'openai') {
     const OpenAI = (await import('openai')).default;
     const client = new OpenAI({ apiKey: settings.openaiApiKey, dangerouslyAllowBrowser: true });
+    const imageBlocks = parsedImages.map(({ url }) => ({
+      type: 'image_url' as const,
+      image_url: { url },
+    }));
     const res = await client.chat.completions.create({
       model: settings.selectedModel || 'gpt-4o',
       max_tokens: OPENAI_MAX_TOKENS,
       messages: [{
         role: 'user',
-        content: [
-          { type: 'image_url', image_url: { url: imageDataUrl } },
-          { type: 'text', text: prompt },
-        ],
+        content: [...imageBlocks, { type: 'text' as const, text: prompt }],
       }],
     });
     return res.choices[0]?.message?.content ?? '';
@@ -251,39 +258,42 @@ export async function callAIWithVision(
   if (provider === 'grok') {
     const OpenAI = (await import('openai')).default;
     const client = new OpenAI({ apiKey: settings.grokApiKey, baseURL: 'https://api.x.ai/v1', dangerouslyAllowBrowser: true });
+    const imageBlocks = parsedImages.map(({ url }) => ({
+      type: 'image_url' as const,
+      image_url: { url },
+    }));
     const res = await client.chat.completions.create({
       model: settings.selectedModel || 'grok-2-vision',
       max_tokens: GROK_MAX_TOKENS,
       messages: [{
         role: 'user',
-        content: [
-          { type: 'image_url', image_url: { url: imageDataUrl } },
-          { type: 'text', text: prompt },
-        ],
+        content: [...imageBlocks, { type: 'text' as const, text: prompt }],
       }],
     });
     return res.choices[0]?.message?.content ?? '';
   }
 
   if (provider === 'deepseek') {
-    // DeepSeek không hỗ trợ vision — fallback về text-only
     return callAI(prompt, settings);
   }
 
-  // Gemini
+  // Gemini — hỗ trợ nhiều ảnh qua nhiều inlineData parts
   const { GoogleGenAI } = await import('@google/genai');
   const ai = new GoogleGenAI({ apiKey: settings.geminiApiKey });
   const idx = MODELS.indexOf(settings.selectedModel);
   const modelName = idx >= 0 ? MODELS[idx] : MODELS[0];
+  const imageParts = parsedImages.map(({ base64Data, mimeType }) => ({
+    inlineData: { data: base64Data, mimeType },
+  }));
   const result = await ai.models.generateContent({
     model: modelName,
-    contents: [{ parts: [{ text: prompt }, { inlineData: { data: base64Data, mimeType } }] }],
+    contents: [{ parts: [{ text: prompt }, ...imageParts] }],
     config: { temperature: 0.1, maxOutputTokens: 65536 },
   });
   return result.text || '';
   } catch (err) {
     if (isQuotaError(err)) {
-      return callRelay(prompt, fallbackModel, base64Data, mimeType);
+      return callRelay(prompt, fallbackModel, firstBase64, firstMime);
     }
     throw err;
   }
