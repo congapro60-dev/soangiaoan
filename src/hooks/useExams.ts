@@ -96,3 +96,16 @@ export const getSubmission = async (id: string): Promise<ExamSubmission | null> 
   const snap = await getDoc(doc(db, 'examSubmissions', id));
   return snap.exists() ? (snap.data() as ExamSubmission) : null;
 };
+
+export const getExamById = async (id: string): Promise<Exam | null> => {
+  const snap = await getDoc(doc(db, 'exams', id));
+  return snap.exists() ? (snap.data() as Exam) : null;
+};
+
+export const getSubmissions = async (examId: string): Promise<ExamSubmission[]> => {
+  const q = query(collection(db, 'examSubmissions'), where('examId', '==', examId));
+  const snap = await getDocs(q);
+  const list: ExamSubmission[] = [];
+  snap.forEach(d => list.push(d.data() as ExamSubmission));
+  return list.sort((a, b) => (b.startedAt || '').localeCompare(a.startedAt || ''));
+};
