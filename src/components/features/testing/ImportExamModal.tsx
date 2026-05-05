@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { Upload, FileText, X, Loader2, CheckCircle2, AlertCircle, ChevronRight, ChevronLeft, Download, Table } from 'lucide-react';
 import { ExamQuestion, QuestionType } from '../../../types';
-import { parseExamFromFiles, summarizeQuestions, MAX_IMPORT_MB } from '../../../utils/examImportUtils';
+import { parseExamFromFiles, summarizeQuestions, MAX_IMPORT_MB, pdfToImages } from '../../../utils/examImportUtils';
 import type { AppData } from '../../../types';
 
 interface Props {
