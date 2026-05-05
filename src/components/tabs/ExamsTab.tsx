@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import Swal from 'sweetalert2';
 import * as XLSX from 'xlsx';
@@ -475,6 +476,7 @@ const ExamDetail = ({
   exam, submissions, loading, data, showToast,
   onBack, onCopy, onToggle, onSubmissionsChange, onReload
 }: ExamDetailProps) => {
+  const navigate = useNavigate();
   const [gradingId, setGradingId] = useState<string | null>(null);
   const [detailTab, setDetailTab] = useState<'list' | 'stats'>('list');
   const [showQR, setShowQR] = useState(false);
@@ -585,6 +587,14 @@ const ExamDetail = ({
               >
                 {gradingId ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Brain className="w-3.5 h-3.5" />}
                 AI chấm tất cả ({pendingGrade.length})
+              </button>
+            )}
+            {hasEssayQuestions && (
+              <button
+                onClick={() => navigate(`/exam/${exam.id}/grade`)}
+                className="flex items-center gap-2 px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold"
+              >
+                <FileText className="w-3.5 h-3.5" /> Chấm thủ công
               </button>
             )}
             <button

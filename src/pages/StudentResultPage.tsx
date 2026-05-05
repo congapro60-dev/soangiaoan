@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useSearchParams, Link } from 'react-router-dom';
+import { useParams, useSearchParams, Link, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
@@ -34,6 +34,7 @@ const formatTime = (seconds: number) => {
 export const StudentResultPage = () => {
   const { code, submissionId } = useParams<{ code: string; submissionId: string }>();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const autoSubmitted = searchParams.get('auto') === '1';
 
   const [exam, setExam] = useState<Exam | null>(null);
@@ -133,10 +134,18 @@ export const StudentResultPage = () => {
             </div>
 
             {exam.allowReview && (
-              <button onClick={() => setShowReview(v => !v)}
-                className="mt-5 w-full py-2.5 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-2">
-                {showReview ? <><ChevronUp className="w-4 h-4" /> Ẩn đáp án</> : <><ChevronDown className="w-4 h-4" /> Xem đáp án</>}
-              </button>
+              <div className="mt-5 flex flex-col gap-2">
+                <button onClick={() => setShowReview(v => !v)}
+                  className="w-full py-2.5 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-2">
+                  {showReview ? <><ChevronUp className="w-4 h-4" /> Ẩn đáp án</> : <><ChevronDown className="w-4 h-4" /> Xem đáp án</>}
+                </button>
+                <button
+                  onClick={() => navigate(`/exam/${code}/review/${submissionId}`)}
+                  className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2"
+                >
+                  Xem lại chi tiết từng câu →
+                </button>
+              </div>
             )}
           </div>
 
