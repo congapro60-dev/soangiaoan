@@ -129,7 +129,8 @@ QUY TẮC PHÂN TÍCH:
    - Trả về trường \`imageBox\`: [ymin, xmin, ymax, xmax] với các giá trị 0-1000.
    - Nếu ảnh trải dài trên nhiều trang, hãy chỉ định trang chứa hình trong trường \`pageIndex\` (0-based).
 4. CÔNG THỨC TOÁN: Giữ nguyên LaTeX $...$ và $$...$$. ĐẢM BẢO escape dấu gạch chéo ngược trong JSON (ví dụ viết \\\\frac thay vì \\frac).
-5. OUTPUT BẮT BUỘC: Chỉ trả về mảng JSON thuần.
+5. CÂU HỎI ĐÚNG/SAI (PHẦN II): ĐẢM BẢO trích xuất 4 mệnh đề vào mảng "options" (ví dụ: ["a. ...", "b. ...", "c. ...", "d. ..."]). Đáp án "correctAnswer" phải là chuỗi 4 ký tự Đ hoặc S cách nhau bởi dấu phẩy (ví dụ: "Đ,S,S,Đ").
+6. OUTPUT BẮT BUỘC: Chỉ trả về mảng JSON thuần.
 
 Ví dụ format:
 [
@@ -308,11 +309,16 @@ export const parseExamFromFiles = async (
         if (ans) question.correctAnswer = ans.toUpperCase().charAt(0);
       } else if (type === 'true_false') {
         const ans = (q.correctAnswer ?? q.answer ?? '').toString().trim();
+        // Support both single T/F and compound T/F (4 statements)
         if (Array.isArray(q.options) && q.options.length > 0) {
           question.options = q.options.map(o => o.toString());
-          question.correctAnswer = ans;
+          // Normalize answer to comma-separated format if it's multiple parts
+          question.correctAnswer = ans.includes(',') ? ans : ans.split('').join(',');
         } else {
-          question.correctAnswer = /^(đ|d|t|true|1)/i.test(ans) ? 'Đúng' : 'Sai';
+          // If AI failed to extract options but it's a T/F question, 
+          // try to find statements in the content or just provide placeholders
+          question.options = ['', '', '', ''];
+          question.correctAnswer = /^(đ|d|t|true|1)/i.test(ans) ? 'Đ,Đ,Đ,Đ' : 'S,S,S,S';
         }
       } else if (type === 'short_answer') {
         question.correctAnswer = (q.correctAnswer ?? q.answer ?? '').toString().trim();
