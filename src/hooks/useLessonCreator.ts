@@ -13,18 +13,46 @@ import Swal from 'sweetalert2';
  * Ưu tiên lấy <lesson_content>, gộp <pedagogical_review> nếu AI tách riêng,
  * fallback sang toàn bộ text nếu AI không dùng XML.
  */
+/**
+ * Trích xuất nội dung giáo án/đề thi từ phản hồi AI có thể chứa thẻ XML.
+ */
 const extractLessonContent = (rawResult: string): string => {
-  const contentMatch = rawResult.match(/<lesson_content>([\s\S]*?)<\/lesson_content>/);
+  // Tìm ưu tiên các thẻ nội dung chính
+  const contentMatch = rawResult.match(/<(?:lesson|exam|test)_content>([\s\S]*?)<\/(?:lesson|exam|test)_content>/i);
   let finalContent = '';
+  
   if (contentMatch) {
     finalContent = contentMatch[1];
-    const reviewMatch = rawResult.match(/<pedagogical_review>([\s\S]*?)<\/pedagogical_review>/);
-    if (reviewMatch && !finalContent.includes('Danielson') && !finalContent.includes('tổ trưởng chuyên môn')) {
-      finalContent += '\n\n## Đánh giá của tổ trưởng chuyên môn\n' + reviewMatch[1];
+    
+    // Gộp đánh giá hoặc đáp án nếu nằm riêng
+    const reviewMatch = rawResult.match(/<(?:pedagogical_review|answer_key)>([\s\S]*?)<\/(?:pedagogical_review|answer_key)>/i);
+    if (reviewMatch) {
+      if (!finalContent.includes(reviewMatch[1].substring(0, 20))) {
+        finalContent += '\n\n---\n\n' + reviewMatch[1];
+      }
     }
   } else {
-    finalContent = rawResult.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
+    // Fallback: Xóa bỏ thinking và trả về text sạch
+    finalContent = rawResult
+      .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
+      .replace(/<(?:lesson|exam|test)_content>/gi, '')
+      .replace(/<\/(?:lesson|exam|test)_content>/gi, '')
+      .trim();
   }
+  
+  // Loại bỏ các đoạn giới thiệu thừa của AI ở đầu (thường là "Chào bạn", "Dưới đây là", v.v.)
+  // Nếu nội dung bắt đầu bằng "Chào" hoặc lời dẫn dài, ta cố gắng tìm tiêu đề thực sự
+  if (finalContent.length > 500) {
+    const lines = finalContent.split('\n');
+    if (lines[0].includes('Chào') || lines[0].includes('Với tư cách')) {
+      // Nếu dòng 1 là lời chào, thử tìm tiêu đề (dòng bắt đầu bằng # hoặc **)
+      const firstHeadingIdx = lines.findIndex(l => l.startsWith('#') || l.startsWith('**'));
+      if (firstHeadingIdx > 0 && firstHeadingIdx < 5) {
+         finalContent = lines.slice(firstHeadingIdx).join('\n');
+      }
+    }
+  }
+
   return finalContent;
 };
 

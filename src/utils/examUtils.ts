@@ -82,9 +82,9 @@ BẠN LÀ CHUYÊN GIA KHẢO THÍ CAO CẤP.
 NHIỆM VỤ: Soạn đề thi theo đúng định dạng mẫu và ma trận được cung cấp.
 
 BỐ CỤC PHẢN HỒI BẮT BUỘC:
-1. <thinking>: Phân tích ma trận, đối chiếu với đề mẫu, lập kế hoạch soạn câu hỏi.
-2. <exam_content>: Toàn bộ nội dung đề thi (Markdown, đúng định dạng mẫu).
-3. <answer_key>: Bảng đáp án đầy đủ kèm hướng dẫn giải ngắn gọn.
+- Trả về DUY NHẤT nội dung đề thi hoàn chỉnh trong thẻ <exam_content>...</exam_content>.
+- KHÔNG có lời chào, không giải thích, không thẻ <thinking>.
+- ĐÁP ÁN: Đặt bảng đáp án chi tiết ở CUỐI CÙNG của nội dung (ngay sau dòng --- HẾT ---).
 
 ${sampleSection}
 
