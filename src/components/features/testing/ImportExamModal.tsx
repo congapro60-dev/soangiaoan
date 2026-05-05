@@ -108,6 +108,7 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
   const [pageImages, setPageImages] = useState<string[]>([]);
   const [progress, setProgress] = useState(0);
   const [progressLabel, setProgressLabel] = useState('');
+  const [forceVision, setForceVision] = useState(false);
 
   const examRef = useRef<HTMLInputElement>(null);
   const answerRef = useRef<HTMLInputElement>(null);
@@ -139,8 +140,9 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
       const ext = examFile.name.split('.').pop()?.toLowerCase() ?? '';
       let imgs: string[] = [];
       
+      // Step 1: Render PDF for manual cropping tools (Level 2)
       if (ext === 'pdf') {
-        setProgressLabel('Đang render trang PDF (ảnh)...');
+        setProgressLabel('Đang chuẩn bị ảnh nền PDF...');
         imgs = await pdfToImages(examFile, (p) => {
           setProgress(5 + Math.round(p * 0.25)); // 5% -> 30%
         });
@@ -149,26 +151,25 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
         setProgress(30);
       }
 
-      setProgressLabel('Đang trích xuất văn bản...');
+      // Step 2: AI Parsing (Level 3 - Fast Mode by default)
+      setProgressLabel('AI đang bóc tách câu hỏi...');
       setProgress(40);
       
-      const parsed = await parseExamFromFiles(examFile, answerFile, settings, imgs);
+      const parsed = await parseExamFromFiles(examFile, answerFile, settings, imgs, forceVision);
       
-      // Simulate slow AI progress from 40 to 90
       let p = 40;
       const interval = setInterval(() => {
-        p += Math.random() * 5;
-        if (p > 90) p = 90;
+        p += Math.random() * 10;
+        if (p > 95) p = 95;
         setProgress(Math.round(p));
-        if (p < 60) setProgressLabel('AI đang đọc câu hỏi...');
-        else if (p < 80) setProgressLabel('AI đang phân tích đáp án...');
-        else setProgressLabel('Đang hoàn thiện danh sách...');
-      }, 800);
+        if (p < 70) setProgressLabel('Đang trích xuất nội dung...');
+        else setProgressLabel('Đang định dạng câu hỏi...');
+      }, 500);
 
       setQuestions(parsed);
       clearInterval(interval);
       setProgress(100);
-      setProgressLabel('Hoàn tất!');
+      setProgressLabel('Xong!');
       
       setTimeout(() => {
         setStep('review');
@@ -346,11 +347,32 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
                 </div>
               </div>
               {examFile && (
-                <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-2">Tên đề thi</label>
-                  <input type="text" value={examTitle} onChange={e => setExamTitle(e.target.value)}
-                    placeholder="VD: Đề thi HKII Toán 12 - Mã đề 101"
-                    className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none" />
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-2">Tên đề thi</label>
+                    <input type="text" value={examTitle} onChange={e => setExamTitle(e.target.value)}
+                      placeholder="VD: Đề thi HKII Toán 12 - Mã đề 101"
+                      className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none" />
+                  </div>
+                  
+                  {/* Magic Mode Toggle */}
+                  <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex items-center justify-between">
+                    <div className="flex-1 pr-4">
+                      <p className="text-sm font-black text-blue-800 flex items-center gap-2">
+                        Magic Mode (AI Vision) 
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-400 text-white animate-pulse">SLOW</span>
+                      </p>
+                      <p className="text-[10px] text-blue-600 mt-0.5 leading-relaxed">
+                        AI tự quét & cắt ảnh câu hỏi từ PDF. <strong>Chậm hơn 5 lần</strong>, khuyên dùng cho đề nhiều hình vẽ phức tạp.
+                      </p>
+                    </div>
+                    <button 
+                      onClick={() => setForceVision(!forceVision)}
+                      className={`w-12 h-6 rounded-full transition-all relative ${forceVision ? 'bg-blue-600' : 'bg-slate-300'}`}
+                    >
+                      <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-all ${forceVision ? 'translate-x-6' : ''}`} />
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

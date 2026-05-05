@@ -341,9 +341,29 @@ const OPTION_LABELS = ['A', 'B', 'C', 'D'];
 
 const QuestionCard = ({ question, num, isExpanded, onToggle, onChange, onRemove, onMove, onStartCrop, hasPageImages }: QuestionCardProps) => {
   const preview = question.content.slice(0, 80) || '(chưa có nội dung)';
+  const handlePaste = async (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of items) {
+      if (item.type.indexOf('image') !== -1) {
+        const file = item.getAsFile();
+        if (!file) continue;
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          const base64 = event.target?.result as string;
+          // Reuse upload function if possible or local preview
+          onChange({ imageUrl: base64 }); // Temporary preview, ideally upload here
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+  };
 
   return (
-    <div className={`bg-white rounded-2xl border transition-all ${isExpanded ? 'border-blue-300 shadow-sm' : 'border-slate-100'}`}>
+    <div 
+      onPaste={handlePaste}
+      className={`bg-white rounded-2xl border transition-all ${isExpanded ? 'border-blue-300 shadow-sm' : 'border-slate-100'}`}
+    >
       {/* Header */}
       <div
         className="flex items-center gap-3 px-4 py-3 cursor-pointer"

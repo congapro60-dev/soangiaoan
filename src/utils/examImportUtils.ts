@@ -26,8 +26,8 @@ if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
 export const MAX_IMPORT_MB = 20;
 
 const MAX_PDF_PAGES = 6;
-const PDF_SCALE = 1.2;
-const IMG_QUALITY = 0.65;
+const PDF_SCALE = 1.0;
+const IMG_QUALITY = 0.4;
 
 /** Convert PDF pages to data URLs */
 export const pdfToImages = async (file: File, onProgress?: (p: number) => void): Promise<string[]> => {
@@ -117,7 +117,7 @@ NHIỆM VỤ: Chuyển đổi ${isVision ? 'ẢNH đề thi đính kèm' : 'nộ
 
 ${answerKeyText ? `=== ĐÁP ÁN (FILE RIÊNG) ===\n${answerKeyText}\n\n` : ''}
 ${isVision
-  ? '⚠️ Đề thi ở dạng ẢNH — hãy đọc toàn bộ nội dung từ ảnh đính kèm và phân tích.'
+  ? `⚠️ Đề thi đính kèm dạng ẢNH. ${examText ? `Dưới đây là văn bản trích xuất được (có thể dùng để tham khảo nội dung nhanh hơn):\n\n=== VĂN BẢN ===\n${examText}\n\n` : ''}Hãy kết hợp văn bản trên và ẢNH đính kèm để phân tích.`
   : `=== ĐỀ THI ===\n${examText}`
 }
 
@@ -192,27 +192,30 @@ export const parseExamFromFiles = async (
   answerKeyFile: File | null,
   settings: Settings,
   preRenderedPages?: string[],
+  forceVision = false,
 ): Promise<ExamQuestion[]> => {
   const ext = examFile.name.split('.').pop()?.toLowerCase() ?? '';
   const isImage = IMAGE_EXTS.includes(ext);
 
   let response: string;
 
-  if (isImage || ext === 'pdf') {
-    // Use pre-rendered pages if provided, otherwise render now (single-entry fallback)
+  // Use Vision only if it's an Image file or forceVision is explicitly enabled
+  const useVision = isImage || (ext === 'pdf' && forceVision);
+
+  if (useVision) {
+    // Multi-page Vision path
     const pages = preRenderedPages && preRenderedPages.length > 0
       ? preRenderedPages
       : ext === 'pdf'
         ? await pdfToImages(examFile)
         : [await fileToDataUrl(examFile)];
-    const examText = ext === 'pdf' ? await extractTextFromFile(examFile) : '';
     
+    const examText = ext === 'pdf' ? await extractTextFromFile(examFile) : '';
     const answerKeyText = answerKeyFile && !IMAGE_EXTS.includes(
       (answerKeyFile.name.split('.').pop() ?? '').toLowerCase()
     ) ? await extractTextFromFile(answerKeyFile) : '';
 
     const prompt = buildImportPrompt(examText, answerKeyText, true);
-    // Send all pages to Vision model
     response = await callAIWithVision(prompt, pages, settings);
     
     const rawList = extractJSON(response);
@@ -227,7 +230,6 @@ export const parseExamFromFiles = async (
         points: typeof q.points === 'number' && q.points > 0 ? q.points : fallbackPoints,
       };
 
-      // Auto-crop image if detected
       if (q.imageBox && Array.isArray(q.imageBox) && q.imageBox.length === 4) {
         try {
           const pIdx = q.pageIndex ?? 0;
@@ -259,10 +261,10 @@ export const parseExamFromFiles = async (
       return question;
     }));
   } else {
-    // Legacy Text path for DOCX/TXT
+    // Fast Text-only path (Default for PDF and DOCX)
     const examText = await extractTextFromFile(examFile);
     const answerKeyText = answerKeyFile ? await extractTextFromFile(answerKeyFile) : '';
-    const prompt = buildImportPrompt(examText, answerKeyText);
+    const prompt = buildImportPrompt(examText, answerKeyText, false);
     response = await callAI(prompt, settings);
 
     if (!response) throw new Error('AI không trả về dữ liệu.');
