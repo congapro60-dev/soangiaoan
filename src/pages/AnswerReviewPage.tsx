@@ -198,6 +198,12 @@ const QuestionReviewCard = ({ num, question, studentAnswer, isCorrect, isWrong }
         </ReactMarkdown>
       </div>
 
+      {question.imageUrl && (
+        <div className="mb-4 rounded-2xl overflow-hidden border border-slate-100 shadow-sm max-w-fit">
+          <img src={question.imageUrl} alt="minh họa" className="max-h-64 object-contain bg-slate-50" />
+        </div>
+      )}
+
       {/* MCQ */}
       {question.type === 'multiple_choice' && question.options && (
         <div className="grid grid-cols-2 gap-2 mb-3">

@@ -960,6 +960,11 @@ const ExamStatsPanel = ({ exam, submissions }: { exam: Exam; submissions: ExamSu
               HS trả lời sai câu {questionStats.find(q => q.id === drilldownId)?.num} — đáp án đúng:
               {' '}<span className="text-emerald-700">{drilldown.q.correctAnswer || '(tự luận)'}</span>
             </p>
+            {drilldown.q.imageUrl && (
+              <div className="mb-3 rounded-xl overflow-hidden border border-slate-200 shadow-sm max-w-fit">
+                <img src={drilldown.q.imageUrl} alt="minh họa" className="max-h-48 object-contain bg-white" />
+              </div>
+            )}
             {drilldown.rows.length === 0 ? (
               <p className="text-xs text-slate-400">Không có học sinh nào trả lời sai.</p>
             ) : (

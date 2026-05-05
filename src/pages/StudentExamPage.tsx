@@ -348,6 +348,12 @@ export const StudentExamPage = () => {
                     </ReactMarkdown>
                   </div>
 
+                  {q.imageUrl && (
+                    <div className="mb-4 rounded-2xl overflow-hidden border border-slate-100 shadow-sm max-w-fit">
+                      <img src={q.imageUrl} alt="minh họa" className="max-h-72 object-contain bg-slate-50" />
+                    </div>
+                  )}
+
                   <QuestionInput
                     question={q}
                     value={answers[q.id] || ''}

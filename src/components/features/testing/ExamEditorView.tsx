@@ -2,7 +2,10 @@ import { useState, useCallback } from 'react';
 import { motion } from 'motion/react';
 import {
   ArrowLeft, Plus, Trash2, ChevronUp, ChevronDown, Save, Loader2,
+  Image as ImageIcon, XCircle, FileImage
 } from 'lucide-react';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { storage } from '../../../lib/firebase';
 import { User } from 'firebase/auth';
 import { AppData, Exam, ExamQuestion, QuestionType } from '../../../types';
 import { generateExamCode, calculateMaxScore } from '../../../lib/examParser';
@@ -252,6 +255,16 @@ const QuestionCard = ({ question, num, isExpanded, onToggle, onChange, onRemove,
           </button>
         </div>
       </div>
+      
+      {/* Image Preview if exists */}
+      {!isExpanded && question.imageUrl && (
+        <div className="px-4 pb-3 flex items-center gap-3">
+          <div className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden border border-slate-200">
+            <img src={question.imageUrl} alt="preview" className="w-full h-full object-cover" />
+          </div>
+          <span className="text-[10px] text-slate-400 font-medium italic">Có ảnh minh họa đính kèm</span>
+        </div>
+      )}
 
       {/* Body */}
       {isExpanded && (
@@ -295,7 +308,41 @@ const QuestionCard = ({ question, num, isExpanded, onToggle, onChange, onRemove,
           </div>
 
           <div>
-            <label className="text-xs font-bold text-slate-500 block mb-1">Nội dung câu hỏi *</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-bold text-slate-500">Nội dung câu hỏi *</label>
+              <div className="flex items-center gap-2">
+                 <label className="flex items-center gap-1.5 px-2 py-1 bg-slate-50 hover:bg-blue-50 text-slate-500 hover:text-blue-600 rounded-lg cursor-pointer transition-all border border-transparent hover:border-blue-100">
+                    <ImageIcon className="w-3.5 h-3.5" />
+                    <span className="text-[10px] font-bold">Tải ảnh</span>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        try {
+                          const path = `exams/${Date.now()}_${file.name}`;
+                          const storageRef = ref(storage, path);
+                          await uploadBytes(storageRef, file);
+                          const url = await getDownloadURL(storageRef);
+                          onChange({ imageUrl: url });
+                        } catch (err) {
+                          console.error("Upload error", err);
+                        }
+                      }}
+                    />
+                 </label>
+                 {question.imageUrl && (
+                   <button 
+                    onClick={() => onChange({ imageUrl: undefined })}
+                    className="flex items-center gap-1 px-2 py-1 bg-red-50 text-red-500 hover:bg-red-100 rounded-lg text-[10px] font-bold"
+                   >
+                     <XCircle className="w-3.5 h-3.5" /> Xóa ảnh
+                   </button>
+                 )}
+              </div>
+            </div>
             <textarea
               rows={3}
               value={question.content}
@@ -303,6 +350,14 @@ const QuestionCard = ({ question, num, isExpanded, onToggle, onChange, onRemove,
               placeholder="Nhập câu hỏi... (hỗ trợ LaTeX: $x^2$, **in đậm**)"
               className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             />
+            
+            {question.imageUrl && (
+              <div className="mt-3 relative group w-fit max-w-full">
+                <div className="rounded-2xl overflow-hidden border border-slate-100 shadow-sm">
+                  <img src={question.imageUrl} alt="Question illustration" className="max-h-64 object-contain bg-slate-50" />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* MCQ options */}

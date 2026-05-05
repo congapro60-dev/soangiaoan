@@ -80,6 +80,7 @@ export interface ExamQuestion {
   id: string;
   type: QuestionType;
   content: string;
+  imageUrl?: string;
   options?: string[];
   correctAnswer?: string;
   points: number;

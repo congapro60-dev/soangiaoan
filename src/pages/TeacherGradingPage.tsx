@@ -189,6 +189,11 @@ export const TeacherGradingPage = () => {
                     {q.content}
                   </ReactMarkdown>
                 </div>
+                {q.imageUrl && (
+                  <div className="mb-4 rounded-2xl overflow-hidden border border-slate-100 shadow-sm max-w-fit">
+                    <img src={q.imageUrl} alt="minh họa" className="max-h-64 object-contain bg-slate-50" />
+                  </div>
+                )}
                 {sa?.answer ? (
                   <div className="p-3 bg-slate-50 rounded-xl text-sm text-slate-700 mb-4 whitespace-pre-wrap border border-slate-100">
                     {sa.answer}
