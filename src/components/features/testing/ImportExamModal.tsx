@@ -589,19 +589,99 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
                         onChange={(e) => updateQuestion(idx, { content: e.target.value })}
                         onPaste={(e) => handlePaste(idx, e)}
                         placeholder="Nội dung câu hỏi..."
-                        className="w-full bg-slate-50/50 border border-transparent focus:border-blue-100 focus:bg-white rounded-xl px-4 py-3 text-sm text-slate-700 outline-none transition-all resize-none leading-relaxed"
+                        className="w-full bg-slate-50 border-none focus:bg-white rounded-xl px-4 py-3 text-sm text-slate-800 outline-none transition-all resize-none leading-relaxed font-medium"
                         rows={2}
                       />
 
-                      <div className="mt-3 flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Đáp án:</span>
-                          <input 
-                            type="text" value={q.correctAnswer || ''}
-                            onChange={(e) => updateQuestion(idx, { correctAnswer: e.target.value })}
-                            className="w-24 px-3 py-1.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl text-xs font-bold outline-none uppercase"
-                          />
+                      {/* Multiple Choice Options */}
+                      {q.type === 'multiple_choice' && (
+                        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {['A', 'B', 'C', 'D'].map((label, i) => (
+                            <div key={label} className="flex items-center gap-2 group/opt">
+                              <button 
+                                onClick={() => updateQuestion(idx, { correctAnswer: label })}
+                                className={`w-8 h-8 shrink-0 rounded-full text-[10px] font-bold transition-all border ${
+                                  q.correctAnswer === label 
+                                    ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200' 
+                                    : 'bg-white border-slate-200 text-slate-400 hover:border-blue-300'
+                                }`}
+                              >
+                                {label}
+                              </button>
+                              <input 
+                                type="text"
+                                value={q.options?.[i] || ''}
+                                onChange={(e) => {
+                                  const newOpts = [...(q.options || ['', '', '', ''])];
+                                  newOpts[i] = e.target.value;
+                                  updateQuestion(idx, { options: newOpts });
+                                }}
+                                placeholder={`Phương án ${label}...`}
+                                className="flex-1 bg-transparent border-b border-transparent focus:border-blue-200 py-1 text-xs text-slate-600 outline-none transition-all"
+                              />
+                            </div>
+                          ))}
                         </div>
+                      )}
+
+                      {/* True/False Sub-questions (Part II style) */}
+                      {q.type === 'true_false' && (
+                        <div className="mt-4 space-y-3 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
+                          {['a', 'b', 'c', 'd'].map((label, i) => {
+                            const answers = (q.correctAnswer || 'Đ,Đ,Đ,Đ').split(',');
+                            const currentAns = answers[i] || 'Đ';
+                            
+                            const setAns = (val: 'Đ' | 'S') => {
+                              const newAnswers = [...answers];
+                              newAnswers[i] = val;
+                              updateQuestion(idx, { correctAnswer: newAnswers.join(',') });
+                            };
+
+                            return (
+                              <div key={label} className="flex items-start gap-3">
+                                <span className="text-[10px] font-black text-slate-400 mt-2 uppercase w-4">{label}.</span>
+                                <input 
+                                  type="text"
+                                  value={q.options?.[i] || ''}
+                                  onChange={(e) => {
+                                    const newOpts = [...(q.options || ['', '', '', ''])];
+                                    newOpts[i] = e.target.value;
+                                    updateQuestion(idx, { options: newOpts });
+                                  }}
+                                  placeholder="Nhập mệnh đề..."
+                                  className="flex-1 bg-transparent border-b border-transparent focus:border-purple-200 py-1 text-xs text-slate-600 outline-none transition-all"
+                                />
+                                <div className="flex bg-white rounded-lg border border-slate-200 p-0.5 shrink-0">
+                                  <button 
+                                    onClick={() => setAns('Đ')}
+                                    className={`px-2 py-1 rounded text-[9px] font-black transition-all ${currentAns === 'Đ' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-400 hover:text-emerald-500'}`}
+                                  >
+                                    ĐÚNG
+                                  </button>
+                                  <button 
+                                    onClick={() => setAns('S')}
+                                    className={`px-2 py-1 rounded text-[9px] font-black transition-all ${currentAns === 'S' ? 'bg-red-500 text-white shadow-sm' : 'text-slate-400 hover:text-red-500'}`}
+                                  >
+                                    SAI
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      <div className="mt-4 flex items-center gap-4 pt-4 border-t border-slate-50">
+                        {q.type !== 'multiple_choice' && q.type !== 'true_false' && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Đáp án:</span>
+                            <input 
+                              type="text" value={q.correctAnswer || ''}
+                              onChange={(e) => updateQuestion(idx, { correctAnswer: e.target.value })}
+                              className="w-32 px-3 py-1.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl text-xs font-bold outline-none"
+                            />
+                          </div>
+                        )}
                         
                         <div className="flex items-center gap-2 ml-auto">
                           {pageImages.length > 0 && (
