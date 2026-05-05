@@ -45,12 +45,7 @@ function isQuotaError(error: any): boolean {
     msg.includes('429') ||
     msg.includes('resource_exhausted') ||
     msg.includes('quota') ||
-    msg.includes('ratelimitexceeded') ||
-    msg.includes('invalid_api_key') ||
-    msg.includes('expired') ||
-    msg.includes('invalid api key') ||
-    msg.includes('404') ||
-    msg.includes('not found')
+    msg.includes('ratelimitexceeded')
   );
 }
 
@@ -65,7 +60,12 @@ async function callRelay(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ prompt, model, imageBase64, imageMimeType }),
   });
-  if (!res.ok) throw new Error(`Relay unavailable (${res.status})`);
+  if (!res.ok) {
+    const msg = res.status === 503
+      ? 'API key Gemini đã hết quota hoặc chưa cấu hình. Vui lòng kiểm tra cài đặt API key trong hồ sơ.'
+      : `Relay lỗi (${res.status})`;
+    throw new Error(msg);
+  }
   const data = await res.json();
   return data.text || '';
 }

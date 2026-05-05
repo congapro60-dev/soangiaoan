@@ -25,21 +25,24 @@ if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
 
 export const MAX_IMPORT_MB = 20;
 
+const MAX_PDF_PAGES = 10;
+
 /** Convert PDF pages to data URLs */
 export const pdfToImages = async (file: File): Promise<string[]> => {
   const ab = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
   const images: string[] = [];
-  for (let i = 1; i <= pdf.numPages; i++) {
+  const pageCount = Math.min(pdf.numPages, MAX_PDF_PAGES);
+  for (let i = 1; i <= pageCount; i++) {
     const page = await pdf.getPage(i);
-    const viewport = page.getViewport({ scale: 2.0 }); // High res for AI
+    const viewport = page.getViewport({ scale: 1.5 }); // balanced quality vs. payload size
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) continue;
     canvas.height = viewport.height;
     canvas.width = viewport.width;
     await page.render({ canvasContext: ctx, viewport }).promise;
-    images.push(canvas.toDataURL('image/jpeg', 0.8));
+    images.push(canvas.toDataURL('image/jpeg', 0.75));
   }
   return images;
 };
