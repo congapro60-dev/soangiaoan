@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
-import { Upload, FileText, X, Loader2, CheckCircle2, AlertCircle, ChevronRight, ChevronLeft, Download, Table } from 'lucide-react';
+import { Upload, FileText, X, Loader2, CheckCircle2, AlertCircle, ChevronRight, ChevronLeft, Download, Table, Image as ImageIcon, Scissors, Trash2 } from 'lucide-react';
 import { ExamQuestion, QuestionType } from '../../../types';
 import { parseExamFromFiles, summarizeQuestions, MAX_IMPORT_MB, pdfToImages } from '../../../utils/examImportUtils';
 import type { AppData } from '../../../types';
@@ -196,6 +196,29 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
     }
   };
 
+  const updateQuestion = (idx: number, patch: Partial<ExamQuestion>) => {
+    const newQs = [...questions];
+    newQs[idx] = { ...newQs[idx], ...patch };
+    setQuestions(newQs);
+  };
+
+  const handlePaste = async (idx: number, e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of items) {
+      if (item.type.indexOf('image') !== -1) {
+        const file = item.getAsFile();
+        if (!file) continue;
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          const base64 = event.target?.result as string;
+          updateQuestion(idx, { imageUrl: base64 });
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+  };
+
   const handleConfirm = () => {
     if (questions.length === 0) return;
     onImport(questions, examTitle || 'Đề thi nhập từ file', pageImages);
@@ -218,8 +241,10 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
   const visibleSteps: Step[] = mode === 'excel' ? ['upload', 'review'] : ['upload', 'parsing', 'review'];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+      <div className={`bg-white rounded-[32px] shadow-2xl flex flex-col overflow-hidden transition-all duration-500 ${
+        step === 'review' ? 'w-full max-w-7xl h-[90vh]' : 'w-full max-w-2xl'
+      }`}>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
           <div>
@@ -488,51 +513,142 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
             </div>
           )}
 
-          {/* Review step */}
+          {/* Review step - Unified Editor */}
           {step === 'review' && summary && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[
-                  { label: 'Trắc nghiệm', value: summary.mcq, color: 'bg-blue-50 text-blue-700' },
-                  { label: 'Đúng/Sai', value: summary.trueFalse, color: 'bg-purple-50 text-purple-700' },
-                  { label: 'Trả lời ngắn', value: summary.shortAnswer, color: 'bg-emerald-50 text-emerald-700' },
-                  { label: 'Tự luận', value: summary.essay, color: 'bg-amber-50 text-amber-700' },
-                ].map(({ label, value, color }) => (
-                  <div key={label} className={`rounded-2xl p-3 text-center ${color}`}>
-                    <p className="text-2xl font-black">{value}</p>
-                    <p className="text-xs font-bold mt-0.5">{label}</p>
+            <div className="flex-1 flex overflow-hidden">
+              {/* Left: PDF Preview (if available) */}
+              {pageImages.length > 0 && (
+                <div className="w-1/2 border-r border-slate-100 bg-slate-50 overflow-y-auto p-6 space-y-4">
+                  <div className="sticky top-0 z-10 bg-slate-50/80 backdrop-blur-md py-2 flex items-center justify-between">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ảnh gốc PDF đối chiếu</p>
+                    <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg">{pageImages.length} trang</span>
                   </div>
-                ))}
-              </div>
-              <div className="flex flex-col gap-2 p-4 bg-blue-50 border border-blue-100 rounded-2xl">
-                <div className="flex items-center gap-3 text-sm text-blue-700">
-                  <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  <span>Đã nhận diện <strong>{summary.total} câu hỏi</strong>, tổng điểm <strong>{summary.maxScore.toFixed(2)}</strong></span>
-                </div>
-                <div className="flex items-start gap-2 text-[10px] text-blue-500 font-medium bg-white/50 p-2 rounded-xl border border-blue-100/50">
-                  <AlertCircle className="w-3 h-3 shrink-0 mt-0.5" />
-                  <p>Mẹo: Sếp hãy nhấn nút Tạo bên dưới để vào <b>Trình soạn thảo</b>. Ở đó sếp có thể <b>Cắt ảnh từ PDF</b>, <b>Dán ảnh từ Clipboard (Ctrl+V)</b> hoặc chỉnh điểm chi tiết cho từng câu nhé!</p>
-                </div>
-              </div>
-              <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-                {questions.map((q, idx) => (
-                  <div key={q.id} className="bg-white border border-slate-100 rounded-xl p-3 text-sm">
-                    <div className="flex items-start gap-2">
-                      <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-lg ${
-                        q.type === 'multiple_choice' ? 'bg-blue-100 text-blue-700' :
-                        q.type === 'true_false' ? 'bg-purple-100 text-purple-700' :
-                        q.type === 'short_answer' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                      }`}>
-                        {q.type === 'multiple_choice' ? 'TN' : q.type === 'true_false' ? 'Đ/S' : q.type === 'short_answer' ? 'Ngắn' : 'TL'}
-                      </span>
-                      <p className="flex-1 text-slate-700 font-medium line-clamp-2">{idx + 1}. {q.content}</p>
-                      <span className="shrink-0 text-xs text-slate-400 font-bold">{q.points}đ</span>
+                  {pageImages.map((img, i) => (
+                    <div key={i} className="relative rounded-2xl border border-slate-200 overflow-hidden shadow-sm bg-white">
+                      <div className="absolute top-3 left-3 px-2 py-1 bg-black/60 text-white text-[10px] font-bold rounded-lg backdrop-blur">Trang {i+1}</div>
+                      <img src={img} alt={`page-${i}`} className="w-full h-auto" />
                     </div>
-                    {q.correctAnswer && (
-                      <p className="text-xs text-emerald-600 font-bold mt-1.5 ml-7">✓ {q.correctAnswer}</p>
-                    )}
+                  ))}
+                </div>
+              )}
+
+              {/* Right: Interactive Editor */}
+              <div className={`${pageImages.length > 0 ? 'w-1/2' : 'w-full'} flex flex-col h-full bg-white`}>
+                <div className="px-6 py-4 border-b border-slate-50 space-y-4">
+                  <div className="grid grid-cols-4 gap-3">
+                    {[
+                      { label: 'Trắc nghiệm', value: summary.mcq, color: 'bg-blue-50 text-blue-600' },
+                      { label: 'Đúng/Sai', value: summary.trueFalse, color: 'bg-purple-50 text-purple-600' },
+                      { label: 'Trả lời ngắn', value: summary.shortAnswer, color: 'bg-emerald-50 text-emerald-600' },
+                      { label: 'Tự luận', value: summary.essay, color: 'bg-amber-50 text-amber-600' },
+                    ].map(({ label, value, color }) => (
+                      <div key={label} className={`rounded-2xl p-3 text-center ${color}`}>
+                        <p className="text-xl font-black">{value}</p>
+                        <p className="text-[10px] font-bold mt-0.5">{label}</p>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                  <div className="flex items-center justify-between text-sm text-blue-700 bg-blue-50 px-4 py-2.5 rounded-xl border border-blue-100">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span className="font-bold">Đã nhận diện {summary.total} câu, tổng {summary.maxScore.toFixed(2)}đ</span>
+                    </div>
+                    <p className="text-[10px] font-medium text-blue-500 italic">Sửa nội dung & điểm ngay bên dưới!</p>
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                  {questions.map((q, idx) => (
+                    <div key={q.id} className="group relative bg-white border border-slate-100 hover:border-blue-200 rounded-2xl p-5 transition-all hover:shadow-xl hover:shadow-blue-500/5">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-black px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600">Câu {idx + 1}</span>
+                          <select 
+                            value={q.type}
+                            onChange={(e) => updateQuestion(idx, { type: e.target.value as any })}
+                            className="text-[10px] font-bold px-2 py-1 rounded-lg border-none bg-blue-50 text-blue-600 outline-none cursor-pointer"
+                          >
+                            <option value="multiple_choice">TRẮC NGHIỆM</option>
+                            <option value="true_false">ĐÚNG / SAI</option>
+                            <option value="short_answer">TRẢ LỜI NGẮN</option>
+                            <option value="essay">TỰ LUẬN</option>
+                          </select>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <input 
+                            type="number" step="0.25" min="0" value={q.points}
+                            onChange={(e) => updateQuestion(idx, { points: parseFloat(e.target.value) || 0 })}
+                            className="w-16 px-2 py-1 bg-slate-50 border border-slate-100 rounded-lg text-xs font-bold text-slate-600 outline-none focus:border-blue-300 text-center"
+                          />
+                          <span className="text-[10px] font-bold text-slate-400 uppercase">Điểm</span>
+                        </div>
+                      </div>
+
+                      <textarea 
+                        value={q.content}
+                        onChange={(e) => updateQuestion(idx, { content: e.target.value })}
+                        onPaste={(e) => handlePaste(idx, e)}
+                        placeholder="Nội dung câu hỏi..."
+                        className="w-full bg-slate-50/50 border border-transparent focus:border-blue-100 focus:bg-white rounded-xl px-4 py-3 text-sm text-slate-700 outline-none transition-all resize-none leading-relaxed"
+                        rows={2}
+                      />
+
+                      <div className="mt-3 flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Đáp án:</span>
+                          <input 
+                            type="text" value={q.correctAnswer || ''}
+                            onChange={(e) => updateQuestion(idx, { correctAnswer: e.target.value })}
+                            className="w-24 px-3 py-1.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl text-xs font-bold outline-none uppercase"
+                          />
+                        </div>
+                        
+                        <div className="flex items-center gap-2 ml-auto">
+                          {pageImages.length > 0 && (
+                            <button 
+                              onClick={handleConfirm}
+                              className="p-2.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all"
+                              title="Dùng trình cắt ảnh chuyên sâu"
+                            >
+                              <Scissors className="w-4.5 h-4.5" />
+                            </button>
+                          )}
+                          <label className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer">
+                            <ImageIcon className="w-4.5 h-4.5" />
+                            <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              const reader = new FileReader();
+                              reader.onload = (ev) => updateQuestion(idx, { imageUrl: ev.target?.result as string });
+                              reader.readAsDataURL(file);
+                            }} />
+                          </label>
+                          <button 
+                            onClick={() => {
+                              const newQs = questions.filter((_, i) => i !== idx);
+                              setQuestions(newQs);
+                            }}
+                            className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                          >
+                            <Trash2 className="w-4.5 h-4.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {q.imageUrl && (
+                        <div className="mt-4 relative group/img inline-block rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                          <img src={q.imageUrl} alt="preview" className="max-h-40 w-auto object-contain" />
+                          <button 
+                            onClick={() => updateQuestion(idx, { imageUrl: undefined })}
+                            className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg opacity-0 group-hover/img:opacity-100 transition-opacity shadow-lg"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -562,8 +678,8 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
             )}
             {step === 'review' && (
               <button onClick={handleConfirm}
-                className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 text-white rounded-2xl font-bold text-sm shadow-lg shadow-emerald-100 hover:bg-emerald-700">
-                <CheckCircle2 className="w-4 h-4" /> Tạo phòng thi với {questions.length} câu
+                className="flex items-center gap-2 px-8 py-3 bg-emerald-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-emerald-200 hover:bg-emerald-700 hover:-translate-y-0.5 transition-all active:translate-y-0">
+                <CheckCircle2 className="w-5 h-5" /> Hoàn tất & Lưu {questions.length} câu
               </button>
             )}
           </div>
