@@ -290,12 +290,31 @@ export async function callAIWithVision(
       inlineData: { data: base64Data, mimeType },
     }));
 
-    const result = await ai.models.generateContent({
-      model: modelName,
-      contents: [{ parts: [{ text: prompt }, ...imageParts] }],
-      config: { temperature: 0.1, maxOutputTokens: 65536 },
-    });
-    return result.text || '';
+    const maxVisionRetries = 2;
+    let visionRetryCount = 0;
+
+    async function executeVisionCall(): Promise<string> {
+      try {
+        const result = await ai.models.generateContent({
+          model: modelName,
+          contents: [{ parts: [{ text: prompt }, ...imageParts] }],
+          config: { temperature: 0.1, maxOutputTokens: 65536 },
+        });
+        return result.text || '';
+      } catch (error: any) {
+        const msg = String(error?.message || '').toLowerCase();
+        const isOverloaded = msg.includes('503') || msg.includes('high demand') || msg.includes('unavailable');
+        
+        if (isOverloaded && visionRetryCount < maxVisionRetries) {
+          visionRetryCount++;
+          await new Promise(r => setTimeout(r, 2000 * visionRetryCount));
+          return executeVisionCall();
+        }
+        throw error;
+      }
+    }
+
+    return executeVisionCall();
   } catch (err) {
     if (isQuotaError(err)) {
       return callRelay(prompt, fallbackModel, firstBase64, firstMime);

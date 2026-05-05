@@ -30,21 +30,22 @@ const PDF_SCALE = 1.2;
 const IMG_QUALITY = 0.65;
 
 /** Convert PDF pages to data URLs */
-export const pdfToImages = async (file: File): Promise<string[]> => {
+export const pdfToImages = async (file: File, onProgress?: (p: number) => void): Promise<string[]> => {
   const ab = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
   const images: string[] = [];
   const pageCount = Math.min(pdf.numPages, MAX_PDF_PAGES);
   for (let i = 1; i <= pageCount; i++) {
     const page = await pdf.getPage(i);
-    const viewport = page.getViewport({ scale: 1.5 }); // balanced quality vs. payload size
+    const viewport = page.getViewport({ scale: PDF_SCALE }); 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) continue;
     canvas.height = viewport.height;
     canvas.width = viewport.width;
     await page.render({ canvasContext: ctx, viewport, canvas: canvas as any }).promise;
-    images.push(canvas.toDataURL('image/jpeg', 0.75));
+    images.push(canvas.toDataURL('image/jpeg', IMG_QUALITY));
+    if (onProgress) onProgress(Math.round((i / pageCount) * 100));
   }
   return images;
 };
@@ -92,7 +93,8 @@ export const extractTextFromFile = async (file: File): Promise<string> => {
     const ab = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
     let text = '';
-    for (let i = 1; i <= pdf.numPages; i++) {
+    const pageCount = Math.min(pdf.numPages, MAX_PDF_PAGES);
+    for (let i = 1; i <= pageCount; i++) {
       const page = await pdf.getPage(i);
       const tc = await page.getTextContent();
       text += tc.items.map((it: any) => it.str).join(' ') + '\n';

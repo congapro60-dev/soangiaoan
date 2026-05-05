@@ -106,6 +106,8 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
   const [error, setError] = useState('');
   const [parsing, setParsing] = useState(false);
   const [pageImages, setPageImages] = useState<string[]>([]);
+  const [progress, setProgress] = useState(0);
+  const [progressLabel, setProgressLabel] = useState('');
 
   const examRef = useRef<HTMLInputElement>(null);
   const answerRef = useRef<HTMLInputElement>(null);
@@ -130,21 +132,51 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
     if (!examFile) return;
     setStep('parsing');
     setError('');
+    setProgress(5);
+    setProgressLabel('Bắt đầu đọc file...');
+
     try {
-      // Render PDF pages once — reuse for both Vision AI and manual cropping
       const ext = examFile.name.split('.').pop()?.toLowerCase() ?? '';
       let imgs: string[] = [];
+      
       if (ext === 'pdf') {
-        imgs = await pdfToImages(examFile);
+        setProgressLabel('Đang render trang PDF (ảnh)...');
+        imgs = await pdfToImages(examFile, (p) => {
+          setProgress(5 + Math.round(p * 0.25)); // 5% -> 30%
+        });
         setPageImages(imgs);
+      } else {
+        setProgress(30);
       }
+
+      setProgressLabel('Đang trích xuất văn bản...');
+      setProgress(40);
       
       const parsed = await parseExamFromFiles(examFile, answerFile, settings, imgs);
+      
+      // Simulate slow AI progress from 40 to 90
+      let p = 40;
+      const interval = setInterval(() => {
+        p += Math.random() * 5;
+        if (p > 90) p = 90;
+        setProgress(Math.round(p));
+        if (p < 60) setProgressLabel('AI đang đọc câu hỏi...');
+        else if (p < 80) setProgressLabel('AI đang phân tích đáp án...');
+        else setProgressLabel('Đang hoàn thiện danh sách...');
+      }, 800);
+
       setQuestions(parsed);
-      setStep('review');
+      clearInterval(interval);
+      setProgress(100);
+      setProgressLabel('Hoàn tất!');
+      
+      setTimeout(() => {
+        setStep('review');
+      }, 500);
     } catch (e: any) {
       setError(e.message || 'Có lỗi xảy ra khi phân tích đề.');
       setStep('upload');
+      setProgress(0);
     }
   };
 
@@ -418,9 +450,18 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
               <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center">
                 <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
               </div>
-              <div className="text-center">
-                <p className="text-lg font-black text-slate-800">AI đang phân tích đề thi...</p>
-                <p className="text-sm text-slate-400 mt-2">Đọc nội dung, nhận diện câu hỏi và ghép đáp án</p>
+              <div className="text-center w-full max-w-xs">
+                <p className="text-lg font-black text-slate-800">AI đang phân tích...</p>
+                <div className="mt-4 h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-blue-600 transition-all duration-500 ease-out"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <div className="flex justify-between mt-2">
+                  <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">{progressLabel}</p>
+                  <p className="text-[10px] font-bold text-slate-400">{progress}%</p>
+                </div>
               </div>
             </div>
           )}
