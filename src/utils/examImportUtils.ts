@@ -56,29 +56,27 @@ QUY TẮC PHÂN TÍCH:
 
 2. PHÂN LOẠI TYPE:
    • "multiple_choice" — có đúng 4 phương án A/B/C/D
-   • "true_false"      — câu Đúng/Sai
-     → Nếu câu có 4 ý con (a, b, c, d) → TÁCH thành 4 câu riêng:
-        id: "q2a", "q2b", "q2c", "q2d" (2 = số thứ tự câu gốc)
-        content: "Câu 2 - ý a: [nội dung ý a]"
-        correctAnswer: "Đúng" hoặc "Sai"
-        points = điểm_câu_gốc / 4
+   • "true_false"      — câu Đúng/Sai có 4 ý a, b, c, d
+     → KHÔNG TÁCH thành câu riêng. Giữ nguyên 1 câu, nhét 4 ý vào mảng options:
+        options: ["a. [nội dung ý a]", "b. [nội dung ý b]", "c. [nội dung ý c]", "d. [nội dung ý d]"]
+        correctAnswer: chuỗi 4 giá trị "Đ" hoặc "S" cách nhau bằng dấu phẩy theo thứ tự a,b,c,d
+        VD: "Đ,S,Đ,S" nghĩa là ý a Đúng, ý b Sai, ý c Đúng, ý d Sai
    • "short_answer"    — điền số, điền từ, trả lời ngắn (1-3 từ)
    • "essay"           — tự luận dài, không có đáp án cố định
 
-3. ĐÁNH SỐ ID: "q1", "q2", ... hoặc "q2a", "q2b"... (với Đúng/Sai 4 ý)
+3. ĐÁNH SỐ ID: "q1", "q2", "q3"... (true_false KHÔNG dùng q2a/q2b nữa)
 
 4. CÔNG THỨC TOÁN: Giữ nguyên LaTeX $...$ và $$...$$
 
 5. correctAnswer:
    • multiple_choice: một chữ cái "A", "B", "C", hoặc "D"
-   • true_false: "Đúng" hoặc "Sai"
+   • true_false: chuỗi "Đ,S,Đ,S" theo thứ tự 4 ý a,b,c,d
    • short_answer: chuỗi đáp án ngắn (có thể là số, ví dụ "3.14")
    • essay: KHÔNG có trường correctAnswer
 
 6. ĐIỂM (points):
    • Đọc từ đề nếu ghi rõ (VD: "0.5 điểm", "(1đ)")
    • Nếu không ghi: phân bổ đều tổng 10 điểm theo từng phần
-   • Đúng/Sai 4 ý: mỗi ý = điểm_câu / 4
 
 7. explanation: trích lời giải / gợi ý đáp án nếu có trong đề
 
@@ -86,8 +84,7 @@ OUTPUT BẮT BUỘC: Chỉ trả về mảng JSON thuần, không bọc markdown
 Ví dụ format:
 [
   {"id":"q1","type":"multiple_choice","content":"Nội dung câu 1","options":["A. ...","B. ...","C. ...","D. ..."],"correctAnswer":"B","points":0.25},
-  {"id":"q2a","type":"true_false","content":"Câu 2 - ý a: Nội dung ý a","correctAnswer":"Đúng","points":0.25},
-  {"id":"q2b","type":"true_false","content":"Câu 2 - ý b: Nội dung ý b","correctAnswer":"Sai","points":0.25},
+  {"id":"q2","type":"true_false","content":"Nội dung câu 2 (thân câu chung)","options":["a. Nội dung ý a","b. Nội dung ý b","c. Nội dung ý c","d. Nội dung ý d"],"correctAnswer":"Đ,S,Đ,S","points":1},
   {"id":"q3","type":"short_answer","content":"Nội dung câu 3","correctAnswer":"42","points":0.5},
   {"id":"q4","type":"essay","content":"Nội dung câu tự luận","points":2}
 ]
@@ -170,7 +167,14 @@ export const parseExamFromFiles = async (
       question.options = q.options.map(o => o.toString());
       if (rawAnswer) question.correctAnswer = rawAnswer.toUpperCase().charAt(0);
     } else if (type === 'true_false') {
-      question.correctAnswer = /^(đ|d|t|true|1)/i.test(rawAnswer) ? 'Đúng' : 'Sai';
+      if (Array.isArray(q.options) && q.options.length > 0) {
+        // Compound T/F: keep options + correctAnswer as "Đ,S,Đ,S"
+        question.options = q.options.map(o => o.toString());
+        question.correctAnswer = rawAnswer; // already "Đ,S,Đ,S" from AI
+      } else {
+        // Simple T/F (no sub-items)
+        question.correctAnswer = /^(đ|d|t|true|1)/i.test(rawAnswer) ? 'Đúng' : 'Sai';
+      }
     } else if (type === 'short_answer' && rawAnswer) {
       question.correctAnswer = rawAnswer;
     }
