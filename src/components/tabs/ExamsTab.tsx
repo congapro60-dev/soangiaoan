@@ -12,11 +12,12 @@ import {
   Plus, Link as LinkIcon, Power, PowerOff, Trash2, Users, Clock,
   Copy, Loader2, FileText, BarChart3, CheckCircle2, X, ChevronRight,
   History, Download, Brain, RefreshCw, Upload, QrCode, ArrowRight,
-  Edit3,
+  Edit3, AlertTriangle, Pencil,
 } from 'lucide-react';
 import { User } from 'firebase/auth';
 import { AppData, Exam, ExamSubmission, ExamQuestion, StudentAnswer } from '../../types';
-import { useExams, updateSubmission } from '../../hooks/useExams';
+import { useExams, updateSubmission, updateExam } from '../../hooks/useExams';
+import { computeAutoScore, recalcTotalScore } from '../../utils/examScoring';
 import { parseMarkdownToQuestions, generateExamCode, calculateMaxScore } from '../../lib/examParser';
 import { callAI } from '../../lib/aiProviders';
 import { ImportExamModal } from '../features/testing/ImportExamModal';
@@ -364,6 +365,7 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
         }}
         onSubmissionsChange={setSubmissions}
         onReload={() => reloadSubmissions(selectedExam)}
+        onExamUpdate={e => { setSelectedExam(e); reloadSubmissions(e); }}
       />
     );
   }
@@ -532,16 +534,18 @@ interface ExamDetailProps {
   onToggle: () => void;
   onSubmissionsChange: (subs: ExamSubmission[]) => void;
   onReload: () => void;
+  onExamUpdate: (exam: Exam) => void;
 }
 
 const ExamDetail = ({
   exam, submissions, loading, data, showToast,
-  onBack, onCopy, onToggle, onSubmissionsChange, onReload
+  onBack, onCopy, onToggle, onSubmissionsChange, onReload, onExamUpdate
 }: ExamDetailProps) => {
   const navigate = useNavigate();
   const [gradingId, setGradingId] = useState<string | null>(null);
   const [detailTab, setDetailTab] = useState<'list' | 'stats'>('list');
   const [showQR, setShowQR] = useState(false);
+  const [showAnswerEdit, setShowAnswerEdit] = useState(false);
 
   const completed = submissions.filter(s => s.status !== 'in_progress');
   const avgScore = completed.length > 0
@@ -629,6 +633,9 @@ const ExamDetail = ({
             </button>
             <button onClick={onCopy} className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-bold">
               <Copy className="w-3.5 h-3.5" /> Copy link
+            </button>
+            <button onClick={() => setShowAnswerEdit(true)} className="flex items-center gap-2 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-bold">
+              <Pencil className="w-3.5 h-3.5" /> Sửa đáp án
             </button>
             <button onClick={() => setShowQR(true)} className="flex items-center gap-2 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-bold">
               <QrCode className="w-3.5 h-3.5" /> QR Code
@@ -779,6 +786,19 @@ const ExamDetail = ({
       )}
 
       {showQR && <QRModal exam={exam} onClose={() => setShowQR(false)} />}
+      {showAnswerEdit && (
+        <AnswerEditModal
+          exam={exam}
+          submissions={submissions}
+          data={data}
+          showToast={showToast}
+          onClose={() => setShowAnswerEdit(false)}
+          onSaved={updated => {
+            setShowAnswerEdit(false);
+            onExamUpdate(updated);
+          }}
+        />
+      )}
     </motion.div>
   );
 };
@@ -983,6 +1003,192 @@ const ExamStatsPanel = ({ exam, submissions }: { exam: Exam; submissions: ExamSu
             )}
           </div>
         )}
+      </div>
+    </div>
+  );
+};
+
+// ─── AnswerEditModal ──────────────────────────────────────────────────────────
+
+const TYPE_LABEL_SHORT: Record<string, string> = {
+  multiple_choice: 'MCQ', true_false: 'Đ/S', short_answer: 'Ngắn', essay: 'TL',
+};
+
+interface AnswerEditModalProps {
+  exam: Exam;
+  submissions: ExamSubmission[];
+  data: AppData;
+  showToast: (msg: string, type?: any) => void;
+  onClose: () => void;
+  onSaved: (updatedExam: Exam) => void;
+}
+
+const AnswerEditModal = ({ exam, submissions, data, showToast, onClose, onSaved }: AnswerEditModalProps) => {
+  const completedSubs = submissions.filter(s => s.status !== 'in_progress');
+  const hasSubmissions = completedSubs.length > 0;
+
+  const [answers, setAnswers] = useState<Record<string, string>>(() =>
+    Object.fromEntries(
+      exam.questions.filter(q => q.type !== 'essay').map(q => [q.id, q.correctAnswer ?? ''])
+    )
+  );
+  const [saving, setSaving] = useState(false);
+  const [validating, setValidating] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState<
+    { questionId: string; suggestedAnswer: string; reason: string }[]
+  >([]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const updatedQuestions = exam.questions.map(q =>
+        answers[q.id] !== undefined ? { ...q, correctAnswer: answers[q.id] } : q
+      );
+      await updateExam(exam.id, { questions: updatedQuestions });
+      const updatedExam = { ...exam, questions: updatedQuestions };
+
+      if (hasSubmissions) {
+        for (const sub of completedSubs) {
+          const newAnswers = sub.answers.map(a => {
+            const q = updatedQuestions.find(q => q.id === a.questionId);
+            if (!q || q.type === 'essay') return a;
+            const autoScore = computeAutoScore(q, a.answer, exam.tfScoringMode);
+            return { ...a, autoScore: autoScore ?? a.autoScore };
+          });
+          const totalScore = recalcTotalScore(newAnswers, updatedQuestions, exam.tfScoringMode);
+          await updateSubmission(sub.id, { answers: newAnswers as StudentAnswer[], totalScore });
+        }
+        showToast(`Đã cập nhật đáp án và tính lại điểm cho ${completedSubs.length} bài!`);
+      } else {
+        showToast('Đã cập nhật đáp án!');
+      }
+      onSaved(updatedExam);
+    } catch (err: any) {
+      showToast('Lỗi: ' + err.message, 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAIValidate = async () => {
+    const mcqQs = exam.questions.filter(q => q.type === 'multiple_choice' && q.options?.length);
+    if (mcqQs.length === 0) { showToast('Không có câu MCQ để kiểm tra', 'warning'); return; }
+    setValidating(true);
+    try {
+      const prompt = `Bạn là giáo viên chuyên môn. Kiểm tra đáp án các câu trắc nghiệm sau và phát hiện câu có đáp án nghi vấn.
+
+${mcqQs.map((q, i) => `Câu ${i + 1} (id:${q.id}):
+${q.content}
+A) ${q.options![0]}  B) ${q.options![1]}  C) ${q.options![2]}  D) ${q.options![3]}
+Đáp án hiện tại: ${answers[q.id] || q.correctAnswer || '?'}`).join('\n\n')}
+
+Trả về JSON thuần (không markdown):
+{"issues":[{"questionId":"<id>","suggestedAnswer":"A","reason":"Lý do ngắn gọn tiếng Việt"}]}
+Nếu không có vấn đề: {"issues":[]}`;
+      const raw = await callAI(prompt, data.settings);
+      const match = raw.match(/\{[\s\S]*\}/);
+      if (match) {
+        const result = JSON.parse(match[0]);
+        const issues = result.issues ?? [];
+        setAiSuggestions(issues);
+        showToast(issues.length === 0 ? 'AI không phát hiện vấn đề nào!' : `AI phát hiện ${issues.length} câu cần xem lại`, issues.length > 0 ? 'warning' : 'success');
+      }
+    } catch (err: any) {
+      showToast('Lỗi AI: ' + err.message, 'error');
+    } finally {
+      setValidating(false);
+    }
+  };
+
+  const nonEssay = exam.questions.map((q, i) => ({ q, num: i + 1 })).filter(({ q }) => q.type !== 'essay');
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-4 overflow-y-auto" onClick={onClose}>
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl my-8" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+          <div>
+            <h3 className="text-lg font-black text-slate-800">Sửa đáp án</h3>
+            <p className="text-xs text-slate-400 mt-0.5">{exam.title}</p>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700"><X className="w-5 h-5" /></button>
+        </div>
+
+        {hasSubmissions && (
+          <div className="mx-6 mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>Có {completedSubs.length} bài đã nộp. Điểm sẽ được <strong>tính lại tự động</strong> khi bạn lưu.</span>
+          </div>
+        )}
+
+        <div className="px-6 py-4 space-y-2 max-h-[60vh] overflow-y-auto">
+          {nonEssay.map(({ q, num }) => {
+            const sug = aiSuggestions.find(s => s.questionId === q.id);
+            return (
+              <div key={q.id} className={`border rounded-xl p-3 ${sug ? 'border-amber-300 bg-amber-50/50' : 'border-slate-100'}`}>
+                <div className="flex items-start gap-2 mb-2">
+                  <span className="text-xs font-black text-slate-400 shrink-0 pt-0.5">Câu {num}</span>
+                  <span className="text-sm text-slate-700 flex-1 line-clamp-2">{q.content}</span>
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 shrink-0">
+                    {TYPE_LABEL_SHORT[q.type]}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <label className="text-xs font-bold text-slate-500 shrink-0">Đáp án:</label>
+                  {q.type === 'multiple_choice' ? (
+                    <div className="flex gap-1.5">
+                      {['A', 'B', 'C', 'D'].map(l => (
+                        <button key={l} onClick={() => setAnswers(a => ({ ...a, [q.id]: l }))}
+                          className={`w-8 h-8 rounded-lg text-xs font-black border-2 transition-all ${
+                            answers[q.id] === l ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-200 text-slate-500 hover:border-emerald-300'
+                          }`}>{l}</button>
+                      ))}
+                    </div>
+                  ) : q.type === 'true_false' ? (
+                    <div className="flex gap-1.5">
+                      {['Đúng', 'Sai'].map(v => (
+                        <button key={v} onClick={() => setAnswers(a => ({ ...a, [q.id]: v }))}
+                          className={`px-3 py-1 rounded-lg text-xs font-bold border-2 transition-all ${
+                            answers[q.id] === v
+                              ? v === 'Đúng' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-red-500 bg-red-50 text-red-700'
+                              : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                          }`}>{v}</button>
+                      ))}
+                    </div>
+                  ) : (
+                    <input type="text" value={answers[q.id] ?? ''} onChange={e => setAnswers(a => ({ ...a, [q.id]: e.target.value }))}
+                      className="flex-1 px-2 py-1 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                  )}
+                </div>
+                {sug && (
+                  <div className="mt-2 p-2 bg-white border border-amber-200 rounded-lg text-xs flex items-start gap-2">
+                    <span className="text-amber-700 flex-1">AI đề xuất: <strong className="text-blue-600">{sug.suggestedAnswer}</strong> — {sug.reason}</span>
+                    <button onClick={() => { setAnswers(a => ({ ...a, [q.id]: sug.suggestedAnswer })); setAiSuggestions(s => s.filter(x => x.questionId !== q.id)); }}
+                      className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 shrink-0">Đổi</button>
+                    <button onClick={() => setAiSuggestions(s => s.filter(x => x.questionId !== q.id))}
+                      className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 shrink-0">Bỏ</button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="flex items-center gap-3 px-6 py-4 border-t border-slate-100">
+          {!hasSubmissions && (
+            <button onClick={handleAIValidate} disabled={validating}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl text-xs font-bold disabled:opacity-60">
+              {validating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Brain className="w-3.5 h-3.5" />}
+              AI kiểm tra đáp án
+            </button>
+          )}
+          <div className="flex-1" />
+          <button onClick={onClose} className="px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl">Hủy</button>
+          <button onClick={handleSave} disabled={saving}
+            className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold disabled:opacity-60">
+            {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+            {hasSubmissions ? `Lưu & tính lại ${completedSubs.length} bài` : 'Lưu đáp án'}
+          </button>
+        </div>
       </div>
     </div>
   );

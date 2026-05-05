@@ -36,41 +36,113 @@ const TYPE_OPTIONS: { value: QuestionType; label: string }[] = [
   { value: 'essay', label: 'Tự luận' },
 ];
 
+const TYPE_SHORT: Record<QuestionType, string> = {
+  multiple_choice: 'MCQ', true_false: 'ĐS', short_answer: 'Ngắn', essay: 'TL',
+};
+
+const serializeToText = (qs: ExamQuestion[]): string =>
+  qs.map((q, i) => {
+    const lines = [`# Câu ${i + 1} — ${TYPE_SHORT[q.type]} — ${q.points} điểm`, q.content || ''];
+    if (q.type === 'multiple_choice' && q.options) {
+      ['A', 'B', 'C', 'D'].forEach((l, j) => { if (q.options![j] !== undefined) lines.push(`${l}. ${q.options![j]}`); });
+    }
+    if (q.type !== 'essay' && q.correctAnswer) lines.push(`Đáp án: ${q.correctAnswer}`);
+    if (q.explanation) lines.push(`Giải thích: ${q.explanation}`);
+    return lines.join('\n');
+  }).join('\n\n---\n\n');
+
+const parseFromText = (text: string, existingIds: string[]): ExamQuestion[] => {
+  const blocks = text.split(/\n\s*---\s*\n/).map(b => b.trim()).filter(Boolean);
+  if (blocks.length === 0) throw new Error('Không tìm thấy câu hỏi nào');
+  return blocks.map((block, i) => {
+    const lines = block.split('\n');
+    const m = lines[0]?.match(/^#\s*Câu\s+\d+\s*[—–-]\s*(\S+)\s*[—–-]\s*([\d.]+)/);
+    if (!m) throw new Error(`Câu ${i + 1}: dòng đầu phải có dạng "# Câu N — MCQ — X điểm"`);
+    const typeStr = m[1].toLowerCase();
+    const points = parseFloat(m[2]) || 1;
+    let type: QuestionType;
+    if (typeStr === 'mcq') type = 'multiple_choice';
+    else if (typeStr === 'đs') type = 'true_false';
+    else if (typeStr === 'ngắn') type = 'short_answer';
+    else type = 'essay';
+    let content = '', correctAnswer = '', explanation = '';
+    const options: string[] = [];
+    for (let j = 1; j < lines.length; j++) {
+      const line = lines[j];
+      const optM = line.match(/^([ABCD])\.\s*(.*)/);
+      if (optM) { options.push(optM[2]); continue; }
+      if (line.startsWith('Đáp án: ')) { correctAnswer = line.slice(8).trim(); continue; }
+      if (line.startsWith('Giải thích: ')) { explanation = line.slice(12).trim(); continue; }
+      content += (content ? '\n' : '') + line;
+    }
+    const q: ExamQuestion = {
+      id: existingIds[i] ?? `q-${Date.now()}-${i}`,
+      type, content: content.trim(), points,
+    };
+    if (correctAnswer) q.correctAnswer = correctAnswer;
+    if (explanation) q.explanation = explanation;
+    if (type === 'multiple_choice') q.options = options.length === 4 ? options : ['', '', '', ''];
+    return q;
+  });
+};
+
 export const ExamEditorView = ({ user, data, saveExam, showToast, onBack }: ExamEditorViewProps) => {
   const [title, setTitle] = useState('');
   const [duration, setDuration] = useState(45);
   const [grade, setGrade] = useState('');
   const [subjectId, setSubjectId] = useState(data.subjects[0]?.id ?? '');
-  const [questions, setQuestions] = useState<ExamQuestion[]>([EMPTY_QUESTION()]);
-  const [expandedId, setExpandedId] = useState<string>(questions[0]?.id ?? '');
+  const initialQ = [EMPTY_QUESTION()];
+  const [questions, setQuestions] = useState<ExamQuestion[]>(initialQ);
+  const [expandedId, setExpandedId] = useState<string>(initialQ[0].id);
   const [saving, setSaving] = useState(false);
   const [croppingId, setCroppingId] = useState<string | null>(null);
+  const [textDraft, setTextDraft] = useState(() => serializeToText(initialQ));
+  const [parseError, setParseError] = useState<string | null>(null);
 
   const updateQuestion = useCallback((id: string, patch: Partial<ExamQuestion>) => {
-    setQuestions(qs => qs.map(q => q.id === id ? { ...q, ...patch } : q));
+    setQuestions(prev => {
+      const next = prev.map(q => q.id === id ? { ...q, ...patch } : q);
+      setTextDraft(serializeToText(next));
+      return next;
+    });
   }, []);
 
   const addQuestion = () => {
     const q = EMPTY_QUESTION();
-    setQuestions(qs => [...qs, q]);
+    setQuestions(prev => { const next = [...prev, q]; setTextDraft(serializeToText(next)); return next; });
     setExpandedId(q.id);
   };
 
   const removeQuestion = (id: string) => {
-    setQuestions(qs => {
-      const next = qs.filter(q => q.id !== id);
-      return next.length > 0 ? next : [EMPTY_QUESTION()];
+    setQuestions(prev => {
+      const next = prev.filter(q => q.id !== id);
+      const result = next.length > 0 ? next : [EMPTY_QUESTION()];
+      setTextDraft(serializeToText(result));
+      return result;
     });
   };
 
   const moveQuestion = (id: string, dir: -1 | 1) => {
-    setQuestions(qs => {
-      const i = qs.findIndex(q => q.id === id);
-      if (i + dir < 0 || i + dir >= qs.length) return qs;
-      const copy = [...qs];
+    setQuestions(prev => {
+      const i = prev.findIndex(q => q.id === id);
+      if (i + dir < 0 || i + dir >= prev.length) return prev;
+      const copy = [...prev];
       [copy[i], copy[i + dir]] = [copy[i + dir], copy[i]];
+      setTextDraft(serializeToText(copy));
       return copy;
     });
+  };
+
+  const handleTextChange = (newText: string) => {
+    setTextDraft(newText);
+    try {
+      const parsed = parseFromText(newText, questions.map(q => q.id));
+      setQuestions(parsed);
+      setParseError(null);
+      setExpandedId(id => parsed.some(q => q.id === id) ? id : (parsed[0]?.id ?? ''));
+    } catch (e: any) {
+      setParseError(e.message);
+    }
   };
 
   const handleSave = async () => {
@@ -108,7 +180,7 @@ export const ExamEditorView = ({ user, data, saveExam, showToast, onBack }: Exam
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-3xl mx-auto">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-[1400px] mx-auto">
       <button onClick={onBack} className="text-sm text-slate-500 hover:text-slate-800 mb-4 flex items-center gap-1">
         ← Quay lại
       </button>
@@ -116,7 +188,7 @@ export const ExamEditorView = ({ user, data, saveExam, showToast, onBack }: Exam
       {/* Manual Crop Modal */}
       <AnimatePresence>
         {croppingId && pageImages && pageImages.length > 0 && (
-          <ManualCropModal 
+          <ManualCropModal
             pageImages={pageImages}
             onClose={() => setCroppingId(null)}
             onCrop={async (base64) => {
@@ -130,91 +202,122 @@ export const ExamEditorView = ({ user, data, saveExam, showToast, onBack }: Exam
         )}
       </AnimatePresence>
 
-      {/* Meta */}
-      <div className="bg-white rounded-2xl border border-slate-100 p-5 mb-4 space-y-4">
-        <h2 className="text-sm font-black text-slate-700">Thông tin đề thi</h2>
-        <div>
-          <label className="text-xs font-bold text-slate-500 block mb-1">Tiêu đề *</label>
-          <input
-            type="text"
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            placeholder="VD: Kiểm tra 15 phút Toán 10"
-            className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div className="grid grid-cols-3 gap-3">
-          <div>
-            <label className="text-xs font-bold text-slate-500 block mb-1">Môn học</label>
-            <select
-              value={subjectId}
-              onChange={e => setSubjectId(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+      <div className="flex gap-5 items-start">
+        {/* ── Left panel: card editor ── */}
+        <div className="flex-1 min-w-0">
+          {/* Meta */}
+          <div className="bg-white rounded-2xl border border-slate-100 p-5 mb-4 space-y-4">
+            <h2 className="text-sm font-black text-slate-700">Thông tin đề thi</h2>
+            <div>
+              <label className="text-xs font-bold text-slate-500 block mb-1">Tiêu đề *</label>
+              <input
+                type="text"
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                placeholder="VD: Kiểm tra 15 phút Toán 10"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="text-xs font-bold text-slate-500 block mb-1">Môn học</label>
+                <select
+                  value={subjectId}
+                  onChange={e => setSubjectId(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                >
+                  {data.subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-500 block mb-1">Thời gian (phút)</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={duration}
+                  onChange={e => setDuration(parseInt(e.target.value) || 45)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-500 block mb-1">Khối</label>
+                <input
+                  type="text"
+                  value={grade}
+                  onChange={e => setGrade(e.target.value)}
+                  placeholder="VD: 10"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Questions */}
+          <div className="space-y-3 mb-4">
+            {questions.map((q, i) => (
+              <QuestionCard
+                key={q.id}
+                question={q}
+                num={i + 1}
+                isExpanded={expandedId === q.id}
+                onToggle={() => setExpandedId(expandedId === q.id ? '' : q.id)}
+                onChange={patch => updateQuestion(q.id, patch)}
+                onRemove={() => removeQuestion(q.id)}
+                onMove={dir => moveQuestion(q.id, dir)}
+                onStartCrop={() => setCroppingId(q.id)}
+                hasPageImages={!!pageImages && pageImages.length > 0}
+              />
+            ))}
+          </div>
+
+          <div className="flex items-center justify-between gap-3">
+            <button
+              onClick={addQuestion}
+              className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-slate-300 text-slate-500 hover:border-blue-400 hover:text-blue-600 rounded-xl text-sm font-bold transition-all"
             >
-              {data.subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="text-xs font-bold text-slate-500 block mb-1">Thời gian (phút)</label>
-            <input
-              type="number"
-              min={1}
-              value={duration}
-              onChange={e => setDuration(parseInt(e.target.value) || 45)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-bold text-slate-500 block mb-1">Khối</label>
-            <input
-              type="text"
-              value={grade}
-              onChange={e => setGrade(e.target.value)}
-              placeholder="VD: 10"
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-            />
+              <Plus className="w-4 h-4" /> Thêm câu hỏi
+            </button>
+            <div className="flex items-center gap-2 text-xs text-slate-400">
+              <span>{questions.filter(q => q.content.trim()).length} câu có nội dung</span>
+              <span>•</span>
+              <span>Tổng {calculateMaxScore(questions.filter(q => q.content.trim()))} điểm</span>
+            </div>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-100 disabled:opacity-60"
+            >
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Lưu đề thi
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* Questions */}
-      <div className="space-y-3 mb-4">
-        {questions.map((q, i) => (
-          <QuestionCard
-            key={q.id}
-            question={q}
-            num={i + 1}
-            isExpanded={expandedId === q.id}
-            onToggle={() => setExpandedId(expandedId === q.id ? '' : q.id)}
-            onChange={patch => updateQuestion(q.id, patch)}
-            onRemove={() => removeQuestion(q.id)}
-            onMove={dir => moveQuestion(q.id, dir)}
-            onStartCrop={() => setCroppingId(q.id)}
-            hasPageImages={!!pageImages && pageImages.length > 0}
-          />
-        ))}
-      </div>
-
-      <div className="flex items-center justify-between gap-3">
-        <button
-          onClick={addQuestion}
-          className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-slate-300 text-slate-500 hover:border-blue-400 hover:text-blue-600 rounded-xl text-sm font-bold transition-all"
-        >
-          <Plus className="w-4 h-4" /> Thêm câu hỏi
-        </button>
-        <div className="flex items-center gap-2 text-xs text-slate-400">
-          <span>{questions.filter(q => q.content.trim()).length} câu có nội dung</span>
-          <span>•</span>
-          <span>Tổng {calculateMaxScore(questions.filter(q => q.content.trim()))} điểm</span>
+        {/* ── Right panel: text editor ── */}
+        <div className="w-80 xl:w-96 shrink-0 self-start sticky top-4">
+          <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-slate-100 flex items-center gap-2">
+              <span className="text-xs font-black text-slate-600 flex-1">Chỉnh sửa văn bản</span>
+              {parseError && (
+                <span className="text-[10px] font-bold text-red-500 truncate max-w-[160px]" title={parseError}>
+                  ⚠ {parseError}
+                </span>
+              )}
+            </div>
+            <textarea
+              value={textDraft}
+              onChange={e => handleTextChange(e.target.value)}
+              spellCheck={false}
+              className="w-full font-mono text-[11px] px-4 py-3 outline-none resize-none bg-slate-50 leading-relaxed"
+              style={{ height: '560px' }}
+            />
+          </div>
+          <p className="text-[10px] text-slate-400 mt-2 px-1 leading-relaxed">
+            Định dạng: <code># Câu N — MCQ/ĐS/Ngắn/TL — X điểm</code><br />
+            A. Phương án A &nbsp;•&nbsp; Đáp án: A<br />
+            Phân cách câu bằng dòng <code>---</code>
+          </p>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-100 disabled:opacity-60"
-        >
-          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          Lưu đề thi
-        </button>
       </div>
     </motion.div>
   );

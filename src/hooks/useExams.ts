@@ -7,6 +7,17 @@ import { User } from 'firebase/auth';
 import { db } from '../lib/firebase';
 import { Exam, ExamSubmission } from '../types';
 
+const normalizeExam = (e: Exam): Exam => ({
+  proctorMode: 'off' as const,
+  showResultWhen: 'submit' as const,
+  hideLeaderboard: false,
+  tfScoringMode: 'all_or_nothing' as const,
+  allowReview: true,
+  shuffleQuestions: false,
+  maxAttempts: 0,
+  ...e,
+});
+
 export const useExams = (user: User | null) => {
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(false);
@@ -21,7 +32,7 @@ export const useExams = (user: User | null) => {
       );
       const snap = await getDocs(q);
       const list: Exam[] = [];
-      snap.forEach(d => list.push(d.data() as Exam));
+      snap.forEach(d => list.push(normalizeExam(d.data() as Exam)));
       list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       setExams(list);
     } catch (e) {
@@ -78,7 +89,7 @@ export const findExamByCode = async (code: string): Promise<Exam | null> => {
   );
   const snap = await getDocs(q);
   if (snap.empty) return null;
-  return snap.docs[0].data() as Exam;
+  return normalizeExam(snap.docs[0].data() as Exam);
 };
 
 export const createSubmission = async (submission: ExamSubmission): Promise<void> => {
@@ -99,7 +110,7 @@ export const getSubmission = async (id: string): Promise<ExamSubmission | null> 
 
 export const getExamById = async (id: string): Promise<Exam | null> => {
   const snap = await getDoc(doc(db, 'exams', id));
-  return snap.exists() ? (snap.data() as Exam) : null;
+  return snap.exists() ? normalizeExam(snap.data() as Exam) : null;
 };
 
 export const updateExam = async (id: string, patch: Partial<Exam>): Promise<void> => {

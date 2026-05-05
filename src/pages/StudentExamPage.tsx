@@ -9,6 +9,7 @@ import 'katex/dist/katex.min.css';
 import { Clock, AlertTriangle, CheckCircle2, Loader2, Send } from 'lucide-react';
 import { Exam, ExamQuestion, ExamSubmission, StudentAnswer, QuestionType } from '../types';
 import { findExamByCode, createSubmission, updateSubmission } from '../hooks/useExams';
+import { computeAutoScore, isCompoundTF, parseTFSub } from '../utils/examScoring';
 
 type PageState = 'loading' | 'not_found' | 'intro' | 'taking' | 'submitting';
 
@@ -23,16 +24,6 @@ const shuffle = <T,>(arr: T[]): T[] => {
   return copy;
 };
 
-const normalizeText = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
-
-// Compound T/F: question has sub-options (a/b/c/d) with a combined correctAnswer like "Đ,S,Đ,S"
-const isCompoundTF = (q: ExamQuestion) =>
-  q.type === 'true_false' && Array.isArray(q.options) && q.options.length > 0;
-
-const parseTFSub = (v: string): Partial<Record<'a' | 'b' | 'c' | 'd', 'Đ' | 'S'>> => {
-  try { return JSON.parse(v); } catch { return {}; }
-};
-
 const isAnswered = (q: ExamQuestion, v: string): boolean => {
   if (!v) return false;
   if (isCompoundTF(q)) {
@@ -40,28 +31,6 @@ const isAnswered = (q: ExamQuestion, v: string): boolean => {
     return (['a', 'b', 'c', 'd'] as const).every(k => sub[k]);
   }
   return v.trim().length > 0;
-};
-
-const computeAutoScore = (q: ExamQuestion, answer: string): number | undefined => {
-  if (!answer) return 0;
-  if (q.type === 'multiple_choice') {
-    if (!q.correctAnswer) return undefined;
-    return answer.toUpperCase() === q.correctAnswer.toUpperCase() ? q.points : 0;
-  }
-  if (q.type === 'true_false') {
-    if (!q.correctAnswer) return undefined;
-    if (isCompoundTF(q)) {
-      const sub = parseTFSub(answer);
-      const combined = (['a', 'b', 'c', 'd'] as const).map(k => sub[k] || '').join(',');
-      return normalizeText(combined) === normalizeText(q.correctAnswer) ? q.points : 0;
-    }
-    return normalizeText(answer) === normalizeText(q.correctAnswer) ? q.points : 0;
-  }
-  if (q.type === 'short_answer') {
-    if (!q.correctAnswer) return undefined;
-    return normalizeText(answer) === normalizeText(q.correctAnswer) ? q.points : 0;
-  }
-  return undefined;
 };
 
 // ─── Section config ───────────────────────────────────────────────────────────
@@ -114,6 +83,7 @@ export const StudentExamPage = () => {
   const questionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const submittedRef = useRef(false);
+  const submissionIdRef = useRef<string | null>(null);
 
   // ── Group questions by type ───────────────────────────────────────────────
   const { sections, globalNum } = useMemo(() => {
@@ -146,7 +116,17 @@ export const StudentExamPage = () => {
   // ── Tab switch detection ──────────────────────────────────────────────────
   useEffect(() => {
     if (pageState !== 'taking') return;
-    const handler = () => { if (document.hidden) setTabSwitches(n => n + 1); };
+    const handler = () => {
+      if (document.hidden) {
+        setTabSwitches(n => {
+          const next = n + 1;
+          if (submissionIdRef.current) {
+            updateSubmission(submissionIdRef.current, { tabSwitches: next }).catch(console.error);
+          }
+          return next;
+        });
+      }
+    };
     document.addEventListener('visibilitychange', handler);
     return () => document.removeEventListener('visibilitychange', handler);
   }, [pageState]);
@@ -167,7 +147,7 @@ export const StudentExamPage = () => {
 
     const studentAnswers: StudentAnswer[] = orderedQuestions.map(q => {
       const a = answers[q.id] || '';
-      const autoScore = computeAutoScore(q, a);
+      const autoScore = computeAutoScore(q, a, exam!.tfScoringMode);
       return { questionId: q.id, answer: a, ...(autoScore !== undefined ? { autoScore } : {}) };
     });
 
@@ -232,6 +212,7 @@ export const StudentExamPage = () => {
     try {
       await createSubmission(newSub);
       setSubmissionId(id);
+      submissionIdRef.current = id;
       setRemainingSeconds(exam.durationMinutes * 60);
       setPageState('taking');
     } catch {
