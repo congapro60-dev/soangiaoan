@@ -17,12 +17,12 @@ export const useExams = (user: User | null) => {
     try {
       const q = query(
         collection(db, 'exams'),
-        where('teacherId', '==', user.uid),
-        orderBy('createdAt', 'desc')
+        where('teacherId', '==', user.uid)
       );
       const snap = await getDocs(q);
       const list: Exam[] = [];
       snap.forEach(d => list.push(d.data() as Exam));
+      list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       setExams(list);
     } catch (e) {
       console.error('Lỗi tải danh sách đề thi:', e);
