@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 
-export const MODELS = ['gemini-3.1-flash', 'gemini-3.1-pro', 'gemini-3-flash'];
+export const MODELS = ['gemini-3-flash-latest', 'gemini-3.1-pro-preview', 'gemini-3.1-flash-lite'];
 
 const GEMINI_MAX_OUTPUT_TOKENS = 65536;
 
