@@ -128,7 +128,7 @@ QUY TẮC PHÂN TÍCH:
    - Nếu một câu hỏi có hình minh họa (đồ thị, hình học, bảng biến thiên...), hãy tìm tọa độ của hình đó trên ảnh.
    - Trả về trường \`imageBox\`: [ymin, xmin, ymax, xmax] với các giá trị 0-1000.
    - Nếu ảnh trải dài trên nhiều trang, hãy chỉ định trang chứa hình trong trường \`pageIndex\` (0-based).
-4. CÔNG THỨC TOÁN: Giữ nguyên LaTeX $...$ và $$...$$.
+4. CÔNG THỨC TOÁN: Giữ nguyên LaTeX $...$ và $$...$$. ĐẢM BẢO escape dấu gạch chéo ngược trong JSON (ví dụ viết \\\\frac thay vì \\frac).
 5. OUTPUT BẮT BUỘC: Chỉ trả về mảng JSON thuần.
 
 Ví dụ format:
@@ -172,11 +172,31 @@ const normalizeType = (t: string | undefined, hasOptions: boolean): QuestionType
 };
 
 const extractJSON = (raw: string): RawQ[] => {
-  const fence = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
-  const src = fence ? fence[1] : raw;
-  const arr = src.match(/\[[\s\S]*\]/);
-  if (!arr) throw new Error('AI không trả về mảng JSON câu hỏi hợp lệ.');
-  return JSON.parse(arr[0]);
+  try {
+    const fence = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
+    const src = fence ? fence[1] : raw;
+    const arrMatch = src.match(/\[[\s\S]*\]/);
+    if (!arrMatch) throw new Error('AI không trả về mảng JSON câu hỏi hợp lệ.');
+    
+    let cleaned = arrMatch[0]
+      // Fix unescaped backslashes (common in LaTeX)
+      .replace(/\\(?!"|\\|\/|b|f|n|r|t|u[0-9a-fA-F]{4})/g, "\\\\")
+      // Fix potential unescaped newlines in content
+      .replace(/\n/g, "\\n")
+      .replace(/\r/g, "\\r")
+      // Restore the valid newlines that were just escaped but are actually outside strings (risky but often needed)
+      // Actually, better: just parse and catch.
+    
+    // Attempt 1: Standard parse
+    try { return JSON.parse(arrMatch[0]); } catch (e) {
+      // Attempt 2: Cleaned parse (only backslashes)
+      const cleanedBS = arrMatch[0].replace(/\\(?!"|\\|\/|b|f|n|r|t|u[0-9a-fA-F]{4})/g, "\\\\");
+      return JSON.parse(cleanedBS);
+    }
+  } catch (err: any) {
+    console.error("JSON Parse Error:", err, raw);
+    throw new Error(`Lỗi định dạng dữ liệu AI: ${err.message}`);
+  }
 };
 
 // ─── Main export ─────────────────────────────────────────────────────────────
