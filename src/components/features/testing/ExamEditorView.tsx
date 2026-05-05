@@ -168,6 +168,7 @@ export const ExamEditorView = ({ user, data, saveExam, showToast, onBack, pageIm
         shuffleQuestions: false,
         createdAt: now,
         updatedAt: now,
+        tfScoringMode: 'thpt2025', // Default to 2025 standard for new exams
       };
       await saveExam(exam);
       showToast(`Đã tạo đề "${exam.title}" với ${validQuestions.length} câu hỏi!`);

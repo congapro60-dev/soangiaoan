@@ -222,7 +222,7 @@ export const ExamConfigPage = () => {
               className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
             >
               <option value="all_or_nothing">Tất cả đúng mới được điểm (0% hoặc 100%)</option>
-              <option value="thpt2025">THPT 2025 — 2/4 đúng: 40%, 3/4 đúng: 75%, 4/4 đúng: 100%</option>
+              <option value="thpt2025">THPT 2025 — 1/4 đúng: 10%, 2/4: 25%, 3/4: 50%, 4/4: 100%</option>
             </select>
           </Field>
         </Section>
