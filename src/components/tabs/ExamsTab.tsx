@@ -12,6 +12,7 @@ import {
   Plus, Link as LinkIcon, Power, PowerOff, Trash2, Users, Clock,
   Copy, Loader2, FileText, BarChart3, CheckCircle2, X, ChevronRight,
   History, Download, Brain, RefreshCw, Upload, QrCode, ArrowRight,
+  Edit3,
 } from 'lucide-react';
 import { User } from 'firebase/auth';
 import { AppData, Exam, ExamSubmission, ExamQuestion, StudentAnswer } from '../../types';
@@ -19,6 +20,7 @@ import { useExams, updateSubmission } from '../../hooks/useExams';
 import { parseMarkdownToQuestions, generateExamCode, calculateMaxScore } from '../../lib/examParser';
 import { callAI } from '../../lib/aiProviders';
 import { ImportExamModal } from '../features/testing/ImportExamModal';
+import { ExamEditorView } from '../features/testing/ExamEditorView';
 
 interface ExamsTabProps {
   user: User;
@@ -136,6 +138,8 @@ const exportToExcel = (exam: Exam, submissions: ExamSubmission[]) => {
 };
 
 // ─────────────────────────────────────────────
+type CreateView = 'picker' | 'editor' | null;
+
 export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
   const { exams, loading, saveExam, deleteExam, toggleActive, getSubmissions, fetchMyExams } = useExams(user);
   const [creating, setCreating] = useState(false);
@@ -143,6 +147,7 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
   const [submissions, setSubmissions] = useState<ExamSubmission[]>([]);
   const [loadingSubs, setLoadingSubs] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [createView, setCreateView] = useState<CreateView>(null);
 
   const reloadSubmissions = useCallback(async (exam: Exam) => {
     setLoadingSubs(true);
@@ -326,6 +331,18 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
     }
   };
 
+  if (createView === 'editor') {
+    return (
+      <ExamEditorView
+        user={user}
+        data={data}
+        saveExam={saveExam}
+        showToast={showToast}
+        onBack={() => { setCreateView(null); fetchMyExams(); }}
+      />
+    );
+  }
+
   if (selectedExam) {
     return (
       <ExamDetail
@@ -359,20 +376,12 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
             <RefreshCw className="w-4 h-4" />
           </button>
           <button
-            onClick={() => setShowImportModal(true)}
-            disabled={creating}
-            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-emerald-100 hover:bg-emerald-700 disabled:opacity-60"
-          >
-            <Upload className="w-4 h-4" />
-            Nhập đề từ file
-          </button>
-          <button
-            onClick={handleCreateFromHistory}
+            onClick={() => setCreateView('picker')}
             disabled={creating}
             className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-100 hover:bg-blue-700 disabled:opacity-60"
           >
             {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-            {creating ? 'AI đang phân tích...' : 'Tạo đề từ Bảng Kiểm tra'}
+            {creating ? 'AI đang phân tích...' : 'Tạo đề mới'}
           </button>
         </div>
       </div>
@@ -453,6 +462,55 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
           settings={data.settings}
           showToast={showToast}
         />
+      )}
+
+      {/* Method picker modal */}
+      {createView === 'picker' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setCreateView(null)}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-black text-slate-800">Tạo đề thi mới</h3>
+              <button onClick={() => setCreateView(null)} className="text-slate-400 hover:text-slate-700">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <MethodCard
+                icon={<Upload className="w-6 h-6" />}
+                title="AI từ file"
+                desc="Upload PDF / DOCX / ảnh — AI tự parse câu hỏi"
+                color="bg-purple-50 text-purple-600"
+                onClick={() => { setCreateView(null); setShowImportModal(true); }}
+              />
+              <MethodCard
+                icon={<FileText className="w-6 h-6" />}
+                title="Import Excel"
+                desc="Nhập đề từ file .xlsx theo mẫu có sẵn"
+                color="bg-emerald-50 text-emerald-600"
+                onClick={() => { setCreateView(null); setShowImportModal(true); }}
+              />
+              <MethodCard
+                icon={<History className="w-6 h-6" />}
+                title="Từ Bảng Kiểm tra"
+                desc="Dùng đề đã soạn bằng AI trong tab Bảng KT"
+                color="bg-blue-50 text-blue-600"
+                onClick={() => { setCreateView(null); handleCreateFromHistory(); }}
+              />
+              <MethodCard
+                icon={<Edit3 className="w-6 h-6" />}
+                title="Soạn thủ công"
+                desc="Tự nhập từng câu hỏi với đầy đủ loại câu"
+                color="bg-amber-50 text-amber-600"
+                onClick={() => setCreateView('editor')}
+              />
+            </div>
+          </motion.div>
+        </div>
       )}
     </motion.div>
   );
@@ -920,6 +978,21 @@ const ExamStatsPanel = ({ exam, submissions }: { exam: Exam; submissions: ExamSu
     </div>
   );
 };
+
+// ─── MethodCard ──────────────────────────────────────────────────────────────
+
+const MethodCard = ({ icon, title, desc, color, onClick }: {
+  icon: React.ReactNode; title: string; desc: string; color: string; onClick: () => void;
+}) => (
+  <button
+    onClick={onClick}
+    className="text-left p-4 rounded-2xl border-2 border-slate-100 hover:border-blue-300 hover:shadow-sm transition-all group"
+  >
+    <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${color}`}>{icon}</div>
+    <p className="text-sm font-black text-slate-800 group-hover:text-blue-700 mb-1">{title}</p>
+    <p className="text-xs text-slate-400">{desc}</p>
+  </button>
+);
 
 // ─── QRModal ─────────────────────────────────────────────────────────────────
 
