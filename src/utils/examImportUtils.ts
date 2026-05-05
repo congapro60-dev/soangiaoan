@@ -1,9 +1,19 @@
 import * as mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist';
-import { callAI } from '../lib/aiProviders';
+import { callAI, callAIWithVision } from '../lib/aiProviders';
 import { AppData, ExamQuestion, QuestionType } from '../types';
 
 type Settings = AppData['settings'];
+
+const IMAGE_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+
+const fileToDataUrl = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target?.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 
 // Set worker once at module level (shared with TestingTab)
 if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
@@ -42,13 +52,15 @@ export const extractTextFromFile = async (file: File): Promise<string> => {
 
 // ─── AI prompt ──────────────────────────────────────────────────────────────
 
-const buildImportPrompt = (examText: string, answerKeyText: string): string => `
+const buildImportPrompt = (examText: string, answerKeyText: string, isVision = false): string => `
 BẠN LÀ CHUYÊN GIA PHÂN TÍCH ĐỀ THI VIỆT NAM.
-NHIỆM VỤ: Chuyển đổi nội dung đề thi thành mảng JSON câu hỏi cho hệ thống thi trực tuyến.
+NHIỆM VỤ: Chuyển đổi ${isVision ? 'ẢNH đề thi đính kèm' : 'nội dung đề thi'} thành mảng JSON câu hỏi cho hệ thống thi trực tuyến.
 
 ${answerKeyText ? `=== ĐÁP ÁN (FILE RIÊNG) ===\n${answerKeyText}\n\n` : ''}
-=== ĐỀ THI ===
-${examText}
+${isVision
+  ? '⚠️ Đề thi ở dạng ẢNH — hãy đọc toàn bộ nội dung từ ảnh đính kèm và phân tích.'
+  : `=== ĐỀ THI ===\n${examText}`
+}
 
 QUY TẮC PHÂN TÍCH:
 
@@ -134,13 +146,36 @@ export const parseExamFromFiles = async (
   answerKeyFile: File | null,
   settings: Settings,
 ): Promise<ExamQuestion[]> => {
-  const examText = await extractTextFromFile(examFile);
-  if (!examText.trim()) throw new Error('Không trích xuất được nội dung từ file đề.');
+  const ext = examFile.name.split('.').pop()?.toLowerCase() ?? '';
+  const isImage = IMAGE_EXTS.includes(ext);
 
-  const answerKeyText = answerKeyFile ? await extractTextFromFile(answerKeyFile) : '';
+  let response: string;
 
-  const prompt = buildImportPrompt(examText, answerKeyText);
-  const response = await callAI(prompt, settings);
+  if (isImage) {
+    // Vision path: send image directly to AI
+    const answerKeyText = answerKeyFile && !IMAGE_EXTS.includes(
+      (answerKeyFile.name.split('.').pop() ?? '').toLowerCase()
+    ) ? await extractTextFromFile(answerKeyFile) : '';
+
+    const examDataUrl = await fileToDataUrl(examFile);
+    const prompt = buildImportPrompt('', answerKeyText, true);
+    response = await callAIWithVision(prompt, examDataUrl, settings);
+  } else {
+    // Text path: extract text then call AI
+    const examText = await extractTextFromFile(examFile);
+    if (!examText.trim()) {
+      const isPdf = ext === 'pdf';
+      throw new Error(
+        isPdf
+          ? 'PDF này có vẻ là ảnh scan. Hãy chụp ảnh (JPG/PNG) rồi upload lại để dùng tính năng Vision AI.'
+          : 'Không trích xuất được nội dung từ file đề.'
+      );
+    }
+    const answerKeyText = answerKeyFile ? await extractTextFromFile(answerKeyFile) : '';
+    const prompt = buildImportPrompt(examText, answerKeyText);
+    response = await callAI(prompt, settings);
+  }
+
   if (!response) throw new Error('AI không trả về dữ liệu.');
 
   const rawList = extractJSON(response);

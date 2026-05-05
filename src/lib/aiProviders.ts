@@ -72,8 +72,8 @@ async function callRelay(
 }
 
 export const CLAUDE_MODELS = [
-  { id: 'claude-opus-4-6', name: 'Claude Opus 4.6', desc: 'Mạnh nhất, suy luận chuyên sâu' },
-  { id: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6', desc: 'Cân bằng tốc độ & chất lượng (Default)' },
+  { id: 'claude-opus-4-7', name: 'Claude Opus 4.7', desc: 'Mạnh nhất, suy luận chuyên sâu' },
+  { id: 'claude-sonnet-4-7', name: 'Claude Sonnet 4.7', desc: 'Cân bằng tốc độ & chất lượng (Default)' },
   { id: 'claude-haiku-4-5-20251001', name: 'Claude Haiku 4.5', desc: 'Nhanh, tiết kiệm chi phí' },
 ];
 
@@ -95,9 +95,9 @@ export const DEEPSEEK_MODELS = [
 ];
 
 export const GEMINI_MODELS = [
-  { id: 'gemini-3.1-flash-lite-preview', name: 'Gemini 3.1 Flash Lite', desc: 'Nhanh, hiệu suất cao (Default)' },
-  { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro', desc: 'Thông minh, suy luận đa tầng' },
-  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', desc: 'Phiên bản ổn định, tốc độ tốt' },
+  { id: 'gemini-3.1-flash', name: 'Gemini 3.1 Flash', desc: 'Siêu nhanh, hiệu suất cao (Default)' },
+  { id: 'gemini-3.1-pro', name: 'Gemini 3.1 Pro', desc: 'Thông minh nhất, suy luận đa tầng' },
+  { id: 'gemini-3.0-flash', name: 'Gemini 3.0 Flash', desc: 'Phiên bản ổn định trước đó' },
 ];
 
 export function getActiveApiKey(settings: Settings): string {
@@ -118,7 +118,7 @@ async function callAIOnce(prompt: string, settings: Settings): Promise<RawResult
       const Anthropic = (await import('@anthropic-ai/sdk')).default;
       const client = new Anthropic({ apiKey: settings.claudeApiKey, dangerouslyAllowBrowser: true });
       const msg = await client.messages.create({
-        model: settings.selectedModel || 'claude-sonnet-4-6',
+        model: settings.selectedModel || 'claude-sonnet-4-7',
         max_tokens: CLAUDE_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
       });
@@ -219,7 +219,7 @@ export async function callAIWithVision(
     const Anthropic = (await import('@anthropic-ai/sdk')).default;
     const client = new Anthropic({ apiKey: settings.claudeApiKey, dangerouslyAllowBrowser: true });
     const msg = await client.messages.create({
-      model: settings.selectedModel || 'claude-sonnet-4-6',
+      model: settings.selectedModel || 'claude-sonnet-4-7',
       max_tokens: CLAUDE_MAX_TOKENS,
       messages: [{
         role: 'user',
@@ -303,7 +303,7 @@ export async function callAIStream(
       const Anthropic = (await import('@anthropic-ai/sdk')).default;
       const client = new Anthropic({ apiKey: settings.claudeApiKey, dangerouslyAllowBrowser: true });
       const stream = client.messages.stream({
-        model: settings.selectedModel || 'claude-sonnet-4-6',
+        model: settings.selectedModel || 'claude-sonnet-4-7',
         max_tokens: CLAUDE_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
       });

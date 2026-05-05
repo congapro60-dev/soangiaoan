@@ -133,10 +133,10 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
                     <>
                       <Upload className="w-8 h-8 text-slate-300 mx-auto mb-2" />
                       <p className="text-sm font-bold text-slate-500">Kéo thả hoặc click để chọn file đề thi</p>
-                      <p className="text-xs text-slate-400 mt-1">Hỗ trợ PDF, DOCX, TXT — tối đa {MAX_IMPORT_MB}MB</p>
+                      <p className="text-xs text-slate-400 mt-1">Hỗ trợ PDF, DOCX, TXT, JPG, PNG — tối đa {MAX_IMPORT_MB}MB</p>
                     </>
                   )}
-                  <input ref={examRef} type="file" accept=".pdf,.docx,.txt" className="hidden"
+                  <input ref={examRef} type="file" accept=".pdf,.docx,.txt,.jpg,.jpeg,.png,.webp" className="hidden"
                     onChange={e => handleFile(e.target.files?.[0], 'exam')} />
                 </div>
               </div>
