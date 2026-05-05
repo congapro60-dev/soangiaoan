@@ -1055,7 +1055,7 @@ const AnswerEditModal = ({ exam, submissions, data, showToast, onClose, onSaved 
             const autoScore = computeAutoScore(q, a.answer, exam.tfScoringMode);
             return { ...a, autoScore: autoScore ?? a.autoScore };
           });
-          const totalScore = recalcTotalScore(newAnswers, updatedQuestions, exam.tfScoringMode);
+          const totalScore = recalcTotalScore(updatedQuestions, newAnswers, exam.tfScoringMode);
           await updateSubmission(sub.id, { answers: newAnswers as StudentAnswer[], totalScore });
         }
         showToast(`Đã cập nhật đáp án và tính lại điểm cho ${completedSubs.length} bài!`);

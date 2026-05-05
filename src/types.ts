@@ -87,11 +87,14 @@ export interface ExamQuestion {
   explanation?: string;
 }
 
+export type TfScoringMode = 'all_or_nothing' | 'thpt2025';
+
 export interface Exam {
   id: string;
   code: string;
   title: string;
   subjectId: string;
+  subjectName?: string;
   grade?: string;
   teacherId: string;
   teacherName: string;

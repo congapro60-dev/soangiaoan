@@ -207,7 +207,150 @@ body {
   background: #94a3b8;
 }
 
-/* Fix MDEditor fullscreen z-index conflict: lower Sidebar and Header z-index when fullscreen is active */
+/* 📜 EXAM PAPER STYLING (MOET Standard 2025) */
+.exam-paper {
+  font-family: 'Times New Roman', Times, serif !important;
+  font-size: 13pt !important;
+  line-height: 1.5 !important;
+  color: #000 !important;
+  background-color: white;
+  width: 210mm;
+  margin: 0 auto;
+  padding: 15mm 20mm;
+  box-shadow: 0 0 20px rgba(0,0,0,0.1);
+  min-height: 297mm;
+  counter-reset: page;
+}
+
+.exam-paper h1, .exam-paper h2 {
+  font-size: 14pt !important;
+  font-weight: bold !important;
+  text-transform: uppercase;
+  text-align: center;
+  margin: 10px 0;
+}
+
+.exam-paper .question-block {
+  margin-bottom: 20px;
+  page-break-inside: avoid;
+}
+
+.exam-paper .options-grid {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.exam-paper .options-4-cols { grid-template-columns: repeat(4, 1fr); }
+.exam-paper .options-2-cols { grid-template-columns: repeat(2, 1fr); }
+.exam-paper .options-1-col  { grid-template-columns: 1fr; }
+
+.exam-paper .answer-section {
+  page-break-before: always;
+  margin-top: 40px;
+  border-top: 2px dashed #ccc;
+  padding-top: 20px;
+}
+
+/* 🖨️ PRINT OPTIMIZATION – window.print() / Ctrl+P */
+
+/* Lề chuẩn A4 (phải khai báo NGOÀI @media print để trình duyệt nhận) */
+@page {
+  size: A4;
+  margin: 20mm;
+}
+
+@media print {
+  /* ✅ KHÔNG dùng visibility:hidden hay position:absolute – nguyên nhân số 1 gây cắt nội dung */
+
+  /* Ẩn mọi thứ ngoài phần in */
+  .no-print,
+  .no-print * {
+    display: none !important;
+  }
+
+  /* Body không có overflow ẩn */
+  html, body {
+    height: auto !important;
+    overflow: visible !important;
+    background: white !important;
+  }
+
+  /* Container đề thi – reset về full width tự nhiên */
+  .exam-paper {
+    width: 100% !important;
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    position: static !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    page-break-after: auto;
+  }
+
+  /* Tránh cắt câu hỏi giữa trang */
+  .question-block,
+  .question-item {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Xóa ràng buộc trên mọi phần tử con */
+  .exam-paper *, .preview-paper * {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  /* Trang đáp án bắt đầu từ trang mới */
+  .answer-section {
+    page-break-before: always !important;
+  }
+
+  /* Số trang */
+  .exam-paper::after {
+    content: "Trang " counter(page) "/" counter(pages);
+    counter-increment: page;
+    display: block;
+    text-align: center;
+    font-size: 10pt;
+    color: #666;
+    margin-top: 10mm;
+  }
+
+  /* Các overlay, modal backdrop phải ẩn */
+  [class*="fixed"],
+  [class*="sticky"],
+  [class*="z-"] {
+    position: static !important;
+  }
+}
+
+/* 📐 OPTION GRID cho MCQ (dùng cả trên web và khi in) */
+.options-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 8px;
+}
+.options-grid.long-option { grid-template-columns: repeat(2, 1fr); }
+.options-grid.longest      { grid-template-columns: 1fr; }
+
+@media print {
+  .options-grid            { grid-template-columns: repeat(2, 1fr); }
+  .options-grid.long-option{ grid-template-columns: repeat(2, 1fr); }
+  .options-grid.longest    { grid-template-columns: 1fr; }
+}
+
+/* 📝 QUESTION ITEM spacing */
+.question-item,
+.question-block {
+  margin-bottom: 1.5rem;
+  break-inside: avoid;
+}
+
+/* Fix MDEditor fullscreen z-index conflict */
 body:has(.w-md-editor-fullscreen) aside,
 body:has(.w-md-editor-fullscreen) header {
   z-index: 0 !important;

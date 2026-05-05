@@ -92,8 +92,9 @@ export const findExamByCode = async (code: string): Promise<Exam | null> => {
   return normalizeExam(snap.docs[0].data() as Exam);
 };
 
-export const createSubmission = async (submission: ExamSubmission): Promise<void> => {
+export const createSubmission = async (submission: ExamSubmission): Promise<string> => {
   await setDoc(doc(db, 'examSubmissions', submission.id), submission);
+  return submission.id;
 };
 
 export const updateSubmission = async (
