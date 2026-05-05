@@ -4,6 +4,8 @@ import { Upload, FileText, X, Loader2, CheckCircle2, AlertCircle, ChevronRight, 
 import { ExamQuestion, QuestionType } from '../../../types';
 import { parseExamFromFiles, summarizeQuestions, MAX_IMPORT_MB, pdfToImages } from '../../../utils/examImportUtils';
 import type { AppData } from '../../../types';
+import { ManualCropModal } from './ManualCropModal';
+import { AnimatePresence } from 'motion/react';
 
 interface Props {
   onClose: () => void;
@@ -103,6 +105,7 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
   const [xlsxFile, setXlsxFile] = useState<File | null>(null);
   const [questions, setQuestions] = useState<ExamQuestion[]>([]);
   const [examTitle, setExamTitle] = useState('');
+  const [cropTargetIndex, setCropTargetIndex] = useState<number | null>(null);
   const [error, setError] = useState('');
   const [parsing, setParsing] = useState(false);
   const [pageImages, setPageImages] = useState<string[]>([]);
@@ -686,9 +689,9 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
                         <div className="flex items-center gap-2 ml-auto">
                           {pageImages.length > 0 && (
                             <button 
-                              onClick={handleConfirm}
+                              onClick={() => setCropTargetIndex(idx)}
                               className="p-2.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all"
-                              title="Dùng trình cắt ảnh chuyên sâu"
+                              title="Cắt từ PDF"
                             >
                               <Scissors className="w-4.5 h-4.5" />
                             </button>
@@ -765,6 +768,19 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {cropTargetIndex !== null && (
+          <ManualCropModal 
+            pageImages={pageImages}
+            onCrop={(url) => {
+              updateQuestion(cropTargetIndex, { imageUrl: url });
+              setCropTargetIndex(null);
+            }}
+            onClose={() => setCropTargetIndex(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
