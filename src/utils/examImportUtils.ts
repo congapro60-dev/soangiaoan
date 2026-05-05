@@ -130,7 +130,7 @@ QUY TẮC PHÂN TÍCH:
    - Nếu ảnh trải dài trên nhiều trang, hãy chỉ định trang chứa hình trong trường \`pageIndex\` (0-based).
 4. CÔNG THỨC TOÁN: Giữ nguyên LaTeX $...$ và $$...$$. ĐẢM BẢO escape dấu gạch chéo ngược trong JSON (ví dụ viết \\\\frac thay vì \\frac).
 5. CÂU HỎI ĐÚNG/SAI (PHẦN II): ĐẢM BẢO trích xuất 4 mệnh đề vào mảng "options" (ví dụ: ["a. ...", "b. ...", "c. ...", "d. ..."]). Đáp án "correctAnswer" phải là chuỗi 4 ký tự Đ hoặc S cách nhau bởi dấu phẩy (ví dụ: "Đ,S,S,Đ").
-6. OUTPUT BẮT BUỘC: Chỉ trả về mảng JSON thuần.
+6. OUTPUT BẮT BUỘC: Chỉ trả về mảng JSON thuần. Tuyệt đối không có văn bản thừa ngoài mảng JSON. Đảm bảo JSON hợp lệ, không có dấu phẩy thừa ở cuối mảng/đối tượng.
 
 Ví dụ format:
 [
@@ -179,24 +179,32 @@ const extractJSON = (raw: string): RawQ[] => {
     const arrMatch = src.match(/\[[\s\S]*\]/);
     if (!arrMatch) throw new Error('AI không trả về mảng JSON câu hỏi hợp lệ.');
     
-    let cleaned = arrMatch[0]
-      // Fix unescaped backslashes (common in LaTeX)
-      .replace(/\\(?!"|\\|\/|b|f|n|r|t|u[0-9a-fA-F]{4})/g, "\\\\")
-      // Fix potential unescaped newlines in content
-      .replace(/\n/g, "\\n")
-      .replace(/\r/g, "\\r")
-      // Restore the valid newlines that were just escaped but are actually outside strings (risky but often needed)
-      // Actually, better: just parse and catch.
+    const rawJSON = arrMatch[0];
     
     // Attempt 1: Standard parse
-    try { return JSON.parse(arrMatch[0]); } catch (e) {
-      // Attempt 2: Cleaned parse (only backslashes)
-      const cleanedBS = arrMatch[0].replace(/\\(?!"|\\|\/|b|f|n|r|t|u[0-9a-fA-F]{4})/g, "\\\\");
-      return JSON.parse(cleanedBS);
+    try {
+      return JSON.parse(rawJSON);
+    } catch (e) {
+      console.warn("Raw JSON parse failed, attempting repair...", e);
+    }
+
+    // Attempt 2: Aggressive repair
+    const fixed = rawJSON
+      // 1. Fix unescaped backslashes (common in LaTeX like \frac)
+      .replace(/\\(?!"|\\|\/|b|f|n|r|t|u[0-9a-fA-F]{4})/g, "\\\\")
+      // 2. Remove trailing commas (AI often adds these)
+      .replace(/,\s*([\]}])/g, "$1")
+      // 3. Fix unescaped newlines inside strings (experimental)
+      .replace(/(\"[\s\S]*?\")/g, (match) => match.replace(/\n/g, "\\n").replace(/\r/g, ""));
+    
+    try {
+      return JSON.parse(fixed);
+    } catch (err: any) {
+      console.error("JSON Final Parse Error:", err, fixed);
+      throw new Error(`Lỗi định dạng JSON tại vị trí ${err.message.match(/position (\d+)/)?.[1] || 'không xác định'}. Vui lòng thử lại hoặc dùng Magic Mode.`);
     }
   } catch (err: any) {
-    console.error("JSON Parse Error:", err, raw);
-    throw new Error(`Lỗi định dạng dữ liệu AI: ${err.message}`);
+    throw err;
   }
 };
 
