@@ -128,7 +128,7 @@ QUY TẮC PHÂN TÍCH:
    - Nếu một câu hỏi có hình minh họa (đồ thị, hình học, bảng biến thiên...), hãy tìm tọa độ của hình đó trên ảnh.
    - Trả về trường \`imageBox\`: [ymin, xmin, ymax, xmax] với các giá trị 0-1000.
    - Nếu ảnh trải dài trên nhiều trang, hãy chỉ định trang chứa hình trong trường \`pageIndex\` (0-based).
-4. CÔNG THỨC TOÁN: Giữ nguyên LaTeX $...$ và $$...$$. ĐẢM BẢO escape dấu gạch chéo ngược trong JSON (ví dụ viết \\\\frac thay vì \\frac).
+4. CÔNG THỨC TOÁN: Mọi công thức Toán BẮT BUỘC phải được bao bọc trong cặp dấu $...$ (inline) hoặc $$...$$ (block), kể cả trong nội dung và các phương án A, B, C, D. ĐẢM BẢO escape dấu gạch chéo ngược trong JSON (ví dụ viết \\\\frac thay vì \\frac).
 5. CÂU HỎI ĐÚNG/SAI (PHẦN II): ĐẢM BẢO trích xuất 4 mệnh đề vào mảng "options" (ví dụ: ["a. ...", "b. ...", "c. ...", "d. ..."]). Đáp án "correctAnswer" phải là chuỗi 4 ký tự Đ hoặc S cách nhau bởi dấu phẩy (ví dụ: "Đ,S,S,Đ").
 6. OUTPUT BẮT BUỘC: Chỉ trả về mảng JSON thuần. Tuyệt đối không có văn bản thừa ngoài mảng JSON. Đảm bảo JSON hợp lệ, không có dấu phẩy thừa ở cuối mảng/đối tượng.
 

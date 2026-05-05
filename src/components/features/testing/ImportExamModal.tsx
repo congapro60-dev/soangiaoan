@@ -810,6 +810,21 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
 
 // ─── Student Preview Component ──────────────────────────────────────────────────
 
+/** Fail-safe to wrap un-wrapped LaTeX commands */
+const ensureMathWrapped = (text: string) => {
+  if (!text) return '';
+  // If it already has $, trust it
+  if (text.includes('$')) return text;
+  
+  const latexPattern = /\\(frac|sqrt|alpha|beta|gamma|delta|epsilon|zeta|eta|theta|iota|kappa|lambda|mu|nu|xi|omicron|pi|rho|sigma|tau|upsil|phi|chi|psi|omega|infty|partial|sum|prod|int|oint|iint|iiint|diff|nabla|times|div|pm|mp|cdot|cap|cup|subset|supset|in|notin|exists|forall|neg|wedge|vee|to|gets|mapsto|leftarrow|rightarrow|long|Left|Right|iff|equiv|sim|approx|ne|le|ge|circ|deg|text|mathbf|mathit|mathrm|mathsf|mathtt|mathbb|mathcal|mathscr|mathfrak|binom|cases|matrix|vmatrix|Vmatrix|array|begin|end|sin|cos|tan|cot|arcsin|arccos|arctan|log|ln|lim|max|min|sup|inf|vert|Vert|langle|rangle|lceil|rceil|lfloor|rfloor|dots|cdots|ldots|ddots|vdots|over|under|bar|hat|tilde|vec|dot|ddot|acute|grave|check|breve|mathstrut|phantom|vphantom|hphantom|smash|rule|color|hspace|vspace|quad|qquad|label|ref|cite|nonumber|intertext|tag|mathcal)/g;
+  
+  if (latexPattern.test(text)) {
+    // Attempt to wrap inline LaTeX commands
+    return text.replace(/(\\[a-zA-Z]+(?:\{[^{}]*\}|\[[^\[\]]*\])*)/g, '$$$1$$');
+  }
+  return text;
+};
+
 const StudentPreviewModal = ({ questions, title, onClose }: { 
   questions: ExamQuestion[]; 
   title: string; 
@@ -877,7 +892,7 @@ const StudentPreviewModal = ({ questions, title, onClose }: {
 
                       <div className="prose prose-slate max-w-none mb-6">
                         <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>
-                          {q.content}
+                          {ensureMathWrapped(q.content)}
                         </ReactMarkdown>
                       </div>
 
@@ -894,7 +909,7 @@ const StudentPreviewModal = ({ questions, title, onClose }: {
                             <div key={label} className="flex items-center gap-3 p-3 rounded-2xl border border-slate-50 bg-slate-50/30">
                               <span className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-[11px] font-black text-slate-400">{label}</span>
                               <div className="text-sm text-slate-600 font-medium">
-                                <ReactMarkdown remarkPlugins={[remarkMath]}>{q.options?.[i] || ''}</ReactMarkdown>
+                                <ReactMarkdown remarkPlugins={[remarkMath]}>{ensureMathWrapped(q.options?.[i] || '')}</ReactMarkdown>
                               </div>
                             </div>
                           ))}
@@ -908,7 +923,7 @@ const StudentPreviewModal = ({ questions, title, onClose }: {
                               <div className="flex items-start gap-3">
                                 <span className="text-xs font-black text-slate-400 mt-0.5">{label})</span>
                                 <div className="text-sm text-slate-600">
-                                  <ReactMarkdown remarkPlugins={[remarkMath]}>{q.options?.[i] || ''}</ReactMarkdown>
+                                  <ReactMarkdown remarkPlugins={[remarkMath]}>{ensureMathWrapped(q.options?.[i] || '')}</ReactMarkdown>
                                 </div>
                               </div>
                               <div className="flex gap-2">
