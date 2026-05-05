@@ -1,11 +1,16 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'motion/react';
 import Swal from 'sweetalert2';
 import * as XLSX from 'xlsx';
 import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, Cell,
+} from 'recharts';
+import { QRCodeSVG } from 'qrcode.react';
+import {
   Plus, Link as LinkIcon, Power, PowerOff, Trash2, Users, Clock,
   Copy, Loader2, FileText, BarChart3, CheckCircle2, X, ChevronRight,
-  History, Download, Brain, RefreshCw, Upload
+  History, Download, Brain, RefreshCw, Upload, QrCode, ArrowRight,
 } from 'lucide-react';
 import { User } from 'firebase/auth';
 import { AppData, Exam, ExamSubmission, ExamQuestion, StudentAnswer } from '../../types';
@@ -471,6 +476,8 @@ const ExamDetail = ({
   onBack, onCopy, onToggle, onSubmissionsChange, onReload
 }: ExamDetailProps) => {
   const [gradingId, setGradingId] = useState<string | null>(null);
+  const [detailTab, setDetailTab] = useState<'list' | 'stats'>('list');
+  const [showQR, setShowQR] = useState(false);
 
   const completed = submissions.filter(s => s.status !== 'in_progress');
   const avgScore = completed.length > 0
@@ -559,6 +566,9 @@ const ExamDetail = ({
             <button onClick={onCopy} className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-bold">
               <Copy className="w-3.5 h-3.5" /> Copy link
             </button>
+            <button onClick={() => setShowQR(true)} className="flex items-center gap-2 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-bold">
+              <QrCode className="w-3.5 h-3.5" /> QR Code
+            </button>
             {completed.length > 0 && (
               <button
                 onClick={() => exportToExcel(exam, submissions)}
@@ -589,80 +599,99 @@ const ExamDetail = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 mb-6">
+      {/* Summary stat cards */}
+      <div className="grid grid-cols-3 gap-3 mb-4">
         <StatCard icon={<Users className="w-5 h-5" />} label="Lượt làm" value={submissions.length.toString()} color="text-blue-600 bg-blue-50" />
         <StatCard icon={<CheckCircle2 className="w-5 h-5" />} label="Đã nộp" value={completed.length.toString()} color="text-emerald-600 bg-emerald-50" />
         <StatCard icon={<BarChart3 className="w-5 h-5" />} label="Điểm TB" value={avgScore} color="text-purple-600 bg-purple-50" />
       </div>
 
-      <div className="bg-white rounded-3xl border border-slate-100 overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-50 flex items-center justify-between">
-          <h3 className="font-bold text-slate-800">Bài làm học sinh</h3>
-          {completed.length > 0 && <span className="text-xs text-slate-400">{completed.length} bài đã nộp</span>}
-        </div>
-        {loading ? (
-          <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-blue-500" /></div>
-        ) : submissions.length === 0 ? (
-          <p className="text-center text-sm text-slate-400 py-12">Chưa có học sinh nào làm bài.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
-                <tr>
-                  <th className="text-left px-6 py-3 font-bold">Họ tên</th>
-                  <th className="text-left px-6 py-3 font-bold">Lớp</th>
-                  <th className="text-left px-6 py-3 font-bold">Bắt đầu</th>
-                  <th className="text-left px-6 py-3 font-bold">Trạng thái</th>
-                  <th className="text-right px-6 py-3 font-bold">Điểm</th>
-                  {hasEssayQuestions && <th className="text-center px-6 py-3 font-bold">AI Chấm</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {submissions.map(s => (
-                  <tr key={s.id} className="border-t border-slate-50 hover:bg-slate-50/50">
-                    <td className="px-6 py-3 font-medium text-slate-800">{s.studentName}</td>
-                    <td className="px-6 py-3 text-slate-500">{s.studentClass || '—'}</td>
-                    <td className="px-6 py-3 text-slate-500 text-xs">{new Date(s.startedAt).toLocaleString('vi-VN')}</td>
-                    <td className="px-6 py-3">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${
-                        s.status === 'graded' ? 'bg-blue-100 text-blue-700'
-                          : s.status === 'submitted' ? 'bg-emerald-100 text-emerald-700'
-                            : 'bg-amber-100 text-amber-700'
-                      }`}>
-                        {s.status === 'graded' ? 'Đã chấm' : s.status === 'submitted' ? 'Đã nộp' : 'Đang làm'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-3 text-right font-bold text-slate-800">
-                      {s.totalScore !== undefined ? `${s.totalScore.toFixed(2)} / ${s.maxScore}` : '—'}
-                    </td>
-                    {hasEssayQuestions && (
-                      <td className="px-6 py-3 text-center">
-                        {s.status === 'submitted' ? (
-                          <button
-                            onClick={() => handleGradeOne(s)}
-                            disabled={gradingId !== null}
-                            className="flex items-center gap-1 mx-auto px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg text-xs font-bold disabled:opacity-50"
-                          >
-                            {gradingId === s.id
-                              ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Đang chấm...</>
-                              : <><Brain className="w-3.5 h-3.5" /> AI chấm</>}
-                          </button>
-                        ) : s.status === 'graded' ? (
-                          <span className="text-xs text-emerald-600 font-bold flex items-center gap-1 justify-center">
-                            <CheckCircle2 className="w-3.5 h-3.5" /> Xong
-                          </span>
-                        ) : (
-                          <span className="text-xs text-slate-300">—</span>
-                        )}
-                      </td>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+      {/* Tab switcher */}
+      <div className="flex gap-2 mb-4">
+        {(['list', 'stats'] as const).map(t => (
+          <button key={t} onClick={() => setDetailTab(t)}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              detailTab === t ? 'bg-blue-600 text-white shadow' : 'bg-white border border-slate-100 text-slate-600 hover:bg-slate-50'
+            }`}>
+            {t === 'list' ? '📋 Bài làm' : '📊 Thống kê'}
+          </button>
+        ))}
       </div>
+
+      {detailTab === 'list' ? (
+        <div className="bg-white rounded-3xl border border-slate-100 overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-50 flex items-center justify-between">
+            <h3 className="font-bold text-slate-800">Bài làm học sinh</h3>
+            {completed.length > 0 && <span className="text-xs text-slate-400">{completed.length} bài đã nộp</span>}
+          </div>
+          {loading ? (
+            <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-blue-500" /></div>
+          ) : submissions.length === 0 ? (
+            <p className="text-center text-sm text-slate-400 py-12">Chưa có học sinh nào làm bài.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+                  <tr>
+                    <th className="text-left px-6 py-3 font-bold">Họ tên</th>
+                    <th className="text-left px-6 py-3 font-bold">Lớp</th>
+                    <th className="text-left px-6 py-3 font-bold">Bắt đầu</th>
+                    <th className="text-left px-6 py-3 font-bold">Trạng thái</th>
+                    <th className="text-right px-6 py-3 font-bold">Điểm</th>
+                    {hasEssayQuestions && <th className="text-center px-6 py-3 font-bold">AI Chấm</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {submissions.map(s => (
+                    <tr key={s.id} className="border-t border-slate-50 hover:bg-slate-50/50">
+                      <td className="px-6 py-3 font-medium text-slate-800">{s.studentName}</td>
+                      <td className="px-6 py-3 text-slate-500">{s.studentClass || '—'}</td>
+                      <td className="px-6 py-3 text-slate-500 text-xs">{new Date(s.startedAt).toLocaleString('vi-VN')}</td>
+                      <td className="px-6 py-3">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${
+                          s.status === 'graded' ? 'bg-blue-100 text-blue-700'
+                            : s.status === 'submitted' ? 'bg-emerald-100 text-emerald-700'
+                              : 'bg-amber-100 text-amber-700'
+                        }`}>
+                          {s.status === 'graded' ? 'Đã chấm' : s.status === 'submitted' ? 'Đã nộp' : 'Đang làm'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-3 text-right font-bold text-slate-800">
+                        {s.totalScore !== undefined ? `${s.totalScore.toFixed(2)} / ${s.maxScore}` : '—'}
+                      </td>
+                      {hasEssayQuestions && (
+                        <td className="px-6 py-3 text-center">
+                          {s.status === 'submitted' ? (
+                            <button
+                              onClick={() => handleGradeOne(s)}
+                              disabled={gradingId !== null}
+                              className="flex items-center gap-1 mx-auto px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg text-xs font-bold disabled:opacity-50"
+                            >
+                              {gradingId === s.id
+                                ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Đang chấm...</>
+                                : <><Brain className="w-3.5 h-3.5" /> AI chấm</>}
+                            </button>
+                          ) : s.status === 'graded' ? (
+                            <span className="text-xs text-emerald-600 font-bold flex items-center gap-1 justify-center">
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Xong
+                            </span>
+                          ) : (
+                            <span className="text-xs text-slate-300">—</span>
+                          )}
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      ) : (
+        <ExamStatsPanel exam={exam} submissions={submissions} />
+      )}
+
+      {showQR && <QRModal exam={exam} onClose={() => setShowQR(false)} />}
     </motion.div>
   );
 };
@@ -674,3 +703,192 @@ const StatCard = ({ icon, label, value, color }: { icon: React.ReactNode; label:
     <p className="text-2xl font-black text-slate-800 mt-1">{value}</p>
   </div>
 );
+
+// ─── ExamStatsPanel ───────────────────────────────────────────────────────────
+
+const SCORE_BINS = [
+  { label: '0–2',    min: 0,    max: 2,     color: '#ef4444' },
+  { label: '2–4',    min: 2,    max: 4,     color: '#f97316' },
+  { label: '4–5',    min: 4,    max: 5,     color: '#eab308' },
+  { label: '5–6.5',  min: 5,    max: 6.5,   color: '#84cc16' },
+  { label: '6.5–8',  min: 6.5,  max: 8,     color: '#22c55e' },
+  { label: '8–9',    min: 8,    max: 9,     color: '#0ea5e9' },
+  { label: '9–10',   min: 9,    max: 10.01, color: '#6366f1' },
+];
+
+const TYPE_LABEL: Record<string, string> = {
+  multiple_choice: 'MCQ',
+  true_false: 'Đ/S',
+  short_answer: 'Ngắn',
+  essay: 'TL',
+};
+
+const ExamStatsPanel = ({ exam, submissions }: { exam: Exam; submissions: ExamSubmission[] }) => {
+  const completed = submissions.filter(s => s.status !== 'in_progress');
+
+  const bins = useMemo(() => SCORE_BINS.map(b => ({
+    ...b,
+    count: completed.filter(s => {
+      const pct = exam.maxScore > 0 ? ((s.totalScore || 0) / exam.maxScore) * 10 : 0;
+      return pct >= b.min && pct < b.max;
+    }).length,
+  })), [completed, exam.maxScore]);
+
+  const scores = completed.map(s => s.totalScore || 0);
+  const hi = scores.length > 0 ? Math.max(...scores) : null;
+  const lo = scores.length > 0 ? Math.min(...scores) : null;
+  const passRate = completed.length > 0
+    ? Math.round((completed.filter(s => exam.maxScore > 0 && (s.totalScore || 0) / exam.maxScore >= 0.5).length / completed.length) * 100)
+    : null;
+
+  const questionStats = useMemo(() => exam.questions.map((q, i) => {
+    const answers = submissions.map(s => s.answers.find(a => a.questionId === q.id));
+    const scorable = answers.filter(a => a?.autoScore !== undefined);
+    const correct = scorable.filter(a => a!.autoScore === q.points);
+    return {
+      num: i + 1,
+      type: q.type,
+      label: q.content.replace(/\$\$?[^$]*\$\$?/g, '[CT]').replace(/[#*`]/g, '').slice(0, 65),
+      correctRate: scorable.length > 0 ? correct.length / scorable.length : null,
+      avgScore: scorable.length > 0
+        ? scorable.reduce((s, a) => s + a!.autoScore!, 0) / scorable.length
+        : null,
+      points: q.points,
+    };
+  }), [exam.questions, submissions]);
+
+  if (completed.length === 0) {
+    return (
+      <div className="bg-white rounded-3xl border border-slate-100 p-12 text-center text-slate-400">
+        <BarChart3 className="w-10 h-10 mx-auto opacity-30 mb-3" />
+        <p className="text-sm font-medium">Chưa có dữ liệu — cần ít nhất 1 bài đã nộp</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Extra summary pills */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-white rounded-2xl border border-slate-100 p-4 text-center">
+          <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Điểm cao nhất</p>
+          <p className="text-2xl font-black text-emerald-600">{hi?.toFixed(2)}</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-slate-100 p-4 text-center">
+          <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Điểm thấp nhất</p>
+          <p className="text-2xl font-black text-red-500">{lo?.toFixed(2)}</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-slate-100 p-4 text-center">
+          <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Tỉ lệ đạt ≥50%</p>
+          <p className="text-2xl font-black text-blue-600">{passRate !== null ? `${passRate}%` : '—'}</p>
+        </div>
+      </div>
+
+      {/* Score distribution chart */}
+      <div className="bg-white rounded-3xl border border-slate-100 p-6">
+        <h3 className="text-sm font-black text-slate-700 mb-4">Phân bố điểm (quy về thang 10)</h3>
+        <ResponsiveContainer width="100%" height={200}>
+          <BarChart data={bins} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+            <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#94a3b8' }} />
+            <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} allowDecimals={false} />
+            <Tooltip
+              contentStyle={{ borderRadius: 12, fontSize: 12, border: '1px solid #e2e8f0' }}
+              formatter={(v: number) => [`${v} bài`, 'Số lượng']}
+            />
+            <Bar dataKey="count" radius={[6, 6, 0, 0]}>
+              {bins.map((b, i) => <Cell key={i} fill={b.color} />)}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Per-question stats */}
+      <div className="bg-white rounded-3xl border border-slate-100 overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-50">
+          <h3 className="text-sm font-black text-slate-700">Thống kê từng câu hỏi</h3>
+          <p className="text-xs text-slate-400 mt-0.5">Chỉ tính câu có đáp án tự động (MCQ / Đ-S / Ngắn)</p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+              <tr>
+                <th className="text-left px-4 py-3 font-bold w-10">Câu</th>
+                <th className="text-left px-4 py-3 font-bold w-14">Loại</th>
+                <th className="text-left px-4 py-3 font-bold">Nội dung</th>
+                <th className="text-right px-4 py-3 font-bold w-24">% Đúng</th>
+                <th className="text-right px-4 py-3 font-bold w-24">Điểm TB</th>
+              </tr>
+            </thead>
+            <tbody>
+              {questionStats.map(q => (
+                <tr key={q.num} className="border-t border-slate-50 hover:bg-slate-50/50">
+                  <td className="px-4 py-3 font-bold text-slate-500">{q.num}</td>
+                  <td className="px-4 py-3">
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                      {TYPE_LABEL[q.type] || q.type}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-slate-700 text-xs truncate max-w-xs">{q.label}</td>
+                  <td className="px-4 py-3 text-right">
+                    {q.correctRate !== null ? (
+                      <span className={`text-xs font-black ${
+                        q.correctRate >= 0.7 ? 'text-emerald-600'
+                          : q.correctRate >= 0.4 ? 'text-amber-600'
+                            : 'text-red-600'
+                      }`}>
+                        {Math.round(q.correctRate * 100)}%
+                      </span>
+                    ) : <span className="text-slate-300 text-xs">—</span>}
+                  </td>
+                  <td className="px-4 py-3 text-right text-xs font-bold text-slate-700">
+                    {q.avgScore !== null ? `${q.avgScore.toFixed(2)}/${q.points}` : <span className="text-slate-300">—</span>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── QRModal ─────────────────────────────────────────────────────────────────
+
+const QRModal = ({ exam, onClose }: { exam: Exam; onClose: () => void }) => {
+  const url = `${window.location.origin}/exam/${exam.code}`;
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl" onClick={e => e.stopPropagation()}>
+        <h3 className="text-lg font-black text-slate-800 mb-1">Chia sẻ phòng thi</h3>
+        <p className="text-xs text-slate-400 mb-4">{exam.title}</p>
+        <p className="text-4xl font-black tracking-widest text-blue-600 mb-5">#{exam.code}</p>
+        <div className="flex justify-center p-4 bg-slate-50 rounded-2xl mb-4">
+          <QRCodeSVG value={url} size={180} bgColor="#f8fafc" fgColor="#1e293b" />
+        </div>
+        <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2.5 text-xs font-mono text-slate-600 mb-4 border border-slate-100">
+          <span className="truncate flex-1 text-left">{url}</span>
+          <button onClick={handleCopy}
+            className={`shrink-0 font-bold text-xs px-2 py-0.5 rounded-lg transition-all ${copied ? 'text-emerald-600 bg-emerald-50' : 'text-blue-600 hover:text-blue-700'}`}>
+            {copied ? '✓ Đã copy' : 'Copy'}
+          </button>
+        </div>
+        <p className="text-xs text-slate-400 mb-4">HS quét mã QR hoặc nhập mã #{exam.code} để vào làm bài</p>
+        <button onClick={onClose}
+          className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-sm font-bold text-slate-700 transition-all">
+          Đóng
+        </button>
+      </div>
+    </div>
+  );
+};
