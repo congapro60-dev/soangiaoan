@@ -5,7 +5,13 @@ import { ExamQuestion, QuestionType } from '../../../types';
 import { parseExamFromFiles, summarizeQuestions, MAX_IMPORT_MB, pdfToImages } from '../../../utils/examImportUtils';
 import type { AppData } from '../../../types';
 import { ManualCropModal } from './ManualCropModal';
-import { AnimatePresence } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import remarkGfm from 'remark-gfm';
+import 'katex/dist/katex.min.css';
+import { Eye, EyeOff, Send } from 'lucide-react';
 
 interface Props {
   onClose: () => void;
@@ -106,6 +112,7 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
   const [questions, setQuestions] = useState<ExamQuestion[]>([]);
   const [examTitle, setExamTitle] = useState('');
   const [cropTargetIndex, setCropTargetIndex] = useState<number | null>(null);
+  const [showStudentPreview, setShowStudentPreview] = useState(false);
   const [error, setError] = useState('');
   const [parsing, setParsing] = useState(false);
   const [pageImages, setPageImages] = useState<string[]>([]);
@@ -760,10 +767,19 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
               </button>
             )}
             {step === 'review' && (
-              <button onClick={handleConfirm}
-                className="flex items-center gap-2 px-8 py-3 bg-emerald-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-emerald-200 hover:bg-emerald-700 hover:-translate-y-0.5 transition-all active:translate-y-0">
-                <CheckCircle2 className="w-5 h-5" /> Hoàn tất & Lưu {questions.length} câu
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setShowStudentPreview(true)}
+                  className="flex items-center gap-2 px-5 py-3 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-2xl text-sm font-bold transition-all"
+                >
+                  <Eye className="w-4 h-4" /> Xem góc nhìn học sinh
+                </button>
+
+                <button onClick={handleConfirm}
+                  className="flex items-center gap-2 px-8 py-3 bg-emerald-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-emerald-200 hover:bg-emerald-700 hover:-translate-y-0.5 transition-all active:translate-y-0">
+                  <CheckCircle2 className="w-5 h-5" /> Hoàn tất & Lưu {questions.length} câu
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -780,7 +796,150 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
             onClose={() => setCropTargetIndex(null)}
           />
         )}
+        {showStudentPreview && (
+          <StudentPreviewModal 
+            questions={questions}
+            title={examTitle}
+            onClose={() => setShowStudentPreview(false)}
+          />
+        )}
       </AnimatePresence>
     </div>
+  );
+};
+
+// ─── Student Preview Component ──────────────────────────────────────────────────
+
+const StudentPreviewModal = ({ questions, title, onClose }: { 
+  questions: ExamQuestion[]; 
+  title: string; 
+  onClose: () => void 
+}) => {
+  const TYPE_ORDER: QuestionType[] = ['multiple_choice', 'true_false', 'short_answer', 'essay'];
+  const SECTION_LABELS: Record<string, string> = {
+    multiple_choice: 'PHẦN I. TRẮC NGHIỆM NHIỀU PHƯƠNG ÁN LỰA CHỌN',
+    true_false: 'PHẦN II. TRẮC NGHIỆM ĐÚNG SAI',
+    short_answer: 'PHẦN III. TRẢ LỜI NGẮN',
+    essay: 'PHẦN IV. TỰ LUẬN'
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[110] bg-slate-900/60 backdrop-blur-md flex flex-col"
+    >
+      {/* Header */}
+      <div className="bg-white px-6 py-4 flex items-center justify-between border-b border-slate-100">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+            <Eye className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-base font-black text-slate-800">Giao diện học sinh (Xem trước)</h3>
+            <p className="text-[10px] text-slate-400 font-medium">Đây là cách học sinh sẽ nhìn thấy đề thi của bạn</p>
+          </div>
+        </div>
+        <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-all">
+          <X className="w-6 h-6" />
+        </button>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto bg-slate-50 p-6 sm:p-10">
+        <div className="max-w-3xl mx-auto space-y-10">
+          {/* Exam Title */}
+          <div className="text-center space-y-2">
+            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">{title || 'ĐỀ THI CHƯA CÓ TIÊU ĐỀ'}</h1>
+            <div className="flex items-center justify-center gap-4 text-xs font-bold text-slate-400">
+              <span className="px-3 py-1 bg-white rounded-full border border-slate-200">Thời gian: 45 phút</span>
+              <span className="px-3 py-1 bg-white rounded-full border border-slate-200">Số câu: {questions.length}</span>
+            </div>
+          </div>
+
+          {TYPE_ORDER.map((type) => {
+            const qs = questions.filter(q => q.type === type);
+            if (qs.length === 0) return null;
+
+            return (
+              <div key={type} className="space-y-6">
+                <div className="bg-blue-600 text-white px-5 py-3 rounded-2xl shadow-lg shadow-blue-100">
+                  <h4 className="text-xs font-black tracking-wider uppercase">{SECTION_LABELS[type]}</h4>
+                  <p className="text-[10px] opacity-70 mt-0.5">Học sinh làm bài theo đúng cấu trúc của Bộ</p>
+                </div>
+
+                <div className="space-y-4">
+                  {qs.map((q, idx) => (
+                    <div key={q.id} className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm">
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="text-[10px] font-black bg-blue-50 text-blue-600 px-3 py-1 rounded-full uppercase tracking-widest">Câu {idx + 1}</span>
+                        <span className="text-[10px] font-bold text-slate-300">({q.points} điểm)</span>
+                      </div>
+
+                      <div className="prose prose-slate max-w-none mb-6">
+                        <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>
+                          {q.content}
+                        </ReactMarkdown>
+                      </div>
+
+                      {q.imageUrl && (
+                        <div className="mb-6 rounded-2xl overflow-hidden border border-slate-100 max-w-fit shadow-sm">
+                          <img src={q.imageUrl} alt="minh họa" className="max-h-80 object-contain bg-slate-50" />
+                        </div>
+                      )}
+
+                      {/* Options Preview */}
+                      {q.type === 'multiple_choice' && (
+                        <div className="grid grid-cols-1 gap-2">
+                          {['A', 'B', 'C', 'D'].map((label, i) => (
+                            <div key={label} className="flex items-center gap-3 p-3 rounded-2xl border border-slate-50 bg-slate-50/30">
+                              <span className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-[11px] font-black text-slate-400">{label}</span>
+                              <div className="text-sm text-slate-600 font-medium">
+                                <ReactMarkdown remarkPlugins={[remarkMath]}>{q.options?.[i] || ''}</ReactMarkdown>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {q.type === 'true_false' && (
+                        <div className="border border-slate-50 rounded-2xl overflow-hidden">
+                          {['a', 'b', 'c', 'd'].map((label, i) => (
+                            <div key={label} className="flex items-center justify-between p-4 border-b border-slate-50 last:border-0 bg-slate-50/20">
+                              <div className="flex items-start gap-3">
+                                <span className="text-xs font-black text-slate-400 mt-0.5">{label})</span>
+                                <div className="text-sm text-slate-600">
+                                  <ReactMarkdown remarkPlugins={[remarkMath]}>{q.options?.[i] || ''}</ReactMarkdown>
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                <span className="px-3 py-1 rounded-lg bg-white border border-slate-200 text-[10px] font-black text-slate-300 uppercase">Đ</span>
+                                <span className="px-3 py-1 rounded-lg bg-white border border-slate-200 text-[10px] font-black text-slate-300 uppercase">S</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {q.type === 'short_answer' && (
+                        <div className="mt-4 p-4 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-100 text-center">
+                          <span className="text-xs font-bold text-slate-300">Ô nhập đáp án của học sinh</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+
+          <div className="pt-10 pb-20 text-center">
+             <button disabled className="px-10 py-4 bg-slate-200 text-slate-400 rounded-3xl font-black text-sm flex items-center gap-3 mx-auto">
+               <Send className="w-5 h-5" /> Nộp bài (Học sinh)
+             </button>
+             <p className="text-xs text-slate-300 mt-4 font-bold uppercase tracking-widest">Kết thúc phần xem trước</p>
+          </div>
+        </div>
+      </div>
+    </motion.div>
   );
 };
