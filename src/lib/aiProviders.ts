@@ -94,9 +94,9 @@ export const DEEPSEEK_MODELS = [
 ];
 
 export const GEMINI_MODELS = [
-  { id: 'gemini-3.1-flash', name: 'Gemini 3.1 Flash', desc: 'Siêu nhanh, hiệu suất cao (Default)' },
-  { id: 'gemini-3.1-pro', name: 'Gemini 3.1 Pro', desc: 'Thông minh nhất, suy luận đa tầng' },
-  { id: 'gemini-3.0-flash', name: 'Gemini 3.0 Flash', desc: 'Phiên bản ổn định trước đó' },
+  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', desc: 'Siêu nhanh, ổn định (Default)' },
+  { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', desc: 'Thông minh, suy luận tốt' },
+  { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', desc: 'Phiên bản cũ' },
 ];
 
 export function getActiveApiKey(settings: Settings): string {
