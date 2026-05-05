@@ -104,6 +104,14 @@ export interface Exam {
   shuffleQuestions: boolean;
   createdAt: string;
   updatedAt: string;
+  // Advanced config (Phase 5)
+  password?: string;
+  maxAttempts?: number;
+  proctorMode?: 'off' | 'tab-exit' | 'advanced';
+  showResultWhen?: 'submit' | 'all_done' | 'never';
+  hideLeaderboard?: boolean;
+  preExamNotice?: string;
+  tfScoringMode?: 'all_or_nothing' | 'thpt2025';
 }
 
 export interface StudentAnswer {

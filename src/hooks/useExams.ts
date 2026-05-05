@@ -102,6 +102,10 @@ export const getExamById = async (id: string): Promise<Exam | null> => {
   return snap.exists() ? (snap.data() as Exam) : null;
 };
 
+export const updateExam = async (id: string, patch: Partial<Exam>): Promise<void> => {
+  await updateDoc(doc(db, 'exams', id), { ...patch, updatedAt: new Date().toISOString() });
+};
+
 export const getSubmissions = async (examId: string): Promise<ExamSubmission[]> => {
   const q = query(collection(db, 'examSubmissions'), where('examId', '==', examId));
   const snap = await getDocs(q);

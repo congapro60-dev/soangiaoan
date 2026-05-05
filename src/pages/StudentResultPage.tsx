@@ -168,7 +168,12 @@ export const StudentResultPage = () => {
             <h2 className="text-base font-black text-slate-800 flex items-center gap-2 mb-4">
               <Trophy className="w-5 h-5 text-amber-500" /> Bảng xếp hạng
             </h2>
-            {leaderboard.length === 0 ? (
+            {exam.hideLeaderboard ? (
+              <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+                <Trophy className="w-10 h-10 opacity-20 mb-2" />
+                <p className="text-sm font-medium">Giáo viên đã ẩn bảng xếp hạng</p>
+              </div>
+            ) : leaderboard.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-slate-400">
                 <Trophy className="w-10 h-10 opacity-30 mb-2" />
                 <p className="text-sm font-medium">Chưa có dữ liệu!</p>

@@ -598,6 +598,12 @@ const ExamDetail = ({
               </button>
             )}
             <button
+              onClick={() => navigate(`/exam/${exam.id}/config`)}
+              className="flex items-center gap-2 px-3 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-xl text-xs font-bold"
+            >
+              <ArrowRight className="w-3.5 h-3.5" /> Cài đặt
+            </button>
+            <button
               onClick={onToggle}
               className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold ${exam.isActive ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}
             >
@@ -743,6 +749,7 @@ const TYPE_LABEL: Record<string, string> = {
 };
 
 const ExamStatsPanel = ({ exam, submissions }: { exam: Exam; submissions: ExamSubmission[] }) => {
+  const [drilldownId, setDrilldownId] = useState<string | null>(null);
   const completed = submissions.filter(s => s.status !== 'in_progress');
 
   const bins = useMemo(() => SCORE_BINS.map(b => ({
@@ -765,6 +772,7 @@ const ExamStatsPanel = ({ exam, submissions }: { exam: Exam; submissions: ExamSu
     const scorable = answers.filter(a => a?.autoScore !== undefined);
     const correct = scorable.filter(a => a!.autoScore === q.points);
     return {
+      id: q.id,
       num: i + 1,
       type: q.type,
       label: q.content.replace(/\$\$?[^$]*\$\$?/g, '[CT]').replace(/[#*`]/g, '').slice(0, 65),
@@ -775,6 +783,19 @@ const ExamStatsPanel = ({ exam, submissions }: { exam: Exam; submissions: ExamSu
       points: q.points,
     };
   }), [exam.questions, submissions]);
+
+  const drilldown = useMemo(() => {
+    if (!drilldownId) return null;
+    const q = exam.questions.find(q => q.id === drilldownId);
+    if (!q) return null;
+    const rows = completed
+      .map(s => {
+        const a = s.answers.find(a => a.questionId === drilldownId);
+        return { name: s.studentName, answer: a?.answer || '(bỏ trống)', score: a?.autoScore };
+      })
+      .filter(d => d.score !== undefined && d.score < q.points);
+    return { q, rows };
+  }, [drilldownId, completed, exam.questions]);
 
   if (completed.length === 0) {
     return (
@@ -841,7 +862,14 @@ const ExamStatsPanel = ({ exam, submissions }: { exam: Exam; submissions: ExamSu
             </thead>
             <tbody>
               {questionStats.map(q => (
-                <tr key={q.num} className="border-t border-slate-50 hover:bg-slate-50/50">
+                <tr
+                  key={q.num}
+                  className={`border-t border-slate-50 cursor-pointer transition-colors ${
+                    drilldownId === q.id ? 'bg-blue-50' : 'hover:bg-slate-50/50'
+                  }`}
+                  onClick={() => setDrilldownId(drilldownId === q.id ? null : q.id)}
+                  title="Nhấn để xem học sinh trả lời sai"
+                >
                   <td className="px-4 py-3 font-bold text-slate-500">{q.num}</td>
                   <td className="px-4 py-3">
                     <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
@@ -868,6 +896,26 @@ const ExamStatsPanel = ({ exam, submissions }: { exam: Exam; submissions: ExamSu
             </tbody>
           </table>
         </div>
+        {drilldown && (
+          <div className="border-t border-slate-100 bg-slate-50 p-4">
+            <p className="text-xs font-black text-slate-700 mb-2">
+              HS trả lời sai câu {questionStats.find(q => q.id === drilldownId)?.num} — đáp án đúng:
+              {' '}<span className="text-emerald-700">{drilldown.q.correctAnswer || '(tự luận)'}</span>
+            </p>
+            {drilldown.rows.length === 0 ? (
+              <p className="text-xs text-slate-400">Không có học sinh nào trả lời sai.</p>
+            ) : (
+              <div className="space-y-1">
+                {drilldown.rows.map((r, i) => (
+                  <div key={i} className="flex items-center gap-3 text-xs bg-white rounded-lg px-3 py-2 border border-slate-100">
+                    <span className="font-medium text-slate-700 flex-1">{r.name}</span>
+                    <span className="text-red-600 font-bold">Chọn: {r.answer || '(bỏ trống)'}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

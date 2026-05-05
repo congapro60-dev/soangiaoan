@@ -6,6 +6,7 @@ import { StudentExamPage } from './pages/StudentExamPage';
 import { StudentResultPage } from './pages/StudentResultPage';
 import { AnswerReviewPage } from './pages/AnswerReviewPage';
 import { TeacherGradingPage } from './pages/TeacherGradingPage';
+import { ExamConfigPage } from './pages/ExamConfigPage';
 import './index.css';
 
 // Error Boundary để ngăn màn trắng khi có lỗi bất ngờ
@@ -59,6 +60,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/exam/:code/review/:submissionId" element={<AnswerReviewPage />} />
           <Route path="/exam/:code/result/:submissionId" element={<StudentResultPage />} />
           <Route path="/exam/:examId/grade" element={<TeacherGradingPage />} />
+          <Route path="/exam/:examId/config" element={<ExamConfigPage />} />
           <Route path="/exam/:code" element={<StudentExamPage />} />
           <Route path="*" element={<App />} />
         </Routes>
