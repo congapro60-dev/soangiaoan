@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { User } from 'firebase/auth';
 import { AppData, Exam, ExamSubmission, ExamQuestion, StudentAnswer } from '../../types';
-import { useExams, updateSubmission, updateExam } from '../../hooks/useExams';
+import { useExams, updateSubmission, updateExam, getSubmissions } from '../../hooks/useExams';
 import { computeAutoScore, recalcTotalScore } from '../../utils/examScoring';
 import { parseMarkdownToQuestions, generateExamCode, calculateMaxScore } from '../../lib/examParser';
 import { callAI } from '../../lib/aiProviders';
@@ -142,7 +142,7 @@ const exportToExcel = (exam: Exam, submissions: ExamSubmission[]) => {
 type CreateView = 'picker' | 'editor' | null;
 
 export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
-  const { exams, loading, saveExam, deleteExam, toggleActive, getSubmissions, fetchMyExams } = useExams(user);
+  const { exams, loading, saveExam, deleteExam, toggleActive, fetchMyExams } = useExams(user);
   const [creating, setCreating] = useState(false);
   const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
   const [submissions, setSubmissions] = useState<ExamSubmission[]>([]);
@@ -158,7 +158,7 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
     } finally {
       setLoadingSubs(false);
     }
-  }, [getSubmissions]);
+  }, []);
 
   useEffect(() => {
     if (!selectedExam) { setSubmissions([]); return; }
