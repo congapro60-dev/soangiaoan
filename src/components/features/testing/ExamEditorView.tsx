@@ -256,16 +256,14 @@ const QuestionCard = ({ question, num, isExpanded, onToggle, onChange, onRemove,
         <span className="text-xs font-bold text-slate-400 shrink-0">{question.points} đ</span>
         <div className="flex items-center gap-1 shrink-0">
           <button
-            onClick={e => { e.stopPropagation(); onMoveUp?.(); }}
-            disabled={!onMoveUp}
-            className="p-1 text-slate-300 hover:text-slate-600 disabled:opacity-0"
+            onClick={e => { e.stopPropagation(); onMove(-1); }}
+            className="p-1 text-slate-300 hover:text-slate-600"
           >
             <ChevronUp className="w-3.5 h-3.5" />
           </button>
           <button
-            onClick={e => { e.stopPropagation(); onMoveDown?.(); }}
-            disabled={!onMoveDown}
-            className="p-1 text-slate-300 hover:text-slate-600 disabled:opacity-0"
+            onClick={e => { e.stopPropagation(); onMove(1); }}
+            className="p-1 text-slate-300 hover:text-slate-600"
           >
             <ChevronDown className="w-3.5 h-3.5" />
           </button>
@@ -372,7 +370,6 @@ const QuestionCard = ({ question, num, isExpanded, onToggle, onChange, onRemove,
                    </button>
                  )}
               </div>
-            </div>
             <textarea
               rows={3}
               value={question.content}
