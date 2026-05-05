@@ -40,18 +40,17 @@ VIẾT TIẾP NGAY (không thêm dấu xuống dòng dư thừa, không lặp l�
 // --- Fallback relay helpers (quota exhaustion) ---
 
 function isQuotaError(error: any): boolean {
-  const msg = String(error?.message || error || '');
+  const msg = String(error?.message || error || '').toLowerCase();
   return (
     msg.includes('429') ||
-    msg.includes('RESOURCE_EXHAUSTED') ||
+    msg.includes('resource_exhausted') ||
     msg.includes('quota') ||
-    msg.includes('Quota') ||
-    msg.includes('rateLimitExceeded') ||
-    msg.includes('INVALID_API_KEY') ||
-    msg.includes('API_KEY_INVALID') ||
+    msg.includes('ratelimitexceeded') ||
+    msg.includes('invalid_api_key') ||
     msg.includes('expired') ||
-    msg.includes('Invalid API key') ||
-    msg.includes('invalid_api_key')
+    msg.includes('invalid api key') ||
+    msg.includes('404') ||
+    msg.includes('not found')
   );
 }
 
