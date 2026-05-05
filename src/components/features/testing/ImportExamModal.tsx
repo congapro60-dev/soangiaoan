@@ -504,9 +504,15 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
                   </div>
                 ))}
               </div>
-              <div className="flex items-center gap-3 text-sm text-slate-600 bg-slate-50 rounded-2xl p-3">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span>Đã nhận diện <strong>{summary.total} câu hỏi</strong>, tổng điểm <strong>{summary.maxScore.toFixed(2)}</strong></span>
+              <div className="flex flex-col gap-2 p-4 bg-blue-50 border border-blue-100 rounded-2xl">
+                <div className="flex items-center gap-3 text-sm text-blue-700">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>Đã nhận diện <strong>{summary.total} câu hỏi</strong>, tổng điểm <strong>{summary.maxScore.toFixed(2)}</strong></span>
+                </div>
+                <div className="flex items-start gap-2 text-[10px] text-blue-500 font-medium bg-white/50 p-2 rounded-xl border border-blue-100/50">
+                  <AlertCircle className="w-3 h-3 shrink-0 mt-0.5" />
+                  <p>Mẹo: Sếp hãy nhấn nút Tạo bên dưới để vào <b>Trình soạn thảo</b>. Ở đó sếp có thể <b>Cắt ảnh từ PDF</b>, <b>Dán ảnh từ Clipboard (Ctrl+V)</b> hoặc chỉnh điểm chi tiết cho từng câu nhé!</p>
+                </div>
               </div>
               <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
                 {questions.map((q, idx) => (

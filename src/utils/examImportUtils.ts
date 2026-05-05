@@ -227,7 +227,10 @@ export const parseExamFromFiles = async (
         id: q.id ? String(q.id) : `q${idx + 1}`,
         type,
         content: (q.content ?? q.text ?? '').toString().trim(),
-        points: typeof q.points === 'number' && q.points > 0 ? q.points : fallbackPoints,
+        // Default to 1.0 for true_false, otherwise use AI points or fallback
+        points: typeof q.points === 'number' && q.points > 0 
+          ? q.points 
+          : (type === 'true_false' ? 1.0 : fallbackPoints),
       };
 
       if (q.imageBox && Array.isArray(q.imageBox) && q.imageBox.length === 4) {
