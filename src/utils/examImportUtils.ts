@@ -189,6 +189,7 @@ export const parseExamFromFiles = async (
   examFile: File,
   answerKeyFile: File | null,
   settings: Settings,
+  preRenderedPages?: string[],
 ): Promise<ExamQuestion[]> => {
   const ext = examFile.name.split('.').pop()?.toLowerCase() ?? '';
   const isImage = IMAGE_EXTS.includes(ext);
@@ -196,8 +197,12 @@ export const parseExamFromFiles = async (
   let response: string;
 
   if (isImage || ext === 'pdf') {
-    // Hybrid Vision path for Image and PDF
-    const pages = ext === 'pdf' ? await pdfToImages(examFile) : [await fileToDataUrl(examFile)];
+    // Use pre-rendered pages if provided, otherwise render now (single-entry fallback)
+    const pages = preRenderedPages && preRenderedPages.length > 0
+      ? preRenderedPages
+      : ext === 'pdf'
+        ? await pdfToImages(examFile)
+        : [await fileToDataUrl(examFile)];
     const examText = ext === 'pdf' ? await extractTextFromFile(examFile) : '';
     
     const answerKeyText = answerKeyFile && !IMAGE_EXTS.includes(

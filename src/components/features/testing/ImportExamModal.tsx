@@ -131,14 +131,15 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
     setStep('parsing');
     setError('');
     try {
-      // For PDF, we need to extract page images for multimodal AI and later manual cropping
+      // Render PDF pages once — reuse for both Vision AI and manual cropping
       const ext = examFile.name.split('.').pop()?.toLowerCase() ?? '';
+      let imgs: string[] = [];
       if (ext === 'pdf') {
-        const imgs = await pdfToImages(examFile);
+        imgs = await pdfToImages(examFile);
         setPageImages(imgs);
       }
       
-      const parsed = await parseExamFromFiles(examFile, answerFile, settings);
+      const parsed = await parseExamFromFiles(examFile, answerFile, settings, imgs);
       setQuestions(parsed);
       setStep('review');
     } catch (e: any) {
