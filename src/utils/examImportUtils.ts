@@ -43,7 +43,7 @@ export const pdfToImages = async (file: File): Promise<string[]> => {
     if (!ctx) continue;
     canvas.height = viewport.height;
     canvas.width = viewport.width;
-    await page.render({ canvasContext: ctx, viewport }).promise;
+    await page.render({ canvasContext: ctx, viewport, canvas: canvas as any }).promise;
     images.push(canvas.toDataURL('image/jpeg', 0.75));
   }
   return images;

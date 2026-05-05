@@ -86,7 +86,7 @@ const parseFromText = (text: string, existingIds: string[]): ExamQuestion[] => {
   });
 };
 
-export const ExamEditorView = ({ user, data, saveExam, showToast, onBack }: ExamEditorViewProps) => {
+export const ExamEditorView = ({ user, data, saveExam, showToast, onBack, pageImages }: ExamEditorViewProps) => {
   const [title, setTitle] = useState('');
   const [duration, setDuration] = useState(45);
   const [grade, setGrade] = useState('');
