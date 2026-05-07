@@ -12,7 +12,8 @@ import {
   AlignmentType,
   PageOrientation,
 } from 'docx';
-import { marked, Token, Tokens } from 'marked';
+import { marked } from 'marked';
+import type { Token, Tokens } from 'marked';
 
 export type WordOrientation = 'portrait' | 'landscape';
 
