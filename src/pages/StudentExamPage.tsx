@@ -141,9 +141,9 @@ export const StudentExamPage = () => {
   // ── Submit ────────────────────────────────────────────────────────────────
   const handleSubmit = useCallback(async (auto = false) => {
     if (submittedRef.current) return;
-    submittedRef.current = true;
     setPageState('submitting');
     if (!exam || !submissionId) return;
+    submittedRef.current = true;
 
     const studentAnswers: StudentAnswer[] = orderedQuestions.map(q => {
       const a = answers[q.id] || '';
@@ -190,10 +190,10 @@ export const StudentExamPage = () => {
       const partial: StudentAnswer[] = orderedQuestions.map(q => ({
         questionId: q.id, answer: answers[q.id] || '',
       }));
-      updateSubmission(submissionId, { answers: partial, tabSwitches }).catch(console.error);
+      updateSubmission(submissionId, { answers: partial }).catch(console.error);
     }, 3000);
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
-  }, [answers, pageState, submissionId, orderedQuestions, tabSwitches]);
+  }, [answers, pageState, submissionId, orderedQuestions]);
 
   // ── Actions ───────────────────────────────────────────────────────────────
   const startExam = async () => {

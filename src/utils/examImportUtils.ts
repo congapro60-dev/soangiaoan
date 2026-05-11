@@ -45,6 +45,7 @@ export const pdfToImages = async (file: File, onProgress?: (p: number) => void):
     canvas.width = viewport.width;
     await page.render({ canvasContext: ctx, viewport, canvas: canvas as any }).promise;
     images.push(canvas.toDataURL('image/jpeg', IMG_QUALITY));
+    canvas.width = 0; canvas.height = 0; // release GPU memory
     if (onProgress) onProgress(Math.round((i / pageCount) * 100));
   }
   return images;
@@ -190,8 +191,10 @@ const extractJSON = (raw: string): RawQ[] => {
 
     // Attempt 2: Aggressive repair
     const fixed = rawJSON
-      // 1. Fix unescaped backslashes (common in LaTeX like \frac)
-      .replace(/\\(?!"|\\|\/|b|f|n|r|t|u[0-9a-fA-F]{4})/g, "\\\\")
+      // 1. Fix unescaped backslashes (LaTeX like \frac, \sqrt).
+      //    Allow \\ \/ \" and single-char escapes ONLY when not followed by a letter
+      //    (so \f formfeed is kept but \frac is escaped).
+      .replace(/\\(?!["\\\/]|(?:[bfnrt])(?![a-zA-Z])|u[0-9a-fA-F]{4})/g, "\\\\")
       // 2. Remove trailing commas (AI often adds these)
       .replace(/,\s*([\]}])/g, "$1")
       // 3. Fix unescaped newlines inside strings (experimental)
