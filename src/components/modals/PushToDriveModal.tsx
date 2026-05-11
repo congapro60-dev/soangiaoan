@@ -6,6 +6,7 @@ import {
   pushLessonToBot,
   type PushOptions,
   type PushResult,
+  type PushFileResult,
   type CheckResult,
 } from '../../services/pushLessonToBot';
 
@@ -240,21 +241,23 @@ export const PushToDriveModal = ({ currentPlan, settings, showToast, onClose }: 
                 <CheckCircle className="w-7 h-7 text-emerald-500" />
                 <p className="text-base font-black text-slate-800">Đẩy lên Drive thành công!</p>
               </div>
-              {([pushResult.docx, pushResult.pdf] as const).filter(Boolean).map((r, i) => r && (
-                <div key={i} className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 space-y-1.5">
-                  <p className="text-sm font-bold text-emerald-800 truncate">{r.filename}</p>
-                  <a href={r.driveUrl} target="_blank" rel="noopener noreferrer"
-                     className="text-xs text-emerald-600 font-medium hover:underline flex items-center gap-1">
-                    <ExternalLink className="w-3 h-3" /> Mở file trên Drive
-                  </a>
-                  {r.folderUrl && (
-                    <a href={r.folderUrl} target="_blank" rel="noopener noreferrer"
+              {[pushResult.docx, pushResult.pdf]
+                .filter((r): r is PushFileResult => r !== undefined)
+                .map((r, i) => (
+                  <div key={i} className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 space-y-1.5">
+                    <p className="text-sm font-bold text-emerald-800 truncate">{r.filename}</p>
+                    <a href={r.driveUrl} target="_blank" rel="noopener noreferrer"
                        className="text-xs text-emerald-600 font-medium hover:underline flex items-center gap-1">
-                      <FolderOpen className="w-3 h-3" /> Mở thư mục tuần
+                      <ExternalLink className="w-3 h-3" /> Mở file trên Drive
                     </a>
-                  )}
-                </div>
-              ))}
+                    {r.folderUrl && (
+                      <a href={r.folderUrl} target="_blank" rel="noopener noreferrer"
+                         className="text-xs text-emerald-600 font-medium hover:underline flex items-center gap-1">
+                        <FolderOpen className="w-3 h-3" /> Mở thư mục tuần
+                      </a>
+                    )}
+                  </div>
+                ))}
             </div>
           )}
 

@@ -203,14 +203,10 @@ const processTokens = (tokens: Token[], context: any[]) => {
           const runs = flattenInline(inline);
           if (list.ordered) {
             runs.unshift(new TextRun({ text: `${idx + 1}.\t`, font: FONT, size: SIZE_14PT }));
+            context.push(new Paragraph({ children: runs, spacing: { before: 60, after: 60 } }));
+          } else {
+            context.push(new Paragraph({ children: runs, bullet: { level: 0 }, spacing: { before: 60, after: 60 } }));
           }
-          context.push(
-            new Paragraph({
-              children: runs,
-              ...(list.ordered ? {} : { bullet: { level: 0 } }),
-              spacing: { before: 60, after: 60 },
-            })
-          );
         });
         break;
       }
