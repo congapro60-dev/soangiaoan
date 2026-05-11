@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Settings, X, Key, CheckCircle2, ExternalLink } from 'lucide-react';
+import { Settings, X, Key, CheckCircle2, ExternalLink, Server } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { AppData } from '../../types';
 import { GEMINI_MODELS, CLAUDE_MODELS, OPENAI_MODELS, GROK_MODELS, DEEPSEEK_MODELS } from '../../lib/aiProviders';
@@ -213,6 +213,29 @@ export const SettingsModal = ({
                 >
                   <div className={cn('w-4 h-4 bg-white rounded-full transition-transform', data.settings.autoSave ? 'translate-x-6' : 'translate-x-0')} />
                 </div>
+              </div>
+
+              {/* Bot API Section */}
+              <div className="space-y-3 p-4 bg-slate-50 rounded-2xl">
+                <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                  <Server className="w-4 h-4 text-slate-500" />
+                  Bot API (Đẩy giáo án lên Drive)
+                </label>
+                <input
+                  type="text"
+                  value={data.settings.botApiUrl || ''}
+                  onChange={(e) => setData(prev => ({ ...prev, settings: { ...prev.settings, botApiUrl: e.target.value } }))}
+                  placeholder="https://edu-lesson-bot.railway.app"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm font-mono"
+                />
+                <input
+                  type="password"
+                  value={data.settings.botApiToken || ''}
+                  onChange={(e) => setData(prev => ({ ...prev, settings: { ...prev.settings, botApiToken: e.target.value } }))}
+                  placeholder="WEB_API_TOKEN từ Railway..."
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                />
+                <p className="text-[10px] text-slate-400">URL Railway và token xác thực để đẩy giáo án lên Google Drive qua bot.</p>
               </div>
             </div>
 

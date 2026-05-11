@@ -1,4 +1,5 @@
-import { Layers, FileText, UploadCloud, ChevronRight, X, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { Layers, FileText, UploadCloud, ChevronRight, X, Trash2, PenLine, BookOpen } from 'lucide-react';
 import { AppData, LessonPlan, TemplateFile } from '../../../types';
 
 interface LessonControlsProps {
@@ -34,6 +35,8 @@ export const LessonControls = ({
   fileInputRef,
   deleteDistribution
 }: LessonControlsProps) => {
+  const [inputMode, setInputMode] = useState<'manual' | 'ppct'>('manual');
+
   return (
     <>
       <div className="flex bg-slate-100 p-1 rounded-2xl mb-8">
@@ -134,39 +137,66 @@ export const LessonControls = ({
       <div className="pt-2">
           {generationMode === 'single' ? (
             <div className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tiêu đề bài học</label>
-                <input 
-                  type="text" 
-                  value={currentPlan.title || ''}
-                  onChange={(e) => setCurrentPlan(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="Ví dụ: Đạo hàm cấp 2..."
-                  className="w-full px-4 py-3 rounded-xl border border-slate-100 bg-slate-50 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                />
-              </div>
-              
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
-                  Phân phối môn
-                  <button 
-                    onClick={() => { setUploadingFiles({ category: 'distribution' }); fileInputRef.current?.click(); }}
-                    className="text-[10px] text-blue-600 font-bold hover:underline"
-                  >
-                    + Mới
-                  </button>
-                </label>
-                <select 
-                  value={selectedDistributionId}
-                  onChange={(e) => setSelectedDistributionId(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-100 bg-slate-50 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              {/* Radio chọn chế độ nhập tiêu đề */}
+              <div className="flex bg-slate-100 p-1 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setInputMode('manual')}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+                    inputMode === 'manual' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                  }`}
                 >
-                  <option value="">-- Tự chọn --</option>
-                  {data.distributions?.map(d => (
-                    <option key={d.id} value={d.id}>{d.name}</option>
-                  ))}
-                </select>
+                  <PenLine className="w-3.5 h-3.5" /> Điền trực tiếp
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInputMode('ppct')}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+                    inputMode === 'ppct' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  <BookOpen className="w-3.5 h-3.5" /> Lấy từ PPCT
+                </button>
               </div>
 
+              {inputMode === 'manual' ? (
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tiêu đề bài học</label>
+                  <input 
+                    type="text" 
+                    value={currentPlan.title || ''}
+                    onChange={(e) => setCurrentPlan(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="Ví dụ: Đạo hàm cấp 2..."
+                    className="w-full px-4 py-3 rounded-xl border border-slate-100 bg-slate-50 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  />
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                    Phân phối môn (PPCT)
+                    <button 
+                      onClick={() => { setUploadingFiles({ category: 'distribution' }); fileInputRef.current?.click(); }}
+                      className="text-[10px] text-blue-600 font-bold hover:underline"
+                    >
+                      + Tải lên PPCT
+                    </button>
+                  </label>
+                  <select 
+                    value={selectedDistributionId}
+                    onChange={(e) => setSelectedDistributionId(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-100 bg-blue-50 text-blue-700 text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none"
+                  >
+                    <option value="">-- Chọn file PPCT --</option>
+                    {data.distributions?.map(d => (
+                      <option key={d.id} value={d.id}>{d.name}</option>
+                    ))}
+                  </select>
+                  {selectedDistributionId && (
+                    <p className="text-[10px] text-blue-600 font-medium">✓ AI sẽ đọc PPCT và tự điền tiêu đề bài theo tuần đã chọn.</p>
+                  )}
+                </div>
+              )}
+              
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
                   Tài liệu tham khảo

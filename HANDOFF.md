@@ -8,26 +8,27 @@
 ## 1. Trạng thái repo
 
 - **Branch hiện tại**: `main`
-- **Branch dev session trước**: `claude/review-github-project-IgI1M` (đã merge)
-- **Commit mới nhất**: `8f50620` "Add lesson export API for Word and PDF"
+- **Branch dev session trước**: `claude/review-api-exports-4J5Fj` (đã merge PR #3 + PR #4)
+- **Commit mới nhất trên main**: `30f7d03` (sau merge PR #3)
 - **Build**: clean (`npm run build` pass)
 
-## 2. Vừa làm xong (session trước)
+## 2. Vừa làm xong (session này)
 
-QA review code update của "anti" — fix 8 bugs đã merge PR commit `b69b4ce`:
+### Fix CI TypeScript (`tsc --noEmit`) — PR #3
+| Fix | Mô tả |
+|-----|-------|
+| `tsconfig.json` | Thêm `"exclude": ["api", "vite.config.ts"]` để tách Node.js context ra khỏi browser tsc |
+| `api/*.ts` | Thêm `/// <reference types="node" />` (belt-and-suspenders cho Vercel) |
+| `api/render-word-core.ts` | Fix conditional spread trong ordered list + export `normalizeLatexMarkers` |
+| `src/components/modals/PushToDriveModal.tsx` | Fix `filter(Boolean)` → typed predicate `(r): r is PushFileResult` |
 
-| Bug | File | Mô tả |
-|-----|------|-------|
-| B2 | `src/pages/StudentExamPage.tsx` | `submittedRef.current = true` đặt sau guard |
-| B3 | `src/utils/examImportUtils.ts` | JSON repair regex cho `\frac`/`\sqrt` |
-| Progress bar | `src/components/features/testing/ImportExamModal.tsx` | `setInterval` trước `await` |
-| T/F padding | ImportExamModal | `Array.from({ length: 4 }, ...)` |
-| Race | StudentExamPage | bỏ `tabSwitches` khỏi autosave deps |
-| CSS print | `src/index.css` | bỏ `[class*="z-"]` quá rộng |
-| Paste/file | ImportExamModal | `e.preventDefault()` + `e.target.value = ''` |
-| Canvas leak | examImportUtils | `canvas.width = 0` sau `toDataURL` |
+**Root cause**: `"types": ["vite/client"]` trong tsconfig giới hạn global types về browser only, nên `Buffer`/`process.env` trong `api/` fail. Solution: exclude `api/` và `vite.config.ts` khỏi browser tsc check.
 
-Sau đó "anti" đã commit thêm 5 commits (`38a032e` → `8f50620`) tạo API export DOCX/PDF — **chưa review**, nên kiểm thử trước khi build tiếp.
+### UI Features — PR #4
+| Feature | File | Mô tả |
+|---------|------|-------|
+| Bot API settings | `src/components/modals/SettingsModal.tsx` | Thêm section "Bot API" với 2 input: `botApiUrl` + `botApiToken` |
+| Điền trực tiếp/PPCT radio | `src/components/features/creator/LessonControls.tsx` | Radio toggle trong single mode để chọn nhập tay vs. dùng PPCT |
 
 ## 3. Việc đang chờ — Tích hợp Web ↔ Bot Telegram
 
@@ -50,15 +51,17 @@ Google Drive
 
 **Nguyên tắc**: Bot KHÔNG gọi AI nữa — chỉ làm cầu nối Drive. Export do web tự làm (fix lỗi font/công thức).
 
-### 3.3 TODO Web (`soangiaoan`)
+### 3.3 TODO Web (`soangiaoan`) — còn lại
 
-- [ ] Review 5 commits export API mới của anti (`38a032e` → `8f50620`)
+- [x] Review 5 commits export API mới của anti (`38a032e` → `8f50620`) — done trước khi fix CI
+- [x] UI radio "Điền trực tiếp" vs "Lấy từ phân phối (PPCT)" — **done session này**
+- [x] Modal "Đẩy lên Drive" (`PushToDriveModal.tsx`) — đã merge PR #3
+- [x] Cài đặt Bot API (URL + token) trong SettingsModal — **done session này**
+- [ ] Service `src/services/pushLessonToBot.ts` — gọi bot endpoint POST /api/drive/upload
 - [ ] Thêm field `period?: number` vào `LessonPlan` interface — `src/types.ts:8-23`
-- [ ] UI radio trong Creator tab: "Điền trực tiếp" vs "Lấy từ phân phối (PPCT)"
-- [ ] Modal "Đẩy lên Drive" — chọn lớp/tuần/chương trình
-- [ ] Service `src/services/pushLessonToBot.ts` — gọi bot endpoint
+- [ ] Wiring: nút "Đẩy lên Drive" trong PushToDriveModal gọi `pushLessonToBot.ts`
 
-### 3.4 TODO Bot (`edu-lesson-bot` — cần session mới có access)
+### 3.4 TODO Bot (`edu-lesson-bot`)
 
 - [ ] FastAPI server mới `bot_api_server.py`:
   - `POST /api/lessons/check` — kiểm tra giáo án đã tồn tại trên Drive
@@ -69,11 +72,12 @@ Google Drive
 ## 4. Quy tắc workflow (user thiết lập — BẮT BUỘC)
 
 1. **Auto-tạo PR sau khi push** branch — KHÔNG push thẳng main (Claude Code proxy chặn 403)
-2. **Hỏi "anti" trước khi code** — đừng tự tiện sửa code khi không rõ
+2. **Hỏi trước khi code** — đừng tự tiện sửa code khi không rõ; hỏi user trước
 3. **Build phải clean** — `npm run build` 0 errors trước khi declare done
 4. **Branch convention**: `claude/...` cho session branches
 5. **Cập nhật `tasks/lessons.md`** sau mỗi correction từ user
 6. **Plan mode** cho mọi task 3+ bước hoặc có quyết định kiến trúc
+7. **Hỏi trước khi tạo file mới** ở cả 2 repo
 
 ## 5. Files quan trọng
 
@@ -93,6 +97,9 @@ Google Drive
 | `api/gemini-relay.ts` | Vercel serverless relay (đã support Vision) |
 | `api/export-lesson.ts` | Export giáo án DOCX/PDF (anti vừa thêm) |
 | `api/render-word.ts` + `render-word-core.ts` | Word rendering |
+| `src/components/modals/SettingsModal.tsx` | AI providers config + **Bot API section** |
+| `src/components/modals/PushToDriveModal.tsx` | Modal đẩy giáo án lên Drive |
+| `src/components/features/creator/LessonControls.tsx` | Creator sidebar — **có radio Điền/PPCT** |
 | `CLAUDE.md` | Project working guidelines |
 | `tasks/lessons.md` | Patterns học được, đọc đầu session |
 
@@ -103,6 +110,7 @@ Google Drive
 | 1 | Stats BarChart + QR | Done |
 | 2 | AnswerReview + Grading page | Done |
 | 3 | Excel + Vision import | Done |
+| 3.5 | Export DOCX/PDF + Drive integration | In Progress |
 | **4** | Anti-cheat UI, Leaderboard, AI tools | Next |
 | 5 | Drill-down analytics, ExamConfigPage | Pending |
 | 6 | ExamEditorPage, CreateExamPage | Pending |
@@ -120,5 +128,5 @@ Plan file gốc: `/root/.claude/plans/cozy-growing-rocket.md`
 1. Đọc file này (`HANDOFF.md`)
 2. Đọc `CLAUDE.md` (project rules)
 3. Đọc `tasks/lessons.md` (lessons học được)
-4. Hỏi user: *"Tiếp tục integration bot (review commits anti rồi làm UI radio + modal Drive), hay làm Giai đoạn 4 (anti-cheat + leaderboard)?"*
+4. Hỏi user: *"Tiếp tục integration bot (pushLessonToBot service + wiring Drive button), hay làm Giai đoạn 4 (anti-cheat + leaderboard)?"*
 5. KHÔNG re-implement những thứ đã Done ở mục 2 và 6
