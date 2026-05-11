@@ -23,5 +23,6 @@
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "exclude": ["api", "vite.config.ts"]
 }

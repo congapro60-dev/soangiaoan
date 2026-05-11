@@ -11,6 +11,7 @@ import * as exportUtils from '../../utils/exportUtils';
 import { exportToWordA4 } from '../../utils/wordExportA4';
 import { callAI, getActiveApiKey } from '../../lib/aiProviders';
 import { AudioOverview } from '../features/AudioOverview';
+import { PushToDriveModal } from '../modals/PushToDriveModal';
 
 // Subcomponents
 import { CreatorToolbar } from '../features/creator/CreatorToolbar';
@@ -61,6 +62,7 @@ export const CreatorTab = (props: CreatorTabProps) => {
   const [slidePreview, setSlidePreview] = useState<any[] | null>(null);
   const [showAudioOverview, setShowAudioOverview] = useState(false);
   const [studyGuide, setStudyGuide] = useState<string | null>(null);
+  const [showPushModal, setShowPushModal] = useState(false);
 
   const handleGenerateSlide = async () => {
     const slides = await exportUtils.generateSlideData(props.currentPlan, props.data, props.setIsLoading, props.showToast);
@@ -234,6 +236,7 @@ export const CreatorTab = (props: CreatorTabProps) => {
                           handleGenerateStudyGuide={handleGenerateStudyGuide}
                           setShowAudioOverview={setShowAudioOverview}
                           onCreateExam={props.onCreateExam}
+                          onPushToDrive={() => setShowPushModal(true)}
                        />
                     )}
                  </div>
@@ -311,6 +314,15 @@ export const CreatorTab = (props: CreatorTabProps) => {
           content={props.currentPlan.content}
           settings={props.data.settings}
           onClose={() => setShowAudioOverview(false)}
+        />
+      )}
+
+      {showPushModal && (
+        <PushToDriveModal
+          currentPlan={props.currentPlan}
+          settings={props.data.settings}
+          showToast={props.showToast}
+          onClose={() => setShowPushModal(false)}
         />
       )}
       

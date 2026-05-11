@@ -11,6 +11,7 @@ export interface LessonPlan {
   templateId?: string;
   grade?: string;
   week?: string;
+  period?: number;
   authorName?: string;
   title: string;
   content: string;
@@ -180,6 +181,8 @@ export interface AppData {
     grokApiKey: string;
     deepseekApiKey: string;
     models?: string[];
+    botApiUrl?: string;
+    botApiToken?: string;
   };
   gradingSessions: GradingSession[];
   exams: Exam[];
@@ -208,6 +211,8 @@ export const DEFAULT_DATA: AppData = {
     selectedProvider: 'gemini',
     selectedModel: 'gemini-3.1-flash-lite-preview',
     models: ['gemini-3.1-flash-lite-preview', 'gemini-3.1-pro-preview', 'gemini-2.5-flash'],
+    botApiUrl: '',
+    botApiToken: '',
   },
   gradingSessions: [],
   exams: [],

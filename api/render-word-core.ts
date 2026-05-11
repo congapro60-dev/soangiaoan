@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import {
   Document,
   Packer,
@@ -40,7 +41,7 @@ export const safeFilename = (title: string | undefined, fallback = 'giao-an'): s
   return title.replace(/[<>:"/\\|?*\x00-\x1f]/g, '').trim() || fallback;
 };
 
-const normalizeLatexMarkers = (text: string): string =>
+export const normalizeLatexMarkers = (text: string): string =>
   text
     .replace(/\\\((.*?)\\\)/gs, '$$$1$$')
     .replace(/\\\[(.*?)\\\]/gs, '$$$$ $1 $$$$');
@@ -198,15 +199,15 @@ const processTokens = (tokens: Token[], context: any[]) => {
       }
       case 'list': {
         const list = token as Tokens.List;
-        list.items.forEach((item: any) => {
+        list.items.forEach((item: any, idx: number) => {
           const inline = item.tokens?.[0]?.tokens || [{ type: 'text', text: item.text || '' }];
-          context.push(
-            new Paragraph({
-              children: flattenInline(inline),
-              bullet: { level: 0 },
-              spacing: { before: 60, after: 60 },
-            })
-          );
+          const runs = flattenInline(inline);
+          if (list.ordered) {
+            runs.unshift(new TextRun({ text: `${idx + 1}.\t`, font: FONT, size: SIZE_14PT }));
+            context.push(new Paragraph({ children: runs, spacing: { before: 60, after: 60 } }));
+          } else {
+            context.push(new Paragraph({ children: runs, bullet: { level: 0 }, spacing: { before: 60, after: 60 } }));
+          }
         });
         break;
       }

@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { renderWordBuffer, safeFilename } from './render-word-core.js';
 import type { WordOrientation } from './render-word-core.js';
