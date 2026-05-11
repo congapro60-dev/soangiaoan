@@ -1,5 +1,11 @@
 import type { LessonPlan, AppData } from '../types';
 
+export class ConflictError extends Error {
+  constructor(public filename: string) {
+    super(`File "${filename}" đã tồn tại trên Drive`);
+  }
+}
+
 export interface PushOptions {
   lessonType: 'TDS' | 'MOET';
   grade: number;
@@ -45,7 +51,10 @@ export async function checkLessonExists(
   const { url, token } = getBotConfig(settings);
   const res = await fetch(`${url}/api/lessons/check`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-API-Token': token },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
     body: JSON.stringify({ lesson_type: options.lessonType, grade: options.grade, week: options.week, filename }),
   });
   if (!res.ok) {
@@ -108,9 +117,14 @@ async function uploadToBot(
 
   const res = await fetch(`${botUrl}/api/drive/upload`, {
     method: 'POST',
-    headers: { 'X-API-Token': botToken },
+    headers: { 'Authorization': `Bearer ${botToken}` },
     body: form,
   });
+
+  if (res.status === 409) {
+    const err = await res.json().catch(() => ({})) as Record<string, unknown>;
+    throw new ConflictError(String(err['filename'] ?? fileData.filename));
+  }
   if (!res.ok) {
     const err = await res.json().catch(() => ({})) as Record<string, unknown>;
     throw new Error(String(err['detail'] ?? `Upload Drive thất bại: ${res.status}`));
