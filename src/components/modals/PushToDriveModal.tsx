@@ -4,6 +4,7 @@ import type { LessonPlan, AppData } from '../../types';
 import {
   checkLessonExists,
   pushLessonToBot,
+  ConflictError,
   type PushOptions,
   type PushResult,
   type PushFileResult,
@@ -17,7 +18,7 @@ interface Props {
   onClose: () => void;
 }
 
-type Step = 'config' | 'checking' | 'checked' | 'pushing' | 'done' | 'error';
+type Step = 'config' | 'checking' | 'checked' | 'pushing' | 'conflict' | 'done' | 'error';
 
 const toGrade = (v: string | undefined): number => {
   const n = Number(v);
@@ -34,12 +35,13 @@ export const PushToDriveModal = ({ currentPlan, settings, showToast, onClose }: 
   const [grade, setGrade] = useState<number>(toGrade(currentPlan.grade));
   const [week, setWeek] = useState<number>(toWeek(currentPlan.week));
   const [formats, setFormats] = useState<Set<'docx' | 'pdf'>>(new Set(['docx', 'pdf']));
-  const [replaceExisting, setReplaceExisting] = useState(true);
+  const [replaceExisting, setReplaceExisting] = useState(false);
   const [step, setStep] = useState<Step>('config');
   const [checkResult, setCheckResult] = useState<CheckResult | null>(null);
   const [pushResult, setPushResult] = useState<PushResult | null>(null);
   const [progressMsg, setProgressMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [conflictFilename, setConflictFilename] = useState('');
 
   const notConfigured = !settings.botApiUrl?.trim() || !settings.botApiToken?.trim();
 
@@ -67,15 +69,24 @@ export const PushToDriveModal = ({ currentPlan, settings, showToast, onClose }: 
     }
   };
 
-  const handlePush = async () => {
+  const handlePush = async (forceReplace = false) => {
     setStep('pushing');
     try {
-      const opts: PushOptions = { lessonType, grade, week, formats: Array.from(formats), replaceExisting };
+      const opts: PushOptions = {
+        lessonType, grade, week,
+        formats: Array.from(formats),
+        replaceExisting: forceReplace || replaceExisting,
+      };
       const result = await pushLessonToBot(currentPlan, opts, settings, setProgressMsg);
       setPushResult(result);
       setStep('done');
       showToast('Đã đẩy giáo án lên Drive thành công!', 'success');
     } catch (e: unknown) {
+      if (e instanceof ConflictError) {
+        setConflictFilename(e.filename);
+        setStep('conflict');
+        return;
+      }
       setErrorMsg(e instanceof Error ? e.message : 'Lỗi đẩy lên Drive');
       setStep('error');
     }
@@ -234,6 +245,21 @@ export const PushToDriveModal = ({ currentPlan, settings, showToast, onClose }: 
             </div>
           )}
 
+          {/* Conflict confirmation */}
+          {step === 'conflict' && (
+            <div className="space-y-4">
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-bold text-amber-800">File đã tồn tại trên Drive</p>
+                  <p className="text-xs text-amber-700 mt-1 break-all">
+                    <strong>{conflictFilename}</strong> đã có trong thư mục tuần này. Bạn có muốn ghi đè không?
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Done */}
           {step === 'done' && pushResult && (
             <div className="space-y-4">
@@ -290,11 +316,27 @@ export const PushToDriveModal = ({ currentPlan, settings, showToast, onClose }: 
               Kiểm tra Drive
             </button>
             <button
-              onClick={handlePush}
+              onClick={() => handlePush()}
               disabled={notConfigured || !currentPlan.content}
               className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold text-sm hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 disabled:opacity-40 flex items-center justify-center gap-2"
             >
               <CloudUpload className="w-4 h-4" /> Đẩy lên Drive
+            </button>
+          </div>
+        )}
+        {step === 'conflict' && (
+          <div className="p-6 border-t border-slate-100 flex gap-3">
+            <button
+              onClick={() => setStep('config')}
+              className="flex-1 py-3 border border-slate-200 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all"
+            >
+              Huỷ
+            </button>
+            <button
+              onClick={() => handlePush(true)}
+              className="flex-1 py-3 bg-amber-500 text-white rounded-xl font-bold text-sm hover:bg-amber-600 transition-all shadow-lg shadow-amber-100 flex items-center justify-center gap-2"
+            >
+              <AlertTriangle className="w-4 h-4" /> Ghi đè
             </button>
           </div>
         )}
