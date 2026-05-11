@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { FileDown, FileText, Presentation, FileSpreadsheet, BookOpen, Headphones, ChevronDown, RotateCcw, ClipboardList } from 'lucide-react';
+import { FileDown, FileText, Presentation, FileSpreadsheet, BookOpen, Headphones, ChevronDown, RotateCcw, ClipboardList, CloudUpload } from 'lucide-react';
 
 export type PaperOrientation = 'portrait' | 'landscape';
 
@@ -11,6 +11,7 @@ interface CreatorToolbarProps {
   handleGenerateStudyGuide: () => void;
   setShowAudioOverview: (val: boolean) => void;
   onCreateExam?: () => void;
+  onPushToDrive?: () => void;
 }
 
 export const CreatorToolbar = ({
@@ -21,6 +22,7 @@ export const CreatorToolbar = ({
   handleGenerateStudyGuide,
   setShowAudioOverview,
   onCreateExam,
+  onPushToDrive,
 }: CreatorToolbarProps) => {
   const [orientation, setOrientation] = useState<PaperOrientation>('portrait');
   const [showOrientationMenu, setShowOrientationMenu] = useState(false);
@@ -115,6 +117,16 @@ export const CreatorToolbar = ({
       <button onClick={() => setShowAudioOverview(true)} className="p-2.5 bg-purple-50 border border-purple-100 rounded-xl text-purple-600 hover:bg-purple-600 hover:text-white transition-all shadow-sm" title="Bản tin Audio bài giảng">
         <Headphones className="w-5 h-5" />
       </button>
+
+      {onPushToDrive && (
+        <button
+          onClick={onPushToDrive}
+          className="p-2.5 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+          title="Đẩy lên Google Drive (qua bot)"
+        >
+          <CloudUpload className="w-5 h-5" />
+        </button>
+      )}
     </div>
   );
 };
