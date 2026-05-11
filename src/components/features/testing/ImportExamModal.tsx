@@ -166,9 +166,7 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
       // Step 2: AI Parsing (Level 3 - Fast Mode by default)
       setProgressLabel('AI đang bóc tách câu hỏi...');
       setProgress(40);
-      
-      const parsed = await parseExamFromFiles(examFile, answerFile, settings, imgs, forceVision);
-      
+
       let p = 40;
       const interval = setInterval(() => {
         p += Math.random() * 10;
@@ -178,8 +176,14 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
         else setProgressLabel('Đang định dạng câu hỏi...');
       }, 500);
 
+      let parsed;
+      try {
+        parsed = await parseExamFromFiles(examFile, answerFile, settings, imgs, forceVision);
+      } finally {
+        clearInterval(interval);
+      }
+
       setQuestions(parsed);
-      clearInterval(interval);
       setProgress(100);
       setProgressLabel('Xong!');
       
@@ -190,6 +194,7 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
       setError(e.message || 'Có lỗi xảy ra khi phân tích đề.');
       setStep('upload');
       setProgress(0);
+      setPageImages([]);
     }
   };
 
@@ -221,6 +226,7 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
       if (item.type.indexOf('image') !== -1) {
         const file = item.getAsFile();
         if (!file) continue;
+        e.preventDefault();
         const reader = new FileReader();
         reader.onload = async (event) => {
           const base64 = event.target?.result as string;
@@ -640,9 +646,10 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
                       {q.type === 'true_false' && (
                         <div className="mt-4 space-y-3 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
                           {['a', 'b', 'c', 'd'].map((label, i) => {
-                            const answers = (q.correctAnswer || 'Đ,Đ,Đ,Đ').split(',');
-                            const currentAns = answers[i] || 'Đ';
-                            
+                            const raw = (q.correctAnswer || '').split(',');
+                            const answers = Array.from({ length: 4 }, (_, k) => raw[k] === 'S' ? 'S' : 'Đ') as ('Đ' | 'S')[];
+                            const currentAns = answers[i];
+
                             const setAns = (val: 'Đ' | 'S') => {
                               const newAnswers = [...answers];
                               newAnswers[i] = val;
@@ -710,6 +717,7 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
                             <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
                               const file = e.target.files?.[0];
                               if (!file) return;
+                              e.target.value = '';
                               const reader = new FileReader();
                               reader.onload = (ev) => updateQuestion(idx, { imageUrl: ev.target?.result as string });
                               reader.readAsDataURL(file);

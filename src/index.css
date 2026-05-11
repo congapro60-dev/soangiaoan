@@ -321,8 +321,7 @@ body {
 
   /* Các overlay, modal backdrop phải ẩn */
   [class*="fixed"],
-  [class*="sticky"],
-  [class*="z-"] {
+  [class*="sticky"] {
     position: static !important;
   }
 }
