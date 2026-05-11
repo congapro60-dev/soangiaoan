@@ -115,10 +115,63 @@ Plan file gốc: `/root/.claude/plans/cozy-growing-rocket.md`
 - **Bot** (cũ): Claude API — sau khi tích hợp xong sẽ bỏ AI, chỉ giữ Drive client
 - **Vision**: dùng Gemini 1.5 Pro hoặc Claude qua `api/gemini-relay.ts`
 
-## 8. Cách session mới bắt đầu
+## 8. Phân chia công việc — Claude Code vs Roo Code (VSCode)
+
+### Claude Code (session mới — 2 repo)
+Phụ trách toàn bộ phần **web** (`soangiaoan`):
+- Review + fix bugs export API của anti
+- Thêm `period` field, UI radio "Điền trực tiếp / Lấy từ PPCT"
+- Modal "Đẩy lên Drive" + service `pushLessonToBot.ts`
+- Giai đoạn 4: anti-cheat UI, leaderboard, AI tools
+- Mọi PR, commit, build verification
+
+### Roo Code (VSCode — repo `edu-lesson-bot`)
+Phụ trách toàn bộ phần **bot** (Python/Railway):
+- Tạo `bot_api_server.py` (FastAPI)
+- Refactor `drive_client.py`
+- Update `requirements.txt` + `Procfile`/`railway.toml`
+- KHÔNG động vào Telegram bot logic hiện tại
+
+### Quy trình phối hợp
+1. Claude Code viết spec API (endpoint URL, request/response schema)
+2. Claude Code share spec → Roo Code implement bot endpoint
+3. Sau khi bot deploy → Claude Code implement phần web gọi bot
+4. Test end-to-end: GV soạn xong → click "Đẩy lên Drive" → file xuất hiện trên Drive đúng tuần
+
+---
+
+## 9. Cách session mới bắt đầu
 
 1. Đọc file này (`HANDOFF.md`)
 2. Đọc `CLAUDE.md` (project rules)
 3. Đọc `tasks/lessons.md` (lessons học được)
-4. Hỏi user: *"Tiếp tục integration bot (review commits anti rồi làm UI radio + modal Drive), hay làm Giai đoạn 4 (anti-cheat + leaderboard)?"*
-5. KHÔNG re-implement những thứ đã Done ở mục 2 và 6
+4. **Ưu tiên**: Fix bugs export API của anti trước (mục 3.3 — review 5 commits), build clean
+5. Sau đó hỏi user muốn tiếp tục integration bot hay Giai đoạn 4
+6. KHÔNG re-implement những thứ đã Done ở mục 2 và 6
+
+---
+
+## 10. Prompt sẵn cho Roo Code (VSCode — repo edu-lesson-bot)
+
+> Paste nguyên đoạn này vào Roo Code chat khi mở repo `edu-lesson-bot`:
+
+---
+
+Tôi đang tích hợp bot này với web app `soangiaoan` (React/Vercel).
+
+**Kiến trúc đã chốt**:
+- Web tự generate + export DOCX/PDF (đã có `api/export-lesson.ts` bên web)
+- Web sẽ POST file + metadata sang bot
+- Bot KHÔNG gọi AI — chỉ làm cầu nối Google Drive
+
+**Phân chia**: Claude Code (web) sẽ viết spec API cho tôi trước. Bạn (Roo Code) sẽ implement bot endpoint theo spec đó.
+
+**Việc cần chuẩn bị ngay**:
+1. Đọc toàn bộ `drive_client.py` — hiểu interface upload + folder mapping tuần/môn
+2. Đọc `app/main.py` — hiểu cách bot đang chạy
+3. Đọc `requirements.txt` + `railway.toml`/`Procfile`
+4. Báo cáo: drive_client hiện có hàm upload nào? Folder structure trên Drive là gì?
+
+**Chưa code gì** — chỉ đọc và báo cáo. Claude Code sẽ gửi spec API sau khi review web xong.
+
+---
