@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import chromium from '@sparticuz/chromium';
 import { marked } from 'marked';
 import puppeteer from 'puppeteer-core';
-import { renderWordBuffer, safeFilename } from './render-word-core.js';
+import { renderWordBuffer, safeFilename, normalizeLatexMarkers } from './render-word-core.js';
 import type { WordOrientation } from './render-word-core.js';
 
 const DOCX_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
@@ -10,6 +10,7 @@ const PDF_MIME_TYPE = 'application/pdf';
 const MAX_CONTENT_LENGTH = 900_000;
 
 type LessonType = 'TDS' | 'MOET';
+type ExportFormat = 'docx' | 'pdf' | 'both';
 
 interface ExportLessonPayload {
   grade?: number;
@@ -19,10 +20,14 @@ interface ExportLessonPayload {
   title?: string;
   content?: string;
   orientation?: WordOrientation | string;
+  format?: ExportFormat | string;
 }
 
 const isOrientation = (value: unknown): value is WordOrientation =>
   value === 'portrait' || value === 'landscape';
+
+const isExportFormat = (value: unknown): value is ExportFormat =>
+  value === 'docx' || value === 'pdf' || value === 'both';
 
 const escapeHtml = (value: string): string =>
   value
@@ -45,20 +50,15 @@ const buildTitle = (payload: ExportLessonPayload, type: LessonType): string => {
   return [type, grade, week, lessonName].filter(Boolean).join(' - ');
 };
 
-const normalizeLatexMarkers = (text: string): string =>
-  text
-    .replace(/\\\((.*?)\\\)/gs, '$$$1$$')
-    .replace(/\\\[(.*?)\\\]/gs, '$$$$ $1 $$$$');
-
+// CDN-free HTML: @sparticuz/chromium runs in Lambda with no internet access.
+// KaTeX/MathJax CDN would cause networkidle0 to hang until timeout.
+// Math formulae render as plain LaTeX text; acceptable for giáo án use case.
 const buildHtml = async (title: string, content: string): Promise<string> => {
   const htmlContent = await marked.parse(normalizeLatexMarkers(content), { async: true, gfm: true, breaks: true });
   return `<!doctype html>
 <html lang="vi">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
-  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <style>
     @page { size: A4; margin: 20mm 18mm 20mm 30mm; }
     * { box-sizing: border-box; }
@@ -141,8 +141,6 @@ const buildHtml = async (title: string, content: string): Promise<string> => {
       line-height: 1.4;
       white-space: pre-wrap;
     }
-    .katex, mjx-container { font-size: 1em; }
-    mjx-container[display="true"] { margin: 4pt 0; }
   </style>
 </head>
 <body>
@@ -159,23 +157,14 @@ const renderPdfBuffer = async (title: string, content: string, orientation: Word
     args: chromium.args,
     defaultViewport: { width: orientation === 'landscape' ? 1123 : 794, height: orientation === 'landscape' ? 794 : 1123 },
     executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || (await chromium.executablePath()),
-    headless: true,
+    headless: chromium.headless,
   });
 
   try {
     const page = await browser.newPage();
-    page.setDefaultNavigationTimeout(120_000);
-    page.setDefaultTimeout(120_000);
-    await page.setContent(await buildHtml(title, content), { waitUntil: 'networkidle0', timeout: 120_000 });
-    await page.evaluate(async () => {
-      const mathJax = (window as any).MathJax;
-      if (mathJax?.typesetPromise) {
-        await mathJax.typesetPromise();
-      }
-      if ((document as any).fonts?.ready) {
-        await (document as any).fonts.ready;
-      }
-    });
+    page.setDefaultNavigationTimeout(60_000);
+    page.setDefaultTimeout(60_000);
+    await page.setContent(await buildHtml(title, content), { waitUntil: 'domcontentloaded', timeout: 60_000 });
 
     const pdf = await page.pdf({
       format: 'A4',
@@ -209,9 +198,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const type = normalizeLessonType(payload.type);
   const title = buildTitle(payload, type);
   const orientation = isOrientation(payload.orientation) ? payload.orientation : 'portrait';
+  const format = isExportFormat(payload.format) ? payload.format : 'both';
   const baseFilename = safeFilename(`${title}_${type}`, 'giao-an');
 
   try {
+    if (format === 'docx') {
+      const wordBuffer = await renderWordBuffer({ title, content: payload.content, orientation });
+      return res.status(200).json({
+        word: {
+          filename: `${baseFilename}.docx`,
+          mimeType: DOCX_MIME_TYPE,
+          base64: wordBuffer.toString('base64'),
+        },
+      });
+    }
+
+    if (format === 'pdf') {
+      const pdfBuffer = await renderPdfBuffer(title, payload.content, orientation);
+      return res.status(200).json({
+        pdf: {
+          filename: `${baseFilename}.pdf`,
+          mimeType: PDF_MIME_TYPE,
+          base64: pdfBuffer.toString('base64'),
+        },
+      });
+    }
+
+    // format === 'both' — caller should prefer single-format requests for long lessons
+    // to avoid exceeding Vercel's 4.5 MB response limit.
     const [wordBuffer, pdfBuffer] = await Promise.all([
       renderWordBuffer({ title, content: payload.content, orientation }),
       renderPdfBuffer(title, payload.content, orientation),
