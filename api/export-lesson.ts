@@ -10,26 +10,34 @@ import puppeteer from 'puppeteer-core';
 import { renderWordBuffer, safeFilename } from './render-word-core.js';
 import type { WordOrientation } from './render-word-core.js';
 
-const requireFromHere = createRequire(import.meta.url);
-const katexPackageDir = dirname(requireFromHere.resolve('katex/package.json'));
-const katexFontsDir = join(katexPackageDir, 'dist', 'fonts');
-
-// Inline KaTeX font files as base64 data URLs so math glyphs render in Lambda
+// Inline KaTeX CSS + fonts at module init so math glyphs render in Lambda
 // (no outbound network to fetch /fonts/*.woff2).
-const inlineKatexFonts = (css: string): string =>
-  css.replace(
-    /url\((['"]?)fonts\/([^)'"]+\.woff2)\1\)/g,
-    (_match, _quote, fontFile) => {
-      try {
-        const buf = readFileSync(join(katexFontsDir, fontFile));
-        return `url(data:font/woff2;base64,${buf.toString('base64')})`;
-      } catch {
-        return `url(fonts/${fontFile})`;
-      }
-    },
-  );
+// Wrap in try/catch — if Vercel's file tracer misses the dist files, fall back
+// to empty CSS rather than crashing the entire function on cold start.
+const loadKatexCss = (): string => {
+  try {
+    const requireFromHere = createRequire(import.meta.url);
+    const katexPackageDir = dirname(requireFromHere.resolve('katex/package.json'));
+    const katexFontsDir = join(katexPackageDir, 'dist', 'fonts');
+    const css = readFileSync(join(katexPackageDir, 'dist', 'katex.min.css'), 'utf8');
+    return css.replace(
+      /url\((['"]?)fonts\/([^)'"]+\.woff2)\1\)/g,
+      (_match, _quote, fontFile) => {
+        try {
+          const buf = readFileSync(join(katexFontsDir, fontFile));
+          return `url(data:font/woff2;base64,${buf.toString('base64')})`;
+        } catch {
+          return `url(fonts/${fontFile})`;
+        }
+      },
+    );
+  } catch (err) {
+    console.error('Failed to load KaTeX CSS at init:', err);
+    return '';
+  }
+};
 
-const KATEX_CSS = inlineKatexFonts(readFileSync(join(katexPackageDir, 'dist', 'katex.min.css'), 'utf8'));
+const KATEX_CSS = loadKatexCss();
 
 const DOCX_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 const PDF_MIME_TYPE = 'application/pdf';
