@@ -1,16 +1,30 @@
 # HANDOFF — Tiếp tục session
 
-**Cập nhật**: 2026-05-11
+**Cập nhật**: 2026-05-12
 **Mục đích**: File này để Claude Code session mới (đoạc Roo Code) đọc và tiếp tục công việc mà không cần hỏi lại context.
 
 ---
 
 ## 1. Trạng thái repo
 
-- **Branch hiện tại**: `main`
+- **Branch hiện tại**: `claude/review-api-exports-4J5Fj`
 - **Build**: clean (`npm run build` pass)
 
-## 2. Vừa làm xong (session 2026-05-11)
+## 2. Vừa làm xong (session 2026-05-12)
+
+### Fix `/api/export-lesson` — render công thức trong PDF
+| Fix | File | Mô tả |
+|-----|------|-------|
+| Pre-render KaTeX server-side | `api/export-lesson.ts` | Thêm `katex.renderToString()` cho `$...$` và `$$...$$` TRƯỚC marked → tránh `_*` bị marked hiểu là italic |
+| Inline KaTeX CSS + fonts | `api/export-lesson.ts` | Đọc `katex.min.css` + woff2 fonts từ `node_modules`, base64 → data: URL → Lambda no-internet vẫn render được |
+| Placeholder tokens | `api/export-lesson.ts` | `@@KMATH<N>@@` giữ HTML KaTeX nguyên vẹn khi qua marked |
+| Wait fonts.ready | `api/export-lesson.ts` | `await document.fonts.ready` trước `page.pdf()` |
+| Bỏ `normalizeLatexMarkers` import | `api/export-lesson.ts` | Logic đã chuyển vào `stashMathAsPlaceholders` (vẫn xử lý `\(...\)` + `\[...\]`) |
+
+**Trước fix**: PDF hiển thị `$x_1^2$` thô vì MathJax CDN bị remove (Lambda no internet) + marked phá ký tự `_*`.
+**Sau fix**: KaTeX render thành HTML hoàn chỉnh trong server, Chromium chỉ in PDF (không cần internet, không cần MathJax).
+
+## 3. Vừa làm xong (session 2026-05-11)
 
 ### Fix CI TypeScript — ✅ merged
 | Fix | Mô tả |

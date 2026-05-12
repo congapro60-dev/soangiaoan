@@ -1,10 +1,35 @@
 /// <reference types="node" />
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import chromium from '@sparticuz/chromium';
+import katex from 'katex';
 import { marked } from 'marked';
 import puppeteer from 'puppeteer-core';
-import { renderWordBuffer, safeFilename, normalizeLatexMarkers } from './render-word-core.js';
+import { renderWordBuffer, safeFilename } from './render-word-core.js';
 import type { WordOrientation } from './render-word-core.js';
+
+const requireFromHere = createRequire(import.meta.url);
+const katexPackageDir = dirname(requireFromHere.resolve('katex/package.json'));
+const katexFontsDir = join(katexPackageDir, 'dist', 'fonts');
+
+// Inline KaTeX font files as base64 data URLs so math glyphs render in Lambda
+// (no outbound network to fetch /fonts/*.woff2).
+const inlineKatexFonts = (css: string): string =>
+  css.replace(
+    /url\((['"]?)fonts\/([^)'"]+\.woff2)\1\)/g,
+    (_match, _quote, fontFile) => {
+      try {
+        const buf = readFileSync(join(katexFontsDir, fontFile));
+        return `url(data:font/woff2;base64,${buf.toString('base64')})`;
+      } catch {
+        return `url(fonts/${fontFile})`;
+      }
+    },
+  );
+
+const KATEX_CSS = inlineKatexFonts(readFileSync(join(katexPackageDir, 'dist', 'katex.min.css'), 'utf8'));
 
 const DOCX_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 const PDF_MIME_TYPE = 'application/pdf';
@@ -51,17 +76,59 @@ const buildTitle = (payload: ExportLessonPayload, type: LessonType): string => {
   return [type, grade, week, lessonName].filter(Boolean).join(' - ');
 };
 
-// CDN-free HTML: @sparticuz/chromium runs in Lambda with no internet access.
-// KaTeX/MathJax CDN would cause networkidle0 to hang until timeout.
-// Math formulae render as plain LaTeX text; acceptable for giáo án use case.
+// Pre-render LaTeX server-side with KaTeX BEFORE marked() to avoid:
+//   1. marked treating `_` / `*` inside formulas as italic markers
+//   2. Lambda having no internet to load MathJax/KaTeX from CDN
+// Uses placeholder tokens so the KaTeX HTML survives marked parsing intact.
+const stashMathAsPlaceholders = (text: string): { withPlaceholders: string; rendered: string[] } => {
+  const normalized = text
+    .replace(/\\\(([\s\S]*?)\\\)/g, (_, expr) => `$${expr}$`)
+    .replace(/\\\[([\s\S]*?)\\\]/g, (_, expr) => `$$${expr}$$`);
+
+  const rendered: string[] = [];
+  const renderKatex = (expr: string, displayMode: boolean): string => {
+    try {
+      const html = katex.renderToString(expr.trim(), {
+        displayMode,
+        throwOnError: false,
+        strict: 'ignore',
+        output: 'html',
+        trust: true,
+      });
+      rendered.push(displayMode ? `<div class="katex-display-wrapper">${html}</div>` : html);
+    } catch {
+      rendered.push(displayMode ? `<pre>$$${expr}$$</pre>` : `<code>$${expr}$</code>`);
+    }
+    return `@@KMATH${rendered.length - 1}@@`;
+  };
+
+  // Protect code spans/blocks so `$` inside them isn't treated as math.
+  const codeBlocks: string[] = [];
+  const codeStashed = normalized
+    .replace(/```[\s\S]*?```/g, (m) => `@@CODE${codeBlocks.push(m) - 1}@@`)
+    .replace(/`[^`\n]+`/g, (m) => `@@CODE${codeBlocks.push(m) - 1}@@`);
+
+  const mathStashed = codeStashed
+    .replace(/\$\$([\s\S]+?)\$\$/g, (_, expr) => renderKatex(expr, true))
+    .replace(/\$([^\$\n]+?)\$/g, (_, expr) => renderKatex(expr, false));
+
+  const withPlaceholders = mathStashed.replace(/@@CODE(\d+)@@/g, (_, i) => codeBlocks[Number(i)] ?? '');
+  return { withPlaceholders, rendered };
+};
+
 const buildHtml = async (title: string, content: string): Promise<string> => {
-  const htmlContent = await marked.parse(normalizeLatexMarkers(content), { async: true, gfm: true, breaks: true });
+  const stash = stashMathAsPlaceholders(content);
+  const markedHtml = await marked.parse(stash.withPlaceholders, { async: true, gfm: true, breaks: true });
+  const htmlContent = markedHtml.replace(/@@KMATH(\d+)@@/g, (_, i) => stash.rendered[Number(i)] ?? '');
   return `<!doctype html>
 <html lang="vi">
 <head>
   <meta charset="utf-8" />
+  <style>${KATEX_CSS}</style>
   <style>
     @page { size: A4; margin: 20mm 18mm 20mm 30mm; }
+    .katex-display-wrapper { margin: 4pt 0; text-align: center; }
+    .katex { font-size: 1em; }
     * { box-sizing: border-box; }
     body {
       margin: 0;
@@ -166,6 +233,11 @@ const renderPdfBuffer = async (title: string, content: string, orientation: Word
     page.setDefaultNavigationTimeout(60_000);
     page.setDefaultTimeout(60_000);
     await page.setContent(await buildHtml(title, content), { waitUntil: 'domcontentloaded', timeout: 60_000 });
+    await page.evaluate(async () => {
+      if ((document as any).fonts?.ready) {
+        await (document as any).fonts.ready;
+      }
+    });
 
     const pdf = await page.pdf({
       format: 'A4',
