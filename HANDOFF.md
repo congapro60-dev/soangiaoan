@@ -12,6 +12,17 @@
 
 ## 2. Vừa làm xong (session 2026-05-12)
 
+### Fix `render-word-core.ts` — render công thức thành Word equation (OMML)
+| Fix | File | Mô tả |
+|-----|------|-------|
+| LaTeX → OMML | `api/render-word-core.ts` | Thêm pipeline KaTeX MathML → `mml2omml` → OMML `<m:oMath>` chèn vào DOCX qua `convertToXmlComponent` |
+| Display math centered | `api/render-word-core.ts` | Đoạn chỉ chứa `$$...$$` → `AlignmentType.CENTER` |
+| Suppress mml2omml warns | `api/render-word-core.ts` | Tạm thay `console.warn` để không spam "Type not supported: annotation" |
+| New deps | `package.json` | `mathml2omml@0.5.0` + `xml-js@1.6.11` |
+
+**Trước fix**: DOCX hiển thị `$x^2$` dạng text thô (giống wordExportA4.ts ở frontend).
+**Sau fix**: DOCX có Word equation thực sự — xem được, edit được trong Microsoft Word. Trong bài test: 7 công thức ($x^2$, fraction, integral, sum, hệ phương trình) đều render đúng, kể cả trong table cell.
+
 ### Fix `/api/export-lesson` — render công thức trong PDF
 | Fix | File | Mô tả |
 |-----|------|-------|
