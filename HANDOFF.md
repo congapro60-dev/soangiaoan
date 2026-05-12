@@ -12,6 +12,14 @@
 
 ## 2. Vừa làm xong (session 2026-05-12)
 
+### Fix `render-word-core.ts` — cột bảng đúng tỉ lệ trên Google Drive preview
+| Fix | File | Mô tả |
+|-----|------|-------|
+| `columnWidths` cho Table | `api/render-word-core.ts` | Thêm `computeColumnWidths()` tính twips theo % cell × printable width (portrait 9184, landscape 14116). Google Drive preview/LibreOffice giờ render cột đúng tỉ lệ thay vì 100 twips mặc định (~1-2 ký tự) |
+
+**Trước**: `<w:tblGrid><w:gridCol w:w="100"/>...` → Drive preview thấy cột 1-2 ký tự (MS Word desktop thì OK vì honor `tcW%`).
+**Sau**: 3-col 30/30/40 → `[2755, 2755, 3673]` twips; 2-col WILF → `[4592, 4592]`.
+
 ### Fix `render-word-core.ts` — render công thức thành Word equation (OMML)
 | Fix | File | Mô tả |
 |-----|------|-------|
