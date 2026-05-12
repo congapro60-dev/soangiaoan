@@ -1,16 +1,49 @@
 # HANDOFF — Tiếp tục session
 
-**Cập nhật**: 2026-05-11
+**Cập nhật**: 2026-05-12
 **Mục đích**: File này để Claude Code session mới (đoạc Roo Code) đọc và tiếp tục công việc mà không cần hỏi lại context.
 
 ---
 
 ## 1. Trạng thái repo
 
-- **Branch hiện tại**: `main`
+- **Branch hiện tại**: `claude/review-api-exports-4J5Fj`
 - **Build**: clean (`npm run build` pass)
 
-## 2. Vừa làm xong (session 2026-05-11)
+## 2. Vừa làm xong (session 2026-05-12)
+
+### Fix `render-word-core.ts` — cột bảng đúng tỉ lệ trên Google Drive preview
+| Fix | File | Mô tả |
+|-----|------|-------|
+| `columnWidths` cho Table | `api/render-word-core.ts` | Thêm `computeColumnWidths()` tính twips theo % cell × printable width (portrait 9184, landscape 14116). Google Drive preview/LibreOffice giờ render cột đúng tỉ lệ thay vì 100 twips mặc định (~1-2 ký tự) |
+
+**Trước**: `<w:tblGrid><w:gridCol w:w="100"/>...` → Drive preview thấy cột 1-2 ký tự (MS Word desktop thì OK vì honor `tcW%`).
+**Sau**: 3-col 30/30/40 → `[2755, 2755, 3673]` twips; 2-col WILF → `[4592, 4592]`.
+
+### Fix `render-word-core.ts` — render công thức thành Word equation (OMML)
+| Fix | File | Mô tả |
+|-----|------|-------|
+| LaTeX → OMML | `api/render-word-core.ts` | Thêm pipeline KaTeX MathML → `mml2omml` → OMML `<m:oMath>` chèn vào DOCX qua `convertToXmlComponent` |
+| Display math centered | `api/render-word-core.ts` | Đoạn chỉ chứa `$$...$$` → `AlignmentType.CENTER` |
+| Suppress mml2omml warns | `api/render-word-core.ts` | Tạm thay `console.warn` để không spam "Type not supported: annotation" |
+| New deps | `package.json` | `mathml2omml@0.5.0` + `xml-js@1.6.11` |
+
+**Trước fix**: DOCX hiển thị `$x^2$` dạng text thô (giống wordExportA4.ts ở frontend).
+**Sau fix**: DOCX có Word equation thực sự — xem được, edit được trong Microsoft Word. Trong bài test: 7 công thức ($x^2$, fraction, integral, sum, hệ phương trình) đều render đúng, kể cả trong table cell.
+
+### Fix `/api/export-lesson` — render công thức trong PDF
+| Fix | File | Mô tả |
+|-----|------|-------|
+| Pre-render KaTeX server-side | `api/export-lesson.ts` | Thêm `katex.renderToString()` cho `$...$` và `$$...$$` TRƯỚC marked → tránh `_*` bị marked hiểu là italic |
+| Inline KaTeX CSS + fonts | `api/export-lesson.ts` | Đọc `katex.min.css` + woff2 fonts từ `node_modules`, base64 → data: URL → Lambda no-internet vẫn render được |
+| Placeholder tokens | `api/export-lesson.ts` | `@@KMATH<N>@@` giữ HTML KaTeX nguyên vẹn khi qua marked |
+| Wait fonts.ready | `api/export-lesson.ts` | `await document.fonts.ready` trước `page.pdf()` |
+| Bỏ `normalizeLatexMarkers` import | `api/export-lesson.ts` | Logic đã chuyển vào `stashMathAsPlaceholders` (vẫn xử lý `\(...\)` + `\[...\]`) |
+
+**Trước fix**: PDF hiển thị `$x_1^2$` thô vì MathJax CDN bị remove (Lambda no internet) + marked phá ký tự `_*`.
+**Sau fix**: KaTeX render thành HTML hoàn chỉnh trong server, Chromium chỉ in PDF (không cần internet, không cần MathJax).
+
+## 3. Vừa làm xong (session 2026-05-11)
 
 ### Fix CI TypeScript — ✅ merged
 | Fix | Mô tả |
