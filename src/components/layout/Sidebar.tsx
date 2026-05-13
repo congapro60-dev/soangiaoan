@@ -1,18 +1,19 @@
 import { motion } from 'motion/react';
-import { 
-  Sparkles, 
-  LayoutDashboard, 
-  Plus, 
-  FileText, 
-  Layout, 
-  MessageSquare, 
+import {
+  Sparkles,
+  LayoutDashboard,
+  Plus,
+  FileText,
+  Layout,
+  MessageSquare,
   Settings,
   X,
   Menu,
   LogOut,
   GraduationCap,
   ClipboardCheck,
-  Globe
+  Globe,
+  BrainCircuit
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -41,6 +42,7 @@ export const Sidebar = ({
     { id: 'testing', label: 'Bảng Kiểm tra', icon: GraduationCap },
     { id: 'exams', label: 'Thi online', icon: Globe },
     { id: 'grading', label: 'Chấm điểm AI', icon: ClipboardCheck },
+    { id: 'adaptive', label: 'Học phân hoá', icon: BrainCircuit },
     { id: 'library', label: 'Thư viện', icon: FileText },
     { id: 'templates', label: 'Mẫu giáo án', icon: Layout },
     { id: 'chat', label: 'AI Tutor', icon: MessageSquare },
