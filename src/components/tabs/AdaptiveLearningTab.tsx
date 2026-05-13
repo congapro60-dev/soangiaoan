@@ -137,6 +137,7 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
   const [quickCheckAttempt, setQuickCheckAttempt] = useState<AssessmentAttempt | null>(null);
   const [remediationAttempts, setRemediationAttempts] = useState(0);
   const [elapsedMinutes, setElapsedMinutes] = useState(18);
+  const [showTeacherPreview, setShowTeacherPreview] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -390,48 +391,44 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
       </section>
 
       <section className="rounded-3xl border border-indigo-100 bg-white p-6 shadow-sm">
-        <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h3 className="text-lg font-black text-slate-800">0. Không gian giáo viên chỉnh bài học</h3>
-            <p className="text-sm text-slate-500">Giáo viên có thể chỉnh mục tiêu, lời giải thích theo tuyến và ví dụ mẫu trước khi giao cho học sinh.</p>
+        <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="max-w-3xl">
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-xs font-black uppercase tracking-wide text-indigo-700">
+              Bước 1 · Chuẩn bị bài
+            </div>
+            <h3 className="text-xl font-black text-slate-900">Lưu bài học trước khi gửi cho học sinh</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Giáo viên chỉ cần kiểm tra nội dung, bấm <b>Lưu & bật cổng học sinh</b>, sau đó gửi liên kết ở bước 2 cho lớp.
+            </p>
           </div>
-          <div className="flex flex-wrap gap-2">
+
+          <div className="flex flex-col gap-2 sm:flex-row lg:shrink-0">
+            <button
+              onClick={handleSaveTeacherDraft}
+              disabled={isSavingLesson || isCloudLoading || !user}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-indigo-100 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              {isSavingLesson ? 'Đang lưu...' : 'Lưu & bật cổng học sinh'}
+            </button>
             <button
               onClick={() => setIsTeacherEditing(prev => !prev)}
-              className="rounded-2xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-black text-indigo-700 transition hover:bg-indigo-100"
+              className="rounded-2xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-black text-indigo-700 transition hover:bg-indigo-100"
             >
               {isTeacherEditing ? 'Đóng chỉnh sửa' : 'Chỉnh nội dung'}
             </button>
             <button
               onClick={handleResetTeacherDraft}
-              className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-black text-slate-500 transition hover:bg-slate-50"
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-500 transition hover:bg-slate-50"
             >
               Khôi phục mẫu
             </button>
           </div>
         </div>
 
-        {user && (
-          <div className="mb-4 rounded-2xl border border-blue-100 bg-blue-50 p-4">
-            <p className="text-sm font-black text-blue-800">Cổng học sinh riêng</p>
-            <p className="mt-1 text-xs font-semibold leading-5 text-blue-700">
-              Học sinh mở liên kết này, nhập mã học sinh cố định, làm test đầu giờ và học theo tuyến cá nhân. Kết quả sẽ được lưu vào tiến trình tiết học và hồ sơ học tập dài hạn.
-            </p>
-            <div className="mt-3 flex flex-col gap-2 md:flex-row md:items-center">
-              <input
-                readOnly
-                value={studentPortalUrl}
-                className="flex-1 rounded-2xl border border-blue-100 bg-white px-4 py-3 text-xs font-bold text-slate-600 outline-none"
-              />
-              <a
-                href={studentPortalUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-2xl bg-blue-600 px-4 py-3 text-center text-sm font-black text-white shadow-lg shadow-blue-100 transition hover:bg-blue-700"
-              >
-                Mở cổng học sinh
-              </a>
-            </div>
+        {!user && (
+          <div className="mb-4 rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-700">
+            Bạn cần đăng nhập để lưu bài học và tạo cổng học sinh.
           </div>
         )}
 
@@ -447,21 +444,41 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
           </div>
         )}
 
-        {draftSavedAt && !cloudError && (
+        {draftSavedAt && !cloudError ? (
           <div className="mb-4 rounded-2xl border border-green-100 bg-green-50 px-4 py-3 text-sm font-bold text-green-700">
-            Đã đồng bộ bài học phân hoá với Firestore: {draftSavedAt}.
+            Đã lưu bài học: {draftSavedAt}. Học sinh có thể vào cổng sau khi Firestore rules đã được triển khai.
           </div>
+        ) : (
+          !isCloudLoading && !cloudError && (
+            <div className="mb-4 rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-700">
+              Bài học đang là bản nháp trong trình duyệt. Hãy bấm nút “Lưu & bật cổng học sinh” trước khi gửi link.
+            </div>
+          )
         )}
 
         {isTeacherEditing ? (
-          <div className="space-y-5">
+          <div className="space-y-5 rounded-3xl border border-slate-100 bg-slate-50 p-4">
+            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-sm font-black text-slate-800">Chế độ chỉnh sửa nhanh</p>
+                <p className="text-xs font-semibold text-slate-500">Chỉnh các phần giáo viên hay cần đổi nhất; bấm lưu ở trên hoặc cuối khung này.</p>
+              </div>
+              <button
+                onClick={handleSaveTeacherDraft}
+                disabled={isSavingLesson || isCloudLoading || !user}
+                className="rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-black text-white shadow-lg shadow-indigo-100 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+              >
+                {isSavingLesson ? 'Đang lưu...' : 'Lưu thay đổi'}
+              </button>
+            </div>
+
             <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
               <label className="space-y-2">
                 <span className="text-xs font-black uppercase tracking-wide text-slate-400">Tên bài học</span>
                 <input
                   value={lesson.title}
                   onChange={event => setLesson(prev => ({ ...prev, title: event.target.value, updatedAt: new Date().toISOString() }))}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:border-indigo-400 focus:bg-white"
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:border-indigo-400"
                 />
               </label>
               <label className="space-y-2">
@@ -470,7 +487,7 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
                   value={routeContent.explanation}
                   onChange={event => updateRouteExplanation(firstUnit.id, recommendedRoute, event.target.value)}
                   rows={4}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold leading-6 text-slate-700 outline-none focus:border-indigo-400 focus:bg-white"
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold leading-6 text-slate-700 outline-none focus:border-indigo-400"
                 />
               </label>
             </div>
@@ -479,7 +496,7 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
               <p className="mb-3 text-xs font-black uppercase tracking-wide text-slate-400">Mục tiêu học tập</p>
               <div className="grid gap-3 md:grid-cols-2">
                 {lesson.objectives.map(objective => (
-                  <div key={objective.id} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                  <div key={objective.id} className="rounded-2xl border border-slate-100 bg-white p-4">
                     <input
                       value={objective.title}
                       onChange={event => updateObjectiveText(objective.id, 'title', event.target.value)}
@@ -509,7 +526,7 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
             </div>
 
             {routeContent.workedExamples[0] && (
-              <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+              <div className="rounded-2xl border border-slate-100 bg-white p-4">
                 <p className="mb-3 text-xs font-black uppercase tracking-wide text-slate-400">Ví dụ mẫu đầu tiên của tuyến {routeLabel[recommendedRoute]}</p>
                 <div className="grid gap-3">
                   <textarea
@@ -536,330 +553,326 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
                 </div>
               </div>
             )}
-
-            <button
-              onClick={handleSaveTeacherDraft}
-              disabled={isSavingLesson || isCloudLoading}
-              className="rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-indigo-100 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
-            >
-              {isSavingLesson ? 'Đang lưu lên Firestore...' : 'Lưu nháp lên Firestore'}
-            </button>
           </div>
         ) : (
           <div className="grid gap-3 md:grid-cols-3">
             <div className="rounded-2xl bg-indigo-50 p-4 text-indigo-700">
               <p className="text-2xl font-black">{lesson.objectives.length}</p>
-              <p className="text-xs font-bold uppercase tracking-wide">Mục tiêu có thể chỉnh</p>
+              <p className="text-xs font-bold uppercase tracking-wide">Mục tiêu học tập</p>
             </div>
             <div className="rounded-2xl bg-blue-50 p-4 text-blue-700">
               <p className="text-2xl font-black">3</p>
               <p className="text-xs font-bold uppercase tracking-wide">Tuyến nội dung</p>
             </div>
             <div className="rounded-2xl bg-purple-50 p-4 text-purple-700">
-              <p className="text-2xl font-black">{isCloudLoading ? 'Đang tải' : draftSavedAt ? 'Đã lưu' : 'Nháp'}</p>
-              <p className="text-xs font-bold uppercase tracking-wide">{draftSavedAt ? 'Firestore đã đồng bộ' : 'Chưa có bản lưu Firestore'}</p>
+              <p className="text-2xl font-black">{isCloudLoading ? 'Đang tải' : draftSavedAt ? 'Đã lưu' : 'Chưa lưu'}</p>
+              <p className="text-xs font-bold uppercase tracking-wide">{draftSavedAt ? 'Có thể gửi link học sinh' : 'Cần bấm lưu ở trên'}</p>
             </div>
           </div>
         )}
       </section>
 
-      <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-        <section className="space-y-6">
-          <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-            <div className="mb-5 flex items-center justify-between gap-3">
-              <div>
-                <h3 className="text-lg font-black text-slate-800">1. Mục tiêu và quy trình 5 bước</h3>
-                <p className="text-sm text-slate-500">Khung này chưa phụ thuộc bài cụ thể, có thể thay bằng bất kỳ bài Toán THPT nào.</p>
-              </div>
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">Draft</span>
+      <section className="rounded-3xl border border-blue-100 bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="max-w-3xl">
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-black uppercase tracking-wide text-blue-700">
+              Bước 2 · Gửi cho học sinh
             </div>
-            <div className="grid gap-3 md:grid-cols-2">
+            <h3 className="text-xl font-black text-slate-900">Cổng học sinh riêng</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Học sinh mở link, nhập mã học sinh cố định, làm test đầu giờ và học theo tuyến cá nhân. Kết quả được lưu vào tiến trình tiết học và hồ sơ dài hạn.
+            </p>
+          </div>
+          <span className={cn('rounded-full px-3 py-1 text-xs font-black uppercase tracking-wide', draftSavedAt ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700')}>
+            {draftSavedAt ? 'Đã sẵn sàng gửi' : 'Lưu bài trước khi gửi'}
+          </span>
+        </div>
+
+        {user ? (
+          <div className="mt-5 flex flex-col gap-2 md:flex-row md:items-center">
+            <input
+              readOnly
+              value={studentPortalUrl}
+              className="flex-1 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-xs font-bold text-slate-600 outline-none"
+            />
+            <a
+              href={studentPortalUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-2xl bg-blue-600 px-4 py-3 text-center text-sm font-black text-white shadow-lg shadow-blue-100 transition hover:bg-blue-700"
+            >
+              Mở cổng học sinh
+            </a>
+          </div>
+        ) : (
+          <div className="mt-5 rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-700">
+            Đăng nhập để hệ thống tạo link cổng học sinh.
+          </div>
+        )}
+      </section>
+
+      <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+        <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-black uppercase tracking-wide text-slate-600">
+              Bước 3 · Kiểm tra nhanh
+            </div>
+            <h3 className="text-xl font-black text-slate-900">Tóm tắt bài phân hoá</h3>
+            <p className="mt-2 text-sm text-slate-500">Mặc định chỉ hiển thị phần giáo viên cần xem. Mô phỏng chi tiết được ẩn để giao diện đỡ rối.</p>
+          </div>
+          <button
+            onClick={() => setShowTeacherPreview(prev => !prev)}
+            className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-100"
+          >
+            {showTeacherPreview ? 'Ẩn mô phỏng chi tiết' : 'Xem mô phỏng chi tiết'}
+          </button>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
+          <div className="rounded-3xl border border-slate-100 bg-slate-50 p-4">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h4 className="font-black text-slate-800">Mục tiêu và quy trình 5 bước</h4>
+              <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-500">{lesson.durationMinutes} phút</span>
+            </div>
+            <div className="space-y-3">
               {lesson.objectives.map(objective => (
-                <div key={objective.id} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                <div key={objective.id} className="rounded-2xl bg-white p-4">
                   <div className="mb-2 flex items-center gap-2">
                     <span className="rounded-lg bg-blue-600 px-2 py-1 text-xs font-black text-white">{objective.code}</span>
-                    <h4 className="font-bold text-slate-800">{objective.title}</h4>
+                    <h5 className="font-bold text-slate-800">{objective.title}</h5>
                   </div>
                   <p className="text-sm text-slate-600">{objective.description}</p>
-                  <p className="mt-2 text-xs font-semibold text-slate-400">Bloom: {objective.bloomLevel} · Ngưỡng đạt: {Math.round(objective.masteryThreshold * 100)}%</p>
-                </div>
-              ))}
-            </div>
-            <div className="mt-5 grid gap-3 lg:grid-cols-5">
-              {lesson.fiveStepFlow.steps.map(step => (
-                <div key={step.id} className="rounded-2xl border border-blue-100 bg-blue-50/50 p-3">
-                  <p className="text-xs font-black uppercase text-blue-600">{step.estimatedMinutes} phút</p>
-                  <h4 className="mt-1 font-bold text-slate-800">{step.name}</h4>
-                  <p className="mt-1 text-xs text-slate-500">{step.purpose}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-            <div className="mb-5 flex items-center gap-3">
-              <div className="rounded-2xl bg-blue-50 p-3 text-blue-600"><Activity className="h-5 w-5" /></div>
-              <div>
-                <h3 className="text-lg font-black text-slate-800">2. Mô phỏng học sinh làm test đầu giờ</h3>
-                <p className="text-sm text-slate-500">Chọn đáp án để xem engine phân tuyến bằng rule minh bạch.</p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {lesson.diagnosticTest.questions.map((question, index) => (
-                <div key={question.id} className="rounded-2xl border border-slate-100 p-4">
-                  <p className="mb-3 font-bold text-slate-800">Câu {index + 1}. {question.prompt}</p>
-                  {question.options ? (
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      {question.options.map(option => (
-                        <button
-                          key={option}
-                          onClick={() => setStudentAnswers(prev => ({ ...prev, [question.id]: option }))}
-                          className={cn(
-                            'rounded-xl border px-3 py-2 text-left text-sm font-semibold transition-all',
-                            getQuestionAnswer(question, studentAnswers) === option
-                              ? 'border-blue-500 bg-blue-50 text-blue-700'
-                              : 'border-slate-100 bg-slate-50 text-slate-600 hover:border-blue-200'
-                          )}
-                        >
-                          {option}
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <input
-                      value={studentAnswers[question.id] || ''}
-                      onChange={event => setStudentAnswers(prev => ({ ...prev, [question.id]: event.target.value }))}
-                      placeholder="Nhập câu trả lời ngắn"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm outline-none focus:border-blue-400 focus:bg-white"
-                    />
-                  )}
-                  <div className="mt-2 flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                    <span>Độ khó: {question.difficulty}</span>
-                    <span>·</span>
-                    <span>Mục tiêu: {question.objectiveIds.join(', ')}</span>
-                  </div>
+          <div className="rounded-3xl border border-slate-100 bg-slate-50 p-4">
+            <h4 className="font-black text-slate-800">Ba tuyến học sinh sẽ nhận</h4>
+            <div className="mt-4 space-y-3">
+              {firstUnit.routes.map(routeItem => (
+                <div key={routeItem.route} className={cn('rounded-2xl border p-4', routeClass[routeItem.route])}>
+                  <p className="font-black">{routeLabel[routeItem.route]}</p>
+                  <p className="mt-2 line-clamp-3 text-sm font-semibold leading-6 opacity-90">{routeItem.explanation}</p>
                 </div>
               ))}
             </div>
+          </div>
+        </div>
 
-            <button
-              onClick={handleDiagnosticSubmit}
-              className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-100 transition hover:bg-blue-700"
-            >
-              <Send className="h-4 w-4" /> Chấm test và phân tuyến
-            </button>
-
-            {diagnosticAttempt && (
-              <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50 p-4">
-                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        {showTeacherPreview && (
+          <div className="mt-6 grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+            <section className="space-y-6">
+              <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+                <div className="mb-5 flex items-center gap-3">
+                  <div className="rounded-2xl bg-blue-50 p-3 text-blue-600"><Activity className="h-5 w-5" /></div>
                   <div>
-                    <p className="text-sm font-bold text-blue-900">Kết quả: {totalDiagnosticScore}/{maxDiagnosticScore} điểm</p>
-                    <p className="mt-1 text-sm text-blue-700">{diagnosticAttempt.aiSummary}</p>
+                    <h3 className="text-lg font-black text-slate-800">Mô phỏng học sinh làm test đầu giờ</h3>
+                    <p className="text-sm text-slate-500">Dành cho giáo viên kiểm thử engine phân tuyến trước khi dạy thật.</p>
                   </div>
-                  <span className={cn('rounded-full border px-4 py-2 text-sm font-black', routeClass[recommendedRoute])}>
-                    Tuyến: {routeLabel[recommendedRoute]}
-                  </span>
                 </div>
-              </div>
-            )}
-          </div>
-        </section>
 
-        <section className="space-y-6">
-          <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-            <div className="mb-5 flex items-center gap-3">
-              <div className="rounded-2xl bg-purple-50 p-3 text-purple-600"><Lightbulb className="h-5 w-5" /></div>
-              <div>
-                <h3 className="text-lg font-black text-slate-800">3. Nội dung học theo tuyến</h3>
-                <p className="text-sm text-slate-500">Sau test đầu giờ, học sinh nhận nội dung tương ứng.</p>
-              </div>
-            </div>
-
-            <div className={cn('mb-4 inline-flex rounded-full border px-4 py-2 text-sm font-black', routeClass[recommendedRoute])}>
-              {routeLabel[recommendedRoute]}
-            </div>
-            <h4 className="text-xl font-black text-slate-800">{firstUnit.title}</h4>
-            <p className="mt-3 text-sm leading-6 text-slate-600">{routeContent.explanation}</p>
-
-            <div className="mt-5 space-y-3">
-              {routeContent.workedExamples.map(example => (
-                <div key={example.id} className="rounded-2xl bg-slate-50 p-4">
-                  <p className="font-bold text-slate-800">{example.title}</p>
-                  <p className="mt-2 text-sm text-slate-600"><b>Bài toán:</b> {example.problem}</p>
-                  <p className="mt-2 text-sm text-slate-600"><b>Lời giải:</b> {example.solution}</p>
-                  <p className="mt-2 text-sm text-slate-500">{example.explanation}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-            <div className="mb-5 flex items-center gap-3">
-              <div className="rounded-2xl bg-green-50 p-3 text-green-600"><CheckCircle2 className="h-5 w-5" /></div>
-              <div>
-                <h3 className="text-lg font-black text-slate-800">4. Quick check sau mảnh kiến thức</h3>
-                <p className="text-sm text-slate-500">Nếu chưa đạt, hệ thống giảng lại tối đa 2 lần rồi báo giáo viên.</p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {firstUnit.quickCheck.questions.map((question, index) => (
-                <div key={question.id} className="rounded-2xl border border-slate-100 p-4">
-                  <p className="mb-3 font-bold text-slate-800">Câu {index + 1}. {question.prompt}</p>
-                  {question.options ? (
-                    <div className="grid gap-2">
-                      {question.options.map(option => (
-                        <button
-                          key={option}
-                          onClick={() => setQuickCheckAnswers(prev => ({ ...prev, [question.id]: option }))}
-                          className={cn(
-                            'rounded-xl border px-3 py-2 text-left text-sm font-semibold transition-all',
-                            getQuestionAnswer(question, quickCheckAnswers) === option
-                              ? 'border-green-500 bg-green-50 text-green-700'
-                              : 'border-slate-100 bg-slate-50 text-slate-600 hover:border-green-200'
-                          )}
-                        >
-                          {option}
-                        </button>
-                      ))}
+                <div className="space-y-4">
+                  {lesson.diagnosticTest.questions.map((question, index) => (
+                    <div key={question.id} className="rounded-2xl border border-slate-100 p-4">
+                      <p className="mb-3 font-bold text-slate-800">Câu {index + 1}. {question.prompt}</p>
+                      {question.options ? (
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          {question.options.map(option => (
+                            <button
+                              key={option}
+                              onClick={() => setStudentAnswers(prev => ({ ...prev, [question.id]: option }))}
+                              className={cn(
+                                'rounded-xl border px-3 py-2 text-left text-sm font-semibold transition-all',
+                                getQuestionAnswer(question, studentAnswers) === option
+                                  ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                  : 'border-slate-100 bg-slate-50 text-slate-600 hover:border-blue-200'
+                              )}
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <input
+                          value={studentAnswers[question.id] || ''}
+                          onChange={event => setStudentAnswers(prev => ({ ...prev, [question.id]: event.target.value }))}
+                          placeholder="Nhập câu trả lời ngắn"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm outline-none focus:border-blue-400 focus:bg-white"
+                        />
+                      )}
                     </div>
-                  ) : (
-                    <input
-                      value={quickCheckAnswers[question.id] || ''}
-                      onChange={event => setQuickCheckAnswers(prev => ({ ...prev, [question.id]: event.target.value }))}
-                      placeholder="Nhập câu trả lời ngắn"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm outline-none focus:border-green-400 focus:bg-white"
-                    />
-                  )}
+                  ))}
                 </div>
-              ))}
-            </div>
 
-            <button
-              onClick={handleQuickCheckSubmit}
-              className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-green-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-green-100 transition hover:bg-green-700"
-            >
-              <ArrowRight className="h-4 w-4" /> Kiểm tra chuyển bước
-            </button>
-
-            {quickCheckAttempt && nextAction && (
-              <div className={cn(
-                'mt-5 rounded-2xl border p-4 text-sm font-semibold',
-                nextAction === 'move_next' && 'border-green-200 bg-green-50 text-green-700',
-                nextAction === 'remediate' && 'border-amber-200 bg-amber-50 text-amber-700',
-                nextAction === 'needs_teacher' && 'border-red-200 bg-red-50 text-red-700'
-              )}>
-                {nextAction === 'move_next' && 'Học sinh đã đạt quick check. Hệ thống cho chuyển sang mảnh kiến thức tiếp theo.'}
-                {nextAction === 'remediate' && `Học sinh chưa đạt. Hệ thống sẽ giảng lại bằng chiến lược khác. Số lần giảng lại: ${remediationAttempts}/${firstUnit.maxRemediationAttempts}.`}
-                {nextAction === 'needs_teacher' && 'Học sinh đã vượt quá số lần giảng lại. Hệ thống đánh dấu cần giáo viên hỗ trợ trực tiếp.'}
-              </div>
-            )}
-          </div>
-
-          <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-            <div className="mb-5 flex items-center gap-3">
-              <div className="rounded-2xl bg-indigo-50 p-3 text-indigo-600"><Clock3 className="h-5 w-5" /></div>
-              <div>
-                <h3 className="text-lg font-black text-slate-800">5. Điều phối thời gian 40 phút</h3>
-                <p className="text-sm text-slate-500">Mô phỏng hệ thống tính lại khi học sinh quá nhanh hoặc quá chậm.</p>
-              </div>
-            </div>
-
-            <div className="mb-4 grid gap-2 sm:grid-cols-3">
-              {[
-                { label: 'Nhanh', value: 13 },
-                { label: 'Đúng nhịp', value: 20 },
-                { label: 'Chậm', value: 31 },
-              ].map(item => (
                 <button
-                  key={item.label}
-                  onClick={() => setElapsedMinutes(item.value)}
-                  className={cn(
-                    'rounded-2xl border px-3 py-2 text-sm font-black transition-all',
-                    elapsedMinutes === item.value
-                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                      : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-indigo-200'
-                  )}
+                  onClick={handleDiagnosticSubmit}
+                  className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-100 transition hover:bg-blue-700"
                 >
-                  {item.label} · phút {item.value}
+                  <Send className="h-4 w-4" /> Chấm test và phân tuyến
                 </button>
-              ))}
-            </div>
 
-            <input
-              type="range"
-              min="7"
-              max="39"
-              value={elapsedMinutes}
-              onChange={event => setElapsedMinutes(Number(event.target.value))}
-              className="w-full accent-indigo-600"
-            />
-            <div className="mt-2 flex justify-between text-xs font-bold text-slate-400">
-              <span>7 phút</span>
-              <span>Đã dùng: {elapsedMinutes} phút</span>
-              <span>39 phút</span>
-            </div>
-
-            {!diagnosticAttempt && (
-              <div className="mt-5 rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm font-semibold text-slate-500">
-                Làm test đầu giờ trước để hệ thống có dữ liệu năng lực, sau đó panel này sẽ tính học sinh đang nhanh/chậm so với tiết 40 phút.
-              </div>
-            )}
-
-            {pacingDecision && (
-              <div className={cn('mt-5 rounded-2xl border p-4', pacingStatusClass[pacingDecision.status])}>
-                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                  <div>
-                    <p className="text-sm font-black uppercase tracking-wide">{pacingStatusLabel[pacingDecision.status]}</p>
-                    <h4 className="mt-1 text-lg font-black">{pacingActionLabel[pacingDecision.action]}</h4>
-                    <p className="mt-2 text-sm font-semibold leading-6">{pacingDecision.message}</p>
-                  </div>
-                  <div className="rounded-2xl bg-white/70 p-3 text-right text-xs font-bold">
-                    <p>Còn lại: {pacingDecision.remainingMinutes} phút</p>
-                    <p>Độ lệch: {pacingDecision.paceDeltaMinutes} phút</p>
-                    <p>Làm chủ TB: {Math.round(pacingDecision.averageMastery * 100)}%</p>
-                  </div>
-                </div>
-
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-2xl bg-white/70 p-3 text-xs font-bold">
-                    <p className="uppercase tracking-wide opacity-70">Nguyên tắc giữ tiết học</p>
-                    <p className="mt-1">{pacingDecision.shouldPreserveExitTicket ? 'Vẫn giữ exit ticket cuối giờ.' : 'Cần rút gọn để còn tối thiểu cho phản tư.'}</p>
-                  </div>
-                  <div className="rounded-2xl bg-white/70 p-3 text-xs font-bold">
-                    <p className="uppercase tracking-wide opacity-70">Mảnh ưu tiên</p>
-                    <p className="mt-1">{pacingDecision.recommendedUnitIds.join(', ') || 'Không có'}</p>
-                  </div>
-                </div>
-
-                {pacingTasks.length > 0 && (
-                  <div className="mt-4 space-y-2">
-                    <p className="text-xs font-black uppercase tracking-wide opacity-70">Nhiệm vụ hệ thống giao thêm/giảm tải</p>
-                    {pacingTasks.map(task => (
-                      <div key={task.id} className="rounded-2xl bg-white/75 p-3 text-sm font-semibold leading-6">
-                        {task.prompt}
+                {diagnosticAttempt && (
+                  <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50 p-4">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      <div>
+                        <p className="text-sm font-bold text-blue-900">Kết quả: {totalDiagnosticScore}/{maxDiagnosticScore} điểm</p>
+                        <p className="mt-1 text-sm text-blue-700">{diagnosticAttempt.aiSummary}</p>
                       </div>
+                      <span className={cn('rounded-full border px-4 py-2 text-sm font-black', routeClass[recommendedRoute])}>
+                        Tuyến: {routeLabel[recommendedRoute]}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            <section className="space-y-6">
+              <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+                <div className="mb-5 flex items-center gap-3">
+                  <div className="rounded-2xl bg-purple-50 p-3 text-purple-600"><Lightbulb className="h-5 w-5" /></div>
+                  <div>
+                    <h3 className="text-lg font-black text-slate-800">Nội dung theo tuyến {routeLabel[recommendedRoute]}</h3>
+                    <p className="text-sm text-slate-500">Xem trước phần học sinh sẽ nhận sau test đầu giờ.</p>
+                  </div>
+                </div>
+
+                <div className={cn('mb-4 inline-flex rounded-full border px-4 py-2 text-sm font-black', routeClass[recommendedRoute])}>
+                  {routeLabel[recommendedRoute]}
+                </div>
+                <h4 className="text-xl font-black text-slate-800">{firstUnit.title}</h4>
+                <p className="mt-3 text-sm leading-6 text-slate-600">{routeContent.explanation}</p>
+
+                <div className="mt-5 space-y-3">
+                  {routeContent.workedExamples.map(example => (
+                    <div key={example.id} className="rounded-2xl bg-slate-50 p-4">
+                      <p className="font-bold text-slate-800">{example.title}</p>
+                      <p className="mt-2 text-sm text-slate-600"><b>Bài toán:</b> {example.problem}</p>
+                      <p className="mt-2 text-sm text-slate-600"><b>Lời giải:</b> {example.solution}</p>
+                      <p className="mt-2 text-sm text-slate-500">{example.explanation}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+                <div className="mb-5 flex items-center gap-3">
+                  <div className="rounded-2xl bg-green-50 p-3 text-green-600"><CheckCircle2 className="h-5 w-5" /></div>
+                  <div>
+                    <h3 className="text-lg font-black text-slate-800">Quick check và điều phối thời gian</h3>
+                    <p className="text-sm text-slate-500">Kiểm thử phản ứng của hệ thống khi học sinh đạt/chưa đạt hoặc học nhanh/chậm.</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {firstUnit.quickCheck.questions.map((question, index) => (
+                    <div key={question.id} className="rounded-2xl border border-slate-100 p-4">
+                      <p className="mb-3 font-bold text-slate-800">Câu {index + 1}. {question.prompt}</p>
+                      {question.options ? (
+                        <div className="grid gap-2">
+                          {question.options.map(option => (
+                            <button
+                              key={option}
+                              onClick={() => setQuickCheckAnswers(prev => ({ ...prev, [question.id]: option }))}
+                              className={cn(
+                                'rounded-xl border px-3 py-2 text-left text-sm font-semibold transition-all',
+                                getQuestionAnswer(question, quickCheckAnswers) === option
+                                  ? 'border-green-500 bg-green-50 text-green-700'
+                                  : 'border-slate-100 bg-slate-50 text-slate-600 hover:border-green-200'
+                              )}
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <input
+                          value={quickCheckAnswers[question.id] || ''}
+                          onChange={event => setQuickCheckAnswers(prev => ({ ...prev, [question.id]: event.target.value }))}
+                          placeholder="Nhập câu trả lời ngắn"
+                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm outline-none focus:border-green-400 focus:bg-white"
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={handleQuickCheckSubmit}
+                  className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-green-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-green-100 transition hover:bg-green-700"
+                >
+                  <ArrowRight className="h-4 w-4" /> Kiểm tra chuyển bước
+                </button>
+
+                {quickCheckAttempt && nextAction && (
+                  <div className={cn(
+                    'mt-5 rounded-2xl border p-4 text-sm font-semibold',
+                    nextAction === 'move_next' && 'border-green-200 bg-green-50 text-green-700',
+                    nextAction === 'remediate' && 'border-amber-200 bg-amber-50 text-amber-700',
+                    nextAction === 'needs_teacher' && 'border-red-200 bg-red-50 text-red-700'
+                  )}>
+                    {nextAction === 'move_next' && 'Học sinh đã đạt quick check. Hệ thống cho chuyển sang mảnh kiến thức tiếp theo.'}
+                    {nextAction === 'remediate' && `Học sinh chưa đạt. Hệ thống sẽ giảng lại bằng chiến lược khác. Số lần giảng lại: ${remediationAttempts}/${firstUnit.maxRemediationAttempts}.`}
+                    {nextAction === 'needs_teacher' && 'Học sinh đã vượt quá số lần giảng lại. Hệ thống đánh dấu cần giáo viên hỗ trợ trực tiếp.'}
+                  </div>
+                )}
+
+                <div className="mt-6 border-t border-slate-100 pt-5">
+                  <div className="mb-4 grid gap-2 sm:grid-cols-3">
+                    {[
+                      { label: 'Nhanh', value: 13 },
+                      { label: 'Đúng nhịp', value: 20 },
+                      { label: 'Chậm', value: 31 },
+                    ].map(item => (
+                      <button
+                        key={item.label}
+                        onClick={() => setElapsedMinutes(item.value)}
+                        className={cn(
+                          'rounded-2xl border px-3 py-2 text-sm font-black transition-all',
+                          elapsedMinutes === item.value
+                            ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                            : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-indigo-200'
+                        )}
+                      >
+                        {item.label} · phút {item.value}
+                      </button>
                     ))}
                   </div>
-                )}
 
-                {pacingDecision.teacherNote && (
-                  <div className="mt-4 rounded-2xl bg-white/75 p-3 text-sm font-bold leading-6">
-                    Ghi chú cho giáo viên: {pacingDecision.teacherNote}
-                  </div>
-                )}
+                  {pacingDecision ? (
+                    <div className={cn('rounded-2xl border p-4', pacingStatusClass[pacingDecision.status])}>
+                      <p className="text-sm font-black uppercase tracking-wide">{pacingStatusLabel[pacingDecision.status]}</p>
+                      <h4 className="mt-1 text-lg font-black">{pacingActionLabel[pacingDecision.action]}</h4>
+                      <p className="mt-2 text-sm font-semibold leading-6">{pacingDecision.message}</p>
+                      {pacingTasks.length > 0 && (
+                        <div className="mt-4 space-y-2">
+                          <p className="text-xs font-black uppercase tracking-wide opacity-70">Nhiệm vụ hệ thống gợi ý</p>
+                          {pacingTasks.map(task => (
+                            <div key={task.id} className="rounded-2xl bg-white/75 p-3 text-sm font-semibold leading-6">
+                              {task.prompt}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm font-semibold text-slate-500">
+                      Làm test đầu giờ trong mô phỏng để hệ thống tính nhanh/chậm theo tiết 40 phút.
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
+            </section>
           </div>
-        </section>
-      </div>
+        )}
+      </section>
 
       <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
         <div className="mb-5 flex items-center gap-3">
           <div className="rounded-2xl bg-slate-100 p-3 text-slate-700"><BarChart3 className="h-5 w-5" /></div>
           <div>
-            <h3 className="text-lg font-black text-slate-800">6. Dashboard giáo viên từ dữ liệu mô phỏng</h3>
+            <h3 className="text-lg font-black text-slate-800">4. Dashboard giáo viên từ dữ liệu mô phỏng</h3>
             <p className="text-sm text-slate-500">Dữ liệu này minh hoạ cách giáo viên nhìn thấy phân tuyến và điểm yếu của lớp.</p>
           </div>
         </div>
