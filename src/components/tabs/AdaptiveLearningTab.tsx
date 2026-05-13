@@ -19,9 +19,10 @@ import {
   buildTeacherDashboardData,
   createProgressFromDiagnostic,
   decideNextUnitAction,
+  decidePacingAction,
   gradeAssessment,
 } from '../../lib/adaptive/diagnosticEngine';
-import { AdaptiveQuestion, AssessmentAttempt, LearningRoute, StudentAdaptiveProgress } from '../../lib/adaptive/types';
+import { AdaptiveQuestion, AssessmentAttempt, LearningRoute, PacingAction, PacingStatus, PracticeTask, StudentAdaptiveProgress } from '../../lib/adaptive/types';
 import { cn } from '../../lib/utils';
 
 const routeLabel: Record<LearningRoute, string> = {
@@ -34,6 +35,28 @@ const routeClass: Record<LearningRoute, string> = {
   foundation: 'bg-amber-50 text-amber-700 border-amber-200',
   standard: 'bg-blue-50 text-blue-700 border-blue-200',
   challenge: 'bg-purple-50 text-purple-700 border-purple-200',
+};
+
+const pacingStatusLabel: Record<PacingStatus, string> = {
+  ahead: 'Nhanh hơn tiến độ',
+  on_track: 'Đúng nhịp',
+  behind: 'Chậm hơn tiến độ',
+  stuck: 'Đang mắc kẹt',
+};
+
+const pacingActionLabel: Record<PacingAction, string> = {
+  continue_core: 'Tiếp tục tuyến lõi',
+  assign_enrichment: 'Giao nhiệm vụ mở rộng',
+  compress_to_core: 'Rút gọn về mục tiêu lõi',
+  remediate_easier: 'Chuyển sang bản dễ hơn',
+  flag_teacher: 'Báo giáo viên can thiệp',
+};
+
+const pacingStatusClass: Record<PacingStatus, string> = {
+  ahead: 'border-purple-200 bg-purple-50 text-purple-700',
+  on_track: 'border-blue-200 bg-blue-50 text-blue-700',
+  behind: 'border-amber-200 bg-amber-50 text-amber-700',
+  stuck: 'border-red-200 bg-red-50 text-red-700',
 };
 
 const demoStudents = [
@@ -85,15 +108,36 @@ export const AdaptiveLearningTab = () => {
   const [quickCheckAnswers, setQuickCheckAnswers] = useState<Record<string, string>>({});
   const [quickCheckAttempt, setQuickCheckAttempt] = useState<AssessmentAttempt | null>(null);
   const [remediationAttempts, setRemediationAttempts] = useState(0);
+  const [elapsedMinutes, setElapsedMinutes] = useState(18);
 
   const demoProgresses = useMemo(createDemoProgresses, []);
   const teacherDashboard = useMemo(() => buildTeacherDashboardData(lesson, demoProgresses), [lesson, demoProgresses]);
   const recommendedRoute = diagnosticAttempt?.recommendedRoute || 'standard';
   const firstUnit = lesson.knowledgeUnits[0];
-  const routeContent = firstUnit.routes.find(item => item.route === recommendedRoute) || firstUnit.routes[1];
   const nextAction = quickCheckAttempt
     ? decideNextUnitAction(quickCheckAttempt, remediationAttempts, firstUnit.maxRemediationAttempts)
     : null;
+  const activePacingUnit = nextAction === 'move_next'
+    ? lesson.knowledgeUnits[1] || firstUnit
+    : firstUnit;
+  const routeContent = firstUnit.routes.find(item => item.route === recommendedRoute) || firstUnit.routes[1];
+  const activePacingRouteContent = activePacingUnit.routes.find(item => item.route === recommendedRoute) || activePacingUnit.routes[1];
+
+  const currentProgress = useMemo(() => {
+    if (!diagnosticAttempt) return null;
+    const progress = createProgressFromDiagnostic(lesson, 'demo-session', 'current-student', diagnosticAttempt);
+    return {
+      ...progress,
+      assessmentAttempts: quickCheckAttempt ? [diagnosticAttempt, quickCheckAttempt] : [diagnosticAttempt],
+    };
+  }, [lesson, diagnosticAttempt, quickCheckAttempt]);
+  const pacingDecision = currentProgress
+    ? decidePacingAction(lesson, currentProgress, elapsedMinutes, activePacingUnit.id, quickCheckAttempt || undefined, remediationAttempts)
+    : null;
+  const pacingTasks = pacingDecision
+    ? ([...(activePacingUnit.supportTasks || []), ...(activePacingUnit.enrichmentTasks || []), ...activePacingRouteContent.practiceTasks] as PracticeTask[])
+        .filter(task => pacingDecision.recommendedTaskIds.includes(task.id))
+    : [];
 
   const handleDiagnosticSubmit = () => {
     const attempt = gradeAssessment(lesson.diagnosticTest, studentAnswers, 360);
@@ -346,6 +390,102 @@ export const AdaptiveLearningTab = () => {
               </div>
             )}
           </div>
+
+          <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+            <div className="mb-5 flex items-center gap-3">
+              <div className="rounded-2xl bg-indigo-50 p-3 text-indigo-600"><Clock3 className="h-5 w-5" /></div>
+              <div>
+                <h3 className="text-lg font-black text-slate-800">5. Điều phối thời gian 40 phút</h3>
+                <p className="text-sm text-slate-500">Mô phỏng hệ thống tính lại khi học sinh quá nhanh hoặc quá chậm.</p>
+              </div>
+            </div>
+
+            <div className="mb-4 grid gap-2 sm:grid-cols-3">
+              {[
+                { label: 'Nhanh', value: 13 },
+                { label: 'Đúng nhịp', value: 20 },
+                { label: 'Chậm', value: 31 },
+              ].map(item => (
+                <button
+                  key={item.label}
+                  onClick={() => setElapsedMinutes(item.value)}
+                  className={cn(
+                    'rounded-2xl border px-3 py-2 text-sm font-black transition-all',
+                    elapsedMinutes === item.value
+                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                      : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-indigo-200'
+                  )}
+                >
+                  {item.label} · phút {item.value}
+                </button>
+              ))}
+            </div>
+
+            <input
+              type="range"
+              min="7"
+              max="39"
+              value={elapsedMinutes}
+              onChange={event => setElapsedMinutes(Number(event.target.value))}
+              className="w-full accent-indigo-600"
+            />
+            <div className="mt-2 flex justify-between text-xs font-bold text-slate-400">
+              <span>7 phút</span>
+              <span>Đã dùng: {elapsedMinutes} phút</span>
+              <span>39 phút</span>
+            </div>
+
+            {!diagnosticAttempt && (
+              <div className="mt-5 rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm font-semibold text-slate-500">
+                Làm test đầu giờ trước để hệ thống có dữ liệu năng lực, sau đó panel này sẽ tính học sinh đang nhanh/chậm so với tiết 40 phút.
+              </div>
+            )}
+
+            {pacingDecision && (
+              <div className={cn('mt-5 rounded-2xl border p-4', pacingStatusClass[pacingDecision.status])}>
+                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <p className="text-sm font-black uppercase tracking-wide">{pacingStatusLabel[pacingDecision.status]}</p>
+                    <h4 className="mt-1 text-lg font-black">{pacingActionLabel[pacingDecision.action]}</h4>
+                    <p className="mt-2 text-sm font-semibold leading-6">{pacingDecision.message}</p>
+                  </div>
+                  <div className="rounded-2xl bg-white/70 p-3 text-right text-xs font-bold">
+                    <p>Còn lại: {pacingDecision.remainingMinutes} phút</p>
+                    <p>Độ lệch: {pacingDecision.paceDeltaMinutes} phút</p>
+                    <p>Làm chủ TB: {Math.round(pacingDecision.averageMastery * 100)}%</p>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl bg-white/70 p-3 text-xs font-bold">
+                    <p className="uppercase tracking-wide opacity-70">Nguyên tắc giữ tiết học</p>
+                    <p className="mt-1">{pacingDecision.shouldPreserveExitTicket ? 'Vẫn giữ exit ticket cuối giờ.' : 'Cần rút gọn để còn tối thiểu cho phản tư.'}</p>
+                  </div>
+                  <div className="rounded-2xl bg-white/70 p-3 text-xs font-bold">
+                    <p className="uppercase tracking-wide opacity-70">Mảnh ưu tiên</p>
+                    <p className="mt-1">{pacingDecision.recommendedUnitIds.join(', ') || 'Không có'}</p>
+                  </div>
+                </div>
+
+                {pacingTasks.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    <p className="text-xs font-black uppercase tracking-wide opacity-70">Nhiệm vụ hệ thống giao thêm/giảm tải</p>
+                    {pacingTasks.map(task => (
+                      <div key={task.id} className="rounded-2xl bg-white/75 p-3 text-sm font-semibold leading-6">
+                        {task.prompt}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {pacingDecision.teacherNote && (
+                  <div className="mt-4 rounded-2xl bg-white/75 p-3 text-sm font-bold leading-6">
+                    Ghi chú cho giáo viên: {pacingDecision.teacherNote}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </section>
       </div>
 
@@ -353,7 +493,7 @@ export const AdaptiveLearningTab = () => {
         <div className="mb-5 flex items-center gap-3">
           <div className="rounded-2xl bg-slate-100 p-3 text-slate-700"><BarChart3 className="h-5 w-5" /></div>
           <div>
-            <h3 className="text-lg font-black text-slate-800">5. Dashboard giáo viên từ dữ liệu mô phỏng</h3>
+            <h3 className="text-lg font-black text-slate-800">6. Dashboard giáo viên từ dữ liệu mô phỏng</h3>
             <p className="text-sm text-slate-500">Dữ liệu này minh hoạ cách giáo viên nhìn thấy phân tuyến và điểm yếu của lớp.</p>
           </div>
         </div>

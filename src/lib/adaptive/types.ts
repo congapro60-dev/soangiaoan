@@ -7,6 +7,8 @@ export type BloomLevel = 'remember' | 'understand' | 'apply' | 'analyze' | 'eval
 export type MasteryStatus = 'not_seen' | 'weak' | 'near_mastery' | 'mastered' | 'advanced';
 export type StudentSessionStatus = 'not_started' | 'diagnostic' | 'learning' | 'quick_check' | 'needs_teacher' | 'completed';
 export type RemediationStrategy = 'visual' | 'step_by_step' | 'socratic' | 'worked_example' | 'analogy';
+export type PacingStatus = 'ahead' | 'on_track' | 'behind' | 'stuck';
+export type PacingAction = 'continue_core' | 'assign_enrichment' | 'compress_to_core' | 'remediate_easier' | 'flag_teacher';
 
 export interface CurriculumReference {
   distributionId?: string;
@@ -113,6 +115,18 @@ export interface KnowledgeUnit {
   routes: LearningRouteContent[];
   quickCheck: AdaptiveAssessment;
   maxRemediationAttempts: number;
+  coreTaskIds?: string[];
+  supportTasks?: PracticeTask[];
+  enrichmentTasks?: PracticeTask[];
+}
+
+export interface LessonPacingPolicy {
+  minExitTicketMinutes: number;
+  aheadThresholdMinutes: number;
+  behindThresholdMinutes: number;
+  stuckAfterRemediationAttempts: number;
+  enrichmentTriggerMastery: number;
+  supportTriggerMastery: number;
 }
 
 export interface AdaptiveLesson {
@@ -132,6 +146,7 @@ export interface AdaptiveLesson {
   knowledgeUnits: KnowledgeUnit[];
   diagnosticTest: AdaptiveAssessment;
   exitTicket: AdaptiveAssessment;
+  pacingPolicy?: LessonPacingPolicy;
 }
 
 export interface StudentParticipant {
@@ -224,6 +239,22 @@ export interface StudentAdaptiveProgress {
   teacherFlags: TeacherFlag[];
   startedAt: string;
   completedAt?: string;
+}
+
+export interface PacingDecision {
+  status: PacingStatus;
+  action: PacingAction;
+  elapsedMinutes: number;
+  remainingMinutes: number;
+  expectedElapsedMinutes: number;
+  paceDeltaMinutes: number;
+  averageMastery: number;
+  currentUnitId?: string;
+  recommendedUnitIds: string[];
+  recommendedTaskIds: string[];
+  shouldPreserveExitTicket: boolean;
+  message: string;
+  teacherNote?: string;
 }
 
 export interface TeacherObjectiveInsight {

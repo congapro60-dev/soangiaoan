@@ -6,6 +6,14 @@ export const sampleAdaptiveLesson: AdaptiveLesson = {
   subjectId: 'math',
   grade: '11',
   durationMinutes: 40,
+  pacingPolicy: {
+    minExitTicketMinutes: 5,
+    aheadThresholdMinutes: 5,
+    behindThresholdMinutes: 4,
+    stuckAfterRemediationAttempts: 2,
+    enrichmentTriggerMastery: 0.85,
+    supportTriggerMastery: 0.55,
+  },
   status: 'draft',
   teacherId: 'demo-teacher',
   createdAt: new Date().toISOString(),
@@ -240,6 +248,27 @@ export const sampleAdaptiveLesson: AdaptiveLesson = {
       objectiveIds: ['obj-identify-ap', 'obj-common-difference'],
       estimatedMinutes: 10,
       maxRemediationAttempts: 2,
+      coreTaskIds: ['pt-foundation-1', 'pt-standard-1'],
+      supportTasks: [
+        {
+          id: 'support-identify-d-table',
+          prompt: 'Điền bảng hiệu liên tiếp cho dãy 8, 5, 2, -1: 5 - 8 = ?, 2 - 5 = ?, -1 - 2 = ?. Kết luận dãy có phải cấp số cộng không.',
+          expectedAnswer: 'Các hiệu đều bằng -3 nên là cấp số cộng, d = -3.',
+          hints: ['Luôn lấy số sau trừ số trước.', 'Nếu ba hiệu bằng nhau thì dãy là cấp số cộng.'],
+          objectiveIds: ['obj-identify-ap', 'obj-common-difference'],
+          difficulty: 'easy',
+        },
+      ],
+      enrichmentTasks: [
+        {
+          id: 'enrich-identify-create-counterexample',
+          prompt: 'Tạo hai dãy số: một dãy là cấp số cộng có công sai âm, một dãy có quy luật rõ nhưng không phải cấp số cộng. Giải thích bằng hiệu liên tiếp.',
+          expectedAnswer: 'Ví dụ: 10, 7, 4, 1 là cấp số cộng d = -3; 1, 2, 4, 8 không phải vì hiệu 1, 2, 4 không bằng nhau.',
+          hints: ['Dãy không phải cấp số cộng có thể là dãy nhân đôi.', 'Lập bảng hiệu để chứng minh.'],
+          objectiveIds: ['obj-identify-ap', 'obj-common-difference', 'obj-context-ap'],
+          difficulty: 'hard',
+        },
+      ],
       routes: [
         {
           route: 'foundation',
@@ -353,6 +382,35 @@ export const sampleAdaptiveLesson: AdaptiveLesson = {
       objectiveIds: ['obj-general-term', 'obj-sum-first-n', 'obj-context-ap'],
       estimatedMinutes: 15,
       maxRemediationAttempts: 2,
+      coreTaskIds: ['pt-foundation-2', 'pt-standard-2'],
+      supportTasks: [
+        {
+          id: 'support-general-term-steps',
+          prompt: 'Cho u_1 = 5, d = 2. Hoàn thành từng bước: từ u_1 đến u_4 có mấy bước nhảy? Tính u_4.',
+          expectedAnswer: 'Có 3 bước nhảy, u_4 = 5 + 3 · 2 = 11.',
+          hints: ['Từ u_1 đến u_4 không phải 4 bước mà là 3 bước.', 'Dùng u_n = u_1 + (n - 1)d.'],
+          objectiveIds: ['obj-general-term'],
+          difficulty: 'easy',
+        },
+        {
+          id: 'support-sum-keyword',
+          prompt: 'Gạch chân từ khóa trong câu: “Tính tổng 6 số hạng đầu”. Đại lượng cần tính là u_6 hay S_6?',
+          expectedAnswer: 'Cần tính S_6.',
+          hints: ['Từ “tổng” tương ứng với S_n.', 'u_n chỉ là một số hạng.'],
+          objectiveIds: ['obj-sum-first-n'],
+          difficulty: 'easy',
+        },
+      ],
+      enrichmentTasks: [
+        {
+          id: 'enrich-ap-context-design',
+          prompt: 'Thiết kế một bài toán thực tế dùng cấp số cộng có cả yêu cầu tìm u_n và S_n, rồi tự giải.',
+          expectedAnswer: 'Ví dụ tiết kiệm/thể thao/xếp ghế; cần xác định u_1, d, n, sau đó tính đúng u_n và S_n.',
+          hints: ['Chọn tình huống tăng hoặc giảm đều.', 'Đặt một câu hỏi về giá trị ở lần thứ n và một câu hỏi về tổng n lần.'],
+          objectiveIds: ['obj-general-term', 'obj-sum-first-n', 'obj-context-ap'],
+          difficulty: 'hard',
+        },
+      ],
       routes: [
         {
           route: 'foundation',

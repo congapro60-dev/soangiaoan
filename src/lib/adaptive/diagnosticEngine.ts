@@ -7,6 +7,7 @@ import {
   MasteryStatus,
   ObjectiveMasteryState,
   ObjectiveScore,
+  PacingDecision,
   StudentAdaptiveProgress,
   TeacherFlag,
   AdaptiveTeacherDashboardData,
@@ -152,6 +153,12 @@ export const createProgressFromDiagnostic = (
   };
 };
 
+const calculateAttemptRatio = (attempt: AssessmentAttempt) => {
+  const totalScore = attempt.objectiveScores.reduce((sum, item) => sum + item.score, 0);
+  const totalMax = attempt.objectiveScores.reduce((sum, item) => sum + item.maxScore, 0);
+  return totalMax > 0 ? totalScore / totalMax : 0;
+};
+
 export type NextUnitAction = 'move_next' | 'remediate' | 'needs_teacher';
 
 export const decideNextUnitAction = (
@@ -159,13 +166,148 @@ export const decideNextUnitAction = (
   remediationAttempts: number,
   maxRemediationAttempts: number
 ): NextUnitAction => {
-  const totalScore = quickCheckAttempt.objectiveScores.reduce((sum, item) => sum + item.score, 0);
-  const totalMax = quickCheckAttempt.objectiveScores.reduce((sum, item) => sum + item.maxScore, 0);
-  const ratio = totalMax > 0 ? totalScore / totalMax : 0;
+  const ratio = calculateAttemptRatio(quickCheckAttempt);
 
   if (ratio >= 0.8) return 'move_next';
   if (remediationAttempts < maxRemediationAttempts) return 'remediate';
   return 'needs_teacher';
+};
+
+const getAverageMastery = (progress: StudentAdaptiveProgress) => {
+  if (!progress.objectiveStates.length) return 0;
+  const total = progress.objectiveStates.reduce((sum, item) => sum + item.confidence, 0);
+  return Number((total / progress.objectiveStates.length).toFixed(2));
+};
+
+const getCompletedUnitIds = (lesson: AdaptiveLesson, progress: StudentAdaptiveProgress) => {
+  return lesson.knowledgeUnits
+    .filter(unit => {
+      const latestQuickCheck = [...progress.assessmentAttempts]
+        .reverse()
+        .find(attempt => attempt.assessmentId === unit.quickCheck.id);
+      return latestQuickCheck ? calculateAttemptRatio(latestQuickCheck) >= 0.8 : false;
+    })
+    .map(unit => unit.id);
+};
+
+const getDefaultPacingPolicy = (lesson: AdaptiveLesson) => ({
+  minExitTicketMinutes: lesson.exitTicket.durationMinutes,
+  aheadThresholdMinutes: 5,
+  behindThresholdMinutes: 4,
+  stuckAfterRemediationAttempts: 2,
+  enrichmentTriggerMastery: 0.85,
+  supportTriggerMastery: 0.55,
+  ...lesson.pacingPolicy,
+});
+
+export const decidePacingAction = (
+  lesson: AdaptiveLesson,
+  progress: StudentAdaptiveProgress,
+  elapsedMinutes: number,
+  currentUnitId?: string,
+  latestQuickCheckAttempt?: AssessmentAttempt,
+  remediationAttempts = progress.remediationEvents.length
+): PacingDecision => {
+  const policy = getDefaultPacingPolicy(lesson);
+  const completedUnitIds = getCompletedUnitIds(lesson, progress);
+  const firstIncompleteUnit = lesson.knowledgeUnits.find(unit => !completedUnitIds.includes(unit.id));
+  const currentUnit = lesson.knowledgeUnits.find(unit => unit.id === currentUnitId) || firstIncompleteUnit || lesson.knowledgeUnits.at(-1);
+  const currentUnitIndex = currentUnit ? lesson.knowledgeUnits.findIndex(unit => unit.id === currentUnit.id) : -1;
+  const unitsBeforeCurrent = currentUnitIndex > 0 ? lesson.knowledgeUnits.slice(0, currentUnitIndex) : [];
+  const expectedElapsedMinutes = lesson.diagnosticTest.durationMinutes + unitsBeforeCurrent.reduce((sum, unit) => sum + unit.estimatedMinutes + unit.quickCheck.durationMinutes, 0);
+  const currentUnitTotalMinutes = currentUnit ? currentUnit.estimatedMinutes + currentUnit.quickCheck.durationMinutes : 0;
+  const currentUnitElapsedMinutes = Math.max(elapsedMinutes - expectedElapsedMinutes, 0);
+  const currentUnitRemainingMinutes = currentUnit && !completedUnitIds.includes(currentUnit.id)
+    ? Math.max(currentUnitTotalMinutes - currentUnitElapsedMinutes, 0)
+    : 0;
+  const futureUnitMinutes = lesson.knowledgeUnits
+    .filter(unit => unit.id !== currentUnit?.id && !completedUnitIds.includes(unit.id))
+    .reduce((sum, unit) => sum + unit.estimatedMinutes + unit.quickCheck.durationMinutes, 0);
+  const remainingMinutes = Math.max(lesson.durationMinutes - elapsedMinutes, 0);
+  const remainingCoreMinutes = currentUnitRemainingMinutes + futureUnitMinutes;
+  const expectedCompletionMinutes = expectedElapsedMinutes + currentUnitTotalMinutes;
+  const paceDeltaMinutes = Number((elapsedMinutes - expectedCompletionMinutes).toFixed(1));
+  const averageMastery = getAverageMastery(progress);
+  const quickCheckRatio = latestQuickCheckAttempt ? calculateAttemptRatio(latestQuickCheckAttempt) : undefined;
+  const recommendedUnitIds = currentUnit ? [currentUnit.id] : [];
+  const supportTaskIds = currentUnit?.supportTasks?.map(task => task.id) || [];
+  const enrichmentTaskIds = currentUnit?.enrichmentTasks?.map(task => task.id) || [];
+  const shouldPreserveExitTicket = remainingMinutes >= policy.minExitTicketMinutes;
+
+  if (remediationAttempts >= policy.stuckAfterRemediationAttempts && averageMastery < policy.supportTriggerMastery) {
+    return {
+      status: 'stuck',
+      action: 'flag_teacher',
+      elapsedMinutes,
+      remainingMinutes,
+      expectedElapsedMinutes,
+      paceDeltaMinutes,
+      averageMastery,
+      currentUnitId: currentUnit?.id,
+      recommendedUnitIds,
+      recommendedTaskIds: supportTaskIds,
+      shouldPreserveExitTicket,
+      message: 'Học sinh đang mắc kẹt: đã cần giảng lại nhiều lần nhưng mức làm chủ còn thấp. Hệ thống nên báo giáo viên hỗ trợ trực tiếp và chỉ giữ nhiệm vụ tối lõi.',
+      teacherNote: 'Ưu tiên kiểm tra nhầm lẫn nền tảng, cho học sinh làm nhiệm vụ hỗ trợ ngắn thay vì tiếp tục bài nâng cao.',
+    };
+  }
+
+  if (remainingMinutes < remainingCoreMinutes + policy.minExitTicketMinutes || paceDeltaMinutes > policy.behindThresholdMinutes) {
+    const needsEasierSupport = averageMastery < policy.supportTriggerMastery || (quickCheckRatio !== undefined && quickCheckRatio < 0.6);
+    return {
+      status: 'behind',
+      action: needsEasierSupport ? 'remediate_easier' : 'compress_to_core',
+      elapsedMinutes,
+      remainingMinutes,
+      expectedElapsedMinutes,
+      paceDeltaMinutes,
+      averageMastery,
+      currentUnitId: currentUnit?.id,
+      recommendedUnitIds,
+      recommendedTaskIds: needsEasierSupport ? supportTaskIds : currentUnit?.coreTaskIds || [],
+      shouldPreserveExitTicket,
+      message: needsEasierSupport
+        ? 'Học sinh đang chậm và độ chắc kiến thức thấp. Hệ thống chuyển sang bản dễ hơn: ví dụ mẫu, gợi ý từng bước và bài tập tối thiểu theo mục tiêu lõi.'
+        : 'Học sinh đang chậm nhưng chưa quá yếu. Hệ thống rút gọn phần luyện tập mở rộng, giữ mục tiêu lõi và dành thời gian cho exit ticket.',
+      teacherNote: needsEasierSupport ? 'Theo dõi sát nhóm này vì nguy cơ không hoàn thành mục tiêu tối thiểu trong 40 phút.' : undefined,
+    };
+  }
+
+  if (
+    remainingMinutes >= policy.minExitTicketMinutes + policy.aheadThresholdMinutes &&
+    averageMastery >= policy.enrichmentTriggerMastery &&
+    (progress.route === 'challenge' || quickCheckRatio === undefined || quickCheckRatio >= 0.8)
+  ) {
+    return {
+      status: 'ahead',
+      action: 'assign_enrichment',
+      elapsedMinutes,
+      remainingMinutes,
+      expectedElapsedMinutes,
+      paceDeltaMinutes,
+      averageMastery,
+      currentUnitId: currentUnit?.id,
+      recommendedUnitIds,
+      recommendedTaskIds: enrichmentTaskIds,
+      shouldPreserveExitTicket,
+      message: 'Học sinh đang đi nhanh và có mức làm chủ cao. Hệ thống bổ sung nhiệm vụ mở rộng để vẫn sử dụng hiệu quả thời lượng 40 phút.',
+    };
+  }
+
+  return {
+    status: 'on_track',
+    action: 'continue_core',
+    elapsedMinutes,
+    remainingMinutes,
+    expectedElapsedMinutes,
+    paceDeltaMinutes,
+    averageMastery,
+    currentUnitId: currentUnit?.id,
+    recommendedUnitIds,
+    recommendedTaskIds: currentUnit?.coreTaskIds || [],
+    shouldPreserveExitTicket,
+    message: 'Học sinh đang trong nhịp phù hợp. Hệ thống tiếp tục tuyến học hiện tại và giữ thời gian cho quick check/exit ticket.',
+  };
 };
 
 export const createTeacherFlag = (
