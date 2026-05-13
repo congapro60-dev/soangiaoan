@@ -291,7 +291,7 @@ export default function App() {
             )}
 
             {activeTab === 'adaptive' && (
-              <AdaptiveLearningTab />
+              <AdaptiveLearningTab user={user} />
             )}
 
             {activeTab === 'library' && (

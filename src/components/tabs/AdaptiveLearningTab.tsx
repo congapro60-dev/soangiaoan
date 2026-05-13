@@ -1,4 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import type { User } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { motion } from 'motion/react';
 import {
   Activity,
@@ -14,6 +16,7 @@ import {
   Target,
   Users,
 } from 'lucide-react';
+import { db } from '../../lib/firebase';
 import { sampleAdaptiveLesson } from '../../lib/adaptive/sampleAdaptiveLesson';
 import {
   buildTeacherDashboardData,
@@ -94,6 +97,25 @@ const demoStudents = [
 
 const getQuestionAnswer = (question: AdaptiveQuestion, answers: Record<string, string>) => answers[question.id] || '';
 
+interface AdaptiveLearningTabProps {
+  user: User | null;
+}
+
+interface AdaptiveLessonDocument {
+  id: string;
+  userId: string;
+  teacherId: string;
+  lessonId: string;
+  title: string;
+  lesson: AdaptiveLesson;
+  createdAt: string;
+  updatedAt: string;
+}
+
+const getAdaptiveLessonDocId = (userId: string) => userId;
+
+const formatSavedTime = () => new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+
 const createDemoProgresses = (): StudentAdaptiveProgress[] => {
   return demoStudents.map(student => {
     const attempt = gradeAssessment(sampleAdaptiveLesson.diagnosticTest, student.answers, 360);
@@ -101,16 +123,62 @@ const createDemoProgresses = (): StudentAdaptiveProgress[] => {
   });
 };
 
-export const AdaptiveLearningTab = () => {
+export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
   const [lesson, setLesson] = useState<AdaptiveLesson>(sampleAdaptiveLesson);
   const [isTeacherEditing, setIsTeacherEditing] = useState(false);
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
+  const [isCloudLoading, setIsCloudLoading] = useState(true);
+  const [isSavingLesson, setIsSavingLesson] = useState(false);
+  const [cloudError, setCloudError] = useState<string | null>(null);
   const [studentAnswers, setStudentAnswers] = useState<Record<string, string>>({});
   const [diagnosticAttempt, setDiagnosticAttempt] = useState<AssessmentAttempt | null>(null);
   const [quickCheckAnswers, setQuickCheckAnswers] = useState<Record<string, string>>({});
   const [quickCheckAttempt, setQuickCheckAttempt] = useState<AssessmentAttempt | null>(null);
   const [remediationAttempts, setRemediationAttempts] = useState(0);
   const [elapsedMinutes, setElapsedMinutes] = useState(18);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadSavedLesson = async () => {
+      if (!user) {
+        setIsCloudLoading(false);
+        setCloudError(null);
+        return;
+      }
+
+      setIsCloudLoading(true);
+      setCloudError(null);
+
+      try {
+        const lessonRef = doc(db, 'adaptiveLessons', getAdaptiveLessonDocId(user.uid));
+        const snapshot = await getDoc(lessonRef);
+
+        if (!isMounted) return;
+
+        if (snapshot.exists()) {
+          const data = snapshot.data() as AdaptiveLessonDocument;
+          if (data.lesson) {
+            setLesson(data.lesson);
+            setDraftSavedAt(`đã tải từ Firestore lúc ${formatSavedTime()}`);
+          }
+        }
+      } catch (error) {
+        console.error('Lỗi tải bài học phân hoá', error);
+        if (isMounted) {
+          setCloudError('Không tải được bài học đã lưu. Hệ thống đang dùng bản mẫu trong ứng dụng.');
+        }
+      } finally {
+        if (isMounted) setIsCloudLoading(false);
+      }
+    };
+
+    loadSavedLesson();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
 
   const demoProgresses = useMemo(createDemoProgresses, []);
   const teacherDashboard = useMemo(() => buildTeacherDashboardData(lesson, demoProgresses), [lesson, demoProgresses]);
@@ -209,14 +277,54 @@ export const AdaptiveLearningTab = () => {
     }));
   };
 
-  const handleSaveTeacherDraft = () => {
-    setDraftSavedAt(new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }));
-    setIsTeacherEditing(false);
+  const handleSaveTeacherDraft = async () => {
+    if (!user) {
+      setCloudError('Bạn cần đăng nhập để lưu bài học phân hoá lên Firestore.');
+      return;
+    }
+
+    setIsSavingLesson(true);
+    setCloudError(null);
+
+    try {
+      const now = new Date().toISOString();
+      const lessonToSave: AdaptiveLesson = {
+        ...lesson,
+        teacherId: user.uid,
+        updatedAt: now,
+      };
+      const documentId = getAdaptiveLessonDocId(user.uid);
+
+      await setDoc(
+        doc(db, 'adaptiveLessons', documentId),
+        {
+          id: documentId,
+          userId: user.uid,
+          teacherId: user.uid,
+          lessonId: sampleAdaptiveLesson.id,
+          title: lessonToSave.title,
+          lesson: lessonToSave,
+          createdAt: lesson.createdAt || now,
+          updatedAt: now,
+        } satisfies AdaptiveLessonDocument,
+        { merge: true }
+      );
+
+      setLesson(lessonToSave);
+      setDraftSavedAt(formatSavedTime());
+      setIsTeacherEditing(false);
+    } catch (error) {
+      console.error('Lỗi lưu bài học phân hoá', error);
+      setCloudError('Không lưu được bài học lên Firestore. Vui lòng kiểm tra kết nối hoặc quyền Firestore.');
+    } finally {
+      setIsSavingLesson(false);
+    }
   };
 
   const handleResetTeacherDraft = () => {
     setLesson(sampleAdaptiveLesson);
     setDraftSavedAt(null);
+    setCloudError(null);
     setIsTeacherEditing(false);
   };
 
@@ -300,9 +408,21 @@ export const AdaptiveLearningTab = () => {
           </div>
         </div>
 
-        {draftSavedAt && (
+        {isCloudLoading && (
+          <div className="mb-4 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-bold text-blue-700">
+            Đang tải bài học phân hoá đã lưu từ Firestore...
+          </div>
+        )}
+
+        {cloudError && (
+          <div className="mb-4 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
+            {cloudError}
+          </div>
+        )}
+
+        {draftSavedAt && !cloudError && (
           <div className="mb-4 rounded-2xl border border-green-100 bg-green-50 px-4 py-3 text-sm font-bold text-green-700">
-            Đã lưu nháp trên giao diện lúc {draftSavedAt}. Bước sau sẽ nối dữ liệu này với Firestore để lưu bền và chia sẻ cho học sinh.
+            Đã đồng bộ bài học phân hoá với Firestore: {draftSavedAt}.
           </div>
         )}
 
@@ -392,9 +512,10 @@ export const AdaptiveLearningTab = () => {
 
             <button
               onClick={handleSaveTeacherDraft}
-              className="rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-indigo-100 transition hover:bg-indigo-700"
+              disabled={isSavingLesson || isCloudLoading}
+              className="rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-indigo-100 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
             >
-              Lưu nháp chỉnh sửa
+              {isSavingLesson ? 'Đang lưu lên Firestore...' : 'Lưu nháp lên Firestore'}
             </button>
           </div>
         ) : (
@@ -408,8 +529,8 @@ export const AdaptiveLearningTab = () => {
               <p className="text-xs font-bold uppercase tracking-wide">Tuyến nội dung</p>
             </div>
             <div className="rounded-2xl bg-purple-50 p-4 text-purple-700">
-              <p className="text-2xl font-black">Nháp</p>
-              <p className="text-xs font-bold uppercase tracking-wide">Chưa lưu Firestore</p>
+              <p className="text-2xl font-black">{isCloudLoading ? 'Đang tải' : draftSavedAt ? 'Đã lưu' : 'Nháp'}</p>
+              <p className="text-xs font-bold uppercase tracking-wide">{draftSavedAt ? 'Firestore đã đồng bộ' : 'Chưa có bản lưu Firestore'}</p>
             </div>
           </div>
         )}

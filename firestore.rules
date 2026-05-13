@@ -32,6 +32,22 @@ service cloud.firestore {
                     && request.auth.uid == request.resource.data.userId;
     }
 
+    // Bài học phân hoá — document id = uid giáo viên trong MVP hiện tại
+    match /adaptiveLessons/{teacherId} {
+      allow read: if request.auth != null
+                  && request.auth.uid == teacherId;
+      allow create: if request.auth != null
+                    && request.auth.uid == teacherId
+                    && request.auth.uid == request.resource.data.userId;
+      allow update: if request.auth != null
+                    && request.auth.uid == teacherId
+                    && request.auth.uid == resource.data.userId
+                    && request.auth.uid == request.resource.data.userId;
+      allow delete: if request.auth != null
+                    && request.auth.uid == teacherId
+                    && request.auth.uid == resource.data.userId;
+    }
+
     // === CHỨC NĂNG THI ONLINE ===
 
     // Đề thi — học sinh đọc khi đã phát hành; chỉ giáo viên chủ đề được ghi
