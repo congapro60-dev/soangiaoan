@@ -22,7 +22,7 @@ import {
   decidePacingAction,
   gradeAssessment,
 } from '../../lib/adaptive/diagnosticEngine';
-import { AdaptiveQuestion, AssessmentAttempt, LearningRoute, PacingAction, PacingStatus, PracticeTask, StudentAdaptiveProgress } from '../../lib/adaptive/types';
+import { AdaptiveLesson, AdaptiveQuestion, AssessmentAttempt, LearningRoute, PacingAction, PacingStatus, PracticeTask, StudentAdaptiveProgress } from '../../lib/adaptive/types';
 import { cn } from '../../lib/utils';
 
 const routeLabel: Record<LearningRoute, string> = {
@@ -102,7 +102,9 @@ const createDemoProgresses = (): StudentAdaptiveProgress[] => {
 };
 
 export const AdaptiveLearningTab = () => {
-  const lesson = sampleAdaptiveLesson;
+  const [lesson, setLesson] = useState<AdaptiveLesson>(sampleAdaptiveLesson);
+  const [isTeacherEditing, setIsTeacherEditing] = useState(false);
+  const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
   const [studentAnswers, setStudentAnswers] = useState<Record<string, string>>({});
   const [diagnosticAttempt, setDiagnosticAttempt] = useState<AssessmentAttempt | null>(null);
   const [quickCheckAnswers, setQuickCheckAnswers] = useState<Record<string, string>>({});
@@ -138,6 +140,85 @@ export const AdaptiveLearningTab = () => {
     ? ([...(activePacingUnit.supportTasks || []), ...(activePacingUnit.enrichmentTasks || []), ...activePacingRouteContent.practiceTasks] as PracticeTask[])
         .filter(task => pacingDecision.recommendedTaskIds.includes(task.id))
     : [];
+
+  const updateObjectiveText = (objectiveId: string, field: 'title' | 'description', value: string) => {
+    setLesson(prev => ({
+      ...prev,
+      updatedAt: new Date().toISOString(),
+      objectives: prev.objectives.map(objective => (
+        objective.id === objectiveId ? { ...objective, [field]: value } : objective
+      )),
+    }));
+  };
+
+  const updateObjectiveThreshold = (objectiveId: string, value: string) => {
+    const threshold = Math.min(1, Math.max(0, Number(value) / 100 || 0));
+    setLesson(prev => ({
+      ...prev,
+      updatedAt: new Date().toISOString(),
+      objectives: prev.objectives.map(objective => (
+        objective.id === objectiveId ? { ...objective, masteryThreshold: threshold } : objective
+      )),
+    }));
+  };
+
+  const updateRouteExplanation = (unitId: string, route: LearningRoute, value: string) => {
+    setLesson(prev => ({
+      ...prev,
+      updatedAt: new Date().toISOString(),
+      knowledgeUnits: prev.knowledgeUnits.map(unit => (
+        unit.id === unitId
+          ? {
+              ...unit,
+              routes: unit.routes.map(routeContentItem => (
+                routeContentItem.route === route ? { ...routeContentItem, explanation: value } : routeContentItem
+              )),
+            }
+          : unit
+      )),
+    }));
+  };
+
+  const updateWorkedExample = (
+    unitId: string,
+    route: LearningRoute,
+    exampleId: string,
+    field: 'problem' | 'solution' | 'explanation',
+    value: string
+  ) => {
+    setLesson(prev => ({
+      ...prev,
+      updatedAt: new Date().toISOString(),
+      knowledgeUnits: prev.knowledgeUnits.map(unit => (
+        unit.id === unitId
+          ? {
+              ...unit,
+              routes: unit.routes.map(routeContentItem => (
+                routeContentItem.route === route
+                  ? {
+                      ...routeContentItem,
+                      workedExamples: routeContentItem.workedExamples.map(example => (
+                        example.id === exampleId ? { ...example, [field]: value } : example
+                      )),
+                    }
+                  : routeContentItem
+              )),
+            }
+          : unit
+      )),
+    }));
+  };
+
+  const handleSaveTeacherDraft = () => {
+    setDraftSavedAt(new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }));
+    setIsTeacherEditing(false);
+  };
+
+  const handleResetTeacherDraft = () => {
+    setLesson(sampleAdaptiveLesson);
+    setDraftSavedAt(null);
+    setIsTeacherEditing(false);
+  };
 
   const handleDiagnosticSubmit = () => {
     const attempt = gradeAssessment(lesson.diagnosticTest, studentAnswers, 360);
@@ -195,6 +276,143 @@ export const AdaptiveLearningTab = () => {
             </div>
           </div>
         </div>
+      </section>
+
+      <section className="rounded-3xl border border-indigo-100 bg-white p-6 shadow-sm">
+        <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h3 className="text-lg font-black text-slate-800">0. Không gian giáo viên chỉnh bài học</h3>
+            <p className="text-sm text-slate-500">Giáo viên có thể chỉnh mục tiêu, lời giải thích theo tuyến và ví dụ mẫu trước khi giao cho học sinh.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setIsTeacherEditing(prev => !prev)}
+              className="rounded-2xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-black text-indigo-700 transition hover:bg-indigo-100"
+            >
+              {isTeacherEditing ? 'Đóng chỉnh sửa' : 'Chỉnh nội dung'}
+            </button>
+            <button
+              onClick={handleResetTeacherDraft}
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-black text-slate-500 transition hover:bg-slate-50"
+            >
+              Khôi phục mẫu
+            </button>
+          </div>
+        </div>
+
+        {draftSavedAt && (
+          <div className="mb-4 rounded-2xl border border-green-100 bg-green-50 px-4 py-3 text-sm font-bold text-green-700">
+            Đã lưu nháp trên giao diện lúc {draftSavedAt}. Bước sau sẽ nối dữ liệu này với Firestore để lưu bền và chia sẻ cho học sinh.
+          </div>
+        )}
+
+        {isTeacherEditing ? (
+          <div className="space-y-5">
+            <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+              <label className="space-y-2">
+                <span className="text-xs font-black uppercase tracking-wide text-slate-400">Tên bài học</span>
+                <input
+                  value={lesson.title}
+                  onChange={event => setLesson(prev => ({ ...prev, title: event.target.value, updatedAt: new Date().toISOString() }))}
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:border-indigo-400 focus:bg-white"
+                />
+              </label>
+              <label className="space-y-2">
+                <span className="text-xs font-black uppercase tracking-wide text-slate-400">Giải thích tuyến {routeLabel[recommendedRoute]}</span>
+                <textarea
+                  value={routeContent.explanation}
+                  onChange={event => updateRouteExplanation(firstUnit.id, recommendedRoute, event.target.value)}
+                  rows={4}
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold leading-6 text-slate-700 outline-none focus:border-indigo-400 focus:bg-white"
+                />
+              </label>
+            </div>
+
+            <div>
+              <p className="mb-3 text-xs font-black uppercase tracking-wide text-slate-400">Mục tiêu học tập</p>
+              <div className="grid gap-3 md:grid-cols-2">
+                {lesson.objectives.map(objective => (
+                  <div key={objective.id} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                    <input
+                      value={objective.title}
+                      onChange={event => updateObjectiveText(objective.id, 'title', event.target.value)}
+                      className="mb-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-black text-slate-800 outline-none focus:border-indigo-400"
+                    />
+                    <textarea
+                      value={objective.description}
+                      onChange={event => updateObjectiveText(objective.id, 'description', event.target.value)}
+                      rows={3}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold leading-6 text-slate-600 outline-none focus:border-indigo-400"
+                    />
+                    <label className="mt-3 flex items-center gap-2 text-xs font-bold text-slate-500">
+                      Ngưỡng đạt
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={Math.round(objective.masteryThreshold * 100)}
+                        onChange={event => updateObjectiveThreshold(objective.id, event.target.value)}
+                        className="w-20 rounded-xl border border-slate-200 bg-white px-2 py-1 font-black text-slate-700 outline-none focus:border-indigo-400"
+                      />
+                      %
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {routeContent.workedExamples[0] && (
+              <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                <p className="mb-3 text-xs font-black uppercase tracking-wide text-slate-400">Ví dụ mẫu đầu tiên của tuyến {routeLabel[recommendedRoute]}</p>
+                <div className="grid gap-3">
+                  <textarea
+                    value={routeContent.workedExamples[0].problem}
+                    onChange={event => updateWorkedExample(firstUnit.id, recommendedRoute, routeContent.workedExamples[0].id, 'problem', event.target.value)}
+                    rows={2}
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold leading-6 text-slate-700 outline-none focus:border-indigo-400"
+                    placeholder="Bài toán"
+                  />
+                  <textarea
+                    value={routeContent.workedExamples[0].solution}
+                    onChange={event => updateWorkedExample(firstUnit.id, recommendedRoute, routeContent.workedExamples[0].id, 'solution', event.target.value)}
+                    rows={3}
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold leading-6 text-slate-700 outline-none focus:border-indigo-400"
+                    placeholder="Lời giải"
+                  />
+                  <textarea
+                    value={routeContent.workedExamples[0].explanation}
+                    onChange={event => updateWorkedExample(firstUnit.id, recommendedRoute, routeContent.workedExamples[0].id, 'explanation', event.target.value)}
+                    rows={2}
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold leading-6 text-slate-700 outline-none focus:border-indigo-400"
+                    placeholder="Giải thích thêm"
+                  />
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={handleSaveTeacherDraft}
+              className="rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-indigo-100 transition hover:bg-indigo-700"
+            >
+              Lưu nháp chỉnh sửa
+            </button>
+          </div>
+        ) : (
+          <div className="grid gap-3 md:grid-cols-3">
+            <div className="rounded-2xl bg-indigo-50 p-4 text-indigo-700">
+              <p className="text-2xl font-black">{lesson.objectives.length}</p>
+              <p className="text-xs font-bold uppercase tracking-wide">Mục tiêu có thể chỉnh</p>
+            </div>
+            <div className="rounded-2xl bg-blue-50 p-4 text-blue-700">
+              <p className="text-2xl font-black">3</p>
+              <p className="text-xs font-bold uppercase tracking-wide">Tuyến nội dung</p>
+            </div>
+            <div className="rounded-2xl bg-purple-50 p-4 text-purple-700">
+              <p className="text-2xl font-black">Nháp</p>
+              <p className="text-xs font-bold uppercase tracking-wide">Chưa lưu Firestore</p>
+            </div>
+          </div>
+        )}
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
