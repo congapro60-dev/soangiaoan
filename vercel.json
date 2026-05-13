@@ -8,6 +8,10 @@
     "api/render-word.ts": {
       "maxDuration": 30,
       "memory": 1024
+    },
+    "api/adaptive-progress.ts": {
+      "maxDuration": 15,
+      "memory": 512
     }
   },
   "rewrites": [
