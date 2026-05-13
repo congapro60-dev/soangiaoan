@@ -227,6 +227,55 @@ export interface TeacherFlag {
   resolvedAt?: string;
 }
 
+export interface StudentObjectiveMemory {
+  objectiveId: string;
+  objectiveCode: string;
+  title: string;
+  attempts: number;
+  masteryEstimate: number;
+  lastStatus: MasteryStatus;
+  lastUpdatedAt: string;
+}
+
+export interface StudentLearningProfile {
+  id: string;
+  teacherId: string;
+  studentId: string;
+  studentCode: string;
+  studentName: string;
+  studentClass?: string;
+  totalSessions: number;
+  averageMastery: number;
+  routeHistory: LearningRoute[];
+  objectiveMemory: StudentObjectiveMemory[];
+  misconceptionCounts: Record<string, number>;
+  lastLessonId?: string;
+  lastLessonTitle?: string;
+  lastActiveAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StudentSessionProgressRecord {
+  id: string;
+  teacherId: string;
+  lessonId: string;
+  lessonTitle: string;
+  studentId: string;
+  studentCode: string;
+  studentName: string;
+  studentClass?: string;
+  route: LearningRoute;
+  status: 'in_progress' | 'needs_support' | 'completed';
+  diagnosticAttempt: AssessmentAttempt;
+  quickCheckAttempts: AssessmentAttempt[];
+  objectiveStates: ObjectiveMasteryState[];
+  remediationAttempts: number;
+  startedAt: string;
+  completedAt?: string;
+  updatedAt: string;
+}
+
 export interface StudentAdaptiveProgress {
   id: string;
   sessionId: string;

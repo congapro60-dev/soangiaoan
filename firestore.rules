@@ -32,10 +32,10 @@ service cloud.firestore {
                     && request.auth.uid == request.resource.data.userId;
     }
 
-    // Bài học phân hoá — document id = uid giáo viên trong MVP hiện tại
+    // Bài học phân hoá — giáo viên ghi; học sinh chỉ đọc khi giáo viên bật cổng học sinh
     match /adaptiveLessons/{teacherId} {
-      allow read: if request.auth != null
-                  && request.auth.uid == teacherId;
+      allow read: if (request.auth != null && request.auth.uid == teacherId)
+                  || resource.data.portalEnabled == true;
       allow create: if request.auth != null
                     && request.auth.uid == teacherId
                     && request.auth.uid == request.resource.data.userId;
@@ -46,6 +46,34 @@ service cloud.firestore {
       allow delete: if request.auth != null
                     && request.auth.uid == teacherId
                     && request.auth.uid == resource.data.userId;
+    }
+
+    // Tiến trình từng tiết học phân hoá — học sinh ghi theo mã học sinh; giáo viên owner quản trị được
+    match /adaptiveSessionProgress/{progressId} {
+      allow read: if request.auth != null
+                  && request.auth.uid == resource.data.teacherId;
+      allow create: if request.resource.data.teacherId is string
+                    && request.resource.data.studentId is string
+                    && request.resource.data.studentCode is string;
+      allow update: if request.resource.data.teacherId == resource.data.teacherId
+                    && request.resource.data.studentId == resource.data.studentId
+                    && request.resource.data.studentCode == resource.data.studentCode;
+      allow delete: if request.auth != null
+                    && request.auth.uid == resource.data.teacherId;
+    }
+
+    // Hồ sơ học tập dài hạn — MVP cho phép học sinh đọc/ghi bằng link + mã học sinh; bản sau sẽ siết bằng tài khoản học sinh
+    match /studentLearningProfiles/{studentId} {
+      allow read: if request.auth != null
+                  || resource.data.studentId == studentId;
+      allow create: if request.resource.data.teacherId is string
+                    && request.resource.data.studentId == studentId
+                    && request.resource.data.studentCode is string;
+      allow update: if request.resource.data.teacherId == resource.data.teacherId
+                    && request.resource.data.studentId == resource.data.studentId
+                    && request.resource.data.studentCode == resource.data.studentCode;
+      allow delete: if request.auth != null
+                    && request.auth.uid == resource.data.teacherId;
     }
 
     // === CHỨC NĂNG THI ONLINE ===

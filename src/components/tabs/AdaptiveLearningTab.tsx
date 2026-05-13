@@ -108,6 +108,7 @@ interface AdaptiveLessonDocument {
   lessonId: string;
   title: string;
   lesson: AdaptiveLesson;
+  portalEnabled: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -180,6 +181,7 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
     };
   }, [user]);
 
+  const studentPortalUrl = user ? `${window.location.origin}/adaptive/student/${user.uid}` : '';
   const demoProgresses = useMemo(createDemoProgresses, []);
   const teacherDashboard = useMemo(() => buildTeacherDashboardData(lesson, demoProgresses), [lesson, demoProgresses]);
   const recommendedRoute = diagnosticAttempt?.recommendedRoute || 'standard';
@@ -304,6 +306,7 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
           lessonId: sampleAdaptiveLesson.id,
           title: lessonToSave.title,
           lesson: lessonToSave,
+          portalEnabled: true,
           createdAt: lesson.createdAt || now,
           updatedAt: now,
         } satisfies AdaptiveLessonDocument,
@@ -362,7 +365,7 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
             <div>
               <h2 className="text-3xl font-black tracking-tight">{lesson.title}</h2>
               <p className="mt-2 max-w-3xl text-sm text-blue-50">
-                Prototype mô phỏng đủ trục dữ liệu: mục tiêu học tập → test đầu giờ → phân tuyến → nội dung theo tuyến → quick check → dashboard giáo viên.
+                Không gian giáo viên để soạn bài, lưu Firestore, xem mô phỏng và lấy liên kết cổng học sinh riêng.
               </p>
             </div>
           </div>
@@ -407,6 +410,30 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
             </button>
           </div>
         </div>
+
+        {user && (
+          <div className="mb-4 rounded-2xl border border-blue-100 bg-blue-50 p-4">
+            <p className="text-sm font-black text-blue-800">Cổng học sinh riêng</p>
+            <p className="mt-1 text-xs font-semibold leading-5 text-blue-700">
+              Học sinh mở liên kết này, nhập mã học sinh cố định, làm test đầu giờ và học theo tuyến cá nhân. Kết quả sẽ được lưu vào tiến trình tiết học và hồ sơ học tập dài hạn.
+            </p>
+            <div className="mt-3 flex flex-col gap-2 md:flex-row md:items-center">
+              <input
+                readOnly
+                value={studentPortalUrl}
+                className="flex-1 rounded-2xl border border-blue-100 bg-white px-4 py-3 text-xs font-bold text-slate-600 outline-none"
+              />
+              <a
+                href={studentPortalUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-2xl bg-blue-600 px-4 py-3 text-center text-sm font-black text-white shadow-lg shadow-blue-100 transition hover:bg-blue-700"
+              >
+                Mở cổng học sinh
+              </a>
+            </div>
+          </div>
+        )}
 
         {isCloudLoading && (
           <div className="mb-4 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-bold text-blue-700">

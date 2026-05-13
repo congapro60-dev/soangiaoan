@@ -7,6 +7,7 @@ import { StudentResultPage } from './pages/StudentResultPage';
 import { AnswerReviewPage } from './pages/AnswerReviewPage';
 import { TeacherGradingPage } from './pages/TeacherGradingPage';
 import { ExamConfigPage } from './pages/ExamConfigPage';
+import { AdaptiveStudentPortalPage } from './pages/AdaptiveStudentPortalPage';
 import './index.css';
 
 // Error Boundary để ngăn màn trắng khi có lỗi bất ngờ
@@ -57,6 +58,7 @@ createRoot(document.getElementById('root')!).render(
     <ErrorBoundary>
       <BrowserRouter>
         <Routes>
+          <Route path="/adaptive/student/:teacherId" element={<AdaptiveStudentPortalPage />} />
           <Route path="/exam/:code/review/:submissionId" element={<AnswerReviewPage />} />
           <Route path="/exam/:code/result/:submissionId" element={<StudentResultPage />} />
           <Route path="/exam/:examId/grade" element={<TeacherGradingPage />} />
