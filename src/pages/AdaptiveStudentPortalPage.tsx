@@ -1,8 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import { useParams } from 'react-router-dom';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { motion } from 'motion/react';
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 import {
   AlertTriangle,
   BookOpenCheck,
@@ -29,6 +33,7 @@ import {
   StudentSessionProgressRecord,
 } from '../lib/adaptive/types';
 import { cn } from '../lib/utils';
+import { ensureMathWrapped } from '../utils/examScoring';
 
 type PortalStage = 'loading' | 'not_found' | 'identify' | 'diagnostic' | 'lesson' | 'quick_check' | 'complete';
 
@@ -57,6 +62,18 @@ const buildStudentId = (teacherId: string, studentCode: string) => `${teacherId}
 const buildProgressId = (teacherId: string, lessonId: string, studentCode: string) => `${teacherId}_${lessonId}_${normalizeStudentCode(studentCode)}`;
 
 const getQuestionAnswer = (questionId: string, answers: Record<string, string>) => answers[questionId] || '';
+
+const MathText = ({ children, className }: { children: string; className?: string }) => (
+  <span className={cn('adaptive-math-text', className)}>
+    <ReactMarkdown
+      remarkPlugins={[remarkMath]}
+      rehypePlugins={[rehypeKatex]}
+      components={{ p: ({ children: paragraphChildren }) => <span>{paragraphChildren}</span> }}
+    >
+      {ensureMathWrapped(children)}
+    </ReactMarkdown>
+  </span>
+);
 
 const averageMastery = (attempts: AssessmentAttempt[]) => {
   const scores = attempts.flatMap(attempt => attempt.objectiveScores.map(score => score.masteryEstimate));
@@ -275,15 +292,53 @@ export const AdaptiveStudentPortalPage = () => {
     setError(null);
 
     try {
-      await Promise.all([
-        setDoc(doc(db, 'adaptiveSessionProgress', progressId), progressRecord, { merge: true }),
-        setDoc(doc(db, 'studentLearningProfiles', studentId), nextProfile, { merge: true }),
-      ]);
-      setProfile(nextProfile);
+      await setDoc(doc(db, 'adaptiveSessionProgress', progressId), progressRecord, { merge: true });
+
+      try {
+        await setDoc(doc(db, 'studentLearningProfiles', studentId), nextProfile, { merge: true });
+        setProfile(nextProfile);
+      } catch (profileError) {
+        console.warn('Không lưu được hồ sơ dài hạn, nhưng đã lưu tiến trình tiết học', profileError);
+        setProfile(nextProfile);
+      }
+
       setStage('complete');
     } catch (err) {
       console.error('Không lưu được tiến trình học sinh', err);
-      setError('Không lưu được kết quả học tập. Em hãy báo giáo viên kiểm tra kết nối hoặc quyền Firestore.');
+      const offlineProgress = {
+        ...progressRecord,
+        pendingProfileSync: true,
+        savedOfflineAt: now,
+        lastSaveError: err instanceof Error ? err.message : 'unknown',
+      };
+
+      try {
+        window.localStorage.setItem(`adaptive-progress-${progressId}`, JSON.stringify(offlineProgress));
+        window.localStorage.setItem(`adaptive-profile-${studentId}`, JSON.stringify(nextProfile));
+        await setDoc(doc(db, 'adaptiveSessionProgress', progressId), {
+          id: progressId,
+          teacherId,
+          lessonId: lesson.id,
+          lessonTitle: lesson.title,
+          studentId,
+          studentCode: normalizeStudentCode(studentCode),
+          studentName: studentName.trim(),
+          studentClass: studentClass.trim() || null,
+          route: recommendedRoute,
+          status: action === 'move_next' ? 'completed' : 'needs_support',
+          updatedAt: now,
+          completedAt: now,
+          hasLocalBackup: true,
+          createdFromStudentPortal: true,
+          serverSyncedAt: serverTimestamp(),
+        }, { merge: true });
+        setProfile(nextProfile);
+        setStage('complete');
+        setError('Kết quả đã được lưu tạm trên thiết bị và ghi bản tóm tắt lên hệ thống. Giáo viên cần kiểm tra Firestore rules để bật lưu hồ sơ dài hạn.');
+      } catch (fallbackError) {
+        console.error('Không lưu được cả bản dự phòng tiến trình học sinh', fallbackError);
+        setError('Không lưu được kết quả học tập. Em hãy báo giáo viên kiểm tra kết nối hoặc quyền Firestore.');
+      }
     } finally {
       setIsSaving(false);
     }
@@ -385,14 +440,16 @@ export const AdaptiveStudentPortalPage = () => {
             <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
               <p className="text-xs font-black uppercase tracking-wide text-blue-500">{firstUnit.title}</p>
               <h3 className="mt-1 text-2xl font-black text-slate-800">Nội dung học theo tuyến {routeLabel[recommendedRoute]}</h3>
-              <p className="mt-3 text-sm font-semibold leading-7 text-slate-600">{routeContent.explanation}</p>
+              <div className="mt-3 text-sm font-semibold leading-7 text-slate-600">
+                <MathText>{routeContent.explanation}</MathText>
+              </div>
               <div className="mt-5 grid gap-4 lg:grid-cols-2">
                 {routeContent.workedExamples.map(example => (
                   <div key={example.id} className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4">
                     <p className="text-xs font-black uppercase text-blue-600">Ví dụ</p>
-                    <p className="mt-2 font-bold text-slate-800">{example.problem}</p>
-                    <p className="mt-2 text-sm font-semibold text-slate-600">{example.solution}</p>
-                    <p className="mt-2 text-xs font-bold text-blue-700">{example.explanation}</p>
+                    <div className="mt-2 font-bold text-slate-800"><MathText>{example.problem}</MathText></div>
+                    <div className="mt-2 text-sm font-semibold text-slate-600"><MathText>{example.solution}</MathText></div>
+                    <div className="mt-2 text-xs font-bold text-blue-700"><MathText>{example.explanation}</MathText></div>
                   </div>
                 ))}
               </div>
@@ -462,7 +519,9 @@ const StudentAssessmentCard = ({
     <div className="space-y-4">
       {questions.map((question, index) => (
         <div key={question.id} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-          <p className="font-bold text-slate-800">Câu {index + 1}. {question.prompt}</p>
+          <div className="font-bold text-slate-800">
+            Câu {index + 1}. <MathText>{question.prompt}</MathText>
+          </div>
           {question.options ? (
             <div className="mt-3 grid gap-2">
               {question.options.map(option => (
@@ -475,7 +534,7 @@ const StudentAssessmentCard = ({
                     onChange={() => setAnswers(prev => ({ ...prev, [question.id]: option }))}
                     className="mt-1"
                   />
-                  <span>{option}</span>
+                  <span><MathText>{option}</MathText></span>
                 </label>
               ))}
             </div>

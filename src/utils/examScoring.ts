@@ -3,6 +3,23 @@ import { ExamQuestion, TfScoringMode } from '../types';
 export const isCompoundTF = (q: ExamQuestion) =>
   q.type === 'true_false' && Array.isArray(q.options) && q.options.length > 0;
 
+const wrapPlainMathFragments = (text: string) => {
+  const mathDelimitedSegmentPattern = /(\$\$[\s\S]*?\$\$|\$[^$]*\$)/g;
+
+  return text
+    .split(mathDelimitedSegmentPattern)
+    .map(segment => {
+      if (!segment || segment.startsWith('$')) return segment;
+
+      return segment
+        // Common school-math identifiers written as plain text: u_1, u_{n+1}, S_5, x^2...
+        .replace(/\b([A-Za-z][A-Za-z0-9]*(?:_\{[^{}]+\}|_[A-Za-z0-9]+)(?:\^\{[^{}]+\}|\^[A-Za-z0-9]+)?)/g, '$$$1$$')
+        // Compact forms often typed by teachers for sequences: u1, u2, u6, S5.
+        .replace(/\b([uUS])([0-9]+)\b/g, (_, base: string, subscript: string) => `$${base}_${subscript}$`);
+    })
+    .join('');
+};
+
 /** Fail-safe to wrap un-wrapped LaTeX commands and normalize delimiters */
 export const ensureMathWrapped = (text: string) => {
   if (!text) return '';
@@ -14,15 +31,21 @@ export const ensureMathWrapped = (text: string) => {
     .replace(/\\\(/g, '$')
     .replace(/\\\)/g, '$');
 
-  // 2. If it already has $, trust it but return the normalized version
-  if (processed.includes('$')) return processed;
+  processed = wrapPlainMathFragments(processed);
   
-  // 3. Pattern for common LaTeX commands
+  // 2. Pattern for common LaTeX commands
   const latexPattern = /\\(frac|sqrt|alpha|beta|gamma|delta|epsilon|zeta|eta|theta|iota|kappa|lambda|mu|nu|xi|omicron|pi|rho|sigma|tau|upsil|phi|chi|psi|omega|infty|partial|sum|prod|int|oint|iint|iiint|diff|nabla|times|div|pm|mp|cdot|cap|cup|subset|supset|in|notin|exists|forall|neg|wedge|vee|to|gets|mapsto|leftarrow|rightarrow|long|Left|Right|iff|equiv|sim|approx|ne|le|ge|circ|deg|text|mathbf|mathit|mathrm|mathsf|mathtt|mathbb|mathcal|mathscr|mathfrak|binom|cases|matrix|vmatrix|Vmatrix|array|begin|end|sin|cos|tan|cot|arcsin|arccos|arctan|log|ln|lim|max|min|sup|inf|vert|Vert|langle|rangle|lceil|rceil|lfloor|rfloor|dots|cdots|ldots|ddots|vdots|over|under|bar|hat|tilde|vec|dot|ddot|acute|grave|check|breve|mathstrut|phantom|vphantom|hphantom|smash|rule|color|hspace|vspace|quad|qquad|label|ref|cite|nonumber|intertext|tag|mathcal)/g;
   
   if (latexPattern.test(processed)) {
-    // Attempt to wrap inline LaTeX commands
-    return processed.replace(/(\\[a-zA-Z]+(?:\{[^{}]*\}|\[[^\[\]]*\])*)/g, '$$$1$$');
+    // Attempt to wrap inline LaTeX commands that are still outside existing math delimiters.
+    return processed
+      .split(/(\$\$[\s\S]*?\$\$|\$[^$]*\$)/g)
+      .map(segment => (
+        segment.startsWith('$')
+          ? segment
+          : segment.replace(/(\\[a-zA-Z]+(?:\{[^{}]*\}|\[[^\[\]]*\])*)/g, '$$$1$$')
+      ))
+      .join('');
   }
   return processed;
 };
