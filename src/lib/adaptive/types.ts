@@ -269,8 +269,11 @@ export interface StudentSessionProgressRecord {
   status: 'in_progress' | 'needs_support' | 'completed';
   diagnosticAttempt: AssessmentAttempt;
   quickCheckAttempts: AssessmentAttempt[];
+  exitTicketAttempt?: AssessmentAttempt;
   objectiveStates: ObjectiveMasteryState[];
   remediationAttempts: number;
+  completedUnitIds?: string[];
+  timings?: Record<string, unknown>;
   startedAt: string;
   completedAt?: string;
   updatedAt: string;
