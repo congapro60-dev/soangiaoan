@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { User } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, setDoc, where } from 'firebase/firestore';
 import { motion } from 'motion/react';
 import { QRCodeSVG } from 'qrcode.react';
 import {
@@ -30,7 +30,7 @@ import {
   decidePacingAction,
   gradeAssessment,
 } from '../../lib/adaptive/diagnosticEngine';
-import { AdaptiveLesson, AdaptiveQuestion, AssessmentAttempt, LearningRoute, PacingAction, PacingStatus, PracticeTask, StudentAdaptiveProgress } from '../../lib/adaptive/types';
+import { AdaptiveLesson, AdaptiveQuestion, AssessmentAttempt, LearningRoute, PacingAction, PacingStatus, PracticeTask, StudentAdaptiveProgress, StudentLearningProfile, StudentSessionProgressRecord, TeacherFlag } from '../../lib/adaptive/types';
 import { cn } from '../../lib/utils';
 
 const routeLabel: Record<LearningRoute, string> = {
@@ -122,7 +122,119 @@ const getAdaptiveLessonDocId = (userId: string) => userId;
 
 const PRODUCTION_STUDENT_PORTAL_ORIGIN = 'https://giaoandewey.vercel.app';
 
+interface RealStudentDashboardRow {
+  progressId: string;
+  studentId: string;
+  studentCode: string;
+  studentName: string;
+  studentClass?: string;
+  route: LearningRoute;
+  status: StudentSessionProgressRecord['status'];
+  diagnosticScore: number;
+  diagnosticMaxScore: number;
+  quickCheckScore: number;
+  quickCheckMaxScore: number;
+  exitTicketScore: number | null;
+  exitTicketMaxScore: number | null;
+  remediationAttempts: number;
+  totalSessions?: number;
+  averageMastery?: number;
+  completedAt?: string;
+  updatedAt: string;
+}
+
 const formatSavedTime = () => new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+
+const sumAttemptScore = (attempt?: AssessmentAttempt | null) => attempt?.answers.reduce((sum, answer) => sum + answer.score, 0) || 0;
+
+const sumAttemptMaxScore = (attempt?: AssessmentAttempt | null) => attempt?.objectiveScores.reduce((sum, objective) => sum + objective.maxScore, 0) || 0;
+
+const formatDashboardDate = (value?: string) => {
+  if (!value) return 'Chưa có';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Chưa rõ';
+  return date.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
+};
+
+const statusLabel: Record<StudentSessionProgressRecord['status'], string> = {
+  in_progress: 'Đang học',
+  needs_support: 'Cần hỗ trợ',
+  completed: 'Hoàn thành',
+};
+
+const getNeedSupport = (progress: StudentSessionProgressRecord) => (
+  progress.status === 'needs_support'
+  || progress.remediationAttempts > 0
+  || progress.objectiveStates.some(state => state.status === 'weak' || state.status === 'near_mastery')
+);
+
+const convertRecordToProgress = (record: StudentSessionProgressRecord): StudentAdaptiveProgress => {
+  const teacherFlags: TeacherFlag[] = getNeedSupport(record)
+    ? [{
+        id: `flag-${record.id}`,
+        severity: record.status === 'needs_support' ? 'urgent' : 'warning',
+        reason: record.status === 'needs_support'
+          ? 'Học sinh được đánh dấu cần giáo viên hỗ trợ.'
+          : 'Học sinh còn mục tiêu yếu/gần đạt hoặc đã phải học hỗ trợ.',
+        objectiveIds: record.objectiveStates
+          .filter(state => state.status === 'weak' || state.status === 'near_mastery')
+          .map(state => state.objectiveId),
+        createdAt: record.updatedAt,
+      }]
+    : [];
+
+  return {
+    id: record.id,
+    sessionId: record.id,
+    lessonId: record.lessonId,
+    studentId: record.studentId,
+    route: record.route,
+    objectiveStates: record.objectiveStates,
+    assessmentAttempts: [
+      record.diagnosticAttempt,
+      ...record.quickCheckAttempts,
+      ...(record.exitTicketAttempt ? [record.exitTicketAttempt] : []),
+    ],
+    remediationEvents: [],
+    teacherFlags,
+    startedAt: record.startedAt,
+    completedAt: record.completedAt,
+  };
+};
+
+const buildRealStudentDashboardRows = (
+  records: StudentSessionProgressRecord[],
+  profiles: StudentLearningProfile[]
+): RealStudentDashboardRow[] => {
+  const profileMap = new Map(profiles.map(profile => [profile.studentId, profile]));
+
+  return records.map(record => {
+    const profile = profileMap.get(record.studentId);
+    const quickCheckScore = record.quickCheckAttempts.reduce((sum, attempt) => sum + sumAttemptScore(attempt), 0);
+    const quickCheckMaxScore = record.quickCheckAttempts.reduce((sum, attempt) => sum + sumAttemptMaxScore(attempt), 0);
+
+    return {
+      progressId: record.id,
+      studentId: record.studentId,
+      studentCode: record.studentCode,
+      studentName: record.studentName,
+      studentClass: record.studentClass,
+      route: record.route,
+      status: record.status,
+      diagnosticScore: sumAttemptScore(record.diagnosticAttempt),
+      diagnosticMaxScore: sumAttemptMaxScore(record.diagnosticAttempt),
+      quickCheckScore,
+      quickCheckMaxScore,
+      exitTicketScore: record.exitTicketAttempt ? sumAttemptScore(record.exitTicketAttempt) : null,
+      exitTicketMaxScore: record.exitTicketAttempt ? sumAttemptMaxScore(record.exitTicketAttempt) : null,
+      remediationAttempts: record.remediationAttempts,
+      totalSessions: profile?.totalSessions,
+      averageMastery: profile?.averageMastery,
+      completedAt: record.completedAt,
+      updatedAt: record.updatedAt,
+    };
+  });
+};
 
 const createDemoProgresses = (): StudentAdaptiveProgress[] => {
   return demoStudents.map(student => {
@@ -146,6 +258,10 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
   const [elapsedMinutes, setElapsedMinutes] = useState(18);
   const [showTeacherPreview, setShowTeacherPreview] = useState(false);
   const [portalCopyState, setPortalCopyState] = useState<'idle' | 'copied' | 'failed'>('idle');
+  const [realProgressRecords, setRealProgressRecords] = useState<StudentSessionProgressRecord[]>([]);
+  const [realProfiles, setRealProfiles] = useState<StudentLearningProfile[]>([]);
+  const [isDashboardLoading, setIsDashboardLoading] = useState(false);
+  const [dashboardError, setDashboardError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -192,12 +308,64 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
 
   const studentPortalUrl = user ? `${PRODUCTION_STUDENT_PORTAL_ORIGIN}/adaptive/student/${user.uid}` : '';
 
+  const loadRealDashboardData = useCallback(async () => {
+    if (!user) {
+      setRealProgressRecords([]);
+      setRealProfiles([]);
+      setDashboardError(null);
+      setIsDashboardLoading(false);
+      return;
+    }
+
+    setIsDashboardLoading(true);
+    setDashboardError(null);
+
+    try {
+      const progressQuery = query(
+        collection(db, 'adaptiveSessionProgress'),
+        where('teacherId', '==', user.uid)
+      );
+      const profileQuery = query(
+        collection(db, 'studentLearningProfiles'),
+        where('teacherId', '==', user.uid)
+      );
+
+      const [progressSnapshot, profileSnapshot] = await Promise.all([
+        getDocs(progressQuery),
+        getDocs(profileQuery),
+      ]);
+
+      const progressRecords = progressSnapshot.docs
+        .map(snapshot => snapshot.data() as StudentSessionProgressRecord)
+        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+      const profiles = profileSnapshot.docs.map(snapshot => snapshot.data() as StudentLearningProfile);
+
+      setRealProgressRecords(progressRecords);
+      setRealProfiles(profiles);
+    } catch (error) {
+      console.error('Lỗi tải dashboard học sinh thật', error);
+      setDashboardError('Không tải được dữ liệu học sinh thật. Hệ thống tạm hiển thị dữ liệu mô phỏng.');
+      setRealProgressRecords([]);
+      setRealProfiles([]);
+    } finally {
+      setIsDashboardLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    loadRealDashboardData();
+  }, [loadRealDashboardData]);
+
   useEffect(() => {
     setPortalCopyState('idle');
   }, [studentPortalUrl]);
 
   const demoProgresses = useMemo(createDemoProgresses, []);
-  const teacherDashboard = useMemo(() => buildTeacherDashboardData(lesson, demoProgresses), [lesson, demoProgresses]);
+  const realProgresses = useMemo(() => realProgressRecords.map(convertRecordToProgress), [realProgressRecords]);
+  const dashboardProgresses = realProgresses.length > 0 ? realProgresses : demoProgresses;
+  const dashboardRows = useMemo(() => buildRealStudentDashboardRows(realProgressRecords, realProfiles), [realProgressRecords, realProfiles]);
+  const isUsingRealDashboard = realProgressRecords.length > 0;
+  const teacherDashboard = useMemo(() => buildTeacherDashboardData(lesson, dashboardProgresses), [lesson, dashboardProgresses]);
   const recommendedRoute = diagnosticAttempt?.recommendedRoute || 'standard';
   const firstUnit = lesson.knowledgeUnits[0];
   const nextAction = quickCheckAttempt
@@ -330,6 +498,7 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
       setLesson(lessonToSave);
       setDraftSavedAt(formatSavedTime());
       setIsTeacherEditing(false);
+      loadRealDashboardData();
     } catch (error) {
       console.error('Lỗi lưu bài học phân hoá', error);
       setCloudError('Không lưu được bài học lên Firestore. Vui lòng kiểm tra kết nối hoặc quyền Firestore.');
@@ -971,12 +1140,41 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
       </section>
 
       <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-        <div className="mb-5 flex items-center gap-3">
-          <div className="rounded-2xl bg-slate-100 p-3 text-slate-700"><BarChart3 className="h-5 w-5" /></div>
-          <div>
-            <h3 className="text-lg font-black text-slate-800">4. Dashboard giáo viên từ dữ liệu mô phỏng</h3>
-            <p className="text-sm text-slate-500">Dữ liệu này minh hoạ cách giáo viên nhìn thấy phân tuyến và điểm yếu của lớp.</p>
+        <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl bg-slate-100 p-3 text-slate-700"><BarChart3 className="h-5 w-5" /></div>
+            <div>
+              <h3 className="text-lg font-black text-slate-800">4. Dashboard giáo viên từ dữ liệu thật</h3>
+              <p className="text-sm text-slate-500">
+                {isUsingRealDashboard
+                  ? 'Đang đọc kết quả học sinh đã nộp từ Firestore.'
+                  : 'Chưa có học sinh thật nộp bài; hệ thống tạm hiển thị dữ liệu mô phỏng để giáo viên xem cấu trúc dashboard.'}
+              </p>
+            </div>
           </div>
+          <button
+            type="button"
+            onClick={loadRealDashboardData}
+            disabled={!user || isDashboardLoading}
+            className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isDashboardLoading ? 'Đang tải dữ liệu...' : 'Làm mới dữ liệu thật'}
+          </button>
+        </div>
+
+        {dashboardError && (
+          <div className="mb-5 rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-700">
+            {dashboardError}
+          </div>
+        )}
+
+        <div className={cn(
+          'mb-5 rounded-2xl border px-4 py-3 text-sm font-semibold leading-6',
+          isUsingRealDashboard ? 'border-green-100 bg-green-50 text-green-700' : 'border-slate-100 bg-slate-50 text-slate-500'
+        )}>
+          {isUsingRealDashboard
+            ? `Dashboard đang dùng ${realProgressRecords.length} bản ghi học tập thật và ${realProfiles.length} hồ sơ dài hạn từ Firestore.`
+            : 'Khi học sinh nộp exit ticket qua cổng QR/link, bảng này sẽ tự chuyển sang dữ liệu thật của lớp.'}
         </div>
 
         <div className="grid gap-4 md:grid-cols-4">
@@ -995,6 +1193,46 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
             </div>
           ))}
         </div>
+
+        {isUsingRealDashboard && (
+          <div className="mt-5 overflow-x-auto rounded-2xl border border-slate-100">
+            <table className="w-full min-w-[980px] text-left text-sm">
+              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                <tr>
+                  <th className="px-4 py-3">Học sinh</th>
+                  <th className="px-4 py-3">Tuyến</th>
+                  <th className="px-4 py-3">Trạng thái</th>
+                  <th className="px-4 py-3">Diagnostic</th>
+                  <th className="px-4 py-3">Quick check</th>
+                  <th className="px-4 py-3">Exit ticket</th>
+                  <th className="px-4 py-3">Hồ sơ</th>
+                  <th className="px-4 py-3">Cập nhật</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {dashboardRows.map(row => (
+                  <tr key={row.progressId}>
+                    <td className="px-4 py-3">
+                      <p className="font-black text-slate-800">{row.studentName}</p>
+                      <p className="text-xs font-semibold text-slate-500">{row.studentCode}{row.studentClass ? ` · ${row.studentClass}` : ''}</p>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={cn('inline-flex rounded-full border px-3 py-1 text-xs font-black', routeClass[row.route])}>{routeLabel[row.route]}</span>
+                    </td>
+                    <td className="px-4 py-3 font-bold text-slate-700">{statusLabel[row.status]}</td>
+                    <td className="px-4 py-3 font-bold text-blue-700">{row.diagnosticScore}/{row.diagnosticMaxScore}</td>
+                    <td className="px-4 py-3 font-bold text-indigo-700">{row.quickCheckMaxScore > 0 ? `${row.quickCheckScore}/${row.quickCheckMaxScore}` : 'Chưa có'}</td>
+                    <td className="px-4 py-3 font-bold text-green-700">{row.exitTicketMaxScore ? `${row.exitTicketScore}/${row.exitTicketMaxScore}` : 'Chưa nộp'}</td>
+                    <td className="px-4 py-3 text-xs font-semibold text-slate-500">
+                      {row.totalSessions ? `${row.totalSessions} tiết · ${Math.round((row.averageMastery || 0) * 100)}% làm chủ` : 'Chưa có hồ sơ'}
+                    </td>
+                    <td className="px-4 py-3 text-xs font-semibold text-slate-500">{formatDashboardDate(row.completedAt || row.updatedAt)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         <div className="mt-5 overflow-hidden rounded-2xl border border-slate-100">
           <table className="w-full text-left text-sm">

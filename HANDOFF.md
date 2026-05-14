@@ -3,7 +3,7 @@
 **Cập nhật**: 2026-05-14  
 **Repo chính**: `soangiaoan`  
 **Branch hiện tại**: `main`
-**Commit code ứng dụng mới nhất trước khi cập nhật file này**: `d56f3fa Fix Vercel API route configuration`
+**Commit code ứng dụng mới nhất trước khi cập nhật file này**: `c0f4bb9 Add adaptive student portal QR sharing`
 **Mục đích file này**: để một phiên Claude Code / Claude Cowork / Google Antigravity hoặc kỹ sư khác đọc nhanh toàn bộ bối cảnh, các thay đổi đã làm, vấn đề còn tồn tại, và các bước cần kiểm tra/sửa tiếp mà không phải hỏi lại từ đầu.
 
 ---
@@ -335,10 +335,10 @@ File chính:
 - Lưu bài học lên Firestore.
 - Hiển thị link cổng học sinh.
 - Hiển thị QR code production cho cổng học sinh, nút copy link, nút mở thử, trạng thái cổng và hướng dẫn chiếu QR.
+- Dashboard giáo viên đã được nối dữ liệu thật từ Firestore; khi chưa có học sinh nộp bài thì fallback sang dữ liệu mô phỏng để giáo viên vẫn xem được cấu trúc dashboard.
 
 Cần tiếp tục sau này:
 
-- Làm dashboard giáo viên xem tiến độ thật từ Firestore.
 - Tách màn hình tạo bài, xem mô phỏng, và quản lý lớp thành các vùng rõ hơn nữa nếu mở rộng.
 
 ---
@@ -735,22 +735,40 @@ npm run build
 
 Kết quả: cả hai lệnh pass. Build chỉ còn warning chunk lớn/dynamic import cũ, không chặn production.
 
-### Ưu tiên 3 — Dashboard giáo viên xem dữ liệu thật
+### Ưu tiên 3 — Đã triển khai: Dashboard giáo viên xem dữ liệu thật
 
-Cần đọc từ Firestore:
+Đã triển khai trong tab giáo viên "Học phân hoá", file chính:
 
-- `adaptiveSessionProgress`
-- `studentLearningProfiles`
+- `src/components/tabs/AdaptiveLearningTab.tsx`
 
-Mục tiêu:
+Dashboard hiện đọc từ Firestore client-side:
 
-- Xem học sinh nào đã làm.
-- Điểm diagnostic.
-- Tuyến học được phân.
-- Quick check từng unit.
-- Exit ticket.
-- Học sinh cần hỗ trợ.
-- Thời gian từng phần.
+- `adaptiveSessionProgress` theo `teacherId == user.uid`
+- `studentLearningProfiles` theo `teacherId == user.uid`
+
+Đã làm:
+
+- Tải kết quả học sinh thật đã nộp qua cổng QR/link.
+- Chuyển `StudentSessionProgressRecord` thành dữ liệu tổng hợp để tái sử dụng `buildTeacherDashboardData()`.
+- Hiển thị tổng số học sinh, số học sinh đã làm diagnostic, phân bố tuyến học, số học sinh cần giáo viên hỗ trợ.
+- Thêm bảng học sinh thật gồm: họ tên/mã/lớp, tuyến, trạng thái, điểm diagnostic, quick check, exit ticket, hồ sơ dài hạn, thời điểm cập nhật.
+- Có nút `Làm mới dữ liệu thật` để giáo viên refresh sau khi học sinh nộp bài.
+- Nếu chưa có học sinh thật nộp bài, dashboard tự fallback sang dữ liệu mô phỏng để giáo viên vẫn thấy cấu trúc báo cáo.
+- Nếu query Firestore lỗi, giao diện báo vàng và tạm hiển thị dữ liệu mô phỏng thay vì làm vỡ màn hình.
+
+Kiểm tra local sau triển khai:
+
+```bash
+npm run lint
+npm run build
+```
+
+Kết quả: cả hai lệnh pass. Build chỉ còn warning chunk lớn/dynamic import cũ, không chặn production.
+
+Lưu ý bảo mật/rules:
+
+- `adaptiveSessionProgress` hiện chỉ cho giáo viên đọc record có `teacherId` khớp `request.auth.uid`.
+- `studentLearningProfiles` rules đang rộng hơn, cho user đăng nhập đọc; code dashboard vẫn query theo `teacherId`. Nếu siết bảo mật sâu hơn ở sprint sau, nên rà lại rule collection này.
 
 ### Ưu tiên 4 — AI feedback/giảng lại có kiểm soát
 
@@ -801,10 +819,11 @@ Khi bắt đầu session mới:
 4. Dùng domain đúng `giaoandewey.vercel.app` khi test production.
 5. Có thể tin tưởng `POST /api/adaptive-progress` production đã PASS end-to-end ngày 2026-05-14.
 6. Có thể tin tưởng Link/QR cổng học sinh đã triển khai và local lint/build đã pass.
-7. Không cần sửa `vercel.json`, `api/adaptive-progress.ts`, hay Vercel env vars cho mục đích lưu progress trừ khi có lỗi mới.
-8. Nếu POST lỗi `500` trong tương lai, xem Vercel Function Logs; khả năng cao là env `FIREBASE_PRIVATE_KEY` bị mất `\n` sau khi xoay key, không phải bug code.
-9. Việc tiếp theo nên chuyển sang Ưu tiên 3: dashboard giáo viên đọc dữ liệu thật từ Firestore.
-10. Sau mỗi kết quả từ Cowork/Antigravity hoặc thao tác thủ công, cập nhật lại file này rồi commit/push để file là nguồn sự thật mới nhất.
+7. Có thể tin tưởng dashboard giáo viên đã đọc dữ liệu thật từ `adaptiveSessionProgress` và `studentLearningProfiles`; local lint/build đã pass sau thay đổi này.
+8. Không cần sửa `vercel.json`, `api/adaptive-progress.ts`, hay Vercel env vars cho mục đích lưu progress trừ khi có lỗi mới.
+9. Nếu POST lỗi `500` trong tương lai, xem Vercel Function Logs; khả năng cao là env `FIREBASE_PRIVATE_KEY` bị mất `\n` sau khi xoay key, không phải bug code.
+10. Việc tiếp theo nên chuyển sang test UI production sau deploy hoặc Ưu tiên 4: AI feedback/giảng lại có kiểm soát.
+11. Sau mỗi kết quả từ Cowork/Antigravity hoặc thao tác thủ công, cập nhật lại file này rồi commit/push để file là nguồn sự thật mới nhất.
 
 ---
 
@@ -981,11 +1000,11 @@ Bối cảnh quan trọng:
 - GET https://giaoandewey.vercel.app/api/gemini-relay đã trả 405, nghĩa là Vercel đang phục vụ api/*.ts.
 
 Mục tiêu hiện tại:
-1. Đọc HANDOFF.md và tin trạng thái mới nhất: Ưu tiên 1 đã PASS production end-to-end, Ưu tiên 2 Link/QR đã code xong và lint/build pass local.
+1. Đọc HANDOFF.md và tin trạng thái mới nhất: Ưu tiên 1 đã PASS production end-to-end, Ưu tiên 2 Link/QR đã code xong, Ưu tiên 3 dashboard giáo viên đọc dữ liệu thật đã code xong; lint/build pass local.
 2. Không sửa `vercel.json`, `api/adaptive-progress.ts`, hoặc Vercel env vars cho đường ống lưu progress nếu không có lỗi mới.
-3. Kiểm tra hoặc triển khai Ưu tiên 3: dashboard giáo viên đọc dữ liệu thật từ `adaptiveSessionProgress` và `studentLearningProfiles`.
-4. Nếu cần test UI production sau deploy, mở domain đúng `https://giaoandewey.vercel.app`, vào tab "Học phân hoá", lưu bài, kiểm tra QR/link ở Bước 2.
-5. Sau khi code xong, chạy lint/build nếu môi trường cho phép, rồi trả lại danh sách file đã sửa và cách test.
+3. Kiểm tra UI production sau deploy: mở domain đúng `https://giaoandewey.vercel.app`, đăng nhập giáo viên, vào tab "Học phân hoá", lưu/bật cổng nếu cần, cho một học sinh nộp bài qua QR/link, bấm `Làm mới dữ liệu thật` và xác nhận dashboard chuyển sang dữ liệu Firestore.
+4. Nếu triển khai tiếp, ưu tiên Ưu tiên 4: AI feedback/giảng lại có kiểm soát dựa trên objective/misconception/route, không đưa đáp án quá sớm.
+5. Sau khi kiểm tra/code xong, chạy lint/build nếu môi trường cho phép, rồi trả lại danh sách file đã sửa và cách test.
 
 Không được:
 - Không kết luận Vercel route hỏng chỉ vì domain giaooandewey trả 404.
