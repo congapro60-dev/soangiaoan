@@ -317,7 +317,7 @@ Nguyên tắc hiện tại:
 - Nếu phải lưu tạm trên thiết bị: báo vàng/cảnh báo.
 - Nếu mất hẳn dữ liệu: mới báo đỏ.
 
-Lưu ý: trong production hiện vẫn có khả năng rơi vào lưu tạm vì Vercel production đang chưa phục vụ API routes.
+Lưu ý cập nhật sau khi kiểm tra lại domain: production đã phục vụ API routes trên domain đúng `giaoandewey.vercel.app`. Nếu vẫn rơi vào lưu tạm, bước cần kiểm tra tiếp là POST thật, Firebase Admin env vars và Vercel Function Logs, không còn kết luận chung là route API bị mất.
 
 ---
 
@@ -411,64 +411,59 @@ File chính:
 
 ---
 
-## 4. Vấn đề production còn tồn tại: Vercel chưa phục vụ API routes
+## 4. Cập nhật sau kiểm tra Cowork: domain production đúng và API routes
 
-### 4.1 Triệu chứng
+### 4.1 Kết luận mới nhất
 
-Đã test production domain:
+Cowork phát hiện đúng một lỗi quan trọng trong ghi chú/debug trước đó: domain đã được test sai.
 
-```txt
-https://giaooandewey.vercel.app/api/adaptive-progress
-https://giaooandewey.vercel.app/api/gemini-relay
-```
+- Domain đúng của app: `giaoandewey.vercel.app`
+- Domain sai từng bị ghi/test nhầm: `giaooandewey.vercel.app` dư một chữ `o`
 
-Kết quả hiện tại:
+Kết quả kiểm tra lại:
 
 ```txt
-STATUS=404
-```
-
-Điều đúng cần đạt:
-
-```txt
-GET /api/adaptive-progress -> 405 Method not allowed
+https://giaoandewey.vercel.app/api/adaptive-progress STATUS=405 CT=application/json; charset=utf-8
+https://giaoandewey.vercel.app/api/gemini-relay STATUS=405 CT=application/json; charset=utf-8
+https://giaooandewey.vercel.app/api/adaptive-progress STATUS=404 CT=text/plain; charset=utf-8
+https://giaooandewey.vercel.app/api/gemini-relay STATUS=404 CT=text/plain; charset=utf-8
 ```
 
 Ý nghĩa:
 
-- `404`: Vercel chưa nhận/serve API route.
-- `405`: API route tồn tại, nhưng từ chối vì gọi bằng GET thay vì POST. Đây là trạng thái mong muốn khi test bằng browser/GET.
+- `405` trên domain đúng là tín hiệu tốt: API route tồn tại và đang từ chối `GET` vì handler chỉ nhận `POST`.
+- `404` trước đó không chứng minh Vercel mất API route; nguyên nhân chính là đã test nhầm sang domain sai.
+- Việc cần kiểm tra tiếp không phải “Vercel có nhận API route không”, mà là POST thật từ cổng học sinh có lưu được vào Firestore qua Firebase Admin SDK hay không.
 
-### 4.2 Vì sao đây không phải lỗi riêng của `api/adaptive-progress.ts`
+### 4.2 Về việc Cowork không thấy `HANDOFF.md`
 
-API cũ `api/gemini-relay.ts` cũng trả `404`. Vì vậy khả năng cao không phải lỗi code của API mới, mà là một trong các lỗi sau:
+Đã kiểm tra lại Git và raw GitHub: `HANDOFF.md` có trong root repo/branch `main`.
 
-1. Vercel project đang trỏ sai repository.
-2. Vercel project đang deploy sai branch.
-3. Vercel project đang deploy sai Root Directory.
-4. Production deployment chưa lấy commit mới nhất.
-5. Domain `giaooandewey.vercel.app` đang gắn với một Vercel project khác.
-6. Build/deploy trên Vercel bỏ qua thư mục `api` vì root project không phải `soangiaoan`.
-7. Dashboard Vercel đang override build settings khác với `vercel.json`.
+Các khả năng khiến Cowork không thấy:
+
+1. Xem nhầm branch hoặc repo.
+2. GitHub UI chưa refresh.
+3. Dùng URL/trạng thái trước khi commit `bbef6d0 Update adaptive learning handoff` xuất hiện.
+4. Tìm trong thư mục con thay vì root repo.
 
 ---
 
 ## 5. Việc người dùng cần làm thủ công trên Vercel
 
-Do môi trường hiện tại không có token/đăng nhập Vercel, không thể tự chỉnh dashboard Vercel trực tiếp. Cần kiểm tra thủ công như sau.
+Do môi trường hiện tại không có token/đăng nhập Vercel, không thể tự chỉnh dashboard Vercel trực tiếp. Tuy nhiên sau khi kiểm tra lại domain, API routes đã tồn tại trên production đúng. Các bước dưới đây chỉ cần dùng nếu POST thật còn lỗi hoặc cần kiểm tra env/deployment.
 
 ### 5.1 Kiểm tra project/domain đúng
 
 Vào Vercel Dashboard → mở project đang phục vụ domain:
 
 ```txt
-giaooandewey.vercel.app
+giaoandewey.vercel.app
 ```
 
 Kiểm tra:
 
 - Domain này có đúng là project web soạn giáo án không.
-- Nếu domain đang nằm ở project cũ/khác, cần chuyển domain sang project đúng hoặc deploy project đúng.
+- Không dùng domain `giaooandewey.vercel.app` khi test vì đây là domain sai/stale trong các ghi chú cũ.
 
 ### 5.2 Settings → Git
 
@@ -564,29 +559,23 @@ Dấu hiệu đúng:
 
 ---
 
-## 6. Cách kiểm tra sau khi sửa Vercel
+## 6. Cách kiểm tra production hiện tại
 
 ### 6.1 Test bằng browser
 
 Mở:
 
 ```txt
-https://giaooandewey.vercel.app/api/adaptive-progress
+https://giaoandewey.vercel.app/api/adaptive-progress
 ```
 
-Kết quả mong muốn:
+Kết quả mong muốn và đã xác nhận:
 
 ```txt
 405 Method not allowed
 ```
 
-Nếu vẫn là:
-
-```txt
-404
-```
-
-thì Vercel vẫn chưa phục vụ API route.
+Đây là trạng thái đúng khi gọi bằng browser/GET, vì API chỉ nhận POST.
 
 ### 6.2 Test bằng PowerShell
 
@@ -594,8 +583,8 @@ Chạy:
 
 ```powershell
 $urls = @(
-  'https://giaooandewey.vercel.app/api/adaptive-progress',
-  'https://giaooandewey.vercel.app/api/gemini-relay'
+  'https://giaoandewey.vercel.app/api/adaptive-progress',
+  'https://giaoandewey.vercel.app/api/gemini-relay'
 )
 foreach ($u in $urls) {
   try {
@@ -611,17 +600,18 @@ foreach ($u in $urls) {
 }
 ```
 
-Kỳ vọng:
+Kỳ vọng đã xác nhận:
 
 ```txt
-https://giaooandewey.vercel.app/api/adaptive-progress STATUS=405
+https://giaoandewey.vercel.app/api/adaptive-progress STATUS=405
+https://giaoandewey.vercel.app/api/gemini-relay STATUS=405
 ```
 
-Với `api/gemini-relay.ts`, tuỳ handler có thể trả `405`, `400`, hoặc lỗi thiếu payload/env, nhưng không được là `404`.
+Nếu domain đúng trả `404`, khi đó mới quay lại kiểm tra Vercel root/deployment/domain. Không dùng domain `giaooandewey.vercel.app` để kết luận tình trạng production.
 
 ### 6.3 Test luồng học sinh thật
 
-Sau khi API không còn `404`:
+Vì API GET đã trả `405` trên domain đúng, bước kiểm tra chính hiện nay là POST/save thật:
 
 1. Vào web giáo viên.
 2. Mở tab học phân hoá.
@@ -638,9 +628,9 @@ Sau khi API không còn `404`:
 
 ---
 
-## 7. Nếu vẫn lỗi sau khi Vercel nhận API routes
+## 7. Nếu POST/save vẫn lỗi sau khi API route đã tồn tại
 
-Sau khi `/api/adaptive-progress` không còn `404`, vẫn có thể gặp các lỗi khác. Cách đọc lỗi:
+Vì `/api/adaptive-progress` đã tồn tại trên domain đúng, các lỗi còn lại cần đọc theo response POST thật:
 
 ### 7.1 GET trả 405
 
@@ -694,34 +684,34 @@ Cần xem Vercel Function Logs.
 | `src/lib/adaptive/sampleAdaptiveLesson.ts` | Bài mẫu Toán 11 Cấp số cộng với duration/pacing/5-step/unit/exit ticket |
 | `src/components/tabs/AdaptiveLearningTab.tsx` | Giao diện giáo viên cho học phân hoá, lưu/bật cổng học sinh |
 | `firestore.rules` | Rules Firestore client-side; không thay thế được API Admin nhưng vẫn cần đúng cho đọc/ghi client |
-| `api/gemini-relay.ts` | API cũ dùng làm route kiểm chứng: nếu file này cũng 404 thì Vercel chưa nhận API routes |
+| `api/gemini-relay.ts` | API cũ dùng làm route kiểm chứng: trên domain đúng route này đã trả 405, xác nhận Vercel đang phục vụ API routes |
 | `api/export-lesson.ts` | API export DOCX/PDF; vừa sửa type `headless` |
 
 ---
 
 ## 9. Việc cần làm tiếp ngay
 
-### Ưu tiên 1 — Fix production API routes trên Vercel
+### Ưu tiên 1 — Test POST/save thật trên production đúng
 
 Mục tiêu:
 
 ```txt
-GET https://giaooandewey.vercel.app/api/adaptive-progress -> 405
+GET https://giaoandewey.vercel.app/api/adaptive-progress -> 405
+POST từ cổng học sinh -> ghi được adaptiveSessionProgress và studentLearningProfiles
 ```
 
-Không làm tiếp QR/AI feedback trước khi vấn đề này rõ ràng, vì nếu API production chưa chạy thì hồ sơ dài hạn vẫn có thể rơi vào fallback.
+API route production đã được xác nhận tồn tại trên domain đúng. Không cần tiếp tục coi đây là lỗi route `404`, nhưng chưa được bỏ qua kiểm tra lưu thật vì POST có thể còn lỗi do payload, quyền bài học, hoặc Firebase Admin env vars.
 
 Checklist:
 
-- [ ] Kiểm tra domain `giaooandewey.vercel.app` thuộc đúng Vercel project.
-- [ ] Kiểm tra Vercel project deploy đúng repo/branch `main`.
-- [ ] Kiểm tra latest deployment là commit `d56f3fa` hoặc mới hơn.
-- [ ] Nếu monorepo, đặt Root Directory là `soangiaoan`.
-- [ ] Kiểm tra build settings: Vite / `npm install` / `npm run build` / `dist`.
-- [ ] Kiểm tra Production env vars Firebase Admin.
-- [ ] Redeploy sau khi chỉnh settings/env.
-- [ ] Test `/api/adaptive-progress` không còn `404`.
-- [ ] Test học sinh submit exit ticket và kiểm tra Firestore.
+- [x] Xác nhận domain đúng là `giaoandewey.vercel.app`.
+- [x] Xác nhận `GET /api/adaptive-progress` trên domain đúng trả `405`.
+- [x] Xác nhận `GET /api/gemini-relay` trên domain đúng trả `405`.
+- [ ] Test học sinh submit exit ticket trên `https://giaoandewey.vercel.app`.
+- [ ] Kiểm tra Firestore có document mới trong `adaptiveSessionProgress`.
+- [ ] Kiểm tra Firestore có/merge document trong `studentLearningProfiles`.
+- [ ] Nếu POST lỗi `500`, kiểm tra Production env vars Firebase Admin và Vercel Function Logs.
+- [ ] Nếu POST lỗi `403`/`404` JSON, kiểm tra `adaptiveLessons/{teacherId}`, `portalEnabled`, và `lessonId`.
 
 ### Ưu tiên 2 — Link/QR cho học sinh
 
@@ -771,11 +761,11 @@ Chưa triển khai. Khi làm cần cẩn thận:
 
 ### 10.1 Vercel Root Directory
 
-Đây là nghi vấn lớn nhất hiện tại. Nếu Vercel build từ root `edu-lesson-automation` thay vì `soangiaoan`, các file `soangiaoan/api/*.ts` sẽ không trở thành serverless functions.
+Rủi ro này đã giảm vì domain đúng đang serve được `api/*.ts`. Tuy nhiên vẫn nên kiểm tra Root Directory nếu về sau deployment mới bất ngờ mất API route.
 
 ### 10.2 Domain trỏ nhầm project
 
-Nếu `giaooandewey.vercel.app` thuộc một project cũ, dù repo đã push đúng cũng không ảnh hưởng production hiện tại.
+Không dùng domain `giaooandewey.vercel.app` để test. Domain đúng đã xác nhận là `giaoandewey.vercel.app`.
 
 ### 10.3 Env vars Firebase Admin
 
@@ -802,24 +792,18 @@ Khi bắt đầu session mới:
 1. Đọc file này.
 2. Kiểm tra Git status.
 3. Không sửa lại các phần đã hoàn thành nếu không có lỗi cụ thể.
-4. Việc đầu tiên cần xác minh là Vercel production API route.
-5. Nếu có quyền Vercel, kiểm tra Dashboard theo mục 5.
-6. Nếu không có quyền Vercel, yêu cầu user gửi ảnh/copy các settings:
-   - Project domain.
-   - Git repo/branch.
-   - Root Directory.
-   - Build settings.
-   - Latest deployment commit.
-   - Build logs phần đầu.
-   - Environment Variables names, không cần gửi secret value.
-7. Sau khi chỉnh Vercel, test lại endpoint.
-8. Chỉ khi `/api/adaptive-progress` không còn `404`, mới tiếp tục làm QR hoặc AI feedback.
+4. Dùng domain đúng `giaoandewey.vercel.app` khi test production.
+5. Xác nhận nhanh `GET /api/adaptive-progress` trả `405`; nếu đúng thì chuyển sang test POST/save thật.
+6. Nếu POST lỗi, xem response body và Vercel Function Logs trước khi sửa code.
+7. Nếu POST lỗi `500`, ưu tiên kiểm tra Firebase Admin env vars.
+8. Nếu POST lỗi `403`/`404` JSON, ưu tiên kiểm tra document `adaptiveLessons/{teacherId}`, `portalEnabled`, và `lessonId`.
+9. Chỉ tiếp tục QR/AI feedback sau khi xác nhận dữ liệu thật đã ghi vào Firestore hoặc đã hiểu rõ nguyên nhân fallback.
 
 ---
 
 ## 12. Tóm tắt ngắn cho người xử lý Vercel
 
-Vấn đề hiện tại không phải là thiếu file API. Repo đã có:
+Repo đã có API routes:
 
 ```txt
 api/adaptive-progress.ts
@@ -828,19 +812,25 @@ api/render-word.ts
 api/export-lesson.ts
 ```
 
-Nhưng production:
+Kết luận cập nhật sau khi kiểm tra Cowork:
+
+```txt
+https://giaoandewey.vercel.app/api/adaptive-progress -> 405
+https://giaoandewey.vercel.app/api/gemini-relay -> 405
+```
+
+Domain từng bị test nhầm:
 
 ```txt
 https://giaooandewey.vercel.app/api/adaptive-progress -> 404
 https://giaooandewey.vercel.app/api/gemini-relay -> 404
 ```
 
-Do `api/gemini-relay.ts` là API cũ cũng 404, khả năng cao là Vercel chưa deploy đúng root/project/domain. Cần chỉnh Vercel Dashboard để project build từ đúng thư mục `soangiaoan` và deploy commit `d56f3fa` hoặc mới hơn.
-
-Kết quả cần đạt:
+Vì vậy production API routes trên domain đúng đã hoạt động. Việc cần làm tiếp là test POST thật từ cổng học sinh và kiểm tra Firestore:
 
 ```txt
-GET /api/adaptive-progress -> 405 Method not allowed
+adaptiveSessionProgress
+studentLearningProfiles
 ```
 
-Sau đó mới test POST thật từ cổng học sinh và kiểm tra Firestore.
+Nếu POST lỗi, đọc response body và Vercel Function Logs để phân biệt lỗi env Firebase Admin, lỗi payload, hay lỗi bài học/cổng học sinh chưa bật.
