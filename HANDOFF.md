@@ -334,10 +334,10 @@ File chính:
 - Cho giáo viên chỉnh nội dung bài học phân hoá.
 - Lưu bài học lên Firestore.
 - Hiển thị link cổng học sinh.
+- Hiển thị QR code production cho cổng học sinh, nút copy link, nút mở thử, trạng thái cổng và hướng dẫn chiếu QR.
 
 Cần tiếp tục sau này:
 
-- Tạo QR code rõ ràng cho học sinh quét.
 - Làm dashboard giáo viên xem tiến độ thật từ Firestore.
 - Tách màn hình tạo bài, xem mô phỏng, và quản lý lớp thành các vùng rõ hơn nữa nếu mở rộng.
 
@@ -715,21 +715,25 @@ Checklist:
 - [x] Xác nhận `studentLearningProfiles` merge OK.
 - [ ] Dọn dữ liệu test `PROBE-AUTO-001` trong Firestore nếu không cần giữ làm bằng chứng.
 
-### Ưu tiên 2 — Link/QR cho học sinh
+### Ưu tiên 2 — Đã hoàn thành: Link/QR cho học sinh
 
-Sau khi API ổn:
+Đã triển khai trong tab giáo viên "Học phân hoá":
 
-- Tạo QR code cho link `/adaptive/student/:teacherId`.
-- Hiển thị rõ trong tab giáo viên.
-- Có nút copy link.
-- Có trạng thái bật/tắt cổng học sinh.
-- Có thể thêm hướng dẫn ngắn cho giáo viên chiếu lên màn hình.
+- QR code cho link `https://giaoandewey.vercel.app/adaptive/student/<teacherId>` bằng dependency `qrcode.react` đã có sẵn.
+- Link cổng học sinh dùng cố định domain production đúng `giaoandewey.vercel.app` để tránh nhầm domain stale `giaooandewey.vercel.app`.
+- Nút copy link có trạng thái `Đã copy` và fallback copy thủ công khi browser chặn Clipboard API.
+- Nút `Mở thử` để giáo viên kiểm tra nhanh cổng học sinh.
+- Badge trạng thái cổng: `Cổng đang bật` sau khi đã lưu bài, hoặc cảnh báo `Lưu bài trước khi gửi`.
+- Hướng dẫn ngắn 3 bước cho giáo viên: chiếu QR, học sinh nhập mã cố định, theo dõi kết quả lưu vào hồ sơ dài hạn.
 
-Dependency đã có trong `package.json`:
+Kiểm tra local sau triển khai:
 
-```txt
-qrcode.react
+```bash
+npm run lint
+npm run build
 ```
+
+Kết quả: cả hai lệnh pass. Build chỉ còn warning chunk lớn/dynamic import cũ, không chặn production.
 
 ### Ưu tiên 3 — Dashboard giáo viên xem dữ liệu thật
 
@@ -796,10 +800,11 @@ Khi bắt đầu session mới:
 3. Không sửa lại các phần đã hoàn thành nếu không có lỗi cụ thể.
 4. Dùng domain đúng `giaoandewey.vercel.app` khi test production.
 5. Có thể tin tưởng `POST /api/adaptive-progress` production đã PASS end-to-end ngày 2026-05-14.
-6. Không cần sửa `vercel.json`, `api/adaptive-progress.ts`, hay Vercel env vars cho mục đích lưu progress trừ khi có lỗi mới.
-7. Nếu POST lỗi `500` trong tương lai, xem Vercel Function Logs; khả năng cao là env `FIREBASE_PRIVATE_KEY` bị mất `\n` sau khi xoay key, không phải bug code.
-8. Việc tiếp theo nên chuyển sang Ưu tiên 2: QR code cho cổng học sinh.
-9. Sau mỗi kết quả từ Cowork/Antigravity hoặc thao tác thủ công, cập nhật lại file này rồi commit/push để file là nguồn sự thật mới nhất.
+6. Có thể tin tưởng Link/QR cổng học sinh đã triển khai và local lint/build đã pass.
+7. Không cần sửa `vercel.json`, `api/adaptive-progress.ts`, hay Vercel env vars cho mục đích lưu progress trừ khi có lỗi mới.
+8. Nếu POST lỗi `500` trong tương lai, xem Vercel Function Logs; khả năng cao là env `FIREBASE_PRIVATE_KEY` bị mất `\n` sau khi xoay key, không phải bug code.
+9. Việc tiếp theo nên chuyển sang Ưu tiên 3: dashboard giáo viên đọc dữ liệu thật từ Firestore.
+10. Sau mỗi kết quả từ Cowork/Antigravity hoặc thao tác thủ công, cập nhật lại file này rồi commit/push để file là nguồn sự thật mới nhất.
 
 ---
 
@@ -926,13 +931,11 @@ Không cần thay đổi ở sprint này. Để tham khảo cho phiên sau:
 
 ### 12.8 Việc tiếp theo có thể yên tâm bắt đầu
 
-Toàn bộ Ưu tiên 1 (mục 9) đã đóng. Theo thứ tự ưu tiên đã chốt:
+Toàn bộ Ưu tiên 1 (mục 9) đã đóng và Ưu tiên 2 đã được triển khai ở tab giáo viên. Theo thứ tự ưu tiên đã chốt:
 
-- **Ưu tiên 2** — QR code cho cổng học sinh
-  - Dependency `qrcode.react` đã có trong `package.json`.
-  - Cần component QR render `https://giaoandewey.vercel.app/adaptive/student/<teacherId>` ở bước 2 tab "Học phân hoá" của giáo viên.
 - **Ưu tiên 3** — Dashboard giáo viên đọc dữ liệu thật từ `adaptiveSessionProgress` và `studentLearningProfiles`
   - Dùng Firestore client-side với Firestore rules hiện có.
+  - Thay dashboard demo hiện tại bằng dữ liệu học sinh thật sau khi các em nộp exit ticket.
 - **Ưu tiên 4** — AI feedback có kiểm soát
   - Phụ thuộc dữ liệu hồ sơ học sinh đã ổn định, hiện đã đạt sau phiên test này.
 
@@ -978,12 +981,11 @@ Bối cảnh quan trọng:
 - GET https://giaoandewey.vercel.app/api/gemini-relay đã trả 405, nghĩa là Vercel đang phục vụ api/*.ts.
 
 Mục tiêu hiện tại:
-1. Đọc HANDOFF.md và tin trạng thái mới nhất: Ưu tiên 1 đã PASS production end-to-end.
+1. Đọc HANDOFF.md và tin trạng thái mới nhất: Ưu tiên 1 đã PASS production end-to-end, Ưu tiên 2 Link/QR đã code xong và lint/build pass local.
 2. Không sửa `vercel.json`, `api/adaptive-progress.ts`, hoặc Vercel env vars cho đường ống lưu progress nếu không có lỗi mới.
-3. Triển khai Ưu tiên 2: QR code cho cổng học sinh trong tab "Học phân hoá" của giáo viên.
-4. QR cần render link dạng `https://giaoandewey.vercel.app/adaptive/student/<teacherId>`.
-5. Ưu tiên thêm nút copy link, trạng thái bật/tắt cổng, và hướng dẫn ngắn cho giáo viên chiếu lên màn hình.
-6. Sau khi code xong, chạy lint/build nếu môi trường cho phép, rồi trả lại danh sách file đã sửa và cách test.
+3. Kiểm tra hoặc triển khai Ưu tiên 3: dashboard giáo viên đọc dữ liệu thật từ `adaptiveSessionProgress` và `studentLearningProfiles`.
+4. Nếu cần test UI production sau deploy, mở domain đúng `https://giaoandewey.vercel.app`, vào tab "Học phân hoá", lưu bài, kiểm tra QR/link ở Bước 2.
+5. Sau khi code xong, chạy lint/build nếu môi trường cho phép, rồi trả lại danh sách file đã sửa và cách test.
 
 Không được:
 - Không kết luận Vercel route hỏng chỉ vì domain giaooandewey trả 404.

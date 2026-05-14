@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { User } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { motion } from 'motion/react';
+import { QRCodeSVG } from 'qrcode.react';
 import {
   Activity,
   AlertTriangle,
@@ -10,9 +11,13 @@ import {
   BookOpenCheck,
   CheckCircle2,
   Clock3,
+  Copy,
+  ExternalLink,
   Lightbulb,
+  QrCode,
   Route,
   Send,
+  ShieldCheck,
   Target,
   Users,
 } from 'lucide-react';
@@ -115,6 +120,8 @@ interface AdaptiveLessonDocument {
 
 const getAdaptiveLessonDocId = (userId: string) => userId;
 
+const PRODUCTION_STUDENT_PORTAL_ORIGIN = 'https://giaoandewey.vercel.app';
+
 const formatSavedTime = () => new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 
 const createDemoProgresses = (): StudentAdaptiveProgress[] => {
@@ -138,6 +145,7 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
   const [remediationAttempts, setRemediationAttempts] = useState(0);
   const [elapsedMinutes, setElapsedMinutes] = useState(18);
   const [showTeacherPreview, setShowTeacherPreview] = useState(false);
+  const [portalCopyState, setPortalCopyState] = useState<'idle' | 'copied' | 'failed'>('idle');
 
   useEffect(() => {
     let isMounted = true;
@@ -182,7 +190,12 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
     };
   }, [user]);
 
-  const studentPortalUrl = user ? `${window.location.origin}/adaptive/student/${user.uid}` : '';
+  const studentPortalUrl = user ? `${PRODUCTION_STUDENT_PORTAL_ORIGIN}/adaptive/student/${user.uid}` : '';
+
+  useEffect(() => {
+    setPortalCopyState('idle');
+  }, [studentPortalUrl]);
+
   const demoProgresses = useMemo(createDemoProgresses, []);
   const teacherDashboard = useMemo(() => buildTeacherDashboardData(lesson, demoProgresses), [lesson, demoProgresses]);
   const recommendedRoute = diagnosticAttempt?.recommendedRoute || 'standard';
@@ -330,6 +343,32 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
     setDraftSavedAt(null);
     setCloudError(null);
     setIsTeacherEditing(false);
+  };
+
+  const handleCopyStudentPortalLink = async () => {
+    if (!studentPortalUrl) return;
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(studentPortalUrl);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = studentPortalUrl;
+        textarea.setAttribute('readonly', 'true');
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+
+      setPortalCopyState('copied');
+      window.setTimeout(() => setPortalCopyState('idle'), 2200);
+    } catch (error) {
+      console.error('Không copy được link cổng học sinh', error);
+      setPortalCopyState('failed');
+    }
   };
 
   const handleDiagnosticSubmit = () => {
@@ -576,37 +615,100 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-3xl">
             <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-black uppercase tracking-wide text-blue-700">
-              Bước 2 · Gửi cho học sinh
+              <QrCode className="h-4 w-4" /> Bước 2 · Gửi cho học sinh
             </div>
             <h3 className="text-xl font-black text-slate-900">Cổng học sinh riêng</h3>
             <p className="mt-2 text-sm leading-6 text-slate-500">
-              Học sinh mở link, nhập mã học sinh cố định, làm test đầu giờ và học theo tuyến cá nhân. Kết quả được lưu vào tiến trình tiết học và hồ sơ dài hạn.
+              Chiếu QR hoặc gửi link để học sinh vào đúng cổng học tập production, nhập mã học sinh cố định, làm test đầu giờ và học theo tuyến cá nhân.
             </p>
           </div>
-          <span className={cn('rounded-full px-3 py-1 text-xs font-black uppercase tracking-wide', draftSavedAt ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700')}>
-            {draftSavedAt ? 'Đã sẵn sàng gửi' : 'Lưu bài trước khi gửi'}
+          <span className={cn('inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-black uppercase tracking-wide', draftSavedAt ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700')}>
+            <ShieldCheck className="h-4 w-4" />
+            {draftSavedAt ? 'Cổng đang bật' : 'Lưu bài trước khi gửi'}
           </span>
         </div>
 
         {user ? (
-          <div className="mt-5 flex flex-col gap-2 md:flex-row md:items-center">
-            <input
-              readOnly
-              value={studentPortalUrl}
-              className="flex-1 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-xs font-bold text-slate-600 outline-none"
-            />
-            <a
-              href={studentPortalUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-2xl bg-blue-600 px-4 py-3 text-center text-sm font-black text-white shadow-lg shadow-blue-100 transition hover:bg-blue-700"
-            >
-              Mở cổng học sinh
-            </a>
+          <div className="mt-5 grid gap-5 lg:grid-cols-[260px_1fr]">
+            <div className="rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 to-indigo-50 p-5 text-center">
+              <div className="mx-auto inline-flex rounded-3xl border border-white bg-white p-4 shadow-sm">
+                <QRCodeSVG value={studentPortalUrl} size={184} bgColor="#ffffff" fgColor="#1e3a8a" level="M" includeMargin />
+              </div>
+              <p className="mt-4 text-sm font-black text-slate-800">Quét để vào học</p>
+              <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">
+                QR luôn dùng domain production đúng: <span className="font-black text-blue-700">giaoandewey.vercel.app</span>
+              </p>
+            </div>
+
+            <div className="space-y-4 rounded-3xl border border-blue-100 bg-white p-5">
+              <div>
+                <p className="text-xs font-black uppercase tracking-wide text-blue-600">Link cổng học sinh</p>
+                <div className="mt-2 flex flex-col gap-2 md:flex-row md:items-center">
+                  <input
+                    readOnly
+                    value={studentPortalUrl}
+                    onFocus={event => event.currentTarget.select()}
+                    className="flex-1 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-xs font-bold text-slate-700 outline-none focus:border-blue-300"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleCopyStudentPortalLink}
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl border border-blue-200 bg-white px-4 py-3 text-sm font-black text-blue-700 transition hover:bg-blue-50"
+                  >
+                    <Copy className="h-4 w-4" />
+                    {portalCopyState === 'copied' ? 'Đã copy' : 'Copy link'}
+                  </button>
+                  <a
+                    href={studentPortalUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 py-3 text-center text-sm font-black text-white shadow-lg shadow-blue-100 transition hover:bg-blue-700"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    Mở thử
+                  </a>
+                </div>
+                {portalCopyState === 'failed' && (
+                  <p className="mt-2 text-xs font-bold text-red-600">Trình duyệt không cho copy tự động. Hãy bôi đen link và copy thủ công.</p>
+                )}
+              </div>
+
+              <div className={cn(
+                'rounded-2xl border p-4 text-sm font-semibold leading-6',
+                draftSavedAt ? 'border-green-100 bg-green-50 text-green-700' : 'border-amber-100 bg-amber-50 text-amber-700'
+              )}>
+                {draftSavedAt ? (
+                  <>
+                    <p className="font-black">Cổng học sinh đã sẵn sàng.</p>
+                    <p className="mt-1">Giáo viên có thể chiếu QR này lên màn hình lớp hoặc bấm “Copy link” để gửi qua Zalo/LMS. Học sinh chỉ cần nhập mã học sinh cố định để hệ thống lưu hồ sơ dài hạn.</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-black">Chưa nên gửi cho học sinh.</p>
+                    <p className="mt-1">Hãy bấm “Lưu & bật cổng học sinh” ở bước 1 để đảm bảo bài học mới nhất đã lên Firestore và cổng đang bật.</p>
+                  </>
+                )}
+              </div>
+
+              <div className="grid gap-3 text-xs font-bold text-slate-500 sm:grid-cols-3">
+                <div className="rounded-2xl bg-slate-50 p-3">
+                  <p className="font-black text-slate-800">1. Chiếu QR</p>
+                  <p className="mt-1 leading-5">Học sinh dùng camera điện thoại hoặc máy tính bảng để quét.</p>
+                </div>
+                <div className="rounded-2xl bg-slate-50 p-3">
+                  <p className="font-black text-slate-800">2. Nhập mã</p>
+                  <p className="mt-1 leading-5">Dùng mã học sinh cố định để nối dữ liệu qua nhiều tiết.</p>
+                </div>
+                <div className="rounded-2xl bg-slate-50 p-3">
+                  <p className="font-black text-slate-800">3. Theo dõi</p>
+                  <p className="mt-1 leading-5">Kết quả được lưu vào hồ sơ học tập dài hạn.</p>
+                </div>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="mt-5 rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-700">
-            Đăng nhập để hệ thống tạo link cổng học sinh.
+            Đăng nhập để hệ thống tạo link và QR cổng học sinh.
           </div>
         )}
       </section>
