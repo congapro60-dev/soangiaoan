@@ -233,7 +233,7 @@ const renderPdfBuffer = async (title: string, content: string, orientation: Word
     args: chromium.args,
     defaultViewport: { width: orientation === 'landscape' ? 1123 : 794, height: orientation === 'landscape' ? 794 : 1123 },
     executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || (await chromium.executablePath()),
-    headless: chromium.headless,
+    headless: true,
   });
 
   try {
