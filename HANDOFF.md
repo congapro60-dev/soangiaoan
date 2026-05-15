@@ -1,9 +1,9 @@
 # HANDOFF — Soạn giáo án / học phân hoá
 
-**Cập nhật**: 2026-05-14  
-**Repo chính**: `soangiaoan`  
+**Cập nhật**: 2026-05-15
+**Repo chính**: `soangiaoan`
 **Branch hiện tại**: `main`
-**Commit code ứng dụng mới nhất trước khi cập nhật file này**: `c0f4bb9 Add adaptive student portal QR sharing`
+**Commit nền trước phiên tương tác ví dụ học sinh**: `99aa575 Add real adaptive teacher dashboard`
 **Mục đích file này**: để một phiên Claude Code / Claude Cowork / Google Antigravity hoặc kỹ sư khác đọc nhanh toàn bộ bối cảnh, các thay đổi đã làm, vấn đề còn tồn tại, và các bước cần kiểm tra/sửa tiếp mà không phải hỏi lại từ đầu.
 
 ---
@@ -17,27 +17,28 @@ Repo `soangiaoan` đã được commit và push lên GitHub.
 Các commit quan trọng gần nhất:
 
 ```txt
+99aa575 Add real adaptive teacher dashboard
+c0f4bb9 Add adaptive student portal QR sharing
+d9a77d0 Document production e2e adaptive progress pass
+ea48dc6 Correct Vercel production domain in handoff
+bbef6d0 Update adaptive learning handoff
 d56f3fa Fix Vercel API route configuration
 14beb30 Expand adaptive student flow with timers
 331be3a Add server-side adaptive progress saving
 badfb54 Fix adaptive student math and save fallback
-8ebd29a Simplify adaptive teacher workflow
-a01bfbe Add adaptive student portal and learning profiles
-5cad500 Persist adaptive lessons to Firestore
-4934e32 Add teacher editing for adaptive lessons
 ```
 
-Trạng thái đã kiểm tra:
+Trạng thái đã kiểm tra trước khi commit phiên tương tác:
 
 ```txt
 HEAD -> main
 origin/main -> main
-working tree clean
+working tree có thay đổi ở src/pages/AdaptiveStudentPortalPage.tsx, src/lib/adaptive/types.ts, src/lib/adaptive/sampleAdaptiveLesson.ts và HANDOFF.md
 ```
 
 ### 1.2 Kiểm tra local đã chạy
 
-Đã chạy thành công:
+Đã chạy thành công sau thay đổi tương tác ví dụ:
 
 ```bash
 npm run lint
@@ -50,7 +51,7 @@ npm run build
 npx tsc --noEmit --module NodeNext --moduleResolution NodeNext --target ES2022 --esModuleInterop --skipLibCheck --types node api/adaptive-progress.ts api/gemini-relay.ts api/render-word.ts api/export-lesson.ts
 ```
 
-Kết quả: pass sau khi sửa lỗi type trong `api/export-lesson.ts`.
+Kết quả mới nhất: `npm run lint` pass; `npm run build` pass, chỉ còn các warning chunk lớn/dynamic import cũ của Vite, không chặn production.
 
 ---
 
@@ -770,14 +771,40 @@ Lưu ý bảo mật/rules:
 - `adaptiveSessionProgress` hiện chỉ cho giáo viên đọc record có `teacherId` khớp `request.auth.uid`.
 - `studentLearningProfiles` rules đang rộng hơn, cho user đăng nhập đọc; code dashboard vẫn query theo `teacherId`. Nếu siết bảo mật sâu hơn ở sprint sau, nên rà lại rule collection này.
 
-### Ưu tiên 4 — AI feedback/giảng lại có kiểm soát
+### Ưu tiên 4 — Đã triển khai MVP: ví dụ tương tác, timer, gợi ý và AI chấm ảnh tham khảo
 
-Chưa triển khai. Khi làm cần cẩn thận:
+Đã triển khai trong cổng học sinh, file chính:
 
-- AI không được đưa đáp án trực tiếp quá sớm.
-- AI phải dựa trên objective/misconception/route hiện tại.
-- Có giới hạn prompt để không phá quy trình 5 bước.
-- Có log feedback để giáo viên xem lại.
+- `src/pages/AdaptiveStudentPortalPage.tsx`
+- `src/lib/adaptive/types.ts`
+- `src/lib/adaptive/sampleAdaptiveLesson.ts`
+
+Đã làm:
+
+- Mở rộng `WorkedExample` với `timeLimitSeconds`, `hintDelaySeconds`, `hints`, `responseMode`, `aiRubric`.
+- Thay block “Ví dụ mẫu” lộ lời giải ngay bằng `InteractiveWorkedExampleCard`.
+- Học sinh phải bấm bắt đầu, tự nhập ý tưởng/lời giải nháp, rồi nộp mới thấy lời giải chuẩn và phần chữa.
+- Mỗi ví dụ có timer riêng; gợi ý chỉ mở sau `hintDelaySeconds` hoặc khi hết thời gian ví dụ.
+- Chặn chuyển sang quick check nếu học sinh chưa nộp đủ ví dụ tương tác trong mảnh kiến thức hiện tại.
+- Với ví dụ `responseMode: 'image_upload'`, học sinh có thể chụp/tải ảnh bài làm viết tay; sau khi nộp có thể nhờ AI chấm tham khảo qua `/api/gemini-relay`.
+- Không lưu base64 ảnh vào Firestore; chỉ lưu metadata tiến độ ví dụ như đáp án nháp, trạng thái nộp, gợi ý đã mở, tên ảnh, có ảnh hay không, phản hồi AI nếu có.
+- Thêm `MathBlock` để lời giải nhiều dòng/công thức Toán được render bằng `ReactMarkdown` + `remark-math` + `rehype-katex`, có khoảng cách đoạn và overflow ngang cho công thức dài trên mobile.
+- Cập nhật dữ liệu mẫu bài Toán 11 — Cấp số cộng: các ví dụ có thời gian, gợi ý, lời giải xuống dòng rõ hơn; ví dụ thử thách bài tiết kiệm dùng `responseMode: 'image_upload'` và `aiRubric`.
+
+Kiểm tra local sau triển khai:
+
+```bash
+npm run lint
+npm run build
+```
+
+Kết quả: cả hai lệnh pass. Build chỉ còn warning chunk lớn/dynamic import cũ, không chặn production.
+
+Lưu ý còn lại:
+
+- AI chấm ảnh hiện là phản hồi tham khảo, chưa thay thế chấm chính thức của giáo viên.
+- Chưa có màn hình giáo viên xem chi tiết từng ảnh; frontend chỉ gửi ảnh trực tiếp tới API để AI đọc, không upload Storage.
+- Nếu cần lưu ảnh lâu dài, nên thiết kế thêm Firebase Storage + policy riêng trước khi mở rộng đại trà.
 
 ---
 
@@ -822,7 +849,7 @@ Khi bắt đầu session mới:
 7. Có thể tin tưởng dashboard giáo viên đã đọc dữ liệu thật từ `adaptiveSessionProgress` và `studentLearningProfiles`; local lint/build đã pass sau thay đổi này.
 8. Không cần sửa `vercel.json`, `api/adaptive-progress.ts`, hay Vercel env vars cho mục đích lưu progress trừ khi có lỗi mới.
 9. Nếu POST lỗi `500` trong tương lai, xem Vercel Function Logs; khả năng cao là env `FIREBASE_PRIVATE_KEY` bị mất `\n` sau khi xoay key, không phải bug code.
-10. Việc tiếp theo nên chuyển sang test UI production sau deploy hoặc Ưu tiên 4: AI feedback/giảng lại có kiểm soát.
+10. Việc tiếp theo nên test UI production sau deploy: học sinh mở cổng, làm ví dụ tương tác, kiểm tra hint delay, upload/chụp ảnh ở ví dụ tự luận dài, nhờ AI chấm ảnh tham khảo, nộp exit ticket và kiểm tra dashboard giáo viên.
 11. Sau mỗi kết quả từ Cowork/Antigravity hoặc thao tác thủ công, cập nhật lại file này rồi commit/push để file là nguồn sự thật mới nhất.
 
 ---
@@ -1000,15 +1027,16 @@ Bối cảnh quan trọng:
 - GET https://giaoandewey.vercel.app/api/gemini-relay đã trả 405, nghĩa là Vercel đang phục vụ api/*.ts.
 
 Mục tiêu hiện tại:
-1. Đọc HANDOFF.md và tin trạng thái mới nhất: Ưu tiên 1 đã PASS production end-to-end, Ưu tiên 2 Link/QR đã code xong, Ưu tiên 3 dashboard giáo viên đọc dữ liệu thật đã code xong; lint/build pass local.
+1. Đọc HANDOFF.md và tin trạng thái mới nhất: Ưu tiên 1 đã PASS production end-to-end, Ưu tiên 2 Link/QR đã code xong, Ưu tiên 3 dashboard giáo viên đọc dữ liệu thật đã code xong, MVP ví dụ tương tác/timer/hint/upload ảnh/AI chấm tham khảo đã code xong; lint/build pass local.
 2. Không sửa `vercel.json`, `api/adaptive-progress.ts`, hoặc Vercel env vars cho đường ống lưu progress nếu không có lỗi mới.
-3. Kiểm tra UI production sau deploy: mở domain đúng `https://giaoandewey.vercel.app`, đăng nhập giáo viên, vào tab "Học phân hoá", lưu/bật cổng nếu cần, cho một học sinh nộp bài qua QR/link, bấm `Làm mới dữ liệu thật` và xác nhận dashboard chuyển sang dữ liệu Firestore.
-4. Nếu triển khai tiếp, ưu tiên Ưu tiên 4: AI feedback/giảng lại có kiểm soát dựa trên objective/misconception/route, không đưa đáp án quá sớm.
-5. Sau khi kiểm tra/code xong, chạy lint/build nếu môi trường cho phép, rồi trả lại danh sách file đã sửa và cách test.
+3. Kiểm tra UI production sau deploy: mở domain đúng `https://giaoandewey.vercel.app`, đăng nhập giáo viên, vào tab "Học phân hoá", lưu/bật cổng nếu cần, cho một học sinh học qua QR/link, xác nhận ví dụ không lộ lời giải trước khi nộp, gợi ý chỉ mở sau thời gian chờ, ảnh bài làm viết tay gửi được cho AI chấm tham khảo.
+4. Sau khi học sinh nộp exit ticket, bấm `Làm mới dữ liệu thật` và xác nhận dashboard chuyển sang dữ liệu Firestore.
+5. Nếu triển khai tiếp, ưu tiên bổ sung màn hình giáo viên xem chi tiết tương tác từng ví dụ và thiết kế lưu ảnh bài làm vào Storage nếu cần dùng lâu dài.
+6. Sau khi kiểm tra/code xong, chạy lint/build nếu môi trường cho phép, rồi trả lại danh sách file đã sửa và cách test.
 
 Không được:
 - Không kết luận Vercel route hỏng chỉ vì domain giaooandewey trả 404.
 - Không xoá hoặc rewrite lớn các phần học phân hoá đã hoạt động.
 - Không thay đổi cấu trúc dữ liệu Firestore nếu chưa chứng minh cần thiết.
-- Không làm AI feedback trước QR code.
+- Không làm AI feedback lộ đáp án trước khi học sinh nộp ví dụ tương tác.
 ```

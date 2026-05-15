@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { Dispatch, ReactNode, SetStateAction } from 'react';
+import type { ChangeEvent, Dispatch, ReactNode, SetStateAction } from 'react';
 import { useParams } from 'react-router-dom';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { motion } from 'motion/react';
@@ -10,12 +10,16 @@ import 'katex/dist/katex.min.css';
 import {
   AlertTriangle,
   BookOpenCheck,
+  Camera,
   CheckCircle2,
   Clock3,
+  Lightbulb,
   Loader2,
   Route,
   Send,
+  Sparkles,
   Target,
+  UploadCloud,
   UserRound,
 } from 'lucide-react';
 import { db } from '../lib/firebase';
@@ -38,6 +42,22 @@ import { ensureMathWrapped } from '../utils/examScoring';
 
 type PortalStage = 'loading' | 'not_found' | 'identify' | 'diagnostic' | 'lesson' | 'quick_check' | 'exit_ticket' | 'complete';
 type NoticeTone = 'info' | 'warning' | 'error';
+type WorkedExample = AdaptiveLesson['knowledgeUnits'][number]['routes'][number]['workedExamples'][number];
+
+interface WorkedExampleInteraction {
+  answer: string;
+  submitted: boolean;
+  hintRevealed: boolean;
+  imageName?: string;
+  imagePreviewUrl?: string;
+  imageBase64?: string;
+  imageMimeType?: string;
+  aiFeedback?: string;
+  isGrading?: boolean;
+  gradingError?: string;
+  submittedAt?: string;
+  durationSeconds?: number;
+}
 
 interface AdaptiveLessonDocument {
   lesson: AdaptiveLesson;
@@ -77,8 +97,11 @@ const formatDuration = (seconds: number) => {
   return `${minutes}:${String(remainingSeconds).padStart(2, '0')}`;
 };
 
+const improveLongMathText = (text: string) => ensureMathWrapped(text)
+  .replace(/\.\s+(?=(Ta|Vậy|Suy ra|Do đó|Các|Điểm|Không|Câu hỏi|Từ)\b)/g, '.\n\n');
+
 const MathText = ({ children, className }: { children: string; className?: string }) => (
-  <span className={cn('adaptive-math-text', className)}>
+  <span className={cn('adaptive-math-text break-words', className)}>
     <ReactMarkdown
       remarkPlugins={[remarkMath]}
       rehypePlugins={[rehypeKatex]}
@@ -88,6 +111,29 @@ const MathText = ({ children, className }: { children: string; className?: strin
     </ReactMarkdown>
   </span>
 );
+
+const MathBlock = ({ children, className }: { children: string; className?: string }) => (
+  <div className={cn('adaptive-math-block space-y-3 break-words text-sm font-semibold leading-7 text-slate-600 [&_.katex-display]:overflow-x-auto [&_.katex-display]:overflow-y-hidden [&_.katex-display]:py-2 [&_p]:mb-3 [&_p:last-child]:mb-0', className)}>
+    <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+      {improveLongMathText(children)}
+    </ReactMarkdown>
+  </div>
+);
+
+const buildExampleKey = (unitId: string, exampleId: string) => `example-${unitId}-${exampleId}`;
+const getExamplePlannedSeconds = (example: WorkedExample, unitSeconds: number, exampleCount: number) => (
+  example.timeLimitSeconds || Math.max(90, Math.floor(unitSeconds / Math.max(exampleCount + 2, 3)))
+);
+const getExampleHintDelaySeconds = (example: WorkedExample, plannedSeconds: number) => (
+  example.hintDelaySeconds || Math.min(90, Math.max(45, Math.floor(plannedSeconds / 2)))
+);
+
+const readFileAsDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = () => resolve(String(reader.result || ''));
+  reader.onerror = () => reject(reader.error || new Error('Không đọc được ảnh bài làm.'));
+  reader.readAsDataURL(file);
+});
 
 const averageMastery = (attempts: AssessmentAttempt[]) => {
   const scores = attempts.flatMap(attempt => attempt.objectiveScores.map(score => score.masteryEstimate));
@@ -185,6 +231,7 @@ export const AdaptiveStudentPortalPage = () => {
   const [diagnosticAnswers, setDiagnosticAnswers] = useState<Record<string, string>>({});
   const [quickCheckAnswers, setQuickCheckAnswers] = useState<Record<string, string>>({});
   const [exitTicketAnswers, setExitTicketAnswers] = useState<Record<string, string>>({});
+  const [workedExampleInteractions, setWorkedExampleInteractions] = useState<Record<string, WorkedExampleInteraction>>({});
   const [diagnosticAttempt, setDiagnosticAttempt] = useState<AssessmentAttempt | null>(null);
   const [quickCheckAttempts, setQuickCheckAttempts] = useState<AssessmentAttempt[]>([]);
   const [exitTicketAttempt, setExitTicketAttempt] = useState<AssessmentAttempt | null>(null);
@@ -245,6 +292,9 @@ export const AdaptiveStudentPortalPage = () => {
   const totalDiagnosticScore = diagnosticAttempt?.answers.reduce((sum, item) => sum + item.score, 0) || 0;
   const maxDiagnosticScore = lesson?.diagnosticTest.questions.reduce((sum, item) => sum + item.points, 0) || 0;
   const totalRemediationAttempts = Object.values(remediationAttemptsByUnit).reduce((sum, value) => sum + value, 0);
+  const currentWorkedExamplesReady = currentUnit && routeContent
+    ? routeContent.workedExamples.every(example => workedExampleInteractions[buildExampleKey(currentUnit.id, example.id)]?.submitted)
+    : true;
 
   const elapsedSecondsFor = (key: string) => {
     const startedAt = sectionStarts[key];
@@ -280,6 +330,96 @@ export const AdaptiveStudentPortalPage = () => {
       console.warn('Chưa có hồ sơ học sinh hoặc cổng không được quyền đọc hồ sơ cũ', err);
       setProfile(null);
       setStage('diagnostic');
+    }
+  };
+
+  const updateWorkedExampleInteraction = (key: string, patch: Partial<WorkedExampleInteraction>) => {
+    setWorkedExampleInteractions(prev => {
+      const current = prev[key] || { answer: '', submitted: false, hintRevealed: false };
+      return {
+        ...prev,
+        [key]: { ...current, ...patch },
+      };
+    });
+  };
+
+  const handleWorkedExampleImage = async (key: string, event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      updateWorkedExampleInteraction(key, { gradingError: 'Tệp được chọn không phải ảnh. Em hãy chụp hoặc tải ảnh bài làm.' });
+      return;
+    }
+
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      const [, base64 = ''] = dataUrl.split(',');
+      updateWorkedExampleInteraction(key, {
+        imageName: file.name,
+        imagePreviewUrl: dataUrl,
+        imageBase64: base64,
+        imageMimeType: file.type,
+        gradingError: undefined,
+        aiFeedback: undefined,
+      });
+    } catch (error) {
+      console.error('Không đọc được ảnh bài làm tự luận', error);
+      updateWorkedExampleInteraction(key, { gradingError: 'Không đọc được ảnh bài làm. Em thử chụp lại rõ hơn hoặc chọn ảnh khác.' });
+    }
+  };
+
+  const handleWorkedExampleSubmit = (key: string, durationSeconds: number) => {
+    updateWorkedExampleInteraction(key, {
+      submitted: true,
+      submittedAt: new Date().toISOString(),
+      durationSeconds,
+      gradingError: undefined,
+    });
+  };
+
+  const handleGradeWorkedExampleImage = async (key: string, example: WorkedExample) => {
+    const interaction = workedExampleInteractions[key];
+    if (!interaction?.imageBase64 || !interaction.imageMimeType) {
+      updateWorkedExampleInteraction(key, { gradingError: 'Em cần tải ảnh bài làm trước khi nhờ AI chấm tham khảo.' });
+      return;
+    }
+
+    updateWorkedExampleInteraction(key, { isGrading: true, gradingError: undefined });
+
+    try {
+      const prompt = [
+        'Bạn là trợ lý chấm bài Toán phổ thông. Hãy chấm ảnh bài làm của học sinh theo hướng phản hồi học tập, không chỉ cho điểm.',
+        `Đề bài: ${example.problem}`,
+        `Đáp án/lời giải chuẩn: ${example.solution}`,
+        `Tiêu chí riêng: ${example.aiRubric || example.explanation}`,
+        'Trả lời ngắn gọn bằng tiếng Việt theo 4 dòng: Điểm tham khảo / Nhận xét đúng / Lỗi cần sửa / Gợi ý bước tiếp theo. Nếu ảnh mờ hoặc thiếu dữ kiện, nói rõ không đủ cơ sở chấm.',
+      ].join('\n');
+
+      const response = await fetch('/api/gemini-relay', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt,
+          imageBase64: interaction.imageBase64,
+          imageMimeType: interaction.imageMimeType,
+          model: 'gemini-1.5-flash',
+        }),
+      });
+
+      if (!response.ok) throw new Error(`AI trả về lỗi ${response.status}`);
+      const data = await response.json();
+      const aiFeedback = typeof data.text === 'string' && data.text.trim()
+        ? data.text.trim()
+        : 'AI chưa trả về nhận xét rõ ràng. Em hãy đối chiếu lời giải chuẩn bên dưới.';
+
+      updateWorkedExampleInteraction(key, { aiFeedback, isGrading: false });
+    } catch (error) {
+      console.error('Không chấm được ảnh bài làm bằng AI', error);
+      updateWorkedExampleInteraction(key, {
+        isGrading: false,
+        gradingError: 'AI chưa chấm được ảnh lúc này. Em vẫn có thể xem lời giải chuẩn và báo giáo viên kiểm tra bài viết tay.',
+      });
     }
   };
 
@@ -353,6 +493,16 @@ export const AdaptiveStudentPortalPage = () => {
     const progressId = buildProgressId(teacherId, lesson.id, studentCode);
     const now = new Date().toISOString();
     const progress = createProgressFromDiagnostic(lesson, `lesson-${lesson.id}`, studentId, diagnosticAttempt);
+    const workedExampleProgress = Object.fromEntries(Object.entries(workedExampleInteractions).map(([key, interaction]) => [key, {
+      answer: interaction.answer,
+      submitted: interaction.submitted,
+      hintRevealed: interaction.hintRevealed,
+      imageName: interaction.imageName,
+      hasImage: Boolean(interaction.imageBase64),
+      aiFeedback: interaction.aiFeedback,
+      submittedAt: interaction.submittedAt,
+      durationSeconds: interaction.durationSeconds,
+    }]));
     const progressRecord: StudentSessionProgressRecord = {
       id: progressId,
       teacherId,
@@ -389,6 +539,7 @@ export const AdaptiveStudentPortalPage = () => {
             quickCheckStartedAt: timestampFor(quickKey),
           }];
         })),
+        workedExamples: workedExampleProgress,
         exitTicket: {
           startedAt: timestampFor('exit-ticket'),
           completedAt: finalExitTicketAttempt.submittedAt,
@@ -597,30 +748,51 @@ export const AdaptiveStudentPortalPage = () => {
             <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
               <p className="text-xs font-black uppercase tracking-wide text-blue-500">{currentUnit.title}</p>
               <h3 className="mt-1 text-2xl font-black text-slate-800">Nội dung học theo tuyến {routeLabel[recommendedRoute]}</h3>
-              <div className="mt-3 text-sm font-semibold leading-7 text-slate-600">
-                <MathText>{routeContent.explanation}</MathText>
-              </div>
-              <div className="mt-5 grid gap-4 lg:grid-cols-2">
-                {routeContent.workedExamples.map(example => (
-                  <div key={example.id} className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4">
-                    <p className="text-xs font-black uppercase text-blue-600">Ví dụ mẫu</p>
-                    <div className="mt-2 font-bold text-slate-800"><MathText>{example.problem}</MathText></div>
-                    <div className="mt-2 text-sm font-semibold text-slate-600"><MathText>{example.solution}</MathText></div>
-                    <div className="mt-2 text-xs font-bold text-blue-700"><MathText>{example.explanation}</MathText></div>
-                  </div>
-                ))}
+              <MathBlock className="mt-3">{routeContent.explanation}</MathBlock>
+              <div className="mt-5 grid gap-4 xl:grid-cols-2">
+                {routeContent.workedExamples.map((example, index) => {
+                  const exampleKey = buildExampleKey(currentUnit.id, example.id);
+                  const plannedSeconds = getExamplePlannedSeconds(example, currentUnit.estimatedMinutes * 60, routeContent.workedExamples.length);
+                  const hintDelaySeconds = getExampleHintDelaySeconds(example, plannedSeconds);
+                  return (
+                    <InteractiveWorkedExampleCard
+                      key={example.id}
+                      example={example}
+                      index={index}
+                      interaction={workedExampleInteractions[exampleKey]}
+                      plannedSeconds={plannedSeconds}
+                      hintDelaySeconds={hintDelaySeconds}
+                      elapsedSeconds={elapsedSecondsFor(exampleKey)}
+                      remainingSeconds={remainingSecondsFor(exampleKey, plannedSeconds)}
+                      onStart={() => setSectionStarts(prev => (prev[exampleKey] ? prev : { ...prev, [exampleKey]: Date.now() }))}
+                      onAnswerChange={(answer) => updateWorkedExampleInteraction(exampleKey, { answer })}
+                      onRevealHint={() => updateWorkedExampleInteraction(exampleKey, { hintRevealed: true })}
+                      onImageChange={(event) => handleWorkedExampleImage(exampleKey, event)}
+                      onSubmit={() => handleWorkedExampleSubmit(exampleKey, measuredDurationFor(exampleKey, plannedSeconds))}
+                      onGradeImage={() => handleGradeWorkedExampleImage(exampleKey, example)}
+                    />
+                  );
+                })}
               </div>
               <div className="mt-5 grid gap-4 lg:grid-cols-3">
                 <TaskPanel title="Nhiệm vụ tuyến học" tasks={routeContent.practiceTasks} tone="blue" />
                 <TaskPanel title="Hỗ trợ nếu còn lúng túng" tasks={currentUnit.supportTasks} tone="amber" />
                 <TaskPanel title="Mở rộng cho học sinh nhanh" tasks={currentUnit.enrichmentTasks} tone="purple" />
               </div>
-              <button onClick={() => {
-                setNotice(null);
-                setSectionStarts(prev => ({ ...prev, [`quick-${currentUnitIndex}`]: Date.now() }));
-                setStage('quick_check');
-              }} className="mt-5 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-indigo-100 transition hover:bg-indigo-700">
-                Em đã học xong mảnh này, chuyển sang quick check
+              <button
+                onClick={() => {
+                  if (!currentWorkedExamplesReady) {
+                    setNotice({ tone: 'warning', message: 'Em cần nộp ý tưởng/lời giải cho tất cả ví dụ tương tác trong mảnh này trước khi chuyển sang quick check.' });
+                    return;
+                  }
+                  setNotice(null);
+                  setSectionStarts(prev => ({ ...prev, [`quick-${currentUnitIndex}`]: Date.now() }));
+                  setStage('quick_check');
+                }}
+                disabled={!currentWorkedExamplesReady}
+                className="mt-5 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-indigo-100 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+              >
+                {currentWorkedExamplesReady ? 'Em đã học xong mảnh này, chuyển sang quick check' : 'Nộp đủ ví dụ tương tác trước khi làm quick check'}
               </button>
             </div>
           </motion.section>
@@ -680,6 +852,155 @@ export const AdaptiveStudentPortalPage = () => {
   );
 };
 
+const InteractiveWorkedExampleCard = ({
+  example,
+  index,
+  interaction,
+  plannedSeconds,
+  hintDelaySeconds,
+  elapsedSeconds,
+  remainingSeconds,
+  onStart,
+  onAnswerChange,
+  onRevealHint,
+  onImageChange,
+  onSubmit,
+  onGradeImage,
+}: {
+  example: WorkedExample;
+  index: number;
+  interaction?: WorkedExampleInteraction;
+  plannedSeconds: number;
+  hintDelaySeconds: number;
+  elapsedSeconds: number;
+  remainingSeconds: number;
+  onStart: () => void;
+  onAnswerChange: (answer: string) => void;
+  onRevealHint: () => void;
+  onImageChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  onSubmit: () => void;
+  onGradeImage: () => void;
+}) => {
+  const state = interaction || { answer: '', submitted: false, hintRevealed: false };
+  const hasStarted = elapsedSeconds > 0;
+  const canShowTimedHint = elapsedSeconds >= hintDelaySeconds || remainingSeconds <= 0;
+  const shouldShowHint = state.hintRevealed || canShowTimedHint;
+  const isImageMode = example.responseMode === 'image_upload';
+  const hasResponse = isImageMode ? Boolean(state.imageBase64 || state.answer.trim()) : Boolean(state.answer.trim());
+  const hints = example.hints?.length ? example.hints : [example.explanation];
+
+  return (
+    <div className="flex h-full flex-col rounded-3xl border border-blue-100 bg-blue-50/60 p-4 shadow-sm sm:p-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-xs font-black uppercase tracking-wide text-blue-600">Ví dụ tương tác {index + 1}</p>
+          <h4 className="mt-1 text-base font-black text-slate-800">{example.title}</h4>
+        </div>
+        <SectionTimer plannedSeconds={plannedSeconds} elapsedSeconds={elapsedSeconds} remainingSeconds={remainingSeconds} compact />
+      </div>
+
+      <div className="mt-4 rounded-2xl bg-white p-4 text-sm font-bold leading-7 text-slate-800">
+        <MathBlock className="text-slate-800">{example.problem}</MathBlock>
+      </div>
+
+      {!hasStarted ? (
+        <button onClick={onStart} className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-blue-100 transition hover:bg-blue-700 sm:w-fit">
+          <Clock3 className="h-4 w-4" /> Bắt đầu suy nghĩ
+        </button>
+      ) : (
+        <div className="mt-4 space-y-3">
+          <label className="block space-y-2">
+            <span className="text-xs font-black uppercase tracking-wide text-slate-500">Ý tưởng/lời giải nháp của em</span>
+            <textarea
+              value={state.answer}
+              onChange={event => onAnswerChange(event.target.value)}
+              disabled={state.submitted}
+              rows={isImageMode ? 3 : 5}
+              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold leading-6 outline-none transition focus:border-blue-400 disabled:bg-slate-100"
+              placeholder="Viết cách làm của em trước. Hệ thống chỉ hiện lời giải sau khi em nộp."
+            />
+          </label>
+
+          {isImageMode && (
+            <div className="rounded-2xl border border-dashed border-blue-200 bg-white p-4">
+              <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl bg-blue-50 px-4 py-4 text-center text-sm font-black text-blue-700 transition hover:bg-blue-100">
+                <Camera className="h-5 w-5" /> Chụp/tải ảnh bài làm viết tay
+                <input type="file" accept="image/*" capture="environment" onChange={onImageChange} className="hidden" disabled={state.submitted} />
+              </label>
+              {state.imagePreviewUrl && (
+                <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                  <img src={state.imagePreviewUrl} alt={state.imageName || 'Ảnh bài làm'} className="max-h-64 w-full object-contain" />
+                </div>
+              )}
+              {state.imageName && <p className="mt-2 text-xs font-bold text-slate-500"><UploadCloud className="mr-1 inline h-3 w-3" />{state.imageName}</p>}
+            </div>
+          )}
+
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            <button
+              onClick={onRevealHint}
+              disabled={state.submitted || !hasStarted || !canShowTimedHint}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-black text-amber-700 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Lightbulb className="h-4 w-4" /> {canShowTimedHint ? 'Xem gợi ý' : `Gợi ý mở sau ${formatDuration(Math.max(0, hintDelaySeconds - elapsedSeconds))}`}
+            </button>
+            <button
+              onClick={onSubmit}
+              disabled={!hasResponse || state.submitted}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-indigo-100 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+            >
+              <Send className="h-4 w-4" /> Nộp để xem lời giải
+            </button>
+          </div>
+
+          {!shouldShowHint && !state.submitted && (
+            <p className="rounded-2xl bg-white/70 px-4 py-3 text-xs font-bold text-slate-500">
+              Em hãy tự thử trước. Gợi ý sẽ tự mở khi hết thời gian chờ, lúc đó em mới có thể bấm xem gợi ý.
+            </p>
+          )}
+
+          {shouldShowHint && !state.submitted && (
+            <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-semibold text-amber-900">
+              <p className="mb-2 text-xs font-black uppercase tracking-wide text-amber-600">Gợi ý</p>
+              <ul className="list-disc space-y-2 pl-4">
+                {hints.map(hint => <li key={hint}><MathBlock className="text-amber-900">{hint}</MathBlock></li>)}
+              </ul>
+            </div>
+          )}
+
+          {state.submitted && (
+            <div className="space-y-3 rounded-2xl border border-green-100 bg-green-50 p-4">
+              <p className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-green-700"><CheckCircle2 className="h-4 w-4" /> Đã nộp sau {formatDuration(state.durationSeconds || elapsedSeconds)}</p>
+              <div>
+                <p className="text-sm font-black text-slate-800">Lời giải chuẩn</p>
+                <MathBlock className="mt-2 text-slate-700">{example.solution}</MathBlock>
+              </div>
+              <div>
+                <p className="text-sm font-black text-blue-800">Chữa/gợi ý đối chiếu</p>
+                <MathBlock className="mt-2 text-blue-800">{example.explanation}</MathBlock>
+              </div>
+              {isImageMode && (
+                <div className="rounded-2xl border border-purple-100 bg-white p-4">
+                  <button
+                    onClick={onGradeImage}
+                    disabled={state.isGrading || !state.imageBase64}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-purple-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-purple-100 transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-slate-300 sm:w-fit"
+                  >
+                    <Sparkles className="h-4 w-4" /> {state.isGrading ? 'AI đang chấm ảnh...' : 'Nhờ AI chấm ảnh tham khảo'}
+                  </button>
+                  {state.aiFeedback && <MathBlock className="mt-3 rounded-2xl bg-purple-50 p-3 text-purple-900">{state.aiFeedback}</MathBlock>}
+                </div>
+              )}
+            </div>
+          )}
+
+          {state.gradingError && <p className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-xs font-bold text-red-700">{state.gradingError}</p>}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const StudentAssessmentCard = ({
   title,
   description,
@@ -717,7 +1038,7 @@ const StudentAssessmentCard = ({
       {questions.map((question, index) => (
         <div key={question.id} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
           <div className="font-bold text-slate-800">
-            Câu {index + 1}. <MathText>{question.prompt}</MathText>
+            Câu {index + 1}. <MathBlock className="mt-1 text-slate-800">{question.prompt}</MathBlock>
           </div>
           {question.options ? (
             <div className="mt-3 grid gap-2">

@@ -66,6 +66,11 @@ export interface WorkedExample {
   solution: string;
   explanation: string;
   objectiveIds: string[];
+  timeLimitSeconds?: number;
+  hintDelaySeconds?: number;
+  hints?: string[];
+  responseMode?: 'short_text' | 'long_text' | 'image_upload';
+  aiRubric?: string;
 }
 
 export interface PracticeTask {
