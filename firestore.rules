@@ -98,5 +98,17 @@ service cloud.firestore {
       allow read: if request.auth != null
                   && request.auth.uid == get(/databases/$(database)/documents/exams/$(resource.data.examId)).data.teacherId;
     }
+
+    // Telemetry fallback — học sinh/cổng anonymous được tạo event tối thiểu; giáo viên owner đọc để theo dõi tỷ lệ lưu.
+    match /fallbackEvents/{eventId} {
+      allow create: if request.resource.data.teacherId is string
+                    && request.resource.data.studentId is string
+                    && request.resource.data.lessonId is string
+                    && request.resource.data.stage in ['api', 'firestore', 'localStorage']
+                    && request.resource.data.timestamp is string
+                    && request.resource.data.errorMessage is string;
+      allow read: if request.auth != null
+                  && request.auth.uid == resource.data.teacherId;
+    }
   }
 }
