@@ -1,6 +1,6 @@
 import type { StudentLearningProfile, StudentSessionProgressRecord } from '../lib/adaptive/types';
 
-interface SaveAdaptiveProgressPayload {
+export interface SaveAdaptiveProgressPayload {
   teacherId: string;
   lessonId: string;
   progressId: string;
@@ -8,6 +8,46 @@ interface SaveAdaptiveProgressPayload {
   progressRecord: StudentSessionProgressRecord;
   profileRecord: StudentLearningProfile;
 }
+
+interface OfflineProgressRecord extends StudentSessionProgressRecord {
+  pendingProfileSync?: boolean;
+  savedOfflineAt?: string;
+  lastSaveError?: string;
+}
+
+export interface OfflineAdaptiveProgressSyncResult {
+  attempted: number;
+  synced: number;
+  failed: number;
+}
+
+const ADAPTIVE_PROGRESS_STORAGE_PREFIX = 'adaptive-progress-';
+const ADAPTIVE_PROFILE_STORAGE_PREFIX = 'adaptive-profile-';
+
+const getStorage = (): Storage | null => {
+  if (typeof window === 'undefined') return null;
+  return window.localStorage;
+};
+
+const parseStoredJson = <T>(value: string | null): T | null => {
+  if (!value) return null;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return null;
+  }
+};
+
+const listOfflineProgressKeys = (storage: Storage) => (
+  Object.keys(storage).filter(key => key.startsWith(ADAPTIVE_PROGRESS_STORAGE_PREFIX))
+);
+
+const hasPendingProgressForStudent = (storage: Storage, studentId: string) => (
+  listOfflineProgressKeys(storage).some(key => {
+    const record = parseStoredJson<OfflineProgressRecord>(storage.getItem(key));
+    return record?.studentId === studentId;
+  })
+);
 
 export const saveAdaptiveProgressViaApi = async (payload: SaveAdaptiveProgressPayload) => {
   const response = await fetch('/api/adaptive-progress', {
@@ -23,4 +63,74 @@ export const saveAdaptiveProgressViaApi = async (payload: SaveAdaptiveProgressPa
   }
 
   return data as { ok: true; profile: StudentLearningProfile };
+};
+
+export const saveAdaptiveProgressOffline = (
+  payload: SaveAdaptiveProgressPayload,
+  errorMessage: string,
+  savedAt = new Date().toISOString()
+) => {
+  const storage = getStorage();
+  if (!storage) throw new Error('Trình duyệt không hỗ trợ localStorage.');
+
+  const offlineProgress: OfflineProgressRecord = {
+    ...payload.progressRecord,
+    pendingProfileSync: true,
+    savedOfflineAt: savedAt,
+    lastSaveError: errorMessage,
+  };
+
+  storage.setItem(`${ADAPTIVE_PROGRESS_STORAGE_PREFIX}${payload.progressId}`, JSON.stringify(offlineProgress));
+  storage.setItem(`${ADAPTIVE_PROFILE_STORAGE_PREFIX}${payload.studentId}`, JSON.stringify(payload.profileRecord));
+};
+
+export const syncOfflineAdaptiveProgress = async (): Promise<OfflineAdaptiveProgressSyncResult> => {
+  const storage = getStorage();
+  if (!storage || typeof navigator !== 'undefined' && !navigator.onLine) {
+    return { attempted: 0, synced: 0, failed: 0 };
+  }
+
+  const progressKeys = listOfflineProgressKeys(storage);
+  let attempted = 0;
+  let synced = 0;
+  let failed = 0;
+
+  for (const key of progressKeys) {
+    const progressRecord = parseStoredJson<OfflineProgressRecord>(storage.getItem(key));
+    if (!progressRecord) {
+      storage.removeItem(key);
+      continue;
+    }
+
+    const profileRecord = parseStoredJson<StudentLearningProfile>(
+      storage.getItem(`${ADAPTIVE_PROFILE_STORAGE_PREFIX}${progressRecord.studentId}`)
+    );
+
+    if (!profileRecord) {
+      failed++;
+      continue;
+    }
+
+    attempted++;
+    try {
+      await saveAdaptiveProgressViaApi({
+        teacherId: progressRecord.teacherId,
+        lessonId: progressRecord.lessonId,
+        progressId: progressRecord.id,
+        studentId: progressRecord.studentId,
+        progressRecord,
+        profileRecord,
+      });
+
+      storage.removeItem(key);
+      if (!hasPendingProgressForStudent(storage, progressRecord.studentId)) {
+        storage.removeItem(`${ADAPTIVE_PROFILE_STORAGE_PREFIX}${progressRecord.studentId}`);
+      }
+      synced++;
+    } catch {
+      failed++;
+    }
+  }
+
+  return { attempted, synced, failed };
 };

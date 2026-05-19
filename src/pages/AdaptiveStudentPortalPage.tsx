@@ -37,7 +37,11 @@ import {
   StudentSessionProgressRecord,
 } from '../lib/adaptive/types';
 import { cn } from '../lib/utils';
-import { saveAdaptiveProgressViaApi } from '../services/adaptiveProgressApi';
+import {
+  saveAdaptiveProgressOffline,
+  saveAdaptiveProgressViaApi,
+  syncOfflineAdaptiveProgress,
+} from '../services/adaptiveProgressApi';
 import { ensureMathWrapped } from '../utils/examScoring';
 
 type PortalStage = 'loading' | 'not_found' | 'identify' | 'diagnostic' | 'lesson' | 'quick_check' | 'exit_ticket' | 'complete';
@@ -271,6 +275,22 @@ export const AdaptiveStudentPortalPage = () => {
   useEffect(() => {
     const interval = window.setInterval(() => setNowTick(Date.now()), 1000);
     return () => window.clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const runSync = async () => {
+      const result = await syncOfflineAdaptiveProgress();
+      if (result.synced > 0) {
+        setNotice({
+          tone: 'info',
+          message: `Đã đồng bộ ${result.synced} kết quả học tập lưu tạm lên hệ thống.`,
+        });
+      }
+    };
+
+    runSync();
+    window.addEventListener('online', runSync);
+    return () => window.removeEventListener('online', runSync);
   }, []);
 
   const activeSectionKey = useMemo(() => {
@@ -594,16 +614,15 @@ export const AdaptiveStudentPortalPage = () => {
         setNotice({ tone: 'warning', message: 'Kết quả đã lưu qua kênh dự phòng. Nếu thông báo này xuất hiện nhiều lần, giáo viên cần kiểm tra biến môi trường Firebase Admin của API.' });
       } catch (firestoreError) {
         console.error('Không lưu được tiến trình học sinh bằng cả API và Firestore client', firestoreError);
-        const offlineProgress = {
-          ...progressRecord,
-          pendingProfileSync: true,
-          savedOfflineAt: now,
-          lastSaveError: firestoreError instanceof Error ? firestoreError.message : 'unknown',
-        };
-
         try {
-          window.localStorage.setItem(`adaptive-progress-${progressId}`, JSON.stringify(offlineProgress));
-          window.localStorage.setItem(`adaptive-profile-${studentId}`, JSON.stringify(nextProfile));
+          saveAdaptiveProgressOffline({
+            teacherId,
+            lessonId: lesson.id,
+            progressId,
+            studentId,
+            progressRecord,
+            profileRecord: nextProfile,
+          }, firestoreError instanceof Error ? firestoreError.message : 'unknown', now);
           setProfile(nextProfile);
           setStage('complete');
           setNotice({ tone: 'warning', message: 'Kết quả đã được lưu tạm trên thiết bị này. API lưu kết quả hoặc kết nối mạng chưa đồng bộ được lên hệ thống.' });
