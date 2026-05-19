@@ -83,7 +83,12 @@ const persistQueuedFallbackEvent = (event: FallbackTelemetryPayload) => {
   const storage = getStorage();
   if (!storage) return;
   const key = `${FALLBACK_EVENT_STORAGE_PREFIX}${event.teacherId}-${event.lessonId}-${event.studentId}-${event.stage}-${event.errorCode}-${Date.now()}`;
-  storage.setItem(key, JSON.stringify(event));
+
+  try {
+    storage.setItem(key, JSON.stringify(event));
+  } catch (error) {
+    console.warn('Không lưu được telemetry fallback tạm trên thiết bị', error);
+  }
 };
 
 const parseStoredEvent = (value: string | null): FallbackTelemetryPayload | null => {

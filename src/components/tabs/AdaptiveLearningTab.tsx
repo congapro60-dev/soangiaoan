@@ -389,6 +389,10 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
     return date;
   }, [fallbackEvents.length]);
   const fallbackEventsLast7Days = useMemo(() => fallbackEvents.filter(event => new Date(event.timestamp) >= telemetryWindowStart), [fallbackEvents, telemetryWindowStart]);
+  const realProgressRecordsLast7Days = useMemo(() => realProgressRecords.filter(record => {
+    const timestamp = record.updatedAt || record.startedAt;
+    return timestamp ? new Date(timestamp) >= telemetryWindowStart : false;
+  }), [realProgressRecords, telemetryWindowStart]);
   const fallbackStageCounts = useMemo(() => fallbackEventsLast7Days.reduce<Record<'api' | 'firestore' | 'localStorage', number>>((acc, event) => {
     acc[event.stage] += 1;
     return acc;
@@ -398,10 +402,10 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
     return acc;
   }, {}), [fallbackEventsLast7Days]);
   const saveSuccessRate7Days = useMemo(() => {
-    const totalSignals = realProgressRecords.length + fallbackEventsLast7Days.length;
+    const totalSignals = realProgressRecordsLast7Days.length + fallbackEventsLast7Days.length;
     if (totalSignals === 0) return 100;
-    return Math.round((realProgressRecords.length / totalSignals) * 100);
-  }, [realProgressRecords.length, fallbackEventsLast7Days.length]);
+    return Math.round((realProgressRecordsLast7Days.length / totalSignals) * 100);
+  }, [realProgressRecordsLast7Days.length, fallbackEventsLast7Days.length]);
   const teacherDashboard = useMemo(() => buildTeacherDashboardData(lesson, dashboardProgresses), [lesson, dashboardProgresses]);
   const recommendedRoute = diagnosticAttempt?.recommendedRoute || 'standard';
   const firstUnit = lesson.knowledgeUnits[0];
@@ -1226,7 +1230,7 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
             <div>
               <p className="text-sm font-black text-blue-800">Tỷ lệ lưu thành công 7 ngày qua</p>
               <p className="mt-1 text-xs font-semibold text-blue-600">
-                Dựa trên {realProgressRecords.length} bản ghi học tập và {fallbackEventsLast7Days.length} sự kiện fallback được log vào Firestore.
+                Dựa trên {realProgressRecordsLast7Days.length} bản ghi học tập và {fallbackEventsLast7Days.length} sự kiện fallback trong 7 ngày gần nhất.
               </p>
             </div>
             <div className="text-3xl font-black text-blue-700">{saveSuccessRate7Days}%</div>
