@@ -84,7 +84,7 @@ export const AISolveExamModal = ({ isOpen, isLoading, content, onChange, onCance
                     ) : (
                       <textarea
                         value={content}
-                        onChange={e => onChange(e.target.value)}
+                        onChange={e => { onChange(e.target.value); setReviewConfirmed(false); }}
                         className="w-full h-full min-h-[300px] px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50 text-sm font-mono focus:ring-2 focus:ring-violet-400 outline-none resize-none"
                         placeholder="Đáp án AI tạo sẽ hiển thị ở đây..."
                       />
