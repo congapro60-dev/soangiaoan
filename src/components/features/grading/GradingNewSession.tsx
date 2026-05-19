@@ -19,6 +19,8 @@ interface Props {
   isProcessing: boolean;
   sessionSaved: boolean;
   eta: string;
+  completedCount: number;
+  totalCount: number;
   filterScore: FilterScore;
   setFilterScore: (f: FilterScore) => void;
   data: AppData;
@@ -45,7 +47,7 @@ export const GradingNewSession = ({
   results, setResults, sessionTitle, setSessionTitle,
   isProcessing, sessionSaved, filterScore, setFilterScore,
   data, setIsLoading, showToast,
-  maxScore, setMaxScore, eta,
+  maxScore, setMaxScore, eta, completedCount, totalCount,
   gradingRubric, setGradingRubric,
   noAnswerKey, setNoAnswerKey,
   onStartGrading, onSaveSession, onExportExcel, onAnalyzeClass, onViewResult, onDeleteResult, onRegradeResult, onRenameResult,
@@ -211,6 +213,24 @@ export const GradingNewSession = ({
       </div>
 
       {/* Action bar */}
+      {isProcessing && totalCount > 0 && (
+        <div className="flex-shrink-0 rounded-2xl border border-blue-100 bg-blue-50/70 p-3">
+          <div className="flex items-center justify-between text-[11px] font-bold text-blue-700">
+            <span>Tiến độ chấm batch</span>
+            <span>{completedCount}/{totalCount} bài</span>
+          </div>
+          <div className="mt-2 h-2 overflow-hidden rounded-full bg-white">
+            <div
+              className="h-full rounded-full bg-blue-600 transition-all"
+              style={{ width: `${Math.round((completedCount / totalCount) * 100)}%` }}
+            />
+          </div>
+          <p className="mt-1 text-[10px] font-medium text-blue-500">
+            Giới hạn {Math.min(3, totalCount)} bài song song để giảm lỗi 429/RPM; tiến độ được lưu sau từng bài.
+          </p>
+        </div>
+      )}
+
       <div className="flex items-center gap-3 flex-shrink-0">
         <button onClick={onStartGrading}
           disabled={isProcessing || masterFiles.length === 0 || studentFiles.length === 0}
