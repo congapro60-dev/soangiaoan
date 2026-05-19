@@ -278,6 +278,7 @@ export interface StudentSessionProgressRecord {
   objectiveStates: ObjectiveMasteryState[];
   remediationAttempts: number;
   completedUnitIds?: string[];
+  uploadedImageUrls?: string[];
   timings?: Record<string, unknown>;
   startedAt: string;
   completedAt?: string;

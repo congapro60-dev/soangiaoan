@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { ChangeEvent, Dispatch, ReactNode, SetStateAction } from 'react';
 import { useParams } from 'react-router-dom';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 import { motion } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
@@ -22,7 +23,7 @@ import {
   UploadCloud,
   UserRound,
 } from 'lucide-react';
-import { db } from '../lib/firebase';
+import { db, storage } from '../lib/firebase';
 import {
   createProgressFromDiagnostic,
   decideNextUnitAction,
@@ -52,6 +53,8 @@ interface WorkedExampleInteraction {
   imagePreviewUrl?: string;
   imageBase64?: string;
   imageMimeType?: string;
+  imageStoragePath?: string;
+  imageDownloadUrl?: string;
   aiFeedback?: string;
   isGrading?: boolean;
   gradingError?: string;
@@ -134,6 +137,28 @@ const readFileAsDataUrl = (file: File) => new Promise<string>((resolve, reject) 
   reader.onerror = () => reject(reader.error || new Error('Không đọc được ảnh bài làm.'));
   reader.readAsDataURL(file);
 });
+
+const sanitizeStorageSegment = (value: string) => value.replace(/[^a-zA-Z0-9_-]/g, '-').slice(0, 80) || 'unknown';
+
+const uploadWorkedExampleImage = async ({
+  studentId,
+  imageDataUrl,
+  imageMimeType,
+}: {
+  studentId: string;
+  imageDataUrl: string;
+  imageMimeType: string;
+}) => {
+  const extension = imageMimeType.includes('png') ? 'png' : imageMimeType.includes('webp') ? 'webp' : 'jpg';
+  const uploadedAt = Date.now();
+  const path = `student-uploads/${sanitizeStorageSegment(studentId)}/${uploadedAt}.${extension}`;
+  const imageRef = ref(storage, path);
+
+  await uploadString(imageRef, imageDataUrl, 'data_url', { contentType: imageMimeType });
+  const downloadUrl = await getDownloadURL(imageRef);
+
+  return { downloadUrl, path };
+};
 
 const averageMastery = (attempts: AssessmentAttempt[]) => {
   const scores = attempts.flatMap(attempt => attempt.objectiveScores.map(score => score.masteryEstimate));
@@ -380,14 +405,32 @@ export const AdaptiveStudentPortalPage = () => {
 
   const handleGradeWorkedExampleImage = async (key: string, example: WorkedExample) => {
     const interaction = workedExampleInteractions[key];
-    if (!interaction?.imageBase64 || !interaction.imageMimeType) {
+    if (!interaction?.imageBase64 || !interaction.imageMimeType || !interaction.imagePreviewUrl) {
       updateWorkedExampleInteraction(key, { gradingError: 'Em cần tải ảnh bài làm trước khi nhờ AI chấm tham khảo.' });
+      return;
+    }
+
+    if (!teacherId || !studentCode.trim()) {
+      updateWorkedExampleInteraction(key, { gradingError: 'Thiếu thông tin học sinh để lưu ảnh bài làm. Em hãy nhập mã học sinh rồi thử lại.' });
       return;
     }
 
     updateWorkedExampleInteraction(key, { isGrading: true, gradingError: undefined });
 
     try {
+      const studentId = buildStudentId(teacherId, studentCode);
+      const uploadedImage = interaction.imageDownloadUrl && interaction.imageStoragePath
+        ? { downloadUrl: interaction.imageDownloadUrl, path: interaction.imageStoragePath }
+        : await uploadWorkedExampleImage({
+          studentId,
+          imageDataUrl: interaction.imagePreviewUrl,
+          imageMimeType: interaction.imageMimeType,
+        });
+
+      updateWorkedExampleInteraction(key, {
+        imageDownloadUrl: uploadedImage.downloadUrl,
+        imageStoragePath: uploadedImage.path,
+      });
       const prompt = [
         'Bạn là trợ lý chấm bài Toán phổ thông. Hãy chấm ảnh bài làm của học sinh theo hướng phản hồi học tập, không chỉ cho điểm.',
         `Đề bài: ${example.problem}`,
@@ -413,7 +456,12 @@ export const AdaptiveStudentPortalPage = () => {
         ? data.text.trim()
         : 'AI chưa trả về nhận xét rõ ràng. Em hãy đối chiếu lời giải chuẩn bên dưới.';
 
-      updateWorkedExampleInteraction(key, { aiFeedback, isGrading: false });
+      updateWorkedExampleInteraction(key, {
+        aiFeedback,
+        imageDownloadUrl: uploadedImage.downloadUrl,
+        imageStoragePath: uploadedImage.path,
+        isGrading: false,
+      });
     } catch (error) {
       console.error('Không chấm được ảnh bài làm bằng AI', error);
       updateWorkedExampleInteraction(key, {
@@ -493,12 +541,17 @@ export const AdaptiveStudentPortalPage = () => {
     const progressId = buildProgressId(teacherId, lesson.id, studentCode);
     const now = new Date().toISOString();
     const progress = createProgressFromDiagnostic(lesson, `lesson-${lesson.id}`, studentId, diagnosticAttempt);
+    const uploadedImageUrls = Array.from(new Set(Object.values(workedExampleInteractions)
+      .map(interaction => interaction.imageDownloadUrl)
+      .filter((url): url is string => Boolean(url))));
     const workedExampleProgress = Object.fromEntries(Object.entries(workedExampleInteractions).map(([key, interaction]) => [key, {
       answer: interaction.answer,
       submitted: interaction.submitted,
       hintRevealed: interaction.hintRevealed,
       imageName: interaction.imageName,
-      hasImage: Boolean(interaction.imageBase64),
+      imageStoragePath: interaction.imageStoragePath,
+      imageDownloadUrl: interaction.imageDownloadUrl,
+      hasImage: Boolean(interaction.imageBase64 || interaction.imageDownloadUrl),
       aiFeedback: interaction.aiFeedback,
       submittedAt: interaction.submittedAt,
       durationSeconds: interaction.durationSeconds,
@@ -520,6 +573,7 @@ export const AdaptiveStudentPortalPage = () => {
       objectiveStates: progress.objectiveStates,
       remediationAttempts: totalRemediationAttempts,
       completedUnitIds: lesson.knowledgeUnits.slice(0, currentUnitIndex + 1).map(unit => unit.id),
+      uploadedImageUrls,
       timings: {
         diagnostic: {
           startedAt: timestampFor('diagnostic'),
@@ -988,6 +1042,11 @@ const InteractiveWorkedExampleCard = ({
                   >
                     <Sparkles className="h-4 w-4" /> {state.isGrading ? 'AI đang chấm ảnh...' : 'Nhờ AI chấm ảnh tham khảo'}
                   </button>
+                  {state.imageDownloadUrl && (
+                    <a href={state.imageDownloadUrl} target="_blank" rel="noreferrer" className="mt-3 block rounded-2xl bg-blue-50 p-3 text-xs font-black text-blue-700 underline">
+                      Ảnh gốc đã lưu để giáo viên phúc khảo
+                    </a>
+                  )}
                   {state.aiFeedback && <MathBlock className="mt-3 rounded-2xl bg-purple-50 p-3 text-purple-900">{state.aiFeedback}</MathBlock>}
                 </div>
               )}
