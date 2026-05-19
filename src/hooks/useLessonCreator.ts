@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { LessonPlan, AppData, TemplateFile } from '../types';
 import { callAI, callAIStream, getActiveApiKey } from '../lib/aiProviders';
 import { cleanMarkdownOutput } from '../utils/markdownUtils';
+import { applyLessonRevisionPatchResponse, buildLessonRevisionPatchPrompt } from '../utils/lessonRevisionPatch';
 import Swal from 'sweetalert2';
 
 // Note: MODELS and MODELS_LIST should be consistent. 
@@ -623,12 +624,24 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
     if (!revisionPrompt.trim() || !currentPlan.content || !getActiveApiKey(data.settings)) return;
     setIsLoading(true);
     try {
-      const prompt = `Viết lại giáo án sau theo yêu cầu: "${revisionPrompt}". \nNội dung cũ: ${currentPlan.content}`;
+      const originalContent = currentPlan.content;
+      const prompt = buildLessonRevisionPatchPrompt(revisionPrompt, originalContent);
       const result = await callAI(prompt, data.settings);
       if (result) {
-        setCurrentPlan(prev => ({ ...prev, content: cleanMarkdownOutput(result) }));
-        setRevisionPrompt('');
-        showToast('Đã cập nhật giáo án!');
+        const revision = applyLessonRevisionPatchResponse(originalContent, result);
+
+        if (revision.status === 'applied') {
+          setCurrentPlan(prev => ({ ...prev, content: revision.content }));
+          setRevisionPrompt('');
+          showToast(revision.message);
+          if (revision.warnings.length > 0) {
+            console.warn('Lesson revision patch warnings:', revision.warnings);
+            showToast(revision.warnings[0], 'warning');
+          }
+        } else {
+          console.warn('Lesson revision patch blocked:', revision.warnings);
+          showToast(revision.message, 'warning');
+        }
       }
     } catch (error) {
       showToast('Lỗi khi sửa đổi', 'error');

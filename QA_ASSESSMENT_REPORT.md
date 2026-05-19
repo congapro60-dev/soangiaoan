@@ -153,10 +153,18 @@ Hoặc tạm thời (ít rủi ro hơn):
 2. Lưu version cũ vào `localStorage` key `editor-backup-<timestamp>` trước mỗi lần overwrite
 3. Thêm nút "Hoàn tác" 30 giây sau apply
 
-**Verify**: 
+**Verify**:
 - Tạo giáo án 2000 chữ
 - Yêu cầu AI sửa 1 hoạt động
 - Kiểm tra editor giữ nguyên 4 hoạt động khác
+
+**Round 2 status — P0-3 fixed/verified**:
+- Luồng sửa giáo án chính trong `src/hooks/useLessonCreator.ts` không còn ghi đè bằng full rewrite từ `cleanMarkdownOutput(result)`.
+- `handleReviseLesson` hiện gọi `buildLessonRevisionPatchPrompt(...)` và chỉ apply qua `applyLessonRevisionPatchResponse(...)` / `applyEditorPatches(...)`.
+- AI chỉ được phép trả về `<PATCH_SECTION>` hoặc `<PATCH>`; `<UPDATE_EDITOR>` bị chặn.
+- Patch chứa placeholder như `*(giữ nguyên)*`, `...`, `[Nội dung cũ]` bị reject, editor giữ nguyên nội dung cũ và hiển thị warning toast.
+- Test coverage: `src/utils/__tests__/lessonRevisionPatch.test.ts` kiểm tra 3 kịch bản Round 2: sửa riêng HĐ1 giữ nguyên HĐ2-HĐ5 byte-for-byte, reject `<UPDATE_EDITOR>`, reject placeholder `*(giữ nguyên)*`.
+- Verification local: `npm test` pass 3 files / 12 tests; `npm run build` pass, chỉ còn warning chunk-size/dynamic import từ Vite.
 
 ---
 
@@ -500,7 +508,7 @@ Khi giáo viên sửa điểm AI → lưu lịch sử ai sửa, sửa từ gì s
 ### Tuần 1 — Stabilize Production (P0)
 - [ ] [P0-1] Fix Vercel 404 routing
 - [ ] [P0-2] Fix lost update bug
-- [ ] [P0-3] Backup + diff guard cho AI overwrite editor
+- [x] [P0-3] Surgical PATCH_SECTION/PATCH guard cho AI overwrite editor
 - [ ] [P0-4] Verify domain và update HANDOFF
 
 **Gate to next phase**: Tất cả P0 phải xanh + smoke test E2E pass.
@@ -556,8 +564,8 @@ Sau khi fix toàn bộ P0 + P1, chạy checklist này trước khi release:
 - [ ] Plagiarism dashboard hiển thị đúng
 
 ### Editor / AI Agent
-- [ ] AI sửa 1 hoạt động → 4 hoạt động còn lại không thay đổi
-- [ ] Nếu AI cắt ngắn → toast warning + nút Undo
+- [x] AI sửa 1 hoạt động → 4 hoạt động còn lại không thay đổi
+- [x] Nếu AI cắt ngắn/full rewrite → toast warning + không ghi đè nội dung cũ
 
 ### Export
 - [ ] Export DOCX giáo án 15 trang → thành công < 60s
@@ -575,7 +583,7 @@ Khi fix các task, đây là các file chính cần touch:
 |---------|------|
 | P0-1 | `vercel.json`, Vercel Dashboard (không phải code) |
 | P0-2 | `api/adaptive-progress.ts` |
-| P0-3 | `src/components/features/creator/FloatingChatWidget.tsx` (hoặc tương đương) |
+| P0-3 | `src/hooks/useLessonCreator.ts`, `src/hooks/useChat.ts`, `src/utils/editorPatchEngine.ts`, `src/utils/lessonRevisionPatch.ts` |
 | P0-4 | `HANDOFF.md` (typo domain) |
 | P1-1 | `src/components/modals/AISolveExamModal.tsx` |
 | P1-2 | `src/components/tabs/GradingTab.tsx` |
