@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { db, storage } from '../lib/firebase';
 import { ExternalToolWidget } from '../components/adaptive/ExternalToolWidget';
+import { LessonSimulationViewer } from '../components/adaptive/LessonSimulationViewer';
 import { getToolsByIds } from '../data/externalTools';
 import {
   createProgressFromDiagnostic,
@@ -881,6 +882,11 @@ export const AdaptiveStudentPortalPage = () => {
               <p className="text-xs font-black uppercase tracking-wide text-blue-500">{currentUnit.title}</p>
               <h3 className="mt-1 text-2xl font-black text-slate-800">Nội dung học theo tuyến {routeLabel[recommendedRoute]}</h3>
               <MathBlock className="mt-3">{routeContent.explanation}</MathBlock>
+              <LessonSimulationViewer
+                lessonId={lesson.id}
+                unitId={currentUnit.id}
+                unitTitle={currentUnit.title}
+              />
               <div className="mt-5 grid gap-4 xl:grid-cols-2">
                 {routeContent.workedExamples.map((example, index) => {
                   const exampleKey = buildExampleKey(currentUnit.id, example.id);
