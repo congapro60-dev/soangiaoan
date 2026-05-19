@@ -147,6 +147,8 @@ export interface AdaptiveLesson {
   teacherId: string;
   createdAt: string;
   updatedAt: string;
+  coverImageRealistic?: string;
+  coverImageTextbook?: string;
   preparation: LessonPreparation;
   fiveStepFlow: FiveStepFlow;
   objectives: LearningObjective[];

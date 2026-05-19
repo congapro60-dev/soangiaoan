@@ -18,6 +18,8 @@ export const sampleAdaptiveLesson: AdaptiveLesson = {
   teacherId: 'demo-teacher',
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
+  coverImageTextbook: 'https://placehold.co/800x400/e8f4fd/1e40af?text=Cấp+Số+Cộng+—+Textbook',
+  coverImageRealistic: 'https://placehold.co/800x400/fef3c7/92400e?text=Cấp+Số+Cộng+—+Realistic',
   curriculumRef: {
     programType: 'CUSTOM',
     week: 'Dạy thử',
