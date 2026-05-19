@@ -24,6 +24,8 @@ import {
   UserRound,
 } from 'lucide-react';
 import { db, storage } from '../lib/firebase';
+import { ExternalToolWidget } from '../components/adaptive/ExternalToolWidget';
+import { getToolsByIds } from '../data/externalTools';
 import {
   createProgressFromDiagnostic,
   decideNextUnitAction,
@@ -909,6 +911,9 @@ export const AdaptiveStudentPortalPage = () => {
                 <TaskPanel title="Hỗ trợ nếu còn lúng túng" tasks={currentUnit.supportTasks} tone="amber" />
                 <TaskPanel title="Mở rộng cho học sinh nhanh" tasks={currentUnit.enrichmentTasks} tone="purple" />
               </div>
+              {currentUnit.externalToolIds && currentUnit.externalToolIds.length > 0 && (
+                <ExternalToolWidget tools={getToolsByIds(currentUnit.externalToolIds)} />
+              )}
               <button
                 onClick={() => {
                   if (!currentWorkedExamplesReady) {

@@ -269,6 +269,7 @@ export const sampleAdaptiveLesson: AdaptiveLesson = {
           difficulty: 'hard',
         },
       ],
+      externalToolIds: ['cscn', 'tinhcapso'],
       routes: [
         {
           route: 'foundation',
@@ -423,6 +424,7 @@ export const sampleAdaptiveLesson: AdaptiveLesson = {
           difficulty: 'hard',
         },
       ],
+      externalToolIds: ['bancovua', 'ranangoanCS', 'tranhdau'],
       routes: [
         {
           route: 'foundation',

@@ -123,6 +123,7 @@ export interface KnowledgeUnit {
   coreTaskIds?: string[];
   supportTasks?: PracticeTask[];
   enrichmentTasks?: PracticeTask[];
+  externalToolIds?: string[];
 }
 
 export interface LessonPacingPolicy {
