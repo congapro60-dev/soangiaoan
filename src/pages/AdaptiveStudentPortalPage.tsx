@@ -138,20 +138,31 @@ const readFileAsDataUrl = (file: File) => new Promise<string>((resolve, reject) 
   reader.readAsDataURL(file);
 });
 
-const sanitizeStorageSegment = (value: string) => value.replace(/[^a-zA-Z0-9_-]/g, '-').slice(0, 80) || 'unknown';
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+
+const hashStudentCode = async (studentCode: string): Promise<string> => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(studentCode.toUpperCase().trim());
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.slice(0, 8).map(byte => byte.toString(16).padStart(2, '0')).join('');
+};
 
 const uploadWorkedExampleImage = async ({
-  studentId,
+  teacherId,
+  studentCode,
   imageDataUrl,
   imageMimeType,
 }: {
-  studentId: string;
+  teacherId: string;
+  studentCode: string;
   imageDataUrl: string;
   imageMimeType: string;
 }) => {
   const extension = imageMimeType.includes('png') ? 'png' : imageMimeType.includes('webp') ? 'webp' : 'jpg';
   const uploadedAt = Date.now();
-  const path = `student-uploads/${sanitizeStorageSegment(studentId)}/${uploadedAt}.${extension}`;
+  const studentHash = await hashStudentCode(studentCode);
+  const path = `student-uploads/${teacherId}/${studentHash}/${uploadedAt}.${extension}`;
   const imageRef = ref(storage, path);
 
   await uploadString(imageRef, imageDataUrl, 'data_url', { contentType: imageMimeType });
@@ -377,6 +388,13 @@ export const AdaptiveStudentPortalPage = () => {
       return;
     }
 
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      updateWorkedExampleInteraction(key, {
+        gradingError: `Ảnh quá lớn (${(file.size / 1024 / 1024).toFixed(1)}MB). Tối đa 5MB.`,
+      });
+      return;
+    }
+
     try {
       const dataUrl = await readFileAsDataUrl(file);
       const [, base64 = ''] = dataUrl.split(',');
@@ -418,11 +436,11 @@ export const AdaptiveStudentPortalPage = () => {
     updateWorkedExampleInteraction(key, { isGrading: true, gradingError: undefined });
 
     try {
-      const studentId = buildStudentId(teacherId, studentCode);
       const uploadedImage = interaction.imageDownloadUrl && interaction.imageStoragePath
         ? { downloadUrl: interaction.imageDownloadUrl, path: interaction.imageStoragePath }
         : await uploadWorkedExampleImage({
-          studentId,
+          teacherId,
+          studentCode,
           imageDataUrl: interaction.imagePreviewUrl,
           imageMimeType: interaction.imageMimeType,
         });
