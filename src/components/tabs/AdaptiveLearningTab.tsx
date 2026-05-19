@@ -18,6 +18,7 @@ import {
   Route,
   Send,
   ShieldCheck,
+  Sparkles,
   Target,
   Users,
 } from 'lucide-react';
@@ -30,10 +31,11 @@ import {
   decidePacingAction,
   gradeAssessment,
 } from '../../lib/adaptive/diagnosticEngine';
-import { AdaptiveLesson, AdaptiveQuestion, AssessmentAttempt, LearningRoute, PacingAction, PacingStatus, PracticeTask, StudentAdaptiveProgress, StudentLearningProfile, StudentSessionProgressRecord, TeacherFlag } from '../../lib/adaptive/types';
+import { AdaptiveLesson, AdaptiveQuestion, AssessmentAttempt, LearningRoute, LessonSimulation, PacingAction, PacingStatus, PracticeTask, StudentAdaptiveProgress, StudentLearningProfile, StudentSessionProgressRecord, TeacherFlag } from '../../lib/adaptive/types';
 import { cn } from '../../lib/utils';
 import type { FallbackErrorCode, FallbackTelemetryEvent } from '../../services/telemetry';
 import { getFallbackEventsForTeacher } from '../../services/telemetry';
+import { SimulationGeneratorModal } from '../teacher/SimulationGeneratorModal';
 
 const routeLabel: Record<LearningRoute, string> = {
   foundation: 'Củng cố',
@@ -283,7 +285,9 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
   const [isDashboardLoading, setIsDashboardLoading] = useState(false);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
   const [fallbackEvents, setFallbackEvents] = useState<FallbackTelemetryEvent[]>([]);
-
+  const [simulationsByUnitId, setSimulationsByUnitId] = useState<Record<string, LessonSimulation>>({});
+  const [simulationModalUnitId, setSimulationModalUnitId] = useState<string | null>(null);
+ 
   useEffect(() => {
     let isMounted = true;
 
@@ -382,6 +386,44 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
   }, [loadRealDashboardData]);
 
   useEffect(() => {
+    let isMounted = true;
+
+    const loadLessonSimulations = async () => {
+      if (!user || lesson.knowledgeUnits.length === 0) {
+        setSimulationsByUnitId({});
+        return;
+      }
+
+      try {
+        const simulationEntries = await Promise.all(
+          lesson.knowledgeUnits.map(async unit => {
+            const simulationId = unit.simulationId || `${lesson.id}_${unit.id}`;
+            const snapshot = await getDoc(doc(db, 'lessonSimulations', simulationId));
+
+            if (!snapshot.exists()) return null;
+
+            const simulation = snapshot.data() as LessonSimulation;
+            return [unit.id, simulation] as const;
+          })
+        );
+
+        if (!isMounted) return;
+
+        setSimulationsByUnitId(Object.fromEntries(simulationEntries.filter(Boolean) as [string, LessonSimulation][]));
+      } catch (error) {
+        console.error('Không tải được danh sách mô phỏng của bài học', error);
+        if (isMounted) setSimulationsByUnitId({});
+      }
+    };
+
+    loadLessonSimulations();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [lesson.id, lesson.knowledgeUnits, user]);
+ 
+  useEffect(() => {
     setPortalCopyState('idle');
   }, [studentPortalUrl]);
 
@@ -425,7 +467,9 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
     : firstUnit;
   const routeContent = firstUnit.routes.find(item => item.route === recommendedRoute) || firstUnit.routes[1];
   const activePacingRouteContent = activePacingUnit.routes.find(item => item.route === recommendedRoute) || activePacingUnit.routes[1];
-
+  const firstWorkedExample = routeContent.workedExamples[0];
+  const existingFirstUnitSimulation = simulationsByUnitId[firstUnit.id];
+ 
   const currentProgress = useMemo(() => {
     if (!diagnosticAttempt) return null;
     const progress = createProgressFromDiagnostic(lesson, 'demo-session', 'current-student', diagnosticAttempt);
@@ -508,6 +552,18 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
           : unit
       )),
     }));
+  };
+
+  const handleSimulationSaved = (simulation: LessonSimulation) => {
+    setSimulationsByUnitId(prev => ({ ...prev, [simulation.unitId]: simulation }));
+    setLesson(prev => ({
+      ...prev,
+      updatedAt: new Date().toISOString(),
+      knowledgeUnits: prev.knowledgeUnits.map(unit => (
+        unit.id === simulation.unitId ? { ...unit, simulationId: simulation.id } : unit
+      )),
+    }));
+    setSimulationModalUnitId(null);
   };
 
   const verifyFirebaseAdminHealth = async () => {
@@ -813,7 +869,21 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
 
             {routeContent.workedExamples[0] && (
               <div className="rounded-2xl border border-slate-100 bg-white p-4">
-                <p className="mb-3 text-xs font-black uppercase tracking-wide text-slate-400">Ví dụ mẫu đầu tiên của tuyến {routeLabel[recommendedRoute]}</p>
+                <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-wide text-slate-400">Ví dụ mẫu đầu tiên của tuyến {routeLabel[recommendedRoute]}</p>
+                    <p className="mt-1 text-xs font-semibold text-slate-500">Dùng đề bài này để tạo simulation cho mảnh “{firstUnit.title}”.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSimulationModalUnitId(firstUnit.id)}
+                    disabled={!user || !firstWorkedExample}
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl border border-violet-200 bg-violet-50 px-4 py-2 text-sm font-black text-violet-700 transition hover:bg-violet-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    {existingFirstUnitSimulation ? 'Sửa mô phỏng' : 'Tạo mô phỏng'}
+                  </button>
+                </div>
                 <div className="grid gap-3">
                   <textarea
                     value={routeContent.workedExamples[0].problem}
@@ -1366,6 +1436,20 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
           </table>
         </div>
       </section>
+
+      {firstWorkedExample && (
+        <SimulationGeneratorModal
+          isOpen={simulationModalUnitId === firstUnit.id}
+          lessonId={lesson.id}
+          unitId={firstUnit.id}
+          unitTitle={firstUnit.title}
+          exampleId={firstWorkedExample.id}
+          problemText={firstWorkedExample.problem}
+          existingSimulation={existingFirstUnitSimulation}
+          onClose={() => setSimulationModalUnitId(null)}
+          onSaved={handleSimulationSaved}
+        />
+      )}
     </motion.div>
   );
 };
