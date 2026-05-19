@@ -506,10 +506,10 @@ Khi giáo viên sửa điểm AI → lưu lịch sử ai sửa, sửa từ gì s
 ## 8. 🎯 Roadmap đề xuất
 
 ### Tuần 1 — Stabilize Production (P0)
-- [ ] [P0-1] Fix Vercel 404 routing
-- [ ] [P0-2] Fix lost update bug
+- [x] [P0-1] Fix Vercel 404 routing
+- [x] [P0-2] Fix lost update bug
 - [x] [P0-3] Surgical PATCH_SECTION/PATCH guard cho AI overwrite editor
-- [ ] [P0-4] Verify domain và update HANDOFF
+- [x] [P0-4] Verify domain và update HANDOFF
 
 **Gate to next phase**: Tất cả P0 phải xanh + smoke test E2E pass.
 
