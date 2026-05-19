@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
 import * as XLSXLib from 'xlsx';
 import { AppData, TemplateFile, GradingResult, GradingSession, GradingWarning } from '../../types';
@@ -16,6 +16,38 @@ import { ClassAnalysisModal } from '../features/grading/ClassAnalysisModal';
 import { AISolveExamModal } from '../features/grading/AISolveExamModal';
 import { PlagiarismDashboard } from '../features/grading/PlagiarismDashboard';
 import { detectPlagiarism, PlagiarismReport } from '../../utils/plagiarismUtils';
+
+const BATCH_GRADING_CONCURRENCY = 3;
+const MAX_RATE_LIMIT_RETRIES = 2;
+
+const isRateLimitError = (error: unknown): boolean => {
+  const message = error instanceof Error ? error.message : String(error || '');
+  return /429|rate limit|quota|resource exhausted|too many requests/i.test(message);
+};
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const gradeSubmissionWithRetry = async (
+  combined: TemplateFile,
+  studentFile: TemplateFile,
+  settings: AppData['settings'],
+  maxScore: number,
+  gradingRubric: string
+): Promise<Partial<GradingResult>> => {
+  for (let attempt = 0; attempt <= MAX_RATE_LIMIT_RETRIES; attempt++) {
+    try {
+      return await gradingUtils.gradeSubmission(combined, studentFile, settings, maxScore, gradingRubric);
+    } catch (error) {
+      if (!isRateLimitError(error) || attempt === MAX_RATE_LIMIT_RETRIES) {
+        throw error;
+      }
+      const backoffMs = Math.min(30000, 1500 * 2 ** attempt) + Math.floor(Math.random() * 750);
+      await delay(backoffMs);
+    }
+  }
+
+  throw new Error('Không thể chấm bài sau khi retry rate limit');
+};
 
 interface GradingTabProps {
   data: AppData;
@@ -46,6 +78,9 @@ export const GradingTab = ({
   const [sessionTitle, setSessionTitle] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [sessionSaved, setSessionSaved] = useState(false);
+  const [activeDraftSessionId, setActiveDraftSessionId] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const persistDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Grading config
   const [maxScore, setMaxScore] = useState(10);
@@ -66,6 +101,7 @@ export const GradingTab = ({
   const [aiSolveModalOpen, setAiSolveModalOpen] = useState(false);
   const [aiSolveLoading, setAiSolveLoading] = useState(false);
   const [aiSolveContent, setAiSolveContent] = useState('');
+  const [gradingProgress, setGradingProgress] = useState({ completed: 0, total: 0 });
   const [plagiarismReport, setPlagiarismReport] = useState<PlagiarismReport | null>(null);
   const [plagiarismOpen, setPlagiarismOpen] = useState(false);
   const [isCheckingPlagiarism, setIsCheckingPlagiarism] = useState(false);
@@ -118,9 +154,11 @@ export const GradingTab = ({
     setSessionTitle('');
     setGradingRubric('');
     setSessionSaved(false);
+    setActiveDraftSessionId(null);
     setFilterScore('all');
     setSmartWarnings([]);
     setNoAnswerKey(false);
+    setGradingProgress({ completed: 0, total: 0 });
   };
 
   const loadSession = (session: GradingSession) => {
@@ -129,10 +167,37 @@ export const GradingTab = ({
     setFilterScore('all');
   };
 
+  const createSessionSnapshot = (res: GradingResult[], sessionId: string): GradingSession => ({
+    id: sessionId,
+    title: sessionTitle || masterFiles[0]?.name.replace(/\.[^.]+$/, '') || `Phiên ${new Date().toLocaleDateString('vi-VN')}`,
+    masterFiles: masterFiles.map(f => ({ ...f, content: '' })),
+    gradingRubric: gradingRubric || undefined,
+    results: res,
+    createdAt: new Date().toISOString(),
+    userId: user?.uid,
+  });
+
+  const persistGradingProgress = (res: GradingResult[], sessionId: string, force = false) => {
+    if (persistDebounceRef.current) clearTimeout(persistDebounceRef.current);
+    if (force) {
+      void (async () => await persistSession(createSessionSnapshot(res, sessionId)))();
+      return;
+    }
+    persistDebounceRef.current = setTimeout(async () => {
+      await persistSession(createSessionSnapshot(res, sessionId));
+    }, 2000);
+  };
+
   const gradeAllStudents = async (allMasterFiles: TemplateFile[]) => {
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
+    const signal = abortRef.current.signal;
     setIsProcessing(true);
     setSessionSaved(false);
     setEta('');
+
+    const sessionId = activeDraftSessionId || `session-${Date.now()}`;
+    setActiveDraftSessionId(sessionId);
 
     const combined: TemplateFile = {
       id: 'combined',
@@ -143,40 +208,92 @@ export const GradingTab = ({
     };
 
     const updated = [...results];
-    const startTime = Date.now();
-    let processed = 0;
-    for (let i = 0; i < studentFiles.length; i++) {
-      const idx = updated.findIndex(r => r.fileName === studentFiles[i].name);
-      if (idx === -1 || updated[idx].status === 'completed') continue;
-      updated[idx] = { ...updated[idx], status: 'processing' };
-      setResults([...updated]);
-      try {
-        const graded = await gradingUtils.gradeSubmission(combined, studentFiles[i], data.settings, maxScore, gradingRubric);
-        updated[idx] = { ...updated[idx], ...graded, status: graded.status || 'completed' } as GradingResult;
-      } catch {
-        updated[idx] = { ...updated[idx], status: 'error' };
-      }
-      processed++;
-      setResults([...updated]);
-      const elapsed = Date.now() - startTime;
-      const avgMs = elapsed / processed;
-      const remaining = studentFiles.filter((_, j) => {
-        const r = updated.find(r => r.fileName === studentFiles[j].name);
-        return r && r.status !== 'completed' && r.status !== 'error' && j > i;
-      }).length;
-      if (remaining > 0) {
-        const etaMs = avgMs * remaining;
-        const etaMins = Math.floor(etaMs / 60000);
-        const etaSecs = Math.ceil((etaMs % 60000) / 1000);
-        setEta(etaMins > 0 ? `${etaMins}p${etaSecs}s` : `${etaSecs}s`);
-      }
+    const queue = studentFiles
+      .map(studentFile => ({
+        studentFile,
+        resultIndex: updated.findIndex(r => r.fileName === studentFile.name),
+      }))
+      .filter(item => item.resultIndex !== -1 && updated[item.resultIndex].status !== 'completed');
+
+    if (queue.length === 0) {
+      setEta('');
+      setIsProcessing(false);
+      showToast('Tất cả bài làm hiện tại đã được chấm.');
+      return;
     }
 
-    setEta('');
-    setIsProcessing(false);
-    showToast('Đã hoàn thành chấm điểm!');
-    await handleSaveSession(updated);
+    setGradingProgress({ completed: 0, total: queue.length });
+
+    let cursor = 0;
+    let processed = 0;
+    const startTime = Date.now();
+
+    const updateEta = () => {
+      const remaining = queue.length - processed;
+      if (remaining <= 0) {
+        setEta('');
+        return;
+      }
+      const avgMs = (Date.now() - startTime) / Math.max(processed, 1);
+      const etaMs = avgMs * Math.ceil(remaining / BATCH_GRADING_CONCURRENCY);
+      const etaMins = Math.floor(etaMs / 60000);
+      const etaSecs = Math.ceil((etaMs % 60000) / 1000);
+      setEta(etaMins > 0 ? `${etaMins}p${etaSecs}s` : `${etaSecs}s`);
+    };
+
+    const runWorker = async () => {
+      while (cursor < queue.length && !signal.aborted) {
+        const current = queue[cursor++];
+        const idx = current.resultIndex;
+        updated[idx] = { ...updated[idx], status: 'processing' };
+        setResults([...updated]);
+
+        try {
+          const graded = await gradeSubmissionWithRetry(combined, current.studentFile, data.settings, maxScore, gradingRubric);
+          updated[idx] = { ...updated[idx], ...graded, status: graded.status || 'completed' } as GradingResult;
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Không rõ nguyên nhân';
+          updated[idx] = {
+            ...updated[idx],
+            status: 'error',
+            details: `*Lỗi khi chấm bài: ${message}*`,
+          };
+        }
+
+        processed++;
+        setResults([...updated]);
+        setGradingProgress({ completed: processed, total: queue.length });
+        updateEta();
+        persistGradingProgress(updated, sessionId);
+      }
+    };
+
+    try {
+      const workerCount = Math.min(BATCH_GRADING_CONCURRENCY, queue.length);
+      await Promise.all(Array.from({ length: workerCount }, () => runWorker()));
+
+      const completedCount = updated.filter(r => r.status === 'completed').length;
+      const errorCount = updated.filter(r => r.status === 'error').length;
+      setSessionSaved(true);
+      showToast(
+        errorCount > 0
+          ? `Đã chấm ${completedCount}/${updated.length} bài — ${errorCount} bài lỗi có thể bấm chấm lại`
+          : 'Đã hoàn thành chấm điểm!',
+        errorCount > 0 ? 'warning' : 'success'
+      );
+    } finally {
+      persistGradingProgress(updated, sessionId, true);
+      setEta('');
+      setIsProcessing(false);
+    }
   };
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+      if (persistDebounceRef.current) clearTimeout(persistDebounceRef.current);
+    };
+  }, []);
 
   const handleStartGrading = async () => {
     if (masterFiles.length === 0 || studentFiles.length === 0) return;
@@ -236,16 +353,9 @@ export const GradingTab = ({
   };
 
   const handleSaveSession = async (res: GradingResult[]) => {
-    const session: GradingSession = {
-      id: `session-${Date.now()}`,
-      title: sessionTitle || masterFiles[0]?.name.replace(/\.[^.]+$/, '') || `Phiên ${new Date().toLocaleDateString('vi-VN')}`,
-      masterFiles: masterFiles.map(f => ({ ...f, content: '' })),
-      gradingRubric: gradingRubric || undefined,
-      results: res,
-      createdAt: new Date().toISOString(),
-      userId: user?.uid,
-    };
-    await persistSession(session);
+    const sessionId = activeDraftSessionId || `session-${Date.now()}`;
+    setActiveDraftSessionId(sessionId);
+    await persistSession(createSessionSnapshot(res, sessionId));
     setSessionSaved(true);
     showToast('Đã lưu phiên chấm vào lịch sử!');
   };
@@ -433,6 +543,7 @@ export const GradingTab = ({
                 sessionTitle={sessionTitle} setSessionTitle={setSessionTitle}
                 maxScore={maxScore} setMaxScore={setMaxScore} eta={eta}
                 isProcessing={isProcessing} sessionSaved={sessionSaved}
+                completedCount={gradingProgress.completed} totalCount={gradingProgress.total}
                 filterScore={filterScore} setFilterScore={setFilterScore}
                 data={data} setIsLoading={setIsLoading} showToast={showToast}
                 gradingRubric={gradingRubric} setGradingRubric={setGradingRubric}
