@@ -290,7 +290,13 @@ export const AdaptiveStudentPortalPage = () => {
 
     runSync();
     window.addEventListener('online', runSync);
-    return () => window.removeEventListener('online', runSync);
+    window.addEventListener('storage', runSync);
+    const intervalId = window.setInterval(runSync, 60_000);
+    return () => {
+      window.removeEventListener('online', runSync);
+      window.removeEventListener('storage', runSync);
+      window.clearInterval(intervalId);
+    };
   }, []);
 
   const activeSectionKey = useMemo(() => {

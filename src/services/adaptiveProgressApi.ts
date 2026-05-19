@@ -80,8 +80,15 @@ export const saveAdaptiveProgressOffline = (
     lastSaveError: errorMessage,
   };
 
-  storage.setItem(`${ADAPTIVE_PROGRESS_STORAGE_PREFIX}${payload.progressId}`, JSON.stringify(offlineProgress));
-  storage.setItem(`${ADAPTIVE_PROFILE_STORAGE_PREFIX}${payload.studentId}`, JSON.stringify(payload.profileRecord));
+  try {
+    storage.setItem(`${ADAPTIVE_PROGRESS_STORAGE_PREFIX}${payload.progressId}`, JSON.stringify(offlineProgress));
+    storage.setItem(`${ADAPTIVE_PROFILE_STORAGE_PREFIX}${payload.studentId}`, JSON.stringify(payload.profileRecord));
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+      throw new Error('STORAGE_FULL');
+    }
+    throw error;
+  }
 };
 
 export const syncOfflineAdaptiveProgress = async (): Promise<OfflineAdaptiveProgressSyncResult> => {
