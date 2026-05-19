@@ -1,59 +1,59 @@
 import { useState } from 'react';
+import Swal from 'sweetalert2';
 import { callAI, getActiveApiKey } from '../lib/aiProviders';
 import { AppData } from '../types';
+import { applyEditorPatches, stripEditorPatchTags } from '../utils/editorPatchEngine';
 
 interface ChatMessage {
   role: 'user' | 'ai';
   text: string;
 }
 
-// --- Patch Engine (by Claude Code) ---
+const EDITOR_UNDO_STORAGE_KEY = 'lesson-editor-ai-agent-last-safe-backup';
 
-/** Section Patch: Replace content between two ## headings */
-function applySectionPatch(original: string, heading: string, newContent: string): string {
-  const start = original.indexOf(heading);
-  if (start === -1) return original; // heading not found, skip
-
-  const after = original.slice(start + heading.length);
-  const nextSection = after.match(/\n##+ /);
-  const end = nextSection ? start + heading.length + nextSection.index! : original.length;
-
-  return original.slice(0, start) + heading + '\n\n' + newContent.trim() + '\n\n' + original.slice(end);
-}
-
-/** Find/Replace Patch: Fallback for small edits not tied to a section */
-function applyFindReplace(original: string, find: string, replace: string): string {
-  if (!original.includes(find)) return original; // not found, skip
-  return original.replace(find, replace);
-}
-
-/** Parse all patches from AI response and apply them to the original content */
-function applyAllPatches(original: string, aiResponse: string): { patched: string; count: number } {
-  let result = original;
-  let count = 0;
-
-  // 1. Section Patches (primary)
-  const sectionRegex = /<PATCH_SECTION>\s*<HEADING>([\s\S]*?)<\/HEADING>\s*<CONTENT>([\s\S]*?)<\/CONTENT>\s*<\/PATCH_SECTION>/g;
-  let sectionMatch;
-  while ((sectionMatch = sectionRegex.exec(aiResponse)) !== null) {
-    const heading = sectionMatch[1].trim();
-    const content = sectionMatch[2].trim();
-    result = applySectionPatch(result, heading, content);
-    count++;
+const saveEditorUndoBackup = (content: string) => {
+  try {
+    localStorage.setItem(EDITOR_UNDO_STORAGE_KEY, content);
+  } catch {
+    // Ignore storage quota/private-mode failures; the in-memory undo action still works for this toast.
   }
+};
 
-  // 2. Find/Replace Patches (fallback for small inline edits)
-  const patchRegex = /<PATCH>\s*<FIND>([\s\S]*?)<\/FIND>\s*<REPLACE>([\s\S]*?)<\/REPLACE>\s*<\/PATCH>/g;
-  let patchMatch;
-  while ((patchMatch = patchRegex.exec(aiResponse)) !== null) {
-    const find = patchMatch[1].trim();
-    const replace = patchMatch[2].trim();
-    result = applyFindReplace(result, find, replace);
-    count++;
+const showPatchWarningWithUndo = async ({
+  message,
+  backup,
+  onUndo,
+}: {
+  message: string;
+  backup: string;
+  onUndo: (content: string) => void;
+}) => {
+  const result = await Swal.fire({
+    title: message,
+    icon: 'warning',
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: true,
+    confirmButtonText: 'Hoàn tác',
+    showCancelButton: true,
+    cancelButtonText: 'Đóng',
+    timer: 10000,
+    timerProgressBar: true,
+  });
+
+  if (result.isConfirmed) {
+    onUndo(backup);
+    Swal.fire({
+      title: 'Đã hoàn tác về bản giáo án an toàn gần nhất.',
+      icon: 'success',
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+    });
   }
-
-  return { patched: result, count };
-}
+};
 
 // --- Hook ---
 
@@ -119,25 +119,38 @@ export const useChat = (
       `;
       const result = await callAI(prompt, data.settings);
       if (result) {
-        // Try to apply section/find-replace patches
-        const hasPatch = /<PATCH_SECTION>|<PATCH>/.test(result);
-        if (hasPatch && onUpdateEditor && getCurrentContext) {
+        // Try to apply section/find-replace patches. Full-editor rewrites are blocked by the patch engine.
+        const patchResult = applyEditorPatches(getCurrentContext ? getCurrentContext() || '' : '', result);
+        if (patchResult.hasPatchIntent && onUpdateEditor && getCurrentContext) {
           const currentContent = getCurrentContext();
           if (currentContent) {
-            const { patched, count } = applyAllPatches(currentContent, result);
-            if (count > 0) {
-              onUpdateEditor(patched);
-              showToast(`✅ Đã cập nhật ${count} mục trong giáo án!`, 'success');
-            } else {
-              showToast('⚠️ Không tìm thấy đúng vị trí cần sửa trong giáo án.', 'warning');
+            const safeBackup = currentContent;
+            if (patchResult.appliedCount > 0) {
+              saveEditorUndoBackup(safeBackup);
+              onUpdateEditor(patchResult.patched);
+              showToast(`✅ Đã cập nhật ${patchResult.appliedCount} mục trong giáo án!`, 'success');
+            }
+
+            if (patchResult.warnings.length > 0) {
+              await showPatchWarningWithUndo({
+                message: `⚠️ ${patchResult.warnings[0]}`,
+                backup: safeBackup,
+                onUndo: onUpdateEditor,
+              });
+            } else if (patchResult.appliedCount === 0) {
+              showToast(
+                patchResult.rejected[0]?.reason || '⚠️ Không tìm thấy đúng vị trí cần sửa trong giáo án.',
+                'warning'
+              );
             }
           }
           // Show explanation text only (strip patch tags from chat)
-          const cleanText = result
-            .replace(/<PATCH_SECTION>[\s\S]*?<\/PATCH_SECTION>/g, '')
-            .replace(/<PATCH>[\s\S]*?<\/PATCH>/g, '')
-            .trim();
-          const feedbackMsg = cleanText || `✨ **Trợ lý đã cập nhật giáo án thành công!**`;
+          const cleanText = stripEditorPatchTags(result);
+          const feedbackMsg = cleanText || (
+            patchResult.appliedCount > 0
+              ? `✨ **Trợ lý đã cập nhật giáo án an toàn bằng patch.**`
+              : `⚠️ **Trợ lý không ghi đè giáo án vì patch không an toàn hoặc không khớp nội dung hiện tại.**`
+          );
           setChatMessages(prev => [...prev, { role: 'ai', text: feedbackMsg }]);
         } else {
           setChatMessages(prev => [...prev, { role: 'ai', text: result }]);
