@@ -16,6 +16,10 @@
       "maxDuration": 15,
       "memory": 512
     },
+    "api/health/firebase-admin.ts": {
+      "maxDuration": 10,
+      "memory": 256
+    },
     "api/gemini-relay.ts": {
       "maxDuration": 30,
       "memory": 512
