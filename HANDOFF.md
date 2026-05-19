@@ -421,17 +421,21 @@ Cowork phát hiện đúng một lỗi quan trọng trong ghi chú/debug trướ
 - Domain đúng của app: `giaoandewey.vercel.app`
 - Domain sai từng bị ghi/test nhầm: `giaooandewey.vercel.app` dư một chữ `o`
 
-Kết quả kiểm tra lại:
+Kết quả kiểm tra lại mới nhất sau P0-4 (2026-05-18):
 
 ```txt
+https://giaoandewey.vercel.app STATUS=200 CT=text/html; charset=utf-8
+https://giaooandewey.vercel.app STATUS=404 CT=text/plain; charset=utf-8 X-Vercel-Error=DEPLOYMENT_NOT_FOUND
 https://giaoandewey.vercel.app/api/adaptive-progress STATUS=405 CT=application/json; charset=utf-8
 https://giaoandewey.vercel.app/api/gemini-relay STATUS=405 CT=application/json; charset=utf-8
-https://giaooandewey.vercel.app/api/adaptive-progress STATUS=404 CT=text/plain; charset=utf-8
-https://giaooandewey.vercel.app/api/gemini-relay STATUS=404 CT=text/plain; charset=utf-8
+https://giaoandewey.vercel.app/api/export-lesson STATUS=405 CT=application/json; charset=utf-8
+https://giaoandewey.vercel.app/api/render-word STATUS=405 CT=application/json; charset=utf-8
 ```
 
 Ý nghĩa:
 
+- Domain production chính thức là `https://giaoandewey.vercel.app` (một chữ `o` sau `gia`). Đây là URL phải dùng trong QR/link cổng học sinh, Telegram bot, tài liệu vận hành và mọi checklist production.
+- Domain `https://giaooandewey.vercel.app` là domain sai/stale, trả `404 DEPLOYMENT_NOT_FOUND`; không dùng domain này để kết luận app hoặc API production bị lỗi.
 - `405` trên domain đúng là tín hiệu tốt: API route tồn tại và đang từ chối `GET` vì handler chỉ nhận `POST`.
 - `404` trước đó không chứng minh Vercel mất API route; nguyên nhân chính là đã test nhầm sang domain sai.
 - Việc cần kiểm tra tiếp không phải “Vercel có nhận API route không”, mà là POST thật từ cổng học sinh có lưu được vào Firestore qua Firebase Admin SDK hay không.
