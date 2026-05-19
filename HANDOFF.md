@@ -1,8 +1,9 @@
 # HANDOFF — Soạn giáo án / học phân hoá
 
-**Cập nhật**: 2026-05-15
+**Cập nhật**: 2026-05-20
 **Repo chính**: `soangiaoan`
-**Branch hiện tại**: `main`
+**Branch hiện tại**: `claude/sprint-e-completion-reward`
+**Commit Sprint E mới nhất**: `c9df1c440ed5dc236b0a8c53f8d2ae40d8ebcfc5 feat: add adaptive lesson completion reward`
 **Commit nền trước phiên tương tác ví dụ học sinh**: `99aa575 Add real adaptive teacher dashboard`
 **Mục đích file này**: để một phiên Claude Code / Claude Cowork / Google Antigravity hoặc kỹ sư khác đọc nhanh toàn bộ bối cảnh, các thay đổi đã làm, vấn đề còn tồn tại, và các bước cần kiểm tra/sửa tiếp mà không phải hỏi lại từ đầu.
 
@@ -17,6 +18,8 @@ Repo `soangiaoan` đã được commit và push lên GitHub.
 Các commit quan trọng gần nhất:
 
 ```txt
+c9df1c4 feat: add adaptive lesson completion reward
+3844ac6 feat: add teacher simulation generator dashboard
 99aa575 Add real adaptive teacher dashboard
 c0f4bb9 Add adaptive student portal QR sharing
 d9a77d0 Document production e2e adaptive progress pass
@@ -73,6 +76,53 @@ Kết quả mới nhất: `npm run lint` pass; `npm run build` pass, chỉ còn 
 ---
 
 ## 3. Các thay đổi lớn đã hoàn thành
+
+## 3.0 Sprint E — Completion reward cuối bài học
+
+Branch:
+
+```txt
+claude/sprint-e-completion-reward
+```
+
+Commit chính:
+
+```txt
+c9df1c440ed5dc236b0a8c53f8d2ae40d8ebcfc5 feat: add adaptive lesson completion reward
+```
+
+PR URL:
+
+```txt
+https://github.com/congapro60-dev/soangiaoan/pull/new/claude/sprint-e-completion-reward
+```
+
+File đã chỉnh:
+
+- `src/lib/adaptive/types.ts`
+- `src/lib/adaptive/sampleAdaptiveLesson.ts`
+- `src/pages/AdaptiveStudentPortalPage.tsx`
+
+Đã làm:
+
+- Mở rộng `AdaptiveLesson` với field tuỳ chọn `completionReward?: { toolId: string; message: string; }` ngay sau `pacingPolicy`.
+- Thêm reward mặc định vào bài học mẫu, trỏ đến external tool id `gamedoikhang` với thông điệp hoàn thành bài học.
+- Ở stage `complete` của cổng học sinh, render reward card sau các ô tổng kết kết quả.
+- Reward card dùng `getToolsByIds([lesson.completionReward.toolId])[0]` để lấy URL/name từ registry external tools.
+- Nếu tool id không tồn tại, UI bỏ qua card bằng `return null`, tránh lỗi runtime.
+
+Kiểm tra đã chạy:
+
+```bash
+npm run build
+```
+
+Kết quả: build pass, exit code 0. Có thể vẫn xuất hiện các warning Vite cũ về dynamic import/chunk size, không chặn build.
+
+Ghi chú quan trọng:
+
+- Branch Sprint E được tạo từ `main` đúng yêu cầu, nên không bao gồm thay đổi Sprint B.3 nếu B.3 chưa được merge vào `main`.
+- Manual UI test chưa chạy; mới xác nhận bằng TypeScript/Vite production build.
 
 ## 3.1 Cổng học sinh riêng cho học phân hoá
 
