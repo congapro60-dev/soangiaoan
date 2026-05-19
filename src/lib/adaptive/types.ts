@@ -124,6 +124,7 @@ export interface KnowledgeUnit {
   supportTasks?: PracticeTask[];
   enrichmentTasks?: PracticeTask[];
   externalToolIds?: string[];
+  simulationId?: string;  // ref đến lessonSimulations/{lessonId}_{unitId}
 }
 
 export interface LessonPacingPolicy {
@@ -334,4 +335,18 @@ export interface AdaptiveTeacherDashboardData {
   needsTeacherCount: number;
   objectiveInsights: TeacherObjectiveInsight[];
   urgentFlags: TeacherFlag[];
+}
+
+export interface LessonSimulation {
+  id: string;
+  lessonId: string;
+  unitId: string;
+  exampleId: string;
+  problemText: string;
+  html: string;
+  style: 'textbook' | 'realistic';
+  createdAt: string;
+  createdBy: string;
+  htmlSizeBytes: number;
+  geminiModel: string;
 }

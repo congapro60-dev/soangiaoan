@@ -119,5 +119,17 @@ service cloud.firestore {
                   && request.auth.uid == resource.data.teacherId;
       allow update, delete: if false;
     }
+    match /lessonSimulations/{simulationId} {
+      allow create: if request.auth != null
+                    && request.resource.data.createdBy == request.auth.uid
+                    && request.resource.data.html is string
+                    && request.resource.data.html.size() < 200000
+                    && request.resource.data.lessonId is string;
+      allow read: if request.auth != null;
+      allow update: if request.auth != null
+                    && resource.data.createdBy == request.auth.uid;
+      allow delete: if request.auth != null
+                    && resource.data.createdBy == request.auth.uid;
+    }
   }
 }
