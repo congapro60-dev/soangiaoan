@@ -1,0 +1,37 @@
+name: API Typecheck
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "api/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/api-typecheck.yml"
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - "api/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/api-typecheck.yml"
+
+jobs:
+  api-typecheck:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck Vercel API routes
+        run: npx tsc --noEmit --module NodeNext --moduleResolution NodeNext --target ES2022 --esModuleInterop --skipLibCheck --types node api/*.ts
