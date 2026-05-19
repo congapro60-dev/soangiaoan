@@ -118,6 +118,13 @@ interface AdaptiveLessonDocument {
   updatedAt: string;
 }
 
+interface FirebaseAdminHealthResponse {
+  ok: boolean;
+  missing?: string[];
+  invalid?: string[];
+  error?: string;
+}
+
 const getAdaptiveLessonDocId = (userId: string) => userId;
 
 const PRODUCTION_STUDENT_PORTAL_ORIGIN = 'https://giaoandewey.vercel.app';
@@ -250,6 +257,7 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
   const [isCloudLoading, setIsCloudLoading] = useState(true);
   const [isSavingLesson, setIsSavingLesson] = useState(false);
   const [cloudError, setCloudError] = useState<string | null>(null);
+  const [isCheckingAdminHealth, setIsCheckingAdminHealth] = useState(false);
   const [studentAnswers, setStudentAnswers] = useState<Record<string, string>>({});
   const [diagnosticAttempt, setDiagnosticAttempt] = useState<AssessmentAttempt | null>(null);
   const [quickCheckAnswers, setQuickCheckAnswers] = useState<Record<string, string>>({});
@@ -461,6 +469,28 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
     }));
   };
 
+  const verifyFirebaseAdminHealth = async () => {
+    setIsCheckingAdminHealth(true);
+
+    try {
+      const response = await fetch('/api/health/firebase-admin', { method: 'GET' });
+      const data = await response.json().catch(() => null) as FirebaseAdminHealthResponse | null;
+
+      if (!response.ok || !data?.ok) {
+        const missing = data?.missing?.length ? data.missing.join(', ') : null;
+        const invalid = data?.invalid?.length ? data.invalid.join(', ') : null;
+        const details = [
+          missing ? `Thiếu: ${missing}` : null,
+          invalid ? `Sai định dạng: ${invalid}` : null,
+        ].filter(Boolean).join(' · ');
+
+        throw new Error(details || data?.error || 'Endpoint health check Firebase Admin chưa sẵn sàng.');
+      }
+    } finally {
+      setIsCheckingAdminHealth(false);
+    }
+  };
+
   const handleSaveTeacherDraft = async () => {
     if (!user) {
       setCloudError('Bạn cần đăng nhập để lưu bài học phân hoá lên Firestore.');
@@ -470,7 +500,11 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
     setIsSavingLesson(true);
     setCloudError(null);
 
+    let adminHealthVerified = false;
+
     try {
+      await verifyFirebaseAdminHealth();
+      adminHealthVerified = true;
       const now = new Date().toISOString();
       const lessonToSave: AdaptiveLesson = {
         ...lesson,
@@ -500,8 +534,11 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
       setIsTeacherEditing(false);
       loadRealDashboardData();
     } catch (error) {
-      console.error('Lỗi lưu bài học phân hoá', error);
-      setCloudError('Không lưu được bài học lên Firestore. Vui lòng kiểm tra kết nối hoặc quyền Firestore.');
+      console.error('Lỗi lưu hoặc bật cổng học sinh', error);
+      const detail = error instanceof Error ? error.message : 'Không rõ nguyên nhân';
+      setCloudError(adminHealthVerified
+        ? `Firebase Admin API đã sẵn sàng nhưng chưa lưu được bài học lên Firestore. ${detail}. Vui lòng kiểm tra kết nối hoặc quyền Firestore.`
+        : `Chưa thể bật cổng học sinh vì Firebase Admin API chưa sẵn sàng. ${detail}. Vui lòng cấu hình FIREBASE_SERVICE_ACCOUNT_KEY hoặc bộ FIREBASE_PROJECT_ID / FIREBASE_CLIENT_EMAIL / FIREBASE_PRIVATE_KEY trên Vercel rồi thử lại.`);
     } finally {
       setIsSavingLesson(false);
     }
@@ -613,11 +650,11 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
           <div className="flex flex-col gap-2 sm:flex-row lg:shrink-0">
             <button
               onClick={handleSaveTeacherDraft}
-              disabled={isSavingLesson || isCloudLoading || !user}
+              disabled={isSavingLesson || isCheckingAdminHealth || isCloudLoading || !user}
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-indigo-100 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
             >
               <CheckCircle2 className="h-4 w-4" />
-              {isSavingLesson ? 'Đang lưu...' : 'Lưu & bật cổng học sinh'}
+              {isCheckingAdminHealth ? 'Đang kiểm tra Firebase Admin...' : isSavingLesson ? 'Đang lưu...' : 'Lưu & bật cổng học sinh'}
             </button>
             <button
               onClick={() => setIsTeacherEditing(prev => !prev)}
@@ -673,10 +710,10 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
               </div>
               <button
                 onClick={handleSaveTeacherDraft}
-                disabled={isSavingLesson || isCloudLoading || !user}
+                disabled={isSavingLesson || isCheckingAdminHealth || isCloudLoading || !user}
                 className="rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-black text-white shadow-lg shadow-indigo-100 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
               >
-                {isSavingLesson ? 'Đang lưu...' : 'Lưu thay đổi'}
+                {isCheckingAdminHealth ? 'Đang kiểm tra Firebase Admin...' : isSavingLesson ? 'Đang lưu...' : 'Lưu thay đổi'}
               </button>
             </div>
 
