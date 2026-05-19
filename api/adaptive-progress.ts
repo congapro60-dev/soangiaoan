@@ -3,6 +3,8 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { cert, getApps, initializeApp } from 'firebase-admin/app';
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 
+import { mergeProfileWithExisting } from './adaptive-progress-profile.js';
+
 const parseJsonSecret = (value: string) => {
   try {
     return JSON.parse(value);
@@ -49,63 +51,6 @@ const getAdminDb = () => {
 
 const normalizeStudentCode = (value: unknown) => String(value || '').trim().toUpperCase().replace(/\s+/g, '-');
 
-const getAverageMasteryFromAttempts = (attempts: any[]) => {
-  const scores = attempts.flatMap(attempt => (
-    Array.isArray(attempt?.objectiveScores)
-      ? attempt.objectiveScores.map((score: any) => Number(score?.masteryEstimate)).filter(Number.isFinite)
-      : []
-  ));
-
-  if (scores.length === 0) return 0;
-  return Number((scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(2));
-};
-
-const mergeProfileWithExisting = ({ existingProfile, incomingProfile, progressRecord }: {
-  existingProfile: any | null;
-  incomingProfile: any;
-  progressRecord: any;
-}) => {
-  if (!existingProfile) return incomingProfile;
-
-  const diagnosticAttempt = progressRecord?.diagnosticAttempt;
-  const quickCheckAttempts = Array.isArray(progressRecord?.quickCheckAttempts) ? progressRecord.quickCheckAttempts : [];
-  const attempts = [diagnosticAttempt, ...quickCheckAttempts].filter(Boolean);
-  const sessionMastery = getAverageMasteryFromAttempts(attempts);
-  const previousSessions = Number(existingProfile.totalSessions || 0);
-  const totalSessions = previousSessions + 1;
-  const previousAverage = Number(existingProfile.averageMastery || 0);
-  const averageMastery = Number((((previousAverage * previousSessions) + sessionMastery) / Math.max(totalSessions, 1)).toFixed(2));
-
-  const currentMemory = Array.isArray(existingProfile.objectiveMemory) ? existingProfile.objectiveMemory : [];
-  const incomingMemory = Array.isArray(incomingProfile.objectiveMemory) ? incomingProfile.objectiveMemory : [];
-  const objectiveMemory = incomingMemory.map((incoming: any) => {
-    const previous = currentMemory.find((item: any) => item?.objectiveId === incoming?.objectiveId);
-    return {
-      ...previous,
-      ...incoming,
-      attempts: Number(previous?.attempts || 0) + Math.max(Number(incoming?.attempts || 0), 1),
-      lastUpdatedAt: incoming?.lastUpdatedAt || new Date().toISOString(),
-    };
-  });
-
-  const misconceptionCounts = { ...(existingProfile.misconceptionCounts || {}) };
-  Object.entries(incomingProfile.misconceptionCounts || {}).forEach(([key, value]) => {
-    misconceptionCounts[key] = Number(misconceptionCounts[key] || 0) + Number(value || 0);
-  });
-
-  return {
-    ...existingProfile,
-    ...incomingProfile,
-    totalSessions,
-    averageMastery,
-    routeHistory: [...(existingProfile.routeHistory || []), incomingProfile.routeHistory?.at?.(-1) || progressRecord.route].filter(Boolean).slice(-20),
-    objectiveMemory,
-    misconceptionCounts,
-    createdAt: existingProfile.createdAt || incomingProfile.createdAt || new Date().toISOString(),
-    updatedAt: incomingProfile.updatedAt || new Date().toISOString(),
-  };
-};
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -149,12 +94,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const profileRef = db.collection('studentLearningProfiles').doc(studentId);
-    const existingProfileSnapshot = await profileRef.get();
-    const existingProfile = existingProfileSnapshot.exists ? existingProfileSnapshot.data() : null;
-    const mergedProfile = mergeProfileWithExisting({ existingProfile, incomingProfile: profileRecord, progressRecord });
+    const progressRef = db.collection('adaptiveSessionProgress').doc(progressId);
+    let mergedProfile: any = null;
 
     await db.runTransaction(async transaction => {
-      transaction.set(db.collection('adaptiveSessionProgress').doc(progressId), {
+      const existingProfileSnapshot = await transaction.get(profileRef);
+      const existingProfile = existingProfileSnapshot.exists ? existingProfileSnapshot.data() : null;
+      mergedProfile = mergeProfileWithExisting({ existingProfile, incomingProfile: profileRecord, progressRecord });
+
+      transaction.set(progressRef, {
         ...progressRecord,
         savedViaAdminApi: true,
         serverSyncedAt: FieldValue.serverTimestamp(),
