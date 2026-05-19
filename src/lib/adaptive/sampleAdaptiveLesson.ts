@@ -599,4 +599,8 @@ export const sampleAdaptiveLesson: AdaptiveLesson = {
       },
     ],
   },
+  completionReward: {
+    toolId: 'gamedoikhang',
+    message: 'Em đã học xong bài! Thử thách bạn cùng lớp trong Đấu Trường Tri Thức?',
+  },
 };

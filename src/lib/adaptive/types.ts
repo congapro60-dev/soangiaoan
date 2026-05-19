@@ -154,6 +154,10 @@ export interface AdaptiveLesson {
   diagnosticTest: AdaptiveAssessment;
   exitTicket: AdaptiveAssessment;
   pacingPolicy?: LessonPacingPolicy;
+  completionReward?: {
+    toolId: string;
+    message: string;
+  };
 }
 
 export interface StudentParticipant {

@@ -986,6 +986,28 @@ export const AdaptiveStudentPortalPage = () => {
               <ResultTile label="Test đầu giờ" value={`${totalDiagnosticScore}/${maxDiagnosticScore}`} />
               <ResultTile label="Hồ sơ đã học" value={`${profile?.totalSessions || 1} tiết`} />
             </div>
+
+            {lesson.completionReward && (() => {
+              const tool = getToolsByIds([lesson.completionReward.toolId])[0];
+              if (!tool) return null;
+              return (
+                <div className="mt-6 rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-6 text-left">
+                  <div className="mb-3 flex items-center gap-3">
+                    <span className="text-2xl">🎮</span>
+                    <h3 className="font-bold text-slate-800">Phần thưởng cho em</h3>
+                  </div>
+                  <p className="mb-4 text-sm text-slate-700">{lesson.completionReward.message}</p>
+                  <a
+                    href={tool.url}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="inline-flex items-center gap-2 rounded-2xl bg-amber-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-amber-700"
+                  >
+                    Mở {tool.name} →
+                  </a>
+                </div>
+              );
+            })()}
           </motion.section>
         )}
       </div>
