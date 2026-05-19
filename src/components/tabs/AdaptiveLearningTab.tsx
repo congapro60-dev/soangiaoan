@@ -32,7 +32,8 @@ import {
 } from '../../lib/adaptive/diagnosticEngine';
 import { AdaptiveLesson, AdaptiveQuestion, AssessmentAttempt, LearningRoute, PacingAction, PacingStatus, PracticeTask, StudentAdaptiveProgress, StudentLearningProfile, StudentSessionProgressRecord, TeacherFlag } from '../../lib/adaptive/types';
 import { cn } from '../../lib/utils';
-import { FallbackTelemetryEvent, getFallbackEventsForTeacher } from '../../services/telemetry';
+import type { FallbackErrorCode, FallbackTelemetryEvent } from '../../services/telemetry';
+import { getFallbackEventsForTeacher } from '../../services/telemetry';
 
 const routeLabel: Record<LearningRoute, string> = {
   foundation: 'Củng cố',
@@ -66,6 +67,16 @@ const pacingStatusClass: Record<PacingStatus, string> = {
   on_track: 'border-blue-200 bg-blue-50 text-blue-700',
   behind: 'border-amber-200 bg-amber-50 text-amber-700',
   stuck: 'border-red-200 bg-red-50 text-red-700',
+};
+
+const fallbackErrorCodeLabel: Record<FallbackErrorCode, string> = {
+  network: 'Mất mạng',
+  permission_denied: 'Thiếu quyền',
+  quota_exceeded: 'Vượt quota',
+  not_found: 'Không tìm thấy',
+  invalid_argument: 'Tham số sai',
+  unauthenticated: 'Chưa đăng nhập',
+  unknown: 'Lỗi khác',
 };
 
 const demoStudents = [
@@ -382,6 +393,10 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
     acc[event.stage] += 1;
     return acc;
   }, { api: 0, firestore: 0, localStorage: 0 }), [fallbackEventsLast7Days]);
+  const fallbackErrorCodeCounts = useMemo(() => fallbackEventsLast7Days.reduce<Partial<Record<FallbackErrorCode, number>>>((acc, event) => {
+    acc[event.errorCode] = (acc[event.errorCode] || 0) + 1;
+    return acc;
+  }, {}), [fallbackEventsLast7Days]);
   const saveSuccessRate7Days = useMemo(() => {
     const totalSignals = realProgressRecords.length + fallbackEventsLast7Days.length;
     if (totalSignals === 0) return 100;
@@ -1224,6 +1239,15 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
             <span>Firestore fallback: {fallbackStageCounts.firestore}</span>
             <span>LocalStorage fallback: {fallbackStageCounts.localStorage}</span>
           </div>
+          {Object.keys(fallbackErrorCodeCounts).length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold text-blue-700">
+              {(Object.entries(fallbackErrorCodeCounts) as [FallbackErrorCode, number][]).map(([errorCode, count]) => (
+                <span key={errorCode} className="rounded-full bg-white px-3 py-1">
+                  {fallbackErrorCodeLabel[errorCode] || errorCode}: {count}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="mt-5 grid gap-4 lg:grid-cols-3">

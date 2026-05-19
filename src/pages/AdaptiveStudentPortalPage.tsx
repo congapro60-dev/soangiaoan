@@ -38,7 +38,7 @@ import {
 } from '../lib/adaptive/types';
 import { cn } from '../lib/utils';
 import { saveAdaptiveProgressViaApi } from '../services/adaptiveProgressApi';
-import { logFallbackEvent, syncQueuedFallbackEvents } from '../services/telemetry';
+import { classifyFallbackError, logFallbackEvent, syncQueuedFallbackEvents } from '../services/telemetry';
 import { ensureMathWrapped } from '../utils/examScoring';
 
 type PortalStage = 'loading' | 'not_found' | 'identify' | 'diagnostic' | 'lesson' | 'quick_check' | 'exit_ticket' | 'complete';
@@ -597,7 +597,9 @@ export const AdaptiveStudentPortalPage = () => {
         studentId,
         lessonId: lesson.id,
         stage: 'api',
-        errorMessage: getErrorMessage(apiError),
+        timestamp: new Date().toISOString(),
+        errorCode: classifyFallbackError(apiError),
+        source: 'student_portal',
       });
 
       try {
@@ -619,7 +621,9 @@ export const AdaptiveStudentPortalPage = () => {
           studentId,
           lessonId: lesson.id,
           stage: 'firestore',
-          errorMessage: getErrorMessage(firestoreError),
+          timestamp: new Date().toISOString(),
+          errorCode: classifyFallbackError(firestoreError),
+          source: 'student_portal',
         });
         const offlineProgress = {
           ...progressRecord,
@@ -636,7 +640,9 @@ export const AdaptiveStudentPortalPage = () => {
             studentId,
             lessonId: lesson.id,
             stage: 'localStorage',
-            errorMessage: getErrorMessage(firestoreError),
+            timestamp: new Date().toISOString(),
+            errorCode: classifyFallbackError(firestoreError),
+            source: 'student_portal',
           });
           setProfile(nextProfile);
           setStage('complete');

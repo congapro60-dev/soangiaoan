@@ -99,16 +99,25 @@ service cloud.firestore {
                   && request.auth.uid == get(/databases/$(database)/documents/exams/$(resource.data.examId)).data.teacherId;
     }
 
-    // Telemetry fallback — học sinh/cổng anonymous được tạo event tối thiểu; giáo viên owner đọc để theo dõi tỷ lệ lưu.
+    // Telemetry fallback — chỉ ghi schema tối thiểu đã redact PII; giáo viên owner đọc để theo dõi tỷ lệ lưu.
     match /fallbackEvents/{eventId} {
-      allow create: if request.resource.data.teacherId is string
+      allow create: if request.auth != null
+                    && request.resource.data.keys().hasOnly(
+                      ['teacherId', 'studentId', 'lessonId', 'stage', 'timestamp', 'errorCode', 'source'])
+                    && request.resource.data.teacherId is string
+                    && request.resource.data.teacherId.size() <= 128
                     && request.resource.data.studentId is string
+                    && request.resource.data.studentId.size() <= 128
                     && request.resource.data.lessonId is string
+                    && request.resource.data.lessonId.size() <= 128
                     && request.resource.data.stage in ['api', 'firestore', 'localStorage']
                     && request.resource.data.timestamp is string
-                    && request.resource.data.errorMessage is string;
+                    && request.resource.data.errorCode is string
+                    && request.resource.data.errorCode.size() <= 64
+                    && request.resource.data.source == 'student_portal';
       allow read: if request.auth != null
                   && request.auth.uid == resource.data.teacherId;
+      allow update, delete: if false;
     }
   }
 }
