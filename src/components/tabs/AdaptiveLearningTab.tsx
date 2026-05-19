@@ -32,6 +32,8 @@ import {
 } from '../../lib/adaptive/diagnosticEngine';
 import { AdaptiveLesson, AdaptiveQuestion, AssessmentAttempt, LearningRoute, PacingAction, PacingStatus, PracticeTask, StudentAdaptiveProgress, StudentLearningProfile, StudentSessionProgressRecord, TeacherFlag } from '../../lib/adaptive/types';
 import { cn } from '../../lib/utils';
+import type { FallbackErrorCode, FallbackTelemetryEvent } from '../../services/telemetry';
+import { getFallbackEventsForTeacher } from '../../services/telemetry';
 
 const routeLabel: Record<LearningRoute, string> = {
   foundation: 'Củng cố',
@@ -65,6 +67,16 @@ const pacingStatusClass: Record<PacingStatus, string> = {
   on_track: 'border-blue-200 bg-blue-50 text-blue-700',
   behind: 'border-amber-200 bg-amber-50 text-amber-700',
   stuck: 'border-red-200 bg-red-50 text-red-700',
+};
+
+const fallbackErrorCodeLabel: Record<FallbackErrorCode, string> = {
+  network: 'Mất mạng',
+  permission_denied: 'Thiếu quyền',
+  quota_exceeded: 'Vượt quota',
+  not_found: 'Không tìm thấy',
+  invalid_argument: 'Tham số sai',
+  unauthenticated: 'Chưa đăng nhập',
+  unknown: 'Lỗi khác',
 };
 
 const demoStudents = [
@@ -262,6 +274,7 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
   const [realProfiles, setRealProfiles] = useState<StudentLearningProfile[]>([]);
   const [isDashboardLoading, setIsDashboardLoading] = useState(false);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
+  const [fallbackEvents, setFallbackEvents] = useState<FallbackTelemetryEvent[]>([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -312,6 +325,7 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
     if (!user) {
       setRealProgressRecords([]);
       setRealProfiles([]);
+      setFallbackEvents([]);
       setDashboardError(null);
       setIsDashboardLoading(false);
       return;
@@ -330,9 +344,10 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
         where('teacherId', '==', user.uid)
       );
 
-      const [progressSnapshot, profileSnapshot] = await Promise.all([
+      const [progressSnapshot, profileSnapshot, telemetryEvents] = await Promise.all([
         getDocs(progressQuery),
         getDocs(profileQuery),
+        getFallbackEventsForTeacher(user.uid),
       ]);
 
       const progressRecords = progressSnapshot.docs
@@ -342,11 +357,13 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
 
       setRealProgressRecords(progressRecords);
       setRealProfiles(profiles);
+      setFallbackEvents(telemetryEvents);
     } catch (error) {
       console.error('Lỗi tải dashboard học sinh thật', error);
       setDashboardError('Không tải được dữ liệu học sinh thật. Hệ thống tạm hiển thị dữ liệu mô phỏng.');
       setRealProgressRecords([]);
       setRealProfiles([]);
+      setFallbackEvents([]);
     } finally {
       setIsDashboardLoading(false);
     }
@@ -365,6 +382,30 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
   const dashboardProgresses = realProgresses.length > 0 ? realProgresses : demoProgresses;
   const dashboardRows = useMemo(() => buildRealStudentDashboardRows(realProgressRecords, realProfiles), [realProgressRecords, realProfiles]);
   const isUsingRealDashboard = realProgressRecords.length > 0;
+  const telemetryWindowStart = useMemo(() => {
+    const date = new Date();
+    date.setDate(date.getDate() - 6);
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }, [fallbackEvents.length]);
+  const fallbackEventsLast7Days = useMemo(() => fallbackEvents.filter(event => new Date(event.timestamp) >= telemetryWindowStart), [fallbackEvents, telemetryWindowStart]);
+  const realProgressRecordsLast7Days = useMemo(() => realProgressRecords.filter(record => {
+    const timestamp = record.updatedAt || record.startedAt;
+    return timestamp ? new Date(timestamp) >= telemetryWindowStart : false;
+  }), [realProgressRecords, telemetryWindowStart]);
+  const fallbackStageCounts = useMemo(() => fallbackEventsLast7Days.reduce<Record<'api' | 'firestore' | 'localStorage', number>>((acc, event) => {
+    acc[event.stage] += 1;
+    return acc;
+  }, { api: 0, firestore: 0, localStorage: 0 }), [fallbackEventsLast7Days]);
+  const fallbackErrorCodeCounts = useMemo(() => fallbackEventsLast7Days.reduce<Partial<Record<FallbackErrorCode, number>>>((acc, event) => {
+    acc[event.errorCode] = (acc[event.errorCode] || 0) + 1;
+    return acc;
+  }, {}), [fallbackEventsLast7Days]);
+  const saveSuccessRate7Days = useMemo(() => {
+    const totalSignals = realProgressRecordsLast7Days.length + fallbackEventsLast7Days.length;
+    if (totalSignals === 0) return 100;
+    return Math.round((realProgressRecordsLast7Days.length / totalSignals) * 100);
+  }, [realProgressRecordsLast7Days.length, fallbackEventsLast7Days.length]);
   const teacherDashboard = useMemo(() => buildTeacherDashboardData(lesson, dashboardProgresses), [lesson, dashboardProgresses]);
   const recommendedRoute = diagnosticAttempt?.recommendedRoute || 'standard';
   const firstUnit = lesson.knowledgeUnits[0];
@@ -1182,6 +1223,35 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
           <StatCard icon={<CheckCircle2 className="h-5 w-5" />} label="Đã chẩn đoán" value={teacherDashboard.completedDiagnostic} />
           <StatCard icon={<AlertTriangle className="h-5 w-5" />} label="Cần hỗ trợ" value={teacherDashboard.needsTeacherCount} />
           <StatCard icon={<Route className="h-5 w-5" />} label="Tuyến thử thách" value={teacherDashboard.routeCounts.challenge} />
+        </div>
+
+        <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-sm font-black text-blue-800">Tỷ lệ lưu thành công 7 ngày qua</p>
+              <p className="mt-1 text-xs font-semibold text-blue-600">
+                Dựa trên {realProgressRecordsLast7Days.length} bản ghi học tập và {fallbackEventsLast7Days.length} sự kiện fallback trong 7 ngày gần nhất.
+              </p>
+            </div>
+            <div className="text-3xl font-black text-blue-700">{saveSuccessRate7Days}%</div>
+          </div>
+          <div className="mt-3 h-3 overflow-hidden rounded-full bg-white">
+            <div className="h-full rounded-full bg-blue-600 transition-all" style={{ width: `${saveSuccessRate7Days}%` }} />
+          </div>
+          <div className="mt-3 grid gap-2 text-xs font-bold text-slate-600 sm:grid-cols-3">
+            <span>API fallback: {fallbackStageCounts.api}</span>
+            <span>Firestore fallback: {fallbackStageCounts.firestore}</span>
+            <span>LocalStorage fallback: {fallbackStageCounts.localStorage}</span>
+          </div>
+          {Object.keys(fallbackErrorCodeCounts).length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold text-blue-700">
+              {(Object.entries(fallbackErrorCodeCounts) as [FallbackErrorCode, number][]).map(([errorCode, count]) => (
+                <span key={errorCode} className="rounded-full bg-white px-3 py-1">
+                  {fallbackErrorCodeLabel[errorCode] || errorCode}: {count}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="mt-5 grid gap-4 lg:grid-cols-3">

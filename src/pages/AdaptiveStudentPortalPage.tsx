@@ -42,6 +42,7 @@ import {
   saveAdaptiveProgressViaApi,
   syncOfflineAdaptiveProgress,
 } from '../services/adaptiveProgressApi';
+import { classifyFallbackError, logFallbackEvent, syncQueuedFallbackEvents } from '../services/telemetry';
 import { ensureMathWrapped } from '../utils/examScoring';
 
 type PortalStage = 'loading' | 'not_found' | 'identify' | 'diagnostic' | 'lesson' | 'quick_check' | 'exit_ticket' | 'complete';
@@ -224,6 +225,8 @@ const buildProfile = ({
   };
 };
 
+const getErrorMessage = (error: unknown) => error instanceof Error ? error.message : String(error || 'unknown');
+
 export const AdaptiveStudentPortalPage = () => {
   const { teacherId } = useParams<{ teacherId: string }>();
   const [stage, setStage] = useState<PortalStage>('loading');
@@ -279,6 +282,8 @@ export const AdaptiveStudentPortalPage = () => {
 
   useEffect(() => {
     const runSync = async () => {
+      void syncQueuedFallbackEvents();
+
       const result = await syncOfflineAdaptiveProgress();
       if (result.synced > 0) {
         setNotice({
@@ -605,6 +610,15 @@ export const AdaptiveStudentPortalPage = () => {
       setStage('complete');
     } catch (apiError) {
       console.warn('API bảo mật chưa lưu được kết quả học sinh, thử fallback Firestore client', apiError);
+      void logFallbackEvent({
+        teacherId,
+        studentId,
+        lessonId: lesson.id,
+        stage: 'api',
+        timestamp: new Date().toISOString(),
+        errorCode: classifyFallbackError(apiError),
+        source: 'student_portal',
+      });
 
       try {
         await setDoc(doc(db, 'adaptiveSessionProgress', progressId), progressRecord, { merge: true });
@@ -620,6 +634,16 @@ export const AdaptiveStudentPortalPage = () => {
         setNotice({ tone: 'warning', message: 'Kết quả đã lưu qua kênh dự phòng. Nếu thông báo này xuất hiện nhiều lần, giáo viên cần kiểm tra biến môi trường Firebase Admin của API.' });
       } catch (firestoreError) {
         console.error('Không lưu được tiến trình học sinh bằng cả API và Firestore client', firestoreError);
+        void logFallbackEvent({
+          teacherId,
+          studentId,
+          lessonId: lesson.id,
+          stage: 'firestore',
+          timestamp: new Date().toISOString(),
+          errorCode: classifyFallbackError(firestoreError),
+          source: 'student_portal',
+        });
+
         try {
           saveAdaptiveProgressOffline({
             teacherId,
@@ -628,7 +652,16 @@ export const AdaptiveStudentPortalPage = () => {
             studentId,
             progressRecord,
             profileRecord: nextProfile,
-          }, firestoreError instanceof Error ? firestoreError.message : 'unknown', now);
+          }, getErrorMessage(firestoreError), now);
+          void logFallbackEvent({
+            teacherId,
+            studentId,
+            lessonId: lesson.id,
+            stage: 'localStorage',
+            timestamp: new Date().toISOString(),
+            errorCode: classifyFallbackError(firestoreError),
+            source: 'student_portal',
+          });
           setProfile(nextProfile);
           setStage('complete');
           setNotice({ tone: 'warning', message: 'Kết quả đã được lưu tạm trên thiết bị này. API lưu kết quả hoặc kết nối mạng chưa đồng bộ được lên hệ thống.' });
