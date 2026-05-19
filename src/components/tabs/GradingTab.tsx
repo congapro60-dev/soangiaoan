@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
 import * as XLSXLib from 'xlsx';
 import { AppData, TemplateFile, GradingResult, GradingSession, GradingWarning } from '../../types';
@@ -79,6 +79,8 @@ export const GradingTab = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [sessionSaved, setSessionSaved] = useState(false);
   const [activeDraftSessionId, setActiveDraftSessionId] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const persistDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Grading config
   const [maxScore, setMaxScore] = useState(10);
@@ -175,11 +177,21 @@ export const GradingTab = ({
     userId: user?.uid,
   });
 
-  const persistGradingProgress = async (res: GradingResult[], sessionId: string) => {
-    await persistSession(createSessionSnapshot(res, sessionId));
+  const persistGradingProgress = (res: GradingResult[], sessionId: string, force = false) => {
+    if (persistDebounceRef.current) clearTimeout(persistDebounceRef.current);
+    if (force) {
+      void (async () => await persistSession(createSessionSnapshot(res, sessionId)))();
+      return;
+    }
+    persistDebounceRef.current = setTimeout(async () => {
+      await persistSession(createSessionSnapshot(res, sessionId));
+    }, 2000);
   };
 
   const gradeAllStudents = async (allMasterFiles: TemplateFile[]) => {
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
+    const signal = abortRef.current.signal;
     setIsProcessing(true);
     setSessionSaved(false);
     setEta('');
@@ -230,7 +242,7 @@ export const GradingTab = ({
     };
 
     const runWorker = async () => {
-      while (cursor < queue.length) {
+      while (cursor < queue.length && !signal.aborted) {
         const current = queue[cursor++];
         const idx = current.resultIndex;
         updated[idx] = { ...updated[idx], status: 'processing' };
@@ -252,7 +264,7 @@ export const GradingTab = ({
         setResults([...updated]);
         setGradingProgress({ completed: processed, total: queue.length });
         updateEta();
-        await persistGradingProgress(updated, sessionId);
+        persistGradingProgress(updated, sessionId);
       }
     };
 
@@ -270,10 +282,18 @@ export const GradingTab = ({
         errorCount > 0 ? 'warning' : 'success'
       );
     } finally {
+      persistGradingProgress(updated, sessionId, true);
       setEta('');
       setIsProcessing(false);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+      if (persistDebounceRef.current) clearTimeout(persistDebounceRef.current);
+    };
+  }, []);
 
   const handleStartGrading = async () => {
     if (masterFiles.length === 0 || studentFiles.length === 0) return;
