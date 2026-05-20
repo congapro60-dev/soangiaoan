@@ -110,6 +110,24 @@ const makeDraftLesson = (teacherId: string): AdaptiveLesson => {
   };
 };
 
+const normalizeLessonFromFirestore = (raw: AdaptiveLesson): AdaptiveLesson => ({
+  ...raw,
+  knowledgeUnits: raw.knowledgeUnits ?? [],
+  objectives: raw.objectives ?? [],
+  diagnosticTest: raw.diagnosticTest ?? makeAssessment('diagnostic', 5),
+  exitTicket: raw.exitTicket ?? makeAssessment('exit_ticket', 3),
+  preparation: raw.preparation ?? {
+    readingInstructions: '',
+    guidingQuestions: [],
+    estimatedMinutes: 0,
+  },
+  fiveStepFlow: raw.fiveStepFlow ?? { steps: [] },
+  completionReward: raw.completionReward ?? {
+    toolId: 'gamedoikhang',
+    message: defaultRewardMessage,
+  },
+});
+
 export const AdaptiveLessonBuilderPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -149,15 +167,16 @@ export const AdaptiveLessonBuilderPage = () => {
           return;
         }
 
-        const found = await getLessonFromFirestore(id);
-        if (!found) {
+        const raw = await getLessonFromFirestore(id);
+        if (!raw) {
           setLesson(null);
           setError('Không tìm thấy bài học phân hoá.');
           return;
         }
 
+        const found = normalizeLessonFromFirestore(raw);
         setLesson(found);
-        setExpandedUnitId(found.knowledgeUnits[0]?.id || null);
+        setExpandedUnitId(found.knowledgeUnits[0]?.id ?? null);
       } catch (loadError) {
         console.error('Không tải được bài học adaptive', loadError);
         setLesson(null);

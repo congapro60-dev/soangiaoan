@@ -41,6 +41,15 @@ Kiểm tra bắt buộc sau phần này: `npm run build` phải pass trước kh
 
 Kiểm tra bắt buộc sau phần này: `npm run build` phải pass trước khi commit message `fix: P2/P3 — real upload progress, iframe a11y, timer warning, i18n thuật ngữ`.
 
+## 0b. Cập nhật QA retest regression fixes — 2026-05-20
+
+Đang xử lý trên branch `main` hai lỗi retest sau P2/P3:
+
+- Sửa P0 Builder crash khi mở bài học cũ trong Firestore: thêm `normalizeLessonFromFirestore` trong `AdaptiveLessonBuilderPage.tsx` để default các field có thể thiếu từ schema cũ (`knowledgeUnits`, `objectives`, `diagnosticTest`, `exitTicket`, `preparation`, `fiveStepFlow`, `completionReward`) và chỉ đọc `knowledgeUnits[0]` sau khi đã normalize.
+- Sửa permission errors dashboard trong `firestore.rules`: thêm `allow list` cho `lessonPlans` khi đã đăng nhập và thêm rule `savedExams` chỉ cho owner đọc/ghi/tạo.
+
+Kiểm tra bắt buộc sau phần này: `npm run build` phải pass trước khi commit message `fix: regression P0 Builder null-check knowledgeUnits + savedExams/lessonPlans rules`.
+
 ## 1. Trạng thái hiện tại của repo
 
 ### 1.1 Git

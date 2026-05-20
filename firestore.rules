@@ -7,6 +7,7 @@ service cloud.firestore {
 
     // Giáo án cá nhân — chỉ owner đọc/ghi, cộng đồng đọc khi isPublic=true
     match /lessonPlans/{planId} {
+      allow list: if request.auth != null;
       allow read: if resource.data.isPublic == true
                   || (request.auth != null && request.auth.uid == resource.data.userId);
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
@@ -86,6 +87,14 @@ service cloud.firestore {
                     && request.auth.uid == request.resource.data.teacherId;
       allow update, delete: if request.auth != null
                             && request.auth.uid == resource.data.teacherId;
+    }
+
+    // Đề thi đã lưu (favorites) — chỉ owner
+    match /savedExams/{docId} {
+      allow read, write: if request.auth != null
+                         && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null
+                    && request.auth.uid == request.resource.data.userId;
     }
 
     // Bài làm học sinh
