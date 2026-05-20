@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Learning: Song Ánh - Lớp 10 Victoria</title>
+    
+    <script>
+        MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        :root { --primary: #0F4C81; --secondary: #F2A900; --accent: #E53E3E; --bg: #F8F9FA; --success: #28A745; --timer-bg: #343A40; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 0; }
+        body { background-color: #E9ECEF; display: flex; flex-direction: column; align-items: center; padding: 15px; color: #212529; height: 100vh; overflow: hidden; }
+        
+        /* HEADER & TIMERS */
+        .top-header { width: 100%; max-width: 1400px; background: var(--primary); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 12px 12px 0 0; }
+        .top-header h1 { font-size: 1.4rem; margin: 0; display: flex; align-items: center; gap: 15px; }
+        .timers { display: flex; gap: 10px; }
+        .timer-box { background: var(--timer-bg); padding: 5px 12px; border-radius: 6px; font-weight: bold; font-family: monospace; font-size: 1.1rem; border: 2px solid #495057; transition: 0.3s; }
+        .timer-warning { color: var(--accent); border-color: var(--accent); animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
+
+        /* MỤC LỤC */
+        .btn-toc { background: var(--secondary); color: #212529; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        .toc-menu { position: absolute; top: 60px; left: 20px; background: white; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); width: 250px; z-index: 100; display: none; overflow: hidden; border: 2px solid var(--primary); }
+        .toc-menu.active { display: block; animation: slideDown 0.2s ease; }
+        .toc-item { padding: 12px 15px; border-bottom: 1px solid #DEE2E6; cursor: pointer; transition: 0.2s; font-weight: 500; }
+        .toc-item:hover { background: #EBF8FF; color: var(--primary); padding-left: 20px; }
+
+        /* LAYOUT 7:3 */
+        .main-wrapper { width: 100%; max-width: 1400px; display: flex; height: calc(100vh - 80px); background: white; border-radius: 0 0 12px 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); overflow: hidden; }
+        .lesson-area { flex: 7; position: relative; overflow-y: auto; padding: 30px 40px; background: #FFF; border-right: 3px solid #DEE2E6; scroll-behavior: smooth; }
+        .notebook-area { flex: 3; background: #FFFDF0; padding: 25px; overflow-y: auto; background-image: repeating-linear-gradient(transparent, transparent 31px, #E2E8F0 31px, #E2E8F0 32px); background-attachment: local; }
+        .notebook-title { text-align: center; font-family: 'Segoe UI', serif; font-size: 1.5rem; color: var(--primary); font-weight: bold; margin-bottom: 20px; background: white; padding: 10px; border-radius: 8px; border: 2px dashed var(--primary); }
+        .note-item { font-size: 1rem; color: #2D3748; line-height: 1.6; margin-bottom: 15px; padding-left: 20px; position: relative; animation: fadeInRight 0.5s ease; background: rgba(255,255,255,0.8); border-radius: 5px; padding-top: 5px; padding-bottom: 5px;}
+        .note-item::before { content: '✍️'; position: absolute; left: -5px; top: 4px; font-size: 1.2rem; }
+
+        /* SCREENS & COMPONENTS */
+        .screen { display: none; animation: fadeIn 0.4s ease; }
+        .screen.active { display: block; }
+        
+        .btn { background: var(--primary); color: white; border: none; padding: 10px 20px; font-size: 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; margin-top: 15px; }
+        .btn:hover { background: #0A365D; }
+        .btn:disabled { background: #6C757D; cursor: not-allowed; }
+        .btn-outline { background: transparent; color: var(--primary); border: 2px solid var(--primary); }
+        .btn-outline:hover { background: var(--primary); color: white; }
+        
+        .box { background: #F8F9FA; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid var(--primary); }
+        .box-title { color: var(--primary); font-weight: bold; font-size: 1.2rem; margin-bottom: 10px; }
+        .step-badge { background: var(--secondary); color: #212529; display: inline-block; padding: 6px 15px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; margin-bottom: 15px; }
+        
+        /* QUIZ & SCAFFOLDING */
+        .option-lbl { display: block; background: white; padding: 12px; margin-bottom: 8px; border-radius: 6px; cursor: pointer; border: 1px solid #DEE2E6; transition: 0.2s; }
+        .option-lbl:hover { border-color: var(--primary); background: #E6F2FF; }
+        .scaffold-step { background: #EBF8FF; border: 1px solid #BEE3F8; padding: 15px; border-radius: 6px; margin-top: 15px; border-left: 4px solid #3182CE; }
+        .scaffold-step h4 { color: #2B6CB0; margin-bottom: 10px; font-size: 1.1rem; }
+        .scaffold-input { padding: 10px; width: 100%; border: 1px solid #CBD5E0; border-radius: 6px; margin-top: 5px; font-size: 1rem; }
+        
+        .feedback-msg { padding: 12px 15px; border-radius: 6px; margin-top: 10px; font-size: 0.95rem; display: none; line-height: 1.5; }
+        .feedback-correct { background: #D4EDDA; color: #155724; border-left: 4px solid #28A745; }
+        .feedback-wrong { background: #F8D7DA; color: #721C24; border-left: 4px solid #DC3545; }
+        .feedback-info { background: #E2E3E5; color: #383D41; border-left: 4px solid #6C757D; }
+
+        .theory-box { background: #D4EDDA; border: 2px solid #28A745; padding: 15px; border-radius: 6px; margin-top: 20px; }
+        .eval-box { background: white; border: 1px solid #DEE2E6; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
+        .eval-true { border-left: 5px solid var(--success); }
+        .eval-false { border-left: 5px solid var(--accent); }
+
+        /* ĐỒ HỌA TỰ VẼ SVG CHO ENIGMA */
+        .svg-enigma { width: 100%; max-width: 280px; background: #2c3e50; border-radius: 8px; border: 4px solid #1a252f; box-shadow: 0 6px 12px rgba(0,0,0,0.3); }
+
+        /* ĐỒ HỌA KHÁC */
+        .enigma-container { background: #343A40; padding: 20px; border-radius: 10px; text-align: center; margin: 15px 0; border: 4px solid #495057; }
+        .dial { width: 60px; height: 80px; background: #DEE2E6; color: #212529; font-size: 3rem; font-weight: bold; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; border: 4px solid #6C757D; user-select: none; margin: 0 10px; transition: 0.1s;}
+        .dial:active { background: #ADB5BD; }
+
+        .lightbulb-container { display: flex; justify-content: space-around; background: #2D3748; padding: 15px; border-radius: 12px; margin: 10px 0;}
+        .bulb-wrapper { text-align: center; color: white; font-weight: bold; }
+        .bulb { font-size: 2.5rem; cursor: pointer; filter: grayscale(100%); transition: 0.3s; user-select: none; }
+        .bulb.on { filter: grayscale(0%); text-shadow: 0 0 15px yellow; transform: scale(1.1); }
+
+        .robot-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; background: #A0AEC0; border: 4px solid var(--primary); width: 100%; max-width: 350px; aspect-ratio: 6/4; margin: 10px 0; }
+        .grid-cell { background: white; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 0.8rem; color: #E2E8F0; position: relative; }
+        .cell-o { background: #48BB78 !important; color: white; }
+        .cell-m { background: #E53E3E !important; color: white; }
+        .cell-path { background: #BEE3F8; border: 2px solid #3182CE; }
+        .robot-icon { font-size: 1.2rem; position: absolute; z-index: 10; }
+        .btn-robot { padding: 6px 12px; cursor: pointer; border-radius: 6px; border: none; font-weight: bold; color: white; background: var(--primary); margin-right: 5px;}
+
+        /* OLYMPIA MINIGAME */
+        .oly-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; }
+        .oly-card { background: white; border: 2px solid #DEE2E6; border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; transition: 0.3s; }
+        .oly-card:hover { border-color: var(--primary); transform: translateY(-3px); }
+        .oly-card.completed { opacity: 0.5; cursor: not-allowed; border-color: #DEE2E6; transform: none; }
+        .score-board { text-align: center; font-size: 1.5rem; font-weight: bold; color: var(--primary); margin: 20px 0; padding: 15px; background: #E6F2FF; border-radius: 8px; }
+
+        .tf-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .tf-table th, .tf-table td { border: 1px solid #DEE2E6; padding: 10px; text-align: center; }
+        .tf-table th { background: #E9ECEF; }
+        .tf-table td:first-child { text-align: left; }
+
+        .hidden { display: none !important; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInRight { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="top-header">
+    <h1>
+        <button class="btn-toc" onclick="toggleTOC()">☰ Mục Lục</button>
+        Đếm Bằng Song Ánh - Lớp 10 Victoria
+    </h1>
+    <div class="timers">
+        <div class="timer-box" id="local-timer" title="Thời gian phần học">Phần: 05:00</div>
+        <div class="timer-box" id="global-timer" title="Thời gian tiết học">Tổng: 40:00</div>
+    </div>
+</div>
+
+<div class="toc-menu" id="tocMenu">
+    <div class="toc-item" onclick="navTo('scr-pretest')">1. Pre-Test Đầu giờ</div>
+    <div class="toc-item" onclick="navTo('scr-review')">2. Ôn tập Lý thuyết</div>
+    <div class="toc-item" onclick="navTo('scr-engage')">3. Bước 1: Khởi động</div>
+    <div class="toc-item" onclick="navTo('scr-explore')">4. Bước 2 & 3: Hình thành kiến thức</div>
+    <div class="toc-item" onclick="navTo('scr-practice')">5. Bước 4: Luyện tập (Về Đích)</div>
+    <div class="toc-item" onclick="navTo('scr-extend')">6. Bước 5: Mở rộng</div>
+    <div class="toc-item" onclick="navTo('scr-evaluate')">7. Bước 5: Tổng kết</div>
+</div>
+
+<div class="main-wrapper">
+    <div class="lesson-area" id="mainContent">
+        
+        <!-- 1. PRE-TEST -->
+        <div class="screen active" id="scr-pretest">
+            <h2>Kiểm tra Đầu giờ (Pre-Test)</h2>
+            <p style="margin-bottom: 20px; color: #6C757D;">Em có 5 phút hoàn thành 5 câu hỏi ôn tập Tiết 1 & 2.</p>
+            
+            <div class="box"><p><strong>Câu 1:</strong> Một ánh xạ $f: A \to B$ là đơn ánh khi nào?</p>
+                <label class="option-lbl"><input type="radio" name="pre1" value="A"> Mọi phần tử ở B đều có phần tử ở A chiếu tới.</label>
+                <label class="option-lbl"><input type="radio" name="pre1" value="B"> Hai phần tử khác nhau ở A luôn có ảnh khác nhau ở B.</label>
+            </div>
+            <div class="box"><p><strong>Câu 2:</strong> Ánh xạ toàn ánh có nghĩa là gì?</p>
+                <label class="option-lbl"><input type="radio" name="pre2" value="A"> Không có phần tử nào ở tập đích B bị "ế".</label>
+                <label class="option-lbl"><input type="radio" name="pre2" value="B"> Một phần tử ở A sinh ra nhiều ảnh ở B.</label>
+            </div>
+            <div class="box"><p><strong>Câu 3:</strong> Điều kiện để một hệ mật mã có Hàm giải mã ngược là gì?</p>
+                <label class="option-lbl"><input type="radio" name="pre3" value="A"> Hệ thống phải là Song ánh.</label>
+                <label class="option-lbl"><input type="radio" name="pre3" value="B"> Chỉ cần là Đơn ánh.</label>
+            </div>
+            <div class="box"><p><strong>Câu 4:</strong> Xếp 30 học sinh vào 4 loại học lực (xuất sắc, khá, TB, yếu) vi phạm tính chất nào?</p>
+                <label class="option-lbl"><input type="radio" name="pre4" value="A"> Toàn ánh.</label>
+                <label class="option-lbl"><input type="radio" name="pre4" value="B"> Đơn ánh.</label>
+            </div>
+            <div class="box"><p><strong>Câu 5:</strong> Hàm số $y = 2x$ xét trên tập số tự nhiên $\mathbb{N}$ là:</p>
+                <label class="option-lbl"><input type="radio" name="pre5" value="A"> Chỉ là đơn ánh.</label>
+                <label class="option-lbl"><input type="radio" name="pre5" value="B"> Là song ánh.</label>
+            </div>
+            <button class="btn" onclick="submitPreTest()">Nộp bài & Chấm điểm</button>
+        </div>
+
+        <!-- 2. ÔN TẬP -->
+        <div class="screen" id="scr-review">
+            <h2>Kết Quả & Ôn Tập Tiết 1 - 2</h2>
+            <div id="review-score" style="font-size: 1.5rem; font-weight: bold; margin: 15px 0;"></div>
+            <div id="review-details" style="margin-bottom: 25px;"></div>
+            <button class="btn" style="width: 100%;" onclick="navTo('scr-engage', 7)">Đã ôn tập xong - Bắt đầu Bài Mới</button>
+        </div>
+
+        <!-- 3. GẮN KẾT (CÓ ẢNH SVG TỰ VẼ) -->
+        <div class="screen" id="scr-engage">
+            <div class="step-badge">Bước 1: Khởi động & Gắn kết</div>
+            <h2 style="color: var(--primary); margin-bottom: 20px;">Bí ẩn Cỗ máy Enigma & Giới hạn của con người</h2>
+            
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 250px; display: flex; flex-direction: column; align-items: center;">
+                    <!-- Ảnh SVG tự vẽ siêu xịn, không bao giờ lỗi -->
+                    <svg viewBox="0 0 300 220" class="svg-enigma" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="300" height="220" rx="10" fill="#34495e" stroke="#2c3e50" stroke-width="4"/>
+                        <!-- Rotors -->
+                        <rect x="65" y="20" width="30" height="50" rx="5" fill="#95a5a6"/>
+                        <text x="75" y="50" fill="#2c3e50" font-family="monospace" font-weight="bold" font-size="18">E</text>
+                        <rect x="135" y="20" width="30" height="50" rx="5" fill="#95a5a6"/>
+                        <text x="145" y="50" fill="#2c3e50" font-family="monospace" font-weight="bold" font-size="18">N</text>
+                        <rect x="205" y="20" width="30" height="50" rx="5" fill="#95a5a6"/>
+                        <text x="215" y="50" fill="#2c3e50" font-family="monospace" font-weight="bold" font-size="18">G</text>
+                        <!-- Lightboard -->
+                        <circle cx="90" cy="100" r="10" fill="#f1c40f" opacity="0.9"/>
+                        <circle cx="150" cy="100" r="10" fill="#7f8c8d"/>
+                        <circle cx="210" cy="100" r="10" fill="#7f8c8d"/>
+                        <!-- Keyboard -->
+                        <circle cx="60" cy="140" r="12" fill="#ecf0f1"/>
+                        <circle cx="100" cy="140" r="12" fill="#ecf0f1"/>
+                        <circle cx="140" cy="140" r="12" fill="#ecf0f1"/>
+                        <circle cx="180" cy="140" r="12" fill="#ecf0f1"/>
+                        <circle cx="220" cy="140" r="12" fill="#ecf0f1"/>
+                        <circle cx="260" cy="140" r="12" fill="#ecf0f1"/>
+                        <!-- Plugboard -->
+                        <rect x="40" y="180" width="220" height="25" rx="3" fill="#2c3e50"/>
+                        <line x1="60" y1="192" x2="100" y2="192" stroke="#e74c3c" stroke-width="3"/>
+                        <line x1="140" y1="192" x2="180" y2="192" stroke="#f1c40f" stroke-width="3"/>
+                    </svg>
+                    <p style="text-align: center; font-size: 0.85rem; color: #6C757D; margin-top: 10px;">Mô phỏng đồ họa máy mã hóa Enigma</p>
+                </div>
+                <div class="box" style="flex: 1.5; min-width: 250px; margin-bottom: 0;">
+                    <p class="box-title">Nhiệm vụ: Đóng vai Điệp viên Alan Turing</p>
+                    <p>Trong Thế chiến II, hải quân Đức sử dụng cỗ máy Enigma để mã hóa các chỉ thị quân sự. Cỗ máy này phức tạp đến mức quân Đồng minh dường như bất lực.</p>
+                    <p style="margin-top: 10px;">Thiên tài toán học Alan Turing nhận ra rằng: Để chế tạo một cỗ máy giải mã, ông cần phải biết chính xác hệ thống này có thể tạo ra <strong>bao nhiêu trạng thái mã hóa khác nhau</strong> để thu hẹp phạm vi tìm kiếm.</p>
+                    <p style="margin-top: 10px;"><strong>Trải nghiệm:</strong> Hệ thống dưới đây mô phỏng 3 bánh răng. Em hãy tự tay click xoay mã số về <strong>ngày sinh của mình</strong> (vd: sinh 15/1 $\to$ xoay 1-5-1).</p>
+                </div>
+            </div>
+            
+            <div class="enigma-container">
+                <p style="color: white; font-weight: bold; font-size: 1.2rem;">CỖ MÁY MÔ PHỎNG ENIGMA</p>
+                <div class="dials">
+                    <div class="dial" onclick="spinEnigma(0)" id="dial-0">0</div>
+                    <div class="dial" onclick="spinEnigma(1)" id="dial-1">0</div>
+                    <div class="dial" onclick="spinEnigma(2)" id="dial-2">0</div>
+                </div>
+                <p style="color: #F2A900; font-family: monospace; font-size: 1.2rem;">Số thao tác (Click): <span id="enigma-clicks">0</span></p>
+            </div>
+
+            <div id="enigma-reality" class="box hidden" style="background: #FFF3CD; border-color: #FFC107;">
+                <p style="color: #856404; font-weight: bold; font-size: 1.2rem;">🛑 Cú sốc thực tại!</p>
+                <p style="margin-top: 5px; color: #856404;">Chỉ riêng 3 vòng số cơ bản này để thử hết cần tới <strong>1000 thao tác</strong>. Cỗ máy Enigma thật có tới <strong>159.000.000.000.000.000.000</strong> khả năng trạng thái! Thử đếm bằng tay là bất khả thi.</p>
+            </div>
+
+            <div class="box" style="background: white; border: 3px solid var(--accent); text-align: center; margin-top: 25px;">
+                <p style="color: var(--accent); font-weight: bold; font-size: 1.2rem;">CÂU HỎI ĐỊNH HƯỚNG BÀI HỌC</p>
+                <p style="margin-top: 10px; font-style: italic; font-size: 1.1rem;">"Liệu có <strong>phép màu toán học</strong> nào giúp ta đếm chính xác số lượng khổng lồ này mà không cần liệt kê từng cái một?"</p>
+                <h2 style="margin-top: 15px; color: var(--primary); text-transform: uppercase;">Tiết 3: Đếm Bằng Song Ánh</h2>
+            </div>
+            
+            <div class="box" style="background: white; border: 1px solid #DEE2E6;">
+                <p class="box-title">Thiết lập Mục tiêu</p>
+                <textarea id="student-goal" rows="2" style="width: 100%; padding: 10px; border-radius: 6px;" placeholder="Em kỳ vọng sẽ học được điều gì trong tiết này?"></textarea>
+                <button class="btn btn-outline" id="btn-analyze-goal" onclick="analyzeGoals()">🤖 AI Phân tích mục tiêu</button>
+                <div id="goal-analysis" class="hidden" style="margin-top: 15px; background: #F8F9FA; padding: 15px; border-radius: 6px;">
+                    <p><strong>Khung mục tiêu phân hóa bài học (3 Cấp độ):</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 5px; line-height: 1.6;">
+                        <li><span style="color: #17A2B8; font-weight: bold;">Nhận biết:</span> Trình bày được nguyên lý đếm bằng Song ánh.</li>
+                        <li><span style="color: #F2A900; font-weight: bold;">Thông hiểu:</span> Chuyển ngôn ngữ bài toán thực tế sang cấu trúc nhị phân bất biến.</li>
+                        <li><span style="color: #DC3545; font-weight: bold;">Vận dụng:</span> Dùng tổ hợp giải quyết bài toán Robot và Chia kẹo.</li>
+                    </ul>
+                </div>
+            </div>
+            <button class="btn hidden" id="btn-to-explore" onclick="processGoalsAndExplore()" style="width:100%;">Tiếp nhận mục tiêu - Vào Bước Khám Phá</button>
+        </div>
+
+        <!-- 4. KHÁM PHÁ & GIẢI THÍCH (SCAFFOLDING CHI TIẾT) -->
+        <div class="screen" id="scr-explore">
+            <div class="step-badge">Bước 2 & 3: Kiến tạo Tri thức (Khám phá & Giải thích)</div>
+            
+            <!-- HOẠT ĐỘNG 1: ĐẾM GHẾ -->
+            <div class="box" style="background: white; border: 2px solid var(--primary);" id="guided-seat">
+                <h3 style="color: var(--primary); border-bottom: 2px solid #DEE2E6; padding-bottom: 10px;">Hoạt động 1: Triết lý "Đếm ghế, không đếm người"</h3>
+                <p style="margin-top: 15px;">Hãy tưởng tượng hội trường The Dewey Schools có hàng ngàn người đang ngồi. Thầy muốn biết chính xác có bao nhiêu người, nhưng việc đếm từng người rất dễ sai vì họ đi lại lộn xộn.</p>
+                <p style="margin-top: 10px;"><strong>Điều kiện:</strong> Không có bất kỳ ghế nào trống, và cũng không có khán giả nào phải đứng.</p>
+                
+                <div class="scaffold-step" id="seat-step-1">
+                    <h4>Câu hỏi dẫn dắt 1:</h4>
+                    <p>Sự ghép cặp 1-1 hoàn hảo giữa Tập người ($A$) và Tập ghế ($B$) này tạo ra cấu trúc gì?</p>
+                    <div style="margin-top: 10px;">
+                        <label class="option-lbl"><input type="radio" name="seat-q1" value="A"> Đơn ánh.</label>
+                        <label class="option-lbl"><input type="radio" name="seat-q1" value="B"> Toàn ánh.</label>
+                        <label class="option-lbl"><input type="radio" name="seat-q1" value="C"> Song ánh.</label>
+                    </div>
+                    <button class="btn" id="btn-check-seat-1" onclick="checkSeat1()">Trả lời</button>
+                    <div id="seat-fb-1" class="feedback-msg"></div>
+                </div>
+
+                <div class="scaffold-step hidden" id="seat-step-2">
+                    <h4>Giải quyết vấn đề:</h4>
+                    <p>Vậy thay vì đếm số người (rất khó), ta nên làm gì?</p>
+                    <input type="text" id="seat-ans-2" class="scaffold-input" placeholder="Nhập hành động của em...">
+                    <button class="btn" id="btn-check-seat-2" onclick="checkSeat2()">Chốt hướng giải quyết</button>
+                    <div id="seat-fb-2" class="feedback-msg"></div>
+                </div>
+
+                <div class="theory-box hidden" id="seat-theory">
+                    <h4 style="color: #155724;">✅ Lý thuyết rút ra:</h4>
+                    <p><strong>Nguyên lý Đếm bằng Song ánh:</strong> Nếu tồn tại một song ánh $f$ giữa hai tập hợp hữu hạn $A$ (khó đếm) và $B$ (dễ đếm), thì số phần tử của hai tập hợp này bằng nhau. Ký hiệu: <strong>$|A| = |B|$</strong>.</p>
+                    <button class="btn" style="background: var(--success);" onclick="showActivity('guided-bulb')">Tiếp tục: Hoạt động 2</button>
+                </div>
+            </div>
+
+            <!-- HOẠT ĐỘNG 2: BÓNG ĐÈN -->
+            <div class="box hidden" style="background: white; border: 2px solid var(--primary);" id="guided-bulb">
+                <h3 style="color: var(--primary); border-bottom: 2px solid #DEE2E6; padding-bottom: 10px;">Hoạt động 2: Mã hóa Tập hợp con</h3>
+                <p style="margin-top: 15px;">Bài toán: Có một tập hợp $X$ gồm 5 phần tử $\{a, b, c, d, e\}$. Việc liệt kê bằng tay các tập con như $\{a, c\}$ rất dễ bị sót. Thầy trò ta sẽ dùng phương pháp "Mã hóa trạng thái" để không bao giờ bị đếm sót.</p>
+                <p style="margin-top: 10px; font-style: italic; color: #6C757D;">👉 Trải nghiệm: Coi 5 phần tử là 5 bóng đèn. Quy ước: Đèn Sáng (Mã số 1) là Chọn phần tử đó vào tập con. Đèn Tắt (Mã số 0) là Loại phần tử đó ra. Em hãy bấm vào các bóng đèn để tạo thử một tập con.</p>
+                
+                <div class="lightbulb-container">
+                    <div class="bulb-wrapper"><div class="bulb" onclick="toggleExpBulb(0)" id="eb0">💡</div><p>a</p></div>
+                    <div class="bulb-wrapper"><div class="bulb" onclick="toggleExpBulb(1)" id="eb1">💡</div><p>b</p></div>
+                    <div class="bulb-wrapper"><div class="bulb" onclick="toggleExpBulb(2)" id="eb2">💡</div><p>c</p></div>
+                    <div class="bulb-wrapper"><div class="bulb" onclick="toggleExpBulb(3)" id="eb3">💡</div><p>d</p></div>
+                    <div class="bulb-wrapper"><div class="bulb" onclick="toggleExpBulb(4)" id="eb4">💡</div><p>e</p></div>
+                </div>
+                <p style="text-align: center; font-family: monospace; font-size: 1.2rem; margin-top: 10px;">Mã nhị phân hiện tại: <strong id="expBinary" style="color: var(--accent);">00000</strong></p>
+
+                <div class="scaffold-step" id="bulb-step-1">
+                    <h4>Câu hỏi dẫn dắt 1: Tính số trạng thái của một bóng đèn</h4>
+                    <p>Theo quy ước ở trên, một bóng đèn đứng độc lập có tất cả mấy trạng thái?</p>
+                    <div style="margin-top: 10px;">
+                        <label class="option-lbl"><input type="radio" name="bulb-q1" value="A"> 2 trạng thái (Sáng / Tắt).</label>
+                        <label class="option-lbl"><input type="radio" name="bulb-q1" value="B"> 3 trạng thái.</label>
+                        <label class="option-lbl"><input type="radio" name="bulb-q1" value="C"> 5 trạng thái.</label>
+                    </div>
+                    <button class="btn" id="btn-check-bulb-1" onclick="checkBulb1()">Kiểm tra</button>
+                    <div id="bulb-fb-1" class="feedback-msg"></div>
+                </div>
+
+                <div class="scaffold-step hidden" id="bulb-step-2">
+                    <h4>Câu hỏi dẫn dắt 2: Chuyển đổi không gian bài toán</h4>
+                    <p>Mỗi tập con (Tập A) tạo ra một chuỗi nhị phân (Tập B). Mã giống hệt nhau tức là các phần tử được chọn giống hệt nhau $\to$ Đây là một <strong>Song Ánh</strong> hoàn hảo. Việc đếm số tập con giờ chuyển thành đếm số chuỗi nhị phân.</p>
+                    <p style="margin-top: 10px;">Biết mỗi bóng đèn có 2 trạng thái. Theo quy tắc nhân của đại số tổ hợp, 5 bóng đèn xếp cạnh nhau sẽ tạo ra được tổng cộng bao nhiêu chuỗi nhị phân khác nhau?</p>
+                    <input type="text" id="bulb-ans-2" class="scaffold-input" placeholder="Nhập phép tính hoặc đáp án (vd: 32)...">
+                    <button class="btn" id="btn-check-bulb-2" onclick="checkBulb2()">Xác nhận</button>
+                    <div id="bulb-fb-2" class="feedback-msg"></div>
+                </div>
+
+                <div class="theory-box hidden" id="bulb-theory">
+                    <h4 style="color: #155724;">✅ Lý thuyết rút ra:</h4>
+                    <p>Mọi tập hợp có $n$ phần tử sẽ có chính xác <strong>$2^n$</strong> tập con. (Được chứng minh qua việc thiết lập song ánh với các chuỗi nhị phân độ dài $n$, vì mỗi phần tử đều có 2 lựa chọn: Có mặt hoặc Không).</p>
+                    <button class="btn" style="background: var(--success);" onclick="showActivity('guided-robot')">Tuyệt vời! Chuyển sang Hoạt động 3</button>
+                </div>
+            </div>
+
+            <!-- HOẠT ĐỘNG 3: ROBOT -->
+            <div class="box hidden" style="background: white; border: 2px solid var(--primary);" id="guided-robot">
+                <h3 style="color: var(--primary); border-bottom: 2px solid #DEE2E6; padding-bottom: 10px;">Hoạt động 3: Tổ hợp đường đi Robot</h3>
+                <p style="margin-top: 15px;">Bài toán: Robot đứng ở $O(0,0)$ cần đi đến kho hàng $M(5,3)$. Robot chỉ được đi sang Phải (P) hoặc đi Lên (L). Do lưới chằng chịt, việc vẽ tay để đếm đường đi là bất khả thi.</p>
+                <p style="margin-top: 10px; font-style: italic; color: #6C757D;">👉 Trải nghiệm: Thử điều khiển Robot để tìm ra đại lượng "Bất biến". Dù đi đường nào, hãy nhìn vào chuỗi Lộ trình bên dưới.</p>
+                
+                <div style="display: flex; gap: 20px; align-items: flex-start; margin-top: 15px;">
+                    <div class="robot-grid" id="expGrid"></div>
+                    <div>
+                        <button class="btn-robot" id="btnExpL" onclick="moveExpRobot('L')">⇧ Lên (L)</button>
+                        <button class="btn-robot" id="btnExpP" onclick="moveExpRobot('P')">⇨ Phải (P)</button>
+                        <button class="btn-robot" style="background: #6C757D;" onclick="resetExpRobot()">↺ Xóa</button>
+                        <p style="margin-top: 15px; font-family: monospace;">Lộ trình: <span id="expPath">Chưa đi</span></p>
+                    </div>
+                </div>
+
+                <div class="scaffold-step" id="robot-step-1">
+                    <h4>Câu hỏi dẫn dắt 1: Khám phá sự Bất biến</h4>
+                    <p>Dù em đi zíc-zắc theo kiểu nào, để từ hoành độ x=0 sang x=5 và tung độ y=0 lên y=3, tổng cộng Robot <strong>BẮT BUỘC</strong> phải đi bao nhiêu bước?</p>
+                    <input type="text" id="robot-ans-1" class="scaffold-input" placeholder="Nhập tổng số bước...">
+                    <button class="btn" id="btn-check-robot-1" onclick="checkRobot1()">Kiểm tra</button>
+                    <div id="robot-fb-1" class="feedback-msg"></div>
+                </div>
+
+                <div class="scaffold-step hidden" id="robot-step-2">
+                    <h4>Câu hỏi dẫn dắt 2: Thiết lập Tổ hợp (Song ánh)</h4>
+                    <p>Mọi lộ trình đều dài chính xác 8 bước. Tại sao ta chỉ cần đếm số bước đi sang Phải (P) mà không cần quan tâm bước đi Lên (L)?</p>
+                    <p style="margin-top: 5px;"><strong>Giải thích:</strong> Vì trong 8 bước tổng cộng, nếu em <strong>ĐÃ CHỌN XONG</strong> 5 vị trí cho bước đi Phải (P), thì 3 vị trí còn lại <strong>SẼ TỰ ĐỘNG</strong> bị lấp đầy bởi bước đi Lên (L). Lộ trình là duy nhất!</p>
+                    <p style="margin-top: 10px;">Vậy việc đếm lộ trình Hình học giờ trở thành: Tính số cách chọn 5 vị trí từ 8 vị trí trống. Em hãy tính kết quả của Tổ hợp $C_8^5$ nhé!</p>
+                    <input type="text" id="robot-ans-3" class="scaffold-input" placeholder="Nhập đáp án của tổ hợp...">
+                    <button class="btn" id="btn-check-robot-3" onclick="checkRobot3()">Chốt Kết Quả</button>
+                    <div id="robot-fb-3" class="feedback-msg"></div>
+                </div>
+
+                <div class="theory-box hidden" id="robot-theory">
+                    <h4 style="color: #155724;">✅ Lý thuyết rút ra:</h4>
+                    <p>Bằng việc thiết lập song ánh từ Hình học sang chuỗi Ký tự, số đường đi ngắn nhất từ gốc tọa độ $(0,0)$ đến điểm $(x,y)$ bất kỳ luôn là tổ hợp <strong>$C_{x+y}^x$</strong>.</p>
+                    <p style="margin-top: 10px; color: var(--accent); font-weight: bold; border-top: 1px dashed #28A745; padding-top: 10px;">
+                        ⚠️ Dặn dò cho kỳ sau (Chuyên đề Xác suất): Trong Tổ hợp và Xác suất, thay vì viết giao của hai biến cố là $A \cap M$, người ta thường viết liền thành $AM$ cho gọn. Hãy làm quen với cách viết này thay vì dùng ký hiệu $\cap$ nhé!
+                    </p>
+                    <button class="btn" style="background: var(--success); width:100%; margin-top:15px;" onclick="navTo('scr-practice', 15)">Hoàn tất Kiến tạo! Tới Vòng Luyện Tập</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. LUYỆN TẬP (OLYMPIA ADAPTIVE) -->
+        <div class="screen" id="scr-practice">
+            <div class="step-badge">Bước 4: Áp dụng Luyện tập</div>
+            <h2>Vòng thi Về Đích</h2>
+            <div class="score-board">Điểm hiện tại: <span id="current-score">0</span></div>
+
+            <div class="oly-grid" id="pack-selection">
+                <div class="oly-card" onclick="startPack(10, 'NB')" id="pack-10">
+                    <h3 style="color: #28A745;">Gói Nhận biết (10Đ)</h3>
+                    <p>3 Câu Trắc nghiệm (4 Phương án)</p>
+                </div>
+                <div class="oly-card" onclick="startPack(20, 'TH')" id="pack-20">
+                    <h3 style="color: #F2A900;">Gói Thông hiểu (20Đ)</h3>
+                    <p>Đúng/Sai (Chuẩn THPTQG Mới)</p>
+                </div>
+                <div class="oly-card" onclick="startPack(30, 'VD')" id="pack-30">
+                    <h3 style="color: #DC3545;">Gói Vận dụng (30Đ)</h3>
+                    <p>3 Câu Trả lời ngắn</p>
+                </div>
+            </div>
+
+            <div id="active-question-area" class="box hidden" style="background: white; border: 2px solid var(--primary);">
+                <p style="font-weight: bold; color: var(--primary); margin-bottom: 15px; border-bottom: 2px solid #DEE2E6; padding-bottom: 10px;" id="q-progress">Câu hỏi 1/3</p>
+                <div id="q-text" style="font-size: 1.1rem; margin-bottom: 15px; line-height: 1.6;"></div>
+                <div id="q-input-area" style="margin-bottom: 15px;"></div>
+                
+                <button class="btn" id="btn-submit-q" onclick="submitAdaptiveAnswer()">Chốt Đáp Án</button>
+                <button class="btn btn-outline hidden" id="btn-next-q" onclick="nextQuestion()">Câu Tiếp Theo ➔</button>
+                
+                <div id="remediation-area">
+                    <div style="background: #E2E3E5; border-left: 4px solid #6C757D; padding: 15px; border-radius: 6px; margin-top: 15px; font-style: italic; display: none;" id="rem-theory"></div>
+                    <div style="background: #FFF3CD; border-left: 4px solid #FFC107; color: #856404; padding: 15px; border-radius: 6px; margin-top: 15px; display: none;" id="rem-hint1"></div>
+                    <div style="background: #F8D7DA; border-left: 4px solid #DC3545; color: #721C24; padding: 15px; border-radius: 6px; margin-top: 15px; display: none;" id="rem-hint2"></div>
+                    <div style="background: #D4EDDA; border-left: 4px solid #28A745; color: #155724; padding: 15px; border-radius: 6px; margin-top: 15px; display: none;" id="rem-hint3"></div>
+                    <div style="background: #D4EDDA; border: 2px solid #28A745; padding: 15px; border-radius: 6px; margin-top: 15px; display: none;" id="rem-solution"></div>
+                </div>
+            </div>
+
+            <button class="btn btn-outline" style="width:100%; margin-top:20px;" onclick="navTo('scr-extend', 5)">Kết thúc Vòng thi - Đi tới Mở rộng</button>
+        </div>
+
+        <!-- 6. MỞ RỘNG -->
+        <div class="screen" id="scr-extend">
+            <div class="step-badge">Bước 5: Mở rộng (Extend)</div>
+            <h2 style="margin-bottom: 15px;">Góc nhìn Kỹ sư: Thảm họa Phân luồng Hành lý</h2>
+            
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 250px;">
+                    <!-- Ảnh trực quan -->
+                    <img src="https://images.unsplash.com/photo-1591522810850-58128c5fb089?auto=format&fit=crop&w=800&q=80" alt="Máy quét mã vạch sân bay" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                    <p style="text-align: center; font-size: 0.85rem; color: #6C757D; margin-top: 5px;">Hệ thống quét mã vạch phân luồng hành lý</p>
+                </div>
+                <div class="box" style="flex: 1.5; min-width: 250px; margin-bottom: 0; background: white;">
+                    <p>Tại sân bay quốc tế, mỗi chiếc vali hành lý được in một nhãn dán chứa mã vạch (Barcode). Máy quét tự động sẽ đọc mã này để chuyển vali lên đúng chuyến bay của hành khách.</p>
+                    <p style="margin-top: 10px; font-weight: bold; color: var(--primary);">Tình huống thực tế:</p>
+                    <p>Nếu hệ thống phần mềm của sân bay bị lỗi, làm mất đi tính "Đơn Ánh" khi in nhãn (tức là 2 chiếc vali của 2 hành khách khác nhau lại được in ra mã vạch giống hệt nhau), điều gì sẽ xảy ra tại băng chuyền phân luồng?</p>
+                    
+                    <textarea id="extend-ans" rows="3" style="width: 100%; margin-top: 15px; padding: 10px; border-radius: 6px; border: 1px solid #CED4DA;" placeholder="Nhập ý kiến của em..."></textarea>
+                    <button class="btn" onclick="checkExtend()">Gửi phân tích</button>
+                    <div id="extend-fb" class="feedback-msg" style="margin-top: 15px;"></div>
+                </div>
+            </div>
+            
+            <button class="btn" style="width:100%; margin-top:20px;" onclick="navTo('scr-evaluate', 2)">Chuyển sang Bước Tổng kết</button>
+        </div>
+
+        <!-- 7. TỔNG KẾT & TIME FILLER -->
+        <div class="screen" id="scr-evaluate">
+            <div class="step-badge" style="background: var(--success); color: white;">Bước 5: Tổng kết & Đánh giá (Evaluate)</div>
+            
+            <div style="background: white; padding: 20px; border-radius: 8px; text-align: center; border: 2px dashed var(--primary); margin-bottom: 20px;">
+                <h2 style="color: var(--primary); margin-bottom: 10px;">SƠ ĐỒ TƯ DUY CỐT LÕI</h2>
+                <h3 style="color: #2D3748; font-size: 1.3rem;">[ TẬP HỢP A - Khó đếm ] $\leftrightarrow$ (Thiết lập Song ánh 1-1) $\leftrightarrow$ [ TẬP HỢP B - Dễ đếm ]</h3>
+                <p style="margin-top: 10px; font-size: 1.1rem;">Chỉ cần đếm số phần tử của Tập B $\Rightarrow$ Kéo kết quả về: <strong>$|A| = |B|$</strong></p>
+            </div>
+
+            <div class="box">
+                <p class="box-title">Tự Đánh Giá</p>
+                <div style="margin-bottom: 15px;">
+                    <p style="font-weight: bold; margin-bottom: 5px;">Mục tiêu bài học:</p>
+                    <label><input type="checkbox"> Em đã hiểu nguyên lý đếm bằng Song ánh.</label><br>
+                    <label><input type="checkbox"> Em đã hiểu cách mã hóa trạng thái nhị phân và đường đi Robot.</label><br>
+                    <label><input type="checkbox"> Em có thể tự giải bài toán Tổ hợp tương tự.</label>
+                </div>
+                
+                <p style="font-weight: bold;">Mức độ hiểu bài của em (Thang 1-10):</p>
+                <input type="range" min="1" max="10" value="8" style="width: 100%; margin: 10px 0;" oninput="document.getElementById('range-val').innerText=this.value">
+                <p style="text-align: center; font-weight: bold; font-size: 1.5rem; color: var(--primary);" id="range-val">8</p>
+                
+                <textarea placeholder="Em còn câu hỏi nào muốn hỏi thầy Cường không?" style="width: 100%; padding: 10px; margin-top: 10px; border-radius: 6px;"></textarea>
+            </div>
+
+            <button class="btn" style="width: 100%; background: var(--accent);" onclick="finishLesson()">Kết thúc Tiết học</button>
+
+            <!-- TIME FILLER (Hiển thị khi bấm Kết thúc mà còn giờ) -->
+            <div id="filler-content" class="hidden" style="background: #FFF3CD; padding: 20px; border-radius: 8px; border-left: 5px solid #FFC107; margin-top: 20px;">
+                <h3 style="color: #856404; margin-bottom: 10px;">⏰ Hệ thống báo: Thời gian tiết học vẫn còn!</h3>
+                <div id="filler-task"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ==================== CỘT VỞ GHI CHÉP (30%) ==================== -->
+    <div class="notebook-area">
+        <div class="notebook-title">Vở Ghi Chép Của Em</div>
+        <div id="notebook-list">
+            <div class="note-item" style="color: #6C757D; font-style: italic;" id="note-placeholder">Hệ thống sẽ tự động in các công thức cốt lõi vào đây khi em vượt qua các bài học ở cột bên trái...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- MỤC LỤC & TIMERS ---
+    function toggleTOC() { document.getElementById('tocMenu').classList.toggle('active'); }
+    
+    function updateMath(elementId, html) {
+        document.getElementById(elementId).innerHTML = html;
+        MathJax.typesetPromise([document.getElementById(elementId)]);
+    }
+
+    function addNote(text) {
+        document.getElementById('note-placeholder').style.display = 'none';
+        const list = document.getElementById('notebook-list');
+        const item = document.createElement('div');
+        item.className = 'note-item';
+        item.innerHTML = text;
+        list.appendChild(item);
+        MathJax.typesetPromise([item]);
+    }
+
+    let globalSeconds = 40 * 60; let localSeconds = 5 * 60;
+    setInterval(() => {
+        if(globalSeconds > 0) globalSeconds--;
+        if(localSeconds > 0) localSeconds--;
+        document.getElementById('global-timer').innerText = "Tổng: " + Math.floor(globalSeconds/60) + ":" + (globalSeconds%60 < 10 ? "0":"") + globalSeconds%60;
+        document.getElementById('local-timer').innerText = "Phần: " + Math.floor(localSeconds/60) + ":" + (localSeconds%60 < 10 ? "0":"") + localSeconds%60;
+    }, 1000);
+
+    function navTo(screenId, mins) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+        document.getElementById('tocMenu').classList.remove('active');
+        document.getElementById('mainContent').scrollTop = 0;
+        if(mins) localSeconds = mins * 60;
+        
+        // Cập nhật tiêu đề Vở ghi
+        if(screenId === 'scr-practice') addNote("<h3 style='color:var(--primary); border-bottom:1px solid #CCC; margin-top:20px; padding-bottom:5px;'>III. Luyện tập</h3>");
+        if(screenId === 'scr-extend') addNote("<h3 style='color:var(--primary); border-bottom:1px solid #CCC; margin-top:20px; padding-bottom:5px;'>IV. Mở rộng</h3>");
+        if(screenId === 'scr-evaluate') addNote("<h3 style='color:var(--primary); border-bottom:1px solid #CCC; margin-top:20px; padding-bottom:5px;'>V. Tổng kết</h3>");
+    }
+
+    // --- PRE-TEST ---
+    const pretestData = [
+        { q: "Câu 1", a: "B", txt: "Hai phần tử khác nhau ở A luôn có ảnh khác nhau ở B.", exp: "Đây chính là định nghĩa chuẩn xác của Đơn ánh (Không đụng hàng)." },
+        { q: "Câu 2", a: "A", txt: "Không có phần tử nào ở tập đích B bị ế.", exp: "Toàn ánh là cấu trúc 'phủ kín' không gian đích." },
+        { q: "Câu 3", a: "A", txt: "Hệ thống phải là Song ánh.", exp: "Chỉ khi là Song ánh (ghép cặp hoàn hảo 1-1) thì ta mới có thể dịch ngược lại chính xác được." },
+        { q: "Câu 4", a: "B", txt: "Đơn ánh.", exp: "30 học sinh xếp vào 4 mức điểm chắc chắn sẽ có nhiều bạn trùng điểm (Mất tính đơn ánh)." },
+        { q: "Câu 5", a: "A", txt: "Chỉ là đơn ánh.", exp: "Tập đích là N, nhưng hàm $2x$ chỉ sinh ra số chẵn, các số lẻ bị ế nên không thể là toàn ánh." }
+    ];
+
+    function submitPreTest() {
+        const answers = ['pre1','pre2','pre3','pre4','pre5'].map(q => { const el = document.querySelector(`input[name="${q}"]:checked`); return el ? el.value : null; });
+        if(answers.includes(null)) { alert("Em phải làm đủ 5 câu!"); return; }
+        
+        let score = 0; let detailHtml = '';
+        answers.forEach((ans, idx) => {
+            let isCorrect = ans === pretestData[idx].a;
+            if(isCorrect) score++;
+            detailHtml += `<div class="eval-box ${isCorrect ? 'eval-true' : 'eval-false'}">
+                            <p style="font-weight:bold;">${pretestData[idx].q} - ${isCorrect ? '<span style="color:var(--success);">Đúng</span>' : '<span style="color:var(--accent);">Sai</span>'}</p>
+                            <p style="font-size:0.95rem; margin-top:5px;"><strong>Giải thích:</strong> ${pretestData[idx].exp}</p>
+                           </div>`;
+        });
+
+        document.getElementById('review-score').innerHTML = `Điểm Pre-test của em: <span style="color:var(--primary);">${score}/5</span>`;
+        document.getElementById('review-details').innerHTML = detailHtml;
+        MathJax.typesetPromise();
+        
+        addNote("<h3 style='color:var(--primary); border-bottom:1px solid #CCC; padding-bottom:5px;'>Ôn tập Tiết 1 & 2:</h3><br>- <strong>Ánh xạ:</strong> Mỗi phần tử nguồn chỉ tạo ra ĐÚNG 1 ảnh đích.<br>- <strong>Đơn ánh:</strong> Hai phần tử nguồn khác nhau tạo ra ảnh khác nhau (Không đụng hàng. Ví dụ: Mã định danh CCCD).<br>- <strong>Toàn ánh:</strong> Mọi phần tử đích đều có nguồn chiếu tới (Không bị ế, bị bỏ trống).<br>- <strong>Song ánh:</strong> Vừa là đơn ánh, vừa là toàn ánh (Ghép cặp 1-1 hoàn hảo). Chỉ song ánh mới cho phép tìm hàm ngược.");
+        navTo('scr-review', 3);
+    }
+
+    // --- ENIGMA & GOALS ---
+    let enigmaClicks = 0; let dialValues = [0, 0, 0];
+    function spinEnigma(idx) {
+        dialValues[idx] = (dialValues[idx] + 1) % 10;
+        document.getElementById('dial-' + idx).innerText = dialValues[idx];
+        enigmaClicks++; document.getElementById('enigma-clicks').innerText = enigmaClicks;
+        if(enigmaClicks >= 5) { document.getElementById('enigma-reality').classList.remove('hidden'); }
+    }
+
+    function analyzeGoals() {
+        if(document.getElementById('student-goal').value.length < 5) { alert("Nhập rõ hơn chút nhé!"); return; }
+        document.getElementById('btn-analyze-goal').style.display = 'none'; 
+        document.getElementById('goal-analysis').classList.remove('hidden'); 
+        document.getElementById('btn-to-explore').classList.remove('hidden');
+    }
+
+    function processGoalsAndExplore() {
+        addNote("<h3 style='color:var(--primary); border-bottom:1px solid #CCC; margin-top:20px; padding-bottom:5px;'>I. Mục tiêu bài học:</h3><br>1. <em>Nhận biết:</em> Trình bày được nguyên lý đếm bằng Song ánh.<br>2. <em>Thông hiểu:</em> Chuyển ngôn ngữ bài toán thực tế sang cấu trúc nhị phân.<br>3. <em>Vận dụng:</em> Giải quyết bài toán Robot và Chia kẹo.");
+        addNote("<h3 style='color:var(--primary); border-bottom:1px solid #CCC; margin-top:20px; padding-bottom:5px;'>II. Nội dung bài học:</h3>");
+        navTo('scr-explore', 15);
+    }
+
+    function showActivity(id) {
+        document.getElementById(id).classList.remove('hidden');
+        document.getElementById(id).scrollIntoView({behavior: "smooth"});
+    }
+
+    // --- SCAFFOLDING ĐẾM GHẾ ---
+    function checkSeat1() {
+        const el = document.querySelector('input[name="seat-q1"]:checked');
+        const fb = document.getElementById('seat-fb-1');
+        fb.style.display = 'block';
+        if(!el) { fb.className = 'feedback-msg feedback-wrong'; fb.innerHTML = 'Em chưa chọn đáp án!'; return; }
+        
+        if(el.value === 'C') {
+            fb.className = 'feedback-msg feedback-correct';
+            fb.innerHTML = '<strong>Chính xác!</strong> Kín chỗ (Toàn ánh) và không ai ngồi chung ghế (Đơn ánh) tạo thành Song ánh.';
+        } else {
+            fb.className = 'feedback-msg feedback-wrong';
+            fb.innerHTML = '<strong>Giải đáp:</strong> Đáp án là <strong>Song ánh</strong>. Quy tắc này đảm bảo cả 2 yếu tố: Không ai ngồi chung (Đơn ánh) và không thừa ghế (Toàn ánh).';
+        }
+        document.getElementById('seat-step-2').classList.remove('hidden');
+        document.getElementById('btn-check-seat-1').style.display = 'none';
+    }
+
+    function checkSeat2() {
+        const ans = document.getElementById('seat-ans-2').value;
+        const fb = document.getElementById('seat-fb-2');
+        fb.style.display = 'block';
+        fb.className = 'feedback-msg feedback-info';
+        fb.innerHTML = '<strong>Giải đáp:</strong> Thay vì đếm số người (di chuyển lộn xộn, dễ sai sót), ta đếm <strong>danh sách số lượng ghế</strong> (cố định, dễ kiểm đếm). Do là Song ánh nên Số người = Số ghế!';
+        
+        document.getElementById('seat-theory').classList.remove('hidden');
+        document.getElementById('btn-check-seat-2').style.display = 'none';
+        MathJax.typesetPromise();
+        addNote("<strong>1. Nguyên lý Đếm bằng Song ánh:</strong><br>Nếu có một song ánh giữa hai tập hợp $A$ và $B$, thì $|A| = |B|$.<br><em>(Thay vì đếm số người, ta đếm danh sách số ghế)</em>.");
+    }
+
+    // --- SCAFFOLDING BÓNG ĐÈN ---
+    let expBulbs = [0,0,0,0,0];
+    function toggleExpBulb(idx) {
+        expBulbs[idx] = 1 - expBulbs[idx];
+        const b = document.getElementById('eb' + idx);
+        if(expBulbs[idx] === 1) b.classList.add('on'); else b.classList.remove('on');
+        document.getElementById('expBinary').innerText = expBulbs.join('');
+    }
+
+    function checkBulb1() {
+        const el = document.querySelector('input[name="bulb-q1"]:checked');
+        const fb = document.getElementById('bulb-fb-1');
+        fb.style.display = 'block';
+        if(!el) { fb.className = 'feedback-msg feedback-wrong'; fb.innerHTML = 'Em chưa chọn đáp án!'; return; }
+        
+        if(el.value === 'A') {
+            fb.className = 'feedback-msg feedback-correct';
+            fb.innerHTML = '<strong>Chính xác!</strong> Mỗi bóng có đúng 2 trạng thái.';
+        } else {
+            fb.className = 'feedback-msg feedback-wrong';
+            fb.innerHTML = '<strong>Giải đáp:</strong> Mỗi bóng đèn điện chỉ có thể bật (Sáng) hoặc tắt (Tối). Tức là 2 trạng thái.';
+        }
+        document.getElementById('bulb-step-2').classList.remove('hidden');
+        document.getElementById('btn-check-bulb-1').style.display = 'none';
+    }
+
+    function checkBulb2() {
+        const ans = document.getElementById('bulb-ans-2').value.trim();
+        const fb = document.getElementById('bulb-fb-2');
+        fb.style.display = 'block';
+        
+        if(ans === '32' || ans === '2^5') {
+            fb.className = 'feedback-msg feedback-correct';
+            fb.innerHTML = '<strong>Chính xác!</strong> $2 \\times 2 \\times 2 \\times 2 \\times 2 = 32$.';
+        } else {
+            fb.className = 'feedback-msg feedback-wrong';
+            fb.innerHTML = '<strong>Giải đáp:</strong> Có 5 bóng đèn, mỗi bóng có 2 trạng thái. Theo quy tắc nhân, ta có $2 \\times 2 \\times 2 \\times 2 \\times 2 = 2^5 = 32$ chuỗi.';
+        }
+        document.getElementById('bulb-theory').classList.remove('hidden');
+        document.getElementById('btn-check-bulb-2').style.display = 'none';
+        MathJax.typesetPromise();
+        addNote("<strong>2. Số lượng tập con:</strong><br>Mọi tập hợp có $n$ phần tử sẽ có chính xác <strong>$2^n$</strong> tập con. (Được chứng minh qua song ánh với chuỗi nhị phân, mỗi phần tử có 2 lựa chọn: Có mặt hoặc Không, tạo thành chuỗi mã hóa độ dài $n$).");
+    }
+
+    // --- SCAFFOLDING ROBOT ---
+    let erx = 0, ery = 0; let ePath = [];
+    function drawExpGrid() {
+        const grid = document.getElementById('expGrid'); grid.innerHTML = '';
+        for(let y = 3; y >= 0; y--) { 
+            for(let x = 0; x <= 5; x++) { 
+                const cell = document.createElement('div'); cell.className = 'grid-cell';
+                if(x===0 && y===0) { cell.classList.add('cell-o'); cell.innerHTML = 'O'; }
+                else if(x===5 && y===3) { cell.classList.add('cell-m'); cell.innerHTML = 'M'; }
+                if(x===erx && y===ery) { cell.innerHTML += '<div class="robot-icon">🤖</div>'; cell.classList.add('cell-path'); }
+                grid.appendChild(cell);
+            }
+        }
+    }
+    function moveExpRobot(dir) {
+        if(dir === 'P' && erx < 5) { erx++; ePath.push('P'); }
+        else if(dir === 'L' && ery < 3) { ery++; ePath.push('L'); }
+        drawExpGrid(); document.getElementById('expPath').innerText = ePath.join('-');
+    }
+    function resetExpRobot() { erx = 0; ery = 0; ePath = []; document.getElementById('expPath').innerText = "Chưa đi"; drawExpGrid(); }
+    drawExpGrid();
+
+    function checkRobot1() {
+        const ans = document.getElementById('robot-ans-1').value.trim();
+        const fb = document.getElementById('robot-fb-1');
+        fb.style.display = 'block';
+        if(ans === '8') {
+            fb.className = 'feedback-msg feedback-correct';
+            fb.innerHTML = '<strong>Chính xác!</strong> Tổng số bước là $5 + 3 = 8$.';
+        } else {
+            fb.className = 'feedback-msg feedback-wrong';
+            fb.innerHTML = '<strong>Giải đáp:</strong> Tổng số bước bằng số bước đi ngang (5) cộng số bước đi dọc (3). Tổng là 8 bước.';
+        }
+        document.getElementById('robot-step-2').classList.remove('hidden');
+        document.getElementById('btn-check-robot-1').style.display = 'none';
+    }
+
+    function checkRobot2() {
+        const el = document.querySelector('input[name="robot-q2"]:checked');
+        const fb = document.getElementById('robot-fb-2');
+        fb.style.display = 'block';
+        if(!el) { fb.className = 'feedback-msg feedback-wrong'; fb.innerHTML = 'Em chưa chọn đáp án!'; return; }
+        
+        if(el.value === 'B') {
+            fb.className = 'feedback-msg feedback-correct';
+            fb.innerHTML = '<strong>Chính xác!</strong> Khi chọn xong 5 chỗ cho chữ P, 3 chỗ còn lại tự động là chữ L. Lộ trình là duy nhất.';
+        } else {
+            fb.className = 'feedback-msg feedback-wrong';
+            fb.innerHTML = '<strong>Giải đáp:</strong> Đáp án là B. Trong 8 vị trí, nếu em đã đặt 5 chữ P vào rồi, thì 3 vị trí trống còn lại <strong>SẼ TỰ ĐỘNG</strong> bị lấp đầy bởi chữ L. Không cần xếp lại.';
+        }
+        document.getElementById('robot-step-3').classList.remove('hidden');
+        document.getElementById('btn-check-robot-2').style.display = 'none';
+    }
+
+    function checkRobot3() {
+        const el = document.querySelector('input[name="robot-q3"]:checked');
+        const fb = document.getElementById('robot-fb-3');
+        fb.style.display = 'block';
+        if(!el) { fb.className = 'feedback-msg feedback-wrong'; fb.innerHTML = 'Em chưa chọn đáp án!'; return; }
+        
+        if(el.value === 'B') {
+            fb.className = 'feedback-msg feedback-correct';
+            fb.innerHTML = '<strong>Chính xác!</strong> Đó chính là khái niệm của Tổ hợp.';
+        } else {
+            fb.className = 'feedback-msg feedback-wrong';
+            fb.innerHTML = '<strong>Giải đáp:</strong> Đáp án là B. Vì chỉ cần chọn 5 vị trí từ 8 vị trí trống để đặt chữ P (không cần sắp thứ tự), đây chính là bài toán Tổ hợp chập 5 của 8.';
+        }
+        document.getElementById('robot-step-4').classList.remove('hidden');
+        document.getElementById('btn-check-robot-3').style.display = 'none';
+    }
+
+    function checkRobot4() {
+        const ans = document.getElementById('robot-ans-4').value.trim().toLowerCase();
+        const fb = document.getElementById('robot-fb-4');
+        fb.style.display = 'block';
+        if(ans === '56' || ans === 'c8^5') {
+            fb.className = 'feedback-msg feedback-correct';
+            fb.innerHTML = '<strong>Chính xác!</strong> $C_8^5 = 56$.';
+        } else {
+            fb.className = 'feedback-msg feedback-wrong';
+            fb.innerHTML = '<strong>Giải đáp:</strong> Công thức là tổ hợp chập 5 của 8: $C_8^5 = \\frac{8 \\times 7 \\times 6}{3 \\times 2 \\times 1} = 56$.';
+        }
+        document.getElementById('robot-theory').classList.remove('hidden');
+        document.getElementById('btn-check-robot-4').style.display = 'none';
+        MathJax.typesetPromise();
+        
+        addNote("<strong>3. Tổ hợp đường đi lưới tọa độ:</strong><br>Số đường đi ngắn nhất từ gốc $(0,0)$ đến điểm $(x,y)$ là tổ hợp <strong>$C_{x+y}^x$</strong>.");
+        addNote("<span style='color:var(--accent);'>⚠️ Lưu ý Xác suất:</span> Thay vì viết giao 2 biến cố là $A \\cap M$, hãy viết liền thành $AM$ cho gọn.");
+    }
+
+    // --- OLYMPIA ADAPTIVE ---
+    let completedPacks = [];
+    const questionDB = {
+        'NB': [
+            { type: 'mcq', q: 'Khái niệm về ánh xạ Song ánh là gì?', options: ['A. Chỉ là Đơn ánh', 'B. Chỉ là Toàn ánh', 'C. Vừa Đơn ánh vừa Toàn ánh', 'D. Không phải ánh xạ'], a: 'C', theory: 'Song ánh là ghép cặp hoàn hảo 1-1.', h1: 'Xem lại lý thuyết: Vừa... vừa...', h2: 'Nó bao hàm cả 2 tính chất.', h3: 'Đáp án là C.', sol: 'Song ánh = Đơn ánh + Toàn ánh.' },
+            { type: 'mcq', q: 'Số tập con của một tập hợp có 4 phần tử là?', options: ['A. 4', 'B. 8', 'C. 16', 'D. 32'], a: 'C', theory: 'Công thức là $2^n$.', h1: 'Áp dụng $2^n$.', h2: 'Tính $2 \\times 2 \\times 2 \\times 2$.', h3: 'Đáp án C (16).', sol: '$2^4 = 16$.' },
+            { type: 'mcq', q: 'Số đường đi của Robot từ $O(0,0)$ đến $A(2,2)$ là tổ hợp nào?', options: ['A. $C_4^2$', 'B. $C_2^2$', 'C. $C_4^4$', 'D. $C_2^1$'], a: 'A', theory: 'Công thức $C_{x+y}^x$.', h1: 'Tổng số bước là mấy?', h2: 'Tổng bước là 4.', h3: 'Đáp án A.', sol: '$C_{2+2}^2 = C_4^2$.' }
+        ],
+        'TH': [
+            { 
+                type: 'thptqg', 
+                q: 'Cho tập hợp $X = \\{1, 2, 3, 4, 5\\}$. Xét tính Đúng/Sai của các mệnh đề sau:<br>a) Tập $X$ có tất cả 32 tập hợp con.<br>b) Số tập con chứa đúng 2 phần tử của $X$ là $C_5^2$.<br>c) Số tập con luôn chứa phần tử "1" là 32.<br>d) Ánh xạ gán mỗi tập con với số lượng phần tử của nó là đơn ánh.', 
+                options: ['Đ', 'S'], 
+                ansArr: ['Đ', 'Đ', 'S', 'S'], 
+                theory: 'a) Công thức $2^n$. b) Chọn 2 từ 5 là $C_5^2$. c) Số 1 cố định, còn 4 phần tử tự do sinh ra $2^4$ tập. d) Đơn ánh không được đụng hàng.', 
+                h1: 'Ý c: Phải là $2^4=16$. Ý d: Tập {1,2} và {3,4} cùng có 2 phần tử $\\to$ Trùng ảnh (Mất đơn ánh).', 
+                h2: 'a-Đ, b-Đ, c-S, d-S', 
+                h3: 'Mệnh đề a,b đúng. Mệnh đề c,d sai.', 
+                sol: 'a) Đúng ($2^5=32$). b) Đúng. c) Sai (Chỉ có $2^4=16$). d) Sai (Vi phạm đơn ánh do nhiều tập con cùng số lượng phần tử).' 
+            }
+        ],
+        'VD': [
+            { type: 'short', q: 'Tập $A$ có 7 phần tử. Số tập con của $A$ là bao nhiêu?', a: '128', theory: 'Công thức: $2^n$.', h1: '$2^7$.', h2: '$2^7 = ?$', h3: '128.', sol: '$2^7 = 128$.' },
+            { type: 'short', q: 'Robot đi từ $O(0,0)$ đến $A(5,2)$ có bao nhiêu lộ trình? (Điền số)', a: '21', theory: 'Công thức: $C_{x+y}^x$.', h1: 'Tính $C_7^5$.', h2: 'Bấm máy $C_7^5$.', h3: '21.', sol: '$C_7^5 = 21$.' },
+            { type: 'short', q: 'Chia 6 viên kẹo cho 3 bạn (A,B,C). Dùng quy tắc vách ngăn, tính số cách chia?', a: '28', theory: 'Chia $n$ kẹo cho $k$ bạn cần $k-1$ vách. Tổ hợp $C_{n+k-1}^{k-1}$.', h1: '2 vách + 6 kẹo = 8 chỗ trống.', h2: 'Tính $C_8^2$.', h3: '28.', sol: '$C_8^2 = 28$.' }
+        ]
+    };
+
+    let activePack = ''; let currentQIndex = 0; let mistakeCount = 0; let activeScore = 0; let currentScore = 0;
+
+    function startPack(pts, type) {
+        document.getElementById('pack-selection').classList.add('hidden');
+        document.getElementById('active-question-area').classList.remove('hidden');
+        activePack = type; currentQIndex = 0; activeScore = pts; loadQuestion();
+    }
+
+    function loadQuestion() {
+        mistakeCount = 0;
+        document.getElementById('btn-submit-q').classList.remove('hidden');
+        document.getElementById('btn-next-q').classList.add('hidden');
+        ['rem-theory', 'rem-hint1', 'rem-hint2', 'rem-hint3', 'rem-solution'].forEach(id => document.getElementById(id).style.display = 'none');
+
+        const qData = questionDB[activePack][currentQIndex];
+        
+        if(activePack === 'TH') { document.getElementById('q-progress').innerText = `Gói Thông Hiểu (Cấu trúc Đúng/Sai THPTQG)`; } 
+        else { document.getElementById('q-progress').innerText = `Câu hỏi ${currentQIndex + 1}/${questionDB[activePack].length}`; }
+        
+        updateMath('q-text', qData.q);
+
+        const inputArea = document.getElementById('q-input-area');
+        inputArea.innerHTML = '';
+        if (qData.type === 'mcq') {
+            qData.options.forEach(opt => { inputArea.innerHTML += `<label class="option-lbl"><input type="radio" name="oly-ans" value="${opt.charAt(0)}"> ${opt}</label>`; });
+        } else if (qData.type === 'thptqg') {
+            let tableHtml = `<table class="tf-table"><tr><th>Mệnh đề</th><th>Đúng</th><th>Sai</th></tr>`;
+            ['a', 'b', 'c', 'd'].forEach((item, idx) => {
+                tableHtml += `<tr><td>Mệnh đề ${item}</td><td><input type="radio" name="tf-${idx}" value="Đ"></td><td><input type="radio" name="tf-${idx}" value="S"></td></tr>`;
+            });
+            tableHtml += `</table>`;
+            inputArea.innerHTML = tableHtml;
+        } else {
+            inputArea.innerHTML = `<input type="text" id="oly-ans-txt" placeholder="Nhập đáp án..." class="scaffold-input">`;
+        }
+        MathJax.typesetPromise([inputArea]);
+    }
+
+    function submitAdaptiveAnswer() {
+        const qData = questionDB[activePack][currentQIndex];
+        let isCorrect = false;
+
+        if (qData.type === 'mcq') {
+            const el = document.querySelector('input[name="oly-ans"]:checked');
+            if(!el) { alert('Vui lòng chọn đáp án!'); return; }
+            if(el.value.toLowerCase() === qData.a.toLowerCase()) isCorrect = true;
+        } else if (qData.type === 'thptqg') {
+            let userAns = [];
+            for(let i=0; i<4; i++) {
+                const el = document.querySelector(`input[name="tf-${i}"]:checked`);
+                if(!el) { alert(`Vui lòng chọn Đ/S cho mệnh đề ${['a','b','c','d'][i]}!`); return; }
+                userAns.push(el.value);
+            }
+            if(JSON.stringify(userAns) === JSON.stringify(qData.ansArr)) isCorrect = true;
+        } else { 
+            const stuAns = document.getElementById('oly-ans-txt').value.trim(); 
+            if(!stuAns) { alert('Vui lòng điền đáp án!'); return; }
+            if(stuAns.toLowerCase() === qData.a.toLowerCase()) isCorrect = true;
+        }
+
+        if (isCorrect) {
+            currentScore += activeScore;
+            document.getElementById('current-score').innerText = currentScore;
+            document.getElementById('btn-submit-q').classList.add('hidden');
+            document.getElementById('btn-next-q').classList.remove('hidden');
+            document.getElementById('rem-solution').style.display = 'block';
+            updateMath('rem-solution', `<strong style="color:var(--success);">Chính xác! (+${activeScore} điểm)</strong><br>${qData.sol}`);
+        } else {
+            mistakeCount++;
+            document.getElementById('rem-theory').style.display = 'block'; updateMath('rem-theory', `<strong>Lý thuyết:</strong> ${qData.theory}`);
+            if (mistakeCount >= 1) { document.getElementById('rem-hint1').style.display = 'block'; updateMath('rem-hint1', `<strong>Gợi ý 1:</strong> ${qData.h1}`); }
+            if (mistakeCount >= 2) { document.getElementById('rem-hint2').style.display = 'block'; updateMath('rem-hint2', `<strong>Gợi ý 2:</strong> ${qData.h2}`); }
+            if (mistakeCount >= 3) { 
+                document.getElementById('rem-hint3').style.display = 'block'; updateMath('rem-hint3', `<strong>Gợi ý 3:</strong> ${qData.h3}`); 
+                document.getElementById('btn-submit-q').classList.add('hidden');
+                document.getElementById('btn-next-q').classList.remove('hidden');
+                document.getElementById('rem-solution').style.display = 'block';
+                updateMath('rem-solution', `<strong style="color:var(--accent);">Đã hết 3 lần thử. Không ghi được điểm ở câu này.</strong><br>Lời giải: ${qData.sol}`);
+            }
+        }
+    }
+
+    function nextQuestion() {
+        currentQIndex++;
+        if (currentQIndex < questionDB[activePack].length) { loadQuestion(); } 
+        else {
+            document.getElementById('active-question-area').classList.add('hidden');
+            document.getElementById('pack-selection').classList.remove('hidden');
+            const card = document.getElementById('pack-' + activeScore);
+            card.classList.add('completed'); card.onclick = null;
+            completedPacks.push(activeScore);
+            alert(`Hoàn thành gói! Điểm tổng hiện tại: ${currentScore}`);
+        }
+    }
+
+    // --- MỞ RỘNG ---
+    function checkExtend() {
+        const val = document.getElementById('extend-ans').value.trim();
+        const fb = document.getElementById('extend-fb');
+        fb.style.display = 'block';
+        if(val.length > 5) {
+            fb.className = 'feedback-msg feedback-correct';
+            fb.innerHTML = '<strong>Phân tích Kỹ sư:</strong> Tuyệt vời! Nếu mất tính đơn ánh, 2 vali khác chuyến bay lại có cùng mã vạch. Hệ thống quét sẽ bối rối, ghi đè dữ liệu và điều hướng sai chuyến bay, dẫn đến thảm họa thất lạc hành lý hàng loạt. Đó là lý do mọi Key trong Database phải là Đơn ánh!';
+        } else {
+            fb.className = 'feedback-msg feedback-wrong';
+            fb.innerHTML = 'Em hãy suy nghĩ thêm và ghi câu trả lời cụ thể hơn một chút nhé (Gợi ý: Liên quan đến việc hệ thống sẽ xử lý sao khi nhận 2 mã giống hệt nhau).';
+        }
+    }
+
+    // --- TỔNG KẾT & FILLER ---
+    function finishLesson() {
+        if(globalSeconds > 60) {
+            document.getElementById('filler-content').classList.remove('hidden');
+            const taskDiv = document.getElementById('filler-task');
+            if(completedPacks.length < 3) {
+                taskDiv.innerHTML = `<p style="margin-top:10px;">Thầy thấy em vẫn <strong>chưa hoàn thành hết các gói bài tập Luyện tập</strong>. Hãy tận dụng thời gian còn lại để kiếm thêm điểm nhé!</p>
+                                     <button class="btn" onclick="navTo('scr-practice')">Quay lại Vòng Luyện Tập</button>`;
+            } else {
+                taskDiv.innerHTML = `<p style="margin-top:10px; font-weight:bold;">Sự thật lịch sử về Enigma:</p>
+                                     <p>Em biết không, Alan Turing đã thiết kế ra cỗ máy <strong>Bombe</strong> để giải mã Enigma. Dựa vào kiến thức Tổ hợp, ông đã loại trừ hàng tỷ tỷ trường hợp sai mà không cần tính toán chúng, giúp Đồng minh chiến thắng Thế chiến II sớm hơn 2 năm!</p>`;
+            }
+        } else {
+            alert("Tiết học đã kết thúc. Cảm ơn em đã tham gia bài học của thầy Cường!");
+        }
+    }
+</script>
+
+</body>
+</html>
