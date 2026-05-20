@@ -13,7 +13,8 @@ import {
   GraduationCap,
   ClipboardCheck,
   Globe,
-  BrainCircuit
+  BrainCircuit,
+  Beaker
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -44,6 +45,7 @@ export const Sidebar = ({
     { id: 'exams', label: 'Thi online', icon: Globe },
     { id: 'grading', label: 'Chấm điểm AI', icon: ClipboardCheck },
     { id: 'adaptive', label: 'Học phân hoá', icon: BrainCircuit },
+    { id: 'dewey-demo', label: 'Demo Dewey (Dev)', icon: Beaker },
     { id: 'adaptiveLessons', label: 'Quản lý bài học', icon: FileText, path: '/adaptive-lessons' },
     { id: 'library', label: 'Thư viện', icon: FileText },
     { id: 'templates', label: 'Mẫu giáo án', icon: Layout },
