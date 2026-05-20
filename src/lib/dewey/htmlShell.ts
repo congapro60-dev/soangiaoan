@@ -1,0 +1,262 @@
+import type { DeweyLessonContent, DeweyTheme } from './types';
+import { getThemeCss } from './themes';
+import { getAdaptiveEngineScript } from './adaptiveEngine';
+
+interface HtmlShellOptions {
+  content: DeweyLessonContent;
+  theme: DeweyTheme;
+  bodyHtml: string;
+}
+
+export const escapeHtml = (value: string): string => value
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
+
+export const escapeAttribute = (value: string): string => escapeHtml(value).replace(/`/g, '&#96;');
+
+export const escapeJsonForHtml = (value: unknown): string => JSON.stringify(value)
+  .replace(/</g, '\\u003c')
+  .replace(/>/g, '\\u003e')
+  .replace(/&/g, '\\u0026')
+  .replace(/\u2028/g, '\\u2028')
+  .replace(/\u2029/g, '\\u2029');
+
+const BASE_CSS = String.raw`
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text-main);
+    font-family: var(--font-family);
+    line-height: 1.55;
+  }
+  .top-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 24px;
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  }
+  .lesson-title { margin: 0; font-size: 20px; font-weight: 800; }
+  .lesson-subtitle { margin: 2px 0 0; opacity: 0.9; font-size: 13px; }
+  .timers { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .timer-box {
+    background: var(--timer-bg);
+    color: white;
+    border-radius: 12px;
+    padding: 8px 12px;
+    font-weight: 800;
+    min-width: 86px;
+    text-align: center;
+  }
+  .timer-warning { background: var(--accent); animation: blink 1s step-start infinite; }
+  @keyframes blink { 50% { opacity: 0.45; } }
+  .btn-toc, .btn {
+    border: 0;
+    border-radius: 12px;
+    padding: 10px 14px;
+    background: var(--secondary);
+    color: #111827;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.18);
+  }
+  .btn:hover, .btn-toc:hover { transform: translateY(-1px); }
+  .btn.secondary { background: white; color: var(--primary); border: 2px solid var(--primary); }
+  .btn.success { background: var(--success); color: white; }
+  .toc-menu {
+    position: fixed;
+    right: 24px;
+    top: 76px;
+    z-index: 60;
+    width: min(320px, calc(100vw - 48px));
+    border-radius: 18px;
+    background: white;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.22);
+    overflow: hidden;
+  }
+  .toc-item {
+    display: block;
+    width: 100%;
+    border: 0;
+    border-bottom: 1px solid #eef2f7;
+    background: white;
+    padding: 13px 16px;
+    text-align: left;
+    cursor: pointer;
+    font-weight: 700;
+  }
+  .toc-item:hover, .toc-item.active { background: #eef6ff; color: var(--primary); }
+  .toc-item.locked { opacity: 0.45; }
+  .main-wrapper {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(280px, 3fr);
+    gap: 24px;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+  .lesson-area { min-width: 0; }
+  .notebook-area {
+    position: sticky;
+    top: 92px;
+    height: calc(100vh - 116px);
+    overflow: auto;
+    padding: 18px;
+    border: 3px solid #e7d27c;
+    border-radius: 22px;
+    background: var(--bg-paper);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.55), 0 8px 22px rgba(0,0,0,0.08);
+  }
+  .notebook-title { margin: 0 0 12px; color: var(--primary); font-size: 18px; }
+  .note-item {
+    margin: 10px 0;
+    padding: 10px 12px;
+    border-left: 4px solid var(--secondary);
+    background: rgba(255,255,255,0.72);
+    border-radius: 10px;
+    font-weight: 650;
+  }
+  .screen {
+    margin-bottom: 28px;
+    padding: 26px;
+    border-radius: 26px;
+    background: white;
+    box-shadow: 0 10px 30px rgba(15, 76, 129, 0.09);
+    scroll-margin-top: 96px;
+  }
+  .screen h2 { margin-top: 0; color: var(--primary); font-size: 28px; }
+  .box {
+    border-radius: 18px;
+    padding: 16px 18px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    margin: 14px 0;
+  }
+  .question-card, .scaffold-step, .oly-card {
+    border: 2px solid #e5e7eb;
+    border-radius: 20px;
+    padding: 18px;
+    margin: 16px 0;
+    background: #fff;
+  }
+  .step-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    background: var(--primary);
+    color: white;
+    font-weight: 900;
+    margin-right: 8px;
+  }
+  .option-lbl {
+    display: block;
+    padding: 10px 12px;
+    margin: 8px 0;
+    border: 1px solid #dbe3ef;
+    border-radius: 12px;
+    cursor: pointer;
+    background: #fff;
+  }
+  .option-lbl:hover { border-color: var(--primary); background: #f4f9ff; }
+  .feedback-msg {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    font-weight: 750;
+  }
+  .feedback-correct { background: #e9f8ef; color: #176b35; border: 1px solid #bce7ca; }
+  .feedback-wrong { background: #fff1f1; color: #a12121; border: 1px solid #ffc8c8; }
+  .feedback-info { background: #eef6ff; color: var(--primary); border: 1px solid #cfe5ff; }
+  .theory-box, .hint1-box, .hint2-box, .hint3-box, .solution-box, .eval-box {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: #fff8df;
+    border: 1px dashed var(--secondary);
+  }
+  .eval-true { color: var(--success); font-weight: 800; }
+  .eval-false { color: var(--accent); font-weight: 800; }
+  .svg-enigma, .enigma-container, .lightbulb-container, .robot-grid, .oly-grid {
+    display: grid;
+    gap: 14px;
+    margin: 16px 0;
+  }
+  .enigma-container, .robot-grid, .oly-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+  .dial, .bulb {
+    min-height: 110px;
+    border-radius: 20px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    font-weight: 900;
+    font-size: 26px;
+  }
+  .oly-card.locked { opacity: 0.45; pointer-events: none; }
+  .oly-card.active { border-color: var(--secondary); box-shadow: 0 0 0 4px rgba(242,169,0,0.18); }
+  .score-board {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: var(--timer-bg);
+    color: white;
+    font-weight: 900;
+  }
+  .tf-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  .tf-table th, .tf-table td { border: 1px solid #e5e7eb; padding: 10px; text-align: left; }
+  textarea, input[type="text"], input[type="number"] {
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font: inherit;
+  }
+  .hidden { display: none !important; }
+  @media (max-width: 980px) {
+    .main-wrapper { grid-template-columns: 1fr; padding: 14px; }
+    .notebook-area { position: static; height: auto; }
+    .top-header { align-items: flex-start; flex-direction: column; }
+  }
+`;
+
+export function renderHtmlShell({ content, theme, bodyHtml }: HtmlShellOptions): string {
+  const title = `${content.title} - Dewey Lesson`;
+
+  return `<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHtml(title)}</title>
+  <script>
+    MathJax = { tex: { inlineMath: [['$', '$'], ['\\\\(', '\\\\)']] } };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+${getThemeCss(theme)}
+${BASE_CSS}
+  </style>
+</head>
+<body data-duration-minutes="${content.durationMinutes}">
+  <script id="dewey-content" type="application/json">${escapeJsonForHtml(content)}</script>
+${bodyHtml}
+  <script>${getAdaptiveEngineScript()}</script>
+</body>
+</html>`;
+}
