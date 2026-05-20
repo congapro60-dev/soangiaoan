@@ -133,7 +133,7 @@ export const LessonSimulationViewer = ({ lessonId, unitId, unitTitle }: LessonSi
             sandbox="allow-scripts"
             referrerPolicy="no-referrer"
             loading="lazy"
-            title={`Mô phỏng — ${unitTitle}`}
+            title={`Mô phỏng tương tác: ${unitTitle || 'Bài học'}`}
             className="block w-full"
             style={{ maxHeight: '600px', width: '100%', height: '600px', border: 'none' }}
           />

@@ -190,7 +190,7 @@ const IframeToolCard = ({ tool }: ToolCardProps) => {
               referrerPolicy="no-referrer"
               onLoad={handleLoad}
               onError={handleError}
-              title={tool.name}
+              title={`Công cụ toán: ${tool.name}`}
               className="block w-full"
               style={{ height: '480px', border: 'none' }}
             />

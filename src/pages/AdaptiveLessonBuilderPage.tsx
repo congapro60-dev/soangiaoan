@@ -138,7 +138,7 @@ export const AdaptiveLessonBuilderPage = () => {
         const currentUser = auth.currentUser;
         if (!currentUser) {
           setLesson(null);
-          setError('Bạn cần đăng nhập để tạo bài học adaptive.');
+          setError('Bạn cần đăng nhập để tạo bài học phân hoá.');
           return;
         }
 
@@ -152,7 +152,7 @@ export const AdaptiveLessonBuilderPage = () => {
         const found = await getLessonFromFirestore(id);
         if (!found) {
           setLesson(null);
-          setError('Không tìm thấy bài học adaptive.');
+          setError('Không tìm thấy bài học phân hoá.');
           return;
         }
 
@@ -161,7 +161,7 @@ export const AdaptiveLessonBuilderPage = () => {
       } catch (loadError) {
         console.error('Không tải được bài học adaptive', loadError);
         setLesson(null);
-        setError('Không tải được bài học adaptive từ Firestore.');
+        setError('Không tải được bài học phân hoá từ Firestore.');
       } finally {
         setLoading(false);
       }
@@ -251,14 +251,14 @@ export const AdaptiveLessonBuilderPage = () => {
       else navigate(`/adaptive-builder/${nextLesson.id}`, { replace: true });
     } catch (saveError) {
       console.error('Không lưu được bài học adaptive', saveError);
-      setError('Không lưu được bài học adaptive lên Firestore.');
+      setError('Không lưu được bài học phân hoá lên Firestore.');
     } finally {
       setSaving(false);
     }
   };
 
   if (!authReady) return <BuilderShell><div className="rounded-3xl bg-white p-8 text-center font-bold text-slate-500 shadow-sm">Đang kiểm tra phiên đăng nhập...</div></BuilderShell>;
-  if (loading) return <BuilderShell><div className="rounded-3xl bg-white p-8 text-center font-bold text-slate-500 shadow-sm">Đang tải bài học adaptive...</div></BuilderShell>;
+  if (loading) return <BuilderShell><div className="rounded-3xl bg-white p-8 text-center font-bold text-slate-500 shadow-sm">Đang tải bài học phân hoá...</div></BuilderShell>;
   if (error && !lesson) return <BuilderShell><ErrorPanel message={error} /></BuilderShell>;
   if (!lesson || !user) return <BuilderShell><ErrorPanel message="Không có dữ liệu bài học hoặc phiên đăng nhập." /></BuilderShell>;
 
@@ -269,7 +269,7 @@ export const AdaptiveLessonBuilderPage = () => {
           <button onClick={() => navigate('/adaptive-lessons')} className="mb-3 inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-blue-600">
             <ArrowLeft className="h-4 w-4" /> Quay lại danh sách
           </button>
-          <h1 className="text-3xl font-black text-slate-900">Lesson Builder Adaptive</h1>
+          <h1 className="text-3xl font-black text-slate-900">Adaptive Lesson Builder</h1>
           <p className="text-sm font-semibold text-slate-500">Tạo/sửa bài học phân hoá và lưu trực tiếp vào Firestore.</p>
         </div>
       </div>

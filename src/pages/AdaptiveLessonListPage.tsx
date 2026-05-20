@@ -36,14 +36,14 @@ export const AdaptiveLessonListPage = () => {
         const currentUser = auth.currentUser;
         if (!currentUser) {
           setLessons([]);
-          setError('Bạn cần đăng nhập để quản lý bài học adaptive.');
+          setError('Bạn cần đăng nhập để quản lý bài học phân hoá.');
           return;
         }
         const data = await listLessonsForTeacher(currentUser.uid);
         setLessons(data.sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || '')));
       } catch (loadError) {
         console.error('Không tải được danh sách bài học adaptive', loadError);
-        setError('Không tải được danh sách bài học adaptive từ Firestore.');
+        setError('Không tải được danh sách bài học phân hoá từ Firestore.');
       } finally {
         setLoading(false);
       }
@@ -53,7 +53,7 @@ export const AdaptiveLessonListPage = () => {
   }, [user?.uid]);
 
   const handleDelete = async (lessonId: string) => {
-    if (!window.confirm('Xóa bài học adaptive này? Thao tác này không thể hoàn tác.')) return;
+    if (!window.confirm('Xóa bài học phân hoá này? Thao tác này không thể hoàn tác.')) return;
     setDeletingId(lessonId);
     setError(null);
     try {
@@ -61,7 +61,7 @@ export const AdaptiveLessonListPage = () => {
       setLessons(prev => prev.filter(lesson => lesson.id !== lessonId));
     } catch (deleteError) {
       console.error('Không xóa được bài học adaptive', deleteError);
-      setError('Không xóa được bài học adaptive.');
+      setError('Không xóa được bài học phân hoá.');
     } finally {
       setDeletingId(null);
     }
@@ -73,9 +73,9 @@ export const AdaptiveLessonListPage = () => {
         <section className="rounded-[2rem] bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 p-6 text-white shadow-xl shadow-blue-100">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-sm font-black uppercase tracking-[0.2em] text-blue-100">Adaptive Lessons</p>
+              <p className="text-sm font-black uppercase tracking-[0.2em] text-blue-100">Bài học phân hoá</p>
               <h1 className="mt-2 text-3xl font-black">Quản lý bài học phân hoá</h1>
-              <p className="mt-2 max-w-2xl text-sm font-semibold text-blue-50">Tạo, chỉnh sửa, xuất bản và mở cổng học sinh cho các bài học adaptive lưu trên Firestore.</p>
+              <p className="mt-2 max-w-2xl text-sm font-semibold text-blue-50">Tạo, chỉnh sửa, xuất bản và mở cổng học sinh cho các bài học phân hoá lưu trên Firestore.</p>
             </div>
             <button onClick={() => navigate('/adaptive-builder/new')} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-black text-blue-700 shadow-lg shadow-blue-900/10 transition hover:bg-blue-50">
               <Plus className="h-4 w-4" /> Tạo bài mới
@@ -90,7 +90,7 @@ export const AdaptiveLessonListPage = () => {
             <div className="py-12 text-center text-sm font-bold text-slate-500">Đang tải danh sách bài học...</div>
           ) : !error && lessons.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center">
-              <h2 className="text-lg font-black text-slate-800">Chưa có bài học adaptive</h2>
+              <h2 className="text-lg font-black text-slate-800">Chưa có bài học phân hoá</h2>
               <p className="mt-2 text-sm font-semibold text-slate-500">Bắt đầu bằng một bản nháp mới, sau đó xuất bản để học sinh truy cập.</p>
               <button onClick={() => navigate('/adaptive-builder/new')} className="mt-5 inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white transition hover:bg-blue-700">
                 <Plus className="h-4 w-4" /> Tạo bài mới

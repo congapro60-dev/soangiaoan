@@ -28,6 +28,19 @@
 
 Kiểm tra bắt buộc sau phần này: `npm run build` phải pass trước khi commit message `fix: P0/P1 — Firestore rules, auth race condition, inferred tool URLs, UX`.
 
+## 0a. Cập nhật P2/P3 UX QA fixes — 2026-05-20
+
+Đang xử lý trên branch `main` các lỗi P2/P3 UX từ QA report:
+
+- Sửa `LessonCoverUpload.tsx`: chuyển từ `uploadBytes` sang `uploadBytesResumable` để progress bar phản ánh % upload thật từ Firebase Storage; bỏ progress giả `15`, `45`, `80`.
+- Sửa `ExternalToolWidget.tsx`: đảm bảo iframe công cụ có sandbox an toàn và title a11y dạng `Công cụ toán: {tool.name}`.
+- Sửa `AdaptiveStudentPortalPage.tsx`: timer đổi sang đỏ và pulse khi còn dưới hoặc bằng 30 giây trước khi quá giờ.
+- Sửa `AdaptiveLessonBuilderPage.tsx`: tiêu đề builder từ `Lesson Builder Adaptive` thành `Adaptive Lesson Builder`.
+- Sửa `LessonSimulationViewer.tsx`: iframe mô phỏng có title a11y dạng `Mô phỏng tương tác: {unitTitle || 'Bài học'}`.
+- Chuẩn hoá terminology user-facing trong `src/`: đổi “bài học adaptive”/`Adaptive Lessons`/“Chưa có bài học adaptive” sang “bài học phân hoá”/“Bài học phân hoá”/“Chưa có bài học phân hoá”; giữ nguyên tên file, route, biến code và `console.error`.
+
+Kiểm tra bắt buộc sau phần này: `npm run build` phải pass trước khi commit message `fix: P2/P3 — real upload progress, iframe a11y, timer warning, i18n thuật ngữ`.
+
 ## 1. Trạng thái hiện tại của repo
 
 ### 1.1 Git

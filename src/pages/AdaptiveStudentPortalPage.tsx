@@ -321,7 +321,7 @@ export const AdaptiveStudentPortalPage = () => {
 
         const found = await getLessonFromFirestore(id);
         if (!found) {
-          setPortalError('Không tìm thấy bài học adaptive theo mã trong liên kết.');
+          setPortalError('Không tìm thấy bài học phân hoá theo mã trong liên kết.');
           setStage('not_found');
           return;
         }
@@ -329,7 +329,7 @@ export const AdaptiveStudentPortalPage = () => {
         setStage('identify');
       } catch (err) {
         console.error('Không tải được cổng học sinh', err);
-        setPortalError('Không tải được bài học adaptive từ hệ thống.');
+        setPortalError('Không tải được bài học phân hoá từ hệ thống.');
         setStage('not_found');
       }
     };
@@ -1300,6 +1300,7 @@ const StudentAssessmentCard = ({
 
 const SectionTimer = ({ plannedSeconds, elapsedSeconds, remainingSeconds, compact = false }: { plannedSeconds: number; elapsedSeconds: number; remainingSeconds: number; compact?: boolean }) => {
   const isOvertime = remainingSeconds <= 0;
+  const isNearlyOutOfTime = remainingSeconds > 0 && remainingSeconds <= 30;
   return (
     <div className={cn(
       'rounded-2xl border px-4 py-3 text-sm font-black',
@@ -1308,7 +1309,11 @@ const SectionTimer = ({ plannedSeconds, elapsedSeconds, remainingSeconds, compac
     )}>
       <div className="flex items-center gap-2">
         <Clock3 className="h-4 w-4" />
-        <span>{isOvertime ? 'Quá giờ' : 'Còn lại'}: {formatDuration(remainingSeconds)}</span>
+        <span className={`font-black tabular-nums ${
+          isNearlyOutOfTime ? 'text-red-600 animate-pulse' : isOvertime ? 'text-red-700' : 'text-slate-700'
+        }`}>
+          {isOvertime ? 'Quá giờ' : 'Còn lại'}: {formatDuration(remainingSeconds)}
+        </span>
       </div>
       {!compact && (
         <p className="mt-1 text-xs font-bold opacity-75">Đã dùng {formatDuration(elapsedSeconds)} / dự kiến {formatDuration(plannedSeconds)}</p>

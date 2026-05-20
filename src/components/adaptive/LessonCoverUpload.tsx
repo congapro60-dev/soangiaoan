@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import type { DragEvent } from 'react';
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { ImagePlus, Loader2, UploadCloud } from 'lucide-react';
 import { storage } from '../../lib/firebase';
 import { cn } from '../../lib/utils';
@@ -64,13 +64,22 @@ export const LessonCoverUpload = ({
 
     setError(null);
     setUploading(prev => ({ ...prev, [kind]: true }));
-    setUploadProgress(prev => ({ ...prev, [kind]: 15 }));
+    setUploadProgress(prev => ({ ...prev, [kind]: 0 }));
 
     try {
       const storageRef = ref(storage, `lesson-illustrations/${lessonId}/${normalizeFileName(kind)}`);
-      setUploadProgress(prev => ({ ...prev, [kind]: 45 }));
-      await uploadBytes(storageRef, file, { contentType: file.type });
-      setUploadProgress(prev => ({ ...prev, [kind]: 80 }));
+      await new Promise<void>((resolve, reject) => {
+        const task = uploadBytesResumable(storageRef, file, { contentType: file.type });
+        task.on(
+          'state_changed',
+          snapshot => {
+            const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+            setUploadProgress(prev => ({ ...prev, [kind]: pct }));
+          },
+          reject,
+          resolve,
+        );
+      });
       const downloadUrl = await getDownloadURL(storageRef);
 
       if (kind === 'realistic') setRealisticUrl(downloadUrl);
