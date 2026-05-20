@@ -2,8 +2,10 @@
 
 **Cập nhật**: 2026-05-20
 **Repo chính**: `soangiaoan`
-**Branch hiện tại**: `claude/sprint-e-completion-reward`
-**Commit Sprint E mới nhất**: `c9df1c440ed5dc236b0a8c53f8d2ae40d8ebcfc5 feat: add adaptive lesson completion reward`
+**Branch hiện tại**: `claude/sprint-d-lesson-builder-ui`
+**Commit Sprint D mới nhất**: đang chuẩn bị commit `feat(adaptive): Sprint D — Lesson Builder UI + Firestore persistence`
+**Commit Sprint C mới nhất**: `d90ba674c0975d1df9746d92f5bb1abb6a2dce6f feat(adaptive): Sprint C — cover image upload + render in student portal`
+**Commit Sprint E đã merge main**: `c9df1c440ed5dc236b0a8c53f8d2ae40d8ebcfc5 feat: add adaptive lesson completion reward`
 **Commit nền trước phiên tương tác ví dụ học sinh**: `99aa575 Add real adaptive teacher dashboard`
 **Mục đích file này**: để một phiên Claude Code / Claude Cowork / Google Antigravity hoặc kỹ sư khác đọc nhanh toàn bộ bối cảnh, các thay đổi đã làm, vấn đề còn tồn tại, và các bước cần kiểm tra/sửa tiếp mà không phải hỏi lại từ đầu.
 
@@ -77,7 +79,96 @@ Kết quả mới nhất: `npm run lint` pass; `npm run build` pass, chỉ còn 
 
 ## 3. Các thay đổi lớn đã hoàn thành
 
-## 3.0 Sprint E — Completion reward cuối bài học
+## 3.0 Sprint D — Lesson Builder UI + Firestore persistence
+
+Branch:
+
+```txt
+claude/sprint-d-lesson-builder-ui
+```
+
+Commit dự kiến:
+
+```txt
+feat(adaptive): Sprint D — Lesson Builder UI + Firestore persistence
+```
+
+File đã thêm/chỉnh:
+
+- `src/services/adaptiveLessonService.ts`
+- `src/pages/AdaptiveLessonBuilderPage.tsx`
+- `src/pages/AdaptiveLessonListPage.tsx`
+- `src/pages/AdaptiveStudentPortalPage.tsx`
+- `src/main.tsx`
+- `src/components/layout/Sidebar.tsx`
+- `firestore.rules.example.txt`
+
+Đã làm:
+
+- Tạo service Firestore cho collection `adaptiveLessons` với các hàm lưu, cập nhật, lấy theo id, liệt kê theo `teacherId`, và xoá bài học.
+- Tạo trang Lesson Builder 4 bước để giáo viên tạo/sửa bài adaptive mà không phải chỉnh trực tiếp `sampleAdaptiveLesson.ts`:
+  1. Thông tin cơ bản + upload cover image bằng `LessonCoverUpload`.
+  2. Mục tiêu học tập + diagnostic test.
+  3. Knowledge units + route content + worked example + quick check.
+  4. Exit ticket + completion reward + lưu nháp/xuất bản.
+- Tạo trang danh sách bài học `/adaptive-lessons` cho giáo viên, có các thao tác `Sửa`, `Xem`, `Xóa`, và `Tạo bài mới`.
+- Thêm route:
+
+```txt
+/adaptive-lessons
+/adaptive-builder/:id
+/adaptive-portal/:id
+/adaptive-portal
+```
+
+- Giữ route cũ `/adaptive/student/:teacherId` để tương thích ngược.
+- Cập nhật cổng học sinh để ưu tiên load bài theo lesson id từ URL mới `/adaptive-portal/:id`; fallback về `sampleAdaptiveLesson` khi id là `sample` hoặc thiếu id; vẫn hỗ trợ link cũ theo `teacherId`.
+- Thêm link sidebar “Quản lý bài học” trỏ đến `/adaptive-lessons`.
+- Thêm `firestore.rules.example.txt` cho collection `adaptiveLessons`.
+
+Ghi chú quan trọng:
+
+- Branch Sprint D được tạo từ branch Sprint C để dùng ngay component upload cover `LessonCoverUpload`. Vì vậy Sprint D hiện bao gồm thay đổi Sprint C nếu Sprint C chưa merge vào `main`.
+- `npm run build` cần được chạy lại ngay trước commit Sprint D; kết quả build cuối cùng sẽ được báo trong phần hoàn tất sprint.
+
+## 3.0a Sprint C — Upload ảnh đầu bài
+
+Branch:
+
+```txt
+claude/sprint-c-cover-image-upload
+```
+
+Commit chính:
+
+```txt
+d90ba674c0975d1df9746d92f5bb1abb6a2dce6f feat(adaptive): Sprint C — cover image upload + render in student portal
+```
+
+File đã thêm/chỉnh:
+
+- `src/lib/adaptive/types.ts`
+- `src/lib/adaptive/sampleAdaptiveLesson.ts`
+- `src/components/adaptive/LessonCoverUpload.tsx`
+- `src/pages/AdaptiveStudentPortalPage.tsx`
+
+Đã làm:
+
+- Thêm các field tuỳ chọn `coverImageRealistic` và `coverImageTextbook` vào `AdaptiveLesson`.
+- Tạo component upload ảnh đầu bài, lưu ảnh vào Firebase Storage dưới `lesson-illustrations/{lessonId}/...`.
+- Render ảnh textbook/cinematic ở cổng học sinh trước diagnostic test.
+- Thêm lightbox xem ảnh realistic/cinematic.
+- Bổ sung placeholder cover image cho bài mẫu.
+
+Kiểm tra đã chạy:
+
+```bash
+npm run build
+```
+
+Kết quả: build pass, exit code 0. Có warning Vite cũ về dynamic import/chunk size nhưng không chặn build.
+
+## 3.0b Sprint E — Completion reward cuối bài học
 
 Branch:
 
