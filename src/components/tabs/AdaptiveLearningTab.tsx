@@ -597,11 +597,7 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
     setIsSavingLesson(true);
     setCloudError(null);
 
-    let adminHealthVerified = false;
-
     try {
-      await verifyFirebaseAdminHealth();
-      adminHealthVerified = true;
       const now = new Date().toISOString();
       const lessonToSave: AdaptiveLesson = {
         ...lesson,
@@ -633,9 +629,7 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
     } catch (error) {
       console.error('Lỗi lưu hoặc bật cổng học sinh', error);
       const detail = error instanceof Error ? error.message : 'Không rõ nguyên nhân';
-      setCloudError(adminHealthVerified
-        ? `Firebase Admin API đã sẵn sàng nhưng chưa lưu được bài học lên Firestore. ${detail}. Vui lòng kiểm tra kết nối hoặc quyền Firestore.`
-        : `Chưa thể bật cổng học sinh vì Firebase Admin API chưa sẵn sàng. ${detail}. Vui lòng cấu hình FIREBASE_SERVICE_ACCOUNT_KEY hoặc bộ FIREBASE_PROJECT_ID / FIREBASE_CLIENT_EMAIL / FIREBASE_PRIVATE_KEY trên Vercel rồi thử lại.`);
+      setCloudError(`Chưa lưu được bài học lên Firestore. ${detail}. Vui lòng kiểm tra kết nối hoặc quyền Firestore.`);
     } finally {
       setIsSavingLesson(false);
     }
@@ -751,7 +745,7 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-indigo-100 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
             >
               <CheckCircle2 className="h-4 w-4" />
-              {isCheckingAdminHealth ? 'Đang kiểm tra Firebase Admin...' : isSavingLesson ? 'Đang lưu...' : 'Lưu & bật cổng học sinh'}
+              {isSavingLesson ? 'Đang lưu...' : 'Lưu & bật cổng học sinh'}
             </button>
             <button
               onClick={() => setIsTeacherEditing(prev => !prev)}
@@ -810,7 +804,7 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
                 disabled={isSavingLesson || isCheckingAdminHealth || isCloudLoading || !user}
                 className="rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-black text-white shadow-lg shadow-indigo-100 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
               >
-                {isCheckingAdminHealth ? 'Đang kiểm tra Firebase Admin...' : isSavingLesson ? 'Đang lưu...' : 'Lưu thay đổi'}
+                {isSavingLesson ? 'Đang lưu...' : 'Lưu thay đổi'}
               </button>
             </div>
 

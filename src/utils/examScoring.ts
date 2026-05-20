@@ -3,6 +3,16 @@ import { ExamQuestion, TfScoringMode } from '../types';
 export const isCompoundTF = (q: ExamQuestion) =>
   q.type === 'true_false' && Array.isArray(q.options) && q.options.length > 0;
 
+const braceMathScript = (script: string) => (
+  script.startsWith('{') ? script : `{${script}}`
+);
+
+const normalizeInlineMathIdentifier = (base: string, subscript = '', superscript = '') => {
+  const normalizedSubscript = subscript ? `_${braceMathScript(subscript.slice(1))}` : '';
+  const normalizedSuperscript = superscript ? `^${braceMathScript(superscript.slice(1))}` : '';
+  return `$${base}${normalizedSubscript}${normalizedSuperscript}$`;
+};
+
 const wrapPlainMathFragments = (text: string) => {
   const mathDelimitedSegmentPattern = /(\$\$[\s\S]*?\$\$|\$[^$]*\$)/g;
 
@@ -12,10 +22,14 @@ const wrapPlainMathFragments = (text: string) => {
       if (!segment || segment.startsWith('$')) return segment;
 
       return segment
-        // Common school-math identifiers written as plain text: u_1, u_{n+1}, S_5, x^2...
-        .replace(/\b([A-Za-z][A-Za-z0-9]*(?:_\{[^{}]+\}|_[A-Za-z0-9]+)(?:\^\{[^{}]+\}|\^[A-Za-z0-9]+)?)/g, '$$$1$$')
-        // Compact forms often typed by teachers for sequences: u1, u2, u6, S5.
-        .replace(/\b([uUS])([0-9]+)\b/g, (_, base: string, subscript: string) => `$${base}_${subscript}$`);
+        // Common school-math identifiers written as plain text: u_1, u_{n+1}, S_10, x^2...
+        // Always brace scripts so TeX renders multi-character indices as S_{10}, not S_1 followed by 0.
+        .replace(
+          /\b([A-Za-z][A-Za-z0-9]*)(?:(_\{[^{}]+\}|_[A-Za-z0-9]+))(?:(\^\{[^{}]+\}|\^[A-Za-z0-9]+))?/g,
+          (_match, base: string, subscript: string, superscript = '') => normalizeInlineMathIdentifier(base, subscript, superscript),
+        )
+        // Compact forms often typed by teachers for sequences: u1, u2, u6, S10.
+        .replace(/\b([uUS])([0-9]+)\b/g, (_match, base: string, subscript: string) => `$${base}_{${subscript}}$`);
     })
     .join('');
 };

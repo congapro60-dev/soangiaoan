@@ -50,6 +50,15 @@ Kiểm tra bắt buộc sau phần này: `npm run build` phải pass trước kh
 
 Kiểm tra bắt buộc sau phần này: `npm run build` phải pass trước khi commit message `fix: regression P0 Builder null-check knowledgeUnits + savedExams/lessonPlans rules`.
 
+## 0c. Cập nhật direct testing fixes — 2026-05-20
+
+Đã xử lý hai lỗi phát hiện khi kiểm thử trực tiếp trên nhánh `main`:
+
+- Sửa `AdaptiveLearningTab.tsx`: thao tác “Lưu & bật cổng học sinh” không còn bị chặn bởi health check Firebase Admin. Root cause là luồng lưu bài học dùng client Firestore (`setDoc`) nhưng trước đó vẫn bắt buộc gọi `/api/health/firebase-admin`; khi Vercel thiếu biến Admin, UI báo lỗi đỏ dù thao tác lưu không cần Admin SDK. Lỗi lưu hiện chỉ báo theo kết quả Firestore client thực tế.
+- Sửa `examScoring.ts`: chuẩn hoá bọc công thức inline có chỉ số/số mũ để `u_1`, `u_n`, `S_n`, `u_5`, `u_10`, `S_10` được render bằng KaTeX với chỉ số có ngoặc `{}`. Root cause là TeX hiểu `$S_10$` thành `S_1` + ký tự `0`; nay tự chuyển thành `$S_{10}$`.
+
+Kiểm tra bắt buộc sau phần này: `npm run build` phải pass trước khi commit message `fix: direct testing Firebase portal save + math rendering`.
+
 ## 1. Trạng thái hiện tại của repo
 
 ### 1.1 Git
