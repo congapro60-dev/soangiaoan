@@ -8,6 +8,8 @@ import { AnswerReviewPage } from './pages/AnswerReviewPage';
 import { TeacherGradingPage } from './pages/TeacherGradingPage';
 import { ExamConfigPage } from './pages/ExamConfigPage';
 import { AdaptiveStudentPortalPage } from './pages/AdaptiveStudentPortalPage';
+import { AdaptiveLessonBuilderPage } from './pages/AdaptiveLessonBuilderPage';
+import { AdaptiveLessonListPage } from './pages/AdaptiveLessonListPage';
 import './index.css';
 
 // Error Boundary để ngăn màn trắng khi có lỗi bất ngờ
@@ -58,6 +60,10 @@ createRoot(document.getElementById('root')!).render(
     <ErrorBoundary>
       <BrowserRouter>
         <Routes>
+          <Route path="/adaptive-lessons" element={<AdaptiveLessonListPage />} />
+          <Route path="/adaptive-builder/:id" element={<AdaptiveLessonBuilderPage />} />
+          <Route path="/adaptive-portal/:id" element={<AdaptiveStudentPortalPage />} />
+          <Route path="/adaptive-portal" element={<AdaptiveStudentPortalPage />} />
           <Route path="/adaptive/student/:teacherId" element={<AdaptiveStudentPortalPage />} />
           <Route path="/exam/:code/review/:submissionId" element={<AnswerReviewPage />} />
           <Route path="/exam/:code/result/:submissionId" element={<StudentResultPage />} />

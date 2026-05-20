@@ -25,6 +25,8 @@ import {
 } from 'lucide-react';
 import { db, storage } from '../lib/firebase';
 import { ExternalToolWidget } from '../components/adaptive/ExternalToolWidget';
+import { sampleAdaptiveLesson } from '../lib/adaptive/sampleAdaptiveLesson';
+import { getLessonFromFirestore } from '../services/adaptiveLessonService';
 import { LessonSimulationViewer } from '../components/adaptive/LessonSimulationViewer';
 import { getToolsByIds } from '../data/externalTools';
 import {
@@ -267,9 +269,10 @@ const buildProfile = ({
 const getErrorMessage = (error: unknown) => error instanceof Error ? error.message : String(error || 'unknown');
 
 export const AdaptiveStudentPortalPage = () => {
-  const { teacherId } = useParams<{ teacherId: string }>();
+  const { id, teacherId } = useParams<{ id?: string; teacherId?: string }>();
   const [stage, setStage] = useState<PortalStage>('loading');
   const [lesson, setLesson] = useState<AdaptiveLesson | null>(null);
+  const [portalError, setPortalError] = useState<string | null>(null);
   const [studentName, setStudentName] = useState('');
   const [studentClass, setStudentClass] = useState('');
   const [studentCode, setStudentCode] = useState('');
@@ -292,28 +295,47 @@ export const AdaptiveStudentPortalPage = () => {
 
   useEffect(() => {
     const loadLesson = async () => {
-      if (!teacherId) {
-        setStage('not_found');
-        return;
-      }
+      setStage('loading');
+      setPortalError(null);
+      setLesson(null);
 
       try {
-        const snapshot = await getDoc(doc(db, 'adaptiveLessons', teacherId));
-        if (!snapshot.exists()) {
+        if (teacherId) {
+          const snapshot = await getDoc(doc(db, 'adaptiveLessons', teacherId));
+          if (!snapshot.exists()) {
+            setPortalError('Liên kết cũ theo giáo viên chưa có bài học đã phát.');
+            setStage('not_found');
+            return;
+          }
+          const data = snapshot.data() as AdaptiveLessonDocument;
+          setLesson(data.lesson);
+          setStage('identify');
+          return;
+        }
+
+        if (!id || id === 'sample') {
+          setLesson(sampleAdaptiveLesson);
+          setStage('identify');
+          return;
+        }
+
+        const found = await getLessonFromFirestore(id);
+        if (!found) {
+          setPortalError('Không tìm thấy bài học adaptive theo mã trong liên kết.');
           setStage('not_found');
           return;
         }
-        const data = snapshot.data() as AdaptiveLessonDocument;
-        setLesson(data.lesson);
+        setLesson(found);
         setStage('identify');
       } catch (err) {
         console.error('Không tải được cổng học sinh', err);
+        setPortalError('Không tải được bài học adaptive từ hệ thống.');
         setStage('not_found');
       }
     };
 
-    loadLesson();
-  }, [teacherId]);
+    void loadLesson();
+  }, [id, teacherId]);
 
   useEffect(() => {
     const interval = window.setInterval(() => setNowTick(Date.now()), 1000);
@@ -357,6 +379,7 @@ export const AdaptiveStudentPortalPage = () => {
     setSectionStarts(prev => (prev[activeSectionKey] ? prev : { ...prev, [activeSectionKey]: Date.now() }));
   }, [activeSectionKey]);
 
+  const activeTeacherId = teacherId || lesson?.teacherId || '';
   const currentUnit = lesson?.knowledgeUnits[currentUnitIndex] || null;
   const recommendedRoute = diagnosticAttempt?.recommendedRoute || 'standard';
   const routeContent = currentUnit?.routes.find(item => item.route === recommendedRoute) || currentUnit?.routes[1] || currentUnit?.routes[0];
@@ -385,13 +408,13 @@ export const AdaptiveStudentPortalPage = () => {
   }, [profile]);
 
   const handleIdentify = async () => {
-    if (!teacherId || !studentName.trim() || !studentCode.trim()) {
+    if (!activeTeacherId || !studentName.trim() || !studentCode.trim()) {
       setNotice({ tone: 'error', message: 'Em cần nhập họ tên và mã học sinh để hệ thống lưu đúng hồ sơ học tập.' });
       return;
     }
 
     setNotice(null);
-    const studentId = buildStudentId(teacherId, studentCode);
+    const studentId = buildStudentId(activeTeacherId, studentCode);
 
     try {
       const snapshot = await getDoc(doc(db, 'studentLearningProfiles', studentId));
@@ -463,7 +486,7 @@ export const AdaptiveStudentPortalPage = () => {
       return;
     }
 
-    if (!teacherId || !studentCode.trim()) {
+    if (!activeTeacherId || !studentCode.trim()) {
       updateWorkedExampleInteraction(key, { gradingError: 'Thiếu thông tin học sinh để lưu ảnh bài làm. Em hãy nhập mã học sinh rồi thử lại.' });
       return;
     }
@@ -474,7 +497,7 @@ export const AdaptiveStudentPortalPage = () => {
       const uploadedImage = interaction.imageDownloadUrl && interaction.imageStoragePath
         ? { downloadUrl: interaction.imageDownloadUrl, path: interaction.imageStoragePath }
         : await uploadWorkedExampleImage({
-          teacherId,
+          teacherId: activeTeacherId,
           studentCode,
           imageDataUrl: interaction.imagePreviewUrl,
           imageMimeType: interaction.imageMimeType,
@@ -583,15 +606,15 @@ export const AdaptiveStudentPortalPage = () => {
   };
 
   const handleExitTicketSubmit = async () => {
-    if (!lesson || !teacherId || !diagnosticAttempt) return;
+    if (!lesson || !activeTeacherId || !diagnosticAttempt) return;
 
     const plannedSeconds = lesson.exitTicket.durationMinutes * 60;
     const finalExitTicketAttempt = gradeAssessment(lesson.exitTicket, exitTicketAnswers, measuredDurationFor('exit-ticket', plannedSeconds));
     setExitTicketAttempt(finalExitTicketAttempt);
 
     const attempts = [diagnosticAttempt, ...quickCheckAttempts, finalExitTicketAttempt];
-    const studentId = buildStudentId(teacherId, studentCode);
-    const progressId = buildProgressId(teacherId, lesson.id, studentCode);
+    const studentId = buildStudentId(activeTeacherId, studentCode);
+    const progressId = buildProgressId(activeTeacherId, lesson.id, studentCode);
     const now = new Date().toISOString();
     const progress = createProgressFromDiagnostic(lesson, `lesson-${lesson.id}`, studentId, diagnosticAttempt);
     const uploadedImageUrls = Array.from(new Set(Object.values(workedExampleInteractions)
@@ -611,7 +634,7 @@ export const AdaptiveStudentPortalPage = () => {
     }]));
     const progressRecord: StudentSessionProgressRecord = {
       id: progressId,
-      teacherId,
+      teacherId: activeTeacherId,
       lessonId: lesson.id,
       lessonTitle: lesson.title,
       studentId,
@@ -660,7 +683,7 @@ export const AdaptiveStudentPortalPage = () => {
     };
     const nextProfile = buildProfile({
       existingProfile: profile,
-      teacherId,
+      teacherId: activeTeacherId,
       studentId,
       studentCode,
       studentName,
@@ -675,7 +698,7 @@ export const AdaptiveStudentPortalPage = () => {
 
     try {
       const result = await saveAdaptiveProgressViaApi({
-        teacherId,
+        teacherId: activeTeacherId,
         lessonId: lesson.id,
         progressId,
         studentId,
@@ -687,7 +710,7 @@ export const AdaptiveStudentPortalPage = () => {
     } catch (apiError) {
       console.warn('API bảo mật chưa lưu được kết quả học sinh, thử fallback Firestore client', apiError);
       void logFallbackEvent({
-        teacherId,
+        teacherId: activeTeacherId,
         studentId,
         lessonId: lesson.id,
         stage: 'api',
@@ -711,7 +734,7 @@ export const AdaptiveStudentPortalPage = () => {
       } catch (firestoreError) {
         console.error('Không lưu được tiến trình học sinh bằng cả API và Firestore client', firestoreError);
         void logFallbackEvent({
-          teacherId,
+          teacherId: activeTeacherId,
           studentId,
           lessonId: lesson.id,
           stage: 'firestore',
@@ -722,7 +745,7 @@ export const AdaptiveStudentPortalPage = () => {
 
         try {
           saveAdaptiveProgressOffline({
-            teacherId,
+            teacherId: activeTeacherId,
             lessonId: lesson.id,
             progressId,
             studentId,
@@ -730,7 +753,7 @@ export const AdaptiveStudentPortalPage = () => {
             profileRecord: nextProfile,
           }, getErrorMessage(firestoreError), now);
           void logFallbackEvent({
-            teacherId,
+            teacherId: activeTeacherId,
             studentId,
             lessonId: lesson.id,
             stage: 'localStorage',
@@ -752,7 +775,7 @@ export const AdaptiveStudentPortalPage = () => {
   };
 
   if (stage === 'loading') return <FullPageState icon={<Loader2 className="h-8 w-8 animate-spin text-blue-600" />} title="Đang mở lớp học phân hoá" message="Hệ thống đang tải bài học giáo viên đã phát." />;
-  if (stage === 'not_found' || !lesson) return <FullPageState icon={<AlertTriangle className="h-8 w-8 text-amber-500" />} title="Chưa tìm thấy bài học" message="Liên kết này chưa có bài học phân hoá đã lưu hoặc giáo viên chưa phát bài." />;
+  if (stage === 'not_found' || !lesson) return <FullPageState icon={<AlertTriangle className="h-8 w-8 text-amber-500" />} title="Chưa tìm thấy bài học" message={portalError || 'Liên kết này chưa có bài học phân hoá đã lưu hoặc giáo viên chưa phát bài.'} />;
 
   const stepNames = lesson.fiveStepFlow.steps.map(step => step.name);
   const activeStepIndex = stage === 'identify'

@@ -36,6 +36,7 @@ export const Sidebar = ({
   setIsSettingsOpen,
   handleLogout
 }: SidebarProps) => {
+  const currentPath = window.location.pathname;
   const menuItems = [
     { id: 'dashboard', label: 'Tổng quan', icon: LayoutDashboard },
     { id: 'creator', label: 'Soạn giáo án', icon: Plus },
@@ -43,6 +44,7 @@ export const Sidebar = ({
     { id: 'exams', label: 'Thi online', icon: Globe },
     { id: 'grading', label: 'Chấm điểm AI', icon: ClipboardCheck },
     { id: 'adaptive', label: 'Học phân hoá', icon: BrainCircuit },
+    { id: 'adaptiveLessons', label: 'Quản lý bài học', icon: FileText, path: '/adaptive-lessons' },
     { id: 'library', label: 'Thư viện', icon: FileText },
     { id: 'templates', label: 'Mẫu giáo án', icon: Layout },
     { id: 'chat', label: 'AI Tutor', icon: MessageSquare },
@@ -74,29 +76,38 @@ export const Sidebar = ({
 
       {/* Main Nav */}
       <nav className="flex-1 px-3 space-y-1.5 mt-6">
-        {menuItems.map((item) => (
+        {menuItems.map((item) => {
+          const isActive = activeTab === item.id || ('path' in item && currentPath === item.path);
+          return (
           <button
             key={item.id}
-            onClick={() => item.id === 'creator' ? onCreatorTabClick() : setActiveTab(item.id as any)}
+            onClick={() => {
+              if ('path' in item && item.path) {
+                window.location.href = item.path;
+                return;
+              }
+              item.id === 'creator' ? onCreatorTabClick() : setActiveTab(item.id as any);
+            }}
             className={cn(
               "w-full flex items-center gap-3 p-3.5 rounded-xl transition-all duration-200 group relative",
-              activeTab === item.id 
-                ? "bg-blue-600 text-white shadow-xl shadow-blue-100" 
+              isActive
+                ? "bg-blue-600 text-white shadow-xl shadow-blue-100"
                 : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
             )}
           >
-            <item.icon className={cn("w-5 h-5 flex-shrink-0", activeTab === item.id ? "text-white" : "group-hover:text-blue-500")} />
+            <item.icon className={cn("w-5 h-5 flex-shrink-0", isActive ? "text-white" : "group-hover:text-blue-500")} />
             {isSidebarOpen && <span className="font-semibold">{item.label}</span>}
             
             {/* Active Indicator Bar */}
-            {activeTab === item.id && (
+            {isActive && (
               <motion.div 
                 layoutId="activeTab"
                 className="absolute left-0 w-1 h-6 bg-white rounded-r-full"
               />
             )}
           </button>
-        ))}
+          );
+        })}
       </nav>
 
       {/* Footer Nav */}
