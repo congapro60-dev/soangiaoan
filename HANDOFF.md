@@ -2,14 +2,31 @@
 
 **Cập nhật**: 2026-05-20
 **Repo chính**: `soangiaoan`
-**Branch hiện tại**: `claude/sprint-d-lesson-builder-ui`
-**Commit Sprint D mới nhất**: đang chuẩn bị commit `feat(adaptive): Sprint D — Lesson Builder UI + Firestore persistence`
-**Commit Sprint C mới nhất**: `d90ba674c0975d1df9746d92f5bb1abb6a2dce6f feat(adaptive): Sprint C — cover image upload + render in student portal`
+**Branch hiện tại**: `main`
+**Commit Sprint D đã merge main**: `e7b609c92b80c80227ef4853053ea9723bdab931 Merge sprint D lesson builder UI`
+**Commit Sprint D feature**: `8d229eb75b823b9edfb4262c84ee68abbd5821cd feat(adaptive): Sprint D — Lesson Builder UI + Firestore persistence`
+**Commit Sprint C đã merge main**: `96030b3 Merge sprint C cover image upload`
+**Commit Sprint C feature**: `d90ba674c0975d1df9746d92f5bb1abb6a2dce6f feat(adaptive): Sprint C — cover image upload + render in student portal`
 **Commit Sprint E đã merge main**: `c9df1c440ed5dc236b0a8c53f8d2ae40d8ebcfc5 feat: add adaptive lesson completion reward`
 **Commit nền trước phiên tương tác ví dụ học sinh**: `99aa575 Add real adaptive teacher dashboard`
 **Mục đích file này**: để một phiên Claude Code / Claude Cowork / Google Antigravity hoặc kỹ sư khác đọc nhanh toàn bộ bối cảnh, các thay đổi đã làm, vấn đề còn tồn tại, và các bước cần kiểm tra/sửa tiếp mà không phải hỏi lại từ đầu.
 
 ---
+
+## 0. Cập nhật P0/P1 QA fixes — 2026-05-20
+
+Đang xử lý trên branch `main` các lỗi P0/P1 từ QA report với root cause đã xác định:
+
+- Sửa `firestore.rules` cho collection `adaptiveLessons` dùng wildcard `{lessonId}` đúng với schema service lưu document theo `lesson.id`, owner nằm ở field `teacherId`.
+- Mở read public cho `lessonSimulations` vì HTML được render bằng sandboxed iframe; học sinh ẩn danh cần đọc mô phỏng.
+- Thêm `firestore.indexes.json` với composite index cho `adaptiveLessons(teacherId, updatedAt desc)` và `lessonPlans(userId, updatedAt desc)`.
+- Sửa race condition Firebase Auth ở `AdaptiveLessonBuilderPage`: thêm `authReady`, chờ persistence rehydrate trước khi load bài.
+- Sửa `ExternalToolWidget`: URL `inferred` không nhúng iframe, chỉ mở tab mới, hiển thị cảnh báo nhỏ và link báo link hỏng.
+- Sửa dashboard không còn hiển thị `Chào ,` khi thiếu tên; fallback `Thầy/Cô`.
+- Sửa `LessonSimulationViewer`: phân biệt `not_found` bình thường với lỗi tải/network/permission; lỗi có nút thử lại.
+- Sửa `AdaptiveLessonListPage`: khi load lỗi không render empty state/nút tạo bài duplicate.
+
+Kiểm tra bắt buộc sau phần này: `npm run build` phải pass trước khi commit message `fix: P0/P1 — Firestore rules, auth race condition, inferred tool URLs, UX`.
 
 ## 1. Trạng thái hiện tại của repo
 

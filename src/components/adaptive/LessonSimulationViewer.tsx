@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { BookOpen, ChevronDown, ChevronUp, Loader2, Sparkles } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { BookOpen, ChevronDown, ChevronUp, Loader2, RefreshCw, Sparkles } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
@@ -23,46 +23,47 @@ export const LessonSimulationViewer = ({ lessonId, unitId, unitTitle }: LessonSi
   const simulationId = useMemo(() => `${lessonId}_${unitId}`, [lessonId, unitId]);
   const simulationHtml = useMemo(() => html, [html]);
 
+  const loadSimulation = useCallback(async (options: { resetExpanded?: boolean } = {}) => {
+    setStatus('loading');
+    setHtml('');
+    if (options.resetExpanded !== false) setExpanded(false);
+
+    try {
+      const snapshot = await getDoc(doc(db, 'lessonSimulations', simulationId));
+
+      if (!snapshot.exists()) {
+        setStatus('not_found');
+        return;
+      }
+
+      const data = snapshot.data() as LessonSimulationDocument;
+      if (typeof data.html !== 'string' || data.html.trim().length === 0) {
+        setStatus('not_found');
+        return;
+      }
+
+      setHtml(data.html);
+      setStatus('loaded');
+    } catch (error) {
+      console.error('Failed to load lesson simulation:', error);
+      setStatus('error');
+    }
+  }, [simulationId]);
+
   useEffect(() => {
     let isMounted = true;
 
-    const loadSimulation = async () => {
-      setStatus('loading');
-      setHtml('');
-      setExpanded(false);
-
-      try {
-        const snapshot = await getDoc(doc(db, 'lessonSimulations', simulationId));
-
-        if (!isMounted) return;
-
-        if (!snapshot.exists()) {
-          setStatus('not_found');
-          return;
-        }
-
-        const data = snapshot.data() as LessonSimulationDocument;
-        if (typeof data.html !== 'string' || data.html.trim().length === 0) {
-          setStatus('not_found');
-          return;
-        }
-
-        setHtml(data.html);
-        setStatus('loaded');
-      } catch (error) {
-        console.error('Failed to load lesson simulation:', error);
-        if (isMounted) {
-          setStatus('error');
-        }
-      }
+    const run = async () => {
+      await loadSimulation();
+      if (!isMounted) return;
     };
 
-    loadSimulation();
+    void run();
 
     return () => {
       isMounted = false;
     };
-  }, [simulationId]);
+  }, [loadSimulation]);
 
   if (status === 'loading') {
     return (
@@ -78,16 +79,23 @@ export const LessonSimulationViewer = ({ lessonId, unitId, unitTitle }: LessonSi
   if (status === 'not_found') {
     return (
       <p className="mt-4 rounded-2xl border border-violet-100 bg-violet-50/50 px-4 py-3 text-xs font-bold text-violet-500">
-        Chưa có mô phỏng cho mảnh này
+        Mảnh kiến thức này chưa có mô phỏng tương tác.
       </p>
     );
   }
 
   if (status === 'error') {
     return (
-      <p className="mt-4 rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-xs font-bold text-amber-700">
-        Không tải được mô phỏng lúc này.
-      </p>
+      <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-xs font-bold text-amber-700 sm:flex-row sm:items-center sm:justify-between">
+        <span>Không tải được mô phỏng lúc này. Vui lòng thử lại.</span>
+        <button
+          type="button"
+          onClick={() => void loadSimulation({ resetExpanded: false })}
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-100 px-3 py-2 text-xs font-black text-amber-800 transition hover:bg-amber-200"
+        >
+          <RefreshCw className="h-3.5 w-3.5" /> Thử lại
+        </button>
+      </div>
     );
   }
 

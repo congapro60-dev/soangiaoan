@@ -51,7 +51,7 @@ export const DashboardTab = ({ data, setCurrentPlan, setActiveTab }: DashboardTa
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            Chào {data.authorName && <span className="text-blue-600">thầy {data.authorName}</span>},
+            Chào <span className="text-blue-600">{data.authorName?.split(' ').pop() || 'Thầy/Cô'}</span>,
           </h2>
           <p className="text-slate-500 mt-2 font-medium">Hôm nay thầy muốn chuẩn bị bài giảng nào?</p>
         </div>

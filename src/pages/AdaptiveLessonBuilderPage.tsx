@@ -116,19 +116,25 @@ export const AdaptiveLessonBuilderPage = () => {
   const [user, setUser] = useState<User | null>(auth.currentUser);
   const [lesson, setLesson] = useState<AdaptiveLesson | null>(null);
   const [step, setStep] = useState(0);
+  const [authReady, setAuthReady] = useState(auth.currentUser !== null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expandedUnitId, setExpandedUnitId] = useState<string | null>(null);
   const [sharedRoutes, setSharedRoutes] = useState<Record<string, boolean>>({});
 
-  useEffect(() => onAuthStateChanged(auth, setUser), []);
+  useEffect(() => onAuthStateChanged(auth, (firebaseUser) => {
+    setUser(firebaseUser);
+    setAuthReady(true);
+  }), []);
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
       setError(null);
       try {
+        if (!authReady) return;   // Chờ Firebase persistence rehydrate
+
         const currentUser = auth.currentUser;
         if (!currentUser) {
           setLesson(null);
@@ -162,7 +168,7 @@ export const AdaptiveLessonBuilderPage = () => {
     };
 
     void load();
-  }, [id]);
+  }, [id, authReady]);
 
   const objectiveOptions = lesson?.objectives || [];
   const steps = ['Thông tin cơ bản', 'Mục tiêu & Chẩn đoán', 'Các mảnh kiến thức', 'Hoàn tất & Xuất bản'];
@@ -251,6 +257,7 @@ export const AdaptiveLessonBuilderPage = () => {
     }
   };
 
+  if (!authReady) return <BuilderShell><div className="rounded-3xl bg-white p-8 text-center font-bold text-slate-500 shadow-sm">Đang kiểm tra phiên đăng nhập...</div></BuilderShell>;
   if (loading) return <BuilderShell><div className="rounded-3xl bg-white p-8 text-center font-bold text-slate-500 shadow-sm">Đang tải bài học adaptive...</div></BuilderShell>;
   if (error && !lesson) return <BuilderShell><ErrorPanel message={error} /></BuilderShell>;
   if (!lesson || !user) return <BuilderShell><ErrorPanel message="Không có dữ liệu bài học hoặc phiên đăng nhập." /></BuilderShell>;

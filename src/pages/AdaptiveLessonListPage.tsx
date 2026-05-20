@@ -88,7 +88,7 @@ export const AdaptiveLessonListPage = () => {
         <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
           {loading ? (
             <div className="py-12 text-center text-sm font-bold text-slate-500">Đang tải danh sách bài học...</div>
-          ) : lessons.length === 0 ? (
+          ) : !error && lessons.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center">
               <h2 className="text-lg font-black text-slate-800">Chưa có bài học adaptive</h2>
               <p className="mt-2 text-sm font-semibold text-slate-500">Bắt đầu bằng một bản nháp mới, sau đó xuất bản để học sinh truy cập.</p>

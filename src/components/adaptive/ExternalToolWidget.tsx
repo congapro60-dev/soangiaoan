@@ -20,12 +20,18 @@ const SourceBadge = ({ tool }: ToolCardProps) => (
     <span>{tool.source === 'congcutoanhoc' ? 'Công cụ Toán học' : 'Giáo viên AI'}</span>
     <span>•</span>
     <span>Lớp {tool.gradeLevel}</span>
-    {tool.urlStatus === 'inferred' && (
-      <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-amber-700">
-        Chưa xác minh URL
-      </span>
-    )}
   </div>
+);
+
+const BrokenLinkReport = ({ tool }: ToolCardProps) => (
+  tool.urlStatus === 'inferred' ? (
+    <a
+      href={`mailto:?subject=Báo link hỏng: ${tool.name}&body=URL: ${tool.url}`}
+      className="text-xs text-slate-400 underline hover:text-red-500"
+    >
+      Báo link hỏng
+    </a>
+  ) : null
 );
 
 const ToolAttribution = ({ tool }: ToolCardProps) => (
@@ -50,8 +56,9 @@ const LinkToolCard = ({ tool }: ToolCardProps) => (
     <SourceBadge tool={tool} />
     <div className="mt-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
       <div>
-        <h4 className="text-lg font-black text-slate-800">{tool.name}</h4>
+        <h4 className="text-lg font-black text-slate-800">{tool.name}{tool.urlStatus === 'inferred' && <span className="ml-2 text-sm text-amber-500" title="Chưa xác minh URL">⚠️</span>}</h4>
         <p className="mt-1 text-sm font-semibold text-slate-500">Công cụ này không nhúng trực tiếp được, em mở ở tab mới để sử dụng.</p>
+        {tool.urlStatus === 'inferred' && <p className="mt-1 text-xs font-bold text-amber-600">⚠️ Chưa xác minh URL</p>}
       </div>
       <a
         href={tool.url}
@@ -63,6 +70,7 @@ const LinkToolCard = ({ tool }: ToolCardProps) => (
         <ExternalLink className="h-4 w-4" />
       </a>
     </div>
+    <div className="mt-2 flex justify-end"><BrokenLinkReport tool={tool} /></div>
     <ToolAttribution tool={tool} />
   </article>
 );
@@ -104,36 +112,42 @@ const IframeToolCard = ({ tool }: ToolCardProps) => {
     setStatus('failed');
   };
 
+  const isInferred = tool.urlStatus === 'inferred';
+
   return (
     <article className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
       <SourceBadge tool={tool} />
       <div className="mt-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h4 className="text-lg font-black text-slate-800">{tool.name}</h4>
-          <p className="mt-1 text-sm font-semibold text-slate-500">Thử thao tác trực tiếp trong bài học; nếu không tải được, mở công cụ ở tab mới.</p>
+          <h4 className="text-lg font-black text-slate-800">{tool.name}{isInferred && <span className="ml-2 text-sm text-amber-500" title="Chưa xác minh URL">⚠️</span>}</h4>
+          <p className="mt-1 text-sm font-semibold text-slate-500">{isInferred ? 'URL công cụ chưa được xác minh, em mở ở tab mới để tránh khung nhúng lỗi.' : 'Thử thao tác trực tiếp trong bài học; nếu không tải được, mở công cụ ở tab mới.'}</p>
+          {isInferred && <p className="mt-1 text-xs font-bold text-amber-600">⚠️ Chưa xác minh URL</p>}
         </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setExpanded(prev => !prev)}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-indigo-100 transition hover:bg-indigo-700"
-          >
-            {expanded ? 'Thu gọn' : 'Mở trong bài học'}
-            {expanded ? <X className="h-4 w-4" /> : <BookOpen className="h-4 w-4" />}
-          </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {!isInferred && (
+            <button
+              type="button"
+              onClick={() => setExpanded(prev => !prev)}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-indigo-100 transition hover:bg-indigo-700"
+            >
+              {expanded ? 'Thu gọn' : 'Mở trong bài học'}
+              {expanded ? <X className="h-4 w-4" /> : <BookOpen className="h-4 w-4" />}
+            </button>
+          )}
           <a
             href={tool.url}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700 transition hover:border-blue-200 hover:text-blue-700"
           >
-            Mở tab mới
+            {isInferred ? 'Mở công cụ (tab mới)' : 'Mở tab mới'}
             <ExternalLink className="h-4 w-4" />
           </a>
+          <BrokenLinkReport tool={tool} />
         </div>
       </div>
 
-      {expanded && (
+      {!isInferred && expanded && (
         <div className="mt-4 overflow-hidden rounded-3xl border border-slate-100 bg-slate-50">
           <div className="flex items-center justify-between border-b border-slate-100 bg-white px-4 py-3">
             <div className="text-xs font-black uppercase tracking-wide text-slate-400">Khung công cụ nhúng</div>

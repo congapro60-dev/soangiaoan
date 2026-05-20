@@ -1,4 +1,6 @@
 rules_version = '2';
+// Deploy: firebase deploy --only firestore:rules,firestore:indexes
+// Cần Firebase CLI: npm install -g firebase-tools && firebase login
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -32,20 +34,18 @@ service cloud.firestore {
                     && request.auth.uid == request.resource.data.userId;
     }
 
-    // Bài học phân hoá — giáo viên ghi; học sinh chỉ đọc khi giáo viên bật cổng học sinh
-    match /adaptiveLessons/{teacherId} {
-      allow read: if (request.auth != null && request.auth.uid == teacherId)
-                  || resource.data.portalEnabled == true;
+    // Bài học phân hoá — service lưu document theo lesson.id, owner nằm trong field teacherId
+    match /adaptiveLessons/{lessonId} {
+      // Đọc: giáo viên đã đăng nhập đọc được (listLessonsForTeacher query theo field teacherId)
+      allow read: if request.auth != null;
+      // Tạo: chỉ khi teacherId trong document trùng với uid người tạo
       allow create: if request.auth != null
-                    && request.auth.uid == teacherId
-                    && request.auth.uid == request.resource.data.userId;
+                    && request.auth.uid == request.resource.data.teacherId;
+      // Sửa/Xóa: chỉ owner bài
       allow update: if request.auth != null
-                    && request.auth.uid == teacherId
-                    && request.auth.uid == resource.data.userId
-                    && request.auth.uid == request.resource.data.userId;
+                    && request.auth.uid == resource.data.teacherId;
       allow delete: if request.auth != null
-                    && request.auth.uid == teacherId
-                    && request.auth.uid == resource.data.userId;
+                    && request.auth.uid == resource.data.teacherId;
     }
 
     // Tiến trình từng tiết học phân hoá — học sinh ghi theo mã học sinh; giáo viên owner quản trị được
@@ -125,7 +125,7 @@ service cloud.firestore {
                     && request.resource.data.html is string
                     && request.resource.data.html.size() < 200000
                     && request.resource.data.lessonId is string;
-      allow read: if request.auth != null;
+      allow read: if true;  // HTML đã sandbox iframe, public đọc được là an toàn
       allow update: if request.auth != null
                     && resource.data.createdBy == request.auth.uid;
       allow delete: if request.auth != null
