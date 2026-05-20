@@ -288,6 +288,7 @@ export const AdaptiveStudentPortalPage = () => {
   const [notice, setNotice] = useState<{ tone: NoticeTone; message: string } | null>(null);
   const [sectionStarts, setSectionStarts] = useState<Record<string, number>>({});
   const [nowTick, setNowTick] = useState(Date.now());
+  const [showRealisticCover, setShowRealisticCover] = useState(false);
 
   useEffect(() => {
     const loadLesson = async () => {
@@ -838,20 +839,39 @@ export const AdaptiveStudentPortalPage = () => {
         )}
 
         {stage === 'diagnostic' && (
-          <StudentAssessmentCard
-            title="Bước 2. Test đầu giờ"
-            description={`Hoàn thành trong khoảng ${lesson.diagnosticTest.durationMinutes} phút để hệ thống xác định tuyến học phù hợp.`}
-            questions={lesson.diagnosticTest.questions}
-            answers={diagnosticAnswers}
-            setAnswers={setDiagnosticAnswers}
-            submitLabel="Nộp test và nhận tuyến học"
-            onSubmit={handleDiagnosticSubmit}
-            timer={{
-              plannedSeconds: lesson.diagnosticTest.durationMinutes * 60,
-              elapsedSeconds: elapsedSecondsFor('diagnostic'),
-              remainingSeconds: remainingSecondsFor('diagnostic', lesson.diagnosticTest.durationMinutes * 60),
-            }}
-          />
+          <>
+            {(lesson.coverImageRealistic || lesson.coverImageTextbook) && (
+              <div className="mb-4 overflow-hidden rounded-xl shadow-sm">
+                <img
+                  src={lesson.coverImageTextbook || lesson.coverImageRealistic}
+                  alt={`Minh họa: ${lesson.title}`}
+                  className="max-h-56 w-full object-cover"
+                />
+                {lesson.coverImageRealistic && lesson.coverImageTextbook && (
+                  <div className="flex justify-end gap-2 bg-gray-50 p-2 text-xs text-gray-500">
+                    <span>Xem ảnh:</span>
+                    <button className="underline" onClick={() => setShowRealisticCover(true)}>
+                      Cinematic
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+              <StudentAssessmentCard
+                title="Bước 2. Test đầu giờ"
+                description={`Hoàn thành trong khoảng ${lesson.diagnosticTest.durationMinutes} phút để hệ thống xác định tuyến học phù hợp.`}
+                questions={lesson.diagnosticTest.questions}
+                answers={diagnosticAnswers}
+                setAnswers={setDiagnosticAnswers}
+                submitLabel="Nộp test và nhận tuyến học"
+                onSubmit={handleDiagnosticSubmit}
+                timer={{
+                  plannedSeconds: lesson.diagnosticTest.durationMinutes * 60,
+                  elapsedSeconds: elapsedSecondsFor('diagnostic'),
+                  remainingSeconds: remainingSecondsFor('diagnostic', lesson.diagnosticTest.durationMinutes * 60),
+                }}
+              />
+            </>
         )}
 
         {stage === 'lesson' && currentUnit && routeContent && diagnosticAttempt && (
@@ -1011,6 +1031,19 @@ export const AdaptiveStudentPortalPage = () => {
           </motion.section>
         )}
       </div>
+
+      {showRealisticCover && lesson.coverImageRealistic && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setShowRealisticCover(false)}
+        >
+          <img
+            src={lesson.coverImageRealistic}
+            alt={`Minh họa cinematic: ${lesson.title}`}
+            className="max-h-[85vh] max-w-5xl rounded-2xl object-contain shadow-2xl"
+          />
+        </div>
+      )}
     </div>
   );
 };
