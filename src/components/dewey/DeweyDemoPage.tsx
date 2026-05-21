@@ -22,7 +22,7 @@ export default function DeweyDemoPage() {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 bg-[#0F1419]">
       <section className="rounded-3xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 p-6 text-white shadow-xl shadow-blue-100">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
@@ -73,12 +73,12 @@ export default function DeweyDemoPage() {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-100">
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-black/50">
         <iframe
           sandbox="allow-scripts"
           srcDoc={html}
           className="w-full rounded-2xl bg-white"
-          style={{ height: 'calc(100vh - 200px)' }}
+          style={{ height: 'calc(100vh - 100px)', minHeight: 800 }}
           title="Demo bài Dewey"
         />
       </section>

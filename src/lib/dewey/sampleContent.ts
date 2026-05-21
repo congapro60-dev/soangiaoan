@@ -83,6 +83,63 @@ export const SONG_ANH_SAMPLE: DeweyLessonContent = {
     rawSvgFallback: enigmaSvg,
     realityCheckMessage: 'Chỉ riêng 3 vòng số cơ bản đã có thể tạo tới $10 \\times 10 \\times 10 = 1000$ trạng thái. Enigma thật có số khả năng lớn hơn rất nhiều, nên ta cần một cách đếm thông minh thay vì liệt kê.',
     guidingQuestion: 'Liệu có một phép màu toán học giúp ta đếm chính xác số lượng khổng lồ mà không cần liệt kê từng trường hợp?',
+    guidingQuestionBox: 'Nếu mỗi cấu hình Enigma được ghép với đúng một dãy số mô tả rotor, ta có thể đếm cấu hình bằng cách đếm các dãy số đó không?',
+    stepLabel: 'Bước 1: Khởi động & Gắn kết',
+    bigTitle: 'Bí ẩn Cỗ máy Enigma & Giới hạn của con người',
+    illustration: {
+      type: 'svg-inline',
+      caption: 'Mô phỏng đồ họa máy mã hóa Enigma',
+      data: String.raw`<svg viewBox="0 0 240 240" class="svg-enigma" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Đồ họa máy mã hóa Enigma">
+        <rect x="22" y="34" width="196" height="172" rx="18" fill="#0F4C81" stroke="#F2A900" stroke-width="5"/>
+        <rect x="48" y="54" width="144" height="46" rx="10" fill="#1F2937"/>
+        <g font-family="monospace" font-size="24" font-weight="800" text-anchor="middle">
+          <text x="78" y="85" fill="#F2A900">E</text><text x="120" y="85" fill="#F2A900">N</text><text x="162" y="85" fill="#F2A900">G</text>
+        </g>
+        <rect x="44" y="118" width="152" height="56" rx="12" fill="#F8FAFC"/>
+        <g fill="#0F1419">
+          <circle cx="68" cy="136" r="7"/><circle cx="96" cy="136" r="7"/><circle cx="124" cy="136" r="7"/><circle cx="152" cy="136" r="7"/><circle cx="180" cy="136" r="7"/>
+          <circle cx="82" cy="158" r="7"/><circle cx="110" cy="158" r="7"/><circle cx="138" cy="158" r="7"/><circle cx="166" cy="158" r="7"/>
+        </g>
+        <path d="M64 106 C92 116 112 96 138 106 S174 124 196 104" stroke="#F2A900" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <text x="120" y="198" fill="#F2A900" text-anchor="middle" font-family="monospace" font-weight="800" font-size="15">ENIGMA</text>
+      </svg>`,
+    },
+    interactiveWidget: {
+      type: 'rotor-counter',
+      title: 'CỖ MÁY MÔ PHỎNG ENIGMA',
+      htmlInline: String.raw`<div class="enigma-widget" data-widget="rotor-counter">
+        <div class="rotor-panel" aria-label="Ba rotor mô phỏng">
+          <button class="rotor" type="button" data-value="0" aria-label="Rotor 1">0</button>
+          <button class="rotor" type="button" data-value="0" aria-label="Rotor 2">0</button>
+          <button class="rotor" type="button" data-value="0" aria-label="Rotor 3">0</button>
+        </div>
+        <p class="rotor-counter-text">Cấu hình hiện tại: <strong class="rotor-state">000</strong></p>
+        <p class="rotor-counter-text">Với 3 rotor, mỗi rotor 10 vị trí: <strong>10 × 10 × 10 = 1000</strong> cấu hình.</p>
+      </div>`,
+      jsInit: String.raw`document.querySelectorAll('.enigma-widget .rotor').forEach(function (rotor) {
+        rotor.onclick = function () {
+          var next = (Number(rotor.dataset.value || '0') + 1) % 10;
+          rotor.dataset.value = String(next);
+          rotor.textContent = String(next);
+          var widget = rotor.closest('.enigma-widget');
+          var state = widget ? widget.querySelector('.rotor-state') : null;
+          if (state && widget) {
+            state.textContent = Array.prototype.slice.call(widget.querySelectorAll('.rotor')).map(function (item) { return item.dataset.value || '0'; }).join('');
+          }
+        };
+      });`,
+    },
+    goalSetting: {
+      heading: 'Em thử đặt mục tiêu học tập cho bài hôm nay',
+      placeholder: 'Ví dụ: Em muốn hiểu cách dùng song ánh để đếm số cấu hình Enigma mà không cần liệt kê từng trường hợp...',
+      aiButtonLabel: '🤖 AI Phân tích mục tiêu',
+      bloomFramework: {
+        nhanbiet: 'Nhận biết khái niệm song ánh và điều kiện để hai tập có cùng số phần tử.',
+        thonghieu: 'Giải thích được vì sao mô hình Enigma có thể chuyển thành bài toán đếm các dãy lựa chọn.',
+        vandung: 'Vận dụng song ánh để giải các bài toán đếm ghế, tập con, đường đi robot và cấu hình mã hoá.',
+      },
+    },
+    nextButtonLabel: 'Bắt đầu Bài Mới',
   },
   knowledgeUnits: [
     {

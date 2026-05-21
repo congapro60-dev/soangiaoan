@@ -14,23 +14,23 @@ const paragraph = (value: string): string => `<p>${escapeHtml(value)}</p>`;
 
 const safeId = (value: string): string => escapeAttribute(value.replace(/[^a-zA-Z0-9_-]/g, '-'));
 
-const renderOptions = (name: string, options: string[], correctIndex?: number): string => options
+const renderOptions = (name: string, options: string[], correctIndex?: number, includeCorrectMarker = true): string => options
   .map((option, index) => `
     <label class="option-lbl">
-      <input type="radio" name="${escapeAttribute(name)}" value="${index}" ${correctIndex === index ? 'data-correct-option="true"' : ''}>
-      <strong>${labels[index] || index + 1}.</strong> ${escapeHtml(option)}
+      <input type="radio" name="${escapeAttribute(name)}" value="${index}" ${includeCorrectMarker && correctIndex === index ? 'data-correct-option="true"' : ''}>
+      ${escapeHtml(option)}
     </label>`)
   .join('');
 
 const renderHeader = (content: DeweyLessonContent): string => `
 <header class="top-header">
-  <div>
-    <h1 class="lesson-title">${escapeHtml(content.title)}</h1>
-    <p class="lesson-subtitle">${escapeHtml(content.subtitle)}</p>
+  <div class="left-cluster">
+    <button class="btn-toc" type="button" onclick="toggleTOC()">≡ Mục Lục</button>
+    <h1 class="lesson-title">${escapeHtml(content.title)} - ${escapeHtml(content.subtitle)}</h1>
   </div>
   <div class="timers">
-    <div class="timer-box" id="global-timer">${String(content.durationMinutes).padStart(2, '0')}:00</div>
-    <button class="btn-toc" type="button" onclick="toggleTOC()">Mục lục</button>
+    <div class="timer-box" id="section-timer"><div class="label">Phần:</div><div class="value">00:00</div></div>
+    <div class="timer-box" id="global-timer"><div class="label">Tổng:</div><div class="value">${String(content.durationMinutes).padStart(2, '0')}:00</div></div>
   </div>
 </header>`;
 
@@ -56,37 +56,93 @@ const renderToc = (content: DeweyLessonContent): string => {
 
 const renderNotebook = (): string => `
 <aside class="notebook-area">
-  <h2 class="notebook-title">Vở ghi thông minh</h2>
+  <h2 class="notebook-title">Vở Ghi Chép Của Em</h2>
   <p>Những công thức và kết luận quan trọng sẽ tự động xuất hiện tại đây.</p>
   <div id="notebook-list"></div>
 </aside>`;
 
 const renderPretest = (content: DeweyLessonContent): string => `
 <section class="screen" id="screen-pretest">
-  <h2>1. Ôn tập nhanh (${content.pretest.durationMinutes} phút)</h2>
-  <div class="box">${paragraph(content.pretest.reviewSummary)}</div>
+  <h2>Kiểm tra Đầu giờ (Pre-Test)</h2>
+  <div class="activity-box">${paragraph(content.pretest.reviewSummary)}</div>
   ${content.pretest.questions.map((question, index) => `
-  <article class="question-card" data-pretest-question data-correct-index="${question.correctIndex}">
-    <p><span class="step-badge">${index + 1}</span>${escapeHtml(question.prompt)}</p>
-    ${renderOptions(`pretest-${question.id}`, question.options, question.correctIndex)}
+  <article class="question-card" data-pretest-question data-correct-index="${question.correctIndex}" data-explanation="${escapeAttribute(question.explanation)}">
+    <p><span class="step-pill">${index + 1}</span> ${escapeHtml(question.prompt)}</p>
+    ${renderOptions(`pretest-${question.id}`, question.options, question.correctIndex, false)}
     <div class="feedback-msg hidden"></div>
     <div class="pretest-explanation theory-box hidden">${escapeHtml(question.explanation)}</div>
   </article>`).join('\n')}
-  <button class="btn success" type="button" onclick="submitPreTest()">Nộp phần ôn tập</button>
+  <button class="btn-primary-navy" data-pretest-submit type="button" onclick="submitPreTest()">Nộp bài & Chấm điểm</button>
 </section>`;
 
-const renderEngage = (content: DeweyLessonContent, firstUnit?: DeweyKnowledgeUnit): string => `
-<section class="screen" id="screen-engage" data-next-screen="${firstUnit ? `screen-${safeId(firstUnit.id)}` : 'screen-olympia'}">
-  <h2>2. Khởi động - Nêu vấn đề</h2>
-  <div class="box">${paragraph(content.engage.storyHook)}</div>
-  <div class="enigma-container">
-    ${content.engage.rawSvgFallback ? content.engage.rawSvgFallback : `<div class="dial">${escapeHtml(content.engage.interactiveSvgId)}</div>`}
-    <div class="lightbulb-container"><div class="bulb">?</div></div>
-  </div>
-  <div class="eval-box feedback-wrong">${escapeHtml(content.engage.realityCheckMessage)}</div>
-  <div class="box"><strong>Câu hỏi dẫn dắt:</strong> ${escapeHtml(content.engage.guidingQuestion)}</div>
-  <button class="btn success" type="button" onclick="unlockScreen('${firstUnit ? `screen-${safeId(firstUnit.id)}` : 'screen-olympia'}')">Bắt đầu khám phá</button>
+const renderPretestResult = (): string => `
+<section class="screen hidden" id="screen-pretest-result">
+  <h2>Kết Quả & Ôn Tập Tiết 1 - 2</h2>
+  <p class="score-display">Điểm Pre-Test: <span id="pretest-score">0</span></p>
+  <div id="pretest-feedback-list"></div>
+  <button class="btn-primary-navy full-width" type="button" onclick="goToEngage()">Tiếp tục vào bài học</button>
 </section>`;
+
+const renderEngageIllustration = (content: DeweyLessonContent): string => {
+  const illustration = content.engage.illustration;
+  if (!illustration) {
+    return `
+    <div class="enigma-container">
+      ${content.engage.rawSvgFallback ? content.engage.rawSvgFallback : `<div class="dial">${escapeHtml(content.engage.interactiveSvgId)}</div>`}
+      <div class="lightbulb-container"><div class="bulb">?</div></div>
+    </div>`;
+  }
+
+  const media = illustration.type === 'image'
+    ? `<img src="${escapeAttribute(illustration.data)}" alt="${escapeAttribute(illustration.caption)}">`
+    : illustration.data;
+
+  return `
+  <figure class="box engage-illustration">
+    ${media}
+    <figcaption>${escapeHtml(illustration.caption)}</figcaption>
+  </figure>`;
+};
+
+const renderEngage = (content: DeweyLessonContent, firstUnit?: DeweyKnowledgeUnit): string => {
+  const nextScreen = firstUnit ? `screen-${safeId(firstUnit.id)}` : 'screen-olympia';
+  const engage = content.engage;
+  const bloom = engage.goalSetting?.bloomFramework;
+
+  return `
+<section class="screen" id="screen-engage" data-next-screen="${nextScreen}">
+  ${engage.stepLabel ? `<span class="step-pill">${escapeHtml(engage.stepLabel)}</span>` : ''}
+  ${engage.bigTitle ? `<h1 class="big-title">${escapeHtml(engage.bigTitle)}</h1>` : '<h2>2. Khởi động - Nêu vấn đề</h2>'}
+  <div class="robot-grid engage-grid">
+    ${renderEngageIllustration(content)}
+    <div class="activity-box mission-box">
+      <h3>Nhiệm vụ mở đầu</h3>
+      ${paragraph(engage.storyHook)}
+      <div class="eval-box feedback-wrong">${escapeHtml(engage.realityCheckMessage)}</div>
+    </div>
+  </div>
+  ${engage.interactiveWidget ? `
+  <div class="activity-box" data-engage-widget="${escapeAttribute(engage.interactiveWidget.type)}">
+    <h3>${escapeHtml(engage.interactiveWidget.title)}</h3>
+    ${engage.interactiveWidget.htmlInline}
+  </div>
+  <script>${engage.interactiveWidget.jsInit}</script>` : ''}
+  <div class="guiding-question-card"><strong>Câu hỏi dẫn dắt:</strong> ${escapeHtml(engage.guidingQuestion)}</div>
+  ${engage.guidingQuestionBox ? `<div class="guiding-question-box">${escapeHtml(engage.guidingQuestionBox)}</div>` : ''}
+  ${engage.goalSetting ? `
+  <div class="goal-setting activity-box">
+    <h3>${escapeHtml(engage.goalSetting.heading)}</h3>
+    <textarea rows="4" placeholder="${escapeAttribute(engage.goalSetting.placeholder)}"></textarea>
+    <button class="btn-outline-navy" type="button" onclick="mockAiAnalyzeGoal()">${escapeHtml(engage.goalSetting.aiButtonLabel)}</button>
+    <div class="bloom-framework hidden" id="bloom-result" data-nhanbiet="${escapeAttribute(bloom?.nhanbiet || '')}" data-thonghieu="${escapeAttribute(bloom?.thonghieu || '')}" data-vandung="${escapeAttribute(bloom?.vandung || '')}">
+      <div class="bloom-nhanbiet"><strong>Nhận biết:</strong> ${escapeHtml(bloom?.nhanbiet || '')}</div>
+      <div class="bloom-thonghieu"><strong>Thông hiểu:</strong> ${escapeHtml(bloom?.thonghieu || '')}</div>
+      <div class="bloom-vandung"><strong>Vận dụng:</strong> ${escapeHtml(bloom?.vandung || '')}</div>
+    </div>
+  </div>` : ''}
+  <button class="btn-primary-navy full-width" type="button" onclick="unlockScreen('${nextScreen}'); navTo('${nextScreen}')">${escapeHtml(engage.nextButtonLabel || 'Bắt đầu Bài Mới')}</button>
+</section>`;
+};
 
 const renderSocraticStep = (unit: DeweyKnowledgeUnit, stepIndex: number): string => {
   const step = unit.socraticSteps[stepIndex];
@@ -216,6 +272,7 @@ ${renderToc(content)}
 <main class="main-wrapper">
   <div class="lesson-area">
     ${renderPretest(content)}
+    ${renderPretestResult()}
     ${renderEngage(content, content.knowledgeUnits[0])}
     ${unitScreens.join('\n')}
     ${renderOlympia(content)}
