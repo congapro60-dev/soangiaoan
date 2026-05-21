@@ -72,6 +72,7 @@ export function getAdaptiveEngineScript(): string {
   window.navTo = function navTo(id) {
     var target = byId(id);
     if (!target) return;
+    if (id !== state.activeScreenId && typeof window.resetSectionTimer === 'function') window.resetSectionTimer();
     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     var toc = byId('toc-menu');
     if (toc) toc.classList.add('hidden');
@@ -115,41 +116,91 @@ export function getAdaptiveEngineScript(): string {
     window.navTo('screen-summary');
   }
 
+  var _sectionStart = Date.now();
+
+  function setTimerText(container, value) {
+    if (!container) return;
+    var valueEl = container.querySelector ? container.querySelector('.value') : null;
+    if (valueEl) valueEl.textContent = value;
+    else container.textContent = value;
+  }
+
+  function _tickSection() {
+    var el = byId('section-timer');
+    if (el) setTimerText(el, formatTime(Math.floor((Date.now() - _sectionStart) / 1000)));
+  }
+
+  window.resetSectionTimer = function resetSectionTimer() {
+    _sectionStart = Date.now();
+    _tickSection();
+  };
+
   function startTimer() {
     var timer = byId('global-timer');
     if (!timer) return;
-    timer.textContent = formatTime(state.totalSeconds);
+    setTimerText(timer, formatTime(state.totalSeconds));
+    _tickSection();
     window.setInterval(function () {
       state.totalSeconds -= 1;
-      timer.textContent = formatTime(state.totalSeconds);
+      setTimerText(timer, formatTime(state.totalSeconds));
+      _tickSection();
       if (state.totalSeconds <= 300) timer.classList.add('timer-warning');
       if (state.totalSeconds <= 0) {
         state.totalSeconds = 0;
-        timer.textContent = '00:00';
+        setTimerText(timer, '00:00');
         goSummaryForTimeout();
       }
     }, 1000);
   }
 
+  window.mockAiAnalyzeGoal = function mockAiAnalyzeGoal() {
+    var result = byId('bloom-result');
+    if (!result) return;
+    show(result);
+    var nhanbiet = result.dataset.nhanbiet || '';
+    var thonghieu = result.dataset.thonghieu || '';
+    var vandung = result.dataset.vandung || '';
+    window.addNote('<strong style="color:#F2A900">✍️ I. Mục tiêu bài học:</strong><br>1. <strong>Nhận biết:</strong> ' + nhanbiet + '<br>2. <strong>Thông hiểu:</strong> ' + thonghieu + '<br>3. <strong>Vận dụng:</strong> ' + vandung);
+    updateMath(result);
+  };
+
   window.submitPreTest = function submitPreTest() {
-    all('[data-pretest-question]').forEach(function (card) {
+    var cards = all('[data-pretest-question]');
+    var score = 0;
+    var feedbackList = byId('pretest-feedback-list');
+    if (feedbackList) feedbackList.innerHTML = '';
+
+    cards.forEach(function (card, index) {
       var correct = Number(card.dataset.correctIndex || '-1');
       var checked = card.querySelector('input[type="radio"]:checked');
-      var feedback = card.querySelector('.feedback-msg');
-      var explanation = card.querySelector('.pretest-explanation');
-      if (!feedback) return;
-      show(feedback);
-      if (checked && Number(checked.value) === correct) {
-        feedback.className = 'feedback-msg feedback-correct';
-        feedback.textContent = 'Chính xác. Em đã sẵn sàng vào bài mới.';
-      } else {
-        feedback.className = 'feedback-msg feedback-info';
-        feedback.textContent = 'Ghi nhớ lại ý chính rồi tiếp tục. Đây là phần ôn tập, không trừ điểm.';
+      var isCorrect = Boolean(checked && Number(checked.value) === correct);
+      if (isCorrect) score += 1;
+
+      if (feedbackList) {
+        var item = document.createElement('div');
+        item.className = 'feedback-card ' + (isCorrect ? 'correct' : 'wrong');
+        item.innerHTML = '<strong>Câu ' + (index + 1) + ' - ' + (isCorrect ? 'Đúng' : 'Sai') + '</strong><br>' + (card.dataset.explanation || 'Xem lại kiến thức ôn tập trước khi vào bài mới.');
+        feedbackList.appendChild(item);
       }
-      show(explanation);
+
+      hide(card);
     });
+
+    var submitBtn = document.querySelector('[data-pretest-submit]');
+    hide(submitBtn);
+
+    var scoreEl = byId('pretest-score');
+    if (scoreEl) scoreEl.textContent = score + '/' + cards.length;
+
+    show(byId('screen-pretest-result'));
+    window.addNote('<strong style="color:#F2A900">Ôn tập Tiết 1 & 2:</strong><br>• Đơn ánh: hai phần tử khác nhau không có cùng ảnh.<br>• Toàn ánh: không bỏ sót phần tử nào ở tập đích.<br>• Song ánh: vừa đơn ánh vừa toàn ánh, tạo ghép cặp một-một để so sánh số phần tử.');
+    updateMath(byId('screen-pretest-result'));
+  };
+
+  window.goToEngage = function goToEngage() {
     unlockScreen('screen-engage');
-    updateMath(byId('screen-pretest'));
+    if (typeof window.resetSectionTimer === 'function') window.resetSectionTimer();
+    window.navTo('screen-engage');
   };
 
   window.submitSocraticStep = function submitSocraticStep(button) {

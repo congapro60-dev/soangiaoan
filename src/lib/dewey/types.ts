@@ -88,6 +88,31 @@ export interface DeweyEngageContent {
   rawSvgFallback?: string;       // Raw SVG inline khi chưa có component
   realityCheckMessage: string;   // "Cú sốc thực tại"
   guidingQuestion: string;
+  guidingQuestionBox?: string;
+  stepLabel?: string;
+  bigTitle?: string;
+  illustration?: {
+    type: 'svg-inline' | 'image';
+    data: string;
+    caption: string;
+  };
+  interactiveWidget?: {
+    type: string;
+    title: string;
+    htmlInline: string;
+    jsInit: string;
+  };
+  goalSetting?: {
+    heading: string;
+    placeholder: string;
+    aiButtonLabel: string;
+    bloomFramework: {
+      nhanbiet: string;
+      thonghieu: string;
+      vandung: string;
+    };
+  };
+  nextButtonLabel?: string;
 }
 
 // ─── Pre-test container ───

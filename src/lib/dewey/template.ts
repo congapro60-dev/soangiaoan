@@ -66,13 +66,13 @@ const renderPretest = (content: DeweyLessonContent): string => `
   <h2>Kiểm tra Đầu giờ (Pre-Test)</h2>
   <div class="activity-box">${paragraph(content.pretest.reviewSummary)}</div>
   ${content.pretest.questions.map((question, index) => `
-  <article class="question-card" data-pretest-question data-correct-index="${question.correctIndex}">
+  <article class="question-card" data-pretest-question data-correct-index="${question.correctIndex}" data-explanation="${escapeAttribute(question.explanation)}">
     <p><span class="step-pill">${index + 1}</span> ${escapeHtml(question.prompt)}</p>
     ${renderOptions(`pretest-${question.id}`, question.options, question.correctIndex, false)}
     <div class="feedback-msg hidden"></div>
     <div class="pretest-explanation theory-box hidden">${escapeHtml(question.explanation)}</div>
   </article>`).join('\n')}
-  <button class="btn-primary-navy" type="button" onclick="submitPreTest()">Nộp bài & Chấm điểm</button>
+  <button class="btn-primary-navy" data-pretest-submit type="button" onclick="submitPreTest()">Nộp bài & Chấm điểm</button>
 </section>`;
 
 const renderPretestResult = (): string => `
@@ -83,18 +83,66 @@ const renderPretestResult = (): string => `
   <button class="btn-primary-navy full-width" type="button" onclick="goToEngage()">Tiếp tục vào bài học</button>
 </section>`;
 
-const renderEngage = (content: DeweyLessonContent, firstUnit?: DeweyKnowledgeUnit): string => `
-<section class="screen" id="screen-engage" data-next-screen="${firstUnit ? `screen-${safeId(firstUnit.id)}` : 'screen-olympia'}">
-  <h2>2. Khởi động - Nêu vấn đề</h2>
-  <div class="box">${paragraph(content.engage.storyHook)}</div>
-  <div class="enigma-container">
-    ${content.engage.rawSvgFallback ? content.engage.rawSvgFallback : `<div class="dial">${escapeHtml(content.engage.interactiveSvgId)}</div>`}
-    <div class="lightbulb-container"><div class="bulb">?</div></div>
+const renderEngageIllustration = (content: DeweyLessonContent): string => {
+  const illustration = content.engage.illustration;
+  if (!illustration) {
+    return `
+    <div class="enigma-container">
+      ${content.engage.rawSvgFallback ? content.engage.rawSvgFallback : `<div class="dial">${escapeHtml(content.engage.interactiveSvgId)}</div>`}
+      <div class="lightbulb-container"><div class="bulb">?</div></div>
+    </div>`;
+  }
+
+  const media = illustration.type === 'image'
+    ? `<img src="${escapeAttribute(illustration.data)}" alt="${escapeAttribute(illustration.caption)}">`
+    : illustration.data;
+
+  return `
+  <figure class="box engage-illustration">
+    ${media}
+    <figcaption>${escapeHtml(illustration.caption)}</figcaption>
+  </figure>`;
+};
+
+const renderEngage = (content: DeweyLessonContent, firstUnit?: DeweyKnowledgeUnit): string => {
+  const nextScreen = firstUnit ? `screen-${safeId(firstUnit.id)}` : 'screen-olympia';
+  const engage = content.engage;
+  const bloom = engage.goalSetting?.bloomFramework;
+
+  return `
+<section class="screen" id="screen-engage" data-next-screen="${nextScreen}">
+  ${engage.stepLabel ? `<span class="step-pill">${escapeHtml(engage.stepLabel)}</span>` : ''}
+  ${engage.bigTitle ? `<h1 class="big-title">${escapeHtml(engage.bigTitle)}</h1>` : '<h2>2. Khởi động - Nêu vấn đề</h2>'}
+  <div class="robot-grid engage-grid">
+    ${renderEngageIllustration(content)}
+    <div class="activity-box mission-box">
+      <h3>Nhiệm vụ mở đầu</h3>
+      ${paragraph(engage.storyHook)}
+      <div class="eval-box feedback-wrong">${escapeHtml(engage.realityCheckMessage)}</div>
+    </div>
   </div>
-  <div class="eval-box feedback-wrong">${escapeHtml(content.engage.realityCheckMessage)}</div>
-  <div class="box"><strong>Câu hỏi dẫn dắt:</strong> ${escapeHtml(content.engage.guidingQuestion)}</div>
-  <button class="btn success" type="button" onclick="unlockScreen('${firstUnit ? `screen-${safeId(firstUnit.id)}` : 'screen-olympia'}')">Bắt đầu khám phá</button>
+  ${engage.interactiveWidget ? `
+  <div class="activity-box" data-engage-widget="${escapeAttribute(engage.interactiveWidget.type)}">
+    <h3>${escapeHtml(engage.interactiveWidget.title)}</h3>
+    ${engage.interactiveWidget.htmlInline}
+  </div>
+  <script>${engage.interactiveWidget.jsInit}</script>` : ''}
+  <div class="guiding-question-card"><strong>Câu hỏi dẫn dắt:</strong> ${escapeHtml(engage.guidingQuestion)}</div>
+  ${engage.guidingQuestionBox ? `<div class="guiding-question-box">${escapeHtml(engage.guidingQuestionBox)}</div>` : ''}
+  ${engage.goalSetting ? `
+  <div class="goal-setting activity-box">
+    <h3>${escapeHtml(engage.goalSetting.heading)}</h3>
+    <textarea rows="4" placeholder="${escapeAttribute(engage.goalSetting.placeholder)}"></textarea>
+    <button class="btn-outline-navy" type="button" onclick="mockAiAnalyzeGoal()">${escapeHtml(engage.goalSetting.aiButtonLabel)}</button>
+    <div class="bloom-framework hidden" id="bloom-result" data-nhanbiet="${escapeAttribute(bloom?.nhanbiet || '')}" data-thonghieu="${escapeAttribute(bloom?.thonghieu || '')}" data-vandung="${escapeAttribute(bloom?.vandung || '')}">
+      <div class="bloom-nhanbiet"><strong>Nhận biết:</strong> ${escapeHtml(bloom?.nhanbiet || '')}</div>
+      <div class="bloom-thonghieu"><strong>Thông hiểu:</strong> ${escapeHtml(bloom?.thonghieu || '')}</div>
+      <div class="bloom-vandung"><strong>Vận dụng:</strong> ${escapeHtml(bloom?.vandung || '')}</div>
+    </div>
+  </div>` : ''}
+  <button class="btn-primary-navy full-width" type="button" onclick="unlockScreen('${nextScreen}'); navTo('${nextScreen}')">${escapeHtml(engage.nextButtonLabel || 'Bắt đầu Bài Mới')}</button>
 </section>`;
+};
 
 const renderSocraticStep = (unit: DeweyKnowledgeUnit, stepIndex: number): string => {
   const step = unit.socraticSteps[stepIndex];
