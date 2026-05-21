@@ -26,6 +26,8 @@ import {
 import { db, storage } from '../lib/firebase';
 import { ExternalToolWidget } from '../components/adaptive/ExternalToolWidget';
 import { sampleAdaptiveLesson } from '../lib/adaptive/sampleAdaptiveLesson';
+import { adaptiveLessonToDeweyContent } from '../lib/adaptive/adaptiveToDewey';
+import { renderDeweyLesson } from '../lib/dewey/template';
 import { getLessonFromFirestore } from '../services/adaptiveLessonService';
 import { LessonSimulationViewer } from '../components/adaptive/LessonSimulationViewer';
 import { getToolsByIds } from '../data/externalTools';
@@ -51,7 +53,7 @@ import {
 import { classifyFallbackError, logFallbackEvent, syncQueuedFallbackEvents } from '../services/telemetry';
 import { ensureMathWrapped } from '../utils/examScoring';
 
-type PortalStage = 'loading' | 'not_found' | 'identify' | 'diagnostic' | 'lesson' | 'quick_check' | 'exit_ticket' | 'complete';
+type PortalStage = 'loading' | 'not_found' | 'identify' | 'diagnostic' | 'dewey-lesson' | 'complete';
 type NoticeTone = 'info' | 'warning' | 'error';
 type WorkedExample = AdaptiveLesson['knowledgeUnits'][number]['routes'][number]['workedExamples'][number];
 
@@ -292,6 +294,7 @@ export const AdaptiveStudentPortalPage = () => {
   const [sectionStarts, setSectionStarts] = useState<Record<string, number>>({});
   const [nowTick, setNowTick] = useState(Date.now());
   const [showRealisticCover, setShowRealisticCover] = useState(false);
+  const [deweyHtml, setDeweyHtml] = useState<string>('');
 
   useEffect(() => {
     const loadLesson = async () => {
@@ -368,11 +371,9 @@ export const AdaptiveStudentPortalPage = () => {
 
   const activeSectionKey = useMemo(() => {
     if (stage === 'diagnostic') return 'diagnostic';
-    if (stage === 'lesson') return `learn-${currentUnitIndex}`;
-    if (stage === 'quick_check') return `quick-${currentUnitIndex}`;
-    if (stage === 'exit_ticket') return 'exit-ticket';
+    if (stage === 'dewey-lesson') return 'dewey-lesson';
     return null;
-  }, [currentUnitIndex, stage]);
+  }, [stage]);
 
   useEffect(() => {
     if (!activeSectionKey) return;
@@ -558,8 +559,12 @@ export const AdaptiveStudentPortalPage = () => {
     setNeedsTeacherSupport(false);
     setRemediationAttemptsByUnit({});
     setCurrentUnitIndex(0);
-    setNotice({ tone: 'info', message: `Hệ thống đã xếp em vào tuyến ${routeLabel[attempt.recommendedRoute || 'standard']}. Tiếp theo em học lần lượt các mảnh kiến thức của tiết học.` });
-    setStage('lesson');
+    setNotice({ tone: 'info', message: `Hệ thống đã xếp em vào tuyến ${routeLabel[attempt.recommendedRoute || 'standard']}. Đang mở bài giảng…` });
+    const deweyRoute = attempt.recommendedRoute || 'standard';
+    const deweyContent = adaptiveLessonToDeweyContent(lesson, deweyRoute);
+    const html = renderDeweyLesson(deweyContent, 'classic');
+    setDeweyHtml(html);
+    setStage('dewey-lesson');
   };
 
   const setQuickCheckAttemptStateForNextUnit = (nextIndex: number) => {
@@ -567,42 +572,83 @@ export const AdaptiveStudentPortalPage = () => {
     setQuickCheckAnswers({});
   };
 
-  const handleQuickCheckSubmit = () => {
-    if (!currentUnit) return;
-
-    const sectionKey = `quick-${currentUnitIndex}`;
-    const plannedSeconds = currentUnit.quickCheck.durationMinutes * 60;
-    const attempt = gradeAssessment(currentUnit.quickCheck, quickCheckAnswers, measuredDurationFor(sectionKey, plannedSeconds));
-    const currentRemediationAttempts = remediationAttemptsByUnit[currentUnit.id] || 0;
-    const action = decideNextUnitAction(attempt, currentRemediationAttempts, currentUnit.maxRemediationAttempts);
-    const nextAttempts = [...quickCheckAttempts, attempt];
-    setQuickCheckAttempts(nextAttempts);
-
-    if (action === 'remediate') {
-      setRemediationAttemptsByUnit(prev => ({ ...prev, [currentUnit.id]: currentRemediationAttempts + 1 }));
-      setQuickCheckAnswers({});
-      setNotice({ tone: 'warning', message: 'Em cần quay lại phần hỗ trợ/luyện tập thêm trước khi làm lại quick check. Đây là nhánh điều chỉnh, không phải lỗi hệ thống.' });
-      setStage('lesson');
-      return;
+  const handleDeweyComplete = async (data: { olympiaScore: number; unitIds: string[]; durationSeconds: number }) => {
+    if (!lesson || !activeTeacherId || !diagnosticAttempt) return;
+    const { olympiaScore, unitIds, durationSeconds } = data;
+    const now = new Date().toISOString();
+    const studentId = buildStudentId(activeTeacherId, studentCode);
+    const progressId = buildProgressId(activeTeacherId, lesson.id, studentCode);
+    const mockExitAttempt: AssessmentAttempt = {
+      id: `dewey-exit-${Date.now()}`,
+      assessmentId: lesson.exitTicket.id,
+      purpose: 'exit_ticket',
+      submittedAt: now,
+      durationSeconds,
+      answers: [],
+      objectiveScores: lesson.objectives.map(obj => ({
+        objectiveId: obj.id,
+        score: olympiaScore,
+        maxScore: 60,
+        masteryEstimate: Math.min(1, olympiaScore / 60),
+      })),
+      recommendedRoute: recommendedRoute,
+    };
+    setExitTicketAttempt(mockExitAttempt);
+    const progress = createProgressFromDiagnostic(lesson, `lesson-${lesson.id}`, studentId, diagnosticAttempt);
+    const progressRecord: StudentSessionProgressRecord = {
+      id: progressId,
+      teacherId: activeTeacherId,
+      lessonId: lesson.id,
+      lessonTitle: lesson.title,
+      studentId,
+      studentCode: normalizeStudentCode(studentCode),
+      studentName: studentName.trim(),
+      studentClass: studentClass.trim() || undefined,
+      route: recommendedRoute,
+      status: 'completed',
+      diagnosticAttempt,
+      quickCheckAttempts: [],
+      exitTicketAttempt: mockExitAttempt,
+      objectiveStates: progress.objectiveStates,
+      remediationAttempts: 0,
+      completedUnitIds: unitIds,
+      timings: {
+        diagnostic: {
+          startedAt: timestampFor('diagnostic'),
+          completedAt: diagnosticAttempt.submittedAt,
+          durationSeconds: diagnosticAttempt.durationSeconds,
+          plannedSeconds: lesson.diagnosticTest.durationMinutes * 60,
+        },
+      },
+      startedAt: timestampFor('diagnostic'),
+      completedAt: now,
+      updatedAt: now,
+    };
+    const nextProfile = buildProfile({
+      existingProfile: profile,
+      teacherId: activeTeacherId,
+      studentId,
+      studentCode,
+      studentName,
+      studentClass,
+      lesson,
+      attempts: [diagnosticAttempt, mockExitAttempt],
+      route: recommendedRoute,
+    });
+    setIsSaving(true);
+    try {
+      const result = await saveAdaptiveProgressViaApi({ teacherId: activeTeacherId, lessonId: lesson.id, progressId, studentId, progressRecord, profileRecord: nextProfile });
+      setProfile(result.profile || nextProfile);
+    } catch (error) {
+      void saveAdaptiveProgressOffline(
+        { teacherId: activeTeacherId, lessonId: lesson.id, progressId, studentId, progressRecord, profileRecord: nextProfile },
+        getErrorMessage(error),
+        now
+      );
+    } finally {
+      setIsSaving(false);
+      setStage('complete');
     }
-
-    if (action === 'needs_teacher') {
-      setNeedsTeacherSupport(true);
-      setNotice({ tone: 'warning', message: 'Hệ thống đã ghi nhận em cần giáo viên hỗ trợ thêm ở mảnh này. Em vẫn tiếp tục hoàn thành phần phản tư cuối tiết.' });
-      setStage('exit_ticket');
-      return;
-    }
-
-    const nextUnitIndex = currentUnitIndex + 1;
-    if (lesson && nextUnitIndex < lesson.knowledgeUnits.length) {
-      setQuickCheckAttemptStateForNextUnit(nextUnitIndex);
-      setNotice({ tone: 'info', message: 'Em đã qua mảnh kiến thức này. Chuyển sang mảnh tiếp theo để tiết học đủ nội dung.' });
-      setStage('lesson');
-      return;
-    }
-
-    setNotice({ tone: 'info', message: 'Em đã hoàn thành các mảnh kiến thức chính. Bước cuối là exit ticket/phản tư để chốt bài.' });
-    setStage('exit_ticket');
   };
 
   const handleExitTicketSubmit = async () => {
@@ -774,6 +820,17 @@ export const AdaptiveStudentPortalPage = () => {
     }
   };
 
+  useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      if (e.data?.type === 'dewey:complete') {
+        void handleDeweyComplete(e.data.data as { olympiaScore: number; unitIds: string[]; durationSeconds: number });
+      }
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [diagnosticAttempt, lesson]);
+
   if (stage === 'loading') return <FullPageState icon={<Loader2 className="h-8 w-8 animate-spin text-blue-600" />} title="Đang mở lớp học phân hoá" message="Hệ thống đang tải bài học giáo viên đã phát." />;
   if (stage === 'not_found' || !lesson) return <FullPageState icon={<AlertTriangle className="h-8 w-8 text-amber-500" />} title="Chưa tìm thấy bài học" message={portalError || 'Liên kết này chưa có bài học phân hoá đã lưu hoặc giáo viên chưa phát bài.'} />;
 
@@ -782,11 +839,9 @@ export const AdaptiveStudentPortalPage = () => {
     ? 0
     : stage === 'diagnostic'
       ? 1
-      : stage === 'lesson'
+      : stage === 'dewey-lesson'
         ? 2
-        : stage === 'quick_check'
-          ? 3
-          : 4;
+        : 4;
 
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900">
@@ -897,124 +952,20 @@ export const AdaptiveStudentPortalPage = () => {
             </>
         )}
 
-        {stage === 'lesson' && currentUnit && routeContent && diagnosticAttempt && (
-          <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
-            <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <h2 className="text-xl font-black text-slate-800">Bước 3. Hình thành kiến thức theo tuyến</h2>
-                  <p className="mt-1 text-sm text-slate-500">Điểm test đầu giờ: {totalDiagnosticScore}/{maxDiagnosticScore}. Mảnh {currentUnitIndex + 1}/{lesson.knowledgeUnits.length}: {currentUnit.title}.</p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <span className={cn('w-fit rounded-full border px-4 py-2 text-sm font-black', routeClass[recommendedRoute])}>{routeLabel[recommendedRoute]}</span>
-                  <SectionTimer plannedSeconds={currentUnit.estimatedMinutes * 60} elapsedSeconds={elapsedSecondsFor(`learn-${currentUnitIndex}`)} remainingSeconds={remainingSecondsFor(`learn-${currentUnitIndex}`, currentUnit.estimatedMinutes * 60)} compact />
-                </div>
+        {stage === 'dewey-lesson' && deweyHtml && (
+          <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+            <iframe
+              srcDoc={deweyHtml}
+              sandbox="allow-scripts allow-same-origin"
+              style={{ width: '100%', height: 'calc(100vh - 100px)', minHeight: 800, border: 'none', borderRadius: 16 }}
+              title="Bài học Dewey"
+            />
+            {isSaving && (
+              <div className="mt-3 rounded-2xl bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700">
+                Đang lưu kết quả…
               </div>
-              {profile && learnerSummary && (
-                <div className="mt-4 rounded-2xl border border-indigo-100 bg-indigo-50 p-4 text-sm text-indigo-800">
-                  <p className="font-black">Hồ sơ học tập trước đây</p>
-                  <p className="mt-1 font-semibold">Đã ghi nhận {profile.totalSessions} tiết học. Mức thành thạo trung bình: {Math.round(profile.averageMastery * 100)}%.</p>
-                  {learnerSummary.weakest.length > 0 && (
-                    <p className="mt-1 text-xs font-bold">Cần chú ý: {learnerSummary.weakest.map(item => item.title).join(', ')}.</p>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-              <p className="text-xs font-black uppercase tracking-wide text-blue-500">{currentUnit.title}</p>
-              <h3 className="mt-1 text-2xl font-black text-slate-800">Nội dung học theo tuyến {routeLabel[recommendedRoute]}</h3>
-              <MathBlock className="mt-3">{routeContent.explanation}</MathBlock>
-              <LessonSimulationViewer
-                lessonId={lesson.id}
-                unitId={currentUnit.id}
-                unitTitle={currentUnit.title}
-              />
-              <div className="mt-5 grid gap-4 xl:grid-cols-2">
-                {routeContent.workedExamples.map((example, index) => {
-                  const exampleKey = buildExampleKey(currentUnit.id, example.id);
-                  const plannedSeconds = getExamplePlannedSeconds(example, currentUnit.estimatedMinutes * 60, routeContent.workedExamples.length);
-                  const hintDelaySeconds = getExampleHintDelaySeconds(example, plannedSeconds);
-                  return (
-                    <InteractiveWorkedExampleCard
-                      key={example.id}
-                      example={example}
-                      index={index}
-                      interaction={workedExampleInteractions[exampleKey]}
-                      plannedSeconds={plannedSeconds}
-                      hintDelaySeconds={hintDelaySeconds}
-                      elapsedSeconds={elapsedSecondsFor(exampleKey)}
-                      remainingSeconds={remainingSecondsFor(exampleKey, plannedSeconds)}
-                      onStart={() => setSectionStarts(prev => (prev[exampleKey] ? prev : { ...prev, [exampleKey]: Date.now() }))}
-                      onAnswerChange={(answer) => updateWorkedExampleInteraction(exampleKey, { answer })}
-                      onRevealHint={() => updateWorkedExampleInteraction(exampleKey, { hintRevealed: true })}
-                      onImageChange={(event) => handleWorkedExampleImage(exampleKey, event)}
-                      onSubmit={() => handleWorkedExampleSubmit(exampleKey, measuredDurationFor(exampleKey, plannedSeconds))}
-                      onGradeImage={() => handleGradeWorkedExampleImage(exampleKey, example)}
-                    />
-                  );
-                })}
-              </div>
-              <div className="mt-5 grid gap-4 lg:grid-cols-3">
-                <TaskPanel title="Nhiệm vụ tuyến học" tasks={routeContent.practiceTasks} tone="blue" />
-                <TaskPanel title="Hỗ trợ nếu còn lúng túng" tasks={currentUnit.supportTasks} tone="amber" />
-                <TaskPanel title="Mở rộng cho học sinh nhanh" tasks={currentUnit.enrichmentTasks} tone="purple" />
-              </div>
-              {currentUnit.externalToolIds && currentUnit.externalToolIds.length > 0 && (
-                <ExternalToolWidget tools={getToolsByIds(currentUnit.externalToolIds)} />
-              )}
-              <button
-                onClick={() => {
-                  if (!currentWorkedExamplesReady) {
-                    setNotice({ tone: 'warning', message: 'Em cần nộp ý tưởng/lời giải cho tất cả ví dụ tương tác trong mảnh này trước khi chuyển sang quick check.' });
-                    return;
-                  }
-                  setNotice(null);
-                  setSectionStarts(prev => ({ ...prev, [`quick-${currentUnitIndex}`]: Date.now() }));
-                  setStage('quick_check');
-                }}
-                disabled={!currentWorkedExamplesReady}
-                className="mt-5 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-indigo-100 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
-              >
-                {currentWorkedExamplesReady ? 'Em đã học xong mảnh này, chuyển sang quick check' : 'Nộp đủ ví dụ tương tác trước khi làm quick check'}
-              </button>
-            </div>
+            )}
           </motion.section>
-        )}
-
-        {stage === 'quick_check' && currentUnit && (
-          <StudentAssessmentCard
-            title={`Bước 4. Quick check mảnh ${currentUnitIndex + 1}`}
-            description="Kết quả này quyết định em chuyển sang mảnh tiếp theo, học lại phần hỗ trợ, hoặc cần giáo viên can thiệp."
-            questions={currentUnit.quickCheck.questions}
-            answers={quickCheckAnswers}
-            setAnswers={setQuickCheckAnswers}
-            submitLabel="Nộp quick check"
-            onSubmit={handleQuickCheckSubmit}
-            timer={{
-              plannedSeconds: currentUnit.quickCheck.durationMinutes * 60,
-              elapsedSeconds: elapsedSecondsFor(`quick-${currentUnitIndex}`),
-              remainingSeconds: remainingSecondsFor(`quick-${currentUnitIndex}`, currentUnit.quickCheck.durationMinutes * 60),
-            }}
-          />
-        )}
-
-        {stage === 'exit_ticket' && (
-          <StudentAssessmentCard
-            title="Bước 5. Exit ticket và phản tư cuối tiết"
-            description="Phần này giúp chốt lại bài học và lưu đủ dữ liệu tốc độ/độ thành thạo cho các tiết sau."
-            questions={lesson.exitTicket.questions}
-            answers={exitTicketAnswers}
-            setAnswers={setExitTicketAnswers}
-            submitLabel={isSaving ? 'Đang lưu kết quả...' : 'Nộp exit ticket và lưu hồ sơ'}
-            disabled={isSaving}
-            onSubmit={handleExitTicketSubmit}
-            timer={{
-              plannedSeconds: lesson.exitTicket.durationMinutes * 60,
-              elapsedSeconds: elapsedSecondsFor('exit-ticket'),
-              remainingSeconds: remainingSecondsFor('exit-ticket', lesson.exitTicket.durationMinutes * 60),
-            }}
-          />
         )}
 
         {stage === 'complete' && diagnosticAttempt && exitTicketAttempt && (

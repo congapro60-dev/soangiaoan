@@ -27,7 +27,6 @@ const TestingTab = lazy(() => import('./components/tabs/TestingTab').then(m => (
 const GradingTab = lazy(() => import('./components/tabs/GradingTab').then(m => ({ default: m.GradingTab })));
 const ExamsTab = lazy(() => import('./components/tabs/ExamsTab').then(m => ({ default: m.ExamsTab })));
 const AdaptiveLearningTab = lazy(() => import('./components/tabs/AdaptiveLearningTab').then(m => ({ default: m.AdaptiveLearningTab })));
-const DeweyDemoPage = lazy(() => import('./components/dewey/DeweyDemoPage'));
 const AIToolsTab = lazy(() => import('./components/tabs/AIToolsTab').then(m => ({ default: m.AIToolsTab })));
 
 // Utils
@@ -48,7 +47,7 @@ export default function App() {
     saveGradingSession, deleteGradingSession, deleteGradingResult,
   } = useAppState(user, showToast);
   
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading' | 'exams' | 'adaptive' | 'dewey-demo' | 'aiTools'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading' | 'exams' | 'adaptive' | 'aiTools'>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth >= 768);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [libraryTab, setLibraryTab] = useState<'personal' | 'community'>('personal');
@@ -295,8 +294,6 @@ export default function App() {
             {activeTab === 'adaptive' && (
               <AdaptiveLearningTab user={user} />
             )}
-
-            {activeTab === 'dewey-demo' && <DeweyDemoPage />}
 
             {activeTab === 'aiTools' && (
               <AIToolsTab data={data} isLoading={isLoading} setIsLoading={setIsLoading} showToast={showToast} />
