@@ -77,7 +77,16 @@ export const AIToolsTab = ({ data, isLoading, setIsLoading, showToast }: AITools
     const q = searchQuery.trim().toLowerCase();
     return AI_TOOL_LINKS.filter(tool => {
       const matchCategory = activeCategory === 'all' || tool.category === activeCategory;
-      const searchableText = [tool.name, tool.description, tool.useFor, tool.badge, tool.note, tool.sourceLabel]
+      const searchableText = [
+        tool.name,
+        tool.description,
+        tool.useFor,
+        tool.badge,
+        tool.note,
+        tool.sourceLabel,
+        tool.accountInfo,
+        ...(tool.quickLinks || []).flatMap(link => [link.label, link.url]),
+      ]
         .filter(Boolean)
         .join(' ')
         .toLowerCase();
@@ -320,7 +329,28 @@ export const AIToolsTab = ({ data, isLoading, setIsLoading, showToast }: AITools
                   <p className="text-[11px] font-black uppercase tracking-wide text-blue-600">Nên dùng khi</p>
                   <p className="mt-1 text-xs font-semibold leading-relaxed text-slate-600">{tool.useFor}</p>
                 </div>
-                {tool.note && <p className="mt-2 text-[11px] font-semibold leading-relaxed text-amber-600">Lưu ý: {tool.note}</p>}
+                {(tool.note || tool.accountInfo || tool.apiKeyRequired || tool.quickLinks?.length) && (
+                  <div className="mt-3 space-y-2 rounded-2xl border border-amber-100 bg-amber-50/80 px-3 py-2.5">
+                    <p className="text-[11px] font-black uppercase tracking-wide text-amber-700">Giới thiệu & hướng dẫn</p>
+                    {tool.note && <p className="text-[11px] font-semibold leading-relaxed text-amber-700">{tool.note}</p>}
+                    {tool.accountInfo && <p className="rounded-xl bg-white/70 px-2 py-1.5 text-[11px] font-black leading-relaxed text-slate-700">Tài khoản: {tool.accountInfo}</p>}
+                    {tool.apiKeyRequired && <p className="text-[11px] font-semibold leading-relaxed text-amber-700">Cần API key để sử dụng app.</p>}
+                    {tool.quickLinks && tool.quickLinks.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {tool.quickLinks.map(link => (
+                          <button
+                            key={`${tool.id}-${link.label}`}
+                            type="button"
+                            onClick={() => openTool(link.url)}
+                            className="rounded-full bg-white px-2.5 py-1 text-[10px] font-black text-blue-600 shadow-sm transition-all hover:bg-blue-600 hover:text-white"
+                          >
+                            {link.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
                 <button
                   onClick={() => tool.internalAction === 'prompt-writer' ? document.getElementById('prompt-writer-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) : openTool(tool.url)}
                   className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-4 py-2 text-xs font-black text-white transition-all group-hover:bg-blue-600"
