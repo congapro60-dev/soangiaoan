@@ -14,23 +14,23 @@ const paragraph = (value: string): string => `<p>${escapeHtml(value)}</p>`;
 
 const safeId = (value: string): string => escapeAttribute(value.replace(/[^a-zA-Z0-9_-]/g, '-'));
 
-const renderOptions = (name: string, options: string[], correctIndex?: number): string => options
+const renderOptions = (name: string, options: string[], correctIndex?: number, includeCorrectMarker = true): string => options
   .map((option, index) => `
     <label class="option-lbl">
-      <input type="radio" name="${escapeAttribute(name)}" value="${index}" ${correctIndex === index ? 'data-correct-option="true"' : ''}>
-      <strong>${labels[index] || index + 1}.</strong> ${escapeHtml(option)}
+      <input type="radio" name="${escapeAttribute(name)}" value="${index}" ${includeCorrectMarker && correctIndex === index ? 'data-correct-option="true"' : ''}>
+      ${escapeHtml(option)}
     </label>`)
   .join('');
 
 const renderHeader = (content: DeweyLessonContent): string => `
 <header class="top-header">
-  <div>
-    <h1 class="lesson-title">${escapeHtml(content.title)}</h1>
-    <p class="lesson-subtitle">${escapeHtml(content.subtitle)}</p>
+  <div class="left-cluster">
+    <button class="btn-toc" type="button" onclick="toggleTOC()">≡ Mục Lục</button>
+    <h1 class="lesson-title">${escapeHtml(content.title)} - ${escapeHtml(content.subtitle)}</h1>
   </div>
   <div class="timers">
-    <div class="timer-box" id="global-timer">${String(content.durationMinutes).padStart(2, '0')}:00</div>
-    <button class="btn-toc" type="button" onclick="toggleTOC()">Mục lục</button>
+    <div class="timer-box" id="section-timer"><div class="label">Phần:</div><div class="value">00:00</div></div>
+    <div class="timer-box" id="global-timer"><div class="label">Tổng:</div><div class="value">${String(content.durationMinutes).padStart(2, '0')}:00</div></div>
   </div>
 </header>`;
 
@@ -56,23 +56,31 @@ const renderToc = (content: DeweyLessonContent): string => {
 
 const renderNotebook = (): string => `
 <aside class="notebook-area">
-  <h2 class="notebook-title">Vở ghi thông minh</h2>
+  <h2 class="notebook-title">Vở Ghi Chép Của Em</h2>
   <p>Những công thức và kết luận quan trọng sẽ tự động xuất hiện tại đây.</p>
   <div id="notebook-list"></div>
 </aside>`;
 
 const renderPretest = (content: DeweyLessonContent): string => `
 <section class="screen" id="screen-pretest">
-  <h2>1. Ôn tập nhanh (${content.pretest.durationMinutes} phút)</h2>
-  <div class="box">${paragraph(content.pretest.reviewSummary)}</div>
+  <h2>Kiểm tra Đầu giờ (Pre-Test)</h2>
+  <div class="activity-box">${paragraph(content.pretest.reviewSummary)}</div>
   ${content.pretest.questions.map((question, index) => `
   <article class="question-card" data-pretest-question data-correct-index="${question.correctIndex}">
-    <p><span class="step-badge">${index + 1}</span>${escapeHtml(question.prompt)}</p>
-    ${renderOptions(`pretest-${question.id}`, question.options, question.correctIndex)}
+    <p><span class="step-pill">${index + 1}</span> ${escapeHtml(question.prompt)}</p>
+    ${renderOptions(`pretest-${question.id}`, question.options, question.correctIndex, false)}
     <div class="feedback-msg hidden"></div>
     <div class="pretest-explanation theory-box hidden">${escapeHtml(question.explanation)}</div>
   </article>`).join('\n')}
-  <button class="btn success" type="button" onclick="submitPreTest()">Nộp phần ôn tập</button>
+  <button class="btn-primary-navy" type="button" onclick="submitPreTest()">Nộp bài & Chấm điểm</button>
+</section>`;
+
+const renderPretestResult = (): string => `
+<section class="screen hidden" id="screen-pretest-result">
+  <h2>Kết Quả & Ôn Tập Tiết 1 - 2</h2>
+  <p class="score-display">Điểm Pre-Test: <span id="pretest-score">0</span></p>
+  <div id="pretest-feedback-list"></div>
+  <button class="btn-primary-navy full-width" type="button" onclick="goToEngage()">Tiếp tục vào bài học</button>
 </section>`;
 
 const renderEngage = (content: DeweyLessonContent, firstUnit?: DeweyKnowledgeUnit): string => `
@@ -216,6 +224,7 @@ ${renderToc(content)}
 <main class="main-wrapper">
   <div class="lesson-area">
     ${renderPretest(content)}
+    ${renderPretestResult()}
     ${renderEngage(content, content.knowledgeUnits[0])}
     ${unitScreens.join('\n')}
     ${renderOlympia(content)}
