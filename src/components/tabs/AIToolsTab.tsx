@@ -77,7 +77,11 @@ export const AIToolsTab = ({ data, isLoading, setIsLoading, showToast }: AITools
     const q = searchQuery.trim().toLowerCase();
     return AI_TOOL_LINKS.filter(tool => {
       const matchCategory = activeCategory === 'all' || tool.category === activeCategory;
-      const matchSearch = !q || `${tool.name} ${tool.description} ${tool.badge || ''}`.toLowerCase().includes(q);
+      const searchableText = [tool.name, tool.description, tool.useFor, tool.badge, tool.note, tool.sourceLabel]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      const matchSearch = !q || searchableText.includes(q);
       return matchCategory && matchSearch;
     });
   }, [activeCategory, searchQuery]);
@@ -269,8 +273,8 @@ export const AIToolsTab = ({ data, isLoading, setIsLoading, showToast }: AITools
       <section className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-sm">
         <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h3 className="text-lg font-black text-slate-800">Kho công cụ AI</h3>
-            <p className="text-xs font-semibold text-slate-400">Sau này chỉ cần bổ sung link vào danh sách là web có thêm nút mở công cụ mới.</p>
+            <h3 className="text-lg font-black text-slate-800">Kho công cụ AI & dạy học</h3>
+            <p className="text-xs font-semibold text-slate-400">Mỗi thẻ đều ghi rõ nên dùng cho việc gì để thầy/cô chọn đúng công cụ.</p>
           </div>
           <div className="relative w-full lg:w-72">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -310,7 +314,13 @@ export const AIToolsTab = ({ data, isLoading, setIsLoading, showToast }: AITools
                   {tool.badge && <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-slate-500 shadow-sm">{tool.badge}</span>}
                 </div>
                 <h4 className="font-black text-slate-800">{tool.name}</h4>
-                <p className="mt-2 min-h-[54px] text-sm font-medium leading-relaxed text-slate-500">{tool.description}</p>
+                {tool.sourceLabel && <p className="mt-1 text-[11px] font-black uppercase tracking-wide text-blue-500">{tool.sourceLabel}</p>}
+                <p className="mt-2 text-sm font-medium leading-relaxed text-slate-500">{tool.description}</p>
+                <div className="mt-3 rounded-2xl border border-blue-100 bg-blue-50/70 px-3 py-2.5">
+                  <p className="text-[11px] font-black uppercase tracking-wide text-blue-600">Nên dùng khi</p>
+                  <p className="mt-1 text-xs font-semibold leading-relaxed text-slate-600">{tool.useFor}</p>
+                </div>
+                {tool.note && <p className="mt-2 text-[11px] font-semibold leading-relaxed text-amber-600">Lưu ý: {tool.note}</p>}
                 <button
                   onClick={() => tool.internalAction === 'prompt-writer' ? document.getElementById('prompt-writer-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) : openTool(tool.url)}
                   className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-4 py-2 text-xs font-black text-white transition-all group-hover:bg-blue-600"
