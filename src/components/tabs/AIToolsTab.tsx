@@ -43,6 +43,24 @@ const examples = [
   'Tôi muốn prompt cho Cursor sửa giao diện React nhưng không làm hỏng logic hiện có.',
 ];
 
+const outputFormatHelp: Record<string, string> = {
+  'Tự chọn': 'Khuyên dùng cho người mới: hệ thống tự chọn dạng trình bày phù hợp nhất.',
+  Markdown: 'Dạng văn bản có tiêu đề, gạch đầu dòng, in đậm — dễ đọc và dễ copy sang AI khác.',
+  Bảng: 'Dùng khi muốn AI trả kết quả theo cột/hàng, ví dụ kế hoạch bài dạy hoặc ma trận đề.',
+  JSON: 'Dành cho người kỹ thuật hoặc cần dữ liệu có cấu trúc để đưa vào hệ thống khác.',
+  Checklist: 'Dùng khi muốn AI trả về danh sách việc cần làm, tiêu chí kiểm tra hoặc quy trình từng bước.',
+  Code: 'Chỉ chọn khi muốn AI trả về mã lập trình như HTML, JavaScript, Python hoặc CSS.',
+};
+
+const outputFormatOptions = [
+  { value: 'Tự chọn', label: 'Tự chọn (khuyên dùng)' },
+  { value: 'Markdown', label: 'Văn bản dễ đọc' },
+  { value: 'Bảng', label: 'Bảng' },
+  { value: 'Checklist', label: 'Checklist' },
+  { value: 'Code', label: 'Code' },
+  { value: 'JSON', label: 'JSON (kỹ thuật)' },
+] as const;
+
 export const AIToolsTab = ({ data, isLoading, setIsLoading, showToast }: AIToolsTabProps) => {
   const [activeCategory, setActiveCategory] = useState<'all' | AIToolCategory>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -51,7 +69,7 @@ export const AIToolsTab = ({ data, isLoading, setIsLoading, showToast }: AITools
   const [purpose, setPurpose] = useState<PromptPurpose>('Giáo án / bài giảng');
   const [detailLevel, setDetailLevel] = useState<PromptDetailLevel>('Vừa đủ');
   const [outputLanguage, setOutputLanguage] = useState<'Tiếng Việt' | 'English'>('Tiếng Việt');
-  const [outputFormat, setOutputFormat] = useState<'Markdown' | 'Bảng' | 'JSON' | 'Checklist' | 'Code' | 'Tự chọn'>('Markdown');
+  const [outputFormat, setOutputFormat] = useState<'Markdown' | 'Bảng' | 'JSON' | 'Checklist' | 'Code' | 'Tự chọn'>('Tự chọn');
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [copied, setCopied] = useState(false);
 
@@ -178,10 +196,13 @@ export const AIToolsTab = ({ data, isLoading, setIsLoading, showToast }: AITools
                 </select>
               </label>
               <label className="space-y-1.5">
-                <span className="text-xs font-black uppercase tracking-wide text-slate-500">Format</span>
+                <span className="text-xs font-black uppercase tracking-wide text-slate-500">Dạng kết quả</span>
                 <select value={outputFormat} onChange={(e) => setOutputFormat(e.target.value as any)} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold outline-none transition-all focus:ring-2 focus:ring-blue-500">
-                  {['Markdown', 'Bảng', 'JSON', 'Checklist', 'Code', 'Tự chọn'].map(item => <option key={item}>{item}</option>)}
+                  {outputFormatOptions.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}
                 </select>
+                <p className="text-[11px] font-semibold leading-relaxed text-slate-400">
+                  {outputFormatHelp[outputFormat]}
+                </p>
               </label>
             </div>
 
