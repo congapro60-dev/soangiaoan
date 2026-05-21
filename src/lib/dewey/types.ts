@@ -136,4 +136,5 @@ export interface DeweyLessonContent {
   };
   extend: DeweyExtendStory;
   summary: DeweySummary;
+  skipPretest?: boolean;
 }
