@@ -36,8 +36,8 @@ const renderHeader = (content: DeweyLessonContent): string => `
 
 const renderToc = (content: DeweyLessonContent): string => {
   const items = [
-    { id: 'screen-pretest', label: '1. Ôn tập nhanh', locked: false },
-    { id: 'screen-engage', label: '2. Khởi động', locked: true },
+    ...(!content.skipPretest ? [{ id: 'screen-pretest', label: '1. Ôn tập nhanh', locked: false }] : []),
+    { id: 'screen-engage', label: content.skipPretest ? '1. Khởi động' : '2. Khởi động', locked: !content.skipPretest },
     ...content.knowledgeUnits.map((unit, index) => ({
       id: `screen-${unit.id}`,
       label: `${index + 3}. ${unit.title}`,
@@ -271,8 +271,8 @@ export function renderBodyHtml(content: DeweyLessonContent): string {
 ${renderToc(content)}
 <main class="main-wrapper">
   <div class="lesson-area">
-    ${renderPretest(content)}
-    ${renderPretestResult()}
+    ${!content.skipPretest ? renderPretest(content) : ''}
+    ${!content.skipPretest ? renderPretestResult() : ''}
     ${renderEngage(content, content.knowledgeUnits[0])}
     ${unitScreens.join('\n')}
     ${renderOlympia(content)}

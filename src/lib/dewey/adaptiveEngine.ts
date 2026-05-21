@@ -10,7 +10,9 @@ export function getAdaptiveEngineScript(): string {
     wrongCounts: {},
     completedPacks: {},
     totalSeconds: Number(document.body.dataset.durationMinutes || '40') * 60,
-    activeScreenId: 'screen-pretest'
+    activeScreenId: 'screen-pretest',
+    startTime: Date.now(),
+    completedUnitIds: []
   };
 
   function byId(id) {
@@ -231,6 +233,10 @@ export function getAdaptiveEngineScript(): string {
 
   window.completeKnowledgeUnit = function completeKnowledgeUnit(unitId, note) {
     if (note) window.addNote(note);
+    state.completedUnitIds.push(unitId);
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'dewey:unitComplete', data: { unitId: unitId } }, '*');
+    }
     var screen = byId('screen-' + unitId);
     var nextId = screen ? screen.dataset.nextScreen : '';
     if (nextId) unlockScreen(nextId);
@@ -357,6 +363,19 @@ export function getAdaptiveEngineScript(): string {
   window.finishLesson = function finishLesson() {
     var finalScore = byId('final-score');
     if (finalScore) finalScore.textContent = String(state.score);
+    if (window.parent && window.parent !== window) {
+      var nb = [];
+      try { nb = JSON.parse(window.localStorage.getItem('dewey-notebook') || '[]'); } catch (_e) {}
+      window.parent.postMessage({
+        type: 'dewey:complete',
+        data: {
+          olympiaScore: state.score,
+          unitIds: state.completedUnitIds,
+          durationSeconds: Math.floor((Date.now() - state.startTime) / 1000),
+          notebookEntries: nb,
+        }
+      }, '*');
+    }
     window.navTo('screen-summary');
   };
 
