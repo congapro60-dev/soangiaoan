@@ -37,7 +37,6 @@ export const Sidebar = ({
   setIsSettingsOpen,
   handleLogout
 }: SidebarProps) => {
-  const currentPath = window.location.pathname;
   const menuItems = [
     { id: 'dashboard', label: 'Tổng quan', icon: LayoutDashboard },
     { id: 'creator', label: 'Soạn giáo án', icon: Plus },
@@ -45,8 +44,8 @@ export const Sidebar = ({
     { id: 'exams', label: 'Thi online', icon: Globe },
     { id: 'grading', label: 'Chấm điểm AI', icon: ClipboardCheck },
     { id: 'adaptive', label: 'Học phân hoá', icon: BrainCircuit },
+    { id: 'adaptiveLessons', label: 'Quản lý bài học', icon: FileText },
     { id: 'aiTools', label: 'Công cụ AI', icon: WandSparkles },
-    { id: 'adaptiveLessons', label: 'Quản lý bài học', icon: FileText, path: '/adaptive-lessons' },
     { id: 'library', label: 'Thư viện', icon: FileText },
     { id: 'templates', label: 'Mẫu giáo án', icon: Layout },
     { id: 'chat', label: 'AI Tutor', icon: MessageSquare },
@@ -79,15 +78,11 @@ export const Sidebar = ({
       {/* Main Nav */}
       <nav className="flex-1 px-3 space-y-1.5 mt-6">
         {menuItems.map((item) => {
-          const isActive = activeTab === item.id || ('path' in item && currentPath === item.path);
+          const isActive = activeTab === item.id;
           return (
           <button
             key={item.id}
             onClick={() => {
-              if ('path' in item && item.path) {
-                window.location.href = item.path;
-                return;
-              }
               item.id === 'creator' ? onCreatorTabClick() : setActiveTab(item.id as any);
             }}
             className={cn(
