@@ -14,7 +14,8 @@ import {
   ClipboardCheck,
   Globe,
   BrainCircuit,
-  Beaker
+  Beaker,
+  WandSparkles
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -46,6 +47,7 @@ export const Sidebar = ({
     { id: 'grading', label: 'Chấm điểm AI', icon: ClipboardCheck },
     { id: 'adaptive', label: 'Học phân hoá', icon: BrainCircuit },
     { id: 'dewey-demo', label: 'Demo Dewey (Dev)', icon: Beaker },
+    { id: 'aiTools', label: 'Công cụ AI', icon: WandSparkles },
     { id: 'adaptiveLessons', label: 'Quản lý bài học', icon: FileText, path: '/adaptive-lessons' },
     { id: 'library', label: 'Thư viện', icon: FileText },
     { id: 'templates', label: 'Mẫu giáo án', icon: Layout },
