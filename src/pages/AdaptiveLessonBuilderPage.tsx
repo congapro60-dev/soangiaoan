@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Plus, Save, Send, Trash2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Loader2, Plus, Save, Send, Sparkles, Trash2 } from 'lucide-react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { sampleAdaptiveLesson } from '../lib/adaptive/sampleAdaptiveLesson';
@@ -17,6 +17,8 @@ import type {
   WorkedExample,
 } from '../lib/adaptive/types';
 import { LessonCoverUpload } from '../components/adaptive/LessonCoverUpload';
+import { callAI, getActiveApiKey } from '../lib/aiProviders';
+import type { AppData } from '../types';
 import { getLessonFromFirestore, saveLessonToFirestore } from '../services/adaptiveLessonService';
 
 const bloomLevels: BloomLevel[] = ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create'];
@@ -131,11 +133,39 @@ const normalizeLessonFromFirestore = (raw: AdaptiveLesson): AdaptiveLesson => ({
 interface AdaptiveLessonBuilderPageProps {
   embedded?: boolean;
   lessonId?: string;
+  settings?: AppData['settings'];
   onBackToList?: () => void;
   onPreviewLesson?: (lessonId: string) => void;
+  onNeedSettings?: () => void;
+  showToast?: (message: string, type?: string) => void;
 }
 
-export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, onBackToList, onPreviewLesson }: AdaptiveLessonBuilderPageProps) => {
+const buildFiveStepDemoPrompt = (lesson: AdaptiveLesson, brief: string) => `Bạn là chuyên gia thiết kế bài học eLearning môn Toán.
+
+NHIỆM VỤ: Tạo DEMO GIÁO ÁN CHI TIẾT theo đúng quy trình 5 bước trước khi triển khai thành bài học phân hoá.
+
+THÔNG TIN BÀI HỌC:
+- Tiêu đề tạm: ${lesson.title || 'Chưa đặt tên'}
+- Lớp: ${lesson.grade}
+- Tuần: ${lesson.curriculumRef?.week || 'Chưa rõ'}
+- Tiết: ${lesson.curriculumRef?.period || 1}
+- Mô tả/yêu cầu của giáo viên: ${brief || 'Thiết kế bài học Toán phù hợp chương trình phổ thông.'}
+
+QUY TRÌNH BẮT BUỘC:
+1. Kết nối
+2. Chẩn đoán
+3. Hình thành kiến thức
+4. Luyện tập và điều chỉnh
+5. Phản tư
+
+YÊU CẦU OUTPUT:
+- Viết bằng tiếng Việt.
+- Trình bày như giáo án chi tiết để giáo viên duyệt.
+- Mỗi bước phải có: mục tiêu, hoạt động giáo viên, hoạt động học sinh, học liệu/công cụ số, sản phẩm cần đạt, thời lượng.
+- Sau phần giáo án, thêm mục "Ánh xạ sang bài học phân hoá" gồm: mục tiêu học tập, test chẩn đoán, mảnh kiến thức, 3 tuyến Foundation/Standard/Challenge, quick check, exit ticket.
+- Không xuất JSON. Không viết mã. Không nói chung chung.`;
+
+export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings, onBackToList, onPreviewLesson, onNeedSettings, showToast }: AdaptiveLessonBuilderPageProps) => {
   const { id: routeId } = useParams<{ id: string }>();
   const id = lessonId ?? routeId;
   const navigate = useNavigate();
@@ -148,6 +178,10 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, onBackTo
   const [error, setError] = useState<string | null>(null);
   const [expandedUnitId, setExpandedUnitId] = useState<string | null>(null);
   const [sharedRoutes, setSharedRoutes] = useState<Record<string, boolean>>({});
+  const [aiDemoBrief, setAiDemoBrief] = useState('');
+  const [aiDemoPlan, setAiDemoPlan] = useState('');
+  const [isGeneratingDemo, setIsGeneratingDemo] = useState(false);
+  const [isDemoApproved, setIsDemoApproved] = useState(id !== 'new');
 
   useEffect(() => onAuthStateChanged(auth, (firebaseUser) => {
     setUser(firebaseUser);
@@ -172,6 +206,8 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, onBackTo
           const draft = makeDraftLesson(currentUser.uid);
           setLesson(draft);
           setExpandedUnitId(draft.knowledgeUnits[0]?.id || null);
+          setIsDemoApproved(false);
+          setAiDemoPlan('');
           return;
         }
 
@@ -185,6 +221,7 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, onBackTo
         const found = normalizeLessonFromFirestore(raw);
         setLesson(found);
         setExpandedUnitId(found.knowledgeUnits[0]?.id ?? null);
+        setIsDemoApproved(true);
       } catch (loadError) {
         console.error('Không tải được bài học adaptive', loadError);
         setLesson(null);
@@ -265,6 +302,50 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, onBackTo
     else navigate('/adaptive-lessons');
   };
 
+  const generateFiveStepDemo = async () => {
+    if (!lesson || !settings) return;
+    if (!getActiveApiKey(settings)) {
+      setError('Cần nhập API Key AI trước khi tạo demo giáo án 5 bước.');
+      onNeedSettings?.();
+      return;
+    }
+
+    setIsGeneratingDemo(true);
+    setError(null);
+    try {
+      const demo = await callAI(buildFiveStepDemoPrompt(lesson, aiDemoBrief), settings);
+      setAiDemoPlan(demo.trim());
+      showToast?.('Đã tạo demo giáo án 5 bước để duyệt.', 'success');
+    } catch (demoError) {
+      console.error('Không tạo được demo giáo án 5 bước', demoError);
+      setError(demoError instanceof Error ? demoError.message : 'Không tạo được demo giáo án 5 bước bằng AI.');
+    } finally {
+      setIsGeneratingDemo(false);
+    }
+  };
+
+  const approveFiveStepDemo = () => {
+    if (!lesson || !aiDemoPlan.trim()) return;
+    const titleFromBrief = lesson.title.trim() || aiDemoBrief.split('\n')[0]?.trim() || 'Bài học phân hoá mới';
+    updateLesson({
+      title: titleFromBrief,
+      preparation: {
+        ...lesson.preparation,
+        readingInstructions: lesson.preparation.readingInstructions || 'Đọc trước nội dung theo giáo án demo 5 bước đã được duyệt.',
+        guidingQuestions: lesson.preparation.guidingQuestions?.length ? lesson.preparation.guidingQuestions : [
+          'Kiến thức nền nào học sinh cần có trước khi vào bài?',
+          'Dấu hiệu nào cho thấy học sinh cần học theo tuyến hỗ trợ?',
+          'Sản phẩm học tập cuối bài cần chứng minh năng lực nào?',
+        ],
+        estimatedMinutes: lesson.preparation.estimatedMinutes || 10,
+      },
+      fiveStepFlow: lesson.fiveStepFlow.steps.length ? lesson.fiveStepFlow : sampleAdaptiveLesson.fiveStepFlow,
+    });
+    setIsDemoApproved(true);
+    setStep(0);
+    showToast?.('Đã duyệt demo. Bây giờ có thể triển khai bài học phân hoá.', 'success');
+  };
+
   const openPreview = (targetLessonId: string) => {
     if (onPreviewLesson) onPreviewLesson(targetLessonId);
     else navigate(`/adaptive-portal/${targetLessonId}`);
@@ -299,6 +380,67 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, onBackTo
   if (error && !lesson) return <BuilderShell embedded={embedded}><ErrorPanel message={error} /></BuilderShell>;
   if (!lesson || !user) return <BuilderShell embedded={embedded}><ErrorPanel message="Không có dữ liệu bài học hoặc phiên đăng nhập." /></BuilderShell>;
 
+  if ((id === 'new' || !id) && !isDemoApproved) {
+    return (
+      <BuilderShell embedded={embedded}>
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <button onClick={goBackToList} className="mb-3 inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-blue-600">
+              <ArrowLeft className="h-4 w-4" /> Quay lại danh sách
+            </button>
+            <h1 className="text-3xl font-black text-slate-900">Tạo demo giáo án 5 bước trước</h1>
+            <p className="text-sm font-semibold text-slate-500">AI phải tạo giáo án chi tiết để giáo viên duyệt trước khi triển khai bài học phân hoá.</p>
+          </div>
+        </div>
+
+        {error && <div className="mb-4 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-bold text-red-600">{error}</div>}
+
+        <section className="space-y-5 rounded-3xl border border-blue-100 bg-white p-6 shadow-sm">
+          <div className="grid gap-4 md:grid-cols-3">
+            <Field label="Tiêu đề bài học"><input value={lesson.title} onChange={event => updateLesson({ title: event.target.value })} className={inputClass} placeholder="VD: Toán 11 — Cấp số cộng" /></Field>
+            <Field label="Lớp"><select value={lesson.grade} onChange={event => updateLesson({ grade: event.target.value as AdaptiveLesson['grade'] })} className={inputClass}>{gradeOptions.map(grade => <option key={grade}>{grade}</option>)}</select></Field>
+            <Field label="Tiết số"><input type="number" value={lesson.curriculumRef?.period || 1} onChange={event => updateLesson({ curriculumRef: { ...lesson.curriculumRef, period: Number(event.target.value) } })} className={inputClass} /></Field>
+          </div>
+
+          <Field label="Yêu cầu / file eLearning ánh xạ / ghi chú của giáo viên">
+            <textarea
+              value={aiDemoBrief}
+              onChange={event => setAiDemoBrief(event.target.value)}
+              className={`${textareaClass} min-h-36`}
+              placeholder="Nhập chủ đề, chuẩn đầu ra, nội dung từ file eLearning ánh xạ hoặc yêu cầu riêng. AI sẽ tạo demo giáo án chi tiết theo quy trình 5 bước để bạn duyệt trước."
+            />
+          </Field>
+
+          <div className="flex flex-wrap gap-3">
+            <button type="button" onClick={() => void generateFiveStepDemo()} disabled={isGeneratingDemo} className={primaryButtonClass}>
+              {isGeneratingDemo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+              {isGeneratingDemo ? 'AI đang tạo demo...' : 'AI tạo demo giáo án 5 bước'}
+            </button>
+            <button type="button" onClick={approveFiveStepDemo} disabled={!aiDemoPlan.trim() || isGeneratingDemo} className={secondaryButtonClass}>
+              <CheckCircle2 className="h-4 w-4" /> Duyệt demo & triển khai bài học phân hoá
+            </button>
+          </div>
+
+          {aiDemoPlan ? (
+            <div className="rounded-3xl border border-slate-100 bg-slate-50 p-5">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <h2 className="text-xl font-black text-slate-800">Demo giáo án chi tiết để duyệt</h2>
+                <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-black text-blue-700">Quy trình 5 bước</span>
+              </div>
+              <div className="max-h-[560px] overflow-y-auto whitespace-pre-wrap rounded-2xl bg-white p-5 text-sm font-semibold leading-7 text-slate-700 shadow-inner">{aiDemoPlan}</div>
+            </div>
+          ) : (
+            <div className="rounded-3xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center">
+              <Sparkles className="mx-auto mb-3 h-8 w-8 text-blue-500" />
+              <p className="font-black text-slate-700">Chưa có demo giáo án.</p>
+              <p className="mt-1 text-sm font-semibold text-slate-500">Bấm “AI tạo demo giáo án 5 bước”, xem nội dung chi tiết, rồi mới duyệt để sang phần phân hoá.</p>
+            </div>
+          )}
+        </section>
+      </BuilderShell>
+    );
+  }
+
   return (
     <BuilderShell embedded={embedded}>
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -307,7 +449,7 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, onBackTo
             <ArrowLeft className="h-4 w-4" /> Quay lại danh sách
           </button>
           <h1 className="text-3xl font-black text-slate-900">Giao diện học phân hoá</h1>
-          <p className="text-sm font-semibold text-slate-500">Tạo/sửa nội dung, tuyến học, kiểm tra và xuất bản cổng học sinh cho bài này.</p>
+          <p className="text-sm font-semibold text-slate-500">Triển khai từ demo giáo án 5 bước đã duyệt: nội dung, tuyến học, kiểm tra và xuất bản cổng học sinh.</p>
         </div>
       </div>
 

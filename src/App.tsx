@@ -311,8 +311,11 @@ export default function App() {
                 <AdaptiveLessonBuilderPage
                   embedded
                   lessonId={adaptiveWorkspaceLessonId}
+                  settings={data.settings}
                   onBackToList={() => setAdaptiveWorkspaceLessonId(null)}
                   onPreviewLesson={(lessonId) => window.open(`/adaptive-portal/${encodeURIComponent(lessonId)}`, '_blank', 'noopener,noreferrer')}
+                  onNeedSettings={() => setIsSettingsOpen(true)}
+                  showToast={showToast}
                 />
               ) : (
                 <AdaptiveLessonListPage
