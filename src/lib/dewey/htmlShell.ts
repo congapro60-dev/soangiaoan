@@ -128,12 +128,21 @@ const BASE_CSS = String.raw`
     font-weight: 650;
   }
   .screen {
+    display: none;
     margin-bottom: 28px;
     padding: 26px;
     border-radius: 26px;
     background: white;
     box-shadow: 0 10px 30px rgba(15, 76, 129, 0.09);
     scroll-margin-top: 96px;
+  }
+  .screen.active {
+    display: block;
+    animation: deweyFadeIn 0.4s ease;
+  }
+  @keyframes deweyFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
   .screen h2 { margin-top: 0; color: var(--primary); font-size: 28px; }
   .box {
@@ -357,7 +366,7 @@ ${getThemeCss(theme)}
 ${BASE_CSS}
   </style>
 </head>
-<body data-duration-minutes="${content.durationMinutes}">
+<body data-duration-minutes="${content.durationMinutes}" data-initial-screen="${content.skipPretest ? 'screen-engage' : 'screen-pretest'}">
   <script id="dewey-content" type="application/json">${escapeJsonForHtml(content)}</script>
 ${bodyHtml}
   <script>${getAdaptiveEngineScript()}</script>

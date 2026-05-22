@@ -10,7 +10,7 @@ export function getAdaptiveEngineScript(): string {
     wrongCounts: {},
     completedPacks: {},
     totalSeconds: Number(document.body.dataset.durationMinutes || '40') * 60,
-    activeScreenId: 'screen-pretest',
+    activeScreenId: document.body.dataset.initialScreen || 'screen-pretest',
     startTime: Date.now(),
     completedUnitIds: []
   };
@@ -74,10 +74,23 @@ export function getAdaptiveEngineScript(): string {
   window.navTo = function navTo(id) {
     var target = byId(id);
     if (!target) return;
+    var tocItem = document.querySelector('[data-target="' + id + '"]');
+    if (tocItem && tocItem.classList.contains('locked')) return;
+
+    all('.screen').forEach(function (screen) { screen.classList.remove('active'); });
+    target.classList.remove('hidden');
+    target.classList.add('active');
+
     if (id !== state.activeScreenId && typeof window.resetSectionTimer === 'function') window.resetSectionTimer();
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setActiveToc(id);
+
+    var lessonArea = document.querySelector('.lesson-area');
+    if (lessonArea && typeof lessonArea.scrollTo === 'function') lessonArea.scrollTo({ top: 0, behavior: 'smooth' });
+    else window.scrollTo({ top: 0, behavior: 'smooth' });
+
     var toc = byId('toc-menu');
     if (toc) toc.classList.add('hidden');
+    updateMath(target);
   };
 
   function unlockScreen(id) {
@@ -95,13 +108,7 @@ export function getAdaptiveEngineScript(): string {
   }
 
   function setupTocObserver() {
-    if (!('IntersectionObserver' in window)) return;
-    var observer = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) setActiveToc(entry.target.id);
-      });
-    }, { rootMargin: '-35% 0px -55% 0px', threshold: 0.01 });
-    all('.screen').forEach(function (screen) { observer.observe(screen); });
+    setActiveToc(state.activeScreenId);
   }
 
   function formatTime(seconds) {
@@ -194,7 +201,15 @@ export function getAdaptiveEngineScript(): string {
     var scoreEl = byId('pretest-score');
     if (scoreEl) scoreEl.textContent = score + '/' + cards.length;
 
-    show(byId('screen-pretest-result'));
+    var currentScreen = byId('screen-pretest');
+    if (currentScreen) currentScreen.classList.remove('active');
+    var resultScreen = byId('screen-pretest-result');
+    show(resultScreen);
+    if (resultScreen) {
+      resultScreen.classList.add('active');
+      setActiveToc('screen-pretest-result');
+      resultScreen.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
     window.addNote('<strong style="color:#F2A900">Ôn tập Tiết 1 & 2:</strong><br>• Đơn ánh: hai phần tử khác nhau không có cùng ảnh.<br>• Toàn ánh: không bỏ sót phần tử nào ở tập đích.<br>• Song ánh: vừa đơn ánh vừa toàn ánh, tạo ghép cặp một-một để so sánh số phần tử.');
     updateMath(byId('screen-pretest-result'));
   };
@@ -231,15 +246,29 @@ export function getAdaptiveEngineScript(): string {
     }
   };
 
-  window.completeKnowledgeUnit = function completeKnowledgeUnit(unitId, note) {
+  window.completeKnowledgeUnit = function completeKnowledgeUnit(unitId, note, button) {
     if (note) window.addNote(note);
-    state.completedUnitIds.push(unitId);
+    if (state.completedUnitIds.indexOf(unitId) === -1) state.completedUnitIds.push(unitId);
     if (window.parent && window.parent !== window) {
       window.parent.postMessage({ type: 'dewey:unitComplete', data: { unitId: unitId } }, '*');
     }
     var screen = byId('screen-' + unitId);
     var nextId = screen ? screen.dataset.nextScreen : '';
     if (nextId) unlockScreen(nextId);
+    if (button) hide(button);
+    var panel = screen ? screen.querySelector('[data-unit-completion]') : null;
+    show(panel);
+    if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    updateMath(panel || screen);
+  };
+
+  window.goNextActivity = function goNextActivity(button) {
+    var screen = button ? button.closest('.screen') : null;
+    var nextId = screen ? screen.dataset.nextScreen : '';
+    if (nextId) {
+      unlockScreen(nextId);
+      window.navTo(nextId);
+    }
   };
 
   function packAt(index) {
@@ -358,6 +387,7 @@ export function getAdaptiveEngineScript(): string {
       show(feedback);
     }
     unlockScreen('screen-summary');
+    show(byId('extend-next-btn'));
   };
 
   window.finishLesson = function finishLesson() {
@@ -381,6 +411,13 @@ export function getAdaptiveEngineScript(): string {
 
   document.addEventListener('DOMContentLoaded', function () {
     restoreNotebook();
+    var initial = byId(state.activeScreenId) || document.querySelector('.screen.active') || document.querySelector('.screen');
+    if (initial) {
+      all('.screen').forEach(function (screen) { screen.classList.remove('active'); });
+      initial.classList.remove('hidden');
+      initial.classList.add('active');
+      state.activeScreenId = initial.id;
+    }
     setupTocObserver();
     startTimer();
     updateMath(document.body);

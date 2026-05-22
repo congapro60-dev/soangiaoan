@@ -41,7 +41,7 @@ const renderToc = (content: DeweyLessonContent): string => {
     ...content.knowledgeUnits.map((unit, index) => ({
       id: `screen-${unit.id}`,
       label: `${index + 3}. ${unit.title}`,
-      locked: index > 0,
+      locked: true,
     })),
     { id: 'screen-olympia', label: 'Luyện tập Olympia', locked: true },
     { id: 'screen-extend', label: 'Vận dụng thực tế', locked: true },
@@ -62,7 +62,7 @@ const renderNotebook = (): string => `
 </aside>`;
 
 const renderPretest = (content: DeweyLessonContent): string => `
-<section class="screen" id="screen-pretest">
+<section class="screen active" id="screen-pretest">
   <h2>Kiểm tra Đầu giờ (Pre-Test)</h2>
   <div class="activity-box">${paragraph(content.pretest.reviewSummary)}</div>
   ${content.pretest.questions.map((question, index) => `
@@ -110,7 +110,7 @@ const renderEngage = (content: DeweyLessonContent, firstUnit?: DeweyKnowledgeUni
   const bloom = engage.goalSetting?.bloomFramework;
 
   return `
-<section class="screen" id="screen-engage" data-next-screen="${nextScreen}">
+<section class="screen${content.skipPretest ? ' active' : ''}" id="screen-engage" data-next-screen="${nextScreen}">
   ${engage.stepLabel ? `<span class="step-pill">${escapeHtml(engage.stepLabel)}</span>` : ''}
   ${engage.bigTitle ? `<h1 class="big-title">${escapeHtml(engage.bigTitle)}</h1>` : '<h2>2. Khởi động - Nêu vấn đề</h2>'}
   <div class="robot-grid engage-grid">
@@ -158,7 +158,7 @@ const renderSocraticStep = (unit: DeweyKnowledgeUnit, stepIndex: number): string
     <button class="btn" type="button" onclick="submitSocraticStep(this)">Kiểm tra gợi ý</button>
     <div class="feedback-msg hidden"></div>
     ${step.expectedKeywords && step.expectedKeywords.length > 0 ? `<div class="box hidden next-btn"><strong>Từ khóa tham khảo:</strong> ${step.expectedKeywords.map(escapeHtml).join(', ')}</div>` : ''}
-    ${next ? `<button class="btn secondary next-btn hidden" type="button" onclick="unlockNextSocratic(this)">Mở bước tiếp theo</button>` : `<button class="btn secondary next-btn hidden" type="button" onclick="completeKnowledgeUnit('${safeId(unit.id)}', '${escapeAttribute(unit.formulaForNotebook)}')">Hoàn thành đơn vị</button>`}
+    ${next ? `<button class="btn secondary next-btn hidden" type="button" onclick="unlockNextSocratic(this)">Mở bước tiếp theo</button>` : `<button class="btn secondary next-btn hidden" type="button" onclick="completeKnowledgeUnit('${safeId(unit.id)}', '${escapeAttribute(unit.formulaForNotebook)}', this)">Hoàn thành hoạt động</button>`}
   </article>`;
 };
 
@@ -166,8 +166,11 @@ const renderKnowledgeUnit = (unit: DeweyKnowledgeUnit, index: number, nextScreen
 <section class="screen" id="screen-${safeId(unit.id)}" data-next-screen="${safeId(nextScreenId)}">
   <h2>${index + 3}. ${escapeHtml(unit.title)}</h2>
   ${unit.socraticSteps.map((_step, stepIndex) => renderSocraticStep(unit, stepIndex)).join('\n')}
-  <div class="box"><strong>Kết luận:</strong> ${escapeHtml(unit.conclusion)}</div>
-  <div class="theory-box"><strong>Ghi vào vở:</strong> ${escapeHtml(unit.formulaForNotebook)}</div>
+  <div class="box unit-completion-panel hidden" data-unit-completion>
+    <strong>Kết luận:</strong> ${escapeHtml(unit.conclusion)}
+    <div class="theory-box"><strong>Ghi vào vở:</strong> ${escapeHtml(unit.formulaForNotebook)}</div>
+    <button class="btn success full-width" type="button" onclick="goNextActivity(this)">Sang hoạt động tiếp theo</button>
+  </div>
 </section>`;
 
 const correctValueFor = (question: DeweyAdaptiveQuestion): string => {
@@ -237,6 +240,7 @@ const renderExtend = (content: DeweyLessonContent): string => `
   <textarea rows="4" placeholder="Viết liên hệ hoặc quyết định của em..."></textarea>
   <button class="btn" type="button" onclick="checkExtend()">Gửi liên hệ</button>
   <div id="extend-feedback" class="feedback-msg hidden"></div>
+  <button id="extend-next-btn" class="btn success full-width hidden" type="button" onclick="unlockScreen('screen-summary'); navTo('screen-summary')">Sang phần tổng kết</button>
 </section>`;
 
 const renderSummary = (content: DeweyLessonContent): string => `
