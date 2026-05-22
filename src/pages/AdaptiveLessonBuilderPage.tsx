@@ -128,8 +128,16 @@ const normalizeLessonFromFirestore = (raw: AdaptiveLesson): AdaptiveLesson => ({
   },
 });
 
-export const AdaptiveLessonBuilderPage = () => {
-  const { id } = useParams<{ id: string }>();
+interface AdaptiveLessonBuilderPageProps {
+  embedded?: boolean;
+  lessonId?: string;
+  onBackToList?: () => void;
+  onPreviewLesson?: (lessonId: string) => void;
+}
+
+export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, onBackToList, onPreviewLesson }: AdaptiveLessonBuilderPageProps) => {
+  const { id: routeId } = useParams<{ id: string }>();
+  const id = lessonId ?? routeId;
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(auth.currentUser);
   const [lesson, setLesson] = useState<AdaptiveLesson | null>(null);
@@ -252,6 +260,16 @@ export const AdaptiveLessonBuilderPage = () => {
     };
   };
 
+  const goBackToList = () => {
+    if (onBackToList) onBackToList();
+    else navigate('/adaptive-lessons');
+  };
+
+  const openPreview = (targetLessonId: string) => {
+    if (onPreviewLesson) onPreviewLesson(targetLessonId);
+    else navigate(`/adaptive-portal/${targetLessonId}`);
+  };
+
   const save = async (status: LessonStatus) => {
     const nextLesson = normalizeForSave(status);
     if (!nextLesson) return;
@@ -266,8 +284,8 @@ export const AdaptiveLessonBuilderPage = () => {
     try {
       await saveLessonToFirestore(nextLesson);
       setLesson(nextLesson);
-      if (status === 'published') navigate(`/adaptive-portal/${nextLesson.id}`);
-      else navigate(`/adaptive-builder/${nextLesson.id}`, { replace: true });
+      if (status === 'published') openPreview(nextLesson.id);
+      else if (!embedded) navigate(`/adaptive-builder/${nextLesson.id}`, { replace: true });
     } catch (saveError) {
       console.error('Không lưu được bài học adaptive', saveError);
       setError('Không lưu được bài học phân hoá lên Firestore.');
@@ -276,20 +294,20 @@ export const AdaptiveLessonBuilderPage = () => {
     }
   };
 
-  if (!authReady) return <BuilderShell><div className="rounded-3xl bg-white p-8 text-center font-bold text-slate-500 shadow-sm">Đang kiểm tra phiên đăng nhập...</div></BuilderShell>;
-  if (loading) return <BuilderShell><div className="rounded-3xl bg-white p-8 text-center font-bold text-slate-500 shadow-sm">Đang tải bài học phân hoá...</div></BuilderShell>;
-  if (error && !lesson) return <BuilderShell><ErrorPanel message={error} /></BuilderShell>;
-  if (!lesson || !user) return <BuilderShell><ErrorPanel message="Không có dữ liệu bài học hoặc phiên đăng nhập." /></BuilderShell>;
+  if (!authReady) return <BuilderShell embedded={embedded}><div className="rounded-3xl bg-white p-8 text-center font-bold text-slate-500 shadow-sm">Đang kiểm tra phiên đăng nhập...</div></BuilderShell>;
+  if (loading) return <BuilderShell embedded={embedded}><div className="rounded-3xl bg-white p-8 text-center font-bold text-slate-500 shadow-sm">Đang tải bài học phân hoá...</div></BuilderShell>;
+  if (error && !lesson) return <BuilderShell embedded={embedded}><ErrorPanel message={error} /></BuilderShell>;
+  if (!lesson || !user) return <BuilderShell embedded={embedded}><ErrorPanel message="Không có dữ liệu bài học hoặc phiên đăng nhập." /></BuilderShell>;
 
   return (
-    <BuilderShell>
+    <BuilderShell embedded={embedded}>
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <button onClick={() => navigate('/adaptive-lessons')} className="mb-3 inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-blue-600">
+          <button onClick={goBackToList} className="mb-3 inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-blue-600">
             <ArrowLeft className="h-4 w-4" /> Quay lại danh sách
           </button>
-          <h1 className="text-3xl font-black text-slate-900">Adaptive Lesson Builder</h1>
-          <p className="text-sm font-semibold text-slate-500">Tạo/sửa bài học phân hoá và lưu trực tiếp vào Firestore.</p>
+          <h1 className="text-3xl font-black text-slate-900">Giao diện học phân hoá</h1>
+          <p className="text-sm font-semibold text-slate-500">Tạo/sửa nội dung, tuyến học, kiểm tra và xuất bản cổng học sinh cho bài này.</p>
         </div>
       </div>
 
@@ -400,7 +418,11 @@ export const AdaptiveLessonBuilderPage = () => {
   );
 };
 
-const BuilderShell = ({ children }: { children: ReactNode }) => <div className="min-h-screen bg-slate-50 p-4 text-slate-900 sm:p-8"><div className="mx-auto max-w-6xl">{children}</div></div>;
+const BuilderShell = ({ children, embedded = false }: { children: ReactNode; embedded?: boolean }) => (
+  <div className={embedded ? 'text-slate-900' : 'min-h-screen bg-slate-50 p-4 text-slate-900 sm:p-8'}>
+    <div className="mx-auto max-w-6xl">{children}</div>
+  </div>
+);
 const ErrorPanel = ({ message }: { message: string }) => <div className="rounded-3xl border border-red-100 bg-red-50 p-6 text-sm font-bold text-red-600">{message}</div>;
 const Field = ({ label, children }: { label: string; children: ReactNode }) => <label className="block space-y-2"><span className="text-xs font-black uppercase tracking-wide text-slate-400">{label}</span>{children}</label>;
 

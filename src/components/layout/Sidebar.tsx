@@ -13,7 +13,6 @@ import {
   GraduationCap,
   ClipboardCheck,
   Globe,
-  BrainCircuit,
   WandSparkles
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
@@ -43,7 +42,6 @@ export const Sidebar = ({
     { id: 'testing', label: 'Bảng Kiểm tra', icon: GraduationCap },
     { id: 'exams', label: 'Thi online', icon: Globe },
     { id: 'grading', label: 'Chấm điểm AI', icon: ClipboardCheck },
-    { id: 'adaptive', label: 'Học phân hoá', icon: BrainCircuit },
     { id: 'adaptiveLessons', label: 'Quản lý bài học', icon: FileText },
     { id: 'aiTools', label: 'Công cụ AI', icon: WandSparkles },
     { id: 'library', label: 'Thư viện', icon: FileText },
