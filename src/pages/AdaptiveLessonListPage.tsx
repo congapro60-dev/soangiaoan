@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Edit3, Eye, Plus, Trash2 } from 'lucide-react';
+import { BarChart3, Edit3, Eye, Plus, Trash2 } from 'lucide-react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import type { AdaptiveLesson } from '../lib/adaptive/types';
@@ -26,9 +26,10 @@ interface AdaptiveLessonListPageProps {
   onCreateLesson?: () => void;
   onOpenLesson?: (lessonId: string) => void;
   onPreviewLesson?: (lessonId: string) => void;
+  onOpenLearnerStats?: () => void;
 }
 
-export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpenLesson, onPreviewLesson }: AdaptiveLessonListPageProps) => {
+export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpenLesson, onPreviewLesson, onOpenLearnerStats }: AdaptiveLessonListPageProps) => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(auth.currentUser);
   const [lessons, setLessons] = useState<AdaptiveLesson[]>([]);
@@ -102,9 +103,16 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
               <h1 className="mt-2 text-3xl font-black">Quản lý bài học phân hoá</h1>
               <p className="mt-2 max-w-2xl text-sm font-semibold text-blue-50">Chọn một bài để mở ngay giao diện học phân hoá bên trong khu quản lý, không cần dùng thêm nút chức năng riêng.</p>
             </div>
-            <button onClick={openCreate} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-black text-blue-700 shadow-lg shadow-blue-900/10 transition hover:bg-blue-50">
-              <Plus className="h-4 w-4" /> Tạo bài mới
-            </button>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              {onOpenLearnerStats && (
+                <button onClick={onOpenLearnerStats} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/30 bg-white/15 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-900/10 backdrop-blur transition hover:bg-white/25">
+                  <BarChart3 className="h-4 w-4" /> Thống kê người học
+                </button>
+              )}
+              <button onClick={openCreate} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-black text-blue-700 shadow-lg shadow-blue-900/10 transition hover:bg-blue-50">
+                <Plus className="h-4 w-4" /> Tạo bài mới
+              </button>
+            </div>
           </div>
         </section>
 

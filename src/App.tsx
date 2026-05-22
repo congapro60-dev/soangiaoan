@@ -26,6 +26,7 @@ const ChatTab = lazy(() => import('./components/tabs/ChatTab').then(m => ({ defa
 const TestingTab = lazy(() => import('./components/tabs/TestingTab').then(m => ({ default: m.TestingTab })));
 const GradingTab = lazy(() => import('./components/tabs/GradingTab').then(m => ({ default: m.GradingTab })));
 const ExamsTab = lazy(() => import('./components/tabs/ExamsTab').then(m => ({ default: m.ExamsTab })));
+const AdaptiveLearningTab = lazy(() => import('./components/tabs/AdaptiveLearningTab').then(m => ({ default: m.AdaptiveLearningTab })));
 const AdaptiveLessonListPage = lazy(() => import('./pages/AdaptiveLessonListPage').then(m => ({ default: m.AdaptiveLessonListPage })));
 const AdaptiveLessonBuilderPage = lazy(() => import('./pages/AdaptiveLessonBuilderPage').then(m => ({ default: m.AdaptiveLessonBuilderPage })));
 const AIToolsTab = lazy(() => import('./components/tabs/AIToolsTab').then(m => ({ default: m.AIToolsTab })));
@@ -57,6 +58,7 @@ export default function App() {
   const [latexContent, setLatexContent] = useState('');
   const [testingInitialContent, setTestingInitialContent] = useState<string | undefined>();
   const [adaptiveWorkspaceLessonId, setAdaptiveWorkspaceLessonId] = useState<string | null>(null);
+  const [isAdaptiveStatsOpen, setIsAdaptiveStatsOpen] = useState(false);
 
   const navigateToTesting = (lessonContent: string, lessonTitle: string) => {
     setTestingInitialContent(`Soạn đề kiểm tra từ giáo án: "${lessonTitle}"\n\nNội dung bài học:\n${lessonContent}`);
@@ -294,7 +296,18 @@ export default function App() {
             )}
 
             {activeTab === 'adaptiveLessons' && (
-              adaptiveWorkspaceLessonId ? (
+              isAdaptiveStatsOpen ? (
+                <div className="space-y-5">
+                  <button
+                    type="button"
+                    onClick={() => setIsAdaptiveStatsOpen(false)}
+                    className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-black text-slate-600 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                  >
+                    ← Quay lại quản lý bài học
+                  </button>
+                  <AdaptiveLearningTab user={user} />
+                </div>
+              ) : adaptiveWorkspaceLessonId ? (
                 <AdaptiveLessonBuilderPage
                   embedded
                   lessonId={adaptiveWorkspaceLessonId}
@@ -307,6 +320,7 @@ export default function App() {
                   onCreateLesson={() => setAdaptiveWorkspaceLessonId('new')}
                   onOpenLesson={setAdaptiveWorkspaceLessonId}
                   onPreviewLesson={(lessonId) => window.open(`/adaptive-portal/${encodeURIComponent(lessonId)}`, '_blank', 'noopener,noreferrer')}
+                  onOpenLearnerStats={() => setIsAdaptiveStatsOpen(true)}
                 />
               )
             )}
