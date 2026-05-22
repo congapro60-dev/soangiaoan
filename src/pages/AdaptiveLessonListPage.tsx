@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Edit3, Eye, Plus, Trash2 } from 'lucide-react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import type { AdaptiveLesson } from '../lib/adaptive/types';
 import { deleteLessonFromFirestore, listLessonsForTeacher } from '../services/adaptiveLessonService';
+
+export const resolveAdaptiveBuilderUrl = (lessonId: string): string => `/adaptive-builder/${encodeURIComponent(lessonId)}`;
+export const resolveAdaptivePortalUrl = (lessonId: string): string => `/adaptive-portal/${encodeURIComponent(lessonId)}`;
 
 const statusLabel: Record<AdaptiveLesson['status'], string> = {
   draft: 'Nháp',
@@ -77,7 +80,7 @@ export const AdaptiveLessonListPage = () => {
               <h1 className="mt-2 text-3xl font-black">Quản lý bài học phân hoá</h1>
               <p className="mt-2 max-w-2xl text-sm font-semibold text-blue-50">Tạo, chỉnh sửa, xuất bản và mở cổng học sinh cho các bài học phân hoá lưu trên Firestore.</p>
             </div>
-            <button onClick={() => navigate('/adaptive-builder/new')} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-black text-blue-700 shadow-lg shadow-blue-900/10 transition hover:bg-blue-50">
+            <button onClick={() => navigate(resolveAdaptiveBuilderUrl('new'))} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-black text-blue-700 shadow-lg shadow-blue-900/10 transition hover:bg-blue-50">
               <Plus className="h-4 w-4" /> Tạo bài mới
             </button>
           </div>
@@ -92,7 +95,7 @@ export const AdaptiveLessonListPage = () => {
             <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center">
               <h2 className="text-lg font-black text-slate-800">Chưa có bài học phân hoá</h2>
               <p className="mt-2 text-sm font-semibold text-slate-500">Bắt đầu bằng một bản nháp mới, sau đó xuất bản để học sinh truy cập.</p>
-              <button onClick={() => navigate('/adaptive-builder/new')} className="mt-5 inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white transition hover:bg-blue-700">
+              <button onClick={() => navigate(resolveAdaptiveBuilderUrl('new'))} className="mt-5 inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white transition hover:bg-blue-700">
                 <Plus className="h-4 w-4" /> Tạo bài mới
               </button>
             </div>
@@ -120,8 +123,8 @@ export const AdaptiveLessonListPage = () => {
                       <td className="px-4 py-4 text-xs font-semibold text-slate-500">{lesson.updatedAt ? new Date(lesson.updatedAt).toLocaleString('vi-VN') : '—'}</td>
                       <td className="px-4 py-4">
                         <div className="flex justify-end gap-2">
-                          <Link to={`/adaptive-builder/${lesson.id}`} className="inline-flex items-center gap-1 rounded-xl border border-slate-200 px-3 py-2 text-xs font-black text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"><Edit3 className="h-3.5 w-3.5" /> Sửa</Link>
-                          <Link to={`/adaptive-portal/${lesson.id}`} className="inline-flex items-center gap-1 rounded-xl border border-green-100 bg-green-50 px-3 py-2 text-xs font-black text-green-700 transition hover:bg-green-100"><Eye className="h-3.5 w-3.5" /> Xem</Link>
+                          <button type="button" onClick={() => navigate(resolveAdaptiveBuilderUrl(lesson.id))} className="inline-flex items-center gap-1 rounded-xl border border-slate-200 px-3 py-2 text-xs font-black text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"><Edit3 className="h-3.5 w-3.5" /> Sửa</button>
+                          <button type="button" onClick={() => navigate(resolveAdaptivePortalUrl(lesson.id))} className="inline-flex items-center gap-1 rounded-xl border border-green-100 bg-green-50 px-3 py-2 text-xs font-black text-green-700 transition hover:bg-green-100"><Eye className="h-3.5 w-3.5" /> Xem</button>
                           <button disabled={deletingId === lesson.id} onClick={() => void handleDelete(lesson.id)} className="inline-flex items-center gap-1 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs font-black text-red-600 transition hover:bg-red-100 disabled:opacity-60"><Trash2 className="h-3.5 w-3.5" /> Xóa</button>
                         </div>
                       </td>

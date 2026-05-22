@@ -1,5 +1,6 @@
 import { collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { sampleAdaptiveLesson } from '../lib/adaptive/sampleAdaptiveLesson';
 import { AdaptiveLesson } from '../lib/adaptive/types';
 
 const COL = 'adaptiveLessons';
@@ -37,6 +38,8 @@ export async function updateLessonInFirestore(lessonId: string, patch: Partial<A
 }
 
 export async function getLessonFromFirestore(lessonId: string): Promise<AdaptiveLesson | null> {
+  if (lessonId === sampleAdaptiveLesson.id || lessonId === 'sample') return { ...sampleAdaptiveLesson };
+
   const snap = await getDoc(doc(db, COL, lessonId));
   return snap.exists() ? normalizeAdaptiveLessonDocument(snap.data(), snap.id) : null;
 }
