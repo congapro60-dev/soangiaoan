@@ -338,6 +338,196 @@ QUY TẮC NGHIÊM NGẶT (KHÔNG ĐƯỢC VI PHẠM):
 ===== KẾT THÚC MẪU CLAUDE =====
 `;
 
+      const ADAPTIVE_READY_FORMAT = `
+===== MẪU GIÁO ÁN MẶC ĐỊNH — GIÁO ÁN ĐẸP, ĐỦ CHỨC NĂNG, SẴN SÀNG TẠO BÀI HỌC PHÂN HOÁ =====
+
+Đây vẫn là một giáo án hoàn chỉnh trong chức năng Soạn giáo án: phải đẹp, chuẩn, có thể xem trên web, lưu vào thư viện, chỉnh sửa, xuất Word/PDF và sử dụng chuyên môn như 2 mẫu Claude/Công văn 5512.
+Điểm khác biệt duy nhất: nội dung được thiết kế có cấu trúc để AI có thể chuyển đổi thành bài học phân hoá/adaptive trong Quản lý bài học.
+
+YÊU CẦU HÌNH THỨC CHUNG:
+- Viết bằng Markdown sạch, tiêu đề phân cấp rõ ràng, bảng đúng cú pháp, không xuất JSON.
+- Trình bày trang trọng như giáo án chính thức, không giống bản nháp kỹ thuật.
+- Các bảng phải có header rõ, nội dung đầy đủ, không để ô trống, không dùng ký hiệu placeholder như "..." trong sản phẩm cuối.
+- Công thức Toán dùng LaTeX chuẩn để xuất file không lỗi.
+- Có đủ thông tin để giáo viên đọc, dạy, in/xuất file và duyệt chuyên môn.
+- Có đủ thông tin ngầm/hiện để AI ánh xạ sang bài học phân hoá sau này.
+
+BỐ CỤC BẮT BUỘC TRONG <lesson_content>:
+
+# GIÁO ÁN: [TÊN BÀI HỌC]
+**Môn:** [...] | **Lớp:** [...] | **Tuần:** [...] | **Tiết:** [...] | **Thời lượng:** 40 phút
+**Định hướng:** Giáo án nguồn cho bài học phân hoá/adaptive
+
+---
+
+## I. THÔNG TIN CHUNG
+
+### 1. Vị trí bài học và định hướng tổ chức
+- Bối cảnh bài học trong chương/chủ đề.
+- Kiến thức học sinh đã được giao đọc trước ở nhà.
+- Sản phẩm học tập cuối bài.
+- Cách bài học này sẽ được dùng để tạo bài học phân hoá sau khi giáo viên duyệt.
+
+### 2. Mục tiêu bài học
+Trình bày đủ 3 nhóm:
+- **Kiến thức:** nêu cụ thể kiến thức trọng tâm.
+- **Năng lực:** nêu năng lực đặc thù môn học và năng lực chung.
+- **Phẩm chất:** nêu phẩm chất phù hợp.
+
+### 3. Mục tiêu học tập phân tầng
+| Tuyến học tập | Đối tượng phù hợp | Mục tiêu cần đạt | Dấu hiệu hoàn thành | Dữ liệu AI cần quan sát |
+|---|---|---|---|---|
+| Foundation | Học sinh cần hỗ trợ | [Mục tiêu tối thiểu, cụ thể] | [Minh chứng đạt] | [Dữ liệu/câu trả lời/hành vi] |
+| Standard | Học sinh đạt chuẩn | [Mục tiêu chuẩn] | [Minh chứng đạt] | [Dữ liệu/câu trả lời/hành vi] |
+| Challenge | Học sinh khá/giỏi | [Mục tiêu mở rộng] | [Minh chứng đạt] | [Dữ liệu/câu trả lời/hành vi] |
+
+---
+
+## II. CHUẨN BỊ CỦA GIÁO VIÊN VÀ HỌC SINH
+
+| Đối tượng | Nội dung chuẩn bị | Ghi chú triển khai |
+|---|---|---|
+| Giáo viên | [Thiết bị, học liệu, phiếu học tập, công cụ số] | [Cách dùng trong tiết học] |
+| Học sinh | [Nội dung đọc trước, câu hỏi chuẩn bị, dụng cụ] | [Yêu cầu trước khi vào lớp] |
+| Hệ thống/AI | [Dữ liệu cần thu, tiêu chí phân tuyến, học liệu tương tác] | [Dùng khi chuyển sang bài học adaptive] |
+
+---
+
+## III. PRE-TEST ĐẦU GIỜ CHO CHÍNH BÀI HỌC
+
+**Lưu ý bắt buộc:** Không dùng mục "kiểm tra bài cũ" truyền thống. Phần này thay bằng pre-test để kiểm tra việc đọc trước, kiến thức nền và mức sẵn sàng học bài mới.
+
+### 1. Mục đích pre-test
+- Xác định học sinh đã nắm được gì sau khi đọc trước ở nhà.
+- Phát hiện lỗ hổng kiến thức/sai lầm ban đầu.
+- Gợi ý tuyến học tập phù hợp: Foundation, Standard hoặc Challenge.
+
+### 2. Bộ câu hỏi pre-test
+Tạo 5-7 câu hỏi. Mỗi câu trình bày theo bảng sau:
+| Câu | Mức độ | Câu hỏi | Đáp án đúng | Giải thích ngắn | Mục tiêu đo lường | Dấu hiệu phân tuyến |
+|---:|---|---|---|---|---|---|
+
+### 3. Quy tắc phân tuyến sau pre-test
+| Kết quả pre-test | Tuyến đề xuất | Can thiệp của giáo viên/AI | Ghi chú theo dõi |
+|---|---|---|---|
+| [Ngưỡng thấp] | Foundation | [Hỗ trợ nền tảng] | [Dữ liệu cần lưu] |
+| [Ngưỡng đạt] | Standard | [Học theo chuẩn] | [Dữ liệu cần lưu] |
+| [Ngưỡng cao] | Challenge | [Mở rộng/thử thách] | [Dữ liệu cần lưu] |
+
+---
+
+## IV. TIẾN TRÌNH DẠY HỌC 5 BƯỚC
+
+Bắt buộc đủ 5 bước eLearning/adaptive:
+1. Kết nối
+2. Chẩn đoán
+3. Hình thành kiến thức
+4. Luyện tập và điều chỉnh
+5. Phản tư
+
+Mỗi bước phải có kịch bản đủ dùng trên lớp và đủ dữ liệu để chuyển sang bài học adaptive:
+| Bước | Thời lượng | Mục tiêu | Hoạt động của GV | Hoạt động của HS | Hỗ trợ của hệ thống/AI | Học liệu/công cụ số | Sản phẩm cần đạt |
+|---|---:|---|---|---|---|---|---|
+
+Yêu cầu chất lượng:
+- Hoạt động của giáo viên phải có câu hỏi dẫn dắt cụ thể.
+- Hoạt động của học sinh phải có phản hồi/sản phẩm dự kiến.
+- Học liệu/công cụ số phải nêu rõ dùng ở bước nào.
+- Sản phẩm cần đạt phải đo được.
+
+---
+
+## V. BẢN ĐỒ KIẾN THỨC ĐỂ CHUYỂN SANG BÀI HỌC PHÂN HOÁ
+
+Chia bài học thành 2-4 mảnh kiến thức. Mỗi mảnh trình bày theo mẫu:
+
+### Mảnh kiến thức [số]: [Tên mảnh kiến thức]
+
+| Thành phần | Nội dung |
+|---|---|
+| Mục tiêu liên quan | [Mục tiêu cụ thể] |
+| Giải thích cốt lõi | [Diễn giải ngắn, chính xác] |
+| Sai lầm thường gặp | [Sai lầm và nguyên nhân] |
+| Ví dụ mẫu có lời giải | [Ví dụ + lời giải] |
+| Quick check | [2-3 câu kiểm tra nhanh kèm đáp án] |
+
+#### Tuyến học tập cho mảnh kiến thức này
+| Tuyến | Cách tiếp cận | Nhiệm vụ học tập | Hỗ trợ/Gợi ý | Tiêu chí hoàn thành |
+|---|---|---|---|---|
+| Foundation | [Cách học có scaffold] | [Nhiệm vụ dễ, nền tảng] | [Gợi ý/học liệu hỗ trợ] | [Tiêu chí] |
+| Standard | [Cách học chuẩn] | [Nhiệm vụ đạt chuẩn] | [Gợi ý vừa đủ] | [Tiêu chí] |
+| Challenge | [Cách học mở rộng] | [Nhiệm vụ nâng cao/sáng tạo] | [Gợi ý tối thiểu] | [Tiêu chí] |
+
+---
+
+## VI. HỌC LIỆU SỐ VÀ MINH HOẠ TƯƠNG TÁC
+
+BẮT BUỘC đề xuất rõ các tài sản có thể dùng trong giáo án và chuyển sang bài học adaptive:
+| Tên học liệu/tương tác | Loại | Mục đích sư phạm | Mô tả hình ảnh/mô phỏng | Vị trí dùng trong bài | Tuyến phù hợp |
+|---|---|---|---|---|---|
+
+Bao gồm tối thiểu:
+- 1 hình minh hoạ trực quan có mô tả đủ rõ để tạo ảnh.
+- 1 mô phỏng/tương tác số có thể tạo bằng HTML/GeoGebra/Desmos hoặc công cụ tương đương.
+- 1 phiếu/nhiệm vụ học tập số.
+
+---
+
+## VII. LUYỆN TẬP PHÂN HOÁ
+
+| Tuyến | Bài/nhiệm vụ | Đáp án/Hướng dẫn | Khi học sinh gặp khó khăn | Khi học sinh làm tốt |
+|---|---|---|---|---|
+| Foundation | [Ít nhất 3 nhiệm vụ] | [Đáp án/hướng dẫn] | [Can thiệp] | [Điều kiện chuyển lên Standard] |
+| Standard | [Ít nhất 3 nhiệm vụ] | [Đáp án/hướng dẫn] | [Can thiệp] | [Điều kiện chuyển lên Challenge] |
+| Challenge | [Ít nhất 3 nhiệm vụ] | [Đáp án/hướng dẫn] | [Can thiệp] | [Mở rộng] |
+
+---
+
+## VIII. EXIT TICKET VÀ ĐÁNH GIÁ CUỐI BÀI
+
+### 1. Exit ticket
+Tạo 3-5 câu hỏi đo mức đạt mục tiêu cuối bài:
+| Câu | Nội dung | Mục tiêu đo lường | Đáp án/tiêu chí đạt | Dữ liệu AI cần lưu |
+|---:|---|---|---|---|
+
+### 2. Dữ liệu cần lưu để điều chỉnh dạy học
+| Dữ liệu cần lưu | Ý nghĩa sư phạm | Cách dùng để điều chỉnh bài sau |
+|---|---|---|
+
+---
+
+## IX. PHỤ LỤC
+
+Gồm các mục phù hợp để xuất file đẹp:
+- Phiếu học tập.
+- Đáp án/gợi ý.
+- Bảng kiểm quan sát.
+- Gợi ý bài tập về nhà theo 3 mức.
+
+---
+
+## X. ÁNH XẠ SANG BÀI HỌC PHÂN HOÁ
+
+Cuối giáo án BẮT BUỘC có mục này để AI chuyển đổi. Trình bày rõ ràng nhưng vẫn đẹp như phụ lục chuyên môn:
+| Thành phần giáo án | Thành phần bài học phân hoá tương ứng | Ghi chú chuyển đổi |
+|---|---|---|
+| Pre-test đầu giờ | diagnosticTest | [Cách lấy câu hỏi/ngưỡng phân tuyến] |
+| Mảnh kiến thức | knowledgeUnits | [Mỗi mảnh thành một đơn vị kiến thức] |
+| Foundation/Standard/Challenge | routes | [Ba tuyến trong từng knowledgeUnit] |
+| Quick check | quickCheck | [Câu kiểm tra nhanh từng mảnh] |
+| Exit ticket | exitTicket | [Đánh giá cuối bài] |
+| Học liệu số/mô phỏng | simulationId/externalToolIds | [Tài sản tương tác cần tạo/gắn] |
+| Dữ liệu quan sát | student progress/profile | [Dùng cho thống kê người học] |
+
+QUY TẮC NGHIÊM NGẶT:
+- Đây là giáo án chính thức, không phải bản mô tả kỹ thuật; phải đẹp, đầy đủ, có thể xuất file.
+- Vẫn giữ đầy đủ chức năng của phần Soạn giáo án: xem, sửa, lưu thư viện, xuất file, dùng tài liệu tham khảo và yêu cầu bổ sung.
+- Không dùng phần "kiểm tra bài cũ" truyền thống. Luôn dùng "Pre-test đầu giờ cho chính bài học này".
+- Không chỉ viết mô tả chung chung; phải đủ dữ liệu để chuyển thành bài học adaptive.
+- Không xuất JSON. Chỉ xuất Markdown trong <lesson_content>.
+===== KẾT THÚC MẪU GIÁO ÁN MẶC ĐỊNH PHÂN HOÁ =====
+`;
+
       let templateContext = '';
       if (builtinFormat === 'cv5512') {
         templateContext = CV5512_FORMAT;
@@ -353,7 +543,11 @@ QUY TẮC NGHIÊM NGẶT (KHÔNG ĐƯỢC VI PHẠM):
           TUÂN THỦ CÁC TIÊU CHÍ/QUY ĐỊNH SAU:
           ${criteria}
         `;
+      } else {
+        templateContext = ADAPTIVE_READY_FORMAT;
       }
+
+      const isAdaptiveReadyDefault = builtinFormat === 'default' && !selectedTemplate;
 
       const mathRestrictions = subject === 'Toán học' || subject.toLowerCase().includes('toán') ? `
 ===========================================================
@@ -389,11 +583,11 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
         const lessonDocsContent = lessonDocs.map(f => f.content).join('\n---\n');
         const prompt = `
           BẠN LÀ MỘT CHUYÊN GIA GIÁO DỤC CAO CẤP.
-          NHIỆM VỤ: Soạn một giáo án "Masterpiece" (Kiệt tác sư phạm).
+          NHIỆM VỤ: ${isAdaptiveReadyDefault ? 'Soạn một giáo án nguồn để tạo bài học phân hoá/adaptive.' : 'Soạn một giáo án "Masterpiece" (Kiệt tác sư phạm).'}
 
           BỐ CỤC PHẢN HỒI (BẮT BUỘC):
-          1. <thinking>: Phân tích mục tiêu bài học, đặc điểm HS lớp ${currentPlan.grade}, lựa chọn phương pháp (VARK, 5E, Gagne...) và kế hoạch "gây nghiện" cho bài giảng.
-          2. <lesson_content>: TOÀN BỘ nội dung giáo án chi tiết (Markdown), BAO GỒM CẢ phần đánh giá Danielson ở cuối.
+          1. <thinking>: ${isAdaptiveReadyDefault ? `Phân tích mục tiêu bài học, điều kiện học sinh đã đọc trước ở nhà, thiết kế pre-test đầu giờ, cách phân tuyến Foundation/Standard/Challenge và học liệu tương tác cần có.` : `Phân tích mục tiêu bài học, đặc điểm HS lớp ${currentPlan.grade}, lựa chọn phương pháp (VARK, 5E, Gagne...) và kế hoạch "gây nghiện" cho bài giảng.`}
+          2. <lesson_content>: ${isAdaptiveReadyDefault ? 'TOÀN BỘ giáo án nguồn chi tiết dạng Markdown, có đủ pre-test, bản đồ kiến thức, 3 tuyến học tập, quick check, exit ticket và học liệu tương tác để chuyển sang bài học phân hoá.' : 'TOÀN BỘ nội dung giáo án chi tiết (Markdown), BAO GỒM CẢ phần đánh giá Danielson ở cuối.'}
 
           THÔNG TIN BÀI HỌC:
           - Môn học: ${subject}. Lớp: ${currentPlan.grade}. Tuần: ${currentPlan.week}.
@@ -403,7 +597,16 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
           ${lessonDocsContent ? `TÀI LIỆU THAM KHẢO:\n${lessonDocsContent}` : ''}
           ${singleRequirement ? `YÊU CẦU BỔ SUNG: ${singleRequirement}` : ''}
 
-          ===== YÊU CẦU ĐỊNH DẠNG NỘI DUNG BÊN TRONG <lesson_content> (TUYỆT ĐỐI TUÂN THỦ) =====
+          ${isAdaptiveReadyDefault ? `
+          ===== YÊU CẦU RIÊNG CHO KIỂU MẶC ĐỊNH MỚI — GIÁO ÁN ĐẸP, SẴN SÀNG TẠO BÀI HỌC PHÂN HOÁ =====
+          - Bắt buộc dùng đúng cấu trúc trong MẪU GIÁO ÁN MẶC ĐỊNH ở trên.
+          - Đây vẫn là giáo án chính thức trong Soạn giáo án: phải trình bày đẹp, rõ ràng, có thể xem/sửa/lưu/xuất Word/PDF như các mẫu còn lại.
+          - Trọng tâm nội dung là tạo giáo án có thể chuyển đổi sang AdaptiveLesson: diagnosticTest, knowledgeUnits, routes, quickCheck, exitTicket, simulation/external tools.
+          - Phần đầu giờ phải là Pre-test của chính bài học, không phải kiểm tra bài cũ.
+          - Phải nêu rõ học liệu số/minh hoạ tương tác để sau này sinh mô phỏng hoặc hình ảnh trong bài học phân hoá.
+          - Không bắt buộc Danielson, WALT/WILF hay mẫu Công văn 5512 trong kiểu mặc định này, nhưng chất lượng trình bày phải tương đương một giáo án xuất file hoàn chỉnh.
+          ===== HẾT YÊU CẦU RIÊNG KIỂU MẶC ĐỊNH =====
+          ` : `===== YÊU CẦU ĐỊNH DẠNG NỘI DUNG BÊN TRONG <lesson_content> (TUYỆT ĐỐI TUÂN THỦ) =====
           A. CẤU TRÚC GIÁO ÁN (GIỮ NGUYÊN BẢN MẪU, CHỈ THÊM CHI TIẾT):
           - Phần đầu: WALT và WILF phải chia làm 3 tiêu chí KHÁC NHAU tương ứng 3 mức độ (🌶️ Cơ bản, 🌶️🌶️ Nâng cao, 🌶️🌶️🌶️ Thách thức). TUYỆT ĐỐI KHÔNG lặp lại 1 tiêu chí 3 lần.
           - TỔNG THỜI LƯỢNG: 40 PHÚT. TẤT CẢ 5 HĐ (HĐ1 đến HĐ5) đều PHẢI có kịch bản đối thoại chi tiết (5-8 lượt thoại), KHÔNG ĐƯỢC viết sơ sài ở HĐ1, HĐ4, HĐ5:
@@ -456,7 +659,7 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
           | **[💡 Tuyên ngôn Dạy và học chất lượng cao: GV đóng vai trò người xúc tác, không áp đặt kiến thức]** <br/> **GV:** "Tuyệt vời! Vậy hệ số của số hạng thứ $k+1$ chính là gì?" | **HS2:** "Nó tương ứng với tổ hợp $C_n^k$ ạ!" | *Lưu ý:* Có $(n+1)$ số hạng. |
           | **GV:** Chốt: "Đây chính là Định lý Nhị thức Newton!" | **HS:** Ghi chép công thức vào vở. | |
           \`\`\`
-          ===== HẾT YÊU CẦU ĐỊNH DẠNG =====
+          ===== HẾT YÊU CẦU ĐỊNH DẠNG =====`}
         `;
         let fullResult = '';
         await callAIStream(prompt, data.settings, (chunk) => {
@@ -515,8 +718,8 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
               BẠN LÀ CHUYÊN GIA BIÊN SOẠN GIÁO ÁN CAO CẤP.
               
               BỐ CỤC PHẢN HỒI:
-              1. <thinking>: Phân tích ngắn mục tiêu bài, đặc điểm HS, phương pháp phù hợp.
-              2. <lesson_content>: TOÀN BỘ giáo án (Markdown), BAO GỒM đánh giá Danielson ở cuối.
+              1. <thinking>: ${isAdaptiveReadyDefault ? 'Phân tích mục tiêu bài, điều kiện học sinh đọc trước ở nhà, thiết kế pre-test, phân tuyến Foundation/Standard/Challenge và học liệu tương tác.' : 'Phân tích ngắn mục tiêu bài, đặc điểm HS, phương pháp phù hợp.'}
+              2. <lesson_content>: ${isAdaptiveReadyDefault ? 'TOÀN BỘ giáo án nguồn dạng Markdown để tạo bài học phân hoá, có đủ pre-test, bản đồ kiến thức, 3 tuyến học tập, quick check, exit ticket và học liệu tương tác.' : 'TOÀN BỘ giáo án (Markdown), BAO GỒM đánh giá Danielson ở cuối.'}
 
               HÃY SOẠN GIÁO ÁN CHI TIẾT CHO BÀI: "${lesson.title}"
               THÔNG TIN TỪ PHÂN PHỐI CHƯƠNG TRÌNH:
@@ -526,7 +729,18 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
               ${templateContext}
               Lớp: ${currentPlan.grade}.
 
-              ===== YÊU CẦU ĐỊNH DẠNG BÊN TRONG <lesson_content> (TUYỆT ĐỐI TUÂN THỦ) =====
+              ${isAdaptiveReadyDefault ? `
+              ===== YÊU CẦU RIÊNG CHO KIỂU MẶC ĐỊNH MỚI — GIÁO ÁN ĐẸP, SẴN SÀNG TẠO BÀI HỌC PHÂN HOÁ =====
+              1. NỘI DUNG PHẢI TUÂN THỦ HOÀN TOÀN THEO "MỤC TIÊU/KIẾN THỨC TRỌNG TÂM" ĐÃ TRÍCH XUẤT TRÊN.
+              2. Tiêu đề bài soạn phải khớp 100% với tên bài được cung cấp.
+              3. Bắt buộc dùng đúng cấu trúc trong MẪU GIÁO ÁN MẶC ĐỊNH ở trên.
+              4. Đây vẫn là giáo án chính thức trong Soạn giáo án: phải trình bày đẹp, rõ ràng, có thể xem/sửa/lưu/xuất Word/PDF như các mẫu còn lại.
+              5. Phần đầu giờ phải là Pre-test của chính bài học, không phải kiểm tra bài cũ.
+              6. Phải có bản đồ kiến thức, tuyến Foundation/Standard/Challenge, quick check, exit ticket và học liệu số/minh hoạ tương tác.
+              7. Không bắt buộc Danielson, WALT/WILF hay mẫu Công văn 5512 trong kiểu mặc định này, nhưng chất lượng trình bày phải tương đương một giáo án xuất file hoàn chỉnh.
+              ${mathRestrictions}
+              ===== HẾT YÊU CẦU RIÊNG KIỂU MẶC ĐỊNH =====
+              ` : `===== YÊU CẦU ĐỊNH DẠNG BÊN TRONG <lesson_content> (TUYỆT ĐỐI TUÂN THỦ) =====
               A. YÊU CẦU NGHIÊM NGẶT:
               1. NỘI DUNG PHẢI TUÂN THỦ HOÀN TOÀN THEO "MỤC TIÊU/KIẾN THỨC TRỌNG TÂM" ĐÃ TRÍCH XUẤT TRÊN.
               2. Tiêu đề bài soạn phải khớp 100% với tên bài được cung cấp.
@@ -571,7 +785,7 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
               |---|---|---|
               | **[Quét Radar]** *Quan sát biểu cảm học sinh để xem mức độ hiểu bài.* <br/><br/> **GV:** "Các em hãy nhìn vào bảng hệ số ta vừa lập ở HĐ1. Ai phát hiện ra quy luật của các con số này?" <br/><br/> **[💡 Tuyên ngôn Dạy và học chất lượng cao: GV đóng vai trò người xúc tác, không áp đặt kiến thức]** <br/><br/> **GV:** "Tuyệt vời! Vậy hệ số của số hạng thứ $k+1$ chính là gì?" | **HS1:** "Thưa thầy, các hệ số này chính là các số trong tam giác Pascal ạ!" <br/><br/> **HS2:** "Nó tương ứng với tổ hợp $C_n^k$ ạ!" <br/><br/> **HS:** Ghi chép công thức tổng quát vào vở một cách hào hứng. | **1. Định lý:** <br/> Công thức tổng quát: <br/> $(a+b)^n = \sum_{k=0}^{n} C_n^k a^{n-k} b^k$ <br/><br/> *Lưu ý:* Có $(n+1)$ số hạng. |
               \`\`\`
-              ===== HẾT YÊU CẦU =====
+              ===== HẾT YÊU CẦU =====`}
             `;
             try {
               const detailResponse = await callAI(detailPrompt, data.settings);

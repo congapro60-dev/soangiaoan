@@ -13,6 +13,79 @@
 
 ---
 
+## 0. Cập nhật kiểu giáo án mặc định thành “Bài học phân hoá” — 2026-05-23
+
+Trạng thái trước khi commit/push ở phiên này:
+
+```txt
+Repo local: c:/Users/ADMIN/Desktop/edu-lesson-automation/soangiaoan
+Branch: main
+Remote: https://github.com/congapro60-dev/soangiaoan
+Working tree trước commit: đã chỉnh 2 file
+- src/components/features/creator/LessonControls.tsx
+- src/hooks/useLessonCreator.ts
+Build local: npm run build PASS
+```
+
+Mục tiêu thay đổi:
+
+- Đổi riêng kiểu giáo án `default` trong chức năng “Soạn giáo án” thành kiểu **Bài học phân hoá**.
+- Hai kiểu còn lại **Mẫu Claude** (`claude`) và **Công văn 5512** (`cv5512`) phải giữ nguyên logic/prompt, không bị ảnh hưởng.
+- Mẫu “Bài học phân hoá” vẫn phải là giáo án chính thức, đẹp, có thể xem/sửa/lưu thư viện/xuất Word/PDF như các mẫu còn lại.
+- Điểm khác biệt của mẫu này là nội dung được thiết kế có cấu trúc để AI có thể chuyển đổi sang bài học phân hoá/adaptive sau này.
+
+File đã chỉnh:
+
+1. `src/components/features/creator/LessonControls.tsx`
+   - Đổi option UI của `default`:
+     - Từ: `Mặc định` / `Toán chuẩn / AI tự chọn`
+     - Thành: `Bài học phân hoá` / `Pre-test · 3 tuyến · học liệu tương tác`
+   - Không đổi option `claude` và `cv5512`.
+
+2. `src/hooks/useLessonCreator.ts`
+   - Thêm prompt/template mới `ADAPTIVE_READY_FORMAT` cho `default` khi không chọn mẫu tuỳ chỉnh.
+   - Logic chọn template hiện tại:
+     - Nếu `builtinFormat === 'cv5512'` → dùng `CV5512_FORMAT` như cũ.
+     - Nếu `builtinFormat === 'claude'` → dùng `CLAUDE_FORMAT` như cũ.
+     - Nếu có `selectedTemplate` → mẫu tuỳ chỉnh vẫn ghi đè như cũ.
+     - Ngược lại → dùng `ADAPTIVE_READY_FORMAT` cho “Bài học phân hoá”.
+   - Thêm biến `isAdaptiveReadyDefault = builtinFormat === 'default' && !selectedTemplate` để chỉ áp dụng yêu cầu mới cho đúng mẫu mặc định mới.
+   - Cập nhật cả luồng soạn đơn lẻ và soạn hàng loạt để “Bài học phân hoá” sinh giáo án:
+     - Markdown sạch, tiêu đề phân cấp rõ, bảng đúng cú pháp.
+     - Có thể xem/sửa/lưu/xuất file như giáo án chính thức.
+     - Có pre-test đầu giờ cho chính bài học, thay “kiểm tra bài cũ”.
+     - Có mục tiêu phân tầng Foundation / Standard / Challenge.
+     - Có tiến trình 5 bước: Kết nối, Chẩn đoán, Hình thành kiến thức, Luyện tập và điều chỉnh, Phản tư.
+     - Có bản đồ kiến thức để chuyển sang bài học phân hoá.
+     - Có học liệu số/minh hoạ tương tác/mô phỏng.
+     - Có luyện tập phân hoá, quick check, exit ticket.
+     - Có bảng ánh xạ sang `diagnosticTest`, `knowledgeUnits`, `routes`, `quickCheck`, `exitTicket`, `simulationId` / `externalToolIds`.
+
+Kiểm thử local đã chạy:
+
+```bash
+npm run build
+```
+
+Kết quả:
+
+```txt
+PASS — Vite build thành công.
+Chỉ còn warning cũ về dynamic import/chunk size, không chặn build.
+```
+
+Checklist cho Anti/QA khi kiểm thử:
+
+- Vào “Soạn giáo án” và xác nhận có 3 option: `Bài học phân hoá`, `Mẫu Claude`, `Công văn 5512`.
+- Tạo giáo án bằng “Bài học phân hoá” và kiểm tra hình thức đẹp, xuất file được, không giống bản nháp kỹ thuật.
+- Kiểm tra giáo án có pre-test đầu giờ cho chính bài học, không dùng “kiểm tra bài cũ”.
+- Kiểm tra có đủ dữ liệu để chuyển sang bài học phân hoá: diagnostic test, knowledge units, routes, quick check, exit ticket, học liệu tương tác.
+- Tạo giáo án bằng “Mẫu Claude” và “Công văn 5512” để xác nhận hai mẫu này không bị đổi hành vi.
+- Chọn mẫu tuỳ chỉnh để xác nhận mẫu tuỳ chỉnh vẫn ghi đè định dạng built-in.
+- Thử soạn hàng loạt với “Bài học phân hoá”.
+
+---
+
 ## 0. Cập nhật P0/P1 QA fixes — 2026-05-20
 
 Đang xử lý trên branch `main` các lỗi P0/P1 từ QA report với root cause đã xác định:
