@@ -10,3 +10,5 @@ __pycache__/
 desktop.ini
 out*.txt
 temp*.html
+
+bot_profile/
