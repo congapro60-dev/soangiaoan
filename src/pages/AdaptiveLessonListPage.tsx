@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BarChart3, Edit3, Eye, Plus, Trash2 } from 'lucide-react';
+import { BarChart3, Edit3, Eye, Plus, Trash2, WandSparkles } from 'lucide-react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import type { AdaptiveLesson } from '../lib/adaptive/types';
@@ -101,7 +101,7 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
             <div>
               <p className="text-sm font-black uppercase tracking-[0.2em] text-blue-100">Bài học phân hoá</p>
               <h1 className="mt-2 text-3xl font-black">Quản lý bài học phân hoá</h1>
-              <p className="mt-2 max-w-2xl text-sm font-semibold text-blue-50">Chọn một bài để mở ngay giao diện học phân hoá bên trong khu quản lý, không cần dùng thêm nút chức năng riêng.</p>
+              <p className="mt-2 max-w-2xl text-sm font-semibold text-blue-50">Tạo bài học từ giáo án phân hoá đã soạn hoặc tải giáo án lên, sau đó mở giao diện học sinh để phát bài.</p>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row">
               {onOpenLearnerStats && (
@@ -110,7 +110,7 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
                 </button>
               )}
               <button onClick={openCreate} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-black text-blue-700 shadow-lg shadow-blue-900/10 transition hover:bg-blue-50">
-                <Plus className="h-4 w-4" /> Tạo bài mới
+                <WandSparkles className="h-4 w-4" /> Tạo từ giáo án nguồn
               </button>
             </div>
           </div>
@@ -124,9 +124,9 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
           ) : !error && lessons.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center">
               <h2 className="text-lg font-black text-slate-800">Chưa có bài học phân hoá</h2>
-              <p className="mt-2 text-sm font-semibold text-slate-500">Bắt đầu bằng một bản nháp mới, sau đó xuất bản để học sinh truy cập.</p>
+              <p className="mt-2 text-sm font-semibold text-slate-500">Bắt đầu bằng cách chọn giáo án đã soạn hoặc tải giáo án lên để AI rà soát và chuyển thành bài học phân hoá.</p>
               <button onClick={openCreate} className="mt-5 inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white transition hover:bg-blue-700">
-                <Plus className="h-4 w-4" /> Tạo bài mới
+                <WandSparkles className="h-4 w-4" /> Tạo từ giáo án nguồn
               </button>
             </div>
           ) : (

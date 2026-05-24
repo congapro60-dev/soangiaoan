@@ -1,3 +1,5 @@
+import type { AdaptiveSimulationSpec } from './simulationTypes';
+
 export type LearningRoute = 'foundation' | 'standard' | 'challenge';
 export type LessonStatus = 'draft' | 'published' | 'archived';
 export type AssessmentPurpose = 'diagnostic' | 'quick_check' | 'exit_ticket';
@@ -125,6 +127,7 @@ export interface KnowledgeUnit {
   enrichmentTasks?: PracticeTask[];
   externalToolIds?: string[];
   simulationId?: string;  // ref đến lessonSimulations/{lessonId}_{unitId}
+  simulationSpec?: AdaptiveSimulationSpec;
 }
 
 export interface LessonPacingPolicy {
@@ -355,4 +358,5 @@ export interface LessonSimulation {
   createdBy: string;
   htmlSizeBytes: number;
   geminiModel: string;
+  spec?: AdaptiveSimulationSpec;
 }

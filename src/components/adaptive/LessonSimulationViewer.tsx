@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { BookOpen, ChevronDown, ChevronUp, Loader2, RefreshCw, Sparkles } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import type { AdaptiveSimulationSpec } from '../../lib/adaptive/simulationTypes';
+import { AdaptiveSimulationBlock } from './AdaptiveSimulationBlock';
 
 type SimulationState = 'loading' | 'loaded' | 'not_found' | 'error';
 
@@ -9,23 +11,43 @@ interface LessonSimulationViewerProps {
   lessonId: string;
   unitId: string;
   unitTitle: string;
+  inlineSpec?: AdaptiveSimulationSpec;
 }
 
 interface LessonSimulationDocument {
   html?: unknown;
+  spec?: unknown;
 }
 
-export const LessonSimulationViewer = ({ lessonId, unitId, unitTitle }: LessonSimulationViewerProps) => {
-  const [status, setStatus] = useState<SimulationState>('loading');
+const isAdaptiveSimulationSpec = (value: unknown): value is AdaptiveSimulationSpec => {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<AdaptiveSimulationSpec>;
+  return typeof candidate.id === 'string'
+    && typeof candidate.title === 'string'
+    && typeof candidate.kind === 'string'
+    && typeof candidate.engine === 'string';
+};
+
+export const LessonSimulationViewer = ({ lessonId, unitId, unitTitle, inlineSpec }: LessonSimulationViewerProps) => {
+  const [status, setStatus] = useState<SimulationState>(inlineSpec ? 'loaded' : 'loading');
   const [html, setHtml] = useState('');
-  const [expanded, setExpanded] = useState(false);
+  const [spec, setSpec] = useState<AdaptiveSimulationSpec | undefined>(inlineSpec);
+  const [expanded, setExpanded] = useState(Boolean(inlineSpec));
 
   const simulationId = useMemo(() => `${lessonId}_${unitId}`, [lessonId, unitId]);
   const simulationHtml = useMemo(() => html, [html]);
 
   const loadSimulation = useCallback(async (options: { resetExpanded?: boolean } = {}) => {
+    if (inlineSpec) {
+      setSpec(inlineSpec);
+      setStatus('loaded');
+      if (options.resetExpanded !== false) setExpanded(true);
+      return;
+    }
+
     setStatus('loading');
     setHtml('');
+    setSpec(undefined);
     if (options.resetExpanded !== false) setExpanded(false);
 
     try {
@@ -37,18 +59,22 @@ export const LessonSimulationViewer = ({ lessonId, unitId, unitTitle }: LessonSi
       }
 
       const data = snapshot.data() as LessonSimulationDocument;
-      if (typeof data.html !== 'string' || data.html.trim().length === 0) {
+      const storedSpec = isAdaptiveSimulationSpec(data.spec) ? data.spec : undefined;
+      const storedHtml = typeof data.html === 'string' ? data.html.trim() : '';
+
+      if (!storedSpec && !storedHtml) {
         setStatus('not_found');
         return;
       }
 
-      setHtml(data.html);
+      setHtml(storedHtml);
+      setSpec(storedSpec);
       setStatus('loaded');
     } catch (error) {
       console.error('Failed to load lesson simulation:', error);
       setStatus('error');
     }
-  }, [simulationId]);
+  }, [inlineSpec, simulationId]);
 
   useEffect(() => {
     let isMounted = true;
@@ -126,17 +152,23 @@ export const LessonSimulationViewer = ({ lessonId, unitId, unitTitle }: LessonSi
         <div className="mt-4 overflow-hidden rounded-3xl border border-violet-100 bg-white">
           <div className="flex items-center gap-2 border-b border-violet-100 bg-white px-4 py-3 text-xs font-black uppercase tracking-wide text-violet-500">
             <BookOpen className="h-4 w-4" />
-            Mô phỏng HTML an toàn
+            {spec ? 'Mô phỏng nội bộ có cấu trúc' : 'Mô phỏng HTML an toàn'}
           </div>
-          <iframe
-            srcDoc={simulationHtml}
-            sandbox="allow-scripts"
-            referrerPolicy="no-referrer"
-            loading="lazy"
-            title={`Mô phỏng tương tác: ${unitTitle || 'Bài học'}`}
-            className="block w-full"
-            style={{ maxHeight: '600px', width: '100%', height: '600px', border: 'none' }}
-          />
+          <div className="p-4">
+            {spec ? (
+              <AdaptiveSimulationBlock spec={spec} />
+            ) : (
+              <iframe
+                srcDoc={simulationHtml}
+                sandbox="allow-scripts"
+                referrerPolicy="no-referrer"
+                loading="lazy"
+                title={`Mô phỏng tương tác: ${unitTitle || 'Bài học'}`}
+                className="block w-full"
+                style={{ maxHeight: '600px', width: '100%', height: '600px', border: 'none' }}
+              />
+            )}
+          </div>
         </div>
       )}
     </section>

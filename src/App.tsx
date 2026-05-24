@@ -312,6 +312,7 @@ export default function App() {
                   embedded
                   lessonId={adaptiveWorkspaceLessonId}
                   settings={data.settings}
+                  lessonPlans={data.lessonPlans}
                   onBackToList={() => setAdaptiveWorkspaceLessonId(null)}
                   onPreviewLesson={(lessonId) => window.open(`/adaptive-portal/${encodeURIComponent(lessonId)}`, '_blank', 'noopener,noreferrer')}
                   onNeedSettings={() => setIsSettingsOpen(true)}

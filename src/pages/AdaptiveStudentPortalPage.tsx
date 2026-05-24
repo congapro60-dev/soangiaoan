@@ -953,7 +953,15 @@ export const AdaptiveStudentPortalPage = () => {
         )}
 
         {stage === 'dewey-lesson' && deweyHtml && (
-          <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+            {lesson && currentUnit && (
+              <LessonSimulationViewer
+                lessonId={lesson.id}
+                unitId={currentUnit.id}
+                unitTitle={currentUnit.title}
+                inlineSpec={currentUnit.simulationSpec}
+              />
+            )}
             <iframe
               srcDoc={deweyHtml}
               sandbox="allow-scripts allow-same-origin"

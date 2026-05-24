@@ -339,191 +339,207 @@ QUY TẮC NGHIÊM NGẶT (KHÔNG ĐƯỢC VI PHẠM):
 `;
 
       const ADAPTIVE_READY_FORMAT = `
-===== MẪU GIÁO ÁN MẶC ĐỊNH — GIÁO ÁN ĐẸP, ĐỦ CHỨC NĂNG, SẴN SÀNG TẠO BÀI HỌC PHÂN HOÁ =====
+===== MẪU GIÁO ÁN MẶC ĐỊNH — GIÁO ÁN NGUỒN CHUẨN ĐỂ TẠO BÀI HỌC PHÂN HOÁ =====
 
-Đây vẫn là một giáo án hoàn chỉnh trong chức năng Soạn giáo án: phải đẹp, chuẩn, có thể xem trên web, lưu vào thư viện, chỉnh sửa, xuất Word/PDF và sử dụng chuyên môn như 2 mẫu Claude/Công văn 5512.
-Điểm khác biệt duy nhất: nội dung được thiết kế có cấu trúc để AI có thể chuyển đổi thành bài học phân hoá/adaptive trong Quản lý bài học.
+Đây vẫn là giáo án hoàn chỉnh trong chức năng Soạn giáo án: phải đẹp, chuẩn, có thể xem trên web, lưu thư viện, chỉnh sửa, xuất Word/PDF và sử dụng chuyên môn như các mẫu khác. Điểm khác biệt: giáo án phải được thiết kế theo đúng cấu trúc bài học phân hoá/adaptive để khi sang Quản lý bài học, AI có thể rà soát và đóng gói thành bài học học sinh dùng được ngay.
 
 YÊU CẦU HÌNH THỨC CHUNG:
 - Viết bằng Markdown sạch, tiêu đề phân cấp rõ ràng, bảng đúng cú pháp, không xuất JSON.
 - Trình bày trang trọng như giáo án chính thức, không giống bản nháp kỹ thuật.
-- Các bảng phải có header rõ, nội dung đầy đủ, không để ô trống, không dùng ký hiệu placeholder như "..." trong sản phẩm cuối.
-- Công thức Toán dùng LaTeX chuẩn để xuất file không lỗi.
-- Có đủ thông tin để giáo viên đọc, dạy, in/xuất file và duyệt chuyên môn.
-- Có đủ thông tin ngầm/hiện để AI ánh xạ sang bài học phân hoá sau này.
+- Không để ô trống, không dùng placeholder kiểu "..." trong sản phẩm cuối; mọi mục phải có nội dung cụ thể theo bài học.
+- Công thức Toán dùng MathJax/LaTeX: inline dùng $...$, công thức khối dùng $$...$$.
+- Ký hiệu toán phải chuẩn; riêng Tổ hợp - Xác suất, giao hai biến cố viết liền như $AB$, không dùng ký hiệu giao tập hợp.
+- Có đủ thông tin để giáo viên đọc, dạy, in/xuất file, duyệt chuyên môn và để AI chuyển đổi thành bài học phân hoá.
 
 BỐ CỤC BẮT BUỘC TRONG <lesson_content>:
 
 # GIÁO ÁN: [TÊN BÀI HỌC]
 **Môn:** [...] | **Lớp:** [...] | **Tuần:** [...] | **Tiết:** [...] | **Thời lượng:** 40 phút
-**Định hướng:** Giáo án nguồn cho bài học phân hoá/adaptive
+**Định hướng:** Giáo án nguồn cho bài học phân hoá/adaptive theo kịch bản Bước 0 đến Bước 5
 
 ---
 
-## I. THÔNG TIN CHUNG
+## I. THÔNG TIN CHUNG VÀ MỤC TIÊU PHÂN TẦNG
 
-### 1. Vị trí bài học và định hướng tổ chức
+### 1. Vị trí bài học và nhiệm vụ đọc trước
 - Bối cảnh bài học trong chương/chủ đề.
 - Kiến thức học sinh đã được giao đọc trước ở nhà.
 - Sản phẩm học tập cuối bài.
-- Cách bài học này sẽ được dùng để tạo bài học phân hoá sau khi giáo viên duyệt.
+- Cách giáo án này sẽ được dùng để tạo bài học phân hoá sau khi giáo viên duyệt.
 
 ### 2. Mục tiêu bài học
 Trình bày đủ 3 nhóm:
-- **Kiến thức:** nêu cụ thể kiến thức trọng tâm.
-- **Năng lực:** nêu năng lực đặc thù môn học và năng lực chung.
-- **Phẩm chất:** nêu phẩm chất phù hợp.
+- **Kiến thức:** kiến thức trọng tâm, định nghĩa, định lý/công thức cần chốt.
+- **Năng lực:** tư duy toán học, mô hình hóa toán học, giải quyết vấn đề, giao tiếp toán học, sử dụng công cụ/phương tiện học toán.
+- **Phẩm chất:** chăm chỉ, trung thực, trách nhiệm hoặc phẩm chất phù hợp bài học.
 
-### 3. Mục tiêu học tập phân tầng
-| Tuyến học tập | Đối tượng phù hợp | Mục tiêu cần đạt | Dấu hiệu hoàn thành | Dữ liệu AI cần quan sát |
+### 3. Mục tiêu học tập theo 3 cấp
+| Cấp mục tiêu | Đối tượng phù hợp | Mục tiêu cần đạt | Minh chứng hoàn thành | Dữ liệu AI cần quan sát |
 |---|---|---|---|---|
-| Foundation | Học sinh cần hỗ trợ | [Mục tiêu tối thiểu, cụ thể] | [Minh chứng đạt] | [Dữ liệu/câu trả lời/hành vi] |
-| Standard | Học sinh đạt chuẩn | [Mục tiêu chuẩn] | [Minh chứng đạt] | [Dữ liệu/câu trả lời/hành vi] |
-| Challenge | Học sinh khá/giỏi | [Mục tiêu mở rộng] | [Minh chứng đạt] | [Dữ liệu/câu trả lời/hành vi] |
+| Cơ bản / Foundation | Học sinh cần hỗ trợ | [Mục tiêu tối thiểu, cụ thể] | [Minh chứng đạt] | [Điểm pre-test, thời gian, lỗi, quick check] |
+| Trọng tâm / Standard | Học sinh đạt chuẩn | [Mục tiêu chuẩn] | [Minh chứng đạt] | [Câu trả lời, mức gợi ý đã dùng, độ ổn định] |
+| Nâng cao / Challenge | Học sinh khá/giỏi | [Mục tiêu mở rộng] | [Minh chứng đạt] | [Cách giải, tốc độ, khả năng khái quát] |
 
 ---
 
-## II. CHUẨN BỊ CỦA GIÁO VIÊN VÀ HỌC SINH
+## II. THIẾT KẾ UI/UX VÀ HỌC LIỆU SỐ CHO BÀI HỌC PHÂN HOÁ
 
-| Đối tượng | Nội dung chuẩn bị | Ghi chú triển khai |
+### 1. Bố cục màn hình học sinh
+| Thành phần UI/UX | Thiết kế bắt buộc | Nội dung cụ thể của bài học |
 |---|---|---|
-| Giáo viên | [Thiết bị, học liệu, phiếu học tập, công cụ số] | [Cách dùng trong tiết học] |
-| Học sinh | [Nội dung đọc trước, câu hỏi chuẩn bị, dụng cụ] | [Yêu cầu trước khi vào lớp] |
-| Hệ thống/AI | [Dữ liệu cần thu, tiêu chí phân tuyến, học liệu tương tác] | [Dùng khi chuyển sang bài học adaptive] |
+| Bố cục 7:3 | 70% bên trái là bài giảng tương tác/giải quyết vấn đề; 30% bên phải là “Vở Ghi Chép” | [Mô tả nội dung cột trái và các mục tự lưu vào Vở Ghi Chép] |
+| Đồng hồ kép | Đồng hồ tổng 40:00 và đồng hồ cục bộ cho từng phần | [Thời lượng Bước 0-5, ví dụ Bước 0: 05:00] |
+| Mục lục thông minh | Điều hướng Bước 0 đến Bước 5, tự ẩn khi click ngoài vùng tương tác | [Tên mục lục cụ thể] |
+| Chống lỗi đồ họa | Hình phẳng ưu tiên dựng bằng <svg> nội tuyến; hình học không gian phải có mô phỏng 3D xoay/zoom bằng Three.js/WebGL nội bộ; hạn chế ảnh ngoài | [Danh sách SVG 2D và mô phỏng 3D cần dựng] |
+| Vở Ghi Chép | Tự động lưu định lý, công thức, kết luận cốt lõi sau mỗi chướng ngại | [Các dòng ghi chép sẽ tự thêm] |
 
----
-
-## III. PRE-TEST ĐẦU GIỜ CHO CHÍNH BÀI HỌC
-
-**Lưu ý bắt buộc:** Không dùng mục "kiểm tra bài cũ" truyền thống. Phần này thay bằng pre-test để kiểm tra việc đọc trước, kiến thức nền và mức sẵn sàng học bài mới.
-
-### 1. Mục đích pre-test
-- Xác định học sinh đã nắm được gì sau khi đọc trước ở nhà.
-- Phát hiện lỗ hổng kiến thức/sai lầm ban đầu.
-- Gợi ý tuyến học tập phù hợp: Foundation, Standard hoặc Challenge.
-
-### 2. Bộ câu hỏi pre-test
-Tạo 5-7 câu hỏi. Mỗi câu trình bày theo bảng sau:
-| Câu | Mức độ | Câu hỏi | Đáp án đúng | Giải thích ngắn | Mục tiêu đo lường | Dấu hiệu phân tuyến |
-|---:|---|---|---|---|---|---|
-
-### 3. Quy tắc phân tuyến sau pre-test
-| Kết quả pre-test | Tuyến đề xuất | Can thiệp của giáo viên/AI | Ghi chú theo dõi |
-|---|---|---|---|
-| [Ngưỡng thấp] | Foundation | [Hỗ trợ nền tảng] | [Dữ liệu cần lưu] |
-| [Ngưỡng đạt] | Standard | [Học theo chuẩn] | [Dữ liệu cần lưu] |
-| [Ngưỡng cao] | Challenge | [Mở rộng/thử thách] | [Dữ liệu cần lưu] |
-
----
-
-## IV. TIẾN TRÌNH DẠY HỌC 5 BƯỚC
-
-Bắt buộc đủ 5 bước eLearning/adaptive:
-1. Kết nối
-2. Chẩn đoán
-3. Hình thành kiến thức
-4. Luyện tập và điều chỉnh
-5. Phản tư
-
-Mỗi bước phải có kịch bản đủ dùng trên lớp và đủ dữ liệu để chuyển sang bài học adaptive:
-| Bước | Thời lượng | Mục tiêu | Hoạt động của GV | Hoạt động của HS | Hỗ trợ của hệ thống/AI | Học liệu/công cụ số | Sản phẩm cần đạt |
-|---|---:|---|---|---|---|---|---|
-
-Yêu cầu chất lượng:
-- Hoạt động của giáo viên phải có câu hỏi dẫn dắt cụ thể.
-- Hoạt động của học sinh phải có phản hồi/sản phẩm dự kiến.
-- Học liệu/công cụ số phải nêu rõ dùng ở bước nào.
-- Sản phẩm cần đạt phải đo được.
-
----
-
-## V. BẢN ĐỒ KIẾN THỨC ĐỂ CHUYỂN SANG BÀI HỌC PHÂN HOÁ
-
-Chia bài học thành 2-4 mảnh kiến thức. Mỗi mảnh trình bày theo mẫu:
-
-### Mảnh kiến thức [số]: [Tên mảnh kiến thức]
-
-| Thành phần | Nội dung |
-|---|---|
-| Mục tiêu liên quan | [Mục tiêu cụ thể] |
-| Giải thích cốt lõi | [Diễn giải ngắn, chính xác] |
-| Sai lầm thường gặp | [Sai lầm và nguyên nhân] |
-| Ví dụ mẫu có lời giải | [Ví dụ + lời giải] |
-| Quick check | [2-3 câu kiểm tra nhanh kèm đáp án] |
-
-#### Tuyến học tập cho mảnh kiến thức này
-| Tuyến | Cách tiếp cận | Nhiệm vụ học tập | Hỗ trợ/Gợi ý | Tiêu chí hoàn thành |
-|---|---|---|---|---|
-| Foundation | [Cách học có scaffold] | [Nhiệm vụ dễ, nền tảng] | [Gợi ý/học liệu hỗ trợ] | [Tiêu chí] |
-| Standard | [Cách học chuẩn] | [Nhiệm vụ đạt chuẩn] | [Gợi ý vừa đủ] | [Tiêu chí] |
-| Challenge | [Cách học mở rộng] | [Nhiệm vụ nâng cao/sáng tạo] | [Gợi ý tối thiểu] | [Tiêu chí] |
-
----
-
-## VI. HỌC LIỆU SỐ VÀ MINH HOẠ TƯƠNG TÁC
-
-BẮT BUỘC đề xuất rõ các tài sản có thể dùng trong giáo án và chuyển sang bài học adaptive:
-| Tên học liệu/tương tác | Loại | Mục đích sư phạm | Mô tả hình ảnh/mô phỏng | Vị trí dùng trong bài | Tuyến phù hợp |
+### 2. Học liệu số và mô phỏng cần chuẩn bị
+| Tên học liệu/mô phỏng | Loại | Mục đích sư phạm | Mô tả trực quan/đặc tả renderer | Vị trí dùng | Tuyến phù hợp |
 |---|---|---|---|---|---|
+| [Tên học liệu 1] | SVG 2D / Three.js 3D / phiếu số | [Mục đích] | [Nếu 2D: điểm, đoạn, đa giác/đường tròn, điểm kéo được. Nếu 3D: điểm 3D, cạnh, mặt, đường khuất, đường cao, thao tác xoay/zoom/bật tắt lớp.] | [Bước] | [Foundation/Standard/Challenge] |
 
-Bao gồm tối thiểu:
-- 1 hình minh hoạ trực quan có mô tả đủ rõ để tạo ảnh.
-- 1 mô phỏng/tương tác số có thể tạo bằng HTML/GeoGebra/Desmos hoặc công cụ tương đương.
-- 1 phiếu/nhiệm vụ học tập số.
+Bắt buộc có tối thiểu: 1 mô phỏng trực quan bằng SVG inline hoặc Three.js 3D phù hợp bài học, 1 công cụ tương tác Trial & Error, 1 phiếu/nhiệm vụ học tập số, 1 tài liệu đọc thêm cho Time-Filler. Nếu bài học có hình học không gian, bắt buộc mô phỏng phải xoay/zoom được như mô hình 3D thật.
 
 ---
 
-## VII. LUYỆN TẬP PHÂN HOÁ
+## III. KHUNG KỊCH BẢN SƯ PHẠM BƯỚC 0 ĐẾN BƯỚC 5
 
-| Tuyến | Bài/nhiệm vụ | Đáp án/Hướng dẫn | Khi học sinh gặp khó khăn | Khi học sinh làm tốt |
-|---|---|---|---|---|
-| Foundation | [Ít nhất 3 nhiệm vụ] | [Đáp án/hướng dẫn] | [Can thiệp] | [Điều kiện chuyển lên Standard] |
-| Standard | [Ít nhất 3 nhiệm vụ] | [Đáp án/hướng dẫn] | [Can thiệp] | [Điều kiện chuyển lên Challenge] |
-| Challenge | [Ít nhất 3 nhiệm vụ] | [Đáp án/hướng dẫn] | [Can thiệp] | [Mở rộng] |
+### Bước 0 — Pre-test chẩn đoán đầu giờ (05:00)
+**Mục đích:** Kiểm tra việc đọc trước, kiến thức nền và mức sẵn sàng học bài mới; không dùng kiểm tra bài cũ truyền thống.
+
+Tạo ít nhất 5 câu hỏi đa dạng gồm trắc nghiệm 4 phương án, đúng/sai và trả lời ngắn. Sau khi học sinh nộp phải có điểm, đúng/sai, giải thích từng phương án hoặc tiêu chí chấm, và đề xuất tuyến Foundation/Standard/Challenge.
+
+| Câu | Loại câu | Mức độ | Nội dung câu hỏi | Phương án/Đáp án | Giải thích từng phương án hoặc tiêu chí chấm | Mục tiêu đo | Dữ liệu phân tuyến |
+|---:|---|---|---|---|---|---|---|
+| 1 | Trắc nghiệm 4 phương án | Nhận biết | [Câu hỏi] | A. ...; B. ...; C. ...; D. ...; Đáp án: [...] | [Giải thích vì sao từng phương án đúng/sai] | [Mục tiêu] | [Dữ liệu] |
+| 2 | Đúng/Sai | Thông hiểu | [Phát biểu] | Đúng/Sai: [...] | [Giải thích] | [Mục tiêu] | [Dữ liệu] |
+| 3 | Trả lời ngắn | Vận dụng thấp | [Câu hỏi] | [Đáp án] | [Tiêu chí chấm] | [Mục tiêu] | [Dữ liệu] |
+| 4 | Trắc nghiệm 4 phương án | Thông hiểu | [Câu hỏi] | A. ...; B. ...; C. ...; D. ...; Đáp án: [...] | [Giải thích từng phương án] | [Mục tiêu] | [Dữ liệu] |
+| 5 | Trắc nghiệm/Đúng-Sai/Trả lời ngắn | Vận dụng | [Câu hỏi] | [Đáp án] | [Giải thích/tiêu chí] | [Mục tiêu] | [Dữ liệu] |
+
+#### Quy tắc phân tuyến sau Pre-test
+| Điều kiện | Tuyến | Nội dung bài học ưu tiên | Can thiệp AI/GV |
+|---|---|---|---|
+| [Ngưỡng thấp] | Foundation | [Ôn nền, scaffold, ví dụ mẫu] | [Mở gợi ý nhiều hơn, nhắc lý thuyết] |
+| [Ngưỡng đạt] | Standard | [Học theo chuẩn trọng tâm] | [Gợi ý vừa đủ, quick check chuẩn] |
+| [Ngưỡng cao] | Challenge | [Mở rộng, bài khó, khái quát] | [Giảm scaffold, tăng nhiệm vụ mở] |
+
+### Bước 1 — Khởi động & Gắn kết / Engage (05:00)
+| Thành phần | Nội dung bắt buộc |
+|---|---|
+| Câu chuyện/tình huống | [Câu chuyện lịch sử hoặc tình huống thực tế hấp dẫn gắn trực tiếp với bài] |
+| Trải nghiệm bế tắc | [Công cụ tương tác khiến học sinh thử và thấy giới hạn của cách làm cũ] |
+| Học sinh điền kỳ vọng | [Câu hỏi để học sinh tự nhập điều muốn hiểu/làm được] |
+| Hệ thống in mục tiêu | [Mục tiêu Cơ bản, Trọng tâm, Nâng cao được đối chiếu với kỳ vọng] |
+| Dữ liệu AI ghi nhận | [Kỳ vọng, thao tác đầu tiên, thời gian, lựa chọn sai/lúng túng] |
+
+### Bước 2 — Kiến tạo tri thức Socratic và Trial & Error (15:00)
+Chia bài học thành 2-4 chướng ngại/đơn vị kiến thức. Mỗi đơn vị phải có câu hỏi cực nhỏ, thử sai không khóa luồng, phản hồi bản chất, quick check và chốt sang Vở Ghi Chép.
+
+#### Đơn vị kiến thức [số]: [Tên đơn vị]
+| Thành phần | Nội dung chi tiết |
+|---|---|
+| Vấn đề nhỏ cần khám phá | [Bài toán/câu hỏi dẫn vào] |
+| Chuỗi câu hỏi Socratic | [5-7 câu hỏi cực nhỏ đi từ quan sát đến kết luận] |
+| Trial & Error | [Thao tác học sinh được thử; nếu sai vẫn đi tiếp sau phản hồi] |
+| Phản hồi khi sai | [Giải thích bản chất lỗi, không chỉ báo sai] |
+| Quick check | [2-3 câu hỏi nhanh kèm đáp án; nếu sai mở lại lý thuyết ở dạng khác] |
+| Chốt Vở Ghi Chép | [Định nghĩa/định lý/công thức/kết luận tự động lưu] |
+| Dữ liệu AI ghi nhận | [Thời gian, số lần thử, lỗi, quick check, mức gợi ý đã dùng] |
+
+### Bước 3 — Áp dụng luyện tập thích ứng (10:00)
+AI phải dựa trên dữ liệu Bước 0 và Bước 2 để sinh luyện tập theo năng lực Trung bình/Khá/Giỏi. Cấu trúc bài luyện tập theo định dạng THPTQG:
+
+#### Tuyến Trung bình / Foundation
+| Phần | Số lượng | Điểm | Nội dung câu hỏi | Đáp án | Remediation loop |
+|---|---:|---:|---|---|---|
+| Phần 1: Trắc nghiệm 4 phương án | 3 câu | 5 điểm/câu | [3 câu nền tảng] | [Đáp án + giải thích] | [4 tầng hỗ trợ] |
+| Phần 2: Đúng/Sai theo bối cảnh | 1 bối cảnh, 4 ý | 10 điểm/ý | [Bối cảnh + 4 phát biểu] | [Đ/S + giải thích] | [4 tầng hỗ trợ] |
+| Phần 3: Trả lời ngắn | 1 câu | 20 điểm | [Câu trả lời ngắn] | [Đáp án/tiêu chí] | [4 tầng hỗ trợ] |
+
+#### Tuyến Khá / Standard
+| Phần | Số lượng | Điểm | Nội dung câu hỏi | Đáp án | Remediation loop |
+|---|---:|---:|---|---|---|
+| Phần 1: Trắc nghiệm 4 phương án | 3 câu | 5 điểm/câu | [3 câu chuẩn] | [Đáp án + giải thích] | [4 tầng hỗ trợ] |
+| Phần 2: Đúng/Sai theo bối cảnh | 1 bối cảnh, 4 ý | 10 điểm/ý | [Bối cảnh + 4 phát biểu] | [Đ/S + giải thích] | [4 tầng hỗ trợ] |
+| Phần 3: Trả lời ngắn | 1 câu | 20 điểm | [Câu trả lời ngắn] | [Đáp án/tiêu chí] | [4 tầng hỗ trợ] |
+
+#### Tuyến Giỏi / Challenge
+| Phần | Số lượng | Điểm | Nội dung câu hỏi | Đáp án | Remediation loop |
+|---|---:|---:|---|---|---|
+| Phần 1: Trắc nghiệm 4 phương án | 3 câu | 5 điểm/câu | [3 câu nâng cao] | [Đáp án + giải thích] | [4 tầng hỗ trợ] |
+| Phần 2: Đúng/Sai theo bối cảnh | 1 bối cảnh, 4 ý | 10 điểm/ý | [Bối cảnh + 4 phát biểu] | [Đ/S + giải thích] | [4 tầng hỗ trợ] |
+| Phần 3: Trả lời ngắn | 1 câu | 20 điểm | [Câu trả lời ngắn] | [Đáp án/tiêu chí] | [4 tầng hỗ trợ] |
+
+#### Remediation loop bắt buộc cho mọi câu sai
+| Lần sai | Phản hồi bắt buộc | Điểm bị trừ | Hành động tiếp theo |
+|---:|---|---:|---|
+| 1 | Nhắc lại lý thuyết nền liên quan | -1 | Cho làm lại |
+| 2 | Gợi ý mức 1: chỉ hướng suy nghĩ, chưa nêu công thức đầy đủ | -2 | Cho làm lại |
+| 3 | Gợi ý mức 2: chỉ rõ bước then chốt/công thức cần dùng | -3 | Cho làm lại |
+| 4 | Hiện đáp án chi tiết và chuyển câu | Còn 0 điểm | Lưu lỗi để GV xem |
+
+### Bước 4 — Mở rộng thực tiễn (03:00)
+| Thành phần | Nội dung bắt buộc |
+|---|---|
+| Vai trò học sinh | [Học sinh vào vai chuyên gia/kỹ sư/nhà phân tích phù hợp bài học] |
+| Sự cố thực tế | [Bối cảnh xử lý sự cố hoặc quyết định thực tiễn] |
+| Nhiệm vụ mở rộng | [Bài toán thực tiễn có dữ kiện, yêu cầu rõ] |
+| Sản phẩm | [Kết luận/tư vấn/bản thiết kế/lập luận] |
+| Tiêu chí đánh giá | [Đúng toán, hợp lý thực tế, giải thích rõ] |
+
+### Bước 5 — Tổng kết, tự đánh giá và Time-Filler (02:00)
+| Thành phần | Nội dung bắt buộc |
+|---|---|
+| Sơ đồ tư duy dạng chuỗi | [Chuỗi khái niệm: từ tình huống → định nghĩa → công thức/định lý → ví dụ → ứng dụng] |
+| Checklist mục tiêu | [Cơ bản/Trọng tâm/Nâng cao, học sinh tự tick đạt/chưa đạt] |
+| Thanh trượt tự đánh giá | [Câu lệnh cho thang 1-10 và cách hệ thống phản hồi] |
+| Hộp thư hỏi thêm | [Prompt để học sinh gửi câu hỏi còn vướng] |
+| Time-Filler | Nếu còn thời gian, mở lần lượt: 1 tài liệu đọc thêm → 1 bài tập nâng cao khó → 1 bài tập vận dụng thực tế |
 
 ---
 
-## VIII. EXIT TICKET VÀ ĐÁNH GIÁ CUỐI BÀI
+## IV. TIÊU CHUẨN TOÁN HỌC VÀ KỸ THUẬT TRÌNH BÀY
 
-### 1. Exit ticket
-Tạo 3-5 câu hỏi đo mức đạt mục tiêu cuối bài:
-| Câu | Nội dung | Mục tiêu đo lường | Đáp án/tiêu chí đạt | Dữ liệu AI cần lưu |
-|---:|---|---|---|---|
-
-### 2. Dữ liệu cần lưu để điều chỉnh dạy học
-| Dữ liệu cần lưu | Ý nghĩa sư phạm | Cách dùng để điều chỉnh bài sau |
-|---|---|---|
-
----
-
-## IX. PHỤ LỤC
-
-Gồm các mục phù hợp để xuất file đẹp:
-- Phiếu học tập.
-- Đáp án/gợi ý.
-- Bảng kiểm quan sát.
-- Gợi ý bài tập về nhà theo 3 mức.
+| Yêu cầu | Cách thực hiện trong giáo án |
+|---|---|
+| MathJax/LaTeX | Công thức inline $...$, công thức khối $$...$$ |
+| Ký hiệu chuẩn | [Ghi các ký hiệu trọng tâm của bài; với xác suất dùng $AB$ cho giao biến cố] |
+| Độc lập nội dung | [Bài học đủ câu hỏi, lời giải, học liệu, vòng lặp điều kiện] |
+| SVG inline | [Mô tả các hình/mô phỏng phẳng có thể dựng bằng <svg> nội tuyến] |
+| Three.js 3D | [Nếu có hình học không gian: mô tả mô hình xoay được gồm điểm 3D, cạnh, mặt, đường phụ/đường khuất, camera và thao tác xoay/zoom] |
+| Schema mô phỏng | [Gợi ý chuyển đổi: geometry2d + engine svg hoặc geometry3d + engine threejs; gồm title, description, placement, objectiveIds, studentTask, interactions, questions, notebookEntries] |
+| Dữ liệu học tập | [Điểm, đúng/sai, thời gian, số lần thử, mức gợi ý, ghi chú GV] |
 
 ---
 
-## X. ÁNH XẠ SANG BÀI HỌC PHÂN HOÁ
+## V. PHỤ LỤC XUẤT FILE VÀ ÁNH XẠ SANG BÀI HỌC PHÂN HOÁ
 
-Cuối giáo án BẮT BUỘC có mục này để AI chuyển đổi. Trình bày rõ ràng nhưng vẫn đẹp như phụ lục chuyên môn:
+### 1. Học liệu, phiếu học tập, đáp án
+- Phiếu học tập số hoặc bản in.
+- Đáp án/gợi ý cho pre-test, quick check, luyện tập, mở rộng.
+- Bảng kiểm quan sát và dữ liệu giáo viên cần xem sau tiết học.
+- Tài liệu đọc thêm, bài nâng cao khó, bài vận dụng thực tế dùng cho Time-Filler.
+
+### 2. Ánh xạ sang bài học phân hoá
+Mục này là phụ lục kỹ thuật/sư phạm để AI chuyển đổi, không phải hoạt động học sinh:
 | Thành phần giáo án | Thành phần bài học phân hoá tương ứng | Ghi chú chuyển đổi |
 |---|---|---|
-| Pre-test đầu giờ | diagnosticTest | [Cách lấy câu hỏi/ngưỡng phân tuyến] |
-| Mảnh kiến thức | knowledgeUnits | [Mỗi mảnh thành một đơn vị kiến thức] |
-| Foundation/Standard/Challenge | routes | [Ba tuyến trong từng knowledgeUnit] |
-| Quick check | quickCheck | [Câu kiểm tra nhanh từng mảnh] |
-| Exit ticket | exitTicket | [Đánh giá cuối bài] |
-| Học liệu số/mô phỏng | simulationId/externalToolIds | [Tài sản tương tác cần tạo/gắn] |
-| Dữ liệu quan sát | student progress/profile | [Dùng cho thống kê người học] |
+| UI/UX 7:3, đồng hồ kép, mục lục thông minh | lesson shell / student UI | [Cách dựng giao diện học sinh] |
+| Bước 0 Pre-test | diagnosticTest | [Câu hỏi, điểm, giải thích, ngưỡng phân tuyến] |
+| Bước 1 Engage | fiveStepFlow.engage / opening interaction | [Tình huống, kỳ vọng, mục tiêu 3 cấp] |
+| Bước 2 Kiến tạo tri thức | knowledgeUnits + quickCheck + notebook | [Mỗi chướng ngại thành một đơn vị kiến thức] |
+| Bước 3 Luyện tập thích ứng | routes/practiceTasks/remediation | [Tuyến Trung bình/Khá/Giỏi và loop 4 tầng] |
+| Bước 4 Mở rộng | extensionTask | [Vai chuyên gia/kỹ sư, bài toán thực tế] |
+| Bước 5 Tổng kết/Time-Filler | exitTicket/reflection/filler | [Mindmap, checklist, slider, hộp thư, tài liệu mở thêm] |
+| SVG/mô phỏng/học liệu | simulationSpec/simulationId/externalToolIds | [Tài sản tương tác cần tạo/gắn; hình phẳng dùng SVG, hình không gian dùng Three.js 3D xoay được] |
+| Dữ liệu quan sát | student progress/profile | [Dùng cho thống kê người học và điều chỉnh] |
 
 QUY TẮC NGHIÊM NGẶT:
 - Đây là giáo án chính thức, không phải bản mô tả kỹ thuật; phải đẹp, đầy đủ, có thể xuất file.
 - Vẫn giữ đầy đủ chức năng của phần Soạn giáo án: xem, sửa, lưu thư viện, xuất file, dùng tài liệu tham khảo và yêu cầu bổ sung.
-- Không dùng phần "kiểm tra bài cũ" truyền thống. Luôn dùng "Pre-test đầu giờ cho chính bài học này".
-- Không chỉ viết mô tả chung chung; phải đủ dữ liệu để chuyển thành bài học adaptive.
+- Không dùng phần "kiểm tra bài cũ" truyền thống; luôn dùng Bước 0 Pre-test cho chính bài học này.
+- Không chỉ viết mô tả chung chung; phải đủ dữ liệu để chuyển thành bài học adaptive độc lập.
 - Không xuất JSON. Chỉ xuất Markdown trong <lesson_content>.
 ===== KẾT THÚC MẪU GIÁO ÁN MẶC ĐỊNH PHÂN HOÁ =====
 `;
@@ -586,8 +602,8 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
           NHIỆM VỤ: ${isAdaptiveReadyDefault ? 'Soạn một giáo án nguồn để tạo bài học phân hoá/adaptive.' : 'Soạn một giáo án "Masterpiece" (Kiệt tác sư phạm).'}
 
           BỐ CỤC PHẢN HỒI (BẮT BUỘC):
-          1. <thinking>: ${isAdaptiveReadyDefault ? `Phân tích mục tiêu bài học, điều kiện học sinh đã đọc trước ở nhà, thiết kế pre-test đầu giờ, cách phân tuyến Foundation/Standard/Challenge và học liệu tương tác cần có.` : `Phân tích mục tiêu bài học, đặc điểm HS lớp ${currentPlan.grade}, lựa chọn phương pháp (VARK, 5E, Gagne...) và kế hoạch "gây nghiện" cho bài giảng.`}
-          2. <lesson_content>: ${isAdaptiveReadyDefault ? 'TOÀN BỘ giáo án nguồn chi tiết dạng Markdown, có đủ pre-test, bản đồ kiến thức, 3 tuyến học tập, quick check, exit ticket và học liệu tương tác để chuyển sang bài học phân hoá.' : 'TOÀN BỘ nội dung giáo án chi tiết (Markdown), BAO GỒM CẢ phần đánh giá Danielson ở cuối.'}
+          1. <thinking>: ${isAdaptiveReadyDefault ? `Phân tích mục tiêu bài học, điều kiện học sinh đã đọc trước ở nhà, thiết kế UI/UX 7:3, đồng hồ kép, mục lục thông minh, Bước 0 Pre-test, Bước 1 Engage, Bước 2 Socratic/Trial & Error, Bước 3 luyện tập THPTQG thích ứng, Bước 4 mở rộng và Bước 5 tổng kết/Time-Filler.` : `Phân tích mục tiêu bài học, đặc điểm HS lớp ${currentPlan.grade}, lựa chọn phương pháp (VARK, 5E, Gagne...) và kế hoạch "gây nghiện" cho bài giảng.`}
+          2. <lesson_content>: ${isAdaptiveReadyDefault ? 'TOÀN BỘ giáo án nguồn chi tiết dạng Markdown, có đủ UI/UX 7:3, đồng hồ kép, mục lục thông minh, SVG/học liệu số, Bước 0-5, pre-test 5 câu đa dạng, phân tuyến Foundation/Standard/Challenge, quick check, Vở Ghi Chép, luyện tập THPTQG theo Trung bình/Khá/Giỏi, remediation loop 4 tầng, tổng kết và Time-Filler.' : 'TOÀN BỘ nội dung giáo án chi tiết (Markdown), BAO GỒM CẢ phần đánh giá Danielson ở cuối.'}
 
           THÔNG TIN BÀI HỌC:
           - Môn học: ${subject}. Lớp: ${currentPlan.grade}. Tuần: ${currentPlan.week}.
@@ -599,11 +615,12 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
 
           ${isAdaptiveReadyDefault ? `
           ===== YÊU CẦU RIÊNG CHO KIỂU MẶC ĐỊNH MỚI — GIÁO ÁN ĐẸP, SẴN SÀNG TẠO BÀI HỌC PHÂN HOÁ =====
-          - Bắt buộc dùng đúng cấu trúc trong MẪU GIÁO ÁN MẶC ĐỊNH ở trên.
+          - Bắt buộc dùng đúng cấu trúc trong MẪU GIÁO ÁN MẶC ĐỊNH ở trên, đặc biệt là UI/UX 7:3 và khung Bước 0 đến Bước 5.
           - Đây vẫn là giáo án chính thức trong Soạn giáo án: phải trình bày đẹp, rõ ràng, có thể xem/sửa/lưu/xuất Word/PDF như các mẫu còn lại.
-          - Trọng tâm nội dung là tạo giáo án có thể chuyển đổi sang AdaptiveLesson: diagnosticTest, knowledgeUnits, routes, quickCheck, exitTicket, simulation/external tools.
-          - Phần đầu giờ phải là Pre-test của chính bài học, không phải kiểm tra bài cũ.
-          - Phải nêu rõ học liệu số/minh hoạ tương tác để sau này sinh mô phỏng hoặc hình ảnh trong bài học phân hoá.
+          - Trọng tâm nội dung là tạo giáo án có thể chuyển đổi sang AdaptiveLesson độc lập: diagnosticTest, knowledgeUnits, routes, quickCheck, notebook, practiceTasks, remediation loop, exit/reflection, simulation/external tools.
+          - Phần đầu giờ phải là Bước 0 Pre-test của chính bài học, không phải kiểm tra bài cũ; tối thiểu 5 câu đa dạng và có giải thích từng phương án/tiêu chí.
+          - Bước 3 phải đúng cấu trúc luyện tập thích ứng theo Trung bình/Khá/Giỏi và định dạng THPTQG: 3 câu trắc nghiệm, 1 bối cảnh đúng/sai 4 ý, 1 câu trả lời ngắn, kèm loop hỗ trợ 4 tầng.
+          - Phải nêu rõ học liệu số, mô phỏng ưu tiên <svg> inline cho hình phẳng; nếu có hình học không gian thì phải mô tả mô phỏng 3D xoay/zoom được bằng Three.js/WebGL nội bộ; đồng thời có Vở Ghi Chép tự động, đồng hồ kép, mục lục thông minh và Time-Filler.
           - Không bắt buộc Danielson, WALT/WILF hay mẫu Công văn 5512 trong kiểu mặc định này, nhưng chất lượng trình bày phải tương đương một giáo án xuất file hoàn chỉnh.
           ===== HẾT YÊU CẦU RIÊNG KIỂU MẶC ĐỊNH =====
           ` : `===== YÊU CẦU ĐỊNH DẠNG NỘI DUNG BÊN TRONG <lesson_content> (TUYỆT ĐỐI TUÂN THỦ) =====
@@ -718,8 +735,8 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
               BẠN LÀ CHUYÊN GIA BIÊN SOẠN GIÁO ÁN CAO CẤP.
               
               BỐ CỤC PHẢN HỒI:
-              1. <thinking>: ${isAdaptiveReadyDefault ? 'Phân tích mục tiêu bài, điều kiện học sinh đọc trước ở nhà, thiết kế pre-test, phân tuyến Foundation/Standard/Challenge và học liệu tương tác.' : 'Phân tích ngắn mục tiêu bài, đặc điểm HS, phương pháp phù hợp.'}
-              2. <lesson_content>: ${isAdaptiveReadyDefault ? 'TOÀN BỘ giáo án nguồn dạng Markdown để tạo bài học phân hoá, có đủ pre-test, bản đồ kiến thức, 3 tuyến học tập, quick check, exit ticket và học liệu tương tác.' : 'TOÀN BỘ giáo án (Markdown), BAO GỒM đánh giá Danielson ở cuối.'}
+              1. <thinking>: ${isAdaptiveReadyDefault ? 'Phân tích mục tiêu bài, điều kiện học sinh đọc trước ở nhà, thiết kế UI/UX 7:3, Bước 0 Pre-test, Bước 1 Engage, Bước 2 Socratic/Trial & Error, Bước 3 luyện tập THPTQG thích ứng, Bước 4 mở rộng, Bước 5 tổng kết/Time-Filler.' : 'Phân tích ngắn mục tiêu bài, đặc điểm HS, phương pháp phù hợp.'}
+              2. <lesson_content>: ${isAdaptiveReadyDefault ? 'TOÀN BỘ giáo án nguồn dạng Markdown để tạo bài học phân hoá, có đủ UI/UX 7:3, đồng hồ kép, mục lục thông minh, SVG/học liệu số, Bước 0-5, pre-test 5 câu đa dạng, phân tuyến Foundation/Standard/Challenge, quick check, Vở Ghi Chép, luyện tập THPTQG theo Trung bình/Khá/Giỏi, remediation loop 4 tầng và Time-Filler.' : 'TOÀN BỘ giáo án (Markdown), BAO GỒM đánh giá Danielson ở cuối.'}
 
               HÃY SOẠN GIÁO ÁN CHI TIẾT CHO BÀI: "${lesson.title}"
               THÔNG TIN TỪ PHÂN PHỐI CHƯƠNG TRÌNH:
@@ -733,11 +750,12 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
               ===== YÊU CẦU RIÊNG CHO KIỂU MẶC ĐỊNH MỚI — GIÁO ÁN ĐẸP, SẴN SÀNG TẠO BÀI HỌC PHÂN HOÁ =====
               1. NỘI DUNG PHẢI TUÂN THỦ HOÀN TOÀN THEO "MỤC TIÊU/KIẾN THỨC TRỌNG TÂM" ĐÃ TRÍCH XUẤT TRÊN.
               2. Tiêu đề bài soạn phải khớp 100% với tên bài được cung cấp.
-              3. Bắt buộc dùng đúng cấu trúc trong MẪU GIÁO ÁN MẶC ĐỊNH ở trên.
+              3. Bắt buộc dùng đúng cấu trúc trong MẪU GIÁO ÁN MẶC ĐỊNH ở trên, đặc biệt là UI/UX 7:3 và kịch bản Bước 0 đến Bước 5.
               4. Đây vẫn là giáo án chính thức trong Soạn giáo án: phải trình bày đẹp, rõ ràng, có thể xem/sửa/lưu/xuất Word/PDF như các mẫu còn lại.
-              5. Phần đầu giờ phải là Pre-test của chính bài học, không phải kiểm tra bài cũ.
-              6. Phải có bản đồ kiến thức, tuyến Foundation/Standard/Challenge, quick check, exit ticket và học liệu số/minh hoạ tương tác.
-              7. Không bắt buộc Danielson, WALT/WILF hay mẫu Công văn 5512 trong kiểu mặc định này, nhưng chất lượng trình bày phải tương đương một giáo án xuất file hoàn chỉnh.
+              5. Phần đầu giờ phải là Bước 0 Pre-test của chính bài học, không phải kiểm tra bài cũ; tối thiểu 5 câu đa dạng và có giải thích từng phương án/tiêu chí.
+              6. Phải có đồng hồ kép, mục lục thông minh, Vở Ghi Chép tự động, học liệu số, mô phỏng ưu tiên <svg> inline cho hình phẳng; nếu là hình học không gian thì mô phỏng phải là 3D xoay/zoom được bằng Three.js/WebGL nội bộ; quick check, tuyến Foundation/Standard/Challenge và Time-Filler.
+              7. Bước 3 phải đúng cấu trúc luyện tập thích ứng theo Trung bình/Khá/Giỏi và định dạng THPTQG: 3 câu trắc nghiệm, 1 bối cảnh đúng/sai 4 ý, 1 câu trả lời ngắn, kèm loop hỗ trợ 4 tầng.
+              8. Không bắt buộc Danielson, WALT/WILF hay mẫu Công văn 5512 trong kiểu mặc định này, nhưng chất lượng trình bày phải tương đương một giáo án xuất file hoàn chỉnh.
               ${mathRestrictions}
               ===== HẾT YÊU CẦU RIÊNG KIỂU MẶC ĐỊNH =====
               ` : `===== YÊU CẦU ĐỊNH DẠNG BÊN TRONG <lesson_content> (TUYỆT ĐỐI TUÂN THỦ) =====
