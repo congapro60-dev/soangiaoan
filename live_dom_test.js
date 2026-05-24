@@ -53,7 +53,7 @@ function checkLocalhost3000() {
 
     // 3. Navigate
     console.log(`[Puppeteer] Đang điều hướng đến: ${targetUrl}`);
-    await page.goto(targetUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+    await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
     // 4. Handle Demo Login
     console.log('[Puppeteer] Tìm nút "Chế độ dùng thử (Demo / Developer Mode)"...');
