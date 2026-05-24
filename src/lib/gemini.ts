@@ -7,6 +7,11 @@ const GEMINI_MAX_OUTPUT_TOKENS = 65536;
 export interface GeminiCallResult {
   text: string;
   truncated: boolean;
+  usage?: {
+    promptTokens?: number;
+    completionTokens?: number;
+    totalTokens?: number;
+  };
 }
 
 export async function callGeminiAI(prompt: string, apiKey: string, modelIndex = 0): Promise<string | null> {
@@ -31,8 +36,17 @@ export async function callGeminiAIRaw(prompt: string, apiKey: string, modelIndex
         config: { temperature: 0.1, maxOutputTokens: GEMINI_MAX_OUTPUT_TOKENS },
       });
       const finishReason = (response as any)?.candidates?.[0]?.finishReason;
+      const usageMetadata = (response as any)?.usageMetadata;
       const truncated = finishReason === 'MAX_TOKENS';
-      return { text: response.text || '', truncated };
+      return {
+        text: response.text || '',
+        truncated,
+        usage: usageMetadata ? {
+          promptTokens: usageMetadata.promptTokenCount,
+          completionTokens: usageMetadata.candidatesTokenCount,
+          totalTokens: usageMetadata.totalTokenCount,
+        } : undefined,
+      };
     } catch (error: any) {
       console.error(`Error with model ${modelName}:`, error);
 

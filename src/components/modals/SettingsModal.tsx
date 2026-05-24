@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Settings, X, Key, CheckCircle2, ExternalLink, Server } from 'lucide-react';
+import { Settings, X, Key, CheckCircle2, ExternalLink, Server, Activity, RotateCcw, AlertTriangle } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { AppData } from '../../types';
 import { GEMINI_MODELS, CLAUDE_MODELS, OPENAI_MODELS, GROK_MODELS, DEEPSEEK_MODELS } from '../../lib/aiProviders';
+import { useTokenTracker } from '../../hooks/useTokenTracker';
+import type { ApiProvider } from '../../config/apiLimits';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -13,7 +15,7 @@ interface SettingsModalProps {
   showToast: (msg: string) => void;
 }
 
-type Provider = 'gemini' | 'claude' | 'openai' | 'grok' | 'deepseek';
+type Provider = ApiProvider;
 
 const PROVIDERS: { id: Provider; label: string; color: string; bg: string; border: string }[] = [
   { id: 'gemini', label: 'Gemini', color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-500' },
@@ -37,6 +39,19 @@ const PROVIDER_LINKS: Record<Provider, { url: string; label: string }> = {
   openai: { url: 'https://platform.openai.com/api-keys', label: 'Lấy OpenAI API Key' },
   grok: { url: 'https://console.x.ai/', label: 'Lấy Grok API Key' },
   deepseek: { url: 'https://platform.deepseek.com/api_keys', label: 'Lấy DeepSeek API Key' },
+};
+
+const formatNumber = (value: number): string => new Intl.NumberFormat('vi-VN').format(value);
+
+const usagePercent = (used: number, limit?: number): number => {
+  if (!limit || limit <= 0) return 0;
+  return Math.min(100, Math.round((used / limit) * 100));
+};
+
+const progressTone = (percent: number): string => {
+  if (percent >= 90) return 'bg-red-500';
+  if (percent >= 70) return 'bg-amber-500';
+  return 'bg-emerald-500';
 };
 
 export const SettingsModal = ({
@@ -88,6 +103,10 @@ export const SettingsModal = ({
   const models = PROVIDER_MODELS[activeTab];
   const link = PROVIDER_LINKS[activeTab];
   const providerStyle = PROVIDERS.find(p => p.id === activeTab)!;
+  const selectedModelForTab = currentProvider === activeTab ? data.settings.selectedModel : models[0].id;
+  const usage = useTokenTracker(activeTab, selectedModelForTab);
+  const requestPercent = usagePercent(usage.requestsToday, usage.limit?.rpd);
+  const tokenPercent = usagePercent(usage.tokensToday, usage.limit?.tpm);
 
   return (
     <AnimatePresence>
@@ -170,6 +189,77 @@ export const SettingsModal = ({
                 <p className="text-[10px] text-slate-400">API Key chỉ lưu cục bộ trong trình duyệt, không gửi lên máy chủ của chúng tôi.</p>
               </div>
 
+              {/* API Usage Tracker */}
+              <div className="space-y-3 rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2 text-sm font-black text-slate-800">
+                      <Activity className="h-4 w-4 text-emerald-600" />
+                      Hạn mức API hôm nay
+                    </div>
+                    <p className="mt-1 text-[11px] font-semibold text-slate-500">
+                      {usage.limit ? `${usage.limit.displayName} · ${usage.dateKey.replaceAll('_', '/')}` : `Chưa có dữ liệu hạn mức cho model ${selectedModelForTab}`}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      usage.reset();
+                      showToast('Đã reset bộ đếm API hôm nay');
+                    }}
+                    className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-bold text-slate-600 transition hover:border-blue-200 hover:text-blue-600"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    Reset bộ đếm
+                  </button>
+                </div>
+
+                {usage.limit ? (
+                  <div className="space-y-3">
+                    <div>
+                      <div className="mb-1 flex items-center justify-between text-[11px] font-bold text-slate-600">
+                        <span>Requests đã dùng / ngày</span>
+                        <span>{formatNumber(usage.requestsToday)} / {formatNumber(usage.limit.rpd)}</span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-white">
+                        <div className={cn('h-full rounded-full transition-all', progressTone(requestPercent))} style={{ width: `${requestPercent}%` }} />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="mb-1 flex items-center justify-between text-[11px] font-bold text-slate-600">
+                        <span>Tokens đã dùng / phút</span>
+                        <span>{formatNumber(usage.tokensToday)} / {formatNumber(usage.limit.tpm)}</span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-white">
+                        <div className={cn('h-full rounded-full transition-all', progressTone(tokenPercent))} style={{ width: `${tokenPercent}%` }} />
+                      </div>
+                    </div>
+
+                    <div className={cn(
+                      'flex items-start gap-2 rounded-xl px-3 py-2 text-[11px] font-bold',
+                      usage.isMinuteLimited ? 'bg-red-50 text-red-700' : 'bg-white text-slate-500'
+                    )}>
+                      {usage.isMinuteLimited && <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />}
+                      <span>
+                        RPM hiện tại: {formatNumber(usage.requestsLastMinute)} / {formatNumber(usage.limit.rpm)}.
+                        {usage.isMinuteLimited ? ' Quá tải 1 phút, vui lòng đợi trước khi chạy tiếp.' : ' Vẫn trong ngưỡng an toàn 1 phút.'}
+                      </span>
+                    </div>
+
+                    {activeTab !== 'gemini' && (
+                      <p className="text-[10px] font-semibold leading-relaxed text-amber-700">
+                        Với OpenAI/Claude/Grok/DeepSeek, hạn mức trên hiển thị theo tài khoản Tier 1.
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="rounded-xl bg-white px-3 py-2 text-[11px] font-semibold text-slate-500">
+                    Model này chưa có trong database hạn mức. Bộ đếm vẫn có thể ghi usage local, nhưng chưa so sánh được với quota chuẩn.
+                  </p>
+                )}
+              </div>
+ 
               {/* Model Selection */}
               <div className="space-y-3">
                 <label className="text-sm font-semibold text-slate-700">

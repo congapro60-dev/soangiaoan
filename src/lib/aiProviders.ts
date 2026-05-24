@@ -1,4 +1,6 @@
 import { callGeminiAIRaw, callGeminiAIStream, MODELS } from './gemini';
+import { estimateTokenCount, recordTokenUsage } from '../hooks/useTokenTracker';
+import type { ApiProvider } from '../config/apiLimits';
 import type { AppData } from '../types';
 
 type Settings = AppData['settings'];
@@ -108,6 +110,38 @@ export function getActiveApiKey(settings: Settings): string {
   return settings.geminiApiKey || '';
 }
 
+const getActiveModelId = (provider: ApiProvider, settings: Settings): string => {
+  if (provider === 'claude') return settings.selectedModel || 'claude-sonnet-4-7';
+  if (provider === 'openai') return settings.selectedModel || 'gpt-4o';
+  if (provider === 'grok') return settings.selectedModel || 'grok-3';
+  if (provider === 'deepseek') return settings.selectedModel || 'deepseek-chat';
+  const idx = MODELS.indexOf(settings.selectedModel);
+  return idx >= 0 ? MODELS[idx] : MODELS[0];
+};
+
+const recordExactUsage = (
+  provider: ApiProvider,
+  model: string,
+  usage: { promptTokens?: number; completionTokens?: number; totalTokens?: number }
+) => {
+  recordTokenUsage({
+    provider,
+    model,
+    promptTokens: usage.promptTokens,
+    completionTokens: usage.completionTokens,
+    totalTokens: usage.totalTokens,
+  });
+};
+
+const recordEstimatedUsage = (provider: ApiProvider, model: string, prompt: string, output = '') => {
+  recordTokenUsage({
+    provider,
+    model,
+    promptTokens: estimateTokenCount(prompt),
+    completionTokens: output ? estimateTokenCount(output) : 0,
+  });
+};
+
 async function callAIOnce(prompt: string, settings: Settings): Promise<RawResult> {
   const provider = settings.selectedProvider ?? 'gemini';
   const fallbackModel = MODELS[0];
@@ -116,55 +150,83 @@ async function callAIOnce(prompt: string, settings: Settings): Promise<RawResult
     if (provider === 'claude') {
       const Anthropic = (await import('@anthropic-ai/sdk')).default;
       const client = new Anthropic({ apiKey: settings.claudeApiKey, dangerouslyAllowBrowser: true });
+      const model = getActiveModelId(provider, settings);
       const msg = await client.messages.create({
-        model: settings.selectedModel || 'claude-sonnet-4-7',
+        model,
         max_tokens: CLAUDE_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
       });
       const text = msg.content[0]?.type === 'text' ? msg.content[0].text : '';
+      recordExactUsage(provider, model, {
+        promptTokens: msg.usage?.input_tokens,
+        completionTokens: msg.usage?.output_tokens,
+      });
       return { text, truncated: msg.stop_reason === 'max_tokens' };
     }
 
     if (provider === 'openai') {
       const OpenAI = (await import('openai')).default;
       const client = new OpenAI({ apiKey: settings.openaiApiKey, dangerouslyAllowBrowser: true });
+      const model = getActiveModelId(provider, settings);
       const res = await client.chat.completions.create({
-        model: settings.selectedModel || 'gpt-4o',
+        model,
         max_tokens: OPENAI_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
       });
       const choice = res.choices[0];
+      recordExactUsage(provider, model, {
+        promptTokens: res.usage?.prompt_tokens,
+        completionTokens: res.usage?.completion_tokens,
+        totalTokens: res.usage?.total_tokens,
+      });
       return { text: choice?.message?.content ?? '', truncated: choice?.finish_reason === 'length' };
     }
 
     if (provider === 'grok') {
       const OpenAI = (await import('openai')).default;
       const client = new OpenAI({ apiKey: settings.grokApiKey, baseURL: 'https://api.x.ai/v1', dangerouslyAllowBrowser: true });
+      const model = getActiveModelId(provider, settings);
       const res = await client.chat.completions.create({
-        model: settings.selectedModel || 'grok-3',
+        model,
         max_tokens: GROK_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
       });
       const choice = res.choices[0];
+      recordExactUsage(provider, model, {
+        promptTokens: res.usage?.prompt_tokens,
+        completionTokens: res.usage?.completion_tokens,
+        totalTokens: res.usage?.total_tokens,
+      });
       return { text: choice?.message?.content ?? '', truncated: choice?.finish_reason === 'length' };
     }
 
     if (provider === 'deepseek') {
       const OpenAI = (await import('openai')).default;
       const client = new OpenAI({ apiKey: settings.deepseekApiKey, baseURL: 'https://api.deepseek.com', dangerouslyAllowBrowser: true });
-      const model = settings.selectedModel || 'deepseek-chat';
+      const model = getActiveModelId(provider, settings);
       const res = await client.chat.completions.create({
         model,
         max_tokens: deepseekMaxTokens(model),
         messages: [{ role: 'user', content: prompt }],
       });
       const choice = res.choices[0];
+      recordExactUsage(provider, model, {
+        promptTokens: res.usage?.prompt_tokens,
+        completionTokens: res.usage?.completion_tokens,
+        totalTokens: res.usage?.total_tokens,
+      });
       return { text: choice?.message?.content ?? '', truncated: choice?.finish_reason === 'length' };
     }
 
     // default: gemini
     const idx = MODELS.indexOf(settings.selectedModel);
+    const model = getActiveModelId(provider, settings);
     const result = await callGeminiAIRaw(prompt, settings.geminiApiKey, idx >= 0 ? idx : 0);
+    if (result?.usage) {
+      recordExactUsage(provider, model, result.usage);
+    } else {
+      recordEstimatedUsage(provider, model, prompt, result?.text || '');
+    }
     return result ?? { text: '', truncated: false };
   } catch (err) {
     if (isQuotaError(err)) {
@@ -228,15 +290,21 @@ export async function callAIWithVision(
         type: 'image' as const,
         source: { type: 'base64' as const, media_type: mimeType, data: base64Data },
       }));
+      const model = getActiveModelId(provider, settings);
       const msg = await client.messages.create({
-        model: settings.selectedModel || 'claude-sonnet-4-7',
+        model,
         max_tokens: CLAUDE_MAX_TOKENS,
         messages: [{
           role: 'user',
           content: [...imageBlocks, { type: 'text' as const, text: prompt }],
         }],
       });
-      return msg.content[0].type === 'text' ? msg.content[0].text : '';
+      const text = msg.content[0].type === 'text' ? msg.content[0].text : '';
+      recordExactUsage(provider, model, {
+        promptTokens: msg.usage?.input_tokens,
+        completionTokens: msg.usage?.output_tokens,
+      });
+      return text;
     }
 
     if (provider === 'openai') {
@@ -246,13 +314,19 @@ export async function callAIWithVision(
         type: 'image_url' as const,
         image_url: { url },
       }));
+      const model = getActiveModelId(provider, settings);
       const res = await client.chat.completions.create({
-        model: settings.selectedModel || 'gpt-4o',
+        model,
         max_tokens: OPENAI_MAX_TOKENS,
         messages: [{
           role: 'user',
           content: [...imageBlocks, { type: 'text' as const, text: prompt }],
         }],
+      });
+      recordExactUsage(provider, model, {
+        promptTokens: res.usage?.prompt_tokens,
+        completionTokens: res.usage?.completion_tokens,
+        totalTokens: res.usage?.total_tokens,
       });
       return res.choices[0]?.message?.content ?? '';
     }
@@ -264,13 +338,19 @@ export async function callAIWithVision(
         type: 'image_url' as const,
         image_url: { url },
       }));
+      const model = settings.selectedModel || 'grok-2-vision';
       const res = await client.chat.completions.create({
-        model: settings.selectedModel || 'grok-2-vision',
+        model,
         max_tokens: GROK_MAX_TOKENS,
         messages: [{
           role: 'user',
           content: [...imageBlocks, { type: 'text' as const, text: prompt }],
         }],
+      });
+      recordExactUsage(provider, model, {
+        promptTokens: res.usage?.prompt_tokens,
+        completionTokens: res.usage?.completion_tokens,
+        totalTokens: res.usage?.total_tokens,
       });
       return res.choices[0]?.message?.content ?? '';
     }
@@ -299,7 +379,18 @@ export async function callAIWithVision(
           contents: [{ parts: [{ text: prompt }, ...imageParts] }],
           config: { temperature: 0.1, maxOutputTokens: 65536 },
         });
-        return result.text || '';
+        const usageMetadata = (result as any)?.usageMetadata;
+        const text = result.text || '';
+        if (usageMetadata) {
+          recordExactUsage(provider, modelName, {
+            promptTokens: usageMetadata.promptTokenCount,
+            completionTokens: usageMetadata.candidatesTokenCount,
+            totalTokens: usageMetadata.totalTokenCount,
+          });
+        } else {
+          recordEstimatedUsage(provider, modelName, prompt, text);
+        }
+        return text;
       } catch (error: any) {
         const msg = String(error?.message || '').toLowerCase();
         const isOverloaded = msg.includes('503') || msg.includes('high demand') || msg.includes('unavailable');
@@ -334,75 +425,104 @@ export async function callAIStream(
     if (provider === 'claude') {
       const Anthropic = (await import('@anthropic-ai/sdk')).default;
       const client = new Anthropic({ apiKey: settings.claudeApiKey, dangerouslyAllowBrowser: true });
+      const model = getActiveModelId(provider, settings);
       const stream = client.messages.stream({
-        model: settings.selectedModel || 'claude-sonnet-4-7',
+        model,
         max_tokens: CLAUDE_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
       });
+      let output = '';
       for await (const event of stream) {
         if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+          output += event.delta.text;
           onChunk(event.delta.text);
         }
       }
+      recordEstimatedUsage(provider, model, prompt, output);
       return;
     }
 
     if (provider === 'openai') {
       const OpenAI = (await import('openai')).default;
       const client = new OpenAI({ apiKey: settings.openaiApiKey, dangerouslyAllowBrowser: true });
+      const model = getActiveModelId(provider, settings);
       const stream = await client.chat.completions.create({
-        model: settings.selectedModel || 'gpt-4o',
+        model,
         max_tokens: OPENAI_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
         stream: true,
       });
+      let output = '';
       for await (const chunk of stream) {
         const text = chunk.choices[0]?.delta?.content ?? '';
-        if (text) onChunk(text);
+        if (text) {
+          output += text;
+          onChunk(text);
+        }
       }
+      recordEstimatedUsage(provider, model, prompt, output);
       return;
     }
 
     if (provider === 'grok') {
       const OpenAI = (await import('openai')).default;
       const client = new OpenAI({ apiKey: settings.grokApiKey, baseURL: 'https://api.x.ai/v1', dangerouslyAllowBrowser: true });
+      const model = getActiveModelId(provider, settings);
       const stream = await client.chat.completions.create({
-        model: settings.selectedModel || 'grok-3',
+        model,
         max_tokens: GROK_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
         stream: true,
       });
+      let output = '';
       for await (const chunk of stream) {
         const text = chunk.choices[0]?.delta?.content ?? '';
-        if (text) onChunk(text);
+        if (text) {
+          output += text;
+          onChunk(text);
+        }
       }
+      recordEstimatedUsage(provider, model, prompt, output);
       return;
     }
 
     if (provider === 'deepseek') {
       const OpenAI = (await import('openai')).default;
       const client = new OpenAI({ apiKey: settings.deepseekApiKey, baseURL: 'https://api.deepseek.com', dangerouslyAllowBrowser: true });
-      const model = settings.selectedModel || 'deepseek-chat';
+      const model = getActiveModelId(provider, settings);
       const stream = await client.chat.completions.create({
         model,
         max_tokens: deepseekMaxTokens(model),
         messages: [{ role: 'user', content: prompt }],
         stream: true,
       });
+      let output = '';
       for await (const chunk of stream) {
         const text = chunk.choices[0]?.delta?.content ?? '';
-        if (text) onChunk(text);
+        if (text) {
+          output += text;
+          onChunk(text);
+        }
       }
+      recordEstimatedUsage(provider, model, prompt, output);
       return;
     }
 
     // default: gemini
     const idx = MODELS.indexOf(settings.selectedModel);
-    return callGeminiAIStream(prompt, settings.geminiApiKey, onChunk, idx >= 0 ? idx : 0);
+    const model = getActiveModelId(provider, settings);
+    let output = '';
+    await callGeminiAIStream(prompt, settings.geminiApiKey, (chunk) => {
+      output += chunk;
+      onChunk(chunk);
+    }, idx >= 0 ? idx : 0);
+    recordEstimatedUsage(provider, model, prompt, output);
+    return;
   } catch (err) {
     if (isQuotaError(err)) {
       // Relay không hỗ trợ streaming — lấy full text rồi deliver một lần
       const text = await callRelay(prompt, fallbackModel);
+      recordEstimatedUsage('gemini', fallbackModel, prompt, text);
       onChunk(text);
       return;
     }
