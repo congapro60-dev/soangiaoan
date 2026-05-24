@@ -12,3 +12,9 @@ out*.txt
 temp*.html
 
 bot_profile/
+
+# ── Antigravity Tester Scripts (KHÔNG commit, chỉ chạy local) ──
+bot_test.js
+auto_learner.js
+live_dom_test.js
+qa_adaptive_test.js
