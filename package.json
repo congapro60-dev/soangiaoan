@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "node live_dom_test.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.89.0",

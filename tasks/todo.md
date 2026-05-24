@@ -30,7 +30,7 @@ _Summary after completion_
 ### Plan
 - [x] Task 1: Install Puppeteer Dependency
 - [x] Task 2: Create E2E Test Script `live_dom_test.js`
-- [ ] Task 3: Configure E2E script in `package.json`
+- [x] Task 3: Configure E2E script in `package.json`
 - [ ] Task 4: Run E2E Test and Verify Browser Launches
 
 ### Verification
