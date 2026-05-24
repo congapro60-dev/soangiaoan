@@ -18,3 +18,11 @@ bot_test.js
 auto_learner.js
 live_dom_test.js
 qa_adaptive_test.js
+
+# ── Chrome profiles của Antigravity (KHÔNG commit) ──
+bot_profile/
+chrome-profile-qa/
+
+# ── Thư mục con lồng nhau (embedded repo) ──
+soangiaoan/
+
