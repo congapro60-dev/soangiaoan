@@ -12,6 +12,7 @@ function checkLocalhost3000() {
         timeout: 1000,
       },
       (res) => {
+        res.resume(); // Consuming the response frees up standard socket resources
         resolve(res.statusCode === 200 || res.statusCode === 302 || res.statusCode === 304);
       }
     );
@@ -35,18 +36,21 @@ function checkLocalhost3000() {
     console.log('[Notice] Không phát hiện localhost:3000 đang chạy. Tự động chuyển sang môi trường Production Vercel.');
   }
 
-  // 2. Launch Puppeteer Browser
-  console.log('[Puppeteer] Đang mở trình duyệt Chromium...');
-  const browser = await puppeteer.launch({
-    headless: false,
-    slowMo: 100,
-    defaultViewport: null,
-    args: ['--start-maximized']
-  });
-
-  const page = await browser.newPage();
-
+  let browser;
   try {
+    // 2. Launch Puppeteer Browser (Now safely wrapped in try-catch to prevent resource leaks)
+    console.log('[Puppeteer] Đang mở trình duyệt Chromium...');
+    const isHeadless = process.env.HEADLESS !== 'false' && process.env.CI === 'true'; // Configurable headless mode
+    
+    browser = await puppeteer.launch({
+      headless: isHeadless ? 'new' : false,
+      slowMo: isHeadless ? 0 : 100,
+      defaultViewport: null,
+      args: ['--start-maximized']
+    });
+
+    const page = await browser.newPage();
+
     // 3. Navigate
     console.log(`[Puppeteer] Đang điều hướng đến: ${targetUrl}`);
     await page.goto(targetUrl, { waitUntil: 'networkidle2', timeout: 30000 });
@@ -72,10 +76,11 @@ function checkLocalhost3000() {
     if (foundDemoBtn) {
       console.log('[Puppeteer] Đã tìm thấy nút dùng thử! Tiến hành Click...');
       await foundDemoBtn.click();
-    } else {
+    } else if (buttons.length > 0) {
       console.log('[Puppeteer] [Cảnh báo] Không tìm thấy nút dùng thử bằng văn bản. Thử click trực tiếp nút phụ dưới cùng...');
-      // Fallback selector or click first button
       await buttons[buttons.length - 1].click();
+    } else {
+      throw new Error('Không tìm thấy bất kỳ nút bấm nào trên màn hình đăng nhập.');
     }
 
     // 5. Wait for Login Redirect & UI Load
@@ -84,12 +89,12 @@ function checkLocalhost3000() {
     await page.waitForSelector('aside, header, main', { timeout: 15000 });
     console.log('[Puppeteer] Đăng nhập thành công! Đã vào Dashboard.');
 
-    // 6. Navigation Flow
+    // 6. Navigation Flow (Updated texts to match Sidebar.tsx component labels)
     const tabs = [
       { name: 'Soạn giáo án', text: 'Soạn giáo án' },
       { name: 'Thư viện', text: 'Thư viện' },
-      { name: 'Trợ lý AI', text: 'Trợ lý AI' },
-      { name: 'Dashboard', text: 'Dashboard' }
+      { name: 'AI Tutor', text: 'AI Tutor' },     // FIXED: Matches label 'AI Tutor' in Sidebar.tsx (was 'Trợ lý AI')
+      { name: 'Tổng quan', text: 'Tổng quan' }    // FIXED: Matches label 'Tổng quan' in Sidebar.tsx (was 'Dashboard')
     ];
 
     for (const tab of tabs) {
@@ -119,23 +124,34 @@ function checkLocalhost3000() {
           }
         }
       }
+
+      if (!clicked) {
+        throw new Error(`Không thể tìm thấy hoặc click chuyển đổi sang tab: "${tab.name}"`);
+      }
       
-      // Wait 2 seconds per tab for visualization
-      await new Promise(r => setTimeout(r, 2000));
+      // Wait 2 seconds per tab for visualization (skipped in headless automation)
+      if (!isHeadless) {
+        await new Promise(r => setTimeout(r, 2000));
+      }
     }
 
     console.log('[Puppeteer] Hoàn thành luồng điều hướng mẫu.');
 
     // 7. Pause at final screen
-    console.log('[Puppeteer] Đợi 5 giây để quan sát kết quả trực quan trước khi kết thúc...');
-    await new Promise(r => setTimeout(r, 5000));
+    if (!isHeadless) {
+      console.log('[Puppeteer] Đợi 5 giây để quan sát kết quả trực quan trước khi kết thúc...');
+      await new Promise(r => setTimeout(r, 5000));
+    }
 
   } catch (error) {
     console.error('[Puppeteer] Gặp lỗi trong quá trình tự động hóa:', error.message);
+    process.exitCode = 1; // FIXED: Set exit code 1 to indicate failure to CI/runners
   } finally {
-    // 8. Graceful Exit
-    console.log('[Puppeteer] Đang đóng trình duyệt...');
-    await browser.close();
+    // 8. Graceful Exit (Checks if browser was successfully initialized before closing)
+    if (browser) {
+      console.log('[Puppeteer] Đang đóng trình duyệt...');
+      await browser.close();
+    }
     console.log('=== KẾT THÚC PUPPETEER E2E TEST ===');
   }
 })();
