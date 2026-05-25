@@ -61,7 +61,7 @@ TRƯỜNG THPT ...                   |  NĂM HỌC 20XX - 20XX
 **QUY TẮC KHÁC:**
 - Ngôn ngữ trang trọng, chuẩn mực sư phạm.
 - Công thức toán dùng LaTeX: inline $...$, display $$...$$.
-- Hình vẽ (nếu có): mô tả bằng TikZ hoặc chú thích rõ ràng để giáo viên tự chèn.
+- Hình vẽ/bảng biến thiên (nếu có): chèn trực tiếp HTML/SVG inline vào nội dung đề bằng dạng <div class="exam-figure">...</div>; không chỉ mô tả bằng lời.
 ===== KẾT THÚC ĐỊNH DẠNG MẶC ĐỊNH =====
 `;
 
@@ -108,6 +108,9 @@ QUY TẮC NỘI DUNG:
 - Công thức toán học: dùng LaTeX inline $...$ và display $$...$$, KHÔNG dùng ký hiệu khác.
 - Ngôn ngữ: tiếng Việt chuẩn, không lỗi chính tả.
 - Độ khó: phân bổ đúng theo ma trận hoặc cân đối nếu không có ma trận.
+- Với câu hỏi hình học không gian, đồ thị hàm số hoặc bảng biến thiên, hãy tự tính toán tọa độ và vẽ mã vector SVG chuẩn xác chèn trực tiếp vào đề trong <div class="exam-figure">...</div>.
+- Quy ước SVG: dùng nét liền cho cạnh/đường thấy; dùng stroke-dasharray="4" cho cạnh khuất/đường phụ; với bảng biến thiên cần vẽ hàng dấu, mũi tên tăng/giảm và nhãn cực trị rõ ràng.
+- SVG phải có width, height, viewBox, không phụ thuộc script ngoài, không dùng ảnh remote.
     `;
   },
 

@@ -6,11 +6,10 @@ import {
 } from 'lucide-react';
 import * as mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist';
-import { marked } from 'marked';
 import { generateAnswerSheetHTML, generateAnswerKeyTemplateHTML } from '../../utils/answerSheetTemplate';
 import { ExamDocsModal } from '../features/testing/ExamDocsModal';
 import { ExamContentBoard } from '../features/testing/ExamContentBoard';
-import { WORD_EXPORT_STYLES } from '../../utils/examPaperStyles';
+import { exportExamToDocx } from '../../utils/examWordExport';
 
 const openInNewTab = (html: string) => {
   const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
@@ -21,7 +20,6 @@ const openInNewTab = (html: string) => {
 
 import { AppData, TemplateFile, LessonPlan } from '../../types';
 import { examUtils } from '../../utils/examUtils';
-import { downloadBlob } from '../../utils/fileUtils';
 import { callAI, callAIStream, getActiveApiKey } from '../../lib/aiProviders';
 import { LatexModal } from '../modals/LatexModal';
 import { openInOverleaf } from '../../utils/exportUtils';
@@ -170,25 +168,13 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
 
   const handleDownloadWord = async () => {
     if (!testResult) return;
-    showToast('Đang tạo file Word...');
+    showToast('Đang tạo file Word .docx chuẩn A4...');
     try {
-      // Keep LaTeX as-is ($...$ and $$...$$) — Word cannot render KaTeX HTML.
-      // Teachers open the .doc and use MathType "Toggle TeX" to convert LaTeX → native Word equations.
-      const htmlBody = await marked(testResult);
-      const htmlContent = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
-<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<style>${WORD_EXPORT_STYLES}
-/* LaTeX delimiters — visible as plain text; use MathType Toggle TeX to convert */
-</style></head>
-<body>${htmlBody}</body></html>`;
-      const encoder = new TextEncoder();
-      const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
-      const encoded = encoder.encode(htmlContent);
-      const blob = new Blob([bom, encoded], { type: 'application/msword' });
-      downloadBlob(blob, `De_thi_${Date.now()}.doc`);
-      showToast('Đã tải file Word! Mở Word → MathType → Toggle TeX để hiển thị công thức.', 'success');
+      await exportExamToDocx(testResult, `De_thi_${Date.now()}`);
+      showToast('Đã tải file Word .docx chuẩn A4!', 'success');
     } catch (e) {
-      showToast('Lỗi xuất Word. Vui lòng thử lại.', 'error');
+      console.error('DOCX export error:', e);
+      showToast('Lỗi xuất Word .docx. Vui lòng thử lại.', 'error');
     }
   };
 
@@ -217,8 +203,19 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
     const extension = file.name.split('.').pop()?.toLowerCase();
     if (extension === 'docx') {
       const arrayBuffer = await file.arrayBuffer();
-      const result = await mammoth.extractRawText({ arrayBuffer });
-      return result.value;
+      const result = await mammoth.convertToHtml(
+        { arrayBuffer },
+        {
+          convertImage: mammoth.images.imgElement(async image => {
+            const base64 = await image.read('base64');
+            return { src: `data:${image.contentType};base64,${base64}` };
+          }),
+        }
+      );
+      const htmlWithExamFigures = result.value
+        .replace(/<img\b/gi, '<img class="exam-imported-image"')
+        .replace(/<svg\b/gi, '<svg class="exam-imported-svg"');
+      return htmlWithExamFigures;
     }
     if (extension === 'pdf') {
       const arrayBuffer = await file.arrayBuffer();
@@ -714,7 +711,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
                       onClick={handleDownloadWord}
                       className="px-5 py-2.5 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all flex items-center gap-2 text-sm"
                     >
-                      <Download className="w-4 h-4" /> Xuất Word (.doc)
+                      <Download className="w-4 h-4" /> Xuất Word (.docx)
                     </button>
                     <button
                       onClick={handleExportOverleaf}

@@ -1,6 +1,6 @@
 # HANDOFF — Soạn giáo án / học phân hoá
 
-**Cập nhật**: 2026-05-20
+**Cập nhật**: 2026-05-25
 **Repo chính**: `soangiaoan`
 **Branch hiện tại**: `main`
 **Commit Sprint D đã merge main**: `e7b609c92b80c80227ef4853053ea9723bdab931 Merge sprint D lesson builder UI`
@@ -13,7 +13,270 @@
 
 ---
 
-## 0. Cập nhật kiểu giáo án mặc định thành “Bài học phân hoá” — 2026-05-23
+## 0. Refactor Phase 1 chức năng “Soạn đề kiểm tra” — 2026-05-25
+
+> Mục này là cập nhật mới nhất cho Claude Code / Antigravity nghiên cứu tiếp. Thay đổi đang ở local workspace `c:/Users/ADMIN/Desktop/edu-lesson-automation/soangiaoan`, branch `main`, **chưa commit/chưa push** tại thời điểm ghi handoff này.
+
+### 0.1 Bối cảnh yêu cầu
+
+Người dùng nhận feedback từ Antigravity cho chức năng **Soạn đề kiểm tra** và yêu cầu refactor theo hướng EdTech/Senior Frontend Engineer:
+
+1. UI đề thi phải giống giấy thi chuẩn Việt Nam: Times New Roman, A4, nền ngoài xám, trang trắng, margin chuẩn, hạn chế cắt câu hỏi khi in/xuất.
+2. Import DOCX không được mất ảnh; cần dùng Mammoth HTML conversion thay vì raw text.
+3. Preview cần render được ảnh/SVG inline; prompt AI cần yêu cầu vẽ SVG cho hình học, đồ thị, bảng biến thiên.
+4. Word export phải là `.docx` thật, không còn fake HTML `.doc`.
+5. PDF/print phải ẩn chrome/editor/buttons, nền trắng, tránh tách câu hỏi/bảng/hình.
+
+Phạm vi đã chọn là **Phase 1 an toàn**: giữ pipeline hiện tại là markdown string + preview hiện tại, không rewrite sang schema câu hỏi riêng trong cùng phiên để tránh phá luồng đang chạy.
+
+### 0.2 File đã chỉnh/thêm
+
+Modified:
+
+- `src/components/tabs/TestingTab.tsx`
+- `src/utils/examPaperStyles.ts`
+- `src/utils/examUtils.ts`
+- `src/utils/pdfExport.ts`
+- `HANDOFF.md`
+
+New:
+
+- `src/utils/examWordExport.ts`
+
+Trạng thái git gần nhất trước khi cập nhật handoff:
+
+```txt
+ M src/components/tabs/TestingTab.tsx
+ M src/utils/examPaperStyles.ts
+ M src/utils/examUtils.ts
+ M src/utils/pdfExport.ts
+?? src/utils/examWordExport.ts
+```
+
+### 0.3 Thay đổi chi tiết đã triển khai
+
+#### A. Import DOCX giữ ảnh/base64
+
+Trong `src/components/tabs/TestingTab.tsx`:
+
+- Luồng `.docx` import đã chuyển từ `mammoth.extractRawText()` sang `mammoth.convertToHtml()`.
+- Dùng `mammoth.images.imgElement(...)` để đọc ảnh trong DOCX thành base64 data URL.
+- Ảnh import được gắn class `exam-imported-image`; SVG nếu có được gắn class `exam-imported-svg`.
+
+Lưu ý kỹ thuật:
+
+- Ban đầu thử `mammoth.images.inline(...)` nhưng TypeScript báo lỗi vì type hiện tại của Mammoth trong project không expose `inline`.
+- Đã sửa sang `mammoth.images.imgElement(...)`; `npx tsc --noEmit` pass.
+
+#### B. Xuất Word `.docx` thật
+
+Đã thêm `src/utils/examWordExport.ts`:
+
+- Dùng thư viện `docx` đã có sẵn trong `package.json`.
+- Parse markdown bằng `marked.lexer()`.
+- Tạo `Document` Word thật, binary `.docx`, thay cho HTML `.doc` cũ.
+- Thiết lập:
+  - A4 portrait.
+  - Times New Roman.
+  - Body 13pt, small 12pt, title 14pt.
+  - Margin theo Nghị định 30/2020/NĐ-CP: trái 30mm, trên/dưới 20mm, phải 18mm.
+- Hỗ trợ cơ bản: heading, paragraph, list, table, base64 image.
+
+Trong `src/components/tabs/TestingTab.tsx`:
+
+- `handleDownloadWord()` chuyển sang gọi `exportExamToDocx(testResult, ...)`.
+- Label nút đổi thành `Xuất Word (.docx)`.
+
+Giới hạn còn lại:
+
+- SVG inline chưa được rasterize/nhúng native vào Word; hiện exporter ghi note thay thế cho SVG.
+- LaTeX chưa chuyển thành OOXML equation native; vẫn là text/markdown trong Word.
+
+#### C. UI giấy thi A4 và typography
+
+`src/utils/examPaperStyles.ts` đã được refactor mạnh:
+
+- Nền ngoài trang: `#e2e5e9`.
+- Trang giấy preview: trắng, căn giữa, shadow, width 210mm, min-height 297mm.
+- Margin/padding nội dung: top/bottom 20mm, right 18mm, left 30mm.
+- Font nội dung đề: Times New Roman, 13pt, line-height 1.45.
+- Giữ font KaTeX riêng cho công thức để không phá render toán.
+- Style `img`, `svg`, `.exam-figure`, `.exam-svg`, `.variation-table`:
+  - display block.
+  - căn giữa.
+  - max-width 60%.
+  - break-inside/page-break-inside avoid.
+- Thêm CSS `.options-grid.cols-4`, `.options-grid.cols-2`, `.options-grid.cols-1` để chuẩn bị cho smart answer columns trong Phase 2.
+
+#### D. Prompt AI cho SVG hình học/đồ thị/bảng biến thiên
+
+Trong `src/utils/examUtils.ts`:
+
+- Bổ sung yêu cầu AI dùng LaTeX chuẩn: inline `$...$`, display `$$...$$`.
+- Với hình học không gian, đồ thị hàm số, bảng biến thiên: yêu cầu tự tính tọa độ và chèn SVG inline trong `<div class="exam-figure">...</div>`.
+- Quy ước SVG:
+  - Nét liền cho cạnh/đường thấy.
+  - `stroke-dasharray="4"` cho cạnh khuất/đường phụ.
+  - SVG phải có `width`, `height`, `viewBox`.
+  - Không phụ thuộc script ngoài, không dùng ảnh remote.
+
+Lỗi đã gặp và đã sửa:
+
+- Một lần apply diff làm hỏng template string trong `examUtils.ts`, khiến TypeScript hiểu các dòng tiếng Việt là code.
+- Đã đọc lại vùng lỗi và xoá block closure thừa; TypeScript sau đó pass.
+
+#### E. PDF/print tối ưu chống cắt câu hỏi
+
+Trong `src/utils/pdfExport.ts`:
+
+- Thêm `markExamQuestionBlocks()` để tự gắn class tạm `.pdf-no-break-question` cho các block bắt đầu bằng `Câu X`.
+- Default `noBreakSelectors` mở rộng gồm:
+  - `.pdf-no-break-question`
+  - `.exam-question`
+  - `.question-block`
+  - `.exam-figure`
+  - `.exam-svg`
+  - `.variation-table`
+  - `img`, `svg`, `table`, `tr`, heading.
+- Trong `html2canvas` cloned DOM:
+  - ép nền trắng.
+  - ẩn toolbar/editor/button/textarea.
+  - gắn `breakInside/pageBreakInside = avoid` cho hình, bảng, câu hỏi.
+- Cleanup class tạm đã được bọc `try/finally` để không sót class nếu export lỗi giữa chừng.
+
+### 0.4 Kiểm tra local đã chạy và pass
+
+Đã chạy trong thư mục `soangiaoan`:
+
+```bash
+npx tsc --noEmit 2>&1
+npx tsc --noEmit -p tsconfig.api.json 2>&1
+npm run test -- --run 2>&1
+npm run build 2>&1
+```
+
+Kết quả:
+
+```txt
+TypeScript app: PASS
+TypeScript api: PASS
+Vitest: 5 test files passed, 21 tests passed
+Vite build: PASS
+```
+
+Build vẫn có warning cũ về dynamic import/chunk size lớn. Đây là warning không chặn build và không được xử lý trong scope refactor này.
+
+### 0.5 Tồn đọng cần Claude Code / Antigravity nghiên cứu tiếp
+
+#### P1 — Smart answer columns thật sự cần structured renderer
+
+Hiện tại đề thi vẫn là markdown string. CSS đã chuẩn bị `.options-grid`, nhưng chưa có parser/renderer đủ chắc để tự nhận diện mỗi câu hỏi và đo độ dài đáp án rồi chọn 4/2/1 cột.
+
+Khuyến nghị Phase 2:
+
+- Thiết kế schema nội bộ `ExamQuestion`/`ExamPaper` cho bài kiểm tra.
+- Parser từ markdown/AI output sang question blocks.
+- Component render riêng cho đề thi:
+  - Câu hỏi có block riêng.
+  - Đáp án A/B/C/D là object riêng.
+  - Hàm quyết định layout:
+    - 4 cột nếu đáp án rất ngắn.
+    - 2 cột nếu trung bình.
+    - 1 cột nếu dài/có công thức/hình.
+- Export PDF/Word dùng cùng schema để đồng bộ visual.
+
+#### P1 — SVG trong Word cần rasterize hoặc OOXML strategy
+
+Preview/PDF render SVG tốt nhờ HTML/SVG inline. Nhưng `.docx` exporter hiện chưa nhúng SVG thành hình thật trong Word.
+
+Hướng nghiên cứu:
+
+- Trước khi tạo `ImageRun`, tìm SVG inline.
+- Rasterize SVG sang PNG bằng canvas/browser API ở client.
+- Nhúng PNG vào DOCX.
+- Với môi trường server/Node thì cần lib khác; nhưng exporter hiện chạy client, nên canvas strategy khả thi hơn.
+
+#### P1 — LaTeX sang Word equation native chưa có
+
+Hiện LaTeX render đẹp trong preview/PDF nhờ KaTeX, nhưng Word export chưa chuyển LaTeX thành equation OOXML.
+
+Hướng nghiên cứu:
+
+- Ngắn hạn: giữ LaTeX text nhưng format rõ, chấp nhận giáo viên chỉnh sau.
+- Trung hạn: render LaTeX thành SVG/PNG rồi nhúng vào Word.
+- Dài hạn: chuyển LaTeX sang OMML/OOXML equation bằng pipeline riêng.
+
+#### P2 — DOCX import image mapping vẫn là HTML string, chưa vào schema câu hỏi
+
+Mammoth hiện trả HTML có `<img src="data:...">`, hiển thị được trong markdown preview nhờ `rehypeRaw`. Nhưng chưa map vào `ExamQuestion.imageUrl` hoặc `imageSvg` vì TestingTab chưa dùng structured schema cho đề sinh ra.
+
+Nên xử lý cùng Phase 2 structured renderer.
+
+#### P2 — File upload trong TestingTab vẫn chỉ xử lý file đầu tiên
+
+UI có chỗ cho nhiều file nhưng handler hiện vẫn đọc `e.target.files?.[0]`. Đây là hành vi cũ, chưa sửa trong Phase 1.
+
+Cần nghiên cứu:
+
+- Cho phép nối nội dung nhiều file theo thứ tự upload.
+- Gắn metadata tên file/loại file vào prompt.
+- Tránh duplicate hoặc vượt context quá lớn.
+
+#### P2 — Cần QA bằng tài liệu thật
+
+Cần Antigravity/Claude Code test với các mẫu thật:
+
+1. DOCX có hình PNG/JPEG.
+2. DOCX có hình vẽ Word shapes/SmartArt nếu có.
+3. Đề Toán có bảng biến thiên.
+4. Đề hình học không gian cần cạnh khuất.
+5. Đề dài trên 3–5 trang để kiểm tra page break PDF.
+6. Export Word mở bằng Microsoft Word và Google Docs.
+7. Print từ browser ra PDF.
+
+#### P3 — Build warning chunk lớn
+
+`npm run build` pass nhưng chunk lớn vẫn còn. Không liên quan trực tiếp tới refactor đề thi, nhưng nên nghiên cứu code-splitting sau nếu app chậm.
+
+### 0.6 Gợi ý prompt cho Claude Code / Antigravity
+
+```txt
+Bạn hãy đọc repo soangiaoan, branch main, bắt đầu từ HANDOFF.md mục “Refactor Phase 1 chức năng Soạn đề kiểm tra — 2026-05-25”.
+
+Bối cảnh:
+- Phase 1 đã refactor UI giấy thi A4, DOCX import giữ ảnh base64, preview SVG/IMG, prompt sinh SVG, Word export .docx thật, PDF/print chống cắt câu hỏi.
+- Các lệnh local đã pass: npx tsc --noEmit, npx tsc --noEmit -p tsconfig.api.json, npm run test -- --run, npm run build.
+- Thay đổi hiện chưa commit/chưa push.
+
+Việc cần nghiên cứu/QA:
+1. Test thực tế chức năng Soạn đề kiểm tra với DOCX/PDF/ảnh/SVG/bảng biến thiên.
+2. Đánh giá exporter .docx mới trong Microsoft Word/Google Docs.
+3. Đề xuất Phase 2 structured ExamQuestion renderer để smart columns A/B/C/D hoạt động thật.
+4. Nghiên cứu cách rasterize SVG/LaTeX sang hình để nhúng vào DOCX.
+5. Không rewrite lớn TestingTab nếu chưa có test case chứng minh cần thiết.
+
+Kết quả cần trả lại:
+- Các lỗi tái hiện được, kèm bước tái hiện.
+- File/dòng nghi ngờ.
+- Đề xuất fix theo mức ưu tiên P1/P2/P3.
+- Không kết luận dựa trên domain sai hoặc build warning không fatal.
+```
+
+### 0.7 Rollback nếu cần
+
+Nếu refactor gây lỗi nghiêm trọng, revert các file sau để quay về hành vi cũ của chức năng soạn đề:
+
+```txt
+src/components/tabs/TestingTab.tsx
+src/utils/examPaperStyles.ts
+src/utils/examUtils.ts
+src/utils/pdfExport.ts
+src/utils/examWordExport.ts
+```
+
+---
+
+## 0a. Cập nhật kiểu giáo án mặc định thành “Bài học phân hoá” — 2026-05-23
 
 Trạng thái trước khi commit/push ở phiên này:
 

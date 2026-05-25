@@ -7,7 +7,7 @@ export interface PdfExportOptions {
   marginMm?: [number, number, number, number]; // [top, right, bottom, left]
   scale?: number;
   jpegQuality?: number;
-  /** CSS selectors whose matched elements must not be split across pages. Default: table rows + headings. */
+  /** CSS selectors whose matched elements must not be split across pages. Default: question blocks + figures + tables + headings. */
   noBreakSelectors?: string[];
   /** Page orientation. Default: 'portrait' */
   orientation?: 'portrait' | 'landscape';
@@ -135,6 +135,20 @@ function findBreakPoint(
   return naturalBreak;
 }
 
+const markExamQuestionBlocks = (element: HTMLElement): (() => void) => {
+  const marked: HTMLElement[] = [];
+  const candidates = Array.from(element.querySelectorAll<HTMLElement>('p, li, .exam-question, .question-block'));
+  candidates.forEach(node => {
+    const text = node.textContent?.trim() || '';
+    if (/^(Câu\s*\d+[.:]|Câu\s*\d+\b)/i.test(text) || node.classList.contains('exam-question') || node.classList.contains('question-block')) {
+      node.classList.add('pdf-no-break-question');
+      marked.push(node);
+    }
+  });
+
+  return () => marked.forEach(node => node.classList.remove('pdf-no-break-question'));
+};
+
 export const exportElementToPdf = async (
   element: HTMLElement,
   options: PdfExportOptions
@@ -144,107 +158,123 @@ export const exportElementToPdf = async (
     marginMm = [15, 12, 15, 12],
     scale = 2,
     jpegQuality = 0.92,
-    // Protect: each table row (tr) and headings — keeps header rows intact; large tables still
-    // get broken between rows, but never inside a row or heading.
-    noBreakSelectors = ['tr', 'h1', 'h2', 'h3', 'h4'],
+    // Protect question starts, figures, tables and headings. If a question is longer than a page,
+    // the exporter still allows a safe split to avoid infinite blank pages.
+    noBreakSelectors = ['.pdf-no-break-question', '.exam-question', '.question-block', '.exam-figure', '.exam-svg', '.variation-table', 'img', 'svg', 'table', 'tr', 'h1', 'h2', 'h3', 'h4'],
     orientation = 'portrait',
   } = options;
 
-  // 1. Measure forbidden zones BEFORE html2canvas (DOM layout is stable at this point).
-  const containerRect = element.getBoundingClientRect();
-  const zones = buildForbiddenZones(element, noBreakSelectors, containerRect.top, scale);
+  const cleanupMarkedQuestions = markExamQuestionBlocks(element);
 
-  // 2. Capture the full content as a single high-res canvas.
-  const [h2cMod, jsPdfMod] = await Promise.all([
-    import('html2canvas-pro'),
-    import('jspdf'),
-  ]);
-  const html2canvas = (h2cMod.default ?? h2cMod) as any;
-  const { jsPDF } = jsPdfMod as any;
+  try {
+    // 1. Measure forbidden zones BEFORE html2canvas (DOM layout is stable at this point).
+    const containerRect = element.getBoundingClientRect();
+    const zones = buildForbiddenZones(element, noBreakSelectors, containerRect.top, scale);
 
-  const canvas = await html2canvas(element, {
-    scale,
-    useCORS: true,
-    logging: false,
-    backgroundColor: '#ffffff',
-    // Fix: capture the FULL scrollable content, not just the visible viewport.
-    // Without these, html2canvas only renders what's currently in view,
-    // producing a single-page PDF that cuts off the rest of the exam.
-    windowWidth: element.scrollWidth,
-    windowHeight: element.scrollHeight,
-  });
+    // 2. Capture the full content as a single high-res canvas.
+    const [h2cMod, jsPdfMod] = await Promise.all([
+      import('html2canvas-pro'),
+      import('jspdf'),
+    ]);
+    const html2canvas = (h2cMod.default ?? h2cMod) as any;
+    const { jsPDF } = jsPdfMod as any;
 
-  const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation });
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
-  const [mTop, mRight, mBottom, mLeft] = marginMm;
-  const usableWidth = pageWidth - mLeft - mRight;
-  const usableHeight = pageHeight - mTop - mBottom;
+    const canvas = await html2canvas(element, {
+      scale,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff',
+      onclone: (_document: Document, clonedElement: HTMLElement) => {
+        clonedElement.style.backgroundColor = '#ffffff';
+        clonedElement.querySelectorAll<HTMLElement>('.w-md-editor-toolbar, .w-md-editor-text, button, textarea').forEach(node => {
+          node.style.display = 'none';
+        });
+        clonedElement.querySelectorAll<HTMLElement>('.pdf-no-break-question, .exam-question, .question-block, .exam-figure, .exam-svg, .variation-table, table, tr, img, svg').forEach(node => {
+          node.style.breakInside = 'avoid';
+          node.style.pageBreakInside = 'avoid';
+        });
+      },
+      // Fix: capture the FULL scrollable content, not just the visible viewport.
+      // Without these, html2canvas only renders what's currently in view,
+      // producing a single-page PDF that cuts off the rest of the exam.
+      windowWidth: element.scrollWidth,
+      windowHeight: element.scrollHeight,
+    });
 
-  // How many canvas pixels correspond to one PDF page of usable height
-  const sliceHeightPx = Math.floor(usableHeight * (canvas.width / usableWidth));
+    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation });
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const [mTop, mRight, mBottom, mLeft] = marginMm;
+    const usableWidth = pageWidth - mLeft - mRight;
+    const usableHeight = pageHeight - mTop - mBottom;
 
-  if (canvas.height <= sliceHeightPx) {
-    // Everything fits on one page
-    const imgHeight = (canvas.height * usableWidth) / canvas.width;
-    const imgData = canvas.toDataURL('image/jpeg', jpegQuality);
-    pdf.addImage(imgData, 'JPEG', mLeft, mTop, usableWidth, imgHeight);
-  } else {
-    // Multi-page: slice canvas with zone-aware break points
-    let pageStart = 0;
-    let isFirstPage = true;
+    // How many canvas pixels correspond to one PDF page of usable height
+    const sliceHeightPx = Math.floor(usableHeight * (canvas.width / usableWidth));
 
-    while (pageStart < canvas.height) {
-      const naturalBreak = pageStart + sliceHeightPx;
-      const breakAt = Math.min(
-        findBreakPoint(naturalBreak, pageStart, sliceHeightPx, zones),
-        canvas.height
-      );
+    if (canvas.height <= sliceHeightPx) {
+      // Everything fits on one page
+      const imgHeight = (canvas.height * usableWidth) / canvas.width;
+      const imgData = canvas.toDataURL('image/jpeg', jpegQuality);
+      pdf.addImage(imgData, 'JPEG', mLeft, mTop, usableWidth, imgHeight);
+    } else {
+      // Multi-page: slice canvas with zone-aware break points
+      let pageStart = 0;
+      let isFirstPage = true;
 
-      let sliceHeight = breakAt - pageStart;
-      if (sliceHeight <= 0) {
-        // Safety valve: avoid infinite loop if zones push break behind pageStart
-        pageStart = breakAt + 1;
-        continue;
+      while (pageStart < canvas.height) {
+        const naturalBreak = pageStart + sliceHeightPx;
+        const breakAt = Math.min(
+          findBreakPoint(naturalBreak, pageStart, sliceHeightPx, zones),
+          canvas.height
+        );
+
+        let sliceHeight = breakAt - pageStart;
+        if (sliceHeight <= 0) {
+          // Safety valve: avoid infinite loop if zones push break behind pageStart
+          pageStart = breakAt + 1;
+          continue;
+        }
+        sliceHeight = Math.min(sliceHeight, canvas.height - pageStart);
+
+        const sliceCanvas = document.createElement('canvas');
+        sliceCanvas.width = canvas.width;
+        sliceCanvas.height = sliceHeight;
+        const ctx = sliceCanvas.getContext('2d');
+        if (!ctx) break;
+
+        ctx.drawImage(
+          canvas,
+          0, pageStart, canvas.width, sliceHeight,
+          0, 0,        canvas.width, sliceHeight
+        );
+
+        const sliceData = sliceCanvas.toDataURL('image/jpeg', jpegQuality);
+        const sliceHeightMm = (sliceHeight / canvas.width) * usableWidth;
+
+        if (!isFirstPage) pdf.addPage();
+        pdf.addImage(sliceData, 'JPEG', mLeft, mTop, usableWidth, sliceHeightMm);
+
+        isFirstPage = false;
+        pageStart = breakAt;
       }
-      sliceHeight = Math.min(sliceHeight, canvas.height - pageStart);
-
-      const sliceCanvas = document.createElement('canvas');
-      sliceCanvas.width = canvas.width;
-      sliceCanvas.height = sliceHeight;
-      const ctx = sliceCanvas.getContext('2d');
-      if (!ctx) break;
-
-      ctx.drawImage(
-        canvas,
-        0, pageStart, canvas.width, sliceHeight,
-        0, 0,        canvas.width, sliceHeight
-      );
-
-      const sliceData = sliceCanvas.toDataURL('image/jpeg', jpegQuality);
-      const sliceHeightMm = (sliceHeight / canvas.width) * usableWidth;
-
-      if (!isFirstPage) pdf.addPage();
-      pdf.addImage(sliceData, 'JPEG', mLeft, mTop, usableWidth, sliceHeightMm);
-
-      isFirstPage = false;
-      pageStart = breakAt;
     }
-  }
 
-  // Đánh số trang: cỡ 13, căn giữa, đặt ở chân trang (lề dưới), không hiện trang 1.
-  const totalPages = pdf.getNumberOfPages();
-  if (totalPages > 1) {
-    pdf.setFont('times', 'normal');
-    pdf.setFontSize(13);
-    for (let i = 2; i <= totalPages; i++) {
-      pdf.setPage(i);
-      pdf.text(String(i), pageWidth / 2, pageHeight - mBottom / 2, { align: 'center' });
+    // Đánh số trang: cỡ 13, căn giữa, đặt ở chân trang (lề dưới), không hiện trang 1.
+    const totalPages = pdf.getNumberOfPages();
+    if (totalPages > 1) {
+      pdf.setFont('times', 'normal');
+      pdf.setFontSize(13);
+      for (let i = 2; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.text(String(i), pageWidth / 2, pageHeight - mBottom / 2, { align: 'center' });
+      }
     }
-  }
 
-  // Use jsPDF's built-in save() — cross-browser tested. Chrome sometimes ignores
-  // the `download` attribute on <a> elements with Blob URLs and falls back to
-  // the UUID in the blob URL as filename; pdf.save() avoids that path.
-  pdf.save(filename);
+    // Use jsPDF's built-in save() — cross-browser tested. Chrome sometimes ignores
+    // the `download` attribute on <a> elements with Blob URLs and falls back to
+    // the UUID in the blob URL as filename; pdf.save() avoids that path.
+    pdf.save(filename);
+  } finally {
+    cleanupMarkedQuestions();
+  }
 };
