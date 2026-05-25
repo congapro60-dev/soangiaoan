@@ -103,15 +103,15 @@ service cloud.firestore {
     //  - read: chỉ giáo viên chủ đề đọc được
     match /examSubmissions/{subId} {
       allow create: if request.resource.data.status == 'in_progress';
-      allow update: if resource.data.status == 'in_progress';
+      allow update: if resource.data.status == 'in_progress'
+                    && request.resource.data.examId == resource.data.examId;
       allow read: if request.auth != null
                   && request.auth.uid == get(/databases/$(database)/documents/exams/$(resource.data.examId)).data.teacherId;
     }
 
     // Telemetry fallback — chỉ ghi schema tối thiểu đã redact PII; giáo viên owner đọc để theo dõi tỷ lệ lưu.
     match /fallbackEvents/{eventId} {
-      allow create: if request.auth != null
-                    && request.resource.data.keys().hasOnly(
+      allow create: if request.resource.data.keys().hasOnly(
                       ['teacherId', 'studentId', 'lessonId', 'stage', 'timestamp', 'errorCode', 'source'])
                     && request.resource.data.teacherId is string
                     && request.resource.data.teacherId.size() <= 128

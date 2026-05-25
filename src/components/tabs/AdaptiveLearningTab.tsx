@@ -589,6 +589,8 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
   };
 
   const handleSaveTeacherDraft = async () => {
+    void verifyFirebaseAdminHealth();
+
     if (!user) {
       setCloudError('Bạn cần đăng nhập để lưu bài học phân hoá lên Firestore.');
       return;
