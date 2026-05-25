@@ -189,10 +189,8 @@ export const exportElementToPdf = async (
         clonedElement.querySelectorAll<HTMLElement>('.w-md-editor-toolbar, .w-md-editor-text, button, textarea').forEach(node => {
           node.style.display = 'none';
         });
-        clonedElement.querySelectorAll<HTMLElement>('.pdf-no-break-question, .exam-question, .question-block, .exam-figure, .exam-svg, .variation-table, table, tr, img, svg').forEach(node => {
-          node.style.breakInside = 'avoid';
-          node.style.pageBreakInside = 'avoid';
-        });
+        // Note: breakInside/pageBreakInside is a no-op in html2canvas (it renders pixels, not pages).
+        // Page break logic is handled by findBreakPoint() + zone calculation below.
       },
       // Fix: capture the FULL scrollable content, not just the visible viewport.
       // Without these, html2canvas only renders what's currently in view,

@@ -110,7 +110,7 @@ QUY TẮC NỘI DUNG:
 - Độ khó: phân bổ đúng theo ma trận hoặc cân đối nếu không có ma trận.
 - Với câu hỏi hình học không gian, đồ thị hàm số hoặc bảng biến thiên, hãy tự tính toán tọa độ và vẽ mã vector SVG chuẩn xác chèn trực tiếp vào đề trong <div class="exam-figure">...</div>.
 - Quy ước SVG: dùng nét liền cho cạnh/đường thấy; dùng stroke-dasharray="4" cho cạnh khuất/đường phụ; với bảng biến thiên cần vẽ hàng dấu, mũi tên tăng/giảm và nhãn cực trị rõ ràng.
-- SVG phải có width, height, viewBox, không phụ thuộc script ngoài, không dùng ảnh remote.
+- SVG phải có attribute xmlns="http://www.w3.org/2000/svg" và width, height, viewBox; không phụ thuộc script ngoài, không dùng ảnh remote.
     `;
   },
 

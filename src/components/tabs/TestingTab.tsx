@@ -236,34 +236,76 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, category: 'test' | 'matrix' | 'sample') => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setIsLoading(true);
-    setProcessStatus('Đang trích xuất dữ liệu tệp...');
-    try {
-      const content = await extractTextFromFile(file);
-      const newFile: TemplateFile = {
-        id: crypto.randomUUID(),
-        name: file.name,
-        type: file.name.split('.').pop() || '',
-        content,
-        category: category as any
-      };
-      if (category === 'matrix') {
-        setMatrixFile(newFile);
-        showToast('Đã nhận diện Ma trận đề!');
-      } else if (category === 'sample') {
-        setSampleFile(newFile);
-        showToast('Đã nhận diện Đề mẫu định dạng!');
-      } else {
-        setUploadedFiles(prev => [...prev, newFile]);
-        showToast('Đã tải lên tệp đề thi!');
+    const fileList = e.target.files;
+    if (!fileList || fileList.length === 0) return;
+    const files = Array.from(fileList);
+
+    // Matrix và Sample chỉ nhận 1 file — lấy file đầu, ignore phần còn lại với cảnh báo
+    if (category === 'matrix' || category === 'sample') {
+      if (files.length > 1) {
+        showToast(`${category === 'matrix' ? 'Ma trận đề' : 'Đề mẫu'} chỉ nhận 1 file — đã dùng "${files[0].name}", bỏ qua ${files.length - 1} file còn lại.`, 'info');
       }
-    } catch {
+      setIsLoading(true);
+      setProcessStatus('Đang trích xuất dữ liệu tệp...');
+      try {
+        const content = await extractTextFromFile(files[0]);
+        const newFile: TemplateFile = {
+          id: crypto.randomUUID(),
+          name: files[0].name,
+          type: files[0].name.split('.').pop() || '',
+          content,
+          category: category as any,
+        };
+        if (category === 'matrix') {
+          setMatrixFile(newFile);
+          showToast('Đã nhận diện Ma trận đề!');
+        } else {
+          setSampleFile(newFile);
+          showToast('Đã nhận diện Đề mẫu định dạng!');
+        }
+      } catch {
+        showToast('Lỗi khi đọc tệp!', 'error');
+      } finally {
+        setIsLoading(false);
+        setProcessStatus('');
+        // Reset input value để cho phép chọn lại cùng file
+        e.target.value = '';
+      }
+      return;
+    }
+
+    // category === 'test': nhận nhiều file, xử lý tuần tự
+    setIsLoading(true);
+    let successCount = 0;
+    let failCount = 0;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      setProcessStatus(`Đang đọc tệp ${i + 1}/${files.length}: ${file.name}...`);
+      try {
+        const content = await extractTextFromFile(file);
+        const newFile: TemplateFile = {
+          id: crypto.randomUUID(),
+          name: file.name,
+          type: file.name.split('.').pop() || '',
+          content,
+          category: 'test' as any,
+        };
+        setUploadedFiles(prev => [...prev, newFile]);
+        successCount += 1;
+      } catch {
+        failCount += 1;
+      }
+    }
+    setIsLoading(false);
+    setProcessStatus('');
+    e.target.value = '';
+
+    if (successCount > 0 && failCount === 0) {
+      showToast(`Đã tải lên ${successCount} tệp đề thi!`);
+    } else if (successCount > 0 && failCount > 0) {
+      showToast(`Tải lên ${successCount}/${files.length} tệp thành công, ${failCount} tệp lỗi.`, 'info');
+    } else {
       showToast('Lỗi khi đọc tệp!', 'error');
-    } finally {
-      setIsLoading(false);
-      setProcessStatus('');
     }
   };
 

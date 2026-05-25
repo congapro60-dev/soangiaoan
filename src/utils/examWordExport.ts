@@ -64,7 +64,7 @@ const buildImageParagraph = (src: string): Paragraph | null => {
           width: 360,
           height: 220,
         },
-      } as any),
+      }),
     ],
   });
 };
