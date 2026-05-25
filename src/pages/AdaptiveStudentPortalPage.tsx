@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ChangeEvent, Dispatch, ReactNode, SetStateAction } from 'react';
+import { useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadString } from 'firebase/storage';
@@ -572,7 +573,7 @@ export const AdaptiveStudentPortalPage = () => {
     setQuickCheckAnswers({});
   };
 
-  const handleDeweyComplete = async (data: { olympiaScore: number; unitIds: string[]; durationSeconds: number }) => {
+  const handleDeweyComplete = useCallback(async (data: { olympiaScore: number; unitIds: string[]; durationSeconds: number }) => {
     if (!lesson || !activeTeacherId || !diagnosticAttempt) return;
     const { olympiaScore, unitIds, durationSeconds } = data;
     const now = new Date().toISOString();
@@ -649,7 +650,7 @@ export const AdaptiveStudentPortalPage = () => {
       setIsSaving(false);
       setStage('complete');
     }
-  };
+  }, [lesson, diagnosticAttempt, studentCode, studentName, studentClass, profile, sectionStarts]);
 
   const handleExitTicketSubmit = async () => {
     if (!lesson || !activeTeacherId || !diagnosticAttempt) return;
@@ -828,8 +829,7 @@ export const AdaptiveStudentPortalPage = () => {
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [diagnosticAttempt, lesson]);
+  }, [handleDeweyComplete]);
 
   if (stage === 'loading') return <FullPageState icon={<Loader2 className="h-8 w-8 animate-spin text-blue-600" />} title="Đang mở lớp học phân hoá" message="Hệ thống đang tải bài học giáo viên đã phát." />;
   if (stage === 'not_found' || !lesson) return <FullPageState icon={<AlertTriangle className="h-8 w-8 text-amber-500" />} title="Chưa tìm thấy bài học" message={portalError || 'Liên kết này chưa có bài học phân hoá đã lưu hoặc giáo viên chưa phát bài.'} />;
