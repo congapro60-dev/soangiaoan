@@ -84,7 +84,12 @@ export const useLessonCreator = (
   const [revisionPrompt, setRevisionPrompt] = useState('');
   const cancelBulkRef = useRef(false);
 
-  const cancelBulk = () => { cancelBulkRef.current = true; };
+  const cancelBulk = () => {
+    cancelBulkRef.current = true;
+    setIsLoading(false);
+    setBulkProgress({ current: 0, total: 0, currentTitle: 'Đang hủy các yêu cầu còn lại...' });
+    showToast('Đang hủy soạn hàng loạt. Các yêu cầu AI đang chạy sẽ tự bỏ qua kết quả khi hoàn tất.', 'warning');
+  };
 
   const handleCreateLesson = async () => {
     if (!getActiveApiKey(data.settings)) {
@@ -806,6 +811,7 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
               ===== HẾT YÊU CẦU =====`}
             `;
             try {
+              if (cancelBulkRef.current) return null;
               const detailResponse = await callAI(detailPrompt, data.settings);
               if (detailResponse && !cancelBulkRef.current) {
                 return {
@@ -827,7 +833,9 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
             return null;
           });
 
-          setBulkProgress({ current: i, total: extractedLessons.length, currentTitle: `Đang xử lý ${chunk.length} bài cùng lúc...` });
+          if (!cancelBulkRef.current) {
+            setBulkProgress({ current: i, total: extractedLessons.length, currentTitle: `Đang xử lý ${chunk.length} bài cùng lúc...` });
+          }
           
           const results = await Promise.all(chunkPromises);
           if (cancelBulkRef.current) break;
@@ -849,6 +857,7 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
     } finally {
       setIsLoading(false);
       setBulkProgress({ current: 0, total: 0, currentTitle: '' });
+      cancelBulkRef.current = false;
     }
   };
 

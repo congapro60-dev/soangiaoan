@@ -10,6 +10,15 @@ interface ChatMessage {
 }
 
 const EDITOR_UNDO_STORAGE_KEY = 'lesson-editor-ai-agent-last-safe-backup';
+const CHAT_CONTEXT_HEAD_CHARS = 12000;
+const CHAT_CONTEXT_TAIL_CHARS = 6000;
+
+const buildBoundedChatContext = (context: string | null): string | null => {
+  if (!context) return null;
+  if (context.length <= CHAT_CONTEXT_HEAD_CHARS + CHAT_CONTEXT_TAIL_CHARS) return context;
+
+  return `${context.slice(0, CHAT_CONTEXT_HEAD_CHARS)}\n\n[... NGỮ CẢNH ĐÃ ĐƯỢC RÚT GỌN: bỏ qua ${context.length - CHAT_CONTEXT_HEAD_CHARS - CHAT_CONTEXT_TAIL_CHARS} ký tự ở giữa để tránh vượt giới hạn AI ...]\n\n${context.slice(-CHAT_CONTEXT_TAIL_CHARS)}`;
+};
 
 const saveEditorUndoBackup = (content: string) => {
   try {
@@ -80,7 +89,7 @@ export const useChat = (
     setIsLoading(true);
 
     try {
-      const context = getCurrentContext ? getCurrentContext() : null;
+      const context = buildBoundedChatContext(getCurrentContext ? getCurrentContext() : null);
       const prompt = `
         BẠN LÀ CHUYÊN GIA SƯ PHẠM VÀ PHỤ TÁ NGHIÊN CỨU (LIKE NOTEBOOK LM).
         Câu hỏi của người dùng: "${currentInput}"

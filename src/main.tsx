@@ -38,7 +38,7 @@ class ErrorBoundary extends Component {
             {String(this.state.error?.message || 'Lỗi không xác định')}
           </p>
           <button
-            onClick={() => this.setState({ hasError: false, error: null })}
+            onClick={() => window.location.reload()}
             style={{
               padding: '0.75rem 2rem',
               background: 'linear-gradient(135deg, #4A90E2, #FF9500)',

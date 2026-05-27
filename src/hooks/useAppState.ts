@@ -6,10 +6,25 @@ import { User } from 'firebase/auth';
 import { normalizePlanTitle } from '../utils/fileUtils';
 
 const PAGE_SIZE = 20;
+const LOCAL_CACHE_KEY = 'smart_lesson_plan_data';
+
+const buildLocalCache = (data: AppData) => ({
+  settings: data.settings,
+  authorName: data.authorName,
+});
+
+const fetchCollectionSafely = async <T,>(label: string, loader: () => Promise<T>, fallback: T): Promise<T> => {
+  try {
+    return await loader();
+  } catch (error) {
+    console.error(`Error fetching ${label}`, error);
+    return fallback;
+  }
+};
 
 export const useAppState = (user: User | null, showToast: (msg: string, icon?: any) => void) => {
   const [data, setData] = useState<AppData>(() => {
-    const saved = localStorage.getItem('smart_lesson_plan_data');
+    const saved = localStorage.getItem(LOCAL_CACHE_KEY);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -39,13 +54,18 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
   const [lastCommunityDoc, setLastCommunityDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const [hasMoreCommunity, setHasMoreCommunity] = useState(false);
 
-  // Sync ALL data to local cache — đợi 1 giây sau khi ngừng thao tác mới ghi
+  // Sync only lightweight local preferences/API keys to avoid localStorage quota pressure.
   useEffect(() => {
     const timer = setTimeout(() => {
-      localStorage.setItem('smart_lesson_plan_data', JSON.stringify(data));
+      try {
+        localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(buildLocalCache(data)));
+      } catch (error) {
+        console.error('Lỗi lưu cache cục bộ', error);
+        showToast('Bộ nhớ trình duyệt đã đầy, không thể lưu cache cục bộ.', 'warning');
+      }
     }, 1000);
     return () => clearTimeout(timer);
-  }, [data]);
+  }, [data.settings, data.authorName, showToast]);
 
   // Fetch Cloud data (Plans, Templates, Settings, Distributions) when user logs in
   useEffect(() => {
@@ -53,85 +73,86 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
       const fetchCloudData = async () => {
         setIsLoading(true);
         try {
-          // 1. Fetch Personal Plans (20 bài đầu tiên)
-          const qPlans = query(
-            collection(db, 'lessonPlans'),
-            where('userId', '==', user.uid),
-            orderBy('updatedAt', 'desc'),
-            limit(PAGE_SIZE)
-          );
-          const snapPlans = await getDocs(qPlans);
-          const cloudPlans: LessonPlan[] = [];
-          snapPlans.forEach((doc) => {
-            const p = doc.data() as LessonPlan;
-            cloudPlans.push({ ...p, title: normalizePlanTitle(p.title) });
-          });
-          setLastPlanDoc(snapPlans.docs[snapPlans.docs.length - 1] || null);
-          setHasMorePlans(snapPlans.docs.length === PAGE_SIZE);
+          const cloudPlansResult = await fetchCollectionSafely('lessonPlans', async () => {
+            const qPlans = query(
+              collection(db, 'lessonPlans'),
+              where('userId', '==', user.uid),
+              orderBy('updatedAt', 'desc'),
+              limit(PAGE_SIZE)
+            );
+            const snapPlans = await getDocs(qPlans);
+            const plans: LessonPlan[] = [];
+            snapPlans.forEach((doc) => {
+              const p = doc.data() as LessonPlan;
+              plans.push({ ...p, title: normalizePlanTitle(p.title) });
+            });
+            return { plans, lastDoc: snapPlans.docs[snapPlans.docs.length - 1] || null, hasMore: snapPlans.docs.length === PAGE_SIZE };
+          }, { plans: [] as LessonPlan[], lastDoc: null as QueryDocumentSnapshot<DocumentData> | null, hasMore: false });
+          setLastPlanDoc(cloudPlansResult.lastDoc);
+          setHasMorePlans(cloudPlansResult.hasMore);
 
-          // 2. Fetch User Templates
-          const qTemplates = query(
-            collection(db, 'userTemplates'),
-            where('userId', '==', user.uid)
-          );
-          const snapTemplates = await getDocs(qTemplates);
-          const userTemplates: LessonTemplate[] = [];
-          snapTemplates.forEach(doc => userTemplates.push(doc.data() as LessonTemplate));
+          const userTemplates = await fetchCollectionSafely('userTemplates', async () => {
+            const qTemplates = query(collection(db, 'userTemplates'), where('userId', '==', user.uid));
+            const snapTemplates = await getDocs(qTemplates);
+            const templates: LessonTemplate[] = [];
+            snapTemplates.forEach(doc => templates.push(doc.data() as LessonTemplate));
+            return templates;
+          }, [] as LessonTemplate[]);
 
-          // 3. Fetch Settings
-          const docSettings = await getDocs(query(collection(db, 'userSettings'), where('userId', '==', user.uid)));
-          let cloudSettings = data.settings;
-          let cloudAuthorName = data.authorName;
-          if (!docSettings.empty) {
-            const settingsData = docSettings.docs[0].data();
-            cloudSettings = settingsData.settings;
-            cloudAuthorName = settingsData.authorName || '';
-          }
-          // Auto-populate từ Google profile nếu chưa có tên
-          if (!cloudAuthorName && user.displayName) {
-            cloudAuthorName = user.displayName;
-            await setDoc(doc(db, 'userSettings', user.uid), { authorName: cloudAuthorName }, { merge: true });
-          }
+          const cloudSettingsResult = await fetchCollectionSafely('userSettings', async () => {
+            const docSettings = await getDocs(query(collection(db, 'userSettings'), where('userId', '==', user.uid)));
+            let cloudSettings = data.settings;
+            let cloudAuthorName = data.authorName;
+            if (!docSettings.empty) {
+              const settingsData = docSettings.docs[0].data();
+              cloudSettings = settingsData.settings || cloudSettings;
+              cloudAuthorName = settingsData.authorName || '';
+            }
+            if (!cloudAuthorName && user.displayName) {
+              cloudAuthorName = user.displayName;
+              await setDoc(doc(db, 'userSettings', user.uid), { authorName: cloudAuthorName }, { merge: true });
+            }
+            return { cloudSettings, cloudAuthorName };
+          }, { cloudSettings: data.settings, cloudAuthorName: data.authorName });
 
-          // 4. Fetch Distributions
-          const qDist = query(collection(db, 'distributions'), where('userId', '==', user.uid));
-          const snapDist = await getDocs(qDist);
-          const cloudDist: CurriculumDistribution[] = [];
-          snapDist.forEach(doc => cloudDist.push(doc.data() as CurriculumDistribution));
+          const cloudDist = await fetchCollectionSafely('distributions', async () => {
+            const qDist = query(collection(db, 'distributions'), where('userId', '==', user.uid));
+            const snapDist = await getDocs(qDist);
+            const distributions: CurriculumDistribution[] = [];
+            snapDist.forEach(doc => distributions.push(doc.data() as CurriculumDistribution));
+            return distributions;
+          }, [] as CurriculumDistribution[]);
 
-          // Combine with default templates (keep unique)
+          const cloudSessions = await fetchCollectionSafely('gradingSessions', async () => {
+            const qSessions = query(
+              collection(db, 'gradingSessions'),
+              where('userId', '==', user.uid),
+              orderBy('createdAt', 'desc'),
+              limit(50)
+            );
+            const snapSessions = await getDocs(qSessions);
+            const sessions: GradingSession[] = [];
+            snapSessions.forEach(d => sessions.push(d.data() as GradingSession));
+            return sessions;
+          }, [] as GradingSession[]);
+
           const combinedTemplates = [...userTemplates, ...DEFAULT_DATA.templates.filter(dt => !userTemplates.some(ut => ut.id === dt.id))];
 
-          // 5. Fetch Grading Sessions
-          const qSessions = query(
-            collection(db, 'gradingSessions'),
-            where('userId', '==', user.uid),
-            orderBy('createdAt', 'desc'),
-            limit(50)
-          );
-          const snapSessions = await getDocs(qSessions);
-          const cloudSessions: GradingSession[] = [];
-          snapSessions.forEach(d => cloudSessions.push(d.data() as GradingSession));
-
           setData(prev => {
-            // Giữ lại các giáo án local chưa có trên cloud (tạo offline hoặc chưa kịp sync)
-            const cloudPlanIds = new Set(cloudPlans.map(p => p.id));
+            const cloudPlanIds = new Set(cloudPlansResult.plans.map(p => p.id));
             const localOnlyPlans = prev.lessonPlans.filter(p => !cloudPlanIds.has(p.id));
-            // Merge grading sessions — cloud takes priority
             const cloudSessionIds = new Set(cloudSessions.map(s => s.id));
             const localOnlySessions = (prev.gradingSessions || []).filter(s => !cloudSessionIds.has(s.id));
             return {
               ...prev,
-              lessonPlans: [...cloudPlans, ...localOnlyPlans],
+              lessonPlans: [...cloudPlansResult.plans, ...localOnlyPlans],
               templates: combinedTemplates,
               distributions: cloudDist,
-              authorName: cloudAuthorName,
-              settings: { ...prev.settings, ...cloudSettings },
+              authorName: cloudSettingsResult.cloudAuthorName,
+              settings: { ...prev.settings, ...cloudSettingsResult.cloudSettings },
               gradingSessions: [...cloudSessions, ...localOnlySessions],
             };
           });
-        } catch (err) {
-          console.error("Error fetching cloud data", err);
         } finally {
           setIsLoading(false);
         }
@@ -283,35 +304,32 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
       return { ...prev, templates: newTemplates };
     });
     if (user) {
-      const target = data.templates.find(t => t.id === templateId);
-      if (target) {
-        const updated = { ...target, ...updatedTemplate };
-        try {
-          await setDoc(doc(db, 'userTemplates', templateId), { ...updated, userId: user.uid }, { merge: true });
-        } catch (e) {
-          console.error("Lỗi cập nhật mẫu Cloud", e);
-        }
+      try {
+        await setDoc(doc(db, 'userTemplates', templateId), { ...updatedTemplate, id: templateId, userId: user.uid }, { merge: true });
+      } catch (e) {
+        console.error("Lỗi cập nhật mẫu Cloud", e);
       }
     }
   };
 
   const deleteFile = async (templateId: string, fileId: string) => {
+    let nextFiles: LessonTemplate['files'] | null = null;
+
     setData(prev => {
       const currentTemplates = prev.templates || [];
-      const newTemplates = currentTemplates.map(t =>
-        t.id === templateId ? { ...t, files: (t.files || []).filter(f => f.id !== fileId) } : t
-      );
+      const newTemplates = currentTemplates.map(t => {
+        if (t.id !== templateId) return t;
+        nextFiles = (t.files || []).filter(f => f.id !== fileId);
+        return { ...t, files: nextFiles };
+      });
       return { ...prev, templates: newTemplates };
     });
-    if (user) {
-      const target = data.templates.find(t => t.id === templateId);
-      if (target) {
-        const updatedFiles = (target.files || []).filter(f => f.id !== fileId);
-        try {
-          await setDoc(doc(db, 'userTemplates', templateId), { ...target, files: updatedFiles, userId: user.uid }, { merge: true });
-        } catch (e) {
-          console.error("Lỗi xóa file Cloud", e);
-        }
+
+    if (user && nextFiles) {
+      try {
+        await setDoc(doc(db, 'userTemplates', templateId), { files: nextFiles, userId: user.uid }, { merge: true });
+      } catch (e) {
+        console.error("Lỗi xóa file Cloud", e);
       }
     }
   };
