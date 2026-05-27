@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import MDEditor from '@uiw/react-md-editor';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
@@ -15,6 +16,70 @@ interface Props {
   isRefining: boolean;
 }
 
+const optionLinePattern = /^([A-D])\.\s+(.+)/;
+const questionStartPattern = /^(?:Câu\s+\d+\b|\d+\.)/i;
+
+const normalizeOptionText = (element: HTMLElement) => element.textContent?.replace(/\s+/g, ' ').trim() || '';
+
+const getSmartColumnClass = (optionNodes: HTMLElement[]) => {
+  const optionTexts = optionNodes.map(normalizeOptionText);
+  const maxLength = Math.max(...optionTexts.map(text => text.length));
+  const hasMathOrMedia = optionNodes.some(node => Boolean(node.querySelector('.katex, img, svg, table')) || /\$|\\\(|\\\[/.test(node.textContent || ''));
+
+  if (hasMathOrMedia || maxLength > 52) return 'cols-1';
+  if (maxLength > 24) return 'cols-2';
+  return 'cols-4';
+};
+
+const applySmartAnswerColumns = (root: HTMLElement | null) => {
+  if (!root) return;
+  root.querySelectorAll('.options-grid[data-auto-options="true"]').forEach(node => {
+    const parent = node.parentElement;
+    if (!parent) return;
+    Array.from(node.childNodes).forEach(child => parent.insertBefore(child, node));
+    node.remove();
+  });
+
+  const blocks = Array.from(root.children) as HTMLElement[];
+  for (let index = 0; index < blocks.length; index += 1) {
+    const first = blocks[index];
+    const firstMatch = normalizeOptionText(first).match(optionLinePattern);
+    if (!firstMatch || firstMatch[1] !== 'A') continue;
+
+    const optionNodes: HTMLElement[] = [first];
+    const expectedLabels = ['B', 'C', 'D'];
+
+    for (const label of expectedLabels) {
+      const next = blocks[index + optionNodes.length];
+      if (!next) break;
+      const text = normalizeOptionText(next);
+      if (questionStartPattern.test(text)) break;
+      const match = text.match(optionLinePattern);
+      if (!match || match[1] !== label) break;
+      optionNodes.push(next);
+    }
+
+    if (optionNodes.length !== 4) continue;
+
+    const grid = document.createElement('div');
+    grid.className = `options-grid ${getSmartColumnClass(optionNodes)}`;
+    grid.dataset.autoOptions = 'true';
+
+    optionNodes.forEach(optionNode => {
+      optionNode.classList.add('exam-option-item');
+      const label = normalizeOptionText(optionNode).match(optionLinePattern)?.[1];
+      if (label && !optionNode.querySelector('.option-label')) {
+        const html = optionNode.innerHTML;
+        optionNode.innerHTML = html.replace(new RegExp(`^\\s*${label}\\.\\s*`), `<span class="option-label">${label}.</span> `);
+      }
+      grid.appendChild(optionNode);
+    });
+
+    root.insertBefore(grid, blocks[index + optionNodes.length] || null);
+    index += optionNodes.length - 1;
+  }
+};
+
 /**
  * Split-pane exam editor: Markdown textarea (left) + A4-styled live preview (right).
  * Mirrors the LessonContentBoard pattern from CreatorTab.
@@ -30,7 +95,15 @@ export const ExamContentBoard = ({
   setRefineRequest,
   onRefine,
   isRefining,
-}: Props) => (
+}: Props) => {
+  const boardRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const root = boardRef.current?.querySelector<HTMLElement>('.w-md-editor-preview .wmde-markdown') ?? null;
+    applySmartAnswerColumns(root);
+  }, [testResult]);
+
+  return (
   <>
     {/* Inject scoped A4 CSS for the MDEditor preview pane */}
     <style>{MD_EDITOR_A4_CSS}</style>
@@ -42,6 +115,7 @@ export const ExamContentBoard = ({
       overflow-hidden: clips MDEditor chrome so only the editor scrolls internally
     */}
     <div
+      ref={boardRef}
       className="flex-1 min-h-0 overflow-hidden exam-board flex flex-col"
       data-color-mode="light"
     >
@@ -77,4 +151,5 @@ export const ExamContentBoard = ({
       </button>
     </div>
   </>
-);
+  );
+};

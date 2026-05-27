@@ -4,12 +4,9 @@ import {
   FileCheck, FilePlus, Shuffle, Upload, Download, FileCode,
   ShieldCheck, AlertCircle, Loader2, X, CheckCircle2, History, Trash2, LibraryBig, BookMarked
 } from 'lucide-react';
-import * as mammoth from 'mammoth';
-import * as pdfjsLib from 'pdfjs-dist';
 import { generateAnswerSheetHTML, generateAnswerKeyTemplateHTML } from '../../utils/answerSheetTemplate';
 import { ExamDocsModal } from '../features/testing/ExamDocsModal';
 import { ExamContentBoard } from '../features/testing/ExamContentBoard';
-import { exportExamToDocx } from '../../utils/examWordExport';
 
 const openInNewTab = (html: string) => {
   const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
@@ -23,8 +20,6 @@ import { examUtils } from '../../utils/examUtils';
 import { callAI, callAIStream, getActiveApiKey } from '../../lib/aiProviders';
 import { LatexModal } from '../modals/LatexModal';
 import { openInOverleaf } from '../../utils/exportUtils';
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
 interface TestingTabProps {
   data: AppData;
@@ -168,8 +163,9 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
 
   const handleDownloadWord = async () => {
     if (!testResult) return;
-    showToast('Đang tạo file Word .docx chuẩn A4...');
+    showToast('Đang tải bộ xuất Word và tạo file .docx chuẩn A4...');
     try {
+      const { exportExamToDocx } = await import('../../utils/examWordExport');
       await exportExamToDocx(testResult, `De_thi_${Date.now()}`);
       showToast('Đã tải file Word .docx chuẩn A4!', 'success');
     } catch (e) {
@@ -202,6 +198,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
   const extractTextFromFile = async (file: File): Promise<string> => {
     const extension = file.name.split('.').pop()?.toLowerCase();
     if (extension === 'docx') {
+      const mammoth = await import('mammoth');
       const arrayBuffer = await file.arrayBuffer();
       const result = await mammoth.convertToHtml(
         { arrayBuffer },
@@ -218,6 +215,8 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
       return htmlWithExamFigures;
     }
     if (extension === 'pdf') {
+      const pdfjsLib = await import('pdfjs-dist');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       let fullText = '';

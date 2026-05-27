@@ -51,7 +51,8 @@ TRƯỜNG THPT ...                   |  NĂM HỌC 20XX - 20XX
 
 **ĐÁNH SỐ VÀ TRÌNH BÀY:**
 - Đánh số: "Câu 1.", "Câu 2."... (có dấu chấm, in đậm).
-- MCQ 4 phương án: mỗi phương án một dòng, bắt đầu "A. ", "B. ", "C. ", "D. ".
+- MCQ 4 phương án: mỗi phương án một dòng liên tiếp, bắt đầu đúng "A. ", "B. ", "C. ", "D. "; không chèn bullet/list trước phương án. Hệ thống preview sẽ tự chia 4/2/1 cột theo độ dài đáp án.
+- Nếu muốn chỉ định layout thủ công, có thể dùng HTML: <div class="options-grid cols-4"><div><span class="option-label">A.</span> ...</div>...</div> cho đáp án ngắn; đổi thành cols-2 hoặc cols-1 khi đáp án dài/có công thức.
 - Đúng/Sai 4 ý: mỗi ý một dòng, bắt đầu "a) ", "b) ", "c) ", "d) ".
 - Trả lời ngắn: để khoảng trống "……………" cuối câu hoặc ghi rõ yêu cầu tính toán.
 - Tự luận: mỗi câu một đoạn, ghi rõ số điểm ở đầu câu, VD: "**Câu 1** (2,0 điểm). ..."
@@ -108,6 +109,7 @@ QUY TẮC NỘI DUNG:
 - Công thức toán học: dùng LaTeX inline $...$ và display $$...$$, KHÔNG dùng ký hiệu khác.
 - Ngôn ngữ: tiếng Việt chuẩn, không lỗi chính tả.
 - Độ khó: phân bổ đúng theo ma trận hoặc cân đối nếu không có ma trận.
+- Với trắc nghiệm A/B/C/D, luôn đặt 4 dòng phương án liên tiếp theo đúng mẫu "A. ...", "B. ...", "C. ...", "D. ..." để preview tự chia cột thông minh; không dùng bullet/list cho 4 phương án.
 - Với câu hỏi hình học không gian, đồ thị hàm số hoặc bảng biến thiên, hãy tự tính toán tọa độ và vẽ mã vector SVG chuẩn xác chèn trực tiếp vào đề trong <div class="exam-figure">...</div>.
 - Quy ước SVG: dùng nét liền cho cạnh/đường thấy; dùng stroke-dasharray="4" cho cạnh khuất/đường phụ; với bảng biến thiên cần vẽ hàng dấu, mũi tên tăng/giảm và nhãn cực trị rõ ràng.
 - SVG phải có attribute xmlns="http://www.w3.org/2000/svg" và width, height, viewBox; không phụ thuộc script ngoài, không dùng ảnh remote.

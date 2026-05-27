@@ -215,6 +215,14 @@ export const MD_EDITOR_A4_CSS = `
   .exam-board .w-md-editor-preview .wmde-markdown .options-grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
   .exam-board .w-md-editor-preview .wmde-markdown .options-grid.cols-1 { grid-template-columns: 1fr !important; }
 
+  .exam-board .w-md-editor-preview .wmde-markdown .options-grid .exam-option-item,
+  .exam-board .w-md-editor-preview .wmde-markdown .options-grid > p,
+  .exam-board .w-md-editor-preview .wmde-markdown .options-grid > div {
+    margin: 0 !important;
+    min-width: 0 !important;
+    line-height: 1.35 !important;
+  }
+
   .exam-board .w-md-editor-preview .wmde-markdown .option-label {
     font-weight: 700 !important;
     margin-right: 4px !important;
