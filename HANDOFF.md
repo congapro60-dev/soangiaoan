@@ -4,7 +4,7 @@
 **Repo chính**: `soangiaoan`
 **Branch hiện tại**: `main`
 **Remote GitHub**: `https://github.com/congapro60-dev/soangiaoan`
-**HEAD/local/origin-main hiện tại**: `5786d3a0615168a1cef00db32810819886476bd7`
+**HEAD/local/origin-main hiện tại sau batch QA ưu tiên**: `770bb960482db965cf0c44d414df27b1b6082f1e` (code); commit docs HANDOFF có thể mới hơn ngay sau đó.
 **Production URL đúng để QA UI**: `https://giaoandewey.vercel.app`
 **Commit Sprint D đã merge main**: `e7b609c92b80c80227ef4853053ea9723bdab931 Merge sprint D lesson builder UI`
 **Commit Sprint D feature**: `8d229eb75b823b9edfb4262c84ee68abbd5821cd feat(adaptive): Sprint D — Lesson Builder UI + Firestore persistence`
@@ -18,14 +18,14 @@
 
 ## 0. Trạng thái mới nhất cho Claude Code / Antigravity QA — 2026-05-27
 
-> Đây là nguồn sự thật mới nhất. Local `main` và `origin/main` hiện cùng trỏ tới commit `5786d3a0615168a1cef00db32810819886476bd7`. Không dùng báo cáo QA dựa trên commit cũ `64edb78` để kết luận lỗi vẫn còn nếu chưa retest lại trên commit mới nhất.
+> Đây là nguồn sự thật mới nhất. Batch sửa lỗi QA ưu tiên đã hoàn tất ở commit code `770bb960482db965cf0c44d414df27b1b6082f1e` và đã pass typecheck/test/build. Không dùng báo cáo QA dựa trên commit cũ `64edb78` hoặc trước Phase 2C để kết luận lỗi vẫn còn nếu chưa retest lại trên commit mới nhất.
 
 ### 0.1 Repo, branch, commit, domain phải dùng khi QA
 
 ```txt
 Repo GitHub: https://github.com/congapro60-dev/soangiaoan
 Branch bắt buộc: main
-Commit mới nhất đã push: 5786d3a0615168a1cef00db32810819886476bd7
+Commit code QA fixes mới nhất: 770bb960482db965cf0c44d414df27b1b6082f1e
 Production URL đúng: https://giaoandewey.vercel.app
 Domain sai/stale không được dùng: https://giaooandewey.vercel.app
 Firebase project rules đã deploy: smartplan-ai-14200
@@ -34,6 +34,8 @@ Firebase project rules đã deploy: smartplan-ai-14200
 ### 0.2 Các commit sau báo cáo QA cũ `64edb78`
 
 ```txt
+770bb96 fix: address priority QA findings
+5429a2d docs: update handoff after phase 2c
 5786d3a fix: harden adaptive progress writes
 c26083e docs: update handoff after phase 2b
 9d388c5 fix: harden exam submissions rules
@@ -49,7 +51,7 @@ cde569e feat: refactor exam paper import export workflow
 
 ### 0.3 Mapping báo cáo Antigravity cũ sang trạng thái hiện tại
 
-Báo cáo Antigravity cũ tại `QA_REPORT.md` từng test trên commit `64edb78`; báo cáo retest mới đã PASS trên commit `b51d796`. Nếu QA lại sau Phase 2C, phải dùng commit `5786d3a` hoặc mới hơn:
+Báo cáo Antigravity cũ tại `QA_REPORT.md` từng test trên commit `64edb78`; báo cáo retest mới đã PASS trên commit `b51d796`. Nếu QA lại sau batch QA fixes, phải dùng commit `770bb96` hoặc mới hơn:
 
 1. Stale closure `dewey:complete`: đã sửa ở commit `6ce0f1f` trong `src/pages/AdaptiveStudentPortalPage.tsx` bằng `useCallback` và `useEffect` phụ thuộc `[handleDeweyComplete]`.
 2. `fallbackEvents` bị chặn unauthenticated: đã sửa trong `firestore.rules` ở commit `22d568b`; Phase 2C harden tiếp ở commit `5786d3a` bằng active portal check, studentId pattern, enum `errorCode`, timestamp/source constraints và anonymous-only create. Rules đã deploy lên Firebase project `smartplan-ai-14200`.
@@ -58,17 +60,21 @@ Báo cáo Antigravity cũ tại `QA_REPORT.md` từng test trên commit `64edb78
 5. Word export fake `.doc`: đã thay bằng `.docx` thật ở commit `cde569e` qua `src/utils/examWordExport.ts`.
 6. Mammoth import mất ảnh: đã sửa ở commit `cde569e` bằng `mammoth.convertToHtml()` và inline image base64.
 
-### 0.4 Phase 2A/2B/2C đã hoàn tất trong phiên 2026-05-27
+### 0.4 Phase 2A/2B/2C và batch QA fixes đã hoàn tất trong phiên 2026-05-27
 
 - Phase 2A commit `311382b`: thêm smart answer columns trong preview đề thi và lazy-load các module export/import nặng (`examWordExport`, `mammoth`, `pdfjs-dist`). Đã verify `tsc`, API `tsc`, tests, build; build còn warning chunk lớn.
 - Phase 2B commit `9d388c5`: harden `examSubmissions` trong `firestore.rules`, thêm `createSubmissionId()`, `createSubmissionNonce()`, field `clientNonce`, và deploy rules thành công lên Firebase project `smartplan-ai-14200`.
 - Phase 2C commit `5786d3a`: harden adaptive unauthenticated writes cho `adaptiveSessionProgress`, `studentLearningProfiles`, `fallbackEvents`; thêm GET profile qua `/api/adaptive-progress`; thêm validation shape/identity trong API POST; deploy rules thành công lên Firebase project `smartplan-ai-14200`.
+- QA fixes commit `770bb96`: xử lý các finding ưu tiên của Antigravity gồm cancel bulk reset loading/ignore result, localStorage chỉ cache nhẹ và bắt quota error, fetch Firestore từng collection có fallback riêng, fix stale closure `updateTemplate` và `deleteFile`, giới hạn context AI Tutor, ErrorBoundary reload thật.
+- Verification sau QA fixes: `npx tsc --noEmit`, `npx tsc --noEmit -p tsconfig.api.json`, `npm run test -- --run` (5 files/21 tests pass), `npm run build` đều pass. Build vẫn còn warning chunk lớn hiện hữu.
 
 ### 0.5 Tồn đọng thực sự cần QA/thiết kế tiếp
 
 - Bundle Vite vẫn có warning chunk lớn; nên code-splitting tiếp các module nặng như editor/KaTeX/PDF export/app shell.
 - SVG/LaTeX khi export Word vẫn cần chiến lược rasterize/OOXML tốt hơn.
-- Cần Antigravity retest tập trung Phase 2A/2B/2C trên commit `5786d3a` hoặc mới hơn trước khi mở tiếp thay đổi lớn.
+- Full AbortController cho các AI provider chưa làm trong batch này vì cần đổi chữ ký `callAI`/`callAIStream` và các provider; hiện cancel bulk đã reset UI ngay và bỏ qua kết quả sau khi hủy.
+- `showToast` vẫn còn type `any` ở nhiều hook/component; đây là type-safety debt, không phải runtime blocker.
+- Cần Antigravity retest tập trung Phase 2A/2B/2C và batch QA fixes trên commit `770bb96` hoặc mới hơn trước khi mở tiếp thay đổi lớn.
 
 ### 0.6 Prompt chuẩn mới để giao Antigravity retest
 
@@ -78,7 +84,7 @@ Bạn hãy QA lại web soangiaoan trên trạng thái mới nhất, KHÔNG dùn
 Repo/branch/commit bắt buộc:
 - Repo GitHub: https://github.com/congapro60-dev/soangiaoan
 - Branch: main
-- Commit cần kiểm tra: 5786d3a0615168a1cef00db32810819886476bd7 hoặc mới hơn trên origin/main
+- Commit cần kiểm tra: 770bb960482db965cf0c44d414df27b1b6082f1e hoặc mới hơn trên origin/main
 - File bắt buộc đọc đầu tiên: HANDOFF.md, mục “Trạng thái mới nhất cho Claude Code / Antigravity QA — 2026-05-27”
 
 Web/UI bắt buộc mở để kiểm thử:
@@ -107,7 +113,7 @@ Yêu cầu kiểm thử:
    - Bước tái hiện.
    - Console/Network evidence nếu có.
    - File/dòng nghi ngờ nếu FAIL.
-5. Không báo lại lỗi đã fix nếu chưa retest trên commit 5786d3a hoặc mới hơn.
+5. Không báo lại lỗi đã fix nếu chưa retest trên commit 770bb96 hoặc mới hơn.
 6. Retest thêm Phase 2A/2B/2C:
    - Smart answer columns A/B/C/D trong preview đề thi, bao gồm đáp án ngắn/dài/có công thức.
    - Lazy-load Word/DOCX/PDF import-export không phá chức năng.
@@ -120,9 +126,17 @@ Yêu cầu kiểm thử:
    - Student portal hoàn tất bài vẫn lưu được qua API Admin; nếu API lỗi, fallback client write chỉ ghi được khi `teacherId`, `lessonId`, `studentCode`, `studentId`, `progressId` khớp bài đang bật.
    - Anonymous read trực tiếp `studentLearningProfiles/{studentId}` bị deny; giáo viên owner vẫn đọc dashboard được.
    - `fallbackEvents` chỉ cho anonymous create với active portal, `studentId` pattern đúng, `errorCode` thuộc enum, `source == student_portal`; không update/delete được.
-8. Các tồn đọng nên tập trung đánh giá tiếp:
+8. Retest thêm batch QA fixes `770bb96`:
+   - Bấm hủy khi soạn hàng loạt: loading phải tắt ngay; kết quả AI trả về sau hủy không được tự thêm vào danh sách.
+   - localStorage `smart_lesson_plan_data` chỉ còn cache nhẹ (`settings`, `authorName`), không còn ghi toàn bộ giáo án/templates/sessions mỗi giây.
+   - Khi một collection Firestore lỗi trong quá trình load cloud data, các collection khác vẫn tiếp tục load/fallback.
+   - Cập nhật template/file template không bị ghi cloud dựa trên state cũ.
+   - AI Tutor với giáo án rất dài không nhồi toàn bộ context; prompt có đoạn báo context đã rút gọn.
+   - ErrorBoundary nút “Tải lại ứng dụng” phải reload trang thật.
+9. Các tồn đọng nên tập trung đánh giá tiếp:
    - Bundle size/code-splitting.
    - SVG/LaTeX trong Word export.
+   - Full AbortController cho AI requests nếu muốn hủy network thật.
 ```
 
 ---
