@@ -98,15 +98,61 @@ service cloud.firestore {
     }
 
     // Bài làm học sinh
-    //  - create: ai cũng tạo được (học sinh nặc danh)
-    //  - update: chỉ khi bài còn 'in_progress' (không sửa được sau khi nộp)
-    //  - read: chỉ giáo viên chủ đề đọc được
+    //  - create: học sinh nặc danh được tạo bài in_progress với id khó đoán do client sinh
+    //  - update: học sinh nặc danh chỉ được sửa bài khi còn in_progress và không đổi định danh bài/đề
+    //  - teacher: giáo viên chủ đề được đọc/chấm/cập nhật bài thuộc đề của mình
+    //  - read public: chỉ cho đọc bài đã nộp/chấm theo link kết quả có subId khó đoán; không list được nếu query có thể chứa in_progress
     match /examSubmissions/{subId} {
-      allow create: if request.resource.data.status == 'in_progress';
-      allow update: if resource.data.status == 'in_progress'
-                    && request.resource.data.examId == resource.data.examId;
-      allow read: if request.auth != null
-                  && request.auth.uid == get(/databases/$(database)/documents/exams/$(resource.data.examId)).data.teacherId;
+      function examDoc(examId) {
+        return get(/databases/$(database)/documents/exams/$(examId));
+      }
+      function isExamTeacher(examId) {
+        return request.auth != null && request.auth.uid == examDoc(examId).data.teacherId;
+      }
+      function keepsSubmissionIdentity() {
+        return request.resource.data.id == resource.data.id
+               && request.resource.data.examId == resource.data.examId
+               && request.resource.data.examCode == resource.data.examCode
+               && request.resource.data.studentName == resource.data.studentName
+               && request.resource.data.studentClass == resource.data.studentClass
+               && request.resource.data.startedAt == resource.data.startedAt
+               && request.resource.data.maxScore == resource.data.maxScore
+               && request.resource.data.clientNonce == resource.data.clientNonce;
+      }
+      function validStudentCreate() {
+        return request.auth == null
+               && request.resource.data.id == subId
+               && request.resource.data.status == 'in_progress'
+               && request.resource.data.examId is string
+               && request.resource.data.examCode is string
+               && request.resource.data.studentName is string
+               && request.resource.data.studentName.size() > 0
+               && request.resource.data.studentName.size() <= 120
+               && (!('studentClass' in request.resource.data) || request.resource.data.studentClass is string)
+               && request.resource.data.startedAt is string
+               && request.resource.data.answers is list
+               && request.resource.data.maxScore is number
+               && request.resource.data.tabSwitches is number
+               && request.resource.data.clientNonce is string
+               && request.resource.data.clientNonce.size() >= 24
+               && examDoc(request.resource.data.examId).data.isActive == true
+               && examDoc(request.resource.data.examId).data.code == request.resource.data.examCode;
+      }
+      function validStudentUpdate() {
+        return request.auth == null
+               && resource.data.status == 'in_progress'
+               && keepsSubmissionIdentity()
+               && request.resource.data.status in ['in_progress', 'submitted', 'graded']
+               && request.resource.data.answers is list
+               && (!('submittedAt' in request.resource.data) || request.resource.data.submittedAt is string)
+               && (!('totalScore' in request.resource.data) || request.resource.data.totalScore is number)
+               && (!('tabSwitches' in request.resource.data) || request.resource.data.tabSwitches is number);
+      }
+
+      allow create: if validStudentCreate();
+      allow update: if isExamTeacher(resource.data.examId) || validStudentUpdate();
+      allow read: if isExamTeacher(resource.data.examId) || resource.data.status in ['submitted', 'graded'];
+      allow delete: if isExamTeacher(resource.data.examId);
     }
 
     // Telemetry fallback — chỉ ghi schema tối thiểu đã redact PII; giáo viên owner đọc để theo dõi tỷ lệ lưu.

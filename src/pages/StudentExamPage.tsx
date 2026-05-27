@@ -8,7 +8,7 @@ import remarkGfm from 'remark-gfm';
 import 'katex/dist/katex.min.css';
 import { Clock, AlertTriangle, CheckCircle2, Loader2, Send, BookOpen } from 'lucide-react';
 import { Exam, ExamQuestion, ExamSubmission, StudentAnswer, QuestionType } from '../types';
-import { findExamByCode, createSubmission, updateSubmission } from '../hooks/useExams';
+import { findExamByCode, createSubmission, updateSubmission, createSubmissionId, createSubmissionNonce } from '../hooks/useExams';
 import { computeAutoScore, isCompoundTF, parseTFSub, ensureMathWrapped, getOptionCols } from '../utils/examScoring';
 
 type PageState = 'loading' | 'not_found' | 'intro' | 'taking' | 'submitting';
@@ -201,7 +201,7 @@ export const StudentExamPage = () => {
     setPageState('loading');
     try {
       const qs = exam.shuffleQuestions ? shuffle(exam.questions) : [...exam.questions];
-      const newId = `sub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const newId = createSubmissionId();
       const subId = await createSubmission({
         id: newId,
         examId: exam.id,
@@ -213,6 +213,7 @@ export const StudentExamPage = () => {
         answers: [],
         maxScore: exam.maxScore,
         tabSwitches: 0,
+        clientNonce: createSubmissionNonce(),
       });
       setSubmissionId(subId);
       submissionIdRef.current = subId;

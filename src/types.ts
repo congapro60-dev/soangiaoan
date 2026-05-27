@@ -141,6 +141,8 @@ export interface ExamSubmission {
   maxScore: number;
   status: 'in_progress' | 'submitted' | 'graded';
   tabSwitches?: number;
+  /** Unauthenticated student submissions are protected primarily by an unguessable document id. */
+  clientNonce?: string;
 }
 
 export type GradeLevel = 'cap2' | 'lop1011' | 'lop12';

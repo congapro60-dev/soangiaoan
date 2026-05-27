@@ -7,16 +7,29 @@ import { User } from 'firebase/auth';
 import { db } from '../lib/firebase';
 import { Exam, ExamSubmission } from '../types';
 
-const normalizeExam = (e: Exam): Exam => ({
-  proctorMode: 'off' as const,
-  showResultWhen: 'submit' as const,
-  hideLeaderboard: false,
-  tfScoringMode: 'all_or_nothing' as const,
-  allowReview: true,
-  shuffleQuestions: false,
-  maxAttempts: 0,
-  ...e,
-});
+const normalizeExam = (e: Exam): Exam => {
+  const {
+    proctorMode = 'off',
+    showResultWhen = 'submit',
+    hideLeaderboard = false,
+    tfScoringMode = 'all_or_nothing',
+    allowReview = true,
+    shuffleQuestions = false,
+    maxAttempts = 0,
+    ...rest
+  } = e;
+
+  return {
+    ...rest,
+    proctorMode,
+    showResultWhen,
+    hideLeaderboard,
+    tfScoringMode,
+    allowReview,
+    shuffleQuestions,
+    maxAttempts,
+  };
+};
 
 export const getSubmissions = async (examId: string): Promise<ExamSubmission[]> => {
   const q = query(collection(db, 'examSubmissions'), where('examId', '==', examId));
@@ -90,6 +103,31 @@ export const findExamByCode = async (code: string): Promise<Exam | null> => {
   const snap = await getDocs(q);
   if (snap.empty) return null;
   return normalizeExam(snap.docs[0].data() as Exam);
+};
+
+const fillSecureRandom = (random: Uint8Array): void => {
+  if (typeof globalThis.crypto !== 'undefined' && typeof globalThis.crypto.getRandomValues === 'function') {
+    globalThis.crypto.getRandomValues(random as Uint8Array<ArrayBuffer>);
+    return;
+  }
+  for (let index = 0; index < random.length; index += 1) {
+    random[index] = Math.floor(Math.random() * 256);
+  }
+};
+
+export const createSubmissionId = (): string => {
+  if (typeof globalThis.crypto !== 'undefined' && typeof globalThis.crypto.randomUUID === 'function') {
+    return `sub_${globalThis.crypto.randomUUID()}`;
+  }
+  const random = new Uint8Array(16);
+  fillSecureRandom(random);
+  return `sub_${Array.from(random, byte => byte.toString(16).padStart(2, '0')).join('')}`;
+};
+
+export const createSubmissionNonce = (): string => {
+  const random = new Uint8Array(18);
+  fillSecureRandom(random);
+  return Array.from(random, byte => byte.toString(16).padStart(2, '0')).join('');
 };
 
 export const createSubmission = async (submission: ExamSubmission): Promise<string> => {
