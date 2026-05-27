@@ -4,7 +4,7 @@
 **Repo chính**: `soangiaoan`
 **Branch hiện tại**: `main`
 **Remote GitHub**: `https://github.com/congapro60-dev/soangiaoan`
-**HEAD/local/origin-main hiện tại**: `22d568ba8d7486ecb84e171aadcf6d48251ef7f8`
+**HEAD/local/origin-main hiện tại**: `9d388c51db13a5e9f7e7fe1b3e237bfb8e736124`
 **Production URL đúng để QA UI**: `https://giaoandewey.vercel.app`
 **Commit Sprint D đã merge main**: `e7b609c92b80c80227ef4853053ea9723bdab931 Merge sprint D lesson builder UI`
 **Commit Sprint D feature**: `8d229eb75b823b9edfb4262c84ee68abbd5821cd feat(adaptive): Sprint D — Lesson Builder UI + Firestore persistence`
@@ -18,14 +18,14 @@
 
 ## 0. Trạng thái mới nhất cho Claude Code / Antigravity QA — 2026-05-27
 
-> Đây là nguồn sự thật mới nhất. Local `main` và `origin/main` hiện cùng trỏ tới commit `22d568ba8d7486ecb84e171aadcf6d48251ef7f8`. Không dùng báo cáo QA dựa trên commit cũ `64edb78` để kết luận lỗi vẫn còn nếu chưa retest lại trên commit mới nhất.
+> Đây là nguồn sự thật mới nhất. Local `main` và `origin/main` hiện cùng trỏ tới commit `9d388c51db13a5e9f7e7fe1b3e237bfb8e736124`. Không dùng báo cáo QA dựa trên commit cũ `64edb78` để kết luận lỗi vẫn còn nếu chưa retest lại trên commit mới nhất.
 
 ### 0.1 Repo, branch, commit, domain phải dùng khi QA
 
 ```txt
 Repo GitHub: https://github.com/congapro60-dev/soangiaoan
 Branch bắt buộc: main
-Commit mới nhất đã push: 22d568ba8d7486ecb84e171aadcf6d48251ef7f8
+Commit mới nhất đã push: 9d388c51db13a5e9f7e7fe1b3e237bfb8e736124
 Production URL đúng: https://giaoandewey.vercel.app
 Domain sai/stale không được dùng: https://giaooandewey.vercel.app
 Firebase project rules đã deploy: smartplan-ai-14200
@@ -34,6 +34,9 @@ Firebase project rules đã deploy: smartplan-ai-14200
 ### 0.2 Các commit sau báo cáo QA cũ `64edb78`
 
 ```txt
+9d388c5 fix: harden exam submissions rules
+311382b feat: add smart exam option columns and lazy export imports
+b51d796 docs: update handoff with latest QA baseline
 22d568b fix: fallbackEvents allow unauthenticated create, examSubmissions ownership check, wire health check
 6ce0f1f fix: resolve stale closure in dewey:complete message listener
 e268899 fix: multi-file upload + minor exam refactor polish (xmlns prompt, no-op cleanup)
@@ -44,24 +47,28 @@ cde569e feat: refactor exam paper import export workflow
 
 ### 0.3 Mapping báo cáo Antigravity cũ sang trạng thái hiện tại
 
-Báo cáo Antigravity tại `QA_REPORT.md` từng test trên commit `64edb78`, nên các lỗi dưới đây cần được retest trên commit `22d568b` trước khi kết luận còn tồn tại:
+Báo cáo Antigravity cũ tại `QA_REPORT.md` từng test trên commit `64edb78`; báo cáo retest mới đã PASS trên commit `b51d796`. Nếu QA lại sau Phase 2B, phải dùng commit `9d388c5` hoặc mới hơn:
 
 1. Stale closure `dewey:complete`: đã sửa ở commit `6ce0f1f` trong `src/pages/AdaptiveStudentPortalPage.tsx` bằng `useCallback` và `useEffect` phụ thuộc `[handleDeweyComplete]`.
 2. `fallbackEvents` bị chặn unauthenticated: đã sửa trong `firestore.rules` ở commit `22d568b`; rules đã deploy lên Firebase project `smartplan-ai-14200`.
-3. `examSubmissions` update risk: đã thêm guard không cho đổi `examId` ở commit `22d568b`. Vẫn nên hardening thêm bằng session token/API-only ownership nếu cần production-grade.
+3. `examSubmissions` update risk: đã thêm guard không cho đổi `examId` ở commit `22d568b`; Phase 2B đã harden tiếp ở commit `9d388c5` bằng immutable identity fields, active-exam validation, unguessable submission id, client nonce và teacher-owner update/read/delete rules. Rules đã deploy lên Firebase project `smartplan-ai-14200`.
 4. Health check Firebase Admin chưa gọi: đã wire gọi `verifyFirebaseAdminHealth()` khi giáo viên lưu/bật cổng học sinh ở commit `22d568b`.
 5. Word export fake `.doc`: đã thay bằng `.docx` thật ở commit `cde569e` qua `src/utils/examWordExport.ts`.
 6. Mammoth import mất ảnh: đã sửa ở commit `cde569e` bằng `mammoth.convertToHtml()` và inline image base64.
 
-### 0.4 Tồn đọng thực sự cần QA/thiết kế tiếp
+### 0.4 Phase 2A/2B đã hoàn tất trong phiên 2026-05-27
 
-- Bảo mật `examSubmissions` nên tăng cường bằng anonymous session token hoặc API-only update thay vì chỉ dựa vào rule chặn đổi `examId`.
+- Phase 2A commit `311382b`: thêm smart answer columns trong preview đề thi và lazy-load các module export/import nặng (`examWordExport`, `mammoth`, `pdfjs-dist`). Đã verify `tsc`, API `tsc`, tests, build; build còn warning chunk lớn.
+- Phase 2B commit `9d388c5`: harden `examSubmissions` trong `firestore.rules`, thêm `createSubmissionId()`, `createSubmissionNonce()`, field `clientNonce`, và deploy rules thành công lên Firebase project `smartplan-ai-14200`.
+
+### 0.5 Tồn đọng thực sự cần QA/thiết kế tiếp
+
 - Các fallback/adaptive client writes cho học sinh chưa đăng nhập cần threat-model thêm nếu mở production rộng.
-- Bundle Vite vẫn có warning chunk lớn; nên code-splitting các module nặng như DOCX/PDF/editor/KaTeX.
-- Smart answer columns cho A/B/C/D mới có CSS class `.cols-4`, `.cols-2`, `.cols-1`; chưa có structured renderer tự chọn số cột theo độ dài đáp án.
+- Bundle Vite vẫn có warning chunk lớn; nên code-splitting tiếp các module nặng như editor/KaTeX/PDF export/app shell.
 - SVG/LaTeX khi export Word vẫn cần chiến lược rasterize/OOXML tốt hơn.
+- Cần Antigravity retest tập trung Phase 2A/2B trên commit `9d388c5` hoặc mới hơn trước khi mở tiếp thay đổi lớn.
 
-### 0.5 Prompt chuẩn mới để giao Antigravity retest
+### 0.6 Prompt chuẩn mới để giao Antigravity retest
 
 ```txt
 Bạn hãy QA lại web soangiaoan trên trạng thái mới nhất, KHÔNG dùng báo cáo cũ trên commit 64edb78 để kết luận lỗi còn tồn tại.
@@ -69,7 +76,7 @@ Bạn hãy QA lại web soangiaoan trên trạng thái mới nhất, KHÔNG dùn
 Repo/branch/commit bắt buộc:
 - Repo GitHub: https://github.com/congapro60-dev/soangiaoan
 - Branch: main
-- Commit cần kiểm tra: 22d568ba8d7486ecb84e171aadcf6d48251ef7f8 hoặc mới hơn trên origin/main
+- Commit cần kiểm tra: 9d388c51db13a5e9f7e7fe1b3e237bfb8e736124 hoặc mới hơn trên origin/main
 - File bắt buộc đọc đầu tiên: HANDOFF.md, mục “Trạng thái mới nhất cho Claude Code / Antigravity QA — 2026-05-27”
 
 Web/UI bắt buộc mở để kiểm thử:
@@ -98,12 +105,17 @@ Yêu cầu kiểm thử:
    - Bước tái hiện.
    - Console/Network evidence nếu có.
    - File/dòng nghi ngờ nếu FAIL.
-5. Không báo lại lỗi đã fix nếu chưa retest trên commit 22d568b hoặc mới hơn.
-6. Các tồn đọng nên tập trung đánh giá tiếp:
-   - Hardening security cho examSubmissions bằng session token/API-only ownership.
+5. Không báo lại lỗi đã fix nếu chưa retest trên commit 9d388c5 hoặc mới hơn.
+6. Retest thêm Phase 2A/2B:
+   - Smart answer columns A/B/C/D trong preview đề thi, bao gồm đáp án ngắn/dài/có công thức.
+   - Lazy-load Word/DOCX/PDF import-export không phá chức năng.
+   - Anonymous student start/autosave/submit/result/review flow.
+   - Teacher dashboard list/chấm/cập nhật submission.
+   - Security regression: không đổi được examId/examCode/studentName/startedAt/maxScore/clientNonce của in_progress submission.
+   - Anonymous read in_progress submission bị deny; submitted/graded result by known subId vẫn load.
+7. Các tồn đọng nên tập trung đánh giá tiếp:
    - Risk của unauthenticated fallback/adaptive writes.
    - Bundle size/code-splitting.
-   - Smart answer columns cho A/B/C/D.
    - SVG/LaTeX trong Word export.
 ```
 
