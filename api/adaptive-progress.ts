@@ -50,8 +50,70 @@ const getAdminDb = () => {
 };
 
 const normalizeStudentCode = (value: unknown) => String(value || '').trim().toUpperCase().replace(/\s+/g, '-');
+const isNonEmptyString = (value: unknown, maxLength: number) => typeof value === 'string' && value.trim().length > 0 && value.length <= maxLength;
+const isValidLearningRoute = (value: unknown) => ['foundation', 'standard', 'challenge'].includes(String(value));
+const isValidProgressStatus = (value: unknown) => ['in_progress', 'needs_support', 'completed'].includes(String(value));
+
+const hasReasonableAdaptivePayloadShape = ({ progressRecord, profileRecord }: { progressRecord: any; profileRecord: any }) => (
+  isNonEmptyString(progressRecord?.lessonTitle, 300)
+  && isNonEmptyString(progressRecord?.studentName, 120)
+  && (progressRecord?.studentClass === undefined || typeof progressRecord.studentClass === 'string')
+  && isValidLearningRoute(progressRecord?.route)
+  && isValidProgressStatus(progressRecord?.status)
+  && progressRecord?.diagnosticAttempt && typeof progressRecord.diagnosticAttempt === 'object'
+  && Array.isArray(progressRecord?.quickCheckAttempts) && progressRecord.quickCheckAttempts.length <= 20
+  && Array.isArray(progressRecord?.objectiveStates) && progressRecord.objectiveStates.length <= 80
+  && typeof progressRecord?.remediationAttempts === 'number'
+  && isNonEmptyString(progressRecord?.startedAt, 40)
+  && isNonEmptyString(progressRecord?.updatedAt, 40)
+  && (progressRecord?.completedAt === undefined || isNonEmptyString(progressRecord.completedAt, 40))
+  && isNonEmptyString(profileRecord?.studentName, 120)
+  && (profileRecord?.studentClass === undefined || typeof profileRecord.studentClass === 'string')
+  && typeof profileRecord?.totalSessions === 'number'
+  && typeof profileRecord?.averageMastery === 'number'
+  && Array.isArray(profileRecord?.routeHistory) && profileRecord.routeHistory.length <= 20
+  && Array.isArray(profileRecord?.objectiveMemory) && profileRecord.objectiveMemory.length <= 80
+  && profileRecord?.misconceptionCounts && typeof profileRecord.misconceptionCounts === 'object' && !Array.isArray(profileRecord.misconceptionCounts)
+  && isNonEmptyString(profileRecord?.lastLessonId, 128)
+  && isNonEmptyString(profileRecord?.lastActiveAt, 40)
+  && isNonEmptyString(profileRecord?.createdAt, 40)
+  && isNonEmptyString(profileRecord?.updatedAt, 40)
+);
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method === 'GET') {
+    const teacherId = typeof req.query.teacherId === 'string' ? req.query.teacherId : '';
+    const studentId = typeof req.query.studentId === 'string' ? req.query.studentId : '';
+
+    if (!isNonEmptyString(teacherId, 128) || !isNonEmptyString(studentId, 256) || !studentId.startsWith(`${teacherId}_`)) {
+      return res.status(400).json({ error: 'Invalid adaptive profile lookup' });
+    }
+
+    try {
+      const db = getAdminDb();
+      const profileSnapshot = await db.collection('studentLearningProfiles').doc(studentId).get();
+      if (!profileSnapshot.exists) {
+        return res.status(200).json({ ok: true, profile: null });
+      }
+
+      const profile = profileSnapshot.data() || {};
+      if (profile.teacherId !== teacherId || profile.studentId !== studentId) {
+        return res.status(403).json({ error: 'Adaptive profile lookup denied' });
+      }
+
+      const lessonSnapshot = await db.collection('adaptiveLessons').doc(teacherId).get();
+      const lessonData = lessonSnapshot.data() || {};
+      if (!lessonSnapshot.exists || lessonData.portalEnabled !== true || lessonData.lesson?.id !== profile.lastLessonId) {
+        return res.status(403).json({ error: 'Student portal is not enabled for this profile' });
+      }
+
+      return res.status(200).json({ ok: true, profile });
+    } catch (err: any) {
+      console.error('Adaptive profile API failed:', err);
+      return res.status(500).json({ error: err?.message || 'Adaptive profile lookup failed' });
+    }
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -69,13 +131,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'Missing adaptive progress payload' });
   }
 
+  const normalizedStudentCode = normalizeStudentCode(progressRecord.studentCode);
+  const expectedStudentId = `${teacherId}_${normalizedStudentCode}`;
+  const expectedProgressId = `${teacherId}_${lessonId}_${normalizedStudentCode}`;
+
   if (
-    progressRecord.teacherId !== teacherId
+    !isNonEmptyString(teacherId, 128)
+    || !isNonEmptyString(lessonId, 128)
+    || !isNonEmptyString(normalizedStudentCode, 64)
+    || progressId !== expectedProgressId
+    || studentId !== expectedStudentId
+    || progressRecord.id !== progressId
+    || profileRecord.id !== studentId
+    || progressRecord.teacherId !== teacherId
     || progressRecord.lessonId !== lessonId
     || progressRecord.studentId !== studentId
     || profileRecord.teacherId !== teacherId
     || profileRecord.studentId !== studentId
-    || normalizeStudentCode(progressRecord.studentCode) !== normalizeStudentCode(profileRecord.studentCode)
+    || profileRecord.lastLessonId !== lessonId
+    || normalizeStudentCode(profileRecord.studentCode) !== normalizedStudentCode
+    || !hasReasonableAdaptivePayloadShape({ progressRecord, profileRecord })
   ) {
     return res.status(400).json({ error: 'Invalid adaptive progress payload' });
   }

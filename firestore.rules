@@ -49,30 +49,129 @@ service cloud.firestore {
                     && request.auth.uid == resource.data.teacherId;
     }
 
-    // Tiến trình từng tiết học phân hoá — học sinh ghi theo mã học sinh; giáo viên owner quản trị được
+    // Tiến trình từng tiết học phân hoá — ưu tiên API Admin; client nặc danh chỉ là kênh fallback có kiểm tra định danh/link bài học.
     match /adaptiveSessionProgress/{progressId} {
+      function adaptiveLessonDoc(teacherId) {
+        return get(/databases/$(database)/documents/adaptiveLessons/$(teacherId));
+      }
+      function activePortalForLesson(teacherId, lessonId) {
+        return adaptiveLessonDoc(teacherId).data.portalEnabled == true
+               && adaptiveLessonDoc(teacherId).data.lesson.id == lessonId;
+      }
+      function validProgressIdentity(data) {
+        return data.id == progressId
+               && data.teacherId is string
+               && data.teacherId.size() > 0
+               && data.teacherId.size() <= 128
+               && data.lessonId is string
+               && data.lessonId.size() > 0
+               && data.lessonId.size() <= 128
+               && data.studentId is string
+               && data.studentId.size() > 0
+               && data.studentId.size() <= 256
+               && data.studentCode is string
+               && data.studentCode.size() > 0
+               && data.studentCode.size() <= 64
+               && data.studentId == data.teacherId + '_' + data.studentCode
+               && progressId == data.teacherId + '_' + data.lessonId + '_' + data.studentCode;
+      }
+      function validProgressShape(data) {
+        return data.lessonTitle is string
+               && data.lessonTitle.size() <= 300
+               && data.studentName is string
+               && data.studentName.size() > 0
+               && data.studentName.size() <= 120
+               && (!('studentClass' in data) || data.studentClass is string)
+               && data.route in ['foundation', 'standard', 'challenge']
+               && data.status in ['in_progress', 'needs_support', 'completed']
+               && data.diagnosticAttempt is map
+               && data.quickCheckAttempts is list
+               && data.quickCheckAttempts.size() <= 20
+               && data.objectiveStates is list
+               && data.objectiveStates.size() <= 80
+               && data.remediationAttempts is number
+               && (!('completedUnitIds' in data) || data.completedUnitIds is list)
+               && (!('uploadedImageUrls' in data) || data.uploadedImageUrls is list)
+               && data.startedAt is string
+               && data.updatedAt is string
+               && (!('completedAt' in data) || data.completedAt is string);
+      }
+      function validAnonymousProgressWrite(data) {
+        return request.auth == null
+               && validProgressIdentity(data)
+               && validProgressShape(data)
+               && activePortalForLesson(data.teacherId, data.lessonId);
+      }
+
       allow read: if request.auth != null
                   && request.auth.uid == resource.data.teacherId;
-      allow create: if request.resource.data.teacherId is string
-                    && request.resource.data.studentId is string
-                    && request.resource.data.studentCode is string;
-      allow update: if request.resource.data.teacherId == resource.data.teacherId
-                    && request.resource.data.studentId == resource.data.studentId
-                    && request.resource.data.studentCode == resource.data.studentCode;
+      allow create: if validAnonymousProgressWrite(request.resource.data);
+      allow update: if (request.auth != null && request.auth.uid == resource.data.teacherId)
+                    || (validAnonymousProgressWrite(request.resource.data)
+                        && request.resource.data.teacherId == resource.data.teacherId
+                        && request.resource.data.lessonId == resource.data.lessonId
+                        && request.resource.data.studentId == resource.data.studentId
+                        && request.resource.data.studentCode == resource.data.studentCode);
       allow delete: if request.auth != null
                     && request.auth.uid == resource.data.teacherId;
     }
 
-    // Hồ sơ học tập dài hạn — MVP cho phép học sinh đọc/ghi bằng link + mã học sinh; bản sau sẽ siết bằng tài khoản học sinh
+    // Hồ sơ học tập dài hạn — chỉ giáo viên đọc; học sinh ghi qua API Admin, client nặc danh chỉ fallback có kiểm tra định danh/link bài học.
     match /studentLearningProfiles/{studentId} {
+      function adaptiveLessonDoc(teacherId) {
+        return get(/databases/$(database)/documents/adaptiveLessons/$(teacherId));
+      }
+      function activePortalForLastLesson(data) {
+        return data.lastLessonId is string
+               && adaptiveLessonDoc(data.teacherId).data.portalEnabled == true
+               && adaptiveLessonDoc(data.teacherId).data.lesson.id == data.lastLessonId;
+      }
+      function validProfileIdentity(data) {
+        return data.id == studentId
+               && data.teacherId is string
+               && data.teacherId.size() > 0
+               && data.teacherId.size() <= 128
+               && data.studentId == studentId
+               && data.studentId is string
+               && data.studentId.size() > 0
+               && data.studentId.size() <= 256
+               && data.studentCode is string
+               && data.studentCode.size() > 0
+               && data.studentCode.size() <= 64
+               && studentId == data.teacherId + '_' + data.studentCode;
+      }
+      function validProfileShape(data) {
+        return data.studentName is string
+               && data.studentName.size() > 0
+               && data.studentName.size() <= 120
+               && (!('studentClass' in data) || data.studentClass is string)
+               && data.totalSessions is number
+               && data.averageMastery is number
+               && data.routeHistory is list
+               && data.routeHistory.size() <= 20
+               && data.objectiveMemory is list
+               && data.objectiveMemory.size() <= 80
+               && data.misconceptionCounts is map
+               && (!('lastLessonTitle' in data) || data.lastLessonTitle is string)
+               && data.lastActiveAt is string
+               && data.createdAt is string
+               && data.updatedAt is string;
+      }
+      function validAnonymousProfileWrite(data) {
+        return request.auth == null
+               && validProfileIdentity(data)
+               && validProfileShape(data)
+               && activePortalForLastLesson(data);
+      }
+
       allow read: if request.auth != null
-                  || resource.data.studentId == studentId;
-      allow create: if request.resource.data.teacherId is string
-                    && request.resource.data.studentId == studentId
-                    && request.resource.data.studentCode is string;
-      allow update: if request.resource.data.teacherId == resource.data.teacherId
-                    && request.resource.data.studentId == resource.data.studentId
-                    && request.resource.data.studentCode == resource.data.studentCode;
+                  && request.auth.uid == resource.data.teacherId;
+      allow create: if validAnonymousProfileWrite(request.resource.data);
+      allow update: if (request.auth != null && request.auth.uid == resource.data.teacherId)
+                    || (validAnonymousProfileWrite(request.resource.data)
+                        && request.resource.data.teacherId == resource.data.teacherId
+                        && request.resource.data.studentId == resource.data.studentId
+                        && request.resource.data.studentCode == resource.data.studentCode);
       allow delete: if request.auth != null
                     && request.auth.uid == resource.data.teacherId;
     }
@@ -157,19 +256,29 @@ service cloud.firestore {
 
     // Telemetry fallback — chỉ ghi schema tối thiểu đã redact PII; giáo viên owner đọc để theo dõi tỷ lệ lưu.
     match /fallbackEvents/{eventId} {
-      allow create: if request.resource.data.keys().hasOnly(
+      function activePortalForTelemetry() {
+        return get(/databases/$(database)/documents/adaptiveLessons/$(request.resource.data.teacherId)).data.portalEnabled == true
+               && get(/databases/$(database)/documents/adaptiveLessons/$(request.resource.data.teacherId)).data.lesson.id == request.resource.data.lessonId;
+      }
+      allow create: if request.auth == null
+                    && request.resource.data.keys().hasOnly(
                       ['teacherId', 'studentId', 'lessonId', 'stage', 'timestamp', 'errorCode', 'source'])
                     && request.resource.data.teacherId is string
+                    && request.resource.data.teacherId.size() > 0
                     && request.resource.data.teacherId.size() <= 128
                     && request.resource.data.studentId is string
-                    && request.resource.data.studentId.size() <= 128
+                    && request.resource.data.studentId.size() > 0
+                    && request.resource.data.studentId.size() <= 256
                     && request.resource.data.lessonId is string
+                    && request.resource.data.lessonId.size() > 0
                     && request.resource.data.lessonId.size() <= 128
+                    && request.resource.data.studentId.matches(request.resource.data.teacherId + '_[^/]{1,64}')
                     && request.resource.data.stage in ['api', 'firestore', 'localStorage']
                     && request.resource.data.timestamp is string
-                    && request.resource.data.errorCode is string
-                    && request.resource.data.errorCode.size() <= 64
-                    && request.resource.data.source == 'student_portal';
+                    && request.resource.data.timestamp.size() <= 40
+                    && request.resource.data.errorCode in ['network', 'permission_denied', 'quota_exceeded', 'not_found', 'invalid_argument', 'unauthenticated', 'unknown']
+                    && request.resource.data.source == 'student_portal'
+                    && activePortalForTelemetry();
       allow read: if request.auth != null
                   && request.auth.uid == resource.data.teacherId;
       allow update, delete: if false;

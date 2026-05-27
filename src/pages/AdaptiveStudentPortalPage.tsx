@@ -418,12 +418,19 @@ export const AdaptiveStudentPortalPage = () => {
     setNotice(null);
     const studentId = buildStudentId(activeTeacherId, studentCode);
 
+    if (!activeTeacherId) return;
+
     try {
-      const snapshot = await getDoc(doc(db, 'studentLearningProfiles', studentId));
-      if (snapshot.exists()) setProfile(snapshot.data() as StudentLearningProfile);
+      const response = await fetch(`/api/adaptive-progress?teacherId=${encodeURIComponent(activeTeacherId)}&studentId=${encodeURIComponent(studentId)}`);
+      if (response.ok) {
+        const data = await response.json().catch(() => null);
+        setProfile(data?.profile || null);
+      } else {
+        setProfile(null);
+      }
       setStage('diagnostic');
     } catch (err) {
-      console.warn('Chưa có hồ sơ học sinh hoặc cổng không được quyền đọc hồ sơ cũ', err);
+      console.warn('Chưa tải được hồ sơ học sinh qua API bảo mật', err);
       setProfile(null);
       setStage('diagnostic');
     }
