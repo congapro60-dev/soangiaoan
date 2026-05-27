@@ -1,8 +1,11 @@
 # HANDOFF — Soạn giáo án / học phân hoá
 
-**Cập nhật**: 2026-05-25
+**Cập nhật**: 2026-05-27
 **Repo chính**: `soangiaoan`
 **Branch hiện tại**: `main`
+**Remote GitHub**: `https://github.com/congapro60-dev/soangiaoan`
+**HEAD/local/origin-main hiện tại**: `22d568ba8d7486ecb84e171aadcf6d48251ef7f8`
+**Production URL đúng để QA UI**: `https://giaoandewey.vercel.app`
 **Commit Sprint D đã merge main**: `e7b609c92b80c80227ef4853053ea9723bdab931 Merge sprint D lesson builder UI`
 **Commit Sprint D feature**: `8d229eb75b823b9edfb4262c84ee68abbd5821cd feat(adaptive): Sprint D — Lesson Builder UI + Firestore persistence`
 **Commit Sprint C đã merge main**: `96030b3 Merge sprint C cover image upload`
@@ -13,9 +16,102 @@
 
 ---
 
-## 0. Refactor Phase 1 chức năng “Soạn đề kiểm tra” — 2026-05-25
+## 0. Trạng thái mới nhất cho Claude Code / Antigravity QA — 2026-05-27
 
-> Mục này là cập nhật mới nhất cho Claude Code / Antigravity nghiên cứu tiếp. Thay đổi đang ở local workspace `c:/Users/ADMIN/Desktop/edu-lesson-automation/soangiaoan`, branch `main`, **chưa commit/chưa push** tại thời điểm ghi handoff này.
+> Đây là nguồn sự thật mới nhất. Local `main` và `origin/main` hiện cùng trỏ tới commit `22d568ba8d7486ecb84e171aadcf6d48251ef7f8`. Không dùng báo cáo QA dựa trên commit cũ `64edb78` để kết luận lỗi vẫn còn nếu chưa retest lại trên commit mới nhất.
+
+### 0.1 Repo, branch, commit, domain phải dùng khi QA
+
+```txt
+Repo GitHub: https://github.com/congapro60-dev/soangiaoan
+Branch bắt buộc: main
+Commit mới nhất đã push: 22d568ba8d7486ecb84e171aadcf6d48251ef7f8
+Production URL đúng: https://giaoandewey.vercel.app
+Domain sai/stale không được dùng: https://giaooandewey.vercel.app
+Firebase project rules đã deploy: smartplan-ai-14200
+```
+
+### 0.2 Các commit sau báo cáo QA cũ `64edb78`
+
+```txt
+22d568b fix: fallbackEvents allow unauthenticated create, examSubmissions ownership check, wire health check
+6ce0f1f fix: resolve stale closure in dewey:complete message listener
+e268899 fix: multi-file upload + minor exam refactor polish (xmlns prompt, no-op cleanup)
+cde569e feat: refactor exam paper import export workflow
+7dd7a97 feat: add universal api token tracker
+64edb78 chore: fix gitignore - loại chrome-profile-qa, soangiaoan, bot_profile khỏi git tracking
+```
+
+### 0.3 Mapping báo cáo Antigravity cũ sang trạng thái hiện tại
+
+Báo cáo Antigravity tại `QA_REPORT.md` từng test trên commit `64edb78`, nên các lỗi dưới đây cần được retest trên commit `22d568b` trước khi kết luận còn tồn tại:
+
+1. Stale closure `dewey:complete`: đã sửa ở commit `6ce0f1f` trong `src/pages/AdaptiveStudentPortalPage.tsx` bằng `useCallback` và `useEffect` phụ thuộc `[handleDeweyComplete]`.
+2. `fallbackEvents` bị chặn unauthenticated: đã sửa trong `firestore.rules` ở commit `22d568b`; rules đã deploy lên Firebase project `smartplan-ai-14200`.
+3. `examSubmissions` update risk: đã thêm guard không cho đổi `examId` ở commit `22d568b`. Vẫn nên hardening thêm bằng session token/API-only ownership nếu cần production-grade.
+4. Health check Firebase Admin chưa gọi: đã wire gọi `verifyFirebaseAdminHealth()` khi giáo viên lưu/bật cổng học sinh ở commit `22d568b`.
+5. Word export fake `.doc`: đã thay bằng `.docx` thật ở commit `cde569e` qua `src/utils/examWordExport.ts`.
+6. Mammoth import mất ảnh: đã sửa ở commit `cde569e` bằng `mammoth.convertToHtml()` và inline image base64.
+
+### 0.4 Tồn đọng thực sự cần QA/thiết kế tiếp
+
+- Bảo mật `examSubmissions` nên tăng cường bằng anonymous session token hoặc API-only update thay vì chỉ dựa vào rule chặn đổi `examId`.
+- Các fallback/adaptive client writes cho học sinh chưa đăng nhập cần threat-model thêm nếu mở production rộng.
+- Bundle Vite vẫn có warning chunk lớn; nên code-splitting các module nặng như DOCX/PDF/editor/KaTeX.
+- Smart answer columns cho A/B/C/D mới có CSS class `.cols-4`, `.cols-2`, `.cols-1`; chưa có structured renderer tự chọn số cột theo độ dài đáp án.
+- SVG/LaTeX khi export Word vẫn cần chiến lược rasterize/OOXML tốt hơn.
+
+### 0.5 Prompt chuẩn mới để giao Antigravity retest
+
+```txt
+Bạn hãy QA lại web soangiaoan trên trạng thái mới nhất, KHÔNG dùng báo cáo cũ trên commit 64edb78 để kết luận lỗi còn tồn tại.
+
+Repo/branch/commit bắt buộc:
+- Repo GitHub: https://github.com/congapro60-dev/soangiaoan
+- Branch: main
+- Commit cần kiểm tra: 22d568ba8d7486ecb84e171aadcf6d48251ef7f8 hoặc mới hơn trên origin/main
+- File bắt buộc đọc đầu tiên: HANDOFF.md, mục “Trạng thái mới nhất cho Claude Code / Antigravity QA — 2026-05-27”
+
+Web/UI bắt buộc mở để kiểm thử:
+- Production URL đúng: https://giaoandewey.vercel.app
+- Không dùng domain sai/stale: https://giaooandewey.vercel.app
+- Nếu chạy local thì dùng repo trên branch main, npm install nếu cần, npm run dev, sau đó mở URL local do Vite in ra. Tuy nhiên báo cáo phải ghi rõ đang test local hay production.
+
+Yêu cầu kiểm thử:
+1. Chạy và ghi kết quả:
+   - npx tsc --noEmit
+   - npx tsc --noEmit -p tsconfig.api.json
+   - npm run test -- --run
+   - npm run build
+2. Mở web thật bằng browser, bật DevTools Console/Network, kiểm tra UI chứ không chỉ đọc code.
+3. Retest riêng các lỗi cũ trên commit 64edb78:
+   - Dewey iframe completion/stale closure trong cổng học sinh.
+   - fallbackEvents unauthenticated create.
+   - examSubmissions update guard, đặc biệt không cho đổi examId.
+   - Health check Firebase Admin khi giáo viên lưu/bật cổng học sinh.
+   - Xuất đề thi ra Word .docx thật.
+   - Import DOCX có ảnh minh hoạ không bị mất ảnh.
+4. Với mỗi lỗi, phải ghi rõ:
+   - PASS/FAIL/NOT TESTED.
+   - Commit đang test.
+   - URL đang test.
+   - Bước tái hiện.
+   - Console/Network evidence nếu có.
+   - File/dòng nghi ngờ nếu FAIL.
+5. Không báo lại lỗi đã fix nếu chưa retest trên commit 22d568b hoặc mới hơn.
+6. Các tồn đọng nên tập trung đánh giá tiếp:
+   - Hardening security cho examSubmissions bằng session token/API-only ownership.
+   - Risk của unauthenticated fallback/adaptive writes.
+   - Bundle size/code-splitting.
+   - Smart answer columns cho A/B/C/D.
+   - SVG/LaTeX trong Word export.
+```
+
+---
+
+## 1. Refactor Phase 1 chức năng “Soạn đề kiểm tra” — 2026-05-25
+
+> Phase 1 đã được commit và push lên `main`. Commit chính: `cde569e`; polish tiếp theo: `e268899`. Các ghi chú cũ nói “chưa commit/chưa push” dưới đây đã được thay thế bởi trạng thái mới nhất ở mục 0.
 
 ### 0.1 Bối cảnh yêu cầu
 
@@ -238,7 +334,7 @@ Cần Antigravity/Claude Code test với các mẫu thật:
 
 `npm run build` pass nhưng chunk lớn vẫn còn. Không liên quan trực tiếp tới refactor đề thi, nhưng nên nghiên cứu code-splitting sau nếu app chậm.
 
-### 0.6 Gợi ý prompt cho Claude Code / Antigravity
+### 1.6 Gợi ý prompt cũ cho Claude Code / Antigravity
 
 ```txt
 Bạn hãy đọc repo soangiaoan, branch main, bắt đầu từ HANDOFF.md mục “Refactor Phase 1 chức năng Soạn đề kiểm tra — 2026-05-25”.
@@ -246,7 +342,7 @@ Bạn hãy đọc repo soangiaoan, branch main, bắt đầu từ HANDOFF.md m�
 Bối cảnh:
 - Phase 1 đã refactor UI giấy thi A4, DOCX import giữ ảnh base64, preview SVG/IMG, prompt sinh SVG, Word export .docx thật, PDF/print chống cắt câu hỏi.
 - Các lệnh local đã pass: npx tsc --noEmit, npx tsc --noEmit -p tsconfig.api.json, npm run test -- --run, npm run build.
-- Thay đổi hiện chưa commit/chưa push.
+- Lưu ý lịch sử: tại thời điểm prompt cũ này được viết, thay đổi chưa commit/chưa push; hiện đã push lên `main` trong các commit `cde569e` và `e268899`. Khi QA mới, dùng mục 0 ở đầu file thay cho prompt cũ này.
 
 Việc cần nghiên cứu/QA:
 1. Test thực tế chức năng Soạn đề kiểm tra với DOCX/PDF/ảnh/SVG/bảng biến thiên.
