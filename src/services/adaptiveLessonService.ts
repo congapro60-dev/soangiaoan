@@ -1,5 +1,5 @@
 import { collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, removeUndefinedFields } from '../lib/firebase';
 import { sampleAdaptiveLesson } from '../lib/adaptive/sampleAdaptiveLesson';
 import { AdaptiveLesson } from '../lib/adaptive/types';
 
@@ -30,11 +30,11 @@ function normalizeAdaptiveLessonDocument(raw: unknown, fallbackId?: string): Ada
 }
 
 export async function saveLessonToFirestore(lesson: AdaptiveLesson): Promise<void> {
-  await setDoc(doc(db, COL, lesson.id), lesson);
+  await setDoc(doc(db, COL, lesson.id), removeUndefinedFields(lesson));
 }
 
 export async function updateLessonInFirestore(lessonId: string, patch: Partial<AdaptiveLesson>): Promise<void> {
-  await updateDoc(doc(db, COL, lessonId), patch);
+  await updateDoc(doc(db, COL, lessonId), removeUndefinedFields(patch));
 }
 
 export async function getLessonFromFirestore(lessonId: string): Promise<AdaptiveLesson | null> {

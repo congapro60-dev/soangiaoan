@@ -24,7 +24,7 @@ import {
   UploadCloud,
   UserRound,
 } from 'lucide-react';
-import { db, storage } from '../lib/firebase';
+import { db, storage, removeUndefinedFields } from '../lib/firebase';
 import { ExternalToolWidget } from '../components/adaptive/ExternalToolWidget';
 import { sampleAdaptiveLesson } from '../lib/adaptive/sampleAdaptiveLesson';
 import { adaptiveLessonToDeweyContent } from '../lib/adaptive/adaptiveToDewey';
@@ -774,10 +774,10 @@ export const AdaptiveStudentPortalPage = () => {
       });
 
       try {
-        await setDoc(doc(db, 'adaptiveSessionProgress', progressId), progressRecord, { merge: true });
+        await setDoc(doc(db, 'adaptiveSessionProgress', progressId), removeUndefinedFields(progressRecord), { merge: true });
 
         try {
-          await setDoc(doc(db, 'studentLearningProfiles', studentId), nextProfile, { merge: true });
+          await setDoc(doc(db, 'studentLearningProfiles', studentId), removeUndefinedFields(nextProfile), { merge: true });
         } catch (profileError) {
           console.warn('Không lưu được hồ sơ dài hạn bằng client, nhưng đã lưu tiến trình tiết học', profileError);
         }

@@ -22,7 +22,7 @@ import {
   Target,
   Users,
 } from 'lucide-react';
-import { db } from '../../lib/firebase';
+import { db, removeUndefinedFields } from '../../lib/firebase';
 import { sampleAdaptiveLesson } from '../../lib/adaptive/sampleAdaptiveLesson';
 import {
   buildTeacherDashboardData,
@@ -610,7 +610,7 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
 
       await setDoc(
         doc(db, 'adaptiveLessons', documentId),
-        {
+        removeUndefinedFields({
           id: documentId,
           userId: user.uid,
           teacherId: user.uid,
@@ -620,7 +620,7 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
           portalEnabled: true,
           createdAt: lesson.createdAt || now,
           updatedAt: now,
-        } satisfies AdaptiveLessonDocument,
+        } satisfies AdaptiveLessonDocument),
         { merge: true }
       );
 

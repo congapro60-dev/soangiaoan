@@ -26,3 +26,25 @@ export const db = getFirestore(app);
 
 // Initialize Firebase Storage
 export const storage = getStorage(app);
+
+/**
+ * Recursively removes all properties with `undefined` values from an object/array,
+ * which is required because Firestore throws on `undefined` field values.
+ */
+export function removeUndefinedFields<T>(obj: T): T {
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(removeUndefinedFields) as unknown as T;
+  }
+  const result: any = {};
+  for (const key of Object.keys(obj as any)) {
+    const val = (obj as any)[key];
+    if (val !== undefined) {
+      result[key] = removeUndefinedFields(val);
+    }
+  }
+  return result;
+}
+
