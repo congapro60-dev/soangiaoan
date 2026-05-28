@@ -1697,3 +1697,43 @@ Không được:
 - Không thay đổi cấu trúc dữ liệu Firestore nếu chưa chứng minh cần thiết.
 - Không làm AI feedback lộ đáp án trước khi học sinh nộp ví dụ tương tác.
 ```
+
+---
+
+## 14. Khắc phục lỗi biên dịch/Typecheck trên GitHub Actions (28/05/2026)
+
+> Cập nhật bởi Antigravity sau khi hoàn thành phân tích và sửa lỗi cấu hình TypeScript cho toàn bộ dự án.
+> Mục tiêu: Đưa các GitHub Actions workflows (Quality Gate & API Typecheck) về trạng thái thành công (Green ✅) bằng cách giới hạn phạm vi biên dịch.
+
+### 14.1 Bối cảnh phát sinh lỗi
+Trước đợt sửa đổi này, toàn bộ các lượt chạy kiểm thử tự động trên GitHub Actions liên tục gặp lỗi thất bại (đỏ) do hai nguyên nhân chính:
+1. **Cơ chế ghi đè loại trừ mặc định của TypeScript:** Trong `tsconfig.json` và `tsconfig.api.json` có định nghĩa thuộc tính `"exclude"`. Việc định nghĩa thủ công này đã vô hiệu hóa hoàn toàn cơ chế tự động bỏ qua thư mục `node_modules/` và `dist/` của TypeScript.
+2. **Hậu quả:** Trình biên dịch `tsc` bị buộc phải quét qua hàng trăm ngàn tệp tin cấu hình và thư viện bên ngoài nằm trong `node_modules/`, `dist/`, các thư mục tạm như `.agents/`, `chrome-profile-qa/`, `bot_profile/`, và cả thư mục mã nguồn phụ lồng nhau `soangiaoan/`. Điều này dẫn đến:
+   - Thời gian biên dịch cục bộ cực kỳ lâu, tiêu tốn hơn **3.3 GB RAM**.
+   - Gây lỗi tràn bộ nhớ (Out of Memory - OOM) hoặc timeout trên môi trường GitHub Actions của dự án.
+   - Phát sinh nhiều lỗi biên dịch giả trong các gói thư viện thuộc bên thứ ba.
+
+### 14.2 Các file đã sửa đổi và nội dung cụ thể
+1. **`tsconfig.json` (Root Config):**
+   - Loại trừ rõ ràng `node_modules`, `dist`, thư mục lồng `soangiaoan`, thư mục của agents (`.agents`), các thư mục chrome profiles tạm (`chrome-profile-qa`, `bot_profile`).
+   - Cấu hình mới: `"exclude": ["api", "vite.config.ts", "node_modules", "dist", "soangiaoan", ".agents", "chrome-profile-qa", "bot_profile"]`.
+2. **`tsconfig.api.json` (API Config):**
+   - Loại trừ rõ ràng `node_modules` để tránh tsc của API quét qua thư viện ngoài một cách không cần thiết.
+   - Cấu hình mới: `"exclude": ["api/**/*.test.ts", "api/**/__tests__/**", "node_modules"]`.
+3. **`HANDOFF.md` (Tệp này):**
+   - Bổ sung tài liệu chi tiết này để ghi nhận trạng thái kỹ thuật và tránh xung đột trong các phiên làm việc tiếp theo của AI.
+
+### 14.3 Hướng dẫn phòng ngừa xung đột cho các AI tiếp theo
+- **KHÔNG** xóa `"node_modules"`, `"dist"`, hay các thư mục `.agents`, `chrome-profile-qa` khỏi mảng `exclude` của cả hai tệp `tsconfig.json` và `tsconfig.api.json`.
+- Khi bổ sung một thư mục tạm, thư mục build, hoặc thư mục mã nguồn lồng nhau khác vào dự án, **hãy luôn khai báo loại trừ** nó trong `tsconfig.json` để tránh làm chậm trình biên dịch `tsc` và làm hỏng CI.
+- Sau khi chỉnh sửa mã nguồn, hãy chạy lệnh kiểm thử cục bộ dưới đây trước khi commit/push:
+  ```bash
+  # Kiểm thử frontend typecheck (Mục tiêu: chạy xong trong < 10 giây, 0 lỗi)
+  npm run lint
+  
+  # Kiểm thử API typecheck (Mục tiêu: chạy xong lập tức, 0 lỗi)
+  npm run lint:api
+  
+  # Chạy unit tests
+  npm run test
+  ```

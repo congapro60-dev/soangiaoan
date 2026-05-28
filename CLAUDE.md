@@ -230,3 +230,28 @@ tasks/
   todo.md          — Current task plan
   lessons.md       — Learned patterns and rules
 ```
+
+---
+
+## 8. E2E Browser Automation / Control Chrome
+
+This workspace supports full E2E Browser Automation and Direct Hook control using Puppeteer. Any AI session (Gemini, Claude, Roo Code, etc.) can hook into and control Google Chrome to perform tests, inspect the DOM, and verify features.
+
+### How to Hook into User's Active Chrome (Recommended)
+To run automation using your active Chrome session (preserving all saved Google accounts, API Keys, and exam history):
+1. **Start Chrome in Remote Debugging Mode** on port `9222` using PowerShell:
+   ```powershell
+   Start-Process "chrome.exe" -ArgumentList "--remote-debugging-port=9222"
+   ```
+2. **Run the E2E automation script**:
+   ```powershell
+   node bot_test.js
+   ```
+   *The script will automatically detect the active debug session on port 9222, connect directly, open a tab to `http://localhost:3000` (or Vercel production if localhost is down), and run the E2E navigation.*
+
+### How to Run as a Standalone Bot
+If port `9222` is not open, running `node bot_test.js` will automatically launch a clean, standalone Chrome process under a local profile folder `bot_profile` to ensure Google Security is bypassed.
+
+### Instructions for AI Sessions
+- **Read Guidelines**: The AI must always check `CLAUDE.md` to discover project commands.
+- **Check for Debug Chrome**: When requested to "open Chrome" or "run E2E test", the AI must try to connect to port `9222` or run `node bot_test.js` to automate Chrome.

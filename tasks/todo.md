@@ -25,24 +25,20 @@ _Summary after completion_
 
 ---
 
-## Active Task: Puppeteer E2E Live DOM Test — 2026-05-24
-
-### Plan
-- [x] Task 1: Install Puppeteer Dependency
-- [x] Task 2: Create E2E Test Script `live_dom_test.js`
-- [x] Task 3: Configure E2E script in `package.json`
-- [x] Task 4: Run E2E Test and Verify Browser Launches
-
-### Verification
-- [x] Puppeteer successfully installed under devDependencies
-- [x] `live_dom_test.js` handles local/production URL fallbacks
-- [x] `npm run test:e2e` launches Chromium and navigates Sidebar tabs
-- [x] Execution completes gracefully without errors
+## Active Task: None
 
 ---
 
 
 ## Completed Sessions
+
+### Puppeteer E2E Live DOM Test — 2026-05-27
+
+- [x] Task 1: Install Puppeteer Dependency
+- [x] Task 2: Create E2E Test Script `live_dom_test.js`
+- [x] Task 3: Configure E2E script in `package.json`
+- [x] Task 4: Run E2E Test and Verify Browser Launches
+- [x] **Verification**: E2E test runs successfully against Production Vercel using `domcontentloaded` wait strategy. Safely clicks "Chế độ dùng thử", enters Dashboard, and performs sidebar navigation flow.
 
 ### QA Audit + Bug Fixes — 2026-04-21
 
