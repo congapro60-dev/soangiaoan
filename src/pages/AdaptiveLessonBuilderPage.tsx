@@ -5,7 +5,7 @@ import { ArrowLeft, CheckCircle2, FileUp, Loader2, Plus, Save, Send, Sparkles, T
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { sampleAdaptiveLesson } from '../lib/adaptive/sampleAdaptiveLesson';
-import { buildAdaptiveLessonFromReviewedPlan, buildAdaptiveReviewPrompt, type AdaptiveLessonSource } from '../lib/adaptive/adaptiveFromLessonPlan';
+import { buildAdaptiveLessonFromContentJson, buildAdaptiveContentPrompt, buildAdaptiveLessonFromReviewedPlan, buildAdaptiveReviewPrompt, type AdaptiveLessonSource } from '../lib/adaptive/adaptiveFromLessonPlan';
 import type {
   AdaptiveAssessment,
   AdaptiveLesson,
@@ -177,6 +177,7 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
   const [isReviewingSource, setIsReviewingSource] = useState(false);
   const [isSourceApproved, setIsSourceApproved] = useState(id !== 'new');
   const [uploadingSource, setUploadingSource] = useState(false);
+  const [isGeneratingContent, setIsGeneratingContent] = useState(false);
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
 
   const adaptiveReadyPlans = useMemo(() => lessonPlans.filter(plan => {
@@ -363,14 +364,43 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
     }
   };
 
-  const approveReviewedSource = () => {
+  const approveReviewedSource = async () => {
     if (!user || !sourceLesson || !reviewedPlan.trim()) return;
-    const nextLesson = buildAdaptiveLessonFromReviewedPlan(sourceLesson, reviewedPlan, user.uid);
-    setLesson(nextLesson);
-    setExpandedUnitId(nextLesson.knowledgeUnits[0]?.id || null);
-    setIsSourceApproved(true);
-    setStep(0);
-    showToast?.('Đã duyệt giáo án nguồn. Bạn có thể chỉnh các thành phần bài học phân hoá trước khi lưu/xuất bản.', 'success');
+
+    // If no API key configured, fall back to regex-based builder immediately
+    const hasApiKey = settings && getActiveApiKey(settings).trim();
+    if (!hasApiKey) {
+      const nextLesson = buildAdaptiveLessonFromReviewedPlan(sourceLesson, reviewedPlan, user.uid);
+      setLesson(nextLesson);
+      setExpandedUnitId(nextLesson.knowledgeUnits[0]?.id || null);
+      setIsSourceApproved(true);
+      setStep(0);
+      showToast?.('Đã tạo cấu trúc bài học (chưa có API key để sinh nội dung thật).', 'success');
+      return;
+    }
+
+    setIsGeneratingContent(true);
+    setError(null);
+    try {
+      const contentJsonText = await callAI(buildAdaptiveContentPrompt(sourceLesson, reviewedPlan), settings);
+      const nextLesson = buildAdaptiveLessonFromContentJson(sourceLesson, reviewedPlan, contentJsonText, user.uid);
+      setLesson(nextLesson);
+      setExpandedUnitId(nextLesson.knowledgeUnits[0]?.id || null);
+      setIsSourceApproved(true);
+      setStep(0);
+      showToast?.('AI đã tạo bài học phân hoá với câu hỏi thật từ giáo án. Kiểm tra lại trước khi xuất bản!', 'success');
+    } catch (contentErr) {
+      console.warn('[AdaptiveBuilder] AI content generation failed — falling back to regex parser', contentErr);
+      // Graceful fallback: teacher is never blocked
+      const nextLesson = buildAdaptiveLessonFromReviewedPlan(sourceLesson, reviewedPlan, user.uid);
+      setLesson(nextLesson);
+      setExpandedUnitId(nextLesson.knowledgeUnits[0]?.id || null);
+      setIsSourceApproved(true);
+      setStep(0);
+      showToast?.('AI gặp lỗi khi sinh nội dung, đã dùng cấu trúc cơ bản. Bạn có thể chỉnh tay trước khi lưu.', 'success');
+    } finally {
+      setIsGeneratingContent(false);
+    }
   };
 
   const openPreview = (targetLessonId: string) => {
@@ -453,8 +483,9 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
           {sourceLesson && <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">Nguồn đang rà soát: {sourceLesson.sourceLabel || sourceLesson.title}</div>}
 
           <div className="flex flex-wrap gap-3">
-            <button type="button" onClick={approveReviewedSource} disabled={!reviewedPlan.trim() || isReviewingSource || uploadingSource} className={primaryButtonClass}>
-              <CheckCircle2 className="h-4 w-4" /> Duyệt bản rà soát & tạo cấu trúc bài học
+            <button type="button" onClick={approveReviewedSource} disabled={!reviewedPlan.trim() || isReviewingSource || uploadingSource || isGeneratingContent} className={primaryButtonClass}>
+              {isGeneratingContent ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+              {isGeneratingContent ? 'AI đang thiết kế nội dung (có thể mất 15-30s)...' : 'Duyệt bản rà soát & tạo cấu trúc bài học'}
             </button>
           </div>
 

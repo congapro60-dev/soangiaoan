@@ -30,6 +30,8 @@ import { sampleAdaptiveLesson } from '../lib/adaptive/sampleAdaptiveLesson';
 import { adaptiveLessonToDeweyContent } from '../lib/adaptive/adaptiveToDewey';
 import { renderDeweyLesson } from '../lib/dewey/template';
 import { getLessonFromFirestore } from '../services/adaptiveLessonService';
+import { getPersonalizedLesson } from '../lib/adaptive/personalizationEngine';
+import { callAI } from '../lib/aiProviders';
 import { LessonSimulationViewer } from '../components/adaptive/LessonSimulationViewer';
 import { getToolsByIds } from '../data/externalTools';
 import {
@@ -54,7 +56,7 @@ import {
 import { classifyFallbackError, logFallbackEvent, syncQueuedFallbackEvents } from '../services/telemetry';
 import { ensureMathWrapped } from '../utils/examScoring';
 
-type PortalStage = 'loading' | 'not_found' | 'identify' | 'diagnostic' | 'dewey-lesson' | 'complete';
+type PortalStage = 'loading' | 'not_found' | 'identify' | 'diagnostic' | 'personalizing' | 'dewey-lesson' | 'complete';
 type NoticeTone = 'info' | 'warning' | 'error';
 type WorkedExample = AdaptiveLesson['knowledgeUnits'][number]['routes'][number]['workedExamples'][number];
 
@@ -371,7 +373,7 @@ export const AdaptiveStudentPortalPage = () => {
   }, []);
 
   const activeSectionKey = useMemo(() => {
-    if (stage === 'diagnostic') return 'diagnostic';
+    if (stage === 'diagnostic' || stage === 'personalizing') return 'diagnostic';
     if (stage === 'dewey-lesson') return 'dewey-lesson';
     return null;
   }, [stage]);
@@ -556,7 +558,7 @@ export const AdaptiveStudentPortalPage = () => {
     }
   };
 
-  const handleDiagnosticSubmit = () => {
+  const handleDiagnosticSubmit = async () => {
     if (!lesson) return;
     const plannedSeconds = lesson.diagnosticTest.durationMinutes * 60;
     const attempt = gradeAssessment(lesson.diagnosticTest, diagnosticAnswers, measuredDurationFor('diagnostic', plannedSeconds));
@@ -567,9 +569,25 @@ export const AdaptiveStudentPortalPage = () => {
     setNeedsTeacherSupport(false);
     setRemediationAttemptsByUnit({});
     setCurrentUnitIndex(0);
-    setNotice({ tone: 'info', message: `Hệ thống đã xếp em vào tuyến ${routeLabel[attempt.recommendedRoute || 'standard']}. Đang mở bài giảng…` });
+
     const deweyRoute = attempt.recommendedRoute || 'standard';
-    const deweyContent = adaptiveLessonToDeweyContent(lesson, deweyRoute);
+    const weakObjectiveIds = attempt.objectiveScores
+      .filter(s => s.masteryEstimate < 0.4)
+      .map(s => s.objectiveId);
+
+    setStage('personalizing');
+    setNotice({ tone: 'info', message: `Hệ thống đã xếp em vào tuyến ${routeLabel[deweyRoute]}. Đang cá nhân hóa nội dung...` });
+
+    // Call PA3 Engine — falls back to original lesson if it times out or fails
+    const callApiFn = (prompt: string) => fetch('/api/gemini-relay', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, model: 'gemini-3.5-flash' })
+    }).then(res => res.json()).then(data => data.text || '');
+
+    const personalizedLesson = await getPersonalizedLesson(lesson, deweyRoute, weakObjectiveIds, callApiFn);
+
+    const deweyContent = adaptiveLessonToDeweyContent(personalizedLesson, deweyRoute);
     const html = renderDeweyLesson(deweyContent, 'classic');
     setDeweyHtml(html);
     setStage('dewey-lesson');
@@ -839,6 +857,7 @@ export const AdaptiveStudentPortalPage = () => {
   }, [handleDeweyComplete]);
 
   if (stage === 'loading') return <FullPageState icon={<Loader2 className="h-8 w-8 animate-spin text-blue-600" />} title="Đang mở lớp học phân hoá" message="Hệ thống đang tải bài học giáo viên đã phát." />;
+  if (stage === 'personalizing') return <FullPageState icon={<Loader2 className="h-8 w-8 animate-spin text-purple-600" />} title="Đang chuẩn bị bài học cho em..." message="AI đang cá nhân hoá nội dung theo tuyến và điểm yếu của em." />;
   if (stage === 'not_found' || !lesson) return <FullPageState icon={<AlertTriangle className="h-8 w-8 text-amber-500" />} title="Chưa tìm thấy bài học" message={portalError || 'Liên kết này chưa có bài học phân hoá đã lưu hoặc giáo viên chưa phát bài.'} />;
 
   const stepNames = lesson.fiveStepFlow.steps.map(step => step.name);

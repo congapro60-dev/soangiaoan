@@ -1793,3 +1793,8 @@ ThÃªm hÃ m tiá»‡n Ã­ch `removeUndefinedFields<T>()` vÃ o `src/lib/firebase.ts`, 
 - HÃ m `removeUndefinedFields` Ä‘Ã£ Ä‘Æ°á»£c Ä‘áº·t trong `src/lib/firebase.ts` Ä‘á»ƒ dÃ¹ng chung.
 - **Báº¥t ká»³ `setDoc()` hay `updateDoc()` nÃ o ghi dá»¯ liá»‡u cÃ³ thá»ƒ chá»©a field optional Ä‘á»u nÃªn bá»c trong `removeUndefinedFields()`** Ä‘á»ƒ phÃ²ng ngá»«a lá»—i tÆ°Æ¡ng tá»±.
 - KhÃ´ng sá»­a `buildDefaultSimulationSpec()` vÃ¬ tráº£ `undefined` lÃ  logic Ä‘Ãºng (bÃ i há»c khÃ´ng hÃ¬nh há»c khÃ´ng cáº§n simulation spec); chá»‰ cáº§n strip khi ghi Firestore.
+  
+## 28/05/2026: Hybrid PA2+PA1+PA3 (B…i h?c phƒn ho  Real-time)  
+- Da chuy?n d?i quy trnh sinh n?i dung b…i h?c phƒn ho  sang JSON (PA2+PA1) d? t?o cƒu h?i To n h?c th?c t? (s? d?ng LaTeX) v… 3 tuy?n n?i dung (Foundation, Standard, Challenge) tr?c ti?p t? gi o  n g?c, thay th? cho Regex parser cu.  
+- Da t¡ch h?p PersonalizationEngine (PA3) d? c  nhƒn ho  b…i h?c real-time sau khi h?c sinh n?p Pre-test. H? th?ng s? call AI d? sinh n?i dung patch cho c c m?c tiˆu y?u v… luu cache (sessionStorage v… deduplicate in-flight promises) d? kh“ng b? rate limit cho c? l?p.  
+- Da c?p nh?t UI c?ng h?c sinh (thˆm stage 'personalizing' hi?n th? loading text ro r…ng) v… c?p nh?t UI c?ng gi o viˆn (thˆm async approval khi sinh JSON content). 

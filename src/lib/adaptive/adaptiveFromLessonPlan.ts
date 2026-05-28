@@ -242,6 +242,360 @@ export const buildAdaptiveLessonFromReviewedPlan = (
   };
 };
 
+// ============================================================
+// PA2 + PA1: Structured JSON content generation
+// Replaces regex-based parsing with AI-output JSON for accurate
+// question content, 3-route explanations, and worked examples.
+// ============================================================
+
+interface QuestionJson {
+  prompt: string;
+  options: string[];
+  correct: number;
+  explanation: string;
+  difficulty?: string;
+}
+
+interface ObjectiveJson {
+  title: string;
+  bloom?: string;
+  threshold?: number;
+}
+
+interface UnitJson {
+  title: string;
+  explanation_foundation: string;
+  explanation_standard: string;
+  explanation_challenge: string;
+  worked_example?: { problem: string; solution: string; hints?: string[] };
+  quick_check_questions?: QuestionJson[];
+}
+
+interface AdaptiveContentJson {
+  title?: string;
+  objectives?: ObjectiveJson[];
+  units?: UnitJson[];
+  diagnostic_questions?: QuestionJson[];
+  exit_ticket_questions?: QuestionJson[];
+}
+
+/** Extract raw JSON object string from AI response (handles markdown fences). */
+const extractJsonFromText = (text: string): string => {
+  const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenceMatch) return fenceMatch[1].trim();
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start >= 0 && end > start) return text.slice(start, end + 1);
+  return text;
+};
+
+const buildQuestionFromJson = (
+  qJson: QuestionJson,
+  purpose: AdaptiveAssessment['purpose'],
+  objectiveId: string,
+  index: number,
+): AdaptiveQuestion => {
+  const options = Array.isArray(qJson.options) && qJson.options.length >= 2
+    ? qJson.options
+    : ['A. Đáp án A', 'B. Đáp án B', 'C. Đáp án C', 'D. Đáp án D'];
+  const correctIndex = typeof qJson.correct === 'number' && qJson.correct >= 0 && qJson.correct < options.length
+    ? qJson.correct : 0;
+  const difficultyValues = ['easy', 'medium', 'hard'] as const;
+  const difficulty: 'easy' | 'medium' | 'hard' = difficultyValues.includes(qJson.difficulty as 'easy' | 'medium' | 'hard')
+    ? (qJson.difficulty as 'easy' | 'medium' | 'hard')
+    : index === 0 ? 'easy' : index === 1 ? 'medium' : 'hard';
+  return {
+    id: uid('q'),
+    type: 'multiple_choice',
+    prompt: qJson.prompt || `Câu ${index + 1}. (Giáo viên cập nhật câu hỏi cụ thể.)`,
+    options,
+    correctAnswer: options[correctIndex],
+    explanation: qJson.explanation || 'Xem lại nội dung bài học.',
+    objectiveIds: [objectiveId],
+    difficulty,
+    points: 1,
+  };
+};
+
+const buildAssessmentFromJsonQuestions = (
+  purpose: AdaptiveAssessment['purpose'],
+  title: string,
+  questions: QuestionJson[],
+  objectiveIds: string[],
+  minCount: number,
+  maxCount: number,
+): AdaptiveAssessment => {
+  const padded = [...questions];
+  while (padded.length < minCount) {
+    padded.push({
+      prompt: `Câu ${padded.length + 1}. (Giáo viên cập nhật câu hỏi cụ thể trước khi phát bài.)`,
+      options: ['A. Đúng', 'B. Sai', 'C. Có thể đúng', 'D. Không xác định'],
+      correct: 0,
+      explanation: 'Giáo viên bổ sung giải thích.',
+    });
+  }
+  return {
+    id: uid(purpose),
+    title,
+    purpose,
+    durationMinutes: purpose === 'quick_check' ? 5 : purpose === 'exit_ticket' ? 6 : 7,
+    questions: padded.slice(0, maxCount).map((q, i) =>
+      buildQuestionFromJson(
+        q, purpose,
+        objectiveIds[i % Math.max(objectiveIds.length, 1)] || objectiveIds[0] || uid('obj'),
+        i,
+      )
+    ),
+  };
+};
+
+const buildUnitFromJsonData = (unit: UnitJson, objectiveId: string, index: number): KnowledgeUnit => {
+  const quickCheck = buildAssessmentFromJsonQuestions(
+    'quick_check', `Quick check — ${unit.title}`,
+    unit.quick_check_questions || [], [objectiveId], 2, 2,
+  );
+
+  const workedExampleData = (): WorkedExample => ({
+    id: uid('example'),
+    title: `Ví dụ minh hoạ — ${unit.title}`,
+    problem: unit.worked_example?.problem || `Ví dụ bài toán về: ${unit.title}.`,
+    solution: unit.worked_example?.solution || 'Xem lại lời giải chi tiết trong giáo án nguồn.',
+    explanation: unit.worked_example?.solution || `Ví dụ minh hoạ cho mảnh kiến thức: ${unit.title}.`,
+    objectiveIds: [objectiveId],
+    timeLimitSeconds: 180,
+    hints: unit.worked_example?.hints || [
+      'Đọc kỹ đề bài và xác định dạng toán.',
+      'Liên hệ với lý thuyết vừa học.',
+      'Trình bày từng bước, không nhảy kết luận.',
+    ],
+    responseMode: 'short_text',
+  });
+
+  const makeRouteContent = (route: LearningRoute): LearningRouteContent => {
+    const explanation = route === 'foundation'
+      ? (unit.explanation_foundation || unit.explanation_standard)
+      : route === 'challenge'
+        ? (unit.explanation_challenge || unit.explanation_standard)
+        : unit.explanation_standard;
+    return {
+      route,
+      explanation: explanation || `Tuyến ${route}: ${unit.title}`,
+      workedExamples: [workedExampleData()],
+      practiceTasks: [makePracticeTask(objectiveId, route === 'foundation' ? 'easy' : route === 'standard' ? 'medium' : 'hard', unit.title, 0)],
+      aiTutorPrompt: `Hỗ trợ học sinh ở tuyến ${route} học mảnh kiến thức "${unit.title}". Ưu tiên gợi mở, không đưa ngay đáp án.`,
+    };
+  };
+
+  return {
+    id: uid('unit'),
+    title: unit.title,
+    objectiveIds: [objectiveId],
+    estimatedMinutes: index === 0 ? 8 : 10,
+    routes: routeOptions.map(makeRouteContent),
+    quickCheck,
+    maxRemediationAttempts: 2,
+    supportTasks: [makePracticeTask(objectiveId, 'easy', unit.title, 0)],
+    enrichmentTasks: [makePracticeTask(objectiveId, 'hard', unit.title, 0)],
+    externalToolIds: [],
+    simulationSpec: buildDefaultSimulationSpec(unit.title, objectiveId, unit.title),
+  };
+};
+
+/**
+ * Builds an AdaptiveLesson from structured JSON output by the AI content-generation step (PA1+PA2).
+ * Falls back to regex-based `buildAdaptiveLessonFromReviewedPlan` if JSON is invalid or missing.
+ */
+export const buildAdaptiveLessonFromContentJson = (
+  source: AdaptiveLessonSource,
+  reviewedPlan: string,
+  contentJsonText: string,
+  teacherId: string,
+): AdaptiveLesson => {
+  let content: AdaptiveContentJson;
+  try {
+    const parsed = JSON.parse(extractJsonFromText(contentJsonText));
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) throw new Error('Not an object');
+    content = parsed as AdaptiveContentJson;
+  } catch {
+    // Graceful fallback: use regex-based builder so teacher is never blocked
+    return buildAdaptiveLessonFromReviewedPlan(source, reviewedPlan, teacherId);
+  }
+
+  const now = new Date().toISOString();
+  const title = content.title?.trim() || inferTitle(source, reviewedPlan);
+
+  const rawObjectives = Array.isArray(content.objectives) && content.objectives.length
+    ? content.objectives
+    : [{ title: 'Nắm được kiến thức trọng tâm của bài', bloom: 'understand' }];
+
+  const bloomLevelValues = ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create'];
+  const objectives = rawObjectives.slice(0, 6).map((obj, index) => ({
+    id: uid('obj'),
+    code: `OBJ-${index + 1}`,
+    title: obj.title || `Mục tiêu ${index + 1}`,
+    description: obj.title || `Mục tiêu ${index + 1}`,
+    bloomLevel: (bloomLevelValues.includes(obj.bloom ?? '') ? obj.bloom : index < 2 ? 'understand' : 'apply') as BloomLevel,
+    masteryThreshold: typeof obj.threshold === 'number' ? obj.threshold : (index < 2 ? 0.7 : 0.75),
+    prerequisiteObjectiveIds: [],
+    commonMisconceptions: [],
+  }));
+  const objectiveIds = objectives.map(o => o.id);
+
+  const diagnosticTest = buildAssessmentFromJsonQuestions(
+    'diagnostic', 'Pre-test đầu giờ',
+    Array.isArray(content.diagnostic_questions) ? content.diagnostic_questions : [],
+    objectiveIds, 5, 7,
+  );
+
+  const exitTicket = buildAssessmentFromJsonQuestions(
+    'exit_ticket', 'Exit ticket cuối bài',
+    Array.isArray(content.exit_ticket_questions) ? content.exit_ticket_questions : [],
+    objectiveIds, 3, 3,
+  );
+
+  const rawUnits = Array.isArray(content.units) && content.units.length ? content.units : [];
+  const knowledgeUnits = rawUnits.length
+    ? rawUnits.slice(0, 6).map((unit, index) =>
+        buildUnitFromJsonData(
+          unit,
+          objectiveIds[index % Math.max(objectiveIds.length, 1)] || objectiveIds[0],
+          index,
+        )
+      )
+    : objectives.slice(0, 3).map((obj, index) => makeUnit(obj.title, obj.id, source.title || title, index));
+
+  return {
+    id: `adaptive-${Date.now()}`,
+    title,
+    subjectId: 'math',
+    grade: normalizeGrade(source.grade),
+    durationMinutes: 40,
+    status: 'draft',
+    teacherId,
+    createdAt: now,
+    updatedAt: now,
+    curriculumRef: {
+      programType: 'CUSTOM',
+      week: source.week || '',
+      period: 1,
+      textbook: source.sourceLabel || 'Giáo án nguồn',
+    },
+    preparation: {
+      readingInstructions: 'Học sinh đọc trước nội dung giáo viên giao, ghi lại phần chưa hiểu và chuẩn bị làm pre-test đầu giờ.',
+      guidingQuestions: objectives.slice(0, 4).map(o => `Em đã hiểu gì về: ${o.title}?`),
+      estimatedMinutes: 10,
+    },
+    fiveStepFlow: {
+      steps: [
+        { id: uid('step'), name: 'Kết nối', purpose: 'Kích hoạt kiến thức nền từ giáo án nguồn.', estimatedMinutes: 3, teacherRole: 'Nêu tình huống mở đầu và mục tiêu học.', studentAction: 'Trả lời câu hỏi khởi động.', systemSupport: 'Hiển thị mục tiêu và câu hỏi gợi mở.' },
+        { id: uid('step'), name: 'Chẩn đoán', purpose: 'Phân tuyến học sinh bằng pre-test.', estimatedMinutes: 7, teacherRole: 'Theo dõi kết quả chẩn đoán.', studentAction: 'Làm test đầu giờ.', systemSupport: 'Chấm theo mục tiêu và đề xuất tuyến học.' },
+        { id: uid('step'), name: 'Hình thành kiến thức', purpose: 'Học theo mảnh kiến thức và tuyến phù hợp.', estimatedMinutes: 15, teacherRole: 'Hỗ trợ nhóm cần can thiệp.', studentAction: 'Học nội dung, xem ví dụ, làm nhiệm vụ.', systemSupport: 'Cá nhân hoá tuyến Foundation/Standard/Challenge.' },
+        { id: uid('step'), name: 'Luyện tập và điều chỉnh', purpose: 'Quick check sau từng mảnh kiến thức.', estimatedMinutes: 10, teacherRole: 'Can thiệp khi học sinh sai lặp lại.', studentAction: 'Làm quick check và học lại khi cần.', systemSupport: 'Gợi ý, remediate hoặc chuyển tiếp.' },
+        { id: uid('step'), name: 'Phản tư', purpose: 'Exit ticket và khuyến nghị cuối bài.', estimatedMinutes: 5, teacherRole: 'Chốt kiến thức và giao nhiệm vụ tiếp nối.', studentAction: 'Hoàn thành exit ticket.', systemSupport: 'Tổng hợp kết quả và khuyến nghị.' },
+      ],
+    },
+    objectives,
+    diagnosticTest,
+    knowledgeUnits,
+    exitTicket,
+    pacingPolicy: {
+      minExitTicketMinutes: 5,
+      aheadThresholdMinutes: 5,
+      behindThresholdMinutes: 4,
+      stuckAfterRemediationAttempts: 2,
+      enrichmentTriggerMastery: 0.85,
+      supportTriggerMastery: 0.55,
+    },
+    completionReward: {
+      toolId: 'gamedoikhang',
+      message: defaultRewardMessage,
+    },
+  };
+};
+
+/**
+ * Focused prompt asking AI to output structured JSON with real questions and 3-route content.
+ * Used as the second AI call after teacher approves the pedagogical review (PA1+PA2).
+ */
+export const buildAdaptiveContentPrompt = (source: AdaptiveLessonSource, reviewedPlan: string): string =>
+  `Bạn là chuyên gia thiết kế nội dung bài học Toán phân hoá.
+
+THÔNG TIN BÀI HỌC:
+- Tên bài: ${source.title || 'Chưa rõ'}
+- Lớp: ${source.grade || '10'}
+
+GIÁO ÁN NGUỒN:
+---
+${source.content.slice(0, 12000)}
+---
+
+BẢN THIẾT KẾ SƯ PHẠM ĐÃ RÀ SOÁT:
+---
+${reviewedPlan.slice(0, 5000)}
+---
+
+NHIỆM VỤ: Tạo nội dung bài học phân hoá cụ thể dựa trên giáo án trên.
+Câu hỏi phải dùng nội dung toán học thật — có công thức, số liệu cụ thể — KHÔNG phải placeholder.
+
+OUTPUT: Trả về DUY NHẤT một JSON object hợp lệ theo schema dưới đây. Không có text trước hoặc sau JSON.
+
+{
+  "title": "Tên bài học đầy đủ",
+  "objectives": [
+    {"title": "Mục tiêu học tập cụ thể 1", "bloom": "understand", "threshold": 0.70},
+    {"title": "Mục tiêu 2", "bloom": "apply", "threshold": 0.75},
+    {"title": "Mục tiêu 3", "bloom": "analyze", "threshold": 0.75}
+  ],
+  "units": [
+    {
+      "title": "Tên mảnh kiến thức 1",
+      "explanation_foundation": "Giải thích đơn giản, trực quan, chia bước nhỏ, có ví dụ hình học hoặc số cụ thể cho HS yếu",
+      "explanation_standard": "Giải thích đầy đủ theo chuẩn SGK, định nghĩa và tính chất",
+      "explanation_challenge": "Giải thích nâng cao: chứng minh, suy luận, liên hệ mở rộng cho HS giỏi",
+      "worked_example": {
+        "problem": "Bài toán ví dụ cụ thể với số liệu từ nội dung bài, dùng LaTeX nếu cần",
+        "solution": "Bước 1: ... Bước 2: ... Bước 3: ... Kết luận: ...",
+        "hints": ["Gợi ý 1: Xác định dạng bài", "Gợi ý 2: Áp dụng công thức...", "Gợi ý 3: Kiểm tra điều kiện"]
+      },
+      "quick_check_questions": [
+        {
+          "prompt": "Câu hỏi trắc nghiệm thật với số liệu cụ thể",
+          "options": ["A. Phương án 1", "B. Phương án đúng", "C. Phương án 3", "D. Phương án 4"],
+          "correct": 1,
+          "explanation": "Đáp án B vì..."
+        },
+        {
+          "prompt": "Câu 2 của quick check",
+          "options": ["A.", "B.", "C.", "D."],
+          "correct": 0,
+          "explanation": "..."
+        }
+      ]
+    }
+  ],
+  "diagnostic_questions": [
+    {"prompt": "Câu 1. (mức nhận biết, có số liệu cụ thể)", "options": ["A.", "B.", "C.", "D."], "correct": 0, "explanation": "...", "difficulty": "easy"},
+    {"prompt": "Câu 2.", "options": ["A.", "B.", "C.", "D."], "correct": 2, "explanation": "...", "difficulty": "easy"},
+    {"prompt": "Câu 3.", "options": ["A.", "B.", "C.", "D."], "correct": 1, "explanation": "...", "difficulty": "medium"},
+    {"prompt": "Câu 4.", "options": ["A.", "B.", "C.", "D."], "correct": 3, "explanation": "...", "difficulty": "medium"},
+    {"prompt": "Câu 5. (mức vận dụng)", "options": ["A.", "B.", "C.", "D."], "correct": 2, "explanation": "...", "difficulty": "hard"}
+  ],
+  "exit_ticket_questions": [
+    {"prompt": "Exit ticket 1", "options": ["A.", "B.", "C.", "D."], "correct": 0, "explanation": "..."},
+    {"prompt": "Exit ticket 2", "options": ["A.", "B.", "C.", "D."], "correct": 1, "explanation": "..."},
+    {"prompt": "Exit ticket 3", "options": ["A.", "B.", "C.", "D."], "correct": 2, "explanation": "..."}
+  ]
+}
+
+QUY TẮC BẮT BUỘC:
+1. Câu hỏi phải có nội dung toán thật, có số và công thức cụ thể — KHÔNG viết "Câu hỏi 1" hay text placeholder.
+2. Mỗi câu có đúng 4 đáp án A/B/C/D. "correct" là index (0=A, 1=B, 2=C, 3=D). Đáp án đúng ở vị trí ngẫu nhiên.
+3. Phương án sai phải là "mồi" hợp lý — học sinh yếu có thể nhầm.
+4. Dùng LaTeX cho công thức: $...$ inline, $$...$$ block.
+5. Tạo đúng 5 diagnostic_questions (2 easy, 2 medium, 1 hard), 2 quick_check_questions mỗi unit, 3 exit_ticket_questions.
+6. 3 trường explanation_ của mỗi unit phải có nội dung thực sự khác nhau về độ sâu và cách tiếp cận.
+7. Trả về JSON thuần túy hợp lệ. Không có bất kỳ text nào trước hoặc sau JSON.`;
+
 export const buildAdaptiveReviewPrompt = (source: AdaptiveLessonSource): string => `Bạn là chuyên gia thiết kế bài học phân hoá/adaptive môn Toán.
 
 NHIỆM VỤ: Nghiên cứu giáo án nguồn, đánh giá mức độ sẵn sàng và tái thiết kế thành bản chuẩn bị tạo bài học phân hoá. Giáo án nguồn CÓ THỂ KHÔNG theo cấu trúc bài học phân hoá, có thể thiếu pre-test, tuyến học, quick check, hình ảnh minh hoạ, bài tập hoặc exit ticket. Khi thiếu, bạn BẮT BUỘC phải tự bổ sung/điều chỉnh dựa trên mục tiêu, nội dung và chuẩn kiến thức suy ra từ giáo án gốc. Không chỉ nhận xét thiếu; phải tạo luôn phiên bản hoàn chỉnh để giáo viên duyệt.
