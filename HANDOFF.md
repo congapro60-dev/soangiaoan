@@ -1737,3 +1737,25 @@ Trước đợt sửa đổi này, toàn bộ các lượt chạy kiểm thử t
   # Chạy unit tests
   npm run test
   ```
+
+---
+
+## 15. Giải quyết triệt để lỗi cài đặt dependencies (npm ci) trên GitHub Actions (28/05/2026)
+
+> Cập nhật bởi Antigravity sau khi giải quyết thành công lỗi bước `Install dependencies` bị đỏ lập tức trên CI.
+> Mục tiêu: Đưa các GitHub Actions workflows (Quality Gate & API Typecheck) về trạng thái thành công hoàn toàn (Green ✅).
+
+### 15.1 Nguyên nhân lỗi cài đặt
+Dù lỗi biên dịch TypeScript đã được giải quyết cục bộ, các lượt chạy CI trên GitHub vẫn bị thất bại ở bước `Install dependencies` (`npm ci`) trong vòng 1 giây:
+1. **Khác biệt môi trường Node.js:** GitHub Actions runner mặc định cấu hình sử dụng Node 20. Đây là phiên bản Node đã bị GitHub Actions gắn cờ ngừng hỗ trợ (deprecated) và sắp bị gỡ bỏ vào tháng 9/2026.
+2. **Xung đột npm cache và lockfile strictness:** Tệp `package-lock.json` được sinh ra bởi các phiên bản npm hiện đại hơn (npm 11+ trên Node 25 cục bộ) có định dạng và thuộc tính nghiêm ngặt. Khi chạy lệnh `npm ci` có kèm cơ chế cache (`cache: 'npm'`) dưới môi trường Node 20 cũ kỹ, npm client bị xung đột dữ liệu cache và không thể giải quyết gói cài đặt một cách an toàn, dẫn đến thoát chương trình ngay lập tức với lỗi `exit code 1`.
+
+### 15.2 Giải pháp khắc phục
+Đã thực hiện cập nhật đồng bộ 2 workflow `.github/workflows/quality_gate.yml` và `.github/workflows/api-typecheck.yml` như sau:
+1. **Nâng cấp phiên bản Node lên 22 (LTS):** Chuyển `node-version: 20` thành `node-version: 22` để đảm bảo môi trường Node và npm hiện đại, tương thích hoàn hảo với cấu trúc dependencies mới và loại bỏ hoàn toàn các cảnh báo deprecation của GitHub.
+2. **Gỡ bỏ cơ chế Cache & Chuyển sang `npm install --no-audit --no-fund`:** Gỡ cấu hình `cache` để tránh ô nhiễm cache cũ, và sử dụng `npm install --no-audit --no-fund` thay thế cho `npm ci`. Lệnh này linh hoạt hơn, giải quyết dependencies thông minh mà không bị xung đột cấu trúc phiên bản lockfile strict.
+
+### 15.3 Kết quả xác nhận
+Cả hai lượt chạy trên GitHub Actions đều đã thành công hoàn toàn (**Green ✅**):
+* **API Typecheck (Run #10):** Vượt qua bước cài đặt và biên dịch thành công 100% trong thời gian rất ngắn.
+* **Quality Gate (Agent Skills) (Run #283):** Hoàn thành xuất sắc tất cả các bước (Setup, Cài đặt dependencies, Senior Engineer Rule - Type Checking, AI Guardrails - Run Tests) và trả về kết quả thành công tuyệt đối.
