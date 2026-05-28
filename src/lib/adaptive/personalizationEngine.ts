@@ -68,8 +68,41 @@ const resolvedCache = new Map<string, AdaptiveLesson>();
 /** Pending promises: cacheKey → in-flight Promise (shared to prevent duplicate API calls). */
 const pendingPersonalizations = new Map<string, Promise<AdaptiveLesson>>();
 
-const getCacheKey = (lessonId: string, route: LearningRoute, weakObjectiveIds: string[]): string =>
-  `${lessonId}__${route}__${[...weakObjectiveIds].sort().join('-')}`;
+const SESSION_CACHE_PREFIX = 'adaptive-pa3-personalized:';
+const SESSION_CACHE_VERSION = 1;
+
+const getCacheKey = (lesson: AdaptiveLesson, route: LearningRoute, weakObjectiveIds: string[]): string =>
+  `${lesson.id}__${lesson.updatedAt || 'no-updated-at'}__${route}__${[...weakObjectiveIds].sort().join('-')}`;
+
+const canUseSessionStorage = (): boolean =>
+  typeof window !== 'undefined' && typeof window.sessionStorage !== 'undefined';
+
+const readSessionCache = (cacheKey: string): AdaptiveLesson | null => {
+  if (!canUseSessionStorage()) return null;
+  try {
+    const raw = window.sessionStorage.getItem(`${SESSION_CACHE_PREFIX}${cacheKey}`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { version?: number; lesson?: AdaptiveLesson };
+    if (parsed.version !== SESSION_CACHE_VERSION || !parsed.lesson) return null;
+    return parsed.lesson;
+  } catch (error) {
+    console.warn('[PersonalizationEngine] Ignoring corrupted session cache:', error);
+    return null;
+  }
+};
+
+const writeSessionCache = (cacheKey: string, personalized: AdaptiveLesson): void => {
+  if (!canUseSessionStorage()) return;
+  try {
+    window.sessionStorage.setItem(
+      `${SESSION_CACHE_PREFIX}${cacheKey}`,
+      JSON.stringify({ version: SESSION_CACHE_VERSION, lesson: personalized }),
+    );
+  } catch (error) {
+    // Storage quota/private-mode failures should never block the learner.
+    console.warn('[PersonalizationEngine] Could not write session cache:', error);
+  }
+};
 
 // ── Prompt builder ────────────────────────────────────────────────────────────
 
@@ -196,11 +229,18 @@ export const getPersonalizedLesson = async (
   weakObjectiveIds: string[],
   callApi: PersonalizationApiCall,
 ): Promise<AdaptiveLesson> => {
-  const cacheKey = getCacheKey(lesson.id, route, weakObjectiveIds);
+  const cacheKey = getCacheKey(lesson, route, weakObjectiveIds);
 
-  // 1. Cache hit → instant return
+  // 1. Memory cache hit → instant return
   const cached = resolvedCache.get(cacheKey);
   if (cached) return cached;
+
+  // 1b. Same-browser session cache hit → survive route refresh/back-forward in the current tab
+  const sessionCached = readSessionCache(cacheKey);
+  if (sessionCached) {
+    resolvedCache.set(cacheKey, sessionCached);
+    return sessionCached;
+  }
 
   // 2. Already in-flight → share the same promise
   const pending = pendingPersonalizations.get(cacheKey);
@@ -222,6 +262,7 @@ export const getPersonalizedLesson = async (
       }
       const personalized = applyPersonalizationPatch(lesson, patch, route);
       resolvedCache.set(cacheKey, personalized);
+      writeSessionCache(cacheKey, personalized);
       return personalized;
     })
     .catch((err: unknown) => {
@@ -241,4 +282,12 @@ export const getPersonalizedLesson = async (
 export const clearPersonalizationCache = (): void => {
   resolvedCache.clear();
   pendingPersonalizations.clear();
+  if (!canUseSessionStorage()) return;
+  try {
+    Object.keys(window.sessionStorage)
+      .filter(key => key.startsWith(SESSION_CACHE_PREFIX))
+      .forEach(key => window.sessionStorage.removeItem(key));
+  } catch (error) {
+    console.warn('[PersonalizationEngine] Could not clear session cache:', error);
+  }
 };

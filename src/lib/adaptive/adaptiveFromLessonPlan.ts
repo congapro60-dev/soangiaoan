@@ -364,6 +364,22 @@ const validateHtmlMiniApp = (unit: UnitJson, unitIndex: number, issues: Adaptive
   }
 };
 
+const toWarningMessage = (issue: AdaptiveContentValidationIssue): string => `${issue.code}: ${issue.message}`;
+
+const buildFallbackLessonWithWarnings = (
+  source: AdaptiveLessonSource,
+  reviewedPlan: string,
+  teacherId: string,
+  warnings: string[],
+): AdaptiveLesson => ({
+  ...buildAdaptiveLessonFromReviewedPlan(source, reviewedPlan, teacherId),
+  generationSource: 'regex_fallback',
+  generationWarnings: [
+    'AI trả về JSON không đạt chuẩn nên hệ thống đã dùng bộ dựng dự phòng từ giáo án đã rà soát.',
+    ...warnings,
+  ],
+});
+
 const validateAdaptiveContentJson = (content: AdaptiveContentJson, source: AdaptiveLessonSource): void => {
   const issues: AdaptiveContentValidationIssue[] = [];
   const allText = compactText(content);
@@ -423,19 +439,16 @@ const validateAdaptiveContentJson = (content: AdaptiveContentJson, source: Adapt
 };
 
 const extractJsonFromText = (text: string): string => {
-  let raw = text;
-  const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (fenceMatch) raw = fenceMatch[1].trim();
-  else {
-    const start = text.indexOf('{');
-    const end = text.lastIndexOf('}');
-    if (start >= 0 && end > start) raw = text.slice(start, end + 1);
-  }
-  
-  // Fix common AI JSON issues:
-  // 1) raw newlines inside string values;
-  // 2) LaTeX commands written as invalid JSON escapes, e.g. \frac, \sqrt;
-  // 3) shorthand "$displaystyle" instead of "\\displaystyle".
+  const trimmed = text.trim();
+  const fenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  const candidate = fenceMatch ? fenceMatch[1].trim() : trimmed;
+  const start = candidate.indexOf('{');
+  const end = candidate.lastIndexOf('}');
+  if (start < 0 || end <= start) throw new Error('Không tìm thấy JSON object trong phản hồi AI');
+  return candidate.slice(start, end + 1);
+};
+
+const repairJsonString = (raw: string): string => {
   let inString = false;
   let escaped = false;
   let fixed = '';
@@ -464,7 +477,27 @@ const extractJsonFromText = (text: string): string => {
   }
 
   if (escaped) fixed += '\\\\';
-  return fixed.replace(/\$displaystyle/g, '$\\displaystyle');
+  return fixed
+    .replace(/\$displaystyle/g, '$\\displaystyle')
+    .replace(/,\s*([}\]])/g, '$1');
+};
+
+const parseAdaptiveContentJson = (contentJsonText: string): AdaptiveContentJson => {
+  const rawJsonString = extractJsonFromText(contentJsonText);
+  const candidates = [rawJsonString, repairJsonString(rawJsonString)];
+  let lastError: unknown;
+
+  for (const candidate of candidates) {
+    try {
+      const parsed = JSON.parse(candidate);
+      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) throw new Error('JSON root không phải object');
+      return parsed as AdaptiveContentJson;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error('Không parse được JSON từ AI');
 };
 
 const buildQuestionFromJson = (
@@ -653,14 +686,14 @@ export const buildAdaptiveLessonFromContentJson = (
 ): AdaptiveLesson => {
   let content: AdaptiveContentJson;
   try {
-    const rawJsonString = extractJsonFromText(contentJsonText);
-    const parsed = JSON.parse(rawJsonString);
-    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) throw new Error('Not an object');
-    content = parsed as AdaptiveContentJson;
+    content = parseAdaptiveContentJson(contentJsonText);
     validateAdaptiveContentJson(content, source);
   } catch (err) {
-    console.error('Failed to parse AI JSON content:', err, contentJsonText);
-    throw new Error('Invalid JSON format from AI');
+    const warningMessages = err instanceof AdaptiveContentValidationError
+      ? err.issues.map(toWarningMessage)
+      : [`json_parse_error: ${err instanceof Error ? err.message : String(err)}`];
+    console.warn('Không dùng được JSON nội dung từ AI, chuyển sang bản dựng dự phòng:', warningMessages, contentJsonText);
+    return buildFallbackLessonWithWarnings(source, reviewedPlan, teacherId, warningMessages);
   }
 
   const now = new Date().toISOString();
@@ -779,6 +812,7 @@ export const buildAdaptiveLessonFromContentJson = (
       toolId: 'gamedoikhang',
       message: defaultRewardMessage,
     },
+    generationSource: 'ai_json',
   };
 };
 
@@ -886,17 +920,16 @@ QUY TẮC BẮT BUỘC:
 8. Mỗi unit BẮT BUỘC có simulation_html.srcDoc là một mini-app HTML tự chứa, tương tác thật bằng SVG hoặc Canvas và input/slider/button/drag. Không dùng link ảnh ngoài, không CDN, không iframe lồng.
 9. Nội dung học sinh đọc KHÔNG được lẫn thuật ngữ quy trình/hệ thống như UI/UX, bố cục 7:3, đồng hồ kép, mục lục thông minh, Socratic, Vở Ghi Chép, schema.
 10. RẤT QUAN TRỌNG: Vì output là JSON, bạn phải DOUBLE ESCAPE mọi dấu backslash trong LaTeX. Ví dụ: viết \\frac thay vì \frac, \\sqrt thay vì \sqrt, \\Delta thay vì \Delta. Nếu không JSON.parse sẽ báo lỗi.
-11. Trả về JSON thuần túy hợp lệ. Không có bất kỳ text nào trước hoặc sau JSON.`;
+11. Trả về đúng JSON hợp lệ, không markdown, không giải thích ngoài JSON.`;
 
-export const buildAdaptiveReviewPrompt = (source: AdaptiveLessonSource): string => `Bạn là chuyên gia thiết kế bài học phân hoá/adaptive môn Toán.
+export const buildAdaptiveReviewPrompt = (source: AdaptiveLessonSource): string =>
+  `Bạn là chuyên gia rà soát và thiết kế lại giáo án Toán thành bài học phân hoá 40 phút.
 
-NHIỆM VỤ: Nghiên cứu giáo án nguồn, đánh giá mức độ sẵn sàng và tái thiết kế thành bản chuẩn bị tạo bài học phân hoá. Giáo án nguồn CÓ THỂ KHÔNG theo cấu trúc bài học phân hoá, có thể thiếu pre-test, tuyến học, quick check, hình ảnh minh hoạ, bài tập hoặc exit ticket. Khi thiếu, bạn BẮT BUỘC phải tự bổ sung/điều chỉnh dựa trên mục tiêu, nội dung và chuẩn kiến thức suy ra từ giáo án gốc. Không chỉ nhận xét thiếu; phải tạo luôn phiên bản hoàn chỉnh để giáo viên duyệt.
-
-THÔNG TIN NGUỒN:
-- Tên nguồn: ${source.sourceLabel || source.title || 'Giáo án tải lên'}
-- Tiêu đề: ${source.title || 'Chưa rõ'}
-- Lớp: ${source.grade || 'Chưa rõ'}
+THÔNG TIN BÀI HỌC:
+- Tên bài: ${source.title || 'Chưa rõ'}
+- Lớp: ${source.grade || '10'}
 - Tuần: ${source.week || 'Chưa rõ'}
+- Nguồn: ${source.sourceLabel || 'Giáo án nguồn'}
 
 GIÁO ÁN NGUỒN:
 ---
@@ -913,18 +946,18 @@ YÊU CẦU RÀ SOÁT VÀ BỔ SUNG:
 CHUẨN BÀI HỌC PHÂN HOÁ BẮT BUỘC:
 I. UI/UX và trải nghiệm học tập
 - Màn hình học tập dùng bố cục 7:3: 70% bên trái là bài giảng tương tác/giải quyết vấn đề; 30% bên phải là “Vở Ghi Chép” tự động lưu định lý, công thức, kết luận cốt lõi khi học sinh vượt qua từng chướng ngại.
-- Có đồng hồ kép: đồng hồ tổng 40:00 và đồng hồ cục bộ cho từng phần, ví dụ 05:00 cho pre-test.
-- Có mục lục thông minh điều hướng giữa Bước 0 đến Bước 5, tự ẩn khi click ra ngoài.
-- Đồ họa chống lỗi: hình phẳng ưu tiên mô tả để dựng bằng <svg> nội tuyến; bài hình học không gian phải mô tả được cấu trúc 3D xoay được bằng engine Three.js/WebGL nội bộ; hạn chế link ảnh ngoài.
-- Chuẩn bị đầy đủ học liệu số/mô phỏng tương tác cho học sinh, đặc biệt với hình học phẳng và hình học không gian.
+- Có đồng hồ kép: đồng hồ tổng 40:00 và đồng hồ cục bộ cho từng phần.
+- Có mục lục thông minh điều hướng giữa Bước 0 đến Bước 5.
+- Đồ họa chống lỗi: hình phẳng ưu tiên mô tả để dựng bằng SVG nội tuyến; bài hình học không gian phải mô tả được cấu trúc 3D xoay được bằng engine Three.js/WebGL nội bộ.
+- Chuẩn bị đầy đủ học liệu số/mô phỏng tương tác cho học sinh.
 
 II. Khung kịch bản sư phạm
-- Bước 0 — Pre-test: 5 phút, ít nhất 5 câu đa dạng gồm trắc nghiệm 4 phương án, đúng/sai, trả lời ngắn; đo nhận biết, thông hiểu, vận dụng từ thấp đến cao dựa trên nội dung học sinh đọc trước. Sau nộp phải có điểm, đúng/sai, giải thích từng phương án và đề xuất tuyến Foundation/Standard/Challenge.
-- Bước 1 — Khởi động & Gắn kết (Engage): có câu chuyện lịch sử hoặc tình huống thực tế hấp dẫn; có trải nghiệm bế tắc bằng công cụ tương tác; học sinh tự điền kỳ vọng; hệ thống đối chiếu và in mục tiêu theo 3 cấp Cơ bản/Trọng tâm/Nâng cao.
-- Bước 2 — Kiến tạo tri thức: dùng tư duy Socratic, bẻ bài toán lớn thành câu hỏi nhỏ; Trial & Error không khóa luồng khi sai; mỗi câu trả lời đều có phản hồi bản chất rồi mở bước tiếp theo; sau từng nội dung lý thuyết có quick check; nếu sai thì mở lại nội dung lý thuyết để diễn giải lại; cuối mỗi hoạt động chốt định lý/công thức và chuyển sang Vở Ghi Chép; AI ghi nhận thao tác, thời gian, quick check để xếp bài tập ở Bước 3.
-- Bước 3 — Áp dụng luyện tập: dựa trên dữ liệu Bước 0 và Bước 2 để sinh luyện tập theo năng lực Trung bình/Khá/Giỏi; gồm Phần 1: 3 câu trắc nghiệm 4 phương án, 5 điểm/câu; Phần 2: 1 bối cảnh kèm 4 ý Đúng/Sai, 10 điểm/ý; Phần 3: 1 câu trả lời ngắn, 20 điểm; có remediation loop 4 tầng: sai lần 1 nhắc lý thuyết nền trừ 1 điểm, lần 2 gợi ý mức 1 trừ 2 điểm, lần 3 gợi ý mức 2 trừ 3 điểm, lần 4 đáp án chi tiết và chuyển câu 0 điểm.
+- Bước 0 — Pre-test: 5 phút, ít nhất 5 câu đo nhận biết, thông hiểu, vận dụng từ thấp đến cao. Sau nộp phải có điểm, đúng/sai, giải thích từng phương án và đề xuất tuyến Foundation/Standard/Challenge.
+- Bước 1 — Khởi động & Gắn kết: có câu chuyện lịch sử hoặc tình huống thực tế; có trải nghiệm bế tắc bằng công cụ tương tác; học sinh tự điền kỳ vọng; hệ thống in mục tiêu theo 3 cấp.
+- Bước 2 — Kiến tạo tri thức: dùng câu hỏi dẫn dắt nhỏ, Trial & Error không khóa luồng, quick check sau từng nội dung, remediate khi sai, chốt công thức/định lý vào Vở Ghi Chép.
+- Bước 3 — Áp dụng luyện tập: sinh luyện tập theo năng lực Trung bình/Khá/Giỏi; có remediation loop 4 tầng.
 - Bước 4 — Mở rộng: bài toán thực tiễn đặt học sinh vào vai chuyên gia/kỹ sư xử lý sự cố.
-- Bước 5 — Tổng kết: sơ đồ tư duy dạng chuỗi trực quan; checklist mục tiêu ban đầu; thanh trượt tự đánh giá 1-10; hộp thư đặt câu hỏi bổ sung; Time-Filler nếu chưa hết 40 phút thì lần lượt mở 1 tài liệu đọc thêm, 1 bài tập nâng cao khó, 1 bài tập vận dụng thực tế.
+- Bước 5 — Tổng kết: sơ đồ tư duy, checklist mục tiêu, tự đánh giá, hộp thư câu hỏi, Time-Filler nếu còn thời gian.
 
 III. Toán học và kỹ thuật trình bày
 - Dùng MathJax/LaTeX: công thức inline bọc $...$, công thức khối bọc $$...$$.
@@ -942,12 +975,12 @@ III. Toán học và kỹ thuật trình bày
 - Cảnh báo chuyên môn nếu có:
 
 ## 2. Thiết kế UI/UX bài học
-- Bố cục 7:3: nội dung cột trái, Vở Ghi Chép cột phải.
-- Đồng hồ kép: tổng 40:00 và thời lượng cục bộ từng bước.
-- Mục lục thông minh Bước 0-5.
-- Danh sách SVG/mô phỏng nội tuyến cần dựng.
-- Danh sách mô phỏng 3D xoay được cần dựng bằng Three.js/WebGL nội bộ nếu bài có hình học không gian.
-- Học liệu số/tương tác cần chuẩn bị.
+- Bố cục 7:3:
+- Đồng hồ kép:
+- Mục lục thông minh:
+- Danh sách SVG/mô phỏng nội tuyến cần dựng:
+- Danh sách mô phỏng 3D xoay được nếu có:
+- Học liệu số/tương tác cần chuẩn bị:
 
 ## 3. Bước 0 — Pre-test chẩn đoán 5 phút
 | Câu | Loại câu | Mức độ | Nội dung | Phương án/Đáp án | Giải thích từng phương án hoặc tiêu chí | Mục tiêu đo | Dữ liệu phân tuyến |
@@ -956,9 +989,6 @@ III. Toán học và kỹ thuật trình bày
 ## 4. Quy tắc phân tuyến sau Pre-test
 | Điều kiện | Tuyến | Nội dung bài học ưu tiên | Can thiệp AI |
 |---|---|---|---|
-| ... | Foundation | ... | ... |
-| ... | Standard | ... | ... |
-| ... | Challenge | ... | ... |
 
 ## 5. Bước 1 — Khởi động & Gắn kết
 - Câu chuyện/tình huống thực tế:
@@ -977,21 +1007,21 @@ III. Toán học và kỹ thuật trình bày
 
 ## 7. Bước 3 — Áp dụng luyện tập thích ứng
 ### Mức Trung bình
-- Phần 1: 3 câu trắc nghiệm 4 phương án, 5 điểm/câu.
-- Phần 2: 1 bối cảnh + 4 ý Đúng/Sai, 10 điểm/ý.
-- Phần 3: 1 câu trả lời ngắn, 20 điểm.
+- Phần 1:
+- Phần 2:
+- Phần 3:
 - Remediation loop 4 tầng:
 
 ### Mức Khá
-- Phần 1: ...
-- Phần 2: ...
-- Phần 3: ...
+- Phần 1:
+- Phần 2:
+- Phần 3:
 - Remediation loop 4 tầng:
 
 ### Mức Giỏi
-- Phần 1: ...
-- Phần 2: ...
-- Phần 3: ...
+- Phần 1:
+- Phần 2:
+- Phần 3:
 - Remediation loop 4 tầng:
 
 ## 8. Bước 4 — Mở rộng thực tiễn
@@ -1005,17 +1035,15 @@ III. Toán học và kỹ thuật trình bày
 - Checklist mục tiêu:
 - Thanh trượt tự đánh giá 1-10:
 - Hộp thư câu hỏi bổ sung:
-- Time-Filler nếu còn thời gian: tài liệu đọc thêm → bài tập nâng cao → bài tập vận dụng thực tế.
+- Time-Filler nếu còn thời gian:
 
 ## 10. Tiêu chuẩn Toán học, mô phỏng và đóng gói
 - Công thức MathJax/LaTeX cần dùng:
 - Quy chuẩn ký hiệu đặc biệt:
 - Yêu cầu độc lập, không phụ thuộc link ảnh ngoài:
-- Nếu có hình học phẳng: đặc tả mô phỏng SVG gồm điểm, đoạn, đa giác/đường tròn, điểm kéo được, câu hỏi quan sát và kết luận ghi vào Vở Ghi Chép.
-- Nếu có hình học không gian: đặc tả mô phỏng 3D xoay được gồm danh sách điểm 3D, cạnh, mặt phẳng/mặt đa giác, đường khuất, đường cao/đường phụ, thao tác xoay/zoom/bật tắt mặt và câu hỏi quan sát.
-- Gợi ý schema triển khai nội bộ: geometry2d dùng engine svg; geometry3d dùng engine threejs; mỗi mô phỏng cần title, description, placement, objectiveIds, studentTask, interactions, questions, notebookEntries.
+- Đặc tả mô phỏng SVG/3D nếu cần:
 
 ## 11. Bản đồ chuyển đổi sang bài học phân hoá
 | Thành phần | Nội dung đã duyệt | Ghi chú triển khai |
 |---|---|---|
-`; 
+`;

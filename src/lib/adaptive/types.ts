@@ -172,6 +172,8 @@ export interface AdaptiveLesson {
     toolId: string;
     message: string;
   };
+  generationWarnings?: string[];
+  generationSource?: 'ai_json' | 'regex_fallback';
 }
 
 export interface StudentParticipant {

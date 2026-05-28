@@ -31,7 +31,7 @@ import { adaptiveLessonToDeweyContent } from '../lib/adaptive/adaptiveToDewey';
 import { renderDeweyLesson } from '../lib/dewey/template';
 import { getLessonFromFirestore } from '../services/adaptiveLessonService';
 import { getPersonalizedLesson } from '../lib/adaptive/personalizationEngine';
-import { callAI } from '../lib/aiProviders';
+import { GEMINI_MODELS } from '../lib/aiProviders';
 import { LessonSimulationViewer } from '../components/adaptive/LessonSimulationViewer';
 import { getToolsByIds } from '../data/externalTools';
 import {
@@ -106,6 +106,7 @@ const noticeClass: Record<NoticeTone, string> = {
 const normalizeStudentCode = (value: string) => value.trim().toUpperCase().replace(/\s+/g, '-');
 const buildStudentId = (teacherId: string, studentCode: string) => `${teacherId}_${normalizeStudentCode(studentCode)}`;
 const buildProgressId = (teacherId: string, lessonId: string, studentCode: string) => `${teacherId}_${lessonId}_${normalizeStudentCode(studentCode)}`;
+const DEFAULT_PERSONALIZATION_MODEL = GEMINI_MODELS[0]?.id || 'gemini-3.5-flash';
 
 const getQuestionAnswer = (questionId: string, answers: Record<string, string>) => answers[questionId] || '';
 const formatDuration = (seconds: number) => {
@@ -579,11 +580,16 @@ export const AdaptiveStudentPortalPage = () => {
     setNotice({ tone: 'info', message: `Hệ thống đã xếp em vào tuyến ${routeLabel[deweyRoute]}. Đang cá nhân hóa nội dung...` });
 
     // Call PA3 Engine — falls back to original lesson if it times out or fails
-    const callApiFn = (prompt: string) => fetch('/api/gemini-relay', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt, model: 'gemini-3.5-flash' })
-    }).then(res => res.json()).then(data => data.text || '');
+    const callApiFn = async (prompt: string) => {
+      const response = await fetch('/api/gemini-relay', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, model: DEFAULT_PERSONALIZATION_MODEL }),
+      });
+      if (!response.ok) throw new Error(`Personalization relay error ${response.status}`);
+      const data = await response.json().catch(() => ({}));
+      return typeof data.text === 'string' ? data.text : '';
+    };
 
     const personalizedLesson = await getPersonalizedLesson(lesson, deweyRoute, weakObjectiveIds, callApiFn);
 
