@@ -27,6 +27,15 @@ export interface LessonPreparation {
   readingInstructions: string;
   guidingQuestions: string[];
   estimatedMinutes: number;
+  engage?: {
+    storyHook?: string;
+    realityCheckMessage?: string;
+    guidingQuestion?: string;
+    guidingQuestionBox?: string;
+    bigTitle?: string;
+    studentExpectationPrompt?: string;
+    routeGoals?: Partial<Record<LearningRoute, string>>;
+  };
 }
 
 export interface FiveStepFlow {

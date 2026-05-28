@@ -95,7 +95,7 @@ async function connectWithRetry(url, maxRetries = 15) {
     const pages = await browser.pages();
     for (const p of pages) {
       const url = p.url();
-      if (url.includes('giaoandewey.vercel.app') && !url.includes('/adaptive-portal/')) {
+      if ((url.includes('giaoandewey.vercel.app') || url.includes('localhost:3000') || url.includes('127.0.0.1:3000')) && !url.includes('/adaptive-portal/')) {
         page = p;
         console.log(`[Đang phân tích]: Phát hiện tab đang mở sẵn: ${url}. Móc nối vào tab này để kế thừa hiện trường!`);
         break;
@@ -123,12 +123,12 @@ async function connectWithRetry(url, maxRetries = 15) {
       console.error('[Browser Runtime Page Error]', err.toString());
     });
 
-    const targetUrl = 'https://giaoandewey.vercel.app';
+    const targetUrl = 'http://localhost:3000';
 
     // STEP 1: Đăng nhập / Truy cập Dashboard
     await runStepWithRetry(page, 'Mở trang & Đăng nhập', async () => {
       const url = page.url();
-      if (!url.includes('giaoandewey.vercel.app')) {
+      if (!(url.includes('giaoandewey.vercel.app') || url.includes('localhost:3000') || url.includes('127.0.0.1:3000'))) {
         console.log(`[Đang phân tích]: Trang hiện tại là "${url}", chuẩn bị điều hướng tới ${targetUrl}...`);
         await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 45000 });
       } else if (url.includes('/adaptive/student') || url.includes('/adaptive-portal')) {
@@ -180,7 +180,8 @@ async function connectWithRetry(url, maxRetries = 15) {
         }
         parsed.settings = parsed.settings || {};
         parsed.settings.geminiApiKey = envApiKey;
-        parsed.settings.selectedModel = 'gemini-3.5-flash';
+        parsed.settings.selectedProvider = 'gemini';
+        parsed.settings.selectedModel = 'gemini-2.5-flash';
         await page.evaluate((dataStr) => localStorage.setItem('smart_lesson_plan_data', dataStr), JSON.stringify(parsed));
         console.log(`[Đang phân tích]: Đã tiêm thành công! Đang tải lại trang để React áp dụng khóa mới...`);
         await page.reload({ waitUntil: 'domcontentloaded' });

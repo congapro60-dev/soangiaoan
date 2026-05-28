@@ -14,20 +14,42 @@ function findRoute(unit: AdaptiveLesson['knowledgeUnits'][0], route: LearningRou
   );
 }
 
+const DEWEY_META_LEAK_RE = /\b(UI\/?UX|7\s*:?\s*3|Socratic|bố cục|mục lục|đồng hồ|giao diện|thiết kế|wireframe|notebook|dashboard)\b/i;
+const MATH_FRAGMENT_RE = /(^|[\s(])([A-Z]\.?\s*)?([a-zA-Z][\w']*\^\{?[-\w]+\}?\s*=\s*[-+]?\s*\d|[A-Z]_[12]?\s*\([-+]?\d+\s*[;,]\s*[-+]?\d+\)|[a-zA-Z]\^\{?\d+\}?\s*[+\-=])/g;
+
+const stripMetaLeaks = (value: string | undefined, fallback: string): string => {
+  const text = value?.trim();
+  if (!text || DEWEY_META_LEAK_RE.test(text)) return fallback;
+  return text;
+};
+
+const normalizeLatexText = (value: string | undefined, fallback = ''): string => {
+  const text = (value?.trim() || fallback).replace(/\\\\(frac|sqrt|Delta|alpha|beta|gamma|displaystyle|left|right|cdot|pm|le|ge|ne|infty|sin|cos|tan)/g, '\\$1');
+  return text.replace(MATH_FRAGMENT_RE, (match, prefix) => {
+    if (match.includes('$')) return match;
+    return `${prefix || ''}$${match.slice((prefix || '').length).trim()}$`;
+  }).replace(/\$\\frac/g, '$\\displaystyle \\frac');
+};
+
+const cleanOptions = (options: string[] | undefined): string[] => {
+  const raw = options?.length ? options : ['Đúng', 'Sai'];
+  return raw.map(option => normalizeLatexText(option, option));
+};
+
 function toAdaptiveQ(q: AdaptiveQuestion, points: number): DeweyAdaptiveQuestion {
-  const opts = q.options?.length ? q.options : ['Đúng', 'Sai'];
+  const opts = cleanOptions(q.options);
   const cidx = Math.max(opts.indexOf(q.correctAnswer ?? ''), 0);
   return {
     id: q.id,
     type: 'multiple_choice',
-    prompt: q.prompt,
+    prompt: normalizeLatexText(q.prompt, 'Câu hỏi đang được chuẩn bị.'),
     options: opts,
     correctIndex: cidx,
-    theory: q.explanation,
-    hint1: q.explanation,
-    hint2: q.explanation,
-    hint3: q.explanation,
-    solution: q.explanation,
+    theory: normalizeLatexText(q.explanation, 'Xem lại phần kiến thức liên quan.'),
+    hint1: normalizeLatexText(q.explanation, 'Xem lại phần kiến thức liên quan.'),
+    hint2: normalizeLatexText(q.explanation, 'Xem lại phần kiến thức liên quan.'),
+    hint3: normalizeLatexText(q.explanation, 'Xem lại phần kiến thức liên quan.'),
+    solution: normalizeLatexText(q.explanation, 'Xem lại phần kiến thức liên quan.'),
     points,
   };
 }
@@ -52,13 +74,13 @@ export function adaptiveLessonToDeweyContent(
 ): DeweyLessonContent {
   // Pretest: lấy 5 câu đầu từ diagnosticTest
   const pretestQuestions = (lesson.diagnosticTest?.questions ?? []).slice(0, 5).map(q => {
-    const opts = q.options?.slice(0, 2) ?? ['Đúng', 'Sai'];
+    const opts = cleanOptions(q.options).slice(0, 4);
     return {
       id: q.id,
-      prompt: q.prompt,
+      prompt: normalizeLatexText(q.prompt, 'Câu hỏi đang được chuẩn bị.'),
       options: opts,
       correctIndex: Math.max(opts.indexOf(q.correctAnswer ?? ''), 0),
-      explanation: q.explanation,
+      explanation: normalizeLatexText(q.explanation, 'Xem lại phần kiến thức liên quan.'),
     };
   });
 
@@ -68,26 +90,26 @@ export function adaptiveLessonToDeweyContent(
     const steps = [
       {
         id: 'step-explain',
-        prompt: rc?.explanation ?? unit.title,
+        prompt: normalizeLatexText(rc?.explanation, unit.title),
         inputPlaceholder: 'Viết suy nghĩ của em…',
         feedback: 'So sánh câu trả lời với gợi ý rồi tiếp tục.',
         formulaToNote: '',
       },
       ...(rc?.workedExamples ?? []).map((ex, i) => ({
         id: `step-ex-${i}`,
-        prompt: ex.problem,
+        prompt: normalizeLatexText(ex.problem, unit.title),
         inputPlaceholder: 'Viết đáp số hoặc lời giải…',
         expectedKeywords: ex.hints,
-        feedback: ex.solution,
-        formulaToNote: ex.explanation,
+        feedback: normalizeLatexText(ex.solution, 'Xem lời giải mẫu trong giáo án.'),
+        formulaToNote: normalizeLatexText(ex.explanation, ''),
       })),
     ];
     return {
       id: unit.id,
       title: unit.title,
       socraticSteps: steps,
-      conclusion: rc?.workedExamples?.[0]?.explanation ?? unit.title,
-      formulaForNotebook: (rc?.explanation ?? unit.title).slice(0, 150),
+      conclusion: normalizeLatexText(rc?.workedExamples?.[0]?.explanation, unit.title),
+      formulaForNotebook: normalizeLatexText(rc?.explanation, unit.title).slice(0, 220),
     };
   });
 
@@ -104,6 +126,27 @@ export function adaptiveLessonToDeweyContent(
 
   const routeLabel =
     route === 'foundation' ? 'Cơ bản' : route === 'challenge' ? 'Nâng cao' : 'Chuẩn';
+  const engageData = lesson.preparation?.engage;
+  const routeGoal = engageData?.routeGoals?.[route];
+  const fallbackGuidingQuestion =
+    lesson.preparation?.guidingQuestions?.find(question => /\?$/.test(question.trim())) ||
+    lesson.preparation?.guidingQuestions?.[0] ||
+    'Em sẽ học được gì hôm nay?';
+
+  const goalBloomFramework = {
+    nhanbiet:
+      engageData?.routeGoals?.foundation ||
+      lesson.objectives.find(o => o.bloomLevel === 'remember' || o.bloomLevel === 'understand')?.title ||
+      lesson.objectives[0]?.title || '',
+    thonghieu:
+      engageData?.routeGoals?.standard ||
+      lesson.objectives.find(o => o.bloomLevel === 'apply')?.title ||
+      lesson.objectives[1]?.title || '',
+    vandung:
+      engageData?.routeGoals?.challenge ||
+      lesson.objectives.find(o => o.bloomLevel === 'analyze')?.title ||
+      lesson.objectives[2]?.title || '',
+  };
 
   return {
     lessonId: lesson.id,
@@ -118,29 +161,22 @@ export function adaptiveLessonToDeweyContent(
         lesson.preparation?.readingInstructions ?? 'Ôn tập nhanh kiến thức tiết trước.',
     },
     engage: {
-      storyHook: lesson.preparation?.guidingQuestions?.[0] ?? lesson.title,
+      storyHook: normalizeLatexText(stripMetaLeaks(engageData?.storyHook || lesson.preparation?.guidingQuestions?.[0], `Hôm nay em sẽ khám phá bài học "${lesson.title}" qua các câu hỏi, ví dụ và hoạt động luyện tập cụ thể.`)),
       interactiveSvgId: '',
-      realityCheckMessage:
-        lesson.preparation?.readingInstructions ?? 'Kiến thức này rất quan trọng trong thực tế!',
-      guidingQuestion:
-        lesson.preparation?.guidingQuestions?.[0] ?? 'Em sẽ học được gì hôm nay?',
-      bigTitle: lesson.objectives?.[0]?.title ?? lesson.title,
+      realityCheckMessage: normalizeLatexText(stripMetaLeaks(
+        engageData?.realityCheckMessage || lesson.preparation?.readingInstructions,
+        `Hãy quan sát vấn đề trung tâm của bài "${lesson.title}" và dự đoán cách giải trước khi học chi tiết.`,
+      )),
+      guidingQuestion: normalizeLatexText(stripMetaLeaks(engageData?.guidingQuestion || engageData?.guidingQuestionBox || fallbackGuidingQuestion, fallbackGuidingQuestion)),
+      bigTitle: normalizeLatexText(stripMetaLeaks(engageData?.bigTitle || routeGoal, lesson.objectives?.[0]?.title || lesson.title)),
       goalSetting: lesson.objectives?.length
         ? {
             heading: 'Đặt mục tiêu học tập',
-            placeholder: 'Hôm nay em muốn học được gì?',
+            placeholder:
+              engageData?.studentExpectationPrompt ||
+              `Sau bài "${lesson.title}", em muốn tự tin giải được dạng toán nào?`,
             aiButtonLabel: 'Phân tích mục tiêu',
-            bloomFramework: {
-              nhanbiet:
-                lesson.objectives.find(o => o.bloomLevel === 'remember')?.title ??
-                lesson.objectives[0]?.title ?? '',
-              thonghieu:
-                lesson.objectives.find(o => o.bloomLevel === 'understand')?.title ??
-                lesson.objectives[1]?.title ?? '',
-              vandung:
-                lesson.objectives.find(o => o.bloomLevel === 'apply')?.title ??
-                lesson.objectives[2]?.title ?? '',
-            },
+            bloomFramework: goalBloomFramework,
           }
         : undefined,
     },

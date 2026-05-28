@@ -1,4 +1,5 @@
 import { sampleGeometry2DTriangleSimulation, sampleGeometry3DPyramidSimulation } from './simulationTypes';
+import type { AdaptiveSimulationSpec, HtmlSimulationSpec } from './simulationTypes';
 import type {
   AdaptiveAssessment,
   AdaptiveLesson,
@@ -269,17 +270,158 @@ interface UnitJson {
   explanation_challenge: string;
   worked_example?: { problem: string; solution: string; hints?: string[] };
   quick_check_questions?: QuestionJson[];
+  simulation_html?: {
+    title?: string;
+    description?: string;
+    srcDoc?: string;
+    height?: number;
+    libraries?: string[];
+    safetyNotes?: string[];
+  };
+}
+
+interface EngageJson {
+  story_hook?: string;
+  reality_check_message?: string;
+  guiding_question?: string;
+  guiding_question_box?: string;
+  big_title?: string;
+  student_expectation_prompt?: string;
+  foundation_goal?: string;
+  standard_goal?: string;
+  challenge_goal?: string;
 }
 
 interface AdaptiveContentJson {
   title?: string;
   objectives?: ObjectiveJson[];
+  engage?: EngageJson;
   units?: UnitJson[];
   diagnostic_questions?: QuestionJson[];
   exit_ticket_questions?: QuestionJson[];
 }
 
-/** Extract raw JSON object string from AI response (handles markdown fences). */
+type AdaptiveContentValidationIssue = {
+  severity: 'error' | 'warning';
+  code: string;
+  message: string;
+};
+
+class AdaptiveContentValidationError extends Error {
+  issues: AdaptiveContentValidationIssue[];
+
+  constructor(issues: AdaptiveContentValidationIssue[]) {
+    super(`AI adaptive content validation failed: ${issues.map(issue => `${issue.code}: ${issue.message}`).join('; ')}`);
+    this.name = 'AdaptiveContentValidationError';
+    this.issues = issues;
+  }
+}
+
+const META_LEAK_RE = /(ui\/?ux|bố cục\s*7\s*[:：]\s*3|7\s*[:：]\s*3|socratic|đồng hồ kép|mục lục thông minh|vở ghi chép|thiết kế giao diện|trải nghiệm học tập)/i;
+const PLACEHOLDER_RE = /(đáp án đúng|phương án nhiễu|phương án đúng|câu hỏi\s*\d*\s*$|giáo viên cập nhật|bổ sung câu hỏi|placeholder|lorem ipsum)/i;
+const MATH_SIGNAL_RE = /(\$[^$]+\$|\\frac|\\sqrt|\\Delta|\\displaystyle|\^\d|_\d|=|\b(elip|ellipse|parabol|hyperbol|hypebol|conic|tiêu điểm|đường chuẩn|phương trình|tọa độ|tham số)\b)/i;
+
+const collectText = (value: unknown): string[] => {
+  if (typeof value === 'string') return [value];
+  if (Array.isArray(value)) return value.flatMap(collectText);
+  if (value && typeof value === 'object') return Object.values(value as Record<string, unknown>).flatMap(collectText);
+  return [];
+};
+
+const compactText = (value: unknown): string => collectText(value).join(' ').replace(/\s+/g, ' ').trim();
+
+const sourceKeywordSignals = (source: AdaptiveLessonSource): string[] => {
+  const raw = `${source.title || ''} ${source.content || ''}`.toLowerCase();
+  const candidates = [
+    'conic', 'elip', 'ellipse', 'parabol', 'hyperbol', 'hypebol', 'tiêu điểm', 'đường chuẩn', 'phương trình',
+    'đường tròn', 'vectơ', 'vector', 'tọa độ', 'hàm số', 'đạo hàm', 'tích phân', 'xác suất', 'tổ hợp',
+    'logarit', 'mũ', 'lượng giác', 'hình học', 'không gian', 'mặt phẳng', 'đường thẳng',
+  ];
+  return candidates.filter(keyword => raw.includes(keyword));
+};
+
+const hasRealQuestionContent = (question: QuestionJson | undefined): boolean => {
+  if (!question || typeof question.prompt !== 'string') return false;
+  if (PLACEHOLDER_RE.test(question.prompt) || question.prompt.trim().length < 18) return false;
+  if (!Array.isArray(question.options) || question.options.length !== 4) return false;
+  if (question.options.some(option => !option || option.trim().length < 2 || PLACEHOLDER_RE.test(option))) return false;
+  if (typeof question.correct !== 'number' || question.correct < 0 || question.correct > 3) return false;
+  return true;
+};
+
+const validateHtmlMiniApp = (unit: UnitJson, unitIndex: number, issues: AdaptiveContentValidationIssue[]): void => {
+  const html = unit.simulation_html;
+  const srcDoc = typeof html?.srcDoc === 'string' ? html.srcDoc.trim() : '';
+  if (!srcDoc) {
+    issues.push({ severity: 'error', code: 'missing_simulation_html', message: `Mảnh kiến thức ${unitIndex + 1} chưa có simulation_html.srcDoc.` });
+    return;
+  }
+  if (!/(<svg|<canvas|input\s+type="range|addEventListener|function\s+draw|requestAnimationFrame)/i.test(srcDoc)) {
+    issues.push({ severity: 'error', code: 'non_interactive_simulation', message: `Mô phỏng ở mảnh ${unitIndex + 1} chưa có dấu hiệu tương tác/canvas/SVG.` });
+  }
+  if (srcDoc.length < 600) {
+    issues.push({ severity: 'warning', code: 'thin_simulation_html', message: `Mô phỏng ở mảnh ${unitIndex + 1} quá ngắn, có thể chỉ là minh hoạ tĩnh.` });
+  }
+};
+
+const validateAdaptiveContentJson = (content: AdaptiveContentJson, source: AdaptiveLessonSource): void => {
+  const issues: AdaptiveContentValidationIssue[] = [];
+  const allText = compactText(content);
+  const sourceSignals = sourceKeywordSignals(source);
+
+  if (!Array.isArray(content.objectives) || content.objectives.length < 3) {
+    issues.push({ severity: 'error', code: 'missing_objectives', message: 'Cần ít nhất 3 mục tiêu học tập cụ thể.' });
+  }
+  if (!content.engage || compactText(content.engage).length < 120) {
+    issues.push({ severity: 'error', code: 'weak_engage', message: 'Hoạt động mở đầu còn thiếu hoặc quá sơ sài.' });
+  }
+  if (!Array.isArray(content.units) || content.units.length < 2) {
+    issues.push({ severity: 'error', code: 'missing_units', message: 'Cần ít nhất 2 mảnh kiến thức.' });
+  }
+  if (!Array.isArray(content.diagnostic_questions) || content.diagnostic_questions.length !== 5) {
+    issues.push({ severity: 'error', code: 'invalid_diagnostic_count', message: 'Pre-test phải có đúng 5 câu.' });
+  }
+  if (!Array.isArray(content.exit_ticket_questions) || content.exit_ticket_questions.length !== 3) {
+    issues.push({ severity: 'error', code: 'invalid_exit_ticket_count', message: 'Exit ticket phải có đúng 3 câu.' });
+  }
+  if (META_LEAK_RE.test(compactText(content.objectives)) || META_LEAK_RE.test(compactText(content.engage))) {
+    issues.push({ severity: 'error', code: 'meta_leak', message: 'Nội dung học sinh bị lẫn thuật ngữ hệ thống/UI như UI/UX, Socratic, 7:3.' });
+  }
+  if (PLACEHOLDER_RE.test(allText)) {
+    issues.push({ severity: 'error', code: 'placeholder_content', message: 'JSON còn placeholder hoặc đáp án mẫu chung chung.' });
+  }
+  if (sourceSignals.length > 0 && !sourceSignals.some(signal => allText.toLowerCase().includes(signal))) {
+    issues.push({ severity: 'error', code: 'source_drift', message: `Nội dung sinh ra không bám các tín hiệu chính của giáo án nguồn: ${sourceSignals.slice(0, 6).join(', ')}.` });
+  }
+
+  const allQuestions = [
+    ...(Array.isArray(content.diagnostic_questions) ? content.diagnostic_questions : []),
+    ...(Array.isArray(content.exit_ticket_questions) ? content.exit_ticket_questions : []),
+    ...(Array.isArray(content.units) ? content.units.flatMap(unit => unit.quick_check_questions || []) : []),
+  ];
+  const invalidQuestionIndex = allQuestions.findIndex(question => !hasRealQuestionContent(question));
+  if (invalidQuestionIndex >= 0) {
+    issues.push({ severity: 'error', code: 'invalid_question', message: `Câu hỏi số ${invalidQuestionIndex + 1} thiếu nội dung thật, thiếu 4 đáp án hoặc còn placeholder.` });
+  }
+  if (allQuestions.length >= 5 && allQuestions.filter(question => MATH_SIGNAL_RE.test(compactText(question))).length < Math.ceil(allQuestions.length * 0.6)) {
+    issues.push({ severity: 'error', code: 'weak_math_content', message: 'Quá ít câu hỏi có công thức/số liệu/tín hiệu Toán học cụ thể.' });
+  }
+
+  (content.units || []).forEach((unit, index) => {
+    const unitText = compactText(unit);
+    if (!unit.title || unitText.length < 250) {
+      issues.push({ severity: 'error', code: 'thin_unit', message: `Mảnh kiến thức ${index + 1} thiếu tiêu đề hoặc nội dung tuyến học quá mỏng.` });
+    }
+    if ((unit.quick_check_questions || []).length !== 2) {
+      issues.push({ severity: 'error', code: 'invalid_quick_check_count', message: `Mảnh kiến thức ${index + 1} phải có đúng 2 câu quick check.` });
+    }
+    validateHtmlMiniApp(unit, index, issues);
+  });
+
+  const blockingIssues = issues.filter(issue => issue.severity === 'error');
+  if (blockingIssues.length > 0) throw new AdaptiveContentValidationError(blockingIssues);
+};
+
 const extractJsonFromText = (text: string): string => {
   let raw = text;
   const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
@@ -290,10 +432,39 @@ const extractJsonFromText = (text: string): string => {
     if (start >= 0 && end > start) raw = text.slice(start, end + 1);
   }
   
-  // Fix common LaTeX escape issues in JSON strings
-  // If the AI forgot to double-escape backslashes for LaTeX (e.g. \frac instead of \\frac)
-  // We need to escape them, but ONLY if they are not already escaped, and not standard JSON escapes like \n, \t, \r, \", \\
-  return raw.replace(/\\([^"\\nrt/bf])/g, '\\\\$1');
+  // Fix common AI JSON issues:
+  // 1) raw newlines inside string values;
+  // 2) LaTeX commands written as invalid JSON escapes, e.g. \frac, \sqrt;
+  // 3) shorthand "$displaystyle" instead of "\\displaystyle".
+  let inString = false;
+  let escaped = false;
+  let fixed = '';
+
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i];
+
+    if (escaped) {
+      if ('"\\/bfnrtu'.includes(ch)) fixed += `\\${ch}`;
+      else fixed += `\\\\${ch}`;
+      escaped = false;
+      continue;
+    }
+
+    if (ch === '\\') {
+      escaped = true;
+      continue;
+    }
+
+    if (ch === '"') inString = !inString;
+
+    if (inString && ch === '\n') fixed += '\\n';
+    else if (inString && ch === '\r') fixed += '\\r';
+    else if (inString && ch === '\t') fixed += '\\t';
+    else fixed += ch;
+  }
+
+  if (escaped) fixed += '\\\\';
+  return fixed.replace(/\$displaystyle/g, '$\\displaystyle');
 };
 
 const buildQuestionFromJson = (
@@ -356,6 +527,68 @@ const buildAssessmentFromJsonQuestions = (
   };
 };
 
+const allowedHtmlSimulationLibraries: NonNullable<HtmlSimulationSpec['libraries']> = [
+  'vanilla-canvas',
+  'svg',
+  'mathjax',
+  'katex',
+  'p5',
+  'matterjs',
+  'threejs',
+  'jsxgraph',
+  'geogebra',
+  'desmos',
+];
+
+const normalizeHtmlSimulationLibraries = (libraries?: string[]): NonNullable<HtmlSimulationSpec['libraries']> => {
+  if (!Array.isArray(libraries)) return ['vanilla-canvas'];
+  const filtered = libraries.filter((library): library is NonNullable<HtmlSimulationSpec['libraries']>[number] =>
+    allowedHtmlSimulationLibraries.includes(library as NonNullable<HtmlSimulationSpec['libraries']>[number])
+  );
+  return filtered.length ? filtered : ['vanilla-canvas'];
+};
+
+const buildHtmlSimulationSpecFromJson = (unit: UnitJson, objectiveId: string): AdaptiveSimulationSpec | undefined => {
+  const html = unit.simulation_html;
+  const srcDoc = typeof html?.srcDoc === 'string' ? html.srcDoc.trim() : '';
+  if (!srcDoc) return buildDefaultSimulationSpec(unit.title, objectiveId, unit.title);
+
+  return {
+    id: uid('sim-html'),
+    title: html?.title?.trim() || `Mô phỏng tương tác — ${unit.title}`,
+    description: html?.description?.trim() || `Mini-app HTML/Canvas giúp học sinh thao tác trực tiếp với mảnh kiến thức: ${unit.title}.`,
+    kind: 'htmlMiniApp' as const,
+    engine: 'html' as const,
+    placement: 'step2' as const,
+    objectiveIds: [objectiveId],
+    studentTask: `Thao tác với mô phỏng, thay đổi tham số và ghi lại nhận xét cho mảnh kiến thức “${unit.title}”.`,
+    interactions: ['Kéo/thả hoặc điều chỉnh thanh trượt', 'Quan sát hình vẽ cập nhật theo thời gian thực', 'Đọc số đo/kết quả trên màn hình'],
+    questions: [
+      {
+        id: uid('sim-q'),
+        prompt: `Khi thay đổi tham số trong mô phỏng, đại lượng hoặc quan hệ nào của “${unit.title}” giữ nguyên?`,
+        expectedObservation: 'Học sinh nêu được bất biến/quy luật chính sau khi thao tác với mô phỏng.',
+      },
+    ],
+    notebookEntries: [
+      {
+        id: uid('sim-note'),
+        title: `Ghi chú quan sát — ${unit.title}`,
+        content: 'Ghi lại ít nhất một nhận xét định tính và một nhận xét có số liệu/công thức từ mô phỏng.',
+      },
+    ],
+    html: {
+      srcDoc,
+      height: typeof html?.height === 'number' ? html.height : 600,
+      offlineSingleFile: true,
+      libraries: normalizeHtmlSimulationLibraries(html?.libraries),
+      safetyNotes: Array.isArray(html?.safetyNotes)
+        ? html.safetyNotes
+        : ['Render qua iframe sandbox="allow-scripts"; không truy cập parent DOM.'],
+    },
+  };
+};
+
 const buildUnitFromJsonData = (unit: UnitJson, objectiveId: string, index: number): KnowledgeUnit => {
   const quickCheck = buildAssessmentFromJsonQuestions(
     'quick_check', `Quick check — ${unit.title}`,
@@ -404,7 +637,7 @@ const buildUnitFromJsonData = (unit: UnitJson, objectiveId: string, index: numbe
     supportTasks: [makePracticeTask(objectiveId, 'easy', unit.title, 0)],
     enrichmentTasks: [makePracticeTask(objectiveId, 'hard', unit.title, 0)],
     externalToolIds: [],
-    simulationSpec: buildDefaultSimulationSpec(unit.title, objectiveId, unit.title),
+    simulationSpec: buildHtmlSimulationSpecFromJson(unit, objectiveId),
   };
 };
 
@@ -424,6 +657,7 @@ export const buildAdaptiveLessonFromContentJson = (
     const parsed = JSON.parse(rawJsonString);
     if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) throw new Error('Not an object');
     content = parsed as AdaptiveContentJson;
+    validateAdaptiveContentJson(content, source);
   } catch (err) {
     console.error('Failed to parse AI JSON content:', err, contentJsonText);
     throw new Error('Invalid JSON format from AI');
@@ -448,6 +682,10 @@ export const buildAdaptiveLessonFromContentJson = (
     commonMisconceptions: [],
   }));
   const objectiveIds = objectives.map(o => o.id);
+
+  const engage = content.engage && typeof content.engage === 'object' ? content.engage : undefined;
+  const objectiveByBloom = (level: BloomLevel, fallbackIndex: number) =>
+    objectives.find(o => o.bloomLevel === level)?.title || objectives[fallbackIndex]?.title || objectives[0]?.title || title;
 
   const diagnosticTest = buildAssessmentFromJsonQuestions(
     'diagnostic', 'Pre-test đầu giờ',
@@ -489,8 +727,31 @@ export const buildAdaptiveLessonFromContentJson = (
       textbook: source.sourceLabel || 'Giáo án nguồn',
     },
     preparation: {
-      readingInstructions: 'Học sinh đọc trước nội dung giáo viên giao, ghi lại phần chưa hiểu và chuẩn bị làm pre-test đầu giờ.',
-      guidingQuestions: objectives.slice(0, 4).map(o => `Em đã hiểu gì về: ${o.title}?`),
+      readingInstructions:
+        engage?.reality_check_message?.trim() ||
+        `Đọc trước giáo án "${title}", đặc biệt các định nghĩa, phương trình chính tắc, tiêu điểm và yếu tố đặc trưng của từng đường conic; ghi lại điểm còn chưa hiểu để làm pre-test đầu giờ.`,
+      engage: {
+        storyHook: engage?.story_hook?.trim(),
+        realityCheckMessage: engage?.reality_check_message?.trim(),
+        guidingQuestion: engage?.guiding_question?.trim(),
+        guidingQuestionBox: engage?.guiding_question_box?.trim(),
+        bigTitle: engage?.big_title?.trim(),
+        studentExpectationPrompt: engage?.student_expectation_prompt?.trim(),
+        routeGoals: {
+          foundation: engage?.foundation_goal?.trim() || objectiveByBloom('understand', 0),
+          standard: engage?.standard_goal?.trim() || objectiveByBloom('apply', 1),
+          challenge: engage?.challenge_goal?.trim() || objectiveByBloom('analyze', 2),
+        },
+      },
+      guidingQuestions: [
+        engage?.story_hook?.trim(),
+        engage?.guiding_question?.trim(),
+        engage?.guiding_question_box?.trim(),
+        engage?.student_expectation_prompt?.trim(),
+        engage?.foundation_goal?.trim(),
+        engage?.standard_goal?.trim(),
+        engage?.challenge_goal?.trim(),
+      ].filter((item): item is string => Boolean(item && item.length > 0)),
       estimatedMinutes: 10,
     },
     fiveStepFlow: {
@@ -554,6 +815,17 @@ OUTPUT: Trả về DUY NHẤT một JSON object hợp lệ theo schema dưới �
     {"title": "Mục tiêu 2", "bloom": "apply", "threshold": 0.75},
     {"title": "Mục tiêu 3", "bloom": "analyze", "threshold": 0.75}
   ],
+  "engage": {
+    "story_hook": "Câu chuyện/tình huống mở đầu đúng nội dung bài học, nêu rõ khái niệm toán học trọng tâm; với bài Ba đường conic phải nhắc đến elip, hypebol, parabol hoặc quỹ đạo/tiêu điểm/đường chuẩn.",
+    "reality_check_message": "Cú sốc thực tế hoặc nhiệm vụ quan sát có số liệu/công thức cụ thể liên quan trực tiếp bài học; KHÔNG viết mô tả UI chung chung.",
+    "guiding_question": "Câu hỏi lớn dẫn vào bài học, có thuật ngữ toán của bài.",
+    "guiding_question_box": "Câu hỏi trong hộp gợi mở để học sinh dự đoán/so sánh trước khi học.",
+    "big_title": "Tiêu đề lớn của màn Khởi động, đúng tên bài và vấn đề toán học.",
+    "student_expectation_prompt": "Gợi ý học sinh tự viết kỳ vọng học tập cho bài này.",
+    "foundation_goal": "Mục tiêu Cơ bản đúng bài học.",
+    "standard_goal": "Mục tiêu Trọng tâm đúng bài học.",
+    "challenge_goal": "Mục tiêu Nâng cao đúng bài học."
+  },
   "units": [
     {
       "title": "Tên mảnh kiến thức 1",
@@ -574,11 +846,19 @@ OUTPUT: Trả về DUY NHẤT một JSON object hợp lệ theo schema dưới �
         },
         {
           "prompt": "Câu 2 của quick check",
-          "options": ["A.", "B.", "C.", "D."],
-          "correct": 0,
-          "explanation": "..."
+          "options": ["A. Phương án 1", "B. Phương án 2", "C. Phương án 3", "D. Phương án đúng"],
+          "correct": 3,
+          "explanation": "Giải thích dựa trên công thức/định nghĩa của bài."
         }
-      ]
+      ],
+      "simulation_html": {
+        "title": "Mô phỏng tương tác đúng mảnh kiến thức",
+        "description": "Mini-app cho học sinh kéo thanh trượt/điểm và quan sát đại lượng toán học thay đổi.",
+        "srcDoc": "<!doctype html><html><body><svg id=\"scene\" width=\"720\" height=\"360\"></svg><input id=\"slider\" type=\"range\" min=\"0\" max=\"100\" value=\"50\"><script>const svg=document.getElementById('scene');const slider=document.getElementById('slider');function draw(){svg.innerHTML='';/* vẽ mô phỏng theo nội dung bài */}slider.addEventListener('input',draw);draw();<\/script></body></html>",
+        "height": 600,
+        "libraries": ["svg"],
+        "safetyNotes": ["HTML chạy trong iframe sandbox; không dùng link ngoài, không truy cập parent DOM."]
+      }
     }
   ],
   "diagnostic_questions": [
@@ -600,10 +880,13 @@ QUY TẮC BẮT BUỘC:
 2. Mỗi câu có đúng 4 đáp án A/B/C/D. "correct" là index (0=A, 1=B, 2=C, 3=D). Đáp án đúng ở vị trí ngẫu nhiên.
 3. Phương án sai phải là "mồi" hợp lý — học sinh yếu có thể nhầm.
 4. Dùng LaTeX cho công thức: bọc $...$ inline, $$...$$ block. BẮT BUỘC bọc MỌI biểu thức, phương trình, điểm (VD: $p=10$, $F_1(-4;0)$) trong dấu $. Dùng $\displaystyle ...$ cho các công thức có phân số để không bị nhỏ. KHÔNG viết công thức dạng plain text.
-5. Tạo đúng 5 diagnostic_questions (2 easy, 2 medium, 1 hard), 2 quick_check_questions mỗi unit, 3 exit_ticket_questions.
-6. 3 trường explanation_ của mỗi unit phải có nội dung thực sự khác nhau về độ sâu và cách tiếp cận.
-7. RẤT QUAN TRỌNG: Vì output là JSON, bạn phải DOUBLE ESCAPE mọi dấu backslash trong LaTeX. Ví dụ: viết \\\\frac thay vì \\frac, \\\\sqrt thay vì \\sqrt, \\\\Delta thay vì \\Delta. Nếu không JSON.parse sẽ báo lỗi.
-8. Trả về JSON thuần túy hợp lệ. Không có bất kỳ text nào trước hoặc sau JSON.`;
+5. Tạo đúng 1 object engage có nội dung Khởi động thật của bài học. Cấm lấy các yêu cầu UI/UX như "bố cục 7:3", "đồng hồ kép", "mục lục thông minh" làm nội dung học sinh đọc ở màn Khởi động.
+6. Tạo đúng 5 diagnostic_questions (2 easy, 2 medium, 1 hard), 2 quick_check_questions mỗi unit, 3 exit_ticket_questions.
+7. 3 trường explanation_ của mỗi unit phải có nội dung thực sự khác nhau về độ sâu và cách tiếp cận.
+8. Mỗi unit BẮT BUỘC có simulation_html.srcDoc là một mini-app HTML tự chứa, tương tác thật bằng SVG hoặc Canvas và input/slider/button/drag. Không dùng link ảnh ngoài, không CDN, không iframe lồng.
+9. Nội dung học sinh đọc KHÔNG được lẫn thuật ngữ quy trình/hệ thống như UI/UX, bố cục 7:3, đồng hồ kép, mục lục thông minh, Socratic, Vở Ghi Chép, schema.
+10. RẤT QUAN TRỌNG: Vì output là JSON, bạn phải DOUBLE ESCAPE mọi dấu backslash trong LaTeX. Ví dụ: viết \\frac thay vì \frac, \\sqrt thay vì \sqrt, \\Delta thay vì \Delta. Nếu không JSON.parse sẽ báo lỗi.
+11. Trả về JSON thuần túy hợp lệ. Không có bất kỳ text nào trước hoặc sau JSON.`;
 
 export const buildAdaptiveReviewPrompt = (source: AdaptiveLessonSource): string => `Bạn là chuyên gia thiết kế bài học phân hoá/adaptive môn Toán.
 

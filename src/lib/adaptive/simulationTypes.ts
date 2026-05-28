@@ -1,4 +1,4 @@
-export type AdaptiveSimulationKind = 'geometry2d' | 'geometry3d' | 'graph2d' | 'algebra' | 'probability';
+export type AdaptiveSimulationKind = 'geometry2d' | 'geometry3d' | 'graph2d' | 'algebra' | 'probability' | 'physics' | 'chemistry' | 'htmlMiniApp';
 export type AdaptiveSimulationEngine = 'svg' | 'threejs' | 'geogebra' | 'desmos' | 'html';
 export type SimulationStepPlacement = 'step0' | 'step1' | 'step2' | 'step3' | 'step4' | 'step5';
 
@@ -115,9 +115,40 @@ export interface Geometry3DSimulationSpec {
     y: number;
     z: number;
   };
+  projection?: 'perspective' | 'orthographic';
   showAxes?: boolean;
   autoRotate?: boolean;
   initialVisibleLayers?: string[];
+}
+
+export interface SimulationMathModel {
+  givens: string[];
+  formulas: string[];
+  invariants?: string[];
+  coordinateSystem?: string;
+  projection?: 'cartesian2d' | 'orthographic3d' | 'perspective3d';
+}
+
+export interface SimulationPedagogyScript {
+  modeLabels?: {
+    textbook?: string;
+    realistic?: string;
+  };
+  steps: string[];
+  realtimeReadouts?: string[];
+  teacherControls?: string[];
+}
+
+export interface HtmlSimulationSpec {
+  /**
+   * Self-contained HTML document rendered through iframe[srcdoc].
+   * Must not depend on parent DOM, cookies, localStorage, or external network by default.
+   */
+  srcDoc: string;
+  height?: number;
+  offlineSingleFile?: boolean;
+  libraries?: Array<'vanilla-canvas' | 'svg' | 'mathjax' | 'katex' | 'p5' | 'matterjs' | 'threejs' | 'jsxgraph' | 'geogebra' | 'desmos'>;
+  safetyNotes?: string[];
 }
 
 export interface AdaptiveSimulationSpec {
@@ -132,8 +163,11 @@ export interface AdaptiveSimulationSpec {
   interactions: string[];
   questions: SimulationQuestion[];
   notebookEntries: SimulationNotebookEntry[];
+  mathModel?: SimulationMathModel;
+  pedagogyScript?: SimulationPedagogyScript;
   geometry2d?: Geometry2DSimulationSpec;
   geometry3d?: Geometry3DSimulationSpec;
+  html?: HtmlSimulationSpec;
 }
 
 export const sampleGeometry3DPyramidSimulation: AdaptiveSimulationSpec = {
