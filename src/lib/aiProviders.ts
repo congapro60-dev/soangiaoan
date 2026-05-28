@@ -221,19 +221,43 @@ async function callAIOnce(prompt: string, settings: Settings): Promise<RawResult
     // default: gemini
     const idx = MODELS.indexOf(settings.selectedModel);
     const model = getActiveModelId(provider, settings);
+    
+    console.log('[aiProviders] Using Gemini API key:', {
+      length: settings.geminiApiKey?.length,
+      first4: settings.geminiApiKey?.slice(0, 4),
+      containsNonAscii: /[^\x00-\x7F]/.test(settings.geminiApiKey || ''),
+    });
+
+    // Fall back to Vercel relay if there is no local API key
+    if (!settings.geminiApiKey) {
+      console.log('[aiProviders] No local Gemini API key. Falling back to Vercel server-side relay...');
+      const text = await callRelay(prompt, fallbackModel);
+      return { text, truncated: false };
+    }
+
     const result = await callGeminiAIRaw(prompt, settings.geminiApiKey, idx >= 0 ? idx : 0);
-    if (result?.usage) {
+    
+    if (!result) {
+      console.log('[aiProviders] callGeminiAIRaw returned null. Falling back to Vercel relay...');
+      const text = await callRelay(prompt, fallbackModel);
+      return { text, truncated: false };
+    }
+
+    if (result.usage) {
       recordExactUsage(provider, model, result.usage);
     } else {
-      recordEstimatedUsage(provider, model, prompt, result?.text || '');
+      recordEstimatedUsage(provider, model, prompt, result.text || '');
     }
-    return result ?? { text: '', truncated: false };
+    return result;
   } catch (err) {
-    if (isQuotaError(err)) {
+    console.warn('[aiProviders] Gemini call failed, falling back to Vercel relay...', err);
+    try {
       const text = await callRelay(prompt, fallbackModel);
-      return { text, truncated: false };  // relay không expose finish_reason
+      return { text, truncated: false }; // fallback
+    } catch (relayErr) {
+      console.error('[aiProviders] Relay fallback failed:', relayErr);
+      throw err;
     }
-    throw err;
   }
 }
 

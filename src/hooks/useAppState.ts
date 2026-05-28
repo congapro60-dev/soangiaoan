@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AppData, DEFAULT_DATA, LessonPlan, Subject, LessonTemplate, CurriculumDistribution, GradingSession } from '../types';
-import { collection, query, where, getDocs, doc, setDoc, deleteDoc, orderBy, limit, startAfter, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc, setDoc, deleteDoc, orderBy, limit, startAfter, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { User } from 'firebase/auth';
 import { normalizePlanTitle } from '../utils/fileUtils';
@@ -100,12 +100,15 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
           }, [] as LessonTemplate[]);
 
           const cloudSettingsResult = await fetchCollectionSafely('userSettings', async () => {
-            const docSettings = await getDocs(query(collection(db, 'userSettings'), where('userId', '==', user.uid)));
+            const docSnap = await getDoc(doc(db, 'userSettings', user.uid));
             let cloudSettings = data.settings;
             let cloudAuthorName = data.authorName;
-            if (!docSettings.empty) {
-              const settingsData = docSettings.docs[0].data();
-              cloudSettings = settingsData.settings || cloudSettings;
+            if (docSnap.exists()) {
+              const settingsData = docSnap.data();
+              if (settingsData.settings) {
+                const { geminiApiKey, claudeApiKey, openaiApiKey, grokApiKey, deepseekApiKey, ...rest } = settingsData.settings;
+                cloudSettings = { ...cloudSettings, ...rest };
+              }
               cloudAuthorName = settingsData.authorName || '';
             }
             if (!cloudAuthorName && user.displayName) {

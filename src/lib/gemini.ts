@@ -27,7 +27,9 @@ export async function callGeminiAIRaw(prompt: string, apiKey: string, modelIndex
   let retryCount = 0;
 
   async function executeCall(idx: number): Promise<GeminiCallResult | null> {
-    const modelName = idx >= 0 && idx < MODELS.length ? MODELS[idx] : MODELS[0];
+    let modelName = idx >= 0 && idx < MODELS.length ? MODELS[idx] : MODELS[0];
+    if (modelName === 'gemini-3.5-flash') modelName = 'gemini-1.5-flash';
+    if (modelName === 'gemini-3.1-pro') modelName = 'gemini-1.5-pro';
 
     try {
       const response = await ai.models.generateContent({
@@ -87,7 +89,9 @@ export async function callGeminiAIStream(
   let retryCount = 0;
 
   async function executeStream(idx: number): Promise<void> {
-    const modelName = idx >= 0 && idx < MODELS.length ? MODELS[idx] : MODELS[0];
+    let modelName = idx >= 0 && idx < MODELS.length ? MODELS[idx] : MODELS[0];
+    if (modelName === 'gemini-3.5-flash') modelName = 'gemini-1.5-flash';
+    if (modelName === 'gemini-3.1-pro') modelName = 'gemini-1.5-pro';
 
     try {
       const result = await ai.models.generateContentStream({

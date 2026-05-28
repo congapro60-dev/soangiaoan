@@ -295,5 +295,10 @@ service cloud.firestore {
       allow delete: if request.auth != null
                     && resource.data.createdBy == request.auth.uid;
     }
+    // Phiên chấm điểm AI — chỉ owner đọc/ghi
+    match /gradingSessions/{sessionId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+    }
   }
 }
