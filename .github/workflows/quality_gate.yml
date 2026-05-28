@@ -18,11 +18,9 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: 22
-        cache: 'npm'
         
     - name: Install dependencies
-      run: |
-        npm ci || (cat /home/runner/.npm/_logs/*.log && exit 1)
+      run: npm install --no-audit --no-fund
 
     - name: Senior Engineer Rule - Type Checking Let it Fail
       run: npm run lint
