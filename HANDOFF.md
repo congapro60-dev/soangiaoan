@@ -1,4 +1,4 @@
-﻿# HANDOFF — Soạn giáo án / học phân hoá
+# HANDOFF — Soạn giáo án / học phân hoá
 
 **Cập nhật**: 2026-05-28
 **Repo chính**: `soangiaoan`
@@ -19,6 +19,11 @@
 ## 0. Trạng thái mới nhất cho Claude Code / Antigravity QA — 2026-05-27
 
 > Đây là nguồn sự thật mới nhất. Batch sửa lỗi QA ưu tiên đã hoàn tất ở commit code `770bb960482db965cf0c44d414df27b1b6082f1e` và đã pass typecheck/test/build. Không dùng báo cáo QA dựa trên commit cũ `64edb78` hoặc trước Phase 2C để kết luận lỗi vẫn còn nếu chưa retest lại trên commit mới nhất.
+
+### 0.0 Fixes mới nhất cho quá trình sinh bài học phân hoá — 2026-05-28
+- **Lỗi Notebook dính chữ "Ý tưởng thiết kế UI/UX"**: Sửa lỗi `localStorage` cache nội dung notebook trên cùng một trình duyệt bằng cách gắn `lessonId` vào key `dewey-notebook-${lessonId}`. Cập nhật `extractJsonFromText` để xử lý các escape single backslashes (như `\frac`) do AI thiếu sót sinh ra, tránh việc `JSON.parse` bị hỏng khiến UI chuyển về parser dự phòng và sinh ra nội dung sai.
+- **Lỗi Bắt đầu Bài Mới không hoạt động**: Gắn hàm `unlockScreen` từ IIFE lên `window.unlockScreen` để sự kiện `onclick` có thể gọi thành công.
+- **Lỗi thông báo "Đang tải %" không ẩn**: Bổ sung logic `setNotice(null)` trong `AdaptiveStudentPortalPage.tsx` khi cá nhân hoá hoàn tất để ẩn màn hình báo đang xử lý, xoá cảm giác nghẽn mạng cho học sinh.
 
 ### 0.1 Repo, branch, commit, domain phải dùng khi QA
 

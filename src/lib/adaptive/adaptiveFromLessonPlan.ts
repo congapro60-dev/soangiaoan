@@ -281,12 +281,19 @@ interface AdaptiveContentJson {
 
 /** Extract raw JSON object string from AI response (handles markdown fences). */
 const extractJsonFromText = (text: string): string => {
+  let raw = text;
   const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (fenceMatch) return fenceMatch[1].trim();
-  const start = text.indexOf('{');
-  const end = text.lastIndexOf('}');
-  if (start >= 0 && end > start) return text.slice(start, end + 1);
-  return text;
+  if (fenceMatch) raw = fenceMatch[1].trim();
+  else {
+    const start = text.indexOf('{');
+    const end = text.lastIndexOf('}');
+    if (start >= 0 && end > start) raw = text.slice(start, end + 1);
+  }
+  
+  // Fix common LaTeX escape issues in JSON strings
+  // If the AI forgot to double-escape backslashes for LaTeX (e.g. \frac instead of \\frac)
+  // We need to escape them, but ONLY if they are not already escaped, and not standard JSON escapes like \n, \t, \r, \", \\
+  return raw.replace(/\\([^"\\nrt/bf])/g, '\\\\$1');
 };
 
 const buildQuestionFromJson = (

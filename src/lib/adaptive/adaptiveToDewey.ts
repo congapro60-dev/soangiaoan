@@ -106,6 +106,7 @@ export function adaptiveLessonToDeweyContent(
     route === 'foundation' ? 'Cơ bản' : route === 'challenge' ? 'Nâng cao' : 'Chuẩn';
 
   return {
+    lessonId: lesson.id,
     title: lesson.title,
     subtitle: `Lớp ${lesson.grade} · Tuyến ${routeLabel}`,
     durationMinutes: lesson.durationMinutes,

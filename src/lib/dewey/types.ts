@@ -124,6 +124,7 @@ export interface DeweyPretestContent {
 
 // ─── ROOT: Cấu trúc 1 bài Dewey hoàn chỉnh ───
 export interface DeweyLessonContent {
+  lessonId?: string;
   title: string;
   subtitle: string;
   durationMinutes: number;       // Mặc định 40

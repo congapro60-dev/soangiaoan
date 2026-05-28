@@ -1,4 +1,5 @@
-export function getAdaptiveEngineScript(): string {
+export function getAdaptiveEngineScript(lessonId?: string): string {
+  const notebookKey = lessonId ? `dewey-notebook-${lessonId}` : 'dewey-notebook';
   return String.raw`
 (function () {
   'use strict';
@@ -41,7 +42,7 @@ export function getAdaptiveEngineScript(): string {
     var notebook = byId('notebook-list');
     if (!notebook) return;
     try {
-      window.localStorage.setItem('dewey-notebook', notebook.innerHTML);
+      window.localStorage.setItem('${notebookKey}', notebook.innerHTML);
     } catch (_error) {}
   }
 
@@ -49,7 +50,7 @@ export function getAdaptiveEngineScript(): string {
     var notebook = byId('notebook-list');
     if (!notebook) return;
     try {
-      var saved = window.localStorage.getItem('dewey-notebook');
+      var saved = window.localStorage.getItem('${notebookKey}');
       if (saved) notebook.innerHTML = saved;
     } catch (_error) {}
     updateMath(notebook);
@@ -93,12 +94,12 @@ export function getAdaptiveEngineScript(): string {
     updateMath(target);
   };
 
-  function unlockScreen(id) {
+  window.unlockScreen = function unlockScreen(id) {
     all('[data-target="' + id + '"]').forEach(function (item) {
       item.classList.remove('locked');
       item.removeAttribute('aria-disabled');
     });
-  }
+  };
 
   function setActiveToc(id) {
     state.activeScreenId = id;

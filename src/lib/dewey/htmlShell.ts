@@ -369,7 +369,7 @@ ${BASE_CSS}
 <body data-duration-minutes="${content.durationMinutes}" data-initial-screen="${content.skipPretest ? 'screen-engage' : 'screen-pretest'}">
   <script id="dewey-content" type="application/json">${escapeJsonForHtml(content)}</script>
 ${bodyHtml}
-  <script>${getAdaptiveEngineScript()}</script>
+  <script>${getAdaptiveEngineScript(content.lessonId)}</script>
 </body>
 </html>`;
 }

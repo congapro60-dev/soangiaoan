@@ -591,6 +591,7 @@ export const AdaptiveStudentPortalPage = () => {
     const html = renderDeweyLesson(deweyContent, 'classic');
     setDeweyHtml(html);
     setStage('dewey-lesson');
+    setNotice(null);
   };
 
   const setQuickCheckAttemptStateForNextUnit = (nextIndex: number) => {
