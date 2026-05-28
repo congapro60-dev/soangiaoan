@@ -413,12 +413,13 @@ export const buildAdaptiveLessonFromContentJson = (
 ): AdaptiveLesson => {
   let content: AdaptiveContentJson;
   try {
-    const parsed = JSON.parse(extractJsonFromText(contentJsonText));
+    const rawJsonString = extractJsonFromText(contentJsonText);
+    const parsed = JSON.parse(rawJsonString);
     if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) throw new Error('Not an object');
     content = parsed as AdaptiveContentJson;
-  } catch {
-    // Graceful fallback: use regex-based builder so teacher is never blocked
-    return buildAdaptiveLessonFromReviewedPlan(source, reviewedPlan, teacherId);
+  } catch (err) {
+    console.error('Failed to parse AI JSON content:', err, contentJsonText);
+    throw new Error('Invalid JSON format from AI');
   }
 
   const now = new Date().toISOString();
@@ -594,7 +595,8 @@ QUY TẮC BẮT BUỘC:
 4. Dùng LaTeX cho công thức: $...$ inline, $$...$$ block.
 5. Tạo đúng 5 diagnostic_questions (2 easy, 2 medium, 1 hard), 2 quick_check_questions mỗi unit, 3 exit_ticket_questions.
 6. 3 trường explanation_ của mỗi unit phải có nội dung thực sự khác nhau về độ sâu và cách tiếp cận.
-7. Trả về JSON thuần túy hợp lệ. Không có bất kỳ text nào trước hoặc sau JSON.`;
+7. RẤT QUAN TRỌNG: Vì output là JSON, bạn phải DOUBLE ESCAPE mọi dấu backslash trong LaTeX. Ví dụ: viết \\\\frac thay vì \\frac, \\\\sqrt thay vì \\sqrt, \\\\Delta thay vì \\Delta. Nếu không JSON.parse sẽ báo lỗi.
+8. Trả về JSON thuần túy hợp lệ. Không có bất kỳ text nào trước hoặc sau JSON.`;
 
 export const buildAdaptiveReviewPrompt = (source: AdaptiveLessonSource): string => `Bạn là chuyên gia thiết kế bài học phân hoá/adaptive môn Toán.
 
