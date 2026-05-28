@@ -592,7 +592,7 @@ QUY TẮC BẮT BUỘC:
 1. Câu hỏi phải có nội dung toán thật, có số và công thức cụ thể — KHÔNG viết "Câu hỏi 1" hay text placeholder.
 2. Mỗi câu có đúng 4 đáp án A/B/C/D. "correct" là index (0=A, 1=B, 2=C, 3=D). Đáp án đúng ở vị trí ngẫu nhiên.
 3. Phương án sai phải là "mồi" hợp lý — học sinh yếu có thể nhầm.
-4. Dùng LaTeX cho công thức: $...$ inline, $$...$$ block.
+4. Dùng LaTeX cho công thức: bọc $...$ inline, $$...$$ block. BẮT BUỘC bọc MỌI biểu thức, phương trình, điểm (VD: $p=10$, $F_1(-4;0)$) trong dấu $. Dùng $\displaystyle ...$ cho các công thức có phân số để không bị nhỏ. KHÔNG viết công thức dạng plain text.
 5. Tạo đúng 5 diagnostic_questions (2 easy, 2 medium, 1 hard), 2 quick_check_questions mỗi unit, 3 exit_ticket_questions.
 6. 3 trường explanation_ của mỗi unit phải có nội dung thực sự khác nhau về độ sâu và cách tiếp cận.
 7. RẤT QUAN TRỌNG: Vì output là JSON, bạn phải DOUBLE ESCAPE mọi dấu backslash trong LaTeX. Ví dụ: viết \\\\frac thay vì \\frac, \\\\sqrt thay vì \\sqrt, \\\\Delta thay vì \\Delta. Nếu không JSON.parse sẽ báo lỗi.
