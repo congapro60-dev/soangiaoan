@@ -1,10 +1,10 @@
 # HANDOFF — Soạn giáo án / học phân hoá
 
-**Cập nhật**: 2026-05-27
+**Cập nhật**: 2026-05-28
 **Repo chính**: `soangiaoan`
 **Branch hiện tại**: `main`
 **Remote GitHub**: `https://github.com/congapro60-dev/soangiaoan`
-**HEAD/local/origin-main hiện tại sau batch QA ưu tiên**: `770bb960482db965cf0c44d414df27b1b6082f1e` (code); commit docs HANDOFF có thể mới hơn ngay sau đó.
+**HEAD/local/origin-main mới nhất**: `8ea38b2` — fix: strip undefined fields before Firestore writes
 **Production URL đúng để QA UI**: `https://giaoandewey.vercel.app`
 **Commit Sprint D đã merge main**: `e7b609c92b80c80227ef4853053ea9723bdab931 Merge sprint D lesson builder UI`
 **Commit Sprint D feature**: `8d229eb75b823b9edfb4262c84ee68abbd5821cd feat(adaptive): Sprint D — Lesson Builder UI + Firestore persistence`
@@ -1759,3 +1759,37 @@ Dù lỗi biên dịch TypeScript đã được giải quyết cục bộ, các 
 Cả hai lượt chạy trên GitHub Actions đều đã thành công hoàn toàn (**Green ✅**):
 * **API Typecheck (Run #10):** Vượt qua bước cài đặt và biên dịch thành công 100% trong thời gian rất ngắn.
 * **Quality Gate (Agent Skills) (Run #283):** Hoàn thành xuất sắc tất cả các bước (Setup, Cài đặt dependencies, Senior Engineer Rule - Type Checking, AI Guardrails - Run Tests) và trả về kết quả thành công tuyệt đối.
+
+---
+
+## 16. Sửa lỗi FirebaseError: Unsupported field value: undefined (28/05/2026)
+
+> Cập nhật bởi Antigravity sau khi người dùng báo lỗi "Không lưu được bài học phân hoá lên Firestore" khi tạo bài học phân hóa từ giáo án đại số/hình giải tích (ví dụ: "3 đường conic").
+
+### 16.1 Triệu chứng
+- Banner đỏ hiện "Không lưu được bài học phân hoá lên Firestore" khi bấm Lưu nháp hoặc Xuất bản.
+- Console Chrome DevTools báo: `FirebaseError: Function setDoc() called with invalid data. Unsupported field value: undefined (found in document adaptiveLessons/adaptive-...)`.
+
+### 16.2 Nguyên nhân gốc rễ
+- Trong `src/lib/adaptive/adaptiveFromLessonPlan.ts`, hàm `buildDefaultSimulationSpec()` trả về `undefined` cho các môn học không phải hình học (ví dụ: đại số, tích phân, conic...).
+- Kết quả là object `KnowledgeUnit` có `simulationSpec: undefined`.
+- Firestore JS SDK **nghiêm cấm** giá trị `undefined` trong bất kỳ field nào — chỉ cho phép `null` hoặc omit field đó hoàn toàn. SDK sẽ ném exception ngay lập tức.
+
+### 16.3 Giải pháp
+Thêm hàm tiện ích `removeUndefinedFields<T>()` vào `src/lib/firebase.ts`, hàm này đệ quy xóa tất cả các property có giá trị `undefined` trước khi ghi lên Firestore.
+
+Áp dụng hàm này ở tất cả điểm ghi Firestore trong module adaptive:
+- `src/services/adaptiveLessonService.ts` — `saveLessonToFirestore()` và `updateLessonInFirestore()`
+- `src/components/tabs/AdaptiveLearningTab.tsx` — `setDoc()` lưu `AdaptiveLessonDocument`
+- `src/pages/AdaptiveStudentPortalPage.tsx` — `setDoc()` lưu `adaptiveSessionProgress` và `studentLearningProfiles`
+
+### 16.4 Commit và xác nhận
+- **Commit**: `8ea38b2` — `fix: strip undefined fields before Firestore writes to prevent FirebaseError`
+- **TypeScript check**: Pass `tsc --noEmit` 0 lỗi trước khi commit.
+- **Đã push lên GitHub**: `origin/main` tại `8ea38b2`.
+- **Vercel sẽ tự deploy** sau khi nhận push. Kiểm tra tại: https://vercel.com/congapro60-devs-projects/giaoandewey/deployments
+
+### 16.5 Lưu ý cho AI tiếp theo
+- Hàm `removeUndefinedFields` đã được đặt trong `src/lib/firebase.ts` để dùng chung.
+- **Bất kỳ `setDoc()` hay `updateDoc()` nào ghi dữ liệu có thể chứa field optional đều nên bọc trong `removeUndefinedFields()`** để phòng ngừa lỗi tương tự.
+- Không sửa `buildDefaultSimulationSpec()` vì trả `undefined` là logic đúng (bài học không hình học không cần simulation spec); chỉ cần strip khi ghi Firestore.
