@@ -139,6 +139,29 @@ const MathBlock = ({ children, className }: { children: string; className?: stri
   </div>
 );
 
+const kickoffVisualCards = [
+  {
+    title: 'Phòng thì thầm St. Paul',
+    caption: 'Âm thanh hội tụ tại một tiêu điểm của Elip',
+    src: `data:image/svg+xml;utf8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#1d4ed8"/><stop offset="1" stop-color="#7c3aed"/></linearGradient><radialGradient id="glow"><stop stop-color="#fef3c7"/><stop offset="1" stop-color="#f59e0b" stop-opacity="0"/></radialGradient></defs><rect width="640" height="420" rx="36" fill="url(#g)"/><ellipse cx="320" cy="230" rx="230" ry="118" fill="none" stroke="#dbeafe" stroke-width="12" opacity=".9"/><ellipse cx="205" cy="230" rx="58" ry="58" fill="url(#glow)"/><ellipse cx="435" cy="230" rx="58" ry="58" fill="url(#glow)"/><circle cx="205" cy="230" r="12" fill="#fde68a"/><circle cx="435" cy="230" r="12" fill="#fde68a"/><path d="M205 230Q320 95 435 230M205 230Q320 365 435 230" fill="none" stroke="#bfdbfe" stroke-width="5" stroke-dasharray="10 12"/><text x="42" y="70" font-family="Arial" font-size="30" font-weight="800" fill="white">Whispering Gallery</text><text x="42" y="108" font-family="Arial" font-size="18" fill="#dbeafe">Một lời thì thầm đi qua đường Elip</text></svg>')}`,
+  },
+  {
+    title: 'Ba đường conic',
+    caption: 'Tiêu điểm, tiêu cự và đường chuẩn tạo nên hình dạng',
+    src: `data:image/svg+xml;utf8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#0f766e"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs><rect width="640" height="420" rx="36" fill="url(#g)"/><ellipse cx="170" cy="225" rx="92" ry="58" fill="none" stroke="#ccfbf1" stroke-width="10"/><path d="M325 315Q420 220 325 125" fill="none" stroke="#fef3c7" stroke-width="10"/><path d="M470 105C520 170 520 250 470 315M548 105C498 170 498 250 548 315" fill="none" stroke="#fbcfe8" stroke-width="10"/><circle cx="145" cy="225" r="10" fill="#fde68a"/><circle cx="195" cy="225" r="10" fill="#fde68a"/><circle cx="358" cy="225" r="10" fill="#fde68a"/><line x1="275" y1="88" x2="275" y2="340" stroke="#dbeafe" stroke-width="5" stroke-dasharray="9 10"/><text x="42" y="70" font-family="Arial" font-size="30" font-weight="800" fill="white">Conic trong hệ tọa độ</text><text x="42" y="108" font-family="Arial" font-size="18" fill="#dbeafe">Elip · Parabol · Hyperbol</text></svg>')}`,
+  },
+  {
+    title: 'Chảo thu sóng parabol',
+    caption: 'Tín hiệu song song phản xạ về tiêu điểm',
+    src: `data:image/svg+xml;utf8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#7c2d12"/><stop offset="1" stop-color="#f97316"/></linearGradient></defs><rect width="640" height="420" rx="36" fill="url(#g)"/><path d="M158 86Q320 352 482 86" fill="none" stroke="#fff7ed" stroke-width="16" stroke-linecap="round"/><circle cx="320" cy="212" r="15" fill="#fde68a"/><path d="M112 64L260 192M220 52L305 196M532 64L380 192M425 52L335 196" stroke="#fed7aa" stroke-width="6" stroke-linecap="round"/><path d="M320 228L320 330M260 352H380" stroke="#ffedd5" stroke-width="10" stroke-linecap="round"/><text x="42" y="70" font-family="Arial" font-size="30" font-weight="800" fill="white">Ứng dụng parabol</text><text x="42" y="108" font-family="Arial" font-size="18" fill="#ffedd5">Vì sao tín hiệu tập trung rất mạnh?</text></svg>')}`,
+  },
+  {
+    title: 'Định vị bằng hyperbol',
+    caption: 'Chênh lệch khoảng cách giúp xác định vị trí',
+    src: `data:image/svg+xml;utf8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#312e81"/><stop offset="1" stop-color="#0891b2"/></linearGradient></defs><rect width="640" height="420" rx="36" fill="url(#g)"/><path d="M165 65C260 135 260 285 165 355M475 65C380 135 380 285 475 355" fill="none" stroke="#bae6fd" stroke-width="10"/><circle cx="230" cy="210" r="16" fill="#fde68a"/><circle cx="410" cy="210" r="16" fill="#fde68a"/><path d="M230 210L320 150L410 210M230 210L320 292L410 210" fill="none" stroke="#cffafe" stroke-width="5" stroke-dasharray="10 10"/><path d="M320 150l18 52h55l-45 32 17 52-45-32-45 32 17-52-45-32h55z" fill="#facc15" opacity=".9"/><text x="42" y="70" font-family="Arial" font-size="30" font-weight="800" fill="white">Định vị hàng hải</text><text x="42" y="108" font-family="Arial" font-size="18" fill="#cffafe">Hyperbol biến dữ liệu thành vị trí</text></svg>')}`,
+  },
+];
+
 const buildExampleKey = (unitId: string, exampleId: string) => `example-${unitId}-${exampleId}`;
 const getExamplePlannedSeconds = (example: WorkedExample, unitSeconds: number, exampleCount: number) => (
   example.timeLimitSeconds || Math.max(90, Math.floor(unitSeconds / Math.max(exampleCount + 2, 3)))
@@ -878,15 +901,15 @@ export const AdaptiveStudentPortalPage = () => {
 
   return (
     <div className={cn(
-      'bg-slate-50 text-slate-900',
+      'min-h-screen bg-slate-50 text-slate-900 overflow-x-hidden',
       stage === 'dewey-lesson'
-        ? 'h-dvh overflow-hidden px-2 pb-3 pt-5 sm:px-3 sm:pb-4 sm:pt-6'
-        : 'min-h-screen overflow-x-hidden px-3 pb-8 pt-5 sm:px-4 sm:pt-6'
+        ? 'px-3 pb-6 pt-5 sm:px-5 sm:pb-8 sm:pt-7'
+        : 'px-3 pb-8 pt-6 sm:px-4 sm:pt-8'
     )}>
-      <div className={cn('mx-auto min-h-0 overflow-visible', stage === 'dewey-lesson' ? 'flex h-full max-w-7xl flex-col gap-2 overflow-visible sm:gap-3' : 'max-w-5xl space-y-5')}>
+      <div className={cn('mx-auto min-h-0 overflow-visible', stage === 'dewey-lesson' ? 'flex max-w-7xl flex-col gap-4 sm:gap-5' : 'max-w-5xl space-y-5')}>
         <section className={cn(
-          'relative z-10 overflow-visible rounded-[2rem] bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 px-6 pb-5 pt-8 text-white shadow-xl shadow-blue-100 sm:px-7 sm:pb-6 sm:pt-9',
-          stage === 'dewey-lesson' && 'mt-1 shrink-0'
+          'relative z-10 shrink-0 overflow-visible rounded-[2rem] bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 px-6 pb-6 pt-9 text-white shadow-xl shadow-blue-100 sm:px-7 sm:pb-7 sm:pt-10',
+          stage === 'dewey-lesson' && 'mt-1'
         )}>
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
@@ -898,7 +921,7 @@ export const AdaptiveStudentPortalPage = () => {
                 Em học theo quy trình 5 bước: kết nối, chẩn đoán, hình thành kiến thức, luyện tập điều chỉnh và phản tư. Mỗi phần có đồng hồ để ghi tốc độ học tập.
               </p>
             </div>
-            <div className="grid grid-cols-3 gap-3 overflow-visible px-1 pb-3 pt-3 text-center">
+            <div className="grid grid-cols-3 gap-3 overflow-visible p-2 text-center sm:p-3">
               <MiniStat icon={<Clock3 className="h-5 w-5" />} value={`${lesson.durationMinutes}'`} label="Tiết học" />
               <MiniStat icon={<Target className="h-5 w-5" />} value={lesson.objectives.length} label="Mục tiêu" />
               <MiniStat icon={<Route className="h-5 w-5" />} value="3" label="Tuyến học" />
@@ -930,10 +953,22 @@ export const AdaptiveStudentPortalPage = () => {
               </div>
             </div>
             <div className="mb-5 rounded-2xl border border-blue-100 bg-blue-50 p-4">
-              <p className="text-sm font-black text-blue-700">Câu hỏi khởi động</p>
-              <div className="mt-2 grid gap-2 text-sm font-semibold text-blue-900 md:grid-cols-2">
-                {lesson.preparation.guidingQuestions.slice(0, 4).map(question => (
-                  <div key={question} className="rounded-xl bg-white/70 p-3"><MathText>{question}</MathText></div>
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-sm font-black text-blue-700">Hình ảnh khởi động</p>
+                  <p className="text-xs font-semibold text-blue-500">Quan sát 4 tình huống trực quan để tò mò trước khi vào bài.</p>
+                </div>
+                <span className="text-[11px] font-black uppercase tracking-widest text-blue-400">Kết nối thực tế</span>
+              </div>
+              <div className="mt-3 grid gap-3 md:grid-cols-2">
+                {kickoffVisualCards.map(card => (
+                  <figure key={card.title} className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-blue-100 transition hover:-translate-y-0.5 hover:shadow-md">
+                    <img src={card.src} alt={card.title} className="h-36 w-full object-cover sm:h-40" loading="lazy" />
+                    <figcaption className="p-3">
+                      <p className="text-sm font-black text-blue-950">{card.title}</p>
+                      <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">{card.caption}</p>
+                    </figcaption>
+                  </figure>
                 ))}
               </div>
             </div>
@@ -994,7 +1029,7 @@ export const AdaptiveStudentPortalPage = () => {
         )}
 
         {stage === 'dewey-lesson' && deweyHtml && (
-          <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden sm:gap-3">
+          <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex min-h-0 flex-col gap-3 overflow-visible sm:gap-4">
             {lesson && currentUnit && (
               <LessonSimulationViewer
                 lessonId={lesson.id}
@@ -1006,9 +1041,9 @@ export const AdaptiveStudentPortalPage = () => {
             <iframe
               srcDoc={deweyHtml}
               sandbox="allow-scripts allow-same-origin"
-              className="min-h-0 flex-1"
-              scrolling="no"
-              style={{ width: '100%', height: '100%', border: 'none', borderRadius: 16, display: 'block', overflow: 'hidden' }}
+              className="min-h-[72vh]"
+              scrolling="auto"
+              style={{ width: '100%', height: 'calc(100dvh - 18rem)', minHeight: '72vh', border: 'none', borderRadius: 16, display: 'block' }}
               title="Bài học Dewey"
             />
             {isSaving && (

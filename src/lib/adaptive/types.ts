@@ -34,8 +34,17 @@ export interface LessonPreparation {
     guidingQuestionBox?: string;
     bigTitle?: string;
     studentExpectationPrompt?: string;
+    visualCards?: EngageVisualCard[];
     routeGoals?: Partial<Record<LearningRoute, string>>;
   };
+}
+
+export interface EngageVisualCard {
+  id?: string;
+  title: string;
+  alt: string;
+  imageDataUrl: string;
+  caption?: string;
 }
 
 export interface FiveStepFlow {
