@@ -21,11 +21,11 @@ export interface ProviderConfig {
 }
 
 export const GEMINI_MODELS: ProviderModel[] = [
-  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', contextWindow: 1_048_576, rpdLimit: 1_500, tpmLimit: 1_000_000, rpmLimit: 15, isLatest: true, tags: ['fast', 'vision', 'cheap'] },
-  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', contextWindow: 1_000_000, rpdLimit: 50, tpmLimit: 32_000, rpmLimit: 5, tags: ['reasoning', 'vision', 'coding'] },
-  { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash-Lite', contextWindow: 1_048_576, rpdLimit: 1_500, tpmLimit: 1_000_000, rpmLimit: 30, tags: ['fast', 'cheap'] },
+  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', contextWindow: 1_048_576, rpdLimit: 1_500, tpmLimit: 1_000_000, rpmLimit: 15, isLatest: true, tags: ['fast', 'vision', 'cheap', 'generateContent'] },
+  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', contextWindow: 1_000_000, rpdLimit: 50, tpmLimit: 32_000, rpmLimit: 5, tags: ['reasoning', 'vision', 'coding', 'generateContent'] },
+  { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash-Lite', contextWindow: 1_048_576, rpdLimit: 1_500, tpmLimit: 1_000_000, rpmLimit: 30, tags: ['fast', 'cheap', 'generateContent'] },
   { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', contextWindow: 1_000_000, rpdLimit: 1_500, tpmLimit: 1_000_000, rpmLimit: 15, tags: ['fast', 'vision', 'generateContent'] },
-  { id: 'gemini-2.0-flash-lite', name: 'Gemini 2.0 Flash-Lite', contextWindow: 1_000_000, rpdLimit: 1_500, tpmLimit: 1_000_000, rpmLimit: 30, tags: ['fast', 'cheap'] },
+  { id: 'gemini-2.0-flash-lite', name: 'Gemini 2.0 Flash-Lite', contextWindow: 1_000_000, rpdLimit: 1_500, tpmLimit: 1_000_000, rpmLimit: 30, tags: ['fast', 'cheap', 'generateContent'] },
 ];
 
 export const CLAUDE_MODELS: ProviderModel[] = [

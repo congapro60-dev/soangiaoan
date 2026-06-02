@@ -16,7 +16,7 @@ const DEEPSEEK_REASONER_MAX_TOKENS = 32768;  // deepseek-reasoner (R1) hỗ tr�
 const MAX_CONTINUATIONS = 3;
 
 function deepseekMaxTokens(model: string | undefined): number {
-  return model === 'deepseek-reasoner' ? DEEPSEEK_REASONER_MAX_TOKENS : DEEPSEEK_CHAT_MAX_TOKENS;
+  return model === 'deepseek-v4-pro' || model === 'deepseek-r1' ? DEEPSEEK_REASONER_MAX_TOKENS : DEEPSEEK_CHAT_MAX_TOKENS;
 }
 
 interface RawResult {
@@ -85,26 +85,40 @@ async function callRelay(
 }
 
 export const CLAUDE_MODELS = [
-  { id: 'claude-opus-4-7', name: 'Claude Opus 4.7', desc: 'Mạnh nhất, suy luận chuyên sâu' },
-  { id: 'claude-sonnet-4-7', name: 'Claude Sonnet 4.7', desc: 'Cân bằng tốc độ & chất lượng (Default)' },
-  { id: 'claude-haiku-4-5-20251001', name: 'Claude Haiku 4.5', desc: 'Nhanh, tiết kiệm chi phí' },
+  { id: 'claude-opus-4-8', name: 'Claude Opus 4.8', desc: 'Latest · reasoning · vision · coding · flagship · 1M ctx' },
+  { id: 'claude-opus-4-7', name: 'Claude Opus 4.7', desc: 'reasoning · vision · coding · 1M ctx' },
+  { id: 'claude-opus-4-6', name: 'Claude Opus 4.6', desc: 'reasoning · vision · coding · 1M ctx' },
+  { id: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6', desc: 'fast · vision · coding · 1M ctx' },
+  { id: 'claude-haiku-4-5-20251001', name: 'Claude Haiku 4.5', desc: 'fast · vision · cheap' },
 ];
 
 export const OPENAI_MODELS = [
-  { id: 'gpt-4o', name: 'GPT-4o', desc: 'Đa phương thức, mạnh nhất (Default)' },
-  { id: 'gpt-4o-mini', name: 'GPT-4o Mini', desc: 'Nhanh, tiết kiệm chi phí' },
-  { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', desc: 'Hiệu suất cao, context dài' },
+  { id: 'gpt-5.5', name: 'GPT-5.5', desc: 'Latest · reasoning · vision · coding · flagship' },
+  { id: 'gpt-5.5-pro', name: 'GPT-5.5 Pro', desc: 'reasoning · vision · coding · premium' },
+  { id: 'gpt-5.4-thinking', name: 'GPT-5.4 Thinking', desc: 'reasoning · vision · coding' },
+  { id: 'gpt-5.4-mini', name: 'GPT-5.4 mini', desc: 'fast · vision · cheap' },
+  { id: 'gpt-5.4-nano', name: 'GPT-5.4 nano', desc: 'fast · cheap' },
+  { id: 'gpt-4.1-2025-04-14', name: 'GPT-4.1', desc: 'coding · vision · 1M ctx' },
+  { id: 'gpt-4.1-mini-2025-04-14', name: 'GPT-4.1 mini', desc: 'fast · vision · cheap · 1M ctx' },
+  { id: 'gpt-4.1-nano-2025-04-14', name: 'GPT-4.1 nano', desc: 'fast · cheap · 1M ctx' },
+  { id: 'gpt-4o', name: 'GPT-4o', desc: 'vision · audio · multimodal' },
+  { id: 'o3-2025-04-16', name: 'o3', desc: 'reasoning · vision' },
+  { id: 'o3-pro', name: 'o3-pro', desc: 'reasoning · premium' },
 ];
 
 export const GROK_MODELS = [
-  { id: 'grok-3', name: 'Grok 3', desc: 'Mạnh nhất của xAI, suy luận sâu (Default)' },
-  { id: 'grok-3-mini', name: 'Grok 3 Mini', desc: 'Nhanh, tiết kiệm chi phí' },
-  { id: 'grok-2-vision', name: 'Grok 2 Vision', desc: 'Hỗ trợ hình ảnh (vision)' },
+  { id: 'grok-4.3', name: 'Grok 4.3', desc: 'Latest · reasoning · vision · video · flagship' },
+  { id: 'grok-4.20', name: 'Grok 4.20', desc: 'reasoning · vision · 2M ctx' },
+  { id: 'grok-4-0709', name: 'Grok 4', desc: 'reasoning · vision' },
+  { id: 'grok-3-beta', name: 'Grok 3 Beta', desc: 'vision · search' },
+  { id: 'grok-3-mini-beta', name: 'Grok 3 Mini', desc: 'fast · cheap' },
 ];
 
 export const DEEPSEEK_MODELS = [
-  { id: 'deepseek-chat', name: 'DeepSeek V3 (Chat)', desc: 'Nhanh, đa năng (Default)' },
-  { id: 'deepseek-reasoner', name: 'DeepSeek R1 (Reasoner)', desc: 'Suy luận chuyên sâu, chậm hơn' },
+  { id: 'deepseek-v4-flash', name: 'DeepSeek V4 Flash', desc: 'Latest · fast · coding · 1M ctx · cheap' },
+  { id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro', desc: 'Latest · reasoning · coding · 1M ctx' },
+  { id: 'deepseek-v3-2', name: 'DeepSeek V3.2', desc: 'coding · fast' },
+  { id: 'deepseek-r1', name: 'DeepSeek R1', desc: 'reasoning · math' },
 ];
 
 export const GEMINI_MODELS = [
@@ -125,10 +139,10 @@ export function getActiveApiKey(settings: Settings): string {
 }
 
 const getActiveModelId = (provider: ApiProvider, settings: Settings): string => {
-  if (provider === 'claude') return settings.selectedModel || 'claude-sonnet-4-7';
-  if (provider === 'openai') return settings.selectedModel || 'gpt-4o';
-  if (provider === 'grok') return settings.selectedModel || 'grok-3';
-  if (provider === 'deepseek') return settings.selectedModel || 'deepseek-chat';
+  if (provider === 'claude') return settings.selectedModel || CLAUDE_MODELS[0].id;
+  if (provider === 'openai') return settings.selectedModel || OPENAI_MODELS[0].id;
+  if (provider === 'grok') return settings.selectedModel || GROK_MODELS[0].id;
+  if (provider === 'deepseek') return settings.selectedModel || DEEPSEEK_MODELS[0].id;
   const idx = MODELS.indexOf(settings.selectedModel);
   return idx >= 0 ? MODELS[idx] : MODELS[0];
 };
@@ -376,7 +390,7 @@ export async function callAIWithVision(
         type: 'image_url' as const,
         image_url: { url },
       }));
-      const model = settings.selectedModel || 'grok-2-vision';
+      const model = getActiveModelId(provider, settings);
       const res = await client.chat.completions.create({
         model,
         max_tokens: GROK_MAX_TOKENS,
