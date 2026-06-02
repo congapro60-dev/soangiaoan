@@ -1,5 +1,6 @@
-import { callGeminiAIRaw, callGeminiAIStream, MODELS } from './gemini';
+import { callGeminiAIRaw, callGeminiAIStream, DEFAULT_GEMINI_RUNTIME_MODEL, GEMINI_RUNTIME_MODELS } from './gemini';
 import { estimateTokenCount, recordTokenUsage } from '../hooks/useTokenTracker';
+import { CLAUDE_MODELS as TRACKER_CLAUDE_MODELS, DEEPSEEK_MODELS as TRACKER_DEEPSEEK_MODELS, GEMINI_MODELS as TRACKER_GEMINI_MODELS, GROK_MODELS as TRACKER_GROK_MODELS, OPENAI_MODELS as TRACKER_OPENAI_MODELS, toModelOption } from '../data/models';
 import type { ApiProvider } from '../config/apiLimits';
 import type { AppData } from '../types';
 
@@ -84,50 +85,19 @@ async function callRelay(
   return data.text || '';
 }
 
-export const CLAUDE_MODELS = [
-  { id: 'claude-opus-4-8', name: 'Claude Opus 4.8', desc: 'Latest · reasoning · vision · coding · flagship · 1M ctx' },
-  { id: 'claude-opus-4-7', name: 'Claude Opus 4.7', desc: 'reasoning · vision · coding · 1M ctx' },
-  { id: 'claude-opus-4-6', name: 'Claude Opus 4.6', desc: 'reasoning · vision · coding · 1M ctx' },
-  { id: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6', desc: 'fast · vision · coding · 1M ctx' },
-  { id: 'claude-haiku-4-5-20251001', name: 'Claude Haiku 4.5', desc: 'fast · vision · cheap' },
-];
-
-export const OPENAI_MODELS = [
-  { id: 'gpt-5.5', name: 'GPT-5.5', desc: 'Latest · reasoning · vision · coding · flagship' },
-  { id: 'gpt-5.5-pro', name: 'GPT-5.5 Pro', desc: 'reasoning · vision · coding · premium' },
-  { id: 'gpt-5.4-thinking', name: 'GPT-5.4 Thinking', desc: 'reasoning · vision · coding' },
-  { id: 'gpt-5.4-mini', name: 'GPT-5.4 mini', desc: 'fast · vision · cheap' },
-  { id: 'gpt-5.4-nano', name: 'GPT-5.4 nano', desc: 'fast · cheap' },
-  { id: 'gpt-4.1-2025-04-14', name: 'GPT-4.1', desc: 'coding · vision · 1M ctx' },
-  { id: 'gpt-4.1-mini-2025-04-14', name: 'GPT-4.1 mini', desc: 'fast · vision · cheap · 1M ctx' },
-  { id: 'gpt-4.1-nano-2025-04-14', name: 'GPT-4.1 nano', desc: 'fast · cheap · 1M ctx' },
-  { id: 'gpt-4o', name: 'GPT-4o', desc: 'vision · audio · multimodal' },
-  { id: 'o3-2025-04-16', name: 'o3', desc: 'reasoning · vision' },
-  { id: 'o3-pro', name: 'o3-pro', desc: 'reasoning · premium' },
-];
-
-export const GROK_MODELS = [
-  { id: 'grok-4.3', name: 'Grok 4.3', desc: 'Latest · reasoning · vision · video · flagship' },
-  { id: 'grok-4.20', name: 'Grok 4.20', desc: 'reasoning · vision · 2M ctx' },
-  { id: 'grok-4-0709', name: 'Grok 4', desc: 'reasoning · vision' },
-  { id: 'grok-3-beta', name: 'Grok 3 Beta', desc: 'vision · search' },
-  { id: 'grok-3-mini-beta', name: 'Grok 3 Mini', desc: 'fast · cheap' },
-];
-
-export const DEEPSEEK_MODELS = [
-  { id: 'deepseek-v4-flash', name: 'DeepSeek V4 Flash', desc: 'Latest · fast · coding · 1M ctx · cheap' },
-  { id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro', desc: 'Latest · reasoning · coding · 1M ctx' },
-  { id: 'deepseek-v3-2', name: 'DeepSeek V3.2', desc: 'coding · fast' },
-  { id: 'deepseek-r1', name: 'DeepSeek R1', desc: 'reasoning · math' },
-];
-
-export const GEMINI_MODELS = [
-  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', desc: 'Mặc định, ổn định, nhanh, phù hợp soạn giáo án và đề kiểm tra' },
-  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', desc: 'Ổn định, suy luận tốt cho tác vụ phức tạp' },
-  { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash-Lite', desc: 'Ổn định, nhanh và tiết kiệm' },
-  { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', desc: 'Nhanh, tương thích tốt với generateContent' },
-  { id: 'gemini-2.0-flash-lite', name: 'Gemini 2.0 Flash-Lite', desc: 'Nhanh và tiết kiệm' },
-];
+export const CLAUDE_MODELS = TRACKER_CLAUDE_MODELS.map(toModelOption);
+export const OPENAI_MODELS = TRACKER_OPENAI_MODELS.map(toModelOption);
+export const GROK_MODELS = TRACKER_GROK_MODELS.map(toModelOption);
+export const DEEPSEEK_MODELS = TRACKER_DEEPSEEK_MODELS.map(toModelOption);
+export const GEMINI_MODELS = TRACKER_GEMINI_MODELS.map(model => ({
+  ...toModelOption(model),
+  desc: [
+    model.id === DEFAULT_GEMINI_RUNTIME_MODEL ? 'Mặc định runtime an toàn' : undefined,
+    model.tags?.includes('generateContent') ? 'generateContent' : 'Tracker/preview',
+    model.isPreview ? 'Preview' : undefined,
+    model.tags?.filter(tag => !['tracker', 'generateContent', 'preview'].includes(tag)).slice(0, 3).join(' · '),
+  ].filter(Boolean).join(' · '),
+}));
 
 export function getActiveApiKey(settings: Settings): string {
   const provider = settings.selectedProvider ?? 'gemini';
@@ -143,8 +113,8 @@ const getActiveModelId = (provider: ApiProvider, settings: Settings): string => 
   if (provider === 'openai') return settings.selectedModel || OPENAI_MODELS[0].id;
   if (provider === 'grok') return settings.selectedModel || GROK_MODELS[0].id;
   if (provider === 'deepseek') return settings.selectedModel || DEEPSEEK_MODELS[0].id;
-  const idx = MODELS.indexOf(settings.selectedModel);
-  return idx >= 0 ? MODELS[idx] : MODELS[0];
+  const idx = GEMINI_RUNTIME_MODELS.indexOf(settings.selectedModel);
+  return idx >= 0 ? GEMINI_RUNTIME_MODELS[idx] : DEFAULT_GEMINI_RUNTIME_MODEL;
 };
 
 const recordExactUsage = (
@@ -172,7 +142,7 @@ const recordEstimatedUsage = (provider: ApiProvider, model: string, prompt: stri
 
 async function callAIOnce(prompt: string, settings: Settings): Promise<RawResult> {
   const provider = settings.selectedProvider ?? 'gemini';
-  const fallbackModel = MODELS[0];
+  const fallbackModel = DEFAULT_GEMINI_RUNTIME_MODEL;
 
   try {
     if (provider === 'claude') {
@@ -247,8 +217,8 @@ async function callAIOnce(prompt: string, settings: Settings): Promise<RawResult
     }
 
     // default: gemini
-    const idx = MODELS.indexOf(settings.selectedModel);
-    const model = getActiveModelId(provider, settings);
+    const idx = GEMINI_RUNTIME_MODELS.indexOf(settings.selectedModel);
+    const model = idx >= 0 ? GEMINI_RUNTIME_MODELS[idx] : DEFAULT_GEMINI_RUNTIME_MODEL;
     
     console.log('[aiProviders] Using Gemini API key:', {
       length: settings.geminiApiKey?.length,
@@ -332,7 +302,7 @@ export async function callAIWithVision(
   });
   
   const { base64Data: firstBase64, mimeType: firstMime } = parsedImages[0];
-  const fallbackModel = MODELS[0];
+  const fallbackModel = DEFAULT_GEMINI_RUNTIME_MODEL;
 
   try {
     if (provider === 'claude') {
@@ -414,8 +384,8 @@ export async function callAIWithVision(
     // Gemini
     const { GoogleGenAI } = await import('@google/genai');
     const ai = new GoogleGenAI({ apiKey: settings.geminiApiKey, httpOptions: { apiVersion: 'v1beta' } });
-    const idx = MODELS.indexOf(settings.selectedModel);
-    const modelName = idx >= 0 ? MODELS[idx] : MODELS[0];
+    const idx = GEMINI_RUNTIME_MODELS.indexOf(settings.selectedModel);
+    const modelName = idx >= 0 ? GEMINI_RUNTIME_MODELS[idx] : DEFAULT_GEMINI_RUNTIME_MODEL;
     
     const imageParts = parsedImages.map(({ base64Data, mimeType }) => ({
       inlineData: { data: base64Data, mimeType },
@@ -471,7 +441,7 @@ export async function callAIStream(
   onChunk: (chunk: string) => void
 ): Promise<void> {
   const provider = settings.selectedProvider ?? 'gemini';
-  const fallbackModel = MODELS[0];
+  const fallbackModel = DEFAULT_GEMINI_RUNTIME_MODEL;
 
   try {
     if (provider === 'claude') {
@@ -561,8 +531,8 @@ export async function callAIStream(
     }
 
     // default: gemini
-    const idx = MODELS.indexOf(settings.selectedModel);
-    const model = getActiveModelId(provider, settings);
+    const idx = GEMINI_RUNTIME_MODELS.indexOf(settings.selectedModel);
+    const model = idx >= 0 ? GEMINI_RUNTIME_MODELS[idx] : DEFAULT_GEMINI_RUNTIME_MODEL;
     let output = '';
     await callGeminiAIStream(prompt, settings.geminiApiKey, (chunk) => {
       output += chunk;

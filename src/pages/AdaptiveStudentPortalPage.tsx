@@ -31,7 +31,7 @@ import { adaptiveLessonToDeweyContent } from '../lib/adaptive/adaptiveToDewey';
 import { renderDeweyLesson } from '../lib/dewey/template';
 import { getLessonFromFirestore } from '../services/adaptiveLessonService';
 import { getPersonalizedLesson } from '../lib/adaptive/personalizationEngine';
-import { GEMINI_MODELS } from '../lib/aiProviders';
+import { DEFAULT_GEMINI_RUNTIME_MODEL } from '../lib/gemini';
 import { LessonSimulationViewer } from '../components/adaptive/LessonSimulationViewer';
 import { getToolsByIds } from '../data/externalTools';
 import {
@@ -106,7 +106,7 @@ const noticeClass: Record<NoticeTone, string> = {
 const normalizeStudentCode = (value: string) => value.trim().toUpperCase().replace(/\s+/g, '-');
 const buildStudentId = (teacherId: string, studentCode: string) => `${teacherId}_${normalizeStudentCode(studentCode)}`;
 const buildProgressId = (teacherId: string, lessonId: string, studentCode: string) => `${teacherId}_${lessonId}_${normalizeStudentCode(studentCode)}`;
-const DEFAULT_PERSONALIZATION_MODEL = GEMINI_MODELS[0]?.id || 'gemini-2.5-flash';
+const DEFAULT_PERSONALIZATION_MODEL = DEFAULT_GEMINI_RUNTIME_MODEL;
 
 const getQuestionAnswer = (questionId: string, answers: Record<string, string>) => answers[questionId] || '';
 const formatDuration = (seconds: number) => {
