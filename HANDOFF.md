@@ -1,6 +1,6 @@
 # HANDOFF — Soạn giáo án / học phân hoá
 
-**Cập nhật**: 2026-05-28
+**Cập nhật**: 2026-05-30
 **Repo chính**: `soangiaoan`
 **Branch hiện tại**: `main`
 **Remote GitHub**: `https://github.com/congapro60-dev/soangiaoan`
@@ -19,6 +19,28 @@
 ## 0. Trạng thái mới nhất cho Claude Code / Antigravity QA — 2026-05-27
 
 > Đây là nguồn sự thật mới nhất. Batch sửa lỗi QA ưu tiên đã hoàn tất ở commit code `770bb960482db965cf0c44d414df27b1b6082f1e` và đã pass typecheck/test/build. Không dùng báo cáo QA dựa trên commit cũ `64edb78` hoặc trước Phase 2C để kết luận lỗi vẫn còn nếu chưa retest lại trên commit mới nhất.
+
+### 0.0.1 Hotfix QA cổng Học Tập Phân Hoá — 2026-05-30
+
+Nguồn yêu cầu: `adaptive_portal_qa_report.md`, tập trung phần 5 và 6. Phiên này đã sửa trực tiếp các lỗi hệ thống trong luồng **Học Tập Phân Hoá / Dewey Socratic steps**:
+
+- `src/lib/dewey/template.ts`
+  - Trong `renderSocraticStep`, khối hiển thị `expectedKeywords` đã đổi class từ dạng nút điều hướng sang `keyword-box`.
+  - Mục tiêu: tránh selector `.next-btn` bắt nhầm box từ khoá tham khảo, làm UI lẫn trạng thái nút chuyển bước.
+- `src/lib/dewey/htmlShell.ts`
+  - Trong `submitSocraticStep`, logic JavaScript đã được cập nhật để query và xoá `hidden` cho cả `.next-btn` và `.keyword-box`.
+  - Mục tiêu: sau khi học sinh bấm “Kiểm tra gợi ý”, vừa hiện nút chuyển bước/hoàn thành, vừa hiện từ khoá tham khảo đúng cách.
+- `src/lib/adaptive/adaptiveToDewey.ts`
+  - Đã bỏ feedback hard-code `So sánh câu trả lời với gợi ý rồi tiếp tục.`.
+  - Feedback của Socratic step hiện lấy từ dữ liệu adaptive theo thứ tự ưu tiên `explanation`, `solution`, hoặc `hints` để giữ nội dung phản hồi thật từ bài học.
+- `src/pages/AdaptiveStudentPortalPage.tsx`
+  - Đã chỉnh layout tổng để giảm lỗi 3 thanh cuộn lồng nhau: dùng overflow cấp trang có kiểm soát, điều chỉnh chiều cao vùng nhúng Dewey/iframe theo viewport.
+  - Đã chỉnh padding/margin/header container để các huy hiệu ở header không bị cắt xén (`clipped`) khi hiển thị trong cổng học sinh.
+
+Ghi chú kiểm tra:
+- Đã rà soát nhanh các pattern liên quan (`keyword-box`, `.next-btn`, feedback mapping, overflow/height portal).
+- Có chạy lệnh kiểm tra qua terminal, nhưng VS Code/Cline báo `Shell Integration Unavailable` nên output không được capture đầy đủ trong panel. Cảnh báo này là vấn đề môi trường IDE, không phải lỗi code.
+- Cảnh báo `Checkpoints are not currently supported in multi-root workspaces` cũng là cảnh báo môi trường do đang mở workspace nhiều root; không liên quan runtime.
 
 ### 0.0 Fixes mới nhất cho quá trình sinh bài học phân hoá — 2026-05-28
 - **Lỗi Notebook dính chữ "Ý tưởng thiết kế UI/UX"**: Sửa lỗi `localStorage` cache nội dung notebook trên cùng một trình duyệt bằng cách gắn `lessonId` vào key `dewey-notebook-${lessonId}`. Cập nhật `extractJsonFromText` để xử lý các escape single backslashes (như `\frac`) do AI thiếu sót sinh ra, tránh việc `JSON.parse` bị hỏng khiến UI chuyển về parser dự phòng và sinh ra nội dung sai.

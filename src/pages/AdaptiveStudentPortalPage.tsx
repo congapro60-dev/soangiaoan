@@ -877,12 +877,20 @@ export const AdaptiveStudentPortalPage = () => {
         : 4;
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900">
-      <div className="mx-auto max-w-5xl space-y-5">
-        <section className="rounded-[2rem] bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 p-6 text-white shadow-xl shadow-blue-100">
+    <div className={cn(
+      'bg-slate-50 text-slate-900',
+      stage === 'dewey-lesson'
+        ? 'h-dvh overflow-hidden px-2 pb-3 pt-5 sm:px-3 sm:pb-4 sm:pt-6'
+        : 'min-h-screen overflow-x-hidden px-3 pb-8 pt-5 sm:px-4 sm:pt-6'
+    )}>
+      <div className={cn('mx-auto min-h-0 overflow-visible', stage === 'dewey-lesson' ? 'flex h-full max-w-7xl flex-col gap-2 overflow-visible sm:gap-3' : 'max-w-5xl space-y-5')}>
+        <section className={cn(
+          'relative z-10 overflow-visible rounded-[2rem] bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 px-6 pb-5 pt-8 text-white shadow-xl shadow-blue-100 sm:px-7 sm:pb-6 sm:pt-9',
+          stage === 'dewey-lesson' && 'mt-1 shrink-0'
+        )}>
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-black uppercase tracking-widest">
+              <div className="mb-3 inline-flex max-w-full items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-black uppercase tracking-widest leading-none">
                 <BookOpenCheck className="h-4 w-4" /> Cổng học sinh
               </div>
               <h1 className="text-3xl font-black tracking-tight">{lesson.title}</h1>
@@ -890,7 +898,7 @@ export const AdaptiveStudentPortalPage = () => {
                 Em học theo quy trình 5 bước: kết nối, chẩn đoán, hình thành kiến thức, luyện tập điều chỉnh và phản tư. Mỗi phần có đồng hồ để ghi tốc độ học tập.
               </p>
             </div>
-            <div className="grid grid-cols-3 gap-3 text-center">
+            <div className="grid grid-cols-3 gap-3 overflow-visible px-1 pb-3 pt-3 text-center">
               <MiniStat icon={<Clock3 className="h-5 w-5" />} value={`${lesson.durationMinutes}'`} label="Tiết học" />
               <MiniStat icon={<Target className="h-5 w-5" />} value={lesson.objectives.length} label="Mục tiêu" />
               <MiniStat icon={<Route className="h-5 w-5" />} value="3" label="Tuyến học" />
@@ -986,7 +994,7 @@ export const AdaptiveStudentPortalPage = () => {
         )}
 
         {stage === 'dewey-lesson' && deweyHtml && (
-          <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+          <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden sm:gap-3">
             {lesson && currentUnit && (
               <LessonSimulationViewer
                 lessonId={lesson.id}
@@ -998,7 +1006,9 @@ export const AdaptiveStudentPortalPage = () => {
             <iframe
               srcDoc={deweyHtml}
               sandbox="allow-scripts allow-same-origin"
-              style={{ width: '100%', height: 'calc(100vh - 100px)', minHeight: 800, border: 'none', borderRadius: 16 }}
+              className="min-h-0 flex-1"
+              scrolling="no"
+              style={{ width: '100%', height: '100%', border: 'none', borderRadius: 16, display: 'block', overflow: 'hidden' }}
               title="Bài học Dewey"
             />
             {isSaving && (
@@ -1341,8 +1351,8 @@ const TaskPanel = ({ title, tasks = [], tone }: { title: string; tasks?: Adaptiv
 };
 
 const MiniStat = ({ icon, value, label }: { icon: ReactNode; value: ReactNode; label: string }) => (
-  <div className="rounded-2xl bg-white/15 p-4 backdrop-blur">
-    <div className="mx-auto mb-2 flex justify-center">{icon}</div>
+  <div className="overflow-visible rounded-2xl bg-white/15 px-3.5 pb-4 pt-5 backdrop-blur sm:px-4 sm:pb-4 sm:pt-5">
+    <div className="mx-auto mb-2 flex justify-center leading-none">{icon}</div>
     <p className="text-2xl font-black">{value}</p>
     <p className="text-[10px] font-bold uppercase text-blue-100">{label}</p>
   </div>

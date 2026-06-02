@@ -87,12 +87,20 @@ export function adaptiveLessonToDeweyContent(
   // Knowledge Units: map mỗi unit → DeweyKnowledgeUnit
   const deweyUnits: DeweyKnowledgeUnit[] = (lesson.knowledgeUnits ?? []).map(unit => {
     const rc = findRoute(unit, route);
+    const firstExample = rc?.workedExamples?.[0];
+    const introFeedback = rc?.explanation || firstExample?.explanation || firstExample?.solution || firstExample?.hints?.join('\n');
+    const practiceTasks = rc?.practiceTasks?.length
+      ? rc.practiceTasks
+      : [
+          ...(unit.supportTasks ?? []),
+          ...(unit.enrichmentTasks ?? []),
+        ];
     const steps = [
       {
         id: 'step-explain',
         prompt: normalizeLatexText(rc?.explanation, unit.title),
         inputPlaceholder: 'Viết suy nghĩ của em…',
-        feedback: 'So sánh câu trả lời với gợi ý rồi tiếp tục.',
+        feedback: normalizeLatexText(introFeedback, 'Xem lại phần giải thích và gợi ý của bài học.'),
         formulaToNote: '',
       },
       ...(rc?.workedExamples ?? []).map((ex, i) => ({
@@ -100,8 +108,16 @@ export function adaptiveLessonToDeweyContent(
         prompt: normalizeLatexText(ex.problem, unit.title),
         inputPlaceholder: 'Viết đáp số hoặc lời giải…',
         expectedKeywords: ex.hints,
-        feedback: normalizeLatexText(ex.solution, 'Xem lời giải mẫu trong giáo án.'),
+        feedback: normalizeLatexText(ex.explanation || ex.solution || ex.hints?.join('\n'), 'Xem lời giải mẫu trong giáo án.'),
         formulaToNote: normalizeLatexText(ex.explanation, ''),
+      })),
+      ...practiceTasks.map((task, i) => ({
+        id: `step-practice-${i}`,
+        prompt: normalizeLatexText(task.prompt, `Luyện tập phân hoá: ${unit.title}`),
+        inputPlaceholder: 'Tự giải bài luyện tập theo tuyến học của em…',
+        expectedKeywords: task.hints,
+        feedback: normalizeLatexText(task.expectedAnswer || task.hints?.join('\n'), 'Đối chiếu lời giải với gợi ý luyện tập rồi tự điều chỉnh.'),
+        formulaToNote: '',
       })),
     ];
     return {

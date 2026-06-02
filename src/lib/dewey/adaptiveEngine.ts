@@ -226,12 +226,14 @@ export function getAdaptiveEngineScript(lessonId?: string): string {
     if (!step) return;
     var feedback = step.querySelector('.feedback-msg');
     var nextButton = step.querySelector('.next-btn');
+    var keywordBox = step.querySelector('.keyword-box');
     if (feedback) {
       feedback.className = 'feedback-msg feedback-info';
       feedback.textContent = step.dataset.feedback || 'So sánh câu trả lời của em với gợi ý và tiếp tục.';
       show(feedback);
     }
     if (step.dataset.note) window.addNote(step.dataset.note);
+    show(keywordBox);
     show(nextButton);
     updateMath(step);
   };

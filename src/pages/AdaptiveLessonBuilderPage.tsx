@@ -5,7 +5,7 @@ import { ArrowLeft, CheckCircle2, FileUp, Loader2, Plus, Save, Send, Sparkles, T
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { sampleAdaptiveLesson } from '../lib/adaptive/sampleAdaptiveLesson';
-import { buildAdaptiveLessonFromContentJson, buildAdaptiveContentPrompt, buildAdaptiveLessonFromReviewedPlan, buildAdaptiveReviewPrompt, type AdaptiveLessonSource } from '../lib/adaptive/adaptiveFromLessonPlan';
+import { buildAdaptiveLessonFromReviewedPlan, buildAdaptiveReviewPrompt, type AdaptiveLessonSource } from '../lib/adaptive/adaptiveFromLessonPlan';
 import type {
   AdaptiveAssessment,
   AdaptiveLesson,
@@ -367,37 +367,18 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
   const approveReviewedSource = async () => {
     if (!user || !sourceLesson || !reviewedPlan.trim()) return;
 
-    // If no API key configured, fall back to regex-based builder immediately
-    const hasApiKey = settings && getActiveApiKey(settings).trim();
-    if (!hasApiKey) {
-      const nextLesson = buildAdaptiveLessonFromReviewedPlan(sourceLesson, reviewedPlan, user.uid);
-      setLesson(nextLesson);
-      setExpandedUnitId(nextLesson.knowledgeUnits[0]?.id || null);
-      setIsSourceApproved(true);
-      setStep(0);
-      showToast?.('Đã tạo cấu trúc bài học (chưa có API key để sinh nội dung thật).', 'success');
-      return;
-    }
-
     setIsGeneratingContent(true);
     setError(null);
     try {
-      const contentJsonText = await callAI(buildAdaptiveContentPrompt(sourceLesson, reviewedPlan), settings);
-      const nextLesson = buildAdaptiveLessonFromContentJson(sourceLesson, reviewedPlan, contentJsonText, user.uid);
-      setLesson(nextLesson);
-      setExpandedUnitId(nextLesson.knowledgeUnits[0]?.id || null);
-      setIsSourceApproved(true);
-      setStep(0);
-      showToast?.('AI đã tạo bài học phân hoá với câu hỏi thật từ giáo án. Kiểm tra lại trước khi xuất bản!', 'success');
-    } catch (contentErr) {
-      console.warn('[AdaptiveBuilder] AI content generation failed — falling back to regex parser', contentErr);
-      // Graceful fallback: teacher is never blocked
       const nextLesson = buildAdaptiveLessonFromReviewedPlan(sourceLesson, reviewedPlan, user.uid);
       setLesson(nextLesson);
       setExpandedUnitId(nextLesson.knowledgeUnits[0]?.id || null);
       setIsSourceApproved(true);
       setStep(0);
-      showToast?.('AI gặp lỗi khi sinh nội dung, đã dùng cấu trúc cơ bản. Bạn có thể chỉnh tay trước khi lưu.', 'success');
+      showToast?.('Đã bóc tách bài học phân hoá trực tiếp từ giáo án đã duyệt, không gọi AI sinh lại nội dung.', 'success');
+    } catch (contentErr) {
+      console.warn('[AdaptiveBuilder] Không bóc tách được giáo án đã duyệt', contentErr);
+      setError(contentErr instanceof Error ? contentErr.message : 'Không tạo được bài học phân hoá từ giáo án đã duyệt.');
     } finally {
       setIsGeneratingContent(false);
     }
@@ -485,7 +466,7 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
           <div className="flex flex-wrap gap-3">
             <button type="button" onClick={approveReviewedSource} disabled={!reviewedPlan.trim() || isReviewingSource || uploadingSource || isGeneratingContent} className={primaryButtonClass}>
               {isGeneratingContent ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-              {isGeneratingContent ? 'AI đang thiết kế nội dung (có thể mất 15-30s)...' : 'Duyệt bản rà soát & tạo cấu trúc bài học'}
+              {isGeneratingContent ? 'Đang bóc tách cấu trúc bài học...' : 'Duyệt bản rà soát & tạo cấu trúc bài học'}
             </button>
           </div>
 

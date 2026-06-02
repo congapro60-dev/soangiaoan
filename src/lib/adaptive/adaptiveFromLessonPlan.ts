@@ -180,23 +180,206 @@ const inferTitle = (source: AdaptiveLessonSource, reviewedPlan: string): string 
   return cleanLine(heading || '') || 'Bài học phân hoá mới';
 };
 
+const getSection = (markdown: string, headingPattern: RegExp): string => {
+  const lines = markdown.split('\n');
+  const start = lines.findIndex(line => headingPattern.test(line.trim()));
+  if (start < 0) return '';
+  const startLevel = (lines[start].match(/^#+/)?.[0].length || 2);
+  const collected: string[] = [];
+  for (let i = start + 1; i < lines.length; i++) {
+    const level = lines[i].match(/^(#+)\s+/)?.[1].length;
+    if (level && level <= startLevel) break;
+    collected.push(lines[i]);
+  }
+  return collected.join('\n').trim();
+};
+
+const getLineValue = (text: string, labels: string[]): string => {
+  const lines = text.split('\n');
+  for (const label of labels) {
+    const found = lines.find(line => line.toLowerCase().includes(label.toLowerCase()));
+    if (found) return cleanLine(found.replace(new RegExp(`^[-*]?\\s*${label}\\s*[:：-]?`, 'i'), '')).trim();
+  }
+  return '';
+};
+
+const parseMarkdownRows = (section: string): string[][] => section
+  .split('\n')
+  .map(line => line.trim())
+  .filter(line => line.startsWith('|') && line.endsWith('|') && !/^\|\s*-+/.test(line))
+  .slice(1)
+  .map(line => line.slice(1, -1).split('|').map(cell => cell.replace(/<br\s*\/?>/gi, '\n').trim()))
+  .filter(row => row.some(cell => cell && !/^-+$/.test(cell)));
+
+const parseOptionsAndCorrect = (raw: string): { options: string[]; correctAnswer: string } => {
+  const text = raw.replace(/\s+/g, ' ').trim();
+  const optionMatches = [...text.matchAll(/([A-D])\s*[.)]\s*(.*?)(?=\s+[A-D]\s*[.)]|\s*(?:đáp án|correct)\s*[:：]|$)/gi)];
+  let options = optionMatches.map(match => `${match[1].toUpperCase()}. ${match[2].trim()}`).filter(item => item.length > 3);
+  if (options.length < 4) {
+    options = text.split(/;|\n/).map((item, index) => `${String.fromCharCode(65 + index)}. ${item.trim()}`).filter(item => item.length > 3).slice(0, 4);
+  }
+  while (options.length < 4) options.push(`${String.fromCharCode(65 + options.length)}. Giáo viên bổ sung phương án`);
+
+  const explicit = text.match(/(?:đáp án|correct)\s*[:：]?\s*([A-D])/i)?.[1]?.toUpperCase();
+  const starred = text.match(/([A-D])\s*[.)][^;|]*(?:\*|✓|đúng)/i)?.[1]?.toUpperCase();
+  const correctLetter = explicit || starred || 'A';
+  const correctAnswer = options.find(option => option.startsWith(`${correctLetter}.`)) || options[0];
+  return { options: options.slice(0, 4), correctAnswer };
+};
+
+const makeQuestionFromReviewedText = (
+  purpose: AdaptiveAssessment['purpose'],
+  objectiveId: string,
+  index: number,
+  prompt: string,
+  optionsAndAnswer: string,
+  explanation: string,
+  difficulty?: string,
+): AdaptiveQuestion => {
+  const parsed = parseOptionsAndCorrect(optionsAndAnswer);
+  const difficultyText = `${difficulty || ''} ${prompt}`.toLowerCase();
+  const normalizedDifficulty = /khó|hard|vận dụng cao|giỏi|challenge/.test(difficultyText)
+    ? 'hard'
+    : /trung bình|medium|vận dụng|khá/.test(difficultyText)
+      ? 'medium'
+      : 'easy';
+
+  return {
+    id: uid('q'),
+    type: 'multiple_choice',
+    prompt: prompt.trim() || `${purpose === 'quick_check' ? 'Quick check' : 'Câu'} ${index + 1}`,
+    options: parsed.options,
+    correctAnswer: parsed.correctAnswer,
+    explanation: explanation.trim() || 'Giải thích lấy từ giáo án phân hoá đã duyệt.',
+    objectiveIds: [objectiveId],
+    difficulty: normalizedDifficulty,
+    points: 1,
+  };
+};
+
+const buildAssessmentFromReviewedSection = (
+  section: string,
+  purpose: AdaptiveAssessment['purpose'],
+  title: string,
+  objectiveIds: string[],
+  fallbackHints: string[],
+  count: number,
+): AdaptiveAssessment => {
+  const rows = parseMarkdownRows(section);
+  const questions = rows
+    .map((row, index) => makeQuestionFromReviewedText(
+      purpose,
+      objectiveIds[index % Math.max(objectiveIds.length, 1)] || objectiveIds[0] || uid('obj'),
+      index,
+      row[3] || row[1] || row[0] || '',
+      row[4] || '',
+      row[5] || row[4] || '',
+      row[2] || '',
+    ))
+    .filter(question => question.prompt.length > 5);
+
+  if (questions.length >= count) {
+    return { id: uid(purpose), title, purpose, durationMinutes: purpose === 'quick_check' ? 5 : purpose === 'exit_ticket' ? 6 : 7, questions: questions.slice(0, count) };
+  }
+
+  const fallback = makeAssessment(purpose, title, objectiveIds, fallbackHints, count);
+  return { ...fallback, questions: [...questions, ...fallback.questions.slice(questions.length)].slice(0, count) };
+};
+
+const splitUnitBlocks = (section: string): { title: string; body: string }[] => {
+  const lines = section.split('\n');
+  const blocks: { title: string; body: string }[] = [];
+  let current: { title: string; bodyLines: string[] } | null = null;
+
+  for (const line of lines) {
+    const heading = line.match(/^#{3,5}\s*(?:Mảnh kiến thức\s*\d*\s*[:：-]?\s*)?(.+)/i);
+    if (heading) {
+      if (current) blocks.push({ title: cleanLine(current.title), body: current.bodyLines.join('\n').trim() });
+      current = { title: heading[1].trim(), bodyLines: [] };
+    } else if (current) {
+      current.bodyLines.push(line);
+    }
+  }
+  if (current) blocks.push({ title: cleanLine(current.title), body: current.bodyLines.join('\n').trim() });
+  return blocks.filter(block => block.title && block.body);
+};
+
+const extractRouteExplanation = (body: string, route: LearningRoute): string => {
+  const labels = route === 'foundation'
+    ? ['foundation', 'cơ bản', 'học sinh yếu', 'mức trung bình']
+    : route === 'standard'
+      ? ['standard', 'trọng tâm', 'chuẩn', 'mức khá']
+      : ['challenge', 'nâng cao', 'giỏi', 'mở rộng'];
+  return getLineValue(body, labels) || [
+    getLineValue(body, ['câu hỏi dẫn dắt siêu nhỏ']),
+    getLineValue(body, ['trial & error']),
+    getLineValue(body, ['chốt vào vở ghi chép']),
+  ].filter(Boolean).join('\n');
+};
+
+const buildUnitFromReviewedBlock = (block: { title: string; body: string }, objectiveId: string, index: number): KnowledgeUnit => {
+  const quickCheckSection = getLineValue(block.body, ['quick check sau lý thuyết', 'quick check']) || block.body;
+  const quickCheck = buildAssessmentFromReviewedSection(quickCheckSection, 'quick_check', `Quick check — ${block.title}`, [objectiveId], [block.title], 2);
+  const sourceHint = [
+    getLineValue(block.body, ['câu hỏi dẫn dắt siêu nhỏ']),
+    getLineValue(block.body, ['chốt vào vở ghi chép']),
+    block.title,
+  ].filter(Boolean).join(' — ');
+
+  return {
+    id: uid('unit'),
+    title: block.title,
+    objectiveIds: [objectiveId],
+    estimatedMinutes: index === 0 ? 8 : 10,
+    routes: routeOptions.map(route => ({
+      route,
+      explanation: extractRouteExplanation(block.body, route) || sourceHint || block.title,
+      workedExamples: [makeWorkedExample(objectiveId, block.title, sourceHint || block.title)],
+      practiceTasks: [makePracticeTask(objectiveId, route === 'foundation' ? 'easy' : route === 'standard' ? 'medium' : 'hard', sourceHint || block.title, 0)],
+      aiTutorPrompt: `Hỗ trợ học sinh ở tuyến ${route} học mảnh kiến thức "${block.title}". Chỉ dùng nội dung đã có trong giáo án phân hoá, không tự bịa thêm dữ kiện.`,
+    })),
+    quickCheck,
+    maxRemediationAttempts: 2,
+    supportTasks: [makePracticeTask(objectiveId, 'easy', sourceHint || block.title, 0)],
+    enrichmentTasks: [makePracticeTask(objectiveId, 'hard', sourceHint || block.title, 0)],
+    externalToolIds: [],
+    simulationSpec: buildDefaultSimulationSpec(block.title, objectiveId, sourceHint || block.title),
+  };
+};
+
 export const buildAdaptiveLessonFromReviewedPlan = (
   source: AdaptiveLessonSource,
   reviewedPlan: string,
   teacherId: string,
 ): AdaptiveLesson => {
   const now = new Date().toISOString();
-  const headings = extractHeadings(reviewedPlan);
+  const title = inferTitle(source, reviewedPlan);
+  const objectivesSection = `${getSection(reviewedPlan, /^##\s*5\./i)}\n${getSection(reviewedPlan, /^##\s*4\./i)}`;
   const fallbackObjectives = ['Nắm được kiến thức trọng tâm của bài', 'Vận dụng kiến thức vào bài tập cơ bản', 'Tự kiểm tra và điều chỉnh cách học'];
-  const objectiveTitles = extractBulletsAfter(reviewedPlan, ['mục tiêu', 'learning objectives'], fallbackObjectives).slice(0, 5);
-  const objectives = objectiveTitles.map(makeObjective);
+  const objectiveTitles = [
+    getLineValue(objectivesSection, ['mục tiêu cơ bản']),
+    getLineValue(objectivesSection, ['mục tiêu trọng tâm']),
+    getLineValue(objectivesSection, ['mục tiêu nâng cao']),
+    ...extractBulletsAfter(reviewedPlan, ['mục tiêu', 'learning objectives'], fallbackObjectives),
+  ].filter((item, index, arr): item is string => Boolean(item && arr.indexOf(item) === index)).slice(0, 5);
+  const finalObjectiveTitles = objectiveTitles.length ? objectiveTitles : fallbackObjectives;
+  const objectives = finalObjectiveTitles.map(makeObjective);
   const objectiveIds = objectives.map(objective => objective.id);
-  const unitTitles = extractBulletsAfter(reviewedPlan, ['mảnh kiến thức', 'knowledge chunks', 'chunk'], headings.slice(0, 4).length ? headings.slice(0, 4) : objectiveTitles).slice(0, 5);
-  const sourceHints = extractBulletsAfter(reviewedPlan, ['câu hỏi', 'bài tập', 'quick check'], unitTitles).slice(0, 8);
+
+  const preTestSection = getSection(reviewedPlan, /^##\s*3\./i);
+  const unitSection = getSection(reviewedPlan, /^##\s*6\./i);
+  const exitSection = getSection(reviewedPlan, /^##\s*9\./i);
+  const sourceHints = extractBulletsAfter(reviewedPlan, ['câu hỏi', 'bài tập', 'quick check'], finalObjectiveTitles).slice(0, 8);
+  const unitBlocks = splitUnitBlocks(unitSection);
+  const unitTitles = unitBlocks.length ? [] : extractBulletsAfter(reviewedPlan, ['mảnh kiến thức', 'knowledge chunks', 'chunk'], finalObjectiveTitles).slice(0, 5);
+
+  const engageSection = getSection(reviewedPlan, /^##\s*5\./i);
+  const storyHook = getLineValue(engageSection, ['câu chuyện/tình huống thực tế']);
+  const guidingQuestion = getLineValue(unitSection, ['câu hỏi dẫn dắt siêu nhỏ']) || getLineValue(engageSection, ['công cụ tương tác gây “bế tắc”', 'công cụ tương tác gây bế tắc']);
 
   return {
     id: `adaptive-${Date.now()}`,
-    title: inferTitle(source, reviewedPlan),
+    title,
     subjectId: 'math',
     grade: normalizeGrade(source.grade),
     durationMinutes: 40,
@@ -211,8 +394,18 @@ export const buildAdaptiveLessonFromReviewedPlan = (
       textbook: source.sourceLabel || 'Giáo án nguồn',
     },
     preparation: {
-      readingInstructions: 'Học sinh đọc trước nội dung giáo viên giao, ghi lại phần chưa hiểu và chuẩn bị làm pre-test đầu giờ.',
-      guidingQuestions: objectiveTitles.slice(0, 4).map(title => `Em đã hiểu gì về: ${title}?`),
+      readingInstructions: storyHook || 'Học sinh đọc trước nội dung giáo viên giao, ghi lại phần chưa hiểu và chuẩn bị làm pre-test đầu giờ.',
+      engage: {
+        storyHook,
+        guidingQuestion,
+        studentExpectationPrompt: getLineValue(engageSection, ['kỳ vọng học sinh tự điền']),
+        routeGoals: {
+          foundation: finalObjectiveTitles[0],
+          standard: finalObjectiveTitles[1] || finalObjectiveTitles[0],
+          challenge: finalObjectiveTitles[2] || finalObjectiveTitles[0],
+        },
+      },
+      guidingQuestions: [storyHook, guidingQuestion, ...finalObjectiveTitles].filter(Boolean).slice(0, 6),
       estimatedMinutes: 10,
     },
     fiveStepFlow: {
@@ -225,9 +418,11 @@ export const buildAdaptiveLessonFromReviewedPlan = (
       ],
     },
     objectives,
-    diagnosticTest: makeAssessment('diagnostic', 'Pre-test đầu giờ', objectiveIds, sourceHints, Math.min(5, Math.max(3, objectiveIds.length))),
-    knowledgeUnits: unitTitles.map((title, index) => makeUnit(title, objectiveIds[index % objectiveIds.length] || objectiveIds[0], sourceHints[index % sourceHints.length] || title, index)),
-    exitTicket: makeAssessment('exit_ticket', 'Exit ticket cuối bài', objectiveIds, sourceHints, 3),
+    diagnosticTest: buildAssessmentFromReviewedSection(preTestSection, 'diagnostic', 'Pre-test đầu giờ', objectiveIds, sourceHints, 5),
+    knowledgeUnits: unitBlocks.length
+      ? unitBlocks.slice(0, 6).map((block, index) => buildUnitFromReviewedBlock(block, objectiveIds[index % objectiveIds.length] || objectiveIds[0], index))
+      : unitTitles.map((unitTitle, index) => makeUnit(unitTitle, objectiveIds[index % objectiveIds.length] || objectiveIds[0], sourceHints[index % sourceHints.length] || unitTitle, index)),
+    exitTicket: buildAssessmentFromReviewedSection(exitSection, 'exit_ticket', 'Exit ticket cuối bài', objectiveIds, sourceHints, 3),
     pacingPolicy: {
       minExitTicketMinutes: 5,
       aheadThresholdMinutes: 5,
@@ -240,6 +435,8 @@ export const buildAdaptiveLessonFromReviewedPlan = (
       toolId: 'gamedoikhang',
       message: defaultRewardMessage,
     },
+    generationSource: 'regex_fallback',
+    generationWarnings: ['Bài học được bóc tách trực tiếp từ giáo án phân hoá đã duyệt; hệ thống không gọi AI lần hai để tự sinh nội dung mới.'],
   };
 };
 
@@ -265,6 +462,11 @@ interface ObjectiveJson {
 
 interface UnitJson {
   title: string;
+  hook_question?: string;
+  guiding_questions?: string[];
+  student_task?: string;
+  knowledge_conclusion?: string;
+  visual_instruction?: string;
   explanation_foundation: string;
   explanation_standard: string;
   explanation_challenge: string;
@@ -427,6 +629,16 @@ const validateAdaptiveContentJson = (content: AdaptiveContentJson, source: Adapt
     const unitText = compactText(unit);
     if (!unit.title || unitText.length < 250) {
       issues.push({ severity: 'error', code: 'thin_unit', message: `Mảnh kiến thức ${index + 1} thiếu tiêu đề hoặc nội dung tuyến học quá mỏng.` });
+    }
+    if (!unit.hook_question || !Array.isArray(unit.guiding_questions) || unit.guiding_questions.length < 3 || !unit.knowledge_conclusion) {
+      issues.push({ severity: 'error', code: 'missing_socratic_scaffold', message: `Mảnh kiến thức ${index + 1} phải có câu hỏi gợi mở, ít nhất 3 câu hỏi dẫn dắt và phần chốt kiến thức ngắn.` });
+    }
+    if ((unit.guiding_questions || []).some(question => question.trim().length < 18 || !/[?？]$/.test(question.trim()))) {
+      issues.push({ severity: 'error', code: 'weak_guiding_question', message: `Câu hỏi dẫn dắt ở mảnh ${index + 1} phải là câu hỏi cụ thể, đủ rõ và kết thúc bằng dấu hỏi.` });
+    }
+    const conclusionLength = (unit.knowledge_conclusion || '').trim().length;
+    if (conclusionLength > 900) {
+      issues.push({ severity: 'error', code: 'bloated_knowledge_conclusion', message: `Phần chốt kiến thức ở mảnh ${index + 1} quá dài; cần tách thành nhiều mảnh nhỏ hơn.` });
     }
     if ((unit.quick_check_questions || []).length !== 2) {
       issues.push({ severity: 'error', code: 'invalid_quick_check_count', message: `Mảnh kiến thức ${index + 1} phải có đúng 2 câu quick check.` });
@@ -622,6 +834,22 @@ const buildHtmlSimulationSpecFromJson = (unit: UnitJson, objectiveId: string): A
   };
 };
 
+const buildSocraticRouteExplanation = (unit: UnitJson, routeExplanation: string): string => {
+  const guidingQuestions = (unit.guiding_questions || [])
+    .filter(question => question.trim().length > 0)
+    .map((question, questionIndex) => `${questionIndex + 1}. ${question.trim()}`)
+    .join('\n');
+
+  return [
+    unit.hook_question ? `Câu hỏi gợi mở: ${unit.hook_question.trim()}` : '',
+    guidingQuestions ? `Câu hỏi dẫn dắt:\n${guidingQuestions}` : '',
+    unit.visual_instruction ? `Quan sát/hình minh hoạ: ${unit.visual_instruction.trim()}` : '',
+    unit.student_task ? `Nhiệm vụ thao tác: ${unit.student_task.trim()}` : '',
+    routeExplanation ? `Gợi ý theo tuyến học: ${routeExplanation.trim()}` : '',
+    unit.knowledge_conclusion ? `Chốt kiến thức: ${unit.knowledge_conclusion.trim()}` : '',
+  ].filter(Boolean).join('\n\n');
+};
+
 const buildUnitFromJsonData = (unit: UnitJson, objectiveId: string, index: number): KnowledgeUnit => {
   const quickCheck = buildAssessmentFromJsonQuestions(
     'quick_check', `Quick check — ${unit.title}`,
@@ -652,10 +880,10 @@ const buildUnitFromJsonData = (unit: UnitJson, objectiveId: string, index: numbe
         : unit.explanation_standard;
     return {
       route,
-      explanation: explanation || `Tuyến ${route}: ${unit.title}`,
+      explanation: buildSocraticRouteExplanation(unit, explanation || `Tuyến ${route}: ${unit.title}`),
       workedExamples: [workedExampleData()],
       practiceTasks: [makePracticeTask(objectiveId, route === 'foundation' ? 'easy' : route === 'standard' ? 'medium' : 'hard', unit.title, 0)],
-      aiTutorPrompt: `Hỗ trợ học sinh ở tuyến ${route} học mảnh kiến thức "${unit.title}". Ưu tiên gợi mở, không đưa ngay đáp án.`,
+      aiTutorPrompt: `Hỗ trợ học sinh ở tuyến ${route} học mảnh kiến thức "${unit.title}" bằng chuỗi câu hỏi dẫn dắt siêu nhỏ. Không đưa ngay định nghĩa/công thức; chỉ chốt sau khi học sinh đã quan sát, dự đoán và trả lời từng bước.`,
     };
   };
 
@@ -862,10 +1090,19 @@ OUTPUT: Trả về DUY NHẤT một JSON object hợp lệ theo schema dưới �
   },
   "units": [
     {
-      "title": "Tên mảnh kiến thức 1",
-      "explanation_foundation": "Giải thích đơn giản, trực quan, chia bước nhỏ, có ví dụ hình học hoặc số cụ thể cho HS yếu",
-      "explanation_standard": "Giải thích đầy đủ theo chuẩn SGK, định nghĩa và tính chất",
-      "explanation_challenge": "Giải thích nâng cao: chứng minh, suy luận, liên hệ mở rộng cho HS giỏi",
+      "title": "Tên mảnh kiến thức 1 — chỉ một ý nhỏ, không gộp nhiều định nghĩa/công thức/tính chất",
+      "hook_question": "Một câu hỏi gợi mở ngắn để học sinh dự đoán trước khi đọc lý thuyết.",
+      "guiding_questions": [
+        "Câu hỏi dẫn dắt 1 giúp học sinh quan sát dữ kiện/hình vẽ là gì?",
+        "Câu hỏi dẫn dắt 2 buộc học sinh so sánh hoặc phát hiện bất biến nào?",
+        "Câu hỏi dẫn dắt 3 đưa học sinh tiến gần tới công thức/định nghĩa ra sao?"
+      ],
+      "student_task": "Nhiệm vụ thao tác/nghĩ thử: học sinh kéo mô phỏng, thử số liệu hoặc viết dự đoán trước khi xem chốt kiến thức.",
+      "visual_instruction": "Mô tả hình minh hoạ hoặc mô phỏng cần quan sát: điểm/đường/thanh trượt/đại lượng thay đổi và đại lượng giữ nguyên.",
+      "knowledge_conclusion": "Chốt kiến thức ngắn gọn sau chuỗi câu hỏi; chỉ nêu một định nghĩa/công thức/tính chất cốt lõi của mảnh này.",
+      "explanation_foundation": "Gợi ý tuyến Cơ bản: diễn giải trực quan, chậm, không nhồi toàn bộ lý thuyết; hỗ trợ trả lời từng câu hỏi dẫn dắt.",
+      "explanation_standard": "Gợi ý tuyến Trọng tâm: kết nối câu trả lời của học sinh với công thức/định nghĩa chuẩn SGK của riêng mảnh này.",
+      "explanation_challenge": "Gợi ý tuyến Nâng cao: yêu cầu giải thích vì sao công thức/tính chất đúng hoặc mở rộng một bước, vẫn không gộp sang mảnh khác.",
       "worked_example": {
         "problem": "Bài toán ví dụ cụ thể với số liệu từ nội dung bài, dùng LaTeX nếu cần",
         "solution": "Bước 1: ... Bước 2: ... Bước 3: ... Kết luận: ...",
@@ -916,11 +1153,14 @@ QUY TẮC BẮT BUỘC:
 4. Dùng LaTeX cho công thức: bọc $...$ inline, $$...$$ block. BẮT BUỘC bọc MỌI biểu thức, phương trình, điểm (VD: $p=10$, $F_1(-4;0)$) trong dấu $. Dùng $\displaystyle ...$ cho các công thức có phân số để không bị nhỏ. KHÔNG viết công thức dạng plain text.
 5. Tạo đúng 1 object engage có nội dung Khởi động thật của bài học. Cấm lấy các yêu cầu UI/UX như "bố cục 7:3", "đồng hồ kép", "mục lục thông minh" làm nội dung học sinh đọc ở màn Khởi động.
 6. Tạo đúng 5 diagnostic_questions (2 easy, 2 medium, 1 hard), 2 quick_check_questions mỗi unit, 3 exit_ticket_questions.
-7. 3 trường explanation_ của mỗi unit phải có nội dung thực sự khác nhau về độ sâu và cách tiếp cận.
-8. Mỗi unit BẮT BUỘC có simulation_html.srcDoc là một mini-app HTML tự chứa, tương tác thật bằng SVG hoặc Canvas và input/slider/button/drag. Không dùng link ảnh ngoài, không CDN, không iframe lồng.
-9. Nội dung học sinh đọc KHÔNG được lẫn thuật ngữ quy trình/hệ thống như UI/UX, bố cục 7:3, đồng hồ kép, mục lục thông minh, Socratic, Vở Ghi Chép, schema.
-10. RẤT QUAN TRỌNG: Vì output là JSON, bạn phải DOUBLE ESCAPE mọi dấu backslash trong LaTeX. Ví dụ: viết \\frac thay vì \frac, \\sqrt thay vì \sqrt, \\Delta thay vì \Delta. Nếu không JSON.parse sẽ báo lỗi.
-11. Trả về đúng JSON hợp lệ, không markdown, không giải thích ngoài JSON.`;
+7. Mỗi unit BẮT BUỘC là một đơn vị kiến thức nhỏ: chỉ một định nghĩa HOẶC một công thức HOẶC một tính chất. Nếu nội dung có nhiều ý như định nghĩa + phương trình + yếu tố đặc trưng, phải tách thành nhiều unit riêng.
+8. Mỗi unit BẮT BUỘC có hook_question, ít nhất 3 guiding_questions, student_task, visual_instruction và knowledge_conclusion. Trình tự sư phạm phải là: hỏi gợi mở → quan sát/thao tác hình hoặc mô phỏng → câu hỏi dẫn dắt → học sinh dự đoán/trả lời → chốt kiến thức ngắn. Không đưa nguyên đoạn lý thuyết dài ngay từ đầu.
+9. knowledge_conclusion phải ngắn, tối đa khoảng 5-7 câu hoặc một công thức trọng tâm. Phần explanation_ chỉ là gợi ý theo tuyến học để giúp học sinh trả lời chuỗi câu hỏi, không được lặp lại một bài giảng dài.
+10. 3 trường explanation_ của mỗi unit phải có nội dung thực sự khác nhau về độ sâu và cách tiếp cận.
+11. Mỗi unit BẮT BUỘC có simulation_html.srcDoc là một mini-app HTML tự chứa, tương tác thật bằng SVG hoặc Canvas và input/slider/button/drag. Không dùng link ảnh ngoài, không CDN, không iframe lồng. Nếu mảnh kiến thức cần hình minh hoạ tĩnh thì vẫn dựng bằng SVG; nếu cần thực hành thì phải có slider/button/drag để học sinh thao tác trực tiếp.
+12. Nội dung học sinh đọc KHÔNG được lẫn thuật ngữ quy trình/hệ thống như UI/UX, bố cục 7:3, đồng hồ kép, mục lục thông minh, Socratic, Vở Ghi Chép, schema.
+13. RẤT QUAN TRỌNG: Vì output là JSON, bạn phải DOUBLE ESCAPE mọi dấu backslash trong LaTeX. Ví dụ: viết \\frac thay vì \frac, \\sqrt thay vì \sqrt, \\Delta thay vì \Delta. Nếu không JSON.parse sẽ báo lỗi.
+14. Trả về đúng JSON hợp lệ, không markdown, không giải thích ngoài JSON.`;
 
 export const buildAdaptiveReviewPrompt = (source: AdaptiveLessonSource): string =>
   `Bạn là chuyên gia rà soát và thiết kế lại giáo án Toán thành bài học phân hoá 40 phút.
@@ -954,7 +1194,7 @@ I. UI/UX và trải nghiệm học tập
 II. Khung kịch bản sư phạm
 - Bước 0 — Pre-test: 5 phút, ít nhất 5 câu đo nhận biết, thông hiểu, vận dụng từ thấp đến cao. Sau nộp phải có điểm, đúng/sai, giải thích từng phương án và đề xuất tuyến Foundation/Standard/Challenge.
 - Bước 1 — Khởi động & Gắn kết: có câu chuyện lịch sử hoặc tình huống thực tế; có trải nghiệm bế tắc bằng công cụ tương tác; học sinh tự điền kỳ vọng; hệ thống in mục tiêu theo 3 cấp.
-- Bước 2 — Kiến tạo tri thức: dùng câu hỏi dẫn dắt nhỏ, Trial & Error không khóa luồng, quick check sau từng nội dung, remediate khi sai, chốt công thức/định lý vào Vở Ghi Chép.
+- Bước 2 — Kiến tạo tri thức: mọi đơn vị kiến thức phải được chia nhỏ; mỗi mảnh chỉ xử lý một ý cốt lõi và đi theo chuỗi hỏi gợi mở → quan sát hình/mô phỏng → câu hỏi dẫn dắt siêu nhỏ → học sinh dự đoán/trả lời → chốt công thức/định nghĩa/tính chất ngắn; Trial & Error không khóa luồng, quick check sau từng nội dung, remediate khi sai, chốt công thức/định lý vào Vở Ghi Chép.
 - Bước 3 — Áp dụng luyện tập: sinh luyện tập theo năng lực Trung bình/Khá/Giỏi; có remediation loop 4 tầng.
 - Bước 4 — Mở rộng: bài toán thực tiễn đặt học sinh vào vai chuyên gia/kỹ sư xử lý sự cố.
 - Bước 5 — Tổng kết: sơ đồ tư duy, checklist mục tiêu, tự đánh giá, hộp thư câu hỏi, Time-Filler nếu còn thời gian.
@@ -998,11 +1238,15 @@ III. Toán học và kỹ thuật trình bày
 
 ## 6. Bước 2 — Kiến tạo tri thức Socratic
 ### Mảnh kiến thức 1: ...
-- Câu hỏi dẫn dắt siêu nhỏ:
+- Phạm vi mảnh: chỉ một định nghĩa/công thức/tính chất nhỏ; nếu có nhiều ý phải tách tiếp thành Mảnh 2, Mảnh 3...
+- Câu hỏi gợi mở đầu mảnh:
+- Hình minh hoạ hoặc mô phỏng cần quan sát/thao tác:
+- Câu hỏi dẫn dắt siêu nhỏ: ít nhất 3 câu, đi từ quan sát đến phát hiện quy luật rồi mới đến công thức/định nghĩa.
+- Nhiệm vụ học sinh dự đoán/thử sai trên hình hoặc mô phỏng:
 - Trial & Error: phản hồi khi đúng/sai:
-- Quick check sau lý thuyết:
+- Quick check sau khi chốt kiến thức:
 - Remediate khi sai:
-- Chốt vào Vở Ghi Chép:
+- Chốt vào Vở Ghi Chép: ngắn, đúng một ý cốt lõi.
 - Dữ liệu AI cần ghi nhận:
 
 ## 7. Bước 3 — Áp dụng luyện tập thích ứng

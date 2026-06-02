@@ -49,6 +49,7 @@ export interface DeweySocraticStep {
   expectedKeywords?: string[];  // Không bắt khớp 100% — chỉ để feedback tham khảo
   feedback: string;             // Hiện DÙ ĐÚNG hay SAI
   formulaToNote?: string;       // Nếu có → tự addNote() vào vở
+  illustrationHtml?: string;    // Hình/SVG/mini minh hoạ đặt ngay trong bước học
 }
 
 export interface DeweyKnowledgeUnit {
@@ -57,6 +58,12 @@ export interface DeweyKnowledgeUnit {
   socraticSteps: DeweySocraticStep[];
   conclusion: string;
   formulaForNotebook: string;
+  simulationHtml?: {
+    title: string;
+    description: string;
+    srcDoc: string;
+    height?: number;
+  };
 }
 
 export interface DeweyOlympiaPack {

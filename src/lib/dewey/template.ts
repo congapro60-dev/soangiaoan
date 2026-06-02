@@ -157,7 +157,7 @@ const renderSocraticStep = (unit: DeweyKnowledgeUnit, stepIndex: number): string
     <textarea rows="3" placeholder="${escapeAttribute(step.inputPlaceholder || 'Viết suy nghĩ của em tại đây...')}"></textarea>
     <button class="btn" type="button" onclick="submitSocraticStep(this)">Kiểm tra gợi ý</button>
     <div class="feedback-msg hidden"></div>
-    ${step.expectedKeywords && step.expectedKeywords.length > 0 ? `<div class="box hidden next-btn"><strong>Từ khóa tham khảo:</strong> ${step.expectedKeywords.map(escapeHtml).join(', ')}</div>` : ''}
+    ${step.expectedKeywords && step.expectedKeywords.length > 0 ? `<div class="box hidden keyword-box"><strong>Từ khóa tham khảo:</strong> ${step.expectedKeywords.map(escapeHtml).join(', ')}</div>` : ''}
     ${next ? `<button class="btn secondary next-btn hidden" type="button" onclick="unlockNextSocratic(this)">Mở bước tiếp theo</button>` : `<button class="btn secondary next-btn hidden" type="button" onclick="completeKnowledgeUnit('${safeId(unit.id)}', '${escapeAttribute(unit.formulaForNotebook)}', this)">Hoàn thành hoạt động</button>`}
   </article>`;
 };

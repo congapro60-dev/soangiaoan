@@ -405,6 +405,59 @@ Trình bày đủ 3 nhóm:
 
 Bắt buộc có tối thiểu: 1 mô phỏng trực quan bằng SVG inline hoặc Three.js 3D phù hợp bài học, 1 công cụ tương tác Trial & Error, 1 phiếu/nhiệm vụ học tập số, 1 tài liệu đọc thêm cho Time-Filler. Nếu bài học có hình học không gian, bắt buộc mô phỏng phải xoay/zoom được như mô hình 3D thật.
 
+### 3. THẺ CHUYỂN ĐỔI ADAPTIVE — BẮT BUỘC ĐỂ TẠO BÀI HỌC PHÂN HOÁ TRỰC TIẾP
+Mục này viết bằng Markdown nhưng phải có dữ liệu cụ thể như một “hồ sơ đóng gói” để AI chuyển sang AdaptiveLesson mà không phải đoán lại. Không dùng placeholder.
+
+#### AdaptiveLessonCard
+| Trường | Nội dung cụ thể |
+|---|---|
+| title | [Tên bài học đầy đủ] |
+| grade | [10/11/12] |
+| durationMinutes | 40 |
+| subjectId | math |
+| preparation.readingInstructions | [Học sinh đọc trước phần nào, sản phẩm cần chuẩn bị] |
+| preparation.guidingQuestions | [3-5 câu hỏi định hướng thật] |
+| route.foundationGoal | [Mục tiêu tuyến Foundation/Cơ bản] |
+| route.standardGoal | [Mục tiêu tuyến Standard/Trọng tâm] |
+| route.challengeGoal | [Mục tiêu tuyến Challenge/Nâng cao] |
+
+#### AdaptiveObjectives
+| code | title | bloomLevel | masteryThreshold | misconception cần bắt |
+|---|---|---|---:|---|
+| OBJ-1 | [Mục tiêu cụ thể, đo được] | understand | 0.70 | [Sai lầm thường gặp] |
+| OBJ-2 | [Mục tiêu cụ thể, đo được] | apply | 0.75 | [Sai lầm thường gặp] |
+| OBJ-3 | [Mục tiêu cụ thể, đo được] | analyze | 0.75 | [Sai lầm thường gặp] |
+
+#### AdaptiveDiagnosticTest
+Tạo đúng 5 câu pre-test. Mỗi câu phải có: prompt, 4 options A-D, correctIndex, explanation, objectiveCode, difficulty. Không viết “Câu hỏi 1” chung chung.
+
+#### AdaptiveKnowledgeUnits
+Mỗi đơn vị kiến thức ở Bước 2 phải có đúng cấu trúc sau để chuyển thành knowledgeUnits:
+- unitTitle: [tên mảnh]
+- objectiveCode: [OBJ-x]
+- estimatedMinutes: [số phút]
+- explanation_foundation: [giải thích chậm, trực quan, chia bước, ví dụ số]
+- explanation_standard: [giải thích chuẩn SGK, công thức/định lý]
+- explanation_challenge: [mở rộng/chứng minh/khái quát]
+- workedExample.problem: [đề cụ thể]
+- workedExample.solution: [lời giải từng bước]
+- workedExample.hints: [3 gợi ý]
+- quickCheck: đúng 2 câu, mỗi câu có prompt, 4 options, correctIndex, explanation
+- practice.foundation / practice.standard / practice.challenge: mỗi tuyến 1 nhiệm vụ đúng mức
+- simulationSpec: title, kind(svg/htmlMiniApp/geometry3d), placement, studentTask, interactions, notebookEntries; với HTML mini-app phải mô tả rõ SVG/canvas/slider/button/drag và logic cập nhật.
+
+#### AdaptiveExitTicket
+Tạo đúng 3 câu exit ticket. Mỗi câu phải có prompt, 4 options A-D, correctIndex, explanation, objectiveCode, difficulty.
+
+#### AdaptivePacingAndRemediation
+| Tình huống | Điều kiện dữ liệu | Hành động hệ thống |
+|---|---|---|
+| Vào Foundation | [ngưỡng điểm/lỗi] | [mở scaffold, ví dụ mẫu, gợi ý nhiều] |
+| Vào Standard | [ngưỡng điểm/lỗi] | [học chuẩn, gợi ý vừa đủ] |
+| Vào Challenge | [ngưỡng điểm/lỗi] | [bài mở rộng, ít scaffold] |
+| Sai lần 1-4 | [số lần sai] | [4 tầng hỗ trợ, điểm trừ, khi nào hiện đáp án] |
+| Còn dư thời gian | [aheadThreshold] | [Time-Filler theo thứ tự] |
+
 ---
 
 ## III. KHUNG KỊCH BẢN SƯ PHẠM BƯỚC 0 ĐẾN BƯỚC 5
@@ -626,6 +679,8 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
           - Phần đầu giờ phải là Bước 0 Pre-test của chính bài học, không phải kiểm tra bài cũ; tối thiểu 5 câu đa dạng và có giải thích từng phương án/tiêu chí.
           - Bước 3 phải đúng cấu trúc luyện tập thích ứng theo Trung bình/Khá/Giỏi và định dạng THPTQG: 3 câu trắc nghiệm, 1 bối cảnh đúng/sai 4 ý, 1 câu trả lời ngắn, kèm loop hỗ trợ 4 tầng.
           - Phải nêu rõ học liệu số, mô phỏng ưu tiên <svg> inline cho hình phẳng; nếu có hình học không gian thì phải mô tả mô phỏng 3D xoay/zoom được bằng Three.js/WebGL nội bộ; đồng thời có Vở Ghi Chép tự động, đồng hồ kép, mục lục thông minh và Time-Filler.
+          - Bắt buộc có mục “THẺ CHUYỂN ĐỔI ADAPTIVE” với AdaptiveLessonCard, AdaptiveObjectives, AdaptiveDiagnosticTest, AdaptiveKnowledgeUnits, AdaptiveExitTicket, AdaptivePacingAndRemediation. Mục này là nguồn dữ liệu chính để chuyển trực tiếp sang bài học phân hoá, nên phải cụ thể như dữ liệu đóng gói, không placeholder.
+          - Nội dung học sinh đọc ở các bước học không được lẫn thuật ngữ kỹ thuật như schema, UI/UX, bố cục 7:3; chỉ để các thuật ngữ đó trong phần thiết kế/hồ sơ chuyển đổi.
           - Không bắt buộc Danielson, WALT/WILF hay mẫu Công văn 5512 trong kiểu mặc định này, nhưng chất lượng trình bày phải tương đương một giáo án xuất file hoàn chỉnh.
           ===== HẾT YÊU CẦU RIÊNG KIỂU MẶC ĐỊNH =====
           ` : `===== YÊU CẦU ĐỊNH DẠNG NỘI DUNG BÊN TRONG <lesson_content> (TUYỆT ĐỐI TUÂN THỦ) =====
@@ -758,9 +813,11 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
               3. Bắt buộc dùng đúng cấu trúc trong MẪU GIÁO ÁN MẶC ĐỊNH ở trên, đặc biệt là UI/UX 7:3 và kịch bản Bước 0 đến Bước 5.
               4. Đây vẫn là giáo án chính thức trong Soạn giáo án: phải trình bày đẹp, rõ ràng, có thể xem/sửa/lưu/xuất Word/PDF như các mẫu còn lại.
               5. Phần đầu giờ phải là Bước 0 Pre-test của chính bài học, không phải kiểm tra bài cũ; tối thiểu 5 câu đa dạng và có giải thích từng phương án/tiêu chí.
-              6. Phải có đồng hồ kép, mục lục thông minh, Vở Ghi Chép tự động, học liệu số, mô phỏng ưu tiên <svg> inline cho hình phẳng; nếu là hình học không gian thì mô phỏng phải là 3D xoay/zoom được bằng Three.js/WebGL nội bộ; quick check, tuyến Foundation/Standard/Challenge và Time-Filler.
-              7. Bước 3 phải đúng cấu trúc luyện tập thích ứng theo Trung bình/Khá/Giỏi và định dạng THPTQG: 3 câu trắc nghiệm, 1 bối cảnh đúng/sai 4 ý, 1 câu trả lời ngắn, kèm loop hỗ trợ 4 tầng.
-              8. Không bắt buộc Danielson, WALT/WILF hay mẫu Công văn 5512 trong kiểu mặc định này, nhưng chất lượng trình bày phải tương đương một giáo án xuất file hoàn chỉnh.
+               6. Phải có đồng hồ kép, mục lục thông minh, Vở Ghi Chép tự động, học liệu số, mô phỏng ưu tiên <svg> inline cho hình phẳng; nếu là hình học không gian thì mô phỏng phải là 3D xoay/zoom được bằng Three.js/WebGL nội bộ; quick check, tuyến Foundation/Standard/Challenge và Time-Filler.
+               7. Bước 3 phải đúng cấu trúc luyện tập thích ứng theo Trung bình/Khá/Giỏi và định dạng THPTQG: 3 câu trắc nghiệm, 1 bối cảnh đúng/sai 4 ý, 1 câu trả lời ngắn, kèm loop hỗ trợ 4 tầng.
+               8. Bắt buộc có mục “THẺ CHUYỂN ĐỔI ADAPTIVE” đầy đủ AdaptiveLessonCard, AdaptiveObjectives, AdaptiveDiagnosticTest, AdaptiveKnowledgeUnits, AdaptiveExitTicket, AdaptivePacingAndRemediation để hệ thống chuyển trực tiếp sang bài học phân hoá.
+               9. Nội dung học sinh đọc ở từng bước không được lẫn thuật ngữ kỹ thuật như schema, UI/UX, bố cục 7:3; chỉ để các thuật ngữ đó trong phần thiết kế/hồ sơ chuyển đổi.
+               10. Không bắt buộc Danielson, WALT/WILF hay mẫu Công văn 5512 trong kiểu mặc định này, nhưng chất lượng trình bày phải tương đương một giáo án xuất file hoàn chỉnh.
               ${mathRestrictions}
               ===== HẾT YÊU CẦU RIÊNG KIỂU MẶC ĐỊNH =====
               ` : `===== YÊU CẦU ĐỊNH DẠNG BÊN TRONG <lesson_content> (TUYỆT ĐỐI TUÂN THỦ) =====
