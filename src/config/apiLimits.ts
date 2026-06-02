@@ -13,14 +13,6 @@ export interface ApiModelLimit {
 const PAID_TIER_NOTE = 'Hạn mức tham chiếu theo tài khoản Tier 1.';
 
 export const API_MODEL_LIMITS: Record<string, ApiModelLimit> = {
-  'gemini:gemini-3.5-flash': {
-    provider: 'gemini',
-    model: 'gemini-3.5-flash',
-    displayName: 'Gemini 3.5 Flash',
-    rpm: 15,
-    rpd: 1500,
-    tpm: 1_000_000,
-  },
   'gemini:gemini-3-flash-preview': {
     provider: 'gemini',
     model: 'gemini-3-flash-preview',
@@ -28,14 +20,6 @@ export const API_MODEL_LIMITS: Record<string, ApiModelLimit> = {
     rpm: 15,
     rpd: 1500,
     tpm: 1_000_000,
-  },
-  'gemini:gemini-3.1-pro': {
-    provider: 'gemini',
-    model: 'gemini-3.1-pro',
-    displayName: 'Gemini 3.1 Pro',
-    rpm: 2,
-    rpd: 50,
-    tpm: 32_000,
   },
   'gemini:gemini-3.1-pro-preview': {
     provider: 'gemini',

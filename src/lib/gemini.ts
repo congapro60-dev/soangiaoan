@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 
-export const MODELS = ['gemini-3.5-flash', 'gemini-3.1-pro'];
+export const MODELS = ['gemini-3-flash-preview', 'gemini-3.1-pro-preview', 'gemini-3.1-flash-lite-preview'];
 
 const GEMINI_MAX_OUTPUT_TOKENS = 65536;
 
@@ -22,7 +22,7 @@ export async function callGeminiAI(prompt: string, apiKey: string, modelIndex = 
 export async function callGeminiAIRaw(prompt: string, apiKey: string, modelIndex = 0): Promise<GeminiCallResult | null> {
   if (!apiKey) return null;
 
-  const ai = new GoogleGenAI({ apiKey, httpOptions: { apiVersion: 'v1alpha' } });
+  const ai = new GoogleGenAI({ apiKey, httpOptions: { apiVersion: 'v1beta' } });
   const maxRetries = 2;
   let retryCount = 0;
 
@@ -82,7 +82,7 @@ export async function callGeminiAIStream(
 ): Promise<void> {
   if (!apiKey) return;
 
-  const ai = new GoogleGenAI({ apiKey, httpOptions: { apiVersion: 'v1alpha' } });
+  const ai = new GoogleGenAI({ apiKey, httpOptions: { apiVersion: 'v1beta' } });
   const maxRetries = 2;
   let retryCount = 0;
 

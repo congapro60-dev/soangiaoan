@@ -97,8 +97,9 @@ export const DEEPSEEK_MODELS = [
 ];
 
 export const GEMINI_MODELS = [
-  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', desc: 'Mô hình đa phương thức siêu tốc thế hệ mới (Default)' },
-  { id: 'gemini-3.1-pro', name: 'Gemini 3.1 Pro', desc: 'Suy luận toán học phức tạp, chuyên sâu' },
+  { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview', desc: 'Mô hình đa phương thức siêu tốc thế hệ mới (Default)' },
+  { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview', desc: 'Suy luận toán học phức tạp, chuyên sâu' },
+  { id: 'gemini-3.1-flash-lite-preview', name: 'Gemini 3.1 Flash-Lite Preview', desc: 'Nhanh, tiết kiệm chi phí' },
 ];
 
 export function getActiveApiKey(settings: Settings): string {
@@ -385,7 +386,7 @@ export async function callAIWithVision(
 
     // Gemini
     const { GoogleGenAI } = await import('@google/genai');
-    const ai = new GoogleGenAI({ apiKey: settings.geminiApiKey, httpOptions: { apiVersion: 'v1alpha' } });
+    const ai = new GoogleGenAI({ apiKey: settings.geminiApiKey, httpOptions: { apiVersion: 'v1beta' } });
     const idx = MODELS.indexOf(settings.selectedModel);
     const modelName = idx >= 0 ? MODELS[idx] : MODELS[0];
     
