@@ -13,8 +13,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const geminiKey = process.env.GEMINI_FALLBACK_KEY;
   const grokKey = process.env.GROK_FALLBACK_KEY;
+  const deepseekKeys = (process.env.DEEPSEEK_FALLBACK_KEYS || '')
+    .split(',')
+    .map((k: string) => k.trim())
+    .filter(Boolean);
 
-  if (!geminiKey && !grokKey) {
+  if (!geminiKey && !grokKey && deepseekKeys.length === 0) {
     return res.status(503).json({ error: 'Fallback service unavailable' });
   }
 
@@ -30,20 +34,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const result = await ai.models.generateContent({
-        model: typeof model === 'string' ? model : 'gemini-3-flash-preview',
+        model: typeof model === 'string' ? model : 'gemini-2.5-flash',
         contents: [{ parts }],
         config: { temperature: 0.1 },
       });
 
       return res.status(200).json({ text: result.text || '' });
     } catch (geminiErr: any) {
-      const msg = String(geminiErr?.message || '');
-      const isQuota = msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED') || msg.includes('quota');
-      // Only fall through to Grok on quota errors; hard errors bubble up
-      if (!isQuota || !grokKey) {
-        return res.status(500).json({ error: geminiErr.message || 'Gemini error' });
-      }
-      // Fall through to Grok below
+      console.warn('[gemini-relay] Gemini fallback failed; trying secondary providers...', geminiErr?.message || geminiErr);
+      // Fall through to Grok/DeepSeek for quota, wrong model id, auth/key issues, overload, etc.
     }
   }
 
@@ -76,11 +75,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // DeepSeek pool fallback (text-only — no vision support)
   if (grokFailed && !imageBase64) {
-    const deepseekKeys = (process.env.DEEPSEEK_FALLBACK_KEYS || '')
-      .split(',')
-      .map((k: string) => k.trim())
-      .filter(Boolean);
-
     for (const dsKey of deepseekKeys) {
       try {
         const OpenAI = (await import('openai')).default;

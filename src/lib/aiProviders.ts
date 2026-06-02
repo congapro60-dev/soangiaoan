@@ -41,14 +41,25 @@ VIẾT TIẾP NGAY (không thêm dấu xuống dòng dư thừa, không lặp l�
 
 // --- Fallback relay helpers (quota exhaustion) ---
 
-function isQuotaError(error: any): boolean {
+function shouldUseRelayFallback(error: any): boolean {
   const msg = String(error?.message || error || '').toLowerCase();
-  // Chỉ match các lỗi quota thực sự để tránh relay fallback sai cho 404/auth
   return (
     msg.includes('429') ||
     msg.includes('resource_exhausted') ||
     msg.includes('quota') ||
-    msg.includes('ratelimitexceeded')
+    msg.includes('ratelimitexceeded') ||
+    msg.includes('404') ||
+    msg.includes('not_found') ||
+    msg.includes('not found') ||
+    msg.includes('unsupported') ||
+    msg.includes('403') ||
+    msg.includes('permission_denied') ||
+    msg.includes('401') ||
+    msg.includes('unauthorized') ||
+    msg.includes('api key') ||
+    msg.includes('503') ||
+    msg.includes('unavailable') ||
+    msg.includes('high demand')
   );
 }
 
@@ -97,9 +108,11 @@ export const DEEPSEEK_MODELS = [
 ];
 
 export const GEMINI_MODELS = [
-  { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview', desc: 'Mô hình đa phương thức siêu tốc thế hệ mới (Default)' },
-  { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview', desc: 'Suy luận toán học phức tạp, chuyên sâu' },
-  { id: 'gemini-3.1-flash-lite-preview', name: 'Gemini 3.1 Flash-Lite Preview', desc: 'Nhanh, tiết kiệm chi phí' },
+  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', desc: 'Mặc định, ổn định, nhanh, phù hợp soạn giáo án và đề kiểm tra' },
+  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', desc: 'Ổn định, suy luận tốt cho tác vụ phức tạp' },
+  { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash-Lite', desc: 'Ổn định, nhanh và tiết kiệm' },
+  { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', desc: 'Nhanh, tương thích tốt với generateContent' },
+  { id: 'gemini-2.0-flash-lite', name: 'Gemini 2.0 Flash-Lite', desc: 'Nhanh và tiết kiệm' },
 ];
 
 export function getActiveApiKey(settings: Settings): string {
@@ -431,7 +444,7 @@ export async function callAIWithVision(
 
     return executeVisionCall();
   } catch (err) {
-    if (isQuotaError(err)) {
+    if (shouldUseRelayFallback(err)) {
       return callRelay(prompt, fallbackModel, firstBase64, firstMime);
     }
     throw err;
@@ -544,7 +557,7 @@ export async function callAIStream(
     recordEstimatedUsage(provider, model, prompt, output);
     return;
   } catch (err) {
-    if (isQuotaError(err)) {
+    if (shouldUseRelayFallback(err)) {
       // Relay không hỗ trợ streaming — lấy full text rồi deliver một lần
       const text = await callRelay(prompt, fallbackModel);
       recordEstimatedUsage('gemini', fallbackModel, prompt, text);

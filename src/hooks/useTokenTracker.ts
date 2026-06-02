@@ -16,15 +16,23 @@ export interface TokenUsageSnapshot {
   dateKey: string;
   requestsToday: number;
   tokensToday: number;
+  tokensLastMinute: number;
   requestsLastMinute: number;
   limit?: ApiModelLimit;
   isMinuteLimited: boolean;
+  isTokenMinuteLimited: boolean;
+}
+
+interface MinuteTokenEntry {
+  timestamp: number;
+  tokens: number;
 }
 
 interface StoredTokenUsage {
   requests: number;
   tokens: number;
   minuteTimestamps: number[];
+  minuteTokenEntries: MinuteTokenEntry[];
   updatedAt: number;
 }
 
@@ -46,14 +54,20 @@ const makeStorageKey = (provider: ApiProvider, model: string, dateKey = todayKey
 
 const isBrowser = (): boolean => typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
 
+const emptyStoredUsage = (): StoredTokenUsage => ({
+  requests: 0,
+  tokens: 0,
+  minuteTimestamps: [],
+  minuteTokenEntries: [],
+  updatedAt: Date.now(),
+});
+
 const readStoredUsage = (provider: ApiProvider, model: string, dateKey = todayKey()): StoredTokenUsage => {
-  if (!isBrowser()) {
-    return { requests: 0, tokens: 0, minuteTimestamps: [], updatedAt: Date.now() };
-  }
+  if (!isBrowser()) return emptyStoredUsage();
 
   try {
     const raw = window.localStorage.getItem(makeStorageKey(provider, model, dateKey));
-    if (!raw) return { requests: 0, tokens: 0, minuteTimestamps: [], updatedAt: Date.now() };
+    if (!raw) return emptyStoredUsage();
     const parsed = JSON.parse(raw) as Partial<StoredTokenUsage>;
     const now = Date.now();
     return {
@@ -62,10 +76,18 @@ const readStoredUsage = (provider: ApiProvider, model: string, dateKey = todayKe
       minuteTimestamps: Array.isArray(parsed.minuteTimestamps)
         ? parsed.minuteTimestamps.filter(timestamp => typeof timestamp === 'number' && now - timestamp < ONE_MINUTE_MS)
         : [],
+      minuteTokenEntries: Array.isArray(parsed.minuteTokenEntries)
+        ? parsed.minuteTokenEntries.filter(entry => (
+          entry &&
+          typeof entry.timestamp === 'number' &&
+          typeof entry.tokens === 'number' &&
+          now - entry.timestamp < ONE_MINUTE_MS
+        ))
+        : [],
       updatedAt: Number(parsed.updatedAt) || now,
     };
   } catch {
-    return { requests: 0, tokens: 0, minuteTimestamps: [], updatedAt: Date.now() };
+    return emptyStoredUsage();
   }
 };
 
@@ -102,6 +124,10 @@ export const recordTokenUsage = ({
       ...stored.minuteTimestamps.filter(timestamp => now - timestamp < ONE_MINUTE_MS),
       ...Array.from({ length: requestCount }, () => now),
     ],
+    minuteTokenEntries: [
+      ...stored.minuteTokenEntries.filter(entry => now - entry.timestamp < ONE_MINUTE_MS),
+      { timestamp: now, tokens },
+    ],
     updatedAt: now,
   };
 
@@ -114,6 +140,7 @@ export const getTokenUsageSnapshot = (provider: ApiProvider, model: string): Tok
   const stored = readStoredUsage(provider, model, dateKey);
   const limit = getApiModelLimit(provider, model);
   const requestsLastMinute = stored.minuteTimestamps.length;
+  const tokensLastMinute = stored.minuteTokenEntries.reduce((sum, entry) => sum + entry.tokens, 0);
 
   return {
     provider,
@@ -121,9 +148,11 @@ export const getTokenUsageSnapshot = (provider: ApiProvider, model: string): Tok
     dateKey,
     requestsToday: stored.requests,
     tokensToday: stored.tokens,
+    tokensLastMinute,
     requestsLastMinute,
     limit,
     isMinuteLimited: Boolean(limit && requestsLastMinute >= limit.rpm),
+    isTokenMinuteLimited: Boolean(limit && tokensLastMinute >= limit.tpm),
   };
 };
 

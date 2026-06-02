@@ -106,7 +106,7 @@ const noticeClass: Record<NoticeTone, string> = {
 const normalizeStudentCode = (value: string) => value.trim().toUpperCase().replace(/\s+/g, '-');
 const buildStudentId = (teacherId: string, studentCode: string) => `${teacherId}_${normalizeStudentCode(studentCode)}`;
 const buildProgressId = (teacherId: string, lessonId: string, studentCode: string) => `${teacherId}_${lessonId}_${normalizeStudentCode(studentCode)}`;
-const DEFAULT_PERSONALIZATION_MODEL = GEMINI_MODELS[0]?.id || 'gemini-3.5-flash';
+const DEFAULT_PERSONALIZATION_MODEL = GEMINI_MODELS[0]?.id || 'gemini-2.5-flash';
 
 const getQuestionAnswer = (questionId: string, answers: Record<string, string>) => answers[questionId] || '';
 const formatDuration = (seconds: number) => {

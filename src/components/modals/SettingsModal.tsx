@@ -106,7 +106,8 @@ export const SettingsModal = ({
   const selectedModelForTab = currentProvider === activeTab ? data.settings.selectedModel : models[0].id;
   const usage = useTokenTracker(activeTab, selectedModelForTab);
   const requestPercent = usagePercent(usage.requestsToday, usage.limit?.rpd);
-  const tokenPercent = usagePercent(usage.tokensToday, usage.limit?.tpm);
+  const tokenPercent = usagePercent(usage.tokensLastMinute, usage.limit?.tpm);
+  const isRateLimited = usage.isMinuteLimited || usage.isTokenMinuteLimited;
 
   return (
     <AnimatePresence>
@@ -229,7 +230,7 @@ export const SettingsModal = ({
                     <div>
                       <div className="mb-1 flex items-center justify-between text-[11px] font-bold text-slate-600">
                         <span>Tokens đã dùng / phút</span>
-                        <span>{formatNumber(usage.tokensToday)} / {formatNumber(usage.limit.tpm)}</span>
+                        <span>{formatNumber(usage.tokensLastMinute)} / {formatNumber(usage.limit.tpm)}</span>
                       </div>
                       <div className="h-2 overflow-hidden rounded-full bg-white">
                         <div className={cn('h-full rounded-full transition-all', progressTone(tokenPercent))} style={{ width: `${tokenPercent}%` }} />
@@ -238,12 +239,12 @@ export const SettingsModal = ({
 
                     <div className={cn(
                       'flex items-start gap-2 rounded-xl px-3 py-2 text-[11px] font-bold',
-                      usage.isMinuteLimited ? 'bg-red-50 text-red-700' : 'bg-white text-slate-500'
+                      isRateLimited ? 'bg-red-50 text-red-700' : 'bg-white text-slate-500'
                     )}>
-                      {usage.isMinuteLimited && <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />}
+                      {isRateLimited && <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />}
                       <span>
-                        RPM hiện tại: {formatNumber(usage.requestsLastMinute)} / {formatNumber(usage.limit.rpm)}.
-                        {usage.isMinuteLimited ? ' Quá tải 1 phút, vui lòng đợi trước khi chạy tiếp.' : ' Vẫn trong ngưỡng an toàn 1 phút.'}
+                        RPM hiện tại: {formatNumber(usage.requestsLastMinute)} / {formatNumber(usage.limit.rpm)} · TPM hiện tại: {formatNumber(usage.tokensLastMinute)} / {formatNumber(usage.limit.tpm)}.
+                        {isRateLimited ? ' Gần/quá ngưỡng 1 phút, vui lòng đợi trước khi chạy tiếp.' : ' Vẫn trong ngưỡng an toàn 1 phút.'}
                       </span>
                     </div>
 

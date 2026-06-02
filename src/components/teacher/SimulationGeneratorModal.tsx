@@ -35,7 +35,7 @@ interface GenerateSimulationErrorResponse {
 type GenerateSimulationResponse = GenerateSimulationSuccessResponse | GenerateSimulationErrorResponse;
 
 const MAX_PROBLEM_TEXT_LENGTH = 2000;
-const DEFAULT_GEMINI_MODEL = 'gemini-3.5-flash';
+const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash';
 
 const showToast = (title: string, icon: 'success' | 'error' | 'warning' | 'info' = 'success') => {
   Swal.fire({
