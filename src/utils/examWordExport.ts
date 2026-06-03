@@ -5,7 +5,6 @@ import {
   HeadingLevel,
   ImageRun,
   Packer,
-  PageOrientation,
   Paragraph,
   Table,
   TableCell,
@@ -13,330 +12,249 @@ import {
   TextRun,
   WidthType,
 } from 'docx';
-import { marked, Token, Tokens } from 'marked';
 import { downloadBlob, safeFilename } from './fileUtils';
-import { preprocessExamMarkdown } from './examMarkdown';
 
-const FONT = 'Times New Roman';
-const BODY_SIZE = 26; // 13pt, docx uses half-points
-const SMALL_SIZE = 24; // 12pt
-const TITLE_SIZE = 28; // 14pt
+type DocxChild = Paragraph | Table;
 
-interface RunStyle {
-  bold?: boolean;
-  italic?: boolean;
-  code?: boolean;
-}
-
-const stripHtml = (value: string): string => value.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
-
-const normalizeMathTextForDocx = (value: string): string => value
-  .replace(/\$\$([\s\S]*?)\$\$/g, (_match, math) => String(math).replace(/\s+/g, ' ').trim())
-  .replace(/\$([^$]+)\$/g, (_match, math) => String(math).trim())
-  .replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, '($1)/($2)')
-  .replace(/\\sqrt\{([^{}]+)\}/g, '√($1)')
-  .replace(/\^\{([^{}]+)\}/g, '^($1)')
-  .replace(/_\{([^{}]+)\}/g, '_($1)')
-  .replace(/\\left|\\right/g, '')
-  .replace(/\\cdot/g, '·')
-  .replace(/\\times/g, '×')
-  .replace(/\\leq/g, '≤')
-  .replace(/\\geq/g, '≥')
-  .replace(/\\neq/g, '≠')
-  .replace(/\\infty/g, '∞')
-  .replace(/\\pi/g, 'π')
-  .replace(/\\alpha/g, 'α')
-  .replace(/\\beta/g, 'β')
-  .replace(/\\gamma/g, 'γ')
-  .replace(/\\Delta/g, 'Δ')
-  .replace(/\\(sin|cos|tan|cot|log|ln|lim)\b/g, '$1')
-  .replace(/\\[,;:!]/g, ' ')
-  .replace(/\\/g, '');
-
-const dataUrlToUint8Array = (dataUrl: string): Uint8Array | null => {
-  const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
-  if (!match) return null;
-  const binary = atob(match[2]);
+const dataUrlToUint8Array = (dataUrl: string): Uint8Array => {
+  const base64 = dataUrl.split(',')[1] || '';
+  const binary = window.atob(base64);
   const bytes = new Uint8Array(binary.length);
-  for (let index = 0; index < binary.length; index += 1) {
-    bytes[index] = binary.charCodeAt(index);
-  }
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
   return bytes;
 };
 
-const imageTypeFromDataUrl = (dataUrl: string): 'png' | 'jpg' | 'gif' | 'bmp' | undefined => {
-  if (dataUrl.startsWith('data:image/png')) return 'png';
-  if (dataUrl.startsWith('data:image/jpeg') || dataUrl.startsWith('data:image/jpg')) return 'jpg';
-  if (dataUrl.startsWith('data:image/gif')) return 'gif';
-  if (dataUrl.startsWith('data:image/bmp')) return 'bmp';
-  return undefined;
+const serializeSvgToPngDataUrl = async (svg: SVGSVGElement): Promise<string | null> => {
+  const clonedSvg = svg.cloneNode(true) as SVGSVGElement;
+
+  if (!clonedSvg.getAttribute('xmlns')) {
+    clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  }
+
+  const rect = svg.getBoundingClientRect();
+  const viewBox = clonedSvg.getAttribute('viewBox');
+  let width = Number.parseFloat(clonedSvg.getAttribute('width') || '') || rect.width || 600;
+  let height = Number.parseFloat(clonedSvg.getAttribute('height') || '') || rect.height || 300;
+
+  if ((!width || !height) && viewBox) {
+    const [, , vbWidth, vbHeight] = viewBox.split(/\s+/).map(Number);
+    width = width || vbWidth || 600;
+    height = height || vbHeight || 300;
+  }
+
+  clonedSvg.setAttribute('width', String(width));
+  clonedSvg.setAttribute('height', String(height));
+
+  const svgText = new XMLSerializer().serializeToString(clonedSvg);
+  const svgBlob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(svgBlob);
+
+  try {
+    const image = new Image();
+    image.decoding = 'async';
+    image.crossOrigin = 'anonymous';
+    await new Promise<void>((resolve, reject) => {
+      image.onload = () => resolve();
+      image.onerror = () => reject(new Error('Không thể rasterize SVG khi xuất Word'));
+      image.src = url;
+    });
+
+    const scale = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.ceil(width * scale);
+    canvas.height = Math.ceil(height * scale);
+    const context = canvas.getContext('2d');
+    if (!context) return null;
+    context.fillStyle = '#ffffff';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL('image/png');
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 };
 
-const buildImageParagraph = (src: string): Paragraph | null => {
-  const bytes = dataUrlToUint8Array(src);
-  const type = imageTypeFromDataUrl(src);
-  if (!bytes || !type) return null;
+const getMathText = (element: Element): string | null => {
+  const annotation = element.querySelector('annotation[encoding="application/x-tex"]');
+  if (annotation?.textContent?.trim()) return annotation.textContent.trim();
+
+  const mathml = element.querySelector('.katex-mathml math, math');
+  if (mathml?.textContent?.trim()) return mathml.textContent.trim();
+
+  const fallback = element.textContent?.trim();
+  return fallback || null;
+};
+
+const textRunsFromInline = (node: Node, inherited: { bold?: boolean; italics?: boolean } = {}): TextRun[] => {
+  if (node.nodeType === Node.TEXT_NODE) {
+    const text = node.textContent?.replace(/\s+/g, ' ') || '';
+    return text ? [new TextRun({ text, ...inherited })] : [];
+  }
+
+  if (!(node instanceof Element)) return [];
+
+  if (node.classList.contains('katex')) {
+    const math = getMathText(node);
+    return math ? [new TextRun({ text: math, font: 'Cambria Math', ...inherited })] : [];
+  }
+
+  if (node.tagName.toLowerCase() === 'br') return [new TextRun({ text: '\n' })];
+
+  const next = {
+    bold: inherited.bold || ['strong', 'b'].includes(node.tagName.toLowerCase()),
+    italics: inherited.italics || ['em', 'i'].includes(node.tagName.toLowerCase()),
+  };
+
+  return Array.from(node.childNodes).flatMap(child => textRunsFromInline(child, next));
+};
+
+const paragraphFromElement = (element: Element, options: { bullet?: boolean; heading?: (typeof HeadingLevel)[keyof typeof HeadingLevel] } = {}): Paragraph => {
+  const textRuns = Array.from(element.childNodes).flatMap(child => textRunsFromInline(child));
+  const text = element.textContent?.trim() || '';
+  const isOption = /^\s*[A-D]\.\s+/.test(text.replace(/^[-•]\s*/, ''));
+
+  return new Paragraph({
+    children: textRuns.length ? textRuns : [new TextRun('')],
+    heading: options.heading,
+    bullet: options.bullet && !isOption ? { level: 0 } : undefined,
+    spacing: { before: isOption ? 60 : 90, after: isOption ? 60 : 120, line: 330 },
+    indent: isOption ? { left: 360 } : options.bullet ? { left: 360, hanging: 180 } : undefined,
+  });
+};
+
+const tableFromElement = (table: HTMLTableElement): Table => {
+  const rows = Array.from(table.rows).map(row => new TableRow({
+    children: Array.from(row.cells).map(cell => new TableCell({
+      children: domToDocxChildren(cell).filter((child): child is Paragraph => child instanceof Paragraph),
+      borders: {
+        top: { style: BorderStyle.SINGLE, size: 1, color: '888888' },
+        bottom: { style: BorderStyle.SINGLE, size: 1, color: '888888' },
+        left: { style: BorderStyle.SINGLE, size: 1, color: '888888' },
+        right: { style: BorderStyle.SINGLE, size: 1, color: '888888' },
+      },
+      margins: { top: 100, bottom: 100, left: 120, right: 120 },
+    })),
+  }));
+
+  return new Table({
+    rows,
+    width: { size: 100, type: WidthType.PERCENTAGE },
+  });
+};
+
+const imageParagraphFromElement = (img: HTMLImageElement): Paragraph | null => {
+  if (!img.src.startsWith('data:image/')) return null;
+  const width = Math.min(Number.parseFloat(img.getAttribute('width') || '') || img.naturalWidth || 520, 520);
+  const height = Math.min(Number.parseFloat(img.getAttribute('height') || '') || img.naturalHeight || 300, 360);
 
   return new Paragraph({
     alignment: AlignmentType.CENTER,
     spacing: { before: 120, after: 120 },
     children: [
       new ImageRun({
-        data: bytes,
-        type,
-        transformation: {
-          width: 360,
-          height: 220,
-        },
+        data: dataUrlToUint8Array(img.src),
+        transformation: { width, height },
+        type: img.src.includes('image/jpeg') ? 'jpg' : 'png',
       }),
     ],
   });
 };
 
-const extractImageParagraphsFromHtml = (html: string): Paragraph[] => {
-  const paragraphs: Paragraph[] = [];
-  const imageRegex = /<img\b[^>]*src=["']([^"']+)["'][^>]*>/gi;
-  let match: RegExpExecArray | null;
-  while ((match = imageRegex.exec(html)) !== null) {
-    const paragraph = buildImageParagraph(match[1]);
-    if (paragraph) paragraphs.push(paragraph);
-  }
+const domToDocxChildren = (root: Element): DocxChild[] => {
+  const children: DocxChild[] = [];
 
-  const svgRegex = /<svg[\s\S]*?<\/svg>/gi;
-  while ((match = svgRegex.exec(html)) !== null) {
-    paragraphs.push(
-      new Paragraph({
-        alignment: AlignmentType.CENTER,
-        spacing: { before: 120, after: 120 },
-        children: [
-          new TextRun({
-            text: '[Hình SVG/vector được giữ trong bản PDF/HTML; Word cần chèn lại từ preview nếu cần chỉnh sửa.]',
-            italics: true,
-            font: FONT,
-            size: SMALL_SIZE,
-          }),
-        ],
-      })
-    );
-  }
+  Array.from(root.children).forEach(element => {
+    const tag = element.tagName.toLowerCase();
 
-  return paragraphs;
-};
+    if (element.classList.contains('katex-html')) return;
 
-const flattenInline = (tokens: any[] | undefined, style: RunStyle = {}): TextRun[] => {
-  if (!tokens?.length) return [];
-  const runs: TextRun[] = [];
+    if (tag === 'table') {
+      children.push(tableFromElement(element as HTMLTableElement));
+      return;
+    }
 
-  tokens.forEach(token => {
-    if (!token) return;
-    switch (token.type) {
-      case 'strong':
-        runs.push(...flattenInline(token.tokens, { ...style, bold: true }));
-        break;
-      case 'em':
-        runs.push(...flattenInline(token.tokens, { ...style, italic: true }));
-        break;
-      case 'codespan':
-        runs.push(new TextRun({ text: token.text || '', font: 'Courier New', size: SMALL_SIZE }));
-        break;
-      case 'link':
-      case 'del':
-        runs.push(...flattenInline(token.tokens, style));
-        break;
-      case 'br':
-        runs.push(new TextRun({ break: 1 }));
-        break;
-      case 'html': {
-        const raw = token.raw || token.text || '';
-        if (/^<br\s*\/?\s*>$/i.test(raw.trim())) {
-          runs.push(new TextRun({ break: 1 }));
-        } else if (!/<img\b|<svg\b/i.test(raw)) {
-          const text = normalizeMathTextForDocx(stripHtml(raw));
-          if (text) runs.push(new TextRun({ text, font: FONT, size: BODY_SIZE, bold: style.bold, italics: style.italic }));
-        }
-        break;
-      }
-      case 'text':
-      case 'escape':
-      default: {
-        if (token.tokens?.length) {
-          runs.push(...flattenInline(token.tokens, style));
-        } else {
-          const text = normalizeMathTextForDocx(token.text ?? token.raw ?? '');
-          if (text) {
-            runs.push(new TextRun({ text, font: FONT, size: BODY_SIZE, bold: style.bold, italics: style.italic }));
-          }
-        }
-      }
+    if (tag === 'img') {
+      const imageParagraph = imageParagraphFromElement(element as HTMLImageElement);
+      if (imageParagraph) children.push(imageParagraph);
+      return;
+    }
+
+    if (['h1', 'h2'].includes(tag)) {
+      children.push(paragraphFromElement(element, { heading: HeadingLevel.HEADING_1 }));
+      return;
+    }
+
+    if (['h3', 'h4'].includes(tag)) {
+      children.push(paragraphFromElement(element, { heading: HeadingLevel.HEADING_2 }));
+      return;
+    }
+
+    if (tag === 'li') {
+      children.push(paragraphFromElement(element, { bullet: !/^\s*[A-D]\.\s+/.test(element.textContent || '') }));
+      return;
+    }
+
+    if (tag === 'ul' || tag === 'ol') {
+      children.push(...domToDocxChildren(element));
+      return;
+    }
+
+    if (['p', 'blockquote', 'pre'].includes(tag) || element.classList.contains('exam-question')) {
+      children.push(paragraphFromElement(element));
+      return;
+    }
+
+    const nested = domToDocxChildren(element);
+    if (nested.length > 0) {
+      children.push(...nested);
+    } else if (element.textContent?.trim()) {
+      children.push(paragraphFromElement(element));
     }
   });
 
-  return runs;
+  if (children.length === 0 && root.textContent?.trim()) {
+    children.push(paragraphFromElement(root));
+  }
+
+  return children;
 };
 
-const buildCellParagraphs = (cell: Tokens.TableCell): Paragraph[] => {
-  const runs = flattenInline((cell as any).tokens || [{ type: 'text', text: cell.text || '' }]);
-  return [new Paragraph({ children: runs.length ? runs : [new TextRun({ text: '', font: FONT, size: SMALL_SIZE })] })];
-};
+const prepareRenderedExamElement = async (selector = '.exam-container, .exam-renderer'): Promise<HTMLElement> => {
+  const source = document.querySelector<HTMLElement>(selector);
+  if (!source) {
+    throw new Error('Không tìm thấy vùng đề thi đã render để xuất Word');
+  }
 
-const buildTable = (tableToken: Tokens.Table): Table => {
-  const columnCount = tableToken.header.length || 1;
-  const cellWidth = Math.floor(100 / columnCount);
+  const clonedDOM = source.cloneNode(true) as HTMLElement;
+  clonedDOM.querySelectorAll('script, style, textarea, button, input').forEach(node => node.remove());
 
-  const headerRow = new TableRow({
-    tableHeader: true,
-    children: tableToken.header.map((header: any) => new TableCell({
-      children: [new Paragraph({
-        alignment: AlignmentType.CENTER,
-        children: flattenInline(header.tokens || [{ type: 'text', text: header.text || '' }]).map(run => run),
-      })],
-      shading: { fill: 'F8FAFC', type: 'clear' },
-      margins: { top: 90, bottom: 90, left: 90, right: 90 },
-      width: { size: cellWidth, type: WidthType.PERCENTAGE },
-    })),
-  });
+  const svgs = Array.from(clonedDOM.querySelectorAll<SVGSVGElement>('svg'));
+  for (const svg of svgs) {
+    const dataUrl = await serializeSvgToPngDataUrl(svg);
+    if (!dataUrl) continue;
+    const img = document.createElement('img');
+    img.src = dataUrl;
+    img.alt = svg.getAttribute('aria-label') || 'Hình minh họa';
+    img.width = Math.min(svg.getBoundingClientRect().width || 520, 520);
+    img.height = Math.min(svg.getBoundingClientRect().height || 300, 360);
+    svg.replaceWith(img);
+  }
 
-  const bodyRows = tableToken.rows.map((row: any[]) => new TableRow({
-    cantSplit: true,
-    children: row.map((cell: any) => new TableCell({
-      children: buildCellParagraphs(cell),
-      margins: { top: 90, bottom: 90, left: 90, right: 90 },
-      width: { size: cellWidth, type: WidthType.PERCENTAGE },
-    })),
-  }));
-
-  return new Table({
-    rows: [headerRow, ...bodyRows],
-    width: { size: 100, type: WidthType.PERCENTAGE },
-    borders: {
-      top: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
-      bottom: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
-      left: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
-      right: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
-      insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
-      insideVertical: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
-    },
-  });
-};
-
-const paragraphFromText = (text: string, options: { bold?: boolean; center?: boolean; italic?: boolean } = {}) => new Paragraph({
-  alignment: options.center ? AlignmentType.CENTER : AlignmentType.LEFT,
-  spacing: { before: 60, after: 60, line: 300 },
-  keepLines: /^\s*(Câu\s+\d+|[A-D]\.)/i.test(text),
-  children: [
-    new TextRun({
-      text: normalizeMathTextForDocx(text),
-      font: FONT,
-      size: BODY_SIZE,
-      bold: options.bold,
-      italics: options.italic,
-    }),
-  ],
-});
-
-const processTokens = (tokens: Token[], output: any[]) => {
-  tokens.forEach(token => {
-    switch (token.type) {
-      case 'heading': {
-        const heading = token as Tokens.Heading;
-        output.push(new Paragraph({
-          alignment: heading.depth <= 2 ? AlignmentType.CENTER : AlignmentType.LEFT,
-          heading: heading.depth === 1 ? HeadingLevel.HEADING_1 : HeadingLevel.HEADING_2,
-          spacing: { before: 100, after: 80 },
-          keepNext: true,
-          children: flattenInline(heading.tokens || [{ type: 'text', text: heading.text }]).map(run => run),
-        }));
-        break;
-      }
-      case 'paragraph': {
-        const paragraph = token as Tokens.Paragraph;
-        const raw = (paragraph as any).raw || paragraph.text || '';
-        const imageParagraphs = extractImageParagraphsFromHtml(raw);
-        if (imageParagraphs.length) {
-          const text = stripHtml(raw.replace(/<img\b[^>]*>/gi, '').replace(/<svg[\s\S]*?<\/svg>/gi, ''));
-          if (text) output.push(paragraphFromText(text));
-          output.push(...imageParagraphs);
-        } else {
-          output.push(new Paragraph({
-            spacing: { before: 60, after: 60, line: 300 },
-            keepLines: /^\s*(Câu\s+\d+|[A-D]\.)/i.test(paragraph.text),
-            children: flattenInline(paragraph.tokens || [{ type: 'text', text: paragraph.text }]),
-          }));
-        }
-        break;
-      }
-      case 'list': {
-        const list = token as Tokens.List;
-        list.items.forEach((item: any) => {
-          output.push(new Paragraph({
-            spacing: { before: 40, after: 40, line: 300 },
-            bullet: list.ordered ? undefined : { level: 0 },
-            numbering: list.ordered ? { reference: 'exam-numbering', level: 0 } : undefined,
-            children: flattenInline(item.tokens?.[0]?.tokens || [{ type: 'text', text: item.text || '' }]),
-          }));
-        });
-        break;
-      }
-      case 'table':
-        output.push(buildTable(token as Tokens.Table));
-        break;
-      case 'html': {
-        const html = (token as any).raw || (token as any).text || '';
-        const imageParagraphs = extractImageParagraphsFromHtml(html);
-        if (imageParagraphs.length) output.push(...imageParagraphs);
-        else {
-          const text = stripHtml(html);
-          if (text) output.push(paragraphFromText(text));
-        }
-        break;
-      }
-      case 'code': {
-        const code = token as Tokens.Code;
-        output.push(paragraphFromText(code.text || '', { italic: true }));
-        break;
-      }
-      case 'hr':
-      case 'space':
-        break;
-      default: {
-        const raw = (token as any).raw || '';
-        if (raw.trim()) output.push(paragraphFromText(stripHtml(raw)));
-      }
-    }
-  });
+  return clonedDOM;
 };
 
 export const exportExamToDocx = async (
-  markdown: string,
-  title = 'De_thi_kiem_tra'
+  _rawMarkdown: string,
+  title = 'De_thi_kiem_tra',
+  selector = '.exam-container, .exam-renderer'
 ): Promise<void> => {
-  const children: any[] = [];
-  const tokens = marked.lexer(preprocessExamMarkdown(markdown));
-  processTokens(tokens, children);
+  const renderedExam = await prepareRenderedExamElement(selector);
+  const children = domToDocxChildren(renderedExam);
 
   const doc = new Document({
-    creator: 'SmartPlan AI',
-    title,
-    numbering: {
-      config: [
-        {
-          reference: 'exam-numbering',
-          levels: [{
-            level: 0,
-            format: 'decimal',
-            text: '%1.',
-            alignment: AlignmentType.LEFT,
-            style: { paragraph: { indent: { left: 360, hanging: 260 } } },
-          }],
-        },
-      ],
-    },
     styles: {
       default: {
-        document: {
-          run: { font: FONT, size: BODY_SIZE },
-          paragraph: { spacing: { line: 300, before: 40, after: 40 } },
-        },
+        document: { run: { font: 'Times New Roman', size: 26 } },
       },
       paragraphStyles: [
         {
@@ -344,18 +262,16 @@ export const exportExamToDocx = async (
           name: 'Heading 1',
           basedOn: 'Normal',
           next: 'Normal',
-          quickFormat: true,
-          run: { font: FONT, size: TITLE_SIZE, bold: true },
-          paragraph: { alignment: AlignmentType.CENTER, spacing: { before: 80, after: 80 } },
+          run: { font: 'Times New Roman', size: 32, bold: true },
+          paragraph: { spacing: { before: 180, after: 120 } },
         },
         {
           id: 'Heading2',
           name: 'Heading 2',
           basedOn: 'Normal',
           next: 'Normal',
-          quickFormat: true,
-          run: { font: FONT, size: BODY_SIZE, bold: true },
-          paragraph: { alignment: AlignmentType.CENTER, spacing: { before: 80, after: 80 } },
+          run: { font: 'Times New Roman', size: 28, bold: true },
+          paragraph: { spacing: { before: 150, after: 100 } },
         },
       ],
     },
@@ -363,15 +279,14 @@ export const exportExamToDocx = async (
       {
         properties: {
           page: {
-            size: { width: 11906, height: 16838, orientation: PageOrientation.PORTRAIT },
-            margin: { top: 1134, right: 1021, bottom: 1134, left: 1701 },
+            margin: { top: 720, right: 720, bottom: 720, left: 720 },
           },
         },
-        children: children.length ? children : [paragraphFromText(markdown)],
+        children: children.length ? children : [new Paragraph('')],
       },
     ],
   });
 
   const blob = await Packer.toBlob(doc);
-  downloadBlob(blob, `${safeFilename(title || 'De_thi_kiem_tra')}.docx`);
+  downloadBlob(blob, `${safeFilename(title || 'De_thi_kiem_tra', 'De_thi_kiem_tra')}.docx`);
 };

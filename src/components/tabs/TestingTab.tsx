@@ -21,6 +21,7 @@ import { callAI, callAIStream, getActiveApiKey } from '../../lib/aiProviders';
 import { LatexModal } from '../modals/LatexModal';
 import { openInOverleaf } from '../../utils/exportUtils';
 import { preprocessExamMarkdown } from '../../utils/examMarkdown';
+import { exportLaTeX, markdownToExamLatex } from '../../utils/examLatexExport';
 
 interface TestingTabProps {
   data: AppData;
@@ -167,7 +168,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
     showToast('Đang tải bộ xuất Word và tạo file .docx chuẩn A4...');
     try {
       const { exportExamToDocx } = await import('../../utils/examWordExport');
-      await exportExamToDocx(preprocessExamMarkdown(testResult), `De_thi_${Date.now()}`);
+      await exportExamToDocx(testResult, `De_thi_${Date.now()}`);
       showToast('Đã tải file Word .docx chuẩn A4!', 'success');
     } catch (e) {
       console.error('DOCX export error:', e);
@@ -178,21 +179,13 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
 
   const handleExportOverleaf = async () => {
     if (!testResult) return;
-    setIsLoading(true);
     try {
-      const prompt = `Chuyển đổi nội dung Markdown sau sang mã LaTeX hoàn chỉnh, có thể biên dịch ngay trên Overleaf. Yêu cầu bắt buộc:
-- \\documentclass{article} với các gói: inputenc (utf8), fontenc (T5), babel (vietnamese), amsmath, amssymb, geometry (a4paper, margin=2cm), longtable, booktabs, array
-- Giữ nguyên 100% nội dung, không tóm tắt hay bỏ bớt
-- Công thức toán dùng $...$ (inline) hoặc \\[...\\] (display)
-- Trả về CHỈ mã LaTeX thuần, không bọc trong markdown\n\n${testResult}`;
-      const latex = await callAI(prompt, data.settings);
-      const clean = latex.replace(/^```(?:latex)?\n?/m, '').replace(/\n?```$/m, '').trim();
-      setLatexContent(clean);
+      const latex = markdownToExamLatex(testResult);
+      setLatexContent(latex);
       setIsLatexModalOpen(true);
+      showToast('Đã tạo mã LaTeX sạch từ nội dung đề thi.', 'success');
     } catch {
-      showToast('Lỗi chuyển đổi LaTeX. Vui lòng thử lại.', 'error');
-    } finally {
-      setIsLoading(false);
+      showToast('Lỗi tạo LaTeX. Vui lòng thử lại.', 'error');
     }
   };
 
@@ -791,13 +784,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
         onClose={() => setIsLatexModalOpen(false)}
         latexContent={latexContent}
         currentPlan={{ title: 'De_thi_kiem_tra' } as Partial<LessonPlan>}
-        downloadLaTeXFile={() => {
-          const blob = new Blob([latexContent], { type: 'text/plain' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url; a.download = 'De_thi_kiem_tra.tex'; a.click();
-          URL.revokeObjectURL(url);
-        }}
+        downloadLaTeXFile={() => exportLaTeX(testResult || latexContent, 'De_thi_kiem_tra')}
         openInOverleaf={() => openInOverleaf(latexContent, { title: 'De_thi_kiem_tra' } as Partial<LessonPlan>, showToast)}
         showToast={showToast}
       />
