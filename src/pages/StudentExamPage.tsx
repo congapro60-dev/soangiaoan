@@ -79,6 +79,7 @@ export const StudentExamPage = () => {
   const [tabSwitches, setTabSwitches] = useState(0);
   const [showTabWarning, setShowTabWarning] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
 
   const questionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -198,6 +199,7 @@ export const StudentExamPage = () => {
   // ── Actions ───────────────────────────────────────────────────────────────
   const startExam = async () => {
     if (!exam || !studentName.trim()) return;
+    setStartError(null);
     setPageState('loading');
     try {
       const qs = exam.shuffleQuestions ? shuffle(exam.questions) : [...exam.questions];
@@ -220,8 +222,15 @@ export const StudentExamPage = () => {
       setOrderedQuestions(qs);
       setRemainingSeconds(exam.durationMinutes * 60);
       setPageState('taking');
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      const message = String(err?.message || err || '');
+      const isPermissionError = message.toLowerCase().includes('permission') || message.includes('Missing or insufficient permissions');
+      setStartError(
+        isPermissionError
+          ? 'Không tạo được bài làm do quyền truy cập Firestore. Vui lòng báo giáo viên/admin cập nhật Firestore Rules rồi thử lại.'
+          : 'Không bắt đầu được bài thi. Vui lòng kiểm tra kết nối mạng và thử lại.'
+      );
       setPageState('intro');
     }
   };
@@ -259,6 +268,11 @@ export const StudentExamPage = () => {
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Lớp</label>
               <input type="text" value={studentClass} onChange={e => setStudentClass(e.target.value)} placeholder="Ví dụ: 12A1..." className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
+            {startError && (
+              <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                {startError}
+              </div>
+            )}
             <button onClick={startExam} disabled={!studentName.trim()} className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-sm shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all disabled:opacity-50 active:scale-95">
               BẮT ĐẦU LÀM BÀI
             </button>

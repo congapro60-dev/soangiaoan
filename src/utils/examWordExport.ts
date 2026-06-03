@@ -15,6 +15,7 @@ import {
 } from 'docx';
 import { marked, Token, Tokens } from 'marked';
 import { downloadBlob, safeFilename } from './fileUtils';
+import { preprocessExamMarkdown } from './examMarkdown';
 
 const FONT = 'Times New Roman';
 const BODY_SIZE = 26; // 13pt, docx uses half-points
@@ -28,6 +29,29 @@ interface RunStyle {
 }
 
 const stripHtml = (value: string): string => value.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
+
+const normalizeMathTextForDocx = (value: string): string => value
+  .replace(/\$\$([\s\S]*?)\$\$/g, (_match, math) => String(math).replace(/\s+/g, ' ').trim())
+  .replace(/\$([^$]+)\$/g, (_match, math) => String(math).trim())
+  .replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, '($1)/($2)')
+  .replace(/\\sqrt\{([^{}]+)\}/g, '√($1)')
+  .replace(/\^\{([^{}]+)\}/g, '^($1)')
+  .replace(/_\{([^{}]+)\}/g, '_($1)')
+  .replace(/\\left|\\right/g, '')
+  .replace(/\\cdot/g, '·')
+  .replace(/\\times/g, '×')
+  .replace(/\\leq/g, '≤')
+  .replace(/\\geq/g, '≥')
+  .replace(/\\neq/g, '≠')
+  .replace(/\\infty/g, '∞')
+  .replace(/\\pi/g, 'π')
+  .replace(/\\alpha/g, 'α')
+  .replace(/\\beta/g, 'β')
+  .replace(/\\gamma/g, 'γ')
+  .replace(/\\Delta/g, 'Δ')
+  .replace(/\\(sin|cos|tan|cot|log|ln|lim)\b/g, '$1')
+  .replace(/\\[,;:!]/g, ' ')
+  .replace(/\\/g, '');
 
 const dataUrlToUint8Array = (dataUrl: string): Uint8Array | null => {
   const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
@@ -127,7 +151,7 @@ const flattenInline = (tokens: any[] | undefined, style: RunStyle = {}): TextRun
         if (/^<br\s*\/?\s*>$/i.test(raw.trim())) {
           runs.push(new TextRun({ break: 1 }));
         } else if (!/<img\b|<svg\b/i.test(raw)) {
-          const text = stripHtml(raw);
+          const text = normalizeMathTextForDocx(stripHtml(raw));
           if (text) runs.push(new TextRun({ text, font: FONT, size: BODY_SIZE, bold: style.bold, italics: style.italic }));
         }
         break;
@@ -138,7 +162,7 @@ const flattenInline = (tokens: any[] | undefined, style: RunStyle = {}): TextRun
         if (token.tokens?.length) {
           runs.push(...flattenInline(token.tokens, style));
         } else {
-          const text = token.text ?? token.raw ?? '';
+          const text = normalizeMathTextForDocx(token.text ?? token.raw ?? '');
           if (text) {
             runs.push(new TextRun({ text, font: FONT, size: BODY_SIZE, bold: style.bold, italics: style.italic }));
           }
@@ -201,7 +225,7 @@ const paragraphFromText = (text: string, options: { bold?: boolean; center?: boo
   keepLines: /^\s*(Câu\s+\d+|[A-D]\.)/i.test(text),
   children: [
     new TextRun({
-      text,
+      text: normalizeMathTextForDocx(text),
       font: FONT,
       size: BODY_SIZE,
       bold: options.bold,
@@ -287,7 +311,7 @@ export const exportExamToDocx = async (
   title = 'De_thi_kiem_tra'
 ): Promise<void> => {
   const children: any[] = [];
-  const tokens = marked.lexer(markdown.normalize('NFC'));
+  const tokens = marked.lexer(preprocessExamMarkdown(markdown));
   processTokens(tokens, children);
 
   const doc = new Document({

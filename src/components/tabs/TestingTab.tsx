@@ -20,6 +20,7 @@ import { examUtils } from '../../utils/examUtils';
 import { callAI, callAIStream, getActiveApiKey } from '../../lib/aiProviders';
 import { LatexModal } from '../modals/LatexModal';
 import { openInOverleaf } from '../../utils/exportUtils';
+import { preprocessExamMarkdown } from '../../utils/examMarkdown';
 
 interface TestingTabProps {
   data: AppData;
@@ -166,7 +167,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
     showToast('Đang tải bộ xuất Word và tạo file .docx chuẩn A4...');
     try {
       const { exportExamToDocx } = await import('../../utils/examWordExport');
-      await exportExamToDocx(testResult, `De_thi_${Date.now()}`);
+      await exportExamToDocx(preprocessExamMarkdown(testResult), `De_thi_${Date.now()}`);
       showToast('Đã tải file Word .docx chuẩn A4!', 'success');
     } catch (e) {
       console.error('DOCX export error:', e);
@@ -331,7 +332,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
         await callAIStream(prompt, data.settings, onChunk);
         const match = cumulativeText.match(/<exam_content>([\s\S]*?)<\/exam_content>/);
         const raw = match ? match[1].trim() : cumulativeText.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
-        const final = raw.normalize('NFC');
+        const final = preprocessExamMarkdown(raw);
         setTestResult(final);
         addToHistory('create', final);
 
@@ -347,7 +348,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
               .replace(/<thinking>[\s\S]*?<\/thinking>/g, '')
               .replace(/<\/?(?:thinking|audit_report|exam_content|answer_key)>/g, '')
               .trim();
-        const final = raw.normalize('NFC');
+        const final = preprocessExamMarkdown(raw);
         setTestResult(final);
         addToHistory('audit', final);
 
@@ -355,7 +356,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
         setProcessStatus('Đang trích xuất câu hỏi và thực hiện hoán vị...');
         const fullContent = uploadedFiles.map(f => f.content).join('\n===FILE_SEPARATOR===\n');
         if (!fullContent.trim()) throw new Error('Nội dung tệp trống.');
-        const summary = (await examUtils.shuffleExam(fullContent, shuffledCount, data.settings)).normalize('NFC');
+        const summary = preprocessExamMarkdown(await examUtils.shuffleExam(fullContent, shuffledCount, data.settings));
         setTestResult(summary);
         addToHistory('shuffle', summary);
         showToast(`Đã hoán vị thành ${shuffledCount} mã đề — ZIP đã tải xuống!`);
@@ -383,7 +384,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
       await callAIStream(prompt, data.settings, (chunk) => { cumulativeText += chunk; });
       const match = cumulativeText.match(/<exam_content>([\s\S]*?)<\/exam_content>/);
       const raw = match ? match[1].trim() : cumulativeText.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
-      const final = raw.normalize('NFC');
+      const final = preprocessExamMarkdown(raw);
       setTestResult(final);
       addToHistory(activeMode, final);
       setRefineRequest('');

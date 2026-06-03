@@ -51,8 +51,8 @@ TRƯỜNG THPT ...                   |  NĂM HỌC 20XX - 20XX
 
 **ĐÁNH SỐ VÀ TRÌNH BÀY:**
 - Đánh số: "Câu 1.", "Câu 2."... (có dấu chấm, in đậm).
-- MCQ 4 phương án: mỗi phương án một dòng liên tiếp, bắt đầu đúng "A. ", "B. ", "C. ", "D. "; không chèn bullet/list trước phương án. Hệ thống preview sẽ tự chia 4/2/1 cột theo độ dài đáp án.
-- Nếu muốn chỉ định layout thủ công, có thể dùng HTML: <div class="options-grid cols-4"><div><span class="option-label">A.</span> ...</div>...</div> cho đáp án ngắn; đổi thành cols-2 hoặc cols-1 khi đáp án dài/có công thức.
+- MCQ 4 phương án: mỗi phương án một dòng riêng biệt, liên tiếp, bắt đầu đúng "A. ", "B. ", "C. ", "D. "; tuyệt đối không viết A/B/C/D dồn trên cùng một dòng; không chèn bullet/list trước phương án. Hệ thống preview/export sẽ tự chia 4/2/1 cột theo độ dài đáp án.
+- Nếu muốn chỉ định layout thủ công, có thể dùng HTML: <div class="options-grid cols-4"><div><span class="option-label">A.</span> ...</div>...</div> cho đáp án ngắn; đổi thành cols-2 hoặc cols-1 khi đáp án dài/có công thức. Không dùng layout 4 cột cho đáp án có công thức dài.
 - Đúng/Sai 4 ý: mỗi ý một dòng, bắt đầu "a) ", "b) ", "c) ", "d) ".
 - Trả lời ngắn: để khoảng trống "……………" cuối câu hoặc ghi rõ yêu cầu tính toán.
 - Tự luận: mỗi câu một đoạn, ghi rõ số điểm ở đầu câu, VD: "**Câu 1** (2,0 điểm). ..."
@@ -106,10 +106,10 @@ YÊU CẦU BỔ SUNG:
 ${requirement || 'Soạn đề thi chuẩn chương trình GDPT 2018'}
 
 QUY TẮC NỘI DUNG:
-- Công thức toán học: dùng LaTeX inline $...$ và display $$...$$, KHÔNG dùng ký hiệu khác.
+- Công thức toán học: dùng LaTeX inline $...$ và display $$...$$, KHÔNG dùng ký hiệu khác; không để công thức bị tách bởi xuống dòng sai cú pháp.
 - Ngôn ngữ: tiếng Việt chuẩn, không lỗi chính tả.
 - Độ khó: phân bổ đúng theo ma trận hoặc cân đối nếu không có ma trận.
-- Với trắc nghiệm A/B/C/D, luôn đặt 4 dòng phương án liên tiếp theo đúng mẫu "A. ...", "B. ...", "C. ...", "D. ..." để preview tự chia cột thông minh; không dùng bullet/list cho 4 phương án.
+- Với trắc nghiệm A/B/C/D, luôn đặt 4 dòng phương án liên tiếp theo đúng mẫu "A. ...", "B. ...", "C. ...", "D. ..."; tuyệt đối không viết "A. ... B. ... C. ... D. ..." trên cùng một dòng; không dùng bullet/list cho 4 phương án.
 - Với câu hỏi hình học không gian, đồ thị hàm số hoặc bảng biến thiên, hãy tự tính toán tọa độ và vẽ mã vector SVG chuẩn xác chèn trực tiếp vào đề trong <div class="exam-figure">...</div>.
 - Quy ước SVG: dùng nét liền cho cạnh/đường thấy; dùng stroke-dasharray="4" cho cạnh khuất/đường phụ; với bảng biến thiên cần vẽ hàng dấu, mũi tên tăng/giảm và nhãn cực trị rõ ràng.
 - SVG phải có attribute xmlns="http://www.w3.org/2000/svg" và width, height, viewBox; không phụ thuộc script ngoài, không dùng ảnh remote.
@@ -144,9 +144,10 @@ QUY TẮC BẮT BUỘC:
 1. CHỈ chỉnh sửa những gì giáo viên yêu cầu. Giữ nguyên toàn bộ các phần khác.
 2. Bảo toàn định dạng gốc (header, phần, cách đánh số, công thức LaTeX, dấu HẾT).
 3. Công thức toán giữ LaTeX $...$ và $$...$$.
-4. Ngôn ngữ: tiếng Việt chuẩn, không sai chính tả, dùng dạng Unicode hợp nhất (NFC).
-5. Trả về TOÀN BỘ đề thi đã chỉnh sửa (không chỉ phần sửa), để thay thế hoàn toàn bản cũ.
-6. Bọc nội dung trong thẻ <exam_content>...</exam_content>.
+4. Với trắc nghiệm A/B/C/D, luôn giữ hoặc chuyển về 4 dòng riêng biệt theo mẫu "A. ...", "B. ...", "C. ...", "D. ..."; không dồn các phương án trên cùng một dòng.
+5. Ngôn ngữ: tiếng Việt chuẩn, không sai chính tả, dùng dạng Unicode hợp nhất (NFC).
+6. Trả về TOÀN BỘ đề thi đã chỉnh sửa (không chỉ phần sửa), để thay thế hoàn toàn bản cũ.
+7. Bọc nội dung trong thẻ <exam_content>...</exam_content>.
     `,
 
   /**

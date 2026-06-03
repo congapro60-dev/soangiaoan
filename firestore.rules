@@ -219,8 +219,7 @@ service cloud.firestore {
                && request.resource.data.clientNonce == resource.data.clientNonce;
       }
       function validStudentCreate() {
-        return request.auth == null
-               && request.resource.data.id == subId
+        return request.resource.data.id == subId
                && request.resource.data.status == 'in_progress'
                && request.resource.data.examId is string
                && request.resource.data.examCode is string
@@ -238,8 +237,7 @@ service cloud.firestore {
                && examDoc(request.resource.data.examId).data.code == request.resource.data.examCode;
       }
       function validStudentUpdate() {
-        return request.auth == null
-               && resource.data.status == 'in_progress'
+        return resource.data.status == 'in_progress'
                && keepsSubmissionIdentity()
                && request.resource.data.status in ['in_progress', 'submitted', 'graded']
                && request.resource.data.answers is list

@@ -11,6 +11,7 @@ import { AdaptiveStudentPortalPage } from './pages/AdaptiveStudentPortalPage';
 import { AdaptiveLessonBuilderPage } from './pages/AdaptiveLessonBuilderPage';
 import { AdaptiveLessonListPage } from './pages/AdaptiveLessonListPage';
 import './index.css';
+import 'katex/dist/katex.min.css';
 
 // Error Boundary để ngăn màn trắng khi có lỗi bất ngờ
 class ErrorBoundary extends Component {

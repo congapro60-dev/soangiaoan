@@ -1,0 +1,196 @@
+.exam-renderer {
+  --exam-ink: #111111;
+  --exam-muted: #334155;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 14pt;
+  line-height: 1.45;
+  color: var(--exam-ink);
+  background: #ffffff;
+}
+
+.exam-renderer,
+.exam-renderer p,
+.exam-renderer li,
+.exam-renderer td,
+.exam-renderer th,
+.exam-renderer strong,
+.exam-renderer em {
+  font-family: 'Times New Roman', Times, serif;
+}
+
+.exam-renderer .katex,
+.exam-renderer .katex * {
+  font-family: KaTeX_Main, 'Times New Roman', serif;
+}
+
+.exam-renderer h1,
+.exam-renderer h2 {
+  text-align: center;
+  font-size: 15pt;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 4px 0 8px;
+  border: 0;
+  padding: 0;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+.exam-renderer h3,
+.exam-renderer h4 {
+  font-size: 14pt;
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 10px 0 4px;
+  border: 0;
+  padding: 0;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+.exam-renderer p {
+  margin: 4px 0;
+  line-height: 1.45;
+}
+
+.exam-renderer p:has(strong:first-child),
+.exam-renderer li:has(strong:first-child),
+.exam-renderer .exam-question,
+.exam-renderer .question-block {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.exam-renderer ol,
+.exam-renderer ul {
+  margin: 3px 0;
+  padding-left: 22px;
+}
+
+.exam-renderer li {
+  margin: 2px 0;
+  line-height: 1.45;
+}
+
+.exam-renderer ul.exam-options {
+  list-style: none;
+  padding-left: 0;
+  display: grid;
+  gap: 4px 18px;
+  margin: 4px 0 8px;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.exam-renderer ul.exam-options.cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.exam-renderer ul.exam-options.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.exam-renderer ul.exam-options.cols-1 { grid-template-columns: 1fr; }
+
+.exam-renderer ul.exam-options > li.exam-option-item {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.exam-renderer ul.exam-options > li.exam-option-item > strong:first-child {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.exam-renderer .exam-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  margin: 8px 0;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.exam-renderer table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13pt;
+}
+
+.exam-renderer th,
+.exam-renderer td {
+  border: 1px solid #000;
+  padding: 5px 8px;
+  vertical-align: top;
+}
+
+.exam-renderer th {
+  text-align: center;
+  font-weight: 700;
+  background: #f8fafc;
+}
+
+.exam-renderer hr {
+  border: 0;
+  border-top: 1px solid #bbb;
+  margin: 12px 0;
+}
+
+.exam-renderer img,
+.exam-renderer svg,
+.exam-renderer .exam-image,
+.exam-renderer .exam-figure,
+.exam-renderer .exam-svg,
+.exam-renderer .variation-table {
+  display: block;
+  max-width: 60%;
+  height: auto;
+  margin: 8px auto 10px;
+  text-align: center;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.exam-renderer .exam-figure svg,
+.exam-renderer .exam-svg svg,
+.exam-renderer .variation-table svg {
+  max-width: 100%;
+}
+
+.exam-renderer .exam-options:not(ul),
+.exam-renderer .options-grid {
+  display: grid;
+  gap: 4px 18px;
+  margin: 4px 0 8px;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.exam-renderer .options-grid.cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.exam-renderer .options-grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.exam-renderer .options-grid.cols-1 { grid-template-columns: 1fr; }
+
+.exam-renderer .options-grid .exam-option-item,
+.exam-renderer .options-grid > p,
+.exam-renderer .options-grid > div {
+  margin: 0;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.exam-renderer .option-label {
+  font-weight: 700;
+  margin-right: 4px;
+}
+
+.exam-renderer .exam-code-block {
+  white-space: pre-wrap;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12pt;
+  overflow-x: auto;
+}
+
+.exam-renderer code {
+  font-family: 'Courier New', monospace;
+  font-size: 12pt;
+}
