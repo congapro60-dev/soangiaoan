@@ -20,6 +20,21 @@ export const safeFilename = (title: string | undefined, fallback = 'giao-an'): s
   return title.replace(/[<>:"/\\|?*\x00-\x1f]/g, '').trim() || fallback;
 };
 
+const pad2 = (value: number): string => String(value).padStart(2, '0');
+
+/**
+ * Tên file xuất đề thi thống nhất theo giờ địa phương của trình duyệt.
+ * Ví dụ: De_thi_15h23_03062026
+ */
+export const makeExamExportBaseFilename = (date = new Date()): string => {
+  const hours = pad2(date.getHours());
+  const minutes = pad2(date.getMinutes());
+  const day = pad2(date.getDate());
+  const month = pad2(date.getMonth() + 1);
+  const year = date.getFullYear();
+  return `De_thi_${hours}h${minutes}_${day}${month}${year}`;
+};
+
 /** Clear UUID titles on load so corrupted Firestore plans show as untitled rather than a UUID string. */
 export const normalizePlanTitle = (title: string | undefined): string =>
   !title || UUID_RE.test(title.trim()) ? '' : title;

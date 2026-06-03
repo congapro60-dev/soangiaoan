@@ -22,6 +22,7 @@ import { LatexModal } from '../modals/LatexModal';
 import { openInOverleaf } from '../../utils/exportUtils';
 import { preprocessExamMarkdown } from '../../utils/examMarkdown';
 import { exportLaTeX, markdownToExamLatex } from '../../utils/examLatexExport';
+import { makeExamExportBaseFilename } from '../../utils/fileUtils';
 
 interface TestingTabProps {
   data: AppData;
@@ -154,7 +155,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
     try {
       const { exportElementToPdf } = await import('../../utils/pdfExport');
       await exportElementToPdf(element, {
-        filename: `Bao_cao_kiem_tra_${Date.now()}.pdf`,
+        filename: `${makeExamExportBaseFilename()}.pdf`,
       });
       showToast('Đã tải PDF thành công!', 'success');
     } catch (e) {
@@ -168,7 +169,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
     showToast('Đang tải bộ xuất Word và tạo file .docx chuẩn A4...');
     try {
       const { exportExamToDocx } = await import('../../utils/examWordExport');
-      await exportExamToDocx(testResult, `De_thi_${Date.now()}`);
+      await exportExamToDocx(testResult, makeExamExportBaseFilename());
       showToast('Đã tải file Word .docx chuẩn A4!', 'success');
     } catch (e) {
       console.error('DOCX export error:', e);
