@@ -2,8 +2,8 @@ import React, { useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
 import rehypeRaw from 'rehype-raw';
+import rehypeKatex from 'rehype-katex';
 import { preprocessExamMarkdown } from '../../../utils/examMarkdown';
 import './ExamRenderer.css';
 
@@ -18,7 +18,7 @@ const isSafeInlineSvg = (value: string): boolean => {
   return true;
 };
 
-const optionLabelPattern = /^[A-D]\.\s*/;
+const optionLabelPattern = /^(?:\*\*)?[A-D]\.\s*(?:\*\*)?/;
 
 const getTextFromNode = (node: React.ReactNode): string => {
   if (node === null || node === undefined || typeof node === 'boolean') return '';
@@ -68,8 +68,43 @@ const renderCode = ({ inline, className, children, ...props }: any) => {
   );
 };
 
+const getPlainOptionText = (line: string): string => line
+  .replace(/^\s*-\s*/, '')
+  .replace(/\*\*/g, '')
+  .replace(/<[^>]*>/g, '')
+  .replace(/\$+/g, '')
+  .replace(/\\[a-zA-Z]+\s*/g, '')
+  .replace(/\s+/g, ' ')
+  .trim();
+
+const getMcqGridClass = (match: string): 'mcq-4-col' | 'mcq-2-col' | 'mcq-1-col' => {
+  const optionLengths = match
+    .split('\n')
+    .map(getPlainOptionText)
+    .filter(Boolean)
+    .map(text => text.length);
+  const maxLength = Math.max(0, ...optionLengths);
+
+  if (maxLength < 30) return 'mcq-4-col';
+  if (maxLength < 65) return 'mcq-2-col';
+  return 'mcq-1-col';
+};
+
+const preprocessLaTeX = (value: string): string => preprocessExamMarkdown(value)
+  // Force True/False a), b), c), d) items onto separate Markdown bullet lines.
+  .replace(/(?:\s|^)([a-d]\))/g, '\n- $1')
+  // Force question markers onto their own Markdown paragraphs, including compact answer-key text.
+  .replace(/(Câu \d+\.)/g, '\n\n$1')
+  // Normalize multiple-choice labels to the strict Markdown requested by the prompt.
+  .replace(/^\s*-\s*(?:\*\*)?([A-D])\.\s*(?:\*\*)?/gm, '- **$1.** ')
+  // Smart paper-saving layout for four consecutive A/B/C/D options.
+  .replace(
+    /(^- \*\*A\.\*\*[^\n]*(?:\n(?!- \*\*[A-D]\.\*\*)[^\n]*)*\n- \*\*B\.\*\*[^\n]*(?:\n(?!- \*\*[A-D]\.\*\*)[^\n]*)*\n- \*\*C\.\*\*[^\n]*(?:\n(?!- \*\*[A-D]\.\*\*)[^\n]*)*\n- \*\*D\.\*\*[^\n]*(?:\n(?!- \*\*[A-D]\.\*\*)[^\n]*)*)/gm,
+    (match) => `<div class="mcq-grid ${getMcqGridClass(match)}">\n\n${match}\n\n</div>`
+  );
+
 export const ExamRenderer: React.FC<ExamRendererProps> = ({ content }) => {
-  const normalizedContent = useMemo(() => preprocessExamMarkdown(content), [content]);
+  const normalizedContent = useMemo(() => preprocessLaTeX(content), [content]);
 
   return (
     <article className="exam-renderer exam-print-root">

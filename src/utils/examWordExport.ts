@@ -228,6 +228,16 @@ const prepareRenderedExamElement = async (selector = '.exam-container, .exam-ren
   const clonedDOM = source.cloneNode(true) as HTMLElement;
   clonedDOM.querySelectorAll('script, style, textarea, button, input').forEach(node => node.remove());
 
+  clonedDOM.querySelectorAll<HTMLElement>('.katex').forEach(katexElement => {
+    const mathMlNode = katexElement.querySelector<HTMLElement>('.katex-mathml');
+    if (!mathMlNode) return;
+
+    const mathMlOnly = mathMlNode.cloneNode(true) as HTMLElement;
+    mathMlOnly.removeAttribute('aria-hidden');
+    mathMlOnly.querySelectorAll('[aria-hidden="true"]').forEach(node => node.removeAttribute('aria-hidden'));
+    katexElement.replaceWith(mathMlOnly);
+  });
+
   const svgs = Array.from(clonedDOM.querySelectorAll<SVGSVGElement>('svg'));
   for (const svg of svgs) {
     const dataUrl = await serializeSvgToPngDataUrl(svg);

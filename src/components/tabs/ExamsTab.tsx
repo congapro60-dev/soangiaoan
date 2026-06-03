@@ -18,7 +18,8 @@ import { User } from 'firebase/auth';
 import { AppData, Exam, ExamSubmission, ExamQuestion, StudentAnswer } from '../../types';
 import { useExams, updateSubmission, updateExam, getSubmissions } from '../../hooks/useExams';
 import { computeAutoScore, recalcTotalScore } from '../../utils/examScoring';
-import { parseMarkdownToQuestions, generateExamCode, calculateMaxScore } from '../../lib/examParser';
+import { generateExamCode, calculateMaxScore } from '../../lib/examParser';
+import { parseMarkdownToOnlineExam } from '../../utils/examOnlineParser';
 import { callAI } from '../../lib/aiProviders';
 import { ImportExamModal } from '../features/testing/ImportExamModal';
 import { ExamEditorView } from '../features/testing/ExamEditorView';
@@ -222,7 +223,7 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
 
     setCreating(true);
     try {
-      const questions = await parseMarkdownToQuestions(entry.content, data.settings);
+      const questions = await parseMarkdownToOnlineExam(entry.content, data.settings.geminiApiKey || '');
       const now = new Date().toISOString();
       const exam: Exam = {
         id: `exam-${Date.now()}`,

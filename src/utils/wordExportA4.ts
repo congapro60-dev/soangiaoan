@@ -1,303 +1,435 @@
 import {
-  Document,
-  Packer,
-  Paragraph,
-  TextRun,
-  Table,
-  TableRow,
-  TableCell,
-  WidthType,
-  HeadingLevel,
-  BorderStyle,
   AlignmentType,
+  BorderStyle,
+  Document,
+  HeadingLevel,
+  ImageRun,
+  ImportedXmlComponent,
+  Packer,
   PageOrientation,
+  Paragraph,
+  Table,
+  TableCell,
+  TableLayoutType,
+  TableRow,
+  TextRun,
+  WidthType,
 } from 'docx';
-import { marked, Token, Tokens } from 'marked';
+import { mml2omml } from 'mathml2omml';
 import { LessonPlan } from '../types';
 import { downloadBlob, safeFilename } from './fileUtils';
 
-type HeadingLevelValue = (typeof HeadingLevel)[keyof typeof HeadingLevel];
+export type WordOrientation = 'portrait' | 'landscape';
 
-interface RunStyle {
-  bold?: boolean;
-  italic?: boolean;
-  code?: boolean;
-}
+type DocxInline = TextRun | ImportedXmlComponent;
+type DocxChild = Paragraph | Table;
 
 const FONT = 'Times New Roman';
 const SIZE_14PT = 28; // docx size = half-points
 
-// Recursively flatten inline tokens into TextRun[], preserving bold/italic context.
-const flattenInline = (tokens: any[] | undefined, style: RunStyle = {}): TextRun[] => {
-  if (!tokens || tokens.length === 0) return [];
-  const runs: TextRun[] = [];
-  for (const t of tokens) {
-    if (!t) continue;
-    switch (t.type) {
-      case 'strong':
-        runs.push(...flattenInline(t.tokens, { ...style, bold: true }));
-        break;
-      case 'em':
-        runs.push(...flattenInline(t.tokens, { ...style, italic: true }));
-        break;
-      case 'codespan':
-        runs.push(
-          new TextRun({
-            text: t.text || '',
-            bold: style.bold,
-            italics: style.italic,
-            font: 'Courier New',
-            size: SIZE_14PT,
-          })
-        );
-        break;
-      case 'del':
-        runs.push(...flattenInline(t.tokens, style));
-        break;
-      case 'link':
-        runs.push(...flattenInline(t.tokens, style));
-        break;
-      case 'br':
-        runs.push(new TextRun({ break: 1 }));
-        break;
-      case 'html': {
-        // marked emits inline <br/> as html token. Treat as line break.
-        const raw = (t.raw || t.text || '').trim().toLowerCase();
-        if (/^<br\s*\/?>$/.test(raw)) {
-          runs.push(new TextRun({ break: 1 }));
-        } else {
-          // Strip tags as last resort
-          const stripped = (t.text || t.raw || '').replace(/<[^>]+>/g, '');
-          if (stripped) {
-            runs.push(
-              new TextRun({
-                text: stripped,
-                bold: style.bold,
-                italics: style.italic,
-                font: FONT,
-                size: SIZE_14PT,
-              })
-            );
-          }
-        }
-        break;
-      }
-      case 'text':
-      case 'escape':
-      default: {
-        // 'text' tokens may have nested tokens (when text contains inline emphasis)
-        if (t.tokens && t.tokens.length > 0) {
-          runs.push(...flattenInline(t.tokens, style));
-        } else {
-          const text = t.text ?? t.raw ?? '';
-          if (text) {
-            runs.push(
-              new TextRun({
-                text,
-                bold: style.bold,
-                italics: style.italic,
-                font: FONT,
-                size: SIZE_14PT,
-              })
-            );
-          }
-        }
-      }
+const dataUrlToUint8Array = (dataUrl: string): Uint8Array => {
+  const base64 = dataUrl.split(',')[1] || '';
+  const binary = window.atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+};
+
+const serializeSvgToPngDataUrl = async (svg: SVGSVGElement): Promise<string | null> => {
+  const clonedSvg = svg.cloneNode(true) as SVGSVGElement;
+
+  if (!clonedSvg.getAttribute('xmlns')) {
+    clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  }
+
+  const rect = svg.getBoundingClientRect();
+  const viewBox = clonedSvg.getAttribute('viewBox');
+  let width = Number.parseFloat(clonedSvg.getAttribute('width') || '') || rect.width || 600;
+  let height = Number.parseFloat(clonedSvg.getAttribute('height') || '') || rect.height || 300;
+
+  if ((!width || !height) && viewBox) {
+    const [, , vbWidth, vbHeight] = viewBox.split(/\s+/).map(Number);
+    width = width || vbWidth || 600;
+    height = height || vbHeight || 300;
+  }
+
+  clonedSvg.setAttribute('width', String(width));
+  clonedSvg.setAttribute('height', String(height));
+
+  const svgText = new XMLSerializer().serializeToString(clonedSvg);
+  const svgBlob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(svgBlob);
+
+  try {
+    const image = new Image();
+    image.decoding = 'async';
+    image.crossOrigin = 'anonymous';
+    await new Promise<void>((resolve, reject) => {
+      image.onload = () => resolve();
+      image.onerror = () => reject(new Error('Không thể rasterize SVG khi xuất Word'));
+      image.src = url;
+    });
+
+    const scale = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.ceil(width * scale);
+    canvas.height = Math.ceil(height * scale);
+    const context = canvas.getContext('2d');
+    if (!context) return null;
+
+    context.fillStyle = '#ffffff';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL('image/png');
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+};
+
+const isVisibleEnough = (element: HTMLElement): boolean => {
+  const rect = element.getBoundingClientRect();
+  const style = window.getComputedStyle(element);
+  return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+};
+
+const sanitizeKatexToMathMl = (root: HTMLElement): void => {
+  root.querySelectorAll<HTMLElement>('.katex').forEach(katexElement => {
+    const mathMlNode = katexElement.querySelector<HTMLElement>('.katex-mathml');
+    if (!mathMlNode) return;
+
+    // Keep only the MathML branch. KaTeX's visual HTML branch is intentionally removed:
+    // Word can consume MathML/OMML, but the .katex-html spans flatten into broken text.
+    const mathMlOnly = mathMlNode.cloneNode(true) as HTMLElement;
+    mathMlOnly.removeAttribute('aria-hidden');
+    mathMlOnly.querySelectorAll('[aria-hidden="true"]').forEach(node => node.removeAttribute('aria-hidden'));
+    katexElement.replaceWith(mathMlOnly);
+  });
+};
+
+const rasterizeSvgs = async (root: HTMLElement): Promise<void> => {
+  const svgs = Array.from(root.querySelectorAll<SVGSVGElement>('svg'));
+  for (const svg of svgs) {
+    const dataUrl = await serializeSvgToPngDataUrl(svg);
+    if (!dataUrl) continue;
+
+    const rect = svg.getBoundingClientRect();
+    const img = document.createElement('img');
+    img.src = dataUrl;
+    img.alt = svg.getAttribute('aria-label') || 'Hình minh họa';
+    img.width = Math.min(rect.width || Number.parseFloat(svg.getAttribute('width') || '') || 520, 520);
+    img.height = Math.min(rect.height || Number.parseFloat(svg.getAttribute('height') || '') || 300, 360);
+    svg.replaceWith(img);
+  }
+};
+
+const findRenderedLessonSource = (): HTMLElement | null => {
+  const selectors = [
+    '#lesson-content .w-md-editor-preview',
+    '#lesson-content .wmde-markdown',
+    '#lesson-content .markdown-body',
+    '.w-md-editor-preview',
+    '.wmde-markdown',
+    '.markdown-body',
+  ];
+
+  for (const selector of selectors) {
+    const candidates = Array.from(document.querySelectorAll<HTMLElement>(selector));
+    const source = candidates.find(candidate => isVisibleEnough(candidate) && candidate.textContent?.trim());
+    if (source) return source;
+  }
+
+  return null;
+};
+
+const renderHiddenLessonPreview = async (content: string, title?: string): Promise<{ element: HTMLElement; cleanup: () => void }> => {
+  const [
+    { createRoot },
+    { flushSync },
+    { default: React },
+    { default: ReactMarkdown },
+    { default: remarkGfm },
+    { default: remarkMath },
+    { default: rehypeKatex },
+    { default: rehypeRaw },
+  ] = await Promise.all([
+    import('react-dom/client'),
+    import('react-dom'),
+    import('react'),
+    import('react-markdown'),
+    import('remark-gfm'),
+    import('remark-math'),
+    import('rehype-katex'),
+    import('rehype-raw'),
+  ]);
+
+  const container = document.createElement('div');
+  container.id = 'word-render-container';
+  container.className = 'markdown-body wmde-markdown';
+  container.style.cssText = [
+    'position: fixed',
+    'top: 0',
+    'left: -10000px',
+    'width: 720px',
+    'background: #ffffff',
+    'color: #000000',
+    `font-family: ${FONT}, Times, serif`,
+    'font-size: 14pt',
+    'line-height: 1.5',
+    'z-index: -1',
+  ].join(';');
+  document.body.appendChild(container);
+
+  const root = createRoot(container);
+  flushSync(() => {
+    root.render(
+      React.createElement(
+        React.Fragment,
+        null,
+        title && React.createElement('h1', null, title),
+        React.createElement(ReactMarkdown as any, {
+          remarkPlugins: [remarkGfm, remarkMath],
+          rehypePlugins: [rehypeRaw, rehypeKatex],
+          children: content,
+        })
+      )
+    );
+  });
+
+  await document.fonts.ready;
+  await new Promise(resolve => window.requestAnimationFrame(resolve));
+
+  return {
+    element: container,
+    cleanup: () => {
+      root.unmount();
+      container.remove();
+    },
+  };
+};
+
+const prepareRenderedLessonElement = async (currentPlan: Partial<LessonPlan>): Promise<{ element: HTMLElement; cleanup: () => void }> => {
+  const visibleSource = findRenderedLessonSource();
+  const rendered = visibleSource
+    ? { element: visibleSource, cleanup: () => undefined }
+    : await renderHiddenLessonPreview(currentPlan.content || '', currentPlan.title);
+
+  const clonedDOM = rendered.element.cloneNode(true) as HTMLElement;
+  clonedDOM.querySelectorAll('script, style, textarea, button, input, .w-md-editor-toolbar').forEach(node => node.remove());
+
+  sanitizeKatexToMathMl(clonedDOM);
+  await rasterizeSvgs(clonedDOM);
+  rendered.cleanup();
+
+  return { element: clonedDOM, cleanup: () => undefined };
+};
+
+const mathMlToOmml = (element: Element): ImportedXmlComponent | null => {
+  const math = element.tagName.toLowerCase() === 'math'
+    ? element
+    : element.querySelector('math');
+  if (!math) return null;
+
+  try {
+    if (!math.getAttribute('xmlns')) {
+      math.setAttribute('xmlns', 'http://www.w3.org/1998/Math/MathML');
     }
-  }
-  return runs;
-};
-
-// Build paragraphs for a single table cell. <br/> splits paragraphs; otherwise all inline tokens go in ONE paragraph.
-const buildCellParagraphs = (cell: Tokens.TableCell): Paragraph[] => {
-  const inlineTokens: any[] = (cell as any).tokens || [];
-  const groups: any[][] = [[]];
-  for (const tok of inlineTokens) {
-    const raw = ((tok.raw || tok.text || '') as string).trim().toLowerCase();
-    const isBr = tok.type === 'br' || (tok.type === 'html' && /^<br\s*\/?>$/.test(raw));
-    if (isBr) {
-      groups.push([]);
-    } else {
-      groups[groups.length - 1].push(tok);
-    }
-  }
-
-  const paragraphs: Paragraph[] = [];
-  for (const group of groups) {
-    const runs = flattenInline(group);
-    if (runs.length === 0) continue;
-    paragraphs.push(new Paragraph({ children: runs }));
-  }
-  if (paragraphs.length === 0) {
-    paragraphs.push(new Paragraph({ children: [] }));
-  }
-  return paragraphs;
-};
-
-const getCellWidth = (idx: number, total: number): number => {
-  if (total === 3) {
-    if (idx === 0) return 30; // GV
-    if (idx === 1) return 30; // HS
-    return 40; // Ghi bảng
-  }
-  if (total === 0) return 100;
-  return Math.floor(100 / total);
-};
-
-const headingLevelFor = (depth: number): HeadingLevelValue => {
-  switch (depth) {
-    case 1:
-      return HeadingLevel.HEADING_1;
-    case 3:
-      return HeadingLevel.HEADING_3;
-    case 4:
-      return HeadingLevel.HEADING_4;
-    case 5:
-      return HeadingLevel.HEADING_5;
-    case 6:
-      return HeadingLevel.HEADING_6;
-    default:
-      return HeadingLevel.HEADING_2;
+    const mathMl = new XMLSerializer().serializeToString(math);
+    const omml = mml2omml(mathMl);
+    return ImportedXmlComponent.fromXmlString(omml);
+  } catch (error) {
+    console.warn('Không thể chuyển MathML sang OMML, dùng text fallback:', error);
+    return null;
   }
 };
 
-const processTokens = (tokens: Token[], context: any[]) => {
-  for (const token of tokens) {
-    switch (token.type) {
-      case 'heading': {
-        const h = token as Tokens.Heading;
-        context.push(
-          new Paragraph({
-            children: flattenInline(h.tokens || [{ type: 'text', text: h.text }]),
-            heading: headingLevelFor(h.depth),
-            spacing: { before: 200, after: 120 },
-          })
-        );
-        break;
-      }
+const textFallbackFromMath = (element: Element): string => {
+  const annotation = element.querySelector('annotation[encoding="application/x-tex"]');
+  if (annotation?.textContent?.trim()) return annotation.textContent.trim();
+  return element.textContent?.replace(/\s+/g, ' ').trim() || '';
+};
 
-      case 'paragraph': {
-        const p = token as Tokens.Paragraph;
-        context.push(
-          new Paragraph({
-            children: flattenInline(p.tokens || [{ type: 'text', text: p.text }]),
-            spacing: { before: 120, after: 120 },
-          })
-        );
-        break;
-      }
+const textRunsFromInline = (
+  node: Node,
+  inherited: { bold?: boolean; italics?: boolean } = {}
+): DocxInline[] => {
+  if (node.nodeType === Node.TEXT_NODE) {
+    const text = node.textContent?.replace(/\s+/g, ' ') || '';
+    return text ? [new TextRun({ text, font: FONT, size: SIZE_14PT, ...inherited })] : [];
+  }
 
-      case 'list': {
-        const list = token as Tokens.List;
-        list.items.forEach((item: any) => {
-          // List item content is a sequence of block tokens; first is usually a 'text' token containing inline tokens.
-          const inline =
-            item.tokens?.[0]?.tokens || [{ type: 'text', text: item.text || '' }];
-          context.push(
-            new Paragraph({
-              children: flattenInline(inline),
-              bullet: { level: 0 },
-              spacing: { before: 60, after: 60 },
-            })
-          );
+  if (!(node instanceof Element)) return [];
+
+  const tag = node.tagName.toLowerCase();
+
+  if (tag === 'math' || node.classList.contains('katex-mathml')) {
+    const omml = mathMlToOmml(node);
+    if (omml) return [omml];
+
+    const fallback = textFallbackFromMath(node);
+    return fallback ? [new TextRun({ text: fallback, font: 'Cambria Math', size: SIZE_14PT, ...inherited })] : [];
+  }
+
+  if (node.classList.contains('katex-html')) return [];
+  if (tag === 'br') return [new TextRun({ break: 1 })];
+
+  const next = {
+    bold: inherited.bold || ['strong', 'b'].includes(tag),
+    italics: inherited.italics || ['em', 'i'].includes(tag),
+  };
+
+  return Array.from(node.childNodes).flatMap(child => textRunsFromInline(child, next));
+};
+
+const headingLevelForTag = (tag: string): (typeof HeadingLevel)[keyof typeof HeadingLevel] => {
+  switch (tag) {
+    case 'h1': return HeadingLevel.HEADING_1;
+    case 'h2': return HeadingLevel.HEADING_2;
+    case 'h3': return HeadingLevel.HEADING_3;
+    case 'h4': return HeadingLevel.HEADING_4;
+    case 'h5': return HeadingLevel.HEADING_5;
+    default: return HeadingLevel.HEADING_6;
+  }
+};
+
+const paragraphFromElement = (
+  element: Element,
+  options: {
+    bullet?: boolean;
+    heading?: (typeof HeadingLevel)[keyof typeof HeadingLevel];
+    alignment?: (typeof AlignmentType)[keyof typeof AlignmentType];
+  } = {}
+): Paragraph => {
+  const children = Array.from(element.childNodes).flatMap(child => textRunsFromInline(child));
+
+  return new Paragraph({
+    children: (children.length ? children : [new TextRun({ text: '', font: FONT, size: SIZE_14PT })]) as any,
+    heading: options.heading,
+    bullet: options.bullet ? { level: 0 } : undefined,
+    alignment: options.alignment,
+    spacing: { before: options.heading ? 160 : 90, after: options.heading ? 120 : 90, line: 360 },
+    indent: options.bullet ? { left: 360, hanging: 180 } : undefined,
+  });
+};
+
+const paragraphFromText = (text: string, options: Parameters<typeof paragraphFromElement>[1] = {}): Paragraph => (
+  new Paragraph({
+    children: [new TextRun({ text, font: FONT, size: SIZE_14PT, bold: Boolean(options?.heading) })],
+    heading: options?.heading,
+    alignment: options?.alignment,
+    spacing: { before: options?.heading ? 160 : 90, after: options?.heading ? 120 : 90, line: 360 },
+  })
+);
+
+const imageParagraphFromElement = (img: HTMLImageElement): Paragraph | null => {
+  if (!img.src.startsWith('data:image/')) return null;
+
+  const width = Math.min(Number.parseFloat(img.getAttribute('width') || '') || img.naturalWidth || 520, 520);
+  const height = Math.min(Number.parseFloat(img.getAttribute('height') || '') || img.naturalHeight || 300, 360);
+
+  return new Paragraph({
+    alignment: AlignmentType.CENTER,
+    spacing: { before: 120, after: 120 },
+    children: [
+      new ImageRun({
+        data: dataUrlToUint8Array(img.src),
+        transformation: { width, height },
+        type: img.src.includes('image/jpeg') ? 'jpg' : 'png',
+      }),
+    ],
+  });
+};
+
+const cellWidthFor = (idx: number, total: number): number => {
+  if (total === 3) return idx === 2 ? 40 : 30;
+  return total > 0 ? Math.floor(100 / total) : 100;
+};
+
+const tableFromElement = (table: HTMLTableElement): Table => {
+  const rows = Array.from(table.rows).map(row => {
+    const colCount = row.cells.length || 1;
+    return new TableRow({
+      tableHeader: row.parentElement?.tagName.toLowerCase() === 'thead' || row.rowIndex === 0,
+      children: Array.from(row.cells).map((cell, idx) => {
+        const children = domToDocxChildren(cell).filter((child): child is Paragraph => child instanceof Paragraph);
+        return new TableCell({
+          children: children.length ? children : [paragraphFromText(cell.textContent?.trim() || '')],
+          shading: cell.tagName.toLowerCase() === 'th' ? { fill: 'E2E8F0', type: 'clear' } : undefined,
+          borders: {
+            top: { style: BorderStyle.SINGLE, size: 1, color: '718096' },
+            bottom: { style: BorderStyle.SINGLE, size: 1, color: '718096' },
+            left: { style: BorderStyle.SINGLE, size: 1, color: '718096' },
+            right: { style: BorderStyle.SINGLE, size: 1, color: '718096' },
+          },
+          margins: { top: 100, bottom: 100, left: 100, right: 100 },
+          width: { size: cellWidthFor(idx, colCount), type: WidthType.PERCENTAGE },
         });
-        break;
-      }
+      }),
+    });
+  });
 
-      case 'blockquote': {
-        const bq = token as Tokens.Blockquote;
-        // Render contents as italic paragraphs
-        const inner: any[] = [];
-        processTokens(bq.tokens || [], inner);
-        inner.forEach((p) => context.push(p));
-        break;
-      }
-
-      case 'table': {
-        const tableTok = token as Tokens.Table;
-        const colCount = tableTok.header.length;
-        const rows: TableRow[] = [];
-
-        // Header
-        rows.push(
-          new TableRow({
-            tableHeader: true,
-            children: tableTok.header.map((th: any, idx: number) => {
-              const runs = flattenInline(th.tokens || [{ type: 'text', text: th.text || '' }]);
-              return new TableCell({
-                children: [new Paragraph({ children: runs })],
-                shading: { fill: 'E2E8F0', type: 'clear' },
-                margins: { top: 100, bottom: 100, left: 100, right: 100 },
-                width: { size: getCellWidth(idx, colCount), type: WidthType.PERCENTAGE },
-              });
-            }),
-          })
-        );
-
-        // Body
-        tableTok.rows.forEach((row: any) => {
-          rows.push(
-            new TableRow({
-              children: row.map((td: any, idx: number) => {
-                return new TableCell({
-                  children: buildCellParagraphs(td),
-                  margins: { top: 100, bottom: 100, left: 100, right: 100 },
-                  width: { size: getCellWidth(idx, colCount), type: WidthType.PERCENTAGE },
-                });
-              }),
-            })
-          );
-        });
-
-        context.push(
-          new Table({
-            rows,
-            width: { size: 100, type: WidthType.PERCENTAGE },
-            borders: {
-              top: { style: BorderStyle.SINGLE, size: 1, color: '718096' },
-              bottom: { style: BorderStyle.SINGLE, size: 1, color: '718096' },
-              left: { style: BorderStyle.SINGLE, size: 1, color: '718096' },
-              right: { style: BorderStyle.SINGLE, size: 1, color: '718096' },
-              insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: '718096' },
-              insideVertical: { style: BorderStyle.SINGLE, size: 1, color: '718096' },
-            },
-          })
-        );
-        break;
-      }
-
-      case 'code': {
-        const c = token as Tokens.Code;
-        context.push(
-          new Paragraph({
-            children: [
-              new TextRun({ text: c.text || '', font: 'Courier New', size: SIZE_14PT }),
-            ],
-            spacing: { before: 80, after: 80 },
-          })
-        );
-        break;
-      }
-
-      case 'space':
-      case 'hr':
-        break;
-
-      default: {
-        const anyTok: any = token;
-        if (anyTok.raw) {
-          context.push(
-            new Paragraph({
-              children: [new TextRun({ text: anyTok.raw, size: SIZE_14PT, font: FONT })],
-            })
-          );
-        }
-      }
-    }
-  }
+  return new Table({
+    rows,
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    layout: TableLayoutType.FIXED,
+  });
 };
 
-export type WordOrientation = 'portrait' | 'landscape';
+const domToDocxChildren = (root: Element): DocxChild[] => {
+  const children: DocxChild[] = [];
+
+  Array.from(root.children).forEach(element => {
+    const tag = element.tagName.toLowerCase();
+
+    if (element.classList.contains('katex-html')) return;
+
+    if (tag === 'table') {
+      children.push(tableFromElement(element as HTMLTableElement));
+      return;
+    }
+
+    if (tag === 'img') {
+      const imageParagraph = imageParagraphFromElement(element as HTMLImageElement);
+      if (imageParagraph) children.push(imageParagraph);
+      return;
+    }
+
+    if (/^h[1-6]$/.test(tag)) {
+      children.push(paragraphFromElement(element, {
+        heading: headingLevelForTag(tag),
+        alignment: tag === 'h1' ? AlignmentType.CENTER : undefined,
+      }));
+      return;
+    }
+
+    if (tag === 'li') {
+      children.push(paragraphFromElement(element, { bullet: true }));
+      return;
+    }
+
+    if (tag === 'ul' || tag === 'ol') {
+      children.push(...domToDocxChildren(element));
+      return;
+    }
+
+    if (['p', 'blockquote', 'pre'].includes(tag) || tag === 'math' || element.classList.contains('katex-mathml')) {
+      children.push(paragraphFromElement(element));
+      return;
+    }
+
+    const nested = domToDocxChildren(element);
+    if (nested.length > 0) {
+      children.push(...nested);
+    } else if (element.textContent?.trim()) {
+      children.push(paragraphFromElement(element));
+    }
+  });
+
+  if (children.length === 0 && root.textContent?.trim()) {
+    children.push(paragraphFromElement(root));
+  }
+
+  return children;
+};
 
 export const exportToWordA4 = async (
   currentPlan: Partial<LessonPlan>,
@@ -309,35 +441,28 @@ export const exportToWordA4 = async (
     return;
   }
 
-  showToast('Đang tạo file Word chuẩn A4...', 'info');
+  showToast('Đang tạo file Word chuẩn A4 với công thức MathML...', 'info');
 
   try {
-    const tokens = marked.lexer(currentPlan.content);
-    const docElements: any[] = [];
+    const { element: renderedLesson } = await prepareRenderedLessonElement(currentPlan);
+    const docElements = domToDocxChildren(renderedLesson);
 
-    if (currentPlan.title) {
-      docElements.push(
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: currentPlan.title.toUpperCase(),
-              bold: true,
-              font: FONT,
-              size: 32, // 16pt for title
-            }),
-          ],
+    const needsTitle = currentPlan.title && !docElements.some(child => {
+      if (!(child instanceof Paragraph)) return false;
+      return renderedLesson.querySelector('h1')?.textContent?.trim() === currentPlan.title?.trim();
+    });
+
+    if (needsTitle) {
+      docElements.unshift(
+        paragraphFromText(currentPlan.title!.toUpperCase(), {
           heading: HeadingLevel.HEADING_1,
           alignment: AlignmentType.CENTER,
-          spacing: { before: 240, after: 240 },
         })
       );
     }
 
-    processTokens(tokens, docElements);
-
     // Lề chuẩn Nghị định 30/2020/NĐ-CP (twips, 1cm = 567 twips):
-    // Trên 20mm = 1134, dưới 20mm = 1134, trái 30mm = 1701, phải 18mm = 1021.
-    // A4 dọc: 11906 x 16838 twips. Ngang: swap.
+    // Trên/dưới 20mm = 1134, trái 30mm = 1701, phải 18mm = 1021.
     const isLandscape = orientation === 'landscape';
     const doc = new Document({
       creator: 'SmartPlan AI',
@@ -346,9 +471,35 @@ export const exportToWordA4 = async (
         default: {
           document: {
             run: { size: SIZE_14PT, font: FONT },
-            paragraph: { spacing: { line: 360 } }, // 1.5 line spacing
+            paragraph: { spacing: { line: 360 } },
           },
         },
+        paragraphStyles: [
+          {
+            id: 'Heading1',
+            name: 'Heading 1',
+            basedOn: 'Normal',
+            next: 'Normal',
+            run: { font: FONT, size: 32, bold: true },
+            paragraph: { spacing: { before: 240, after: 180 } },
+          },
+          {
+            id: 'Heading2',
+            name: 'Heading 2',
+            basedOn: 'Normal',
+            next: 'Normal',
+            run: { font: FONT, size: 30, bold: true },
+            paragraph: { spacing: { before: 180, after: 120 } },
+          },
+          {
+            id: 'Heading3',
+            name: 'Heading 3',
+            basedOn: 'Normal',
+            next: 'Normal',
+            run: { font: FONT, size: 28, bold: true },
+            paragraph: { spacing: { before: 160, after: 100 } },
+          },
+        ],
       },
       sections: [
         {
@@ -360,7 +511,7 @@ export const exportToWordA4 = async (
               margin: { top: 1134, right: 1021, bottom: 1134, left: 1701 },
             },
           },
-          children: docElements,
+          children: docElements.length ? docElements : [new Paragraph('')],
         },
       ],
     });

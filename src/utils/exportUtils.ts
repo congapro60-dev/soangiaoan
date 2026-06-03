@@ -71,6 +71,19 @@ export const exportToPDF = async (
       box-sizing: border-box;
     }
     #pdf-render-container * { box-sizing: border-box; }
+    #pdf-render-container img,
+    #pdf-render-container svg,
+    #pdf-render-container canvas {
+      max-width: 100% !important;
+      height: auto !important;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+    #pdf-render-container .markdown-body,
+    #pdf-render-container .wmde-markdown {
+      max-width: 100% !important;
+      overflow-wrap: anywhere !important;
+    }
     /* Do NOT set font-family with !important — it would break KaTeX's own inline
        font-family declarations (KaTeX_Math, KaTeX_Main, etc.) causing math blanks. */
     #pdf-render-container h1 {
@@ -119,7 +132,13 @@ export const exportToPDF = async (
       font-size: 13pt !important;
       line-height: 1.4 !important;
       word-wrap: break-word !important;
-      overflow-wrap: break-word !important;
+      overflow-wrap: anywhere !important;
+      white-space: normal !important;
+    }
+    #pdf-render-container table td *,
+    #pdf-render-container table th * {
+      max-width: 100% !important;
+      overflow-wrap: anywhere !important;
     }
     #pdf-render-container table th {
       background: #e2e8f0 !important; font-weight: bold !important;
@@ -144,8 +163,23 @@ export const exportToPDF = async (
       font-size: 12pt !important;
       line-height: 1.4 !important;
     }
-    #pdf-render-container .katex { font-size: 1em !important; padding: 1pt 0 !important; }
-    #pdf-render-container .katex-display { margin: 4pt 0 !important; }
+    #pdf-render-container .katex {
+      font-size: 1em !important;
+      padding: 1pt 0 !important;
+      max-width: 100% !important;
+      white-space: normal !important;
+    }
+    #pdf-render-container .katex-display {
+      margin: 4pt 0 !important;
+      max-width: 100% !important;
+      overflow-x: hidden !important;
+      overflow-y: visible !important;
+    }
+    #pdf-render-container .katex-display > .katex {
+      display: inline-block !important;
+      max-width: 100% !important;
+      transform-origin: left center !important;
+    }
   `;
   document.head.appendChild(style);
   document.body.appendChild(container);

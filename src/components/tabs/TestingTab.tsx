@@ -149,8 +149,11 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
   };
 
   const handleDownloadPDF = async () => {
-    const element = document.querySelector<HTMLElement>('.exam-board .w-md-editor-preview .wmde-markdown');
-    if (!element) return;
+    const element = document.querySelector<HTMLElement>('.exam-renderer');
+    if (!element) {
+      console.error('Rendered exam container not found for PDF export.');
+      return;
+    }
     showToast('Đang tạo PDF, vui lòng chờ...');
     try {
       const { exportElementToPdf } = await import('../../utils/pdfExport');

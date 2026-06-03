@@ -23,21 +23,31 @@ YÊU CẦU NGHIÊM NGẶT:
 1. Nhận diện từng câu (Câu 1, Câu 2... hoặc 1., 2., ...).
 2. Phân loại "type": "multiple_choice" (có 4 phương án A/B/C/D), "true_false" (Đúng/Sai), "short_answer" (điền từ/đáp án ngắn), hoặc "essay" (tự luận dài).
 3. Giữ nguyên công thức LaTeX ($...$, $$...$$).
-4. Với "multiple_choice": "options" là mảng 4 chuỗi bắt đầu "A. ", "B. ", "C. ", "D. "; "correctAnswer" là 1 chữ cái "A"/"B"/"C"/"D".
-5. Với "true_false": "correctAnswer" là "Đúng" hoặc "Sai".
-6. Với "short_answer": "correctAnswer" là chuỗi đáp án ngắn.
-7. Với "essay": bỏ "correctAnswer", để trống để giáo viên / AI chấm sau.
-8. "points": nếu đề không ghi rõ, chia đều tổng 10 điểm cho số câu (làm tròn 0.25).
-9. "explanation": trích từ phần lời giải / đáp án nếu có.
-10. Chỉ trả về mảng JSON thuần (không bọc markdown, không chú thích).
+4. BẮT BUỘC TRÍCH XUẤT HÌNH VẼ: Nếu trong nội dung câu hỏi có khối mã \`\`\`xml ... \`\`\` chứa thẻ <svg>, bạn PHẢI đưa toàn bộ khối mã đó vào trường "content". Tuyệt đối không được bỏ sót hình vẽ minh họa.
+5. Với "multiple_choice": 
+   - Trường "options": Chỉ lấy nội dung đáp án thuần túy, KHÔNG BAO GỒM các ký hiệu tiền tố như "A.", "B.", "- **A.**". (Ví dụ: Thay vì lấy "- **A.** 2x + 1", chỉ lấy "2x + 1").
+   - Trường "correctAnswer": Dựa vào Bảng Đáp Án ở cuối đề, ghi 1 chữ cái "A", "B", "C", hoặc "D".
+6. Với "true_false": "correctAnswer" là "Đúng" hoặc "Sai" dựa trên Bảng Đáp án.
+7. Với "short_answer": "correctAnswer" là chuỗi đáp án ngắn lấy từ Bảng Đáp án.
+8. Với "essay": để trống "correctAnswer" để giáo viên chấm sau.
+9. "points": Nếu đề không ghi rõ, chia đều tổng điểm cho số câu.
+10. "explanation": Trích xuất lời giải chi tiết tương ứng với từng câu từ phần Lời giải (nếu có).
+11. BẮT BUỘC trả về CHỈ MỘT MẢNG JSON thuần túy (không bọc markdown, không chứa chú thích).
 
-ĐỊNH DẠNG OUTPUT BẮT BUỘC:
+ĐỊNH DẠNG OUTPUT BẮT BUỘC (Ví dụ):
 [
-  {"id":"q1","type":"multiple_choice","content":"Nội dung câu","options":["A. ...","B. ...","C. ...","D. ..."],"correctAnswer":"A","points":0.5,"explanation":"..."},
-  {"id":"q2","type":"essay","content":"Nội dung câu tự luận","points":2}
+  {
+    "id": "q1",
+    "type": "multiple_choice",
+    "content": "Giá trị lớn nhất của hàm số là bao nhiêu? \\n\\n \`\`\`xml <svg>...</svg> \`\`\`",
+    "options": ["2", "4", "6", "8"],
+    "correctAnswer": "B",
+    "points": 0.5,
+    "explanation": "Ta có đạo hàm y' = ..."
+  }
 ]
 
-NỘI DUNG ĐỀ:
+NỘI DUNG ĐỀ (Bao gồm cả Đề, Bảng Đáp Án và Lời giải chi tiết):
 ${markdown}
 `;
 

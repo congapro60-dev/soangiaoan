@@ -163,13 +163,29 @@
   page-break-inside: avoid;
 }
 
-.exam-renderer .options-grid.cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.exam-renderer .options-grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.exam-renderer .options-grid.cols-1 { grid-template-columns: 1fr; }
+.exam-renderer .options-grid.cols-4,
+.exam-renderer .mcq-grid.mcq-4-col { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.exam-renderer .options-grid.cols-2,
+.exam-renderer .mcq-grid.mcq-2-col { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.exam-renderer .options-grid.cols-1,
+.exam-renderer .mcq-grid.mcq-1-col { grid-template-columns: 1fr; }
+
+.exam-renderer .mcq-grid {
+  display: grid;
+  list-style: none;
+  padding-left: 0;
+  gap: 4px 18px;
+  margin: 4px 0 8px;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
 
 .exam-renderer .options-grid .exam-option-item,
 .exam-renderer .options-grid > p,
-.exam-renderer .options-grid > div {
+.exam-renderer .options-grid > div,
+.exam-renderer .mcq-grid > li,
+.exam-renderer .mcq-grid > p,
+.exam-renderer .mcq-grid > div {
   margin: 0;
   min-width: 0;
   line-height: 1.35;
@@ -193,4 +209,23 @@
 .exam-renderer code {
   font-family: 'Courier New', monospace;
   font-size: 12pt;
+}
+
+@media print {
+  .exam-renderer img,
+  .exam-renderer svg,
+  .exam-renderer .exam-image,
+  .exam-renderer .exam-figure,
+  .exam-renderer .exam-svg,
+  .exam-renderer .variation-table {
+    max-width: 55%;
+    max-height: 9cm;
+  }
+
+  .exam-renderer ul.exam-options,
+  .exam-renderer .mcq-grid,
+  .exam-renderer .exam-table-wrap {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 }

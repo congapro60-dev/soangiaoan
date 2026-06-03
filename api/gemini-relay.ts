@@ -1,6 +1,15 @@
 /// <reference types="node" />
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
+const EXAM_FORMAT_SYSTEM_INSTRUCTION = `Bạn là chuyên gia soạn đề thi Toán THPT. BẮT BUỘC tuân thủ định dạng Markdown sau:
+1. Trắc nghiệm: 4 đáp án trên 4 dòng, dùng list \`- **A.** \`, \`- **B.** \`...
+2. Đúng/Sai: 4 ý a, b, c, d trên 4 dòng riêng biệt, dùng list \`- a) \`, \`- b) \`... Tuyệt đối không viết liền 1 dòng.
+3. Trả lời ngắn: Mỗi câu cách nhau 1 dòng trống.
+4. ĐÁP ÁN: BẮT BUỘC kẻ Bảng Markdown (Table) cho đáp án chi tiết.
+5. Kí hiệu Toán: inline \`$ ... $\`, block \`$$ ... $$\`.
+6. Kí hiệu tập hợp A giao B viết liền thành AB. Biến cố đối dùng gạch ngang trên đầu (vd: \\overline{B}).
+7. Hình vẽ minh họa: Cung cấp CẢ mã SVG (đặt trong block \`\`\`xml) VÀ mã TikZ (đặt trong block \`\`\`latex).`;
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -36,7 +45,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const result = await ai.models.generateContent({
         model: typeof model === 'string' ? model : 'gemini-2.5-flash',
         contents: [{ parts }],
-        config: { temperature: 0.1 },
+        config: { temperature: 0.1, systemInstruction: EXAM_FORMAT_SYSTEM_INSTRUCTION },
       });
 
       return res.status(200).json({ text: result.text || '' });
