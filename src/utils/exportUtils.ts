@@ -143,10 +143,29 @@ export const exportToPDF = async (
       hyphens: auto !important;
       white-space: normal !important;
     }
+    #pdf-render-container tr {
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+    #pdf-render-container table {
+      page-break-inside: auto !important;
+    }
     #pdf-render-container table td *,
     #pdf-render-container table th * {
       max-width: 100% !important;
       overflow-wrap: anywhere !important;
+    }
+    #pdf-render-container table td .katex,
+    #pdf-render-container table td .katex-display,
+    #pdf-render-container table td .katex-html,
+    #pdf-render-container table th .katex,
+    #pdf-render-container table th .katex-display,
+    #pdf-render-container table th .katex-html {
+      overflow-wrap: normal !important;
+      word-break: normal !important;
+      overflow: visible !important;
+      max-width: none !important;
+      white-space: nowrap !important;
     }
     #pdf-render-container table th {
       background: #e2e8f0 !important; font-weight: bold !important;

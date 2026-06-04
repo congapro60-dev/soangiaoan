@@ -106,6 +106,22 @@ const sanitizeKatexToMathMl = (root: HTMLElement): void => {
   });
 };
 
+const stripRawCodeBlocks = (root: HTMLElement): void => {
+  root.querySelectorAll<HTMLPreElement>('pre').forEach(pre => {
+    const rawText = pre.textContent || '';
+    const isTikzCode = rawText.includes('\\begin{tikzpicture}');
+    const isSvgCode = rawText.includes('<svg') || rawText.includes('xmlns="http://www.w3.org/2000/svg"');
+
+    if (!isTikzCode && !isSvgCode) return;
+
+    const placeholder = document.createElement('p');
+    placeholder.textContent = isTikzCode
+      ? '[Hình minh họa (TikZ/LaTeX) — xem bản PDF hoặc xuất LaTeX]'
+      : '[Hình minh họa (SVG) — xem bản PDF để thấy hình đầy đủ]';
+    pre.replaceWith(placeholder);
+  });
+};
+
 const rasterizeSvgs = async (root: HTMLElement): Promise<void> => {
   const svgs = Array.from(root.querySelectorAll<SVGSVGElement>('svg'));
   for (const svg of svgs) {
@@ -216,6 +232,7 @@ const prepareRenderedLessonElement = async (currentPlan: Partial<LessonPlan>): P
   const clonedDOM = rendered.element.cloneNode(true) as HTMLElement;
   clonedDOM.querySelectorAll('script, style, textarea, button, input, .w-md-editor-toolbar').forEach(node => node.remove());
 
+  stripRawCodeBlocks(clonedDOM);
   sanitizeKatexToMathMl(clonedDOM);
   await rasterizeSvgs(clonedDOM);
   rendered.cleanup();
@@ -235,7 +252,22 @@ const mathMlToOmml = (element: Element): ImportedXmlComponent | null => {
     }
     const mathMl = new XMLSerializer().serializeToString(math);
     const omml = mml2omml(mathMl);
-    return ImportedXmlComponent.fromXmlString(omml);
+
+    // ImportedXmlComponent.fromXmlString wraps content in <undefined> tags
+    // which corrupts the docx. Instead, parse OMML and build a proper
+    // m:oMathPara > m:oMath structure that Word accepts.
+    // Strip outer <m:oMath>...</m:oMath> wrapper if present — docx library
+    // adds its own wrapper via the paragraph math run.
+    const stripped = omml
+      .replace(/^\s*<m:oMath[^>]*>/, '')
+      .replace(/<\/m:oMath>\s*$/, '')
+      .trim();
+
+    // Use fromXmlString only on the inner content, wrapped in a known-good
+    // root element that the docx library can serialize correctly.
+    return ImportedXmlComponent.fromXmlString(
+      `<m:oMath xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">${stripped}</m:oMath>`
+    );
   } catch (error) {
     console.warn('Không thể chuyển MathML sang OMML, dùng text fallback:', error);
     return null;
@@ -245,6 +277,16 @@ const mathMlToOmml = (element: Element): ImportedXmlComponent | null => {
 const textFallbackFromMath = (element: Element): string => {
   const annotation = element.querySelector('annotation[encoding="application/x-tex"]');
   if (annotation?.textContent?.trim()) return annotation.textContent.trim();
+
+  const katexElement = element.closest('.katex');
+  const katexHtml = katexElement?.querySelector<HTMLElement>('.katex-html');
+  if (katexHtml) {
+    const visualClone = katexHtml.cloneNode(true) as HTMLElement;
+    visualClone.querySelectorAll('[aria-hidden="true"], .vlist-r .vlist-s').forEach(node => node.remove());
+    const visualText = visualClone.textContent?.replace(/\s+/g, ' ').trim();
+    if (visualText) return visualText;
+  }
+
   return element.textContent?.replace(/\s+/g, ' ').trim() || '';
 };
 
