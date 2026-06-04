@@ -240,6 +240,34 @@ const prepareRenderedLessonElement = async (currentPlan: Partial<LessonPlan>): P
   return { element: clonedDOM, cleanup: () => undefined };
 };
 
+const importedXmlFromDomNode = (node: Element): ImportedXmlComponent => {
+  const attrs = Array.from(node.attributes).reduce<Record<string, string>>((acc, attr) => {
+    acc[attr.name] = attr.value;
+    return acc;
+  }, {});
+
+  const component = new ImportedXmlComponent(node.nodeName, Object.keys(attrs).length ? attrs : undefined);
+
+  Array.from(node.childNodes).forEach(child => {
+    if (child.nodeType === Node.ELEMENT_NODE) {
+      component.push(importedXmlFromDomNode(child as Element));
+      return;
+    }
+
+    if (child.nodeType === Node.TEXT_NODE && child.textContent) {
+      component.push(child.textContent);
+    }
+  });
+
+  return component;
+};
+
+const importedXmlFromString = (xml: string): ImportedXmlComponent | null => {
+  const parsed = new DOMParser().parseFromString(xml, 'application/xml');
+  if (parsed.querySelector('parsererror')) return null;
+  return importedXmlFromDomNode(parsed.documentElement);
+};
+
 const mathMlToOmml = (element: Element): ImportedXmlComponent | null => {
   const math = element.tagName.toLowerCase() === 'math'
     ? element
@@ -253,21 +281,10 @@ const mathMlToOmml = (element: Element): ImportedXmlComponent | null => {
     const mathMl = new XMLSerializer().serializeToString(math);
     const omml = mml2omml(mathMl);
 
-    // ImportedXmlComponent.fromXmlString wraps content in <undefined> tags
-    // which corrupts the docx. Instead, parse OMML and build a proper
-    // m:oMathPara > m:oMath structure that Word accepts.
-    // Strip outer <m:oMath>...</m:oMath> wrapper if present — docx library
-    // adds its own wrapper via the paragraph math run.
-    const stripped = omml
-      .replace(/^\s*<m:oMath[^>]*>/, '')
-      .replace(/<\/m:oMath>\s*$/, '')
-      .trim();
+    const mathComponent = importedXmlFromString(omml);
+    if (mathComponent) return mathComponent;
 
-    // Use fromXmlString only on the inner content, wrapped in a known-good
-    // root element that the docx library can serialize correctly.
-    return ImportedXmlComponent.fromXmlString(
-      `<m:oMath xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">${stripped}</m:oMath>`
-    );
+    return null;
   } catch (error) {
     console.warn('Không thể chuyển MathML sang OMML, dùng text fallback:', error);
     return null;
