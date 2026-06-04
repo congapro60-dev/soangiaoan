@@ -28,7 +28,6 @@
     "file-saver": "^2.0.5",
     "firebase": "^12.11.0",
     "firebase-admin": "^13.9.0",
-    "html-to-docx": "^1.8.0",
     "html2canvas-pro": "^2.0.2",
     "html2pdf.js": "^0.14.0",
     "jspdf": "^4.2.1",
