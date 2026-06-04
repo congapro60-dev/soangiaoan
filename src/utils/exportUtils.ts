@@ -117,14 +117,20 @@ export const exportToPDF = async (
     #pdf-render-container li { font-size: 14pt !important; margin: 2pt 0 !important; }
     #pdf-render-container strong { font-weight: bold !important; }
     #pdf-render-container em { font-style: italic !important; }
-    #pdf-render-container table {
-      border-collapse: collapse !important;
-      width: 100% !important;
+    #pdf-render-container table,
+    #pdf-render-container .markdown-body table,
+    #pdf-render-container .wmde-markdown table {
       table-layout: fixed !important;
+      width: 100% !important;
+      border-collapse: collapse !important;
       margin: 6pt 0 !important;
     }
     #pdf-render-container table th,
-    #pdf-render-container table td {
+    #pdf-render-container table td,
+    #pdf-render-container .markdown-body table th,
+    #pdf-render-container .markdown-body table td,
+    #pdf-render-container .wmde-markdown table th,
+    #pdf-render-container .wmde-markdown table td {
       border: 1px solid #555 !important;
       padding: 5pt 7pt !important;
       vertical-align: top !important;
@@ -132,7 +138,9 @@ export const exportToPDF = async (
       font-size: 13pt !important;
       line-height: 1.4 !important;
       word-wrap: break-word !important;
-      overflow-wrap: anywhere !important;
+      overflow-wrap: break-word !important;
+      word-break: break-word !important;
+      hyphens: auto !important;
       white-space: normal !important;
     }
     #pdf-render-container table td *,
@@ -174,6 +182,7 @@ export const exportToPDF = async (
       max-width: 100% !important;
       overflow-x: hidden !important;
       overflow-y: visible !important;
+      white-space: normal !important;
     }
     #pdf-render-container .katex-display > .katex {
       display: inline-block !important;
@@ -181,7 +190,6 @@ export const exportToPDF = async (
       transform-origin: left center !important;
     }
   `;
-  document.head.appendChild(style);
   document.body.appendChild(container);
 
   const root = createRoot(container);
@@ -207,6 +215,9 @@ export const exportToPDF = async (
         )
       );
     });
+
+    container.prepend(style);
+    container.insertAdjacentHTML('afterbegin', '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" crossorigin="anonymous">');
 
     // Wait for KaTeX web fonts (@font-face) to finish loading before html2canvas
     // captures. Without this, math glyphs render as blank rectangles in the PDF.
