@@ -1,10 +1,10 @@
 # HANDOFF — Soạn giáo án / học phân hoá
 
-**Cập nhật**: 2026-05-30
+**Cập nhật**: 2026-06-04
 **Repo chính**: `soangiaoan`
 **Branch hiện tại**: `main`
 **Remote GitHub**: `https://github.com/congapro60-dev/soangiaoan`
-**HEAD/local/origin-main mới nhất**: `8ea38b2` — fix: strip undefined fields before Firestore writes
+**HEAD/local/origin-main mới nhất**: `58e6b5b` — fix: remove browser-incompatible html-to-docx export
 **Production URL đúng để QA UI**: `https://giaoandewey.vercel.app`
 **Commit Sprint D đã merge main**: `e7b609c92b80c80227ef4853053ea9723bdab931 Merge sprint D lesson builder UI`
 **Commit Sprint D feature**: `8d229eb75b823b9edfb4262c84ee68abbd5821cd feat(adaptive): Sprint D — Lesson Builder UI + Firestore persistence`
@@ -16,7 +16,130 @@
 
 ---
 
-## 0. Trạng thái mới nhất cho Claude Code / Antigravity QA — 2026-05-27
+## 0. Trạng thái mới nhất — 2026-06-04: xuất giáo án Word/PDF bằng “Mẫu claude”
+
+> Nguồn sự thật mới nhất cho phiên sau: `main` và `origin/main` hiện trỏ tới commit `58e6b5b`. Commit này đã sửa hồi quy xuất Word giáo án do dùng `html-to-docx` không tương thích trình duyệt, sau commit liền trước `15bef5e` về cải thiện xuất Word/PDF. Khi QA hoặc sửa tiếp, phải đọc mục này trước các ghi chú cũ về Word/PDF.
+
+### 0.0.1 Commit/trạng thái repo mới nhất
+
+```txt
+Repo GitHub: https://github.com/congapro60-dev/soangiaoan
+Branch: main
+HEAD/local/origin-main mới nhất: 58e6b5b fix: remove browser-incompatible html-to-docx export
+Commit ngay trước đó liên quan xuất giáo án: 15bef5e fix: improve lesson plan Word and PDF export
+Commit nền tham chiếu trước hồi quy html-to-docx: 9db4827 improve-exam-rendering-export
+Production URL đúng để QA UI: https://giaoandewey.vercel.app
+Local dev server phiên này: Vite tự chạy ở http://localhost:3001/ vì port 3000 đang bận
+```
+
+Trạng thái working tree sau khi push commit `58e6b5b`:
+
+- Không còn file mã nguồn modified/staged chưa commit.
+- Còn 2 file generated/untracked trong root repo local, không thuộc source code và chưa đưa vào commit:
+  - `Bao_cao_kiem_tra_1780382376270.pdf`
+  - `De_thi_1780382396622.docx`
+
+### 0.0.2 Tóm tắt chức năng soạn giáo án bằng “Mẫu claude”
+
+“Mẫu claude” trong ngữ cảnh người dùng đang nói tới luồng soạn giáo án theo mẫu AI/Claude-style trong app SmartPlan AI: giáo viên nhập/chọn dữ liệu giáo án, app sinh nội dung dạng Markdown giàu định dạng, sau đó preview bằng ReactMarkdown với `remark-gfm`, `remark-math`, `rehype-katex`, `rehype-raw`. Nội dung giáo án chính được lưu/đưa qua object `LessonPlan`, đặc biệt các trường như `title` và `content`.
+
+Các điểm kỹ thuật quan trọng:
+
+- Nội dung sinh ra ưu tiên Markdown để dễ sửa trực tiếp trong editor.
+- Preview render bảng, heading, danh sách, HTML/SVG inline, công thức toán KaTeX.
+- Các luồng export không nên lấy raw Markdown trực tiếp nếu muốn giữ định dạng; thay vào đó cần render hoặc clone DOM preview đã render.
+- Với Word/PDF giáo án, hiện có 2 exporter riêng:
+  - Word A4: `src/utils/wordExportA4.ts` → tạo `.docx` thật bằng thư viện `docx`.
+  - PDF: `src/utils/exportUtils.ts` → render DOM ẩn rồi xuất PDF bằng stack html2pdf/html2canvas/jsPDF.
+
+### 0.0.3 Xuất giáo án sang Word `.docx` — trạng thái sau commit `58e6b5b`
+
+File chính: `src/utils/wordExportA4.ts`.
+
+Luồng hiện tại:
+
+1. `exportToWordA4(currentPlan, showToast, orientation)` kiểm tra `currentPlan.content`; nếu rỗng thì báo “Không có nội dung giáo án để xuất”.
+2. Tìm preview Markdown đang hiển thị bằng các selector:
+   - `#lesson-content .w-md-editor-preview`
+   - `#lesson-content .wmde-markdown`
+   - `#lesson-content .markdown-body`
+   - `.w-md-editor-preview` / `.wmde-markdown` / `.markdown-body`
+3. Nếu không có preview đủ visible, render preview ẩn bằng ReactMarkdown với `remark-gfm`, `remark-math`, `rehype-katex`, `rehype-raw`.
+4. Clone DOM, xoá phần không cần export như `script`, `style`, `textarea`, `button`, `input`, `.w-md-editor-toolbar`.
+5. Xử lý toán và hình:
+   - KaTeX: thay `.katex` bằng nhánh `.katex-mathml` để giữ MathML, tránh nhánh `.katex-html` bị flatten thành text lỗi trong Word.
+   - MathML: chuyển sang OMML bằng `mathml2omml` và `ImportedXmlComponent.fromXmlString(...)`, giúp Word nhận công thức tốt hơn.
+   - Nếu MathML → OMML lỗi: fallback về annotation TeX hoặc text, dùng font `Cambria Math`.
+   - SVG: rasterize sang PNG bằng canvas/browser API rồi thay bằng `<img src="data:image/png...">`.
+6. Chuyển DOM đã sanitize thành các node `docx` thật: heading, paragraph, bullet, table, image.
+7. Tạo `Document` với Times New Roman 14pt, A4 portrait/landscape, lề theo Nghị định 30/2020/NĐ-CP: trên/dưới 20mm, trái 30mm, phải 18mm.
+8. `Packer.toBlob(doc)` tạo binary `.docx`, rồi tải xuống bằng `downloadBlob(blob, `${safeFilename(currentPlan.title)}_A4.docx`)`.
+
+Điểm đã sửa trong commit `58e6b5b`:
+
+- Loại bỏ `html-to-docx` khỏi `package.json` và `package-lock.json`.
+- Xoá `src/types/html-to-docx.d.ts`.
+- Đưa `src/utils/wordExportA4.ts` về pipeline tạo `.docx` bằng `docx` + `mathml2omml`.
+- Lý do: `html-to-docx` kéo các phụ thuộc DOM/XML kiểu Node/browser không ổn trong bundle Vite client, gây rủi ro runtime khi xuất Word trên trình duyệt. Pipeline `docx` trực tiếp an toàn hơn và kiểm soát được công thức/bảng/ảnh.
+
+### 0.0.4 Xuất giáo án sang PDF — trạng thái hiện tại
+
+File chính: `src/utils/exportUtils.ts`, hàm `exportToPDF(currentPlan, showToast, orientation)`.
+
+Luồng PDF hiện tại:
+
+1. Kiểm tra `currentPlan.content`; nếu rỗng thì báo warning.
+2. Tạo container ẩn `#pdf-render-container` nằm ngoài viewport (`left: -10000px`).
+3. Render Markdown bằng ReactMarkdown với `remark-gfm`, `remark-math`, `rehype-katex`, `rehype-raw`.
+4. Áp CSS PDF riêng: Times New Roman 14pt, A4, lề `[20, 18, 20, 30]` mm, bảng fixed width, không ép font-family toàn cục để tránh phá KaTeX, ảnh/SVG/canvas max-width 100% và tránh page-break bên trong.
+5. Export PDF theo orientation portrait/landscape.
+
+Khác biệt Word vs PDF:
+
+- Word `.docx`: tạo cấu trúc tài liệu thật, có thể chỉnh sửa trong Microsoft Word/Google Docs; công thức cố gắng chuyển sang OMML.
+- PDF: ưu tiên giữ visual layout giống preview/in ấn; ít phù hợp để chỉnh sửa nội dung sau xuất.
+
+### 0.0.5 Verification đã chạy trong phiên 2026-06-04
+
+Đã chạy:
+
+```bash
+npm --prefix C:\Users\ADMIN\Downloads\smart-lesson-plan-ai run build 2>&1
+```
+
+Kết quả:
+
+- Vite production build: PASS, built in khoảng `28.45s`.
+- Có warning không chặn build: dynamic import không tách chunk cho một số module đã statically imported và chunk size lớn hơn 500 kB. Đây là technical debt cũ, không phải lỗi trực tiếp của fix Word export.
+
+Đã chạy dev server kiểm tra khả dụng:
+
+```bash
+npm --prefix C:\Users\ADMIN\Downloads\smart-lesson-plan-ai run dev
+```
+
+Vite báo port `3000` bận và tự chuyển sang `http://localhost:3001/`.
+
+### 0.0.6 Rủi ro/điểm cần QA tiếp
+
+Cần QA thủ công trên browser thật, đặc biệt với giáo án Toán/Khoa học có công thức và hình:
+
+1. Xuất Word giáo án có nhiều bảng lồng/nội dung dài để kiểm tra page break và độ rộng cột.
+2. Xuất Word giáo án có KaTeX phức tạp (`\frac`, căn, ma trận, hệ phương trình) để xem Word mở OMML có đúng không.
+3. Xuất Word giáo án có SVG inline lớn/phức tạp; canvas rasterize có thể lỗi nếu SVG chứa resource cross-origin hoặc thuộc tính không được canvas hỗ trợ.
+4. Kiểm tra mở `.docx` bằng cả Microsoft Word và Google Docs vì mức hỗ trợ OMML/ảnh khác nhau.
+5. Xuất PDF giáo án dài nhiều trang để kiểm tra bảng/hình/công thức có bị cắt không.
+6. Cần cân nhắc code-splitting thêm cho các module export nặng nếu hiệu năng initial load bị ảnh hưởng.
+
+Khuyến nghị nếu sửa tiếp:
+
+- Không quay lại `html-to-docx` ở client nếu chưa chứng minh tương thích bundle/browser.
+- Nếu cần Word fidelity cao hơn nữa, tiếp tục phát triển trên pipeline `docx` hiện tại: mapping DOM → DOCX, MathML → OMML, SVG → PNG.
+- Với PDF, giữ hướng render DOM ẩn vì phù hợp mục tiêu “giống preview/in ấn”.
+
+---
+
+## 0. Trạng thái cũ cho Claude Code / Antigravity QA — 2026-05-27
 
 > Đây là nguồn sự thật mới nhất. Batch sửa lỗi QA ưu tiên đã hoàn tất ở commit code `770bb960482db965cf0c44d414df27b1b6082f1e` và đã pass typecheck/test/build. Không dùng báo cáo QA dựa trên commit cũ `64edb78` hoặc trước Phase 2C để kết luận lỗi vẫn còn nếu chưa retest lại trên commit mới nhất.
 
