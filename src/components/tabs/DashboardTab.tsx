@@ -1,7 +1,6 @@
 import { motion } from 'motion/react';
 import {
   FileText,
-  CheckCircle2,
   Zap,
   BookOpen,
   ArrowRight,
@@ -9,7 +8,10 @@ import {
   Users,
   Layout,
   PlusCircle,
-  ClipboardCheck
+  ClipboardCheck,
+  TrendingUp,
+  Clock,
+  ShieldCheck,
 } from 'lucide-react';
 import { AppData, LessonPlan } from '../../types';
 import { cn } from '../../lib/utils';
@@ -24,143 +26,204 @@ interface DashboardTabProps {
 
 export const DashboardTab = ({ data, setCurrentPlan, setActiveTab }: DashboardTabProps) => {
   const totalGraded = (data.gradingSessions || []).reduce(
-    (sum, s) => sum + s.results.filter(r => r.status === 'completed').length, 0
+    (sum, s) => sum + s.results.filter(r => r.status === 'completed').length,
+    0
   );
+  const lessonCount = data.lessonPlans?.length || 0;
+  const publicCount = data.lessonPlans?.filter(p => p.isPublic)?.length || 0;
+  const latestPlan = data.lessonPlans?.[0];
+  const teacherName = data.authorName?.split(' ').pop() || 'Thầy/Cô';
 
   const stats = [
-    { label: 'Tổng giáo án', value: data.lessonPlans?.length || 0, icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Bài chia sẻ', value: data.lessonPlans?.filter(p => p.isPublic)?.length || 0, icon: Users, color: 'text-orange-600', bg: 'bg-orange-50' },
-    { label: 'Mẫu tài liệu', value: data.templates?.length || 0, icon: Layout, color: 'text-purple-600', bg: 'bg-purple-50' },
-    { label: 'Môn học', value: data.subjects?.length || 0, icon: BookOpen, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'Bài đã chấm', value: totalGraded, icon: ClipboardCheck, color: 'text-rose-600', bg: 'bg-rose-50' },
+    { label: 'Giáo án', value: lessonCount, icon: FileText, color: 'text-blue-700', bg: 'bg-blue-50', hint: 'Đang lưu trong thư viện' },
+    { label: 'Chia sẻ', value: publicCount, icon: Users, color: 'text-amber-700', bg: 'bg-amber-50', hint: 'Tài nguyên cộng đồng' },
+    { label: 'Template', value: data.templates?.length || 0, icon: Layout, color: 'text-violet-700', bg: 'bg-violet-50', hint: 'Mẫu xuất bản' },
+    { label: 'Môn học', value: data.subjects?.length || 0, icon: BookOpen, color: 'text-emerald-700', bg: 'bg-emerald-50', hint: 'Đã cấu hình' },
+    { label: 'Đã chấm', value: totalGraded, icon: ClipboardCheck, color: 'text-rose-700', bg: 'bg-rose-50', hint: 'Bài hoàn tất' },
   ];
 
   const quickActions = [
-    { label: 'Soạn giáo án mới', icon: PlusCircle, tab: 'creator', desc: 'Sử dụng AI để khởi tạo giáo án nhanh' },
-    { label: 'AI Tutor', icon: Sparkles, tab: 'chat', desc: 'Trò chuyện và nhận hỗ trợ sư phạm' },
-    { label: 'Quản lý Mẫu', icon: Layout, tab: 'templates', desc: 'Tùy chỉnh các mẫu file xuất bản' },
+    { label: 'Soạn giáo án mới', icon: PlusCircle, tab: 'creator', desc: 'Tạo bài dạy với AI Co-pilot', badge: 'Ưu tiên' },
+    { label: 'Tạo đề kiểm tra', icon: ShieldCheck, tab: 'testing', desc: 'Dựng đề theo ma trận thông minh', badge: 'Smart Grid' },
+    { label: 'Quản lý thư viện', icon: Layout, tab: 'library', desc: 'Xem giáo án cá nhân và cộng đồng', badge: 'Library' },
   ];
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
+    <motion.div
+      initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-10 max-w-6xl mx-auto"
+      className="mx-auto flex w-full max-w-7xl flex-col gap-8"
     >
-      {/* Welcome Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            Chào <span className="text-blue-600">{data.authorName?.split(' ').pop() || 'Thầy/Cô'}</span>,
-          </h2>
-          <p className="text-slate-500 mt-2 font-medium">Hôm nay thầy muốn chuẩn bị bài giảng nào?</p>
-        </div>
-        <div className="flex gap-3">
-          <button 
-            onClick={() => setActiveTab('creator')}
-            className="px-6 py-3 gradient-bg text-white rounded-2xl font-bold shadow-lg shadow-blue-200 flex items-center gap-2 hover:scale-[1.02] transition-all"
-          >
-            <Zap className="w-5 h-5" /> Soạn bài ngay
-          </button>
-        </div>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-        {stats.map((stat, idx) => (
-          <motion.div 
-            key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.1 }}
-            className="pro-card p-6 flex flex-col gap-4"
-          >
-            <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center", stat.bg)}>
-              <stat.icon className={cn("w-6 h-6", stat.color)} />
+      <section className="relative overflow-hidden rounded-[36px] border border-blue-100 bg-white px-6 py-7 shadow-[0_24px_70px_-46px_rgba(49,130,206,0.8)] sm:px-8 lg:px-10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_86%_12%,rgba(49,130,206,0.18),transparent_34%),linear-gradient(135deg,rgba(235,248,255,0.9),rgba(255,255,255,0.72))]" />
+        <div className="relative z-10 grid gap-8 lg:grid-cols-[1.4fr_0.8fr] lg:items-center">
+          <div className="space-y-6">
+            <div className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-blue-700">
+              <Sparkles className="h-3.5 w-3.5" /> Giao An Dewey Workspace
             </div>
             <div>
-              <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{stat.label}</p>
-              <h3 className="text-3xl font-black text-slate-900 mt-1">{stat.value}</h3>
+              <h2 className="max-w-3xl text-3xl font-black leading-tight tracking-tight text-slate-950 sm:text-4xl lg:text-5xl">
+                Chào {teacherName}, hôm nay mình tối ưu bài dạy nào?
+              </h2>
+              <p className="mt-4 max-w-2xl text-sm font-semibold leading-7 text-slate-500 sm:text-base">
+                Bảng điều khiển được thiết kế lại theo hướng rõ ràng, ít nhiễu và ưu tiên các tác vụ giáo viên dùng thường xuyên: soạn giáo án, tạo đề, quản lý tài nguyên và theo dõi kết quả.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <button
+                onClick={() => setActiveTab('creator')}
+                className="dewey-button-primary inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 text-sm font-black transition hover:-translate-y-0.5 hover:shadow-xl"
+              >
+                <Zap className="h-5 w-5" /> Soạn bài ngay
+              </button>
+              <button
+                onClick={() => setActiveTab('testing')}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-black text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+              >
+                Tạo đề kiểm tra <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+
+          <div className="rounded-[30px] border border-white/80 bg-white/78 p-5 shadow-xl shadow-blue-100/50 backdrop-blur-md">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Gợi ý tiếp theo</p>
+                <h3 className="mt-2 text-lg font-black text-slate-900">{latestPlan ? 'Tiếp tục hoàn thiện giáo án' : 'Bắt đầu giáo án đầu tiên'}</h3>
+              </div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-200">
+                <TrendingUp className="h-6 w-6" />
+              </div>
+            </div>
+            <div className="mt-5 rounded-2xl bg-slate-50 p-4">
+              <p className="line-clamp-2 text-sm font-bold text-slate-700">
+                {latestPlan?.title || 'Chọn “Soạn bài ngay” để tạo cấu trúc giáo án chuẩn, sau đó xuất Word/PDF khi cần.'}
+              </p>
+              <button
+                onClick={() => {
+                  if (latestPlan) setCurrentPlan(latestPlan);
+                  setActiveTab('creator');
+                }}
+                className="mt-4 inline-flex items-center gap-2 text-sm font-black text-blue-700 hover:underline"
+              >
+                Mở workspace <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        {stats.map((stat, idx) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.06 }}
+            className="dewey-card p-5"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className={cn('flex h-12 w-12 items-center justify-center rounded-2xl', stat.bg)}>
+                <stat.icon className={cn('h-6 w-6', stat.color)} />
+              </div>
+              <p className="text-3xl font-black tracking-tight text-slate-950">{stat.value}</p>
+            </div>
+            <div className="mt-5">
+              <p className="text-sm font-black text-slate-800">{stat.label}</p>
+              <p className="mt-1 text-xs font-semibold text-slate-400">{stat.hint}</p>
             </div>
           </motion.div>
         ))}
-      </div>
+      </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Quick Actions */}
-        <div className="lg:col-span-1 space-y-6">
-          <h3 className="text-xl font-bold text-slate-800">Truy cập nhanh</h3>
-          <div className="space-y-4">
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-[0.9fr_1.45fr]">
+        <div className="dewey-card p-6">
+          <div className="mb-5 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-600">Shortcut</p>
+              <h3 className="mt-1 text-xl font-black text-slate-900">Truy cập nhanh</h3>
+            </div>
+            <Sparkles className="h-5 w-5 text-blue-500" />
+          </div>
+          <div className="space-y-3">
             {quickActions.map((action) => (
-              <button 
+              <button
                 key={action.label}
                 onClick={() => setActiveTab(action.tab as any)}
-                className="w-full text-left p-5 bg-white border border-slate-100 rounded-3xl hover:border-blue-500 hover:shadow-md transition-all group"
+                className="group w-full rounded-3xl border border-slate-100 bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-lg hover:shadow-blue-100/60"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
-                    <action.icon className="w-5 h-5 text-slate-500 group-hover:text-blue-600" />
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-50 transition group-hover:bg-blue-50">
+                    <action.icon className="h-5 w-5 text-slate-500 transition group-hover:text-blue-600" />
                   </div>
-                  <div>
-                    <p className="font-bold text-slate-800 group-hover:text-blue-600">{action.label}</p>
-                    <p className="text-xs text-slate-400 mt-0.5">{action.desc}</p>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="truncate text-sm font-black text-slate-800 group-hover:text-blue-700">{action.label}</p>
+                      <span className="hidden rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-black text-slate-500 sm:inline-flex">{action.badge}</span>
+                    </div>
+                    <p className="mt-1 line-clamp-1 text-xs font-semibold text-slate-400">{action.desc}</p>
                   </div>
+                  <ArrowRight className="h-4 w-4 text-slate-300 transition group-hover:translate-x-1 group-hover:text-blue-500" />
                 </div>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Recent Plans */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold text-slate-800">Giáo án gần đây</h3>
-            <button 
+        <div className="dewey-card overflow-hidden">
+          <div className="flex items-center justify-between gap-4 border-b border-slate-100 px-6 py-5">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-600">Recent work</p>
+              <h3 className="mt-1 text-xl font-black text-slate-900">Giáo án gần đây</h3>
+            </div>
+            <button
               onClick={() => setActiveTab('library')}
-              className="text-sm font-bold text-blue-600 hover:underline flex items-center gap-1"
+              className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-2 text-xs font-black text-blue-700 transition hover:bg-blue-100"
             >
-              Xem tất cả <ArrowRight className="w-4 h-4" />
+              Xem tất cả <ArrowRight className="h-4 w-4" />
             </button>
           </div>
-          <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
-            {data.lessonPlans?.length > 0 ? (
-              <div className="divide-y divide-slate-50">
-                {data.lessonPlans.slice(0, 5).map((plan) => (
-                  <div 
-                    key={plan.id} 
-                    className="p-5 flex items-center justify-between hover:bg-slate-50 cursor-pointer transition-colors"
-                    onClick={() => { setCurrentPlan(plan); setActiveTab('creator'); }}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-                        <FileText className="w-5 h-5 text-blue-500" />
-                      </div>
-                      <div>
-                        <p className="font-bold text-slate-800 text-sm line-clamp-1">{plan.title}</p>
-                        <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold mt-0.5">
-                          Lớp {plan.grade} · {data.subjects?.find(s => s.id === plan.subjectId)?.name}
-                        </p>
-                      </div>
+
+          {data.lessonPlans?.length > 0 ? (
+            <div className="divide-y divide-slate-100">
+              {data.lessonPlans.slice(0, 5).map((plan) => (
+                <button
+                  key={plan.id}
+                  className="group flex w-full items-center justify-between gap-4 px-6 py-4 text-left transition hover:bg-blue-50/40"
+                  onClick={() => { setCurrentPlan(plan); setActiveTab('creator'); }}
+                >
+                  <div className="flex min-w-0 items-center gap-4">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-50">
+                      <FileText className="h-5 w-5 text-blue-600" />
                     </div>
-                    <div className="text-right flex items-center gap-4">
-                       <span className="hidden sm:inline-block text-[10px] font-bold px-2 py-1 bg-green-50 text-green-600 rounded-lg">
-                         {dayjs(plan.updatedAt).format('DD/MM/YYYY')}
-                       </span>
-                       <ChevronRight className="w-4 h-4 text-slate-300" />
+                    <div className="min-w-0">
+                      <p className="line-clamp-1 text-sm font-black text-slate-800 group-hover:text-blue-700">{plan.title}</p>
+                      <p className="mt-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                        Lớp {plan.grade} · {data.subjects?.find(s => s.id === plan.subjectId)?.name || 'Chưa rõ môn'}
+                      </p>
                     </div>
                   </div>
-                ))}
+                  <div className="flex shrink-0 items-center gap-3 text-right">
+                    <span className="hidden items-center gap-1 rounded-xl bg-slate-50 px-2.5 py-1.5 text-[11px] font-black text-slate-500 sm:inline-flex">
+                      <Clock className="h-3.5 w-3.5" /> {dayjs(plan.updatedAt).format('DD/MM/YYYY')}
+                    </span>
+                    <ChevronRight className="h-4 w-4 text-slate-300 transition group-hover:translate-x-1 group-hover:text-blue-500" />
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="px-6 py-14 text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-3xl bg-blue-50 text-blue-600">
+                <FileText className="h-7 w-7" />
               </div>
-            ) : (
-              <div className="p-10 text-center text-slate-400">
-                Bạn chưa có giáo án nào. Hãy bắt đầu soạn thảo ngay!
-              </div>
-            )}
-          </div>
+              <h4 className="mt-4 text-base font-black text-slate-800">Chưa có giáo án nào</h4>
+              <p className="mt-2 text-sm font-semibold text-slate-400">Hãy bắt đầu bằng một yêu cầu ngắn cho AI Co-pilot.</p>
+            </div>
+          )}
         </div>
-      </div>
+      </section>
 
-      {/* Learning Analytics */}
       {(data.gradingSessions?.length ?? 0) > 0 && (
         <LearningAnalytics sessions={data.gradingSessions} />
       )}

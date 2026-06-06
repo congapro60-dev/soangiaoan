@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cổng Học Sinh - Tri Thức AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary-container": "#fefcff",
+                      "tertiary-fixed": "#d4e3ff",
+                      "on-error": "#ffffff",
+                      "surface": "#f8f9ff",
+                      "outline": "#717782",
+                      "on-surface-variant": "#414751",
+                      "on-secondary-container": "#58646a",
+                      "on-tertiary": "#ffffff",
+                      "tertiary-container": "#5276a8",
+                      "on-secondary": "#ffffff",
+                      "on-tertiary-fixed": "#001c3a",
+                      "on-primary-fixed": "#001d37",
+                      "on-primary": "#ffffff",
+                      "surface-container-low": "#eff4ff",
+                      "primary-fixed": "#d2e4ff",
+                      "surface-container-highest": "#d4e4fc",
+                      "secondary-container": "#d5e2e9",
+                      "error-container": "#ffdad6",
+                      "outline-variant": "#c0c7d3",
+                      "surface-container-high": "#dce9ff",
+                      "tertiary-fixed-dim": "#a5c8ff",
+                      "surface-dim": "#ccdbf4",
+                      "primary-fixed-dim": "#9fcaff",
+                      "on-surface": "#0d1c2e",
+                      "surface-container": "#e5eeff",
+                      "primary-container": "#2178c3",
+                      "on-secondary-fixed": "#111d22",
+                      "primary": "#005ea1",
+                      "surface-bright": "#f8f9ff",
+                      "inverse-surface": "#223144",
+                      "secondary-fixed": "#d8e4eb",
+                      "surface-tint": "#0061a5",
+                      "inverse-primary": "#9fcaff",
+                      "surface-variant": "#d4e4fc",
+                      "on-secondary-fixed-variant": "#3c494e",
+                      "inverse-on-surface": "#eaf1ff",
+                      "on-background": "#0d1c2e",
+                      "on-primary-fixed-variant": "#00497e",
+                      "tertiary": "#385d8e",
+                      "on-error-container": "#93000a",
+                      "secondary": "#546066",
+                      "background": "#f8f9ff",
+                      "secondary-fixed-dim": "#bcc8cf",
+                      "surface-container-lowest": "#ffffff",
+                      "on-tertiary-fixed-variant": "#204877",
+                      "on-primary-container": "#fdfcff",
+                      "error": "#ba1a1a"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xl": "32px",
+                      "md": "16px",
+                      "3xl": "64px",
+                      "xs": "4px",
+                      "margin-mobile": "16px",
+                      "2xl": "48px",
+                      "base": "4px",
+                      "sm": "8px",
+                      "gutter": "24px",
+                      "container-max": "1280px",
+                      "lg": "24px"
+              },
+              "fontFamily": {
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "label-sm": [
+                              "Inter"
+                      ],
+                      "display-md": [
+                              "Plus Jakarta Sans"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "display-lg": [
+                              "Plus Jakarta Sans"
+                      ],
+                      "headline-sm": [
+                              "Plus Jakarta Sans"
+                      ],
+                      "headline-lg": [
+                              "Plus Jakarta Sans"
+                      ],
+                      "label-md": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Plus Jakarta Sans"
+                      ]
+              },
+              "fontSize": {
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "1",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "display-md": [
+                              "36px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-sm": [
+                              "20px",
+                              {
+                                      "lineHeight": "1.4",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg": [
+                              "30px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        .material-symbols-outlined {
+          font-variation-settings:
+          'FILL' 0,
+          'wght' 400,
+          'GRAD' 0,
+          'opsz' 24
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1;
+        }
+        
+        /* Subtle ambient shadow for cards */
+        .ambient-shadow {
+            box-shadow: 0 4px 12px rgba(0, 28, 58, 0.05);
+        }
+        
+        .ambient-shadow-hover:hover {
+            box-shadow: 0 8px 24px rgba(0, 28, 58, 0.1);
+            transform: translateY(-2px);
+            transition: all 0.2s ease-in-out;
+        }
+        
+        /* Focus Mode Transitions */
+        .fade-enter {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        .fade-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 300ms, transform 300ms;
+        }
+        .fade-exit {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .fade-exit-active {
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 300ms, transform 300ms;
+        }
+        
+        /* Hide scrollbar for clean minimal look */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent; 
+        }
+      </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col relative overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- Focus Mode Header (Visible when in Focus Mode) -->
+<header class="hidden fixed top-0 w-full z-50 bg-surface-container-lowest border-b border-outline-variant transition-opacity duration-300" id="focusHeader">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-lg h-16 flex items-center justify-between">
+<button class="flex items-center gap-xs text-on-surface-variant hover:text-primary transition-colors p-sm -ml-sm rounded-lg hover:bg-surface-container-low" onclick="toggleFocusMode()">
+<span class="material-symbols-outlined">close</span>
+<span class="font-label-md text-label-md hidden md:inline">Thoát</span>
+</button>
+<div class="flex-1 max-w-md mx-md">
+<div class="flex justify-between items-end mb-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Tiến độ</span>
+<span class="font-label-sm text-label-sm text-primary font-bold">3/10</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-2 overflow-hidden">
+<div class="bg-primary h-2 rounded-full transition-all duration-500 ease-out" style="width: 30%"></div>
+</div>
+</div>
+<div class="flex items-center gap-sm text-secondary">
+<span class="material-symbols-outlined text-xl">timer</span>
+<span class="font-label-md text-label-md font-mono">12:45</span>
+</div>
+</div>
+</header>
+<!-- TopNavBar (Standard View) -->
+<nav class="bg-surface-container-lowest border-b border-outline-variant sticky top-0 w-full z-40 flex justify-between items-center px-margin-mobile md:px-lg h-16 max-w-container-max mx-auto transition-opacity duration-300" id="standardNav">
+<div class="flex items-center gap-lg">
+<div class="font-headline-md text-headline-md font-bold text-primary cursor-pointer">Tri Thức AI</div>
+<!-- Desktop Links -->
+<div class="hidden md:flex items-center gap-md">
+<a class="text-primary font-bold border-b-2 border-primary pb-1 font-label-md text-label-md hover:text-primary-container transition-colors duration-200" href="#">Trang chủ</a>
+<a class="text-on-surface-variant font-label-md text-label-md hover:text-primary-container transition-colors duration-200" href="#">Thư viện của tôi</a>
+<a class="text-on-surface-variant font-label-md text-label-md hover:text-primary-container transition-colors duration-200" href="#">Trợ lý AI</a>
+<a class="text-on-surface-variant font-label-md text-label-md hover:text-primary-container transition-colors duration-200" href="#">Cộng đồng</a>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<!-- Search Icon Mobile -->
+<button class="md:hidden text-on-surface-variant p-sm rounded-full hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined">search</span>
+</button>
+<!-- Desktop Search Bar -->
+<div class="hidden md:flex relative group">
+<div class="absolute inset-y-0 left-0 flex items-center pl-sm pointer-events-none text-on-surface-variant">
+<span class="material-symbols-outlined text-lg">search</span>
+</div>
+<input class="block w-64 p-xs pl-[36px] font-body-sm text-body-sm text-on-surface bg-surface-container-low border border-transparent rounded-full focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 placeholder-on-surface-variant" placeholder="Tìm kiếm bài học..." type="text"/>
+</div>
+<button class="text-on-surface-variant p-sm rounded-full hover:bg-surface-container-low transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="text-on-surface-variant p-sm rounded-full hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined icon-fill text-3xl">account_circle</span>
+</button>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col items-center justify-center w-full px-margin-mobile md:px-lg py-xl max-w-container-max mx-auto relative">
+<!-- Dashboard View (Zero-Noise) -->
+<div class="w-full max-w-3xl flex flex-col gap-xl transition-all duration-300" id="dashboardView">
+<!-- Greeting & Stats -->
+<section class="flex flex-col md:flex-row md:items-end justify-between gap-md mb-md">
+<div>
+<h1 class="font-display-md text-display-md text-on-surface mb-xs">Chào Minh! 👋</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Bạn có 2 nhiệm vụ cần hoàn thành hôm nay.</p>
+</div>
+<div class="flex gap-sm">
+<div class="bg-surface-container-highest rounded-xl p-sm px-md flex items-center gap-sm">
+<span class="material-symbols-outlined text-tertiary text-xl icon-fill">local_fire_department</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Chuỗi học</span>
+<span class="font-label-md text-label-md text-on-surface font-bold">5 ngày</span>
+</div>
+</div>
+<div class="bg-surface-container-highest rounded-xl p-sm px-md flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary text-xl icon-fill">stars</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Điểm EXP</span>
+<span class="font-label-md text-label-md text-on-surface font-bold">1,240</span>
+</div>
+</div>
+</div>
+</section>
+<!-- To-Do List (Nhiệm vụ hôm nay) -->
+<section>
+<div class="flex items-center gap-sm mb-md">
+<span class="material-symbols-outlined text-primary icon-fill">task_alt</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Nhiệm vụ hôm nay</h2>
+</div>
+<div class="grid gap-md">
+<!-- Task Card 1 (High Priority) -->
+<div class="bg-surface-container-lowest rounded-xl p-md border-l-4 border-primary ambient-shadow ambient-shadow-hover flex flex-col sm:flex-row sm:items-center justify-between gap-md group cursor-pointer" onclick="toggleFocusMode()">
+<div class="flex gap-md items-start">
+<div class="w-12 h-12 rounded-lg bg-surface-container-high flex items-center justify-center text-primary flex-shrink-0">
+<span class="material-symbols-outlined text-2xl">functions</span>
+</div>
+<div>
+<div class="flex gap-xs items-center mb-xs">
+<span class="font-label-sm text-label-sm bg-error-container text-on-error-container px-2 py-1 rounded-sm">Sắp hết hạn</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Toán Đại số 10</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">Kiểm tra 15 phút: Phương trình bậc 2</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-xs line-clamp-1">10 câu hỏi trắc nghiệm. Cần đạt tối thiểu 7/10.</p>
+</div>
+</div>
+<button class="bg-primary text-on-primary font-label-md text-label-md py-sm px-md rounded-full whitespace-nowrap hover:bg-primary-container transition-colors flex-shrink-0 self-end sm:self-center flex items-center gap-xs">
+                            Bắt đầu <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+<!-- Task Card 2 -->
+<div class="bg-surface-container-lowest rounded-xl p-md border border-outline-variant ambient-shadow ambient-shadow-hover flex flex-col sm:flex-row sm:items-center justify-between gap-md group cursor-pointer">
+<div class="flex gap-md items-start">
+<div class="w-12 h-12 rounded-lg bg-surface-container-high flex items-center justify-center text-tertiary flex-shrink-0">
+<span class="material-symbols-outlined text-2xl">science</span>
+</div>
+<div>
+<div class="flex gap-xs items-center mb-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Hóa học 10</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">Ôn tập: Bảng tuần hoàn</h3>
+<div class="flex items-center gap-sm mt-xs">
+<div class="w-24 bg-surface-container-highest rounded-full h-1.5">
+<div class="bg-tertiary h-1.5 rounded-full" style="width: 50%"></div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">5/10 hoàn thành</span>
+</div>
+</div>
+</div>
+<button class="bg-transparent border border-outline text-on-surface font-label-md text-label-md py-sm px-md rounded-full whitespace-nowrap hover:bg-surface-container-low transition-colors flex-shrink-0 self-end sm:self-center">
+                            Tiếp tục
+                        </button>
+</div>
+</div>
+</section>
+<!-- Suggested Activity (Adaptive) -->
+<section class="mt-lg">
+<h2 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-sm">Gợi ý ôn tập từ AI</h2>
+<div class="bg-surface-container-highest rounded-xl p-md flex items-center gap-md cursor-pointer hover:bg-surface-dim transition-colors">
+<span class="material-symbols-outlined text-3xl text-tertiary-container">auto_awesome</span>
+<div>
+<h4 class="font-label-md text-label-md text-on-surface">Củng cố kiến thức: Cấu hình Electron</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Phát hiện bạn hay làm sai dạng bài này trong tuần qua.</p>
+</div>
+</div>
+</section>
+</div>
+<!-- Focus Mode View (Initially Hidden) -->
+<div class="hidden w-full max-w-2xl flex-col h-full justify-center transition-all duration-300 min-h-[614px]" id="focusView">
+<!-- The Question Card -->
+<div class="bg-surface-container-lowest rounded-2xl p-lg md:p-xl ambient-shadow w-full fade-enter-active" id="questionCard">
+<div class="mb-lg">
+<span class="font-label-sm text-label-sm bg-surface-container-low text-on-surface-variant px-3 py-1 rounded-full mb-md inline-block">Câu hỏi 3</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface leading-tight">Tìm nghiệm của phương trình: <br/><span class="text-primary font-mono bg-surface-container-low px-2 rounded-md inline-block mt-2">x² - 5x + 6 = 0</span></h2>
+</div>
+<!-- Options Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-sm md:gap-md">
+<!-- Option A -->
+<button class="text-left bg-surface-container-lowest border-2 border-outline-variant hover:border-primary hover:bg-surface-container-low rounded-xl p-md transition-all duration-200 group relative overflow-hidden" onclick="selectOption(this, false)">
+<div class="flex items-center gap-md">
+<span class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant font-label-md text-label-md flex items-center justify-center group-hover:bg-primary group-hover:text-on-primary transition-colors">A</span>
+<span class="font-body-lg text-body-lg text-on-surface">x = 1, x = 6</span>
+</div>
+</button>
+<!-- Option B (Correct) -->
+<button class="text-left bg-surface-container-lowest border-2 border-outline-variant hover:border-primary hover:bg-surface-container-low rounded-xl p-md transition-all duration-200 group relative overflow-hidden" onclick="selectOption(this, true)">
+<div class="flex items-center gap-md">
+<span class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant font-label-md text-label-md flex items-center justify-center group-hover:bg-primary group-hover:text-on-primary transition-colors">B</span>
+<span class="font-body-lg text-body-lg text-on-surface">x = 2, x = 3</span>
+</div>
+</button>
+<!-- Option C -->
+<button class="text-left bg-surface-container-lowest border-2 border-outline-variant hover:border-primary hover:bg-surface-container-low rounded-xl p-md transition-all duration-200 group relative overflow-hidden" onclick="selectOption(this, false)">
+<div class="flex items-center gap-md">
+<span class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant font-label-md text-label-md flex items-center justify-center group-hover:bg-primary group-hover:text-on-primary transition-colors">C</span>
+<span class="font-body-lg text-body-lg text-on-surface">x = -2, x = -3</span>
+</div>
+</button>
+<!-- Option D -->
+<button class="text-left bg-surface-container-lowest border-2 border-outline-variant hover:border-primary hover:bg-surface-container-low rounded-xl p-md transition-all duration-200 group relative overflow-hidden" onclick="selectOption(this, false)">
+<div class="flex items-center gap-md">
+<span class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant font-label-md text-label-md flex items-center justify-center group-hover:bg-primary group-hover:text-on-primary transition-colors">D</span>
+<span class="font-body-lg text-body-lg text-on-surface">x = 0, x = 5</span>
+</div>
+</button>
+</div>
+<div class="mt-lg flex justify-between items-center hidden" id="actionButtons">
+<button class="text-on-surface-variant font-label-md text-label-md py-sm px-md rounded-full hover:bg-surface-container-low transition-colors">Bỏ qua</button>
+<button class="bg-primary text-on-primary font-label-md text-label-md py-sm px-xl rounded-full shadow-sm hover:bg-primary-container transition-colors disabled:opacity-50" id="submitBtn" onclick="showFeedback()">Xác nhận</button>
+</div>
+</div>
+<!-- Adaptive Feedback Card (Hidden initially) -->
+<div class="hidden mt-md bg-surface-container-lowest rounded-2xl p-lg ambient-shadow border-t-4 border-error w-full fade-enter-active" id="feedbackCard">
+<div class="flex items-start gap-md">
+<div class="w-10 h-10 rounded-full bg-error-container text-on-error-container flex items-center justify-center flex-shrink-0 mt-1">
+<span class="material-symbols-outlined icon-fill">close</span>
+</div>
+<div class="flex-1">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs">Chưa chính xác rồi!</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-md">Đáp án đúng là <strong class="text-on-surface">B. x = 2, x = 3</strong></p>
+<!-- AI Mini Review Card -->
+<div class="bg-surface-container-low rounded-xl p-md mb-md">
+<div class="flex items-center gap-xs text-primary mb-sm">
+<span class="material-symbols-outlined text-sm">auto_awesome</span>
+<span class="font-label-sm text-label-sm font-bold uppercase tracking-wider">AI Ôn tập nhanh</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                                Với phương trình <span class="font-mono">ax² + bx + c = 0</span>, ta tính Delta (Δ): <br/>
+<span class="font-mono bg-surface-container-highest px-1 rounded inline-block mt-1">Δ = b² - 4ac = (-5)² - 4(1)(6) = 25 - 24 = 1</span><br/>
+                                Vì Δ &gt; 0, phương trình có 2 nghiệm phân biệt: <br/>
+<span class="font-mono bg-surface-container-highest px-1 rounded inline-block mt-1">x₁,₂ = (-b ± √Δ) / 2a</span> -&gt; <span class="font-mono">x₁ = (5+1)/2 = 3</span>, <span class="font-mono">x₂ = (5-1)/2 = 2</span>.
+                            </p>
+</div>
+<div class="flex justify-end">
+<button class="bg-on-surface text-on-primary font-label-md text-label-md py-sm px-xl rounded-full shadow-sm hover:bg-on-surface-variant transition-colors flex items-center gap-xs" onclick="nextQuestion()">
+                                Câu tiếp theo <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Mobile Only) -->
+<nav class="md:hidden bg-surface-container-lowest border-t border-outline-variant fixed bottom-0 w-full z-40 pb-safe">
+<div class="flex justify-around items-center h-16">
+<a class="flex flex-col items-center gap-xs text-primary w-16 group" href="#">
+<div class="bg-primary-container text-on-primary-container px-4 py-1 rounded-full group-active:opacity-80 transition-opacity">
+<span class="material-symbols-outlined icon-fill">home</span>
+</div>
+<span class="font-label-sm text-label-sm font-bold text-[10px]">Trang chủ</span>
+</a>
+<a class="flex flex-col items-center gap-xs text-on-surface-variant hover:text-primary transition-colors w-16" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="font-label-sm text-label-sm text-[10px]">Thư viện</span>
+</a>
+<a class="flex flex-col items-center gap-xs text-on-surface-variant hover:text-primary transition-colors w-16" href="#">
+<span class="material-symbols-outlined">smart_toy</span>
+<span class="font-label-sm text-label-sm text-[10px]">AI</span>
+</a>
+<a class="flex flex-col items-center gap-xs text-on-surface-variant hover:text-primary transition-colors w-16" href="#">
+<span class="material-symbols-outlined">forum</span>
+<span class="font-label-sm text-label-sm text-[10px]">Cộng đồng</span>
+</a>
+</div>
+</nav>
+<script>
+        // Simple Interaction Logic
+        let selectedBtn = null;
+        let isCorrectSelection = false;
+
+        function toggleFocusMode() {
+            const dashboard = document.getElementById('dashboardView');
+            const focusView = document.getElementById('focusView');
+            const topNav = document.getElementById('standardNav');
+            const focusHeader = document.getElementById('focusHeader');
+            
+            // Toggle visibility classes
+            if(dashboard.classList.contains('hidden')) {
+                // Exit Focus Mode
+                dashboard.classList.remove('hidden');
+                topNav.classList.remove('hidden');
+                focusView.classList.add('hidden');
+                focusView.classList.remove('flex');
+                focusHeader.classList.add('hidden');
+                
+                // Reset state
+                resetQuestionState();
+            } else {
+                // Enter Focus Mode
+                dashboard.classList.add('hidden');
+                topNav.classList.add('hidden');
+                focusView.classList.remove('hidden');
+                focusView.classList.add('flex');
+                focusHeader.classList.remove('hidden');
+            }
+        }
+
+        function selectOption(btn, isCorrect) {
+            // Reset previous selection
+            const buttons = btn.parentElement.querySelectorAll('button');
+            buttons.forEach(b => {
+                b.classList.remove('border-primary', 'bg-surface-container-low', 'ring-2', 'ring-primary-container');
+                b.classList.add('border-outline-variant');
+                const badge = b.querySelector('span');
+                badge.classList.remove('bg-primary', 'text-on-primary');
+                badge.classList.add('bg-surface-container-high', 'text-on-surface-variant');
+            });
+
+            // Set new selection
+            btn.classList.remove('border-outline-variant');
+            btn.classList.add('border-primary', 'bg-surface-container-low', 'ring-2', 'ring-primary-container');
+            const badge = btn.querySelector('span');
+            badge.classList.remove('bg-surface-container-high', 'text-on-surface-variant');
+            badge.classList.add('bg-primary', 'text-on-primary');
+
+            selectedBtn = btn;
+            isCorrectSelection = isCorrect;
+            
+            document.getElementById('actionButtons').classList.remove('hidden');
+        }
+
+        function showFeedback() {
+            if(!selectedBtn) return;
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            
+            // Lock all options
+            const buttons = selectedBtn.parentElement.querySelectorAll('button');
+            buttons.forEach(b => b.onclick = null);
+
+            const feedbackCard = document.getElementById('feedbackCard');
+            feedbackCard.classList.remove('hidden');
+            
+            // Simulate Adaptive Feedback based on correctness
+            // For demo purposes, we simulate a wrong answer to show the AI Review card
+            // If it was true, we would show a success state. Here we force the error state described in prompt.
+            selectedBtn.classList.remove('border-primary', 'ring-primary-container');
+            selectedBtn.classList.add('border-error', 'bg-error-container', 'bg-opacity-20');
+            const badge = selectedBtn.querySelector('span');
+            badge.classList.remove('bg-primary');
+            badge.classList.add('bg-error');
+
+            // Find correct answer to highlight it
+            buttons[1].classList.add('border-primary', 'bg-primary-container', 'bg-opacity-10'); // Hardcoded index 1 is correct in HTML
+
+            // Scroll to feedback
+            setTimeout(() => {
+                feedbackCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+
+        function nextQuestion() {
+            // In a real app, this would load the next question data.
+            // Here we just toggle back to dashboard for demo loop.
+            toggleFocusMode();
+        }
+
+        function resetQuestionState() {
+             const feedbackCard = document.getElementById('feedbackCard');
+             feedbackCard.classList.add('hidden');
+             
+             document.getElementById('actionButtons').classList.add('hidden');
+             document.getElementById('submitBtn').disabled = false;
+             selectedBtn = null;
+             
+             // Reset buttons
+             const optionsGrid = document.querySelector('.grid-cols-1.md\\:grid-cols-2');
+             const buttons = optionsGrid.querySelectorAll('button');
+             
+             buttons.forEach((b, index) => {
+                b.className = 'text-left bg-surface-container-lowest border-2 border-outline-variant hover:border-primary hover:bg-surface-container-low rounded-xl p-md transition-all duration-200 group relative overflow-hidden';
+                const badge = b.querySelector('span');
+                badge.className = 'w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant font-label-md text-label-md flex items-center justify-center group-hover:bg-primary group-hover:text-on-primary transition-colors';
+                
+                // Re-attach onclick
+                const isCorrect = index === 1; // Option B is correct
+                b.onclick = function() { selectOption(this, isCorrect) };
+             });
+        }
+    </script>
+</body></html>

@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ViệtGiáo - Quản lý Lớp học</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Inter & Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary": "#005ea1",
+                    "surface-variant": "#d4e4fc",
+                    "surface-container-low": "#eff4ff",
+                    "on-surface": "#0d1c2e",
+                    "surface-container": "#e5eeff",
+                    "on-tertiary-container": "#fefcff",
+                    "secondary-fixed": "#d8e4eb",
+                    "secondary-container": "#d5e2e9",
+                    "outline": "#717782",
+                    "primary-fixed": "#d2e4ff",
+                    "secondary-fixed-dim": "#bcc8cf",
+                    "inverse-on-surface": "#eaf1ff",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-fixed": "#001c3a",
+                    "on-surface-variant": "#414751",
+                    "surface-tint": "#0061a5",
+                    "on-primary-container": "#fdfcff",
+                    "primary-container": "#2178c3",
+                    "on-secondary-fixed-variant": "#3c494e",
+                    "on-secondary-container": "#58646a",
+                    "surface-container-high": "#dce9ff",
+                    "on-error": "#ffffff",
+                    "tertiary-container": "#5276a8",
+                    "outline-variant": "#c0c7d3",
+                    "on-error-container": "#93000a",
+                    "surface-bright": "#f8f9ff",
+                    "surface": "#f8f9ff",
+                    "inverse-primary": "#9fcaff",
+                    "tertiary": "#385d8e",
+                    "surface-container-highest": "#d4e4fc",
+                    "primary-fixed-dim": "#9fcaff",
+                    "tertiary-fixed": "#d4e3ff",
+                    "on-secondary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "error": "#ba1a1a",
+                    "secondary": "#546066",
+                    "surface-dim": "#ccdbf4",
+                    "on-primary": "#ffffff",
+                    "on-primary-fixed-variant": "#00497e",
+                    "background": "#f8f9ff",
+                    "on-primary-fixed": "#001d37",
+                    "tertiary-fixed-dim": "#a5c8ff",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-fixed": "#111d22",
+                    "on-tertiary-fixed-variant": "#204877",
+                    "on-background": "#0d1c2e",
+                    "inverse-surface": "#223144"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "16px",
+                    "2xl": "48px",
+                    "container-max": "1280px",
+                    "lg": "24px",
+                    "3xl": "64px",
+                    "gutter": "24px",
+                    "xs": "4px",
+                    "xl": "32px",
+                    "base": "4px",
+                    "sm": "8px",
+                    "margin-mobile": "16px"
+            },
+            "fontFamily": {
+                    "body-sm": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "label-md": ["Inter"],
+                    "display-md": ["Plus Jakarta Sans"],
+                    "body-md": ["Inter"],
+                    "headline-md": ["Plus Jakarta Sans"],
+                    "headline-lg": ["Plus Jakarta Sans"],
+                    "display-lg": ["Plus Jakarta Sans"],
+                    "label-sm": ["Inter"],
+                    "headline-sm": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                    "body-sm": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                    "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                    "label-md": ["14px", { "lineHeight": "1", "letterSpacing": "0.01em", "fontWeight": "600" }],
+                    "display-md": ["36px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                    "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                    "headline-md": ["24px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                    "headline-lg": ["30px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                    "display-lg": ["48px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                    "label-sm": ["12px", { "lineHeight": "1", "fontWeight": "500" }],
+                    "headline-sm": ["20px", { "lineHeight": "1.4", "fontWeight": "600" }]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        /* Base styles to ensure consistency */
+        body {
+            background-color: #f8f9ff; /* bg-background */
+            color: #0d1c2e; /* text-on-background */
+            -webkit-font-smoothing: antialiased;
+        }
+        /* Custom subtle shadow for cards representing "Intellectual Blue" depth */
+        .card-shadow {
+            box-shadow: 0 4px 12px rgba(0, 94, 161, 0.05);
+        }
+        .card-shadow:hover {
+            box-shadow: 0 8px 20px rgba(0, 94, 161, 0.08);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="flex min-h-screen bg-background">
+<!-- Shared Component: SideNavBar -->
+<!-- The user is managing classes, which semantically maps closest to the "Học sinh" (Students) tab in the provided JSON -->
+<nav class="hidden md:flex fixed left-0 top-0 h-full w-64 flex-col p-md border-r border-outline-variant bg-surface-container-low z-40">
+<!-- Header -->
+<div class="flex items-center gap-sm mb-xl px-sm">
+<div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-on-primary font-headline-sm text-headline-sm">
+                V
+            </div>
+<div>
+<h1 class="font-headline-sm text-headline-sm text-primary">ViệtGiáo AI</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Hệ sinh thái giáo dục</p>
+</div>
+</div>
+<!-- Navigation Links -->
+<div class="flex flex-col gap-sm flex-1">
+<!-- Inactive -->
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-variant transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">dashboard</span>
+<span class="font-label-md text-label-md">Bảng điều khiển</span>
+</a>
+<!-- Inactive -->
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-variant transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">library_books</span>
+<span class="font-label-md text-label-md">Thư viện</span>
+</a>
+<!-- Inactive -->
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-variant transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">auto_awesome</span>
+<span class="font-label-md text-label-md">Soạn giáo án AI</span>
+</a>
+<!-- Inactive -->
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-variant transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">grid_on</span>
+<span class="font-label-md text-label-md">Ma trận đề thi</span>
+</a>
+<!-- Active: Học sinh (Maps to Classroom Management intent) -->
+<a class="flex items-center gap-md px-md py-sm bg-primary-container text-on-primary-container rounded-lg opacity-90 hover:opacity-100 transition-all shadow-sm" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="font-label-md text-label-md">Học sinh</span>
+</a>
+<!-- Inactive -->
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-variant transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">picture_as_pdf</span>
+<span class="font-label-md text-label-md">Cài đặt xuất bản</span>
+</a>
+</div>
+<!-- CTA -->
+<div class="mt-auto">
+<button class="w-full py-sm px-md bg-primary text-on-primary rounded-lg font-label-md text-label-md hover:bg-surface-tint transition-colors flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined">add</span>
+                Tạo giáo án mới
+            </button>
+</div>
+</nav>
+<!-- Main Content Wrapper -->
+<div class="flex-1 md:ml-64 flex flex-col min-h-screen">
+<!-- Shared Component: TopNavBar -->
+<header class="sticky top-0 z-50 flex justify-between items-center px-lg h-16 w-full bg-surface border-b border-outline-variant">
+<!-- Left: Brand (Mobile only, hidden on desktop as SideNav handles it) -->
+<div class="md:hidden flex items-center gap-sm">
+<h1 class="font-headline-md text-headline-md font-bold text-primary">ViệtGiáo</h1>
+</div>
+<!-- Left/Center: Search/Nav -->
+<div class="hidden md:flex items-center gap-lg">
+<!-- Navigation Links from JSON -->
+<nav class="flex items-center gap-lg">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Cộng đồng</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Hỗ trợ</a>
+</nav>
+</div>
+<!-- Right: Actions & Profile -->
+<div class="flex items-center gap-md">
+<button class="p-sm rounded-full text-on-surface-variant hover:bg-surface-variant transition-colors flex items-center justify-center">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-sm rounded-full text-on-surface-variant hover:bg-surface-variant transition-colors flex items-center justify-center">
+<span class="material-symbols-outlined">help</span>
+</button>
+<div class="h-6 w-px bg-outline-variant mx-sm"></div>
+<button class="hidden md:block px-md py-sm font-label-md text-label-md text-primary border border-primary rounded-lg hover:bg-surface-container transition-colors">
+                    Nâng cấp
+                </button>
+<button class="px-md py-sm font-label-md text-label-md bg-primary text-on-primary rounded-lg hover:bg-surface-tint transition-colors">
+                    Tạo mới
+                </button>
+<!-- Profile Avatar placeholder -->
+<div class="w-8 h-8 rounded-full bg-surface-container-high border border-outline-variant overflow-hidden cursor-pointer ml-sm">
+<img alt="Ảnh đại diện giáo viên" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUeC6Wm5P31veb0aLno_uvNzq0_SRU6ciJGwziVYdc_0vCIwcT9y_m51a0DLEqAZTt_vyJaDbMzlW-8ZqEdzp66YBI9nXpqdbKIZMZIKQ6Q5Vf9f34J-YLybMS-LIZ2UqvahTlmIn6hbrvBnrtpdWLVgYN4qt8G1tsEnCfCkVK7nwSCDlKxK0CpiwAyIvKX0ORwKoqxbNah7OzutpoFqhaukalyA0OgZ2Nd2zZf-7Y8Hr8NqGK7q4sQ3RbYhbq-AOlHw314lmAc7U"/>
+</div>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="flex-1 p-lg md:p-xl w-full max-w-container-max mx-auto">
+<!-- Page Header -->
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-xl gap-md">
+<div>
+<h2 class="font-display-md text-display-md text-on-surface mb-xs">Quản lý Lớp học</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Tổng quan hoạt động và tiến độ của các lớp bạn phụ trách.</p>
+</div>
+<button class="flex items-center gap-sm px-lg py-sm bg-primary text-on-primary rounded-lg font-label-md text-label-md hover:bg-surface-tint transition-colors shadow-sm">
+<span class="material-symbols-outlined">add_circle</span>
+                    Thêm lớp mới
+                </button>
+</div>
+<!-- Key Metrics Overview (Optional embellishment for dashboard feel) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md mb-xl">
+<div class="bg-surface rounded-xl p-md border border-outline-variant flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-surface-container-low flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">class</span>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Tổng số lớp</p>
+<p class="font-headline-md text-headline-md text-on-surface">6</p>
+</div>
+</div>
+<div class="bg-surface rounded-xl p-md border border-outline-variant flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">groups</span>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Tổng số học sinh</p>
+<p class="font-headline-md text-headline-md text-on-surface">215</p>
+</div>
+</div>
+<div class="bg-surface rounded-xl p-md border border-outline-variant flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">assignment</span>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Bài tập đang mở</p>
+<p class="font-headline-md text-headline-md text-on-surface">12</p>
+</div>
+</div>
+</div>
+<!-- Class Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg">
+<!-- Card 1: Lớp 11A1 -->
+<article class="bg-surface rounded-xl border border-outline-variant card-shadow flex flex-col transition-all duration-300">
+<!-- Card Header -->
+<div class="p-md border-b border-outline-variant/50 flex justify-between items-start">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center text-primary font-headline-sm text-headline-sm">
+                                11
+                            </div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Lớp 11A1</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Khối Tự nhiên</p>
+</div>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface p-xs rounded-full hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<!-- Card Body (Stats) -->
+<div class="p-md flex-1 flex flex-col gap-md">
+<!-- Stat Row 1: Students -->
+<div class="flex justify-between items-center">
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">person</span> Sĩ số
+                            </span>
+<span class="font-label-md text-label-md text-on-surface">42 học sinh</span>
+</div>
+<!-- Stat Row 2: Active Assignments -->
+<div class="flex justify-between items-center">
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">task</span> Bài tập
+                            </span>
+<span class="font-label-md text-label-md text-primary bg-primary-fixed px-sm py-xs rounded-full">3 đang mở</span>
+</div>
+<!-- Progress Bar -->
+<div class="mt-sm">
+<div class="flex justify-between items-center mb-xs">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Tiến độ chung</span>
+<span class="font-label-sm text-label-sm text-on-surface">78%</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-2 overflow-hidden">
+<div class="bg-primary h-2 rounded-full" style="width: 78%"></div>
+</div>
+</div>
+</div>
+<!-- Card Footer (Actions) -->
+<div class="p-sm bg-surface-container-low rounded-b-xl border-t border-outline-variant/50 flex gap-xs">
+<button class="flex-1 py-sm font-label-sm text-label-sm text-primary hover:bg-surface-container rounded-lg transition-colors flex flex-col items-center gap-xs">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+                            Danh sách
+                        </button>
+<button class="flex-1 py-sm font-label-sm text-label-sm text-primary hover:bg-surface-container rounded-lg transition-colors flex flex-col items-center gap-xs">
+<span class="material-symbols-outlined text-[20px]">send</span>
+                            Giao bài
+                        </button>
+<button class="flex-1 py-sm font-label-sm text-label-sm text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors flex flex-col items-center gap-xs">
+<span class="material-symbols-outlined text-[20px]">bar_chart</span>
+                            Báo cáo
+                        </button>
+</div>
+</article>
+<!-- Card 2: Lớp 10C2 -->
+<article class="bg-surface rounded-xl border border-outline-variant card-shadow flex flex-col transition-all duration-300">
+<div class="p-md border-b border-outline-variant/50 flex justify-between items-start">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-secondary-container flex items-center justify-center text-on-secondary-container font-headline-sm text-headline-sm">
+                                10
+                            </div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Lớp 10C2</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Khối Xã hội</p>
+</div>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface p-xs rounded-full hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="p-md flex-1 flex flex-col gap-md">
+<div class="flex justify-between items-center">
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">person</span> Sĩ số
+                            </span>
+<span class="font-label-md text-label-md text-on-surface">38 học sinh</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">task</span> Bài tập
+                            </span>
+<span class="font-label-md text-label-md text-on-surface-variant bg-surface-variant px-sm py-xs rounded-full">0 đang mở</span>
+</div>
+<div class="mt-sm">
+<div class="flex justify-between items-center mb-xs">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Tiến độ chung</span>
+<span class="font-label-sm text-label-sm text-on-surface">65%</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-2 overflow-hidden">
+<div class="bg-tertiary h-2 rounded-full" style="width: 65%"></div>
+</div>
+</div>
+</div>
+<div class="p-sm bg-surface-container-low rounded-b-xl border-t border-outline-variant/50 flex gap-xs">
+<button class="flex-1 py-sm font-label-sm text-label-sm text-primary hover:bg-surface-container rounded-lg transition-colors flex flex-col items-center gap-xs">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+                            Danh sách
+                        </button>
+<button class="flex-1 py-sm font-label-sm text-label-sm text-primary hover:bg-surface-container rounded-lg transition-colors flex flex-col items-center gap-xs">
+<span class="material-symbols-outlined text-[20px]">send</span>
+                            Giao bài
+                        </button>
+<button class="flex-1 py-sm font-label-sm text-label-sm text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors flex flex-col items-center gap-xs">
+<span class="material-symbols-outlined text-[20px]">bar_chart</span>
+                            Báo cáo
+                        </button>
+</div>
+</article>
+<!-- Card 3: Lớp 12B5 -->
+<article class="bg-surface rounded-xl border border-outline-variant card-shadow flex flex-col transition-all duration-300">
+<div class="p-md border-b border-outline-variant/50 flex justify-between items-start">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-error-container flex items-center justify-center text-on-error-container font-headline-sm text-headline-sm">
+                                12
+                            </div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Lớp 12B5</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Lớp Nâng cao</p>
+</div>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface p-xs rounded-full hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="p-md flex-1 flex flex-col gap-md">
+<div class="flex justify-between items-center">
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">person</span> Sĩ số
+                            </span>
+<span class="font-label-md text-label-md text-on-surface">35 học sinh</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">task</span> Bài tập
+                            </span>
+<span class="font-label-md text-label-md text-primary bg-primary-fixed px-sm py-xs rounded-full">5 đang mở</span>
+</div>
+<div class="mt-sm">
+<div class="flex justify-between items-center mb-xs">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Tiến độ chung</span>
+<span class="font-label-sm text-label-sm text-on-surface">92%</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-2 overflow-hidden">
+<div class="bg-primary h-2 rounded-full" style="width: 92%"></div>
+</div>
+</div>
+</div>
+<div class="p-sm bg-surface-container-low rounded-b-xl border-t border-outline-variant/50 flex gap-xs">
+<button class="flex-1 py-sm font-label-sm text-label-sm text-primary hover:bg-surface-container rounded-lg transition-colors flex flex-col items-center gap-xs">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+                            Danh sách
+                        </button>
+<button class="flex-1 py-sm font-label-sm text-label-sm text-primary hover:bg-surface-container rounded-lg transition-colors flex flex-col items-center gap-xs">
+<span class="material-symbols-outlined text-[20px]">send</span>
+                            Giao bài
+                        </button>
+<button class="flex-1 py-sm font-label-sm text-label-sm text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors flex flex-col items-center gap-xs">
+<span class="material-symbols-outlined text-[20px]">bar_chart</span>
+                            Báo cáo
+                        </button>
+</div>
+</article>
+</div>
+</main>
+</div>
+</body></html>

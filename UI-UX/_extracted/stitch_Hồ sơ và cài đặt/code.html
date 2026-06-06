@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Teacher Profile &amp; Settings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary-fixed-dim": "#a5c8ff",
+                      "surface-container": "#e5eeff",
+                      "secondary-container": "#d5e2e9",
+                      "primary-fixed-dim": "#9fcaff",
+                      "on-secondary-container": "#58646a",
+                      "on-secondary-fixed-variant": "#3c494e",
+                      "error": "#ba1a1a",
+                      "on-secondary-fixed": "#111d22",
+                      "on-secondary": "#ffffff",
+                      "surface-container-low": "#eff4ff",
+                      "inverse-surface": "#223144",
+                      "surface-variant": "#d4e4fc",
+                      "on-tertiary-fixed-variant": "#204877",
+                      "on-primary": "#ffffff",
+                      "secondary-fixed-dim": "#bcc8cf",
+                      "secondary-fixed": "#d8e4eb",
+                      "tertiary-container": "#5276a8",
+                      "surface-dim": "#ccdbf4",
+                      "on-error": "#ffffff",
+                      "inverse-on-surface": "#eaf1ff",
+                      "on-background": "#0d1c2e",
+                      "surface": "#f8f9ff",
+                      "secondary": "#546066",
+                      "primary-container": "#2178c3",
+                      "surface-container-highest": "#d4e4fc",
+                      "surface-bright": "#f8f9ff",
+                      "primary": "#005ea1",
+                      "tertiary-fixed": "#d4e3ff",
+                      "outline": "#717782",
+                      "surface-tint": "#0061a5",
+                      "outline-variant": "#c0c7d3",
+                      "on-tertiary": "#ffffff",
+                      "on-primary-fixed": "#001d37",
+                      "tertiary": "#385d8e",
+                      "on-tertiary-container": "#fefcff",
+                      "surface-container-high": "#dce9ff",
+                      "surface-container-lowest": "#ffffff",
+                      "on-surface-variant": "#414751",
+                      "on-primary-container": "#fdfcff",
+                      "on-error-container": "#93000a",
+                      "error-container": "#ffdad6",
+                      "on-primary-fixed-variant": "#00497e",
+                      "background": "#f8f9ff",
+                      "primary-fixed": "#d2e4ff",
+                      "on-surface": "#0d1c2e",
+                      "on-tertiary-fixed": "#001c3a",
+                      "inverse-primary": "#9fcaff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gutter": "24px",
+                      "lg": "24px",
+                      "container-max": "1280px",
+                      "sm": "8px",
+                      "md": "16px",
+                      "xl": "32px",
+                      "2xl": "48px",
+                      "margin-mobile": "16px",
+                      "base": "4px",
+                      "3xl": "64px",
+                      "xs": "4px"
+              },
+              "fontFamily": {
+                      "display-md": ["Plus Jakarta Sans"],
+                      "headline-md": ["Plus Jakarta Sans"],
+                      "headline-lg": ["Plus Jakarta Sans"],
+                      "body-sm": ["Inter"],
+                      "display-lg": ["Plus Jakarta Sans"],
+                      "body-md": ["Inter"],
+                      "label-md": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "headline-sm": ["Plus Jakarta Sans"],
+                      "label-sm": ["Inter"]
+              },
+              "fontSize": {
+                      "display-md": ["36px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                      "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                      "headline-lg": ["30px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                      "body-sm": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                      "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "label-md": ["14px", {"lineHeight": "1", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "headline-sm": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                      "label-sm": ["12px", {"lineHeight": "1", "fontWeight": "500"}]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        body { background-color: theme('colors.background'); color: theme('colors.on-surface'); }
+        .ambient-shadow { box-shadow: 0 4px 12px rgba(0, 30, 60, 0.05); }
+        .ambient-shadow-hover:hover { box-shadow: 0 8px 24px rgba(0, 30, 60, 0.08); transform: translateY(-2px); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-body-md text-body-md antialiased">
+<!-- TopNavBar -->
+<header class="bg-surface text-primary font-body-md text-body-md sticky w-full top-0 border-b border-surface-variant z-50">
+<div class="flex justify-between items-center w-full px-md h-16 max-w-container-max mx-auto">
+<div class="flex items-center gap-lg">
+<div class="font-headline-md text-headline-md font-bold text-primary cursor-pointer active:opacity-80 transition-all">
+                    Giao An Dewey
+                </div>
+<nav class="hidden md:flex gap-md">
+<!-- Tabs are inactive as this is a profile page -->
+<a class="text-secondary hover:text-primary transition-colors py-2 cursor-pointer active:opacity-80" href="#">Home</a>
+<a class="text-secondary hover:text-primary transition-colors py-2 cursor-pointer active:opacity-80" href="#">My Library</a>
+<a class="text-secondary hover:text-primary transition-colors py-2 cursor-pointer active:opacity-80" href="#">Create with AI</a>
+<a class="text-secondary hover:text-primary transition-colors py-2 cursor-pointer active:opacity-80" href="#">Community</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<div class="relative hidden md:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="pl-10 pr-4 py-2 rounded-full bg-surface-container-low border-none focus:ring-2 focus:ring-primary-container text-body-sm transition-all w-64" placeholder="Search..." type="text"/>
+</div>
+<div class="flex gap-2">
+<button class="p-2 rounded-full text-secondary hover:bg-surface-container-low transition-colors cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 rounded-full text-secondary hover:bg-surface-container-low transition-colors cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined">help</span>
+</button>
+</div>
+<button class="bg-primary text-on-primary px-4 py-2 rounded-lg font-label-md text-label-md hover:opacity-90 transition-opacity cursor-pointer active:opacity-80">
+                    New Lesson
+                </button>
+<div class="w-8 h-8 rounded-full bg-surface-container-high overflow-hidden cursor-pointer ml-2 border border-outline-variant">
+<img alt="User Profile Avatar" class="w-full h-full object-cover" data-alt="A professional headshot of a female teacher in a brightly lit modern classroom setting, wearing smart casual attire. Soft natural light illuminates her face. The background is slightly blurred showing academic elements." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2n0Iigcy-ozuSvcRgElQlDYmr7FnijVR3NAwTxhzIDnqR3IkWP-t1WR76X57dPtJRffMF34RGV5RnbztLrc4UA43d8eLhqQhWQ1MPE6ikSs6FOyj3llMSQYOBfvXrlWFlVXeZg8g8Rg3_vwFbYhhgkB0zvzPU9kWyJewd8cA3f8w6jBa85UAxXpSDREhz_BJR7sv4i1HbU5Mydn0NqGHmNb-JqdwkvWPO0OKHJL2VmCs48dWRev6Cuyi7EdOm2gwC2hngHZT0o-g"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Layout -->
+<main class="flex-grow w-full max-w-container-max mx-auto px-md md:px-lg py-xl flex flex-col md:flex-row gap-xl">
+<!-- Custom Settings Sidebar -->
+<aside class="w-full md:w-64 flex-shrink-0">
+<h2 class="font-headline-sm text-headline-sm text-on-surface mb-md px-4">Account Settings</h2>
+<nav class="flex flex-col gap-2">
+<a class="bg-secondary-container text-on-secondary-container rounded-lg font-label-md text-label-md px-4 py-3 flex items-center gap-3 transition-transform duration-200 active:scale-95" href="#">
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">person</span>
+                    Profile Info
+                </a>
+<a class="text-on-surface-variant hover:bg-surface-container-high rounded-lg font-label-md text-label-md px-4 py-3 flex items-center gap-3 transition-all duration-200 active:scale-95" href="#">
+<span class="material-symbols-outlined">lock</span>
+                    Security
+                </a>
+<a class="text-on-surface-variant hover:bg-surface-container-high rounded-lg font-label-md text-label-md px-4 py-3 flex items-center gap-3 transition-all duration-200 active:scale-95" href="#">
+<span class="material-symbols-outlined">tune</span>
+                    Preferences
+                </a>
+<a class="text-on-surface-variant hover:bg-surface-container-high rounded-lg font-label-md text-label-md px-4 py-3 flex items-center gap-3 transition-all duration-200 active:scale-95" href="#">
+<span class="material-symbols-outlined">workspace_premium</span>
+                    Subscription
+                </a>
+</nav>
+</aside>
+<!-- Main Content Area (Bento Layout) -->
+<div class="flex-grow grid grid-cols-1 lg:grid-cols-3 gap-lg">
+<!-- Profile Editable Form (Spans 2 columns on lg) -->
+<section class="lg:col-span-2 bg-surface-container-lowest rounded-xl p-lg ambient-shadow border border-surface-variant">
+<div class="flex items-center gap-md mb-xl">
+<div class="relative group">
+<div class="w-24 h-24 rounded-full overflow-hidden border-4 border-surface">
+<img alt="Profile" class="w-full h-full object-cover" data-alt="A close up professional headshot of a female teacher in a brightly lit modern classroom setting. She has a warm, approachable smile. The lighting is soft and flattering, highlighting a clean, modern aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1HfIlGCH1lIViZnRaGNbF3SIzXhRZr1uYnMvBVBNCSywERLMUxHkVb56X8HAMmZqdKsMw0yGk8VDYvi8yvatvzOuFehVdoTfR_9YuhbA8rDVfXw092b2yD6s83hC9o0deV8c4Q2mGABmyRAJrk8-PQ3cfakTioGIyVxDhI7VVIq00qTuwKwZ9OZwfxQBnPl7IRtX-vYjNqJPT1tHBi0yTsr_bAZkcAS5SCvOTEFRneNIDaqE2yBp_rQqpRKMCDxrlr8OpvPKfwPw"/>
+</div>
+<button class="absolute bottom-0 right-0 bg-primary-container text-on-primary-container p-2 rounded-full shadow-sm hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-sm">photo_camera</span>
+</button>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Eleanor Richards</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Senior Literature Educator</p>
+</div>
+</div>
+<form class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<div class="space-y-1">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Full Name</label>
+<input class="w-full px-4 py-2 rounded-lg bg-surface-container-low border border-outline-variant focus:border-primary-container focus:ring-1 focus:ring-primary-container text-body-md transition-colors outline-none" type="text" value="Eleanor Richards"/>
+</div>
+<div class="space-y-1">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Email Address</label>
+<input class="w-full px-4 py-2 rounded-lg bg-surface-container-low border border-outline-variant focus:border-primary-container focus:ring-1 focus:ring-primary-container text-body-md transition-colors outline-none" type="email" value="e.richards@deweyacademy.edu"/>
+</div>
+<div class="space-y-1 md:col-span-2">
+<label class="font-label-sm text-label-sm text-on-surface-variant">School / Institution</label>
+<input class="w-full px-4 py-2 rounded-lg bg-surface-container-low border border-outline-variant focus:border-primary-container focus:ring-1 focus:ring-primary-container text-body-md transition-colors outline-none" type="text" value="Dewey International Academy"/>
+</div>
+<div class="space-y-1">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Subjects Taught</label>
+<input class="w-full px-4 py-2 rounded-lg bg-surface-container-low border border-outline-variant focus:border-primary-container focus:ring-1 focus:ring-primary-container text-body-md transition-colors outline-none" type="text" value="English Literature, Creative Writing"/>
+</div>
+<div class="space-y-1">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Grade Levels</label>
+<select class="w-full px-4 py-2 rounded-lg bg-surface-container-low border border-outline-variant focus:border-primary-container focus:ring-1 focus:ring-primary-container text-body-md transition-colors outline-none">
+<option>High School (9-12)</option>
+<option>Middle School (6-8)</option>
+<option>Elementary (K-5)</option>
+</select>
+</div>
+<div class="md:col-span-2 mt-md flex justify-end gap-3">
+<button class="px-4 py-2 rounded-lg border border-primary text-primary font-label-md text-label-md hover:bg-surface-container transition-colors" type="button">
+                            Cancel
+                        </button>
+<button class="bg-primary text-on-primary px-4 py-2 rounded-lg font-label-md text-label-md hover:opacity-90 transition-opacity" type="button">
+                            Save Changes
+                        </button>
+</div>
+</form>
+</section>
+<!-- Side Column for Stats & Management -->
+<div class="flex flex-col gap-lg">
+<!-- Impact Stats Card -->
+<section class="bg-primary-container text-on-primary-container rounded-xl p-lg ambient-shadow relative overflow-hidden">
+<!-- Decorative background graphic -->
+<div class="absolute -right-8 -top-8 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
+<h3 class="font-headline-sm text-headline-sm mb-lg flex items-center gap-2">
+<span class="material-symbols-outlined">trending_up</span>
+                        Impact Stats
+                    </h3>
+<div class="space-y-md">
+<div>
+<p class="font-label-sm text-label-sm opacity-80 uppercase tracking-wider">Total Downloads</p>
+<p class="font-display-lg text-display-lg font-bold">12.4k</p>
+</div>
+<div class="flex justify-between border-t border-white/20 pt-sm">
+<div>
+<p class="font-label-sm text-label-sm opacity-80">Views</p>
+<p class="font-headline-md text-headline-md">45.2k</p>
+</div>
+<div>
+<p class="font-label-sm text-label-sm opacity-80">Avg. Rating</p>
+<p class="font-headline-md text-headline-md flex items-center gap-1">
+                                    4.9 <span class="material-symbols-outlined text-sm" data-weight="fill" style="font-variation-settings: 'FILL' 1;">star</span>
+</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Account Management Card -->
+<section class="bg-surface-container-lowest rounded-xl p-lg ambient-shadow border border-surface-variant flex-grow">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-md">Account Management</h3>
+<div class="space-y-4">
+<button class="w-full text-left px-4 py-3 rounded-lg border border-outline-variant hover:bg-surface-container-low transition-colors flex items-center justify-between group">
+<span class="font-label-md text-label-md text-on-surface">Change Password</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">chevron_right</span>
+</button>
+<button class="w-full text-left px-4 py-3 rounded-lg border border-outline-variant hover:bg-surface-container-low transition-colors flex items-center justify-between group">
+<span class="font-label-md text-label-md text-on-surface">Two-Factor Authentication</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">chevron_right</span>
+</button>
+<div class="pt-md mt-md border-t border-surface-variant">
+<button class="w-full text-left px-4 py-3 rounded-lg text-error hover:bg-error-container hover:text-on-error-container transition-colors font-label-md text-label-md flex items-center gap-2">
+<span class="material-symbols-outlined">delete_forever</span>
+                                Delete Account
+                            </button>
+</div>
+</div>
+</section>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container text-secondary font-body-sm text-body-sm full-width py-8 border-t border-surface-variant mt-auto">
+<div class="flex flex-col md:flex-row justify-between items-center px-md w-full max-w-container-max mx-auto gap-4">
+<div class="font-label-caps text-label-caps text-primary">
+                © 2024 Giao An Dewey. All rights reserved.
+            </div>
+<div class="flex gap-lg">
+<a class="text-on-surface-variant hover:text-primary transition-colors cursor-pointer" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors cursor-pointer" href="#">Terms of Service</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors cursor-pointer" href="#">Contact Support</a>
+</div>
+</div>
+</footer>
+</body></html>

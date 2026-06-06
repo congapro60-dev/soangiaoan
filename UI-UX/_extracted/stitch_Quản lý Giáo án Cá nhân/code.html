@@ -1,0 +1,382 @@
+<!DOCTYPE html><html class="light" lang="vi"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>My Library - Giao An Dewey</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-secondary-fixed-variant": "#424750",
+                      "tertiary-container": "#5456e1",
+                      "on-secondary": "#ffffff",
+                      "on-tertiary": "#ffffff",
+                      "surface-container-low": "#f3f3f6",
+                      "surface-bright": "#f9f9fc",
+                      "error-container": "#ffdad6",
+                      "primary-fixed": "#dce1ff",
+                      "surface-container": "#eeeef0",
+                      "on-surface": "#1a1c1e",
+                      "surface-container-lowest": "#ffffff",
+                      "tertiary-fixed-dim": "#c0c1ff",
+                      "secondary-fixed-dim": "#c2c6d1",
+                      "on-error": "#ffffff",
+                      "secondary-container": "#dee2ed",
+                      "on-secondary-container": "#60656e",
+                      "surface-variant": "#e2e2e5",
+                      "on-surface-variant": "#434656",
+                      "surface-container-highest": "#e2e2e5",
+                      "error": "#ba1a1a",
+                      "surface-container-high": "#e8e8ea",
+                      "outline": "#737688",
+                      "secondary": "#5a5f68",
+                      "primary-container": "#0057ff",
+                      "on-background": "#1a1c1e",
+                      "on-primary": "#ffffff",
+                      "inverse-primary": "#b6c4ff",
+                      "tertiary-fixed": "#e1e0ff",
+                      "on-secondary-fixed": "#171c23",
+                      "background": "#f9f9fc",
+                      "on-primary-container": "#e5e8ff",
+                      "tertiary": "#3a3ac8",
+                      "on-primary-fixed": "#001550",
+                      "surface-tint": "#004ee7",
+                      "on-tertiary-fixed": "#07006c",
+                      "on-primary-fixed-variant": "#003ab2",
+                      "surface-dim": "#dadadc",
+                      "on-error-container": "#93000a",
+                      "secondary-fixed": "#dee2ed",
+                      "on-tertiary-fixed-variant": "#2f2ebe",
+                      "outline-variant": "#c3c5d9",
+                      "surface": "#f9f9fc",
+                      "inverse-surface": "#2f3133",
+                      "primary-fixed-dim": "#b6c4ff",
+                      "on-tertiary-container": "#e9e6ff",
+                      "primary": "#0043c8",
+                      "inverse-on-surface": "#f0f0f3"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-mobile": "16px",
+                      "margin-desktop": "32px",
+                      "base": "8px",
+                      "gutter": "24px",
+                      "container-max": "1280px"
+              },
+              "fontFamily": {
+                      "headline-md": [
+                              "Manrope"
+                      ],
+                      "headline-lg-mobile": [
+                              "Manrope"
+                      ],
+                      "headline-lg": [
+                              "Manrope"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "display-lg": [
+                              "Manrope"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "label-caps": [
+                              "JetBrains Mono"
+                      ]
+              },
+              "fontSize": {
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "56px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "800"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "500"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="bg-surface dark:bg-on-surface text-primary dark:text-primary-fixed font-body-md text-body-md docked full-width top-0 border-b border-surface-variant dark:border-outline-variant flat no shadows z-50">
+<div class="flex justify-between items-center w-full px-margin-desktop h-16 max-w-container-max mx-auto">
+<div class="flex items-center gap-6">
+<a class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed" href="#">Giao An Dewey</a>
+<nav class="hidden md:flex gap-6 items-center">
+<a class="text-secondary dark:text-secondary-fixed-dim hover:text-primary dark:hover:text-primary-fixed cursor-pointer active:opacity-80 transition-all" href="#">Home</a>
+<a class="text-primary dark:text-primary-fixed font-bold border-b-2 border-primary dark:border-primary-fixed pb-1 cursor-pointer active:opacity-80 transition-all" href="#">My Library</a>
+<a class="text-secondary dark:text-secondary-fixed-dim hover:text-primary dark:hover:text-primary-fixed cursor-pointer active:opacity-80 transition-all" href="#">Create with AI</a>
+<a class="text-secondary dark:text-secondary-fixed-dim hover:text-primary dark:hover:text-primary-fixed cursor-pointer active:opacity-80 transition-all" href="#">Community</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden md:flex relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary text-sm">search</span>
+<input class="pl-9 pr-4 py-1.5 rounded-full border border-surface-variant bg-surface-container-low text-body-sm focus:outline-none focus:ring-2 focus:ring-primary-container/20 w-48 lg:w-64" placeholder="Search lessons..." type="text">
+</div>
+<button class="hidden md:flex items-center gap-2 bg-primary-container text-on-primary font-body-sm font-bold px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-sm">add</span>
+                    New Lesson
+                </button>
+<div class="flex items-center gap-2">
+<button class="p-2 rounded-full hover:bg-surface-container-low dark:hover:bg-surface-container-highest transition-colors text-secondary dark:text-secondary-fixed-dim">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 rounded-full hover:bg-surface-container-low dark:hover:bg-surface-container-highest transition-colors text-secondary dark:text-secondary-fixed-dim">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-surface-variant overflow-hidden ml-2 cursor-pointer border border-surface-variant">
+<img alt="User Profile Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCevUTOtAS1YtJ3j9pMu7dex_q1gsFrXiRZL42gEf4wd1qUM6dx9pWPayMWisYznKCsEwwr1Cf_aSEGsQG0S8uVLi0SyRmc8VenKf2ERaceiL7pp_XFasQnsnwgaswX8xlEbYtI7xtIWGiMc-GMkeBJLAbArcEneEoFOCRhH_Mj0riKUarRa6U1rLpNlyPcFnZEb7b5zXZynzf1JDkhq2qgmRpkzT8Jcw80N8aWfrJPJ31F3bENYNopJHV9hC3eveIn-jjw4PF61G8">
+</div>
+</div>
+</div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- SideNavBar -->
+<aside class="bg-surface-container-low dark:bg-surface-container-highest text-primary dark:text-primary-fixed-dim font-body-sm text-body-sm h-full w-64 hidden lg:flex flex-col border-r border-surface-variant dark:border-outline-variant flat no shadows">
+<div class="flex flex-col gap-2 p-4 h-screen sticky top-0">
+<div class="mb-6 px-2">
+<p class="font-label-caps text-label-caps text-secondary dark:text-secondary-fixed mb-1 uppercase">Lesson Filters</p>
+<p class="text-xs text-on-surface-variant">Manage your workspace</p>
+</div>
+<nav class="flex flex-col gap-1 flex-1">
+<a class="bg-secondary-container dark:bg-tertiary-container text-on-secondary-container dark:text-on-tertiary-container rounded-lg font-bold flex items-center gap-3 px-3 py-2 transition-transform duration-200 active:scale-95" href="#">
+<span class="material-symbols-outlined fill-icon" data-icon="folder" data-weight="fill">folder</span>
+                        All Lessons
+                    </a>
+<a class="text-on-surface-variant dark:text-on-secondary-fixed-variant hover:bg-surface-container-high dark:hover:bg-surface-dim rounded-lg flex items-center gap-3 px-3 py-2 transition-all transition-transform duration-200 active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="edit_note">edit_note</span>
+                        Drafts
+                    </a>
+<a class="text-on-surface-variant dark:text-on-secondary-fixed-variant hover:bg-surface-container-high dark:hover:bg-surface-dim rounded-lg flex items-center gap-3 px-3 py-2 transition-all transition-transform duration-200 active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="public">public</span>
+                        Published
+                    </a>
+<a class="text-on-surface-variant dark:text-on-secondary-fixed-variant hover:bg-surface-container-high dark:hover:bg-surface-dim rounded-lg flex items-center gap-3 px-3 py-2 transition-all transition-transform duration-200 active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="archive">archive</span>
+                        Archived
+                    </a>
+<a class="text-on-surface-variant dark:text-on-secondary-fixed-variant hover:bg-surface-container-high dark:hover:bg-surface-dim rounded-lg flex items-center gap-3 px-3 py-2 transition-all transition-transform duration-200 active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+                        Shared with Me
+                    </a>
+</nav>
+<div class="mt-auto pt-4 border-t border-surface-variant">
+<button class="w-full bg-[#f0f4ff] text-primary-container font-body-sm font-bold py-2 rounded-lg hover:bg-[#e0e8ff] transition-colors border border-[#dce1ff]">
+                        Upgrade Pro
+                    </button>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 overflow-y-auto bg-surface-container-lowest p-margin-mobile md:p-margin-desktop">
+<div class="max-w-container-max mx-auto">
+<!-- Toolbar -->
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+<div>
+<h1 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-2">My Library</h1>
+<p class="text-secondary font-body-md">Manage and organize your lesson plans</p>
+</div>
+<div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+<div class="relative flex-1 sm:flex-none">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary text-sm">filter_list</span>
+<select class="pl-9 pr-8 py-2 rounded-lg border border-surface-variant bg-surface text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary-container/20 appearance-none w-full sm:w-auto transition-colors">
+<option>All Subjects</option>
+<option>Mathematics</option>
+<option>Science</option>
+<option>Literature</option>
+<option>History</option>
+</select>
+</div>
+<div class="relative flex-1 sm:flex-none hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary text-sm">sort</span>
+<select class="pl-9 pr-8 py-2 rounded-lg border border-surface-variant bg-surface text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary-container/20 appearance-none w-full sm:w-auto transition-colors">
+<option>Newest First</option>
+<option>Oldest First</option>
+<option>A-Z</option>
+</select>
+</div>
+<button class="md:hidden flex items-center justify-center gap-2 bg-primary-container text-on-primary font-body-sm font-bold px-4 py-2 rounded-lg hover:opacity-90 w-full sm:w-auto">
+<span class="material-symbols-outlined text-sm">add</span>
+                            New Lesson
+                        </button>
+</div>
+</div>
+<!-- Bento Grid / Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter">
+<!-- Card 1 -->
+<div class="group bg-surface rounded-xl border border-surface-variant overflow-hidden hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] transition-all duration-300 flex flex-col h-full cursor-pointer relative hover:-translate-y-1">
+<div class="absolute top-0 left-0 w-full h-1 bg-[#85D1B4]"></div> <!-- Subject color border -->
+<div class="h-32 bg-surface-container-low overflow-hidden relative">
+<div class="absolute inset-0 bg-gradient-to-tr from-[#85D1B4]/20 to-transparent"></div>
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80 mix-blend-multiply" data-alt="A modern, high-key light mode photograph of a neatly arranged desk with a microscope, petri dishes, and a notebook. The scene uses a soft pastel color palette with bright white surfaces and subtle green accents, conveying a clean, professional, and educational aesthetic suitable for a biology lesson plan cover." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOOQNSGyaoTSTq2x2c0JBPx3Eku7CnwFHLpIlnTeW6iCRxXFTE3L7BIKuGt409Jzo6bT8eLLbf2Fwp65vCtQB-cASdMGf0fqBkLsB5wT_4_W_7vnCobdAVFS4InA2aC6NYQ9fdxt5LIzYMrY_V7fKCpxvKzv58AajLVBabOtGdKVpV-SZjSiNNK3pvdpRSYzDhs-vp1X4xsMMBP724oo1MiFEw7NQkJkniIaJ7Zn_9ZYWPwe66dHQ2v7wPVBOg4ujT3LZRthuT-8I">
+<div class="absolute top-3 right-3 flex gap-1">
+<span class="bg-surface/90 backdrop-blur text-secondary font-label-caps text-[10px] px-2 py-1 rounded-md border border-surface-variant flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Draft
+                                </span>
+</div>
+</div>
+<div class="p-4 flex flex-col flex-1">
+<div class="flex gap-2 mb-2">
+<span class="text-[10px] font-label-caps text-[#2d6a4f] bg-[#d8f3dc] px-2 py-0.5 rounded-sm">Science</span>
+<span class="text-[10px] font-label-caps text-on-surface-variant bg-surface-variant px-2 py-0.5 rounded-sm">Grade 8</span>
+</div>
+<h3 class="font-headline-md text-body-lg text-on-surface mb-2 line-clamp-2 group-hover:text-primary transition-colors">Introduction to Cellular Structures</h3>
+<div class="mt-auto pt-4 flex justify-between items-center text-xs text-secondary font-label-caps border-t border-surface-variant/50">
+<span class="">Oct 24, 2023</span>
+<div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[16px] hover:text-primary">edit</span>
+<span class="material-symbols-outlined text-[16px] hover:text-primary">more_vert</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="group bg-surface rounded-xl border border-surface-variant overflow-hidden hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] transition-all duration-300 flex flex-col h-full cursor-pointer relative hover:-translate-y-1">
+<div class="absolute top-0 left-0 w-full h-1 bg-[#A3A8E0]"></div>
+<div class="h-32 bg-surface-container-low overflow-hidden relative">
+<div class="absolute inset-0 bg-gradient-to-tr from-[#A3A8E0]/20 to-transparent"></div>
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80 mix-blend-multiply" data-alt="A bright, minimalist flat-lay photograph showing an open notebook with elegant mathematical equations written on it, accompanied by a compass and ruler on a clean white desk. The lighting is soft and natural, emphasizing a modern, academic light-mode design style with subtle blue-grey pastel undertones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDX-mykh4VKgC82gkvoa2hj4YHniJ5N93PIc_gN-lX4Yoi8E_atwSMlaOIZgko__ZLqe6GcFSq8golicP9zZVY7R9AS4w4QW6Ia7KBGovgSRgZ42TtMa4NrZzDwTJqvJ6VtF4QB3xcfw5xYw8O4erOe1sTMbFvdACPdRCzoAliPUvEj7B0SeJqO9CRSuT-47OBJ-uW44Y1BSFVzz1YgzC0OE12hqcz3MLuk82lzYTUcWFLoTz80pI4GlxYxiAgMhiXRKZ7SspqLdtc">
+<div class="absolute top-3 right-3 flex gap-1">
+<span class="bg-surface/90 backdrop-blur text-primary-container font-label-caps text-[10px] px-2 py-1 rounded-md border border-primary-container/20 flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span> Published
+                                </span>
+</div>
+</div>
+<div class="p-4 flex flex-col flex-1">
+<div class="flex gap-2 mb-2">
+<span class="text-[10px] font-label-caps text-[#4f46e5] bg-[#e0e7ff] px-2 py-0.5 rounded-sm">Mathematics</span>
+<span class="text-[10px] font-label-caps text-on-surface-variant bg-surface-variant px-2 py-0.5 rounded-sm">Grade 10</span>
+</div>
+<h3 class="font-headline-md text-body-lg text-on-surface mb-2 line-clamp-2 group-hover:text-primary transition-colors">Quadratic Equations &amp; Applications</h3>
+<div class="mt-auto pt-4 flex justify-between items-center text-xs text-secondary font-label-caps border-t border-surface-variant/50">
+<span class="">Oct 22, 2023</span>
+<div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[16px] hover:text-primary">edit</span>
+<span class="material-symbols-outlined text-[16px] hover:text-primary">more_vert</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="group bg-surface rounded-xl border border-surface-variant overflow-hidden hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] transition-all duration-300 flex flex-col h-full cursor-pointer relative hover:-translate-y-1">
+<div class="absolute top-0 left-0 w-full h-1 bg-[#F4A261]"></div>
+<div class="h-32 bg-surface-container-low overflow-hidden relative">
+<div class="absolute inset-0 bg-gradient-to-tr from-[#F4A261]/20 to-transparent"></div>
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80 mix-blend-multiply" data-alt="A clean, light-filled composition featuring vintage books and a quill pen on a modern white surface. The image incorporates soft peach and warm orange pastel accents, reflecting a scholarly yet accessible aesthetic tailored for a high-end educational UI in light mode." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDnmEpaOyzTm5wQG8DMlQCPp5kJwdBMJBaZ3K6dbPMQtt5JCDIrCoy4myl7KWTdEd38WP4I9ebfm_aCftmglmBKyxJT1BlUQxVcpDFDDjtvpRNawBDeqpxuhLo7t_mCB1eaLftInLRkqRiZxyLV772YRVx61IZej7SUxcbV1UdXoimqwPUMSpyCXUVI78sg3zD7kERyKR99GBhyklKy8Cpm5bkjV0O_Plz4tPMLa2IlcvwbiuiISoi4u2la_n473xyzzZNnnOtqHw">
+<div class="absolute top-3 right-3 flex gap-1">
+<span class="bg-surface/90 backdrop-blur text-primary-container font-label-caps text-[10px] px-2 py-1 rounded-md border border-primary-container/20 flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span> Published
+                                </span>
+</div>
+</div>
+<div class="p-4 flex flex-col flex-1">
+<div class="flex gap-2 mb-2">
+<span class="text-[10px] font-label-caps text-[#c2410c] bg-[#ffedd5] px-2 py-0.5 rounded-sm">Literature</span>
+<span class="text-[10px] font-label-caps text-on-surface-variant bg-surface-variant px-2 py-0.5 rounded-sm">Grade 11</span>
+</div>
+<h3 class="font-headline-md text-body-lg text-on-surface mb-2 line-clamp-2 group-hover:text-primary transition-colors">Analyzing Metaphors in Modern Poetry</h3>
+<div class="mt-auto pt-4 flex justify-between items-center text-xs text-secondary font-label-caps border-t border-surface-variant/50">
+<span class="">Oct 18, 2023</span>
+<div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[16px] hover:text-primary">edit</span>
+<span class="material-symbols-outlined text-[16px] hover:text-primary">more_vert</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 4 (Empty State / Create New) -->
+<div class="group bg-surface-container-lowest rounded-xl border-2 border-dashed border-surface-variant hover:border-primary-container/50 overflow-hidden transition-all duration-300 flex flex-col h-full cursor-pointer items-center justify-center min-h-[280px] hover:-translate-y-1 hover:bg-primary-container/5">
+<div class="w-12 h-12 rounded-full bg-surface-container-low flex items-center justify-center mb-4 group-hover:bg-[#f0f4ff] transition-colors">
+<span class="material-symbols-outlined text-secondary group-hover:text-primary-container">add</span>
+</div>
+<p class="font-headline-md text-body-md text-on-surface group-hover:text-primary-container transition-colors">Create New Lesson</p>
+<p class="text-xs text-secondary mt-1">Start from scratch or use AI</p>
+</div>
+</div>
+</div>
+</main>
+</div>
+
+
+</body></html>

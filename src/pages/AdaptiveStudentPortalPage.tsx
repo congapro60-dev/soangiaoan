@@ -11,6 +11,9 @@ import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import {
   AlertTriangle,
+  ArrowRight,
+  Award,
+  BookOpen,
   BookOpenCheck,
   Camera,
   CheckCircle2,
@@ -19,6 +22,7 @@ import {
   Loader2,
   Route,
   Send,
+  ShieldCheck,
   Sparkles,
   Target,
   UploadCloud,
@@ -31,7 +35,7 @@ import { adaptiveLessonToDeweyContent } from '../lib/adaptive/adaptiveToDewey';
 import { renderDeweyLesson } from '../lib/dewey/template';
 import { getLessonFromFirestore } from '../services/adaptiveLessonService';
 import { getPersonalizedLesson } from '../lib/adaptive/personalizationEngine';
-import { DEFAULT_GEMINI_RUNTIME_MODEL } from '../lib/gemini';
+import { GEMINI_MODELS } from '../lib/aiProviders';
 import { LessonSimulationViewer } from '../components/adaptive/LessonSimulationViewer';
 import { getToolsByIds } from '../data/externalTools';
 import {
@@ -103,10 +107,24 @@ const noticeClass: Record<NoticeTone, string> = {
   error: 'border-red-100 bg-red-50 text-red-700',
 };
 
+const routeToneClass: Record<LearningRoute, string> = {
+  foundation: 'from-amber-50 to-orange-50 text-amber-800 ring-amber-100',
+  standard: 'from-blue-50 to-indigo-50 text-blue-800 ring-blue-100',
+  challenge: 'from-purple-50 to-fuchsia-50 text-purple-800 ring-purple-100',
+};
+
+const portalStepDescriptions = [
+  'Nhập thông tin',
+  'Test đầu giờ',
+  'Học theo tuyến',
+  'Luyện tập',
+  'Lưu kết quả',
+];
+
 const normalizeStudentCode = (value: string) => value.trim().toUpperCase().replace(/\s+/g, '-');
 const buildStudentId = (teacherId: string, studentCode: string) => `${teacherId}_${normalizeStudentCode(studentCode)}`;
 const buildProgressId = (teacherId: string, lessonId: string, studentCode: string) => `${teacherId}_${lessonId}_${normalizeStudentCode(studentCode)}`;
-const DEFAULT_PERSONALIZATION_MODEL = DEFAULT_GEMINI_RUNTIME_MODEL;
+const DEFAULT_PERSONALIZATION_MODEL = GEMINI_MODELS[0]?.id || 'gemini-3.5-flash';
 
 const getQuestionAnswer = (questionId: string, answers: Record<string, string>) => answers[questionId] || '';
 const formatDuration = (seconds: number) => {
@@ -908,30 +926,31 @@ export const AdaptiveStudentPortalPage = () => {
     )}>
       <div className={cn('mx-auto min-h-0 overflow-visible', stage === 'dewey-lesson' ? 'flex max-w-7xl flex-col gap-4 sm:gap-5' : 'max-w-5xl space-y-5')}>
         <section className={cn(
-          'relative z-10 shrink-0 overflow-visible rounded-[2rem] bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 px-6 pb-6 pt-9 text-white shadow-xl shadow-blue-100 sm:px-7 sm:pb-7 sm:pt-10',
+          'relative z-10 shrink-0 overflow-hidden rounded-[2rem] border border-white/20 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 px-5 pb-5 pt-7 text-white shadow-xl shadow-blue-100 sm:px-7 sm:pb-7 sm:pt-9',
           stage === 'dewey-lesson' && 'mt-1'
         )}>
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <div className="mb-3 inline-flex max-w-full items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-black uppercase tracking-widest leading-none">
-                <BookOpenCheck className="h-4 w-4" /> Cổng học sinh
+          <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+          <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="max-w-3xl">
+              <div className="mb-3 inline-flex max-w-full items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-black uppercase tracking-widest leading-none ring-1 ring-white/20">
+                <BookOpenCheck className="h-4 w-4" /> Cổng học sinh · học từng bước
               </div>
-              <h1 className="text-3xl font-black tracking-tight">{lesson.title}</h1>
-              <p className="mt-2 max-w-3xl text-sm font-semibold text-blue-50">
-                Em học theo quy trình 5 bước: kết nối, chẩn đoán, hình thành kiến thức, luyện tập điều chỉnh và phản tư. Mỗi phần có đồng hồ để ghi tốc độ học tập.
+              <h1 className="text-2xl font-black tracking-tight sm:text-3xl">{lesson.title}</h1>
+              <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-blue-50">
+                Hoàn thành từng phần theo thứ tự. Hệ thống chỉ hiện đúng việc cần làm ở mỗi bước để em không bị rối.
               </p>
             </div>
-            <div className="grid grid-cols-3 gap-3 overflow-visible p-2 text-center sm:p-3">
+            <div className="grid grid-cols-3 gap-2 overflow-visible rounded-3xl bg-white/10 p-2 text-center ring-1 ring-white/15 sm:gap-3 sm:p-3">
               <MiniStat icon={<Clock3 className="h-5 w-5" />} value={`${lesson.durationMinutes}'`} label="Tiết học" />
               <MiniStat icon={<Target className="h-5 w-5" />} value={lesson.objectives.length} label="Mục tiêu" />
               <MiniStat icon={<Route className="h-5 w-5" />} value="3" label="Tuyến học" />
             </div>
           </div>
-          <div className="mt-5 grid gap-2 md:grid-cols-5">
+          <div className="relative mt-5 grid gap-2 md:grid-cols-5">
             {stepNames.map((stepName, index) => (
-              <div key={stepName} className={cn('rounded-2xl px-3 py-2 text-xs font-black', index <= activeStepIndex ? 'bg-white text-indigo-700' : 'bg-white/10 text-blue-50')}>
+              <div key={stepName} className={cn('rounded-2xl px-3 py-2 text-xs font-black ring-1 transition', index <= activeStepIndex ? 'bg-white text-indigo-700 ring-white' : 'bg-white/10 text-blue-50 ring-white/10')}>
                 <span className="block text-[10px] uppercase tracking-widest opacity-70">Bước {index + 1}</span>
-                {stepName}
+                <span className="block truncate">{portalStepDescriptions[index] || stepName}</span>
               </div>
             ))}
           </div>
@@ -944,51 +963,79 @@ export const AdaptiveStudentPortalPage = () => {
         )}
 
         {stage === 'identify' && (
-          <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-            <div className="mb-5 flex items-start gap-3">
-              <div className="rounded-2xl bg-blue-50 p-3 text-blue-600"><UserRound className="h-5 w-5" /></div>
-              <div>
-                <h2 className="text-xl font-black text-slate-800">Bước 1. Kết nối và nhập thông tin học sinh</h2>
-                <p className="text-sm text-slate-500">Mã học sinh giúp hệ thống nối kết quả hôm nay với hồ sơ học tập các tiết sau.</p>
-              </div>
-            </div>
-            <div className="mb-5 rounded-2xl border border-blue-100 bg-blue-50 p-4">
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <p className="text-sm font-black text-blue-700">Hình ảnh khởi động</p>
-                  <p className="text-xs font-semibold text-blue-500">Quan sát 4 tình huống trực quan để tò mò trước khi vào bài.</p>
+          <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm">
+            <div className="grid gap-0 lg:grid-cols-[1.08fr_0.92fr]">
+              <div className="p-5 sm:p-6">
+                <div className="mb-5 flex items-start gap-3">
+                  <div className="rounded-2xl bg-blue-50 p-3 text-blue-600"><UserRound className="h-5 w-5" /></div>
+                  <div>
+                    <h2 className="text-xl font-black text-slate-800">Bước 1. Kết nối với lớp học</h2>
+                    <p className="text-sm font-semibold leading-6 text-slate-500">Nhập đúng thông tin một lần để giáo viên theo dõi tiến trình và hệ thống nhớ tuyến học của em.</p>
+                  </div>
                 </div>
-                <span className="text-[11px] font-black uppercase tracking-widest text-blue-400">Kết nối thực tế</span>
+
+                <div className="grid gap-3 rounded-3xl border border-slate-100 bg-slate-50 p-4 sm:grid-cols-3">
+                  <div className="rounded-2xl bg-white p-3 ring-1 ring-slate-100">
+                    <ShieldCheck className="mb-2 h-5 w-5 text-emerald-600" />
+                    <p className="text-xs font-black uppercase tracking-wide text-slate-400">An toàn</p>
+                    <p className="mt-1 text-sm font-bold text-slate-700">Chỉ dùng mã học sinh để lưu kết quả học tập.</p>
+                  </div>
+                  <div className="rounded-2xl bg-white p-3 ring-1 ring-slate-100">
+                    <BookOpen className="mb-2 h-5 w-5 text-blue-600" />
+                    <p className="text-xs font-black uppercase tracking-wide text-slate-400">Dễ học</p>
+                    <p className="mt-1 text-sm font-bold text-slate-700">Mỗi màn hình chỉ tập trung vào một nhiệm vụ.</p>
+                  </div>
+                  <div className="rounded-2xl bg-white p-3 ring-1 ring-slate-100">
+                    <Award className="mb-2 h-5 w-5 text-amber-600" />
+                    <p className="text-xs font-black uppercase tracking-wide text-slate-400">Tiến bộ</p>
+                    <p className="mt-1 text-sm font-bold text-slate-700">Kết quả sau tiết học giúp cá nhân hoá bài sau.</p>
+                  </div>
+                </div>
               </div>
-              <div className="mt-3 grid gap-3 md:grid-cols-2">
-                {kickoffVisualCards.map(card => (
-                  <figure key={card.title} className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-blue-100 transition hover:-translate-y-0.5 hover:shadow-md">
-                    <img src={card.src} alt={card.title} className="h-36 w-full object-cover sm:h-40" loading="lazy" />
-                    <figcaption className="p-3">
-                      <p className="text-sm font-black text-blue-950">{card.title}</p>
-                      <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">{card.caption}</p>
-                    </figcaption>
-                  </figure>
-                ))}
+
+              <div className="border-t border-slate-100 bg-gradient-to-br from-blue-50 to-indigo-50 p-5 sm:p-6 lg:border-l lg:border-t-0">
+                <div className="rounded-2xl border border-blue-100 bg-white/75 p-4 shadow-sm">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                      <p className="text-sm font-black text-blue-700">Hình ảnh khởi động</p>
+                      <p className="text-xs font-semibold text-blue-500">Quan sát 4 tình huống trực quan để tò mò trước khi vào bài.</p>
+                    </div>
+                    <span className="text-[11px] font-black uppercase tracking-widest text-blue-400">Kết nối thực tế</span>
+                  </div>
+                  <div className="mt-3 grid gap-3 md:grid-cols-2">
+                    {kickoffVisualCards.map(card => (
+                      <figure key={card.title} className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-blue-100 transition hover:-translate-y-0.5 hover:shadow-md">
+                        <img src={card.src} alt={card.title} className="h-36 w-full object-cover sm:h-40" loading="lazy" />
+                        <figcaption className="p-3">
+                          <p className="text-sm font-black text-blue-950">{card.title}</p>
+                          <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">{card.caption}</p>
+                        </figcaption>
+                      </figure>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="grid gap-4 md:grid-cols-3">
-              <label className="space-y-2">
-                <span className="text-xs font-black uppercase tracking-wide text-slate-400">Họ và tên</span>
-                <input value={studentName} onChange={event => setStudentName(event.target.value)} className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:border-blue-400 focus:bg-white" placeholder="VD: Nguyễn Minh Anh" />
-              </label>
-              <label className="space-y-2">
-                <span className="text-xs font-black uppercase tracking-wide text-slate-400">Lớp</span>
-                <input value={studentClass} onChange={event => setStudentClass(event.target.value)} className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:border-blue-400 focus:bg-white" placeholder="VD: 11A1" />
-              </label>
-              <label className="space-y-2">
-                <span className="text-xs font-black uppercase tracking-wide text-slate-400">Mã học sinh cố định</span>
-                <input value={studentCode} onChange={event => setStudentCode(event.target.value)} className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold uppercase outline-none focus:border-blue-400 focus:bg-white" placeholder="VD: 11A1-025" />
-              </label>
+
+            <div className="border-t border-slate-100 p-5 sm:p-6">
+              <div className="grid gap-4 md:grid-cols-3">
+                <label className="space-y-2">
+                  <span className="text-xs font-black uppercase tracking-wide text-slate-400">Họ và tên</span>
+                  <input value={studentName} onChange={event => setStudentName(event.target.value)} className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:border-blue-400 focus:bg-white" placeholder="VD: Nguyễn Minh Anh" />
+                </label>
+                <label className="space-y-2">
+                  <span className="text-xs font-black uppercase tracking-wide text-slate-400">Lớp</span>
+                  <input value={studentClass} onChange={event => setStudentClass(event.target.value)} className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:border-blue-400 focus:bg-white" placeholder="VD: 11A1" />
+                </label>
+                <label className="space-y-2">
+                  <span className="text-xs font-black uppercase tracking-wide text-slate-400">Mã học sinh cố định</span>
+                  <input value={studentCode} onChange={event => setStudentCode(event.target.value)} className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold uppercase outline-none focus:border-blue-400 focus:bg-white" placeholder="VD: 11A1-025" />
+                </label>
+              </div>
+              <button onClick={handleIdentify} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-100 transition hover:bg-blue-700 sm:w-auto">
+                Bắt đầu học <ArrowRight className="h-4 w-4" />
+              </button>
             </div>
-            <button onClick={handleIdentify} className="mt-5 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-100 transition hover:bg-blue-700">
-              Bắt đầu học
-            </button>
           </motion.section>
         )}
 

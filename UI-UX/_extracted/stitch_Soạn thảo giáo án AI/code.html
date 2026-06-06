@@ -1,0 +1,279 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>AI Lesson Plan Editor</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#a5c8ff",
+                        "surface-container": "#e5eeff",
+                        "secondary-container": "#d5e2e9",
+                        "primary-fixed-dim": "#9fcaff",
+                        "on-secondary-container": "#58646a",
+                        "on-secondary-fixed-variant": "#3c494e",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed": "#111d22",
+                        "on-secondary": "#ffffff",
+                        "surface-container-low": "#eff4ff",
+                        "inverse-surface": "#223144",
+                        "surface-variant": "#d4e4fc",
+                        "on-tertiary-fixed-variant": "#204877",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed-dim": "#bcc8cf",
+                        "secondary-fixed": "#d8e4eb",
+                        "tertiary-container": "#5276a8",
+                        "surface-dim": "#ccdbf4",
+                        "on-error": "#ffffff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "on-background": "#0d1c2e",
+                        "surface": "#f8f9ff",
+                        "secondary": "#546066",
+                        "primary-container": "#2178c3",
+                        "surface-container-highest": "#d4e4fc",
+                        "surface-bright": "#f8f9ff",
+                        "primary": "#005ea1",
+                        "tertiary-fixed": "#d4e3ff",
+                        "outline": "#717782",
+                        "surface-tint": "#0061a5",
+                        "outline-variant": "#c0c7d3",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed": "#001d37",
+                        "tertiary": "#385d8e",
+                        "on-tertiary-container": "#fefcff",
+                        "surface-container-high": "#dce9ff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#414751",
+                        "on-primary-container": "#fdfcff",
+                        "on-error-container": "#93000a",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed-variant": "#00497e",
+                        "background": "#f8f9ff",
+                        "primary-fixed": "#d2e4ff",
+                        "on-surface": "#0d1c2e",
+                        "on-tertiary-fixed": "#001c3a",
+                        "inverse-primary": "#9fcaff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "lg": "24px",
+                        "container-max": "1280px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "xl": "32px",
+                        "2xl": "48px",
+                        "margin-mobile": "16px",
+                        "base": "4px",
+                        "3xl": "64px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "display-md": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "body-sm": ["Inter"],
+                        "display-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-sm": ["Plus Jakarta Sans"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-md": ["36px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "headline-lg": ["30px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "label-md": ["14px", { "lineHeight": "1", "letterSpacing": "0.01em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-sm": ["20px", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "1", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .shadow-resting {
+            box-shadow: 0 4px 12px rgba(0, 94, 161, 0.1);
+        }
+        .shadow-hover {
+            box-shadow: 0 8px 20px rgba(0, 94, 161, 0.15);
+        }
+        .editor-content:focus {
+            outline: none;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="bg-surface border-b border-surface-variant w-full z-50">
+<div class="flex justify-between items-center w-full px-lg h-16 max-w-container-max mx-auto">
+<div class="flex items-center gap-lg">
+<span class="font-headline-md text-headline-md font-bold text-primary">Giao An Dewey</span>
+<nav class="hidden md:flex gap-lg">
+<a class="text-secondary hover:text-primary transition-colors font-label-md text-label-md px-sm py-xs" href="#">Home</a>
+<a class="text-secondary hover:text-primary transition-colors font-label-md text-label-md px-sm py-xs" href="#">My Library</a>
+<a class="text-primary font-bold border-b-2 border-primary pb-1 font-label-md text-label-md px-sm py-xs" href="#">Create with AI</a>
+<a class="text-secondary hover:text-primary transition-colors font-label-md text-label-md px-sm py-xs" href="#">Community</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<span class="text-on-surface-variant font-body-sm text-body-sm flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">cloud_done</span> Saved
+                </span>
+<button class="bg-primary text-on-primary font-label-md text-label-md px-md py-sm rounded hover:opacity-90 transition-opacity">
+                    Export PDF
+                </button>
+<div class="flex gap-sm">
+<button class="text-secondary hover:bg-surface-container-low p-sm rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-secondary hover:bg-surface-container-low p-sm rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-variant overflow-hidden">
+<img alt="User Profile Avatar" class="w-full h-full object-cover" data-alt="A professional headshot of a teacher smiling warmly. The lighting is bright and even, suited for a corporate profile picture." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYLHfmWrHUVcBy0Gevc7PIuPuX90IySOvI6k2qTqCA69MKRF7_DK6ZVz6-b1wHstp7pQwqoPG1-IHdea2asCfswtG89liqtiiSd9N8VCPQVxOq7T4AJPhO86LraOyU8rk4Ddbn6BWJciWgXRwCQxZWM4m3nmih4FE_AE63rxpDzIq2t_41FEpCRBjW8FoAqrbmfzbKF07eHp4t_S31uNJO5WCbkS0emr7qahIDjF93ZfPUCVmFHkKHfMea6XesTTp7-0XhHzFsum8">
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Split View -->
+<main class="flex-1 flex overflow-hidden">
+<!-- AI Assistant Sidebar -->
+<aside class="w-1/3 border-r border-surface-variant bg-surface-container-low flex flex-col h-[calc(100vh-64px)] hidden lg:flex">
+<div class="p-md border-b border-surface-variant bg-surface">
+<h2 class="font-headline-sm text-headline-sm text-primary flex items-center gap-sm">
+<span class="material-symbols-outlined">auto_awesome</span> Dewey AI
+                </h2>
+<p class="font-body-sm text-body-sm text-secondary mt-xs">Ask me to generate objectives, activities, or materials.</p>
+</div>
+<!-- Chat History -->
+<div class="flex-1 overflow-y-auto p-md flex flex-col gap-lg">
+<!-- AI Message -->
+<div class="flex gap-sm max-w-[90%]">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-on-primary text-[18px]">smart_toy</span>
+</div>
+<div class="bg-surface border border-surface-variant rounded-lg rounded-tl-none p-sm shadow-resting">
+<p class="font-body-sm text-body-sm">Hi there! What kind of lesson are we planning today?</p>
+</div>
+</div>
+<!-- User Message -->
+<div class="flex gap-sm max-w-[90%] self-end flex-row-reverse">
+<div class="w-8 h-8 rounded-full bg-surface-variant overflow-hidden flex-shrink-0">
+<img alt="User" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgcyoi4B_AF_XDv-Eu26nzrSb2WeWJtD9r25MhVotirPLprsnpQAHW_OZ_yXiXoZHTgeqhLlnjxI_WBbA539bWiLEotT8e1-ai5fIP3ZsmQJDv2v3XI-oE6QZidcTe9YIUIwwl-u0RjACAprOJlfFtl_er_QcNS_FF-4ogMbiBtreFP6pJozYjGhLIVZC1NQT0C-Ua_avfAwgod5HEFGvdWEx1bC-EDITOeuGmiF-dXuEo-6OjYMlt4r2lvAStWpMKuiM9ON75h1E">
+</div>
+<div class="bg-primary-container text-on-primary-container rounded-lg rounded-tr-none p-sm">
+<p class="font-body-sm text-body-sm">I need a 45-minute lesson plan for 8th-grade science about the water cycle. Focus on interactive activities.</p>
+</div>
+</div>
+<!-- AI Message with Suggestions -->
+<div class="flex gap-sm max-w-[95%]">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-on-primary text-[18px]">smart_toy</span>
+</div>
+<div class="bg-surface border border-surface-variant rounded-lg rounded-tl-none p-sm shadow-resting w-full">
+<p class="font-body-sm text-body-sm mb-sm">Great! Here's a suggested outline for the Water Cycle. Shall I insert this into your document?</p>
+<div class="bg-surface-container-low border border-surface-variant p-sm rounded font-body-sm text-body-sm text-on-surface-variant">
+<strong>Objective:</strong> Students will understand the stages of the water cycle (evaporation, condensation, precipitation, collection).<br>
+<strong>Activity:</strong> "Water Cycle in a Bag" experiment.
+                        </div>
+<div class="flex gap-sm mt-sm">
+<button class="bg-primary text-on-primary font-label-sm text-label-sm px-sm py-xs rounded flex items-center gap-xs">
+<span class="material-symbols-outlined text-[14px]">add</span> Insert Outline
+                            </button>
+<button class="border border-outline text-secondary font-label-sm text-label-sm px-sm py-xs rounded hover:bg-surface-variant transition-colors">
+                                Try Again
+                            </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Input Area -->
+<div class="bg-surface border-t border-surface-variant p-lg">
+<div class="relative">
+<textarea class="w-full bg-surface-container-low border border-outline-variant rounded-lg p-sm pr-10 resize-none font-body-sm text-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none" placeholder="Type a prompt for Dewey..." rows="2"></textarea>
+<button class="absolute right-sm bottom-sm text-primary hover:bg-surface-variant p-xs rounded-full transition-colors">
+<span class="material-symbols-outlined text-[20px]">send</span>
+</button>
+</div>
+</div>
+</aside>
+<!-- Document Editor -->
+<section class="flex-1 flex flex-col h-[calc(100vh-64px)] bg-surface-container">
+<!-- Editor Toolbar -->
+<div class="bg-surface border-b border-surface-variant px-md py-sm flex items-center gap-md">
+<div class="flex gap-xs border-r border-outline-variant pr-md">
+<select class="bg-transparent border-none text-body-sm font-body-sm py-xs px-sm focus:ring-0 cursor-pointer">
+<option>Normal Text</option>
+<option>Heading 1</option>
+<option>Heading 2</option>
+<option>Heading 3</option>
+</select>
+</div>
+<div class="flex gap-xs border-r border-outline-variant pr-md">
+<button class="p-xs rounded hover:bg-surface-variant text-secondary transition-colors"><span class="material-symbols-outlined text-[18px]">format_bold</span></button>
+<button class="p-xs rounded hover:bg-surface-variant text-secondary transition-colors"><span class="material-symbols-outlined text-[18px]">format_italic</span></button>
+<button class="p-xs rounded hover:bg-surface-variant text-secondary transition-colors"><span class="material-symbols-outlined text-[18px]">format_underlined</span></button>
+</div>
+<div class="flex gap-xs">
+<button class="p-xs rounded hover:bg-surface-variant text-secondary transition-colors"><span class="material-symbols-outlined text-[18px]">format_list_bulleted</span></button>
+<button class="p-xs rounded hover:bg-surface-variant text-secondary transition-colors"><span class="material-symbols-outlined text-[18px]">format_list_numbered</span></button>
+</div>
+</div>
+<!-- Page Canvas -->
+<div class="flex-1 overflow-y-auto p-xl flex justify-center">
+<div class="bg-surface w-full max-w-[800px] min-h-[1056px] shadow-resting rounded border border-surface-variant p-[96px]">
+<!-- Editor Content -->
+<div class="editor-content outline-none">
+<h1 class="font-display-md text-display-md text-on-surface mb-xl">Water Cycle Exploration</h1>
+<p class="font-body-md text-body-md text-secondary mb-xl">Grade: 8th | Duration: 45 minutes | Subject: Earth Science</p>
+<h2 class="font-headline-md text-headline-md text-primary mt-xl mb-md">Learning Objectives</h2>
+<ul class="list-disc list-inside font-body-md text-body-md text-on-surface-variant mb-lg space-y-xs">
+<li class="">Students will be able to define the four main stages of the water cycle.</li>
+<li class="">Students will demonstrate the process of condensation through a hands-on activity.</li>
+</ul>
+<h2 class="font-headline-md text-headline-md text-primary mt-xl mb-md">Materials Needed</h2>
+<ul class="list-disc list-inside font-body-md text-body-md text-on-surface-variant mb-lg space-y-xs">
+<li class="">Ziploc bags (one per group)</li>
+<li class="">Blue food coloring</li>
+<li class="">Permanent markers</li>
+<li class="">Clear tape</li>
+</ul>
+<h2 class="font-headline-md text-headline-md text-primary mt-xl mb-md">Lesson Procedure</h2>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mt-md mb-xs">1. Introduction (10 mins)</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-md">
+                            Begin with a discussion asking students where rain comes from. Introduce the vocabulary terms: Evaporation, Condensation, Precipitation, and Collection.
+                        </p>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mt-md mb-xs">2. Activity: Water Cycle in a Bag (25 mins)</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-md">
+                            Have students draw a sun and clouds on the upper half of their Ziploc bag. Add a small amount of water tinted with blue food coloring to the bag. Seal tightly and tape to a sunny window. Observe condensation forming.
+                        </p>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mt-md mb-xs">3. Conclusion &amp; Assessment (10 mins)</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-md">
+                            Review the stages observed in the bag. Assign a short exit ticket asking students to describe one stage in their own words.
+                        </p>
+</div>
+</div>
+</div>
+</section>
+</main>
+
+
+</body></html>

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { FileDown, FileText, Presentation, FileSpreadsheet, BookOpen, Headphones, ChevronDown, RotateCcw, ClipboardList, CloudUpload } from 'lucide-react';
+import { FileDown, FileText, Presentation, FileSpreadsheet, BookOpen, Headphones, ChevronDown, RotateCcw, ClipboardList, CloudUpload, Settings2 } from 'lucide-react';
+import { ExportTemplateSettings } from '../../export/ExportTemplateSettings';
 
 export type PaperOrientation = 'portrait' | 'landscape';
 
@@ -26,6 +27,7 @@ export const CreatorToolbar = ({
 }: CreatorToolbarProps) => {
   const [orientation, setOrientation] = useState<PaperOrientation>('portrait');
   const [showOrientationMenu, setShowOrientationMenu] = useState(false);
+  const [showExportSettings, setShowExportSettings] = useState(false);
   const orientationMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,6 +44,7 @@ export const CreatorToolbar = ({
   const orientationLabel = orientation === 'portrait' ? 'Dọc' : 'Ngang';
 
   return (
+    <>
     <div className="flex gap-2 items-center">
       <div className="relative" ref={orientationMenuRef}>
         <button
@@ -89,7 +92,7 @@ export const CreatorToolbar = ({
       <button
         onClick={() => exportToPDF(orientation)}
         className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm"
-        title={`Xuất PDF (${orientationLabel})`}
+        title={`Xuất PDF nhanh (${orientationLabel})`}
       >
         <FileDown className="w-5 h-5" />
       </button>
@@ -97,9 +100,17 @@ export const CreatorToolbar = ({
       <button
         onClick={() => exportToWordA4(orientation)}
         className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm"
-        title={`Xuất Word chuẩn A4 (${orientationLabel})`}
+        title={`Xuất Word nhanh chuẩn A4 (${orientationLabel})`}
       >
         <FileText className="w-5 h-5" />
+      </button>
+
+      <button
+        onClick={() => setShowExportSettings(true)}
+        className="p-2.5 bg-blue-50 border border-blue-100 rounded-xl text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+        title="Cài đặt template xuất file A4"
+      >
+        <Settings2 className="w-5 h-5" />
       </button>
 
       <button onClick={handleGenerateSlide} className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-orange-600 hover:border-orange-200 transition-all shadow-sm" title="Tạo Slide">
@@ -128,5 +139,15 @@ export const CreatorToolbar = ({
         </button>
       )}
     </div>
+
+    <ExportTemplateSettings
+      open={showExportSettings}
+      orientation={orientation}
+      onOrientationChange={setOrientation}
+      onClose={() => setShowExportSettings(false)}
+      onExportPDF={() => exportToPDF(orientation)}
+      onExportWord={() => exportToWordA4(orientation)}
+    />
+    </>
   );
 };

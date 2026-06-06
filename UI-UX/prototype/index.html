@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Giao An Dewey — UI/UX Redesign Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #3182ce;
+      --primary-700: #005ea1;
+      --primary-soft: #d2e4ff;
+      --surface: #ffffff;
+      --surface-low: #f8f9ff;
+      --surface-container: #eff4ff;
+      --outline: #c0c7d3;
+      --text: #0d1c2e;
+      --muted: #546066;
+      --shadow: 0 18px 48px rgba(0, 34, 68, 0.10);
+      --radius: 20px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(49,130,206,.16), transparent 32rem),
+        linear-gradient(135deg, #f8f9ff 0%, #eef6ff 48%, #ffffff 100%);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .shell { display: grid; grid-template-columns: 320px minmax(0, 1fr); min-height: 100vh; }
+    aside {
+      position: sticky; top: 0; height: 100vh; overflow: auto;
+      padding: 28px 22px;
+      background: rgba(255,255,255,.82);
+      border-right: 1px solid rgba(192,199,211,.8);
+      backdrop-filter: blur(18px);
+    }
+    main { min-width: 0; padding: 28px; }
+
+    .brand { display: flex; gap: 12px; align-items: center; margin-bottom: 24px; }
+    .mark {
+      width: 44px; height: 44px; border-radius: 14px;
+      display: grid; place-items: center;
+      background: linear-gradient(135deg, var(--primary), #6aa9e9);
+      color: white; font-family: "Plus Jakarta Sans"; font-weight: 800;
+      box-shadow: 0 10px 26px rgba(49,130,206,.28);
+    }
+    h1, h2, h3 { font-family: "Plus Jakarta Sans", Inter, sans-serif; margin: 0; }
+    .brand h1 { font-size: 19px; line-height: 1.2; }
+    .brand p, .subtle { color: var(--muted); margin: 4px 0 0; font-size: 13px; line-height: 1.5; }
+
+    .notice {
+      padding: 14px;
+      border-radius: 16px;
+      background: #fff8e8;
+      border: 1px solid #f0d69c;
+      color: #684b00;
+      font-size: 13px;
+      line-height: 1.55;
+      margin-bottom: 18px;
+    }
+
+    .nav { display: grid; gap: 8px; }
+    .nav button {
+      width: 100%; text-align: left; cursor: pointer;
+      display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center;
+      padding: 11px 12px; border: 1px solid transparent; border-radius: 14px;
+      background: transparent; color: var(--text); font: inherit;
+    }
+    .nav button:hover { background: var(--surface-container); }
+    .nav button.active { background: var(--primary-soft); border-color: rgba(49,130,206,.24); color: var(--primary-700); font-weight: 700; }
+    .badge { color: var(--muted); font-size: 11px; border: 1px solid var(--outline); border-radius: 999px; padding: 3px 7px; background: white; }
+
+    .hero {
+      display: flex; justify-content: space-between; align-items: end; gap: 24px;
+      margin-bottom: 20px; padding: 24px;
+      border: 1px solid rgba(192,199,211,.75); border-radius: var(--radius);
+      background: rgba(255,255,255,.72); box-shadow: var(--shadow); backdrop-filter: blur(16px);
+    }
+    .hero h2 { font-size: clamp(26px, 3vw, 42px); letter-spacing: -.03em; }
+    .hero p { max-width: 760px; color: var(--muted); line-height: 1.65; margin: 10px 0 0; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn {
+      border: 1px solid var(--outline); background: white; color: var(--text);
+      border-radius: 999px; padding: 11px 15px; font-weight: 700; cursor: pointer;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn.primary { background: var(--primary); color: white; border-color: var(--primary); }
+
+    .meta-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin-bottom: 20px; }
+    .meta-card { padding: 14px; border-radius: 16px; background: rgba(255,255,255,.75); border: 1px solid rgba(192,199,211,.7); }
+    .meta-card strong { display: block; font-family: "Plus Jakarta Sans"; font-size: 20px; }
+    .meta-card span { display: block; color: var(--muted); font-size: 12px; margin-top: 4px; }
+
+    .viewer-card {
+      background: white; border: 1px solid rgba(192,199,211,.85); border-radius: var(--radius);
+      overflow: hidden; box-shadow: var(--shadow);
+    }
+    .viewer-toolbar {
+      display: flex; justify-content: space-between; align-items: center; gap: 12px;
+      padding: 14px 16px; border-bottom: 1px solid var(--outline); background: #fbfdff;
+    }
+    .viewer-toolbar h3 { font-size: 18px; }
+    .viewport-controls { display: flex; gap: 8px; flex-wrap: wrap; }
+    .viewport-controls button {
+      border: 1px solid var(--outline); background: white; border-radius: 999px;
+      padding: 8px 11px; cursor: pointer; font-weight: 700; color: var(--muted);
+    }
+    .viewport-controls button.active { color: var(--primary-700); border-color: var(--primary); background: var(--primary-soft); }
+    .frame-wrap { width: 100%; overflow: auto; padding: 16px; background: repeating-linear-gradient(45deg,#f4f7fb,#f4f7fb 12px,#eef3fa 12px,#eef3fa 24px); }
+    iframe {
+      display: block; height: 780px; width: 100%; max-width: 100%; margin: 0 auto;
+      border: 1px solid var(--outline); border-radius: 14px; background: white; box-shadow: 0 10px 32px rgba(13,28,46,.12);
+    }
+    iframe.mobile { width: 390px; height: 780px; }
+    iframe.tablet { width: 820px; height: 820px; }
+    iframe.desktop { width: 100%; min-width: 1024px; }
+
+    .notes {
+      display: grid; grid-template-columns: 1.1fr .9fr; gap: 16px; margin-top: 20px;
+    }
+    .panel { background: rgba(255,255,255,.78); border: 1px solid rgba(192,199,211,.75); border-radius: var(--radius); padding: 18px; }
+    .panel h3 { margin-bottom: 10px; }
+    .panel ul { margin: 0; padding-left: 20px; color: var(--muted); line-height: 1.7; }
+    code { background: var(--surface-container); padding: 2px 6px; border-radius: 6px; }
+
+    @media (max-width: 980px) {
+      .shell { grid-template-columns: 1fr; }
+      aside { position: relative; height: auto; }
+      .nav { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .hero { align-items: flex-start; flex-direction: column; }
+      .meta-grid, .notes { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 620px) {
+      main { padding: 16px; }
+      aside { padding: 18px; }
+      .nav { grid-template-columns: 1fr; }
+      .viewer-toolbar { align-items: flex-start; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <div class="brand">
+        <div class="mark">GD</div>
+        <div>
+          <h1>Giao An Dewey</h1>
+          <p>Stitch UI/UX Redesign Prototype</p>
+        </div>
+      </div>
+      <div class="notice">
+        Bản này là prototype độc lập trong thư mục <code>UI-UX/prototype</code>, dùng trực tiếp các file HTML do Stitch xuất ra. Không thay thế hoặc sửa <code>src</code> app chính.
+      </div>
+      <div id="screenNav" class="nav" aria-label="Danh sách màn hình"></div>
+    </aside>
+
+    <main>
+      <section class="hero">
+        <div>
+          <h2>Minimalist Editorial UI cho hệ sinh thái giáo dục AI</h2>
+          <p>Prototype tập trung kiểm tra tổng thể 13 màn hình Stitch đã có: dashboard, homepage, workspace giáo án, AI co-pilot, smart matrix grid, báo cáo năng lực, lớp học, cộng đồng, hồ sơ, cổng học sinh, xuất file A4 và preview giáo án.</p>
+        </div>
+        <div class="actions">
+          <a class="btn" href="../MASTER_HANDOVER.md" target="_blank" rel="noreferrer">Mở Master Handover</a>
+          <a id="openRaw" class="btn primary" href="#" target="_blank" rel="noreferrer">Mở HTML gốc</a>
+        </div>
+      </section>
+
+      <section class="meta-grid">
+        <div class="meta-card"><strong>#3182ce</strong><span>Xanh Dương Tri Thức</span></div>
+        <div class="meta-card"><strong>Plus Jakarta</strong><span>Font tiêu đề</span></div>
+        <div class="meta-card"><strong>Inter</strong><span>Font nội dung trong mẫu Stitch</span></div>
+        <div class="meta-card"><strong>13/13</strong><span>Màn hình đã có file extracted</span></div>
+      </section>
+
+      <section class="viewer-card">
+        <div class="viewer-toolbar">
+          <div>
+            <h3 id="screenTitle">Đang tải...</h3>
+            <p id="screenDesc" class="subtle"></p>
+          </div>
+          <div class="viewport-controls" aria-label="Chọn viewport">
+            <button data-size="desktop" class="active">Desktop</button>
+            <button data-size="tablet">Tablet</button>
+            <button data-size="mobile">Mobile</button>
+          </div>
+        </div>
+        <div class="frame-wrap">
+          <iframe id="screenFrame" class="desktop" title="Stitch screen preview"></iframe>
+        </div>
+      </section>
+
+      <section class="notes">
+        <div class="panel">
+          <h3>Hướng triển khai vào app chính</h3>
+          <ul>
+            <li>Trích xuất design tokens dùng chung: màu, font, radius, shadow, spacing.</li>
+            <li>Ưu tiên chuyển 3 màn hình trọng tâm: AI Co-pilot Editor, Smart Matrix Grid, Dashboard.</li>
+            <li>Chuẩn hóa component layout trước khi đưa từng workflow vào React để tránh xung đột với logic hiện hữu.</li>
+            <li>Giữ bản prototype này làm “visual source of truth” để QA so sánh sau khi migrate.</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>Điểm cần bổ sung</h3>
+          <ul>
+            <li>Đã cập nhật đủ 13/13 màn hình theo Master Handover sau khi bạn bổ sung zip mới.</li>
+            <li>Các đường dẫn iframe hiện trỏ theo đúng tên thư mục giải nén mới, có dấu tiếng Việt.</li>
+            <li>Cần kiểm tra responsive thực tế vì các mẫu Stitch chủ yếu là HTML tĩnh.</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const screens = [
+      { id: 'dashboard', title: 'Bảng điều khiển tổng quan', tag: 'Core', dir: '../_extracted/stitch_Bảng điều khiển tổng quan/code.html', desc: 'Dashboard tổng quan với hero, thẻ dữ liệu, hoạt động gần đây và điều hướng chính.' },
+      { id: 'copilot', title: 'Trình soạn thảo AI Co-pilot', tag: 'P1', dir: '../_extracted/stitch_Trình soạn thảo AI Co-pilot (Priority 1)/code.html', desc: 'A4 editor, metadata bar, sidebar trợ lý AI và trải nghiệm ghost text/context-aware.' },
+      { id: 'matrix', title: 'Tạo đề kiểm tra — Smart Matrix Grid', tag: 'P1', dir: '../_extracted/stitch_Tạo đề kiểm tra (Ma trận Smart Grid)/code.html', desc: 'Ma trận nhận thức, phân bổ điểm và sidebar phân tích trước khi sinh đề.' },
+      { id: 'report', title: 'Báo cáo năng lực & Phân tích AI', tag: 'Advanced', dir: '../_extracted/stitch_Báo cáo năng lực & Phân tích AI/code.html', desc: 'Báo cáo năng lực, radar chart và nhận xét AI phục vụ cá nhân hóa học tập.' },
+      { id: 'student-portal', title: 'Cổng học sinh thích ứng', tag: 'Advanced', dir: '../_extracted/stitch_Cổng học sinh thích ứng (giao diện học tập)/code.html', desc: 'Zero-noise UI cho học sinh, tập trung vào nhiệm vụ học tập và phản hồi thích ứng.' },
+      { id: 'export-a4', title: 'Cài đặt xuất file & Template A4', tag: 'Advanced', dir: '../_extracted/stitch_Cài đặt xuất file và template (chuẩn A4)/code.html', desc: 'Thiết lập template, preview trước khi in và chuẩn hóa trải nghiệm xuất file A4.' },
+      { id: 'homepage', title: 'Trang chủ Giao An Dewey', tag: 'Core', dir: '../_extracted/stitch_giao_an_dewey_homepage/code.html', desc: 'Landing/homepage đồng bộ phong cách Minimalist Editorial.' },
+      { id: 'preview', title: 'Xem chi tiết & Preview giáo án', tag: 'Core', dir: '../_extracted/stitch_xem chi tiết & xem trước (đồng bộ UI)/code.html', desc: 'Màn hình xem chi tiết, preview và thao tác xuất/chia sẻ giáo án.' },
+      { id: 'workspace', title: 'Quản lý Giáo án Cá nhân', tag: 'Core', dir: '../_extracted/stitch_Quản lý Giáo án Cá nhân/code.html', desc: 'Workspace quản lý giáo án, bản nháp, tài liệu và bộ sưu tập cá nhân.' },
+      { id: 'community', title: 'Khám phá Cộng đồng', tag: 'Core', dir: '../_extracted/stitch_Khám phá cộng đồng/code.html', desc: 'Không gian khám phá/chia sẻ tài nguyên giáo dục trong cộng đồng.' },
+      { id: 'settings', title: 'Hồ sơ & Cài đặt', tag: 'Core', dir: '../_extracted/stitch_Hồ sơ và cài đặt/code.html', desc: 'Hồ sơ người dùng, thiết lập tài khoản và tùy chọn cá nhân.' },
+      { id: 'basic-ai', title: 'Soạn thảo giáo án AI', tag: 'Core', dir: '../_extracted/stitch_Soạn thảo giáo án AI/code.html', desc: 'Luồng soạn giáo án AI cơ bản, form đầu vào và trạng thái tạo nội dung.' },
+      { id: 'classroom', title: 'Quản lý lớp học & học sinh', tag: 'Advanced', dir: '../_extracted/stitch_Quản lý lớp học & Danh sách học sinh/code.html', desc: 'Dashboard lớp học, danh sách học sinh và dữ liệu quản trị tập trung.' }
+    ];
+
+    const nav = document.getElementById('screenNav');
+    const frame = document.getElementById('screenFrame');
+    const title = document.getElementById('screenTitle');
+    const desc = document.getElementById('screenDesc');
+    const openRaw = document.getElementById('openRaw');
+    let activeId = localStorage.getItem('gd-active-screen') || screens[0].id;
+
+    function renderNav() {
+      nav.innerHTML = screens.map((screen, index) => `
+        <button data-id="${screen.id}" class="${screen.id === activeId ? 'active' : ''}">
+          <span>${String(index + 1).padStart(2, '0')}</span>
+          <span>${screen.title}</span>
+          <span class="badge">${screen.tag}</span>
+        </button>
+      `).join('');
+      nav.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => setScreen(btn.dataset.id)));
+    }
+
+    function setScreen(id) {
+      const screen = screens.find(item => item.id === id) || screens[0];
+      activeId = screen.id;
+      localStorage.setItem('gd-active-screen', activeId);
+      title.textContent = screen.title;
+      desc.textContent = screen.desc;
+      frame.src = encodeURI(screen.dir);
+      openRaw.href = encodeURI(screen.dir);
+      renderNav();
+    }
+
+    document.querySelectorAll('.viewport-controls button').forEach(button => {
+      button.addEventListener('click', () => {
+        document.querySelectorAll('.viewport-controls button').forEach(item => item.classList.remove('active'));
+        button.classList.add('active');
+        frame.className = button.dataset.size;
+      });
+    });
+
+    renderNav();
+    setScreen(activeId);
+  </script>
+</body>
+</html>

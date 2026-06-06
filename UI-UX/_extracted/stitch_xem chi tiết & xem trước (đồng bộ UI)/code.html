@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ViệtGiáo AI - Chi tiết giáo án</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-bright": "#f8f9ff",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed": "#d8e4eb",
+                        "on-error-container": "#93000a",
+                        "outline": "#717782",
+                        "primary": "#005ea1",
+                        "surface": "#f8f9ff",
+                        "primary-fixed-dim": "#9fcaff",
+                        "surface-dim": "#ccdbf4",
+                        "inverse-on-surface": "#eaf1ff",
+                        "surface-variant": "#d4e4fc",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-container": "#58646a",
+                        "background": "#f8f9ff",
+                        "on-tertiary-fixed-variant": "#204877",
+                        "inverse-primary": "#9fcaff",
+                        "tertiary-fixed": "#d4e3ff",
+                        "on-secondary-fixed-variant": "#3c494e",
+                        "on-tertiary-fixed": "#001c3a",
+                        "on-primary-fixed": "#001d37",
+                        "tertiary-fixed-dim": "#a5c8ff",
+                        "secondary-container": "#d5e2e9",
+                        "tertiary-container": "#5276a8",
+                        "surface-container-high": "#dce9ff",
+                        "surface-container-low": "#eff4ff",
+                        "surface-tint": "#0061a5",
+                        "on-tertiary-container": "#fefcff",
+                        "primary-container": "#2178c3",
+                        "on-primary-fixed-variant": "#00497e",
+                        "on-surface": "#0d1c2e",
+                        "surface-container-highest": "#d4e4fc",
+                        "tertiary": "#385d8e",
+                        "primary-fixed": "#d2e4ff",
+                        "on-error": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "inverse-surface": "#223144",
+                        "secondary": "#546066",
+                        "on-secondary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "on-primary-container": "#fdfcff",
+                        "secondary-fixed-dim": "#bcc8cf",
+                        "on-background": "#0d1c2e",
+                        "outline-variant": "#c0c7d3",
+                        "surface-container": "#e5eeff",
+                        "on-surface-variant": "#414751",
+                        "on-secondary-fixed": "#111d22",
+                        "error": "#ba1a1a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "sm": "8px",
+                        "margin-mobile": "16px",
+                        "gutter": "24px",
+                        "container-max": "1280px",
+                        "base": "4px",
+                        "md": "16px",
+                        "3xl": "64px",
+                        "lg": "24px",
+                        "xl": "32px",
+                        "2xl": "48px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "display-md": ["Plus Jakarta Sans"],
+                        "body-sm": ["Inter"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "headline-sm": ["Plus Jakarta Sans"],
+                        "label-sm": ["Inter"],
+                        "label-md": ["Inter"],
+                        "display-lg": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "display-md": ["36px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "body-sm": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "headline-lg": ["30px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "headline-sm": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "1", "fontWeight": "500"}],
+                        "label-md": ["14px", {"lineHeight": "1", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .custom-shadow { box-shadow: 0 4px 12px rgba(0, 94, 161, 0.1); }
+        .custom-shadow-hover:hover { box-shadow: 0 8px 20px rgba(0, 94, 161, 0.15); transform: translateY(-2px); transition: all 0.2s ease; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md antialiased min-h-screen">
+<!-- TopNavBar -->
+<header class="sticky top-0 z-50 flex justify-between items-center px-lg h-16 w-full bg-surface border-b border-outline-variant">
+<div class="flex items-center gap-md">
+<div class="font-headline-md text-headline-md font-bold text-primary flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">menu_book</span>
+                ViệtGiáo
+            </div>
+</div>
+<div class="hidden md:flex flex-1 justify-center max-w-2xl px-xl">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full h-10 pl-12 pr-4 bg-surface-container-low border-none rounded-full focus:ring-2 focus:ring-primary/50 text-body-md placeholder:text-on-surface-variant/70" placeholder="Tìm kiếm giáo án, tài liệu..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<nav class="hidden md:flex gap-lg mr-lg">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Cộng đồng</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Hỗ trợ</a>
+</nav>
+<div class="flex items-center gap-sm">
+<button class="p-2 text-on-surface-variant hover:text-primary rounded-full hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<img alt="Ảnh đại diện giáo viên" class="w-8 h-8 rounded-full border border-outline-variant object-cover ml-sm" data-alt="A professional headshot of an Asian male teacher in his 30s, smiling warmly. He is wearing a crisp light blue dress shirt and has neatly styled dark hair. The background is a bright, softly blurred modern classroom setting with light-mode appropriate natural lighting. The image conveys approachability, expertise, and a modern educational environment, perfectly suited for an avatar in an 'Intellectual Blue' themed web application." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCMUN8SOrfyKbl_cqJ3wE11G1n1rJkXOyFWBB2tR4F-hYvbEdPXcDTbwtYcHF4Lz28ugmbGtccA0TJx71gJc1gDtEWMxXpOIZxNwzNrwH9YaWILyHDZ55GucY4bDEsBUYEj3v2NV5YClQtDEkdpyvK2KhSt20drzCqSgxtDH-WjnDkyJjaPaAgqVNmJmtB3cySDfoEWuT4HR1Mn-vd-jjnIUlLhHy1PhTKfzUAMqXJm2cArhiD-VTZo4mr82XapjWPaBE09jlWff3k"/>
+</div>
+</div>
+</header>
+<main class="max-w-container-max mx-auto px-margin-mobile md:px-gutter py-xl">
+<div class="mb-xl">
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-sm">Giáo án Khoa học Lớp 5: Quang hợp</h1>
+<p class="text-on-surface-variant font-body-md">Chi tiết và xem trước nội dung giáo án.</p>
+</div>
+<!-- Layout Split -->
+<div class="flex flex-col lg:flex-row gap-gutter">
+<!-- Left Panel: PDF Viewer -->
+<div class="flex-1 bg-surface-container-lowest rounded-xl border border-outline-variant custom-shadow overflow-hidden flex flex-col h-[800px]">
+<!-- Toolbar -->
+<div class="h-12 bg-surface-container-low border-b border-outline-variant flex items-center justify-between px-md">
+<div class="flex gap-sm">
+<button class="p-1.5 text-on-surface-variant hover:bg-surface-variant rounded transition-colors"><span class="material-symbols-outlined text-[20px]">view_sidebar</span></button>
+<button class="p-1.5 text-on-surface-variant hover:bg-surface-variant rounded transition-colors"><span class="material-symbols-outlined text-[20px]">zoom_in</span></button>
+<button class="p-1.5 text-on-surface-variant hover:bg-surface-variant rounded transition-colors"><span class="material-symbols-outlined text-[20px]">zoom_out</span></button>
+</div>
+<div class="flex items-center gap-sm">
+<button class="p-1 text-on-surface-variant hover:bg-surface-variant rounded transition-colors"><span class="material-symbols-outlined text-[20px]">chevron_left</span></button>
+<span class="text-label-md text-on-surface-variant w-16 text-center bg-surface-container-lowest border border-outline-variant rounded py-0.5">1 / 12</span>
+<button class="p-1 text-on-surface-variant hover:bg-surface-variant rounded transition-colors"><span class="material-symbols-outlined text-[20px]">chevron_right</span></button>
+</div>
+<div class="flex gap-sm">
+<button class="p-1.5 text-on-surface-variant hover:bg-surface-variant rounded transition-colors"><span class="material-symbols-outlined text-[20px]">print</span></button>
+<button class="p-1.5 text-on-surface-variant hover:bg-surface-variant rounded transition-colors"><span class="material-symbols-outlined text-[20px]">download</span></button>
+</div>
+</div>
+<!-- Document Container -->
+<div class="flex-1 bg-surface overflow-auto p-md flex justify-center">
+<!-- Mock Page -->
+<div class="w-full max-w-[700px] h-full bg-white shadow-sm border border-outline-variant p-xl flex flex-col gap-md">
+<div class="border-b border-outline-variant pb-sm mb-sm">
+<h2 class="font-headline-md text-headline-md font-bold mb-xs">Bài 1: Quá trình quang hợp ở thực vật</h2>
+<p class="text-body-sm text-on-surface-variant">Môn: Khoa học | Lớp: 5</p>
+</div>
+<div class="font-body-sm space-y-4 text-on-surface">
+<div>
+<h3 class="font-label-md text-label-md font-bold mb-1">I. Mục tiêu</h3>
+<ul class="list-disc pl-5 space-y-1">
+<li>Trình bày được khái niệm quang hợp ở mức độ cơ bản.</li>
+<li>Liệt kê được các yếu tố cần thiết cho quang hợp (nước, CO2, ánh sáng mặt trời).</li>
+<li>Hiểu được vai trò của thực vật đối với sự sống trên Trái Đất.</li>
+</ul>
+</div>
+<div>
+<h3 class="font-label-md text-label-md font-bold mb-1">II. Chuẩn bị</h3>
+<p>Sách giáo khoa Khoa học 5, hình ảnh minh họa về quang hợp, chậu cây nhỏ (nếu có).</p>
+</div>
+<div>
+<h3 class="font-label-md text-label-md font-bold mb-1">III. Các hoạt động dạy học</h3>
+<p class="mb-2"><strong>Hoạt động 1: Khởi động</strong> (5 phút)</p>
+<p class="pl-4 border-l-2 border-primary/20">Giáo viên hỏi: "Các em có biết cây cối lấy thức ăn từ đâu không?"</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Panel: Metadata & Actions -->
+<div class="w-full lg:w-80 flex flex-col gap-md">
+<div class="bg-surface-container-low rounded-xl border border-outline-variant p-md custom-shadow">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-md">Thông tin chung</h3>
+<div class="space-y-sm mb-lg">
+<div class="flex justify-between items-center py-2 border-b border-outline-variant/50">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">school</span>
+<span class="font-body-sm">Khối lớp</span>
+</div>
+<span class="font-label-md text-on-surface">Lớp 5</span>
+</div>
+<div class="flex justify-between items-center py-2 border-b border-outline-variant/50">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">category</span>
+<span class="font-body-sm">Môn học</span>
+</div>
+<span class="font-label-md text-on-surface">Khoa học</span>
+</div>
+<div class="flex justify-between items-center py-2 border-b border-outline-variant/50">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">person</span>
+<span class="font-body-sm">Tác giả</span>
+</div>
+<span class="font-label-md text-on-surface">Nguyễn Văn A</span>
+</div>
+<div class="flex justify-between items-center py-2 border-b border-outline-variant/50">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+<span class="font-body-sm">Ngày tạo</span>
+</div>
+<span class="font-label-md text-on-surface">26 Th10, 2023</span>
+</div>
+</div>
+<div class="flex flex-col gap-sm">
+<button class="w-full py-3 px-4 bg-primary text-on-primary font-label-md rounded-lg flex items-center justify-center gap-2 hover:bg-surface-tint transition-colors">
+<span class="material-symbols-outlined">download</span>
+                            Tải xuống PDF
+                        </button>
+<button class="w-full py-3 px-4 bg-surface-container-lowest border border-primary text-primary font-label-md rounded-lg flex items-center justify-center gap-2 hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined">bookmark_border</span>
+                            Lưu vào thư viện
+                        </button>
+</div>
+</div>
+<div class="flex justify-center gap-lg mt-sm">
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">share</span>
+<span class="font-label-sm">Chia sẻ</span>
+</button>
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined text-[20px]">flag</span>
+<span class="font-label-sm">Báo cáo</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Related Lesson Plans -->
+<div class="mt-2xl">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-md">Giáo án liên quan</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant custom-shadow-hover overflow-hidden flex flex-col cursor-pointer">
+<div class="h-32 bg-surface-variant relative overflow-hidden">
+<div class="absolute inset-0 bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-[48px] text-primary opacity-50">calculate</span>
+</div>
+</div>
+<div class="p-md flex-1 flex flex-col">
+<h4 class="font-label-md text-label-md text-on-surface mb-xs line-clamp-2">Toán Lớp 5 - Phân số và số thập phân</h4>
+<p class="text-body-sm text-on-surface-variant line-clamp-2 mb-sm flex-1">Ôn tập các phép tính cơ bản với phân số và giới thiệu số thập phân.</p>
+<div class="flex items-center gap-2 pt-sm border-t border-outline-variant/30">
+<img alt="Avatar" class="w-6 h-6 rounded-full" data-alt="A portrait of a young male educator, wearing glasses and a casual button-down shirt. Clean, light background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2EoIIKTqsCUwaNPQAASQfCwIqmbNeIPUKiExS3LcE2M8cemRLGE6xP9VxT4nqSsqy7HV31oPc8ysCM8V9Wlnri1h4mQz0-mfjjq0y-mTKnQaZDejBKYZw1xqngTgIfkI2OLZnYWy_5lxFCbAiky1on9utex3wSH08bwyR3CUCqOOa_R1uWdl_ab5UGNfHdRxKfc2bbZH8ldcArA5uwWBotlTbzszMaM6b3yJkEpURvDJy0dKsBpJGPYYpJhO6_UBx6vIEseTztaA"/>
+<span class="font-label-sm text-on-surface-variant">Trần Bình</span>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant custom-shadow-hover overflow-hidden flex flex-col cursor-pointer">
+<div class="h-32 bg-surface-variant relative overflow-hidden">
+<div class="absolute inset-0 bg-tertiary-container/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-[48px] text-tertiary opacity-50">water_drop</span>
+</div>
+</div>
+<div class="p-md flex-1 flex flex-col">
+<h4 class="font-label-md text-label-md text-on-surface mb-xs line-clamp-2">Khoa học Lớp 4 - Vòng tuần hoàn của nước</h4>
+<p class="text-body-sm text-on-surface-variant line-clamp-2 mb-sm flex-1">Tìm hiểu sự bay hơi, ngưng tụ và mưa trong tự nhiên.</p>
+<div class="flex items-center gap-2 pt-sm border-t border-outline-variant/30">
+<img alt="Avatar" class="w-6 h-6 rounded-full" data-alt="A portrait of a female teacher with a warm smile, wearing a professional blouse. Soft natural lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpjsTyaonhhQZvlqLEe5Le3wGOzKT47N_fzf-dwPw3aMx72tyDazLJVkJO8TmhyWzdaXET_k236pG8ySRjA_mFKcybTSbmmSILAKUnizXPt0FGHgCoBdcg7oYWG5fzNBUiu9xkSkc-mI-k5NqzBwpEC6VBg6swk8ejQvN0K9kIMT_KBq-yVWwTiUvPf6BxlCUBYlQ0RXpxXJRrpmfV87xvhx_J5mAMunZX5TRc6heBCoex9Qypw2S2hhdf20g8VmC9SaIrpJnmGkk"/>
+<span class="font-label-sm text-on-surface-variant">Lê Thị Mai</span>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant custom-shadow-hover overflow-hidden flex flex-col cursor-pointer">
+<div class="h-32 bg-surface-variant relative overflow-hidden">
+<div class="absolute inset-0 bg-secondary-container/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-[48px] text-secondary opacity-50">account_balance</span>
+</div>
+</div>
+<div class="p-md flex-1 flex flex-col">
+<h4 class="font-label-md text-label-md text-on-surface mb-xs line-clamp-2">Lịch sử Lớp 5 - Các nền văn minh cổ đại</h4>
+<p class="text-body-sm text-on-surface-variant line-clamp-2 mb-sm flex-1">Khám phá Ai Cập, Lưỡng Hà và những thành tựu văn hóa đầu tiên.</p>
+<div class="flex items-center gap-2 pt-sm border-t border-outline-variant/30">
+<img alt="Avatar" class="w-6 h-6 rounded-full" data-alt="A professional headshot of an Asian male teacher in his 30s, smiling warmly." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1OPiKnn3WxGoVqEvUIna8LI-IxB3bUmCnnWN99GrccaAvdzAPSyOivrmNuPFYZvu1T_yTeEILnjVRF8LMpbN-RFs_yTHmRGUvW4JoAQVzyLodjRFprr6pi_QU0dWIOUribcF93vGBZuelGwKOcg2L2FY2qVlYWjmfP7sml73pBCgIv5_uc851DfaxSU55RRDFc1dZ6GPeLh_bAOivfdrbGGFi18JHeOqgPGku78CtAM3E8jzepPgxxMV9wbuhAk_3UDQAuR1a7qY"/>
+<span class="font-label-sm text-on-surface-variant">Nguyễn Văn A</span>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant custom-shadow-hover overflow-hidden flex flex-col cursor-pointer">
+<div class="h-32 bg-surface-variant relative overflow-hidden">
+<div class="absolute inset-0 bg-primary-container/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-[48px] text-primary opacity-50">edit_note</span>
+</div>
+</div>
+<div class="p-md flex-1 flex flex-col">
+<h4 class="font-label-md text-label-md text-on-surface mb-xs line-clamp-2">Tiếng Việt Lớp 5 - Luyện tập miêu tả cảnh</h4>
+<p class="text-body-sm text-on-surface-variant line-clamp-2 mb-sm flex-1">Hướng dẫn viết bài văn miêu tả phong cảnh quê hương chân thực.</p>
+<div class="flex items-center gap-2 pt-sm border-t border-outline-variant/30">
+<img alt="Avatar" class="w-6 h-6 rounded-full" data-alt="A portrait of a young woman with dark hair, looking directly at the camera with a gentle expression." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD6ZdmoQP5pR3u_fbydsua8rQmDm2ttlOiIr9codsGh49beN0Yugls3B5BC9pRPnMUplNx0wHJ8vGUJesKwN9ltJTpW9cehk2-d6sFXIAiPw-tLZlb_mfo03pZJhq6SPoiM0t9AyDXugktNhl7XnJD_-Mex7j6Pd3-NfOF7KpBTkyvLJtbXr4EZ8Ftya-u-_nwsSlttVyyfFQVbW4qzXh1uNDGJ8H12Dip8Hu6LIGu0Cy1pkz3BNs7xGC9MVK0Y5kaZpdaVzWOoTGs"/>
+<span class="font-label-sm text-on-surface-variant">Phạm Thu Hà</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

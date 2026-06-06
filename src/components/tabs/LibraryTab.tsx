@@ -3,7 +3,8 @@ import { motion } from 'motion/react';
 import {
   UploadCloud, Search, Plus, FileText, Eye, Trash2, Copy,
   Edit3, Check, X, Filter, Users, ClipboardList, BookMarked,
-  Download, Upload
+  Download, Upload, Library, Globe2, FolderOpen, Sparkles,
+  Clock, Layers3, ArrowUpRight, ShieldCheck
 } from 'lucide-react';
 import dayjs from 'dayjs';
 import Swal from 'sweetalert2';
@@ -42,6 +43,15 @@ interface LibraryTabProps {
 
 type ContentTab = 'plans' | 'exams';
 
+const getPlanSectionCount = (content?: string) => {
+  if (!content) return 0;
+  const markdownHeadings = content.match(/^#{1,3}\s+/gm)?.length || 0;
+  const vietnameseSections = content.match(/(?:mục tiêu|khởi động|hình thành|luyện tập|vận dụng|đánh giá)/gi)?.length || 0;
+  return Math.max(markdownHeadings, Math.min(vietnameseSections, 6));
+};
+
+const getWordCount = (content?: string) => (content || '').trim().split(/\s+/).filter(Boolean).length;
+
 export const LibraryTab = ({
   libraryTab, setLibraryTab, searchQuery, setSearchQuery,
   setActiveTab, data, communityPlans, setCurrentPlan,
@@ -56,13 +66,14 @@ export const LibraryTab = ({
   const [viewingPlan, setViewingPlan] = useState<LessonPlan | null>(null);
   const [contentTab, setContentTab] = useState<ContentTab>('plans');
 
-  // Load community exams when switching to community tab
   useEffect(() => {
     if (libraryTab === 'community') onFetchCommunityExams();
   }, [libraryTab]);
 
   const plans = libraryTab === 'personal' ? data.lessonPlans : communityPlans;
   const exams = libraryTab === 'personal' ? savedExams : communityExams;
+  const sharedPersonalPlans = data.lessonPlans.filter(p => p.isPublic).length;
+  const sharedPersonalExams = savedExams.filter(e => e.isPublic).length;
 
   const filteredPlans = plans.filter(p => {
     const matchesSearch = (p.title || '').toLowerCase().includes((searchQuery || '').toLowerCase());
@@ -75,6 +86,9 @@ export const LibraryTab = ({
     (e.title || '').toLowerCase().includes((searchQuery || '').toLowerCase()) &&
     (selectedGrade === 'all' || e.grade === selectedGrade)
   );
+
+  const visibleCount = contentTab === 'plans' ? filteredPlans.length : filteredExams.length;
+  const sourceCount = contentTab === 'plans' ? plans.length : exams.length;
 
   const handleExportExamWord = async (exam: SavedExam) => {
     try {
@@ -100,294 +114,362 @@ export const LibraryTab = ({
     if (res.isConfirmed) onDeleteExam(exam.id);
   };
 
+  const resetFilters = () => {
+    setSelectedGrade('all');
+    setSelectedWeek('all');
+  };
+
   return (
-    <motion.div key="library" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 max-w-6xl mx-auto">
-      {/* Top row: personal/community + new button */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex p-1 bg-white rounded-2xl shadow-sm border border-slate-100 w-fit gap-1">
-          <button
-            onClick={() => setLibraryTab('personal')}
-            className={cn('px-6 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 text-sm',
-              libraryTab === 'personal' ? 'bg-blue-600 text-white shadow-lg shadow-blue-100' : 'text-slate-500 hover:text-slate-800')}
-          >
-            <FileText className="w-4 h-4" /> Góc của tôi
-          </button>
-          <button
-            onClick={() => setLibraryTab('community')}
-            className={cn('px-6 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 text-sm',
-              libraryTab === 'community' ? 'bg-blue-600 text-white shadow-lg shadow-blue-100' : 'text-slate-500 hover:text-slate-800')}
-          >
-            <Users className="w-4 h-4" /> Kho Chung
-          </button>
-        </div>
-        <button
-          onClick={() => setActiveTab(contentTab === 'plans' ? 'creator' : 'testing')}
-          className="px-5 py-2.5 gradient-bg text-white rounded-2xl font-bold shadow-lg shadow-blue-200 flex items-center gap-2 hover:opacity-90 transition-all text-sm"
-        >
-          <Plus className="w-4 h-4" />
-          {contentTab === 'plans' ? 'Soạn giáo án mới' : 'Soạn đề mới'}
-        </button>
-      </div>
-
-      {/* Content type tabs */}
-      <div className="flex gap-2">
-        <button
-          onClick={() => setContentTab('plans')}
-          className={cn('flex items-center gap-2 px-5 py-2.5 rounded-2xl font-bold text-sm border-2 transition-all',
-            contentTab === 'plans'
-              ? 'border-blue-600 bg-blue-50 text-blue-700'
-              : 'border-slate-100 bg-white text-slate-500 hover:border-blue-200')}
-        >
-          <ClipboardList className="w-4 h-4" />
-          Giáo án
-          <span className={cn('text-[10px] font-black px-2 py-0.5 rounded-lg',
-            contentTab === 'plans' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500')}>
-            {(libraryTab === 'personal' ? data.lessonPlans : communityPlans).length}
-          </span>
-        </button>
-        <button
-          onClick={() => setContentTab('exams')}
-          className={cn('flex items-center gap-2 px-5 py-2.5 rounded-2xl font-bold text-sm border-2 transition-all',
-            contentTab === 'exams'
-              ? 'border-violet-600 bg-violet-50 text-violet-700'
-              : 'border-slate-100 bg-white text-slate-500 hover:border-violet-200')}
-        >
-          <BookMarked className="w-4 h-4" />
-          Đề thi
-          <span className={cn('text-[10px] font-black px-2 py-0.5 rounded-lg',
-            contentTab === 'exams' ? 'bg-violet-600 text-white' : 'bg-slate-100 text-slate-500')}>
-            {exams.length}
-          </span>
-        </button>
-      </div>
-
-      {/* Search & filter */}
-      <div className="bg-white p-5 rounded-[28px] border border-slate-100 shadow-sm">
-        <div className="flex flex-col md:flex-row gap-3">
-          <div className="flex-1 relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-            <input
-              type="text"
-              placeholder={contentTab === 'plans' ? 'Tìm kiếm giáo án...' : 'Tìm kiếm đề thi...'}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/10 focus:bg-white transition-all text-sm font-medium"
-            />
-          </div>
-          <div className="flex flex-wrap gap-2 items-center">
-            <div className="flex items-center gap-1 px-3 py-1.5 bg-slate-100 rounded-xl text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-              <Filter className="w-3 h-3" /> Lọc:
+    <motion.div key="library" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 max-w-7xl mx-auto">
+      <section className="relative overflow-hidden rounded-[36px] border border-blue-100 bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 p-6 md:p-8 text-white shadow-2xl shadow-blue-100">
+        <div className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-white/15 blur-3xl" />
+        <div className="absolute bottom-0 right-12 hidden h-28 w-28 rounded-t-[48px] bg-white/10 md:block" />
+        <div className="relative grid gap-6 lg:grid-cols-[1.35fr_0.65fr] lg:items-end">
+          <div>
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em] text-blue-50">
+              <Library className="h-3.5 w-3.5" />
+              Library workspace
             </div>
-            <select value={selectedGrade} onChange={(e) => setSelectedGrade(e.target.value)}
-              className="px-3 py-2.5 bg-white border border-slate-100 rounded-2xl text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none">
-              <option value="all">Tất cả Khối</option>
-              {[...Array(12)].map((_, i) => <option key={i + 1} value={(i + 1).toString()}>Khối {i + 1}</option>)}
-            </select>
-            {contentTab === 'plans' && (
-              <select value={selectedWeek} onChange={(e) => setSelectedWeek(e.target.value)}
-                className="px-3 py-2.5 bg-white border border-slate-100 rounded-2xl text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none">
-                <option value="all">Tất cả Tuần</option>
-                {[...Array(35)].map((_, i) => <option key={i + 1} value={(i + 1).toString()}>Tuần {i + 1}</option>)}
-              </select>
-            )}
-            {(selectedGrade !== 'all' || selectedWeek !== 'all') && (
-              <button onClick={() => { setSelectedGrade('all'); setSelectedWeek('all'); }}
-                className="px-3 py-2.5 text-red-500 font-bold text-xs hover:underline">Xóa lọc</button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ── LESSON PLANS ── */}
-      {contentTab === 'plans' && (
-        <>
-          {filteredPlans.length === 0 ? (
-            <EmptyState
-              icon={<ClipboardList className="w-10 h-10 text-slate-300" />}
-              title={libraryTab === 'community' ? 'Kho chung đang trống' : 'Chưa có giáo án nào'}
-              desc={libraryTab === 'community'
-                ? 'Hãy chia sẻ giáo án lên Kho chung để cộng đồng cùng học hỏi.'
-                : 'Nhấn "Soạn giáo án mới" để tạo với sự hỗ trợ của AI.'}
-              action={libraryTab === 'personal' ? (
-                <button onClick={() => setActiveTab('creator')}
-                  className="mt-4 px-6 py-3 gradient-bg text-white rounded-2xl font-bold shadow-lg shadow-blue-200 flex items-center gap-2 hover:opacity-90 transition-all">
-                  <Plus className="w-5 h-5" /> Soạn bài ngay
-                </button>
-              ) : undefined}
-            />
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredPlans.map(plan => (
-                <motion.div key={plan.id} layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-                  onClick={() => setViewingPlan(plan)}
-                  className="group pro-card p-6 cursor-pointer overflow-hidden relative">
-                  <div className="flex items-start justify-between mb-5">
-                    <div className="w-11 h-11 rounded-2xl bg-blue-50 flex items-center justify-center group-hover:bg-blue-600 transition-colors">
-                      <FileText className="w-5 h-5 text-blue-500 group-hover:text-white transition-colors" />
-                    </div>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {libraryTab === 'personal' && (
-                        <button title={plan.isPublic ? 'Thu hồi' : 'Chia sẻ lên Kho chung'}
-                          onClick={(e) => { e.stopPropagation(); toggleSharePlan(e, plan); }}
-                          className={cn('p-2 rounded-xl transition-all', plan.isPublic ? 'bg-orange-50 text-orange-600' : 'bg-slate-50 text-slate-400 hover:bg-orange-50 hover:text-orange-600')}>
-                          <UploadCloud className="w-4 h-4" />
-                        </button>
-                      )}
-                      <button title="Xem" onClick={(e) => { e.stopPropagation(); setViewingPlan(plan); }}
-                        className="p-2 bg-slate-50 text-slate-400 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      {libraryTab === 'personal' && (
-                        <>
-                          <button title="Nhân bản" onClick={(e) => { e.stopPropagation(); duplicatePlan(plan); }}
-                            className="p-2 bg-slate-50 text-slate-400 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all">
-                            <Copy className="w-4 h-4" />
-                          </button>
-                          <button title="Sửa" onClick={(e) => { e.stopPropagation(); setEditingId(plan.id); setEditForm({ title: plan.title, grade: plan.grade, week: plan.week, authorName: plan.authorName }); }}
-                            className="p-2 bg-slate-50 text-slate-400 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all">
-                            <Edit3 className="w-4 h-4" />
-                          </button>
-                          <button onClick={(e) => { e.stopPropagation(); deletePlan(plan.id); }}
-                            className="p-2 bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                  {editingId === plan.id ? (
-                    <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
-                      <input type="text" value={editForm.title || ''} onChange={e => setEditForm(p => ({ ...p, title: e.target.value }))}
-                        className="w-full px-3 py-2 text-sm font-bold border border-blue-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Tên giáo án" />
-                      <div className="grid grid-cols-2 gap-2">
-                        <select value={editForm.grade || ''} onChange={e => setEditForm(p => ({ ...p, grade: e.target.value }))}
-                          className="px-2 py-1.5 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none">
-                          {[...Array(12)].map((_, i) => <option key={i + 1} value={(i + 1).toString()}>Lớp {i + 1}</option>)}
-                        </select>
-                        <select value={editForm.week || ''} onChange={e => setEditForm(p => ({ ...p, week: e.target.value }))}
-                          className="px-2 py-1.5 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none">
-                          {[...Array(35)].map((_, i) => <option key={i + 1} value={(i + 1).toString()}>Tuần {i + 1}</option>)}
-                        </select>
-                      </div>
-                      <div className="flex gap-2">
-                        <button onClick={() => { updatePlanMetadata(plan.id, editForm); setEditingId(null); }}
-                          className="flex-1 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1 hover:bg-blue-700">
-                          <Check className="w-3 h-3" /> Lưu
-                        </button>
-                        <button onClick={() => setEditingId(null)}
-                          className="flex-1 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold flex items-center justify-center gap-1">
-                          <X className="w-3 h-3" /> Hủy
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <h4 className="font-bold text-slate-900 line-clamp-2 leading-tight mb-3 group-hover:text-blue-600 transition-colors">{plan.title}</h4>
-                      <div className="flex flex-wrap gap-1.5 mb-5">
-                        <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg">Lớp {plan.grade || '?'}</span>
-                        <span className="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-lg">Tuần {plan.week || '?'}</span>
-                      </div>
-                      <div className="flex items-center justify-between pt-3 border-t border-slate-50">
-                        <span className="text-[10px] text-slate-400 font-bold truncate max-w-[120px]">{plan.authorName || 'Ẩn danh'}</span>
-                        <span className="text-[10px] uppercase font-bold text-slate-300">{dayjs(plan.updatedAt).format('DD/MM/YY')}</span>
-                      </div>
-                    </>
-                  )}
-                </motion.div>
-              ))}
-            </div>
-          )}
-          {(libraryTab === 'personal' ? hasMorePlans : hasMoreCommunity) && (
-            <div className="flex justify-center pb-8">
-              <button onClick={libraryTab === 'personal' ? loadMorePlans : loadMoreCommunity}
-                className="px-8 py-3 bg-white border border-slate-200 text-slate-600 rounded-2xl font-bold text-sm hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-all shadow-sm">
-                Tải thêm giáo án...
+            <h2 className="text-3xl md:text-4xl font-black tracking-tight">Thư viện bài dạy & đề kiểm tra</h2>
+            <p className="mt-3 max-w-2xl text-sm md:text-base font-medium leading-7 text-blue-50/90">
+              Gom toàn bộ giáo án, đề thi và tài nguyên cộng đồng vào một workspace rõ ràng: dễ lọc, dễ xem trước, dễ chia sẻ và quay lại chỉnh sửa khi cần.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button
+                onClick={() => setActiveTab(contentTab === 'plans' ? 'creator' : 'testing')}
+                className="inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-black text-blue-700 shadow-xl shadow-blue-950/10 transition hover:-translate-y-0.5"
+              >
+                <Plus className="h-4 w-4" />
+                {contentTab === 'plans' ? 'Soạn giáo án mới' : 'Soạn đề mới'}
+              </button>
+              <button
+                onClick={() => setLibraryTab(libraryTab === 'personal' ? 'community' : 'personal')}
+                className="inline-flex items-center gap-2 rounded-2xl border border-white/25 bg-white/10 px-5 py-3 text-sm font-black text-white transition hover:bg-white/20"
+              >
+                {libraryTab === 'personal' ? <Globe2 className="h-4 w-4" /> : <FolderOpen className="h-4 w-4" />}
+                {libraryTab === 'personal' ? 'Khám phá kho chung' : 'Về góc của tôi'}
               </button>
             </div>
-          )}
-        </>
-      )}
+          </div>
 
-      {/* ── EXAMS ── */}
-      {contentTab === 'exams' && (
-        <>
-          {filteredExams.length === 0 ? (
-            <EmptyState
-              icon={<BookMarked className="w-10 h-10 text-slate-300" />}
-              title={libraryTab === 'community' ? 'Kho đề thi chung đang trống' : 'Chưa có đề thi nào được lưu'}
-              desc={libraryTab === 'community'
-                ? 'Hãy chia sẻ đề thi lên Kho chung để giáo viên khác cùng sử dụng.'
-                : 'Soạn đề trong tab "Bảng Kiểm tra" rồi nhấn "Lưu vào Thư viện" để lưu tại đây.'}
-              action={libraryTab === 'personal' ? (
-                <button onClick={() => setActiveTab('testing')}
-                  className="mt-4 px-6 py-3 bg-violet-600 text-white rounded-2xl font-bold shadow-lg shadow-violet-200 flex items-center gap-2 hover:bg-violet-700 transition-all">
-                  <Plus className="w-5 h-5" /> Soạn đề ngay
-                </button>
-              ) : undefined}
-            />
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredExams.map(exam => (
-                <motion.div key={exam.id} layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-                  className="group pro-card p-6 overflow-hidden relative">
-                  <div className="flex items-start justify-between mb-5">
-                    <div className="w-11 h-11 rounded-2xl bg-violet-50 flex items-center justify-center group-hover:bg-violet-600 transition-colors">
-                      <BookMarked className="w-5 h-5 text-violet-500 group-hover:text-white transition-colors" />
-                    </div>
-                    {libraryTab === 'personal' && (
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button title={exam.isPublic ? 'Thu hồi khỏi Kho chung' : 'Chia sẻ lên Kho chung'}
-                          onClick={() => onToggleShareExam(exam.id, !exam.isPublic)}
-                          className={cn('p-2 rounded-xl transition-all', exam.isPublic ? 'bg-orange-50 text-orange-600' : 'bg-slate-50 text-slate-400 hover:bg-orange-50 hover:text-orange-600')}>
-                          <UploadCloud className="w-4 h-4" />
-                        </button>
-                        <button title="Mở để chỉnh sửa" onClick={() => onOpenExamInEditor(exam)}
-                          className="p-2 bg-slate-50 text-slate-400 hover:bg-violet-50 hover:text-violet-600 rounded-xl transition-all">
-                          <Edit3 className="w-4 h-4" />
-                        </button>
-                        <button title="Xuất Word" onClick={() => handleExportExamWord(exam)}
-                          className="p-2 bg-slate-50 text-slate-400 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all">
-                          <Download className="w-4 h-4" />
-                        </button>
-                        <button onClick={() => handleDeleteExam(exam)}
-                          className="p-2 bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
-                    {libraryTab === 'community' && (
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button title="Xuất Word" onClick={() => handleExportExamWord(exam)}
-                          className="p-2 bg-slate-50 text-slate-400 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all">
-                          <Download className="w-4 h-4" />
-                        </button>
-                        <button title="Tải về & tạo đề thi online" onClick={() => onOpenExamInEditor(exam)}
-                          className="p-2 bg-slate-50 text-slate-400 hover:bg-violet-50 hover:text-violet-600 rounded-xl transition-all">
-                          <Upload className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  <h4 className="font-bold text-slate-900 line-clamp-2 leading-tight mb-3 group-hover:text-violet-600 transition-colors cursor-pointer"
-                    onClick={() => onOpenExamInEditor(exam)}>
-                    {exam.title}
-                  </h4>
-                  <div className="flex flex-wrap gap-1.5 mb-4">
-                    {exam.grade && <span className="text-[10px] font-bold text-violet-600 bg-violet-50 px-2 py-0.5 rounded-lg">Khối {exam.grade}</span>}
-                    {exam.subject && <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-lg">{exam.subject}</span>}
-                    {exam.questionCount && <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-lg">{exam.questionCount} câu</span>}
-                    {exam.isPublic && <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg">Kho chung</span>}
-                  </div>
-                  <div className="flex items-center justify-between pt-3 border-t border-slate-50">
-                    <span className="text-[10px] text-slate-400 font-bold truncate max-w-[120px]">{exam.authorName || 'Ẩn danh'}</span>
-                    <span className="text-[10px] uppercase font-bold text-slate-300">{dayjs(exam.updatedAt).format('DD/MM/YY')}</span>
-                  </div>
-                </motion.div>
-              ))}
+          <div className="grid grid-cols-2 gap-3">
+            <LibraryMetric label="Giáo án" value={plans.length} icon={<ClipboardList className="h-4 w-4" />} />
+            <LibraryMetric label="Đề thi" value={exams.length} icon={<BookMarked className="h-4 w-4" />} />
+            <LibraryMetric label="Đang hiển thị" value={visibleCount} icon={<Search className="h-4 w-4" />} />
+            <LibraryMetric label={libraryTab === 'personal' ? 'Đã chia sẻ' : 'Nguồn cộng đồng'} value={libraryTab === 'personal' ? sharedPersonalPlans + sharedPersonalExams : sourceCount} icon={<ShieldCheck className="h-4 w-4" />} />
+          </div>
+        </div>
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
+        <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+          <div className="rounded-[28px] border border-slate-100 bg-white p-3 shadow-sm">
+            <button
+              onClick={() => setLibraryTab('personal')}
+              className={cn('mb-2 flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left transition-all',
+                libraryTab === 'personal' ? 'bg-blue-600 text-white shadow-lg shadow-blue-100' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900')}
+            >
+              <span className="flex items-center gap-2 text-sm font-black"><FolderOpen className="h-4 w-4" /> Góc của tôi</span>
+              <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-black', libraryTab === 'personal' ? 'bg-white/20' : 'bg-slate-100')}>{data.lessonPlans.length + savedExams.length}</span>
+            </button>
+            <button
+              onClick={() => setLibraryTab('community')}
+              className={cn('flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left transition-all',
+                libraryTab === 'community' ? 'bg-blue-600 text-white shadow-lg shadow-blue-100' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900')}
+            >
+              <span className="flex items-center gap-2 text-sm font-black"><Globe2 className="h-4 w-4" /> Kho chung</span>
+              <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-black', libraryTab === 'community' ? 'bg-white/20' : 'bg-slate-100')}>{communityPlans.length + communityExams.length}</span>
+            </button>
+          </div>
+
+          <div className="rounded-[28px] border border-slate-100 bg-white p-4 shadow-sm">
+            <div className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-slate-400">
+              <Filter className="h-3.5 w-3.5" /> Bộ lọc
             </div>
+            <div className="space-y-3">
+              <select value={selectedGrade} onChange={(e) => setSelectedGrade(e.target.value)}
+                className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 outline-none transition focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-500/10">
+                <option value="all">Tất cả khối lớp</option>
+                {[...Array(12)].map((_, i) => <option key={i + 1} value={(i + 1).toString()}>Khối {i + 1}</option>)}
+              </select>
+              {contentTab === 'plans' && (
+                <select value={selectedWeek} onChange={(e) => setSelectedWeek(e.target.value)}
+                  className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 outline-none transition focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-500/10">
+                  <option value="all">Tất cả tuần học</option>
+                  {[...Array(35)].map((_, i) => <option key={i + 1} value={(i + 1).toString()}>Tuần {i + 1}</option>)}
+                </select>
+              )}
+              {(selectedGrade !== 'all' || selectedWeek !== 'all') && (
+                <button onClick={resetFilters} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-red-50 px-4 py-3 text-sm font-black text-red-600 transition hover:bg-red-100">
+                  <X className="h-4 w-4" /> Xóa bộ lọc
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-[28px] border border-emerald-100 bg-emerald-50/70 p-4">
+            <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-emerald-600 shadow-sm">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <h3 className="text-sm font-black text-emerald-900">Gợi ý UX</h3>
+            <p className="mt-1 text-xs font-medium leading-5 text-emerald-700">
+              Dùng preview tĩnh để đọc nhanh nội dung. Khi cần sửa cấu trúc bài, mở sang trình soạn thảo để tránh nhầm với luồng cấu hình xuất file A4.
+            </p>
+          </div>
+        </aside>
+
+        <main className="space-y-5">
+          <div className="rounded-[30px] border border-slate-100 bg-white p-4 shadow-sm">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+              <div className="flex flex-wrap gap-2">
+                <ContentTypeButton
+                  active={contentTab === 'plans'}
+                  icon={<ClipboardList className="h-4 w-4" />}
+                  label="Giáo án"
+                  count={(libraryTab === 'personal' ? data.lessonPlans : communityPlans).length}
+                  accent="blue"
+                  onClick={() => setContentTab('plans')}
+                />
+                <ContentTypeButton
+                  active={contentTab === 'exams'}
+                  icon={<BookMarked className="h-4 w-4" />}
+                  label="Đề thi"
+                  count={exams.length}
+                  accent="violet"
+                  onClick={() => setContentTab('exams')}
+                />
+              </div>
+              <div className="relative min-w-0 flex-1 xl:max-w-md">
+                <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder={contentTab === 'plans' ? 'Tìm theo tên giáo án...' : 'Tìm theo tên đề thi...'}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full rounded-2xl border border-slate-100 bg-slate-50 py-3 pl-11 pr-4 text-sm font-semibold text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
+                />
+              </div>
+            </div>
+          </div>
+
+          {contentTab === 'plans' && (
+            <>
+              {filteredPlans.length === 0 ? (
+                <EmptyState
+                  icon={<ClipboardList className="w-10 h-10 text-slate-300" />}
+                  title={libraryTab === 'community' ? 'Kho chung đang trống' : 'Chưa có giáo án nào'}
+                  desc={libraryTab === 'community'
+                    ? 'Hãy chia sẻ giáo án lên Kho chung để cộng đồng cùng học hỏi.'
+                    : 'Nhấn "Soạn giáo án mới" để tạo với sự hỗ trợ của AI.'}
+                  action={libraryTab === 'personal' ? (
+                    <button onClick={() => setActiveTab('creator')}
+                      className="mt-4 flex items-center gap-2 rounded-2xl bg-blue-600 px-6 py-3 font-black text-white shadow-lg shadow-blue-200 transition hover:bg-blue-700">
+                      <Plus className="w-5 h-5" /> Soạn bài ngay
+                    </button>
+                  ) : undefined}
+                />
+              ) : (
+                <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+                  {filteredPlans.map(plan => {
+                    const sectionCount = getPlanSectionCount(plan.content);
+                    const wordCount = getWordCount(plan.content);
+                    return (
+                      <motion.article key={plan.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                        onClick={() => setViewingPlan(plan)}
+                        className="group cursor-pointer overflow-hidden rounded-[30px] border border-slate-100 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-100/60">
+                        <div className="mb-4 flex items-start justify-between gap-4">
+                          <div className="flex items-start gap-3">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
+                              <FileText className="h-5 w-5" />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="mb-2 flex flex-wrap gap-1.5">
+                                <span className="rounded-lg bg-blue-50 px-2 py-0.5 text-[10px] font-black text-blue-600">Lớp {plan.grade || '?'}</span>
+                                <span className="rounded-lg bg-orange-50 px-2 py-0.5 text-[10px] font-black text-orange-600">Tuần {plan.week || '?'}</span>
+                                {plan.isPublic && <span className="rounded-lg bg-emerald-50 px-2 py-0.5 text-[10px] font-black text-emerald-600">Đã chia sẻ</span>}
+                              </div>
+                              {editingId === plan.id ? (
+                                <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
+                                  <input type="text" value={editForm.title || ''} onChange={e => setEditForm(p => ({ ...p, title: e.target.value }))}
+                                    className="w-full rounded-xl border border-blue-100 px-3 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" placeholder="Tên giáo án" />
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <select value={editForm.grade || ''} onChange={e => setEditForm(p => ({ ...p, grade: e.target.value }))}
+                                      className="rounded-xl border border-slate-100 bg-slate-50 px-2 py-1.5 text-xs outline-none">
+                                      {[...Array(12)].map((_, i) => <option key={i + 1} value={(i + 1).toString()}>Lớp {i + 1}</option>)}
+                                    </select>
+                                    <select value={editForm.week || ''} onChange={e => setEditForm(p => ({ ...p, week: e.target.value }))}
+                                      className="rounded-xl border border-slate-100 bg-slate-50 px-2 py-1.5 text-xs outline-none">
+                                      {[...Array(35)].map((_, i) => <option key={i + 1} value={(i + 1).toString()}>Tuần {i + 1}</option>)}
+                                    </select>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <button onClick={() => { updatePlanMetadata(plan.id, editForm); setEditingId(null); }}
+                                      className="flex flex-1 items-center justify-center gap-1 rounded-xl bg-blue-600 py-2 text-xs font-bold text-white hover:bg-blue-700">
+                                      <Check className="h-3 w-3" /> Lưu
+                                    </button>
+                                    <button onClick={() => setEditingId(null)}
+                                      className="flex flex-1 items-center justify-center gap-1 rounded-xl bg-slate-100 py-2 text-xs font-bold text-slate-600">
+                                      <X className="h-3 w-3" /> Hủy
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <h4 className="line-clamp-2 text-lg font-black leading-snug text-slate-900 transition-colors group-hover:text-blue-700">{plan.title}</h4>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex shrink-0 gap-1 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
+                            {libraryTab === 'personal' && (
+                              <button title={plan.isPublic ? 'Thu hồi' : 'Chia sẻ lên Kho chung'}
+                                onClick={(e) => { e.stopPropagation(); toggleSharePlan(e, plan); }}
+                                className={cn('rounded-xl p-2 transition-all', plan.isPublic ? 'bg-orange-50 text-orange-600' : 'bg-slate-50 text-slate-400 hover:bg-orange-50 hover:text-orange-600')}>
+                                <UploadCloud className="h-4 w-4" />
+                              </button>
+                            )}
+                            <button title="Xem preview" onClick={(e) => { e.stopPropagation(); setViewingPlan(plan); }}
+                              className="rounded-xl bg-slate-50 p-2 text-slate-400 transition-all hover:bg-blue-50 hover:text-blue-600">
+                              <Eye className="h-4 w-4" />
+                            </button>
+                            {libraryTab === 'personal' && (
+                              <>
+                                <button title="Nhân bản" onClick={(e) => { e.stopPropagation(); duplicatePlan(plan); }}
+                                  className="rounded-xl bg-slate-50 p-2 text-slate-400 transition-all hover:bg-blue-50 hover:text-blue-600">
+                                  <Copy className="h-4 w-4" />
+                                </button>
+                                <button title="Sửa metadata" onClick={(e) => { e.stopPropagation(); setEditingId(plan.id); setEditForm({ title: plan.title, grade: plan.grade, week: plan.week, authorName: plan.authorName }); }}
+                                  className="rounded-xl bg-slate-50 p-2 text-slate-400 transition-all hover:bg-blue-50 hover:text-blue-600">
+                                  <Edit3 className="h-4 w-4" />
+                                </button>
+                                <button onClick={(e) => { e.stopPropagation(); deletePlan(plan.id); }}
+                                  className="rounded-xl bg-slate-50 p-2 text-slate-400 transition-all hover:bg-red-50 hover:text-red-600">
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        {editingId !== plan.id && (
+                          <>
+                            <p className="mb-4 line-clamp-2 text-sm font-medium leading-6 text-slate-500">
+                              {(plan.content || '').replace(/[#*_`>-]/g, '').slice(0, 170) || 'Chưa có nội dung xem trước cho giáo án này.'}
+                            </p>
+                            <div className="grid grid-cols-3 gap-2 rounded-2xl bg-slate-50 p-2">
+                              <MiniStat icon={<Layers3 className="h-3.5 w-3.5" />} label="Phần" value={sectionCount || '—'} />
+                              <MiniStat icon={<FileText className="h-3.5 w-3.5" />} label="Từ" value={wordCount || '—'} />
+                              <MiniStat icon={<Clock className="h-3.5 w-3.5" />} label="Cập nhật" value={dayjs(plan.updatedAt).format('DD/MM')} />
+                            </div>
+                            <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
+                              <span className="truncate text-xs font-bold text-slate-400">{plan.authorName || user?.displayName || 'Ẩn danh'}</span>
+                              <span className="flex items-center gap-1 text-xs font-black text-blue-600">Xem preview <ArrowUpRight className="h-3.5 w-3.5" /></span>
+                            </div>
+                          </>
+                        )}
+                      </motion.article>
+                    );
+                  })}
+                </div>
+              )}
+              {(libraryTab === 'personal' ? hasMorePlans : hasMoreCommunity) && (
+                <div className="flex justify-center pb-8">
+                  <button onClick={libraryTab === 'personal' ? loadMorePlans : loadMoreCommunity}
+                    className="rounded-2xl border border-slate-200 bg-white px-8 py-3 text-sm font-bold text-slate-600 shadow-sm transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600">
+                    Tải thêm giáo án...
+                  </button>
+                </div>
+              )}
+            </>
           )}
-        </>
-      )}
+
+          {contentTab === 'exams' && (
+            <>
+              {filteredExams.length === 0 ? (
+                <EmptyState
+                  icon={<BookMarked className="w-10 h-10 text-slate-300" />}
+                  title={libraryTab === 'community' ? 'Kho đề thi chung đang trống' : 'Chưa có đề thi nào được lưu'}
+                  desc={libraryTab === 'community'
+                    ? 'Hãy chia sẻ đề thi lên Kho chung để giáo viên khác cùng sử dụng.'
+                    : 'Soạn đề trong tab "Bảng Kiểm tra" rồi nhấn "Lưu vào Thư viện" để lưu tại đây.'}
+                  action={libraryTab === 'personal' ? (
+                    <button onClick={() => setActiveTab('testing')}
+                      className="mt-4 flex items-center gap-2 rounded-2xl bg-violet-600 px-6 py-3 font-black text-white shadow-lg shadow-violet-200 transition hover:bg-violet-700">
+                      <Plus className="w-5 h-5" /> Soạn đề ngay
+                    </button>
+                  ) : undefined}
+                />
+              ) : (
+                <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+                  {filteredExams.map(exam => (
+                    <motion.article key={exam.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                      className="group overflow-hidden rounded-[30px] border border-slate-100 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-violet-200 hover:shadow-xl hover:shadow-violet-100/60">
+                      <div className="mb-4 flex items-start justify-between gap-4">
+                        <div className="flex items-start gap-3">
+                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-violet-50 text-violet-600 transition-colors group-hover:bg-violet-600 group-hover:text-white">
+                            <BookMarked className="h-5 w-5" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="mb-2 flex flex-wrap gap-1.5">
+                              {exam.grade && <span className="rounded-lg bg-violet-50 px-2 py-0.5 text-[10px] font-black text-violet-600">Khối {exam.grade}</span>}
+                              {exam.subject && <span className="rounded-lg bg-blue-50 px-2 py-0.5 text-[10px] font-black text-blue-600">{exam.subject}</span>}
+                              {exam.questionCount && <span className="rounded-lg bg-slate-100 px-2 py-0.5 text-[10px] font-black text-slate-500">{exam.questionCount} câu</span>}
+                              {exam.isPublic && <span className="rounded-lg bg-emerald-50 px-2 py-0.5 text-[10px] font-black text-emerald-600">Kho chung</span>}
+                            </div>
+                            <h4 className="line-clamp-2 cursor-pointer text-lg font-black leading-snug text-slate-900 transition-colors group-hover:text-violet-700" onClick={() => onOpenExamInEditor(exam)}>
+                              {exam.title}
+                            </h4>
+                          </div>
+                        </div>
+                        <div className="flex shrink-0 gap-1 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
+                          {libraryTab === 'personal' && (
+                            <>
+                              <button title={exam.isPublic ? 'Thu hồi khỏi Kho chung' : 'Chia sẻ lên Kho chung'}
+                                onClick={() => onToggleShareExam(exam.id, !exam.isPublic)}
+                                className={cn('rounded-xl p-2 transition-all', exam.isPublic ? 'bg-orange-50 text-orange-600' : 'bg-slate-50 text-slate-400 hover:bg-orange-50 hover:text-orange-600')}>
+                                <UploadCloud className="h-4 w-4" />
+                              </button>
+                              <button title="Mở để chỉnh sửa" onClick={() => onOpenExamInEditor(exam)}
+                                className="rounded-xl bg-slate-50 p-2 text-slate-400 transition-all hover:bg-violet-50 hover:text-violet-600">
+                                <Edit3 className="h-4 w-4" />
+                              </button>
+                              <button title="Xuất Word" onClick={() => handleExportExamWord(exam)}
+                                className="rounded-xl bg-slate-50 p-2 text-slate-400 transition-all hover:bg-blue-50 hover:text-blue-600">
+                                <Download className="h-4 w-4" />
+                              </button>
+                              <button onClick={() => handleDeleteExam(exam)}
+                                className="rounded-xl bg-slate-50 p-2 text-slate-400 transition-all hover:bg-red-50 hover:text-red-600">
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </>
+                          )}
+                          {libraryTab === 'community' && (
+                            <>
+                              <button title="Xuất Word" onClick={() => handleExportExamWord(exam)}
+                                className="rounded-xl bg-slate-50 p-2 text-slate-400 transition-all hover:bg-blue-50 hover:text-blue-600">
+                                <Download className="h-4 w-4" />
+                              </button>
+                              <button title="Tải về & tạo đề thi online" onClick={() => onOpenExamInEditor(exam)}
+                                className="rounded-xl bg-slate-50 p-2 text-slate-400 transition-all hover:bg-violet-50 hover:text-violet-600">
+                                <Upload className="h-4 w-4" />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <p className="mb-4 line-clamp-2 text-sm font-medium leading-6 text-slate-500">
+                        {(exam.content || '').replace(/[#*_`>-]/g, '').slice(0, 170) || 'Chưa có nội dung xem trước cho đề thi này.'}
+                      </p>
+                      <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
+                        <span className="truncate text-xs font-bold text-slate-400">{exam.authorName || 'Ẩn danh'}</span>
+                        <span className="text-xs font-black uppercase text-slate-300">{dayjs(exam.updatedAt).format('DD/MM/YY')}</span>
+                      </div>
+                    </motion.article>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </main>
+      </div>
 
       <ViewPlanModal plan={viewingPlan} onClose={() => setViewingPlan(null)}
         onEdit={(plan) => { setCurrentPlan(plan); setActiveTab('creator'); setViewingPlan(null); }} />
@@ -395,13 +477,54 @@ export const LibraryTab = ({
   );
 };
 
+const LibraryMetric = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) => (
+  <div className="rounded-[24px] border border-white/15 bg-white/15 p-4 backdrop-blur-sm">
+    <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-2xl bg-white/20 text-white">{icon}</div>
+    <div className="text-2xl font-black leading-none">{value}</div>
+    <div className="mt-1 text-[11px] font-black uppercase tracking-[0.14em] text-blue-50/80">{label}</div>
+  </div>
+);
+
+const ContentTypeButton = ({ active, icon, label, count, accent, onClick }: {
+  active: boolean;
+  icon: React.ReactNode;
+  label: string;
+  count: number;
+  accent: 'blue' | 'violet';
+  onClick: () => void;
+}) => {
+  const activeClass = accent === 'blue'
+    ? 'border-blue-600 bg-blue-50 text-blue-700'
+    : 'border-violet-600 bg-violet-50 text-violet-700';
+  const badgeClass = accent === 'blue' ? 'bg-blue-600 text-white' : 'bg-violet-600 text-white';
+
+  return (
+    <button
+      onClick={onClick}
+      className={cn('flex items-center gap-2 rounded-2xl border-2 px-5 py-3 text-sm font-black transition-all',
+        active ? activeClass : 'border-slate-100 bg-white text-slate-500 hover:border-slate-200 hover:text-slate-800')}
+    >
+      {icon}
+      {label}
+      <span className={cn('rounded-lg px-2 py-0.5 text-[10px] font-black', active ? badgeClass : 'bg-slate-100 text-slate-500')}>{count}</span>
+    </button>
+  );
+};
+
+const MiniStat = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) => (
+  <div className="rounded-xl bg-white px-3 py-2">
+    <div className="mb-1 flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-slate-400">{icon}{label}</div>
+    <div className="text-xs font-black text-slate-700">{value}</div>
+  </div>
+);
+
 const EmptyState = ({ icon, title, desc, action }: {
   icon: React.ReactNode; title: string; desc: string; action?: React.ReactNode;
 }) => (
-  <div className="flex flex-col items-center justify-center py-20 text-center">
-    <div className="w-20 h-20 rounded-[32px] bg-slate-100 flex items-center justify-center mb-4">{icon}</div>
-    <h3 className="text-lg font-black text-slate-400 mb-2">{title}</h3>
-    <p className="text-sm text-slate-400 max-w-sm">{desc}</p>
+  <div className="flex flex-col items-center justify-center rounded-[32px] border border-dashed border-slate-200 bg-white py-20 text-center shadow-sm">
+    <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-[32px] bg-slate-100">{icon}</div>
+    <h3 className="mb-2 text-lg font-black text-slate-500">{title}</h3>
+    <p className="max-w-sm text-sm font-medium leading-6 text-slate-400">{desc}</p>
     {action}
   </div>
 );

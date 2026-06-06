@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, FileUp, Loader2, Plus, Save, Send, Sparkles, Trash2 } from 'lucide-react';
+import { ArrowLeft, BookOpenCheck, Brain, CheckCircle2, Clock, FileUp, Layers3, Loader2, Plus, Save, Send, Sparkles, Target, Trash2 } from 'lucide-react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { sampleAdaptiveLesson } from '../lib/adaptive/sampleAdaptiveLesson';
@@ -140,7 +140,7 @@ interface AdaptiveLessonBuilderPageProps {
   onBackToList?: () => void;
   onPreviewLesson?: (lessonId: string) => void;
   onNeedSettings?: () => void;
-  showToast?: (message: string, type?: string) => void;
+  showToast?: (message: string, type?: 'success' | 'error' | 'warning' | 'info') => void;
 }
 
 const readUploadedLessonFile = async (file: File): Promise<string> => {
@@ -239,6 +239,13 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
 
   const objectiveOptions = lesson?.objectives || [];
   const steps = ['Thông tin cơ bản', 'Mục tiêu & Chẩn đoán', 'Các mảnh kiến thức', 'Hoàn tất & Xuất bản'];
+  const lessonCompleteness = lesson ? Math.min(100, Math.round((
+    (lesson.title.trim() ? 20 : 0) +
+    (lesson.objectives.length ? 25 : 0) +
+    (lesson.diagnosticTest.questions.length ? 15 : 0) +
+    (lesson.knowledgeUnits.length ? 25 : 0) +
+    (lesson.exitTicket.questions.length ? 15 : 0)
+  ))) : 0;
 
   const updateLesson = (patch: Partial<AdaptiveLesson>) => {
     setLesson(prev => prev ? { ...prev, ...patch, updatedAt: new Date().toISOString() } : prev);
@@ -421,21 +428,34 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
   if ((id === 'new' || !id) && !isSourceApproved) {
     return (
       <BuilderShell embedded={embedded}>
-        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <button onClick={goBackToList} className="mb-3 inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-blue-600">
-              <ArrowLeft className="h-4 w-4" /> Quay lại danh sách
-            </button>
-            <h1 className="text-3xl font-black text-slate-900">Tạo bài học phân hoá từ giáo án nguồn</h1>
-            <p className="text-sm font-semibold text-slate-500">Chọn giáo án đã soạn hoặc tải giáo án lên. AI sẽ rà soát, sắp xếp lại nội dung rồi hiển thị bản chuẩn bị để giáo viên duyệt.</p>
+        <div className="mb-6 overflow-hidden rounded-[2rem] border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-sky-100 p-6 shadow-sm">
+          <button onClick={goBackToList} className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-sm font-black text-slate-500 shadow-sm hover:text-blue-600">
+            <ArrowLeft className="h-4 w-4" /> Quay lại danh sách
+          </button>
+          <div className="grid gap-6 lg:grid-cols-[1fr_320px] lg:items-end">
+            <div>
+              <span className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-3 py-1 text-xs font-black uppercase tracking-wide text-white shadow-lg shadow-blue-100">
+                <Sparkles className="h-3.5 w-3.5" /> Adaptive Builder
+              </span>
+              <h1 className="mt-4 max-w-3xl text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">Tạo bài học phân hoá từ giáo án nguồn</h1>
+              <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-slate-600">Chọn giáo án đã soạn hoặc tải giáo án lên. AI rà soát, chuẩn hoá cấu trúc và đưa giáo viên duyệt trước khi tạo tuyến học Foundation / Standard / Challenge.</p>
+            </div>
+            <div className="rounded-3xl border border-white/80 bg-white/85 p-4 shadow-sm backdrop-blur">
+              <p className="text-xs font-black uppercase tracking-wide text-slate-400">Luồng hiện tại</p>
+              <div className="mt-3 space-y-3 text-sm font-bold text-slate-700">
+                <div className="flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-2xl bg-blue-100 text-blue-700">1</span> Rà soát giáo án nguồn</div>
+                <div className="flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">2</span> Duyệt nội dung chuẩn hoá</div>
+                <div className="flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">3</span> Bóc tách tuyến học</div>
+              </div>
+            </div>
           </div>
         </div>
 
         {error && <div className="mb-4 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-bold text-red-600">{error}</div>}
 
-        <section className="space-y-5 rounded-3xl border border-blue-100 bg-white p-6 shadow-sm">
+        <section className="space-y-5 rounded-[2rem] border border-blue-100 bg-white p-5 shadow-sm sm:p-6">
           <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="rounded-3xl border border-slate-100 bg-slate-50 p-5">
+            <div className="rounded-3xl border border-slate-100 bg-slate-50/80 p-5 transition hover:border-blue-100 hover:bg-white hover:shadow-sm">
               <h2 className="text-lg font-black text-slate-800">1. Chọn giáo án đã soạn</h2>
               <p className="mt-1 text-sm font-semibold text-slate-500">Ưu tiên các giáo án định dạng “Bài học phân hoá” đã lưu trong thư viện.</p>
               <select value={selectedPlanId} onChange={event => setSelectedPlanId(event.target.value)} className={`${inputClass} mt-4`}>
@@ -450,7 +470,7 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
               </button>
             </div>
 
-            <div className="rounded-3xl border border-dashed border-blue-200 bg-blue-50/60 p-5">
+            <div className="rounded-3xl border border-dashed border-blue-200 bg-blue-50/70 p-5 transition hover:bg-blue-50 hover:shadow-sm">
               <h2 className="text-lg font-black text-slate-800">2. Hoặc tải giáo án lên</h2>
               <p className="mt-1 text-sm font-semibold text-slate-500">Hỗ trợ .docx, .pdf, .txt, .md. AI vẫn kiểm tra lại trước khi tạo bài học.</p>
               <input ref={uploadInputRef} type="file" accept=".doc,.docx,.pdf,.txt,.md" className="hidden" onChange={event => void handleUploadSource(event.target.files?.[0])} />
@@ -492,28 +512,50 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
 
   return (
     <BuilderShell embedded={embedded}>
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <button onClick={goBackToList} className="mb-3 inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-blue-600">
+        <div className="mb-6 overflow-hidden rounded-[2rem] border border-blue-100 bg-gradient-to-br from-white via-blue-50 to-sky-100 p-6 shadow-sm">
+          <button onClick={goBackToList} className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-sm font-black text-slate-500 shadow-sm hover:text-blue-600">
             <ArrowLeft className="h-4 w-4" /> Quay lại danh sách
           </button>
-          <h1 className="text-3xl font-black text-slate-900">Giao diện học phân hoá</h1>
-          <p className="text-sm font-semibold text-slate-500">Triển khai từ giáo án nguồn đã được AI rà soát: nội dung, tuyến học, kiểm tra và xuất bản cổng học sinh.</p>
+          <div className="grid gap-6 lg:grid-cols-[1fr_360px] lg:items-end">
+            <div>
+              <span className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-3 py-1 text-xs font-black uppercase tracking-wide text-white shadow-lg shadow-blue-100">
+                <Brain className="h-3.5 w-3.5" /> Lesson Path Designer
+              </span>
+              <h1 className="mt-4 max-w-3xl text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">Thiết kế bài học phân hoá</h1>
+              <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-slate-600">Triển khai từ giáo án nguồn đã được AI rà soát: mục tiêu, chẩn đoán, các mảnh kiến thức, tuyến học và xuất bản cổng học sinh.</p>
+            </div>
+            <div className="rounded-3xl border border-white/80 bg-white/85 p-4 shadow-sm backdrop-blur">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs font-black uppercase tracking-wide text-slate-400">Mức hoàn thiện</p>
+                <span className="text-lg font-black text-blue-700">{lessonCompleteness}%</span>
+              </div>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-blue-600" style={{ width: `${lessonCompleteness}%` }} /></div>
+              <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs font-black text-slate-500">
+                <div className="rounded-2xl bg-slate-50 p-3"><Target className="mx-auto mb-1 h-4 w-4 text-blue-600" />{lesson.objectives.length} mục tiêu</div>
+                <div className="rounded-2xl bg-slate-50 p-3"><Layers3 className="mx-auto mb-1 h-4 w-4 text-blue-600" />{lesson.knowledgeUnits.length} mảnh</div>
+                <div className="rounded-2xl bg-slate-50 p-3"><Clock className="mx-auto mb-1 h-4 w-4 text-blue-600" />{lesson.preparation.estimatedMinutes || 0} phút</div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
 
       {error && <div className="mb-4 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-bold text-red-600">{error}</div>}
 
-      <div className="mb-5 grid gap-2 md:grid-cols-4">
+      <div className="mb-5 grid gap-3 md:grid-cols-4">
         {steps.map((label, index) => (
-          <button key={label} onClick={() => setStep(index)} className={`rounded-2xl px-4 py-3 text-left text-sm font-black ${step === index ? 'bg-blue-600 text-white shadow-lg shadow-blue-100' : 'bg-white text-slate-500 shadow-sm hover:text-blue-600'}`}>
+          <button key={label} onClick={() => setStep(index)} className={`group rounded-3xl border px-4 py-4 text-left text-sm font-black transition ${step === index ? 'border-blue-600 bg-blue-600 text-white shadow-lg shadow-blue-100' : 'border-slate-100 bg-white text-slate-500 shadow-sm hover:border-blue-100 hover:text-blue-600'}`}>
+            <span className={`mb-2 flex h-8 w-8 items-center justify-center rounded-2xl text-xs ${step === index ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-600 group-hover:bg-blue-100'}`}>{index + 1}</span>
             <span className="block text-xs opacity-70">Bước {index + 1}</span>{label}
           </button>
         ))}
       </div>
 
       {step === 0 && (
-        <section className="space-y-4 rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+        <section className="space-y-4 rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
+          <div className="mb-2 flex items-start gap-3 rounded-3xl bg-blue-50 p-4">
+            <BookOpenCheck className="mt-0.5 h-5 w-5 text-blue-600" />
+            <div><h2 className="font-black text-slate-900">Thông tin nền của bài học</h2><p className="text-sm font-semibold text-slate-500">Giữ ngắn gọn để học sinh nhận diện bài học nhanh trên cổng thích ứng.</p></div>
+          </div>
           <Field label="Tiêu đề bài *"><input value={lesson.title} onChange={event => updateLesson({ title: event.target.value })} className={inputClass} placeholder="VD: Toán 11 — Cấp số cộng" /></Field>
           <div className="grid gap-4 md:grid-cols-3">
             <Field label="Lớp"><select value={lesson.grade} onChange={event => updateLesson({ grade: event.target.value as AdaptiveLesson['grade'] })} className={inputClass}>{gradeOptions.map(grade => <option key={grade}>{grade}</option>)}</select></Field>
@@ -527,7 +569,7 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
       )}
 
       {step === 1 && (
-        <section className="space-y-5 rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+        <section className="space-y-5 rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-xl font-black text-slate-800">Mục tiêu học tập</h2>
             <button onClick={() => updateLesson({ objectives: [...lesson.objectives, { id: uid('obj'), code: `OBJ-${lesson.objectives.length + 1}`, title: '', description: '', bloomLevel: 'understand', masteryThreshold: 0.7, prerequisiteObjectiveIds: [], commonMisconceptions: [] }] })} className={secondaryButtonClass}>
@@ -547,7 +589,7 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
       )}
 
       {step === 2 && (
-        <section className="space-y-4 rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+        <section className="space-y-4 rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
           {lesson.knowledgeUnits.map(unit => {
             const standard = ensureRoute(unit, 'standard');
             const foundation = ensureRoute(unit, 'foundation');
@@ -596,7 +638,7 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
       )}
 
       {step === 3 && (
-        <section className="space-y-5 rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+        <section className="space-y-5 rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
           <QuestionEditor title="Exit Ticket" questions={lesson.exitTicket.questions} objectives={objectiveOptions} onAdd={() => updateLesson({ exitTicket: { ...lesson.exitTicket, questions: [...lesson.exitTicket.questions, makeQuestion('multiple_choice', objectiveOptions[0]?.id)] } })} onDelete={questionId => updateLesson({ exitTicket: { ...lesson.exitTicket, questions: lesson.exitTicket.questions.filter(question => question.id !== questionId) } })} onChange={(questionId, patch) => updateQuestion('exitTicket', questionId, patch)} />
           <Field label="Completion Reward message"><textarea value={lesson.completionReward?.message || defaultRewardMessage} onChange={event => updateLesson({ completionReward: { toolId: lesson.completionReward?.toolId || 'gamedoikhang', message: event.target.value } })} className={textareaClass} /></Field>
           <div className="flex flex-wrap gap-3">
@@ -610,7 +652,7 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
 };
 
 const BuilderShell = ({ children, embedded = false }: { children: ReactNode; embedded?: boolean }) => (
-  <div className={embedded ? 'text-slate-900' : 'min-h-screen bg-slate-50 p-4 text-slate-900 sm:p-8'}>
+  <div className={embedded ? 'text-slate-900' : 'min-h-screen bg-[radial-gradient(circle_at_top_left,#dbeafe_0,#f8fafc_34%,#f8fafc_100%)] p-4 text-slate-900 sm:p-8'}>
     <div className="mx-auto max-w-6xl">{children}</div>
   </div>
 );
@@ -627,7 +669,7 @@ interface QuestionEditorProps {
 }
 
 const QuestionEditor = ({ title, questions, objectives, onAdd, onDelete, onChange }: QuestionEditorProps) => (
-  <div className="space-y-3 rounded-2xl border border-slate-100 p-4">
+  <div className="space-y-3 rounded-3xl border border-slate-100 bg-slate-50/50 p-4">
     <div className="flex flex-wrap items-center justify-between gap-3">
       <h3 className="font-black text-slate-800">{title}</h3>
       <button onClick={onAdd} className={secondaryButtonClass}><Plus className="h-4 w-4" /> Thêm câu hỏi</button>

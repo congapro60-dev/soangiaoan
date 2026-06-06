@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ViệtGiáo AI - Trợ lý soạn giáo án thông minh</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+        /* Custom subtle animations */
+        .hover-lift {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .hover-lift:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 94, 161, 0.1), 0 8px 10px -6px rgba(0, 94, 161, 0.1);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-bright": "#f8f9ff",
+                      "surface-container-lowest": "#ffffff",
+                      "secondary-fixed": "#d8e4eb",
+                      "on-error-container": "#93000a",
+                      "outline": "#717782",
+                      "primary": "#005ea1",
+                      "surface": "#f8f9ff",
+                      "primary-fixed-dim": "#9fcaff",
+                      "surface-dim": "#ccdbf4",
+                      "inverse-on-surface": "#eaf1ff",
+                      "surface-variant": "#d4e4fc",
+                      "on-tertiary": "#ffffff",
+                      "on-secondary-container": "#58646a",
+                      "background": "#f8f9ff",
+                      "on-tertiary-fixed-variant": "#204877",
+                      "inverse-primary": "#9fcaff",
+                      "tertiary-fixed": "#d4e3ff",
+                      "on-secondary-fixed-variant": "#3c494e",
+                      "on-tertiary-fixed": "#001c3a",
+                      "on-primary-fixed": "#001d37",
+                      "tertiary-fixed-dim": "#a5c8ff",
+                      "secondary-container": "#d5e2e9",
+                      "tertiary-container": "#5276a8",
+                      "surface-container-high": "#dce9ff",
+                      "surface-container-low": "#eff4ff",
+                      "surface-tint": "#0061a5",
+                      "on-tertiary-container": "#fefcff",
+                      "primary-container": "#2178c3",
+                      "on-primary-fixed-variant": "#00497e",
+                      "on-surface": "#0d1c2e",
+                      "surface-container-highest": "#d4e4fc",
+                      "tertiary": "#385d8e",
+                      "primary-fixed": "#d2e4ff",
+                      "on-error": "#ffffff",
+                      "on-primary": "#ffffff",
+                      "inverse-surface": "#223144",
+                      "secondary": "#546066",
+                      "on-secondary": "#ffffff",
+                      "error-container": "#ffdad6",
+                      "on-primary-container": "#fdfcff",
+                      "secondary-fixed-dim": "#bcc8cf",
+                      "on-background": "#0d1c2e",
+                      "outline-variant": "#c0c7d3",
+                      "surface-container": "#e5eeff",
+                      "on-surface-variant": "#414751",
+                      "on-secondary-fixed": "#111d22",
+                      "error": "#ba1a1a"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xs": "4px",
+                      "sm": "8px",
+                      "margin-mobile": "16px",
+                      "gutter": "24px",
+                      "container-max": "1280px",
+                      "base": "4px",
+                      "md": "16px",
+                      "3xl": "64px",
+                      "lg": "24px",
+                      "xl": "32px",
+                      "2xl": "48px"
+              },
+              "fontFamily": {
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "display-md": [
+                              "Plus Jakarta Sans"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "headline-lg": [
+                              "Plus Jakarta Sans"
+                      ],
+                      "headline-sm": [
+                              "Plus Jakarta Sans"
+                      ],
+                      "label-sm": [
+                              "Inter"
+                      ],
+                      "label-md": [
+                              "Inter"
+                      ],
+                      "display-lg": [
+                              "Plus Jakarta Sans"
+                      ],
+                      "headline-md": [
+                              "Plus Jakarta Sans"
+                      ]
+              },
+              "fontSize": {
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "display-md": [
+                              "36px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg": [
+                              "30px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-sm": [
+                              "20px",
+                              {
+                                      "lineHeight": "1.4",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "1",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "label-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col">
+<!-- TopNavBar from Shared Components JSON -->
+<header class="sticky top-0 z-50 flex justify-between items-center px-lg h-16 w-full bg-surface dark:bg-inverse-surface border-b border-outline-variant dark:border-outline">
+<div class="flex items-center gap-xl">
+<a class="font-headline-md text-headline-md font-bold text-primary dark:text-inverse-primary" href="#">ViệtGiáo</a>
+<!-- Search Bar (on left per JSON) -->
+<div class="hidden md:flex relative items-center w-64">
+<span class="material-symbols-outlined absolute left-sm text-on-surface-variant z-10" data-icon="search">search</span>
+<input class="w-full h-10 pl-10 pr-sm rounded-full bg-surface-container border-none focus:ring-2 focus:ring-primary-fixed-dim text-body-sm font-body-sm text-on-surface placeholder:text-on-surface-variant transition-all" placeholder="Tìm kiếm giáo án..." type="text"/>
+</div>
+</div>
+<nav class="hidden md:flex items-center gap-lg">
+<!-- Navigation Links. Assuming "Cộng đồng" is active based on a homepage/exploration context -->
+<a class="font-label-md text-label-md text-primary dark:text-inverse-primary border-b-2 border-primary pb-1 transition-colors hover:text-primary dark:hover:text-inverse-primary" href="#">Cộng đồng</a>
+<a class="font-label-md text-label-md text-on-surface-variant dark:text-surface-variant transition-colors hover:text-primary dark:hover:text-inverse-primary" href="#">Hỗ trợ</a>
+</nav>
+<div class="flex items-center gap-sm">
+<!-- Trailing Icon Actions -->
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-full hover:bg-surface-variant">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-full hover:bg-surface-variant hidden sm:block">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+<!-- Actions -->
+<button class="hidden sm:block px-md py-2 border border-primary text-primary font-label-md text-label-md rounded-full hover:bg-surface-variant transition-colors">Nâng cấp</button>
+<button class="px-md py-2 bg-primary text-on-primary font-label-md text-label-md rounded-full hover:bg-primary-container transition-colors shadow-sm">Tạo mới</button>
+<!-- Profile Image -->
+<div class="w-10 h-10 rounded-full bg-surface-variant overflow-hidden ml-sm border border-outline-variant cursor-pointer">
+<img alt="Ảnh đại diện giáo viên" class="w-full h-full object-cover" data-alt="A professional headshot of a female teacher in her 30s, smiling warmly. The background is a blurred modern classroom with soft natural lighting. The mood is approachable, professional, and educational. The lighting is bright and clear, adhering to a clean, modern aesthetic with soft shadows." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBhuX0Av4uZ00OmmqgWOZmmPfs6bP92CFakHL9fCLXd3P_7mo_GKcKw2-1WBFe5HcaCZv4Cbf6kj2HILGaOdlIfleJe9_GhXma7egCyo0yzU0E3YGpkTrPrdVSbsW8OAbD8_eI5cS2njoU9c93dbt62c_siuuPaRpXrNzphQERiNSXEiQG4YsMymu6gw_5-_-jcUC08hwR-S1q5LBkG648zbaLMIVKjVHQVcLnvvuAp3oMgqc38s66ZevHR2cGLxamlERb5YqRMgQ"/>
+</div>
+</div>
+</header>
+<main class="flex-grow">
+<!-- Hero Section: Modern & Clean Focus on AI -->
+<section class="relative bg-surface-bright overflow-hidden border-b border-surface-variant pt-2xl pb-3xl">
+<!-- Decorative background elements -->
+<div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-40">
+<div class="absolute -top-[20%] -right-[10%] w-[50%] h-[80%] rounded-full bg-surface-container-high blur-[100px]"></div>
+<div class="absolute top-[40%] -left-[10%] w-[40%] h-[60%] rounded-full bg-primary-fixed blur-[120px]"></div>
+</div>
+<div class="max-w-container-max mx-auto px-gutter relative z-10">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-2xl items-center">
+<div class="flex flex-col gap-lg items-start">
+<div class="inline-flex items-center gap-xs px-3 py-1.5 rounded-full bg-surface-container-high border border-surface-variant">
+<span class="material-symbols-outlined text-primary text-[18px]" data-icon="auto_awesome" data-weight="fill" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="font-label-sm text-label-sm text-primary">Tri Thức AI - Trợ lý soạn giảng mới</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-on-surface max-w-[600px]">
+                            Soạn giáo án <span class="text-primary">thông minh</span>, tiết kiệm 80% thời gian.
+                        </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-[500px]">
+                            Nâng tầm chất lượng bài giảng với công nghệ AI chuyên biệt cho giáo dục Việt Nam. Từ ý tưởng đến giáo án hoàn chỉnh chỉ trong vài phút.
+                        </p>
+<div class="flex flex-wrap gap-md mt-sm">
+<button class="px-xl py-3 bg-primary text-on-primary font-label-md text-label-md rounded-full hover:bg-primary-container transition-colors shadow-md hover:shadow-lg flex items-center gap-sm">
+<span class="material-symbols-outlined text-[20px]" data-icon="edit_document">edit_document</span>
+                                Bắt đầu soạn thảo
+                            </button>
+<button class="px-xl py-3 border border-outline bg-surface-container-lowest text-on-surface font-label-md text-label-md rounded-full hover:bg-surface-variant transition-colors flex items-center gap-sm">
+<span class="material-symbols-outlined text-[20px]" data-icon="play_circle">play_circle</span>
+                                Xem hướng dẫn
+                            </button>
+</div>
+</div>
+<!-- AI Interface Preview replacing cartoon -->
+<div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden shadow-2xl border border-surface-variant bg-surface-container-lowest transform rotate-[-1deg] hover:rotate-0 transition-transform duration-500">
+<!-- Placeholder for a clean UI mockup -->
+<div class="absolute inset-0 bg-surface-container flex flex-col">
+<!-- Faux Header -->
+<div class="h-10 bg-surface-container-low border-b border-surface-variant flex items-center px-sm gap-2">
+<div class="flex gap-1.5 pl-2">
+<div class="w-2.5 h-2.5 rounded-full bg-error/50"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-outline/40"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-outline/40"></div>
+</div>
+<div class="mx-auto h-5 w-48 bg-surface-container-highest rounded-md"></div>
+</div>
+<!-- Faux Content Area -->
+<div class="flex-1 flex p-4 gap-4">
+<!-- Sidebar -->
+<div class="w-1/4 h-full bg-surface-container-highest/30 rounded-lg flex flex-col gap-3 p-3">
+<div class="h-6 w-3/4 bg-surface-variant rounded-sm"></div>
+<div class="h-4 w-full bg-surface-variant rounded-sm mt-4"></div>
+<div class="h-4 w-5/6 bg-surface-variant rounded-sm"></div>
+<div class="h-4 w-4/6 bg-surface-variant rounded-sm"></div>
+</div>
+<!-- Main Editor -->
+<div class="flex-1 h-full bg-surface-container-lowest rounded-lg shadow-sm border border-surface-variant p-6 flex flex-col gap-4 relative">
+<div class="h-8 w-2/3 bg-surface-container rounded-md"></div>
+<div class="h-4 w-full bg-surface-container-low rounded-sm mt-2"></div>
+<div class="h-4 w-full bg-surface-container-low rounded-sm"></div>
+<div class="h-4 w-4/5 bg-surface-container-low rounded-sm"></div>
+<!-- Faux AI Suggestion FLoater -->
+<div class="absolute bottom-6 right-6 w-48 p-3 bg-primary-container text-on-primary-container rounded-lg shadow-lg border border-primary-fixed flex items-start gap-2">
+<span class="material-symbols-outlined text-[16px] mt-0.5" data-icon="auto_awesome">auto_awesome</span>
+<div class="flex flex-col gap-1.5 w-full">
+<div class="h-3 w-3/4 bg-on-primary-container/20 rounded-sm"></div>
+<div class="h-2 w-full bg-on-primary-container/10 rounded-sm"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Main Content Area -->
+<div class="max-w-container-max mx-auto px-gutter py-xl flex flex-col gap-2xl">
+<!-- Subject Cards Grid (Bento style hint) -->
+<section class="flex flex-col gap-md">
+<div class="flex justify-between items-end mb-sm">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Khám phá Môn học</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">Tìm kiếm tài nguyên theo chuyên môn của bạn</p>
+</div>
+<a class="font-label-md text-label-md text-primary hover:underline flex items-center gap-xs" href="#">Xem tất cả <span class="material-symbols-outlined text-[18px]" data-icon="arrow_forward">arrow_forward</span></a>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-sm">
+<!-- Subject Chip 1 -->
+<a class="group flex flex-col items-center justify-center gap-sm p-md bg-surface-container-lowest border border-outline-variant rounded-xl hover-lift" href="#">
+<div class="w-12 h-12 rounded-lg bg-[#E5F3FF] text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="calculate" data-weight="fill" style="font-variation-settings: 'FILL' 1;">calculate</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface group-hover:text-primary transition-colors">Toán học</span>
+</a>
+<!-- Subject Chip 2 -->
+<a class="group flex flex-col items-center justify-center gap-sm p-md bg-surface-container-lowest border border-outline-variant rounded-xl hover-lift" href="#">
+<div class="w-12 h-12 rounded-lg bg-[#FFE5E5] text-[#D32F2F] flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="book_4" data-weight="fill" style="font-variation-settings: 'FILL' 1;">book_4</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface group-hover:text-primary transition-colors">Ngữ văn</span>
+</a>
+<!-- Subject Chip 3 -->
+<a class="group flex flex-col items-center justify-center gap-sm p-md bg-surface-container-lowest border border-outline-variant rounded-xl hover-lift" href="#">
+<div class="w-12 h-12 rounded-lg bg-[#E8F5E9] text-[#2E7D32] flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="biotech" data-weight="fill" style="font-variation-settings: 'FILL' 1;">biotech</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface group-hover:text-primary transition-colors">Sinh học</span>
+</a>
+<!-- Subject Chip 4 -->
+<a class="group flex flex-col items-center justify-center gap-sm p-md bg-surface-container-lowest border border-outline-variant rounded-xl hover-lift" href="#">
+<div class="w-12 h-12 rounded-lg bg-[#FFF3E0] text-[#E65100] flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="science" data-weight="fill" style="font-variation-settings: 'FILL' 1;">science</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface group-hover:text-primary transition-colors">Vật lý</span>
+</a>
+<!-- Subject Chip 5 -->
+<a class="group flex flex-col items-center justify-center gap-sm p-md bg-surface-container-lowest border border-outline-variant rounded-xl hover-lift" href="#">
+<div class="w-12 h-12 rounded-lg bg-[#F3E5F5] text-[#6A1B9A] flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="language" data-weight="fill" style="font-variation-settings: 'FILL' 1;">language</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface group-hover:text-primary transition-colors">Ngoại ngữ</span>
+</a>
+<!-- Subject Chip 6 -->
+<a class="group flex flex-col items-center justify-center gap-sm p-md bg-surface-container-lowest border border-outline-variant rounded-xl hover-lift" href="#">
+<div class="w-12 h-12 rounded-lg bg-[#E0F7FA] text-[#006064] flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="public" data-weight="fill" style="font-variation-settings: 'FILL' 1;">public</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface group-hover:text-primary transition-colors">Địa lý</span>
+</a>
+</div>
+</section>
+<!-- Featured Lesson Plans -->
+<section class="flex flex-col gap-md">
+<div class="flex justify-between items-end mb-sm">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Giáo án nổi bật</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">Được tạo và tinh chỉnh bởi cộng đồng giáo viên</p>
+</div>
+<div class="flex gap-sm">
+<button class="w-8 h-8 flex items-center justify-center rounded-full border border-outline-variant text-on-surface-variant hover:bg-surface-variant"><span class="material-symbols-outlined text-[18px]" data-icon="chevron_left">chevron_left</span></button>
+<button class="w-8 h-8 flex items-center justify-center rounded-full border border-outline-variant text-on-surface-variant hover:bg-surface-variant"><span class="material-symbols-outlined text-[18px]" data-icon="chevron_right">chevron_right</span></button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-md">
+<!-- Lesson Plan Card 1 -->
+<div class="flex flex-col bg-surface-container-lowest rounded-xl border border-surface-variant overflow-hidden hover-lift shadow-sm">
+<!-- Thumbnail Area -->
+<div class="w-full aspect-video bg-surface-container relative overflow-hidden group border-b border-surface-variant">
+<img alt="Thumbnail" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="A macro shot of mathematical equations and geometric shapes written neatly on a modern glass whiteboard. Soft, natural daylight illuminates the board, creating a clean, high-contrast, professional educational mood in an intellectual blue and crisp white palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC1bMvoQiI89aPxuqurGJm_EdWDME_v-kepM6VPjU65aUR0jhhh8gxDxVnUpH8IADCfIoM3qqZJ--uXoU3GzxDsyTRxrbF2hAwTsXqVk0HVEpY3UmGqo9MlcHB4EVBhs-b7yhYpMWSIo-xn4zO1PIDLBOmTDs__wGI2WHH-cX3aOGlTg0dFAvO0mOxXvMtNq-ROlNA667KwZRUiZF5FHQqy7uKDGwFjfnBkULkC7LVpyAHSdAMn11rvOZKU7pYiHDdsNd_iKizkSUI"/>
+<!-- Badges -->
+<div class="absolute top-2 left-2 flex flex-col gap-1">
+<span class="px-2 py-0.5 bg-surface-container-lowest/90 backdrop-blur-sm text-on-surface font-label-sm text-label-sm rounded shadow-sm border border-surface-variant">Lớp 10</span>
+</div>
+<div class="absolute top-2 right-2">
+<div class="flex items-center gap-1 px-2 py-0.5 bg-primary-container/90 backdrop-blur-sm text-on-primary-container font-label-sm text-[10px] uppercase font-bold rounded shadow-sm border border-primary-fixed">
+<span class="material-symbols-outlined text-[12px]" data-icon="auto_awesome">auto_awesome</span> AI-Generated
+                                </div>
+</div>
+</div>
+<!-- Content Area -->
+<div class="p-4 flex flex-col flex-grow gap-sm">
+<h3 class="font-headline-sm text-headline-sm text-on-surface line-clamp-2 hover:text-primary cursor-pointer transition-colors">Đại số 10: Hàm số bậc hai và ứng dụng thực tiễn</h3>
+<div class="flex items-center gap-2 mt-auto pt-sm">
+<div class="w-6 h-6 rounded-full bg-surface-variant overflow-hidden">
+<img alt="Author" class="w-full h-full object-cover" data-alt="A tiny profile picture of a male teacher in a blue shirt smiling. Plain light background. Professional and trustworthy appearance." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwW3bl4uvt6GsTi4WZ9F7xAvRha7IN7FR7ckGBmbMTAes2xnR2V8kBCq2H-sp8UDt6M7na2DrtiozXiiR9dAwAO9ytXlz4JiBN4_tSn8lE5mmznVw1efeD6BxQRLWnMiNp6oBS_R2vYEHSg-FN4kfJccCng3djl69LSbqp4f-iwqPpEHifDh9mDOh7r7B0TZ9cmA7qBDRPnUqg21ju3hdhP2CN8vFRQ5_fKkRwy9VphyyFB5sADr2t7GUK9M3CFxNxDQfPzqAlOts"/>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Thầy Hùng Toán</span>
+<div class="ml-auto flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]" data-icon="visibility">visibility</span>
+<span class="font-label-sm text-label-sm">1.2k</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Lesson Plan Card 2 -->
+<div class="flex flex-col bg-surface-container-lowest rounded-xl border border-surface-variant overflow-hidden hover-lift shadow-sm">
+<div class="w-full aspect-video bg-surface-container relative overflow-hidden group border-b border-surface-variant">
+<img alt="Thumbnail" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="A pile of classic literature books resting on a wooden desk next to a modern tablet displaying text. Soft warm lighting filters through a window, contrasting with cool intellectual blue accents on the tablet screen. Academic, serene, and blending tradition with technology." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwJbTpO1Ywdkqrr3DdUqd6lBrXNmKGaHYvVX5C5VdIyxT-y2-oB49hnASIoMgLYsuAewNGd7nPsGx1mxOm_OiH60Pt2Ikoa-ekLJ_aVILz5oDqLG_Kk8oJvo_N1az5E7oSdlFvsNkRUJj2DJ7-J70MKLpqXHGZ_zueuZAO0jM7GGuq_WG34jQuzox4CsPKqZwakgHqNCFuVHmtHGe59EMqH8axH9HN1ZqSBLw0NsI78plnkNTLDgtAYHhkPIj9s5J9sWjzkP4jWCo"/>
+<div class="absolute top-2 left-2 flex flex-col gap-1">
+<span class="px-2 py-0.5 bg-surface-container-lowest/90 backdrop-blur-sm text-on-surface font-label-sm text-label-sm rounded shadow-sm border border-surface-variant">Lớp 11</span>
+</div>
+</div>
+<div class="p-4 flex flex-col flex-grow gap-sm">
+<h3 class="font-headline-sm text-headline-sm text-on-surface line-clamp-2 hover:text-primary cursor-pointer transition-colors">Phân tích nghệ thuật trào phúng trong Số Đỏ</h3>
+<div class="flex items-center gap-2 mt-auto pt-sm">
+<div class="w-6 h-6 rounded-full bg-surface-variant overflow-hidden flex items-center justify-center text-primary-container font-label-sm">
+                                    T
+                                </div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Cô Trà Văn</span>
+<div class="ml-auto flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]" data-icon="visibility">visibility</span>
+<span class="font-label-sm text-label-sm">856</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Lesson Plan Card 3 -->
+<div class="flex flex-col bg-surface-container-lowest rounded-xl border border-surface-variant overflow-hidden hover-lift shadow-sm">
+<div class="w-full aspect-video bg-surface-container relative overflow-hidden group border-b border-surface-variant">
+<img alt="Thumbnail" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="Glass beakers and test tubes filled with clear and light blue liquids sit on a spotless white laboratory counter. Crisp, sterile lighting emphasizes cleanliness and scientific precision. The overall aesthetic is modern, bright, and intellectual." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHaCLwwxxC5E3DmmubTIsuTEjzqCiQoxtrwpkn7HW4BWzTKB0odxpkyGEJJypFusrNof6bJ2F53-VYZcdrYhdmxqIQ7MmilyJHQUoknTgG5E-ZtSrP5VR_CIeu2UVjrX6Y82i0WuBp5GbOtEV2W8Luur22yDl9fX9hZlIbGAXQ2WbkUpT_p8VvgxqBnz_p-kJo2iuf4BwjIUodKO4rdCzfoqjgb94_B_YKBEAbN3maJeXBlQyqxEvIfgq38ZpnjMePgR_6kYb1m4c"/>
+<div class="absolute top-2 left-2 flex flex-col gap-1">
+<span class="px-2 py-0.5 bg-surface-container-lowest/90 backdrop-blur-sm text-on-surface font-label-sm text-label-sm rounded shadow-sm border border-surface-variant">Lớp 12</span>
+</div>
+<div class="absolute top-2 right-2">
+<div class="flex items-center gap-1 px-2 py-0.5 bg-primary-container/90 backdrop-blur-sm text-on-primary-container font-label-sm text-[10px] uppercase font-bold rounded shadow-sm border border-primary-fixed">
+<span class="material-symbols-outlined text-[12px]" data-icon="auto_awesome">auto_awesome</span> AI-Generated
+                                </div>
+</div>
+</div>
+<div class="p-4 flex flex-col flex-grow gap-sm">
+<h3 class="font-headline-sm text-headline-sm text-on-surface line-clamp-2 hover:text-primary cursor-pointer transition-colors">Chuỗi phản ứng vô cơ: Chuyên đề Luyện thi Đại học</h3>
+<div class="flex items-center gap-2 mt-auto pt-sm">
+<div class="w-6 h-6 rounded-full bg-surface-variant overflow-hidden">
+<img alt="Author" class="w-full h-full object-cover" data-alt="Profile photo of a young female educator with glasses, smiling softly. Bright background, modern professional look." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhe9y_uVpfa8N-_yPgyzrZU9XgpyS4ue3lIU6EpMZCiAaTwIeRFkBqHZR9lsuMEvLgvKrMNQfkXfL3uRKKO4O9MQVfnaTgYvfAEGjEDGu-9pjaPKRqIfYslBT0NuRNtpd9h97bKu_wDx-n6NEvtzyT4-hJWdwDZ5BYQOT3EHYgnKdDphlNWdhzruuVat_NdmhA2w-sEg2SCtPTPZ1yRB5pCNxLiMNjm8_bjSkydJxFEOaSMOVHDyc97_UzWxOjkpZza1AvrGPrVWE"/>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Hóa học 365</span>
+<div class="ml-auto flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]" data-icon="visibility">visibility</span>
+<span class="font-label-sm text-label-sm">2.4k</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Lesson Plan Card 4 -->
+<div class="flex flex-col bg-surface-container-lowest rounded-xl border border-surface-variant overflow-hidden hover-lift shadow-sm">
+<div class="w-full aspect-video bg-surface-container relative overflow-hidden group border-b border-surface-variant">
+<img alt="Thumbnail" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="A vintage globe illuminated by soft, warm light against a modern pale blue background. Subtle map contours and educational elements are visible. The mood is exploratory, academic, and globally aware, maintaining a clean minimal aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7tF2o8Z3SMwb_CDhbmxCkZOfOvUi6NsIjtSlvZ754Wx62Eh-WdQkFO8CNRpT0gQmNJcEZ3Cepr2SybJLABqe5NtCWQFRbhxII-TjWv2cTlrnAEVG5qH5l_rTEM0w6b-9JhLg-IU2YTsmf2aTBVCDveC32jHuZHLISxJ47SS3DvT9DXbw7ePR18jLNGuui84ynXScOL-SLOrlKEgp-kLiq1NyjyJm_qYaRUGwW8FEs298r7frpNc5hWu1J5tzth-LK9VWXmeeEYwE"/>
+<div class="absolute top-2 left-2 flex flex-col gap-1">
+<span class="px-2 py-0.5 bg-surface-container-lowest/90 backdrop-blur-sm text-on-surface font-label-sm text-label-sm rounded shadow-sm border border-surface-variant">Lớp 9</span>
+</div>
+</div>
+<div class="p-4 flex flex-col flex-grow gap-sm">
+<h3 class="font-headline-sm text-headline-sm text-on-surface line-clamp-2 hover:text-primary cursor-pointer transition-colors">Sự phân hóa lãnh thổ kinh tế Việt Nam</h3>
+<div class="flex items-center gap-2 mt-auto pt-sm">
+<div class="w-6 h-6 rounded-full bg-surface-variant overflow-hidden flex items-center justify-center text-secondary font-label-sm">
+                                    L
+                                </div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Địa lý Thầy Lâm</span>
+<div class="ml-auto flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]" data-icon="visibility">visibility</span>
+<span class="font-label-sm text-label-sm">450</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Professional Footer -->
+<footer class="bg-surface border-t border-outline-variant mt-auto py-xl">
+<div class="max-w-container-max mx-auto px-gutter">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-xl">
+<!-- Brand Column -->
+<div class="flex flex-col gap-md col-span-1 md:col-span-1">
+<a class="font-headline-md text-headline-md font-bold text-primary" href="#">ViệtGiáo</a>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Hệ sinh thái giáo dục thông minh hỗ trợ giáo viên Việt Nam kiến tạo những bài giảng chất lượng cao, tối ưu hóa thời gian bằng công nghệ Trí tuệ Nhân tạo.</p>
+</div>
+<!-- Links Columns -->
+<div class="flex flex-col gap-sm">
+<h4 class="font-label-md text-label-md text-on-surface mb-2">Sản phẩm</h4>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Soạn giáo án AI</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Thư viện tài liệu</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Ma trận đề thi</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Bảng giá</a>
+</div>
+<div class="flex flex-col gap-sm">
+<h4 class="font-label-md text-label-md text-on-surface mb-2">Hỗ trợ</h4>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Trung tâm trợ giúp</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Hướng dẫn sử dụng</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Cộng đồng giáo viên</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Liên hệ</a>
+</div>
+<div class="flex flex-col gap-sm">
+<h4 class="font-label-md text-label-md text-on-surface mb-2">Pháp lý</h4>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Điều khoản dịch vụ</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Chính sách bảo mật</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Bản quyền</a>
+</div>
+</div>
+<div class="border-t border-surface-variant mt-xl pt-lg flex flex-col md:flex-row justify-between items-center gap-md">
+<p class="font-body-sm text-body-sm text-on-surface-variant">© 2024 ViệtGiáo. Đã đăng ký bản quyền.</p>
+<div class="flex gap-md">
+<!-- Social Icons placeholders -->
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="language">language</span>
+</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="mail">mail</span>
+</a>
+</div>
+</div>
+</div>
+</footer>
+</body></html>

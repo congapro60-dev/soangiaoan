@@ -54,13 +54,12 @@ export const Sidebar = ({
       initial={false}
       animate={{ width: isSidebarOpen ? 280 : 80 }}
       className={cn(
-        "flex flex-col h-full bg-white border-r border-slate-200 shadow-sm z-50 md:z-30",
-        "fixed inset-y-0 left-0 md:relative md:inset-auto",
-        "transition-transform duration-300",
-        !isSidebarOpen ? "-translate-x-full md:translate-x-0" : "translate-x-0"
+        'flex flex-col h-full bg-white border-r border-slate-200 shadow-sm z-50 md:z-30',
+        'fixed inset-y-0 left-0 md:relative md:inset-auto',
+        'transition-transform duration-300',
+        !isSidebarOpen ? '-translate-x-full md:translate-x-0' : 'translate-x-0'
       )}
     >
-      {/* Brand area */}
       <div className="p-6 flex items-center gap-3 overflow-hidden">
         <div className="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-200">
           <Sparkles className="text-white w-6 h-6" />
@@ -73,49 +72,46 @@ export const Sidebar = ({
         )}
       </div>
 
-      {/* Main Nav */}
       <nav className="flex-1 px-3 space-y-1.5 mt-6">
         {menuItems.map((item) => {
           const isActive = activeTab === item.id;
           return (
-          <button
-            key={item.id}
-            onClick={() => {
-              item.id === 'creator' ? onCreatorTabClick() : setActiveTab(item.id as any);
-            }}
-            className={cn(
-              "w-full flex items-center gap-3 p-3.5 rounded-xl transition-all duration-200 group relative",
-              isActive
-                ? "bg-blue-600 text-white shadow-xl shadow-blue-100"
-                : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-            )}
-          >
-            <item.icon className={cn("w-5 h-5 flex-shrink-0", isActive ? "text-white" : "group-hover:text-blue-500")} />
-            {isSidebarOpen && <span className="font-semibold">{item.label}</span>}
-            
-            {/* Active Indicator Bar */}
-            {isActive && (
-              <motion.div 
-                layoutId="activeTab"
-                className="absolute left-0 w-1 h-6 bg-white rounded-r-full"
-              />
-            )}
-          </button>
+            <button
+              key={item.id}
+              onClick={() => {
+                item.id === 'creator' ? onCreatorTabClick() : setActiveTab(item.id as any);
+              }}
+              className={cn(
+                'w-full flex items-center gap-3 p-3.5 rounded-xl transition-all duration-200 group relative',
+                isActive
+                  ? 'bg-blue-600 text-white shadow-xl shadow-blue-100'
+                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+              )}
+            >
+              <item.icon className={cn('w-5 h-5 flex-shrink-0', isActive ? 'text-white' : 'group-hover:text-blue-500')} />
+              {isSidebarOpen && <span className="font-semibold">{item.label}</span>}
+
+              {isActive && (
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute left-0 w-1 h-6 bg-white rounded-r-full"
+                />
+              )}
+            </button>
           );
         })}
       </nav>
 
-      {/* Footer Nav */}
       <div className="p-4 space-y-2 border-t border-slate-50 mt-auto">
-        <button 
+        <button
           onClick={() => setIsSettingsOpen(true)}
           className="w-full flex items-center gap-3 p-3.5 rounded-xl text-slate-500 hover:bg-slate-50 transition-all group"
         >
           <Settings className="w-5 h-5 flex-shrink-0 group-hover:rotate-45 transition-transform" />
           {isSidebarOpen && <span className="font-medium">Cài đặt</span>}
         </button>
-        
-        <button 
+
+        <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           className="w-full flex items-center gap-3 p-3.5 rounded-xl text-slate-500 hover:bg-slate-50 transition-all"
         >
@@ -123,7 +119,7 @@ export const Sidebar = ({
           {isSidebarOpen && <span className="font-medium">Thu gọn menu</span>}
         </button>
 
-        <button 
+        <button
           onClick={handleLogout}
           className="w-full flex items-center gap-3 p-3.5 rounded-xl text-red-500 hover:bg-red-50 transition-all group mt-4 bg-red-50/10"
         >

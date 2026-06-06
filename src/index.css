@@ -1,24 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
-  --color-primary: #3b82f6; /* Modern Blue */
-  --color-indigo-pro: #4338ca;
+  --font-sans: "Plus Jakarta Sans", "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+  --color-primary: #3182ce; /* Xanh Dương Tri Thức */
+  --color-indigo-pro: #2c5282;
   --color-slate-pro: #0f172a;
-  --color-accent: #f59e0b; /* Amber */
+  --color-accent: #f6ad55;
 }
 
 :root {
-  --pro-gradient: linear-gradient(135deg, #1e40af 0%, #4338ca 100%);
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --dewey-blue: #3182ce;
+  --dewey-blue-50: #ebf8ff;
+  --dewey-blue-100: #bee3f8;
+  --dewey-blue-700: #2b6cb0;
+  --dewey-ink: #102033;
+  --dewey-muted: #64748b;
+  --dewey-paper: #ffffff;
+  --dewey-canvas: #f7fafc;
+  --dewey-line: #e2e8f0;
+  --pro-gradient: linear-gradient(135deg, #3182ce 0%, #2c5282 100%);
+  --editorial-gradient: radial-gradient(circle at top left, rgba(49, 130, 206, 0.14), transparent 32%), linear-gradient(180deg, #f8fbff 0%, #f7fafc 100%);
+  --glass-bg: rgba(255, 255, 255, 0.78);
+  --card-shadow: 0 18px 45px -28px rgba(15, 23, 42, 0.35);
+  --card-shadow-hover: 0 24px 60px -32px rgba(49, 130, 206, 0.45);
 }
 
 body {
-  background-color: #f1f5f9;
-  color: #0f172a;
+  background: var(--editorial-gradient);
+  color: var(--dewey-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 .glass {
@@ -29,14 +42,38 @@ body {
 
 .pro-card {
   background: white;
-  border-radius: 24px;
-  border: 1px solid rgba(241, 245, 249, 1);
+  border-radius: 28px;
+  border: 1px solid rgba(226, 232, 240, 0.86);
   box-shadow: var(--card-shadow);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .pro-card:hover {
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border-color: rgba(49, 130, 206, 0.26);
+  box-shadow: var(--card-shadow-hover);
+}
+
+.dewey-shell {
+  background: var(--editorial-gradient);
+}
+
+.dewey-card {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(226, 232, 240, 0.86);
+  border-radius: 28px;
+  box-shadow: var(--card-shadow);
+}
+
+.dewey-button-primary {
+  background: var(--pro-gradient);
+  color: white;
+  box-shadow: 0 16px 34px -18px rgba(49, 130, 206, 0.9);
+}
+
+.dewey-focus-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(49, 130, 206, 0.14);
+  border-color: var(--dewey-blue);
 }
 
 .gradient-text {

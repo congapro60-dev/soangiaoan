@@ -1,0 +1,331 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Community Discovery - Giao An Dewey</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#a5c8ff",
+                        "surface-container": "#e5eeff",
+                        "secondary-container": "#d5e2e9",
+                        "primary-fixed-dim": "#9fcaff",
+                        "on-secondary-container": "#58646a",
+                        "on-secondary-fixed-variant": "#3c494e",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed": "#111d22",
+                        "on-secondary": "#ffffff",
+                        "surface-container-low": "#eff4ff",
+                        "inverse-surface": "#223144",
+                        "surface-variant": "#d4e4fc",
+                        "on-tertiary-fixed-variant": "#204877",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed-dim": "#bcc8cf",
+                        "secondary-fixed": "#d8e4eb",
+                        "tertiary-container": "#5276a8",
+                        "surface-dim": "#ccdbf4",
+                        "on-error": "#ffffff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "on-background": "#0d1c2e",
+                        "surface": "#f8f9ff",
+                        "secondary": "#546066",
+                        "primary-container": "#2178c3",
+                        "surface-container-highest": "#d4e4fc",
+                        "surface-bright": "#f8f9ff",
+                        "primary": "#005ea1",
+                        "tertiary-fixed": "#d4e3ff",
+                        "outline": "#717782",
+                        "surface-tint": "#0061a5",
+                        "outline-variant": "#c0c7d3",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed": "#001d37",
+                        "tertiary": "#385d8e",
+                        "on-tertiary-container": "#fefcff",
+                        "surface-container-high": "#dce9ff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#414751",
+                        "on-primary-container": "#fdfcff",
+                        "on-error-container": "#93000a",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed-variant": "#00497e",
+                        "background": "#f8f9ff",
+                        "primary-fixed": "#d2e4ff",
+                        "on-surface": "#0d1c2e",
+                        "on-tertiary-fixed": "#001c3a",
+                        "inverse-primary": "#9fcaff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "lg": "24px",
+                        "container-max": "1280px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "xl": "32px",
+                        "2xl": "48px",
+                        "margin-mobile": "16px",
+                        "base": "4px",
+                        "3xl": "64px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "display-md": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "body-sm": ["Inter"],
+                        "display-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-sm": ["Plus Jakarta Sans"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-md": ["36px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "headline-lg": ["30px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "label-md": ["14px", { "lineHeight": "1", "letterSpacing": "0.01em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-sm": ["20px", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "1", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1;
+        }
+        .card-shadow {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        .card-shadow:hover {
+            box-shadow: 0 8px 20px rgba(0, 94, 161, 0.1);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen flex flex-col font-body-md">
+<!-- TopNavBar -->
+<header class="bg-surface border-b border-surface-variant sticky top-0 z-50">
+<div class="flex justify-between items-center w-full px-md md:px-margin-desktop h-16 max-w-container-max mx-auto">
+<div class="font-headline-md text-headline-md font-bold text-primary">Giao An Dewey</div>
+<nav class="hidden md:flex gap-lg">
+<a class="font-body-md text-body-md text-secondary hover:text-primary transition-colors hover:bg-surface-container-low px-3 py-2 rounded-lg" href="#">Home</a>
+<a class="font-body-md text-body-md text-secondary hover:text-primary transition-colors hover:bg-surface-container-low px-3 py-2 rounded-lg" href="#">My Library</a>
+<a class="font-body-md text-body-md text-secondary hover:text-primary transition-colors hover:bg-surface-container-low px-3 py-2 rounded-lg" href="#">Create with AI</a>
+<a class="font-body-md text-body-md text-primary font-bold border-b-2 border-primary pb-1 px-3 py-2" href="#">Community</a>
+</nav>
+<div class="flex items-center gap-sm">
+<button class="p-2 text-secondary hover:bg-surface-container-low rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 text-secondary hover:bg-surface-container-low rounded-full transition-colors hidden sm:block">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+<button class="bg-primary text-on-primary font-label-md text-label-md px-md py-sm rounded-lg hover:opacity-90 transition-opacity ml-sm">
+                    New Lesson
+                </button>
+<div class="w-8 h-8 rounded-full bg-surface-variant overflow-hidden ml-sm">
+<img alt="User Profile Avatar" class="w-full h-full object-cover" data-alt="A close up portrait of a professional educator, smiling warmly. The lighting is soft and natural, emphasizing a welcoming and approachable demeanor. The style fits a modern corporate profile avatar in a light mode educational platform context." src="https://lh3.googleusercontent.com/aida-public/AB6AXuADnhV5x6kpsGG1B5nRGOc5ZfmL2pK18XC8z4NQawgCVXHa2CIlbqPO7LST2vDIDUoLLAGGJjquuKfkfwvKdAAEXj50e5t4WbECj7wvmcpBBCsXtGuW4SKrIegAsytadxnHMIC5zv0g7vq7hbdpCSDIPzMC_UZLGNwZJKExIBO1W6rZpjlxJuKpQB44M2ck9tHIbGFB8zLSxVHnkZG3WuE3MEzhpGmQjhZHOf3yIa0OlfwUvMn8KlnNcT1TZhS4FQwO-hYLp6E-ecA">
+</div>
+</div>
+</div>
+</header>
+<main class="flex-grow flex flex-col items-center w-full max-w-container-max mx-auto px-margin-mobile md:px-lg py-xl gap-xl">
+<!-- Search and Filter Header -->
+<section class="w-full flex flex-col items-center text-center gap-md">
+<h1 class="font-display-lg text-display-lg text-on-surface">Discover Educational Resources</h1>
+<p class="font-body-lg text-body-lg text-secondary max-w-2xl">Explore community-contributed lesson plans, activities, and curriculum guides. Share your own to inspire educators worldwide.</p>
+<div class="w-full max-w-3xl mt-md flex flex-col sm:flex-row gap-sm bg-surface-container-lowest p-sm rounded-xl shadow-sm border border-surface-variant">
+<div class="flex-grow relative flex items-center bg-surface-container-low rounded-lg px-md focus-within:ring-2 focus-within:ring-primary-fixed-dim transition-all">
+<span class="material-symbols-outlined text-secondary mr-sm" data-icon="search">search</span>
+<label for="resource-search" class="sr-only">Search educational resources</label><input id="resource-search" class="w-full bg-transparent border-none py-sm font-body-md text-body-md focus:outline-none text-on-surface placeholder:text-secondary" placeholder="Search topics, keywords..." type="text" aria-label="Search topics, keywords">
+</div>
+<div class="flex gap-sm">
+<select class="bg-surface-container-low border-none rounded-lg px-md py-sm font-label-md text-label-md text-on-surface focus:ring-2 focus:ring-primary-fixed-dim transition-all cursor-pointer" aria-label="Filter by Subject">
+<option>Subject</option>
+<option>Mathematics</option>
+<option>Science</option>
+<option>Literature</option>
+</select>
+<select class="bg-surface-container-low border-none rounded-lg px-md py-sm font-label-md text-label-md text-on-surface focus:ring-2 focus:ring-primary-fixed-dim transition-all cursor-pointer" aria-label="Filter by Grade">
+<option>Grade</option>
+<option>Elementary</option>
+<option>Middle School</option>
+<option>High School</option>
+</select>
+</div>
+</div>
+<div class="flex gap-sm flex-wrap justify-center mt-sm">
+<button class="px-md py-sm rounded-full font-label-sm text-label-sm hover:opacity-90 transition-opacity bg-primary text-on-primary">Most Downloaded</button>
+<button class="bg-surface-container text-on-surface-variant px-md py-sm rounded-full font-label-sm text-label-sm hover:bg-surface-variant transition-colors">Highest Rated</button>
+<button class="bg-surface-container text-on-surface-variant px-md py-sm rounded-full font-label-sm text-label-sm hover:bg-surface-variant transition-colors">Recently Added</button>
+</div>
+</section>
+<!-- Main Content Grid -->
+<div class="w-full grid grid-cols-1 lg:grid-cols-4 gap-lg items-start">
+<!-- Lesson Plan Grid -->
+<div class="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-md">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest rounded-xl border border-surface-variant overflow-hidden card-shadow flex flex-col">
+<div class="h-40 bg-surface-container relative">
+<img alt="Science Experiment Thumbnail" class="w-full h-full object-cover" data-alt="A brightly lit classroom science experiment setup on a desk. Beakers with colorful liquids are arranged neatly. The aesthetic is modern, clean, and educational, fitting a light-mode learning platform. Soft natural light illuminates the scene, emphasizing clarity and intellectual curiosity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYVmUV-l_RiKKMF7LO7FNl23KVCp0VDncjB5eVNudJ7BksWGlCG8n6EnL8vsjnU1PXZ6aiN7_4JwmMpNpQuk8B-Fd51qobWIbrJtZdpOJI7CBILsCKowgPefbIYSjiyf_iELaubnY9V2gPcZoxOxNaCvOdYpOARuObf5YwVA6BZMwtNIsLe7uXIBKTJL_AdqwhtU7xzuxoGuJOd1sluaqU3M33yd5kQazoyF_T-R13LMHAJURgVQlP2MTEQ5CGQsgVyuoIB6eUo5o">
+<div class="absolute top-sm right-sm bg-surface-container-lowest/80 backdrop-blur-sm px-sm py-xs rounded-md text-xs font-label-sm text-on-surface flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px] text-primary" data-icon="star">star</span> 4.9
+                        </div>
+</div>
+<div class="p-md flex flex-col flex-grow gap-sm">
+<div class="flex gap-xs flex-wrap">
+<span class="px-2 py-1 bg-surface-variant text-on-surface-variant rounded-sm font-label-sm text-[10px] uppercase">Science</span>
+<span class="px-2 py-1 bg-surface-variant text-on-surface-variant rounded-sm font-label-sm text-[10px] uppercase">Grade 8</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Introduction to Thermodynamics</h3>
+<p class="font-body-sm text-body-sm text-secondary line-clamp-2">A comprehensive guide to teaching the basics of heat transfer with interactive experiments.</p>
+<div class="mt-auto pt-sm flex justify-between items-center border-t border-surface-variant">
+<div class="flex items-center gap-xs">
+<div class="w-6 h-6 rounded-full bg-surface-container overflow-hidden">
+<img alt="Author Avatar" class="w-full h-full object-cover" data-alt="Portrait of a female educator smiling brightly. Clean background, professional lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0r-Qy6fAY8yZuzkVRk5KQuF3TOTK9yyrC0oXHO8LSPA4I5DDAWiGlaru7ArurmveUUGL8lsFllWn0ngdSaTjUeZCPgRlpyZ8e4hCaHajhzf0GhG7Sl6HYEVocC-MkaOdkFREZATM5BxrT_p2KbnsoMyrCUB3sr8GwriE6nRkR9qEQEkxFrMN_91DlFDScD7XjTVj3LPL5O4ENoPOFSL-uYd1iOH_mXV1Vww8Au0bYRiNeiH6jCYqlGbdx5uo_CAbfzvSof3IG-tM">
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Sarah J.</span>
+</div>
+<div class="flex items-center gap-xs text-secondary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px]" data-icon="download">download</span> 1.2k
+                            </div>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest rounded-xl border border-surface-variant overflow-hidden card-shadow flex flex-col">
+<div class="h-40 bg-surface-container relative">
+<img alt="Literature Thumbnail" class="w-full h-full object-cover" data-alt="A cozy reading nook with an open classic novel resting on a wooden table next to a cup of tea. Soft morning light filtering through a window. The style is warm, inviting, and academic, suitable for an English literature lesson plan cover." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBK226BGMfBLPAbURuKdJQ_HZqq2JmgOnP48a1h34gSx3h2JeawL5sXIbwXiWfIpi83cI9aewRG6oWnsz4gj1ce7uELH6VBp4Jku0TsqB08GyePAdA6OzeM_hQsSF7NSOsrMVQ0HAwq0dRfl_jkitcvsvnkQEEwXRrMBLV0HDNEctQWPqUolyW9DYwcRfEL-EwXb5r7C_4PF7dqFG157iMvEClWpbe9Nrd4yBZsgva21noyaf_x6pMsH7FvuBhMGoLoYCDpCtmS684">
+<div class="absolute top-sm right-sm bg-surface-container-lowest/80 backdrop-blur-sm px-sm py-xs rounded-md text-xs font-label-sm text-on-surface flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px] text-primary" data-icon="star">star</span> 4.7
+                        </div>
+</div>
+<div class="p-md flex flex-col flex-grow gap-sm">
+<div class="flex gap-xs flex-wrap">
+<span class="px-2 py-1 bg-surface-variant text-on-surface-variant rounded-sm font-label-sm text-[10px] uppercase">Literature</span>
+<span class="px-2 py-1 bg-surface-variant text-on-surface-variant rounded-sm font-label-sm text-[10px] uppercase">High School</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Analyzing Shakespearean Sonnets</h3>
+<p class="font-body-sm text-body-sm text-secondary line-clamp-2">Detailed breakdown of iambic pentameter and thematic elements in Sonnet 18.</p>
+<div class="mt-auto pt-sm flex justify-between items-center border-t border-surface-variant">
+<div class="flex items-center gap-xs">
+<div class="w-6 h-6 rounded-full bg-surface-container overflow-hidden">
+<img alt="Author Avatar" class="w-full h-full object-cover" data-alt="Portrait of a male educator looking thoughtful. Professional lighting, clean minimalist background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAkxLFLgK362fukcIg1lhkKk5dJ8tbIsLHbJ41ohWS-DURtGp6GjmTw3ey8cLxvHp4suDh78HlX2qxRSRQm6vGGex6zq34FQiuXRutQZ0qQRlZLj8h3vJeywjbbC4vcySofxI2RyHi5f8cfNWf7nFuXNIdMnqfllKaMeyOu4ijASyXzefQljkk_APy4QS0ctWCUDUwgRv9hT6Su03qV18bNZjUbv8F78js9XWxN5RWNYxu2c6W7822GAfuxALYnlSXqzw6kHu_wB_I">
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Mark T.</span>
+</div>
+<div class="flex items-center gap-xs text-secondary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px]" data-icon="download">download</span> 840
+                            </div>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-lowest rounded-xl border border-surface-variant overflow-hidden card-shadow flex flex-col">
+<div class="h-40 bg-surface-container relative">
+<img alt="Math Geometry Thumbnail" class="w-full h-full object-cover" data-alt="A modern, abstract digital illustration representing geometric concepts. Colorful 3D shapes like spheres, pyramids, and cubes are arranged cleanly against a light blue background. The aesthetic is crisp, educational, and visually engaging for a math resource." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRjdr823XBSYufpT5KpUePm9L58OzaLKupxvUVpAZGrnlTAw77pcTrA8q67ph_ijmy4vMHvSWZytpIEWb9i2GNTsgrY1JMsrtTxOSk8A5S3MH1xpWw0S_lxrkDgK3neHVW00upVRnSisaeJNsO4ZBcDwb7X5Ndg0KKDluO7_OybdFbU97T9rRfxcLkAR0Ad5IdvKU3p1DvAXlKTRrdyiLzu7kWC9Q71LzGlBlAU0I_CHn0yDNwdY8wGGIGZasGT5h4lARcIuK-360">
+<div class="absolute top-sm right-sm bg-surface-container-lowest/80 backdrop-blur-sm px-sm py-xs rounded-md text-xs font-label-sm text-on-surface flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px] text-primary" data-icon="star">star</span> 4.8
+                        </div>
+</div>
+<div class="p-md flex flex-col flex-grow gap-sm">
+<div class="flex gap-xs flex-wrap">
+<span class="px-2 py-1 bg-surface-variant text-on-surface-variant rounded-sm font-label-sm text-[10px] uppercase">Mathematics</span>
+<span class="px-2 py-1 bg-surface-variant text-on-surface-variant rounded-sm font-label-sm text-[10px] uppercase">Grade 6</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Visualizing Fractions</h3>
+<p class="font-body-sm text-body-sm text-secondary line-clamp-2">Using visual aids to teach fraction addition and subtraction easily.</p>
+<div class="mt-auto pt-sm flex justify-between items-center border-t border-surface-variant">
+<div class="flex items-center gap-xs">
+<div class="w-6 h-6 rounded-full bg-surface-container overflow-hidden">
+<img alt="Author Avatar" class="w-full h-full object-cover" data-alt="Portrait of a young female educator with glasses. Bright, modern lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCxCbIy7dInsSIhuGEIpzzNr7YXH-cv48cFqP03FV9nfUpLDdq72oce9xutk_4yZuM2E_hexITilOw6SaN8z2IV9DZfVec6guEGxWONi6oPMZ0l8Qs0kBnlAQM8eGXErbQ05CIDLF3RMfZKdFhDBlrcdI2ROJoE7VYw27sHbRozfERjTN_pmNGWBnwgtbTy2jivvUOBFR-_8MZo_TCljQvF9ejWozYbG0tdKndKosSeEj3k-jkeGU2fVHVOez2wigLZUSY3uYxRj8">
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Emily R.</span>
+</div>
+<div class="flex items-center gap-xs text-secondary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px]" data-icon="download">download</span> 2.1k
+                            </div>
+</div>
+</div>
+</div>
+</div>
+<!-- Sidebar -->
+<aside class="flex flex-col gap-lg">
+<div class="bg-surface-container-lowest border border-surface-variant rounded-xl p-md card-shadow text-center">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-sm">Share Your Knowledge</h3>
+<p class="font-body-sm text-body-sm text-secondary mb-md">Contribute to the community by uploading your own lesson plans.</p>
+<button class="w-full bg-primary text-on-primary font-label-md text-label-md py-sm rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-xs">
+<span class="material-symbols-outlined text-[18px]" data-icon="upload">upload</span> Share Lesson
+                    </button>
+</div>
+<div class="bg-surface-container-lowest border border-surface-variant rounded-xl p-md">
+<h3 class="font-label-md text-label-md text-on-surface font-bold uppercase tracking-wide mb-sm border-b border-surface-variant pb-xs">Top Contributors</h3>
+<div class="flex flex-col gap-sm">
+<!-- Contributor Item -->
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-surface-container overflow-hidden">
+<img alt="Contributor" class="w-full h-full object-cover" data-alt="Portrait of a female educator smiling." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsKbPzPbvhtBaN52yT3q7ZN2TYDymOv8-oq_JyyJORoMEul9sPKphOTMKLHK2opN963MGzLVRLTQ_aXVg_Z-6VwloUYjXPcS2mm-n3aLoGMUW6bx-Nh21p8yE-qB7eikCRvmxohqxMP2BVZjBAKIKlfqY78Hvv9udiJFJxL6CsMggJtjr_ZgDYqgDSQvCNf17ChMkFewjJUWk8AHOuTRJlA5rrpZCz8ovqsdqWymKzretRSH6GKZHmWEVvmT0D6BQEoivvQpRHmDA">
+</div>
+<div class="flex-grow">
+<div class="font-label-md text-label-md text-on-surface">Sarah J.</div>
+<div class="font-label-sm text-label-sm text-secondary">45 Lessons Shared</div>
+</div>
+<button class="text-primary hover:bg-surface-container-low p-1 rounded transition-colors" aria-label="Follow Sarah J.">
+<span class="material-symbols-outlined text-[20px]" data-icon="person_add">person_add</span>
+</button>
+</div>
+<!-- Contributor Item -->
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-surface-container overflow-hidden">
+<img alt="Contributor" class="w-full h-full object-cover" data-alt="Portrait of a male educator." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDhjMlNH0i_jm20e-ClifoANvB_KAc7ltGdD6RyBb-o5NsoSbsNlNNqa2e4CamwKM_uY4z_HS-CgdoSFi3V8v6-sQQEF_-QvFQhw3_l0IQpftmrCzeY_EEWYtO64WeK0UYdgajika8csM9ipba3gyzUYaV62JJvDH3WrZRv4aEETRhq4t6Qg7bhE2rGOF3vzEGSdxxuUbQm_maWyQPsByOSL39gzV7zycH6_w_hV11KNoLO5gBXOKRsEL0-Q-EH67VRsCn0sTD6vEg">
+</div>
+<div class="flex-grow">
+<div class="font-label-md text-label-md text-on-surface">Mark T.</div>
+<div class="font-label-sm text-label-sm text-secondary">32 Lessons Shared</div>
+</div>
+<button class="text-primary hover:bg-surface-container-low p-1 rounded transition-colors" aria-label="Follow Mark T.">
+<span class="material-symbols-outlined text-[20px]" data-icon="person_add">person_add</span>
+</button>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container border-t border-surface-variant w-full py-8 mt-auto">
+<div class="flex flex-col md:flex-row justify-between items-center px-md md:px-margin-desktop w-full max-w-container-max mx-auto gap-md">
+<div class="font-label-caps text-label-caps text-primary font-bold">Giao An Dewey</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">© 2024 Giao An Dewey. All rights reserved.</div>
+<div class="flex gap-md">
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors cursor-pointer" href="#">Privacy Policy</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors cursor-pointer" href="#">Terms of Service</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors cursor-pointer" href="#">Contact Support</a>
+</div>
+</div>
+</footer>
+
+
+</body></html>
