@@ -336,6 +336,10 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
       showToast('Cần nhập API Key trong Cài đặt', 'error');
       return;
     }
+    if (activeMode === 'create' && !matrixValidation.isValid) {
+      showToast(matrixValidation.messages[0] || 'Ma trận Smart Grid chưa hợp lệ.', 'error');
+      return;
+    }
     setIsLoading(true);
     setTestResult(null);
     setProcessStatus('Đang chuẩn bị và gửi AI...');
@@ -351,7 +355,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
 
       if (activeMode === 'create') {
         const smartMatrixInstruction = matrixPromptSummary
-          ? `\n\nMA TRẬN SMART GRID DO GIÁO VIÊN THIẾT LẬP:\n${matrixPromptSummary}\nTổng số câu theo ma trận: ${matrixTotalQuestions}. Tỉ lệ Bloom: ${objectiveBalance.map(item => `${item.label} ${item.ratio}%`).join(', ')}. Hãy ưu tiên bám sát ma trận này nếu không mâu thuẫn với tệp ma trận được tải lên.`
+          ? `\n\nMA TRẬN SMART GRID DO GIÁO VIÊN THIẾT LẬP:\n${matrixPromptSummary}\n\nDỮ LIỆU MA TRẬN CÓ CẤU TRÚC:\n${matrixStructuredSummary}\n\nRàng buộc bắt buộc:\n- Tổng số câu theo ma trận: ${matrixTotalQuestions}.\n- Điểm mỗi câu nếu quy về thang 10: ${matrixPointPerQuestion.toFixed(2)}.\n- Tỉ lệ Bloom: ${objectiveBalance.map(item => `${item.label} ${item.ratio}%`).join(', ')}.\n- Số lượng câu theo từng chủ đề và từng mức độ phải bám sát ma trận; nếu có lệch do cấu trúc câu hỏi, hãy nêu rõ lý do ở ghi chú cuối đề.\n- Phân bổ dạng câu hỏi theo cấu trúc người dùng chọn: ${questionStructure.mcq} trắc nghiệm 4 phương án, ${questionStructure.trueFalse4} đúng/sai 4 ý, ${questionStructure.shortAnswer} trả lời ngắn, ${questionStructure.essay} tự luận.`
           : '';
         const prompt = examUtils.getGeneratePrompt(matrixFile, `${requirement}${smartMatrixInstruction}`, sampleFile, questionStructure);
         await callAIStream(prompt, data.settings, onChunk);
@@ -455,9 +459,35 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
     total: getColumnTotal(col.key),
     ratio: matrixTotalQuestions > 0 ? Math.round((getColumnTotal(col.key) / matrixTotalQuestions) * 100) : 0,
   }));
+  const matrixDataRows = matrixRows.filter(row => row.topic.trim() && getRowTotal(row) > 0);
+  const matrixValidation = {
+    isValid: matrixTotalQuestions > 0 && matrixRows.every(row => getRowTotal(row) === 0 || row.topic.trim().length > 0),
+    messages: [
+      ...(matrixTotalQuestions === 0 ? ['Cần thiết lập ít nhất 1 câu trong Smart Grid trước khi sinh đề.'] : []),
+      ...matrixRows
+        .filter(row => getRowTotal(row) > 0 && !row.topic.trim())
+        .map(() => 'Có dòng ma trận đã nhập số câu nhưng chưa có tên chủ đề.'),
+      ...(matrixTotalQuestions > 80 ? ['Ma trận đang trên 80 câu; nên kiểm tra lại để tránh đề quá dài hoặc AI sinh thiếu.'] : []),
+    ],
+  };
 
-  const matrixPromptSummary = matrixRows
-    .filter(row => row.topic.trim() && getRowTotal(row) > 0)
+  const matrixStructuredSummary = JSON.stringify({
+    totalQuestions: matrixTotalQuestions,
+    pointPerQuestion: Number(matrixPointPerQuestion.toFixed(2)),
+    bloomBalance: objectiveBalance.map(item => ({ key: item.key, label: item.label, total: item.total, ratio: item.ratio })),
+    rows: matrixDataRows.map(row => ({
+      topic: row.topic.trim(),
+      total: getRowTotal(row),
+      levels: {
+        remember: row.remember,
+        understand: row.understand,
+        apply: row.apply,
+        advanced: row.advanced,
+      },
+    })),
+  }, null, 2);
+
+  const matrixPromptSummary = matrixDataRows
     .map(row => `- ${row.topic}: Nhận biết ${row.remember}, Thông hiểu ${row.understand}, Vận dụng ${row.apply}, Vận dụng cao ${row.advanced} — tổng ${getRowTotal(row)} câu`)
     .join('\n');
 
@@ -635,12 +665,25 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
                     </div>
                   ))}
                 </div>
+                {matrixValidation.messages.length > 0 && (
+                  <div className={`rounded-3xl border p-4 ${matrixValidation.isValid ? 'border-amber-100 bg-amber-50 text-amber-700' : 'border-red-100 bg-red-50 text-red-700'}`}>
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-black text-sm">Kiểm tra trước khi sinh đề</p>
+                        <ul className="mt-1 space-y-1 text-xs leading-relaxed">
+                          {matrixValidation.messages.map((msg, idx) => <li key={`${msg}-${idx}`}>• {msg}</li>)}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <div className="rounded-3xl bg-blue-600 text-white p-4 shadow-lg shadow-blue-100">
                   <div className="flex items-start gap-3">
                     <Sparkles className="w-5 h-5 shrink-0 mt-0.5" />
                     <div>
                       <p className="font-black text-sm">AI sẽ bám sát Smart Grid</p>
-                      <p className="text-xs text-blue-100 mt-1 leading-relaxed">Ma trận này được chèn vào prompt cùng yêu cầu cụ thể, giúp đề sinh ra đúng trọng tâm hơn.</p>
+                      <p className="text-xs text-blue-100 mt-1 leading-relaxed">Ma trận được gửi kèm cả bản tóm tắt và JSON có cấu trúc để AI giữ đúng chủ đề, mức Bloom, tổng câu và cấu trúc câu hỏi.</p>
                     </div>
                   </div>
                 </div>
@@ -798,7 +841,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
 
             <button
               onClick={handleExamAction}
-              disabled={isLoading || (activeMode !== 'create' && uploadedFiles.length === 0)}
+              disabled={isLoading || (activeMode !== 'create' && uploadedFiles.length === 0) || (activeMode === 'create' && !matrixValidation.isValid)}
               className="w-full py-4 bg-slate-900 text-white rounded-3xl font-black shadow-xl shadow-slate-200 hover:bg-slate-800 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale relative overflow-hidden"
             >
               {isLoading && (

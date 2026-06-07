@@ -2,9 +2,10 @@ import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowLeft, Plus, Trash2, ChevronUp, ChevronDown, Save, Loader2,
-  Image as ImageIcon, XCircle, FileImage, Scissors
+  Image as ImageIcon, XCircle, Scissors, Info, Wand2, Copy,
+  Maximize2, Bold, Italic, Underline, List, ListOrdered
 } from 'lucide-react';
-import { ref, uploadBytes, getDownloadURL, deleteObject, uploadString } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, uploadString } from 'firebase/storage';
 import { storage } from '../../../lib/firebase';
 import { User } from 'firebase/auth';
 import { AppData, Exam, ExamQuestion, QuestionType } from '../../../types';
@@ -184,8 +185,8 @@ export const ExamEditorView = ({ user, data, saveExam, showToast, onBack, pageIm
   const totalScore = calculateMaxScore(questions.filter(q => q.content.trim()));
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mx-auto max-w-[1500px] space-y-4">
-      <button onClick={onBack} className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-500 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mx-auto max-w-[1500px] space-y-3 text-[#121c2c]">
+      <button onClick={onBack} className="inline-flex items-center gap-2 rounded-lg border border-[#c0c7d3] bg-white px-3 py-2 text-sm font-bold text-[#414751] transition hover:border-[#005ea1]/40 hover:bg-[#f0f3ff] hover:text-[#005ea1]">
         <ArrowLeft className="h-4 w-4" /> Quay lại danh sách kỳ thi
       </button>
 
@@ -205,20 +206,20 @@ export const ExamEditorView = ({ user, data, saveExam, showToast, onBack, pageIm
         )}
       </AnimatePresence>
 
-      <section className="overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-white via-[#f9fbff] to-[#eef6ff] shadow-sm">
+      <section className="overflow-hidden rounded-xl border border-[#c0c7d3] bg-gradient-to-br from-white via-[#f9f9ff] to-[#e7eeff] shadow-[0_4px_12px_rgba(49,130,206,0.08)]">
         <div className="flex flex-col gap-5 p-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-blue-700">
+            <div className="mb-2 inline-flex items-center gap-2 rounded-lg border border-[#c0c7d3] bg-white px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-[#005ea1]">
               Manual Question Studio
             </div>
-            <h1 className="text-2xl font-black tracking-tight text-slate-900">Biên soạn câu hỏi thủ công</h1>
-            <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">
+            <h1 className="font-['Plus_Jakarta_Sans'] text-2xl font-black tracking-tight text-[#121c2c]">Biên soạn câu hỏi thủ công</h1>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-[#414751]">
               Workspace chia 3 vùng: cấu trúc đề, editor câu hỏi và bản nháp text để giáo viên kiểm soát từng câu trước khi xuất thành phòng thi online.
             </p>
           </div>
           <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="rounded-2xl border border-blue-100 bg-white px-4 py-3">
-              <p className="text-xl font-black text-blue-700">{questions.length}</p>
+            <div className="rounded-xl border border-[#c0c7d3] bg-white px-4 py-3">
+              <p className="text-xl font-black text-[#005ea1]">{questions.length}</p>
               <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Tổng câu</p>
             </div>
             <div className="rounded-2xl border border-emerald-100 bg-white px-4 py-3">
@@ -233,15 +234,25 @@ export const ExamEditorView = ({ user, data, saveExam, showToast, onBack, pageIm
         </div>
       </section>
 
-      <div className="rounded-3xl border border-slate-200/70 bg-[#f9f9ff] p-3 shadow-sm">
+      <div className="flex items-center justify-between rounded-xl border border-[#c0c7d3] bg-[#f0f3ff] px-4 py-3">
+        <div className="flex items-center gap-2 text-sm text-[#414751]">
+          <Info className="h-4 w-4 text-[#005ea1]" />
+          <span>Chế độ chỉnh sửa thủ công. Nội dung được đồng bộ sang bản nháp text để kiểm soát nhanh cấu trúc đề.</span>
+        </div>
+        <button onClick={handleSave} disabled={saving} className="hidden items-center gap-1 text-xs font-black text-[#005ea1] hover:underline sm:flex">
+          {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />} Lưu nháp
+        </button>
+      </div>
+
+      <div className="rounded-xl border border-[#c0c7d3] bg-[#f9f9ff] p-3 shadow-sm">
         <div className="grid gap-3 xl:grid-cols-[260px_minmax(0,1fr)_360px]">
-          <aside className="hidden overflow-hidden rounded-2xl border border-slate-200 bg-white xl:flex xl:flex-col">
-            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-3">
+          <aside className="hidden overflow-hidden rounded-xl border border-[#c0c7d3] bg-white xl:flex xl:flex-col">
+            <div className="flex items-center justify-between border-b border-[#c0c7d3] bg-[#f0f3ff] px-4 py-3">
               <div>
                 <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">Cấu trúc đề</p>
                 <p className="text-xs text-slate-400">{validCount}/{questions.length} câu có nội dung</p>
               </div>
-              <button onClick={addQuestion} className="rounded-lg bg-blue-50 p-2 text-blue-700 transition hover:bg-blue-100" title="Thêm câu hỏi">
+              <button onClick={addQuestion} className="rounded-lg p-2 text-[#005ea1] transition hover:bg-[#005ea1]/10" title="Thêm câu hỏi">
                 <Plus className="h-4 w-4" />
               </button>
             </div>
@@ -252,10 +263,10 @@ export const ExamEditorView = ({ user, data, saveExam, showToast, onBack, pageIm
                   <button
                     key={q.id}
                     onClick={() => setExpandedId(q.id)}
-                    className={`flex w-full items-center justify-between gap-2 rounded-xl border p-2 text-left transition ${active ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-slate-100 bg-white text-slate-600 hover:bg-slate-50'}`}
+                    className={`flex w-full items-center justify-between gap-2 rounded-lg border p-2 text-left transition ${active ? 'border-[#005ea1]/30 bg-[#005ea1]/10 text-[#005ea1]' : 'border-[#c0c7d3]/30 bg-white text-[#414751] hover:bg-[#e7eeff]'}`}
                   >
                     <span className="flex min-w-0 items-center gap-2">
-                      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-black ${active ? 'bg-blue-600 text-white' : q.content.trim() ? 'bg-slate-100 text-slate-600' : 'border border-dashed border-slate-300 text-slate-400'}`}>{i + 1}</span>
+                      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded text-xs font-black ${active ? 'bg-[#005ea1] text-white' : q.content.trim() ? 'bg-[#d9e3f9] text-[#414751]' : 'border border-dashed border-[#717782] text-[#717782]'}`}>{i + 1}</span>
                       <span className={`truncate text-xs font-semibold ${q.content.trim() ? '' : 'italic text-slate-400'}`}>{q.content.trim() || 'Câu hỏi trống'}</span>
                     </span>
                     <span className="shrink-0 text-[10px] font-black uppercase text-slate-400">{TYPE_SHORT[q.type]}</span>
@@ -264,8 +275,8 @@ export const ExamEditorView = ({ user, data, saveExam, showToast, onBack, pageIm
               })}
             </div>
             <div className="border-t border-slate-100 p-3">
-              <button onClick={addQuestion} className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 py-2 text-xs font-black text-slate-500 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700">
-                <Plus className="h-3.5 w-3.5" /> Thêm câu hỏi
+              <button onClick={addQuestion} className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#c0c7d3] bg-[#f0f3ff] py-2 text-xs font-black text-[#414751] transition hover:bg-[#e7eeff] hover:text-[#005ea1]">
+                <Wand2 className="h-3.5 w-3.5" /> Cấu hình Auto-Generate
               </button>
             </div>
           </aside>

@@ -13,7 +13,8 @@ import {
   GraduationCap,
   ClipboardCheck,
   Globe,
-  WandSparkles
+  WandSparkles,
+  Users
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -38,6 +39,7 @@ export const Sidebar = ({
 }: SidebarProps) => {
   const menuItems = [
     { id: 'dashboard', label: 'Tổng quan', icon: LayoutDashboard },
+    { id: 'classes', label: 'Lớp học', icon: Users },
     { id: 'creator', label: 'Soạn giáo án', icon: Plus },
     { id: 'testing', label: 'Bảng Kiểm tra', icon: GraduationCap },
     { id: 'exams', label: 'Thi online', icon: Globe },

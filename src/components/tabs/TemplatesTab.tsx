@@ -1,13 +1,18 @@
 import { motion } from 'motion/react';
-import { 
-  Plus, 
-  Layout, 
-  Trash2, 
-  FileText, 
-  Upload, 
-  FileUp, 
-  X, 
-  FileCheck 
+import {
+  Plus,
+  Layout,
+  Trash2,
+  FileText,
+  Upload,
+  FileUp,
+  X,
+  FileCheck,
+  Sparkles,
+  BookOpen,
+  ShieldCheck,
+  Layers3,
+  FolderUp,
 } from 'lucide-react';
 import dayjs from 'dayjs';
 import { AppData, TemplateFile } from '../../types';
@@ -29,146 +34,230 @@ export const TemplatesTab = ({
   setUploadingFiles,
   fileInputRef
 }: TemplatesTabProps) => {
+  const templates = data.templates || [];
+  const totalFiles = templates.reduce((sum, tpl) => sum + (tpl.files?.length || 0), 0);
+  const sampleCount = templates.reduce((sum, tpl) => sum + (tpl.files?.filter(f => f.category === 'sample').length || 0), 0);
+  const criteriaCount = templates.reduce((sum, tpl) => sum + (tpl.files?.filter(f => f.category === 'criteria').length || 0), 0);
+
+  const uploadFile = (category: TemplateFile['category'], templateId: string) => {
+    setUploadingFiles({ category, templateId });
+    fileInputRef.current?.click();
+  };
+
+  const stats = [
+    { label: 'Bộ mẫu', value: templates.length, icon: Layers3, tone: 'bg-[#d2e4ff] text-[#005ea1]' },
+    { label: 'Giáo án mẫu', value: sampleCount, icon: BookOpen, tone: 'bg-indigo-50 text-indigo-700' },
+    { label: 'Tệp tiêu chí', value: criteriaCount, icon: ShieldCheck, tone: 'bg-emerald-50 text-emerald-700' },
+    { label: 'Tổng tệp', value: totalFiles, icon: FolderUp, tone: 'bg-amber-50 text-amber-700' },
+  ];
+
   return (
-    <motion.div 
+    <motion.div
       key="templates"
-      initial={{ opacity: 0, y: 20 }} 
-      animate={{ opacity: 1, y: 0 }} 
-      className="space-y-6 max-w-6xl mx-auto"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="mx-auto max-w-7xl space-y-6"
     >
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-800">Mẫu giáo án & Tiêu chí</h2>
-          <p className="text-sm text-slate-500">Tải lên giáo án mẫu và các tệp tiêu chí (PDF/Word) để AI soạn thảo đúng chuẩn</p>
-        </div>
-        <button 
-          onClick={addTemplate}
-          className="w-full sm:w-auto gradient-bg text-white px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-200 transition-all hover:opacity-90"
-        >
-          <Plus size={20} /> Thêm mẫu mới
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {data.templates?.map(tpl => (
-          <div key={tpl.id} className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-all group">
-            <div className="flex justify-between items-start mb-6">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center">
-                  <Layout size={28} />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-slate-800">{tpl.name}</h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded text-[10px] font-bold uppercase">
-                      {data.subjects?.find(s => s.id === tpl.subjectId)?.name || 'Chung'}
-                    </span>
-                    <span className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">
-                      {dayjs(tpl.createdAt).format('DD/MM/YYYY')}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <button 
-                onClick={() => deleteTemplate(tpl.id)}
-                className="p-2 text-slate-300 hover:text-red-500 transition-colors"
-                title="Xóa mẫu"
-              >
-                <Trash2 size={20} />
-              </button>
+      <section className="relative overflow-hidden rounded-[2rem] border border-[#c0c7d3]/60 bg-[#f8f9ff] p-6 shadow-[0_18px_60px_rgba(0,94,161,0.08)] sm:p-8">
+        <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-[#d2e4ff] blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 left-20 h-64 w-64 rounded-full bg-white blur-3xl" />
+        <div className="relative grid gap-6 lg:grid-cols-[1fr_360px] lg:items-end">
+          <div className="space-y-5">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#9fcaff]/70 bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#005ea1] shadow-sm">
+              <Sparkles size={14} /> Thư viện chuẩn soạn thảo
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Sample Lesson Plans */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                    <FileText size={14} className="text-blue-500" /> Giáo án mẫu
-                  </h4>
-                  <button 
-                    onClick={() => {
-                      setUploadingFiles({ category: 'sample', templateId: tpl.id });
-                      fileInputRef.current?.click();
-                    }}
-                    className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
-                    title="Tải lên giáo án mẫu"
-                  >
-                    <Upload size={14} />
-                  </button>
-                </div>
-                <div className="space-y-2">
-                  {tpl.files?.filter(f => f.category === 'sample').map(file => (
-                    <div key={file.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 group/file">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <FileUp size={14} className="text-blue-400 shrink-0" />
-                        <span className="text-xs text-slate-600 truncate font-medium">{file.name}</span>
-                      </div>
-                      <button 
-                        onClick={() => deleteFile(tpl.id, file.id)}
-                        className="opacity-0 group-hover/file:opacity-100 p-1 text-slate-300 hover:text-red-500 transition-all"
-                      >
-                        <X size={12} />
-                      </button>
-                    </div>
-                  ))}
-                  {tpl.files?.filter(f => f.category === 'sample').length === 0 && (
-                    <div className="py-4 text-center border-2 border-dashed border-slate-100 rounded-xl text-[10px] text-slate-400">
-                      Chưa có giáo án mẫu
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Criteria Documents */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                    <FileCheck size={14} className="text-green-500" /> Tiêu chí & Quy định
-                  </h4>
-                  <button 
-                    onClick={() => {
-                      setUploadingFiles({ category: 'criteria', templateId: tpl.id });
-                      fileInputRef.current?.click();
-                    }}
-                    className="p-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors"
-                    title="Tải lên tiêu chí"
-                  >
-                    <Upload size={14} />
-                  </button>
-                </div>
-                <div className="space-y-2">
-                  {tpl.files?.filter(f => f.category === 'criteria').map(file => (
-                    <div key={file.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 group/file">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <FileCheck size={14} className="text-green-400 shrink-0" />
-                        <span className="text-xs text-slate-600 truncate font-medium">{file.name}</span>
-                      </div>
-                      <button 
-                        onClick={() => deleteFile(tpl.id, file.id)}
-                        className="opacity-0 group-hover/file:opacity-100 p-1 text-slate-300 hover:text-red-500 transition-all"
-                      >
-                        <X size={12} />
-                      </button>
-                    </div>
-                  ))}
-                  {tpl.files?.filter(f => f.category === 'criteria').length === 0 && (
-                    <div className="py-4 text-center border-2 border-dashed border-slate-100 rounded-xl text-[10px] text-slate-400">
-                      Chưa có tệp tiêu chí (Tối đa 10 tệp)
-                    </div>
-                  )}
-                </div>
+            <div>
+              <h2 className="text-3xl font-black tracking-[-0.03em] text-[#0d1c2e] sm:text-4xl">
+                Mẫu giáo án & tiêu chí cho AI
+              </h2>
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-[#414751] sm:text-base">
+                Tải lên giáo án mẫu, rubric, quy định trình bày hoặc tài liệu chuyên môn để AI học đúng phong cách của tổ bộ môn. Mỗi bộ mẫu có thể gắn theo môn học và dùng lại khi soạn giáo án mới.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <button
+                onClick={addTemplate}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#005ea1] px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-100 transition hover:-translate-y-0.5 hover:bg-[#2178c3]"
+              >
+                <Plus size={18} /> Thêm mẫu mới
+              </button>
+              <div className="inline-flex items-center justify-center rounded-2xl border border-[#c0c7d3]/70 bg-white px-5 py-3 text-sm font-bold text-[#414751]">
+                Hỗ trợ PDF, Word và văn bản dài
               </div>
             </div>
           </div>
-        ))}
-        {data.templates?.length === 0 && (
-          <div className="lg:col-span-2 p-20 text-center bg-white rounded-[40px] border-2 border-dashed border-slate-100 text-slate-400">
-            <Layout className="w-16 h-16 mx-auto mb-4 opacity-10" />
-            <p className="text-lg font-medium">Chưa có mẫu giáo án nào</p>
-            <p className="text-sm">Hãy thêm mẫu đầu tiên và tải lên các tệp hướng dẫn để AI học tập</p>
+
+          <div className="grid grid-cols-2 gap-3">
+            {stats.map(item => {
+              const Icon = item.icon;
+              return (
+                <div key={item.label} className="rounded-3xl border border-white/80 bg-white p-4 shadow-[0_6px_18px_rgba(0,94,161,0.06)]">
+                  <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-2xl ${item.tone}`}>
+                    <Icon size={18} />
+                  </div>
+                  <p className="text-2xl font-black text-[#0d1c2e]">{item.value}</p>
+                  <p className="mt-1 text-xs font-bold uppercase tracking-[0.12em] text-[#717782]">{item.label}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+        {templates.map(tpl => {
+          const sampleFiles = tpl.files?.filter(f => f.category === 'sample') || [];
+          const criteriaFiles = tpl.files?.filter(f => f.category === 'criteria') || [];
+          const subjectName = data.subjects?.find(s => s.id === tpl.subjectId)?.name || 'Chung';
+
+          return (
+            <motion.article
+              key={tpl.id}
+              layout
+              className="group overflow-hidden rounded-[2rem] border border-[#c0c7d3]/60 bg-white shadow-[0_10px_30px_rgba(0,94,161,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_46px_rgba(0,94,161,0.12)]"
+            >
+              <div className="border-b border-[#e6edf7] bg-gradient-to-br from-white to-[#f0f3ff] p-5 sm:p-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex min-w-0 items-start gap-4">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-3xl bg-[#d2e4ff] text-[#005ea1] shadow-inner">
+                      <Layout size={26} />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="truncate text-lg font-black text-[#0d1c2e] sm:text-xl">{tpl.name}</h3>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <span className="rounded-full bg-white px-3 py-1 text-[11px] font-black uppercase tracking-[0.1em] text-[#005ea1] ring-1 ring-[#d4e4fc]">
+                          {subjectName}
+                        </span>
+                        <span className="rounded-full bg-[#f8f9ff] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.1em] text-[#717782] ring-1 ring-[#e6edf7]">
+                          {dayjs(tpl.createdAt).format('DD/MM/YYYY')}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => deleteTemplate(tpl.id)}
+                    className="rounded-2xl p-2.5 text-[#9aa3af] transition hover:bg-red-50 hover:text-red-600"
+                    title="Xóa mẫu"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid gap-4 p-5 sm:p-6 md:grid-cols-2">
+                <TemplateFileColumn
+                  title="Giáo án mẫu"
+                  description="Ví dụ để AI học cấu trúc và văn phong."
+                  icon={FileText}
+                  uploadTone="bg-[#d2e4ff] text-[#005ea1] hover:bg-[#bdd8ff]"
+                  fileTone="text-[#005ea1]"
+                  emptyText="Chưa có giáo án mẫu"
+                  files={sampleFiles}
+                  onUpload={() => uploadFile('sample', tpl.id)}
+                  onDelete={(fileId) => deleteFile(tpl.id, fileId)}
+                />
+
+                <TemplateFileColumn
+                  title="Tiêu chí & quy định"
+                  description="Rubric, yêu cầu trình bày, chuẩn tổ bộ môn."
+                  icon={FileCheck}
+                  uploadTone="bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                  fileTone="text-emerald-600"
+                  emptyText="Chưa có tệp tiêu chí (tối đa 10 tệp)"
+                  files={criteriaFiles}
+                  onUpload={() => uploadFile('criteria', tpl.id)}
+                  onDelete={(fileId) => deleteFile(tpl.id, fileId)}
+                />
+              </div>
+            </motion.article>
+          );
+        })}
+
+        {templates.length === 0 && (
+          <div className="xl:col-span-2 rounded-[2rem] border-2 border-dashed border-[#c0c7d3] bg-white p-12 text-center shadow-[0_10px_30px_rgba(0,94,161,0.05)] sm:p-16">
+            <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-[2rem] bg-[#d2e4ff] text-[#005ea1]">
+              <Layout size={36} />
+            </div>
+            <h3 className="text-2xl font-black text-[#0d1c2e]">Chưa có mẫu giáo án nào</h3>
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-[#717782]">
+              Hãy thêm bộ mẫu đầu tiên và tải lên tài liệu hướng dẫn để AI tạo giáo án sát chuẩn chuyên môn của bạn hơn.
+            </p>
+            <button
+              onClick={addTemplate}
+              className="mt-6 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#005ea1] px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-100 transition hover:-translate-y-0.5 hover:bg-[#2178c3]"
+            >
+              <Plus size={18} /> Tạo bộ mẫu đầu tiên
+            </button>
           </div>
         )}
-      </div>
+      </section>
     </motion.div>
   );
 };
+
+interface TemplateFileColumnProps {
+  title: string;
+  description: string;
+  icon: typeof FileText;
+  uploadTone: string;
+  fileTone: string;
+  emptyText: string;
+  files: TemplateFile[];
+  onUpload: () => void;
+  onDelete: (fileId: string) => void;
+}
+
+const TemplateFileColumn = ({
+  title,
+  description,
+  icon: Icon,
+  uploadTone,
+  fileTone,
+  emptyText,
+  files,
+  onUpload,
+  onDelete,
+}: TemplateFileColumnProps) => (
+  <div className="rounded-3xl border border-[#e6edf7] bg-[#f8f9ff] p-4">
+    <div className="mb-4 flex items-start justify-between gap-3">
+      <div className="min-w-0">
+        <h4 className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-[#414751]">
+          <Icon size={15} className={fileTone} /> {title}
+        </h4>
+        <p className="mt-1 text-xs leading-5 text-[#717782]">{description}</p>
+      </div>
+      <button
+        onClick={onUpload}
+        className={`shrink-0 rounded-2xl p-2.5 transition ${uploadTone}`}
+        title={`Tải lên ${title.toLowerCase()}`}
+      >
+        <Upload size={15} />
+      </button>
+    </div>
+
+    <div className="space-y-2">
+      {files.map(file => (
+        <div key={file.id} className="group/file flex items-center justify-between gap-3 rounded-2xl border border-white bg-white p-3 shadow-sm">
+          <div className="flex min-w-0 items-center gap-2">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#f0f3ff]">
+              <FileUp size={14} className={fileTone} />
+            </div>
+            <span className="truncate text-xs font-bold text-[#414751]">{file.name}</span>
+          </div>
+          <button
+            onClick={() => onDelete(file.id)}
+            className="rounded-lg p-1.5 text-[#9aa3af] opacity-100 transition hover:bg-red-50 hover:text-red-600 sm:opacity-0 sm:group-hover/file:opacity-100"
+            title="Xóa tệp"
+          >
+            <X size={13} />
+          </button>
+        </div>
+      ))}
+      {files.length === 0 && (
+        <div className="rounded-2xl border-2 border-dashed border-[#dbe5f2] bg-white/70 px-3 py-6 text-center text-xs font-bold text-[#9aa3af]">
+          {emptyText}
+        </div>
+      )}
+    </div>
+  </div>
+);

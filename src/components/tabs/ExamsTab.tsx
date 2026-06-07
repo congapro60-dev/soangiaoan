@@ -151,6 +151,7 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
   const [showImportModal, setShowImportModal] = useState(false);
   const [createView, setCreateView] = useState<CreateView>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'scheduled' | 'draft'>('all');
 
   const subjectNameById = useMemo(() => {
     return Object.fromEntries(data.subjects.map(subject => [subject.id, subject.name]));
@@ -158,17 +159,34 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
 
   const visibleExams = useMemo(() => {
     const keyword = searchTerm.trim().toLowerCase();
-    if (!keyword) return exams;
-    return exams.filter(exam => {
-      const subjectName = subjectNameById[exam.subjectId] || '';
-      return [exam.title, exam.code, exam.grade, subjectName]
-        .filter(Boolean)
-        .some(value => String(value).toLowerCase().includes(keyword));
-    });
-  }, [exams, searchTerm, subjectNameById]);
+    const now = Date.now();
+
+    return exams
+      .filter(exam => {
+        const startsAt = exam.startAt ? new Date(exam.startAt).getTime() : null;
+        const isScheduled = !exam.isActive && startsAt !== null && startsAt > now;
+        const matchesStatus = statusFilter === 'all'
+          || (statusFilter === 'active' && exam.isActive)
+          || (statusFilter === 'scheduled' && isScheduled)
+          || (statusFilter === 'draft' && !exam.isActive && !isScheduled);
+
+        if (!matchesStatus) return false;
+        if (!keyword) return true;
+
+        const subjectName = subjectNameById[exam.subjectId] || '';
+        return [exam.title, exam.code, exam.grade, subjectName]
+          .filter(Boolean)
+          .some(value => String(value).toLowerCase().includes(keyword));
+      })
+      .sort((a, b) => {
+        if (a.isActive !== b.isActive) return a.isActive ? -1 : 1;
+        return new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime();
+      });
+  }, [exams, searchTerm, statusFilter, subjectNameById]);
 
   const activeExamCount = exams.filter(exam => exam.isActive).length;
-  const draftExamCount = exams.length - activeExamCount;
+  const scheduledExamCount = exams.filter(exam => !exam.isActive && exam.startAt && new Date(exam.startAt).getTime() > Date.now()).length;
+  const draftExamCount = exams.length - activeExamCount - scheduledExamCount;
   const totalQuestionCount = exams.reduce((sum, exam) => sum + exam.questions.length, 0);
   const missingApiKey = !data.settings.geminiApiKey;
 
@@ -415,10 +433,11 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
               Phát hành đề cho học sinh làm bài trực tuyến, theo dõi trạng thái mở đề, chia sẻ mã/QR và xem kết quả tự chấm trong một workspace thống nhất.
             </p>
           </div>
-          <div className="grid min-w-[280px] grid-cols-3 gap-3">
+          <div className="grid min-w-[300px] grid-cols-2 gap-3 lg:grid-cols-4">
             <ExamSummaryTile label="Tổng đề" value={exams.length.toString()} tone="blue" />
             <ExamSummaryTile label="Đang mở" value={activeExamCount.toString()} tone="green" />
-            <ExamSummaryTile label="Nháp" value={draftExamCount.toString()} tone="slate" />
+            <ExamSummaryTile label="Đã lên lịch" value={scheduledExamCount.toString()} tone="amber" />
+            <ExamSummaryTile label="Nháp" value={Math.max(0, draftExamCount).toString()} tone="slate" />
           </div>
         </div>
       </section>
@@ -427,7 +446,23 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h2 className="text-xl font-black text-slate-900">Danh sách kỳ thi</h2>
-            <p className="mt-1 text-sm text-slate-500">Thiết kế dạng card bento theo trạng thái: đang mở, nháp/chờ mở và đã có dữ liệu kết quả.</p>
+            <p className="mt-1 text-sm text-slate-500">Card bento theo trạng thái phát hành, lịch mở đề và mức sẵn sàng chấm bài.</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {([
+                ['all', 'Tất cả'],
+                ['active', 'Đang mở'],
+                ['scheduled', 'Đã lên lịch'],
+                ['draft', 'Nháp'],
+              ] as const).map(([key, label]) => (
+                <button
+                  key={key}
+                  onClick={() => setStatusFilter(key)}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-black transition ${statusFilter === key ? 'border-blue-200 bg-blue-600 text-white shadow-sm shadow-blue-100' : 'border-slate-200 bg-white text-slate-500 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700'}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <div className="relative w-full sm:w-80">
@@ -478,10 +513,19 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
           {visibleExams.map((exam, index) => {
             const isPublished = exam.isActive;
+            const startsAt = exam.startAt ? new Date(exam.startAt) : null;
+            const endsAt = exam.endAt ? new Date(exam.endAt) : null;
+            const isScheduled = !isPublished && !!startsAt && startsAt.getTime() > Date.now();
+            const isClosed = !isPublished && !!endsAt && endsAt.getTime() < Date.now();
             const statusTone = isPublished
               ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-              : 'border-slate-200 bg-slate-100 text-slate-600';
-            const accent = isPublished ? 'bg-emerald-500' : 'bg-slate-300';
+              : isScheduled
+                ? 'border-amber-200 bg-amber-50 text-amber-700'
+                : isClosed
+                  ? 'border-red-100 bg-red-50 text-red-600'
+                  : 'border-slate-200 bg-slate-100 text-slate-600';
+            const accent = isPublished ? 'bg-emerald-500' : isScheduled ? 'bg-amber-400' : isClosed ? 'bg-red-300' : 'bg-slate-300';
+            const statusLabel = isPublished ? 'Đang diễn ra' : isScheduled ? 'Đã lên lịch' : isClosed ? 'Đã đóng' : 'Nháp / chờ mở';
             const subjectName = subjectNameById[exam.subjectId] || 'Chưa gán môn';
             const progress = totalQuestionCount > 0 ? Math.min(100, Math.round((exam.questions.length / Math.max(1, totalQuestionCount)) * 100)) : 0;
 
@@ -497,7 +541,7 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
                 <div className="mb-4 flex items-start justify-between gap-3">
                   <span className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${statusTone}`}>
                     {isPublished && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />}
-                    {isPublished ? 'Đang diễn ra' : 'Nháp / chờ mở'}
+                    {statusLabel}
                   </span>
                   <div className="flex items-center gap-1 opacity-100 transition md:opacity-0 md:group-hover:opacity-100">
                     <button onClick={() => copyLink(exam.code)} className="rounded-lg p-2 text-slate-400 transition hover:bg-blue-50 hover:text-blue-600" title="Copy link">
@@ -514,6 +558,11 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
                   <div className="flex items-center gap-2"><FileText className="h-4 w-4 text-slate-400" /><span>{subjectName} • Khối {exam.grade || '—'}</span></div>
                   <div className="flex items-center gap-2"><Clock className="h-4 w-4 text-slate-400" /><span>{exam.durationMinutes} phút • {exam.questions.length} câu • {exam.maxScore} điểm</span></div>
                   <div className="flex items-center gap-2"><Users className="h-4 w-4 text-slate-400" /><span>Mã phòng: <strong className="font-mono text-blue-700">#{exam.code}</strong></span></div>
+                  {(startsAt || endsAt) && (
+                    <div className="rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-500">
+                      {startsAt ? `Mở: ${startsAt.toLocaleString('vi-VN')}` : 'Chưa đặt giờ mở'}{endsAt ? ` • Đóng: ${endsAt.toLocaleString('vi-VN')}` : ''}
+                    </div>
+                  )}
                 </div>
 
                 <div className="border-t border-slate-100 pt-4">
@@ -612,12 +661,14 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
   );
 };
 
-const ExamSummaryTile = ({ label, value, tone }: { label: string; value: string; tone: 'blue' | 'green' | 'slate' }) => {
+const ExamSummaryTile = ({ label, value, tone }: { label: string; value: string; tone: 'blue' | 'green' | 'amber' | 'slate' }) => {
   const toneClass = tone === 'blue'
     ? 'bg-blue-600 text-white shadow-blue-200'
     : tone === 'green'
       ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-      : 'bg-slate-100 text-slate-700 border-slate-200';
+      : tone === 'amber'
+        ? 'bg-amber-50 text-amber-700 border-amber-100'
+        : 'bg-slate-100 text-slate-700 border-slate-200';
 
   return (
     <div className={`rounded-2xl border p-4 text-center shadow-sm ${toneClass}`}>

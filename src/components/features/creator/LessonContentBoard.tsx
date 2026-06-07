@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { BookOpen, CheckCircle2, ClipboardCheck, Eye, ImagePlus, Layers, Loader2, MessageSquare, PenTool, Sparkles, Target, Wand2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -29,6 +29,44 @@ const qualityChecks = [
 
 const bloomVerbs = ['Trình bày', 'Giải thích', 'Phân tích', 'Vận dụng', 'Thiết kế'];
 
+const CONTEXTUAL_PROMPTS = {
+  objectives: [
+    'Viết lại mục tiêu theo Bloom, có đủ kiến thức, năng lực và phẩm chất.',
+    'Bổ sung động từ đo lường được cho mục tiêu bài học.',
+    'Tách mục tiêu thành 3 mức: nhận biết, thông hiểu, vận dụng.',
+  ],
+  activities: [
+    'Bổ sung hoạt động nhóm 10 phút có sản phẩm học tập rõ ràng.',
+    'Thêm câu hỏi gợi mở và dự kiến phản hồi của học sinh.',
+    'Phân hoá hoạt động cho học sinh yếu, trung bình và khá giỏi.',
+  ],
+  assessment: [
+    'Bổ sung câu hỏi đánh giá cuối giờ theo 4 mức độ nhận thức.',
+    'Thêm rubric/tiêu chí đánh giá ngắn gọn cho nhiệm vụ học tập.',
+    'Tạo phiếu exit ticket 3 câu để kiểm tra nhanh sau bài học.',
+  ],
+  general: [
+    'Chuẩn hoá văn phong sư phạm, rõ ý và dễ triển khai trên lớp.',
+    'Rút gọn phần đang chọn nhưng giữ đủ ý chính.',
+    'Bổ sung ví dụ gần gũi với học sinh Việt Nam.',
+  ],
+};
+
+const detectLessonSection = (content: string, cursorPosition?: number) => {
+  const beforeCursor = content.slice(0, cursorPosition ?? content.length);
+  const headings = Array.from(beforeCursor.matchAll(/^#{1,4}\s+(.+)$/gm));
+  const heading = headings.at(-1)?.[1]?.trim() || 'Toàn bộ giáo án';
+  const normalized = heading.toLowerCase();
+  const key = normalized.includes('mục tiêu')
+    ? 'objectives'
+    : normalized.includes('hoạt động') || normalized.includes('tiến trình')
+      ? 'activities'
+      : normalized.includes('đánh giá') || normalized.includes('kiểm tra')
+        ? 'assessment'
+        : 'general';
+  return { heading, key } as const;
+};
+
 export const LessonContentBoard = ({
   generationMode,
   currentPlan,
@@ -40,6 +78,20 @@ export const LessonContentBoard = ({
   isLoading
 }: LessonContentBoardProps) => {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [editorContext, setEditorContext] = useState({ section: 'Toàn bộ giáo án', selectedText: '', key: 'general' as keyof typeof CONTEXTUAL_PROMPTS });
+
+  const contextualPrompts = useMemo(() => CONTEXTUAL_PROMPTS[editorContext.key], [editorContext.key]);
+
+  const updateEditorContext = () => {
+    const textarea = document.querySelector<HTMLTextAreaElement>('.w-md-editor-text-input');
+    const content = currentPlan.content || '';
+    const cursorPosition = textarea?.selectionStart ?? content.length;
+    const selectedText = textarea && textarea.selectionEnd > textarea.selectionStart
+      ? content.slice(textarea.selectionStart, textarea.selectionEnd).trim()
+      : '';
+    const section = detectLessonSection(content, cursorPosition);
+    setEditorContext({ section: section.heading, selectedText, key: section.key });
+  };
 
   const handleImageUpload = async (file: File, e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -197,7 +249,10 @@ export const LessonContentBoard = ({
                   height={760}
                   className="dewey-md-editor w-full overflow-hidden rounded-2xl border border-[#d4e4fc] shadow-none"
                   textareaProps={{
-                    placeholder: 'Bắt đầu soạn thảo giáo án bằng Markdown...'
+                    placeholder: 'Bắt đầu soạn thảo giáo án bằng Markdown...',
+                    onClick: updateEditorContext,
+                    onKeyUp: updateEditorContext,
+                    onSelect: updateEditorContext,
                   }}
                 />
               </div>
@@ -226,7 +281,7 @@ export const LessonContentBoard = ({
               <Eye className="h-4 w-4" /> Đang phân tích
             </div>
             <p className="text-sm leading-relaxed text-[#414751]">
-              AI sẽ dùng toàn bộ giáo án hiện tại làm ngữ cảnh để viết lại, bổ sung hoạt động, phân hoá học sinh hoặc chuẩn hoá văn phong.
+              AI đang ưu tiên ngữ cảnh: <strong>{editorContext.section}</strong>{editorContext.selectedText ? ' · đang xử lý đoạn đã chọn' : ''}. Gợi ý bên dưới sẽ đổi theo vị trí con trỏ trong giáo án.
             </p>
           </div>
 
@@ -235,7 +290,17 @@ export const LessonContentBoard = ({
               <Wand2 className="h-4 w-4 text-[#005ea1]" /> Gợi ý nhanh
             </h4>
             <div className="flex flex-wrap gap-2">
-              {bloomVerbs.map(verb => (
+              {contextualPrompts.map(prompt => (
+                <button
+                  key={prompt}
+                  type="button"
+                  onClick={() => setRevisionPrompt(`${editorContext.selectedText ? `Với đoạn đang chọn: "${editorContext.selectedText.slice(0, 300)}". ` : ''}${prompt}`)}
+                  className="rounded-full border border-[#c0c7d3] bg-white px-3 py-1.5 text-xs font-bold text-[#414751] transition hover:border-[#005ea1] hover:text-[#005ea1]"
+                >
+                  {prompt}
+                </button>
+              ))}
+              {editorContext.key === 'objectives' && bloomVerbs.map(verb => (
                 <button
                   key={verb}
                   type="button"

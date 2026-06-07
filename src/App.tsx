@@ -30,6 +30,7 @@ const AdaptiveLearningTab = lazy(() => import('./components/tabs/AdaptiveLearnin
 const AdaptiveLessonListPage = lazy(() => import('./pages/AdaptiveLessonListPage').then(m => ({ default: m.AdaptiveLessonListPage })));
 const AdaptiveLessonBuilderPage = lazy(() => import('./pages/AdaptiveLessonBuilderPage').then(m => ({ default: m.AdaptiveLessonBuilderPage })));
 const AIToolsTab = lazy(() => import('./components/tabs/AIToolsTab').then(m => ({ default: m.AIToolsTab })));
+const ClassesTab = lazy(() => import('./components/tabs/ClassesTab').then(m => ({ default: m.ClassesTab })));
 
 // Utils
 import { processUploadedFile } from './utils/fileUtils';
@@ -49,7 +50,7 @@ export default function App() {
     saveGradingSession, deleteGradingSession, deleteGradingResult,
   } = useAppState(user, showToast);
   
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading' | 'exams' | 'adaptiveLessons' | 'aiTools'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'classes' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading' | 'exams' | 'adaptiveLessons' | 'aiTools'>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth >= 768);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [libraryTab, setLibraryTab] = useState<'personal' | 'community'>('personal');
@@ -66,7 +67,7 @@ export default function App() {
   };
   const [uploadingFiles, setUploadingFiles] = useState<{ category: TemplateFile['category']; templateId?: string } | null>(null);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null!);
 
   // Sync EVERYTHING to Cloud periodically or on major change (already handled in useAppState)
 
@@ -187,25 +188,119 @@ export default function App() {
   }
 
   if (!user) {
+    const highlights = [
+      { label: 'Soạn giáo án', value: 'AI Co-pilot', tone: 'bg-[#d2e4ff] text-[#005ea1]' },
+      { label: 'Đề kiểm tra', value: 'Ma trận Smart Grid', tone: 'bg-emerald-50 text-emerald-700' },
+      { label: 'Xuất file', value: 'Word/PDF A4', tone: 'bg-amber-50 text-amber-700' },
+    ];
+
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-slate-50 p-4">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-md w-full bg-white p-10 rounded-[40px] shadow-2xl border border-slate-100 text-center space-y-8">
-          <div className="w-20 h-20 gradient-bg rounded-3xl flex items-center justify-center mx-auto shadow-xl shadow-blue-100">
-            <span className="text-4xl text-white font-bold">A</span>
+      <div className="min-h-screen bg-[#f8f9ff] text-[#0d1c2e]">
+        <header className="sticky top-0 z-30 border-b border-[#c0c7d3]/50 bg-white/90 backdrop-blur-xl">
+          <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#005ea1] text-lg font-black text-white shadow-sm shadow-blue-100">D</div>
+              <div>
+                <p className="text-base font-black tracking-tight text-[#005ea1]">Giao An Dewey</p>
+                <p className="hidden text-[11px] font-semibold uppercase tracking-[0.16em] text-[#717782] sm:block">AI lesson workspace</p>
+              </div>
+            </div>
+            <nav className="hidden items-center gap-6 text-sm font-semibold text-[#414751] md:flex">
+              <a href="#features" className="hover:text-[#005ea1]">Tính năng</a>
+              <a href="#workflow" className="hover:text-[#005ea1]">Quy trình</a>
+              <a href="#community" className="hover:text-[#005ea1]">Cộng đồng</a>
+            </nav>
+            <div className="flex items-center gap-2">
+              <button onClick={handleDemoLogin} className="hidden rounded-full border border-[#c0c7d3] px-4 py-2 text-sm font-bold text-[#414751] transition hover:border-[#005ea1]/40 hover:bg-[#eff4ff] hover:text-[#005ea1] sm:inline-flex">Dùng thử</button>
+              <button onClick={handleLogin} className="rounded-full bg-[#005ea1] px-4 py-2 text-sm font-bold text-white shadow-sm shadow-blue-100 transition hover:bg-[#2178c3]">Đăng nhập</button>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-black text-slate-800 tracking-tight">Lesson Plan AI</h1>
-            <p className="text-slate-500 mt-2">Hệ thống soạn giáo án thông minh bậc học chuẩn quốc tế</p>
-          </div>
-          <button onClick={handleLogin} className="w-full py-4 gradient-bg text-white rounded-2xl font-bold shadow-lg shadow-blue-200 hover:opacity-90 transition-opacity flex items-center justify-center gap-3">
-            Đăng nhập với Google để bắt đầu
-          </button>
-          <div className="pt-4 border-t border-slate-100">
-             <button onClick={handleDemoLogin} className="text-xs text-slate-400 hover:text-blue-500 transition-colors font-medium">
-                Chế độ dùng thử (Demo / Developer Mode)
-             </button>
-          </div>
-        </motion.div>
+        </header>
+
+        <main>
+          <section className="relative overflow-hidden border-b border-[#d4e4fc] px-4 py-16 sm:px-6 lg:py-24">
+            <div className="pointer-events-none absolute -right-24 -top-32 h-96 w-96 rounded-full bg-[#dce9ff] blur-3xl" />
+            <div className="pointer-events-none absolute -left-24 top-56 h-80 w-80 rounded-full bg-[#d2e4ff] blur-3xl" />
+            <div className="relative mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[1.02fr_0.98fr]">
+              <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="space-y-7">
+                <div className="inline-flex items-center gap-2 rounded-full border border-[#9fcaff]/60 bg-white px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-[#005ea1] shadow-sm">
+                  ✨ Trợ lý AI cho giáo viên Việt Nam
+                </div>
+                <div className="space-y-5">
+                  <h1 className="max-w-3xl text-4xl font-black leading-tight tracking-[-0.03em] text-[#0d1c2e] sm:text-5xl lg:text-6xl">
+                    Soạn giáo án, tạo đề và quản lý lớp học trong một workspace rõ ràng.
+                  </h1>
+                  <p className="max-w-2xl text-base leading-8 text-[#414751] sm:text-lg">
+                    Giao An Dewey giúp giáo viên tạo giáo án theo mục tiêu, biên soạn đề kiểm tra, xuất Word/PDF chuẩn A4, chấm tự luận bằng AI và theo dõi học tập thích ứng — giảm thao tác lặp lại, giữ chất lượng sư phạm.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <button onClick={handleLogin} className="inline-flex items-center justify-center rounded-2xl bg-[#005ea1] px-6 py-4 text-sm font-black text-white shadow-lg shadow-blue-100 transition hover:-translate-y-0.5 hover:bg-[#2178c3]">
+                    Đăng nhập với Google để bắt đầu
+                  </button>
+                  <button onClick={handleDemoLogin} className="inline-flex items-center justify-center rounded-2xl border border-[#c0c7d3] bg-white px-6 py-4 text-sm font-black text-[#005ea1] transition hover:-translate-y-0.5 hover:border-[#005ea1]/40 hover:bg-[#eff4ff]">
+                    Xem chế độ demo
+                  </button>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {highlights.map(item => (
+                    <div key={item.label} className="rounded-2xl border border-[#c0c7d3]/50 bg-white p-4 shadow-[0_4px_12px_rgba(0,94,161,0.06)]">
+                      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#717782]">{item.label}</p>
+                      <p className={`mt-2 inline-flex rounded-full px-3 py-1 text-xs font-bold ${item.tone}`}>{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+
+              <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="relative">
+                <div className="rounded-[2rem] border border-[#c0c7d3]/60 bg-white p-4 shadow-[0_24px_80px_rgba(0,94,161,0.14)]">
+                  <div className="rounded-[1.5rem] bg-[#f0f3ff] p-5">
+                    <div className="flex items-center justify-between border-b border-[#c0c7d3]/40 pb-4">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#005ea1]">Bảng điều khiển</p>
+                        <h2 className="mt-1 text-xl font-black text-[#0d1c2e]">Tuần học hôm nay</h2>
+                      </div>
+                      <div className="rounded-2xl bg-white px-3 py-2 text-xs font-bold text-emerald-700">Sẵn sàng</div>
+                    </div>
+                    <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                      {['Giáo án Vật lí 12', 'Đề kiểm tra Toán 10', 'Chấm tự luận Văn', 'Lộ trình cá nhân hoá'].map((title, idx) => (
+                        <div key={title} className="rounded-2xl border border-white/70 bg-white p-4 shadow-sm">
+                          <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[#d2e4ff] text-lg">{['📘', '🧩', '✍️', '🎯'][idx]}</div>
+                          <p className="text-sm font-black text-[#0d1c2e]">{title}</p>
+                          <p className="mt-1 text-xs leading-5 text-[#717782]">Tự động gợi ý bước tiếp theo, có thể chỉnh sửa trước khi xuất bản.</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-5 rounded-2xl bg-[#005ea1] p-5 text-white">
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/70">AI Co-pilot</p>
+                      <p className="mt-2 text-sm leading-6 text-white/90">“Tạo hoạt động khởi động 5 phút, phân hoá cho 3 nhóm năng lực và kèm rubric đánh giá.”</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </section>
+
+          <section id="features" className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
+            <div className="mb-8 max-w-2xl">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#005ea1]">Tính năng nổi bật</p>
+              <h2 className="mt-3 text-3xl font-black tracking-tight text-[#0d1c2e]">Tập trung vào năng suất thật của giáo viên</h2>
+            </div>
+            <div className="grid gap-4 md:grid-cols-3">
+              {[
+                ['Soạn nhanh nhưng vẫn kiểm soát', 'Tạo giáo án, tài liệu và hoạt động theo lớp, môn, tuần học.'],
+                ['Thi online & chấm AI', 'Biên soạn câu hỏi, phát hành mã thi, chấm tự luận và xuất kết quả.'],
+                ['Thư viện & cộng đồng', 'Lưu giáo án cá nhân, khám phá tài nguyên và tái sử dụng template.'],
+              ].map(([title, desc]) => (
+                <div key={title} className="rounded-3xl border border-[#c0c7d3]/50 bg-white p-6 shadow-[0_4px_12px_rgba(0,94,161,0.06)] transition hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(0,94,161,0.12)]">
+                  <div className="mb-5 h-12 w-12 rounded-2xl bg-[#d2e4ff]" />
+                  <h3 className="text-lg font-black text-[#0d1c2e]">{title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-[#414751]">{desc}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        </main>
       </div>
     );
   }
@@ -260,6 +355,10 @@ export default function App() {
           <AnimatePresence mode="wait">
             {activeTab === 'dashboard' && (
               <DashboardTab data={data} setCurrentPlan={creator.setCurrentPlan} setActiveTab={setActiveTab} />
+            )}
+
+            {activeTab === 'classes' && (
+              <ClassesTab />
             )}
 
             {activeTab === 'creator' && (
@@ -377,7 +476,7 @@ export default function App() {
                     }
                   });
                 }}
-                deleteTemplate={id => Swal.fire({title: 'Xóa mẫu?', showCancelButton: true}).then(res => res.isConfirmed && deleteTemplate(id) )}
+                deleteTemplate={id => Swal.fire({title: 'Xóa mẫu?', showCancelButton: true}).then(res => { if (res.isConfirmed) deleteTemplate(id); })}
                 deleteFile={(tId, fId) => deleteFile(tId, fId)}
               />
             )}

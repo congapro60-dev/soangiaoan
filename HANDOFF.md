@@ -1,10 +1,10 @@
 # HANDOFF — Soạn giáo án / học phân hoá
 
-**Cập nhật**: 2026-06-04
+**Cập nhật**: 2026-06-08
 **Repo chính**: `soangiaoan`
 **Branch hiện tại**: `main`
 **Remote GitHub**: `https://github.com/congapro60-dev/soangiaoan`
-**HEAD/local/origin-main mới nhất**: `58e6b5b` — fix: remove browser-incompatible html-to-docx export
+**HEAD/local mới nhất trước commit phiên UI/UX**: `3e466da` — Merge UI UX migration updates
 **Production URL đúng để QA UI**: `https://giaoandewey.vercel.app`
 **Commit Sprint D đã merge main**: `e7b609c92b80c80227ef4853053ea9723bdab931 Merge sprint D lesson builder UI`
 **Commit Sprint D feature**: `8d229eb75b823b9edfb4262c84ee68abbd5821cd feat(adaptive): Sprint D — Lesson Builder UI + Firestore persistence`
@@ -16,7 +16,87 @@
 
 ---
 
-## 0. Trạng thái mới nhất — 2026-06-04: xuất giáo án Word/PDF bằng “Mẫu claude”
+## 0. Trạng thái mới nhất — 2026-06-08: cập nhật UI/UX theo Google Stitch + Smart Matrix/AI Co-pilot
+
+> Nguồn sự thật mới nhất cho phiên sau: đang làm trực tiếp trên branch `main` của repo `soangiaoan`. Trước khi commit phiên này, `HEAD` local là `3e466da Merge UI UX migration updates`. Phiên này tiếp tục đưa các khuyến nghị UI/UX từ bộ tài liệu Stitch vào app, đồng thời kiểm tra production build thành công.
+
+### 0.0.1 Phạm vi thay đổi chính
+
+Các nhóm thay đổi đã triển khai/cập nhật trong phiên 2026-06-08:
+
+- **UI shell/navigation**:
+  - Cập nhật layout/điều hướng trong `src/App.tsx`, `src/components/layout/Sidebar.tsx`, `src/components/layout/Header.tsx`.
+  - Bổ sung/cập nhật tab lớp học `src/components/tabs/ClassesTab.tsx`.
+- **Màn hình/tabs theo hướng Stitch**:
+  - `src/components/tabs/ChatTab.tsx`
+  - `src/components/tabs/TemplatesTab.tsx`
+  - `src/components/tabs/ExamsTab.tsx`
+  - `src/components/tabs/TestingTab.tsx`
+  - `src/components/modals/SettingsModal.tsx`
+- **Luồng tạo giáo án / AI Co-pilot**:
+  - `src/components/features/creator/LessonContentBoard.tsx`
+  - Mục tiêu: tăng tính ngữ cảnh cho AI Co-pilot, giúp thao tác hỗ trợ biên soạn giáo án rõ hơn và nhất quán hơn với trải nghiệm giáo viên.
+- **Luồng tạo đề / Smart Matrix Grid**:
+  - `src/pages/ExamConfigPage.tsx`
+  - `src/components/features/testing/ExamEditorView.tsx`
+  - `src/components/tabs/TestingTab.tsx`
+  - Mục tiêu: kết nối ma trận đề với prompt AI chặt hơn, có validation trước khi sinh đề, cảnh báo rõ ràng, khóa hành động sinh đề khi dữ liệu chưa hợp lệ.
+- **Tài liệu UI/UX**:
+  - `UI-UX/IMPLEMENTATION_MAP.md` được cập nhật để map tài liệu Stitch sang code.
+  - Thêm bộ tài liệu trích xuất trong `UI-UX/_extracted_docs/`.
+  - Thêm script hỗ trợ trích xuất `UI-UX/extract_docs.py`.
+
+### 0.0.2 Chi tiết đáng chú ý cho Smart Matrix Grid
+
+Smart Matrix Grid hiện cần được QA kỹ theo các case:
+
+1. Ma trận không có dòng/chưa nhập đủ thông tin → không cho sinh đề, hiển thị cảnh báo dễ hiểu.
+2. Tổng số câu/điểm không khớp kỳ vọng → cảnh báo trong panel thông số trước khi gọi AI.
+3. Dữ liệu chủ đề, mức Bloom, số câu, điểm/câu và cấu trúc câu hỏi được đưa vào prompt theo cả dạng mô tả dễ đọc và JSON có cấu trúc.
+4. AI cần bám sát ma trận khi sinh đề; nếu sai lệch, ưu tiên kiểm tra phần prompt builder trong `ExamConfigPage.tsx`/`ExamEditorView.tsx` trước.
+
+### 0.0.3 Verification đã chạy
+
+Đã chạy production build:
+
+```bash
+npm --prefix C:\Users\ADMIN\Downloads\smart-lesson-plan-ai run build
+```
+
+Kết quả:
+
+- Vite production build: **PASS**, built in khoảng `58.00s`.
+- Có warning không chặn build:
+  - dynamic import không tách chunk cho một số module đã statically imported.
+  - một số chunk lớn hơn 500 kB sau minification.
+- Đây là technical debt/optimization warning của Vite, không phải lỗi compile của phiên UI/UX này.
+
+Đã mở dev server:
+
+```bash
+npm --prefix C:\Users\ADMIN\Downloads\smart-lesson-plan-ai run dev
+```
+
+Vite đang chạy ở:
+
+```txt
+http://localhost:3000/
+```
+
+### 0.0.4 Rủi ro/điểm cần QA tiếp
+
+Cần QA thủ công trên browser thật các luồng sau:
+
+1. Điều hướng tổng thể giữa Dashboard/Chat/Templates/Exams/Testing/Classes/Settings trên desktop và màn hình nhỏ.
+2. AI Co-pilot trong trình soạn giáo án: kiểm tra nội dung dài, giáo án nhiều phần, thao tác chỉnh sửa nhiều lần.
+3. Smart Matrix Grid: kiểm tra ma trận rỗng, ma trận quá nhiều câu, phân bổ Bloom không đều, tổng điểm lệch, dữ liệu tiếng Việt dài.
+4. Luồng sinh đề từ ma trận: kiểm tra đề sinh ra có bám đúng số câu, điểm/câu, mức Bloom, chủ đề và loại câu hỏi không.
+5. Các modal/settings: kiểm tra overflow, focus, đóng/mở, responsive và text dài.
+6. Cần cân nhắc code-splitting/manualChunks cho các bundle lớn nếu hiệu năng initial load bị ảnh hưởng.
+
+---
+
+## 0. Trạng thái cũ — 2026-06-04: xuất giáo án Word/PDF bằng “Mẫu claude”
 
 > Nguồn sự thật mới nhất cho phiên sau: `main` và `origin/main` hiện trỏ tới commit `58e6b5b`. Commit này đã sửa hồi quy xuất Word giáo án do dùng `html-to-docx` không tương thích trình duyệt, sau commit liền trước `15bef5e` về cải thiện xuất Word/PDF. Khi QA hoặc sửa tiếp, phải đọc mục này trước các ghi chú cũ về Word/PDF.
 
