@@ -82,24 +82,24 @@ export const GradingResultsList = ({
   ] as const;
 
   return (
-    <div className="flex-1 bg-white rounded-[32px] border border-slate-100 flex flex-col overflow-hidden shadow-sm min-h-0">
+    <div className="flex-1 bg-white border-t border-[#c0c7d3] flex flex-col overflow-hidden min-h-0">
 
       {/* Header */}
-      <div className="p-4 border-b border-slate-50 flex-shrink-0 space-y-2">
+      <div className="px-6 py-4 border-b border-[#c0c7d3] bg-white flex-shrink-0 space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-black text-slate-800 flex items-center gap-2">
-            <Users className="w-4 h-4 text-blue-500" />
+          <h3 className="text-lg font-black text-[#121c2c] flex items-center gap-2">
+            <Users className="w-5 h-5 text-[#3182ce]" />
             Danh sách ({filtered.length}/{results.length})
           </h3>
-          <div className="flex bg-slate-100 p-0.5 rounded-xl">
+          <div className="flex gap-2">
             {FILTERS.map(opt => (
               <button
                 key={opt.value}
                 onClick={() => setFilterScore(opt.value)}
-                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                 className={`px-3 py-1 rounded-full border text-[11px] font-bold transition-all ${
                   filterScore === opt.value
-                    ? 'bg-white text-slate-800 shadow-sm'
-                    : 'text-slate-500 hover:text-slate-700'
+                    ? 'bg-[#e7eeff] text-[#005ea1] border-[#3182ce]/30'
+                    : 'bg-white text-slate-500 border-[#c0c7d3] hover:bg-[#ebf8ff] hover:text-[#005ea1]'
                 }`}
               >
                 {opt.label}
@@ -112,7 +112,7 @@ export const GradingResultsList = ({
           <button
             onClick={onCheckPlagiarism}
             disabled={isCheckingPlagiarism}
-            className="w-full flex items-center justify-center gap-2 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 text-xs font-semibold hover:bg-slate-100 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
+            className="w-full flex items-center justify-center gap-2 py-2 rounded-xl border border-[#c0c7d3] bg-[#f9f9ff] text-slate-600 text-xs font-semibold hover:bg-[#ebf8ff] disabled:opacity-60 disabled:cursor-not-allowed transition-all"
           >
             {isCheckingPlagiarism ? (
               <>
@@ -130,11 +130,12 @@ export const GradingResultsList = ({
       </div>
 
       {/* List */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-2">
+      <div className="flex-1 overflow-y-auto p-6 space-y-3 bg-white">
         {filtered.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center p-8 opacity-30">
-            <FileText className="w-12 h-12 text-slate-200 mb-3" />
-            <p className="text-sm font-medium text-slate-400">Chưa có bài làm nào</p>
+          <div className="h-full flex flex-col items-center justify-center text-center p-8 border-2 border-dashed border-[#c0c7d3] rounded-xl bg-[#f9f9ff]">
+            <FileText className="w-12 h-12 text-[#3182ce]/30 mb-3" />
+            <p className="text-sm font-bold text-slate-500">Chưa có bài làm nào</p>
+            <p className="text-xs text-slate-400 mt-1">Tải lên file ảnh/PDF/DOCX bài làm học sinh để bắt đầu.</p>
           </div>
         ) : (
           filtered.map(res => {
@@ -146,7 +147,7 @@ export const GradingResultsList = ({
                 key={res.id}
                 initial={{ opacity: 0, x: -5 }}
                 animate={{ opacity: 1, x: 0 }}
-                className={`flex items-center justify-between p-3 bg-white rounded-2xl border border-slate-100 border-l-2 hover:shadow-md transition-all group ${
+                className={`flex items-center justify-between p-3 bg-white rounded-xl border border-[#c0c7d3]/70 border-l-4 hover:border-[#3182ce]/40 hover:shadow-sm transition-all group ${
                   badge ? badge.borderCls : 'border-l-slate-200'
                 }`}
               >
@@ -179,11 +180,11 @@ export const GradingResultsList = ({
                           if (e.key === 'Enter') commitEdit(res);
                           if (e.key === 'Escape') setEditingId(null);
                         }}
-                        className="text-sm font-bold text-slate-800 bg-blue-50 border border-blue-300 rounded-lg px-2 py-0.5 outline-none w-40"
+                    className="text-sm font-bold text-[#121c2c] bg-[#ebf8ff] border border-[#3182ce]/40 rounded-lg px-2 py-0.5 outline-none w-40"
                       />
                     ) : (
                       <p
-                        className="text-sm font-bold text-slate-800 cursor-text hover:text-blue-600 transition-colors truncate"
+                         className="text-sm font-bold text-[#121c2c] cursor-text hover:text-[#005ea1] transition-colors truncate"
                         title="Double-click để sửa tên"
                         onDoubleClick={() => startEdit(res)}
                       >
@@ -212,7 +213,7 @@ export const GradingResultsList = ({
 
                   <button
                     onClick={() => onView(res)}
-                    className="p-2 bg-slate-50 text-slate-400 rounded-xl hover:bg-blue-600 hover:text-white transition-all"
+                    className="p-2 bg-[#f9f9ff] text-slate-500 rounded-xl hover:bg-[#3182ce] hover:text-white transition-all"
                     title="Xem chi tiết"
                   >
                     <Eye className="w-4 h-4" />

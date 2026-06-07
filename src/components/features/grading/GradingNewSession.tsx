@@ -119,30 +119,30 @@ export const GradingNewSession = ({
   };
 
   return (
-    <div className="flex flex-col gap-4 h-full overflow-hidden">
-      {/* Upload row */}
-      <div className="grid grid-cols-3 gap-4 flex-shrink-0">
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Config area */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 flex-shrink-0 p-6 bg-white">
         {/* Session title + maxScore */}
-        <div className="space-y-1">
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tên phiên chấm</label>
+        <div className="space-y-2">
+          <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Tên phiên chấm</label>
           <input type="text" value={sessionTitle} onChange={e => setSessionTitle(e.target.value)}
             placeholder="VD: Kiểm tra 15p Toán 10A1..."
-            className="w-full px-3 py-2.5 rounded-xl border border-slate-100 bg-white text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none" />
+            className="w-full px-3 py-2.5 rounded-lg border border-[#c0c7d3] bg-white text-sm font-medium text-[#121c2c] focus:ring-2 focus:ring-[#3182ce]/20 focus:border-[#3182ce] outline-none" />
           <div className="flex items-center gap-2 mt-1">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Thang điểm</label>
+            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Thang điểm</label>
             <input
               type="number" min={1} max={1000} value={maxScore}
               onChange={e => setMaxScore(Math.max(1, Number(e.target.value)))}
-              className="w-20 px-2 py-1 rounded-lg border border-slate-100 bg-white text-sm font-bold text-center focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-20 px-3 py-2 rounded-lg border border-[#c0c7d3] bg-white text-sm font-bold text-center focus:ring-2 focus:ring-[#3182ce]/20 focus:border-[#3182ce] outline-none"
             />
             <span className="text-[10px] text-slate-400">điểm</span>
           </div>
         </div>
 
         {/* Master files */}
-        <div className="space-y-1">
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Đề + Đáp án ({masterFiles.length})</label>
+            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Đề + Đáp án ({masterFiles.length})</label>
             <button onClick={() => masterRef.current?.click()} className="text-[10px] text-blue-600 font-bold hover:underline flex items-center gap-0.5">
               <Plus className="w-3 h-3" /> Thêm
             </button>
@@ -150,12 +150,12 @@ export const GradingNewSession = ({
           <div className="space-y-1 max-h-20 overflow-y-auto">
             {masterFiles.length === 0 ? (
               <div onClick={() => masterRef.current?.click()}
-                className="p-3 rounded-xl border-2 border-dashed border-slate-200 hover:border-blue-300 cursor-pointer flex items-center gap-2 text-slate-400 hover:text-blue-500 transition-all">
+                className="p-4 rounded-xl border-2 border-dashed border-[#c0c7d3] bg-[#f9f9ff] hover:border-[#3182ce]/50 hover:bg-[#ebf8ff] cursor-pointer flex items-center gap-2 text-slate-500 hover:text-[#005ea1] transition-all">
                 <Upload className="w-4 h-4" />
                 <span className="text-xs font-medium">Chọn file đề & đáp án</span>
               </div>
             ) : masterFiles.map(f => (
-              <div key={f.id} className="flex items-center gap-2 p-2 bg-green-50 rounded-lg border border-green-100">
+              <div key={f.id} className="flex items-center gap-2 p-2 bg-emerald-50 rounded-lg border border-emerald-100">
                 <CheckCircle2 className="w-3 h-3 text-green-500 shrink-0" />
                 <span className="text-[10px] font-medium text-slate-700 truncate flex-1">{f.name}</span>
                 <button onClick={() => setMasterFiles(prev => prev.filter(mf => mf.id !== f.id))} className="text-red-400 hover:text-red-600">
@@ -180,15 +180,15 @@ export const GradingNewSession = ({
         </div>
 
         {/* Student files */}
-        <div className="space-y-1">
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bài làm HS ({studentFiles.length})</label>
+            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Bài làm HS ({studentFiles.length})</label>
             <button onClick={() => studentRef.current?.click()} className="text-[10px] text-blue-600 font-bold hover:underline flex items-center gap-0.5">
               <Plus className="w-3 h-3" /> Thêm
             </button>
           </div>
           <div onClick={() => studentRef.current?.click()}
-            className="p-3 rounded-xl border-2 border-dashed border-slate-200 hover:border-blue-300 cursor-pointer flex items-center gap-2 text-slate-400 hover:text-blue-500 transition-all">
+            className="p-4 rounded-xl border-2 border-dashed border-[#c0c7d3] bg-[#f9f9ff] hover:border-[#3182ce]/50 hover:bg-[#ebf8ff] cursor-pointer flex items-center gap-2 text-slate-500 hover:text-[#005ea1] transition-all">
             <Users className="w-4 h-4" />
             <span className="text-xs font-medium">
               {studentFiles.length > 0 ? `${studentFiles.length} bài — thêm tiếp` : 'Chọn bài cả lớp (nhiều file)'}
@@ -199,8 +199,8 @@ export const GradingNewSession = ({
       </div>
 
       {/* Grading rubric */}
-      <div className="flex-shrink-0">
-        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">
+      <div className="flex-shrink-0 px-6 pb-5 bg-white">
+        <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest block mb-1">
           Hướng dẫn chấm <span className="normal-case font-normal">(tuỳ chọn)</span>
         </label>
         <textarea
@@ -208,7 +208,7 @@ export const GradingNewSession = ({
           value={gradingRubric}
           onChange={e => setGradingRubric(e.target.value)}
           placeholder="VD: Câu 1 = 0.5đ, câu 2 = 1đ. Sai chính tả trừ 0.25đ/lỗi. Phần tự luận: đủ ý = 100%, thiếu 1 ý = 50%..."
-          className="w-full px-3 py-2 rounded-xl border border-slate-100 bg-white text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none resize-none placeholder:text-slate-300"
+          className="w-full px-3 py-2 rounded-lg border border-[#c0c7d3] bg-white text-sm font-medium focus:ring-2 focus:ring-[#3182ce]/20 focus:border-[#3182ce] outline-none resize-none placeholder:text-slate-300"
         />
       </div>
 
@@ -231,10 +231,10 @@ export const GradingNewSession = ({
         </div>
       )}
 
-      <div className="flex items-center gap-3 flex-shrink-0">
+      <div className="flex items-center gap-3 flex-shrink-0 px-6 py-3 border-y border-[#c0c7d3] bg-[#f9f9ff]">
         <button onClick={onStartGrading}
           disabled={isProcessing || masterFiles.length === 0 || studentFiles.length === 0}
-          className="px-6 py-2.5 bg-slate-900 text-white rounded-2xl font-black hover:bg-slate-800 transition-all flex items-center gap-2 disabled:opacity-50 disabled:grayscale shadow-xl shadow-slate-200 text-sm">
+          className="px-6 py-2.5 bg-[#38a169] text-white rounded-full font-black hover:bg-[#2f855a] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-sm">
           {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <ClipboardCheck className="w-4 h-4" />}
           {isProcessing ? `Đang chấm... (${stats.completed}/${stats.total})` : 'Bắt đầu Chấm điểm AI'}
         </button>
@@ -282,7 +282,9 @@ export const GradingNewSession = ({
       </div>
 
       {/* Weakness aggregation */}
-      <GradingWeaknessPanel results={results} />
+        <div className="px-6 pt-4 bg-white">
+          <GradingWeaknessPanel results={results} />
+        </div>
 
       {/* Results list */}
       <GradingResultsList

@@ -30,24 +30,24 @@ export const GradingSessionList = ({
   };
 
   return (
-    <div className="w-72 flex-shrink-0 bg-white rounded-[32px] border border-slate-100 flex flex-col overflow-hidden shadow-sm">
-      <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+    <div className="w-full lg:w-80 flex-shrink-0 bg-white rounded-2xl border border-[#c0c7d3] flex flex-col overflow-hidden shadow-[0_4px_12px_rgba(49,130,206,0.08)]">
+      <div className="p-6 border-b border-[#c0c7d3] flex items-center justify-between bg-[#f9f9ff]">
         <div className="flex items-center gap-2">
-          <History className="w-4 h-4 text-blue-500" />
-          <span className="text-sm font-black text-slate-800">Lịch sử chấm</span>
+          <History className="w-5 h-5 text-[#3182ce]" />
+          <span className="text-lg font-black text-[#121c2c]">Lịch sử chấm</span>
         </div>
         <button
           onClick={onNewSession}
-          className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-all"
+          className="flex items-center gap-1 px-3 py-1.5 bg-[#3182ce] text-white rounded-full text-xs font-bold hover:bg-[#2c5282] transition-all"
         >
           <Plus className="w-3 h-3" /> Mới
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-2">
+      <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-white">
         {isNewMode && (
-          <div className="p-3 bg-blue-50 border border-blue-200 rounded-2xl">
-            <p className="text-xs font-bold text-blue-700 flex items-center gap-1.5">
+          <div className="p-3 bg-[#e7eeff] border border-[#3182ce]/20 rounded-xl">
+            <p className="text-xs font-bold text-[#005ea1] flex items-center gap-1.5">
               <Plus className="w-3 h-3" /> Phiên chấm mới
             </p>
             <p className="text-[10px] text-blue-500 mt-0.5">
@@ -73,15 +73,15 @@ export const GradingSessionList = ({
           return (
             <div
               key={session.id}
-              className={`p-3 rounded-2xl border cursor-pointer transition-all group ${
+              className={`p-3 rounded-xl border cursor-pointer transition-all group ${
                 isSelected
-                  ? 'bg-blue-50 border-blue-200'
-                  : 'bg-white border-slate-100 hover:border-blue-200 hover:bg-slate-50'
+                  ? 'bg-[#e7eeff] border-[#3182ce]/30'
+                  : 'bg-white border-[#c0c7d3]/70 hover:border-[#3182ce]/40 hover:bg-[#ebf8ff]'
               }`}
               onClick={() => onSelectSession(session)}
             >
               <div className="flex items-start justify-between gap-2">
-                <p className={`text-xs font-bold truncate flex-1 ${isSelected ? 'text-blue-700' : 'text-slate-700'}`}>
+                 <p className={`text-xs font-bold truncate flex-1 ${isSelected ? 'text-[#005ea1]' : 'text-slate-700'}`}>
                   📋 {session.title}
                 </p>
                 <button

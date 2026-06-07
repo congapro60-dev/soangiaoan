@@ -180,13 +180,15 @@ export const ExamEditorView = ({ user, data, saveExam, showToast, onBack, pageIm
     }
   };
 
+  const validCount = questions.filter(q => q.content.trim()).length;
+  const totalScore = calculateMaxScore(questions.filter(q => q.content.trim()));
+
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-[1400px] mx-auto">
-      <button onClick={onBack} className="text-sm text-slate-500 hover:text-slate-800 mb-4 flex items-center gap-1">
-        ← Quay lại
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mx-auto max-w-[1500px] space-y-4">
+      <button onClick={onBack} className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-500 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
+        <ArrowLeft className="h-4 w-4" /> Quay lại danh sách kỳ thi
       </button>
 
-      {/* Manual Crop Modal */}
       <AnimatePresence>
         {croppingId && pageImages && pageImages.length > 0 && (
           <ManualCropModal
@@ -203,121 +205,137 @@ export const ExamEditorView = ({ user, data, saveExam, showToast, onBack, pageIm
         )}
       </AnimatePresence>
 
-      <div className="flex gap-5 items-start">
-        {/* ── Left panel: card editor ── */}
-        <div className="flex-1 min-w-0">
-          {/* Meta */}
-          <div className="bg-white rounded-2xl border border-slate-100 p-5 mb-4 space-y-4">
-            <h2 className="text-sm font-black text-slate-700">Thông tin đề thi</h2>
-            <div>
-              <label className="text-xs font-bold text-slate-500 block mb-1">Tiêu đề *</label>
-              <input
-                type="text"
-                value={title}
-                onChange={e => setTitle(e.target.value)}
-                placeholder="VD: Kiểm tra 15 phút Toán 10"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-              />
+      <section className="overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-white via-[#f9fbff] to-[#eef6ff] shadow-sm">
+        <div className="flex flex-col gap-5 p-5 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-blue-700">
+              Manual Question Studio
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <h1 className="text-2xl font-black tracking-tight text-slate-900">Biên soạn câu hỏi thủ công</h1>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">
+              Workspace chia 3 vùng: cấu trúc đề, editor câu hỏi và bản nháp text để giáo viên kiểm soát từng câu trước khi xuất thành phòng thi online.
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="rounded-2xl border border-blue-100 bg-white px-4 py-3">
+              <p className="text-xl font-black text-blue-700">{questions.length}</p>
+              <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Tổng câu</p>
+            </div>
+            <div className="rounded-2xl border border-emerald-100 bg-white px-4 py-3">
+              <p className="text-xl font-black text-emerald-600">{validCount}</p>
+              <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Đã nhập</p>
+            </div>
+            <div className="rounded-2xl border border-slate-100 bg-white px-4 py-3">
+              <p className="text-xl font-black text-slate-800">{totalScore}</p>
+              <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Điểm</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="rounded-3xl border border-slate-200/70 bg-[#f9f9ff] p-3 shadow-sm">
+        <div className="grid gap-3 xl:grid-cols-[260px_minmax(0,1fr)_360px]">
+          <aside className="hidden overflow-hidden rounded-2xl border border-slate-200 bg-white xl:flex xl:flex-col">
+            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-3">
               <div>
-                <label className="text-xs font-bold text-slate-500 block mb-1">Môn học</label>
-                <select
-                  value={subjectId}
-                  onChange={e => setSubjectId(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                >
+                <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">Cấu trúc đề</p>
+                <p className="text-xs text-slate-400">{validCount}/{questions.length} câu có nội dung</p>
+              </div>
+              <button onClick={addQuestion} className="rounded-lg bg-blue-50 p-2 text-blue-700 transition hover:bg-blue-100" title="Thêm câu hỏi">
+                <Plus className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="max-h-[650px] flex-1 space-y-1 overflow-y-auto p-2">
+              {questions.map((q, i) => {
+                const active = expandedId === q.id;
+                return (
+                  <button
+                    key={q.id}
+                    onClick={() => setExpandedId(q.id)}
+                    className={`flex w-full items-center justify-between gap-2 rounded-xl border p-2 text-left transition ${active ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-slate-100 bg-white text-slate-600 hover:bg-slate-50'}`}
+                  >
+                    <span className="flex min-w-0 items-center gap-2">
+                      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-black ${active ? 'bg-blue-600 text-white' : q.content.trim() ? 'bg-slate-100 text-slate-600' : 'border border-dashed border-slate-300 text-slate-400'}`}>{i + 1}</span>
+                      <span className={`truncate text-xs font-semibold ${q.content.trim() ? '' : 'italic text-slate-400'}`}>{q.content.trim() || 'Câu hỏi trống'}</span>
+                    </span>
+                    <span className="shrink-0 text-[10px] font-black uppercase text-slate-400">{TYPE_SHORT[q.type]}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="border-t border-slate-100 p-3">
+              <button onClick={addQuestion} className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 py-2 text-xs font-black text-slate-500 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700">
+                <Plus className="h-3.5 w-3.5" /> Thêm câu hỏi
+              </button>
+            </div>
+          </aside>
+
+          <main className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+            <div className="grid gap-3 border-b border-slate-100 bg-white p-4 md:grid-cols-3">
+              <div className="md:col-span-3 lg:col-span-1">
+                <label className="mb-1 block text-[11px] font-black uppercase tracking-wider text-slate-500">Tiêu đề đề thi <span className="text-red-500">*</span></label>
+                <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="VD: Kiểm tra 15 phút Toán 10" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-100" />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] font-black uppercase tracking-wider text-slate-500">Môn học</label>
+                <select value={subjectId} onChange={e => setSubjectId(e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-100">
                   {data.subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
               </div>
-              <div>
-                <label className="text-xs font-bold text-slate-500 block mb-1">Thời gian (phút)</label>
-                <input
-                  type="number"
-                  min={1}
-                  value={duration}
-                  onChange={e => setDuration(parseInt(e.target.value) || 45)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-slate-500 block mb-1">Khối</label>
-                <input
-                  type="text"
-                  value={grade}
-                  onChange={e => setGrade(e.target.value)}
-                  placeholder="VD: 10"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1 block text-[11px] font-black uppercase tracking-wider text-slate-500">Thời gian</label>
+                  <input type="number" min={1} value={duration} onChange={e => setDuration(parseInt(e.target.value) || 45)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-100" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] font-black uppercase tracking-wider text-slate-500">Khối</label>
+                  <input type="text" value={grade} onChange={e => setGrade(e.target.value)} placeholder="VD: 10" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none transition focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-100" />
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Questions */}
-          <div className="space-y-3 mb-4">
-            {questions.map((q, i) => (
-              <QuestionCard
-                key={q.id}
-                question={q}
-                num={i + 1}
-                isExpanded={expandedId === q.id}
-                onToggle={() => setExpandedId(expandedId === q.id ? '' : q.id)}
-                onChange={patch => updateQuestion(q.id, patch)}
-                onRemove={() => removeQuestion(q.id)}
-                onMove={dir => moveQuestion(q.id, dir)}
-                onStartCrop={() => setCroppingId(q.id)}
-                hasPageImages={!!pageImages && pageImages.length > 0}
-              />
-            ))}
-          </div>
-
-          <div className="flex items-center justify-between gap-3">
-            <button
-              onClick={addQuestion}
-              className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-slate-300 text-slate-500 hover:border-blue-400 hover:text-blue-600 rounded-xl text-sm font-bold transition-all"
-            >
-              <Plus className="w-4 h-4" /> Thêm câu hỏi
-            </button>
-            <div className="flex items-center gap-2 text-xs text-slate-400">
-              <span>{questions.filter(q => q.content.trim()).length} câu có nội dung</span>
-              <span>•</span>
-              <span>Tổng {calculateMaxScore(questions.filter(q => q.content.trim()))} điểm</span>
+            <div className="max-h-[720px] space-y-3 overflow-y-auto p-4">
+              {questions.map((q, i) => (
+                <QuestionCard
+                  key={q.id}
+                  question={q}
+                  num={i + 1}
+                  isExpanded={expandedId === q.id}
+                  onToggle={() => setExpandedId(expandedId === q.id ? '' : q.id)}
+                  onChange={patch => updateQuestion(q.id, patch)}
+                  onRemove={() => removeQuestion(q.id)}
+                  onMove={dir => moveQuestion(q.id, dir)}
+                  onStartCrop={() => setCroppingId(q.id)}
+                  hasPageImages={!!pageImages && pageImages.length > 0}
+                />
+              ))}
             </div>
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-100 disabled:opacity-60"
-            >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              Lưu đề thi
-            </button>
-          </div>
+          </main>
+
+          <aside className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-3">
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-600">Chế độ xem trước text</p>
+                <p className="text-xs text-slate-400">Sửa nhanh theo định dạng markdown nội bộ</p>
+              </div>
+              {parseError && <span className="max-w-[150px] truncate rounded-lg bg-red-50 px-2 py-1 text-[10px] font-bold text-red-600" title={parseError}>⚠ Lỗi cú pháp</span>}
+            </div>
+            <textarea value={textDraft} onChange={e => handleTextChange(e.target.value)} spellCheck={false} className="h-[620px] w-full resize-none bg-[#fafafa] px-4 py-3 font-mono text-xs leading-relaxed text-slate-700 outline-none" />
+            <div className="border-t border-slate-100 bg-white px-4 py-3 text-[10px] leading-relaxed text-slate-400">
+              Định dạng: <code># Câu N — MCQ/ĐS/Ngắn/TL — X điểm</code><br />Phân cách câu bằng dòng <code>---</code>
+            </div>
+          </aside>
         </div>
+      </div>
 
-        {/* ── Right panel: text editor ── */}
-        <div className="w-80 xl:w-96 shrink-0 self-start sticky top-4">
-          <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-            <div className="px-4 py-2.5 border-b border-slate-100 flex items-center gap-2">
-              <span className="text-xs font-black text-slate-600 flex-1">Chỉnh sửa văn bản</span>
-              {parseError && (
-                <span className="text-[10px] font-bold text-red-500 truncate max-w-[160px]" title={parseError}>
-                  ⚠ {parseError}
-                </span>
-              )}
-            </div>
-            <textarea
-              value={textDraft}
-              onChange={e => handleTextChange(e.target.value)}
-              spellCheck={false}
-              className="w-full font-mono text-[11px] px-4 py-3 outline-none resize-none bg-slate-50 leading-relaxed"
-              style={{ height: '560px' }}
-            />
-          </div>
-          <p className="text-[10px] text-slate-400 mt-2 px-1 leading-relaxed">
-            Định dạng: <code># Câu N — MCQ/ĐS/Ngắn/TL — X điểm</code><br />
-            A. Phương án A &nbsp;•&nbsp; Đáp án: A<br />
-            Phân cách câu bằng dòng <code>---</code>
-          </p>
+      <div className="sticky bottom-3 z-10 flex items-center justify-between rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-lg shadow-slate-200/60 backdrop-blur">
+        <button onClick={onBack} className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-500 transition hover:bg-slate-50">Hủy bỏ</button>
+        <div className="flex items-center gap-3">
+          <span className="hidden text-xs font-semibold text-slate-400 sm:inline">{validCount} câu hợp lệ • {totalScore} điểm • Mặc định lưu nháp, chưa phát hành</span>
+          <button onClick={addQuestion} className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-black text-blue-700 transition hover:bg-blue-100"><Plus className="h-4 w-4" /> Thêm câu</button>
+          <button onClick={handleSave} disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2 text-sm font-black text-white shadow-lg shadow-blue-100 transition hover:bg-blue-700 disabled:opacity-60">
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Xuất đề thi
+          </button>
         </div>
       </div>
     </motion.div>

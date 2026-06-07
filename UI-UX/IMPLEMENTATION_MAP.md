@@ -9,8 +9,8 @@ Ngày cập nhật: **06/06/2026**
 | File zip Stitch trong `UI-UX/` | **19** |
 | Đã giải nén vào `UI-UX/_extracted/` | **19** (đủ) |
 | Tab/chức năng trong app React | **10 tab** + Settings modal + 3 route adaptive |
-| Màn đã migrate UI (Phase 1) | **13 màn** — Step 1–9 |
-| Màn còn lại (Phase 2) | **6 màn** + polish vài màn phụ |
+| Màn đã migrate UI (Phase 1+2) | **14 màn** — Step 1–10 |
+| Màn còn lại (Phase 2) | **5 màn** + polish vài màn phụ |
 
 ## Nguyên tắc migrate
 
@@ -38,11 +38,11 @@ Ngày cập nhật: **06/06/2026**
 | 11 | `stitch_xem chi tiết & xem trước (...).zip` | Preview giáo án tĩnh | `LibraryTab.tsx` + `ViewPlanModal` | ✅ | ✅ Step 6 |
 | 12 | `stitch_Quản lý lớp học & Danh sách học sinh.zip` | CRUD lớp/học sinh | **Màn mới** (tab hoặc page) | ✅ | ⏳ Phase 2 |
 | 13 | `stitch_Hồ sơ và cài đặt.zip` | Profile + API keys | `SettingsModal.tsx`, `ApiUsagePanel.tsx` | ✅ | ⏳ Phase 2 |
-| 14 | `stitch_Chấm điểm AI & Tự luận.zip` | Chấm bài AI | `GradingTab.tsx` | ✅ | ⏳ **Step 10 — TIẾP THEO** |
+| 14 | `stitch_Chấm điểm AI & Tự luận.zip` | Chấm bài AI | `GradingTab.tsx` | ✅ | ✅ Step 10 |
 | 15 | `stitch_quản lý kỳ thi Online (Redesign).zip` | Danh sách kỳ thi | `ExamsTab.tsx` | ✅ | ⏳ Step 11 |
 | 16 | `stitch_Biên soạn câu hỏi thủ công.zip` | Editor câu hỏi thi | Sub-view trong Exams flow | ✅ | ⏳ Step 12 |
 | 17 | `stitch_Thiết lập & Cấu hình.zip` | Cấu hình kỳ thi | Sub-view config Exams | ✅ | ⏳ Step 13 |
-| 18 | `stitch_Trung tâm công cụ.zip` | Hub công cụ AI | `AIToolsTab.tsx` | ✅ | ⏳ Step 14 (polish) |
+| 18 | `stitch_Trung tâm công cụ.zip` | Hub công cụ AI | `AIToolsTab.tsx` | ✅ | ✅ Step 14 polish done |
 | 19 | `stitch_Giao diện AI tutor.zip` | Chat tutor | `ChatTab.tsx` | ✅ | ⏳ Step 15 |
 
 ### Màn app không có zip Stitch riêng
@@ -55,7 +55,7 @@ Ngày cập nhật: **06/06/2026**
 
 ---
 
-## Phase 1 — Đã hoàn tất (Step 1–9)
+## Phase 1–2 — Đã hoàn tất (Step 1–10)
 
 Build production PASS sau mỗi step. Thay đổi **local, chưa push GitHub**.
 
@@ -70,8 +70,9 @@ Build production PASS sau mỗi step. Thay đổi **local, chưa push GitHub**.
 | 7 | Export Template A4 | `ExportTemplateSettings.tsx` | 05/06 |
 | 8 | Cổng học sinh | `AdaptiveStudentPortalPage.tsx` | 05/06 |
 | 9 | Analytics dashboard | `AdaptiveLearningTab.tsx` | 05/06 |
+| 10 | Chấm điểm AI & Tự luận | `GradingTab.tsx`, `features/grading/*` | 06/06 |
 
-**Deliverable Phase 1:** Nhóm soạn giáo án, thư viện, đề kiểm tra ma trận, export A4, adaptive portal + analytics.
+**Deliverable Phase 1–2:** Nhóm soạn giáo án, thư viện, đề kiểm tra ma trận, export A4, adaptive portal + analytics, chấm điểm AI.
 
 ---
 
@@ -81,11 +82,11 @@ Thứ tự ưu tiên theo **giá trị người dùng** + **gom luồng liên qu
 
 | Step | Màn hình | Zip reference | React target | Effort | Ghi chú |
 |------|----------|---------------|--------------|--------|---------|
-| **10** | **Chấm điểm AI & Tự luận** | #14 | `GradingTab.tsx` | L | **Bắt đầu từ đây** — tab lớn, UI cũ nhất trong nhóm còn lại |
-| 11 | Quản lý kỳ thi Online | #15 | `ExamsTab.tsx` | L | Gom luồng thi online |
+| **10** | **Chấm điểm AI & Tự luận** | #14 | `GradingTab.tsx` | L | ✅ Hoàn tất — build PASS |
+| 11 | Quản lý kỳ thi Online | #15 | `ExamsTab.tsx` | L | **Tiếp theo** — gom luồng thi online |
 | 12 | Biên soạn câu hỏi thủ công | #16 | Exams manual editor | M | Sub-flow của Exams |
 | 13 | Thiết lập & Cấu hình kỳ thi | #17 | Exams config | M | Sub-flow của Exams |
-| 14 | Trung tâm công cụ | #18 | `AIToolsTab.tsx` | S–M | Đã có hero mới một phần; cần đối chiếu zip |
+| 14 | Trung tâm công cụ | #18 | `AIToolsTab.tsx` | S–M | Đã đối chiếu zip và polish theo Knowledge Blue Editorial |
 | 15 | Giao diện AI Tutor | #19 | `ChatTab.tsx` | M | Thay chatbot layout cũ |
 | 16 | Hồ sơ & Cài đặt | #13 | `SettingsModal.tsx` | M | API keys, token tracker |
 | 17 | Quản lý Lớp học | #12 | Page/tab mới | L | CRUD lớp/học sinh; nối Grading + Adaptive |
@@ -105,19 +106,19 @@ Screenshot hiện tại để đối chiếu: `UI-UX/current_screenshots/06_exam
 
 ---
 
-## Việc làm NGAY — Step 10: Chấm điểm AI
+## Step 10 đã hoàn tất — Chấm điểm AI
 
 ### Mục tiêu
 Nâng cấp visual `GradingTab.tsx` theo `UI-UX/_extracted/stitch_Chấm điểm AI & Tự luận/` — **giữ nguyên** logic chấm AI, upload ảnh/PDF, batch grading, history.
 
 ### Checklist triển khai
 
-- [ ] Đọc `code.html` + `DESIGN.md` trong folder extracted #14
-- [ ] Đối chiếu `current_screenshots/05_grading.png` (UI cũ) vs `screen.png` (Stitch)
-- [ ] Refactor layout: hero/header, upload zone, kết quả chấm, bảng lịch sử — theo tokens `#3182ce`, card `rounded-2xl`, spacing 8px
-- [ ] Không đụng `gradingUtils.ts`, AI provider calls, Firestore save
-- [ ] `npm run build` PASS
-- [ ] Cập nhật mục Step 10 thành ✅ trong file này
+- [x] Đọc `code.html` + `DESIGN.md` trong folder extracted #14
+- [x] Đối chiếu `current_screenshots/05_grading.png` (UI cũ) vs `screen.png` (Stitch)
+- [x] Refactor layout: hero/header, upload zone, kết quả chấm, bảng lịch sử — theo tokens `#3182ce`, card `rounded-2xl`, spacing 8px
+- [x] Không đụng `gradingUtils.ts`, AI provider calls, Firestore save
+- [x] `npm run build` PASS (`npm --prefix C:\Users\ADMIN\Downloads\smart-lesson-plan-ai run build`, 49.28s; còn warning chunk lớn Vite không chặn)
+- [x] Cập nhật mục Step 10 thành ✅ trong file này
 
 ### Sau Step 10
 Chuyển sang **Step 11–13 (Exams cluster)** — 3 màn liên quan, hoàn thiện luồng thi online.
@@ -149,8 +150,11 @@ Build: PASS (~2m37s), warning chunk lớn Vite (không chặn)
 **File source đã sửa (Phase 1):**
 `index.css`, `Sidebar.tsx`, `DashboardTab.tsx`, `LibraryTab.tsx`, `TestingTab.tsx`, `AdaptiveLearningTab.tsx`, `CreatorToolbar.tsx`, `LessonContentBoard.tsx`, `AdaptiveLessonBuilderPage.tsx`, `AdaptiveStudentPortalPage.tsx`, `export/ExportTemplateSettings.tsx`
 
+**Đã sửa UI Step 10:**
+`GradingTab.tsx`, `components/features/grading/GradingSessionList.tsx`, `GradingNewSession.tsx`, `GradingResultsList.tsx`
+
 **Chưa sửa UI (Phase 2):**
-`GradingTab.tsx`, `ExamsTab.tsx`, `ChatTab.tsx`, `SettingsModal.tsx`, `TemplatesTab.tsx` (+ AIToolsTab polish nhẹ)
+`ExamsTab.tsx`, `ChatTab.tsx`, `SettingsModal.tsx`, `TemplatesTab.tsx`
 
 ---
 

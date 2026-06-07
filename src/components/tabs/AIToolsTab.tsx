@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import {
+  AlertTriangle,
   ArrowUpRight,
   Check,
   Clipboard,
@@ -72,6 +73,7 @@ export const AIToolsTab = ({ data, isLoading, setIsLoading, showToast }: AITools
   const [outputFormat, setOutputFormat] = useState<'Markdown' | 'Bảng' | 'JSON' | 'Checklist' | 'Code' | 'Tự chọn'>('Tự chọn');
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [copied, setCopied] = useState(false);
+  const missingApiKey = !data.settings.geminiApiKey && !data.settings.claudeApiKey && !data.settings.openaiApiKey && !data.settings.grokApiKey && !data.settings.deepseekApiKey;
 
   const filteredTools = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -143,52 +145,73 @@ export const AIToolsTab = ({ data, isLoading, setIsLoading, showToast }: AITools
       key="ai-tools"
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
+      className="space-y-6 bg-[#f9f9ff]"
     >
-      <section className="relative overflow-hidden rounded-[32px] border border-blue-100 bg-gradient-to-br from-blue-600 via-indigo-600 to-slate-900 p-6 text-white shadow-xl shadow-blue-100">
-        <div className="absolute right-[-80px] top-[-80px] h-64 w-64 rounded-full bg-white/10 blur-3xl" />
-        <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      {missingApiKey && (
+        <section className="flex flex-col gap-3 rounded-xl border border-[#c0c7d3] bg-[#d9e3f9] p-4 text-[#121c2c] sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[#3b6090]" />
+            <p className="text-sm leading-6 text-[#121c2c]">
+              Bạn chưa nhập API Key — AI sẽ dùng key dự phòng (có thể chậm). Vui lòng thêm key của bạn để có trải nghiệm tốt nhất.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => showToast('Mở Hồ sơ và cài đặt để thêm API Key.', 'info')}
+            className="rounded-lg bg-[#3b6090] px-4 py-2 text-xs font-bold uppercase tracking-wide text-white transition-colors hover:bg-[#204877]"
+          >
+            Cài đặt
+          </button>
+        </section>
+      )}
+
+      <section className="relative overflow-hidden rounded-xl border border-[#c0c7d3]/40 bg-gradient-to-r from-[#005ea1] to-[#2178c3] p-8 text-white shadow-sm md:p-12">
+        <div className="absolute right-0 top-0 h-full w-1/3 opacity-20 pointer-events-none">
+          <div className="absolute right-[-60px] top-[-50px] h-64 w-64 rounded-full bg-white/25 blur-3xl" />
+          <div className="absolute bottom-[-70px] right-20 h-48 w-48 rounded-full bg-[#9fcaff]/40 blur-3xl" />
+        </div>
+        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-blue-50">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-blue-50 backdrop-blur-sm">
               <Sparkles className="h-3.5 w-3.5" /> Công cụ AI
             </div>
-            <h2 className="text-3xl font-black tracking-tight">Trung tâm công cụ AI cho giáo viên</h2>
-            <p className="mt-2 text-sm font-medium text-blue-50/90">
+            <h2 className="font-['Plus_Jakarta_Sans'] text-4xl font-bold tracking-[-0.02em] md:text-5xl">Trung tâm công cụ AI cho giáo viên</h2>
+            <p className="mt-4 max-w-xl text-base leading-7 text-white/90 md:text-lg">
               Gom các công cụ hay vào một nơi: viết prompt, mở nhanh web AI bên ngoài, và sau này có thể bổ sung thêm các link thầy/cô gửi.
             </p>
           </div>
           <button
             onClick={() => document.getElementById('prompt-writer-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-black text-blue-700 shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-bold uppercase tracking-wide text-[#005ea1] shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(49,130,206,0.2)]"
           >
             <WandSparkles className="h-4 w-4" /> Viết prompt ngay
           </button>
         </div>
       </section>
 
-      <section id="prompt-writer-panel" className="grid gap-6 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-        <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-sm">
-          <div className="mb-5 flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+      <section id="prompt-writer-panel" className="grid gap-6 lg:grid-cols-12">
+        <div className="rounded-xl border border-[#c0c7d3] bg-white p-6 shadow-sm lg:col-span-7">
+          <div className="mb-6 flex items-center gap-3 border-b border-[#c0c7d3]/50 pb-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#d2e4ff] text-[#005ea1]">
               <WandSparkles className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-lg font-black text-slate-800">Viết Prompt AI</h3>
-              <p className="text-xs font-semibold text-slate-400">Nhập một dòng mơ hồ, hệ thống sẽ viết lại thành prompt hoàn chỉnh.</p>
+              <h3 className="font-['Plus_Jakarta_Sans'] text-xl font-semibold text-[#121c2c]">Viết Prompt AI</h3>
+              <p className="text-sm text-[#414751]">Nhập một dòng mơ hồ, hệ thống sẽ viết lại thành prompt hoàn chỉnh.</p>
             </div>
           </div>
 
           <div className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="space-y-1.5">
-                <span className="text-xs font-black uppercase tracking-wide text-slate-500">Công cụ AI</span>
-                <select value={targetTool} onChange={(e) => setTargetTool(e.target.value as PromptTargetTool)} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold outline-none transition-all focus:ring-2 focus:ring-blue-500">
+                <span className="text-xs font-bold uppercase tracking-[0.05em] text-[#414751]">Công cụ AI</span>
+                <select value={targetTool} onChange={(e) => setTargetTool(e.target.value as PromptTargetTool)} className="w-full rounded-lg border border-[#c0c7d3] bg-[#f9f9ff] px-4 py-2.5 text-sm text-[#121c2c] outline-none transition-all focus:border-[#005ea1] focus:bg-white focus:ring-2 focus:ring-[#005ea1]/20">
                   {PROMPT_TARGET_TOOLS.map(tool => <option key={tool} value={tool}>{tool}</option>)}
                 </select>
               </label>
               <label className="space-y-1.5">
-                <span className="text-xs font-black uppercase tracking-wide text-slate-500">Mục đích</span>
-                <select value={purpose} onChange={(e) => setPurpose(e.target.value as PromptPurpose)} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold outline-none transition-all focus:ring-2 focus:ring-blue-500">
+                <span className="text-xs font-bold uppercase tracking-[0.05em] text-[#414751]">Mục đích</span>
+                <select value={purpose} onChange={(e) => setPurpose(e.target.value as PromptPurpose)} className="w-full rounded-lg border border-[#c0c7d3] bg-[#f9f9ff] px-4 py-2.5 text-sm text-[#121c2c] outline-none transition-all focus:border-[#005ea1] focus:bg-white focus:ring-2 focus:ring-[#005ea1]/20">
                   {PROMPT_PURPOSES.map(item => <option key={item} value={item}>{item}</option>)}
                 </select>
               </label>
@@ -196,42 +219,42 @@ export const AIToolsTab = ({ data, isLoading, setIsLoading, showToast }: AITools
 
             <div className="grid gap-3 sm:grid-cols-3">
               <label className="space-y-1.5">
-                <span className="text-xs font-black uppercase tracking-wide text-slate-500">Độ chi tiết</span>
-                <select value={detailLevel} onChange={(e) => setDetailLevel(e.target.value as PromptDetailLevel)} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold outline-none transition-all focus:ring-2 focus:ring-blue-500">
+                <span className="text-xs font-bold uppercase tracking-[0.05em] text-[#414751]">Độ chi tiết</span>
+                <select value={detailLevel} onChange={(e) => setDetailLevel(e.target.value as PromptDetailLevel)} className="w-full rounded-lg border border-[#c0c7d3] bg-[#f9f9ff] px-4 py-2.5 text-sm text-[#121c2c] outline-none transition-all focus:border-[#005ea1] focus:bg-white focus:ring-2 focus:ring-[#005ea1]/20">
                   {PROMPT_DETAIL_LEVELS.map(item => <option key={item} value={item}>{item}</option>)}
                 </select>
               </label>
               <label className="space-y-1.5">
-                <span className="text-xs font-black uppercase tracking-wide text-slate-500">Ngôn ngữ</span>
-                <select value={outputLanguage} onChange={(e) => setOutputLanguage(e.target.value as 'Tiếng Việt' | 'English')} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold outline-none transition-all focus:ring-2 focus:ring-blue-500">
+                <span className="text-xs font-bold uppercase tracking-[0.05em] text-[#414751]">Ngôn ngữ</span>
+                <select value={outputLanguage} onChange={(e) => setOutputLanguage(e.target.value as 'Tiếng Việt' | 'English')} className="w-full rounded-lg border border-[#c0c7d3] bg-[#f9f9ff] px-4 py-2.5 text-sm text-[#121c2c] outline-none transition-all focus:border-[#005ea1] focus:bg-white focus:ring-2 focus:ring-[#005ea1]/20">
                   <option>Tiếng Việt</option>
                   <option>English</option>
                 </select>
               </label>
               <label className="space-y-1.5">
-                <span className="text-xs font-black uppercase tracking-wide text-slate-500">Dạng kết quả</span>
-                <select value={outputFormat} onChange={(e) => setOutputFormat(e.target.value as any)} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold outline-none transition-all focus:ring-2 focus:ring-blue-500">
+                <span className="text-xs font-bold uppercase tracking-[0.05em] text-[#414751]">Dạng kết quả</span>
+                <select value={outputFormat} onChange={(e) => setOutputFormat(e.target.value as any)} className="w-full rounded-lg border border-[#c0c7d3] bg-[#f9f9ff] px-4 py-2.5 text-sm text-[#121c2c] outline-none transition-all focus:border-[#005ea1] focus:bg-white focus:ring-2 focus:ring-[#005ea1]/20">
                   {outputFormatOptions.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}
                 </select>
-                <p className="text-[11px] font-semibold leading-relaxed text-slate-400">
+                <p className="text-[11px] leading-relaxed text-[#414751]">
                   {outputFormatHelp[outputFormat]}
                 </p>
               </label>
             </div>
 
             <label className="space-y-1.5 block">
-              <span className="text-xs font-black uppercase tracking-wide text-slate-500">Ý tưởng mơ hồ</span>
+              <span className="text-xs font-bold uppercase tracking-[0.05em] text-[#414751]">Ý tưởng mơ hồ</span>
               <textarea
                 value={rawRequest}
                 onChange={(e) => setRawRequest(e.target.value)}
                 placeholder="VD: Tôi đang dùng Google Gemini, tôi muốn tạo bài giảng về đạo hàm cho học sinh yếu..."
-                className="min-h-[150px] w-full resize-y rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-700 outline-none transition-all focus:bg-white focus:ring-2 focus:ring-blue-500"
+                className="min-h-[150px] w-full resize-y rounded-lg border border-[#c0c7d3] bg-[#f9f9ff] px-4 py-3 text-sm text-[#121c2c] outline-none transition-all focus:border-[#005ea1] focus:bg-white focus:ring-2 focus:ring-[#005ea1]/20"
               />
             </label>
 
             <div className="flex flex-wrap gap-2">
               {examples.map(example => (
-                <button key={example} onClick={() => setRawRequest(example)} className="rounded-full border border-slate-200 px-3 py-1.5 text-left text-[11px] font-bold text-slate-500 transition-all hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
+                <button key={example} onClick={() => setRawRequest(example)} className="rounded-lg border border-[#c0c7d3] bg-white px-3 py-1.5 text-left text-[11px] font-semibold text-[#414751] transition-all hover:border-[#005ea1] hover:bg-[#f0f3ff] hover:text-[#005ea1]">
                   {example}
                 </button>
               ))}
@@ -240,7 +263,7 @@ export const AIToolsTab = ({ data, isLoading, setIsLoading, showToast }: AITools
             <button
               onClick={handleGeneratePrompt}
               disabled={isLoading || !rawRequest.trim()}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3.5 text-sm font-black text-white shadow-lg shadow-blue-100 transition-all hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#005ea1] px-5 py-3 text-sm font-bold uppercase tracking-wide text-white shadow-sm transition-all hover:bg-[#00497e] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
               Tạo prompt hoàn chỉnh
@@ -248,30 +271,32 @@ export const AIToolsTab = ({ data, isLoading, setIsLoading, showToast }: AITools
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-sm">
-          <div className="mb-5 flex items-center justify-between gap-3">
+        <div className="flex h-full flex-col rounded-xl border border-[#c0c7d3] bg-white p-6 shadow-sm lg:col-span-5">
+          <div className="mb-4 flex items-center justify-between gap-3 border-b border-[#c0c7d3]/50 pb-4">
             <div>
-              <h3 className="text-lg font-black text-slate-800">Kết quả</h3>
-              <p className="text-xs font-semibold text-slate-400">Copy prompt này sang công cụ AI bạn muốn dùng.</p>
+              <h3 className="font-['Plus_Jakarta_Sans'] text-xl font-semibold text-[#121c2c]">Kết quả</h3>
+              <p className="text-sm text-[#414751]">Copy prompt này sang công cụ AI bạn muốn dùng.</p>
             </div>
             <button
               onClick={handleCopy}
               disabled={!generatedPrompt.trim()}
-              className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-xs font-black text-slate-600 transition-all hover:bg-slate-50 disabled:opacity-40"
+              className="inline-flex items-center gap-2 rounded-lg border border-[#c0c7d3] px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-[#414751] transition-all hover:bg-[#f0f3ff] disabled:opacity-40"
             >
               {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
               {copied ? 'Đã copy' : 'Sao chép'}
             </button>
           </div>
 
-          <div className="min-h-[420px] rounded-3xl border border-slate-100 bg-slate-50 p-5">
+          <div className="min-h-[420px] flex-1 rounded-lg border border-dashed border-[#c0c7d3] bg-[#f9f9ff] p-5">
             {!generatedPrompt ? (
-              <div className="flex h-[360px] flex-col items-center justify-center text-center text-slate-400">
-                <Clipboard className="mb-4 h-14 w-14 opacity-20" />
-                <p className="max-w-sm text-sm font-semibold">Prompt hoàn chỉnh sẽ xuất hiện ở đây. Chức năng này độc lập, không ảnh hưởng soạn giáo án, Word/PDF hoặc bot.</p>
+              <div className="flex h-[360px] flex-col items-center justify-center text-center text-[#414751]">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#dee8ff] text-[#414751]/60">
+                  <Clipboard className="h-8 w-8" />
+                </div>
+                <p className="max-w-sm text-base leading-6">Prompt hoàn chỉnh sẽ xuất hiện ở đây. Chức năng này độc lập, không ảnh hưởng soạn giáo án, Word/PDF hoặc bot.</p>
               </div>
             ) : (
-              <div className="markdown-body max-w-none text-sm text-slate-700">
+              <div className="markdown-body max-w-none text-sm leading-6 text-[#121c2c]">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{generatedPrompt}</ReactMarkdown>
               </div>
             )}

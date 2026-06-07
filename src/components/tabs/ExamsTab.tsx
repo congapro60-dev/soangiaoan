@@ -150,6 +150,27 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
   const [loadingSubs, setLoadingSubs] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [createView, setCreateView] = useState<CreateView>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const subjectNameById = useMemo(() => {
+    return Object.fromEntries(data.subjects.map(subject => [subject.id, subject.name]));
+  }, [data.subjects]);
+
+  const visibleExams = useMemo(() => {
+    const keyword = searchTerm.trim().toLowerCase();
+    if (!keyword) return exams;
+    return exams.filter(exam => {
+      const subjectName = subjectNameById[exam.subjectId] || '';
+      return [exam.title, exam.code, exam.grade, subjectName]
+        .filter(Boolean)
+        .some(value => String(value).toLowerCase().includes(keyword));
+    });
+  }, [exams, searchTerm, subjectNameById]);
+
+  const activeExamCount = exams.filter(exam => exam.isActive).length;
+  const draftExamCount = exams.length - activeExamCount;
+  const totalQuestionCount = exams.reduce((sum, exam) => sum + exam.questions.length, 0);
+  const missingApiKey = !data.settings.geminiApiKey;
 
   const reloadSubmissions = useCallback(async (exam: Exam) => {
     setLoadingSubs(true);
@@ -372,93 +393,161 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="max-w-6xl mx-auto">
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-black text-slate-800">Thi online</h1>
-          <p className="text-sm text-slate-500 mt-1">Phát hành đề cho học sinh làm bài trực tuyến, hệ thống tự chấm.</p>
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mx-auto max-w-7xl space-y-6">
+      {missingApiKey && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-3 text-sm text-amber-800 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+            <span>Bạn chưa nhập API Key — AI sẽ dùng key dự phòng, có thể chậm khi phân tích đề hoặc chấm tự luận.</span>
+          </div>
+          <span className="text-xs font-bold uppercase tracking-wider text-amber-700">Nên cấu hình trong Cài đặt</span>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={fetchMyExams} className="p-2.5 text-slate-400 hover:bg-slate-50 rounded-xl" title="Tải lại">
-            <RefreshCw className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => setCreateView('picker')}
-            disabled={creating}
-            className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-100 hover:bg-blue-700 disabled:opacity-60"
-          >
-            {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-            {creating ? 'AI đang phân tích...' : 'Tạo đề mới'}
-          </button>
+      )}
+
+      <section className="overflow-hidden rounded-[2rem] border border-blue-100 bg-gradient-to-br from-white via-[#f9fbff] to-[#eff6ff] shadow-sm">
+        <div className="flex flex-col gap-6 p-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-2xl">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-blue-700">
+              <FileText className="h-3.5 w-3.5" /> Online Exam Center
+            </div>
+            <h1 className="text-3xl font-black tracking-tight text-slate-900">Quản lý đề thi online</h1>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Phát hành đề cho học sinh làm bài trực tuyến, theo dõi trạng thái mở đề, chia sẻ mã/QR và xem kết quả tự chấm trong một workspace thống nhất.
+            </p>
+          </div>
+          <div className="grid min-w-[280px] grid-cols-3 gap-3">
+            <ExamSummaryTile label="Tổng đề" value={exams.length.toString()} tone="blue" />
+            <ExamSummaryTile label="Đang mở" value={activeExamCount.toString()} tone="green" />
+            <ExamSummaryTile label="Nháp" value={draftExamCount.toString()} tone="slate" />
+          </div>
         </div>
-      </div>
+      </section>
+
+      <section className="rounded-3xl border border-slate-200/70 bg-white p-4 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h2 className="text-xl font-black text-slate-900">Danh sách kỳ thi</h2>
+            <p className="mt-1 text-sm text-slate-500">Thiết kế dạng card bento theo trạng thái: đang mở, nháp/chờ mở và đã có dữ liệu kết quả.</p>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div className="relative w-full sm:w-80">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">⌕</span>
+              <input
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="w-full rounded-full border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-4 text-sm outline-none transition focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                placeholder="Tìm theo tên, mã, môn, khối..."
+              />
+            </div>
+            <button onClick={fetchMyExams} className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" title="Tải lại">
+              <RefreshCw className="w-4 h-4" />
+              Tải lại
+            </button>
+            <button
+              onClick={() => setCreateView('picker')}
+              disabled={creating}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-black text-white shadow-lg shadow-blue-100 transition hover:bg-blue-700 disabled:opacity-60"
+            >
+              {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+              {creating ? 'AI đang phân tích...' : 'Tạo đề mới'}
+            </button>
+          </div>
+        </div>
+      </section>
 
       {loading ? (
-        <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-blue-500" /></div>
+        <div className="rounded-3xl border border-slate-100 bg-white py-20 text-center">
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-500" />
+          <p className="mt-3 text-sm font-semibold text-slate-500">Đang tải danh sách kỳ thi...</p>
+        </div>
       ) : exams.length === 0 ? (
-        <div className="bg-white rounded-3xl border border-slate-100 p-12 text-center">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-blue-50 flex items-center justify-center mb-4">
-            <History className="w-8 h-8 text-blue-500" />
+        <div className="rounded-3xl border border-slate-100 bg-white p-12 text-center shadow-sm">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50">
+            <History className="h-8 w-8 text-blue-500" />
           </div>
-          <h3 className="font-black text-slate-800 text-lg">Chưa có đề thi nào</h3>
-          <p className="text-sm text-slate-500 mt-2 max-w-md mx-auto">
-            Hãy vào tab <strong>Bảng Kiểm tra</strong> để soạn đề bằng AI trước, sau đó quay lại đây để phát hành đề.
+          <h3 className="text-lg font-black text-slate-800">Chưa có đề thi nào</h3>
+          <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
+            Hãy dùng “Tạo đề mới” để import file, dùng đề đã soạn ở Bảng Kiểm tra hoặc soạn thủ công từng câu.
           </p>
         </div>
+      ) : visibleExams.length === 0 ? (
+        <div className="rounded-3xl border border-slate-100 bg-white p-10 text-center shadow-sm">
+          <p className="text-sm font-semibold text-slate-500">Không tìm thấy đề phù hợp với “{searchTerm}”.</p>
+        </div>
       ) : (
-        <div className="grid gap-3">
-          {exams.map(exam => (
-            <motion.div
-              key={exam.id}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-2xl border border-slate-100 p-5 flex items-center gap-4 hover:shadow-lg transition-all"
-            >
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${exam.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
-                <FileText className="w-6 h-6" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-bold text-slate-800 truncate">{exam.title}</h3>
-                  {exam.isActive ? (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-700 uppercase tracking-wider">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />Đang mở
-                    </span>
-                  ) : (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-slate-100 text-slate-500 uppercase tracking-wider">Nháp</span>
-                  )}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {visibleExams.map((exam, index) => {
+            const isPublished = exam.isActive;
+            const statusTone = isPublished
+              ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+              : 'border-slate-200 bg-slate-100 text-slate-600';
+            const accent = isPublished ? 'bg-emerald-500' : 'bg-slate-300';
+            const subjectName = subjectNameById[exam.subjectId] || 'Chưa gán môn';
+            const progress = totalQuestionCount > 0 ? Math.min(100, Math.round((exam.questions.length / Math.max(1, totalQuestionCount)) * 100)) : 0;
+
+            return (
+              <motion.div
+                key={exam.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: Math.min(index * 0.03, 0.18) }}
+                className="group relative flex min-h-[280px] flex-col overflow-hidden rounded-3xl border border-slate-200/70 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_16px_40px_rgba(49,130,206,0.12)]"
+              >
+                <div className={`absolute left-0 top-0 h-1.5 w-full ${accent}`} />
+                <div className="mb-4 flex items-start justify-between gap-3">
+                  <span className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${statusTone}`}>
+                    {isPublished && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+                    {isPublished ? 'Đang diễn ra' : 'Nháp / chờ mở'}
+                  </span>
+                  <div className="flex items-center gap-1 opacity-100 transition md:opacity-0 md:group-hover:opacity-100">
+                    <button onClick={() => copyLink(exam.code)} className="rounded-lg p-2 text-slate-400 transition hover:bg-blue-50 hover:text-blue-600" title="Copy link">
+                      <LinkIcon className="h-4 w-4" />
+                    </button>
+                    <button onClick={() => confirmDelete(exam)} className="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600" title="Xóa">
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-4 text-xs text-slate-500 mt-1">
-                  <span className="font-mono font-bold text-blue-600">#{exam.code}</span>
-                  <span className="flex items-center gap-1"><FileText className="w-3 h-3" />{exam.questions.length} câu</span>
-                  <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{exam.durationMinutes} phút</span>
-                  <span>Điểm: {exam.maxScore}</span>
+
+                <h3 className="mb-3 line-clamp-2 text-xl font-black leading-snug text-slate-900">{exam.title}</h3>
+                <div className="mb-6 flex-1 space-y-3 text-sm text-slate-600">
+                  <div className="flex items-center gap-2"><FileText className="h-4 w-4 text-slate-400" /><span>{subjectName} • Khối {exam.grade || '—'}</span></div>
+                  <div className="flex items-center gap-2"><Clock className="h-4 w-4 text-slate-400" /><span>{exam.durationMinutes} phút • {exam.questions.length} câu • {exam.maxScore} điểm</span></div>
+                  <div className="flex items-center gap-2"><Users className="h-4 w-4 text-slate-400" /><span>Mã phòng: <strong className="font-mono text-blue-700">#{exam.code}</strong></span></div>
                 </div>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <button onClick={() => copyLink(exam.code)} className="p-2 text-slate-400 hover:bg-blue-50 hover:text-blue-600 rounded-lg" title="Copy link">
-                  <LinkIcon className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={async () => {
-                    await toggleActive(exam.id, !exam.isActive);
-                    showToast(exam.isActive ? 'Đã tắt phát hành.' : 'Đã phát hành đề!');
-                    fetchMyExams();
-                  }}
-                  className={`p-2 rounded-lg ${exam.isActive ? 'text-emerald-600 hover:bg-emerald-50' : 'text-slate-400 hover:bg-slate-50'}`}
-                  title={exam.isActive ? 'Tắt phát hành' : 'Phát hành'}
-                >
-                  {exam.isActive ? <Power className="w-4 h-4" /> : <PowerOff className="w-4 h-4" />}
-                </button>
-                <button onClick={() => setSelectedExam(exam)} className="flex items-center gap-1 px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded-lg text-xs font-bold text-slate-700">
-                  <BarChart3 className="w-3.5 h-3.5" /> Kết quả <ChevronRight className="w-3 h-3" />
-                </button>
-                <button onClick={() => confirmDelete(exam)} className="p-2 text-slate-400 hover:bg-red-50 hover:text-red-600 rounded-lg" title="Xóa">
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </motion.div>
-          ))}
+
+                <div className="border-t border-slate-100 pt-4">
+                  <div className="mb-4 flex items-center gap-3">
+                    <div className="flex -space-x-2">
+                      {['G', 'H'].map(initial => (
+                        <div key={initial} className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-blue-50 text-[10px] font-black text-blue-700">{initial}</div>
+                      ))}
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-slate-100 text-[10px] font-black text-slate-500">+HS</div>
+                    </div>
+                    <div className="h-1.5 flex-1 rounded-full bg-slate-100">
+                      <div className="h-1.5 rounded-full bg-blue-600" style={{ width: `${Math.max(12, progress)}%` }} />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <button
+                      onClick={async () => {
+                        await toggleActive(exam.id, !exam.isActive);
+                        showToast(exam.isActive ? 'Đã tắt phát hành.' : 'Đã phát hành đề!');
+                        fetchMyExams();
+                      }}
+                      className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-black transition ${exam.isActive ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                    >
+                      {exam.isActive ? <Power className="h-3.5 w-3.5" /> : <PowerOff className="h-3.5 w-3.5" />}
+                      {exam.isActive ? 'Đang mở' : 'Mở đề'}
+                    </button>
+                    <button onClick={() => setSelectedExam(exam)} className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-2 text-xs font-black text-white transition hover:bg-blue-700">
+                      <BarChart3 className="h-3.5 w-3.5" /> Xem tiến độ <ChevronRight className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       )}
 
@@ -520,6 +609,21 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
         </div>
       )}
     </motion.div>
+  );
+};
+
+const ExamSummaryTile = ({ label, value, tone }: { label: string; value: string; tone: 'blue' | 'green' | 'slate' }) => {
+  const toneClass = tone === 'blue'
+    ? 'bg-blue-600 text-white shadow-blue-200'
+    : tone === 'green'
+      ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+      : 'bg-slate-100 text-slate-700 border-slate-200';
+
+  return (
+    <div className={`rounded-2xl border p-4 text-center shadow-sm ${toneClass}`}>
+      <p className="text-2xl font-black leading-none">{value}</p>
+      <p className="mt-2 text-[10px] font-black uppercase tracking-[0.16em] opacity-80">{label}</p>
+    </div>
   );
 };
 
@@ -917,7 +1021,7 @@ const ExamStatsPanel = ({ exam, submissions }: { exam: Exam; submissions: ExamSu
             <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} allowDecimals={false} />
             <Tooltip
               contentStyle={{ borderRadius: 12, fontSize: 12, border: '1px solid #e2e8f0' }}
-              formatter={(v: number) => [`${v} bài`, 'Số lượng']}
+              formatter={(value) => [`${Number(value ?? 0)} bài`, 'Số lượng']}
             />
             <Bar dataKey="count" radius={[6, 6, 0, 0]}>
               {bins.map((b, i) => <Cell key={i} fill={b.color} />)}
