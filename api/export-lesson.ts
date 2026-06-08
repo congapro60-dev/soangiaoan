@@ -124,8 +124,40 @@ const stashMathAsPlaceholders = (text: string): { withPlaceholders: string; rend
   return { withPlaceholders, rendered };
 };
 
+import pako from 'pako';
+
+function encodeKroki(source: string): string {
+  const data = Buffer.from(source, 'utf8');
+  const compressed = pako.deflate(data, { level: 9 });
+  return Buffer.from(compressed)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_');
+}
+
+function processVisualAids(content: string): string {
+  let result = content;
+  
+  // 1. Process SVG (handles both ```xml <svg>``` blocks and inline `xml <svg>`)
+  result = result.replace(/(?:```(?:xml|html|svg)\s*)?(?:xml|html)?\s*(<svg[\s\S]*?<\/svg>)(?:\s*```)?/gi, '<div style="text-align: center; margin: 10px 0;">$1</div>');
+
+  // 2. Process TikZ (handles both ```latex \begin{tikzpicture}...``` and inline)
+  result = result.replace(/(?:```(?:latex|tikz|tex)\s*)?(?:latex|tikz|tex)?\s*(\\begin\{tikzpicture\}[\s\S]*?\\end\{tikzpicture\})(?:\s*```)?/gi, (match, tikz) => {
+    const encoded = encodeKroki(tikz);
+    return `<div style="text-align: center; margin: 10px 0;"><img src="https://kroki.io/tikz/svg/${encoded}" style="max-width: 100%; height: auto;" /></div>`;
+  });
+
+  // 3. Process Prompt (handles both ```text prompt ... ``` and inline `prompt ...`)
+  result = result.replace(/(?:```\w*\s*)?prompt\s+(.*?)(?=\n|<br\s*\/?>|$)(?:\s*```)?/gi, (match, p) => {
+    return `<div style="margin: 10px 0; padding: 10px; background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 8px;"><p style="font-size: 12pt; font-weight: bold; color: #312e81; margin: 0 0 4px 0;">Gợi ý tạo ảnh minh họa (Image Prompt)</p><p style="font-size: 11pt; color: #4338ca; margin: 0; font-style: italic;">${p}</p></div>`;
+  });
+
+  return result;
+}
+
 const buildHtml = async (title: string, content: string): Promise<string> => {
-  const stash = stashMathAsPlaceholders(content);
+  const preprocessedContent = processVisualAids(content);
+  const stash = stashMathAsPlaceholders(preprocessedContent);
   const markedHtml = await marked.parse(stash.withPlaceholders, { async: true, gfm: true, breaks: true });
   const htmlContent = markedHtml.replace(/@@KMATH(\d+)@@/g, (_, i) => stash.rendered[Number(i)] ?? '');
   return `<!doctype html>
