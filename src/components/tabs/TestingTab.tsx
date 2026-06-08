@@ -428,11 +428,11 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
             onClick={() => setActiveMode(mode)}
             className={`p-3 rounded-2xl border-2 transition-all flex items-center gap-2.5 text-left ${
               activeMode === mode
-                ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-100'
+                ? 'bg-primary border-primary text-white shadow-lg shadow-blue-100'
                 : 'bg-white border-slate-100 text-slate-600 hover:border-blue-200 shadow-sm'
             }`}
           >
-            <div className={`p-2 rounded-xl shrink-0 ${activeMode === mode ? 'bg-white/20' : 'bg-blue-50 text-blue-600'}`}>
+            <div className={`p-2 rounded-xl shrink-0 ${activeMode === mode ? 'bg-white/20' : 'bg-blue-50 text-primary'}`}>
               {modeContent[mode].icon}
             </div>
             <div className="min-w-0">
@@ -448,9 +448,9 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
       <div className="flex flex-col lg:flex-row gap-4 p-4 flex-1 min-h-0 overflow-hidden">
         {/* Left Control Panel — fixed 320px so MDEditor gets ≥640px */}
         <div className="lg:w-80 shrink-0 overflow-y-auto space-y-4">
-          <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm space-y-5">
+          <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-5">
             <h4 className="font-bold text-slate-800 flex items-center gap-2">
-              <Upload className="w-5 h-5 text-blue-500" />
+              <Upload className="w-5 h-5 text-primary" />
               Thiết lập dữ liệu đầu vào
             </h4>
 
@@ -494,7 +494,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Tải lên Đề thi gốc</label>
-                  <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-blue-100 rounded-[40px] cursor-pointer hover:bg-blue-50/50 transition-colors bg-blue-50/20">
+                  <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-blue-100 rounded-3xl cursor-pointer hover:bg-blue-50/50 transition-colors bg-blue-50/20">
                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
                       <Upload className="w-10 h-10 text-blue-200 mb-3" />
                       <p className="text-sm text-slate-500 font-bold">Thả đề thi vào đây...</p>
@@ -529,9 +529,9 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
                     type="range" min="2" max="12" step="1"
                     value={shuffledCount}
                     onChange={(e) => setShuffledCount(parseInt(e.target.value))}
-                    className="flex-1 h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                    className="flex-1 h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-primary"
                   />
-                  <span className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-black">{shuffledCount}</span>
+                  <span className="w-10 h-10 bg-blue-50 text-primary rounded-xl flex items-center justify-center font-black">{shuffledCount}</span>
                 </div>
               </div>
             )}
@@ -541,7 +541,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
                 <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Cấu trúc câu hỏi</label>
                 <div className="grid grid-cols-2 gap-2">
                   {([
-                    { key: 'mcq', label: 'TN 4 phương án', color: 'text-blue-600 bg-blue-50' },
+                    { key: 'mcq', label: 'TN 4 phương án', color: 'text-primary bg-blue-50' },
                     { key: 'trueFalse4', label: 'Đúng/Sai 4 ý', color: 'text-purple-600 bg-purple-50' },
                     { key: 'shortAnswer', label: 'Trả lời ngắn', color: 'text-emerald-600 bg-emerald-50' },
                     { key: 'essay', label: 'Tự luận', color: 'text-orange-600 bg-orange-50' },
@@ -587,21 +587,21 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
                 value={requirement}
                 onChange={(e) => setRequirement(e.target.value)}
                 placeholder={activeMode === 'audit' ? 'Ví dụ: Soát kỹ các ký hiệu Mathtype, kiểm tra chính tả...' : 'Ví dụ: Tăng độ khó phần Vận dụng cao...'}
-                className="w-full px-5 py-4 rounded-3xl border border-slate-100 bg-slate-50 text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 transition-all min-h-[120px] text-sm"
+                className="w-full px-5 py-4 rounded-3xl border border-slate-100 bg-slate-50 text-slate-700 outline-none focus:ring-2 focus:ring-primary transition-all min-h-[120px] text-sm"
               />
             </div>
 
             <button
               onClick={handleExamAction}
               disabled={isLoading || (activeMode !== 'create' && uploadedFiles.length === 0)}
-              className="w-full py-4 bg-slate-900 text-white rounded-3xl font-black shadow-xl shadow-slate-200 hover:bg-slate-800 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale relative overflow-hidden"
+              className="w-full py-4 dewey-button-primary rounded-2xl font-black transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale relative overflow-hidden"
             >
               {isLoading && (
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: '100%' }}
                   transition={{ duration: 30, ease: 'linear' }}
-                  className="absolute bottom-0 left-0 h-1 bg-blue-500/50"
+                  className="absolute bottom-0 left-0 h-1 bg-primary/50"
                 />
               )}
               {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : modeContent[activeMode].icon}
@@ -612,12 +612,12 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center justify-center gap-2 text-[11px] font-bold text-blue-600 bg-blue-50 py-2 rounded-xl border border-blue-100 italic"
+                className="flex items-center justify-center gap-2 text-[11px] font-bold text-primary bg-blue-50 py-2 rounded-xl border border-blue-100 italic"
               >
                 <div className="flex gap-1">
-                  <span className="w-1 h-1 bg-blue-600 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                  <span className="w-1 h-1 bg-blue-600 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                  <span className="w-1 h-1 bg-blue-600 rounded-full animate-bounce"></span>
+                  <span className="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                  <span className="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                  <span className="w-1 h-1 bg-primary rounded-full animate-bounce"></span>
                 </div>
                 {processStatus}
               </motion.div>
@@ -626,10 +626,10 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
         </div>
 
         {/* Right Result Panel — flex-1 so MDEditor's 3-pane split gets max room */}
-        <div className="flex-1 min-w-0 flex flex-col bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden min-h-[600px]">
+        <div className="flex-1 min-w-0 flex flex-col bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden min-h-[600px]">
           <div className="p-6 border-b border-slate-50 bg-slate-50/30 backdrop-blur-md flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-blue-600 rounded-2xl text-white shadow-lg shadow-blue-100">
+              <div className="p-3 bg-primary rounded-2xl text-white shadow-lg shadow-blue-100">
                 <ShieldCheck className="w-6 h-6" />
               </div>
               <div>
@@ -639,7 +639,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
             </div>
             <button
               onClick={() => setShowHistory(v => !v)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${showHistory ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${showHistory ? 'bg-primary text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
             >
               <History className="w-4 h-4" />
               Lịch sử {history.length > 0 && `(${history.length})`}
@@ -668,7 +668,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
                           <span className="text-xs text-slate-600 font-medium flex-1 truncate">{entry.title}</span>
                           <button
                             onClick={() => { setTestResult(entry.content); setActiveMode(entry.mode); setShowHistory(false); }}
-                            className="text-[11px] font-bold text-blue-600 hover:underline shrink-0"
+                            className="text-[11px] font-bold text-primary hover:underline shrink-0"
                           >
                             Xem lại
                           </button>
@@ -703,7 +703,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
           <div className="flex-1 min-h-0 overflow-y-auto flex flex-col">
             {!testResult ? (
               <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6 p-8">
-                <div className="w-20 h-20 bg-slate-50 rounded-[32px] flex items-center justify-center mx-auto">
+                <div className="w-20 h-20 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto">
                   <AlertCircle className="w-10 h-10 text-slate-200" />
                 </div>
                 <h3 className="text-lg font-bold text-slate-300">Chưa có kết quả xử lý</h3>
@@ -748,7 +748,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
                     </button>
                     <button
                       onClick={handleDownloadWord}
-                      className="px-5 py-2.5 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all flex items-center gap-2 text-sm"
+                      className="px-5 py-2.5 bg-primary text-white rounded-2xl font-bold shadow-lg shadow-blue-100 hover:opacity-90 transition-all flex items-center gap-2 text-sm"
                     >
                       <Download className="w-4 h-4" /> Xuất Word (.docx)
                     </button>
@@ -766,7 +766,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
                   <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest w-full">Tải mẫu đi kèm đề thi</span>
                   <button
                     onClick={() => openInNewTab(generateAnswerSheetHTML())}
-                    className="px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-2xl font-bold text-xs hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2"
+                    className="px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-2xl font-bold text-xs hover:bg-primary hover:text-white transition-all flex items-center gap-2"
                   >
                     <Download className="w-3.5 h-3.5" /> Phiếu trả lời học sinh
                   </button>
@@ -804,3 +804,4 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
     </motion.div>
   );
 };
+

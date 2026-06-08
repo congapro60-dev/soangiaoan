@@ -216,7 +216,7 @@ export const ExamEditorView = ({ user, data, saveExam, showToast, onBack, pageIm
                 value={title}
                 onChange={e => setTitle(e.target.value)}
                 placeholder="VD: Kiểm tra 15 phút Toán 10"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
             <div className="grid grid-cols-3 gap-3">
@@ -225,7 +225,7 @@ export const ExamEditorView = ({ user, data, saveExam, showToast, onBack, pageIm
                 <select
                   value={subjectId}
                   onChange={e => setSubjectId(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-primary bg-white"
                 >
                   {data.subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
@@ -237,7 +237,7 @@ export const ExamEditorView = ({ user, data, saveExam, showToast, onBack, pageIm
                   min={1}
                   value={duration}
                   onChange={e => setDuration(parseInt(e.target.value) || 45)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
               <div>
@@ -247,7 +247,7 @@ export const ExamEditorView = ({ user, data, saveExam, showToast, onBack, pageIm
                   value={grade}
                   onChange={e => setGrade(e.target.value)}
                   placeholder="VD: 10"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
             </div>
@@ -274,7 +274,7 @@ export const ExamEditorView = ({ user, data, saveExam, showToast, onBack, pageIm
           <div className="flex items-center justify-between gap-3">
             <button
               onClick={addQuestion}
-              className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-slate-300 text-slate-500 hover:border-blue-400 hover:text-blue-600 rounded-xl text-sm font-bold transition-all"
+              className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-slate-300 text-slate-500 hover:border-blue-400 hover:text-primary rounded-xl text-sm font-bold transition-all"
             >
               <Plus className="w-4 h-4" /> Thêm câu hỏi
             </button>
@@ -286,7 +286,7 @@ export const ExamEditorView = ({ user, data, saveExam, showToast, onBack, pageIm
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-100 disabled:opacity-60"
+              className="flex items-center gap-2 px-6 py-2.5 bg-primary hover:opacity-90 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-100 disabled:opacity-60"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               Lưu đề thi
@@ -373,7 +373,7 @@ const QuestionCard = ({ question, num, isExpanded, onToggle, onChange, onRemove,
         <span className="text-xs font-black px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 shrink-0">
           Câu {num}
         </span>
-        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 shrink-0">
+        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-primary shrink-0">
           {TYPE_OPTIONS.find(t => t.value === question.type)?.label.split(' ')[0] ?? question.type}
         </span>
         <span className="text-sm text-slate-600 flex-1 truncate">{preview}</span>
@@ -433,7 +433,7 @@ const QuestionCard = ({ question, num, isExpanded, onToggle, onChange, onRemove,
                   }
                   onChange(patch);
                 }}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-primary bg-white"
               >
                 {TYPE_OPTIONS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
@@ -446,7 +446,7 @@ const QuestionCard = ({ question, num, isExpanded, onToggle, onChange, onRemove,
                 step={0.25}
                 value={question.points}
                 onChange={e => onChange({ points: parseFloat(e.target.value) || 1 })}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
           </div>
@@ -463,7 +463,7 @@ const QuestionCard = ({ question, num, isExpanded, onToggle, onChange, onRemove,
                    </button>
                  )}
 
-                 <label className="flex items-center gap-1.5 px-2 py-1 bg-slate-50 hover:bg-blue-50 text-slate-500 hover:text-blue-600 rounded-lg cursor-pointer transition-all border border-transparent hover:border-blue-100">
+                 <label className="flex items-center gap-1.5 px-2 py-1 bg-slate-50 hover:bg-blue-50 text-slate-500 hover:text-primary rounded-lg cursor-pointer transition-all border border-transparent hover:border-blue-100">
                     <ImageIcon className="w-3.5 h-3.5" />
                     <span className="text-[10px] font-bold">Tải ảnh</span>
                     <input 
@@ -515,7 +515,7 @@ const QuestionCard = ({ question, num, isExpanded, onToggle, onChange, onRemove,
                 }
               }}
               placeholder="Nhập câu hỏi... (hỗ trợ LaTeX: $x^2$, **in đậm**, Dán ảnh Ctrl+V)"
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-primary resize-none"
             />
             
             {question.imageUrl && (
@@ -547,7 +547,7 @@ const QuestionCard = ({ question, num, isExpanded, onToggle, onChange, onRemove,
                       onChange({ options: opts });
                     }}
                     placeholder={`Phương án ${OPTION_LABELS[i]}`}
-                    className="flex-1 px-3 py-1.5 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-1.5 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-primary"
                   />
                   <button
                     onClick={() => onChange({ correctAnswer: OPTION_LABELS[i] })}
@@ -595,7 +595,7 @@ const QuestionCard = ({ question, num, isExpanded, onToggle, onChange, onRemove,
                 value={question.correctAnswer ?? ''}
                 onChange={e => onChange({ correctAnswer: e.target.value })}
                 placeholder="Nhập đáp án chính xác"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
           )}
@@ -608,7 +608,7 @@ const QuestionCard = ({ question, num, isExpanded, onToggle, onChange, onRemove,
               value={question.explanation ?? ''}
               onChange={e => onChange({ explanation: e.target.value || undefined })}
               placeholder="Giải thích đáp án..."
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm outline-none focus:ring-2 focus:ring-primary resize-none"
             />
           </div>
         </div>
@@ -616,3 +616,4 @@ const QuestionCard = ({ question, num, isExpanded, onToggle, onChange, onRemove,
     </div>
   );
 };
+

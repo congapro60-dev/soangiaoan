@@ -38,7 +38,7 @@ export const ExamConfigPage = () => {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50">
-      <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      <Loader2 className="w-8 h-8 animate-spin text-primary" />
     </div>
   );
 
@@ -47,7 +47,7 @@ export const ExamConfigPage = () => {
       <div className="bg-white rounded-3xl border border-slate-100 p-8 text-center max-w-md w-full">
         <AlertTriangle className="w-10 h-10 text-red-500 mx-auto mb-4" />
         <p className="text-sm text-slate-500">Không tìm thấy đề thi</p>
-        <button onClick={() => navigate(-1)} className="mt-4 text-sm text-blue-600 font-bold">← Quay lại</button>
+        <button onClick={() => navigate(-1)} className="mt-4 text-sm text-primary font-bold">← Quay lại</button>
       </div>
     </div>
   );
@@ -70,7 +70,7 @@ export const ExamConfigPage = () => {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold disabled:opacity-60"
+            className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:opacity-90 text-white rounded-xl text-sm font-bold disabled:opacity-60"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             Lưu cài đặt
@@ -88,7 +88,7 @@ export const ExamConfigPage = () => {
               type="text"
               value={form.title ?? ''}
               onChange={e => set('title', e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary outline-none bg-white"
             />
           </Field>
           <div className="grid grid-cols-2 gap-3">
@@ -98,7 +98,7 @@ export const ExamConfigPage = () => {
                 min={1}
                 value={form.durationMinutes ?? ''}
                 onChange={e => set('durationMinutes', parseInt(e.target.value) || 45)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary outline-none bg-white"
               />
             </Field>
             <Field label="Khối">
@@ -106,7 +106,7 @@ export const ExamConfigPage = () => {
                 type="text"
                 value={form.grade ?? ''}
                 onChange={e => set('grade', e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary outline-none bg-white"
                 placeholder="VD: 12"
               />
             </Field>
@@ -117,7 +117,7 @@ export const ExamConfigPage = () => {
                 type="datetime-local"
                 value={form.startAt ? form.startAt.slice(0, 16) : ''}
                 onChange={e => set('startAt', e.target.value ? new Date(e.target.value).toISOString() : undefined)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary outline-none bg-white"
               />
             </Field>
             <Field label="Đóng lúc (tùy chọn)">
@@ -125,7 +125,7 @@ export const ExamConfigPage = () => {
                 type="datetime-local"
                 value={form.endAt ? form.endAt.slice(0, 16) : ''}
                 onChange={e => set('endAt', e.target.value ? new Date(e.target.value).toISOString() : undefined)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary outline-none bg-white"
               />
             </Field>
           </div>
@@ -138,7 +138,7 @@ export const ExamConfigPage = () => {
               type="text"
               value={form.password ?? ''}
               onChange={e => set('password', e.target.value || undefined)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary outline-none bg-white"
               placeholder="Không có mật khẩu"
             />
           </Field>
@@ -148,14 +148,14 @@ export const ExamConfigPage = () => {
               min={0}
               value={form.maxAttempts ?? 0}
               onChange={e => set('maxAttempts', parseInt(e.target.value) || 0)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary outline-none bg-white"
             />
           </Field>
           <Field label="Chế độ giám sát">
             <select
               value={form.proctorMode ?? 'off'}
               onChange={e => set('proctorMode', e.target.value as Exam['proctorMode'])}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary outline-none bg-white"
             >
               <option value="off">Tắt (không giám sát)</option>
               <option value="tab-exit">Ghi nhận số lần thoát tab</option>
@@ -170,7 +170,7 @@ export const ExamConfigPage = () => {
             <select
               value={form.showResultWhen ?? 'submit'}
               onChange={e => set('showResultWhen', e.target.value as Exam['showResultWhen'])}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary outline-none bg-white"
             >
               <option value="submit">Ngay sau khi nộp bài</option>
               <option value="all_done">Sau khi tất cả HS nộp xong</option>
@@ -219,7 +219,7 @@ export const ExamConfigPage = () => {
             <select
               value={form.tfScoringMode ?? 'all_or_nothing'}
               onChange={e => set('tfScoringMode', e.target.value as Exam['tfScoringMode'])}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+              className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary outline-none bg-white"
             >
               <option value="all_or_nothing">Tất cả đúng mới được điểm (0% hoặc 100%)</option>
               <option value="thpt2025">THPT 2025 — 1/4 đúng: 10%, 2/4: 25%, 3/4: 50%, 4/4: 100%</option>
@@ -264,8 +264,9 @@ const Toggle = ({ checked, onChange }: { checked: boolean; onChange: (v: boolean
   <button
     type="button"
     onClick={() => onChange(!checked)}
-    className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${checked ? 'bg-blue-600' : 'bg-slate-200'}`}
+    className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${checked ? 'bg-primary' : 'bg-slate-200'}`}
   >
     <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-5' : 'translate-x-0'}`} />
   </button>
 );
+
