@@ -149,18 +149,15 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
   };
 
   const handleDownloadPDF = async () => {
-    const element = document.querySelector<HTMLElement>('.exam-renderer');
-    if (!element) {
-      console.error('Rendered exam container not found for PDF export.');
-      return;
-    }
-    showToast('Đang tạo PDF, vui lòng chờ...');
+    if (!testResult) return;
     try {
-      const { exportElementToPdf } = await import('../../utils/pdfExport');
-      await exportElementToPdf(element, {
-        filename: `${makeExamExportBaseFilename()}.pdf`,
-      });
-      showToast('Đã tải PDF thành công!', 'success');
+      const { exportLessonViaAPI } = await import('../../utils/exportUtils');
+      await exportLessonViaAPI(
+        { title: makeExamExportBaseFilename(), content: testResult, templateId: 'moet' },
+        'pdf',
+        'portrait',
+        showToast
+      );
     } catch (e) {
       console.error('PDF export error:', e);
       showToast('Lỗi xuất PDF. Vui lòng thử lại.', 'error');
@@ -169,11 +166,14 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
 
   const handleDownloadWord = async () => {
     if (!testResult) return;
-    showToast('Đang tải bộ xuất Word và tạo file .docx chuẩn A4...');
     try {
-      const { exportExamToDocx } = await import('../../utils/examWordExport');
-      await exportExamToDocx(testResult, makeExamExportBaseFilename());
-      showToast('Đã tải file Word .docx chuẩn A4!', 'success');
+      const { exportLessonViaAPI } = await import('../../utils/exportUtils');
+      await exportLessonViaAPI(
+        { title: makeExamExportBaseFilename(), content: testResult, templateId: 'moet' },
+        'docx',
+        'portrait',
+        showToast
+      );
     } catch (e) {
       console.error('DOCX export error:', e);
       showToast('Lỗi xuất Word .docx. Vui lòng thử lại.', 'error');

@@ -30,8 +30,13 @@ export const DiagramRenderer = ({ code, type }: DiagramRendererProps) => {
       setError(null);
 
       try {
+        let finalCode = code;
+        if (type === 'tikz' && !finalCode.includes('\\documentclass')) {
+          finalCode = `\\documentclass[tikz,border=2mm]{standalone}\n\\usepackage{pgfplots}\n\\pgfplotsset{compat=1.18}\n\\begin{document}\n${finalCode}\n\\end{document}`;
+        }
+
         // Prepare payload for Kroki
-        const data = new TextEncoder().encode(code);
+        const data = new TextEncoder().encode(finalCode);
         const compressed = pako.deflate(data, { level: 9 });
         const result = String.fromCharCode.apply(null, Array.from(new Uint8Array(compressed)));
         const base64 = btoa(result)

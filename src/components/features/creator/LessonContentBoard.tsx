@@ -304,7 +304,7 @@ export const LessonContentBoard = ({
                            return <DiagramRenderer code={cleanTikz} type="tikz" />;
                         }
                         
-                        const isPrompt = codeString.trim().toLowerCase().startsWith('prompt ');
+                        const isPrompt = /^prompt(?:\s|<br\s*\/?>)/i.test(codeString.trim());
                         if (isPrompt) {
                            return (
                              <div className="my-4 p-4 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-start gap-3">
@@ -313,7 +313,7 @@ export const LessonContentBoard = ({
                                </div>
                                <div>
                                  <p className="text-sm font-bold text-indigo-900 mb-1">Gợi ý tạo ảnh minh họa (Image Prompt)</p>
-                                 <p className="text-xs text-indigo-700 leading-relaxed italic">{codeString.replace(/^prompt\s*/i, '')}</p>
+                                 <p className="text-xs text-indigo-700 leading-relaxed italic">{codeString.replace(/^prompt(?:\s|<br\s*\/?>)*/i, '')}</p>
                                </div>
                              </div>
                            );

@@ -31,6 +31,12 @@
 - **Prompt Cập Nhật (`src/hooks/useLessonCreator.ts`)**:
   - Chỉnh sửa \`VISUAL_AIDS_PROMPT\`: Bắt buộc AI dùng mã **TikZ (LaTeX)** và tuyệt đối cấm dùng HTML \`<svg>\` để vẽ hình đồ thị/Toán học, đảm bảo tính tương thích 100% với cả PDF và Word.
 
+### 0.0.2 Hotfix QA — 2026-06-09 (Antigravity)
+- Đã vá 3 lỗi tồn đọng sau đợt nâng cấp chức năng xuất/hiển thị:
+  1. **Lỗi API Typecheck (`api/render-word-core.ts`)**: Hàm `expandTextWithMath` trả về array trực tiếp thay vì `Promise`, giúp loại bỏ lỗi typecheck CI/CD khi dùng toán tử spread.
+  2. **Lỗi Kroki "Missing \begin{document}"**: Thêm cơ chế tự động bọc mã `\begin{tikzpicture}` vào khung `\documentclass[tikz]` ở `DiagramRenderer.tsx`, `export-lesson.ts` và `render-word-core.ts` nếu AI quên sinh ra phần đầu này.
+  3. **Lỗi UI lộ chữ "prompt<br/>"**: Cập nhật biểu thức chính quy (Regex) trong `LessonContentBoard.tsx` và `CreatorTab.tsx` thành `/^prompt(?:\s|<br\s*\/?>)/i` để nhận diện thành công cả khi Markdown biến xuống dòng thành thẻ `<br/>`. Đã gỡ bỏ toàn bộ code có sử dụng template literal rườm rà.
+
 ---
 
 ## 0a. Trạng thái cũ — 2026-06-08 (Antigravity): Tích hợp Custom API, Visual Aids và Thanh tiến trình AI

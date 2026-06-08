@@ -1,0 +1,127 @@
+ 
+Mã đề 201   1 
+ĐỀ KIỂM TRA GIỮA HỌC KÌ 1 NĂM HỌC 2024 – 2025  
+MÔN TOÁN LỚP 10  
+Mã đề 201 Thời gian 90 phút (đề thi có 04 trang) 
+Học sinh phải ghi mã đề vào bài thi 
+ 
+Họ và tên học sinh:…………………………………...............................................SBD:………………… 
+PHẦN I. (12 câu/ 3 điểm) Câu trắc nghiệm nhiều phương án lựa chọn. Mỗi câu hỏi thí sinh chỉ chọn 
+một phương án 
+Câu 1. Hệ nào sau đây là hệ bất phương trình bậc nhất hai ẩn? 
+A. 2 1
+2x y
+x y 
+ . B. 22
+4x y
+y 
+.  C. 2 1
+2x y z
+y  
+.  D. 22 1
+3 0x y
+y x x 
+  . 
+Câu 2. Giá trị của 0tan45 là   
+ A.3
+2 .      B.  1
+2.   C.  2
+2.      D. 1. 
+Câu 3.  Cho mệnh đề :" , 1 0"P n n    . Mệnh đề phủ định của P là 
+A. :" , 1 0"P n n    .   B. :" , 1 0"P n n    . 
+C. :" , 1 0"P n n    .   D. :" , 1 0"P n n    . 
+Câu 4.  Cho tam giác ABC, Slà diện tích tam giác ABC. Chọn công thức đúng trong các đáp án sau: 
+A. 1sin .2S bc A  B. 1sin .2S ac A  C. 1sin .2S bc B  D. 1sin .2S bc B  
+Câu 5.  Miền nghiệm của hệ bất phương trình 3 0
+2 3 1 0y
+x y 
+   chứa điểm nào sau đây? 
+A.  3; 4A.  B.  4 ; 3B.  C.  7 ; 4C.  D.  4 ; 4 .D  
+Câu 6.  Cho tập hợp  22 0 X x x   ∣ . Mệnh đề nào sau đây là đúng? 
+A. { 2}X . B. { 2}X.  C. X.  D. { 2; 2}X  . 
+Câu 7. Trong các câu sau, câu nào không phải là mệnh đề?  
+     A. 1 2 4 .      B. Trường Dewey thật là đẹp!   
+  C. Hôm nay là thứ năm.    D. Denver là thủ đô của nước Bỉ. 
+Câu 8. Phần không bị gạch chéo (gồm cả bờ) trong hình vẽ là 
+miền nghiệm của bất phương trình nào dưới đây?   
+  A. 2 4 8x y . B. 2 4 8x y .  
+  C. 2 5x y  . D. 4 8x y . 
+ 
+ 
+Mã đề 201   2 
+Câu 9. Cho tam giác ABC có 30 , 45B C    và 5AB. Tính độ dài cạnh AC. 
+A. 5 6
+2AC. B. 5 3
+2AC. C. 5 2
+2AC. D. 5 2AC. 
+Câu 10.  Cho mệnh đề "    ,x X P x Q x    ". Chọn khẳng định không đúng.  
+A.  P x là điều kiện đủ để có  Q x. B.  Q x là điều kiện cần để có  P x. 
+C.  P x là giả thiết và  Q x là kết luận.  D.  P x là điều kiện cần để có  Q x. 
+Câu 11.   Bất phương trình 3 2( 1) 0x y x     tương đương với bất phương trình nào sau đây? 
+A. 2 2 0x y   . B. 5 2 2 0x y   . C. 5 2 1 0x y   . D. 4 2 2 0x y   . 
+Câu 12.   Phần không bị gạch trên trục số dưới đây biểu diễn tập hợp X là một tập con của tập số thực 
+ 
+Mệnh đề nào dưới đây là đúng? 
+A. ( 3;2)X . B. [ 3;2]X . C. ( 3;2]X . D. [ 3;2)X . 
+PHẦN II.  (4 câu/4 điểm)  Câu trắc nghiệm đúng sai. Trong mỗi ý a), b), c), d) ở mỗi câu, thí sinh chọn 
+đúng hoặc sai.  
+Câu 13. Cho hai tập hợp: {1;2;3;4}; { 2 2}.A B x x      ∣  Xét tính đúng sai của các khẳng định sau 
+a) {1;2}A. 
+b) { 2; 1;0;1;2}B   . 
+c)  \ 2;1;0B A  . 
+d) A B có đúng 7 phần tử. 
+Câu 14. Cho hệ bất phương trình  2
+2 4 I
+0x y
+x y
+x 
+ 
+. Xét tính đúng sai của các khẳng định sau 
+a) Hệ bất phương trình trên là hệ bất phương trình bậc nhất 2 ẩn. 
+b) Cặp số (1; 2) là nghiệm của (I).  
+c) Miền nghiệm của bất phương trình 0x là nửa mặt phẳng bờ là trục Oy chứa điểm (1;0). 
+d) Biểu thức ( ; ) 2F x y x y với ( ; )x ylà nghiệm của hệ bất phương trình đã cho đạt giá trị nhỏ nhất tại 
+điểm 0 0( ; )x y. Khi đó, 0 02y x . 
+ 
+ 
+
+ 
+Mã đề 201   3 
+Câu 15. Cho tam giác ABC có 60 , 10, 20C b a   . Xét tính đúng sai của các khẳng định sau: 
+a) 1sin2ABCS ab C  
+b) Độ dài cạnh còn lại của tam giác ABC là 10 3c. 
+c) Bán kính đường tròn ngoại tiếp tam giác ABC là 10R. 
+d) Độ dài đường cao hạ từ đỉnh A của tam giác ABClà 10 3ah. 
+Câu 16. Cho hình thoi ABCD có tâm O, cạnh bằng a và 60ABC. Xét tính đúng sai của các khẳng 
+định sau:  
+a) ;OA OC  
+ là 2 vectơ cùng phương 
+b) | | | |AB CD  
+. 
+c) DA BC  
+. 
+d) | | 3BD a
+. 
+PHẦN III.(3 điểm) Tự luận  
+Bài 1.  
+a) (1 điểm) Cho 1sin
+5, o o90 180  . Tính cos, cot. 
+b)(0,5 điểm) Cho  | 5 A x x    và  2;7B . Tìm tập hợp A B 
+Bài 2. Có 3 quân đoàn địch đóng quân tại các cứ điểm , ,A B Cnhư hình vẽ mô tả phía dưới. Quan sát từ 
+trên đỉnh núi, đại tướng quân đội ta nhận thấy rằng trạm tiếp tế tại Ocủa quân địch được xây dựng cách 
+đều , ,A B Cđể thuận tiện cho việc luân chuyển vật tư. Hơn nữa khi vẽ phác họa bản đồ ta ước lượng  được  
+BACcó số đo o60. Sau khi nhận thông tin từ mật thám, quân ta biết được rằng quân địch di chuyển từ A
+đến Bmất 4 giờ, từ Ađến Cmất 5 giờ. Biết rằng tốc độ hành quân của bộ bình quân ta và quân địch đều là 
+6km/h. 
+ 
+
+ 
+Mã đề 201   4 
+a)(0,5 điểm) Tính khoảng cách giữa Avà B, khoảng cách giữa Avà C. 
+b)(0,5 điểm) Quân ta dự định tấn công cứ điểm A sau đó tiến quân đánh trạm tiếp tế của địch tại O. Tính 
+khoảng thời gian quân ta tiến quân từ Ađến O. (Kết quả có đơn vị là giờ, làm tròn đến chữ số thập phân 
+thư). 
+Bài 3. Hội khỏe Phù Đổng của trường Dewey, lớp 10Acó 45 học sinh, trong đó có 25 học sinh thi điền 
+kinh, 20 học sinh thi nhảy xa, 15 học sinh thi nhảy cao, 7 em không tham gia môn nào, 5 em tham gia cả 3 
+môn. Hỏi số em tham gia chỉ một môn trong ba môn trên là bao nhiêu?  
+------------------------------------------------------------ Hết------------------------------------------------------------- 

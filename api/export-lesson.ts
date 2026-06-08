@@ -7,7 +7,7 @@ import chromium from '@sparticuz/chromium';
 import katex from 'katex';
 import { marked } from 'marked';
 import puppeteer from 'puppeteer-core';
-import { renderWordBuffer, safeFilename } from './render-word-core.js';
+import { renderWordBuffer, safeFilename, preprocessExamMarkdownForWord } from './render-word-core.js';
 import type { WordOrientation } from './render-word-core.js';
 
 // Inline KaTeX CSS + fonts at module init so math glyphs render in Lambda
@@ -143,7 +143,11 @@ function processVisualAids(content: string): string {
 
   // 2. Process TikZ (handles both ```latex \begin{tikzpicture}...``` and inline)
   result = result.replace(/(?:```(?:latex|tikz|tex)\s*)?(?:latex|tikz|tex)?\s*(\\begin\{tikzpicture\}[\s\S]*?\\end\{tikzpicture\})(?:\s*```)?/gi, (match, tikz) => {
-    const encoded = encodeKroki(tikz);
+    let finalTikz = tikz;
+    if (!finalTikz.includes('\\documentclass')) {
+      finalTikz = `\\documentclass[tikz,border=2mm]{standalone}\n\\usepackage{pgfplots}\n\\pgfplotsset{compat=1.18}\n\\begin{document}\n${finalTikz}\n\\end{document}`;
+    }
+    const encoded = encodeKroki(finalTikz);
     return `<div style="text-align: center; margin: 10px 0;"><img src="https://kroki.io/tikz/svg/${encoded}" style="max-width: 100%; height: auto;" /></div>`;
   });
 
@@ -156,10 +160,12 @@ function processVisualAids(content: string): string {
 }
 
 const buildHtml = async (title: string, content: string): Promise<string> => {
-  const preprocessedContent = processVisualAids(content);
+  const preprocessedForWordAndPdf = preprocessExamMarkdownForWord(content);
+  const preprocessedContent = processVisualAids(preprocessedForWordAndPdf);
   const stash = stashMathAsPlaceholders(preprocessedContent);
   const markedHtml = await marked.parse(stash.withPlaceholders, { async: true, gfm: true, breaks: true });
-  const htmlContent = markedHtml.replace(/@@KMATH(\d+)@@/g, (_, i) => stash.rendered[Number(i)] ?? '');
+  let htmlContent = markedHtml.replace(/@@KMATH(\d+)@@/g, (_, i) => stash.rendered[Number(i)] ?? '');
+  htmlContent = htmlContent.replace(/<!-- OPTION_GRID -->[\s\S]*?<table>/g, '<table class="option-grid">');
   return `<!doctype html>
 <html lang="vi">
 <head>
@@ -227,6 +233,10 @@ const buildHtml = async (title: string, content: string): Promise<string> => {
       overflow-wrap: break-word;
     }
     th { background: #e2e8f0; font-weight: 700; }
+    
+    table.option-grid, table.option-grid th, table.option-grid td { border: none !important; padding: 2pt 4pt !important; }
+    table.option-grid th { background: transparent !important; }
+    
     blockquote {
       border-left: 3px solid #94a3b8;
       margin: 6pt 0;

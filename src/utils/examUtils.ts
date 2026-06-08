@@ -110,9 +110,8 @@ QUY TẮC NỘI DUNG:
 - Ngôn ngữ: tiếng Việt chuẩn, không lỗi chính tả.
 - Độ khó: phân bổ đúng theo ma trận hoặc cân đối nếu không có ma trận.
 - Với trắc nghiệm A/B/C/D, luôn đặt 4 dòng phương án liên tiếp theo đúng mẫu "A. ...", "B. ...", "C. ...", "D. ..."; tuyệt đối không viết "A. ... B. ... C. ... D. ..." trên cùng một dòng; không dùng bullet/list cho 4 phương án.
-- Với câu hỏi hình học không gian, đồ thị hàm số hoặc bảng biến thiên, hãy tự tính toán tọa độ và vẽ mã vector SVG chuẩn xác chèn trực tiếp vào đề trong <div class="exam-figure">...</div>.
-- Quy ước SVG: dùng nét liền cho cạnh/đường thấy; dùng stroke-dasharray="4" cho cạnh khuất/đường phụ; với bảng biến thiên cần vẽ hàng dấu, mũi tên tăng/giảm và nhãn cực trị rõ ràng.
-- SVG phải có attribute xmlns="http://www.w3.org/2000/svg" và width, height, viewBox; không phụ thuộc script ngoài, không dùng ảnh remote.
+- Với câu hỏi hình học không gian, đồ thị hàm số hoặc bảng biến thiên, TUYỆT ĐỐI KHÔNG dùng thẻ HTML <svg>. PHẢI tự tính toán tọa độ và vẽ bằng mã TikZ chuẩn xác chèn vào trong khối markdown có ngôn ngữ là tikz.
+- Quy ước TikZ: dùng nét liền cho cạnh/đường thấy; dùng nét đứt (dashed) cho cạnh khuất/đường phụ; với bảng biến thiên cần vẽ hàng dấu, mũi tên tăng/giảm và nhãn cực trị rõ ràng.
     `;
   },
 
