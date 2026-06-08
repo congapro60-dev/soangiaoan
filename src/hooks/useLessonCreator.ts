@@ -606,18 +606,15 @@ QUY TẮC NGHIÊM NGẶT:
 ===========================================================
 ĐẶC BIỆT LƯU Ý VỀ MẶT THỊ GIÁC (VISUAL AIDS) TRONG BẢNG:
 ===========================================================
-Để giáo án thêm sinh động và trực quan, BẮT BUỘC tích hợp hình ảnh minh họa vào Cột 3 ("Nội dung ghi bảng / Sản phẩm dự kiến") của các Hoạt động 2 (Hình thành kiến thức) và Hoạt động 3 (Luyện tập). Hãy tự đánh giá và áp dụng nghiêm ngặt 3 loại hình sau:
+Để giáo án thêm sinh động và trực quan, BẮT BUỘC tích hợp hình ảnh minh họa vào Cột 3 ("Nội dung ghi bảng / Sản phẩm dự kiến") của các Hoạt động 2 (Hình thành kiến thức) và Hoạt động 3 (Luyện tập). Hãy tự đánh giá và áp dụng nghiêm ngặt các loại hình sau:
 
-1. Đồ họa Toán học tĩnh (static_svg / TikZ):
-- Khi nào dùng: Cần độ chính xác toán học tuyệt đối (Đồ thị hàm số, hình học phẳng cơ bản, sơ đồ Venn).
-- Cách thực hiện: Sinh ra chuỗi mã HTML <svg> sạch, tối ưu, màu primary (#3b82f6) và indigo (#4338ca). Bọc trong khối code \`\`\`xml ... \`\`\`. (Có thể dùng mã \`\`\`latex \begin{tikzpicture}... \`\`\` thay thế nếu phù hợp).
+1. Đồ họa Toán học tĩnh (BẮT BUỘC DÙNG TikZ):
+- Khi nào dùng: Cần độ chính xác toán học (Đồ thị hàm số, hình học phẳng cơ bản, sơ đồ).
+- TUYỆT ĐỐI KHÔNG DÙNG HTML <svg> vì máy chủ sẽ không thể nhúng nó vào file Word.
+- Cách thực hiện: Chỉ sử dụng ngôn ngữ LaTeX/TikZ. Bọc trong khối code \`\`\`tikz \\begin{tikzpicture} ... \\end{tikzpicture} \`\`\`.
 - Vị trí chèn: Đặt trực tiếp vào Cột 3. TUYỆT ĐỐI dùng thẻ <br/> trước/sau khối code để không làm vỡ cấu trúc bảng.
 
-2. Mô phỏng tương tác (interactive_sim):
-- Khi nào dùng: Khái niệm cần thao tác, biến thiên tham số (VD: Kéo trượt tham số đồ thị parabol, xoay khối chóp 3D).
-- Cách thực hiện: Sinh mã HTML5/JS (ES6) hoàn chỉnh (có thể dùng JSXGraph/Three.js) bọc trong khối code \`\`\`html ... \`\`\` ở Cột 3.
-
-3. Ảnh minh họa SGK/Thực tế (static_image):
+2. Ảnh minh họa SGK/Thực tế (static_image):
 - Khi nào dùng: Cần bối cảnh thực tế hoặc sơ đồ tư duy khái quát (VD: Cây cầu treo, quỹ đạo vệ tinh).
 - Cách thực hiện: KHÔNG tự sinh mã. Hãy viết một đoạn mô tả (prompt) sinh ảnh bằng TIẾNG ANH thật chi tiết bọc trong khối code \`\`\`prompt ... \`\`\`.
 - Ràng buộc hình ảnh: "2D flat vector illustration, textbook educational diagram style, minimal blue and indigo color palette, white background. Strictly NO text, NO letters, NO math formulas, NO numbers, NO labels."
