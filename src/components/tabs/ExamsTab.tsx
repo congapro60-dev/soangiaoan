@@ -1403,3 +1403,4 @@ const QRModal = ({ exam, onClose }: { exam: Exam; onClose: () => void }) => {
     </div>
   );
 };
+

@@ -166,27 +166,27 @@ export const LessonContentBoard = ({
 
   if (generationMode === 'bulk') {
     return (
-      <div className="flex-1 overflow-y-auto bg-[#eff4ff] p-4 sm:p-8 custom-scrollbar scroll-smooth">
+      <div className="flex-1 overflow-y-auto bg-blue-50/30 p-4 sm:p-8 custom-scrollbar scroll-smooth">
         <div className="mx-auto max-w-5xl space-y-6">
-          <div className="rounded-[28px] border border-[#c0c7d3] bg-white p-6 shadow-sm">
+          <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d2e4ff] text-[#005ea1]">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-[var(--color-primary)]">
                 <Layers className="h-6 w-6" />
               </div>
               <div>
-                <h3 className="font-display text-xl font-bold text-[#0d1c2e]">Kết quả soạn hàng loạt</h3>
-                <p className="text-sm text-[#414751]">Xem nhanh từng giáo án trước khi lưu tất cả vào thư viện.</p>
+                <h3 className="font-display text-xl font-bold text-slate-800">Kết quả soạn hàng loạt</h3>
+                <p className="text-sm text-slate-600">Xem nhanh từng giáo án trước khi lưu tất cả vào thư viện.</p>
               </div>
             </div>
           </div>
 
           {bulkResults.map((result, idx) => (
-            <article key={result.id} className="overflow-hidden rounded-[28px] border border-[#d4e4fc] bg-white shadow-sm">
-              <div className="flex items-center gap-4 border-b border-[#d4e4fc] bg-[#f8f9ff] px-6 py-4">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2178c3] text-sm font-black text-white">{idx + 1}</span>
+            <article key={result.id} className="overflow-hidden rounded-[28px] border border-blue-100 bg-white shadow-sm">
+              <div className="flex items-center gap-4 border-b border-blue-100 bg-slate-50 px-6 py-4">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-black text-white">{idx + 1}</span>
                 <div className="min-w-0">
-                  <h4 className="truncate text-lg font-bold text-[#0d1c2e]">{result.title}</h4>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-[#717782]">Bản xem trước Markdown</p>
+                  <h4 className="truncate text-lg font-bold text-slate-800">{result.title}</h4>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Bản xem trước Markdown</p>
                 </div>
               </div>
               <div className="prose prose-slate markdown-body max-w-none p-6 sm:p-10">
@@ -203,12 +203,12 @@ export const LessonContentBoard = ({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-[#eff4ff] lg:flex-row">
+    <div className="flex min-h-0 flex-1 flex-col bg-blue-50/30 lg:flex-row">
       <section className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <div className="border-b border-[#c0c7d3] bg-white/90 px-4 py-3 backdrop-blur sm:px-6">
-          <div className="mx-auto flex max-w-[900px] flex-wrap items-center gap-2 text-sm text-[#414751]">
-            <div className="flex items-center gap-2 rounded-full bg-[#eff4ff] px-3 py-2 font-semibold">
-              <BookOpen className="h-4 w-4 text-[#005ea1]" />
+        <div className="border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur sm:px-6">
+          <div className="mx-auto flex max-w-[900px] flex-wrap items-center gap-2 text-sm text-slate-600">
+            <div className="flex items-center gap-2 rounded-full bg-blue-50/30 px-3 py-2 font-semibold">
+              <BookOpen className="h-4 w-4 text-[var(--color-primary)]" />
               <span className="truncate">{currentPlan.title || 'Giáo án đang soạn'}</span>
             </div>
             <div className="hidden h-5 w-px bg-[#c0c7d3] sm:block" />
@@ -217,7 +217,7 @@ export const LessonContentBoard = ({
               <span>Lớp {currentPlan.grade || '--'} · Tuần {currentPlan.week || '--'}</span>
             </div>
             {isUploadingImage && (
-              <div className="ml-auto flex items-center gap-2 rounded-full bg-[#d2e4ff] px-3 py-2 text-xs font-bold text-[#005ea1]">
+              <div className="ml-auto flex items-center gap-2 rounded-full bg-blue-100 px-3 py-2 text-xs font-bold text-[var(--color-primary)]">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" /> Đang tải ảnh
               </div>
             )}
@@ -226,18 +226,18 @@ export const LessonContentBoard = ({
 
         <div className="flex-1 overflow-y-auto p-4 custom-scrollbar scroll-smooth sm:p-8">
           <div className="mx-auto max-w-[900px]">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#c0c7d3] bg-white px-4 py-3 shadow-sm">
-              <div className="flex items-center gap-2 text-sm font-bold text-[#0d1c2e]">
-                <PenTool className="h-4 w-4 text-[#005ea1]" />
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+              <div className="flex items-center gap-2 text-sm font-bold text-slate-800">
+                <PenTool className="h-4 w-4 text-[var(--color-primary)]" />
                 A4 Markdown Editor
               </div>
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#717782]">
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
                 <ImagePlus className="h-4 w-4" /> Dán/kéo ảnh trực tiếp vào vùng soạn
               </div>
             </div>
 
             <div id="lesson-content" className="relative" data-color-mode="light" onPaste={handlePaste} onDrop={handleDrop}>
-              <div className="rounded-[28px] border border-[#c0c7d3] bg-white p-3 shadow-[0_18px_50px_rgba(0,94,161,0.12)] sm:p-5">
+              <div className="rounded-[28px] border border-slate-200 bg-white p-3 shadow-[0_18px_50px_rgba(0,94,161,0.12)] sm:p-5">
                 <MDEditor
                   value={currentPlan.content || ''}
                   onChange={val => setCurrentPlan(prev => ({ ...prev, content: val || '' }))}
@@ -247,7 +247,7 @@ export const LessonContentBoard = ({
                     rehypePlugins: [rehypeRaw, rehypeKatex]
                   }}
                   height={760}
-                  className="dewey-md-editor w-full overflow-hidden rounded-2xl border border-[#d4e4fc] shadow-none"
+                  className="dewey-md-editor w-full overflow-hidden rounded-2xl border border-blue-100 shadow-none"
                   textareaProps={{
                     placeholder: 'Bắt đầu soạn thảo giáo án bằng Markdown...',
                     onClick: updateEditorContext,
@@ -261,33 +261,33 @@ export const LessonContentBoard = ({
         </div>
       </section>
 
-      <aside className="flex w-full shrink-0 flex-col border-t border-[#c0c7d3] bg-white lg:w-[340px] lg:border-l lg:border-t-0">
-        <div className="border-b border-[#d4e4fc] bg-white px-5 py-4">
+      <aside className="flex w-full shrink-0 flex-col border-t border-slate-200 bg-white lg:w-[340px] lg:border-l lg:border-t-0">
+        <div className="border-b border-blue-100 bg-white px-5 py-4">
           <div className="flex items-center gap-3">
-            <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-[#2178c3] text-white shadow-lg shadow-blue-200">
+            <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-primary text-white shadow-lg shadow-blue-200">
               <Sparkles className="relative z-10 h-5 w-5" />
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent" />
             </div>
             <div>
-              <h3 className="font-display text-lg font-bold text-[#0d1c2e]">AI Co-pilot</h3>
-              <p className="text-xs font-medium text-[#58646a]">Tinh chỉnh giáo án theo ngữ cảnh</p>
+              <h3 className="font-display text-lg font-bold text-slate-800">AI Co-pilot</h3>
+              <p className="text-xs font-medium text-slate-500">Tinh chỉnh giáo án theo ngữ cảnh</p>
             </div>
           </div>
         </div>
 
         <div className="flex-1 space-y-5 overflow-y-auto p-5 custom-scrollbar">
-          <div className="rounded-2xl border border-[#d4e4fc] bg-[#eff4ff] p-4">
-            <div className="mb-2 flex items-center gap-2 text-sm font-bold text-[#00497e]">
+          <div className="rounded-2xl border border-blue-100 bg-blue-50/30 p-4">
+            <div className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800">
               <Eye className="h-4 w-4" /> Đang phân tích
             </div>
-            <p className="text-sm leading-relaxed text-[#414751]">
+            <p className="text-sm leading-relaxed text-slate-600">
               AI đang ưu tiên ngữ cảnh: <strong>{editorContext.section}</strong>{editorContext.selectedText ? ' · đang xử lý đoạn đã chọn' : ''}. Gợi ý bên dưới sẽ đổi theo vị trí con trỏ trong giáo án.
             </p>
           </div>
 
           <div className="space-y-3">
-            <h4 className="flex items-center gap-2 text-sm font-bold text-[#0d1c2e]">
-              <Wand2 className="h-4 w-4 text-[#005ea1]" /> Gợi ý nhanh
+            <h4 className="flex items-center gap-2 text-sm font-bold text-slate-800">
+              <Wand2 className="h-4 w-4 text-[var(--color-primary)]" /> Gợi ý nhanh
             </h4>
             <div className="flex flex-wrap gap-2">
               {contextualPrompts.map(prompt => (
@@ -295,7 +295,7 @@ export const LessonContentBoard = ({
                   key={prompt}
                   type="button"
                   onClick={() => setRevisionPrompt(`${editorContext.selectedText ? `Với đoạn đang chọn: "${editorContext.selectedText.slice(0, 300)}". ` : ''}${prompt}`)}
-                  className="rounded-full border border-[#c0c7d3] bg-white px-3 py-1.5 text-xs font-bold text-[#414751] transition hover:border-[#005ea1] hover:text-[#005ea1]"
+                  className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
                 >
                   {prompt}
                 </button>
@@ -305,7 +305,7 @@ export const LessonContentBoard = ({
                   key={verb}
                   type="button"
                   onClick={() => setRevisionPrompt(`Hãy bổ sung mục tiêu bài học sử dụng động từ Bloom: ${verb}.`)}
-                  className="rounded-full border border-[#c0c7d3] bg-white px-3 py-1.5 text-xs font-bold text-[#414751] transition hover:border-[#005ea1] hover:text-[#005ea1]"
+                  className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
                 >
                   {verb}
                 </button>
@@ -313,42 +313,42 @@ export const LessonContentBoard = ({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[#c0c7d3] bg-white p-4 shadow-sm">
-            <h4 className="mb-3 flex items-center gap-2 text-sm font-bold text-[#0d1c2e]">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <h4 className="mb-3 flex items-center gap-2 text-sm font-bold text-slate-800">
               <ClipboardCheck className="h-4 w-4 text-[#385d8e]" /> Đánh giá chất lượng
             </h4>
             <ul className="space-y-2">
               {qualityChecks.map(item => (
-                <li key={item} className="flex items-start gap-2 text-sm text-[#414751]">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#2178c3]" />
+                <li key={item} className="flex items-start gap-2 text-sm text-slate-600">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                   <span>{item}</span>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div className="rounded-2xl border border-[#d4e4fc] bg-[#f8f9ff] p-4">
-            <h4 className="mb-2 flex items-center gap-2 text-sm font-bold text-[#0d1c2e]">
-              <MessageSquare className="h-4 w-4 text-[#005ea1]" /> Ví dụ lệnh tốt
+          <div className="rounded-2xl border border-blue-100 bg-slate-50 p-4">
+            <h4 className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800">
+              <MessageSquare className="h-4 w-4 text-[var(--color-primary)]" /> Ví dụ lệnh tốt
             </h4>
-            <p className="text-sm leading-relaxed text-[#58646a]">
+            <p className="text-sm leading-relaxed text-slate-500">
               “Hãy thêm hoạt động nhóm 10 phút, phân hoá cho 3 mức năng lực và bổ sung câu hỏi đánh giá cuối giờ.”
             </p>
           </div>
         </div>
 
-        <div className="border-t border-[#d4e4fc] bg-[#f8f9ff] p-4">
+        <div className="border-t border-blue-100 bg-slate-50 p-4">
           <div className="space-y-3">
             <textarea
               value={revisionPrompt}
               onChange={(e) => setRevisionPrompt(e.target.value)}
               placeholder="Thưa trợ lý, hãy sửa bài này theo yêu cầu này..."
-              className="min-h-[92px] w-full resize-none rounded-2xl border border-[#c0c7d3] bg-white px-4 py-3 text-sm text-[#0d1c2e] outline-none transition-all placeholder:text-[#717782] focus:border-[#005ea1] focus:ring-2 focus:ring-[#9fcaff]"
+              className="min-h-[92px] w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[#9fcaff]"
             />
             <button
               onClick={handleReviseLesson}
               disabled={isLoading || !revisionPrompt.trim()}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#005ea1] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-200 transition hover:bg-[#00497e] disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--color-primary)] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-200 transition hover:hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
               Gửi yêu cầu cho AI
@@ -359,3 +359,4 @@ export const LessonContentBoard = ({
     </div>
   );
 };
+

@@ -500,7 +500,7 @@ export const GradingTab = ({
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="h-[calc(100vh-10rem)] flex flex-col lg:flex-row gap-6 overflow-hidden bg-[#f9f9ff] p-1"
+      className="h-[calc(100vh-10rem)] flex flex-col lg:flex-row gap-6 overflow-hidden bg-slate-50 p-1"
     >
       {/* LEFT: session history */}
       <GradingSessionList
@@ -517,17 +517,17 @@ export const GradingTab = ({
       {/* RIGHT: main panel */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {panelMode === 'new' ? (
-            <div className="flex flex-col h-full overflow-hidden rounded-2xl border border-[#c0c7d3] bg-white shadow-[0_4px_12px_rgba(49,130,206,0.08)]">
+            <div className="flex flex-col h-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_4px_12px_rgba(49,130,206,0.08)]">
             {/* Mode toggle */}
-            <div className="flex gap-4 border-b border-[#c0c7d3] bg-[#f9f9ff] px-6 pt-5 pb-2 flex-shrink-0">
+            <div className="flex gap-4 border-b border-slate-200 bg-slate-50 px-6 pt-5 pb-2 flex-shrink-0">
               {(['normal', 'smart'] as const).map(mode => (
                 <button
                   key={mode}
                   onClick={() => { setGradingMode(mode); setSmartWarnings([]); }}
                     className={`flex items-center gap-2 px-4 py-2 -mb-[9px] border-b-2 text-sm font-bold transition-all ${
                     gradingMode === mode
-                      ? 'border-[#3182ce] text-[#005ea1]'
-                      : 'border-transparent text-slate-500 hover:text-[#005ea1]'
+                      ? 'border-primary text-[var(--color-primary)]'
+                      : 'border-transparent text-slate-500 hover:text-[var(--color-primary)]'
                   }`}
                 >
                   {mode === 'normal' ? 'Chấm thường' : '⚡ Chấm thông minh'}
@@ -625,3 +625,4 @@ export const GradingTab = ({
     </motion.div>
   );
 };
+

@@ -127,13 +127,13 @@ export const GradingNewSession = ({
           <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Tên phiên chấm</label>
           <input type="text" value={sessionTitle} onChange={e => setSessionTitle(e.target.value)}
             placeholder="VD: Kiểm tra 15p Toán 10A1..."
-            className="w-full px-3 py-2.5 rounded-lg border border-[#c0c7d3] bg-white text-sm font-medium text-[#121c2c] focus:ring-2 focus:ring-[#3182ce]/20 focus:border-[#3182ce] outline-none" />
+            className="w-full px-3 py-2.5 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
           <div className="flex items-center gap-2 mt-1">
             <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Thang điểm</label>
             <input
               type="number" min={1} max={1000} value={maxScore}
               onChange={e => setMaxScore(Math.max(1, Number(e.target.value)))}
-              className="w-20 px-3 py-2 rounded-lg border border-[#c0c7d3] bg-white text-sm font-bold text-center focus:ring-2 focus:ring-[#3182ce]/20 focus:border-[#3182ce] outline-none"
+              className="w-20 px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm font-bold text-center focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
             />
             <span className="text-[10px] text-slate-400">điểm</span>
           </div>
@@ -150,7 +150,7 @@ export const GradingNewSession = ({
           <div className="space-y-1 max-h-20 overflow-y-auto">
             {masterFiles.length === 0 ? (
               <div onClick={() => masterRef.current?.click()}
-                className="p-4 rounded-xl border-2 border-dashed border-[#c0c7d3] bg-[#f9f9ff] hover:border-[#3182ce]/50 hover:bg-[#ebf8ff] cursor-pointer flex items-center gap-2 text-slate-500 hover:text-[#005ea1] transition-all">
+                className="p-4 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 hover:border-primary/50 hover:bg-blue-50 cursor-pointer flex items-center gap-2 text-slate-500 hover:text-[var(--color-primary)] transition-all">
                 <Upload className="w-4 h-4" />
                 <span className="text-xs font-medium">Chọn file đề & đáp án</span>
               </div>
@@ -188,7 +188,7 @@ export const GradingNewSession = ({
             </button>
           </div>
           <div onClick={() => studentRef.current?.click()}
-            className="p-4 rounded-xl border-2 border-dashed border-[#c0c7d3] bg-[#f9f9ff] hover:border-[#3182ce]/50 hover:bg-[#ebf8ff] cursor-pointer flex items-center gap-2 text-slate-500 hover:text-[#005ea1] transition-all">
+            className="p-4 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 hover:border-primary/50 hover:bg-blue-50 cursor-pointer flex items-center gap-2 text-slate-500 hover:text-[var(--color-primary)] transition-all">
             <Users className="w-4 h-4" />
             <span className="text-xs font-medium">
               {studentFiles.length > 0 ? `${studentFiles.length} bài — thêm tiếp` : 'Chọn bài cả lớp (nhiều file)'}
@@ -208,7 +208,7 @@ export const GradingNewSession = ({
           value={gradingRubric}
           onChange={e => setGradingRubric(e.target.value)}
           placeholder="VD: Câu 1 = 0.5đ, câu 2 = 1đ. Sai chính tả trừ 0.25đ/lỗi. Phần tự luận: đủ ý = 100%, thiếu 1 ý = 50%..."
-          className="w-full px-3 py-2 rounded-lg border border-[#c0c7d3] bg-white text-sm font-medium focus:ring-2 focus:ring-[#3182ce]/20 focus:border-[#3182ce] outline-none resize-none placeholder:text-slate-300"
+          className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none placeholder:text-slate-300"
         />
       </div>
 
@@ -231,7 +231,7 @@ export const GradingNewSession = ({
         </div>
       )}
 
-      <div className="flex items-center gap-3 flex-shrink-0 px-6 py-3 border-y border-[#c0c7d3] bg-[#f9f9ff]">
+      <div className="flex items-center gap-3 flex-shrink-0 px-6 py-3 border-y border-slate-200 bg-slate-50">
         <button onClick={onStartGrading}
           disabled={isProcessing || masterFiles.length === 0 || studentFiles.length === 0}
           className="px-6 py-2.5 bg-[#38a169] text-white rounded-full font-black hover:bg-[#2f855a] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-sm">
@@ -301,3 +301,4 @@ export const GradingNewSession = ({
     </div>
   );
 };
+

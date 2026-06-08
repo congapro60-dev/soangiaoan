@@ -147,7 +147,7 @@ export const SettingsModal = ({
             initial={{ scale: 0.96, opacity: 0, y: 16 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.96, opacity: 0, y: 16 }}
-            className="relative flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-[28px] border border-blue-100 bg-[#f8f9ff] shadow-[0_30px_90px_-36px_rgba(15,23,42,0.55)]"
+            className="relative flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-[28px] border border-blue-100 bg-slate-50 shadow-[0_30px_90px_-36px_rgba(15,23,42,0.55)]"
           >
             <div className="pointer-events-none absolute inset-0 opacity-[0.04] [background-image:radial-gradient(#3182ce_1px,transparent_1px)] [background-size:24px_24px]" />
 
@@ -432,3 +432,4 @@ export const SettingsModal = ({
     </AnimatePresence>
   );
 };
+
