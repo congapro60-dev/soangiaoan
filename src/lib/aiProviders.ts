@@ -105,6 +105,7 @@ export function getActiveApiKey(settings: Settings): string {
   if (provider === 'openai') return settings.openaiApiKey || '';
   if (provider === 'grok') return settings.grokApiKey || '';
   if (provider === 'deepseek') return settings.deepseekApiKey || '';
+  if (provider === 'openai-compatible') return settings.openaiCompatibleApiKey || '';
   return settings.geminiApiKey || '';
 }
 
@@ -113,6 +114,7 @@ const getActiveModelId = (provider: ApiProvider, settings: Settings): string => 
   if (provider === 'openai') return settings.selectedModel || OPENAI_MODELS[0].id;
   if (provider === 'grok') return settings.selectedModel || GROK_MODELS[0].id;
   if (provider === 'deepseek') return settings.selectedModel || DEEPSEEK_MODELS[0].id;
+  if (provider === 'openai-compatible') return settings.openaiCompatibleModelId || 'claude-opus-4-7';
   const idx = GEMINI_RUNTIME_MODELS.indexOf(settings.selectedModel);
   return idx >= 0 ? GEMINI_RUNTIME_MODELS[idx] : DEFAULT_GEMINI_RUNTIME_MODEL;
 };
@@ -205,6 +207,28 @@ async function callAIOnce(prompt: string, settings: Settings): Promise<RawResult
       const res = await client.chat.completions.create({
         model,
         max_tokens: deepseekMaxTokens(model),
+        messages: [{ role: 'user', content: prompt }],
+      });
+      const choice = res.choices[0];
+      recordExactUsage(provider, model, {
+        promptTokens: res.usage?.prompt_tokens,
+        completionTokens: res.usage?.completion_tokens,
+        totalTokens: res.usage?.total_tokens,
+      });
+      return { text: choice?.message?.content ?? '', truncated: choice?.finish_reason === 'length' };
+    }
+
+    if (provider === 'openai-compatible') {
+      const OpenAI = (await import('openai')).default;
+      const client = new OpenAI({ 
+        apiKey: settings.openaiCompatibleApiKey || 'sk-none', 
+        baseURL: settings.openaiCompatibleBaseUrl || 'https://digishop-api.io.vn/v1',
+        dangerouslyAllowBrowser: true 
+      });
+      const model = getActiveModelId(provider, settings);
+      const res = await client.chat.completions.create({
+        model,
+        max_tokens: OPENAI_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
       });
       const choice = res.choices[0];
@@ -381,6 +405,34 @@ export async function callAIWithVision(
       return callAI(prompt, settings);
     }
 
+    if (provider === 'openai-compatible') {
+      const OpenAI = (await import('openai')).default;
+      const client = new OpenAI({ 
+        apiKey: settings.openaiCompatibleApiKey || 'sk-none', 
+        baseURL: settings.openaiCompatibleBaseUrl || 'https://digishop-api.io.vn/v1',
+        dangerouslyAllowBrowser: true 
+      });
+      const imageBlocks = parsedImages.map(({ url }) => ({
+        type: 'image_url' as const,
+        image_url: { url },
+      }));
+      const model = getActiveModelId(provider, settings);
+      const res = await client.chat.completions.create({
+        model,
+        max_tokens: OPENAI_MAX_TOKENS,
+        messages: [{
+          role: 'user',
+          content: [...imageBlocks, { type: 'text' as const, text: prompt }],
+        }],
+      });
+      recordExactUsage(provider, model, {
+        promptTokens: res.usage?.prompt_tokens,
+        completionTokens: res.usage?.completion_tokens,
+        totalTokens: res.usage?.total_tokens,
+      });
+      return res.choices[0]?.message?.content ?? '';
+    }
+
     // Gemini
     const { GoogleGenAI } = await import('@google/genai');
     const ai = new GoogleGenAI({ apiKey: settings.geminiApiKey, httpOptions: { apiVersion: 'v1beta' } });
@@ -515,6 +567,32 @@ export async function callAIStream(
       const stream = await client.chat.completions.create({
         model,
         max_tokens: deepseekMaxTokens(model),
+        messages: [{ role: 'user', content: prompt }],
+        stream: true,
+      });
+      let output = '';
+      for await (const chunk of stream) {
+        const text = chunk.choices[0]?.delta?.content ?? '';
+        if (text) {
+          output += text;
+          onChunk(text);
+        }
+      }
+      recordEstimatedUsage(provider, model, prompt, output);
+      return;
+    }
+
+    if (provider === 'openai-compatible') {
+      const OpenAI = (await import('openai')).default;
+      const client = new OpenAI({ 
+        apiKey: settings.openaiCompatibleApiKey || 'sk-none', 
+        baseURL: settings.openaiCompatibleBaseUrl || 'https://digishop-api.io.vn/v1',
+        dangerouslyAllowBrowser: true 
+      });
+      const model = getActiveModelId(provider, settings);
+      const stream = await client.chat.completions.create({
+        model,
+        max_tokens: OPENAI_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
         stream: true,
       });

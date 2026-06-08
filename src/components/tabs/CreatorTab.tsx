@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { FileText, Save, MessageSquare, Monitor, Layers, Loader2, Sparkles, X, BookOpen, FilePlus, Download } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
@@ -9,6 +9,7 @@ import rehypeRaw from 'rehype-raw';
 import { AppData, LessonPlan, TemplateFile } from '../../types';
 import * as exportUtils from '../../utils/exportUtils';
 import { exportToWordA4 } from '../../utils/wordExportA4';
+import { DiagramRenderer } from '../features/creator/DiagramRenderer';
 import { callAI, getActiveApiKey } from '../../lib/aiProviders';
 import { AudioOverview } from '../features/AudioOverview';
 import { PushToDriveModal } from '../modals/PushToDriveModal';
@@ -18,6 +19,24 @@ import { CreatorToolbar } from '../features/creator/CreatorToolbar';
 import { LessonControls } from '../features/creator/LessonControls';
 import { SlidePreviewBoard } from '../features/creator/SlidePreviewBoard';
 import { LessonContentBoard } from '../features/creator/LessonContentBoard';
+
+const SimulatedProgress = () => {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setProgress(p => {
+        if (p < 60) return p + Math.floor(Math.random() * 8) + 2;
+        if (p < 85) return p + Math.floor(Math.random() * 4) + 1;
+        if (p < 99) return p + 1;
+        return p;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return <span className="text-blue-600 font-black ml-1">{progress}%</span>;
+};
 
 interface CreatorTabProps {
   data: AppData;
@@ -281,6 +300,26 @@ export const CreatorTab = (props: CreatorTabProps) => {
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm, remarkMath]}
                         rehypePlugins={[rehypeRaw, rehypeKatex]}
+                        components={{
+                          code({ node, inline, className, children, ...props }: any) {
+                            const match = /language-(\w+)/.exec(className || '');
+                            const lang = match ? match[1] : '';
+                            const codeString = String(children).replace(/\n$/, '');
+
+                            if (!inline && (lang === 'xml' || lang === 'svg' || lang === 'html') && codeString.trim().startsWith('<svg')) {
+                              return <DiagramRenderer code={codeString} type="svg" />;
+                            }
+                            if (!inline && (lang === 'latex' || lang === 'tikz' || lang === 'tex') && codeString.includes('\\begin{tikzpicture}')) {
+                              return <DiagramRenderer code={codeString} type="tikz" />;
+                            }
+
+                            return (
+                              <code className={className} {...props}>
+                                {children}
+                              </code>
+                            );
+                          }
+                        }}
                       >{studyGuide}</ReactMarkdown>
                     </motion.div>
                   </div>
@@ -362,7 +401,10 @@ export const CreatorTab = (props: CreatorTabProps) => {
             <div className="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center gap-4">
               <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
               <div className="text-center">
-                <h3 className="font-bold text-slate-800">Hệ thống AI đang xử lý...</h3>
+                <h3 className="font-bold text-slate-800">
+                  Hệ thống AI đang xử lý...
+                  <SimulatedProgress />
+                </h3>
                 <p className="text-sm text-slate-500 font-medium">Vui lòng không đóng trang này</p>
               </div>
             </div>

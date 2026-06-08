@@ -39,6 +39,7 @@ const PROVIDERS: { id: Provider; label: string; color: string; bg: string; borde
   { id: 'openai', label: 'ChatGPT', color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-500', accent: 'from-emerald-500 to-teal-400' },
   { id: 'grok', label: 'Grok', color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-500', accent: 'from-purple-500 to-fuchsia-400' },
   { id: 'deepseek', label: 'DeepSeek', color: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-500', accent: 'from-cyan-500 to-blue-400' },
+  { id: 'openai-compatible', label: 'Custom API', color: 'text-slate-600', bg: 'bg-slate-100', border: 'border-slate-400', accent: 'from-slate-500 to-gray-400' },
 ];
 
 const PROVIDER_MODELS: Record<Provider, { id: string; name: string; desc: string }[]> = {
@@ -47,6 +48,7 @@ const PROVIDER_MODELS: Record<Provider, { id: string; name: string; desc: string
   openai: OPENAI_MODELS,
   grok: GROK_MODELS,
   deepseek: DEEPSEEK_MODELS,
+  'openai-compatible': [],
 };
 
 const PROVIDER_LINKS: Record<Provider, { url: string; label: string }> = {
@@ -55,6 +57,7 @@ const PROVIDER_LINKS: Record<Provider, { url: string; label: string }> = {
   openai: { url: 'https://platform.openai.com/api-keys', label: 'Lấy OpenAI API Key' },
   grok: { url: 'https://console.x.ai/', label: 'Lấy Grok API Key' },
   deepseek: { url: 'https://platform.deepseek.com/api_keys', label: 'Lấy DeepSeek API Key' },
+  'openai-compatible': { url: '#', label: 'API Tuỳ chỉnh' },
 };
 
 const providerName = (provider: Provider): string => {
@@ -62,6 +65,7 @@ const providerName = (provider: Provider): string => {
   if (provider === 'claude') return 'Anthropic Claude';
   if (provider === 'grok') return 'xAI Grok';
   if (provider === 'deepseek') return 'DeepSeek';
+  if (provider === 'openai-compatible') return 'OpenAI Compatible';
   return 'OpenAI ChatGPT';
 };
 
@@ -97,7 +101,7 @@ export const SettingsModal = ({
       settings: {
         ...prev.settings,
         selectedProvider: provider,
-        selectedModel: currentModelValid ? prev.settings.selectedModel : models[0].id,
+        selectedModel: provider === 'openai-compatible' ? prev.settings.openaiCompatibleModelId || 'claude-opus-4-7' : (currentModelValid ? prev.settings.selectedModel : models[0]?.id),
       }
     }));
   };
@@ -111,6 +115,8 @@ export const SettingsModal = ({
       setData(prev => ({ ...prev, settings: { ...prev.settings, grokApiKey: value } }));
     } else if (provider === 'deepseek') {
       setData(prev => ({ ...prev, settings: { ...prev.settings, deepseekApiKey: value } }));
+    } else if (provider === 'openai-compatible') {
+      setData(prev => ({ ...prev, settings: { ...prev.settings, openaiCompatibleApiKey: value } }));
     } else {
       setData(prev => ({ ...prev, settings: { ...prev.settings, openaiApiKey: value } }));
     }
@@ -121,6 +127,7 @@ export const SettingsModal = ({
     if (provider === 'claude') return data.settings.claudeApiKey || '';
     if (provider === 'grok') return data.settings.grokApiKey || '';
     if (provider === 'deepseek') return data.settings.deepseekApiKey || '';
+    if (provider === 'openai-compatible') return data.settings.openaiCompatibleApiKey || '';
     return data.settings.openaiApiKey || '';
   };
 
@@ -230,7 +237,7 @@ export const SettingsModal = ({
                     <span className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-bold text-[var(--dewey-blue)]">{providerName(activeTab)}</span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-6">
                     {PROVIDERS.map(p => (
                       <button
                         key={p.id}
@@ -274,29 +281,64 @@ export const SettingsModal = ({
                     <h4 className="font-['Plus_Jakarta_Sans'] text-lg font-bold text-slate-900">Mô hình</h4>
                     <p className="mt-1 text-sm text-slate-500">Chọn model mặc định cho các tác vụ tạo giáo án, đề kiểm tra và AI Tutor.</p>
                     <div className="mt-4 grid grid-cols-1 gap-3">
-                      {models.map(m => {
-                        const isSelected = data.settings.selectedModel === m.id && currentProvider === activeTab;
-                        return (
-                          <button
-                            key={m.id}
-                            type="button"
-                            onClick={() => {
-                              handleSelectProvider(activeTab);
-                              setData(prev => ({ ...prev, settings: { ...prev.settings, selectedModel: m.id, selectedProvider: activeTab } }));
-                            }}
-                            className={cn(
-                              'flex items-start justify-between gap-3 rounded-2xl border p-4 text-left transition hover:border-blue-200 hover:bg-blue-50/60',
-                              isSelected ? `${providerStyle.border} ${providerStyle.bg}` : 'border-slate-200 bg-white'
-                            )}
-                          >
-                            <div>
-                              <div className={cn('font-bold text-sm', isSelected ? providerStyle.color : 'text-slate-800')}>{m.name}</div>
-                              <div className="mt-1 text-xs leading-5 text-slate-500">{m.desc}</div>
-                            </div>
-                            {isSelected && <CheckCircle2 className={cn('mt-0.5 h-5 w-5 shrink-0', providerStyle.color)} />}
-                          </button>
-                        );
-                      })}
+                      {activeTab === 'openai-compatible' ? (
+                        <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                          <div>
+                            <label className="mb-1 block text-xs font-bold text-slate-700">Base URL</label>
+                            <input
+                              type="text"
+                              value={data.settings.openaiCompatibleBaseUrl || ''}
+                              onChange={(e) => setData(prev => ({ ...prev, settings: { ...prev.settings, openaiCompatibleBaseUrl: e.target.value } }))}
+                              placeholder="https://digishop-api.io.vn/v1"
+                              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none transition focus:border-[var(--dewey-blue)] focus:bg-white focus:ring-2 focus:ring-blue-100"
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-xs font-bold text-slate-700">Model ID</label>
+                            <input
+                              type="text"
+                              value={data.settings.openaiCompatibleModelId || ''}
+                              onChange={(e) => setData(prev => ({
+                                ...prev,
+                                settings: {
+                                  ...prev.settings,
+                                  openaiCompatibleModelId: e.target.value,
+                                  selectedModel: e.target.value // Update selectedModel as well so usage tracking knows
+                                }
+                              }))}
+                              placeholder="claude-opus-4-7"
+                              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none transition focus:border-[var(--dewey-blue)] focus:bg-white focus:ring-2 focus:ring-blue-100"
+                            />
+                          </div>
+                          <p className="text-[11px] text-slate-500">
+                            Với Custom API, bạn cần nhập chính xác Base URL và Model ID được cung cấp.
+                          </p>
+                        </div>
+                      ) : (
+                        models.map(m => {
+                          const isSelected = data.settings.selectedModel === m.id && currentProvider === activeTab;
+                          return (
+                            <button
+                              key={m.id}
+                              type="button"
+                              onClick={() => {
+                                handleSelectProvider(activeTab);
+                                setData(prev => ({ ...prev, settings: { ...prev.settings, selectedModel: m.id, selectedProvider: activeTab } }));
+                              }}
+                              className={cn(
+                                'flex items-start justify-between gap-3 rounded-2xl border p-4 text-left transition hover:border-blue-200 hover:bg-blue-50/60',
+                                isSelected ? `${providerStyle.border} ${providerStyle.bg}` : 'border-slate-200 bg-white'
+                              )}
+                            >
+                              <div>
+                                <div className={cn('font-bold text-sm', isSelected ? providerStyle.color : 'text-slate-800')}>{m.name}</div>
+                                <div className="mt-1 text-xs leading-5 text-slate-500">{m.desc}</div>
+                              </div>
+                              {isSelected && <CheckCircle2 className={cn('mt-0.5 h-5 w-5 shrink-0', providerStyle.color)} />}
+                            </button>
+                          );
+                        })
+                      )}
                     </div>
                   </div>
 

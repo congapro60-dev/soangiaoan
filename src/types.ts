@@ -178,10 +178,13 @@ export interface AppData {
     geminiApiKey: string;
     claudeApiKey: string;
     openaiApiKey: string;
-    selectedProvider: 'gemini' | 'claude' | 'openai' | 'grok' | 'deepseek';
+    selectedProvider: 'gemini' | 'claude' | 'openai' | 'grok' | 'deepseek' | 'openai-compatible';
     selectedModel: string;
     grokApiKey: string;
     deepseekApiKey: string;
+    openaiCompatibleApiKey?: string;
+    openaiCompatibleBaseUrl?: string;
+    openaiCompatibleModelId?: string;
     models?: string[];
     botApiUrl?: string;
     botApiToken?: string;
@@ -210,6 +213,9 @@ export const DEFAULT_DATA: AppData = {
     openaiApiKey: '',
     grokApiKey: '',
     deepseekApiKey: '',
+    openaiCompatibleApiKey: '',
+    openaiCompatibleBaseUrl: 'https://digishop-api.io.vn/v1',
+    openaiCompatibleModelId: 'claude-opus-4-7',
     selectedProvider: 'gemini',
     selectedModel: 'gemini-2.5-flash',
     models: ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.5-flash-lite', 'gemini-2.0-flash', 'gemini-2.0-flash-lite'],

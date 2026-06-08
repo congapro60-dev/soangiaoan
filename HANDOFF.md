@@ -16,6 +16,21 @@
 
 ---
 
+## 0. Trạng thái mới nhất — 2026-06-08 (Antigravity): Tích hợp Custom API, Visual Aids và Thanh tiến trình AI
+
+> Nguồn sự thật mới nhất cho phiên sau: Vừa hoàn tất việc tích hợp Provider OpenAI-Compatible, nâng cấp hiển thị Visual Aids (SVG/TikZ) và thanh tiến trình giả lập. Đã pass build production.
+
+### 0.0.1 Phạm vi thay đổi chính
+- **Cấu hình Custom API (`src/types.ts`, `src/config/apiLimits.ts`, `src/lib/aiProviders.ts`, `src/components/modals/SettingsModal.tsx`)**:
+  - Hỗ trợ Provider `openai-compatible`, cho phép nhập Base URL (VD: `https://digishop-api.io.vn/v1`), API Key, và Model ID trực tiếp từ giao diện Settings.
+- **Visual Aids và Diagram Renderer (`src/hooks/useLessonCreator.ts`, `src/components/features/creator/DiagramRenderer.tsx`, `src/components/features/creator/LessonContentBoard.tsx`, `src/components/tabs/CreatorTab.tsx`)**:
+  - Cài đặt thư viện `pako` để mã hóa Zlib ở Client.
+  - Tích hợp API của `kroki.io` để render trực tiếp mã `TikZ` (và xử lý native `SVG`) được sinh ra bởi AI.
+  - Bổ sung hệ thống Prompt bắt buộc AI sinh hình ảnh ở Cột 3 bảng giáo án khi sử dụng Mẫu Claude hoặc Mẫu CV5512.
+- **Tiến trình AI (`src/components/tabs/CreatorTab.tsx`)**:
+  - Bổ sung \`SimulatedProgress\` (hiển thị % chạy tới 99% trong khi chờ AI) vào cửa sổ chờ, giúp nâng cao trải nghiệm người dùng.
+
+---
 ## 0. Trạng thái mới nhất — 2026-06-08 (Antigravity): Chuyển đổi xuất Word và PDF sang Server-side API
 
 > Nguồn sự thật mới nhất cho phiên sau: Vừa hoàn tất việc thay thế cơ chế tải file Word và PDF từ xử lý thuần tuý ở Frontend (Client-side) sang gọi trực tiếp Server-side API (`/api/export-lesson`).

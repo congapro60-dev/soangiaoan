@@ -9,6 +9,7 @@ import MDEditor from '@uiw/react-md-editor';
 import { LessonPlan } from '../../../types';
 import { auth, storage } from '../../../lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { DiagramRenderer } from './DiagramRenderer';
 
 interface LessonContentBoardProps {
   generationMode: 'single' | 'bulk';
@@ -193,6 +194,26 @@ export const LessonContentBoard = ({
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm, remarkMath]}
                   rehypePlugins={[rehypeRaw, rehypeKatex]}
+                  components={{
+                    code({ node, inline, className, children, ...props }: any) {
+                      const match = /language-(\w+)/.exec(className || '');
+                      const lang = match ? match[1] : '';
+                      const codeString = String(children).replace(/\n$/, '');
+
+                      if (!inline && (lang === 'xml' || lang === 'svg' || lang === 'html') && codeString.trim().startsWith('<svg')) {
+                        return <DiagramRenderer code={codeString} type="svg" />;
+                      }
+                      if (!inline && (lang === 'latex' || lang === 'tikz' || lang === 'tex') && codeString.includes('\\begin{tikzpicture}')) {
+                        return <DiagramRenderer code={codeString} type="tikz" />;
+                      }
+
+                      return (
+                        <code className={className} {...props}>
+                          {children}
+                        </code>
+                      );
+                    }
+                  }}
                 >{result.content}</ReactMarkdown>
               </div>
             </article>
@@ -244,7 +265,27 @@ export const LessonContentBoard = ({
                   preview="edit"
                   previewOptions={{
                     remarkPlugins: [remarkGfm, remarkMath],
-                    rehypePlugins: [rehypeRaw, rehypeKatex]
+                    rehypePlugins: [rehypeRaw, rehypeKatex],
+                    components: {
+                      code({ node, inline, className, children, ...props }: any) {
+                        const match = /language-(\w+)/.exec(className || '');
+                        const lang = match ? match[1] : '';
+                        const codeString = String(children).replace(/\n$/, '');
+
+                        if (!inline && (lang === 'xml' || lang === 'svg' || lang === 'html') && codeString.trim().startsWith('<svg')) {
+                          return <DiagramRenderer code={codeString} type="svg" />;
+                        }
+                        if (!inline && (lang === 'latex' || lang === 'tikz' || lang === 'tex') && codeString.includes('\\begin{tikzpicture}')) {
+                          return <DiagramRenderer code={codeString} type="tikz" />;
+                        }
+
+                        return (
+                          <code className={className} {...props}>
+                            {children}
+                          </code>
+                        );
+                      }
+                    }
                   }}
                   height={760}
                   className="dewey-md-editor w-full overflow-hidden rounded-2xl border border-blue-100 shadow-none"
