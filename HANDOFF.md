@@ -16,7 +16,24 @@
 
 ---
 
-## 0. Trạng thái mới nhất — 2026-06-08 (Antigravity): Tích hợp Custom API, Visual Aids và Thanh tiến trình AI
+## 0. Trạng thái mới nhất — 2026-06-08 (Antigravity): Tích hợp Render Ảnh (Visual Aids) vào Export Word/PDF
+
+> Nguồn sự thật mới nhất cho phiên sau: Vừa hoàn tất việc tái cấu trúc hệ thống xuất file PDF/Word để hỗ trợ render hình ảnh SVG và TikZ được tạo bởi AI. Đã push lên \`main\`.
+
+### 0.0.1 Phạm vi thay đổi chính
+- **Xuất PDF (`api/export-lesson.ts`)**:
+  - Viết bộ tiền xử lý (preprocessor) nhận diện mã HTML \`<svg>\` và mã \`TikZ\`.
+  - Tích hợp \`pako\` trên server, tự động nén mã TikZ và gọi API \`kroki.io\` để tạo ảnh nhúng thẳng vào file HTML trước khi đưa vào Puppeteer.
+- **Xuất Word (`api/render-word-core.ts`)**:
+  - Đập đi xây lại (refactor) toàn bộ logic đọc cây Markdown AST (hơn 500 dòng code) từ **đồng bộ (Sync)** sang **bất đồng bộ (Async)**.
+  - Tự động gọi API tải dữ liệu PNG nhị phân (Buffer) từ Kroki, đọc kích thước ảnh và nhúng \`ImageRun\` trực tiếp vào file Word.
+  - Cắt bỏ mã SVG thuần tuý vì Word không hỗ trợ chèn SVG bằng text, giữ file Word sạch sẽ.
+- **Prompt Cập Nhật (`src/hooks/useLessonCreator.ts`)**:
+  - Chỉnh sửa \`VISUAL_AIDS_PROMPT\`: Bắt buộc AI dùng mã **TikZ (LaTeX)** và tuyệt đối cấm dùng HTML \`<svg>\` để vẽ hình đồ thị/Toán học, đảm bảo tính tương thích 100% với cả PDF và Word.
+
+---
+
+## 0a. Trạng thái cũ — 2026-06-08 (Antigravity): Tích hợp Custom API, Visual Aids và Thanh tiến trình AI
 
 > Nguồn sự thật mới nhất cho phiên sau: Vừa hoàn tất việc tích hợp Provider OpenAI-Compatible, nâng cấp hiển thị Visual Aids (SVG/TikZ) và thanh tiến trình giả lập. Đã pass build production.
 
