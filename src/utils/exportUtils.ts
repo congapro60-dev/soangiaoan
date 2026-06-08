@@ -5,259 +5,71 @@ import { safeFilename } from './fileUtils';
 
 export type PdfOrientation = 'portrait' | 'landscape';
 
-export const exportToPDF = async (
+export const exportLessonViaAPI = async (
   currentPlan: Partial<LessonPlan>,
-  showToast: (msg: string, type?: any) => void,
-  orientation: PdfOrientation = 'portrait'
+  format: 'docx' | 'pdf',
+  orientation: 'portrait' | 'landscape' = 'portrait',
+  showToast: (msg: string, type?: any) => void
 ) => {
   if (!currentPlan.content) {
     showToast('Không có nội dung giáo án để xuất', 'warning');
     return;
   }
+  showToast(`Đang tạo file ${format.toUpperCase()} chất lượng cao từ Server...`, 'info');
 
-  showToast('Đang tạo PDF, vui lòng chờ...');
-
-  // Theo Nghị định 30/2020/NĐ-CP: A4 (210×297mm), lề trên/dưới 20mm, lề trái 30mm, lề phải 18mm.
-  const isLandscape = orientation === 'landscape';
-  const renderWidthPx = isLandscape ? 941 : 612; // 249mm hoặc 162mm @ 96dpi
-  const marginMm: [number, number, number, number] = [20, 18, 20, 30];
-
-  // Load React rendering stack. These modules are already in the bundle (used by
-  // LessonContentBoard) so this is just reference resolution, not extra download.
-  const [
-    { createRoot },
-    { flushSync },
-    { default: React },
-    { default: ReactMarkdown },
-    { default: remarkGfm },
-    { default: remarkMath },
-    { default: rehypeKatex },
-    { default: rehypeRaw },
-  ] = await Promise.all([
-    import('react-dom/client'),
-    import('react-dom'),
-    import('react'),
-    import('react-markdown'),
-    import('remark-gfm'),
-    import('remark-math'),
-    import('rehype-katex'),
-    import('rehype-raw'),
-  ]);
-
-  const container = document.createElement('div');
-  container.id = 'pdf-render-container';
-  container.style.cssText = [
-    'position: fixed',
-    'top: 0',
-    'left: -10000px',
-    `width: ${renderWidthPx}px`,
-    'background: #ffffff',
-    'padding: 0',
-    'margin: 0',
-    'z-index: -1',
-    'box-sizing: border-box',
-  ].join(';');
-
-  const style = document.createElement('style');
-  style.id = 'pdf-print-style';
-  // CSS chuẩn Nghị định 30/2020/NĐ-CP: Times New Roman 14pt, line-height ≤ 1.5,
-  // spacing đoạn ≥ 6pt, đầu dòng thụt 1cm, justify.
-  style.innerHTML = `
-    #pdf-render-container {
-      font-family: 'Times New Roman', Times, serif;
-      color: #000;
-      font-size: 14pt;
-      line-height: 1.5;
-      box-sizing: border-box;
-    }
-    #pdf-render-container * { box-sizing: border-box; }
-    #pdf-render-container img,
-    #pdf-render-container svg,
-    #pdf-render-container canvas {
-      max-width: 100% !important;
-      height: auto !important;
-      page-break-inside: avoid !important;
-      break-inside: avoid !important;
-    }
-    #pdf-render-container .markdown-body,
-    #pdf-render-container .wmde-markdown {
-      max-width: 100% !important;
-      overflow-wrap: anywhere !important;
-    }
-    /* Do NOT set font-family with !important — it would break KaTeX's own inline
-       font-family declarations (KaTeX_Math, KaTeX_Main, etc.) causing math blanks. */
-    #pdf-render-container h1 {
-      font-size: 18pt !important; font-weight: bold !important;
-      text-align: center !important; margin: 10pt 0 6pt !important;
-      text-transform: uppercase;
-    }
-    #pdf-render-container h2 {
-      font-size: 15pt !important; font-weight: bold !important;
-      margin: 8pt 0 4pt !important; color: #1a365d !important;
-    }
-    #pdf-render-container h3 {
-      font-size: 14pt !important; font-weight: bold !important;
-      margin: 6pt 0 3pt !important;
-    }
-    #pdf-render-container h4, #pdf-render-container h5, #pdf-render-container h6 {
-      font-size: 14pt !important; font-weight: bold !important;
-      margin: 5pt 0 3pt !important;
-    }
-    #pdf-render-container p {
-      font-size: 14pt !important; margin: 6pt 0 !important;
-      text-align: justify !important;
-      text-indent: 1cm !important;
-    }
-    #pdf-render-container td p,
-    #pdf-render-container th p,
-    #pdf-render-container li p { text-indent: 0 !important; }
-    #pdf-render-container ul, #pdf-render-container ol {
-      margin: 6pt 0 6pt 22pt !important; padding: 0 !important;
-    }
-    #pdf-render-container li { font-size: 14pt !important; margin: 2pt 0 !important; }
-    #pdf-render-container strong { font-weight: bold !important; }
-    #pdf-render-container em { font-style: italic !important; }
-    #pdf-render-container table,
-    #pdf-render-container .markdown-body table,
-    #pdf-render-container .wmde-markdown table {
-      table-layout: fixed !important;
-      width: 100% !important;
-      border-collapse: collapse !important;
-      margin: 6pt 0 !important;
-    }
-    #pdf-render-container table th,
-    #pdf-render-container table td,
-    #pdf-render-container .markdown-body table th,
-    #pdf-render-container .markdown-body table td,
-    #pdf-render-container .wmde-markdown table th,
-    #pdf-render-container .wmde-markdown table td {
-      border: 1px solid #555 !important;
-      padding: 5pt 7pt !important;
-      vertical-align: top !important;
-      text-align: left !important;
-      font-size: 13pt !important;
-      line-height: 1.4 !important;
-      word-wrap: break-word !important;
-      overflow-wrap: break-word !important;
-      word-break: break-word !important;
-      hyphens: auto !important;
-      white-space: normal !important;
-    }
-    #pdf-render-container tr {
-      page-break-inside: avoid !important;
-      break-inside: avoid !important;
-    }
-    #pdf-render-container table {
-      page-break-inside: auto !important;
-    }
-    #pdf-render-container table td *,
-    #pdf-render-container table th * {
-      max-width: 100% !important;
-      overflow-wrap: anywhere !important;
-    }
-    #pdf-render-container table td .katex,
-    #pdf-render-container table td .katex-display,
-    #pdf-render-container table td .katex-html,
-    #pdf-render-container table th .katex,
-    #pdf-render-container table th .katex-display,
-    #pdf-render-container table th .katex-html {
-      overflow-wrap: normal !important;
-      word-break: normal !important;
-      overflow: visible !important;
-      max-width: none !important;
-      white-space: nowrap !important;
-    }
-    #pdf-render-container table th {
-      background: #e2e8f0 !important; font-weight: bold !important;
-    }
-    #pdf-render-container blockquote {
-      border-left: 3px solid #94a3b8 !important;
-      padding-left: 12pt !important; margin: 6pt 0 !important;
-      font-style: italic !important;
-    }
-    #pdf-render-container code {
-      font-family: 'Courier New', monospace !important;
-      background: #f1f5f9 !important;
-      padding: 1pt 4pt !important;
-      border-radius: 3px;
-      font-size: 13pt !important;
-    }
-    #pdf-render-container pre {
-      background: #f8fafc !important;
-      padding: 6pt !important;
-      border-radius: 4px;
-      overflow-x: auto;
-      font-size: 12pt !important;
-      line-height: 1.4 !important;
-    }
-    #pdf-render-container .katex {
-      font-size: 1em !important;
-      padding: 1pt 0 !important;
-      max-width: 100% !important;
-      white-space: normal !important;
-    }
-    #pdf-render-container .katex-display {
-      margin: 4pt 0 !important;
-      max-width: 100% !important;
-      overflow-x: hidden !important;
-      overflow-y: visible !important;
-      white-space: normal !important;
-    }
-    #pdf-render-container .katex-display > .katex {
-      display: inline-block !important;
-      max-width: 100% !important;
-      transform-origin: left center !important;
-    }
-  `;
-  document.body.appendChild(container);
-
-  const root = createRoot(container);
   try {
-    // Render markdown through the same ReactMarkdown pipeline used in LessonContentBoard
-    // so the PDF always shows the formatted view (tables, bold, math) regardless of
-    // which editor mode the user has open.
-    flushSync(() => {
-      root.render(
-        React.createElement(
-          React.Fragment,
-          null,
-          currentPlan.title &&
-            React.createElement('h1', null, currentPlan.title),
-          React.createElement(
-            ReactMarkdown as any,
-            {
-              remarkPlugins: [remarkGfm, remarkMath],
-              rehypePlugins: [rehypeRaw, rehypeKatex],
-              children: currentPlan.content,
-            }
-          )
-        )
-      );
+    const res = await fetch('/api/export-lesson', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: currentPlan.title,
+        content: currentPlan.content,
+        orientation,
+        format, // Yêu cầu server trả về 'docx' hoặc 'pdf'
+        type: currentPlan.templateId === 'moet' ? 'MOET' : 'TDS'
+      })
     });
 
-    container.prepend(style);
-    container.insertAdjacentHTML('afterbegin', '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" crossorigin="anonymous">');
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(errorText);
+    }
+    
+    const data = await res.json();
+    const fileData = format === 'docx' ? data.word : data.pdf;
+    if (!fileData || !fileData.base64) {
+      throw new Error('Dữ liệu trả về không hợp lệ');
+    }
+    
+    // Decode base64 trả về từ server thành file Blob
+    const byteCharacters = atob(fileData.base64);
+    const byteArrays = [];
+    for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+      const slice = byteCharacters.slice(offset, offset + 512);
+      const byteNumbers = new Array(slice.length);
+      for (let i = 0; i < slice.length; i++) {
+        byteNumbers[i] = slice.charCodeAt(i);
+      }
+      byteArrays.push(new Uint8Array(byteNumbers));
+    }
+    
+    const blob = new Blob(byteArrays, { type: fileData.mimeType });
+    const { downloadBlob } = await import('./fileUtils');
+    downloadBlob(blob, fileData.filename);
+    showToast(`Tải ${format.toUpperCase()} thành công!`, 'success');
 
-    // Wait for KaTeX web fonts (@font-face) to finish loading before html2canvas
-    // captures. Without this, math glyphs render as blank rectangles in the PDF.
-    await document.fonts.ready;
-
-    const { exportElementToPdf } = await import('./pdfExport');
-    await exportElementToPdf(container, {
-      filename: `${safeFilename(currentPlan.title)}.pdf`,
-      scale: 2,
-      marginMm,
-      orientation,
-    });
-    showToast('Đã tải xuống file PDF!', 'success');
-  } catch (e) {
-    console.error(e);
-    showToast('Lỗi khi xuất PDF, vui lòng thử lại.', 'error');
-  } finally {
-    root.unmount();
-    if (style.parentNode) style.remove();
-    if (container.parentNode) container.remove();
+  } catch (error: any) {
+    console.error(`Lỗi xuất file ${format}:`, error);
+    showToast(`Có lỗi khi tạo file: ${error.message || 'Lỗi server'}`, 'error');
   }
+};
+
+export const exportToPDF = async (
+  currentPlan: Partial<LessonPlan>,
+  showToast: (msg: string, type?: any) => void,
+  orientation: PdfOrientation = 'portrait'
+) => {
+  return exportLessonViaAPI(currentPlan, 'pdf', orientation, showToast);
 };
 
 export const exportToLaTeX = async (

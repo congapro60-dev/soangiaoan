@@ -16,7 +16,22 @@
 
 ---
 
-## 0. Trạng thái mới nhất — 2026-06-08: cập nhật UI/UX theo Google Stitch + Smart Matrix/AI Co-pilot
+## 0. Trạng thái mới nhất — 2026-06-08 (Antigravity): Chuyển đổi xuất Word và PDF sang Server-side API
+
+> Nguồn sự thật mới nhất cho phiên sau: Vừa hoàn tất việc thay thế cơ chế tải file Word và PDF từ xử lý thuần tuý ở Frontend (Client-side) sang gọi trực tiếp Server-side API (`/api/export-lesson`).
+
+### 0.0.1 Phạm vi thay đổi chính
+- **`src/utils/exportUtils.ts`**:
+  - Gỡ bỏ logic dùng `html2canvas` render HTML ẩn rồi in PDF nội bộ. 
+  - Thay bằng hàm `exportLessonViaAPI(..., 'pdf')` để fetch API `/api/export-lesson` (vốn gọi Puppeteer dưới backend để in chuẩn vector).
+- **`src/utils/wordExportA4.ts`**:
+  - Xoá hoàn toàn hàng trăm dòng code phức tạp parse DOM -> DOCX và xử lý MathML, rasterize Canvas SVG ở Client.
+  - Thay bằng hàm `exportLessonViaAPI(..., 'docx')` để giao trọn gói cho Server-side (có `mathml2omml` chuẩn xác hơn).
+- Lợi ích: Nhẹ trình duyệt, file PDF đẹp không bị cắt bảng/trang, file Word hiển thị Office Math native (có thể edit) thay vì text mã nguồn.
+
+---
+
+## 0a. Trạng thái cũ — 2026-06-08: cập nhật UI/UX theo Google Stitch + Smart Matrix/AI Co-pilot
 
 > Nguồn sự thật mới nhất cho phiên sau: đang làm trực tiếp trên branch `main` của repo `soangiaoan`. Trước khi commit phiên này, `HEAD` local là `3e466da Merge UI UX migration updates`. Phiên này tiếp tục đưa các khuyến nghị UI/UX từ bộ tài liệu Stitch vào app, đồng thời kiểm tra production build thành công.
 
