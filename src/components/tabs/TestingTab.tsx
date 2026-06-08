@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   FileCheck, FilePlus, Shuffle, Upload, Download, FileCode,
-  ShieldCheck, AlertCircle, Loader2, X, CheckCircle2, History, Trash2, LibraryBig, BookMarked,
-  Grid3X3, Plus, Sparkles, Target, BarChart3
+  ShieldCheck, AlertCircle, Loader2, X, CheckCircle2, History, Trash2, LibraryBig, BookMarked
 } from 'lucide-react';
 import { generateAnswerSheetHTML, generateAnswerKeyTemplateHTML } from '../../utils/answerSheetTemplate';
 import { ExamDocsModal } from '../features/testing/ExamDocsModal';
@@ -37,29 +36,6 @@ interface TestingTabProps {
 }
 
 type TestingMode = 'create' | 'audit' | 'shuffle';
-type CognitiveKey = 'remember' | 'understand' | 'apply' | 'advanced';
-
-interface MatrixRow {
-  id: string;
-  topic: string;
-  remember: number;
-  understand: number;
-  apply: number;
-  advanced: number;
-}
-
-const COGNITIVE_COLUMNS: Array<{ key: CognitiveKey; label: string; shortLabel: string; tone: string }> = [
-  { key: 'remember', label: 'Nhận biết', shortLabel: 'NB', tone: 'bg-blue-50 text-blue-700 border-blue-100' },
-  { key: 'understand', label: 'Thông hiểu', shortLabel: 'TH', tone: 'bg-cyan-50 text-cyan-700 border-cyan-100' },
-  { key: 'apply', label: 'Vận dụng', shortLabel: 'VD', tone: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
-  { key: 'advanced', label: 'Vận dụng cao', shortLabel: 'VDC', tone: 'bg-amber-50 text-amber-700 border-amber-100' },
-];
-
-const DEFAULT_MATRIX_ROWS: MatrixRow[] = [
-  { id: 'functions', topic: 'Hàm số & Đồ thị', remember: 4, understand: 3, apply: 2, advanced: 1 },
-  { id: 'polyhedra', topic: 'Khối đa diện', remember: 2, understand: 2, apply: 1, advanced: 1 },
-  { id: 'oxyz', topic: 'Hệ tọa độ Oxyz', remember: 3, understand: 3, apply: 1, advanced: 0 },
-];
 
 interface HistoryEntry {
   id: string;
@@ -108,7 +84,6 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
   );
   const [shuffledCount, setShuffledCount] = useState(4);
   const [questionStructure, setQuestionStructure] = useState({ mcq: 28, trueFalse4: 4, shortAnswer: 0, essay: 0 });
-  const [matrixRows, setMatrixRows] = useState<MatrixRow[]>(DEFAULT_MATRIX_ROWS);
   const [processStatus, setProcessStatus] = useState<string>('');
   const [history, setHistory] = useState<HistoryEntry[]>(() => loadHistory());
   const [showHistory, setShowHistory] = useState(false);
@@ -336,10 +311,6 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
       showToast('Cần nhập API Key trong Cài đặt', 'error');
       return;
     }
-    if (activeMode === 'create' && !matrixValidation.isValid) {
-      showToast(matrixValidation.messages[0] || 'Ma trận Smart Grid chưa hợp lệ.', 'error');
-      return;
-    }
     setIsLoading(true);
     setTestResult(null);
     setProcessStatus('Đang chuẩn bị và gửi AI...');
@@ -354,10 +325,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
       };
 
       if (activeMode === 'create') {
-        const smartMatrixInstruction = matrixPromptSummary
-          ? `\n\nMA TRẬN SMART GRID DO GIÁO VIÊN THIẾT LẬP:\n${matrixPromptSummary}\n\nDỮ LIỆU MA TRẬN CÓ CẤU TRÚC:\n${matrixStructuredSummary}\n\nRàng buộc bắt buộc:\n- Tổng số câu theo ma trận: ${matrixTotalQuestions}.\n- Điểm mỗi câu nếu quy về thang 10: ${matrixPointPerQuestion.toFixed(2)}.\n- Tỉ lệ Bloom: ${objectiveBalance.map(item => `${item.label} ${item.ratio}%`).join(', ')}.\n- Số lượng câu theo từng chủ đề và từng mức độ phải bám sát ma trận; nếu có lệch do cấu trúc câu hỏi, hãy nêu rõ lý do ở ghi chú cuối đề.\n- Phân bổ dạng câu hỏi theo cấu trúc người dùng chọn: ${questionStructure.mcq} trắc nghiệm 4 phương án, ${questionStructure.trueFalse4} đúng/sai 4 ý, ${questionStructure.shortAnswer} trả lời ngắn, ${questionStructure.essay} tự luận.`
-          : '';
-        const prompt = examUtils.getGeneratePrompt(matrixFile, `${requirement}${smartMatrixInstruction}`, sampleFile, questionStructure);
+        const prompt = examUtils.getGeneratePrompt(matrixFile, requirement, sampleFile, questionStructure);
         await callAIStream(prompt, data.settings, onChunk);
         const match = cumulativeText.match(/<exam_content>([\s\S]*?)<\/exam_content>/);
         const raw = match ? match[1].trim() : cumulativeText.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
@@ -425,72 +393,6 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
     }
   };
 
-  const updateMatrixCell = (rowId: string, key: CognitiveKey, value: number) => {
-    setMatrixRows(rows => rows.map(row => (
-      row.id === rowId ? { ...row, [key]: Math.max(0, Number.isFinite(value) ? value : 0) } : row
-    )));
-  };
-
-  const updateMatrixTopic = (rowId: string, topic: string) => {
-    setMatrixRows(rows => rows.map(row => (row.id === rowId ? { ...row, topic } : row)));
-  };
-
-  const addMatrixRow = () => {
-    setMatrixRows(rows => [...rows, {
-      id: crypto.randomUUID(),
-      topic: `Chủ đề ${rows.length + 1}`,
-      remember: 0,
-      understand: 0,
-      apply: 0,
-      advanced: 0,
-    }]);
-  };
-
-  const removeMatrixRow = (rowId: string) => {
-    setMatrixRows(rows => rows.length > 1 ? rows.filter(row => row.id !== rowId) : rows);
-  };
-
-  const getRowTotal = (row: MatrixRow) => COGNITIVE_COLUMNS.reduce((sum, col) => sum + row[col.key], 0);
-  const getColumnTotal = (key: CognitiveKey) => matrixRows.reduce((sum, row) => sum + row[key], 0);
-  const matrixTotalQuestions = matrixRows.reduce((sum, row) => sum + getRowTotal(row), 0);
-  const matrixPointPerQuestion = matrixTotalQuestions > 0 ? 10 / matrixTotalQuestions : 0;
-  const objectiveBalance = COGNITIVE_COLUMNS.map(col => ({
-    ...col,
-    total: getColumnTotal(col.key),
-    ratio: matrixTotalQuestions > 0 ? Math.round((getColumnTotal(col.key) / matrixTotalQuestions) * 100) : 0,
-  }));
-  const matrixDataRows = matrixRows.filter(row => row.topic.trim() && getRowTotal(row) > 0);
-  const matrixValidation = {
-    isValid: matrixTotalQuestions > 0 && matrixRows.every(row => getRowTotal(row) === 0 || row.topic.trim().length > 0),
-    messages: [
-      ...(matrixTotalQuestions === 0 ? ['Cần thiết lập ít nhất 1 câu trong Smart Grid trước khi sinh đề.'] : []),
-      ...matrixRows
-        .filter(row => getRowTotal(row) > 0 && !row.topic.trim())
-        .map(() => 'Có dòng ma trận đã nhập số câu nhưng chưa có tên chủ đề.'),
-      ...(matrixTotalQuestions > 80 ? ['Ma trận đang trên 80 câu; nên kiểm tra lại để tránh đề quá dài hoặc AI sinh thiếu.'] : []),
-    ],
-  };
-
-  const matrixStructuredSummary = JSON.stringify({
-    totalQuestions: matrixTotalQuestions,
-    pointPerQuestion: Number(matrixPointPerQuestion.toFixed(2)),
-    bloomBalance: objectiveBalance.map(item => ({ key: item.key, label: item.label, total: item.total, ratio: item.ratio })),
-    rows: matrixDataRows.map(row => ({
-      topic: row.topic.trim(),
-      total: getRowTotal(row),
-      levels: {
-        remember: row.remember,
-        understand: row.understand,
-        apply: row.apply,
-        advanced: row.advanced,
-      },
-    })),
-  }, null, 2);
-
-  const matrixPromptSummary = matrixDataRows
-    .map(row => `- ${row.topic}: Nhận biết ${row.remember}, Thông hiểu ${row.understand}, Vận dụng ${row.apply}, Vận dụng cao ${row.advanced} — tổng ${getRowTotal(row)} câu`)
-    .join('\n');
-
   const modeContent = {
     create: {
       title: 'Soạn đề Kiểm tra',
@@ -542,156 +444,6 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
           </button>
         ))}
       </div>
-
-      {activeMode === 'create' && (
-        <div className="px-4 pt-4 flex-shrink-0">
-          <div className="rounded-[32px] border border-slate-100 bg-white shadow-sm overflow-hidden">
-            <div className="flex flex-col xl:flex-row">
-              <div className="flex-1 min-w-0 p-5">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-100">
-                      <Grid3X3 className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h3 className="text-base font-black text-slate-900">Ma trận Smart Grid</h3>
-                      <p className="text-xs text-slate-400 font-medium">Thiết lập số câu theo chủ đề và mức độ Bloom trước khi sinh đề.</p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={addMatrixRow}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-900 text-white text-xs font-black hover:bg-slate-800 transition-all"
-                  >
-                    <Plus className="w-4 h-4" /> Thêm chủ đề
-                  </button>
-                </div>
-
-                <div className="overflow-x-auto rounded-3xl border border-slate-100">
-                  <table className="w-full min-w-[760px] text-left border-collapse">
-                    <thead>
-                      <tr className="bg-slate-50 text-[11px] uppercase tracking-widest text-slate-400 font-black">
-                        <th className="p-3 border-r border-slate-100 w-[30%]">Chủ đề / Đơn vị kiến thức</th>
-                        {COGNITIVE_COLUMNS.map(col => (
-                          <th key={col.key} className="p-3 border-r border-slate-100 text-center">{col.label}</th>
-                        ))}
-                        <th className="p-3 text-center">Tổng</th>
-                      </tr>
-                    </thead>
-                    <tbody className="text-sm">
-                      {matrixRows.map(row => (
-                        <tr key={row.id} className="border-t border-slate-100 hover:bg-slate-50/60 transition-colors">
-                          <td className="p-2 border-r border-slate-100">
-                            <div className="flex items-center gap-2">
-                              <input
-                                value={row.topic}
-                                onChange={(e) => updateMatrixTopic(row.id, e.target.value)}
-                                className="flex-1 min-w-0 rounded-2xl border border-transparent bg-slate-50 px-3 py-2 font-bold text-slate-700 outline-none focus:border-blue-200 focus:bg-white focus:ring-2 focus:ring-blue-50"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => removeMatrixRow(row.id)}
-                                disabled={matrixRows.length === 1}
-                                className="w-8 h-8 rounded-xl text-slate-300 hover:bg-red-50 hover:text-red-500 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-slate-300"
-                                title="Xóa chủ đề"
-                              >
-                                <X className="w-4 h-4 mx-auto" />
-                              </button>
-                            </div>
-                          </td>
-                          {COGNITIVE_COLUMNS.map(col => (
-                            <td key={col.key} className="p-2 border-r border-slate-100 text-center">
-                              <input
-                                type="number"
-                                min={0}
-                                max={99}
-                                value={row[col.key]}
-                                onChange={(e) => updateMatrixCell(row.id, col.key, parseInt(e.target.value) || 0)}
-                                className="w-16 h-10 rounded-2xl border border-slate-100 bg-white text-center font-black text-slate-700 outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-50"
-                              />
-                            </td>
-                          ))}
-                          <td className="p-3 text-center font-black text-blue-600 bg-blue-50/40">{getRowTotal(row)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                    <tfoot>
-                      <tr className="bg-slate-900 text-white text-xs font-black">
-                        <td className="p-3 border-r border-white/10 text-right">Tổng số câu</td>
-                        {objectiveBalance.map(item => (
-                          <td key={item.key} className="p-3 border-r border-white/10 text-center">{item.total}</td>
-                        ))}
-                        <td className="p-3 text-center text-blue-200 text-base">{matrixTotalQuestions}</td>
-                      </tr>
-                      <tr className="bg-slate-50 text-[11px] font-bold text-slate-500">
-                        <td className="p-2 border-r border-slate-100 text-right">Tỉ lệ Bloom</td>
-                        {objectiveBalance.map(item => (
-                          <td key={item.key} className="p-2 border-r border-slate-100 text-center">{item.ratio}%</td>
-                        ))}
-                        <td className="p-2 text-center">100%</td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-              </div>
-
-              <aside className="w-full xl:w-80 border-t xl:border-t-0 xl:border-l border-slate-100 bg-slate-50/60 p-5 space-y-4">
-                <div>
-                  <h4 className="font-black text-slate-800 flex items-center gap-2">
-                    <BarChart3 className="w-4 h-4 text-blue-600" /> Thông số đề
-                  </h4>
-                  <p className="text-xs text-slate-400 mt-1">Tự động cập nhật khi chỉnh ma trận.</p>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-2xl bg-white border border-slate-100 p-3">
-                    <p className="text-[10px] uppercase tracking-widest text-slate-400 font-black">Tổng câu</p>
-                    <p className="text-2xl font-black text-slate-900 mt-1">{matrixTotalQuestions}</p>
-                  </div>
-                  <div className="rounded-2xl bg-white border border-slate-100 p-3">
-                    <p className="text-[10px] uppercase tracking-widest text-slate-400 font-black">Điểm/câu</p>
-                    <p className="text-2xl font-black text-slate-900 mt-1">{matrixPointPerQuestion.toFixed(2)}</p>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  {objectiveBalance.map(item => (
-                    <div key={item.key} className={`rounded-2xl border p-3 ${item.tone}`}>
-                      <div className="flex items-center justify-between text-xs font-black">
-                        <span>{item.label}</span>
-                        <span>{item.total} câu</span>
-                      </div>
-                      <div className="mt-2 h-2 rounded-full bg-white/70 overflow-hidden">
-                        <div className="h-full rounded-full bg-current opacity-70" style={{ width: `${Math.min(100, item.ratio)}%` }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                {matrixValidation.messages.length > 0 && (
-                  <div className={`rounded-3xl border p-4 ${matrixValidation.isValid ? 'border-amber-100 bg-amber-50 text-amber-700' : 'border-red-100 bg-red-50 text-red-700'}`}>
-                    <div className="flex items-start gap-3">
-                      <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-black text-sm">Kiểm tra trước khi sinh đề</p>
-                        <ul className="mt-1 space-y-1 text-xs leading-relaxed">
-                          {matrixValidation.messages.map((msg, idx) => <li key={`${msg}-${idx}`}>• {msg}</li>)}
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <div className="rounded-3xl bg-blue-600 text-white p-4 shadow-lg shadow-blue-100">
-                  <div className="flex items-start gap-3">
-                    <Sparkles className="w-5 h-5 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-black text-sm">AI sẽ bám sát Smart Grid</p>
-                      <p className="text-xs text-blue-100 mt-1 leading-relaxed">Ma trận được gửi kèm cả bản tóm tắt và JSON có cấu trúc để AI giữ đúng chủ đề, mức Bloom, tổng câu và cấu trúc câu hỏi.</p>
-                    </div>
-                  </div>
-                </div>
-              </aside>
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="flex flex-col lg:flex-row gap-4 p-4 flex-1 min-h-0 overflow-hidden">
         {/* Left Control Panel — fixed 320px so MDEditor gets ≥640px */}
@@ -841,7 +593,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
 
             <button
               onClick={handleExamAction}
-              disabled={isLoading || (activeMode !== 'create' && uploadedFiles.length === 0) || (activeMode === 'create' && !matrixValidation.isValid)}
+              disabled={isLoading || (activeMode !== 'create' && uploadedFiles.length === 0)}
               className="w-full py-4 bg-slate-900 text-white rounded-3xl font-black shadow-xl shadow-slate-200 hover:bg-slate-800 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale relative overflow-hidden"
             >
               {isLoading && (
