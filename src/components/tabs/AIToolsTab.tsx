@@ -175,7 +175,7 @@ export const AIToolsTab = ({ data, isLoading, setIsLoading, showToast }: AITools
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-blue-50 backdrop-blur-sm">
               <Sparkles className="h-3.5 w-3.5" /> Công cụ AI
             </div>
-            <h2 className="font-['Plus_Jakarta_Sans'] text-4xl font-bold tracking-[-0.02em] md:text-5xl">Trung tâm công cụ AI cho giáo viên</h2>
+            <h2 className="font-['Plus_Jakarta_Sans'] text-4xl font-bold tracking-[-0.02em] md:text-5xl">Trung tâm công cụ AI cho giáo&nbsp;viên</h2>
             <p className="mt-4 max-w-xl text-base leading-7 text-white/90 md:text-lg">
               Gom các công cụ hay vào một nơi: viết prompt, mở nhanh web AI bên ngoài, và sau này có thể bổ sung thêm các link thầy/cô gửi.
             </p>
