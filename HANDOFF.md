@@ -67,7 +67,76 @@
 - Không được báo cáo “xong hết 3 file kế hoạch”; trạng thái đúng là **xong code Phase 2A MVP, chờ Anti QA, sau đó mới quyết định phase tiếp theo**.
 
 ### 0.7 Anti QA Phase 2A — PASS — cập nhật 2026-06-10 03:05
-- Anti đã gửi báo cáo QA độc lập cho Phase 2A Skeleton MVP trên môi trường static review + local UI `http://localhost:3000`.
+Cline ơi, đây là báo cáo QA Phase 2A từ Anti. Đã test full cả Code Static và UI trên localhost (dev server).
+
+---
+
+## QA REPORT — PHASE 2A SKELETON MVP
+Ngày test: 2026-06-10
+Môi trường: Static Review + Môi trường Local (http://localhost:3000)
+
+---
+
+### MỤC 1: STATIC REVIEW CODE — documentSkeleton.ts ✅ PASS
+
+- [x] Parse heading Markdown #/##/### → Regex ^(#{1,6})\s+(.+)$ — PASS
+- [x] Parse heading kiểu La Mã/số mục (I., II., 1.2.) → Regex cùng dòng 118 — PASS
+- [x] Parse bảng Markdown → Detect `^\|.+\|$` + separator — PASS
+- [x] Parse bảng HTML đơn giản → parseHtmlSkeleton() dùng regex <h1-6>/<table> — PASS
+- [x] Parse placeholder [.], {{.}}, ___, ... → PLACEHOLDER_PATTERNS dòng 37–42 — PASS
+- [x] Giới hạn block (MAX_BLOCKS = 80, placeholder tối đa 20) → không làm phình prompt — PASS
+- [x] Validator là Soft Validator → chỉ trả warnings[], không throw/crash, ok: true khi không có error-level — PASS
+- [x] Không có header/footer/logo/DOCX fidelity cao trong scope — PASS (ghi chú rõ trong buildSkeletonPromptSection)
+
+---
+
+### MỤC 2: BUILD / TYPECHECK ✅ PASS
+
+npm run build → Exit code: 0, built in 50.82s
+Warning chunk-size là warning kỹ thuật cũ, không thuộc scope chặn build hay Phase 2A.
+
+---
+
+### MỤC 3: TÍCH HỢP PROMPT & VALIDATOR ✅ PASS
+
+- [x] skeleton?: DocumentSkeleton trong TemplateFile → optional → backward-compatible — PASS
+- [x] createDocumentSkeleton() gọi trong fileUtils.ts khi upload — PASS
+- [x] buildSkeletonPromptSection() inject vào prompt giáo án (useLessonCreator.ts dòng 125) — PASS
+- [x] buildSkeletonPromptSection() inject vào prompt đề thi (examUtils.ts dòng 19) — PASS
+- [x] validateMarkdownAgainstSkeleton() gọi sau khi AI sinh giáo án (useLessonCreator.ts dòng 774) — PASS
+- [x] validateMarkdownAgainstSkeleton() gọi sau khi AI sinh đề thi (TestingTab.tsx dòng 344) — PASS
+
+---
+
+### MỤC 4 & 5: UI BROWSER TEST (LOCAL) ✅ PASS
+
+Đã mở http://localhost:3000 và test luồng UI, kết quả:
+- [x] **Trang chủ / Layout tổng:** Load thành công, không bị crash, không có lỗi runtime JS trong Console (chỉ có một số warning Firebase index cũ).
+- [x] **Tab "Mẫu giáo án" (Templates):** 
+  - Phần thống kê đã xuất hiện badge **0 Skeleton** hiển thị đúng vị trí (thay cho tổng tệp cũ).
+  - Giao diện có render luồng "Xem Markdown Skeleton" khi tồn tại file có skeleton.
+- [x] **Tab "Testing" / Soạn đề:** Có đầy đủ khu vực hỗ trợ tải lên "Đề mẫu" và "Ma trận đề", nút upload tương tác bình thường không lỗi.
+- [x] **Template cũ tương thích ngược:** Chức năng đọc template cũ chạy mượt mà do các điểm check đều có fallback (`?.skeleton || null`).
+
+---
+
+### GHI CHÚ KỸ THUẬT CHO CLINE (Không phải FAIL)
+
+1. **Validator bảng (documentSkeleton.ts - dòng 162):** Đang đếm số DÒNG có ký tự `|` chứ không đếm số BẢNG (cụm dòng liên tiếp). Vì MVP chỉ cần check "có bảng hay không" (`outputTableCount === 0`) nên logic hiện tại vẫn đáp ứng được yêu cầu cảnh báo, không cần patch ngay.
+
+---
+
+### TỔNG KẾT
+
+| Hạng mục | Trạng thái |
+|---|---|
+| Static Review Parser (7 tiêu chí) | ✅ PASS |
+| Build / TypeCheck | ✅ PASS |
+| Tích hợp Prompt + Validator (6 điểm) | ✅ PASS |
+| Backward Compatibility | ✅ PASS |
+| UI Browser Test (Localhost) | ✅ PASS |
+
+**Kết luận:** Code quality cực kỳ tốt. Không phát hiện lỗi nào trong phạm vi Phase 2A MVP. Cline có thể tự tin Commit & Push thay đổi này lên nhánh `main` được rồi nhé!
 - Kết quả tổng: **PASS toàn bộ trong phạm vi Phase 2A MVP**.
 - Static review `src/lib/documentSkeleton.ts`: PASS parse heading Markdown, heading La Mã/số mục, bảng Markdown, bảng HTML đơn giản, placeholder `[ ... ]` / `{{ ... }}` / `___` / `...`, giới hạn block `MAX_BLOCKS = 80`, placeholder tối đa 20, soft validator không throw/crash, không đưa header/footer/logo/DOCX fidelity cao vào scope.
 - Build/typecheck Anti chạy: `npm run build` → **PASS**, exit code 0, built khoảng `50.82s`; warning chunk-size là warning kỹ thuật cũ, không chặn Phase 2A.
@@ -75,6 +144,147 @@
 - UI local: PASS trang chủ/layout không crash; Templates hiển thị badge skeleton và luồng preview skeleton; Testing có khu upload đề mẫu/ma trận; template cũ không có `skeleton` vẫn fallback an toàn.
 - Ghi chú kỹ thuật của Anti: validator bảng hiện đếm số dòng có ký tự `|` thay vì đếm số cụm bảng; không phải FAIL vì MVP chỉ cần cảnh báo “có bảng hay không”. Có thể cải thiện ở phase sau nếu cần validator chi tiết hơn.
 - Kết luận Anti: không phát hiện lỗi trong phạm vi Phase 2A MVP; có thể commit & push lên `main`.
+
+### 0.8 Kế hoạch tổng thể tiếp theo để gửi Anti đánh giá — cập nhật 2026-06-10 03:12
+
+> Trạng thái: **chỉ là kế hoạch, chưa code** sau commit `221754a feat: add phase 2a template skeleton MVP`. Người dùng muốn ghi toàn bộ roadmap vào `HANDOFF.md` để gửi Anti đánh giá và có thể chuyển session khác. Agent tiếp theo phải đọc mục này trước khi code; không được tự hiểu là các phase dưới đây đã hoàn thành.
+
+#### 0.8.1 Nguyên tắc điều phối chung
+- Đi theo checkpoint nhỏ, an toàn: **audit code thật → code lát cắt nhỏ → build/test → cập nhật HANDOFF → Anti QA → sửa theo report → commit/push khi người dùng yêu cầu**.
+- Không triển khai đồng thời nhiều mảng lớn. Ưu tiên ổn định Clone Template/Skeleton trước khi mở rộng game/simulation/SlideJ/offline.
+- Mọi thay đổi liên quan Phase 2A/2B/2C phải cập nhật `HANDOFF.md` ngay sau checkpoint đáng kể; không để trạng thái chỉ nằm trong chat.
+- Cline/code agent chỉ làm code/build/static check; Anti làm QA độc lập/manual review theo prompt riêng.
+- Scope hiện tại vẫn là **Markdown Skeleton**: giữ heading/bảng/placeholder ở mức cấu trúc. Không hứa giữ 100% layout Word như font/margin/header/footer/logo.
+
+#### 0.8.2 Phase 2B — Template Skeleton Reliability & UX Hardening
+**Mục tiêu:** làm chắc tính tin cậy của feature vừa PASS Phase 2A MVP, giảm rủi ro AI phá form và giúp giáo viên hiểu template đã được đọc ra sao.
+
+**Việc nên làm:**
+1. **Audit lại luồng Phase 2A trên code thật**
+   - Rà `src/lib/documentSkeleton.ts`, `src/types.ts`, `src/utils/fileUtils.ts`, `src/hooks/useLessonCreator.ts`, `src/utils/examUtils.ts`, `src/components/tabs/TemplatesTab.tsx`, `src/components/tabs/TestingTab.tsx`.
+   - Kiểm tra flow upload template → sinh skeleton → preview → dùng trong prompt giáo án/đề thi → soft validator cảnh báo.
+   - Xác nhận template cũ không có `skeleton` vẫn fallback an toàn.
+2. **Thêm test tự động cho document skeleton**
+   - Tạo test cho parse heading Markdown, heading La Mã/số mục, Markdown table, HTML table đơn giản, placeholder `[ ... ]` / `{{ ... }}` / `___` / `...`.
+   - Test validator các case thiếu heading, thiếu bảng, thiếu placeholder, output hợp lệ, input rỗng/không crash.
+   - Trước khi thêm test phải đọc `package.json`/test setup; bám Vitest hoặc runner hiện có của repo.
+3. **Nâng validator từ warning thô lên scoring/warning rõ hơn**
+   - Trả thêm trạng thái gợi ý `pass` / `warning` / `fail` hoặc score 0–100 nếu phù hợp với type hiện tại.
+   - Cải thiện đếm bảng từ “dòng có ký tự `|`” sang nhận diện cụm bảng Markdown/HTML ở mức đơn giản.
+   - Phân loại cảnh báo: thiếu heading, thiếu bảng, thiếu placeholder, output quá ngắn, AI thêm cấu trúc ngoài template quá nhiều.
+   - Vẫn giữ nguyên **soft validation**, không hard-block save/export nếu chưa audit kỹ final save/export.
+4. **Cải thiện UI preview/warning**
+   - Trong `TemplatesTab`: thêm badge/chỉ số số heading, số bảng, số placeholder, trạng thái template Tốt/Cần kiểm tra/Không phù hợp.
+   - Trong `TestingTab`/flow sinh đề: hiển thị warning validator rõ hơn; có thể phân cấp warning/error nhưng vẫn cho giáo viên xem/sửa.
+   - Thêm tiện ích copy Markdown Skeleton để debug nếu không làm phình UI.
+5. **Tách prompt skeleton thành helper dùng chung**
+   - Giảm duplicate giữa giáo án và đề thi, ví dụ helper `buildSkeletonInstruction(...)` / `buildSkeletonPromptSection(...)` dùng chung.
+   - Quy tắc prompt: không bỏ heading gốc, không bỏ bảng gốc, không đổi/xoá placeholder khi chưa có dữ liệu, điền nội dung đúng vị trí, thiếu thông tin thì giữ khung và ghi nội dung phù hợp thay vì xoá form.
+6. **Verification/DoD Phase 2B**
+   - `npm run build` pass.
+   - Test document skeleton pass hoặc có checklist test thủ công rõ nếu test runner chưa phù hợp.
+   - Validator output dễ hiểu hơn Phase 2A và không crash với input xấu.
+   - UI preview/warning giúp giáo viên hiểu rõ skeleton được đọc ra sao.
+   - HANDOFF ghi rõ phần nào đã code, phần nào vẫn chưa làm.
+
+#### 0.8.3 Phase 2C — Manual Skeleton Editor & Controlled Override
+**Mục tiêu:** cho giáo viên/chuyên viên chỉnh skeleton trước khi gọi AI, giảm phụ thuộc parser heuristic.
+
+**Việc nên làm:**
+1. Thêm editor nhỏ cho Markdown Skeleton trong `TemplatesTab` hoặc modal preview hiện có.
+2. Cho phép lưu bản skeleton đã chỉnh vào `TemplateFile.skeleton` nhưng vẫn backward-compatible với file cũ.
+3. Thêm nút/luồng: “Khôi phục skeleton tự động” và “Lưu skeleton đã chỉnh”.
+4. Khi validator cảnh báo, cho giáo viên override có chủ ý: ghi chú cảnh báo nhưng không block nháp.
+5. Không làm rich DOCX editor; chỉ chỉnh text Markdown Skeleton.
+
+**DoD:** giáo viên có thể upload file mẫu → xem skeleton → chỉnh skeleton → dùng skeleton chỉnh tay để sinh giáo án/đề → build pass.
+
+#### 0.8.4 Phase 2D — Export/Final Save Guardrails cho Clone Template
+**Mục tiêu:** kiểm soát thời điểm xuất/lưu cuối cùng tốt hơn, nhưng không làm validator quá cứng trong lúc sinh nháp.
+
+**Việc nên làm:**
+1. Audit flow save/export thật của giáo án và đề thi trước khi code: nơi lưu nháp, nơi lưu final, nơi export Word/PDF.
+2. Áp dụng validator ở thời điểm phù hợp:
+   - Nháp: warning mềm, cho lưu.
+   - Final/export: nếu còn placeholder bắt buộc hoặc output rỗng/hỏng cấu trúc nghiêm trọng thì cảnh báo mạnh hoặc yêu cầu xác nhận.
+3. Thêm thông báo user-facing rõ: “AI có thể chưa giữ đủ bảng/heading, hãy kiểm tra trước khi xuất”.
+4. Không block tuyệt đối heading/table nếu giáo viên xác nhận override.
+
+**DoD:** save/export không bị phá flow cũ, cảnh báo rõ và không làm mất dữ liệu giáo viên đã sinh.
+
+#### 0.8.5 Phase 2E — RAG/Worksheet từ PDF/DOCX sau Skeleton ổn định
+**Mục tiêu:** sau khi Skeleton đã chắc, mới mở sang phân tích tài liệu nguồn để tạo worksheet/câu hỏi/học liệu.
+
+**Việc nên làm:**
+1. Audit upload/import hiện có: Mammoth/DOCX, PDF text extraction nếu có, `fileUtils.ts`, các luồng exam/lesson import.
+2. Tạo pipeline rút gọn tài liệu nguồn thành context có giới hạn token.
+3. Dùng skeleton/template làm “khung xuất”, tài liệu nguồn làm “nội dung tham khảo”, tránh context bleed.
+4. Có warning khi tài liệu quá dài; chưa auto-chunking mặc định nếu chưa có block/section ID an toàn.
+5. Nếu cần chunking, chỉ làm phase sau với chunk theo section/block đã parse, không split thô bằng `#` hoặc độ dài text.
+
+**DoD:** có MVP tạo nội dung từ tài liệu nguồn nhưng vẫn bám skeleton; token/context có giới hạn và warning rõ.
+
+#### 0.8.6 Phase 3A — Dynamic Simulation/Game HTML sandbox, chỉ sau Skeleton/RAG
+**Mục tiêu:** mở rộng học liệu tương tác/game/mô phỏng nhưng không trộn vào Clone Template.
+
+**Việc nên làm:**
+1. Audit các file hiện có liên quan adaptive/game/simulation: `src/lib/adaptive/*`, `src/lib/dewey/*`, `SimulationGeneratorModal.tsx`, `simulationValidation.ts`.
+2. Thiết kế sandbox/security trước: không chạy HTML/JS tuỳ ý trong app chính nếu chưa có iframe sandbox, validation, CSP/allowlist.
+3. Tách dữ liệu simulation spec khỏi prompt giáo án clone-template.
+4. QA riêng với Anti vì đây là surface bảo mật lớn.
+
+**Không làm trong Phase 2B/2C:** game native, simulation dynamic, SlideJ, SCORM/offline package.
+
+#### 0.8.7 Phase 3B — SlideJ/PPTX, Handwriting, Offline/SCORM
+**Mục tiêu:** chỉ ghi lại roadmap xa, không code ngay.
+
+**Điều kiện trước khi làm:**
+- Template Skeleton và validator đã ổn.
+- Export Word/PDF hiện tại không bị regression.
+- Có thiết kế riêng cho PPTX/SlideJ hoặc offline/SCORM; không piggyback vào prompt giáo án/de thi hiện tại.
+- Có QA/security checklist riêng, đặc biệt với offline package và dynamic HTML/JS.
+
+#### 0.8.8 Nợ kỹ thuật nên xếp song song nhưng không chen vào Phase 2B nếu không liên quan
+- Build warning chunk-size/dynamic import hiện hữu: có thể tối ưu code-splitting sau, không phải blocker Phase 2B.
+- Một số type `any`/showToast debt: xử lý khi chạm file liên quan, tránh refactor rộng.
+- Export Word fidelity cao: chỉ làm nếu có task riêng, không nhầm với Markdown Skeleton.
+- Firestore/security/adaptive portal: không đụng nếu không có bug cụ thể trong phase skeleton.
+
+#### 0.8.9 Checklist Anti cần đánh giá trước khi code Phase 2B
+Anti nên đọc mục 0.8 này và phản biện các điểm sau:
+1. Thứ tự Phase 2B có hợp lý không: test/validator/UI/prompt helper trước, editor skeleton để Phase 2C?
+2. Có nên đưa Manual Skeleton Editor vào 2B luôn hay giữ 2C để giảm scope?
+3. Validator scoring nên ở mức nào để tránh false negative/false positive?
+4. Có rủi ro nào khi hard-warning ở export/final save không?
+5. Có file/flow nào Cline cần audit thêm ngoài danh sách đã nêu?
+6. Có nên commit riêng phần kế hoạch `HANDOFF.md` trước khi code Phase 2B để agent khác có nguồn sự thật mới không?
+
+#### 0.8.10 Prompt gợi ý gửi Anti đánh giá kế hoạch
+```txt
+Bạn hãy đọc repo `congapro60-dev/soangiaoan`, branch `main`, file bắt buộc đọc đầu tiên là `HANDOFF.md`.
+
+Mục tiêu lần này: đánh giá kế hoạch tiếp theo sau Phase 2A Clone Template/Skeleton MVP. Hãy đọc kỹ mục 0, đặc biệt 0.7 Anti QA Phase 2A PASS và 0.8 Kế hoạch tổng thể tiếp theo.
+
+Bối cảnh:
+- Phase 2A MVP đã code và Anti QA PASS trong scope Markdown Skeleton: heading/bảng/placeholder.
+- Commit Phase 2A: `221754a feat: add phase 2a template skeleton MVP`.
+- Scope MVP không bao gồm auto-chunking, DOCX fidelity cao, header/footer/logo, game/simulation/SlideJ/PPTX, handwriting, offline/SCORM.
+- Người dùng muốn chốt kế hoạch trước khi session khác/code tiếp.
+
+Việc cần bạn đánh giá:
+1. Roadmap Phase 2B/2C/2D/2E/Phase 3 trong HANDOFF.md có hợp lý không?
+2. Có nên ưu tiên Phase 2B: test documentSkeleton + validator scoring + UI preview/warning + prompt helper không?
+3. Manual Skeleton Editor nên nằm ở Phase 2B hay tách Phase 2C?
+4. Validator nên soft/hard ở điểm nào để không phá flow lưu nháp/xuất file?
+5. Có rủi ro kỹ thuật/bảo mật nào trong các phase sau, nhất là dynamic HTML/JS/game/simulation/offline?
+6. Đề xuất chỉnh kế hoạch nếu cần, nhưng không code nếu chưa được yêu cầu.
+
+Kết quả trả lại:
+- PASS/NEEDS CHANGE cho roadmap.
+- Các thay đổi khuyến nghị theo mức P0/P1/P2.
+- File/flow cần audit trước khi code.
+- Kết luận có nên bắt đầu code Phase 2B hay cần sửa kế hoạch trước.
+```
 
 ---
 
