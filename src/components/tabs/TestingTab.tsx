@@ -23,7 +23,7 @@ import { openInOverleaf } from '../../utils/exportUtils';
 import { preprocessExamMarkdown } from '../../utils/examMarkdown';
 import { exportLaTeX, markdownToExamLatex } from '../../utils/examLatexExport';
 import { makeExamExportBaseFilename } from '../../utils/fileUtils';
-import { createDocumentSkeleton, validateMarkdownAgainstSkeleton } from '../../lib/documentSkeleton';
+import { createDocumentSkeleton, validateMarkdownAgainstSkeleton, type SkeletonValidationIssue } from '../../lib/documentSkeleton';
 
 interface TestingTabProps {
   data: AppData;
@@ -93,7 +93,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
   const [refineRequest, setRefineRequest] = useState('');
   const [isRefining, setIsRefining] = useState(false);
   const [docModalEntry, setDocModalEntry] = useState<HistoryEntry | null>(null);
-  const [skeletonWarnings, setSkeletonWarnings] = useState<string[]>([]);
+  const [skeletonWarnings, setSkeletonWarnings] = useState<SkeletonValidationIssue[]>([]);
 
   // Tự xóa entries hết hạn khi mount
   useEffect(() => {
@@ -342,7 +342,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
         const raw = match ? match[1].trim() : cumulativeText.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
         const final = preprocessExamMarkdown(raw);
         const skeletonValidation = validateMarkdownAgainstSkeleton(final, sampleFile?.skeleton || matrixFile?.skeleton || null);
-        setSkeletonWarnings(skeletonValidation.issues.map(issue => issue.message));
+        setSkeletonWarnings(skeletonValidation.issues);
         if (skeletonValidation.issues.length > 0) {
           showToast(`Đã soạn đề, nhưng cần rà soát định dạng mẫu (${Math.round(skeletonValidation.score * 100)}%).`, 'info');
         }
@@ -667,7 +667,12 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
               <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-[11px] text-amber-800 space-y-1">
                 <div className="font-black flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Cảnh báo giữ định dạng mẫu</div>
                 {skeletonWarnings.slice(0, 3).map((warning, idx) => (
-                  <div key={idx}>• {warning}</div>
+                  <div key={idx} className="flex items-start gap-1.5">
+                    <span className={`mt-0.5 rounded px-1 py-0.5 text-[9px] font-black uppercase ${warning.level === 'error' ? 'bg-red-100 text-red-700' : warning.level === 'info' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
+                      {warning.level}
+                    </span>
+                    <span>{warning.message}</span>
+                  </div>
                 ))}
               </div>
             )}

@@ -21,16 +21,39 @@ export interface DocumentSkeleton {
   };
 }
 
+export type SkeletonValidationLevel = 'info' | 'warning' | 'error';
+export type SkeletonValidationIssueType =
+  | 'missing_heading'
+  | 'missing_table'
+  | 'missing_tables'
+  | 'table_count_mismatch'
+  | 'unfilled_placeholder'
+  | 'empty_output';
+
 export interface SkeletonValidationIssue {
-  severity: 'warning' | 'error';
-  code: string;
+  /** Phase 2B structured level for UI rendering. */
+  level: SkeletonValidationLevel;
+  /** Phase 2B machine-readable issue type. */
+  type: SkeletonValidationIssueType;
   message: string;
+  /** Backward-compatible alias for pre-2B callers. */
+  severity: Exclude<SkeletonValidationLevel, 'info'>;
+  /** Backward-compatible alias for pre-2B callers. */
+  code: SkeletonValidationIssueType;
 }
 
 export interface SkeletonValidationResult {
   ok: boolean;
   score: number;
   issues: SkeletonValidationIssue[];
+  stats: {
+    expectedHeadings: number;
+    matchedHeadings: number;
+    expectedTables: number;
+    detectedTables: number;
+    expectedPlaceholders: number;
+    unfilledPlaceholders: number;
+  };
 }
 
 const MAX_BLOCKS = 80;
@@ -52,6 +75,14 @@ const decodeEntities = (value: string): string => value
   .replace(/&#39;/g, "'");
 
 const slugId = (prefix: string, index: number): string => `${prefix}-${index + 1}`;
+
+const makeIssue = (level: SkeletonValidationLevel, type: SkeletonValidationIssueType, message: string): SkeletonValidationIssue => ({
+  level,
+  type,
+  message,
+  severity: level === 'error' ? 'error' : 'warning',
+  code: type,
+});
 
 const makeMarkdown = (blocks: DocumentSkeletonBlock[]): string => blocks.map(block => {
   if (block.type === 'heading') {
@@ -110,6 +141,23 @@ const parseHtmlSkeleton = (html: string): DocumentSkeletonBlock[] => {
   return blocks.slice(0, MAX_BLOCKS);
 };
 
+const isMarkdownTableLine = (line: string): boolean => /^\s*\|.+\|\s*$/.test(line.trim());
+const isMarkdownTableSeparator = (line: string): boolean => /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(line.trim());
+
+export const countMarkdownTableClusters = (markdown: string): number => {
+  const lines = markdown.replace(/\r/g, '').split('\n');
+  let count = 0;
+  for (let i = 0; i < lines.length; i += 1) {
+    if (isMarkdownTableLine(lines[i]) && isMarkdownTableSeparator(lines[i + 1] || '')) {
+      count += 1;
+      i += 2;
+      while (i < lines.length && isMarkdownTableLine(lines[i])) i += 1;
+      i -= 1;
+    }
+  }
+  return count;
+};
+
 const parseMarkdownOrTextSkeleton = (text: string): DocumentSkeletonBlock[] => {
   const blocks: DocumentSkeletonBlock[] = [];
   const lines = text.replace(/\r/g, '').split('\n');
@@ -120,11 +168,13 @@ const parseMarkdownOrTextSkeleton = (text: string): DocumentSkeletonBlock[] => {
       blocks.push({ id: slugId('heading', blocks.length), type: 'heading', level: heading[1].startsWith('#') ? heading[1].length : 2, text: normalizeSpace(heading[2]) });
       continue;
     }
-    if (/^\|.+\|$/.test(line) && /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(lines[i + 1]?.trim() || '')) {
+    if (isMarkdownTableLine(line) && isMarkdownTableSeparator(lines[i + 1] || '')) {
       const columns = line.split('|').map(v => normalizeSpace(v)).filter(Boolean).slice(0, 8);
       let rowCount = 0;
-      for (let j = i + 2; j < lines.length && /^\|.+\|$/.test(lines[j].trim()); j += 1) rowCount += 1;
+      let j = i + 2;
+      for (; j < lines.length && isMarkdownTableLine(lines[j]); j += 1) rowCount += 1;
       blocks.push({ id: slugId('table', blocks.length), type: 'table', columns: columns.length ? columns : ['Cột 1', 'Cột 2'], rowCount });
+      i = Math.max(i, j - 1);
     }
   }
   blocks.push(...extractPlaceholders(text, blocks.length));
@@ -144,27 +194,72 @@ export const createDocumentSkeleton = (content: string, sourceName?: string): Do
 
 export const buildSkeletonPromptSection = (skeleton?: DocumentSkeleton | null): string => {
   if (!skeleton || skeleton.blocks.length === 0) return '';
-  return `\n===== MARKDOWN SKELETON BẮT BUỘC GIỮ =====\nMVP Phase 2A chỉ yêu cầu giữ heading, bảng và placeholder theo skeleton Markdown dưới đây. Không cần fidelity DOCX cao, không xử lý header/footer/logo.\nKhi tạo nội dung, hãy điền nội dung chuyên môn vào đúng các heading/bảng/placeholder, không tự ý đổi tên heading chính hoặc bỏ bảng.\n\n${skeleton.markdown}\n===== HẾT MARKDOWN SKELETON =====\n`;
+  return `\n===== MARKDOWN SKELETON BẮT BUỘC GIỮ =====\nMVP Phase 2A/2B yêu cầu giữ heading, cụm bảng và placeholder theo skeleton Markdown dưới đây. Không cần fidelity DOCX cao, không xử lý header/footer/logo.\nKhi tạo nội dung, hãy điền nội dung chuyên môn vào đúng các heading/bảng/placeholder, không tự ý đổi tên heading chính hoặc bỏ bảng.\n\n${skeleton.markdown}\n===== HẾT MARKDOWN SKELETON =====\n`;
 };
 
 export const validateMarkdownAgainstSkeleton = (markdown: string, skeleton?: DocumentSkeleton | null): SkeletonValidationResult => {
-  if (!skeleton || skeleton.blocks.length === 0) return { ok: true, score: 1, issues: [] };
+  if (!skeleton || skeleton.blocks.length === 0) {
+    return {
+      ok: true,
+      score: 1,
+      issues: [],
+      stats: { expectedHeadings: 0, matchedHeadings: 0, expectedTables: 0, detectedTables: 0, expectedPlaceholders: 0, unfilledPlaceholders: 0 },
+    };
+  }
+
   const normalized = markdown.toLowerCase();
   const issues: SkeletonValidationIssue[] = [];
   const headingBlocks = skeleton.blocks.filter(block => block.type === 'heading' && block.text);
   const tableBlocks = skeleton.blocks.filter(block => block.type === 'table');
+  const placeholderBlocks = skeleton.blocks.filter(block => block.type === 'placeholder' && block.placeholder);
+
+  if (!markdown.trim()) {
+    issues.push(makeIssue('error', 'empty_output', 'Đầu ra rỗng, không thể đối chiếu với skeleton mẫu.'));
+  }
+
   let matchedHeadings = 0;
   for (const block of headingBlocks) {
     const text = (block.text || '').toLowerCase();
     if (text.length < 3 || normalized.includes(text)) matchedHeadings += 1;
-    else issues.push({ severity: 'warning', code: 'missing_heading', message: `Có thể thiếu heading từ mẫu: "${block.text}".` });
+    else issues.push(makeIssue('warning', 'missing_heading', `Có thể thiếu heading từ mẫu: "${block.text}".`));
   }
-  const outputTableCount = (markdown.match(/^\s*\|.+\|\s*$/gm) || []).filter((_, idx, arr) => idx === 0 || arr[idx - 1] !== _).length;
+
+  const outputTableCount = countMarkdownTableClusters(markdown);
   if (tableBlocks.length > 0 && outputTableCount === 0) {
-    issues.push({ severity: 'warning', code: 'missing_tables', message: 'Đầu ra chưa có bảng Markdown dù mẫu có bảng.' });
+    issues.push(makeIssue('warning', 'missing_tables', 'Đầu ra chưa có bảng Markdown dù mẫu có bảng.'));
+  } else if (tableBlocks.length > 0 && outputTableCount < tableBlocks.length) {
+    issues.push(makeIssue('warning', 'table_count_mismatch', `Đầu ra có ${outputTableCount}/${tableBlocks.length} cụm bảng so với mẫu.`));
   }
+
+  const unfilledSkeletonPlaceholders = placeholderBlocks.filter(block => {
+    const placeholder = normalizeSpace(block.placeholder || '');
+    return placeholder.length > 0 && normalized.includes(placeholder.toLowerCase());
+  }).length;
+  const genericUnfilledPlaceholders = extractPlaceholders(markdown).filter(block => {
+    const placeholder = block.placeholder || '';
+    return placeholder === '[...]' || placeholder === '...' || placeholder === '___' || /\[\s*(?:\.\.\.|nội dung|điền|placeholder)\s*\]/i.test(placeholder);
+  }).length;
+  const unfilledPlaceholders = Math.max(unfilledSkeletonPlaceholders, genericUnfilledPlaceholders);
+  if (unfilledPlaceholders > 0) {
+    issues.push(makeIssue('warning', 'unfilled_placeholder', `Còn ${unfilledPlaceholders} placeholder có vẻ chưa được điền nội dung.`));
+  }
+
   const headingScore = headingBlocks.length ? matchedHeadings / headingBlocks.length : 1;
   const tableScore = tableBlocks.length ? Math.min(outputTableCount / tableBlocks.length, 1) : 1;
-  const score = Number(((headingScore * 0.7) + (tableScore * 0.3)).toFixed(2));
-  return { ok: issues.filter(i => i.severity === 'error').length === 0, score, issues };
+  const placeholderScore = placeholderBlocks.length ? Math.max(0, 1 - (unfilledPlaceholders / placeholderBlocks.length)) : 1;
+  const score = Number(((headingScore * 0.6) + (tableScore * 0.25) + (placeholderScore * 0.15)).toFixed(2));
+
+  return {
+    ok: issues.filter(i => i.level === 'error').length === 0,
+    score,
+    issues,
+    stats: {
+      expectedHeadings: headingBlocks.length,
+      matchedHeadings,
+      expectedTables: tableBlocks.length,
+      detectedTables: outputTableCount,
+      expectedPlaceholders: placeholderBlocks.length,
+      unfilledPlaceholders,
+    },
+  };
 };
