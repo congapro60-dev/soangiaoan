@@ -325,49 +325,204 @@ Warning chunk-size là warning kỹ thuật cũ, không thuộc scope chặn bui
 - HANDOFF phải được cập nhật sau khi code xong Phase 2C, ghi rõ file đã sửa, test/build đã chạy, và phần nào còn để Phase 2D.
 
 #### 0.8.4 Phase 2D — Export/Final Save Guardrails cho Clone Template
-**Mục tiêu:** kiểm soát thời điểm xuất/lưu cuối cùng tốt hơn, nhưng không làm validator quá cứng trong lúc sinh nháp.
+**Mục tiêu:** đặt “chốt kiểm tra cuối” trước khi lưu final/xuất Word/PDF, nhưng vẫn không phá flow tạo nháp. Phase này phải biến kết quả validator Phase 2B/2C thành UX quyết định rõ ràng: cảnh báo mềm khi đang soạn, xác nhận có chủ đích khi xuất, và chỉ hard-block khi dữ liệu hỏng đến mức export có nguy cơ lỗi kỹ thuật.
 
-**Việc nên làm:**
-1. Audit flow save/export thật của giáo án và đề thi trước khi code: nơi lưu nháp, nơi lưu final, nơi export Word/PDF.
-2. Áp dụng validator ở thời điểm phù hợp:
-   - Nháp: warning mềm, cho lưu.
-   - Final/export: nếu còn placeholder bắt buộc hoặc output rỗng/hỏng cấu trúc nghiêm trọng thì cảnh báo mạnh hoặc yêu cầu xác nhận.
-3. Thêm thông báo user-facing rõ: “AI có thể chưa giữ đủ bảng/heading, hãy kiểm tra trước khi xuất”.
-4. Không block tuyệt đối heading/table nếu giáo viên xác nhận override.
+> Trạng thái: **kế hoạch chưa code**. Sau Phase 2C, agent tiếp theo phải triển khai Phase 2D theo mục này; không cần quay lại hỏi Anti chỉ để xin thêm roadmap.
 
-**DoD:** save/export không bị phá flow cũ, cảnh báo rõ và không làm mất dữ liệu giáo viên đã sinh.
+**Quyết định sản phẩm đã chốt cho Phase 2D:**
+- Draft/autosave/generation flow: **soft warning only**, tuyệt đối không chặn lưu nháp vì nội dung sư phạm có thể vẫn hữu ích.
+- Manual final save/export Word/PDF: **hard warning + teacher confirmation** nếu còn warning quan trọng như thiếu bảng, thiếu heading chính, còn placeholder chưa điền.
+- Chỉ **hard block** nếu có lỗi phá kỹ thuật: output rỗng, markdown quá ngắn/rỗng, cấu trúc export không thể render, hoặc lỗi security/invalid payload.
+- Heading/table mismatch không được block tuyệt đối nếu giáo viên xác nhận tiếp tục.
+- Placeholder bắt buộc chưa điền nên yêu cầu xác nhận mạnh; nếu placeholder là token kỹ thuật gây lỗi export thì mới block.
+
+**Audit bắt buộc trước khi code:**
+1. Đọc `src/hooks/useLessonCreator.ts`: xác định nơi sinh giáo án, autosave/draft save, toast hiện tại, và nơi đã gọi `validateMarkdownAgainstSkeleton`.
+2. Đọc `src/components/features/creator/CreatorToolbar.tsx`, `src/components/features/creator/LessonContentBoard.tsx`, `src/components/tabs/LibraryTab.tsx` hoặc các file liên quan nút lưu/xuất giáo án.
+3. Đọc export Word/PDF hiện tại: `src/utils/exportUtils.ts`, `src/utils/wordExportA4.ts`, `api/render-word-core.ts`, và endpoint PDF nếu có.
+4. Đọc flow đề thi: `src/components/tabs/TestingTab.tsx`, `src/components/features/testing/ExamEditorView.tsx`, `src/utils/examWordExport.ts`, `src/utils/examLatexExport.ts`.
+5. Xác định dữ liệu validator nằm ở local state hay app data/Firestore; mặc định không persist confirmation/dismiss nếu chưa có yêu cầu rõ.
+
+**Thay đổi đề xuất theo file/flow:**
+1. `src/lib/documentSkeleton.ts`
+   - Bổ sung helper phân loại quyết định guardrail, ví dụ `getSkeletonGuardrailDecision(validation, context)` trả về `{ mode, canProceed, requiresConfirmation, blockingIssues, confirmationIssues }`.
+   - Context tối thiểu: `'draft' | 'final_save' | 'export_word' | 'export_pdf' | 'exam_export'`.
+   - Mapping level rõ ràng: `error/empty_output` block ở export; `warning/missing_heading/missing_tables/unfilled_placeholder` confirm ở final/export; `info` chỉ hiển thị.
+2. Creator export/save UI
+   - Trước khi export/final save, chạy validator với skeleton hiện hành.
+   - Nếu `requiresConfirmation`: mở confirm/dialog với số issue theo level/type, CTA “Tiếp tục xuất dù còn cảnh báo” và “Quay lại chỉnh sửa”.
+   - Nếu `canProceed=false`: chặn và hiển thị lỗi có hành động sửa rõ ràng.
+3. Testing/exam export UI
+   - Áp dụng cùng guardrail trước export Word/PDF/LaTeX hoặc lưu final đề thi.
+   - Không chặn khi giáo viên chỉ đang xem/chỉnh đề sinh ra.
+4. Toast/dialog copywriting
+   - Nội dung phải thân thiện: “AI có thể chưa giữ đủ bảng/heading từ mẫu. Vui lòng kiểm tra trước khi xuất.”
+   - Không dùng từ gây hoang mang như “lỗi nghiêm trọng” cho warning mềm.
+
+**Luồng UX mong muốn:**
+1. AI sinh giáo án/đề → validator hiển thị cảnh báo như Phase 2B/2C, vẫn cho sửa nháp.
+2. Giáo viên bấm export Word/PDF → app chạy guardrail.
+3. Nếu chỉ còn warning → dialog xác nhận; giáo viên có thể quay lại sửa hoặc tiếp tục export.
+4. Nếu output rỗng/hỏng → chặn export, hướng dẫn sinh lại/chỉnh lại.
+5. Sau khi giáo viên chỉnh output hoặc đổi skeleton → guardrail tính lại từ đầu.
+
+**Không làm trong Phase 2D:**
+- Không thêm RAG/chunking.
+- Không làm diff UI phức tạp nếu chưa cần; có thể để Phase 2D+ hoặc 2F, trừ khi còn thời gian sau khi guardrail chính đã ổn.
+- Không thay toàn bộ export engine; chỉ thêm chốt kiểm tra trước khi gọi export.
+- Không hard-block mọi lệch heading/table.
+
+**Verification/DoD Phase 2D:**
+- Unit test cho helper guardrail decision PASS.
+- `npm run build` PASS.
+- Manual test 1: draft/autosave không bị block khi còn warning.
+- Manual test 2: export với missing table/heading mở confirm, chọn tiếp tục vẫn export được.
+- Manual test 3: output rỗng hoặc lỗi block-level bị chặn với thông báo rõ.
+- Manual test 4: đề thi và giáo án đều dùng cùng chính sách guardrail, không regression export cũ.
+- HANDOFF cập nhật file đã sửa, test/build đã chạy, và phần diff UI/RAG nếu chưa làm.
 
 #### 0.8.5 Phase 2E — RAG/Worksheet từ PDF/DOCX sau Skeleton ổn định
-**Mục tiêu:** sau khi Skeleton đã chắc, mới mở sang phân tích tài liệu nguồn để tạo worksheet/câu hỏi/học liệu.
+**Mục tiêu:** cho phép dùng tài liệu nguồn PDF/DOCX dài làm ngữ cảnh để tạo worksheet/câu hỏi/học liệu, trong khi Skeleton/template vẫn là “khung xuất” bắt buộc. Phase này phải giải quyết rủi ro token/context window trước, không nhồi raw file dài vào prompt.
 
-**Việc nên làm:**
-1. Audit upload/import hiện có: Mammoth/DOCX, PDF text extraction nếu có, `fileUtils.ts`, các luồng exam/lesson import.
-2. Tạo pipeline rút gọn tài liệu nguồn thành context có giới hạn token.
-3. Dùng skeleton/template làm “khung xuất”, tài liệu nguồn làm “nội dung tham khảo”, tránh context bleed.
-4. Có warning khi tài liệu quá dài; chưa auto-chunking mặc định nếu chưa có block/section ID an toàn.
-5. Nếu cần chunking, chỉ làm phase sau với chunk theo section/block đã parse, không split thô bằng `#` hoặc độ dài text.
+> Trạng thái: **kế hoạch chưa code**. Đây là phase sau khi Phase 2C/2D đã ổn. Không triển khai nếu chưa có audit token/context và fallback an toàn.
 
-**DoD:** có MVP tạo nội dung từ tài liệu nguồn nhưng vẫn bám skeleton; token/context có giới hạn và warning rõ.
+**Quyết định sản phẩm đã chốt cho Phase 2E:**
+- Skeleton/template = khung định dạng đầu ra.
+- Source PDF/DOCX = nội dung tham khảo, không được lấn át hoặc xoá skeleton.
+- Không đưa nguyên file 50 trang vào prompt. Bắt buộc có giới hạn ký tự/token, summary/chunk chọn lọc, hoặc từ chối nhẹ kèm hướng dẫn rút gọn.
+- MVP ưu tiên “tóm tắt/rút ý chính theo mục tiêu bài” hơn là RAG vector DB phức tạp.
+- Chunking nếu làm phải theo section/block an toàn; không split thô bằng độ dài hoặc `#` nếu có thể làm mất ngữ cảnh.
+
+**Audit bắt buộc trước khi code:**
+1. Đọc `src/utils/fileUtils.ts` để xác định upload DOCX/PDF hiện có, Mammoth/text extraction, giới hạn size.
+2. Đọc `src/hooks/useLessonCreator.ts` và `src/utils/examUtils.ts` để xác định prompt hiện dùng skeleton/context thế nào.
+3. Đọc các flow AI provider: `src/lib/gemini.ts`, `src/lib/aiProviders.ts`, `api/gemini-relay.ts` để biết giới hạn request/timeout/error 429/400.
+4. Đọc token tracking nếu có: `src/hooks/useTokenTracker.ts`, `src/hooks/useApiUsage.ts`, `src/config/apiLimits.ts`.
+5. Đọc UI nơi upload tài liệu nguồn: `TemplatesTab`, `TestingTab`, Creator/Exam config nếu có.
+
+**Thay đổi đề xuất theo file/flow:**
+1. Context budget helper
+   - Tạo helper kiểu `estimateTextBudget(text)` / `truncateToContextBudget(text, options)` hoặc token estimator đơn giản theo ký tự/từ.
+   - Có constant rõ: max chars/token cho source context, skeleton, user prompt.
+   - Trả metadata: original length, included length, truncated boolean, warning message.
+2. Source document summarization MVP
+   - Nếu tài liệu vượt budget: tạo summary/outline ngắn bằng AI hoặc heuristic extract headings/first paragraphs.
+   - Nếu gọi AI summary: có fallback khi provider lỗi, không làm crash flow chính.
+   - Không lưu raw tài liệu lớn vào prompt final nếu đã có summary.
+3. Prompt composition
+   - Cấu trúc prompt tách rõ 3 phần: `SKELETON BẮT BUỘC GIỮ`, `NGỮ CẢNH THAM KHẢO`, `YÊU CẦU BÀI/ĐỀ`.
+   - Nhắc AI: nếu ngữ cảnh thiếu dữ liệu, giữ skeleton và điền nội dung sư phạm phù hợp; không xoá bảng/placeholder.
+4. UI warning
+   - Hiển thị cảnh báo: “Tài liệu nguồn quá dài, hệ thống chỉ dùng phần tóm tắt/rút gọn”.
+   - Cho giáo viên biết bao nhiêu ký tự/trang được dùng nếu có dữ liệu.
+5. Tests
+   - Test helper budget/truncation.
+   - Test prompt builder không vượt budget giả lập và vẫn chứa skeleton.
+
+**Không làm trong Phase 2E MVP:**
+- Không dựng vector database/RAG full nếu chưa cần.
+- Không auto-chunk toàn bộ giáo án theo nhiều request nếu chưa có section ID và merge validator.
+- Không xử lý fidelity DOCX cao/header/footer/logo.
+- Không trộn game/simulation/offline export vào prompt RAG.
+
+**Verification/DoD Phase 2E:**
+- `npm run build` PASS.
+- Test helper budget/truncation PASS.
+- Manual test 1: tài liệu ngắn được đưa vào context và output vẫn bám skeleton.
+- Manual test 2: tài liệu dài bị rút gọn/cảnh báo, không lỗi 429/400 do prompt quá dài.
+- Manual test 3: provider lỗi khi summary thì flow fallback rõ, không mất skeleton.
+- Manual test 4: validator sau generation vẫn hoạt động và guardrail Phase 2D vẫn áp dụng khi export.
+- HANDOFF cập nhật rõ giới hạn token/context đã chọn.
 
 #### 0.8.6 Phase 3A — Dynamic Simulation/Game HTML sandbox, chỉ sau Skeleton/RAG
-**Mục tiêu:** mở rộng học liệu tương tác/game/mô phỏng nhưng không trộn vào Clone Template.
+**Mục tiêu:** mở rộng học liệu tương tác/game/mô phỏng bằng HTML/JS hoặc simulation spec, nhưng phải coi đây là surface bảo mật lớn. Trước khi cho AI sinh/running dynamic code, cần sandbox, validation, CSP và QA riêng.
 
-**Việc nên làm:**
-1. Audit các file hiện có liên quan adaptive/game/simulation: `src/lib/adaptive/*`, `src/lib/dewey/*`, `SimulationGeneratorModal.tsx`, `simulationValidation.ts`.
-2. Thiết kế sandbox/security trước: không chạy HTML/JS tuỳ ý trong app chính nếu chưa có iframe sandbox, validation, CSP/allowlist.
-3. Tách dữ liệu simulation spec khỏi prompt giáo án clone-template.
-4. QA riêng với Anti vì đây là surface bảo mật lớn.
+> Trạng thái: **kế hoạch chưa code**. Không được triển khai chung với Phase 2C/2D/2E; chỉ bắt đầu khi user yêu cầu rõ Phase 3A.
 
-**Không làm trong Phase 2B/2C:** game native, simulation dynamic, SlideJ, SCORM/offline package.
+**Quyết định bảo mật đã chốt cho Phase 3A:**
+- Không render HTML/JS do AI sinh trực tiếp trong DOM app chính bằng `dangerouslySetInnerHTML` kèm script.
+- Nếu cần chạy JS: chạy trong `<iframe sandbox="allow-scripts">` và **không** thêm `allow-same-origin` nếu không có lý do rất mạnh.
+- Không cho dynamic code truy cập LocalStorage/SessionStorage/Firebase credentials/app state.
+- Có CSP/allowlist tài nguyên nghiêm ngặt; mặc định không cho network ngoài nếu chưa thiết kế.
+- Lưu simulation dưới dạng spec có schema khi có thể; HTML/JS tự do chỉ là fallback sau validation.
+
+**Audit bắt buộc trước khi code:**
+1. Đọc `src/lib/adaptive/*`, nhất là `simulationValidation.ts`, `adaptiveFromLessonPlan.ts`, `externalToolRag.ts`.
+2. Đọc `src/lib/dewey/*`, `src/pages/AdaptiveLessonBuilderPage.tsx`, `src/pages/AdaptiveStudentPortalPage.tsx`, `src/components/teacher/SimulationGeneratorModal.tsx`.
+3. Đọc security rules/hosting constraints: `firestore.rules`, Vercel/API endpoints liên quan.
+4. Tìm mọi chỗ render HTML hiện có (`dangerouslySetInnerHTML`, iframe, markdown renderer) để tránh mở lỗ XSS mới.
+5. Xác định data model cho simulation/game hiện có trước khi thêm field mới.
+
+**Thay đổi đề xuất theo file/flow:**
+1. Simulation schema/validator
+   - Ưu tiên JSON spec typed, ví dụ activity type, assets allowlist, interaction rules.
+   - Validator reject script/network/event handler nguy hiểm nếu nhập HTML.
+2. Sandbox renderer component
+   - Component riêng, ví dụ `SandboxedSimulationFrame`.
+   - Dùng `srcdoc` đã sanitize/minimal; sandbox tối thiểu; không cùng origin.
+   - Message passing nếu cần thì chỉ whitelist event type và validate payload.
+3. Generation prompt
+   - Prompt AI sinh spec trước, không sinh full arbitrary app.
+   - Nếu sinh HTML, yêu cầu self-contained, không external script, không fetch, không localStorage.
+4. Security tests
+   - Test validator chặn `<script>` nguy hiểm nếu mode spec không cho phép.
+   - Test chặn event handler inline/network URL/localStorage patterns.
+5. QA Anti riêng
+   - Anti cần test XSS payload, iframe isolation, console errors, mobile layout, offline behavior nếu có.
+
+**Không làm trong Phase 3A:**
+- Không SCORM/offline package đầy đủ.
+- Không SlideJ/PPTX.
+- Không cấp quyền dynamic code đọc dữ liệu người dùng.
+- Không bỏ qua CSP/sandbox để “demo nhanh”.
+
+**Verification/DoD Phase 3A:**
+- `npm run build` PASS.
+- Security/unit tests cho sanitizer/validator PASS nếu thêm helper.
+- Manual security test: payload cố đọc `localStorage`, gọi `fetch`, hoặc truy cập parent app bị chặn.
+- Manual UX test: simulation/game chạy trong iframe, không crash app chính.
+- HANDOFF cập nhật rõ sandbox flags/CSP quyết định đã dùng và rủi ro còn lại.
 
 #### 0.8.7 Phase 3B — SlideJ/PPTX, Handwriting, Offline/SCORM
-**Mục tiêu:** chỉ ghi lại roadmap xa, không code ngay.
+**Mục tiêu:** roadmap xa cho các hình thức xuất bản/mở rộng lớn sau khi Skeleton, Guardrails, RAG và Sandbox đã ổn. Phase 3B nên tách thành các nhánh nhỏ độc lập, không gộp tất cả vào một sprint.
 
-**Điều kiện trước khi làm:**
-- Template Skeleton và validator đã ổn.
-- Export Word/PDF hiện tại không bị regression.
-- Có thiết kế riêng cho PPTX/SlideJ hoặc offline/SCORM; không piggyback vào prompt giáo án/de thi hiện tại.
-- Có QA/security checklist riêng, đặc biệt với offline package và dynamic HTML/JS.
+> Trạng thái: **kế hoạch chưa code**. Đây là nhóm phase xa; mỗi nhánh cần mini-spec riêng trước khi code.
+
+**Điều kiện chung trước khi làm Phase 3B:**
+- Phase 2C Manual Skeleton Editor đã ổn.
+- Phase 2D export/final guardrails không regression Word/PDF.
+- Phase 2E context budget/RAG có giới hạn rõ nếu dùng tài liệu nguồn.
+- Phase 3A sandbox/security đã có nếu bất kỳ output nào chứa dynamic HTML/JS.
+- Có QA matrix riêng cho từng định dạng: Word/PDF, PPTX, SCORM/LMS, handwriting assets.
+
+**3B.1 SlideJ/PPTX Export — kế hoạch riêng:**
+- Audit trước: `UI-UX/IMPLEMENTATION_MAP.md`, các component lesson/adaptive hiện có, export utilities, dependency PPTX nếu đã có.
+- Mục tiêu MVP: xuất outline slide từ giáo án/skeleton thành PPTX hoặc SlideJ JSON; không cần fidelity thiết kế cao ngay.
+- Data model: slide title, bullets, speaker notes, activity prompt, optional image placeholder.
+- Guardrail: không để prompt giáo án clone-template bị trộn với prompt slide; slide là output phụ sau khi giáo án đã có.
+- DoD: build pass, xuất file mở được trong PowerPoint/Google Slides hoặc viewer mục tiêu, không phá export Word/PDF.
+
+**3B.2 Handwriting/Chữ viết tay — kế hoạch riêng:**
+- Audit trước: nơi lưu assets học sinh/giáo viên, upload image hiện có, policy Firebase Storage/Firestore nếu dùng.
+- Mục tiêu MVP: tạo worksheet/chữ mẫu hoặc nhận ảnh chữ viết tay ở mức hỗ trợ, không hứa OCR/chấm chữ hoàn hảo.
+- Bảo mật/privacy: ảnh học sinh là dữ liệu nhạy cảm; cần rule lưu/xoá/quyền truy cập rõ.
+- DoD: upload/preview an toàn, không leak asset giữa lớp/người dùng, fallback nếu OCR/model lỗi.
+
+**3B.3 Offline/SCORM Package — kế hoạch riêng:**
+- Audit trước: yêu cầu LMS mục tiêu (Moodle/Canvas/Google Classroom nếu có), format SCORM 1.2 hay 2004, asset bundling hiện tại.
+- Mục tiêu MVP: package offline tĩnh chứa lesson/simulation đã sandboxed, manifest hợp lệ, không cần tracking phức tạp ngay.
+- Rủi ro lớn: `imsmanifest.xml`, đường dẫn asset, CSP offline, iframe sandbox, tương thích LMS.
+- DoD: package import được ít nhất vào một LMS mục tiêu hoặc SCORM Cloud/test harness; tài liệu hướng dẫn import rõ.
+
+**Không làm trong Phase 3B nếu chưa có spec:**
+- Không triển khai đồng thời PPTX + handwriting + SCORM trong một commit lớn.
+- Không đưa dynamic JS không sandbox vào SCORM/offline.
+- Không lưu ảnh học sinh hoặc package offline public nếu chưa audit quyền riêng tư.
+
+**Verification/DoD chung Phase 3B:**
+- Mỗi nhánh có issue/spec riêng, file audit riêng, test/build riêng.
+- Không regression các luồng Phase 2: tạo giáo án, tạo đề, skeleton validator, export Word/PDF.
+- HANDOFF cập nhật sau từng nhánh, ghi rõ nhánh nào đã làm/chưa làm.
 
 #### 0.8.8 Nợ kỹ thuật nên xếp song song nhưng không chen vào Phase 2B nếu không liên quan
 - Build warning chunk-size/dynamic import hiện hữu: có thể tối ưu code-splitting sau, không phải blocker Phase 2B.
