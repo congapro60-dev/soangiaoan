@@ -31,8 +31,11 @@ export const DiagramRenderer = ({ code, type }: DiagramRendererProps) => {
 
       try {
         let finalCode = code;
-        if (type === 'tikz' && !finalCode.includes('\\documentclass')) {
-          finalCode = `\\documentclass[tikz,border=2mm]{standalone}\n\\usepackage[dvipsnames]{xcolor}\n\\definecolor{indigo}{RGB}{75,0,130}\n\\usepackage{pgfplots}\n\\pgfplotsset{compat=1.18}\n\\begin{document}\n${finalCode}\n\\end{document}`;
+        if (type === 'tikz') {
+          finalCode = finalCode.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
+          if (!finalCode.includes('\\documentclass')) {
+            finalCode = `\\documentclass[tikz,border=2mm]{standalone}\n\\usepackage[dvipsnames]{xcolor}\n\\definecolor{indigo}{RGB}{75,0,130}\n\\usepackage{pgfplots}\n\\pgfplotsset{compat=1.18}\n\\begin{document}\n${finalCode}\n\\end{document}`;
+          }
         }
 
         // Prepare payload for Kroki
