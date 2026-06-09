@@ -208,7 +208,7 @@ Warning chunk-size là warning kỹ thuật cũ, không thuộc scope chặn bui
 
 ---
 
-### 0b3. Trạng thái sau Phase 2D (Export/Final Save Guardrails) — 2026-06-10 (Antigravity)
+## 0b3. Trạng thái sau Phase 2D (Export/Final Save Guardrails) — 2026-06-10 (Antigravity)
 
 > Nguồn sự thật cho phiên sau: Đã hoàn tất Phase 2D theo lộ trình. Hệ thống có thêm lớp bảo vệ cuối (guardrail) trước khi xuất Word/PDF/LaTeX hoặc lưu vào Thư viện. Guardrail này chặn rỗng, cảnh báo và yêu cầu xác nhận khi thiếu form, nhưng không chặn draft.
 
@@ -226,9 +226,29 @@ Warning chunk-size là warning kỹ thuật cũ, không thuộc scope chặn bui
 
 ---
 
+## 0b4. Trạng thái sau Phase 2E (RAG/Worksheet từ PDF/DOCX & Context Budget) — 2026-06-10 (Antigravity)
+
+> Nguồn sự thật cho phiên sau: Đã hoàn tất Phase 2E. Hệ thống giờ đã có cơ chế tự động bảo vệ Context Limit khi người dùng tải lên tài liệu tham khảo dài, chống lỗi tràn Token (400 - Payload Too Large) và đảm bảo AI tập trung vào Skeleton.
+
+#### Hạng mục Phase 2E đã hoàn thành
+1. **Context Budget Helper (`src/lib/contextBudget.ts`)**:
+   - Viết hàm `truncateToContextBudget(text, maxLength)` với giới hạn mặc định 30.000 ký tự (~10k tokens).
+   - Tự động cắt đuôi nếu quá dài và chèn cảnh báo *"Nội dung tài liệu đã được rút gọn..."*.
+   - Viết Unit Tests đầy đủ (PASS).
+2. **Cập nhật Soạn Giáo án (`useLessonCreator.ts`)**:
+   - Đưa Tài liệu tham khảo (`lessonDocs`) và Phân phối chương trình (`distContent`) qua bộ lọc cắt gọn.
+   - Hiển thị Toast cảnh báo nếu tài liệu bị cắt.
+   - Tách đoạn Prompt thành các khối XML: `<format_skeleton>` và `<reference_context>` để AI ưu tiên Skeleton hơn ngữ cảnh.
+3. **Cập nhật Soạn Đề thi (`examUtils.ts`)**:
+   - Cắt gọn nội dung `requirement` (nơi giáo viên có thể dán nội dung dài) và `testContent` trong Audit mode.
+4. **Build & Test**:
+   - `npm run build` PASS. `npm run test` PASS.
+
+---
+
 ### 0.8 Kế hoạch tổng thể tiếp theo
 
-> Trạng thái cập nhật: Phase 2D đã hoàn tất. Các mục từ Phase 2E trở đi vẫn là **kế hoạch chưa code**. Người dùng yêu cầu ghi rõ kế hoạch vào `HANDOFF.md` để Anti/code agent chỉ việc bám theo khi triển khai. Agent tiếp theo phải đọc mục này trước khi code; không được tự hiểu là các phase dưới đây đã hoàn thành.
+> Trạng thái cập nhật: Phase 2E đã hoàn tất. Các mục từ Phase 3A trở đi vẫn là **kế hoạch chưa code**. Người dùng yêu cầu ghi rõ kế hoạch vào `HANDOFF.md` để Anti/code agent chỉ việc bám theo khi triển khai. Agent tiếp theo phải đọc mục này trước khi code; không được tự hiểu là các phase dưới đây đã hoàn thành.
 
 #### 0.8.1 Nguyên tắc điều phối chung
 - Đi theo checkpoint nhỏ, an toàn: **audit code thật → code lát cắt nhỏ → build/test → cập nhật HANDOFF → Anti QA → sửa theo report → commit/push khi người dùng yêu cầu**.
@@ -277,7 +297,7 @@ Warning chunk-size là warning kỹ thuật cũ, không thuộc scope chặn bui
 - Editor đặt **inline trong `TemplatesTab`**, ngay khu vực đang xem Markdown Skeleton; không mở modal phức tạp.
 - Dùng **`<textarea>` monospace cơ bản**, không kéo thêm markdown editor/rich editor nặng.
 - Lưu skeleton đã chỉnh vào `TemplateFile.skeleton` trong state/app data hiện có, update immutable và giữ backward-compatible với template cũ.
-- “Override Validator” ở Phase 2C chỉ nên hiểu là **Dismiss/Acknowledge warning** trên UI, vì validator hiện vẫn là soft validation. Không gọi là hard override và không persist lên Firestore nếu chưa có nhu cầu rõ.
+- “Override Validator” ở Phase 2C chỉ nên hiểu là **Dismiss/Acknowledge warning** trên UI, vì validator hiện vẫn là soft validation. Không gọi là hard override và không persist lên Firebase nếu chưa có nhu cầu rõ.
 - Nút “Khôi phục skeleton tự động” phải có confirm vì thao tác này xoá chỉnh sửa thủ công hiện tại.
 
 **Audit bắt buộc trước khi code:**
@@ -421,17 +441,17 @@ Warning chunk-size là warning kỹ thuật cũ, không thuộc scope chặn bui
 - Manual test 4: đề thi và giáo án đều dùng cùng chính sách guardrail, không regression export cũ.
 - HANDOFF cập nhật file đã sửa, test/build đã chạy, và phần diff UI/RAG nếu chưa làm.
 
-#### 0.8.5 Phase 2E — RAG/Worksheet từ PDF/DOCX sau Skeleton ổn định
-**Mục tiêu:** cho phép dùng tài liệu nguồn PDF/DOCX dài làm ngữ cảnh để tạo worksheet/câu hỏi/học liệu, trong khi Skeleton/template vẫn là “khung xuất” bắt buộc. Phase này phải giải quyết rủi ro token/context window trước, không nhồi raw file dài vào prompt.
+#### 0.8.5 Phase 2E — RAG/Worksheet từ PDF/DOCX sau Skeleton ổn định (ĐÃ HOÀN TẤT)
+**Mục tiêu:** cho phép dùng tài liệu nguồn PDF/DOCX dài làm ngữ cảnh để tạo worksheet/câu hỏi/học liệu, trong khi Skeleton/template vẫn là “khung xuất” bắt buộc. Đã giải quyết an toàn bằng Context Truncation.
 
-> Trạng thái: **kế hoạch chưa code**. Đây là phase sau khi Phase 2C/2D đã ổn. Không triển khai nếu chưa có audit token/context và fallback an toàn.
+> Trạng thái: **Đã hoàn tất**. Không cần thiết xây dựng RAG/Vector DB cồng kềnh cho Phase này vì `contextBudget` helper (30k chars) đã xử lý tốt rủi ro Token Limit (Lỗi 400 Payload Too Large), giữ cho hệ thống nhẹ và tiết kiệm chi phí.
 
-**Quyết định sản phẩm đã chốt cho Phase 2E:**
-- Skeleton/template = khung định dạng đầu ra.
-- Source PDF/DOCX = nội dung tham khảo, không được lấn át hoặc xoá skeleton.
-- Không đưa nguyên file 50 trang vào prompt. Bắt buộc có giới hạn ký tự/token, summary/chunk chọn lọc, hoặc từ chối nhẹ kèm hướng dẫn rút gọn.
-- MVP ưu tiên “tóm tắt/rút ý chính theo mục tiêu bài” hơn là RAG vector DB phức tạp.
-- Chunking nếu làm phải theo section/block an toàn; không split thô bằng độ dài hoặc `#` nếu có thể làm mất ngữ cảnh.
+**Quyết định sản phẩm đã áp dụng cho Phase 2E:**
+- Skeleton/template = khung định dạng đầu ra (Được bọc trong `<format_skeleton>`).
+- Source PDF/DOCX = nội dung tham khảo (Được bọc trong `<reference_context>`).
+- Không đưa nguyên file 50 trang vào prompt. Tự động rút gọn (Truncate) ở 30,000 ký tự đầu tiên và chèn cảnh báo.
+- Hiển thị Toast UI thông báo cho giáo viên biết nếu tài liệu của họ quá dài và AI chỉ lấy một phần.
+- Dành thời gian và tài nguyên để chuẩn bị chuyển qua Phase 3 (Mô phỏng/Game).
 
 **Audit bắt buộc trước khi code:**
 1. Đọc `src/utils/fileUtils.ts` để xác định upload DOCX/PDF hiện có, Mammoth/text extraction, giới hạn size.

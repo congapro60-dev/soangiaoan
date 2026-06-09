@@ -1,5 +1,6 @@
 import { callAI } from '../lib/aiProviders';
 import { buildSkeletonPromptSection } from '../lib/documentSkeleton';
+import { truncateToContextBudget } from '../lib/contextBudget';
 import { AppData, TemplateFile } from '../types';
 
 type Settings = AppData['settings'];
@@ -107,7 +108,7 @@ ${structure && (structure.mcq + structure.trueFalse4 + structure.shortAnswer + s
   : '- Không có ràng buộc cụ thể (AI tự cân đối theo ma trận hoặc chương trình)'}
 
 YÊU CẦU BỔ SUNG:
-${requirement || 'Soạn đề thi chuẩn chương trình GDPT 2018'}
+${truncateToContextBudget(requirement || 'Soạn đề thi chuẩn chương trình GDPT 2018', 5000).truncatedText}
 
 QUY TẮC NỘI DUNG:
 - Công thức toán học: dùng LaTeX inline $...$ và display $$...$$, KHÔNG dùng ký hiệu khác; không để công thức bị tách bởi xuống dòng sai cú pháp.
@@ -262,7 +263,7 @@ BỐ CỤC PHẢN HỒI:
 
 NỘI DUNG ĐỀ THI CẦN SOÁT:
 ---
-${testContent}
+${truncateToContextBudget(testContent, 60000).truncatedText}
 ---
     `;
   },

@@ -4,6 +4,7 @@ import { callAI, callAIStream, getActiveApiKey } from '../lib/aiProviders';
 import { cleanMarkdownOutput } from '../utils/markdownUtils';
 import { applyLessonRevisionPatchResponse, buildLessonRevisionPatchPrompt } from '../utils/lessonRevisionPatch';
 import { buildSkeletonPromptSection, validateMarkdownAgainstSkeleton } from '../lib/documentSkeleton';
+import { truncateToContextBudget } from '../lib/contextBudget';
 import Swal from 'sweetalert2';
 
 // Note: MODELS and MODELS_LIST should be consistent. 
@@ -679,7 +680,13 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
       ` : '';
 
       if (generationMode === 'single') {
-        const lessonDocsContent = lessonDocs.map(f => f.content).join('\n---\n');
+        const rawDocsContent = lessonDocs.map(f => f.content).join('\n---\n');
+        const { truncatedText: lessonDocsContent, isTruncated: docsTruncated } = truncateToContextBudget(rawDocsContent);
+        
+        if (docsTruncated) {
+          showToast(`Tài liệu tham khảo quá dài, AI chỉ sử dụng một phần để đảm bảo không lỗi hệ thống.`, 'warning');
+        }
+
         const prompt = `
           BẠN LÀ MỘT CHUYÊN GIA GIÁO DỤC CAO CẤP.
           NHIỆM VỤ: ${isAdaptiveReadyDefault ? 'Soạn một giáo án nguồn để tạo bài học phân hoá/adaptive.' : 'Soạn một giáo án "Masterpiece" (Kiệt tác sư phạm).'}
@@ -691,11 +698,17 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
           THÔNG TIN BÀI HỌC:
           - Môn học: ${subject}. Lớp: ${currentPlan.grade}. Tuần: ${currentPlan.week}.
           - Tiêu đề: ${currentPlan.title}.
+          ${singleRequirement ? `YÊU CẦU BỔ SUNG: ${singleRequirement}` : ''}
+          
+          <format_skeleton>
           ${templateContext}
+          ${skeletonPromptSection}
+          </format_skeleton>
+
+          <reference_context>
           ${activeDist ? `PHÂN PHỐI CHƯƠNG TRÌNH:\n${activeDist.content}` : ''}
           ${lessonDocsContent ? `TÀI LIỆU THAM KHẢO:\n${lessonDocsContent}` : ''}
-          ${singleRequirement ? `YÊU CẦU BỔ SUNG: ${singleRequirement}` : ''}
-          ${skeletonPromptSection}
+          </reference_context>
 
           ${isAdaptiveReadyDefault ? `
           ===== YÊU CẦU RIÊNG CHO KIỂU MẶC ĐỊNH MỚI — GIÁO ÁN ĐẸP, SẴN SÀNG TẠO BÀI HỌC PHÂN HOÁ =====
@@ -779,7 +792,13 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
           showToast('Đã khởi tạo giáo án cấp độ Senior!');
         }
       } else {
-        const distContent = activeDist?.content || distributionFile?.content;
+        const rawDistContent = activeDist?.content || distributionFile?.content;
+        const { truncatedText: distContent, isTruncated: distTruncated } = truncateToContextBudget(rawDistContent);
+        
+        if (distTruncated) {
+          showToast(`Phân phối chương trình quá dài, chỉ xử lý một phần đầu để tránh lỗi AI.`, 'warning');
+        }
+
         const plannerPrompt = `
           BẠN LÀ CHUYÊN GIA TRÍ TUỆ NHÂN TẠO TRÍCH XUẤT DỮ LIỆU GIÁO DỤC.
           NHIỆM VỤ: Lập danh sách các bài học từ Phân phối chương trình (PPCN).
@@ -835,10 +854,12 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
               THÔNG TIN TỪ PHÂN PHỐI CHƯƠNG TRÌNH:
               - Tuần: ${lesson.week}
               - Mục tiêu/Kiến thức trọng tâm: ${lesson.objectives}
+              Lớp: ${currentPlan.grade}.
               
+              <format_skeleton>
               ${templateContext}
               ${skeletonPromptSection}
-              Lớp: ${currentPlan.grade}.
+              </format_skeleton>
 
               ${isAdaptiveReadyDefault ? `
               ===== YÊU CẦU RIÊNG CHO KIỂU MẶC ĐỊNH MỚI — GIÁO ÁN ĐẸP, SẴN SÀNG TẠO BÀI HỌC PHÂN HOÁ =====
