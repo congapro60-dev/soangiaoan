@@ -160,6 +160,32 @@ Warning chunk-size là warning kỹ thuật cũ, không thuộc scope chặn bui
 - Ghi chú kỹ thuật của Anti: validator bảng hiện đếm số dòng có ký tự `|` thay vì đếm số cụm bảng; không phải FAIL vì MVP chỉ cần cảnh báo “có bảng hay không”. Có thể cải thiện ở phase sau nếu cần validator chi tiết hơn.
 - Kết luận Anti: không phát hiện lỗi trong phạm vi Phase 2A MVP; có thể commit & push lên `main`.
 
+---
+
+## 0b. Trạng thái sau Phase 2B (Reliability & UX Hardening) — 2026-06-10 (Antigravity & Cline)
+
+> Nguồn sự thật cho phiên sau: Đã hoàn tất Phase 2B theo đúng lộ trình ở mục 0.8.2. Hệ thống Validation Skeleton đã được làm chặt chẽ hơn, hiển thị rõ ràng trên UI, đồng thời có Unit Test tự động để đảm bảo tính ổn định.
+
+### 0.0.1 Các hạng mục Phase 2B đã hoàn thành
+1. **Nâng cấp thuật toán đếm Bảng (Table Cluster Detection)**:
+   - Sửa logic đếm bảng thô sơ từ Phase 2A. Đã thay thế bằng hàm `countMarkdownTableClusters(markdown)` nhận diện chính xác từng cụm bảng thay vì đếm theo số dòng chứa ký tự `|`.
+   - Kết quả: Thống kê và validate số lượng bảng chính xác với độ tin cậy cao hơn.
+2. **Validator cấu trúc (Structured Validation) & Scoring**:
+   - `validateMarkdownAgainstSkeleton` giờ đây trả về một mảng `SkeletonValidationIssue[]` (với các trường `level: 'info'|'warning'|'error'`, `type: 'missing_heading'|'missing_tables'...`, và `message`).
+   - Thêm tính năng **Scoring (0.0 - 1.0)** dựa trên trọng số để đánh giá tổng thể độ bám sát Skeleton của nội dung AI sinh ra.
+   - Vẫn duy trì cơ chế **Soft Validation** (không chặn lưu nháp/xuất file nếu không phải lỗi chí mạng `empty_output`).
+3. **Cải thiện UI Testing/Preview**:
+   - Tại màn `TestingTab.tsx`, các cảnh báo từ Validator được render chi tiết với các *Badge* màu sắc tương ứng (`error` -> Đỏ, `warning` -> Vàng, `info` -> Xanh), giúp giáo viên nhanh chóng nhận biết phần nào AI chưa bám sát format mẫu.
+   - Trong `TemplatesTab.tsx`, đã hiển thị chỉ số chi tiết `[Heading - Bảng - Placeholder]` ngay trên file có chứa Skeleton để dễ theo dõi.
+4. **Kiểm thử tự động (Unit Testing)**:
+   - Thêm file test `src/lib/documentSkeleton.test.ts` (4 test cases) cover các trường hợp edge-case cho đếm cụm bảng, xuất danh sách warning có cấu trúc, và xử lý nội dung rỗng.
+   - Run `npm run test -- --run src/lib/documentSkeleton.test.ts` thành công (PASS).
+5. **Production Build**:
+   - Chạy `npm run build` thành công, không gặp lỗi compile sau khi update Phase 2B.
+
+### 0.0.2 Khuyến nghị cho Phase tiếp theo (Phase 2C - Manual Editor)
+- Hệ thống Parser và Validator hiện tại đã rất vững chắc ở chế độ tự động. Việc ưu tiên tiếp theo là bổ sung UI cho phép giáo viên chỉnh sửa Skeleton thủ công trước khi đẩy vào prompt cho AI (đúng như dự kiến ở mục 0.8.3).
+
 ### 0.8 Kế hoạch tổng thể tiếp theo để gửi Anti đánh giá — cập nhật 2026-06-10 03:12
 
 > Trạng thái: **chỉ là kế hoạch, chưa code** sau commit `221754a feat: add phase 2a template skeleton MVP`. Người dùng muốn ghi toàn bộ roadmap vào `HANDOFF.md` để gửi Anti đánh giá và có thể chuyển session khác. Agent tiếp theo phải đọc mục này trước khi code; không được tự hiểu là các phase dưới đây đã hoàn thành.
