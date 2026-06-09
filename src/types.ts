@@ -198,10 +198,11 @@ export interface AppData {
     geminiApiKey: string;
     claudeApiKey: string;
     openaiApiKey: string;
-    selectedProvider: 'gemini' | 'claude' | 'openai' | 'grok' | 'deepseek' | 'openai-compatible';
+    selectedProvider: 'gemini' | 'claude' | 'openai' | 'grok' | 'deepseek' | 'nvidia' | 'openai-compatible';
     selectedModel: string;
     grokApiKey: string;
     deepseekApiKey: string;
+    nvidiaApiKey: string;
     openaiCompatibleApiKey?: string;
     openaiCompatibleBaseUrl?: string;
     openaiCompatibleModelId?: string;
@@ -234,6 +235,7 @@ export const DEFAULT_DATA: AppData = {
     openaiApiKey: '',
     grokApiKey: '',
     deepseekApiKey: '',
+    nvidiaApiKey: '',
     openaiCompatibleApiKey: '',
     openaiCompatibleBaseUrl: 'https://digishop-api.io.vn/v1',
     openaiCompatibleModelId: 'claude-opus-4-7',

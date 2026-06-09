@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { AppData } from '../../types';
-import { GEMINI_MODELS, CLAUDE_MODELS, OPENAI_MODELS, GROK_MODELS, DEEPSEEK_MODELS } from '../../lib/aiProviders';
+import { GEMINI_MODELS, CLAUDE_MODELS, OPENAI_MODELS, GROK_MODELS, DEEPSEEK_MODELS, NVIDIA_MODELS } from '../../lib/aiProviders';
 import { useTokenTracker } from '../../hooks/useTokenTracker';
 import type { ApiProvider } from '../../config/apiLimits';
 
@@ -39,6 +39,7 @@ const PROVIDERS: { id: Provider; label: string; color: string; bg: string; borde
   { id: 'openai', label: 'ChatGPT', color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-500', accent: 'from-emerald-500 to-teal-400' },
   { id: 'grok', label: 'Grok', color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-500', accent: 'from-purple-500 to-fuchsia-400' },
   { id: 'deepseek', label: 'DeepSeek', color: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-500', accent: 'from-cyan-500 to-blue-400' },
+  { id: 'nvidia', label: 'NVIDIA NIM', color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-500', accent: 'from-green-500 to-lime-400' },
   { id: 'openai-compatible', label: 'Custom API', color: 'text-slate-600', bg: 'bg-slate-100', border: 'border-slate-400', accent: 'from-slate-500 to-gray-400' },
 ];
 
@@ -48,6 +49,7 @@ const PROVIDER_MODELS: Record<Provider, { id: string; name: string; desc: string
   openai: OPENAI_MODELS,
   grok: GROK_MODELS,
   deepseek: DEEPSEEK_MODELS,
+  nvidia: NVIDIA_MODELS,
   'openai-compatible': [],
 };
 
@@ -57,6 +59,7 @@ const PROVIDER_LINKS: Record<Provider, { url: string; label: string }> = {
   openai: { url: 'https://platform.openai.com/api-keys', label: 'Lấy OpenAI API Key' },
   grok: { url: 'https://console.x.ai/', label: 'Lấy Grok API Key' },
   deepseek: { url: 'https://platform.deepseek.com/api_keys', label: 'Lấy DeepSeek API Key' },
+  nvidia: { url: 'https://build.nvidia.com/explore/models', label: 'Lấy NVIDIA API Key' },
   'openai-compatible': { url: '#', label: 'API Tuỳ chỉnh' },
 };
 
@@ -65,6 +68,7 @@ const providerName = (provider: Provider): string => {
   if (provider === 'claude') return 'Anthropic Claude';
   if (provider === 'grok') return 'xAI Grok';
   if (provider === 'deepseek') return 'DeepSeek';
+  if (provider === 'nvidia') return 'NVIDIA NIM';
   if (provider === 'openai-compatible') return 'OpenAI Compatible';
   return 'OpenAI ChatGPT';
 };
@@ -115,6 +119,8 @@ export const SettingsModal = ({
       setData(prev => ({ ...prev, settings: { ...prev.settings, grokApiKey: value } }));
     } else if (provider === 'deepseek') {
       setData(prev => ({ ...prev, settings: { ...prev.settings, deepseekApiKey: value } }));
+    } else if (provider === 'nvidia') {
+      setData(prev => ({ ...prev, settings: { ...prev.settings, nvidiaApiKey: value } }));
     } else if (provider === 'openai-compatible') {
       setData(prev => ({ ...prev, settings: { ...prev.settings, openaiCompatibleApiKey: value } }));
     } else {
@@ -127,6 +133,7 @@ export const SettingsModal = ({
     if (provider === 'claude') return data.settings.claudeApiKey || '';
     if (provider === 'grok') return data.settings.grokApiKey || '';
     if (provider === 'deepseek') return data.settings.deepseekApiKey || '';
+    if (provider === 'nvidia') return data.settings.nvidiaApiKey || '';
     if (provider === 'openai-compatible') return data.settings.openaiCompatibleApiKey || '';
     return data.settings.openaiApiKey || '';
   };

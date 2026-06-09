@@ -1,6 +1,6 @@
 import { callGeminiAIRaw, callGeminiAIStream, DEFAULT_GEMINI_RUNTIME_MODEL, GEMINI_RUNTIME_MODELS } from './gemini';
 import { estimateTokenCount, recordTokenUsage } from '../hooks/useTokenTracker';
-import { CLAUDE_MODELS as TRACKER_CLAUDE_MODELS, DEEPSEEK_MODELS as TRACKER_DEEPSEEK_MODELS, GEMINI_MODELS as TRACKER_GEMINI_MODELS, GROK_MODELS as TRACKER_GROK_MODELS, OPENAI_MODELS as TRACKER_OPENAI_MODELS, toModelOption } from '../data/models';
+import { CLAUDE_MODELS as TRACKER_CLAUDE_MODELS, DEEPSEEK_MODELS as TRACKER_DEEPSEEK_MODELS, GEMINI_MODELS as TRACKER_GEMINI_MODELS, GROK_MODELS as TRACKER_GROK_MODELS, OPENAI_MODELS as TRACKER_OPENAI_MODELS, NVIDIA_MODELS as TRACKER_NVIDIA_MODELS, toModelOption } from '../data/models';
 import type { ApiProvider } from '../config/apiLimits';
 import type { AppData } from '../types';
 
@@ -89,6 +89,7 @@ export const CLAUDE_MODELS = TRACKER_CLAUDE_MODELS.map(toModelOption);
 export const OPENAI_MODELS = TRACKER_OPENAI_MODELS.map(toModelOption);
 export const GROK_MODELS = TRACKER_GROK_MODELS.map(toModelOption);
 export const DEEPSEEK_MODELS = TRACKER_DEEPSEEK_MODELS.map(toModelOption);
+export const NVIDIA_MODELS = TRACKER_NVIDIA_MODELS.map(toModelOption);
 export const GEMINI_MODELS = TRACKER_GEMINI_MODELS.map(model => ({
   ...toModelOption(model),
   desc: [
@@ -105,6 +106,7 @@ export function getActiveApiKey(settings: Settings): string {
   if (provider === 'openai') return settings.openaiApiKey || '';
   if (provider === 'grok') return settings.grokApiKey || '';
   if (provider === 'deepseek') return settings.deepseekApiKey || '';
+  if (provider === 'nvidia') return settings.nvidiaApiKey || '';
   if (provider === 'openai-compatible') return settings.openaiCompatibleApiKey || '';
   return settings.geminiApiKey || '';
 }
@@ -114,6 +116,7 @@ const getActiveModelId = (provider: ApiProvider, settings: Settings): string => 
   if (provider === 'openai') return settings.selectedModel || OPENAI_MODELS[0].id;
   if (provider === 'grok') return settings.selectedModel || GROK_MODELS[0].id;
   if (provider === 'deepseek') return settings.selectedModel || DEEPSEEK_MODELS[0].id;
+  if (provider === 'nvidia') return settings.selectedModel || NVIDIA_MODELS[0].id;
   if (provider === 'openai-compatible') return settings.openaiCompatibleModelId || 'claude-opus-4-7';
   const idx = GEMINI_RUNTIME_MODELS.indexOf(settings.selectedModel);
   return idx >= 0 ? GEMINI_RUNTIME_MODELS[idx] : DEFAULT_GEMINI_RUNTIME_MODEL;
@@ -207,6 +210,24 @@ async function callAIOnce(prompt: string, settings: Settings): Promise<RawResult
       const res = await client.chat.completions.create({
         model,
         max_tokens: deepseekMaxTokens(model),
+        messages: [{ role: 'user', content: prompt }],
+      });
+      const choice = res.choices[0];
+      recordExactUsage(provider, model, {
+        promptTokens: res.usage?.prompt_tokens,
+        completionTokens: res.usage?.completion_tokens,
+        totalTokens: res.usage?.total_tokens,
+      });
+      return { text: choice?.message?.content ?? '', truncated: choice?.finish_reason === 'length' };
+    }
+
+    if (provider === 'nvidia') {
+      const OpenAI = (await import('openai')).default;
+      const client = new OpenAI({ apiKey: settings.nvidiaApiKey, baseURL: 'https://integrate.api.nvidia.com/v1', dangerouslyAllowBrowser: true });
+      const model = getActiveModelId(provider, settings);
+      const res = await client.chat.completions.create({
+        model,
+        max_tokens: OPENAI_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
       });
       const choice = res.choices[0];
@@ -405,6 +426,30 @@ export async function callAIWithVision(
       return callAI(prompt, settings);
     }
 
+    if (provider === 'nvidia') {
+      const OpenAI = (await import('openai')).default;
+      const client = new OpenAI({ apiKey: settings.nvidiaApiKey, baseURL: 'https://integrate.api.nvidia.com/v1', dangerouslyAllowBrowser: true });
+      const imageBlocks = parsedImages.map(({ url }) => ({
+        type: 'image_url' as const,
+        image_url: { url },
+      }));
+      const model = getActiveModelId(provider, settings);
+      const res = await client.chat.completions.create({
+        model,
+        max_tokens: OPENAI_MAX_TOKENS,
+        messages: [{
+          role: 'user',
+          content: [...imageBlocks, { type: 'text' as const, text: prompt }],
+        }],
+      });
+      recordExactUsage(provider, model, {
+        promptTokens: res.usage?.prompt_tokens,
+        completionTokens: res.usage?.completion_tokens,
+        totalTokens: res.usage?.total_tokens,
+      });
+      return res.choices[0]?.message?.content ?? '';
+    }
+
     if (provider === 'openai-compatible') {
       const OpenAI = (await import('openai')).default;
       const client = new OpenAI({ 
@@ -567,6 +612,28 @@ export async function callAIStream(
       const stream = await client.chat.completions.create({
         model,
         max_tokens: deepseekMaxTokens(model),
+        messages: [{ role: 'user', content: prompt }],
+        stream: true,
+      });
+      let output = '';
+      for await (const chunk of stream) {
+        const text = chunk.choices[0]?.delta?.content ?? '';
+        if (text) {
+          output += text;
+          onChunk(text);
+        }
+      }
+      recordEstimatedUsage(provider, model, prompt, output);
+      return;
+    }
+
+    if (provider === 'nvidia') {
+      const OpenAI = (await import('openai')).default;
+      const client = new OpenAI({ apiKey: settings.nvidiaApiKey, baseURL: 'https://integrate.api.nvidia.com/v1', dangerouslyAllowBrowser: true });
+      const model = getActiveModelId(provider, settings);
+      const stream = await client.chat.completions.create({
+        model,
+        max_tokens: OPENAI_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
         stream: true,
       });

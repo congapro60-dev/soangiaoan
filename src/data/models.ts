@@ -67,12 +67,19 @@ export const DEEPSEEK_MODELS: ProviderModel[] = [
   { id: 'deepseek-r1', name: 'DeepSeek R1', contextWindow: 128_000, rpdLimit: 1_000, tpmLimit: 200_000, rpmLimit: 30, tags: ['reasoning', 'math'] },
 ];
 
+export const NVIDIA_MODELS: ProviderModel[] = [
+  { id: 'meta/llama-3.3-70b-instruct', name: 'Llama 3.3 70B Instruct', contextWindow: 128_000, rpdLimit: 1_000, tpmLimit: 100_000, rpmLimit: 60, isLatest: true, tags: ['reasoning', 'coding', 'fast'] },
+  { id: 'nvidia/nemotron-4-340b-instruct', name: 'Nemotron 4 340B', contextWindow: 4_096, rpdLimit: 500, tpmLimit: 40_000, rpmLimit: 30, tags: ['reasoning', 'coding'] },
+  { id: 'nvidia/nemotron-3.5-content-safety', name: 'Nemotron Content Safety', contextWindow: 8_192, rpdLimit: 1_000, tpmLimit: 40_000, rpmLimit: 60, tags: ['safety', 'fast'] },
+];
+
 export const PROVIDER_CONFIGS: ProviderConfig[] = [
   { key: 'gemini', label: 'Google Gemini', baseUrl: 'https://generativelanguage.googleapis.com/v1beta', models: GEMINI_MODELS },
   { key: 'claude', label: 'Anthropic Claude', baseUrl: 'https://api.anthropic.com/v1', models: CLAUDE_MODELS },
   { key: 'openai', label: 'OpenAI ChatGPT', baseUrl: 'https://api.openai.com/v1', models: OPENAI_MODELS },
   { key: 'grok', label: 'xAI Grok', baseUrl: 'https://api.x.ai/v1', models: GROK_MODELS },
   { key: 'deepseek', label: 'DeepSeek', baseUrl: 'https://api.deepseek.com', models: DEEPSEEK_MODELS },
+  { key: 'nvidia', label: 'NVIDIA NIM', baseUrl: 'https://integrate.api.nvidia.com/v1', models: NVIDIA_MODELS },
 ];
 
 export const PROVIDER_CONFIG_MAP = Object.fromEntries(PROVIDER_CONFIGS.map(config => [config.key, config])) as Record<ApiProvider, ProviderConfig>;
