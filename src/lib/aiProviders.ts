@@ -90,13 +90,22 @@ export const OPENAI_MODELS = TRACKER_OPENAI_MODELS.map(toModelOption);
 export const GROK_MODELS = TRACKER_GROK_MODELS.map(toModelOption);
 export const DEEPSEEK_MODELS = TRACKER_DEEPSEEK_MODELS.map(toModelOption);
 export const NVIDIA_MODELS = TRACKER_NVIDIA_MODELS.map(toModelOption);
+const GEMINI_TAG_TRANSLATIONS: Record<string, string> = {
+  'reasoning': 'suy luận',
+  'vision': 'đọc ảnh',
+  'coding': 'lập trình',
+  'fast': 'siêu tốc',
+  'cheap': 'tiết kiệm',
+  '1M-ctx': '1M ngữ cảnh',
+};
+
 export const GEMINI_MODELS = TRACKER_GEMINI_MODELS.map(model => ({
   ...toModelOption(model),
   desc: [
     model.id === DEFAULT_GEMINI_RUNTIME_MODEL ? 'Mặc định runtime an toàn' : undefined,
-    model.tags?.includes('generateContent') ? 'generateContent' : 'Tracker/preview',
-    model.isPreview ? 'Preview' : undefined,
-    model.tags?.filter(tag => !['tracker', 'generateContent', 'preview'].includes(tag)).slice(0, 3).join(' · '),
+    model.tags?.includes('generateContent') ? 'Viết bài' : 'Tracker/Preview',
+    model.isPreview ? 'Bản thử nghiệm' : undefined,
+    model.tags?.filter(tag => !['tracker', 'generateContent', 'preview'].includes(tag)).map(tag => GEMINI_TAG_TRANSLATIONS[tag] || tag).slice(0, 3).join(' · '),
   ].filter(Boolean).join(' · '),
 }));
 
