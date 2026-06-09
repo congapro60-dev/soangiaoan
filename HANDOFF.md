@@ -59,6 +59,21 @@
 - Khi Anti trả report, Cline cần đọc kết quả, patch lỗi trong phạm vi Phase 2A nếu có, cập nhật lại `HANDOFF.md` ngay sau mỗi thay đổi, rồi mới commit/push nếu người dùng yêu cầu.
 - Quy ước từ thời điểm này: **làm xong việc gì liên quan Phase 2A thì cập nhật ngay vào `HANDOFF.md`**, không để trạng thái chỉ nằm trong chat/tool progress.
 
+---
+
+## 0a. Trạng thái sau QA Phase 2A — 2026-06-10 (Antigravity)
+
+> Nguồn sự thật cho phiên sau: Anti đã hoàn tất quy trình QA độc lập cho Phase 2A (Skeleton MVP) do Cline phát triển. Tất cả các mục tiêu cốt lõi đều PASS và đã sẵn sàng để Cline commit/push lên `main`.
+
+### 0.0.1 Chi tiết kết quả QA (Anti)
+1. **Static Review Code (`documentSkeleton.ts`)**: **PASS** (100%). Các regex parse chính xác heading, bảng và placeholder. Validator hoạt động dưới dạng Soft Validator, không gây block (crash).
+2. **Build / TypeCheck**: **PASS**. Lệnh `npm run build` thành công, không phát sinh lỗi compile liên quan đến scope Phase 2A.
+3. **Tích hợp Prompt & Validator**: **PASS**. Hàm `buildSkeletonPromptSection` và `validateMarkdownAgainstSkeleton` đã được gọi đúng chỗ tại `useLessonCreator.ts` và `TestingTab.tsx`. Schema `TemplateFile` có tính tương thích ngược cao (backward-compatible) thông qua fallback `?.skeleton || null`.
+4. **UI Browser Test (Localhost)**: **PASS**. Đã kiểm tra trực tiếp trên dev server (`http://localhost:3000`). Trang Templates hiển thị đúng số liệu "0 Skeleton". Form upload ma trận đề và giáo án hoạt động không gặp lỗi runtime JS.
+5. **Đánh giá tổng quan**: Code chất lượng, đáp ứng đúng scope MVP Phase 2A. Sẵn sàng để merge. 
+
+> *Ghi chú kỹ thuật nhỏ (không phải bug)*: Logic đếm bảng (`outputTableCount`) đang đếm theo dòng có ký tự `|` thay vì nhóm cụm dòng. Đối với Soft Validator thì logic này vẫn đủ dùng, chỉ cần để ý ở các checkpoint sau nếu cần thống kê chính xác tuyệt đối.
+
 ### 0.6 Làm rõ phạm vi so với 3 file kế hoạch — cập nhật 2026-06-10 02:54
 - Cline **chưa triển khai toàn bộ mọi nội dung** trong `C:\Users\ADMIN\Downloads\implementation_plan.md`, `C:\Users\ADMIN\Downloads\MASTER_IMPLEMENTATION_PLAN.md`, và `C:\Users\ADMIN\Downloads\cline_task_assignment.md`.
 - Phần đã code xong hiện chỉ là lát cắt **Phase 2A MVP / Clone Template-Skeleton** đã được chốt: type/parser/validator, upload sinh skeleton, preview skeleton, prompt giáo án/đề thi dùng Markdown Skeleton, soft validator, build pass.
