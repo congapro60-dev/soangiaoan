@@ -49,12 +49,13 @@
   - Chỉnh sửa \`VISUAL_AIDS_PROMPT\`: Bắt buộc AI dùng mã **TikZ (LaTeX)** và tuyệt đối cấm dùng HTML \`<svg>\` để vẽ hình đồ thị/Toán học, đảm bảo tính tương thích 100% với cả PDF và Word.
 
 ### 0.0.2 Hotfix QA — 2026-06-09 (Antigravity)
-- Đã vá 5 lỗi tồn đọng sau đợt nâng cấp chức năng xuất/hiển thị:
+- Đã vá 6 lỗi tồn đọng sau đợt nâng cấp chức năng xuất/hiển thị:
   1. **Lỗi API Typecheck (`api/render-word-core.ts`)**: Hàm `expandTextWithMath` trả về array trực tiếp thay vì `Promise`, giúp loại bỏ lỗi typecheck CI/CD khi dùng toán tử spread. Đã xử lý triệt để lỗi ép kiểu của buffer/image.
   2. **Lỗi Kroki "Missing \begin{document}" và lỗi màu sắc TikZ**: Thêm cơ chế tự động bọc mã `\begin{tikzpicture}` vào khung `\documentclass[tikz]` ở `DiagramRenderer.tsx`, `export-lesson.ts` và `render-word-core.ts`. Đặc biệt đã tự động khai báo gói màu `xcolor` kèm hệ `dvipsnames` và định nghĩa cứng màu `indigo` để TikZ không bị crash khi AI sử dụng tên màu lạ. Mình cũng đã thêm chỉ thị cấm AI tự sáng tạo tên màu mới trong `useLessonCreator.ts`.
   3. **Lỗi UI lộ chữ "prompt<br/>" (Không hiển thị hộp UI)**: Mình nhận ra trình xuất Markdown đôi lúc bọc nội dung prompt mà không chứa chữ "prompt" ở dòng đầu tiên. Vì vậy mình đã đổi sang nhận dạng thẻ ngôn ngữ (language tag: ````prompt`) của block code thay vì kiểm tra text thuần túy. Giao diện giờ đã bọc UI cho image prompt mượt mà ngay cả khi AI viết tắt.
   4. **Lỗi vỡ bảng trong Word**: Trình phân giải Markdown gốc không hỗ trợ xuống dòng (`\n\n`) bên trong một ô của bảng. Hàm `processVisualAidsForWord` trước đây đã chèn `\n\n` bao quanh thẻ `![Image]` khi chuyển đổi khối mã TikZ/Prompt, khiến cấu trúc bảng bị vỡ tung tóe. Mình đã xóa các dấu xuống dòng này, đảm bảo ảnh vẫn nằm gọn gàng và hợp lệ trên một hàng của bảng.
   5. **Lỗi tàng hình ảnh trong PDF**: Quá trình xuất PDF bằng Puppeteer bị lỗi không đợi ảnh từ Kroki.io tải xong (chỉ chờ `domcontentloaded`). Mình đã cấu hình lại cờ `waitUntil: 'networkidle0'` trong `api/export-lesson.ts` để chắc chắn toàn bộ ảnh đã xuất hiện trước khi "chụp" thành PDF.
+  6. **Lỗi Word báo "Unreadable content" (Table Properties)**: Phát sinh do cấu trúc XML bị lỗi khi định nghĩa thuộc tính chiều rộng bảng (`WidthType.PERCENTAGE`). Thư viện `docx` yêu cầu giá trị phải là một chuỗi phần trăm (VD: `"100%"`, `"30%"`) nhưng mã cũ truyền nhầm kiểu số (`100`, `30`). Ngoài ra các ô bảng trống bị sinh ra với thẻ `<w:p>` không có dữ liệu `TextRun`. Mình đã sửa toàn bộ lại cho đúng chuẩn OpenXML, giúp Word không còn cảnh báo đòi Repair file nữa.
 
 ---
 
