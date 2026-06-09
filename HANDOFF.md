@@ -16,7 +16,46 @@
 
 ---
 
-## 0. Trạng thái mới nhất — 2026-06-09 (Antigravity): Xử lý dứt điểm nợ kỹ thuật (Task 1, 2, 5)
+## 0. Trạng thái mới nhất — 2026-06-09 (Cline + Antigravity): Phase 2 Adaptive Backend/Security đã đưa lên `main`
+
+> Nguồn sự thật mới nhất cho phiên sau: Phase 2 theo `C:\Users\ADMIN\Downloads\implementation_plan.md` đã được triển khai trực tiếp trên branch `main`. Trước phiên này `HEAD` là `f262752 Robust image rendering: strict prompt rules and graceful fallback`. Commit Phase 2 là commit mới nhất ngay sau mốc này; xem `git log -1 --oneline`.
+
+### 0.0.1 Phạm vi thay đổi chính
+- **Chuẩn hoá/validate mô phỏng Adaptive**:
+  - Thêm `src/lib/adaptive/simulationValidation.ts` để normalize và validate `AdaptiveSimulationSpec`, dữ liệu 2D/3D, dimensions, points/faces, labels, object3D và fallback an toàn.
+  - Tích hợp validator vào luồng chuyển lesson plan sang adaptive trong `src/lib/adaptive/adaptiveFromLessonPlan.ts`.
+  - Cập nhật UI render mô phỏng ở `AdaptiveSimulationBlock.tsx`, `LessonSimulationViewer.tsx`, và `AdaptiveStudentPortalPage.tsx` để xử lý spec đã chuẩn hoá ổn định hơn.
+- **External Tool Registry + RAG**:
+  - Thêm registry mẫu `src/data/externalToolsRegistry.ts` và script đồng bộ `scripts/sync-math-tools.mjs`.
+  - Thêm logic RAG/lọc top-k trong `src/lib/adaptive/externalToolRag.ts` và core backend-compatible `api/external-tool-rag-core.ts`.
+  - RAG có cơ chế lọc ID không tồn tại để tránh AI bịa tool ID ngoài registry.
+  - Thêm `src/components/adaptive/ExternalToolFrame.tsx` để nhúng công cụ ngoài theo allowlist/sandbox.
+- **Firestore security rules**:
+  - Cập nhật `firestore.rules` cho collection `externalTools`, tách quyền read/ghi theo vai trò để chuẩn bị dùng registry thật trên backend.
+- **Prompt/types nhỏ liên quan**:
+  - Cập nhật `src/types.ts`, `src/hooks/useLessonCreator.ts`, `src/utils/examUtils.ts` để khớp dữ liệu simulation/tool mới.
+
+### 0.0.2 Verification đã chạy
+
+```bash
+cd /d C:\Users\ADMIN\Downloads\smart-lesson-plan-ai
+npm test -- src/lib/adaptive/phase2BackendSecurity.test.ts
+npm run build
+```
+
+Kết quả:
+- `phase2BackendSecurity.test.ts`: **PASS 5/5 tests**.
+- `npm run build`: **PASS** production build.
+- Warning còn lại chỉ là Vite warning sẵn có về dynamic/static import và chunk size lớn; không chặn Phase 2.
+
+### 0.0.3 Lưu ý cho phiên sau
+- Repo đang dùng branch `main`; không có feature branch riêng cần merge. Yêu cầu “merge lên main” đã được xử lý bằng cách commit toàn bộ thay đổi Phase 2 trực tiếp trên `main`.
+- Nếu triển khai production, cần deploy lại `firestore.rules` sau commit này.
+- Nên QA thủ công luồng Adaptive Lesson Builder/Student Portal với các case simulation 2D/3D, HTML fallback và external tool embed.
+
+---
+
+## 0a. Trạng thái cũ — 2026-06-09 (Antigravity): Xử lý dứt điểm nợ kỹ thuật (Task 1, 2, 5)
 
 > Nguồn sự thật mới nhất cho phiên sau: Vừa hoàn tất việc xử lý 3 vấn đề kỹ thuật cốt lõi để chuẩn bị cho môi trường Production (Firebase & Vercel). Cần commit & push nhánh `main`.
 

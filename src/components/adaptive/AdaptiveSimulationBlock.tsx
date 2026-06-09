@@ -1,12 +1,46 @@
+import React, { Component, ErrorInfo } from 'react';
 import type { AdaptiveSimulationSpec } from '../../lib/adaptive/simulationTypes';
 import { Geometry2DSimulation } from './Geometry2DSimulation';
 import { Geometry3DSimulation } from './Geometry3DSimulation';
+
+class SimulationErrorBoundary extends Component<{children: React.ReactNode}, {hasError: boolean, error?: Error}> {
+  constructor(props: {children: React.ReactNode}) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("Simulation render error:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="rounded-3xl border border-red-100 bg-red-50 p-5 text-center text-red-600">
+          <p className="font-bold">Không thể hiển thị mô phỏng do lỗi dữ liệu.</p>
+          <p className="text-sm mt-2 opacity-80">{this.state.error?.message}</p>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+const normalizeSpec = (spec: AdaptiveSimulationSpec): AdaptiveSimulationSpec => ({
+  ...spec,
+  questions: Array.isArray(spec.questions) ? spec.questions : [],
+  interactions: Array.isArray(spec.interactions) ? spec.interactions : [],
+  notebookEntries: Array.isArray(spec.notebookEntries) ? spec.notebookEntries : [],
+});
 
 interface AdaptiveSimulationBlockProps {
   spec?: AdaptiveSimulationSpec;
 }
 
-export const AdaptiveSimulationBlock = ({ spec }: AdaptiveSimulationBlockProps) => {
+const AdaptiveSimulationBlockContent = ({ spec: rawSpec }: AdaptiveSimulationBlockProps) => {
+  if (!rawSpec) return null;
+  const spec = normalizeSpec(rawSpec);
   if (!spec) return null;
 
   if (spec.engine === 'html' && spec.html?.srcDoc) {
@@ -52,3 +86,9 @@ export const AdaptiveSimulationBlock = ({ spec }: AdaptiveSimulationBlockProps) 
     </div>
   );
 };
+
+export const AdaptiveSimulationBlock = (props: AdaptiveSimulationBlockProps) => (
+  <SimulationErrorBoundary>
+    <AdaptiveSimulationBlockContent {...props} />
+  </SimulationErrorBoundary>
+);

@@ -247,3 +247,25 @@ export const DEFAULT_DATA: AppData = {
   exams: [],
   classes: [],
 };
+
+// --- External Tools Integration ---
+
+export type ExternalToolStatus = 'pending' | 'active' | 'disabled';
+export type SandboxPreset = 'strict' | 'geogebra';
+export type HeightPreset = 'compact' | 'standard' | 'large';
+
+export interface ExternalTool {
+  toolId: string;
+  title: string;
+  description: string;
+  url: string;
+  sourceDomain: string;
+  tags: string[];
+  subject?: string;
+  gradeRange?: string;
+  heightPreset: HeightPreset;
+  sandboxPreset: SandboxPreset;
+  status: ExternalToolStatus;
+  createdAt: string;
+  updatedAt: string;
+}

@@ -4,6 +4,8 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import type { AdaptiveSimulationSpec } from '../../lib/adaptive/simulationTypes';
 import { AdaptiveSimulationBlock } from './AdaptiveSimulationBlock';
+import { ExternalToolFrame } from './ExternalToolFrame';
+import { getToolsByIds } from '../../data/externalToolsRegistry';
 
 type SimulationState = 'loading' | 'loaded' | 'not_found' | 'error';
 
@@ -12,6 +14,7 @@ interface LessonSimulationViewerProps {
   unitId: string;
   unitTitle: string;
   inlineSpec?: AdaptiveSimulationSpec;
+  externalToolIds?: string[];
 }
 
 interface LessonSimulationDocument {
@@ -28,14 +31,15 @@ const isAdaptiveSimulationSpec = (value: unknown): value is AdaptiveSimulationSp
     && typeof candidate.engine === 'string';
 };
 
-export const LessonSimulationViewer = ({ lessonId, unitId, unitTitle, inlineSpec }: LessonSimulationViewerProps) => {
-  const [status, setStatus] = useState<SimulationState>(inlineSpec ? 'loaded' : 'loading');
+export const LessonSimulationViewer = ({ lessonId, unitId, unitTitle, inlineSpec, externalToolIds }: LessonSimulationViewerProps) => {
+  const [status, setStatus] = useState<SimulationState>(inlineSpec || (externalToolIds && externalToolIds.length > 0) ? 'loaded' : 'loading');
   const [html, setHtml] = useState('');
   const [spec, setSpec] = useState<AdaptiveSimulationSpec | undefined>(inlineSpec);
-  const [expanded, setExpanded] = useState(Boolean(inlineSpec));
+  const [expanded, setExpanded] = useState(Boolean(inlineSpec) || Boolean(externalToolIds && externalToolIds.length > 0));
 
   const simulationId = useMemo(() => `${lessonId}_${unitId}`, [lessonId, unitId]);
   const simulationHtml = useMemo(() => html, [html]);
+  const externalTools = useMemo(() => getToolsByIds(externalToolIds || []), [externalToolIds]);
 
   const loadSimulation = useCallback(async (options: { resetExpanded?: boolean } = {}) => {
     if (inlineSpec) {
@@ -152,12 +156,18 @@ export const LessonSimulationViewer = ({ lessonId, unitId, unitTitle, inlineSpec
         <div className="mt-4 overflow-hidden rounded-3xl border border-violet-100 bg-white">
           <div className="flex items-center gap-2 border-b border-violet-100 bg-white px-4 py-3 text-xs font-black uppercase tracking-wide text-violet-500">
             <BookOpen className="h-4 w-4" />
-            {spec ? 'Mô phỏng nội bộ có cấu trúc' : 'Mô phỏng HTML an toàn'}
+            {spec ? 'Mô phỏng nội bộ có cấu trúc' : externalTools.length > 0 ? 'Công cụ tương tác mở rộng' : 'Mô phỏng HTML an toàn'}
           </div>
           <div className="p-4">
             {spec ? (
               <AdaptiveSimulationBlock spec={spec} />
-            ) : (
+            ) : externalTools.length > 0 ? (
+              <div className="flex flex-col gap-4">
+                {externalTools.map(tool => (
+                  <ExternalToolFrame key={tool.toolId} tool={tool} studentId="student" />
+                ))}
+              </div>
+            ) : simulationHtml ? (
               <iframe
                 srcDoc={simulationHtml}
                 sandbox="allow-scripts"
@@ -167,6 +177,8 @@ export const LessonSimulationViewer = ({ lessonId, unitId, unitTitle, inlineSpec
                 className="block w-full"
                 style={{ maxHeight: '600px', width: '100%', height: '600px', border: 'none' }}
               />
+            ) : (
+              <div className="text-sm font-semibold text-slate-500">Không có mô phỏng cho mảnh học này.</div>
             )}
           </div>
         </div>

@@ -395,15 +395,15 @@ Trình bày đủ 3 nhóm:
 | Bố cục 7:3 | 70% bên trái là bài giảng tương tác/giải quyết vấn đề; 30% bên phải là “Vở Ghi Chép” | [Mô tả nội dung cột trái và các mục tự lưu vào Vở Ghi Chép] |
 | Đồng hồ kép | Đồng hồ tổng 40:00 và đồng hồ cục bộ cho từng phần | [Thời lượng Bước 0-5, ví dụ Bước 0: 05:00] |
 | Mục lục thông minh | Điều hướng Bước 0 đến Bước 5, tự ẩn khi click ngoài vùng tương tác | [Tên mục lục cụ thể] |
-| Chống lỗi đồ họa | Hình phẳng ưu tiên dựng bằng <svg> nội tuyến; hình học không gian phải có mô phỏng 3D xoay/zoom bằng Three.js/WebGL nội bộ; hạn chế ảnh ngoài | [Danh sách SVG 2D và mô phỏng 3D cần dựng] |
+| Chống lỗi đồ họa | Hình phẳng 2D tĩnh bắt buộc dựng bằng TikZ; 3D bắt buộc mô tả bằng tọa độ XYZ; Công cụ tương tác bắt buộc chọn ID ngoài. TUYỆT ĐỐI CẤM sinh thẻ Iframe hoặc HTML/WebGL raw. | [Danh sách TikZ 2D, Mô hình 3D, hoặc Tool ID cần dùng] |
 | Vở Ghi Chép | Tự động lưu định lý, công thức, kết luận cốt lõi sau mỗi chướng ngại | [Các dòng ghi chép sẽ tự thêm] |
 
 ### 2. Học liệu số và mô phỏng cần chuẩn bị
 | Tên học liệu/mô phỏng | Loại | Mục đích sư phạm | Mô tả trực quan/đặc tả renderer | Vị trí dùng | Tuyến phù hợp |
 |---|---|---|---|---|---|
-| [Tên học liệu 1] | SVG 2D / Three.js 3D / phiếu số | [Mục đích] | [Nếu 2D: điểm, đoạn, đa giác/đường tròn, điểm kéo được. Nếu 3D: điểm 3D, cạnh, mặt, đường khuất, đường cao, thao tác xoay/zoom/bật tắt lớp.] | [Bước] | [Foundation/Standard/Challenge] |
+| [Tên học liệu 1] | TikZ 2D / Tọa độ 3D / phiếu số | [Mục đích] | [Nếu 2D: mã TikZ tĩnh. Nếu 3D: chỉ mô tả tọa độ XYZ của các điểm, danh sách cạnh và mặt để hệ thống tự dựng] | [Bước] | [Foundation/Standard/Challenge] |
 
-Bắt buộc có tối thiểu: 1 mô phỏng trực quan bằng SVG inline hoặc Three.js 3D phù hợp bài học, 1 công cụ tương tác Trial & Error, 1 phiếu/nhiệm vụ học tập số, 1 tài liệu đọc thêm cho Time-Filler. Nếu bài học có hình học không gian, bắt buộc mô phỏng phải xoay/zoom được như mô hình 3D thật.
+Bắt buộc có tối thiểu: 1 ảnh trực quan bằng TikZ hoặc 1 mô tả tọa độ 3D phù hợp bài học, 1 công cụ tương tác Trial & Error, 1 phiếu/nhiệm vụ học tập số, 1 tài liệu đọc thêm cho Time-Filler.
 
 ### 3. THẺ CHUYỂN ĐỔI ADAPTIVE — BẮT BUỘC ĐỂ TẠO BÀI HỌC PHÂN HOÁ TRỰC TIẾP
 Mục này viết bằng Markdown nhưng phải có dữ liệu cụ thể như một “hồ sơ đóng gói” để AI chuyển sang AdaptiveLesson mà không phải đoán lại. Không dùng placeholder.
@@ -444,7 +444,7 @@ Mỗi đơn vị kiến thức ở Bước 2 phải có đúng cấu trúc sau �
 - workedExample.hints: [3 gợi ý]
 - quickCheck: đúng 2 câu, mỗi câu có prompt, 4 options, correctIndex, explanation
 - practice.foundation / practice.standard / practice.challenge: mỗi tuyến 1 nhiệm vụ đúng mức
-- simulationSpec: title, kind(svg/htmlMiniApp/geometry3d), placement, studentTask, interactions, notebookEntries; với HTML mini-app phải mô tả rõ SVG/canvas/slider/button/drag và logic cập nhật.
+- simulationSpec: title, kind(geometry2d/geometry3d/externalTool), placement, studentTask, interactions, notebookEntries. Với externalTool: KHÔNG ĐƯỢC sinh mã HTML/Iframe. Bắt buộc tạo mảng externalToolIds: ["ID_cua_tool"] bằng cách chọn từ Mock Allowlist sau: ["geogebra_1", "desmos_1", "congcutoanhoc_3"].
 
 #### AdaptiveExitTicket
 Tạo đúng 3 câu exit ticket. Mỗi câu phải có prompt, 4 options A-D, correctIndex, explanation, objectiveCode, difficulty.
@@ -564,9 +564,9 @@ AI phải dựa trên dữ liệu Bước 0 và Bước 2 để sinh luyện t�
 | MathJax/LaTeX | Công thức inline $...$, công thức khối $$...$$ |
 | Ký hiệu chuẩn | [Ghi các ký hiệu trọng tâm của bài; với xác suất dùng $AB$ cho giao biến cố] |
 | Độc lập nội dung | [Bài học đủ câu hỏi, lời giải, học liệu, vòng lặp điều kiện] |
-| SVG inline | [Mô tả các hình/mô phỏng phẳng có thể dựng bằng <svg> nội tuyến] |
-| Three.js 3D | [Nếu có hình học không gian: mô tả mô hình xoay được gồm điểm 3D, cạnh, mặt, đường phụ/đường khuất, camera và thao tác xoay/zoom] |
-| Schema mô phỏng | [Gợi ý chuyển đổi: geometry2d + engine svg hoặc geometry3d + engine threejs; gồm title, description, placement, objectiveIds, studentTask, interactions, questions, notebookEntries] |
+| TikZ 2D | [Mô tả các hình phẳng dựng bằng mã TikZ chuẩn] |
+| Tọa độ 3D | [Nếu có hình học không gian: mô tả tọa độ điểm 3D, các cạnh nối, các mặt] |
+| Schema mô phỏng | [Gợi ý chuyển đổi: ảnh tĩnh hoặc geometry3d JSON; gồm title, description, placement, objectiveIds, studentTask, interactions, questions, notebookEntries] |
 | Dữ liệu học tập | [Điểm, đúng/sai, thời gian, số lần thử, mức gợi ý, ghi chú GV] |
 
 ---
@@ -590,7 +590,7 @@ Mục này là phụ lục kỹ thuật/sư phạm để AI chuyển đổi, kh�
 | Bước 3 Luyện tập thích ứng | routes/practiceTasks/remediation | [Tuyến Trung bình/Khá/Giỏi và loop 4 tầng] |
 | Bước 4 Mở rộng | extensionTask | [Vai chuyên gia/kỹ sư, bài toán thực tế] |
 | Bước 5 Tổng kết/Time-Filler | exitTicket/reflection/filler | [Mindmap, checklist, slider, hộp thư, tài liệu mở thêm] |
-| SVG/mô phỏng/học liệu | simulationSpec/simulationId/externalToolIds | [Tài sản tương tác cần tạo/gắn; hình phẳng dùng SVG, hình không gian dùng Three.js 3D xoay được] |
+| Ảnh/mô phỏng/học liệu | simulationSpec/simulationId/externalToolIds | [Tài sản cần tạo/gắn; hình phẳng dùng TikZ, hình không gian dùng tọa độ JSON 3D] |
 | Dữ liệu quan sát | student progress/profile | [Dùng cho thống kê người học và điều chỉnh] |
 
 QUY TẮC NGHIÊM NGẶT:
@@ -698,7 +698,7 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
           - Trọng tâm nội dung là tạo giáo án có thể chuyển đổi sang AdaptiveLesson độc lập: diagnosticTest, knowledgeUnits, routes, quickCheck, notebook, practiceTasks, remediation loop, exit/reflection, simulation/external tools.
           - Phần đầu giờ phải là Bước 0 Pre-test của chính bài học, không phải kiểm tra bài cũ; tối thiểu 5 câu đa dạng và có giải thích từng phương án/tiêu chí.
           - Bước 3 phải đúng cấu trúc luyện tập thích ứng theo Trung bình/Khá/Giỏi và định dạng THPTQG: 3 câu trắc nghiệm, 1 bối cảnh đúng/sai 4 ý, 1 câu trả lời ngắn, kèm loop hỗ trợ 4 tầng.
-          - Phải nêu rõ học liệu số, mô phỏng ưu tiên <svg> inline cho hình phẳng; nếu có hình học không gian thì phải mô tả mô phỏng 3D xoay/zoom được bằng Three.js/WebGL nội bộ; đồng thời có Vở Ghi Chép tự động, đồng hồ kép, mục lục thông minh và Time-Filler.
+          - Phải nêu rõ học liệu số, mô phỏng ưu tiên dùng mã TikZ chuẩn cho hình phẳng; nếu có hình học không gian thì phải mô tả mô phỏng 3D xoay/zoom được bằng tọa độ XYZ để hệ thống tự vẽ; đồng thời có Vở Ghi Chép tự động, đồng hồ kép, mục lục thông minh và Time-Filler.
           - Bắt buộc có mục “THẺ CHUYỂN ĐỔI ADAPTIVE” với AdaptiveLessonCard, AdaptiveObjectives, AdaptiveDiagnosticTest, AdaptiveKnowledgeUnits, AdaptiveExitTicket, AdaptivePacingAndRemediation. Mục này là nguồn dữ liệu chính để chuyển trực tiếp sang bài học phân hoá, nên phải cụ thể như dữ liệu đóng gói, không placeholder.
           - Nội dung học sinh đọc ở các bước học không được lẫn thuật ngữ kỹ thuật như schema, UI/UX, bố cục 7:3; chỉ để các thuật ngữ đó trong phần thiết kế/hồ sơ chuyển đổi.
           - Không bắt buộc Danielson, WALT/WILF hay mẫu Công văn 5512 trong kiểu mặc định này, nhưng chất lượng trình bày phải tương đương một giáo án xuất file hoàn chỉnh.
@@ -833,7 +833,7 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
               3. Bắt buộc dùng đúng cấu trúc trong MẪU GIÁO ÁN MẶC ĐỊNH ở trên, đặc biệt là UI/UX 7:3 và kịch bản Bước 0 đến Bước 5.
               4. Đây vẫn là giáo án chính thức trong Soạn giáo án: phải trình bày đẹp, rõ ràng, có thể xem/sửa/lưu/xuất Word/PDF như các mẫu còn lại.
               5. Phần đầu giờ phải là Bước 0 Pre-test của chính bài học, không phải kiểm tra bài cũ; tối thiểu 5 câu đa dạng và có giải thích từng phương án/tiêu chí.
-               6. Phải có đồng hồ kép, mục lục thông minh, Vở Ghi Chép tự động, học liệu số, mô phỏng ưu tiên <svg> inline cho hình phẳng; nếu là hình học không gian thì mô phỏng phải là 3D xoay/zoom được bằng Three.js/WebGL nội bộ; quick check, tuyến Foundation/Standard/Challenge và Time-Filler.
+               6. Phải có đồng hồ kép, mục lục thông minh, Vở Ghi Chép tự động, học liệu số, mô phỏng ưu tiên dùng mã TikZ chuẩn cho hình phẳng; nếu là hình học không gian thì mô phỏng phải là 3D xoay/zoom được bằng tọa độ XYZ để hệ thống tự vẽ; quick check, tuyến Foundation/Standard/Challenge và Time-Filler.
                7. Bước 3 phải đúng cấu trúc luyện tập thích ứng theo Trung bình/Khá/Giỏi và định dạng THPTQG: 3 câu trắc nghiệm, 1 bối cảnh đúng/sai 4 ý, 1 câu trả lời ngắn, kèm loop hỗ trợ 4 tầng.
                8. Bắt buộc có mục “THẺ CHUYỂN ĐỔI ADAPTIVE” đầy đủ AdaptiveLessonCard, AdaptiveObjectives, AdaptiveDiagnosticTest, AdaptiveKnowledgeUnits, AdaptiveExitTicket, AdaptivePacingAndRemediation để hệ thống chuyển trực tiếp sang bài học phân hoá.
                9. Nội dung học sinh đọc ở từng bước không được lẫn thuật ngữ kỹ thuật như schema, UI/UX, bố cục 7:3; chỉ để các thuật ngữ đó trong phần thiết kế/hồ sơ chuyển đổi.

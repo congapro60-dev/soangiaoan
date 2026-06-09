@@ -1,3 +1,4 @@
+import { normalizeAdaptiveSimulationSpec } from './simulationValidation';
 import { sampleGeometry2DTriangleSimulation, sampleGeometry3DPyramidSimulation } from './simulationTypes';
 import type { AdaptiveSimulationSpec, HtmlSimulationSpec } from './simulationTypes';
 import type {
@@ -146,7 +147,7 @@ const buildDefaultSimulationSpec = (title: string, objectiveId: string, sourceHi
   if (!isSpatialGeometry && !isPlaneGeometry) return undefined;
 
   const baseSpec = isSpatialGeometry ? sampleGeometry3DPyramidSimulation : sampleGeometry2DTriangleSimulation;
-  return {
+  return normalizeAdaptiveSimulationSpec({
     ...baseSpec,
     id: uid(isSpatialGeometry ? 'sim-3d' : 'sim-2d'),
     title: isSpatialGeometry ? `Mô phỏng 3D xoay được — ${title}` : `Mô phỏng SVG tương tác — ${title}`,
@@ -157,7 +158,7 @@ const buildDefaultSimulationSpec = (title: string, objectiveId: string, sourceHi
     studentTask: isSpatialGeometry
       ? `Xoay mô hình, bật/tắt mặt và đường phụ để rút ra nhận xét cho mảnh kiến thức “${title}”.`
       : `Kéo điểm trên mô hình và ghi lại nhận xét cho mảnh kiến thức “${title}”.`,
-  };
+  });
 };
 
 const makeUnit = (title: string, objectiveId: string, sourceHint: string, index: number): KnowledgeUnit => ({
@@ -472,6 +473,7 @@ interface UnitJson {
   explanation_challenge: string;
   worked_example?: { problem: string; solution: string; hints?: string[] };
   quick_check_questions?: QuestionJson[];
+  externalToolIds?: string[];
   simulation_html?: {
     title?: string;
     description?: string;
@@ -479,6 +481,14 @@ interface UnitJson {
     height?: number;
     libraries?: string[];
     safetyNotes?: string[];
+  };
+  simulation_3d?: {
+    title?: string;
+    description?: string;
+    camera?: { x: number; y: number; z: number };
+    points: Array<{ id: string; label: string; x: number; y: number; z: number; color?: string }>;
+    segments: Array<{ from: string; to: string; dashed?: boolean; color?: string }>;
+    faces: Array<{ pointIds: string[]; fill?: string; opacity?: number }>;
   };
 }
 
@@ -552,10 +562,18 @@ const hasRealQuestionContent = (question: QuestionJson | undefined): boolean => 
 };
 
 const validateHtmlMiniApp = (unit: UnitJson, unitIndex: number, issues: AdaptiveContentValidationIssue[]): void => {
+  if (unit.simulation_3d) {
+    if (!Array.isArray(unit.simulation_3d.points) || unit.simulation_3d.points.length === 0) {
+      issues.push({ severity: 'error', code: 'invalid_simulation_3d', message: `Mô phỏng 3D ở mảnh ${unitIndex + 1} không có điểm (points).` });
+    }
+    return;
+  }
+
   const html = unit.simulation_html;
-  const srcDoc = typeof html?.srcDoc === 'string' ? html.srcDoc.trim() : '';
+  if (!html) return;
+  const srcDoc = typeof html.srcDoc === 'string' ? html.srcDoc.trim() : '';
   if (!srcDoc) {
-    issues.push({ severity: 'error', code: 'missing_simulation_html', message: `Mảnh kiến thức ${unitIndex + 1} chưa có simulation_html.srcDoc.` });
+    issues.push({ severity: 'error', code: 'missing_simulation_html', message: `Mảnh kiến thức ${unitIndex + 1} có simulation_html nhưng thiếu srcDoc.` });
     return;
   }
   if (!/(<svg|<canvas|input\s+type="range|addEventListener|function\s+draw|requestAnimationFrame)/i.test(srcDoc)) {
@@ -794,14 +812,17 @@ const normalizeHtmlSimulationLibraries = (libraries?: string[]): NonNullable<Htm
 };
 
 const buildHtmlSimulationSpecFromJson = (unit: UnitJson, objectiveId: string): AdaptiveSimulationSpec | undefined => {
+  if (unit.simulation_3d) return undefined; // Handled by buildGeometry3DSimulationSpecFromJson
   const html = unit.simulation_html;
-  const srcDoc = typeof html?.srcDoc === 'string' ? html.srcDoc.trim() : '';
+  if (!html) return buildDefaultSimulationSpec(unit.title, objectiveId, unit.title);
+  
+  const srcDoc = typeof html.srcDoc === 'string' ? html.srcDoc.trim() : '';
   if (!srcDoc) return buildDefaultSimulationSpec(unit.title, objectiveId, unit.title);
 
   return {
     id: uid('sim-html'),
-    title: html?.title?.trim() || `Mô phỏng tương tác — ${unit.title}`,
-    description: html?.description?.trim() || `Mini-app HTML/Canvas giúp học sinh thao tác trực tiếp với mảnh kiến thức: ${unit.title}.`,
+    title: html.title?.trim() || `Mô phỏng tương tác — ${unit.title}`,
+    description: html.description?.trim() || `Mini-app HTML/Canvas giúp học sinh thao tác trực tiếp với mảnh kiến thức: ${unit.title}.`,
     kind: 'htmlMiniApp' as const,
     engine: 'html' as const,
     placement: 'step2' as const,
@@ -824,12 +845,87 @@ const buildHtmlSimulationSpecFromJson = (unit: UnitJson, objectiveId: string): A
     ],
     html: {
       srcDoc,
-      height: typeof html?.height === 'number' ? html.height : 600,
+      height: typeof html.height === 'number' ? html.height : 600,
       offlineSingleFile: true,
-      libraries: normalizeHtmlSimulationLibraries(html?.libraries),
-      safetyNotes: Array.isArray(html?.safetyNotes)
+      libraries: normalizeHtmlSimulationLibraries(html.libraries),
+      safetyNotes: Array.isArray(html.safetyNotes)
         ? html.safetyNotes
         : ['Render qua iframe sandbox="allow-scripts"; không truy cập parent DOM.'],
+    },
+  };
+};
+
+const buildGeometry3DSimulationSpecFromJson = (unit: UnitJson, objectiveId: string): AdaptiveSimulationSpec | undefined => {
+  const geo3d = unit.simulation_3d;
+  if (!geo3d) return undefined;
+
+  // 3D MVP limits & validation
+  const maxPoints = 1000;
+  const maxSegments = 2000;
+  const maxFaces = 1000;
+
+  const validPoints = new Map<string, any>();
+  
+  const rawPoints = Array.isArray(geo3d.points) ? geo3d.points.slice(0, maxPoints) : [];
+  for (const p of rawPoints) {
+    if (!p.id || validPoints.has(p.id)) continue; // Unique ID check
+    if (!Number.isFinite(p.x) || Math.abs(p.x) > 10000 ||
+        !Number.isFinite(p.y) || Math.abs(p.y) > 10000 ||
+        !Number.isFinite(p.z) || Math.abs(p.z) > 10000) continue; // Coordinate bounds check
+    validPoints.set(p.id, {
+      id: p.id, label: p.label || p.id, x: p.x, y: p.y, z: p.z, color: p.color || '#2563eb'
+    });
+  }
+
+  if (validPoints.size === 0) {
+    console.warn(`[3D Validation] No valid points found for unit "${unit.title}". Falling back to other simulation types.`);
+    return undefined;
+  }
+
+  const rawSegments = Array.isArray(geo3d.segments) ? geo3d.segments.slice(0, maxSegments) : [];
+  const validSegments = rawSegments.filter(s => validPoints.has(s.from) && validPoints.has(s.to)).map((s, i) => ({
+    id: `seg-${i}`, from: s.from, to: s.to, dashed: Boolean(s.dashed), color: s.color || '#0f172a'
+  }));
+
+  const rawFaces = Array.isArray(geo3d.faces) ? geo3d.faces.slice(0, maxFaces) : [];
+  const validFaces = rawFaces.map((f, i) => {
+    const pIds = Array.isArray(f.pointIds) ? f.pointIds.filter(id => validPoints.has(id)) : [];
+    return {
+      id: `face-${i}`, pointIds: pIds, fill: f.fill || '#60a5fa', opacity: f.opacity ?? 0.15
+    };
+  }).filter(f => f.pointIds.length >= 3); // Must have at least 3 valid points
+
+  return {
+    id: uid('sim-3d'),
+    title: geo3d.title?.trim() || `Mô phỏng không gian 3D — ${unit.title}`,
+    description: geo3d.description?.trim() || `Mô hình 3D tương tác giúp quan sát hình học không gian cho bài: ${unit.title}.`,
+    kind: 'geometry3d' as const,
+    engine: 'threejs' as const,
+    placement: 'step2' as const,
+    objectiveIds: [objectiveId],
+    studentTask: `Xoay mô hình, quan sát các điểm và góc độ khác nhau để nhận diện tính chất của mảnh kiến thức “${unit.title}”.`,
+    interactions: ['Kéo để xoay mô hình', 'Cuộn chuột để phóng to/thu nhỏ', 'Bật/tắt các lớp nét đứt hoặc mặt phẳng'],
+    questions: [
+      {
+        id: uid('sim-q-3d'),
+        prompt: `Từ góc nhìn trực diện, quan hệ vị trí của các cạnh trong mô hình thể hiện thế nào?`,
+        expectedObservation: 'Học sinh nhận diện được tính vuông góc, song song hoặc chéo nhau.',
+      },
+    ],
+    notebookEntries: [
+      {
+        id: uid('sim-note-3d'),
+        title: `Ghi chú hình học không gian — ${unit.title}`,
+        content: 'Ghi lại quan sát về mối quan hệ giữa các điểm, đường thẳng, và mặt phẳng trong mô hình 3D.',
+      },
+    ],
+    geometry3d: {
+      showAxes: true,
+      autoRotate: false,
+      camera: geo3d.camera || { x: 5, y: 4, z: 6 },
+      points: Array.from(validPoints.values()),
+      segments: validSegments,
+      faces: validFaces,
     },
   };
 };
@@ -897,8 +993,8 @@ const buildUnitFromJsonData = (unit: UnitJson, objectiveId: string, index: numbe
     maxRemediationAttempts: 2,
     supportTasks: [makePracticeTask(objectiveId, 'easy', unit.title, 0)],
     enrichmentTasks: [makePracticeTask(objectiveId, 'hard', unit.title, 0)],
-    externalToolIds: [],
-    simulationSpec: buildHtmlSimulationSpecFromJson(unit, objectiveId),
+    externalToolIds: unit.externalToolIds || [],
+    simulationSpec: buildGeometry3DSimulationSpecFromJson(unit, objectiveId) || buildHtmlSimulationSpecFromJson(unit, objectiveId),
   };
 };
 
@@ -1123,12 +1219,27 @@ OUTPUT: Trả về DUY NHẤT một JSON object hợp lệ theo schema dưới �
         }
       ],
       "simulation_html": {
-        "title": "Mô phỏng tương tác đúng mảnh kiến thức",
+        "title": "Mô phỏng tương tác 2D (Chỉ dùng nếu có yêu cầu kéo/thả tương tác)",
         "description": "Mini-app cho học sinh kéo thanh trượt/điểm và quan sát đại lượng toán học thay đổi.",
-        "srcDoc": "<!doctype html><html><body><svg id=\"scene\" width=\"720\" height=\"360\"></svg><input id=\"slider\" type=\"range\" min=\"0\" max=\"100\" value=\"50\"><script>const svg=document.getElementById('scene');const slider=document.getElementById('slider');function draw(){svg.innerHTML='';/* vẽ mô phỏng theo nội dung bài */}slider.addEventListener('input',draw);draw();<\/script></body></html>",
+        "srcDoc": "<!doctype html><html><body><svg id=\"scene\" width=\"720\" height=\"360\"></svg><input id=\"slider\" type=\"range\" min=\"0\" max=\"100\" value=\"50\"><script>const svg=document.getElementById('scene');const slider=document.getElementById('slider');function draw(){svg.innerHTML='';/* vẽ mô phỏng theo nội dung bài */}slider.addEventListener('input',draw);draw();</script></body></html>",
         "height": 600,
         "libraries": ["svg"],
         "safetyNotes": ["HTML chạy trong iframe sandbox; không dùng link ngoài, không truy cập parent DOM."]
+      },
+      "simulation_3d": {
+        "title": "Mô hình 3D xoay được (Chỉ dùng cho hình học không gian)",
+        "description": "Học sinh xoay/zoom để quan sát.",
+        "camera": { "x": 5, "y": 4, "z": 6 },
+        "points": [
+          { "id": "A", "label": "A", "x": 0, "y": 0, "z": 0, "color": "#2563eb" },
+          { "id": "S", "label": "S", "x": 0, "y": 4, "z": 0, "color": "#ef4444" }
+        ],
+        "segments": [
+          { "from": "S", "to": "A", "dashed": false, "color": "#0f172a" }
+        ],
+        "faces": [
+          { "pointIds": ["S", "A"], "fill": "#60a5fa", "opacity": 0.2 }
+        ]
       }
     }
   ],
@@ -1157,7 +1268,10 @@ QUY TẮC BẮT BUỘC:
 8. Mỗi unit BẮT BUỘC có hook_question, ít nhất 3 guiding_questions, student_task, visual_instruction và knowledge_conclusion. Trình tự sư phạm phải là: hỏi gợi mở → quan sát/thao tác hình hoặc mô phỏng → câu hỏi dẫn dắt → học sinh dự đoán/trả lời → chốt kiến thức ngắn. Không đưa nguyên đoạn lý thuyết dài ngay từ đầu.
 9. knowledge_conclusion phải ngắn, tối đa khoảng 5-7 câu hoặc một công thức trọng tâm. Phần explanation_ chỉ là gợi ý theo tuyến học để giúp học sinh trả lời chuỗi câu hỏi, không được lặp lại một bài giảng dài.
 10. 3 trường explanation_ của mỗi unit phải có nội dung thực sự khác nhau về độ sâu và cách tiếp cận.
-11. Mỗi unit BẮT BUỘC có simulation_html.srcDoc là một mini-app HTML tự chứa, tương tác thật bằng SVG hoặc Canvas và input/slider/button/drag. Không dùng link ảnh ngoài, không CDN, không iframe lồng. Nếu mảnh kiến thức cần hình minh hoạ tĩnh thì vẫn dựng bằng SVG; nếu cần thực hành thì phải có slider/button/drag để học sinh thao tác trực tiếp.
+11. Mỗi unit NẾU CẦN MÔ PHỎNG:
+    - NẾU là hình học không gian 3D: DÙNG 'simulation_3d'. Trả về đúng mảng tọa độ 'points' (x,y,z), mảng 'segments' (từ điểm nào tới điểm nào) và 'faces'. KHÔNG ĐƯỢC tự viết mã WebGL/Three.js.
+    - NẾU là tương tác 2D cần kéo thả: Chọn công cụ phù hợp qua 'externalToolIds' thay vì dùng 'simulation_html'. KHÔNG sinh SVG hay iframe trong 'srcDoc'.
+    - NẾU chỉ cần hình minh họa 2D tĩnh: Bỏ qua simulation, chỉ cần dùng mã TikZ ở bước thiết kế sư phạm.
 12. Nội dung học sinh đọc KHÔNG được lẫn thuật ngữ quy trình/hệ thống như UI/UX, bố cục 7:3, đồng hồ kép, mục lục thông minh, Socratic, Vở Ghi Chép, schema.
 13. RẤT QUAN TRỌNG: Vì output là JSON, bạn phải DOUBLE ESCAPE mọi dấu backslash trong LaTeX. Ví dụ: viết \\frac thay vì \frac, \\sqrt thay vì \sqrt, \\Delta thay vì \Delta. Nếu không JSON.parse sẽ báo lỗi.
 14. Trả về đúng JSON hợp lệ, không markdown, không giải thích ngoài JSON.`;

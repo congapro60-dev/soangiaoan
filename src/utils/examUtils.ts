@@ -62,7 +62,7 @@ TRƯỜNG THPT ...                   |  NĂM HỌC 20XX - 20XX
 **QUY TẮC KHÁC:**
 - Ngôn ngữ trang trọng, chuẩn mực sư phạm.
 - Công thức toán dùng LaTeX: inline $...$, display $$...$$.
-- Hình vẽ/bảng biến thiên (nếu có): chèn trực tiếp HTML/SVG inline vào nội dung đề bằng dạng <div class="exam-figure">...</div>; không chỉ mô tả bằng lời.
+- Hình vẽ/bảng biến thiên (nếu có): TUYỆT ĐỐI KHÔNG dùng thẻ HTML <svg> hay HTML inline. PHẢI dùng mã TikZ chuẩn xác chèn vào trong khối markdown có ngôn ngữ là tikz.
 ===== KẾT THÚC ĐỊNH DẠNG MẶC ĐỊNH =====
 `;
 

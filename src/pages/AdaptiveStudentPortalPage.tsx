@@ -1083,6 +1083,7 @@ export const AdaptiveStudentPortalPage = () => {
                 unitId={currentUnit.id}
                 unitTitle={currentUnit.title}
                 inlineSpec={currentUnit.simulationSpec}
+                externalToolIds={currentUnit.externalToolIds}
               />
             )}
             <iframe

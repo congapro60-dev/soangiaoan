@@ -304,5 +304,52 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
     }
+
+    // ────────────────────────────────────────────────────────────────
+    // External Tools Registry (V5 - Phase 2)
+    // ────────────────────────────────────────────────────────────────
+    match /externalTools/{toolId} {
+      function isAdmin() {
+        return request.auth != null
+               && request.auth.token.admin == true;
+      }
+      function validExternalToolPayload(data) {
+        return data.keys().hasOnly([
+                 'toolId', 'title', 'description', 'url', 'sourceDomain', 'tags',
+                 'heightPreset', 'sandboxPreset', 'status', 'createdAt', 'updatedAt'
+               ])
+               && data.toolId == toolId
+               && data.toolId is string
+               && data.toolId.size() > 0
+               && data.toolId.size() <= 64
+               && data.title is string
+               && data.title.size() > 0
+               && data.title.size() <= 160
+               && data.description is string
+               && data.description.size() <= 1000
+               && data.url is string
+               && data.url.matches('https://.*')
+               && data.url.size() <= 2048
+               && data.sourceDomain is string
+               && data.sourceDomain.size() > 0
+               && data.sourceDomain.size() <= 160
+               && data.tags is list
+               && data.tags.size() <= 30
+               && data.heightPreset in ['compact', 'standard', 'large']
+               && data.sandboxPreset in ['strict', 'geogebra', 'trustedExternal']
+               && data.status in ['pending', 'active', 'disabled'];
+      }
+
+      // Client chỉ đọc được tool active; admin đọc toàn bộ để quản trị.
+      allow get: if isAdmin() || resource.data.status == 'active';
+      allow list: if isAdmin() || resource.data.status == 'active';
+
+      // Chỉ admin có custom claim mới được ghi; service account/backend bypass rules.
+      allow create: if isAdmin() && validExternalToolPayload(request.resource.data);
+      allow update: if isAdmin()
+                    && request.resource.data.toolId == resource.data.toolId
+                    && validExternalToolPayload(request.resource.data);
+      allow delete: if isAdmin();
+    }
   }
 }
