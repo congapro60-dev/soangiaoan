@@ -23,6 +23,7 @@ import { openInOverleaf } from '../../utils/exportUtils';
 import { preprocessExamMarkdown } from '../../utils/examMarkdown';
 import { exportLaTeX, markdownToExamLatex } from '../../utils/examLatexExport';
 import { makeExamExportBaseFilename } from '../../utils/fileUtils';
+import { createDocumentSkeleton, validateMarkdownAgainstSkeleton } from '../../lib/documentSkeleton';
 
 interface TestingTabProps {
   data: AppData;
@@ -92,6 +93,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
   const [refineRequest, setRefineRequest] = useState('');
   const [isRefining, setIsRefining] = useState(false);
   const [docModalEntry, setDocModalEntry] = useState<HistoryEntry | null>(null);
+  const [skeletonWarnings, setSkeletonWarnings] = useState<string[]>([]);
 
   // Tự xóa entries hết hạn khi mount
   useEffect(() => {
@@ -246,12 +248,16 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
       setProcessStatus('Đang trích xuất dữ liệu tệp...');
       try {
         const content = await extractTextFromFile(files[0]);
+        const skeleton = content && !content.startsWith('data:image/')
+          ? createDocumentSkeleton(content, files[0].name)
+          : undefined;
         const newFile: TemplateFile = {
           id: crypto.randomUUID(),
           name: files[0].name,
           type: files[0].name.split('.').pop() || '',
           content,
           category: category as any,
+          skeleton,
         };
         if (category === 'matrix') {
           setMatrixFile(newFile);
@@ -280,12 +286,16 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
       setProcessStatus(`Đang đọc tệp ${i + 1}/${files.length}: ${file.name}...`);
       try {
         const content = await extractTextFromFile(file);
+        const skeleton = content && !content.startsWith('data:image/')
+          ? createDocumentSkeleton(content, file.name)
+          : undefined;
         const newFile: TemplateFile = {
           id: crypto.randomUUID(),
           name: file.name,
           type: file.name.split('.').pop() || '',
           content,
           category: 'test' as any,
+          skeleton,
         };
         setUploadedFiles(prev => [...prev, newFile]);
         successCount += 1;
@@ -313,6 +323,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
     }
     setIsLoading(true);
     setTestResult(null);
+    setSkeletonWarnings([]);
     setProcessStatus('Đang chuẩn bị và gửi AI...');
 
     try {
@@ -330,6 +341,11 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
         const match = cumulativeText.match(/<exam_content>([\s\S]*?)<\/exam_content>/);
         const raw = match ? match[1].trim() : cumulativeText.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
         const final = preprocessExamMarkdown(raw);
+        const skeletonValidation = validateMarkdownAgainstSkeleton(final, sampleFile?.skeleton || matrixFile?.skeleton || null);
+        setSkeletonWarnings(skeletonValidation.issues.map(issue => issue.message));
+        if (skeletonValidation.issues.length > 0) {
+          showToast(`Đã soạn đề, nhưng cần rà soát định dạng mẫu (${Math.round(skeletonValidation.score * 100)}%).`, 'info');
+        }
         setTestResult(final);
         addToHistory('create', final);
 
@@ -467,9 +483,24 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
                     <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, 'sample')} />
                   </label>
                   {sampleFile && (
-                    <button onClick={() => setSampleFile(null)} className="text-[11px] text-slate-400 hover:text-red-500 flex items-center gap-1">
-                      <X className="w-3 h-3" /> Xóa đề mẫu
-                    </button>
+                    <div className="space-y-2">
+                      <button onClick={() => setSampleFile(null)} className="text-[11px] text-slate-400 hover:text-red-500 flex items-center gap-1">
+                        <X className="w-3 h-3" /> Xóa đề mẫu
+                      </button>
+                      {sampleFile.skeleton && sampleFile.skeleton.blocks.length > 0 && (
+                        <div className="rounded-2xl border border-blue-100 bg-blue-50/40 p-3 text-[11px] text-slate-600 space-y-2">
+                          <div className="font-black text-blue-700">Markdown Skeleton MVP</div>
+                          <div className="flex flex-wrap gap-2 text-[10px]">
+                            <span>Heading: {sampleFile.skeleton.stats.headingCount}</span>
+                            <span>Bảng: {sampleFile.skeleton.stats.tableCount}</span>
+                            <span>Placeholder: {sampleFile.skeleton.stats.placeholderCount}</span>
+                          </div>
+                          <pre className="max-h-32 overflow-auto whitespace-pre-wrap rounded-xl bg-white/70 p-2 font-mono text-[10px] leading-relaxed">
+                            {sampleFile.skeleton.markdown}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -511,7 +542,12 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
                           <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
                           <span className="text-xs font-bold text-slate-600 truncate">{file.name}</span>
                         </div>
-                        <button onClick={() => setUploadedFiles(prev => prev.filter(f => f.id !== file.id))} className="text-slate-300 hover:text-red-500">
+                        <button
+                          onClick={() => setUploadedFiles(prev => prev.filter(f => f.id !== file.id))}
+                          className="text-slate-300 hover:text-red-500"
+                          title={`Xóa tệp ${file.name}`}
+                          aria-label={`Xóa tệp ${file.name}`}
+                        >
                           <X className="w-4 h-4" />
                         </button>
                       </div>
@@ -530,6 +566,8 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
                     value={shuffledCount}
                     onChange={(e) => setShuffledCount(parseInt(e.target.value))}
                     className="flex-1 h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-primary"
+                    title="Số lượng mã đề hoán vị"
+                    aria-label="Số lượng mã đề hoán vị"
                   />
                   <span className="w-10 h-10 bg-blue-50 text-primary rounded-xl flex items-center justify-center font-black">{shuffledCount}</span>
                 </div>
@@ -561,6 +599,8 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
                           value={questionStructure[key]}
                           onChange={e => setQuestionStructure(s => ({ ...s, [key]: Math.max(0, parseInt(e.target.value) || 0) }))}
                           className="w-10 text-center font-black text-lg bg-transparent outline-none"
+                          title={`Số câu ${label}`}
+                          aria-label={`Số câu ${label}`}
                         />
                         <button
                           type="button"
@@ -622,6 +662,15 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
                 {processStatus}
               </motion.div>
             )}
+
+            {skeletonWarnings.length > 0 && (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-[11px] text-amber-800 space-y-1">
+                <div className="font-black flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Cảnh báo giữ định dạng mẫu</div>
+                {skeletonWarnings.slice(0, 3).map((warning, idx) => (
+                  <div key={idx}>• {warning}</div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -681,7 +730,12 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
                               <LibraryBig className="w-3.5 h-3.5" />
                             </button>
                           )}
-                          <button onClick={() => deleteHistoryEntry(entry.id)} className="text-slate-300 hover:text-red-500 shrink-0">
+                          <button
+                            onClick={() => deleteHistoryEntry(entry.id)}
+                            className="text-slate-300 hover:text-red-500 shrink-0"
+                            title={`Xóa lịch sử ${entry.title}`}
+                            aria-label={`Xóa lịch sử ${entry.title}`}
+                          >
                             <X className="w-3.5 h-3.5" />
                           </button>
                         </div>

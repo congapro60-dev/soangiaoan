@@ -2,6 +2,7 @@ import * as mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist';
 import * as XLSX from 'xlsx';
 import { TemplateFile } from '../types';
+import { createDocumentSkeleton } from '../lib/documentSkeleton';
 
 // Set PDF.js worker
 try {
@@ -149,11 +150,14 @@ export const processUploadedFile = async (
     content = await extractBase64FromImage(file);
   }
 
+  const shouldBuildSkeleton = ['sample', 'lesson_doc', 'test', 'matrix'].includes(category) && content && !content.startsWith('data:image/');
+
   return {
     id: `file-${Date.now()}-${index}`,
     name: file.name,
     type,
     content,
-    category
+    category,
+    skeleton: shouldBuildSkeleton ? createDocumentSkeleton(content, file.name) : undefined
   };
 };

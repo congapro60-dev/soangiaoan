@@ -38,6 +38,7 @@ export const TemplatesTab = ({
   const totalFiles = templates.reduce((sum, tpl) => sum + (tpl.files?.length || 0), 0);
   const sampleCount = templates.reduce((sum, tpl) => sum + (tpl.files?.filter(f => f.category === 'sample').length || 0), 0);
   const criteriaCount = templates.reduce((sum, tpl) => sum + (tpl.files?.filter(f => f.category === 'criteria').length || 0), 0);
+  const skeletonCount = templates.reduce((sum, tpl) => sum + (tpl.files?.filter(f => !!f.skeleton).length || 0), 0);
 
   const uploadFile = (category: TemplateFile['category'], templateId: string) => {
     setUploadingFiles({ category, templateId });
@@ -48,7 +49,7 @@ export const TemplatesTab = ({
     { label: 'Bộ mẫu', value: templates.length, icon: Layers3, tone: 'bg-[#d2e4ff] text-[#005ea1]' },
     { label: 'Giáo án mẫu', value: sampleCount, icon: BookOpen, tone: 'bg-indigo-50 text-indigo-700' },
     { label: 'Tệp tiêu chí', value: criteriaCount, icon: ShieldCheck, tone: 'bg-emerald-50 text-emerald-700' },
-    { label: 'Tổng tệp', value: totalFiles, icon: FolderUp, tone: 'bg-amber-50 text-amber-700' },
+    { label: 'Skeleton', value: skeletonCount, icon: FolderUp, tone: 'bg-amber-50 text-amber-700' },
   ];
 
   return (
@@ -237,20 +238,39 @@ const TemplateFileColumn = ({
 
     <div className="space-y-2">
       {files.map(file => (
-        <div key={file.id} className="group/file flex items-center justify-between gap-3 rounded-2xl border border-white bg-white p-3 shadow-sm">
-          <div className="flex min-w-0 items-center gap-2">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#f0f3ff]">
-              <FileUp size={14} className={fileTone} />
+        <div key={file.id} className="group/file rounded-2xl border border-white bg-white p-3 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#f0f3ff]">
+                <FileUp size={14} className={fileTone} />
+              </div>
+              <div className="min-w-0">
+                <span className="block truncate text-xs font-bold text-[#414751]">{file.name}</span>
+                {file.skeleton && (
+                  <span className="mt-0.5 block text-[10px] font-black uppercase tracking-[0.08em] text-[#005ea1]">
+                    Skeleton: {file.skeleton.stats.headingCount} heading · {file.skeleton.stats.tableCount} bảng · {file.skeleton.stats.placeholderCount} placeholder
+                  </span>
+                )}
+              </div>
             </div>
-            <span className="truncate text-xs font-bold text-[#414751]">{file.name}</span>
+            <button
+              onClick={() => onDelete(file.id)}
+              className="rounded-lg p-1.5 text-[#9aa3af] opacity-100 transition hover:bg-red-50 hover:text-red-600 sm:opacity-0 sm:group-hover/file:opacity-100"
+              title="Xóa tệp"
+            >
+              <X size={13} />
+            </button>
           </div>
-          <button
-            onClick={() => onDelete(file.id)}
-            className="rounded-lg p-1.5 text-[#9aa3af] opacity-100 transition hover:bg-red-50 hover:text-red-600 sm:opacity-0 sm:group-hover/file:opacity-100"
-            title="Xóa tệp"
-          >
-            <X size={13} />
-          </button>
+          {file.skeleton && (
+            <details className="mt-2 rounded-xl border border-[#e6edf7] bg-[#f8f9ff] px-3 py-2">
+              <summary className="cursor-pointer text-[11px] font-black uppercase tracking-[0.08em] text-[#717782]">
+                Xem Markdown Skeleton
+              </summary>
+              <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap rounded-lg bg-white p-3 text-[11px] leading-5 text-[#414751]">
+                {file.skeleton.markdown}
+              </pre>
+            </details>
+          )}
         </div>
       ))}
       {files.length === 0 && (

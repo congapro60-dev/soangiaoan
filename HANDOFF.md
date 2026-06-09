@@ -1,6 +1,6 @@
 # HANDOFF — Soạn giáo án / học phân hoá
 
-**Cập nhật**: 2026-06-08
+**Cập nhật**: 2026-06-10
 **Repo chính**: `soangiaoan`
 **Branch hiện tại**: `main`
 **Remote GitHub**: `https://github.com/congapro60-dev/soangiaoan`
@@ -16,7 +16,103 @@
 
 ---
 
-## 0. Trạng thái mới nhất — 2026-06-10 (Antigravity): Hoàn thiện Phase 2, Tích hợp NVIDIA NIM & Tối ưu hóa Performance
+## 0. Phase 2A — Clone Template/Skeleton MVP đã bắt đầu code — 2026-06-10 (Cline)
+
+> Phạm vi đúng theo kế hoạch chốt: triển khai checkpoint an toàn, MVP chỉ giữ **heading / bảng / placeholder bằng Markdown Skeleton**. Không triển khai auto-chunking, DOCX fidelity cao, header/footer/logo, game/simulation/SlideJ trong phase này.
+
+### 0.1 Phạm vi đã triển khai
+- **Core skeleton parser/validator**: thêm `src/lib/documentSkeleton.ts` với type `DocumentSkeleton`, parser HTML/Markdown/text cho heading/bảng/placeholder, prompt-section builder và soft validator.
+- **Type persistence nhẹ**: mở rộng `TemplateFile` trong `src/types.ts` thêm optional `skeleton`, giữ backward-compatible với template cũ chỉ có `content`.
+- **Upload pipeline**: cập nhật `src/utils/fileUtils.ts` để `processUploadedFile()` tự sinh skeleton cho `sample`, `lesson_doc`, `test`, `matrix` khi nội dung không phải ảnh base64.
+- **UI preview skeleton**:
+  - `src/components/tabs/TemplatesTab.tsx`: thống kê số file có skeleton và cho mở preview Markdown Skeleton trong từng file mẫu.
+  - `src/components/tabs/TestingTab.tsx`: khi upload đề mẫu/ma trận/đề gốc có sinh skeleton; đề mẫu hiển thị block preview skeleton MVP.
+- **Prompt giáo án**: `src/hooks/useLessonCreator.ts` lấy skeleton từ template sample hoặc lesson doc, chèn `MARKDOWN SKELETON BẮT BUỘC GIỮ` vào prompt, và chạy soft validator sau khi AI sinh giáo án.
+- **Prompt đề thi**: `src/utils/examUtils.ts` chèn skeleton section từ đề mẫu hoặc ma trận; `TestingTab.tsx` validate kết quả soạn đề và hiển thị cảnh báo giữ format mẫu.
+- **QA/accessibility nhẹ**: bổ sung `title`/`aria-label` cho một số nút/input icon-only trong `TestingTab.tsx` liên quan upload/history/question structure.
+
+### 0.2 File đã thay đổi / thêm mới
+- Thêm mới: `src/lib/documentSkeleton.ts`
+- Thêm mới: `src/types/file-saver.d.ts` để ổn định type build cho dependency export hiện có.
+- Sửa: `src/types.ts`
+- Sửa: `src/utils/fileUtils.ts`
+- Sửa: `src/hooks/useLessonCreator.ts`
+- Sửa: `src/utils/examUtils.ts`
+- Sửa: `src/components/tabs/TemplatesTab.tsx`
+- Sửa: `src/components/tabs/TestingTab.tsx`
+
+### 0.3 Verification
+- Đã chạy `npm run build` sau vòng triển khai đầu: **PASS**.
+- Sau hotfix accessibility trong `TestingTab.tsx`, đã chạy lại `npm run build`: **PASS**, built in khoảng `2m 13s`.
+- Warning Vite còn lại chủ yếu là chunk-size/dynamic-static import hiện hữu, không chặn build và không thuộc scope Phase 2A MVP.
+
+### 0.4 Lưu ý/rủi ro còn lại
+- Validator hiện là **soft validator**: cảnh báo lệch heading/table, không hard-block save/export. Đây là đúng scope MVP; hard-block placeholder bắt buộc/final export có thể làm ở checkpoint sau nếu flow save/export được audit kỹ hơn.
+- Skeleton parser chỉ là heuristic MVP: heading Markdown/heading kiểu số La Mã/số mục, table Markdown/HTML table, placeholder dạng `[ ... ]`, `{{ ... }}`, `___`, `...`. Không cam kết giữ font/margin/logo/header/footer của DOCX.
+- Chưa làm UI chỉnh sửa skeleton thủ công; mới preview. Nếu cần checkpoint kế tiếp, nên thêm editor skeleton nhỏ trước khi gọi AI.
+- Chưa làm auto-chunking; nếu mẫu dài/quá nhiều block, parser giới hạn block để tránh prompt phình to.
+- Cần QA thực tế bằng file DOCX giáo án mẫu và đề mẫu: upload → xem skeleton → sinh giáo án/đề → xem cảnh báo validator → export Word/PDF.
+
+### 0.5 Phối hợp QA với Anti — cập nhật 2026-06-10 02:50
+- Người dùng đã nhắc rõ: phần QA thủ công/độc lập là việc của **Anti**, Cline không tự coi QA thủ công là phần đã hoàn tất.
+- Cline đã cung cấp prompt bàn giao cho Anti QA Phase 2A, yêu cầu Anti đọc mục 0 này trước, kiểm tra đúng scope MVP heading/bảng/placeholder bằng Markdown Skeleton, chạy `npm run build`, QA UI Templates/Testing, regression upload ảnh/base64 và template cũ không có `skeleton`.
+- Khi Anti trả report, Cline cần đọc kết quả, patch lỗi trong phạm vi Phase 2A nếu có, cập nhật lại `HANDOFF.md` ngay sau mỗi thay đổi, rồi mới commit/push nếu người dùng yêu cầu.
+- Quy ước từ thời điểm này: **làm xong việc gì liên quan Phase 2A thì cập nhật ngay vào `HANDOFF.md`**, không để trạng thái chỉ nằm trong chat/tool progress.
+
+### 0.6 Làm rõ phạm vi so với 3 file kế hoạch — cập nhật 2026-06-10 02:54
+- Cline **chưa triển khai toàn bộ mọi nội dung** trong `C:\Users\ADMIN\Downloads\implementation_plan.md`, `C:\Users\ADMIN\Downloads\MASTER_IMPLEMENTATION_PLAN.md`, và `C:\Users\ADMIN\Downloads\cline_task_assignment.md`.
+- Phần đã code xong hiện chỉ là lát cắt **Phase 2A MVP / Clone Template-Skeleton** đã được chốt: type/parser/validator, upload sinh skeleton, preview skeleton, prompt giáo án/đề thi dùng Markdown Skeleton, soft validator, build pass.
+- Với `cline_task_assignment.md`: các task Phase 2A cốt lõi do Cline phụ trách đã được triển khai ở mức code/build pass; phần QA độc lập vẫn chờ Anti.
+- Với `implementation_plan.md` và `MASTER_IMPLEMENTATION_PLAN.md`: các nội dung ngoài Phase 2A MVP như auto-chunking, DOCX fidelity cao, header/footer/logo, game/simulation, SlideJ/PPTX, handwriting, offline/SCORM, mở rộng toàn bộ 36 AI tools... **chưa làm** và không được coi là hoàn tất trong phiên này.
+- Không được báo cáo “xong hết 3 file kế hoạch”; trạng thái đúng là **xong code Phase 2A MVP, chờ Anti QA, sau đó mới quyết định phase tiếp theo**.
+
+### 0.7 Anti QA Phase 2A — PASS — cập nhật 2026-06-10 03:05
+- Anti đã gửi báo cáo QA độc lập cho Phase 2A Skeleton MVP trên môi trường static review + local UI `http://localhost:3000`.
+- Kết quả tổng: **PASS toàn bộ trong phạm vi Phase 2A MVP**.
+- Static review `src/lib/documentSkeleton.ts`: PASS parse heading Markdown, heading La Mã/số mục, bảng Markdown, bảng HTML đơn giản, placeholder `[ ... ]` / `{{ ... }}` / `___` / `...`, giới hạn block `MAX_BLOCKS = 80`, placeholder tối đa 20, soft validator không throw/crash, không đưa header/footer/logo/DOCX fidelity cao vào scope.
+- Build/typecheck Anti chạy: `npm run build` → **PASS**, exit code 0, built khoảng `50.82s`; warning chunk-size là warning kỹ thuật cũ, không chặn Phase 2A.
+- Tích hợp prompt/validator: PASS `TemplateFile.skeleton` optional/backward-compatible, `createDocumentSkeleton()` trong `fileUtils.ts`, `buildSkeletonPromptSection()` trong `useLessonCreator.ts` và `examUtils.ts`, `validateMarkdownAgainstSkeleton()` sau khi AI sinh giáo án/đề thi.
+- UI local: PASS trang chủ/layout không crash; Templates hiển thị badge skeleton và luồng preview skeleton; Testing có khu upload đề mẫu/ma trận; template cũ không có `skeleton` vẫn fallback an toàn.
+- Ghi chú kỹ thuật của Anti: validator bảng hiện đếm số dòng có ký tự `|` thay vì đếm số cụm bảng; không phải FAIL vì MVP chỉ cần cảnh báo “có bảng hay không”. Có thể cải thiện ở phase sau nếu cần validator chi tiết hơn.
+- Kết luận Anti: không phát hiện lỗi trong phạm vi Phase 2A MVP; có thể commit & push lên `main`.
+
+---
+
+## 0b. Ghi chú phiên đánh giá chiến lược tích hợp — 2026-06-10 (Cline, không code)
+
+> Phạm vi phiên này: đọc `HANDOFF.md`, `C:\Users\ADMIN\Downloads\integration_strategy_report.md` và sau khi người dùng đính chính, đọc thêm `C:\Users\ADMIN\Downloads\implementation_plan.md`. Không chỉnh code, không chạy build/test.
+
+### 0.0.1 Tài liệu đã đọc
+- `C:\Users\ADMIN\Downloads\smart-lesson-plan-ai\HANDOFF.md`
+- `C:\Users\ADMIN\Downloads\integration_strategy_report.md`
+- `C:\Users\ADMIN\Downloads\implementation_plan.md`
+
+### 0.0.2 Kết luận đánh giá cuối
+- Chiến lược tích hợp tổng thể **khả thi về hướng sản phẩm**, nhưng cần triển khai theo lát cắt MVP, không làm đồng thời toàn bộ 36 tool AI + game native + dynamic simulation + offline export + SlideJ + handwriting.
+- Bản Anti sửa mới đã cải thiện đáng kể: roadmap trong `integration_strategy_report.md` đã đưa **Phase 2A — Clone Template/Skeleton** lên ưu tiên đầu, và `implementation_plan.md` đã bổ sung đúng các phản biện kỹ thuật lớn: mất header/footer/logo khi dùng Mammoth/Markdown, rủi ro token/output limit, và câu hỏi về validator.
+- `implementation_plan.md` về kiến trúc **Two-Step RAG / Skeleton Extraction → Template Filling** vẫn là hướng **đáng ưu tiên cao**, vì giải quyết đúng lỗi “context bleed” khi đưa toàn bộ file mẫu thô vào prompt. Đây nên là Phase 2 thực dụng trước khi mở rộng game/SlideJ.
+- Phản biện còn giữ nguyên: cụm “ép AI tuân thủ 100%” / “khớp 100% form mẫu” vẫn quá mạnh nếu chỉ dựa vào LLM + Markdown skeleton. Bản mới đã đổi mục tiêu cốt lõi tốt hơn, nhưng vẫn còn hai “hố bom” thực thi cần khóa scope trước khi code: **chunking skeleton** và **validator quá cứng**.
+- Kết luận bổ sung sau phản hồi Anti: không nên coi chunking là mặc định MVP. MVP nên sinh nguyên khối với giới hạn độ dài + cảnh báo token; chỉ làm chunking ở phase sau, dựa trên block/section đã được giáo viên duyệt hoặc schema có ID, không dùng split Markdown thô. Validator nên là **soft validation** theo mức cảnh báo, không hard block tuyệt đối; ưu tiên preview + sửa tay + retry.
+- Đã đọc thêm file phân công `C:\Users\ADMIN\Downloads\cline_task_assignment.md`: Phase 2A được chốt theo hướng Cline code / Anti QA, gồm 4 task: type+parser, preview skeleton UI, cập nhật prompt Creator/Exam, soft validator. Phản biện chính: scope hợp lý để bắt đầu, nhưng cần làm rõ 3 điểm trước khi code: nơi lưu/persist `TemplateFile` hiện có, validator nên đếm heading/table theo helper normalize thay vì đếm ký tự thô, và Task 4 không nên hard-block “lưu giáo án” nếu nội dung đã sinh xong mà nên block export/save final hoặc yêu cầu người dùng xử lý lỗi rõ ràng.
+- Cập nhật 2026-06-10 02:02: đã đọc lại đủ 3 file `implementation_plan.md`, `cline_task_assignment.md`, `integration_strategy_report.md`. Bản `integration_strategy_report.md` mới đã hợp nhất assignment và chốt các điểm phản biện: skeleton heading chuẩn Markdown, dùng `callAI`, fallback raw text khi AI lỗi, validator line-by-line/table-group, template cũ fallback `content`, placeholder error chặn export/final save nhưng cho lưu nháp. Kế hoạch thực hiện đề xuất: trước khi code phải audit file thật (`types.ts`, `TemplatesTab.tsx`, `useLessonCreator.ts`, `examUtils.ts`, `CreatorTab/ExamsTab`) rồi triển khai theo 5 bước: Core parser/type → UI upload/preview → prompt filling → validator → integration/test; chưa code trong phiên lập kế hoạch này.
+- Báo cáo phản biện/kế hoạch bản mới đã được trả cho người dùng trong phiên này; chưa tạo file báo cáo riêng và chưa thay đổi source code.
+- Cập nhật 2026-06-10 02:10: Cline đọc lại `HANDOFF.md` và `integration_strategy_report.md` theo yêu cầu “không code”. Kết luận báo cáo cuối: tài liệu chiến lược hiện **khả thi nếu triển khai theo MVP Phase 2A**, nhưng không khả thi nếu hiểu là triển khai đồng thời toàn bộ 36 công cụ AI, game native, dynamic simulation, offline SCORM, handwriting và SlideJ. Phản biện chính cần giữ khi bàn giao: (1) tuyên bố “đã hỗ trợ trên Web/AI bóc tách cấu trúc rất tốt” ở phần Creator cần được xác minh bằng code/QA thực tế trước khi coi là done; (2) Phase 2A đúng hướng nhưng cần audit điểm nối thật trước khi code, đặc biệt upload/persist `TemplateFile`, prompt creator/exam và export/final-save flow; (3) skeleton chỉ nên cam kết giữ Markdown heading/bảng/placeholder, không cam kết giữ 100% layout Word như header/footer/logo/margin/font; (4) validator phải là soft validator, chỉ hard-block placeholder/lỗi phá export, còn lệch heading/table nên cảnh báo và cho lưu nháp/override; (5) dynamic HTML/JS và offline package là rủi ro bảo mật/scope lớn, phải tách phase sau có sandbox/QA riêng. Không chỉnh source code, không chạy build/test.
+
+### 0.0.3 Khuyến nghị triển khai sau phiên đánh giá
+1. **Ưu tiên Phase 2A — Clone Template/Skeleton**: thêm `skeletonContent`, luồng upload mẫu sinh skeleton, UI preview/chỉnh skeleton, và dùng skeleton thay raw content trong Creator/Exam prompt.
+2. **Chốt phạm vi MVP rõ ràng**: MVP chỉ bảo toàn heading/bảng/cột/placeholder trong Markdown; không hứa giữ logo/header/footer/margins/font của file Word gốc.
+3. **Không phụ thuộc 100% vào prompt**: cần validator kiểm tra số heading, số bảng, số cột, placeholder còn sót, và diff skeleton/result trước khi cho xuất.
+4. **Chiến lược token/output cho MVP**: đặt giới hạn độ dài skeleton, cảnh báo khi mẫu quá dài, có fallback “rút gọn/chỉnh skeleton”; chưa nên tự động chunk Markdown bằng `split('#')` hoặc split text thô.
+5. **Nếu làm chunking phase sau**: cần chunk theo block/section có ID, chỉ cắt tại ranh giới an toàn sau khi parse/preview, luôn truyền global outline + mục tiêu bài + section summary để tránh mất tính thống nhất.
+6. **Validator phải là soft validation**: phân mức `error/warning/info`; chỉ hard-block lỗi phá hỏng xuất file hoặc còn placeholder bắt buộc, còn lệch heading/table nên cảnh báo và cho giáo viên override.
+7. **Template giáo án và đề thi nên dùng chung kiến trúc nhưng tách schema/validator**: đề thi cần bảo toàn header, ma trận, đáp án, thang điểm; giáo án cần bảo toàn mục, bảng hoạt động, cột GV/HS/Nội dung.
+8. **Sau Skeleton mới tới PDF→worksheet/RAG nâng cao**, rồi mới đến Dynamic Simulation/Game Player.
+9. **Dynamic HTML/JS, Offline SCORM và SlideJ** để phase sau, với sandbox/QA riêng, không trộn vào phase clone-template.
+10. **Trước khi code Phase 2A theo assignment**: cần rà nhanh `TemplateFile`, `TemplatesTab`, `useLessonCreator`, `examUtils`, toast/save flow để xác định đúng điểm lưu `skeletonContent` và đúng điểm gọi validator; không triển khai blind theo tên file nếu code hiện tại đã khác.
+
+---
+
+## 0a. Trạng thái trước đó — 2026-06-10 (Antigravity): Hoàn thiện Phase 2, Tích hợp NVIDIA NIM & Tối ưu hóa Performance
 
 > Nguồn sự thật mới nhất cho phiên sau: Nhánh `main` đã chứa toàn bộ code hoàn thiện Phase 2, bao gồm việc bổ sung 36 công cụ AI, tích hợp Provider NVIDIA NIM, nới lỏng bảo mật Firebase cho học sinh ẩn danh, và tối ưu hóa code-splitting. Đã tạo tag `stable-phase2-complete`.
 

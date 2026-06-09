@@ -3,6 +3,7 @@ import { LessonPlan, AppData, TemplateFile } from '../types';
 import { callAI, callAIStream, getActiveApiKey } from '../lib/aiProviders';
 import { cleanMarkdownOutput } from '../utils/markdownUtils';
 import { applyLessonRevisionPatchResponse, buildLessonRevisionPatchPrompt } from '../utils/lessonRevisionPatch';
+import { buildSkeletonPromptSection, validateMarkdownAgainstSkeleton } from '../lib/documentSkeleton';
 import Swal from 'sweetalert2';
 
 // Note: MODELS and MODELS_LIST should be consistent. 
@@ -118,6 +119,10 @@ export const useLessonCreator = (
       const activeDist = selectedDistributionId 
         ? data.distributions.find(d => d.id === selectedDistributionId) 
         : distributionFile;
+      const templateSkeleton = selectedTemplate?.files.find(f => f.category === 'sample' && f.skeleton)?.skeleton;
+      const lessonDocSkeleton = lessonDocs.find(f => f.skeleton)?.skeleton;
+      const activeSkeleton = templateSkeleton || lessonDocSkeleton || null;
+      const skeletonPromptSection = buildSkeletonPromptSection(activeSkeleton);
       
       const CV5512_FORMAT = `
 ===== MẪU GIÁO ÁN THEO CÔNG VĂN 5512/BGDĐT-GDTrH (BẮT BUỘC TUÂN THỦ) =====
@@ -690,6 +695,7 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
           ${activeDist ? `PHÂN PHỐI CHƯƠNG TRÌNH:\n${activeDist.content}` : ''}
           ${lessonDocsContent ? `TÀI LIỆU THAM KHẢO:\n${lessonDocsContent}` : ''}
           ${singleRequirement ? `YÊU CẦU BỔ SUNG: ${singleRequirement}` : ''}
+          ${skeletonPromptSection}
 
           ${isAdaptiveReadyDefault ? `
           ===== YÊU CẦU RIÊNG CHO KIỂU MẶC ĐỊNH MỚI — GIÁO ÁN ĐẸP, SẴN SÀNG TẠO BÀI HỌC PHÂN HOÁ =====
@@ -764,7 +770,14 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
           const currentExtracted = extractLessonContent(fullResult);
           setCurrentPlan(prev => ({ ...prev, content: cleanMarkdownOutput(currentExtracted) }));
         });
-        showToast('Đã khởi tạo giáo án cấp độ Senior!');
+        const finalContent = cleanMarkdownOutput(extractLessonContent(fullResult));
+        const skeletonValidation = validateMarkdownAgainstSkeleton(finalContent, activeSkeleton);
+        if (activeSkeleton && skeletonValidation.issues.length > 0) {
+          console.warn('Phase 2A Markdown Skeleton validation warnings:', skeletonValidation);
+          showToast(`Đã tạo giáo án, nhưng cần rà soát skeleton mẫu (${Math.round(skeletonValidation.score * 100)}%): ${skeletonValidation.issues[0].message}`, 'warning');
+        } else {
+          showToast('Đã khởi tạo giáo án cấp độ Senior!');
+        }
       } else {
         const distContent = activeDist?.content || distributionFile?.content;
         const plannerPrompt = `
@@ -824,6 +837,7 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
               - Mục tiêu/Kiến thức trọng tâm: ${lesson.objectives}
               
               ${templateContext}
+              ${skeletonPromptSection}
               Lớp: ${currentPlan.grade}.
 
               ${isAdaptiveReadyDefault ? `

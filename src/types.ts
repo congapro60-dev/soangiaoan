@@ -59,6 +59,8 @@ export interface TemplateFile {
   type: string;
   content: string;
   category: 'sample' | 'criteria' | 'lesson_doc' | 'distribution' | 'test' | 'matrix';
+  /** Phase 2A MVP: Markdown Skeleton trích từ mẫu để giữ heading/bảng/placeholder khi gọi AI. */
+  skeleton?: import('./lib/documentSkeleton').DocumentSkeleton;
 }
 
 export interface LessonTemplate {

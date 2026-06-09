@@ -1,4 +1,5 @@
 import { callAI } from '../lib/aiProviders';
+import { buildSkeletonPromptSection } from '../lib/documentSkeleton';
 import { AppData, TemplateFile } from '../types';
 
 type Settings = AppData['settings'];
@@ -15,6 +16,7 @@ export const examUtils = {
     sampleFile?: TemplateFile | null,
     structure?: { mcq: number; trueFalse4: number; shortAnswer: number; essay: number }
   ) => {
+    const skeletonSection = buildSkeletonPromptSection(sampleFile?.skeleton || matrix?.skeleton || null);
     const sampleSection = sampleFile?.content ? `
 ===== ĐỀ MẪU ĐỊNH DẠNG (BẮT BUỘC TUÂN THỦ) =====
 ${sampleFile.content}
@@ -27,6 +29,7 @@ ${sampleFile.content}
 - Cách trình bày phương án A/B/C/D: PHẢI giống hệt ĐỀ MẪU.
 - Font chữ, in đậm, in nghiêng tên mục: PHẢI giống hệt ĐỀ MẪU.
 - KHÔNG được tự ý thêm phần, đổi tên mục, hoặc thay đổi bất kỳ element định dạng nào.
+${skeletonSection}
 ` : `
 ===== ĐỊNH DẠNG CHUẨN MẶC ĐỊNH (CÔNG VĂN 5636/BGDĐT-GDTrH) =====
 Không có đề mẫu → AI tự áp dụng định dạng chuẩn của Bộ GD&ĐT năm 2025 như sau:
@@ -64,6 +67,7 @@ TRƯỜNG THPT ...                   |  NĂM HỌC 20XX - 20XX
 - Công thức toán dùng LaTeX: inline $...$, display $$...$$.
 - Hình vẽ/bảng biến thiên (nếu có): TUYỆT ĐỐI KHÔNG dùng thẻ HTML <svg> hay HTML inline. PHẢI dùng mã TikZ chuẩn xác chèn vào trong khối markdown có ngôn ngữ là tikz.
 ===== KẾT THÚC ĐỊNH DẠNG MẶC ĐỊNH =====
+${skeletonSection}
 `;
 
     const matrixSection = matrix?.content ? `
