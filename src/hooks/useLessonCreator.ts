@@ -612,7 +612,8 @@ QUY TẮC NGHIÊM NGẶT:
 - Khi nào dùng: Cần độ chính xác toán học (Đồ thị hàm số, hình học phẳng cơ bản, sơ đồ).
 - TUYỆT ĐỐI KHÔNG DÙNG HTML <svg> vì máy chủ sẽ không thể nhúng nó vào file Word.
 - Cách thực hiện: Chỉ sử dụng ngôn ngữ LaTeX/TikZ. Bọc trong khối code \`\`\`tikz \\begin{tikzpicture} ... \\end{tikzpicture} \`\`\`.
-- Vị trí chèn: Đặt trực tiếp vào Cột 3. TUYỆT ĐỐI dùng thẻ <br/> trước/sau khối code để không làm vỡ cấu trúc bảng.
+- Vị trí chèn: Đặt trực tiếp vào Cột 3. TUYỆT ĐỐI không dùng thẻ <br/> trước/sau khối code để không làm vỡ cấu trúc bảng.
+- BẮT BUỘC CHỈ DÙNG CÁC MÀU CƠ BẢN CỦA LaTeX (black, white, red, green, blue, cyan, magenta, yellow, gray, lightgray). TUYỆT ĐỐI KHÔNG tự sáng tạo tên màu (như indigo, primary, teal) để tránh lỗi biên dịch.
 
 2. Ảnh minh họa SGK/Thực tế (static_image):
 - Khi nào dùng: Cần bối cảnh thực tế hoặc sơ đồ tư duy khái quát (VD: Cây cầu treo, quỹ đạo vệ tinh).

@@ -318,7 +318,7 @@ export const CreatorTab = (props: CreatorTabProps) => {
                                return <DiagramRenderer code={cleanTikz} type="tikz" />;
                             }
                             
-                            const isPrompt = /^prompt(?:\s|<br\s*\/?>)/i.test(codeString.trim());
+                            const isPrompt = lang === 'prompt' || /^prompt(?:\s|<br\s*\/?>)/i.test(codeString.trim());
                             if (isPrompt) {
                                return (
                                  <div className="my-4 p-4 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-start gap-3">
