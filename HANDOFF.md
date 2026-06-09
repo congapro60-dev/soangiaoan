@@ -50,9 +50,9 @@
 
 ### 0.0.2 Hotfix QA — 2026-06-09 (Antigravity)
 - Đã vá 3 lỗi tồn đọng sau đợt nâng cấp chức năng xuất/hiển thị:
-  1. **Lỗi API Typecheck (`api/render-word-core.ts`)**: Hàm `expandTextWithMath` trả về array trực tiếp thay vì `Promise`, giúp loại bỏ lỗi typecheck CI/CD khi dùng toán tử spread.
-  2. **Lỗi Kroki "Missing \begin{document}"**: Thêm cơ chế tự động bọc mã `\begin{tikzpicture}` vào khung `\documentclass[tikz]` ở `DiagramRenderer.tsx`, `export-lesson.ts` và `render-word-core.ts` nếu AI quên sinh ra phần đầu này.
-  3. **Lỗi UI lộ chữ "prompt<br/>"**: Cập nhật biểu thức chính quy (Regex) trong `LessonContentBoard.tsx` và `CreatorTab.tsx` thành `/^prompt(?:\s|<br\s*\/?>)/i` để nhận diện thành công cả khi Markdown biến xuống dòng thành thẻ `<br/>`. Đã gỡ bỏ toàn bộ code có sử dụng template literal rườm rà.
+  1. **Lỗi API Typecheck (`api/render-word-core.ts`)**: Hàm `expandTextWithMath` trả về array trực tiếp thay vì `Promise`, giúp loại bỏ lỗi typecheck CI/CD khi dùng toán tử spread. Đã xử lý triệt để lỗi ép kiểu của buffer/image.
+  2. **Lỗi Kroki "Missing \begin{document}" và lỗi màu sắc TikZ**: Thêm cơ chế tự động bọc mã `\begin{tikzpicture}` vào khung `\documentclass[tikz]` ở `DiagramRenderer.tsx`, `export-lesson.ts` và `render-word-core.ts`. Đặc biệt đã tự động khai báo gói màu `xcolor` kèm hệ `dvipsnames` và định nghĩa cứng màu `indigo` để TikZ không bị crash khi AI sử dụng tên màu lạ. Mình cũng đã thêm chỉ thị cấm AI tự sáng tạo tên màu mới trong `useLessonCreator.ts`.
+  3. **Lỗi UI lộ chữ "prompt<br/>" (Không hiển thị hộp UI)**: Mình nhận ra trình xuất Markdown đôi lúc bọc nội dung prompt mà không chứa chữ "prompt" ở dòng đầu tiên. Vì vậy mình đã đổi sang nhận dạng thẻ ngôn ngữ (language tag: ````prompt`) của block code thay vì kiểm tra text thuần túy. Giao diện giờ đã bọc UI cho image prompt mượt mà ngay cả khi AI viết tắt.
 
 ---
 
