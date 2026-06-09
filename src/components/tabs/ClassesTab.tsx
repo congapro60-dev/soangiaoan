@@ -72,6 +72,18 @@ export const ClassesTab = ({ data, setData }: ClassesTabProps) => {
       }),
     });
     if (!value?.name) return;
+
+    const normalizedNewName = value.name.toLowerCase();
+    if (classes.some(c => c.name.toLowerCase() === normalizedNewName)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi tạo lớp',
+        text: `Lớp học mang tên "${value.name}" đã tồn tại!`,
+        confirmButtonColor: '#3085d6',
+      });
+      return;
+    }
+
     const grade = value.name.match(/\d+/)?.[0] || '10';
     const newClass: TeacherClass = {
       id: `class-${Date.now()}`,
@@ -104,7 +116,29 @@ export const ClassesTab = ({ data, setData }: ClassesTabProps) => {
         code: (document.getElementById('student-code') as HTMLInputElement).value.trim(),
       }),
     });
-    if (!value?.name) return;
+    if (!value?.name) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi thiếu thông tin',
+        text: 'Tên học sinh không được để trống!',
+        confirmButtonColor: '#3085d6',
+      });
+      return;
+    }
+
+    const rawCode = value.code || `${selectedClass.name.replace(/\s+/g, '')}-${selectedClass.students.length + 1}`;
+    const finalCode = rawCode.trim().toUpperCase();
+
+    if (selectedClass.students.some(s => s.code.trim().toUpperCase() === finalCode)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi trùng lặp',
+        text: `Mã học sinh "${finalCode}" đã tồn tại trong lớp này!`,
+        confirmButtonColor: '#3085d6',
+      });
+      return;
+    }
+
     setData((prev: AppData) => {
       const existingClasses = prev.classes || [];
       return {
@@ -114,7 +148,7 @@ export const ClassesTab = ({ data, setData }: ClassesTabProps) => {
           const nextStudent: Student = {
             id: `student-${Date.now()}`,
             name: value.name,
-            code: value.code || `${item.name.replace(/\s+/g, '')}-${item.students.length + 1}`,
+            code: finalCode,
             progress: 0,
             status: 'active',
           };

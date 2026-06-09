@@ -16,9 +16,21 @@
 
 ---
 
-## 0. Trạng thái mới nhất — 2026-06-09 (Antigravity): Cập nhật Giao diện Phase 2 & Tích hợp Dữ liệu Thật cho Lớp Học
+## 0. Trạng thái mới nhất — 2026-06-09 (Antigravity): Xử lý dứt điểm nợ kỹ thuật (Task 1, 2, 5)
 
-> Nguồn sự thật mới nhất cho phiên sau: Hoàn tất việc đồng bộ giao diện Stitch (dùng Semantic Tailwind tokens) và đấu nối `ClassesTab.tsx` vào dữ liệu thật (Firebase/AppData). Đã push lên `main`.
+> Nguồn sự thật mới nhất cho phiên sau: Vừa hoàn tất việc xử lý 3 vấn đề kỹ thuật cốt lõi để chuẩn bị cho môi trường Production (Firebase & Vercel). Cần commit & push nhánh `main`.
+
+### 0.0.1 Phạm vi thay đổi chính
+- **Task 1 (Xuất Word - Lỗi dấu căn `√`)**: Đã vá lỗi thư viện xuất Word (`api/render-word-core.ts`) khi render cấu trúc OMML cho dấu căn bậc hai. Bổ sung Regex an toàn trong hàm `postProcessRadicals` để bọc các ký hiệu `√` rơi rớt vào trong cấu trúc chuẩn `<m:rad>` của Microsoft Word, chống lỗi "Unreadable content".
+- **Task 2 (Bộ nhớ đệm Firestore cho AI)**: Đã di chuyển hệ thống cache của `src/lib/adaptive/personalizationEngine.ts` từ `sessionStorage` (chỉ lưu cục bộ trình duyệt) sang `firestore` (bảng `personalizationCache`). Đã cập nhật `firestore.rules` để cấp quyền đọc/ghi cho dữ liệu cache với tuổi thọ 7 ngày, giúp chia sẻ cache giữa nhiều học sinh và chống sập API do quá tải.
+- **Task 5 (Kịch bản Test E2E)**: Đã tạo file `test/e2e-production-test.mjs` chứa payload giả lập hoàn chỉnh, cho phép gọi thẳng lên Vercel Serverless Function `/api/adaptive-progress` để kiểm tra khả năng ghi dữ liệu xuống Firestore thông qua Firebase Admin SDK.
+- **DevOps**: File `firestore.rules` đã được deploy lên môi trường Production của Firebase; Vercel đã được nạp biến môi trường `FIREBASE_SERVICE_ACCOUNT_KEY` thành công.
+
+---
+
+## 0a. Trạng thái cũ — 2026-06-09 (Antigravity): Cập nhật Giao diện Phase 2 & Tích hợp Dữ liệu Thật cho Lớp Học
+
+> Nguồn sự thật cũ: Hoàn tất việc đồng bộ giao diện Stitch (dùng Semantic Tailwind tokens) và đấu nối `ClassesTab.tsx` vào dữ liệu thật (Firebase/AppData). Đã push lên `main`.
 
 ### 0.0.1 Phạm vi thay đổi chính
 - **Chuẩn hóa Giao diện (CSS Refactor)**:

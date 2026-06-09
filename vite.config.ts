@@ -29,6 +29,8 @@ export default defineConfig(({mode}) => {
             'pdfjs': ['pdfjs-dist'],
             'markdown': ['marked', 'react-markdown', 'remark-gfm', 'remark-math', 'rehype-katex', 'rehype-raw'],
             'motion': ['motion/react'],
+            'docx-export': ['docx', 'jszip'],
+            'diagram': ['pako'],
           },
         },
       },

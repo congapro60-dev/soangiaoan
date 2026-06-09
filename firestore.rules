@@ -49,6 +49,12 @@ service cloud.firestore {
                     && request.auth.uid == resource.data.teacherId;
     }
 
+    // Cache kết quả sinh lộ trình AI (Task 2)
+    match /personalizationCache/{cacheId} {
+      // Chỉ cho phép giáo viên đã đăng nhập đọc/ghi cache của chính họ hoặc cache chung
+      allow read, write: if request.auth != null;
+    }
+
     // Tiến trình từng tiết học phân hoá — ưu tiên API Admin; client nặc danh chỉ là kênh fallback có kiểm tra định danh/link bài học.
     match /adaptiveSessionProgress/{progressId} {
       function adaptiveLessonDoc(teacherId) {

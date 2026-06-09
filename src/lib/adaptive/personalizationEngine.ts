@@ -16,6 +16,8 @@
  */
 
 import type { AdaptiveLesson, LearningRoute } from './types';
+import { db, removeUndefinedFields } from '../firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 // ── Timeout & helpers ──────────────────────────────────────────────────────────
 
@@ -74,33 +76,31 @@ const SESSION_CACHE_VERSION = 1;
 const getCacheKey = (lesson: AdaptiveLesson, route: LearningRoute, weakObjectiveIds: string[]): string =>
   `${lesson.id}__${lesson.updatedAt || 'no-updated-at'}__${route}__${[...weakObjectiveIds].sort().join('-')}`;
 
-const canUseSessionStorage = (): boolean =>
-  typeof window !== 'undefined' && typeof window.sessionStorage !== 'undefined';
-
-const readSessionCache = (cacheKey: string): AdaptiveLesson | null => {
-  if (!canUseSessionStorage()) return null;
+const readFirestoreCache = async (cacheKey: string): Promise<AdaptiveLesson | null> => {
   try {
-    const raw = window.sessionStorage.getItem(`${SESSION_CACHE_PREFIX}${cacheKey}`);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as { version?: number; lesson?: AdaptiveLesson };
-    if (parsed.version !== SESSION_CACHE_VERSION || !parsed.lesson) return null;
-    return parsed.lesson;
+    const docRef = doc(db, 'personalizationCache', cacheKey);
+    const snapshot = await getDoc(docRef);
+    if (!snapshot.exists()) return null;
+    
+    const data = snapshot.data();
+    if (data.expiresAt < Date.now()) return null; // Expired
+    return data.lesson as AdaptiveLesson;
   } catch (error) {
-    console.warn('[PersonalizationEngine] Ignoring corrupted session cache:', error);
+    console.warn('[PersonalizationEngine] Could not read Firestore cache:', error);
     return null;
   }
 };
 
-const writeSessionCache = (cacheKey: string, personalized: AdaptiveLesson): void => {
-  if (!canUseSessionStorage()) return;
+const writeFirestoreCache = async (cacheKey: string, personalized: AdaptiveLesson): Promise<void> => {
   try {
-    window.sessionStorage.setItem(
-      `${SESSION_CACHE_PREFIX}${cacheKey}`,
-      JSON.stringify({ version: SESSION_CACHE_VERSION, lesson: personalized }),
-    );
+    const docRef = doc(db, 'personalizationCache', cacheKey);
+    await setDoc(docRef, removeUndefinedFields({
+      lesson: personalized,
+      createdAt: Date.now(),
+      expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days
+    }));
   } catch (error) {
-    // Storage quota/private-mode failures should never block the learner.
-    console.warn('[PersonalizationEngine] Could not write session cache:', error);
+    console.warn('[PersonalizationEngine] Could not write Firestore cache:', error);
   }
 };
 
@@ -235,11 +235,11 @@ export const getPersonalizedLesson = async (
   const cached = resolvedCache.get(cacheKey);
   if (cached) return cached;
 
-  // 1b. Same-browser session cache hit → survive route refresh/back-forward in the current tab
-  const sessionCached = readSessionCache(cacheKey);
-  if (sessionCached) {
-    resolvedCache.set(cacheKey, sessionCached);
-    return sessionCached;
+  // 1b. Check shared Firestore cache
+  const firestoreCached = await readFirestoreCache(cacheKey);
+  if (firestoreCached) {
+    resolvedCache.set(cacheKey, firestoreCached);
+    return firestoreCached;
   }
 
   // 2. Already in-flight → share the same promise
@@ -262,7 +262,7 @@ export const getPersonalizedLesson = async (
       }
       const personalized = applyPersonalizationPatch(lesson, patch, route);
       resolvedCache.set(cacheKey, personalized);
-      writeSessionCache(cacheKey, personalized);
+      writeFirestoreCache(cacheKey, personalized);
       return personalized;
     })
     .catch((err: unknown) => {
@@ -282,12 +282,4 @@ export const getPersonalizedLesson = async (
 export const clearPersonalizationCache = (): void => {
   resolvedCache.clear();
   pendingPersonalizations.clear();
-  if (!canUseSessionStorage()) return;
-  try {
-    Object.keys(window.sessionStorage)
-      .filter(key => key.startsWith(SESSION_CACHE_PREFIX))
-      .forEach(key => window.sessionStorage.removeItem(key));
-  } catch (error) {
-    console.warn('[PersonalizationEngine] Could not clear session cache:', error);
-  }
 };
