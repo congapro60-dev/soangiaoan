@@ -67,6 +67,7 @@
     "@vercel/node": "^5.7.11",
     "autoprefixer": "^10.4.21",
     "puppeteer": "^25.0.4",
+    "rollup-plugin-visualizer": "^7.0.1",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",

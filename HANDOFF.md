@@ -16,42 +16,35 @@
 
 ---
 
-## 0. Trạng thái mới nhất — 2026-06-09 (Cline + Antigravity): Phase 2 Adaptive Backend/Security đã đưa lên `main`
+## 0. Trạng thái mới nhất — 2026-06-10 (Antigravity): Hoàn thiện Phase 2, Tích hợp NVIDIA NIM & Tối ưu hóa Performance
 
-> Nguồn sự thật mới nhất cho phiên sau: Phase 2 theo `C:\Users\ADMIN\Downloads\implementation_plan.md` đã được triển khai trực tiếp trên branch `main`. Trước phiên này `HEAD` là `f262752 Robust image rendering: strict prompt rules and graceful fallback`. Commit Phase 2 là commit mới nhất ngay sau mốc này; xem `git log -1 --oneline`.
+> Nguồn sự thật mới nhất cho phiên sau: Nhánh `main` đã chứa toàn bộ code hoàn thiện Phase 2, bao gồm việc bổ sung 36 công cụ AI, tích hợp Provider NVIDIA NIM, nới lỏng bảo mật Firebase cho học sinh ẩn danh, và tối ưu hóa code-splitting. Đã tạo tag `stable-phase2-complete`.
 
 ### 0.0.1 Phạm vi thay đổi chính
-- **Chuẩn hoá/validate mô phỏng Adaptive**:
-  - Thêm `src/lib/adaptive/simulationValidation.ts` để normalize và validate `AdaptiveSimulationSpec`, dữ liệu 2D/3D, dimensions, points/faces, labels, object3D và fallback an toàn.
-  - Tích hợp validator vào luồng chuyển lesson plan sang adaptive trong `src/lib/adaptive/adaptiveFromLessonPlan.ts`.
-  - Cập nhật UI render mô phỏng ở `AdaptiveSimulationBlock.tsx`, `LessonSimulationViewer.tsx`, và `AdaptiveStudentPortalPage.tsx` để xử lý spec đã chuẩn hoá ổn định hơn.
-- **External Tool Registry + RAG**:
-  - Thêm registry mẫu `src/data/externalToolsRegistry.ts` và script đồng bộ `scripts/sync-math-tools.mjs`.
-  - Thêm logic RAG/lọc top-k trong `src/lib/adaptive/externalToolRag.ts` và core backend-compatible `api/external-tool-rag-core.ts`.
-  - RAG có cơ chế lọc ID không tồn tại để tránh AI bịa tool ID ngoài registry.
-  - Thêm `src/components/adaptive/ExternalToolFrame.tsx` để nhúng công cụ ngoài theo allowlist/sandbox.
-- **Firestore security rules**:
-  - Cập nhật `firestore.rules` cho collection `externalTools`, tách quyền read/ghi theo vai trò để chuẩn bị dùng registry thật trên backend.
-- **Prompt/types nhỏ liên quan**:
-  - Cập nhật `src/types.ts`, `src/hooks/useLessonCreator.ts`, `src/utils/examUtils.ts` để khớp dữ liệu simulation/tool mới.
+- **Tích hợp NVIDIA NIM & 36 Công cụ AI**:
+  - Tích hợp 36 công cụ AI giáo dục mới vào `src/data/aiTools.ts` (Registry).
+  - Thêm cấu hình NVIDIA NIM (API Key với tiền tố `nvapi-`, model `meta/llama-3.3-70b-instruct`) vào `src/types.ts`, `src/data/models.ts`, `src/components/modals/SettingsModal.tsx`, và logic execution ở `src/lib/aiProviders.ts`.
+- **Tối ưu hóa Performance (Giải quyết nợ kỹ thuật Task 4)**:
+  - Cài đặt `rollup-plugin-visualizer` để phân tích bundle.
+  - Cấu hình `manualChunks` trong `vite.config.ts` để tách các thư viện nặng (`react-vendor`, `lucide`, `ai-sdks`, `firebase-vendor`), giảm đáng kể dung lượng file `index.js` chính, tăng tốc độ tải trang cho học sinh.
+- **Nới lỏng Security Rules cho Cổng học sinh**:
+  - Cập nhật `firestore.rules` cho bảng `personalizationCache`: cho phép `allow read, write: if true;` để học sinh ẩn danh (không có token xác thực) vẫn có thể lưu cache bài học phân hóa thành công.
+- **Chuẩn hoá/validate mô phỏng Adaptive (Các bước Phase 2 trước)**:
+  - Đã có `AdaptiveSimulationSpec` validation, External Tool Registry RAG (lọc top-k, bỏ qua ID ảo).
 
 ### 0.0.2 Verification đã chạy
 
 ```bash
-cd /d C:\Users\ADMIN\Downloads\smart-lesson-plan-ai
-npm test -- src/lib/adaptive/phase2BackendSecurity.test.ts
 npm run build
 ```
 
 Kết quả:
-- `phase2BackendSecurity.test.ts`: **PASS 5/5 tests**.
-- `npm run build`: **PASS** production build.
-- Warning còn lại chỉ là Vite warning sẵn có về dynamic/static import và chunk size lớn; không chặn Phase 2.
+- **PASS** production build.
+- Lỗi chunk size lớn đã được giải quyết cơ bản nhờ cấu hình `manualChunks` mới.
 
-### 0.0.3 Lưu ý cho phiên sau
-- Repo đang dùng branch `main`; không có feature branch riêng cần merge. Yêu cầu “merge lên main” đã được xử lý bằng cách commit toàn bộ thay đổi Phase 2 trực tiếp trên `main`.
-- Nếu triển khai production, cần deploy lại `firestore.rules` sau commit này.
-- Nên QA thủ công luồng Adaptive Lesson Builder/Student Portal với các case simulation 2D/3D, HTML fallback và external tool embed.
+### 0.0.3 Rủi ro / Bước tiếp theo
+- **Chiến lược siêu tổng hợp**: Đã có kế hoạch tích hợp sâu 36 tool AI + hệ sinh thái giaovienai + Game tương tác vào 4 lõi chức năng (Tạo giáo án Clone Template, Bài học phân hóa tạo game HTML/JS offline, Chữ viết tay, SlideJ xuất PPTX).
+- **Cần làm**: Bắt đầu triển khai **Phase 3** (hoặc Phase 2 mở rộng) dựa trên tài liệu `artifacts/integration_strategy_report.md`.
 
 ---
 
