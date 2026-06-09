@@ -13,6 +13,8 @@ import { DiagramRenderer } from '../features/creator/DiagramRenderer';
 import { callAI, getActiveApiKey } from '../../lib/aiProviders';
 import { AudioOverview } from '../features/AudioOverview';
 import { PushToDriveModal } from '../modals/PushToDriveModal';
+import { getSkeletonGuardrailDecision, validateMarkdownAgainstSkeleton, GuardrailContext } from '../../lib/documentSkeleton';
+import Swal from 'sweetalert2';
 
 // Subcomponents
 import { CreatorToolbar } from '../features/creator/CreatorToolbar';
@@ -145,6 +147,57 @@ export const CreatorTab = (props: CreatorTabProps) => {
     );
   };
 
+  const handleExportWithGuardrail = async (actionFn: () => void, context: GuardrailContext) => {
+    if (!props.currentPlan.content || props.currentPlan.content.trim().length === 0) {
+      Swal.fire({
+        title: 'Nội dung rỗng',
+        text: 'Nội dung giáo án đang rỗng, không thể thực hiện thao tác này.',
+        icon: 'error',
+        confirmButtonText: 'Đã hiểu'
+      });
+      return;
+    }
+
+    const currentTemplate = props.lessonDocs.find(d => d.id === props.currentPlan.templateId);
+    if (!currentTemplate || !currentTemplate.skeleton) {
+      actionFn();
+      return;
+    }
+
+    const validation = validateMarkdownAgainstSkeleton(props.currentPlan.content, currentTemplate.skeleton);
+    const decision = getSkeletonGuardrailDecision(validation, context);
+
+    if (decision.mode === 'block') {
+      Swal.fire({
+        title: 'Lỗi cấu trúc',
+        text: decision.blockingIssues[0]?.message || 'Nội dung không đủ điều kiện để xuất (rỗng hoặc quá ngắn).',
+        icon: 'error',
+        confirmButtonText: 'Đã hiểu'
+      });
+      return;
+    }
+
+    if (decision.requiresConfirmation) {
+      const issueDetails = decision.confirmationIssues.map(i => `- ${i.message}`).join('\n');
+      const res = await Swal.fire({
+        title: 'Cảnh báo định dạng',
+        html: `<p class="text-sm text-left mb-2">AI có thể chưa giữ đủ cấu trúc (Bảng, Heading, Placeholder) so với mẫu ban đầu:</p><pre class="text-xs text-left text-red-600 bg-red-50 p-2 rounded whitespace-pre-wrap">${issueDetails}</pre><p class="text-sm text-left mt-2 font-bold">Bạn có chắc chắn muốn tiếp tục xuất/lưu?</p>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Tiếp tục xuất',
+        cancelButtonText: 'Quay lại sửa',
+        confirmButtonColor: '#2563eb',
+        cancelButtonColor: '#64748b'
+      });
+      
+      if (!res.isConfirmed) {
+        return;
+      }
+    }
+
+    actionFn();
+  };
+
   const hasResult = (props.generationMode === 'single' && props.currentPlan.content) || (props.generationMode === 'bulk' && props.bulkResults.length > 0);
 
   return (
@@ -248,10 +301,10 @@ export const CreatorTab = (props: CreatorTabProps) => {
                     </button>
                     {props.generationMode === 'single' && (
                        <CreatorToolbar
-                          exportToPDF={props.exportToPDF}
-                          exportToWordA4={(orientation) => exportToWordA4(props.currentPlan, props.showToast, orientation)}
+                          exportToPDF={(orientation) => handleExportWithGuardrail(() => props.exportToPDF(orientation), 'export_pdf')}
+                          exportToWordA4={(orientation) => handleExportWithGuardrail(() => exportToWordA4(props.currentPlan, props.showToast, orientation), 'export_word')}
                           handleGenerateSlide={handleGenerateSlide}
-                          exportToLaTeX={props.exportToLaTeX}
+                          exportToLaTeX={() => handleExportWithGuardrail(props.exportToLaTeX, 'export_latex')}
                           handleGenerateStudyGuide={handleGenerateStudyGuide}
                           setShowAudioOverview={setShowAudioOverview}
                           onCreateExam={props.onCreateExam}

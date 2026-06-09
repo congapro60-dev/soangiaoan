@@ -208,9 +208,27 @@ Warning chunk-size là warning kỹ thuật cũ, không thuộc scope chặn bui
 
 ---
 
+### 0b3. Trạng thái sau Phase 2D (Export/Final Save Guardrails) — 2026-06-10 (Antigravity)
+
+> Nguồn sự thật cho phiên sau: Đã hoàn tất Phase 2D theo lộ trình. Hệ thống có thêm lớp bảo vệ cuối (guardrail) trước khi xuất Word/PDF/LaTeX hoặc lưu vào Thư viện. Guardrail này chặn rỗng, cảnh báo và yêu cầu xác nhận khi thiếu form, nhưng không chặn draft.
+
+#### Hạng mục Phase 2D đã hoàn thành
+1. **Helper `getSkeletonGuardrailDecision`**:
+   - Thêm vào `src/lib/documentSkeleton.ts`. Cung cấp quyết định dựa vào mức độ lỗi (Error -> Block, Warning -> Confirm, Draft -> Soft).
+   - Có unit tests kiểm tra từng flow.
+2. **Thêm Guardrail vào Giáo án (CreatorTab)**:
+   - Viết wrapper `handleExportWithGuardrail` bọc các tính năng: Xuất PDF, Xuất Word, Xuất LaTeX.
+   - Hiển thị pop-up SweetAlert2 yêu cầu xác nhận nếu có warning thiếu Heading, thiếu Bảng, v.v.
+3. **Thêm Guardrail vào Đề thi (TestingTab)**:
+   - Viết wrapper tương tự bảo vệ luồng Lưu Thư viện, Tải PDF, Xuất Word, Xuất LaTeX.
+4. **Build & Test**:
+   - `npm run build` PASS. `npm run test` PASS.
+
+---
+
 ### 0.8 Kế hoạch tổng thể tiếp theo
 
-> Trạng thái cập nhật: Phase 2C đã hoàn tất. Các mục từ Phase 2D trở đi vẫn là **kế hoạch chưa code**. Người dùng yêu cầu ghi rõ kế hoạch vào `HANDOFF.md` để Anti/code agent chỉ việc bám theo khi triển khai. Agent tiếp theo phải đọc mục này trước khi code; không được tự hiểu là các phase dưới đây đã hoàn thành.
+> Trạng thái cập nhật: Phase 2D đã hoàn tất. Các mục từ Phase 2E trở đi vẫn là **kế hoạch chưa code**. Người dùng yêu cầu ghi rõ kế hoạch vào `HANDOFF.md` để Anti/code agent chỉ việc bám theo khi triển khai. Agent tiếp theo phải đọc mục này trước khi code; không được tự hiểu là các phase dưới đây đã hoàn thành.
 
 #### 0.8.1 Nguyên tắc điều phối chung
 - Đi theo checkpoint nhỏ, an toàn: **audit code thật → code lát cắt nhỏ → build/test → cập nhật HANDOFF → Anti QA → sửa theo report → commit/push khi người dùng yêu cầu**.

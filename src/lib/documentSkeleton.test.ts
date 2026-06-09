@@ -4,6 +4,7 @@ import {
   createDocumentSkeleton,
   recalculateSkeletonFromMarkdown,
   validateMarkdownAgainstSkeleton,
+  getSkeletonGuardrailDecision,
 } from './documentSkeleton';
 
 describe('documentSkeleton Phase 2B', () => {
@@ -98,4 +99,62 @@ describe('documentSkeleton Phase 2B', () => {
     expect(skeleton.stats.tableCount).toBe(1);
     expect(skeleton.stats.placeholderCount).toBe(1);
   });
+
+  describe('getSkeletonGuardrailDecision', () => {
+    it('returns soft mode for draft context regardless of issues', () => {
+      const validation = {
+        ok: false,
+        score: 0,
+        issues: [{ level: 'error', type: 'empty_output', message: 'Rỗng' } as any],
+        stats: {} as any
+      };
+      const decision = getSkeletonGuardrailDecision(validation, 'draft');
+      expect(decision.mode).toBe('soft');
+      expect(decision.canProceed).toBe(true);
+    });
+
+    it('returns block mode for export context if there are errors', () => {
+      const validation = {
+        ok: false,
+        score: 0,
+        issues: [
+          { level: 'error', type: 'empty_output', message: 'Rỗng' } as any,
+          { level: 'warning', type: 'missing_heading', message: 'Thiếu' } as any
+        ],
+        stats: {} as any
+      };
+      const decision = getSkeletonGuardrailDecision(validation, 'export_word');
+      expect(decision.mode).toBe('block');
+      expect(decision.canProceed).toBe(false);
+      expect(decision.blockingIssues.length).toBe(1);
+    });
+
+    it('returns confirm mode for export context if there are only warnings', () => {
+      const validation = {
+        ok: true,
+        score: 0.8,
+        issues: [{ level: 'warning', type: 'missing_tables', message: 'Thiếu bảng' } as any],
+        stats: {} as any
+      };
+      const decision = getSkeletonGuardrailDecision(validation, 'export_pdf');
+      expect(decision.mode).toBe('confirm');
+      expect(decision.canProceed).toBe(true);
+      expect(decision.requiresConfirmation).toBe(true);
+      expect(decision.confirmationIssues.length).toBe(1);
+    });
+
+    it('returns soft mode for export context if there are no issues', () => {
+      const validation = {
+        ok: true,
+        score: 1,
+        issues: [],
+        stats: {} as any
+      };
+      const decision = getSkeletonGuardrailDecision(validation, 'final_save');
+      expect(decision.mode).toBe('soft');
+      expect(decision.canProceed).toBe(true);
+      expect(decision.requiresConfirmation).toBe(false);
+    });
+  });
 });
+

@@ -56,6 +56,16 @@ export interface SkeletonValidationResult {
   };
 }
 
+export type GuardrailContext = 'draft' | 'final_save' | 'export_word' | 'export_pdf' | 'export_latex' | 'exam_export';
+
+export interface GuardrailDecision {
+  mode: 'soft' | 'confirm' | 'block';
+  canProceed: boolean;
+  requiresConfirmation: boolean;
+  blockingIssues: SkeletonValidationIssue[];
+  confirmationIssues: SkeletonValidationIssue[];
+}
+
 const MAX_BLOCKS = 80;
 const PLACEHOLDER_PATTERNS = [
   /\[[^\]\n]{1,80}\]/g,
@@ -273,5 +283,49 @@ export const validateMarkdownAgainstSkeleton = (markdown: string, skeleton?: Doc
       expectedPlaceholders: placeholderBlocks.length,
       unfilledPlaceholders,
     },
+  };
+};
+
+export const getSkeletonGuardrailDecision = (validation: SkeletonValidationResult, context: GuardrailContext): GuardrailDecision => {
+  const blockingIssues = validation.issues.filter(i => i.level === 'error');
+  const confirmationIssues = validation.issues.filter(i => i.level === 'warning');
+
+  // Draft mode is always soft
+  if (context === 'draft') {
+    return {
+      mode: 'soft',
+      canProceed: true,
+      requiresConfirmation: false,
+      blockingIssues: [],
+      confirmationIssues: []
+    };
+  }
+
+  if (blockingIssues.length > 0) {
+    return {
+      mode: 'block',
+      canProceed: false,
+      requiresConfirmation: false,
+      blockingIssues,
+      confirmationIssues
+    };
+  }
+
+  if (confirmationIssues.length > 0) {
+    return {
+      mode: 'confirm',
+      canProceed: true,
+      requiresConfirmation: true,
+      blockingIssues: [],
+      confirmationIssues
+    };
+  }
+
+  return {
+    mode: 'soft',
+    canProceed: true,
+    requiresConfirmation: false,
+    blockingIssues: [],
+    confirmationIssues: []
   };
 };
