@@ -186,9 +186,9 @@ Warning chunk-size là warning kỹ thuật cũ, không thuộc scope chặn bui
 ### 0.0.2 Khuyến nghị cho Phase tiếp theo (Phase 2C - Manual Editor)
 - Hệ thống Parser và Validator hiện tại đã rất vững chắc ở chế độ tự động. Việc ưu tiên tiếp theo là bổ sung UI cho phép giáo viên chỉnh sửa Skeleton thủ công trước khi đẩy vào prompt cho AI (đúng như dự kiến ở mục 0.8.3).
 
-### 0.8 Kế hoạch tổng thể tiếp theo để gửi Anti đánh giá — cập nhật 2026-06-10 03:12
+### 0.8 Kế hoạch tổng thể tiếp theo — cập nhật 2026-06-10 03:40
 
-> Trạng thái: **chỉ là kế hoạch, chưa code** sau commit `221754a feat: add phase 2a template skeleton MVP`. Người dùng muốn ghi toàn bộ roadmap vào `HANDOFF.md` để gửi Anti đánh giá và có thể chuyển session khác. Agent tiếp theo phải đọc mục này trước khi code; không được tự hiểu là các phase dưới đây đã hoàn thành.
+> Trạng thái cập nhật: Phase 2B đã hoàn tất ở commit mới nhất trên `main`; các mục Phase 2C trở đi vẫn là **kế hoạch chưa code**. Người dùng yêu cầu ghi rõ kế hoạch Phase 2C vào `HANDOFF.md` để Anti/code agent chỉ việc bám theo khi triển khai. Agent tiếp theo phải đọc mục này trước khi code; không được tự hiểu là các phase dưới đây đã hoàn thành.
 
 #### 0.8.1 Nguyên tắc điều phối chung
 - Đi theo checkpoint nhỏ, an toàn: **audit code thật → code lát cắt nhỏ → build/test → cập nhật HANDOFF → Anti QA → sửa theo report → commit/push khi người dùng yêu cầu**.
@@ -228,17 +228,101 @@ Warning chunk-size là warning kỹ thuật cũ, không thuộc scope chặn bui
    - UI preview/warning giúp giáo viên hiểu rõ skeleton được đọc ra sao.
    - HANDOFF ghi rõ phần nào đã code, phần nào vẫn chưa làm.
 
-#### 0.8.3 Phase 2C — Manual Skeleton Editor & Controlled Override
-**Mục tiêu:** cho giáo viên/chuyên viên chỉnh skeleton trước khi gọi AI, giảm phụ thuộc parser heuristic.
+#### 0.8.3 Phase 2C — Manual Skeleton Editor & Controlled Warning Dismiss
+**Mục tiêu:** cho giáo viên/chuyên viên chỉnh thủ công Markdown Skeleton trước khi gọi AI, giảm phụ thuộc parser heuristic nhưng vẫn giữ phạm vi hẹp: **không làm rich DOCX editor, không sửa layout Word trực tiếp, chỉ sửa skeleton Markdown heading/bảng/placeholder**.
 
-**Việc nên làm:**
-1. Thêm editor nhỏ cho Markdown Skeleton trong `TemplatesTab` hoặc modal preview hiện có.
-2. Cho phép lưu bản skeleton đã chỉnh vào `TemplateFile.skeleton` nhưng vẫn backward-compatible với file cũ.
-3. Thêm nút/luồng: “Khôi phục skeleton tự động” và “Lưu skeleton đã chỉnh”.
-4. Khi validator cảnh báo, cho giáo viên override có chủ ý: ghi chú cảnh báo nhưng không block nháp.
-5. Không làm rich DOCX editor; chỉ chỉnh text Markdown Skeleton.
+> Trạng thái: **kế hoạch chi tiết để Anti/code agent triển khai, chưa code ở mục này**. Phase 2B đã có parser/validator/test nền; Phase 2C phải bám các bước dưới đây để tránh làm lệch flow template hiện hữu.
 
-**DoD:** giáo viên có thể upload file mẫu → xem skeleton → chỉnh skeleton → dùng skeleton chỉnh tay để sinh giáo án/đề → build pass.
+**Quyết định đã chốt cho Phase 2C:**
+- Editor đặt **inline trong `TemplatesTab`**, ngay khu vực đang xem Markdown Skeleton; không mở modal phức tạp.
+- Dùng **`<textarea>` monospace cơ bản**, không kéo thêm markdown editor/rich editor nặng.
+- Lưu skeleton đã chỉnh vào `TemplateFile.skeleton` trong state/app data hiện có, update immutable và giữ backward-compatible với template cũ.
+- “Override Validator” ở Phase 2C chỉ nên hiểu là **Dismiss/Acknowledge warning** trên UI, vì validator hiện vẫn là soft validation. Không gọi là hard override và không persist lên Firestore nếu chưa có nhu cầu rõ.
+- Nút “Khôi phục skeleton tự động” phải có confirm vì thao tác này xoá chỉnh sửa thủ công hiện tại.
+
+**Audit bắt buộc trước khi code:**
+1. Đọc `src/components/tabs/TemplatesTab.tsx` để xác định component/file column đang render preview skeleton, prop hiện có, và nơi phù hợp đặt state `editingFileId`/`editingContent`.
+2. Đọc `src/App.tsx` và/hoặc hook/state quản lý `templates` để xác định đúng nơi update `AppData.templates`; không tạo local-only state khiến reload là mất skeleton đã chỉnh.
+3. Đọc `src/types.ts` để xác nhận shape `TemplateFile`/`DocumentSkeleton`; chỉ mở type nếu thật sự cần, ưu tiên không đổi schema.
+4. Đọc `src/lib/documentSkeleton.ts` và `src/lib/documentSkeleton.test.ts` để tái sử dụng parser/stat/validator từ Phase 2B, không copy regex sang component.
+5. Đọc `src/components/tabs/TestingTab.tsx` để xác định nơi render `skeletonWarnings`/`SkeletonValidationIssue[]` và reset dismiss khi output/template thay đổi.
+
+**Thay đổi đề xuất theo file:**
+
+1. `src/lib/documentSkeleton.ts`
+   - Thêm helper export tên rõ nghĩa, ví dụ:
+     - `createSkeletonFromMarkdown(markdown: string, sourceName?: string): DocumentSkeleton`, hoặc
+     - `recalculateSkeletonFromMarkdown(markdown: string, sourceName?: string): DocumentSkeleton`.
+   - Helper này nhận Markdown do giáo viên chỉnh, parse lại `blocks`, `stats.headingCount`, `stats.tableCount`, `stats.placeholderCount`, và trả về `DocumentSkeleton` hợp lệ.
+   - Không đặt tên `recalculateSkeletonStats` nếu hàm trả về toàn bộ `DocumentSkeleton`, tránh hiểu nhầm chỉ tính stats.
+   - Tái sử dụng logic đếm table cluster/placeholder/heading hiện có từ Phase 2B; nếu cần thì tách helper nội bộ, không nhân đôi regex.
+   - Nếu `DocumentSkeleton` có metadata/source name/createdAt thì preserve hoặc set hợp lý; không làm migration lớn.
+
+2. `src/lib/documentSkeleton.test.ts`
+   - Thêm test cho helper mới:
+     - Markdown có nhiều heading/bảng/placeholder → stats đúng.
+     - Markdown rỗng hoặc chỉ whitespace → không crash; trả skeleton hợp lệ với stats 0 hoặc theo convention hiện có.
+     - Markdown có 2 cụm bảng riêng biệt → `tableCount` đúng theo cluster, không đếm theo dòng.
+   - Chạy ít nhất: `npm run test -- --run src/lib/documentSkeleton.test.ts`.
+
+3. `src/App.tsx` hoặc nơi quản lý `data/setData` thật
+   - Thêm handler, tên gợi ý: `updateTemplateFileSkeleton(templateId: string, fileId: string, skeleton: DocumentSkeleton)` hoặc `updateFileSkeleton(templateId, fileId, newMarkdown)`.
+   - Handler phải update immutable:
+     - map templates;
+     - tìm đúng template/file;
+     - set `file.skeleton = newSkeleton`;
+     - giữ nguyên `file.content`, `file.name`, `file.type`, metadata khác.
+   - Nếu app đang persist `AppData` qua localStorage/Firestore theo state chung, dùng đúng flow hiện có để skeleton chỉnh tay được lưu như các thay đổi template khác.
+   - Truyền handler xuống `TemplatesTab` bằng prop; không để `TemplatesTab` tự mutate data.
+
+4. `src/components/tabs/TemplatesTab.tsx`
+   - Thêm inline editor cho từng file có skeleton:
+     - State tối thiểu: `editingFileId`, `editingContent`, optional `editingError`.
+     - Nút “Sửa skeleton” cạnh “Xem Markdown Skeleton”.
+     - Khi sửa: thay `<pre>` bằng `<textarea className="font-mono">` hoặc tương đương.
+     - Nút “Lưu”: validate nhẹ, gọi helper tạo skeleton từ markdown, gọi handler update app state, thoát edit.
+     - Nút “Hủy”: bỏ thay đổi local, quay lại preview.
+     - Nút “Khôi phục tự động”: `window.confirm(...)`, gọi lại `createDocumentSkeleton(file.content, file.name)` hoặc helper hiện có từ nội dung gốc rồi update state.
+   - Validate nhẹ trước khi lưu:
+     - không cho lưu nếu nội dung rỗng hoàn toàn;
+     - giới hạn độ dài hợp lý, ví dụ 50k–100k ký tự để tránh lag UI/prompt phình;
+     - nếu parse ra 0 heading/0 table thì vẫn có thể cho lưu nhưng hiển thị warning nhẹ, không crash.
+   - UI stats sau khi lưu phải dùng `file.skeleton.stats` mới để badge `[Heading - Bảng - Placeholder]` cập nhật ngay.
+   - Không thêm markdown preview/render HTML từ nội dung người dùng để tránh XSS; chỉ render text trong textarea/pre.
+
+5. `src/components/tabs/TestingTab.tsx`
+   - Đổi ý tưởng “Override Validator” thành **Dismiss/Acknowledge warning**:
+     - Label gợi ý: “Tôi đã đọc và tạm ẩn cảnh báo định dạng này”.
+     - Khi dismiss: làm mờ/thu gọn/ẩn warning list, nhưng không sửa kết quả AI và không đánh dấu lỗi đã được fix.
+   - Không dùng boolean global đơn giản nếu có thể tránh. Nên dùng key theo ngữ cảnh, ví dụ:
+     - `dismissedSkeletonWarningKey` dựa trên template/file id + generated content hash/ngắn gọn + số lượng/type issue;
+     - hoặc reset `dismissedWarnings` mỗi khi generated output/template/skeletonWarnings thay đổi.
+   - Không persist dismissed warning lên Firestore trong Phase 2C; đây chỉ là UI acknowledgement trong phiên làm việc.
+   - Khi output mới được sinh hoặc skeleton source đổi, cảnh báo phải hiện lại để tránh ẩn nhầm lỗi mới.
+
+**Luồng UX mong muốn:**
+1. Giáo viên upload file mẫu → hệ thống tự sinh skeleton như Phase 2A/2B.
+2. Vào `TemplatesTab` → mở “Xem Markdown Skeleton” → bấm “Sửa skeleton”.
+3. Giáo viên chỉnh heading/bảng/placeholder trong textarea → “Lưu skeleton đã chỉnh”.
+4. App parse lại skeleton từ markdown mới → stats/badge cập nhật → prompt giáo án/đề thi dùng skeleton mới.
+5. Nếu muốn quay lại bản tự động → bấm “Khôi phục tự động” → confirm → regenerate từ `file.content`.
+6. Khi AI sinh output còn warning → giáo viên có thể “đã đọc và tạm ẩn cảnh báo”; output/save nháp vẫn không bị block.
+
+**Không làm trong Phase 2C:**
+- Không làm rich DOCX editor, không chỉnh font/margin/header/footer/logo.
+- Không thêm thư viện markdown editor nặng nếu textarea đủ dùng.
+- Không hard-block export/final save; phần guardrail cứng để Phase 2D sau khi audit save/export.
+- Không persist trạng thái dismiss warning lên DB nếu chưa có thiết kế product rõ.
+- Không mở rộng RAG/chunking/SCORM/game/simulation trong checkpoint này.
+
+**Verification/DoD Phase 2C:**
+- `npm run test -- --run src/lib/documentSkeleton.test.ts` PASS.
+- `npm run build` PASS.
+- Manual test 1: upload DOCX/template có skeleton → mở preview → sửa markdown → lưu → badge heading/table/placeholder cập nhật đúng.
+- Manual test 2: bấm “Khôi phục tự động” → có confirm → skeleton quay lại từ `file.content` gốc.
+- Manual test 3: dùng template đã chỉnh để sinh giáo án/đề → prompt/validator dùng skeleton mới, không dùng skeleton cũ.
+- Manual test 4: Testing warning hiện → dismiss warning → warning mờ/ẩn; sinh output mới hoặc đổi template thì warning hiện lại.
+- HANDOFF phải được cập nhật sau khi code xong Phase 2C, ghi rõ file đã sửa, test/build đã chạy, và phần nào còn để Phase 2D.
 
 #### 0.8.4 Phase 2D — Export/Final Save Guardrails cho Clone Template
 **Mục tiêu:** kiểm soát thời điểm xuất/lưu cuối cùng tốt hơn, nhưng không làm validator quá cứng trong lúc sinh nháp.
