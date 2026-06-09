@@ -1,3 +1,23 @@
+export interface Student {
+  id: string;
+  name: string;
+  code: string;
+  progress: number;
+  status: 'active' | 'needs_support' | 'excellent';
+}
+
+export interface TeacherClass {
+  id: string;
+  name: string;
+  track: string;
+  grade: string;
+  studentCount: number;
+  activeAssignments: number;
+  progress: number;
+  tone: 'primary' | 'secondary' | 'tertiary' | 'warning';
+  students: Student[];
+}
+
 export interface Subject {
   id: string;
   name: string;
@@ -191,6 +211,7 @@ export interface AppData {
   };
   gradingSessions: GradingSession[];
   exams: Exam[];
+  classes: TeacherClass[];
 }
 
 export const DEFAULT_DATA: AppData = {
@@ -224,4 +245,5 @@ export const DEFAULT_DATA: AppData = {
   },
   gradingSessions: [],
   exams: [],
+  classes: [],
 };

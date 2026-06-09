@@ -358,7 +358,7 @@ export default function App() {
             )}
 
             {activeTab === 'classes' && (
-              <ClassesTab />
+              <ClassesTab data={data} setData={setData} />
             )}
 
             {activeTab === 'creator' && (

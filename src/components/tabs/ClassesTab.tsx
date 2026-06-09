@@ -1,5 +1,11 @@
 import { useMemo, useState } from 'react';
 import Swal from 'sweetalert2';
+import { AppData, Student, TeacherClass } from '../../types';
+
+interface ClassesTabProps {
+  data: AppData;
+  setData: (data: any) => void;
+}
 import {
   BarChart3,
   BookOpenCheck,
@@ -16,72 +22,7 @@ import {
   Users,
 } from 'lucide-react';
 
-interface Student {
-  id: string;
-  name: string;
-  code: string;
-  progress: number;
-  status: 'active' | 'needs_support' | 'excellent';
-}
 
-interface TeacherClass {
-  id: string;
-  name: string;
-  track: string;
-  grade: string;
-  studentCount: number;
-  activeAssignments: number;
-  progress: number;
-  tone: 'primary' | 'secondary' | 'tertiary' | 'warning';
-  students: Student[];
-}
-
-const initialClasses: TeacherClass[] = [
-  {
-    id: '11a1',
-    name: 'Lớp 11A1',
-    track: 'Khối Tự nhiên',
-    grade: '11',
-    studentCount: 42,
-    activeAssignments: 3,
-    progress: 78,
-    tone: 'primary',
-    students: [
-      { id: 'hs-001', name: 'Nguyễn Minh Anh', code: '11A1-01', progress: 92, status: 'excellent' },
-      { id: 'hs-002', name: 'Trần Gia Bảo', code: '11A1-02', progress: 76, status: 'active' },
-      { id: 'hs-003', name: 'Lê Hoàng Nam', code: '11A1-03', progress: 58, status: 'needs_support' },
-    ],
-  },
-  {
-    id: '10c2',
-    name: 'Lớp 10C2',
-    track: 'Khối Xã hội',
-    grade: '10',
-    studentCount: 38,
-    activeAssignments: 0,
-    progress: 65,
-    tone: 'secondary',
-    students: [
-      { id: 'hs-004', name: 'Phạm Thảo Vy', code: '10C2-01', progress: 81, status: 'active' },
-      { id: 'hs-005', name: 'Đỗ Nhật Minh', code: '10C2-02', progress: 69, status: 'active' },
-    ],
-  },
-  {
-    id: '12b5',
-    name: 'Lớp 12B5',
-    track: 'Lớp Nâng cao',
-    grade: '12',
-    studentCount: 35,
-    activeAssignments: 5,
-    progress: 92,
-    tone: 'warning',
-    students: [
-      { id: 'hs-006', name: 'Vũ Bảo Châu', code: '12B5-01', progress: 96, status: 'excellent' },
-      { id: 'hs-007', name: 'Hoàng Đức Anh', code: '12B5-02', progress: 88, status: 'excellent' },
-      { id: 'hs-008', name: 'Bùi Khánh Linh', code: '12B5-03', progress: 73, status: 'active' },
-    ],
-  },
-];
 
 const toneMap: Record<TeacherClass['tone'], { avatar: string; bar: string; badge: string }> = {
   primary: { avatar: 'bg-blue-50 text-blue-700', bar: 'bg-blue-600', badge: 'bg-blue-50 text-blue-700' },
@@ -96,9 +37,10 @@ const statusLabel: Record<Student['status'], { label: string; className: string 
   excellent: { label: 'Xuất sắc', className: 'bg-emerald-50 text-emerald-700' },
 };
 
-export const ClassesTab = () => {
-  const [classes, setClasses] = useState<TeacherClass[]>(initialClasses);
-  const [selectedClassId, setSelectedClassId] = useState(initialClasses[0]?.id || '');
+export const ClassesTab = ({ data, setData }: ClassesTabProps) => {
+  const classes = data.classes || [];
+  const [selectedClassId, setSelectedClassId] = useState(classes[0]?.id || '');
+
   const [query, setQuery] = useState('');
 
   const selectedClass = classes.find((item) => item.id === selectedClassId) || classes[0];
@@ -142,7 +84,10 @@ export const ClassesTab = () => {
       tone: 'tertiary',
       students: [],
     };
-    setClasses((prev) => [newClass, ...prev]);
+    setData((prev: AppData) => ({
+      ...prev,
+      classes: [newClass, ...(prev.classes || [])],
+    }));
     setSelectedClassId(newClass.id);
   };
 
@@ -160,17 +105,23 @@ export const ClassesTab = () => {
       }),
     });
     if (!value?.name) return;
-    setClasses((prev) => prev.map((item) => {
-      if (item.id !== selectedClass.id) return item;
-      const nextStudent: Student = {
-        id: `student-${Date.now()}`,
-        name: value.name,
-        code: value.code || `${item.name.replace(/\s+/g, '')}-${item.students.length + 1}`,
-        progress: 0,
-        status: 'active',
+    setData((prev: AppData) => {
+      const existingClasses = prev.classes || [];
+      return {
+        ...prev,
+        classes: existingClasses.map((item) => {
+          if (item.id !== selectedClass.id) return item;
+          const nextStudent: Student = {
+            id: `student-${Date.now()}`,
+            name: value.name,
+            code: value.code || `${item.name.replace(/\s+/g, '')}-${item.students.length + 1}`,
+            progress: 0,
+            status: 'active',
+          };
+          return { ...item, students: [nextStudent, ...item.students], studentCount: item.studentCount + 1 };
+        }),
       };
-      return { ...item, students: [nextStudent, ...item.students], studentCount: item.studentCount + 1 };
-    }));
+    });
   };
 
   return (
