@@ -145,7 +145,7 @@ function processVisualAids(content: string): string {
   result = result.replace(/(?:```(?:latex|tikz|tex)\s*)?(?:latex|tikz|tex)?\s*(\\begin\{tikzpicture\}[\s\S]*?\\end\{tikzpicture\})(?:\s*```)?/gi, (match, tikz) => {
     let finalTikz = tikz;
     if (!finalTikz.includes('\\documentclass')) {
-      finalTikz = `\\documentclass[tikz,border=2mm]{standalone}\n\\usepackage{pgfplots}\n\\pgfplotsset{compat=1.18}\n\\begin{document}\n${finalTikz}\n\\end{document}`;
+      finalTikz = `\\documentclass[tikz,border=2mm]{standalone}\n\\usepackage[dvipsnames]{xcolor}\n\\definecolor{indigo}{RGB}{75,0,130}\n\\usepackage{pgfplots}\n\\pgfplotsset{compat=1.18}\n\\begin{document}\n${finalTikz}\n\\end{document}`;
     }
     const encoded = encodeKroki(finalTikz);
     return `<div style="text-align: center; margin: 10px 0;"><img src="https://kroki.io/tikz/svg/${encoded}" style="max-width: 100%; height: auto;" /></div>`;

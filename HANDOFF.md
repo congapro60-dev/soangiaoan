@@ -16,6 +16,23 @@
 
 ---
 
+## 0. Trạng thái mới nhất — 2026-06-09 (Antigravity): Cập nhật Giao diện Phase 2 & Tích hợp Dữ liệu Thật cho Lớp Học
+
+> Nguồn sự thật mới nhất cho phiên sau: Hoàn tất việc đồng bộ giao diện Stitch (dùng Semantic Tailwind tokens) và đấu nối `ClassesTab.tsx` vào dữ liệu thật (Firebase/AppData). Đã push lên `main`.
+
+### 0.0.1 Phạm vi thay đổi chính
+- **Chuẩn hóa Giao diện (CSS Refactor)**:
+  - Cập nhật đồng loạt các file: `LessonContentBoard.tsx`, `GradingNewSession.tsx`, `GradingTab.tsx`, `ClassesTab.tsx`, `SettingsModal.tsx`, `ExamsTab.tsx`, `CreatorTab.tsx`, và `AIToolsTab.tsx`.
+  - Loại bỏ mã màu HEX cứng (như `#005ea1`, `#0d1c2e`) thay bằng biến Semantic Tailwind (`bg-primary`, `text-slate-800`, `border-slate-200`) để đồng bộ với `index.css`.
+  - Sửa lỗi typography "giáo viên" bị ngắt dòng trong `AIToolsTab.tsx` bằng non-breaking space (`&nbsp;`).
+- **Tích hợp Dữ liệu Thật cho "Quản lý Lớp học" (`ClassesTab.tsx`)**:
+  - Đập bỏ dữ liệu giả (fake mockup data) do bộ phận UI dựng.
+  - Khai báo interface `Student` và `TeacherClass` vào `src/types.ts`.
+  - Thêm thực thể `classes` vào cấu trúc lõi `AppData` và `DEFAULT_DATA`.
+  - Kết nối luồng dữ liệu hai chiều (data/setData) từ `App.tsx` xuống `ClassesTab.tsx`. Các thao tác tạo lớp, thêm học sinh hiện tại đã lưu thẳng vào state dùng chung và đồng bộ Firebase Real-time.
+
+---
+
 ## 0. Trạng thái mới nhất — 2026-06-08 (Antigravity): Tích hợp Render Ảnh (Visual Aids) vào Export Word/PDF
 
 > Nguồn sự thật mới nhất cho phiên sau: Vừa hoàn tất việc tái cấu trúc hệ thống xuất file PDF/Word để hỗ trợ render hình ảnh SVG và TikZ được tạo bởi AI. Đã push lên \`main\`.
