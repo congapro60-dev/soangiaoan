@@ -192,6 +192,18 @@ export const createDocumentSkeleton = (content: string, sourceName?: string): Do
   return { sourceName, blocks, markdown: makeMarkdown(blocks), stats };
 };
 
+export const recalculateSkeletonFromMarkdown = (markdown: string, sourceName?: string): DocumentSkeleton => {
+  const blocks = parseMarkdownOrTextSkeleton(markdown);
+  const stats = {
+    headingCount: blocks.filter(block => block.type === 'heading').length,
+    tableCount: blocks.filter(block => block.type === 'table').length,
+    placeholderCount: blocks.filter(block => block.type === 'placeholder').length,
+  };
+  // We keep the user's explicitly provided markdown, but parse it into blocks to get updated stats.
+  return { sourceName, blocks, markdown, stats };
+};
+
+
 export const buildSkeletonPromptSection = (skeleton?: DocumentSkeleton | null): string => {
   if (!skeleton || skeleton.blocks.length === 0) return '';
   return `\n===== MARKDOWN SKELETON BẮT BUỘC GIỮ =====\nMVP Phase 2A/2B yêu cầu giữ heading, cụm bảng và placeholder theo skeleton Markdown dưới đây. Không cần fidelity DOCX cao, không xử lý header/footer/logo.\nKhi tạo nội dung, hãy điền nội dung chuyên môn vào đúng các heading/bảng/placeholder, không tự ý đổi tên heading chính hoặc bỏ bảng.\n\n${skeleton.markdown}\n===== HẾT MARKDOWN SKELETON =====\n`;

@@ -44,7 +44,7 @@ export default function App() {
   const { user, isAuthLoading, handleLogin, handleLogout, handleDemoLogin, showToast } = useAuth();
   const {
     data, setData, communityPlans, isLoading, setIsLoading,
-    fetchCommunityPlans, updateTemplate, addTemplate, deleteTemplate, deleteFile,
+    fetchCommunityPlans, updateTemplate, updateTemplateFileSkeleton, addTemplate, deleteTemplate, deleteFile,
     setAuthorName, addDistribution, deleteDistribution,
     loadMorePlans, hasMorePlans, loadMoreCommunity, hasMoreCommunity,
     saveGradingSession, deleteGradingSession, deleteGradingResult,
@@ -478,6 +478,7 @@ export default function App() {
                 }}
                 deleteTemplate={id => Swal.fire({title: 'Xóa mẫu?', showCancelButton: true}).then(res => { if (res.isConfirmed) deleteTemplate(id); })}
                 deleteFile={(tId, fId) => deleteFile(tId, fId)}
+                updateFileSkeleton={updateTemplateFileSkeleton}
               />
             )}
 

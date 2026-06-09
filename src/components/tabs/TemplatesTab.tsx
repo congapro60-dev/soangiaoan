@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'motion/react';
 import {
   Plus,
@@ -24,6 +25,7 @@ interface TemplatesTabProps {
   deleteFile: (templateId: string, fileId: string) => void;
   setUploadingFiles: (val: { category: TemplateFile['category']; templateId?: string } | null) => void;
   fileInputRef: React.RefObject<HTMLInputElement>;
+  updateFileSkeleton?: (templateId: string, fileId: string, skeleton: import('../../lib/documentSkeleton').DocumentSkeleton) => Promise<void>;
 }
 
 export const TemplatesTab = ({
@@ -32,7 +34,8 @@ export const TemplatesTab = ({
   deleteTemplate,
   deleteFile,
   setUploadingFiles,
-  fileInputRef
+  fileInputRef,
+  updateFileSkeleton
 }: TemplatesTabProps) => {
   const templates = data.templates || [];
   const totalFiles = templates.reduce((sum, tpl) => sum + (tpl.files?.length || 0), 0);
@@ -156,6 +159,8 @@ export const TemplatesTab = ({
                   files={sampleFiles}
                   onUpload={() => uploadFile('sample', tpl.id)}
                   onDelete={(fileId) => deleteFile(tpl.id, fileId)}
+                  templateId={tpl.id}
+                  updateFileSkeleton={updateFileSkeleton}
                 />
 
                 <TemplateFileColumn
@@ -168,6 +173,8 @@ export const TemplatesTab = ({
                   files={criteriaFiles}
                   onUpload={() => uploadFile('criteria', tpl.id)}
                   onDelete={(fileId) => deleteFile(tpl.id, fileId)}
+                  templateId={tpl.id}
+                  updateFileSkeleton={updateFileSkeleton}
                 />
               </div>
             </motion.article>
@@ -206,6 +213,8 @@ interface TemplateFileColumnProps {
   files: TemplateFile[];
   onUpload: () => void;
   onDelete: (fileId: string) => void;
+  templateId: string;
+  updateFileSkeleton?: (templateId: string, fileId: string, skeleton: import('../../lib/documentSkeleton').DocumentSkeleton) => Promise<void>;
 }
 
 const TemplateFileColumn = ({
@@ -218,66 +227,130 @@ const TemplateFileColumn = ({
   files,
   onUpload,
   onDelete,
-}: TemplateFileColumnProps) => (
-  <div className="rounded-3xl border border-[#e6edf7] bg-[#f8f9ff] p-4">
-    <div className="mb-4 flex items-start justify-between gap-3">
-      <div className="min-w-0">
-        <h4 className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-[#414751]">
-          <Icon size={15} className={fileTone} /> {title}
-        </h4>
-        <p className="mt-1 text-xs leading-5 text-[#717782]">{description}</p>
-      </div>
-      <button
-        onClick={onUpload}
-        className={`shrink-0 rounded-2xl p-2.5 transition ${uploadTone}`}
-        title={`Tải lên ${title.toLowerCase()}`}
-      >
-        <Upload size={15} />
-      </button>
-    </div>
+  templateId,
+  updateFileSkeleton,
+}: TemplateFileColumnProps) => {
+  const [editingFileId, setEditingFileId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState<string>('');
 
-    <div className="space-y-2">
-      {files.map(file => (
-        <div key={file.id} className="group/file rounded-2xl border border-white bg-white p-3 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-2">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#f0f3ff]">
-                <FileUp size={14} className={fileTone} />
+  const handleEdit = (file: TemplateFile) => {
+    setEditingFileId(file.id);
+    setEditingContent(file.skeleton?.markdown || '');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingFileId(null);
+    setEditingContent('');
+  };
+
+  const handleSaveEdit = async (file: TemplateFile) => {
+    if (!updateFileSkeleton) return;
+    const { recalculateSkeletonFromMarkdown } = await import('../../lib/documentSkeleton');
+    const newSkeleton = recalculateSkeletonFromMarkdown(editingContent, file.name);
+    await updateFileSkeleton(templateId, file.id, newSkeleton);
+    setEditingFileId(null);
+  };
+
+  const handleReset = async (file: TemplateFile) => {
+    if (!updateFileSkeleton) return;
+    if (!window.confirm('Khôi phục skeleton về bản gốc tự động từ file (sẽ xoá các thay đổi thủ công)?')) return;
+    const { createDocumentSkeleton } = await import('../../lib/documentSkeleton');
+    const resetSkeleton = createDocumentSkeleton(file.content, file.name);
+    await updateFileSkeleton(templateId, file.id, resetSkeleton);
+    setEditingFileId(null);
+  };
+
+  return (
+    <div className="rounded-3xl border border-[#e6edf7] bg-[#f8f9ff] p-4">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h4 className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-[#414751]">
+            <Icon size={15} className={fileTone} /> {title}
+          </h4>
+          <p className="mt-1 text-xs leading-5 text-[#717782]">{description}</p>
+        </div>
+        <button
+          onClick={onUpload}
+          className={`shrink-0 rounded-2xl p-2.5 transition ${uploadTone}`}
+          title={`Tải lên ${title.toLowerCase()}`}
+        >
+          <Upload size={15} />
+        </button>
+      </div>
+
+      <div className="space-y-2">
+        {files.map(file => {
+          const isEditing = editingFileId === file.id;
+
+          return (
+            <div key={file.id} className="group/file rounded-2xl border border-white bg-white p-3 shadow-sm">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#f0f3ff]">
+                    <FileUp size={14} className={fileTone} />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="block truncate text-xs font-bold text-[#414751]">{file.name}</span>
+                    {file.skeleton && (
+                      <span className="mt-0.5 block text-[10px] font-black uppercase tracking-[0.08em] text-[#005ea1]">
+                        Skeleton: {file.skeleton.stats.headingCount} heading · {file.skeleton.stats.tableCount} bảng · {file.skeleton.stats.placeholderCount} placeholder
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={() => onDelete(file.id)}
+                  className="rounded-lg p-1.5 text-[#9aa3af] opacity-100 transition hover:bg-red-50 hover:text-red-600 sm:opacity-0 sm:group-hover/file:opacity-100"
+                  title="Xóa tệp"
+                >
+                  <X size={13} />
+                </button>
               </div>
-              <div className="min-w-0">
-                <span className="block truncate text-xs font-bold text-[#414751]">{file.name}</span>
-                {file.skeleton && (
-                  <span className="mt-0.5 block text-[10px] font-black uppercase tracking-[0.08em] text-[#005ea1]">
-                    Skeleton: {file.skeleton.stats.headingCount} heading · {file.skeleton.stats.tableCount} bảng · {file.skeleton.stats.placeholderCount} placeholder
-                  </span>
-                )}
-              </div>
+              {file.skeleton && (
+                <details className="mt-2 rounded-xl border border-[#e6edf7] bg-[#f8f9ff] px-3 py-2" open={isEditing ? true : undefined}>
+                  <summary className="cursor-pointer text-[11px] font-black uppercase tracking-[0.08em] text-[#717782] flex items-center justify-between">
+                    <span>Xem Markdown Skeleton</span>
+                    {!isEditing && (
+                      <button 
+                        onClick={(e) => { e.preventDefault(); e.currentTarget.parentElement?.parentElement?.setAttribute('open', ''); handleEdit(file); }}
+                        className="text-[#005ea1] hover:underline"
+                      >
+                        Sửa
+                      </button>
+                    )}
+                  </summary>
+                  
+                  {isEditing ? (
+                    <div className="mt-2 space-y-2">
+                      <textarea
+                        value={editingContent}
+                        onChange={(e) => setEditingContent(e.target.value)}
+                        className="w-full h-48 rounded-lg border border-[#c0c7d3] bg-white p-3 text-[11px] leading-5 text-[#414751] font-mono focus:border-[#005ea1] focus:ring-1 focus:ring-[#005ea1] outline-none"
+                        placeholder="Nhập markdown skeleton..."
+                      />
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => handleSaveEdit(file)} className="px-3 py-1.5 bg-[#005ea1] text-white rounded text-xs font-bold hover:bg-[#2178c3]">Lưu</button>
+                        <button onClick={handleCancelEdit} className="px-3 py-1.5 bg-[#f0f3ff] text-[#414751] rounded text-xs font-bold hover:bg-[#e6edf7]">Hủy</button>
+                        <button onClick={() => handleReset(file)} className="ml-auto px-3 py-1.5 bg-amber-50 text-amber-700 rounded text-xs font-bold hover:bg-amber-100">Khôi phục tự động</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap rounded-lg bg-white p-3 text-[11px] leading-5 text-[#414751]">
+                      {file.skeleton.markdown}
+                    </pre>
+                  )}
+                </details>
+              )}
             </div>
-            <button
-              onClick={() => onDelete(file.id)}
-              className="rounded-lg p-1.5 text-[#9aa3af] opacity-100 transition hover:bg-red-50 hover:text-red-600 sm:opacity-0 sm:group-hover/file:opacity-100"
-              title="Xóa tệp"
-            >
-              <X size={13} />
-            </button>
+          );
+        })}
+        {files.length === 0 && (
+          <div className="rounded-2xl border-2 border-dashed border-[#dbe5f2] bg-white/70 px-3 py-6 text-center text-xs font-bold text-[#9aa3af]">
+            {emptyText}
           </div>
-          {file.skeleton && (
-            <details className="mt-2 rounded-xl border border-[#e6edf7] bg-[#f8f9ff] px-3 py-2">
-              <summary className="cursor-pointer text-[11px] font-black uppercase tracking-[0.08em] text-[#717782]">
-                Xem Markdown Skeleton
-              </summary>
-              <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap rounded-lg bg-white p-3 text-[11px] leading-5 text-[#414751]">
-                {file.skeleton.markdown}
-              </pre>
-            </details>
-          )}
-        </div>
-      ))}
-      {files.length === 0 && (
-        <div className="rounded-2xl border-2 border-dashed border-[#dbe5f2] bg-white/70 px-3 py-6 text-center text-xs font-bold text-[#9aa3af]">
-          {emptyText}
-        </div>
-      )}
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
+

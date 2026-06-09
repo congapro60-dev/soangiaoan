@@ -183,12 +183,34 @@ Warning chunk-size là warning kỹ thuật cũ, không thuộc scope chặn bui
 5. **Production Build**:
    - Chạy `npm run build` thành công, không gặp lỗi compile sau khi update Phase 2B.
 
-### 0.0.2 Khuyến nghị cho Phase tiếp theo (Phase 2C - Manual Editor)
-- Hệ thống Parser và Validator hiện tại đã rất vững chắc ở chế độ tự động. Việc ưu tiên tiếp theo là bổ sung UI cho phép giáo viên chỉnh sửa Skeleton thủ công trước khi đẩy vào prompt cho AI (đúng như dự kiến ở mục 0.8.3).
+### 0.0.2 Khuyến nghị cho Phase tiếp theo (Phase 2D - Guardrails)
+- Đã hoàn tất Phase 2C với Manual Editor và Warning Dismiss. Tiếp theo cần tập trung vào kiểm soát quá trình lưu và xuất file (Phase 2D).
 
-### 0.8 Kế hoạch tổng thể tiếp theo — cập nhật 2026-06-10 03:40
+### 0b2. Trạng thái sau Phase 2C (Manual Skeleton Editor) — 2026-06-10 (Antigravity)
 
-> Trạng thái cập nhật: Phase 2B đã hoàn tất ở commit mới nhất trên `main`; các mục Phase 2C trở đi vẫn là **kế hoạch chưa code**. Người dùng yêu cầu ghi rõ kế hoạch Phase 2C vào `HANDOFF.md` để Anti/code agent chỉ việc bám theo khi triển khai. Agent tiếp theo phải đọc mục này trước khi code; không được tự hiểu là các phase dưới đây đã hoàn thành.
+> Nguồn sự thật cho phiên sau: Đã hoàn tất Phase 2C theo lộ trình. Editor thủ công cho Skeleton đã được thêm vào UI, cùng với khả năng bỏ qua cảnh báo trên màn hình kiểm thử.
+
+#### Hạng mục Phase 2C đã hoàn thành
+1. **Helper `recalculateSkeletonFromMarkdown`**:
+   - Thêm vào `src/lib/documentSkeleton.ts` để parse lại markdown thủ công thành cấu trúc Skeleton với số liệu (stats) chính xác.
+   - Thêm Unit Tests trong `src/lib/documentSkeleton.test.ts` để đảm bảo tính chính xác (PASS).
+2. **Quản lý State `updateTemplateFileSkeleton`**:
+   - Thêm handler vào `src/hooks/useAppState.ts` và truyền qua `App.tsx` xuống `TemplatesTab.tsx`.
+   - Update immutable `TemplateFile.skeleton` trên state và đồng bộ lên Firebase Firestore nếu user đã đăng nhập.
+3. **Manual Skeleton Editor trong `TemplatesTab.tsx`**:
+   - Bổ sung Textarea cho phép chỉnh sửa nội dung Skeleton trực tiếp (Inline Editing).
+   - Có nút **Lưu** (parse lại và cập nhật state), **Hủy** (bỏ thay đổi), và **Khôi phục tự động** (parse lại từ nội dung file gốc).
+4. **Dismiss Warning trong `TestingTab.tsx`**:
+   - Cung cấp checkbox "Tôi đã đọc và tạm ẩn cảnh báo định dạng này" để thu gọn (dismiss) cảnh báo nếu giáo viên chấp nhận nội dung AI sinh ra.
+   - Reset trạng thái dismiss mỗi khi sinh kết quả AI mới.
+5. **Build & Test**:
+   - `npm run build` PASS với exit code 0.
+
+---
+
+### 0.8 Kế hoạch tổng thể tiếp theo
+
+> Trạng thái cập nhật: Phase 2C đã hoàn tất. Các mục từ Phase 2D trở đi vẫn là **kế hoạch chưa code**. Người dùng yêu cầu ghi rõ kế hoạch vào `HANDOFF.md` để Anti/code agent chỉ việc bám theo khi triển khai. Agent tiếp theo phải đọc mục này trước khi code; không được tự hiểu là các phase dưới đây đã hoàn thành.
 
 #### 0.8.1 Nguyên tắc điều phối chung
 - Đi theo checkpoint nhỏ, an toàn: **audit code thật → code lát cắt nhỏ → build/test → cập nhật HANDOFF → Anti QA → sửa theo report → commit/push khi người dùng yêu cầu**.

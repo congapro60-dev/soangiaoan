@@ -337,6 +337,31 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
     }
   };
 
+  const updateTemplateFileSkeleton = async (templateId: string, fileId: string, skeleton: import('../lib/documentSkeleton').DocumentSkeleton) => {
+    let nextFiles: LessonTemplate['files'] | null = null;
+
+    setData(prev => {
+      const currentTemplates = prev.templates || [];
+      const newTemplates = currentTemplates.map(t => {
+        if (t.id !== templateId) return t;
+        nextFiles = (t.files || []).map(f => {
+          if (f.id !== fileId) return f;
+          return { ...f, skeleton };
+        });
+        return { ...t, files: nextFiles };
+      });
+      return { ...prev, templates: newTemplates };
+    });
+
+    if (user && nextFiles) {
+      try {
+        await setDoc(doc(db, 'userTemplates', templateId), { files: nextFiles, userId: user.uid }, { merge: true });
+      } catch (e) {
+        console.error("Lỗi cập nhật skeleton Cloud", e);
+      }
+    }
+  };
+
   const saveGradingSession = async (session: GradingSession) => {
     setData(prev => ({
       ...prev,
@@ -401,6 +426,7 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
     addTemplate,
     deleteTemplate,
     updateTemplate,
+    updateTemplateFileSkeleton,
     deleteFile,
     fetchCommunityPlans,
     loadMorePlans,

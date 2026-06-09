@@ -94,6 +94,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
   const [isRefining, setIsRefining] = useState(false);
   const [docModalEntry, setDocModalEntry] = useState<HistoryEntry | null>(null);
   const [skeletonWarnings, setSkeletonWarnings] = useState<SkeletonValidationIssue[]>([]);
+  const [isWarningDismissed, setIsWarningDismissed] = useState(false);
 
   // Tự xóa entries hết hạn khi mount
   useEffect(() => {
@@ -324,6 +325,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
     setIsLoading(true);
     setTestResult(null);
     setSkeletonWarnings([]);
+    setIsWarningDismissed(false);
     setProcessStatus('Đang chuẩn bị và gửi AI...');
 
     try {
@@ -663,17 +665,38 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
               </motion.div>
             )}
 
-            {skeletonWarnings.length > 0 && (
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-[11px] text-amber-800 space-y-1">
-                <div className="font-black flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Cảnh báo giữ định dạng mẫu</div>
-                {skeletonWarnings.slice(0, 3).map((warning, idx) => (
-                  <div key={idx} className="flex items-start gap-1.5">
-                    <span className={`mt-0.5 rounded px-1 py-0.5 text-[9px] font-black uppercase ${warning.level === 'error' ? 'bg-red-100 text-red-700' : warning.level === 'info' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
-                      {warning.level}
-                    </span>
-                    <span>{warning.message}</span>
+            {skeletonWarnings.length > 0 && !isWarningDismissed && (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-[11px] text-amber-800 space-y-2">
+                <div className="font-black flex items-center justify-between gap-1">
+                  <div className="flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" /> Cảnh báo định dạng mẫu
                   </div>
-                ))}
+                </div>
+                <div className="space-y-1">
+                  {skeletonWarnings.slice(0, 3).map((warning, idx) => (
+                    <div key={idx} className="flex items-start gap-1.5">
+                      <span className={`mt-0.5 rounded px-1 py-0.5 text-[9px] font-black uppercase ${warning.level === 'error' ? 'bg-red-100 text-red-700' : warning.level === 'info' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
+                        {warning.level}
+                      </span>
+                      <span>{warning.message}</span>
+                    </div>
+                  ))}
+                </div>
+                <label className="flex items-center gap-2 mt-2 pt-2 border-t border-amber-200/50 cursor-pointer text-[10px] font-bold text-amber-700 hover:text-amber-900 transition-colors">
+                  <input type="checkbox" className="rounded text-primary border-amber-300 focus:ring-primary focus:ring-offset-0" onChange={(e) => { if(e.target.checked) setIsWarningDismissed(true); }} />
+                  Tôi đã đọc và tạm ẩn cảnh báo định dạng này
+                </label>
+              </div>
+            )}
+            {skeletonWarnings.length > 0 && isWarningDismissed && (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-2 text-[10px] text-slate-500 flex items-center justify-between">
+                <div className="flex items-center gap-1.5 opacity-70">
+                  <CheckCircle2 className="w-3 h-3 text-slate-400" />
+                  <span>Đã ẩn cảnh báo định dạng ({skeletonWarnings.length} vấn đề)</span>
+                </div>
+                <button onClick={() => setIsWarningDismissed(false)} className="text-[#005ea1] font-bold hover:underline">
+                  Xem lại
+                </button>
               </div>
             )}
           </div>

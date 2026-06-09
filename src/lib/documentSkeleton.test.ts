@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   countMarkdownTableClusters,
   createDocumentSkeleton,
+  recalculateSkeletonFromMarkdown,
   validateMarkdownAgainstSkeleton,
 } from './documentSkeleton';
 
@@ -78,5 +79,23 @@ describe('documentSkeleton Phase 2B', () => {
 
     expect(result.ok).toBe(false);
     expect(result.issues[0]).toEqual(expect.objectContaining({ level: 'error', type: 'empty_output' }));
+  });
+
+  it('recalculates skeleton correctly from modified markdown', () => {
+    const manualMarkdown = [
+      '# Tiêu đề mới',
+      '## Phần 1',
+      '| Cột A | Cột B |',
+      '|---|---|',
+      '| 1 | [nội dung] |',
+    ].join('\n');
+
+    const skeleton = recalculateSkeletonFromMarkdown(manualMarkdown, 'manual.txt');
+
+    expect(skeleton.sourceName).toBe('manual.txt');
+    expect(skeleton.markdown).toBe(manualMarkdown); // Keeps the exact markdown string
+    expect(skeleton.stats.headingCount).toBe(2);
+    expect(skeleton.stats.tableCount).toBe(1);
+    expect(skeleton.stats.placeholderCount).toBe(1);
   });
 });
