@@ -88,13 +88,33 @@ export const getProviderModel = (provider: ApiProvider, modelId: string): Provid
   PROVIDER_CONFIG_MAP[provider]?.models.find(model => model.id === modelId)
 );
 
+const TAG_TRANSLATIONS: Record<string, string> = {
+  'reasoning': 'suy luận',
+  'vision': 'đọc ảnh',
+  'coding': 'lập trình',
+  'flagship': 'cao cấp',
+  'preview': 'thử nghiệm',
+  'fast': 'siêu tốc',
+  'cheap': 'tiết kiệm',
+  'generateContent': 'viết bài',
+  'premium': 'bản Pro',
+  'multimodal': 'đa phương tiện',
+  'audio': 'âm thanh',
+  'video': 'video',
+  'search': 'tìm kiếm web',
+  'math': 'toán học',
+  'safety': 'an toàn',
+  '1M-ctx': '1M ngữ cảnh',
+  '2M-ctx': '2M ngữ cảnh'
+};
+
 export const toModelOption = (model: ProviderModel) => ({
   id: model.id,
   name: model.name,
   desc: [
-    model.isLatest ? 'Latest' : undefined,
-    model.isPreview ? 'Preview' : undefined,
-    model.tags?.filter(tag => tag !== 'tracker').slice(0, 4).join(' · '),
-    `${model.contextWindow.toLocaleString('vi-VN')} ctx`,
+    model.isLatest ? 'Mới nhất' : undefined,
+    model.isPreview ? 'Bản thử nghiệm' : undefined,
+    model.tags?.filter(tag => tag !== 'tracker').map(tag => TAG_TRANSLATIONS[tag] || tag).slice(0, 4).join(' · '),
+    `Ngữ cảnh: ${model.contextWindow.toLocaleString('vi-VN')} token`,
   ].filter(Boolean).join(' · '),
 });
