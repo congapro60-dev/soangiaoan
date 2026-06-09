@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import pako from 'pako';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, Code2, Copy, Check } from 'lucide-react';
 
 interface DiagramRendererProps {
   code: string;
@@ -11,6 +11,13 @@ export const DiagramRenderer = ({ code, type }: DiagramRendererProps) => {
   const [svgContent, setSvgContent] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -83,16 +90,29 @@ export const DiagramRenderer = ({ code, type }: DiagramRendererProps) => {
 
   if (error) {
     return (
-      <div className="my-6 p-4 border border-red-200 rounded-2xl bg-red-50 text-red-600 flex items-start gap-3">
-        <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-        <div>
-          <h4 className="text-sm font-bold">Lỗi hiển thị hình ảnh</h4>
-          <p className="text-xs mt-1">{error}</p>
-          <details className="mt-2 text-[10px] opacity-80 cursor-pointer">
-            <summary>Xem mã code gốc</summary>
-            <pre className="mt-2 p-2 bg-red-100/50 rounded-lg overflow-x-auto whitespace-pre-wrap">{code}</pre>
-          </details>
+      <div className="my-6 p-5 border border-slate-200 border-dashed rounded-2xl bg-slate-50 text-slate-600 flex flex-col gap-3">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex gap-3">
+            <Code2 className="w-5 h-5 shrink-0 mt-0.5 text-slate-400" />
+            <div>
+              <h4 className="text-sm font-bold text-slate-700">🎨 Hình vẽ minh họa (Mã đồ họa)</h4>
+              <p className="text-xs mt-1 text-slate-500">
+                Hệ thống AI đã tạo mã nguồn đồ họa ({type.toUpperCase()}) nhưng có thể chứa cú pháp phức tạp không hiển thị trực tiếp được. Thầy/Cô có thể sao chép mã nguồn bên dưới để tinh chỉnh.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleCopy}
+            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg text-xs font-semibold text-slate-600 transition-colors"
+          >
+            {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? 'Đã chép' : 'Sao chép'}
+          </button>
         </div>
+        <details className="text-[11px] opacity-80 cursor-pointer group">
+          <summary className="font-medium text-slate-500 hover:text-slate-700 transition-colors">Xem mã code gốc</summary>
+          <pre className="mt-2 p-3 bg-white border border-slate-200 rounded-xl overflow-x-auto whitespace-pre-wrap font-mono text-[10px] text-slate-700 select-all">{code}</pre>
+        </details>
       </div>
     );
   }

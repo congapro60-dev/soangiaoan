@@ -4,13 +4,11 @@ import fetch from 'node-fetch';
  * Hướng dẫn sử dụng E2E Test:
  * Bạn cần thay thế 3 giá trị dưới đây bằng ID thật từ Firebase của bạn.
  */
-const TEACHER_ID = 'thay_the_bang_uid_giao_vien_that';
-const LESSON_ID = 'thay_the_bang_id_bai_hoc_dang_mo_portal';
+const TEACHER_ID = '24YyULmWgBOM6HZCfJ56RN5tiet2';
+const LESSON_ID = 'adaptive-math-11-arithmetic-sequence';
 const STUDENT_CODE = 'HS_TEST_01'; // Có thể tự do đặt mã học sinh
 
-const API_URL = process.env.VERCEL_URL 
-  ? `https://${process.env.VERCEL_URL}/api/adaptive-progress`
-  : 'http://localhost:3000/api/adaptive-progress';
+const API_URL = 'https://giaoandewey.vercel.app/api/adaptive-progress';
 
 async function runE2ETest() {
   console.log(`🚀 Bắt đầu giả lập nộp bài lên: ${API_URL}`);

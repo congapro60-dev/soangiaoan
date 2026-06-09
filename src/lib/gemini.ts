@@ -26,7 +26,10 @@ const EXAM_FORMAT_SYSTEM_INSTRUCTION = `Bạn là chuyên gia soạn đề thi T
 4. ĐÁP ÁN: BẮT BUỘC kẻ Bảng Markdown (Table) cho đáp án chi tiết.
 5. Kí hiệu Toán: inline \`$ ... $\`, block \`$$ ... $$\`.
 6. Kí hiệu tập hợp A giao B viết liền thành AB. Biến cố đối dùng gạch ngang trên đầu (vd: \\overline{B}).
-7. Hình vẽ minh họa: Cung cấp CẢ mã SVG (đặt trong block \`\`\`xml) VÀ mã TikZ (đặt trong block \`\`\`latex).`;
+7. Hình vẽ minh họa: 
+   - Nếu sơ đồ tư duy/lưu đồ: Dùng \`\`\`mermaid.
+   - Nếu hình học cơ bản: Dùng \`\`\`latex (TikZ) với các lệnh cơ bản (draw, node, fill). KHÔNG dùng các thư viện ngoài như tkz-euclide.
+   - Nếu hình ảnh thực tế/phức tạp: TUYỆT ĐỐI KHÔNG viết code, chỉ viết Gợi ý ảnh bằng tiếng Anh trong blockquote \`> 🎨 Image Prompt: ...\`.`;
 
 export interface GeminiCallResult {
   text: string;
