@@ -13,7 +13,7 @@ Whenever there is a new update, modification, or bug fix, your job is to run thr
 1. **Mandatory Pre-flight Checks**:
    Before attempting any UI or manual validation, you MUST verify the build and test suites:
    - Workspace path: `C:\Users\ADMIN\Downloads\smart-lesson-plan-ai`
-   - Local URL: `http://localhost:5173` (Vite default)
+   - Local URL: `http://localhost:3000` (per package.json)
    - Production URL: `https://giaoandewey.vercel.app`
    - Test command: `npm --prefix C:\Users\ADMIN\Downloads\smart-lesson-plan-ai run test`
    - Build command: `npm --prefix C:\Users\ADMIN\Downloads\smart-lesson-plan-ai run build`
@@ -40,21 +40,25 @@ Whenever there is a new update, modification, or bug fix, your job is to run thr
    **Status:** [APPROVED | CONDITIONAL | NOT APPROVED]
    
    ### 1. Pre-flight Checks
+   - Git Commit/Hash: [Commit hash]
+   - Working Tree: [Clean/Dirty]
    - Unit Tests: [X] Pass / [Y] Total
    - Build Status: [Success/Fail]
    - Main Index Chunk Size: [Size] KB
    
-   ### 2. Module Verification
+   ### 2. Module Verification (Env: Local/Prod)
    | Module | Status | Evidence Path / Output |
    |--------|--------|------------------------|
    | Creator | [PASS/FAIL] | ... |
    | Library | [PASS/FAIL] | ... |
    | Portal | [PASS/FAIL] | ... |
    
-   ### 3. Issues & Action Items
+   ### 3. Issues & Tests Not Run
+   - [Tests not run + reason]
    - [Module] - [Hành động] - [Lỗi] - [File cần sửa]
    
-   ### 4. Cleanup & Sign-off
-   - Dữ liệu test đã được dọn dẹp: [Yes/No]
+   ### 4. Production Actions & Cleanup
+   - Production Write Actions: [Yes/No]
+   - Dữ liệu test đã được dọn dẹp: [Yes/No/NA]
    - Đánh giá bởi: [AI Agent Name]
    ```

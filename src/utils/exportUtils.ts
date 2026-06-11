@@ -196,6 +196,9 @@ CHỈ TRẢ VỀ JSON, KHÔNG BỌC BỞI \`\`\`json.
     const jsonStr = match ? match[0] : response.replace(/```json/g, '').replace(/```/g, '').trim();
 
     const slidesData = JSON.parse(jsonStr);
+    if (!Array.isArray(slidesData) || slidesData.length === 0 || slidesData[0]?.type !== 'walt') {
+      throw new Error('AI chưa trả về cấu trúc slide hợp lệ. Vui lòng thử tạo lại bài trình chiếu.');
+    }
 
     showToast('Đã thiết kế xong cấu trúc Slide!');
     return slidesData;
@@ -224,31 +227,34 @@ const FONT = 'Times New Roman';
 // Renders a LaTeX string to a base64 PNG using KaTeX + html2canvas-pro.
 // Returns null on failure — callers fall back to plain text.
 const renderFormulaToBase64 = async (latex: string): Promise<{ data: string; aspect: number } | null> => {
+  const [{ default: katex }, { default: html2canvas }] = await Promise.all([
+    import('katex'),
+    import('html2canvas-pro'),
+  ]);
+
+  const div = document.createElement('div');
+  div.style.cssText = [
+    'position:fixed', 'left:-9999px', 'top:0',
+    'background:white', 'padding:12px 20px',
+    'font-size:26px', 'display:inline-block',
+  ].join(';');
+  div.innerHTML = katex.renderToString(latex, { throwOnError: false, displayMode: true });
+  document.body.appendChild(div);
+
   try {
-    const [{ default: katex }, { default: html2canvas }] = await Promise.all([
-      import('katex'),
-      import('html2canvas-pro'),
-    ]);
-
-    const div = document.createElement('div');
-    div.style.cssText = [
-      'position:fixed', 'left:-9999px', 'top:0',
-      'background:white', 'padding:12px 20px',
-      'font-size:26px', 'display:inline-block',
-    ].join(';');
-    div.innerHTML = katex.renderToString(latex, { throwOnError: false, displayMode: true });
-    document.body.appendChild(div);
-
     await document.fonts.ready;
 
     const canvas = await (html2canvas as any)(div, {
       scale: 3, backgroundColor: '#ffffff', logging: false, useCORS: true,
     });
-    document.body.removeChild(div);
 
     return { data: canvas.toDataURL('image/png'), aspect: canvas.width / canvas.height };
   } catch {
     return null;
+  } finally {
+    if (document.body.contains(div)) {
+      document.body.removeChild(div);
+    }
   }
 };
 
@@ -372,7 +378,7 @@ export const downloadPPTX = async (slidesData: any[], title: string) => {
     if (s.speakerNotes) pSlide.addNotes(s.speakerNotes);
   }
 
-  pptx.writeFile({ fileName: `${safeFilename(title, 'baigiang')}.pptx` });
+  await pptx.writeFile({ fileName: `${safeFilename(title, 'baigiang')}.pptx` });
 };
 
 export const openInOverleaf = (latexContent: string, currentPlan: Partial<LessonPlan>, showToast: (msg: string) => void) => {

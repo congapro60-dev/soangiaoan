@@ -23,8 +23,8 @@ import { openInOverleaf } from '../../utils/exportUtils';
 import { preprocessExamMarkdown } from '../../utils/examMarkdown';
 import { exportLaTeX, markdownToExamLatex } from '../../utils/examLatexExport';
 import { makeExamExportBaseFilename } from '../../utils/fileUtils';
-import { createDocumentSkeleton, validateMarkdownAgainstSkeleton, getSkeletonGuardrailDecision, type SkeletonValidationIssue, type GuardrailContext } from '../../lib/documentSkeleton';
-import Swal from 'sweetalert2';
+import { createDocumentSkeleton, validateMarkdownAgainstSkeleton, type SkeletonValidationIssue } from '../../lib/documentSkeleton';
+import { withGuardrail } from '../../utils/guardrailUtils';
 
 interface TestingTabProps {
   data: AppData;

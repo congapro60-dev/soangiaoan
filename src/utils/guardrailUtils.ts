@@ -18,7 +18,16 @@ export const withGuardrail = async (
   }
 
   if (!skeleton) {
-    await actionFn();
+    try {
+      await actionFn();
+    } catch (err) {
+      await Swal.fire({
+        title: 'Thao tác thất bại',
+        text: err instanceof Error ? err.message : 'Thao tác không thành công. Vui lòng thử lại.',
+        icon: 'error',
+        confirmButtonText: 'Đã hiểu'
+      });
+    }
     return;
   }
 
@@ -28,7 +37,7 @@ export const withGuardrail = async (
   if (decision.mode === 'block') {
     await Swal.fire({
       title: 'Lỗi cấu trúc',
-      text: decision.blockingIssues[0]?.message || 'Nội dung không đủ điều kiện để thao tác (lỗi nghiêm trọng).',
+      text: decision.blockingIssues[0]?.message || 'Nội dung không đủ điều kiện để thao tác, vui lòng kiểm tra lại nội dung trước khi tiếp tục.',
       icon: 'error',
       confirmButtonText: 'Đã hiểu'
     });
@@ -53,5 +62,14 @@ export const withGuardrail = async (
     }
   }
 
-  await actionFn();
+  try {
+    await actionFn();
+  } catch (err) {
+    await Swal.fire({
+      title: 'Thao tác thất bại',
+      text: err instanceof Error ? err.message : 'Thao tác không thành công. Vui lòng thử lại.',
+      icon: 'error',
+      confirmButtonText: 'Đã hiểu'
+    });
+  }
 };

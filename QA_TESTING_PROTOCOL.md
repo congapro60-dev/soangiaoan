@@ -69,11 +69,10 @@ Dưới đây là danh sách các module tính năng cần được giả lập/
 - Không có API key → Settings modal tự mở
 
 ### 2.8. Production Smoke Test (bắt buộc chạy trên giaoandewey.vercel.app)
-- **Tài khoản Test:** Email: `vuvietcuongtds@gmail.com` / Pass: `Duongquan1108`
-- Tạo 1 giáo án đơn giản → xuất Word → mở được không lỗi
-- Tạo 1 đề thi → xuất PDF → mở được
-- Adaptive Portal với mã học sinh thật → không có lỗi console
-- **Cảnh báo (P1):** Tuyệt đối KHÔNG dùng quyền Admin/Firebase Admin SDK để dọn dẹp hoặc test trực tiếp vào Production. Mọi thao tác phải thực hiện qua giao diện Web UI (Read-only hoặc tạo tài liệu bình thường).
+- **Tài khoản Test:** Dùng tài khoản test do owner cung cấp (lưu trong `.env.qa` hoặc kênh bảo mật, không hardcode).
+- **Mặc định là Read-Only:** Login, mở dashboard, mở dữ liệu mẫu có sẵn để export. KHÔNG tạo dữ liệu mới.
+- Nếu được owner chỉ định test Write qua UI: Mọi object tạo ra phải có prefix `QA_YYYYMMDD_` và phải cleanup bằng tay qua UI ngay trong session.
+- **Cảnh báo (P1):** Tuyệt đối KHÔNG dùng quyền Admin/Firebase Admin SDK để dọn dẹp hoặc test trực tiếp vào Production. Mọi thao tác phải thực hiện qua giao diện Web UI.
 
 ### 2.9. XSS Sandbox Test (đúng cách — không dùng Inspect Element)
 Trong component dùng SandboxedSimulationFrame, truyền HTML:
@@ -83,8 +82,8 @@ Kết quả FAIL: iframe render được hoặc title parent đổi.
 
 ### 2.10. Firestore Security Rules
 - Nếu hệ thống có bộ test (VD: lệnh `npm run test:rules`), bắt buộc chạy.
-- Nếu KHÔNG CÓ bộ test tự động: QA Agent chỉ review/audit tĩnh mã nguồn `firestore.rules` xem có lỗ hổng (như rò rỉ dữ liệu giáo viên chéo, hoặc học sinh tự ý thay bài tập) và báo cáo lại.
-- **Nghiêm cấm:** AI không tự tiện viết script khởi động Firestore Emulator trừ khi chủ sở hữu phê duyệt và ra lệnh trực tiếp.
+- Nếu KHÔNG CÓ bộ test tự động: QA Agent chỉ review/audit tĩnh mã nguồn `firestore.rules` xem có lỗ hổng và báo cáo coverage gap.
+- **Nghiêm cấm:** Không tự viết emulator script hay cố dựng emulator nếu chưa có setup ổn định.
 
 ---
 
@@ -104,8 +103,8 @@ Mọi kết quả PASS phải kèm ít nhất 1 trong:
 Không chấp nhận PASS chỉ bằng "không có lỗi".
 
 ### 3.3. Test Data & Cleanup
-- Dùng Firestore Emulator (`firebase emulators:start`) cho mọi test liên quan đọc/ghi Firestore cục bộ — KHÔNG chạy E2E test tự động phá hoại trực tiếp lên production Firebase.
-- Cấm AI tự dọn rác bằng script chọc thẳng vào database thật. Mọi dọn dẹp trên Prod đều phải làm bằng tay qua UI.
+- Nếu dự án có setup Firebase Emulator chuẩn, dùng Emulator cho các test Đọc/Ghi cục bộ.
+- Cấm AI tự dọn rác bằng script chọc thẳng vào database thật. Mọi thao tác Write/Cleanup trên Prod đều phải làm bằng UI và có Owner xác nhận.
 - Script tạm trong test/ phải có prefix "scratch_" và được thêm vào .gitignore, không commit lên repo
 
 ---

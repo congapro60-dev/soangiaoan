@@ -13,8 +13,7 @@ import { DiagramRenderer } from '../features/creator/DiagramRenderer';
 import { callAI, getActiveApiKey } from '../../lib/aiProviders';
 import { AudioOverview } from '../features/AudioOverview';
 import { PushToDriveModal } from '../modals/PushToDriveModal';
-import { getSkeletonGuardrailDecision, validateMarkdownAgainstSkeleton, GuardrailContext } from '../../lib/documentSkeleton';
-import Swal from 'sweetalert2';
+import { withGuardrail } from '../../utils/guardrailUtils';
 
 // Subcomponents
 import { CreatorToolbar } from '../features/creator/CreatorToolbar';
