@@ -12,6 +12,7 @@ import * as worksheetUtils from '../../utils/worksheetUtils';
 import * as scormUtils from '../../utils/scormUtils';
 import { Presentation, Loader2, FilePenLine, Package } from 'lucide-react';
 import { useState } from 'react';
+import { withGuardrail } from '../../utils/guardrailUtils';
 
 interface ViewPlanModalProps {
   plan: LessonPlan | null;
@@ -126,10 +127,9 @@ export const ViewPlanModal = ({ plan, data, showToast, onClose, onEdit }: ViewPl
               </div>
             </div>
 
-            {/* Footer */}
             <div className="p-5 bg-slate-50 border-t border-slate-100 flex flex-wrap gap-3 justify-end items-center">
               <button
-                onClick={handleExportSCORM}
+                onClick={() => withGuardrail(plan.content, data.templates?.find(t => t.id === plan.templateId)?.files?.find(f => !!f.skeleton)?.skeleton, 'export_word', handleExportSCORM)}
                 className="px-6 py-2.5 bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-50 hover:border-indigo-300 rounded-xl font-bold text-sm flex items-center gap-2 transition-all mr-auto"
                 title="Đóng gói SCORM 1.2 đưa lên LMS"
               >
@@ -138,7 +138,7 @@ export const ViewPlanModal = ({ plan, data, showToast, onClose, onEdit }: ViewPl
               </button>
               
               <button
-                onClick={handleGenerateWorksheet}
+                onClick={() => withGuardrail(plan.content, data.templates?.find(t => t.id === plan.templateId)?.files?.find(f => !!f.skeleton)?.skeleton, 'export_word', handleGenerateWorksheet)}
                 disabled={isGeneratingSlide}
                 className="px-6 py-2.5 bg-white border border-teal-200 text-teal-700 hover:bg-teal-50 hover:border-teal-300 rounded-xl font-bold text-sm flex items-center gap-2 transition-all mr-auto disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Dùng AI sinh Phiếu bài tập/Worksheet từ giáo án và tải về file Word"
@@ -147,12 +147,24 @@ export const ViewPlanModal = ({ plan, data, showToast, onClose, onEdit }: ViewPl
                 {isGeneratingSlide ? 'Đang xử lý...' : 'Tạo Phiếu học tập'}
               </button>
               <button
-                onClick={handleGeneratePPTX}
+                onClick={() => withGuardrail(plan.content, data.templates?.find(t => t.id === plan.templateId)?.files?.find(f => !!f.skeleton)?.skeleton, 'export_word', handleGeneratePPTX)}
                 disabled={isGeneratingSlide}
                 className="px-6 py-2.5 bg-white border border-orange-200 text-orange-600 hover:bg-orange-50 hover:border-orange-300 rounded-xl font-bold text-sm flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isGeneratingSlide ? <Loader2 className="w-4 h-4 animate-spin" /> : <Presentation className="w-4 h-4" />}
-                {isGeneratingSlide ? 'Đang xử lý...' : 'Tải Slide PPTX'}
+                {isGeneratingSlide ? 'Đang xử lý...' : 'Tạo Slide PPTX'}
+              </button>
+              <button
+                onClick={() => withGuardrail(plan.content, data.templates?.find(t => t.id === plan.templateId)?.files?.find(f => !!f.skeleton)?.skeleton, 'export_pdf', () => exportUtils.exportLessonViaAPI(plan, 'pdf', 'portrait', showToast))}
+                className="px-6 py-2.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl font-bold text-sm flex items-center gap-2 transition-all shadow-sm"
+              >
+                Tải PDF
+              </button>
+              <button
+                onClick={() => withGuardrail(plan.content, data.templates?.find(t => t.id === plan.templateId)?.files?.find(f => !!f.skeleton)?.skeleton, 'export_word', () => exportUtils.exportLessonViaAPI(plan, 'docx', 'portrait', showToast))}
+                className="px-6 py-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-xl font-bold text-sm flex items-center gap-2 transition-all shadow-lg shadow-blue-200"
+              >
+                Xuất Word (.docx)
               </button>
               
               <button

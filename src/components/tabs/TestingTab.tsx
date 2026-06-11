@@ -149,57 +149,8 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
   const clearResult = () => {
     setTestResult(null);
     localStorage.removeItem(LAST_RESULT_KEY);
+    localStorage.removeItem(LAST_RESULT_KEY);
     localStorage.removeItem(LAST_MODE_KEY);
-  };
-
-  const handleExportWithGuardrail = async (actionFn: () => void, context: GuardrailContext) => {
-    if (!testResult || testResult.trim().length === 0) {
-      Swal.fire({
-        title: 'Nội dung rỗng',
-        text: 'Đề thi hiện tại đang rỗng, không thể xuất hoặc lưu.',
-        icon: 'error',
-        confirmButtonText: 'Đã hiểu'
-      });
-      return;
-    }
-
-    if (!sampleFile || !sampleFile.skeleton) {
-      actionFn();
-      return;
-    }
-
-    const validation = validateMarkdownAgainstSkeleton(testResult, sampleFile.skeleton);
-    const decision = getSkeletonGuardrailDecision(validation, context);
-
-    if (decision.mode === 'block') {
-      Swal.fire({
-        title: 'Lỗi cấu trúc',
-        text: decision.blockingIssues[0]?.message || 'Nội dung không đủ điều kiện để xuất.',
-        icon: 'error',
-        confirmButtonText: 'Đã hiểu'
-      });
-      return;
-    }
-
-    if (decision.requiresConfirmation) {
-      const issueDetails = decision.confirmationIssues.map(i => `- ${i.message}`).join('\n');
-      const res = await Swal.fire({
-        title: 'Cảnh báo định dạng',
-        html: `<p class="text-sm text-left mb-2">AI có thể chưa giữ đủ cấu trúc so với mẫu đề thi:</p><pre class="text-xs text-left text-red-600 bg-red-50 p-2 rounded whitespace-pre-wrap">${issueDetails}</pre><p class="text-sm text-left mt-2 font-bold">Bạn có chắc chắn muốn tiếp tục thao tác?</p>`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Tiếp tục',
-        cancelButtonText: 'Hủy thao tác',
-        confirmButtonColor: '#2563eb',
-        cancelButtonColor: '#64748b'
-      });
-      
-      if (!res.isConfirmed) {
-        return;
-      }
-    }
-
-    actionFn();
   };
 
   const handleDownloadPDF = async () => {
@@ -865,7 +816,7 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
                     </button>
                     {onSaveExam && testResult && (
                       <button
-                        onClick={() => handleExportWithGuardrail(() => onSaveExam(testResult, ''), 'final_save')}
+                        onClick={() => withGuardrail(testResult, sampleFile?.skeleton, 'final_save', () => onSaveExam(testResult, ''))}
                         className="px-5 py-2.5 bg-violet-600 text-white rounded-2xl font-bold shadow-lg shadow-violet-100 hover:bg-violet-700 transition-all flex items-center gap-2 text-sm"
                       >
                         <BookMarked className="w-4 h-4" /> Lưu vào Thư viện
@@ -874,19 +825,19 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
                   </div>
                   <div className="flex flex-wrap gap-3">
                     <button
-                      onClick={() => handleExportWithGuardrail(handleDownloadPDF, 'export_pdf')}
+                      onClick={() => withGuardrail(testResult, sampleFile?.skeleton, 'export_pdf', handleDownloadPDF)}
                       className="px-5 py-2.5 bg-white text-slate-600 rounded-2xl font-bold border border-slate-200 hover:bg-slate-100 transition-all flex items-center gap-2 text-sm"
                     >
                       <Download className="w-4 h-4" /> Tải PDF
                     </button>
                     <button
-                      onClick={() => handleExportWithGuardrail(handleDownloadWord, 'export_word')}
+                      onClick={() => withGuardrail(testResult, sampleFile?.skeleton, 'export_word', handleDownloadWord)}
                       className="px-5 py-2.5 bg-primary text-white rounded-2xl font-bold shadow-lg shadow-blue-100 hover:opacity-90 transition-all flex items-center gap-2 text-sm"
                     >
                       <Download className="w-4 h-4" /> Xuất Word (.docx)
                     </button>
                     <button
-                      onClick={() => handleExportWithGuardrail(handleExportOverleaf, 'export_latex')}
+                      onClick={() => withGuardrail(testResult, sampleFile?.skeleton, 'export_latex', handleExportOverleaf)}
                       disabled={isLoading}
                       className="px-5 py-2.5 bg-emerald-600 text-white rounded-2xl font-bold shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all flex items-center gap-2 text-sm disabled:opacity-50"
                     >

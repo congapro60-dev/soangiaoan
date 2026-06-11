@@ -387,7 +387,7 @@ Warning chunk-size là warning kỹ thuật cũ, không thuộc scope chặn bui
 #### 0.8.4 Phase 2D — Export/Final Save Guardrails cho Clone Template
 **Mục tiêu:** đặt “chốt kiểm tra cuối” trước khi lưu final/xuất Word/PDF, nhưng vẫn không phá flow tạo nháp. Phase này phải biến kết quả validator Phase 2B/2C thành UX quyết định rõ ràng: cảnh báo mềm khi đang soạn, xác nhận có chủ đích khi xuất, và chỉ hard-block khi dữ liệu hỏng đến mức export có nguy cơ lỗi kỹ thuật.
 
-> Trạng thái: **kế hoạch chưa code**. Sau Phase 2C, agent tiếp theo phải triển khai Phase 2D theo mục này; không cần quay lại hỏi Anti chỉ để xin thêm roadmap.
+> Trạng thái: **đã hoàn thành (Phase 2D)**. Đã tạo `withGuardrail` helper dùng chung và áp dụng cho `CreatorTab`, `TestingTab`, và `ViewPlanModal`. Xử lý chính xác các chốt kiểm duyệt trước khi lưu và xuất.
 
 **Quyết định sản phẩm đã chốt cho Phase 2D:**
 - Draft/autosave/generation flow: **soft warning only**, tuyệt đối không chặn lưu nháp vì nội dung sư phạm có thể vẫn hữu ích.

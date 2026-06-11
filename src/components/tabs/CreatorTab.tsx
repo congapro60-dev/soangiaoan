@@ -147,57 +147,6 @@ export const CreatorTab = (props: CreatorTabProps) => {
     );
   };
 
-  const handleExportWithGuardrail = async (actionFn: () => void, context: GuardrailContext) => {
-    if (!props.currentPlan.content || props.currentPlan.content.trim().length === 0) {
-      Swal.fire({
-        title: 'Nội dung rỗng',
-        text: 'Nội dung giáo án đang rỗng, không thể thực hiện thao tác này.',
-        icon: 'error',
-        confirmButtonText: 'Đã hiểu'
-      });
-      return;
-    }
-
-    const currentTemplate = props.lessonDocs.find(d => d.id === props.currentPlan.templateId);
-    if (!currentTemplate || !currentTemplate.skeleton) {
-      actionFn();
-      return;
-    }
-
-    const validation = validateMarkdownAgainstSkeleton(props.currentPlan.content, currentTemplate.skeleton);
-    const decision = getSkeletonGuardrailDecision(validation, context);
-
-    if (decision.mode === 'block') {
-      Swal.fire({
-        title: 'Lỗi cấu trúc',
-        text: decision.blockingIssues[0]?.message || 'Nội dung không đủ điều kiện để xuất (rỗng hoặc quá ngắn).',
-        icon: 'error',
-        confirmButtonText: 'Đã hiểu'
-      });
-      return;
-    }
-
-    if (decision.requiresConfirmation) {
-      const issueDetails = decision.confirmationIssues.map(i => `- ${i.message}`).join('\n');
-      const res = await Swal.fire({
-        title: 'Cảnh báo định dạng',
-        html: `<p class="text-sm text-left mb-2">AI có thể chưa giữ đủ cấu trúc (Bảng, Heading, Placeholder) so với mẫu ban đầu:</p><pre class="text-xs text-left text-red-600 bg-red-50 p-2 rounded whitespace-pre-wrap">${issueDetails}</pre><p class="text-sm text-left mt-2 font-bold">Bạn có chắc chắn muốn tiếp tục xuất/lưu?</p>`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Tiếp tục xuất',
-        cancelButtonText: 'Quay lại sửa',
-        confirmButtonColor: '#2563eb',
-        cancelButtonColor: '#64748b'
-      });
-      
-      if (!res.isConfirmed) {
-        return;
-      }
-    }
-
-    actionFn();
-  };
-
   const hasResult = (props.generationMode === 'single' && props.currentPlan.content) || (props.generationMode === 'bulk' && props.bulkResults.length > 0);
 
   return (
@@ -293,7 +242,7 @@ export const CreatorTab = (props: CreatorTabProps) => {
                       <FilePlus className="w-4 h-4" /> Soạn bài mới
                     </button>
                     <button
-                      onClick={props.generationMode === 'single' ? props.saveLessonPlan : props.saveBulkPlans}
+                      onClick={() => withGuardrail(props.currentPlan.content, props.lessonDocs.find(d => d.id === props.currentPlan.templateId)?.skeleton, 'final_save', props.generationMode === 'single' ? props.saveLessonPlan : props.saveBulkPlans)}
                       className="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 transition-all text-sm shadow-lg shadow-blue-100"
                     >
                       <Save className="w-4 h-4" />
@@ -301,10 +250,10 @@ export const CreatorTab = (props: CreatorTabProps) => {
                     </button>
                     {props.generationMode === 'single' && (
                        <CreatorToolbar
-                          exportToPDF={(orientation) => handleExportWithGuardrail(() => props.exportToPDF(orientation), 'export_pdf')}
-                          exportToWordA4={(orientation) => handleExportWithGuardrail(() => exportToWordA4(props.currentPlan, props.showToast, orientation), 'export_word')}
+                          exportToPDF={(orientation) => withGuardrail(props.currentPlan.content, props.lessonDocs.find(d => d.id === props.currentPlan.templateId)?.skeleton, 'export_pdf', () => props.exportToPDF(orientation))}
+                          exportToWordA4={(orientation) => withGuardrail(props.currentPlan.content, props.lessonDocs.find(d => d.id === props.currentPlan.templateId)?.skeleton, 'export_word', () => exportToWordA4(props.currentPlan, props.showToast, orientation))}
                           handleGenerateSlide={handleGenerateSlide}
-                          exportToLaTeX={() => handleExportWithGuardrail(props.exportToLaTeX, 'export_latex')}
+                          exportToLaTeX={() => withGuardrail(props.currentPlan.content, props.lessonDocs.find(d => d.id === props.currentPlan.templateId)?.skeleton, 'export_latex', props.exportToLaTeX)}
                           handleGenerateStudyGuide={handleGenerateStudyGuide}
                           setShowAudioOverview={setShowAudioOverview}
                           onCreateExam={props.onCreateExam}
