@@ -5,7 +5,13 @@ import { ArrowLeft, BookOpenCheck, Brain, CheckCircle2, Clock, FileUp, Layers3, 
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { sampleAdaptiveLesson } from '../lib/adaptive/sampleAdaptiveLesson';
-import { buildAdaptiveLessonFromReviewedPlan, buildAdaptiveReviewPrompt, type AdaptiveLessonSource } from '../lib/adaptive/adaptiveFromLessonPlan';
+import {
+  buildAdaptiveContentPrompt,
+  buildAdaptiveLessonFromContentJson,
+  buildAdaptiveReviewPrompt,
+  validateAdaptiveLessonPublishReadiness,
+  type AdaptiveLessonSource,
+} from '../lib/adaptive/adaptiveFromLessonPlan';
 import type {
   AdaptiveAssessment,
   AdaptiveLesson,
@@ -373,18 +379,28 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
 
   const approveReviewedSource = async () => {
     if (!user || !sourceLesson || !reviewedPlan.trim()) return;
+    if (!settings || !getActiveApiKey(settings)) {
+      setError('Cần nhập API Key AI trước khi tạo nội dung bài học thật từ giáo án đã duyệt.');
+      onNeedSettings?.();
+      return;
+    }
 
     setIsGeneratingContent(true);
     setError(null);
     try {
-      const nextLesson = buildAdaptiveLessonFromReviewedPlan(sourceLesson, reviewedPlan, user.uid);
+      const contentJson = await callAI(buildAdaptiveContentPrompt(sourceLesson, reviewedPlan), settings);
+      const nextLesson = buildAdaptiveLessonFromContentJson(sourceLesson, reviewedPlan, contentJson, user.uid);
+      const blockingIssues = validateAdaptiveLessonPublishReadiness(nextLesson).filter(issue => issue.severity === 'error');
+      if (blockingIssues.length > 0) {
+        throw new Error(`Nội dung AI chưa đạt chuẩn để tạo bài học: ${blockingIssues.slice(0, 5).map(issue => issue.message).join(' ')}`);
+      }
       setLesson(nextLesson);
       setExpandedUnitId(nextLesson.knowledgeUnits[0]?.id || null);
       setIsSourceApproved(true);
       setStep(0);
-      showToast?.('Đã bóc tách bài học phân hoá trực tiếp từ giáo án đã duyệt, không gọi AI sinh lại nội dung.', 'success');
+      showToast?.('Đã tạo bài học phân hoá bằng JSON nội dung thật và kiểm tra chất lượng đầu ra.', 'success');
     } catch (contentErr) {
-      console.warn('[AdaptiveBuilder] Không bóc tách được giáo án đã duyệt', contentErr);
+      console.warn('[AdaptiveBuilder] Không tạo được nội dung adaptive đạt chuẩn', contentErr);
       setError(contentErr instanceof Error ? contentErr.message : 'Không tạo được bài học phân hoá từ giáo án đã duyệt.');
     } finally {
       setIsGeneratingContent(false);
@@ -403,6 +419,16 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
       setError('Tiêu đề bài học là bắt buộc.');
       setStep(0);
       return;
+    }
+
+    if (status === 'published') {
+      const publishIssues = validateAdaptiveLessonPublishReadiness(nextLesson);
+      const errors = publishIssues.filter(issue => issue.severity === 'error');
+      if (errors.length > 0) {
+        setError(`Chưa thể xuất bản vì còn ${errors.length} lỗi chất lượng nội dung. ${errors.slice(0, 4).map(issue => issue.message).join(' ')}`);
+        setStep(3);
+        return;
+      }
     }
 
     setSaving(true);
@@ -558,9 +584,9 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
           </div>
           <Field label="Tiêu đề bài *"><input value={lesson.title} onChange={event => updateLesson({ title: event.target.value })} className={inputClass} placeholder="VD: Toán 11 — Cấp số cộng" /></Field>
           <div className="grid gap-4 md:grid-cols-3">
-            <Field label="Lớp"><select value={lesson.grade} onChange={event => updateLesson({ grade: event.target.value as AdaptiveLesson['grade'] })} className={inputClass}>{gradeOptions.map(grade => <option key={grade}>{grade}</option>)}</select></Field>
-            <Field label="Tuần"><input value={lesson.curriculumRef?.week || ''} onChange={event => updateLesson({ curriculumRef: { ...lesson.curriculumRef, week: event.target.value } })} className={inputClass} /></Field>
-            <Field label="Tiết số"><input type="number" value={lesson.curriculumRef?.period || 1} onChange={event => updateLesson({ curriculumRef: { ...lesson.curriculumRef, period: Number(event.target.value) } })} className={inputClass} /></Field>
+            <Field label="Lớp"><select aria-label="Lớp" title="Lớp" value={lesson.grade} onChange={event => updateLesson({ grade: event.target.value as AdaptiveLesson['grade'] })} className={inputClass}>{gradeOptions.map(grade => <option key={grade}>{grade}</option>)}</select></Field>
+            <Field label="Tuần"><input aria-label="Tuần" title="Tuần" value={lesson.curriculumRef?.week || ''} onChange={event => updateLesson({ curriculumRef: { ...lesson.curriculumRef, week: event.target.value } })} className={inputClass} /></Field>
+            <Field label="Tiết số"><input aria-label="Tiết số" title="Tiết số" type="number" value={lesson.curriculumRef?.period || 1} onChange={event => updateLesson({ curriculumRef: { ...lesson.curriculumRef, period: Number(event.target.value) } })} className={inputClass} /></Field>
           </div>
           <Field label="Hướng dẫn chuẩn bị"><textarea value={lesson.preparation.readingInstructions} onChange={event => updateLesson({ preparation: { ...lesson.preparation, readingInstructions: event.target.value } })} className={textareaClass} /></Field>
           <Field label="Thời gian chuẩn bị ước tính (phút)"><input type="number" value={lesson.preparation.estimatedMinutes} onChange={event => updateLesson({ preparation: { ...lesson.preparation, estimatedMinutes: Number(event.target.value) } })} className={inputClass} /></Field>
@@ -578,10 +604,10 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
           </div>
           {lesson.objectives.map(objective => (
             <div key={objective.id} className="grid gap-3 rounded-2xl border border-slate-100 p-4 md:grid-cols-[1.3fr_0.7fr_0.5fr_auto]">
-              <input value={objective.title} onChange={event => updateLesson({ objectives: lesson.objectives.map(item => item.id === objective.id ? { ...item, title: event.target.value, description: event.target.value } : item) })} className={inputClass} placeholder="Tên mục tiêu" />
-              <select value={objective.bloomLevel} onChange={event => updateLesson({ objectives: lesson.objectives.map(item => item.id === objective.id ? { ...item, bloomLevel: event.target.value as BloomLevel } : item) })} className={inputClass}>{bloomLevels.map(level => <option key={level}>{level}</option>)}</select>
-              <input type="number" value={Math.round(objective.masteryThreshold * 100)} onChange={event => updateLesson({ objectives: lesson.objectives.map(item => item.id === objective.id ? { ...item, masteryThreshold: Number(event.target.value) / 100 } : item) })} className={inputClass} />
-              <button onClick={() => updateLesson({ objectives: lesson.objectives.filter(item => item.id !== objective.id) })} className={dangerButtonClass}><Trash2 className="h-4 w-4" /></button>
+              <input aria-label={`Tên mục tiêu ${objective.code || objective.id}`} title="Tên mục tiêu" value={objective.title} onChange={event => updateLesson({ objectives: lesson.objectives.map(item => item.id === objective.id ? { ...item, title: event.target.value, description: event.target.value } : item) })} className={inputClass} placeholder="Tên mục tiêu" />
+              <select aria-label={`Cấp Bloom của ${objective.code || objective.id}`} title="Cấp Bloom" value={objective.bloomLevel} onChange={event => updateLesson({ objectives: lesson.objectives.map(item => item.id === objective.id ? { ...item, bloomLevel: event.target.value as BloomLevel } : item) })} className={inputClass}>{bloomLevels.map(level => <option key={level}>{level}</option>)}</select>
+              <input aria-label={`Ngưỡng đạt mục tiêu ${objective.code || objective.id}`} title="Ngưỡng đạt mục tiêu" type="number" value={Math.round(objective.masteryThreshold * 100)} onChange={event => updateLesson({ objectives: lesson.objectives.map(item => item.id === objective.id ? { ...item, masteryThreshold: Number(event.target.value) / 100 } : item) })} className={inputClass} />
+              <button aria-label={`Xóa mục tiêu ${objective.title || objective.code || objective.id}`} title="Xóa mục tiêu" onClick={() => updateLesson({ objectives: lesson.objectives.filter(item => item.id !== objective.id) })} className={dangerButtonClass}><Trash2 className="h-4 w-4" /></button>
             </div>
           ))}
           <QuestionEditor title="Diagnostic test" questions={lesson.diagnosticTest.questions} objectives={objectiveOptions} onAdd={() => updateLesson({ diagnosticTest: { ...lesson.diagnosticTest, questions: [...lesson.diagnosticTest.questions, makeQuestion('multiple_choice', objectiveOptions[0]?.id)] } })} onDelete={questionId => updateLesson({ diagnosticTest: { ...lesson.diagnosticTest, questions: lesson.diagnosticTest.questions.filter(question => question.id !== questionId) } })} onChange={(questionId, patch) => updateQuestion('diagnosticTest', questionId, patch)} />
@@ -604,26 +630,26 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
                 {expandedUnitId === unit.id && (
                   <div className="space-y-4 border-t border-slate-100 p-5">
                     <div className="grid gap-4 md:grid-cols-2">
-                      <Field label="Tên mảnh"><input value={unit.title} onChange={event => updateUnit(unit.id, { title: event.target.value })} className={inputClass} /></Field>
-                      <Field label="Thời gian ước tính"><input type="number" value={unit.estimatedMinutes} onChange={event => updateUnit(unit.id, { estimatedMinutes: Number(event.target.value) })} className={inputClass} /></Field>
+                      <Field label="Tên mảnh"><input aria-label={`Tên mảnh kiến thức ${unit.title || unit.id}`} title="Tên mảnh kiến thức" value={unit.title} onChange={event => updateUnit(unit.id, { title: event.target.value })} className={inputClass} /></Field>
+                      <Field label="Thời gian ước tính"><input aria-label={`Thời gian ước tính cho ${unit.title || unit.id}`} title="Thời gian ước tính" type="number" value={unit.estimatedMinutes} onChange={event => updateUnit(unit.id, { estimatedMinutes: Number(event.target.value) })} className={inputClass} /></Field>
                     </div>
-                    <Field label="Giải thích Standard"><textarea value={standard.explanation} onChange={event => updateUnitRoute(unit, 'standard', { explanation: event.target.value })} className={textareaClass} /></Field>
+                    <Field label="Giải thích Standard"><textarea aria-label={`Giải thích Standard cho ${unit.title || unit.id}`} title="Giải thích Standard" value={standard.explanation} onChange={event => updateUnitRoute(unit, 'standard', { explanation: event.target.value })} className={textareaClass} /></Field>
                     <label className="flex items-center gap-2 text-sm font-bold text-slate-600">
                       <input type="checkbox" checked={sharedRoutes[unit.id] ?? true} onChange={event => setSharedRoutes(prev => ({ ...prev, [unit.id]: event.target.checked }))} /> Dùng nội dung Standard cho Foundation/Challenge
                     </label>
                     {!(sharedRoutes[unit.id] ?? true) && (
                       <div className="grid gap-4 md:grid-cols-2">
-                        <Field label="Giải thích Foundation"><textarea value={foundation.explanation} onChange={event => updateUnitRoute(unit, 'foundation', { explanation: event.target.value })} className={textareaClass} /></Field>
-                        <Field label="Giải thích Challenge"><textarea value={challenge.explanation} onChange={event => updateUnitRoute(unit, 'challenge', { explanation: event.target.value })} className={textareaClass} /></Field>
+                        <Field label="Giải thích Foundation"><textarea aria-label={`Giải thích Foundation cho ${unit.title || unit.id}`} title="Giải thích Foundation" value={foundation.explanation} onChange={event => updateUnitRoute(unit, 'foundation', { explanation: event.target.value })} className={textareaClass} /></Field>
+                        <Field label="Giải thích Challenge"><textarea aria-label={`Giải thích Challenge cho ${unit.title || unit.id}`} title="Giải thích Challenge" value={challenge.explanation} onChange={event => updateUnitRoute(unit, 'challenge', { explanation: event.target.value })} className={textareaClass} /></Field>
                       </div>
                     )}
                     <div className="grid gap-4 md:grid-cols-3">
-                      <Field label="Worked Example — Đề bài"><textarea value={example.problem} onChange={event => updateUnitRoute(unit, 'standard', { workedExamples: [{ ...example, problem: event.target.value }] })} className={textareaClass} /></Field>
-                      <Field label="Worked Example — Lời giải"><textarea value={example.solution} onChange={event => updateUnitRoute(unit, 'standard', { workedExamples: [{ ...example, solution: event.target.value }] })} className={textareaClass} /></Field>
-                      <Field label="Worked Example — Giải thích"><textarea value={example.explanation} onChange={event => updateUnitRoute(unit, 'standard', { workedExamples: [{ ...example, explanation: event.target.value }] })} className={textareaClass} /></Field>
+                      <Field label="Worked Example — Đề bài"><textarea aria-label={`Đề bài ví dụ mẫu cho ${unit.title || unit.id}`} title="Đề bài ví dụ mẫu" value={example.problem} onChange={event => updateUnitRoute(unit, 'standard', { workedExamples: [{ ...example, problem: event.target.value }] })} className={textareaClass} /></Field>
+                      <Field label="Worked Example — Lời giải"><textarea aria-label={`Lời giải ví dụ mẫu cho ${unit.title || unit.id}`} title="Lời giải ví dụ mẫu" value={example.solution} onChange={event => updateUnitRoute(unit, 'standard', { workedExamples: [{ ...example, solution: event.target.value }] })} className={textareaClass} /></Field>
+                      <Field label="Worked Example — Giải thích"><textarea aria-label={`Giải thích ví dụ mẫu cho ${unit.title || unit.id}`} title="Giải thích ví dụ mẫu" value={example.explanation} onChange={event => updateUnitRoute(unit, 'standard', { workedExamples: [{ ...example, explanation: event.target.value }] })} className={textareaClass} /></Field>
                     </div>
                     <QuestionEditor title="Quick Check" questions={unit.quickCheck.questions} objectives={objectiveOptions} onAdd={() => updateUnit(unit.id, { quickCheck: { ...unit.quickCheck, questions: [...unit.quickCheck.questions, makeQuestion('multiple_choice', objectiveOptions[0]?.id)] } })} onDelete={questionId => updateUnit(unit.id, { quickCheck: { ...unit.quickCheck, questions: unit.quickCheck.questions.filter(question => question.id !== questionId) } })} onChange={(questionId, patch) => updateUnitQuickQuestion(unit, questionId, patch)} />
-                    <button onClick={() => updateLesson({ knowledgeUnits: lesson.knowledgeUnits.filter(item => item.id !== unit.id) })} className={dangerButtonClass}><Trash2 className="h-4 w-4" /> Xóa mảnh kiến thức</button>
+                    <button aria-label={`Xóa mảnh kiến thức ${unit.title || unit.id}`} onClick={() => updateLesson({ knowledgeUnits: lesson.knowledgeUnits.filter(item => item.id !== unit.id) })} className={dangerButtonClass}><Trash2 className="h-4 w-4" /> Xóa mảnh kiến thức</button>
                   </div>
                 )}
               </div>
@@ -640,7 +666,7 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
       {step === 3 && (
         <section className="space-y-5 rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
           <QuestionEditor title="Exit Ticket" questions={lesson.exitTicket.questions} objectives={objectiveOptions} onAdd={() => updateLesson({ exitTicket: { ...lesson.exitTicket, questions: [...lesson.exitTicket.questions, makeQuestion('multiple_choice', objectiveOptions[0]?.id)] } })} onDelete={questionId => updateLesson({ exitTicket: { ...lesson.exitTicket, questions: lesson.exitTicket.questions.filter(question => question.id !== questionId) } })} onChange={(questionId, patch) => updateQuestion('exitTicket', questionId, patch)} />
-          <Field label="Completion Reward message"><textarea value={lesson.completionReward?.message || defaultRewardMessage} onChange={event => updateLesson({ completionReward: { toolId: lesson.completionReward?.toolId || 'gamedoikhang', message: event.target.value } })} className={textareaClass} /></Field>
+          <Field label="Completion Reward message"><textarea aria-label="Thông điệp thưởng hoàn thành" title="Thông điệp thưởng hoàn thành" value={lesson.completionReward?.message || defaultRewardMessage} onChange={event => updateLesson({ completionReward: { toolId: lesson.completionReward?.toolId || 'gamedoikhang', message: event.target.value } })} className={textareaClass} /></Field>
           <div className="flex flex-wrap gap-3">
             <button disabled={saving} onClick={() => void save('draft')} className={secondaryButtonClass}><Save className="h-4 w-4" /> {saving ? 'Đang lưu...' : 'Lưu nháp'}</button>
             <button disabled={saving} onClick={() => void save('published')} className={primaryButtonClass}><Send className="h-4 w-4" /> Xuất bản</button>
@@ -680,12 +706,12 @@ const QuestionEditor = ({ title, questions, objectives, onAdd, onDelete, onChang
         <div key={question.id} className="space-y-3 rounded-xl bg-slate-50 p-4">
           <div className="flex items-center justify-between">
             <p className="font-black text-slate-700">Câu {index + 1}</p>
-            <button onClick={() => onDelete(question.id)} className={dangerButtonClass}><Trash2 className="h-4 w-4" /></button>
+            <button aria-label={`Xóa câu hỏi ${index + 1} trong ${title}`} title="Xóa câu hỏi" onClick={() => onDelete(question.id)} className={dangerButtonClass}><Trash2 className="h-4 w-4" /></button>
           </div>
-          <textarea value={question.prompt} onChange={event => onChange(question.id, { prompt: event.target.value })} className={textareaClass} placeholder="Nội dung câu hỏi" />
+          <textarea aria-label={`Nội dung câu hỏi ${index + 1} trong ${title}`} title="Nội dung câu hỏi" value={question.prompt} onChange={event => onChange(question.id, { prompt: event.target.value })} className={textareaClass} placeholder="Nội dung câu hỏi" />
           <div className="grid gap-2 md:grid-cols-4">
             {options.map((option, optionIndex) => (
-              <input key={optionIndex} value={option} onChange={event => {
+              <input key={optionIndex} aria-label={`Phương án ${optionIndex + 1} của câu ${index + 1} trong ${title}`} title={`Phương án ${optionIndex + 1}`} value={option} onChange={event => {
                 const nextOptions = [...options];
                 nextOptions[optionIndex] = event.target.value;
                 onChange(question.id, { options: nextOptions });
@@ -693,10 +719,10 @@ const QuestionEditor = ({ title, questions, objectives, onAdd, onDelete, onChang
             ))}
           </div>
           <div className="grid gap-3 md:grid-cols-2">
-            <select value={question.correctAnswer || ''} onChange={event => onChange(question.id, { correctAnswer: event.target.value })} className={inputClass}>
+            <select aria-label={`Đáp án đúng của câu ${index + 1} trong ${title}`} title="Đáp án đúng" value={question.correctAnswer || ''} onChange={event => onChange(question.id, { correctAnswer: event.target.value })} className={inputClass}>
               {options.map(option => <option key={option} value={option}>{option}</option>)}
             </select>
-            <select value={question.objectiveIds[0] || ''} onChange={event => onChange(question.id, { objectiveIds: event.target.value ? [event.target.value] : [] })} className={inputClass}>
+            <select aria-label={`Mục tiêu liên kết của câu ${index + 1} trong ${title}`} title="Mục tiêu liên kết" value={question.objectiveIds[0] || ''} onChange={event => onChange(question.id, { objectiveIds: event.target.value ? [event.target.value] : [] })} className={inputClass}>
               <option value="">Chọn mục tiêu</option>
               {objectives.map(objective => <option key={objective.id} value={objective.id}>{objective.title || objective.code}</option>)}
             </select>

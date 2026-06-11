@@ -22,8 +22,54 @@ export interface AdaptiveLessonSource {
   sourceLabel?: string;
 }
 
+export interface AdaptiveLessonQualityIssue {
+  severity: 'error' | 'warning';
+  code: string;
+  message: string;
+  path?: string;
+}
+
 const routeOptions: LearningRoute[] = ['foundation', 'standard', 'challenge'];
 const defaultRewardMessage = 'Em đã học xong! Thử thách bạn cùng lớp trong Đấu Trường Tri Thức?';
+const PUBLISH_PLACEHOLDER_RE = /(đáp án đúng|phương án nhiễu|phương án đúng|giáo viên\s+(rà soát|bổ sung|cập nhật|kiểm tra)|bổ sung lời giải|câu hỏi đang được chuẩn bị|placeholder|lorem ipsum|xem lại lời giải chi tiết trong giáo án nguồn)/i;
+const MIN_REAL_TEXT_LENGTH = 12;
+
+const hasPlaceholderText = (value?: string): boolean => PUBLISH_PLACEHOLDER_RE.test(value || '');
+const hasRealText = (value?: string): boolean => Boolean(value && value.trim().length >= MIN_REAL_TEXT_LENGTH && !hasPlaceholderText(value));
+const hasRealOptions = (question: AdaptiveQuestion): boolean => {
+  const options = question.options || [];
+  return options.length >= 4 && options.slice(0, 4).every(option => hasRealText(option)) && Boolean(question.correctAnswer && options.includes(question.correctAnswer));
+};
+
+const validateQuestionForPublish = (question: AdaptiveQuestion, path: string, issues: AdaptiveLessonQualityIssue[]): void => {
+  if (!hasRealText(question.prompt)) issues.push({ severity: 'error', code: 'invalid_question_prompt', message: 'Câu hỏi còn thiếu nội dung thật hoặc còn placeholder.', path: `${path}.prompt` });
+  if (!hasRealOptions(question)) issues.push({ severity: 'error', code: 'invalid_question_options', message: 'Câu hỏi phải có 4 phương án thật và đáp án đúng khớp một phương án.', path: `${path}.options` });
+  if (!hasRealText(question.explanation)) issues.push({ severity: 'warning', code: 'weak_question_explanation', message: 'Giải thích đáp án còn thiếu hoặc chung chung.', path: `${path}.explanation` });
+};
+
+export const validateAdaptiveLessonPublishReadiness = (lesson: AdaptiveLesson): AdaptiveLessonQualityIssue[] => {
+  const issues: AdaptiveLessonQualityIssue[] = [];
+  if (!hasRealText(lesson.title)) issues.push({ severity: 'error', code: 'missing_title', message: 'Tiêu đề bài học còn trống hoặc không hợp lệ.', path: 'title' });
+  if (!lesson.objectives?.length) issues.push({ severity: 'error', code: 'missing_objectives', message: 'Bài học cần có ít nhất một mục tiêu học tập.', path: 'objectives' });
+  if ((lesson.diagnosticTest?.questions || []).length < 5) issues.push({ severity: 'error', code: 'insufficient_diagnostic', message: 'Pre-test cần tối thiểu 5 câu hỏi thật.', path: 'diagnosticTest.questions' });
+  (lesson.diagnosticTest?.questions || []).forEach((question, index) => validateQuestionForPublish(question, `diagnosticTest.questions[${index}]`, issues));
+  if (!lesson.knowledgeUnits?.length) issues.push({ severity: 'error', code: 'missing_units', message: 'Bài học cần có ít nhất một mảnh kiến thức.', path: 'knowledgeUnits' });
+  (lesson.knowledgeUnits || []).forEach((unit, unitIndex) => {
+    if (!hasRealText(unit.title)) issues.push({ severity: 'error', code: 'invalid_unit_title', message: 'Mảnh kiến thức thiếu tiêu đề thật.', path: `knowledgeUnits[${unitIndex}].title` });
+    routeOptions.forEach(route => {
+      const routeContent = unit.routes?.find(item => item.route === route);
+      if (!routeContent || !hasRealText(routeContent.explanation)) issues.push({ severity: 'error', code: 'missing_route_explanation', message: `Tuyến ${route} thiếu phần giải thích thật.`, path: `knowledgeUnits[${unitIndex}].routes.${route}.explanation` });
+      (routeContent?.workedExamples || []).forEach((example, exampleIndex) => {
+        if (!hasRealText(example.problem) || !hasRealText(example.solution)) issues.push({ severity: 'error', code: 'invalid_worked_example', message: `Ví dụ tuyến ${route} còn thiếu đề bài/lời giải thật.`, path: `knowledgeUnits[${unitIndex}].routes.${route}.workedExamples[${exampleIndex}]` });
+      });
+    });
+    if ((unit.quickCheck?.questions || []).length < 2) issues.push({ severity: 'error', code: 'insufficient_quick_check', message: 'Mỗi mảnh kiến thức cần tối thiểu 2 câu quick check.', path: `knowledgeUnits[${unitIndex}].quickCheck.questions` });
+    (unit.quickCheck?.questions || []).forEach((question, questionIndex) => validateQuestionForPublish(question, `knowledgeUnits[${unitIndex}].quickCheck.questions[${questionIndex}]`, issues));
+  });
+  if ((lesson.exitTicket?.questions || []).length < 3) issues.push({ severity: 'error', code: 'insufficient_exit_ticket', message: 'Exit ticket cần tối thiểu 3 câu hỏi thật.', path: 'exitTicket.questions' });
+  (lesson.exitTicket?.questions || []).forEach((question, index) => validateQuestionForPublish(question, `exitTicket.questions[${index}]`, issues));
+  return issues;
+};
 
 const uid = (prefix: string) => `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 

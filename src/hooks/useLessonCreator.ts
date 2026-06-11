@@ -626,6 +626,7 @@ QUY TẮC NGHIÊM NGẶT:
 - Cách thực hiện: Chỉ sử dụng ngôn ngữ LaTeX/TikZ. Bọc trong khối code \`\`\`tikz \\begin{tikzpicture} ... \\end{tikzpicture} \`\`\`.
 - Vị trí chèn: Đặt trực tiếp vào Cột 3. TUYỆT ĐỐI không dùng thẻ <br/> trước/sau khối code để không làm vỡ cấu trúc bảng.
 - BẮT BUỘC CHỈ DÙNG CÁC MÀU CƠ BẢN CỦA LaTeX (black, white, red, green, blue, cyan, magenta, yellow, gray, lightgray). TUYỆT ĐỐI KHÔNG tự sáng tạo tên màu (như indigo, primary, teal) để tránh lỗi biên dịch.
+- GIỚI HẠN ĐỘ PHỨC TẠP ĐỂ XUẤT WORD/PDF ỔN ĐỊNH: tối đa 2 hình TikZ trong một giáo án; mỗi hình không quá khoảng 40 dòng; chỉ dùng các lệnh TikZ cơ bản (\\draw, \\node, \\fill, \\path, \\foreach đơn giản). TUYỆT ĐỐI không dùng ảnh nền, external file, package/thư viện lạ, TikZ quá dài hoặc nhiều vòng lặp phức tạp. Nếu hình quá phức tạp, hãy chuyển sang khối \`\`\`prompt ... \`\`\` thay vì mã TikZ.
 
 2. Ảnh minh họa SGK/Thực tế (static_image):
 - Khi nào dùng: Cần bối cảnh thực tế hoặc sơ đồ tư duy khái quát (VD: Cây cầu treo, quỹ đạo vệ tinh).

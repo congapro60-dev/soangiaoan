@@ -31,8 +31,26 @@ export const exportLessonViaAPI = async (
     });
 
     if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(errorText);
+      if (res.status === 502 || res.status === 504) {
+        throw new Error('Bài có nhiều hình/bảng nên máy chủ quá thời gian xử lý. Vui lòng thử xuất lại, hoặc giảm số hình TikZ phức tạp trong bài.');
+      }
+
+      let errorMessage = `Máy chủ trả về lỗi ${res.status}`;
+      try {
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const errorJson = await res.json();
+          errorMessage = errorJson?.error || errorJson?.message || errorMessage;
+        } else {
+          const errorText = await res.text();
+          if (errorText && !/^\s*</.test(errorText)) {
+            errorMessage = errorText.slice(0, 300);
+          }
+        }
+      } catch {
+        // Keep the status-based fallback message.
+      }
+      throw new Error(errorMessage);
     }
     
     const data = await res.json();
