@@ -10,14 +10,29 @@
 
 ## 1. Trạng thái hiện tại
 
+### 1.0 Cập nhật phiên 2026-06-11 — PR #15 đã merge vào `main`
+- Đã merge PR #15 vào `main`: `https://github.com/congapro60-dev/soangiaoan/pull/15`.
+- Merge commit trên `main`: `5956403ee6efedcb8419112b85a518ae5eea479f`.
+- Source commit: `c9e839a` (`chore: add QA docs and stabilize lesson exports`).
+- Branch nguồn đã dùng: `qa-intentional-code-docs-20261106`.
+- Scope merge: **11 file code/docs có chủ đích**, gồm QA protocol/docs, PowerShell workflow note, ổn định export Word/PDF khi Kroki/TikZ lỗi hoặc timeout, validation publish-readiness cho adaptive content, và giới hạn prompt TikZ để export ổn định hơn.
+- Verification trước merge:
+  - `npm run test`: **15 test files / 70 tests passed**.
+  - `npm run build`: PASS, `✓ built in 32.83s`.
+  - Main index chunk: `876.79 kB`, dưới ngưỡng hard threshold 1MB đã dùng trong QA.
+- Local dev server đã được mở cho người dùng xem: `http://localhost:3000/` (`npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai" run dev`).
+- Không đưa vào merge: `.agents/firebase-service-account.json`, `_File thừa/`, mass deletions/unrelated local changes, và lỗi/corruption không liên quan trong `UI-UX/MASTER_HANDOVER.md`.
+
 ### 1.1 Kết luận nhanh
 - Clone Template / Markdown Skeleton đã hoàn tất qua **Phase 2A → 2E**.
 - Core hiện có: parse skeleton từ mẫu, prompt AI bám skeleton, validate có cấu trúc, manual skeleton editor, guardrail export/final-save, context budget chống tràn token.
 - Unit/build/e2e smoke đã chạy trong các phiên gần nhất và PASS theo từng checkpoint.
+- PR #15 đã bổ sung QA docs/workflow và hardening export/adaptive như ghi ở mục 1.0.
 - Từ Phase 3A trở đi vẫn là **kế hoạch chưa code**.
 
 ### 1.2 Quy ước phối hợp
 - Cline/code agent: audit code thật → code lát cắt nhỏ → chạy build/test → cập nhật HANDOFF → commit/push khi người dùng yêu cầu.
+- Quy ước workflow mới từ người dùng: sau khi đã code/sửa ở local và cần đưa thay đổi lên repo, ưu tiên cập nhật trực tiếp lên `main`/merge vào `main` luôn; không giữ thay đổi ở nhánh phụ/PR lâu nếu người dùng không yêu cầu review riêng.
 - Anti/Antigravity: QA độc lập/manual review. Không tự coi QA thủ công là xong nếu chưa có report Anti.
 - Scope hiện tại chỉ cam kết **Markdown Skeleton**: heading / bảng / placeholder. Không hứa giữ 100% layout DOCX như font, margin, header/footer/logo.
 - Draft/save trong quá trình AI sinh nên dùng soft validation. Export/final-save dùng confirm/hard warning; chỉ hard-block khi nội dung rỗng hoặc cấu trúc hỏng tới mức không export được.
