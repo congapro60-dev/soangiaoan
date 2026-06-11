@@ -3,7 +3,8 @@ import * as pdfjsLib from 'pdfjs-dist';
 import * as XLSX from 'xlsx';
 import { TemplateFile } from '../types';
 import { createDocumentSkeleton } from '../lib/documentSkeleton';
-
+import { cleanImageBase64 } from './imageCleanup';
+import { pdfToImages } from './examImportUtils';
 // Set PDF.js worker
 try {
   // Use unpkg CDN for the worker to ensure it works in both dev and production
@@ -134,30 +135,48 @@ export const extractBase64FromImage = (file: File): Promise<string> => {
 export const processUploadedFile = async (
   file: File, 
   category: TemplateFile['category'], 
-  index: number
-): Promise<TemplateFile> => {
+  index: number,
+  autoClean: boolean = false
+): Promise<TemplateFile[]> => {
   const extension = file.name.split('.').pop()?.toLowerCase();
   let type: string = extension || 'unknown';
   
   let content = '';
   if (type === 'pdf') {
     content = await extractTextFromPDF(file);
+    
+    // Nếu text quá ngắn (< 50 ký tự), khả năng cao là PDF Scan.
+    // Nếu autoClean = true, tự động chẻ PDF thành nhiều ảnh và chạy làm sạch.
+    if (content.trim().length < 50 && autoClean) {
+      console.log(`[fileUtils] PDF "${file.name}" không có text. Bắt đầu render thành ảnh...`);
+      const images = await pdfToImages(file, undefined, true);
+      return images.map((imgBase64, i) => ({
+        id: `file-${Date.now()}-${index}-p${i+1}`,
+        name: `${file.name} (Trang ${i+1})`,
+        type: 'jpg',
+        content: imgBase64,
+        category,
+      }));
+    }
   } else if (type === 'docx' || type === 'doc') {
     content = await extractTextFromWord(file);
   } else if (type === 'xlsx' || type === 'xls') {
     content = await extractTextFromExcel(file);
   } else if (['png', 'jpg', 'jpeg', 'webp'].includes(type)) {
     content = await extractBase64FromImage(file);
+    if (autoClean) {
+      content = await cleanImageBase64(content);
+    }
   }
 
   const shouldBuildSkeleton = ['sample', 'lesson_doc', 'test', 'matrix'].includes(category) && content && !content.startsWith('data:image/');
 
-  return {
+  return [{
     id: `file-${Date.now()}-${index}`,
     name: file.name,
     type,
     content,
     category,
     skeleton: shouldBuildSkeleton ? createDocumentSkeleton(content, file.name) : undefined
-  };
+  }];
 };

@@ -4,6 +4,7 @@ import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { storage } from '../lib/firebase';
 import { callAI, callAIWithVision } from '../lib/aiProviders';
 import { AppData, ExamQuestion, QuestionType } from '../types';
+import { applyCleanFilterToCanvas, cleanImageBase64 } from './imageCleanup';
 
 type Settings = AppData['settings'];
 
@@ -30,7 +31,7 @@ const PDF_SCALE = 1.0;
 const IMG_QUALITY = 0.4;
 
 /** Convert PDF pages to data URLs */
-export const pdfToImages = async (file: File, onProgress?: (p: number) => void): Promise<string[]> => {
+export const pdfToImages = async (file: File, onProgress?: (p: number) => void, autoClean?: boolean): Promise<string[]> => {
   const ab = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
   const images: string[] = [];
@@ -44,6 +45,11 @@ export const pdfToImages = async (file: File, onProgress?: (p: number) => void):
     canvas.height = viewport.height;
     canvas.width = viewport.width;
     await page.render({ canvasContext: ctx, viewport, canvas: canvas as any }).promise;
+    
+    if (autoClean) {
+      applyCleanFilterToCanvas(canvas, ctx);
+    }
+    
     images.push(canvas.toDataURL('image/jpeg', IMG_QUALITY));
     canvas.width = 0; canvas.height = 0; // release GPU memory
     if (onProgress) onProgress(Math.round((i / pageCount) * 100));
@@ -225,6 +231,7 @@ export const parseExamFromFiles = async (
   settings: Settings,
   preRenderedPages?: string[],
   forceVision = false,
+  autoClean = false
 ): Promise<ExamQuestion[]> => {
   const ext = examFile.name.split('.').pop()?.toLowerCase() ?? '';
   const isImage = IMAGE_EXTS.includes(ext);
@@ -236,11 +243,15 @@ export const parseExamFromFiles = async (
 
   if (useVision) {
     // Multi-page Vision path
-    const pages = preRenderedPages && preRenderedPages.length > 0
+    let pages = preRenderedPages && preRenderedPages.length > 0
       ? preRenderedPages
       : ext === 'pdf'
-        ? await pdfToImages(examFile)
+        ? await pdfToImages(examFile, undefined, autoClean)
         : [await fileToDataUrl(examFile)];
+        
+    if (autoClean && isImage) {
+      pages = await Promise.all(pages.map(p => cleanImageBase64(p)));
+    }
     
     const examText = ext === 'pdf' ? await extractTextFromFile(examFile) : '';
     const answerKeyText = answerKeyFile && !IMAGE_EXTS.includes(

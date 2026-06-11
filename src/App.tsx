@@ -142,8 +142,8 @@ export default function App() {
     try {
       const processedFiles: TemplateFile[] = [];
       for (let i = 0; i < files.length; i++) {
-        const file = await processUploadedFile(files[i], uploadingFiles.category, i);
-        processedFiles.push(file);
+        const resultFiles = await processUploadedFile(files[i], uploadingFiles.category, i);
+        processedFiles.push(...resultFiles);
       }
 
       if (uploadingFiles.category === 'lesson_doc') {

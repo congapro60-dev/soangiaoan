@@ -23,6 +23,7 @@ export const SmartGradingMode = ({
   const [studentFiles, setStudentFiles] = useState<TemplateFile[]>([]);
   const [maxScore, setMaxScore] = useState(10);
   const [sessionTitle, setSessionTitle] = useState('');
+  const [autoClean, setAutoClean] = useState(true);
   const [progress, setProgress] = useState<{ done: number; total: number; name: string } | null>(null);
 
   const examRef = useRef<HTMLInputElement>(null);
@@ -36,7 +37,8 @@ export const SmartGradingMode = ({
     try {
       const list: TemplateFile[] = [];
       for (let i = 0; i < files.length; i++) {
-        list.push(await processUploadedFile(files[i], 'test', i));
+        const processed = await processUploadedFile(files[i], 'test', i, autoClean);
+        list.push(...processed);
       }
       setExamFiles(prev => [...prev, ...list]);
       if (!sessionTitle && files[0]) setSessionTitle(files[0].name.replace(/\.[^.]+$/, ''));
@@ -50,7 +52,8 @@ export const SmartGradingMode = ({
     try {
       const list: TemplateFile[] = [];
       for (let i = 0; i < files.length; i++) {
-        list.push(await processUploadedFile(files[i], 'sample', i));
+        const processed = await processUploadedFile(files[i], 'sample', i, autoClean);
+        list.push(...processed);
       }
       setStudentFiles(prev => [...prev, ...list]);
       showToast(`Đã nhận ${files.length} bài làm!`);
@@ -205,6 +208,18 @@ export const SmartGradingMode = ({
           </div>
         )}
         <input ref={studentRef} type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.docx" className="hidden" onChange={handleStudentUpload} />
+        
+        <label className="flex items-center gap-2 mt-2 cursor-pointer group w-fit">
+          <input 
+            type="checkbox" 
+            checked={autoClean} 
+            onChange={e => setAutoClean(e.target.checked)}
+            className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500" 
+          />
+          <span className="text-xs font-bold text-slate-500 group-hover:text-slate-700 transition-colors">
+            Làm sạch nền ảnh / Tự động cắt trang PDF scan (khuyên dùng)
+          </span>
+        </label>
       </div>
 
       {/* Section 3 — Config */}

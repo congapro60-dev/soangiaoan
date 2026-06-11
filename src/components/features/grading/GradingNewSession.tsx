@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { CheckCircle2, Upload, Users, Loader2, ClipboardCheck, Download, Plus, X, BarChart3, Sparkles } from 'lucide-react';
 import { AppData, TemplateFile, GradingResult } from '../../../types';
 import { processUploadedFile } from '../../../utils/fileUtils';
@@ -55,6 +55,7 @@ export const GradingNewSession = ({
 }: Props) => {
   const masterRef = useRef<HTMLInputElement>(null);
   const studentRef = useRef<HTMLInputElement>(null);
+  const [autoClean, setAutoClean] = useState(true);
 
   const stats = (() => {
     const done = results.filter(r => r.status === 'completed');
@@ -81,7 +82,8 @@ export const GradingNewSession = ({
           showToast(`"${files[i].name}" vượt quá ${MAX_FILE_MB}MB — bỏ qua`, 'error');
           continue;
         }
-        list.push(await processUploadedFile(files[i], 'test', i));
+        const processed = await processUploadedFile(files[i], 'test', i, autoClean);
+        list.push(...processed);
       }
       setMasterFiles(prev => [...prev, ...list]);
       if (!sessionTitle && files[0]) setSessionTitle(files[0].name.replace(/\.[^.]+$/, ''));
@@ -101,7 +103,8 @@ export const GradingNewSession = ({
           showToast(`"${files[i].name}" vượt quá ${MAX_FILE_MB}MB — bỏ qua`, 'error');
           continue;
         }
-        list.push(await processUploadedFile(files[i], 'sample', i));
+        const processed = await processUploadedFile(files[i], 'sample', i, autoClean);
+        list.push(...processed);
       }
       setStudentFiles(prev => [...prev, ...list]);
       setResults(prev => [...prev, ...list.map(f => ({
@@ -195,6 +198,18 @@ export const GradingNewSession = ({
             </span>
           </div>
           <input ref={studentRef} type="file" multiple accept=".pdf,.docx,.jpg,.jpeg,.png" className="hidden" onChange={handleStudentUpload} />
+          
+          <label className="flex items-center gap-2 mt-2 cursor-pointer group w-fit">
+            <input 
+              type="checkbox" 
+              checked={autoClean} 
+              onChange={e => setAutoClean(e.target.checked)}
+              className="w-3.5 h-3.5 text-blue-600 rounded border-slate-300 focus:ring-blue-500" 
+            />
+            <span className="text-[10px] font-bold text-slate-500 group-hover:text-slate-700 transition-colors">
+              Làm sạch nền ảnh / Cắt PDF scan (khuyên dùng)
+            </span>
+          </label>
         </div>
       </div>
 

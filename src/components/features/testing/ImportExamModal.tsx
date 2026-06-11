@@ -121,6 +121,7 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
   const [progress, setProgress] = useState(0);
   const [progressLabel, setProgressLabel] = useState('');
   const [forceVision, setForceVision] = useState(false);
+  const [autoClean, setAutoClean] = useState(true);
 
   const examRef = useRef<HTMLInputElement>(null);
   const answerRef = useRef<HTMLInputElement>(null);
@@ -178,7 +179,7 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
 
       let parsed;
       try {
-        parsed = await parseExamFromFiles(examFile, answerFile, settings, imgs, forceVision);
+        parsed = await parseExamFromFiles(examFile, answerFile, settings, imgs, forceVision, autoClean);
       } finally {
         clearInterval(interval);
       }
@@ -414,6 +415,24 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
                       className={`w-12 h-6 rounded-full transition-all relative ${forceVision ? 'bg-blue-600' : 'bg-slate-300'}`}
                     >
                       <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-all ${forceVision ? 'translate-x-6' : ''}`} />
+                    </button>
+                  </div>
+                  
+                  {/* Clean Background Toggle */}
+                  <div className="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 flex items-center justify-between">
+                    <div className="flex-1 pr-4">
+                      <p className="text-sm font-black text-emerald-800 flex items-center gap-2">
+                        Tự động làm sạch nền ảnh
+                      </p>
+                      <p className="text-[10px] text-emerald-600 mt-0.5 leading-relaxed">
+                        Chuyển ảnh xám, nhiễu thành nền trắng chữ đen nét. Rất tốt cho ảnh chụp đề thi bằng điện thoại.
+                      </p>
+                    </div>
+                    <button 
+                      onClick={() => setAutoClean(!autoClean)}
+                      className={`w-12 h-6 rounded-full transition-all relative ${autoClean ? 'bg-emerald-600' : 'bg-slate-300'}`}
+                    >
+                      <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-all ${autoClean ? 'translate-x-6' : ''}`} />
                     </button>
                   </div>
                 </div>
