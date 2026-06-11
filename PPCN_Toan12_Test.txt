@@ -1,9 +1,0 @@
-PHÂN PHỐI CHƯƠNG TRÌNH TOÁN 12 (KẾT NỐI TRI THỨC)
-
-Tuần | Tiết | Bài học | Yêu cầu cần đạt
---- | --- | --- | ---
-2 | 4 | Giá trị lớn nhất và giá trị nhỏ nhất của hàm số | Nhận biết GTLN, GTNN trên đoạn [a;b]. Biết cách quy tắc tính GTLN, GTNN trên đoạn.
-2 | 5 | Giá trị lớn nhất và giá trị nhỏ nhất của hàm số (Tiết 2) | Tìm được GTLN, GTNN của hàm số trên một khoảng hoặc trên toàn miền xác định thông qua BBT.
-2 | 6 | Luyện tập Giá trị lớn nhất, giá trị nhỏ nhất | Giải quyết các bài toán tối ưu thực tế đơn giản.
-2 | 7 | Đường tiệm cận của đồ thị hàm số | Nhận biết đường tiệm cận ngang thông qua giới hạn tại vô cực. Vẽ minh họa.
-2 | 8 | Đường tiệm cận của đồ thị hàm số (Tiết 2) | Nhận biết đường tiệm cận đứng thông qua giới hạn tại một điểm. Tìm tiệm cận của hàm phân thức.
