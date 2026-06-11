@@ -49,9 +49,49 @@ Dưới đây là danh sách các module tính năng cần được giả lập/
   - App chuyển ảnh thành base64 gọi AI Vision (Gemini 2.5 Pro/Flash).
   - Kết quả trả về phải chứa "Điểm số" và "Nhận xét chi tiết" dựa trên đáp án chuẩn.
 
+### 2.5. Module: Adaptive Student Portal
+- Tạo 1 lớp test + 1 học sinh test trong ClassesTab
+- Bật portalEnabled = true cho 1 bài học
+- Mở URL học sinh: giaoandewey.vercel.app/portal/[lessonId]
+- Nhập mã học sinh → vào được bài
+- Hoàn thành pre-test → kiểm tra Firestore có ghi adaptiveSessionProgress không
+- Xem nội dung adaptive → kiểm tra Firestore personalizationCache có entry không
+- Submit exit ticket → kiểm tra Firestore ghi đúng
+
+### 2.6. Module: ClassesTab Validation
+- Tạo 2 lớp cùng tên → lần 2 phải bị chặn với SweetAlert
+- Thêm 2 học sinh cùng mã trong 1 lớp → lần 2 phải bị chặn
+- Reload trang → data lớp/học sinh vẫn còn (Firebase persist)
+
+### 2.7. Module: Authentication
+- Đăng xuất → truy cập /dashboard → redirect về login
+- Đăng nhập lại → data cũ còn nguyên
+- Đổi AI provider trong Settings → AI calls dùng đúng provider
+
+### 2.8. Production Smoke Test (chạy trên giaoandewey.vercel.app)
+- Tạo 1 giáo án đơn giản → xuất Word → mở được trong Word
+- Tạo 1 đề thi → xuất PDF → mở được
+- Mở Adaptive Portal với mã học sinh thật → không có lỗi console
+
 ---
 
-## 3. Quy Định Chữa Lỗi (Bug Fixing Protocol)
+## 3. Dữ Liệu & Kịch Bản Test Nâng Cao
+
+### 3.1. Test Data Fixtures (file cố định)
+- File PDF mẫu: dùng "Mẫu giáo án.pdf" có sẵn trong repo
+- Prompt mẫu: "Soạn giáo án môn Toán lớp 10, chủ đề Vectơ"
+- Mã học sinh test: tạo trong ClassesTab, ghi vào HANDOFF
+
+### 3.2. XSS Sandbox Test (đúng cách)
+Thay vì dùng Inspect Element, test bằng cách:
+Trong ViewPlanModal/AdaptiveStudentPortalPage, truyền HTML sau vào SandboxedSimulationFrame:
+`<script>window.parent.document.title="HACKED"</script><p>Test</p>`
+- Kết quả đúng: validator block, hiện error UI màu đỏ.
+- Kết quả sai: iframe render và title của parent thay đổi.
+
+---
+
+## 4. Quy Định Chữa Lỗi (Bug Fixing Protocol)
 Nếu AI trong quá trình chạy QA Checklist này phát hiện ra lỗi (Failed Test, Error Console, App Crash):
 1. **Dừng lại ngay lập tức.**
 2. Báo cáo bằng định dạng Issue ngắn gọn: `[Module bị lỗi] - [Thao tác thực hiện] - [Lỗi bắt gặp]`.
