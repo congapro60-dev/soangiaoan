@@ -233,7 +233,23 @@ tasks/
 
 ---
 
-## 8. E2E Browser Automation / Control Chrome
+## 8. Terminal Environment — PowerShell Rules (CRITICAL)
+
+The VS Code integrated terminal uses **PowerShell**, NOT CMD. The following mistakes will silently fail:
+
+| ❌ Wrong (CMD syntax) | ✅ Correct (PowerShell) |
+|---|---|
+| `cd /d C:\path && npm run build` | `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai" run build` |
+| `cd /d C:\path && npm run dev` | `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai" run dev` |
+| `cd /d C:\path && npm run test` | `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai" run test` |
+
+**Root cause**: `cd /d` is a CMD flag to change drive. In PowerShell, `/d` is interpreted as a path argument, so `cd` silently goes to the wrong directory and subsequent `npm` commands run in the wrong project.
+
+**Golden rule**: Always use `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai" run <script>` for all npm commands in this project. Never use `cd /d`.
+
+---
+
+## 9. E2E Browser Automation / Control Chrome
 
 This workspace supports full E2E Browser Automation and Direct Hook control using Puppeteer. Any AI session (Gemini, Claude, Roo Code, etc.) can hook into and control Google Chrome to perform tests, inspect the DOM, and verify features.
 
