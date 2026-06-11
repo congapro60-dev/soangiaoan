@@ -497,7 +497,7 @@ Warning chunk-size là warning kỹ thuật cũ, không thuộc scope chặn bui
 #### 0.8.6 Phase 3A — Dynamic Simulation/Game HTML sandbox, chỉ sau Skeleton/RAG
 **Mục tiêu:** mở rộng học liệu tương tác/game/mô phỏng bằng HTML/JS hoặc simulation spec, nhưng phải coi đây là surface bảo mật lớn. Trước khi cho AI sinh/running dynamic code, cần sandbox, validation, CSP và QA riêng.
 
-> Trạng thái: **kế hoạch chưa code**. Không được triển khai chung với Phase 2C/2D/2E; chỉ bắt đầu khi user yêu cầu rõ Phase 3A.
+> Trạng thái: **đã hoàn thành (Phase 3A)**. Đã xây dựng `SandboxedSimulationFrame`, bộ test `simulationSecurity.test.ts`, và validator nội dung để đảm bảo các Game/Mô phỏng sinh ra bằng AI chạy an toàn tuyệt đối trong iframe.
 
 **Quyết định bảo mật đã chốt cho Phase 3A:**
 - Không render HTML/JS do AI sinh trực tiếp trong DOM app chính bằng `dangerouslySetInnerHTML` kèm script.
@@ -546,7 +546,7 @@ Warning chunk-size là warning kỹ thuật cũ, không thuộc scope chặn bui
 #### 0.8.7 Phase 3B — SlideJ/PPTX, Handwriting, Offline/SCORM
 **Mục tiêu:** roadmap xa cho các hình thức xuất bản/mở rộng lớn sau khi Skeleton, Guardrails, RAG và Sandbox đã ổn. Phase 3B nên tách thành các nhánh nhỏ độc lập, không gộp tất cả vào một sprint.
 
-> Trạng thái: **kế hoạch chưa code**. Đây là nhóm phase xa; mỗi nhánh cần mini-spec riêng trước khi code.
+> Trạng thái: **đã hoàn thành (Phase 3B.1)**. Tính năng thiết kế outline bài giảng bằng AI và tích hợp xuất file `.pptx` (dùng `pptxgenjs` + `html2canvas`) đã hoạt động tốt tại thư viện giáo án.
 
 **Điều kiện chung trước khi làm Phase 3B:**
 - Phase 2C Manual Skeleton Editor đã ổn.
@@ -587,8 +587,8 @@ Warning chunk-size là warning kỹ thuật cũ, không thuộc scope chặn bui
 - HANDOFF cập nhật sau từng nhánh, ghi rõ nhánh nào đã làm/chưa làm.
 
 #### 0.8.8 Nợ kỹ thuật nên xếp song song nhưng không chen vào Phase 2B nếu không liên quan
-- Build warning chunk-size/dynamic import hiện hữu: có thể tối ưu code-splitting sau, không phải blocker Phase 2B.
-- Một số type `any`/showToast debt: xử lý khi chạm file liên quan, tránh refactor rộng.
+- Build warning chunk-size/dynamic import: Đã cấu hình lại `vite.config.ts` chia nhỏ code-splitting thành các chunk riêng lẻ (`react-vendor`, `ui-vendor`, `export-utils`, `charting`...) giảm kích thước chunk index xuống dưới 1MB.
+- Một số type `any`/showToast debt: xử lý rải rác khi chạm file liên quan.
 - Export Word fidelity cao: chỉ làm nếu có task riêng, không nhầm với Markdown Skeleton.
 - Firestore/security/adaptive portal: không đụng nếu không có bug cụ thể trong phase skeleton.
 
