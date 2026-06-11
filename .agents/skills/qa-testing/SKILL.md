@@ -13,7 +13,7 @@ Whenever there is a new update, modification, or bug fix, your job is to run thr
 1. **Mandatory Pre-flight Checks**:
    Before attempting any UI or manual validation, you MUST verify the build and test suites:
    - Run `npm run test`. Wait for it to finish and confirm 100% pass rate.
-   - Run `npm run build`. Confirm that the build succeeds and chunk sizes are optimized (no massive >2MB chunks).
+   - Run `npm run build`. Confirm that the build succeeds and chunk sizes are optimized (no chunk >500KB on the main index bundle (per vite.config.ts code-splitting target)).
 
 2. **Follow the Protocol Document**:
    Read the master QA protocol document located at `QA_TESTING_PROTOCOL.md` in the root of the workspace.
@@ -24,7 +24,7 @@ Whenever there is a new update, modification, or bug fix, your job is to run thr
 
 3. **Execute the Test Scenarios**:
    Systematically go through each module mentioned in the Protocol.
-   - If a test requires simulating an API call, you may write a quick Node script in a scratch pad or run `live_dom_test.js` if applicable.
+   - If a test requires simulating an API call, you may write a Node.js scratch script in test/ folder if API simulation is needed; do not assume any pre-existing test runner script exists.
    - If you encounter ANY error, **STOP immediately**, report the error context, and ask the user for permission to fix the bug using the bug-fixing protocol outlined in `QA_TESTING_PROTOCOL.md`.
 
 4. **Sign-off Report**:

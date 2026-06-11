@@ -51,12 +51,12 @@ Dưới đây là danh sách các module tính năng cần được giả lập/
 
 ### 2.5. Module: Adaptive Student Portal
 - Tạo 1 lớp test + 1 học sinh test trong ClassesTab
-- Bật portalEnabled = true cho 1 bài học
-- Mở URL học sinh: giaoandewey.vercel.app/portal/[lessonId]
-- Nhập mã học sinh → vào được bài
-- Hoàn thành pre-test → kiểm tra Firestore có ghi adaptiveSessionProgress không
-- Xem nội dung adaptive → kiểm tra Firestore personalizationCache có entry không
-- Submit exit ticket → kiểm tra Firestore ghi đúng
+- Bật portalEnabled = true cho 1 bài học trong Firestore
+- Mở giaoandewey.vercel.app/portal/[lessonId]
+- Nhập mã học sinh hợp lệ → vào được bài
+- Hoàn thành pre-test → kiểm tra Firestore có ghi collection adaptiveSessionProgress không
+- Xem nội dung adaptive → kiểm tra Firestore collection personalizationCache có entry mới không (TTL 7 ngày)
+- Submit exit ticket → kiểm tra profileRecord ghi đúng
 
 ### 2.6. Module: ClassesTab Validation
 - Tạo 2 lớp cùng tên → lần 2 phải bị chặn với SweetAlert
@@ -64,30 +64,29 @@ Dưới đây là danh sách các module tính năng cần được giả lập/
 - Reload trang → data lớp/học sinh vẫn còn (Firebase persist)
 
 ### 2.7. Module: Authentication
-- Đăng xuất → truy cập /dashboard → redirect về login
+- Đăng xuất → truy cập route protected → redirect về login
 - Đăng nhập lại → data cũ còn nguyên
-- Đổi AI provider trong Settings → AI calls dùng đúng provider
+- Không có API key → Settings modal tự mở
 
-### 2.8. Production Smoke Test (chạy trên giaoandewey.vercel.app)
-- Tạo 1 giáo án đơn giản → xuất Word → mở được trong Word
+### 2.8. Production Smoke Test (bắt buộc chạy trên giaoandewey.vercel.app)
+- Tạo 1 giáo án đơn giản → xuất Word → mở được không lỗi
 - Tạo 1 đề thi → xuất PDF → mở được
-- Mở Adaptive Portal với mã học sinh thật → không có lỗi console
+- Adaptive Portal với mã học sinh thật → không có lỗi console
+
+### 2.9. XSS Sandbox Test (đúng cách — không dùng Inspect Element)
+Trong component dùng SandboxedSimulationFrame, truyền HTML:
+  '<script>window.parent.document.title="HACKED"</script><p>Test</p>'
+Kết quả PASS: validator block, hiện error UI đỏ.
+Kết quả FAIL: iframe render được hoặc title parent đổi.
 
 ---
 
 ## 3. Dữ Liệu & Kịch Bản Test Nâng Cao
 
-### 3.1. Test Data Fixtures (file cố định)
-- File PDF mẫu: dùng "Mẫu giáo án.pdf" có sẵn trong repo
-- Prompt mẫu: "Soạn giáo án môn Toán lớp 10, chủ đề Vectơ"
-- Mã học sinh test: tạo trong ClassesTab, ghi vào HANDOFF
-
-### 3.2. XSS Sandbox Test (đúng cách)
-Thay vì dùng Inspect Element, test bằng cách:
-Trong ViewPlanModal/AdaptiveStudentPortalPage, truyền HTML sau vào SandboxedSimulationFrame:
-`<script>window.parent.document.title="HACKED"</script><p>Test</p>`
-- Kết quả đúng: validator block, hiện error UI màu đỏ.
-- Kết quả sai: iframe render và title của parent thay đổi.
+### 3.1. Test Data Fixtures
+- File PDF mẫu cố định: dùng "Mẫu giáo án.pdf" có sẵn trong repo
+- Prompt mẫu cố định: "Soạn giáo án môn Toán lớp 10, chủ đề Vectơ, 2 tiết, lớp 10A1"
+- Mã học sinh test: ghi vào HANDOFF.md sau khi tạo trong ClassesTab
 
 ---
 
