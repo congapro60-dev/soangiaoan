@@ -291,7 +291,7 @@ Warning chunk-size là warning kỹ thuật cũ, không thuộc scope chặn bui
 #### 0.8.3 Phase 2C — Manual Skeleton Editor & Controlled Warning Dismiss
 **Mục tiêu:** cho giáo viên/chuyên viên chỉnh thủ công Markdown Skeleton trước khi gọi AI, giảm phụ thuộc parser heuristic nhưng vẫn giữ phạm vi hẹp: **không làm rich DOCX editor, không sửa layout Word trực tiếp, chỉ sửa skeleton Markdown heading/bảng/placeholder**.
 
-> Trạng thái: **kế hoạch chi tiết để Anti/code agent triển khai, chưa code ở mục này**. Phase 2B đã có parser/validator/test nền; Phase 2C phải bám các bước dưới đây để tránh làm lệch flow template hiện hữu.
+> Trạng thái: **đã hoàn thành (Phase 2C MVP)**. Chức năng sửa thủ công bằng textarea và Dismiss Warning đã được thêm, các lỗi conflict type cũng đã xử lý. Tích hợp trơn tru với `App.tsx` state management.
 
 **Quyết định đã chốt cho Phase 2C:**
 - Editor đặt **inline trong `TemplatesTab`**, ngay khu vực đang xem Markdown Skeleton; không mở modal phức tạp.
