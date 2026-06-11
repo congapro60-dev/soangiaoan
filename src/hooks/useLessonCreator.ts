@@ -450,7 +450,7 @@ Mỗi đơn vị kiến thức ở Bước 2 phải có đúng cấu trúc sau �
 - workedExample.hints: [3 gợi ý]
 - quickCheck: đúng 2 câu, mỗi câu có prompt, 4 options, correctIndex, explanation
 - practice.foundation / practice.standard / practice.challenge: mỗi tuyến 1 nhiệm vụ đúng mức
-- simulationSpec: title, kind(geometry2d/geometry3d/externalTool), placement, studentTask, interactions, notebookEntries. Với externalTool: KHÔNG ĐƯỢC sinh mã HTML/Iframe. Bắt buộc tạo mảng externalToolIds: ["ID_cua_tool"] bằng cách chọn từ Mock Allowlist sau: ["geogebra_1", "desmos_1", "congcutoanhoc_3"].
+- simulationSpec: title, kind(geometry2d/geometry3d/externalTool), placement, studentTask, interactions, notebookEntries. Với externalTool: KHÔNG ĐƯỢC sinh mã HTML/Iframe. Bắt buộc tạo mảng externalToolIds: ["ID_cua_tool"] bằng cách chọn từ kho dữ liệu 271 công cụ Toán học (congcutoanhoc.com) hoặc GeoGebra.
 
 #### AdaptiveExitTicket
 Tạo đúng 3 câu exit ticket. Mỗi câu phải có prompt, 4 options A-D, correctIndex, explanation, objectiveCode, difficulty.

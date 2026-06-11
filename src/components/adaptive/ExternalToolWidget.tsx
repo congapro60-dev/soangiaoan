@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { AlertTriangle, BookOpen, ExternalLink, Loader2, X } from 'lucide-react';
+import { AlertTriangle, BookOpen, ExternalLink, Loader2, X, Sparkles } from 'lucide-react';
 import type { ExternalTool } from '../../data/externalTools';
 import { cn } from '../../lib/utils';
 
@@ -71,6 +71,37 @@ const LinkToolCard = ({ tool }: ToolCardProps) => (
       </a>
     </div>
     <div className="mt-2 flex justify-end"><BrokenLinkReport tool={tool} /></div>
+    <ToolAttribution tool={tool} />
+  </article>
+);
+
+const BlockedToolCard = ({ tool }: ToolCardProps) => (
+  <article className="rounded-3xl border border-rose-100 bg-white p-5 shadow-sm">
+    <SourceBadge tool={tool} />
+    <div className="mt-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div>
+        <h4 className="text-lg font-black text-slate-800">{tool.name} <span className="text-sm font-bold text-rose-500">(Bị chặn nhúng)</span></h4>
+        <p className="mt-1 text-sm font-semibold text-slate-500">Trang đích đã chặn hiển thị trong khung iframe vì lý do bảo mật.</p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => alert('Tính năng AI tự sinh mã nguồn mô phỏng đang được phát triển!')}
+          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-indigo-100 transition hover:bg-indigo-700"
+        >
+          <Sparkles className="h-4 w-4" />
+          Sinh công cụ bằng AI
+        </button>
+        <a
+          href={tool.url}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700 transition hover:border-slate-300 hover:text-slate-800"
+        >
+          Mở tab mới
+          <ExternalLink className="h-4 w-4" />
+        </a>
+      </div>
+    </div>
     <ToolAttribution tool={tool} />
   </article>
 );
@@ -218,9 +249,12 @@ export const ExternalToolWidget = ({ tools }: ExternalToolWidgetProps) => {
         </div>
       </div>
       <div className="space-y-4">
-        {tools.map(tool => (
-          tool.embedMode === 'link' ? <LinkToolCard key={tool.id} tool={tool} /> : <IframeToolCard key={tool.id} tool={tool} />
-        ))}
+        {tools.map(tool => {
+          if (tool.isEmbeddable === false) {
+            return <BlockedToolCard key={tool.id} tool={tool} />;
+          }
+          return tool.embedMode === 'link' ? <LinkToolCard key={tool.id} tool={tool} /> : <IframeToolCard key={tool.id} tool={tool} />;
+        })}
       </div>
     </section>
   );
