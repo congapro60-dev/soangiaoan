@@ -38,6 +38,17 @@ const loadKatexCss = (): string => {
 };
 
 const KATEX_CSS = loadKatexCss();
+const KROKI_FETCH_TIMEOUT_MS = 8_000;
+
+const fetchWithTimeout = async (url: string, timeoutMs = KROKI_FETCH_TIMEOUT_MS): Promise<Response> => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+};
 
 const DOCX_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 const PDF_MIME_TYPE = 'application/pdf';
@@ -135,21 +146,42 @@ function encodeKroki(source: string): string {
     .replace(/\//g, '_');
 }
 
-function processVisualAids(content: string): string {
+async function processVisualAids(content: string): Promise<string> {
   let result = content;
   
   // 1. Process SVG (handles both ```xml <svg>``` blocks and inline `xml <svg>`)
   result = result.replace(/(?:```(?:xml|html|svg)\s*)?(?:xml|html)?\s*(<svg[\s\S]*?<\/svg>)(?:\s*```)?/gi, '<div style="text-align: center; margin: 10px 0;">$1</div>');
 
-  // 2. Process TikZ (handles both ```latex \begin{tikzpicture}...``` and inline)
-  result = result.replace(/(?:```(?:latex|tikz|tex)\s*)?(?:latex|tikz|tex)?\s*(\\begin\{tikzpicture\}[\s\S]*?\\end\{tikzpicture\})(?:\s*```)?/gi, (match, tikz) => {
+  // 2. Process TikZ sequentially so Kroki cannot hang Puppeteer page loading.
+  const tikzPattern = /(?:```(?:latex|tikz|tex)\s*)?(?:latex|tikz|tex)?\s*(\\begin\{tikzpicture\}[\s\S]*?\\end\{tikzpicture\})(?:\s*```)?/gi;
+  const tikzMatches = Array.from(result.matchAll(tikzPattern));
+  for (const match of tikzMatches) {
+    const fullMatch = match[0];
+    const tikz = match[1];
     let finalTikz = tikz;
     if (!finalTikz.includes('\\documentclass')) {
       finalTikz = `\\documentclass[tikz,border=2mm]{standalone}\n\\usepackage[dvipsnames]{xcolor}\n\\definecolor{indigo}{RGB}{75,0,130}\n\\usepackage{pgfplots}\n\\pgfplotsset{compat=1.18}\n\\begin{document}\n${finalTikz}\n\\end{document}`;
     }
+
     const encoded = encodeKroki(finalTikz);
-    return `<div style="text-align: center; margin: 10px 0;"><img src="https://kroki.io/tikz/svg/${encoded}" style="max-width: 100%; height: auto;" /></div>`;
-  });
+    const url = `https://kroki.io/tikz/svg/${encoded}`;
+    let replacement = `<div style="text-align: center; margin: 10px 0; padding: 10px; border: 1px dashed #cbd5e1; color: #475569; font-style: italic;">Hình minh họa TikZ chưa render được do dịch vụ hình ảnh phản hồi chậm hoặc lỗi. Nội dung bài học vẫn đầy đủ.</div>`;
+
+    try {
+      const res = await fetchWithTimeout(url);
+      if (!res.ok) throw new Error(`Kroki SVG returned ${res.status}`);
+      const svgText = await res.text();
+      if (!/^\s*<svg[\s\S]*<\/svg>\s*$/i.test(svgText)) {
+        throw new Error('Kroki response is not a valid SVG');
+      }
+      const svgBase64 = Buffer.from(svgText, 'utf8').toString('base64');
+      replacement = `<div style="text-align: center; margin: 10px 0;"><img src="data:image/svg+xml;base64,${svgBase64}" style="max-width: 100%; height: auto;" /></div>`;
+    } catch (err) {
+      console.error('Failed to prefetch kroki SVG:', err);
+    }
+
+    result = result.replace(fullMatch, replacement);
+  }
 
   // 3. Process Prompt (handles both ```text prompt ... ``` and inline `prompt ...`)
   result = result.replace(/(?:```\w*\s*)?prompt\s+(.*?)(?=\n|<br\s*\/?>|$)(?:\s*```)?/gi, (match, p) => {
@@ -161,7 +193,7 @@ function processVisualAids(content: string): string {
 
 const buildHtml = async (title: string, content: string): Promise<string> => {
   const preprocessedForWordAndPdf = preprocessExamMarkdownForWord(content);
-  const preprocessedContent = processVisualAids(preprocessedForWordAndPdf);
+  const preprocessedContent = await processVisualAids(preprocessedForWordAndPdf);
   const stash = stashMathAsPlaceholders(preprocessedContent);
   const markedHtml = await marked.parse(stash.withPlaceholders, { async: true, gfm: true, breaks: true });
   let htmlContent = markedHtml.replace(/@@KMATH(\d+)@@/g, (_, i) => stash.rendered[Number(i)] ?? '');

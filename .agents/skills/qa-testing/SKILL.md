@@ -20,19 +20,27 @@ Whenever there is a new update, modification, or bug fix, your job is to run thr
    - Run the test command. Wait for it to finish and confirm 100% pass rate.
    - Run the build command. Confirm that the build succeeds. The main index chunk must stay under 1MB (1000KB). A warning >500KB is non-blocking as long as it does not jump significantly from baseline. Large lazy-loaded split chunks >500KB are expected and are not blocking.
 
-2. **Follow the Protocol Document**:
-   Read the master QA protocol document located at `QA_TESTING_PROTOCOL.md` in the root of the workspace.
+2. **Browser Setup (MANDATORY before any UI test)**:
+   Read `.agents/qa/BROWSER_TESTING_GUIDE.md` for full details. Summary:
+   - Only use **Playwright MCP** (never `chrome-devtools` MCP) for browser automation.
+   - Chrome must be running with `--remote-debugging-port=9222` and the user's real profile before connecting.
+   - Before every browser task: (1) get screen resolution via PowerShell, (2) set viewport to match, (3) maximize Chrome window.
+
+3. **Follow the Protocol Document**:
+   Read the master QA protocol document located at `.agents/qa/QA_TESTING_PROTOCOL.md`.
    Read the file using whatever file-reading tool is available in your current environment (`view_file`, `read_file`, `cat`, or equivalent):
    ```bash
-   view_file QA_TESTING_PROTOCOL.md
+   view_file .agents/qa/QA_TESTING_PROTOCOL.md
    ```
+   The protocol contains both high-level module checks AND detailed E2E scenarios for specific features.
+   **Detailed E2E scenarios** (e.g., section 2.5.1 "Tạo Bài Học Phân Hóa Từ Đầu") must be followed step-by-step exactly as written — do not skip or summarize steps.
 
-3. **Execute the Test Scenarios**:
+4. **Execute the Test Scenarios**:
    Systematically go through each module mentioned in the Protocol.
    - If a test requires simulating an API call, you may write a Node.js scratch script in test/ folder if API simulation is needed; do not assume any pre-existing test runner script exists.
    - If you encounter ANY error, **STOP immediately**, report the error context, and ask the user for permission to fix the bug using the bug-fixing protocol outlined in `QA_TESTING_PROTOCOL.md`.
 
-4. **Sign-off Report**:
+5. **Sign-off Report**:
    Once all tests pass, provide a structured "QA Sign-off Report" to the user detailing exactly what was tested and confirming the system's stability.
    Report must follow this exact Markdown format:
    ```markdown
