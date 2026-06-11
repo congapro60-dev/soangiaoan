@@ -9,7 +9,8 @@ import dayjs from 'dayjs';
 import { AppData, LessonPlan } from '../../types';
 import * as exportUtils from '../../utils/exportUtils';
 import * as worksheetUtils from '../../utils/worksheetUtils';
-import { Presentation, Loader2, FilePenLine } from 'lucide-react';
+import * as scormUtils from '../../utils/scormUtils';
+import { Presentation, Loader2, FilePenLine, Package } from 'lucide-react';
 import { useState } from 'react';
 
 interface ViewPlanModalProps {
@@ -63,6 +64,12 @@ export const ViewPlanModal = ({ plan, data, showToast, onClose, onEdit }: ViewPl
     }
     setIsGeneratingSlide(false);
   };
+
+  const handleExportSCORM = async () => {
+    if (!plan) return;
+    await scormUtils.exportToSCORM(plan, showToast);
+  };
+
   return (
     <AnimatePresence>
       {plan && (
@@ -121,6 +128,15 @@ export const ViewPlanModal = ({ plan, data, showToast, onClose, onEdit }: ViewPl
 
             {/* Footer */}
             <div className="p-5 bg-slate-50 border-t border-slate-100 flex flex-wrap gap-3 justify-end items-center">
+              <button
+                onClick={handleExportSCORM}
+                className="px-6 py-2.5 bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-50 hover:border-indigo-300 rounded-xl font-bold text-sm flex items-center gap-2 transition-all mr-auto"
+                title="Đóng gói SCORM 1.2 đưa lên LMS"
+              >
+                <Package className="w-4 h-4" />
+                Xuất SCORM
+              </button>
+              
               <button
                 onClick={handleGenerateWorksheet}
                 disabled={isGeneratingSlide}

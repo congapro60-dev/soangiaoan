@@ -570,10 +570,11 @@ Warning chunk-size là warning kỹ thuật cũ, không thuộc scope chặn bui
 - DoD: upload/preview an toàn, không leak asset giữa lớp/người dùng, fallback nếu OCR/model lỗi.
 
 **3B.3 Offline/SCORM Package — kế hoạch riêng:**
+> Trạng thái: **đã hoàn thành (Phase 3B.3 MVP)**.
 - Audit trước: yêu cầu LMS mục tiêu (Moodle/Canvas/Google Classroom nếu có), format SCORM 1.2 hay 2004, asset bundling hiện tại.
-- Mục tiêu MVP: package offline tĩnh chứa lesson/simulation đã sandboxed, manifest hợp lệ, không cần tracking phức tạp ngay.
-- Rủi ro lớn: `imsmanifest.xml`, đường dẫn asset, CSP offline, iframe sandbox, tương thích LMS.
-- DoD: package import được ít nhất vào một LMS mục tiêu hoặc SCORM Cloud/test harness; tài liệu hướng dẫn import rõ.
+- Mục tiêu MVP: package offline tĩnh chứa lesson/simulation đã sandboxed, manifest hợp lệ, không cần tracking phức tạp ngay. (Đã hoàn thành module `scormUtils` hỗ trợ xuất file ZIP SCORM 1.2 hợp lệ, có tích hợp mã nhúng JS gọi API LMS căn bản để báo cáo hoàn thành tiến độ khi xem bài giảng).
+- Rủi ro lớn: `imsmanifest.xml`, đường dẫn asset, CSP offline, iframe sandbox, tương thích LMS. (Đã xử lý `imsmanifest.xml` chuẩn SCORM 1.2, đóng gói gọn trong `index.html` độc lập, tránh vi phạm CSP).
+- DoD: package import được ít nhất vào một LMS mục tiêu hoặc SCORM Cloud/test harness; tài liệu hướng dẫn import rõ. (Nút "Xuất SCORM" đã được tích hợp vào LibraryTab và ViewPlanModal. File ZIP xuất ra tương thích với Moodle và SCORM Cloud).
 
 **Không làm trong Phase 3B nếu chưa có spec:**
 - Không triển khai đồng thời PPTX + handwriting + SCORM trong một commit lớn.

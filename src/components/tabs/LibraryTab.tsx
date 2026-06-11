@@ -14,6 +14,8 @@ import { SavedExam } from '../../hooks/useSavedExams';
 import { ViewPlanModal } from '../modals/ViewPlanModal';
 import { downloadBlob } from '../../utils/fileUtils';
 import * as worksheetUtils from '../../utils/worksheetUtils';
+import * as scormUtils from '../../utils/scormUtils';
+import { Package } from 'lucide-react';
 
 interface LibraryTabProps {
   libraryTab: 'personal' | 'community';
@@ -138,6 +140,11 @@ export const LibraryTab = ({
       }
     }
     setIsGeneratingWorksheetFor(null);
+  };
+
+  const handleQuickSCORM = async (plan: LessonPlan, e: React.MouseEvent) => {
+    e.stopPropagation();
+    await scormUtils.exportToSCORM(plan, showToast);
   };
 
   const handleExportExamWord = async (exam: SavedExam) => {
@@ -373,6 +380,10 @@ export const LibraryTab = ({
                                   disabled={isGeneratingWorksheetFor === plan.id}
                                   className={cn('rounded-xl p-2 transition-all', isGeneratingWorksheetFor === plan.id ? 'bg-teal-100 text-teal-600' : 'bg-slate-50 text-slate-400 hover:bg-teal-50 hover:text-teal-600 disabled:opacity-50')}>
                                   {isGeneratingWorksheetFor === plan.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+                            </button>
+                            <button title="Xuất SCORM" onClick={(e) => handleQuickSCORM(plan, e)}
+                                  className="rounded-xl bg-slate-50 p-2 text-slate-400 transition-all hover:bg-amber-50 hover:text-amber-600">
+                                  <Package className="h-4 w-4" />
                             </button>
                             <button title="Xuất PPTX" onClick={(e) => handleQuickPPTX(plan, e)}
                                   className={cn('rounded-xl p-2 transition-all', isGeneratingSlideFor === plan.id ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-50 text-slate-400 hover:bg-indigo-50 hover:text-indigo-600')}>
