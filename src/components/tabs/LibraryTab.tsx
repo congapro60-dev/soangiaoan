@@ -245,12 +245,16 @@ export const LibraryTab = ({
             </div>
             <div className="space-y-3">
               <select value={selectedGrade} onChange={(e) => setSelectedGrade(e.target.value)}
+                title="Lọc theo khối lớp"
+                aria-label="Lọc theo khối lớp"
                 className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 outline-none transition focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-500/10">
                 <option value="all">Tất cả khối lớp</option>
                 {[...Array(12)].map((_, i) => <option key={i + 1} value={(i + 1).toString()}>Khối {i + 1}</option>)}
               </select>
               {contentTab === 'plans' && (
                 <select value={selectedWeek} onChange={(e) => setSelectedWeek(e.target.value)}
+                  title="Lọc theo tuần học"
+                  aria-label="Lọc theo tuần học"
                   className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 outline-none transition focus:border-blue-300 focus:bg-white focus:ring-4 focus:ring-blue-500/10">
                   <option value="all">Tất cả tuần học</option>
                   {[...Array(35)].map((_, i) => <option key={i + 1} value={(i + 1).toString()}>Tuần {i + 1}</option>)}
@@ -335,7 +339,7 @@ export const LibraryTab = ({
                         onClick={() => setViewingPlan(plan)}
                         className="group cursor-pointer overflow-hidden rounded-[30px] border border-slate-100 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-100/60">
                         <div className="mb-4 flex items-start justify-between gap-4">
-                          <div className="flex items-start gap-3">
+                          <div className="flex min-w-0 flex-1 items-start gap-3">
                             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
                               <FileText className="h-5 w-5" />
                             </div>
@@ -351,10 +355,14 @@ export const LibraryTab = ({
                                     className="w-full rounded-xl border border-blue-100 px-3 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" placeholder="Tên giáo án" />
                                   <div className="grid grid-cols-2 gap-2">
                                     <select value={editForm.grade || ''} onChange={e => setEditForm(p => ({ ...p, grade: e.target.value }))}
+                                      title="Chọn lớp cho giáo án"
+                                      aria-label="Chọn lớp cho giáo án"
                                       className="rounded-xl border border-slate-100 bg-slate-50 px-2 py-1.5 text-xs outline-none">
                                       {[...Array(12)].map((_, i) => <option key={i + 1} value={(i + 1).toString()}>Lớp {i + 1}</option>)}
                                     </select>
                                     <select value={editForm.week || ''} onChange={e => setEditForm(p => ({ ...p, week: e.target.value }))}
+                                      title="Chọn tuần cho giáo án"
+                                      aria-label="Chọn tuần cho giáo án"
                                       className="rounded-xl border border-slate-100 bg-slate-50 px-2 py-1.5 text-xs outline-none">
                                       {[...Array(35)].map((_, i) => <option key={i + 1} value={(i + 1).toString()}>Tuần {i + 1}</option>)}
                                     </select>
@@ -375,7 +383,7 @@ export const LibraryTab = ({
                               )}
                             </div>
                           </div>
-                          <div className="flex flex-wrap shrink-0 gap-1 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
+                          <div className="flex shrink-0 flex-wrap gap-1 sm:hidden md:group-hover:flex">
                             <button title="Tạo Phiếu học tập" onClick={(e) => handleQuickWorksheet(plan, e)}
                                   disabled={isGeneratingWorksheetFor === plan.id}
                                   className={cn('rounded-xl p-2 transition-all', isGeneratingWorksheetFor === plan.id ? 'bg-teal-100 text-teal-600' : 'bg-slate-50 text-slate-400 hover:bg-teal-50 hover:text-teal-600 disabled:opacity-50')}>
@@ -410,7 +418,7 @@ export const LibraryTab = ({
                                   className="rounded-xl bg-slate-50 p-2 text-slate-400 transition-all hover:bg-blue-50 hover:text-blue-600">
                                   <Edit3 className="h-4 w-4" />
                                 </button>
-                                <button onClick={(e) => { e.stopPropagation(); deletePlan(plan.id); }}
+                                <button title="Xóa giáo án" aria-label="Xóa giáo án" onClick={(e) => { e.stopPropagation(); deletePlan(plan.id); }}
                                   className="rounded-xl bg-slate-50 p-2 text-slate-400 transition-all hover:bg-red-50 hover:text-red-600">
                                   <Trash2 className="h-4 w-4" />
                                 </button>
@@ -473,7 +481,7 @@ export const LibraryTab = ({
                     <motion.article key={exam.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                       className="group overflow-hidden rounded-[30px] border border-slate-100 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-violet-200 hover:shadow-xl hover:shadow-violet-100/60">
                       <div className="mb-4 flex items-start justify-between gap-4">
-                        <div className="flex items-start gap-3">
+                        <div className="flex min-w-0 flex-1 items-start gap-3">
                           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-violet-50 text-violet-600 transition-colors group-hover:bg-violet-600 group-hover:text-white">
                             <BookMarked className="h-5 w-5" />
                           </div>
@@ -489,7 +497,7 @@ export const LibraryTab = ({
                             </h4>
                           </div>
                         </div>
-                        <div className="flex shrink-0 gap-1 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
+                        <div className="flex shrink-0 gap-1 sm:hidden md:group-hover:flex">
                           {libraryTab === 'personal' && (
                             <>
                               <button title={exam.isPublic ? 'Thu hồi khỏi Kho chung' : 'Chia sẻ lên Kho chung'}
@@ -505,7 +513,7 @@ export const LibraryTab = ({
                                 className="rounded-xl bg-slate-50 p-2 text-slate-400 transition-all hover:bg-blue-50 hover:text-blue-600">
                                 <Download className="h-4 w-4" />
                               </button>
-                              <button onClick={() => handleDeleteExam(exam)}
+                              <button title="Xóa đề thi" aria-label="Xóa đề thi" onClick={() => handleDeleteExam(exam)}
                                 className="rounded-xl bg-slate-50 p-2 text-slate-400 transition-all hover:bg-red-50 hover:text-red-600">
                                 <Trash2 className="h-4 w-4" />
                               </button>
