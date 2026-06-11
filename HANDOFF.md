@@ -562,10 +562,11 @@ Warning chunk-size là warning kỹ thuật cũ, không thuộc scope chặn bui
 - Guardrail: không để prompt giáo án clone-template bị trộn với prompt slide; slide là output phụ sau khi giáo án đã có.
 - DoD: build pass, xuất file mở được trong PowerPoint/Google Slides hoặc viewer mục tiêu, không phá export Word/PDF.
 
-**3B.2 Handwriting/Chữ viết tay — kế hoạch riêng:**
+**3B.2 Handwriting/Chữ viết tay/Worksheet — kế hoạch riêng:**
+> Trạng thái: **đã hoàn thành (Phase 3B.2 MVP)**.
 - Audit trước: nơi lưu assets học sinh/giáo viên, upload image hiện có, policy Firebase Storage/Firestore nếu dùng.
-- Mục tiêu MVP: tạo worksheet/chữ mẫu hoặc nhận ảnh chữ viết tay ở mức hỗ trợ, không hứa OCR/chấm chữ hoàn hảo.
-- Bảo mật/privacy: ảnh học sinh là dữ liệu nhạy cảm; cần rule lưu/xoá/quyền truy cập rõ.
+- Mục tiêu MVP: tạo worksheet/chữ mẫu hoặc nhận ảnh chữ viết tay ở mức hỗ trợ, không hứa OCR/chấm chữ hoàn hảo. (Đã tích hợp module `worksheetUtils` tạo Worksheet PDF/DOCX từ Library và ViewPlanModal. Nhận diện chữ viết tay đã được hỗ trợ thông qua `callAIWithVision` trong GradingTab).
+- Bảo mật/privacy: ảnh học sinh là dữ liệu nhạy cảm; cần rule lưu/xoá/quyền truy cập rõ. (Ảnh học sinh khi upload để chấm bài chỉ được chuyển thành base64 cục bộ, gửi qua AI và không lưu trữ trên DB).
 - DoD: upload/preview an toàn, không leak asset giữa lớp/người dùng, fallback nếu OCR/model lỗi.
 
 **3B.3 Offline/SCORM Package — kế hoạch riêng:**

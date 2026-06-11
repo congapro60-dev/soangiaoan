@@ -13,6 +13,7 @@ import { AppData, LessonPlan } from '../../types';
 import { SavedExam } from '../../hooks/useSavedExams';
 import { ViewPlanModal } from '../modals/ViewPlanModal';
 import { downloadBlob } from '../../utils/fileUtils';
+import * as worksheetUtils from '../../utils/worksheetUtils';
 
 interface LibraryTabProps {
   libraryTab: 'personal' | 'community';
@@ -39,6 +40,7 @@ interface LibraryTabProps {
   onToggleShareExam: (id: string, isPublic: boolean) => void;
   onOpenExamInEditor: (exam: SavedExam) => void;
   onFetchCommunityExams: () => void;
+  showToast: (msg: string, type?: any) => void;
 }
 
 type ContentTab = 'plans' | 'exams';
@@ -57,13 +59,15 @@ export const LibraryTab = ({
   setActiveTab, data, communityPlans, setCurrentPlan,
   deletePlan, duplicatePlan, updatePlanMetadata, user,
   toggleSharePlan, loadMorePlans, hasMorePlans, loadMoreCommunity, hasMoreCommunity,
-  savedExams, communityExams, onDeleteExam, onToggleShareExam, onOpenExamInEditor, onFetchCommunityExams,
+  savedExams, communityExams, onDeleteExam, onToggleShareExam, onOpenExamInEditor, onFetchCommunityExams, showToast,
 }: LibraryTabProps) => {
   const [selectedGrade, setSelectedGrade] = useState<string>('all');
   const [selectedWeek, setSelectedWeek] = useState<string>('all');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<LessonPlan>>({});
   const [viewingPlan, setViewingPlan] = useState<LessonPlan | null>(null);
+  const [isGeneratingSlideFor, setIsGeneratingSlideFor] = useState<string | null>(null);
+  const [isGeneratingWorksheetFor, setIsGeneratingWorksheetFor] = useState<string | null>(null);
   const [contentTab, setContentTab] = useState<ContentTab>('plans');
 
   useEffect(() => {
@@ -89,6 +93,52 @@ export const LibraryTab = ({
 
   const visibleCount = contentTab === 'plans' ? filteredPlans.length : filteredExams.length;
   const sourceCount = contentTab === 'plans' ? plans.length : exams.length;
+
+  const handleQuickPPTX = async (plan: LessonPlan, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isGeneratingSlideFor) return;
+    setIsGeneratingSlideFor(plan.id);
+    
+    const exportUtils = await import('../../utils/exportUtils');
+    const slides = await exportUtils.generateSlideData(plan, data, () => {}, showToast);
+    
+    if (slides) {
+      showToast('Đang tạo file PPTX (đang render công thức Toán)...', 'info');
+      try {
+        await exportUtils.downloadPPTX(slides, plan.title || 'baigiang');
+        showToast('Đã lưu file trình chiếu!', 'success');
+      } catch (err) {
+        console.error(err);
+        showToast('Lỗi khi tạo file PPTX, vui lòng thử lại.', 'error');
+      }
+    }
+    setIsGeneratingSlideFor(null);
+  };
+
+  const handleQuickWorksheet = async (plan: LessonPlan, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isGeneratingWorksheetFor) return;
+    setIsGeneratingWorksheetFor(plan.id);
+    
+    const worksheetMarkdown = await worksheetUtils.generateWorksheetMarkdown(plan, data, showToast);
+    
+    if (worksheetMarkdown) {
+      try {
+        const fakePlan: Partial<LessonPlan> = {
+          title: (plan.title || 'GiaoAn') + ' - Phieu hoc tap',
+          content: worksheetMarkdown,
+          templateId: plan.templateId
+        };
+        const exportUtils = await import('../../utils/exportUtils');
+        await exportUtils.exportLessonViaAPI(fakePlan, 'docx', 'portrait', showToast);
+        showToast('Đã tải Phiếu học tập (Word)!', 'success');
+      } catch (err) {
+        console.error(err);
+        showToast('Lỗi tải Phiếu học tập.', 'error');
+      }
+    }
+    setIsGeneratingWorksheetFor(null);
+  };
 
   const handleExportExamWord = async (exam: SavedExam) => {
     try {
@@ -318,7 +368,16 @@ export const LibraryTab = ({
                               )}
                             </div>
                           </div>
-                          <div className="flex shrink-0 gap-1 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
+                          <div className="flex flex-wrap shrink-0 gap-1 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
+                            <button title="Tạo Phiếu học tập" onClick={(e) => handleQuickWorksheet(plan, e)}
+                                  disabled={isGeneratingWorksheetFor === plan.id}
+                                  className={cn('rounded-xl p-2 transition-all', isGeneratingWorksheetFor === plan.id ? 'bg-teal-100 text-teal-600' : 'bg-slate-50 text-slate-400 hover:bg-teal-50 hover:text-teal-600 disabled:opacity-50')}>
+                                  {isGeneratingWorksheetFor === plan.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+                            </button>
+                            <button title="Xuất PPTX" onClick={(e) => handleQuickPPTX(plan, e)}
+                                  className={cn('rounded-xl p-2 transition-all', isGeneratingSlideFor === plan.id ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-50 text-slate-400 hover:bg-indigo-50 hover:text-indigo-600')}>
+                                  <Presentation className="h-4 w-4" />
+                            </button>
                             {libraryTab === 'personal' && (
                               <button title={plan.isPublic ? 'Thu hồi' : 'Chia sẻ lên Kho chung'}
                                 onClick={(e) => { e.stopPropagation(); toggleSharePlan(e, plan); }}
@@ -471,8 +530,16 @@ export const LibraryTab = ({
         </main>
       </div>
 
-      <ViewPlanModal plan={viewingPlan} onClose={() => setViewingPlan(null)}
-        onEdit={(plan) => { setCurrentPlan(plan); setActiveTab('creator'); setViewingPlan(null); }} />
+      <ViewPlanModal
+        plan={viewingPlan}
+        data={data}
+        showToast={showToast}
+        onClose={() => setViewingPlan(null)}
+        onEdit={(plan) => {
+          setCurrentPlan(plan);
+          setActiveTab('creator');
+          setViewingPlan(null);
+        }} />
     </motion.div>
   );
 };

@@ -5,6 +5,7 @@ import { db } from '../../lib/firebase';
 import type { AdaptiveSimulationSpec } from '../../lib/adaptive/simulationTypes';
 import { AdaptiveSimulationBlock } from './AdaptiveSimulationBlock';
 import { ExternalToolFrame } from './ExternalToolFrame';
+import { SandboxedSimulationFrame } from './SandboxedSimulationFrame';
 import { getToolsByIds } from '../../data/externalToolsRegistry';
 
 type SimulationState = 'loading' | 'loaded' | 'not_found' | 'error';
@@ -168,14 +169,10 @@ export const LessonSimulationViewer = ({ lessonId, unitId, unitTitle, inlineSpec
                 ))}
               </div>
             ) : simulationHtml ? (
-              <iframe
-                srcDoc={simulationHtml}
-                sandbox="allow-scripts"
-                referrerPolicy="no-referrer"
-                loading="lazy"
+              <SandboxedSimulationFrame
+                html={simulationHtml}
                 title={`Mô phỏng tương tác: ${unitTitle || 'Bài học'}`}
-                className="block w-full"
-                style={{ maxHeight: '600px', width: '100%', height: '600px', border: 'none' }}
+                style={{ maxHeight: '600px', height: '600px' }}
               />
             ) : (
               <div className="text-sm font-semibold text-slate-500">Không có mô phỏng cho mảnh học này.</div>

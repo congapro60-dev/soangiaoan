@@ -4,6 +4,7 @@ import { CheckCircle2, Loader2, RefreshCw, Sparkles, X } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { auth } from '../../lib/firebase';
 import type { LessonSimulation } from '../../lib/adaptive/types';
+import { SandboxedSimulationFrame } from '../adaptive/SandboxedSimulationFrame';
 
 interface SimulationGeneratorModalProps {
   isOpen: boolean;
@@ -280,14 +281,10 @@ export const SimulationGeneratorModal = ({
                       <span>HTML size: <b className="text-violet-700">{formatHtmlSize(previewSimulation.htmlSizeBytes || htmlSizeBytes)}</b></span>
                       <span>Tạo lúc: <b className="text-slate-700">{formatCreatedAt(previewSimulation.createdAt)}</b></span>
                     </div>
-                    <iframe
-                      srcDoc={previewSimulation.html}
-                      sandbox="allow-scripts"
-                      referrerPolicy="no-referrer"
-                      loading="lazy"
+                    <SandboxedSimulationFrame
+                      html={previewSimulation.html}
                       title={`Preview mô phỏng — ${unitTitle}`}
-                      className="block w-full bg-white"
-                      style={{ height: '520px', border: 'none' }}
+                      style={{ height: '520px' }}
                     />
                   </div>
                 ) : (

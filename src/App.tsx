@@ -451,6 +451,7 @@ export default function App() {
                   setTestingInitialContent(exam.content);
                   setActiveTab('testing');
                 }}
+                showToast={showToast}
               />
             )}
 

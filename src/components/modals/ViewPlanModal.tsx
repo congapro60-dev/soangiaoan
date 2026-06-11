@@ -6,15 +6,63 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import rehypeRaw from 'rehype-raw';
 import dayjs from 'dayjs';
-import { LessonPlan } from '../../types';
+import { AppData, LessonPlan } from '../../types';
+import * as exportUtils from '../../utils/exportUtils';
+import * as worksheetUtils from '../../utils/worksheetUtils';
+import { Presentation, Loader2, FilePenLine } from 'lucide-react';
+import { useState } from 'react';
 
 interface ViewPlanModalProps {
   plan: LessonPlan | null;
+  data: AppData;
+  showToast: (msg: string, type?: any) => void;
   onClose: () => void;
   onEdit: (plan: LessonPlan) => void;
 }
 
-export const ViewPlanModal = ({ plan, onClose, onEdit }: ViewPlanModalProps) => {
+export const ViewPlanModal = ({ plan, data, showToast, onClose, onEdit }: ViewPlanModalProps) => {
+  const [isGeneratingSlide, setIsGeneratingSlide] = useState(false);
+
+  const handleGeneratePPTX = async () => {
+    if (!plan) return;
+    const slides = await exportUtils.generateSlideData(plan, data, setIsGeneratingSlide, showToast);
+    if (slides) {
+      setIsGeneratingSlide(true);
+      showToast('Đang tạo file PPTX (đang render công thức Toán)...', 'info');
+      try {
+        await exportUtils.downloadPPTX(slides, plan.title || 'baigiang');
+        showToast('Đã lưu file trình chiếu!', 'success');
+      } catch (e) {
+        console.error(e);
+        showToast('Lỗi khi tạo file PPTX, vui lòng thử lại.', 'error');
+      } finally {
+        setIsGeneratingSlide(false);
+      }
+    }
+  };
+
+  const handleGenerateWorksheet = async () => {
+    if (!plan) return;
+    setIsGeneratingSlide(true); // Re-use loading state
+    const worksheetMarkdown = await worksheetUtils.generateWorksheetMarkdown(plan, data, showToast);
+    
+    if (worksheetMarkdown) {
+      try {
+        const fakePlan: Partial<LessonPlan> = {
+          title: (plan.title || 'GiaoAn') + ' - Phieu hoc tap',
+          content: worksheetMarkdown,
+          templateId: plan.templateId
+        };
+        // Export the generated markdown as a docx file so teachers can edit and print
+        await exportUtils.exportLessonViaAPI(fakePlan, 'docx', 'portrait', showToast);
+        showToast('Đã tải Phiếu học tập (Word)!', 'success');
+      } catch (err) {
+        console.error(err);
+        showToast('Lỗi tải Phiếu học tập.', 'error');
+      }
+    }
+    setIsGeneratingSlide(false);
+  };
   return (
     <AnimatePresence>
       {plan && (
@@ -72,7 +120,25 @@ export const ViewPlanModal = ({ plan, onClose, onEdit }: ViewPlanModalProps) => 
             </div>
 
             {/* Footer */}
-            <div className="p-5 bg-slate-50 border-t border-slate-100 flex gap-3 justify-end">
+            <div className="p-5 bg-slate-50 border-t border-slate-100 flex flex-wrap gap-3 justify-end items-center">
+              <button
+                onClick={handleGenerateWorksheet}
+                disabled={isGeneratingSlide}
+                className="px-6 py-2.5 bg-white border border-teal-200 text-teal-700 hover:bg-teal-50 hover:border-teal-300 rounded-xl font-bold text-sm flex items-center gap-2 transition-all mr-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Dùng AI sinh Phiếu bài tập/Worksheet từ giáo án và tải về file Word"
+              >
+                {isGeneratingSlide ? <Loader2 className="w-4 h-4 animate-spin" /> : <FilePenLine className="w-4 h-4" />}
+                {isGeneratingSlide ? 'Đang xử lý...' : 'Tạo Phiếu học tập'}
+              </button>
+              <button
+                onClick={handleGeneratePPTX}
+                disabled={isGeneratingSlide}
+                className="px-6 py-2.5 bg-white border border-orange-200 text-orange-600 hover:bg-orange-50 hover:border-orange-300 rounded-xl font-bold text-sm flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isGeneratingSlide ? <Loader2 className="w-4 h-4 animate-spin" /> : <Presentation className="w-4 h-4" />}
+                {isGeneratingSlide ? 'Đang xử lý...' : 'Tải Slide PPTX'}
+              </button>
+              
               <button
                 onClick={onClose}
                 className="px-6 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-100 transition-colors"
