@@ -338,7 +338,7 @@ export const LibraryTab = ({
                       <motion.article key={plan.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                         onClick={() => setViewingPlan(plan)}
                         className="group cursor-pointer overflow-hidden rounded-[30px] border border-slate-100 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-100/60">
-                        <div className="mb-4 flex items-start justify-between gap-4">
+                        <div className="mb-4 flex items-start gap-3">
                           <div className="flex min-w-0 flex-1 items-start gap-3">
                             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
                               <FileText className="h-5 w-5" />
@@ -383,52 +383,52 @@ export const LibraryTab = ({
                               )}
                             </div>
                           </div>
-                          <div className="flex shrink-0 flex-wrap gap-1 sm:hidden md:group-hover:flex">
-                            <button title="Tạo Phiếu học tập" onClick={(e) => handleQuickWorksheet(plan, e)}
-                                  disabled={isGeneratingWorksheetFor === plan.id}
-                                  className={cn('rounded-xl p-2 transition-all', isGeneratingWorksheetFor === plan.id ? 'bg-teal-100 text-teal-600' : 'bg-slate-50 text-slate-400 hover:bg-teal-50 hover:text-teal-600 disabled:opacity-50')}>
-                                  {isGeneratingWorksheetFor === plan.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
-                            </button>
-                            <button title="Xuất SCORM" onClick={(e) => handleQuickSCORM(plan, e)}
-                                  className="rounded-xl bg-slate-50 p-2 text-slate-400 transition-all hover:bg-amber-50 hover:text-amber-600">
-                                  <Package className="h-4 w-4" />
-                            </button>
-                            <button title="Xuất PPTX" onClick={(e) => handleQuickPPTX(plan, e)}
-                                  className={cn('rounded-xl p-2 transition-all', isGeneratingSlideFor === plan.id ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-50 text-slate-400 hover:bg-indigo-50 hover:text-indigo-600')}>
-                                  <Presentation className="h-4 w-4" />
-                            </button>
-                            {libraryTab === 'personal' && (
-                              <button title={plan.isPublic ? 'Thu hồi' : 'Chia sẻ lên Kho chung'}
-                                onClick={(e) => { e.stopPropagation(); toggleSharePlan(e, plan); }}
-                                className={cn('rounded-xl p-2 transition-all', plan.isPublic ? 'bg-orange-50 text-orange-600' : 'bg-slate-50 text-slate-400 hover:bg-orange-50 hover:text-orange-600')}>
-                                <UploadCloud className="h-4 w-4" />
-                              </button>
-                            )}
-                            <button title="Xem preview" onClick={(e) => { e.stopPropagation(); setViewingPlan(plan); }}
-                              className="rounded-xl bg-slate-50 p-2 text-slate-400 transition-all hover:bg-blue-50 hover:text-blue-600">
-                              <Eye className="h-4 w-4" />
-                            </button>
-                            {libraryTab === 'personal' && (
-                              <>
-                                <button title="Nhân bản" onClick={(e) => { e.stopPropagation(); duplicatePlan(plan); }}
-                                  className="rounded-xl bg-slate-50 p-2 text-slate-400 transition-all hover:bg-blue-50 hover:text-blue-600">
-                                  <Copy className="h-4 w-4" />
-                                </button>
-                                <button title="Sửa metadata" onClick={(e) => { e.stopPropagation(); setEditingId(plan.id); setEditForm({ title: plan.title, grade: plan.grade, week: plan.week, authorName: plan.authorName }); }}
-                                  className="rounded-xl bg-slate-50 p-2 text-slate-400 transition-all hover:bg-blue-50 hover:text-blue-600">
-                                  <Edit3 className="h-4 w-4" />
-                                </button>
-                                <button title="Xóa giáo án" aria-label="Xóa giáo án" onClick={(e) => { e.stopPropagation(); deletePlan(plan.id); }}
-                                  className="rounded-xl bg-slate-50 p-2 text-slate-400 transition-all hover:bg-red-50 hover:text-red-600">
-                                  <Trash2 className="h-4 w-4" />
-                                </button>
-                              </>
-                            )}
-                          </div>
                         </div>
 
                         {editingId !== plan.id && (
                           <>
+                            <div className="mb-4 flex flex-wrap gap-1.5 rounded-2xl bg-slate-50/70 p-2 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100" onClick={(e) => e.stopPropagation()}>
+                              <button title="Tạo Phiếu học tập" onClick={(e) => handleQuickWorksheet(plan, e)}
+                                disabled={isGeneratingWorksheetFor === plan.id}
+                                className={cn('rounded-xl p-2 transition-all', isGeneratingWorksheetFor === plan.id ? 'bg-teal-100 text-teal-600' : 'bg-white text-slate-400 hover:bg-teal-50 hover:text-teal-600 disabled:opacity-50')}>
+                                {isGeneratingWorksheetFor === plan.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+                              </button>
+                              <button title="Xuất SCORM" onClick={(e) => handleQuickSCORM(plan, e)}
+                                className="rounded-xl bg-white p-2 text-slate-400 transition-all hover:bg-amber-50 hover:text-amber-600">
+                                <Package className="h-4 w-4" />
+                              </button>
+                              <button title="Xuất PPTX" onClick={(e) => handleQuickPPTX(plan, e)}
+                                className={cn('rounded-xl p-2 transition-all', isGeneratingSlideFor === plan.id ? 'bg-indigo-100 text-indigo-600' : 'bg-white text-slate-400 hover:bg-indigo-50 hover:text-indigo-600')}>
+                                <Presentation className="h-4 w-4" />
+                              </button>
+                              {libraryTab === 'personal' && (
+                                <button title={plan.isPublic ? 'Thu hồi' : 'Chia sẻ lên Kho chung'}
+                                  onClick={(e) => { e.stopPropagation(); toggleSharePlan(e, plan); }}
+                                  className={cn('rounded-xl p-2 transition-all', plan.isPublic ? 'bg-orange-50 text-orange-600' : 'bg-white text-slate-400 hover:bg-orange-50 hover:text-orange-600')}>
+                                  <UploadCloud className="h-4 w-4" />
+                                </button>
+                              )}
+                              <button title="Xem preview" onClick={(e) => { e.stopPropagation(); setViewingPlan(plan); }}
+                                className="rounded-xl bg-white p-2 text-slate-400 transition-all hover:bg-blue-50 hover:text-blue-600">
+                                <Eye className="h-4 w-4" />
+                              </button>
+                              {libraryTab === 'personal' && (
+                                <>
+                                  <button title="Nhân bản" onClick={(e) => { e.stopPropagation(); duplicatePlan(plan); }}
+                                    className="rounded-xl bg-white p-2 text-slate-400 transition-all hover:bg-blue-50 hover:text-blue-600">
+                                    <Copy className="h-4 w-4" />
+                                  </button>
+                                  <button title="Sửa metadata" onClick={(e) => { e.stopPropagation(); setEditingId(plan.id); setEditForm({ title: plan.title, grade: plan.grade, week: plan.week, authorName: plan.authorName }); }}
+                                    className="rounded-xl bg-white p-2 text-slate-400 transition-all hover:bg-blue-50 hover:text-blue-600">
+                                    <Edit3 className="h-4 w-4" />
+                                  </button>
+                                  <button title="Xóa giáo án" aria-label="Xóa giáo án" onClick={(e) => { e.stopPropagation(); deletePlan(plan.id); }}
+                                    className="rounded-xl bg-white p-2 text-slate-400 transition-all hover:bg-red-50 hover:text-red-600">
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                </>
+                              )}
+                            </div>
                             <p className="mb-4 line-clamp-2 text-sm font-medium leading-6 text-slate-500">
                               {(plan.content || '').replace(/[#*_`>-]/g, '').slice(0, 170) || 'Chưa có nội dung xem trước cho giáo án này.'}
                             </p>
@@ -480,7 +480,7 @@ export const LibraryTab = ({
                   {filteredExams.map(exam => (
                     <motion.article key={exam.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                       className="group overflow-hidden rounded-[30px] border border-slate-100 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-violet-200 hover:shadow-xl hover:shadow-violet-100/60">
-                      <div className="mb-4 flex items-start justify-between gap-4">
+                      <div className="mb-4 flex items-start gap-3">
                         <div className="flex min-w-0 flex-1 items-start gap-3">
                           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-violet-50 text-violet-600 transition-colors group-hover:bg-violet-600 group-hover:text-white">
                             <BookMarked className="h-5 w-5" />
@@ -497,41 +497,41 @@ export const LibraryTab = ({
                             </h4>
                           </div>
                         </div>
-                        <div className="flex shrink-0 gap-1 sm:hidden md:group-hover:flex">
-                          {libraryTab === 'personal' && (
-                            <>
-                              <button title={exam.isPublic ? 'Thu hồi khỏi Kho chung' : 'Chia sẻ lên Kho chung'}
-                                onClick={() => onToggleShareExam(exam.id, !exam.isPublic)}
-                                className={cn('rounded-xl p-2 transition-all', exam.isPublic ? 'bg-orange-50 text-orange-600' : 'bg-slate-50 text-slate-400 hover:bg-orange-50 hover:text-orange-600')}>
-                                <UploadCloud className="h-4 w-4" />
-                              </button>
-                              <button title="Mở để chỉnh sửa" onClick={() => onOpenExamInEditor(exam)}
-                                className="rounded-xl bg-slate-50 p-2 text-slate-400 transition-all hover:bg-violet-50 hover:text-violet-600">
-                                <Edit3 className="h-4 w-4" />
-                              </button>
-                              <button title="Xuất Word" onClick={() => handleExportExamWord(exam)}
-                                className="rounded-xl bg-slate-50 p-2 text-slate-400 transition-all hover:bg-blue-50 hover:text-blue-600">
-                                <Download className="h-4 w-4" />
-                              </button>
-                              <button title="Xóa đề thi" aria-label="Xóa đề thi" onClick={() => handleDeleteExam(exam)}
-                                className="rounded-xl bg-slate-50 p-2 text-slate-400 transition-all hover:bg-red-50 hover:text-red-600">
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            </>
-                          )}
-                          {libraryTab === 'community' && (
-                            <>
-                              <button title="Xuất Word" onClick={() => handleExportExamWord(exam)}
-                                className="rounded-xl bg-slate-50 p-2 text-slate-400 transition-all hover:bg-blue-50 hover:text-blue-600">
-                                <Download className="h-4 w-4" />
-                              </button>
-                              <button title="Tải về & tạo đề thi online" onClick={() => onOpenExamInEditor(exam)}
-                                className="rounded-xl bg-slate-50 p-2 text-slate-400 transition-all hover:bg-violet-50 hover:text-violet-600">
-                                <Upload className="h-4 w-4" />
-                              </button>
-                            </>
-                          )}
-                        </div>
+                      </div>
+                      <div className="mb-4 flex flex-wrap gap-1.5 rounded-2xl bg-slate-50/70 p-2 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100" onClick={(e) => e.stopPropagation()}>
+                        {libraryTab === 'personal' && (
+                          <>
+                            <button title={exam.isPublic ? 'Thu hồi khỏi Kho chung' : 'Chia sẻ lên Kho chung'}
+                              onClick={() => onToggleShareExam(exam.id, !exam.isPublic)}
+                              className={cn('rounded-xl p-2 transition-all', exam.isPublic ? 'bg-orange-50 text-orange-600' : 'bg-white text-slate-400 hover:bg-orange-50 hover:text-orange-600')}>
+                              <UploadCloud className="h-4 w-4" />
+                            </button>
+                            <button title="Mở để chỉnh sửa" onClick={() => onOpenExamInEditor(exam)}
+                              className="rounded-xl bg-white p-2 text-slate-400 transition-all hover:bg-violet-50 hover:text-violet-600">
+                              <Edit3 className="h-4 w-4" />
+                            </button>
+                            <button title="Xuất Word" onClick={() => handleExportExamWord(exam)}
+                              className="rounded-xl bg-white p-2 text-slate-400 transition-all hover:bg-blue-50 hover:text-blue-600">
+                              <Download className="h-4 w-4" />
+                            </button>
+                            <button title="Xóa đề thi" aria-label="Xóa đề thi" onClick={() => handleDeleteExam(exam)}
+                              className="rounded-xl bg-white p-2 text-slate-400 transition-all hover:bg-red-50 hover:text-red-600">
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </>
+                        )}
+                        {libraryTab === 'community' && (
+                          <>
+                            <button title="Xuất Word" onClick={() => handleExportExamWord(exam)}
+                              className="rounded-xl bg-white p-2 text-slate-400 transition-all hover:bg-blue-50 hover:text-blue-600">
+                              <Download className="h-4 w-4" />
+                            </button>
+                            <button title="Tải về & tạo đề thi online" onClick={() => onOpenExamInEditor(exam)}
+                              className="rounded-xl bg-white p-2 text-slate-400 transition-all hover:bg-violet-50 hover:text-violet-600">
+                              <Upload className="h-4 w-4" />
+                            </button>
+                          </>
+                        )}
                       </div>
                       <p className="mb-4 line-clamp-2 text-sm font-medium leading-6 text-slate-500">
                         {(exam.content || '').replace(/[#*_`>-]/g, '').slice(0, 170) || 'Chưa có nội dung xem trước cho đề thi này.'}
