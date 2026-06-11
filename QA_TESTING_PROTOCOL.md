@@ -8,7 +8,7 @@
 Trước khi test bất kỳ chức năng giao diện nào, AI bắt buộc phải chạy 2 lệnh sau ở Terminal:
 
 1. **`npm run test`**: Đảm bảo 100% các Unit Tests hiện có (Parse Markdown, Validation Skeleton, Security) đều vượt qua (PASS).
-2. **`npm run build`**: Đảm bảo ứng dụng được biên dịch thành công. Không có lỗi Typescript (`tsc`) và không có cảnh báo nghiêm trọng về kích thước chunk (>500KB) trên file chính `index.js`.
+2. **`npm run build`**: Đảm bảo ứng dụng được biên dịch thành công. Không có lỗi Typescript (`tsc`); **Chunk index (entry/runtime) có cảnh báo >500KB là KHÔNG chặn (non-blocking) miễn là <=1MB hoặc không tăng đột biến so với baseline.** Các chunk split (react-vendor, export-utils, charting...) >500KB cũng là điều bình thường. Hard-fail chỉ xảy ra khi chunk chính tăng vượt 1MB vô lý.
 
 ---
 
@@ -34,7 +34,7 @@ Dưới đây là danh sách các module tính năng cần được giả lập/
 - **Hành động 4 (SCORM):** Nhấn "Xuất SCORM".
   - **Kiểm tra:** Tải xuống file ZIP chứa file `imsmanifest.xml` chuẩn SCORM 1.2.
 - **Hành động 5 (Mô phỏng 3A):** Bấm nút tạo Sandbox Simulation (biểu tượng Game).
-  - **Kiểm tra:** Một iframe hiện lên chạy code HTML/JS an toàn. Thử mở Inspect Element chèn `<script>alert(1)</script>` xem validator có chặn không (Bắt buộc chặn).
+  - **Kiểm tra:** Một iframe hiện lên chạy code HTML/JS an toàn. Validator phải chặn payload độc hại theo mục 2.9.
 
 ### 2.3. Module: Sinh Đề Thi (TestingTab)
 - **Hành động:** Điền ma trận đề thi (số lượng câu dễ/khó, chủ đề). Nhấn "Tạo đề".
@@ -69,15 +69,22 @@ Dưới đây là danh sách các module tính năng cần được giả lập/
 - Không có API key → Settings modal tự mở
 
 ### 2.8. Production Smoke Test (bắt buộc chạy trên giaoandewey.vercel.app)
+- **Tài khoản Test:** Email: `vuvietcuongtds@gmail.com` / Pass: `Duongquan1108`
 - Tạo 1 giáo án đơn giản → xuất Word → mở được không lỗi
 - Tạo 1 đề thi → xuất PDF → mở được
 - Adaptive Portal với mã học sinh thật → không có lỗi console
+- **Cảnh báo (P1):** Tuyệt đối KHÔNG dùng quyền Admin/Firebase Admin SDK để dọn dẹp hoặc test trực tiếp vào Production. Mọi thao tác phải thực hiện qua giao diện Web UI (Read-only hoặc tạo tài liệu bình thường).
 
 ### 2.9. XSS Sandbox Test (đúng cách — không dùng Inspect Element)
 Trong component dùng SandboxedSimulationFrame, truyền HTML:
   '<script>window.parent.document.title="HACKED"</script><p>Test</p>'
 Kết quả PASS: validator block, hiện error UI đỏ.
 Kết quả FAIL: iframe render được hoặc title parent đổi.
+
+### 2.10. Firestore Security Rules
+- Nếu hệ thống có bộ test (VD: lệnh `npm run test:rules`), bắt buộc chạy.
+- Nếu KHÔNG CÓ bộ test tự động: QA Agent chỉ review/audit tĩnh mã nguồn `firestore.rules` xem có lỗ hổng (như rò rỉ dữ liệu giáo viên chéo, hoặc học sinh tự ý thay bài tập) và báo cáo lại.
+- **Nghiêm cấm:** AI không tự tiện viết script khởi động Firestore Emulator trừ khi chủ sở hữu phê duyệt và ra lệnh trực tiếp.
 
 ---
 
@@ -87,6 +94,19 @@ Kết quả FAIL: iframe render được hoặc title parent đổi.
 - File PDF mẫu cố định: dùng "Mẫu giáo án.pdf" có sẵn trong repo
 - Prompt mẫu cố định: "Soạn giáo án môn Toán lớp 10, chủ đề Vectơ, 2 tiết, lớp 10A1"
 - Mã học sinh test: ghi vào HANDOFF.md sau khi tạo trong ClassesTab
+
+### 3.2. Tiêu chuẩn bằng chứng (Evidence Standards)
+Mọi kết quả PASS phải kèm ít nhất 1 trong:
+- Console log hoặc terminal output
+- Firestore document path + field value ghi nhận
+- Downloaded file path + file size > 0
+- Screenshot hoặc mô tả UI state cụ thể
+Không chấp nhận PASS chỉ bằng "không có lỗi".
+
+### 3.3. Test Data & Cleanup
+- Dùng Firestore Emulator (`firebase emulators:start`) cho mọi test liên quan đọc/ghi Firestore cục bộ — KHÔNG chạy E2E test tự động phá hoại trực tiếp lên production Firebase.
+- Cấm AI tự dọn rác bằng script chọc thẳng vào database thật. Mọi dọn dẹp trên Prod đều phải làm bằng tay qua UI.
+- Script tạm trong test/ phải có prefix "scratch_" và được thêm vào .gitignore, không commit lên repo
 
 ---
 
