@@ -74,7 +74,25 @@ export const getOptionCols = (options: string[]): 1 | 2 | 4 => {
 };
 
 export const parseTFSub = (v: string): Partial<Record<'a' | 'b' | 'c' | 'd', 'Đ' | 'S'>> => {
-  try { return JSON.parse(v); } catch { return {}; }
+  if (!v) return {};
+  try {
+    const parsed = JSON.parse(v);
+    if (typeof parsed === 'object' && parsed !== null) {
+      return parsed;
+    }
+  } catch {
+    // If not JSON, assume comma-separated like "Đ,S,Đ,S"
+    const parts = v.split(',').map(s => s.trim().toUpperCase());
+    if (parts.length >= 4) {
+      return {
+        a: parts[0] as 'Đ' | 'S',
+        b: parts[1] as 'Đ' | 'S',
+        c: parts[2] as 'Đ' | 'S',
+        d: parts[3] as 'Đ' | 'S',
+      };
+    }
+  }
+  return {};
 };
 
 export const computeAutoScore = (

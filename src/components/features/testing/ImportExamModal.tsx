@@ -359,6 +359,14 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
                   <input ref={examRef} type="file" accept=".pdf,.docx,.txt,.jpg,.jpeg,.png,.webp" className="hidden"
                     onChange={e => handleFile(e.target.files?.[0], 'exam')} />
                 </div>
+                {examFile && examFile.name.toLowerCase().endsWith('.docx') && (
+                  <div className="mt-3 flex items-start gap-2 p-3 bg-amber-50 border border-amber-100 rounded-xl">
+                    <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+                    <p className="text-xs text-amber-700 leading-relaxed font-medium">
+                      <span className="font-bold">Lưu ý:</span> Định dạng Word (.docx) không hỗ trợ tốt công thức Toán học (OMML), có thể bị lỗi ô vuông. Khuyên dùng định dạng <span className="font-bold">PDF</span> để nhận diện công thức chính xác nhất.
+                    </p>
+                  </div>
+                )}
               </div>
               <div>
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-2">

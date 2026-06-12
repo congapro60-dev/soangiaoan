@@ -7,7 +7,7 @@ import remarkGfm from 'remark-gfm';
 import 'katex/dist/katex.min.css';
 import { X, BookOpen, Download, Printer } from 'lucide-react';
 import { ExamQuestion, QuestionType } from '../../../types';
-import { ensureMathWrapped, getOptionCols } from '../../../utils/examScoring';
+import { ensureMathWrapped, getOptionCols, parseTFSub } from '../../../utils/examScoring';
 
 interface Props {
   questions: ExamQuestion[];
@@ -167,8 +167,7 @@ export const StudentPreviewModal = ({
           <div className="mb-4">
             <p className="font-bold mb-2 text-[11pt]">Phần II – Đúng/Sai:</p>
             {tf.map(q => {
-              let ans: Record<string,string> = {};
-              try { ans = JSON.parse(q.correctAnswer || '{}'); } catch { /* empty */ }
+              const ans = parseTFSub(q.correctAnswer || '');
               return (
                 <div key={q.id} className="flex gap-4 text-[11pt] mb-1">
                   <span className="font-bold">Câu {globalNum[q.id]}:</span>

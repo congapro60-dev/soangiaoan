@@ -28,15 +28,17 @@ YÊU CẦU BẮT BUỘC
    - "true_false": câu đúng/sai hoặc có các ý a/b/c/d cần đánh giá Đúng/Sai.
    - "short_answer": câu trả lời ngắn / điền đáp án.
    - "essay": câu tự luận dài.
-3. Với câu trắc nghiệm, trích xuất đủ options theo đúng dạng mảng: ["A. ...", "B. ...", "C. ...", "D. ..."].
+3. Với câu trắc nghiệm (multiple_choice) và đúng/sai (true_false), BẮT BUỘC trích xuất đủ các phương án vào mảng "options".
+   - multiple_choice: ["A. ...", "B. ...", "C. ...", "D. ..."].
+   - true_false: ["a. ...", "b. ...", "c. ...", "d. ..."] (phải tách các ý a, b, c, d ra khỏi đề bài).
 4. Xác định correctAnswer bằng cách đối chiếu với bảng đáp án / answer key / lời giải ở cuối Markdown. Không đoán nếu không có dữ liệu chắc chắn.
    - multiple_choice: correctAnswer là một chữ cái "A", "B", "C" hoặc "D".
-   - true_false: correctAnswer là "Đúng" hoặc "Sai" nếu là một mệnh đề đơn; nếu câu gồm nhiều ý, giữ nội dung đáp án chi tiết trong explanation.
+   - true_false: correctAnswer là chuỗi gồm 4 chữ "Đ" hoặc "S" viết liền cách nhau bằng dấu phẩy, ví dụ "Đ,S,Đ,S".
    - short_answer: correctAnswer là chuỗi đáp án ngắn.
    - essay: không cần correctAnswer nếu đáp án không rõ; đưa gợi ý/lời giải vào explanation nếu có.
 5. Nếu có lời giải, ghi chú, giải thích trong bảng đáp án hoặc phần lời giải, đưa vào explanation.
 6. Nếu có hình minh họa SVG trong Markdown, giữ nguyên mã SVG liên quan và chèn vào trường content của đúng câu hỏi. Không chuyển SVG sang mô tả chữ.
-7. Giữ nguyên công thức Toán/LaTeX, ký hiệu đặc biệt, bảng nhỏ hoặc dữ kiện quan trọng trong content/options.
+7. Giữ nguyên công thức Toán/LaTeX, ký hiệu đặc biệt, bảng nhỏ hoặc dữ kiện quan trọng trong content/options. TUYỆT ĐỐI KHÔNG xóa dấu $ hoặc $$ của công thức Toán. Nếu gặp công thức chưa bọc $, PHẢI tự bọc trong dấu $...$.
 8. Mỗi câu phải có id duy nhất dạng "q1", "q2", "q3"... theo thứ tự xuất hiện.
 9. points phải là số. Nếu đề không ghi điểm từng câu, chia đều tổng 10 điểm cho số câu và làm tròn đến 0.25.
 10. Chỉ trả về JSON array thuần, tuyệt đối không trả về object bọc ngoài.
@@ -58,7 +60,7 @@ RÀNG BUỘC KIỂU DỮ LIỆU
 - id: string, bắt buộc.
 - type: một trong "multiple_choice", "true_false", "short_answer", "essay".
 - content: string, bắt buộc, không rỗng.
-- options: chỉ dùng cho multiple_choice; là string[].
+- options: dùng cho multiple_choice và true_false; là string[]. Với true_false, mảng này chứa 4 phát biểu a, b, c, d.
 - correctAnswer: string, chỉ đưa vào khi có đáp án chắc chắn hoặc cần cho auto-grade.
 - points: number, bắt buộc.
 - explanation: string, tùy chọn.
@@ -122,9 +124,9 @@ const normalizeOnlineExamQuestions = (rawQuestions: RawOnlineExamQuestion[]): Ex
       points: toFinitePositiveNumber(raw.points, defaultPoints),
     };
 
-    if (type === 'multiple_choice') {
+    if (type === 'multiple_choice' || type === 'true_false') {
       if (!rawOptions || rawOptions.length === 0) {
-        throw new Error(`Câu ${index + 1} là trắc nghiệm nhưng thiếu options.`);
+        throw new Error(`Câu ${index + 1} (${type}) thiếu options.`);
       }
       question.options = rawOptions;
     }

@@ -32,3 +32,10 @@ chrome-profile-qa/
 
 # ── Thư mục con lồng nhau (embedded repo) ──
 soangiaoan/
+
+# ── Firebase Service Account Key (BÍ MẬT — KHÔNG BAO GIỜ COMMIT) ──
+.agents/firebase-service-account.json
+*firebase-adminsdk*.json
+
+# ── File thừa/tạm (không cần commit) ──
+_File thừa/
