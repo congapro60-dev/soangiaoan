@@ -34,15 +34,9 @@ const withTimeout = <T>(promise: Promise<T>, ms: number): Promise<T> =>
 // ── JSON extraction (same pattern as adaptiveFromLessonPlan) ──────────────────
 
 const extractJsonBlock = (text: string): string => {
-  let raw = text;
-  const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (fence) raw = fence[1].trim();
-  else {
-    const start = text.indexOf('{');
-    const end = text.lastIndexOf('}');
-    if (start >= 0 && end > start) raw = text.slice(start, end + 1);
-  }
-  return raw.replace(/\\([^"\\nrt/bf])/g, '\\\\$1');
+  let cleaned = text.replace(/```(?:json)?\s*([\s\S]*?)```/i, '$1').trim();
+  cleaned = cleaned.replace(/^[^\{\[]+/, '').replace(/[^\}\]]+$/, '');
+  return cleaned.replace(/\\([^"\\nrt/bf])/g, '\\\\$1');
 };
 
 // ── Types ─────────────────────────────────────────────────────────────────────

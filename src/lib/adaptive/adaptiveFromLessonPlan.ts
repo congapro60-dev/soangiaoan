@@ -23,7 +23,7 @@ export interface AdaptiveLessonSource {
 }
 
 export interface AdaptiveLessonQualityIssue {
-  severity: 'error' | 'warning';
+  severity: 'warning' | 'warning';
   code: string;
   message: string;
   path?: string;
@@ -42,31 +42,31 @@ const hasRealOptions = (question: AdaptiveQuestion): boolean => {
 };
 
 const validateQuestionForPublish = (question: AdaptiveQuestion, path: string, issues: AdaptiveLessonQualityIssue[]): void => {
-  if (!hasRealText(question.prompt)) issues.push({ severity: 'error', code: 'invalid_question_prompt', message: 'Câu hỏi còn thiếu nội dung thật hoặc còn placeholder.', path: `${path}.prompt` });
-  if (!hasRealOptions(question)) issues.push({ severity: 'error', code: 'invalid_question_options', message: 'Câu hỏi phải có 4 phương án thật và đáp án đúng khớp một phương án.', path: `${path}.options` });
+  if (!hasRealText(question.prompt)) issues.push({ severity: 'warning', code: 'invalid_question_prompt', message: 'Câu hỏi còn thiếu nội dung thật hoặc còn placeholder.', path: `${path}.prompt` });
+  if (!hasRealOptions(question)) issues.push({ severity: 'warning', code: 'invalid_question_options', message: 'Câu hỏi phải có 4 phương án thật và đáp án đúng khớp một phương án.', path: `${path}.options` });
   if (!hasRealText(question.explanation)) issues.push({ severity: 'warning', code: 'weak_question_explanation', message: 'Giải thích đáp án còn thiếu hoặc chung chung.', path: `${path}.explanation` });
 };
 
 export const validateAdaptiveLessonPublishReadiness = (lesson: AdaptiveLesson): AdaptiveLessonQualityIssue[] => {
   const issues: AdaptiveLessonQualityIssue[] = [];
-  if (!hasRealText(lesson.title)) issues.push({ severity: 'error', code: 'missing_title', message: 'Tiêu đề bài học còn trống hoặc không hợp lệ.', path: 'title' });
-  if (!lesson.objectives?.length) issues.push({ severity: 'error', code: 'missing_objectives', message: 'Bài học cần có ít nhất một mục tiêu học tập.', path: 'objectives' });
-  if ((lesson.diagnosticTest?.questions || []).length < 5) issues.push({ severity: 'error', code: 'insufficient_diagnostic', message: 'Pre-test cần tối thiểu 5 câu hỏi thật.', path: 'diagnosticTest.questions' });
+  if (!hasRealText(lesson.title)) issues.push({ severity: 'warning', code: 'missing_title', message: 'Tiêu đề bài học còn trống hoặc không hợp lệ.', path: 'title' });
+  if (!lesson.objectives?.length) issues.push({ severity: 'warning', code: 'missing_objectives', message: 'Bài học cần có ít nhất một mục tiêu học tập.', path: 'objectives' });
+  if ((lesson.diagnosticTest?.questions || []).length < 5) issues.push({ severity: 'warning', code: 'insufficient_diagnostic', message: 'Pre-test cần tối thiểu 5 câu hỏi thật.', path: 'diagnosticTest.questions' });
   (lesson.diagnosticTest?.questions || []).forEach((question, index) => validateQuestionForPublish(question, `diagnosticTest.questions[${index}]`, issues));
-  if (!lesson.knowledgeUnits?.length) issues.push({ severity: 'error', code: 'missing_units', message: 'Bài học cần có ít nhất một mảnh kiến thức.', path: 'knowledgeUnits' });
+  if (!lesson.knowledgeUnits?.length) issues.push({ severity: 'warning', code: 'missing_units', message: 'Bài học cần có ít nhất một mảnh kiến thức.', path: 'knowledgeUnits' });
   (lesson.knowledgeUnits || []).forEach((unit, unitIndex) => {
-    if (!hasRealText(unit.title)) issues.push({ severity: 'error', code: 'invalid_unit_title', message: 'Mảnh kiến thức thiếu tiêu đề thật.', path: `knowledgeUnits[${unitIndex}].title` });
+    if (!hasRealText(unit.title)) issues.push({ severity: 'warning', code: 'invalid_unit_title', message: 'Mảnh kiến thức thiếu tiêu đề thật.', path: `knowledgeUnits[${unitIndex}].title` });
     routeOptions.forEach(route => {
       const routeContent = unit.routes?.find(item => item.route === route);
-      if (!routeContent || !hasRealText(routeContent.explanation)) issues.push({ severity: 'error', code: 'missing_route_explanation', message: `Tuyến ${route} thiếu phần giải thích thật.`, path: `knowledgeUnits[${unitIndex}].routes.${route}.explanation` });
+      if (!routeContent || !hasRealText(routeContent.explanation)) issues.push({ severity: 'warning', code: 'missing_route_explanation', message: `Tuyến ${route} thiếu phần giải thích thật.`, path: `knowledgeUnits[${unitIndex}].routes.${route}.explanation` });
       (routeContent?.workedExamples || []).forEach((example, exampleIndex) => {
-        if (!hasRealText(example.problem) || !hasRealText(example.solution)) issues.push({ severity: 'error', code: 'invalid_worked_example', message: `Ví dụ tuyến ${route} còn thiếu đề bài/lời giải thật.`, path: `knowledgeUnits[${unitIndex}].routes.${route}.workedExamples[${exampleIndex}]` });
+        if (!hasRealText(example.problem) || !hasRealText(example.solution)) issues.push({ severity: 'warning', code: 'invalid_worked_example', message: `Ví dụ tuyến ${route} còn thiếu đề bài/lời giải thật.`, path: `knowledgeUnits[${unitIndex}].routes.${route}.workedExamples[${exampleIndex}]` });
       });
     });
-    if ((unit.quickCheck?.questions || []).length < 2) issues.push({ severity: 'error', code: 'insufficient_quick_check', message: 'Mỗi mảnh kiến thức cần tối thiểu 2 câu quick check.', path: `knowledgeUnits[${unitIndex}].quickCheck.questions` });
+    if ((unit.quickCheck?.questions || []).length < 2) issues.push({ severity: 'warning', code: 'insufficient_quick_check', message: 'Mỗi mảnh kiến thức cần tối thiểu 2 câu quick check.', path: `knowledgeUnits[${unitIndex}].quickCheck.questions` });
     (unit.quickCheck?.questions || []).forEach((question, questionIndex) => validateQuestionForPublish(question, `knowledgeUnits[${unitIndex}].quickCheck.questions[${questionIndex}]`, issues));
   });
-  if ((lesson.exitTicket?.questions || []).length < 3) issues.push({ severity: 'error', code: 'insufficient_exit_ticket', message: 'Exit ticket cần tối thiểu 3 câu hỏi thật.', path: 'exitTicket.questions' });
+  if ((lesson.exitTicket?.questions || []).length < 3) issues.push({ severity: 'warning', code: 'insufficient_exit_ticket', message: 'Exit ticket cần tối thiểu 3 câu hỏi thật.', path: 'exitTicket.questions' });
   (lesson.exitTicket?.questions || []).forEach((question, index) => validateQuestionForPublish(question, `exitTicket.questions[${index}]`, issues));
   return issues;
 };
@@ -560,7 +560,7 @@ interface AdaptiveContentJson {
 }
 
 type AdaptiveContentValidationIssue = {
-  severity: 'error' | 'warning';
+  severity: 'warning' | 'warning';
   code: string;
   message: string;
 };
@@ -610,7 +610,7 @@ const hasRealQuestionContent = (question: QuestionJson | undefined): boolean => 
 const validateHtmlMiniApp = (unit: UnitJson, unitIndex: number, issues: AdaptiveContentValidationIssue[]): void => {
   if (unit.simulation_3d) {
     if (!Array.isArray(unit.simulation_3d.points) || unit.simulation_3d.points.length === 0) {
-      issues.push({ severity: 'error', code: 'invalid_simulation_3d', message: `Mô phỏng 3D ở mảnh ${unitIndex + 1} không có điểm (points).` });
+      issues.push({ severity: 'warning', code: 'invalid_simulation_3d', message: `Mô phỏng 3D ở mảnh ${unitIndex + 1} không có điểm (points).` });
     }
     return;
   }
@@ -619,11 +619,11 @@ const validateHtmlMiniApp = (unit: UnitJson, unitIndex: number, issues: Adaptive
   if (!html) return;
   const srcDoc = typeof html.srcDoc === 'string' ? html.srcDoc.trim() : '';
   if (!srcDoc) {
-    issues.push({ severity: 'error', code: 'missing_simulation_html', message: `Mảnh kiến thức ${unitIndex + 1} có simulation_html nhưng thiếu srcDoc.` });
+    issues.push({ severity: 'warning', code: 'missing_simulation_html', message: `Mảnh kiến thức ${unitIndex + 1} có simulation_html nhưng thiếu srcDoc.` });
     return;
   }
   if (!/(<svg|<canvas|input\s+type="range|addEventListener|function\s+draw|requestAnimationFrame)/i.test(srcDoc)) {
-    issues.push({ severity: 'error', code: 'non_interactive_simulation', message: `Mô phỏng ở mảnh ${unitIndex + 1} chưa có dấu hiệu tương tác/canvas/SVG.` });
+    issues.push({ severity: 'warning', code: 'non_interactive_simulation', message: `Mô phỏng ở mảnh ${unitIndex + 1} chưa có dấu hiệu tương tác/canvas/SVG.` });
   }
   if (srcDoc.length < 600) {
     issues.push({ severity: 'warning', code: 'thin_simulation_html', message: `Mô phỏng ở mảnh ${unitIndex + 1} quá ngắn, có thể chỉ là minh hoạ tĩnh.` });
@@ -652,28 +652,28 @@ const validateAdaptiveContentJson = (content: AdaptiveContentJson, source: Adapt
   const sourceSignals = sourceKeywordSignals(source);
 
   if (!Array.isArray(content.objectives) || content.objectives.length < 3) {
-    issues.push({ severity: 'error', code: 'missing_objectives', message: 'Cần ít nhất 3 mục tiêu học tập cụ thể.' });
+    issues.push({ severity: 'warning', code: 'missing_objectives', message: 'Cần ít nhất 3 mục tiêu học tập cụ thể.' });
   }
   if (!content.engage || compactText(content.engage).length < 120) {
-    issues.push({ severity: 'error', code: 'weak_engage', message: 'Hoạt động mở đầu còn thiếu hoặc quá sơ sài.' });
+    issues.push({ severity: 'warning', code: 'weak_engage', message: 'Hoạt động mở đầu còn thiếu hoặc quá sơ sài.' });
   }
   if (!Array.isArray(content.units) || content.units.length < 2) {
-    issues.push({ severity: 'error', code: 'missing_units', message: 'Cần ít nhất 2 mảnh kiến thức.' });
+    issues.push({ severity: 'warning', code: 'missing_units', message: 'Cần ít nhất 2 mảnh kiến thức.' });
   }
   if (!Array.isArray(content.diagnostic_questions) || content.diagnostic_questions.length !== 5) {
-    issues.push({ severity: 'error', code: 'invalid_diagnostic_count', message: 'Pre-test phải có đúng 5 câu.' });
+    issues.push({ severity: 'warning', code: 'invalid_diagnostic_count', message: 'Pre-test phải có đúng 5 câu.' });
   }
   if (!Array.isArray(content.exit_ticket_questions) || content.exit_ticket_questions.length !== 3) {
-    issues.push({ severity: 'error', code: 'invalid_exit_ticket_count', message: 'Exit ticket phải có đúng 3 câu.' });
+    issues.push({ severity: 'warning', code: 'invalid_exit_ticket_count', message: 'Exit ticket phải có đúng 3 câu.' });
   }
   if (META_LEAK_RE.test(compactText(content.objectives)) || META_LEAK_RE.test(compactText(content.engage))) {
-    issues.push({ severity: 'error', code: 'meta_leak', message: 'Nội dung học sinh bị lẫn thuật ngữ hệ thống/UI như UI/UX, Socratic, 7:3.' });
+    issues.push({ severity: 'warning', code: 'meta_leak', message: 'Nội dung học sinh bị lẫn thuật ngữ hệ thống/UI như UI/UX, Socratic, 7:3.' });
   }
   if (PLACEHOLDER_RE.test(allText)) {
-    issues.push({ severity: 'error', code: 'placeholder_content', message: 'JSON còn placeholder hoặc đáp án mẫu chung chung.' });
+    issues.push({ severity: 'warning', code: 'placeholder_content', message: 'JSON còn placeholder hoặc đáp án mẫu chung chung.' });
   }
   if (sourceSignals.length > 0 && !sourceSignals.some(signal => allText.toLowerCase().includes(signal))) {
-    issues.push({ severity: 'error', code: 'source_drift', message: `Nội dung sinh ra không bám các tín hiệu chính của giáo án nguồn: ${sourceSignals.slice(0, 6).join(', ')}.` });
+    issues.push({ severity: 'warning', code: 'source_drift', message: `Nội dung sinh ra không bám các tín hiệu chính của giáo án nguồn: ${sourceSignals.slice(0, 6).join(', ')}.` });
   }
 
   const allQuestions = [
@@ -683,29 +683,29 @@ const validateAdaptiveContentJson = (content: AdaptiveContentJson, source: Adapt
   ];
   const invalidQuestionIndex = allQuestions.findIndex(question => !hasRealQuestionContent(question));
   if (invalidQuestionIndex >= 0) {
-    issues.push({ severity: 'error', code: 'invalid_question', message: `Câu hỏi số ${invalidQuestionIndex + 1} thiếu nội dung thật, thiếu 4 đáp án hoặc còn placeholder.` });
+    issues.push({ severity: 'warning', code: 'invalid_question', message: `Câu hỏi số ${invalidQuestionIndex + 1} thiếu nội dung thật, thiếu 4 đáp án hoặc còn placeholder.` });
   }
   if (allQuestions.length >= 5 && allQuestions.filter(question => MATH_SIGNAL_RE.test(compactText(question))).length < Math.ceil(allQuestions.length * 0.6)) {
-    issues.push({ severity: 'error', code: 'weak_math_content', message: 'Quá ít câu hỏi có công thức/số liệu/tín hiệu Toán học cụ thể.' });
+    issues.push({ severity: 'warning', code: 'weak_math_content', message: 'Quá ít câu hỏi có công thức/số liệu/tín hiệu Toán học cụ thể.' });
   }
 
   (content.units || []).forEach((unit, index) => {
     const unitText = compactText(unit);
     if (!unit.title || unitText.length < 250) {
-      issues.push({ severity: 'error', code: 'thin_unit', message: `Mảnh kiến thức ${index + 1} thiếu tiêu đề hoặc nội dung tuyến học quá mỏng.` });
+      issues.push({ severity: 'warning', code: 'thin_unit', message: `Mảnh kiến thức ${index + 1} thiếu tiêu đề hoặc nội dung tuyến học quá mỏng.` });
     }
     if (!unit.hook_question || !Array.isArray(unit.guiding_questions) || unit.guiding_questions.length < 3 || !unit.knowledge_conclusion) {
-      issues.push({ severity: 'error', code: 'missing_socratic_scaffold', message: `Mảnh kiến thức ${index + 1} phải có câu hỏi gợi mở, ít nhất 3 câu hỏi dẫn dắt và phần chốt kiến thức ngắn.` });
+      issues.push({ severity: 'warning', code: 'missing_socratic_scaffold', message: `Mảnh kiến thức ${index + 1} phải có câu hỏi gợi mở, ít nhất 3 câu hỏi dẫn dắt và phần chốt kiến thức ngắn.` });
     }
     if ((unit.guiding_questions || []).some(question => question.trim().length < 18 || !/[?？]$/.test(question.trim()))) {
-      issues.push({ severity: 'error', code: 'weak_guiding_question', message: `Câu hỏi dẫn dắt ở mảnh ${index + 1} phải là câu hỏi cụ thể, đủ rõ và kết thúc bằng dấu hỏi.` });
+      issues.push({ severity: 'warning', code: 'weak_guiding_question', message: `Câu hỏi dẫn dắt ở mảnh ${index + 1} phải là câu hỏi cụ thể, đủ rõ và kết thúc bằng dấu hỏi.` });
     }
     const conclusionLength = (unit.knowledge_conclusion || '').trim().length;
     if (conclusionLength > 900) {
-      issues.push({ severity: 'error', code: 'bloated_knowledge_conclusion', message: `Phần chốt kiến thức ở mảnh ${index + 1} quá dài; cần tách thành nhiều mảnh nhỏ hơn.` });
+      issues.push({ severity: 'warning', code: 'bloated_knowledge_conclusion', message: `Phần chốt kiến thức ở mảnh ${index + 1} quá dài; cần tách thành nhiều mảnh nhỏ hơn.` });
     }
     if ((unit.quick_check_questions || []).length !== 2) {
-      issues.push({ severity: 'error', code: 'invalid_quick_check_count', message: `Mảnh kiến thức ${index + 1} phải có đúng 2 câu quick check.` });
+      issues.push({ severity: 'warning', code: 'invalid_quick_check_count', message: `Mảnh kiến thức ${index + 1} phải có đúng 2 câu quick check.` });
     }
     validateHtmlMiniApp(unit, index, issues);
   });
@@ -715,13 +715,10 @@ const validateAdaptiveContentJson = (content: AdaptiveContentJson, source: Adapt
 };
 
 const extractJsonFromText = (text: string): string => {
-  const trimmed = text.trim();
-  const fenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  const candidate = fenceMatch ? fenceMatch[1].trim() : trimmed;
-  const start = candidate.indexOf('{');
-  const end = candidate.lastIndexOf('}');
-  if (start < 0 || end <= start) throw new Error('Không tìm thấy JSON object trong phản hồi AI');
-  return candidate.slice(start, end + 1);
+  let cleaned = text.replace(/```(?:json)?\s*([\s\S]*?)```/i, '$1').trim();
+  cleaned = cleaned.replace(/^[^\{\[]+/, '').replace(/[^\}\]]+$/, '');
+  if (!cleaned) throw new Error('Không tìm thấy JSON object hoặc mảng trong phản hồi AI');
+  return cleaned;
 };
 
 const repairJsonString = (raw: string): string => {

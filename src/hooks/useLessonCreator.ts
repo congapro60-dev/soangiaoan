@@ -830,9 +830,9 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
 
         let extractedLessons: { week: string, title: string, objectives: string }[] = [];
         try {
-          const jsonMatch = planResponse.match(/\[[\s\S]*\]/);
-          const jsonStr = jsonMatch ? jsonMatch[0] : planResponse.replace(/```json/g, '').replace(/```/g, '').trim();
-          extractedLessons = JSON.parse(jsonStr);
+          let cleanedPlan = planResponse.replace(/```(?:json)?\s*([\s\S]*?)```/i, '$1').trim();
+          cleanedPlan = cleanedPlan.replace(/^[^\{\[]+/, '').replace(/[^\}\]]+$/, '');
+          extractedLessons = JSON.parse(cleanedPlan);
           if (!Array.isArray(extractedLessons) || extractedLessons.length === 0) {
             throw new Error("Danh sách bài học trích xuất rỗng");
           }
