@@ -35,9 +35,6 @@ export const cleanMarkdownOutput = (text: string): string => {
     const prevIsTableRow = prevTrimmed.startsWith('|');
     const prevIsSeparator = /^\|[\s\-:|]+\|/.test(prevTrimmed);
 
-    // Nhận diện block mới (tiêu đề, khối code, latex) để chặn nối nhầm vào bảng
-    const isNewBlock = /^(#|```|% |\\begin|\*\*\s*(HOẠT ĐỘNG|Tiêu đề|MỤC TIÊU|PHẦN|NỘI DUNG|BƯỚC))/i.test(trimmed);
-
     if (isSeparator) {
       if (!inTable && prevIdx >= 0 && prevTrimmed !== '' && !prevIsTableRow) {
         repaired.push(''); // Bắt buộc thêm dòng trống trước bảng
@@ -50,7 +47,7 @@ export const cleanMarkdownOutput = (text: string): string => {
       }
       inTable = true;
       repaired.push(line);
-    } else if (!isEmpty && inTable && prevIsTableRow && !prevIsSeparator && !isNewBlock) {
+    } else if (!isEmpty && inTable && prevIsTableRow && !prevIsSeparator) {
       // Content bị đẩy xuống - chèn ngược lại vào ô của hàng phía trước
       const row = repaired[prevIdx];
       const pipes = row.split('|');
@@ -74,7 +71,7 @@ export const cleanMarkdownOutput = (text: string): string => {
         }
       }
     } else {
-      if (isEmpty || isNewBlock) inTable = false;
+      if (isEmpty) inTable = false;
       repaired.push(line);
     }
   }
