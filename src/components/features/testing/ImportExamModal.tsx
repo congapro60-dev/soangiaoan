@@ -1,24 +1,29 @@
 import { useState, useRef } from 'react';
 import * as XLSX from 'xlsx';
-import { Upload, FileText, X, Loader2, CheckCircle2, AlertCircle, ChevronRight, ChevronLeft, Download, Table, Image as ImageIcon, Scissors, Trash2 } from 'lucide-react';
+import { Upload, FileText, X, Loader2, CheckCircle2, AlertCircle, ChevronRight, ChevronLeft, Download, Table, Image as ImageIcon, Scissors, Trash2, Sparkles, Shuffle, SortAsc, FileArchive, GripVertical } from 'lucide-react';
 import { ExamQuestion, QuestionType } from '../../../types';
 import { parseExamFromFiles, summarizeQuestions, MAX_IMPORT_MB, pdfToImages } from '../../../utils/examImportUtils';
 import { ensureMathWrapped, getOptionCols } from '../../../utils/examScoring';
 import type { AppData } from '../../../types';
+import { callAI, getActiveApiKey } from '../../../lib/aiProviders';
+import { exportExamZip } from '../../../utils/examPermutationUtils';
 import { ManualCropModal } from './ManualCropModal';
+import { QuestionBankModal } from './QuestionBankModal';
+import { AiMatrixModal } from './AiMatrixModal';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid } from 'recharts';
 import { AnimatePresence, motion } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import 'katex/dist/katex.min.css';
-import { Eye, EyeOff, Send, BookOpen } from 'lucide-react';
+import { Eye, EyeOff, Send, BookOpen, Layers, BarChart3 } from 'lucide-react';
 import { StudentPreviewModal } from './StudentPreviewModal';
 
 interface Props {
   onClose: () => void;
   onImport: (questions: ExamQuestion[], title: string, pageImages?: string[]) => void;
-  settings: AppData['settings'];
+  data: AppData;
   showToast: (msg: string, type?: any) => void;
 }
 
@@ -105,7 +110,8 @@ const parseExcelFile = (file: File): Promise<ExamQuestion[]> =>
 
 // ─── Component ─────────────────────────────────────────────────────────────────
 
-export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Props) => {
+export const ImportExamModal = ({ onClose, onImport, data, showToast }: Props) => {
+  const settings = data.settings;
   const [mode, setMode] = useState<Mode>('ai');
   const [step, setStep] = useState<Step>('upload');
   const [examFile, setExamFile] = useState<File | null>(null);
@@ -122,10 +128,69 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
   const [progressLabel, setProgressLabel] = useState('');
   const [forceVision, setForceVision] = useState(false);
   const [autoClean, setAutoClean] = useState(true);
+  const [showBankModal, setShowBankModal] = useState(false);
+  const [showMatrixModal, setShowMatrixModal] = useState(false);
 
   const examRef = useRef<HTMLInputElement>(null);
   const answerRef = useRef<HTMLInputElement>(null);
   const xlsxRef = useRef<HTMLInputElement>(null);
+
+  const handleGenerateAI = async () => {
+    if (!getActiveApiKey(settings)) {
+      showToast('Vui lòng cấu hình API Key trong cài đặt trước!', 'warning');
+      return;
+    }
+    const subject = window.prompt("Nhập nội dung/chủ đề câu hỏi bạn muốn AI tạo thêm (Ví dụ: 5 câu mức độ Khó về Tích phân):");
+    if (!subject) return;
+
+    setStep('parsing');
+    setProgress(0);
+    setProgressLabel('Đang gọi AI sinh câu hỏi...');
+
+    try {
+      const prompt = `Bạn là chuyên gia ra đề thi trắc nghiệm. Dựa vào yêu cầu sau: "${subject}".
+Hãy tạo các câu hỏi trắc nghiệm khách quan.
+Trả về dữ liệu dưới dạng JSON là một mảng các object (KHÔNG CÓ MARKDOWN HAY CHỮ GÌ KHÁC), mỗi object có:
+- "type": "multiple_choice" (hoặc "true_false", "short_answer")
+- "content": nội dung câu hỏi
+- "options": mảng chứa các lựa chọn (VD: ["A. 1", "B. 2", "C. 3", "D. 4"])
+- "correctAnswer": nội dung đầy đủ của đáp án đúng (khớp chính xác 1 phần tử trong mảng options)
+- "explanation": giải thích đáp án
+- "points": điểm (VD: 0.25)
+- "cognitiveLevel": mức độ nhận thức (chỉ chọn 1 trong: "Nhận biết", "Thông hiểu", "Vận dụng", "Vận dụng cao")`;
+
+      setProgress(50);
+      const res = await callAI(prompt, settings);
+      
+      setProgress(80);
+      setProgressLabel('Đang xử lý kết quả...');
+      
+      const jsonMatch = res.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) throw new Error("Không nhận diện được JSON");
+      
+      const parsed = JSON.parse(jsonMatch[0]);
+      if (!Array.isArray(parsed)) throw new Error("Dữ liệu không phải là mảng");
+
+      const newQuestions: ExamQuestion[] = parsed.map((q: any) => ({
+        id: `q-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        type: q.type || 'multiple_choice',
+        content: ensureMathWrapped(q.content || ''),
+        options: Array.isArray(q.options) ? q.options.map(ensureMathWrapped) : [],
+        correctAnswer: ensureMathWrapped(q.correctAnswer || ''),
+        explanation: ensureMathWrapped(q.explanation || ''),
+        points: q.points || 0.25,
+        cognitiveLevel: q.cognitiveLevel,
+      }));
+
+      setQuestions(prev => [...prev, ...newQuestions]);
+      showToast(`Đã thêm ${newQuestions.length} câu hỏi bằng AI thành công!`, 'success');
+      setStep('review');
+    } catch (err: any) {
+      console.error(err);
+      showToast(`Lỗi tạo bằng AI: ${err.message}`, 'error');
+      setStep('review');
+    }
+  };
 
   const handleFile = (file: File | undefined, type: 'exam' | 'answer') => {
     if (!file) return;
@@ -579,34 +644,122 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
 
               {/* Right: Interactive Editor */}
               <div className={`${pageImages.length > 0 ? 'w-1/2' : 'w-full'} flex flex-col h-full bg-white`}>
-                <div className="px-6 py-4 border-b border-slate-50 space-y-4">
-                  <div className="grid grid-cols-4 gap-3">
-                    {[
-                      { label: 'Trắc nghiệm', value: summary.mcq, color: 'bg-blue-50 text-blue-600' },
-                      { label: 'Đúng/Sai', value: summary.trueFalse, color: 'bg-purple-50 text-purple-600' },
-                      { label: 'Trả lời ngắn', value: summary.shortAnswer, color: 'bg-emerald-50 text-emerald-600' },
-                      { label: 'Tự luận', value: summary.essay, color: 'bg-amber-50 text-amber-600' },
-                    ].map(({ label, value, color }) => (
-                      <div key={label} className={`rounded-2xl p-3 text-center ${color}`}>
-                        <p className="text-xl font-black">{value}</p>
-                        <p className="text-[10px] font-bold mt-0.5">{label}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex items-center justify-between text-sm text-blue-700 bg-blue-50 px-4 py-2.5 rounded-xl border border-blue-100">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span className="font-bold">Đã nhận diện {summary.total} câu, tổng {summary.maxScore.toFixed(2)}đ</span>
+                <div className="px-6 py-5 bg-[#0f172a] text-white border-b border-slate-800 space-y-4 shadow-xl z-20 sticky top-0">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-lg font-black tracking-wide text-slate-100 flex items-center gap-2">
+                        Cấu hình đề thi
+                      </h3>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">Editor</span>
                     </div>
-                    <p className="text-[10px] font-medium text-blue-500 italic">Sửa nội dung & điểm ngay bên dưới!</p>
+                    <div className="flex items-center gap-6 text-sm">
+                       <span className="text-slate-400">Tiêu đề: <strong className="text-white uppercase ml-1">{examTitle || 'Chưa có tên'}</strong></span>
+                       <span className="text-slate-400">Điểm: <strong className="text-emerald-400 ml-1">{summary.maxScore.toFixed(2)}đ</strong></span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between pt-2">
+                    <div className="flex items-center gap-2.5">
+                       <span className="text-sm text-slate-300">Đã chọn: <strong className="text-white">{questions.length}/{questions.length} câu.</strong></span>
+                       <div className="h-4 w-px bg-slate-700 mx-1"></div>
+                       <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                         Nhận biết: {questions.filter(q => q.cognitiveLevel === 'Nhận biết' || !q.cognitiveLevel).length}
+                       </span>
+                       <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30">
+                         Thông hiểu: {questions.filter(q => q.cognitiveLevel === 'Thông hiểu').length}
+                       </span>
+                       <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                         Vận dụng: {questions.filter(q => q.cognitiveLevel === 'Vận dụng' || q.cognitiveLevel === 'Vận dụng cao').length}
+                       </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                       <button className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#1e293b] hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition-all shadow-sm">
+                         <Upload className="w-3.5 h-3.5"/> Thêm từ tệp
+                       </button>
+                       <button 
+                         onClick={() => setShowBankModal(true)}
+                         className="px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white flex items-center gap-1.5 transition-all shadow-lg shadow-blue-500/20"
+                       >
+                         <Layers className="w-3.5 h-3.5"/> Ngân hàng câu hỏi
+                       </button>
+                       <button 
+                         onClick={() => setShowMatrixModal(true)}
+                         className="px-3 py-1.5 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-500 text-white flex items-center gap-1.5 transition-all shadow-lg shadow-purple-500/20"
+                       >
+                         <Sparkles className="w-3.5 h-3.5"/> Ma trận AI
+                       </button>
+                       <button 
+                         onClick={() => exportExamZip(questions, examTitle, 4, showToast)}
+                         className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#1e293b] hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition-all shadow-sm"
+                       >
+                         <FileArchive className="w-3.5 h-3.5 text-blue-400"/> Xuất ZIP
+                       </button>
+                       <button 
+                         onClick={() => {
+                           const shuffled = [...questions].sort(() => Math.random() - 0.5);
+                           setQuestions(shuffled);
+                           showToast('Đã xáo trộn vị trí câu hỏi!', 'success');
+                         }}
+                         className="px-3 py-1.5 rounded-xl text-xs font-bold bg-orange-600/20 hover:bg-orange-500/30 text-orange-400 border border-orange-500/30 flex items-center gap-1.5 transition-all"
+                       >
+                         <Shuffle className="w-3.5 h-3.5"/> Trộn đề
+                       </button>
+                       <button className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 transition-all">
+                         <SortAsc className="w-3.5 h-3.5"/> Sắp xếp độ khó
+                       </button>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50">
+                  {questions.length > 0 && (
+                    <div className="mb-6 p-5 bg-white border border-slate-200 rounded-3xl shadow-sm">
+                      <h4 className="text-sm font-black text-slate-800 mb-6 flex items-center gap-2">
+                        <BarChart3 className="w-4 h-4 text-blue-500"/> Thống kê Ma trận độ khó (Cập nhật Realtime)
+                      </h4>
+                      <div className="h-36 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart
+                            data={[
+                              { name: 'Nhận biết', value: questions.filter(q => q.cognitiveLevel === 'Nhận biết' || !q.cognitiveLevel).length, color: '#10b981' },
+                              { name: 'Thông hiểu', value: questions.filter(q => q.cognitiveLevel === 'Thông hiểu').length, color: '#3b82f6' },
+                              { name: 'Vận dụng', value: questions.filter(q => q.cognitiveLevel === 'Vận dụng').length, color: '#f59e0b' },
+                              { name: 'Vận dụng cao', value: questions.filter(q => q.cognitiveLevel === 'Vận dụng cao').length, color: '#ef4444' }
+                            ]}
+                            margin={{ top: 0, right: 0, left: -30, bottom: 0 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }} dy={10} />
+                            <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                            <Tooltip 
+                              cursor={{fill: '#f8fafc'}}
+                              contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontWeight: 'bold' }}
+                            />
+                            <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={60}>
+                              {
+                                [
+                                  { color: '#10b981' },
+                                  { color: '#3b82f6' },
+                                  { color: '#f59e0b' },
+                                  { color: '#ef4444' }
+                                ].map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={entry.color} />
+                                ))
+                              }
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  )}
+                  
                   {questions.map((q, idx) => (
                     <div key={q.id} className="group relative bg-white border border-slate-100 hover:border-blue-200 rounded-2xl p-5 transition-all hover:shadow-xl hover:shadow-blue-500/5">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
+                          <button className="cursor-grab hover:bg-slate-100 p-1 rounded transition-colors text-slate-400" title="Kéo để đổi vị trí (Sẽ được xử lý dnd-kit)">
+                            <GripVertical className="w-4 h-4" />
+                          </button>
                           <span className="text-xs font-black px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600">Câu {idx + 1}</span>
                           <select 
                             value={q.type}
@@ -617,6 +770,16 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
                             <option value="true_false">ĐÚNG / SAI</option>
                             <option value="short_answer">TRẢ LỜI NGẮN</option>
                             <option value="essay">TỰ LUẬN</option>
+                          </select>
+                          <select 
+                            value={q.cognitiveLevel || 'Nhận biết'}
+                            onChange={(e) => updateQuestion(idx, { cognitiveLevel: e.target.value as any })}
+                            className="text-[10px] font-bold px-2 py-1 rounded-lg border border-slate-200 bg-white text-slate-600 outline-none cursor-pointer ml-2 hover:border-blue-300 transition-colors"
+                          >
+                            <option value="Nhận biết">Nhận biết</option>
+                            <option value="Thông hiểu">Thông hiểu</option>
+                            <option value="Vận dụng">Vận dụng</option>
+                            <option value="Vận dụng cao">Vận dụng cao</option>
                           </select>
                         </div>
                         <div className="flex items-center gap-2">
@@ -642,17 +805,22 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
                       {q.type === 'multiple_choice' && (
                         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {['A', 'B', 'C', 'D'].map((label, i) => (
-                            <div key={label} className="flex items-center gap-2 group/opt">
-                              <button 
-                                onClick={() => updateQuestion(idx, { correctAnswer: label })}
-                                className={`w-8 h-8 shrink-0 rounded-full text-[10px] font-bold transition-all border ${
-                                  q.correctAnswer === label 
-                                    ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200' 
-                                    : 'bg-white border-slate-200 text-slate-400 hover:border-blue-300'
-                                }`}
-                              >
+                            <div 
+                              key={label} 
+                              onClick={() => updateQuestion(idx, { correctAnswer: label })}
+                              className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer group/opt ${
+                                q.correctAnswer === label 
+                                  ? 'border-emerald-500 bg-emerald-50/50 shadow-sm shadow-emerald-500/10' 
+                                  : 'border-slate-200 bg-white hover:border-emerald-300'
+                              }`}
+                            >
+                              <div className={`w-5 h-5 shrink-0 rounded-full flex items-center justify-center text-[10px] font-black transition-all ${
+                                q.correctAnswer === label
+                                  ? 'bg-emerald-500 text-white'
+                                  : 'bg-slate-100 text-slate-400 group-hover/opt:bg-emerald-100 group-hover/opt:text-emerald-600'
+                              }`}>
                                 {label}
-                              </button>
+                              </div>
                               <input 
                                 type="text"
                                 value={q.options?.[i] || ''}
@@ -661,8 +829,11 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
                                   newOpts[i] = e.target.value;
                                   updateQuestion(idx, { options: newOpts });
                                 }}
-                                placeholder={`Phương án ${label}...`}
-                                className="flex-1 bg-transparent border-b border-transparent focus:border-blue-200 py-1 text-xs text-slate-600 outline-none transition-all"
+                                onClick={(e) => e.stopPropagation()}
+                                placeholder={`Nhập nội dung phương án ${label}...`}
+                                className={`flex-1 bg-transparent border-none text-xs font-medium outline-none transition-all ${
+                                  q.correctAnswer === label ? 'text-emerald-800' : 'text-slate-700'
+                                }`}
                               />
                             </div>
                           ))}
@@ -838,6 +1009,28 @@ export const ImportExamModal = ({ onClose, onImport, settings, showToast }: Prop
             questions={questions}
             title={examTitle}
             onClose={() => setShowStudentPreview(false)}
+          />
+        )}
+        {showBankModal && (
+          <QuestionBankModal
+            exams={data.exams}
+            onClose={() => setShowBankModal(false)}
+            onAddQuestions={(newQuestions) => {
+              setQuestions(prev => [...prev, ...newQuestions]);
+              showToast(`Đã thêm ${newQuestions.length} câu hỏi từ ngân hàng!`, 'success');
+            }}
+          />
+        )}
+        {showMatrixModal && (
+          <AiMatrixModal
+            data={data}
+            onClose={() => setShowMatrixModal(false)}
+            onGenerate={(newQuestions) => {
+              setQuestions(prev => [...prev, ...newQuestions]);
+              showToast(`AI đã sinh xong ${newQuestions.length} câu hỏi theo Ma trận!`, 'success');
+              setShowMatrixModal(false);
+            }}
+            showToast={showToast}
           />
         )}
       </AnimatePresence>

@@ -38,7 +38,7 @@ const hasPlaceholderText = (value?: string): boolean => PUBLISH_PLACEHOLDER_RE.t
 const hasRealText = (value?: string): boolean => Boolean(value && value.trim().length >= MIN_REAL_TEXT_LENGTH && !hasPlaceholderText(value));
 const hasRealOptions = (question: AdaptiveQuestion): boolean => {
   const options = question.options || [];
-  return options.length >= 4 && options.slice(0, 4).every(option => hasRealText(option)) && Boolean(question.correctAnswer && options.includes(question.correctAnswer));
+  return options.length >= 4 && options.slice(0, 4).every(option => Boolean(option && option.trim().length >= 2 && !hasPlaceholderText(option))) && Boolean(question.correctAnswer && options.includes(question.correctAnswer));
 };
 
 const validateQuestionForPublish = (question: AdaptiveQuestion, path: string, issues: AdaptiveLessonQualityIssue[]): void => {

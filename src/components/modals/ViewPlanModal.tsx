@@ -56,7 +56,15 @@ export const ViewPlanModal = ({ plan, data, showToast, onClose, onEdit }: ViewPl
           templateId: plan.templateId
         };
         // Export the generated markdown as a docx file so teachers can edit and print
-        await exportUtils.exportLessonViaAPI(fakePlan, 'docx', 'portrait', showToast);
+        const { marked } = await import('marked');
+        const htmlBody = await marked(worksheetMarkdown);
+        const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head>
+<body>${htmlBody}</body></html>`;
+        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+        const blob = new Blob([bom, new TextEncoder().encode(html)], { type: 'application/msword' });
+        const { downloadBlob } = await import('../../utils/fileUtils');
+        downloadBlob(blob, `${fakePlan.title?.replace(/\s+/g, '_')}.doc`);
         showToast('Đã tải Phiếu học tập (Word)!', 'success');
       } catch (err) {
         console.error(err);
@@ -155,13 +163,15 @@ export const ViewPlanModal = ({ plan, data, showToast, onClose, onEdit }: ViewPl
                 {isGeneratingSlide ? 'Đang xử lý...' : 'Tạo Slide PPTX'}
               </button>
               <button
-                onClick={() => withGuardrail(plan.content, data.templates?.find(t => t.id === plan.templateId)?.files?.find(f => !!f.skeleton)?.skeleton, 'export_pdf', () => exportUtils.exportLessonViaAPI(plan, 'pdf', 'portrait', showToast))}
+                onClick={() => withGuardrail(plan.content, data.templates?.find(t => t.id === plan.templateId)?.files?.find(f => !!f.skeleton)?.skeleton, 'export_pdf', () => exportUtils.exportToPDF(plan, showToast, 'portrait'))}
                 className="px-6 py-2.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl font-bold text-sm flex items-center gap-2 transition-all shadow-sm"
               >
                 Tải PDF
               </button>
               <button
-                onClick={() => withGuardrail(plan.content, data.templates?.find(t => t.id === plan.templateId)?.files?.find(f => !!f.skeleton)?.skeleton, 'export_word', () => exportUtils.exportLessonViaAPI(plan, 'docx', 'portrait', showToast))}
+                onClick={() => withGuardrail(plan.content, data.templates?.find(t => t.id === plan.templateId)?.files?.find(f => !!f.skeleton)?.skeleton, 'export_word', () => {
+                  import('../../utils/wordExportA4').then(m => m.exportToWordA4(plan, showToast, 'portrait'));
+                })}
                 className="px-6 py-2.5 bg-blue-600 text-white hover:bg-blue-700 rounded-xl font-bold text-sm flex items-center gap-2 transition-all shadow-lg shadow-blue-200"
               >
                 Xuất Word (.docx)

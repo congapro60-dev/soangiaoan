@@ -361,6 +361,19 @@ body {
   [class*="sticky"] {
     position: static !important;
   }
+
+  /* Temporary Print Container Trick */
+  body.is-printing-temp > *:not(#print-temp-container) {
+    display: none !important;
+  }
+  
+  #print-temp-container {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
 }
 
 /* 📐 OPTION GRID cho MCQ (dùng cả trên web và khi in) */

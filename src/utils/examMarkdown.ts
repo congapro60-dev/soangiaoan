@@ -29,8 +29,10 @@ export const preprocessExamMarkdown = (input: string): string => {
     .replace(/\\\[([\s\S]*?)\\\]/g, (_match, math) => `\n$$\n${String(math).trim()}\n$$\n`)
     .replace(/\\\(([\s\S]*?)\\\)/g, (_match, math) => `$${String(math).trim()}$`)
     .replace(/\\begin\{equation\*?\}([\s\S]*?)\\end\{equation\*?\}/g, (_match, math) => `\n$$\n${String(math).trim()}\n$$\n`)
+    .replace(/<div[^>]*>([\s\S]*?)<\/div>/gi, (_match, inner) => `\n${String(inner).trim()}\n`)
+    .replace(/<span[^>]*>([\s\S]*?)<\/span>/gi, (_match, inner) => ` ${String(inner).trim()} `)
     .replace(/\\begin\{align\*?\}([\s\S]*?)\\end\{align\*?\}/g, (_match, math) => `\n$$\n\\begin{aligned}\n${String(math).trim()}\n\\end{aligned}\n$$\n`)
     .replace(fencedSvgPattern, (_match, svg) => `\n\n\`\`\`xml\n${String(svg).trim()}\n\`\`\`\n\n`);
 
-  return forceOptionLinesToMarkdownList(splitInlineMultipleChoiceOptions(normalized));
+  return forceOptionLinesToMarkdownList(splitInlineMultipleChoiceOptions(normalized)).trim();
 };

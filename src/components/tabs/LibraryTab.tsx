@@ -131,8 +131,14 @@ export const LibraryTab = ({
           content: worksheetMarkdown,
           templateId: plan.templateId
         };
-        const exportUtils = await import('../../utils/exportUtils');
-        await exportUtils.exportLessonViaAPI(fakePlan, 'docx', 'portrait', showToast);
+        const { marked } = await import('marked');
+        const htmlBody = await marked(worksheetMarkdown);
+        const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head>
+<body>${htmlBody}</body></html>`;
+        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+        const blob = new Blob([bom, new TextEncoder().encode(html)], { type: 'application/msword' });
+        downloadBlob(blob, `${fakePlan.title?.replace(/\s+/g, '_')}.doc`);
         showToast('Đã tải Phiếu học tập (Word)!', 'success');
       } catch (err) {
         console.error(err);

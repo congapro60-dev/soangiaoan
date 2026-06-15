@@ -604,7 +604,7 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
         <ImportExamModal
           onClose={() => setShowImportModal(false)}
           onImport={handleImportExam}
-          settings={data.settings}
+          data={data}
           showToast={showToast}
         />
       )}

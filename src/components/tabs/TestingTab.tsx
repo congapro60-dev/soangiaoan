@@ -156,12 +156,11 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
   const handleDownloadPDF = async () => {
     if (!testResult) return;
     try {
-      const { exportLessonViaAPI } = await import('../../utils/exportUtils');
-      await exportLessonViaAPI(
-        { title: makeExamExportBaseFilename(), content: testResult, templateId: 'moet' },
-        'pdf',
-        'portrait',
-        showToast
+      const { exportToPDF } = await import('../../utils/exportUtils');
+      await exportToPDF(
+        { title: makeExamExportBaseFilename(), content: testResult },
+        showToast,
+        'portrait'
       );
     } catch (e) {
       console.error('PDF export error:', e);
@@ -172,16 +171,16 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
   const handleDownloadWord = async () => {
     if (!testResult) return;
     try {
-      const { exportLessonViaAPI } = await import('../../utils/exportUtils');
-      await exportLessonViaAPI(
-        { title: makeExamExportBaseFilename(), content: testResult, templateId: 'moet' },
-        'docx',
-        'portrait',
-        showToast
+      const { exportExamToDocx } = await import('../../utils/examWordExport');
+      await exportExamToDocx(
+        testResult,
+        makeExamExportBaseFilename(),
+        '.w-md-editor-preview .wmde-markdown'
       );
-    } catch (e) {
+      showToast('Xuất tệp Word thành công!', 'success');
+    } catch (e: any) {
       console.error('DOCX export error:', e);
-      showToast('Lỗi xuất Word .docx. Vui lòng thử lại.', 'error');
+      showToast(`Lỗi xuất Word: ${e.message}`, 'error');
     }
   };
 

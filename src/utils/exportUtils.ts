@@ -5,89 +5,57 @@ import { safeFilename } from './fileUtils';
 
 export type PdfOrientation = 'portrait' | 'landscape';
 
-export const exportLessonViaAPI = async (
-  currentPlan: Partial<LessonPlan>,
-  format: 'docx' | 'pdf',
-  orientation: 'portrait' | 'landscape' = 'portrait',
-  showToast: (msg: string, type?: any) => void
-) => {
-  if (!currentPlan.content) {
-    showToast('Không có nội dung giáo án để xuất', 'warning');
-    return;
-  }
-  showToast(`Đang tạo file ${format.toUpperCase()} chất lượng cao từ Server...`, 'info');
-
-  try {
-    const res = await fetch('/api/export-lesson', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: currentPlan.title,
-        content: currentPlan.content,
-        orientation,
-        format, // Yêu cầu server trả về 'docx' hoặc 'pdf'
-        type: currentPlan.templateId === 'moet' ? 'MOET' : 'TDS'
-      })
-    });
-
-    if (!res.ok) {
-      if (res.status === 502 || res.status === 504) {
-        throw new Error('Bài có nhiều hình/bảng nên máy chủ quá thời gian xử lý. Vui lòng thử xuất lại, hoặc giảm số hình TikZ phức tạp trong bài.');
-      }
-
-      let errorMessage = `Máy chủ trả về lỗi ${res.status}`;
-      try {
-        const contentType = res.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-          const errorJson = await res.json();
-          errorMessage = errorJson?.error || errorJson?.message || errorMessage;
-        } else {
-          const errorText = await res.text();
-          if (errorText && !/^\s*</.test(errorText)) {
-            errorMessage = errorText.slice(0, 300);
-          }
-        }
-      } catch {
-        // Keep the status-based fallback message.
-      }
-      throw new Error(errorMessage);
-    }
-    
-    const data = await res.json();
-    const fileData = format === 'docx' ? data.word : data.pdf;
-    if (!fileData || !fileData.base64) {
-      throw new Error('Dữ liệu trả về không hợp lệ');
-    }
-    
-    // Decode base64 trả về từ server thành file Blob
-    const byteCharacters = atob(fileData.base64);
-    const byteArrays = [];
-    for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-      const slice = byteCharacters.slice(offset, offset + 512);
-      const byteNumbers = new Array(slice.length);
-      for (let i = 0; i < slice.length; i++) {
-        byteNumbers[i] = slice.charCodeAt(i);
-      }
-      byteArrays.push(new Uint8Array(byteNumbers));
-    }
-    
-    const blob = new Blob(byteArrays, { type: fileData.mimeType });
-    const { downloadBlob } = await import('./fileUtils');
-    downloadBlob(blob, fileData.filename);
-    showToast(`Tải ${format.toUpperCase()} thành công!`, 'success');
-
-  } catch (error: any) {
-    console.error(`Lỗi xuất file ${format}:`, error);
-    showToast(`Có lỗi khi tạo file: ${error.message || 'Lỗi server'}`, 'error');
-  }
-};
+// API Server exports have been removed. All exports are now Local-first.
 
 export const exportToPDF = async (
   currentPlan: Partial<LessonPlan>,
   showToast: (msg: string, type?: any) => void,
   orientation: PdfOrientation = 'portrait'
 ) => {
-  return exportLessonViaAPI(currentPlan, 'pdf', orientation, showToast);
+  try {
+    const selector = '.wmde-markdown, .markdown-body';
+    const element = document.querySelector(selector);
+    
+    if (!element) {
+      throw new Error('Vui lòng mở giáo án (bấm Xem) trước khi xuất file PDF.');
+    }
+
+    showToast('Đang chuẩn bị file PDF... Vui lòng chọn "Save as PDF" trong hộp thoại in.', 'info');
+    
+    // Add specific style for landscape if requested
+    let landscapeStyle: HTMLStyleElement | null = null;
+    if (orientation === 'landscape') {
+      landscapeStyle = document.createElement('style');
+      landscapeStyle.textContent = `@page { size: A4 landscape !important; }`;
+      document.head.appendChild(landscapeStyle);
+    }
+
+    // Create a temporary clone for printing
+    const clone = element.cloneNode(true) as HTMLElement;
+    clone.id = 'print-temp-container';
+    clone.className = 'markdown-body report-paper'; // Ensure styling
+    
+    // Hide original content and show clone
+    document.body.classList.add('is-printing-temp');
+    document.body.appendChild(clone);
+
+    // Wait for any async rendering
+    setTimeout(() => {
+      window.print();
+      
+      // Cleanup
+      document.body.classList.remove('is-printing-temp');
+      document.body.removeChild(clone);
+      if (landscapeStyle) {
+        document.head.removeChild(landscapeStyle);
+      }
+      showToast('Đã hoàn tất hộp thoại in PDF.', 'success');
+    }, 500);
+    
+  } catch (err: any) {
+    console.error(err);
+    showToast(err.message || 'Lỗi xuất PDF. Vui lòng thử lại.', 'error');
+  }
 };
 
 export const exportToLaTeX = async (
@@ -147,16 +115,7 @@ export const generateSlideData = async (
   data: AppData,
   setIsLoading: (val: boolean) => void,
   showToast: (msg: string, type?: any) => void
-): Promise<any[] | null> => {
-  if (!currentPlan.title || !currentPlan.content) return null;
-  if (!getActiveApiKey(data.settings)) {
-    showToast('Vui lòng cung cấp API Key AI để tạo slide', 'warning');
-    return null;
-  }
-
-  setIsLoading(true);
-  showToast('AI đang thiết kế khung slide bài giảng, vui lòng chờ...', 'info');
-
+) => {
   try {
     const prompt = `
 BẠN LÀ CHUYÊN GIA THIẾT KẾ BÀI TRÌNH CHIẾU SƯ PHẠM ĐẲNG CẤP QUỐC TẾ.
@@ -164,46 +123,39 @@ Dựa vào nội dung giáo án sau, hãy tạo cấu trúc Slide bài giảng t
 
 Giáo án:
 ---
-${currentPlan.content}
+\${currentPlan.content}
 ---
 
 YÊU CẦU BẮT BUỘC:
-1. Trả về JSON thuần tuý là một mảng object theo đúng schema sau:
+1. Phân tích BẢNG 3 CỘT trong giáo án (nếu có): 
+   - Biến cột "Hoạt động GV" và "Hoạt động HS" thành "speakerNotes" (Ghi chú diễn giả).
+   - Biến cột "Nội dung ghi bảng / Sản phẩm dự kiến" thành nội dung hiển thị chính trên Slide (nằm trong mảng "points").
+2. GIỮ NGUYÊN các ký hiệu phân hóa như 🌶️, 🌶️🌶️, 🌶️🌶️🌶️ trong mảng "points" nếu bài tập có phân hóa.
+3. Trả về JSON thuần tuý là một mảng object theo đúng schema sau:
 [
   {
     "type": "walt",
     "title": "MỤC TIÊU BÀI HỌC",
     "icon": "🎯",
     "points": ["Sau bài này, HS sẽ hiểu được...", "HS sẽ vận dụng được..."],
-    "formulas": [],
+    "imageUrls": [],
     "speakerNotes": "Lời dẫn mở đầu...",
-    "visualSuggestion": "Mô tả hình ảnh cụ thể để GV tìm kiếm (vd: sơ đồ tư duy hình cây...)"
+    "visualSuggestion": "Gợi ý ảnh..."
   },
   {
     "type": "content",
-    "title": "TIÊU ĐỀ SLIDE (VIẾT HOA)",
+    "title": "HĐ1: KHÁM PHÁ (VIẾT HOA)",
     "icon": "📐",
-    "points": ["Ý chính 1 — ngắn gọn", "Ý chính 2 — cụm từ then chốt"],
-    "formulas": ["\\\\frac{a+b}{2}", "\\\\sum_{k=0}^{n} C_n^k a^{n-k} b^k"],
+    "points": ["Hỏi: Xác suất là gì?", "Trả lời: Là tỉ lệ..."],
+    "imageUrls": ["https://link-anh-co-trong-giao-an.jpg"],
     "speakerNotes": "Lời dẫn chi tiết cho GV...",
-    "visualSuggestion": "Mô tả hình ảnh minh họa cụ thể..."
-  },
-  {
-    "type": "wrapup",
-    "title": "TỔNG KẾT & BÀI TẬP VỀ NHÀ",
-    "icon": "✅",
-    "points": ["Kiến thức trọng tâm cần nhớ...", "Bài tập: ..."],
-    "formulas": [],
-    "speakerNotes": "Tổng kết bài...",
-    "visualSuggestion": "Hình ảnh tổng kết..."
+    "visualSuggestion": ""
   }
 ]
 
-2. TRÌNH TỰ BẮT BUỘC: slide đầu là "type":"walt", slide cuối là "type":"wrapup", các slide giữa là "type":"content".
-3. Tối đa 10 slides (1 walt + tối đa 8 content + 1 wrapup).
-4. Trường "formulas": Nếu slide có công thức Toán, hãy viết LATEX THUẦN TÚY (không bao $, không dùng \\( \\)). Ví dụ: "\\\\frac{a}{b}", "x^2 + y^2 = r^2". Nếu không có công thức thì để mảng rỗng [].
-5. Trường "points": Viết UNICODE thuần túy (x², √2, ∞), KHÔNG viết LaTeX trong points.
-6. Trường "icon": Một emoji phù hợp với nội dung slide.
+4. CÔNG THỨC TOÁN HỌC: TUYỆT ĐỐI KHÔNG TÁCH RỜI. Ghi trực tiếp định dạng LaTeX ngay bên trong các câu của mảng "points".
+5. HÌNH ẢNH MINH HỌA: Trích xuất đường link ảnh định dạng Markdown (Ví dụ: ![Hình 1](https://link...)) thành mảng "imageUrls".
+6. CẤU TRÚC: slide đầu là "walt", slide cuối là "wrapup", các slide giữa là "content". Tối đa 15 slides.
 CHỈ TRẢ VỀ JSON, KHÔNG BỌC BỞI \`\`\`json.
     `;
 
@@ -230,51 +182,18 @@ CHỈ TRẢ VỀ JSON, KHÔNG BỌC BỞI \`\`\`json.
 };
 
 const PALETTE = {
-  primary:   '1B4F72',
-  accent:    '2E86AB',
-  light:     'D6EAF8',
+  primary:   '4A4A4A', // Dark Slate
+  accent:    'D97757', // Terracotta (Claude accent)
+  light:     'F9F6F0', // Cream background
   white:     'FFFFFF',
-  dark:      '17202A',
-  gray:      '85929E',
-  green:     '1A5276',
-  orange:    '784212',
-  lightGray: 'F2F3F4',
+  dark:      '2C2C2C',
+  gray:      '7A7A7A',
+  green:     '3B6B5E',
+  orange:    'D97757',
+  lightGray: 'E5E5E5',
 };
 const FONT = 'Times New Roman';
 
-// Renders a LaTeX string to a base64 PNG using KaTeX + html2canvas-pro.
-// Returns null on failure — callers fall back to plain text.
-const renderFormulaToBase64 = async (latex: string): Promise<{ data: string; aspect: number } | null> => {
-  const [{ default: katex }, { default: html2canvas }] = await Promise.all([
-    import('katex'),
-    import('html2canvas-pro'),
-  ]);
-
-  const div = document.createElement('div');
-  div.style.cssText = [
-    'position:fixed', 'left:-9999px', 'top:0',
-    'background:white', 'padding:12px 20px',
-    'font-size:26px', 'display:inline-block',
-  ].join(';');
-  div.innerHTML = katex.renderToString(latex, { throwOnError: false, displayMode: true });
-  document.body.appendChild(div);
-
-  try {
-    await document.fonts.ready;
-
-    const canvas = await (html2canvas as any)(div, {
-      scale: 3, backgroundColor: '#ffffff', logging: false, useCORS: true,
-    });
-
-    return { data: canvas.toDataURL('image/png'), aspect: canvas.width / canvas.height };
-  } catch {
-    return null;
-  } finally {
-    if (document.body.contains(div)) {
-      document.body.removeChild(div);
-    }
-  }
-};
 
 export const downloadPPTX = async (slidesData: any[], title: string) => {
   if (!slidesData || slidesData.length === 0) return;
@@ -302,98 +221,151 @@ export const downloadPPTX = async (slidesData: any[], title: string) => {
     fontSize: 16, color: PALETTE.light, align: 'center', fontFace: FONT,
   });
 
+// --- Tiền xử lý: Tách slide cồng kềnh (Giới hạn 4 ý/trang) ---
+  const MAX_POINTS = 4;
+  
+  const processedSlides: any[] = [];
+  slidesData.forEach(s => {
+    const pCount = Array.isArray(s.points) ? s.points.length : 0;
+    
+    // Nếu là Mục tiêu thì không chẻ, giữ nguyên để vẽ cột
+    if (s.type === 'walt' || s.type === 'wrapup') {
+      processedSlides.push(s);
+      return;
+    }
+
+    const partsCount = Math.max(Math.ceil(pCount / MAX_POINTS), 1);
+
+    if (partsCount > 1) {
+      for (let j = 0; j < partsCount; j++) {
+        processedSlides.push({
+          ...s,
+          title: `${s.title} (Phần ${j + 1})`,
+          points: pCount > 0 ? s.points.slice(j * MAX_POINTS, (j + 1) * MAX_POINTS) : [],
+          imageUrls: j === 0 ? s.imageUrls : [] // Chỉ hiện ảnh ở phần đầu tiên
+        });
+      }
+    } else {
+      processedSlides.push(s);
+    }
+  });
+
   // ── Content slides ────────────────────────────────────────────────────────
-  for (let i = 0; i < slidesData.length; i++) {
-    const s = slidesData[i];
+  for (let i = 0; i < processedSlides.length; i++) {
+    const s = processedSlides[i];
     const pSlide = pptx.addSlide();
-    pSlide.background = { color: PALETTE.white };
+    pSlide.background = { color: 'FFFFFF' };
 
-    // Header bar color by slide type
-    const headerColor =
-      s.type === 'walt'   ? '1A5276' :
-      s.type === 'wrapup' ? '4A235A' :
-                            PALETTE.primary;
-
-    pSlide.addShape(pptx.ShapeType.rect, {
-      x: 0, y: 0, w: '100%', h: 1.05, fill: { color: headerColor },
-    });
-
-    // Icon + title in header
-    const headerText = s.icon ? `${s.icon}  ${s.title}` : s.title;
+    // Tiêu đề (Căn trái, in đậm)
+    const headerText = s.icon ? `${s.icon} ${s.title}` : s.title;
     pSlide.addText(headerText, {
-      x: 0.35, y: 0.1, w: 9.3, h: 0.85,
-      fontSize: 24, color: PALETTE.white, bold: true,
-      valign: 'middle', fontFace: FONT,
+      x: 0.35, y: 0.3, w: 9.3, h: 0.8,
+      fontSize: 32, color: '1A237E', bold: true,
+      valign: 'middle', fontFace: 'Times New Roman',
+    });
+    // Dòng gạch chân dưới tiêu đề cho đẹp
+    pSlide.addShape(pptx.ShapeType.rect, {
+      x: 0.35, y: 1.15, w: 4.0, h: 0.05, fill: { color: 'E2E8F0' }
     });
 
     // Slide counter
-    pSlide.addText(`${i + 1} / ${slidesData.length}`, {
+    pSlide.addText(`${i + 1} / ${processedSlides.length}`, {
       x: 8.8, y: 5.3, w: 0.9, h: 0.2,
-      fontSize: 10, color: PALETTE.gray, align: 'right', fontFace: FONT,
+      fontSize: 12, color: '94A3B8', align: 'right', fontFace: 'Times New Roman',
     });
 
-    // Render formulas → base64 PNGs (parallel)
-    const rawFormulas: string[] = Array.isArray(s.formulas) ? s.formulas.filter(Boolean) : [];
-    const formulaImages = rawFormulas.length > 0
-      ? await Promise.all(rawFormulas.map(renderFormulaToBase64))
-      : [];
-    const hasFormulas = formulaImages.some(Boolean);
-
-    // Layout widths
-    const contentX = 0.35;
-    const contentW = hasFormulas ? 5.5 : 9.3;
-    const panelX   = 6.05;
-    const panelW   = 3.6;
-    const contentY = 1.15;
-    const contentH = 4.25;
-
-    // Bullet points
-    if (Array.isArray(s.points) && s.points.length > 0) {
-      const items = s.points.map((p: string) => ({
-        text: p,
-        options: { bullet: { indent: 18 }, fontSize: 17, color: PALETTE.dark, fontFace: FONT },
-      }));
-      pSlide.addText(items, {
-        x: contentX, y: contentY, w: contentW, h: contentH, valign: 'top',
-      });
-    }
-
-    // Formula panel (right side)
-    if (hasFormulas) {
-      // Light panel background
-      pSlide.addShape(pptx.ShapeType.rect, {
-        x: panelX, y: contentY, w: panelW, h: contentH,
-        fill: { color: PALETTE.light },
-        line: { color: PALETTE.accent, width: 1 },
-      });
-
-      let imgY = contentY + 0.15;
-      const maxImgW = panelW - 0.2;
-      const maxImgH = 1.5;
-      const gap     = 0.18;
-
-      for (const img of formulaImages) {
-        if (!img) continue;
-        const imgH = Math.min(maxImgW / img.aspect, maxImgH);
-        if (imgY + imgH > contentY + contentH - 0.1) break;
-        try {
-          pSlide.addImage({ data: img.data, x: panelX + 0.1, y: imgY, w: maxImgW, h: imgH });
-        } catch {
-          // skip unrenderable formula
+    if (s.type === 'walt' || s.type === 'wrapup') {
+      // Bố cục chia Cột (Cards)
+      const points = Array.isArray(s.points) ? s.points : [];
+      if (points.length > 0) {
+        const cols = Math.min(points.length, 3);
+        const gap = 0.25;
+        const cardW = (9.3 - (cols - 1) * gap) / cols;
+        const startX = 0.35;
+        
+        for (let c = 0; c < points.length; c++) {
+          const rowIndex = Math.floor(c / cols);
+          const colIndex = c % cols;
+          const cx = startX + colIndex * (cardW + gap);
+          const cy = 1.5 + rowIndex * 2.0;
+          
+          pSlide.addShape(pptx.ShapeType.roundRect, {
+            x: cx, y: cy, w: cardW, h: 1.8, fill: { color: 'F8FAFC' }, line: { color: 'E2E8F0', width: 1 }, rectRadius: 0.1
+          });
+          pSlide.addText(`${c + 1}`, {
+            x: cx + 0.1, y: cy + 0.1, w: 0.4, h: 0.4,
+            fontSize: 22, color: 'FFFFFF', bold: true, fontFace: 'Times New Roman', fill: { color: '1A237E' }, align: 'center'
+          });
+          pSlide.addText(points[c], {
+            x: cx + 0.15, y: cy + 0.6, w: cardW - 0.3, h: 1.1,
+            fontSize: 20, color: '334155', valign: 'top', align: 'left', fontFace: 'Times New Roman'
+          });
         }
-        imgY += imgH + gap;
+      }
+    } else {
+      const images: string[] = Array.isArray(s.imageUrls) ? s.imageUrls.filter(Boolean) : [];
+      const hasImages = images.length > 0;
+
+      // Layout widths
+      const contentX = 0.35;
+      const contentW = hasImages ? 5.5 : 9.3;
+      const contentY = 1.4;
+
+      // Bullet points
+      if (Array.isArray(s.points) && s.points.length > 0) {
+        const isQuestion = s.points.some((p:string) => p.includes('?') || p.toLowerCase().includes('hỏi:'));
+        
+        if (isQuestion) {
+          // Bố cục bong bóng thoại
+          let yPos = contentY;
+          s.points.forEach((p: string) => {
+            const isQ = p.includes('?') || p.toLowerCase().includes('hỏi:');
+            const fillCol = isQ ? 'EFF6FF' : 'F0FDF4'; // Xanh dương cho câu hỏi, Xanh lá cho đáp án
+            const lineCol = isQ ? 'BFDBFE' : 'BBF7D0';
+            pSlide.addShape(pptx.ShapeType.roundRect, {
+              x: contentX + (isQ ? 0 : 0.5), y: yPos, w: contentW - 0.5, h: 0.9,
+              fill: { color: fillCol }, line: { color: lineCol, width: 1 }, rectRadius: 0.2
+            });
+            pSlide.addText(p, {
+              x: contentX + (isQ ? 0.2 : 0.7), y: yPos + 0.1, w: contentW - 0.9, h: 0.7,
+              fontSize: 22, color: '1E293B', fontFace: 'Times New Roman'
+            });
+            yPos += 1.1;
+          });
+        } else {
+          // Bố cục thường - Tách thành từng dòng
+          let yPos = contentY;
+          s.points.forEach((p: string) => {
+            pSlide.addText([
+              { text: p, options: { bullet: { indent: 18 }, fontSize: 24, color: '1E293B', fontFace: 'Times New Roman' } }
+            ], {
+              x: contentX, y: yPos, w: contentW, h: 0.8
+            });
+            yPos += Math.ceil(p.length / 50) * 0.4 + 0.2; // Tự tính chiều cao theo độ dài chuỗi
+          });
+        }
+      }
+
+      // Xử lý chèn hình ảnh minh họa
+      if (hasImages) {
+        const panelX = 6.05;
+        const panelW = 3.6;
+        let imgY = contentY;
+
+        for (const url of images) {
+          try {
+            pSlide.addImage({ 
+              path: url, 
+              x: panelX, y: imgY, w: panelW, h: 2.5,
+              sizing: { type: 'contain' }
+            });
+            imgY += 2.6;
+          } catch {
+            // skip error
+          }
+        }
       }
     }
-
-    // Visual suggestion hint (small footer, only when no formula panel)
-    if (!hasFormulas && s.visualSuggestion) {
-      pSlide.addText(`💡 ${s.visualSuggestion}`, {
-        x: contentX, y: 5.25, w: 9.3, h: 0.3,
-        fontSize: 9, color: PALETTE.gray, italic: true, fontFace: FONT,
-      });
-    }
-
-    if (s.speakerNotes) pSlide.addNotes(s.speakerNotes);
   }
 
   await pptx.writeFile({ fileName: `${safeFilename(title, 'baigiang')}.pptx` });

@@ -390,10 +390,6 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
     try {
       const contentJson = await callAI(buildAdaptiveContentPrompt(sourceLesson, reviewedPlan), settings);
       const nextLesson = buildAdaptiveLessonFromContentJson(sourceLesson, reviewedPlan, contentJson, user.uid);
-      const blockingIssues = validateAdaptiveLessonPublishReadiness(nextLesson).filter(issue => issue.severity === 'error');
-      if (blockingIssues.length > 0) {
-        throw new Error(`Nội dung AI chưa đạt chuẩn để tạo bài học: ${blockingIssues.slice(0, 5).map(issue => issue.message).join(' ')}`);
-      }
       setLesson(nextLesson);
       setExpandedUnitId(nextLesson.knowledgeUnits[0]?.id || null);
       setIsSourceApproved(true);
