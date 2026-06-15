@@ -153,9 +153,10 @@ YÊU CẦU BẮT BUỘC:
   }
 ]
 
-4. CÔNG THỨC TOÁN HỌC: TUYỆT ĐỐI KHÔNG TÁCH RỜI. Ghi trực tiếp định dạng LaTeX ngay bên trong các câu của mảng "points".
+4. CÔNG THỨC TOÁN HỌC: PPTX KHÔNG HỖ TRỢ LATEX. BẮT BUỘC dùng ký hiệu text thường dễ đọc (Ví dụ: P(A|B) thay vì $P(A|B)$, phân số dùng a/b thay vì \\frac{a}{b}, góc dùng ^ thay vì \\angle). HẠN CHẾ TỐI ĐA MÃ LATEX PHỨC TẠP để tránh lỗi hiển thị.
 5. HÌNH ẢNH MINH HỌA: Trích xuất đường link ảnh định dạng Markdown (Ví dụ: ![Hình 1](https://link...)) thành mảng "imageUrls".
 6. CẤU TRÚC: slide đầu là "walt", slide cuối là "wrapup", các slide giữa là "content". Tối đa 15 slides.
+7. QUAN TRỌNG: TUYỆT ĐỐI KHÔNG ĐƯA "GỢI Ý HÌNH ẢNH" hay "GỢI Ý LỜI THOẠI" VÀO MẢNG "points". Phải tách riêng vào trường "visualSuggestion" (viết bằng tiếng Việt) và "speakerNotes". Mảng "points" CHỈ CHỨA NỘI DUNG CHÍNH CHO HỌC SINH ĐỌC.
 CHỈ TRẢ VỀ JSON, KHÔNG BỌC BỞI \`\`\`json.
     `;
 
@@ -200,49 +201,39 @@ export const downloadPPTX = async (slidesData: any[], title: string) => {
 
   const pptx = new pptxgen();
   pptx.layout = 'LAYOUT_16x9';
-  // Slide size: 10 × 5.625 inches
 
   // ── Title slide ──────────────────────────────────────────────────────────
   const tSlide = pptx.addSlide();
+  tSlide.background = { color: 'F8FAFC' };
   tSlide.addShape(pptx.ShapeType.rect, {
-    x: 0, y: 0, w: '100%', h: '100%', fill: { color: PALETTE.primary },
-  });
-  // Accent strip bottom
-  tSlide.addShape(pptx.ShapeType.rect, {
-    x: 0, y: 4.9, w: '100%', h: 0.725, fill: { color: PALETTE.accent },
+    x: 0, y: 2.2, w: '100%', h: 1.6, fill: { color: '1A237E' },
   });
   tSlide.addText(title, {
-    x: 1, y: 1.2, w: 8, h: 2.4,
-    fontSize: 38, color: PALETTE.white, bold: true,
-    align: 'center', valign: 'middle', fontFace: FONT,
+    x: 0.5, y: 2.4, w: 9, h: 1.2,
+    fontSize: 40, color: 'FFFFFF', bold: true,
+    align: 'center', valign: 'middle', fontFace: 'Arial',
   });
-  tSlide.addText('SmartPlan AI', {
-    x: 1, y: 4.9, w: 8, h: 0.5,
-    fontSize: 16, color: PALETTE.light, align: 'center', fontFace: FONT,
+  tSlide.addText('SmartPlan AI Educational Design', {
+    x: 0.5, y: 5.0, w: 9, h: 0.5,
+    fontSize: 16, color: '64748B', align: 'center', fontFace: 'Arial', bold: true
   });
 
-// --- Tiền xử lý: Tách slide cồng kềnh (Giới hạn 4 ý/trang) ---
   const MAX_POINTS = 4;
-  
   const processedSlides: any[] = [];
   slidesData.forEach(s => {
     const pCount = Array.isArray(s.points) ? s.points.length : 0;
-    
-    // Nếu là Mục tiêu thì không chẻ, giữ nguyên để vẽ cột
     if (s.type === 'walt' || s.type === 'wrapup') {
       processedSlides.push(s);
       return;
     }
-
     const partsCount = Math.max(Math.ceil(pCount / MAX_POINTS), 1);
-
     if (partsCount > 1) {
       for (let j = 0; j < partsCount; j++) {
         processedSlides.push({
           ...s,
           title: `${s.title} (Phần ${j + 1})`,
           points: pCount > 0 ? s.points.slice(j * MAX_POINTS, (j + 1) * MAX_POINTS) : [],
-          imageUrls: j === 0 ? s.imageUrls : [] // Chỉ hiện ảnh ở phần đầu tiên
+          imageUrls: j === 0 ? s.imageUrls : []
         });
       }
     } else {
@@ -256,116 +247,71 @@ export const downloadPPTX = async (slidesData: any[], title: string) => {
     const pSlide = pptx.addSlide();
     pSlide.background = { color: 'FFFFFF' };
 
-    // Tiêu đề (Căn trái, in đậm)
+    pSlide.addShape(pptx.ShapeType.rect, {
+      x: 0, y: 0, w: '100%', h: 0.9, fill: { color: '1A237E' }
+    });
+    
     const headerText = s.icon ? `${s.icon} ${s.title}` : s.title;
     pSlide.addText(headerText, {
-      x: 0.35, y: 0.3, w: 9.3, h: 0.8,
-      fontSize: 32, color: '1A237E', bold: true,
-      valign: 'middle', fontFace: 'Times New Roman',
-    });
-    // Dòng gạch chân dưới tiêu đề cho đẹp
-    pSlide.addShape(pptx.ShapeType.rect, {
-      x: 0.35, y: 1.15, w: 4.0, h: 0.05, fill: { color: 'E2E8F0' }
+      x: 0.4, y: 0.15, w: 9, h: 0.6,
+      fontSize: 32, color: 'FFFFFF', bold: true,
+      valign: 'middle', fontFace: 'Arial',
     });
 
-    // Slide counter
     pSlide.addText(`${i + 1} / ${processedSlides.length}`, {
-      x: 8.8, y: 5.3, w: 0.9, h: 0.2,
-      fontSize: 12, color: '94A3B8', align: 'right', fontFace: 'Times New Roman',
+      x: 8.8, y: 5.2, w: 0.9, h: 0.3,
+      fontSize: 12, color: '94A3B8', align: 'right', fontFace: 'Arial',
     });
 
-    if (s.type === 'walt' || s.type === 'wrapup') {
-      // Bố cục chia Cột (Cards)
-      const points = Array.isArray(s.points) ? s.points : [];
-      if (points.length > 0) {
-        const cols = Math.min(points.length, 3);
-        const gap = 0.25;
-        const cardW = (9.3 - (cols - 1) * gap) / cols;
-        const startX = 0.35;
-        
-        for (let c = 0; c < points.length; c++) {
-          const rowIndex = Math.floor(c / cols);
-          const colIndex = c % cols;
-          const cx = startX + colIndex * (cardW + gap);
-          const cy = 1.5 + rowIndex * 2.0;
-          
-          pSlide.addShape(pptx.ShapeType.roundRect, {
-            x: cx, y: cy, w: cardW, h: 1.8, fill: { color: 'F8FAFC' }, line: { color: 'E2E8F0', width: 1 }, rectRadius: 0.1
-          });
-          pSlide.addText(`${c + 1}`, {
-            x: cx + 0.1, y: cy + 0.1, w: 0.4, h: 0.4,
-            fontSize: 22, color: 'FFFFFF', bold: true, fontFace: 'Times New Roman', fill: { color: '1A237E' }, align: 'center'
-          });
-          pSlide.addText(points[c], {
-            x: cx + 0.15, y: cy + 0.6, w: cardW - 0.3, h: 1.1,
-            fontSize: 20, color: '334155', valign: 'top', align: 'left', fontFace: 'Times New Roman'
-          });
+    const images: string[] = Array.isArray(s.imageUrls) ? s.imageUrls.filter(Boolean) : [];
+    const hasImages = images.length > 0;
+    const contentX = 0.4;
+    const contentW = hasImages ? 5.5 : 9.2;
+    const contentY = 1.3;
+
+    if (Array.isArray(s.points) && s.points.length > 0) {
+      const textObjects = s.points.map((p: string) => ({
+        text: p,
+        options: { 
+          bullet: { color: 'F97316' }, 
+          fontSize: 24, 
+          color: '334155', 
+          fontFace: 'Arial', 
+          breakLine: true 
         }
-      }
-    } else {
-      const images: string[] = Array.isArray(s.imageUrls) ? s.imageUrls.filter(Boolean) : [];
-      const hasImages = images.length > 0;
+      }));
 
-      // Layout widths
-      const contentX = 0.35;
-      const contentW = hasImages ? 5.5 : 9.3;
-      const contentY = 1.4;
+      pSlide.addText(textObjects, {
+        x: contentX, y: contentY, w: contentW, h: 3.8,
+        valign: 'top',
+        autoFit: true,
+        lineSpacing: 32
+      });
+    }
 
-      // Bullet points
-      if (Array.isArray(s.points) && s.points.length > 0) {
-        const isQuestion = s.points.some((p:string) => p.includes('?') || p.toLowerCase().includes('hỏi:'));
-        
-        if (isQuestion) {
-          // Bố cục bong bóng thoại
-          let yPos = contentY;
-          s.points.forEach((p: string) => {
-            const isQ = p.includes('?') || p.toLowerCase().includes('hỏi:');
-            const fillCol = isQ ? 'EFF6FF' : 'F0FDF4'; // Xanh dương cho câu hỏi, Xanh lá cho đáp án
-            const lineCol = isQ ? 'BFDBFE' : 'BBF7D0';
-            pSlide.addShape(pptx.ShapeType.roundRect, {
-              x: contentX + (isQ ? 0 : 0.5), y: yPos, w: contentW - 0.5, h: 0.9,
-              fill: { color: fillCol }, line: { color: lineCol, width: 1 }, rectRadius: 0.2
-            });
-            pSlide.addText(p, {
-              x: contentX + (isQ ? 0.2 : 0.7), y: yPos + 0.1, w: contentW - 0.9, h: 0.7,
-              fontSize: 22, color: '1E293B', fontFace: 'Times New Roman'
-            });
-            yPos += 1.1;
+    if (hasImages) {
+      const panelX = 6.2;
+      const panelW = 3.4;
+      let imgY = contentY;
+
+      for (const url of images) {
+        try {
+          pSlide.addImage({ 
+            path: url, 
+            x: panelX, y: imgY, w: panelW, h: 2.5,
+            sizing: { type: 'contain' }
           });
-        } else {
-          // Bố cục thường - Tách thành từng dòng
-          let yPos = contentY;
-          s.points.forEach((p: string) => {
-            pSlide.addText([
-              { text: p, options: { bullet: { indent: 18 }, fontSize: 24, color: '1E293B', fontFace: 'Times New Roman' } }
-            ], {
-              x: contentX, y: yPos, w: contentW, h: 0.8
-            });
-            yPos += Math.ceil(p.length / 50) * 0.4 + 0.2; // Tự tính chiều cao theo độ dài chuỗi
-          });
-        }
-      }
-
-      // Xử lý chèn hình ảnh minh họa
-      if (hasImages) {
-        const panelX = 6.05;
-        const panelW = 3.6;
-        let imgY = contentY;
-
-        for (const url of images) {
-          try {
-            pSlide.addImage({ 
-              path: url, 
-              x: panelX, y: imgY, w: panelW, h: 2.5,
-              sizing: { type: 'contain' }
-            });
-            imgY += 2.6;
-          } catch {
-            // skip error
-          }
+          imgY += 2.6;
+        } catch {
+          // skip
         }
       }
     }
+
+    let notes = '';
+    if (s.visualSuggestion) notes += `[GỢI Ý HÌNH ẢNH]\n${s.visualSuggestion}\n\n`;
+    if (s.speakerNotes) notes += `[GỢI Ý LỜI THOẠI]\n${s.speakerNotes}`;
+    if (notes) pSlide.addNotes(notes);
   }
 
   await pptx.writeFile({ fileName: `${safeFilename(title, 'baigiang')}.pptx` });

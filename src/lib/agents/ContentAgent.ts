@@ -27,6 +27,7 @@ YÊU CẦU:
 - Đặt nội dung giáo án bên trong thẻ <draft_content> ... </draft_content>.
 
 YÊU CẦU ĐỊNH DẠNG / BỔ SUNG TỪ TEMPLATE:
+${context.templateContext}
 ${context.additionalRequirements}
   `;
 

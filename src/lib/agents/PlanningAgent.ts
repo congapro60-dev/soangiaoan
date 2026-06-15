@@ -11,6 +11,10 @@ THÔNG TIN BÀI HỌC:
 - Tiêu đề: ${context.title}.
 - Yêu cầu bổ sung: ${context.requirement}
 
+CẤU TRÚC VÀ ĐỊNH DẠNG BẮT BUỘC TỪ MẪU GIÁO ÁN:
+${context.templateContext}
+${context.additionalRequirements}
+
 <reference_context>
 ${context.referenceContext}
 </reference_context>

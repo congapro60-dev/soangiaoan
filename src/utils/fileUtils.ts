@@ -47,24 +47,10 @@ export const normalizePlanTitle = (title: string | undefined): string =>
 //   1. Append the anchor BEFORE setting attributes so the document context is set.
 //   2. Use MouseEvent dispatch instead of .click() — more reliable in Chrome.
 //   3. Revoke the object URL only after the download has been initiated.
+import { saveAs } from 'file-saver';
+
 export const downloadBlob = (blob: Blob, filename: string) => {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.style.display = 'none';
-  a.rel = 'noopener';
-  a.href = url;
-  a.download = filename;
-  a.setAttribute('download', filename);
-  document.body.appendChild(a);
-  a.dispatchEvent(
-    new MouseEvent('click', { bubbles: true, cancelable: true, view: window })
-  );
-  setTimeout(() => {
-    if (a.parentNode === document.body) {
-      document.body.removeChild(a);
-    }
-    URL.revokeObjectURL(url);
-  }, 200);
+  saveAs(blob, filename);
 };
 
 export const extractTextFromPDF = async (file: File): Promise<string> => {

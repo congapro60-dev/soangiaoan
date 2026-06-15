@@ -287,6 +287,18 @@ export const LessonContentBoard = ({
                     remarkPlugins: [remarkGfm, remarkMath],
                     rehypePlugins: [rehypeRaw, rehypeKatex],
                     components: {
+                      th({ node, inline, className, children, ...props }: any) {
+                        const text = String(children).toLowerCase();
+                        let width = 'auto';
+                        if (text.includes('hoạt động của gv') || text.includes('hoạt động của hs') || text.includes('nội dung ghi bảng') || text.includes('sản phẩm dự kiến')) {
+                          width = '33.33%';
+                        } else if (text === 'điểm') {
+                          width = '12%';
+                        } else if (text === 'tiêu chí') {
+                          width = '30%';
+                        }
+                        return <th style={{ width }} className={className} {...props}>{children}</th>;
+                      },
                       code({ node, inline, className, children, ...props }: any) {
                         const match = /language-(\w+)/.exec(className || '');
                         const lang = match ? match[1] : '';
@@ -336,6 +348,33 @@ export const LessonContentBoard = ({
                     onSelect: updateEditorContext,
                   }}
                 />
+              </div>
+              
+              {/* Hidden preview container specifically for Word/PDF exports */}
+              <div className="hidden print:block">
+                <div className="wmde-markdown markdown-body bg-white p-8">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm, remarkMath]}
+                    rehypePlugins={[rehypeRaw, rehypeKatex]}
+                    components={{
+                      code({ node, inline, className, children, ...props }: any) {
+                        const match = /language-(\w+)/.exec(className || '');
+                        const codeString = String(children).replace(/\n$/, '');
+                        const isSvg = codeString.trim().startsWith('<svg') || codeString.trim().startsWith('xml <svg') || codeString.trim().startsWith('html <svg');
+                        if (isSvg) {
+                           const cleanSvg = codeString.replace(/^(xml|html)\s*/i, '').trim();
+                           return <DiagramRenderer code={cleanSvg} type="svg" />;
+                        }
+                        const isTikz = codeString.includes('\\begin{tikzpicture}') || codeString.trim().startsWith('latex \\begin') || codeString.trim().startsWith('tikz \\begin');
+                        if (isTikz) {
+                           const cleanTikz = codeString.replace(/^(latex|tikz|tex)\s*/i, '').trim();
+                           return <DiagramRenderer code={cleanTikz} type="tikz" />;
+                        }
+                        return <code className={className} {...props}>{children}</code>;
+                      }
+                    }}
+                  >{currentPlan.content || ''}</ReactMarkdown>
+                </div>
               </div>
             </div>
           </div>
