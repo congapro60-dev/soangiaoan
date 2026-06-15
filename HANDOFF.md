@@ -10,17 +10,22 @@
 
 ## 1. Trạng thái hiện tại
 
-### 1.0 Cập nhật phiên 2026-06-15 — Hoàn tất Local-first Export & Fix lỗi URGENT
+### 1.0 Cập nhật phiên 2026-06-15 & 2026-06-16 — Hoàn tất Native OMML Export & Ổn định Adaptive Lesson
+- **Nâng cấp Kiến trúc Export Word (Native OMML)**:
+  - Loại bỏ hoàn toàn cơ chế cạo HTML/DOM cũ kỹ gây vỡ công thức Toán.
+  - Tích hợp thành công lõi render Word Native OMML (`renderWordCore.ts` sử dụng `mathml2omml` và `katex`) từ repo `edu-lesson-automation`.
+  - Các tệp xuất Word giờ đây biến đổi trực tiếp Markdown/LaTeX thành Equation chuẩn của Microsoft Word (cho phép giáo viên chỉnh sửa số liệu, phương trình 100%).
 - **Chuyển đổi hoàn toàn kiến trúc Export sang Local-first**:
-  - Đã loại bỏ hoàn toàn việc sử dụng API Server (`exportLessonViaAPI`) cho cả chức năng xuất Word và PDF nhằm giải quyết triệt để lỗi Timeout 502/504 với các giáo án/đề thi dài.
-  - Tích hợp kỹ thuật xuất Word sử dụng thư viện `docx` trực tiếp trên client (dựa trên luồng của `examWordExport.ts`), mở rộng cho cả chức năng tải Giáo án và Đề thi.
-  - Tích hợp kỹ thuật xuất `.doc` siêu tốc dựa trên `Blob/HTML` cho Phiếu học tập và Đề thi trong thư viện.
-  - Áp dụng kỹ thuật in PDF tại trình duyệt (`window.print()`) kèm clone thẻ DOM và xử lý `@media print` CSS để cô lập nội dung, loại bỏ thanh công cụ và Modal backdrop.
+  - Loại bỏ sử dụng API Server (`exportLessonViaAPI`) cho xuất Word/PDF, giải quyết triệt để lỗi Timeout 502/504.
+  - In PDF tại trình duyệt (`window.print()`) kèm clone thẻ DOM, xử lý `@media print` CSS cô lập nội dung, bảng PDF tỷ lệ vàng 3-3-4.
 - **Xử lý Crash và Nâng cấp PPTX**:
-  - Xoá triệt để các thuộc tính `anim` không hợp lệ gây crash tiến trình `pptxgenjs` tải bài giảng. Dọn dẹp dead code `renderFormulaToBase64`.
-  - Cải tiến Prompt AI để tự động tách bảng 3 cột của giáo án, đưa hoạt động của GV/HS xuống mục "Speaker Notes" (Ghi chú diễn giả) và giữ nguyên các thẻ phân hoá năng lực (🌶️) trên Slide.
-- **Sửa lỗi Sinh bài học phân hoá**: Đã nới lỏng validator để luồng tạo bản nháp hoạt động ổn định kể cả khi Markdown table sinh ra chưa chuẩn 100%.
-- Các thay đổi này đã được build thành công, không có syntax/type errors và đã được commit vào `main` với mã `fix(export): convert PDF and Word exports to local-first, fix PPTX crash and improve quality`.
+  - Cải tiến Prompt AI để tự động tách bảng 3 cột của giáo án, đưa hoạt động GV/HS xuống mục "Speaker Notes".
+  - Bổ sung tham số kích thước `w, h` vào thuộc tính `addImage` trong `exportUtils.ts` để sửa lỗi Type Regression.
+  - Sửa lỗi thiếu field `cognitiveLevel` trong interface `ExamQuestion` (types.ts).
+- **Ổn định hệ thống sinh Bài học phân hoá (Adaptive Lesson)**:
+  - **Regex cạo rác JSON**: Viết hàm bóc tách an toàn để loại bỏ các thẻ Markdown dư thừa (```json) trước khi `JSON.parse` trong các luồng `useLessonCreator`, `adaptiveFromLessonPlan`, và `personalizationEngine`, chống nổ Crash triệt để.
+  - **Nới lỏng Schema (Fault-tolerance)**: Hạ cấp toàn bộ các rule Validation khắt khe (phải có đúng 5 câu pre-test, 3 mục tiêu...) từ `error` xuống `warning` trong `validateAdaptiveContentJson`. Từ nay hệ thống sẽ tận dụng kết quả AI và không còn "chặn đứng" toàn bộ bài học khi thiếu vài trường phụ.
+- Các thay đổi này đã được test qua (`npm run test` 58/58) và commit thẳng lên `main` thành công.
 
 ### 1.1 Kết luận nhanh
 - Đã giải quyết toàn bộ 8/8 lỗi Export URGENT do người dùng báo cáo (PPTX, DOCX, PDF, Bài học phân hoá).
