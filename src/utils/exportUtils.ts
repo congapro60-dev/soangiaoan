@@ -299,7 +299,7 @@ export const downloadPPTX = async (slidesData: any[], title: string) => {
           pSlide.addImage({ 
             path: url, 
             x: panelX, y: imgY, w: panelW, h: 2.5,
-            sizing: { type: 'contain' }
+            sizing: { type: 'contain', w: panelW, h: 2.5 }
           });
           imgY += 2.6;
         } catch {

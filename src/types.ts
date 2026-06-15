@@ -108,6 +108,7 @@ export interface ExamQuestion {
   correctAnswer?: string;
   points: number;
   explanation?: string;
+  cognitiveLevel?: string;
 }
 
 export type TfScoringMode = 'all_or_nothing' | 'thpt2025';
