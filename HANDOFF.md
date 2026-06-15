@@ -10,18 +10,18 @@
 
 ## 1. Trạng thái hiện tại
 
-### 1.0 Cập nhật phiên 2026-06-15 & 2026-06-16 — Hoàn tất Native OMML Export & Ổn định Adaptive Lesson
+### 1.0 Cập nhật phiên 2026-06-15 & 2026-06-16 — Hoàn tất Native OMML Export & Fix 8 Lỗi URGENT
 - **Nâng cấp Kiến trúc Export Word (Native OMML)**:
-  - Loại bỏ hoàn toàn cơ chế cạo HTML/DOM cũ kỹ gây vỡ công thức Toán.
+  - Loại bỏ hoàn toàn cơ chế cạo HTML/DOM cũ kỹ gây vỡ công thức Toán, giải quyết dứt điểm lỗi file Word rỗng khi không mở tab Preview.
   - Tích hợp thành công lõi render Word Native OMML (`renderWordCore.ts` sử dụng `mathml2omml` và `katex`) từ repo `edu-lesson-automation`.
   - Các tệp xuất Word giờ đây biến đổi trực tiếp Markdown/LaTeX thành Equation chuẩn của Microsoft Word (cho phép giáo viên chỉnh sửa số liệu, phương trình 100%).
 - **Chuyển đổi hoàn toàn kiến trúc Export sang Local-first**:
-  - Loại bỏ sử dụng API Server (`exportLessonViaAPI`) cho xuất Word/PDF, giải quyết triệt để lỗi Timeout 502/504.
+  - Loại bỏ sử dụng API Server (`exportLessonViaAPI`) cho xuất Word/PDF, giải quyết triệt để lỗi Timeout 502/504 với giáo án dài (như mẫu Claude).
   - In PDF tại trình duyệt (`window.print()`) kèm clone thẻ DOM, xử lý `@media print` CSS cô lập nội dung, bảng PDF tỷ lệ vàng 3-3-4.
 - **Xử lý Crash và Nâng cấp PPTX**:
-  - Cải tiến Prompt AI để tự động tách bảng 3 cột của giáo án, đưa hoạt động GV/HS xuống mục "Speaker Notes".
-  - Bổ sung tham số kích thước `w, h` vào thuộc tính `addImage` trong `exportUtils.ts` để sửa lỗi Type Regression.
-  - Sửa lỗi thiếu field `cognitiveLevel` trong interface `ExamQuestion` (types.ts).
+  - **Xóa mã độc:** Xóa triệt để các thuộc tính `anim: { type: 'fade' }` không hợp lệ gây crash tiến trình `pptxgenjs`. Dọn dẹp dead code `renderFormulaToBase64`.
+  - **Prompt Mới:** Cải tiến Prompt AI để tự động tách bảng 3 cột của giáo án, đưa hoạt động GV/HS xuống mục "Speaker Notes".
+  - **Regression:** Bổ sung tham số kích thước `w, h` vào thuộc tính `addImage` trong `exportUtils.ts` để sửa lỗi Type Regression. Sửa lỗi thiếu field `cognitiveLevel` trong interface `ExamQuestion`.
 - **Ổn định hệ thống sinh Bài học phân hoá (Adaptive Lesson)**:
   - **Regex cạo rác JSON**: Viết hàm bóc tách an toàn để loại bỏ các thẻ Markdown dư thừa (```json) trước khi `JSON.parse` trong các luồng `useLessonCreator`, `adaptiveFromLessonPlan`, và `personalizationEngine`, chống nổ Crash triệt để.
   - **Nới lỏng Schema (Fault-tolerance)**: Hạ cấp toàn bộ các rule Validation khắt khe (phải có đúng 5 câu pre-test, 3 mục tiêu...) từ `error` xuống `warning` trong `validateAdaptiveContentJson`. Từ nay hệ thống sẽ tận dụng kết quả AI và không còn "chặn đứng" toàn bộ bài học khi thiếu vài trường phụ.
