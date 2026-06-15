@@ -125,8 +125,8 @@ const makeQuestion = (purpose: AdaptiveAssessment['purpose'], objectiveId: strin
     : purpose === 'exit_ticket'
       ? `Câu ${index + 1}. Học sinh chứng minh đã đạt mục tiêu: ${sourceHint}`
       : `Quick check ${index + 1}: ${sourceHint}`,
-  options: ['A. Đáp án đúng', 'B. Phương án nhiễu 1', 'C. Phương án nhiễu 2', 'D. Phương án nhiễu 3'],
-  correctAnswer: 'A. Đáp án đúng',
+  options: ['A. 4', 'B. -4', 'C. 2', 'D. -2'],
+  correctAnswer: 'A. 4',
   explanation: 'Giáo viên rà soát và chỉnh đáp án/giải thích theo nội dung giáo án nguồn trước khi xuất bản.',
   objectiveIds: [objectiveId],
   difficulty: index === 0 ? 'easy' : index === 1 ? 'medium' : 'hard',
@@ -1253,13 +1253,13 @@ OUTPUT: Trả về DUY NHẤT một JSON object hợp lệ theo schema dưới �
       "quick_check_questions": [
         {
           "prompt": "Câu hỏi trắc nghiệm thật với số liệu cụ thể",
-          "options": ["A. Phương án 1", "B. Phương án đúng", "C. Phương án 3", "D. Phương án 4"],
+          "options": ["A. 5", "B. 10", "C. 15", "D. 20"],
           "correct": 1,
           "explanation": "Đáp án B vì..."
         },
         {
           "prompt": "Câu 2 của quick check",
-          "options": ["A. Phương án 1", "B. Phương án 2", "C. Phương án 3", "D. Phương án đúng"],
+          "options": ["A. -5", "B. -10", "C. -15", "D. -20"],
           "correct": 3,
           "explanation": "Giải thích dựa trên công thức/định nghĩa của bài."
         }
@@ -1290,16 +1290,16 @@ OUTPUT: Trả về DUY NHẤT một JSON object hợp lệ theo schema dưới �
     }
   ],
   "diagnostic_questions": [
-    {"prompt": "Câu 1. (mức nhận biết, có số liệu cụ thể)", "options": ["A.", "B.", "C.", "D."], "correct": 0, "explanation": "...", "difficulty": "easy"},
-    {"prompt": "Câu 2.", "options": ["A.", "B.", "C.", "D."], "correct": 2, "explanation": "...", "difficulty": "easy"},
-    {"prompt": "Câu 3.", "options": ["A.", "B.", "C.", "D."], "correct": 1, "explanation": "...", "difficulty": "medium"},
-    {"prompt": "Câu 4.", "options": ["A.", "B.", "C.", "D."], "correct": 3, "explanation": "...", "difficulty": "medium"},
-    {"prompt": "Câu 5. (mức vận dụng)", "options": ["A.", "B.", "C.", "D."], "correct": 2, "explanation": "...", "difficulty": "hard"}
+    {"prompt": "Câu 1. (mức nhận biết, có số liệu cụ thể)", "options": ["A. 1", "B. 2", "C. 3", "D. 4"], "correct": 0, "explanation": "...", "difficulty": "easy"},
+    {"prompt": "Câu 2.", "options": ["A. 1", "B. 2", "C. 3", "D. 4"], "correct": 2, "explanation": "...", "difficulty": "easy"},
+    {"prompt": "Câu 3.", "options": ["A. 1", "B. 2", "C. 3", "D. 4"], "correct": 1, "explanation": "...", "difficulty": "medium"},
+    {"prompt": "Câu 4.", "options": ["A. 1", "B. 2", "C. 3", "D. 4"], "correct": 3, "explanation": "...", "difficulty": "medium"},
+    {"prompt": "Câu 5. (mức vận dụng)", "options": ["A. 1", "B. 2", "C. 3", "D. 4"], "correct": 2, "explanation": "...", "difficulty": "hard"}
   ],
   "exit_ticket_questions": [
-    {"prompt": "Exit ticket 1", "options": ["A.", "B.", "C.", "D."], "correct": 0, "explanation": "..."},
-    {"prompt": "Exit ticket 2", "options": ["A.", "B.", "C.", "D."], "correct": 1, "explanation": "..."},
-    {"prompt": "Exit ticket 3", "options": ["A.", "B.", "C.", "D."], "correct": 2, "explanation": "..."}
+    {"prompt": "Exit ticket 1", "options": ["A. 1", "B. 2", "C. 3", "D. 4"], "correct": 0, "explanation": "..."},
+    {"prompt": "Exit ticket 2", "options": ["A. 1", "B. 2", "C. 3", "D. 4"], "correct": 1, "explanation": "..."},
+    {"prompt": "Exit ticket 3", "options": ["A. 1", "B. 2", "C. 3", "D. 4"], "correct": 2, "explanation": "..."}
   ]
 }
 

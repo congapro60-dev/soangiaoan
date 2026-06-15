@@ -119,7 +119,7 @@ export const generateSlideData = async (
   try {
     const prompt = `
 BẠN LÀ CHUYÊN GIA THIẾT KẾ BÀI TRÌNH CHIẾU SƯ PHẠM ĐẲNG CẤP QUỐC TẾ.
-Dựa vào nội dung giáo án sau, hãy tạo cấu trúc Slide bài giảng theo phong cách TED Talk: Súc tích, hình ảnh hóa và truyền cảm hứng.
+Dựa vào nội dung giáo án sau, hãy tạo cấu trúc Slide bài giảng từ 12–18 slides. Nội dung Slide cần phản ánh đúng dữ kiện, công thức, ví dụ và hoạt động học sinh (kể cả worked example và sai lầm thường gặp) từ giáo án nguồn, nhưng súc tích, hình ảnh hóa và truyền cảm hứng.
 
 Giáo án:
 ---

@@ -56,11 +56,11 @@ TRƯỜNG THPT ...                   |  NĂM HỌC 20XX - 20XX
 **ĐÁNH SỐ VÀ TRÌNH BÀY:**
 - Đánh số: "Câu 1.", "Câu 2."... (có dấu chấm, in đậm).
 - MCQ 4 phương án: mỗi phương án một dòng riêng biệt, liên tiếp, bắt đầu đúng "A. ", "B. ", "C. ", "D. "; tuyệt đối không viết A/B/C/D dồn trên cùng một dòng; không chèn bullet/list trước phương án. Hệ thống preview/export sẽ tự chia 4/2/1 cột theo độ dài đáp án.
-- Nếu muốn chỉ định layout thủ công, có thể dùng HTML: <div class="options-grid cols-4"><div><span class="option-label">A.</span> ...</div>...</div> cho đáp án ngắn; đổi thành cols-2 hoặc cols-1 khi đáp án dài/có công thức. Không dùng layout 4 cột cho đáp án có công thức dài.
+- TUYỆT ĐỐI KHÔNG dùng thẻ HTML để chia cột. Hệ thống sẽ tự động format. Tuyệt đối không dùng thẻ div hoặc span cho phương án.
 - Đúng/Sai 4 ý: mỗi ý một dòng, bắt đầu "a) ", "b) ", "c) ", "d) ".
 - Trả lời ngắn: để khoảng trống "……………" cuối câu hoặc ghi rõ yêu cầu tính toán.
 - Tự luận: mỗi câu một đoạn, ghi rõ số điểm ở đầu câu, VD: "**Câu 1** (2,0 điểm). ..."
-- Kết thúc đề: dòng "--- HẾT ---" căn giữa, in đậm.
+- Kết thúc đề: dòng "**--- HẾT ---**" căn giữa.
 - Dưới dòng HẾT: "Thí sinh không được sử dụng tài liệu. Cán bộ coi thi không giải thích gì thêm."
 
 **QUY TẮC KHÁC:**

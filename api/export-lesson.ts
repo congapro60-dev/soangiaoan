@@ -314,7 +314,7 @@ const renderPdfBuffer = async (title: string, content: string, orientation: Word
     const page = await browser.newPage();
     page.setDefaultNavigationTimeout(60_000);
     page.setDefaultTimeout(60_000);
-    await page.setContent(await buildHtml(title, content), { waitUntil: 'networkidle0', timeout: 60_000 });
+    await page.setContent(await buildHtml(title, content), { waitUntil: 'load', timeout: 60_000 });
     await page.evaluate(async () => {
       if ((document as any).fonts?.ready) {
         await (document as any).fonts.ready;
