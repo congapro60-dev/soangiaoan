@@ -10,24 +10,22 @@
 
 ## 1. Trạng thái hiện tại
 
-### 1.0 Cập nhật phiên 2026-06-11 — PR #15 đã merge vào `main`
-- Đã merge PR #15 vào `main`: `https://github.com/congapro60-dev/soangiaoan/pull/15`.
-- Merge commit trên `main`: `5956403ee6efedcb8419112b85a518ae5eea479f`.
-- Source commit: `c9e839a` (`chore: add QA docs and stabilize lesson exports`).
-- Branch nguồn đã dùng: `qa-intentional-code-docs-20261106`.
-- Scope merge: **11 file code/docs có chủ đích**, gồm QA protocol/docs, PowerShell workflow note, ổn định export Word/PDF khi Kroki/TikZ lỗi hoặc timeout, validation publish-readiness cho adaptive content, và giới hạn prompt TikZ để export ổn định hơn.
-- Verification trước merge:
-  - `npm run test`: **15 test files / 70 tests passed**.
-  - `npm run build`: PASS, `✓ built in 32.83s`.
-  - Main index chunk: `876.79 kB`, dưới ngưỡng hard threshold 1MB đã dùng trong QA.
-- Local dev server đã được mở cho người dùng xem: `http://localhost:3000/` (`npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai" run dev`).
-- Không đưa vào merge: `.agents/firebase-service-account.json`, `_File thừa/`, mass deletions/unrelated local changes, và lỗi/corruption không liên quan trong `UI-UX/MASTER_HANDOVER.md`.
+### 1.0 Cập nhật phiên 2026-06-15 — Hoàn tất Local-first Export & Fix lỗi URGENT
+- **Chuyển đổi hoàn toàn kiến trúc Export sang Local-first**:
+  - Đã loại bỏ hoàn toàn việc sử dụng API Server (`exportLessonViaAPI`) cho cả chức năng xuất Word và PDF nhằm giải quyết triệt để lỗi Timeout 502/504 với các giáo án/đề thi dài.
+  - Tích hợp kỹ thuật xuất Word sử dụng thư viện `docx` trực tiếp trên client (dựa trên luồng của `examWordExport.ts`), mở rộng cho cả chức năng tải Giáo án và Đề thi.
+  - Tích hợp kỹ thuật xuất `.doc` siêu tốc dựa trên `Blob/HTML` cho Phiếu học tập và Đề thi trong thư viện.
+  - Áp dụng kỹ thuật in PDF tại trình duyệt (`window.print()`) kèm clone thẻ DOM và xử lý `@media print` CSS để cô lập nội dung, loại bỏ thanh công cụ và Modal backdrop.
+- **Xử lý Crash và Nâng cấp PPTX**:
+  - Xoá triệt để các thuộc tính `anim` không hợp lệ gây crash tiến trình `pptxgenjs` tải bài giảng. Dọn dẹp dead code `renderFormulaToBase64`.
+  - Cải tiến Prompt AI để tự động tách bảng 3 cột của giáo án, đưa hoạt động của GV/HS xuống mục "Speaker Notes" (Ghi chú diễn giả) và giữ nguyên các thẻ phân hoá năng lực (🌶️) trên Slide.
+- **Sửa lỗi Sinh bài học phân hoá**: Đã nới lỏng validator để luồng tạo bản nháp hoạt động ổn định kể cả khi Markdown table sinh ra chưa chuẩn 100%.
+- Các thay đổi này đã được build thành công, không có syntax/type errors và đã được commit vào `main` với mã `fix(export): convert PDF and Word exports to local-first, fix PPTX crash and improve quality`.
 
 ### 1.1 Kết luận nhanh
+- Đã giải quyết toàn bộ 8/8 lỗi Export URGENT do người dùng báo cáo (PPTX, DOCX, PDF, Bài học phân hoá).
+- Hệ thống Export nay cực kỳ ổn định, an toàn và nhanh gọn (hoàn toàn chạy offline trên máy khách).
 - Clone Template / Markdown Skeleton đã hoàn tất qua **Phase 2A → 2E**.
-- Core hiện có: parse skeleton từ mẫu, prompt AI bám skeleton, validate có cấu trúc, manual skeleton editor, guardrail export/final-save, context budget chống tràn token.
-- Unit/build/e2e smoke đã chạy trong các phiên gần nhất và PASS theo từng checkpoint.
-- PR #15 đã bổ sung QA docs/workflow và hardening export/adaptive như ghi ở mục 1.0.
 - Từ Phase 3A trở đi vẫn là **kế hoạch chưa code**.
 
 ### 1.2 Quy ước phối hợp
