@@ -3,6 +3,7 @@
  * - Khử các variant <br> lỗi
  * - Tách các dòng bị AI đưa vào nhầm ô bảng
  * - Loại bỏ ảnh bên trong bảng gây vỡ layout
+ * - Đảm bảo có dòng trống trước khi bắt đầu bảng
  */
 export const cleanMarkdownOutput = (text: string): string => {
   if (!text) return text;
@@ -34,13 +35,22 @@ export const cleanMarkdownOutput = (text: string): string => {
     const prevIsTableRow = prevTrimmed.startsWith('|');
     const prevIsSeparator = /^\|[\s\-:|]+\|/.test(prevTrimmed);
 
+    // Nhận diện block mới (tiêu đề, khối code, latex) để chặn nối nhầm vào bảng
+    const isNewBlock = /^(#|```|% |\\begin|\*\*\s*(HOẠT ĐỘNG|Tiêu đề|MỤC TIÊU|PHẦN|NỘI DUNG|BƯỚC))/i.test(trimmed);
+
     if (isSeparator) {
+      if (!inTable && prevIdx >= 0 && prevTrimmed !== '' && !prevIsTableRow) {
+        repaired.push(''); // Bắt buộc thêm dòng trống trước bảng
+      }
       inTable = true;
       repaired.push(line);
     } else if (isTableRow) {
+      if (!inTable && prevIdx >= 0 && prevTrimmed !== '') {
+        repaired.push(''); // Bắt buộc thêm dòng trống trước bảng
+      }
       inTable = true;
       repaired.push(line);
-    } else if (!isEmpty && inTable && prevIsTableRow && !prevIsSeparator) {
+    } else if (!isEmpty && inTable && prevIsTableRow && !prevIsSeparator && !isNewBlock) {
       // Content bị đẩy xuống - chèn ngược lại vào ô của hàng phía trước
       const row = repaired[prevIdx];
       const pipes = row.split('|');
@@ -59,11 +69,12 @@ export const cleanMarkdownOutput = (text: string): string => {
         if (lastPipePos > 0) {
           repaired[prevIdx] = row.slice(0, lastPipePos) + '<br/>' + trimmed + row.slice(lastPipePos);
         } else {
+          inTable = false;
           repaired.push(line);
         }
       }
     } else {
-      if (isEmpty) inTable = false;
+      if (isEmpty || isNewBlock) inTable = false;
       repaired.push(line);
     }
   }
