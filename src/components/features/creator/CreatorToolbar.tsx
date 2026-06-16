@@ -105,13 +105,13 @@ export const CreatorToolbar = ({
         <FileText className="w-5 h-5" />
       </button>
 
-      <button
+      {/* <button
         onClick={() => setShowExportSettings(true)}
         className="p-2.5 bg-blue-50 border border-blue-100 rounded-xl text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
         title="Cài đặt template xuất file A4"
       >
         <Settings2 className="w-5 h-5" />
-      </button>
+      </button> */}
 
       <button onClick={handleGenerateSlide} className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-orange-600 hover:border-orange-200 transition-all shadow-sm" title="Tạo Slide">
         <Presentation className="w-5 h-5" />
@@ -140,14 +140,14 @@ export const CreatorToolbar = ({
       )}
     </div>
 
-    <ExportTemplateSettings
+    {/* <ExportTemplateSettings
       open={showExportSettings}
       orientation={orientation}
       onOrientationChange={setOrientation}
       onClose={() => setShowExportSettings(false)}
       onExportPDF={() => exportToPDF(orientation)}
       onExportWord={() => exportToWordA4(orientation)}
-    />
+    /> */}
     </>
   );
 };
