@@ -227,6 +227,9 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
         const textContent = await page.getTextContent();
         fullText += textContent.items.map((item: any) => item.str).join(' ') + '\n';
       }
+      if (!fullText.trim()) {
+        showToast('PDF này có vẻ là ảnh scan, không tìm thấy văn bản. AI sẽ không đọc được nội dung.', 'warning');
+      }
       return fullText;
     }
     return new Promise((resolve) => {
@@ -240,6 +243,14 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
     const fileList = e.target.files;
     if (!fileList || fileList.length === 0) return;
     const files = Array.from(fileList);
+
+    const MAX_SIZE_MB = 20;
+    const oversized = files.filter(f => f.size > MAX_SIZE_MB * 1024 * 1024);
+    if (oversized.length > 0) {
+      showToast(`File quá lớn (>${MAX_SIZE_MB}MB): ${oversized.map(f=>f.name).join(', ')}. Vui lòng dùng file nhỏ hơn.`, 'error');
+      setIsLoading(false);
+      return;
+    }
 
     // Matrix và Sample chỉ nhận 1 file — lấy file đầu, ignore phần còn lại với cảnh báo
     if (category === 'matrix' || category === 'sample') {
