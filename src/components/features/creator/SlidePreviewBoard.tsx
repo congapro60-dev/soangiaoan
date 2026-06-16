@@ -68,10 +68,10 @@ export const SlidePreviewBoard = ({ slidePreview, setSlidePreview, handleDownloa
       
       <div className="grid gap-8">
         {slidePreview.map((slide, idx) => (
-          <div key={idx} className="bg-slate-100/50 rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col xl:flex-row gap-6">
+          <div key={idx} className="bg-slate-100/50 rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col gap-6">
             
-            {/* Left: 16:9 Slide Preview */}
-            <div className="xl:w-2/3 flex-shrink-0">
+            {/* Top: 16:9 Slide Preview */}
+            <div className="w-full flex-shrink-0">
               <div className="aspect-[16/9] bg-[#F8FAFC] border-2 border-slate-300 rounded-xl shadow-lg overflow-hidden flex flex-col relative group">
                  {/* Header / Title */}
                  <div className="bg-[#1A237E] p-4 sm:p-6 flex items-center shrink-0">
@@ -119,8 +119,8 @@ export const SlidePreviewBoard = ({ slidePreview, setSlidePreview, handleDownloa
               </div>
             </div>
 
-            {/* Right: Notes & Suggestions */}
-            <div className="xl:w-1/3 flex flex-col gap-5">
+            {/* Bottom: Notes & Suggestions */}
+            <div className="w-full flex flex-col sm:flex-row gap-5">
               <div className="bg-white p-5 rounded-xl border border-blue-100 shadow-sm flex-1 flex flex-col">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-blue-500 flex items-center gap-1.5 mb-3 shrink-0"><ImageIcon className="w-4 h-4"/> Gợi ý hình ảnh</h4>
                 <textarea
