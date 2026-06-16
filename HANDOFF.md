@@ -10,7 +10,10 @@
 
 ## 1. Trạng thái hiện tại
 
-### 1.0 Cập nhật phiên 2026-06-15 & 2026-06-16 — Hoàn tất Native OMML Export & Fix 8 Lỗi URGENT
+### 1.0 Cập nhật phiên 2026-06-15 & 2026-06-16 — Hoàn tất Native OMML Export, Fix Markdown & Lập Workflow Mới
+- **Quản trị rủi ro & Workflow Agent**:
+  - Đã thêm Superpower Skill mới tại `.agents/skills/strict-approval-workflow/SKILL.md`.
+  - **Quy tắc mới bắt buộc**: Mọi Agent trước khi code sửa lỗi/thêm tính năng phải phân tích 4 yếu tố (Rủi ro, Ảnh hưởng chéo, Ưu điểm, Nhược điểm) và **CHỜ** user phê duyệt bằng "magic word" (vd: "code đi") mới được phép viết code.
 - **Nâng cấp Kiến trúc Export Word (Native OMML)**:
   - Loại bỏ hoàn toàn cơ chế cạo HTML/DOM cũ kỹ gây vỡ công thức Toán, giải quyết dứt điểm lỗi file Word rỗng khi không mở tab Preview.
   - Tích hợp thành công lõi render Word Native OMML (`renderWordCore.ts` sử dụng `mathml2omml` và `katex`) từ repo `edu-lesson-automation`.
@@ -25,6 +28,9 @@
 - **Ổn định hệ thống sinh Bài học phân hoá (Adaptive Lesson)**:
   - **Regex cạo rác JSON**: Viết hàm bóc tách an toàn để loại bỏ các thẻ Markdown dư thừa (```json) trước khi `JSON.parse` trong các luồng `useLessonCreator`, `adaptiveFromLessonPlan`, và `personalizationEngine`, chống nổ Crash triệt để.
   - **Nới lỏng Schema (Fault-tolerance)**: Hạ cấp toàn bộ các rule Validation khắt khe (phải có đúng 5 câu pre-test, 3 mục tiêu...) từ `error` xuống `warning` trong `validateAdaptiveContentJson`. Từ nay hệ thống sẽ tận dụng kết quả AI và không còn "chặn đứng" toàn bộ bài học khi thiếu vài trường phụ.
+- **Vá lỗi Hiển thị Markdown (Hotfix)**:
+  - Hàm `cleanMarkdownOutput` được nâng cấp để tự động chèn dòng trống trước bảng, cứu sống các giao diện bảng Markdown bị AI sinh thiếu dòng trống.
+  - **Regression đã fix**: Từng có lỗi đẩy nhầm mã TikZ ra khỏi bảng (làm rớt thẻ ````tikz`), gây hiệu ứng sập giao diện toàn bộ bài học. Lỗi đã được vá (revert `isNewBlock`) để mã TikZ được gộp đúng vào trong ô bảng bằng thẻ `<br/>`.
 - Các thay đổi này đã được test qua (`npm run test` 58/58) và commit thẳng lên `main` thành công.
 
 ### 1.1 Kết luận nhanh
