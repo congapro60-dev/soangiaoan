@@ -23,7 +23,7 @@ export interface AdaptiveLessonSource {
 }
 
 export interface AdaptiveLessonQualityIssue {
-  severity: 'warning' | 'warning';
+  severity: 'warning' | 'error';
   code: string;
   message: string;
   path?: string;
@@ -560,7 +560,7 @@ interface AdaptiveContentJson {
 }
 
 type AdaptiveContentValidationIssue = {
-  severity: 'warning' | 'warning';
+  severity: 'warning' | 'error';
   code: string;
   message: string;
 };
