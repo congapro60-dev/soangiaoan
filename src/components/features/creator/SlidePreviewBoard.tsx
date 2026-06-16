@@ -1,4 +1,5 @@
-import { Download, Presentation, CheckCircle2, Image as ImageIcon, MessageSquare, X } from 'lucide-react';
+import { Download, Presentation, Image as ImageIcon, MessageSquare, X, Plus } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface SlidePreviewBoardProps {
   slidePreview: any[];
@@ -7,6 +8,45 @@ interface SlidePreviewBoardProps {
 }
 
 export const SlidePreviewBoard = ({ slidePreview, setSlidePreview, handleDownloadSlide }: SlidePreviewBoardProps) => {
+
+  // Resize textareas to fit content on load
+  useEffect(() => {
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(t => {
+      if (t.classList.contains('point-textarea')) {
+        t.style.height = 'auto';
+        t.style.height = t.scrollHeight + 'px';
+      }
+    });
+  }, [slidePreview]);
+
+  const updateSlide = (idx: number, field: string, value: string) => {
+    const newSlides = [...slidePreview];
+    newSlides[idx] = { ...newSlides[idx], [field]: value };
+    setSlidePreview(newSlides);
+  };
+
+  const updatePoint = (slideIdx: number, pointIdx: number, value: string) => {
+    const newSlides = [...slidePreview];
+    const newPoints = [...newSlides[slideIdx].points];
+    newPoints[pointIdx] = value;
+    newSlides[slideIdx] = { ...newSlides[slideIdx], points: newPoints };
+    setSlidePreview(newSlides);
+  };
+
+  const addPoint = (slideIdx: number) => {
+    const newSlides = [...slidePreview];
+    newSlides[slideIdx] = { ...newSlides[slideIdx], points: [...newSlides[slideIdx].points, 'Ý mới...'] };
+    setSlidePreview(newSlides);
+  };
+
+  const removePoint = (slideIdx: number, pointIdx: number) => {
+    const newSlides = [...slidePreview];
+    const newPoints = newSlides[slideIdx].points.filter((_: any, i: number) => i !== pointIdx);
+    newSlides[slideIdx] = { ...newSlides[slideIdx], points: newPoints };
+    setSlidePreview(newSlides);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-8">
@@ -18,42 +58,90 @@ export const SlidePreviewBoard = ({ slidePreview, setSlidePreview, handleDownloa
             <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2">
               <Presentation className="w-6 h-6 text-orange-500"/>Bản thảo Slide ({slidePreview.length} trang)
             </h2>
-            <p className="text-slate-500 text-sm mt-1">Vui lòng kiểm tra lại cấu trúc slide trước khi xuất bản.</p>
+            <p className="text-slate-500 text-sm mt-1">Sửa trực tiếp nội dung dưới đây. Giao diện xem trước được thiết kế theo tỷ lệ 16:9 của PowerPoint.</p>
           </div>
         </div>
         <button onClick={handleDownloadSlide} className="px-5 py-3 bg-gradient-to-r from-orange-500 to-rose-500 text-white rounded-xl font-bold flex items-center gap-2 hover:opacity-90 shadow-lg shadow-orange-200/50">
           <Download className="w-5 h-5" /> Tải file PPTX
         </button>
       </div>
-      <div className="grid gap-6">
+      
+      <div className="grid gap-8">
         {slidePreview.map((slide, idx) => (
-          <div key={idx} className="bg-slate-50 rounded-2xl p-6 border border-slate-100 shadow-sm flex flex-col md:flex-row gap-6">
-            <div className="flex-1 space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 shrink-0 bg-white border-2 border-slate-200 rounded-full flex items-center justify-center font-black text-slate-400">{idx + 1}</div>
-                <h3 className="text-lg font-bold text-slate-800 pt-1">{slide.title}</h3>
+          <div key={idx} className="bg-slate-100/50 rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col xl:flex-row gap-6">
+            
+            {/* Left: 16:9 Slide Preview */}
+            <div className="xl:w-2/3 flex-shrink-0">
+              <div className="aspect-[16/9] bg-[#F8FAFC] border-2 border-slate-300 rounded-xl shadow-lg overflow-hidden flex flex-col relative group">
+                 {/* Header / Title */}
+                 <div className="bg-[#1A237E] p-4 sm:p-6 flex items-center shrink-0">
+                   <input
+                     value={slide.title}
+                     onChange={(e) => updateSlide(idx, 'title', e.target.value)}
+                     className="bg-transparent text-white font-bold text-xl sm:text-3xl w-full border border-transparent hover:border-white/30 focus:border-white focus:ring-1 focus:ring-white rounded px-2 py-1 outline-none transition-all"
+                   />
+                 </div>
+                 
+                 {/* Content / Points */}
+                 <div className="flex-1 p-5 sm:p-8 flex flex-col gap-3 overflow-y-auto custom-scrollbar relative">
+                   {slide.points.map((pt: string, pIdx: number) => (
+                     <div key={pIdx} className="flex items-start gap-3 group/point relative">
+                       <span className="text-slate-700 font-black mt-2 text-xl">•</span>
+                       <textarea
+                         value={pt}
+                         onChange={(e) => updatePoint(idx, pIdx, e.target.value)}
+                         className="point-textarea flex-1 bg-transparent text-slate-800 text-lg sm:text-xl leading-relaxed border border-transparent hover:border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:bg-white rounded p-2 resize-none overflow-hidden outline-none transition-all"
+                         rows={1}
+                         onFocus={(e) => {
+                           e.currentTarget.style.height = 'auto';
+                           e.currentTarget.style.height = e.currentTarget.scrollHeight + 'px';
+                         }}
+                         onInput={(e) => {
+                           e.currentTarget.style.height = 'auto';
+                           e.currentTarget.style.height = e.currentTarget.scrollHeight + 'px';
+                         }}
+                       />
+                       <button onClick={() => removePoint(idx, pIdx)} className="absolute right-0 top-2 opacity-0 group-hover/point:opacity-100 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all z-10" title="Xóa ý này">
+                         <X className="w-5 h-5"/>
+                       </button>
+                     </div>
+                   ))}
+                   
+                   <div className="pt-4">
+                     <button onClick={() => addPoint(idx)} className="text-sm sm:text-base font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-100 px-4 py-2 rounded-xl opacity-0 group-hover:opacity-100 transition-all flex items-center gap-1.5">
+                       <Plus className="w-4 h-4"/> Thêm ý
+                     </button>
+                   </div>
+                 </div>
+                 
+                 {/* Slide Number */}
+                 <div className="absolute bottom-3 right-5 text-slate-500 text-base font-bold select-none">{idx + 1}</div>
               </div>
-              <ul className="space-y-2 pl-11">
-                {slide.points.map((pt: string, pIdx: number) => (
-                  <li key={pIdx} className="flex items-start gap-2 text-slate-600">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <span className="leading-relaxed">{pt}</span>
-                  </li>
-                ))}
-              </ul>
             </div>
-            <div className="md:w-1/3 space-y-4">
-              <div className="bg-white p-4 rounded-xl border border-blue-100 shadow-sm">
-                <h4 className="text-[11px] font-bold uppercase tracking-wider text-blue-400 flex items-center gap-1.5 mb-2"><ImageIcon className="w-3.5 h-3.5"/> Gợi ý hình ảnh</h4>
-                <p className="text-xs text-slate-600 leading-relaxed">{slide.visualSuggestion || 'Không có gợi ý.'}</p>
+
+            {/* Right: Notes & Suggestions */}
+            <div className="xl:w-1/3 flex flex-col gap-5">
+              <div className="bg-white p-5 rounded-xl border border-blue-100 shadow-sm flex-1 flex flex-col">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-blue-500 flex items-center gap-1.5 mb-3 shrink-0"><ImageIcon className="w-4 h-4"/> Gợi ý hình ảnh</h4>
+                <textarea
+                  value={slide.visualSuggestion || ''}
+                  onChange={(e) => updateSlide(idx, 'visualSuggestion', e.target.value)}
+                  className="w-full flex-1 min-h-[100px] bg-blue-50/40 text-slate-700 text-sm sm:text-base leading-relaxed border border-transparent hover:border-blue-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:bg-white rounded-lg p-3 resize-none outline-none transition-all"
+                  placeholder="Không có gợi ý."
+                />
               </div>
-              {slide.speakerNotes && (
-                <div className="bg-white p-4 rounded-xl border border-orange-100 shadow-sm">
-                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-orange-400 flex items-center gap-1.5 mb-2"><MessageSquare className="w-3.5 h-3.5"/> Gợi ý lời thoại</h4>
-                  <p className="text-xs text-slate-600 leading-relaxed italic">"{slide.speakerNotes}"</p>
-                </div>
-              )}
+              
+              <div className="bg-white p-5 rounded-xl border border-orange-100 shadow-sm flex-1 flex flex-col">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-orange-500 flex items-center gap-1.5 mb-3 shrink-0"><MessageSquare className="w-4 h-4"/> Lời thoại (Speaker Notes)</h4>
+                <textarea
+                  value={slide.speakerNotes || ''}
+                  onChange={(e) => updateSlide(idx, 'speakerNotes', e.target.value)}
+                  className="w-full flex-1 min-h-[100px] bg-orange-50/40 text-slate-700 text-sm sm:text-base leading-relaxed italic border border-transparent hover:border-orange-200 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:bg-white rounded-lg p-3 resize-none outline-none transition-all"
+                  placeholder="Ghi chú diễn giả..."
+                />
+              </div>
             </div>
+            
           </div>
         ))}
       </div>
