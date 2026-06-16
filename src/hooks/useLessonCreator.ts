@@ -694,30 +694,15 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
           showToast(`Tài liệu tham khảo quá dài, AI chỉ sử dụng một phần để đảm bảo không lỗi hệ thống.`, 'warning');
         }
 
-        const prompt = `
-          BẠN LÀ MỘT CHUYÊN GIA GIÁO DỤC CAO CẤP.
-          NHIỆM VỤ: ${isAdaptiveReadyDefault ? 'Soạn một giáo án nguồn để tạo bài học phân hoá/adaptive.' : 'Soạn một giáo án "Masterpiece" (Kiệt tác sư phạm).'}
-
-          BỐ CỤC PHẢN HỒI (BẮT BUỘC):
-          1. <thinking>: ${isAdaptiveReadyDefault ? `Phân tích mục tiêu bài học, điều kiện học sinh đã đọc trước ở nhà, thiết kế UI/UX 7:3, đồng hồ kép, mục lục thông minh, Bước 0 Pre-test, Bước 1 Engage, Bước 2 Socratic/Trial & Error, Bước 3 luyện tập THPTQG thích ứng, Bước 4 mở rộng và Bước 5 tổng kết/Time-Filler.` : `Phân tích mục tiêu bài học, đặc điểm HS lớp ${currentPlan.grade}, lựa chọn phương pháp (VARK, 5E, Gagne...) và kế hoạch "gây nghiện" cho bài giảng.`}
-          2. <lesson_content>: ${isAdaptiveReadyDefault ? 'TOÀN BỘ giáo án nguồn chi tiết dạng Markdown, có đủ UI/UX 7:3, đồng hồ kép, mục lục thông minh, SVG/học liệu số, Bước 0-5, pre-test 5 câu đa dạng, phân tuyến Foundation/Standard/Challenge, quick check, Vở Ghi Chép, luyện tập THPTQG theo Trung bình/Khá/Giỏi, remediation loop 4 tầng, tổng kết và Time-Filler.' : 'TOÀN BỘ nội dung giáo án chi tiết (Markdown), BAO GỒM CẢ phần đánh giá Danielson ở cuối.'}
-
-          THÔNG TIN BÀI HỌC:
-          - Môn học: ${subject}. Lớp: ${currentPlan.grade}. Tuần: ${currentPlan.week}.
-          - Tiêu đề: ${currentPlan.title}.
-          ${singleRequirement ? `YÊU CẦU BỔ SUNG: ${singleRequirement}` : ''}
-          
-          <format_skeleton>
-          ${templateContext}
-          ${skeletonPromptSection}
-          </format_skeleton>
-
-          <reference_context>
-          ${activeDist ? `PHÂN PHỐI CHƯƠNG TRÌNH:\n${activeDist.content}` : ''}
-          ${lessonDocsContent ? `TÀI LIỆU THAM KHẢO:\n${lessonDocsContent}` : ''}
-          </reference_context>
-
-          ${isAdaptiveReadyDefault ? `
+        const agentContext = {
+          title: currentPlan.title || '',
+          subject: subject,
+          grade: currentPlan.grade || '',
+          week: currentPlan.week || '',
+          requirement: singleRequirement,
+          templateFormat: isAdaptiveReadyDefault ? 'Adaptive' : (builtinFormat === 'cv5512' ? 'CV5512' : 'Claude'),
+          templateContext: templateContext + '\n' + skeletonPromptSection,
+          additionalRequirements: isAdaptiveReadyDefault ? `
           ===== YÊU CẦU RIÊNG CHO KIỂU MẶC ĐỊNH MỚI — GIÁO ÁN ĐẸP, SẴN SÀNG TẠO BÀI HỌC PHÂN HOÁ =====
           - Bắt buộc dùng đúng cấu trúc trong MẪU GIÁO ÁN MẶC ĐỊNH ở trên, đặc biệt là UI/UX 7:3 và khung Bước 0 đến Bước 5.
           - Đây vẫn là giáo án chính thức trong Soạn giáo án: phải trình bày đẹp, rõ ràng, có thể xem/sửa/lưu/xuất Word/PDF như các mẫu còn lại.
@@ -755,20 +740,13 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
             + MỖI HOẠT ĐỘNG (Kể cả HĐ1, HĐ4, HĐ5) PHẢI CÓ 5-8 LƯỢT THOẠI QUA LẠI.
             + Cột GV phải dùng hệ thống câu hỏi dẫn dắt (Scaffolding) đi từ dễ đến khó. Chèn các thẻ \`[Quét Radar]\`, \`[Mistake of the Day]\`, \`[Chấm chéo]\`.
           - LỒNG GHÉP 3 TUYÊN NGÔN DEWEY (BẮT BUỘC): dùng thẻ \`[💡 Tuyên ngôn: ...]\` để chỉ rõ câu nói/hành động nào đáp ứng tuyên ngôn nào.
-          ${mathRestrictions}
 
           B. PHẦN ĐÁNH GIÁ DANIELSON (BẮT BUỘC, VIẾT Ở CUỐI BÊN TRONG <lesson_content>):
           Sau nội dung giáo án, PHẢI thêm phần:
           "## Đánh giá của tổ trưởng chuyên môn"
           BẮT BUỘC trình bày dưới dạng BẢNG MARKDOWN 3 CỘT (Tiêu chí | Điểm | Nhận xét).
           YÊU CẦU ĐỐI VỚI CỘT NHẬN XÉT: Phải viết chi tiết, cụ thể như một tổ trưởng chuyên môn thực thụ (ít nhất 2-3 câu mỗi tiêu chí). CHỈ RÕ giáo án đã làm tốt chỗ nào. TUYỆT ĐỐI KHÔNG viết chung chung.
-          Tự chấm điểm theo khung Danielson Miền 1 (Thang 1-4, 4 là Tốt nhất) cho 6 tiêu chí:
-          1a: Áp dụng kiến thức chuyên môn và sư phạm
-          1b: Thấu hiểu học sinh
-          1c: Thiết lập mục tiêu giảng dạy
-          1d: Sử dụng tài nguyên hiệu quả
-          1e: Thiết kế bài giảng mạch lạc
-          1f: Đánh giá quá trình học tập
+          Tự chấm điểm theo khung Danielson Miền 1 (Thang 1-4, 4 là Tốt nhất) cho 6 tiêu chí.
 
           C. VÍ DỤ MẪU (BẮT BUỘC BẮT CHƯỚC PHONG CÁCH NÀY CHO TẤT CẢ CÁC HOẠT ĐỘNG):
           \`\`\`markdown
@@ -778,25 +756,34 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
           | Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
           |---|---|---|
           | **[Quét Radar]** *Quan sát biểu cảm học sinh để xem mức độ hiểu bài.* | | |
-          | **GV:** "Các em hãy nhìn vào bảng hệ số ta vừa lập ở HĐ1. Ai phát hiện ra quy luật của các con số này?" | **HS1:** "Thưa thầy, các hệ số này chính là các số trong tam giác Pascal ạ!" | **1. Định lý:** <br/> Công thức tổng quát: <br/> $(a+b)^n = \\sum_{k=0}^{n} C_n^k a^{n-k} b^k$ |
+          | **GV:** "Các em hãy nhìn vào bảng hệ số ta vừa lập ở HĐ1. Ai phát hiện ra quy luật của các con số này?" | **HS1:** "Thưa thầy, các hệ số này chính là các số trong tam giác Pascal ạ!" | **1. Định lý:** <br/> Công thức tổng quát: <br/> $(a+b)^n = \sum_{k=0}^{n} C_n^k a^{n-k} b^k$ |
           | **[💡 Tuyên ngôn Dạy và học chất lượng cao: GV đóng vai trò người xúc tác, không áp đặt kiến thức]** <br/> **GV:** "Tuyệt vời! Vậy hệ số của số hạng thứ $k+1$ chính là gì?" | **HS2:** "Nó tương ứng với tổ hợp $C_n^k$ ạ!" | *Lưu ý:* Có $(n+1)$ số hạng. |
           | **GV:** Chốt: "Đây chính là Định lý Nhị thức Newton!" | **HS:** Ghi chép công thức vào vở. | |
           \`\`\`
-          ===== HẾT YÊU CẦU ĐỊNH DẠNG =====`}
-        `;
-        let fullResult = '';
-        await callAIStream(prompt, data.settings, (chunk) => {
-          fullResult += chunk;
-          const currentExtracted = extractLessonContent(fullResult);
-          setCurrentPlan(prev => ({ ...prev, content: cleanMarkdownOutput(currentExtracted) }));
-        });
-        const finalContent = cleanMarkdownOutput(extractLessonContent(fullResult));
-        const skeletonValidation = validateMarkdownAgainstSkeleton(finalContent, activeSkeleton);
-        if (activeSkeleton && skeletonValidation.issues.length > 0) {
-          console.warn('Phase 2A Markdown Skeleton validation warnings:', skeletonValidation);
-          showToast(`Đã tạo giáo án, nhưng cần rà soát skeleton mẫu (${Math.round(skeletonValidation.score * 100)}%): ${skeletonValidation.issues[0].message}`, 'warning');
-        } else {
-          showToast('Đã khởi tạo giáo án cấp độ Senior!');
+          ===== HẾT YÊU CẦU ĐỊNH DẠNG =====`,
+          mathRestrictions: mathRestrictions,
+          referenceContext: `${activeDist ? `PHÂN PHỐI CHƯƠNG TRÌNH:\n${activeDist.content}` : ''}\n${lessonDocsContent ? `TÀI LIỆU THAM KHẢO:\n${lessonDocsContent}` : ''}`,
+          settings: data.settings,
+          onStreamChunk: (chunk: string) => {
+            setCurrentPlan(prev => ({ ...prev, content: cleanMarkdownOutput(chunk) }));
+          },
+          onStatusChange: (status: string) => {
+            showToast(status, 'info');
+          }
+        };
+
+        try {
+          const finalContent = await import('../lib/agents').then(m => m.runMultiAgentPipeline(agentContext));
+          const skeletonValidation = validateMarkdownAgainstSkeleton(finalContent, activeSkeleton);
+          if (activeSkeleton && skeletonValidation.issues.length > 0) {
+            console.warn('Phase 2A Markdown Skeleton validation warnings:', skeletonValidation);
+            showToast(`Đã tạo giáo án, nhưng cần rà soát skeleton mẫu (${Math.round(skeletonValidation.score * 100)}%): ${skeletonValidation.issues[0].message}`, 'warning');
+          } else {
+            showToast('Đã khởi tạo giáo án cấp độ Senior!');
+          }
+        } catch (e) {
+          console.error(e);
+          showToast('Có lỗi xảy ra trong quá trình sinh giáo án', 'error');
         }
       } else {
         const rawDistContent = activeDist?.content || distributionFile?.content;

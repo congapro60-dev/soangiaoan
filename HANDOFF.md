@@ -31,7 +31,13 @@
 - **Vá lỗi Hiển thị Markdown (Hotfix)**:
   - Hàm `cleanMarkdownOutput` được nâng cấp để tự động chèn dòng trống trước bảng, cứu sống các giao diện bảng Markdown bị AI sinh thiếu dòng trống.
   - **Regression đã fix**: Từng có lỗi đẩy nhầm mã TikZ ra khỏi bảng (làm rớt thẻ ````tikz`), gây hiệu ứng sập giao diện toàn bộ bài học. Lỗi đã được vá (revert `isNewBlock`) để mã TikZ được gộp đúng vào trong ô bảng bằng thẻ `<br/>`.
-- Các thay đổi này đã được test qua (`npm run test` 58/58) và commit thẳng lên `main` thành công.
+- **Nâng cấp Hệ thống Phiếu học tập & Bài tập về nhà (Worksheets)**:
+  - **Sửa lỗi định dạng & thiết kế**: Đã loại bỏ hoàn toàn tính năng xuất phiếu học tập sang `.doc` (HTML cũ gây vỡ công thức Toán). Cả 2 loại phiếu (Tại lớp & Về nhà) nay đều xuất thẳng ra chuẩn `.docx` (dùng `exportToWordA4`) đảm bảo công thức Toán OMML hiển thị sắc nét.
+  - **Prompt AI sư phạm chuẩn 2025**:
+    - *Phiếu tại lớp*: Bắt buộc phân rã nội dung bài tập thành bảng 2 cột phân hóa (Cột A: Scaffolding có gợi ý từng bước; Cột B: Bỏ trống hoàn toàn cho học sinh tự bơi). Kèm theo khung WALT/WILF, khoảng trống dài `...............` để điền tay, và Vé ra cửa.
+    - *Bài tập về nhà*: Bắt buộc xuất theo đúng ma trận 2025 (Trắc nghiệm, Đúng/Sai, Trả lời ngắn, Tự luận), kèm FAQ, lỗi sai thường gặp, đáp án chi tiết.
+  - **Cập nhật UI Soạn thảo & Thư viện**: Đã loại bỏ nút "Hướng dẫn ôn tập" cũ và thay bằng 2 nút tách biệt "Tạo Phiếu học tập" và "Tạo Bài tập về nhà" trên thanh `CreatorToolbar` và màn hình `ViewPlanModal`.
+- Các thay đổi này đã được test qua (`npm run test` 58/58) và chuẩn bị merge lên `main` thành công.
 
 ### 1.1 Kết luận nhanh
 - Đã giải quyết toàn bộ 8/8 lỗi Export URGENT do người dùng báo cáo (PPTX, DOCX, PDF, Bài học phân hoá).

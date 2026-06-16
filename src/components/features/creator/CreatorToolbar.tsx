@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { FileDown, FileText, Presentation, FileSpreadsheet, BookOpen, Headphones, ChevronDown, RotateCcw, ClipboardList, CloudUpload, Settings2 } from 'lucide-react';
+import { FileDown, FileText, Presentation, FileSpreadsheet, BookOpen, Headphones, ChevronDown, RotateCcw, ClipboardList, CloudUpload, Settings2, Home } from 'lucide-react';
 import { ExportTemplateSettings } from '../../export/ExportTemplateSettings';
 
 export type PaperOrientation = 'portrait' | 'landscape';
@@ -9,7 +9,8 @@ interface CreatorToolbarProps {
   exportToWordA4: (orientation: PaperOrientation) => void;
   handleGenerateSlide: () => void;
   exportToLaTeX: () => void;
-  handleGenerateStudyGuide: () => void;
+  handleGenerateInclassWorksheet: () => void;
+  handleGenerateHomeworkWorksheet: () => void;
   setShowAudioOverview: (val: boolean) => void;
   onCreateExam?: () => void;
   onPushToDrive?: () => void;
@@ -20,7 +21,8 @@ export const CreatorToolbar = ({
   exportToWordA4,
   handleGenerateSlide,
   exportToLaTeX,
-  handleGenerateStudyGuide,
+  handleGenerateInclassWorksheet,
+  handleGenerateHomeworkWorksheet,
   setShowAudioOverview,
   onCreateExam,
   onPushToDrive,
@@ -122,8 +124,12 @@ export const CreatorToolbar = ({
 
       <div className="w-[1px] h-8 bg-slate-200 mx-1"></div>
 
-      <button onClick={handleGenerateStudyGuide} className="p-2.5 bg-indigo-50 border border-indigo-100 rounded-xl text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shadow-sm" title="Tạo Hướng dẫn ôn tập (Study Guide)">
-        <BookOpen className="w-5 h-5" />
+      <button onClick={handleGenerateInclassWorksheet} className="p-2.5 bg-green-50 border border-green-100 rounded-xl text-green-600 hover:bg-green-600 hover:text-white transition-all shadow-sm" title="Tạo Phiếu học tập tại lớp">
+        <ClipboardList className="w-5 h-5" />
+      </button>
+      
+      <button onClick={handleGenerateHomeworkWorksheet} className="p-2.5 bg-orange-50 border border-orange-100 rounded-xl text-orange-600 hover:bg-orange-600 hover:text-white transition-all shadow-sm" title="Tạo Bài tập về nhà">
+        <Home className="w-5 h-5" />
       </button>
       <button onClick={() => setShowAudioOverview(true)} className="p-2.5 bg-purple-50 border border-purple-100 rounded-xl text-purple-600 hover:bg-purple-600 hover:text-white transition-all shadow-sm" title="Bản tin Audio bài giảng">
         <Headphones className="w-5 h-5" />

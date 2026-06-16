@@ -43,33 +43,26 @@ export const ViewPlanModal = ({ plan, data, showToast, onClose, onEdit }: ViewPl
     }
   };
 
-  const handleGenerateWorksheet = async () => {
+  const handleGenerateInclassWorksheet = async () => {
     if (!plan) return;
-    setIsGeneratingSlide(true); // Re-use loading state
-    const worksheetMarkdown = await worksheetUtils.generateWorksheetMarkdown(plan, data, showToast);
-    
-    if (worksheetMarkdown) {
-      try {
-        const fakePlan: Partial<LessonPlan> = {
-          title: (plan.title || 'GiaoAn') + ' - Phieu hoc tap',
-          content: worksheetMarkdown,
-          templateId: plan.templateId
-        };
-        // Export the generated markdown as a docx file so teachers can edit and print
-        const { marked } = await import('marked');
-        const htmlBody = await marked(worksheetMarkdown);
-        const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
-<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head>
-<body>${htmlBody}</body></html>`;
-        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
-        const blob = new Blob([bom, new TextEncoder().encode(html)], { type: 'application/msword' });
-        const { downloadBlob } = await import('../../utils/fileUtils');
-        downloadBlob(blob, `${fakePlan.title?.replace(/\s+/g, '_')}.doc`);
-        showToast('Đã tải Phiếu học tập (Word)!', 'success');
-      } catch (err) {
-        console.error(err);
-        showToast('Lỗi tải Phiếu học tập.', 'error');
-      }
+    setIsGeneratingSlide(true);
+    const content = await worksheetUtils.generateInclassWorksheetMarkdown(plan, data, showToast);
+    if (content) {
+      const fakePlan = { ...plan, title: (plan.title || 'GiaoAn') + ' - Phieu hoc tap tai lop', content };
+      const { exportToWordA4 } = await import('../../utils/wordExportA4');
+      await exportToWordA4(fakePlan as any, showToast, 'portrait');
+    }
+    setIsGeneratingSlide(false);
+  };
+
+  const handleGenerateHomeworkWorksheet = async () => {
+    if (!plan) return;
+    setIsGeneratingSlide(true);
+    const content = await worksheetUtils.generateHomeworkWorksheetMarkdown(plan, data, showToast);
+    if (content) {
+      const fakePlan = { ...plan, title: (plan.title || 'GiaoAn') + ' - Bai tap ve nha', content };
+      const { exportToWordA4 } = await import('../../utils/wordExportA4');
+      await exportToWordA4(fakePlan as any, showToast, 'portrait');
     }
     setIsGeneratingSlide(false);
   };
@@ -114,45 +107,24 @@ export const ViewPlanModal = ({ plan, data, showToast, onClose, onEdit }: ViewPl
                   </span>
                 </div>
               </div>
-              <button
-                onClick={onClose}
-                className="p-2 bg-white hover:bg-slate-200 rounded-xl transition-colors shadow-sm shrink-0"
-                title="Đóng"
+                            <button
+                onClick={() => withGuardrail(plan.content, data.templates?.find(t => t.id === plan.templateId)?.files?.find(f => !!f.skeleton)?.skeleton, 'export_word', handleGenerateInclassWorksheet)}
+                disabled={isGeneratingSlide}
+                className="px-6 py-2.5 bg-white border border-green-200 text-green-700 hover:bg-green-50 hover:border-green-300 rounded-xl font-bold text-sm flex items-center gap-2 transition-all mr-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Dùng AI sinh Phiếu học tập tại lớp"
               >
-                <X className="w-5 h-5 text-slate-400" />
-              </button>
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-8">
-              <div className="prose prose-slate max-w-none markdown-body">
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm, remarkMath]}
-                  rehypePlugins={[rehypeRaw, rehypeKatex]}
-                >
-                  {plan.content || '*(Chưa có nội dung)*'}
-                </ReactMarkdown>
-              </div>
-            </div>
-
-            <div className="p-5 bg-slate-50 border-t border-slate-100 flex flex-wrap gap-3 justify-end items-center">
-              <button
-                onClick={() => withGuardrail(plan.content, data.templates?.find(t => t.id === plan.templateId)?.files?.find(f => !!f.skeleton)?.skeleton, 'export_word', handleExportSCORM)}
-                className="px-6 py-2.5 bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-50 hover:border-indigo-300 rounded-xl font-bold text-sm flex items-center gap-2 transition-all mr-auto"
-                title="Đóng gói SCORM 1.2 đưa lên LMS"
-              >
-                <Package className="w-4 h-4" />
-                Xuất SCORM
+                {isGeneratingSlide ? <Loader2 className="w-4 h-4 animate-spin" /> : <ClipboardList className="w-4 h-4" />}
+                {isGeneratingSlide ? 'Đang xử lý...' : 'Tạo Phiếu học tập'}
               </button>
               
               <button
-                onClick={() => withGuardrail(plan.content, data.templates?.find(t => t.id === plan.templateId)?.files?.find(f => !!f.skeleton)?.skeleton, 'export_word', handleGenerateWorksheet)}
+                onClick={() => withGuardrail(plan.content, data.templates?.find(t => t.id === plan.templateId)?.files?.find(f => !!f.skeleton)?.skeleton, 'export_word', handleGenerateHomeworkWorksheet)}
                 disabled={isGeneratingSlide}
-                className="px-6 py-2.5 bg-white border border-teal-200 text-teal-700 hover:bg-teal-50 hover:border-teal-300 rounded-xl font-bold text-sm flex items-center gap-2 transition-all mr-auto disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Dùng AI sinh Phiếu bài tập/Worksheet từ giáo án và tải về file Word"
+                className="px-6 py-2.5 bg-white border border-orange-200 text-orange-700 hover:bg-orange-50 hover:border-orange-300 rounded-xl font-bold text-sm flex items-center gap-2 transition-all mr-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Dùng AI sinh Phiếu bài tập về nhà"
               >
-                {isGeneratingSlide ? <Loader2 className="w-4 h-4 animate-spin" /> : <FilePenLine className="w-4 h-4" />}
-                {isGeneratingSlide ? 'Đang xử lý...' : 'Tạo Phiếu học tập'}
+                {isGeneratingSlide ? <Loader2 className="w-4 h-4 animate-spin" /> : <Home className="w-4 h-4" />}
+                {isGeneratingSlide ? 'Đang xử lý...' : 'Tạo Bài tập về nhà'}
               </button>
               <button
                 onClick={() => withGuardrail(plan.content, data.templates?.find(t => t.id === plan.templateId)?.files?.find(f => !!f.skeleton)?.skeleton, 'export_word', handleGeneratePPTX)}

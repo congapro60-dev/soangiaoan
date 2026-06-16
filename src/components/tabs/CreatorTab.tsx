@@ -8,6 +8,7 @@ import rehypeKatex from 'rehype-katex';
 import rehypeRaw from 'rehype-raw';
 import { AppData, LessonPlan, TemplateFile } from '../../types';
 import * as exportUtils from '../../utils/exportUtils';
+import * as worksheetUtils from '../../utils/worksheetUtils';
 import { exportToWordA4 } from '../../utils/wordExportA4';
 import { DiagramRenderer } from '../features/creator/DiagramRenderer';
 import { callAI, getActiveApiKey } from '../../lib/aiProviders';
@@ -81,7 +82,7 @@ export const CreatorTab = (props: CreatorTabProps) => {
 
   const [slidePreview, setSlidePreview] = useState<any[] | null>(null);
   const [showAudioOverview, setShowAudioOverview] = useState(false);
-  const [studyGuide, setStudyGuide] = useState<string | null>(null);
+  const [worksheetPreview, setWorksheetPreview] = useState<{ type: 'inclass' | 'homework', title: string, content: string } | null>(null);
   const [showPushModal, setShowPushModal] = useState(false);
 
   const handleGenerateSlide = async () => {
@@ -106,44 +107,37 @@ export const CreatorTab = (props: CreatorTabProps) => {
     }
   };
 
-  const handleGenerateStudyGuide = async () => {
-    if(!props.currentPlan.content || !getActiveApiKey(props.data.settings)) {
-       props.showToast("Vui lòng soạn giáo án và cài API Key trước!", "warning");
-       return;
-    }
+  const handleGenerateInclassWorksheet = async () => {
     props.setIsLoading(true);
-    props.showToast("Đang trích xuất cốt lõi bài học để làm hướng dẫn ôn tập...", "info");
-    try {
-      const prompt = `BẠN LÀ CHUYÊN GIA BIÊN SOẠN TÀI LIỆU HỌC TẬP (NOTEBOOK LM STYLE).
- Hãy trích xuất từ Giáo án sau đây thành một bản "Hướng dẫn Học tập (Study Guide)" dành trực tiếp cho Học sinh.
- Giáo án:
- ${props.currentPlan.content}
- 
- Yêu cầu:
- 1. Định dạng Markdown rõ ràng, dễ đọc.
- 2. Cấu trúc gồm 3 phần:
-    - 🎯 Tóm tắt Kiến thức Trọng tâm (Bullet points).
-    - ❓ Câu hỏi Thường gặp (FAQ - giải đáp 2-3 thắc mắc phổ biến).
-    - 📝 Gợi ý Tự học / Luyện tập thêm.
- 3. Văn phong thân thiện, tạo động lực cho học sinh.`;
-      const doc = await callAI(prompt, props.data.settings);
-      if(doc) {
-        setStudyGuide(doc);
-        props.showToast("Đã tạo Hướng dẫn ôn tập!");
-      }
-    } catch(e) {
-      props.showToast("Lỗi khi tạo Study Guide", "error");
-    } finally {
-      props.setIsLoading(false);
+    const content = await worksheetUtils.generateInclassWorksheetMarkdown(props.currentPlan, props.data, props.showToast);
+    if (content) {
+      setWorksheetPreview({ type: 'inclass', title: 'Phiếu học tập tại lớp', content });
+      props.showToast("Đã tạo Phiếu học tập tại lớp!", "success");
     }
+    props.setIsLoading(false);
   };
 
-  const handleDownloadStudyGuidePDF = async () => {
-    if (!studyGuide) return;
-    await exportUtils.exportToPDF(
-      { title: 'Hướng dẫn Học tập', content: studyGuide },
-      props.showToast
-    );
+  const handleGenerateHomeworkWorksheet = async () => {
+    props.setIsLoading(true);
+    const content = await worksheetUtils.generateHomeworkWorksheetMarkdown(props.currentPlan, props.data, props.showToast);
+    if (content) {
+      setWorksheetPreview({ type: 'homework', title: 'Phiếu bài tập về nhà', content });
+      props.showToast("Đã tạo Phiếu bài tập về nhà!", "success");
+    }
+    props.setIsLoading(false);
+  };
+
+  const handleDownloadWorksheetWord = async () => {
+    if (!worksheetPreview) return;
+    const fakePlan = {
+      title: `${props.currentPlan.title || 'GiaoAn'} - ${worksheetPreview.title}`,
+      content: worksheetPreview.content,
+      templateId: props.currentPlan.templateId,
+      grade: props.currentPlan.grade,
+      week: props.currentPlan.week,
+      subjectId: props.currentPlan.subjectId
+    };
+    exportToWordA4(fakePlan, props.showToast, 'portrait');
   };
 
   const hasResult = (props.generationMode === 'single' && props.currentPlan.content) || (props.generationMode === 'bulk' && props.bulkResults.length > 0);
@@ -253,7 +247,8 @@ export const CreatorTab = (props: CreatorTabProps) => {
                           exportToWordA4={(orientation) => withGuardrail(props.currentPlan.content, props.lessonDocs.find(d => d.id === props.currentPlan.templateId)?.skeleton, 'export_word', () => exportToWordA4(props.currentPlan, props.showToast, orientation))}
                           handleGenerateSlide={handleGenerateSlide}
                           exportToLaTeX={() => withGuardrail(props.currentPlan.content, props.lessonDocs.find(d => d.id === props.currentPlan.templateId)?.skeleton, 'export_latex', props.exportToLaTeX)}
-                          handleGenerateStudyGuide={handleGenerateStudyGuide}
+                          handleGenerateInclassWorksheet={handleGenerateInclassWorksheet}
+                          handleGenerateHomeworkWorksheet={handleGenerateHomeworkWorksheet}
                           setShowAudioOverview={setShowAudioOverview}
                           onCreateExam={props.onCreateExam}
                           onPushToDrive={() => setShowPushModal(true)}
@@ -263,7 +258,7 @@ export const CreatorTab = (props: CreatorTabProps) => {
               </div>
 
               {/* View area switching */}
-              {studyGuide ? (
+              {worksheetPreview ? (
                 <div className="flex-1 overflow-y-auto p-4 sm:p-10 custom-scrollbar scroll-smooth">
                   <div className="max-w-4xl mx-auto space-y-8">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-indigo-50 pb-6">
@@ -272,19 +267,19 @@ export const CreatorTab = (props: CreatorTabProps) => {
                           <BookOpen className="text-white w-6 h-6" />
                         </div>
                         <div>
-                          <h2 className="text-2xl font-black text-slate-800 tracking-tight">Hướng dẫn Học tập</h2>
-                          <p className="text-sm text-slate-500 font-medium">Bản tinh hoa dành cho Học sinh (NotebookLM Style)</p>
+                          <h2 className="text-2xl font-black text-slate-800 tracking-tight">{worksheetPreview.title}</h2>
+                          <p className="text-sm text-slate-500 font-medium">Bản tinh hoa dành cho Học sinh (Chuẩn Sư phạm & Bộ GDĐT)</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={handleDownloadStudyGuidePDF}
+                          onClick={handleDownloadWorksheetWord}
                           className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-indigo-700 transition-all text-sm shadow-sm shadow-indigo-200"
                         >
-                          <Download className="w-4 h-4" /> Tải PDF
+                          <Download className="w-4 h-4" /> Tải Word (.docx)
                         </button>
                         <button
-                          onClick={() => setStudyGuide(null)}
+                          onClick={() => setWorksheetPreview(null)}
                           className="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-200 transition-all text-sm"
                         >
                           <X className="w-4 h-4" /> Quay lại giáo án
@@ -341,7 +336,7 @@ export const CreatorTab = (props: CreatorTabProps) => {
                             );
                           }
                         }}
-                      >{studyGuide}</ReactMarkdown>
+                      >{worksheetPreview.content}</ReactMarkdown>
                     </motion.div>
                   </div>
                 </div>
