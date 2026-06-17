@@ -415,20 +415,21 @@ export const CreatorTab = (props: CreatorTabProps) => {
               />
             </div>
           </div>
-        ) : !props.currentPlan.content ? (
-          /* Single mode or parsing phase: full overlay only when content is empty */
+        ) : (
+          /* Single mode or parsing phase: full overlay */
           <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm z-50 flex items-center justify-center rounded-[40px]">
             <div className="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center gap-4">
               <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
               <div className="text-center">
                 <h3 className="font-bold text-slate-800">
-                  Hệ thống AI đang phân tích dữ liệu...
+                  Hệ thống AI đang xử lý...
+                  <SimulatedProgress />
                 </h3>
-                <p className="text-sm text-slate-500 font-medium">Vui lòng đợi trong giây lát</p>
+                <p className="text-sm text-slate-500 font-medium">Vui lòng không đóng trang này</p>
               </div>
             </div>
           </div>
-        ) : null
+        )
       )}
     </motion.div>
   );

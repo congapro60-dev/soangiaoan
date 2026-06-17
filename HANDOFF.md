@@ -10,7 +10,46 @@
 
 ## 1. Trạng thái hiện tại
 
-### 1.0 Cập nhật phiên 2026-06-15 & 2026-06-16 — Hoàn tất Native OMML Export, Fix Markdown & Lập Workflow Mới
+### 1.0 Cập nhật phiên 2026-06-17 & 2026-06-18 — Khôi phục Pipeline Giáo án & Điều tra Lỗi Worksheet
+
+#### Đã hoàn tất (merged to main)
+
+**Khôi phục pipeline soạn giáo án về bản ổn định (3 bước)**
+
+Bối cảnh: Phiên trước Anti thêm Critic/Fix agent và bỏ FormatAgent (commit `8897a66`). Pipeline mới gây ra các lỗi nghiêm trọng trên production: nội dung giáo án bị lặp, lộ thẻ `<lesson_content>` XML, bảng vỡ format. Claude thử restore FormatAgent (commit `6c399b3`) nhưng bỏ luôn `onStreamChunk` → app trắng màn hình khi đang soạn. Đã revert (`ebb0c79`), sau đó khôi phục đúng cách trong phiên này.
+
+**3 file đã sửa:**
+- `src/lib/agents/Coordinator.ts`: Đổi lại pipeline `Planning → Content → Format` (bỏ Critic/Fix). Bỏ `FAST_MODEL_MAP` — Planning dùng cùng model với Content để đảm bảo chất lượng dàn ý.
+- `src/lib/agents/ContentAgent.ts`: Khôi phục prompt cũ dùng thẻ `<draft_content>` (không phải `<lesson_content>`), tập trung chiều sâu chuyên môn — FormatAgent lo phần format.
+- `src/components/tabs/CreatorTab.tsx`: Khôi phục `<SimulatedProgress />` hiển thị % real-time khi loading, text "Hệ thống AI đang xử lý... X%" + "Vui lòng không đóng trang này".
+
+**Lý do không thêm Critic/Fix trở lại**: Critic/Fix là ý tưởng đúng nhưng phải đặt giữa Content và Format (không thay thế Format). Chưa implement vì cần test cẩn thận. Pipeline hiện tại ổn định.
+
+#### Tồn đọng — CHƯA fix (việc cho phiên tiếp)
+
+**P0 — Phiếu học tập tại lớp bảng vỡ khi xuất Word** (`src/utils/worksheetUtils.ts` + `src/utils/renderWordCore.ts`):
+- Nguyên nhân: Prompt sinh bảng 3 cột ("Bài tập | Lựa chọn A | Lựa chọn B"). `getCellWidth()` trong `renderWordCore.ts:275` chia 30%/30%/40% → cột "Bài tập" chỉ ~2.7cm, quá hẹp cho công thức Toán → chữ xếp dọc, file 30 trang toàn bảng vỡ.
+- Fix đề xuất: Đổi prompt phiếu tại lớp sang **bảng 2 cột** (tiêu đề bài đặt trên bảng làm heading, không làm cột). Cột A 45%/Cột B 55%.
+
+**P1 — BTVN thiếu cấu trúc "Cốt lõi & Chinh phục"** (`src/utils/worksheetUtils.ts:89-103`):
+- Nguyên nhân: Prompt cũ chỉ liệt kê 4 loại câu hỏi đánh số 1/2/3/4 liên tiếp → số thứ tự câu lộn xộn trong file xuất ra. Chưa bao giờ code phần "Cốt lõi & Chinh phục".
+- Fix đề xuất: Cập nhật prompt theo đúng cấu trúc Anti đã thiết kế:
+  - **PHẦN 2: NHIỆM VỤ CỐT LÕI** (8 điểm): I. Trắc nghiệm nhiều lựa chọn + II. Đúng/Sai + III. Trả lời ngắn
+  - **GÓC PHÁT TRIỂN NĂNG LỰC** (9-10 điểm): Tự luận mô hình hóa thực tế
+  - Số thứ tự câu đánh liên tục xuyên suốt (không restart ở mỗi phần)
+
+**P2 — 3 lỗi TypeScript sẵn có (không do phiên này gây ra)**:
+- `MathOcrUploader.tsx:173` — prop `zoom` không tồn tại trên `DiagramRendererProps`
+- `TestingTab.tsx:918` — thiếu `settings`, `showToast` khi dùng `MathOcrUploader`
+- `promptBuilder.ts:2` — `Settings` không được export từ `../types`
+
+**P3 — Gemini API quota**:
+- Trong phiên test local, Gemini free tier bị hết quota (lỗi 429 RESOURCE_EXHAUSTED + 503 UNAVAILABLE). Đây là lý do soạn giáo án thất bại khi test, không phải lỗi code.
+- Giải pháp: Nâng lên Gemini paid tier hoặc dùng API key khác khi test nặng.
+
+---
+
+### 1.1 Cập nhật phiên 2026-06-15 & 2026-06-16 — Hoàn tất Native OMML Export, Fix Markdown & Lập Workflow Mới
 - **Quản trị rủi ro & Workflow Agent**:
   - Đã thêm Superpower Skill mới tại `.agents/skills/strict-approval-workflow/SKILL.md`.
   - **Quy tắc mới bắt buộc**: Mọi Agent trước khi code sửa lỗi/thêm tính năng phải phân tích 4 yếu tố (Rủi ro, Ảnh hưởng chéo, Ưu điểm, Nhược điểm) và **CHỜ** user phê duyệt bằng "magic word" (vd: "code đi") mới được phép viết code.
@@ -228,5 +267,11 @@ Rủi ro chính:
 ## 9. Prompt ngắn cho agent tiếp theo
 
 ```text
-Đọc HANDOFF.md trước. Trạng thái hiện tại: Phase 2A–2E của Clone Template / Markdown Skeleton đã hoàn tất; Phase 3A trở đi chưa code. Nếu làm tiếp, audit code thật trước, code lát cắt nhỏ, chạy npm run test/build/lint, cập nhật HANDOFF, rồi mới commit/push khi người dùng yêu cầu. Không mở rộng sang game/simulation/SCORM nếu chưa xử lý sandbox/security tương ứng.
+Đọc HANDOFF.md trước. Trạng thái hiện tại:
+- Pipeline soạn giáo án đã ổn định: Planning → Content → Format (3 bước). KHÔNG thêm Critic/Fix mà không test kỹ.
+- 2 việc cần làm ngay: (1) Fix phiếu học tập tại lớp bảng vỡ Word — đổi sang bảng 2 cột trong worksheetUtils.ts; (2) Fix BTVN — thêm cấu trúc "Cốt lõi & Chinh phục" vào prompt worksheetUtils.ts.
+- 3 lỗi TypeScript sẵn có chưa fix: MathOcrUploader zoom prop, TestingTab props, promptBuilder Settings type.
+- Gemini free tier hay bị 429 khi test nặng — dùng paid key.
+- Phase 2A–2E Skeleton đã hoàn tất; Phase 3A trở đi chưa code.
+Quy tắc: audit code thật trước, code lát cắt nhỏ, chạy npm run build, cập nhật HANDOFF, commit/push khi người dùng yêu cầu. KHÔNG bao giờ xóa onStreamChunk khỏi ContentAgent.
 ```
