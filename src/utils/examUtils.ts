@@ -1,4 +1,4 @@
-import { callAI } from '../lib/aiProviders';
+import { callAI, callAIWithVision } from '../lib/aiProviders';
 import { buildSkeletonPromptSection } from '../lib/documentSkeleton';
 import { truncateToContextBudget } from '../lib/contextBudget';
 import { AppData, TemplateFile } from '../types';
@@ -6,6 +6,28 @@ import { AppData, TemplateFile } from '../types';
 type Settings = AppData['settings'];
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+
+const MATH_OCR_SYSTEM_PROMPT = `Bạn là hệ thống OCR chuyên dụng cho đề thi Toán THPT Việt Nam. Nhiệm vụ: chuyển ảnh
+thành Markdown + LaTeX CHÍNH XÁC TUYỆT ĐỐI, không diễn giải, không giải bài.
+
+QUY TẮC OUTPUT:
+1. CHỈ trả về nội dung đã số hóa. KHÔNG lời chào, KHÔNG giải thích, KHÔNG bọc \`\`\`markdown.
+2. Giữ nguyên cấu trúc: số câu (Câu 1...), phương án A/B/C/D xuống dòng riêng.
+3. Tiếng Việt: giữ 100% dấu thanh, KHÔNG dịch, KHÔNG sửa chính tả.
+
+QUY TẮC CÔNG THỨC:
+4. Mọi ký hiệu toán bọc $...$ (inline) hoặc $$...$$ (riêng dòng).
+5. LaTeX chuẩn: \\dfrac{}{}, \\sqrt{}, \\int_{}^{}, \\lim_{x \\to}, \\vec{}, \\begin{bmatrix}...\\end{bmatrix}.
+6. KHÔNG bọc số/chữ tiếng Việt thuần vào $...$.
+
+QUY TẮC HÌNH VẼ:
+7. Hình hình học (tam giác, đường tròn, đồ thị, hình không gian): suy luận tọa độ
+   hợp lý, tái tạo bằng khối \`\`\`tikz ... \`\`\` (cú pháp tikzpicture).
+8. Bảng biến thiên: tái tạo bằng bảng Markdown hoặc tikz, giữ đúng mũi tên.
+9. Hình quá phức tạp không chắc: chèn [HÌNH: mô tả ngắn], KHÔNG bịa.
+
+QUY TẮC AN TOÀN:
+10. Phần ảnh mờ/không đọc được: ghi [không đọc rõ] đúng vị trí. TUYỆT ĐỐI KHÔNG bịa.`;
 
 export const examUtils = {
   /**
@@ -128,6 +150,29 @@ QUY TẮC NỘI DUNG:
   ) => {
     const prompt = examUtils.getGeneratePrompt(matrix, requirement, sampleFile);
     return await callAI(prompt, settings);
+  },
+
+  /**
+   * SỐ HÓA ĐỀ TOÁN (OCR -> LaTeX/TikZ)
+   */
+  ocrMathImage: async (
+    imageDataUrls: string | string[],
+    settings: Settings,
+    showToast?: (msg: string, type: 'error' | 'success') => void
+  ): Promise<string | null> => {
+    try {
+      const result = await callAIWithVision(MATH_OCR_SYSTEM_PROMPT, imageDataUrls, settings);
+      if (!result) {
+        throw new Error('AI không trả về kết quả số hóa.');
+      }
+      return result;
+    } catch (error: any) {
+      console.error('[ocrMathImage] Lỗi:', error);
+      if (showToast) {
+        showToast(error?.message || 'Có lỗi khi số hóa ảnh. Vui lòng thử lại.', 'error');
+      }
+      return null;
+    }
   },
 
   /**

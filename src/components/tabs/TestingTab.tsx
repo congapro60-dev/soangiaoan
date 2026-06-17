@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   FileCheck, FilePlus, Shuffle, Upload, Download, FileCode,
-  ShieldCheck, AlertCircle, Loader2, X, CheckCircle2, History, Trash2, LibraryBig, BookMarked
+  ShieldCheck, AlertCircle, Loader2, X, CheckCircle2, History, Trash2, LibraryBig, BookMarked, Image
 } from 'lucide-react';
 import { generateAnswerSheetHTML, generateAnswerKeyTemplateHTML } from '../../utils/answerSheetTemplate';
 import { ExamDocsModal } from '../features/testing/ExamDocsModal';
 import { ExamContentBoard } from '../features/testing/ExamContentBoard';
+import { MathOcrUploader } from '../features/testing/MathOcrUploader';
 
 const openInNewTab = (html: string) => {
   const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
@@ -96,6 +97,13 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
   const [docModalEntry, setDocModalEntry] = useState<HistoryEntry | null>(null);
   const [skeletonWarnings, setSkeletonWarnings] = useState<SkeletonValidationIssue[]>([]);
   const [isWarningDismissed, setIsWarningDismissed] = useState(false);
+  const [isMathOcrOpen, setIsMathOcrOpen] = useState(false);
+
+  const handleInsertMathOcr = (latex: string) => {
+    setTestResult(prev => prev ? prev + '\n\n' + latex : latex);
+    setIsMathOcrOpen(false);
+    showToast('Đã chèn nội dung số hóa vào kết quả.', 'success');
+  };
 
   // Tự xóa entries hết hạn khi mount
   useEffect(() => {
@@ -483,6 +491,16 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
               <Upload className="w-5 h-5 text-primary" />
               Thiết lập dữ liệu đầu vào
             </h4>
+
+            {activeMode === 'create' && (
+              <button
+                onClick={() => setIsMathOcrOpen(true)}
+                className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-bold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2"
+              >
+                <Image className="w-5 h-5" />
+                Upload ảnh đề Toán → LaTeX
+              </button>
+            )}
 
             {activeMode === 'create' && (
               <div className="space-y-4">
@@ -893,6 +911,13 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
           onClose={() => setDocModalEntry(null)}
           settings={data.settings}
           showToast={showToast}
+        />
+      )}
+
+      {isMathOcrOpen && (
+        <MathOcrUploader
+          onInsert={handleInsertMathOcr}
+          onCancel={() => setIsMathOcrOpen(false)}
         />
       )}
     </motion.div>

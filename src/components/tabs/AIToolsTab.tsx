@@ -27,6 +27,7 @@ import {
   type PromptTargetTool,
 } from '../../utils/promptBuilder';
 import { cn } from '../../lib/utils';
+import { PromptBuilderModal } from '../features/prompt-builder/PromptBuilderModal';
 
 interface AIToolsTabProps {
   data: AppData;
@@ -73,6 +74,7 @@ export const AIToolsTab = ({ data, isLoading, setIsLoading, showToast }: AITools
   const [outputFormat, setOutputFormat] = useState<'Markdown' | 'Bảng' | 'JSON' | 'Checklist' | 'Code' | 'Tự chọn'>('Tự chọn');
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [copied, setCopied] = useState(false);
+  const [showPromptBuilder, setShowPromptBuilder] = useState(false);
   const missingApiKey = !data.settings.geminiApiKey && !data.settings.claudeApiKey && !data.settings.openaiApiKey && !data.settings.grokApiKey && !data.settings.deepseekApiKey;
 
   const filteredTools = useMemo(() => {
@@ -180,12 +182,20 @@ export const AIToolsTab = ({ data, isLoading, setIsLoading, showToast }: AITools
               Gom các công cụ hay vào một nơi: viết prompt, mở nhanh web AI bên ngoài, và sau này có thể bổ sung thêm các link thầy/cô gửi.
             </p>
           </div>
-          <button
-            onClick={() => document.getElementById('prompt-writer-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-bold uppercase tracking-wide text-[#005ea1] shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(49,130,206,0.2)]"
-          >
-            <WandSparkles className="h-4 w-4" /> Viết prompt ngay
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={() => document.getElementById('prompt-writer-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-bold uppercase tracking-wide text-[#005ea1] shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(49,130,206,0.2)]"
+            >
+              <WandSparkles className="h-4 w-4" /> Viết prompt ngay
+            </button>
+            <button
+              onClick={() => setShowPromptBuilder(true)}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-purple-600 px-5 py-3 text-sm font-bold uppercase tracking-wide text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(147,51,234,0.4)] hover:bg-purple-700"
+            >
+              <Sparkles className="h-4 w-4" /> Kiến trúc sư Prompt (JSON)
+            </button>
+          </div>
         </div>
       </section>
 
@@ -388,6 +398,14 @@ export const AIToolsTab = ({ data, isLoading, setIsLoading, showToast }: AITools
           })}
         </div>
       </section>
+
+      {showPromptBuilder && (
+        <PromptBuilderModal
+          data={data}
+          showToast={showToast}
+          onClose={() => setShowPromptBuilder(false)}
+        />
+      )}
     </motion.div>
   );
 };

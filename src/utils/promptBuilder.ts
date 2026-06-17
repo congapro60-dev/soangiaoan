@@ -1,3 +1,6 @@
+import { callAI } from '../lib/aiProviders';
+import { Settings } from '../types';
+
 export type PromptTargetTool =
   | 'Google Gemini'
   | 'Claude'
@@ -96,3 +99,60 @@ Trả về đúng cấu trúc sau:
 ## Giả định đã dùng
 - [liệt kê giả định, nếu không có thì ghi "Không có"]`;
 }
+
+export interface StructuredPrompt {
+  role: string;
+  context: string;
+  objective: string;
+  audience: string;
+  tone: string;
+  instructions: string[];
+  output_format: string;
+  sample_prompt: string;
+}
+
+export const generateSystemPrompt = async (
+  idea: string,
+  settings: Settings,
+  showToast?: (msg: string, type: 'error' | 'success' | 'info') => void
+): Promise<StructuredPrompt | null> => {
+  if (showToast) {
+    showToast('AI đang phân tích ý tưởng và thiết kế System Prompt...', 'info');
+  }
+
+  const systemPrompt = `Bạn là một "Kiến trúc sư Prompt" (Prompt Engineer) xuất sắc chuyên về mảng giáo dục.
+Nhiệm vụ của bạn là nhận ý tưởng thô của giáo viên bằng tiếng Việt và chuyển nó thành một "System Prompt" hoàn chỉnh, chuyên nghiệp để cài đặt cho một AI Assistant/Chatbot/Widget.
+
+HÃY PHÂN TÍCH Ý TƯỞNG CỦA NGƯỜI DÙNG VÀ TRẢ VỀ DUY NHẤT MỘT ĐOẠN JSON HỢP LỆ VỚI CẤU TRÚC SAU (không bọc trong \`\`\`json):
+{
+  "role": "Vai trò của AI (vd: Bạn là chuyên gia...).",
+  "context": "Bối cảnh sử dụng (vd: Dùng trong lớp học...).",
+  "objective": "Mục tiêu cốt lõi mà AI cần đạt được.",
+  "audience": "Đối tượng phục vụ (vd: Học sinh lớp 9...).",
+  "tone": "Giọng điệu (vd: Vui vẻ, khích lệ...).",
+  "instructions": [ "Bước 1...", "Bước 2...", "Quy tắc 1..." ],
+  "output_format": "Định dạng đầu ra mong muốn (vd: Bảng, Markdown...).",
+  "sample_prompt": "Một ví dụ prompt ngắn gọn để người dùng bắt đầu gọi AI."
+}
+
+Ý TƯỞNG CỦA GIÁO VIÊN:
+"""
+${idea}
+"""
+
+TRẢ VỀ JSON DUY NHẤT:`;
+
+  try {
+    const raw = await callAI(systemPrompt, settings);
+    const match = raw.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('AI không trả về JSON hợp lệ.');
+    
+    const parsed = JSON.parse(match[0]) as StructuredPrompt;
+    if (showToast) showToast('Đã thiết kế xong System Prompt!', 'success');
+    return parsed;
+  } catch (error: any) {
+    console.error('Lỗi khi generate System Prompt:', error);
+    if (showToast) showToast(`Lỗi: ${error.message}`, 'error');
+    return null;
+  }
+};

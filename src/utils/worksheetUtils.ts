@@ -19,9 +19,17 @@ export const generateInclassWorksheetMarkdown = async (
   showToast('Đang dùng AI tạo Phiếu học tập tại lớp...', 'info');
 
   try {
-    const prompt = `Bạn là chuyên gia sư phạm. Hãy tạo "Phiếu học tập tại lớp" (In-class Worksheet) từ nội dung giáo án sau.
+    const prompt = `Bạn là chuyên gia sư phạm. Hãy tạo "Phiếu học tập tại lớp" (In-class Worksheet) từ nội dung giáo án sau thông qua quy trình 7 bước nghiêm ngặt:
 
-YÊU CẦU CẤU TRÚC:
+BƯỚC 1: Xác định bài học (Mục tiêu, WALT & WILF).
+BƯỚC 2: Trích kiến thức trọng tâm (các khái niệm, định lý quan trọng).
+BƯỚC 3: Định dạng hiển thị (quyết định cấu trúc điền khuyết cho phần lý thuyết).
+BƯỚC 4: Sinh 3 mức độ bài tập (Nhận biết, Thông hiểu, Vận dụng).
+BƯỚC 5: Tạo đáp án (giải chi tiết từng bước).
+BƯỚC 6: Đề xuất hình minh họa (nếu cần thiết, sử dụng tikz).
+BƯỚC 7: Tự rà soát (QC) để đảm bảo chất lượng trước khi xuất kết quả.
+
+SAU KHI SUY NGHĨ QUA 7 BƯỚC (Bọc trong <thinking>...</thinking>), HÃY XUẤT RA KẾT QUẢ CUỐI CÙNG VỚI CẤU TRÚC:
 1. Có phần Mục tiêu bài học (WALT & WILF) để học sinh tự đánh dấu.
 2. Quét qua TẤT CẢ các hoạt động (Khởi động, Hình thành kiến thức, Luyện tập, Vận dụng, Tổng kết).
 3. Ở các phần lý thuyết (Hình thành kiến thức): Thay vì chép lại nguyên văn, hãy thiết kế thành CÁC CÂU ĐIỀN KHUYẾT (VD: Xác suất có điều kiện ký hiệu là .................) để học sinh vừa nghe giảng vừa điền.
@@ -39,7 +47,10 @@ ${currentPlan.content}
 
     const result = await callAI(prompt, data.settings);
     if (!result) throw new Error('AI trả về kết quả rỗng');
-    return result;
+    
+    // Loại bỏ phần suy nghĩ
+    const cleanedResult = result.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
+    return cleanedResult || result;
   } catch (error: any) {
     console.error('Lỗi tạo Phiếu tại lớp:', error);
     showToast(`Lỗi khi tạo Phiếu: ${error.message}`, 'error');
@@ -65,9 +76,17 @@ export const generateHomeworkWorksheetMarkdown = async (
   showToast('Đang dùng AI tạo Bài tập về nhà chuẩn 2025...', 'info');
 
   try {
-    const prompt = `Bạn là chuyên gia sư phạm. Hãy tạo "Phiếu Bài tập về nhà" từ nội dung giáo án sau.
+    const prompt = `Bạn là chuyên gia sư phạm. Hãy tạo "Phiếu Bài tập về nhà" từ nội dung giáo án sau thông qua quy trình 7 bước nghiêm ngặt:
 
-YÊU CẦU CẤU TRÚC:
+BƯỚC 1: Xác định bài học (Phạm vi kiến thức cần củng cố).
+BƯỚC 2: Trích kiến thức trọng tâm (các khái niệm cốt lõi cần ghi nhớ).
+BƯỚC 3: Định dạng hiển thị (quyết định cấu trúc các phần lý thuyết và bài tập).
+BƯỚC 4: Sinh 3 mức độ bài tập (Nhận biết, Thông hiểu, Vận dụng).
+BƯỚC 5: Tạo đáp án (giải chi tiết từng bài).
+BƯỚC 6: Đề xuất hình minh họa (nếu cần thiết, sử dụng tikz).
+BƯỚC 7: Tự rà soát (QC) để đảm bảo bài tập bám sát mục tiêu.
+
+SAU KHI SUY NGHĨ QUA 7 BƯỚC (Bọc trong <thinking>...</thinking>), HÃY XUẤT RA KẾT QUẢ CUỐI CÙNG VỚI CẤU TRÚC:
 PHẦN 1: HỆ THỐNG KIẾN THỨC
 1. Tóm tắt kiến thức trọng tâm.
 2. Cảnh báo các lỗi sai hay mắc phải.
@@ -90,7 +109,10 @@ ${currentPlan.content}
 
     const result = await callAI(prompt, data.settings);
     if (!result) throw new Error('AI trả về kết quả rỗng');
-    return result;
+    
+    // Loại bỏ phần suy nghĩ
+    const cleanedResult = result.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
+    return cleanedResult || result;
   } catch (error: any) {
     console.error('Lỗi tạo Bài tập về nhà:', error);
     showToast(`Lỗi khi tạo Phiếu: ${error.message}`, 'error');

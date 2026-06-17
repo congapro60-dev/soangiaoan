@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Loader2, CheckCircle2, AlertCircle, FileText, FileSpreadsheet, BookOpen } from 'lucide-react';
+import { X, Loader2, CheckCircle2, AlertCircle, FileText, FileSpreadsheet, BookOpen, PenTool } from 'lucide-react';
 import { ExamQuestion, GradeLevel, ParsedExamBundle } from '../../../types';
 import { parseExamMarkdown, saveBundle } from '../../../utils/examParser';
 import { exportAnswerSheetPDF } from '../../../utils/answerSheetExport';
@@ -31,6 +31,7 @@ export const ExamDocsModal = ({ entry, onClose, settings, showToast }: ExamDocsM
   const [parseError, setParseError]       = useState('');
   const [exportingPDF, setExportingPDF]   = useState(false);
   const [exportingWord, setExportingWord] = useState(false);
+  const [exportingHandwriting, setExportingHandwriting] = useState(false);
 
   if (!entry) return null;
 
@@ -107,6 +108,18 @@ export const ExamDocsModal = ({ entry, onClose, settings, showToast }: ExamDocsM
       showToast('Đã tải Bảng điểm Excel!', 'success');
     } catch (err) {
       showToast('Lỗi xuất Excel: ' + (err instanceof Error ? err.message : String(err)), 'error');
+    }
+  };
+
+  const handleExportHandwriting = async () => {
+    setExportingHandwriting(true);
+    try {
+      const { exportHandwrittenSolution } = await import('../../../utils/handwritingCanvas');
+      await exportHandwrittenSolution(entry.content, showToast);
+    } catch (err) {
+      showToast('Lỗi xuất ảnh: ' + (err instanceof Error ? err.message : String(err)), 'error');
+    } finally {
+      setExportingHandwriting(false);
     }
   };
 
@@ -227,7 +240,7 @@ export const ExamDocsModal = ({ entry, onClose, settings, showToast }: ExamDocsM
             <div className="space-y-3">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Bước 3 — Tải xuống</p>
 
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <button
                   onClick={handleExportPDF}
                   disabled={exportingPDF}
@@ -261,6 +274,19 @@ export const ExamDocsModal = ({ entry, onClose, settings, showToast }: ExamDocsM
                   <FileSpreadsheet className="w-5 h-5" />
                   <span>Bảng điểm</span>
                   <span className="font-normal text-orange-400">(Excel)</span>
+                </button>
+
+                <button
+                  onClick={handleExportHandwriting}
+                  disabled={exportingHandwriting}
+                  className="flex flex-col items-center gap-1.5 p-3 bg-purple-50 border border-purple-200 text-purple-700 rounded-xl font-bold text-xs hover:bg-purple-100 transition-all disabled:opacity-60"
+                >
+                  {exportingHandwriting
+                    ? <Loader2 className="w-5 h-5 animate-spin" />
+                    : <PenTool className="w-5 h-5" />
+                  }
+                  <span>Ảnh viết tay</span>
+                  <span className="font-normal text-purple-400">(PNG)</span>
                 </button>
               </div>
 
