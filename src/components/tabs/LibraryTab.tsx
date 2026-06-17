@@ -122,7 +122,7 @@ export const LibraryTab = ({
     if (isGeneratingWorksheetFor) return;
     setIsGeneratingWorksheetFor(plan.id);
     
-    const worksheetMarkdown = await worksheetUtils.generateWorksheetMarkdown(plan, data, showToast);
+    const worksheetMarkdown = await worksheetUtils.generateInclassWorksheetMarkdown(plan, data, showToast);
     
     if (worksheetMarkdown) {
       try {

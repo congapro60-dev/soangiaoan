@@ -14,6 +14,7 @@ interface CreatorToolbarProps {
   setShowAudioOverview: (val: boolean) => void;
   onCreateExam?: () => void;
   onPushToDrive?: () => void;
+  isLoading?: boolean;
 }
 
 export const CreatorToolbar = ({
@@ -26,6 +27,7 @@ export const CreatorToolbar = ({
   setShowAudioOverview,
   onCreateExam,
   onPushToDrive,
+  isLoading,
 }: CreatorToolbarProps) => {
   const [orientation, setOrientation] = useState<PaperOrientation>('portrait');
   const [showOrientationMenu, setShowOrientationMenu] = useState(false);
@@ -44,6 +46,7 @@ export const CreatorToolbar = ({
   }, [showOrientationMenu]);
 
   const orientationLabel = orientation === 'portrait' ? 'Dọc' : 'Ngang';
+  const disabledClass = 'disabled:opacity-50 disabled:cursor-not-allowed';
 
   return (
     <>
@@ -51,8 +54,9 @@ export const CreatorToolbar = ({
       <div className="relative" ref={orientationMenuRef}>
         <button
           onClick={() => setShowOrientationMenu(v => !v)}
-          className="flex items-center gap-1.5 px-3 py-2.5 bg-white border border-slate-100 rounded-xl text-slate-600 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm text-sm font-medium"
-          title="Khổ giấy"
+          className={`flex items-center gap-1.5 px-3 py-2.5 bg-white border border-slate-100 rounded-xl text-slate-600 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm text-sm font-medium ${disabledClass}`}
+          title={isLoading ? "Đang soạn giáo án, vui lòng đợi..." : "Khổ giấy"}
+          disabled={isLoading}
         >
           <RotateCcw className="w-4 h-4" />
           <span>Khổ: {orientationLabel}</span>
@@ -84,8 +88,9 @@ export const CreatorToolbar = ({
       {onCreateExam && (
         <button
           onClick={onCreateExam}
-          className="p-2.5 bg-teal-50 border border-teal-100 rounded-xl text-teal-600 hover:bg-teal-600 hover:text-white transition-all shadow-sm"
-          title="Tạo đề kiểm tra từ giáo án này"
+          className={`p-2.5 bg-teal-50 border border-teal-100 rounded-xl text-teal-600 hover:bg-teal-600 hover:text-white transition-all shadow-sm ${disabledClass}`}
+          title={isLoading ? "Đang soạn giáo án, vui lòng đợi..." : "Tạo đề kiểm tra từ giáo án này"}
+          disabled={isLoading}
         >
           <ClipboardList className="w-5 h-5" />
         </button>
@@ -93,16 +98,18 @@ export const CreatorToolbar = ({
 
       <button
         onClick={() => exportToPDF(orientation)}
-        className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm"
-        title={`Xuất PDF nhanh (${orientationLabel})`}
+        className={`p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm ${disabledClass}`}
+        title={isLoading ? "Đang soạn giáo án, vui lòng đợi..." : `Xuất PDF nhanh (${orientationLabel})`}
+        disabled={isLoading}
       >
         <FileDown className="w-5 h-5" />
       </button>
 
       <button
         onClick={() => exportToWordA4(orientation)}
-        className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm"
-        title={`Xuất Word nhanh chuẩn A4 (${orientationLabel})`}
+        className={`p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm ${disabledClass}`}
+        title={isLoading ? "Đang soạn giáo án, vui lòng đợi..." : `Xuất Word nhanh chuẩn A4 (${orientationLabel})`}
+        disabled={isLoading}
       >
         <FileText className="w-5 h-5" />
       </button>
@@ -115,31 +122,32 @@ export const CreatorToolbar = ({
         <Settings2 className="w-5 h-5" />
       </button> */}
 
-      <button onClick={handleGenerateSlide} className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-orange-600 hover:border-orange-200 transition-all shadow-sm" title="Tạo Slide">
+      <button disabled={isLoading} onClick={handleGenerateSlide} className={`p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-orange-600 hover:border-orange-200 transition-all shadow-sm ${disabledClass}`} title={isLoading ? "Đang soạn giáo án, vui lòng đợi..." : "Tạo Slide"}>
         <Presentation className="w-5 h-5" />
       </button>
-      <button onClick={exportToLaTeX} className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-emerald-600 hover:border-emerald-200 transition-all shadow-sm" title="Xuất LaTeX">
+      <button disabled={isLoading} onClick={exportToLaTeX} className={`p-2.5 bg-white border border-slate-100 rounded-xl text-slate-500 hover:text-emerald-600 hover:border-emerald-200 transition-all shadow-sm ${disabledClass}`} title={isLoading ? "Đang soạn giáo án, vui lòng đợi..." : "Xuất LaTeX"}>
         <FileSpreadsheet className="w-5 h-5" />
       </button>
 
       <div className="w-[1px] h-8 bg-slate-200 mx-1"></div>
 
-      <button onClick={handleGenerateInclassWorksheet} className="p-2.5 bg-green-50 border border-green-100 rounded-xl text-green-600 hover:bg-green-600 hover:text-white transition-all shadow-sm" title="Tạo Phiếu học tập tại lớp">
+      <button disabled={isLoading} onClick={handleGenerateInclassWorksheet} className={`p-2.5 bg-green-50 border border-green-100 rounded-xl text-green-600 hover:bg-green-600 hover:text-white transition-all shadow-sm ${disabledClass}`} title={isLoading ? "Đang soạn giáo án, vui lòng đợi..." : "Tạo Phiếu học tập tại lớp"}>
         <ClipboardList className="w-5 h-5" />
       </button>
       
-      <button onClick={handleGenerateHomeworkWorksheet} className="p-2.5 bg-orange-50 border border-orange-100 rounded-xl text-orange-600 hover:bg-orange-600 hover:text-white transition-all shadow-sm" title="Tạo Bài tập về nhà">
+      <button disabled={isLoading} onClick={handleGenerateHomeworkWorksheet} className={`p-2.5 bg-orange-50 border border-orange-100 rounded-xl text-orange-600 hover:bg-orange-600 hover:text-white transition-all shadow-sm ${disabledClass}`} title={isLoading ? "Đang soạn giáo án, vui lòng đợi..." : "Tạo Bài tập về nhà"}>
         <Home className="w-5 h-5" />
       </button>
-      <button onClick={() => setShowAudioOverview(true)} className="p-2.5 bg-purple-50 border border-purple-100 rounded-xl text-purple-600 hover:bg-purple-600 hover:text-white transition-all shadow-sm" title="Bản tin Audio bài giảng">
+      <button disabled={isLoading} onClick={() => setShowAudioOverview(true)} className={`p-2.5 bg-purple-50 border border-purple-100 rounded-xl text-purple-600 hover:bg-purple-600 hover:text-white transition-all shadow-sm ${disabledClass}`} title={isLoading ? "Đang soạn giáo án, vui lòng đợi..." : "Bản tin Audio bài giảng"}>
         <Headphones className="w-5 h-5" />
       </button>
 
       {onPushToDrive && (
         <button
+          disabled={isLoading}
           onClick={onPushToDrive}
-          className="p-2.5 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
-          title="Đẩy lên Google Drive (qua bot)"
+          className={`p-2.5 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all shadow-sm ${disabledClass}`}
+          title={isLoading ? "Đang soạn giáo án, vui lòng đợi..." : "Đẩy lên Google Drive (qua bot)"}
         >
           <CloudUpload className="w-5 h-5" />
         </button>

@@ -229,14 +229,17 @@ export const CreatorTab = (props: CreatorTabProps) => {
                  <div className="flex flex-wrap gap-2">
                     <button
                       onClick={() => props.setCurrentPlan({ title: '', content: '', subjectId: props.currentPlan.subjectId || 'math', templateId: '', grade: props.currentPlan.grade || '10', week: props.currentPlan.week || '1' })}
-                      className="px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-50 transition-all text-sm"
-                      title="Xóa nội dung hiện tại và soạn bài mới"
+                      className="px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-50 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                      title={props.isLoading ? "Đang soạn giáo án, vui lòng đợi..." : "Xóa nội dung hiện tại và soạn bài mới"}
+                      disabled={props.isLoading}
                     >
                       <FilePlus className="w-4 h-4" /> Soạn bài mới
                     </button>
                     <button
                       onClick={() => withGuardrail(props.currentPlan.content, props.lessonDocs.find(d => d.id === props.currentPlan.templateId)?.skeleton, 'final_save', props.generationMode === 'single' ? props.saveLessonPlan : props.saveBulkPlans)}
-                      className="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 transition-all text-sm shadow-lg shadow-blue-100"
+                      className="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 transition-all text-sm shadow-lg shadow-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={props.isLoading}
+                      title={props.isLoading ? "Đang soạn giáo án, vui lòng đợi..." : ""}
                     >
                       <Save className="w-4 h-4" />
                       {props.generationMode === 'single' ? 'Lưu bài này' : 'Lưu tất cả'}
@@ -252,6 +255,7 @@ export const CreatorTab = (props: CreatorTabProps) => {
                           setShowAudioOverview={setShowAudioOverview}
                           onCreateExam={props.onCreateExam}
                           onPushToDrive={() => setShowPushModal(true)}
+                          isLoading={props.isLoading}
                        />
                     )}
                  </div>
@@ -411,21 +415,20 @@ export const CreatorTab = (props: CreatorTabProps) => {
               />
             </div>
           </div>
-        ) : (
-          /* Single mode or parsing phase: full overlay */
+        ) : !props.currentPlan.content ? (
+          /* Single mode or parsing phase: full overlay only when content is empty */
           <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm z-50 flex items-center justify-center rounded-[40px]">
             <div className="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center gap-4">
               <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
               <div className="text-center">
                 <h3 className="font-bold text-slate-800">
-                  Hệ thống AI đang xử lý...
-                  <SimulatedProgress />
+                  Hệ thống AI đang phân tích dữ liệu...
                 </h3>
-                <p className="text-sm text-slate-500 font-medium">Vui lòng không đóng trang này</p>
+                <p className="text-sm text-slate-500 font-medium">Vui lòng đợi trong giây lát</p>
               </div>
             </div>
           </div>
-        )
+        ) : null
       )}
     </motion.div>
   );

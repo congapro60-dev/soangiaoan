@@ -28,9 +28,10 @@
 - **Ổn định hệ thống sinh Bài học phân hoá (Adaptive Lesson)**:
   - **Regex cạo rác JSON**: Viết hàm bóc tách an toàn để loại bỏ các thẻ Markdown dư thừa (```json) trước khi `JSON.parse` trong các luồng `useLessonCreator`, `adaptiveFromLessonPlan`, và `personalizationEngine`, chống nổ Crash triệt để.
   - **Nới lỏng Schema (Fault-tolerance)**: Hạ cấp toàn bộ các rule Validation khắt khe (phải có đúng 5 câu pre-test, 3 mục tiêu...) từ `error` xuống `warning` trong `validateAdaptiveContentJson`. Từ nay hệ thống sẽ tận dụng kết quả AI và không còn "chặn đứng" toàn bộ bài học khi thiếu vài trường phụ.
-- **Vá lỗi Hiển thị Markdown (Hotfix)**:
-  - Hàm `cleanMarkdownOutput` được nâng cấp để tự động chèn dòng trống trước bảng, cứu sống các giao diện bảng Markdown bị AI sinh thiếu dòng trống.
-  - **Regression đã fix**: Từng có lỗi đẩy nhầm mã TikZ ra khỏi bảng (làm rớt thẻ ````tikz`), gây hiệu ứng sập giao diện toàn bộ bài học. Lỗi đã được vá (revert `isNewBlock`) để mã TikZ được gộp đúng vào trong ô bảng bằng thẻ `<br/>`.
+- **Vá lỗi Hiển thị Markdown & Image Rendering (Hotfix)**:
+  - Cập nhật hàm `cleanMarkdownOutput` để tự động chèn dòng trống trước bảng, cứu sống các giao diện bảng Markdown bị AI sinh thiếu dòng trống.
+  - Tích hợp `krokiRender.ts` vào `renderWordCore.ts` để rasterize tự động các khối TikZ, Mermaid và thẻ `<svg>` thành ảnh PNG (`ImageRun`) khi xuất file `.docx`. Việc xuất Word không còn bị in ra mã code thô của sơ đồ nữa. Placeholder chỉ hiển thị khi có sự cố lấy ảnh.
+  - Sửa lỗi sập giao diện (regression) từng khiến mã TikZ bị tuột ra ngoài bảng. Mọi đoạn code TikZ nay được gộp đúng vào trong ô của bảng bằng `<br/>`.
 - **Nâng cấp Hệ thống Phiếu học tập & Bài tập về nhà (Worksheets)**:
   - **Sửa lỗi định dạng & thiết kế**: Đã loại bỏ hoàn toàn tính năng xuất phiếu học tập sang `.doc` (HTML cũ gây vỡ công thức Toán). Cả 2 loại phiếu (Tại lớp & Về nhà) nay đều xuất thẳng ra chuẩn `.docx` (dùng `exportToWordA4`) đảm bảo công thức Toán OMML hiển thị sắc nét.
   - **Prompt AI sư phạm chuẩn 2025**:
@@ -41,6 +42,7 @@
 
 ### 1.1 Kết luận nhanh
 - Đã giải quyết toàn bộ 8/8 lỗi Export URGENT do người dùng báo cáo (PPTX, DOCX, PDF, Bài học phân hoá).
+- Đặc biệt, DOCX đã hỗ trợ xuất Image thay vì mã code thô đối với các khối đồ họa TikZ/Mermaid/SVG.
 - Hệ thống Export nay cực kỳ ổn định, an toàn và nhanh gọn (hoàn toàn chạy offline trên máy khách).
 - Clone Template / Markdown Skeleton đã hoàn tất qua **Phase 2A → 2E**.
 - Từ Phase 3A trở đi vẫn là **kế hoạch chưa code**.
