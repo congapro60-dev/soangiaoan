@@ -33,10 +33,20 @@ SAU KHI SUY NGHĨ QUA 7 BƯỚC (Bọc trong <thinking>...</thinking>), HÃY XU�
 1. Có phần Mục tiêu bài học (WALT & WILF) để học sinh tự đánh dấu.
 2. Quét qua TẤT CẢ các hoạt động (Khởi động, Hình thành kiến thức, Luyện tập, Vận dụng, Tổng kết).
 3. Ở các phần lý thuyết (Hình thành kiến thức): Thay vì chép lại nguyên văn, hãy thiết kế thành CÁC CÂU ĐIỀN KHUYẾT (VD: Xác suất có điều kiện ký hiệu là .................) để học sinh vừa nghe giảng vừa điền.
-4. CHÚ Ý QUAN TRỌNG NHẤT: BẮT BUỘC Ở PHẦN BÀI TẬP / LUYỆN TẬP / VÍ DỤ: Phải thiết kế dạng Bảng Markdown 2 Cột (Phân hóa Scaffolding) cho TẤT CẢ các bài tập (từ Cơ bản đến Vận dụng).
-   - Cột 1 (LỰA CHỌN A): Có các gợi ý từng bước (VD: Gọi B là... P(B) = .......) và chừa chỗ chấm ............. thật dài để học sinh điền số vào.
-   - Cột 2 (LỰA CHỌN B): Bỏ trống hoàn toàn để học sinh khá giỏi tự giải.
-   - Phải tạo đủ chỗ trống (bằng các dòng chấm: .......................................) ở cả 2 cột.
+4. CHÚ Ý QUAN TRỌNG NHẤT — BẮT BUỘC Ở PHẦN BÀI TẬP / LUYỆN TẬP / VÍ DỤ:
+   - MỖI BÀI TẬP trình bày theo thứ tự:
+     a) Dòng heading: **Bài X (Mức độ ...): [Đề bài đầy đủ ở đây]**
+     b) Bên dưới heading là bảng Markdown ĐÚNG 2 CỘT (không có cột thứ 3 chứa đề bài):
+
+| 🛤️ LỰA CHỌN A — Cần khung sườn | 🚀 LỰA CHỌN B — Tự bơi |
+|:---|:---|
+| **Bước 1:** [gợi ý] P(...) = .......................... | *Tự trình bày lời giải:* |
+| **Bước 2:** [gợi ý] P(...|...) = ....................... | ............................................ |
+| **Kết luận:** ......................................... | ............................................ |
+
+   - Cột A (45% độ rộng): Có gợi ý từng bước và chừa chỗ chấm dài ........................... để học sinh điền kết quả tính toán.
+   - Cột B (55% độ rộng): Bỏ trống hoàn toàn, chỉ có các dòng chấm ................ để học sinh khá giỏi tự trình bày.
+   - TUYỆT ĐỐI KHÔNG tạo bảng 3 cột (đề bài | Lựa chọn A | Lựa chọn B) vì sẽ vỡ layout khi xuất Word.
 5. Cuối phiếu phải có "Vé ra cửa" (Exit Ticket) - dặn dò, tự đánh giá.
 6. Cung cấp ĐÁP ÁN CHI TIẾT TỪNG CÂU ở cuối cùng (sau đường kẻ ngang ---) để giáo viên đối chiếu.
 
@@ -92,15 +102,20 @@ PHẦN 1: HỆ THỐNG KIẾN THỨC
 2. Cảnh báo các lỗi sai hay mắc phải.
 3. Các câu hỏi thường gặp (FAQ) hoặc điểm cần chú ý.
 
-PHẦN 2: BÀI TẬP THỰC HÀNH (Đúng chuẩn Bộ GD&ĐT 2025)
+PHẦN 2: BÀI TẬP THỰC HÀNH — PHÂN HÓA 2 MỨC (Đúng chuẩn Bộ GD&ĐT 2025)
 - Nếu giáo án gốc không đủ bài tập, AI phải TỰ ĐỘNG SINH THÊM bài tập cùng dạng.
-1. Câu hỏi Trắc nghiệm nhiều lựa chọn (khoảng 4-6 câu).
-2. Câu hỏi Đúng / Sai (Mỗi câu có 4 ý a,b,c,d) (1-2 câu).
-3. Câu Trả lời ngắn (Chỉ điền đáp số) (1-2 câu).
-4. Câu Tự luận (Đòi hỏi trình bày rõ ràng, ví dụ bài toán thực tế) (1-2 câu).
+- BẮT BUỘC tách rõ thành 2 mục riêng biệt sau:
+
+**I. NHIỆM VỤ CỐT LÕI** *(Học sinh bắt buộc hoàn thành — chiếm 8 điểm)*
+  - **Trắc nghiệm nhiều lựa chọn** (6 câu — 4 phương án A/B/C/D, mỗi câu đánh số Câu 1, Câu 2...)
+  - **Đúng / Sai** (2 câu — mỗi câu có 4 ý a,b,c,d để học sinh phán đoán Đúng/Sai từng ý)
+  - **Trả lời ngắn** (2 câu — chỉ cần điền đáp số/kết quả cuối)
+
+**II. GÓC PHÁT TRIỂN NĂNG LỰC** *(Dành cho học sinh muốn chinh phục điểm 9-10)*
+  - **Tự luận vận dụng cao** (2 câu — bài toán thực tế đời sống, yêu cầu trình bày lập luận đầy đủ)
 
 PHẦN 3: ĐÁP ÁN CHI TIẾT
-- Giải thích chi tiết cho tất cả các câu ở Phần 2.
+- Giải thích chi tiết cho tất cả các câu ở cả 2 mục của Phần 2.
 
 NỘI DUNG GIÁO ÁN GỐC:
 ---
