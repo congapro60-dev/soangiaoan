@@ -46,18 +46,8 @@ TUYỆT ĐỐI KHÔNG:
   `;
 
   let fullResult = '';
-  // Stream directly to the user so they see the content generating
   await callAIStream(prompt, context.settings, (chunk) => {
     fullResult += chunk;
-    if (context.onStreamChunk) {
-      // Extract what we have so far
-      const match = fullResult.match(/<lesson_content>([\s\S]*?)(?:<\/lesson_content>|$)/i);
-      if (match) {
-        context.onStreamChunk(match[1]);
-      } else {
-        context.onStreamChunk(fullResult);
-      }
-    }
   });
 
   const draftMatch = fullResult.match(/<lesson_content>([\s\S]*?)<\/lesson_content>/i);
