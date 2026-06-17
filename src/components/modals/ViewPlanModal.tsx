@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Edit3, FileText, Calendar, User } from 'lucide-react';
+import { X, Edit3, FileText, Calendar, User, ClipboardList, Home } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
