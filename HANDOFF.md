@@ -1,6 +1,6 @@
 # HANDOFF — Soạn giáo án / học phân hoá
 
-**Cập nhật gần nhất**: 2026-06-11  
+**Cập nhật gần nhất**: 2026-06-18  
 **Repo**: `soangiaoan` — `https://github.com/congapro60-dev/soangiaoan`  
 **Branch chuẩn**: `main`  
 **Production URL để QA UI**: `https://giaoandewey.vercel.app`  
@@ -25,18 +25,19 @@ Bối cảnh: Phiên trước Anti thêm Critic/Fix agent và bỏ FormatAgent (
 
 **Lý do không thêm Critic/Fix trở lại**: Critic/Fix là ý tưởng đúng nhưng phải đặt giữa Content và Format (không thay thế Format). Chưa implement vì cần test cẩn thận. Pipeline hiện tại ổn định.
 
-#### Tồn đọng — CHƯA fix (việc cho phiên tiếp)
+#### ✅ Đã fix thêm trong phiên 2026-06-18 (merged to main)
 
-**P0 — Phiếu học tập tại lớp bảng vỡ khi xuất Word** (`src/utils/worksheetUtils.ts` + `src/utils/renderWordCore.ts`):
-- Nguyên nhân: Prompt sinh bảng 3 cột ("Bài tập | Lựa chọn A | Lựa chọn B"). `getCellWidth()` trong `renderWordCore.ts:275` chia 30%/30%/40% → cột "Bài tập" chỉ ~2.7cm, quá hẹp cho công thức Toán → chữ xếp dọc, file 30 trang toàn bảng vỡ.
-- Fix đề xuất: Đổi prompt phiếu tại lớp sang **bảng 2 cột** (tiêu đề bài đặt trên bảng làm heading, không làm cột). Cột A 45%/Cột B 55%.
+**P0 — Phiếu tại lớp bảng vỡ khi xuất Word** — ĐÃ SỬA (`src/utils/worksheetUtils.ts`):
+- **Nguyên nhân đã xác định**: Prompt cũ sinh bảng **3 cột** ("Bài tập | Lựa chọn A | Lựa chọn B"). `getCellWidth()` trong `renderWordCore.ts:275` chia 30%/30%/40% → cột "Bài tập" chỉ ~2.7cm, quá hẹp → chữ xếp dọc, file 30 trang toàn bảng vỡ.
+- **Cách fix**: Đổi prompt sang **bảng đúng 2 cột** — tiêu đề bài tập đặt trên dòng heading `**Bài X: [đề bài]**`, bảng bên dưới chỉ gồm Cột A (45%) và Cột B (55%). Thêm lệnh cấm tường minh "TUYỆT ĐỐI KHÔNG tạo bảng 3 cột" kèm ví dụ mẫu trong prompt.
 
-**P1 — BTVN thiếu cấu trúc "Cốt lõi & Chinh phục"** (`src/utils/worksheetUtils.ts:89-103`):
-- Nguyên nhân: Prompt cũ chỉ liệt kê 4 loại câu hỏi đánh số 1/2/3/4 liên tiếp → số thứ tự câu lộn xộn trong file xuất ra. Chưa bao giờ code phần "Cốt lõi & Chinh phục".
-- Fix đề xuất: Cập nhật prompt theo đúng cấu trúc Anti đã thiết kế:
-  - **PHẦN 2: NHIỆM VỤ CỐT LÕI** (8 điểm): I. Trắc nghiệm nhiều lựa chọn + II. Đúng/Sai + III. Trả lời ngắn
-  - **GÓC PHÁT TRIỂN NĂNG LỰC** (9-10 điểm): Tự luận mô hình hóa thực tế
-  - Số thứ tự câu đánh liên tục xuyên suốt (không restart ở mỗi phần)
+**P1 — BTVN thiếu cấu trúc "Cốt lõi & Chinh phục"** — ĐÃ SỬA (`src/utils/worksheetUtils.ts`):
+- **Nguyên nhân đã xác định**: Prompt cũ chỉ liệt kê 4 loại câu hỏi đánh số 1/2/3/4 liên tiếp → AI sinh số thứ tự lộn xộn, không có phân hóa 2 mức.
+- **Cách fix**: Cập nhật prompt theo đúng cấu trúc đã thiết kế:
+  - **I. NHIỆM VỤ CỐT LÕI** (8 điểm — bắt buộc): Trắc nghiệm (6 câu) + Đúng/Sai (2 câu, 4 ý mỗi câu) + Trả lời ngắn (2 câu)
+  - **II. GÓC PHÁT TRIỂN NĂNG LỰC** (9-10 điểm — tự chọn): Tự luận vận dụng cao (2 câu thực tế đời sống)
+
+#### Tồn đọng — CHƯA fix
 
 **P2 — 3 lỗi TypeScript sẵn có (không do phiên này gây ra)**:
 - `MathOcrUploader.tsx:173` — prop `zoom` không tồn tại trên `DiagramRendererProps`
