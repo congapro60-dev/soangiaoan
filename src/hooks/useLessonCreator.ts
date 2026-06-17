@@ -774,7 +774,6 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
 
         try {
           const finalContent = await import('../lib/agents').then(m => m.runMultiAgentPipeline(agentContext));
-          setCurrentPlan(prev => ({ ...prev, content: cleanMarkdownOutput(finalContent) }));
           const skeletonValidation = validateMarkdownAgainstSkeleton(finalContent, activeSkeleton);
           if (activeSkeleton && skeletonValidation.issues.length > 0) {
             console.warn('Phase 2A Markdown Skeleton validation warnings:', skeletonValidation);

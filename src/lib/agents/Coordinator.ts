@@ -2,7 +2,6 @@ import { AgentContext } from './types';
 import { executePlanningAgent } from './PlanningAgent';
 import { executeContentAgent } from './ContentAgent';
 import { executeCriticAgent, executeFixAgent } from './CriticAgent';
-import { executeFormatAgent } from './FormatAgent';
 
 const FAST_MODEL_MAP: Record<string, string> = {
   'gemini-3.5-flash':        'gemini-3.1-flash-lite',
@@ -32,23 +31,20 @@ export const runMultiAgentPipeline = async (context: AgentContext): Promise<stri
     // 3. Critic Phase
     if (context.onStatusChange) context.onStatusChange('Đang rà soát và đánh giá (Critic Agent)...');
     const criticResult = await executeCriticAgent(fastContext, plan, content.rawContent);
-
-    let rawContent = content.rawContent;
-
-    if (!criticResult.ok && criticResult.issues.length > 0) {
-      // 4. Fix Phase
-      if (context.onStatusChange) context.onStatusChange('Đang sửa đổi nội dung (Fix Agent)...');
-      rawContent = await executeFixAgent(context, content.rawContent, criticResult.issues);
+    
+    if (criticResult.ok || criticResult.issues.length === 0) {
+       if (context.onStatusChange) context.onStatusChange('Hoàn tất!');
+       return content.rawContent;
     }
 
-    // 5. Format Phase — biên tập, làm sạch thẻ rác, chuẩn hóa bảng
-    if (context.onStatusChange) context.onStatusChange('Đang hoàn thiện và định dạng (Format Agent)...');
-    const finalResult = await executeFormatAgent(context, { rawContent });
+    // 4. Fix Phase
+    if (context.onStatusChange) context.onStatusChange('Đang sửa đổi nội dung (Fix Agent)...');
+    const fixedContent = await executeFixAgent(context, content.rawContent, criticResult.issues);
 
     if (context.onStatusChange) context.onStatusChange('Hoàn tất!');
-    return finalResult.finalMarkdown;
+    return fixedContent;
   } catch (error) {
-    console.error("Multi-Agent Pipeline Error:", error);
+    console.error("Single-Pass Pipeline Error:", error);
     if (context.onStatusChange) context.onStatusChange('Lỗi trong quá trình sinh giáo án.');
     throw error;
   }

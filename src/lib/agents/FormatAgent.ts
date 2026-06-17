@@ -30,6 +30,15 @@ Trả về duy nhất nội dung Markdown cuối cùng bên trong thẻ <lesson_
   let fullResult = '';
   await callAIStream(prompt, context.settings, (chunk) => {
     fullResult += chunk;
+    if (context.onStreamChunk) {
+      const match = fullResult.match(/<lesson_content>([\s\S]*?)(?:<\/lesson_content>|$)/i);
+      if (match) {
+        // Return cleaned markdown in real-time
+        context.onStreamChunk(cleanMarkdownOutput(match[1]));
+      } else {
+        context.onStreamChunk(cleanMarkdownOutput(fullResult));
+      }
+    }
   });
 
   const finalMatch = fullResult.match(/<lesson_content>([\s\S]*?)<\/lesson_content>/i);
