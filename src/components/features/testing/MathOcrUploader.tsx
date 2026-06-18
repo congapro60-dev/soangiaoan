@@ -170,7 +170,6 @@ export const MathOcrUploader = ({ onInsert, onCancel, settings, showToast }: Pro
                             <DiagramRenderer
                               code={codeContent}
                               type="tikz"
-                              zoom={1.5}
                             />
                           </div>
                         );

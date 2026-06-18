@@ -918,6 +918,8 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
         <MathOcrUploader
           onInsert={handleInsertMathOcr}
           onCancel={() => setIsMathOcrOpen(false)}
+          settings={data.settings}
+          showToast={showToast}
         />
       )}
     </motion.div>

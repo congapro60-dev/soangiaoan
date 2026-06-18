@@ -1,5 +1,5 @@
 import { callAI } from '../lib/aiProviders';
-import { Settings } from '../types';
+import { AppData } from '../types';
 
 export type PromptTargetTool =
   | 'Google Gemini'
@@ -113,7 +113,7 @@ export interface StructuredPrompt {
 
 export const generateSystemPrompt = async (
   idea: string,
-  settings: Settings,
+  settings: AppData['settings'],
   showToast?: (msg: string, type: 'error' | 'success' | 'info') => void
 ): Promise<StructuredPrompt | null> => {
   if (showToast) {
