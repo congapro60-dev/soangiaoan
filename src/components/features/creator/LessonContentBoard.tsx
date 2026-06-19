@@ -211,6 +211,12 @@ export const LessonContentBoard = ({
                          const cleanTikz = codeString.replace(/^(latex|tikz|tex)\s*/i, '').trim();
                          return <DiagramRenderer code={cleanTikz} type="tikz" />;
                       }
+
+                      const isGeogebra = lang === 'geogebra' || codeString.trim().toLowerCase().startsWith('geogebra');
+                      if (isGeogebra) {
+                         const cleanGeogebra = codeString.replace(/^geogebra\s*/i, '').trim();
+                         return <DiagramRenderer code={cleanGeogebra} type="geogebra" />;
+                      }
                       
                       const isPrompt = codeString.trim().toLowerCase().startsWith('prompt ');
                       if (isPrompt) {
@@ -315,6 +321,12 @@ export const LessonContentBoard = ({
                            const cleanTikz = codeString.replace(/^(latex|tikz|tex)\s*/i, '').trim();
                            return <DiagramRenderer code={cleanTikz} type="tikz" />;
                         }
+
+                        const isGeogebra = lang === 'geogebra' || codeString.trim().toLowerCase().startsWith('geogebra');
+                        if (isGeogebra) {
+                           const cleanGeogebra = codeString.replace(/^geogebra\s*/i, '').trim();
+                           return <DiagramRenderer code={cleanGeogebra} type="geogebra" />;
+                        }
                         
                         const isPrompt = lang === 'prompt' || /^prompt(?:\s|<br\s*\/?>)/i.test(codeString.trim());
                         if (isPrompt) {
@@ -359,6 +371,7 @@ export const LessonContentBoard = ({
                     components={{
                       code({ node, inline, className, children, ...props }: any) {
                         const match = /language-(\w+)/.exec(className || '');
+                        const lang = match?.[1]?.toLowerCase();
                         const codeString = String(children).replace(/\n$/, '');
                         const isSvg = codeString.trim().startsWith('<svg') || codeString.trim().startsWith('xml <svg') || codeString.trim().startsWith('html <svg');
                         if (isSvg) {
@@ -369,6 +382,11 @@ export const LessonContentBoard = ({
                         if (isTikz) {
                            const cleanTikz = codeString.replace(/^(latex|tikz|tex)\s*/i, '').trim();
                            return <DiagramRenderer code={cleanTikz} type="tikz" />;
+                        }
+                        const isGeogebra = lang === 'geogebra' || codeString.trim().toLowerCase().startsWith('geogebra');
+                        if (isGeogebra) {
+                           const cleanGeogebra = codeString.replace(/^geogebra\s*/i, '').trim();
+                           return <DiagramRenderer code={cleanGeogebra} type="geogebra" />;
                         }
                         return <code className={className} {...props}>{children}</code>;
                       }

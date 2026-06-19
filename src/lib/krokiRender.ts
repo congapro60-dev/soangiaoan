@@ -1,6 +1,6 @@
 import pako from 'pako';
 
-export type DiagramType = 'tikz' | 'mermaid' | 'svg';
+export type DiagramType = 'tikz' | 'mermaid' | 'svg' | 'geogebra';
 
 export interface DiagramImage {
   data: Uint8Array;
@@ -27,6 +27,12 @@ export function classifyDiagram(text: string, lang?: string): { type: DiagramTyp
   // Mermaid
   if (lowerLang === 'mermaid' || /^(graph|flowchart|sequenceDiagram|classDiagram|stateDiagram|erDiagram|gantt|pie|mindmap)\b/.test(trimmed)) {
     return { type: 'mermaid', clean: trimmed };
+  }
+
+  // GeoGebra
+  if (lowerLang === 'geogebra' || /^geogebra\b/i.test(trimmed)) {
+    const cleanGeogebra = trimmed.replace(/^geogebra\s*/i, '').trim();
+    return { type: 'geogebra', clean: cleanGeogebra };
   }
 
   return null;
@@ -176,6 +182,106 @@ export async function rasterizeSvgToPng(svg: string): Promise<DiagramImage | nul
       img.src = encodedSvg;
     } catch (err) {
       console.error('SVG encode error:', err);
+      resolve(null);
+    }
+  });
+}
+
+export async function rasterizeGeogebraToPng(code: string): Promise<DiagramImage | null> {
+  return new Promise((resolve) => {
+    try {
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'absolute';
+      iframe.style.width = '800px';
+      iframe.style.height = '500px';
+      iframe.style.top = '-9999px';
+      iframe.sandbox.add('allow-scripts');
+      iframe.sandbox.add('allow-pointer-lock');
+
+      const srcDoc = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <script src="https://www.geogebra.org/apps/deployggb.js"></script>
+        <style>body { margin: 0; padding: 0; overflow: hidden; background: white; }</style>
+      </head>
+      <body>
+        <div id="ggb-element"></div>
+        <script>
+          var params = {
+            "appName": "geometry",
+            "width": 800,
+            "height": 500,
+            "showToolBar": false,
+            "showAlgebraInput": false,
+            "showMenuBar": false,
+            "appletOnLoad": function(api) {
+              try {
+                var cmds = \`${code.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
+                var cmdList = cmds.split('\\n');
+                for (var i = 0; i < cmdList.length; i++) {
+                  if (cmdList[i].trim()) {
+                    api.evalCommand(cmdList[i]);
+                  }
+                }
+                setTimeout(function() {
+                  var base64 = api.getPNGBase64(1, false, 300);
+                  window.parent.postMessage({ type: 'geogebra_png_result', data: base64 }, '*');
+                }, 1500); // 1.5s is usually enough for rendering
+              } catch(e) {
+                window.parent.postMessage({ type: 'geogebra_png_result', error: true }, '*');
+              }
+            }
+          };
+          var applet = new GGBApplet(params, true);
+          window.addEventListener("load", function() {
+            applet.inject('ggb-element');
+          });
+        </script>
+      </body>
+      </html>
+      `;
+
+      iframe.srcdoc = srcDoc;
+
+      const timeoutId = setTimeout(() => {
+        window.removeEventListener('message', listener);
+        document.body.removeChild(iframe);
+        resolve(null);
+      }, 15000); // 15 seconds max
+
+      const listener = (event: MessageEvent) => {
+        if (event.data && event.data.type === 'geogebra_png_result') {
+          clearTimeout(timeoutId);
+          window.removeEventListener('message', listener);
+          document.body.removeChild(iframe);
+
+          if (event.data.error || !event.data.data) {
+            resolve(null);
+            return;
+          }
+
+          const base64Data = event.data.data;
+          const binaryString = atob(base64Data);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          
+          resolve({
+            data: bytes,
+            width: 800,
+            height: 500
+          });
+        }
+      };
+
+      window.addEventListener('message', listener);
+      document.body.appendChild(iframe);
+
+    } catch (err) {
+      console.error('GeoGebra rasterize error:', err);
       resolve(null);
     }
   });

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { FileText, Save, MessageSquare, Monitor, Layers, Loader2, Sparkles, X, BookOpen, FilePlus, Download } from 'lucide-react';
+import { FileText, Save, MessageSquare, Monitor, Layers, Loader2, Sparkles, X, BookOpen, FilePlus, Download, Presentation } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
@@ -14,6 +14,7 @@ import { DiagramRenderer } from '../features/creator/DiagramRenderer';
 import { callAI, getActiveApiKey } from '../../lib/aiProviders';
 import { AudioOverview } from '../features/AudioOverview';
 import { PushToDriveModal } from '../modals/PushToDriveModal';
+import { TextToSlideModal } from '../modals/TextToSlideModal';
 import { withGuardrail } from '../../utils/guardrailUtils';
 
 // Subcomponents
@@ -84,6 +85,7 @@ export const CreatorTab = (props: CreatorTabProps) => {
   const [showAudioOverview, setShowAudioOverview] = useState(false);
   const [worksheetPreview, setWorksheetPreview] = useState<{ type: 'inclass' | 'homework', title: string, content: string } | null>(null);
   const [showPushModal, setShowPushModal] = useState(false);
+  const [showTextToSlideModal, setShowTextToSlideModal] = useState(false);
 
   const handleGenerateSlide = async () => {
     const slides = await exportUtils.generateSlideData(props.currentPlan, props.data, props.setIsLoading, props.showToast);
@@ -140,7 +142,7 @@ export const CreatorTab = (props: CreatorTabProps) => {
     exportToWordA4(fakePlan, props.showToast, 'portrait');
   };
 
-  const hasResult = (props.generationMode === 'single' && props.currentPlan.content) || (props.generationMode === 'bulk' && props.bulkResults.length > 0);
+  const hasResult = (props.generationMode === 'single' && props.currentPlan.content) || (props.generationMode === 'bulk' && props.bulkResults.length > 0) || !!slidePreview;
 
   return (
     <motion.div 
@@ -205,6 +207,15 @@ export const CreatorTab = (props: CreatorTabProps) => {
                 <Sparkles className="w-5 h-5" />
                 {props.generationMode === 'single' ? 'Bắt đầu Soạn giáo án (AI Single)' : 'Bắt đầu Soạn hàng loạt (AI Bulk)'}
               </button>
+              {props.generationMode === 'single' && (
+                <button
+                  onClick={() => setShowTextToSlideModal(true)}
+                  className="w-full py-4 bg-orange-50 text-orange-600 rounded-2xl font-bold hover:bg-orange-100 transition-all flex items-center justify-center gap-3 border border-orange-100"
+                >
+                  <Presentation className="w-5 h-5" />
+                  Tạo Slide nhanh từ Văn bản thô
+                </button>
+              )}
            </div>
         )}
 
@@ -382,6 +393,18 @@ export const CreatorTab = (props: CreatorTabProps) => {
           settings={props.data.settings}
           showToast={props.showToast}
           onClose={() => setShowPushModal(false)}
+        />
+      )}
+
+      {showTextToSlideModal && (
+        <TextToSlideModal
+          data={props.data}
+          showToast={props.showToast}
+          onClose={() => setShowTextToSlideModal(false)}
+          onGenerateSuccess={(slidesData) => {
+            setSlidePreview(slidesData);
+          }}
+          setIsLoading={props.setIsLoading}
         />
       )}
       

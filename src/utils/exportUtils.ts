@@ -184,6 +184,78 @@ CHỈ TRẢ VỀ JSON, KHÔNG BỌC BỞI \`\`\`json.
   }
 };
 
+export const generateTextToSlideData = async (
+  rawText: string,
+  data: AppData,
+  setIsLoading: (val: boolean) => void,
+  showToast: (msg: string, type?: any) => void
+) => {
+  try {
+    setIsLoading(true);
+    showToast('Đang phân tích văn bản và thiết kế Slide bằng AI, vui lòng đợi...', 'info');
+    const prompt = `
+BẠN LÀ CHUYÊN GIA THIẾT KẾ BÀI TRÌNH CHIẾU SƯ PHẠM ĐẲNG CẤP QUỐC TẾ.
+Dựa vào đoạn văn bản thô sau đây, hãy tóm tắt và tạo cấu trúc Slide bài giảng từ 5–15 slides. Nội dung Slide cần ngắn gọn, súc tích (dạng bullet points), giữ nguyên các ý chính quan trọng.
+
+Văn bản thô:
+---
+${rawText}
+---
+
+YÊU CẦU BẮT BUỘC:
+1. Trích xuất các ý chính để đưa vào mảng "points" (tối đa 3-4 ý mỗi slide).
+2. Viết lời dẫn chi tiết vào trường "speakerNotes" (Ghi chú diễn giả) để người thuyết trình đọc.
+3. Đề xuất hình ảnh minh họa bằng tiếng Việt vào trường "visualSuggestion".
+4. Trả về JSON thuần tuý là một mảng object theo đúng schema sau:
+[
+  {
+    "type": "walt",
+    "title": "TIÊU ĐỀ / MỤC TIÊU BÀI HỌC",
+    "icon": "🎯",
+    "points": ["Điểm chính 1", "Điểm chính 2"],
+    "imageUrls": [],
+    "speakerNotes": "Lời dẫn mở đầu...",
+    "visualSuggestion": "Gợi ý ảnh minh họa..."
+  },
+  {
+    "type": "content",
+    "title": "PHẦN 1: NỘI DUNG...",
+    "icon": "📌",
+    "points": ["Ý 1", "Ý 2"],
+    "imageUrls": [],
+    "speakerNotes": "Lời diễn giải chi tiết...",
+    "visualSuggestion": "Gợi ý ảnh..."
+  }
+]
+
+5. CÔNG THỨC TOÁN HỌC: PPTX KHÔNG HỖ TRỢ LATEX. BẮT BUỘC dùng ký hiệu text thường dễ đọc. HẠN CHẾ TỐI ĐA MÃ LATEX PHỨC TẠP.
+6. CẤU TRÚC: slide đầu là "walt", slide cuối là "wrapup" (kết luận), các slide giữa là "content".
+7. QUAN TRỌNG: TUYỆT ĐỐI KHÔNG ĐƯA "GỢI Ý HÌNH ẢNH" hay "GỢI Ý LỜI THOẠI" VÀO MẢNG "points".
+CHỈ TRẢ VỀ JSON, KHÔNG BỌC BỞI \`\`\`json.
+    `;
+
+    const response = await callAI(prompt, data.settings);
+    if (!response) throw new Error("No response");
+
+    const match = response.match(/\[[\s\S]*\]/);
+    const jsonStr = match ? match[0] : response.replace(/```json/g, '').replace(/```/g, '').trim();
+
+    const slidesData = JSON.parse(jsonStr);
+    if (!Array.isArray(slidesData) || slidesData.length === 0 || slidesData[0]?.type !== 'walt') {
+      throw new Error('AI chưa trả về cấu trúc slide hợp lệ. Vui lòng thử tạo lại bài trình chiếu.');
+    }
+
+    showToast('Đã thiết kế xong cấu trúc Slide!');
+    return slidesData;
+  } catch (e) {
+    console.error(e);
+    showToast('Lỗi cấu trúc hoặc kết nối AI, vui lòng thử lại', 'error');
+    return null;
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 const PALETTE = {
   primary:   '4A4A4A', // Dark Slate
   accent:    'D97757', // Terracotta (Claude accent)

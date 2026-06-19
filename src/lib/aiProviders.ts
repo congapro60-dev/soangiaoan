@@ -120,7 +120,8 @@ export function getActiveApiKey(settings: Settings): string {
   return settings.geminiApiKey || '';
 }
 
-const getActiveModelId = (provider: ApiProvider, settings: Settings): string => {
+const getActiveModelId = (provider: ApiProvider, settings: Settings, override?: string): string => {
+  if (override) return override;
   if (provider === 'claude') return settings.selectedModel || CLAUDE_MODELS[0].id;
   if (provider === 'openai') return settings.selectedModel || OPENAI_MODELS[0].id;
   if (provider === 'grok') return settings.selectedModel || GROK_MODELS[0].id;
@@ -544,7 +545,8 @@ export async function callAIWithVision(
 export async function callAIStream(
   prompt: string,
   settings: Settings,
-  onChunk: (chunk: string) => void
+  onChunk: (chunk: string) => void,
+  modelOverride?: string
 ): Promise<void> {
   const provider = settings.selectedProvider ?? 'gemini';
   const fallbackModel = DEFAULT_GEMINI_RUNTIME_MODEL;
@@ -553,7 +555,7 @@ export async function callAIStream(
     if (provider === 'claude') {
       const Anthropic = (await import('@anthropic-ai/sdk')).default;
       const client = new Anthropic({ apiKey: settings.claudeApiKey, dangerouslyAllowBrowser: true });
-      const model = getActiveModelId(provider, settings);
+      const model = getActiveModelId(provider, settings, modelOverride);
       const stream = client.messages.stream({
         model,
         max_tokens: CLAUDE_MAX_TOKENS,
@@ -573,7 +575,7 @@ export async function callAIStream(
     if (provider === 'openai') {
       const OpenAI = (await import('openai')).default;
       const client = new OpenAI({ apiKey: settings.openaiApiKey, dangerouslyAllowBrowser: true });
-      const model = getActiveModelId(provider, settings);
+      const model = getActiveModelId(provider, settings, modelOverride);
       const stream = await client.chat.completions.create({
         model,
         max_tokens: OPENAI_MAX_TOKENS,
@@ -595,7 +597,7 @@ export async function callAIStream(
     if (provider === 'grok') {
       const OpenAI = (await import('openai')).default;
       const client = new OpenAI({ apiKey: settings.grokApiKey, baseURL: 'https://api.x.ai/v1', dangerouslyAllowBrowser: true });
-      const model = getActiveModelId(provider, settings);
+      const model = getActiveModelId(provider, settings, modelOverride);
       const stream = await client.chat.completions.create({
         model,
         max_tokens: GROK_MAX_TOKENS,
@@ -617,7 +619,7 @@ export async function callAIStream(
     if (provider === 'deepseek') {
       const OpenAI = (await import('openai')).default;
       const client = new OpenAI({ apiKey: settings.deepseekApiKey, baseURL: 'https://api.deepseek.com', dangerouslyAllowBrowser: true });
-      const model = getActiveModelId(provider, settings);
+      const model = getActiveModelId(provider, settings, modelOverride);
       const stream = await client.chat.completions.create({
         model,
         max_tokens: deepseekMaxTokens(model),
@@ -639,7 +641,7 @@ export async function callAIStream(
     if (provider === 'nvidia') {
       const OpenAI = (await import('openai')).default;
       const client = new OpenAI({ apiKey: settings.nvidiaApiKey, baseURL: 'https://integrate.api.nvidia.com/v1', dangerouslyAllowBrowser: true });
-      const model = getActiveModelId(provider, settings);
+      const model = getActiveModelId(provider, settings, modelOverride);
       const stream = await client.chat.completions.create({
         model,
         max_tokens: OPENAI_MAX_TOKENS,
@@ -665,7 +667,7 @@ export async function callAIStream(
         baseURL: settings.openaiCompatibleBaseUrl || 'https://digishop-api.io.vn/v1',
         dangerouslyAllowBrowser: true 
       });
-      const model = getActiveModelId(provider, settings);
+      const model = getActiveModelId(provider, settings, modelOverride);
       const stream = await client.chat.completions.create({
         model,
         max_tokens: OPENAI_MAX_TOKENS,
@@ -686,12 +688,12 @@ export async function callAIStream(
 
     // default: gemini
     const idx = GEMINI_RUNTIME_MODELS.indexOf(settings.selectedModel);
-    const model = idx >= 0 ? GEMINI_RUNTIME_MODELS[idx] : DEFAULT_GEMINI_RUNTIME_MODEL;
+    const model = getActiveModelId(provider, settings, modelOverride);
     let output = '';
     await callGeminiAIStream(prompt, settings.geminiApiKey, (chunk) => {
       output += chunk;
       onChunk(chunk);
-    }, idx >= 0 ? idx : 0);
+    }, idx >= 0 ? idx : 0, modelOverride);
     recordEstimatedUsage(provider, model, prompt, output);
     return;
   } catch (err) {

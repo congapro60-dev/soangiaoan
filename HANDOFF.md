@@ -1,6 +1,6 @@
 # HANDOFF — Soạn giáo án / học phân hoá
 
-**Cập nhật gần nhất**: 2026-06-18  
+**Cập nhật gần nhất**: 2026-06-19  
 **Repo**: `soangiaoan` — `https://github.com/congapro60-dev/soangiaoan`  
 **Branch chuẩn**: `main`  
 **Production URL để QA UI**: `https://giaoandewey.vercel.app`  
@@ -10,7 +10,30 @@
 
 ## 1. Trạng thái hiện tại
 
-### 1.0 Cập nhật phiên 2026-06-17 & 2026-06-18 — Khôi phục Pipeline Giáo án & Điều tra Lỗi Worksheet
+### 1.0 Cập nhật phiên 2026-06-19 — Text-to-Slide Automation & Đối chiếu Roadmap AI
+
+Bối cảnh: review bản kế hoạch `ai_features_integration_plan.md` (do Antigravity soạn). Kết luận đối chiếu với code thật:
+
+- **Text-to-Slide Automation** (Phase A) — luồng dán văn bản thô → AI sinh cấu trúc slide JSON → preview → xuất PPTX. KHÔNG đụng pipeline giáo án (`Coordinator.ts`), tái dùng 100% engine `downloadPPTX` cũ.
+  - Mới: `src/components/modals/TextToSlideModal.tsx` — modal nhập text độc lập.
+  - Sửa: `src/utils/exportUtils.ts` — thêm `generateTextToSlideData()` (prompt + parse JSON, có guard `slidesData[0].type === 'walt'`).
+  - Sửa: `src/components/tabs/CreatorTab.tsx` — nút "Tạo Slide nhanh từ Văn bản thô" (chế độ single), feed kết quả vào `slidePreview` + `SlidePreviewBoard` sẵn có.
+  - Đã runtime test thành công bằng bot_test.js và verify bằng file PPTX xuất ra.
+
+- **Model Delegation cho FormatAgent** (Phase B) — Ép sử dụng các model tiết kiệm chi phí (`gemini-2.5-flash`, `claude-haiku-4-5-20251001`, `gpt-4o-mini`) trong `FormatAgent.ts` thông qua tham số `modelOverride`. callAIStream được nâng cấp để chấp nhận param này.
+
+- **Tích hợp GeoGebra** (Phase C) — Thêm engine `geogebra` vào `DiagramRenderer.tsx` và `LessonContentBoard.tsx` (nhận diện block ```geogebra). Render an toàn bằng cách tạo iframe srcDoc với sandbox hạn chế (`sandbox="allow-scripts allow-pointer-lock"`), không sử dụng `allow-same-origin` tránh nguy cơ XSS.
+
+- **Export GeoGebra ra Word** (Phase D) — Thêm hàm `rasterizeGeogebraToPng` trong `krokiRender.ts` sử dụng cơ chế postMessage liên miền. Iframe GeoGebra tự xuất PNG base64 gửi ngược về trang chính, sau đó chèn trực tiếp ảnh PNG (`ImageRun`) vào luồng tạo file Word trong `renderWordCore.ts`.
+
+- **Typecheck & Build**: Đã chạy build thành công 0 errors, toàn bộ 4 Phase đều đã sẵn sàng merge/commit.
+
+**Làm rõ roadmap (tránh "đập đi xây lại" thứ đã có):**
+- **AI Grading (Mục 5 trong plan) ĐÃ TỒN TẠI**, không cần làm mới. Code thật: `src/components/tabs/GradingTab.tsx` + `src/utils/gradingUtils.ts` (`callAIWithVision`, chấm theo rubric, batch/smart grading, plagiarism, class analysis).
+- **Delegation Architecture (Mục 1 trong plan) KHÔNG áp dụng cho Planning/Content** — đã thử và revert phiên 2026-06-17 (xem 1.0 cũ bên dưới). Nếu tối ưu chi phí, chỉ an toàn ở FormatAgent.
+- **GeoGebra (Mục 3) phụ thuộc HTML Sandbox (Phase 3A) chưa code** — nhúng applet AI-sinh trực tiếp vào DOM = rủi ro XSS. Phải có sandbox iframe trước (xem mục 5.1).
+
+### 1.0b Cập nhật phiên 2026-06-17 & 2026-06-18 — Khôi phục Pipeline Giáo án & Điều tra Lỗi Worksheet
 
 #### Đã hoàn tất (merged to main)
 
@@ -37,12 +60,16 @@ Bối cảnh: Phiên trước Anti thêm Critic/Fix agent và bỏ FormatAgent (
   - **I. NHIỆM VỤ CỐT LÕI** (8 điểm — bắt buộc): Trắc nghiệm (6 câu) + Đúng/Sai (2 câu, 4 ý mỗi câu) + Trả lời ngắn (2 câu)
   - **II. GÓC PHÁT TRIỂN NĂNG LỰC** (9-10 điểm — tự chọn): Tự luận vận dụng cao (2 câu thực tế đời sống)
 
-#### Tồn đọng — CHƯA fix
+#### ✅ Đã fix thêm trong phiên 2026-06-18 (commit `5e2fa49`)
 
-**P2 — 3 lỗi TypeScript sẵn có (không do phiên này gây ra)**:
-- `MathOcrUploader.tsx:173` — prop `zoom` không tồn tại trên `DiagramRendererProps`
-- `TestingTab.tsx:918` — thiếu `settings`, `showToast` khi dùng `MathOcrUploader`
-- `promptBuilder.ts:2` — `Settings` không được export từ `../types`
+**3 lỗi TypeScript sẵn có** — ĐÃ SỬA (build & `tsc --noEmit` đều PASS, 0 errors):
+- `src/components/features/testing/MathOcrUploader.tsx` — gỡ prop `zoom` không hợp lệ
+- `src/components/tabs/TestingTab.tsx` — bổ sung `settings`, `showToast` khi dùng `MathOcrUploader`
+- `src/utils/promptBuilder.ts` — sửa import type `Settings`
+
+(Lưu ý đường dẫn: `MathOcrUploader.tsx` nằm ở `features/testing/`, `promptBuilder.ts` ở `utils/` — KHÔNG phải `features/creator/` hay `lib/` như một số tài liệu cũ ghi sai.)
+
+#### Tồn đọng — CHƯA fix
 
 **P3 — Gemini API quota**:
 - Trong phiên test local, Gemini free tier bị hết quota (lỗi 429 RESOURCE_EXHAUSTED + 503 UNAVAILABLE). Đây là lý do soạn giáo án thất bại khi test, không phải lỗi code.
@@ -269,10 +296,13 @@ Rủi ro chính:
 
 ```text
 Đọc HANDOFF.md trước. Trạng thái hiện tại:
-- Pipeline soạn giáo án đã ổn định: Planning → Content → Format (3 bước). KHÔNG thêm Critic/Fix mà không test kỹ.
-- 2 việc cần làm ngay: (1) Fix phiếu học tập tại lớp bảng vỡ Word — đổi sang bảng 2 cột trong worksheetUtils.ts; (2) Fix BTVN — thêm cấu trúc "Cốt lõi & Chinh phục" vào prompt worksheetUtils.ts.
-- 3 lỗi TypeScript sẵn có chưa fix: MathOcrUploader zoom prop, TestingTab props, promptBuilder Settings type.
+- Pipeline soạn giáo án đã ổn định: Planning → Content → Format (3 bước). KHÔNG thêm Critic/Fix mà không test kỹ. KHÔNG áp Delegation/model-rẻ cho Planning/Content (đã revert).
+- Build & typecheck PASS, 0 lỗi TypeScript. 3 lỗi TS cũ đã fix ở commit 5e2fa49 — đừng fix lại.
+- Text-to-Slide vừa thêm (working tree, chưa commit) — CẦN test runtime bằng Gemini paid key trước khi tin tưởng.
+- AI Grading ĐÃ CÓ SẴN (GradingTab.tsx + gradingUtils.ts) — đừng tạo mới.
+- GeoGebra cần HTML Sandbox (Phase 3A) làm trước — chưa code.
 - Gemini free tier hay bị 429 khi test nặng — dùng paid key.
 - Phase 2A–2E Skeleton đã hoàn tất; Phase 3A trở đi chưa code.
-Quy tắc: audit code thật trước, code lát cắt nhỏ, chạy npm run build, cập nhật HANDOFF, commit/push khi người dùng yêu cầu. KHÔNG bao giờ xóa onStreamChunk khỏi ContentAgent.
+QUAN TRỌNG: audit code thật trước khi tin HANDOFF/plan — tài liệu có thể drift. Xác minh file/dòng còn tồn tại trước khi sửa.
+Quy tắc: code lát cắt nhỏ, chạy npm run build, cập nhật HANDOFF, commit/push khi người dùng yêu cầu. KHÔNG bao giờ xóa onStreamChunk khỏi ContentAgent.
 ```

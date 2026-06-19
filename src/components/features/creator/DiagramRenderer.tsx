@@ -4,7 +4,7 @@ import { Loader2, Code2, Copy, Check } from 'lucide-react';
 
 interface DiagramRendererProps {
   code: string;
-  type: 'tikz' | 'svg' | 'mermaid' | 'plantuml';
+  type: 'tikz' | 'svg' | 'mermaid' | 'plantuml' | 'geogebra';
 }
 
 export const DiagramRenderer = ({ code, type }: DiagramRendererProps) => {
@@ -30,6 +30,11 @@ export const DiagramRenderer = ({ code, type }: DiagramRendererProps) => {
         } else {
           setError('Mã SVG không hợp lệ');
         }
+        return;
+      }
+
+      if (type === 'geogebra') {
+        // GeoGebra doesn't need fetch, we will render it via iframe srcDoc below
         return;
       }
 
@@ -113,6 +118,82 @@ export const DiagramRenderer = ({ code, type }: DiagramRendererProps) => {
           <summary className="font-medium text-slate-500 hover:text-slate-700 transition-colors">Xem mã code gốc</summary>
           <pre className="mt-2 p-3 bg-white border border-slate-200 rounded-xl overflow-x-auto whitespace-pre-wrap font-mono text-[10px] text-slate-700 select-all">{code}</pre>
         </details>
+      </div>
+    );
+  }
+
+  if (type === 'geogebra') {
+    const srcDoc = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <script src="https://www.geogebra.org/apps/deployggb.js"></script>
+        <style>
+          body { margin: 0; padding: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; background: white; }
+          #ggb-element { width: 100vw; height: 100vh; }
+        </style>
+      </head>
+      <body>
+        <div id="ggb-element"></div>
+        <script>
+          var params = {
+            "appName": "geometry",
+            "width": 800,
+            "height": 500,
+            "showToolBar": false,
+            "showAlgebraInput": false,
+            "showMenuBar": false,
+            "enableRightClick": false,
+            "showResetIcon": true,
+            "language": "vi",
+            "appletOnLoad": function(api) {
+              var cmds = \`${code.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
+              var cmdList = cmds.split('\\n');
+              for (var i = 0; i < cmdList.length; i++) {
+                if (cmdList[i].trim()) {
+                  api.evalCommand(cmdList[i]);
+                }
+              }
+            }
+          };
+          var applet = new GGBApplet(params, true);
+          window.addEventListener("load", function() {
+            applet.inject('ggb-element');
+          });
+
+          // Lắng nghe yêu cầu xuất ảnh từ trang mẹ
+          window.addEventListener('message', function(event) {
+            if (event.data === 'getPNG') {
+              if (window.ggbApplet) {
+                var base64 = window.ggbApplet.getPNGBase64(1, false, 300);
+                event.source.postMessage({ type: 'geogebra_png', data: base64 }, event.origin);
+              }
+            }
+          });
+        </script>
+      </body>
+      </html>
+    `;
+
+    return (
+      <div className="flex justify-center my-6 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-sm hover:shadow-md transition-shadow geogebra-container relative group">
+        <iframe
+          srcDoc={srcDoc}
+          className="w-full aspect-video rounded-xl geogebra-iframe"
+          sandbox="allow-scripts allow-forms allow-pointer-lock"
+          title="GeoGebra Diagram"
+          style={{ minHeight: '400px' }}
+        />
+        <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={handleCopy}
+            className="px-3 py-1.5 bg-white/90 backdrop-blur border border-slate-200 hover:bg-slate-100 rounded-lg text-xs font-semibold text-slate-600 shadow-sm"
+          >
+            {copied ? <Check className="w-3.5 h-3.5 text-green-600 inline mr-1" /> : <Copy className="w-3.5 h-3.5 inline mr-1" />}
+            {copied ? 'Đã chép mã' : 'Sao chép mã'}
+          </button>
+        </div>
       </div>
     );
   }

@@ -27,6 +27,14 @@ BỐ CỤC PHẢN HỒI:
 Trả về duy nhất nội dung Markdown cuối cùng bên trong thẻ <lesson_content> ... </lesson_content>. Đảm bảo tuân thủ mọi nguyên tắc bảng biểu (3 cột, không xuống dòng bừa bãi bằng <br><br>).
   `;
 
+  let formatModel: string | undefined = undefined;
+  const provider = context.settings.selectedProvider ?? 'gemini';
+  if (provider === 'gemini') formatModel = 'gemini-2.5-flash';
+  else if (provider === 'claude') formatModel = 'claude-haiku-4-5-20251001';
+  else if (provider === 'openai') formatModel = 'gpt-4o-mini';
+
+  console.log(`[FormatAgent] Using cost-effective model for formatting: ${formatModel || 'default'} (Provider: ${provider})`);
+
   let fullResult = '';
   await callAIStream(prompt, context.settings, (chunk) => {
     fullResult += chunk;
@@ -39,7 +47,7 @@ Trả về duy nhất nội dung Markdown cuối cùng bên trong thẻ <lesson_
         context.onStreamChunk(cleanMarkdownOutput(fullResult));
       }
     }
-  });
+  }, formatModel);
 
   const finalMatch = fullResult.match(/<lesson_content>([\s\S]*?)<\/lesson_content>/i);
   let finalMarkdown = finalMatch ? finalMatch[1].trim() : fullResult;

@@ -109,7 +109,8 @@ export async function callGeminiAIStream(
   prompt: string,
   apiKey: string,
   onChunk: (chunk: string) => void,
-  modelIndex = 0
+  modelIndex = 0,
+  modelOverride?: string
 ): Promise<void> {
   if (!apiKey) return;
 
@@ -118,7 +119,7 @@ export async function callGeminiAIStream(
   let retryCount = 0;
 
   async function executeStream(idx: number): Promise<void> {
-    const modelName = idx >= 0 && idx < MODELS.length ? MODELS[idx] : MODELS[0];
+    const modelName = modelOverride ? modelOverride : (idx >= 0 && idx < MODELS.length ? MODELS[idx] : MODELS[0]);
 
     try {
       const result = await ai.models.generateContentStream({
