@@ -105,6 +105,7 @@ export interface PracticeTask {
 export interface LearningRouteContent {
   route: LearningRoute;
   explanation: string;
+  guidingQuestions?: string[];
   workedExamples: WorkedExample[];
   practiceTasks: PracticeTask[];
   aiTutorPrompt?: string;
@@ -144,6 +145,7 @@ export interface KnowledgeUnit {
   supportTasks?: PracticeTask[];
   enrichmentTasks?: PracticeTask[];
   externalToolIds?: string[];
+  tikzCode?: string;
   simulationId?: string;  // ref đến lessonSimulations/{lessonId}_{unitId}
   simulationSpec?: AdaptiveSimulationSpec;
 }

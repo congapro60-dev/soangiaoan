@@ -95,7 +95,15 @@ export function adaptiveLessonToDeweyContent(
           ...(unit.supportTasks ?? []),
           ...(unit.enrichmentTasks ?? []),
         ];
+    const guidingQSteps = (rc?.guidingQuestions ?? []).map((q, i) => ({
+      id: `step-guide-${i}`,
+      prompt: normalizeLatexText(q, unit.title),
+      inputPlaceholder: 'Viết suy nghĩ hoặc câu trả lời của em…',
+      feedback: 'Tốt! Tiếp tục với câu hỏi tiếp theo.',
+      formulaToNote: '',
+    }));
     const steps = [
+      ...(guidingQSteps.length > 0 ? guidingQSteps : []),
       {
         id: 'step-explain',
         prompt: normalizeLatexText(rc?.explanation, unit.title),
