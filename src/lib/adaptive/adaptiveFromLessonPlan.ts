@@ -541,6 +541,7 @@ interface UnitJson {
 interface EngageJson {
   story_hook?: string;
   reality_check_message?: string;
+  reading_instructions?: string;
   guiding_question?: string;
   guiding_question_box?: string;
   big_title?: string;
@@ -548,6 +549,7 @@ interface EngageJson {
   foundation_goal?: string;
   standard_goal?: string;
   challenge_goal?: string;
+  visual_cards?: Array<{ title: string; alt: string; caption?: string; svg?: string }>;
 }
 
 interface AdaptiveContentJson {
@@ -657,8 +659,12 @@ const validateAdaptiveContentJson = (content: AdaptiveContentJson, source: Adapt
   if (!content.engage || compactText(content.engage).length < 120) {
     issues.push({ severity: 'warning', code: 'weak_engage', message: 'Hoạt động mở đầu còn thiếu hoặc quá sơ sài.' });
   }
-  if (!Array.isArray(content.units) || content.units.length < 2) {
-    issues.push({ severity: 'warning', code: 'missing_units', message: 'Cần ít nhất 2 mảnh kiến thức.' });
+  const minUnits = Math.max(3, (content.objectives?.length || 3));
+  if (!Array.isArray(content.units) || content.units.length < minUnits) {
+    issues.push({ severity: 'warning', code: 'missing_units', message: `Cần ít nhất ${minUnits} mảnh kiến thức (tương ứng ${content.objectives?.length || 3} mục tiêu).` });
+  }
+  if (Array.isArray(content.units) && Array.isArray(content.objectives) && content.units.length < content.objectives.length) {
+    console.warn(`[Adaptive] AI returned ${content.units.length} units for ${content.objectives.length} objectives`);
   }
   if (!Array.isArray(content.diagnostic_questions) || content.diagnostic_questions.length !== 5) {
     issues.push({ severity: 'warning', code: 'invalid_diagnostic_count', message: 'Pre-test phải có đúng 5 câu.' });
@@ -1011,6 +1017,8 @@ const buildUnitFromJsonData = (unit: UnitJson, objectiveId: string, index: numbe
     responseMode: 'short_text',
   });
 
+  const unitGuidingQuestions = (unit.guiding_questions || []).filter(q => q.trim().length > 0);
+
   const makeRouteContent = (route: LearningRoute): LearningRouteContent => {
     const explanation = route === 'foundation'
       ? (unit.explanation_foundation || unit.explanation_standard)
@@ -1020,6 +1028,7 @@ const buildUnitFromJsonData = (unit: UnitJson, objectiveId: string, index: numbe
     return {
       route,
       explanation: buildSocraticRouteExplanation(unit, explanation || `Tuyến ${route}: ${unit.title}`),
+      guidingQuestions: unitGuidingQuestions.length > 0 ? unitGuidingQuestions : undefined,
       workedExamples: [workedExampleData()],
       practiceTasks: [makePracticeTask(objectiveId, route === 'foundation' ? 'easy' : route === 'standard' ? 'medium' : 'hard', unit.title, 0)],
       aiTutorPrompt: `Hỗ trợ học sinh ở tuyến ${route} học mảnh kiến thức "${unit.title}" bằng chuỗi câu hỏi dẫn dắt siêu nhỏ. Không đưa ngay định nghĩa/công thức; chỉ chốt sau khi học sinh đã quan sát, dự đoán và trả lời từng bước.`,
@@ -1128,8 +1137,9 @@ export const buildAdaptiveLessonFromContentJson = (
     },
     preparation: {
       readingInstructions:
+        engage?.reading_instructions?.trim() ||
         engage?.reality_check_message?.trim() ||
-        `Đọc trước giáo án "${title}", đặc biệt các định nghĩa, phương trình chính tắc, tiêu điểm và yếu tố đặc trưng của từng đường conic; ghi lại điểm còn chưa hiểu để làm pre-test đầu giờ.`,
+        `Đọc trước nội dung "${title}", ghi lại những điểm còn chưa hiểu để làm pre-test đầu giờ.`,
       engage: {
         storyHook: engage?.story_hook?.trim(),
         realityCheckMessage: engage?.reality_check_message?.trim(),
@@ -1142,6 +1152,16 @@ export const buildAdaptiveLessonFromContentJson = (
           standard: engage?.standard_goal?.trim() || objectiveByBloom('apply', 1),
           challenge: engage?.challenge_goal?.trim() || objectiveByBloom('analyze', 2),
         },
+        visualCards: (engage?.visual_cards || [])
+          .filter(card => card?.title && (card?.svg || card?.imageDataUrl))
+          .map(card => ({
+            id: uid('vcard'),
+            title: card.title.trim(),
+            alt: card.alt?.trim() || card.title.trim(),
+            caption: card.caption?.trim(),
+            imageDataUrl: card.imageDataUrl ||
+              (card.svg ? `data:image/svg+xml;utf8,${encodeURIComponent(card.svg)}` : ''),
+          })),
       },
       guidingQuestions: [
         engage?.story_hook?.trim(),
@@ -1225,16 +1245,27 @@ OUTPUT: Trả về DUY NHẤT một JSON object hợp lệ theo schema dưới �
     "student_expectation_prompt": "Gợi ý học sinh tự viết kỳ vọng học tập cho bài này.",
     "foundation_goal": "Mục tiêu Cơ bản đúng bài học.",
     "standard_goal": "Mục tiêu Trọng tâm đúng bài học.",
-    "challenge_goal": "Mục tiêu Nâng cao đúng bài học."
+    "challenge_goal": "Mục tiêu Nâng cao đúng bài học.",
+    "reading_instructions": "Hướng dẫn chuẩn bị trước giờ học, trích/paraphrase từ mục 'Đọc trước'/'Chuẩn bị' trong giáo án nguồn. KHÔNG bịa ngữ cảnh mới.",
+    "visual_cards": [
+      {"title": "Tiêu đề minh họa 1 — đúng chủ đề bài", "alt": "Mô tả ngắn", "caption": "Chú thích giải thích ứng dụng thực tế", "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 420'><!-- SVG minh họa đúng chủ đề bài, màu sắc đẹp, có text --></svg>"},
+      {"title": "Tiêu đề minh họa 2", "alt": "Mô tả ngắn", "caption": "Chú thích", "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 420'><!-- SVG --></svg>"},
+      {"title": "Tiêu đề minh họa 3", "alt": "Mô tả ngắn", "caption": "Chú thích", "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 420'><!-- SVG --></svg>"},
+      {"title": "Tiêu đề minh họa 4", "alt": "Mô tả ngắn", "caption": "Chú thích", "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 420'><!-- SVG --></svg>"}
+    ]
   },
   "units": [
     {
       "title": "Tên mảnh kiến thức 1 — chỉ một ý nhỏ, không gộp nhiều định nghĩa/công thức/tính chất",
+      "objective_index": 0,
+      "estimated_minutes": 10,
       "hook_question": "Một câu hỏi gợi mở ngắn để học sinh dự đoán trước khi đọc lý thuyết.",
       "guiding_questions": [
-        "Câu hỏi dẫn dắt 1 giúp học sinh quan sát dữ kiện/hình vẽ là gì?",
-        "Câu hỏi dẫn dắt 2 buộc học sinh so sánh hoặc phát hiện bất biến nào?",
-        "Câu hỏi dẫn dắt 3 đưa học sinh tiến gần tới công thức/định nghĩa ra sao?"
+        "Câu hỏi 1 — Quan sát: Em thấy điều gì đặc biệt ở hình/dữ kiện này?",
+        "Câu hỏi 2 — So sánh: Khi thay đổi X thì Y thay đổi như thế nào?",
+        "Câu hỏi 3 — Phát hiện quy luật: Có điều gì giữ nguyên không đổi trong mọi trường hợp?",
+        "Câu hỏi 4 — Áp dụng thử: Nếu áp dụng nhận xét trên vào bài toán cụ thể, ta tính được gì?",
+        "Câu hỏi 5 — Chốt công thức: Em có thể tự phát biểu công thức/định nghĩa bằng lời của mình không?"
       ],
       "student_task": "Nhiệm vụ thao tác/nghĩ thử: học sinh kéo mô phỏng, thử số liệu hoặc viết dự đoán trước khi xem chốt kiến thức.",
       "visual_instruction": "Mô tả hình minh hoạ hoặc mô phỏng cần quan sát: điểm/đường/thanh trượt/đại lượng thay đổi và đại lượng giữ nguyên.",
@@ -1307,8 +1338,8 @@ QUY TẮC BẮT BUỘC:
 4. Dùng LaTeX cho công thức: bọc $...$ inline, $$...$$ block. BẮT BUỘC bọc MỌI biểu thức, phương trình, điểm (VD: $p=10$, $F_1(-4;0)$) trong dấu $. Dùng $\displaystyle ...$ cho các công thức có phân số để không bị nhỏ. KHÔNG viết công thức dạng plain text.
 5. Tạo đúng 1 object engage có nội dung Khởi động thật của bài học. Cấm lấy các yêu cầu UI/UX như "bố cục 7:3", "đồng hồ kép", "mục lục thông minh" làm nội dung học sinh đọc ở màn Khởi động.
 6. Tạo đúng 5 diagnostic_questions (2 easy, 2 medium, 1 hard), 2 quick_check_questions mỗi unit, 3 exit_ticket_questions.
-7. Mỗi unit BẮT BUỘC là một đơn vị kiến thức nhỏ: chỉ một định nghĩa HOẶC một công thức HOẶC một tính chất. Nếu nội dung có nhiều ý như định nghĩa + phương trình + yếu tố đặc trưng, phải tách thành nhiều unit riêng.
-8. Mỗi unit BẮT BUỘC có hook_question, ít nhất 3 guiding_questions, student_task, visual_instruction và knowledge_conclusion. Trình tự sư phạm phải là: hỏi gợi mở → quan sát/thao tác hình hoặc mô phỏng → câu hỏi dẫn dắt → học sinh dự đoán/trả lời → chốt kiến thức ngắn. Không đưa nguyên đoạn lý thuyết dài ngay từ đầu.
+7. BẮT BUỘC SINH ÍT NHẤT 3 MẢNH KIẾN THỨC (units). Số units tối thiểu = max(3, số objectives). Nếu objectives có 3 mục tiêu → ít nhất 3 units, mỗi unit gắn với 1 objective qua "objective_index" (index bắt đầu từ 0). Nếu source có nhiều HĐ/bước, mỗi HĐ trọng tâm → 1 unit riêng. Mỗi unit vẫn là một đơn vị nhỏ: chỉ một định nghĩa HOẶC một công thức HOẶC một tính chất. Thêm "objective_index": 0 và "estimated_minutes": 10 vào mỗi unit.
+8. Mỗi unit BẮT BUỘC có hook_question, ÍT NHẤT 5 guiding_questions theo chuỗi Socratic (quan sát → so sánh → phát hiện quy luật → áp dụng thử → chốt công thức), student_task, visual_instruction và knowledge_conclusion. Trình tự sư phạm: hỏi gợi mở → quan sát hình/mô phỏng → chuỗi câu hỏi dẫn dắt → học sinh dự đoán/trả lời → chốt kiến thức ngắn. KHÔNG đưa nguyên đoạn lý thuyết dài ngay từ đầu.
 9. knowledge_conclusion phải ngắn, tối đa khoảng 5-7 câu hoặc một công thức trọng tâm. Phần explanation_ chỉ là gợi ý theo tuyến học để giúp học sinh trả lời chuỗi câu hỏi, không được lặp lại một bài giảng dài.
 10. 3 trường explanation_ của mỗi unit phải có nội dung thực sự khác nhau về độ sâu và cách tiếp cận.
 11. Mỗi unit NẾU CẦN MÔ PHỎNG:
@@ -1317,7 +1348,9 @@ QUY TẮC BẮT BUỘC:
     - NẾU chỉ cần hình minh họa 2D tĩnh: Bỏ qua simulation, chỉ cần dùng mã TikZ ở bước thiết kế sư phạm.
 12. Nội dung học sinh đọc KHÔNG được lẫn thuật ngữ quy trình/hệ thống như UI/UX, bố cục 7:3, đồng hồ kép, mục lục thông minh, Socratic, Vở Ghi Chép, schema.
 13. RẤT QUAN TRỌNG: Vì output là JSON, bạn phải DOUBLE ESCAPE mọi dấu backslash trong LaTeX. Ví dụ: viết \\frac thay vì \frac, \\sqrt thay vì \sqrt, \\Delta thay vì \Delta. Nếu không JSON.parse sẽ báo lỗi.
-14. Trả về đúng JSON hợp lệ, không markdown, không giải thích ngoài JSON.`;
+14. Trả về đúng JSON hợp lệ, không markdown, không giải thích ngoài JSON.
+15. engage.reading_instructions PHẢI trích hoặc paraphrase từ mục "Đọc trước"/"Chuẩn bị"/"Ôn tập" trong giáo án nguồn. KHÔNG bịa ngữ cảnh hoặc tên chủ đề không liên quan.
+16. engage.visual_cards BẮT BUỘC có đúng 4 thẻ SVG minh họa đúng chủ đề bài học này. Mỗi SVG phải: (a) có viewBox="0 0 640 420", (b) dùng gradient màu đẹp làm nền, (c) có text tiêu đề và chú thích bằng tiếng Việt, (d) minh họa một ứng dụng/khái niệm thực tế liên quan BÀI NÀY — TUYỆT ĐỐI không dùng hình Conic/Elip/Parabol/Hyperbol nếu bài không liên quan conic.`;
 
 export const buildAdaptiveReviewPrompt = (source: AdaptiveLessonSource): string =>
   `Bạn là chuyên gia rà soát và thiết kế lại giáo án Toán thành bài học phân hoá 40 phút.

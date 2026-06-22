@@ -245,13 +245,15 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
 
   const objectiveOptions = lesson?.objectives || [];
   const steps = ['Thông tin cơ bản', 'Mục tiêu & Chẩn đoán', 'Các mảnh kiến thức', 'Hoàn tất & Xuất bản'];
-  const lessonCompleteness = lesson ? Math.min(100, Math.round((
-    (lesson.title.trim() ? 20 : 0) +
-    (lesson.objectives.length ? 25 : 0) +
-    (lesson.diagnosticTest.questions.length ? 15 : 0) +
-    (lesson.knowledgeUnits.length ? 25 : 0) +
-    (lesson.exitTicket.questions.length ? 15 : 0)
-  ))) : 0;
+  const lessonCompleteness = lesson ? Math.min(100, Math.round(
+    (lesson.title.trim() ? 15 : 0) +
+    Math.min(20, (lesson.objectives.length / 3) * 20) +
+    Math.min(15, (lesson.diagnosticTest.questions.length / 5) * 15) +
+    Math.min(30, (lesson.knowledgeUnits.length / Math.max(1, lesson.objectives.length)) * 30) +
+    Math.min(10, lesson.knowledgeUnits.filter(u => (u.quickCheck?.questions?.length || 0) >= 2).length / Math.max(1, lesson.knowledgeUnits.length) * 10) +
+    Math.min(10, (lesson.exitTicket.questions.length / 3) * 10)
+  )) : 0;
+  const unitsUnderObjectives = lesson ? lesson.knowledgeUnits.length < lesson.objectives.length : false;
 
   const updateLesson = (patch: Partial<AdaptiveLesson>) => {
     setLesson(prev => prev ? { ...prev, ...patch, updatedAt: new Date().toISOString() } : prev);
@@ -552,6 +554,9 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
                 <span className="text-lg font-black text-blue-700">{lessonCompleteness}%</span>
               </div>
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-blue-600" style={{ width: `${lessonCompleteness}%` }} /></div>
+              {unitsUnderObjectives && (
+                <p className="mt-2 text-xs font-bold text-amber-600">⚠️ Cần thêm {lesson.objectives.length - lesson.knowledgeUnits.length} mảnh kiến thức để bao trùm hết mục tiêu</p>
+              )}
               <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs font-black text-slate-500">
                 <div className="rounded-2xl bg-slate-50 p-3"><Target className="mx-auto mb-1 h-4 w-4 text-blue-600" />{lesson.objectives.length} mục tiêu</div>
                 <div className="rounded-2xl bg-slate-50 p-3"><Layers3 className="mx-auto mb-1 h-4 w-4 text-blue-600" />{lesson.knowledgeUnits.length} mảnh</div>

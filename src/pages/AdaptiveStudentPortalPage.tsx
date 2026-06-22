@@ -157,7 +157,10 @@ const MathBlock = ({ children, className }: { children: string; className?: stri
   </div>
 );
 
-const kickoffVisualCards = [
+const CONIC_KEYWORDS = ['conic', 'elip', 'parabol', 'hyperbol', 'hypebol', 'đường chuẩn', 'tiêu điểm', 'tiêu cự'];
+const isConiLesson = (title: string) => CONIC_KEYWORDS.some(kw => title.toLowerCase().includes(kw));
+
+const conicFallbackCards = [
   {
     title: 'Phòng thì thầm St. Paul',
     caption: 'Âm thanh hội tụ tại một tiêu điểm của Elip',
@@ -993,28 +996,44 @@ export const AdaptiveStudentPortalPage = () => {
                 </div>
               </div>
 
-              <div className="border-t border-slate-100 bg-gradient-to-br from-blue-50 to-indigo-50 p-5 sm:p-6 lg:border-l lg:border-t-0">
-                <div className="rounded-2xl border border-blue-100 bg-white/75 p-4 shadow-sm">
-                  <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-                    <div>
-                      <p className="text-sm font-black text-blue-700">Hình ảnh khởi động</p>
-                      <p className="text-xs font-semibold text-blue-500">Quan sát 4 tình huống trực quan để tò mò trước khi vào bài.</p>
+              {(() => {
+                const aiCards = lesson.preparation.engage?.visualCards || [];
+                const coverSrcs = [lesson.coverImageTextbook, lesson.coverImageRealistic].filter(Boolean) as string[];
+                const fallbackCards = isConiLesson(lesson.title) ? conicFallbackCards : [];
+                const cards: Array<{ title: string; caption?: string; src: string }> =
+                  aiCards.length > 0
+                    ? aiCards.map(c => ({ title: c.title, caption: c.caption, src: c.imageDataUrl }))
+                    : coverSrcs.length > 0
+                    ? coverSrcs.map((src, i) => ({ title: i === 0 ? 'Ảnh bìa sách giáo khoa' : 'Ảnh thực tế', src }))
+                    : fallbackCards;
+
+                if (cards.length === 0) return null;
+
+                return (
+                  <div className="border-t border-slate-100 bg-gradient-to-br from-blue-50 to-indigo-50 p-5 sm:p-6 lg:border-l lg:border-t-0">
+                    <div className="rounded-2xl border border-blue-100 bg-white/75 p-4 shadow-sm">
+                      <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                          <p className="text-sm font-black text-blue-700">Hình ảnh khởi động</p>
+                          <p className="text-xs font-semibold text-blue-500">Quan sát các tình huống trực quan để tò mò trước khi vào bài.</p>
+                        </div>
+                        <span className="text-[11px] font-black uppercase tracking-widest text-blue-400">Kết nối thực tế</span>
+                      </div>
+                      <div className="mt-3 grid gap-3 md:grid-cols-2">
+                        {cards.map(card => (
+                          <figure key={card.title} className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-blue-100 transition hover:-translate-y-0.5 hover:shadow-md">
+                            <img src={card.src} alt={card.title} className="h-36 w-full object-cover sm:h-40" loading="lazy" />
+                            <figcaption className="p-3">
+                              <p className="text-sm font-black text-blue-950">{card.title}</p>
+                              {card.caption && <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">{card.caption}</p>}
+                            </figcaption>
+                          </figure>
+                        ))}
+                      </div>
                     </div>
-                    <span className="text-[11px] font-black uppercase tracking-widest text-blue-400">Kết nối thực tế</span>
                   </div>
-                  <div className="mt-3 grid gap-3 md:grid-cols-2">
-                    {kickoffVisualCards.map(card => (
-                      <figure key={card.title} className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-blue-100 transition hover:-translate-y-0.5 hover:shadow-md">
-                        <img src={card.src} alt={card.title} className="h-36 w-full object-cover sm:h-40" loading="lazy" />
-                        <figcaption className="p-3">
-                          <p className="text-sm font-black text-blue-950">{card.title}</p>
-                          <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">{card.caption}</p>
-                        </figcaption>
-                      </figure>
-                    ))}
-                  </div>
-                </div>
-              </div>
+                );
+              })()}
             </div>
 
             <div className="border-t border-slate-100 p-5 sm:p-6">

@@ -105,6 +105,7 @@ export interface PracticeTask {
 export interface LearningRouteContent {
   route: LearningRoute;
   explanation: string;
+  guidingQuestions?: string[];
   workedExamples: WorkedExample[];
   practiceTasks: PracticeTask[];
   aiTutorPrompt?: string;
