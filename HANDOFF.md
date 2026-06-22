@@ -10,6 +10,15 @@
 
 ## 1. Trạng thái hiện tại
 
+### 1.0c Cập nhật phiên 2026-06-22 — Tài liệu Chức năng Web (11 File Tiếng Việt)
+
+- **Mô tả:** Đã hoàn thành 100% việc biên soạn và cam kết 11 file tài liệu kỹ thuật viết bằng tiếng Việt mô tả cấu trúc, cách hoạt động, luồng dữ liệu và kịch bản QA chi tiết cho từng tab chức năng của hệ thống.
+- **Vị trí lưu trữ:**
+  - Danh mục tài liệu: `docs/features/` (gồm các tệp từ `01-dashboard.md` đến `11-templates-skeletons.md`).
+  - Đặc tả Thiết kế: `docs/superpowers/specs/2026-06-22-features-documentation-design.md`.
+  - Kế hoạch Thực hiện: `docs/superpowers/plans/2026-06-22-features-documentation.md`.
+- **Mục đích sử dụng:** Giúp các Agent AI thế hệ tiếp theo hoặc kỹ sư mới nắm bắt nhanh chóng cấu trúc component, hooks, DB schema, logic phân tích prompt AI, kịch bản QA thủ công và các lỗi (bug) lịch sử từng được xử lý để tránh xảy ra lỗi regression (lỗi lặp lại).
+
 ### 1.0 Cập nhật phiên 2026-06-19 — Text-to-Slide Automation & Đối chiếu Roadmap AI
 
 Bối cảnh: review bản kế hoạch `ai_features_integration_plan.md` (do Antigravity soạn). Kết luận đối chiếu với code thật:
