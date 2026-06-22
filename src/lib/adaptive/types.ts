@@ -145,6 +145,7 @@ export interface KnowledgeUnit {
   supportTasks?: PracticeTask[];
   enrichmentTasks?: PracticeTask[];
   externalToolIds?: string[];
+  tikzCode?: string;
   simulationId?: string;  // ref đến lessonSimulations/{lessonId}_{unitId}
   simulationSpec?: AdaptiveSimulationSpec;
 }

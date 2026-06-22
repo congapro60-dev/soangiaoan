@@ -520,6 +520,9 @@ interface UnitJson {
   worked_example?: { problem: string; solution: string; hints?: string[] };
   quick_check_questions?: QuestionJson[];
   externalToolIds?: string[];
+  tikz_code?: string;
+  objective_index?: number;
+  estimated_minutes?: number;
   simulation_html?: {
     title?: string;
     description?: string;
@@ -1039,13 +1042,14 @@ const buildUnitFromJsonData = (unit: UnitJson, objectiveId: string, index: numbe
     id: uid('unit'),
     title: unit.title,
     objectiveIds: [objectiveId],
-    estimatedMinutes: index === 0 ? 8 : 10,
+    estimatedMinutes: unit.estimated_minutes || (index === 0 ? 8 : 10),
     routes: routeOptions.map(makeRouteContent),
     quickCheck,
     maxRemediationAttempts: 2,
     supportTasks: [makePracticeTask(objectiveId, 'easy', unit.title, 0)],
     enrichmentTasks: [makePracticeTask(objectiveId, 'hard', unit.title, 0)],
     externalToolIds: unit.externalToolIds || [],
+    tikzCode: unit.tikz_code?.trim() || undefined,
     simulationSpec: buildGeometry3DSimulationSpecFromJson(unit, objectiveId) || buildHtmlSimulationSpecFromJson(unit, objectiveId),
   };
 };
@@ -1207,8 +1211,39 @@ export const buildAdaptiveLessonFromContentJson = (
  * Focused prompt asking AI to output structured JSON with real questions and 3-route content.
  * Used as the second AI call after teacher approves the pedagogical review (PA1+PA2).
  */
-export const buildAdaptiveContentPrompt = (source: AdaptiveLessonSource, reviewedPlan: string): string =>
-  `Bạn là chuyên gia thiết kế nội dung bài học Toán phân hoá.
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const getRelevantToolsForLesson = (source: AdaptiveLessonSource): Array<{ id: string; name: string; topic: string }> => {
+  try {
+    // Dynamic import at build time via Vite's static analysis
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const tools: Array<{ id: string; name: string; topic: string; gradeLevel?: number; isEmbeddable?: boolean }> =
+      require('../../data/externalToolsData.json');
+    const titleWords = (source.title || '').toLowerCase().split(/\s+/).filter(w => w.length > 2);
+    const contentSnippet = (source.content || '').toLowerCase().slice(0, 3000);
+    const gradeNum = parseInt(source.grade || '10', 10);
+    return tools
+      .filter(t => {
+        if (!t.isEmbeddable) return false;
+        const topicLower = (t.topic || '').toLowerCase();
+        const gradeMatch = !t.gradeLevel || t.gradeLevel === gradeNum;
+        const keywordMatch = titleWords.some(kw => topicLower.includes(kw)) ||
+          contentSnippet.includes((t.name || '').toLowerCase().slice(0, 10));
+        return gradeMatch && keywordMatch;
+      })
+      .slice(0, 10)
+      .map(t => ({ id: t.id, name: t.name, topic: t.topic }));
+  } catch {
+    return [];
+  }
+};
+
+export const buildAdaptiveContentPrompt = (source: AdaptiveLessonSource, reviewedPlan: string): string => {
+  const relevantTools = getRelevantToolsForLesson(source);
+  const toolsSection = relevantTools.length > 0
+    ? `\nCÔNG CỤ TƯƠNG TÁC CÓ SẴN (dùng id chính xác trong externalToolIds):\n${relevantTools.map(t => `- "${t.id}" — ${t.name} (${t.topic})`).join('\n')}\n`
+    : '';
+  return `Bạn là chuyên gia thiết kế nội dung bài học Toán phân hoá.
 
 THÔNG TIN BÀI HỌC:
 - Tên bài: ${source.title || 'Chưa rõ'}
@@ -1223,6 +1258,7 @@ BẢN THIẾT KẾ SƯ PHẠM ĐÃ RÀ SOÁT:
 ---
 ${reviewedPlan.slice(0, 5000)}
 ---
+${toolsSection}
 
 NHIỆM VỤ: Tạo nội dung bài học phân hoá cụ thể dựa trên giáo án trên.
 Câu hỏi phải dùng nội dung toán học thật — có công thức, số liệu cụ thể — KHÔNG phải placeholder.
@@ -1350,7 +1386,9 @@ QUY TẮC BẮT BUỘC:
 13. RẤT QUAN TRỌNG: Vì output là JSON, bạn phải DOUBLE ESCAPE mọi dấu backslash trong LaTeX. Ví dụ: viết \\frac thay vì \frac, \\sqrt thay vì \sqrt, \\Delta thay vì \Delta. Nếu không JSON.parse sẽ báo lỗi.
 14. Trả về đúng JSON hợp lệ, không markdown, không giải thích ngoài JSON.
 15. engage.reading_instructions PHẢI trích hoặc paraphrase từ mục "Đọc trước"/"Chuẩn bị"/"Ôn tập" trong giáo án nguồn. KHÔNG bịa ngữ cảnh hoặc tên chủ đề không liên quan.
-16. engage.visual_cards BẮT BUỘC có đúng 4 thẻ SVG minh họa đúng chủ đề bài học này. Mỗi SVG phải: (a) có viewBox="0 0 640 420", (b) dùng gradient màu đẹp làm nền, (c) có text tiêu đề và chú thích bằng tiếng Việt, (d) minh họa một ứng dụng/khái niệm thực tế liên quan BÀI NÀY — TUYỆT ĐỐI không dùng hình Conic/Elip/Parabol/Hyperbol nếu bài không liên quan conic.`;
+16. engage.visual_cards BẮT BUỘC có đúng 4 thẻ SVG minh họa đúng chủ đề bài học này. Mỗi SVG phải: (a) có viewBox="0 0 640 420", (b) dùng gradient màu đẹp làm nền, (c) có text tiêu đề và chú thích bằng tiếng Việt, (d) minh họa một ứng dụng/khái niệm thực tế liên quan BÀI NÀY — TUYỆT ĐỐI không dùng hình Conic/Elip/Parabol/Hyperbol nếu bài không liên quan conic.
+17. Mỗi unit BẮT BUỘC có ít nhất 1 học liệu trực quan. Ưu tiên theo thứ tự: (a) nếu có tool trong danh sách CÔNG CỤ CÓ SẪN phù hợp chủ đề → đặt id vào "externalToolIds"; (b) nếu cần hình 2D tĩnh → đặt mã TikZ hợp lệ vào "tikz_code" (BẮT BUỘC có \\begin{tikzpicture}...\\end{tikzpicture}, double-escape backslash vì trong JSON); (c) nếu hình học không gian → dùng "simulation_3d". KHÔNG để unit không có học liệu nào.`;
+};
 
 export const buildAdaptiveReviewPrompt = (source: AdaptiveLessonSource): string =>
   `Bạn là chuyên gia rà soát và thiết kế lại giáo án Toán thành bài học phân hoá 40 phút.
