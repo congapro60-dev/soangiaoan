@@ -739,8 +739,19 @@ const repairJsonString = (raw: string): string => {
     const ch = raw[i];
 
     if (escaped) {
-      if ('"\\/bfnrtu'.includes(ch)) fixed += `\\${ch}`;
-      else fixed += `\\\\${ch}`;
+      if (ch === 'u') {
+        const hex4 = raw.slice(i + 1, i + 5);
+        if (/^[0-9a-fA-F]{4}$/.test(hex4)) {
+          fixed += `\\u${hex4}`;
+          i += 4;
+        } else {
+          fixed += `\\\\u`;
+        }
+      } else if ('"\\/bfnrt'.includes(ch)) {
+        fixed += `\\${ch}`;
+      } else {
+        fixed += `\\\\${ch}`;
+      }
       escaped = false;
       continue;
     }
@@ -1519,3 +1530,406 @@ III. Toán học và kỹ thuật trình bày
 | Thành phần | Nội dung đã duyệt | Ghi chú triển khai |
 |---|---|---|
 `;
+
+// ============================================================
+// Multi-call pipeline: Blueprint → Visual Cards → Assessments → Units
+// Mỗi call nhỏ, cô lập lỗi — fail 1 bước không crash toàn bộ.
+// ============================================================
+
+interface BlueprintJson {
+  title?: string;
+  objectives?: ObjectiveJson[];
+  engage?: Omit<EngageJson, 'visual_cards'>;
+  unit_outline?: Array<{ title: string; objective_index: number }>;
+}
+
+interface VisualCardsJson {
+  visual_cards?: Array<{ title: string; alt: string; caption?: string; svg?: string }>;
+}
+
+interface AssessmentsJson {
+  diagnostic_questions?: QuestionJson[];
+  exit_ticket_questions?: QuestionJson[];
+}
+
+export type AdaptivePipelineProgress = (message: string) => void;
+
+const buildBlueprintPrompt = (source: AdaptiveLessonSource, reviewedPlan: string): string =>
+  `Bạn là chuyên gia thiết kế bài học Toán phân hoá.
+
+THÔNG TIN: Bài "${source.title || 'Chưa rõ'}" - Lớp ${source.grade || '10'}
+
+GIÁO ÁN NGUỒN (trích):
+---
+${source.content.slice(0, 8000)}
+---
+
+BẢN RÀ SOÁT ĐÃ DUYỆT (trích):
+---
+${reviewedPlan.slice(0, 4000)}
+---
+
+NHIỆM VỤ: Tạo khung bài học phân hoá. Trả về DUY NHẤT một JSON hợp lệ, không giải thích.
+
+{
+  "title": "Tên bài đầy đủ",
+  "objectives": [
+    {"title": "Mục tiêu học tập cụ thể 1", "bloom": "understand", "threshold": 0.70},
+    {"title": "Mục tiêu 2", "bloom": "apply", "threshold": 0.75},
+    {"title": "Mục tiêu 3", "bloom": "analyze", "threshold": 0.75}
+  ],
+  "engage": {
+    "story_hook": "Câu chuyện/tình huống thực tế mở đầu liên quan đến nội dung toán của bài.",
+    "reality_check_message": "Cú sốc thực tế hoặc nhiệm vụ quan sát có số liệu/công thức cụ thể.",
+    "guiding_question": "Câu hỏi lớn dẫn vào bài, có thuật ngữ toán của bài.",
+    "guiding_question_box": "Câu hỏi trong hộp gợi mở để học sinh dự đoán/so sánh trước khi học.",
+    "big_title": "Tiêu đề lớn màn Khởi động, đúng tên bài và vấn đề toán học.",
+    "student_expectation_prompt": "Gợi ý học sinh tự viết kỳ vọng học tập.",
+    "foundation_goal": "Mục tiêu Cơ bản đúng bài học.",
+    "standard_goal": "Mục tiêu Trọng tâm đúng bài học.",
+    "challenge_goal": "Mục tiêu Nâng cao đúng bài học.",
+    "reading_instructions": "Hướng dẫn chuẩn bị trước giờ học, trích/paraphrase từ giáo án nguồn."
+  },
+  "unit_outline": [
+    {"title": "Tên mảnh kiến thức 1 — một ý nhỏ duy nhất", "objective_index": 0},
+    {"title": "Mảnh 2 — ý nhỏ khác", "objective_index": 1},
+    {"title": "Mảnh 3", "objective_index": 2}
+  ]
+}
+
+QUY TẮC:
+1. objectives: tối thiểu 3, tối đa 6. Mỗi mục tiêu cụ thể, có thuật ngữ toán của bài.
+2. unit_outline: tối thiểu max(3, số objectives) mục. Mỗi mục chỉ một ý nhỏ (một định nghĩa HOẶC một công thức HOẶC một tính chất).
+3. objective_index là index (từ 0) vào mảng objectives.
+4. reading_instructions trích/paraphrase từ mục "Đọc trước"/"Chuẩn bị" trong giáo án nguồn — không bịa.
+5. Không lẫn thuật ngữ UI/UX vào nội dung học sinh đọc.
+6. Double-escape LaTeX trong JSON (\\\\frac thay vì \\frac).
+7. Trả về đúng JSON hợp lệ. Không markdown, không giải thích ngoài JSON.`;
+
+const buildVisualCardsPrompt = (source: AdaptiveLessonSource, objectives: ObjectiveJson[]): string =>
+  `Bạn là chuyên gia thiết kế hình ảnh minh họa cho bài học Toán.
+
+BÀI HỌC: "${source.title || 'Chưa rõ'}" - Lớp ${source.grade || '10'}
+MỤC TIÊU: ${objectives.map((o, i) => `${i + 1}. ${o.title}`).join('; ')}
+
+NHIỆM VỤ: Tạo đúng 4 thẻ hình ảnh SVG minh họa cho bài học này.
+Trả về DUY NHẤT một JSON hợp lệ, không giải thích.
+
+{
+  "visual_cards": [
+    {"title": "Tiêu đề minh họa 1 — đúng chủ đề bài", "alt": "Mô tả ngắn", "caption": "Chú thích giải thích ứng dụng thực tế", "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 420'><!-- SVG minh họa --></svg>"},
+    {"title": "Minh họa 2", "alt": "...", "caption": "...", "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 420'>...</svg>"},
+    {"title": "Minh họa 3", "alt": "...", "caption": "...", "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 420'>...</svg>"},
+    {"title": "Minh họa 4", "alt": "...", "caption": "...", "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 420'>...</svg>"}
+  ]
+}
+
+QUY TẮC:
+1. Đúng 4 thẻ SVG.
+2. Mỗi SVG: (a) viewBox="0 0 640 420", (b) nền gradient đẹp, (c) text tiêu đề và chú thích tiếng Việt, (d) minh họa ứng dụng/khái niệm thực tế liên quan BÀI NÀY.
+3. Không dùng hình Conic/Elip/Parabol/Hyperbol nếu bài không liên quan conic.
+4. SVG phải valid XML. Không dùng &amp;, &lt; trong text — dùng ký tự thật.
+5. Không nhúng LaTeX hay MathJax vào SVG — dùng Unicode hoặc ký hiệu thường.
+6. Trả về đúng JSON hợp lệ. Không markdown, không giải thích ngoài JSON.`;
+
+const buildAssessmentsPrompt = (source: AdaptiveLessonSource, objectives: ObjectiveJson[], unitTitles: string[]): string =>
+  `Bạn là chuyên gia thiết kế bài kiểm tra Toán phân hoá.
+
+BÀI HỌC: "${source.title || 'Chưa rõ'}" - Lớp ${source.grade || '10'}
+MỤC TIÊU: ${objectives.map((o, i) => `${i + 1}. ${o.title}`).join('; ')}
+CÁC MẢNH KIẾN THỨC: ${unitTitles.join(', ')}
+
+NHIỆM VỤ: Tạo bộ câu hỏi pre-test và exit ticket. Trả về DUY NHẤT một JSON hợp lệ, không giải thích.
+
+{
+  "diagnostic_questions": [
+    {"prompt": "Câu 1. (nhận biết, có số liệu cụ thể)", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correct": 0, "explanation": "Đáp án A vì...", "difficulty": "easy"},
+    {"prompt": "Câu 2.", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correct": 2, "explanation": "...", "difficulty": "easy"},
+    {"prompt": "Câu 3.", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correct": 1, "explanation": "...", "difficulty": "medium"},
+    {"prompt": "Câu 4.", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correct": 3, "explanation": "...", "difficulty": "medium"},
+    {"prompt": "Câu 5. (vận dụng)", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correct": 2, "explanation": "...", "difficulty": "hard"}
+  ],
+  "exit_ticket_questions": [
+    {"prompt": "Exit ticket 1", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correct": 0, "explanation": "..."},
+    {"prompt": "Exit ticket 2", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correct": 1, "explanation": "..."},
+    {"prompt": "Exit ticket 3", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correct": 2, "explanation": "..."}
+  ]
+}
+
+QUY TẮC:
+1. Câu hỏi có nội dung toán thật, số và công thức cụ thể — KHÔNG viết "Câu hỏi 1" hay placeholder.
+2. Đúng 4 đáp án A/B/C/D. "correct" là index 0-3. Đáp án đúng ở vị trí ngẫu nhiên, không phải luôn là A.
+3. Phương án sai là "mồi" hợp lý — học sinh yếu có thể nhầm.
+4. Giải thích đủ để học sinh tự hiểu sai ở đâu.
+5. Double-escape LaTeX: \\\\frac thay vì \\frac, \\\\sqrt thay vì \\sqrt.
+6. Trả về đúng JSON hợp lệ. Không markdown, không giải thích ngoài JSON.`;
+
+const buildUnitDetailPrompt = (
+  source: AdaptiveLessonSource,
+  reviewedPlan: string,
+  unitTitle: string,
+  objectiveTitle: string,
+  unitIndex: number,
+  totalUnits: number,
+  relevantTools: ReturnType<typeof getRelevantToolsForLesson>,
+): string => {
+  const toolsSection = relevantTools.length > 0
+    ? `\nCÔNG CỤ TƯƠNG TÁC CÓ SẴN (dùng id chính xác trong externalToolIds):\n${relevantTools.map(t => `- "${t.id}" — ${t.name} (${t.topic})`).join('\n')}\n`
+    : '';
+  return `Bạn là chuyên gia thiết kế mảnh kiến thức Toán phân hoá.
+
+BÀI HỌC: "${source.title || 'Chưa rõ'}" - Lớp ${source.grade || '10'}
+MẢNH KIẾN THỨC ${unitIndex + 1}/${totalUnits}: "${unitTitle}"
+MỤC TIÊU GẮN VỚI MẢNH NÀY: "${objectiveTitle}"
+${toolsSection}
+GIÁO ÁN NGUỒN (trích liên quan):
+---
+${source.content.slice(0, 5000)}
+---
+
+BẢN RÀ SOÁT (trích phần liên quan):
+---
+${reviewedPlan.slice(0, 2500)}
+---
+
+NHIỆM VỤ: Thiết kế chi tiết mảnh kiến thức "${unitTitle}". Trả về DUY NHẤT một JSON hợp lệ, không giải thích.
+
+{
+  "title": "${unitTitle}",
+  "hook_question": "Một câu hỏi gợi mở ngắn để học sinh dự đoán trước khi đọc lý thuyết.",
+  "guiding_questions": [
+    "Câu 1 — Quan sát: Em thấy điều gì đặc biệt ở hình/dữ kiện này?",
+    "Câu 2 — So sánh: Khi thay đổi X thì Y thay đổi như thế nào?",
+    "Câu 3 — Phát hiện quy luật: Có điều gì giữ nguyên không đổi?",
+    "Câu 4 — Áp dụng thử: Nếu áp dụng nhận xét trên vào bài toán cụ thể, ta tính được gì?",
+    "Câu 5 — Chốt công thức: Em có thể tự phát biểu công thức/định nghĩa bằng lời của mình không?"
+  ],
+  "student_task": "Nhiệm vụ thao tác/nghĩ thử: học sinh kéo mô phỏng, thử số liệu hoặc viết dự đoán.",
+  "visual_instruction": "Mô tả hình minh hoạ hoặc mô phỏng cần quan sát.",
+  "knowledge_conclusion": "Chốt kiến thức ngắn — tối đa 5-7 câu hoặc một công thức trọng tâm.",
+  "explanation_foundation": "Tuyến Cơ bản: diễn giải trực quan, chậm, hỗ trợ trả lời từng câu hỏi dẫn dắt.",
+  "explanation_standard": "Tuyến Trọng tâm: kết nối câu trả lời với công thức/định nghĩa chuẩn SGK.",
+  "explanation_challenge": "Tuyến Nâng cao: giải thích VÌ SAO công thức đúng hoặc mở rộng một bước.",
+  "worked_example": {
+    "problem": "Bài toán ví dụ cụ thể với số liệu từ nội dung bài, dùng LaTeX nếu cần.",
+    "solution": "Bước 1: ... Bước 2: ... Kết luận: ...",
+    "hints": ["Gợi ý 1", "Gợi ý 2", "Gợi ý 3"]
+  },
+  "quick_check_questions": [
+    {"prompt": "Câu quick check 1 có số liệu cụ thể", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correct": 1, "explanation": "..."},
+    {"prompt": "Câu quick check 2", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correct": 3, "explanation": "..."}
+  ],
+  "externalToolIds": [],
+  "tikz_code": "",
+  "simulation_3d": null
+}
+
+QUY TẮC:
+1. Câu hỏi (quick_check, guiding_questions) có nội dung toán thật — KHÔNG placeholder.
+2. Đúng 2 câu quick_check với 4 đáp án mỗi câu. "correct" là index 0-3.
+3. guiding_questions: đúng 5 câu theo chuỗi Socratic (quan sát → so sánh → phát hiện quy luật → áp dụng → chốt).
+4. knowledge_conclusion tối đa 5-7 câu hoặc một công thức. Không viết bài giảng dài.
+5. 3 trường explanation_ phải thực sự khác nhau về độ sâu và cách tiếp cận.
+6. NẾU bài là hình học không gian 3D: dùng "simulation_3d" với points, segments, faces. KHÔNG tự viết WebGL/Three.js.
+7. NẾU có tool phù hợp trong danh sách CÔNG CỤ CÓ SẴN: đặt id vào "externalToolIds".
+8. NẾU cần hình 2D tĩnh: đặt mã TikZ vào "tikz_code" (double-escape backslash).
+9. KHÔNG dùng simulation_html.srcDoc — quá rủi ro lỗi JSON escape.
+10. Double-escape LaTeX: \\\\frac thay vì \\frac, \\\\sqrt thay vì \\sqrt.
+11. Trả về đúng JSON hợp lệ. Không markdown, không giải thích ngoài JSON.`;
+};
+
+export const runAdaptivePipeline = async (
+  source: AdaptiveLessonSource,
+  reviewedPlan: string,
+  callAIFn: (prompt: string) => Promise<string>,
+  teacherId: string,
+  onProgress?: AdaptivePipelineProgress,
+): Promise<AdaptiveLesson> => {
+  const warnings: string[] = [];
+  const now = new Date().toISOString();
+
+  // --- Step 1: Blueprint (required — fallback to regex if fails) ---
+  onProgress?.('Đang phân tích cấu trúc bài học...');
+  let blueprint: BlueprintJson;
+  try {
+    const raw = await callAIFn(buildBlueprintPrompt(source, reviewedPlan));
+    blueprint = parseAdaptiveContentJson(raw) as BlueprintJson;
+    if (!blueprint.title && !blueprint.objectives && !blueprint.unit_outline) throw new Error('Blueprint JSON rỗng');
+  } catch (err) {
+    warnings.push(`blueprint_failed: ${err instanceof Error ? err.message : String(err)}`);
+    return buildFallbackLessonWithWarnings(source, reviewedPlan, teacherId, [
+      'Pipeline bước 1 (Blueprint) thất bại — dùng bộ dựng dự phòng từ bản rà soát.',
+      ...warnings,
+    ]);
+  }
+
+  const title = blueprint.title?.trim() || inferTitle(source, reviewedPlan);
+
+  const bloomLevelValues = ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create'];
+  const rawObjectives: ObjectiveJson[] = Array.isArray(blueprint.objectives) && blueprint.objectives.length >= 1
+    ? blueprint.objectives
+    : [
+        { title: 'Nắm được kiến thức trọng tâm của bài', bloom: 'understand' },
+        { title: 'Vận dụng kiến thức vào bài tập cơ bản', bloom: 'apply' },
+        { title: 'Giải quyết bài toán nâng cao', bloom: 'analyze' },
+      ];
+
+  const objectives = rawObjectives.slice(0, 6).map((obj, index) => ({
+    id: uid('obj'),
+    code: `OBJ-${index + 1}`,
+    title: obj.title || `Mục tiêu ${index + 1}`,
+    description: obj.title || `Mục tiêu ${index + 1}`,
+    bloomLevel: (bloomLevelValues.includes(obj.bloom ?? '') ? obj.bloom : index < 2 ? 'understand' : 'apply') as BloomLevel,
+    masteryThreshold: typeof obj.threshold === 'number' ? obj.threshold : (index < 2 ? 0.7 : 0.75),
+    prerequisiteObjectiveIds: [],
+    commonMisconceptions: [],
+  }));
+  const objectiveIds = objectives.map(o => o.id);
+
+  const minUnits = Math.max(3, objectives.length);
+  const rawOutlines: Array<{ title: string; objective_index: number }> = Array.isArray(blueprint.unit_outline) && blueprint.unit_outline.length > 0
+    ? blueprint.unit_outline
+    : objectives.slice(0, minUnits).map((obj, i) => ({ title: obj.title, objective_index: i }));
+
+  // Pad to minimum if AI returned too few
+  const unitOutlines = [...rawOutlines];
+  while (unitOutlines.length < minUnits) {
+    const i = unitOutlines.length;
+    unitOutlines.push({ title: `Mảnh kiến thức ${i + 1} — ${objectives[i % objectives.length].title}`, objective_index: i % objectives.length });
+  }
+
+  // --- Step 2: Visual cards (optional — failure is graceful) ---
+  onProgress?.('Đang tạo hình ảnh minh họa bài học...');
+  let visualCards: import('./types').EngageVisualCard[] = [];
+  try {
+    const raw = await callAIFn(buildVisualCardsPrompt(source, rawObjectives));
+    const parsed = parseAdaptiveContentJson(raw) as VisualCardsJson;
+    visualCards = (parsed.visual_cards || [])
+      .filter(card => card?.title && card?.svg)
+      .map(card => ({
+        id: uid('vcard'),
+        title: card.title.trim(),
+        alt: card.alt?.trim() || card.title.trim(),
+        caption: card.caption?.trim(),
+        imageDataUrl: `data:image/svg+xml;utf8,${encodeURIComponent(card.svg!)}`,
+      }));
+    if (visualCards.length === 0) warnings.push('visual_cards_empty: AI tạo hình ảnh nhưng không có thẻ hợp lệ nào.');
+  } catch (err) {
+    warnings.push('visual_cards_failed: Không tạo được hình minh họa — bài học vẫn đầy đủ nội dung.');
+  }
+
+  // --- Step 3: Assessments (essential but degradable) ---
+  onProgress?.('Đang tạo bộ câu hỏi kiểm tra...');
+  let diagnosticQuestions: QuestionJson[] = [];
+  let exitTicketQuestions: QuestionJson[] = [];
+  try {
+    const raw = await callAIFn(buildAssessmentsPrompt(source, rawObjectives, unitOutlines.map(u => u.title)));
+    const parsed = parseAdaptiveContentJson(raw) as AssessmentsJson;
+    diagnosticQuestions = Array.isArray(parsed.diagnostic_questions) ? parsed.diagnostic_questions : [];
+    exitTicketQuestions = Array.isArray(parsed.exit_ticket_questions) ? parsed.exit_ticket_questions : [];
+    if (diagnosticQuestions.length < 5) warnings.push(`assessments_thin: Pre-test chỉ có ${diagnosticQuestions.length}/5 câu.`);
+    if (exitTicketQuestions.length < 3) warnings.push(`exit_ticket_thin: Exit ticket chỉ có ${exitTicketQuestions.length}/3 câu.`);
+  } catch (err) {
+    warnings.push('assessments_failed: Bộ câu hỏi sẽ dùng placeholder — cần chỉnh sửa trước khi xuất bản.');
+  }
+
+  // --- Step 4: Units (one per unit, independent failure) ---
+  const relevantTools = getRelevantToolsForLesson(source);
+  const knowledgeUnits: KnowledgeUnit[] = [];
+
+  for (let i = 0; i < unitOutlines.length; i++) {
+    const outline = unitOutlines[i];
+    const objectiveIndex = typeof outline.objective_index === 'number'
+      ? Math.min(outline.objective_index, objectives.length - 1)
+      : i % objectives.length;
+    const objectiveId = objectiveIds[objectiveIndex] || objectiveIds[0];
+    const objectiveTitle = rawObjectives[objectiveIndex]?.title || rawObjectives[0]?.title || title;
+
+    onProgress?.(`Đang tạo mảnh kiến thức ${i + 1}/${unitOutlines.length}: "${outline.title}"...`);
+    try {
+      const raw = await callAIFn(buildUnitDetailPrompt(source, reviewedPlan, outline.title, objectiveTitle, i, unitOutlines.length, relevantTools));
+      const parsed = parseAdaptiveContentJson(raw) as UnitJson;
+      parsed.title = parsed.title?.trim() || outline.title;
+      parsed.objective_index = objectiveIndex;
+      parsed.estimated_minutes = parsed.estimated_minutes || (i === 0 ? 8 : 10);
+      knowledgeUnits.push(buildUnitFromJsonData(parsed, objectiveId, i));
+    } catch (err) {
+      warnings.push(`unit_${i + 1}_failed: "${outline.title}" — dùng mảnh kiến thức dự phòng.`);
+      knowledgeUnits.push(makeUnit(outline.title, objectiveId, outline.title, i));
+    }
+  }
+
+  // --- Assemble ---
+  const engage = blueprint.engage && typeof blueprint.engage === 'object' ? blueprint.engage : undefined;
+  const objectiveByBloom = (level: BloomLevel, fallbackIndex: number) =>
+    objectives.find(o => o.bloomLevel === level)?.title || objectives[fallbackIndex]?.title || objectives[0]?.title || title;
+
+  return {
+    id: `adaptive-${Date.now()}`,
+    title,
+    subjectId: 'math',
+    grade: normalizeGrade(source.grade),
+    durationMinutes: 40,
+    status: 'draft',
+    teacherId,
+    createdAt: now,
+    updatedAt: now,
+    curriculumRef: {
+      programType: 'CUSTOM',
+      week: source.week || '',
+      period: 1,
+      textbook: source.sourceLabel || 'Giáo án nguồn',
+    },
+    preparation: {
+      readingInstructions:
+        engage?.reading_instructions?.trim() ||
+        engage?.reality_check_message?.trim() ||
+        `Đọc trước nội dung "${title}", ghi lại những điểm còn chưa hiểu để làm pre-test đầu giờ.`,
+      engage: {
+        storyHook: engage?.story_hook?.trim(),
+        realityCheckMessage: engage?.reality_check_message?.trim(),
+        guidingQuestion: engage?.guiding_question?.trim(),
+        guidingQuestionBox: engage?.guiding_question_box?.trim(),
+        bigTitle: engage?.big_title?.trim(),
+        studentExpectationPrompt: engage?.student_expectation_prompt?.trim(),
+        routeGoals: {
+          foundation: engage?.foundation_goal?.trim() || objectiveByBloom('understand', 0),
+          standard: engage?.standard_goal?.trim() || objectiveByBloom('apply', 1),
+          challenge: engage?.challenge_goal?.trim() || objectiveByBloom('analyze', 2),
+        },
+        visualCards: visualCards.length > 0 ? visualCards : undefined,
+      },
+      guidingQuestions: [
+        engage?.story_hook?.trim(),
+        engage?.guiding_question?.trim(),
+        engage?.guiding_question_box?.trim(),
+        engage?.student_expectation_prompt?.trim(),
+      ].filter((item): item is string => Boolean(item && item.length > 0)),
+      estimatedMinutes: 10,
+    },
+    fiveStepFlow: {
+      steps: [
+        { id: uid('step'), name: 'Kết nối', purpose: 'Kích hoạt kiến thức nền từ giáo án nguồn.', estimatedMinutes: 3, teacherRole: 'Nêu tình huống mở đầu và mục tiêu học.', studentAction: 'Trả lời câu hỏi khởi động.', systemSupport: 'Hiển thị mục tiêu và câu hỏi gợi mở.' },
+        { id: uid('step'), name: 'Chẩn đoán', purpose: 'Phân tuyến học sinh bằng pre-test.', estimatedMinutes: 7, teacherRole: 'Theo dõi kết quả chẩn đoán.', studentAction: 'Làm test đầu giờ.', systemSupport: 'Chấm theo mục tiêu và đề xuất tuyến học.' },
+        { id: uid('step'), name: 'Hình thành kiến thức', purpose: 'Học theo mảnh kiến thức và tuyến phù hợp.', estimatedMinutes: 15, teacherRole: 'Hỗ trợ nhóm cần can thiệp.', studentAction: 'Học nội dung, xem ví dụ, làm nhiệm vụ.', systemSupport: 'Cá nhân hoá tuyến Foundation/Standard/Challenge.' },
+        { id: uid('step'), name: 'Luyện tập và điều chỉnh', purpose: 'Quick check sau từng mảnh kiến thức.', estimatedMinutes: 10, teacherRole: 'Can thiệp khi học sinh sai lặp lại.', studentAction: 'Làm quick check và học lại khi cần.', systemSupport: 'Gợi ý, remediate hoặc chuyển tiếp.' },
+        { id: uid('step'), name: 'Phản tư', purpose: 'Exit ticket và khuyến nghị cuối bài.', estimatedMinutes: 5, teacherRole: 'Chốt kiến thức và giao nhiệm vụ tiếp nối.', studentAction: 'Hoàn thành exit ticket.', systemSupport: 'Tổng hợp kết quả và khuyến nghị.' },
+      ],
+    },
+    objectives,
+    diagnosticTest: buildAssessmentFromJsonQuestions('diagnostic', 'Pre-test đầu giờ', diagnosticQuestions, objectiveIds, 5, 7),
+    knowledgeUnits,
+    exitTicket: buildAssessmentFromJsonQuestions('exit_ticket', 'Exit ticket cuối bài', exitTicketQuestions, objectiveIds, 3, 3),
+    pacingPolicy: {
+      minExitTicketMinutes: 5,
+      aheadThresholdMinutes: 5,
+      behindThresholdMinutes: 4,
+      stuckAfterRemediationAttempts: 2,
+      enrichmentTriggerMastery: 0.85,
+      supportTriggerMastery: 0.55,
+    },
+    completionReward: { toolId: 'gamedoikhang', message: defaultRewardMessage },
+    generationSource: 'ai_json',
+    generationWarnings: warnings.length > 0 ? warnings : undefined,
+  };
+};

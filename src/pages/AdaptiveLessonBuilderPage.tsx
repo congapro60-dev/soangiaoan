@@ -6,9 +6,8 @@ import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { sampleAdaptiveLesson } from '../lib/adaptive/sampleAdaptiveLesson';
 import {
-  buildAdaptiveContentPrompt,
-  buildAdaptiveLessonFromContentJson,
   buildAdaptiveReviewPrompt,
+  runAdaptivePipeline,
   validateAdaptiveLessonPublishReadiness,
   type AdaptiveLessonSource,
 } from '../lib/adaptive/adaptiveFromLessonPlan';
@@ -184,6 +183,7 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
   const [isSourceApproved, setIsSourceApproved] = useState(id !== 'new');
   const [uploadingSource, setUploadingSource] = useState(false);
   const [isGeneratingContent, setIsGeneratingContent] = useState(false);
+  const [generationStatus, setGenerationStatus] = useState('');
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
 
   const adaptiveReadyPlans = useMemo(() => lessonPlans.filter(plan => {
@@ -388,20 +388,33 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
     }
 
     setIsGeneratingContent(true);
+    setGenerationStatus('Đang khởi động pipeline...');
     setError(null);
     try {
-      const contentJson = await callAI(buildAdaptiveContentPrompt(sourceLesson, reviewedPlan), settings);
-      const nextLesson = buildAdaptiveLessonFromContentJson(sourceLesson, reviewedPlan, contentJson, user.uid);
+      const nextLesson = await runAdaptivePipeline(
+        sourceLesson,
+        reviewedPlan,
+        (prompt) => callAI(prompt, settings),
+        user.uid,
+        (msg) => setGenerationStatus(msg),
+      );
       setLesson(nextLesson);
       setExpandedUnitId(nextLesson.knowledgeUnits[0]?.id || null);
       setIsSourceApproved(true);
       setStep(0);
-      showToast?.('Đã tạo bài học phân hoá bằng JSON nội dung thật và kiểm tra chất lượng đầu ra.', 'success');
+      const hadWarnings = nextLesson.generationWarnings && nextLesson.generationWarnings.length > 0;
+      showToast?.(
+        hadWarnings
+          ? `Đã tạo bài học phân hoá (${nextLesson.generationWarnings!.length} cảnh báo chất lượng — xem bên dưới).`
+          : 'Đã tạo bài học phân hoá thành công qua pipeline chia nhỏ.',
+        hadWarnings ? 'warning' : 'success',
+      );
     } catch (contentErr) {
-      console.warn('[AdaptiveBuilder] Không tạo được nội dung adaptive đạt chuẩn', contentErr);
+      console.warn('[AdaptiveBuilder] Pipeline tạo bài học thất bại', contentErr);
       setError(contentErr instanceof Error ? contentErr.message : 'Không tạo được bài học phân hoá từ giáo án đã duyệt.');
     } finally {
       setIsGeneratingContent(false);
+      setGenerationStatus('');
     }
   };
 
@@ -507,11 +520,14 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
 
           {sourceLesson && <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">Nguồn đang rà soát: {sourceLesson.sourceLabel || sourceLesson.title}</div>}
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <button type="button" onClick={approveReviewedSource} disabled={!reviewedPlan.trim() || isReviewingSource || uploadingSource || isGeneratingContent} className={primaryButtonClass}>
               {isGeneratingContent ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-              {isGeneratingContent ? 'Đang bóc tách cấu trúc bài học...' : 'Duyệt bản rà soát & tạo cấu trúc bài học'}
+              {isGeneratingContent ? 'Đang tạo bài học...' : 'Duyệt bản rà soát & tạo cấu trúc bài học'}
             </button>
+            {isGeneratingContent && generationStatus && (
+              <span className="text-sm font-bold text-blue-600">{generationStatus}</span>
+            )}
           </div>
 
           {reviewedPlan ? (
@@ -567,6 +583,17 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
         </div>
 
       {error && <div className="mb-4 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-bold text-red-600">{error}</div>}
+
+      {lesson.generationWarnings && lesson.generationWarnings.length > 0 && (
+        <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <p className="mb-1 text-sm font-black text-amber-700">⚠️ Cảnh báo chất lượng từ pipeline tạo bài ({lesson.generationWarnings.length})</p>
+          <ul className="space-y-0.5">
+            {lesson.generationWarnings.map((w, i) => (
+              <li key={i} className="text-xs font-semibold text-amber-600">{w}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="mb-5 grid gap-3 md:grid-cols-4">
         {steps.map((label, index) => (
