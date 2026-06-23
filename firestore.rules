@@ -37,8 +37,10 @@ service cloud.firestore {
 
     // Bài học phân hoá — service lưu document theo lesson.id, owner nằm trong field teacherId
     match /adaptiveLessons/{lessonId} {
-      // Đọc: giáo viên đã đăng nhập đọc được (listLessonsForTeacher query theo field teacherId)
-      allow read: if request.auth != null;
+      // Đọc: giáo viên đã đăng nhập đọc được (listLessonsForTeacher query theo field teacherId).
+      // Học sinh ẩn danh đọc được CHỈ KHI bài đã bật cổng (portalEnabled == true) — link cổng là công khai.
+      allow read: if request.auth != null
+                  || resource.data.get('portalEnabled', false) == true;
       // Tạo: chỉ khi teacherId trong document trùng với uid người tạo
       allow create: if request.auth != null
                     && request.auth.uid == request.resource.data.teacherId;

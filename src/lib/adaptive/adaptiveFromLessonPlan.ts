@@ -187,8 +187,19 @@ const makeRoute = (route: LearningRoute, objectiveId: string, title: string, sou
 
 const buildDefaultSimulationSpec = (title: string, objectiveId: string, sourceHint: string) => {
   const normalizedText = `${title} ${sourceHint}`.toLowerCase();
-  const isSpatialGeometry = /không gian|hình chóp|hình lăng trụ|tứ diện|mặt phẳng|đường thẳng vuông góc|góc giữa|khoảng cách/.test(normalizedText);
-  const isPlaneGeometry = /hình học phẳng|tam giác|đường tròn|tứ giác|đa giác|tọa độ|vectơ|vector|đường thẳng/.test(normalizedText);
+
+  // NGUYÊN TẮC: heuristic này chỉ là fallback và phải BẢO THỦ — chỉ dựng mô phỏng hình học
+  // khi tín hiệu phân môn RẤT RÕ. Mơ hồ thì trả undefined để AI sinh học liệu đúng phân môn,
+  // tránh lỗi "nhận nhầm phân môn" (vd "không gian mẫu" của Xác suất ≠ hình học không gian).
+
+  // Chặn trước các phân môn KHÔNG phải hình học (xác suất/thống kê/tổ hợp/đại số/giải tích).
+  const isNonGeometryTopic = /xác suất|biến cố|không gian mẫu|tổ hợp|chỉnh hợp|hoán vị|kỳ vọng|phương sai|tần suất|tần số|thống kê|nhị thức|cấp số|lượng giác|logarit|lôgarit|mũ|đạo hàm|nguyên hàm|tích phân|giới hạn|dãy số/.test(normalizedText);
+  if (isNonGeometryTopic) return undefined;
+
+  // Tín hiệu hình học KHÔNG GIAN mạnh (khối/quan hệ 3D cụ thể) — bỏ token rời "không gian"/"mặt phẳng".
+  const isSpatialGeometry = /hình học không gian|hình chóp|hình lăng trụ|tứ diện|hình hộp|hình lập phương|hình cầu|hình nón|hình trụ|đường thẳng vuông góc với mặt phẳng|góc giữa (hai mặt phẳng|đường thẳng và mặt phẳng)|khoảng cách (từ[^.]*đến mặt phẳng|giữa hai đường thẳng)/.test(normalizedText);
+  // Tín hiệu hình học PHẲNG mạnh (tên hình cụ thể) — bỏ token rời "đường thẳng"/"tọa độ".
+  const isPlaneGeometry = /hình học phẳng|tam giác|đường tròn|tứ giác|đa giác|hình bình hành|hình thang|hình vuông|hình chữ nhật|elip|parabol|hyperbol|hypebol/.test(normalizedText);
 
   if (!isSpatialGeometry && !isPlaneGeometry) return undefined;
 
@@ -921,6 +932,11 @@ const buildHtmlSimulationSpecFromJson = (unit: UnitJson, objectiveId: string): A
 const buildGeometry3DSimulationSpecFromJson = (unit: UnitJson, objectiveId: string): AdaptiveSimulationSpec | undefined => {
   const geo3d = unit.simulation_3d;
   if (!geo3d) return undefined;
+
+  // Phân môn không phải hình học không gian thì bỏ mô hình 3D dù AI lỡ phát simulation_3d
+  // (vd nhầm "không gian mẫu" của Xác suất thành hình học không gian).
+  const topicText = `${unit.title || ''} ${unit.visual_instruction || ''}`.toLowerCase();
+  if (/xác suất|biến cố|không gian mẫu|tổ hợp|chỉnh hợp|hoán vị|kỳ vọng|phương sai|tần suất|tần số|thống kê|nhị thức|cấp số|lượng giác|logarit|lôgarit|đạo hàm|nguyên hàm|tích phân|giới hạn|dãy số/.test(topicText)) return undefined;
 
   // 3D MVP limits & validation
   const maxPoints = 1000;
@@ -1731,7 +1747,13 @@ QUY TẮC:
 3. guiding_questions: đúng 5 câu theo chuỗi Socratic (quan sát → so sánh → phát hiện quy luật → áp dụng → chốt).
 4. knowledge_conclusion tối đa 5-7 câu hoặc một công thức. Không viết bài giảng dài.
 5. 3 trường explanation_ phải thực sự khác nhau về độ sâu và cách tiếp cận.
-6. NẾU bài là hình học không gian 3D: dùng "simulation_3d" với points, segments, faces. KHÔNG tự viết WebGL/Three.js.
+6. CHỌN HỌC LIỆU ĐÚNG PHÂN MÔN TOÁN của mảnh này (đọc kỹ nội dung, ĐỪNG suy từ một từ rời rạc):
+   - Xác suất / Thống kê / Tổ hợp (kể cả khi có cụm "KHÔNG GIAN MẪU", "biến cố", "tần suất"): dùng sơ đồ cây, bảng 2 chiều, biểu đồ Venn, hoặc mô phỏng phép thử. TUYỆT ĐỐI KHÔNG dùng "simulation_3d".
+   - Hình học KHÔNG GIAN (hình chóp, lăng trụ, tứ diện, góc/khoảng cách trong không gian): dùng "simulation_3d" (points/segments/faces). KHÔNG tự viết WebGL/Three.js.
+   - Hình học PHẲNG / tọa độ / vectơ / conic: hình SVG/TikZ kéo điểm.
+   - Hàm số / đạo hàm / tích phân / lượng giác: đồ thị động (TikZ/đồ thị), KHÔNG dùng 3D.
+   - Đại số / số học: bảng, sơ đồ, ví dụ số minh hoạ.
+   "không gian mẫu" thuộc XÁC SUẤT, KHÔNG phải hình học không gian — không bao giờ ra mô hình 3D cho nó.
 7. NẾU có tool phù hợp trong danh sách CÔNG CỤ CÓ SẴN: đặt id vào "externalToolIds".
 8. NẾU cần hình 2D tĩnh: đặt mã TikZ vào "tikz_code" (double-escape backslash).
 9. KHÔNG dùng simulation_html.srcDoc — quá rủi ro lỗi JSON escape.
@@ -1759,8 +1781,9 @@ QUY TẮC BẮT BUỘC:
 2. Hình vẽ phải là <svg> nội tuyến hoặc <canvas> do chính bạn lập trình toạ độ. TUYỆT ĐỐI KHÔNG dùng <img> trỏ URL ngoài, KHÔNG tải thư viện ngoài (không GeoGebra/Desmos/p5/Three.js/CDN).
 3. Phải TƯƠNG TÁC THẬT bằng JavaScript thuần: ít nhất một trong các kiểu — thanh trượt (<input type="range">), nút bấm, kéo/thả điểm — và hình/số liệu cập nhật trực tiếp khi thao tác.
 4. Hiển thị rõ đại lượng thay đổi và đại lượng/quy luật giữ nguyên, đúng nội dung "${unitTitle}".
-5. CSS nội tuyến trong <style>; toàn bộ JS trong <script>. Chạy offline được.
-6. Gọn gàng, đẹp, cỡ chữ dễ đọc khi chiếu. Tối đa khoảng 200 dòng.`;
+5. MÔ PHỎNG PHẢI ĐÚNG PHÂN MÔN của mảnh: Xác suất/Thống kê/Tổ hợp → sơ đồ cây, bảng 2 chiều, Venn, mô phỏng phép thử (gieo xúc xắc/rút bi…); Hình học phẳng → hình SVG kéo điểm; Hàm số/giải tích → đồ thị động. KHÔNG dựng mô hình khối 3D cho bài Xác suất (kể cả khi có cụm "không gian mẫu").
+6. CSS nội tuyến trong <style>; toàn bộ JS trong <script>. Chạy offline được.
+7. Gọn gàng, đẹp, cỡ chữ dễ đọc khi chiếu. Tối đa khoảng 200 dòng.`;
 
 // Bóc HTML thô từ phản hồi AI, xác nhận là mini-app tương tác hợp lệ; nếu không đạt trả ''.
 const sanitizeGeneratedSimulationHtml = (text: string): string => {
