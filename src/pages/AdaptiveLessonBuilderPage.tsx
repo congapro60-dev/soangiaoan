@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, BookOpenCheck, Brain, CheckCircle2, Clock, FileUp, Layers3, Loader2, Plus, Save, Send, Sparkles, Target, Trash2 } from 'lucide-react';
+import { ArrowLeft, BookOpenCheck, Brain, CheckCircle2, Clock, Eye, FileUp, Image as ImageIcon, Layers3, Loader2, Plus, Save, Send, Sparkles, Target, Trash2, X } from 'lucide-react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { sampleAdaptiveLesson } from '../lib/adaptive/sampleAdaptiveLesson';
@@ -23,6 +23,10 @@ import type {
   WorkedExample,
 } from '../lib/adaptive/types';
 import { LessonCoverUpload } from '../components/adaptive/LessonCoverUpload';
+import { AdaptiveSimulationBlock } from '../components/adaptive/AdaptiveSimulationBlock';
+import { adaptiveLessonToDeweyContent } from '../lib/adaptive/adaptiveToDewey';
+import { renderDeweyLesson } from '../lib/dewey/template';
+import { loadDeweyAssets, buildTikzKrokiUrl } from '../lib/adaptive/deweyAssets';
 import { callAI, getActiveApiKey } from '../lib/aiProviders';
 import type { AppData, LessonPlan } from '../types';
 import { getLessonFromFirestore, saveLessonToFirestore } from '../services/adaptiveLessonService';
@@ -185,6 +189,8 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
   const [isGeneratingContent, setIsGeneratingContent] = useState(false);
   const [generationStatus, setGenerationStatus] = useState('');
   const [generateSimulations, setGenerateSimulations] = useState(true);
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+  const [isBuildingPreview, setIsBuildingPreview] = useState(false);
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
 
   const adaptiveReadyPlans = useMemo(() => lessonPlans.filter(plan => {
@@ -425,6 +431,22 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
     else navigate(`/adaptive-portal/${targetLessonId}`);
   };
 
+  // Xem trước bài học ngay trong builder (chưa cần xuất bản): render đúng HTML Dewey học sinh sẽ thấy.
+  const openLessonPreview = async () => {
+    if (!lesson) return;
+    setIsBuildingPreview(true);
+    try {
+      const assets = await loadDeweyAssets(lesson);
+      const content = adaptiveLessonToDeweyContent(lesson, 'standard', assets);
+      setPreviewHtml(renderDeweyLesson(content, 'classic'));
+    } catch (previewError) {
+      console.error('Không dựng được bản xem trước', previewError);
+      showToast?.('Không dựng được bản xem trước bài học.', 'error');
+    } finally {
+      setIsBuildingPreview(false);
+    }
+  };
+
   const save = async (status: LessonStatus) => {
     const nextLesson = normalizeForSave(status);
     if (!nextLesson) return;
@@ -607,6 +629,62 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
         </div>
       )}
 
+      {(() => {
+        const cards = lesson.preparation.engage?.visualCards || [];
+        const unitsWithVisual = lesson.knowledgeUnits.filter(u => u.simulationSpec || u.tikzCode?.trim());
+        return (
+          <div className="mb-4 rounded-2xl border border-indigo-100 bg-indigo-50/40 p-4">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="h-5 w-5 text-indigo-600" />
+                <div>
+                  <p className="text-sm font-black text-indigo-800">Hình ảnh & mô phỏng đã sinh — xem trước khi xuất bản</p>
+                  <p className="text-xs font-semibold text-indigo-500">{cards.length} ảnh khởi động · {unitsWithVisual.length}/{lesson.knowledgeUnits.length} mảnh có học liệu trực quan</p>
+                </div>
+              </div>
+              <button type="button" onClick={openLessonPreview} disabled={isBuildingPreview} className={secondaryButtonClass}>
+                {isBuildingPreview ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
+                {isBuildingPreview ? 'Đang dựng...' : 'Xem trước bài học (như học sinh thấy)'}
+              </button>
+            </div>
+
+            {cards.length === 0 && unitsWithVisual.length === 0 ? (
+              <p className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-slate-500">Chưa có hình ảnh/mô phỏng nào. Khi tạo bài hãy bật "Sinh mô phỏng tương tác", hoặc kiểm tra cảnh báo chất lượng ở trên.</p>
+            ) : (
+              <div className="space-y-4">
+                {cards.length > 0 && (
+                  <div>
+                    <p className="mb-2 text-xs font-black uppercase tracking-wide text-indigo-400">Ảnh khởi động</p>
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                      {cards.map(card => (
+                        <figure key={card.id || card.title} className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-indigo-100">
+                          <img src={card.imageDataUrl} alt={card.alt || card.title} className="h-32 w-full object-cover" loading="lazy" />
+                          <figcaption className="p-2 text-xs font-bold text-slate-700">{card.title}</figcaption>
+                        </figure>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {unitsWithVisual.length > 0 && (
+                  <div className="space-y-3">
+                    <p className="text-xs font-black uppercase tracking-wide text-indigo-400">Học liệu theo mảnh kiến thức</p>
+                    {unitsWithVisual.map(unit => (
+                      <div key={unit.id} className="rounded-xl border border-indigo-100 bg-white p-3">
+                        <p className="mb-2 text-sm font-black text-slate-800">{unit.title}</p>
+                        {unit.tikzCode?.trim() && (
+                          <img src={buildTikzKrokiUrl(unit.tikzCode.trim())} alt={`Hình minh hoạ ${unit.title}`} className="mb-2 max-h-64 rounded-lg border border-slate-100" loading="lazy" />
+                        )}
+                        {unit.simulationSpec && <AdaptiveSimulationBlock spec={unit.simulationSpec} />}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       <div className="mb-5 grid gap-3 md:grid-cols-4">
         {steps.map((label, index) => (
           <button key={label} onClick={() => setStep(index)} className={`group rounded-3xl border px-4 py-4 text-left text-sm font-black transition ${step === index ? 'border-blue-600 bg-blue-600 text-white shadow-lg shadow-blue-100' : 'border-slate-100 bg-white text-slate-500 shadow-sm hover:border-blue-100 hover:text-blue-600'}`}>
@@ -712,6 +790,22 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
             <button disabled={saving} onClick={() => void save('published')} className={primaryButtonClass}><Send className="h-4 w-4" /> Xuất bản</button>
           </div>
         </section>
+      )}
+
+      {previewHtml !== null && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-black/60 p-3 sm:p-6" role="dialog" aria-modal="true">
+          <div className="mx-auto flex h-full w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+              <div className="flex items-center gap-2">
+                <Eye className="h-5 w-5 text-indigo-600" />
+                <span className="text-sm font-black text-slate-800">Xem trước bài học — đúng những gì học sinh sẽ thấy</span>
+              </div>
+              <button type="button" aria-label="Đóng xem trước" onClick={() => setPreviewHtml(null)} className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"><X className="h-5 w-5" /></button>
+            </div>
+            <p className="border-b border-amber-100 bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-700">Lưu ý: mô phỏng 3D xoay hiển thị ở panel "Hình ảnh & mô phỏng" phía trên; bản xem trước này hiện gallery, mô phỏng HTML, hình TikZ và công thức như trong bài thật.</p>
+            <iframe srcDoc={previewHtml} sandbox="allow-scripts allow-same-origin" className="min-h-0 flex-1" style={{ width: '100%', border: 'none' }} title="Xem trước bài học Dewey" />
+          </div>
+        </div>
       )}
     </BuilderShell>
   );

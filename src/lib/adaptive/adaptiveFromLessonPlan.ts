@@ -1437,6 +1437,7 @@ YÊU CẦU RÀ SOÁT VÀ BỔ SUNG:
 3. Nếu giáo án nguồn thiếu dữ liệu, được phép suy luận sư phạm hợp lý từ tên bài, lớp, nội dung còn lại và chương trình Toán phổ thông; ghi rõ phần nào là “AI đề xuất bổ sung”.
 4. Giữ lại những phần tốt của giáo án gốc, nhưng được phép chỉnh thứ tự, chia nhỏ, thay ví dụ hoặc thêm câu hỏi để phù hợp bài học phân hoá.
 5. Không xuất JSON, không viết mã; đầu ra là bản thiết kế nội dung để giáo viên duyệt trước khi hệ thống tạo bài học.
+6. HỌC LIỆU TRỰC QUAN — BẮT BUỘC ghi rõ để giáo viên duyệt TRƯỚC khi sinh: với MỖI mảnh kiến thức nêu đúng 1 dòng "Học liệu trực quan:" gồm (a) LOẠI — chọn đúng theo phân môn Toán: mô phỏng tương tác HTML (kéo/thả, thanh trượt) / hình SVG tĩnh / hình TikZ / mô hình 3D xoay (CHỈ cho hình học không gian) / công cụ ngoài; (b) MÔ TẢ ngắn nó vẽ gì, đại lượng nào thay đổi, đại lượng nào giữ nguyên. Lưu ý phân môn: Xác suất/Thống kê/Tổ hợp → sơ đồ cây/bảng 2 chiều/Venn/mô phỏng phép thử, TUYỆT ĐỐI không mô hình 3D (kể cả khi có cụm "không gian mẫu"); Hình học phẳng → SVG/TikZ; Hình học không gian → 3D; Hàm số/Giải tích → đồ thị động. Ở mục 2 cũng liệt kê gộp toàn bộ học liệu này.
 
 CHUẨN BÀI HỌC PHÂN HOÁ BẮT BUỘC:
 I. UI/UX và trải nghiệm học tập
@@ -1495,7 +1496,7 @@ III. Toán học và kỹ thuật trình bày
 ### Mảnh kiến thức 1: ...
 - Phạm vi mảnh: chỉ một định nghĩa/công thức/tính chất nhỏ; nếu có nhiều ý phải tách tiếp thành Mảnh 2, Mảnh 3...
 - Câu hỏi gợi mở đầu mảnh:
-- Hình minh hoạ hoặc mô phỏng cần quan sát/thao tác:
+- Học liệu trực quan (LOẠI + MÔ TẢ): nêu rõ loại (mô phỏng tương tác HTML / SVG tĩnh / TikZ / 3D xoay / công cụ ngoài) đúng phân môn và nó vẽ gì, đại lượng nào thay đổi/giữ nguyên.
 - Câu hỏi dẫn dắt siêu nhỏ: ít nhất 3 câu, đi từ quan sát đến phát hiện quy luật rồi mới đến công thức/định nghĩa.
 - Nhiệm vụ học sinh dự đoán/thử sai trên hình hoặc mô phỏng:
 - Trial & Error: phản hồi khi đúng/sai:
