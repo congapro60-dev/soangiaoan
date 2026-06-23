@@ -563,7 +563,7 @@ interface EngageJson {
   foundation_goal?: string;
   standard_goal?: string;
   challenge_goal?: string;
-  visual_cards?: Array<{ title: string; alt: string; caption?: string; svg?: string }>;
+  visual_cards?: Array<{ title: string; alt: string; caption?: string; svg?: string; imageDataUrl?: string }>;
 }
 
 interface AdaptiveContentJson {
@@ -1561,7 +1561,7 @@ interface BlueprintJson {
 }
 
 interface VisualCardsJson {
-  visual_cards?: Array<{ title: string; alt: string; caption?: string; svg?: string }>;
+  visual_cards?: Array<{ title: string; alt: string; caption?: string; svg?: string; imageDataUrl?: string }>;
 }
 
 interface AssessmentsJson {
