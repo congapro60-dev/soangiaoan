@@ -1,6 +1,6 @@
 # HANDOFF — Soạn giáo án / học phân hoá
 
-**Cập nhật gần nhất**: 2026-06-19  
+**Cập nhật gần nhất**: 2026-06-24  
 **Repo**: `soangiaoan` — `https://github.com/congapro60-dev/soangiaoan`  
 **Branch chuẩn**: `main`  
 **Production URL để QA UI**: `https://giaoandewey.vercel.app`  
@@ -9,6 +9,26 @@
 ---
 
 ## 1. Trạng thái hiện tại
+
+### 1.0d Cập nhật phiên 2026-06-24 — Sửa "bài học phân hoá toàn chữ" + Xem trước hình/mô phỏng
+
+Bối cảnh: bài học phân hoá sinh ra hay "toàn chữ", mất hình minh hoạ & mô phỏng. Đối chiếu với 2 bài Gemini Canvas (`docs/BAOCAO_DoiChieu_App_vs_Gemini.md`, `docs/BAOCAO_CUOI_GuiClaudeCode_SuaLoi.md`) → gốc bệnh KHÔNG phải thiếu khả năng vẽ hình mà là **đứt mạch render** giữa 2 đường (cổng React vs HTML Dewey trong iframe) và template Dewey bỏ qua các slot hình.
+
+**Đã làm (merged to main):**
+- **Pipeline đa lượt chống "toàn chữ"** (`47ceab0`): Blueprint → Visual Cards → Assessments → từng Unit, mỗi bước cô lập lỗi (fail 1 bước không vỡ cả bài), có cảnh báo chất lượng. Sửa `repairJsonString` cho `\uXXXX`.
+- **Nối hình & mô phỏng vào bài Dewey** (`0ea1b20`): `template.ts` render `step.illustrationHtml` + `unit.simulationHtml` (iframe sandbox); `adaptiveToDewey.ts` map `visualCards`→gallery khởi động, `simulationSpec.html.srcDoc`→`simulationHtml`, thêm tham số `assets` (HTML Firestore + URL tikz theo unitId); portal `loadDeweyAssets` pre-fetch. CSS gallery/sim ở `htmlShell.ts`.
+- **Sinh mô phỏng tương tác vanilla-JS** (Gemini-style, xuất HTML thô không bọc JSON → hết lỗi escape), có sanitizer + `options.generateSimulations`; **checkbox bật/tắt** ở builder (`af497e2`).
+- **TikZ → Kroki** (`tikz/svg`) nhúng `<img>` trong `illustrationHtml`.
+- **Sửa nhầm phân môn Toán** (`62be030`): bài Xác suất từng ra mô hình 3D vì regex bắt "không gian mẫu". Sửa 3 lớp: prompt có bảng "phân môn → loại học liệu"; heuristic code bảo thủ (chặn xác suất/thống kê/giải tích trước, chỉ dựng hình học khi có tên hình cụ thể); guard cả đường AI tự phát `simulation_3d`.
+- **Mở cổng học sinh ẩn danh** (`62be030`): `firestore.rules` cho đọc `adaptiveLessons` khi `portalEnabled==true` (học sinh quét QR không cần đăng nhập). ⚠️ **CẦN `firebase deploy --only firestore:rules` để có hiệu lực** — chưa deploy.
+- **Xem trước trong builder trước khi xuất bản** (`27f0332`): panel "Hình ảnh & mô phỏng đã sinh" (gallery + `AdaptiveSimulationBlock` từng mảnh, render cả 3D + HTML, + ảnh TikZ) và nút "Xem trước bài học" mở modal render HTML Dewey từ bài trong bộ nhớ (chưa cần lưu). Prompt rà soát bắt buộc khai báo "Học liệu trực quan (LOẠI + MÔ TẢ)" mỗi mảnh. Tách `src/lib/adaptive/deweyAssets.ts` dùng chung.
+
+**Đã kiểm thử:** build TS sạch nhiều lần; script tsx render Dewey ALL PASS; cowork + Antigravity E2E xác nhận hình/mô phỏng hiện trong iframe bài học, MathJax đẹp, mô phỏng tương tác thật, console sạch. 2 bug đã sửa theo báo cáo (nhầm phân môn + cổng ẩn danh).
+
+**Việc còn (cho phiên sau):**
+- Deploy `firestore.rules` rồi test cổng ở cửa sổ ẩn danh (BUG #1 chỉ có hiệu lực sau deploy).
+- E2E trọn 5 bước cổng học sinh ở phiên ẩn danh (Olympia → Tổng kết → lưu `adaptiveSessionProgress`) — phần này cowork chưa đi hết do BUG #1.
+- Nghiệm thu lại bài Xác suất: mô phỏng phải là sơ đồ cây/bảng, KHÔNG còn khối chóp 3D.
 
 ### 1.0c Cập nhật phiên 2026-06-22 — Tài liệu Chức năng Web (11 File Tiếng Việt)
 
