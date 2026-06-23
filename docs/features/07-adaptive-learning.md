@@ -68,6 +68,21 @@
   - [ ] **Test Case 3: Lưu bài học phân hóa lên Firestore**
     - *Hành vi:* Bật "Chỉnh nội dung", thay đổi tiêu đề bài học, nhấn "Lưu & bật cổng học sinh".
     - *Kết quả mong đợi:* Hệ thống gọi API kiểm tra sức khỏe Firestore Admin (`/api/health/firebase-admin`). Nếu cấu hình hợp lệ, trạng thái lưu báo thành công và thời gian lưu được hiển thị ở đầu màn hình.
+  - [ ] **Test Case 4: Mô phỏng xuất hiện TRONG bài Dewey HTML (không chỉ ở cổng React)**
+    - *Hành vi:* Tạo/nạp bài có `unit.simulationSpec.html.srcDoc` hoặc đã sinh mô phỏng qua pipeline → vào cổng học sinh → nộp pre-test → tới màn `dewey-lesson`.
+    - *Kết quả mong đợi:* Mỗi mảnh kiến thức render `<iframe class="sim-frame" sandbox="allow-scripts">` ngay trong iframe bài học (khối `.unit-simulation`), không phải chỉ ở `LessonSimulationViewer` ngoài iframe.
+  - [ ] **Test Case 5: `engage.illustration` không rỗng khi bài có visualCards**
+    - *Hành vi:* Bài có `preparation.engage.visualCards` → `adaptiveLessonToDeweyContent` → kiểm tra màn Khởi động.
+    - *Kết quả mong đợi:* Hiện gallery `.vc-gallery` 4 ảnh (mỗi ảnh là data-URL SVG/bitmap), KHÔNG rơi về placeholder dấu `?`.
+  - [ ] **Test Case 6: Hình minh hoạ TikZ theo từng mảnh**
+    - *Hành vi:* Unit có `tikzCode` → portal pre-fetch tạo URL Kroki → convert.
+    - *Kết quả mong đợi:* Bước "step-explain" của mảnh có `illustrationHtml` chứa `<img>` Kroki render đúng hình; mảnh không có tikz thì không có ảnh thừa.
+  - [ ] **Test Case 7: Offline cơ bản**
+    - *Hành vi:* Mở file HTML đã xuất khi tắt mạng.
+    - *Kết quả mong đợi:* SVG/JS/tương tác lõi của mô phỏng inline vẫn chạy (chỉ MathJax CDN và ảnh Kroki cần mạng — cân nhắc nhúng cục bộ nếu cần offline tuyệt đối).
+  - [ ] **Test Case 8: Cầu nối `simulationId ↔ simulationHtml` đúng key**
+    - *Hành vi:* Unit có `simulationId` đã lưu doc Firestore `lessonSimulations/{lessonId}_{unitId}` → `loadDeweyAssets` pre-fetch.
+    - *Kết quả mong đợi:* HTML từ Firestore được nạp vào `unit.simulationHtml` của bản xuất; không lệch key, không nuốt nhầm doc của unit khác.
 
 - **Các lỗi thường gặp & Cách debug (Common Gotchas & Debugging):**
   - *Triệu chứng lỗi:* Không lưu được bài giảng lên Firestore hoặc bảng điều khiển học sinh thật bị xoay vòng loading vô hạn.

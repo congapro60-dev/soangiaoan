@@ -5,6 +5,29 @@ import type {
   DeweyLessonContent,
   DeweyOlympiaPack,
 } from '../dewey/types';
+import { escapeAttribute, escapeHtml } from '../dewey/htmlShell';
+
+/** HTML/ảnh sinh bất đồng bộ (Firestore, Kroki) nạp sẵn trước khi convert, key theo unit.id. */
+export interface DeweyConversionAssets {
+  /** srcDoc HTML mô phỏng cho từng mảnh (nạp từ Firestore lessonSimulations). */
+  simulationHtmlByUnitId?: Record<string, string>;
+  /** URL ảnh Kroki (tikz→svg) cho từng mảnh, nhúng dạng <img>. */
+  tikzImgUrlByUnitId?: Record<string, string>;
+}
+
+/** Dựng gallery ảnh khởi động từ visualCards (mỗi ảnh là data-URL SVG/bitmap). */
+const buildVisualCardGallery = (
+  cards: NonNullable<AdaptiveLesson['preparation']['engage']>['visualCards'],
+): string | undefined => {
+  const valid = (cards || []).filter(card => card?.imageDataUrl);
+  if (valid.length === 0) return undefined;
+  const figures = valid.map(card => `
+    <figure>
+      <img src="${escapeAttribute(card.imageDataUrl)}" alt="${escapeAttribute(card.alt || card.title)}">
+      <figcaption>${escapeHtml(card.title)}${card.caption ? ` — ${escapeHtml(card.caption)}` : ''}</figcaption>
+    </figure>`).join('');
+  return `<div class="vc-gallery">${figures}</div>`;
+};
 
 function findRoute(unit: AdaptiveLesson['knowledgeUnits'][0], route: LearningRoute) {
   return (
@@ -70,7 +93,8 @@ const placeholder = (pts: number): DeweyAdaptiveQuestion => ({
 
 export function adaptiveLessonToDeweyContent(
   lesson: AdaptiveLesson,
-  route: LearningRoute = 'standard'
+  route: LearningRoute = 'standard',
+  assets: DeweyConversionAssets = {}
 ): DeweyLessonContent {
   // Pretest: lấy 5 câu đầu từ diagnosticTest
   const pretestQuestions = (lesson.diagnosticTest?.questions ?? []).slice(0, 5).map(q => {
@@ -102,6 +126,10 @@ export function adaptiveLessonToDeweyContent(
       feedback: 'Tốt! Tiếp tục với câu hỏi tiếp theo.',
       formulaToNote: '',
     }));
+    const tikzImgUrl = assets.tikzImgUrlByUnitId?.[unit.id];
+    const explainIllustration = tikzImgUrl
+      ? `<img src="${escapeAttribute(tikzImgUrl)}" alt="Hình minh hoạ ${escapeAttribute(unit.title)}" loading="lazy">`
+      : undefined;
     const steps = [
       ...(guidingQSteps.length > 0 ? guidingQSteps : []),
       {
@@ -110,6 +138,7 @@ export function adaptiveLessonToDeweyContent(
         inputPlaceholder: 'Viết suy nghĩ của em…',
         feedback: normalizeLatexText(introFeedback, 'Xem lại phần giải thích và gợi ý của bài học.'),
         formulaToNote: '',
+        ...(explainIllustration ? { illustrationHtml: explainIllustration } : {}),
       },
       ...(rc?.workedExamples ?? []).map((ex, i) => ({
         id: `step-ex-${i}`,
@@ -128,12 +157,22 @@ export function adaptiveLessonToDeweyContent(
         formulaToNote: '',
       })),
     ];
+    const simSrcDoc = (assets.simulationHtmlByUnitId?.[unit.id] || unit.simulationSpec?.html?.srcDoc || '').trim();
+    const simulationHtml = simSrcDoc
+      ? {
+          title: unit.simulationSpec?.title || `Mô phỏng tương tác — ${unit.title}`,
+          description: unit.simulationSpec?.description || '',
+          srcDoc: simSrcDoc,
+          height: unit.simulationSpec?.html?.height || 460,
+        }
+      : undefined;
     return {
       id: unit.id,
       title: unit.title,
       socraticSteps: steps,
       conclusion: normalizeLatexText(rc?.workedExamples?.[0]?.explanation, unit.title),
       formulaForNotebook: normalizeLatexText(rc?.explanation, unit.title).slice(0, 220),
+      ...(simulationHtml ? { simulationHtml } : {}),
     };
   });
 
@@ -152,6 +191,7 @@ export function adaptiveLessonToDeweyContent(
     route === 'foundation' ? 'Cơ bản' : route === 'challenge' ? 'Nâng cao' : 'Chuẩn';
   const engageData = lesson.preparation?.engage;
   const routeGoal = engageData?.routeGoals?.[route];
+  const visualGallery = buildVisualCardGallery(engageData?.visualCards);
   const fallbackGuidingQuestion =
     lesson.preparation?.guidingQuestions?.find(question => /\?$/.test(question.trim())) ||
     lesson.preparation?.guidingQuestions?.[0] ||
@@ -187,6 +227,9 @@ export function adaptiveLessonToDeweyContent(
     engage: {
       storyHook: normalizeLatexText(stripMetaLeaks(engageData?.storyHook || lesson.preparation?.guidingQuestions?.[0], `Hôm nay em sẽ khám phá bài học "${lesson.title}" qua các câu hỏi, ví dụ và hoạt động luyện tập cụ thể.`)),
       interactiveSvgId: '',
+      ...(visualGallery
+        ? { illustration: { type: 'svg-inline' as const, data: visualGallery, caption: 'Hình ảnh khởi động — quan sát trước khi vào bài.' } }
+        : {}),
       realityCheckMessage: normalizeLatexText(stripMetaLeaks(
         engageData?.realityCheckMessage || lesson.preparation?.readingInstructions,
         `Hãy quan sát vấn đề trung tâm của bài "${lesson.title}" và dự đoán cách giải trước khi học chi tiết.`,

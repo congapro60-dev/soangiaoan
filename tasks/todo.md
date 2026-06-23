@@ -25,7 +25,40 @@ _Summary after completion_
 
 ---
 
-## Active Task: None
+## Active Task: Nối hình ảnh & mô phỏng vào bài Dewey ("bài toàn chữ") — 2026-06-22
+
+Nguồn: `docs/BAOCAO_DoiChieu_App_vs_Gemini.md` + báo cáo Gemini. Gốc bệnh: hình/mô phỏng
+sống ở đường render B (cổng React) nhưng bài học chính render ở đường A (Dewey HTML iframe);
+template Dewey bỏ qua các slot `illustrationHtml`/`simulationHtml`/`engage.illustration`.
+Phạm vi đã chốt: **cả 3 Phase**, tikzCode **render qua Kroki**.
+
+### Phase 1 — Vá hiển thị (rủi ro thấp)
+- [x] `template.ts` `renderSocraticStep`: render `step.illustrationHtml` (raw) dưới prompt
+- [x] `template.ts` `renderKnowledgeUnit`: render `unit.simulationHtml` thành iframe sandbox (`renderUnitSimulation`)
+- [x] `template.ts` `renderEngageIllustration`: gallery chạy sẵn qua nhánh non-image (data thô)
+- [x] `htmlShell.ts`: CSS cho `.vc-gallery` + `.unit-simulation` + `.step-illustration`
+- [x] `adaptiveToDewey.ts`: map `engage.visualCards` → `engage.illustration` (gallery)
+- [x] `adaptiveToDewey.ts`: map `unit.simulationSpec.html?.srcDoc` → `unit.simulationHtml`
+- [x] `adaptiveToDewey.ts`: tham số optional `assets` (map theo unitId) cho HTML Firestore
+- [x] `AdaptiveStudentPortalPage.tsx`: `loadDeweyAssets` pre-fetch Firestore sim HTML → truyền `assets`
+- [x] `npm run build` 0 lỗi
+
+### Phase 2 — Khôi phục sinh mô phỏng tương tác (Gemini-style)
+- [x] system prompt cứng: cấm `<img>`/`<image>` URL ngoài trong visual cards
+- [x] call chuyên dụng `buildUnitSimulationPrompt` xuất HTML thô → `sanitizeGeneratedSimulationHtml` → `unit.simulationSpec` (htmlMiniApp); có cờ `options.generateSimulations`
+- [x] geometry3d giữ đường React (bỏ qua sinh sim HTML cho unit 3D)
+- [x] `npm run build` 0 lỗi
+
+### Phase 3 — tikzCode (Kroki) + QA
+- [x] tikzCode → `buildTikzKrokiUrl` (URL Kroki `tikz/svg`) → `<img>` trong `illustrationHtml`
+- [x] TC4–TC8 vào `docs/features/07-adaptive-learning.md`
+- [x] `npm run build` 0 lỗi
+
+### Result
+- 3 chỗ rò rỉ đã nối: visualCards→engage gallery; simulationSpec/Firestore→unit iframe; tikz→Kroki img.
+- Pipeline sinh thêm mô phỏng tương tác vanilla-JS (call HTML thô, fault-isolated, cờ tắt được).
+- Template Dewey nay render `illustrationHtml` + `simulationHtml` (trước đây bỏ qua dù type có sẵn).
+- Build sạch 0 lỗi TS qua cả 3 lần kiểm. Cần nghiệm thu chạy thật 1 bài để xác nhận trực quan.
 
 ---
 

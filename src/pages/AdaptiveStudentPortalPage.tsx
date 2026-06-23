@@ -31,8 +31,9 @@ import {
 import { db, storage, removeUndefinedFields } from '../lib/firebase';
 import { ExternalToolWidget } from '../components/adaptive/ExternalToolWidget';
 import { sampleAdaptiveLesson } from '../lib/adaptive/sampleAdaptiveLesson';
-import { adaptiveLessonToDeweyContent } from '../lib/adaptive/adaptiveToDewey';
+import { adaptiveLessonToDeweyContent, type DeweyConversionAssets } from '../lib/adaptive/adaptiveToDewey';
 import { renderDeweyLesson } from '../lib/dewey/template';
+import { encodeKroki } from '../lib/krokiRender';
 import { getLessonFromFirestore } from '../services/adaptiveLessonService';
 import { getPersonalizedLesson } from '../lib/adaptive/personalizationEngine';
 import { GEMINI_MODELS } from '../lib/aiProviders';
@@ -62,6 +63,40 @@ import { ensureMathWrapped } from '../utils/examScoring';
 
 type PortalStage = 'loading' | 'not_found' | 'identify' | 'diagnostic' | 'personalizing' | 'dewey-lesson' | 'complete';
 type NoticeTone = 'info' | 'warning' | 'error';
+
+/** Bọc mã TikZ thành tài liệu LaTeX standalone rồi tạo URL Kroki trả SVG. */
+const buildTikzKrokiUrl = (tikz: string): string => {
+  let payload = tikz.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
+  if (!payload.includes('\\documentclass')) {
+    payload = `\\documentclass[tikz,border=2mm]{standalone}\n\\usepackage[dvipsnames]{xcolor}\n\\usepackage{pgfplots}\n\\pgfplotsset{compat=1.18}\n\\begin{document}\n${payload}\n\\end{document}`;
+  }
+  return `https://kroki.io/tikz/svg/${encodeKroki(payload)}`;
+};
+
+/**
+ * Nạp trước (bất đồng bộ) HTML mô phỏng từ Firestore + URL ảnh TikZ cho từng mảnh,
+ * để hàm convert đồng bộ `adaptiveLessonToDeweyContent` nhúng được hình vào bài Dewey.
+ * Mọi lỗi đều nuốt im lặng — thiếu hình thì bài vẫn render đủ chữ.
+ */
+const loadDeweyAssets = async (lesson: AdaptiveLesson): Promise<DeweyConversionAssets> => {
+  const simulationHtmlByUnitId: Record<string, string> = {};
+  const tikzImgUrlByUnitId: Record<string, string> = {};
+  await Promise.all((lesson.knowledgeUnits || []).map(async unit => {
+    if (unit.tikzCode?.trim()) {
+      try { tikzImgUrlByUnitId[unit.id] = buildTikzKrokiUrl(unit.tikzCode.trim()); } catch { /* bỏ qua */ }
+    }
+    if (unit.simulationSpec?.html?.srcDoc?.trim()) return; // đã có inline, khỏi gọi Firestore
+    const simId = unit.simulationId || `${lesson.id}_${unit.id}`;
+    try {
+      const snap = await getDoc(doc(db, 'lessonSimulations', simId));
+      if (snap.exists()) {
+        const data = snap.data() as { html?: unknown };
+        if (typeof data.html === 'string' && data.html.trim()) simulationHtmlByUnitId[unit.id] = data.html;
+      }
+    } catch { /* bỏ qua */ }
+  }));
+  return { simulationHtmlByUnitId, tikzImgUrlByUnitId };
+};
 type WorkedExample = AdaptiveLesson['knowledgeUnits'][number]['routes'][number]['workedExamples'][number];
 
 interface WorkedExampleInteraction {
@@ -637,7 +672,8 @@ export const AdaptiveStudentPortalPage = () => {
 
     const personalizedLesson = await getPersonalizedLesson(lesson, deweyRoute, weakObjectiveIds, callApiFn);
 
-    const deweyContent = adaptiveLessonToDeweyContent(personalizedLesson, deweyRoute);
+    const deweyAssets = await loadDeweyAssets(personalizedLesson);
+    const deweyContent = adaptiveLessonToDeweyContent(personalizedLesson, deweyRoute, deweyAssets);
     const html = renderDeweyLesson(deweyContent, 'classic');
     setDeweyHtml(html);
     setStage('dewey-lesson');

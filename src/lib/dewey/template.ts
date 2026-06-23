@@ -154,6 +154,7 @@ const renderSocraticStep = (unit: DeweyKnowledgeUnit, stepIndex: number): string
   <article class="scaffold-step${stepIndex === 0 ? '' : ' hidden'}" id="${safeId(currentId)}" data-socratic-step data-feedback="${escapeAttribute(step.feedback)}" data-note="${escapeAttribute(step.formulaToNote || '')}" data-next-step="${safeId(nextId)}">
     <h3><span class="step-badge">${stepIndex + 1}</span>Thử và sửa</h3>
     <p>${escapeHtml(step.prompt)}</p>
+    ${step.illustrationHtml ? `<div class="step-illustration">${step.illustrationHtml}</div>` : ''}
     <textarea rows="3" placeholder="${escapeAttribute(step.inputPlaceholder || 'Viết suy nghĩ của em tại đây...')}"></textarea>
     <button class="btn" type="button" onclick="submitSocraticStep(this)">Kiểm tra gợi ý</button>
     <div class="feedback-msg hidden"></div>
@@ -162,9 +163,21 @@ const renderSocraticStep = (unit: DeweyKnowledgeUnit, stepIndex: number): string
   </article>`;
 };
 
+const renderUnitSimulation = (unit: DeweyKnowledgeUnit): string => {
+  const sim = unit.simulationHtml;
+  if (!sim || !sim.srcDoc?.trim()) return '';
+  return `
+  <div class="unit-simulation box">
+    <h3>${escapeHtml(sim.title || 'Mô phỏng tương tác')}</h3>
+    ${sim.description ? `<p>${escapeHtml(sim.description)}</p>` : ''}
+    <iframe class="sim-frame" sandbox="allow-scripts" loading="lazy" srcdoc="${escapeAttribute(sim.srcDoc)}" style="width:100%;height:${sim.height || 460}px;border:0;border-radius:12px;"></iframe>
+  </div>`;
+};
+
 const renderKnowledgeUnit = (unit: DeweyKnowledgeUnit, index: number, nextScreenId: string): string => `
 <section class="screen" id="screen-${safeId(unit.id)}" data-next-screen="${safeId(nextScreenId)}">
   <h2>${index + 3}. ${escapeHtml(unit.title)}</h2>
+  ${renderUnitSimulation(unit)}
   ${unit.socraticSteps.map((_step, stepIndex) => renderSocraticStep(unit, stepIndex)).join('\n')}
   <div class="box unit-completion-panel hidden" data-unit-completion>
     <strong>Kết luận:</strong> ${escapeHtml(unit.conclusion)}

@@ -1630,7 +1630,8 @@ QUY TẮC:
 3. Không dùng hình Conic/Elip/Parabol/Hyperbol nếu bài không liên quan conic.
 4. SVG phải valid XML. Không dùng &amp;, &lt; trong text — dùng ký tự thật.
 5. Không nhúng LaTeX hay MathJax vào SVG — dùng Unicode hoặc ký hiệu thường.
-6. Trả về đúng JSON hợp lệ. Không markdown, không giải thích ngoài JSON.`;
+6. TUYỆT ĐỐI tự vẽ bằng thẻ SVG; CẤM dùng <image>/<img> trỏ URL ngoài hay link ảnh internet (chống vỡ hình).
+7. Trả về đúng JSON hợp lệ. Không markdown, không giải thích ngoài JSON.`;
 
 const buildAssessmentsPrompt = (source: AdaptiveLessonSource, objectives: ObjectiveJson[], unitTitles: string[]): string =>
   `Bạn là chuyên gia thiết kế bài kiểm tra Toán phân hoá.
@@ -1738,13 +1739,53 @@ QUY TẮC:
 11. Trả về đúng JSON hợp lệ. Không markdown, không giải thích ngoài JSON.`;
 };
 
+// --- Phase 2: dedicated raw-HTML interactive simulation per unit ---
+// Xuất HTML THÔ (không bọc JSON) để tránh lỗi escape; vanilla JS, không thư viện ngoài.
+const buildUnitSimulationPrompt = (
+  source: AdaptiveLessonSource,
+  unitTitle: string,
+  visualInstruction: string,
+): string =>
+  `Bạn là lập trình viên front-end chuyên dựng mô phỏng Toán tương tác.
+
+BÀI: "${source.title || 'Chưa rõ'}" - Lớp ${source.grade || '10'}
+MẢNH KIẾN THỨC: "${unitTitle}"
+Ý TƯỞNG MÔ PHỎNG CẦN DỰNG: ${visualInstruction || `Cho học sinh thao tác trực quan để hiểu "${unitTitle}".`}
+
+NHIỆM VỤ: Viết MỘT file HTML hoàn chỉnh, tự chứa, mô phỏng tương tác cho mảnh kiến thức trên.
+
+QUY TẮC BẮT BUỘC:
+1. Trả về DUY NHẤT mã HTML thô, bắt đầu bằng <!doctype html>. KHÔNG markdown, KHÔNG giải thích, KHÔNG bọc trong JSON.
+2. Hình vẽ phải là <svg> nội tuyến hoặc <canvas> do chính bạn lập trình toạ độ. TUYỆT ĐỐI KHÔNG dùng <img> trỏ URL ngoài, KHÔNG tải thư viện ngoài (không GeoGebra/Desmos/p5/Three.js/CDN).
+3. Phải TƯƠNG TÁC THẬT bằng JavaScript thuần: ít nhất một trong các kiểu — thanh trượt (<input type="range">), nút bấm, kéo/thả điểm — và hình/số liệu cập nhật trực tiếp khi thao tác.
+4. Hiển thị rõ đại lượng thay đổi và đại lượng/quy luật giữ nguyên, đúng nội dung "${unitTitle}".
+5. CSS nội tuyến trong <style>; toàn bộ JS trong <script>. Chạy offline được.
+6. Gọn gàng, đẹp, cỡ chữ dễ đọc khi chiếu. Tối đa khoảng 200 dòng.`;
+
+// Bóc HTML thô từ phản hồi AI, xác nhận là mini-app tương tác hợp lệ; nếu không đạt trả ''.
+const sanitizeGeneratedSimulationHtml = (text: string): string => {
+  let html = text.replace(/```(?:html)?\s*([\s\S]*?)```/i, '$1').trim();
+  const start = html.search(/<!doctype html|<html|<svg|<canvas/i);
+  if (start > 0) html = html.slice(start);
+  html = html.trim();
+  if (html.length < 200) return '';
+  const hasVisual = /<svg|<canvas/i.test(html);
+  const hasInteraction = /addEventListener|oninput|onclick|type="range"|type='range'/i.test(html);
+  const hasScript = /<script[\s>]/i.test(html);
+  if (!hasVisual || !hasInteraction || !hasScript) return '';
+  if (/<img\s|src=["']https?:|cdn\.|geogebra|desmos|three\.js|p5\.js/i.test(html)) return '';
+  return html;
+};
+
 export const runAdaptivePipeline = async (
   source: AdaptiveLessonSource,
   reviewedPlan: string,
   callAIFn: (prompt: string) => Promise<string>,
   teacherId: string,
   onProgress?: AdaptivePipelineProgress,
+  options?: { generateSimulations?: boolean },
 ): Promise<AdaptiveLesson> => {
+  const generateSimulations = options?.generateSimulations !== false;
   const warnings: string[] = [];
   const now = new Date().toISOString();
 
@@ -1846,17 +1887,41 @@ export const runAdaptivePipeline = async (
     const objectiveTitle = rawObjectives[objectiveIndex]?.title || rawObjectives[0]?.title || title;
 
     onProgress?.(`Đang tạo mảnh kiến thức ${i + 1}/${unitOutlines.length}: "${outline.title}"...`);
+    let builtUnit: KnowledgeUnit;
+    let visualInstruction = '';
     try {
       const raw = await callAIFn(buildUnitDetailPrompt(source, reviewedPlan, outline.title, objectiveTitle, i, unitOutlines.length, relevantTools));
       const parsed = parseAdaptiveContentJson(raw) as UnitJson;
       parsed.title = parsed.title?.trim() || outline.title;
       parsed.objective_index = objectiveIndex;
       parsed.estimated_minutes = parsed.estimated_minutes || (i === 0 ? 8 : 10);
-      knowledgeUnits.push(buildUnitFromJsonData(parsed, objectiveId, i));
+      visualInstruction = parsed.visual_instruction?.trim() || '';
+      builtUnit = buildUnitFromJsonData(parsed, objectiveId, i);
     } catch (err) {
       warnings.push(`unit_${i + 1}_failed: "${outline.title}" — dùng mảnh kiến thức dự phòng.`);
-      knowledgeUnits.push(makeUnit(outline.title, objectiveId, outline.title, i));
+      builtUnit = makeUnit(outline.title, objectiveId, outline.title, i);
     }
+
+    // Mô phỏng tương tác (call riêng, xuất HTML thô) — giữ 3D ở đường React, không nhồi vào srcdoc.
+    if (generateSimulations && builtUnit.simulationSpec?.kind !== 'geometry3d') {
+      onProgress?.(`Đang dựng mô phỏng tương tác cho mảnh ${i + 1}/${unitOutlines.length}...`);
+      try {
+        const rawSim = await callAIFn(buildUnitSimulationPrompt(source, builtUnit.title, visualInstruction));
+        const simSrcDoc = sanitizeGeneratedSimulationHtml(rawSim);
+        if (simSrcDoc) {
+          builtUnit.simulationSpec = buildHtmlSimulationSpecFromJson(
+            { title: builtUnit.title, simulation_html: { srcDoc: simSrcDoc, height: 460 } } as UnitJson,
+            objectiveId,
+          );
+        } else {
+          warnings.push(`sim_${i + 1}_skipped: mô phỏng mảnh "${builtUnit.title}" không đạt chuẩn tương tác, đã bỏ qua.`);
+        }
+      } catch {
+        warnings.push(`sim_${i + 1}_failed: không dựng được mô phỏng cho mảnh "${builtUnit.title}".`);
+      }
+    }
+
+    knowledgeUnits.push(builtUnit);
   }
 
   // --- Assemble ---
