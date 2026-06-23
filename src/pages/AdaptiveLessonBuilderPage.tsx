@@ -184,6 +184,7 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
   const [uploadingSource, setUploadingSource] = useState(false);
   const [isGeneratingContent, setIsGeneratingContent] = useState(false);
   const [generationStatus, setGenerationStatus] = useState('');
+  const [generateSimulations, setGenerateSimulations] = useState(true);
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
 
   const adaptiveReadyPlans = useMemo(() => lessonPlans.filter(plan => {
@@ -397,6 +398,7 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
         (prompt) => callAI(prompt, settings),
         user.uid,
         (msg) => setGenerationStatus(msg),
+        { generateSimulations },
       );
       setLesson(nextLesson);
       setExpandedUnitId(nextLesson.knowledgeUnits[0]?.id || null);
@@ -525,8 +527,18 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
               {isGeneratingContent ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
               {isGeneratingContent ? 'Đang tạo bài học...' : 'Duyệt bản rà soát & tạo cấu trúc bài học'}
             </button>
+            <label className="inline-flex items-center gap-2 text-sm font-bold text-slate-600">
+              <input
+                type="checkbox"
+                checked={generateSimulations}
+                onChange={event => setGenerateSimulations(event.target.checked)}
+                disabled={isGeneratingContent}
+                className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-400"
+              />
+              Sinh mô phỏng tương tác cho từng mảnh (chậm hơn nhưng sinh động hơn)
+            </label>
             {isGeneratingContent && generationStatus && (
-              <span className="text-sm font-bold text-blue-600">{generationStatus}</span>
+              <span className="w-full text-sm font-bold text-blue-600">{generationStatus}</span>
             )}
           </div>
 
