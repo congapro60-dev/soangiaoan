@@ -1,6 +1,6 @@
 # HANDOFF — Soạn giáo án / học phân hoá
 
-**Cập nhật gần nhất**: 2026-06-24  
+**Cập nhật gần nhất**: 2026-06-25  
 **Repo**: `soangiaoan` — `https://github.com/congapro60-dev/soangiaoan`  
 **Branch chuẩn**: `main`  
 **Production URL để QA UI**: `https://giaoandewey.vercel.app`  
@@ -23,12 +23,19 @@ Bối cảnh: bài học phân hoá sinh ra hay "toàn chữ", mất hình minh 
 - **Mở cổng học sinh ẩn danh** (`62be030`): `firestore.rules` cho đọc `adaptiveLessons` khi `portalEnabled==true` (học sinh quét QR không cần đăng nhập). ⚠️ **CẦN `firebase deploy --only firestore:rules` để có hiệu lực** — chưa deploy.
 - **Xem trước trong builder trước khi xuất bản** (`27f0332`): panel "Hình ảnh & mô phỏng đã sinh" (gallery + `AdaptiveSimulationBlock` từng mảnh, render cả 3D + HTML, + ảnh TikZ) và nút "Xem trước bài học" mở modal render HTML Dewey từ bài trong bộ nhớ (chưa cần lưu). Prompt rà soát bắt buộc khai báo "Học liệu trực quan (LOẠI + MÔ TẢ)" mỗi mảnh. Tách `src/lib/adaptive/deweyAssets.ts` dùng chung.
 
-**Đã kiểm thử:** build TS sạch nhiều lần; script tsx render Dewey ALL PASS; cowork + Antigravity E2E xác nhận hình/mô phỏng hiện trong iframe bài học, MathJax đẹp, mô phỏng tương tác thật, console sạch. 2 bug đã sửa theo báo cáo (nhầm phân môn + cổng ẩn danh).
+**Đã kiểm thử:** build TS sạch nhiều lần; script tsx render Dewey ALL PASS; cowork + Antigravity E2E xác nhận hình/mô phỏng hiện trong iframe bài học, MathJax đẹp, mô phỏng tương tác thật, console sạch.
+
+**Vòng QA production (`docs/BAOCAO_KiemThu_Production.md`) + sửa lỗi tiếp:**
+- `firestore.rules` **đã deploy** (Antigravity, project `smartplan-ai-14200`).
+- **CI strict tsc** bắt lỗi `vite build` bỏ qua → nhớ chạy `npx tsc --noEmit` trước khi push (`a9bf73e`). Thêm `imageDataUrl?` vào type `visual_cards`.
+- **Lỗi #1 (chặn): bài Builder publish thiếu `portalEnabled`** → học sinh ẩn danh 403 dù rules đúng. `AdaptiveLessonBuilderPage` lưu unwrapped qua `saveLessonToFirestore` (khác luồng cũ `AdaptiveLearningTab` ghi wrapped có `portalEnabled`). Fix (`a832207`): `saveLessonToFirestore` ghi `portalEnabled = (status==='published')`. ⚠️ Bài đã publish TRƯỚC fix phải **publish lại** mới có field.
+- **Lỗi #4 (UX): preview kẹt mảnh #1** — gỡ khối `LessonSimulationViewer` ngoài iframe ở màn `dewey-lesson` (nó luôn kẹt `currentUnitIndex=0`); mô phỏng từng mảnh đã nằm đúng trong iframe (`.unit-simulation`). (`a832207`)
+- **Lỗi #2 (TikZ Kroki 400 ~1/3):** `buildTikzKrokiUrl` validate bắt buộc môi trường `tikzpicture`, tự gỡ double-escape, thiếu env → trả '' (bỏ ảnh thay vì vỡ). (`a832207`)
+- **Lỗi #3 (vận hành, KHÔNG phải code):** quota Gemini free_tier=0 cho `gemini-3.1-pro` (429) → sinh bài chậm, sót vài câu/hình. Cần nâng billing/quota key production.
 
 **Việc còn (cho phiên sau):**
-- Deploy `firestore.rules` rồi test cổng ở cửa sổ ẩn danh (BUG #1 chỉ có hiệu lực sau deploy).
-- E2E trọn 5 bước cổng học sinh ở phiên ẩn danh (Olympia → Tổng kết → lưu `adaptiveSessionProgress`) — phần này cowork chưa đi hết do BUG #1.
-- Nghiệm thu lại bài Xác suất: mô phỏng phải là sơ đồ cây/bảng, KHÔNG còn khối chóp 3D.
+- Publish lại 1 bài qua Builder → chạy **E2E trọn 5 bước cổng học sinh ở phiên ẩn danh** (Olympia 3 gói → Tổng kết → kiểm ghi `adaptiveSessionProgress`). Đây là phần cowork chưa đi hết do Lỗi #1.
+- Nâng quota Gemini để hết 429.
 
 ### 1.0c Cập nhật phiên 2026-06-22 — Tài liệu Chức năng Web (11 File Tiếng Việt)
 
