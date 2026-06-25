@@ -929,7 +929,7 @@ export const AdaptiveStudentPortalPage = () => {
         ? 'px-3 pb-6 pt-5 sm:px-5 sm:pb-8 sm:pt-7'
         : 'px-3 pb-8 pt-6 sm:px-4 sm:pt-8'
     )}>
-      <div className={cn('mx-auto min-h-0 overflow-visible', stage === 'dewey-lesson' ? 'flex max-w-7xl flex-col gap-4 sm:gap-5' : 'max-w-5xl space-y-5')}>
+      <div className={cn('mx-auto min-h-0 overflow-visible', stage === 'dewey-lesson' ? 'flex max-w-7xl flex-col gap-4 sm:gap-5' : stage === 'identify' ? 'max-w-6xl space-y-5' : 'max-w-5xl space-y-5')}>
         <section className={cn(
           'relative z-10 shrink-0 overflow-hidden rounded-[2rem] border border-white/20 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 px-5 pb-5 pt-7 text-white shadow-xl shadow-blue-100 sm:px-7 sm:pb-7 sm:pt-9',
           stage === 'dewey-lesson' && 'mt-1'
@@ -969,7 +969,7 @@ export const AdaptiveStudentPortalPage = () => {
 
         {stage === 'identify' && (
           <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm">
-            <div className="grid gap-0 lg:grid-cols-[1.08fr_0.92fr]">
+            <div>
               <div className="p-5 sm:p-6">
                 <div className="mb-5 flex items-start gap-3">
                   <div className="rounded-2xl bg-blue-50 p-3 text-blue-600"><UserRound className="h-5 w-5" /></div>
@@ -1011,27 +1011,28 @@ export const AdaptiveStudentPortalPage = () => {
 
                 if (cards.length === 0) return null;
 
+                const gridColsClass = cards.length === 3
+                  ? 'sm:grid-cols-2 lg:grid-cols-3'
+                  : 'sm:grid-cols-2';
                 return (
-                  <div className="border-t border-slate-100 bg-gradient-to-br from-blue-50 to-indigo-50 p-5 sm:p-6 lg:border-l lg:border-t-0">
-                    <div className="rounded-2xl border border-blue-100 bg-white/75 p-4 shadow-sm">
-                      <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-                        <div>
-                          <p className="text-sm font-black text-blue-700">Hình ảnh khởi động</p>
-                          <p className="text-xs font-semibold text-blue-500">Quan sát các tình huống trực quan để tò mò trước khi vào bài.</p>
-                        </div>
-                        <span className="text-[11px] font-black uppercase tracking-widest text-blue-400">Kết nối thực tế</span>
+                  <div className="border-t border-slate-100 bg-gradient-to-br from-blue-50 to-indigo-50 p-5 sm:p-7">
+                    <div className="mb-5 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                      <div>
+                        <p className="text-xl font-black text-blue-700 sm:text-2xl">Hình ảnh khởi động</p>
+                        <p className="text-sm font-semibold text-blue-500">Quan sát các tình huống trực quan để tò mò trước khi vào bài.</p>
                       </div>
-                      <div className="mt-3 grid gap-3 md:grid-cols-2">
-                        {cards.map(card => (
-                          <figure key={card.title} className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-blue-100 transition hover:-translate-y-0.5 hover:shadow-md">
-                            <img src={card.src} alt={card.title} className="h-36 w-full object-cover sm:h-40" loading="lazy" />
-                            <figcaption className="p-3">
-                              <p className="text-sm font-black text-blue-950">{card.title}</p>
-                              {card.caption && <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">{card.caption}</p>}
-                            </figcaption>
-                          </figure>
-                        ))}
-                      </div>
+                      <span className="text-xs font-black uppercase tracking-widest text-blue-400">Kết nối thực tế</span>
+                    </div>
+                    <div className={cn('grid gap-5', gridColsClass)}>
+                      {cards.map(card => (
+                        <figure key={card.title} className="group flex flex-col overflow-hidden rounded-3xl bg-white shadow-md ring-1 ring-blue-100 transition hover:-translate-y-1 hover:shadow-xl">
+                          <img src={card.src} alt={card.title} className="aspect-[3/2] w-full object-cover" loading="lazy" />
+                          <figcaption className="flex-1 p-4 sm:p-5">
+                            <p className="text-base font-black leading-snug text-blue-950 sm:text-lg">{card.title}</p>
+                            {card.caption && <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">{card.caption}</p>}
+                          </figcaption>
+                        </figure>
+                      ))}
                     </div>
                   </div>
                 );
