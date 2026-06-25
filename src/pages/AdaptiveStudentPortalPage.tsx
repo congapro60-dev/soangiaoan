@@ -37,7 +37,6 @@ import { loadDeweyAssets } from '../lib/adaptive/deweyAssets';
 import { getLessonFromFirestore } from '../services/adaptiveLessonService';
 import { getPersonalizedLesson } from '../lib/adaptive/personalizationEngine';
 import { GEMINI_MODELS } from '../lib/aiProviders';
-import { LessonSimulationViewer } from '../components/adaptive/LessonSimulationViewer';
 import { getToolsByIds } from '../data/externalTools';
 import {
   createProgressFromDiagnostic,
@@ -1099,15 +1098,8 @@ export const AdaptiveStudentPortalPage = () => {
 
         {stage === 'dewey-lesson' && deweyHtml && (
           <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex min-h-0 flex-col gap-3 overflow-visible sm:gap-4">
-            {lesson && currentUnit && (
-              <LessonSimulationViewer
-                lessonId={lesson.id}
-                unitId={currentUnit.id}
-                unitTitle={currentUnit.title}
-                inlineSpec={currentUnit.simulationSpec}
-                externalToolIds={currentUnit.externalToolIds}
-              />
-            )}
+            {/* Mô phỏng theo từng mảnh đã nằm TRONG iframe bài học Dewey (khối .unit-simulation).
+                Bỏ khối LessonSimulationViewer ngoài vì nó kẹt ở mảnh #1 (currentUnitIndex đứng yên = 0). */}
             <iframe
               srcDoc={deweyHtml}
               sandbox="allow-scripts allow-same-origin"

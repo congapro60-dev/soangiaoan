@@ -30,7 +30,12 @@ function normalizeAdaptiveLessonDocument(raw: unknown, fallbackId?: string): Ada
 }
 
 export async function saveLessonToFirestore(lesson: AdaptiveLesson): Promise<void> {
-  await setDoc(doc(db, COL, lesson.id), removeUndefinedFields(lesson));
+  // portalEnabled cho phép học sinh ẩn danh đọc bài qua link cổng (khớp firestore.rules).
+  // Bật khi đã xuất bản, tắt khi nháp/lưu trữ — để bài chưa publish vẫn kín với người lạ.
+  await setDoc(
+    doc(db, COL, lesson.id),
+    removeUndefinedFields({ ...lesson, portalEnabled: lesson.status === 'published' }),
+  );
 }
 
 export async function updateLessonInFirestore(lessonId: string, patch: Partial<AdaptiveLesson>): Promise<void> {
