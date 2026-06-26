@@ -274,3 +274,31 @@ export interface ExternalTool {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface LessonAnalysis {
+  monHoc: string;
+  lop: string;
+  tenBai: string;
+  thoiLuong: string;
+  mucTieu: string[];
+  hoatDong: string[];
+  diemManh: string[];
+  diemCanNangCap: string[];
+}
+
+export type UpgradeMenuItemId = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q';
+
+export interface UpgradeMenuItem {
+  id: UpgradeMenuItemId;
+  label: string;
+  icon?: any;
+  group: 'hoat-dong' | 'danh-gia' | 'nang-luc' | 'tro-choi-hoc-lieu' | 'tong-the';
+  needsKnowledge?: boolean;
+  reuse?: boolean;
+}
+
+export interface UpgradeResult {
+  menuId: UpgradeMenuItemId;
+  content: string;
+  timestamp: number;
+}

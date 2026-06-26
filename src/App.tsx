@@ -31,6 +31,7 @@ const AdaptiveLessonListPage = lazy(() => import('./pages/AdaptiveLessonListPage
 const AdaptiveLessonBuilderPage = lazy(() => import('./pages/AdaptiveLessonBuilderPage').then(m => ({ default: m.AdaptiveLessonBuilderPage })));
 const AIToolsTab = lazy(() => import('./components/tabs/AIToolsTab').then(m => ({ default: m.AIToolsTab })));
 const ClassesTab = lazy(() => import('./components/tabs/ClassesTab').then(m => ({ default: m.ClassesTab })));
+const LessonUpgradeTab = lazy(() => import('./components/tabs/LessonUpgradeTab').then(m => ({ default: m.LessonUpgradeTab })));
 
 // Utils
 import { processUploadedFile } from './utils/fileUtils';
@@ -50,7 +51,7 @@ export default function App() {
     saveGradingSession, deleteGradingSession, deleteGradingResult,
   } = useAppState(user, showToast);
   
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'classes' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading' | 'exams' | 'adaptiveLessons' | 'aiTools'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'classes' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading' | 'exams' | 'adaptiveLessons' | 'aiTools' | 'lessonUpgrade'>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth >= 768);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [libraryTab, setLibraryTab] = useState<'personal' | 'community'>('personal');
@@ -429,7 +430,11 @@ export default function App() {
             )}
 
             {activeTab === 'aiTools' && (
-              <AIToolsTab data={data} isLoading={isLoading} setIsLoading={setIsLoading} showToast={showToast} />
+              <AIToolsTab data={data} isLoading={isLoading} setIsLoading={setIsLoading} showToast={showToast} setActiveTab={setActiveTab} />
+            )}
+
+            {activeTab === 'lessonUpgrade' && (
+              <LessonUpgradeTab data={data} isLoading={isLoading} setIsLoading={setIsLoading} showToast={showToast} />
             )}
 
             {activeTab === 'library' && (

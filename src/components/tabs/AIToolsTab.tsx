@@ -34,6 +34,7 @@ interface AIToolsTabProps {
   isLoading: boolean;
   setIsLoading: (val: boolean) => void;
   showToast: (msg: string, icon?: any) => void;
+  setActiveTab?: (tab: any) => void;
 }
 
 const categoryFilters: Array<'all' | AIToolCategory> = ['all', 'prompt', 'education', 'design', 'coding', 'research', 'utility'];
@@ -63,7 +64,7 @@ const outputFormatOptions = [
   { value: 'JSON', label: 'JSON (kỹ thuật)' },
 ] as const;
 
-export const AIToolsTab = ({ data, isLoading, setIsLoading, showToast }: AIToolsTabProps) => {
+export const AIToolsTab = ({ data, isLoading, setIsLoading, showToast, setActiveTab }: AIToolsTabProps) => {
   const [activeCategory, setActiveCategory] = useState<'all' | AIToolCategory>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [rawRequest, setRawRequest] = useState('');
@@ -387,7 +388,15 @@ export const AIToolsTab = ({ data, isLoading, setIsLoading, showToast }: AITools
                   </div>
                 )}
                 <button
-                  onClick={() => tool.internalAction === 'prompt-writer' ? document.getElementById('prompt-writer-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) : openTool(tool.url)}
+                  onClick={() => {
+                    if (tool.internalAction === 'prompt-writer') {
+                      document.getElementById('prompt-writer-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    } else if (tool.internalAction === 'lesson-upgrade' && setActiveTab) {
+                      setActiveTab('lessonUpgrade');
+                    } else {
+                      openTool(tool.url);
+                    }
+                  }}
                   className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-4 py-2 text-xs font-black text-white transition-all group-hover:bg-blue-600"
                 >
                   {tool.internalAction ? 'Mở công cụ' : tool.url ? 'Mở website' : 'Đang chuẩn bị'}

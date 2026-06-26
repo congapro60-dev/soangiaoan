@@ -16,6 +16,7 @@ import {
   SearchCheck,
   Sparkles,
   Video,
+  WandSparkles,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -31,7 +32,7 @@ export interface AIToolLink {
   icon: LucideIcon;
   badge?: string;
   featured?: boolean;
-  internalAction?: 'prompt-writer';
+  internalAction?: 'prompt-writer' | 'lesson-upgrade';
   note?: string;
   sourceLabel?: string;
   accountInfo?: string;
@@ -53,6 +54,17 @@ const API_KEY_QUICK_LINKS = [
 ];
 
 export const AI_TOOL_LINKS: AIToolLink[] = [
+  {
+    id: 'lesson-upgrade',
+    name: 'Trợ lý Nâng cấp Giáo án',
+    description: 'Tải giáo án lên → AI phân tích → chọn phần muốn nâng cấp (khởi động, phiếu học tập, rubric, năng lực số/AI, trò chơi, phân hóa...).',
+    useFor: 'Dùng khi đã có giáo án và muốn nâng cấp từng phần thay vì viết lại từ đầu.',
+    category: 'education',
+    icon: WandSparkles,
+    badge: 'Nội bộ',
+    featured: true,
+    internalAction: 'lesson-upgrade',
+  },
   {
     id: 'prompt-writer',
     name: 'Viết Prompt AI',
