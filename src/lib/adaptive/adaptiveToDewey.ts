@@ -5,7 +5,7 @@ import type {
   DeweyLessonContent,
   DeweyOlympiaPack,
 } from '../dewey/types';
-import { escapeAttribute } from '../dewey/htmlShell';
+import { escapeAttribute, injectSimRuntime } from '../dewey/htmlShell';
 
 /** HTML/ảnh sinh bất đồng bộ (Firestore, Kroki) nạp sẵn trước khi convert, key theo unit.id. */
 export interface DeweyConversionAssets {
@@ -24,7 +24,7 @@ const buildEngageIllustration = (
 ): { type: 'svg-inline'; data: string; caption: string } | undefined => {
   const sim = engage?.interactiveSimHtml?.trim();
   if (!sim) return undefined;
-  const iframe = `<iframe sandbox="allow-scripts" loading="lazy" srcdoc="${escapeAttribute(sim)}" style="width:100%;height:480px;border:0;border-radius:12px;background:white;"></iframe>`;
+  const iframe = `<iframe sandbox="allow-scripts" loading="lazy" srcdoc="${escapeAttribute(injectSimRuntime(sim))}" style="width:100%;height:480px;border:0;border-radius:12px;background:white;"></iframe>`;
   return { type: 'svg-inline', data: iframe, caption: 'Hoạt động mô phỏng khởi động — thao tác để cảm nhận vấn đề trước khi học.' };
 };
 
@@ -111,51 +111,59 @@ export function adaptiveLessonToDeweyContent(
   const deweyUnits: DeweyKnowledgeUnit[] = (lesson.knowledgeUnits ?? []).map(unit => {
     const rc = findRoute(unit, route);
     const firstExample = rc?.workedExamples?.[0];
-    const introFeedback = rc?.explanation || firstExample?.explanation || firstExample?.solution || firstExample?.hints?.join('\n');
-    const practiceTasks = rc?.practiceTasks?.length
-      ? rc.practiceTasks
-      : [
-          ...(unit.supportTasks ?? []),
-          ...(unit.enrichmentTasks ?? []),
-        ];
-    const guidingQSteps = (rc?.guidingQuestions ?? []).map((q, i) => ({
-      id: `step-guide-${i}`,
-      prompt: normalizeLatexText(q, unit.title),
-      inputPlaceholder: 'Viết suy nghĩ hoặc câu trả lời của em…',
-      feedback: 'Tốt! Tiếp tục với câu hỏi tiếp theo.',
-      formulaToNote: '',
-    }));
+    const routeExplain = normalizeLatexText(rc?.explanation, '');
     const tikzImgUrl = assets.tikzImgUrlByUnitId?.[unit.id];
-    const explainIllustration = tikzImgUrl
+    const tikzIllustration = tikzImgUrl
       ? `<img src="${escapeAttribute(tikzImgUrl)}" alt="Hình minh hoạ ${escapeAttribute(unit.title)}" loading="lazy">`
       : undefined;
-    const steps = [
-      ...(guidingQSteps.length > 0 ? guidingQSteps : []),
-      {
+    const guidingQuestions = rc?.guidingQuestions ?? [];
+    const guidingAnswers = rc?.guidingAnswers ?? [];
+
+    // Bước gợi mở (nếu có) — gắn hình minh hoạ TikZ vào đây
+    const hookSteps = unit.hookQuestion
+      ? [{
+          id: 'step-hook',
+          prompt: normalizeLatexText(unit.hookQuestion, unit.title),
+          inputPlaceholder: 'Ghi nhanh dự đoán của em…',
+          feedback: 'Ghi lại dự đoán rồi đối chiếu khi học — chưa chắc cũng không sao.',
+          formulaToNote: '',
+          ...(tikzIllustration ? { illustrationHtml: tikzIllustration } : {}),
+        }]
+      : [];
+
+    // Mỗi câu hỏi dẫn dắt = 1 bước NGẮN, kèm đáp án/gợi ý THẬT
+    const guidingSteps = guidingQuestions.map((q, i) => {
+      const ans = (guidingAnswers[i] || '').trim();
+      const step: DeweyKnowledgeUnit['socraticSteps'][number] = {
+        id: `step-guide-${i}`,
+        prompt: normalizeLatexText(q, unit.title),
+        inputPlaceholder: 'Viết suy nghĩ hoặc câu trả lời của em…',
+        feedback: ans ? normalizeLatexText(ans, '') : (routeExplain || 'Đối chiếu với phần chốt kiến thức ở cuối hoạt động.'),
+        formulaToNote: '',
+      };
+      if (!unit.hookQuestion && i === 0 && tikzIllustration) step.illustrationHtml = tikzIllustration;
+      return step;
+    });
+    const exampleSteps = (rc?.workedExamples ?? []).map((ex, i) => ({
+      id: `step-ex-${i}`,
+      prompt: normalizeLatexText(ex.problem, unit.title),
+      inputPlaceholder: 'Viết đáp số hoặc lời giải…',
+      expectedKeywords: ex.hints,
+      feedback: normalizeLatexText(ex.explanation || ex.solution || ex.hints?.join('\n'), 'Xem lời giải mẫu trong giáo án.'),
+      formulaToNote: '',
+    }));
+
+    let steps = [...hookSteps, ...guidingSteps, ...exampleSteps];
+    if (steps.length === 0) {
+      steps = [{
         id: 'step-explain',
-        prompt: normalizeLatexText(rc?.explanation, unit.title),
+        prompt: normalizeLatexText(routeExplain || `Tìm hiểu: ${unit.title}`, unit.title),
         inputPlaceholder: 'Viết suy nghĩ của em…',
-        feedback: normalizeLatexText(introFeedback, 'Xem lại phần giải thích và gợi ý của bài học.'),
+        feedback: routeExplain || 'Xem lại phần giải thích của bài học.',
         formulaToNote: '',
-        ...(explainIllustration ? { illustrationHtml: explainIllustration } : {}),
-      },
-      ...(rc?.workedExamples ?? []).map((ex, i) => ({
-        id: `step-ex-${i}`,
-        prompt: normalizeLatexText(ex.problem, unit.title),
-        inputPlaceholder: 'Viết đáp số hoặc lời giải…',
-        expectedKeywords: ex.hints,
-        feedback: normalizeLatexText(ex.explanation || ex.solution || ex.hints?.join('\n'), 'Xem lời giải mẫu trong giáo án.'),
-        formulaToNote: normalizeLatexText(ex.explanation, ''),
-      })),
-      ...practiceTasks.map((task, i) => ({
-        id: `step-practice-${i}`,
-        prompt: normalizeLatexText(task.prompt, `Luyện tập phân hoá: ${unit.title}`),
-        inputPlaceholder: 'Tự giải bài luyện tập theo tuyến học của em…',
-        expectedKeywords: task.hints,
-        feedback: normalizeLatexText(task.expectedAnswer || task.hints?.join('\n'), 'Đối chiếu lời giải với gợi ý luyện tập rồi tự điều chỉnh.'),
-        formulaToNote: '',
-      })),
-    ];
+        ...(tikzIllustration ? { illustrationHtml: tikzIllustration } : {}),
+      }];
+    }
     const simSrcDoc = (assets.simulationHtmlByUnitId?.[unit.id] || unit.simulationSpec?.html?.srcDoc || '').trim();
     const simulationHtml = simSrcDoc
       ? {
@@ -169,8 +177,9 @@ export function adaptiveLessonToDeweyContent(
       id: unit.id,
       title: unit.title,
       socraticSteps: steps,
-      conclusion: normalizeLatexText(rc?.workedExamples?.[0]?.explanation, unit.title),
-      formulaForNotebook: normalizeLatexText(rc?.explanation, unit.title).slice(0, 220),
+      conclusion: normalizeLatexText(unit.knowledgeConclusion || firstExample?.explanation, unit.title),
+      // Vở ghi = phần CHỐT kiến thức (công thức/định nghĩa cốt lõi), không phải đoạn giải thích dài.
+      formulaForNotebook: normalizeLatexText(unit.knowledgeConclusion || firstExample?.solution || unit.title, unit.title).slice(0, 320),
       ...(simulationHtml ? { simulationHtml } : {}),
     };
   });

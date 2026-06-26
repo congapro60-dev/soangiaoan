@@ -522,6 +522,7 @@ interface UnitJson {
   title: string;
   hook_question?: string;
   guiding_questions?: string[];
+  guiding_answers?: string[];
   student_task?: string;
   knowledge_conclusion?: string;
   visual_instruction?: string;
@@ -1009,22 +1010,6 @@ const buildGeometry3DSimulationSpecFromJson = (unit: UnitJson, objectiveId: stri
   };
 };
 
-const buildSocraticRouteExplanation = (unit: UnitJson, routeExplanation: string): string => {
-  const guidingQuestions = (unit.guiding_questions || [])
-    .filter(question => question.trim().length > 0)
-    .map((question, questionIndex) => `${questionIndex + 1}. ${question.trim()}`)
-    .join('\n');
-
-  return [
-    unit.hook_question ? `Câu hỏi gợi mở: ${unit.hook_question.trim()}` : '',
-    guidingQuestions ? `Câu hỏi dẫn dắt:\n${guidingQuestions}` : '',
-    unit.visual_instruction ? `Quan sát/hình minh hoạ: ${unit.visual_instruction.trim()}` : '',
-    unit.student_task ? `Nhiệm vụ thao tác: ${unit.student_task.trim()}` : '',
-    routeExplanation ? `Gợi ý theo tuyến học: ${routeExplanation.trim()}` : '',
-    unit.knowledge_conclusion ? `Chốt kiến thức: ${unit.knowledge_conclusion.trim()}` : '',
-  ].filter(Boolean).join('\n\n');
-};
-
 const buildUnitFromJsonData = (unit: UnitJson, objectiveId: string, index: number): KnowledgeUnit => {
   const quickCheck = buildAssessmentFromJsonQuestions(
     'quick_check', `Quick check — ${unit.title}`,
@@ -1048,19 +1033,23 @@ const buildUnitFromJsonData = (unit: UnitJson, objectiveId: string, index: numbe
   });
 
   const unitGuidingQuestions = (unit.guiding_questions || []).filter(q => q.trim().length > 0);
+  const unitGuidingAnswers = (unit.guiding_answers || []).map(a => (a || '').trim());
 
   const makeRouteContent = (route: LearningRoute): LearningRouteContent => {
-    const explanation = route === 'foundation'
+    // explanation SẠCH theo tuyến (không nhồi câu hỏi/nhiệm vụ vào — tránh "bước khổng lồ").
+    const explanation = (route === 'foundation'
       ? (unit.explanation_foundation || unit.explanation_standard)
       : route === 'challenge'
         ? (unit.explanation_challenge || unit.explanation_standard)
-        : unit.explanation_standard;
+        : unit.explanation_standard) || `Tuyến ${route}: ${unit.title}`;
     return {
       route,
-      explanation: buildSocraticRouteExplanation(unit, explanation || `Tuyến ${route}: ${unit.title}`),
+      explanation: explanation.trim(),
       guidingQuestions: unitGuidingQuestions.length > 0 ? unitGuidingQuestions : undefined,
+      guidingAnswers: unitGuidingAnswers.some(Boolean) ? unitGuidingAnswers : undefined,
       workedExamples: [workedExampleData()],
-      practiceTasks: [makePracticeTask(objectiveId, route === 'foundation' ? 'easy' : route === 'standard' ? 'medium' : 'hard', unit.title, 0)],
+      // KHÔNG dùng practice placeholder (tránh gợi ý/đáp án giả). Luyện tập thật nằm ở Olympia/quick check.
+      practiceTasks: [],
       aiTutorPrompt: `Hỗ trợ học sinh ở tuyến ${route} học mảnh kiến thức "${unit.title}" bằng chuỗi câu hỏi dẫn dắt siêu nhỏ. Không đưa ngay định nghĩa/công thức; chỉ chốt sau khi học sinh đã quan sát, dự đoán và trả lời từng bước.`,
     };
   };
@@ -1070,11 +1059,13 @@ const buildUnitFromJsonData = (unit: UnitJson, objectiveId: string, index: numbe
     title: unit.title,
     objectiveIds: [objectiveId],
     estimatedMinutes: unit.estimated_minutes || (index === 0 ? 8 : 10),
+    hookQuestion: unit.hook_question?.trim() || undefined,
+    knowledgeConclusion: unit.knowledge_conclusion?.trim() || undefined,
     routes: routeOptions.map(makeRouteContent),
     quickCheck,
     maxRemediationAttempts: 2,
-    supportTasks: [makePracticeTask(objectiveId, 'easy', unit.title, 0)],
-    enrichmentTasks: [makePracticeTask(objectiveId, 'hard', unit.title, 0)],
+    supportTasks: [],
+    enrichmentTasks: [],
     externalToolIds: unit.externalToolIds || [],
     tikzCode: unit.tikz_code?.trim() || undefined,
     simulationSpec: buildGeometry3DSimulationSpecFromJson(unit, objectiveId) || buildHtmlSimulationSpecFromJson(unit, objectiveId),
@@ -1722,6 +1713,13 @@ NHIỆM VỤ: Thiết kế chi tiết mảnh kiến thức "${unitTitle}". Trả
     "Câu 4 — Áp dụng thử: Nếu áp dụng nhận xét trên vào bài toán cụ thể, ta tính được gì?",
     "Câu 5 — Chốt công thức: Em có thể tự phát biểu công thức/định nghĩa bằng lời của mình không?"
   ],
+  "guiding_answers": [
+    "Đáp án/gợi ý ngắn cho câu 1 (đúng nội dung, không lặp lại câu hỏi).",
+    "Đáp án/gợi ý ngắn cho câu 2.",
+    "Đáp án/gợi ý ngắn cho câu 3.",
+    "Đáp án/gợi ý ngắn cho câu 4.",
+    "Đáp án/gợi ý ngắn cho câu 5."
+  ],
   "student_task": "Nhiệm vụ thao tác/nghĩ thử: học sinh kéo mô phỏng, thử số liệu hoặc viết dự đoán.",
   "visual_instruction": "Mô tả hình minh hoạ hoặc mô phỏng cần quan sát.",
   "knowledge_conclusion": "Chốt kiến thức ngắn — tối đa 5-7 câu hoặc một công thức trọng tâm.",
@@ -1745,8 +1743,9 @@ NHIỆM VỤ: Thiết kế chi tiết mảnh kiến thức "${unitTitle}". Trả
 QUY TẮC:
 1. Câu hỏi (quick_check, guiding_questions) có nội dung toán thật — KHÔNG placeholder.
 2. Đúng 2 câu quick_check với 4 đáp án mỗi câu. "correct" là index 0-3.
-3. guiding_questions: đúng 5 câu theo chuỗi Socratic (quan sát → so sánh → phát hiện quy luật → áp dụng → chốt).
-4. knowledge_conclusion tối đa 5-7 câu hoặc một công thức. Không viết bài giảng dài.
+3. guiding_questions: đúng 5 câu theo chuỗi Socratic (quan sát → so sánh → phát hiện quy luật → áp dụng → chốt). Mỗi câu NGẮN, chỉ hỏi MỘT ý.
+3b. guiding_answers: đúng 5 phần tử, cùng thứ tự với guiding_questions — là ĐÁP ÁN/GỢI Ý THẬT cho từng câu (học sinh xem sau khi tự trả lời). KHÔNG được lặp lại nguyên văn câu hỏi; phải có nội dung trả lời cụ thể.
+4. knowledge_conclusion tối đa 5-7 câu hoặc một công thức. Không viết bài giảng dài. Đây là phần chốt sẽ vào Vở ghi.
 5. 3 trường explanation_ phải thực sự khác nhau về độ sâu và cách tiếp cận.
 6. CHỌN HỌC LIỆU ĐÚNG PHÂN MÔN TOÁN của mảnh này (đọc kỹ nội dung, ĐỪNG suy từ một từ rời rạc):
    - Xác suất / Thống kê / Tổ hợp (kể cả khi có cụm "KHÔNG GIAN MẪU", "biến cố", "tần suất"): dùng sơ đồ cây, bảng 2 chiều, biểu đồ Venn, hoặc mô phỏng phép thử. TUYỆT ĐỐI KHÔNG dùng "simulation_3d".

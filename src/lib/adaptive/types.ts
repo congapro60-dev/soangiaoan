@@ -108,6 +108,8 @@ export interface LearningRouteContent {
   route: LearningRoute;
   explanation: string;
   guidingQuestions?: string[];
+  /** Gợi ý/đáp án ngắn tương ứng từng câu hỏi dẫn dắt (cùng index với guidingQuestions). */
+  guidingAnswers?: string[];
   workedExamples: WorkedExample[];
   practiceTasks: PracticeTask[];
   aiTutorPrompt?: string;
@@ -140,6 +142,10 @@ export interface KnowledgeUnit {
   title: string;
   objectiveIds: string[];
   estimatedMinutes: number;
+  /** Câu hỏi gợi mở mở đầu mảnh (Socratic). */
+  hookQuestion?: string;
+  /** Chốt kiến thức ngắn (1 định nghĩa/công thức/tính chất) — dùng cho Vở ghi + kết luận. */
+  knowledgeConclusion?: string;
   routes: LearningRouteContent[];
   quickCheck: AdaptiveAssessment;
   maxRemediationAttempts: number;

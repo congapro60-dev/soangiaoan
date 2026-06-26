@@ -6,7 +6,7 @@ import type {
   DeweyQuestionType,
   DeweyTheme,
 } from './types';
-import { escapeAttribute, escapeHtml, renderHtmlShell } from './htmlShell';
+import { escapeAttribute, escapeHtml, injectSimRuntime, renderHtmlShell } from './htmlShell';
 
 const labels = ['A', 'B', 'C', 'D'];
 
@@ -158,7 +158,7 @@ const renderSocraticStep = (unit: DeweyKnowledgeUnit, stepIndex: number): string
     <button class="btn" type="button" onclick="submitSocraticStep(this)">Kiểm tra gợi ý</button>
     <div class="feedback-msg hidden"></div>
     ${step.expectedKeywords && step.expectedKeywords.length > 0 ? `<div class="box hidden keyword-box"><strong>Từ khóa tham khảo:</strong> ${step.expectedKeywords.map(escapeHtml).join(', ')}</div>` : ''}
-    ${next ? `<button class="btn secondary next-btn hidden" type="button" onclick="unlockNextSocratic(this)">Mở bước tiếp theo</button>` : `<button class="btn secondary next-btn hidden" type="button" onclick="completeKnowledgeUnit('${safeId(unit.id)}', '${escapeAttribute(unit.formulaForNotebook)}', this)">Hoàn thành hoạt động</button>`}
+    ${next ? `<button class="btn secondary next-btn hidden" type="button" onclick="unlockNextSocratic(this)">Mở bước tiếp theo</button>` : `<button class="btn secondary next-btn hidden" type="button" onclick="completeKnowledgeUnit('${safeId(unit.id)}', this)">Hoàn thành hoạt động</button>`}
   </article>`;
 };
 
@@ -169,12 +169,12 @@ const renderUnitSimulation = (unit: DeweyKnowledgeUnit): string => {
   <div class="unit-simulation box">
     <h3>${escapeHtml(sim.title || 'Mô phỏng tương tác')}</h3>
     ${sim.description ? `<p>${escapeHtml(sim.description)}</p>` : ''}
-    <iframe class="sim-frame" sandbox="allow-scripts" loading="lazy" srcdoc="${escapeAttribute(sim.srcDoc)}" style="width:100%;height:${sim.height || 460}px;border:0;border-radius:12px;"></iframe>
+    <iframe class="sim-frame" sandbox="allow-scripts" loading="lazy" srcdoc="${escapeAttribute(injectSimRuntime(sim.srcDoc))}" style="width:100%;height:${sim.height || 460}px;border:0;border-radius:12px;"></iframe>
   </div>`;
 };
 
 const renderKnowledgeUnit = (unit: DeweyKnowledgeUnit, index: number, nextScreenId: string): string => `
-<section class="screen" id="screen-${safeId(unit.id)}" data-next-screen="${safeId(nextScreenId)}">
+<section class="screen" id="screen-${safeId(unit.id)}" data-next-screen="${safeId(nextScreenId)}" data-notebook-formula="${escapeAttribute(unit.formulaForNotebook || '')}">
   <h2>${index + 3}. ${escapeHtml(unit.title)}</h2>
   ${renderUnitSimulation(unit)}
   ${unit.socraticSteps.map((_step, stepIndex) => renderSocraticStep(unit, stepIndex)).join('\n')}

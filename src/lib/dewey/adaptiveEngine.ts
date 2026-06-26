@@ -211,7 +211,6 @@ export function getAdaptiveEngineScript(lessonId?: string): string {
       setActiveToc('screen-pretest-result');
       resultScreen.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-    window.addNote('<strong style="color:#F2A900">Ôn tập Tiết 1 & 2:</strong><br>• Đơn ánh: hai phần tử khác nhau không có cùng ảnh.<br>• Toàn ánh: không bỏ sót phần tử nào ở tập đích.<br>• Song ánh: vừa đơn ánh vừa toàn ánh, tạo ghép cặp một-một để so sánh số phần tử.');
     updateMath(byId('screen-pretest-result'));
   };
 
@@ -249,7 +248,9 @@ export function getAdaptiveEngineScript(lessonId?: string): string {
     }
   };
 
-  window.completeKnowledgeUnit = function completeKnowledgeUnit(unitId, note, button) {
+  window.completeKnowledgeUnit = function completeKnowledgeUnit(unitId, button) {
+    var unitScreen = byId('screen-' + unitId);
+    var note = unitScreen ? (unitScreen.dataset.notebookFormula || '') : '';
     if (note) window.addNote(note);
     if (state.completedUnitIds.indexOf(unitId) === -1) state.completedUnitIds.push(unitId);
     if (window.parent && window.parent !== window) {
