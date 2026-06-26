@@ -1,6 +1,6 @@
 # HANDOFF — Soạn giáo án / học phân hoá
 
-**Cập nhật gần nhất**: 2026-06-25  
+**Cập nhật gần nhất**: 2026-06-26  
 **Repo**: `soangiaoan` — `https://github.com/congapro60-dev/soangiaoan`  
 **Branch chuẩn**: `main`  
 **Production URL để QA UI**: `https://giaoandewey.vercel.app`  
@@ -9,6 +9,47 @@
 ---
 
 ## 1. Trạng thái hiện tại
+
+### 1.0f Cập nhật phiên 2026-06-26 — QA bài học phân hoá: sửa 6 lỗi khi học sinh học thật
+
+Bối cảnh: user đóng vai học sinh học thật từng bước (không chỉ soi DOM như các vòng cowork/Antigravity trước) → phát hiện 7 lỗi mà test DOM-only bỏ sót. Chi tiết: `tasks/adaptive_qa_bugs.md`. Bài học chính render qua iframe Dewey nên hầu hết fix là **render-time → áp dụng cả bài cũ lẫn mới** (reload là thấy); riêng A1/A3/A5 chất lượng cao cần **sinh bài MỚI**.
+
+**Đã sửa (commit `1aab05a`, đã verify bằng cách đóng vai học sinh bấm thật trên localhost):**
+- **A7 (CHẶN) — nút "Hoàn thành hoạt động" đơ:** `formulaForNotebook` (có xuống dòng/`\` LaTeX) bị nhồi vào `onclick` → vỡ chuỗi JS → SyntaxError → bấm không ăn. Fix: chuyển sang `data-notebook-formula` trên `<section>` (template.ts); `completeKnowledgeUnit(unitId, button)` đọc note từ dataset (adaptiveEngine.ts). Verify: bấm thật → panel kết luận hiện, "Sang hoạt động tiếp theo" chuyển màn OK.
+- **A2 — MathJax không render trong iframe mô phỏng:** thêm `injectSimRuntime()` (htmlShell.ts) nhồi MathJax + MutationObserver (typeset lại khi slider đổi DOM) vào srcdoc mọi `sim-frame` (unit + engage). Áp dụng cả bài cũ.
+- **A4 — 1 bước nhồi nguyên khối câu hỏi:** bỏ `buildSocraticRouteExplanation` (blob); explanation theo tuyến nay SẠCH; mỗi guiding question = 1 bước ngắn riêng.
+- **A3 — gợi ý/đáp án bước "Thử và sửa" rỗng:** thêm `guiding_answers` (AI sinh, cùng index guiding_questions) → mỗi câu dẫn dắt có đáp án/gợi ý THẬT; prompt cấm lặp lại câu hỏi.
+- **A6 — gợi ý luyện tập là placeholder:** bỏ `makePracticeTask` placeholder (`practiceTasks: []`); luyện tập thật nằm ở Olympia/quick check.
+- **A5 — Vở ghi sai cấu trúc:** `formulaForNotebook` = `knowledgeConclusion` (chốt kiến thức) thay vì cắt cụt explanation; bỏ ghi chú "Song ánh" cứng trong `submitPreTest` (sai cho bài không phải song ánh).
+- **A1** — mô phỏng khởi động sinh từ storyHook (đã làm ở `4768c8a`; bài mới có).
+- types.ts thêm: `LearningRouteContent.guidingAnswers`, `KnowledgeUnit.hookQuestion`, `KnowledgeUnit.knowledgeConclusion`.
+
+**Bài học về CÁCH TEST (đã ghi `tasks/lessons.md`):** phải ĐÓNG VAI học sinh học thật (bấm hết nút, đọc gợi ý/đáp án, kiểm điều hướng, đọc Vở ghi) — KHÔNG chỉ đếm DOM (sim-frame/gallery). 2 vòng test DOM-only trước bỏ sót A3–A7.
+
+**Việc còn:** user tạo 1 bài MỚI (sim BẬT) để nghiệm thu chất lượng A1/A3/A5 (cần API; quota Gemini 429 làm chậm — Lỗi #3 vận hành). Nâng quota key production.
+
+### 1.0e Cập nhật phiên 2026-06-26 — Tích hợp Trợ lý Nâng cấp Giáo án (Pha 0 & 1)
+
+**Đã hoàn tất Pha 0 & Pha 1 theo kế hoạch `eduplan_integration_plan.md`**:
+- **Pha 0**: Đã tạo "cửa vào" cho tính năng từ thẻ Card trong tab **Công cụ AI** (`internalAction: 'lesson-upgrade'`). Đã thêm route `lessonUpgrade` vào `App.tsx` và thêm menu "Nâng cấp giáo án" vào `Sidebar.tsx`.
+- **Pha 1**: 
+  - Khởi tạo kiến trúc phân rã: `LessonUpgradeTab.tsx` (UI router), `useLessonUpgrade.ts` (State).
+  - Tích hợp **LLM #1 (Phân tích giáo án)** (`analysisPrompt.ts`): Nhận diện đúng JSON Khung Cố Định.
+  - Cấu hình 17 lựa chọn nâng cấp (`menu.ts`) chia theo 5 nhóm rõ ràng.
+  - Type-checking và Build hoàn toàn PASS.
+- **Pha 2**:
+  - Triển khai **LLM #2 (Sinh sản phẩm)** cho 4 mục tái dùng ngay: E (Phiếu học tập), F (Câu hỏi đánh giá), L (Rubric), Q (Phân hóa).
+  - Tách riêng logic Prompt vào `productPrompts.ts` không làm phình `worksheetUtils.ts` hiện tại.
+  - Xây dựng UI render kết quả chuẩn `ReactMarkdown` hỗ trợ bảng biểu, Toán học (MathJax) đầy đủ kèm nút Copy/Làm lại.
+- **Pha 3**:
+  - Tạo kho tri thức sư phạm (Knowledge Base) tĩnh để chống Hallucination tại `src/lib/lessonUpgrade/knowledge/`.
+  - Các module đã tích hợp: Khung năng lực số (NL số), Năng lực AI (AI Literacy), Phương pháp/Kỹ thuật dạy học tích cực, Kịch bản trò chơi tương tác.
+  - Mở khóa 4 mục chuyên sâu: G (Năng lực số), H (Năng lực AI), I (Phương pháp dạy học), J (Trò chơi học tập).
+
+- **Pha 4 & 5 (Hoàn thiện)**:
+  - Bổ sung toàn bộ Prompt cho 9 tùy chọn còn lại (A, B, C, D, K, M, N, O, P) vào `productPrompts.ts`.
+  - Mở khóa toàn bộ 17 Menu chức năng trên UI.
+  - Tích hợp thành công **Xuất file Word (.docx)** bằng cách gọi lại thư viện Native OMML hiện có (`exportToWordA4`), cho phép tải xuống sản phẩm nâng cấp kèm theo công thức Toán học chuẩn chỉnh để giáo viên sử dụng ngay.
 
 ### 1.0d Cập nhật phiên 2026-06-24 — Sửa "bài học phân hoá toàn chữ" + Xem trước hình/mô phỏng
 
