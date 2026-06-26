@@ -86,11 +86,10 @@ const renderPretestResult = (): string => `
 const renderEngageIllustration = (content: DeweyLessonContent): string => {
   const illustration = content.engage.illustration;
   if (!illustration) {
-    return `
-    <div class="enigma-container">
-      ${content.engage.rawSvgFallback ? content.engage.rawSvgFallback : `<div class="dial">${escapeHtml(content.engage.interactiveSvgId)}</div>`}
-      <div class="lightbulb-container"><div class="bulb">?</div></div>
-    </div>`;
+    // Không có mô phỏng khởi động khớp nội dung → không vẽ placeholder để tránh hình rỗng/lệch.
+    return content.engage.rawSvgFallback
+      ? `<div class="enigma-container">${content.engage.rawSvgFallback}</div>`
+      : '';
   }
 
   const media = illustration.type === 'image'

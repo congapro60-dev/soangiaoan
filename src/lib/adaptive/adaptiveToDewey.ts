@@ -5,7 +5,7 @@ import type {
   DeweyLessonContent,
   DeweyOlympiaPack,
 } from '../dewey/types';
-import { escapeAttribute, escapeHtml } from '../dewey/htmlShell';
+import { escapeAttribute } from '../dewey/htmlShell';
 
 /** HTML/ảnh sinh bất đồng bộ (Firestore, Kroki) nạp sẵn trước khi convert, key theo unit.id. */
 export interface DeweyConversionAssets {
@@ -15,18 +15,17 @@ export interface DeweyConversionAssets {
   tikzImgUrlByUnitId?: Record<string, string>;
 }
 
-/** Dựng gallery ảnh khởi động từ visualCards (mỗi ảnh là data-URL SVG/bitmap). */
-const buildVisualCardGallery = (
-  cards: NonNullable<AdaptiveLesson['preparation']['engage']>['visualCards'],
-): string | undefined => {
-  const valid = (cards || []).filter(card => card?.imageDataUrl);
-  if (valid.length === 0) return undefined;
-  const figures = valid.map(card => `
-    <figure>
-      <img src="${escapeAttribute(card.imageDataUrl)}" alt="${escapeAttribute(card.alt || card.title)}">
-      <figcaption>${escapeHtml(card.title)}${card.caption ? ` — ${escapeHtml(card.caption)}` : ''}</figcaption>
-    </figure>`).join('');
-  return `<div class="vc-gallery">${figures}</div>`;
+/**
+ * Hình minh hoạ màn Khởi động = MÔ PHỎNG sinh riêng TỪ tình huống mở đầu (storyHook) nên luôn khớp nội dung.
+ * KHÔNG tái dùng gallery tổng quan của màn chào (gallery đó chỉ hợp ở màn chào, dễ lệch với storyHook cụ thể).
+ */
+const buildEngageIllustration = (
+  engage: AdaptiveLesson['preparation']['engage'],
+): { type: 'svg-inline'; data: string; caption: string } | undefined => {
+  const sim = engage?.interactiveSimHtml?.trim();
+  if (!sim) return undefined;
+  const iframe = `<iframe sandbox="allow-scripts" loading="lazy" srcdoc="${escapeAttribute(sim)}" style="width:100%;height:480px;border:0;border-radius:12px;background:white;"></iframe>`;
+  return { type: 'svg-inline', data: iframe, caption: 'Hoạt động mô phỏng khởi động — thao tác để cảm nhận vấn đề trước khi học.' };
 };
 
 function findRoute(unit: AdaptiveLesson['knowledgeUnits'][0], route: LearningRoute) {
@@ -191,7 +190,7 @@ export function adaptiveLessonToDeweyContent(
     route === 'foundation' ? 'Cơ bản' : route === 'challenge' ? 'Nâng cao' : 'Chuẩn';
   const engageData = lesson.preparation?.engage;
   const routeGoal = engageData?.routeGoals?.[route];
-  const visualGallery = buildVisualCardGallery(engageData?.visualCards);
+  const engageIllustration = buildEngageIllustration(engageData);
   const fallbackGuidingQuestion =
     lesson.preparation?.guidingQuestions?.find(question => /\?$/.test(question.trim())) ||
     lesson.preparation?.guidingQuestions?.[0] ||
@@ -227,9 +226,7 @@ export function adaptiveLessonToDeweyContent(
     engage: {
       storyHook: normalizeLatexText(stripMetaLeaks(engageData?.storyHook || lesson.preparation?.guidingQuestions?.[0], `Hôm nay em sẽ khám phá bài học "${lesson.title}" qua các câu hỏi, ví dụ và hoạt động luyện tập cụ thể.`)),
       interactiveSvgId: '',
-      ...(visualGallery
-        ? { illustration: { type: 'svg-inline' as const, data: visualGallery, caption: 'Hình ảnh khởi động — quan sát trước khi vào bài.' } }
-        : {}),
+      ...(engageIllustration ? { illustration: engageIllustration } : {}),
       realityCheckMessage: normalizeLatexText(stripMetaLeaks(
         engageData?.realityCheckMessage || lesson.preparation?.readingInstructions,
         `Hãy quan sát vấn đề trung tâm của bài "${lesson.title}" và dự đoán cách giải trước khi học chi tiết.`,

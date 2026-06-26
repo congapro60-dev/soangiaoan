@@ -32,6 +32,8 @@ Bối cảnh: bài học phân hoá sinh ra hay "toàn chữ", mất hình minh 
 - **Lỗi #4 (UX): preview kẹt mảnh #1** — gỡ khối `LessonSimulationViewer` ngoài iframe ở màn `dewey-lesson` (nó luôn kẹt `currentUnitIndex=0`); mô phỏng từng mảnh đã nằm đúng trong iframe (`.unit-simulation`). (`a832207`)
 - **Lỗi #2 (TikZ Kroki 400 ~1/3):** `buildTikzKrokiUrl` validate bắt buộc môi trường `tikzpicture`, tự gỡ double-escape, thiếu env → trả '' (bỏ ảnh thay vì vỡ). (`a832207`)
 - **Lỗi #3 (vận hành, KHÔNG phải code):** quota Gemini free_tier=0 cho `gemini-3.1-pro` (429) → sinh bài chậm, sót vài câu/hình. Cần nâng billing/quota key production.
+- **Phóng to gallery màn chào** (`e5f3c7f`): 4 ảnh khởi động full-width 2×2, tỉ lệ 3:2 không cắt, chữ to (áp dụng mọi bài).
+- **Khớp nội dung ↔ hình ở màn KHỞI ĐỘNG**: trước đây màn Khởi động trong bài tái dùng 4 ảnh tổng quan của màn chào → lệch với storyHook cụ thể. Fix: pipeline sinh **mô phỏng khởi động riêng TỪ storyHook** (`buildEngageSimulationPrompt`, gated theo `generateSimulations`) lưu vào `preparation.engage.interactiveSimHtml`; `adaptiveToDewey` render iframe mô phỏng này ở màn Khởi động và KHÔNG tái dùng gallery; bỏ placeholder dial "?". Gallery tổng quan chỉ còn ở màn chào (React) + panel preview builder. (Khớp chuẩn "Bước 1 Khởi động = hoạt động tương tác gây bế tắc".)
 
 **Việc còn (cho phiên sau):**
 - Publish lại 1 bài qua Builder → chạy **E2E trọn 5 bước cổng học sinh ở phiên ẩn danh** (Olympia 3 gói → Tổng kết → kiểm ghi `adaptiveSessionProgress`). Đây là phần cowork chưa đi hết do Lỗi #1.

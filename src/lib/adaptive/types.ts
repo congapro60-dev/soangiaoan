@@ -35,6 +35,8 @@ export interface LessonPreparation {
     bigTitle?: string;
     studentExpectationPrompt?: string;
     visualCards?: EngageVisualCard[];
+    /** Mô phỏng tương tác cho màn Khởi động, sinh TỪ storyHook nên khớp tình huống mở đầu (HTML srcdoc thô). */
+    interactiveSimHtml?: string;
     routeGoals?: Partial<Record<LearningRoute, string>>;
   };
 }

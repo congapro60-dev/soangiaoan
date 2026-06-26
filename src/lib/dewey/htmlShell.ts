@@ -215,10 +215,7 @@ const BASE_CSS = String.raw`
     font-weight: 900;
     font-size: 26px;
   }
-  .vc-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-  .vc-gallery figure { margin: 0; border-radius: 14px; overflow: hidden; background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-  .vc-gallery img { width: 100%; height: 150px; object-fit: cover; display: block; }
-  .vc-gallery figcaption { padding: 8px 10px; font-size: 13px; font-weight: 700; color: var(--primary); }
+  .engage-illustration iframe { display: block; }
   .unit-simulation { margin: 16px 0; }
   .unit-simulation .sim-frame { background: white; margin-top: 10px; }
   .step-illustration { margin: 10px 0; }

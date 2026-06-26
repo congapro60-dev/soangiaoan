@@ -1801,6 +1801,32 @@ const sanitizeGeneratedSimulationHtml = (text: string): string => {
   return html;
 };
 
+// Mô phỏng cho màn KHỞI ĐỘNG — sinh TỪ chính tình huống mở đầu (storyHook) để hình & nội dung luôn khớp.
+const buildEngageSimulationPrompt = (
+  source: AdaptiveLessonSource,
+  storyHook: string,
+  realityCheck: string,
+  guidingQuestion: string,
+): string =>
+  `Bạn là lập trình viên front-end dựng hoạt động mô phỏng khởi động cho bài Toán.
+
+BÀI: "${source.title || 'Chưa rõ'}" - Lớp ${source.grade || '10'}
+TÌNH HUỐNG MỞ ĐẦU (storyHook) — mô phỏng PHẢI tái hiện ĐÚNG tình huống này:
+"${storyHook}"
+${realityCheck ? `Cú sốc/nhiệm vụ quan sát: "${realityCheck}"` : ''}
+${guidingQuestion ? `Câu hỏi dẫn dắt: "${guidingQuestion}"` : ''}
+
+NHIỆM VỤ: Viết MỘT file HTML hoàn chỉnh, tự chứa, mô phỏng tương tác tái hiện ĐÚNG tình huống mở đầu ở trên,
+để học sinh thao tác và cảm nhận "vấn đề" trước khi học (tạo bế tắc/tò mò).
+
+QUY TẮC BẮT BUỘC:
+1. Trả về DUY NHẤT mã HTML thô, bắt đầu bằng <!doctype html>. KHÔNG markdown, KHÔNG giải thích, KHÔNG bọc JSON.
+2. Mô phỏng phải KHỚP nội dung storyHook (đúng bối cảnh, đúng đối tượng, đúng phép thử) — KHÔNG vẽ hình chung chung lệch tình huống.
+3. Hình vẽ là <svg> nội tuyến hoặc <canvas> tự lập trình toạ độ. TUYỆT ĐỐI KHÔNG <img> URL ngoài, KHÔNG thư viện ngoài/CDN.
+4. TƯƠNG TÁC THẬT bằng JS thuần: nút bấm/thanh trượt/chọn — và kết quả (số liệu/hình) cập nhật trực tiếp để bộc lộ vấn đề.
+5. Đúng phân môn: Xác suất → mô phỏng phép thử (rút/gieo/chọn) hiện tần suất; KHÔNG dựng khối 3D cho xác suất.
+6. CSS trong <style>, JS trong <script>, chạy offline. Gọn, đẹp, chữ to dễ chiếu. Tối đa ~200 dòng.`;
+
 export const runAdaptivePipeline = async (
   source: AdaptiveLessonSource,
   reviewedPlan: string,
@@ -1881,6 +1907,25 @@ export const runAdaptivePipeline = async (
     if (visualCards.length === 0) warnings.push('visual_cards_empty: AI tạo hình ảnh nhưng không có thẻ hợp lệ nào.');
   } catch (err) {
     warnings.push('visual_cards_failed: Không tạo được hình minh họa — bài học vẫn đầy đủ nội dung.');
+  }
+
+  // --- Step 2b: Mô phỏng KHỞI ĐỘNG (sinh từ storyHook → khớp tình huống mở đầu) ---
+  let engageSimHtml = '';
+  const engageStoryHook = blueprint.engage?.story_hook?.trim() || '';
+  if (generateSimulations && engageStoryHook) {
+    onProgress?.('Đang dựng hoạt động mô phỏng khởi động...');
+    try {
+      const rawSim = await callAIFn(buildEngageSimulationPrompt(
+        source,
+        engageStoryHook,
+        blueprint.engage?.reality_check_message?.trim() || '',
+        blueprint.engage?.guiding_question?.trim() || '',
+      ));
+      engageSimHtml = sanitizeGeneratedSimulationHtml(rawSim);
+      if (!engageSimHtml) warnings.push('engage_sim_skipped: mô phỏng khởi động không đạt chuẩn tương tác, đã bỏ qua.');
+    } catch {
+      warnings.push('engage_sim_failed: không dựng được mô phỏng khởi động.');
+    }
   }
 
   // --- Step 3: Assessments (essential but degradable) ---
@@ -1987,6 +2032,7 @@ export const runAdaptivePipeline = async (
           challenge: engage?.challenge_goal?.trim() || objectiveByBloom('analyze', 2),
         },
         visualCards: visualCards.length > 0 ? visualCards : undefined,
+        interactiveSimHtml: engageSimHtml || undefined,
       },
       guidingQuestions: [
         engage?.story_hook?.trim(),
