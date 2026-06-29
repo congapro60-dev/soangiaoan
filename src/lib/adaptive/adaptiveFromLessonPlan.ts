@@ -1587,9 +1587,9 @@ NHIỆM VỤ: Tạo khung bài học phân hoá. Trả về DUY NHẤT một JSO
     {"title": "Mục tiêu 3", "bloom": "analyze", "threshold": 0.75}
   ],
   "engage": {
-    "story_hook": "Câu chuyện/tình huống thực tế mở đầu liên quan đến nội dung toán của bài.",
-    "reality_check_message": "Cú sốc thực tế hoặc nhiệm vụ quan sát có số liệu/công thức cụ thể.",
-    "guiding_question": "Câu hỏi lớn dẫn vào bài, có thuật ngữ toán của bài.",
+    "story_hook": "MỘT tình huống/câu chuyện thực tế mở đầu DUY NHẤT liên quan nội dung toán của bài.",
+    "reality_check_message": "Cú sốc/điểm bất ngờ NẰM TRONG CHÍNH tình huống story_hook ở trên (cùng bối cảnh, cùng nhân vật/đối tượng) — KHÔNG được nêu một tình huống/bài toán KHÁC. Chỉ làm sâu thêm story_hook để gây tò mò.",
+    "guiding_question": "Câu hỏi lớn dẫn vào bài, bám đúng tình huống story_hook, có thuật ngữ toán của bài.",
     "guiding_question_box": "Câu hỏi trong hộp gợi mở để học sinh dự đoán/so sánh trước khi học.",
     "big_title": "Tiêu đề lớn màn Khởi động, đúng tên bài và vấn đề toán học.",
     "student_expectation_prompt": "Gợi ý học sinh tự viết kỳ vọng học tập.",
@@ -1782,8 +1782,10 @@ QUY TẮC BẮT BUỘC:
 3. Phải TƯƠNG TÁC THẬT bằng JavaScript thuần: ít nhất một trong các kiểu — thanh trượt (<input type="range">), nút bấm, kéo/thả điểm — và hình/số liệu cập nhật trực tiếp khi thao tác.
 4. Hiển thị rõ đại lượng thay đổi và đại lượng/quy luật giữ nguyên, đúng nội dung "${unitTitle}".
 5. MÔ PHỎNG PHẢI ĐÚNG PHÂN MÔN của mảnh: Xác suất/Thống kê/Tổ hợp → sơ đồ cây, bảng 2 chiều, Venn, mô phỏng phép thử (gieo xúc xắc/rút bi…); Hình học phẳng → hình SVG kéo điểm; Hàm số/giải tích → đồ thị động. KHÔNG dựng mô hình khối 3D cho bài Xác suất (kể cả khi có cụm "không gian mẫu").
-6. CSS nội tuyến trong <style>; toàn bộ JS trong <script>. Chạy offline được.
-7. Gọn gàng, đẹp, cỡ chữ dễ đọc khi chiếu. Tối đa khoảng 200 dòng.`;
+6. CÔNG THỨC: TUYỆT ĐỐI KHÔNG dùng LaTeX/MathJax (không $...$, không \\frac, không \\(...\\)). Viết bằng Unicode/HTML thường: P(A|B), ∩, ∪, ×, ², ³, √, ≤, ≥, ≠, Ω; phân số viết "a/b" hoặc dùng <sup>/<sub>. (iframe mô phỏng KHÔNG có MathJax nên LaTeX sẽ hiện mã thô.)
+7. ĐƠN GIẢN, DỄ HIỂU: bám sát cách trình bày SGK (Kết nối tri thức 10/11/12). Chỉ MỘT ý/thao tác chính, không nhồi nhiều thứ rối mắt.
+8. RESPONSIVE & VỪA KHUNG: body { margin:0; font-size:16px; } gói trong 1 cột dọc, width:100% (max-width:100%); KHÔNG đặt chiều rộng cố định lớn; mọi nội dung phải nhìn hết mà KHÔNG cần cuộn ngang. Chiều cao tổng ≤ ~560px.
+9. CSS nội tuyến trong <style>; toàn bộ JS trong <script>. Chạy offline được. Tối đa ~200 dòng.`;
 
 // Bóc HTML thô từ phản hồi AI, xác nhận là mini-app tương tác hợp lệ; nếu không đạt trả ''.
 const sanitizeGeneratedSimulationHtml = (text: string): string => {
@@ -1824,7 +1826,10 @@ QUY TẮC BẮT BUỘC:
 3. Hình vẽ là <svg> nội tuyến hoặc <canvas> tự lập trình toạ độ. TUYỆT ĐỐI KHÔNG <img> URL ngoài, KHÔNG thư viện ngoài/CDN.
 4. TƯƠNG TÁC THẬT bằng JS thuần: nút bấm/thanh trượt/chọn — và kết quả (số liệu/hình) cập nhật trực tiếp để bộc lộ vấn đề.
 5. Đúng phân môn: Xác suất → mô phỏng phép thử (rút/gieo/chọn) hiện tần suất; KHÔNG dựng khối 3D cho xác suất.
-6. CSS trong <style>, JS trong <script>, chạy offline. Gọn, đẹp, chữ to dễ chiếu. Tối đa ~200 dòng.`;
+6. CÔNG THỨC: TUYỆT ĐỐI KHÔNG dùng LaTeX/MathJax ($...$, \\frac, \\(...\\)) — dùng Unicode/HTML (P(A|B), ∩, ×, ², √, Ω; phân số "a/b" hoặc <sup>/<sub>). iframe không có MathJax.
+7. ĐƠN GIẢN như SGK Kết nối tri thức: một thao tác chính, dễ hiểu, không rối.
+8. RESPONSIVE: body{margin:0;font-size:16px} 1 cột width:100%, KHÔNG rộng cố định lớn, nhìn hết KHÔNG cuộn ngang, cao ≤ ~560px.
+9. CSS trong <style>, JS trong <script>, chạy offline. Tối đa ~200 dòng.`;
 
 export const runAdaptivePipeline = async (
   source: AdaptiveLessonSource,

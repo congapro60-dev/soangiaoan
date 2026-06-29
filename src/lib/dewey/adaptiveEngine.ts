@@ -1,5 +1,5 @@
 export function getAdaptiveEngineScript(lessonId?: string): string {
-  const notebookKey = lessonId ? `dewey-notebook-${lessonId}` : 'dewey-notebook';
+  const notebookKey = lessonId ? `dewey-notebook-v2-${lessonId}` : 'dewey-notebook-v2';
   return String.raw`
 (function () {
   'use strict';
@@ -56,13 +56,14 @@ export function getAdaptiveEngineScript(lessonId?: string): string {
     updateMath(notebook);
   }
 
-  window.addNote = function addNote(content) {
-    var notebook = byId('notebook-list');
-    if (!notebook || !content) return;
+  window.addNote = function addNote(content, section) {
+    if (!content) return;
+    var target = byId('nb-' + (section || 'noidung')) || byId('notebook-list');
+    if (!target) return;
     var item = document.createElement('div');
     item.className = 'note-item';
     item.innerHTML = content;
-    notebook.appendChild(item);
+    target.appendChild(item);
     persistNotebook();
     updateMath(item);
   };
@@ -170,7 +171,7 @@ export function getAdaptiveEngineScript(lessonId?: string): string {
     var nhanbiet = result.dataset.nhanbiet || '';
     var thonghieu = result.dataset.thonghieu || '';
     var vandung = result.dataset.vandung || '';
-    window.addNote('<strong style="color:#F2A900">✍️ I. Mục tiêu bài học:</strong><br>1. <strong>Nhận biết:</strong> ' + nhanbiet + '<br>2. <strong>Thông hiểu:</strong> ' + thonghieu + '<br>3. <strong>Vận dụng:</strong> ' + vandung);
+    window.addNote('1. <strong>Nhận biết:</strong> ' + nhanbiet + '<br>2. <strong>Thông hiểu:</strong> ' + thonghieu + '<br>3. <strong>Vận dụng:</strong> ' + vandung, 'muctieu');
     updateMath(result);
   };
 
@@ -251,7 +252,9 @@ export function getAdaptiveEngineScript(lessonId?: string): string {
   window.completeKnowledgeUnit = function completeKnowledgeUnit(unitId, button) {
     var unitScreen = byId('screen-' + unitId);
     var note = unitScreen ? (unitScreen.dataset.notebookFormula || '') : '';
-    if (note) window.addNote(note);
+    var titleEl = unitScreen ? unitScreen.querySelector('h2') : null;
+    var unitTitle = titleEl ? titleEl.textContent.replace(/^\s*\d+\.\s*/, '').trim() : '';
+    if (note) window.addNote((unitTitle ? '<strong>' + unitTitle + '</strong>\n' : '') + note, 'noidung');
     if (state.completedUnitIds.indexOf(unitId) === -1) state.completedUnitIds.push(unitId);
     if (window.parent && window.parent !== window) {
       window.parent.postMessage({ type: 'dewey:unitComplete', data: { unitId: unitId } }, '*');
@@ -380,6 +383,7 @@ export function getAdaptiveEngineScript(lessonId?: string): string {
       unlockScreen('screen-extend');
       var finish = byId('olympia-finish-btn');
       show(finish);
+      window.addNote('Đã hoàn thành 3 gói luyện tập Olympia. Tổng điểm: ' + state.score + ' điểm.', 'luyentap');
     }
   };
 
@@ -392,11 +396,13 @@ export function getAdaptiveEngineScript(lessonId?: string): string {
     }
     unlockScreen('screen-summary');
     show(byId('extend-next-btn'));
+    window.addNote('Đã hoàn thành phần Vận dụng — liên hệ kiến thức vào tình huống thực tế.', 'vandung');
   };
 
   window.finishLesson = function finishLesson() {
     var finalScore = byId('final-score');
     if (finalScore) finalScore.textContent = String(state.score);
+    window.addNote('Hoàn tất bài học. Tổng điểm Olympia: ' + state.score + ' điểm.', 'tongket');
     if (window.parent && window.parent !== window) {
       var nb = [];
       try { nb = JSON.parse(window.localStorage.getItem('dewey-notebook') || '[]'); } catch (_e) {}

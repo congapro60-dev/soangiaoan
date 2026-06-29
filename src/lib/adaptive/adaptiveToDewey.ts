@@ -5,7 +5,7 @@ import type {
   DeweyLessonContent,
   DeweyOlympiaPack,
 } from '../dewey/types';
-import { escapeAttribute, injectSimRuntime } from '../dewey/htmlShell';
+import { escapeAttribute } from '../dewey/htmlShell';
 
 /** HTML/ảnh sinh bất đồng bộ (Firestore, Kroki) nạp sẵn trước khi convert, key theo unit.id. */
 export interface DeweyConversionAssets {
@@ -24,7 +24,7 @@ const buildEngageIllustration = (
 ): { type: 'svg-inline'; data: string; caption: string } | undefined => {
   const sim = engage?.interactiveSimHtml?.trim();
   if (!sim) return undefined;
-  const iframe = `<iframe sandbox="allow-scripts" loading="lazy" srcdoc="${escapeAttribute(injectSimRuntime(sim))}" style="width:100%;height:480px;border:0;border-radius:12px;background:white;"></iframe>`;
+  const iframe = `<iframe sandbox="allow-scripts" loading="lazy" srcdoc="${escapeAttribute(sim)}" style="width:100%;height:600px;border:0;border-radius:12px;background:white;"></iframe>`;
   return { type: 'svg-inline', data: iframe, caption: 'Hoạt động mô phỏng khởi động — thao tác để cảm nhận vấn đề trước khi học.' };
 };
 
@@ -52,6 +52,14 @@ const normalizeLatexText = (value: string | undefined, fallback = ''): string =>
     return `${prefix || ''}$${match.slice((prefix || '').length).trim()}$`;
   }).replace(/\$\\frac/g, '$\\displaystyle \\frac');
 };
+
+/** Tách "Bước N:", "Kết luận:" thành mỗi mục một dòng (render với CSS white-space:pre-line). */
+const formatStepLines = (text: string): string =>
+  (text || '')
+    .replace(/\s*(Bước\s*\d+\s*[:.)])/gi, '\n$1')
+    .replace(/\s*(Kết luận\s*[:.])/gi, '\n$1')
+    .replace(/^\n+/, '')
+    .trim();
 
 const cleanOptions = (options: string[] | undefined): string[] => {
   const raw = options?.length ? options : ['Đúng', 'Sai'];
@@ -138,7 +146,7 @@ export function adaptiveLessonToDeweyContent(
         id: `step-guide-${i}`,
         prompt: normalizeLatexText(q, unit.title),
         inputPlaceholder: 'Viết suy nghĩ hoặc câu trả lời của em…',
-        feedback: ans ? normalizeLatexText(ans, '') : (routeExplain || 'Đối chiếu với phần chốt kiến thức ở cuối hoạt động.'),
+        feedback: ans ? formatStepLines(normalizeLatexText(ans, '')) : (routeExplain || 'Đối chiếu với phần chốt kiến thức ở cuối hoạt động.'),
         formulaToNote: '',
       };
       if (!unit.hookQuestion && i === 0 && tikzIllustration) step.illustrationHtml = tikzIllustration;
@@ -149,7 +157,7 @@ export function adaptiveLessonToDeweyContent(
       prompt: normalizeLatexText(ex.problem, unit.title),
       inputPlaceholder: 'Viết đáp số hoặc lời giải…',
       expectedKeywords: ex.hints,
-      feedback: normalizeLatexText(ex.explanation || ex.solution || ex.hints?.join('\n'), 'Xem lời giải mẫu trong giáo án.'),
+      feedback: formatStepLines(normalizeLatexText(ex.explanation || ex.solution || ex.hints?.join('\n'), 'Xem lời giải mẫu trong giáo án.')),
       formulaToNote: '',
     }));
 
@@ -177,7 +185,7 @@ export function adaptiveLessonToDeweyContent(
       id: unit.id,
       title: unit.title,
       socraticSteps: steps,
-      conclusion: normalizeLatexText(unit.knowledgeConclusion || firstExample?.explanation, unit.title),
+      conclusion: formatStepLines(normalizeLatexText(unit.knowledgeConclusion || firstExample?.explanation, unit.title)),
       // Vở ghi = phần CHỐT kiến thức (công thức/định nghĩa cốt lõi), không phải đoạn giải thích dài.
       formulaForNotebook: normalizeLatexText(unit.knowledgeConclusion || firstExample?.solution || unit.title, unit.title).slice(0, 320),
       ...(simulationHtml ? { simulationHtml } : {}),

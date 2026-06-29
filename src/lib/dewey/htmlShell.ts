@@ -17,23 +17,6 @@ export const escapeHtml = (value: string): string => value
 
 export const escapeAttribute = (value: string): string => escapeHtml(value).replace(/`/g, '&#96;');
 
-/**
- * Nhồi MathJax vào HTML mô phỏng (iframe sandbox) để công thức $...$ render đẹp thay vì hiện mã thô.
- * Có MutationObserver debounce → typeset lại khi mô phỏng cập nhật DOM động (kéo slider…).
- * iframe sandbox="allow-scripts" vẫn tải được CDN; offline thì công thức về dạng thô (chấp nhận được).
- */
-const SIM_MATHJAX_RUNTIME = `<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\\\(','\\\\)']]},svg:{fontCache:'global'}};</script>
-<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-<script>window.addEventListener('load',function(){var t;function rt(){if(window.MathJax&&window.MathJax.typesetPromise){window.MathJax.typesetPromise().catch(function(){});}}new MutationObserver(function(){clearTimeout(t);t=setTimeout(rt,250);}).observe(document.body,{childList:true,subtree:true,characterData:true});});</script>`;
-
-export const injectSimRuntime = (srcDoc: string): string => {
-  if (!srcDoc) return srcDoc;
-  if (/MathJax/.test(srcDoc)) return srcDoc; // mô phỏng đã tự nhúng MathJax
-  if (/<\/head>/i.test(srcDoc)) return srcDoc.replace(/<\/head>/i, `${SIM_MATHJAX_RUNTIME}</head>`);
-  if (/<body[^>]*>/i.test(srcDoc)) return srcDoc.replace(/(<body[^>]*>)/i, `$1${SIM_MATHJAX_RUNTIME}`);
-  return SIM_MATHJAX_RUNTIME + srcDoc;
-};
-
 export const escapeJsonForHtml = (value: unknown): string => JSON.stringify(value)
   .replace(/</g, '\\u003c')
   .replace(/>/g, '\\u003e')
@@ -143,7 +126,22 @@ const BASE_CSS = String.raw`
     background: rgba(255,255,255,0.72);
     border-radius: 10px;
     font-weight: 650;
+    white-space: pre-line;
   }
+  .nb-section { margin: 14px 0; }
+  .nb-head {
+    margin: 0 0 6px;
+    font-size: 15px;
+    font-weight: 900;
+    color: var(--primary);
+    border-bottom: 2px solid var(--secondary);
+    padding-bottom: 4px;
+  }
+  .nb-body:empty::after {
+    content: 'Sẽ tự điền khi em học tới phần này…';
+    font-size: 13px; font-weight: 600; color: #94a3b8; font-style: italic;
+  }
+  .nb-body .note-item:first-child { margin-top: 4px; }
   .screen {
     display: none;
     margin-bottom: 28px;
@@ -203,6 +201,7 @@ const BASE_CSS = String.raw`
     padding: 12px 14px;
     border-radius: 14px;
     font-weight: 750;
+    white-space: pre-line;
   }
   .feedback-correct { background: #e9f8ef; color: #176b35; border: 1px solid #bce7ca; }
   .feedback-wrong { background: #fff1f1; color: #a12121; border: 1px solid #ffc8c8; }
@@ -213,6 +212,7 @@ const BASE_CSS = String.raw`
     border-radius: 14px;
     background: #fff8df;
     border: 1px dashed var(--secondary);
+    white-space: pre-line;
   }
   .eval-true { color: var(--success); font-weight: 800; }
   .eval-false { color: var(--accent); font-weight: 800; }

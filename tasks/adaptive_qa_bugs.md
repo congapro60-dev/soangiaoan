@@ -52,6 +52,45 @@
 - [x] **A1** — mô phỏng khởi động sinh từ storyHook (đã làm phiên trước; bài mới có).
 - ⏳ Cần user test lại trên bài MỚI để xác nhận A1/A3/A5 chất lượng (cần API; quota 429 có thể chậm).
 
+## Đợt 3 (test bài MỚI adaptive-1782659614777)
+
+ĐÃ XÁC NHẬN FIX: A7 (hết đơ, đi tiếp được), A3/A6 (gợi ý/đáp án THẬT — "Bước 1: Gọi B…"), A4 (câu tách bước).
+
+### BUG-B1 — Màn Khởi động có 2 BÀI TOÁN khác nhau (Ảnh 1) 🟠
+- storyHook = trò chơi rút thẻ (3 đỏ 2 xanh); realityCheckMessage = xét nghiệm y khoa P(Bệnh|Dương tính). → 2 tình huống không liên quan trong 1 màn Khởi động.
+- Gốc: blueprint sinh story_hook và reality_check_message độc lập → lệch nhau. Cần ép coherent (cùng 1 tình huống) hoặc gộp.
+
+### BUG-B2 — Khu vực mô phỏng quá BÉ, phải kéo 2 chiều mới xem hết (Ảnh 1,2,3) 🟠
+- Mô phỏng bị bọc trong ô nhỏ (lại nằm trong cột hẹp ở engage), nội dung tràn → phải scroll trong-ngoài.
+- Hướng (user gợi ý): để mô phỏng rộng/ngoài cho rõ, hoặc bố trí container đủ lớn để nhìn hết; engage không nhồi sim vào cột hẹp.
+
+### BUG-B3 — Công thức trong mô phỏng VẪN lỗi + LỘ mã script MathJax (Ảnh 2,3) 🔴
+- Ảnh 2: sim hiện raw "$P(A \mid B)$", "$\Omega$".
+- Ảnh 3: LỘ nguyên đoạn config MathJax tôi nhồi: "…]],},svg:['\(',\) {fontCache:'global'}};" hiện thành text.
+- Gốc: injectSimRuntime (nhồi <script> MathJax vào srcdoc) KHÔNG hoạt động đúng — script bị render thành text / không typeset. Regression do tôi.
+- Hướng đúng (Gemini): sim KHÔNG dùng LaTeX/MathJax — ép Unicode/HTML (P(A|B), ×, ², √, ∩, phân số HTML). BỎ injectSimRuntime. Sinh lại bài → sạch.
+
+### BUG-B4 — Mô phỏng lằng nhằng, khó hiểu 🟡
+- User: tham khảo SGK Kết nối tri thức 10/11/12, chọn mô phỏng phù hợp, dễ hiểu, đơn giản. Cân nhắc prompt sim.
+
+### BUG-B5 — Các BƯỚC cần xuống dòng, mỗi bước 1 dòng (Ảnh 4) 🟠
+- Gợi ý/đáp án & lời giải dạng "Bước 1: … Bước 2: … Bước 3: …" đang dồn 1 đoạn. Cần mỗi bước 1 dòng cho dễ đọc.
+
+### BUG-B6 — Vở Ghi Chép thiếu cấu trúc (Ảnh 5) 🔴
+- Hiện chỉ có "I. Mục tiêu bài học", thiếu II→V.
+- Cấu trúc user yêu cầu: **I. Mục tiêu bài học → II. Nội dung (các đầu mục theo từng phần lý thuyết) → III. Luyện tập → IV. Vận dụng → V. Tổng kết.**
+- Gốc: notebook chỉ addNote rời (mục tiêu + chốt từng mảnh) không có khung I–V.
+
+## TRẠNG THÁI SỬA (đợt 3) — đã code + tsc sạch, chờ test trên production
+- [x] **B1** — blueprint ép `reality_check_message` cùng tình huống `story_hook` (không 2 bài toán). *(cần bài MỚI)*
+- [x] **B2** — engage sim full-width (gỡ khỏi cột 2); sim height 600; prompt ép responsive width 100%, không cuộn ngang. *(render-time + bài mới)*
+- [x] **B3** — GỠ injectSimRuntime (đang lộ mã); prompt sim CẤM LaTeX → dùng Unicode/HTML. *(cần bài MỚI để hết $ thô)*
+- [x] **B4** — prompt sim: đơn giản, bám SGK Kết nối tri thức, một thao tác chính. *(cần bài MỚI)*
+- [x] **B5** — `formatStepLines` tách "Bước N:"/"Kết luận:" mỗi dòng + CSS `white-space:pre-line` cho feedback/theory/note. *(render-time)*
+- [x] **B6** — Vở ghi 5 mục I–V (renderNotebook); `addNote(content, section)`; điền: I mục tiêu, II nội dung (theo từng mảnh + tiêu đề), III luyện tập (Olympia), IV vận dụng (extend), V tổng kết (finish); notebookKey v2. *(render-time)*
+
+LƯU Ý: render-time (B5/B6/B2-layout) áp dụng cả bài cũ sau khi Vercel deploy; B1/B3/B4 (sinh nội dung) cần TẠO BÀI MỚI mới thấy.
+
 ## Bài học về CÁCH TEST (rút kinh nghiệm)
 - Test phải ĐÓNG VAI học sinh học thật: bấm hết nút, đọc nội dung gợi ý/đáp án, kiểm điều hướng giữa các bước/hoạt động, xem Vở ghi — KHÔNG chỉ đếm DOM (sim-frame/gallery). Nhiều lỗi (A3–A7) chỉ lộ khi thao tác thật.
 

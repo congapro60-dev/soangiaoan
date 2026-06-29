@@ -6,7 +6,7 @@ import type {
   DeweyQuestionType,
   DeweyTheme,
 } from './types';
-import { escapeAttribute, escapeHtml, injectSimRuntime, renderHtmlShell } from './htmlShell';
+import { escapeAttribute, escapeHtml, renderHtmlShell } from './htmlShell';
 
 const labels = ['A', 'B', 'C', 'D'];
 
@@ -58,7 +58,13 @@ const renderNotebook = (): string => `
 <aside class="notebook-area">
   <h2 class="notebook-title">Vở Ghi Chép Của Em</h2>
   <p>Những công thức và kết luận quan trọng sẽ tự động xuất hiện tại đây.</p>
-  <div id="notebook-list"></div>
+  <div id="notebook-list">
+    <section class="nb-section"><h3 class="nb-head">I. Mục tiêu bài học</h3><div class="nb-body" id="nb-muctieu"></div></section>
+    <section class="nb-section"><h3 class="nb-head">II. Nội dung</h3><div class="nb-body" id="nb-noidung"></div></section>
+    <section class="nb-section"><h3 class="nb-head">III. Luyện tập</h3><div class="nb-body" id="nb-luyentap"></div></section>
+    <section class="nb-section"><h3 class="nb-head">IV. Vận dụng</h3><div class="nb-body" id="nb-vandung"></div></section>
+    <section class="nb-section"><h3 class="nb-head">V. Tổng kết</h3><div class="nb-body" id="nb-tongket"></div></section>
+  </div>
 </aside>`;
 
 const renderPretest = (content: DeweyLessonContent): string => `
@@ -112,14 +118,12 @@ const renderEngage = (content: DeweyLessonContent, firstUnit?: DeweyKnowledgeUni
 <section class="screen${content.skipPretest ? ' active' : ''}" id="screen-engage" data-next-screen="${nextScreen}">
   ${engage.stepLabel ? `<span class="step-pill">${escapeHtml(engage.stepLabel)}</span>` : ''}
   ${engage.bigTitle ? `<h1 class="big-title">${escapeHtml(engage.bigTitle)}</h1>` : '<h2>2. Khởi động - Nêu vấn đề</h2>'}
-  <div class="robot-grid engage-grid">
-    ${renderEngageIllustration(content)}
-    <div class="activity-box mission-box">
-      <h3>Nhiệm vụ mở đầu</h3>
-      ${paragraph(engage.storyHook)}
-      <div class="eval-box feedback-wrong">${escapeHtml(engage.realityCheckMessage)}</div>
-    </div>
+  <div class="activity-box mission-box">
+    <h3>Nhiệm vụ mở đầu</h3>
+    ${paragraph(engage.storyHook)}
+    ${engage.realityCheckMessage ? `<div class="eval-box feedback-wrong">${escapeHtml(engage.realityCheckMessage)}</div>` : ''}
   </div>
+  ${renderEngageIllustration(content)}
   ${engage.interactiveWidget ? `
   <div class="activity-box" data-engage-widget="${escapeAttribute(engage.interactiveWidget.type)}">
     <h3>${escapeHtml(engage.interactiveWidget.title)}</h3>
@@ -169,7 +173,7 @@ const renderUnitSimulation = (unit: DeweyKnowledgeUnit): string => {
   <div class="unit-simulation box">
     <h3>${escapeHtml(sim.title || 'Mô phỏng tương tác')}</h3>
     ${sim.description ? `<p>${escapeHtml(sim.description)}</p>` : ''}
-    <iframe class="sim-frame" sandbox="allow-scripts" loading="lazy" srcdoc="${escapeAttribute(injectSimRuntime(sim.srcDoc))}" style="width:100%;height:${sim.height || 460}px;border:0;border-radius:12px;"></iframe>
+    <iframe class="sim-frame" sandbox="allow-scripts" loading="lazy" srcdoc="${escapeAttribute(sim.srcDoc)}" style="width:100%;height:${sim.height || 600}px;border:0;border-radius:12px;"></iframe>
   </div>`;
 };
 
