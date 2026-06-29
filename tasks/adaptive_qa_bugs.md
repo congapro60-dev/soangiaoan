@@ -157,6 +157,85 @@ XÁC NHẬN OK: B6 (vở ghi có mục I/II…), B1 (engage 1 tình huống rút
 - [x] **D4** — Bỏ hộp `time-filler-options` chết. Thêm `DeweySummary.bonusChallenge` (4 phần) + nút "Mình còn thời gian — Thử thách thêm" → `revealBonus()` (engine) hiện khối ẩn ở màn Tổng kết. `adaptiveToDewey` dựng bonus: ưu tiên `lesson.bonusChallenge` (AI), thiếu thì TÁI DÙNG — bài nâng cao = ví dụ mẫu khó nhất, vận dụng = extend/exit-ticket, đọc = storyHook, video = link TÌM KIẾM YouTube theo tên bài (an toàn, không bịa link chết). AI path: `bonus_challenge` trong `buildAssessmentsPrompt` + `AssessmentsJson`/`mapBonusChallenge`/`AdaptiveLesson.bonusChallenge` (pipeline). Portal iframe thêm `allow-popups` để mở được link YouTube. Verify: tái dùng đúng nguồn; AI ưu tiên; render đủ nút/khối/4 mục/link; engine có revealBonus.
 - LƯU Ý: tái dùng → THẤY NGAY mọi bài sau deploy (bài nâng cao lấy ví dụ mẫu khó nhất). Nội dung AI riêng (4 phần đúng bài) chỉ ở BÀI MỚI (cần quota). Link YouTube là link tìm kiếm (mở tab kết quả), không phải video cụ thể.
 
+## Đợt 8 (test bài MỚI "Ba đường Conic" — adaptive-1782757543729) — CHƯA SỬA, chờ user test nốt
+
+> Ghi chú: bài conic ĐÃ tạo được (lỗi "Có lỗi xảy ra khi sinh giáo án" lúc đầu là tạm thời, đường sinh markdown `runMultiAgentPipeline` — nhiều khả năng quota 429, KHÔNG phải code adaptive).
+
+### BUG-E1 — TikZ mảnh Elip lỗi "Error 400: Undefined control sequence" hiện ĐỎ trong builder (Ảnh 1) 🔴
+- Hiện tượng: ở "Quản lý bài học" → panel "Hình ảnh & mô phỏng đã sinh (xem trước khi xuất bản)", mảnh "Định nghĩa…Elip" hiện khối đỏ: `Error 400: ! Undefined control sequence. l.6 \begin{tikzpicture}[scale=0.7]\n (exit code 1)`. (Mô phỏng HTML/Canvas của mảnh thì render TỐT.)
+- Chẩn đoán sơ bộ: chuỗi `\n` LITERAL nằm trong tikz_code → LaTeX coi `\n` là lệnh không xác định → Kroki 400. Gốc: AI double-escape newline (`\\n` → sau JSON.parse thành `\n` literal). `buildTikzKrokiUrl` (đợt 1.0d) xử lý `\\begin{tikzpicture}` double-escape nhưng CHƯA xử lý `\n`/`\\n` literal. NGOÀI RA: panel builder hiển thị thẳng lỗi Kroki (khác cổng học sinh — đợt 4 C2 đã lọc SVG lỗi qua `fetchValidTikzSvg`; builder preview chưa lọc tương tự).
+- Hướng (chưa làm): (a) `buildTikzKrokiUrl`/sanitizer gỡ `\n` literal (đổi thành newline thật hoặc bỏ); (b) builder preview lọc lỗi như cổng học sinh (không hiện ảnh đỏ).
+
+### BUG-E2 — TikZ mảnh Hyperbol lỗi y hệt E1 (Ảnh 2) 🔴
+- Hiện tượng: mảnh "Xác định tiêu điểm…Hyperbol" hiện `Error 400: ! Undefined control sequence. l.6 \begin{tikzpicture}[scale=0.6]\n (exit code 1)`. (Mô phỏng HTML render tốt.)
+- CÙNG GỐC với E1 (tikz_code có `\n` literal + builder không lọc). Sửa chung E1.
+
+### BUG-E3 — Công thức ở câu hỏi Test đầu giờ bị lỗi (Ảnh 3) 🔴
+- Hiện tượng: Test đầu giờ, Câu 5 (Elip), đáp án B hiện RAW: `M\left(± 25/12;\frac{√119}{4}\right)$` — LaTeX không typeset (thấy `\left`,`\frac`,`\right`). Đáp án A/C/D render đẹp.
+- Chẩn đoán sơ bộ: option B thiếu dấu `$` MỞ (chỉ có `$` đóng) → MathJax không xử lý → hiện raw. AI sinh delimiter lệch ở 1 phương án; `normalizeLatexText`/`cleanOptions` chưa tự cân đối/sửa `$` hoặc bọc `\left…\right`.
+- Hướng (chưa làm): sanitizer cân đối `$`, tự bọc cụm `\left/\frac/\sqrt` lẻ; hoặc ép AI bọc đủ `$…$` mọi phương án.
+
+### BUG-E4 — Công thức ở phần các mảnh kiến thức bị lỗi (^2 hiện thô) (Ảnh 4, 5) 🔴
+- Hiện tượng: trong mảnh ("Thử và sửa" Câu 3 + Kết luận + Ghi vào vở): `Mối quan hệ … a²=b^2+c² (hay c²=a^2-b²)` — lẫn lộn: `a²` render được nhưng `b^2`,`a^2` hiện thô caret `^2`. Notebook/Ghi vở cũng `a^2 =b^2 +c²`.
+- Chẩn đoán sơ bộ: AI xuất `b^2`,`a^2` dạng plain caret (không bọc `$…$`); `normalizeLatexText` đổi được vài cụm sang unicode (a²) nhưng bỏ sót `b^2`/`a^2` sau dấu `=`/khoảng trắng → không đồng nhất, không vào MathJax.
+- Hướng (chưa làm): mở rộng `normalizeLatexText` chuyển `[a-z]\^2` → unicode ² (hoặc bọc `$`) đồng nhất; xét cả `^{...}`.
+
+### BUG-E5 — Ghi bảng mục II: từng nội dung kiến thức phải đánh SỐ THỨ TỰ 1. 2. 3. (Ảnh 5) 🔴
+- Hiện tượng: trong Vở ghi mục "II. Nội dung", các mảnh kiến thức KHÔNG được đánh số tuần tự (1., 2., 3.) cho từng mảnh. (Số 1–4 đang thấy là numbering NỘI BỘ trong 1 conclusion của mảnh, không phải số thứ tự từng mảnh.)
+- Yêu cầu user (logic ghi bảng): mục II liệt kê từng nội dung kiến thức (mỗi mảnh) đánh dấu **1.** rồi **2.** rồi **3.** … — đây là correction LẶP LẠI về logic viết bảng (xem [[ghi-bang-logic]]).
+- Chẩn đoán sơ bộ: engine `addNote(content,'noidung')` (renderNotebook mục II) append rời, không prefix số thứ tự per-mảnh. Cần đánh số tăng dần mỗi khi thêm 1 mảnh vào mục II.
+- Hướng (chưa làm): khi thêm note mục II cho mỗi mảnh → tự prefix `N.` tăng dần (đếm số mảnh đã thêm).
+
+## TRẠNG THÁI SỬA (đợt 8)
+- [ ] **E1+E2** — TikZ `\n` literal → Kroki 400; gỡ `\n` literal trong `buildTikzKrokiUrl`/sanitizer + builder preview lọc lỗi như cổng học sinh.
+- [ ] **E3** — cân đối `$` / bọc `\left…\right` lẻ ở phương án test đầu giờ.
+- [ ] **E4** — `normalizeLatexText` chuyển `x^2`/`x^{...}` đồng nhất (unicode hoặc bọc `$`).
+- [ ] **E5** — Vở ghi mục II đánh số thứ tự 1. 2. 3. cho từng mảnh.
+
+## Đợt 8 (tiếp) — lỗi + REDESIGN phần Luyện tập (conic) — CHƯA SỬA, chờ user chốt
+
+### BUG-E6 — Luyện tập CHẤM SAI đáp án (mặc định đáp án A) (Ảnh 1) 🔴 NGHIÊM TRỌNG
+- Hiện tượng: câu "phương trình nào là chính tắc của Elip?" chọn A (`x²/9 − y²/4 = 1`, là HYPERBOL) lại báo "Chính xác! +10 điểm". Đáp án đúng phải là B/C.
+- Chẩn đoán (đã xác minh code): `cleanOptions` (`adaptiveToDewey.ts:69-72`) chuẩn hoá phương án qua `normalizeLatexText`, nhưng `toAdaptiveQ` tính `cidx = Math.max(opts.indexOf(q.correctAnswer ?? ''), 0)` so phương án ĐÃ chuẩn hoá với `correctAnswer` THÔ → với phương án chứa công thức (conic) normalize đổi chuỗi → `indexOf` = −1 → `cidx` = 0 → **mặc định A**. Cùng lỗi ở pretest (`adaptiveLessonToDeweyContent`, correctIndex). Lỗi CÓ TRƯỚC đợt 5.
+- Hướng (chưa làm): so khớp `correctAnswer` ĐÃ chuẩn hoá với `opts` chuẩn hoá (normalize cả hai vế); nếu vẫn không khớp thì giữ index gốc từ JSON (`qJson.correct`) thay vì default 0.
+
+### BUG-E7 — Phương án trắc nghiệm còn RAW markdown/LaTeX (`**A.**`, `\frac…`) (Ảnh 2, 3) 🔴
+- Hiện tượng: ảnh 2 phương án hiện `- **A.** 10`, `- **B.** 5` (markdown thô + gạch đầu dòng). Ảnh 3 (gói 30đ) phương án `\frac{x^2}{16} - \frac{y^2}{9} = 1` không typeset.
+- Chẩn đoán: `cleanOptions` chỉ `normalizeLatexText`, KHÔNG bóc markdown (`**`, `- `, tiền tố `A.`) và không bọc `$…$` cho cụm LaTeX lẻ → MathJax bỏ qua.
+- Hướng (chưa làm): sanitizer phương án: bóc `**`, `- `, tiền tố `A./B.`; bọc `$` cho `\frac/\sqrt/^`; đồng bộ với E3/E4.
+
+### BUG-E8 — Vận dụng: mô phỏng KHÔNG khớp đề (đề Parabol nhưng sim là Elip) (Ảnh 4) 🟠
+- Hiện tượng: câu Vận dụng "Cho Parabol (P): y²=2px…" nhưng mô phỏng nhúng bên dưới là "Định nghĩa & Phương trình Elip" → lệch nội dung.
+- Gốc: đợt 6 (D3) cho màn Vận dụng TÁI DÙNG mô phỏng của MỘT mảnh bất kỳ (mảnh đầu có sim) → không khớp đề Vận dụng. Tái dùng mù quáng.
+- Hướng (chưa làm): Vận dụng chỉ nhúng mô phỏng/hình KHỚP đề; không khớp thì thà bỏ (theo E10).
+
+### E9 — REDESIGN phần Luyện tập (user quy ước lại) 📐 (spec, chưa làm)
+- **Bỏ tên "Olympia"** — chỉ gọi "Luyện tập".
+- **Gói 1 — "Nhận biết" (we must)** (thay "10 điểm"): **4 câu trắc nghiệm 4 phương án**, mỗi câu **5đ** nếu đúng (max 20).
+- **Gói 2 — "Thông hiểu" (we should)** (thay "20 điểm"): **2 câu Đúng/Sai, mỗi câu 4 ý**, mỗi câu **10đ**. Chấm từng phần: **1 ý đúng=1đ, 2 ý=2.5đ, 3 ý=5đ, 4 ý=10đ** (max 20).
+- **Gói 3 — "Vận dụng" (we can)** (thay "30 điểm"): **2 câu trả lời ngắn (5đ/câu)** + **1 câu tự luận (10đ)** có 2–4 ý (AI tự chia điểm) (max 20).
+- **Hỗ trợ theo loại câu (đã chốt với user):**
+  - **Trắc nghiệm 4 phương án (Nhận biết) + Trả lời ngắn (Vận dụng): 4 tầng**, mở dần khi sai tới khi điền đúng. **Đúng ở lần 1/2/3 → hiện LUÔN lời giải chi tiết rồi mới sang câu tiếp.**
+  - **Đúng/Sai (Thông hiểu): KHÔNG 4 tầng** (mỗi ý chỉ 2 lựa chọn). Mỗi ý có nút **"hiện gợi ý"** riêng (cho HS chưa biết làm). Nộp → **hiện đáp án từng ý LUÔN** (dù chọn đúng hay sai) + chấm từng phần (1/2.5/5/10).
+  - **Tự luận (Vận dụng): 2 tầng**: tầng 1 ấn hiện **gợi ý từng ý**; ấn tiếp (tầng 2) hiện **đáp án chi tiết để HS TỰ CHẤM** (không AI chấm text tự do).
+- **Thanh điểm GIỮ NGUYÊN** (đã chốt): mỗi gói max 20, tổng 60 — như hiện tại.
+- Hiện trạng code: `DeweyAdaptiveQuestion` đã có `true_false_group` + `short_answer`; engine có chấm true_false (chưa chấm TỪNG PHẦN 1/2.5/5/10) và short_answer. CẦN LÀM: (a) pipeline thôi ép tất cả về `multiple_choice` — sinh đúng loại theo gói; (b) thêm loại "tự luận" (essay 2–4 ý, hiển thị + tự chấm, hỗ trợ 2 tầng); (c) chấm từng phần Đúng/Sai (1/2.5/5/10); (d) 4 tầng hỗ trợ cho cả true_false/short_answer; (e) "đúng cũng hiện lời giải chi tiết trước khi sang câu".
+
+### E10 — Mô phỏng/hình minh hoạ: ĐƠN GIẢN, HẤP DẪN, KHỚP đề (định hướng) 🎨 (research, chưa làm)
+- User: "tạo rất nhiều mô phỏng phức tạp nhưng KHÔNG hay/không hấp dẫn. Bài conic này chỉ mô phỏng ở phần KHỞI ĐỘNG là được." Yêu cầu: mô phỏng/hình cần **đơn giản, hấp dẫn, PHÙ HỢP đề/nội dung**.
+- Hệ quả: xem lại prompt sinh mô phỏng từng mảnh (đang phức tạp/lệch); cân nhắc giảm sim phức tạp ở mảnh, ưu tiên 1 mô phỏng khởi động tốt + hình minh hoạ đơn giản đúng nội dung. Liên quan E8 (tái dùng sim lệch đề).
+
+## TRẠNG THÁI SỬA (đợt 8)
+- [x] **E6** (chấm sai → mặc định A) — `resolveCorrectIndex` (batch 1, `92f3780`).
+- [x] **E7** (option raw markdown) — `stripInlineMarkdown` (batch 1).
+- [x] **E3** (option thiếu `$` mở) — `ensureMathDelimiters` (batch 1).
+- [x] **E4** (`^2` thô) — `convertBareCarets` → unicode (batch 1).
+- [x] **E5** (vở ghi II đánh số 1.2.3.) — `addNote(...,numbered)` (batch 2, `469d651`).
+- [x] **E1+E2** (TikZ `\n` literal + builder ảnh đỏ) — gỡ `\n` literal + builder nhúng SVG đã xác thực (batch 2).
+- [ ] **E8** (sim Vận dụng lệch đề) — chưa.
+- [ ] **E9** (redesign Luyện tập: 3 gói Nhận biết/Thông hiểu/Vận dụng + chấm từng phần + tự luận 2 tầng + 4 tầng các loại + đúng cũng hiện lời giải) — chưa (lớn).
+- [ ] **E10** (mô phỏng đơn giản/khớp đề) — chưa.
+
 ## Bài học về CÁCH TEST (rút kinh nghiệm)
 - Test phải ĐÓNG VAI học sinh học thật: bấm hết nút, đọc nội dung gợi ý/đáp án, kiểm điều hướng giữa các bước/hoạt động, xem Vở ghi — KHÔNG chỉ đếm DOM (sim-frame/gallery). Nhiều lỗi (A3–A7) chỉ lộ khi thao tác thật.
 
