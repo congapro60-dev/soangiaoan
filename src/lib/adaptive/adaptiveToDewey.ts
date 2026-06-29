@@ -45,8 +45,17 @@ const stripMetaLeaks = (value: string | undefined, fallback: string): string => 
   return text;
 };
 
+const SUP: Record<string, string> = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+
+/** Đổi luỹ thừa caret đơn (x^2) NẰM NGOÀI $...$ sang chữ số trên (x²) — đồng nhất hiển thị, không cần MathJax. */
+const convertBareCarets = (text: string): string =>
+  text.split(/(\$[^$]*\$)/).map(seg =>
+    seg.startsWith('$') ? seg : seg.replace(/([A-Za-z0-9)\]}])\^\{?(\d)\}?/g, (_m, base: string, d: string) => base + SUP[d])
+  ).join('');
+
 const normalizeLatexText = (value: string | undefined, fallback = ''): string => {
-  const text = (value?.trim() || fallback).replace(/\\\\(frac|sqrt|Delta|alpha|beta|gamma|displaystyle|left|right|cdot|pm|le|ge|ne|infty|sin|cos|tan)/g, '\\$1');
+  // Đổi luỹ thừa caret đơn (a^2) NGOÀI $...$ sang unicode TRƯỚC để đồng nhất, tránh wrap nửa vời ($a^2 =$b²).
+  const text = convertBareCarets((value?.trim() || fallback).replace(/\\\\(frac|sqrt|Delta|alpha|beta|gamma|displaystyle|left|right|cdot|pm|le|ge|ne|infty|sin|cos|tan)/g, '\\$1'));
   return text.replace(MATH_FRAGMENT_RE, (match, prefix) => {
     if (match.includes('$')) return match;
     return `${prefix || ''}$${match.slice((prefix || '').length).trim()}$`;
@@ -66,9 +75,46 @@ const formatStepLines = (text: string): string =>
     .replace(/^\n+/, '')
     .trim();
 
+/** Bóc markdown lẫn trong phương án (**đậm**, gạch đầu dòng) do AI hay chèn. */
+const stripInlineMarkdown = (s: string): string =>
+  s.replace(/\*\*/g, '').replace(/^\s*[-*•]\s+/, '').trim();
+
+const MATH_CMD_RE = /\\(?:frac|sqrt|left|right|cdot|pm|times|div|leq|geq|neq|alpha|beta|gamma|Delta|displaystyle|sin|cos|tan|log|ln|vec|overline)|[\^_]/;
+
+/** Đảm bảo cụm LaTeX trong phương án được bọc $...$ và cân đối dấu $ (sửa ca thiếu $ mở → hiện raw). */
+const ensureMathDelimiters = (raw: string): string => {
+  let s = raw;
+  if (((s.match(/\$/g) || []).length) % 2 === 1) s = s.replace(/\$/g, '').trim(); // $ lẻ → bỏ hết rồi bọc lại
+  if (!s.includes('$') && MATH_CMD_RE.test(s)) {
+    const m = s.match(/^([A-D][).．.]\s*)([\s\S]+)$/); // giữ tiền tố "A." nếu có
+    s = m ? `${m[1]}$${m[2].trim()}$` : `$${s.trim()}$`;
+  }
+  return s;
+};
+
 const cleanOptions = (options: string[] | undefined): string[] => {
   const raw = options?.length ? options : ['Đúng', 'Sai'];
-  return raw.map(option => normalizeLatexText(option, option));
+  return raw.map(option => normalizeLatexText(ensureMathDelimiters(stripInlineMarkdown(option)), option));
+};
+
+/**
+ * Tìm index đáp án đúng KHÔNG bị lệ thuộc chuẩn hoá: ưu tiên khớp phương án THÔ với correctAnswer thô,
+ * rồi mới so bản chuẩn hoá, rồi suy theo chữ cái A–D. Khắc phục lỗi cũ default về A (E6).
+ */
+const resolveCorrectIndex = (rawOptions: string[], cleaned: string[], correct: string | undefined): number => {
+  const c = (correct ?? '').trim();
+  if (!c) return 0;
+  let i = rawOptions.findIndex(o => o.trim() === c);
+  if (i >= 0) return i;
+  const nc = normalizeLatexText(c, c).trim();
+  i = cleaned.findIndex(o => o.trim() === nc);
+  if (i >= 0) return i;
+  const letter = c.match(/^\(?([A-D])[).．.\s]/i) || c.match(/^([A-D])$/i);
+  if (letter) {
+    const idx = letter[1].toUpperCase().charCodeAt(0) - 65;
+    if (idx >= 0 && idx < cleaned.length) return idx;
+  }
+  return 0;
 };
 
 // Tầng 1 luôn là nhắc lý thuyết chung — KHÔNG lộ đáp số (yêu cầu: sai 1 lần không lòi bài chữa).
@@ -101,8 +147,9 @@ function synthesizeHintTiers(solution: string): [string, string, string, string]
 }
 
 function toAdaptiveQ(q: AdaptiveQuestion, points: number): DeweyAdaptiveQuestion {
+  const rawOpts = q.options?.length ? q.options : ['Đúng', 'Sai'];
   const opts = cleanOptions(q.options);
-  const cidx = Math.max(opts.indexOf(q.correctAnswer ?? ''), 0);
+  const cidx = resolveCorrectIndex(rawOpts, opts, q.correctAnswer);
   const solution = formatStepLines(normalizeLatexText(q.explanation, 'Xem lại phần kiến thức liên quan.'));
   // Ưu tiên 4 tầng từ hints AI sinh; thiếu thì tự tách từ lời giải. Lấp ô trống từ bản tự tách.
   const aiHints = (q.hints ?? [])
@@ -146,12 +193,13 @@ export function adaptiveLessonToDeweyContent(
 ): DeweyLessonContent {
   // Pretest: lấy 5 câu đầu từ diagnosticTest
   const pretestQuestions = (lesson.diagnosticTest?.questions ?? []).slice(0, 5).map(q => {
+    const rawOpts = (q.options ?? []).slice(0, 4);
     const opts = cleanOptions(q.options).slice(0, 4);
     return {
       id: q.id,
       prompt: normalizeLatexText(q.prompt, 'Câu hỏi đang được chuẩn bị.'),
       options: opts,
-      correctIndex: Math.max(opts.indexOf(q.correctAnswer ?? ''), 0),
+      correctIndex: resolveCorrectIndex(rawOpts, opts, q.correctAnswer),
       explanation: normalizeLatexText(q.explanation, 'Xem lại phần kiến thức liên quan.'),
     };
   });
