@@ -1,6 +1,6 @@
 # HANDOFF — Soạn giáo án / học phân hoá
 
-**Cập nhật gần nhất**: 2026-06-26  
+**Cập nhật gần nhất**: 2026-06-29  
 **Repo**: `soangiaoan` — `https://github.com/congapro60-dev/soangiaoan`  
 **Branch chuẩn**: `main`  
 **Production URL để QA UI**: `https://giaoandewey.vercel.app`  
@@ -9,6 +9,26 @@
 ---
 
 ## 1. Trạng thái hiện tại
+
+### 1.0g Cập nhật phiên 2026-06-29 — QA bài học phân hoá vòng 2 (đóng vai HỌC SINH học thật, đợt 1→4)
+
+Bối cảnh: user trực tiếp học thử bài phân hoá (trên `giaoandewey.vercel.app`) → phát hiện loạt lỗi mà test DOM-only bỏ sót. Toàn bộ log lỗi + trạng thái: **`tasks/adaptive_qa_bugs.md`**. Đã sửa hết, mỗi đợt commit riêng, đã push main.
+
+**Đợt 1–2 (commit `1aab05a`):** A7 nút "Hoàn thành hoạt động" đơ (formula nhồi onclick → vỡ JS → chuyển sang `data-notebook-formula`); A4 bỏ "bước khổng lồ" (bỏ blob, mỗi guiding question 1 bước); A3/A6 thêm `guiding_answers` (đáp án thật) + bỏ practice placeholder; A5 vở ghi = `knowledgeConclusion`.
+
+**Đợt 3 (commit `1fa824f`):** B6 Vở ghi cấu trúc **I.Mục tiêu / II.Nội dung / III.Luyện tập / IV.Vận dụng / V.Tổng kết** (`renderNotebook` 5 mục + `addNote(content, section)`); B5 xuống dòng bước (CSS `white-space:pre-line`); B2 mô phỏng full-width (engage gỡ khỏi cột 2, height 600); B3 GỠ `injectSimRuntime` (lộ mã) + prompt sim CẤM LaTeX→Unicode; B1 engage 1 tình huống (blueprint ép `reality_check_message` cùng bối cảnh `story_hook`); B4 prompt sim đơn giản theo SGK.
+
+**Đợt 4 (commit `006a8dd`):** C1 `formatStepLines` mở rộng (tách trước Gọi/Ta có/Sau khi/Áp dụng/Suy ra/Vậy/Kết luận) + ép AI xuất mỗi bước 1 dòng `\n`; C2 TikZ chỉ nhúng **SVG hợp lệ** (loadDeweyAssets fetch Kroki, loại 400/body lỗi → bỏ ảnh, nhúng inline); C3 Olympia **hàng ngang chọn gói** (`oly-tabs`, bấm mới hiện câu), **bỏ khóa gói** (tự chọn), chia **3–4 câu/gói** (sort độ khó).
+
+**File chạm chính:** `src/lib/adaptive/{adaptiveToDewey.ts, adaptiveFromLessonPlan.ts, deweyAssets.ts, types.ts}`, `src/lib/dewey/{template.ts, htmlShell.ts, adaptiveEngine.ts}`.
+
+**Verify:** `tsc --noEmit` sạch mỗi đợt; script tsx render + đóng vai học sinh bấm thật trên localhost (A7 hết đơ, chuyển màn OK). Render-time (vở ghi, Olympia layout, xuống dòng) áp dụng cả bài cũ; nội dung (C1 chất lượng, C2 tikz, engage sim, công thức sim) cần **TẠO BÀI MỚI**.
+
+**Việc còn / cảnh báo:**
+- **Quota Gemini 429** (`gemini-3.1-pro` free_tier=0) → sinh bài chậm, đôi khi sót câu/hình. **Cần nâng billing/quota key production** (vận hành, không phải code).
+- Cần user nghiệm thu lại trên bài MỚI sau deploy: công thức sim (Unicode, hết `$` thô), TikZ hết ảnh đỏ, lời giải xuống dòng, Olympia 3–4 câu/gói.
+- Bài CŨ publish trước fix `portalEnabled` cần publish lại mới mở cổng ẩn danh (xem 1.0d).
+- **Bài học CÁCH TEST:** phải đóng vai học sinh học thật (bấm hết nút, đọc gợi ý/đáp án, đi hết bước), KHÔNG chỉ đếm DOM — ghi ở `tasks/lessons.md`.
 
 ### 1.0f Cập nhật phiên 2026-06-26 — QA bài học phân hoá: sửa 6 lỗi khi học sinh học thật
 
