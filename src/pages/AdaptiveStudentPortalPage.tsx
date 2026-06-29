@@ -1103,7 +1103,7 @@ export const AdaptiveStudentPortalPage = () => {
                 Bỏ khối LessonSimulationViewer ngoài vì nó kẹt ở mảnh #1 (currentUnitIndex đứng yên = 0). */}
             <iframe
               srcDoc={deweyHtml}
-              sandbox="allow-scripts allow-same-origin"
+              sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
               className="min-h-[72vh]"
               scrolling="auto"
               style={{ width: '100%', height: 'calc(100dvh - 18rem)', minHeight: '72vh', border: 'none', borderRadius: 16, display: 'block' }}

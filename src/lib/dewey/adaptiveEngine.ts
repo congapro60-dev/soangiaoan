@@ -121,11 +121,19 @@ export function getAdaptiveEngineScript(lessonId?: string): string {
   }
 
   function goSummaryForTimeout() {
-    var filler = byId('time-filler-options');
-    if (filler) show(filler);
     unlockScreen('screen-summary');
     window.navTo('screen-summary');
   }
+
+  window.revealBonus = function revealBonus(button) {
+    var box = byId('bonus-challenge');
+    if (box) {
+      show(box);
+      updateMath(box);
+      box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    if (button) hide(button);
+  };
 
   var _sectionStart = Date.now();
 

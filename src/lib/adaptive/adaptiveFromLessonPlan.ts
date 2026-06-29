@@ -1560,10 +1560,35 @@ interface VisualCardsJson {
   visual_cards?: Array<{ title: string; alt: string; caption?: string; svg?: string; imageDataUrl?: string }>;
 }
 
+interface BonusChallengeJson {
+  advanced_problem?: { prompt?: string; solution?: string };
+  application_problem?: { prompt?: string; solution?: string };
+  reading_problem?: string;
+  video_keywords?: string;
+}
+
 interface AssessmentsJson {
   diagnostic_questions?: QuestionJson[];
   exit_ticket_questions?: QuestionJson[];
+  bonus_challenge?: BonusChallengeJson;
 }
+
+const mapBonusChallenge = (b: BonusChallengeJson | undefined): AdaptiveLesson['bonusChallenge'] => {
+  if (!b) return undefined;
+  const prob = (p?: { prompt?: string; solution?: string }) =>
+    p && (p.prompt?.trim() || p.solution?.trim())
+      ? { prompt: p.prompt?.trim() || '', solution: p.solution?.trim() || '' }
+      : undefined;
+  const result = {
+    advancedProblem: prob(b.advanced_problem),
+    applicationProblem: prob(b.application_problem),
+    readingProblem: b.reading_problem?.trim() || undefined,
+    videoKeywords: b.video_keywords?.trim() || undefined,
+  };
+  return result.advancedProblem || result.applicationProblem || result.readingProblem || result.videoKeywords
+    ? result
+    : undefined;
+};
 
 export type AdaptivePipelineProgress = (message: string) => void;
 
@@ -1667,7 +1692,13 @@ NHIỆM VỤ: Tạo bộ câu hỏi pre-test và exit ticket. Trả về DUY NH�
     {"prompt": "Exit ticket 1", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correct": 0, "explanation": "..."},
     {"prompt": "Exit ticket 2", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correct": 1, "explanation": "..."},
     {"prompt": "Exit ticket 3", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correct": 2, "explanation": "..."}
-  ]
+  ],
+  "bonus_challenge": {
+    "advanced_problem": {"prompt": "1 bài toán NÂNG CAO (khó hơn bài chính, có số liệu cụ thể)", "solution": "Lời giải từng bước, mỗi bước xuống dòng"},
+    "application_problem": {"prompt": "1 bài toán VẬN DỤNG THỰC TẾ gắn tình huống đời sống", "solution": "Hướng giải/đáp số"},
+    "reading_problem": "1 vấn đề/tình huống thực tế liên quan bài học để học sinh ĐỌC và suy ngẫm (3-5 câu, không cần giải)",
+    "video_keywords": "2-4 từ khoá tiếng Việt để tìm video YouTube đúng chủ đề bài học"
+  }
 }
 
 QUY TẮC:
@@ -1676,7 +1707,8 @@ QUY TẮC:
 3. Phương án sai là "mồi" hợp lý — học sinh yếu có thể nhầm.
 4. Giải thích đủ để học sinh tự hiểu sai ở đâu.
 5. Double-escape LaTeX: \\\\frac thay vì \\frac, \\\\sqrt thay vì \\sqrt.
-6. Trả về đúng JSON hợp lệ. Không markdown, không giải thích ngoài JSON.`;
+6. "bonus_challenge" BẮT BUỘC có đủ 4 trường (advanced_problem, application_problem, reading_problem, video_keywords) — dùng cho học sinh xong sớm còn dư giờ. Nội dung thật, đúng bài.
+7. Trả về đúng JSON hợp lệ. Không markdown, không giải thích ngoài JSON.`;
 
 const buildUnitDetailPrompt = (
   source: AdaptiveLessonSource,
@@ -1942,11 +1974,13 @@ export const runAdaptivePipeline = async (
   onProgress?.('Đang tạo bộ câu hỏi kiểm tra...');
   let diagnosticQuestions: QuestionJson[] = [];
   let exitTicketQuestions: QuestionJson[] = [];
+  let bonusChallenge: AdaptiveLesson['bonusChallenge'];
   try {
     const raw = await callAIFn(buildAssessmentsPrompt(source, rawObjectives, unitOutlines.map(u => u.title)));
     const parsed = parseAdaptiveContentJson(raw) as AssessmentsJson;
     diagnosticQuestions = Array.isArray(parsed.diagnostic_questions) ? parsed.diagnostic_questions : [];
     exitTicketQuestions = Array.isArray(parsed.exit_ticket_questions) ? parsed.exit_ticket_questions : [];
+    bonusChallenge = mapBonusChallenge(parsed.bonus_challenge);
     if (diagnosticQuestions.length < 5) warnings.push(`assessments_thin: Pre-test chỉ có ${diagnosticQuestions.length}/5 câu.`);
     if (exitTicketQuestions.length < 3) warnings.push(`exit_ticket_thin: Exit ticket chỉ có ${exitTicketQuestions.length}/3 câu.`);
   } catch (err) {
@@ -2074,6 +2108,7 @@ export const runAdaptivePipeline = async (
       supportTriggerMastery: 0.55,
     },
     completionReward: { toolId: 'gamedoikhang', message: defaultRewardMessage },
+    ...(bonusChallenge ? { bonusChallenge } : {}),
     generationSource: 'ai_json',
     generationWarnings: warnings.length > 0 ? warnings : undefined,
   };

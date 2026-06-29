@@ -88,6 +88,14 @@ export interface DeweySummary {
     type: 'remaining_olympia' | 'extension_story';
     payload?: string;
   }>;
+  /** Hoạt động khi học sinh xong sớm còn dư giờ — hiện khi bấm "Hoàn tất sớm". */
+  bonusChallenge?: {
+    advancedProblem?: { prompt: string; solution: string };
+    applicationProblem?: { prompt: string; solution: string };
+    readingProblem?: string;
+    videoUrl?: string;
+    videoLabel?: string;
+  };
 }
 
 // ─── Engage screen (bước Khởi động) ───

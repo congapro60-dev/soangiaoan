@@ -244,6 +244,12 @@ const BASE_CSS = String.raw`
   .extend-figure { margin: 14px 0; }
   .extend-figure svg, .extend-figure img { max-width: 100%; height: auto; border-radius: 12px; }
   .extend-figure .sim-frame { background: white; border-radius: 12px; }
+  .bonus-box { border: 2px dashed var(--primary, #2563eb); background: #f5f9ff; }
+  .bonus-box h3 { margin-top: 0; }
+  .bonus-text { white-space: pre-line; margin-top: 6px; }
+  .bonus-box details { margin-top: 8px; }
+  .bonus-box details summary { cursor: pointer; font-weight: 650; color: var(--primary, #2563eb); }
+  .bonus-video { font-weight: 650; color: var(--primary, #2563eb); text-decoration: underline; }
   .oly-hint { font-size: 14px; font-weight: 650; color: var(--text-secondary, #64748b); margin: 4px 0 0; }
   .oly-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0; }
   .oly-tab {

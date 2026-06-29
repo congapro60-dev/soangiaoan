@@ -307,6 +307,30 @@ export function adaptiveLessonToDeweyContent(
       lesson.objectives[2]?.title || '',
   };
 
+  // Hoạt động "còn thừa thời gian": ưu tiên nội dung AI sinh (lesson.bonusChallenge),
+  // thiếu thì TÁI DÙNG ví dụ mẫu khó nhất / vận dụng / tình huống mở đầu (áp dụng ngay cho mọi bài).
+  const extendRealWorld = lesson.exitTicket?.questions?.[0]?.prompt ?? 'Áp dụng kiến thức vào thực tế.';
+  const aiBonus = lesson.bonusChallenge;
+  const allWorked = (lesson.knowledgeUnits ?? []).flatMap(u => findRoute(u, route)?.workedExamples ?? []);
+  const hardestWorked = allWorked[allWorked.length - 1];
+  const advancedProblem = aiBonus?.advancedProblem
+    ? { prompt: normalizeLatexText(aiBonus.advancedProblem.prompt, ''), solution: formatStepLines(normalizeLatexText(aiBonus.advancedProblem.solution, '')) }
+    : hardestWorked
+      ? { prompt: normalizeLatexText(hardestWorked.problem, ''), solution: formatStepLines(normalizeLatexText(hardestWorked.solution || hardestWorked.explanation, '')) }
+      : undefined;
+  const applicationProblem = aiBonus?.applicationProblem
+    ? { prompt: normalizeLatexText(aiBonus.applicationProblem.prompt, ''), solution: formatStepLines(normalizeLatexText(aiBonus.applicationProblem.solution, '')) }
+    : { prompt: normalizeLatexText(extendRealWorld, ''), solution: '' };
+  const readingProblem = normalizeLatexText(aiBonus?.readingProblem || stripMetaLeaks(engageData?.storyHook, '') || '', '');
+  const videoKeywords = (aiBonus?.videoKeywords || `${lesson.title} Toán lớp ${lesson.grade}`).trim();
+  const bonusChallenge = {
+    ...(advancedProblem && advancedProblem.prompt ? { advancedProblem } : {}),
+    ...(applicationProblem.prompt ? { applicationProblem } : {}),
+    ...(readingProblem ? { readingProblem } : {}),
+    videoUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(videoKeywords)}`,
+    videoLabel: `Tìm video: ${videoKeywords}`,
+  };
+
   return {
     lessonId: lesson.id,
     title: lesson.title,
@@ -343,8 +367,7 @@ export function adaptiveLessonToDeweyContent(
     knowledgeUnits: deweyUnits,
     olympia: { packs },
     extend: {
-      realWorldContext:
-        lesson.exitTicket?.questions?.[0]?.prompt ?? 'Áp dụng kiến thức vào thực tế.',
+      realWorldContext: extendRealWorld,
       consequence:
         'Kiến thức này giúp em giải quyết các bài toán thực tiễn một cách tự tin.',
       ...(extendIllustration ? { illustrationHtml: extendIllustration } : {}),
@@ -354,10 +377,8 @@ export function adaptiveLessonToDeweyContent(
       checklistItems: (lesson.objectives ?? []).map(
         o => `Em có thể: ${o.description || o.title}`
       ),
-      timeFillerOptions: [
-        { label: 'Làm thêm câu hỏi Olympia', type: 'remaining_olympia' },
-        { label: 'Đọc thêm câu chuyện mở rộng', type: 'extension_story' },
-      ],
+      timeFillerOptions: [],
+      bonusChallenge,
     },
   };
 }

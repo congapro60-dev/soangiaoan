@@ -267,6 +267,16 @@ const renderExtend = (content: DeweyLessonContent): string => `
   <button id="extend-next-btn" class="btn success full-width hidden" type="button" onclick="unlockScreen('screen-summary'); navTo('screen-summary')">Sang phần tổng kết</button>
 </section>`;
 
+const renderBonus = (bonus: NonNullable<DeweyLessonContent['summary']['bonusChallenge']>): string => `
+  <button id="bonus-reveal-btn" class="btn secondary full-width" type="button" onclick="revealBonus(this)">Mình còn thời gian — Thử thách thêm 🚀</button>
+  <div id="bonus-challenge" class="box bonus-box hidden">
+    <h3>Còn thời gian? Thử thách thêm</h3>
+    ${bonus.advancedProblem ? `<div class="box"><strong>① Bài toán nâng cao</strong><div class="bonus-text">${escapeHtml(bonus.advancedProblem.prompt)}</div>${bonus.advancedProblem.solution ? `<details><summary>Xem lời giải</summary><div class="bonus-text">${escapeHtml(bonus.advancedProblem.solution)}</div></details>` : ''}</div>` : ''}
+    ${bonus.applicationProblem ? `<div class="box"><strong>② Vận dụng thực tế</strong><div class="bonus-text">${escapeHtml(bonus.applicationProblem.prompt)}</div>${bonus.applicationProblem.solution ? `<details><summary>Gợi ý</summary><div class="bonus-text">${escapeHtml(bonus.applicationProblem.solution)}</div></details>` : ''}</div>` : ''}
+    ${bonus.readingProblem ? `<div class="box"><strong>③ Vấn đề thực tế để đọc & suy ngẫm</strong><div class="bonus-text">${escapeHtml(bonus.readingProblem)}</div></div>` : ''}
+    ${bonus.videoUrl ? `<div class="box"><strong>④ Xem thêm trên YouTube</strong><div><a class="bonus-video" href="${escapeAttribute(bonus.videoUrl)}" target="_blank" rel="noopener">${escapeHtml(bonus.videoLabel || 'Video liên quan')}</a></div></div>` : ''}
+  </div>`;
+
 const renderSummary = (content: DeweyLessonContent): string => `
 <section class="screen" id="screen-summary">
   <h2>Tổng kết</h2>
@@ -282,10 +292,7 @@ const renderSummary = (content: DeweyLessonContent): string => `
     <h3>Checklist tự đánh giá</h3>
     ${content.summary.checklistItems.map((item, index) => `<label class="option-lbl"><input type="checkbox"> ${index + 1}. ${escapeHtml(item)}</label>`).join('\n')}
   </div>
-  <div id="time-filler-options" class="box hidden">
-    <h3>Hết giờ - lựa chọn bổ sung</h3>
-    ${content.summary.timeFillerOptions.map(option => `<button class="btn secondary" type="button" data-filler-type="${option.type}" data-payload="${escapeAttribute(option.payload || '')}">${escapeHtml(option.label)}</button>`).join('\n')}
-  </div>
+  ${content.summary.bonusChallenge ? renderBonus(content.summary.bonusChallenge) : ''}
   <button class="btn success" type="button" onclick="finishLesson()">Hoàn tất bài học</button>
 </section>`;
 

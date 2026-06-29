@@ -144,6 +144,19 @@ XÁC NHẬN OK: B6 (vở ghi có mục I/II…), B1 (engage 1 tình huống rút
 - [x] **D3** — `DeweyAdaptiveQuestion.illustrationHtml?` + `DeweyExtendStory.illustrationHtml?`; template render `.question-figure`/`.extend-figure` (CSS htmlShell). `adaptiveToDewey`: gắn hình TikZ của mỗi mảnh vào CÂU ĐẦU thuộc mảnh đó ở Olympia (chỉ "một số câu", không trùng); Vận dụng ưu tiên iframe mô phỏng của một mảnh, không có thì hình TikZ. Degrade an toàn khi không có asset. Prompt rule 17 thêm lưu ý học liệu được tái dùng ở Luyện tập/Vận dụng nên phải đúng phân môn. Verify (render): 2/6 câu có hình (1/mảnh-có-hình); Vận dụng dùng sim; không asset → không lỗi/không hình.
 - LƯU Ý: render-time → áp dụng cả bài CŨ sau deploy (miễn bài có TikZ/sim hợp lệ). Bài xác suất ít hình hình học → có thể chỉ vài câu có hình; bài MỚI sinh đủ học liệu mỗi mảnh sẽ phong phú hơn.
 
+### BUG-D4 — Học xong sớm/còn dư giờ KHÔNG có hoạt động bổ sung (tính năng cũ chỉ là khung rỗng)
+- Yêu cầu user (logic cũ): xong sớm → 1 bài nâng cao + 1 bài vận dụng thực tế + 1 vấn đề thực tế để đọc + link YouTube liên quan.
+- Chẩn đoán (đã xác minh): tính năng gần như KHÔNG chạy:
+  1. Hộp `time-filler-options` CHỈ hiện khi đồng hồ tổng về 00:00 (`goSummaryForTimeout`) — đúng kịch bản "xong sớm còn dư giờ" thì KHÔNG bao giờ hiện.
+  2. Nút `data-filler-type` (`remaining_olympia`/`extension_story`) KHÔNG có handler click → bấm vô tác dụng.
+  3. Nội dung chỉ là 2 nhãn placeholder (`adaptiveToDewey.ts`), không phải 4 thứ user nhớ.
+  4. Không có nguồn dữ liệu: `enrichmentTasks=[]` cho bài AI; KHÔNG có field YouTube/video; `extension_story` không trỏ tới gì.
+- Kết luận: logic chưa từng được nối hoàn chỉnh (khung UI + nhãn mẫu). Quyết định user: nội dung "Cả hai" (tái dùng + AI sinh); hiển thị "Chỉ khi bấm 'Hoàn tất sớm'".
+
+## TRẠNG THÁI SỬA (đợt 7) — code + tsc sạch, verify script PASS, chờ test production
+- [x] **D4** — Bỏ hộp `time-filler-options` chết. Thêm `DeweySummary.bonusChallenge` (4 phần) + nút "Mình còn thời gian — Thử thách thêm" → `revealBonus()` (engine) hiện khối ẩn ở màn Tổng kết. `adaptiveToDewey` dựng bonus: ưu tiên `lesson.bonusChallenge` (AI), thiếu thì TÁI DÙNG — bài nâng cao = ví dụ mẫu khó nhất, vận dụng = extend/exit-ticket, đọc = storyHook, video = link TÌM KIẾM YouTube theo tên bài (an toàn, không bịa link chết). AI path: `bonus_challenge` trong `buildAssessmentsPrompt` + `AssessmentsJson`/`mapBonusChallenge`/`AdaptiveLesson.bonusChallenge` (pipeline). Portal iframe thêm `allow-popups` để mở được link YouTube. Verify: tái dùng đúng nguồn; AI ưu tiên; render đủ nút/khối/4 mục/link; engine có revealBonus.
+- LƯU Ý: tái dùng → THẤY NGAY mọi bài sau deploy (bài nâng cao lấy ví dụ mẫu khó nhất). Nội dung AI riêng (4 phần đúng bài) chỉ ở BÀI MỚI (cần quota). Link YouTube là link tìm kiếm (mở tab kết quả), không phải video cụ thể.
+
 ## Bài học về CÁCH TEST (rút kinh nghiệm)
 - Test phải ĐÓNG VAI học sinh học thật: bấm hết nút, đọc nội dung gợi ý/đáp án, kiểm điều hướng giữa các bước/hoạt động, xem Vở ghi — KHÔNG chỉ đếm DOM (sim-frame/gallery). Nhiều lỗi (A3–A7) chỉ lộ khi thao tác thật.
 

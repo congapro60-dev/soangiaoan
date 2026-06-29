@@ -193,6 +193,13 @@ export interface AdaptiveLesson {
     toolId: string;
     message: string;
   };
+  /** Hoạt động "còn thừa thời gian" — AI sinh; thiếu thì adapter tự tái dùng ví dụ/vận dụng/tình huống. */
+  bonusChallenge?: {
+    advancedProblem?: { prompt: string; solution: string };
+    applicationProblem?: { prompt: string; solution: string };
+    readingProblem?: string;
+    videoKeywords?: string;
+  };
   generationWarnings?: string[];
   generationSource?: 'ai_json' | 'regex_fallback';
 }
