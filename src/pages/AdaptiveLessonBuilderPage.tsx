@@ -26,7 +26,7 @@ import { LessonCoverUpload } from '../components/adaptive/LessonCoverUpload';
 import { AdaptiveSimulationBlock } from '../components/adaptive/AdaptiveSimulationBlock';
 import { adaptiveLessonToDeweyContent } from '../lib/adaptive/adaptiveToDewey';
 import { renderDeweyLesson } from '../lib/dewey/template';
-import { loadDeweyAssets, buildTikzKrokiUrl } from '../lib/adaptive/deweyAssets';
+import { loadDeweyAssets } from '../lib/adaptive/deweyAssets';
 import { callAI, getActiveApiKey } from '../lib/aiProviders';
 import type { AppData, LessonPlan } from '../types';
 import { getLessonFromFirestore, saveLessonToFirestore } from '../services/adaptiveLessonService';
@@ -191,6 +191,8 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
   const [generateSimulations, setGenerateSimulations] = useState(true);
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [isBuildingPreview, setIsBuildingPreview] = useState(false);
+  // SVG TikZ ĐÃ XÁC THỰC (lọc lỗi Kroki) cho gallery builder — không hiện ảnh đỏ "Error 400".
+  const [tikzSvgByUnitId, setTikzSvgByUnitId] = useState<Record<string, string>>({});
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
 
   const adaptiveReadyPlans = useMemo(() => lessonPlans.filter(plan => {
@@ -202,6 +204,21 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
     setUser(firebaseUser);
     setAuthReady(true);
   }), []);
+
+  // Nạp SVG TikZ đã xác thực (lọc lỗi Kroki) khi mã hình của bài đổi — gallery hiện hình đúng hoặc bỏ, không hiện lỗi đỏ.
+  const tikzCodesKey = useMemo(
+    () => (lesson?.knowledgeUnits || []).map(u => `${u.id}::${u.tikzCode || ''}`).join('|'),
+    [lesson],
+  );
+  useEffect(() => {
+    if (!lesson) { setTikzSvgByUnitId({}); return; }
+    let cancelled = false;
+    loadDeweyAssets(lesson)
+      .then(assets => { if (!cancelled) setTikzSvgByUnitId(assets.tikzSvgByUnitId || {}); })
+      .catch(() => { if (!cancelled) setTikzSvgByUnitId({}); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tikzCodesKey]);
 
   useEffect(() => {
     const load = async () => {
@@ -672,7 +689,9 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
                       <div key={unit.id} className="rounded-xl border border-indigo-100 bg-white p-3">
                         <p className="mb-2 text-sm font-black text-slate-800">{unit.title}</p>
                         {unit.tikzCode?.trim() && (
-                          <img src={buildTikzKrokiUrl(unit.tikzCode.trim())} alt={`Hình minh hoạ ${unit.title}`} className="mb-2 max-h-64 rounded-lg border border-slate-100" loading="lazy" />
+                          tikzSvgByUnitId[unit.id]
+                            ? <div className="mb-2 max-h-64 overflow-auto rounded-lg border border-slate-100 bg-white p-2 [&_svg]:mx-auto [&_svg]:h-auto [&_svg]:max-w-full" dangerouslySetInnerHTML={{ __html: tikzSvgByUnitId[unit.id] }} />
+                            : <p className="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700">Hình minh hoạ TikZ chưa dựng được (mã lỗi) — bài học vẫn đủ nội dung. Có thể tạo lại để thử hình khác.</p>
                         )}
                         {unit.simulationSpec && <AdaptiveSimulationBlock spec={unit.simulationSpec} />}
                       </div>

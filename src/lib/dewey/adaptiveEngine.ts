@@ -56,13 +56,20 @@ export function getAdaptiveEngineScript(lessonId?: string): string {
     updateMath(notebook);
   }
 
-  window.addNote = function addNote(content, section) {
+  window.addNote = function addNote(content, section, numbered) {
     if (!content) return;
     var target = byId('nb-' + (section || 'noidung')) || byId('notebook-list');
     if (!target) return;
     var item = document.createElement('div');
-    item.className = 'note-item';
-    item.innerHTML = content;
+    if (numbered) {
+      // Mục II Nội dung: đánh số thứ tự tăng dần cho TỪNG MẢNH kiến thức (1. 2. 3. …)
+      var n = target.querySelectorAll('.note-item.nb-numbered').length + 1;
+      item.className = 'note-item nb-numbered';
+      item.innerHTML = '<strong>' + n + '.</strong> ' + content;
+    } else {
+      item.className = 'note-item';
+      item.innerHTML = content;
+    }
     target.appendChild(item);
     persistNotebook();
     updateMath(item);
@@ -262,7 +269,7 @@ export function getAdaptiveEngineScript(lessonId?: string): string {
     var note = unitScreen ? (unitScreen.dataset.notebookFormula || '') : '';
     var titleEl = unitScreen ? unitScreen.querySelector('h2') : null;
     var unitTitle = titleEl ? titleEl.textContent.replace(/^\s*\d+\.\s*/, '').trim() : '';
-    if (note) window.addNote((unitTitle ? '<strong>' + unitTitle + '</strong>\n' : '') + note, 'noidung');
+    if (note) window.addNote((unitTitle ? '<strong>' + unitTitle + '</strong>\n' : '') + note, 'noidung', true);
     if (state.completedUnitIds.indexOf(unitId) === -1) state.completedUnitIds.push(unitId);
     if (window.parent && window.parent !== window) {
       window.parent.postMessage({ type: 'dewey:unitComplete', data: { unitId: unitId } }, '*');

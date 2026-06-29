@@ -17,6 +17,10 @@ export const buildTikzKrokiUrl = (tikzRaw: string): string => {
     tikz = tikz.replace(/\\\\/g, '\\');
   }
 
+  // Gỡ "\n"/"\r" LITERAL (AI hay double-escape ký tự xuống dòng) → newline thật.
+  // Negative lookahead (?![a-zA-Z]) để KHÔNG đụng các lệnh LaTeX bắt đầu bằng \n (\node, \norm…).
+  tikz = tikz.replace(/\\[rn](?![a-zA-Z])/g, '\n');
+
   // Bắt buộc có môi trường tikzpicture đầy đủ; thiếu thì bỏ (vd AI chỉ trả vài lệnh \draw rời → 400).
   if (!/\\begin\{tikzpicture\}/.test(tikz) || !/\\end\{tikzpicture\}/.test(tikz)) return '';
 
