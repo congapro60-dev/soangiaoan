@@ -1745,7 +1745,8 @@ QUY TẮC:
 2. Đúng 2 câu quick_check với 4 đáp án mỗi câu. "correct" là index 0-3.
 3. guiding_questions: đúng 5 câu theo chuỗi Socratic (quan sát → so sánh → phát hiện quy luật → áp dụng → chốt). Mỗi câu NGẮN, chỉ hỏi MỘT ý.
 3b. guiding_answers: đúng 5 phần tử, cùng thứ tự với guiding_questions — là ĐÁP ÁN/GỢI Ý THẬT cho từng câu (học sinh xem sau khi tự trả lời). KHÔNG được lặp lại nguyên văn câu hỏi; phải có nội dung trả lời cụ thể.
-4. knowledge_conclusion tối đa 5-7 câu hoặc một công thức. Không viết bài giảng dài. Đây là phần chốt sẽ vào Vở ghi.
+3c. TRÌNH BÀY KHOA HỌC: với mọi lời giải/đáp án/kết luận nhiều bước (guiding_answers, worked_example.solution, knowledge_conclusion) — MỖI BƯỚC/Ý TRÊN MỘT DÒNG RIÊNG, ngăn bằng ký tự xuống dòng "\\n" trong chuỗi JSON. KHÔNG viết liền một mạch. Ví dụ solution: "Gọi B là...\\nTa có P(B)=...\\nÁp dụng công thức: P(AB)=...\\nKết luận: ...".
+4. knowledge_conclusion tối đa 5-7 câu hoặc một công thức. Không viết bài giảng dài. Đây là phần chốt sẽ vào Vở ghi; nếu nhiều ý thì mỗi ý một dòng (\\n).
 5. 3 trường explanation_ phải thực sự khác nhau về độ sâu và cách tiếp cận.
 6. CHỌN HỌC LIỆU ĐÚNG PHÂN MÔN TOÁN của mảnh này (đọc kỹ nội dung, ĐỪNG suy từ một từ rời rạc):
    - Xác suất / Thống kê / Tổ hợp (kể cả khi có cụm "KHÔNG GIAN MẪU", "biến cố", "tần suất"): dùng sơ đồ cây, bảng 2 chiều, biểu đồ Venn, hoặc mô phỏng phép thử. TUYỆT ĐỐI KHÔNG dùng "simulation_3d".

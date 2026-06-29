@@ -235,16 +235,21 @@ const renderOlympia = (content: DeweyLessonContent): string => `
 <section class="screen" id="screen-olympia">
   <h2>Luyện tập - Olympia</h2>
   <div class="score-board">Điểm hiện tại: <span id="score-value">0</span></div>
-  <div class="oly-grid">
+  <p class="oly-hint">Chọn một gói điểm bất kỳ để luyện tập (em được tự chọn thứ tự).</p>
+  <div class="oly-tabs">
     ${content.olympia.packs.map((pack, packIndex) => `
-    <section class="oly-card${packIndex === 0 ? '' : ' locked'}" id="olympia-pack-${packIndex}" data-olympia-pack data-pack-index="${packIndex}">
-      <h3>${escapeHtml(pack.packLabel)}</h3>
-      <button class="btn" type="button" onclick="startPack(${packIndex})">Bắt đầu gói</button>
+    <button class="oly-tab${packIndex === 0 ? ' active' : ''}" type="button" data-pack-tab="${packIndex}" onclick="startPack(${packIndex})">
+      ${escapeHtml(pack.packLabel)} <span class="oly-tab-count">${pack.questions.length} câu</span>
+    </button>`).join('\n')}
+  </div>
+  <div class="oly-panel">
+    ${content.olympia.packs.map((pack, packIndex) => `
+    <section class="oly-card${packIndex === 0 ? ' active' : ''}" id="olympia-pack-${packIndex}" data-olympia-pack data-pack-index="${packIndex}">
       ${pack.questions.map((question, questionIndex) => renderAdaptiveQuestion(question, questionIndex, pack)).join('\n')}
       <div class="feedback-msg feedback-correct pack-complete-msg hidden">Hoàn thành gói ${escapeHtml(pack.packLabel)}.</div>
     </section>`).join('\n')}
   </div>
-  <button id="olympia-finish-btn" class="btn success hidden" type="button" onclick="unlockScreen('screen-extend'); navTo('screen-extend')">Sang phần vận dụng</button>
+  <button id="olympia-finish-btn" class="btn success full-width" type="button" onclick="unlockScreen('screen-extend'); navTo('screen-extend')">Sang phần vận dụng</button>
 </section>`;
 
 const renderExtend = (content: DeweyLessonContent): string => `

@@ -284,12 +284,14 @@ export function getAdaptiveEngineScript(lessonId?: string): string {
 
   window.startPack = function startPack(index) {
     var pack = packAt(index);
-    if (!pack || pack.classList.contains('locked')) return;
+    if (!pack) return;
     state.currentPackIndex = index;
     state.currentQuestionIndex = 0;
     all('.oly-card').forEach(function (card) { card.classList.remove('active'); });
     pack.classList.add('active');
+    all('.oly-tab').forEach(function (t) { t.classList.toggle('active', t.dataset.packTab === String(index)); });
     loadQuestion(index, 0);
+    updateMath(pack);
   };
 
   function loadQuestion(packIndex, questionIndex) {
@@ -377,8 +379,6 @@ export function getAdaptiveEngineScript(lessonId?: string): string {
     state.completedPacks[packIndex] = true;
     var done = pack.querySelector('.pack-complete-msg');
     show(done);
-    var nextPack = packAt(packIndex + 1);
-    if (nextPack) nextPack.classList.remove('locked');
     if (state.completedPacks[0] && state.completedPacks[1] && state.completedPacks[2]) {
       unlockScreen('screen-extend');
       var finish = byId('olympia-finish-btn');

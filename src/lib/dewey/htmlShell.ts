@@ -237,8 +237,24 @@ const BASE_CSS = String.raw`
   .unit-simulation .sim-frame { background: white; margin-top: 10px; }
   .step-illustration { margin: 10px 0; }
   .step-illustration img, .step-illustration svg { max-width: 100%; height: auto; border-radius: 10px; }
-  .oly-card.locked { opacity: 0.45; pointer-events: none; }
-  .oly-card.active { border-color: var(--secondary); box-shadow: 0 0 0 4px rgba(242,169,0,0.18); }
+  .tikz-figure { margin: 10px 0; text-align: center; }
+  .tikz-figure svg { max-width: 100%; height: auto; }
+  .oly-hint { font-size: 14px; font-weight: 650; color: var(--text-secondary, #64748b); margin: 4px 0 0; }
+  .oly-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0; }
+  .oly-tab {
+    padding: 10px 18px;
+    border-radius: 999px;
+    border: 2px solid var(--secondary);
+    background: white;
+    font-weight: 850;
+    cursor: pointer;
+    color: var(--primary);
+  }
+  .oly-tab .oly-tab-count { font-size: 12px; font-weight: 700; opacity: 0.7; margin-left: 4px; }
+  .oly-tab.active { background: var(--secondary); color: #3a2c00; }
+  .oly-panel { margin-top: 4px; }
+  .oly-card { display: none; }
+  .oly-card.active { display: block; }
   .score-board {
     display: inline-flex;
     align-items: center;

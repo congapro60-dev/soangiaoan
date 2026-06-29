@@ -11,8 +11,8 @@ import { escapeAttribute } from '../dewey/htmlShell';
 export interface DeweyConversionAssets {
   /** srcDoc HTML mô phỏng cho từng mảnh (nạp từ Firestore lessonSimulations). */
   simulationHtmlByUnitId?: Record<string, string>;
-  /** URL ảnh Kroki (tikz→svg) cho từng mảnh, nhúng dạng <img>. */
-  tikzImgUrlByUnitId?: Record<string, string>;
+  /** SVG TikZ đã render & xác thực (Kroki), nhúng inline — chỉ chứa SVG hợp lệ, ảnh lỗi bị bỏ. */
+  tikzSvgByUnitId?: Record<string, string>;
 }
 
 /**
@@ -53,11 +53,16 @@ const normalizeLatexText = (value: string | undefined, fallback = ''): string =>
   }).replace(/\$\\frac/g, '$\\displaystyle \\frac');
 };
 
-/** Tách "Bước N:", "Kết luận:" thành mỗi mục một dòng (render với CSS white-space:pre-line). */
+/** Tách lời giải/kết luận thành mỗi bước một dòng (render với CSS white-space:pre-line). */
+const STEP_LEAD = '(?:Gọi|Ta có|Ta được|Suy ra|Do đó|Vậy|Áp dụng|Sau khi|Vì vậy|Khi đó|Từ đó|Xét|Mặt khác|Bước\\s*\\d+|Kết luận)';
 const formatStepLines = (text: string): string =>
   (text || '')
+    // xuống dòng khi hết câu (. ) : ) mà câu sau bắt đầu bằng cụm dẫn bước
+    .replace(new RegExp(`([.):])\\s+(?=${STEP_LEAD})`, 'g'), '$1\n')
+    // ép xuống dòng trước "Bước N:" và "Kết luận:" dù không có dấu câu phía trước
     .replace(/\s*(Bước\s*\d+\s*[:.)])/gi, '\n$1')
     .replace(/\s*(Kết luận\s*[:.])/gi, '\n$1')
+    .replace(/\n{2,}/g, '\n')
     .replace(/^\n+/, '')
     .trim();
 
@@ -120,9 +125,9 @@ export function adaptiveLessonToDeweyContent(
     const rc = findRoute(unit, route);
     const firstExample = rc?.workedExamples?.[0];
     const routeExplain = normalizeLatexText(rc?.explanation, '');
-    const tikzImgUrl = assets.tikzImgUrlByUnitId?.[unit.id];
-    const tikzIllustration = tikzImgUrl
-      ? `<img src="${escapeAttribute(tikzImgUrl)}" alt="Hình minh hoạ ${escapeAttribute(unit.title)}" loading="lazy">`
+    const tikzSvg = assets.tikzSvgByUnitId?.[unit.id];
+    const tikzIllustration = tikzSvg
+      ? `<div class="tikz-figure" role="img" aria-label="Hình minh hoạ ${escapeAttribute(unit.title)}">${tikzSvg}</div>`
       : undefined;
     const guidingQuestions = rc?.guidingQuestions ?? [];
     const guidingAnswers = rc?.guidingAnswers ?? [];
@@ -192,16 +197,28 @@ export function adaptiveLessonToDeweyContent(
     };
   });
 
-  // Olympia packs: split quickCheck questions theo difficulty
-  const allQC = (lesson.knowledgeUnits ?? []).flatMap(u => u.quickCheck?.questions ?? []);
-  const easy = allQC.filter(q => q.difficulty === 'easy').map(q => toAdaptiveQ(q, 10));
-  const med  = allQC.filter(q => q.difficulty === 'medium').map(q => toAdaptiveQ(q, 20));
-  const hard = allQC.filter(q => q.difficulty === 'hard').map(q => toAdaptiveQ(q, 30));
-  const packs: [DeweyOlympiaPack, DeweyOlympiaPack, DeweyOlympiaPack] = [
-    { id: 'pack-10', packLabel: '10 điểm', questions: easy.length ? easy : [placeholder(10)] },
-    { id: 'pack-20', packLabel: '20 điểm', questions: med.length  ? med  : [placeholder(20)] },
-    { id: 'pack-30', packLabel: '30 điểm', questions: hard.length ? hard : [placeholder(30)] },
-  ];
+  // Olympia: chia ĐỀU câu hỏi quick check thành 3 gói, MỖI GÓI 3–4 câu (sắp theo độ khó tăng dần).
+  const difficultyRank = (d: string) => (d === 'easy' ? 0 : d === 'medium' ? 1 : 2);
+  const allQC = (lesson.knowledgeUnits ?? [])
+    .flatMap(u => u.quickCheck?.questions ?? [])
+    .slice()
+    .sort((a, b) => difficultyRank(a.difficulty) - difficultyRank(b.difficulty));
+  const n = allQC.length;
+  const base = Math.floor(n / 3);
+  const rem = n % 3;
+  const counts = [base + (rem > 0 ? 1 : 0), base + (rem > 1 ? 1 : 0), base];
+  const packPoints = [10, 20, 30];
+  let cursor = 0;
+  const packs: [DeweyOlympiaPack, DeweyOlympiaPack, DeweyOlympiaPack] = [0, 1, 2].map(i => {
+    const slice = allQC.slice(cursor, cursor + counts[i]);
+    cursor += counts[i];
+    const qs = slice.map(q => toAdaptiveQ(q, packPoints[i]));
+    return {
+      id: `pack-${packPoints[i]}`,
+      packLabel: `${packPoints[i]} điểm` as DeweyOlympiaPack['packLabel'],
+      questions: qs.length ? qs : [placeholder(packPoints[i])],
+    };
+  }) as [DeweyOlympiaPack, DeweyOlympiaPack, DeweyOlympiaPack];
 
   const routeLabel =
     route === 'foundation' ? 'Cơ bản' : route === 'challenge' ? 'Nâng cao' : 'Chuẩn';

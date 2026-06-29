@@ -91,6 +91,28 @@
 
 LƯU Ý: render-time (B5/B6/B2-layout) áp dụng cả bài cũ sau khi Vercel deploy; B1/B3/B4 (sinh nội dung) cần TẠO BÀI MỚI mới thấy.
 
+## Đợt 4 (test bài mới 1782659614777 trên production)
+
+XÁC NHẬN OK: B6 (vở ghi có mục I/II…), B1 (engage 1 tình huống rút sản phẩm), A7 (đi hết bài).
+
+### BUG-C1 — Lời giải/Kết luận/Ghi bảng viết LIỀN 1 mạch, không xuống dòng (Ảnh 1,2) 🔴
+- formatStepLines chỉ tách "Bước N:"/"Kết luận:" — nhưng đáp án thật dùng "Gọi…", "Ta có", "Sau khi…", "Áp dụng…" nên KHÔNG tách. Phải: (a) ép AI xuất mỗi bước 1 dòng (\n) ở guiding_answers/worked_example.solution/knowledge_conclusion; (b) mở rộng formatStepLines tách trước các cụm bước phổ biến.
+
+### BUG-C2 — Hình TikZ vẫn lỗi đỏ "Error 400 Package tikz" (Ảnh 3) 🔴
+- TikZ AI sinh có lỗi cú pháp LaTeX → Kroki trả lỗi (hiện SVG đỏ). Validate "có tikzpicture" chưa đủ. Phải: prefetch URL Kroki, kiểm body có lỗi → BỎ ảnh; hoặc bỏ hẳn TikZ.
+
+### BUG-C3 — Olympia (Luyện tập): nhiều vấn đề (Ảnh 4,5) 🔴
+- Số câu/gói sai: phải mỗi gói 3–4 câu (theo quy ước).
+- Giao diện xấu: 3 cột rối; phải để HÀNG NGANG các gói, bấm gói nào MỚI hiện câu của gói đó.
+- Khóa gói: hiện mặc định gói 1, khóa 2&3 — phải cho HỌC SINH TỰ CHỌN gói bất kỳ (không khóa).
+- Công thức trong câu hỏi gói bị lỗi (cần kiểm typeset).
+
+## TRẠNG THÁI SỬA (đợt 4) — code + tsc sạch, chờ test production
+- [x] **C1** — `formatStepLines` mở rộng (tách trước Gọi/Ta có/Sau khi/Áp dụng/Suy ra/Do đó/Vậy/Kết luận…) + ép AI xuất mỗi bước 1 dòng (\n) trong guiding_answers/solution/knowledge_conclusion. Verify: 1 đoạn → 5 dòng.
+- [x] **C2** — `loadDeweyAssets` fetch Kroki, kiểm SVG hợp lệ (loại body báo lỗi/400) → nhúng SVG inline; ảnh lỗi bị BỎ thay vì hiện đỏ.
+- [x] **C3** — Olympia: chia đều 3–4 câu/gói (sort độ khó); giao diện HÀNG NGANG (oly-tabs) bấm gói mới hiện câu; BỎ khóa (chọn gói bất kỳ); nút "Sang vận dụng" luôn hiện. (Số câu/gói tuỳ số quick check: 5–6 mảnh ×2 ≈ 10–12 câu → 4/3/3.)
+- LƯU Ý: C1/C2 và chất lượng Olympia (nội dung) cần bài MỚI; layout Olympia + vở ghi + xuống dòng là render-time (bài cũ thấy sau deploy).
+
 ## Bài học về CÁCH TEST (rút kinh nghiệm)
 - Test phải ĐÓNG VAI học sinh học thật: bấm hết nút, đọc nội dung gợi ý/đáp án, kiểm điều hướng giữa các bước/hoạt động, xem Vở ghi — KHÔNG chỉ đếm DOM (sim-frame/gallery). Nhiều lỗi (A3–A7) chỉ lộ khi thao tác thật.
 
