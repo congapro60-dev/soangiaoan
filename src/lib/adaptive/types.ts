@@ -122,6 +122,8 @@ export interface AdaptiveQuestion {
   options?: string[];
   correctAnswer?: string;
   explanation: string;
+  /** 3 gợi ý tiến dần (nhẹ → gần đáp án) cho cơ chế 4 tầng hỗ trợ khi học sinh trả lời sai. */
+  hints?: string[];
   objectiveIds: string[];
   misconceptionIds?: string[];
   difficulty: DifficultyLevel;

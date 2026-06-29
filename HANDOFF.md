@@ -20,6 +20,8 @@ Bối cảnh: user trực tiếp học thử bài phân hoá (trên `giaoandewey
 
 **Đợt 4 (commit `006a8dd`):** C1 `formatStepLines` mở rộng (tách trước Gọi/Ta có/Sau khi/Áp dụng/Suy ra/Vậy/Kết luận) + ép AI xuất mỗi bước 1 dòng `\n`; C2 TikZ chỉ nhúng **SVG hợp lệ** (loadDeweyAssets fetch Kroki, loại 400/body lỗi → bỏ ảnh, nhúng inline); C3 Olympia **hàng ngang chọn gói** (`oly-tabs`, bấm mới hiện câu), **bỏ khóa gói** (tự chọn), chia **3–4 câu/gói** (sort độ khó).
 
+**Đợt 5 (CHƯA commit — chờ user duyệt):** D1 khôi phục **4 tầng gợi ý** ở Luyện tập (trước đó `toAdaptiveQ` nhồi cả 5 ô = cùng lời giải → sai 1 lần lòi bài chữa). Nay: `AdaptiveQuestion.hints?`/`QuestionJson.hints?` (AI sinh 3 gợi ý tiến dần, rule 6b trong prompt); `toAdaptiveQ` map 4 tầng phân biệt, **tầng 1 luôn là nhắc lý thuyết, KHÔNG lộ đáp số**, solution chỉ hiện ở sai lần 4; thiếu hints AI thì `synthesizeHintTiers` tự tách lời giải theo bước (fallback áp dụng NGAY cho bài cũ). D2 **mở khóa toàn bộ mục lục từ đầu** (`template.ts` `locked:false` mọi mục) — học sinh tự do chuyển phần, không khóa tuần tự. *(File: `adaptiveToDewey.ts`, `adaptiveFromLessonPlan.ts`, `types.ts`, `dewey/template.ts`. Verify: tsc sạch + script render PASS — 4 tầng phân biệt, tầng 1 không chứa đáp số, TOC 0 mục khóa.)*
+
 **File chạm chính:** `src/lib/adaptive/{adaptiveToDewey.ts, adaptiveFromLessonPlan.ts, deweyAssets.ts, types.ts}`, `src/lib/dewey/{template.ts, htmlShell.ts, adaptiveEngine.ts}`.
 
 **Verify:** `tsc --noEmit` sạch mỗi đợt; script tsx render + đóng vai học sinh bấm thật trên localhost (A7 hết đơ, chuyển màn OK). Render-time (vở ghi, Olympia layout, xuống dòng) áp dụng cả bài cũ; nội dung (C1 chất lượng, C2 tikz, engage sim, công thức sim) cần **TẠO BÀI MỚI**.

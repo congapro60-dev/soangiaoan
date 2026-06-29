@@ -35,17 +35,18 @@ const renderHeader = (content: DeweyLessonContent): string => `
 </header>`;
 
 const renderToc = (content: DeweyLessonContent): string => {
+  // Mục lục mở khóa toàn bộ từ đầu — học sinh tự do chuyển phần, không khóa tuần tự.
   const items = [
     ...(!content.skipPretest ? [{ id: 'screen-pretest', label: '1. Ôn tập nhanh', locked: false }] : []),
-    { id: 'screen-engage', label: content.skipPretest ? '1. Khởi động' : '2. Khởi động', locked: !content.skipPretest },
+    { id: 'screen-engage', label: content.skipPretest ? '1. Khởi động' : '2. Khởi động', locked: false },
     ...content.knowledgeUnits.map((unit, index) => ({
       id: `screen-${unit.id}`,
       label: `${index + 3}. ${unit.title}`,
-      locked: true,
+      locked: false,
     })),
-    { id: 'screen-olympia', label: 'Luyện tập Olympia', locked: true },
-    { id: 'screen-extend', label: 'Vận dụng thực tế', locked: true },
-    { id: 'screen-summary', label: 'Tổng kết', locked: true },
+    { id: 'screen-olympia', label: 'Luyện tập Olympia', locked: false },
+    { id: 'screen-extend', label: 'Vận dụng thực tế', locked: false },
+    { id: 'screen-summary', label: 'Tổng kết', locked: false },
   ];
 
   return `

@@ -113,6 +113,27 @@ XÁC NHẬN OK: B6 (vở ghi có mục I/II…), B1 (engage 1 tình huống rút
 - [x] **C3** — Olympia: chia đều 3–4 câu/gói (sort độ khó); giao diện HÀNG NGANG (oly-tabs) bấm gói mới hiện câu; BỎ khóa (chọn gói bất kỳ); nút "Sang vận dụng" luôn hiện. (Số câu/gói tuỳ số quick check: 5–6 mảnh ×2 ≈ 10–12 câu → 4/3/3.)
 - LƯU Ý: C1/C2 và chất lượng Olympia (nội dung) cần bài MỚI; layout Olympia + vở ghi + xuống dòng là render-time (bài cũ thấy sau deploy).
 
+## Đợt 5 (test bài mới 1782659614777 trên production)
+
+### BUG-D1 — Luyện tập: chọn SAI 1 lần là LÒI lời giải đầy đủ luôn (Ảnh 1) 🔴
+- Hiện tượng: bấm sai 1 câu Olympia → feedback "Mở thêm một tầng hỗ trợ rồi thử lại" NHƯNG ngay dưới hiện nguyên bài chữa (P(T1)=5/8 … P(T1Đ2)=15/56). Logic "4 tầng gợi ý" (sai mới mở dần, chưa lộ đáp án) mất.
+- Chẩn đoán (đã xác minh code):
+  - Engine `adaptiveEngine.ts:351` VẪN mở từng tầng đúng: sai 1→`.theory-box`, 2→`.hint1-box`, 3→`.hint2-box`, 4→`.hint3-box`+`.solution-box`. Hạ tầng đúng.
+  - NHƯNG `toAdaptiveQ` (`adaptiveToDewey.ts:83-87`) nhồi CẢ 5 tầng = cùng `q.explanation` (lời giải đầy đủ) → mở tầng nào cũng ra full đáp án.
+  - Gốc thượng nguồn: `AdaptiveQuestion`/`QuestionJson` chỉ có 1 trường `explanation`; pipeline AI CHƯA bao giờ sinh "4 tầng hỗ trợ" (dù spec giáo án `useLessonCreator.ts:470` yêu cầu). `sampleContent.ts:257` chứng minh model Dewey hỗ trợ tầng riêng biệt.
+- Quyết định (user chọn "Cả hai"): AI sinh 3 gợi ý tiến dần cho bài mới + tự TÁCH lời giải làm fallback cho bài cũ/khi thiếu. Tầng đầu (theory) tuyệt đối KHÔNG lộ đáp số.
+
+### BUG-D2 — Mục lục KHÓA tuần tự, phải làm hết Luyện tập mới mở Vận dụng/Tổng kết (Ảnh 2) 🔴
+- Hiện tượng: ở Luyện tập, "Vận dụng thực tế" và "Tổng kết" bị xám/khóa; phải hoàn thành cả 3 gói Olympia mới mở.
+- Yêu cầu user: tới được Luyện tập = mở khóa toàn bộ mục lục; hoặc mở khóa hết TỪ ĐẦU cho mượt — KHÔNG khóa gì cả.
+- Chẩn đoán: `template.ts:39-48` đặt `locked:true` cho units/olympia/extend/summary; `navTo` (`adaptiveEngine.ts:80`) chặn item `locked`; CSS `.toc-item.locked{pointer-events:none}`.
+- Hướng: bỏ khóa toàn bộ TOC từ đầu (render-time, áp dụng mọi bài).
+
+## TRẠNG THÁI SỬA (đợt 5) — code + tsc sạch, verify script PASS, chờ test production
+- [x] **D1** — `AdaptiveQuestion.hints?` + `QuestionJson.hints?` (AI sinh 3 gợi ý tiến dần, rule 6b trong prompt). `toAdaptiveQ` map 4 tầng: ưu tiên hints AI, thiếu thì `synthesizeHintTiers` tách lời giải theo bước; tầng 1 (theory) LUÔN là nhắc lý thuyết chung, KHÔNG lộ đáp số; solution chỉ hiện ở sai lần 4. Verify (script render): câu không-hints → 4 tầng phân biệt, tầng 1 không chứa đáp số; câu có-hints → 3 hints AI map đúng theory/hint1/hint2.
+- [x] **D2** — `template.ts:38-49` mở khóa toàn bộ TOC từ đầu (`locked:false` cho mọi mục). Verify: `toc-item locked` = 0. Render-time → áp dụng cả bài cũ sau deploy.
+- LƯU Ý: D1 fallback (tự tách) áp dụng NGAY cho mọi bài (kể cả bài cũ) sau deploy — sai 1 lần hết lòi bài chữa. Hints AI chất lượng cao chỉ có ở BÀI MỚI (cần quota). D2 render-time, bài cũ thấy sau deploy.
+
 ## Bài học về CÁCH TEST (rút kinh nghiệm)
 - Test phải ĐÓNG VAI học sinh học thật: bấm hết nút, đọc nội dung gợi ý/đáp án, kiểm điều hướng giữa các bước/hoạt động, xem Vở ghi — KHÔNG chỉ đếm DOM (sim-frame/gallery). Nhiều lỗi (A3–A7) chỉ lộ khi thao tác thật.
 

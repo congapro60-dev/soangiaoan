@@ -71,20 +71,56 @@ const cleanOptions = (options: string[] | undefined): string[] => {
   return raw.map(option => normalizeLatexText(option, option));
 };
 
+// Tầng 1 luôn là nhắc lý thuyết chung — KHÔNG lộ đáp số (yêu cầu: sai 1 lần không lòi bài chữa).
+const GENERIC_TIER0 = 'Nhớ lại định nghĩa/công thức liên quan của phần này rồi thử lại — chưa cần xem lời giải.';
+
+/**
+ * Tự TÁCH lời giải đầy đủ thành 4 tầng hỗ trợ tiến dần khi không có hints do AI sinh.
+ * Trả về [theory, hint1, hint2, hint3]; solution (full) xử lý riêng ở toAdaptiveQ.
+ */
+function synthesizeHintTiers(solution: string): [string, string, string, string] {
+  const steps = solution.split('\n').map(s => s.trim()).filter(Boolean);
+  if (steps.length >= 3) {
+    return [
+      GENERIC_TIER0,
+      steps[0],
+      steps.slice(0, 2).join('\n'),
+      steps.slice(0, steps.length - 1).join('\n'), // tới gần đáp số, giữ lại bước cuối
+    ];
+  }
+  if (steps.length === 2) {
+    return [GENERIC_TIER0, steps[0], steps[0], steps.join('\n')];
+  }
+  // 0–1 bước, không tách được: tầng đầu vẫn không lộ đáp án.
+  return [
+    GENERIC_TIER0,
+    'Xác định dạng bài và công thức/định nghĩa cần dùng.',
+    'Thay dữ kiện đã cho vào công thức rồi tính từng bước.',
+    solution || 'Xem lời giải đầy đủ bên dưới.',
+  ];
+}
+
 function toAdaptiveQ(q: AdaptiveQuestion, points: number): DeweyAdaptiveQuestion {
   const opts = cleanOptions(q.options);
   const cidx = Math.max(opts.indexOf(q.correctAnswer ?? ''), 0);
+  const solution = formatStepLines(normalizeLatexText(q.explanation, 'Xem lại phần kiến thức liên quan.'));
+  // Ưu tiên 4 tầng từ hints AI sinh; thiếu thì tự tách từ lời giải. Lấp ô trống từ bản tự tách.
+  const aiHints = (q.hints ?? [])
+    .map(h => formatStepLines(normalizeLatexText(h, '')))
+    .filter(Boolean);
+  const synth = synthesizeHintTiers(solution);
+  const tier = (i: number): string => aiHints[i] || synth[i];
   return {
     id: q.id,
     type: 'multiple_choice',
     prompt: normalizeLatexText(q.prompt, 'Câu hỏi đang được chuẩn bị.'),
     options: opts,
     correctIndex: cidx,
-    theory: normalizeLatexText(q.explanation, 'Xem lại phần kiến thức liên quan.'),
-    hint1: normalizeLatexText(q.explanation, 'Xem lại phần kiến thức liên quan.'),
-    hint2: normalizeLatexText(q.explanation, 'Xem lại phần kiến thức liên quan.'),
-    hint3: normalizeLatexText(q.explanation, 'Xem lại phần kiến thức liên quan.'),
-    solution: normalizeLatexText(q.explanation, 'Xem lại phần kiến thức liên quan.'),
+    theory: tier(0),
+    hint1: tier(1),
+    hint2: tier(2),
+    hint3: tier(3),
+    solution,
     points,
   };
 }

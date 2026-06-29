@@ -509,6 +509,7 @@ interface QuestionJson {
   options: string[];
   correct: number;
   explanation: string;
+  hints?: string[];
   difficulty?: string;
 }
 
@@ -827,6 +828,7 @@ const buildQuestionFromJson = (
     options,
     correctAnswer: options[correctIndex],
     explanation: qJson.explanation || 'Xem lại nội dung bài học.',
+    hints: Array.isArray(qJson.hints) ? qJson.hints.map(h => String(h).trim()).filter(Boolean) : undefined,
     objectiveIds: [objectiveId],
     difficulty,
     points: 1,
@@ -1337,13 +1339,15 @@ OUTPUT: Trả về DUY NHẤT một JSON object hợp lệ theo schema dưới �
           "prompt": "Câu hỏi trắc nghiệm thật với số liệu cụ thể",
           "options": ["A. 5", "B. 10", "C. 15", "D. 20"],
           "correct": 1,
-          "explanation": "Đáp án B vì..."
+          "explanation": "Đáp án B vì...",
+          "hints": ["Tầng 1 — nhắc lý thuyết/công thức cần dùng, CHƯA tính, KHÔNG lộ đáp số", "Tầng 2 — chỉ ra bước đầu tiên cần làm", "Tầng 3 — gần xong: nêu cách ráp các bước nhưng vẫn để học sinh tự ra đáp số"]
         },
         {
           "prompt": "Câu 2 của quick check",
           "options": ["A. -5", "B. -10", "C. -15", "D. -20"],
           "correct": 3,
-          "explanation": "Giải thích dựa trên công thức/định nghĩa của bài."
+          "explanation": "Giải thích dựa trên công thức/định nghĩa của bài.",
+          "hints": ["Tầng 1 — nhắc khái niệm liên quan", "Tầng 2 — gợi bước làm đầu", "Tầng 3 — gợi ý gần đáp án"]
         }
       ],
       "simulation_html": {
@@ -1392,6 +1396,7 @@ QUY TẮC BẮT BUỘC:
 4. Dùng LaTeX cho công thức: bọc $...$ inline, $$...$$ block. BẮT BUỘC bọc MỌI biểu thức, phương trình, điểm (VD: $p=10$, $F_1(-4;0)$) trong dấu $. Dùng $\displaystyle ...$ cho các công thức có phân số để không bị nhỏ. KHÔNG viết công thức dạng plain text.
 5. Tạo đúng 1 object engage có nội dung Khởi động thật của bài học. Cấm lấy các yêu cầu UI/UX như "bố cục 7:3", "đồng hồ kép", "mục lục thông minh" làm nội dung học sinh đọc ở màn Khởi động.
 6. Tạo đúng 5 diagnostic_questions (2 easy, 2 medium, 1 hard), 2 quick_check_questions mỗi unit, 3 exit_ticket_questions.
+6b. MỖI quick_check_question BẮT BUỘC có "hints" = đúng 3 gợi ý tiến dần (tầng 1 → tầng 3) cho cơ chế hỗ trợ khi học sinh trả lời sai: tầng 1 chỉ nhắc lý thuyết/công thức cần dùng và TUYỆT ĐỐI KHÔNG lộ đáp số; tầng 2 gợi bước làm đầu tiên; tầng 3 gợi gần đáp án nhưng vẫn để học sinh tự tính ra kết quả cuối. 3 gợi ý phải KHÁC nhau và KHÁC với "explanation" (explanation là lời giải đầy đủ chỉ hiện sau khi sai 4 lần).
 7. BẮT BUỘC SINH ÍT NHẤT 3 MẢNH KIẾN THỨC (units). Số units tối thiểu = max(3, số objectives). Nếu objectives có 3 mục tiêu → ít nhất 3 units, mỗi unit gắn với 1 objective qua "objective_index" (index bắt đầu từ 0). Nếu source có nhiều HĐ/bước, mỗi HĐ trọng tâm → 1 unit riêng. Mỗi unit vẫn là một đơn vị nhỏ: chỉ một định nghĩa HOẶC một công thức HOẶC một tính chất. Thêm "objective_index": 0 và "estimated_minutes": 10 vào mỗi unit.
 8. Mỗi unit BẮT BUỘC có hook_question, ÍT NHẤT 5 guiding_questions theo chuỗi Socratic (quan sát → so sánh → phát hiện quy luật → áp dụng thử → chốt công thức), student_task, visual_instruction và knowledge_conclusion. Trình tự sư phạm: hỏi gợi mở → quan sát hình/mô phỏng → chuỗi câu hỏi dẫn dắt → học sinh dự đoán/trả lời → chốt kiến thức ngắn. KHÔNG đưa nguyên đoạn lý thuyết dài ngay từ đầu.
 9. knowledge_conclusion phải ngắn, tối đa khoảng 5-7 câu hoặc một công thức trọng tâm. Phần explanation_ chỉ là gợi ý theo tuyến học để giúp học sinh trả lời chuỗi câu hỏi, không được lặp lại một bài giảng dài.
@@ -1732,8 +1737,8 @@ NHIỆM VỤ: Thiết kế chi tiết mảnh kiến thức "${unitTitle}". Trả
     "hints": ["Gợi ý 1", "Gợi ý 2", "Gợi ý 3"]
   },
   "quick_check_questions": [
-    {"prompt": "Câu quick check 1 có số liệu cụ thể", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correct": 1, "explanation": "..."},
-    {"prompt": "Câu quick check 2", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correct": 3, "explanation": "..."}
+    {"prompt": "Câu quick check 1 có số liệu cụ thể", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correct": 1, "explanation": "...", "hints": ["Tầng 1 — nhắc lý thuyết, chưa lộ đáp số", "Tầng 2 — gợi bước đầu", "Tầng 3 — gợi gần đáp án"]},
+    {"prompt": "Câu quick check 2", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correct": 3, "explanation": "...", "hints": ["Tầng 1", "Tầng 2", "Tầng 3"]}
   ],
   "externalToolIds": [],
   "tikz_code": "",
