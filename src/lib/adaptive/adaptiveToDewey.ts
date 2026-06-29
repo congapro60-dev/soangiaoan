@@ -233,28 +233,54 @@ export function adaptiveLessonToDeweyContent(
     };
   });
 
+  // Hình minh hoạ "tự vẽ" (TikZ SVG đã xác thực) theo từng mảnh — tái dùng cho một số câu luyện tập + màn vận dụng.
+  const tikzByUnit = assets.tikzSvgByUnitId ?? {};
+  const simByUnit = assets.simulationHtmlByUnitId ?? {};
+  const figureHtml = (svg: string, label: string): string =>
+    `<div class="tikz-figure" role="img" aria-label="${escapeAttribute(label)}">${svg}</div>`;
+
   // Olympia: chia ĐỀU câu hỏi quick check thành 3 gói, MỖI GÓI 3–4 câu (sắp theo độ khó tăng dần).
   const difficultyRank = (d: string) => (d === 'easy' ? 0 : d === 'medium' ? 1 : 2);
   const allQC = (lesson.knowledgeUnits ?? [])
-    .flatMap(u => u.quickCheck?.questions ?? [])
-    .slice()
-    .sort((a, b) => difficultyRank(a.difficulty) - difficultyRank(b.difficulty));
+    .flatMap(u => (u.quickCheck?.questions ?? []).map(q => ({ q, unitId: u.id, unitTitle: u.title })))
+    .sort((a, b) => difficultyRank(a.q.difficulty) - difficultyRank(b.q.difficulty));
   const n = allQC.length;
   const base = Math.floor(n / 3);
   const rem = n % 3;
   const counts = [base + (rem > 0 ? 1 : 0), base + (rem > 1 ? 1 : 0), base];
   const packPoints = [10, 20, 30];
   let cursor = 0;
+  // Mỗi mảnh chỉ gắn hình vào CÂU ĐẦU thuộc mảnh đó (đỡ trùng) → chỉ "một số câu" có hình.
+  const figureUsedUnits = new Set<string>();
   const packs: [DeweyOlympiaPack, DeweyOlympiaPack, DeweyOlympiaPack] = [0, 1, 2].map(i => {
     const slice = allQC.slice(cursor, cursor + counts[i]);
     cursor += counts[i];
-    const qs = slice.map(q => toAdaptiveQ(q, packPoints[i]));
+    const qs = slice.map(item => {
+      const dq = toAdaptiveQ(item.q, packPoints[i]);
+      const svg = tikzByUnit[item.unitId];
+      if (svg && !figureUsedUnits.has(item.unitId)) {
+        figureUsedUnits.add(item.unitId);
+        dq.illustrationHtml = figureHtml(svg, `Hình minh hoạ: ${item.unitTitle}`);
+      }
+      return dq;
+    });
     return {
       id: `pack-${packPoints[i]}`,
       packLabel: `${packPoints[i]} điểm` as DeweyOlympiaPack['packLabel'],
       questions: qs.length ? qs : [placeholder(packPoints[i])],
     };
   }) as [DeweyOlympiaPack, DeweyOlympiaPack, DeweyOlympiaPack];
+
+  // Vận dụng: ưu tiên MÔ PHỎNG tương tác của một mảnh; không có thì dùng hình minh hoạ — tránh toàn chữ.
+  const extendSimSrc = (lesson.knowledgeUnits ?? [])
+    .map(u => (simByUnit[u.id] || u.simulationSpec?.html?.srcDoc || '').trim())
+    .find(Boolean);
+  const extendFigureSvg = Object.values(tikzByUnit).find(svg => svg.trim());
+  const extendIllustration = extendSimSrc
+    ? `<div class="unit-simulation"><iframe class="sim-frame" sandbox="allow-scripts" loading="lazy" srcdoc="${escapeAttribute(extendSimSrc)}" style="width:100%;height:600px;border:0;border-radius:12px;"></iframe></div>`
+    : extendFigureSvg
+      ? figureHtml(extendFigureSvg, 'Hình minh hoạ vận dụng')
+      : undefined;
 
   const routeLabel =
     route === 'foundation' ? 'Cơ bản' : route === 'challenge' ? 'Nâng cao' : 'Chuẩn';
@@ -321,6 +347,7 @@ export function adaptiveLessonToDeweyContent(
         lesson.exitTicket?.questions?.[0]?.prompt ?? 'Áp dụng kiến thức vào thực tế.',
       consequence:
         'Kiến thức này giúp em giải quyết các bài toán thực tiễn một cách tự tin.',
+      ...(extendIllustration ? { illustrationHtml: extendIllustration } : {}),
     },
     summary: {
       mindMapNodes: (lesson.objectives ?? []).map(o => ({ label: o.title })),

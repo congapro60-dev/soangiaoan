@@ -220,6 +220,7 @@ const renderQuestionInput = (question: DeweyAdaptiveQuestion, name: string): str
 const renderAdaptiveQuestion = (question: DeweyAdaptiveQuestion, index: number, pack: DeweyOlympiaPack): string => `
   <article class="question-card${index === 0 ? '' : ' hidden'}" data-question-card data-qid="${safeId(question.id)}" data-type="${question.type satisfies DeweyQuestionType}" data-correct="${escapeAttribute(correctValueFor(question))}" data-tolerance="${question.tolerance ?? 0}" data-points="${question.points}">
     <h3><span class="step-badge">${index + 1}</span>${escapeHtml(pack.packLabel)} - ${escapeHtml(question.prompt)}</h3>
+    ${question.illustrationHtml ? `<div class="question-figure">${question.illustrationHtml}</div>` : ''}
     ${question.context ? `<div class="box">${escapeHtml(question.context)}</div>` : ''}
     ${renderQuestionInput(question, `${pack.id}-${question.id}`)}
     <button class="btn" type="button" onclick="submitAdaptiveAnswer(this)">Trả lời</button>
@@ -257,6 +258,7 @@ const renderExtend = (content: DeweyLessonContent): string => `
 <section class="screen" id="screen-extend">
   <h2>Vận dụng - Mở rộng</h2>
   <div class="box">${paragraph(content.extend.realWorldContext)}</div>
+  ${content.extend.illustrationHtml ? `<div class="extend-figure">${content.extend.illustrationHtml}</div>` : ''}
   <div class="eval-box">${escapeHtml(content.extend.consequence)}</div>
   ${content.extend.expertQuote ? `<blockquote class="theory-box">${escapeHtml(content.extend.expertQuote)}</blockquote>` : ''}
   <textarea rows="4" placeholder="Viết liên hệ hoặc quyết định của em..."></textarea>

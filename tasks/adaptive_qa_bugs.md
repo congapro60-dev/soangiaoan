@@ -134,6 +134,16 @@ XÁC NHẬN OK: B6 (vở ghi có mục I/II…), B1 (engage 1 tình huống rút
 - [x] **D2** — `template.ts:38-49` mở khóa toàn bộ TOC từ đầu (`locked:false` cho mọi mục). Verify: `toc-item locked` = 0. Render-time → áp dụng cả bài cũ sau deploy.
 - LƯU Ý: D1 fallback (tự tách) áp dụng NGAY cho mọi bài (kể cả bài cũ) sau deploy — sai 1 lần hết lòi bài chữa. Hints AI chất lượng cao chỉ có ở BÀI MỚI (cần quota). D2 render-time, bài cũ thấy sau deploy.
 
+### BUG-D3 — Luyện tập & Vận dụng TOÀN CHỮ, không hình minh hoạ (nhàm chán)
+- Hiện tượng: vào Luyện tập (Olympia) chỉ thấy câu hỏi; Vận dụng chỉ thấy chữ — không hình/mô phỏng nào.
+- Yêu cầu user: bổ sung hình minh hoạ "tự vẽ" phù hợp vào MỘT SỐ câu luyện tập; Vận dụng có mô phỏng thì tạo, không thì cho ảnh minh hoạ — đừng để toàn chữ.
+- Chẩn đoán: `renderAdaptiveQuestion` (template) không có slot hình; `renderExtend` chỉ render text; `DeweyAdaptiveQuestion`/`DeweyExtendStory` thiếu field hình. Pipeline đã có sẵn hình "tự vẽ" theo mảnh (`tikzSvgByUnitId` — TikZ SVG đã xác thực) + mô phỏng (`simulationHtmlByUnitId`) nhưng CHỈ dùng ở màn học mảnh, không tái dùng cho Luyện tập/Vận dụng.
+- Quyết định (user chọn "Cả hai"): render-time TÁI DÙNG hình/mô phỏng các mảnh vào Olympia + Vận dụng (thấy ngay, mọi bài); bài MỚI vẫn sinh học liệu trực quan riêng theo mảnh (rule 17) nên pool phong phú.
+
+## TRẠNG THÁI SỬA (đợt 6) — code + tsc sạch, verify script PASS, chờ test production
+- [x] **D3** — `DeweyAdaptiveQuestion.illustrationHtml?` + `DeweyExtendStory.illustrationHtml?`; template render `.question-figure`/`.extend-figure` (CSS htmlShell). `adaptiveToDewey`: gắn hình TikZ của mỗi mảnh vào CÂU ĐẦU thuộc mảnh đó ở Olympia (chỉ "một số câu", không trùng); Vận dụng ưu tiên iframe mô phỏng của một mảnh, không có thì hình TikZ. Degrade an toàn khi không có asset. Prompt rule 17 thêm lưu ý học liệu được tái dùng ở Luyện tập/Vận dụng nên phải đúng phân môn. Verify (render): 2/6 câu có hình (1/mảnh-có-hình); Vận dụng dùng sim; không asset → không lỗi/không hình.
+- LƯU Ý: render-time → áp dụng cả bài CŨ sau deploy (miễn bài có TikZ/sim hợp lệ). Bài xác suất ít hình hình học → có thể chỉ vài câu có hình; bài MỚI sinh đủ học liệu mỗi mảnh sẽ phong phú hơn.
+
 ## Bài học về CÁCH TEST (rút kinh nghiệm)
 - Test phải ĐÓNG VAI học sinh học thật: bấm hết nút, đọc nội dung gợi ý/đáp án, kiểm điều hướng giữa các bước/hoạt động, xem Vở ghi — KHÔNG chỉ đếm DOM (sim-frame/gallery). Nhiều lỗi (A3–A7) chỉ lộ khi thao tác thật.
 

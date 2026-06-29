@@ -39,6 +39,7 @@ export interface DeweyAdaptiveQuestion {
   hint3: string;           // Sai lần 4 → gợi ý mức Kém
   solution: string;        // Hiện cùng hint3 + 0 điểm + next câu
   points: number;          // 10/20/30
+  illustrationHtml?: string; // Hình/SVG minh hoạ (tái dùng từ mảnh kiến thức) cho một số câu luyện tập
 }
 
 // ─── Socratic step (dẫn dắt từng bước - Trial and Error UX) ───
@@ -76,6 +77,7 @@ export interface DeweyExtendStory {
   realWorldContext: string;
   consequence: string;
   expertQuote?: string;
+  illustrationHtml?: string; // Mô phỏng (iframe) hoặc hình minh hoạ cho màn Vận dụng — không để toàn chữ
 }
 
 export interface DeweySummary {

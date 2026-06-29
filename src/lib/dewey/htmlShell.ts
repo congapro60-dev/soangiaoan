@@ -239,6 +239,11 @@ const BASE_CSS = String.raw`
   .step-illustration img, .step-illustration svg { max-width: 100%; height: auto; border-radius: 10px; }
   .tikz-figure { margin: 10px 0; text-align: center; }
   .tikz-figure svg { max-width: 100%; height: auto; }
+  .question-figure { margin: 12px 0; text-align: center; }
+  .question-figure svg, .question-figure img { max-width: 100%; height: auto; border-radius: 12px; }
+  .extend-figure { margin: 14px 0; }
+  .extend-figure svg, .extend-figure img { max-width: 100%; height: auto; border-radius: 12px; }
+  .extend-figure .sim-frame { background: white; border-radius: 12px; }
   .oly-hint { font-size: 14px; font-weight: 650; color: var(--text-secondary, #64748b); margin: 4px 0 0; }
   .oly-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0; }
   .oly-tab {

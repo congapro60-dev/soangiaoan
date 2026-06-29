@@ -1410,7 +1410,7 @@ QUY TẮC BẮT BUỘC:
 14. Trả về đúng JSON hợp lệ, không markdown, không giải thích ngoài JSON.
 15. engage.reading_instructions PHẢI trích hoặc paraphrase từ mục "Đọc trước"/"Chuẩn bị"/"Ôn tập" trong giáo án nguồn. KHÔNG bịa ngữ cảnh hoặc tên chủ đề không liên quan.
 16. engage.visual_cards BẮT BUỘC có đúng 4 thẻ SVG minh họa đúng chủ đề bài học này. Mỗi SVG phải: (a) có viewBox="0 0 640 420", (b) dùng gradient màu đẹp làm nền, (c) có text tiêu đề và chú thích bằng tiếng Việt, (d) minh họa một ứng dụng/khái niệm thực tế liên quan BÀI NÀY — TUYỆT ĐỐI không dùng hình Conic/Elip/Parabol/Hyperbol nếu bài không liên quan conic.
-17. Mỗi unit BẮT BUỘC có ít nhất 1 học liệu trực quan. Ưu tiên theo thứ tự: (a) nếu có tool trong danh sách CÔNG CỤ CÓ SẪN phù hợp chủ đề → đặt id vào "externalToolIds"; (b) nếu cần hình 2D tĩnh → đặt mã TikZ hợp lệ vào "tikz_code" (BẮT BUỘC có \\begin{tikzpicture}...\\end{tikzpicture}, double-escape backslash vì trong JSON); (c) nếu hình học không gian → dùng "simulation_3d". KHÔNG để unit không có học liệu nào.`;
+17. Mỗi unit BẮT BUỘC có ít nhất 1 học liệu trực quan. Ưu tiên theo thứ tự: (a) nếu có tool trong danh sách CÔNG CỤ CÓ SẪN phù hợp chủ đề → đặt id vào "externalToolIds"; (b) nếu cần hình 2D tĩnh → đặt mã TikZ hợp lệ vào "tikz_code" (BẮT BUỘC có \\begin{tikzpicture}...\\end{tikzpicture}, double-escape backslash vì trong JSON); (c) nếu hình học không gian → dùng "simulation_3d". KHÔNG để unit không có học liệu nào. Hình/mô phỏng này còn được TÁI DÙNG ở phần Luyện tập và Vận dụng nên hãy chọn học liệu thật sự minh hoạ được khái niệm cốt lõi của mảnh (đúng phân môn, KHÔNG vẽ hình hình học cho bài đại số/xác suất/giải tích).`;
 };
 
 export const buildAdaptiveReviewPrompt = (source: AdaptiveLessonSource): string =>
