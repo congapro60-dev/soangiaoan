@@ -1,4 +1,4 @@
-import type { AdaptiveLesson, AdaptiveQuestion, LearningRoute } from './types';
+import type { AdaptiveLesson, AdaptiveQuestion, LearningRoute, PracticeSet, PracticeMCQ, PracticeTFGroup, PracticeShort, PracticeEssay } from './types';
 import type {
   DeweyAdaptiveQuestion,
   DeweyKnowledgeUnit,
@@ -186,6 +186,77 @@ const placeholder = (pts: number): DeweyAdaptiveQuestion => ({
   points: pts,
 });
 
+// ─── E9: dựng 3 gói Luyện tập có cấu trúc từ practiceSet ───
+let practiceUid = 0;
+const pid = (): string => `prac-${++practiceUid}`;
+
+const buildTiers = (explanation: string, hints?: string[]) => {
+  const solution = formatStepLines(normalizeLatexText(explanation, 'Xem lại phần kiến thức liên quan.'));
+  const aiHints = (hints ?? []).map(h => formatStepLines(normalizeLatexText(h, ''))).filter(Boolean);
+  const synth = synthesizeHintTiers(solution);
+  const tier = (i: number): string => aiHints[i] || synth[i];
+  return { theory: tier(0), hint1: tier(1), hint2: tier(2), hint3: tier(3), solution };
+};
+
+const mcqToDewey = (m: PracticeMCQ, points: number): DeweyAdaptiveQuestion => {
+  const opts = cleanOptions(m.options);
+  const ci = Math.min(Math.max(m.correctIndex ?? 0, 0), Math.max(opts.length - 1, 0));
+  return { id: pid(), type: 'multiple_choice', prompt: normalizeLatexText(m.prompt, 'Câu hỏi đang được chuẩn bị.'), options: opts, correctIndex: ci, ...buildTiers(m.explanation, m.hints), points };
+};
+
+const tfToDewey = (g: PracticeTFGroup, points: number): DeweyAdaptiveQuestion => ({
+  id: pid(),
+  type: 'true_false_group',
+  prompt: normalizeLatexText(g.context, 'Xét các phát biểu sau:'),
+  statements: (g.statements ?? []).slice(0, 4).map(s => ({
+    text: normalizeLatexText(s.text, ''),
+    correct: Boolean(s.correct),
+    hint: s.hint ? formatStepLines(normalizeLatexText(s.hint, '')) : undefined,
+  })),
+  theory: '', hint1: '', hint2: '', hint3: '',
+  solution: formatStepLines(normalizeLatexText(g.explanation, '')),
+  points,
+});
+
+const shortToDewey = (s: PracticeShort, points: number): DeweyAdaptiveQuestion => {
+  const num = Number(String(s.answer ?? '').replace(',', '.'));
+  return {
+    id: pid(),
+    type: 'short_answer',
+    prompt: normalizeLatexText(s.prompt, 'Câu hỏi đang được chuẩn bị.'),
+    correctNumeric: Number.isFinite(num) ? num : undefined,
+    tolerance: s.tolerance ?? 0,
+    ...buildTiers(s.explanation, s.hints),
+    points,
+  };
+};
+
+const essayToDewey = (e: PracticeEssay, points: number): DeweyAdaptiveQuestion => ({
+  id: pid(),
+  type: 'essay',
+  prompt: normalizeLatexText(e.prompt, 'Câu tự luận đang được chuẩn bị.'),
+  essayParts: (e.parts ?? []).slice(0, 4).map(p => ({
+    prompt: normalizeLatexText(p.prompt, ''),
+    hint: formatStepLines(normalizeLatexText(p.hint, '')),
+    answer: formatStepLines(normalizeLatexText(p.answer, '')),
+  })),
+  theory: '', hint1: '', hint2: '', hint3: '', solution: '',
+  points,
+});
+
+const buildStructuredPacks = (ps: PracticeSet): [DeweyOlympiaPack, DeweyOlympiaPack, DeweyOlympiaPack] => {
+  const recognition = (ps.recognition ?? []).slice(0, 4).map(m => mcqToDewey(m, 5));
+  const comprehension = (ps.comprehension ?? []).slice(0, 2).map(g => tfToDewey(g, 10));
+  const shorts = (ps.application?.short ?? []).slice(0, 2).map(s => shortToDewey(s, 5));
+  const essay = ps.application?.essay ? [essayToDewey(ps.application.essay, 10)] : [];
+  const vandung = [...shorts, ...essay];
+  return [
+    { id: 'pack-nhanbiet', packLabel: 'Nhận biết', questions: recognition.length ? recognition : [placeholder(5)] },
+    { id: 'pack-thonghieu', packLabel: 'Thông hiểu', questions: comprehension.length ? comprehension : [placeholder(10)] },
+    { id: 'pack-vandung', packLabel: 'Vận dụng', questions: vandung.length ? vandung : [placeholder(5)] },
+  ];
+};
+
 export function adaptiveLessonToDeweyContent(
   lesson: AdaptiveLesson,
   route: LearningRoute = 'standard',
@@ -300,24 +371,27 @@ export function adaptiveLessonToDeweyContent(
   let cursor = 0;
   // Mỗi mảnh chỉ gắn hình vào CÂU ĐẦU thuộc mảnh đó (đỡ trùng) → chỉ "một số câu" có hình.
   const figureUsedUnits = new Set<string>();
-  const packs: [DeweyOlympiaPack, DeweyOlympiaPack, DeweyOlympiaPack] = [0, 1, 2].map(i => {
-    const slice = allQC.slice(cursor, cursor + counts[i]);
-    cursor += counts[i];
-    const qs = slice.map(item => {
-      const dq = toAdaptiveQ(item.q, packPoints[i]);
-      const svg = tikzByUnit[item.unitId];
-      if (svg && !figureUsedUnits.has(item.unitId)) {
-        figureUsedUnits.add(item.unitId);
-        dq.illustrationHtml = figureHtml(svg, `Hình minh hoạ: ${item.unitTitle}`);
-      }
-      return dq;
-    });
-    return {
-      id: `pack-${packPoints[i]}`,
-      packLabel: `${packPoints[i]} điểm` as DeweyOlympiaPack['packLabel'],
-      questions: qs.length ? qs : [placeholder(packPoints[i])],
-    };
-  }) as [DeweyOlympiaPack, DeweyOlympiaPack, DeweyOlympiaPack];
+  // E9: bài MỚI có practiceSet → 3 gói Nhận biết/Thông hiểu/Vận dụng; bài CŨ → fallback chia quick check theo điểm.
+  const packs: [DeweyOlympiaPack, DeweyOlympiaPack, DeweyOlympiaPack] = lesson.practiceSet
+    ? buildStructuredPacks(lesson.practiceSet)
+    : ([0, 1, 2].map(i => {
+        const slice = allQC.slice(cursor, cursor + counts[i]);
+        cursor += counts[i];
+        const qs = slice.map(item => {
+          const dq = toAdaptiveQ(item.q, packPoints[i]);
+          const svg = tikzByUnit[item.unitId];
+          if (svg && !figureUsedUnits.has(item.unitId)) {
+            figureUsedUnits.add(item.unitId);
+            dq.illustrationHtml = figureHtml(svg, `Hình minh hoạ: ${item.unitTitle}`);
+          }
+          return dq;
+        });
+        return {
+          id: `pack-${packPoints[i]}`,
+          packLabel: `${packPoints[i]} điểm`,
+          questions: qs.length ? qs : [placeholder(packPoints[i])],
+        };
+      }) as [DeweyOlympiaPack, DeweyOlympiaPack, DeweyOlympiaPack]);
 
   // Vận dụng: CHỈ nhúng mô phỏng/hình của MẢNH KHỚP đề vận dụng (token đặc trưng có trong đề),
   // tránh lệch đề như cũ (E8 — đề Parabol nhưng nhúng sim Elip). Không khớp → không nhúng gì.

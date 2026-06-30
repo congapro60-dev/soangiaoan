@@ -250,6 +250,16 @@ const BASE_CSS = String.raw`
   .bonus-box details { margin-top: 8px; }
   .bonus-box details summary { cursor: pointer; font-weight: 650; color: var(--primary, #2563eb); }
   .bonus-video { font-weight: 650; color: var(--primary, #2563eb); text-decoration: underline; }
+  .tf-table .tf-answer { font-weight: 700; white-space: nowrap; color: #0f172a; }
+  .tf-table tr.tf-right { background: #ecfdf5; }
+  .tf-table tr.tf-wrong { background: #fef2f2; }
+  .tf-hint-wrap { margin-top: 6px; }
+  .tf-hint-btn { font-size: 12px; font-weight: 650; color: var(--primary, #2563eb); background: none; border: 1px dashed var(--primary, #2563eb); border-radius: 8px; padding: 2px 8px; cursor: pointer; }
+  .tf-hint { margin-top: 6px; padding: 6px 10px; background: #f5f9ff; border-radius: 8px; font-size: 14px; white-space: pre-line; }
+  .essay-parts { margin: 8px 0; padding-left: 22px; }
+  .essay-parts li { margin-bottom: 6px; }
+  .essay-actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
+  .essay-selfscore .btn { margin: 4px 8px 4px 0; }
   .oly-hint { font-size: 14px; font-weight: 650; color: var(--text-secondary, #64748b); margin: 4px 0 0; }
   .oly-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0; }
   .oly-tab {

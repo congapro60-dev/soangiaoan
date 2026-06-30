@@ -9,6 +9,7 @@ import type {
   KnowledgeUnit,
   LearningRoute,
   LearningRouteContent,
+  PracticeSet,
   WorkedExample,
 } from './types';
 
@@ -1710,6 +1711,87 @@ QUY TẮC:
 6. "bonus_challenge" BẮT BUỘC có đủ 4 trường (advanced_problem, application_problem, reading_problem, video_keywords) — dùng cho học sinh xong sớm còn dư giờ. Nội dung thật, đúng bài.
 7. Trả về đúng JSON hợp lệ. Không markdown, không giải thích ngoài JSON.`;
 
+// ─── E9: sinh BỘ LUYỆN TẬP có cấu trúc 3 gói ───
+interface PracticeJson {
+  recognition?: Array<{ prompt?: string; options?: string[]; correct?: number; explanation?: string; hints?: string[] }>;
+  comprehension?: Array<{ context?: string; statements?: Array<{ text?: string; correct?: boolean; hint?: string }>; explanation?: string }>;
+  application?: {
+    short?: Array<{ prompt?: string; answer?: string; tolerance?: number; explanation?: string; hints?: string[] }>;
+    essay?: { prompt?: string; parts?: Array<{ prompt?: string; hint?: string; answer?: string }> };
+  };
+}
+
+const mapPracticeSet = (p: PracticeJson | undefined): PracticeSet | undefined => {
+  if (!p) return undefined;
+  const cleanHints = (h: unknown): string[] | undefined => Array.isArray(h) ? h.map(x => String(x).trim()).filter(Boolean) : undefined;
+  const recognition = (Array.isArray(p.recognition) ? p.recognition : []).slice(0, 4).map(m => ({
+    prompt: (m.prompt || '').trim(),
+    options: Array.isArray(m.options) && m.options.length >= 2 ? m.options.map(o => String(o)) : ['A.', 'B.', 'C.', 'D.'],
+    correctIndex: typeof m.correct === 'number' && m.correct >= 0 ? m.correct : 0,
+    explanation: (m.explanation || '').trim(),
+    hints: cleanHints(m.hints),
+  })).filter(m => m.prompt);
+  const comprehension = (Array.isArray(p.comprehension) ? p.comprehension : []).slice(0, 2).map(g => ({
+    context: (g.context || '').trim(),
+    statements: (Array.isArray(g.statements) ? g.statements : []).slice(0, 4).map(s => ({ text: (s.text || '').trim(), correct: Boolean(s.correct), hint: s.hint ? String(s.hint).trim() : undefined })).filter(s => s.text),
+    explanation: (g.explanation || '').trim(),
+  })).filter(g => g.statements.length > 0);
+  const short = (Array.isArray(p.application?.short) ? p.application!.short! : []).slice(0, 2).map(s => ({
+    prompt: (s.prompt || '').trim(),
+    answer: String(s.answer ?? '').trim(),
+    tolerance: typeof s.tolerance === 'number' ? s.tolerance : undefined,
+    explanation: (s.explanation || '').trim(),
+    hints: cleanHints(s.hints),
+  })).filter(s => s.prompt);
+  const e = p.application?.essay;
+  const essay = e && (e.prompt || (Array.isArray(e.parts) && e.parts.length))
+    ? { prompt: (e.prompt || '').trim(), parts: (Array.isArray(e.parts) ? e.parts : []).slice(0, 4).map(pt => ({ prompt: (pt.prompt || '').trim(), hint: (pt.hint || '').trim(), answer: (pt.answer || '').trim() })).filter(pt => pt.prompt || pt.answer) }
+    : null;
+  return (recognition.length || comprehension.length || short.length || essay)
+    ? { recognition, comprehension, application: { short, essay } }
+    : undefined;
+};
+
+const buildPracticePrompt = (source: AdaptiveLessonSource, objectives: ObjectiveJson[], unitTitles: string[]): string =>
+  `Bạn là chuyên gia ra đề luyện tập Toán phân hoá theo định dạng THPTQG.
+
+BÀI HỌC: "${source.title || 'Chưa rõ'}" - Lớp ${source.grade || '10'}
+MỤC TIÊU: ${objectives.map((o, i) => `${i + 1}. ${o.title}`).join('; ')}
+CÁC MẢNH KIẾN THỨC: ${unitTitles.join(', ')}
+
+NHIỆM VỤ: Tạo bộ luyện tập 3 gói. Trả về DUY NHẤT một JSON hợp lệ, không giải thích.
+
+{
+  "recognition": [
+    {"prompt": "Câu nhận biết có số liệu cụ thể", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correct": 1, "explanation": "Lời giải từng bước, mỗi bước xuống dòng", "hints": ["Tầng 1 nhắc lý thuyết, KHÔNG lộ đáp số", "Tầng 2 gợi bước đầu", "Tầng 3 gợi gần đáp án"]}
+  ],
+  "comprehension": [
+    {"context": "Cho ... . Xét tính đúng/sai của các phát biểu:", "statements": [
+      {"text": "Mệnh đề a", "correct": true, "hint": "Gợi ý cho ý a"},
+      {"text": "Mệnh đề b", "correct": false, "hint": "Gợi ý cho ý b"},
+      {"text": "Mệnh đề c", "correct": true, "hint": "Gợi ý cho ý c"},
+      {"text": "Mệnh đề d", "correct": false, "hint": "Gợi ý cho ý d"}
+    ], "explanation": "Giải thích đúng/sai TỪNG ý, mỗi ý xuống dòng"}
+  ],
+  "application": {
+    "short": [
+      {"prompt": "Câu trả lời ngắn, đáp số là MỘT SỐ", "answer": "12.5", "tolerance": 0.1, "explanation": "Lời giải từng bước", "hints": ["Tầng 1", "Tầng 2", "Tầng 3"]}
+    ],
+    "essay": {"prompt": "Câu tự luận tổng hợp", "parts": [
+      {"prompt": "a) Yêu cầu ý a", "hint": "Gợi ý ý a", "answer": "Đáp án chi tiết ý a"},
+      {"prompt": "b) Yêu cầu ý b", "hint": "Gợi ý ý b", "answer": "Đáp án chi tiết ý b"}
+    ]}
+  }
+}
+
+QUY TẮC:
+1. recognition: ĐÚNG 4 câu trắc nghiệm 4 phương án, mức nhận biết. "correct" là index 0-3 (vị trí ngẫu nhiên). Mỗi câu có "hints" = 3 gợi ý tiến dần.
+2. comprehension: ĐÚNG 2 câu Đúng/Sai, MỖI câu đúng 4 mệnh đề (a,b,c,d), mức thông hiểu. Mỗi mệnh đề có "hint" riêng. Trộn đúng/sai (không phải tất cả đúng).
+3. application.short: ĐÚNG 2 câu trả lời ngắn, đáp số PHẢI là một SỐ ("answer" là số, có "tolerance" nếu cần). Mỗi câu có "hints" = 3 gợi ý.
+4. application.essay: ĐÚNG 1 câu tự luận mức vận dụng, có 2–4 ý (parts); mỗi ý có "hint" (gợi ý) và "answer" (đáp án chi tiết để học sinh tự chấm).
+5. Nội dung toán THẬT, có số và công thức cụ thể — KHÔNG placeholder. Dùng LaTeX bọc $...$, double-escape: \\\\frac, \\\\sqrt.
+6. Trả về đúng JSON hợp lệ. Không markdown, không giải thích ngoài JSON.`;
+
 const buildUnitDetailPrompt = (
   source: AdaptiveLessonSource,
   reviewedPlan: string,
@@ -1987,6 +2069,17 @@ export const runAdaptivePipeline = async (
     warnings.push('assessments_failed: Bộ câu hỏi sẽ dùng placeholder — cần chỉnh sửa trước khi xuất bản.');
   }
 
+  // --- Step 3b: Bộ luyện tập có cấu trúc 3 gói (E9) — thất bại thì adapter fallback quick check ---
+  let practiceSet: PracticeSet | undefined;
+  try {
+    onProgress?.('Đang tạo bộ luyện tập (Nhận biết / Thông hiểu / Vận dụng)...');
+    const raw = await callAIFn(buildPracticePrompt(source, rawObjectives, unitOutlines.map(u => u.title)));
+    practiceSet = mapPracticeSet(parseAdaptiveContentJson(raw) as PracticeJson);
+    if (!practiceSet) warnings.push('practice_thin: Bộ luyện tập có cấu trúc trống — dùng quick check thay thế.');
+  } catch (err) {
+    warnings.push('practice_failed: Bộ luyện tập có cấu trúc lỗi — dùng quick check thay thế.');
+  }
+
   // --- Step 4: Units (one per unit, independent failure) ---
   const relevantTools = getRelevantToolsForLesson(source);
   const knowledgeUnits: KnowledgeUnit[] = [];
@@ -2108,6 +2201,7 @@ export const runAdaptivePipeline = async (
       supportTriggerMastery: 0.55,
     },
     completionReward: { toolId: 'gamedoikhang', message: defaultRewardMessage },
+    ...(practiceSet ? { practiceSet } : {}),
     ...(bonusChallenge ? { bonusChallenge } : {}),
     generationSource: 'ai_json',
     generationWarnings: warnings.length > 0 ? warnings : undefined,

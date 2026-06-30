@@ -341,9 +341,89 @@ export function getAdaptiveEngineScript(lessonId?: string): string {
     return false;
   }
 
+  function tfPartialScore(correct, total, max) {
+    // Câu 4 ý: 1 ý=1đ, 2=2.5, 3=5, 4=10 (theo quy ước user). Khác 4 ý → tuyến tính.
+    if (total === 4) return [0, 1, 2.5, 5, 10][correct] / 10 * max;
+    return total ? Math.round((correct / total) * max * 10) / 10 : 0;
+  }
+
+  function submitTrueFalse(card, button) {
+    var rows = all('[data-statement-correct]', card);
+    if (!rows.length) return;
+    var correct = 0;
+    rows.forEach(function (row) {
+      var chosen = row.querySelector('input[type="radio"]:checked');
+      var right = row.dataset.statementCorrect;
+      var isRight = Boolean(chosen && chosen.value === right);
+      if (isRight) correct += 1;
+      row.classList.remove('tf-right', 'tf-wrong');
+      row.classList.add(isRight ? 'tf-right' : 'tf-wrong');
+      var ans = row.querySelector('.tf-answer');
+      if (ans) ans.textContent = right === 'true' ? '✓ Đúng' : '✗ Sai';
+      all('input[type="radio"]', row).forEach(function (r) { r.disabled = true; });
+    });
+    var total = rows.length;
+    var points = tfPartialScore(correct, total, Number(card.dataset.points || '10'));
+    state.score += points;
+    var score = byId('score-value');
+    if (score) score.textContent = String(state.score);
+    var feedback = card.querySelector('.feedback-msg');
+    if (feedback) {
+      feedback.className = 'feedback-msg feedback-correct';
+      feedback.textContent = 'Em đúng ' + correct + '/' + total + ' ý → nhận ' + points + ' điểm. Đọc giải thích bên dưới rồi sang câu tiếp theo.';
+      show(feedback);
+    }
+    show(card.querySelector('.solution-box'));
+    if (button) hide(button);
+    show(card.querySelector('.adaptive-next-btn'));
+    updateMath(card);
+  }
+
+  window.toggleStatementHint = function toggleStatementHint(button) {
+    var wrap = button.parentNode;
+    var hint = wrap ? wrap.querySelector('.tf-hint') : null;
+    if (hint) { hint.classList.toggle('hidden'); updateMath(hint); }
+  };
+
+  window.revealEssayHints = function revealEssayHints(button) {
+    var card = button.closest('[data-question-card]');
+    if (!card) return;
+    show(card.querySelector('.essay-hints'));
+    show(card.querySelector('.essay-answer-btn'));
+    if (button) hide(button);
+    updateMath(card);
+  };
+
+  window.revealEssayAnswers = function revealEssayAnswers(button) {
+    var card = button.closest('[data-question-card]');
+    if (!card) return;
+    show(card.querySelector('.essay-answers'));
+    show(card.querySelector('.essay-selfscore'));
+    if (button) hide(button);
+    updateMath(card);
+  };
+
+  window.selfScoreEssay = function selfScoreEssay(button, points) {
+    var card = button.closest('[data-question-card]');
+    if (!card) return;
+    state.score += Number(points) || 0;
+    var score = byId('score-value');
+    if (score) score.textContent = String(state.score);
+    var sel = card.querySelector('.essay-selfscore');
+    if (sel) hide(sel);
+    var feedback = card.querySelector('.feedback-msg');
+    if (feedback) {
+      feedback.className = 'feedback-msg feedback-correct';
+      feedback.textContent = 'Em tự chấm ' + (Number(points) || 0) + ' điểm. Sang câu tiếp theo.';
+      show(feedback);
+    }
+    show(card.querySelector('.adaptive-next-btn'));
+  };
+
   window.submitAdaptiveAnswer = function submitAdaptiveAnswer(button) {
     var card = button.closest('[data-question-card]');
     if (!card) return;
+    if (card.dataset.type === 'true_false_group') { submitTrueFalse(card, button); return; }
     var qid = card.dataset.qid || '';
     var feedback = card.querySelector('.feedback-msg');
     var correct = isAdaptiveCorrect(card);

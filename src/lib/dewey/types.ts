@@ -1,9 +1,10 @@
 export type DeweyTheme = 'classic' | 'scifi' | 'comic';
 
 export type DeweyQuestionType =
-  | 'multiple_choice'    // 4 options A/B/C/D (Nhận biết)
-  | 'true_false_group'   // 1 bối cảnh + 4 mệnh đề a/b/c/d (Thông hiểu)
-  | 'short_answer';      // Điền số (Vận dụng)
+  | 'multiple_choice'    // 4 options A/B/C/D (Nhận biết) — 4 tầng hỗ trợ
+  | 'true_false_group'   // 1 bối cảnh + 4 mệnh đề a/b/c/d (Thông hiểu) — chấm từng phần, gợi ý mỗi ý
+  | 'short_answer'       // Điền số (Vận dụng) — 4 tầng hỗ trợ
+  | 'essay';             // Tự luận 2–4 ý (Vận dụng) — 2 tầng: gợi ý từng ý → đáp án để HS tự chấm
 
 // ─── Pre-test (5 câu trắc nghiệm 2 options, ôn tập tiết trước) ───
 export interface DeweyPretestQuestion {
@@ -24,13 +25,16 @@ export interface DeweyAdaptiveQuestion {
   options?: string[];
   correctIndex?: number;
 
-  // true_false_group
+  // true_false_group — chấm từng phần (1/2.5/5/10), mỗi mệnh đề có gợi ý riêng
   context?: string;
-  statements?: Array<{ text: string; correct: boolean }>;
+  statements?: Array<{ text: string; correct: boolean; hint?: string }>;
 
   // short_answer
   correctNumeric?: number;
   tolerance?: number;
+
+  // essay (tự luận) — 2–4 ý; 2 tầng: gợi ý từng ý → đáp án mẫu để HS tự chấm
+  essayParts?: Array<{ prompt: string; hint: string; answer: string }>;
 
   // 4-cấp remediation BẮT BUỘC
   theory: string;          // Sai lần 1 → hiện lý thuyết
@@ -38,7 +42,7 @@ export interface DeweyAdaptiveQuestion {
   hint2: string;           // Sai lần 3 → gợi ý mức Yếu
   hint3: string;           // Sai lần 4 → gợi ý mức Kém
   solution: string;        // Hiện cùng hint3 + 0 điểm + next câu
-  points: number;          // 10/20/30
+  points: number;          // điểm tối đa của câu (5/10…)
   illustrationHtml?: string; // Hình/SVG minh hoạ (tái dùng từ mảnh kiến thức) cho một số câu luyện tập
 }
 
@@ -69,7 +73,7 @@ export interface DeweyKnowledgeUnit {
 
 export interface DeweyOlympiaPack {
   id: string;
-  packLabel: '10 điểm' | '20 điểm' | '30 điểm';
+  packLabel: string;        // "Nhận biết" | "Thông hiểu" | "Vận dụng" (E9) hoặc "10 điểm"… (bài cũ)
   questions: DeweyAdaptiveQuestion[];
 }
 

@@ -169,6 +169,25 @@ export interface LessonPacingPolicy {
   supportTriggerMastery: number;
 }
 
+// ─── Bộ Luyện tập có cấu trúc (E9): 3 gói Nhận biết / Thông hiểu / Vận dụng ───
+export interface PracticeMCQ {
+  prompt: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+  hints?: string[];
+}
+export interface PracticeTFStatement { text: string; correct: boolean; hint?: string; }
+export interface PracticeTFGroup { context: string; statements: PracticeTFStatement[]; explanation: string; }
+export interface PracticeShort { prompt: string; answer: string; tolerance?: number; explanation: string; hints?: string[]; }
+export interface PracticeEssayPart { prompt: string; hint: string; answer: string; }
+export interface PracticeEssay { prompt: string; parts: PracticeEssayPart[]; }
+export interface PracticeSet {
+  recognition: PracticeMCQ[];          // 4 câu × 5đ
+  comprehension: PracticeTFGroup[];    // 2 câu Đúng/Sai (4 ý) × 10đ, chấm từng phần
+  application: { short: PracticeShort[]; essay: PracticeEssay | null }; // 2 ngắn × 5đ + 1 tự luận × 10đ
+}
+
 export interface AdaptiveLesson {
   id: string;
   title: string;
@@ -193,6 +212,8 @@ export interface AdaptiveLesson {
     toolId: string;
     message: string;
   };
+  /** Bộ luyện tập có cấu trúc 3 gói (E9) — AI sinh; thiếu thì adapter fallback quickCheck cũ. */
+  practiceSet?: PracticeSet;
   /** Hoạt động "còn thừa thời gian" — AI sinh; thiếu thì adapter tự tái dùng ví dụ/vận dụng/tình huống. */
   bonusChallenge?: {
     advancedProblem?: { prompt: string; solution: string };

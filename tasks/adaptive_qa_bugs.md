@@ -233,7 +233,14 @@ XÁC NHẬN OK: B6 (vở ghi có mục I/II…), B1 (engage 1 tình huống rút
 - [x] **E5** (vở ghi II đánh số 1.2.3.) — `addNote(...,numbered)` (batch 2, `469d651`).
 - [x] **E1+E2** (TikZ `\n` literal + builder ảnh đỏ) — gỡ `\n` literal + builder nhúng SVG đã xác thực (batch 2).
 - [x] **E8** (sim Vận dụng lệch đề) — chỉ nhúng sim/hình của mảnh có TOKEN ĐẶC TRƯNG khớp đề vận dụng (vd "parabol"); không khớp → không nhúng. Verify: đề Parabol → sim Parabol (không phải Elip); đề chung → không nhúng.
-- [ ] **E9** (redesign Luyện tập: 3 gói Nhận biết/Thông hiểu/Vận dụng + chấm từng phần + tự luận 2 tầng + 4 tầng các loại + đúng cũng hiện lời giải) — chưa (lớn).
+- [~] **E9** — ĐANG LÀM:
+  - [x] **Phần 1** (`8c2063f`, render-time mọi bài): đúng cũng hiện lời giải chi tiết trước khi sang câu; bỏ nhãn "Olympia" (TOC/tiêu đề/điểm/vở).
+  - [x] **Phần 2** (chỉ bài MỚI — đã code, tsc sạch, verify script PASS): restructure 3 gói. Types `PracticeSet` + Dewey `essay`/statement hint/essayParts; bước sinh `buildPracticePrompt`+`mapPracticeSet` trong pipeline (ai_json) → `AdaptiveLesson.practiceSet`; adapter `buildStructuredPacks` (fallback quick check cho bài cũ); engine `submitTrueFalse`+`tfPartialScore` (1/2.5/5/10) + `toggleStatementHint` + essay `revealEssayHints`/`revealEssayAnswers`/`selfScoreEssay`; template T/F gợi-ý-từng-ý + essay card 2 tầng. Verify: 3 gói đúng tên/loại/điểm, T/F chấm từng phần, essay 2 tầng+tự chấm, bài cũ fallback OK.
+  - ~~Phần 2 cũ~~: restructure 3 gói.
+    - Gói "Nhận biết": 4 MCQ × 5đ (4 tầng).
+    - Gói "Thông hiểu": 2 Đúng/Sai (4 ý) × 10đ, chấm từng phần 1/2.5/5/10; mỗi ý nút "hiện gợi ý"; nộp hiện đáp án từng ý.
+    - Gói "Vận dụng": 2 trả lời ngắn × 5đ (4 tầng) + 1 tự luận × 10đ (2–4 ý, 2 tầng: gợi ý từng ý → đáp án tự chấm).
+    - Kế hoạch code: (a) types `AdaptiveLesson.practiceSet` + Dewey type `essay` + hint từng ý (T/F) + essayParts; (b) bước sinh `buildPracticePrompt` trong pipeline; (c) adapter dựng 3 gói từ practiceSet (fallback quickCheck cũ cho bài cũ); (d) engine: chấm từng phần T/F + nút gợi ý từng ý + essay 2 tầng; (e) template: nhãn gói + render T/F-gợi-ý + essay.
 - [ ] **E10** (mô phỏng đơn giản/khớp đề) — chưa.
 
 ## Bài học về CÁCH TEST (rút kinh nghiệm)

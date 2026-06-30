@@ -203,13 +203,14 @@ const renderQuestionInput = (question: DeweyAdaptiveQuestion, name: string): str
   if (question.type === 'true_false_group') {
     return `
     <table class="tf-table">
-      <thead><tr><th>Mệnh đề</th><th>Đúng</th><th>Sai</th></tr></thead>
+      <thead><tr><th>Mệnh đề</th><th>Đúng</th><th>Sai</th><th>Đáp án</th></tr></thead>
       <tbody>
         ${(question.statements || []).map((statement, index) => `
         <tr data-statement-correct="${statement.correct ? 'true' : 'false'}">
-          <td>${escapeHtml(statement.text)}</td>
+          <td>${escapeHtml(statement.text)}${statement.hint ? `<div class="tf-hint-wrap"><button type="button" class="tf-hint-btn" onclick="toggleStatementHint(this)">💡 Gợi ý</button><div class="tf-hint hidden">${escapeHtml(statement.hint)}</div></div>` : ''}</td>
           <td><input type="radio" name="${escapeAttribute(`${name}-tf-${index}`)}" value="true"></td>
           <td><input type="radio" name="${escapeAttribute(`${name}-tf-${index}`)}" value="false"></td>
+          <td class="tf-answer"></td>
         </tr>`).join('')}
       </tbody>
     </table>`;
@@ -217,7 +218,34 @@ const renderQuestionInput = (question: DeweyAdaptiveQuestion, name: string): str
   return `<input type="number" step="any" placeholder="Nhập đáp số" aria-label="Đáp số">`;
 };
 
-const renderAdaptiveQuestion = (question: DeweyAdaptiveQuestion, index: number, pack: DeweyOlympiaPack): string => `
+const renderEssayCard = (question: DeweyAdaptiveQuestion, index: number, pack: DeweyOlympiaPack): string => {
+  const parts = question.essayParts || [];
+  const half = Math.max(1, Math.round(question.points / 2));
+  return `
+  <article class="question-card${index === 0 ? '' : ' hidden'}" data-question-card data-qid="${safeId(question.id)}" data-type="essay" data-points="${question.points}">
+    <h3><span class="step-badge">${index + 1}</span>${escapeHtml(pack.packLabel)} (tự luận) - ${escapeHtml(question.prompt)}</h3>
+    ${parts.length ? `<ol class="essay-parts">${parts.map(p => `<li>${escapeHtml(p.prompt)}</li>`).join('')}</ol>` : ''}
+    <textarea rows="5" placeholder="Trình bày lời giải của em vào đây rồi đối chiếu đáp án..."></textarea>
+    <div class="essay-actions">
+      <button class="btn secondary" type="button" onclick="revealEssayHints(this)">💡 Hiện gợi ý từng ý</button>
+      <button class="btn secondary essay-answer-btn hidden" type="button" onclick="revealEssayAnswers(this)">Hiện đáp án chi tiết</button>
+    </div>
+    <div class="essay-hints hidden">${parts.map((p, i) => `<div class="box"><strong>Gợi ý ý ${i + 1}:</strong> <span class="bonus-text">${escapeHtml(p.hint)}</span></div>`).join('')}</div>
+    <div class="essay-answers hidden">${parts.map((p, i) => `<div class="box"><strong>Đáp án ý ${i + 1}:</strong> <span class="bonus-text">${escapeHtml(p.answer)}</span></div>`).join('')}</div>
+    <div class="essay-selfscore hidden box">
+      <p><strong>Em tự chấm bài (tối đa ${question.points} điểm):</strong></p>
+      <button class="btn" type="button" onclick="selfScoreEssay(this, 0)">Chưa đạt (0đ)</button>
+      <button class="btn" type="button" onclick="selfScoreEssay(this, ${half})">Đạt một phần (${half}đ)</button>
+      <button class="btn" type="button" onclick="selfScoreEssay(this, ${question.points})">Đạt tốt (${question.points}đ)</button>
+    </div>
+    <div class="feedback-msg hidden"></div>
+    <button class="btn secondary adaptive-next-btn hidden" type="button" onclick="nextQuestion(this)">Câu tiếp theo</button>
+  </article>`;
+};
+
+const renderAdaptiveQuestion = (question: DeweyAdaptiveQuestion, index: number, pack: DeweyOlympiaPack): string => {
+  if (question.type === 'essay') return renderEssayCard(question, index, pack);
+  return `
   <article class="question-card${index === 0 ? '' : ' hidden'}" data-question-card data-qid="${safeId(question.id)}" data-type="${question.type satisfies DeweyQuestionType}" data-correct="${escapeAttribute(correctValueFor(question))}" data-tolerance="${question.tolerance ?? 0}" data-points="${question.points}">
     <h3><span class="step-badge">${index + 1}</span>${escapeHtml(pack.packLabel)} - ${escapeHtml(question.prompt)}</h3>
     ${question.illustrationHtml ? `<div class="question-figure">${question.illustrationHtml}</div>` : ''}
@@ -232,6 +260,7 @@ const renderAdaptiveQuestion = (question: DeweyAdaptiveQuestion, index: number, 
     <div class="solution-box hidden">${escapeHtml(question.solution)}</div>
     <button class="btn secondary adaptive-next-btn hidden" type="button" onclick="nextQuestion(this)">Câu tiếp theo</button>
   </article>`;
+};
 
 const renderOlympia = (content: DeweyLessonContent): string => `
 <section class="screen" id="screen-olympia">
