@@ -10,6 +10,17 @@
 
 ## 1. Trạng thái hiện tại
 
+### 1.0h Cập nhật phiên 2026-06-30 — QA bài học phân hoá vòng 3 (bài "Ba đường Conic", đợt 5→8)
+
+Bối cảnh: user tiếp tục học thử + tạo bài mới (conic) → loạt lỗi mới. Log đầy đủ: **`tasks/adaptive_qa_bugs.md`**. Tất cả đã sửa + tsc sạch + verify script, push main.
+
+**Đợt 5 (`ce006c3`):** D1 khôi phục **4 tầng gợi ý** Luyện tập (trước nhồi cả 5 ô = lời giải → sai 1 lần lòi đáp án); D2 mở khoá toàn bộ mục lục.
+**Đợt 6 (`62c499a`):** D3 thêm hình minh hoạ vào Luyện tập & Vận dụng (hết toàn chữ).
+**Đợt 7 (`236bf86`):** D4 hoạt động "học xong sớm còn dư giờ" (bài nâng cao + vận dụng + đọc + link tìm kiếm YouTube; nút "Hoàn tất sớm").
+**Đợt 8 (`92f3780`→`6307e16`):** E1–E10 trên bài conic:
+- **E6** (NGHIÊM TRỌNG) chấm sai mặc định A → `resolveCorrectIndex` (so phương án thô, hết lệ thuộc chuẩn hoá). **E7** option raw markdown → `stripInlineMarkdown`. **E3** option thiếu `$` → `ensureMathDelimiters`. **E4** `^2` thô → `convertBareCarets`→unicode. **E5** vở ghi mục II đánh số 1.2.3. **E1/E2** TikZ `\n` literal + builder hết ảnh đỏ (nhúng SVG đã xác thực). **E8** Vận dụng chỉ nhúng sim KHỚP đề (token đặc trưng). **E9** redesign Luyện tập 3 gói **Nhận biết/Thông hiểu/Vận dụng** (4 MCQ×5đ / 2 Đúng-Sai chấm từng phần 1·2.5·5·10 / 2 ngắn + 1 tự luận 2 tầng tự chấm) + đúng cũng hiện lời giải + bỏ "Olympia"; thêm `PracticeSet`+bước sinh `buildPracticePrompt` (bài cũ fallback quick check). **E10** prompt sim mảnh đơn giản/đẹp hơn.
+- **Cần bài MỚI để nghiệm thu:** E9 (3 gói + tự luận), E10 (sim), chất lượng công thức/hints (E3/E4/E6 render-time áp ngay cả bài cũ). E9 tốn thêm 1 lần gọi AI → cần quota.
+
 ### 1.0g Cập nhật phiên 2026-06-29 — QA bài học phân hoá vòng 2 (đóng vai HỌC SINH học thật, đợt 1→4)
 
 Bối cảnh: user trực tiếp học thử bài phân hoá (trên `giaoandewey.vercel.app`) → phát hiện loạt lỗi mà test DOM-only bỏ sót. Toàn bộ log lỗi + trạng thái: **`tasks/adaptive_qa_bugs.md`**. Đã sửa hết, mỗi đợt commit riêng, đã push main.
