@@ -354,9 +354,11 @@ export function getAdaptiveEngineScript(lessonId?: string): string {
       if (score) score.textContent = String(state.score);
       if (feedback) {
         feedback.className = 'feedback-msg feedback-correct';
-        feedback.textContent = 'Chính xác! Em nhận ' + points + ' điểm và mở câu tiếp theo.';
+        feedback.textContent = 'Chính xác! Em nhận ' + points + ' điểm. Đọc lời giải chi tiết bên dưới rồi sang câu tiếp theo.';
         show(feedback);
       }
+      // Đúng ở bất kỳ lần nào → vẫn hiện LỜI GIẢI CHI TIẾT cho học sinh đọc trước khi sang câu tiếp.
+      show(card.querySelector('.solution-box'));
       show(card.querySelector('.adaptive-next-btn'));
       return;
     }
@@ -398,7 +400,7 @@ export function getAdaptiveEngineScript(lessonId?: string): string {
       unlockScreen('screen-extend');
       var finish = byId('olympia-finish-btn');
       show(finish);
-      window.addNote('Đã hoàn thành 3 gói luyện tập Olympia. Tổng điểm: ' + state.score + ' điểm.', 'luyentap');
+      window.addNote('Đã hoàn thành 3 gói luyện tập. Tổng điểm: ' + state.score + ' điểm.', 'luyentap');
     }
   };
 
@@ -417,7 +419,7 @@ export function getAdaptiveEngineScript(lessonId?: string): string {
   window.finishLesson = function finishLesson() {
     var finalScore = byId('final-score');
     if (finalScore) finalScore.textContent = String(state.score);
-    window.addNote('Hoàn tất bài học. Tổng điểm Olympia: ' + state.score + ' điểm.', 'tongket');
+    window.addNote('Hoàn tất bài học. Tổng điểm luyện tập: ' + state.score + ' điểm.', 'tongket');
     if (window.parent && window.parent !== window) {
       var nb = [];
       try { nb = JSON.parse(window.localStorage.getItem('dewey-notebook') || '[]'); } catch (_e) {}

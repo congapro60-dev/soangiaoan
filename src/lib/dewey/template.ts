@@ -44,7 +44,7 @@ const renderToc = (content: DeweyLessonContent): string => {
       label: `${index + 3}. ${unit.title}`,
       locked: false,
     })),
-    { id: 'screen-olympia', label: 'Luyện tập Olympia', locked: false },
+    { id: 'screen-olympia', label: 'Luyện tập', locked: false },
     { id: 'screen-extend', label: 'Vận dụng thực tế', locked: false },
     { id: 'screen-summary', label: 'Tổng kết', locked: false },
   ];
@@ -235,9 +235,9 @@ const renderAdaptiveQuestion = (question: DeweyAdaptiveQuestion, index: number, 
 
 const renderOlympia = (content: DeweyLessonContent): string => `
 <section class="screen" id="screen-olympia">
-  <h2>Luyện tập - Olympia</h2>
+  <h2>Luyện tập</h2>
   <div class="score-board">Điểm hiện tại: <span id="score-value">0</span></div>
-  <p class="oly-hint">Chọn một gói điểm bất kỳ để luyện tập (em được tự chọn thứ tự).</p>
+  <p class="oly-hint">Chọn một gói bất kỳ để luyện tập (em được tự chọn thứ tự).</p>
   <div class="oly-tabs">
     ${content.olympia.packs.map((pack, packIndex) => `
     <button class="oly-tab${packIndex === 0 ? ' active' : ''}" type="button" data-pack-tab="${packIndex}" onclick="startPack(${packIndex})">
@@ -280,7 +280,7 @@ const renderBonus = (bonus: NonNullable<DeweyLessonContent['summary']['bonusChal
 const renderSummary = (content: DeweyLessonContent): string => `
 <section class="screen" id="screen-summary">
   <h2>Tổng kết</h2>
-  <div class="score-board">Tổng điểm Olympia: <span id="final-score">0</span></div>
+  <div class="score-board">Tổng điểm luyện tập: <span id="final-score">0</span></div>
   <div class="robot-grid">
     ${content.summary.mindMapNodes.map(node => `
     <div class="box">
