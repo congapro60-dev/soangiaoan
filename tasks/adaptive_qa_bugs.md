@@ -241,7 +241,7 @@ XÁC NHẬN OK: B6 (vở ghi có mục I/II…), B1 (engage 1 tình huống rút
     - Gói "Thông hiểu": 2 Đúng/Sai (4 ý) × 10đ, chấm từng phần 1/2.5/5/10; mỗi ý nút "hiện gợi ý"; nộp hiện đáp án từng ý.
     - Gói "Vận dụng": 2 trả lời ngắn × 5đ (4 tầng) + 1 tự luận × 10đ (2–4 ý, 2 tầng: gợi ý từng ý → đáp án tự chấm).
     - Kế hoạch code: (a) types `AdaptiveLesson.practiceSet` + Dewey type `essay` + hint từng ý (T/F) + essayParts; (b) bước sinh `buildPracticePrompt` trong pipeline; (c) adapter dựng 3 gói từ practiceSet (fallback quickCheck cũ cho bài cũ); (d) engine: chấm từng phần T/F + nút gợi ý từng ý + essay 2 tầng; (e) template: nhãn gói + render T/F-gợi-ý + essay.
-- [ ] **E10** (mô phỏng đơn giản/khớp đề) — chưa.
+- [x] **E10** (mô phỏng đơn giản/hấp dẫn/khớp) — `buildUnitSimulationPrompt` siết rule 7/8: ĐÚNG 1 khái niệm + 1 thao tác chính, cấm nhồi nhiều control/bảng; đẹp như SGK (nền sáng, màu hài hoà, nhãn to, nổi bật đại lượng đổi); cao ≤520px, ≤160 dòng. Chất lượng cần bài MỚI + user nghiệm thu (chủ quan, không auto-verify được). E8 đã lo phần khớp đề ở Vận dụng.
 
 ## Bài học về CÁCH TEST (rút kinh nghiệm)
 - Test phải ĐÓNG VAI học sinh học thật: bấm hết nút, đọc nội dung gợi ý/đáp án, kiểm điều hướng giữa các bước/hoạt động, xem Vở ghi — KHÔNG chỉ đếm DOM (sim-frame/gallery). Nhiều lỗi (A3–A7) chỉ lộ khi thao tác thật.

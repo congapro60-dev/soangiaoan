@@ -1903,9 +1903,10 @@ QUY TẮC BẮT BUỘC:
 4. Hiển thị rõ đại lượng thay đổi và đại lượng/quy luật giữ nguyên, đúng nội dung "${unitTitle}".
 5. MÔ PHỎNG PHẢI ĐÚNG PHÂN MÔN của mảnh: Xác suất/Thống kê/Tổ hợp → sơ đồ cây, bảng 2 chiều, Venn, mô phỏng phép thử (gieo xúc xắc/rút bi…); Hình học phẳng → hình SVG kéo điểm; Hàm số/giải tích → đồ thị động. KHÔNG dựng mô hình khối 3D cho bài Xác suất (kể cả khi có cụm "không gian mẫu").
 6. CÔNG THỨC: TUYỆT ĐỐI KHÔNG dùng LaTeX/MathJax (không $...$, không \\frac, không \\(...\\)). Viết bằng Unicode/HTML thường: P(A|B), ∩, ∪, ×, ², ³, √, ≤, ≥, ≠, Ω; phân số viết "a/b" hoặc dùng <sup>/<sub>. (iframe mô phỏng KHÔNG có MathJax nên LaTeX sẽ hiện mã thô.)
-7. ĐƠN GIẢN, DỄ HIỂU: bám sát cách trình bày SGK (Kết nối tri thức 10/11/12). Chỉ MỘT ý/thao tác chính, không nhồi nhiều thứ rối mắt.
-8. RESPONSIVE & VỪA KHUNG: body { margin:0; font-size:16px; } gói trong 1 cột dọc, width:100% (max-width:100%); KHÔNG đặt chiều rộng cố định lớn; mọi nội dung phải nhìn hết mà KHÔNG cần cuộn ngang. Chiều cao tổng ≤ ~560px.
-9. CSS nội tuyến trong <style>; toàn bộ JS trong <script>. Chạy offline được. Tối đa ~200 dòng.`;
+7. ĐƠN GIẢN & HẤP DẪN (QUAN TRỌNG NHẤT — đây là tiêu chí đánh giá chính): mô phỏng phải DỄ HIỂU NGAY, chỉ làm rõ ĐÚNG MỘT khái niệm cốt lõi của "${unitTitle}" bằng ĐÚNG MỘT thao tác chính (1 thanh trượt HOẶC 1 nút HOẶC kéo 1 điểm). TUYỆT ĐỐI KHÔNG nhồi nhiều thanh trượt/nhiều bảng số/nhiều khối thông tin rối mắt — thà ít mà rõ. Mục tiêu: học sinh thao tác MỘT lần là "à, hiểu ra" ngay.
+8. ĐẸP NHƯ HÌNH SGK: nền sáng sạch, bảng màu hài hoà (xanh dương/cam nhẹ), nét vẽ gọn, NHÃN chữ to rõ, LÀM NỔI BẬT đại lượng then chốt đang thay đổi (đổi màu/đậm). Bố cục thoáng, căn giữa. Chất lượng trình bày như mô phỏng ở màn Khởi động.
+9. RESPONSIVE & VỪA KHUNG: body { margin:0; font-size:16px; } gói trong 1 cột dọc, width:100% (max-width:100%); KHÔNG đặt chiều rộng cố định lớn; mọi nội dung phải nhìn hết mà KHÔNG cần cuộn ngang. Chiều cao tổng ≤ ~520px.
+10. CSS nội tuyến trong <style>; toàn bộ JS trong <script>. Chạy offline được. Gọn — tối đa ~160 dòng (ưu tiên rõ ràng hơn đồ sộ).`;
 
 // Bóc HTML thô từ phản hồi AI, xác nhận là mini-app tương tác hợp lệ; nếu không đạt trả ''.
 const sanitizeGeneratedSimulationHtml = (text: string): string => {
