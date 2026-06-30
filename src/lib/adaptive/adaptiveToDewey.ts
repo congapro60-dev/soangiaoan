@@ -319,15 +319,22 @@ export function adaptiveLessonToDeweyContent(
     };
   }) as [DeweyOlympiaPack, DeweyOlympiaPack, DeweyOlympiaPack];
 
-  // Vận dụng: ưu tiên MÔ PHỎNG tương tác của một mảnh; không có thì dùng hình minh hoạ — tránh toàn chữ.
-  const extendSimSrc = (lesson.knowledgeUnits ?? [])
-    .map(u => (simByUnit[u.id] || u.simulationSpec?.html?.srcDoc || '').trim())
-    .find(Boolean);
-  const extendFigureSvg = Object.values(tikzByUnit).find(svg => svg.trim());
-  const extendIllustration = extendSimSrc
-    ? `<div class="unit-simulation"><iframe class="sim-frame" sandbox="allow-scripts" loading="lazy" srcdoc="${escapeAttribute(extendSimSrc)}" style="width:100%;height:600px;border:0;border-radius:12px;"></iframe></div>`
-    : extendFigureSvg
-      ? figureHtml(extendFigureSvg, 'Hình minh hoạ vận dụng')
+  // Vận dụng: CHỈ nhúng mô phỏng/hình của MẢNH KHỚP đề vận dụng (token đặc trưng có trong đề),
+  // tránh lệch đề như cũ (E8 — đề Parabol nhưng nhúng sim Elip). Không khớp → không nhúng gì.
+  const normVi = (s: string) => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const tokensOf = (s: string) => normVi(s).split(/[^a-z0-9]+/).filter(w => w.length >= 4);
+  const extendUnits = lesson.knowledgeUnits ?? [];
+  const tokenUnitCount: Record<string, number> = {};
+  extendUnits.forEach(u => [...new Set(tokensOf(u.title))].forEach(t => { tokenUnitCount[t] = (tokenUnitCount[t] || 0) + 1; }));
+  const extendProblemTokens = normVi(`${lesson.exitTicket?.questions?.[0]?.prompt ?? ''} ${lesson.title}`);
+  // token đặc trưng = chỉ xuất hiện ở 1 mảnh (vd "parabol") → loại các từ chung "phuong/trinh/chinh/tac".
+  const matchedUnit = extendUnits.find(u => tokensOf(u.title).some(t => tokenUnitCount[t] === 1 && extendProblemTokens.includes(t)));
+  const matchedSimSrc = matchedUnit ? (simByUnit[matchedUnit.id] || matchedUnit.simulationSpec?.html?.srcDoc || '').trim() : '';
+  const matchedFigSvg = matchedUnit ? (tikzByUnit[matchedUnit.id] || '').trim() : '';
+  const extendIllustration = matchedSimSrc
+    ? `<div class="unit-simulation"><iframe class="sim-frame" sandbox="allow-scripts" loading="lazy" srcdoc="${escapeAttribute(matchedSimSrc)}" style="width:100%;height:600px;border:0;border-radius:12px;"></iframe></div>`
+    : matchedFigSvg
+      ? figureHtml(matchedFigSvg, `Hình minh hoạ: ${matchedUnit?.title ?? 'vận dụng'}`)
       : undefined;
 
   const routeLabel =

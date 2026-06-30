@@ -232,7 +232,7 @@ XÁC NHẬN OK: B6 (vở ghi có mục I/II…), B1 (engage 1 tình huống rút
 - [x] **E4** (`^2` thô) — `convertBareCarets` → unicode (batch 1).
 - [x] **E5** (vở ghi II đánh số 1.2.3.) — `addNote(...,numbered)` (batch 2, `469d651`).
 - [x] **E1+E2** (TikZ `\n` literal + builder ảnh đỏ) — gỡ `\n` literal + builder nhúng SVG đã xác thực (batch 2).
-- [ ] **E8** (sim Vận dụng lệch đề) — chưa.
+- [x] **E8** (sim Vận dụng lệch đề) — chỉ nhúng sim/hình của mảnh có TOKEN ĐẶC TRƯNG khớp đề vận dụng (vd "parabol"); không khớp → không nhúng. Verify: đề Parabol → sim Parabol (không phải Elip); đề chung → không nhúng.
 - [ ] **E9** (redesign Luyện tập: 3 gói Nhận biết/Thông hiểu/Vận dụng + chấm từng phần + tự luận 2 tầng + 4 tầng các loại + đúng cũng hiện lời giải) — chưa (lớn).
 - [ ] **E10** (mô phỏng đơn giản/khớp đề) — chưa.
 
