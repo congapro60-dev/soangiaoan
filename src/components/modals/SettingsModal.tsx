@@ -41,6 +41,7 @@ const PROVIDERS: { id: Provider; label: string; color: string; bg: string; borde
   { id: 'deepseek', label: 'DeepSeek', color: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-500', accent: 'from-cyan-500 to-blue-400' },
   { id: 'nvidia', label: 'NVIDIA NIM', color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-500', accent: 'from-green-500 to-lime-400' },
   { id: 'openai-compatible', label: 'Custom API', color: 'text-slate-600', bg: 'bg-slate-100', border: 'border-slate-400', accent: 'from-slate-500 to-gray-400' },
+  { id: 'free-router', label: 'Router Free', color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-500', accent: 'from-rose-500 to-orange-400' },
 ];
 
 const PROVIDER_MODELS: Record<Provider, { id: string; name: string; desc: string }[]> = {
@@ -51,6 +52,11 @@ const PROVIDER_MODELS: Record<Provider, { id: string; name: string; desc: string
   deepseek: DEEPSEEK_MODELS,
   nvidia: NVIDIA_MODELS,
   'openai-compatible': [],
+  'free-router': [
+    { id: 'fast-free', name: 'Smart Router: Siêu tốc', desc: 'Mô hình Flash (MiniMax M2.7 / Step 3.7 / GPT-5-mini). Phù hợp định dạng văn bản và các tác vụ nhanh.' },
+    { id: 'pro-free', name: 'Smart Router: Cao cấp', desc: 'Mô hình Pro (DeepSeek V3 / MiniMax M3). Phù hợp soạn giáo án, phân tích sâu.' },
+    { id: 'reasoning-free', name: 'Smart Router: Suy luận', desc: 'Mô hình suy luận sâu (DeepSeek R1). Phù hợp giải toán, lập luận logic phức tạp.' }
+  ]
 };
 
 const PROVIDER_LINKS: Record<Provider, { url: string; label: string }> = {
@@ -61,6 +67,7 @@ const PROVIDER_LINKS: Record<Provider, { url: string; label: string }> = {
   deepseek: { url: 'https://platform.deepseek.com/api_keys', label: 'Lấy DeepSeek API Key' },
   nvidia: { url: 'https://build.nvidia.com/explore/models', label: 'Lấy NVIDIA API Key' },
   'openai-compatible': { url: '#', label: 'API Tuỳ chỉnh' },
+  'free-router': { url: '#', label: 'Tự động cân bằng tải API chia sẻ' }
 };
 
 const providerName = (provider: Provider): string => {
@@ -70,6 +77,7 @@ const providerName = (provider: Provider): string => {
   if (provider === 'deepseek') return 'DeepSeek';
   if (provider === 'nvidia') return 'NVIDIA NIM';
   if (provider === 'openai-compatible') return 'OpenAI Compatible';
+  if (provider === 'free-router') return 'Smart Router (Free)';
   return 'OpenAI ChatGPT';
 };
 
@@ -135,6 +143,7 @@ export const SettingsModal = ({
     if (provider === 'deepseek') return data.settings.deepseekApiKey || '';
     if (provider === 'nvidia') return data.settings.nvidiaApiKey || '';
     if (provider === 'openai-compatible') return data.settings.openaiCompatibleApiKey || '';
+    if (provider === 'free-router') return 'built-in';
     return data.settings.openaiApiKey || '';
   };
 
@@ -244,7 +253,7 @@ export const SettingsModal = ({
                     <span className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-bold text-[var(--dewey-blue)]">{providerName(activeTab)}</span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-6">
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-8">
                     {PROVIDERS.map(p => (
                       <button
                         key={p.id}
@@ -262,25 +271,39 @@ export const SettingsModal = ({
                     ))}
                   </div>
 
-                  <div className="mt-5 space-y-2">
-                    <label className="flex flex-wrap items-center justify-between gap-2 text-sm font-bold text-slate-700">
-                      <span className="flex items-center gap-2"><Key className="h-4 w-4" /> API Key — {providerName(activeTab)}</span>
-                      <a href={link.url} target="_blank" rel="noreferrer" className={cn('flex items-center gap-1 text-xs hover:underline', providerStyle.color)}>
-                        {link.label} <ExternalLink className="h-3 w-3" />
-                      </a>
-                    </label>
-                    <div className="relative">
-                      <LockKeyhole className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                      <input
-                        type="password"
-                        value={activeApiKey}
-                        onChange={(e) => handleApiKeyChange(activeTab, e.target.value)}
-                        placeholder={`Nhập ${providerStyle.label} API Key...`}
-                        className="w-full rounded-2xl border border-slate-200 bg-blue-50/40 py-3 pl-11 pr-4 text-sm outline-none transition focus:border-[var(--dewey-blue)] focus:bg-white focus:ring-4 focus:ring-blue-100"
-                      />
+                  {activeTab === 'free-router' ? (
+                    <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4 text-emerald-800">
+                      <div className="flex items-center gap-2 font-bold text-sm">
+                        <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                        Đã kích hoạt Smart Router miễn phí
+                      </div>
+                      <p className="mt-1 text-xs leading-relaxed text-emerald-700">
+                        Hệ thống tự động sử dụng kho khóa API chia sẻ miễn phí chất lượng cao (MiniMax, Conduit Proxy, DeepSeek V3/R1). Hệ thống sẽ tự động cân bằng tải và luân chuyển key khi gặp lỗi.
+                      </p>
                     </div>
-                    <p className="text-[11px] font-medium text-slate-400">API Key chỉ lưu cục bộ trong trình duyệt, không gửi lên máy chủ của chúng tôi.</p>
-                  </div>
+                  ) : (
+                    <div className="mt-5 space-y-2">
+                      <label className="flex flex-wrap items-center justify-between gap-2 text-sm font-bold text-slate-700">
+                        <span className="flex items-center gap-2"><Key className="h-4 w-4" /> API Key — {providerName(activeTab)}</span>
+                        {link.url !== '#' && (
+                          <a href={link.url} target="_blank" rel="noreferrer" className={cn('flex items-center gap-1 text-xs hover:underline', providerStyle.color)}>
+                            {link.label} <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                      </label>
+                      <div className="relative">
+                        <LockKeyhole className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                        <input
+                          type="password"
+                          value={activeApiKey}
+                          onChange={(e) => handleApiKeyChange(activeTab, e.target.value)}
+                          placeholder={`Nhập ${providerStyle.label} API Key...`}
+                          className="w-full rounded-2xl border border-slate-200 bg-blue-50/40 py-3 pl-11 pr-4 text-sm outline-none transition focus:border-[var(--dewey-blue)] focus:bg-white focus:ring-4 focus:ring-blue-100"
+                        />
+                      </div>
+                      <p className="text-[11px] font-medium text-slate-400">API Key chỉ lưu cục bộ trong trình duyệt, không gửi lên máy chủ của chúng tôi.</p>
+                    </div>
+                  )}
                 </section>
 
                 <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">

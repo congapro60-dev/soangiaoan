@@ -85,6 +85,109 @@ async function callRelay(
   return data.text || '';
 }
 
+interface RouterNode {
+  provider: string;
+  baseUrl: string;
+  apiKey: string;
+  model: string;
+}
+
+const ROUTER_POOLS: Record<'fast-free' | 'pro-free' | 'reasoning-free', RouterNode[]> = {
+  'fast-free': [
+    {
+      provider: 'MiniMax M2.7 (Key 1)',
+      baseUrl: 'https://api.minimax.io/v1',
+      apiKey: 'sk-cp-yRojLvyJ-yBeDqofYMuA_fYCgOwWtDwhO7_i2E-bmAFzoDY226EwMy0L-7_D87YHIB3Z4587QaXpuq2cvZ_EZzyocU1FFOfNqVNt2UGOCtQ-Af7jzn3Gf6Y',
+      model: 'MiniMax-M2.7-highspeed'
+    },
+    {
+      provider: 'MiniMax M2.7 (Key 2)',
+      baseUrl: 'https://api.minimax.io/v1',
+      apiKey: 'sk-cp-2op75F4rtXvmq5gj2lfOvoulnDUZNzhGcRMKQstV5IdqtH4TVp4mi0DHb3EeFfB8gnes2Ct7njUtpY4hc5lLHb0hSG2eTVoCNJmHOq2V973P_0k5hlidtU0',
+      model: 'MiniMax-M2.7-highspeed'
+    },
+    {
+      provider: 'Conduit (GPT-5 Mini)',
+      baseUrl: 'https://conduit.ozdoev.net/api/v1',
+      apiKey: 'sk-cdt-eyJpZCI6IjUwNjY2OTYwOSIsInUiOiIiLCJuIjoiZGVmYXVsdCIsImoiOiJkZWZhdWx0IiwiayI6ImFwaSJ9.nCdGLJ_ACEpFWBdWEdAxQq2Z4VpCWPD8pIwohbr7AY0',
+      model: 'openai/gpt-5-mini'
+    }
+  ],
+  'pro-free': [
+    {
+      provider: 'Conduit (DeepSeek V3)',
+      baseUrl: 'https://conduit.ozdoev.net/api/v1',
+      apiKey: 'sk-cdt-eyJpZCI6IjUwNjY2OTYwOSIsInUiOiIiLCJuIjoiZGVmYXVsdCIsImoiOiJkZWZhdWx0IiwiayI6ImFwaSJ9.nCdGLJ_ACEpFWBdWEdAxQq2Z4VpCWPD8pIwohbr7AY0',
+      model: 'deepseek-v3-2'
+    },
+    {
+      provider: 'MiniMax M3 (Key 1)',
+      baseUrl: 'https://api.minimax.io/v1',
+      apiKey: 'sk-cp-yRojLvyJ-yBeDqofYMuA_fYCgOwWtDwhO7_i2E-bmAFzoDY226EwMy0L-7_D87YHIB3Z4587QaXpuq2cvZ_EZzyocU1FFOfNqVNt2UGOCtQ-Af7jzn3Gf6Y',
+      model: 'MiniMax-M3'
+    },
+    {
+      provider: 'MiniMax M3 (Key 2)',
+      baseUrl: 'https://api.minimax.io/v1',
+      apiKey: 'sk-cp-2op75F4rtXvmq5gj2lfOvoulnDUZNzhGcRMKQstV5IdqtH4TVp4mi0DHb3EeFfB8gnes2Ct7njUtpY4hc5lLHb0hSG2eTVoCNJmHOq2V973P_0k5hlidtU0',
+      model: 'MiniMax-M3'
+    }
+  ],
+  'reasoning-free': [
+    {
+      provider: 'Conduit (DeepSeek R1)',
+      baseUrl: 'https://conduit.ozdoev.net/api/v1',
+      apiKey: 'sk-cdt-eyJpZCI6IjUwNjY2OTYwOSIsInUiOiIiLCJuIjoiZGVmYXVsdCIsImoiOiJkZWZhdWx0IiwiayI6ImFwaSJ9.nCdGLJ_ACEpFWBdWEdAxQq2Z4VpCWPD8pIwohbr7AY0',
+      model: 'deepseek-r1'
+    }
+  ]
+};
+
+async function callOpenAICompatible(
+  baseURL: string,
+  apiKey: string,
+  model: string,
+  prompt: string,
+  maxTokens: number
+): Promise<RawResult> {
+  const OpenAI = (await import('openai')).default;
+  const client = new OpenAI({ apiKey, baseURL, dangerouslyAllowBrowser: true });
+  const res = await client.chat.completions.create({
+    model,
+    max_tokens: maxTokens,
+    messages: [{ role: 'user', content: prompt }],
+  });
+  const choice = res.choices[0];
+  return {
+    text: choice?.message?.content ?? '',
+    truncated: choice?.finish_reason === 'length'
+  };
+}
+
+async function callOpenAICompatibleStream(
+  baseURL: string,
+  apiKey: string,
+  model: string,
+  prompt: string,
+  maxTokens: number,
+  onChunk: (chunk: string) => void
+): Promise<void> {
+  const OpenAI = (await import('openai')).default;
+  const client = new OpenAI({ apiKey, baseURL, dangerouslyAllowBrowser: true });
+  const stream = await client.chat.completions.create({
+    model,
+    max_tokens: maxTokens,
+    messages: [{ role: 'user', content: prompt }],
+    stream: true,
+  });
+  for await (const chunk of stream) {
+    const text = chunk.choices[0]?.delta?.content ?? '';
+    if (text) {
+      onChunk(text);
+    }
+  }
+}
+
 export const CLAUDE_MODELS = TRACKER_CLAUDE_MODELS.map(toModelOption);
 export const OPENAI_MODELS = TRACKER_OPENAI_MODELS.map(toModelOption);
 export const GROK_MODELS = TRACKER_GROK_MODELS.map(toModelOption);
@@ -117,6 +220,7 @@ export function getActiveApiKey(settings: Settings): string {
   if (provider === 'deepseek') return settings.deepseekApiKey || '';
   if (provider === 'nvidia') return settings.nvidiaApiKey || '';
   if (provider === 'openai-compatible') return settings.openaiCompatibleApiKey || '';
+  if (provider === 'free-router') return 'Built-in Keys (Free)';
   return settings.geminiApiKey || '';
 }
 
@@ -128,6 +232,7 @@ const getActiveModelId = (provider: ApiProvider, settings: Settings, override?: 
   if (provider === 'deepseek') return settings.selectedModel || DEEPSEEK_MODELS[0].id;
   if (provider === 'nvidia') return settings.selectedModel || NVIDIA_MODELS[0].id;
   if (provider === 'openai-compatible') return settings.openaiCompatibleModelId || 'claude-opus-4-7';
+  if (provider === 'free-router') return settings.selectedModel || 'fast-free';
   const idx = GEMINI_RUNTIME_MODELS.indexOf(settings.selectedModel);
   return idx >= 0 ? GEMINI_RUNTIME_MODELS[idx] : DEFAULT_GEMINI_RUNTIME_MODEL;
 };
@@ -158,6 +263,35 @@ const recordEstimatedUsage = (provider: ApiProvider, model: string, prompt: stri
 async function callAIOnce(prompt: string, settings: Settings): Promise<RawResult> {
   const provider = settings.selectedProvider ?? 'gemini';
   const fallbackModel = DEFAULT_GEMINI_RUNTIME_MODEL;
+
+  if (provider === 'free-router') {
+    const modelId = (settings.selectedModel as 'fast-free' | 'pro-free' | 'reasoning-free') || 'fast-free';
+    const pool = ROUTER_POOLS[modelId] || ROUTER_POOLS['fast-free'];
+    
+    let lastError: any = null;
+    for (const node of pool) {
+      try {
+        console.log(`[free-router] Routing request via ${node.provider} using model ${node.model}...`);
+        const res = await callOpenAICompatible(node.baseUrl, node.apiKey, node.model, prompt, OPENAI_MAX_TOKENS);
+        recordEstimatedUsage('free-router', modelId, prompt, res.text);
+        return res;
+      } catch (err) {
+        console.warn(`[free-router] Node ${node.provider} failed:`, err);
+        lastError = err;
+      }
+    }
+    
+    // Final fallback to Gemini relay
+    console.log('[free-router] All pool nodes failed. Falling back to Gemini server relay...');
+    try {
+      const text = await callRelay(prompt, fallbackModel);
+      recordEstimatedUsage('free-router', modelId, prompt, text);
+      return { text, truncated: false };
+    } catch (relayErr) {
+      console.error('[free-router] Final Gemini relay fallback also failed:', relayErr);
+      throw lastError || relayErr;
+    }
+  }
 
   try {
     if (provider === 'claude') {
@@ -550,6 +684,48 @@ export async function callAIStream(
 ): Promise<void> {
   const provider = settings.selectedProvider ?? 'gemini';
   const fallbackModel = DEFAULT_GEMINI_RUNTIME_MODEL;
+
+  if (provider === 'free-router') {
+    const modelId = (settings.selectedModel as 'fast-free' | 'pro-free' | 'reasoning-free') || 'fast-free';
+    const pool = ROUTER_POOLS[modelId] || ROUTER_POOLS['fast-free'];
+    
+    let lastError: any = null;
+    let output = '';
+    
+    for (const node of pool) {
+      try {
+        console.log(`[free-router-stream] Routing stream via ${node.provider} using model ${node.model}...`);
+        await callOpenAICompatibleStream(
+          node.baseUrl,
+          node.apiKey,
+          node.model,
+          prompt,
+          OPENAI_MAX_TOKENS,
+          (chunk) => {
+            output += chunk;
+            onChunk(chunk);
+          }
+        );
+        recordEstimatedUsage('free-router', modelId, prompt, output);
+        return;
+      } catch (err) {
+        console.warn(`[free-router-stream] Node ${node.provider} failed:`, err);
+        lastError = err;
+      }
+    }
+    
+    // Final fallback to Gemini relay
+    console.log('[free-router-stream] All pool nodes failed. Falling back to Gemini server relay...');
+    try {
+      const text = await callRelay(prompt, fallbackModel);
+      recordEstimatedUsage('free-router', modelId, prompt, text);
+      onChunk(text);
+      return;
+    } catch (relayErr) {
+      console.error('[free-router-stream] Final Gemini relay fallback also failed:', relayErr);
+      throw lastError || relayErr;
+    }
+  }
 
   try {
     if (provider === 'claude') {

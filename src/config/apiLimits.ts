@@ -1,6 +1,6 @@
 import { PROVIDER_CONFIGS } from '../data/models';
 
-export type ApiProvider = 'gemini' | 'claude' | 'openai' | 'grok' | 'deepseek' | 'nvidia' | 'openai-compatible';
+export type ApiProvider = 'gemini' | 'claude' | 'openai' | 'grok' | 'deepseek' | 'nvidia' | 'openai-compatible' | 'free-router';
 
 export interface ApiModelLimit {
   provider: ApiProvider;
