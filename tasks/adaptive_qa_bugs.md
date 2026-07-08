@@ -267,6 +267,8 @@ Nhánh `fix/qa-dot9-conic`. Chiến lược: không vá riêng bài Conic — s�
 - [x] **F8 (phần code)** — portal `callApiFn` throw kèm BODY lỗi relay (phân biệt 429 quota vs env var vs route khi soi console). Phần gốc (500 do quota/config `api/gemini-relay`) là VẬN HÀNH: cần nâng billing key Gemini production.
 - [ ] **F13 (E5 vở ghi đánh số)** — KHÔNG kết luận được ở vòng trước vì vở bị khôi phục từ storage cũ; sau F3 (key v3) retest với học sinh mới là sạch. CẦN RETEST thủ công sau deploy.
 
+- [x] **GỐC BỆNH #7 (user chỉ ra sau đợt 9) — bản rà soát ĐÃ DUYỆT không được dùng khi sinh bài** — blueprint `slice(0,4000)` cắt mất mục 5–6; unit `slice(0,2500)` không bao giờ chứa mục 6; assessments/practice không nhận bản duyệt. Fix: `getReviewedSection`/`getReviewedUnitBlock` bóc đúng mục cho từng prompt (blueprint: 1+5+6 + rule unit_outline theo mảnh đã duyệt; unit: đúng block mảnh khớp tiêu đề; assessments: mục 3; practice: mục 7) + regression test bắt prompt trong `adaptiveFromLessonPlan.test.ts`.
+
 ## Verify đợt 9
 - `npx tsc --noEmit` 0 lỗi; `npm run test` 131/131 PASS (29 file, gồm 15 golden test mathText); `npm run build` PASS.
 - Script render hậu kiểm (D7#4): render bài mẫu qua `renderDeweyLesson` → 11/11 PASS (TOC liên tục, không locked, key v3+mã HS, wheel listener, final-score trong navTo, không "Olympia", nhãn 3 gói mới, không `\frac`/`\left`/caret trần ngoài `$`, tổng `$` chẵn).

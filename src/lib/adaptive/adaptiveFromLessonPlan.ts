@@ -1595,8 +1595,42 @@ const mapBonusChallenge = (b: BonusChallengeJson | undefined): AdaptiveLesson['b
 
 export type AdaptivePipelineProgress = (message: string) => void;
 
-const buildBlueprintPrompt = (source: AdaptiveLessonSource, reviewedPlan: string): string =>
-  `Bạn là chuyên gia thiết kế bài học Toán phân hoá.
+// ─── Bóc ĐÚNG mục liên quan từ bản rà soát ĐÃ DUYỆT (định dạng 11 mục cố định của
+// buildAdaptiveReviewPrompt) thay vì slice mù đầu chuỗi — trước đây mục 3/6/7 (pre-test,
+// mảnh kiến thức, luyện tập mà GIÁO VIÊN ĐÃ DUYỆT) bị cắt cụt/vứt bỏ, không tới prompt sinh bài.
+const getReviewedSection = (reviewedPlan: string, sectionNumber: number): string =>
+  getSection(reviewedPlan, new RegExp(`^##\\s*${sectionNumber}\\.`));
+
+const normalizeViForMatch = (s: string): string =>
+  s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd');
+
+/** Bóc block "### Mảnh kiến thức ..." trong mục 6 khớp nhất với tiêu đề mảnh đang sinh. */
+const getReviewedUnitBlock = (reviewedPlan: string, unitTitle: string): string => {
+  const section6 = getReviewedSection(reviewedPlan, 6);
+  if (!section6) return '';
+  const blocks = section6.split(/^###\s+/m).map(b => b.trim()).filter(Boolean);
+  const tokens = normalizeViForMatch(unitTitle).split(/[^a-z0-9]+/).filter(t => t.length >= 4);
+  let best = '';
+  let bestScore = 0;
+  for (const block of blocks) {
+    const head = normalizeViForMatch(block.split('\n')[0] || '');
+    const score = tokens.filter(t => head.includes(t)).length;
+    if (score > bestScore) {
+      bestScore = score;
+      best = block;
+    }
+  }
+  return bestScore > 0 ? `### ${best}`.slice(0, 2500) : '';
+};
+
+const buildBlueprintPrompt = (source: AdaptiveLessonSource, reviewedPlan: string): string => {
+  // Blueprint cần nhất: mục 1 (nhận xét), 5 (khởi động/mục tiêu), 6 (danh sách mảnh đã duyệt).
+  const reviewedDigest = [
+    getReviewedSection(reviewedPlan, 1),
+    getReviewedSection(reviewedPlan, 5),
+    getReviewedSection(reviewedPlan, 6),
+  ].filter(Boolean).join('\n\n').slice(0, 9000) || reviewedPlan.slice(0, 4000);
+  return `Bạn là chuyên gia thiết kế bài học Toán phân hoá.
 
 THÔNG TIN: Bài "${source.title || 'Chưa rõ'}" - Lớp ${source.grade || '10'}
 
@@ -1605,9 +1639,9 @@ GIÁO ÁN NGUỒN (trích):
 ${source.content.slice(0, 8000)}
 ---
 
-BẢN RÀ SOÁT ĐÃ DUYỆT (trích):
+BẢN RÀ SOÁT ĐÃ DUYỆT (nhận xét + khởi động + các mảnh kiến thức GIÁO VIÊN ĐÃ DUYỆT):
 ---
-${reviewedPlan.slice(0, 4000)}
+${reviewedDigest}
 ---
 
 NHIỆM VỤ: Tạo khung bài học phân hoá. Trả về DUY NHẤT một JSON hợp lệ, không giải thích.
@@ -1641,11 +1675,13 @@ NHIỆM VỤ: Tạo khung bài học phân hoá. Trả về DUY NHẤT một JSO
 QUY TẮC:
 1. objectives: tối thiểu 3, tối đa 6. Mỗi mục tiêu cụ thể, có thuật ngữ toán của bài.
 2. unit_outline: tối thiểu max(3, số objectives) mục. Mỗi mục chỉ một ý nhỏ (một định nghĩa HOẶC một công thức HOẶC một tính chất).
+2b. BÁM SÁT BẢN ĐÃ DUYỆT: nếu bản rà soát có các "### Mảnh kiến thức", unit_outline PHẢI theo đúng danh sách/thứ tự/tên các mảnh đó (giáo viên đã duyệt) — không tự nghĩ danh sách khác.
 3. objective_index là index (từ 0) vào mảng objectives.
 4. reading_instructions trích/paraphrase từ mục "Đọc trước"/"Chuẩn bị" trong giáo án nguồn — không bịa.
 5. Không lẫn thuật ngữ UI/UX vào nội dung học sinh đọc.
 6. Double-escape LaTeX trong JSON (\\\\frac thay vì \\frac).
 7. Trả về đúng JSON hợp lệ. Không markdown, không giải thích ngoài JSON.`;
+};
 
 const buildVisualCardsPrompt = (source: AdaptiveLessonSource, objectives: ObjectiveJson[]): string =>
   `Bạn là chuyên gia thiết kế hình ảnh minh họa cho bài học Toán.
@@ -1674,13 +1710,18 @@ QUY TẮC:
 6. TUYỆT ĐỐI tự vẽ bằng thẻ SVG; CẤM dùng <image>/<img> trỏ URL ngoài hay link ảnh internet (chống vỡ hình).
 7. Trả về đúng JSON hợp lệ. Không markdown, không giải thích ngoài JSON.`;
 
-const buildAssessmentsPrompt = (source: AdaptiveLessonSource, objectives: ObjectiveJson[], unitTitles: string[]): string =>
+const buildAssessmentsPrompt = (source: AdaptiveLessonSource, objectives: ObjectiveJson[], unitTitles: string[], reviewedPretest = ''): string =>
   `Bạn là chuyên gia thiết kế bài kiểm tra Toán phân hoá.
 
 BÀI HỌC: "${source.title || 'Chưa rõ'}" - Lớp ${source.grade || '10'}
 MỤC TIÊU: ${objectives.map((o, i) => `${i + 1}. ${o.title}`).join('; ')}
 CÁC MẢNH KIẾN THỨC: ${unitTitles.join(', ')}
-
+${reviewedPretest ? `
+BẢNG PRE-TEST TRONG BẢN RÀ SOÁT GIÁO VIÊN ĐÃ DUYỆT (PHẢI bám sát nội dung/mức độ từng câu; chỉ hoàn thiện số liệu/phương án còn thiếu, không thay bằng đề khác):
+---
+${reviewedPretest}
+---
+` : ''}
 NHIỆM VỤ: Tạo bộ câu hỏi pre-test và exit ticket. Trả về DUY NHẤT một JSON hợp lệ, không giải thích.
 
 {
@@ -1754,13 +1795,18 @@ const mapPracticeSet = (p: PracticeJson | undefined): PracticeSet | undefined =>
     : undefined;
 };
 
-const buildPracticePrompt = (source: AdaptiveLessonSource, objectives: ObjectiveJson[], unitTitles: string[]): string =>
+const buildPracticePrompt = (source: AdaptiveLessonSource, objectives: ObjectiveJson[], unitTitles: string[], reviewedPractice = ''): string =>
   `Bạn là chuyên gia ra đề luyện tập Toán phân hoá theo định dạng THPTQG.
 
 BÀI HỌC: "${source.title || 'Chưa rõ'}" - Lớp ${source.grade || '10'}
 MỤC TIÊU: ${objectives.map((o, i) => `${i + 1}. ${o.title}`).join('; ')}
 CÁC MẢNH KIẾN THỨC: ${unitTitles.join(', ')}
-
+${reviewedPractice ? `
+PHẦN LUYỆN TẬP TRONG BẢN RÀ SOÁT GIÁO VIÊN ĐÃ DUYỆT (PHẢI bám sát dạng bài/mức độ đã duyệt; chỉ hoàn thiện số liệu, không thay bằng đề khác):
+---
+${reviewedPractice}
+---
+` : ''}
 NHIỆM VỤ: Tạo bộ luyện tập 3 gói. Trả về DUY NHẤT một JSON hợp lệ, không giải thích.
 
 {
@@ -1806,6 +1852,9 @@ const buildUnitDetailPrompt = (
   const toolsSection = relevantTools.length > 0
     ? `\nCÔNG CỤ TƯƠNG TÁC CÓ SẴN (dùng id chính xác trong externalToolIds):\n${relevantTools.map(t => `- "${t.id}" — ${t.name} (${t.topic})`).join('\n')}\n`
     : '';
+  // Bóc ĐÚNG block "### Mảnh kiến thức" mà giáo viên đã duyệt cho mảnh này (mục 6) —
+  // trước đây slice(0,2500) chỉ lấy đầu bản rà soát nên thiết kế mảnh đã duyệt không bao giờ tới prompt.
+  const reviewedUnitBlock = getReviewedUnitBlock(reviewedPlan, unitTitle);
   return `Bạn là chuyên gia thiết kế mảnh kiến thức Toán phân hoá.
 
 BÀI HỌC: "${source.title || 'Chưa rõ'}" - Lớp ${source.grade || '10'}
@@ -1817,10 +1866,15 @@ GIÁO ÁN NGUỒN (trích liên quan):
 ${source.content.slice(0, 5000)}
 ---
 
-BẢN RÀ SOÁT (trích phần liên quan):
+${reviewedUnitBlock
+    ? `THIẾT KẾ MẢNH NÀY TRONG BẢN RÀ SOÁT GIÁO VIÊN ĐÃ DUYỆT (PHẢI bám sát: câu hỏi gợi mở, câu hỏi dẫn dắt, học liệu trực quan, chốt kiến thức — chỉ hoàn thiện/cụ thể hoá, không thay bằng nội dung khác):
+---
+${reviewedUnitBlock}
+---`
+    : `BẢN RÀ SOÁT (trích phần liên quan):
 ---
 ${reviewedPlan.slice(0, 2500)}
----
+---`}
 
 NHIỆM VỤ: Thiết kế chi tiết mảnh kiến thức "${unitTitle}". Trả về DUY NHẤT một JSON hợp lệ, không giải thích.
 
@@ -2085,7 +2139,8 @@ export const runAdaptivePipeline = async (
   let exitTicketQuestions: QuestionJson[] = [];
   let bonusChallenge: AdaptiveLesson['bonusChallenge'];
   try {
-    const raw = await callAIFn(buildAssessmentsPrompt(source, rawObjectives, unitOutlines.map(u => u.title)));
+    // Truyền bảng pre-test GIÁO VIÊN ĐÃ DUYỆT (mục 3 bản rà soát) — trước đây bị vứt, AI sinh lại từ đầu.
+    const raw = await callAIFn(buildAssessmentsPrompt(source, rawObjectives, unitOutlines.map(u => u.title), getReviewedSection(reviewedPlan, 3).slice(0, 3500)));
     const parsed = parseAdaptiveContentJson(raw) as AssessmentsJson;
     diagnosticQuestions = Array.isArray(parsed.diagnostic_questions) ? parsed.diagnostic_questions : [];
     exitTicketQuestions = Array.isArray(parsed.exit_ticket_questions) ? parsed.exit_ticket_questions : [];
@@ -2100,7 +2155,8 @@ export const runAdaptivePipeline = async (
   let practiceSet: PracticeSet | undefined;
   try {
     onProgress?.('Đang tạo bộ luyện tập (Nhận biết / Thông hiểu / Vận dụng)...');
-    const raw = await callAIFn(buildPracticePrompt(source, rawObjectives, unitOutlines.map(u => u.title)));
+    // Truyền phần luyện tập 3 mức ĐÃ DUYỆT (mục 7 bản rà soát) làm khung tham chiếu.
+    const raw = await callAIFn(buildPracticePrompt(source, rawObjectives, unitOutlines.map(u => u.title), getReviewedSection(reviewedPlan, 7).slice(0, 3500)));
     practiceSet = mapPracticeSet(parseAdaptiveContentJson(raw) as PracticeJson);
     if (!practiceSet) warnings.push('practice_thin: Bộ luyện tập có cấu trúc trống — dùng quick check thay thế.');
   } catch (err) {
