@@ -1,5 +1,12 @@
-export function getAdaptiveEngineScript(lessonId?: string): string {
-  const notebookKey = lessonId ? `dewey-notebook-v2-${lessonId}` : 'dewey-notebook-v2';
+export function getAdaptiveEngineScript(lessonId?: string, studentCode?: string): string {
+  // F3 (QA đợt 9): key vở ghi PHẢI gắn mã học sinh — máy phòng tin học dùng chung,
+  // key theo máy làm học sinh thấy/ghi đè vở của nhau + note cũ "ma" che mất fix mới.
+  // Bump v2→v3 đồng thời là version bump: note format cũ không rò lên UI nữa.
+  const studentSuffix = (studentCode || '')
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9_-]/g, '-') || 'chung';
+  const notebookKey = `dewey-notebook-v3-${lessonId || 'na'}-${studentSuffix}`;
   return String.raw`
 (function () {
   'use strict';
@@ -89,6 +96,13 @@ export function getAdaptiveEngineScript(lessonId?: string): string {
     all('.screen').forEach(function (screen) { screen.classList.remove('active'); });
     target.classList.remove('hidden');
     target.classList.add('active');
+
+    // F7 (D4): giá trị dẫn xuất render lại MỖI LẦN vào màn — mục lục mở tự do nên
+    // học sinh có thể vào Tổng kết không qua finishLesson → điểm phải luôn tươi.
+    if (id === 'screen-summary') {
+      var finalScore = byId('final-score');
+      if (finalScore) finalScore.textContent = String(state.score);
+    }
 
     if (id !== state.activeScreenId && typeof window.resetSectionTimer === 'function') window.resetSectionTimer();
     setActiveToc(id);
@@ -515,6 +529,30 @@ export function getAdaptiveEngineScript(lessonId?: string): string {
     }
     window.navTo('screen-summary');
   };
+
+  // F6 (D5): wheel-rescue — trên production con lăn chuột không cuộn được cột nội dung
+  // (chỉ kéo được thanh trượt). Tự xử lý wheel: vùng con tự cuộn được (Vở ghi, textarea)
+  // thì nhường; còn lại cuộn document trực tiếp + preventDefault (không double-scroll).
+  document.addEventListener('wheel', function (event) {
+    if (event.ctrlKey) return; // giữ Ctrl+lăn = zoom trình duyệt
+    if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) return; // lăn ngang: để mặc định
+    var node = event.target;
+    while (node && node !== document.documentElement && node.nodeType === 1) {
+      var style = window.getComputedStyle(node);
+      var oy = style.overflowY;
+      if ((oy === 'auto' || oy === 'scroll') && node.scrollHeight > node.clientHeight + 1) {
+        var atTop = node.scrollTop <= 0 && event.deltaY < 0;
+        var atBottom = node.scrollTop + node.clientHeight >= node.scrollHeight - 1 && event.deltaY > 0;
+        if (!atTop && !atBottom) return; // container con còn cuộn được → nhường nó
+        break; // ở mép container → chain xuống cuộn trang
+      }
+      node = node.parentNode;
+    }
+    var scroller = document.scrollingElement || document.documentElement;
+    var dy = event.deltaY * (event.deltaMode === 1 ? 32 : event.deltaMode === 2 ? window.innerHeight : 1);
+    scroller.scrollTop += dy;
+    event.preventDefault();
+  }, { passive: false });
 
   document.addEventListener('DOMContentLoaded', function () {
     restoreNotebook();

@@ -6,6 +6,8 @@ interface HtmlShellOptions {
   content: DeweyLessonContent;
   theme: DeweyTheme;
   bodyHtml: string;
+  /** Mã học sinh — scope localStorage vở ghi theo từng em (F3). */
+  studentCode?: string;
 }
 
 export const escapeHtml = (value: string): string => value
@@ -26,7 +28,8 @@ export const escapeJsonForHtml = (value: unknown): string => JSON.stringify(valu
 
 const BASE_CSS = String.raw`
   * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
+  /* F6: KHÔNG dùng scroll-behavior:smooth ở html — nghi phạm làm wheel scroll chết/ì trong iframe;
+     cuộn mượt khi điều hướng đã có JS scrollTo({behavior:'smooth'}) trong engine. */
   body {
     margin: 0;
     background: var(--bg);
@@ -407,7 +410,7 @@ const BASE_CSS = String.raw`
   .toc-item.locked { pointer-events: none; cursor: not-allowed; }
 `;
 
-export function renderHtmlShell({ content, theme, bodyHtml }: HtmlShellOptions): string {
+export function renderHtmlShell({ content, theme, bodyHtml, studentCode }: HtmlShellOptions): string {
   const title = `${content.title} - Dewey Lesson`;
 
   return `<!DOCTYPE html>
@@ -428,7 +431,7 @@ ${BASE_CSS}
 <body data-duration-minutes="${content.durationMinutes}" data-initial-screen="${content.skipPretest ? 'screen-engage' : 'screen-pretest'}">
   <script id="dewey-content" type="application/json">${escapeJsonForHtml(content)}</script>
 ${bodyHtml}
-  <script>${getAdaptiveEngineScript(content.lessonId)}</script>
+  <script>${getAdaptiveEngineScript(content.lessonId, studentCode)}</script>
 </body>
 </html>`;
 }

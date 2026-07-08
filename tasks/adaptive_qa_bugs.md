@@ -246,3 +246,29 @@ XÁC NHẬN OK: B6 (vở ghi có mục I/II…), B1 (engage 1 tình huống rút
 ## Bài học về CÁCH TEST (rút kinh nghiệm)
 - Test phải ĐÓNG VAI học sinh học thật: bấm hết nút, đọc nội dung gợi ý/đáp án, kiểm điều hướng giữa các bước/hoạt động, xem Vở ghi — KHÔNG chỉ đếm DOM (sim-frame/gallery). Nhiều lỗi (A3–A7) chỉ lộ khi thao tác thật.
 
+---
+
+# ĐỢT 9 — F1→F13 (nguồn: `BAOCAO_QA_BaiHocPhanHoa_2026-07-07.md`, sửa TẬN GỐC theo Phần D)
+
+Nhánh `fix/qa-dot9-conic`. Chiến lược: không vá riêng bài Conic — sửa 6 gốc bệnh hệ thống (D1–D6).
+
+## TRẠNG THÁI SỬA (đợt 9)
+- [x] **F1 + F2 (gốc bệnh D1)** — tạo module DUY NHẤT `src/lib/adaptive/mathText.ts`: `tokenizeMath` (tách vùng `$...$`/text, vá `$` lẻ), mọi transform chạy trên đúng loại vùng — KHÔNG BAO GIỜ chèn `$` vào trong vùng math (hết lỗi `$a^2 = $b^2 +$ c^2$`); `assertClean` hậu-kiểm + fallback bọc cả chuỗi; `sanitizeDisplayText` là hàm chuẩn. `adaptiveToDewey.ts` uỷ quyền toàn bộ (`normalizeLatexText`/`cleanOptions` giữ tên, đổi ruột; xoá `convertBareCarets`/`ensureMathDelimiters`/`MATH_FRAGMENT_RE` cũ). Pretest React portal (`MathText`/`MathBlock`) cũng sanitize trước `ensureMathWrapped` (gốc F1: option `M\left(...\right)$` bị bọc từng lệnh rời `$\left$` → KaTeX đỏ). **Golden tests** `mathText.test.ts` (15 test, dùng đúng chuỗi lỗi thật QA bắt được).
+- [x] **F3 (gốc bệnh D2)** — key vở ghi `dewey-notebook-v3-<lessonId>-<studentCode>` (trước: `v2-<lessonId>` theo MÁY → học sinh phòng tin học thấy/ghi đè vở của nhau + note "ma" che fix mới). Truyền `studentCode`: portal → `renderDeweyLesson(content, theme, {studentCode})` → `renderHtmlShell` → `getAdaptiveEngineScript`. Bump v2→v3 = version bump, note cũ không rò lên UI.
+- [x] **F4** — XÁC NHẬN code đã ghi "Tổng điểm luyện tập" từ đợt 8; chuỗi "Olympia" QA thấy là NOTE CŨ trong localStorage (bóng ma D2) → F3 giải quyết. Không cần sửa thêm.
+- [x] **F5 (gốc bệnh D3, phần nhãn)** — nhánh fallback (bài cũ không có `practiceSet`) đổi nhãn gói `"10/20/30 điểm"` → `"Nhận biết/Thông hiểu/Vận dụng"` (điểm giữ nguyên). ⚠️ Nghiệm thu E9 Phần 2 + E10 vẫn cần user TẠO BÀI MỚI.
+- [x] **F6 (gốc bệnh D5)** — 2 lớp: (a) bỏ `html{scroll-behavior:smooth}` khỏi shell CSS (nghi phạm wheel ì/chết); (b) **wheel-rescue listener** trong engine: vùng con tự cuộn (Vở ghi/textarea) chưa chạm mép thì nhường, còn lại tự cuộn `document.scrollingElement` + `preventDefault` (không double-scroll, xử lý cả deltaMode dòng/trang, giữ Ctrl+lăn zoom). ⚠️ CẦN test bằng chuột thật trên production.
+- [x] **F7 (gốc bệnh D4)** — `navTo('screen-summary')` render lại `#final-score` từ `state.score` MỖI LẦN vào màn (mục lục mở tự do → không được chỉ cập nhật ở luồng tuần tự `finishLesson`).
+- [x] **F9** — builder heading dùng `mathText.toPlainText` (`$a^2=b^2+c^2$` → `a² = b² + c²`) tại 2 chỗ hiển thị tiêu đề mảnh (panel học liệu + accordion).
+- [x] **F10 (gốc bệnh D6)** — `visual_cards_failed` ghi rõ NGUYÊN NHÂN (message lỗi, tự nhận diện 429/quota).
+- [x] **F11 (gốc bệnh D6)** — pipeline validate TikZ qua Kroki NGAY LÚC SINH (`checkTikzWithKroki`, chuyển `buildTikzKrokiUrl` sang `krokiRender.ts` thuần — deweyAssets re-export tương thích); lỗi → retry 1 lần `buildTikzFixPrompt` kèm thông báo lỗi Kroki cho AI tự sửa; vẫn lỗi → warning nêu rõ.
+- [x] **F12** — TOC đánh số LIÊN TỤC theo vị trí thực (hết nhảy "1. Khởi động → 3. …"; Luyện tập/Vận dụng/Tổng kết cũng có số).
+- [x] **D1#4 (sạch từ nguồn)** — `repairMathDeep` vá math string (cân `$` lẻ + bọc lệnh trần, KHÔNG đổi caret) trên toàn bộ object bài ngay cuối `runAdaptivePipeline` trước khi lưu Firestore; bỏ qua field HTML/URL/TikZ/id.
+- [x] **F8 (phần code)** — portal `callApiFn` throw kèm BODY lỗi relay (phân biệt 429 quota vs env var vs route khi soi console). Phần gốc (500 do quota/config `api/gemini-relay`) là VẬN HÀNH: cần nâng billing key Gemini production.
+- [ ] **F13 (E5 vở ghi đánh số)** — KHÔNG kết luận được ở vòng trước vì vở bị khôi phục từ storage cũ; sau F3 (key v3) retest với học sinh mới là sạch. CẦN RETEST thủ công sau deploy.
+
+## Verify đợt 9
+- `npx tsc --noEmit` 0 lỗi; `npm run test` 131/131 PASS (29 file, gồm 15 golden test mathText); `npm run build` PASS.
+- Script render hậu kiểm (D7#4): render bài mẫu qua `renderDeweyLesson` → 11/11 PASS (TOC liên tục, không locked, key v3+mã HS, wheel listener, final-score trong navTo, không "Olympia", nhãn 3 gói mới, không `\frac`/`\left`/caret trần ngoài `$`, tổng `$` chẵn).
+- Chưa test được bằng tay trên production: F6 (cần chuột thật), F13 (cần phiên học sinh mới), E9/E10 (cần bài mới + quota).
+

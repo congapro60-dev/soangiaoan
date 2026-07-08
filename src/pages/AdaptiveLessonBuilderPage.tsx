@@ -25,6 +25,7 @@ import type {
 import { LessonCoverUpload } from '../components/adaptive/LessonCoverUpload';
 import { AdaptiveSimulationBlock } from '../components/adaptive/AdaptiveSimulationBlock';
 import { adaptiveLessonToDeweyContent } from '../lib/adaptive/adaptiveToDewey';
+import { toPlainText } from '../lib/adaptive/mathText';
 import { renderDeweyLesson } from '../lib/dewey/template';
 import { loadDeweyAssets } from '../lib/adaptive/deweyAssets';
 import { callAI, getActiveApiKey } from '../lib/aiProviders';
@@ -687,7 +688,7 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
                     <p className="text-xs font-black uppercase tracking-wide text-indigo-400">Học liệu theo mảnh kiến thức</p>
                     {unitsWithVisual.map(unit => (
                       <div key={unit.id} className="rounded-xl border border-indigo-100 bg-white p-3">
-                        <p className="mb-2 text-sm font-black text-slate-800">{unit.title}</p>
+                        <p className="mb-2 text-sm font-black text-slate-800">{toPlainText(unit.title)}</p>
                         {unit.tikzCode?.trim() && (
                           tikzSvgByUnitId[unit.id]
                             ? <div className="mb-2 max-h-64 overflow-auto rounded-lg border border-slate-100 bg-white p-2 [&_svg]:mx-auto [&_svg]:h-auto [&_svg]:max-w-full" dangerouslySetInnerHTML={{ __html: tikzSvgByUnitId[unit.id] }} />
@@ -762,7 +763,8 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
             return (
               <div key={unit.id} className="rounded-2xl border border-slate-100">
                 <button onClick={() => setExpandedUnitId(expandedUnitId === unit.id ? null : unit.id)} className="w-full px-5 py-4 text-left font-black text-slate-800">
-                  {unit.title || 'Mảnh kiến thức chưa đặt tên'}
+                  {/* F9: tiêu đề panel không chạy MathJax → hiển thị bản plain-text ($a^2$ → a²) */}
+                  {toPlainText(unit.title) || 'Mảnh kiến thức chưa đặt tên'}
                 </button>
                 {expandedUnitId === unit.id && (
                   <div className="space-y-4 border-t border-slate-100 p-5">

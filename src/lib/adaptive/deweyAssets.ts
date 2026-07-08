@@ -1,35 +1,12 @@
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { encodeKroki } from '../krokiRender';
+import { buildTikzKrokiUrl } from '../krokiRender';
 import type { AdaptiveLesson } from './types';
 import type { DeweyConversionAssets } from './adaptiveToDewey';
 
-/**
- * Bọc mã TikZ thành tài liệu LaTeX standalone rồi tạo URL Kroki trả SVG.
- * Trả '' nếu mã không hợp lệ (thiếu môi trường tikzpicture) để tránh ảnh vỡ (Kroki 400).
- */
-export const buildTikzKrokiUrl = (tikzRaw: string): string => {
-  let tikz = tikzRaw.trim();
-
-  // Sửa ca double-escape: nếu có "\\begin{tikzpicture}" (hai gạch chéo) mà không có bản một gạch
-  // → toàn bộ mã bị escape thừa một lớp (lỗi khi qua JSON) → gỡ một lớp.
-  if (/\\\\begin\{tikzpicture\}/.test(tikz) && !/(^|[^\\])\\begin\{tikzpicture\}/.test(tikz)) {
-    tikz = tikz.replace(/\\\\/g, '\\');
-  }
-
-  // Gỡ "\n"/"\r" LITERAL (AI hay double-escape ký tự xuống dòng) → newline thật.
-  // Negative lookahead (?![a-zA-Z]) để KHÔNG đụng các lệnh LaTeX bắt đầu bằng \n (\node, \norm…).
-  tikz = tikz.replace(/\\[rn](?![a-zA-Z])/g, '\n');
-
-  // Bắt buộc có môi trường tikzpicture đầy đủ; thiếu thì bỏ (vd AI chỉ trả vài lệnh \draw rời → 400).
-  if (!/\\begin\{tikzpicture\}/.test(tikz) || !/\\end\{tikzpicture\}/.test(tikz)) return '';
-
-  let payload = tikz.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
-  if (!payload.includes('\\documentclass')) {
-    payload = `\\documentclass[tikz,border=2mm]{standalone}\n\\usepackage[dvipsnames]{xcolor}\n\\usepackage{pgfplots}\n\\pgfplotsset{compat=1.18}\n\\begin{document}\n${payload}\n\\end{document}`;
-  }
-  return `https://kroki.io/tikz/svg/${encodeKroki(payload)}`;
-};
+// buildTikzKrokiUrl đã chuyển sang ../krokiRender (module thuần — pipeline sinh bài dùng chung
+// để validate/retry TikZ mà không kéo firebase). Re-export giữ tương thích import cũ.
+export { buildTikzKrokiUrl } from '../krokiRender';
 
 /**
  * Nạp trước (bất đồng bộ) HTML mô phỏng từ Firestore + URL ảnh TikZ cho từng mảnh,

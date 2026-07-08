@@ -25,7 +25,53 @@ _Summary after completion_
 
 ---
 
-## Active Task: Nối hình ảnh & mô phỏng vào bài Dewey ("bài toàn chữ") — 2026-06-22
+## Active Task: Fix QA đợt 9 (BAOCAO_QA_BaiHocPhanHoa_2026-07-07.md) — 2026-07-07 ✅ HOÀN TẤT (chờ lệnh push)
+
+Nhánh: `fix/qa-dot9-conic`. Sửa TẬN GỐC theo Phần D của báo cáo (không vá riêng bài Conic).
+
+### Nhóm 1 — D1: Module mathText (fix F1, F2, một phần F9)
+- [x] Tạo `src/lib/adaptive/mathText.ts`: tokenizeMath (vùng math/text, vá `$` lẻ), transforms chạy trên token, assertClean, sanitizeDisplayText, toPlainText (heading builder)
+- [x] Tạo `src/lib/adaptive/mathText.test.ts` với golden strings từ báo cáo (15 test)
+- [x] Rewire `adaptiveToDewey.ts`: giữ tên hàm, đổi ruột — không đổi call site; xoá regex cũ
+- [x] Portal React (`MathText`/`MathBlock`) sanitize trước ensureMathWrapped — đường render pretest F1 thật
+- [x] Verify: `npm run test` PASS
+
+### Nhóm 2 — D2: localStorage theo học sinh (fix F3, F4, F13)
+- [x] `adaptiveEngine.ts`: key `dewey-notebook-v3-<lessonId>-<studentCode>`
+- [x] Truyền studentCode: portal → `renderDeweyLesson` → `renderHtmlShell` → `getAdaptiveEngineScript`
+- [x] F4: xác nhận chuỗi "Olympia" đã hết trong code (ghost storage) — không cần sửa thêm
+
+### Nhóm 3 — Lỗi nhỏ render/UX
+- [x] F5: fallback pack label → "Nhận biết/Thông hiểu/Vận dụng"
+- [x] F12: TOC đánh số liên tục (kể cả Luyện tập/Vận dụng/Tổng kết)
+- [x] F7 (D4): `navTo` cập nhật `#final-score` khi vào screen-summary
+- [x] F6 (D5): wheel-rescue listener + bỏ `scroll-behavior:smooth` (không thêm overscroll-contain — giữ chain tự nhiên)
+- [x] F9: builder heading dùng mathText.toPlainText
+
+### Nhóm 4 — D6: pipeline minh bạch lỗi (F8, F10, F11)
+- [x] `visual_cards_failed` ghi rõ nguyên nhân (message + nhận diện 429)
+- [x] Lỗi relay personalization throw kèm body response (soi được 429 vs env var)
+- [x] TikZ: validate qua Kroki lúc sinh + retry 1 lần kèm lỗi Kroki cho AI sửa (`checkTikzWithKroki` — chuyển `buildTikzKrokiUrl` sang `krokiRender.ts` thuần)
+
+### Nhóm 5 — D1#4: sạch từ nguồn
+- [x] `repairMathDeep` cuối `runAdaptivePipeline` (bỏ qua HTML/URL/TikZ/id)
+
+### Verification
+- [x] `npx tsc --noEmit` 0 lỗi + `npm run test` 131/131 PASS + `npm run build` PASS
+- [x] Script render hậu kiểm (D7#4): 11/11 PASS
+- [x] Cập nhật `tasks/adaptive_qa_bugs.md` (mục ĐỢT 9), HANDOFF.md (1.0i), `tasks/lessons.md` (5 quy tắc D7)
+- [x] KHÔNG push main khi chưa có lệnh — đang ở nhánh `fix/qa-dot9-conic`
+
+### Result
+12/13 lỗi xử lý xong bằng 6 fix kiến trúc (D1–D6) + 2 quy trình (golden tests, repair-at-source). Còn lại cần NGƯỜI: F6/F13/F3 retest thủ công sau deploy; E9 Phần 2 + E10 nghiệm thu cần user tạo BÀI MỚI; quota Gemini 429 là vận hành (nâng billing key).
+
+### Ghi chú
+- F8/F10 phần quota 429 là VẬN HÀNH (nâng billing) — ngoài phạm vi code
+- F13 (E5) retest thủ công sau khi F3 deploy; E9/E10 cần user TẠO BÀI MỚI
+
+---
+
+## Task cũ: Nối hình ảnh & mô phỏng vào bài Dewey ("bài toàn chữ") — 2026-06-22
 
 Nguồn: `docs/BAOCAO_DoiChieu_App_vs_Gemini.md` + báo cáo Gemini. Gốc bệnh: hình/mô phỏng
 sống ở đường render B (cổng React) nhưng bài học chính render ở đường A (Dewey HTML iframe);

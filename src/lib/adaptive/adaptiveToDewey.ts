@@ -6,6 +6,7 @@ import type {
   DeweyOlympiaPack,
 } from '../dewey/types';
 import { escapeAttribute } from '../dewey/htmlShell';
+import { sanitizeDisplayText, stripInlineMarkdown } from './mathText';
 
 /** HTML/ảnh sinh bất đồng bộ (Firestore, Kroki) nạp sẵn trước khi convert, key theo unit.id. */
 export interface DeweyConversionAssets {
@@ -37,7 +38,6 @@ function findRoute(unit: AdaptiveLesson['knowledgeUnits'][0], route: LearningRou
 }
 
 const DEWEY_META_LEAK_RE = /\b(UI\/?UX|7\s*:?\s*3|Socratic|bố cục|mục lục|đồng hồ|giao diện|thiết kế|wireframe|notebook|dashboard)\b/i;
-const MATH_FRAGMENT_RE = /(^|[\s(])([A-Z]\.?\s*)?([a-zA-Z][\w']*\^\{?[-\w]+\}?\s*=\s*[-+]?\s*\d|[A-Z]_[12]?\s*\([-+]?\d+\s*[;,]\s*[-+]?\d+\)|[a-zA-Z]\^\{?\d+\}?\s*[+\-=])/g;
 
 const stripMetaLeaks = (value: string | undefined, fallback: string): string => {
   const text = value?.trim();
@@ -45,22 +45,12 @@ const stripMetaLeaks = (value: string | undefined, fallback: string): string => 
   return text;
 };
 
-const SUP: Record<string, string> = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
-
-/** Đổi luỹ thừa caret đơn (x^2) NẰM NGOÀI $...$ sang chữ số trên (x²) — đồng nhất hiển thị, không cần MathJax. */
-const convertBareCarets = (text: string): string =>
-  text.split(/(\$[^$]*\$)/).map(seg =>
-    seg.startsWith('$') ? seg : seg.replace(/([A-Za-z0-9)\]}])\^\{?(\d)\}?/g, (_m, base: string, d: string) => base + SUP[d])
-  ).join('');
-
-const normalizeLatexText = (value: string | undefined, fallback = ''): string => {
-  // Đổi luỹ thừa caret đơn (a^2) NGOÀI $...$ sang unicode TRƯỚC để đồng nhất, tránh wrap nửa vời ($a^2 =$b²).
-  const text = convertBareCarets((value?.trim() || fallback).replace(/\\\\(frac|sqrt|Delta|alpha|beta|gamma|displaystyle|left|right|cdot|pm|le|ge|ne|infty|sin|cos|tan)/g, '\\$1'));
-  return text.replace(MATH_FRAGMENT_RE, (match, prefix) => {
-    if (match.includes('$')) return match;
-    return `${prefix || ''}$${match.slice((prefix || '').length).trim()}$`;
-  }).replace(/\$\\frac/g, '$\\displaystyle \\frac');
-};
+/**
+ * Chuẩn hoá text có công thức — nay uỷ quyền toàn bộ cho mathText.sanitizeDisplayText
+ * (D1 QA đợt 9: token-aware, không bao giờ chèn `$` vào trong vùng math có sẵn).
+ */
+const normalizeLatexText = (value: string | undefined, fallback = ''): string =>
+  sanitizeDisplayText(value?.trim() || fallback);
 
 /** Tách lời giải/kết luận thành mỗi bước một dòng (render với CSS white-space:pre-line). */
 const STEP_LEAD = '(?:Gọi|Ta có|Ta được|Suy ra|Do đó|Vậy|Áp dụng|Sau khi|Vì vậy|Khi đó|Từ đó|Xét|Mặt khác|Bước\\s*\\d+|Kết luận)';
@@ -75,26 +65,10 @@ const formatStepLines = (text: string): string =>
     .replace(/^\n+/, '')
     .trim();
 
-/** Bóc markdown lẫn trong phương án (**đậm**, gạch đầu dòng) do AI hay chèn. */
-const stripInlineMarkdown = (s: string): string =>
-  s.replace(/\*\*/g, '').replace(/^\s*[-*•]\s+/, '').trim();
-
-const MATH_CMD_RE = /\\(?:frac|sqrt|left|right|cdot|pm|times|div|leq|geq|neq|alpha|beta|gamma|Delta|displaystyle|sin|cos|tan|log|ln|vec|overline)|[\^_]/;
-
-/** Đảm bảo cụm LaTeX trong phương án được bọc $...$ và cân đối dấu $ (sửa ca thiếu $ mở → hiện raw). */
-const ensureMathDelimiters = (raw: string): string => {
-  let s = raw;
-  if (((s.match(/\$/g) || []).length) % 2 === 1) s = s.replace(/\$/g, '').trim(); // $ lẻ → bỏ hết rồi bọc lại
-  if (!s.includes('$') && MATH_CMD_RE.test(s)) {
-    const m = s.match(/^([A-D][).．.]\s*)([\s\S]+)$/); // giữ tiền tố "A." nếu có
-    s = m ? `${m[1]}$${m[2].trim()}$` : `$${s.trim()}$`;
-  }
-  return s;
-};
-
 const cleanOptions = (options: string[] | undefined): string[] => {
   const raw = options?.length ? options : ['Đúng', 'Sai'];
-  return raw.map(option => normalizeLatexText(ensureMathDelimiters(stripInlineMarkdown(option)), option));
+  // sanitizeDisplayText đã tự vá $ lẻ + bọc lệnh LaTeX trần (thay ensureMathDelimiters cũ).
+  return raw.map(option => sanitizeDisplayText(stripInlineMarkdown(option)) || option);
 };
 
 /**
@@ -388,7 +362,8 @@ export function adaptiveLessonToDeweyContent(
         });
         return {
           id: `pack-${packPoints[i]}`,
-          packLabel: `${packPoints[i]} điểm`,
+          // F5: nhãn gói fallback đồng bộ quy ước E9 (bài cũ không có practiceSet vẫn thấy nhãn mới).
+          packLabel: ['Nhận biết', 'Thông hiểu', 'Vận dụng'][i],
           questions: qs.length ? qs : [placeholder(packPoints[i])],
         };
       }) as [DeweyOlympiaPack, DeweyOlympiaPack, DeweyOlympiaPack]);

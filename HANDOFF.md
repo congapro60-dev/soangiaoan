@@ -1,6 +1,6 @@
 # HANDOFF — Soạn giáo án / học phân hoá
 
-**Cập nhật gần nhất**: 2026-06-29  
+**Cập nhật gần nhất**: 2026-07-07  
 **Repo**: `soangiaoan` — `https://github.com/congapro60-dev/soangiaoan`  
 **Branch chuẩn**: `main`  
 **Production URL để QA UI**: `https://giaoandewey.vercel.app`  
@@ -9,6 +9,24 @@
 ---
 
 ## 1. Trạng thái hiện tại
+
+### 1.0i Cập nhật phiên 2026-07-07 — QA đợt 9: sửa TẬN GỐC 6 gốc bệnh hệ thống (F1→F13)
+
+Bối cảnh: cowork QA đợt 9 trên production (bài conic) → `BAOCAO_QA_BaiHocPhanHoa_2026-07-07.md` (PHẦN A: fix đợt 5–8 PASS gần hết; PHẦN B: 13 lỗi F1–F13; PHẦN D: 6 gốc bệnh D1–D6). Phiên này sửa theo Phần D — không vá riêng bài Conic. Nhánh **`fix/qa-dot9-conic`** (CHƯA push main — chờ lệnh user). Log chi tiết: `tasks/adaptive_qa_bugs.md` mục "ĐỢT 9".
+
+**Đã sửa (tsc 0 lỗi + 131/131 test + build PASS + script render 11/11 PASS):**
+- **D1 (F1/F2/F9 — họ lỗi công thức): module DUY NHẤT `src/lib/adaptive/mathText.ts`** — tokenize vùng `$...$`/text, transform chỉ chạy đúng loại vùng (KHÔNG bao giờ chèn `$` vào trong vùng math — gốc lỗi `$a^2 = $b^2 +$ c^2$`); vá `$` lẻ; `assertClean` hậu-kiểm + fallback; **golden tests** `mathText.test.ts` (15 test = chuỗi lỗi thật). `adaptiveToDewey.ts` uỷ quyền toàn bộ (giữ tên hàm `normalizeLatexText`/`cleanOptions`, xoá regex cũ). Pretest React portal (`MathText`/`MathBlock`) sanitize trước `ensureMathWrapped` (gốc F1: option `M\left(...\right)$` → KaTeX đỏ). Builder heading dùng `toPlainText` (F9). **QUY TẮC MỚI: cấm viết regex công thức ngoài mathText.ts; QA bắt chuỗi lỗi mới → thêm golden test** (đã ghi `tasks/lessons.md`).
+- **D2 (F3/F4/F13 — vở ghi lộ giữa học sinh):** key `dewey-notebook-v3-<lessonId>-<studentCode>` (trước theo MÁY); truyền `studentCode`: portal → `renderDeweyLesson(content, theme, {studentCode})` → `renderHtmlShell` → `getAdaptiveEngineScript`. F4 xác nhận chỉ là note "ma" storage cũ (code đã đúng từ đợt 8) — v3 tự giải quyết. F13 cần retest sau deploy.
+- **D3 (F5):** nhánh fallback đổi nhãn gói `"10/20/30 điểm"` → `"Nhận biết/Thông hiểu/Vận dụng"`. Quy tắc "sửa spec = sửa CẢ 2 nhánh" đã ghi lessons.md.
+- **D4 (F7):** `navTo('screen-summary')` render lại `#final-score` mỗi lần vào màn (TOC mở tự do).
+- **D5 (F6 — wheel chết trong iframe):** bỏ `html{scroll-behavior:smooth}` + **wheel-rescue listener** trong engine (vùng con tự cuộn thì nhường; còn lại cuộn `scrollingElement` + `preventDefault`, xử lý deltaMode, giữ Ctrl+zoom). ⚠️ cần test chuột thật trên production.
+- **D6 (F8/F10/F11 — pipeline nuốt lỗi):** TikZ validate qua Kroki NGAY LÚC SINH + retry 1 lần kèm lỗi Kroki cho AI tự sửa (`checkTikzWithKroki` — `buildTikzKrokiUrl` chuyển sang `krokiRender.ts` thuần, deweyAssets re-export); `visual_cards_failed` ghi nguyên nhân (nhận diện 429); lỗi relay personalization kèm body response.
+- **D1#4 (sạch từ nguồn):** `repairMathDeep` (cân `$`, bọc lệnh trần, bỏ qua HTML/URL/TikZ/id) chạy cuối `runAdaptivePipeline` trước khi lưu Firestore.
+
+**Việc còn (người/vòng sau):**
+- User ra lệnh merge/push → deploy → **retest thủ công**: F6 (lăn chuột thật), F13 (học sinh mới, vở sạch), F3 (2 mã học sinh cùng máy → vở độc lập).
+- **Nghiệm thu E9 Phần 2 + E10 vẫn cần TẠO BÀI MỚI** (bài conic cũ đi nhánh fallback).
+- **Quota Gemini 429** (Lỗi #3 vận hành) — nguồn của F8/F10 — vẫn cần nâng billing key production.
 
 ### 1.0h Cập nhật phiên 2026-06-30 — QA bài học phân hoá vòng 3 (bài "Ba đường Conic", đợt 5→8)
 

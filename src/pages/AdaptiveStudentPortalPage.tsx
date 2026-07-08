@@ -59,6 +59,7 @@ import {
 } from '../services/adaptiveProgressApi';
 import { classifyFallbackError, logFallbackEvent, syncQueuedFallbackEvents } from '../services/telemetry';
 import { ensureMathWrapped } from '../utils/examScoring';
+import { sanitizeDisplayText } from '../lib/adaptive/mathText';
 
 type PortalStage = 'loading' | 'not_found' | 'identify' | 'diagnostic' | 'personalizing' | 'dewey-lesson' | 'complete';
 type NoticeTone = 'info' | 'warning' | 'error';
@@ -135,7 +136,9 @@ const formatDuration = (seconds: number) => {
   return `${minutes}:${String(remainingSeconds).padStart(2, '0')}`;
 };
 
-const improveLongMathText = (text: string) => ensureMathWrapped(text)
+// F1 (QA đợt 9): sanitizeDisplayText vá `$` lẻ/lệnh LaTeX trần TRƯỚC khi ensureMathWrapped —
+// option kiểu "M\left(...\right)$" từng bị bọc từng lệnh rời ($\left$…) → KaTeX đỏ.
+const improveLongMathText = (text: string) => ensureMathWrapped(sanitizeDisplayText(text))
   .replace(/\.\s+(?=(Ta|Vậy|Suy ra|Do đó|Các|Điểm|Không|Câu hỏi|Từ)\b)/g, '.\n\n');
 
 const MathText = ({ children, className }: { children: string; className?: string }) => (
@@ -145,7 +148,7 @@ const MathText = ({ children, className }: { children: string; className?: strin
       rehypePlugins={[rehypeKatex]}
       components={{ p: ({ children: paragraphChildren }) => <span>{paragraphChildren}</span> }}
     >
-      {ensureMathWrapped(children)}
+      {ensureMathWrapped(sanitizeDisplayText(children))}
     </ReactMarkdown>
   </span>
 );
@@ -631,7 +634,11 @@ export const AdaptiveStudentPortalPage = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt, model: DEFAULT_PERSONALIZATION_MODEL }),
       });
-      if (!response.ok) throw new Error(`Personalization relay error ${response.status}`);
+      if (!response.ok) {
+        // F8: kèm body lỗi để phân biệt nguyên nhân (quota 429 vs env var vs route) khi soi console.
+        const errBody = await response.text().catch(() => '');
+        throw new Error(`Personalization relay error ${response.status}: ${errBody.slice(0, 200)}`);
+      }
       const data = await response.json().catch(() => ({}));
       return typeof data.text === 'string' ? data.text : '';
     };
@@ -640,7 +647,7 @@ export const AdaptiveStudentPortalPage = () => {
 
     const deweyAssets = await loadDeweyAssets(personalizedLesson);
     const deweyContent = adaptiveLessonToDeweyContent(personalizedLesson, deweyRoute, deweyAssets);
-    const html = renderDeweyLesson(deweyContent, 'classic');
+    const html = renderDeweyLesson(deweyContent, 'classic', { studentCode });
     setDeweyHtml(html);
     setStage('dewey-lesson');
     setNotice(null);

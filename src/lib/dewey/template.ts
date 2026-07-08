@@ -36,18 +36,20 @@ const renderHeader = (content: DeweyLessonContent): string => `
 
 const renderToc = (content: DeweyLessonContent): string => {
   // Mục lục mở khóa toàn bộ từ đầu — học sinh tự do chuyển phần, không khóa tuần tự.
-  const items = [
-    ...(!content.skipPretest ? [{ id: 'screen-pretest', label: '1. Ôn tập nhanh', locked: false }] : []),
-    { id: 'screen-engage', label: content.skipPretest ? '1. Khởi động' : '2. Khởi động', locked: false },
-    ...content.knowledgeUnits.map((unit, index) => ({
-      id: `screen-${unit.id}`,
-      label: `${index + 3}. ${unit.title}`,
-      locked: false,
-    })),
-    { id: 'screen-olympia', label: 'Luyện tập', locked: false },
-    { id: 'screen-extend', label: 'Vận dụng thực tế', locked: false },
-    { id: 'screen-summary', label: 'Tổng kết', locked: false },
+  // F12: đánh số LIÊN TỤC theo vị trí thực trong mục lục (hết nhảy "1. Khởi động → 3. …").
+  const rawItems = [
+    ...(!content.skipPretest ? [{ id: 'screen-pretest', title: 'Ôn tập nhanh' }] : []),
+    { id: 'screen-engage', title: 'Khởi động' },
+    ...content.knowledgeUnits.map(unit => ({ id: `screen-${unit.id}`, title: unit.title })),
+    { id: 'screen-olympia', title: 'Luyện tập' },
+    { id: 'screen-extend', title: 'Vận dụng thực tế' },
+    { id: 'screen-summary', title: 'Tổng kết' },
   ];
+  const items = rawItems.map((item, index) => ({
+    id: item.id,
+    label: `${index + 1}. ${item.title}`,
+    locked: false,
+  }));
 
   return `
 <nav class="toc-menu hidden" id="toc-menu" aria-label="Mục lục bài học">
@@ -347,6 +349,11 @@ ${renderToc(content)}
 </main>`;
 }
 
-export function renderDeweyLesson(content: DeweyLessonContent, theme: DeweyTheme = 'classic'): string {
-  return renderHtmlShell({ content, theme, bodyHtml: renderBodyHtml(content) });
+export function renderDeweyLesson(
+  content: DeweyLessonContent,
+  theme: DeweyTheme = 'classic',
+  options: { studentCode?: string } = {},
+): string {
+  // studentCode → key localStorage vở ghi theo TỪNG học sinh (F3 — máy dùng chung không lộ vở của nhau).
+  return renderHtmlShell({ content, theme, bodyHtml: renderBodyHtml(content), studentCode: options.studentCode });
 }

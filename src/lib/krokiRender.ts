@@ -38,6 +38,55 @@ export function classifyDiagram(text: string, lang?: string): { type: DiagramTyp
   return null;
 }
 
+/**
+ * Bọc mã TikZ thành tài liệu LaTeX standalone rồi tạo URL Kroki trả SVG.
+ * Trả '' nếu mã không hợp lệ (thiếu môi trường tikzpicture) để tránh ảnh vỡ (Kroki 400).
+ * (Chuyển từ deweyAssets.ts sang đây — module thuần, pipeline sinh bài dùng được không kéo firebase.)
+ */
+export const buildTikzKrokiUrl = (tikzRaw: string): string => {
+  let tikz = tikzRaw.trim();
+
+  // Sửa ca double-escape: nếu có "\\begin{tikzpicture}" (hai gạch chéo) mà không có bản một gạch
+  // → toàn bộ mã bị escape thừa một lớp (lỗi khi qua JSON) → gỡ một lớp.
+  if (/\\\\begin\{tikzpicture\}/.test(tikz) && !/(^|[^\\])\\begin\{tikzpicture\}/.test(tikz)) {
+    tikz = tikz.replace(/\\\\/g, '\\');
+  }
+
+  // Gỡ "\n"/"\r" LITERAL (AI hay double-escape ký tự xuống dòng) → newline thật.
+  // Negative lookahead (?![a-zA-Z]) để KHÔNG đụng các lệnh LaTeX bắt đầu bằng \n (\node, \norm…).
+  tikz = tikz.replace(/\\[rn](?![a-zA-Z])/g, '\n');
+
+  // Bắt buộc có môi trường tikzpicture đầy đủ; thiếu thì bỏ (vd AI chỉ trả vài lệnh \draw rời → 400).
+  if (!/\\begin\{tikzpicture\}/.test(tikz) || !/\\end\{tikzpicture\}/.test(tikz)) return '';
+
+  let payload = tikz.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
+  if (!payload.includes('\\documentclass')) {
+    payload = `\\documentclass[tikz,border=2mm]{standalone}\n\\usepackage[dvipsnames]{xcolor}\n\\usepackage{pgfplots}\n\\pgfplotsset{compat=1.18}\n\\begin{document}\n${payload}\n\\end{document}`;
+  }
+  return `https://kroki.io/tikz/svg/${encodeKroki(payload)}`;
+};
+
+/**
+ * Render thử TikZ qua Kroki, trả {ok, error} — error là THÔNG ĐIỆP LỖI cụ thể để feed lại
+ * cho AI tự sửa mã (D6/F11 QA đợt 9: pipeline không được nuốt lỗi im lặng).
+ * Lỗi mạng/CORS → coi như không kiểm được (ok=true) để không retry mù.
+ */
+export const checkTikzWithKroki = async (tikzCode: string): Promise<{ ok: boolean; error: string }> => {
+  const url = buildTikzKrokiUrl(tikzCode);
+  if (!url) return { ok: false, error: 'Thiếu môi trường \\begin{tikzpicture}...\\end{tikzpicture} hoàn chỉnh.' };
+  try {
+    const res = await fetch(url);
+    const body = await res.text();
+    if (!res.ok) return { ok: false, error: `Kroki ${res.status}: ${body.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').slice(0, 300)}` };
+    if (!/<svg[\s>]/i.test(body)) return { ok: false, error: 'Kroki không trả về SVG.' };
+    const errMatch = body.match(/(?:tikz Error|Package\s+\w+\s+Error|Undefined control sequence|Emergency stop|! LaTeX Error)[^<]{0,200}/i);
+    if (errMatch) return { ok: false, error: errMatch[0] };
+    return { ok: true, error: '' };
+  } catch {
+    return { ok: true, error: '' };
+  }
+};
+
 export function encodeKroki(source: string): string {
   const data = new TextEncoder().encode(source);
   const compressed = pako.deflate(data, { level: 9 });

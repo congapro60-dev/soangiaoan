@@ -1,4 +1,6 @@
 import { normalizeAdaptiveSimulationSpec } from './simulationValidation';
+import { checkTikzWithKroki } from '../krokiRender';
+import { repairMathDeep } from './mathText';
 import { sampleGeometry2DTriangleSimulation, sampleGeometry3DPyramidSimulation } from './simulationTypes';
 import type { AdaptiveSimulationSpec, HtmlSimulationSpec } from './simulationTypes';
 import type {
@@ -1952,6 +1954,25 @@ QUY TẮC BẮT BUỘC:
 8. RESPONSIVE: body{margin:0;font-size:16px} 1 cột width:100%, KHÔNG rộng cố định lớn, nhìn hết KHÔNG cuộn ngang, cao ≤ ~560px.
 9. CSS trong <style>, JS trong <script>, chạy offline. Tối đa ~200 dòng.`;
 
+// D6/F11: TikZ lỗi không được nuốt im lặng — retry 1 lần, đưa THÔNG BÁO LỖI Kroki cho AI tự sửa.
+const buildTikzFixPrompt = (unitTitle: string, tikzCode: string, krokiError: string): string => `Bạn là chuyên gia TikZ/LaTeX. Mã TikZ sau (hình minh hoạ cho mảnh kiến thức "${unitTitle}") bị LỖI khi render qua Kroki:
+
+LỖI: ${krokiError}
+
+MÃ HIỆN TẠI:
+${tikzCode}
+
+Hãy SỬA mã để render được, giữ nguyên ý đồ hình vẽ (đơn giản hoá nếu cần):
+- Bắt buộc có \\begin{tikzpicture}...\\end{tikzpicture} hoàn chỉnh.
+- Chỉ dùng TikZ/pgfplots chuẩn, KHÔNG package lạ, KHÔNG chữ tiếng Việt có dấu trong hình.
+- Trả về DUY NHẤT mã TikZ, không markdown, không giải thích.`;
+
+const extractTikzBlock = (raw: string): string => {
+  const cleaned = raw.replace(/```(?:latex|tex|tikz)?/gi, '').trim();
+  const match = cleaned.match(/\\begin\{tikzpicture\}[\s\S]*?\\end\{tikzpicture\}/);
+  return match ? match[0] : '';
+};
+
 export const runAdaptivePipeline = async (
   source: AdaptiveLessonSource,
   reviewedPlan: string,
@@ -2031,7 +2052,12 @@ export const runAdaptivePipeline = async (
       }));
     if (visualCards.length === 0) warnings.push('visual_cards_empty: AI tạo hình ảnh nhưng không có thẻ hợp lệ nào.');
   } catch (err) {
-    warnings.push('visual_cards_failed: Không tạo được hình minh họa — bài học vẫn đầy đủ nội dung.');
+    // D6/F10: cảnh báo phải kèm NGUYÊN NHÂN GỐC (phân biệt hết quota 429 vs lỗi khác).
+    const msg = err instanceof Error ? err.message : String(err);
+    const cause = /429|RESOURCE_EXHAUSTED|quota/i.test(msg)
+      ? 'hết quota AI (429) — thử lại sau hoặc nâng quota key'
+      : msg.slice(0, 160);
+    warnings.push(`visual_cards_failed: Không tạo được hình minh họa (${cause}). Bài học vẫn đầy đủ nội dung.`);
   }
 
   // --- Step 2b: Mô phỏng KHỞI ĐỘNG (sinh từ storyHook → khớp tình huống mở đầu) ---
@@ -2109,6 +2135,26 @@ export const runAdaptivePipeline = async (
       builtUnit = makeUnit(outline.title, objectiveId, outline.title, i);
     }
 
+    // D6/F11: render thử TikZ qua Kroki ngay lúc sinh; lỗi → cho AI tự sửa 1 lần kèm thông báo lỗi.
+    if (builtUnit.tikzCode?.trim()) {
+      const check = await checkTikzWithKroki(builtUnit.tikzCode);
+      if (!check.ok) {
+        onProgress?.(`Hình TikZ mảnh ${i + 1} lỗi cú pháp — đang nhờ AI sửa lại (1 lần)...`);
+        try {
+          const fixedRaw = await callAIFn(buildTikzFixPrompt(builtUnit.title, builtUnit.tikzCode, check.error));
+          const fixed = extractTikzBlock(fixedRaw);
+          const recheck = fixed ? await checkTikzWithKroki(fixed) : { ok: false, error: 'AI không trả về khối tikzpicture.' };
+          if (recheck.ok) {
+            builtUnit.tikzCode = fixed;
+          } else {
+            warnings.push(`tikz_${i + 1}_failed: hình mảnh "${builtUnit.title}" vẫn lỗi sau 1 lần AI sửa (${recheck.error.slice(0, 140)}) — bài dùng mô phỏng/nội dung chữ.`);
+          }
+        } catch {
+          warnings.push(`tikz_${i + 1}_retry_failed: không gọi được AI sửa hình mảnh "${builtUnit.title}" (lỗi gốc: ${check.error.slice(0, 140)}).`);
+        }
+      }
+    }
+
     // Mô phỏng tương tác (call riêng, xuất HTML thô) — giữ 3D ở đường React, không nhồi vào srcdoc.
     if (generateSimulations && builtUnit.simulationSpec?.kind !== 'geometry3d') {
       onProgress?.(`Đang dựng mô phỏng tương tác cho mảnh ${i + 1}/${unitOutlines.length}...`);
@@ -2136,7 +2182,7 @@ export const runAdaptivePipeline = async (
   const objectiveByBloom = (level: BloomLevel, fallbackIndex: number) =>
     objectives.find(o => o.bloomLevel === level)?.title || objectives[fallbackIndex]?.title || objectives[0]?.title || title;
 
-  return {
+  const assembled: AdaptiveLesson = {
     id: `adaptive-${Date.now()}`,
     title,
     subjectId: 'math',
@@ -2207,4 +2253,7 @@ export const runAdaptivePipeline = async (
     generationSource: 'ai_json',
     generationWarnings: warnings.length > 0 ? warnings : undefined,
   };
+  // D1#4 (QA đợt 9): vá math string TẠI NGUỒN (cân $ lẻ, bọc lệnh LaTeX trần) trước khi
+  // trả về/lưu Firestore — mọi nơi hiển thị/export về sau đều nhận dữ liệu sạch.
+  return repairMathDeep(assembled);
 };
