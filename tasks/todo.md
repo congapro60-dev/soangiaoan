@@ -25,7 +25,18 @@ _Summary after completion_
 
 ---
 
-## Active Task: Fix QA đợt 9 (BAOCAO_QA_BaiHocPhanHoa_2026-07-07.md) — 2026-07-07 ✅ HOÀN TẤT (chờ lệnh push)
+## Active Task: Loại giáo án "Giáo án ban Toán" (KHDH v13) — 2026-07-09 ✅ Pha 1+2 XONG (nhánh feat/toan-lesson-type, chờ lệnh push)
+
+Plan đã duyệt: `C:\Users\ADMIN\.claude\plans\pure-meandering-cloud.md`. Chi tiết: HANDOFF mục 1.0j.
+- [x] Pha 1: builtinFormat 'toan' + sub-picker 3 kế hoạch + prompts (src/prompts/toanFormats.ts) + persist — 9 test hợp đồng
+- [x] Pha 2: styleProfile 'toan' trong renderWordCore (banner màu, bảng 3 cột 11/54/35%, nhãn [NHÃN] xanh) + toanStyleRules.ts — 6 test golden+regression
+- [x] Verify: tsc 0 lỗi · 147/147 test · build PASS · preview demo OK
+- [ ] User nghiệm thu bằng key AI thật (3 kế hoạch → xuất Word mở kiểm)
+- [ ] TODO: mirror api/render-word-core.ts (bot-push) · Pha 3 phiếu học tập · bulk mode
+
+---
+
+## Task cũ: Fix QA đợt 9 (BAOCAO_QA_BaiHocPhanHoa_2026-07-07.md) — 2026-07-07 ✅ HOÀN TẤT (đã push main)
 
 Nhánh: `fix/qa-dot9-conic`. Sửa TẬN GỐC theo Phần D của báo cáo (không vá riêng bài Conic).
 
