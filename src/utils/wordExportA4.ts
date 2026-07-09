@@ -20,6 +20,8 @@ export const exportToWordA4 = async (
       title: currentPlan.title || 'Giao an',
       content: currentPlan.content,
       orientation,
+      // Giáo án ban Toán → xuất Word có style KHDH v13 (banner màu, bảng 3 cột 11/54/35%)
+      styleProfile: currentPlan.builtinFormat === 'toan' ? 'toan' : undefined,
     });
 
     const filename = `${safeFilename(currentPlan.title)}.docx`;

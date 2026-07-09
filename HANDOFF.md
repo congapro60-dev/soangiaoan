@@ -10,6 +10,30 @@
 
 ## 1. Trạng thái hiện tại
 
+### 1.0j Cập nhật phiên 2026-07-09 — Loại giáo án mới "Giáo án ban Toán" (KHDH kiểu v13)
+
+Bối cảnh: cowork đã tạo file mẫu vàng `KHDH_v13_PT_DuongThang_K10.docx` (161 công thức OMML, banner màu, bảng hoạt động 3 cột, generator tại `outputs/khdh/build_v8_combined.js` — xem `tasks/session_khdh_bai19.md`). Phiên này đưa kiểu KHDH đó thành loại giáo án thứ 4 trong tab Soạn giáo án. Plan đã duyệt: `C:\Users\ADMIN\.claude\plans\pure-meandering-cloud.md`. Nhánh **`feat/toan-lesson-type`** (CHƯA push main — chờ lệnh).
+
+**Pha 1 — loại + UI + prompts (commit riêng):**
+- `BuiltinFormat` thêm `'toan'` + `ToanKeHoach` (`kien_thuc | luyen_tap | dao_nguoc`) trong `src/types.ts`; persist 2 field này lên `LessonPlan` khi lưu (mirror vào `currentPlan`, spread điều kiện tránh `undefined` vào Firestore — `useLessonPlanActions.ts`).
+- UI `LessonControls.tsx`: picker 2×2 thêm "Giáo án ban Toán"; chọn nó → hiện sub-picker 3 kế hoạch bài dạy; chỉ hỗ trợ Soạn Đơn lẻ (bulk disabled + tooltip; đường bulk là prompt riêng, chưa nối).
+- Prompt mới `src/prompts/toanFormats.ts`: `TOAN_COMMON_FORMAT` (hợp đồng cấu trúc: bảng hoạt động `| Thời gian | Giáo viên và Học sinh | Nội dung ghi bảng |`, mục tiêu 3 hàng Cơ bản/Trọng tâm/Nâng cao + [Bloom:], nhãn Socratic đóng `**[PHÁT HIỆN]**`…, quy tắc `$...$`) + 3 outline kế hoạch + `TOAN_ADDITIONAL_REQUIREMENTS` (few-shot). Chảy qua `templateContext`/`additionalRequirements` — **KHÔNG đụng agents pipeline**. `mathRestrictions` tắt mục II (bảng 3 cột kiểu cũ) riêng cho 'toan'.
+- Test hợp đồng: `src/prompts/toanFormats.test.ts` (9 test) — QUY TẮC: đổi chuỗi header bảng/nhãn là VỠ nhận diện style, test sẽ chặn.
+
+**Pha 2 — xuất Word đẹp như v13 (commit riêng):**
+- `src/utils/toanStyleRules.ts` (CHỈ DATA): map màu banner theo heading ĐÃ CHUẨN HÓA bỏ dấu (`matchToanBanner` — chịu biến thể output AI, không match → render thường); nhận diện bảng hoạt động (`isToanActivityTableHeader` → cột 1000/4900/3126 của 9026 ≈ 11/54/35%, header `cfe2f3`); bảng mục tiêu tô hàng `D9EAD3/FCE5CD/FFF2CC`; nhãn `[NHÃN]` → bold `1F4E79`.
+- `src/utils/renderWordCore.ts`: thêm `styleProfile?: 'toan'` vào `WordRenderPayload`, luồn qua `processTokens`; 3 nhánh guarded (heading→banner table, table→width/fill, strong→màu nhãn). **Mặc định undefined = hành vi y hệt cũ** — có regression test khóa điều này.
+- `wordExportA4.ts` tự derive profile từ `currentPlan.builtinFormat` → CreatorTab/ViewPlanModal không phải sửa.
+- Test: `src/utils/renderWordCore.toan.test.ts` (6 test) — golden fixture (đếm OMML, fills, gridCol 1017/4985/3180, màu 1F4E79) + regression no-profile (không dính fill toan, E2E8F0 giữ nguyên).
+
+**Verify:** tsc 0 lỗi · 147/147 test · build PASS · preview demo mode: picker + sub-picker + bulk disabled hoạt động đúng.
+
+**Việc còn:**
+- ⚠️ **TODO mirror `api/render-word-core.ts`** (bản server, đường bot-push `/api/export-lesson`): chưa có styleProfile → plan 'toan' đẩy sang bot sẽ render generic. Mirror bằng chính data `toanStyleRules.ts`.
+- Nghiệm thu chất lượng NỘI DUNG AI sinh: cần key AI thật, soạn thử cả 3 kế hoạch → xuất Word mở kiểm tra (banner màu, cột 11/54/35%, công thức double-click được).
+- Pha 3 (chưa làm): phiếu học tập đi kèm (KWLI/Tic-Tac-Toe/chuyên gia jigsaw) — cân nhắc nối vào nút "Tạo Phiếu học tập" sẵn có; `toanKeHoach` đã persist nên biết loại phiếu nào.
+- Bulk mode cho 'toan' (đường bulk :840-918 cần nối templateContext riêng).
+
 ### 1.0i Cập nhật phiên 2026-07-07 — QA đợt 9: sửa TẬN GỐC 6 gốc bệnh hệ thống (F1→F13)
 
 Bối cảnh: cowork QA đợt 9 trên production (bài conic) → `BAOCAO_QA_BaiHocPhanHoa_2026-07-07.md` (PHẦN A: fix đợt 5–8 PASS gần hết; PHẦN B: 13 lỗi F1–F13; PHẦN D: 6 gốc bệnh D1–D6). Phiên này sửa theo Phần D — không vá riêng bài Conic. Nhánh **`fix/qa-dot9-conic`** (CHƯA push main — chờ lệnh user). Log chi tiết: `tasks/adaptive_qa_bugs.md` mục "ĐỢT 9".
