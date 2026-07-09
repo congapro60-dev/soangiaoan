@@ -25,6 +25,12 @@ export interface Subject {
   lessonCount: number;
 }
 
+/** Định dạng giáo án built-in trong tab Soạn giáo án. */
+export type BuiltinFormat = 'default' | 'cv5512' | 'claude' | 'toan';
+
+/** Kế hoạch bài dạy của loại "Giáo án ban Toán" (KHDH kiểu v13). */
+export type ToanKeHoach = 'kien_thuc' | 'luyen_tap' | 'dao_nguoc';
+
 export interface LessonPlan {
   id: string;
   subjectId: string;
@@ -41,6 +47,10 @@ export interface LessonPlan {
   sourceDistributionId?: string;
   userId?: string;
   isPublic?: boolean;
+  /** Định dạng built-in đã dùng khi sinh — để route xuất Word có style (vd 'toan'). */
+  builtinFormat?: BuiltinFormat;
+  /** Kế hoạch bài dạy khi builtinFormat === 'toan'. */
+  toanKeHoach?: ToanKeHoach;
 }
 
 export interface CurriculumDistribution {

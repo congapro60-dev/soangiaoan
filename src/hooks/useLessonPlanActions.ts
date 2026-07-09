@@ -47,7 +47,10 @@ export const useLessonPlanActions = ({
       authorName: data.authorName,
       isPublic: isEditingOthers ? false : (creator.currentPlan.isPublic || false),
       grade: creator.currentPlan.grade,
-      week: creator.currentPlan.week
+      week: creator.currentPlan.week,
+      // Định dạng built-in đã dùng — route xuất Word có style (Firestore không nhận undefined → spread điều kiện)
+      ...(creator.currentPlan.builtinFormat ? { builtinFormat: creator.currentPlan.builtinFormat } : {}),
+      ...(creator.currentPlan.toanKeHoach ? { toanKeHoach: creator.currentPlan.toanKeHoach } : {})
     };
 
     try {

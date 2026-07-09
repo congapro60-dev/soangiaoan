@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
-import { LessonPlan, AppData, TemplateFile } from '../types';
+import { LessonPlan, AppData, TemplateFile, BuiltinFormat, ToanKeHoach } from '../types';
+import { TOAN_COMMON_FORMAT, TOAN_KE_HOACH_FORMATS, TOAN_ADDITIONAL_REQUIREMENTS } from '../prompts/toanFormats';
 import { callAI, callAIStream, getActiveApiKey } from '../lib/aiProviders';
 import { cleanMarkdownOutput } from '../utils/markdownUtils';
 import { applyLessonRevisionPatchResponse, buildLessonRevisionPatchPrompt } from '../utils/lessonRevisionPatch';
@@ -72,7 +73,8 @@ export const useLessonCreator = (
   setIsSettingsOpen: (val: boolean) => void
 ) => {
   const [generationMode, setGenerationMode] = useState<'single' | 'bulk'>('single');
-  const [builtinFormat, setBuiltinFormat] = useState<'default' | 'cv5512' | 'claude'>('default');
+  const [builtinFormat, setBuiltinFormatState] = useState<BuiltinFormat>('default');
+  const [toanKeHoach, setToanKeHoachState] = useState<ToanKeHoach>('kien_thuc');
   const [currentPlan, setCurrentPlan] = useState<Partial<LessonPlan>>({
     title: '',
     content: '',
@@ -90,6 +92,23 @@ export const useLessonCreator = (
   const [bulkProgress, setBulkProgress] = useState({ current: 0, total: 0, currentTitle: '' });
   const [revisionPrompt, setRevisionPrompt] = useState('');
   const cancelBulkRef = useRef(false);
+
+  // Mirror định dạng vào currentPlan để mọi đường lưu/xuất (kể cả khi CHƯA lưu) route đúng loại.
+  const setBuiltinFormat = (format: BuiltinFormat) => {
+    setBuiltinFormatState(format);
+    setCurrentPlan(prev => ({
+      ...prev,
+      builtinFormat: format,
+      toanKeHoach: format === 'toan' ? toanKeHoach : undefined,
+    }));
+    // 'toan' Pha 1 chỉ hỗ trợ soạn đơn lẻ (đường bulk là prompt riêng, chưa nối format này).
+    if (format === 'toan') setGenerationMode('single');
+  };
+
+  const setToanKeHoach = (keHoach: ToanKeHoach) => {
+    setToanKeHoachState(keHoach);
+    setCurrentPlan(prev => ({ ...prev, toanKeHoach: keHoach }));
+  };
 
   const cancelBulk = () => {
     cancelBulkRef.current = true;
@@ -118,6 +137,13 @@ export const useLessonCreator = (
     setIsLoading(true);
     setBulkResults([]);
     cancelBulkRef.current = false;
+
+    // Mirror lại định dạng vào currentPlan (reset plan từ sidebar có thể đã xoá) — đảm bảo lưu/xuất route đúng.
+    setCurrentPlan(prev => ({
+      ...prev,
+      builtinFormat,
+      toanKeHoach: builtinFormat === 'toan' ? toanKeHoach : undefined,
+    }));
 
     try {
       const subject = data.subjects.find(s => s.id === currentPlan.subjectId)?.name || 'Chung';
@@ -640,6 +666,8 @@ QUY TẮC NGHIÊM NGẶT:
         templateContext = CV5512_FORMAT + '\n' + VISUAL_AIDS_PROMPT;
       } else if (builtinFormat === 'claude') {
         templateContext = CLAUDE_FORMAT + '\n' + VISUAL_AIDS_PROMPT;
+      } else if (builtinFormat === 'toan') {
+        templateContext = TOAN_COMMON_FORMAT + '\n' + TOAN_KE_HOACH_FORMATS[toanKeHoach] + '\n' + VISUAL_AIDS_PROMPT;
       } else if (selectedTemplate) {
         const samples = selectedTemplate.files.filter(f => f.category === 'sample').map(f => f.content).join('\n---\n');
         const criteria = selectedTemplate.files.filter(f => f.category === 'criteria').map(f => f.content).join('\n---\n');
@@ -668,7 +696,7 @@ I. CẤU TRÚC MỤC TIÊU BÀI HỌC (bắt buộc có đầy đủ):
       - Học sinh khá/giỏi: [Yêu cầu nâng cao, bài toán mở rộng cụ thể]
       - Học sinh trung bình/yếu: [Yêu cầu tối thiểu cần đạt, hỗ trợ cụ thể]
 
-II. ĐỊNH DẠNG BẢNG 3 CỘT — BẮT BUỘC cho TẤT CẢ hoạt động:
+${builtinFormat === 'toan' ? '' : `II. ĐỊNH DẠNG BẢNG 3 CỘT — BẮT BUỘC cho TẤT CẢ hoạt động:
    MỖI hoạt động PHẢI trình bày theo đúng bảng Markdown 3 cột sau:
    | Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng/Sản phẩm dự kiến |
    |---|---|---|
@@ -676,7 +704,7 @@ II. ĐỊNH DẠNG BẢNG 3 CỘT — BẮT BUỘC cho TẤT CẢ hoạt động
 
    LƯU Ý: "Nội dung ghi bảng" là những nội dung trọng tâm mà Giáo viên sẽ ghi lên bảng để Học sinh ghi chép vào vở. KHÔNG được để trống cột này.
    LƯU Ý CĂN HÀNG: Mỗi lượt trao đổi GV↔HS = 1 hàng riêng biệt. TUYỆT ĐỐI KHÔNG dùng <br/><br/> để gộp nhiều lượt vào 1 hàng.
-
+`}
 III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
    - Công thức trên cùng dòng văn bản: dùng $...$ (ví dụ: $f(x) = x^2 + 1$)
    - Công thức đứng riêng một dòng: dùng $$...$$ (ví dụ: $$\int_0^1 x^2\,dx = \frac{1}{3}$$)
@@ -700,9 +728,9 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
           grade: currentPlan.grade || '',
           week: currentPlan.week || '',
           requirement: singleRequirement,
-          templateFormat: isAdaptiveReadyDefault ? 'Adaptive' : (builtinFormat === 'cv5512' ? 'CV5512' : 'Claude'),
+          templateFormat: isAdaptiveReadyDefault ? 'Adaptive' : (builtinFormat === 'cv5512' ? 'CV5512' : builtinFormat === 'toan' ? 'Toan' : 'Claude'),
           templateContext: templateContext + '\n' + skeletonPromptSection,
-          additionalRequirements: isAdaptiveReadyDefault ? `
+          additionalRequirements: builtinFormat === 'toan' ? TOAN_ADDITIONAL_REQUIREMENTS : isAdaptiveReadyDefault ? `
           ===== YÊU CẦU RIÊNG CHO KIỂU MẶC ĐỊNH MỚI — GIÁO ÁN ĐẸP, SẴN SÀNG TẠO BÀI HỌC PHÂN HOÁ =====
           - Bắt buộc dùng đúng cấu trúc trong MẪU GIÁO ÁN MẶC ĐỊNH ở trên, đặc biệt là UI/UX 7:3 và khung Bước 0 đến Bước 5.
           - Đây vẫn là giáo án chính thức trong Soạn giáo án: phải trình bày đẹp, rõ ràng, có thể xem/sửa/lưu/xuất Word/PDF như các mẫu còn lại.
@@ -1000,6 +1028,7 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
   return {
     generationMode, setGenerationMode,
     builtinFormat, setBuiltinFormat,
+    toanKeHoach, setToanKeHoach,
     currentPlan, setCurrentPlan,
     lessonDocs, setLessonDocs,
     singleRequirement, setSingleRequirement,

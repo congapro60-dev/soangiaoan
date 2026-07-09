@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { Layers, FileText, UploadCloud, ChevronRight, X, Trash2, PenLine, BookOpen } from 'lucide-react';
-import { AppData, LessonPlan, TemplateFile } from '../../../types';
+import { AppData, LessonPlan, TemplateFile, BuiltinFormat, ToanKeHoach } from '../../../types';
+import { TOAN_KE_HOACH_LABELS } from '../../../prompts/toanFormats';
 
 interface LessonControlsProps {
   generationMode: 'single' | 'bulk';
   setGenerationMode: (mode: 'single' | 'bulk') => void;
-  builtinFormat: 'default' | 'cv5512' | 'claude';
-  setBuiltinFormat: (f: 'default' | 'cv5512' | 'claude') => void;
+  builtinFormat: BuiltinFormat;
+  setBuiltinFormat: (f: BuiltinFormat) => void;
+  toanKeHoach: ToanKeHoach;
+  setToanKeHoach: (k: ToanKeHoach) => void;
   currentPlan: Partial<LessonPlan>;
   setCurrentPlan: React.Dispatch<React.SetStateAction<Partial<LessonPlan>>>;
   data: AppData;
@@ -24,6 +27,8 @@ export const LessonControls = ({
   setGenerationMode,
   builtinFormat,
   setBuiltinFormat,
+  toanKeHoach,
+  setToanKeHoach,
   currentPlan,
   setCurrentPlan,
   data,
@@ -46,9 +51,11 @@ export const LessonControls = ({
           >
             <FileText className="w-4 h-4" /> Soạn Đơn lẻ
           </button>
-          <button 
+          <button
             onClick={() => setGenerationMode('bulk')}
-            className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${generationMode === 'bulk' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            disabled={builtinFormat === 'toan'}
+            title={builtinFormat === 'toan' ? 'Giáo án ban Toán hiện chỉ hỗ trợ soạn đơn lẻ (từng tiết)' : undefined}
+            className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${generationMode === 'bulk' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'} ${builtinFormat === 'toan' ? 'opacity-40 cursor-not-allowed' : ''}`}
           >
             <Layers className="w-4 h-4" /> Soạn Hàng loạt
           </button>
@@ -97,11 +104,12 @@ export const LessonControls = ({
 
           <div className="space-y-1.5">
             <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Định dạng giáo án</label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {([
                 { value: 'default', label: 'Bài học phân hoá', sub: 'Pre-test · 3 tuyến · học liệu tương tác' },
                 { value: 'claude', label: 'Mẫu giáo án Dewey', sub: 'WALT/WILF · Phân hóa 🌶️🌶️🌶️' },
                 { value: 'cv5512', label: 'Công văn 5512', sub: 'Chuẩn Bộ GD&ĐT 2020' },
+                { value: 'toan', label: 'Giáo án ban Toán', sub: 'KHDH · Socratic · phân hóa TB/Khá/Giỏi' },
               ] as const).map(opt => (
                 <button
                   key={opt.value}
@@ -115,6 +123,25 @@ export const LessonControls = ({
               ))}
             </div>
           </div>
+
+          {builtinFormat === 'toan' && (
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Kế hoạch bài dạy (1 tiết)</label>
+              <div className="grid grid-cols-3 gap-2">
+                {(Object.entries(TOAN_KE_HOACH_LABELS) as [ToanKeHoach, string][]).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setToanKeHoach(value)}
+                    className={`p-2.5 rounded-xl border-2 text-center transition-all ${toanKeHoach === value ? 'border-blue-500 bg-blue-50' : 'border-slate-100 bg-slate-50 hover:border-slate-200'}`}
+                  >
+                    <p className={`text-[11px] font-black leading-tight ${toanKeHoach === value ? 'text-blue-700' : 'text-slate-700'}`}>{label}</p>
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] text-slate-400 font-medium">Chọn kế hoạch → AI soạn đúng 1 tiết theo tiến trình của kế hoạch đó.</p>
+            </div>
+          )}
 
           <div className="space-y-1.5">
             <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Mẫu tùy chỉnh (tải lên)</label>
