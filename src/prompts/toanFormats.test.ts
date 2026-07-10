@@ -112,6 +112,20 @@ describe('TOAN_KE_HOACH_FORMATS — mỗi kế hoạch riêng biệt, chỉ 1 ti
     expect(f).toContain('PHÂN CÔNG THEO NĂNG LỰC');
   });
 
+  it('luyen_tap: mục tiêu chuẩn tiết luyện tập (ảnh tập huấn) — VÌ SAO/KHI NÀO, tư duy, Polya 4 bước, 2 bộ gợi ý phân hóa', () => {
+    const f = TOAN_KE_HOACH_FORMATS.luyen_tap;
+    expect(f).toContain('VÌ SAO chọn phương pháp');
+    expect(f).toContain('KHI NÀO chọn phương pháp');
+    expect(f).toContain('PHÁT TRIỂN TƯ DUY TOÁN HỌC');
+    expect(f).toContain('G. POLYA');
+    expect(f).toContain('Bước 2: Tìm hướng giải');
+    expect(f).toContain('Bước 4: Nhìn lại bài toán');
+    expect(f).toContain('2 BỘ CÂU HỎI GỢI Ý PHÂN HÓA');
+    expect(f).toContain('lộ trình 1');
+    expect(f).toContain('lộ trình 2');
+    expect(f).toContain('GHI CHI TIẾT CÁCH ÁP DỤNG');
+  });
+
   it('dao_nguoc: cảnh báo không dạy lại lý thuyết + jigsaw ở nhà + quiz Bloom/Kahoot + dự án mini + tranh biện + mindmap', () => {
     const f = TOAN_KE_HOACH_FORMATS.dao_nguoc;
     expect(f).toContain('KHÔNG dạy lại lý thuyết');

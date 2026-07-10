@@ -143,7 +143,17 @@ Mục II. TIẾN TRÌNH gồm ĐÚNG các hoạt động sau (đúng tên, đún
 
 const TOAN_LUYEN_TAP = `
 ===== KẾ HOẠCH BÀI DẠY CHỈ ĐỊNH: TIẾT LUYỆN TẬP / HÌNH THÀNH KĨ NĂNG =====
-Tiết này KHÔNG dạy kiến thức mới — chỉ luyện kỹ năng đã học. Mục II. TIẾN TRÌNH gồm:
+Tiết này KHÔNG dạy kiến thức mới — chỉ luyện kỹ năng đã học.
+
+MỤC TIÊU & CHUẨN RIÊNG CỦA TIẾT LUYỆN TẬP (bắt buộc thể hiện rõ trong KHDH):
+1. THÀNH THẠO PHƯƠNG PHÁP/KĨ NĂNG LÀM MỘT DẠNG BÀI — bảng MỤC TIÊU và hoạt động phải làm rõ: HS biết VÌ SAO chọn phương pháp/kĩ năng đó và KHI NÀO chọn phương pháp/kĩ năng đó (có câu hỏi tường minh kiểu "Dấu hiệu nào của đề cho em biết nên dùng cách này?").
+2. PHÁT TRIỂN TƯ DUY TOÁN HỌC — tiết phải có đủ các thao tác (gắn đúng nhãn): phân tích đề **[SUY LUẬN]**, lựa chọn phương pháp + so sánh nhiều cách giải **[SO SÁNH]**, phát hiện quy luật **[PHÁT HIỆN]**, khái quát hóa dạng bài **[KHÁI QUÁT]**, phản biện lời giải + phát hiện sai lầm **[PHẢN BIỆN]**.
+3. QUY TRÌNH G. POLYA cho MỌI bài chữa chung (bài sửa lỗi khởi động, bài chia sẻ bảng, bài nhóm HĐ2) — trình bày rõ 4 bước trong cột "Giáo viên và Học sinh": **Bước 1: Hiểu bài toán** → **Bước 2: Tìm hướng giải** → **Bước 3: Trình bày lời giải** → **Bước 4: Nhìn lại bài toán**. ĐÀO SÂU ĐẶC BIỆT Bước 2 và Bước 4:
+   - Bước 2 (Tìm hướng giải) PHẢI có 2 BỘ CÂU HỎI GỢI Ý PHÂN HÓA: 1 bộ cho lộ trình 2 (cả lớp/chuẩn) và 1 bộ riêng cho lộ trình 1 (HS cần hỗ trợ — câu hỏi nhỏ hơn, chỉ dấu hiệu cụ thể trong đề).
+   - Bước 4 (Nhìn lại): thử lại kết quả, tìm cách giải khác, khái quát thành dạng bài, tự đặt bài tương tự.
+4. CHIẾN LƯỢC PHÂN HÓA dùng trong tiết phải GHI CHI TIẾT CÁCH ÁP DỤNG (áp ở hoạt động nào, nhóm/mức nào, dùng phiếu gì, GV làm gì) — KHÔNG chỉ nêu tên chiến lược.
+
+Mục II. TIẾN TRÌNH gồm:
 
 ### 1. KHỞI ĐỘNG — Ôn nhanh + Sửa lỗi Exit ticket tiết trước (5 phút, P1–P5)
 - GV chiếu 2-3 LỖI PHỔ BIẾN từ exit ticket tiết trước (ẩn tên HS); bảng con 4 câu nhanh 40 giây/câu gắn nhãn (**[SO SÁNH]** **[PHÁT HIỆN]** **[SUY LUẬN]** **[PHẢN BIỆN]** — câu phản biện là cặp bài dễ nhầm để HS kiểm tra bằng số). Cột 3: "ÔN TẬP NHANH" — bảng công thức + đáp án 4 câu.
@@ -158,7 +168,7 @@ Tiết này KHÔNG dạy kiến thức mới — chỉ luyện kỹ năng đã h
 - 4 phút cuối: "Chia sẻ bảng" — 2 HS lên bảng (ưu tiên ô nhiều lỗi), lớp phản biện, GV chuẩn hóa + nhấn lỗi phổ biến.
 
 ### 4. HĐ2 — Luyện tập nhóm: Bài toán thực tiễn (10 phút, P25–P35)
-- Nhóm 4 giải 1 bài VẬN DỤNG THỰC TẾ (ưu tiên bài SGK có bối cảnh thật); PHÂN CÔNG THEO NĂNG LỰC ghi rõ: "HS 1 (TB): [việc]... HS 4 (giỏi): [việc khó + tự đặt bài tương tự]".
+- Nhóm 4 giải 1 bài VẬN DỤNG THỰC TẾ (ưu tiên bài SGK có bối cảnh thật) — chữa chung theo ĐỦ 4 bước Polya (đào sâu Bước 2 với 2 bộ câu hỏi gợi ý phân hóa + Bước 4 nhìn lại); PHÂN CÔNG THEO NĂNG LỰC ghi rõ: "HS 1 (TB): [việc]... HS 4 (giỏi): [việc khó + tự đặt bài tương tự]".
 - ≥ 3 câu gợi mở nhãn (**[PHÁT HIỆN]** ý nghĩa đại lượng, **[PHẢN BIỆN]** giới hạn mô hình, **[SÁNG TẠO]** đặt bài tương tự); đại diện trình bày, lớp phản biện, GV liên hệ thực tế. Cột 3: lời giải đầy đủ ra số cuối.
 
 ### 5. MỞ RỘNG — Phòng chờ Toán học (3 phút, P35–P38)
