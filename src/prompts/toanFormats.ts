@@ -82,7 +82,19 @@ B. QUY TẮC TRÌNH BÀY HOẠT ĐỘNG (TUYỆT ĐỐI TUÂN THỦ):
 
 6. DỰ KIẾN KHÓ KHĂN — mỗi hoạt động chính có dòng "→ Dự kiến khó khăn: [lỗi HS hay mắc] → GV [cách bẫy sớm/xử lý]".
 
-C. QUY TẮC CÔNG THỨC TOÁN (TUYỆT ĐỐI):
+C. CHUẨN SƯ PHẠM BẮT BUỘC (theo khung dạy học phân hóa + kĩ thuật đặt câu hỏi + khung đánh giá giờ học mức Distinguished):
+
+1. PHỦ ĐỦ 7 LOẠI CÂU HỎI trong mỗi tiết: **[SỐ HỌC]** **[SO SÁNH]** **[PHÁT HIỆN]** **[SUY LUẬN]** **[KHÁI QUÁT]** **[PHẢN BIỆN]** **[SÁNG TẠO]** — thiếu loại nào là KHÔNG ĐẠT.
+2. PHÂN HÓA ĐỦ 4 TRỤC (Tomlinson):
+   - NỘI DUNG: nhiệm vụ khác nhau theo mức NB/TH/VD, bám bài SGK.
+   - QUÁ TRÌNH: SCAFFOLD TƯỜNG MINH cho HS yếu (ghi rõ từng bước điền khuyết/gợi ý trong hoạt động, chỉ rõ dùng phiếu hỗ trợ nào — không viết chung chung "GV hỗ trợ"); nhóm đồng mức khi luyện, đa mức khi dự án (HS giỏi kèm HS yếu).
+   - SẢN PHẨM: HS được chọn cách thể hiện khi phù hợp (bảng con/A3/trình bày miệng).
+   - MÔI TRƯỜNG: có "Phòng chờ Toán học"/nhiệm vụ neo cho HS xong sớm — không HS nào ngồi chơi.
+3. TIẾNG NÓI & LỰA CHỌN CỦA HS: ít nhất 1 cơ chế HS TỰ CHỌN (chọn đường Tic-Tac-Toe, chọn mức bài, chọn vai trong nhóm) + exit ticket luôn có mục HS nêu thắc mắc/câu hỏi riêng.
+4. MỌI HS ĐƯỢC HOẠT ĐỘNG: GV không độc thoại; gọi ngẫu nhiên; bảng con để cả lớp cùng trả lời; HS tự đánh giá (thumbs up/down mục tiêu).
+5. PHẠM VI KIẾN THỨC: chỉ dạy ĐÚNG phạm vi bài/tiết được yêu cầu — TUYỆT ĐỐI KHÔNG lấn nội dung tiết sau/bài sau (vd tiết về vectơ pháp tuyến thì không dạy vectơ chỉ phương). Bài tập/ví dụ phải khớp phạm vi này.
+
+D. QUY TẮC CÔNG THỨC TOÁN (TUYỆT ĐỐI):
 - Trong dòng: $...$ (vd $ax+by+c=0$, $\\vec{n}(a;b)$, $\\overrightarrow{AB}$, $M_0(x_0;y_0)$). Đứng riêng: $$...$$.
 - MỌI ký hiệu toán phải trong $...$ — CẤM Unicode giả (n⃗, x₀, √2) ngoài công thức.
 - KHÔNG dùng "|" trong công thức (vỡ bảng) — dùng \\mid; hệ PT tham số dùng \\begin{cases}...\\end{cases}.
@@ -156,9 +168,11 @@ Mục "3. Tài liệu dạy học" tách 2 phần: "TRƯỚC TIẾT HỌC (HS t�
 
 Mục II. TIẾN TRÌNH HOẠT ĐỘNG TRÊN LỚP gồm:
 
+Mục "TRƯỚC TIẾT HỌC" tổ chức theo JIGSAW + MICROLEARNING: chia lớp thành 2-3 NHÓM CHUYÊN GIA, mỗi nhóm tự học 1 mảng kiến thức qua học liệu NGẮN (video ≤ 7 phút/mục SGK cụ thể) + phiếu chuẩn bị riêng theo mảng; vào tiết mỗi chuyên gia chịu trách nhiệm mảng của mình trong nhóm dự án (nhóm đa mức).
+
 ### 1. KIỂM TRA CHUẨN BỊ & LÀM RÕ THẮC MẮC (7 phút, P1–P7)
 - Bước 1 (1'): quan sát nhanh phiếu chuẩn bị, ghi lỗi phổ biến.
-- Bước 2 (4'): QUIZ 4 CÂU CHUỖI BLOOM tăng dần **[GHI NHỚ]** → **[HIỂU]** → **[VẬN DỤNG]** → **[PHÂN TÍCH]** (số liệu cụ thể; cột 3 ghi "QUIZ — ĐÁP ÁN" đủ 4 câu). HS sai Q1-Q2 → xếp vào nhóm có HS giỏi hỗ trợ.
+- Bước 2 (4'): QUIZ 4-5 CÂU CHUỖI BLOOM tăng dần **[GHI NHỚ]** → **[HIỂU]** → **[VẬN DỤNG]** → **[PHÂN TÍCH]** (số liệu cụ thể; cột 3 ghi "QUIZ — ĐÁP ÁN" đủ; có thể chạy bằng Kahoot — nếu dùng, ghi chú "GV chuẩn bị bộ Kahoot theo 5 câu này"). HS sai Q1-Q2 → xếp vào nhóm có HS giỏi hỗ trợ.
 - Bước 3 (2'): "Em có câu hỏi gì từ video/phiếu?" — giải tối đa 2 câu ngắn, câu sâu chuyển vào dự án.
 
 ### 2. XÁC ĐỊNH NHIỆM VỤ TIẾT HỌC (2 phút, P7–P9)

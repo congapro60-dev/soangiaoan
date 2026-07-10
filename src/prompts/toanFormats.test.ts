@@ -58,6 +58,15 @@ describe('TOAN_COMMON_FORMAT — hợp đồng cấu trúc (theo v13)', () => {
     expect(TOAN_COMMON_FORMAT).toContain('\\mid');
     expect(TOAN_COMMON_FORMAT).toContain('CẤM Unicode giả');
   });
+
+  it('chuẩn sư phạm từ transcript cowork: 7 loại câu hỏi, 4 trục Tomlinson, tiếng nói HS, scaffold, không lấn phạm vi', () => {
+    expect(TOAN_COMMON_FORMAT).toContain('PHỦ ĐỦ 7 LOẠI CÂU HỎI');
+    expect(TOAN_COMMON_FORMAT).toContain('Tomlinson');
+    expect(TOAN_COMMON_FORMAT).toContain('SCAFFOLD TƯỜNG MINH');
+    expect(TOAN_COMMON_FORMAT).toContain('TIẾNG NÓI & LỰA CHỌN CỦA HS');
+    expect(TOAN_COMMON_FORMAT).toContain('KHÔNG lấn nội dung tiết sau');
+    expect(TOAN_COMMON_FORMAT).toContain('Phòng chờ Toán học');
+  });
 });
 
 describe('TOAN_KE_HOACH_FORMATS — mỗi kế hoạch riêng biệt, chỉ 1 tiết', () => {
@@ -85,10 +94,13 @@ describe('TOAN_KE_HOACH_FORMATS — mỗi kế hoạch riêng biệt, chỉ 1 ti
     expect(f).toContain('PHÂN CÔNG THEO NĂNG LỰC');
   });
 
-  it('dao_nguoc: cảnh báo không dạy lại lý thuyết + quiz chuỗi Bloom + dự án mini + tranh biện + mindmap', () => {
+  it('dao_nguoc: cảnh báo không dạy lại lý thuyết + jigsaw ở nhà + quiz Bloom/Kahoot + dự án mini + tranh biện + mindmap', () => {
     const f = TOAN_KE_HOACH_FORMATS.dao_nguoc;
     expect(f).toContain('KHÔNG dạy lại lý thuyết');
+    expect(f).toContain('JIGSAW + MICROLEARNING'); // v13: nhóm chuyên gia tự học Ở NHÀ, không phải trên lớp
+    expect(f).toContain('NHÓM CHUYÊN GIA');
     expect(f).toContain('CHUỖI BLOOM');
+    expect(f).toContain('Kahoot');
     expect(f).toContain('Dự án mini');
     expect(f).toContain('Tranh biện');
     expect(f).toContain('ĐIỂM SAO');
