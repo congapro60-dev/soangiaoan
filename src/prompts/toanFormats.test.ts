@@ -1,34 +1,62 @@
 import { describe, expect, it } from 'vitest';
 import { TOAN_ADDITIONAL_REQUIREMENTS, TOAN_COMMON_FORMAT, TOAN_KE_HOACH_FORMATS, TOAN_KE_HOACH_LABELS } from './toanFormats';
+import { TOAN_NHAN_RE } from '../utils/toanStyleRules';
 
 /**
- * HỢP ĐỒNG CẤU TRÚC của loại "Giáo án ban Toán" — Pha 2 (xuất Word có style)
- * nhận diện bảng/heading dựa đúng các chuỗi này. Test gãy = ai đó đổi hợp đồng.
+ * HỢP ĐỒNG CẤU TRÚC của loại "Giáo án ban Toán" (bám bản mẫu vàng KHDH v13) —
+ * Pha 2 (xuất Word có style) nhận diện bảng/heading/nhãn dựa đúng các chuỗi này.
+ * Test gãy = ai đó đổi hợp đồng mà chưa đồng bộ toanStyleRules/renderWordCore.
  */
 
 const ACTIVITY_TABLE_HEADER = '| Thời gian | Giáo viên và Học sinh | Nội dung ghi bảng |';
-const NHAN_LABELS = ['[PHÁT HIỆN]', '[SO SÁNH]', '[DỰ ĐOÁN]', '[PHẢN VÍ DỤ]', '[KHÁI QUÁT]', '[VÌ SAO]'];
+const NHAN_LABELS = [
+  '[PHÁT HIỆN]', '[SO SÁNH]', '[SUY LUẬN]', '[DỰ ĐOÁN]', '[KHÁI QUÁT]',
+  '[PHẢN BIỆN]', '[SÁNG TẠO]', '[SỐ HỌC]', '[MÔ HÌNH HÓA]',
+  '[GHI NHỚ]', '[HIỂU]', '[VẬN DỤNG]', '[PHÂN TÍCH]',
+  '[NB]', '[TH]', '[VD]', '[VDC]',
+];
 
-describe('TOAN_COMMON_FORMAT — hợp đồng cấu trúc', () => {
+describe('TOAN_COMMON_FORMAT — hợp đồng cấu trúc (theo v13)', () => {
   it('chứa đúng header bảng hoạt động 3 cột', () => {
     expect(TOAN_COMMON_FORMAT).toContain(ACTIVITY_TABLE_HEADER);
   });
 
-  it('bảng mục tiêu có đủ 3 nhãn hàng Cơ bản/Trọng tâm/Nâng cao', () => {
+  it('có bảng thông tin hành chính (Lớp/Tên bài/Giáo viên/Tuần/Năm học)', () => {
+    expect(TOAN_COMMON_FORMAT).toContain('| Lớp |');
+    expect(TOAN_COMMON_FORMAT).toContain('| Giáo viên |');
+  });
+
+  it('bảng mục tiêu có đủ 3 nhãn hàng Cơ bản/Trọng tâm/Nâng cao + Bloom', () => {
     expect(TOAN_COMMON_FORMAT).toContain('| Cơ bản |');
     expect(TOAN_COMMON_FORMAT).toContain('| Trọng tâm |');
     expect(TOAN_COMMON_FORMAT).toContain('| Nâng cao |');
+    expect(TOAN_COMMON_FORMAT).toContain('[Bloom:');
   });
 
-  it('liệt kê đủ danh sách nhãn câu hỏi Socratic đóng', () => {
+  it('có đủ các thành phần v13: căn cứ điều chỉnh, mốc phút, 4 BƯỚC, kỹ thuật chờ, dự kiến khó khăn, lỗi phổ biến', () => {
+    expect(TOAN_COMMON_FORMAT).toContain('Căn cứ điều chỉnh từ đánh giá tiết trước');
+    expect(TOAN_COMMON_FORMAT).toContain('P1–P5');
+    expect(TOAN_COMMON_FORMAT).toContain('BƯỚC 1: KẾT NỐI');
+    expect(TOAN_COMMON_FORMAT).toContain('BƯỚC 4: CHUẨN HÓA');
+    expect(TOAN_COMMON_FORMAT).toContain('Chờ ≥ 3 giây');
+    expect(TOAN_COMMON_FORMAT).toContain('Dự kiến khó khăn');
+    expect(TOAN_COMMON_FORMAT).toContain('⚠ Lỗi phổ biến');
+    expect(TOAN_COMMON_FORMAT).toContain('HS yếu/TB');
+  });
+
+  it('liệt kê đủ danh sách nhãn đóng, và mọi nhãn đều khớp TOAN_NHAN_RE của style rules', () => {
     for (const label of NHAN_LABELS) {
       expect(TOAN_COMMON_FORMAT).toContain(label);
+      expect(TOAN_NHAN_RE.test(label)).toBe(true);
     }
+    expect(TOAN_NHAN_RE.test('[NB-1]')).toBe(true); // biến thể đánh số ô Tic-Tac-Toe
+    expect(TOAN_NHAN_RE.test('[nhãn thường]')).toBe(false);
   });
 
   it('có quy tắc LaTeX $...$ và cấm Unicode giả', () => {
     expect(TOAN_COMMON_FORMAT).toContain('$...$');
     expect(TOAN_COMMON_FORMAT).toContain('\\mid');
+    expect(TOAN_COMMON_FORMAT).toContain('CẤM Unicode giả');
   });
 });
 
@@ -37,37 +65,46 @@ describe('TOAN_KE_HOACH_FORMATS — mỗi kế hoạch riêng biệt, chỉ 1 ti
     expect(Object.keys(TOAN_KE_HOACH_FORMATS).sort()).toEqual(Object.keys(TOAN_KE_HOACH_LABELS).sort());
   });
 
-  it('kien_thuc có chuỗi Socratic + luyện tập phân hóa 3 mức', () => {
+  it('kien_thuc: KWLI + 4 bước + kiểm tra nhanh phân hóa; không lẫn Tic-Tac-Toe/dự án', () => {
     const f = TOAN_KE_HOACH_FORMATS.kien_thuc;
-    expect(f).toContain('HÌNH THÀNH KIẾN THỨC');
-    expect(f).toContain('### Mức TB');
-    expect(f).toContain('### Mức Giỏi');
+    expect(f).toContain('KWLI');
+    expect(f).toContain('BƯỚC 1 KẾT NỐI');
+    expect(f).toContain('ĐỒNG MỨC NB/TH/VD');
+    expect(f).toContain('KIỂM TRA NHANH');
     expect(f).not.toContain('TIC-TAC-TOE');
-    expect(f).not.toContain('JIGSAW');
+    expect(f).not.toContain('Dự án mini');
   });
 
-  it('luyen_tap có Tic-Tac-Toe NB/TH/VD, không dạy kiến thức mới', () => {
+  it('luyen_tap: sửa lỗi exit ticket + Tic-Tac-Toe 3×3 + phòng chờ; không dạy kiến thức mới', () => {
     const f = TOAN_KE_HOACH_FORMATS.luyen_tap;
-    expect(f).toContain('TIC-TAC-TOE');
+    expect(f).toContain('Sửa lỗi Exit ticket');
+    expect(f).toContain('Tic-Tac-Toe');
     expect(f).toContain('NB-1');
     expect(f).toContain('KHÔNG dạy kiến thức mới');
-    expect(f).not.toContain('JIGSAW');
+    expect(f).toContain('Phòng chờ Toán học');
+    expect(f).toContain('PHÂN CÔNG THEO NĂNG LỰC');
   });
 
-  it('dao_nguoc có phần trước giờ học + nhóm chuyên gia + vòng ghép', () => {
+  it('dao_nguoc: cảnh báo không dạy lại lý thuyết + quiz chuỗi Bloom + dự án mini + tranh biện + mindmap', () => {
     const f = TOAN_KE_HOACH_FORMATS.dao_nguoc;
-    expect(f).toContain('TRƯỚC GIỜ HỌC');
-    expect(f).toContain('Nhóm chuyên gia');
-    expect(f).toContain('VÒNG GHÉP');
-    expect(f).not.toContain('TIC-TAC-TOE');
+    expect(f).toContain('KHÔNG dạy lại lý thuyết');
+    expect(f).toContain('CHUỖI BLOOM');
+    expect(f).toContain('Dự án mini');
+    expect(f).toContain('Tranh biện');
+    expect(f).toContain('ĐIỂM SAO');
+    expect(f).toContain('MINDMAP');
+    expect(f).toContain('TRƯỚC TIẾT HỌC');
   });
 });
 
 describe('TOAN_ADDITIONAL_REQUIREMENTS', () => {
-  it('nhắc lại header 3 cột + few-shot có [NHÃN] và công thức $', () => {
+  it('nhắc lại header 3 cột + few-shot thật từ v13 (nhãn + công thức + kỹ thuật chờ)', () => {
     expect(TOAN_ADDITIONAL_REQUIREMENTS).toContain(ACTIVITY_TABLE_HEADER);
-    expect(TOAN_ADDITIONAL_REQUIREMENTS).toContain('[PHÁT HIỆN]');
-    expect(TOAN_ADDITIONAL_REQUIREMENTS).toContain('$\\vec{n}');
+    expect(TOAN_ADDITIONAL_REQUIREMENTS).toContain('[SO SÁNH]');
+    expect(TOAN_ADDITIONAL_REQUIREMENTS).toContain('[SỐ HỌC]');
+    expect(TOAN_ADDITIONAL_REQUIREMENTS).toContain('$\\overrightarrow{AB}');
+    expect(TOAN_ADDITIONAL_REQUIREMENTS).toContain('Chờ ≥ 3 giây');
     expect(TOAN_ADDITIONAL_REQUIREMENTS).toContain('KHÔNG dùng khung Dewey');
+    expect(TOAN_ADDITIONAL_REQUIREMENTS).toContain('KẾT QUẢ CUỐI');
   });
 });

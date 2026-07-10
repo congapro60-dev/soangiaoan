@@ -28,6 +28,8 @@ Bối cảnh: cowork đã tạo file mẫu vàng `KHDH_v13_PT_DuongThang_K10.doc
 
 **Verify:** tsc 0 lỗi · 147/147 test · build PASS · preview demo mode: picker + sub-picker + bulk disabled hoạt động đúng.
 
+**Nâng cấp prompt theo bản mẫu thật (commit riêng, cùng phiên):** user chê bản sinh đầu "thiếu rất nhiều thứ" — nguyên nhân: prompt Pha 1 viết từ OUTLINE cấu trúc, chưa nạp logic sư phạm chi tiết của v13. Đã đọc thẳng nguồn v13 (`khdh_final.md` + `build_v8_combined.js` trong sandbox cowork) và viết lại `toanFormats.ts` bám sát: bảng thông tin hành chính 6 cột; mục I đủ 4 phần (✓ năng lực, mục tiêu "Sau tiết học tôi có thể" + bảng 3 mức, phân hóa TB/Khá/Giỏi, tài liệu, **Căn cứ điều chỉnh từ tiết trước**); mốc phút P1–P40 từng hoạt động; 4 pha **BƯỚC 1 KẾT NỐI → 4 CHUẨN HÓA** trong HĐ chính; bộ nhãn đầy đủ 17 nhãn (Socratic + Bloom + NB/TH/VD/VDC — `TOAN_NHAN_RE` nới theo, khớp test); KWLI-Chart, exit ticket format điền, "Đáp án PHT"/"⚠ Lỗi phổ biến" ở cột ghi bảng, nhóm đồng mức, "Phòng chờ Toán học", quiz chuỗi Bloom, quy tắc tranh biện + điểm sao, mindmap 5 nhánh gắn mức, BTVN 4 dòng; few-shot thay bằng TRÍCH ĐOẠN THẬT từ v13. Test hợp đồng viết lại (11 test). LƯU Ý cấu trúc tiết đảo ngược theo v13 = quiz Bloom + dự án mini + tranh biện + mindmap (jigsaw chuyên gia nằm ở PHIẾU 6A/6B/6C — thuộc Pha 3).
+
 **Việc còn:**
 - ⚠️ **TODO mirror `api/render-word-core.ts`** (bản server, đường bot-push `/api/export-lesson`): chưa có styleProfile → plan 'toan' đẩy sang bot sẽ render generic. Mirror bằng chính data `toanStyleRules.ts`.
 - Nghiệm thu chất lượng NỘI DUNG AI sinh: cần key AI thật, soạn thử cả 3 kế hoạch → xuất Word mở kiểm tra (banner màu, cột 11/54/35%, công thức double-click được).

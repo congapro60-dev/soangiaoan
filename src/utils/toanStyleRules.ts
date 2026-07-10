@@ -23,7 +23,7 @@ export const normalizeViHeading = (s: string): string =>
 export const TOAN_BANNER_MATCHERS: Array<{ re: RegExp; fill: string }> = [
   { re: /thong tin chung/, fill: 'c9daf8' },
   { re: /muc tieu|phan hoa muc tieu/, fill: 'fce5cd' },
-  { re: /khoi dong|xac dinh muc tieu|tien trinh/, fill: 'cfe2f3' },
+  { re: /khoi dong|xac dinh muc tieu|xac dinh nhiem vu|tien trinh/, fill: 'cfe2f3' },
   { re: /mo rong|van dung thuc te|co hoi hoc tap/, fill: 'c9daf8' },
   { re: /so ket|rut kinh nghiem|tong hop|tong ket/, fill: 'b4a7d6' },
   { re: /btvn|ve nha|huong dan ve nha/, fill: 'ead1dc' },
@@ -61,8 +61,12 @@ export const matchToanObjectiveRowFill = (firstCellText: string): string | undef
   return undefined;
 };
 
-/** Nhãn câu hỏi Socratic [PHÁT HIỆN]... ở đầu đoạn/ô — render bold màu xanh đậm. */
-export const TOAN_NHAN_RE = /^\s*\[(PHÁT HIỆN|SO SÁNH|DỰ ĐOÁN|PHẢN VÍ DỤ|KHÁI QUÁT|VÌ SAO)\]/;
+/**
+ * Nhãn câu hỏi ở đầu đoạn/ô — render bold màu xanh đậm. Danh sách ĐÓNG khớp hợp đồng
+ * trong toanFormats.ts (Socratic + Bloom + mức độ, kèm biến thể đánh số [NB-1]).
+ */
+export const TOAN_NHAN_RE =
+  /^\s*\[(PHÁT HIỆN|SO SÁNH|SUY LUẬN|DỰ ĐOÁN|KHÁI QUÁT|PHẢN BIỆN|SÁNG TẠO|SỐ HỌC|MÔ HÌNH HÓA|GHI NHỚ|HIỂU|VẬN DỤNG|PHÂN TÍCH|NB|TH|VD|VDC)(-\d+)?\]/;
 
 /** Màu chữ nhãn câu hỏi (v13: 1F4E79). */
 export const TOAN_NHAN_COLOR = '1F4E79';

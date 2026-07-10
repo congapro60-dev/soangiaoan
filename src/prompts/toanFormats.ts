@@ -1,144 +1,182 @@
 import type { ToanKeHoach } from '../types';
 
 /**
- * Format prompts cho loại giáo án "Giáo án ban Toán" (KHDH kiểu v13 — xem
- * outputs/khdh/build_v8_combined.js + tasks/session_khdh_bai19.md).
+ * Format prompts cho loại giáo án "Giáo án ban Toán" — bám sát bản mẫu vàng KHDH v13
+ * (nguồn thiết kế: khdh_final.md + build_v8_combined.js của phiên cowork, xem
+ * tasks/session_khdh_bai19.md).
  *
- * HỢP ĐỒNG CẤU TRÚC (Pha 2 xuất Word có style dựa vào đúng các quy ước này):
+ * HỢP ĐỒNG CẤU TRÚC (Pha 2 xuất Word có style nhận diện đúng các chuỗi này):
  * - Bảng hoạt động 3 cột: `| Thời gian | Giáo viên và Học sinh | Nội dung ghi bảng |`
- * - Bảng mục tiêu 2 cột với nhãn hàng đúng chữ: Cơ bản / Trọng tâm / Nâng cao
- * - Câu hỏi Socratic gắn nhãn `**[NHÃN]**` từ danh sách đóng
- * → Đổi các chuỗi này là VỠ nhận diện style khi xuất Word.
+ * - Bảng mục tiêu có nhãn hàng đúng chữ: Cơ bản / Trọng tâm / Nâng cao
+ * - Câu hỏi gắn nhãn `**[NHÃN VIẾT HOA]**`
+ * → Đổi các chuỗi này là VỠ nhận diện style khi xuất Word (có test chặn).
  */
 
 export const TOAN_COMMON_FORMAT = `
-===== MẪU KẾ HOẠCH DẠY HỌC BAN TOÁN — KHDH SOCRATIC PHÂN HÓA (BẮT BUỘC TUÂN THỦ) =====
+===== MẪU KẾ HOẠCH DẠY HỌC BAN TOÁN — KHDH SOCRATIC PHÂN HÓA (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI) =====
 
-Đây là KẾ HOẠCH DẠY HỌC 1 TIẾT (40 phút) môn Toán theo phương pháp Socratic + phân hóa 3 mức Trung bình/Khá/Giỏi. Soạn CHỈ MỘT tiết theo đúng kế hoạch bài dạy được chỉ định bên dưới.
+Soạn KẾ HOẠCH DẠY HỌC cho ĐÚNG MỘT TIẾT (40 phút) môn Toán theo kế hoạch bài dạy được chỉ định bên dưới. Triết lý: GV KHÔNG giảng một chiều — dẫn dắt bằng câu hỏi Socratic, HS tự khám phá; phân hóa mọi nhiệm vụ theo 3 mức; mọi hoạt động có mốc thời gian phút cụ thể.
 
 A. KHUNG TÀI LIỆU (đúng thứ tự, đúng tên heading):
 
 # KẾ HOẠCH DẠY HỌC — [Tên bài] (Tiết [N]: [Tên kế hoạch bài dạy])
 
-## I. THÔNG TIN CHUNG
-- Môn: Toán · Lớp: [lớp] · Thời lượng: 40 phút · Tuần: [tuần]
-- Năng lực cốt lõi hướng tới (chọn 2-3): Tư duy và lập luận toán học, Mô hình hóa toán học, Giao tiếp toán học, Giải quyết vấn đề toán học, Sử dụng công cụ học toán.
-- Căn cứ điều chỉnh từ tiết trước: [1-2 dòng — lỗi phổ biến HS mắc, mức độ nắm bài]
+Ngay dưới tiêu đề: bảng thông tin hành chính 6 cột:
+| Lớp | [lớp] | Tên bài học | [tên bài — Tiết N: tên kế hoạch] | Môn học | Toán |
+|---|---|---|---|---|---|
+| Giáo viên | .......... | Tuần học | [tuần] | Năm học | [năm học hiện tại] |
 
-## II. MỤC TIÊU
-BẮT BUỘC là bảng 2 cột với ĐÚNG 3 hàng, nhãn hàng đúng chữ "Cơ bản"/"Trọng tâm"/"Nâng cao", mỗi mục tiêu kết thúc bằng thẻ Bloom:
+## I. THÔNG TIN CHUNG
+**1. Tiêu chuẩn năng lực cốt lõi** — danh sách ✓ chọn 3-5 năng lực đúng với tiết này (Tư duy và lập luận toán học / Mô hình hóa toán học / Giải quyết vấn đề toán học / Giao tiếp toán học / Sử dụng công cụ học toán / Tự học tự nghiên cứu).
+
+**2. Mục tiêu học tập** — mở đầu "Sau tiết học, tôi có thể:" rồi bảng 3 hàng, nhãn hàng ĐÚNG CHỮ, mỗi mục tiêu đo được + thẻ Bloom:
 | Mức độ | Mục tiêu |
 |---|---|
-| Cơ bản | [mục tiêu tối thiểu mọi HS đạt] [Bloom: Nhớ – Hiểu] |
-| Trọng tâm | [mục tiêu chính của tiết] [Bloom: Áp dụng] |
-| Nâng cao | [mục tiêu thử thách] [Bloom: Phân tích – Sáng tạo] |
+| Cơ bản | [mọi HS đạt — động từ đo được: mô tả/lập/nhận biết...] [Bloom: Nhớ – Hiểu] |
+| Trọng tâm | [mục tiêu chính tiết học] [Bloom: Áp dụng] |
+| Nâng cao | [thử thách: chứng minh/thiết kế/liên hệ] [Bloom: Phân tích – Sáng tạo] |
 
-## III. PHÂN HÓA MỤC TIÊU
-Bảng 4 cột, mỗi hàng ứng 1 mục tiêu ở trên:
-| Mục tiêu | Mức Trung bình | Mức Khá | Mức Giỏi |
-|---|---|---|---|
+**3. Phân hóa mục tiêu** — bảng:
+| Mức Trung bình | Mức Khá | Mức Giỏi |
+|---|---|---|
+| [nhiệm vụ cụ thể + bài SGK] | [nhiệm vụ + bài SGK] | [bài nâng cao/chứng minh/tự thiết kế] |
 
-## IV. TIẾN TRÌNH HOẠT ĐỘNG (40 phút)
-[Các hoạt động theo kế hoạch bài dạy chỉ định — xem mục C bên dưới]
+**4. Tài liệu dạy học** — SGK (kèm trang), phiếu học tập cần in (đặt tên rõ: "Phiếu số 1 — ..."), bảng con/bút lông, học liệu số.
+
+**Căn cứ điều chỉnh từ đánh giá tiết trước:** 3-4 gạch đầu dòng GIẢ ĐỊNH THỰC TẾ (vd "70% nắm X; 40% nhầm Y") và mũi tên → hành động điều chỉnh trong tiết này. KHÔNG viết chung chung.
+
+## II. TIẾN TRÌNH HOẠT ĐỘNG
+[Các hoạt động theo kế hoạch chỉ định — mục C. Heading mỗi hoạt động PHẢI kèm thời lượng + mốc phút: "### 1. KHỞI ĐỘNG — [tên] (5 phút, P1–P5)". Tổng các mốc phủ kín P1–P40.]
 
 ## HƯỚNG DẪN VỀ NHÀ (BTVN)
-Phân hóa 3 mức: nhiệm vụ Mức TB (bắt buộc) / Mức Khá / Mức Giỏi (thử thách), kèm đáp số hoặc gợi ý ngắn.
+Đúng 4 dòng phân tầng:
+- **HS yếu/TB:** [bài SGK cụ thể + ôn gì]
+- **HS khá:** [bài SGK cụ thể]
+- **HS giỏi:** [bài khó/chứng minh/đọc thêm "Em có biết?"]
+- **Toàn lớp:** [chuẩn bị tiết sau: video/phiếu chuẩn bị]
 
 ## SƠ KẾT / RÚT KINH NGHIỆM
-- Exit ticket 1-2 câu (kèm đáp án) + sơ đồ chốt kiến thức dạng liệt kê nhánh.
-- 2-3 dòng GV tự rút kinh nghiệm dự kiến.
+- Exit ticket đúng format 2 dòng điền: "✓ [ý 1]: ___________" / "? [ý 2]: ___________".
+- 2-3 dòng dự kiến rút kinh nghiệm của GV.
 
 B. QUY TẮC TRÌNH BÀY HOẠT ĐỘNG (TUYỆT ĐỐI TUÂN THỦ):
 
-1. MỖI hoạt động là heading "## HOẠT ĐỘNG [n]: [TÊN] (~[x] phút)" theo sau là ĐÚNG bảng 3 cột:
+1. MỖI hoạt động là 1 bảng ĐÚNG 3 cột:
 | Thời gian | Giáo viên và Học sinh | Nội dung ghi bảng |
 |---|---|---|
-   - Cột "Thời gian": mốc ngắn gọn (vd "P1–P5"). Cột này hẹp — KHÔNG viết câu dài.
-   - Cột "Giáo viên và Học sinh": kịch bản đối thoại GV↔HS, câu hỏi Socratic, kỹ thuật chờ ("Chờ ≥ 3 giây, gọi ngẫu nhiên, không tự trả lời"), scaffold cho HS yếu.
-   - Cột "Nội dung ghi bảng": định nghĩa/công thức/lời giải mẫu HS chép vở — KHÔNG để trống, KHÔNG lẫn lời thoại.
-   - Mỗi lượt trao đổi GV↔HS = 1 hàng riêng. KHÔNG dùng <br/><br/> gộp nhiều lượt vào 1 hàng.
+   - Cột "Thời gian": chỉ mốc phút "P8–P25" — KHÔNG viết câu.
+   - Cột "Giáo viên và Học sinh": kịch bản chi tiết — lời GV trong ngoặc kép, câu hỏi gắn nhãn, nhiệm vụ phân hóa, kỹ thuật sư phạm.
+   - Cột "Nội dung ghi bảng": ĐÚNG những gì hiện trên bảng để HS chép vở — định nghĩa/công thức ($$...$$), **Đáp án** từng nhiệm vụ (tính ra KẾT QUẢ CUỐI, không bỏ lửng), và dòng "⚠ Lỗi phổ biến: [lỗi + cách nhớ]" khi có bẫy. KHÔNG để trống, KHÔNG lẫn lời thoại.
 
-2. NHÃN CÂU HỎI SOCRATIC: câu hỏi dẫn dắt trong cột "Giáo viên và Học sinh" PHẢI mở đầu bằng nhãn in đậm từ danh sách đóng này (không tự chế nhãn khác):
-   **[PHÁT HIỆN]** · **[SO SÁNH]** · **[DỰ ĐOÁN]** · **[PHẢN VÍ DỤ]** · **[KHÁI QUÁT]** · **[VÌ SAO]**
-   Ví dụ: **[PHÁT HIỆN]** Em có nhận xét gì về phương của vectơ $\\vec{n}$ so với đường thẳng $\\Delta$?
+2. CÁC PHA TRONG HOẠT ĐỘNG CHÍNH — đánh dấu ngay trong ô cột 2 bằng: **── BƯỚC 1: KẾT NỐI (x phút) ──** → **── BƯỚC 2: HÌNH THÀNH (x phút) ──** → **── BƯỚC 3: KIỂM TRA (x phút) ──** → **── BƯỚC 4: CHUẨN HÓA (x phút) ──**. Hoạt động ngắn (khởi động/sơ kết) không cần chia bước.
 
-3. PHÂN HÓA TRONG HOẠT ĐỘNG: khi giao nhiệm vụ, tách rõ 3 khối "### Mức TB" / "### Mức Khá" / "### Mức Giỏi" (hoặc gắn nhãn **Mức TB:** trong ô bảng), mỗi mức có đề bài + lời giải/đáp số ở cột 3. Mức TB phải có scaffold từng bước; Mức Giỏi là câu chứng minh/mở rộng.
+3. NHÃN CÂU HỎI — mọi câu hỏi dẫn dắt PHẢI mở đầu bằng nhãn in đậm **[NHÃN VIẾT HOA]**:
+   - Nhãn Socratic: **[PHÁT HIỆN]** **[SO SÁNH]** **[SUY LUẬN]** **[DỰ ĐOÁN]** **[KHÁI QUÁT]** **[PHẢN BIỆN]** **[SÁNG TẠO]** **[SỐ HỌC]** **[MÔ HÌNH HÓA]**
+   - Nhãn Bloom cho quiz: **[GHI NHỚ]** **[HIỂU]** **[VẬN DỤNG]** **[PHÂN TÍCH]**
+   - Nhãn mức độ bài tập: **[NB]** **[TH]** **[VD]** **[VDC]**
+   Phân bố: mỗi hoạt động chính ≥ 4 câu có nhãn; toàn tiết PHẢI có ≥ 1 câu **[PHẢN BIỆN]** (cài lời giải sai/quan điểm sai cho HS bắt lỗi) và ≥ 1 câu **[SÁNG TẠO]** (dành HS giỏi).
 
-4. DỰ KIẾN KHÓ KHĂN: mỗi hoạt động chính có 1 dòng "→ Dự kiến khó khăn: [lỗi HS hay mắc + cách GV bẫy sớm]".
+4. KỸ THUẬT CHỜ — sau MỖI cụm câu hỏi ghi rõ: "→ Chờ ≥ 3 giây, gọi ngẫu nhiên (không gọi HS giơ tay), không tự trả lời, hỏi thêm 'Tại sao?'". Câu phản biện/sáng tạo: chờ ≥ 5 giây, hỏi "Bằng chứng nào?".
+
+5. PHÂN HÓA TRONG NHIỆM VỤ — chia nhóm/cặp ĐỒNG MỨC và giao nhiệm vụ KHÁC NHAU theo đúng mức: "Nhóm NB: [đề]... Nhóm TH: [đề]... Nhóm VD/Giỏi: [đề khó hơn hẳn]". GV di chuyển quan sát, KHÔNG giải thay. Cột 3 có Đáp án đủ CẢ 3 mức.
+
+6. DỰ KIẾN KHÓ KHĂN — mỗi hoạt động chính có dòng "→ Dự kiến khó khăn: [lỗi HS hay mắc] → GV [cách bẫy sớm/xử lý]".
 
 C. QUY TẮC CÔNG THỨC TOÁN (TUYỆT ĐỐI):
-- Công thức trong dòng: $...$ (vd $ax+by+c=0$, $\\vec{n}(a;b)$, $M_0(x_0;y_0)$).
-- Công thức đứng riêng: $$...$$.
-- MỌI ký hiệu toán (vectơ, chỉ số dưới, phân số, căn...) phải nằm trong $...$ — TUYỆT ĐỐI KHÔNG viết ký tự Unicode giả (n⃗, x₀, √2) ngoài công thức.
-- KHÔNG dùng ký tự "|" trong công thức (vỡ bảng) — dùng \\mid.
+- Trong dòng: $...$ (vd $ax+by+c=0$, $\\vec{n}(a;b)$, $\\overrightarrow{AB}$, $M_0(x_0;y_0)$). Đứng riêng: $$...$$.
+- MỌI ký hiệu toán phải trong $...$ — CẤM Unicode giả (n⃗, x₀, √2) ngoài công thức.
+- KHÔNG dùng "|" trong công thức (vỡ bảng) — dùng \\mid; hệ PT tham số dùng \\begin{cases}...\\end{cases}.
 - Tiếng Việt gõ liền mạch chuẩn, không tách rời dấu.
 ===== HẾT MẪU CHUNG =====
 `;
 
 const TOAN_KIEN_THUC = `
-===== KẾ HOẠCH BÀI DẠY ĐƯỢC CHỈ ĐỊNH: TIẾT HÌNH THÀNH KIẾN THỨC =====
-Mục IV. TIẾN TRÌNH gồm ĐÚNG các hoạt động sau (mỗi cái 1 bảng 3 cột như quy tắc B):
+===== KẾ HOẠCH BÀI DẠY CHỈ ĐỊNH: TIẾT HÌNH THÀNH KIẾN THỨC =====
+Mục II. TIẾN TRÌNH gồm ĐÚNG các hoạt động sau (đúng tên, đúng khung phút):
 
-## HOẠT ĐỘNG 1: KHỞI ĐỘNG (~5 phút)
-- Bài toán thực tế/tình huống có vấn đề gắn trực tiếp với kiến thức mới (không phải kiểm tra bài cũ suông); 2-3 câu hỏi tái hiện kiến thức nền cần dùng.
+### 1. KHỞI ĐỘNG — Bài toán mở đầu (5 phút, P1–P5)
+- GV chiếu tình huống thực tế gắn TRỰC TIẾP kiến thức mới + nêu "câu hỏi thiết yếu" giữ nguyên suốt tiết (in nghiêng, trong ngoặc kép).
+- HS giơ BẢNG CON ôn 3 câu kiến thức nền cần dùng (gắn nhãn **[SO SÁNH]**/**[SỐ HỌC]**); cột 3 ghi "BẢNG CON ÔN TẬP" + công thức nền → chốt "Đây là công cụ sẽ dùng để...".
 
-## HOẠT ĐỘNG 2: HÌNH THÀNH KIẾN THỨC (~15 phút)
-- Chuỗi Socratic TỐI THIỂU 6 câu hỏi gắn nhãn **[NHÃN]** dẫn HS TỰ khám phá ra định nghĩa/công thức mới (quan sát → so sánh → dự đoán → kiểm chứng → khái quát), tuyệt đối không thuyết trình một chiều.
-- Chốt kiến thức: định nghĩa/công thức chính thức ở cột "Nội dung ghi bảng" (dạng $$...$$), kèm 1 ví dụ nhận diện nhanh.
+### 2. XÁC ĐỊNH MỤC TIÊU (3 phút, P5–P8)
+- HS điền cột K, W phiếu KWLI-Chart (K: Tôi đã biết / W: Tôi muốn biết / L, I: điền cuối tiết); GV gọi ngẫu nhiên 2 HS chia sẻ; chiếu mục tiêu — HS đánh dấu mục tiêu chưa chắc; nêu câu hỏi trọng tâm. Cột 3: khung KWLI-CHART.
 
-## HOẠT ĐỘNG 3: LUYỆN TẬP PHÂN HÓA (~12 phút)
-- 3 khối "### Mức TB" (có scaffold từng bước) / "### Mức Khá" / "### Mức Giỏi" (chứng minh/mở rộng), mỗi khối 1 bài + lời giải đầy đủ ở cột 3.
+### 3. CÁC HOẠT ĐỘNG HỌC TẬP CHÍNH (~24 phút, P8–P32)
+- 1-2 hoạt động "**HĐ[n] — [tên đơn vị kiến thức] ([x] phút)**", MỖI HĐ đủ 4 BƯỚC:
+  - BƯỚC 1 KẾT NỐI: từ HĐ khám phá SGK, chuỗi 2-3 câu **[SUY LUẬN]**/**[PHÁT HIỆN]** dẫn HS TỰ dẫn ra công thức.
+  - BƯỚC 2 HÌNH THÀNH: nhóm ĐỒNG MỨC NB/TH/VD với 3 nhiệm vụ khác nhau (phiếu học tập); 1 câu **[KHÁI QUÁT]** (tự phát biểu định nghĩa) + 1 câu **[PHẢN BIỆN]** (quan điểm sai cài sẵn).
+  - BƯỚC 3 KIỂM TRA: bảng con 1 bài nhanh + 1 câu **[PHẢN BIỆN]** bắt lỗi sai dấu/bẫy phổ biến.
+  - BƯỚC 4 CHUẨN HÓA: **[KHÁI QUÁT]** phát biểu tổng quát + điều kiện; **[SÁNG TẠO]** (HS giỏi) trường hợp đặc biệt; HS thumbs up/down mục tiêu.
+- Cột 3 mỗi HĐ: công thức chốt $$...$$, các dạng đặc biệt, "**Đáp án PHT:** NB:... TH:... VD:...", "⚠ Lỗi phổ biến:...".
 
-## HOẠT ĐỘNG 4: MỞ RỘNG / VẬN DỤNG THỰC TẾ (~5 phút)
-- 1 bài toán bối cảnh thực tế đặt HS vào vai chuyên gia (kỹ sư/nhà quy hoạch...), có bước MÔ HÌNH HÓA (câu hỏi **[PHÁT HIỆN]** trước khi tính).
+### 4. KIỂM TRA NHANH — MỞ RỘNG (3 phút, P32–P38)
+- Bảng con nhóm đôi 3 câu phân hóa **[NB]**/**[TH]**/**[VDC]** (VDC dành HS giỏi); cột 3 ghi ĐÁP ÁN cả 3.
 
-## HOẠT ĐỘNG 5: SƠ KẾT (~3 phút)
-- Chốt sơ đồ kiến thức + exit ticket (nội dung chi tiết đặt ở mục SƠ KẾT / RÚT KINH NGHIỆM).
+### 5. SƠ KẾT & EXIT TICKET (2 phút, P38–P40)
+- HS điền cột L, I của KWLI; 2 câu **[KHÁI QUÁT]**/**[SÁNG TẠO]** gọi ngẫu nhiên; Exit ticket 30 giây: "✓ Hiểu rõ nhất: ___" / "? Còn thắc mắc: ___".
+
+### 6. BÀI TẬP VỀ NHÀ — theo format chung 4 dòng.
 ===== HẾT KẾ HOẠCH CHỈ ĐỊNH =====
 `;
 
 const TOAN_LUYEN_TAP = `
-===== KẾ HOẠCH BÀI DẠY ĐƯỢC CHỈ ĐỊNH: TIẾT LUYỆN TẬP / HÌNH THÀNH KỸ NĂNG =====
-Tiết này KHÔNG dạy kiến thức mới — chỉ luyện kỹ năng của kiến thức đã học. Mục IV. TIẾN TRÌNH gồm:
+===== KẾ HOẠCH BÀI DẠY CHỈ ĐỊNH: TIẾT LUYỆN TẬP / HÌNH THÀNH KĨ NĂNG =====
+Tiết này KHÔNG dạy kiến thức mới — chỉ luyện kỹ năng đã học. Mục II. TIẾN TRÌNH gồm:
 
-## HOẠT ĐỘNG 1: TÁI HIỆN KIẾN THỨC (~5 phút)
-- 3-4 câu hỏi nhanh gắn nhãn **[NHÃN]** giúp HS tự nhắc lại công thức/quy trình cốt lõi; bảng tóm tắt công thức ở cột "Nội dung ghi bảng".
+### 1. KHỞI ĐỘNG — Ôn nhanh + Sửa lỗi Exit ticket tiết trước (5 phút, P1–P5)
+- GV chiếu 2-3 LỖI PHỔ BIẾN từ exit ticket tiết trước (ẩn tên HS); bảng con 4 câu nhanh 40 giây/câu gắn nhãn (**[SO SÁNH]** **[PHÁT HIỆN]** **[SUY LUẬN]** **[PHẢN BIỆN]** — câu phản biện là cặp bài dễ nhầm để HS kiểm tra bằng số). Cột 3: "ÔN TẬP NHANH" — bảng công thức + đáp án 4 câu.
 
-## HOẠT ĐỘNG 2: HÌNH THÀNH KỸ NĂNG QUA PHÂN TÍCH LỖI SAI (~12 phút)
-- 1-2 bài mẫu GV-HS cùng giải theo quy trình chuẩn từng bước.
-- BẮT BUỘC có 1 "bài giải sai cài sẵn" (lỗi phổ biến, vd nhầm dấu): HS đóng vai người chấm, tìm lỗi và sửa — dùng **[PHẢN VÍ DỤ]** / **[VÌ SAO]**.
+### 2. XÁC ĐỊNH MỤC TIÊU (2 phút, P5–P7)
+- Thông báo: "Hôm nay các em TỰ CHỌN thử thách trong phiếu Tic-Tac-Toe" + câu hỏi trọng tâm. Cột 3: 3 gạch mục tiêu tiết.
 
-## HOẠT ĐỘNG 3: TIC-TAC-TOE PHÂN HÓA (~18 phút)
-- Bảng markdown 3×3: 9 ô nhiệm vụ đánh mã "NB-1..3" (Nhận biết), "TH-1..3" (Thông hiểu), "VD-1..3" (Vận dụng), bố trí sao cho mọi đường thẳng 3 ô đều trộn mức độ.
-- Luật chơi ghi rõ: HS/cặp chọn 1 đường 3 ô để hoàn thành; xong sớm chọn thêm đường khác.
-- Sau bảng: TỪNG Ô có đề bài đầy đủ + lời giải chi tiết + đáp số (đặt trong bảng 3 cột hoạt động, lời giải ở cột "Nội dung ghi bảng").
+### 3. HĐ1 — Luyện tập cá nhân: Phiếu Tic-Tac-Toe phân hóa (18 phút, P7–P25)
+- Bảng markdown 3×3 = 9 ô nhiệm vụ mã "NB-1..3 / TH-1..3 / VD-1..2 / VDC-1", bố trí để MỌI đường 3 ô đều trộn mức độ; ghi luật: HS tự chọn 1 hàng/cột/chéo (3 ô), làm 12 phút, xong sớm chọn thêm.
+- Dưới bảng: TỪNG Ô có đề đầy đủ (số liệu cụ thể, ưu tiên bám bài SGK) — trong bảng hoạt động 3 cột, lời giải + đáp số TỪNG Ô ở cột 3.
+- GV di chuyển hỏi thăm dò (≥ 4 câu nhãn: **[SO SÁNH]** cách giải, **[SUY LUẬN]** bước tiếp theo, **[PHẢN BIỆN]** tự kiểm tra kết quả, **[KHÁI QUÁT]** quy trình mấy bước) — KHÔNG giải thay.
+- 4 phút cuối: "Chia sẻ bảng" — 2 HS lên bảng (ưu tiên ô nhiều lỗi), lớp phản biện, GV chuẩn hóa + nhấn lỗi phổ biến.
 
-## HOẠT ĐỘNG 4: SƠ KẾT (~5 phút)
-- Tổng kết các dạng bài + lỗi cần tránh; exit ticket.
+### 4. HĐ2 — Luyện tập nhóm: Bài toán thực tiễn (10 phút, P25–P35)
+- Nhóm 4 giải 1 bài VẬN DỤNG THỰC TẾ (ưu tiên bài SGK có bối cảnh thật); PHÂN CÔNG THEO NĂNG LỰC ghi rõ: "HS 1 (TB): [việc]... HS 4 (giỏi): [việc khó + tự đặt bài tương tự]".
+- ≥ 3 câu gợi mở nhãn (**[PHÁT HIỆN]** ý nghĩa đại lượng, **[PHẢN BIỆN]** giới hạn mô hình, **[SÁNG TẠO]** đặt bài tương tự); đại diện trình bày, lớp phản biện, GV liên hệ thực tế. Cột 3: lời giải đầy đủ ra số cuối.
+
+### 5. MỞ RỘNG — Phòng chờ Toán học (3 phút, P35–P38)
+- HS giỏi: 1 bài chứng minh/đào sâu + câu **[SÁNG TẠO]**; HS còn lại hoàn thành Tic-Tac-Toe + bảng so sánh kiến thức vào vở.
+
+### 6. SƠ KẾT & EXIT TICKET (2 phút, P38–P40) — tự đánh giá số ô hoàn thành; exit ticket "✓ Dạng làm tốt: ___ / → Cần luyện thêm: ___".
+
+### 7. BÀI TẬP VỀ NHÀ — format chung 4 dòng (toàn lớp: phiếu chuẩn bị nếu tiết sau là đảo ngược).
 ===== HẾT KẾ HOẠCH CHỈ ĐỊNH =====
 `;
 
 const TOAN_DAO_NGUOC = `
-===== KẾ HOẠCH BÀI DẠY ĐƯỢC CHỈ ĐỊNH: TIẾT LỚP HỌC ĐẢO NGƯỢC / JIGSAW =====
-Tiết ôn tập/hệ thống hóa bằng lớp học đảo ngược + kỹ thuật mảnh ghép. Cấu trúc mục IV:
+===== KẾ HOẠCH BÀI DẠY CHỈ ĐỊNH: TIẾT LỚP HỌC ĐẢO NGƯỢC =====
+Ngay sau mục I, thêm khung cảnh báo (blockquote):
+> **⚠ LƯU Ý: Tiết LỚP HỌC ĐẢO NGƯỢC — KHÔNG dạy lại lý thuyết tại lớp.** Lý thuyết đã học ở nhà qua video/phiếu → 100% thời gian trên lớp dành cho vận dụng, tranh biện, tổng hợp. GV chỉ hỗ trợ bằng câu hỏi gợi mở, KHÔNG giảng trực tiếp.
+Mục "3. Tài liệu dạy học" tách 2 phần: "TRƯỚC TIẾT HỌC (HS tự học ở nhà):" (video + phiếu chuẩn bị) và "TRONG TIẾT HỌC:" (phiếu dự án, giấy A3, bảng con, phiếu đánh giá chéo).
 
-## TRƯỚC GIỜ HỌC (giao trước 1-2 ngày)
-- Học liệu HS tự học ở nhà (mục SGK/video cần xem) + 3 câu hỏi kiểm soát tự học (kèm đáp án để GV đối chiếu). Phần này KHÔNG cần bảng 3 cột — dùng danh sách.
+Mục II. TIẾN TRÌNH HOẠT ĐỘNG TRÊN LỚP gồm:
 
-## HOẠT ĐỘNG 1: KIỂM TRA CHUẨN BỊ (~5 phút)
-- Quick-check 2-3 câu từ phần tự học; xử lý HS chưa chuẩn bị (ghép cặp hỗ trợ).
+### 1. KIỂM TRA CHUẨN BỊ & LÀM RÕ THẮC MẮC (7 phút, P1–P7)
+- Bước 1 (1'): quan sát nhanh phiếu chuẩn bị, ghi lỗi phổ biến.
+- Bước 2 (4'): QUIZ 4 CÂU CHUỖI BLOOM tăng dần **[GHI NHỚ]** → **[HIỂU]** → **[VẬN DỤNG]** → **[PHÂN TÍCH]** (số liệu cụ thể; cột 3 ghi "QUIZ — ĐÁP ÁN" đủ 4 câu). HS sai Q1-Q2 → xếp vào nhóm có HS giỏi hỗ trợ.
+- Bước 3 (2'): "Em có câu hỏi gì từ video/phiếu?" — giải tối đa 2 câu ngắn, câu sâu chuyển vào dự án.
 
-## HOẠT ĐỘNG 2: NHÓM CHUYÊN GIA — JIGSAW VÒNG 1 (~12 phút)
-- Chia 3 nhóm chuyên gia, mỗi nhóm 1 mảng kiến thức. Với TỪNG nhóm viết khối "### Nhóm chuyên gia [A/B/C]: [tên mảng]" gồm: nhiệm vụ đào sâu + 2 câu hỏi **[NHÃN]** định hướng + sản phẩm phải chuẩn bị để đi dạy lại (bảng tóm tắt/ví dụ mẫu, ghi ở cột "Nội dung ghi bảng").
+### 2. XÁC ĐỊNH NHIỆM VỤ TIẾT HỌC (2 phút, P7–P9)
+- GV: "Hôm nay KHÔNG học lý thuyết — các em VẬN DỤNG và TRANH BIỆN" + 2 câu hỏi trọng tâm thực tiễn. Cột 3: "CẤU TRÚC TIẾT" liệt kê 5 mục + phút.
 
-## HOẠT ĐỘNG 3: VÒNG GHÉP — CHIA SẺ CHÉO (~12 phút)
-- Trộn nhóm (mỗi nhóm mới đủ chuyên gia A+B+C), mỗi chuyên gia dạy lại mảng của mình trong 3 phút; nhóm hoàn thành 1 nhiệm vụ tổng hợp cần kiến thức CẢ 3 mảng (đề + lời giải ở cột 3).
+### 3. HĐ1 — Dự án mini nhóm (18 phút, P9–P27)
+- 1 BÀI TOÁN THỰC TIỄN PHỨC HỢP có hệ tọa độ hóa bối cảnh thật (nêu rõ gốc O là gì, 1 đơn vị = bao nhiêu; 3-4 điểm dữ liệu cụ thể).
+- PHÂN CÔNG THEO NĂNG LỰC: "HS 1: [nhiệm vụ nền]... HS 4 (giỏi): [nhiệm vụ khó + mở rộng]".
+- GV quan sát 14 phút, ≥ 5 câu gợi mở đủ phổ nhãn (**[SO SÁNH]** **[PHÁT HIỆN]** **[SUY LUẬN]** **[KHÁI QUÁT]** **[PHẢN BIỆN]** **[SÁNG TẠO]**), chờ ≥ 5 giây, KHÔNG giải thay.
+- Cột 3: "DỰ ÁN — ĐÁP ÁN" giải đầy đủ TỪNG nhiệm vụ ra kết quả cuối.
 
-## HOẠT ĐỘNG 4: TỔNG HỢP & LUYỆN TẬP CHUNG (~8 phút)
-- Sơ đồ hệ thống hóa toàn bài (dạng nhánh) + 2 bài luyện nhanh phân hóa (TB bắt buộc, Giỏi thử thách) kèm đáp án.
+### 4. HĐ2 — Trình bày & Tranh biện toán học (8 phút, P27–P35)
+- 1 nhóm trình bày A3 (3'); tranh biện (5') với QUY TẮC ghi rõ: "Tôi đồng ý/không đồng ý vì... + lập luận Toán học"; GV không nhận xét ngay — hỏi "Có ai phản bác không?"; ĐIỂM SAO: lập luận đúng +1, phản bác có cơ sở +1, tự đặt câu hỏi hay +1. ≥ 3 câu **[PHẢN BIỆN]**/**[SO SÁNH]**/**[KHÁI QUÁT]** (vd đổi hệ trục thì PT đổi không?). Cột 3: các phép kiểm tra bằng số + bảng điểm sao.
 
-## HOẠT ĐỘNG 5: SƠ KẾT (~3 phút)
-- Exit ticket + tự đánh giá mức độ nắm từng mảng.
+### 5. TỔNG HỢP — MINDMAP & SƠ KẾT (5 phút, P35–P40)
+- Cá nhân vẽ Mindmap bài học vào vở (3'): trung tâm + 4-5 nhánh GẮN MỨC ("Nhánh 1 (TB):... Nhánh 5 (giỏi):..."); chia sẻ nhanh 2 câu **[PHẢN BIỆN]**/**[SÁNG TẠO]** (câu sáng tạo hướng sang bài kế tiếp); Exit ticket: "1 điều tôi tự hào nhất...". Cột 3: khung mindmap + công thức cốt lõi.
+
+### 6. BÀI TẬP VỀ NHÀ & CHUẨN BỊ — format chung 4 dòng (toàn lớp: video bài kế tiếp).
 ===== HẾT KẾ HOẠCH CHỈ ĐỊNH =====
 `;
 
@@ -154,17 +192,20 @@ export const TOAN_KE_HOACH_LABELS: Record<ToanKeHoach, string> = {
   dao_nguoc: 'Đảo ngược / Jigsaw',
 };
 
-/** Khối củng cố + few-shot cho additionalRequirements (thay khối Dewey/Danielson). */
+/** Khối củng cố + few-shot THẬT từ v13 cho additionalRequirements (thay khối Dewey/Danielson). */
 export const TOAN_ADDITIONAL_REQUIREMENTS = `===== YÊU CẦU RIÊNG CHO GIÁO ÁN BAN TOÁN (TUYỆT ĐỐI TUÂN THỦ) =====
-- Soạn ĐÚNG MỘT tiết theo kế hoạch bài dạy đã chỉ định trong mẫu — không gộp nhiều tiết, không thêm hoạt động ngoài kế hoạch.
-- Bảng hoạt động dùng ĐÚNG header 3 cột: | Thời gian | Giáo viên và Học sinh | Nội dung ghi bảng |
+- Soạn ĐÚNG MỘT tiết theo kế hoạch đã chỉ định — đủ MỌI hoạt động trong kế hoạch, không thêm/bớt, không gộp nhiều tiết.
+- Bảng hoạt động dùng ĐÚNG header: | Thời gian | Giáo viên và Học sinh | Nội dung ghi bảng |
 - KHÔNG dùng khung Dewey/WALT-WILF/Danielson trong loại giáo án này.
-- Nội dung toán phải THẬT và đúng chương trình: số liệu cụ thể, lời giải tính ra kết quả cuối, không placeholder.
+- Nội dung toán THẬT, đúng chương trình + SGK: số liệu cụ thể, tham chiếu bài tập SGK khi phù hợp, mọi lời giải tính ra KẾT QUẢ CUỐI. Không placeholder, không "...".
+- ĐỘ CHI TIẾT: mỗi hoạt động chính viết như kịch bản thật GV cầm dạy được ngay — lời GV trong ngoặc kép, đủ các BƯỚC, đủ nhãn câu hỏi, đủ kỹ thuật chờ, đủ đáp án.
 
-VÍ DỤ MẪU MỘT HÀNG BẢNG HOẠT ĐỘNG (BẮT CHƯỚC PHONG CÁCH NÀY):
+VÍ DỤ MẪU MỘT HÀNG BẢNG HOẠT ĐỘNG — TRÍCH TỪ BẢN MẪU CHUẨN, BẮT CHƯỚC ĐÚNG MẬT ĐỘ CHI TIẾT NÀY:
 \`\`\`markdown
+### 1. KHỞI ĐỘNG — Bài toán mở đầu (5 phút, P1–P5)
+
 | Thời gian | Giáo viên và Học sinh | Nội dung ghi bảng |
 |---|---|---|
-| P6–P9 | **[PHÁT HIỆN]** GV vẽ đường thẳng $\\Delta$ và vectơ $\\vec{n} \\ne \\vec{0}$ có giá vuông góc với $\\Delta$: "Em có nhận xét gì về phương của $\\vec{n}$ so với $\\Delta$?" → Chờ ≥ 3 giây, gọi ngẫu nhiên. HS: "Giá của $\\vec{n}$ vuông góc với $\\Delta$." | **Định nghĩa:** Vectơ $\\vec{n} \\ne \\vec{0}$ là vectơ pháp tuyến của $\\Delta$ nếu giá của $\\vec{n}$ vuông góc với $\\Delta$. |
+| P1–P5 | **GV chiếu bản đồ tuyến bay Hà Nội – Đà Nẵng.** Nêu câu hỏi thiết yếu giữ nguyên suốt tiết: *"Làm thế nào biểu diễn đường bay bằng phương trình toán học?"* **HS giơ bảng con — ôn kiến thức nền:** **[SO SÁNH]** Vectơ $\\overrightarrow{AB}$ và đoạn thẳng $AB$ giống và khác nhau ở điểm nào? **[SỐ HỌC]** $\\overrightarrow{AB} = ?$ nếu biết $A(x_1;y_1)$, $B(x_2;y_2)$. **[SỐ HỌC]** Hai vectơ $\\vec{a}(a_1;a_2)$ và $\\vec{b}(b_1;b_2)$ vuông góc khi nào? → Chờ ≥ 3 giây, gọi ngẫu nhiên, không tự trả lời, hỏi thêm *"Tại sao?"*. HS sai/chưa nhớ: GV ghi lên bảng và dùng ngay trong HĐ1. | **BẢNG CON ÔN TẬP:** $$\\overrightarrow{AB} = (x_2 - x_1;\\; y_2 - y_1)$$ Điều kiện vuông góc: $$a_1 b_1 + a_2 b_2 = 0$$ → Đây là công cụ sẽ dùng để lập PT đường thẳng. |
 \`\`\`
 ===== HẾT YÊU CẦU RIÊNG =====`;
