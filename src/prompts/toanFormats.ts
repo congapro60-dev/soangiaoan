@@ -84,15 +84,25 @@ B. QUY TẮC TRÌNH BÀY HOẠT ĐỘNG (TUYỆT ĐỐI TUÂN THỦ):
 
 C. CHUẨN SƯ PHẠM BẮT BUỘC (theo khung dạy học phân hóa + kĩ thuật đặt câu hỏi + khung đánh giá giờ học mức Distinguished):
 
-1. PHỦ ĐỦ 7 LOẠI CÂU HỎI trong mỗi tiết: **[SỐ HỌC]** **[SO SÁNH]** **[PHÁT HIỆN]** **[SUY LUẬN]** **[KHÁI QUÁT]** **[PHẢN BIỆN]** **[SÁNG TẠO]** — thiếu loại nào là KHÔNG ĐẠT.
+1. PHỦ ĐỦ 7 LOẠI CÂU HỎI TOÁN trong mỗi tiết (theo tài liệu kĩ thuật đặt câu hỏi — thiếu loại nào là KHÔNG ĐẠT). Mục đích + câu mẫu từng loại:
+   - **[SO SÁNH]** tìm giống/khác — "Hai cách giải này giống nhau ở điểm nào?", "Nếu so sánh hai kết quả, em rút ra nhận xét gì?"
+   - **[PHÁT HIỆN]** nhận ra quy luật — "Sau khi quan sát các ví dụ, em phát hiện quy luật gì?", "Điều gì luôn đúng trong mọi trường hợp vừa xét?"
+   - **[SUY LUẬN]** dẫn dắt lập luận — "Từ giả thiết, em suy ra điều gì tiếp theo?", "Bước tiếp theo trong lời giải nên là gì?"
+   - **[KHÁI QUÁT]** hình thành khái niệm/định lí — "Em phát biểu quy tắc bằng lời của mình?", "Nếu viết thành định nghĩa, em phát biểu thế nào?"
+   - **[VẬN DỤNG]** áp dụng vào bài toán — "Để áp dụng công thức này cần những đại lượng nào?", "Kiến thức hôm nay dùng được trong tình huống thực tế nào?"
+   - **[PHẢN BIỆN]** đánh giá, bắt lỗi — "Em có đồng ý với lời giải của bạn không? Vì sao?", "Em hãy tìm một phản ví dụ nếu có."
+   - **[SÁNG TẠO]** cách giải mới, mở rộng — "Em tìm được cách giải khác không?", "Em hãy tự đặt một bài toán tương tự."
+   (Nhãn phụ được phép dùng thêm khi hợp ngữ cảnh: **[SỐ HỌC]** **[DỰ ĐOÁN]** **[MÔ HÌNH HÓA]**.)
+1b. KỸ THUẬT HỎI (bắt buộc thể hiện trong kịch bản): chỉ hỏi MỘT câu mỗi lần (cấm câu hỏi kép); không chấp nhận "em không biết" — gợi ý rồi QUAY LẠI đúng HS đó; không truy sát một HS — chuyển câu trả lời sang HS khác hỏi "Em đồng ý đến mức nào?"; câu hỏi thiết yếu của tiết công bố ngay từ Khởi động và giữ nguyên suốt tiết.
 2. PHÂN HÓA ĐỦ 4 TRỤC (Tomlinson):
    - NỘI DUNG: nhiệm vụ khác nhau theo mức NB/TH/VD, bám bài SGK.
-   - QUÁ TRÌNH: SCAFFOLD TƯỜNG MINH cho HS yếu (ghi rõ từng bước điền khuyết/gợi ý trong hoạt động, chỉ rõ dùng phiếu hỗ trợ nào — không viết chung chung "GV hỗ trợ"); nhóm đồng mức khi luyện, đa mức khi dự án (HS giỏi kèm HS yếu).
+   - QUÁ TRÌNH: SCAFFOLD TƯỜNG MINH cho HS yếu (ghi rõ từng bước điền khuyết/gợi ý trong hoạt động, chỉ rõ dùng phiếu hỗ trợ nào — không viết chung chung "GV hỗ trợ") theo nguyên tắc TẠO BƯỚC ĐỆM: hỗ trợ kỹ ở bước đầu, RÚT DẦN để HS tự làm ở bước sau; nhóm đồng mức khi luyện, đa mức khi dự án (HS giỏi kèm HS yếu).
    - SẢN PHẨM: HS được chọn cách thể hiện khi phù hợp (bảng con/A3/trình bày miệng).
    - MÔI TRƯỜNG: có "Phòng chờ Toán học"/nhiệm vụ neo cho HS xong sớm — không HS nào ngồi chơi.
 3. TIẾNG NÓI & LỰA CHỌN CỦA HS: ít nhất 1 cơ chế HS TỰ CHỌN (chọn đường Tic-Tac-Toe, chọn mức bài, chọn vai trong nhóm) + exit ticket luôn có mục HS nêu thắc mắc/câu hỏi riêng.
 4. MỌI HS ĐƯỢC HOẠT ĐỘNG: GV không độc thoại; gọi ngẫu nhiên; bảng con để cả lớp cùng trả lời; HS tự đánh giá (thumbs up/down mục tiêu).
 5. PHẠM VI KIẾN THỨC: chỉ dạy ĐÚNG phạm vi bài/tiết được yêu cầu — TUYỆT ĐỐI KHÔNG lấn nội dung tiết sau/bài sau (vd tiết về vectơ pháp tuyến thì không dạy vectơ chỉ phương). Bài tập/ví dụ phải khớp phạm vi này.
+6. BỐI CẢNH THỰC TIỄN (khởi động/mở rộng/dự án) phải đạt tiêu chí: gần gũi, HS từng gặp, có số liệu thật/hợp lý, mô hình hóa được, có nhiều cách giải; kèm chuỗi câu hỏi dẫn dắt HS TOÁN HỌC HÓA vấn đề (từ tình huống → đại lượng → phương trình). Nguồn ý tưởng: tiền điện/nước, chi tiêu, sân trường, thể thao, giá xăng/vàng, lãi suất, giao thông, dân số. TRÁNH chủ đề nhạy cảm: tôn giáo, chính trị, giới tính.
 
 D. QUY TẮC CÔNG THỨC TOÁN (TUYỆT ĐỐI):
 - Trong dòng: $...$ (vd $ax+by+c=0$, $\\vec{n}(a;b)$, $\\overrightarrow{AB}$, $M_0(x_0;y_0)$). Đứng riêng: $$...$$.

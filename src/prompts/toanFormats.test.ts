@@ -67,6 +67,24 @@ describe('TOAN_COMMON_FORMAT — hợp đồng cấu trúc (theo v13)', () => {
     expect(TOAN_COMMON_FORMAT).toContain('KHÔNG lấn nội dung tiết sau');
     expect(TOAN_COMMON_FORMAT).toContain('Phòng chờ Toán học');
   });
+
+  it('7 loại câu hỏi ĐÚNG danh sách chuẩn từ file gốc (có VẬN DỤNG, kèm câu mẫu)', () => {
+    // Bản chuẩn kĩ thuật đặt câu hỏi.pdf trang 22-25: So sánh/Phát hiện/Suy luận/Khái quát/Vận dụng/Phản biện/Sáng tạo
+    for (const t of ['[SO SÁNH]', '[PHÁT HIỆN]', '[SUY LUẬN]', '[KHÁI QUÁT]', '[VẬN DỤNG]', '[PHẢN BIỆN]', '[SÁNG TẠO]']) {
+      expect(TOAN_COMMON_FORMAT).toContain(t);
+    }
+    expect(TOAN_COMMON_FORMAT).toContain('Hai cách giải này giống nhau ở điểm nào'); // câu mẫu từ file gốc
+    expect(TOAN_COMMON_FORMAT).toContain('tự đặt một bài toán tương tự');
+    expect(TOAN_COMMON_FORMAT).toContain('cấm câu hỏi kép');
+  });
+
+  it('chuẩn từ file gốc: tạo bước đệm (Danielson Distinguished) + tiêu chí bối cảnh thực tiễn', () => {
+    expect(TOAN_COMMON_FORMAT).toContain('TẠO BƯỚC ĐỆM');
+    expect(TOAN_COMMON_FORMAT).toContain('RÚT DẦN');
+    expect(TOAN_COMMON_FORMAT).toContain('TOÁN HỌC HÓA');
+    expect(TOAN_COMMON_FORMAT).toContain('mô hình hóa được');
+    expect(TOAN_COMMON_FORMAT).toContain('tôn giáo, chính trị, giới tính');
+  });
 });
 
 describe('TOAN_KE_HOACH_FORMATS — mỗi kế hoạch riêng biệt, chỉ 1 tiết', () => {
