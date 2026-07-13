@@ -45,10 +45,18 @@ Nguồn: `docs/BAOCAO_RASOAT_Code_ToanBo_2026-07-13.md`. Phạm vi đợt 1 = 4 
 - [x] `npx tsc --noEmit` 0 lỗi · `npm run test` 153/153 PASS · `npm run build` PASS
 - [x] E2E preview: tạo lớp "Lớp 10A9 Test" → F5 → lớp vẫn còn (trước fix là mất) · console không lỗi mới
 - [x] Commit trên nhánh `fix/audit-rasoat-2026-07-13` — KHÔNG push main khi chưa có lệnh
-### Chưa làm (đợt 2 — nâng cấp, xem cuối BAOCAO_RASOAT)
-- [ ] ExamsTab đa nhà cung cấp (parseMarkdownToOnlineExam đang Gemini-only)
-- [ ] Nút chết ChatTab/ClassesTab (lịch sử chat, đính kèm, giao bài, báo cáo) — làm thật hoặc gỡ
-- [ ] Gộp useApiUsage + useTokenTracker; demo login sang Firebase Anonymous Auth; sanitize rehypeRaw
+### Đợt 2A — Nâng cấp ✅ XONG (commit 0b54479)
+- [x] Thi online đa provider: parseMarkdownToOnlineExam(settings) route qua callAI, giữ Gemini JSON-mode khi có key; banner dùng getActiveApiKey
+- [x] AI Tutor: lưu hội thoại localStorage (60 tin) + auto-scroll + nút "Xóa hội thoại" thật; gỡ nút lịch sử/tùy chọn/đính kèm chết
+- [x] ClassesTab: Giao bài/Báo cáo/3 chấm → disabled + tooltip "đang phát triển"
+- [x] ExamsTab: bỏ avatar giả + progress bar vô nghĩa; AIToolsTab: nút Cài đặt mở Settings modal thật
+- [x] Verify: tsc 0 lỗi · 153/153 test · build PASS · preview kiểm tab AI Tutor OK
+
+### Đợt 2B — Chưa làm (cần quyết định thêm)
+- [ ] Adaptive nhiều bài học/giáo viên: bỏ doc id = uid, nối tab vào AdaptiveLessonListPage/builder sẵn có (thay đổi cấu trúc dữ liệu — cần bàn)
+- [ ] Demo login → Firebase Anonymous Auth (CẦN user bật Anonymous trong Firebase Console trước)
+- [ ] Làm thật "Giao bài" (gán đề Thi online cho lớp) + "Báo cáo" (gom kết quả chấm theo lớp)
+- [ ] Gộp useApiUsage + useTokenTracker; rehype-sanitize thay rehypeRaw; code-split chunk >1MB; AbortSignal xuống gradeSubmission; tiến độ streaming thật thay SimulatedProgress
 
 ---
 
