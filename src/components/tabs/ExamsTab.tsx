@@ -20,7 +20,7 @@ import { useExams, updateSubmission, updateExam, getSubmissions } from '../../ho
 import { computeAutoScore, recalcTotalScore } from '../../utils/examScoring';
 import { generateExamCode, calculateMaxScore } from '../../lib/examParser';
 import { parseMarkdownToOnlineExam } from '../../utils/examOnlineParser';
-import { callAI } from '../../lib/aiProviders';
+import { callAI, getActiveApiKey } from '../../lib/aiProviders';
 import { ImportExamModal } from '../features/testing/ImportExamModal';
 import { ExamEditorView } from '../features/testing/ExamEditorView';
 
@@ -187,8 +187,7 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
   const activeExamCount = exams.filter(exam => exam.isActive).length;
   const scheduledExamCount = exams.filter(exam => !exam.isActive && exam.startAt && new Date(exam.startAt).getTime() > Date.now()).length;
   const draftExamCount = exams.length - activeExamCount - scheduledExamCount;
-  const totalQuestionCount = exams.reduce((sum, exam) => sum + exam.questions.length, 0);
-  const missingApiKey = !data.settings.geminiApiKey;
+  const missingApiKey = !getActiveApiKey(data.settings);
 
   const reloadSubmissions = useCallback(async (exam: Exam) => {
     setLoadingSubs(true);
@@ -262,7 +261,7 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
 
     setCreating(true);
     try {
-      const questions = await parseMarkdownToOnlineExam(entry.content, data.settings.geminiApiKey || '');
+      const questions = await parseMarkdownToOnlineExam(entry.content, data.settings);
       const now = new Date().toISOString();
       const exam: Exam = {
         id: `exam-${Date.now()}`,
@@ -527,7 +526,6 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
             const accent = isPublished ? 'bg-emerald-500' : isScheduled ? 'bg-amber-400' : isClosed ? 'bg-red-300' : 'bg-slate-300';
             const statusLabel = isPublished ? 'Đang diễn ra' : isScheduled ? 'Đã lên lịch' : isClosed ? 'Đã đóng' : 'Nháp / chờ mở';
             const subjectName = subjectNameById[exam.subjectId] || 'Chưa gán môn';
-            const progress = totalQuestionCount > 0 ? Math.min(100, Math.round((exam.questions.length / Math.max(1, totalQuestionCount)) * 100)) : 0;
 
             return (
               <motion.div
@@ -566,17 +564,6 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
                 </div>
 
                 <div className="border-t border-slate-100 pt-4">
-                  <div className="mb-4 flex items-center gap-3">
-                    <div className="flex -space-x-2">
-                      {['G', 'H'].map(initial => (
-                        <div key={initial} className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-blue-50 text-[10px] font-black text-blue-700">{initial}</div>
-                      ))}
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-slate-100 text-[10px] font-black text-slate-500">+HS</div>
-                    </div>
-                    <div className="h-1.5 flex-1 rounded-full bg-slate-100">
-                      <div className="h-1.5 rounded-full bg-blue-600" style={{ width: `${Math.max(12, progress)}%` }} />
-                    </div>
-                  </div>
                   <div className="flex items-center justify-between gap-2">
                     <button
                       onClick={async () => {

@@ -1,12 +1,11 @@
+import { useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import {
   Bot,
-  History,
   Lightbulb,
-  MoreVertical,
-  Paperclip,
   SendHorizontal,
-  Sparkles
+  Sparkles,
+  Trash2
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -26,6 +25,7 @@ interface ChatTabProps {
   setChatInput: (val: string) => void;
   isLoading: boolean;
   handleChat: () => void;
+  clearChat: () => void;
 }
 
 const suggestions = [
@@ -40,9 +40,15 @@ export const ChatTab = ({
   chatInput,
   setChatInput,
   isLoading,
-  handleChat
+  handleChat,
+  clearChat
 }: ChatTabProps) => {
   const canSend = !isLoading && chatInput.trim().length > 0;
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, [chatMessages, isLoading]);
 
   return (
     <motion.div
@@ -76,17 +82,12 @@ export const ChatTab = ({
             <div className="hidden items-center gap-2 sm:flex">
               <button
                 type="button"
-                className="rounded-full border border-slate-200 bg-white/80 p-2 text-slate-400 transition hover:border-blue-200 hover:bg-blue-50 hover:text-[var(--dewey-blue)]"
-                title="Lịch sử hội thoại"
+                onClick={clearChat}
+                disabled={chatMessages.length === 0}
+                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white/80 px-3 py-2 text-xs font-bold text-slate-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+                title="Xóa toàn bộ hội thoại"
               >
-                <History className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                className="rounded-full border border-slate-200 bg-white/80 p-2 text-slate-400 transition hover:border-blue-200 hover:bg-blue-50 hover:text-[var(--dewey-blue)]"
-                title="Tùy chọn"
-              >
-                <MoreVertical className="h-4 w-4" />
+                <Trash2 className="h-4 w-4" /> Xóa hội thoại
               </button>
             </div>
           </div>
@@ -176,19 +177,13 @@ export const ChatTab = ({
                   </div>
                 </div>
               )}
+              <div ref={messagesEndRef} />
             </div>
           )}
         </div>
 
         <div className="border-t border-slate-200/80 bg-white/86 px-4 py-4 sm:px-6">
           <div className="flex items-end gap-2 rounded-3xl border border-slate-200 bg-white p-2 shadow-sm transition focus-within:border-[var(--dewey-blue)] focus-within:ring-4 focus-within:ring-blue-100">
-            <button
-              type="button"
-              className="mb-1 rounded-full p-2 text-slate-400 transition hover:bg-blue-50 hover:text-[var(--dewey-blue)]"
-              title="Đính kèm tệp"
-            >
-              <Paperclip className="h-5 w-5" />
-            </button>
             <textarea
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}

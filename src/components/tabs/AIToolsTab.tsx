@@ -35,6 +35,7 @@ interface AIToolsTabProps {
   setIsLoading: (val: boolean) => void;
   showToast: (msg: string, icon?: any) => void;
   setActiveTab?: (tab: any) => void;
+  onOpenSettings?: () => void;
 }
 
 const categoryFilters: Array<'all' | AIToolCategory> = ['all', 'prompt', 'education', 'design', 'coding', 'research', 'utility'];
@@ -64,7 +65,7 @@ const outputFormatOptions = [
   { value: 'JSON', label: 'JSON (kỹ thuật)' },
 ] as const;
 
-export const AIToolsTab = ({ data, isLoading, setIsLoading, showToast, setActiveTab }: AIToolsTabProps) => {
+export const AIToolsTab = ({ data, isLoading, setIsLoading, showToast, setActiveTab, onOpenSettings }: AIToolsTabProps) => {
   const [activeCategory, setActiveCategory] = useState<'all' | AIToolCategory>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [rawRequest, setRawRequest] = useState('');
@@ -163,7 +164,7 @@ export const AIToolsTab = ({ data, isLoading, setIsLoading, showToast, setActive
           </div>
           <button
             type="button"
-            onClick={() => showToast('Mở Hồ sơ và cài đặt để thêm API Key.', 'info')}
+            onClick={() => onOpenSettings ? onOpenSettings() : showToast('Mở Hồ sơ và cài đặt để thêm API Key.', 'info')}
             className="rounded-lg bg-[#3b6090] px-4 py-2 text-xs font-bold uppercase tracking-wide text-white transition-colors hover:bg-[#204877]"
           >
             Cài đặt

@@ -213,7 +213,7 @@ export const ClassesTab = ({ data, setData }: ClassesTabProps) => {
                     <p className="text-sm font-semibold text-slate-500">{item.track}</p>
                   </div>
                 </button>
-                <button className="rounded-full p-2 text-slate-400 transition hover:bg-slate-50 hover:text-slate-700"><MoreVertical className="h-5 w-5" /></button>
+                <button disabled title="Tính năng đang phát triển" className="cursor-not-allowed rounded-full p-2 text-slate-300"><MoreVertical className="h-5 w-5" /></button>
               </div>
 
               <div className="flex flex-1 flex-col gap-4 p-5">
@@ -227,8 +227,8 @@ export const ClassesTab = ({ data, setData }: ClassesTabProps) => {
 
               <div className="grid grid-cols-3 gap-1 border-t border-slate-100 bg-slate-50/80 p-2">
                 <button onClick={() => setSelectedClassId(item.id)} className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><Eye className="h-5 w-5" /> Danh sách</button>
-                <button className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><Send className="h-5 w-5" /> Giao bài</button>
-                <button className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-slate-500 transition hover:bg-white"><BarChart3 className="h-5 w-5" /> Báo cáo</button>
+                <button disabled title="Tính năng đang phát triển — sẽ nối với Thi online" className="flex cursor-not-allowed flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-slate-300"><Send className="h-5 w-5" /> Giao bài</button>
+                <button disabled title="Tính năng đang phát triển — sẽ gom kết quả chấm theo lớp" className="flex cursor-not-allowed flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-slate-300"><BarChart3 className="h-5 w-5" /> Báo cáo</button>
               </div>
             </article>
           );

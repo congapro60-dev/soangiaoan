@@ -430,7 +430,7 @@ export default function App() {
             )}
 
             {activeTab === 'aiTools' && (
-              <AIToolsTab data={data} isLoading={isLoading} setIsLoading={setIsLoading} showToast={showToast} setActiveTab={setActiveTab} />
+              <AIToolsTab data={data} isLoading={isLoading} setIsLoading={setIsLoading} showToast={showToast} setActiveTab={setActiveTab} onOpenSettings={() => setIsSettingsOpen(true)} />
             )}
 
             {activeTab === 'lessonUpgrade' && (

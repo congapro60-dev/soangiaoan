@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import { callAI, getActiveApiKey } from '../lib/aiProviders';
 import { AppData } from '../types';
@@ -10,8 +10,24 @@ interface ChatMessage {
 }
 
 const EDITOR_UNDO_STORAGE_KEY = 'lesson-editor-ai-agent-last-safe-backup';
+const CHAT_HISTORY_STORAGE_KEY = 'ai-tutor-chat-history';
+const MAX_CHAT_HISTORY = 60;
 const CHAT_CONTEXT_HEAD_CHARS = 12000;
 const CHAT_CONTEXT_TAIL_CHARS = 6000;
+
+const loadChatHistory = (): ChatMessage[] => {
+  try {
+    const raw = localStorage.getItem(CHAT_HISTORY_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (m): m is ChatMessage => m && (m.role === 'user' || m.role === 'ai') && typeof m.text === 'string'
+    );
+  } catch {
+    return [];
+  }
+};
 
 const buildBoundedChatContext = (context: string | null): string | null => {
   if (!context) return null;
@@ -73,8 +89,24 @@ export const useChat = (
   getCurrentContext?: () => string | null,
   onUpdateEditor?: (newContent: string) => void
 ) => {
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(loadChatHistory);
   const [chatInput, setChatInput] = useState('');
+
+  // Lưu hội thoại để không mất khi reload; cắt bớt để không phình localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(CHAT_HISTORY_STORAGE_KEY, JSON.stringify(chatMessages.slice(-MAX_CHAT_HISTORY)));
+    } catch {
+      // localStorage đầy — bỏ qua, hội thoại vẫn còn trong phiên
+    }
+  }, [chatMessages]);
+
+  const clearChat = () => {
+    setChatMessages([]);
+    try {
+      localStorage.removeItem(CHAT_HISTORY_STORAGE_KEY);
+    } catch { /* ignore */ }
+  };
 
   const handleChat = async () => {
     if (!chatInput.trim() || !getActiveApiKey(data.settings)) {
@@ -172,6 +204,6 @@ export const useChat = (
     }
   };
 
-  return { chatMessages, chatInput, setChatInput, handleChat };
+  return { chatMessages, chatInput, setChatInput, handleChat, clearChat };
 };
 

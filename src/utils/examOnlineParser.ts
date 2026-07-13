@@ -1,6 +1,9 @@
 import { GoogleGenAI } from '@google/genai';
 import { DEFAULT_GEMINI_RUNTIME_MODEL } from '../lib/gemini';
-import type { ExamQuestion, QuestionType } from '../types';
+import { callAI } from '../lib/aiProviders';
+import type { AppData, ExamQuestion, QuestionType } from '../types';
+
+type Settings = AppData['settings'];
 
 interface RawOnlineExamQuestion {
   id?: unknown;
@@ -101,7 +104,7 @@ const toFinitePositiveNumber = (value: unknown, fallback: number): number => {
 
 const normalizeOnlineExamQuestions = (rawQuestions: RawOnlineExamQuestion[]): ExamQuestion[] => {
   if (!Array.isArray(rawQuestions) || rawQuestions.length === 0) {
-    throw new Error('Gemini không trả về câu hỏi hợp lệ.');
+    throw new Error('AI không trả về câu hỏi hợp lệ.');
   }
 
   const defaultPoints = Math.max(0.25, Math.round((10 / rawQuestions.length) * 4) / 4);
@@ -157,17 +160,37 @@ const normalizeOnlineExamQuestions = (rawQuestions: RawOnlineExamQuestion[]): Ex
   });
 };
 
-export async function parseMarkdownToOnlineExam(
-  markdownContent: string,
-  geminiApiKey: string
-): Promise<ExamQuestion[]> {
-  if (!markdownContent.trim()) {
-    throw new Error('Nội dung đề thi trống.');
-  }
-  if (!geminiApiKey.trim()) {
-    throw new Error('Thiếu Gemini API key để phân tích đề thi online.');
+const parseRawJsonToQuestions = (rawText: string): ExamQuestion[] => {
+  if (!rawText.trim()) {
+    throw new Error('AI không trả về JSON câu hỏi.');
   }
 
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(stripJsonFence(rawText));
+  } catch {
+    // Model không có JSON mode có thể chèn lời dẫn quanh mảng — cứu bằng cách bắt khối [...] ngoài cùng
+    const arrayMatch = stripJsonFence(rawText).match(/\[[\s\S]*\]/);
+    if (!arrayMatch) {
+      console.error('Invalid online exam parser JSON:', rawText);
+      throw new Error('AI trả về JSON không hợp lệ cho đề thi online.');
+    }
+    try {
+      parsed = JSON.parse(arrayMatch[0]);
+    } catch (error) {
+      console.error('Invalid online exam parser JSON:', rawText, error);
+      throw new Error('AI trả về JSON không hợp lệ cho đề thi online.');
+    }
+  }
+
+  if (!Array.isArray(parsed)) {
+    throw new Error('AI phải trả về một mảng ExamQuestion[].');
+  }
+
+  return normalizeOnlineExamQuestions(parsed as RawOnlineExamQuestion[]);
+};
+
+const parseWithGeminiDirect = async (markdownContent: string, geminiApiKey: string): Promise<ExamQuestion[]> => {
   const ai = new GoogleGenAI({ apiKey: geminiApiKey, httpOptions: { apiVersion: 'v1beta' } });
   const response = await ai.models.generateContent({
     model: DEFAULT_GEMINI_RUNTIME_MODEL,
@@ -180,22 +203,27 @@ export async function parseMarkdownToOnlineExam(
     },
   });
 
-  const rawText = response.text || '';
-  if (!rawText.trim()) {
-    throw new Error('Gemini không trả về JSON câu hỏi.');
+  return parseRawJsonToQuestions(response.text || '');
+};
+
+export async function parseMarkdownToOnlineExam(
+  markdownContent: string,
+  settings: Settings
+): Promise<ExamQuestion[]> {
+  if (!markdownContent.trim()) {
+    throw new Error('Nội dung đề thi trống.');
   }
 
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(stripJsonFence(rawText));
-  } catch (error) {
-    console.error('Invalid online exam parser JSON:', rawText, error);
-    throw new Error('Gemini trả về JSON không hợp lệ cho đề thi online.');
+  // Gemini có JSON mode + temperature 0 — giữ đường trực tiếp khi user dùng Gemini và có key.
+  // Các provider khác (Claude/OpenAI/Grok/DeepSeek/free-router/relay) đi qua callAI như phần còn lại của app.
+  const provider = settings.selectedProvider ?? 'gemini';
+  if (provider === 'gemini' && settings.geminiApiKey?.trim()) {
+    return parseWithGeminiDirect(markdownContent, settings.geminiApiKey);
   }
 
-  if (!Array.isArray(parsed)) {
-    throw new Error('Gemini phải trả về một mảng ExamQuestion[].');
-  }
-
-  return normalizeOnlineExamQuestions(parsed as RawOnlineExamQuestion[]);
+  const rawText = await callAI(
+    `${ONLINE_EXAM_PARSER_SYSTEM_INSTRUCTION}\n\n${buildOnlineExamParserPrompt(markdownContent)}`,
+    settings
+  );
+  return parseRawJsonToQuestions(rawText || '');
 }
