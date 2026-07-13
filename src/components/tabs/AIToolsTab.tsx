@@ -118,6 +118,9 @@ export const AIToolsTab = ({ data, isLoading, setIsLoading, showToast, setActive
         outputFormat,
       });
       const result = await callAI(metaPrompt, data.settings);
+      if (!result || !result.trim()) {
+        throw new Error('AI không trả về nội dung. Vui lòng thử lại.');
+      }
       setGeneratedPrompt(result.trim());
       showToast('Đã tạo prompt hoàn chỉnh.', 'success');
     } catch (error: any) {

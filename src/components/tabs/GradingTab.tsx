@@ -81,6 +81,7 @@ export const GradingTab = ({
   const [activeDraftSessionId, setActiveDraftSessionId] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const persistDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const draftCreatedAtRef = useRef<string | null>(null);
 
   // Grading config
   const [maxScore, setMaxScore] = useState(10);
@@ -155,6 +156,7 @@ export const GradingTab = ({
     setGradingRubric('');
     setSessionSaved(false);
     setActiveDraftSessionId(null);
+    draftCreatedAtRef.current = null;
     setFilterScore('all');
     setSmartWarnings([]);
     setNoAnswerKey(false);
@@ -167,15 +169,21 @@ export const GradingTab = ({
     setFilterScore('all');
   };
 
-  const createSessionSnapshot = (res: GradingResult[], sessionId: string): GradingSession => ({
-    id: sessionId,
-    title: sessionTitle || masterFiles[0]?.name.replace(/\.[^.]+$/, '') || `Phiên ${new Date().toLocaleDateString('vi-VN')}`,
-    masterFiles: masterFiles.map(f => ({ ...f, content: '' })),
-    gradingRubric: gradingRubric || undefined,
-    results: res,
-    createdAt: new Date().toISOString(),
-    userId: user?.uid,
-  });
+  const createSessionSnapshot = (res: GradingResult[], sessionId: string): GradingSession => {
+    // createdAt phải ổn định qua các lần auto-save, nếu không thứ tự lịch sử (orderBy createdAt) trôi liên tục
+    if (!draftCreatedAtRef.current) {
+      draftCreatedAtRef.current = sessions.find(s => s.id === sessionId)?.createdAt || new Date().toISOString();
+    }
+    return {
+      id: sessionId,
+      title: sessionTitle || masterFiles[0]?.name.replace(/\.[^.]+$/, '') || `Phiên ${new Date().toLocaleDateString('vi-VN')}`,
+      masterFiles: masterFiles.map(f => ({ ...f, content: '' })),
+      gradingRubric: gradingRubric || undefined,
+      results: res,
+      createdAt: draftCreatedAtRef.current,
+      userId: user?.uid,
+    };
+  };
 
   const persistGradingProgress = (res: GradingResult[], sessionId: string, force = false) => {
     if (persistDebounceRef.current) clearTimeout(persistDebounceRef.current);

@@ -146,6 +146,11 @@ export const CreatorTab = (props: CreatorTabProps) => {
 
   const hasResult = (props.generationMode === 'single' && props.currentPlan.content) || (props.generationMode === 'bulk' && props.bulkResults.length > 0) || !!slidePreview;
 
+  // Skeleton cho guardrail: lấy từ file mẫu của template đang chọn (data.templates), fallback tài liệu tham khảo có skeleton
+  const selectedTemplate = props.data.templates?.find(t => t.id === props.currentPlan.templateId);
+  const guardrailSkeleton = selectedTemplate?.files?.find(f => f.category === 'sample' && f.skeleton)?.skeleton
+    || props.lessonDocs.find(d => d.skeleton)?.skeleton;
+
   return (
     <motion.div 
       key="creator"
@@ -249,7 +254,9 @@ export const CreatorTab = (props: CreatorTabProps) => {
                       <FilePlus className="w-4 h-4" /> Soạn bài mới
                     </button>
                     <button
-                      onClick={() => withGuardrail(props.currentPlan.content, props.lessonDocs.find(d => d.id === props.currentPlan.templateId)?.skeleton, 'final_save', props.generationMode === 'single' ? props.saveLessonPlan : props.saveBulkPlans)}
+                      onClick={() => props.generationMode === 'single'
+                        ? withGuardrail(props.currentPlan.content, guardrailSkeleton, 'final_save', props.saveLessonPlan)
+                        : props.saveBulkPlans()}
                       className="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 transition-all text-sm shadow-lg shadow-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
                       disabled={props.isLoading}
                       title={props.isLoading ? "Đang soạn giáo án, vui lòng đợi..." : ""}
@@ -259,10 +266,10 @@ export const CreatorTab = (props: CreatorTabProps) => {
                     </button>
                     {props.generationMode === 'single' && (
                        <CreatorToolbar
-                          exportToPDF={(orientation) => withGuardrail(props.currentPlan.content, props.lessonDocs.find(d => d.id === props.currentPlan.templateId)?.skeleton, 'export_pdf', () => props.exportToPDF(orientation))}
-                          exportToWordA4={(orientation) => withGuardrail(props.currentPlan.content, props.lessonDocs.find(d => d.id === props.currentPlan.templateId)?.skeleton, 'export_word', () => exportToWordA4(props.currentPlan, props.showToast, orientation))}
+                          exportToPDF={(orientation) => withGuardrail(props.currentPlan.content, guardrailSkeleton, 'export_pdf', () => props.exportToPDF(orientation))}
+                          exportToWordA4={(orientation) => withGuardrail(props.currentPlan.content, guardrailSkeleton, 'export_word', () => exportToWordA4(props.currentPlan, props.showToast, orientation))}
                           handleGenerateSlide={handleGenerateSlide}
-                          exportToLaTeX={() => withGuardrail(props.currentPlan.content, props.lessonDocs.find(d => d.id === props.currentPlan.templateId)?.skeleton, 'export_latex', props.exportToLaTeX)}
+                          exportToLaTeX={() => withGuardrail(props.currentPlan.content, guardrailSkeleton, 'export_latex', props.exportToLaTeX)}
                           handleGenerateInclassWorksheet={handleGenerateInclassWorksheet}
                           handleGenerateHomeworkWorksheet={handleGenerateHomeworkWorksheet}
                           setShowAudioOverview={setShowAudioOverview}

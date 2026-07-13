@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { AppData, DEFAULT_DATA, LessonPlan, Subject, LessonTemplate, CurriculumDistribution, GradingSession } from '../types';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { AppData, DEFAULT_DATA, LessonPlan, Subject, LessonTemplate, CurriculumDistribution, GradingSession, TeacherClass } from '../types';
 import { collection, query, where, getDocs, doc, getDoc, setDoc, deleteDoc, orderBy, limit, startAfter, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { User } from 'firebase/auth';
@@ -11,6 +11,7 @@ const LOCAL_CACHE_KEY = 'smart_lesson_plan_data';
 const buildLocalCache = (data: AppData) => ({
   settings: data.settings,
   authorName: data.authorName,
+  classes: data.classes,
 });
 
 const fetchCollectionSafely = async <T,>(label: string, loader: () => Promise<T>, fallback: T): Promise<T> => {
@@ -36,6 +37,7 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
           subjects: parsed.subjects || DEFAULT_DATA.subjects,
           templates: parsed.templates || DEFAULT_DATA.templates,
           distributions: parsed.distributions || [],
+          classes: parsed.classes || [],
           settings: { ...DEFAULT_DATA.settings, ...(parsed.settings || {}) },
           authorName: parsed.authorName || ''
         };
@@ -53,8 +55,10 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
   const [hasMorePlans, setHasMorePlans] = useState(false);
   const [lastCommunityDoc, setLastCommunityDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const [hasMoreCommunity, setHasMoreCommunity] = useState(false);
+  // Chỉ bật sync lớp học lên cloud SAU khi đã đọc xong userSettings — tránh ghi đè dữ liệu cloud bằng state cục bộ lúc mới đăng nhập
+  const cloudClassesReadyRef = useRef(false);
 
-  // Sync only lightweight local preferences/API keys to avoid localStorage quota pressure.
+  // Sync only lightweight local preferences/API keys/classes to avoid localStorage quota pressure.
   useEffect(() => {
     const timer = setTimeout(() => {
       try {
@@ -65,7 +69,7 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
       }
     }, 1000);
     return () => clearTimeout(timer);
-  }, [data.settings, data.authorName, showToast]);
+  }, [data.settings, data.authorName, data.classes, showToast]);
 
   // Fetch Cloud data (Plans, Templates, Settings, Distributions) when user logs in
   useEffect(() => {
@@ -103,6 +107,7 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
             const docSnap = await getDoc(doc(db, 'userSettings', user.uid));
             let cloudSettings = data.settings;
             let cloudAuthorName = data.authorName;
+            let cloudClasses: TeacherClass[] | null = null;
             if (docSnap.exists()) {
               const settingsData = docSnap.data();
               if (settingsData.settings) {
@@ -110,13 +115,16 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
                 cloudSettings = { ...cloudSettings, ...rest };
               }
               cloudAuthorName = settingsData.authorName || '';
+              if (Array.isArray(settingsData.classes)) {
+                cloudClasses = settingsData.classes as TeacherClass[];
+              }
             }
             if (!cloudAuthorName && user.displayName) {
               cloudAuthorName = user.displayName;
               await setDoc(doc(db, 'userSettings', user.uid), { authorName: cloudAuthorName }, { merge: true });
             }
-            return { cloudSettings, cloudAuthorName };
-          }, { cloudSettings: data.settings, cloudAuthorName: data.authorName });
+            return { cloudSettings, cloudAuthorName, cloudClasses };
+          }, { cloudSettings: data.settings, cloudAuthorName: data.authorName, cloudClasses: null as TeacherClass[] | null });
 
           const cloudDist = await fetchCollectionSafely('distributions', async () => {
             const qDist = query(collection(db, 'distributions'), where('userId', '==', user.uid));
@@ -151,18 +159,32 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
               lessonPlans: [...cloudPlansResult.plans, ...localOnlyPlans],
               templates: combinedTemplates,
               distributions: cloudDist,
+              classes: cloudSettingsResult.cloudClasses ?? prev.classes,
               authorName: cloudSettingsResult.cloudAuthorName,
               settings: { ...prev.settings, ...cloudSettingsResult.cloudSettings },
               gradingSessions: [...cloudSessions, ...localOnlySessions],
             };
           });
+          cloudClassesReadyRef.current = true;
         } finally {
           setIsLoading(false);
         }
       };
       fetchCloudData();
+    } else {
+      cloudClassesReadyRef.current = false;
     }
   }, [user]);
+
+  // Persist danh sách lớp học vào doc userSettings (rules hiện hành đã cho owner đọc/ghi)
+  useEffect(() => {
+    if (!user || !cloudClassesReadyRef.current) return;
+    const timer = setTimeout(() => {
+      setDoc(doc(db, 'userSettings', user.uid), { classes: data.classes || [] }, { merge: true })
+        .catch(e => console.error('Lỗi lưu lớp học lên Cloud', e));
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [data.classes, user]);
 
   const loadMorePlans = useCallback(async () => {
     if (!user || !lastPlanDoc) return;
@@ -237,7 +259,7 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
     if (user) {
       try {
         // Loại bỏ API Keys trước khi ghi lên Firebase — chỉ lưu cục bộ
-        const { geminiApiKey: _k1, claudeApiKey: _k2, openaiApiKey: _k3, grokApiKey: _k4, ...settingsToSync } = updated;
+        const { geminiApiKey: _k1, claudeApiKey: _k2, openaiApiKey: _k3, grokApiKey: _k4, deepseekApiKey: _k5, ...settingsToSync } = updated;
         await setDoc(doc(db, 'userSettings', user.uid), { userId: user.uid, settings: settingsToSync, authorName: data.authorName }, { merge: true });
       } catch (e) {
         console.error("Lỗi lưu cài đặt", e);
@@ -316,17 +338,15 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
   };
 
   const deleteFile = async (templateId: string, fileId: string) => {
-    let nextFiles: LessonTemplate['files'] | null = null;
+    // Tính nextFiles NGOÀI updater — React không đảm bảo updater chạy đồng bộ, gán biến bên trong rồi đọc ngay sẽ có lúc còn null
+    const template = (data.templates || []).find(t => t.id === templateId);
+    if (!template) return;
+    const nextFiles = (template.files || []).filter(f => f.id !== fileId);
 
-    setData(prev => {
-      const currentTemplates = prev.templates || [];
-      const newTemplates = currentTemplates.map(t => {
-        if (t.id !== templateId) return t;
-        nextFiles = (t.files || []).filter(f => f.id !== fileId);
-        return { ...t, files: nextFiles };
-      });
-      return { ...prev, templates: newTemplates };
-    });
+    setData(prev => ({
+      ...prev,
+      templates: (prev.templates || []).map(t => t.id === templateId ? { ...t, files: nextFiles } : t),
+    }));
 
     if (user && nextFiles) {
       try {
@@ -338,20 +358,14 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
   };
 
   const updateTemplateFileSkeleton = async (templateId: string, fileId: string, skeleton: import('../lib/documentSkeleton').DocumentSkeleton) => {
-    let nextFiles: LessonTemplate['files'] | null = null;
+    const template = (data.templates || []).find(t => t.id === templateId);
+    if (!template) return;
+    const nextFiles = (template.files || []).map(f => f.id === fileId ? { ...f, skeleton } : f);
 
-    setData(prev => {
-      const currentTemplates = prev.templates || [];
-      const newTemplates = currentTemplates.map(t => {
-        if (t.id !== templateId) return t;
-        nextFiles = (t.files || []).map(f => {
-          if (f.id !== fileId) return f;
-          return { ...f, skeleton };
-        });
-        return { ...t, files: nextFiles };
-      });
-      return { ...prev, templates: newTemplates };
-    });
+    setData(prev => ({
+      ...prev,
+      templates: (prev.templates || []).map(t => t.id === templateId ? { ...t, files: nextFiles } : t),
+    }));
 
     if (user && nextFiles) {
       try {

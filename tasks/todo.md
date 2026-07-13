@@ -25,7 +25,34 @@ _Summary after completion_
 
 ---
 
-## Active Task: Loại giáo án "Giáo án ban Toán" (KHDH v13) — 2026-07-09 ✅ Pha 1+2 XONG (nhánh feat/toan-lesson-type, chờ lệnh push)
+## Active Task: Fix lỗi rà soát toàn app — 2026-07-13 (nhánh fix/audit-rasoat-2026-07-13)
+
+Nguồn: `docs/BAOCAO_RASOAT_Code_ToanBo_2026-07-13.md`. Phạm vi đợt 1 = 4 lỗi nghiêm trọng + 5 lỗi logic sửa nhỏ. Đợt 2 (nâng cấp) ghi cuối báo cáo.
+
+### Nhóm A — Nghiêm trọng
+- [x] A1: `useAppState.updateSettings` strip thêm `deepseekApiKey` khi ghi userSettings
+- [x] A2: Persist Lớp học — classes vào local cache + đọc/ghi field `classes` trong doc `userSettings/<uid>` (rules sẵn có) + effect debounce sync, guard `cloudClassesReadyRef` chống ghi đè lúc mới login
+- [x] A3: CreatorTab nút "Lưu tất cả" bulk gọi thẳng `saveBulkPlans` (guardrail content chỉ áp cho single)
+- [x] A4: AdaptiveLearningTab — `isRenderableLesson` validate bài từ Firestore, thiếu dữ liệu thì giữ bản mẫu + báo lỗi; fallback `routes[1] || routes[0]`
+### Nhóm B — Logic
+- [x] B1: `deleteFile`/`updateTemplateFileSkeleton` tính `nextFiles` từ `data` TRƯỚC setData
+- [x] B2: CreatorTab guardrail lấy skeleton từ `data.templates` (file sample) || lessonDocs — thay 4 chỗ
+- [x] B4: AdaptiveLearningTab — `lessonId: lessonToSave.id`; confirm trước "Khôi phục mẫu"; catch health-check
+- [x] B5: TestingTab — try/catch localStorage; truncate audit qua `truncateToContextBudget` (KHÔNG truncate shuffle vì sẽ mất câu hỏi); xoá dòng removeItem lặp
+- [x] B6: GradingTab — `createdAt` ổn định qua `draftCreatedAtRef`
+- [x] Quick: AIToolsTab check `result` null trước `.trim()`
+### Verification
+- [x] `npx tsc --noEmit` 0 lỗi · `npm run test` 153/153 PASS · `npm run build` PASS
+- [x] E2E preview: tạo lớp "Lớp 10A9 Test" → F5 → lớp vẫn còn (trước fix là mất) · console không lỗi mới
+- [x] Commit trên nhánh `fix/audit-rasoat-2026-07-13` — KHÔNG push main khi chưa có lệnh
+### Chưa làm (đợt 2 — nâng cấp, xem cuối BAOCAO_RASOAT)
+- [ ] ExamsTab đa nhà cung cấp (parseMarkdownToOnlineExam đang Gemini-only)
+- [ ] Nút chết ChatTab/ClassesTab (lịch sử chat, đính kèm, giao bài, báo cáo) — làm thật hoặc gỡ
+- [ ] Gộp useApiUsage + useTokenTracker; demo login sang Firebase Anonymous Auth; sanitize rehypeRaw
+
+---
+
+## Task cũ: Loại giáo án "Giáo án ban Toán" (KHDH v13) — 2026-07-09 ✅ Pha 1+2 XONG (nhánh feat/toan-lesson-type, chờ lệnh push)
 
 Plan đã duyệt: `C:\Users\ADMIN\.claude\plans\pure-meandering-cloud.md`. Chi tiết: HANDOFF mục 1.0j.
 - [x] Pha 1: builtinFormat 'toan' + sub-picker 3 kế hoạch + prompts (src/prompts/toanFormats.ts) + persist — 9 test hợp đồng

@@ -25,6 +25,7 @@ import { preprocessExamMarkdown } from '../../utils/examMarkdown';
 import { exportLaTeX, markdownToExamLatex } from '../../utils/examLatexExport';
 import { makeExamExportBaseFilename } from '../../utils/fileUtils';
 import { createDocumentSkeleton, validateMarkdownAgainstSkeleton, type SkeletonValidationIssue } from '../../lib/documentSkeleton';
+import { truncateToContextBudget } from '../../lib/contextBudget';
 import { withGuardrail } from '../../utils/guardrailUtils';
 
 interface TestingTabProps {
@@ -65,7 +66,12 @@ const loadHistory = (): HistoryEntry[] => {
 };
 
 const saveHistory = (entries: HistoryEntry[]) => {
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(entries.slice(0, MAX_HISTORY)));
+  try {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(entries.slice(0, MAX_HISTORY)));
+  } catch (e) {
+    // Đề dài có thể vượt quota localStorage — không được để throw làm crash tab
+    console.warn('Không lưu được lịch sử đề thi (localStorage đầy)', e);
+  }
 };
 
 const modeBadge: Record<TestingMode, { label: string; color: string }> = {
@@ -123,8 +129,12 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
   // Lưu kết quả vào localStorage
   useEffect(() => {
     if (testResult) {
-      localStorage.setItem(LAST_RESULT_KEY, testResult);
-      localStorage.setItem(LAST_MODE_KEY, activeMode);
+      try {
+        localStorage.setItem(LAST_RESULT_KEY, testResult);
+        localStorage.setItem(LAST_MODE_KEY, activeMode);
+      } catch (e) {
+        console.warn('Không lưu được kết quả gần nhất (localStorage đầy)', e);
+      }
     }
   }, [testResult, activeMode]);
 
@@ -156,7 +166,6 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
 
   const clearResult = () => {
     setTestResult(null);
-    localStorage.removeItem(LAST_RESULT_KEY);
     localStorage.removeItem(LAST_RESULT_KEY);
     localStorage.removeItem(LAST_MODE_KEY);
   };
@@ -374,7 +383,11 @@ export const TestingTab = ({ data, user, isLoading, setIsLoading, showToast, ini
       } else if (activeMode === 'audit') {
         const fullContent = uploadedFiles.map(f => f.content).join('\n---\n');
         if (!fullContent.trim()) throw new Error('Nội dung tệp trống.');
-        const prompt = await examUtils.getAuditPrompt(fullContent);
+        const { truncatedText: auditContent, isTruncated } = truncateToContextBudget(fullContent);
+        if (isTruncated) {
+          showToast('Tệp đề quá dài, AI chỉ soát phần đầu để tránh vượt giới hạn.', 'warning');
+        }
+        const prompt = await examUtils.getAuditPrompt(auditContent);
         await callAIStream(prompt, data.settings, onChunk);
         const match = cumulativeText.match(/<audit_report>([\s\S]*?)<\/audit_report>/);
         const raw = match

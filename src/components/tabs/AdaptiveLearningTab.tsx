@@ -141,6 +141,17 @@ interface FirebaseAdminHealthResponse {
 
 const getAdaptiveLessonDocId = (userId: string) => userId;
 
+// Tab này deref thẳng knowledgeUnits[0].routes/quickCheck — bài tải từ Firestore thiếu các mảng đó sẽ crash trắng trang.
+// Chỉ nhận bài đủ dữ liệu render; thiếu thì giữ bản mẫu và báo cho giáo viên.
+const isRenderableLesson = (lesson: AdaptiveLesson | undefined | null): lesson is AdaptiveLesson => (
+  !!lesson
+  && Array.isArray(lesson.knowledgeUnits)
+  && lesson.knowledgeUnits.length > 0
+  && lesson.knowledgeUnits.every(unit => Array.isArray(unit.routes) && unit.routes.length > 0 && (unit.quickCheck?.questions?.length ?? 0) > 0)
+  && (lesson.diagnosticTest?.questions?.length ?? 0) > 0
+  && Array.isArray(lesson.objectives) && lesson.objectives.length > 0
+);
+
 const PRODUCTION_STUDENT_PORTAL_ORIGIN = 'https://giaoandewey.vercel.app';
 
 interface RealStudentDashboardRow {
@@ -312,9 +323,11 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
 
         if (snapshot.exists()) {
           const data = snapshot.data() as AdaptiveLessonDocument;
-          if (data.lesson) {
+          if (isRenderableLesson(data.lesson)) {
             setLesson(data.lesson);
             setDraftSavedAt(`đã tải từ Firestore lúc ${formatSavedTime()}`);
+          } else if (data.lesson) {
+            setCloudError('Bài học đã lưu trên Firestore thiếu dữ liệu (mảnh kiến thức/tuyến/quick check). Hệ thống đang dùng bản mẫu — hãy chỉnh và bấm lưu lại.');
           }
         }
       } catch (error) {
@@ -496,8 +509,8 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
   const activePacingUnit = nextAction === 'move_next'
     ? lesson.knowledgeUnits[1] || firstUnit
     : firstUnit;
-  const routeContent = firstUnit.routes.find(item => item.route === recommendedRoute) || firstUnit.routes[1];
-  const activePacingRouteContent = activePacingUnit.routes.find(item => item.route === recommendedRoute) || activePacingUnit.routes[1];
+  const routeContent = firstUnit.routes.find(item => item.route === recommendedRoute) || firstUnit.routes[1] || firstUnit.routes[0];
+  const activePacingRouteContent = activePacingUnit.routes.find(item => item.route === recommendedRoute) || activePacingUnit.routes[1] || activePacingUnit.routes[0];
   const firstWorkedExample = routeContent.workedExamples[0];
   const existingFirstUnitSimulation = simulationsByUnitId[firstUnit.id];
  
@@ -620,7 +633,7 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
   };
 
   const handleSaveTeacherDraft = async () => {
-    void verifyFirebaseAdminHealth();
+    verifyFirebaseAdminHealth().catch(error => console.warn('Health check Firebase Admin thất bại', error));
 
     if (!user) {
       setCloudError('Bạn cần đăng nhập để lưu bài học phân hoá lên Firestore.');
@@ -645,7 +658,7 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
           id: documentId,
           userId: user.uid,
           teacherId: user.uid,
-          lessonId: sampleAdaptiveLesson.id,
+          lessonId: lessonToSave.id,
           title: lessonToSave.title,
           lesson: lessonToSave,
           portalEnabled: true,
@@ -669,6 +682,7 @@ export const AdaptiveLearningTab = ({ user }: AdaptiveLearningTabProps) => {
   };
 
   const handleResetTeacherDraft = () => {
+    if (!window.confirm('Khôi phục về bài mẫu sẽ bỏ mọi chỉnh sửa đang có trên màn hình (bản đã lưu trên Firestore chỉ bị ghi đè khi bạn bấm Lưu). Tiếp tục?')) return;
     setLesson(sampleAdaptiveLesson);
     setDraftSavedAt(null);
     setCloudError(null);
