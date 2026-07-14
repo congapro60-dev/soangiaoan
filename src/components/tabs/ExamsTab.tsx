@@ -21,6 +21,7 @@ import { computeAutoScore, recalcTotalScore } from '../../utils/examScoring';
 import { generateExamCode, calculateMaxScore } from '../../lib/examParser';
 import { parseMarkdownToOnlineExam } from '../../utils/examOnlineParser';
 import { callAI, getActiveApiKey } from '../../lib/aiProviders';
+import { parseLooseJson } from '../../utils/jsonRepair';
 import { ImportExamModal } from '../features/testing/ImportExamModal';
 import { ExamEditorView } from '../features/testing/ExamEditorView';
 
@@ -83,9 +84,9 @@ const gradeEssays = async (
     const raw = await callAI(prompt, settings);
 
     try {
-      const jsonMatch = raw.match(/\{[\s\S]*?\}/);
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
+        const parsed = parseLooseJson(jsonMatch[0]);
         const score = Math.min(question.points, Math.max(0, Number(parsed.score) || 0));
         updatedAnswers[i] = { ...ans, aiScore: score, aiFeedback: parsed.feedback || '' };
       }
@@ -1231,7 +1232,7 @@ Nếu không có vấn đề: {"issues":[]}`;
       const raw = await callAI(prompt, data.settings);
       const match = raw.match(/\{[\s\S]*\}/);
       if (match) {
-        const result = JSON.parse(match[0]);
+        const result = parseLooseJson(match[0]);
         const issues = result.issues ?? [];
         setAiSuggestions(issues);
         showToast(issues.length === 0 ? 'AI không phát hiện vấn đề nào!' : `AI phát hiện ${issues.length} câu cần xem lại`, issues.length > 0 ? 'warning' : 'success');

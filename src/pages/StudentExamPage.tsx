@@ -142,8 +142,8 @@ export const StudentExamPage = () => {
   // ── Submit ────────────────────────────────────────────────────────────────
   const handleSubmit = useCallback(async (auto = false) => {
     if (submittedRef.current) return;
-    setPageState('submitting');
     if (!exam || !submissionId) return;
+    setPageState('submitting');
     submittedRef.current = true;
 
     const studentAnswers: StudentAnswer[] = orderedQuestions.map(q => {

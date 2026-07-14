@@ -2,6 +2,7 @@ import pptxgen from 'pptxgenjs';
 import { LessonPlan, AppData } from '../types';
 import { callAI, getActiveApiKey } from '../lib/aiProviders';
 import { safeFilename } from './fileUtils';
+import { parseLooseJson } from './jsonRepair';
 
 export type PdfOrientation = 'portrait' | 'landscape';
 
@@ -125,7 +126,7 @@ Dựa vào nội dung giáo án sau, hãy tạo cấu trúc Slide bài giảng t
 
 Giáo án:
 ---
-\${currentPlan.content}
+${currentPlan.content}
 ---
 
 YÊU CẦU BẮT BUỘC:
@@ -168,7 +169,7 @@ CHỈ TRẢ VỀ JSON, KHÔNG BỌC BỞI \`\`\`json.
     const match = response.match(/\[[\s\S]*\]/);
     const jsonStr = match ? match[0] : response.replace(/```json/g, '').replace(/```/g, '').trim();
 
-    const slidesData = JSON.parse(jsonStr);
+    const slidesData = parseLooseJson(jsonStr);
     if (!Array.isArray(slidesData) || slidesData.length === 0 || slidesData[0]?.type !== 'walt') {
       throw new Error('AI chưa trả về cấu trúc slide hợp lệ. Vui lòng thử tạo lại bài trình chiếu.');
     }
@@ -240,7 +241,7 @@ CHỈ TRẢ VỀ JSON, KHÔNG BỌC BỞI \`\`\`json.
     const match = response.match(/\[[\s\S]*\]/);
     const jsonStr = match ? match[0] : response.replace(/```json/g, '').replace(/```/g, '').trim();
 
-    const slidesData = JSON.parse(jsonStr);
+    const slidesData = parseLooseJson(jsonStr);
     if (!Array.isArray(slidesData) || slidesData.length === 0 || slidesData[0]?.type !== 'walt') {
       throw new Error('AI chưa trả về cấu trúc slide hợp lệ. Vui lòng thử tạo lại bài trình chiếu.');
     }

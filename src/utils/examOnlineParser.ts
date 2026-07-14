@@ -1,6 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
 import { DEFAULT_GEMINI_RUNTIME_MODEL } from '../lib/gemini';
 import { callAI } from '../lib/aiProviders';
+import { parseLooseJson } from './jsonRepair';
 import type { AppData, ExamQuestion, QuestionType } from '../types';
 
 type Settings = AppData['settings'];
@@ -167,7 +168,8 @@ const parseRawJsonToQuestions = (rawText: string): ExamQuestion[] => {
 
   let parsed: unknown;
   try {
-    parsed = JSON.parse(stripJsonFence(rawText));
+    // parseLooseJson chịu được backslash LaTeX thô (\sqrt, \frac...) trong nội dung câu hỏi
+    parsed = parseLooseJson(stripJsonFence(rawText));
   } catch {
     // Model không có JSON mode có thể chèn lời dẫn quanh mảng — cứu bằng cách bắt khối [...] ngoài cùng
     const arrayMatch = stripJsonFence(rawText).match(/\[[\s\S]*\]/);
@@ -176,7 +178,7 @@ const parseRawJsonToQuestions = (rawText: string): ExamQuestion[] => {
       throw new Error('AI trả về JSON không hợp lệ cho đề thi online.');
     }
     try {
-      parsed = JSON.parse(arrayMatch[0]);
+      parsed = parseLooseJson(arrayMatch[0]);
     } catch (error) {
       console.error('Invalid online exam parser JSON:', rawText, error);
       throw new Error('AI trả về JSON không hợp lệ cho đề thi online.');

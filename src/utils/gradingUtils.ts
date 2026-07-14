@@ -1,5 +1,6 @@
 import { callAI, callAIWithVision, getActiveApiKey } from '../lib/aiProviders';
 import { TemplateFile, GradingResult, AppData } from '../types';
+import { parseLooseJson } from './jsonRepair';
 
 type Settings = AppData['settings'];
 
@@ -211,7 +212,7 @@ Viết báo cáo phân tích theo cấu trúc Markdown (đầy đủ, không b�
       : text.match(/\{[\s\S]*"studentName"[\s\S]*\}/)?.[0];
     if (!jsonStr) throw new Error('AI không trả về JSON hợp lệ');
 
-    const parsed = JSON.parse(jsonStr);
+    const parsed = parseLooseJson(jsonStr);
     return {
       studentName: String(parsed.studentName || 'Ẩn danh'),
       score: Number(parsed.score) || 0,
