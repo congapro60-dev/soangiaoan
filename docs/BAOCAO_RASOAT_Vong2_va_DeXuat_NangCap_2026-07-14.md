@@ -8,6 +8,15 @@
 
 ## A. LỖI MỚI PHÁT HIỆN — VÒNG 2
 
+> **CẬP NHẬT 2026-07-14 (tối): A1 ĐÃ XỬ LÝ & DEPLOY.**
+> - Đề (doc `exams`) chuyển sang rules teacher-only (đã deploy) — học sinh không đọc doc trực tiếp được nữa.
+> - Học sinh vào làm/xem kết quả qua hàm serverless `/api/exam` (admin SDK) chỉ trả đề ĐÃ LƯỢC
+>   correctAnswer/explanation → mở DevTools không còn thấy đáp án.
+> - Chấm điểm chuyển server-side (`/api/exam` POST) bằng đáp án gốc; đáp án xem lại chỉ nhúng vào bài
+>   nộp khi giáo viên bật allowReview. Fail-safe: server lỗi thì teacher-verify vẫn tính đúng điểm.
+> - Rules `get()` nội bộ vẫn đọc được doc đề nên luồng tạo/validate bài nộp không hỏng.
+> - Đã smoke-test /api/exam trên production (GET+POST trả JSON đúng, admin creds OK) TRƯỚC khi siết rules.
+
 ### 🔴 A1. Học sinh xem được ĐÁP ÁN qua DevTools — lỗ hổng lớn nhất hệ Thi online
 - `firestore.rules:191`: đề `isActive == true` thì **ai cũng đọc được cả document exam**, mà document
   này chứa `correctAnswer` + `explanation` của từng câu (types `ExamQuestion`).

@@ -16,10 +16,14 @@
 - [x] ExamConfig/TeacherGrading: waitForAuth trước getExamById (rules teacher-only)
 - [x] firestore.rules: exams read teacher-only (rules get() nội bộ vẫn đọc được nên submission không hỏng)
 - [x] tsc 0 lỗi · 170 test PASS · build PASS
-- [ ] DEPLOY ĐÚNG THỨ TỰ: push (Vercel build frontend+functions) → smoke-test /api/health/firebase-admin
-      + /api/exam-public → CHỈ KHI OK mới deploy rules teacher-only
+- [x] Fix build Vercel: gộp thành 1 hàm api/exam.ts + helper _exam-core.ts (dưới giới hạn 12 function)
+- [x] DEPLOY: Vercel ● Ready (94fd534) → smoke-test /api/exam GET+POST trả JSON 404 (admin creds OK,
+      hàm chạy) → deploy rules teacher-only THÀNH CÔNG
+- [x] A1 XONG — đề leak đáp án qua DevTools đã đóng ở gốc (rules teacher-only + API lược đáp án)
 - Ghi chú: bài nộp CŨ (chấm client trước đây) không có đáp án nhúng → xem lại không tô đáp án đúng
   (chỉ mất highlight lịch sử, điểm vẫn đúng). Không cần migrate.
+- CẦN USER nghiệm thu thật: tạo 1 đề → mở link học sinh làm → kiểm điểm hiện đúng + mở DevTools
+  Network xem /api/exam KHÔNG có correctAnswer.
 
 ---
 
