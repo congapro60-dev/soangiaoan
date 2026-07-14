@@ -52,11 +52,20 @@ Nguồn: `docs/BAOCAO_RASOAT_Code_ToanBo_2026-07-13.md`. Phạm vi đợt 1 = 4 
 - [x] ExamsTab: bỏ avatar giả + progress bar vô nghĩa; AIToolsTab: nút Cài đặt mở Settings modal thật
 - [x] Verify: tsc 0 lỗi · 153/153 test · build PASS · preview kiểm tab AI Tutor OK
 
-### Đợt 2B — Chưa làm (cần quyết định thêm)
-- [ ] Adaptive nhiều bài học/giáo viên: bỏ doc id = uid, nối tab vào AdaptiveLessonListPage/builder sẵn có (thay đổi cấu trúc dữ liệu — cần bàn)
-- [ ] Demo login → Firebase Anonymous Auth (CẦN user bật Anonymous trong Firebase Console trước)
-- [ ] Làm thật "Giao bài" (gán đề Thi online cho lớp) + "Báo cáo" (gom kết quả chấm theo lớp)
-- [ ] Gộp useApiUsage + useTokenTracker; rehype-sanitize thay rehypeRaw; code-split chunk >1MB; AbortSignal xuống gradeSubmission; tiến độ streaming thật thay SimulatedProgress
+### Đợt 2B ✅ XONG
+- [x] Adaptive nhiều bài học: KHÔNG cần làm — tab 'adaptiveLessons' đã dùng AdaptiveLessonListPage + Builder embedded (App.tsx:398-427); AdaptiveLearningTab chỉ còn là màn thống kê người học (đã vá crash ở A4)
+- [x] Demo login → signInAnonymously (token thật, rules cho ghi) + fallback mock user kèm cảnh báo khi Anonymous chưa bật trong Firebase Console
+- [x] "Giao bài" thật: chọn đề từ useExams → lưu ClassAssignment vào class (types.ts) → copy link thi, cảnh báo nếu đề chưa phát hành; persist qua sync classes sẵn có
+- [x] "Báo cáo" thật: gom submissions các đề đã giao, lọc theo tên lớp HS nhập khi thi, bảng nộp/điểm TB trong Swal
+- [x] Xoá code chết useApiUsage.ts + ApiUsagePanel.tsx (không ai import, trackUsage không bao giờ được gọi) — hệ usage còn lại duy nhất useTokenTracker
+- [x] Verify: tsc 0 lỗi · 153/153 test · build PASS · preview: demo fallback toast đúng, Giao bài/Báo cáo hiện đúng dialog trạng thái rỗng
+- LƯU Ý USER: bật Anonymous trong Firebase Console → Authentication → Sign-in method để chế độ dùng thử lưu được dữ liệu thật
+
+### Đợt 3 — Hoãn có chủ đích (chưa làm)
+- [ ] rehype-sanitize thay rehypeRaw: rủi ro vỡ `<br/>` trong bảng + HTML KaTeX — cần test render riêng
+- [ ] AbortSignal xuyên xuống aiProviders (mọi provider) để nút hủy dừng request đang bay — refactor lớn
+- [ ] Code-split: 2 chunk >1MB đều đã lazy-load (pdf-export, export-utils) nên giá trị thấp
+- [ ] Tiến độ streaming thật thay SimulatedProgress
 
 ---
 

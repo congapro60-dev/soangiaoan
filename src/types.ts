@@ -6,6 +6,13 @@ export interface Student {
   status: 'active' | 'needs_support' | 'excellent';
 }
 
+export interface ClassAssignment {
+  examId: string;
+  examCode: string;
+  examTitle: string;
+  assignedAt: string;
+}
+
 export interface TeacherClass {
   id: string;
   name: string;
@@ -16,6 +23,7 @@ export interface TeacherClass {
   progress: number;
   tone: 'primary' | 'secondary' | 'tertiary' | 'warning';
   students: Student[];
+  assignments?: ClassAssignment[];
 }
 
 export interface Subject {

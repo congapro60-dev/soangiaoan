@@ -359,7 +359,7 @@ export default function App() {
             )}
 
             {activeTab === 'classes' && (
-              <ClassesTab data={data} setData={setData} />
+              <ClassesTab data={data} setData={setData} user={user} showToast={showToast} />
             )}
 
             {activeTab === 'creator' && (

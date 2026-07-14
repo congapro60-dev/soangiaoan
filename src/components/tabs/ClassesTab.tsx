@@ -1,11 +1,19 @@
 import { useMemo, useState } from 'react';
 import Swal from 'sweetalert2';
-import { AppData, Student, TeacherClass } from '../../types';
+import { User } from 'firebase/auth';
+import { AppData, ClassAssignment, Student, TeacherClass } from '../../types';
+import { useExams, getSubmissions } from '../../hooks/useExams';
 
 interface ClassesTabProps {
   data: AppData;
   setData: (data: any) => void;
+  user: User | null;
+  showToast: (msg: string, icon?: any) => void;
 }
+
+const escapeHtml = (value: string) => value.replace(/[<>&"]/g, ch => (
+  ch === '<' ? '&lt;' : ch === '>' ? '&gt;' : ch === '&' ? '&amp;' : '&quot;'
+));
 import {
   BarChart3,
   BookOpenCheck,
@@ -37,8 +45,9 @@ const statusLabel: Record<Student['status'], { label: string; className: string 
   excellent: { label: 'Xuất sắc', className: 'bg-emerald-50 text-emerald-700' },
 };
 
-export const ClassesTab = ({ data, setData }: ClassesTabProps) => {
+export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) => {
   const classes = data.classes || [];
+  const { exams } = useExams(user);
   const [selectedClassId, setSelectedClassId] = useState(classes[0]?.id || '');
 
   const [query, setQuery] = useState('');
@@ -158,6 +167,130 @@ export const ClassesTab = ({ data, setData }: ClassesTabProps) => {
     });
   };
 
+  const assignExam = async (cls: TeacherClass) => {
+    if (exams.length === 0) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Chưa có đề thi online',
+        text: 'Hãy tạo đề trong tab "Thi online" trước, rồi quay lại giao cho lớp.',
+        confirmButtonColor: '#3085d6',
+      });
+      return;
+    }
+
+    const options = exams.reduce<Record<string, string>>((acc, exam) => {
+      acc[exam.id] = `${exam.title} (#${exam.code})${exam.isActive ? '' : ' — chưa phát hành'}`;
+      return acc;
+    }, {});
+
+    const { value: examId } = await Swal.fire({
+      title: `Giao bài cho ${cls.name}`,
+      input: 'select',
+      inputOptions: options,
+      inputPlaceholder: '-- Chọn đề thi --',
+      showCancelButton: true,
+      confirmButtonText: 'Giao bài & copy link',
+      cancelButtonText: 'Hủy',
+    });
+    if (!examId) return;
+
+    const exam = exams.find(item => item.id === examId);
+    if (!exam) return;
+
+    const assignment: ClassAssignment = {
+      examId: exam.id,
+      examCode: exam.code,
+      examTitle: exam.title,
+      assignedAt: new Date().toISOString(),
+    };
+
+    setData((prev: AppData) => ({
+      ...prev,
+      classes: (prev.classes || []).map(item => {
+        if (item.id !== cls.id) return item;
+        const assignments = [...(item.assignments || []).filter(a => a.examId !== exam.id), assignment];
+        return { ...item, assignments, activeAssignments: assignments.length };
+      }),
+    }));
+
+    const url = `${window.location.origin}/exam/${exam.code}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      showToast(`Đã giao "${exam.title}" cho ${cls.name} — link làm bài đã copy!`, 'success');
+    } catch {
+      showToast(`Đã giao "${exam.title}" cho ${cls.name}. Link: ${url}`, 'success');
+    }
+    if (!exam.isActive) {
+      showToast('Đề này chưa phát hành — nhớ bật "Mở đề" trong tab Thi online để học sinh vào làm.', 'warning');
+    }
+  };
+
+  const showClassReport = async (cls: TeacherClass) => {
+    const assignments = cls.assignments || [];
+    if (assignments.length === 0) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Chưa giao bài nào',
+        text: `Dùng nút "Giao bài" để gán đề thi online cho ${cls.name} trước, báo cáo sẽ gom kết quả tại đây.`,
+        confirmButtonColor: '#3085d6',
+      });
+      return;
+    }
+
+    Swal.fire({
+      title: `Đang tổng hợp báo cáo ${cls.name}...`,
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      didOpen: () => Swal.showLoading(),
+    });
+
+    try {
+      const classKey = cls.name.trim().toLowerCase();
+      const rows = await Promise.all(assignments.map(async assignment => {
+        const submissions = await getSubmissions(assignment.examId);
+        const done = submissions.filter(s => s.status !== 'in_progress');
+        const ofClass = done.filter(s => (s.studentClass || '').trim().toLowerCase() === classKey);
+        const scored = ofClass.filter(s => typeof s.totalScore === 'number');
+        const avg = scored.length > 0
+          ? (scored.reduce((sum, s) => sum + (s.totalScore || 0), 0) / scored.length).toFixed(2)
+          : '—';
+        return { assignment, classCount: ofClass.length, totalCount: done.length, avg };
+      }));
+
+      const tableRows = rows.map(({ assignment, classCount, totalCount, avg }) => `
+        <tr>
+          <td style="text-align:left;padding:6px 8px;border-bottom:1px solid #e2e8f0;">${escapeHtml(assignment.examTitle)}<br/><span style="color:#64748b;font-size:11px;">#${escapeHtml(assignment.examCode)}</span></td>
+          <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;font-weight:700;">${classCount}</td>
+          <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;color:#64748b;">${totalCount}</td>
+          <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;font-weight:700;color:#2563eb;">${avg}</td>
+        </tr>`).join('');
+
+      Swal.fire({
+        title: `Báo cáo lớp ${cls.name}`,
+        width: 680,
+        html: `
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead>
+              <tr style="background:#f8fafc;color:#475569;font-size:11px;text-transform:uppercase;">
+                <th style="text-align:left;padding:6px 8px;">Đề đã giao</th>
+                <th style="padding:6px 8px;">Nộp (lớp này)</th>
+                <th style="padding:6px 8px;">Nộp (tổng)</th>
+                <th style="padding:6px 8px;">Điểm TB lớp</th>
+              </tr>
+            </thead>
+            <tbody>${tableRows}</tbody>
+          </table>
+          <p style="margin-top:10px;font-size:11px;color:#94a3b8;text-align:left;">"Nộp (lớp này)" khớp theo tên lớp học sinh nhập khi vào thi (${escapeHtml(cls.name)}). Xem chi tiết từng bài trong tab Thi online.</p>
+        `,
+        confirmButtonText: 'Đóng',
+        confirmButtonColor: '#3085d6',
+      });
+    } catch (error) {
+      console.error('Lỗi tổng hợp báo cáo lớp', error);
+      Swal.fire({ icon: 'error', title: 'Không tải được dữ liệu bài nộp', text: 'Vui lòng thử lại sau.', confirmButtonColor: '#3085d6' });
+    }
+  };
+
   return (
     <div className="space-y-6 pb-10">
       <section className="relative overflow-hidden rounded-[2rem] border border-blue-100 bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 p-6 text-white shadow-xl shadow-blue-100 sm:p-8">
@@ -227,8 +360,8 @@ export const ClassesTab = ({ data, setData }: ClassesTabProps) => {
 
               <div className="grid grid-cols-3 gap-1 border-t border-slate-100 bg-slate-50/80 p-2">
                 <button onClick={() => setSelectedClassId(item.id)} className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><Eye className="h-5 w-5" /> Danh sách</button>
-                <button disabled title="Tính năng đang phát triển — sẽ nối với Thi online" className="flex cursor-not-allowed flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-slate-300"><Send className="h-5 w-5" /> Giao bài</button>
-                <button disabled title="Tính năng đang phát triển — sẽ gom kết quả chấm theo lớp" className="flex cursor-not-allowed flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-slate-300"><BarChart3 className="h-5 w-5" /> Báo cáo</button>
+                <button onClick={() => assignExam(item)} title="Gán đề thi online cho lớp này" className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><Send className="h-5 w-5" /> Giao bài</button>
+                <button onClick={() => showClassReport(item)} title="Tổng hợp kết quả các đề đã giao" className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><BarChart3 className="h-5 w-5" /> Báo cáo</button>
               </div>
             </article>
           );
