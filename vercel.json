@@ -24,11 +24,7 @@
       "maxDuration": 30,
       "memory": 512
     },
-    "api/exam-public.ts": {
-      "maxDuration": 10,
-      "memory": 256
-    },
-    "api/grade-exam.ts": {
+    "api/exam.ts": {
       "maxDuration": 15,
       "memory": 512
     }

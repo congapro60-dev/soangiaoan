@@ -110,7 +110,7 @@ export const useExams = (user: User | null) => {
 // ── Đường HỌC SINH: đọc đề đã lược đáp án qua serverless (rules cấm học sinh đọc doc đề trực tiếp) ──
 
 const fetchPublicExam = async (params: string): Promise<Exam | null> => {
-  const res = await fetch(`/api/exam-public?${params}`);
+  const res = await fetch(`/api/exam?${params}`);
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`Không tải được đề thi (mã lỗi ${res.status})`);
   const data = await res.json();
@@ -132,7 +132,7 @@ export const getPublicExamById = (id: string): Promise<Exam | null> =>
 export const gradeExamSubmission = async (
   submissionId: string
 ): Promise<{ totalScore: number; status: string; maxScore: number }> => {
-  const res = await fetch('/api/grade-exam', {
+  const res = await fetch('/api/exam', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ submissionId }),

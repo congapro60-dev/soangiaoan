@@ -1,5 +1,44 @@
-// Logic chấm điểm THUẦN cho hàm serverless — mirror src/utils/examScoring.computeAutoScore.
-// Tách riêng để unit-test được (Vercel function không import chéo src/). Xem exam-scoring-core.test.ts.
+/// <reference types="node" />
+// File prefix "_" → Vercel KHÔNG biến thành Serverless Function (tránh vượt giới hạn số hàm),
+// nhưng vẫn import được từ api/exam.ts. Gồm: khởi tạo Firebase Admin + logic chấm thuần.
+import { cert, getApps, initializeApp } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+
+// ── Firebase Admin (giống pattern adaptive-progress.ts) ──────────────────────
+
+const parseJsonSecret = (value: string) => {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return JSON.parse(value.replace(/\r?\n/g, '\\n'));
+  }
+};
+
+const parseServiceAccount = () => {
+  const rawJson = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+  const rawBase64 = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
+  if (rawJson) return parseJsonSecret(rawJson);
+  if (rawBase64) return parseJsonSecret(Buffer.from(rawBase64, 'base64').toString('utf8'));
+
+  const projectId = process.env.FIREBASE_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+  if (projectId && clientEmail && privateKey) return { projectId, clientEmail, privateKey };
+  return null;
+};
+
+export const getAdminDb = () => {
+  if (!getApps().length) {
+    const serviceAccount = parseServiceAccount();
+    if (!serviceAccount) {
+      throw new Error('Missing Firebase Admin service account environment variables');
+    }
+    initializeApp({ credential: cert(serviceAccount) });
+  }
+  return getFirestore();
+};
+
+// ── Logic chấm thuần — mirror src/utils/examScoring.computeAutoScore ──────────
 
 export type TfScoringMode = 'all_or_nothing' | 'thpt2025';
 
@@ -36,7 +75,6 @@ const parseTFSub = (v: string): Record<string, string> => {
 
 const normalize = (s: string) => (s || '').trim().toLowerCase().replace(/\s+/g, ' ');
 
-/** Tính điểm tự động một câu (non-essay). Trả undefined cho essay (cần AI/giáo viên chấm). */
 export const computeAutoScoreCore = (
   q: CoreQuestion,
   answer: string,
@@ -65,11 +103,7 @@ export const computeAutoScoreCore = (
     return correctCount === 4 ? q.points : 0;
   }
 
-  if (q.type === 'true_false') {
-    return normalize(answer) === normalize(q.correctAnswer || '') ? q.points : 0;
-  }
-
-  if (q.type === 'short_answer') {
+  if (q.type === 'true_false' || q.type === 'short_answer') {
     return normalize(answer) === normalize(q.correctAnswer || '') ? q.points : 0;
   }
 
@@ -82,14 +116,6 @@ export interface GradeResult {
   status: 'submitted' | 'graded';
 }
 
-/**
- * Chấm toàn bộ bài nộp từ đáp án gốc (nguồn tin cậy = server).
- * - non-essay: tính lại autoScore.
- * - essay: giữ aiScore nếu đã có.
- * - allowReview=true: nhúng correctAnswer/explanation vào từng answer để học sinh xem lại
- *   (chỉ khi giáo viên bật) — KHÔNG lộ đáp án khi allowReview tắt.
- * - status: 'graded' nếu mọi câu đã có điểm, ngược lại 'submitted' (còn tự luận chờ chấm).
- */
 export const gradeSubmissionCore = (
   questions: CoreQuestion[],
   submissionAnswers: CoreAnswer[],
@@ -105,7 +131,6 @@ export const gradeSubmissionCore = (
     if (a.aiFeedback !== undefined) next.aiFeedback = a.aiFeedback;
 
     if (q.type === 'essay') {
-      // essay giữ nguyên aiScore/autoScore đã có
       if (a.autoScore !== undefined) next.autoScore = a.autoScore;
     } else {
       const autoScore = computeAutoScoreCore(q, a.answer, tfScoringMode);
@@ -135,7 +160,9 @@ export const gradeSubmissionCore = (
 };
 
 /** Bỏ đáp án + giải thích khỏi câu hỏi trước khi gửi cho học sinh (chống xem đáp án qua DevTools). */
-export const stripAnswerKey = <T extends { correctAnswer?: unknown; explanation?: unknown }>(question: T): Omit<T, 'correctAnswer' | 'explanation'> => {
+export const stripAnswerKey = <T extends { correctAnswer?: unknown; explanation?: unknown }>(
+  question: T
+): Omit<T, 'correctAnswer' | 'explanation'> => {
   const { correctAnswer, explanation, ...rest } = question;
   return rest;
 };

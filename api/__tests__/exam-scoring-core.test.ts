@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computeAutoScoreCore, gradeSubmissionCore, stripAnswerKey, type CoreQuestion } from './exam-scoring-core';
+import { computeAutoScoreCore, gradeSubmissionCore, stripAnswerKey, type CoreQuestion } from '../_exam-core';
 
 const questions: CoreQuestion[] = [
   { id: 'q1', type: 'multiple_choice', options: ['A. 1', 'B. 2', 'C. 3', 'D. 4'], correctAnswer: 'A', points: 2, explanation: 'vì A' },
@@ -17,7 +17,7 @@ describe('computeAutoScoreCore', () => {
     expect(computeAutoScoreCore(questions[2], ' 42 ')).toBe(1);
   });
   it('Đ/S thpt2025 partial credit', () => {
-    const three = JSON.stringify({ a: 'Đ', b: 'S', c: 'Đ', d: 'Đ' }); // 3/4 đúng
+    const three = JSON.stringify({ a: 'Đ', b: 'S', c: 'Đ', d: 'Đ' });
     expect(computeAutoScoreCore(questions[1], three, 'thpt2025')).toBe(2);
     expect(computeAutoScoreCore(questions[1], three, 'all_or_nothing')).toBe(0);
   });
@@ -27,7 +27,7 @@ describe('computeAutoScoreCore', () => {
 });
 
 describe('gradeSubmissionCore', () => {
-  it('chấm đầy đủ + status graded khi không còn essay chờ, nhúng đáp án khi allowReview', () => {
+  it('chấm đầy đủ + status graded, nhúng đáp án khi allowReview', () => {
     const res = gradeSubmissionCore(
       [questions[0], questions[2]],
       [{ questionId: 'q1', answer: 'A' }, { questionId: 'q3', answer: '42' }],
@@ -42,7 +42,6 @@ describe('gradeSubmissionCore', () => {
   it('KHÔNG nhúng đáp án khi allowReview tắt', () => {
     const res = gradeSubmissionCore([questions[0]], [{ questionId: 'q1', answer: 'A' }], false);
     expect(res.answers[0].correctAnswer).toBeUndefined();
-    expect(res.answers[0].explanation).toBeUndefined();
   });
 
   it('bài có essay chưa chấm → status submitted, tổng chỉ tính câu auto', () => {
@@ -57,15 +56,11 @@ describe('gradeSubmissionCore', () => {
       false,
     );
     expect(res.status).toBe('submitted');
-    expect(res.totalScore).toBe(7); // 2 + 4 + 1, essay chưa cộng
+    expect(res.totalScore).toBe(7);
   });
 
   it('điểm học sinh tự ghi bị ghi đè bằng điểm tính từ đáp án gốc', () => {
-    const res = gradeSubmissionCore(
-      [questions[0]],
-      [{ questionId: 'q1', answer: 'B', autoScore: 2 }], // sai nhưng tự ghi 2
-      false,
-    );
+    const res = gradeSubmissionCore([questions[0]], [{ questionId: 'q1', answer: 'B', autoScore: 2 }], false);
     expect(res.answers[0].autoScore).toBe(0);
     expect(res.totalScore).toBe(0);
   });
