@@ -4,6 +4,31 @@
 
 ---
 
+## Active Task: Làm cứng hệ Thi online (vòng 2, phần 🔴) — 2026-07-14
+
+Nguồn: `docs/BAOCAO_RASOAT_Vong2_va_DeXuat_NangCap_2026-07-14.md`. Phạm vi = giảm thiểu thực dụng
+(client + rules + xác minh phía giáo viên). Chấm server-side + tách answer key = giai đoạn sau.
+
+- [x] examScoring: `verifySubmissionScore` + 4 golden test (examScoring.verify.test.ts)
+- [x] StudentExamPage: enforce startAt/endAt (intro + guard + trần thời gian làm theo endAt);
+      maxAttempts chặn mức trình duyệt (localStorage `exam_attempts_<examId>`); sidebar tô "đã làm"
+      đúng với câu Đ/S 4 ý; học sinh nộp luôn ở status 'submitted'
+- [x] StudentResultPage: enforce showResultWhen ('never' ẩn hẳn; 'all_done' hiện khi quá endAt hoặc
+      đã 'graded'); "chờ chấm tự luận" chỉ hiện khi đề có tự luận
+- [x] ExamsTab reloadSubmissions: tự xác minh điểm mỗi lần giáo viên mở theo dõi — lệch thì tính lại
+      từ đáp án gốc + toast cảnh báo; tự chuyển submitted→graded khi đủ điểm mọi câu
+      (showToast giữ qua ref để tránh loop refetch)
+- [x] AnswerEditModal: dùng verifySubmissionScore — sửa bug recalc làm mất aiScore tự luận
+- [x] firestore.rules: học sinh không set được 'graded'; totalScore kẹp 0..maxScore — ĐÃ DEPLOY
+- [x] tsc 0 lỗi · 161/161 test PASS (thêm 4) · build PASS · commit + push
+- CÒN LẠI (giai đoạn sau, cần duyệt): chấm server-side + tách answer key khỏi doc exam
+  (chặn xem đáp án qua DevTools) — thay đổi kiến trúc lớn
+
+Ghi chú giới hạn (đã báo user): chống gian lận triệt để vẫn cần chấm server-side — đợt này là
+giảm thiểu: học sinh sửa điểm sẽ bị phát hiện & tính lại ngay khi giáo viên mở trang theo dõi.
+
+---
+
 ## Template (copy for each new task)
 
 ```

@@ -1,7 +1,41 @@
-import { ExamQuestion, TfScoringMode } from '../types';
+import { ExamQuestion, StudentAnswer, TfScoringMode } from '../types';
 
 export const isCompoundTF = (q: ExamQuestion) =>
   q.type === 'true_false' && Array.isArray(q.options) && q.options.length > 0;
+
+/**
+ * Tính lại điểm một bài nộp từ đáp án gốc — dùng để giáo viên XÁC MINH điểm
+ * (điểm hiện được tính ở trình duyệt học sinh nên có thể bị can thiệp), và để
+ * "Sửa đáp án & tính lại" không làm mất điểm tự luận đã chấm AI.
+ * - Câu non-essay: tính lại autoScore từ correctAnswer.
+ * - Câu essay: giữ nguyên aiScore/autoScore đã có (AI/giáo viên chấm).
+ * - Tổng = autoScore các câu auto + aiScore các câu tự luận.
+ */
+export const verifySubmissionScore = (
+  questions: ExamQuestion[],
+  submissionAnswers: StudentAnswer[],
+  storedTotalScore: number | undefined,
+  tfScoringMode?: TfScoringMode
+): { answers: StudentAnswer[]; totalScore: number; changed: boolean } => {
+  let answersChanged = false;
+  const answers = submissionAnswers.map(a => {
+    const q = questions.find(item => item.id === a.questionId);
+    if (!q || q.type === 'essay') return a;
+    const autoScore = computeAutoScore(q, a.answer, tfScoringMode);
+    if (autoScore === a.autoScore) return a;
+    answersChanged = true;
+    return { ...a, autoScore };
+  });
+
+  const totalScore = Math.round(answers.reduce((sum, a) => {
+    if (a.autoScore !== undefined) return sum + a.autoScore;
+    if (a.aiScore !== undefined) return sum + a.aiScore;
+    return sum;
+  }, 0) * 100) / 100;
+
+  const changed = answersChanged || Math.abs(totalScore - (storedTotalScore ?? 0)) > 0.005;
+  return { answers, totalScore, changed };
+};
 
 const braceMathScript = (script: string) => (
   script.startsWith('{') ? script : `{${script}}`

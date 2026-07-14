@@ -33,6 +33,37 @@ const isAnswered = (q: ExamQuestion, v: string): boolean => {
   return v.trim().length > 0;
 };
 
+// ── Giờ mở/đóng đề + giới hạn số lần làm (mức trình duyệt) ────────────────────
+// Lưu ý: đây là enforce phía client — đủ chặn dùng sai thông thường trong lớp học;
+// chống gian lận triệt để cần chấm server-side (giai đoạn sau).
+
+type ExamWindowState = { state: 'not_yet' | 'open' | 'closed'; startAt: Date | null; endAt: Date | null };
+
+const getExamWindow = (exam: Exam): ExamWindowState => {
+  const startAt = exam.startAt ? new Date(exam.startAt) : null;
+  const endAt = exam.endAt ? new Date(exam.endAt) : null;
+  const now = Date.now();
+  if (startAt && !Number.isNaN(startAt.getTime()) && now < startAt.getTime()) return { state: 'not_yet', startAt, endAt };
+  if (endAt && !Number.isNaN(endAt.getTime()) && now > endAt.getTime()) return { state: 'closed', startAt, endAt };
+  return { state: 'open', startAt, endAt };
+};
+
+const attemptsKey = (examId: string) => `exam_attempts_${examId}`;
+
+const getLocalAttempts = (examId: string): number => {
+  try {
+    return parseInt(localStorage.getItem(attemptsKey(examId)) || '0', 10) || 0;
+  } catch {
+    return 0;
+  }
+};
+
+const bumpLocalAttempts = (examId: string) => {
+  try {
+    localStorage.setItem(attemptsKey(examId), String(getLocalAttempts(examId) + 1));
+  } catch { /* localStorage bị chặn — bỏ qua */ }
+};
+
 // ─── Section config ───────────────────────────────────────────────────────────
 
 const SECTION: Record<QuestionType, { label: string; desc: string }> = {
@@ -153,11 +184,12 @@ export const StudentExamPage = () => {
     });
 
     const totalAuto = studentAnswers.reduce((sum, a) => sum + (a.autoScore || 0), 0);
-    const hasUngraded = studentAnswers.some(a => a.autoScore === undefined);
 
     try {
+      // Học sinh chỉ được nộp ở trạng thái 'submitted' — 'graded' do giáo viên/AI xác nhận
+      // (rules cũng chặn; điểm sẽ được giáo viên xác minh lại từ đáp án gốc khi mở trang theo dõi)
       await updateSubmission(submissionId, {
-        status: hasUngraded ? 'submitted' : 'graded',
+        status: 'submitted',
         submittedAt: new Date().toISOString(),
         answers: studentAnswers,
         totalScore: totalAuto,
@@ -199,6 +231,21 @@ export const StudentExamPage = () => {
   // ── Actions ───────────────────────────────────────────────────────────────
   const startExam = async () => {
     if (!exam || !studentName.trim()) return;
+
+    const win = getExamWindow(exam);
+    if (win.state === 'not_yet') {
+      setStartError(`Đề chưa mở. Giờ mở đề: ${win.startAt?.toLocaleString('vi-VN')}. Hãy tải lại trang khi đến giờ.`);
+      return;
+    }
+    if (win.state === 'closed') {
+      setStartError(`Đề đã đóng lúc ${win.endAt?.toLocaleString('vi-VN')} — không thể vào làm bài.`);
+      return;
+    }
+    if ((exam.maxAttempts ?? 0) > 0 && getLocalAttempts(exam.id) >= exam.maxAttempts) {
+      setStartError(`Bạn đã làm đủ ${exam.maxAttempts} lần cho đề này trên thiết bị này.`);
+      return;
+    }
+
     setStartError(null);
     setPageState('loading');
     try {
@@ -219,8 +266,12 @@ export const StudentExamPage = () => {
       });
       setSubmissionId(subId);
       submissionIdRef.current = subId;
+      bumpLocalAttempts(exam.id);
       setOrderedQuestions(qs);
-      setRemainingSeconds(exam.durationMinutes * 60);
+      // Thời gian làm bài không được vượt quá giờ đóng đề (endAt)
+      const durationSec = exam.durationMinutes * 60;
+      const endCapSec = win.endAt ? Math.floor((win.endAt.getTime() - Date.now()) / 1000) : Infinity;
+      setRemainingSeconds(Math.max(1, Math.min(durationSec, endCapSec)));
       setPageState('taking');
     } catch (err: any) {
       console.error(err);
@@ -250,6 +301,17 @@ export const StudentExamPage = () => {
   if (pageState === 'not_found') return <FullPageMessage icon={<AlertTriangle className="w-8 h-8 text-amber-500" />} iconBg="bg-amber-50" title="Không tìm thấy đề thi" message="Mã đề thi không tồn tại hoặc đã bị xóa." />;
 
   if (pageState === 'intro') {
+    const win = exam ? getExamWindow(exam) : null;
+    const attemptsUsed = exam ? getLocalAttempts(exam.id) : 0;
+    const attemptsExceeded = !!exam && (exam.maxAttempts ?? 0) > 0 && attemptsUsed >= exam.maxAttempts;
+    const entryBlocked = (win && win.state !== 'open') || attemptsExceeded;
+    const blockMessage = win?.state === 'not_yet'
+      ? `Đề sẽ mở lúc ${win.startAt?.toLocaleString('vi-VN')}. Hãy tải lại trang khi đến giờ.`
+      : win?.state === 'closed'
+        ? `Đề đã đóng lúc ${win.endAt?.toLocaleString('vi-VN')}.`
+        : attemptsExceeded
+          ? `Bạn đã làm đủ ${exam?.maxAttempts} lần cho đề này trên thiết bị này.`
+          : null;
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-md w-full bg-white rounded-3xl border border-slate-100 p-8 shadow-2xl">
@@ -268,12 +330,17 @@ export const StudentExamPage = () => {
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Lớp</label>
               <input type="text" value={studentClass} onChange={e => setStudentClass(e.target.value)} placeholder="Ví dụ: 12A1..." className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
+            {blockMessage && (
+              <div className="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-700">
+                {blockMessage}
+              </div>
+            )}
             {startError && (
               <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
                 {startError}
               </div>
             )}
-            <button onClick={startExam} disabled={!studentName.trim()} className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-sm shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all disabled:opacity-50 active:scale-95">
+            <button onClick={startExam} disabled={!studentName.trim() || !!entryBlocked} className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-sm shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all disabled:opacity-50 active:scale-95">
               BẮT ĐẦU LÀM BÀI
             </button>
           </div>
@@ -405,7 +472,7 @@ export const StudentExamPage = () => {
                       key={q.id}
                       onClick={() => questionRefs.current[q.id]?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
                       className={`h-10 rounded-xl text-xs font-black transition-all ${
-                        answers[q.id] ? 'bg-blue-600 text-white shadow-lg shadow-blue-100' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'
+                        isAnswered(q, answers[q.id] || '') ? 'bg-blue-600 text-white shadow-lg shadow-blue-100' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'
                       }`}
                     >
                       {globalNum[q.id]}

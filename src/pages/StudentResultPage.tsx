@@ -87,7 +87,37 @@ export const StudentResultPage = () => {
 
   const score = submission.totalScore ?? 0;
   const pct = exam.maxScore > 0 ? (score / exam.maxScore) * 100 : 0;
-  const pending = submission.status === 'submitted';
+  // Chỉ báo "chờ chấm" khi đề thực sự có câu tự luận (học sinh giờ luôn nộp ở status 'submitted')
+  const pending = submission.status === 'submitted' && exam.questions.some(q => q.type === 'essay');
+
+  // Enforce cấu hình "Hiện kết quả khi nào" của giáo viên
+  const showWhen = exam.showResultWhen ?? 'submit';
+  const examEnded = exam.endAt ? Date.now() > new Date(exam.endAt).getTime() : false;
+  const canShowScore = showWhen === 'submit'
+    || (showWhen === 'all_done' && (examEnded || submission.status === 'graded'));
+
+  if (!canShowScore) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-3xl border border-slate-100 p-8 text-center">
+          <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-4" />
+          <h1 className="text-xl font-black text-slate-800">Đã nộp bài thành công!</h1>
+          <p className="text-sm text-slate-600 mt-2 font-semibold">{exam.title}</p>
+          <div className="mt-4 space-y-1 text-sm text-slate-500">
+            <p>Thí sinh: <span className="font-bold text-slate-700">{submission.studentName}{submission.studentClass && ` • ${submission.studentClass}`}</span></p>
+          </div>
+          <p className="mt-5 text-xs font-semibold text-amber-700 bg-amber-50 px-3 py-2.5 rounded-xl">
+            {showWhen === 'never'
+              ? 'Giáo viên sẽ công bố điểm sau. Kết quả không hiển thị trên trang này.'
+              : 'Điểm sẽ hiển thị sau khi kỳ thi kết thúc hoặc khi giáo viên hoàn tất chấm bài. Hãy quay lại trang này sau.'}
+          </p>
+          <Link to="/" className="mt-5 inline-block text-xs text-slate-400 hover:text-slate-600 font-medium">
+            Về trang chủ
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const startMs = new Date(submission.startedAt).getTime();
   const endMs = submission.submittedAt ? new Date(submission.submittedAt).getTime() : Date.now();

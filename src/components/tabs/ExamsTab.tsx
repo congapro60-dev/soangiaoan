@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import Swal from 'sweetalert2';
@@ -17,7 +17,7 @@ import {
 import { User } from 'firebase/auth';
 import { AppData, Exam, ExamSubmission, ExamQuestion, StudentAnswer } from '../../types';
 import { useExams, updateSubmission, updateExam, getSubmissions } from '../../hooks/useExams';
-import { computeAutoScore, recalcTotalScore } from '../../utils/examScoring';
+import { verifySubmissionScore } from '../../utils/examScoring';
 import { generateExamCode, calculateMaxScore } from '../../lib/examParser';
 import { parseMarkdownToOnlineExam } from '../../utils/examOnlineParser';
 import { callAI, getActiveApiKey } from '../../lib/aiProviders';
@@ -145,6 +145,9 @@ type CreateView = 'picker' | 'editor' | null;
 
 export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
   const { exams, loading, saveExam, deleteExam, toggleActive, fetchMyExams } = useExams(user);
+  // showToast từ App đổi identity mỗi render — giữ qua ref để reloadSubmissions ổn định (deps [])
+  const showToastRef = useRef(showToast);
+  showToastRef.current = showToast;
   const [creating, setCreating] = useState(false);
   const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
   const [submissions, setSubmissions] = useState<ExamSubmission[]>([]);
@@ -194,7 +197,38 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
     setLoadingSubs(true);
     try {
       const subs = await getSubmissions(exam.id);
-      setSubmissions(subs);
+
+      // Điểm được tính ở trình duyệt học sinh nên có thể bị can thiệp — xác minh lại
+      // từ đáp án gốc mỗi lần giáo viên mở trang theo dõi; lệch thì sửa và cảnh báo.
+      // Đồng thời chuyển 'submitted' → 'graded' khi bài đã đủ điểm mọi câu.
+      let fixedCount = 0;
+      const verified = await Promise.all(subs.map(async sub => {
+        if (sub.status === 'in_progress') return sub;
+
+        const check = verifySubmissionScore(exam.questions, sub.answers, sub.totalScore, exam.tfScoringMode);
+        const fullyGraded = exam.questions.every(q => {
+          const a = check.answers.find(item => item.questionId === q.id);
+          if (!a) return false;
+          return q.type === 'essay' ? (a.aiScore !== undefined || a.autoScore !== undefined) : true;
+        });
+        const nextStatus = sub.status === 'submitted' && fullyGraded ? 'graded' as const : sub.status;
+
+        if (!check.changed && nextStatus === sub.status) return sub;
+        if (check.changed) fixedCount++;
+
+        const patched: ExamSubmission = { ...sub, answers: check.answers, totalScore: check.totalScore, status: nextStatus };
+        try {
+          await updateSubmission(sub.id, { answers: check.answers, totalScore: check.totalScore, status: nextStatus });
+        } catch (err) {
+          console.error('Không ghi lại được điểm đã xác minh', err);
+        }
+        return patched;
+      }));
+
+      setSubmissions(verified);
+      if (fixedCount > 0) {
+        showToastRef.current(`⚠️ Phát hiện ${fixedCount} bài có điểm không khớp đáp án — đã tính lại từ đáp án gốc.`, 'warning');
+      }
     } finally {
       setLoadingSubs(false);
     }
@@ -1193,13 +1227,8 @@ const AnswerEditModal = ({ exam, submissions, data, showToast, onClose, onSaved 
 
       if (hasSubmissions) {
         for (const sub of completedSubs) {
-          const newAnswers = sub.answers.map(a => {
-            const q = updatedQuestions.find(q => q.id === a.questionId);
-            if (!q || q.type === 'essay') return a;
-            const autoScore = computeAutoScore(q, a.answer, exam.tfScoringMode);
-            return { ...a, autoScore: autoScore ?? a.autoScore };
-          });
-          const totalScore = recalcTotalScore(updatedQuestions, newAnswers, exam.tfScoringMode);
+          // verifySubmissionScore giữ nguyên aiScore tự luận trong tổng — recalc cũ làm mất điểm essay đã chấm
+          const { answers: newAnswers, totalScore } = verifySubmissionScore(updatedQuestions, sub.answers, sub.totalScore, exam.tfScoringMode);
           await updateSubmission(sub.id, { answers: newAnswers as StudentAnswer[], totalScore });
         }
         showToast(`Đã cập nhật đáp án và tính lại điểm cho ${completedSubs.length} bài!`);

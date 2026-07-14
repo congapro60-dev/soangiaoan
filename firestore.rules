@@ -245,12 +245,18 @@ service cloud.firestore {
                && examDoc(request.resource.data.examId).data.code == request.resource.data.examCode;
       }
       function validStudentUpdate() {
+        // Học sinh KHÔNG được tự set 'graded' (chỉ giáo viên/AI đặt); totalScore kẹp 0..maxScore.
+        // Điểm học sinh ghi vẫn là client-computed — trang theo dõi của giáo viên sẽ tự xác minh
+        // và tính lại từ đáp án gốc (verifySubmissionScore) mỗi lần mở.
         return resource.data.status == 'in_progress'
                && keepsSubmissionIdentity()
-               && request.resource.data.status in ['in_progress', 'submitted', 'graded']
+               && request.resource.data.status in ['in_progress', 'submitted']
                && request.resource.data.answers is list
                && (!('submittedAt' in request.resource.data) || request.resource.data.submittedAt is string)
-               && (!('totalScore' in request.resource.data) || request.resource.data.totalScore is number)
+               && (!('totalScore' in request.resource.data)
+                   || (request.resource.data.totalScore is number
+                       && request.resource.data.totalScore >= 0
+                       && request.resource.data.totalScore <= resource.data.maxScore))
                && (!('tabSwitches' in request.resource.data) || request.resource.data.tabSwitches is number);
       }
 

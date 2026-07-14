@@ -15,6 +15,16 @@
 - Fix đúng: tách answer key sang doc riêng chỉ giáo viên đọc (`examAnswerKeys/{examId}`), hoặc chấm
   server-side (xem A2) và loại `correctAnswer/explanation` khỏi payload gửi học sinh.
 
+> **CẬP NHẬT 2026-07-14 (chiều): A2 + A3 đã được GIẢM THIỂU** trong đợt "làm cứng hệ Thi online":
+> - A2: rules chặn học sinh set 'graded' + kẹp totalScore 0..maxScore (đã deploy); trang theo dõi
+>   của giáo viên tự XÁC MINH & TÍNH LẠI điểm từ đáp án gốc mỗi lần mở (`verifySubmissionScore`),
+>   lệch là sửa + cảnh báo → gian lận tự ghi điểm bị vô hiệu khi giáo viên xem kết quả.
+> - A3: startAt/endAt/maxAttempts được enforce ở trang làm bài (chặn vào + trần thời gian theo endAt;
+>   maxAttempts chặn mức trình duyệt); showResultWhen được enforce ở trang kết quả.
+> - Bonus sửa kèm: recalc "Sửa đáp án" không còn làm mất điểm tự luận AI; sidebar tô "đã làm" đúng
+>   với câu Đ/S 4 ý; học sinh luôn nộp ở 'submitted', giáo viên/hệ thống mới chuyển 'graded'.
+> - A1 (lộ đáp án qua DevTools) CHƯA xử lý — cần tách answer key/chấm server-side (giai đoạn sau).
+
 ### 🔴 A2. Học sinh có thể TỰ GHI ĐIỂM — chấm hoàn toàn phía client
 - `StudentExamPage.handleSubmit` tính `autoScore/totalScore` ở client rồi `updateSubmission`.
 - `firestore.rules validStudentUpdate` chỉ yêu cầu `totalScore is number` → học sinh sửa request
