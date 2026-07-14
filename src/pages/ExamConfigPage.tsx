@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Loader2, AlertTriangle, ArrowLeft, Save, Settings } from 'lucide-react';
 import { Exam } from '../types';
-import { getExamById, updateExam } from '../hooks/useExams';
+import { getExamById, updateExam, waitForAuth } from '../hooks/useExams';
 
 export const ExamConfigPage = () => {
   const { examId } = useParams<{ examId: string }>();
@@ -14,10 +14,13 @@ export const ExamConfigPage = () => {
 
   useEffect(() => {
     if (!examId) { setLoading(false); return; }
-    getExamById(examId).then(e => {
-      if (e) { setExam(e); setForm(e); }
-      setLoading(false);
-    });
+    // Chờ auth để rules teacher-only cho đọc doc đề (kể cả đề nháp) khi mở URL trực tiếp
+    waitForAuth()
+      .then(() => getExamById(examId))
+      .then(e => {
+        if (e) { setExam(e); setForm(e); }
+      })
+      .finally(() => setLoading(false));
   }, [examId]);
 
   const set = <K extends keyof Exam>(key: K, val: Exam[K]) =>

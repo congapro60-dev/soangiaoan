@@ -10,7 +10,7 @@ import {
   ChevronDown, ChevronUp,
 } from 'lucide-react';
 import { Exam, ExamSubmission, ExamQuestion } from '../types';
-import { findExamByCode, getSubmission, getSubmissions } from '../hooks/useExams';
+import { getPublicExamById, getSubmission, getSubmissions } from '../hooks/useExams';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -46,10 +46,12 @@ export const StudentResultPage = () => {
 
   useEffect(() => {
     if (!code || !submissionId) { setError('Thiếu thông tin'); setLoading(false); return; }
-    Promise.all([findExamByCode(code), getSubmission(submissionId)])
-      .then(([e, s]) => {
-        if (!e) { setError('Không tìm thấy đề thi'); return; }
+    // Lấy bài nộp trước để có examId, rồi tải đề (đã lược đáp án) theo id — hoạt động cả khi đề đã đóng.
+    getSubmission(submissionId)
+      .then(async s => {
         if (!s) { setError('Không tìm thấy bài làm'); return; }
+        const e = await getPublicExamById(s.examId);
+        if (!e) { setError('Không tìm thấy đề thi'); return; }
         setExam(e); setSubmission(s);
       })
       .catch(err => setError(err.message))
@@ -243,12 +245,18 @@ export const StudentResultPage = () => {
               const sa = submission.answers.find(a => a.questionId === q.id);
               const isCorrect = sa?.autoScore !== undefined && sa.autoScore === q.points;
               const isWrong = sa?.autoScore !== undefined && sa.autoScore < q.points;
+              // Đề gửi học sinh đã lược đáp án → lấy đáp án/giải thích từ bài nộp đã chấm (server nhúng)
+              const effectiveQuestion = {
+                ...q,
+                correctAnswer: sa?.correctAnswer ?? q.correctAnswer,
+                explanation: sa?.explanation ?? q.explanation,
+              };
 
               return (
                 <QuestionReview
                   key={q.id}
                   num={idx + 1}
-                  question={q}
+                  question={effectiveQuestion}
                   studentAnswer={sa?.answer || ''}
                   isCorrect={isCorrect}
                   isWrong={isWrong}

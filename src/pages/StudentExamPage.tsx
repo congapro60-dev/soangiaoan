@@ -8,8 +8,8 @@ import remarkGfm from 'remark-gfm';
 import 'katex/dist/katex.min.css';
 import { Clock, AlertTriangle, CheckCircle2, Loader2, Send, BookOpen } from 'lucide-react';
 import { Exam, ExamQuestion, ExamSubmission, StudentAnswer, QuestionType } from '../types';
-import { findExamByCode, createSubmission, updateSubmission, createSubmissionId, createSubmissionNonce } from '../hooks/useExams';
-import { computeAutoScore, isCompoundTF, parseTFSub, ensureMathWrapped, getOptionCols } from '../utils/examScoring';
+import { findPublicExamByCode, createSubmission, updateSubmission, gradeExamSubmission, createSubmissionId, createSubmissionNonce } from '../hooks/useExams';
+import { isCompoundTF, parseTFSub, ensureMathWrapped, getOptionCols } from '../utils/examScoring';
 
 type PageState = 'loading' | 'not_found' | 'intro' | 'taking' | 'submitting';
 
@@ -140,7 +140,7 @@ export const StudentExamPage = () => {
   // ── Load exam ─────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!code) { setPageState('not_found'); return; }
-    findExamByCode(code)
+    findPublicExamByCode(code)
       .then(e => { setExam(e ?? null); setPageState(e ? 'intro' : 'not_found'); })
       .catch(() => setPageState('not_found'));
   }, [code]);
@@ -177,24 +177,27 @@ export const StudentExamPage = () => {
     setPageState('submitting');
     submittedRef.current = true;
 
-    const studentAnswers: StudentAnswer[] = orderedQuestions.map(q => {
-      const a = answers[q.id] || '';
-      const autoScore = computeAutoScore(q, a, exam!.tfScoringMode);
-      return { questionId: q.id, answer: a, ...(autoScore !== undefined ? { autoScore } : {}) };
-    });
-
-    const totalAuto = studentAnswers.reduce((sum, a) => sum + (a.autoScore || 0), 0);
+    // Đề phía học sinh đã bị lược đáp án → KHÔNG chấm ở client nữa. Lưu câu trả lời thô,
+    // rồi nhờ server chấm bằng đáp án gốc (nguồn tin cậy).
+    const studentAnswers: StudentAnswer[] = orderedQuestions.map(q => ({
+      questionId: q.id,
+      answer: answers[q.id] || '',
+    }));
 
     try {
-      // Học sinh chỉ được nộp ở trạng thái 'submitted' — 'graded' do giáo viên/AI xác nhận
-      // (rules cũng chặn; điểm sẽ được giáo viên xác minh lại từ đáp án gốc khi mở trang theo dõi)
       await updateSubmission(submissionId, {
         status: 'submitted',
         submittedAt: new Date().toISOString(),
         answers: studentAnswers,
-        totalScore: totalAuto,
         tabSwitches,
       });
+      // Chấm server-side. Fail-safe: lỗi thì bỏ qua — bài vẫn ở 'submitted', giáo viên
+      // mở trang theo dõi sẽ tự xác minh & tính điểm từ đáp án gốc.
+      try {
+        await gradeExamSubmission(submissionId);
+      } catch (gradeErr) {
+        console.warn('Chấm server-side thất bại — bài vẫn được lưu, giáo viên sẽ chấm/xác minh sau', gradeErr);
+      }
       navigate(`/exam/${exam.code}/result/${submissionId}${auto ? '?auto=1' : ''}`);
     } catch {
       submittedRef.current = false;

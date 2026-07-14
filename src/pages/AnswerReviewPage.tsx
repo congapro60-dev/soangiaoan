@@ -10,7 +10,7 @@ import {
   ChevronDown, ChevronUp, ArrowLeft,
 } from 'lucide-react';
 import { Exam, ExamSubmission, ExamQuestion } from '../types';
-import { findExamByCode, getSubmission } from '../hooks/useExams';
+import { getPublicExamById, getSubmission } from '../hooks/useExams';
 
 // ─── Helpers (shared with StudentResultPage) ──────────────────────────────────
 
@@ -39,10 +39,12 @@ export const AnswerReviewPage = () => {
 
   useEffect(() => {
     if (!code || !submissionId) { setError('Thiếu thông tin'); setLoading(false); return; }
-    Promise.all([findExamByCode(code), getSubmission(submissionId)])
-      .then(([e, s]) => {
-        if (!e) { setError('Không tìm thấy đề thi'); return; }
+    // Bài nộp trước → lấy examId → tải đề đã lược đáp án; đáp án xem lại lấy từ bài nộp đã chấm.
+    getSubmission(submissionId)
+      .then(async s => {
         if (!s) { setError('Không tìm thấy bài làm'); return; }
+        const e = await getPublicExamById(s.examId);
+        if (!e) { setError('Không tìm thấy đề thi'); return; }
         setExam(e); setSubmission(s);
         if (e.questions[0]) setActiveQ(e.questions[0].id);
       })
@@ -140,12 +142,18 @@ export const AnswerReviewPage = () => {
             const sa = submission.answers.find(a => a.questionId === q.id);
             const isCorrect = sa?.autoScore !== undefined && sa.autoScore === q.points;
             const isWrong = sa?.autoScore !== undefined && sa.autoScore < q.points;
+            // Đề đã lược đáp án → hợp đáp án/giải thích từ bài nộp đã chấm
+            const effectiveQuestion = {
+              ...q,
+              correctAnswer: sa?.correctAnswer ?? q.correctAnswer,
+              explanation: sa?.explanation ?? q.explanation,
+            };
 
             return (
               <div key={q.id} ref={el => { questionRefs.current[q.id] = el; }}>
                 <QuestionReviewCard
                   num={idx + 1}
-                  question={q}
+                  question={effectiveQuestion}
                   studentAnswer={sa?.answer || ''}
                   isCorrect={isCorrect}
                   isWrong={isWrong}

@@ -166,6 +166,10 @@ export interface StudentAnswer {
   autoScore?: number;
   aiScore?: number;
   aiFeedback?: string;
+  // Server nhúng đáp án + giải thích vào bài nộp khi chấm (chỉ khi giáo viên bật allowReview),
+  // để trang kết quả xem lại được mà không cần đọc đề gốc (đề gửi học sinh đã lược đáp án).
+  correctAnswer?: string;
+  explanation?: string;
 }
 
 export interface ExamSubmission {

@@ -3,9 +3,22 @@ import {
   collection, query, where, getDocs, doc, setDoc, deleteDoc,
   getDoc, orderBy, updateDoc
 } from 'firebase/firestore';
-import { User } from 'firebase/auth';
-import { db } from '../lib/firebase';
+import { User, onAuthStateChanged } from 'firebase/auth';
+import { auth, db } from '../lib/firebase';
 import { Exam, ExamSubmission } from '../types';
+
+/**
+ * Chờ Firebase Auth ổn định state đầu tiên rồi trả về user hiện tại.
+ * Doc đề nay chỉ giáo viên chủ đề đọc được → trang Cài đặt/Chấm bài (mở bằng URL trực tiếp)
+ * phải chờ auth trước khi đọc, nếu không sẽ dính permission-denied lúc auth chưa kịp load.
+ */
+export const waitForAuth = (): Promise<User | null> => new Promise(resolve => {
+  if (auth.currentUser) { resolve(auth.currentUser); return; }
+  const unsub = onAuthStateChanged(auth, user => {
+    unsub();
+    resolve(user);
+  });
+});
 
 const normalizeExam = (e: Exam): Exam => {
   const {
@@ -94,15 +107,41 @@ export const useExams = (user: User | null) => {
   return { exams, loading, fetchMyExams, saveExam, deleteExam, toggleActive };
 };
 
-export const findExamByCode = async (code: string): Promise<Exam | null> => {
-  const q = query(
-    collection(db, 'exams'),
-    where('code', '==', code.toUpperCase()),
-    where('isActive', '==', true)
-  );
-  const snap = await getDocs(q);
-  if (snap.empty) return null;
-  return normalizeExam(snap.docs[0].data() as Exam);
+// ── Đường HỌC SINH: đọc đề đã lược đáp án qua serverless (rules cấm học sinh đọc doc đề trực tiếp) ──
+
+const fetchPublicExam = async (params: string): Promise<Exam | null> => {
+  const res = await fetch(`/api/exam-public?${params}`);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`Không tải được đề thi (mã lỗi ${res.status})`);
+  const data = await res.json();
+  return data.exam ? normalizeExam(data.exam as Exam) : null;
+};
+
+/** Đề theo mã cho học sinh vào làm — đã lược correctAnswer/explanation. */
+export const findPublicExamByCode = (code: string): Promise<Exam | null> =>
+  fetchPublicExam(`code=${encodeURIComponent(code.toUpperCase())}`);
+
+/** Đề theo id cho trang kết quả/xem lại — đã lược đáp án (đáp án xem lại lấy từ bài nộp đã chấm). */
+export const getPublicExamById = (id: string): Promise<Exam | null> =>
+  fetchPublicExam(`examId=${encodeURIComponent(id)}`);
+
+/**
+ * Chấm bài nộp phía server (nguồn tin cậy). Trả điểm/status.
+ * Fail-safe: lỗi thì ném — nơi gọi bắt và để bài ở 'submitted'; giáo viên xác minh sau vẫn đúng.
+ */
+export const gradeExamSubmission = async (
+  submissionId: string
+): Promise<{ totalScore: number; status: string; maxScore: number }> => {
+  const res = await fetch('/api/grade-exam', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ submissionId }),
+  });
+  if (!res.ok) {
+    const detail = await res.json().catch(() => null);
+    throw new Error(detail?.error || `Chấm điểm thất bại (mã lỗi ${res.status})`);
+  }
+  return res.json();
 };
 
 const fillSecureRandom = (random: Uint8Array): void => {

@@ -4,7 +4,26 @@
 
 ---
 
-## Active Task: Làm cứng hệ Thi online (vòng 2, phần 🔴) — 2026-07-14
+## Active Task: A1 — Tách đáp án + chấm server-side (chống xem đáp án DevTools) — 2026-07-14
+
+- [x] api/exam-scoring-core.ts (computeAutoScoreCore + gradeSubmissionCore + stripAnswerKey) + 9 test
+- [x] api/exam-admin-core.ts (khởi tạo Firebase Admin dùng chung)
+- [x] api/exam-public.ts (GET code/examId → đề đã lược correctAnswer/explanation) + vercel.json
+- [x] api/grade-exam.ts (POST submissionId → chấm bằng đáp án gốc, nhúng đáp án khi allowReview)
+- [x] useExams: findPublicExamByCode/getPublicExamById/gradeExamSubmission + waitForAuth; gỡ findExamByCode chết
+- [x] StudentExamPage: đọc đề qua API, nộp câu trả lời thô + chấm server (fail-safe: lỗi thì teacher-verify)
+- [x] StudentResultPage + AnswerReviewPage: đọc đề đã lược, đáp án xem lại lấy từ bài nộp; StudentAnswer thêm correctAnswer/explanation
+- [x] ExamConfig/TeacherGrading: waitForAuth trước getExamById (rules teacher-only)
+- [x] firestore.rules: exams read teacher-only (rules get() nội bộ vẫn đọc được nên submission không hỏng)
+- [x] tsc 0 lỗi · 170 test PASS · build PASS
+- [ ] DEPLOY ĐÚNG THỨ TỰ: push (Vercel build frontend+functions) → smoke-test /api/health/firebase-admin
+      + /api/exam-public → CHỈ KHI OK mới deploy rules teacher-only
+- Ghi chú: bài nộp CŨ (chấm client trước đây) không có đáp án nhúng → xem lại không tô đáp án đúng
+  (chỉ mất highlight lịch sử, điểm vẫn đúng). Không cần migrate.
+
+---
+
+## Task cũ: Làm cứng hệ Thi online (vòng 2, phần 🔴) — 2026-07-14
 
 Nguồn: `docs/BAOCAO_RASOAT_Vong2_va_DeXuat_NangCap_2026-07-14.md`. Phạm vi = giảm thiểu thực dụng
 (client + rules + xác minh phía giáo viên). Chấm server-side + tách answer key = giai đoạn sau.

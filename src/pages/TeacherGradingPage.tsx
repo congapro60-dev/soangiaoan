@@ -6,7 +6,7 @@ import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import { Loader2, AlertTriangle, ArrowLeft, ChevronLeft, ChevronRight, Save } from 'lucide-react';
 import { Exam, ExamSubmission } from '../types';
-import { getExamById, getSubmissions, updateSubmission } from '../hooks/useExams';
+import { getExamById, getSubmissions, updateSubmission, waitForAuth } from '../hooks/useExams';
 
 export const TeacherGradingPage = () => {
   const { examId } = useParams<{ examId: string }>();
@@ -34,7 +34,9 @@ export const TeacherGradingPage = () => {
 
   useEffect(() => {
     if (!examId) { setError('Thiếu ID đề thi'); setLoading(false); return; }
-    Promise.all([getExamById(examId), getSubmissions(examId)])
+    // Chờ auth để rules teacher-only cho đọc doc đề khi mở URL trực tiếp
+    waitForAuth()
+      .then(() => Promise.all([getExamById(examId), getSubmissions(examId)]))
       .then(([e, subs]) => {
         if (!e) { setError('Không tìm thấy đề thi'); return; }
         setExam(e);

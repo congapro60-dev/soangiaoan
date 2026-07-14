@@ -186,10 +186,11 @@ service cloud.firestore {
 
     // === CHỨC NĂNG THI ONLINE ===
 
-    // Đề thi — học sinh đọc khi đã phát hành; chỉ giáo viên chủ đề được ghi
+    // Đề thi — CHỈ giáo viên chủ đề đọc trực tiếp (doc chứa đáp án).
+    // Học sinh KHÔNG đọc doc này; đề đã lược đáp án được phục vụ qua hàm serverless
+    // /api/exam-public (admin SDK) để chống xem đáp án qua DevTools.
     match /exams/{examId} {
-      allow read: if resource.data.isActive == true
-                  || (request.auth != null && request.auth.uid == resource.data.teacherId);
+      allow read: if request.auth != null && request.auth.uid == resource.data.teacherId;
       allow create: if request.auth != null
                     && request.auth.uid == request.resource.data.teacherId;
       allow update, delete: if request.auth != null
