@@ -1,5 +1,9 @@
-import { Download, Presentation, Image as ImageIcon, MessageSquare, X, Plus } from 'lucide-react';
+import { Download, Presentation, Image as ImageIcon, MessageSquare, X, Plus, Sigma } from 'lucide-react';
 import { useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 
 interface SlidePreviewBoardProps {
   slidePreview: any[];
@@ -47,6 +51,8 @@ export const SlidePreviewBoard = ({ slidePreview, setSlidePreview, handleDownloa
     setSlidePreview(newSlides);
   };
 
+  const hasFormula = (text: string) => typeof text === 'string' && /\$[^$\n]+\$|\$\$[\s\S]+?\$\$/.test(text);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-8">
@@ -85,25 +91,35 @@ export const SlidePreviewBoard = ({ slidePreview, setSlidePreview, handleDownloa
                  {/* Content / Points */}
                  <div className="flex-1 p-5 sm:p-8 flex flex-col gap-3 overflow-y-auto custom-scrollbar relative">
                    {slide.points.map((pt: string, pIdx: number) => (
-                     <div key={pIdx} className="flex items-start gap-3 group/point relative">
-                       <span className="text-slate-700 font-black mt-2 text-xl">•</span>
-                       <textarea
-                         value={pt}
-                         onChange={(e) => updatePoint(idx, pIdx, e.target.value)}
-                         className="point-textarea flex-1 bg-transparent text-slate-800 text-lg sm:text-xl leading-relaxed border border-transparent hover:border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:bg-white rounded p-2 resize-none overflow-hidden outline-none transition-all"
-                         rows={1}
-                         onFocus={(e) => {
-                           e.currentTarget.style.height = 'auto';
-                           e.currentTarget.style.height = e.currentTarget.scrollHeight + 'px';
-                         }}
-                         onInput={(e) => {
-                           e.currentTarget.style.height = 'auto';
-                           e.currentTarget.style.height = e.currentTarget.scrollHeight + 'px';
-                         }}
-                       />
-                       <button onClick={() => removePoint(idx, pIdx)} className="absolute right-0 top-2 opacity-0 group-hover/point:opacity-100 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all z-10" title="Xóa ý này">
-                         <X className="w-5 h-5"/>
-                       </button>
+                     <div key={pIdx} className="flex flex-col gap-1.5 group/point relative">
+                       <div className="flex items-start gap-3">
+                         <span className="text-slate-700 font-black mt-2 text-xl">•</span>
+                         <textarea
+                           value={pt}
+                           onChange={(e) => updatePoint(idx, pIdx, e.target.value)}
+                           className="point-textarea flex-1 bg-transparent text-slate-800 text-lg sm:text-xl leading-relaxed border border-transparent hover:border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:bg-white rounded p-2 resize-none overflow-hidden outline-none transition-all"
+                           rows={1}
+                           onFocus={(e) => {
+                             e.currentTarget.style.height = 'auto';
+                             e.currentTarget.style.height = e.currentTarget.scrollHeight + 'px';
+                           }}
+                           onInput={(e) => {
+                             e.currentTarget.style.height = 'auto';
+                             e.currentTarget.style.height = e.currentTarget.scrollHeight + 'px';
+                           }}
+                         />
+                         <button onClick={() => removePoint(idx, pIdx)} className="absolute right-0 top-2 opacity-0 group-hover/point:opacity-100 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all z-10" title="Xóa ý này">
+                           <X className="w-5 h-5"/>
+                         </button>
+                       </div>
+                       {hasFormula(pt) && (
+                         <div className="ml-8 flex items-start gap-2 rounded-lg bg-indigo-50/70 border border-indigo-100 px-3 py-2 text-sm text-slate-700">
+                           <Sigma className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
+                           <div className="prose prose-sm max-w-none">
+                             <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{pt}</ReactMarkdown>
+                           </div>
+                         </div>
+                       )}
                      </div>
                    ))}
                    

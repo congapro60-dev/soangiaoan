@@ -88,9 +88,10 @@ export const CreatorTab = (props: CreatorTabProps) => {
   const [worksheetPreview, setWorksheetPreview] = useState<{ type: 'inclass' | 'homework', title: string, content: string } | null>(null);
   const [showPushModal, setShowPushModal] = useState(false);
   const [showTextToSlideModal, setShowTextToSlideModal] = useState(false);
+  const [slideGenStatus, setSlideGenStatus] = useState('');
 
   const handleGenerateSlide = async () => {
-    const slides = await exportUtils.generateSlideData(props.currentPlan, props.data, props.setIsLoading, props.showToast);
+    const slides = await exportUtils.generateSlideData(props.currentPlan, props.data, props.setIsLoading, props.showToast, setSlideGenStatus);
     if (slides) setSlidePreview(slides);
   };
 
@@ -452,12 +453,16 @@ export const CreatorTab = (props: CreatorTabProps) => {
           <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm z-50 flex items-center justify-center rounded-[40px]">
             <div className="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center gap-4">
               <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
-              <div className="text-center">
-                <h3 className="font-bold text-slate-800">
-                  Hệ thống AI đang xử lý...
-                  <SimulatedProgress />
-                </h3>
-                <p className="text-sm text-slate-500 font-medium">Vui lòng không đóng trang này</p>
+              <div className="text-center max-w-xs">
+                {slideGenStatus ? (
+                  <h3 className="font-bold text-slate-800">{slideGenStatus}</h3>
+                ) : (
+                  <h3 className="font-bold text-slate-800">
+                    Hệ thống AI đang xử lý...
+                    <SimulatedProgress />
+                  </h3>
+                )}
+                <p className="text-sm text-slate-500 font-medium mt-1">Vui lòng không đóng trang này</p>
               </div>
             </div>
           </div>

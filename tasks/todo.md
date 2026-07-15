@@ -4,6 +4,64 @@
 
 ---
 
+## PLAN CHỜ DUYỆT: Đề kiểm tra đẹp + Slide PPT chuẩn GV Toán — 2026-07-14
+
+### A. Đề kiểm tra "form xấu" — chẩn đoán
+1. KHUNG ĐỀ (Sở/Trường | Kỳ thi/Môn/Thời gian/Mã đề) phó mặc AI sinh markdown → mỗi lần một kiểu,
+   không ra 2 khối trái-phải chuẩn công văn.
+2. Word export (render-word-core): A/B/C/D chỉ xếp cột khi ≤52 ký tự & không có display math
+   → câu dài thành 4 dòng rời; ĐÁP ÁN không tự sang trang; "--- HẾT ---" không căn giữa đặc biệt.
+3. Preview MD A4 đã ổn — bệnh chính ở cấu trúc markdown + Word render.
+
+### Kế hoạch A (chuẩn hoá ở tầng RENDER, không phó mặc AI)
+- [ ] A1. Postprocessor "khung đề": nhận diện header block → bảng 2 cột không viền chuẩn MOET
+      (Word + CSS preview); thiếu trường thì lấy từ form nhập nhanh (lưu settings)
+- [ ] A2. render-word-core: option-grid cho phép inline math (OMML trong cell); nới ngưỡng 2 cột;
+      đậm "Câu N."; chống ngắt trang giữa câu; ĐÁP ÁN pageBreakBefore trang mới; HẾT căn giữa
+- [ ] A3. Siết prompt header trong examUtils.getGeneratePrompt (phối hợp, không thay thế render)
+- [ ] A4. Golden test preprocessExamMarkdownForWord + nghiệm thu 1 đề thật
+
+### B. Slide PPT ngắn/công thức lỗi — chẩn đoán
+1. MỘT call sinh toàn bộ JSON → đụng trần output token → model tự rút còn 9-10 slide;
+   prompt tự mâu thuẫn ("12–18 slides" nhưng quy tắc 6 ghi "Tối đa 15").
+2. Prompt CẤM LaTeX (PPTX không render) → công thức thành text a/b, P(A|B) → ít + lỗi;
+   toast "đang render công thức Toán" thực tế không render gì (downloadPPTX chỉ addText).
+3. Không persona GV Toán, không bám cấu trúc 5 hoạt động giáo án.
+
+### Kế hoạch B ✅ XONG (code + verify — chờ user nghiệm thu bằng key thật)
+- [x] B1. Two-pass thật (exportUtils.ts): `buildSlideOutlinePrompt` (1 call, persona GV Toán,
+      14-22 slide nội dung, ép worked example = 2 slide, luyện tập 3 mức 🌶️) → `runWithConcurrency`
+      chạy `buildSlideSectionPrompt` cho từng section (concurrency 2) → merge; fallback
+      `DEFAULT_SLIDE_OUTLINE` (5 hoạt động) nếu outline call lỗi/parse hỏng — không bao giờ tệ hơn cũ
+- [x] B2. Công thức thật — CHỌN kỹ thuật SVG foreignObject + KaTeX MathML (tái dùng nguyên xi kỹ
+      thuật đã chạy ổn định trong handwritingCanvas.ts) THAY VÌ html2canvas như plan gốc — không
+      phụ thuộc font ngoài qua data URI (rủi ro không resolve được). `mathToImage.ts`:
+      `renderLatexToPng` ($$ display), `extractDisplayFormulas`/`replaceInlineFormulasWithText`
+      ($ inline → Unicode xấp xỉ, không hiện backslash thô). Ảnh công thức gộp vào `imageUrls`
+      của ĐÚNG sub-slide sau khi chia Phần 1/2 (không lệch slide); panel ảnh chia đều chiều cao
+      theo số ảnh (chống tràn khi có ≥2 ảnh/slide)
+- [x] B3. SlidePreviewBoard: thêm khối xem trước KaTeX (ReactMarkdown+remarkMath+rehypeKatex,
+      pattern đã dùng ở ChatTab) dưới mỗi textarea có công thức — giữ textarea editable nguyên bản
+- [x] B4. CreatorTab: `slideGenStatus` state nhận onProgress từ generateSlideData, thay
+      SimulatedProgress giả bằng "Đang soạn xong phần k/n: HĐ..." thật khi đang sinh slide
+- [x] Prompt gỡ lệnh cấm LaTeX cũ, cho phép $.../​$$...$$ thật trong points (root cause #2)
+- [x] Cập nhật generationPromptQuality.test.ts theo kiến trúc mới (test cũ assert '12–18 slides'
+      literal đã lỗi thời)
+- [x] Phát hiện phụ: vitest quét trùng thư mục `soangiaoan/` (bản sao cục bộ, .gitignore, KHÔNG
+      track git) → thêm exclude vào vitest.config.ts, không rớt file thật nào (đối chiếu `vitest list`)
+- [x] Verify: tsc 0 lỗi · 120/120 test PASS (mathToImage 8 test mới) · build PASS
+- [x] Verify RUNTIME THẬT trong browser (không mock): `renderLatexToPng` tạo PNG hợp lệ
+      (178×67px, data:image/png;base64...) VÀ xác nhận ảnh có nội dung thật (3919/86022 pixel
+      không trắng khi render "x²+y²=r²") — bắt được lỗi "ảnh rỗng" mà unit test (jsdom, không
+      Canvas/Image thật) không thể phát hiện
+- [ ] CHƯA verify được: sinh slide đầy đủ bằng AI thật end-to-end (local dev không chạy
+      /api/gemini-relay — chỉ có trên Vercel; các node MiniMax/Conduit của free-router bị chặn
+      từ sandbox trình duyệt này) và mở file .pptx thật bằng PowerPoint (không có sẵn trong môi
+      trường) → CẦN USER nghiệm thu: bấm "Tạo Slide" trên app thật (đã có key hoặc free-router),
+      kiểm slide count 16-24, công thức hiện đúng, mở PPTX xem layout không vỡ
+
+---
+
 ## Active Task: A1 — Tách đáp án + chấm server-side (chống xem đáp án DevTools) — 2026-07-14
 
 - [x] api/exam-scoring-core.ts (computeAutoScoreCore + gradeSubmissionCore + stripAnswerKey) + 9 test

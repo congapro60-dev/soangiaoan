@@ -16,15 +16,22 @@ describe('generation prompt/export quality safeguards', () => {
     expect(source).toContain('**--- HẾT ---**');
   });
 
-  it('uses a teaching-slide prompt with enough slides and concrete classroom content instead of a generic TED prompt', () => {
+  it('uses a two-pass teaching-slide pipeline (outline + per-section detail) with real LaTeX instead of a single generic call', () => {
     const source = readSource('src/utils/exportUtils.ts');
 
     expect(source).not.toContain('phong cách TED Talk');
     expect(source).not.toContain('Tối đa 10 slides');
-    expect(source).toContain('12–18 slides');
-    expect(source).toContain('dữ kiện, công thức, ví dụ và hoạt động học sinh');
+    // Kiến trúc 2 lượt: dàn ý (outline) trước, rồi soạn chi tiết từng phần — tránh trần
+    // output token của 1 lệnh gọi duy nhất bó slide count xuống còn 9-10 (đã quan sát thực tế).
+    expect(source).toContain('buildSlideOutlinePrompt');
+    expect(source).toContain('buildSlideSectionPrompt');
+    expect(source).toContain('14-22 slide');
+    expect(source).toContain('bám sát ĐÚNG cấu trúc hoạt động thật của giáo án');
     expect(source).toContain('worked example');
-    expect(source).toContain('sai lầm thường gặp');
+    expect(source.toLowerCase()).toContain('sai lầm thường gặp');
+    // Slide từ giáo án giờ CHO PHÉP công thức LaTeX thật (render ảnh khi xuất PPTX) —
+    // trước đây prompt cấm LaTeX khiến công thức bị rút gọn sai/thiếu.
+    expect(source).toContain('ĐƯỢC PHÉP và BẮT BUỘC giữ nguyên LaTeX chuẩn');
   });
 
   it('uses bounded page load waiting for lesson PDF export instead of networkidle0', () => {
