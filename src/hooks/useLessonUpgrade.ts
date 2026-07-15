@@ -2,18 +2,32 @@ import { useState } from 'react';
 import type { AppData, LessonAnalysis, UpgradeMenuItemId, UpgradeResult, TemplateFile } from '../types';
 import { analyzeLessonPlan } from '../lib/lessonUpgrade/analysisPrompt';
 import { getProductPrompt } from '../lib/lessonUpgrade/productPrompts';
-import { processUploadedFile } from '../utils/fileUtils';
+import { processUploadedFile, downloadBlob, safeFilename } from '../utils/fileUtils';
 import { callAI } from '../lib/aiProviders';
+import { auditMathStandards, formatStandardsReport, type StandardsAuditResult } from '../lib/lessonUpgrade/mathStandards';
+import { buildRevisedDocxBlob } from '../utils/docxLessonRevision';
+import { exportToWordA4 } from '../utils/wordExportA4';
 
 export type UpgradeState = 'idle' | 'analyzing' | 'menu' | 'generating' | 'result';
+
+/** File .docx gốc (giữ nguyên byte) để chèn góp ý mà không phá layout. */
+interface OriginalDocx {
+  name: string;
+  bytes: ArrayBuffer;
+}
 
 export const useLessonUpgrade = (data: AppData, showToast: (msg: string, icon?: any) => void) => {
   const [state, setState] = useState<UpgradeState>('idle');
   const [originalFiles, setOriginalFiles] = useState<TemplateFile[]>([]);
   const [lessonText, setLessonText] = useState<string>('');
   const [analysis, setAnalysis] = useState<LessonAnalysis | null>(null);
+  const [standardsAudit, setStandardsAudit] = useState<StandardsAuditResult | null>(null);
+  const [originalDocx, setOriginalDocx] = useState<OriginalDocx | null>(null);
   const [results, setResults] = useState<Record<UpgradeMenuItemId, UpgradeResult>>({} as Record<UpgradeMenuItemId, UpgradeResult>);
   const [activeMenuId, setActiveMenuId] = useState<UpgradeMenuItemId | null>(null);
+  const [isRevising, setIsRevising] = useState(false);
+
+  const MAX_DOCX_BYTES = 20 * 1024 * 1024; // 20 MB
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -21,17 +35,33 @@ export const useLessonUpgrade = (data: AppData, showToast: (msg: string, icon?: 
 
     setState('analyzing');
     try {
+      // Giữ byte gốc của file .docx ĐẦU TIÊN để có thể chèn góp ý mà giữ nguyên layout.
+      const firstDocx = Array.from(files).find(f => /\.docx$/i.test(f.name));
+      if (firstDocx) {
+        if (firstDocx.size > MAX_DOCX_BYTES) {
+          showToast('File .docx vượt quá 20 MB, không giữ được layout. Vẫn phân tích nội dung.', 'warning');
+          setOriginalDocx(null);
+        } else {
+          setOriginalDocx({ name: firstDocx.name, bytes: await firstDocx.arrayBuffer() });
+        }
+      } else {
+        setOriginalDocx(null); // PDF/ảnh: chỉ phân tích, không giữ layout
+      }
+
       const processedFiles: TemplateFile[] = [];
       for (let i = 0; i < files.length; i++) {
         const resultFiles = await processUploadedFile(files[i], 'lesson_doc', i);
         processedFiles.push(...resultFiles);
       }
-      
+
       setOriginalFiles(processedFiles);
-      
+
       const combinedText = processedFiles.map(f => f.content).join('\n\n');
       setLessonText(combinedText);
-      
+
+      // Rà soát chuẩn Toán (deterministic) — chạy song song với phân tích AI.
+      setStandardsAudit(auditMathStandards(combinedText));
+
       const analysisResult = await analyzeLessonPlan(combinedText, data.settings);
       setAnalysis(analysisResult);
       setState('menu');
@@ -40,6 +70,38 @@ export const useLessonUpgrade = (data: AppData, showToast: (msg: string, icon?: 
       console.error(error);
       showToast(error.message || 'Lỗi khi xử lý file', 'error');
       setState('idle');
+    }
+  };
+
+  /**
+   * Tải bản đã bổ sung góp ý. Đầu vào .docx → chèn phần "NỘI DUNG ĐÃ BỔ SUNG" vào chính file
+   * gốc (giữ layout). Không có .docx → xuất Word mới từ báo cáo rà soát.
+   */
+  const downloadRevisedDocx = async () => {
+    if (!standardsAudit) return;
+    setIsRevising(true);
+    try {
+      // Ghép báo cáo rà soát + (nếu có) kết quả "Rà soát & góp ý toàn bộ" (menu N) do AI sinh.
+      const aiReview = results['N']?.content ? `\n\n## Góp ý chuyên sâu (AI)\n\n${results['N'].content}` : '';
+      const supplement = formatStandardsReport(standardsAudit) + aiReview;
+
+      if (originalDocx) {
+        const blob = await buildRevisedDocxBlob(originalDocx.bytes, supplement);
+        const base = safeFilename(originalDocx.name.replace(/\.docx$/i, '')) + '_da-bo-sung';
+        downloadBlob(blob, `${base}.docx`);
+        showToast('Đã tạo bản Word đã bổ sung (giữ layout gốc)!', 'success');
+      } else {
+        await exportToWordA4(
+          { title: `${analysis?.tenBai || 'Giao-an'} - Ra soat chuan Toan`, content: supplement },
+          showToast,
+          'portrait',
+        );
+      }
+    } catch (error: any) {
+      console.error(error);
+      showToast(error.message || 'Lỗi khi tạo bản Word đã bổ sung', 'error');
+    } finally {
+      setIsRevising(false);
     }
   };
 
@@ -86,6 +148,8 @@ export const useLessonUpgrade = (data: AppData, showToast: (msg: string, icon?: 
     setOriginalFiles([]);
     setLessonText('');
     setAnalysis(null);
+    setStandardsAudit(null);
+    setOriginalDocx(null);
     setResults({} as Record<UpgradeMenuItemId, UpgradeResult>);
     setActiveMenuId(null);
   };
@@ -96,11 +160,15 @@ export const useLessonUpgrade = (data: AppData, showToast: (msg: string, icon?: 
     originalFiles,
     lessonText,
     analysis,
+    standardsAudit,
+    hasOriginalDocx: !!originalDocx,
+    isRevising,
     results,
     activeMenuId,
     setActiveMenuId,
     handleFileUpload,
     generateProduct,
+    downloadRevisedDocx,
     reset
   };
 };

@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { motion } from 'motion/react';
-import { Upload, Loader2, FileText, CheckCircle2, ChevronRight, WandSparkles, Copy, RotateCcw, ArrowLeft } from 'lucide-react';
+import { Upload, Loader2, FileText, CheckCircle2, WandSparkles, Copy, RotateCcw, ArrowLeft, ShieldCheck, Download } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
@@ -24,12 +24,16 @@ export const LessonUpgradeTab = ({ data, isLoading, setIsLoading, showToast }: L
     state,
     setState,
     analysis,
+    standardsAudit,
+    hasOriginalDocx,
+    isRevising,
     results,
     handleFileUpload,
     reset,
     activeMenuId,
     setActiveMenuId,
-    generateProduct
+    generateProduct,
+    downloadRevisedDocx
   } = useLessonUpgrade(data, showToast);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -83,6 +87,68 @@ export const LessonUpgradeTab = ({ data, isLoading, setIsLoading, showToast }: L
             </ul>
           </div>
         </div>
+      </div>
+    );
+  };
+
+  const renderStandardsAudit = () => {
+    if (!standardsAudit) return null;
+    const { findings, criticalFailures, lessonType } = standardsAudit;
+    const passed = findings.filter(f => f.status === 'pass').length;
+    const typeLabel: Record<string, string> = {
+      practice: 'Tiết luyện tập', knowledge: 'Tiết hình thành kiến thức',
+      flipped: 'Lớp học đảo ngược', unknown: 'Chưa xác định loại tiết',
+    };
+    const icon = (s: string) => s === 'pass' ? '✅' : s === 'warn' ? '🟡' : '❌';
+
+    return (
+      <div className="bg-white rounded-xl border border-indigo-200 p-6 shadow-sm mb-8">
+        <div className="flex items-center justify-between mb-4 pb-4 border-b border-indigo-100 gap-4 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-800">Rà soát theo chuẩn Toán</h3>
+              <p className="text-sm text-slate-500">
+                {typeLabel[lessonType]} • Đạt {passed}/{findings.length} tiêu chí
+                {criticalFailures > 0 && <span className="text-red-600 font-semibold"> • {criticalFailures} tiêu chí quan trọng chưa đạt</span>}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={downloadRevisedDocx}
+            disabled={isRevising}
+            title={hasOriginalDocx ? 'Chèn góp ý vào chính file .docx gốc, giữ nguyên layout' : 'Không có .docx gốc — sẽ xuất Word mới từ báo cáo rà soát'}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors disabled:opacity-60"
+          >
+            {isRevising ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            {hasOriginalDocx ? 'Tải Word đã bổ sung (giữ layout)' : 'Tải Word báo cáo rà soát'}
+          </button>
+        </div>
+
+        {!hasOriginalDocx && (
+          <p className="text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mb-4">
+            Đầu vào không phải .docx (PDF/ảnh) nên chỉ phân tích & tạo Word mới; để giữ nguyên layout gốc, hãy tải lên file <b>.docx</b>.
+          </p>
+        )}
+
+        <ul className="space-y-2">
+          {findings.map(f => (
+            <li key={f.id} className="text-sm">
+              <div className="flex items-start gap-2">
+                <span className="mt-0.5">{icon(f.status)}</span>
+                <div>
+                  <span className="font-semibold text-slate-800">{f.title}</span>
+                  <span className="text-slate-500"> — {f.evidence}</span>
+                  {f.status !== 'pass' && (
+                    <p className="text-slate-500 italic mt-0.5">↳ {f.suggestion}</p>
+                  )}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
       </div>
     );
   };
@@ -272,6 +338,7 @@ export const LessonUpgradeTab = ({ data, isLoading, setIsLoading, showToast }: L
       {(state === 'menu' || state === 'generating' || state === 'result') && (
         <>
           {renderAnalysisCard()}
+          {renderStandardsAudit()}
           {state === 'menu' && renderMenu()}
           {state === 'generating' && renderGenerating()}
           {state === 'result' && renderResult()}

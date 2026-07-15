@@ -809,6 +809,28 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
           } else {
             showToast('Đã khởi tạo giáo án cấp độ Senior!');
           }
+
+          // Cổng chất lượng ban Toán: chấm deterministic, nếu thiếu tiêu chí quan trọng thì
+          // gọi AI sửa ĐÚNG những phần thiếu một lượt (Polya/2 lộ trình cho tiết luyện tập,
+          // mục tiêu phân hóa, sản phẩm dự kiến, 4 pha...).
+          if (builtinFormat === 'toan') {
+            try {
+              const { validateToanLesson, buildToanRepairBrief } = await import('../lib/toanLessonQuality');
+              const { passed, failures } = validateToanLesson(finalContent, toanKeHoach);
+              if (!passed) {
+                showToast(`Đang tự rà soát & bổ sung ${failures.length} tiêu chí chuẩn Toán còn thiếu...`, 'info');
+                const repaired = await callAI(buildToanRepairBrief(finalContent, failures), data.settings);
+                const cleaned = cleanMarkdownOutput(extractLessonContent(repaired || ''));
+                // Chỉ nhận bản sửa nếu không bị cụt (giữ ≥60% độ dài bản gốc).
+                if (cleaned && cleaned.length >= finalContent.length * 0.6) {
+                  setCurrentPlan(prev => ({ ...prev, content: cleaned }));
+                  showToast('Đã bổ sung các tiêu chí chuẩn Toán còn thiếu.', 'success');
+                }
+              }
+            } catch (qErr) {
+              console.warn('Bỏ qua cổng chất lượng Toán:', qErr);
+            }
+          }
         } catch (e) {
           console.error(e);
           showToast('Có lỗi xảy ra trong quá trình sinh giáo án', 'error');
