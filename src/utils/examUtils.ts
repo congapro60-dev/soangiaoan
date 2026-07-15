@@ -57,13 +57,16 @@ ${skeletonSection}
 ===== ĐỊNH DẠNG CHUẨN MẶC ĐỊNH (CÔNG VĂN 5636/BGDĐT-GDTrH) =====
 Không có đề mẫu → AI tự áp dụng định dạng chuẩn của Bộ GD&ĐT năm 2025 như sau:
 
-**HEADER (căn giữa):**
-SỞ GIÁO DỤC VÀ ĐÀO TẠO ...       |  ĐỀ KIỂM TRA [HỌC KÌ I / HỌC KÌ II / GIỮA KÌ ...]
-TRƯỜNG THPT ...                   |  NĂM HỌC 20XX - 20XX
-                                  |  Môn: [Tên môn] — Lớp: [10/11/12]
-                                  |  Thời gian làm bài: [XX] phút
-                                  |  (Không kể thời gian phát đề)
-                                  |  Mã đề: [XXX]
+**HEADER — BẮT BUỘC viết đúng cú pháp BẢNG MARKDOWN 2 CỘT sau đây (KHÔNG viết dạng đoạn văn thường, KHÔNG dùng ký tự "|" rời rạc không phải bảng):**
+
+| SỞ GIÁO DỤC VÀ ĐÀO TẠO ... | ĐỀ KIỂM TRA [HỌC KÌ I / HỌC KÌ II / GIỮA KÌ ...] |
+| --- | --- |
+| TRƯỜNG THPT ... | NĂM HỌC 20XX - 20XX |
+| | Môn: [Tên môn] — Lớp: [10/11/12] |
+| | Thời gian làm bài: [XX] phút (không kể thời gian phát đề) |
+| | Mã đề: [XXX] |
+
+Giữ NGUYÊN cú pháp bảng này (đủ dấu "\|" ở đầu/cuối mỗi ô và dòng phân cách "\| --- \| --- \|" ngay dưới hàng đầu tiên) — hệ thống sẽ tự trình bày lại thành khung đề chuẩn không viền khi xuất Word, KHÔNG hiển thị dưới dạng bảng có viền.
 
 **BỐ CỤC CÁC PHẦN (theo cấu trúc được yêu cầu, chỉ hiện phần có câu hỏi):**
 - **PHẦN I. CÂU TRẮC NGHIỆM NHIỀU PHƯƠNG ÁN LỰA CHỌN** (nếu có MCQ 4 phương án)
@@ -112,7 +115,7 @@ NHIỆM VỤ: Soạn đề thi theo đúng định dạng mẫu và ma trận đ
 BỐ CỤC PHẢN HỒI BẮT BUỘC:
 - Trả về DUY NHẤT nội dung đề thi hoàn chỉnh trong thẻ <exam_content>...</exam_content>.
 - KHÔNG có lời chào, không giải thích, không thẻ <thinking>.
-- ĐÁP ÁN: Đặt bảng đáp án chi tiết ở CUỐI CÙNG của nội dung (ngay sau dòng --- HẾT ---).
+- ĐÁP ÁN: Đặt bảng đáp án chi tiết ở CUỐI CÙNG của nội dung (ngay sau dòng --- HẾT ---), BẮT BUỘC có dòng tiêu đề "## ĐÁP ÁN" (heading Markdown cấp 2) ngay trước bảng đáp án — hệ thống sẽ tự tách đáp án sang trang riêng khi xuất Word dựa vào tiêu đề này.
 
 ${sampleSection}
 

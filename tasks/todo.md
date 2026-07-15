@@ -13,13 +13,49 @@
    → câu dài thành 4 dòng rời; ĐÁP ÁN không tự sang trang; "--- HẾT ---" không căn giữa đặc biệt.
 3. Preview MD A4 đã ổn — bệnh chính ở cấu trúc markdown + Word render.
 
-### Kế hoạch A (chuẩn hoá ở tầng RENDER, không phó mặc AI)
-- [ ] A1. Postprocessor "khung đề": nhận diện header block → bảng 2 cột không viền chuẩn MOET
-      (Word + CSS preview); thiếu trường thì lấy từ form nhập nhanh (lưu settings)
-- [ ] A2. render-word-core: option-grid cho phép inline math (OMML trong cell); nới ngưỡng 2 cột;
-      đậm "Câu N."; chống ngắt trang giữa câu; ĐÁP ÁN pageBreakBefore trang mới; HẾT căn giữa
-- [ ] A3. Siết prompt header trong examUtils.getGeneratePrompt (phối hợp, không thay thế render)
-- [ ] A4. Golden test preprocessExamMarkdownForWord + nghiệm thu 1 đề thật
+### Kế hoạch A ✅ XONG — PHÁT HIỆN GỐC QUAN TRỌNG khi implement
+`preprocessExamMarkdownForWord` (chuyển A/B/C/D thành bảng lưới) ĐÃ TỒN TẠI SẴN trong code
+nhưng nằm ở `api/render-word-core.ts` (file tự ghi chú DEPRECATED, chỉ dùng cho
+`api/export-lesson.ts`/`render-word.ts` — nhánh Push-to-Drive, KHÔNG PHẢI nút "Xuất Word" đề
+thi). Nút "Xuất Word" thật (`TestingTab` → `examWordExport.ts`) dùng `src/utils/renderWordCore.ts`
+(client-side) và CHƯA BAO GIỜ gọi hàm gộp lưới này → A/B/C/D luôn xuất ra 4 dòng bullet rời rạc
+dù logic gộp bảng đã có sẵn trong repo, chỉ là gắn nhầm endpoint. Đây mới là nguyên nhân chính
+"form xấu", không phải thiếu tính năng.
+
+- [x] A1+A3. Khung đề 2 cột: sửa `examUtils.getGeneratePrompt` (default branch) bắt AI viết
+      header bằng ĐÚNG cú pháp bảng Markdown (trước đây chỉ là "|" rời rạc không phải bảng thật
+      → marked không parse được thành table); `renderWordCore.ts` nhận diện bảng ĐẦU TIÊN khớp
+      từ khoá (sở giáo dục/trường/đề kiểm tra/môn/thời gian làm bài/mã đề) → render KHÔNG VIỀN
+      giống khung đề hành chính chuẩn (không phải bảng dữ liệu có viền)
+- [x] A2. `preprocessOptionGridsForWord` (examMarkdown.ts, MỚI — không phải port nguyên xi vì
+      api/ bản cũ không khớp định dạng "- A. x" mà preprocessExamMarkdown() đã listify trước đó):
+      gộp 4 phương án liền nhau thành bảng 2/4 cột, nới ngưỡng độ dài (52→70, 24→32), khớp cả
+      3 dạng "A. x" / "- A. x" / "- **A.** x". Wired vào `examWordExport.ts` (đường xuất Word
+      đề thi THẬT). Bảng đi qua pipeline table thường của renderer nên OMML native tự động ăn theo,
+      không cần code toán riêng. "Câu N." in đậm đã đúng sẵn (AI tuân thủ prompt cũ, không cần sửa)
+- [x] renderWordCore.ts: `isExamEndMarker` căn giữa "--- HẾT ---"; `isAnswerKeyHeading` thêm
+      `pageBreakBefore` cho heading "ĐÁP ÁN" (sang trang riêng khỏi đề) — thêm hướng dẫn AI ghi
+      "## ĐÁP ÁN" trước bảng đáp án để trigger được (prompt cũ không yêu cầu heading rõ ràng)
+- [x] A4. Golden test: `examMarkdown.test.ts` +8 test hàm thuần (option-grid, ngưỡng dài/ngắn,
+      chặn display-math/ảnh, không đụng <4 phương án); `renderWordCore.examFormat.test.ts` MỚI
+      (5 test, pattern JSZip giống renderWordCore.toan.test.ts) — xác nhận ở TẦNG XML: khung đề
+      border "none", lưới+đáp án vẫn "single", HẾT có jc=center, ĐÁP ÁN có pageBreakBefore, OMML
+      thật trong ô lưới phương án, KHÔNG false-positive khi đề không có khung đề
+- [x] Verify: tsc 0 lỗi · 133/133 test PASS (13 test mới) · build PASS
+- [x] Verify RUNTIME THẬT trong browser (không phải Node/vitest — `renderWordBlob` dùng
+      `Packer.toBlob`, khác `toBuffer` dùng trong test): gọi thẳng `renderWordBlob` với fixture
+      đề thi qua dynamic import → blob .docx hợp lệ (9.6KB, đúng MIME, ZIP signature "PK" đúng) →
+      giải nén ngay trong browser xác nhận LẠI đủ 6 tiêu chí (3 bảng, border none+single, HẾT
+      center, ĐÁP ÁN pageBreak, OMmath) khớp 100% với test Node. Kiểm thêm giáo án (bảng 3 cột +
+      display math) qua cùng renderWordCore.ts → không bị nhận nhầm thành khung đề, export bình
+      thường — xác nhận KHÔNG hồi quy xuất Word giáo án
+- [ ] CHƯA verify được: mở file .docx thật bằng Microsoft Word/LibreOffice để xem layout thị
+      giác (không có sẵn trong môi trường) — cấu trúc XML đã đúng theo golden test nhưng cách
+      Word RENDER (line wrap, độ rộng cột thực tế trên A4) cần user tự mở file kiểm tra
+- Ghi chú phạm vi: `LibraryTab.handleExportExamWord` (xuất đề đã lưu từ Thư viện) dùng pipeline
+  HTML→.doc RIÊNG (examPaperStyles.ts, không qua renderWordCore.ts) — KHÔNG được sửa trong đợt
+  này (ngoài phạm vi đã duyệt "soạn đề thi và tải xuống" = luồng chính ở tab Bảng Kiểm tra);
+  đường này có thể còn vấn đề tương tự, cần user xác nhận có phải sửa tiếp không
 
 ### B. Slide PPT ngắn/công thức lỗi — chẩn đoán
 1. MỘT call sinh toàn bộ JSON → đụng trần output token → model tự rút còn 9-10 slide;

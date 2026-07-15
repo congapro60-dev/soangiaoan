@@ -1,5 +1,6 @@
 import { renderWordBlob, safeFilename } from './renderWordCore';
 import { downloadBlob } from './fileUtils';
+import { preprocessOptionGridsForWord } from './examMarkdown';
 
 export const exportExamToDocx = async (
   markdown: string,
@@ -12,7 +13,7 @@ export const exportExamToDocx = async (
 
   const blob = await renderWordBlob({
     title,
-    content: markdown,
+    content: preprocessOptionGridsForWord(markdown),
     orientation: 'portrait',
   });
 
