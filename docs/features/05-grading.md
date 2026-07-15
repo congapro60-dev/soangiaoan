@@ -84,3 +84,22 @@
     const jsonStr = codeBlockMatch ? codeBlockMatch[1] : text.match(/\{[\s\S]*"studentName"[\s\S]*\}/)?.[0];
     ```
     Hãy kiểm tra xem nội dung phản hồi thô có chứa ký tự JSON đặc biệt bị lỗi trích xuất hoặc sai tên thuộc tính (ví dụ `student_name` thay vì `studentName`) không và tinh chỉnh prompt nếu cần.
+
+---
+
+## 5. Ghi chú kiểm thử thực tế (Practical QA Notes)
+
+> **Trạng thái:** ⚠️ *Suy từ code — chưa kiểm thử trực tiếp tab này trong đợt vừa rồi.* Phần dưới chuẩn hóa cách chạy checklist.
+
+### 5.1. Định dạng Test Case nên dùng
+Mỗi case: **bước thao tác cụ thể** → **kết quả mong đợi** → **cách xác minh** (điểm + nhận xét cụ thể / DOM / console). Test chấm bài phải đối chiếu điểm AI cho với barem, không chỉ "có ra điểm".
+
+### 5.2. Cách xác minh & quirk
+- Batch concurrency = 3: test chấm >3 bài, kiểm hàng đợi chạy đúng, không treo ở "processing".
+- Vision đọc bài ảnh: dùng ảnh chữ viết tay/scan để kiểm độ chính xác trích text.
+- `gradeSubmission` bóc JSON bằng Regex (khớp key `studentName`) — test phản hồi AI có text thừa hoặc sai key (`student_name`) để chắc không sập.
+- "Rà soát sao chép": tạo 2 bài giống hệt → kiểm Plagiarism Dashboard khoanh đúng cặp + % trùng.
+- ⚠️ **Quota 429:** chấm hàng loạt dễ chạm quota → một số bài fallback/lỗi. Kiểm network để phân biệt với lỗi parse.
+
+### 5.3. Lưu ý môi trường (chung)
+- Production: `https://giaoandewey.vercel.app`, Firestore `smartplan-ai-14200`.

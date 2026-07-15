@@ -93,3 +93,21 @@
   - *Triệu chứng lỗi:* Bấm tải Slide nhanh (PPTX) bị xoay vòng mãi không tải được hoặc báo lỗi.
   - *Nguyên nhân:* Giáo án quá dài hoặc nội dung không theo cấu trúc chuẩn khiến prompt AI trả về JSON sai định dạng, làm vỡ hàm `JSON.parse`.
   - *Cách kiểm tra/Khắc phục:* Kiểm tra bảng điều khiển console của trình duyệt. Nếu có lỗi parse JSON, cần cập nhật hàm bóc tách Regex để gọt bỏ sạch sẽ các ký tự thừa xung quanh khối mã JSON do AI sinh ra trước khi chạy `JSON.parse` (tương tự như hàm bóc tách đã được tối ưu hóa ở cổng Adaptive).
+
+---
+
+## 5. Ghi chú kiểm thử thực tế (Practical QA Notes)
+
+> **Trạng thái:** ⚠️ *Suy từ code — chưa kiểm thử trực tiếp tab này trong đợt vừa rồi.* Phần dưới chuẩn hóa cách chạy checklist cho khớp môi trường thật.
+
+### 5.1. Định dạng Test Case nên dùng
+Mỗi case: **bước thao tác cụ thể** → **kết quả mong đợi** → **cách xác minh** (file export mở được + đúng nội dung / DOM / console). Riêng test xuất file phải MỞ file kết quả ra kiểm, không chỉ kiểm "có tải về".
+
+### 5.2. Cách xác minh thực tế (export là rủi ro chính)
+- Library dùng `exportUtils` / `worksheetUtils` / `scormUtils`. Khi test xuất, mở thật file `.docx`/`.pdf`/SCORM để xác nhận layout, công thức, ảnh không vỡ.
+- `ViewPlanModal`: kiểm công thức MathJax render đúng, không hiện thô `$...$`.
+- Interface `LessonPlan` & `SavedExam`: test mở cả 2 loại bản ghi để chắc modal không nhầm schema.
+
+### 5.3. Lưu ý môi trường (chung)
+- Production: `https://giaoandewey.vercel.app`, Firestore `smartplan-ai-14200`.
+- Nếu nội dung AI cũ lưu trong Library bị lỗi parse, áp cùng cách gọt JSON như cổng Adaptive trước khi `JSON.parse`.

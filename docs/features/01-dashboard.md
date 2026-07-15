@@ -72,3 +72,21 @@
   - *Triệu chứng lỗi:* Dashboard bị treo trắng màn hình khi người dùng mới đăng nhập lần đầu.
   - *Nguyên nhân:* Trường `data.lessonPlans` hoặc `data.gradingSessions` bị `undefined` (chưa được khởi tạo trong Firebase).
   - *Cách kiểm tra/Khắc phục:* Đã bổ sung toán tử optional chaining `?.` và giá trị fallback ở tất cả các vòng lặp tính toán: `data.lessonPlans?.length || 0`, `(data.gradingSessions || [])`. Khi debug cần đảm bảo dữ liệu truyền từ `useAppState` luôn có giá trị mặc định dạng mảng trống.
+
+---
+
+## 5. Ghi chú kiểm thử thực tế (Practical QA Notes)
+
+> **Trạng thái:** ⚠️ *Suy từ code — chưa kiểm thử trực tiếp tab này trong đợt vừa rồi.* Các checklist trên là kịch bản hợp lệ; phần dưới chuẩn hóa cách chạy chúng cho khớp môi trường thật.
+
+### 5.1. Định dạng Test Case nên dùng
+Mỗi case: **bước thao tác cụ thể** (click/nhập gì) → **kết quả mong đợi** (trạng thái nhìn thấy) → **cách xác minh** (DOM selector / log console / giá trị state). Tránh kết luận chỉ bằng quan sát thị giác.
+
+### 5.2. Cách xác minh thực tế
+- Số liệu thẻ thống kê: đối chiếu với độ dài mảng nguồn trong `useAppState` (console: `data.lessonPlans?.length`, `(data.gradingSessions||[]).length`).
+- `teacherName` lấy `data.authorName?.split(' ').pop()` — test với tên rỗng/1 từ để chắc không crash.
+- Edge case quan trọng: tài khoản MỚI (mọi mảng rỗng) → dashboard phải hiện 0, không trắng trang/`NaN`.
+
+### 5.3. Lưu ý môi trường (áp dụng chung)
+- Production: `https://giaoandewey.vercel.app`, project Firestore `smartplan-ai-14200`.
+- Khi số liệu lệch, kiểm trước xem dữ liệu đã load xong từ Firestore chưa (race condition) rồi mới kết luận lỗi tính toán.

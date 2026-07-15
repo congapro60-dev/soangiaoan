@@ -70,3 +70,21 @@
   - *Triệu chứng lỗi:* Chức năng "Kiến trúc sư Prompt" báo lỗi đỏ hoặc không hiển thị kết quả sau khi AI phản hồi.
   - *Nguyên nhân:* Mô hình AI trả về nội dung text thừa ở đầu hoặc cuối JSON khiến hàm `JSON.parse` bị sập (lỗi cú pháp JSON).
   - *Cách kiểm tra/Khắc phục:* Trong file `promptBuilder.ts`, hàm `generateSystemPrompt` đã sử dụng Regex `raw.match(/\{[\s\S]*\}/)` để bóc tách phần đối tượng `{...}` thực tế trong chuỗi phản hồi. Cần kiểm tra xem Regex này có bị bắt lệch do phản hồi chứa nhiều hơn một cặp ngoặc nhọn lồng nhau không. Nếu có, có thể tinh chỉnh Regex hoặc yêu cầu AI định dạng JSON nghiêm ngặt thông qua System Prompt.
+
+---
+
+## 5. Ghi chú kiểm thử thực tế (Practical QA Notes)
+
+> **Trạng thái:** ✅ Có tham chiếu thực tế — khi nghiên cứu EduPlan AI (Custom GPT) để đối chiếu khả năng tích hợp vào tab này (28/06/2026).
+
+### 5.1. Cách viết Test Case để chạy được thật
+Mỗi Test Case gồm: **bước thao tác cụ thể** → **kết quả mong đợi** → **cách xác minh** (DOM / clipboard / log console). Với chức năng sinh JSON, luôn xác minh `JSON.parse` chạy được — không chỉ "nhìn có vẻ là JSON".
+
+### 5.2. Quirk thật cần lưu khi test
+- ⚠️ **JSON parse dễ vỡ:** mô hình hay kèm text thừa quanh JSON. Test edge case: prompt khiến AI thêm lời mở đầu ("Đây là JSON của bạn:") → kiểm Regex `raw.match(/\{[\s\S]*\}/)` có bắt lệch khi có nhiều cặp `{}` lồng nhau không.
+- ⚠️ **Quota 429:** ở free tier, model cao cấp có thể trả 429 → tính năng sinh prompt/architect có thể fallback hoặc lỗi. Khi test, kiểm network/console để phân biệt lỗi quota với lỗi logic.
+- 💡 **Tham chiếu đối sánh (EduPlan AI):** đó là Custom GPT theo mẫu menu-router (LLM + System Prompt + Knowledge Base + tools, 8 chức năng). Nếu muốn bổ sung test cho tính năng tương tự (vd sinh ảnh phiếu học tập), nên thêm Test Case kiểm chất lượng đầu ra ảnh, không chỉ kiểm "có gọi API".
+
+### 5.3. Cách xác minh
+- Nút Copy: đọc clipboard sau khi bấm để xác nhận nội dung đúng.
+- Bộ lọc danh mục công cụ: kiểm số thẻ hiển thị thay đổi đúng theo từ khóa/bộ lọc (DOM count).

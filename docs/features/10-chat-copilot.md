@@ -56,3 +56,22 @@
   - *Triệu chứng lỗi:* Khung hội thoại quá dài không tự động cuộn xuống dưới cùng khi có tin nhắn mới (phải cuộn thủ công).
   - *Nguyên nhân:* Thiếu hook tự động cuộn (auto-scroll) mỗi khi mảng `chatMessages` thay đổi kích thước.
   - *Cách kiểm tra/Khắc phục:* Trong `ChatTab.tsx`, có thể thêm một thẻ `div` ẩn `<div ref={messagesEndRef} />` ở cuối danh sách tin nhắn và gọi `messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })` trong một hook `useEffect` phụ thuộc vào `chatMessages.length`. Điều này đảm bảo trải nghiệm chat luôn mượt mà.
+
+---
+
+## 5. Ghi chú kiểm thử thực tế (Practical QA Notes)
+
+> **Trạng thái:** ⚠️ *Suy từ code — chưa kiểm thử trực tiếp tab này trong đợt vừa rồi.* Phần dưới chuẩn hóa cách chạy checklist.
+
+### 5.1. Định dạng Test Case nên dùng
+Mỗi case: **bước thao tác cụ thể** → **kết quả mong đợi** → **cách xác minh** (DOM / render công thức / log console).
+
+### 5.2. Cách xác minh & quirk
+- Gợi ý nhanh: bấm thẻ gợi ý → text điền đúng vào ô nhập (kiểm value input), Enter gửi được.
+- 🐞 **Công thức Toán:** AI trả LaTeX phải render bằng KaTeX, KHÔNG hiện thô `$...$`. (Lưu ý: bài Adaptive dùng MathJax, chat dùng KaTeX — đừng nhầm khi debug.) Test câu có `$y=x^n$`.
+- `Shift+Enter` xuống dòng vs `Enter` gửi: test cả hai để chắc không gửi nhầm.
+- Auto-scroll: chat dài → tin mới phải tự cuộn xuống (gotcha đã ghi).
+- ⚠️ **Quota 429:** chat dùng LLM → có thể 429/timeout. Kiểm network để phân biệt với lỗi UI.
+
+### 5.3. Lưu ý môi trường (chung)
+- Production: `https://giaoandewey.vercel.app`. Phản hồi Ai phụ thuộc relay `/api/...` — kiểm network nếu chat treo ở 3 chấm.

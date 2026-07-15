@@ -9,8 +9,9 @@
       - **Sinh mô phỏng tương tác (Interactive Simulation):** Giáo viên có thể nhấp chọn một đơn vị kiến thức và yêu cầu AI tự động sinh một ứng dụng mô phỏng nhỏ (dạng Kroki/SVG/HTML) giúp học sinh tương tác học trực quan.
       - Nhấn **Lưu & bật cổng học sinh** để đồng bộ cấu hình bài học lên Firestore.
   2.  **Cổng học sinh (Student Portal):**
-      - Hệ thống cung cấp một mã QR và liên kết cổng học sinh riêng dựa trên ID của giáo viên:
-        `https://giaoandewey.vercel.app/adaptive/student/{teacherId}`
+      - Hệ thống cung cấp một mã QR và liên kết cổng học sinh riêng theo **ID bài học** (KHÔNG phải teacherId):
+        `https://giaoandewey.vercel.app/adaptive-portal/{lessonId}`
+        > ⚠️ **Đã kiểm thử thực tế (28/06/2026):** URL đúng là `/adaptive-portal/{lessonId}`. Tài liệu cũ ghi `/adaptive/student/{teacherId}` là **SAI** — không tồn tại route này trên production.
       - Học sinh quét mã QR bằng điện thoại/máy tính bảng để làm bài kiểm tra chẩn đoán đầu giờ.
   3.  **Thuật toán Phân tuyến thích ứng (Learning Routes Allocation):**
       - Dựa trên kết quả bài chẩn đoán, công cụ chấm điểm thích ứng `gradeAssessment` sẽ xếp học sinh vào 1 trong 3 tuyến học tự động:
@@ -88,3 +89,39 @@
   - *Triệu chứng lỗi:* Không lưu được bài giảng lên Firestore hoặc bảng điều khiển học sinh thật bị xoay vòng loading vô hạn.
   - *Nguyên nhân:* Khóa tài khoản dịch vụ Firebase Admin SDK bị cấu hình thiếu quyền ghi trên Firestore hoặc mất mạng.
   - *Cách kiểm tra/Khắc phục:* Hệ thống có tích hợp module kiểm định sức khỏe trước khi lưu (`verifyFirebaseAdminHealth`). Kiểm tra log console để xem có thông báo lỗi endpoint API `/api/health/firebase-admin` không để cấu hình lại file `.env` chứa credential chuẩn của Firebase.
+
+---
+
+## 5. Ghi chú kiểm thử thực tế (Practical QA Notes)
+
+> **Trạng thái:** ✅ Đã kiểm thử trực tiếp trên production `https://giaoandewey.vercel.app` (28/06/2026), bao gồm đi trọn các bước cổng học sinh ở phiên ẩn danh. Các ghi chú dưới đây ghi lại MÔI TRƯỜNG THỰC, CÁCH XÁC MINH và LỖI THẬT đã phát hiện.
+
+### 5.1. Cách viết Test Case để chạy được thật (executable format)
+Mỗi Test Case nên gồm 3 phần rõ ràng để người khác (hoặc AI) lặp lại được:
+- **Bước thao tác cụ thể:** click/nhập gì, ở URL nào.
+- **Kết quả mong đợi:** trạng thái nhìn thấy được.
+- **Cách xác minh (verification method):** URL chính xác / DOM selector / log console / Firestore REST — KHÔNG chỉ "nhìn thấy đẹp".
+
+### 5.2. Môi trường & công cụ thực tế
+- **URL cổng học sinh đúng:** `/adaptive-portal/{lessonId}` (xem mục 1 — tài liệu cũ ghi sai).
+- **Project Firestore:** `smartplan-ai-14200`.
+- **App KHÔNG dùng Firebase Anonymous Auth.** Vì vậy một phiên học sinh ẩn danh = đọc Firestore REST **không kèm token**. Có thể mô phỏng học sinh thật bằng REST GET (không auth) tới `adaptiveLessons/{lessonId}`; nếu `portalEnabled=true` thì rule cho đọc, ngược lại bị từ chối.
+- **Rule gating thực tế:** `adaptiveLessons` đọc được khi `request.auth != null || resource.data.get('portalEnabled', false) == true`. `adaptiveSessionProgress` chỉ giáo viên (đã auth) đọc được.
+- **Giới hạn công cụ:** không mở được tab ẩn danh qua công cụ Chrome — kiểm "ẩn danh" thực hiện bằng REST không token, không phải cửa sổ incognito.
+
+### 5.3. DOM markers để xác minh (dùng cho automation/console)
+- `.vc-gallery` — gallery 4 ảnh ở màn Khởi động (TC5).
+- `.unit-simulation` + `iframe.sim-frame` — mô phỏng nhúng trong bài Dewey (TC4).
+- `#score-value` — điểm tích lũy (quan sát tăng 0 → 10 → … khi làm đúng).
+- sự kiện `dewey:complete` — bắn khi hoàn thành bài.
+- Thông báo "Đã lưu kết quả học tập" — xác nhận ghi `adaptiveSessionProgress` thành công.
+
+### 5.4. LỖI / QUIRK THẬT đã phát hiện (chưa có trong checklist cũ)
+- 🐞 **MathJax KHÔNG render bên trong `iframe.sim-frame`.** MathJax v3 nạp qua CDN trong thân bài Dewey nhưng KHÔNG được nạp vào trong các iframe mô phỏng (`sandbox="allow-scripts"`, khác origin). Hệ quả: công thức trong mô phỏng hiển thị thô dạng `$...$`. → Cần nhúng MathJax (hoặc render sẵn SVG công thức) vào chính srcDoc của sim-frame nếu mô phỏng có công thức.
+- ⚠️ **Quota 429:** model `gemini-3.1-pro` ở free tier = 0 → request cá nhân hóa trả 429 → relay `/api/...` trả 500 → PersonalizationEngine **fallback về bài gốc (base lesson)**. Đây là hành vi đã thấy thật: khi test cần phân biệt "fallback do quota" với "lỗi logic". Kiểm log console/network để thấy 429/500 trước khi kết luận bài bị lỗi.
+- ⚠️ **`portalEnabled` có thể thiếu khi publish từ Builder** (đã từng là bug, đã fix) — nếu cổng học sinh báo từ chối đọc, kiểm tra trường này trên doc `adaptiveLessons/{lessonId}`.
+
+### 5.5. Quy trình kiểm "phiên ẩn danh" thực tế (đã chạy)
+1. Lấy `lessonId` từ doc bài đã bật cổng.
+2. REST GET (không token) `adaptiveLessons/{lessonId}` → kỳ vọng 200 nếu `portalEnabled=true`.
+3. Mở `/adaptive-portal/{lessonId}` → nộp pre-test → đi trọn từng bước (click/drag thật, KHÔNG nhảy bước bằng JS) → quan sát `#score-value` tăng dần và "Đã lưu kết quả học tập".

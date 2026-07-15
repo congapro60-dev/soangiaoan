@@ -78,3 +78,22 @@
   - *Triệu chứng lỗi:* Chấm điểm câu hỏi Đúng/Sai (True/False) bị sai lệch hoặc học sinh chọn đúng nhưng bị tính 0 điểm.
   - *Nguyên nhân:* Đáp án lưu trữ của câu Đúng/Sai lưu dạng chuỗi JSON `{"a":"Đ","b":"S",...}` nhưng parser đối soát không khớp định dạng chữ hoa/chữ thường hoặc ký tự đặc biệt.
   - *Cách kiểm tra/Khắc phục:* Trong `examScoring.ts`, hàm `computeAutoScore` sử dụng helper `parseTFSub` để phân tách an toàn chuỗi JSON và chuẩn hóa ký tự `Đ`/`S` về cùng dạng chữ viết in hoa trước khi so sánh. Hãy dùng `console.log` kết quả so sánh trong hàm `computeAutoScore` để kiểm tra độ khớp đáp án.
+
+---
+
+## 5. Ghi chú kiểm thử thực tế (Practical QA Notes)
+
+> **Trạng thái:** ⚠️ *Suy từ code — chưa kiểm thử trực tiếp tab này trong đợt vừa rồi.* Phần dưới chuẩn hóa cách chạy checklist cho khớp môi trường thật.
+
+### 5.1. Định dạng Test Case nên dùng
+Mỗi case: **bước thao tác cụ thể** → **kết quả mong đợi** → **cách xác minh** (URL phòng thi / DOM / Firestore / console).
+
+### 5.2. Cách xác minh & quirk
+- URL phòng thi: `/exam/{code}` (mã dạng `#A8G9`). Test vào link khi đề CHƯA mở → phải bị chặn; khi mở → vào được.
+- Tự lưu bài: làm vài câu rồi F5 → đáp án + thời gian còn lại khôi phục từ Firestore (kiểm doc bài nộp).
+- Chống gian lận chuyển tab: đổi tab rồi quay lại → cảnh báo đỏ + bộ đếm tăng ở dashboard GV (kiểm DOM + Firestore).
+- 🐞 **Câu Đúng/Sai dễ chấm lệch:** đáp án lưu JSON `{"a":"Đ",...}`; nếu hoa/thường không chuẩn hóa sẽ tính 0 điểm dù chọn đúng. Test chính xác case này, log so sánh trong `computeAutoScore`.
+- ⚠️ **Quota 429:** "AI chấm tự luận" dễ chạm quota → kiểm network để phân biệt lỗi quota với lỗi chấm.
+
+### 5.3. Lưu ý môi trường (chung)
+- Production: `https://giaoandewey.vercel.app`, Firestore `smartplan-ai-14200`. Bài thi học sinh đọc/ghi Firestore — kiểm rule cho phép phòng thi đang mở.

@@ -84,3 +84,21 @@
   - *Triệu chứng lỗi:* Thêm học sinh thành công nhưng sĩ số lớp (studentCount) hiển thị bên ngoài thẻ lớp học không thay đổi.
   - *Nguyên nhân:* Khi thêm học sinh mới vào mảng `students`, lập trình viên quên cập nhật lại trường `studentCount` trên đối tượng lớp học.
   - *Cách kiểm tra/Khắc phục:* Trong hàm `addStudent` của file `ClassesTab.tsx`, dữ liệu state được cập nhật đảm bảo tăng chỉ số sĩ số lớp đồng thời: `return { ...item, students: [nextStudent, ...item.students], studentCount: item.studentCount + 1 }`. Cần kiểm tra xem có chỗ nào ghi đè làm mất đồng bộ này không.
+
+---
+
+## 5. Ghi chú kiểm thử thực tế (Practical QA Notes)
+
+> **Trạng thái:** ⚠️ *Suy từ code — chưa kiểm thử trực tiếp tab này trong đợt vừa rồi.* Phần dưới chuẩn hóa cách chạy checklist.
+
+### 5.1. Định dạng Test Case nên dùng
+Mỗi case: **bước thao tác cụ thể** → **kết quả mong đợi** → **cách xác minh** (DOM / state / Firestore).
+
+### 5.2. Cách xác minh & quirk
+- Chặn trùng tên lớp: nhập tên đã tồn tại → thông báo lỗi + từ chối tạo (kiểm so khớp không phân biệt hoa/thường nếu cần).
+- Tự sinh mã HS dạng `{lớp}-X`: thêm HS bỏ trống mã → kiểm X tăng dần đúng.
+- 🐞 **`studentCount` lệch:** thêm HS xong, kiểm sĩ số trên thẻ lớp tăng đồng bộ (đây là gotcha đã ghi). Verify cả state lẫn giá trị hiển thị.
+- Tìm kiếm HS: gõ một phần tên/mã → danh sách lọc tức thì, không phân biệt hoa thường (DOM count).
+
+### 5.3. Lưu ý môi trường (chung)
+- Production: `https://giaoandewey.vercel.app`, Firestore `smartplan-ai-14200`. Dữ liệu lớp là nền tảng cho giao đề & liên kết học cá nhân hóa — test xong nên kiểm dữ liệu lớp có ghi đúng Firestore không.

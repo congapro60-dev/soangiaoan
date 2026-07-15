@@ -28,7 +28,10 @@ export const exportToPDF = async (
     let landscapeStyle: HTMLStyleElement | null = null;
     if (orientation === 'landscape') {
       landscapeStyle = document.createElement('style');
-      landscapeStyle.textContent = `@page { size: A4 landscape !important; }`;
+      // Không dùng !important trong @page — một số bản Chromium loại bỏ cả khai báo khi
+      // gặp !important, khiến trang giữ nguyên khổ dọc. Rule này chèn sau index.css nên
+      // đã thắng theo thứ tự cascade mà không cần !important.
+      landscapeStyle.textContent = `@page { size: A4 landscape; margin: 20mm; }`;
       document.head.appendChild(landscapeStyle);
     }
 

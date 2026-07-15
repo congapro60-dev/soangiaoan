@@ -68,3 +68,23 @@
     const skeleton = content && !content.startsWith('data:image/') ? createDocumentSkeleton(content, file.name) : undefined;
     ```
     Hãy khuyên giáo viên sử dụng tệp `.docx` được lưu trực tiếp từ Microsoft Word để đảm bảo cấu trúc văn bản thô sạch nhất.
+
+---
+
+## 5. Ghi chú kiểm thử thực tế (Practical QA Notes)
+
+> **Trạng thái:** ⚠️ *Suy từ code — chưa kiểm thử trực tiếp tab này trong đợt vừa rồi.* Phần dưới chuẩn hóa cách chạy checklist.
+
+### 5.1. Định dạng Test Case nên dùng
+Mỗi case: **bước thao tác cụ thể** → **kết quả mong đợi** → **cách xác minh** (số liệu Skeleton / nội dung Markdown / console).
+
+### 5.2. Cách xác minh & quirk
+- Tải `.docx` → kiểm thống kê Skeleton (số heading/bảng/placeholder) khớp tài liệu thật.
+- Sửa Skeleton thủ công: thêm `### ...` → số heading tăng đúng 1.
+- Khôi phục tự động: xóa sạch rồi khôi phục → cấu trúc Markdown gốc trở lại.
+- 🐞 **PDF scan / bảng phức tạp → Skeleton = 0:** parser chỉ chạy với file có text thật. Guard đã có:
+  `const skeleton = content && !content.startsWith('data:image/') ? createDocumentSkeleton(...) : undefined;`
+  Test bằng cả file text-thật lẫn PDF-ảnh để xác nhận guard đúng (file ảnh → undefined, không crash).
+
+### 5.3. Lưu ý môi trường (chung)
+- Production: `https://giaoandewey.vercel.app`. Khuyến nghị test bằng `.docx` lưu trực tiếp từ Word để parser bóc cấu trúc sạch nhất.

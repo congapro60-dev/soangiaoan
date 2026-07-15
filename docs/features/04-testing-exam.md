@@ -71,3 +71,21 @@
     const jsonMatch = jsonResponse.match(/\[[\s\S]*?\](?=\s*$|\s*\n\s*[^[\]])/);
     ```
     Nếu LLM trả về mã markdown bọc ` ```json `, hàm Regex này vẫn trích xuất được. Cần đảm bảo hệ thống sử dụng model có `temperature` thấp để cấu trúc JSON đầu ra tuyệt đối ổn định.
+
+---
+
+## 5. Ghi chú kiểm thử thực tế (Practical QA Notes)
+
+> **Trạng thái:** ⚠️ *Suy từ code — chưa kiểm thử trực tiếp tab này trong đợt vừa rồi.* Phần dưới chuẩn hóa cách chạy checklist.
+
+### 5.1. Định dạng Test Case nên dùng
+Mỗi case: **bước thao tác cụ thể** → **kết quả mong đợi** → **cách xác minh** (DOM / console / nội dung file). Test OCR/Vision phải đối chiếu text trích ra với ảnh gốc, không chỉ "có chạy".
+
+### 5.2. Cách xác minh & quirk
+- Đảo đề (shuffle): `examUtils` dùng Fisher-Yates. Test: tạo nhiều bản đảo, kiểm thứ tự khác nhau nhưng nội dung/đáp án vẫn ánh xạ đúng.
+- OCR Vision: upload ảnh đề → kiểm text trích đúng; ảnh mờ/scan là edge case dễ vỡ.
+- `testing_history` lưu localStorage (20 bản ghi / 7 ngày): test vượt 20 bản ghi để xác nhận cắt đúng; kiểm `localStorage` thật trong DevTools.
+- ⚠️ **Quota 429:** model cao cấp free tier có thể trả 429 → sinh đề/giải đề lỗi hoặc fallback. Kiểm network/console để phân biệt với lỗi logic.
+
+### 5.3. Lưu ý môi trường (chung)
+- Production: `https://giaoandewey.vercel.app`, Firestore `smartplan-ai-14200`.

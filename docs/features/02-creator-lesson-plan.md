@@ -73,3 +73,21 @@
   - *Triệu chứng lỗi:* Chữ viết tiếng Việt do AI sinh ra bị lỗi khoảng cách rời rạc dấu (ví dụ: "g i á o á n" thay vì "giáo án").
   - *Nguyên nhân:* LLM bị lỗi tokenization đối với tiếng Việt có dấu khi sinh mã LaTeX.
   - *Cách kiểm tra/Khắc phục:* Trong `FormatAgent.ts` đã cấu hình prompt yêu cầu AI kiểm tra lỗi chính tả tiếng Việt. Nếu vẫn xuất hiện lỗi, cần rà soát lại Regex gộp chữ ở hàm xử lý trung gian hoặc điều chỉnh tham số `temperature` của LLM xuống thấp hơn (khoảng 0.2) để tránh việc AI sinh từ ngẫu nhiên bị vỡ chữ.
+
+---
+
+## 5. Ghi chú kiểm thử thực tế (Practical QA Notes)
+
+> **Trạng thái:** ✅ Đã kiểm thử trực tiếp khi xác minh fix "bài học phân hóa toàn chữ" (tạo bài + xem trước trên local và production, 28/06/2026).
+
+### 5.1. Cách viết Test Case để chạy được thật
+Mỗi Test Case gồm: **bước thao tác cụ thể** (click/nhập gì, ở đâu) → **kết quả mong đợi** (trạng thái nhìn thấy) → **cách xác minh** (DOM selector / log console / nội dung export). Không dừng ở "nhìn thấy đẹp".
+
+### 5.2. Bug thật & quirk đã xác nhận
+- 🐞 **"Bài phân hóa toàn chữ" (đã fix, cần regression test):** Root cause là `template.ts` bỏ rơi slot `illustrationHtml`/`simulationHtml` và `adaptiveToDewey` không đổ dữ liệu vào các slot này → bản xuất chỉ có chữ. **Cách verify đã fix:** sau khi tạo bài Adaptive-ready, kiểm bản Dewey export phải có khối `.unit-simulation` và ảnh minh họa, không chỉ text.
+- 🐞 **Regex "không gian mẫu" 3D (đã fix):** công thức xác suất bị vỡ. Mẹo đã dùng: `P(A \mid B)` (dùng `\mid` thay `|`) để tránh vỡ. Test: tạo bài có công thức xác suất, kiểm MathJax render đúng.
+- ⚠️ **Định dạng đầu ra:** Creator hỗ trợ CV5512 / Claude / Adaptive-ready. Khi test, chọn rõ format vì pipeline `extractLessonContent` (regex) bóc nội dung khác nhau theo từng format.
+
+### 5.3. Cách xác minh
+- Kiểm `extractLessonContent` có bóc đủ section không (console).
+- Với Adaptive-ready: bản xuất phải qua được pipeline Blueprint → Visual Cards → Assessments → per-Unit; lỗi một khâu không nên làm sập toàn bài (fault-isolated).
