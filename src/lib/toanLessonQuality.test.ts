@@ -12,7 +12,9 @@ Bài 1, Bài 2, Bài 3 từ dễ đến nâng cao. Sản phẩm dự kiến: đ�
 HĐ (10:49 - 11:00).
 # Sơ kết
 ## BTVN
-Bài 1 trang 42, Bài 2 trang 43.`;
+Bài 1 trang 42, Bài 2 trang 43.
+# Phụ lục
+Phiếu học tập: bảng tổng hợp công thức và ô luyện kỹ năng vận dụng.`;
 
 describe('validateToanLesson', () => {
   it('giáo án đầy đủ thì passed = true, không có failure high', () => {
@@ -32,6 +34,24 @@ describe('validateToanLesson', () => {
   it('BTVN trống bị bắt (nhưng là medium nên không chặn passed)', () => {
     const res = validateToanLesson(COMPLETE_KNOWLEDGE.replace('Bài 1 trang 42, Bài 2 trang 43.', ''), 'kien_thuc');
     expect(res.allFindings.find((f) => f.id === 'homework-present')!.status).toBe('fail');
+  });
+
+  it('thiếu Phiếu học tập (Phụ lục) thì chặn passed và vào diện repair', () => {
+    const res = validateToanLesson(COMPLETE_KNOWLEDGE.replace(/# Phụ lục[\s\S]*$/, ''), 'kien_thuc');
+    expect(res.passed).toBe(false);
+    expect(res.failures.some((f) => f.id === 'worksheet-appendix')).toBe(true);
+  });
+
+  it('thiếu WALT/WILF + thoại giáo viên thì bắt được và vào diện repair', () => {
+    const bare = `# Khởi động\n# Hình thành kiến thức\nBài 1, Bài 2, Bài 3.\n# Sơ kết\n## BTVN\nBài 5 trang 9.`;
+    const res = validateToanLesson(bare, 'kien_thuc');
+    expect(res.failures.some((f) => f.id === 'success-criteria')).toBe(true);
+    expect(res.failures.some((f) => f.id === 'teacher-script')).toBe(true);
+  });
+
+  it('medium cũ (câu hỏi dẫn dắt) KHÔNG bị đưa vào diện repair', () => {
+    const res = validateToanLesson(COMPLETE_KNOWLEDGE, 'kien_thuc');
+    expect(res.failures.some((f) => f.id === 'guiding-questions')).toBe(false);
   });
 });
 

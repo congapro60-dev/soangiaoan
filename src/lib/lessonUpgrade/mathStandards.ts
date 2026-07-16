@@ -204,6 +204,71 @@ const checkTimeCoverage = (t: string): StandardsFinding => {
   };
 };
 
+// ── Tiêu chí bổ sung từ skill lesson-plan-generator (chuẩn form giáo án/slide) ──
+// Đây là các tiêu chí về KHUNG SƯ PHẠM (mục tiêu + tiêu chí thành công, thoại giáo viên,
+// phiếu học tập) — bổ trợ cho bộ chuẩn Toán TDS. Để severity 'medium' và detector nhận cả
+// biến thể tiếng Việt để giáo án tốt (đã nêu mục tiêu/thoại/phiếu) vẫn PASS.
+
+const checkLearningIntentionSuccessCriteria = (t: string): StandardsFinding => {
+  // WALT/WILF, hoặc tương đương tiếng Việt: mục tiêu + tiêu chí thành công/dấu hiệu hoàn thành.
+  const hasWaltWilf = has(t, /\bwalt\b|\bwilf\b/);
+  const hasIntention = has(t, /mục\s*tiêu|yêu\s*cầu\s*cần\s*đạt|em\s*sẽ\s*(học|làm)|chúng\s*ta\s*sẽ\s*học/);
+  const hasCriteria =
+    has(t, /tiêu\s*chí\s*(thành\s*công|đánh\s*giá|hoàn\s*thành)|dấu\s*hiệu\s*hoàn\s*thành|em\s*làm\s*được\s*khi|sản\s*phẩm\s*cần\s*đạt/) ||
+    has(t, /must\s*do|should\s*do|could\s*do/) ||
+    has(t, /🌶/);
+  const ok = hasWaltWilf || (hasIntention && hasCriteria);
+  return {
+    id: 'success-criteria',
+    title: 'Mục tiêu học tập nêu rõ tiêu chí thành công (WALT/WILF)',
+    status: ok ? 'pass' : hasIntention ? 'warn' : 'fail',
+    severity: 'medium',
+    evidence: hasWaltWilf
+      ? 'Có khung WALT/WILF.'
+      : hasIntention && hasCriteria
+        ? 'Có mục tiêu kèm tiêu chí thành công/mức độ (Must–Should–Could, 🌶, "em làm được khi…").'
+        : hasIntention
+          ? 'Có mục tiêu nhưng chưa nêu tiêu chí thành công/dấu hiệu hoàn thành.'
+          : 'Chưa thấy mục tiêu học tập kèm tiêu chí thành công.',
+    suggestion: 'Nêu mục tiêu theo khung WALT (điều học hôm nay) / WILF (tiêu chí thành công), hoặc "Em sẽ học được…" + "Em làm được khi…" (dấu hiệu hoàn thành đo được).',
+    scope: 'all',
+  };
+};
+
+const checkTeacherScript = (t: string): StandardsFinding => {
+  // Cột hoạt động phải có thoại/câu hỏi giáo viên cụ thể, không chỉ mô tả chung chung.
+  const hasScript = has(t, /gv\s*(hỏi|nói|nêu|dẫn\s*dắt|đặt\s*câu\s*hỏi|chốt)|giáo\s*viên\s*(hỏi|nói|nêu|dẫn\s*dắt|đặt\s*câu\s*hỏi)|gv\s*:/);
+  const vagueOnly = has(t, /gv\s*(hướng\s*dẫn|hỗ\s*trợ|tổ\s*chức)/) && !hasScript;
+  return {
+    id: 'teacher-script',
+    title: 'Cột hoạt động có thoại/câu hỏi giáo viên cụ thể (Teacher script)',
+    status: hasScript ? 'pass' : 'fail',
+    severity: 'medium',
+    evidence: hasScript
+      ? 'Có thoại/câu hỏi giáo viên cụ thể (GV hỏi/nói/dẫn dắt…).'
+      : vagueOnly
+        ? 'Chỉ mô tả chung chung ("GV hướng dẫn/hỗ trợ"), thiếu lời thoại thực tế.'
+        : 'Chưa thấy thoại/câu hỏi giáo viên trong cột hoạt động.',
+    suggestion: 'Ghi rõ câu chữ giáo viên sẽ nói và các câu hỏi đặt ra cho học sinh (VD: GV hỏi: "…?"), thay vì mô tả chung chung "GV hướng dẫn".',
+    scope: 'all',
+  };
+};
+
+const checkWorksheetAppendix = (t: string): StandardsFinding => {
+  const ok = has(t, /phiếu\s*(học\s*tập|bài\s*tập|giao\s*việc|luyện\s*tập)|phụ\s*lục|worksheet|experience\s*passport/);
+  return {
+    id: 'worksheet-appendix',
+    title: 'Có Phiếu học tập ở Phụ lục',
+    status: ok ? 'pass' : 'fail',
+    severity: 'medium',
+    evidence: ok
+      ? 'Có Phiếu học tập / mục Phụ lục.'
+      : 'Chưa thấy Phiếu học tập hoặc mục Phụ lục.',
+    suggestion: 'Thiết kế sẵn một Phiếu học tập bám sát bài học và đặt ở phần Phụ lục (cuối giáo án), gồm hoạt động thiết thực để học sinh làm.',
+    scope: 'all',
+  };
+};
+
 const checkMathCompetencies = (t: string): StandardsFinding => {
   const comps = [
     has(t, /tư\s*duy.*lập\s*luận|lập\s*luận\s*toán/) && 'tư duy–lập luận',
@@ -301,6 +366,9 @@ const GENERAL_CHECKS = [
   checkNoInternalInstructions,
   checkTimeCoverage,
   checkMathCompetencies,
+  checkLearningIntentionSuccessCriteria,
+  checkTeacherScript,
+  checkWorksheetAppendix,
 ];
 
 const PRACTICE_CHECKS = [

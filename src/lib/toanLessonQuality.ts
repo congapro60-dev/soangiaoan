@@ -23,13 +23,25 @@ export interface ToanQualityResult {
   allFindings: StandardsFinding[];
 }
 
+// Các tiêu chí severity 'medium' được đưa vào diện auto-repair (bên cạnh mọi tiêu chí 'high').
+// Chỉ whitelist các tiêu chí KHUNG SƯ PHẠM từ skill lesson-plan-generator — không đụng đến
+// các medium cũ (BTVN, câu hỏi dẫn dắt…) để giữ nguyên hành vi đã kiểm thử.
+const REPAIRABLE_MEDIUM_IDS = new Set<string>([
+  'success-criteria',
+  'teacher-script',
+  'worksheet-appendix',
+]);
+
 /**
- * Chấm giáo án Toán do AI sinh. `passed` khi không còn tiêu chí quan trọng (high) bị fail.
+ * Chấm giáo án Toán do AI sinh. `passed` khi không còn tiêu chí bị fail thuộc diện auto-repair:
+ * mọi tiêu chí quan trọng (high) + các tiêu chí khung sư phạm được whitelist.
  * Với kế hoạch luyện tập, bộ kiểm mục C (Polya, 2 lộ trình gợi ý) được bật.
  */
 export const validateToanLesson = (content: string, keHoach?: ToanKeHoach): ToanQualityResult => {
   const { findings } = auditMathStandards(content, keHoachToLessonType(keHoach));
-  const failures = findings.filter((f) => f.severity === 'high' && f.status === 'fail');
+  const failures = findings.filter(
+    (f) => f.status === 'fail' && (f.severity === 'high' || REPAIRABLE_MEDIUM_IDS.has(f.id)),
+  );
   return { passed: failures.length === 0, failures, allFindings: findings };
 };
 

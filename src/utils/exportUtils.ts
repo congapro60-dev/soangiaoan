@@ -4,6 +4,7 @@ import { callAI, getActiveApiKey } from '../lib/aiProviders';
 import { safeFilename } from './fileUtils';
 import { parseLooseJson } from './jsonRepair';
 import { renderLatexToPng, extractDisplayFormulas, replaceInlineFormulasWithText } from './mathToImage';
+import { auditSlides, buildSlideRepairBrief } from '../lib/slideQuality';
 
 export type PdfOrientation = 'portrait' | 'landscape';
 
@@ -235,6 +236,42 @@ async function runWithConcurrency<T>(tasks: (() => Promise<T>)[], concurrency: n
   return results;
 }
 
+/**
+ * Cổng chất lượng slide: chấm deterministic, nếu có lỗi blocking thì gọi AI sửa ĐÚNG các slide
+ * lỗi một lượt (audit → repair → audit lại). Chỉ nhận bản sửa khi JSON hợp lệ và giữ đúng số
+ * lượng slide; ngược lại trả bản gốc. Không fatal — mọi lỗi đều nuốt và giữ nguyên bản thảo.
+ */
+const applySlideQualityGate = async (
+  slidesData: any[],
+  data: AppData,
+  showToast: (msg: string, type?: any) => void
+): Promise<any[]> => {
+  try {
+    const { blocking } = auditSlides(slidesData);
+    if (blocking.length === 0) return slidesData;
+
+    const slidesWithIssues = new Set(blocking.map((f) => f.slideIndex)).size;
+    showToast(`Đang tự rà soát & tinh chỉnh bố cục ${slidesWithIssues} slide...`, 'info');
+
+    const repaired = await callAI(buildSlideRepairBrief(slidesData, blocking), data.settings);
+    if (!repaired) return slidesData;
+
+    const parsed = parseSlideArrayResponse(repaired);
+    // Chỉ nhận bản sửa nếu giữ đúng số lượng slide (tránh AI cắt/nhân bản).
+    if (parsed.length !== slidesData.length) return slidesData;
+
+    const after = auditSlides(parsed).blocking.length;
+    if (after < blocking.length) {
+      showToast('Đã tinh chỉnh bố cục slide theo chuẩn thiết kế.', 'success');
+      return parsed;
+    }
+    return slidesData;
+  } catch (err) {
+    console.warn('Bỏ qua cổng chất lượng slide:', err);
+    return slidesData;
+  }
+};
+
 export const generateSlideData = async (
   currentPlan: Partial<LessonPlan>,
   data: AppData,
@@ -296,8 +333,9 @@ export const generateSlideData = async (
       slidesData.unshift({ type: 'walt', title: currentPlan.title || 'MỤC TIÊU BÀI HỌC', icon: '🎯', points: [], imageUrls: [], speakerNotes: '', visualSuggestion: '' });
     }
 
-    showToast(`Đã thiết kế xong ${slidesData.length} slide!`);
-    return slidesData;
+    const gated = await applySlideQualityGate(slidesData, data, showToast);
+    showToast(`Đã thiết kế xong ${gated.length} slide!`);
+    return gated;
   } catch (e) {
     console.error(e);
     showToast('Lỗi cấu trúc hoặc kết nối AI, vui lòng thử lại', 'error');
@@ -369,8 +407,9 @@ CHỈ TRẢ VỀ JSON, KHÔNG BỌC BỞI \`\`\`json.
       throw new Error('AI chưa trả về cấu trúc slide hợp lệ. Vui lòng thử tạo lại bài trình chiếu.');
     }
 
+    const gated = await applySlideQualityGate(slidesData, data, showToast);
     showToast('Đã thiết kế xong cấu trúc Slide!');
-    return slidesData;
+    return gated;
   } catch (e) {
     console.error(e);
     showToast('Lỗi cấu trúc hoặc kết nối AI, vui lòng thử lại', 'error');
