@@ -527,9 +527,14 @@ export const downloadPPTX = async (slidesData: any[], title: string) => {
     });
     
     const headerText = s.icon ? `${s.icon} ${s.title}` : s.title;
+    // Co font theo độ dài để tiêu đề luôn nằm 1 dòng trong thanh 0.9in — autofit của
+    // pptxgenjs chỉ được PowerPoint tính lại lúc edit, LibreOffice/render tĩnh bỏ qua,
+    // nên phải quyết định cỡ chữ deterministic ngay khi xuất (QA thấy title 33 ký tự
+    // wrap và tràn khỏi thanh xanh ở fontSize 32 cố định).
+    const headerFontSize = headerText.length <= 30 ? 32 : headerText.length <= 44 ? 26 : 22;
     pSlide.addText(headerText, {
-      x: 0.4, y: 0.15, w: 9, h: 0.6,
-      fontSize: 32, color: 'FFFFFF', bold: true,
+      x: 0.4, y: 0.15, w: 9.2, h: 0.6,
+      fontSize: headerFontSize, color: 'FFFFFF', bold: true,
       valign: 'middle', fontFace: 'Arial',
     });
 

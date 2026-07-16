@@ -26,8 +26,10 @@ export interface SlideFinding {
 }
 
 // Ngưỡng (hiệu chỉnh theo output thực tế của app: tiêu đề VIẾT HOA, tối đa 4-5 points/slide).
+// maxTitleChars=48: QA render LibreOffice cho thấy title bar ~9.2in chứa được ~36 ký tự ở 32pt;
+// renderer đã co font theo bậc (32/26/22pt) nên 48 ký tự vẫn nằm 1 dòng — dài hơn là quá tải nội dung.
 export const SLIDE_LIMITS = {
-  maxTitleChars: 64,
+  maxTitleChars: 48,
   maxBullets: 6,
   maxBulletChars: 160,
   maxTotalPointChars: 480,
