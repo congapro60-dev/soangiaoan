@@ -17,6 +17,14 @@ export default defineConfig(({mode}) => {
     },
     server: {
       hmr: process.env.DISABLE_HMR !== 'true',
+      // Dev-only: Vite không serve các Vercel Function trong api/ → proxy sang production
+      // để relay AI (/api/gemini-relay) hoạt động khi chạy localhost (E2E, demo mode).
+      proxy: {
+        '/api': {
+          target: 'https://giaoandewey.vercel.app',
+          changeOrigin: true,
+        },
+      },
     },
     build: {
       rollupOptions: {

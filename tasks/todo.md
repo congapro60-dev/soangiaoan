@@ -23,6 +23,28 @@ Nguyên tắc: tái dùng hạ tầng audit + repair loop đã có, KHÔNG desta
 - [x] Wire `applySlideQualityGate` vào CẢ generateSlideData + generateTextToSlideData: audit → repair → audit lại.
 - [x] Test golden cho slideQuality. (9/9 pass)
 
-## 4. Verify
-- [ ] `npx tsc --noEmit` sạch. (đang chờ classifier)
-- [ ] `npm run test` xanh (toàn bộ suite).
+## 4. Verify ✅
+- [x] `npx tsc --noEmit` sạch (sau khi exclude `outputs/`, `test_downloads/` — file scratch gây lỗi pre-existing).
+- [x] `npm run test` xanh: 185/185, 28 file.
+- [x] `npm run build` OK (warning chunk-size là pre-existing).
+- [x] Smoke test thực chiến (`npx tsx` trên `docs/giaoan_mau_test.md`): gate bắt 7 failure
+      vào diện repair (gồm 2 tiêu chí mới teacher-script + worksheet-appendix);
+      success-criteria trả warn đúng độ nhạy (có mục tiêu, thiếu tiêu chí thành công → không phạt oan).
+      Slide gate bắt đúng 3 blocking trên slide draft lỗi cài sẵn.
+- [x] Commit `303d35b` trên branch feat/track-a-quality-gates (CHƯA push main).
+
+## 5. E2E thực chiến trong app thật (Browser pane, demo mode) ✅
+- [x] Dev-proxy `/api` → https://giaoandewey.vercel.app trong vite.config (Vite không serve Vercel Function).
+- [x] Luồng Text-to-Slide chạy thật: paste giáo án → generate → **gate bắt lỗi → gọi repair → nhận bản sửa**
+      (quan sát 2 AI call: generate + repair; AI stub qua fetch-intercept vì relay prod đang cạn quota).
+- [x] Preview board render bản ĐÃ SỬA với KaTeX; bấm "Tải file PPTX" → blob 86.895 bytes đúng MIME.
+- [x] File `outputs/slide_tile_thuc_e2e.pptx`: zip OK, 6 slide + 6 notes; slide 3 chứa tiêu đề ngắn đã sửa,
+      KHÔNG còn bản lỗi 7 bullet/title 79 ký tự.
+- ⚠️ Phát hiện prod: relay https://giaoandewey.vercel.app/api/gemini-relay trả 500
+      "All fallback providers exhausted" — giáo viên không có key cá nhân hiện KHÔNG gọi được AI.
+- ⚠️ free-router pool (MiniMax/Conduit) lỗi "Connection error" khi gọi từ browser (khả năng CORS).
+
+## Ghi chú kiến trúc (chốt với user)
+- Track B để ở branch `academic-os-next`, tài liệu đặt tại `docs/architecture/academic-os/`
+  (vision/, knowledge-base/, rule-registry/, subject-packs/, design-system/) — KHÔNG tạo
+  thư mục academic-os trong src/. src/ chỉ chứa code đang chạy.
