@@ -44,6 +44,18 @@ Nguyên tắc: tái dùng hạ tầng audit + repair loop đã có, KHÔNG desta
       "All fallback providers exhausted" — giáo viên không có key cá nhân hiện KHÔNG gọi được AI.
 - ⚠️ free-router pool (MiniMax/Conduit) lỗi "Connection error" khi gọi từ browser (khả năng CORS).
 
+## 6. Fix tràn tiêu đề PPTX + Ship ✅
+- [x] QA bằng mắt (LibreOffice→PNG) bắt lỗi title 33 ký tự tràn thanh xanh → fix co font
+      bậc thang 32/26/22pt + siết maxTitleChars 64→48 (`a1bbf55`). Verify render v2: 1 dòng gọn.
+- [x] Full suite 185/185, tsc 0 lỗi, build OK.
+- [x] Push `feat/track-a-quality-gates` + merge `main` + push (user ra lệnh "làm hết").
+- [x] Vercel deploy XÁC NHẬN: prod serve `index-D42gwlsR.js` chứa marker gate code.
+- [x] Viết prompt cowork: `tasks/prompt_cowork_fix_relay_va_test_live.md`
+      (Việc 1: thay GEMINI_FALLBACK_KEY/GROK_FALLBACK_KEY/DEEPSEEK_FALLBACK_KEYS trong
+      Vercel env + redeploy; Việc 2: test live model thật; Việc 3: kiểm CORS free-router).
+- [ ] CHỜ COWORK/USER: relay prod vẫn 500 "All fallback providers exhausted" — AI trên
+      production chưa dùng được cho user không có key cá nhân.
+
 ## Ghi chú kiến trúc (chốt với user)
 - Track B để ở branch `academic-os-next`, tài liệu đặt tại `docs/architecture/academic-os/`
   (vision/, knowledge-base/, rule-registry/, subject-packs/, design-system/) — KHÔNG tạo
