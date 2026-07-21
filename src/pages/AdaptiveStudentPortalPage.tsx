@@ -18,6 +18,7 @@ import {
   Camera,
   CheckCircle2,
   Clock3,
+  Key,
   Lightbulb,
   Loader2,
   Route,
@@ -37,6 +38,13 @@ import { loadDeweyAssets } from '../lib/adaptive/deweyAssets';
 import { getLessonFromFirestore } from '../services/adaptiveLessonService';
 import { getPersonalizedLesson } from '../lib/adaptive/personalizationEngine';
 import { GEMINI_MODELS } from '../lib/aiProviders';
+import {
+  callStudentGemini,
+  getStudentAiKey,
+  isStudentKeyMissingError,
+  setStudentAiKey,
+  STUDENT_KEY_GUIDE,
+} from '../lib/adaptive/studentAiKey';
 import { getToolsByIds } from '../data/externalTools';
 import {
   createProgressFromDiagnostic,
@@ -330,6 +338,8 @@ export const AdaptiveStudentPortalPage = () => {
   const [studentName, setStudentName] = useState('');
   const [studentClass, setStudentClass] = useState('');
   const [studentCode, setStudentCode] = useState('');
+  const [studentAiKeyInput, setStudentAiKeyInput] = useState(() => getStudentAiKey());
+  const [aiKeySaved, setAiKeySaved] = useState(false);
   const [profile, setProfile] = useState<StudentLearningProfile | null>(null);
   const [diagnosticAnswers, setDiagnosticAnswers] = useState<Record<string, string>>({});
   const [quickCheckAnswers, setQuickCheckAnswers] = useState<Record<string, string>>({});
@@ -460,6 +470,12 @@ export const AdaptiveStudentPortalPage = () => {
     return { weakest };
   }, [profile]);
 
+  const handleSaveStudentAiKey = () => {
+    setStudentAiKey(studentAiKeyInput);
+    setAiKeySaved(true);
+    setTimeout(() => setAiKeySaved(false), 2500);
+  };
+
   const handleIdentify = async () => {
     if (!activeTeacherId || !studentName.trim() || !studentCode.trim()) {
       setNotice({ tone: 'error', message: 'Em cần nhập họ tên và mã học sinh để hệ thống lưu đúng hồ sơ học tập.' });
@@ -575,22 +591,11 @@ export const AdaptiveStudentPortalPage = () => {
         'Trả lời ngắn gọn bằng tiếng Việt theo 4 dòng: Điểm tham khảo / Nhận xét đúng / Lỗi cần sửa / Gợi ý bước tiếp theo. Nếu ảnh mờ hoặc thiếu dữ kiện, nói rõ không đủ cơ sở chấm.',
       ].join('\n');
 
-      const response = await fetch('/api/gemini-relay', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt,
-          imageBase64: interaction.imageBase64,
-          imageMimeType: interaction.imageMimeType,
-          model: 'gemini-1.5-flash',
-        }),
+      const aiText = await callStudentGemini(prompt, {
+        imageBase64: interaction.imageBase64,
+        imageMimeType: interaction.imageMimeType,
       });
-
-      if (!response.ok) throw new Error(`AI trả về lỗi ${response.status}`);
-      const data = await response.json();
-      const aiFeedback = typeof data.text === 'string' && data.text.trim()
-        ? data.text.trim()
-        : 'AI chưa trả về nhận xét rõ ràng. Em hãy đối chiếu lời giải chuẩn bên dưới.';
+      const aiFeedback = aiText || 'AI chưa trả về nhận xét rõ ràng. Em hãy đối chiếu lời giải chuẩn bên dưới.';
 
       updateWorkedExampleInteraction(key, {
         aiFeedback,
@@ -602,7 +607,9 @@ export const AdaptiveStudentPortalPage = () => {
       console.error('Không chấm được ảnh bài làm bằng AI', error);
       updateWorkedExampleInteraction(key, {
         isGrading: false,
-        gradingError: 'AI chưa chấm được ảnh lúc này. Em vẫn có thể xem lời giải chuẩn và báo giáo viên kiểm tra bài viết tay.',
+        gradingError: isStudentKeyMissingError(error)
+          ? (error as Error).message
+          : 'AI chưa chấm được ảnh lúc này. Em vẫn có thể xem lời giải chuẩn và báo giáo viên kiểm tra bài viết tay.',
       });
     }
   };
@@ -627,23 +634,18 @@ export const AdaptiveStudentPortalPage = () => {
     setStage('personalizing');
     setNotice({ tone: 'info', message: `Hệ thống đã xếp em vào tuyến ${routeLabel[deweyRoute]}. Đang cá nhân hóa nội dung...` });
 
-    // Call PA3 Engine — falls back to original lesson if it times out or fails
-    const callApiFn = async (prompt: string) => {
-      const response = await fetch('/api/gemini-relay', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, model: DEFAULT_PERSONALIZATION_MODEL }),
-      });
-      if (!response.ok) {
-        // F8: kèm body lỗi để phân biệt nguyên nhân (quota 429 vs env var vs route) khi soi console.
-        const errBody = await response.text().catch(() => '');
-        throw new Error(`Personalization relay error ${response.status}: ${errBody.slice(0, 200)}`);
-      }
-      const data = await response.json().catch(() => ({}));
-      return typeof data.text === 'string' ? data.text : '';
-    };
+    // Call PA3 Engine — falls back to original lesson if it times out or fails.
+    // Dùng key AI của học sinh (nhập ở cổng); không có key → học bài gốc theo tuyến,
+    // không coi là lỗi.
+    const callApiFn = async (prompt: string) =>
+      callStudentGemini(prompt, { model: DEFAULT_PERSONALIZATION_MODEL });
 
-    const personalizedLesson = await getPersonalizedLesson(lesson, deweyRoute, weakObjectiveIds, callApiFn);
+    const personalizedLesson = getStudentAiKey()
+      ? await getPersonalizedLesson(lesson, deweyRoute, weakObjectiveIds, callApiFn)
+      : lesson;
+    if (!getStudentAiKey()) {
+      console.info('[portal] Chưa có API key AI của học sinh — dùng bài học gốc theo tuyến, bỏ qua cá nhân hóa.');
+    }
 
     const deweyAssets = await loadDeweyAssets(personalizedLesson);
     const deweyContent = adaptiveLessonToDeweyContent(personalizedLesson, deweyRoute, deweyAssets);
@@ -1061,6 +1063,38 @@ export const AdaptiveStudentPortalPage = () => {
                   <input value={studentCode} onChange={event => setStudentCode(event.target.value)} className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold uppercase outline-none focus:border-blue-400 focus:bg-white" placeholder="VD: 11A1-025" />
                 </label>
               </div>
+
+              <div className="mt-5 rounded-2xl border border-purple-100 bg-purple-50/60 p-4">
+                <label className="space-y-2">
+                  <span className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-purple-700">
+                    <Key className="h-3.5 w-3.5" /> API key AI (để AI chấm bài & cá nhân hóa)
+                  </span>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <input
+                      type="password"
+                      value={studentAiKeyInput}
+                      onChange={event => setStudentAiKeyInput(event.target.value)}
+                      className="w-full rounded-2xl border border-purple-200 bg-white px-4 py-3 text-sm font-semibold outline-none focus:border-purple-400"
+                      placeholder="Dán API key vào đây..."
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSaveStudentAiKey}
+                      className="shrink-0 rounded-2xl bg-purple-600 px-5 py-3 text-sm font-black text-white transition hover:bg-purple-700 sm:w-auto"
+                    >
+                      {aiKeySaved ? 'Đã lưu ✓' : 'Lưu key'}
+                    </button>
+                  </div>
+                </label>
+                <p className="mt-2 text-xs font-semibold leading-5 text-purple-600">
+                  {STUDENT_KEY_GUIDE} Không có key AI vẫn học bình thường — chỉ không dùng được tính năng AI chấm ảnh/cá nhân hóa.{' '}
+                  <a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer" className="underline">
+                    Lấy key miễn phí tại đây
+                  </a>
+                  . Key chỉ lưu trên máy của em, không gửi cho ai khác.
+                </p>
+              </div>
+
               <button onClick={handleIdentify} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-100 transition hover:bg-blue-700 sm:w-auto">
                 Bắt đầu học <ArrowRight className="h-4 w-4" />
               </button>

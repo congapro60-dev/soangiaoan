@@ -1,3 +1,28 @@
+# Cổng học sinh: key AI riêng của học sinh (branch: fix/format-agent-fallback) — 2026-07-21 lần 2
+
+User làm rõ thêm: cổng học sinh CŨNG phải để học sinh tự nhập API key (free hoặc do giáo
+viên phát), KHÔNG phải giữ relay key server như dự định trước.
+
+- [x] `src/lib/adaptive/studentAiKey.ts` (mới) — get/setStudentAiKey (localStorage),
+      callStudentGemini (gọi @google/genai trực tiếp, text + optional ảnh),
+      isStudentKeyMissingError. 4 test (localStorage stub vì vitest environment=node).
+- [x] AdaptiveStudentPortalPage: thêm ô nhập/lưu API key ở màn Bước 1 (cạnh Họ tên/Lớp/Mã HS),
+      link lấy key free, ghi rõ "không có key vẫn học được, chỉ mất tính năng AI".
+- [x] Thay 2 điểm gọi `/api/gemini-relay` (chấm ảnh bài làm + cá nhân hóa PA3) bằng
+      `callStudentGemini`; không có key → cá nhân hóa fallback về bài gốc (im lặng, đúng thiết
+      kế sẵn có "falls back to original lesson"); chấm ảnh → hiện message hướng dẫn nhập key.
+- [x] XÓA `api/gemini-relay.ts` — không còn ai gọi (client giáo viên đã bỏ ở bước trước; giờ
+      client học sinh cũng bỏ). Giảm 1 Vercel Function (9 → 8), đóng luôn cổng có thể bị dò quét.
+- [x] Cập nhật lại prompt cowork: bỏ hẳn "Việc 1 sửa key Vercel" (không còn cần), đổi thành
+      test live ô nhập key học sinh.
+- [x] Cập nhật memory `api-key-backup-co-y.md` (ghi rõ 2 bước đảo chính sách trong cùng phiên).
+- [x] E2E Browser pane: panel API key render đúng vị trí trên `/adaptive-portal` (sample lesson);
+      lưu key → localStorage đúng; reload → key được nhớ lại vào ô input; 0 network request
+      ra gemini-relay sau khi xóa key.
+- [x] tsc 0 lỗi; 193/193 test (30 file); build OK.
+
+---
+
 # Chính sách API key riêng (branch: feat/require-own-api-key) — 2026-07-21
 
 User quyết định: bỏ TOÀN BỘ key dự phòng phía giáo viên — ai dùng AI phải nhập key riêng.
