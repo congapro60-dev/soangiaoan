@@ -217,7 +217,7 @@ export async function parseMarkdownToOnlineExam(
   }
 
   // Gemini có JSON mode + temperature 0 — giữ đường trực tiếp khi user dùng Gemini và có key.
-  // Các provider khác (Claude/OpenAI/Grok/DeepSeek/free-router/relay) đi qua callAI như phần còn lại của app.
+  // Các provider khác (Claude/OpenAI/Grok/DeepSeek) đi qua callAI như phần còn lại của app.
   const provider = settings.selectedProvider ?? 'gemini';
   if (provider === 'gemini' && settings.geminiApiKey?.trim()) {
     return parseWithGeminiDirect(markdownContent, settings.geminiApiKey);

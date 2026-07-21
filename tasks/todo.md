@@ -1,3 +1,23 @@
+# Chính sách API key riêng (branch: feat/require-own-api-key) — 2026-07-21
+
+User quyết định: bỏ TOÀN BỘ key dự phòng phía giáo viên — ai dùng AI phải nhập key riêng.
+
+- [x] aiProviders: xóa ROUTER_POOLS (key chia sẻ hardcode) + provider free-router + mọi
+      fallback relay (no-key/quota/vision/stream). Thêm `assertOwnApiKey` chặn sớm với
+      thông báo hướng dẫn; `isMissingApiKeyError` để UI hiện nguyên văn.
+- [x] GIỮ `/api/gemini-relay` CÓ CHỦ ĐÍCH — chỉ phục vụ cổng học sinh (chấm ảnh bài làm +
+      cá nhân hóa PA3, học sinh không thể có key). Không đụng generate-simulation (server
+      key, giáo viên bấm) — chờ user quyết riêng.
+- [x] Settings: bỏ tab Router Free; migrate settings cũ 'free-router' → gemini (chống crash).
+- [x] Banner App/AITools/Exams: đổi thông điệp "cần API key của riêng bạn".
+- [x] types.ts + apiLimits.ts: bỏ 'free-router' khỏi union.
+- [x] E2E Browser pane: banner mới ✅; Settings không crash với settings cũ ✅; generate
+      không key → 0 request mạng + toast hướng dẫn nguyên văn ✅.
+- [x] tsc 0 lỗi; 185/185 test; build OK.
+- [x] Cập nhật prompt cowork (relay key giờ CHỈ cho cổng học sinh) + memory api-key-backup-co-y.
+
+---
+
 # Track A — Product Quality Gates (branch: feat/track-a-quality-gates)
 
 Nguồn tiêu chí: skill `lesson-plan-generator` + `ultimate-slides` (đọc từ ~/.gemini/config/skills).

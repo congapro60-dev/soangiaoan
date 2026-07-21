@@ -343,7 +343,7 @@ export default function App() {
             <div className="mx-4 mt-2 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-2xl flex items-center justify-between gap-3 text-sm">
               <span className="text-amber-800 font-medium">
                 {allEmpty
-                  ? '⚠️ Bạn chưa nhập API Key — AI sẽ dùng key dự phòng (có thể chậm). Vui lòng thêm key của bạn để có trải nghiệm tốt nhất.'
+                  ? '⚠️ Chưa có API Key — các tính năng AI cần API key của riêng bạn. Vào Cài đặt để chọn nhà cung cấp và dán key (Gemini có key miễn phí).'
                   : `⚠️ Chưa nhập API Key cho ${providerLabel[activeProvider] || activeProvider} (đang chọn) — vui lòng thêm key hoặc đổi provider.`}
               </span>
               <button onClick={() => setIsSettingsOpen(true)} className="shrink-0 px-3 py-1 bg-amber-500 text-white rounded-xl font-bold text-xs hover:bg-amber-600 transition-colors">Cài đặt</button>

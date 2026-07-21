@@ -223,7 +223,7 @@ export interface AppData {
     geminiApiKey: string;
     claudeApiKey: string;
     openaiApiKey: string;
-    selectedProvider: 'gemini' | 'claude' | 'openai' | 'grok' | 'deepseek' | 'nvidia' | 'openai-compatible' | 'free-router';
+    selectedProvider: 'gemini' | 'claude' | 'openai' | 'grok' | 'deepseek' | 'nvidia' | 'openai-compatible';
     selectedModel: string;
     grokApiKey: string;
     deepseekApiKey: string;

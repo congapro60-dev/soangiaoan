@@ -159,7 +159,7 @@ export const AIToolsTab = ({ data, isLoading, setIsLoading, showToast, setActive
           <div className="flex items-start gap-3">
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[#3b6090]" />
             <p className="text-sm leading-6 text-[#121c2c]">
-              Bạn chưa nhập API Key — AI sẽ dùng key dự phòng (có thể chậm). Vui lòng thêm key của bạn để có trải nghiệm tốt nhất.
+              Chưa có API Key — các tính năng AI cần API key của riêng bạn. Vào Cài đặt để chọn nhà cung cấp và dán key (Gemini có key miễn phí).
             </p>
           </div>
           <button

@@ -1,6 +1,6 @@
 import pptxgen from 'pptxgenjs';
 import { LessonPlan, AppData } from '../types';
-import { callAI, getActiveApiKey } from '../lib/aiProviders';
+import { callAI, getActiveApiKey, isMissingApiKeyError } from '../lib/aiProviders';
 import { safeFilename } from './fileUtils';
 import { parseLooseJson } from './jsonRepair';
 import { renderLatexToPng, extractDisplayFormulas, replaceInlineFormulasWithText } from './mathToImage';
@@ -336,9 +336,9 @@ export const generateSlideData = async (
     const gated = await applySlideQualityGate(slidesData, data, showToast);
     showToast(`Đã thiết kế xong ${gated.length} slide!`);
     return gated;
-  } catch (e) {
+  } catch (e: any) {
     console.error(e);
-    showToast('Lỗi cấu trúc hoặc kết nối AI, vui lòng thử lại', 'error');
+    showToast(isMissingApiKeyError(e) ? e.message : 'Lỗi cấu trúc hoặc kết nối AI, vui lòng thử lại', 'error');
     return null;
   } finally {
     setIsLoading(false);
@@ -410,9 +410,9 @@ CHỈ TRẢ VỀ JSON, KHÔNG BỌC BỞI \`\`\`json.
     const gated = await applySlideQualityGate(slidesData, data, showToast);
     showToast('Đã thiết kế xong cấu trúc Slide!');
     return gated;
-  } catch (e) {
+  } catch (e: any) {
     console.error(e);
-    showToast('Lỗi cấu trúc hoặc kết nối AI, vui lòng thử lại', 'error');
+    showToast(isMissingApiKeyError(e) ? e.message : 'Lỗi cấu trúc hoặc kết nối AI, vui lòng thử lại', 'error');
     return null;
   } finally {
     setIsLoading(false);

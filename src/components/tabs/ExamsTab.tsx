@@ -450,7 +450,7 @@ export const ExamsTab = ({ user, data, showToast }: ExamsTabProps) => {
         <div className="rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-3 text-sm text-amber-800 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-2">
             <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
-            <span>Bạn chưa nhập API Key — AI sẽ dùng key dự phòng, có thể chậm khi phân tích đề hoặc chấm tự luận.</span>
+            <span>Chưa có API Key — phân tích đề và chấm tự luận cần API key của riêng bạn. Vào Cài đặt để thêm key.</span>
           </div>
           <span className="text-xs font-bold uppercase tracking-wider text-amber-700">Nên cấu hình trong Cài đặt</span>
         </div>
