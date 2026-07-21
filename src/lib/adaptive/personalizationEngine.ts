@@ -214,7 +214,7 @@ export type PersonalizationApiCall = (prompt: string) => Promise<string>;
  * @param lesson      The original lesson from Firestore
  * @param route       The route determined by diagnostic grading
  * @param weakObjectiveIds  Objective IDs where student scored < 0.4
- * @param callApi     Injected async function that calls the AI (e.g., via gemini-relay)
+ * @param callApi     Injected async function that calls the AI (e.g., via callStudentGemini)
  * @returns           A new lesson object with personalized route content, or the original on failure
  */
 export const getPersonalizedLesson = async (

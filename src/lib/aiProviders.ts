@@ -41,8 +41,8 @@ VIẾT TIẾP NGAY (không thêm dấu xuống dòng dư thừa, không lặp l�
 }
 
 // --- Chính sách API key: người dùng BẮT BUỘC dùng key của riêng mình ---
-// (Quyết định 2026-07-21: bỏ toàn bộ key dự phòng/relay phía giáo viên. Relay
-// /api/gemini-relay chỉ còn phục vụ cổng học sinh — học sinh không thể có key.)
+// (Quyết định 2026-07-21: bỏ toàn bộ key dự phòng/relay. Giáo viên VÀ học sinh đều tự
+// nhập key riêng — xem src/lib/adaptive/studentAiKey.ts cho phía cổng học sinh.)
 
 const NO_KEY_MESSAGE =
   'Chưa có API key. Các tính năng AI cần API key của riêng bạn — vào Cài đặt, chọn nhà cung cấp và dán key (Gemini có key miễn phí tại aistudio.google.com/apikey).';
