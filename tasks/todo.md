@@ -105,3 +105,14 @@ Nguyên tắc: tái dùng hạ tầng audit + repair loop đã có, KHÔNG desta
 - Track B để ở branch `academic-os-next`, tài liệu đặt tại `docs/architecture/academic-os/`
   (vision/, knowledge-base/, rule-registry/, subject-packs/, design-system/) — KHÔNG tạo
   thư mục academic-os trong src/. src/ chỉ chứa code đang chạy.
+# Live QA: student-owned AI key + teacher slide export — 2026-07-21
+
+- [ ] Pre-flight: unit tests pass, build succeeds, record commit/worktree/chunk size.
+- [ ] Production student portal: verify API-key field, link, save feedback, and persistence.
+- [ ] Production student flow: complete pre-test and reach a routed lesson.
+- [ ] Production image grading: valid-key response and missing-key guidance.
+- [ ] Production teacher flow: save personal Gemini key, generate/download PPTX.
+- [ ] Inspect PPTX: opens successfully, titles do not overflow, no slide has over 6 bullets.
+- [ ] Capture screenshots and write QA sign-off with PASS/FAIL/NOT RUN evidence.
+
+---
