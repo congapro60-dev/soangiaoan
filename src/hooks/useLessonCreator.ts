@@ -831,9 +831,17 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
               console.warn('Bỏ qua cổng chất lượng Toán:', qErr);
             }
           }
-        } catch (e) {
+        } catch (e: any) {
           console.error(e);
-          showToast('Có lỗi xảy ra trong quá trình sinh giáo án', 'error');
+          // Đừng để editor kẹt ở dòng chờ "(Hệ thống đang chuẩn hóa...)" khi pipeline lỗi.
+          setCurrentPlan(prev => (
+            prev.content?.includes('Hệ thống đang chuẩn hóa') ? { ...prev, content: '' } : prev
+          ));
+          const { isMissingApiKeyError } = await import('../lib/aiProviders');
+          showToast(
+            isMissingApiKeyError(e) ? e.message : 'Có lỗi xảy ra trong quá trình sinh giáo án',
+            'error'
+          );
         }
       } else {
         const rawDistContent = activeDist?.content || distributionFile?.content;
