@@ -7,6 +7,77 @@ interface DiagramRendererProps {
   type: 'tikz' | 'svg' | 'mermaid' | 'plantuml' | 'geogebra';
 }
 
+const CUSTOM_COLOR_MAP: Record<string, string> = {
+  indigo: '75,0,130', teal: '0,128,128', primary: '63,81,181',
+  orange: '255,165,0', purple: '128,0,128', brown: '139,69,19',
+  pink: '255,105,180', olive: '128,128,0', navy: '0,0,128',
+  coral: '255,127,80', salmon: '250,128,114', gold: '255,215,0',
+  darkred: '139,0,0', darkgreen: '0,100,0', darkblue: '0,0,139',
+  skyblue: '135,206,235', limegreen: '50,205,50', crimson: '220,20,60',
+};
+
+function cleanTikzCode(raw: string): string {
+  let tikz = raw;
+
+  // Fix double-escaped backslashes (AI producing \\begin instead of \begin)
+  if (/\\\\begin\{tikzpicture\}/.test(tikz) && !/(^|[^\\])\\begin\{tikzpicture\}/.test(tikz)) {
+    tikz = tikz.replace(/\\\\/g, '\\');
+  }
+
+  // Fix literal \n \r (AI double-escaping newlines), preserving LaTeX commands like \node
+  tikz = tikz.replace(/\\[rn](?![a-zA-Z])/g, '\n');
+
+  // Wrap bare \begin{axis} in tikzpicture if missing
+  if (/\\begin\{axis\}/.test(tikz) && !/\\begin\{tikzpicture\}/.test(tikz)) {
+    tikz = `\\begin{tikzpicture}\n${tikz}\n\\end{tikzpicture}`;
+  }
+
+  // Replace custom/invented color names with \definecolor + standard alternatives
+  const defineLines: string[] = [];
+  for (const [name, rgb] of Object.entries(CUSTOM_COLOR_MAP)) {
+    const re = new RegExp(`(?<=\\{|,|\\[|=)${name}(?=\\}|,|\\]|!|$)`, 'gi');
+    if (re.test(tikz)) {
+      defineLines.push(`\\definecolor{${name}}{RGB}{${rgb}}`);
+    }
+  }
+
+  // Strip accents from Vietnamese text
+  tikz = tikz.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
+
+  if (!tikz.includes('\\documentclass')) {
+    const defines = defineLines.length > 0 ? defineLines.join('\n') + '\n' : '';
+    tikz = `\\documentclass[tikz,border=2mm]{standalone}\n\\usepackage[dvipsnames]{xcolor}\n${defines}\\usepackage{pgfplots}\n\\pgfplotsset{compat=1.18}\n\\begin{document}\n${tikz}\n\\end{document}`;
+  } else if (defineLines.length > 0) {
+    // Inject definecolor lines after \usepackage{xcolor} or before \begin{document}
+    const insertPoint = tikz.indexOf('\\begin{document}');
+    if (insertPoint >= 0) {
+      tikz = tikz.slice(0, insertPoint) + defineLines.join('\n') + '\n' + tikz.slice(insertPoint);
+    }
+  }
+
+  return tikz;
+}
+
+function encodeForKroki(source: string): string {
+  const data = new TextEncoder().encode(source);
+  const compressed = pako.deflate(data, { level: 9 });
+  let binaryString = '';
+  for (let i = 0; i < compressed.length; i++) {
+    binaryString += String.fromCharCode(compressed[i]);
+  }
+  return btoa(binaryString).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+async function fetchKroki(type: string, payload: string): Promise<string> {
+  const url = `https://kroki.io/${type}/svg/${encodeForKroki(payload)}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Kroki Error: ${response.status} - ${errText}`);
+  }
+  return response.text();
+}
+
 export const DiagramRenderer = ({ code, type }: DiagramRendererProps) => {
   const [svgContent, setSvgContent] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +94,6 @@ export const DiagramRenderer = ({ code, type }: DiagramRendererProps) => {
     let isMounted = true;
 
     const renderDiagram = async () => {
-      // For raw SVG, just return it directly
       if (type === 'svg') {
         if (code.trim().startsWith('<svg')) {
           setSvgContent(code);
@@ -33,42 +103,37 @@ export const DiagramRenderer = ({ code, type }: DiagramRendererProps) => {
         return;
       }
 
-      if (type === 'geogebra') {
-        // GeoGebra doesn't need fetch, we will render it via iframe srcDoc below
-        return;
-      }
+      if (type === 'geogebra') return;
 
       setIsLoading(true);
       setError(null);
 
       try {
-        let finalCode = code;
         if (type === 'tikz') {
-          finalCode = finalCode.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
-          if (!finalCode.includes('\\documentclass')) {
-            finalCode = `\\documentclass[tikz,border=2mm]{standalone}\n\\usepackage[dvipsnames]{xcolor}\n\\definecolor{indigo}{RGB}{75,0,130}\n\\usepackage{pgfplots}\n\\pgfplotsset{compat=1.18}\n\\begin{document}\n${finalCode}\n\\end{document}`;
+          const cleaned = cleanTikzCode(code);
+          try {
+            const svg = await fetchKroki('tikz', cleaned);
+            if (isMounted) setSvgContent(svg);
+            return;
+          } catch {
+            // Retry: strip problematic packages and simplify
+            const simplified = cleaned
+              .replace(/\\usepackage\{tkz-euclide\}[^\n]*/g, '')
+              .replace(/\\usepackage\{tkz[^}]*\}[^\n]*/g, '')
+              .replace(/\\tkz[A-Za-z]+\{[^}]*\}(\{[^}]*\})*/g, '');
+            try {
+              const svg = await fetchKroki('tikz', simplified);
+              if (isMounted) setSvgContent(svg);
+              return;
+            } catch (err2: any) {
+              throw err2;
+            }
           }
         }
 
-        // Prepare payload for Kroki
-        const data = new TextEncoder().encode(finalCode);
-        const compressed = pako.deflate(data, { level: 9 });
-        const result = String.fromCharCode.apply(null, Array.from(new Uint8Array(compressed)));
-        const base64 = btoa(result)
-          .replace(/\+/g, '-')
-          .replace(/\//g, '_')
-          .replace(/=+$/, ''); // URL-safe Base64
-
-        const url = `https://kroki.io/${type}/svg/${base64}`;
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-          const errText = await response.text();
-          throw new Error(`Kroki Error: ${response.status} - ${errText}`);
-        }
-
-        const svgText = await response.text();
-        if (isMounted) setSvgContent(svgText);
+        // mermaid / plantuml
+        const svg = await fetchKroki(type, code);
+        if (isMounted) setSvgContent(svg);
       } catch (err: any) {
         console.error('Lỗi khi render Diagram:', err);
         if (isMounted) setError(err.message || 'Không thể tải hình ảnh minh họa');
@@ -200,9 +265,9 @@ export const DiagramRenderer = ({ code, type }: DiagramRendererProps) => {
 
   if (svgContent) {
     return (
-      <div 
+      <div
         className="flex justify-center my-6 overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow diagram-container"
-        dangerouslySetInnerHTML={{ __html: svgContent }} 
+        dangerouslySetInnerHTML={{ __html: svgContent }}
       />
     );
   }

@@ -150,18 +150,35 @@ const renderEngage = (content: DeweyLessonContent, firstUnit?: DeweyKnowledgeUni
 </section>`;
 };
 
+const renderImageUploadBlock = (stepId: string, step: DeweyKnowledgeUnit['socraticSteps'][number]): string => `
+    <div class="image-upload-block box" data-image-upload>
+      <label class="btn secondary" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+        📷 Chụp/tải ảnh bài làm viết tay
+        <input type="file" accept="image/*" capture="environment" class="hidden" onchange="previewImageUpload(this)">
+      </label>
+      <div class="image-preview hidden" style="margin-top:10px;overflow:hidden;border-radius:12px;border:1px solid #e5e7eb;background:#f8fafc;">
+        <img style="max-height:260px;width:100%;object-fit:contain;" alt="Ảnh bài làm">
+      </div>
+      <p class="image-name hidden" style="margin-top:6px;font-size:12px;font-weight:700;color:#64748b;"></p>
+      <button class="btn grade-image-btn hidden" type="button" style="margin-top:8px;background:#7c3aed;color:white;" onclick="requestImageGrade('${safeId(stepId)}')" data-grade-problem="${escapeAttribute(step.prompt)}" data-grade-solution="${escapeAttribute(step.feedback)}" data-grade-rubric="${escapeAttribute(step.aiRubric || '')}">✨ Nhờ AI chấm ảnh tham khảo</button>
+      <div class="ai-grade-feedback hidden"></div>
+      <div class="ai-grade-error hidden"></div>
+    </div>`;
+
 const renderSocraticStep = (unit: DeweyKnowledgeUnit, stepIndex: number): string => {
   const step = unit.socraticSteps[stepIndex];
   const currentId = `${unit.id}-step-${step.id}`;
   const next = unit.socraticSteps[stepIndex + 1];
   const nextId = next ? `${unit.id}-step-${next.id}` : '';
+  const isImageMode = step.responseMode === 'image_upload';
 
   return `
-  <article class="scaffold-step${stepIndex === 0 ? '' : ' hidden'}" id="${safeId(currentId)}" data-socratic-step data-feedback="${escapeAttribute(step.feedback)}" data-note="${escapeAttribute(step.formulaToNote || '')}" data-next-step="${safeId(nextId)}">
-    <h3><span class="step-badge">${stepIndex + 1}</span>Thử và sửa</h3>
+  <article class="scaffold-step${stepIndex === 0 ? '' : ' hidden'}" id="${safeId(currentId)}" data-socratic-step data-feedback="${escapeAttribute(step.feedback)}" data-note="${escapeAttribute(step.formulaToNote || '')}" data-next-step="${safeId(nextId)}"${isImageMode ? ' data-response-mode="image_upload"' : ''}>
+    <h3><span class="step-badge">${stepIndex + 1}</span>${isImageMode ? 'Bài làm viết tay' : 'Thử và sửa'}</h3>
     <p>${escapeHtml(step.prompt)}</p>
     ${step.illustrationHtml ? `<div class="step-illustration">${step.illustrationHtml}</div>` : ''}
-    <textarea rows="3" placeholder="${escapeAttribute(step.inputPlaceholder || 'Viết suy nghĩ của em tại đây...')}"></textarea>
+    <textarea rows="${isImageMode ? 2 : 3}" placeholder="${escapeAttribute(step.inputPlaceholder || 'Viết suy nghĩ của em tại đây...')}"></textarea>
+    ${isImageMode ? renderImageUploadBlock(currentId, step) : ''}
     <button class="btn" type="button" onclick="submitSocraticStep(this)">Kiểm tra gợi ý</button>
     <div class="feedback-msg hidden"></div>
     ${step.expectedKeywords && step.expectedKeywords.length > 0 ? `<div class="box hidden keyword-box"><strong>Từ khóa tham khảo:</strong> ${step.expectedKeywords.map(escapeHtml).join(', ')}</div>` : ''}

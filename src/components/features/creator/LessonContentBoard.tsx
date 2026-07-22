@@ -10,6 +10,7 @@ import { LessonPlan } from '../../../types';
 import { auth, storage } from '../../../lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { DiagramRenderer } from './DiagramRenderer';
+import { imagePromptBlockquote, imagePromptParagraph, imagePromptTd } from './imagePromptHelpers';
 
 interface LessonContentBoardProps {
   generationMode: 'single' | 'bulk';
@@ -195,6 +196,9 @@ export const LessonContentBoard = ({
                   remarkPlugins={[remarkGfm, remarkMath]}
                   rehypePlugins={[rehypeRaw, rehypeKatex]}
                   components={{
+                    blockquote: imagePromptBlockquote,
+                    p: imagePromptParagraph,
+                    td: imagePromptTd,
                     code({ node, inline, className, children, ...props }: any) {
                       const match = /language-(\w+)/.exec(className || '');
                       const lang = match ? match[1] : '';
@@ -217,7 +221,7 @@ export const LessonContentBoard = ({
                          const cleanGeogebra = codeString.replace(/^geogebra\s*/i, '').trim();
                          return <DiagramRenderer code={cleanGeogebra} type="geogebra" />;
                       }
-                      
+
                       const isPrompt = codeString.trim().toLowerCase().startsWith('prompt ');
                       if (isPrompt) {
                          return (
@@ -293,6 +297,9 @@ export const LessonContentBoard = ({
                     remarkPlugins: [remarkGfm, remarkMath],
                     rehypePlugins: [rehypeRaw, rehypeKatex],
                     components: {
+                      blockquote: imagePromptBlockquote,
+                      p: imagePromptParagraph,
+                      td: imagePromptTd,
                       th({ node, inline, className, children, ...props }: any) {
                         const text = String(children).toLowerCase();
                         let width = 'auto';
@@ -369,6 +376,9 @@ export const LessonContentBoard = ({
                     remarkPlugins={[remarkGfm, remarkMath]}
                     rehypePlugins={[rehypeRaw, rehypeKatex]}
                     components={{
+                      blockquote: imagePromptBlockquote,
+                      p: imagePromptParagraph,
+                      td: imagePromptTd,
                       code({ node, inline, className, children, ...props }: any) {
                         const match = /language-(\w+)/.exec(className || '');
                         const lang = match?.[1]?.toLowerCase();

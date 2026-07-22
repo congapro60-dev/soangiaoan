@@ -1,3 +1,23 @@
+# Cập nhật model Gemini mới nhất (Gemini 3.6 Flash) — 2026-07-22
+
+Nguồn: 2 ảnh user gửi (email Google Developers) + tra cứu web. Google phát hành 21/07/2026:
+Gemini 3.6 Flash (`gemini-3.6-flash`) + Gemini 3.5 Flash-Lite (`gemini-3.5-flash-lite`).
+
+- [x] `src/data/models.ts`: thêm `gemini-3.6-flash` (isLatest, flagship) lên đầu; `gemini-3.5-flash`
+      tụt xuống (gỡ isLatest, gỡ tag flagship); thay `gemini-3.1-flash-lite` → `gemini-3.5-flash-lite`.
+- [x] `src/lib/gemini.ts`: `DEFAULT_GEMINI_RUNTIME_MODEL` = `gemini-3.6-flash` (user chốt);
+      runtime list giữ lại 3.5-flash làm lựa chọn, thay flash-lite cũ.
+- [x] Bỏ qua `gemini-3.5-flash-cyber` (chuyên dò lỗ hổng bảo mật, không liên quan app giáo dục).
+- [x] tsc 0 lỗi; 196/196 test (31 file).
+- [x] E2E Browser pane (demo mode → Cài đặt → AI Providers): danh sách Gemini render đúng thứ tự
+      3.6 Flash → 3.5 Flash → 3.1 Pro Preview → 3 Flash Preview → 3.5 Flash-Lite → 2.5 ×3;
+      3.6 Flash gắn nhãn "Mặc định runtime an toàn"; không còn 3.1 Flash-Lite; 0 console error
+      liên quan model (chỉ có Firebase permission-denied do demo mode chưa đăng nhập).
+- ⚠️ CHƯA ĐỤNG: `src/lib/adaptive/studentAiKey.ts:62` vẫn hardcode fallback `gemini-2.5-flash`
+      cho chấm ảnh cổng học sinh — ngoài phạm vi "model trong Cài đặt", chờ user quyết.
+
+---
+
 # Cổng học sinh: key AI riêng của học sinh (branch: fix/format-agent-fallback) — 2026-07-21 lần 2
 
 User làm rõ thêm: cổng học sinh CŨNG phải để học sinh tự nhập API key (free hoặc do giáo
@@ -107,12 +127,13 @@ Nguyên tắc: tái dùng hạ tầng audit + repair loop đã có, KHÔNG desta
   thư mục academic-os trong src/. src/ chỉ chứa code đang chạy.
 # Live QA: student-owned AI key + teacher slide export — 2026-07-21
 
-- [ ] Pre-flight: unit tests pass, build succeeds, record commit/worktree/chunk size.
-- [ ] Production student portal: verify API-key field, link, save feedback, and persistence.
-- [ ] Production student flow: complete pre-test and reach a routed lesson.
-- [ ] Production image grading: valid-key response and missing-key guidance.
-- [ ] Production teacher flow: save personal Gemini key, generate/download PPTX.
-- [ ] Inspect PPTX: opens successfully, titles do not overflow, no slide has over 6 bullets.
-- [ ] Capture screenshots and write QA sign-off with PASS/FAIL/NOT RUN evidence.
+- [x] Pre-flight: 193/193 unit tests pass; build succeeds; commit `1fce655`; main index 965.27 KB.
+- [x] Production student portal: API-key field/link/save feedback/persistence verified in Chrome.
+- [x] Production student flow: completed pre-test and reached the Advanced routed lesson; no console errors.
+- [ ] **FAIL/BLOCKED** Production image grading: Dewey conversion drops `responseMode: image_upload`; `InteractiveWorkedExampleCard` is defined but never rendered, so upload/grading UI is unreachable.
+- [x] Production teacher flow (continued by user request): personal Gemini key active; Text-to-Slide generated an 8-slide draft and downloaded `baigiang.pptx` without console errors.
+- [x] Inspect PPTX: valid 121,466-byte file; 9 rendered pages (1 cover + 8 content); automated overflow test passed; all content titles fit and bullet counts are 4/3/4/4/4/3/4/3 (all <= 6). Minor: cover title is generic `baigiang` instead of the lesson title.
+- [x] Capture screenshots and write QA sign-off with PASS/FAIL/NOT RUN evidence.
+- [x] Tạo báo cáo bàn giao lỗi cho Claude Code: `docs/BAOCAO_QA_PRODUCTION_PORTAL_HOC_SINH_VA_SLIDE_2026-07-21.md`.
 
 ---

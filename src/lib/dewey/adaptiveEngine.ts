@@ -510,6 +510,100 @@ export function getAdaptiveEngineScript(lessonId?: string, studentCode?: string)
     window.addNote('Đã hoàn thành phần Vận dụng — liên hệ kiến thức vào tình huống thực tế.', 'vandung');
   };
 
+  // ── Image upload + AI grading bridge (ISSUE-01) ──────────────────────────
+  var MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+  window.previewImageUpload = function previewImageUpload(input) {
+    var block = input.closest('[data-image-upload]');
+    if (!block || !input.files || !input.files[0]) return;
+    var file = input.files[0];
+    if (!file.type.match(/^image\//)) {
+      var errEl = block.querySelector('.ai-grade-error');
+      if (errEl) { errEl.textContent = 'Tệp này không phải ảnh. Em hãy chụp hoặc tải ảnh bài làm.'; show(errEl); }
+      input.value = '';
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      var errEl2 = block.querySelector('.ai-grade-error');
+      if (errEl2) { errEl2.textContent = 'Ảnh quá lớn (' + (file.size / 1024 / 1024).toFixed(1) + 'MB). Tối đa 5MB.'; show(errEl2); }
+      input.value = '';
+      return;
+    }
+    hide(block.querySelector('.ai-grade-error'));
+    var reader = new FileReader();
+    reader.onload = function () {
+      var preview = block.querySelector('.image-preview');
+      var img = preview ? preview.querySelector('img') : null;
+      if (img) img.src = reader.result;
+      show(preview);
+      var nameEl = block.querySelector('.image-name');
+      if (nameEl) { nameEl.textContent = '📎 ' + file.name; show(nameEl); }
+      show(block.querySelector('.grade-image-btn'));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.requestImageGrade = function requestImageGrade(stepId) {
+    var step = byId(stepId);
+    if (!step) return;
+    var block = step.querySelector('[data-image-upload]');
+    if (!block) return;
+    var fileInput = block.querySelector('input[type="file"]');
+    var file = fileInput && fileInput.files ? fileInput.files[0] : null;
+    if (!file) {
+      var errEl = block.querySelector('.ai-grade-error');
+      if (errEl) { errEl.textContent = 'Em cần tải ảnh bài làm trước khi nhờ AI chấm.'; show(errEl); }
+      return;
+    }
+    hide(block.querySelector('.ai-grade-error'));
+    hide(block.querySelector('.ai-grade-feedback'));
+    var gradeBtn = block.querySelector('.grade-image-btn');
+    if (gradeBtn) { gradeBtn.disabled = true; gradeBtn.textContent = '⏳ AI đang chấm ảnh...'; }
+    var reader = new FileReader();
+    reader.onload = function () {
+      var dataUrl = reader.result;
+      var parts = dataUrl.split(',');
+      var base64 = parts[1] || '';
+      var requestId = 'grade-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+      step.dataset.pendingGradeRequestId = requestId;
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({
+          type: 'dewey:gradeImageRequest',
+          data: {
+            requestId: requestId,
+            stepId: stepId,
+            imageBase64: base64,
+            imageMimeType: file.type,
+            problem: gradeBtn ? (gradeBtn.dataset.gradeProblem || '') : '',
+            solution: gradeBtn ? (gradeBtn.dataset.gradeSolution || '') : '',
+            aiRubric: gradeBtn ? (gradeBtn.dataset.gradeRubric || '') : ''
+          }
+        }, '*');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.addEventListener('message', function (e) {
+    if (!e.data || e.data.type !== 'dewey:gradeImageResult') return;
+    var d = e.data.data || {};
+    var step = document.querySelector('[data-pending-grade-request-id="' + d.requestId + '"]');
+    if (!step) return;
+    step.removeAttribute('data-pending-grade-request-id');
+    var block = step.querySelector('[data-image-upload]');
+    if (!block) return;
+    var gradeBtn = block.querySelector('.grade-image-btn');
+    if (gradeBtn) { gradeBtn.disabled = false; gradeBtn.textContent = '✨ Nhờ AI chấm ảnh tham khảo'; }
+    if (d.error) {
+      var errEl = block.querySelector('.ai-grade-error');
+      if (errEl) { errEl.textContent = d.error; show(errEl); }
+    } else {
+      var fbEl = block.querySelector('.ai-grade-feedback');
+      if (fbEl) { fbEl.textContent = d.feedback || 'AI chưa trả về nhận xét rõ ràng.'; show(fbEl); }
+    }
+    updateMath(block);
+  });
+
   window.finishLesson = function finishLesson() {
     var finalScore = byId('final-score');
     if (finalScore) finalScore.textContent = String(state.score);

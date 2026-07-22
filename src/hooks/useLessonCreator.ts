@@ -642,22 +642,28 @@ QUY TẮC NGHIÊM NGẶT:
 
       const VISUAL_AIDS_PROMPT = `
 ===========================================================
-ĐẶC BIỆT LƯU Ý VỀ MẶT THỊ GIÁC (VISUAL AIDS) TRONG BẢNG:
+ĐẶC BIỆT LƯU Ý VỀ MẶT THỊ GIÁC (VISUAL AIDS):
 ===========================================================
-Để giáo án thêm sinh động và trực quan, BẮT BUỘC tích hợp hình ảnh minh họa vào Cột 3 ("Nội dung ghi bảng / Sản phẩm dự kiến") của các Hoạt động 2 (Hình thành kiến thức) và Hoạt động 3 (Luyện tập). Hãy tự đánh giá và áp dụng nghiêm ngặt các loại hình sau:
+Để giáo án thêm sinh động và trực quan, BẮT BUỘC tích hợp hình ảnh minh họa vào giáo án. Hãy tự đánh giá và áp dụng nghiêm ngặt các loại hình sau:
 
 1. Đồ họa Toán học tĩnh (BẮT BUỘC DÙNG TikZ):
 - Khi nào dùng: Cần độ chính xác toán học (Đồ thị hàm số, hình học phẳng cơ bản, sơ đồ).
 - TUYỆT ĐỐI KHÔNG DÙNG HTML <svg> vì máy chủ sẽ không thể nhúng nó vào file Word.
 - Cách thực hiện: Chỉ sử dụng ngôn ngữ LaTeX/TikZ. Bọc trong khối code \`\`\`tikz \\begin{tikzpicture} ... \\end{tikzpicture} \`\`\`.
-- Vị trí chèn: Đặt trực tiếp vào Cột 3. TUYỆT ĐỐI không dùng thẻ <br/> trước/sau khối code để không làm vỡ cấu trúc bảng.
-- BẮT BUỘC CHỈ DÙNG CÁC MÀU CƠ BẢN CỦA LaTeX (black, white, red, green, blue, cyan, magenta, yellow, gray, lightgray). TUYỆT ĐỐI KHÔNG tự sáng tạo tên màu (như indigo, primary, teal) để tránh lỗi biên dịch.
-- GIỚI HẠN ĐỘ PHỨC TẠP ĐỂ XUẤT WORD/PDF ỔN ĐỊNH: tối đa 2 hình TikZ trong một giáo án; mỗi hình không quá khoảng 40 dòng; chỉ dùng các lệnh TikZ cơ bản (\\draw, \\node, \\fill, \\path, \\foreach đơn giản). TUYỆT ĐỐI không dùng ảnh nền, external file, package/thư viện lạ, TikZ quá dài hoặc nhiều vòng lặp phức tạp. Nếu hình quá phức tạp, hãy chuyển sang khối \`\`\`prompt ... \`\`\` thay vì mã TikZ.
+- VỊ TRÍ: Đặt NGOÀI bảng Markdown (trước hoặc sau bảng). TUYỆT ĐỐI KHÔNG chèn khối code vào trong ô bảng vì Markdown không hỗ trợ code fence nhiều dòng trong ô bảng — sẽ bị vỡ hiển thị.
+- BẮT BUỘC CHỈ DÙNG CÁC MÀU CƠ BẢN CỦA LaTeX (black, white, red, green, blue, cyan, magenta, yellow, gray, lightgray) hoặc các màu từ gói dvipsnames (như NavyBlue, ForestGreen, BrickRed). TUYỆT ĐỐI KHÔNG tự sáng tạo tên màu lạ để tránh lỗi biên dịch.
+- GIỚI HẠN ĐỘ PHỨC TẠP: tối đa 2 hình TikZ trong một giáo án; mỗi hình không quá khoảng 40 dòng; chỉ dùng các lệnh TikZ cơ bản (\\draw, \\node, \\fill, \\path, \\foreach đơn giản). TUYỆT ĐỐI không dùng ảnh nền, external file, package/thư viện lạ (như tkz-euclide). Nếu hình quá phức tạp, hãy chuyển sang gợi ý ảnh (xem mục 2).
 
 2. Ảnh minh họa SGK/Thực tế (static_image):
 - Khi nào dùng: Cần bối cảnh thực tế hoặc sơ đồ tư duy khái quát (VD: Cây cầu treo, quỹ đạo vệ tinh).
-- Cách thực hiện: KHÔNG tự sinh mã. Hãy viết một đoạn mô tả (prompt) sinh ảnh bằng TIẾNG ANH thật chi tiết bọc trong khối code \`\`\`prompt ... \`\`\`.
-- Ràng buộc hình ảnh: "2D flat vector illustration, textbook educational diagram style, minimal blue and indigo color palette, white background. Strictly NO text, NO letters, NO math formulas, NO numbers, NO labels."
+- Cách thực hiện: KHÔNG tự sinh mã. Viết gợi ý ảnh bằng tiếng Anh dạng: > 🎨 Image Prompt: mô tả chi tiết bằng tiếng Anh
+- Ràng buộc: "2D flat vector illustration, textbook educational diagram style, minimal blue and indigo color palette, white background. Strictly NO text, NO letters, NO math formulas, NO numbers, NO labels."
+- Có thể đặt ở bất kỳ đâu: trong ô bảng, trước/sau bảng đều được.
+
+LƯU Ý QUAN TRỌNG:
+- KHÔNG BAO GIỜ đặt khối code nhiều dòng (\`\`\`tikz, \`\`\`prompt) vào bên trong ô bảng Markdown. Markdown không hỗ trợ và sẽ hiển thị mã thô.
+- Nếu cần gợi ý ảnh trong bảng, dùng dạng blockquote: > 🎨 Image Prompt: mô tả
+- Hình TikZ phải đặt ngoài bảng, sau đó tham chiếu (VD: "Xem Hình 1 bên dưới").
 ===========================================================
 `;
 

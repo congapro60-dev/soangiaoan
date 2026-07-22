@@ -11,6 +11,7 @@ import * as exportUtils from '../../utils/exportUtils';
 import * as worksheetUtils from '../../utils/worksheetUtils';
 import { exportToWordA4 } from '../../utils/wordExportA4';
 import { DiagramRenderer } from '../features/creator/DiagramRenderer';
+import { imagePromptBlockquote, imagePromptParagraph, imagePromptTd } from '../features/creator/imagePromptHelpers';
 import { callAI, getActiveApiKey } from '../../lib/aiProviders';
 import { AudioOverview } from '../features/AudioOverview';
 import { PushToDriveModal } from '../modals/PushToDriveModal';
@@ -84,6 +85,7 @@ interface CreatorTabProps {
 export const CreatorTab = (props: CreatorTabProps) => {
 
   const [slidePreview, setSlidePreview] = useState<any[] | null>(null);
+  const [slideDeckTitle, setSlideDeckTitle] = useState('');
   const [showAudioOverview, setShowAudioOverview] = useState(false);
   const [worksheetPreview, setWorksheetPreview] = useState<{ type: 'inclass' | 'homework', title: string, content: string } | null>(null);
   const [showPushModal, setShowPushModal] = useState(false);
@@ -100,7 +102,7 @@ export const CreatorTab = (props: CreatorTabProps) => {
       props.setIsLoading(true);
       props.showToast('Đang tạo file PPTX (đang render công thức Toán)...', 'info');
       try {
-        await exportUtils.downloadPPTX(slidePreview, props.currentPlan.title || 'baigiang');
+        await exportUtils.downloadPPTX(slidePreview, slideDeckTitle || props.currentPlan.title || 'baigiang');
         props.showToast('Đã lưu file trình chiếu!', 'success');
       } catch (e) {
         console.error(e);
@@ -108,6 +110,7 @@ export const CreatorTab = (props: CreatorTabProps) => {
       } finally {
         props.setIsLoading(false);
         setSlidePreview(null);
+        setSlideDeckTitle('');
       }
     }
   };
@@ -322,6 +325,9 @@ export const CreatorTab = (props: CreatorTabProps) => {
                         remarkPlugins={[remarkGfm, remarkMath]}
                         rehypePlugins={[rehypeRaw, rehypeKatex]}
                         components={{
+                          blockquote: imagePromptBlockquote,
+                          p: imagePromptParagraph,
+                          td: imagePromptTd,
                           code({ node, inline, className, children, ...props }: any) {
                             const match = /language-(\w+)/.exec(className || '');
                             const lang = match ? match[1] : '';
@@ -338,7 +344,7 @@ export const CreatorTab = (props: CreatorTabProps) => {
                                const cleanTikz = codeString.replace(/^(latex|tikz|tex)\s*/i, '').trim();
                                return <DiagramRenderer code={cleanTikz} type="tikz" />;
                             }
-                            
+
                             const isPrompt = lang === 'prompt' || /^prompt(?:\s|<br\s*\/?>)/i.test(codeString.trim());
                             if (isPrompt) {
                                return (
@@ -411,8 +417,9 @@ export const CreatorTab = (props: CreatorTabProps) => {
           data={props.data}
           showToast={props.showToast}
           onClose={() => setShowTextToSlideModal(false)}
-          onGenerateSuccess={(slidesData) => {
+          onGenerateSuccess={(slidesData, deckTitle) => {
             setSlidePreview(slidesData);
+            setSlideDeckTitle(deckTitle);
           }}
           setIsLoading={props.setIsLoading}
         />

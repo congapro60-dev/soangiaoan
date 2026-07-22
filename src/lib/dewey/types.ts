@@ -55,6 +55,8 @@ export interface DeweySocraticStep {
   feedback: string;             // Hiện DÙ ĐÚNG hay SAI
   formulaToNote?: string;       // Nếu có → tự addNote() vào vở
   illustrationHtml?: string;    // Hình/SVG/mini minh hoạ đặt ngay trong bước học
+  responseMode?: 'text' | 'image_upload';
+  aiRubric?: string;
 }
 
 export interface DeweyKnowledgeUnit {

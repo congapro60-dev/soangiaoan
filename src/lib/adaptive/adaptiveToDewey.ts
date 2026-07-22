@@ -289,10 +289,16 @@ export function adaptiveLessonToDeweyContent(
     const exampleSteps = (rc?.workedExamples ?? []).map((ex, i) => ({
       id: `step-ex-${i}`,
       prompt: normalizeLatexText(ex.problem, unit.title),
-      inputPlaceholder: 'Viết đáp số hoặc lời giải…',
+      inputPlaceholder: ex.responseMode === 'image_upload'
+        ? 'Viết ý tưởng nháp trước khi chụp ảnh bài làm…'
+        : 'Viết đáp số hoặc lời giải…',
       expectedKeywords: ex.hints,
       feedback: formatStepLines(normalizeLatexText(ex.explanation || ex.solution || ex.hints?.join('\n'), 'Xem lời giải mẫu trong giáo án.')),
       formulaToNote: '',
+      ...(ex.responseMode === 'image_upload' ? {
+        responseMode: 'image_upload' as const,
+        aiRubric: ex.aiRubric || '',
+      } : {}),
     }));
 
     let steps = [...hookSteps, ...guidingSteps, ...exampleSteps];

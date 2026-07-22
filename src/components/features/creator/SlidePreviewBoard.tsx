@@ -62,7 +62,7 @@ export const SlidePreviewBoard = ({ slidePreview, setSlidePreview, handleDownloa
           </button>
           <div>
             <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2">
-              <Presentation className="w-6 h-6 text-orange-500"/>Bản thảo Slide ({slidePreview.length} trang)
+              <Presentation className="w-6 h-6 text-orange-500"/>Bản thảo Slide ({slidePreview.length} slide nội dung + 1 trang bìa)
             </h2>
             <p className="text-slate-500 text-sm mt-1">Sửa trực tiếp nội dung dưới đây. Giao diện xem trước được thiết kế theo tỷ lệ 16:9 của PowerPoint.</p>
           </div>

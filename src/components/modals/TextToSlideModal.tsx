@@ -8,7 +8,7 @@ interface TextToSlideModalProps {
   data: AppData;
   showToast: (msg: string, type?: any) => void;
   onClose: () => void;
-  onGenerateSuccess: (slidesData: any[]) => void;
+  onGenerateSuccess: (slidesData: any[], deckTitle: string) => void;
   setIsLoading: (val: boolean) => void;
 }
 
@@ -23,11 +23,11 @@ export const TextToSlideModal = ({ data, showToast, onClose, onGenerateSuccess, 
     }
     
     setIsGeneratingLocal(true);
-    const slidesData = await generateTextToSlideData(rawText, data, setIsLoading, showToast);
+    const result = await generateTextToSlideData(rawText, data, setIsLoading, showToast);
     setIsGeneratingLocal(false);
-    
-    if (slidesData) {
-      onGenerateSuccess(slidesData);
+
+    if (result) {
+      onGenerateSuccess(result.slidesData, result.deckTitle);
       onClose();
     }
   };

@@ -298,6 +298,10 @@ const BASE_CSS = String.raw`
     padding: 10px 12px;
     font: inherit;
   }
+  .image-upload-block { border: 2px dashed #c4b5fd; background: #faf5ff; }
+  .image-upload-block .grade-image-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .ai-grade-feedback { margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: #f3e8ff; color: #581c87; border: 1px solid #d8b4fe; white-space: pre-line; }
+  .ai-grade-error { margin-top: 8px; padding: 10px 12px; border-radius: 12px; background: #fff1f1; color: #a12121; border: 1px solid #ffc8c8; font-size: 13px; font-weight: 650; }
   .hidden { display: none !important; }
   @media (max-width: 980px) {
     .main-wrapper { grid-template-columns: 1fr; padding: 14px; }

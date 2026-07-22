@@ -351,7 +351,7 @@ export const generateTextToSlideData = async (
   data: AppData,
   setIsLoading: (val: boolean) => void,
   showToast: (msg: string, type?: any) => void
-) => {
+): Promise<{ slidesData: any[]; deckTitle: string } | null> => {
   try {
     setIsLoading(true);
     showToast('Đang phân tích văn bản và thiết kế Slide bằng AI, vui lòng đợi...', 'info');
@@ -368,48 +368,69 @@ YÊU CẦU BẮT BUỘC:
 1. Trích xuất các ý chính để đưa vào mảng "points" (tối đa 3-4 ý mỗi slide).
 2. Viết lời dẫn chi tiết vào trường "speakerNotes" (Ghi chú diễn giả) để người thuyết trình đọc.
 3. Đề xuất hình ảnh minh họa bằng tiếng Việt vào trường "visualSuggestion".
-4. Trả về JSON thuần tuý là một mảng object theo đúng schema sau:
-[
-  {
-    "type": "walt",
-    "title": "TIÊU ĐỀ / MỤC TIÊU BÀI HỌC",
-    "icon": "🎯",
-    "points": ["Điểm chính 1", "Điểm chính 2"],
-    "imageUrls": [],
-    "speakerNotes": "Lời dẫn mở đầu...",
-    "visualSuggestion": "Gợi ý ảnh minh họa..."
-  },
-  {
-    "type": "content",
-    "title": "PHẦN 1: NỘI DUNG...",
-    "icon": "📌",
-    "points": ["Ý 1", "Ý 2"],
-    "imageUrls": [],
-    "speakerNotes": "Lời diễn giải chi tiết...",
-    "visualSuggestion": "Gợi ý ảnh..."
-  }
-]
+4. Trả về JSON thuần tuý là MỘT OBJECT theo đúng schema sau:
+{
+  "deckTitle": "Tên bài học ngắn gọn, ví dụ: Định lý Pythagore",
+  "slides": [
+    {
+      "type": "walt",
+      "title": "TIÊU ĐỀ / MỤC TIÊU BÀI HỌC",
+      "icon": "🎯",
+      "points": ["Điểm chính 1", "Điểm chính 2"],
+      "imageUrls": [],
+      "speakerNotes": "Lời dẫn mở đầu...",
+      "visualSuggestion": "Gợi ý ảnh minh họa..."
+    },
+    {
+      "type": "content",
+      "title": "PHẦN 1: NỘI DUNG...",
+      "icon": "📌",
+      "points": ["Ý 1", "Ý 2"],
+      "imageUrls": [],
+      "speakerNotes": "Lời diễn giải chi tiết...",
+      "visualSuggestion": "Gợi ý ảnh..."
+    }
+  ]
+}
 
-5. CÔNG THỨC TOÁN HỌC: PPTX KHÔNG HỖ TRỢ LATEX. BẮT BUỘC dùng ký hiệu text thường dễ đọc. HẠN CHẾ TỐI ĐA MÃ LATEX PHỨC TẠP.
-6. CẤU TRÚC: slide đầu là "walt", slide cuối là "wrapup" (kết luận), các slide giữa là "content".
-7. QUAN TRỌNG: TUYỆT ĐỐI KHÔNG ĐƯA "GỢI Ý HÌNH ẢNH" hay "GỢI Ý LỜI THOẠI" VÀO MẢNG "points".
+5. "deckTitle" là tên bài học tổng quát (dùng cho trang bìa và tên file). KHÔNG được bỏ trống.
+6. CÔNG THỨC TOÁN HỌC: PPTX KHÔNG HỖ TRỢ LATEX. BẮT BUỘC dùng ký hiệu text thường dễ đọc. HẠN CHẾ TỐI ĐA MÃ LATEX PHỨC TẠP.
+7. CẤU TRÚC: slide đầu là "walt", slide cuối là "wrapup" (kết luận), các slide giữa là "content".
+8. QUAN TRỌNG: TUYỆT ĐỐI KHÔNG ĐƯA "GỢI Ý HÌNH ẢNH" hay "GỢI Ý LỜI THOẠI" VÀO MẢNG "points".
 CHỈ TRẢ VỀ JSON, KHÔNG BỌC BỞI \`\`\`json.
     `;
 
     const response = await callAI(prompt, data.settings);
     if (!response) throw new Error("No response");
 
-    const match = response.match(/\[[\s\S]*\]/);
-    const jsonStr = match ? match[0] : response.replace(/```json/g, '').replace(/```/g, '').trim();
+    const cleaned = response.replace(/```json/g, '').replace(/```/g, '').trim();
+    let slidesData: any[];
+    let deckTitle = '';
 
-    const slidesData = parseLooseJson(jsonStr);
+    const objMatch = cleaned.match(/\{[\s\S]*\}/);
+    if (objMatch) {
+      const parsed = parseLooseJson(objMatch[0]);
+      if (parsed && !Array.isArray(parsed) && Array.isArray(parsed.slides)) {
+        slidesData = parsed.slides;
+        deckTitle = typeof parsed.deckTitle === 'string' ? parsed.deckTitle.trim() : '';
+      } else if (Array.isArray(parsed)) {
+        slidesData = parsed;
+      } else {
+        const arrMatch = cleaned.match(/\[[\s\S]*\]/);
+        slidesData = arrMatch ? parseLooseJson(arrMatch[0]) : [];
+      }
+    } else {
+      const arrMatch = cleaned.match(/\[[\s\S]*\]/);
+      slidesData = arrMatch ? parseLooseJson(arrMatch[0]) : [];
+    }
+
     if (!Array.isArray(slidesData) || slidesData.length === 0 || slidesData[0]?.type !== 'walt') {
       throw new Error('AI chưa trả về cấu trúc slide hợp lệ. Vui lòng thử tạo lại bài trình chiếu.');
     }
 
     const gated = await applySlideQualityGate(slidesData, data, showToast);
     showToast('Đã thiết kế xong cấu trúc Slide!');
-    return gated;
+    return { slidesData: gated, deckTitle: deckTitle || 'baigiang' };
   } catch (e: any) {
     console.error(e);
     showToast(isMissingApiKeyError(e) ? e.message : 'Lỗi cấu trúc hoặc kết nối AI, vui lòng thử lại', 'error');

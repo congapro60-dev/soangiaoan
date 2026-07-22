@@ -908,15 +908,66 @@ export const AdaptiveStudentPortalPage = () => {
     }
   };
 
+  const handleDeweyGradeImageRequest = useCallback(async (data: {
+    requestId: string;
+    stepId: string;
+    imageBase64: string;
+    imageMimeType: string;
+    problem: string;
+    solution: string;
+    aiRubric: string;
+  }) => {
+    const iframe = document.querySelector<HTMLIFrameElement>('iframe[title="Bài học Dewey"]');
+    const sendResult = (result: { requestId: string; feedback?: string; error?: string }) => {
+      iframe?.contentWindow?.postMessage({ type: 'dewey:gradeImageResult', data: result }, '*');
+    };
+
+    if (!data.requestId || !data.imageBase64 || !data.imageMimeType) {
+      sendResult({ requestId: data.requestId, error: 'Dữ liệu ảnh không hợp lệ.' });
+      return;
+    }
+
+    if (!getStudentAiKey()) {
+      sendResult({ requestId: data.requestId, error: 'Em cần nhập API key AI ở bước đầu để dùng tính năng chấm ảnh. Tải lại trang và nhập key trước khi bắt đầu học.' });
+      return;
+    }
+
+    try {
+      const prompt = [
+        'Bạn là trợ lý chấm bài Toán phổ thông. Hãy chấm ảnh bài làm của học sinh theo hướng phản hồi học tập, không chỉ cho điểm.',
+        `Đề bài: ${data.problem}`,
+        `Đáp án/lời giải chuẩn: ${data.solution}`,
+        data.aiRubric ? `Tiêu chí riêng: ${data.aiRubric}` : '',
+        'Trả lời ngắn gọn bằng tiếng Việt theo 4 dòng: Điểm tham khảo / Nhận xét đúng / Lỗi cần sửa / Gợi ý bước tiếp theo. Nếu ảnh mờ hoặc thiếu dữ kiện, nói rõ không đủ cơ sở chấm.',
+      ].filter(Boolean).join('\n');
+
+      const aiText = await callStudentGemini(prompt, {
+        imageBase64: data.imageBase64,
+        imageMimeType: data.imageMimeType,
+      });
+      sendResult({ requestId: data.requestId, feedback: aiText || 'AI chưa trả về nhận xét rõ ràng. Em hãy đối chiếu lời giải chuẩn bên dưới.' });
+    } catch (error) {
+      sendResult({
+        requestId: data.requestId,
+        error: isStudentKeyMissingError(error)
+          ? (error as Error).message
+          : 'AI chưa chấm được ảnh lúc này. Em vẫn có thể xem lời giải chuẩn và báo giáo viên kiểm tra bài viết tay.',
+      });
+    }
+  }, []);
+
   useEffect(() => {
     const handler = (e: MessageEvent) => {
       if (e.data?.type === 'dewey:complete') {
         void handleDeweyComplete(e.data.data as { olympiaScore: number; unitIds: string[]; durationSeconds: number });
       }
+      if (e.data?.type === 'dewey:gradeImageRequest') {
+        void handleDeweyGradeImageRequest(e.data.data);
+      }
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
-  }, [handleDeweyComplete]);
+  }, [handleDeweyComplete, handleDeweyGradeImageRequest]);
 
   if (stage === 'loading') return <FullPageState icon={<Loader2 className="h-8 w-8 animate-spin text-blue-600" />} title="Đang mở lớp học phân hoá" message="Hệ thống đang tải bài học giáo viên đã phát." />;
   if (stage === 'personalizing') return <FullPageState icon={<Loader2 className="h-8 w-8 animate-spin text-purple-600" />} title="Đang chuẩn bị bài học cho em..." message="AI đang cá nhân hoá nội dung theo tuyến và điểm yếu của em." />;
