@@ -11,7 +11,18 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
-import { doc, getDoc, setDoc, deleteDoc, updateDoc } from 'firebase/firestore';
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  limit,
+  query,
+  setDoc,
+  updateDoc,
+  where,
+} from 'firebase/firestore';
 import { readFileSync } from 'node:fs';
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest';
 
@@ -68,6 +79,7 @@ beforeEach(async () => {
     await setDoc(doc(db, 'duGio/bb1'), bienBanMau());
     await setDoc(doc(db, 'duGio/bb-khac'), bienBanMau({ nguoiDuUid: UID_TO_TRUONG_KHAC }));
     await setDoc(doc(db, 'duGio/bb-da-trao-doi'), bienBanMau({ trangThai: 'da_trao_doi' }));
+    await setDoc(doc(db, 'duGio/bb-giao-vien-so-huu'), bienBanMau({ nguoiDuUid: UID_GIAO_VIEN }));
     await setDoc(doc(db, 'lessonPlans/ga1'), { userId: UID_GIAO_VIEN, isPublic: false, title: 'Giáo án A' });
   });
 });
@@ -176,5 +188,85 @@ describe('không phá vỡ tính năng cũ · lessonPlans', () => {
   it('18. Người dùng thường đọc lessonPlans của người khác khi isPublic = false → DENY', async () => {
     const db = testEnv.authenticatedContext('uid-nguoi-khac', { email: 'nguoikhac@gmail.com' }).firestore();
     await assertFails(getDoc(doc(db, 'lessonPlans/ga1')));
+  });
+});
+
+describe('duGio · truy vấn danh sách', () => {
+  it('19. bgh list toàn bộ duGio → ALLOW', async () => {
+    await assertSucceeds(getDocs(query(collection(dbCuaBGH(), 'duGio'), limit(200))));
+  });
+
+  it('20. to_truong list có lọc theo nguoiDuUid của mình → ALLOW', async () => {
+    await assertSucceeds(
+      getDocs(
+        query(
+          collection(dbCuaToTruong(), 'duGio'),
+          where('nguoiDuUid', '==', UID_TO_TRUONG),
+          limit(200),
+        ),
+      ),
+    );
+  });
+
+  it('21. to_truong list không lọc theo nguoiDuUid → DENY', async () => {
+    await assertFails(getDocs(query(collection(dbCuaToTruong(), 'duGio'), limit(200))));
+  });
+
+  it('22. to_truong list theo nguoiDuUid của người khác → DENY', async () => {
+    await assertFails(
+      getDocs(
+        query(
+          collection(dbCuaToTruong(), 'duGio'),
+          where('nguoiDuUid', '==', UID_TO_TRUONG_KHAC),
+          limit(200),
+        ),
+      ),
+    );
+  });
+
+  it('23. to_truong list đúng nguoiDuUid nhưng thiếu limit → DENY', async () => {
+    await assertFails(
+      getDocs(
+        query(collection(dbCuaToTruong(), 'duGio'), where('nguoiDuUid', '==', UID_TO_TRUONG)),
+      ),
+    );
+  });
+
+  it('24. to_truong list đúng nguoiDuUid với limit 201 → DENY', async () => {
+    await assertFails(
+      getDocs(
+        query(
+          collection(dbCuaToTruong(), 'duGio'),
+          where('nguoiDuUid', '==', UID_TO_TRUONG),
+          limit(201),
+        ),
+      ),
+    );
+  });
+});
+
+describe('duGio · lưới an toàn schema và vai trò', () => {
+  it('25. giao_vien tạo biên bản → DENY', async () => {
+    await assertFails(
+      setDoc(
+        doc(dbCuaGiaoVien(), 'duGio/bb-giao-vien'),
+        bienBanMau({ nguoiDuUid: UID_GIAO_VIEN }),
+      ),
+    );
+  });
+
+  it('26. giao_vien sửa biên bản mình đứng tên người dự → DENY', async () => {
+    await assertFails(
+      updateDoc(doc(dbCuaGiaoVien(), 'duGio/bb-giao-vien-so-huu'), { bienBan: 'không được sửa' }),
+    );
+  });
+
+  it('27. to_truong tạo thiếu gvUid → DENY', async () => {
+    const { gvUid: _bo, ...thieu } = bienBanMau();
+    await assertFails(setDoc(doc(dbCuaToTruong(), 'duGio/bb-thieu-gv-uid'), thieu));
+  });
+
+  it('28. to_truong đổi gvUid sau khi tạo → DENY', async () => {
+    await assertFails(updateDoc(doc(dbCuaToTruong(), 'duGio/bb1'), { gvUid: 'uid-giao-vien-khac' }));
   });
 });

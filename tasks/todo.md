@@ -1,3 +1,18 @@
+# Sửa lỗi QA module dự giờ Danielson — 2026-07-28
+
+Nguồn: báo cáo QA module dự giờ Danielson do owner cung cấp ngày 2026-07-28.
+
+- [x] P0: sửa `allow list` của tổ trưởng dùng `resource.data.nguoiDuUid`.
+- [x] P1: thêm test list cho BGH/tổ trưởng có và không có bộ lọc hợp lệ.
+- [x] P1: bắt buộc và đóng băng `gvUid`.
+- [x] P2: thêm test vai trò `giao_vien` không được tạo/sửa.
+- [x] P2: thêm composite index `duGio(nguoiDuUid ASC, ngay DESC)`.
+- [x] P2: thêm tài liệu thiết kế và kế hoạch triển khai.
+- [x] Nit: khai báo Node types cục bộ cho `scripts/gan-vai-tro.ts`.
+- [ ] Verify: rules tests, unit tests, lint, build và code review đều đạt.
+
+---
+
 # Cập nhật model Gemini mới nhất (Gemini 3.6 Flash) — 2026-07-22
 
 Nguồn: 2 ảnh user gửi (email Google Developers) + tra cứu web. Google phát hành 21/07/2026:

@@ -1,3 +1,5 @@
+/// <reference types="node" />
+
 /**
  * Gán vai trò module dự giờ bằng custom claim.
  *

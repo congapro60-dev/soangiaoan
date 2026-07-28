@@ -417,7 +417,7 @@ service cloud.firestore {
       allow list: if laBGH()
                   || (laQuanLy()
                       && request.query.limit <= 200
-                      && 'nguoiDuUid' in request.query.where);
+                      && resource.data.nguoiDuUid == request.auth.uid);
 
       allow get: if laBGH()
                  || (laQuanLy() && resource.data.nguoiDuUid == request.auth.uid)
@@ -432,7 +432,7 @@ service cloud.firestore {
                     && request.resource.data.nguoiDuUid == request.auth.uid
                     && request.resource.data.trangThai == 'nhap'
                     && request.resource.data.keys().hasAll(
-                         ['gvId', 'nguoiDuUid', 'ngay', 'bienBan', 'trangThai']);
+                         ['gvId', 'gvUid', 'nguoiDuUid', 'ngay', 'bienBan', 'trangThai']);
 
       // Chỉ người lập sửa được, và chỉ khi chưa chốt trao đổi. Sau khi
       // chuyển sang 'da_trao_doi' thì biên bản đóng băng: đã đọc nhận xét
@@ -441,7 +441,8 @@ service cloud.firestore {
                     && resource.data.nguoiDuUid == request.auth.uid
                     && resource.data.trangThai != 'da_trao_doi'
                     && request.resource.data.nguoiDuUid == resource.data.nguoiDuUid
-                    && request.resource.data.gvId == resource.data.gvId;
+                    && request.resource.data.gvId == resource.data.gvId
+                    && request.resource.data.gvUid == resource.data.gvUid;
 
       allow delete: if laBGH();
     }
