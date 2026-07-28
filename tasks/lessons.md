@@ -101,3 +101,11 @@
 ## Cowork vs. tự làm
 
 - **Tự chạy được thì đừng bảo cowork làm** — Với Browser pane (mở web, click, đọc DOM/network, chạy JS), tôi tự E2E được HẦU HẾT luồng public: cổng học sinh (chỉ mở URL + nhập ô), demo mode giáo viên, kiểm response API bằng fetch. Chỉ cần cowork/user khi thao tác đòi credential thật (Vercel dashboard, đăng nhập Google OAuth, mua/nạp key có tính phí). Đừng mặc định viết prompt cowork cho việc mình làm được. *(2026-07-21)*
+
+## Đường dẫn tiếng Việt trên Windows
+
+- **Thư mục tiếng Việt trong repo dùng Unicode NFD → Read/Glob bằng đường dẫn tự gõ luôn báo "File does not exist"** — Các thư mục như `chấm điểm dự giờ/`, `các yêu cầu về Toán cần đạt/` lưu dấu ở dạng tổ hợp (NFD), còn chuỗi mình gõ ra là NFC → không khớp byte. `Get-ChildItem -LiteralPath` với chuỗi tự gõ cũng fail. Cách vào được: `Get-ChildItem -Directory | Where-Object { $_.Name -like "ch*m *i*m d* gi*" }` rồi dùng `.FullName`, hoặc copy sang scratchpad với tên ASCII rồi đọc. `Grep`/`Glob` vẫn quét được nội dung vì chúng duyệt cây thư mục chứ không so khớp chuỗi gõ tay. *(2026-07-28)*
+
+- **File tham khảo đuôi `.ts` nằm ngoài `src/` vẫn bị `npm run lint` bắt** — `tsconfig.json` chỉ exclude `api`, `soangiaoan`, `.agents`… nên mọi `*.ts` ở thư mục khác đều vào diện type-check. File mẫu chưa khớp repo phải đổi đuôi thành `.txt`. Lưu ý `npm run build` (vite build) KHÔNG chạy tsc → build xanh không có nghĩa là lint xanh; phải chạy cả hai. *(2026-07-28)*
+
+- **Firestore emulator cần Java, máy này chưa có** — `firebase emulators:exec` chết ở `Could not spawn java -version`. Đã cài `winget install Microsoft.OpenJDK.21` (machine scope; `--scope user` không có installer). PATH chưa cập nhật trong session đang chạy → phải prepend `C:\Program Files\Microsoft\jdk-21.0.11.10-hotspot\bin` vào `$env:PATH` trước khi gọi `npm run test:rules`. *(2026-07-28)*
