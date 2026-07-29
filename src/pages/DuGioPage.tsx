@@ -31,6 +31,7 @@ import { soVN, thieuMinhChungChamNguong, tinhDiem } from '../lib/dugio/tinhDiem'
 import {
   danhSachCuaToi,
   danhSachThuVien,
+  danhSachVeToi,
   docBienBan,
   luuBienBan,
   xoaBienBan,
@@ -68,7 +69,8 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
   const [bienBan, setBienBan] = useState<BienBanDuGio | null>(null);
   const [cuaToi, setCuaToi] = useState<BienBanDuGio[]>([]);
   const [thuVien, setThuVien] = useState<BienBanDuGio[]>([]);
-  const [tab, setTab] = useState<'toi' | 'thuvien'>('toi');
+  const [veToi, setVeToi] = useState<BienBanDuGio[]>([]);
+  const [tab, setTab] = useState<'toi' | 'vetoi' | 'thuvien'>('toi');
   const [dangChay, setDangChay] = useState<string | null>(null);
   const [loi, setLoi] = useState('');
   const [thongBao, setThongBao] = useState('');
@@ -86,9 +88,14 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
 
   const taiDanhSach = useCallback(async (uid: string) => {
     try {
-      const [a, b] = await Promise.all([danhSachCuaToi(uid), danhSachThuVien()]);
+      const [a, b, c] = await Promise.all([
+        danhSachCuaToi(uid),
+        danhSachThuVien(),
+        danhSachVeToi(uid),
+      ]);
       setCuaToi(a);
       setThuVien(b);
+      setVeToi(c);
     } catch (e) {
       setLoi('Không tải được danh sách: ' + (e as Error).message);
     }
@@ -266,7 +273,7 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
   }
 
   if (!bienBan) {
-    const ds = tab === 'toi' ? cuaToi : thuVien;
+    const ds = tab === 'toi' ? cuaToi : tab === 'vetoi' ? veToi : thuVien;
     return (
       <KhungNgoai embedded={embedded}>
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -280,13 +287,17 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
         </div>
 
         <div className="mb-4 flex gap-2">
-          {(['toi', 'thuvien'] as const).map(t => (
+          {(['toi', 'vetoi', 'thuvien'] as const).map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className={`${NUT} ${tab === t ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600'}`}
             >
-              {t === 'toi' ? `Của tôi (${cuaToi.length})` : `Thư viện chung (${thuVien.length})`}
+              {t === 'toi'
+                ? `Tôi lập (${cuaToi.length})`
+                : t === 'vetoi'
+                  ? `Về tôi (${veToi.length})`
+                  : `Thư viện chung (${thuVien.length})`}
             </button>
           ))}
         </div>
@@ -295,7 +306,11 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
 
         {ds.length === 0 ? (
           <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
-            {tab === 'toi' ? 'Bạn chưa có biên bản nào.' : 'Chưa có biên bản nào được chia sẻ.'}
+            {tab === 'toi'
+              ? 'Bạn chưa lập biên bản nào.'
+              : tab === 'vetoi'
+                ? 'Chưa có ai mời bạn tự đánh giá tiết dạy của mình.'
+                : 'Chưa có biên bản nào được chia sẻ.'}
           </p>
         ) : (
           <ul className="space-y-2">

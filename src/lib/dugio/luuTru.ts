@@ -107,6 +107,17 @@ export async function danhSachCuaToi(uid: string): Promise<BienBanDuGio[]> {
   return (await getDocs(q)).docs.map(d => tuDoc(d.id, d.data()));
 }
 
+/** Biên bản người khác lập VỀ mình — để giáo viên vào tự đánh giá (bước 5). */
+export async function danhSachVeToi(uid: string): Promise<BienBanDuGio[]> {
+  const q = query(
+    collection(db, COLL),
+    where('gvUid', '==', uid),
+    orderBy('ngay', 'desc'),
+    limit(GIOI_HAN),
+  );
+  return (await getDocs(q)).docs.map(d => tuDoc(d.id, d.data()));
+}
+
 /** Biên bản đã chia sẻ lên thư viện chung. */
 export async function danhSachThuVien(): Promise<BienBanDuGio[]> {
   const q = query(
