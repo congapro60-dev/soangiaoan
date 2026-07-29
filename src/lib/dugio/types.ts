@@ -50,11 +50,37 @@ export interface TrongTamCaiThien {
   doThanhCong: string;
 }
 
+/**
+ * Một lượt huấn luyện dựa trên minh chứng, theo khuôn trong tài liệu tập huấn:
+ * nêu quan sát trung tính → hỏi giáo viên tự nhận ra → hỏi về tác động tới HS.
+ * `tranhNoi` giữ lại câu phán xét ĐỪNG nói, để người dự giờ thấy rõ khác biệt.
+ */
+export interface LuotHuanLuyen {
+  ma: string;
+  quanSat: string;
+  cauHoiNhanThuc: string;
+  cauHoiTacDong: string;
+  tranhNoi: string;
+}
+
+/** Kịch bản 5 bước: Tập trung → Khám phá → Phản tư → Lập kế hoạch → Theo dõi. */
+export interface KichBanTroChuyen {
+  tapTrung: string;
+  khamPha: string;
+  phanTu: string;
+  lapKeHoach: string;
+  theoDoi: string;
+}
+
 export interface NhanXetTraoDoi {
   diemManh: DiemManh[];
   trongTam: TrongTamCaiThien | null;
   cauHoiHuanLuyen: string[];
   canLamRo: string[];
+  /** Kịch bản mở/dẫn/chốt cuộc trò chuyện theo 5 bước của trường. */
+  kichBan?: KichBanTroChuyen | null;
+  /** Lượt huấn luyện cho từng trọng tâm đã chọn. */
+  luotHuanLuyen?: LuotHuanLuyen[];
 }
 
 /** 15 cấu phần như mẫu Excel của trường, hoặc đủ 22 thành tố của khung. */

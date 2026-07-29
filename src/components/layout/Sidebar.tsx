@@ -12,6 +12,7 @@ import {
   LogOut,
   GraduationCap,
   ClipboardCheck,
+  Eye,
   Globe,
   WandSparkles,
   Users
@@ -45,7 +46,9 @@ export const Sidebar = ({
     { id: 'testing', label: 'Bảng Kiểm tra', icon: GraduationCap },
     { id: 'exams', label: 'Thi online', icon: Globe },
     { id: 'grading', label: 'Chấm điểm AI', icon: ClipboardCheck },
-    { id: 'duGio', label: 'Dự giờ', icon: ClipboardCheck },
+    // Icon khác 'Chấm điểm AI' ngay trên: khi sidebar thu gọn chỉ còn biểu
+    // tượng, trùng icon là hai mục không phân biệt được.
+    { id: 'duGio', label: 'Dự giờ', icon: Eye },
     { id: 'adaptiveLessons', label: 'Quản lý bài học', icon: FileText },
     { id: 'aiTools', label: 'Công cụ AI', icon: WandSparkles },
     { id: 'library', label: 'Thư viện', icon: FileText },

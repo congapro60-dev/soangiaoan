@@ -16,6 +16,12 @@ import type { AppData } from '../types';
 type Settings = AppData['settings'];
 import { COMPONENTS, type MaThanhTo } from '../data/khungDanielson';
 import { CANH_BAO_DIEM_LE, QUY_TAC_TINH_TIEN } from '../data/nguyenTacChamDiem';
+import {
+  CAU_HOI_MANH_ME,
+  CAU_TRUC_TRO_CHUYEN,
+  HUAN_LUYEN_VS_CO_VAN,
+  THAY_VI_HAY_HOI,
+} from '../data/huanLuyen';
 import { BangChamDiem } from '../components/features/dugio/BangChamDiem';
 import { BangQuanSat } from '../components/features/dugio/BangQuanSat';
 import { docFileExcel, tenFileXuat, xuatTheoMau } from '../lib/dugio/excel';
@@ -513,6 +519,45 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
 
           <Hop mau="slate">{QUY_TAC_TINH_TIEN}</Hop>
 
+          <details className="mb-4 rounded-xl border border-slate-200 bg-white p-4">
+            <summary className="cursor-pointer font-semibold text-slate-800">
+              Cách nói · thay vì phán xét thì hỏi để giáo viên tự nhận ra
+            </summary>
+            <div className="mt-3 space-y-3 text-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[36rem] text-left">
+                  <thead>
+                    <tr className="border-b border-slate-200">
+                      <th className="w-1/3 py-1.5 font-semibold text-rose-700">Thay vì nói</th>
+                      <th className="py-1.5 font-semibold text-emerald-700">Hãy hỏi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {THAY_VI_HAY_HOI.map((h, i) => (
+                      <tr key={i} className="border-b border-slate-100 align-top">
+                        <td className="py-1.5 pr-3 text-slate-600 line-through">{h.thayVi}</td>
+                        <td className="py-1.5 text-slate-800">{h.hayHoi}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div>
+                <p className="font-semibold text-slate-800">Câu hỏi huấn luyện mạnh mẽ</p>
+                <ul className="mt-1 list-disc pl-5 text-slate-700">
+                  {CAU_HOI_MANH_ME.map((q, i) => (
+                    <li key={i}>{q}</li>
+                  ))}
+                </ul>
+              </div>
+              <p className="text-slate-600">
+                <b>{HUAN_LUYEN_VS_CO_VAN.huanLuyen.ten}</b> — {HUAN_LUYEN_VS_CO_VAN.huanLuyen.lamGi} Tập
+                trung: {HUAN_LUYEN_VS_CO_VAN.huanLuyen.tapTrung}. <b>{HUAN_LUYEN_VS_CO_VAN.coVan.ten}</b> —{' '}
+                {HUAN_LUYEN_VS_CO_VAN.coVan.lamGi} Tập trung: {HUAN_LUYEN_VS_CO_VAN.coVan.tapTrung}.
+              </p>
+            </div>
+          </details>
+
           {canGopY.filter(ma => bienBan.gopY[ma]).length > 0 && (
             <div className="mb-4 space-y-2">
               {canGopY.filter(ma => bienBan.gopY[ma]).map(ma => {
@@ -538,6 +583,71 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
                         )}
                       </div>
                     </label>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {bienBan.nhanXet?.kichBan && (
+            <div className="mb-4 rounded-xl border border-indigo-200 bg-indigo-50 p-4">
+              <p className="mb-1 font-bold text-indigo-900">Kịch bản buổi trao đổi</p>
+              <p className="mb-3 text-sm text-indigo-800">
+                Năm bước theo khung huấn luyện của trường. Đây là câu để nói ra miệng, không phải bản báo cáo.
+              </p>
+              <ol className="space-y-2">
+                {CAU_TRUC_TRO_CHUYEN.map((b, i) => {
+                  const noiDung = [
+                    bienBan.nhanXet!.kichBan!.tapTrung,
+                    bienBan.nhanXet!.kichBan!.khamPha,
+                    bienBan.nhanXet!.kichBan!.phanTu,
+                    bienBan.nhanXet!.kichBan!.lapKeHoach,
+                    bienBan.nhanXet!.kichBan!.theoDoi,
+                  ][i];
+                  return (
+                    <li key={b.ten} className="flex gap-3">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">
+                        {i + 1}
+                      </span>
+                      <div>
+                        <p className="text-sm font-semibold text-indigo-900">
+                          {b.ten} <span className="font-normal text-indigo-700">· {b.mucDich}</span>
+                        </p>
+                        <p className="text-slate-800">“{noiDung}”</p>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+          )}
+
+          {!!bienBan.nhanXet?.luotHuanLuyen?.length && (
+            <div className="mb-4 space-y-3">
+              {bienBan.nhanXet.luotHuanLuyen.map((l, i) => {
+                const c = COMPONENTS.find(x => x.ma === l.ma);
+                return (
+                  <div key={i} className="rounded-xl border border-slate-200 bg-white p-4">
+                    <p className="mb-2 font-bold text-slate-800">
+                      {l.ma}
+                      {c && ` — ${c.ten}`}
+                    </p>
+                    {l.tranhNoi && (
+                      <p className="mb-2 rounded-lg bg-rose-50 p-2 text-sm text-rose-800">
+                        <b>Đừng nói: </b>“{l.tranhNoi}”
+                      </p>
+                    )}
+                    <ol className="space-y-1.5 text-slate-800">
+                      <li>
+                        <b className="text-emerald-700">1 · Nêu quan sát: </b>“{l.quanSat}”
+                      </li>
+                      <li>
+                        <b className="text-emerald-700">2 · Hỏi để tự nhận ra: </b>“{l.cauHoiNhanThuc}”
+                      </li>
+                      <li>
+                        <b className="text-emerald-700">3 · Hỏi về tác động: </b>“{l.cauHoiTacDong}”
+                      </li>
+                    </ol>
                   </div>
                 );
               })}

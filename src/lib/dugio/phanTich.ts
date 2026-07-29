@@ -29,6 +29,12 @@ import {
   QUY_TAC_PHAN_I,
   Y_NGHIA_MUC,
 } from '../../data/nguyenTacChamDiem';
+import {
+  CAU_TRUC_TRO_CHUYEN,
+  KHUON_DUA_TREN_MINH_CHUNG,
+  MEO_TRO_CHUYEN_KHO,
+  TU_DUY_HUAN_LUYEN,
+} from '../../data/huanLuyen';
 import { docJSON, docJSONdon } from './docJson';
 import { thanhToTheoBo } from './tinhDiem';
 import type { BienBanDuGio, GopYThanhTo, KetQuaThanhTo, NhanXetTraoDoi } from './types';
@@ -302,7 +308,12 @@ export async function soanNhanXet(
         .join('; ')}\nBẮT BUỘC lấy đúng trọng tâm này cho trường "trong_tam", không tự chọn thành tố khác.`
     : '';
 
-  const nen = `Bạn là người dự giờ theo Khung Danielson, đang chuẩn bị buổi trao đổi sau tiết dạy với giáo viên môn Toán. Giọng điệu tôn trọng, cụ thể, hướng phát triển. Xưng "thầy/cô". Mỗi ý phải neo vào một chi tiết CÓ THẬT trong biên bản; không khen chung chung.
+  const nen = `Bạn là người dự giờ theo Khung Danielson, đang chuẩn bị buổi trao đổi sau tiết dạy với giáo viên môn Toán. Xưng "thầy/cô". Mỗi ý phải neo vào một chi tiết CÓ THẬT trong biên bản; không khen chung chung.
+
+TƯ DUY HUẤN LUYỆN CỦA TRƯỜNG — bắt buộc tuân theo:
+${TU_DUY_HUAN_LUYEN.map(t => `- ${t}`).join('\n')}
+${MEO_TRO_CHUYEN_KHO.map(t => `- ${t}`).join('\n')}
+Mục tiêu là ĐẶT CÂU HỎI để giáo viên tự nhận ra, KHÔNG đưa lời khuyên hay chỉ dẫn trực tiếp. Người dự giờ không cần có sẵn câu trả lời.
 
 KẾT QUẢ CHẤM:
 ${bang}
@@ -338,8 +349,53 @@ cau_hoi_huan_luyen có 3 phần tử, can_lam_ro có 2 phần tử. Câu hỏi p
     ),
   );
 
+  // Lượt huấn luyện theo khuôn 3 bước + kịch bản 5 bước. Đây là phần biến kết
+  // quả chấm thành thứ NÓI ĐƯỢC trong phòng, thay vì một bản báo cáo.
+  onTienDo?.('Đang soạn kịch bản trò chuyện…');
+  const canHuanLuyen = chon.length ? chon : COMPONENTS.filter(c => bb.gopY[c.ma]).slice(0, 2);
+  const p3 = docJSONdon<{ kich_ban?: Record<string, unknown>; luot?: unknown }>(
+    await callAI(
+      `${nen}
+
+THÀNH TỐ CẦN ĐƯA VÀO BUỔI TRAO ĐỔI:
+${canHuanLuyen.map(c => `${c.ma} — ${c.ten}; bằng chứng: ${bb.ketQua[c.ma]?.bangChung.join(' / ') || 'không có'}`).join('\n') || 'chưa chọn trọng tâm nào'}
+
+KHUÔN MỘT LƯỢT HUẤN LUYỆN DỰA TRÊN MINH CHỨNG:
+1. "quan_sat": ${KHUON_DUA_TREN_MINH_CHUNG.buoc1}
+2. "cau_hoi_nhan_thuc": ${KHUON_DUA_TREN_MINH_CHUNG.buoc2}
+3. "cau_hoi_tac_dong": ${KHUON_DUA_TREN_MINH_CHUNG.buoc3}
+4. "tranh_noi": viết CHÍNH XÁC câu phán xét mà người dự giờ hay buột miệng nói ở tình huống này — để họ thấy mà tránh. Ví dụ "Kỹ năng đặt câu hỏi của bạn cần được cải thiện."
+
+KỊCH BẢN 5 BƯỚC, mỗi bước MỘT câu người dự giờ nói ra miệng:
+${CAU_TRUC_TRO_CHUYEN.map(b => `- "${b.ten.toLowerCase().replace(/\s/g, '_')}": ${b.mucDich} Mẫu: ${b.cauHoiMau[0]}`).join('\n')}
+
+CHỈ trả JSON, không bọc trong khối mã:
+{"kich_ban":{"tap_trung":"...","kham_pha":"...","phan_tu":"...","lap_ke_hoach":"...","theo_doi":"..."},
+"luot":[{"ma":"3b","quan_sat":"Tôi nhận thấy…","cau_hoi_nhan_thuc":"Bạn nhận thấy điều gì về…?","cau_hoi_tac_dong":"Điều đó có thể tạo ra tác động nào tới…?","tranh_noi":"…"}]}
+Mỗi câu tối đa 30 từ.`,
+      settings,
+    ),
+  );
+
+  const kb = p3.kich_ban;
   const tt = p1.trong_tam as Record<string, unknown> | undefined;
   return {
+    kichBan: kb
+      ? {
+          tapTrung: String(kb.tap_trung ?? ''),
+          khamPha: String(kb.kham_pha ?? ''),
+          phanTu: String(kb.phan_tu ?? ''),
+          lapKeHoach: String(kb.lap_ke_hoach ?? ''),
+          theoDoi: String(kb.theo_doi ?? ''),
+        }
+      : null,
+    luotHuanLuyen: (Array.isArray(p3.luot) ? p3.luot : []).map((l: Record<string, unknown>) => ({
+      ma: String(l.ma ?? ''),
+      quanSat: String(l.quan_sat ?? ''),
+      cauHoiNhanThuc: String(l.cau_hoi_nhan_thuc ?? ''),
+      cauHoiTacDong: String(l.cau_hoi_tac_dong ?? ''),
+      tranhNoi: String(l.tranh_noi ?? ''),
+    })),
     diemManh: (Array.isArray(p1.diem_manh) ? p1.diem_manh : []).map((d: Record<string, unknown>) => ({
       tieuDe: String(d.tieu_de ?? ''),
       bangChung: String(d.bang_chung ?? ''),
