@@ -25,6 +25,7 @@ import {
   MUC_DIEM,
   laDiemChamNguong,
 } from '../../../data/nguyenTacChamDiem';
+import { tieuChiConCua } from '../../../data/tieuChiCon';
 import { thanhToTheoBo } from '../../../lib/dugio/tinhDiem';
 import type { BienBanDuGio } from '../../../lib/dugio/types';
 
@@ -311,6 +312,56 @@ export function BangChamDiem({ bienBan, onDoi, chiDoc }: Props) {
                             <li><b>Mức 3</b> nếu: {LUONG_HOA_PHAN_III[c.ma]!.muc3}</li>
                             <li><b>Mức 4</b> nếu: {LUONG_HOA_PHAN_III[c.ma]!.muc4}</li>
                           </ul>
+                        </div>
+                      )}
+
+                      {tieuChiConCua(c.ma).length > 0 && (
+                        <div>
+                          <p className="font-semibold text-slate-700">
+                            Tiêu chí con — tầng mà kế hoạch tự thúc đẩy nhắm vào
+                          </p>
+                          <div className="mt-1 space-y-2">
+                            {tieuChiConCua(c.ma).map(t => {
+                              // Bằng chứng AI đã gán xuống đúng tiêu chí con này.
+                              const bc = (kq?.bangChungCoNhan ?? []).filter(b => b.tieuChiCon === t.ma);
+                              return (
+                                <div key={t.ma} className="rounded-lg border border-slate-200 p-2">
+                                  <p className="font-medium text-slate-800">
+                                    <span className="mr-1.5 font-mono text-xs text-slate-500">{t.ma}</span>
+                                    {t.ten}
+                                    {t.tuBoSung && (
+                                      <span
+                                        className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-normal text-amber-800"
+                                        title="Trường chưa ban hành mô tả 4 mức cho mục này; đây là bản soạn bổ sung"
+                                      >
+                                        bản bổ sung
+                                      </span>
+                                    )}
+                                  </p>
+                                  <p className="mt-0.5 text-slate-600">{t.dinhNghia}</p>
+
+                                  {bc.length > 0 && (
+                                    <ul className="mt-1 list-disc pl-5 text-emerald-800">
+                                      {bc.map((b, i) => (
+                                        <li key={i}>{b.trich}</li>
+                                      ))}
+                                    </ul>
+                                  )}
+
+                                  <ol className="mt-1 space-y-0.5 text-slate-600">
+                                    {t.muc.map((x, i) => (
+                                      <li
+                                        key={i}
+                                        className={chot === i + 1 ? 'font-medium text-indigo-700' : ''}
+                                      >
+                                        <b>{i + 1}</b> {x}
+                                      </li>
+                                    ))}
+                                  </ol>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
                       )}
 

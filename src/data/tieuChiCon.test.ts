@@ -12,8 +12,11 @@ import { TIEU_CHI_CON, TIEU_CHI_CON_THEO_MA, tieuChiConCua } from './tieuChiCon'
 const CO_DAU_TIENG_VIET =
   /[àáâãèéêìíòóôõùúăđĩũơưạảấầẩẫậắằẳẵặẹẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹýÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠƯ]/;
 
-/** File gốc của trường bỏ trống 4 mức của đúng mục này. */
-const THIEU_MUC_TRONG_NGUON = ['3b.1'];
+/**
+ * Mục mà cả hai nguồn của trường (.xlsx và .pdf) đều bỏ trống 4 mức, và đã được
+ * soạn bổ sung. Trường ban hành bản chính thức thì thay nội dung và bỏ khỏi đây.
+ */
+const TU_BO_SUNG = ['3b.1'];
 
 describe('cấu trúc tiêu chí con', () => {
   it('đủ 77 mục, mã không trùng', () => {
@@ -56,12 +59,8 @@ describe('nội dung tiêu chí con', () => {
     expect(CO_DAU_TIENG_VIET.test(t.ten + t.dinhNghia), `${m} không phải tiếng Việt`).toBe(true);
   });
 
-  it.each(ma)('%s — có đủ 4 mức khác nhau, hoặc rỗng nếu nguồn thiếu', m => {
+  it.each(ma)('%s — có đủ 4 mức khác nhau', m => {
     const t = TIEU_CHI_CON_THEO_MA[m];
-    if (THIEU_MUC_TRONG_NGUON.includes(m)) {
-      expect(t.muc, `${m} lẽ ra rỗng vì file gốc bỏ trống`).toHaveLength(0);
-      return;
-    }
     expect(t.muc, `${m} phải có đúng 4 mức`).toHaveLength(4);
     expect(new Set(t.muc).size, `${m} có mức trùng nhau`).toBe(4);
     t.muc.forEach((x, i) => {
@@ -70,10 +69,23 @@ describe('nội dung tiêu chí con', () => {
     });
   });
 
-  // Nếu trường bổ sung 3b.1 rồi sinh lại dữ liệu, ca này gãy để nhắc cập nhật
-  // danh sách THIEU_MUC_TRONG_NGUON — chứ không im lặng bỏ qua.
-  it('đúng 1 mục thiếu mức trong nguồn, không nhiều hơn', () => {
-    const thieu = TIEU_CHI_CON.filter(t => t.muc.length === 0).map(t => t.ma);
-    expect(thieu).toEqual(THIEU_MUC_TRONG_NGUON);
+  it('không mục nào còn trống 4 mức', () => {
+    expect(TIEU_CHI_CON.filter(t => t.muc.length === 0).map(t => t.ma)).toEqual([]);
+  });
+
+  // Cờ tuBoSung phải khớp đúng danh sách đã biết. Sinh lại dữ liệu từ .xlsx mà
+  // quên áp lại phần bổ sung thì ca này gãy ngay, thay vì im lặng mất nội dung.
+  it('đúng những mục đã biết mới được đánh dấu là bổ sung', () => {
+    const co = TIEU_CHI_CON.filter(t => t.tuBoSung).map(t => t.ma).sort();
+    expect(co).toEqual([...TU_BO_SUNG].sort());
+  });
+
+  it('mục bổ sung vẫn phải đạt cùng chuẩn chất lượng như mục chính thức', () => {
+    TU_BO_SUNG.forEach(m => {
+      const t = TIEU_CHI_CON_THEO_MA[m];
+      expect(t.muc).toHaveLength(4);
+      expect(new Set(t.muc).size).toBe(4);
+      t.muc.forEach(x => expect(x.length).toBeGreaterThan(30));
+    });
   });
 });

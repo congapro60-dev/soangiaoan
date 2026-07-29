@@ -22,11 +22,17 @@ export interface TieuChiCon {
   ten: string;
   /** Định nghĩa ngắn của trường về tiêu chí này. */
   dinhNghia: string;
-  /**
-   * Mô tả 4 mức. RỖNG khi file gốc của trường bỏ trống — hiện chỉ có 3b.1.
-   * Không bịa cho đủ: chỗ nào trường chưa viết thì để trường viết.
-   */
+  /** Mô tả 4 mức. */
   muc: readonly string[];
+  /**
+   * true = mô tả 4 mức KHÔNG phải văn bản chính thức của trường mà do soạn bổ
+   * sung, vì cả hai nguồn gốc đều bỏ trống mục này.
+   *
+   * Giữ cờ này để giao diện nói rõ với người dùng, và để khi trường ban hành
+   * bản chính thức thì biết chỗ nào cần thay. KHÔNG dùng làm căn cứ tranh luận
+   * về điểm số của một giáo viên cụ thể.
+   */
+  tuBoSung?: true;
 }
 
 export const TIEU_CHI_CON: readonly TieuChiCon[] = [
@@ -563,7 +569,19 @@ export const TIEU_CHI_CON: readonly TieuChiCon[] = [
     thanhTo: "3b",
     ten: "Tư duy phản biện và nắm vững kiến thức",
     dinhNghia: "Khi đặt câu hỏi và trao đổi/thảo luận, HS cần có tư duy phản biện, đưa ra nhiều câu trả lời, qua đó giúp các em nắm vững kiến thức, hiểu hơn về bản thân cũng như thế giới xung quanh.",
-    muc: [],
+    // BỔ SUNG — không phải văn bản chính thức của trường.
+    // Cả "Chi tiết khung đánh giá.xlsx" lẫn "Khung đánh giá giờ học.pdf" đều bỏ
+    // trống 4 mức của mục này. Soạn theo: (a) định nghĩa ở trên, (b) tiến trình
+    // 1→4 của thành tố cha 3b (nhắc lại → GV dẫn → cùng làm → HS chủ động),
+    // (c) văn phong hai mục anh em 3b.2 và 3b.3 vốn có bản chính thức.
+    // Trường ban hành bản chính thức thì thay vào đây và bỏ cờ tuBoSung.
+    tuBoSung: true,
+    muc: [
+      "Câu hỏi và thảo luận chỉ yêu cầu HS nhắc lại kiến thức và chỉ chấp nhận một đáp án đúng, không đòi hỏi HS phải tư duy phản biện.",
+      "Có câu hỏi mở cho phép nhiều cách trả lời, nhưng GV thường tự đưa ra kết luận nên HS ít có cơ hội thực sự phản biện hay đào sâu kiến thức.",
+      "Câu hỏi và thảo luận thường xuyên đòi hỏi HS tư duy phản biện, đưa ra và so sánh nhiều cách trả lời khác nhau, qua đó HS nắm vững kiến thức của bài.",
+      "HS tự đặt ra những câu hỏi có nhiều hướng trả lời, tranh luận về các cách hiểu khác nhau và liên hệ kiến thức với bản thân cũng như thế giới xung quanh.",
+    ],
   },
   {
     ma: "3b.2",

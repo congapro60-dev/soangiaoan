@@ -142,6 +142,67 @@ describe('xuất rồi đọc lại file mẫu thật', () => {
   });
 });
 
+// Người dùng báo: file tải xuống chỉ có biên bản, không thấy nhận xét đâu.
+// Đúng — mẫu Excel của trường không có chỗ cho nhận xét và trước đây bị bỏ hẳn.
+describe('khối trao đổi trong file xuất', () => {
+  const coNhanXet = (): BienBanDuGio => ({
+    ...bienBanThu(),
+    gopY: {
+      '3b': {
+        hanChe: 'Phần lớn câu hỏi là câu hỏi đóng',
+        cauHoiPhanTu: 'Thầy/cô nhận thấy gì về loại câu hỏi mình đã hỏi?',
+        coTheLam: ['Chờ 3 giây trước khi gọi', 'Hỏi lại lớp thay vì tự trả lời'],
+      },
+    },
+    trongTam: { '3b': true },
+    nhanXet: {
+      diemManh: [{ tieuDe: 'Quản lí lớp tốt', bangChung: 'HS vào lớp trật tự', yNghia: 'tiết kiệm thời gian' }],
+      trongTam: { tieuDe: 'Câu hỏi mở', bangChung: 'GV tự trả lời', hanhDong: ['chờ 3 giây'], doThanhCong: '3 câu mở mỗi tiết' },
+      cauHoiHuanLuyen: ['Điều gì khiến thầy/cô tự hào nhất?'],
+      canLamRo: ['HS nào chưa theo kịp?'],
+      kichBan: { tapTrung: 'Ta tập trung vào đâu?', khamPha: 'Thầy/cô mong HS đạt gì?', phanTu: 'Điều gì diễn ra tốt?', lapKeHoach: 'Bước tiếp theo?', theoDoi: 'Tiến triển thế nào?' },
+      luotHuanLuyen: [{ ma: '3b', quanSat: 'Tôi nhận thấy HS trả lời rất ngắn', cauHoiNhanThuc: 'Thầy/cô nhận thấy gì?', cauHoiTacDong: 'Điều đó tác động thế nào tới tư duy HS?', tranhNoi: 'Kỹ năng đặt câu hỏi cần cải thiện' }],
+    },
+  });
+
+  it('nhận xét, góp ý và kịch bản đều có trong file tải xuống', async () => {
+    const blob = await xuatTheoMau(coNhanXet(), layMau);
+    const wb = XLSX.read(await blob.arrayBuffer(), { type: 'array' });
+    const chu = Object.values(wb.Sheets[wb.SheetNames[1]])
+      .map(c => String((c as { v?: unknown })?.v ?? ''))
+      .join('\n');
+
+    expect(chu).toContain('NỘI DUNG BUỔI TRAO ĐỔI SAU TIẾT DẠY');
+    expect(chu).toContain('Quản lí lớp tốt');
+    expect(chu).toContain('Câu hỏi mở');
+    expect(chu).toContain('Phần lớn câu hỏi là câu hỏi đóng');
+    expect(chu).toContain('Chờ 3 giây trước khi gọi');
+    expect(chu).toContain('Điều gì khiến thầy/cô tự hào nhất?');
+    expect(chu).toContain('HS nào chưa theo kịp?');
+    expect(chu).toContain('1. Tập trung: Ta tập trung vào đâu?');
+    expect(chu).toContain('ĐỪNG nói');
+    // Trọng tâm đã chọn phải nhận ra được khi đọc file
+    expect(chu).toContain('Góp ý 3b [TRỌNG TÂM]');
+  });
+
+  it('không có nhận xét thì không chèn khối rỗng vào file', async () => {
+    const blob = await xuatTheoMau(bienBanThu(), layMau);
+    const wb = XLSX.read(await blob.arrayBuffer(), { type: 'array' });
+    const chu = Object.values(wb.Sheets[wb.SheetNames[1]])
+      .map(c => String((c as { v?: unknown })?.v ?? ''))
+      .join('\n');
+    expect(chu).not.toContain('NỘI DUNG BUỔI TRAO ĐỔI');
+  });
+
+  it('điểm và bằng chứng vẫn nguyên chỗ cũ, không bị khối mới đè', async () => {
+    const blob = await xuatTheoMau(coNhanXet(), layMau);
+    const s2 = XLSX.read(await blob.arrayBuffer(), { type: 'array' }).Sheets['Chấm điểm'];
+    expect(s2['G' + HANG_CHAM_DIEM['1a']].v).toBe(3);
+    expect(s2['G' + HANG_CHAM_DIEM['3b']].v).toBe(2.5);
+    expect(String(s2['H' + HANG_CHAM_DIEM['1a']].v)).toContain('GV sửa lỗi dấu ngoặc');
+  });
+});
+
 describe('docFileExcel', () => {
   it('đọc lại được biên bản vừa xuất (vòng tròn khép kín)', async () => {
     const goc = bienBanThu();

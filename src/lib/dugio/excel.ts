@@ -233,6 +233,98 @@ export function oSheetChamDiem(bb: BienBanDuGio): Record<string, GiaTriO> {
   return o;
 }
 
+/** Dòng đầu của khối trao đổi, đặt dưới bảng rubric (bảng kết thúc ở dòng 20). */
+const HANG_TRAO_DOI_DAU = 23;
+
+/**
+ * Khối "nội dung buổi trao đổi" viết xuống dưới bảng chấm điểm.
+ *
+ * Mẫu Excel của trường không có chỗ cho nhận xét, góp ý hay kịch bản trò chuyện
+ * — nên trước đây xuất ra là mất trắng phần này. Viết xuống vùng trống bên dưới
+ * thay vì thêm sheet mới: thêm sheet phải sửa workbook.xml, rels và
+ * [Content_Types].xml, rủi ro hỏng file cao hơn nhiều so với giá trị thu được.
+ */
+export function oKhoiTraoDoi(bb: BienBanDuGio): Record<string, GiaTriO> {
+  const dong: [string, string][] = [];
+  const them = (nhan: string, noiDung: string) => {
+    if (noiDung.trim()) dong.push([nhan, noiDung.trim()]);
+  };
+
+  const nx = bb.nhanXet;
+  if (nx) {
+    nx.diemManh.forEach((d, i) =>
+      them(`Điểm mạnh ${i + 1}`, [d.tieuDe, d.bangChung && `“${d.bangChung}”`, d.yNghia].filter(Boolean).join(' — ')),
+    );
+    if (nx.trongTam) {
+      them(
+        'Trọng tâm cải thiện',
+        [
+          nx.trongTam.tieuDe,
+          nx.trongTam.bangChung && `“${nx.trongTam.bangChung}”`,
+          nx.trongTam.hanhDong.length && `Việc cần làm: ${nx.trongTam.hanhDong.join('; ')}`,
+          nx.trongTam.doThanhCong && `Dấu hiệu thành công: ${nx.trongTam.doThanhCong}`,
+        ]
+          .filter(Boolean)
+          .join('\n'),
+      );
+    }
+    if (nx.kichBan) {
+      them(
+        'Kịch bản trao đổi',
+        [
+          `1. Tập trung: ${nx.kichBan.tapTrung}`,
+          `2. Khám phá: ${nx.kichBan.khamPha}`,
+          `3. Phản tư: ${nx.kichBan.phanTu}`,
+          `4. Lập kế hoạch: ${nx.kichBan.lapKeHoach}`,
+          `5. Theo dõi: ${nx.kichBan.theoDoi}`,
+        ].join('\n'),
+      );
+    }
+    (nx.luotHuanLuyen || []).forEach(l =>
+      them(
+        `Lượt huấn luyện ${l.ma}`,
+        [
+          l.tranhNoi && `ĐỪNG nói: “${l.tranhNoi}”`,
+          l.quanSat && `1. Nêu quan sát: “${l.quanSat}”`,
+          l.cauHoiNhanThuc && `2. Hỏi để tự nhận ra: “${l.cauHoiNhanThuc}”`,
+          l.cauHoiTacDong && `3. Hỏi về tác động: “${l.cauHoiTacDong}”`,
+        ]
+          .filter(Boolean)
+          .join('\n'),
+      ),
+    );
+    if (nx.cauHoiHuanLuyen.length) them('Câu hỏi huấn luyện', nx.cauHoiHuanLuyen.map(q => '• ' + q).join('\n'));
+    if (nx.canLamRo.length) them('Cần làm rõ với giáo viên', nx.canLamRo.map(q => '• ' + q).join('\n'));
+  }
+
+  (Object.keys(bb.gopY) as MaThanhTo[]).forEach(ma => {
+    const g = bb.gopY[ma];
+    if (!g) return;
+    const trongTam = bb.trongTam[ma] ? ' [TRỌNG TÂM]' : '';
+    them(
+      `Góp ý ${ma}${trongTam}`,
+      [
+        g.hanChe,
+        g.cauHoiPhanTu && `Câu hỏi phản tư: “${g.cauHoiPhanTu}”`,
+        g.coTheLam.length && `Có thể làm ngay: ${g.coTheLam.join('; ')}`,
+      ]
+        .filter(Boolean)
+        .join('\n'),
+    );
+  });
+
+  const o: Record<string, GiaTriO> = {};
+  if (!dong.length) return o;
+
+  o['A' + HANG_TRAO_DOI_DAU] = 'NỘI DUNG BUỔI TRAO ĐỔI SAU TIẾT DẠY';
+  dong.forEach(([nhan, noiDung], i) => {
+    const r = HANG_TRAO_DOI_DAU + 1 + i;
+    o['A' + r] = nhan;
+    o['B' + r] = noiDung;
+  });
+  return o;
+}
+
 /**
  * Điền biên bản vào file mẫu và trả về Blob tải xuống.
  * `layMau` cho phép test bơm file mẫu vào thay vì gọi fetch.
@@ -254,7 +346,7 @@ export async function xuatTheoMau(
   };
 
   await sua('xl/worksheets/sheet1.xml', oSheetBienBan(bb));
-  await sua('xl/worksheets/sheet2.xml', oSheetChamDiem(bb));
+  await sua('xl/worksheets/sheet2.xml', { ...oSheetChamDiem(bb), ...oKhoiTraoDoi(bb) });
 
   // Tên sheet đầu trong mẫu là tên giáo viên — giữ đúng thói quen đó.
   const wbFile = zip.file('xl/workbook.xml');
