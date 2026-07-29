@@ -1,6 +1,6 @@
 # HANDOFF — Soạn giáo án / học phân hoá
 
-**Cập nhật gần nhất**: 2026-07-07  
+**Cập nhật gần nhất**: 2026-07-29  
 **Repo**: `soangiaoan` — `https://github.com/congapro60-dev/soangiaoan`  
 **Branch chuẩn**: `main`  
 **Production URL để QA UI**: `https://giaoandewey.vercel.app`  
@@ -9,6 +9,43 @@
 ---
 
 ## 1. Trạng thái hiện tại
+
+### 1.0k Cập nhật phiên 2026-07-28/29 — Module dự giờ Danielson: nền tảng bảo mật + dữ liệu khung
+
+Bối cảnh: thêm module **dự giờ & chấm điểm tiết dạy theo khung Danielson** (BGH/tổ trưởng dự giờ giáo viên, chấm 22 thành tố / 4 phần). Đây là dữ liệu **nhạy cảm nhất hệ thống** — nhận định có tên về đồng nghiệp — nên phiên này chỉ làm nền tảng bảo mật + dữ liệu, CHƯA có UI. Đặc tả gốc: thư mục `chấm điểm dự giờ/` (tên thư mục Unicode NFD — xem `tasks/lessons.md`). Tài liệu vận hành: **`docs/DU_GIO_DANIELSON.md`**.
+
+**Đã làm (Claude, commit `5a988f4` + `35b6dd3`):**
+- **Gỡ rò rỉ khoá AI**: xoá khối `define: { 'process.env.GEMINI_API_KEY': ... }` trong `vite.config.ts` — nó nhồi khoá vào **bundle trình duyệt**. Không file nào trong `src/` dùng biến này (chỉ `api/generate-simulation.ts` phía server) nên gỡ là an toàn tuyệt đối. ⚠️ `const env = loadEnv(...)` nay thành biến thừa, để nguyên có chủ đích (không nằm trong scope tsconfig).
+- **`firestore.rules`** — CHÈN 85 dòng vào **cuối** block `match /databases/{database}/documents`, giữ nguyên 362 dòng cũ. Ba tầng chặn: `emailTruong()` (bắt buộc `@thedeweyschools.edu.vn` + `email_verified` — vì đăng nhập Google mở cho mọi Gmail), `laBGH()` / `laQuanLy()` theo custom claim `vai_tro`, và biên bản **đóng băng** khi `trangThai == 'da_trao_doi'`.
+- **Cờ chính sách `choGVXemBienBan()`** trả `false`: giáo viên CHƯA được đọc biên bản về mình. Đây là quyết định của BGH, không phải quyết định kỹ thuật.
+- **`scripts/gan-vai-tro.ts`** — gán claim `vai_tro` bằng Admin SDK, tái dùng đúng thứ tự nạp service account của `api/health/firebase-admin.ts`. **Claim CHỈ được gán bằng script/Console, app KHÔNG BAO GIỜ tự gán.**
+- **`src/data/khungDanielson.ts`** — 22 thành tố, rubric 4 mức, `TRONG_SO` (phần 1/2/3 = 0.2/0.35/0.45, phần 4 = 0). Có kiểu `MaThanhTo`/`SoPhan` nên gõ sai mã thành tố là lỗi biên dịch.
+- **`tests/rules/duGio.rules.test.ts`** + `vitest.rules.config.ts` + `npm run test:rules` (firebase emulators:exec). `vitest.config.ts` loại `tests/rules/**` để `npm run test` không fail khi máy không có emulator.
+
+**QA bảo mật + vá (Codex, commit `e9486ad` → `3e62a9a`):**
+- **`allow list` sai cú pháp** — rule cũ dùng `'nguoiDuUid' in request.query.where`; **`request.query` KHÔNG có thuộc tính `where`** (chỉ `limit`/`offset`/`orderBy`) → rule ném evaluation error, tổ trưởng không list được gì. Sửa thành `resource.data.nguoiDuUid == request.auth.uid` — đúng idiom Firestore: rule `list` chấm trên từng document ứng viên, buộc client phải tự thêm `where`.
+- **`gvUid` thành trường bắt buộc** khi tạo, và **bất biến** khi sửa (cùng `gvId`, `nguoiDuUid`) → không thể lập biên bản rồi đổi sang gán cho giáo viên khác.
+- Thêm 10 ca kiểm thử (19–28): list có/không lọc, thiếu `limit`, `limit` 201, `giao_vien` tạo/sửa, thiếu/đổi `gvUid`. Tổng **28 ca**.
+- `firestore.indexes.json` khai composite index `duGio: nguoiDuUid ASC, ngay DESC`; `firebase.json` thêm key `"indexes"` (trước đó **thiếu** → file index chưa từng được deploy).
+- `scripts/gan-vai-tro.ts` thêm `/// <reference types="node" />` (file nằm trong scope `tsc --noEmit`).
+
+**⚠️ Lỗi CHẶN do Claude phát hiện khi review (đã vá cùng phiên):** việc nối `"indexes"` vào `firebase.json` biến `firestore.indexes.json` thành **nguồn sự thật** cho production — mà file đó chỉ khai 3 index trong khi app đang chạy **7 query composite**. `firebase deploy --only firestore:indexes` sẽ coi 4 index còn lại là "thừa" và **hỏi xoá**; trả lời có (hoặc `--force`) là **vỡ ngay Thư viện, Đề đã lưu, Lịch sử chấm bài trên production**. Đã bổ sung đủ 4 index còn thiếu:
+`lessonPlans isPublic+createdAt` · `savedExams userId+updatedAt` · `savedExams isPublic+updatedAt` · `gradingSessions userId+createdAt`.
+**QUY TẮC MỚI:** thêm bất kỳ `where(A) + orderBy(B)` nào cũng phải khai index vào `firestore.indexes.json`, nếu không lần deploy index kế tiếp sẽ xoá mất index đó (đã ghi `tasks/lessons.md`).
+
+**Hai ca kiểm thử cố ý, đừng "sửa cho xanh":**
+- **Ca 8 — canh cờ.** Khẳng định `choGVXemBienBan()` đang tắt. Khi BGH quyết định cho giáo viên xem biên bản, ca này sẽ FAIL. Đó là chủ đích: nó buộc người sửa nhận ra mình vừa đổi **chính sách**, không phải một dòng code. Lúc đó đổi `assertFails` → `assertSucceeds` và ghi lại quyết định của BGH.
+- **Ca 17–18 — lưới an toàn.** Khối dự giờ được CHÈN vào file đang phục vụ tính năng chạy thật; hai ca này canh `lessonPlans` không bị chèn hỏng.
+
+**Verify:** `npm run lint` 0 lỗi · `npm run build` PASS · `npm run test` **196/196** · `npm run test:rules` **28/28** trên emulator.
+
+**Việc còn:**
+- ⚠️ **CHƯA deploy rules/index.** Push `main` chỉ deploy app qua Vercel, KHÔNG đụng Firebase. Hiện `duGio` chưa có luật nào trên production → mặc định deny, không có lỗ hổng, nhưng cũng chưa dùng được. Chạy `firebase deploy --only firestore:rules,firestore:indexes` và **đọc kỹ danh sách index CLI hỏi xoá trước khi gõ Y**.
+- Sau deploy: tab ẩn danh trên `giaoandewey.vercel.app`, console chạy `getDocs(collection(db,'duGio'))` khi chưa đăng nhập → phải `permission-denied`.
+- **Bước 7 — UI `DuGioPage.tsx`** (chưa làm): chuyển `thamkhao-giao-dien.jsx.txt` sang Tailwind v4, thêm route + guard `vai_tro`. **Client BẮT BUỘC query đúng dạng** `where('nguoiDuUid','==',uid) + orderBy('ngay','desc') + limit(≤200)` — thiếu `where` hoặc thiếu `limit` là `permission-denied`, không phải rules hỏng.
+- Module xuất `src/lib/dugio/xuat.ts` (từ `thamkhao-xuat.ts.txt`) và `src/lib/dugio/phanTich.ts` bọc `callAI`. **Gọi AI phải bỏ tên giáo viên trước khi gửi** — tên chỉ nằm ở Firestore. `callAI` không có tham số `maxTokens`/`system` → phải tự chia prompt theo nhóm 2 thành tố.
+- ⚠️ **`firebase-tools` là devDependency nặng** (~300 gói, `package-lock.json` +12.888 dòng) — Vercel cài devDependencies khi build nên build chậm đi. Cân nhắc gỡ và để `test:rules` gọi `npx firebase-tools@15`.
+- **`personalizationCache` vẫn `allow read, write: if true`** — xem mục 5.3.
 
 ### 1.0j Cập nhật phiên 2026-07-09 — Loại giáo án mới "Giáo án ban Toán" (KHDH kiểu v13)
 
@@ -362,6 +399,14 @@ Bối cảnh: Phiên trước Anti thêm Critic/Fix agent và bỏ FormatAgent (
 - `src/lib/dewey/*`
 - `firestore.rules`
 
+### Module dự giờ Danielson (xem `docs/DU_GIO_DANIELSON.md`)
+- `firestore.rules` — khối `MODULE DỰ GIỜ` ở CUỐI file (helper `emailTruong`/`laBGH`/`laQuanLy`/`choGVXemBienBan`, `match /duGio/`, `match /duGioGiaoVien/`)
+- `firestore.indexes.json` — **nguồn sự thật cho index production** kể từ khi `firebase.json` có key `"indexes"`; thiếu khai báo = deploy sau sẽ xoá index đó
+- `src/data/khungDanielson.ts` — 22 thành tố, rubric, trọng số
+- `scripts/gan-vai-tro.ts` — gán claim `vai_tro` (chỉ chạy tay, app không tự gán)
+- `tests/rules/duGio.rules.test.ts` + `vitest.rules.config.ts` — 28 ca, chạy bằng `npm run test:rules`
+- `chấm điểm dự giờ/thamkhao-giao-dien.jsx.txt`, `thamkhao-xuat.ts.txt` — **file tham khảo, KHÔNG biên dịch**; giữ đuôi `.txt`, đổi lại `.ts` là `npm run lint` gãy
+
 ### Export/renderer/AI provider
 - `api/render-word-core.ts`
 - `src/utils/wordExportA4.ts`
@@ -386,8 +431,15 @@ npm run lint
 npm run test:e2e
 ```
 
+Kiểm thử `firestore.rules` (cần Firestore emulator → cần Java; PATH đôi khi chưa vào session hiện tại):
+
+```powershell
+$env:PATH = "C:\Program Files\Microsoft\jdk-21.0.11.10-hotspot\bin;$env:PATH"; npm run test:rules
+```
+
 Ghi chú:
 - `npm run lint` trong repo hiện chạy TypeScript typecheck (`tsc --noEmit`).
+- `npm run test` **cố ý loại** `tests/rules/**` để không fail trên máy chưa cài emulator; rules chạy riêng bằng `test:rules`.
 - `test:e2e` dùng Puppeteer và cần dev/prod target sẵn sàng tuỳ cấu hình script.
 - Vite chunk-size warning là warning cũ, không phải blocker nếu build exit code 0.
 
@@ -416,10 +468,36 @@ Rủi ro chính:
 - PPTX/SlideJ cần xác định rõ renderer/export library, tránh phụ thuộc layout DOCX.
 - Handwriting/OCR cần budget token/file-size và chính sách lưu dữ liệu học sinh.
 
+### 5.3 `personalizationCache` — lỗ hổng ghi công khai (chưa vá, cần phiên riêng)
+
+`firestore.rules` hiện để `match /personalizationCache/{cacheId} { allow read, write: if true; }` — **bất kỳ ai trên Internet, không cần đăng nhập, đều ghi đè được**.
+
+Vì sao nghiêm trọng: `src/lib/adaptive/personalizationEngine.ts` dựng cacheKey = `${lesson.id}__${lesson.updatedAt}__${route}__${weakObjectiveIds}`. Mọi thành phần đều **đoán được** — `lesson.id` nằm trong URL cổng công khai, `updatedAt` đọc được từ `adaptiveLessons` (rule cho phép ẩn danh đọc khi `portalEnabled`), `route` chỉ có 3 giá trị, `weakObjectiveIds` liệt kê được. Người lạ tính đúng cacheKey rồi ghi đè **nội dung bài học mà học sinh sẽ đọc**. Không phải rác vô hại — là nội dung giảng dạy giả.
+
+Vì sao không vá nhanh được: rule muốn kiểm "cache này thuộc bài đang bật cổng" thì phải `get()` sang `adaptiveLessons`. Nhưng **doc id của `adaptiveLessons` là `teacherId`**, còn `lesson.id` chỉ là field bên trong — cacheKey không chứa `teacherId` nên rule không có đường tra ngược. Vá đúng = **thêm `teacherId` vào document cache** (sửa cả `personalizationEngine.ts`), deploy code + rules đồng thời, và xử lý cache cũ thiếu field sẽ bị từ chối ghi.
+
+Lớp chắn tạm gần như không rủi ro (client hiện tại đã ghi đúng 3 field này nên luồng học sinh ẩn danh không đổi) — **chưa áp dụng, chờ quyết định**:
+
+```
+allow read: if true;
+allow create, update: if request.resource.data.keys().hasOnly(['lesson', 'createdAt', 'expiresAt'])
+                      && request.resource.data.createdAt is number
+                      && request.resource.data.expiresAt is number
+                      && request.resource.data.expiresAt <= request.time.toMillis() + 8 * 24 * 60 * 60 * 1000
+                      && request.resource.data.lesson is map;
+allow delete: if false;
+```
+
+Chặn được bơm field lạ, doc vô hạn hạn dùng và xoá cache hàng loạt; **không** chặn được kẻ tấn công có chủ đích tính đúng cacheKey. Bản đầy đủ có `teacherId` phải làm ở phiên riêng, sau khi đọc kỹ luồng học sinh ẩn danh.
+
 ---
 
 ## 6. Nợ kỹ thuật / rủi ro còn cần chú ý
 
+- ⚠️ **`firebase deploy --only firestore:indexes` xoá index không khai trong `firestore.indexes.json`.** Luôn đọc kỹ danh sách CLI hỏi xoá trước khi gõ Y. Thêm query `where(A) + orderBy(B)` mới thì phải khai index tương ứng.
+- ⚠️ **`personalizationCache` cho ghi công khai** (`allow read, write: if true`) — chi tiết ở mục 5.3.
+- ⚠️ **`firebase-tools` nằm trong devDependencies** (~300 gói) → Vercel cài khi build, build chậm đi. Cân nhắc gỡ, dùng `npx firebase-tools@15` cho `test:rules`.
+- **Custom claim `vai_tro` chỉ được gán bằng `scripts/gan-vai-tro.ts` hoặc Firebase Console.** App KHÔNG BAO GIỜ được tự gán claim — làm thế là tự cấp quyền đọc đánh giá nhân sự.
 - DOCX fidelity cao vẫn chưa thuộc scope Skeleton: header/footer/logo/font/margin có thể lệch.
 - Build warning chunk lớn vẫn tồn tại; nên tối ưu sau khi các flow chính ổn định.
 - Firestore rules/localStorage fallback không thay thế được backend security đầy đủ cho dữ liệu nhạy cảm.
@@ -466,6 +544,9 @@ Rủi ro chính:
 - GeoGebra cần HTML Sandbox (Phase 3A) làm trước — chưa code.
 - Gemini free tier hay bị 429 khi test nặng — dùng paid key.
 - Phase 2A–2E Skeleton đã hoàn tất; Phase 3A trở đi chưa code.
+- Module DỰ GIỜ Danielson: đã xong nền tảng rules/claim/dữ liệu (28 ca test xanh), CHƯA có UI (bước 7) và CHƯA deploy rules/index. Đọc `docs/DU_GIO_DANIELSON.md` trước khi đụng vào.
+- KHÔNG "sửa cho xanh" ca 8 (canh cờ chính sách) và ca 17–18 (lưới an toàn lessonPlans) trong `tests/rules/duGio.rules.test.ts` — đọc comment trong file trước.
+- Thêm query `where(A) + orderBy(B)` thì PHẢI khai index vào `firestore.indexes.json`, nếu không lần deploy index kế tiếp sẽ xoá mất index cũ.
 QUAN TRỌNG: audit code thật trước khi tin HANDOFF/plan — tài liệu có thể drift. Xác minh file/dòng còn tồn tại trước khi sửa.
 Quy tắc: code lát cắt nhỏ, chạy npm run build, cập nhật HANDOFF, commit/push khi người dùng yêu cầu. KHÔNG bao giờ xóa onStreamChunk khỏi ContentAgent.
 ```
