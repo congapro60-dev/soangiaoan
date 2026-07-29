@@ -17,11 +17,27 @@ export interface DongQuanSat {
 
 export type DoTinCay = 'cao' | 'vua' | 'thap';
 
+/**
+ * Một câu bằng chứng, gắn nhãn xuống tầng tiêu chí con.
+ *
+ * Điểm chốt ở tầng THÀNH TỐ (khớp file Excel của trường), nhưng bằng chứng gán
+ * xuống TIÊU CHÍ CON để cộng dồn được qua nhiều lần dự giờ và nối sang kế hoạch
+ * tự thúc đẩy — vốn đặt mục tiêu ở tầng đó.
+ */
+export interface BangChungCoNhan {
+  /** Trích nguyên văn từ biên bản. */
+  trich: string;
+  /** Mã tiêu chí con dạng "3b.2". Rỗng khi AI không gán được. */
+  tieuChiCon: string;
+}
+
 /** Đề xuất của AI cho một thành tố. Người dự giờ vẫn là người chốt điểm. */
 export interface KetQuaThanhTo {
   diem: number | null;
   tinCay: DoTinCay;
   bangChung: string[];
+  /** Cùng nội dung bangChung nhưng có nhãn tiêu chí con. Vắng ở biên bản cũ. */
+  bangChungCoNhan?: BangChungCoNhan[];
   lyDo: string;
   cauHoi: string[];
   /**

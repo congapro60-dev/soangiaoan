@@ -35,6 +35,7 @@ import {
   MEO_TRO_CHUYEN_KHO,
   TU_DUY_HUAN_LUYEN,
 } from '../../data/huanLuyen';
+import { tieuChiConCua } from '../../data/tieuChiCon';
 import { docJSON, docJSONdon } from './docJson';
 import { thanhToTheoBo } from './tinhDiem';
 import type { BienBanDuGio, GopYThanhTo, KetQuaThanhTo, NhanXetTraoDoi } from './types';
@@ -67,7 +68,8 @@ LUẬT BẮT BUỘC:
 5. "ly_do" viết 1 câu, nêu rõ vì sao dừng ở mức đó chứ không phải mức liền kề.
 
 CHỈ trả về JSON hợp lệ, không có văn bản nào khác, không bọc trong khối mã.
-{"ket_qua":[{"ma":"2a","diem":3,"cham_nguong":"","tin_cay":"cao","bang_chung":["trích nguyên văn"],"ly_do":"...","cau_hoi":[]}]}
+{"ket_qua":[{"ma":"2a","diem":3,"cham_nguong":"","tin_cay":"cao","bang_chung":[{"trich":"trích nguyên văn từ biên bản","tieu_chi_con":"2a.1"}],"ly_do":"...","cau_hoi":[]}]}
+Mỗi phần tử bang_chung PHẢI kèm "tieu_chi_con" là một mã có trong danh sách tiêu chí con của đúng thành tố đó. Không chắc thuộc mã nào thì để chuỗi rỗng, TUYỆT ĐỐI không bịa mã.
 tin_cay nhận một trong: "cao", "vua", "thap".`;
 
 /** Mô tả một thành tố kèm rubric, thành tố cốt lõi và quy tắc lượng hóa nếu có. */
@@ -75,11 +77,19 @@ function moTaThanhTo(ma: MaThanhTo): string {
   const c = COMPONENTS.find(x => x.ma === ma)!;
   const thang = RUBRIC[ma].map((t, i) => `      ${i + 1} ${TEN_MUC[i]}: ${t}`).join('\n');
   const cot = COT_LOI[ma].length ? `\n   Thành tố cốt lõi: ${COT_LOI[ma].join(' | ')}` : '';
+  // Danh sách tiêu chí con để AI gán nhãn bằng chứng xuống đúng tầng mà kế
+  // hoạch tự thúc đẩy chuyên môn của trường đang dùng.
+  const con = tieuChiConCua(ma);
+  const dsCon = con.length
+    ? `\n   Tiêu chí con (gán mỗi bằng chứng vào ĐÚNG một mã trong số này):\n${con
+        .map(t => `      ${t.ma} — ${t.ten}: ${t.dinhNghia}`)
+        .join('\n')}`
+    : '';
   const lh = LUONG_HOA_PHAN_III[ma];
   const dem = lh
     ? `\n   LƯỢNG HÓA BẮT BUỘC (${lh.doLuong}):\n      Mức 2 nếu: ${lh.muc2}\n      Mức 3 nếu: ${lh.muc3}\n      Mức 4 nếu: ${lh.muc4}`
     : '';
-  return `${ma} — ${c.ten}${cot}\n   Thang điểm:\n${thang}${dem}`;
+  return `${ma} — ${c.ten}${cot}${dsCon}\n   Thang điểm:\n${thang}${dem}`;
 }
 
 function nguonTheoPhan(phan: SoPhan, bb: BienBanDuGio, vanBan: string): string {
@@ -111,6 +121,11 @@ export function vanBanQuanSat(bb: BienBanDuGio): string {
   return [bang, bb.bienBan.trim()].filter(Boolean).join('\n\n');
 }
 
+interface DongBangChung {
+  trich?: unknown;
+  tieu_chi_con?: unknown;
+}
+
 interface DongKetQua {
   ma?: string;
   diem?: unknown;
@@ -119,6 +134,27 @@ interface DongKetQua {
   bang_chung?: unknown;
   ly_do?: unknown;
   cau_hoi?: unknown;
+}
+
+/**
+ * Nhận cả hai dạng: mảng chuỗi (hợp đồng cũ) và mảng object có nhãn (mới).
+ * Nhãn không thuộc đúng thành tố đang chấm thì BỎ — thà thiếu nhãn còn hơn nhãn
+ * sai, vì nhãn sai sẽ làm hỏng thống kê cộng dồn nhiều lần dự giờ về sau.
+ */
+export function docBangChung(v: unknown, thanhTo: MaThanhTo) {
+  const hopLe = new Set(tieuChiConCua(thanhTo).map(t => t.ma));
+  const items = Array.isArray(v) ? v.slice(0, 2) : [];
+  const coNhan = items
+    .map((x): { trich: string; tieuChiCon: string } | null => {
+      if (typeof x === 'string') return x.trim() ? { trich: x.trim(), tieuChiCon: '' } : null;
+      const o = x as DongBangChung;
+      const trich = typeof o?.trich === 'string' ? o.trich.trim() : '';
+      if (!trich) return null;
+      const nhan = typeof o?.tieu_chi_con === 'string' ? o.tieu_chi_con.trim() : '';
+      return { trich, tieuChiCon: hopLe.has(nhan) ? nhan : '' };
+    })
+    .filter((x): x is { trich: string; tieuChiCon: string } => x !== null);
+  return { bangChung: coNhan.map(x => x.trich), bangChungCoNhan: coNhan };
 }
 
 const chuoiMang = (v: unknown): string[] =>
@@ -195,7 +231,7 @@ Trả JSON cho đúng ${lo.length} thành tố trên. Mỗi thành tố tối đ
         diem: diem !== null && Math.abs(diem % 1) === 0.5 && !cn ? Math.floor(diem) : diem,
         chamNguong: cn,
         tinCay: tin === 'cao' || tin === 'vua' ? tin : 'thap',
-        bangChung: chuoiMang(r.bang_chung).slice(0, 2),
+        ...docBangChung(r.bang_chung, ma),
         lyDo: typeof r.ly_do === 'string' ? r.ly_do : '',
         cauHoi: chuoiMang(r.cau_hoi),
       };
