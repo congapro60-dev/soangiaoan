@@ -39,8 +39,9 @@
 
 **Verify:** lint 0 lỗi · build PASS · `npm run test` **225/225** (29 ca dự giờ mới) · `npm run test:rules` **23/23** · trình duyệt: route + guard đúng, vòng xuất→đọc lại Excel chạy thật trên dev server.
 
+**ĐÃ DEPLOY (2026-07-29).** `firebase deploy --only firestore:rules` → project `smartplan-ai-14200`. **Index KHÔNG cần deploy**: đối chiếu `firebase firestore:indexes` cho thấy cả 10 index đã có sẵn trên production, file repo nay khớp tuyệt đối nên deploy sau này không đề nghị xoá gì. Nghiệm thu bằng REST API gọi ẩn danh vào production: liệt kê toàn bộ `duGio` → 403; lọc `isPublic==true` → 200; lọc `userId` người lạ → 403; `lessonPlans` → 403.
+
 **Việc còn:**
-- ⚠️ **CHƯA deploy rules/index** — bắt buộc, xem 1.0k.
 - **Chưa test được màn soạn thảo khi đã đăng nhập** — chế độ demo của app dùng user giả (không có token Firebase) nên `onAuthStateChanged` không thấy user. Cần user đăng nhập Google thật để nghiệm thu luồng lưu/đọc Firestore.
 - Nút xuất Word cho biên bản (hiện chỉ có Excel).
 - Quy tắc "tịnh tiến minh chứng" mới chỉ hiện nhắc nhở, chưa tự nối sang biên bản lần trước của cùng giáo viên.
@@ -530,7 +531,7 @@ Chặn được bơm field lạ, doc vô hạn hạn dùng và xoá cache hàng 
 ## 6. Nợ kỹ thuật / rủi ro còn cần chú ý
 
 - ⚠️ **`lessonPlans` có `allow list: if request.auth != null`** — vì `list` là một nhánh của `read`, luật này cho BẤT KỲ ai đã đăng nhập liệt kê TOÀN BỘ `lessonPlans`, kể cả giáo án riêng tư của người khác (`allow read` chặt hơn ở dưới không cứu được, các luật là OR). Chưa sửa vì ngoài phạm vi phiên dự giờ, và sửa thì phải rà lại mọi query đang gọi. `duGio` cố ý KHÔNG sao chép kiểu này.
-- ⚠️ **`firebase deploy --only firestore:indexes` xoá index không khai trong `firestore.indexes.json`.** Luôn đọc kỹ danh sách CLI hỏi xoá trước khi gõ Y. Thêm query `where(A) + orderBy(B)` mới thì phải khai index tương ứng.
+- ⚠️ **`firebase deploy --only firestore:indexes` xoá index không khai trong `firestore.indexes.json`.** Luôn đọc kỹ danh sách CLI hỏi xoá trước khi gõ Y. Thêm query `where(A) + orderBy(B)` mới thì phải khai index tương ứng. **Tính đến 2026-07-29 file đã khớp production TUYỆT ĐỐI (10 index)** — đối chiếu bằng `npx firebase firestore:indexes` rồi so với file trước mỗi lần deploy. Hai index giữ lại có chủ đích dù code hiện không dùng: `adaptiveLessons teacherId+updatedAt ASC` và `duGio nguoiDuUid+ngay` (thiết kế cũ) — giữ để deploy không bao giờ đề nghị xoá.
 - ⚠️ **`personalizationCache` cho ghi công khai** (`allow read, write: if true`) — chi tiết ở mục 5.3.
 - ⚠️ **`firebase-tools` nằm trong devDependencies** (~300 gói) → Vercel cài khi build, build chậm đi. Cân nhắc gỡ, dùng `npx firebase-tools@15` cho `test:rules`.
 - **Custom claim `vai_tro` chỉ được gán bằng `scripts/gan-vai-tro.ts` hoặc Firebase Console.** App KHÔNG BAO GIỜ được tự gán claim — làm thế là tự cấp quyền đọc đánh giá nhân sự.

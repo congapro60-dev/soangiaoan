@@ -9,6 +9,14 @@
       ]
     },
     {
+      "collectionGroup": "adaptiveLessons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "teacherId", "order": "ASCENDING" },
+        { "fieldPath": "updatedAt", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "lessonPlans",
       "queryScope": "COLLECTION",
       "fields": [
@@ -46,6 +54,14 @@
       "fields": [
         { "fieldPath": "userId", "order": "ASCENDING" },
         { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "duGio",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "nguoiDuUid", "order": "ASCENDING" },
+        { "fieldPath": "ngay", "order": "DESCENDING" }
       ]
     },
     {
