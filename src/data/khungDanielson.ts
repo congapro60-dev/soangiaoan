@@ -122,7 +122,7 @@ export const RUBRIC: Record<MaThanhTo, readonly [string, string, string, string]
     "Hoạt động học tập đề cao nhu cầu riêng biệt của từng HS, đảm bảo tất cả HS đều đạt mục tiêu đã đề ra và nâng cao ý thức tự chịu trách nhiệm về việc học của HS.",
   ],
   "1f": [
-    "Không có kế hoạch đánh giá HS hoặc bài đánh giá  không chỉ ra được là HS đã đạt mục tiêu đề ra hay chưa.",
+    "Không có kế hoạch đánh giá HS hoặc bài đánh giá không chỉ ra được là HS đã đạt mục tiêu đề ra hay chưa.",
     "Bài đánh giá phần nào giúp GV xác định là HS đã đạt hay đang trong quá trình tiến đến mục tiêu đề ra.",
     "Lập kế hoạch đánh giá cho suốt quá trình giảng dạy và bài đánh giá cung cấp thông tin chính xác và kịp thời cho GV và HS.",
     "Thông qua các bài đánh giá đa dạng & linh hoạt, HS có cơ hội thể hiện kiến thức và tự phân tích, đánh giá tiến bộ của bản thân.",
@@ -134,14 +134,14 @@ export const RUBRIC: Record<MaThanhTo, readonly [string, string, string, string]
     "HS tham gia tích cực vào xây dựng một môi trường học tập nơi mọi thành viên đều có ý thức cộng đồng, luôn cảm thấy an toàn, được tôn trọng và gắn kết chặt chẽ với nhau.",
   ],
   "2b": [
-    "Văn hóa lớp học không hỗ trợ hoặc giúp ích cho việc học tập và trưởng thành của HS.",
-    "Văn hóa lớp học phần nào giúp ích cho việc học tập và trưởng thành của HS.",
-    "The culture of the",
-    "class is characterized",
+    "Văn hóa lớp học không hỗ trợ việc học tập và trưởng thành của HS.",
+    "Văn hóa lớp học phần nào hỗ trợ việc học tập và trưởng thành của HS.",
+    "Văn hóa lớp học thể hiện kỳ vọng cao với HS và hỗ trợ việc học tập và trưởng thành của HS.",
+    "HS tích cực tham gia vào việc xây dựng văn hóa lớp học giúp thúc đẩy giao tiếp, đánh giá và tiến bộ của HS, giúp cho mọi HS đều đạt kết quả tốt.",
   ],
   "2c": [
     "Thiếu nề nếp, nội quy hoặc quy trình lớp học không hiệu quả gây cản trở quá trình học tập và trưởng thành của HS.",
-    "Nề nếp, quy trình lớp học chủ yếu do GV xây dựng và quản lý, tạo cơ hội học tập và phát triển cho HS",
+    "Nề nếp, quy trình lớp học chủ yếu do GV xây dựng và quản lý, tạo cơ hội học tập và phát triển cho HS.",
     "Nề nếp, nội quy, quy trình lớp học hiệu quả và chủ yếu do HS tự quản lý, giúp tối ưu hóa cơ hội học tập và phát triển của HS.",
     "HS được tham gia ý kiến và tích cực tham gia vào việc xây dựng và điều chỉnh các nề nếp, quy trình giúp tạo ra một môi trường học tập thân thiện, tôn trọng và thúc đẩy sự trưởng thành của mỗi cá nhân trong tập thể.",
   ],
@@ -161,7 +161,7 @@ export const RUBRIC: Record<MaThanhTo, readonly [string, string, string, string]
     "Truyền đạt mục tiêu và nội dung không rõ ràng hoặc gây nhầm lẫn và ảnh hưởng đến việc học tập của HS.",
     "Truyền đạt mục tiêu và nội dung hầu hết rõ ràng và chính xác, phần nào hỗ trợ việc học tập của HS.",
     "Truyền đạt mục tiêu và nội dung rõ ràng và chính xác tới HS, giúp HS tham gia tích cực vào các hoạt động học tập, đồng thời làm mẫu cho HS về cách sử dụng ngôn ngữ chuẩn mực.",
-    "Truyền đạt mục tiêu và nội dung không rõ ràng hoặc gây nhầm lẫn và ảnh hưởng đến việc học tập của HS.",
+    "Truyền đạt mục tiêu và nội dung phong phú, có bản sắc riêng, gần gũi với HS, khuyến khích HS tư duy phản biện và đóng góp kiến thức của mình; kích thích trí tò mò và phát huy tính chủ động của HS.",
   ],
   "3b": [
     "Không hoặc ít đặt câu hỏi, trao đổi/thảo luận, hoặc câu hỏi, trao đổi/thảo luận không hỗ trợ việc học tập và tiến bộ của HS.",

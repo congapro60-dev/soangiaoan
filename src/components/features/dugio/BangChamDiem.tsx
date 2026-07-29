@@ -36,6 +36,98 @@ interface Props {
 
 const nhanDiem = (d: number) => String(d).replace('.', ',');
 
+/**
+ * Khối "vì sao điểm này" — trả lời thẳng bốn câu người dự giờ phải nói với
+ * giáo viên: đang làm được gì, còn thiếu gì, vì sao dừng ở mức này, làm gì để
+ * lên mức trên. Trước đây giao diện chỉ đổ ra thang 4 mức rồi để người dùng
+ * tự tổng hợp — đọc thì hiểu nhưng không nói lại được cho giáo viên nghe.
+ */
+function GiaiThichDiem({
+  ma,
+  diem,
+  bangChung,
+  lyDo,
+  chamNguong,
+  coTheLam,
+}: {
+  ma: MaThanhTo;
+  diem: number;
+  bangChung: string[];
+  lyDo: string;
+  chamNguong: string;
+  coTheLam: string[];
+}) {
+  // Điểm lẻ 2,5 nghĩa là đã vững mức 2 và mới chạm mức 3 → đích vẫn là mức 3.
+  const mucDangO = Math.floor(diem);
+  const mucKeTiep = mucDangO < 4 ? mucDangO + 1 : null;
+  const luongHoa = LUONG_HOA_PHAN_III[ma];
+  const dichCuThe = mucKeTiep === 2 ? luongHoa?.muc2 : mucKeTiep === 3 ? luongHoa?.muc3 : mucKeTiep === 4 ? luongHoa?.muc4 : undefined;
+
+  return (
+    <div className="mt-3 space-y-2 rounded-xl bg-slate-50 p-3 text-sm">
+      <p className="font-bold text-slate-800">
+        Đang ở mức {mucDangO} · {TEN_MUC[mucDangO - 1]}
+        {!Number.isInteger(diem) && (
+          <span className="font-normal text-slate-600"> (đã chạm ngưỡng mức {mucDangO + 1})</span>
+        )}
+      </p>
+
+      {bangChung.length > 0 && (
+        <div>
+          <p className="font-semibold text-emerald-700">Đã làm được</p>
+          <ul className="mt-0.5 list-disc pl-5 text-slate-700">
+            {bangChung.map((b, i) => (
+              <li key={i}>{b}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {!Number.isInteger(diem) && chamNguong && (
+        <p className="text-slate-700">
+          <span className="font-semibold text-emerald-700">Điểm sáng vượt mức: </span>
+          {chamNguong}
+        </p>
+      )}
+
+      {lyDo && mucKeTiep && (
+        <p className="text-slate-700">
+          <span className="font-semibold text-amber-700">Vì sao chưa lên mức {mucKeTiep}: </span>
+          {lyDo}
+        </p>
+      )}
+
+      {mucKeTiep ? (
+        <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-2.5">
+          <p className="font-semibold text-indigo-800">
+            Để đạt mức {mucKeTiep} · {TEN_MUC[mucKeTiep - 1]}
+          </p>
+          <p className="mt-0.5 text-slate-700">{RUBRIC[ma][mucKeTiep - 1]}</p>
+          {dichCuThe && (
+            <p className="mt-1.5 text-slate-700">
+              <span className="font-semibold">Dấu hiệu đếm được: </span>
+              {dichCuThe}
+            </p>
+          )}
+        </div>
+      ) : (
+        <p className="font-semibold text-indigo-800">Đã ở mức cao nhất của khung.</p>
+      )}
+
+      {coTheLam.length > 0 && (
+        <div>
+          <p className="font-semibold text-slate-800">Làm ngay ở tiết sau</p>
+          <ul className="mt-0.5 list-disc pl-5 text-slate-700">
+            {coTheLam.map((v, i) => (
+              <li key={i}>{v}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function BangChamDiem({ bienBan, onDoi, chiDoc }: Props) {
   const [moRong, setMoRong] = useState<MaThanhTo | null>(null);
   const trongBo = new Set(thanhToTheoBo(bienBan.boTieuChi));
@@ -49,7 +141,8 @@ export function BangChamDiem({ bienBan, onDoi, chiDoc }: Props) {
       diemChot: { ...bienBan.diemChot, [ma]: diem },
       daSua: { ...bienBan.daSua, [ma]: diem !== goiY },
     });
-    if (diem !== null && laDiemChamNguong(diem)) setMoRong(ma);
+    // Không tự bung bảng tham khảo: ô minh chứng và khối "vì sao điểm này" đã
+    // hiện sẵn, bung thêm chỉ làm lặp nội dung.
   };
 
   const datChamNguong = (ma: MaThanhTo, v: string) =>
@@ -170,6 +263,17 @@ export function BangChamDiem({ bienBan, onDoi, chiDoc }: Props) {
                         </p>
                       )}
                     </div>
+                  )}
+
+                  {typeof chot === 'number' && (
+                    <GiaiThichDiem
+                      ma={c.ma}
+                      diem={chot}
+                      bangChung={kq?.bangChung ?? []}
+                      lyDo={kq?.lyDo ?? ''}
+                      chamNguong={minhChung}
+                      coTheLam={bienBan.gopY[c.ma]?.coTheLam ?? []}
+                    />
                   )}
 
                   {mo && (
