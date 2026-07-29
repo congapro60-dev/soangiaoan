@@ -108,12 +108,21 @@ export function BangSoSanh({ bienBan }: { bienBan: BienBanDuGio }) {
 
   if (!daTuDanhGia) {
     return (
-      <p className="rounded-xl border border-dashed border-slate-300 p-6 text-center text-slate-500">
-        Giáo viên chưa gửi bản tự đánh giá.
-        {bienBan.gvUid
-          ? ' Đã mời — chờ thầy/cô hoàn thành.'
-          : ' Điền UID của giáo viên ở mục 1 để mời họ tự chấm.'}
-      </p>
+      <div className="rounded-xl border border-dashed border-slate-300 p-6 text-center text-slate-600">
+        {bienBan.gvEmail ? (
+          <p>
+            Đã mời <b>{bienBan.gvEmail}</b> — chờ thầy/cô gửi bản tự chấm.
+          </p>
+        ) : (
+          <>
+            <p className="font-medium text-slate-700">Bước này không bắt buộc.</p>
+            <p className="mt-1">
+              Biên bản, chấm điểm, góp ý và xuất file đều đã dùng được mà không cần bản tự đánh giá.
+              Muốn có thêm góc nhìn của giáo viên thì điền email của thầy/cô ở mục 1 để mời.
+            </p>
+          </>
+        )}
+      </div>
     );
   }
 

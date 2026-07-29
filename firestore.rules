@@ -367,13 +367,23 @@ service cloud.firestore {
     // biên bản của mình, chỉ mình đọc; muốn chia sẻ thì bật isPublic.
     // ────────────────────────────────────────────────────────────────
 
-    /* Giáo viên được dự giờ: chỉ có mặt khi người lập điền gvUid để mời họ
-       tự đánh giá (bước 5 của chu trình dự giờ phát triển). Dùng get() với giá
-       trị mặc định vì document cũ chưa có trường này — đọc thẳng sẽ ném lỗi. */
+    /* Giáo viên được dự giờ: chỉ có mặt khi người lập điền gvEmail để mời họ
+       tự đánh giá (bước 5 của chu trình dự giờ phát triển).
+
+       Đối chiếu theo EMAIL chứ không theo uid: người dự giờ biết email đồng
+       nghiệp, không ai biết uid của ai. Làm theo uid thì phải có API tra cứu
+       bằng Admin SDK — thêm một Vercel function và một đường rò rỉ thông tin
+       (biết email nào đã có tài khoản) cho đúng một việc mà rules tự làm được.
+
+       email_verified bắt buộc: token Google có sẵn cờ này, thiếu nó thì ai
+       khai email gì cũng đọc được biên bản của người khác.
+       Dùng get() với mặc định vì document cũ chưa có trường — đọc thẳng sẽ ném lỗi. */
     function laGiaoVienDuocDu() {
       return request.auth != null
-             && resource.data.get('gvUid', '') != ''
-             && resource.data.get('gvUid', '') == request.auth.uid;
+             && request.auth.token.get('email_verified', false) == true
+             && request.auth.token.get('email', '') != ''
+             && resource.data.get('gvEmail', '') != ''
+             && resource.data.get('gvEmail', '').lower() == request.auth.token.email.lower();
     }
 
     /* Giáo viên CHỈ được ghi đúng ô tự đánh giá. Không sửa được điểm, nhận xét

@@ -86,12 +86,12 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
     return onAuthStateChanged(auth, u => { setUser(u); setDangTaiAuth(false); });
   }, [embedded, userNgoai]);
 
-  const taiDanhSach = useCallback(async (uid: string) => {
+  const taiDanhSach = useCallback(async (uid: string, email: string | null) => {
     try {
       const [a, b, c] = await Promise.all([
         danhSachCuaToi(uid),
         danhSachThuVien(),
-        danhSachVeToi(uid),
+        email ? danhSachVeToi(email) : Promise.resolve([]),
       ]);
       setCuaToi(a);
       setThuVien(b);
@@ -121,7 +121,7 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
   const veDanhSach = useCallback(() => {
     if (!embedded) return navigate('/du-gio');
     setBienBan(null);
-    if (user) void taiDanhSach(user.uid);
+    if (user) void taiDanhSach(user.uid, user.email);
   }, [embedded, navigate, user, taiDanhSach]);
 
   useEffect(() => {
@@ -132,7 +132,7 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
         .catch(e => setLoi('Không mở được biên bản: ' + (e as Error).message));
     } else {
       setBienBan(null);
-      void taiDanhSach(user.uid);
+      void taiDanhSach(user.uid, user.email);
     }
   }, [user, id, taiDanhSach]);
 
@@ -143,7 +143,12 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
 
   const laChu = !!bienBan && !!user && bienBan.userId === user.uid;
   /** Giáo viên được mời tự đánh giá — chỉ ghi được ô tự chấm, rules chặn phần còn lại. */
-  const laGiaoVien = !!bienBan && !!user && !laChu && !!bienBan.gvUid && bienBan.gvUid === user.uid;
+  const laGiaoVien =
+    !!bienBan &&
+    !!user?.email &&
+    !laChu &&
+    !!bienBan.gvEmail &&
+    bienBan.gvEmail.toLowerCase() === user.email.toLowerCase();
   const chiDoc = !!bienBan && !laChu;
   const diem = useMemo(() => (bienBan ? tinhDiem(bienBan) : null), [bienBan]);
   const thieu = useMemo(() => (bienBan ? thieuMinhChungChamNguong(bienBan) : []), [bienBan]);
@@ -229,7 +234,13 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
           `Còn ${thieu.length} thành tố chấm điểm lẻ mà chưa ghi minh chứng chạm ngưỡng: ${thieu.map(t => t.ma).join(', ')}.`,
         );
       }
-      const idMoi = await luuBienBan({ ...bienBan, userId: user.uid });
+      const idMoi = await luuBienBan({
+        ...bienBan,
+        userId: user.uid,
+        // Rules so sánh không phân biệt hoa thường, nhưng truy vấn danh sách thì
+        // so khớp chính xác — nên chuẩn hóa ngay lúc ghi.
+        gvEmail: bienBan.gvEmail.trim().toLowerCase(),
+      });
       setBienBan({ ...bienBan, id: idMoi, userId: user.uid });
       setThongBao('Đã lưu.');
       if (!id && !embedded) navigate(`/du-gio/${idMoi}`, { replace: true });
@@ -278,12 +289,31 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
       <KhungNgoai embedded={embedded}>
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-bold">Biên bản dự giờ</h1>
-          <button
-            onClick={() => setBienBan(bienBanRong(user.uid))}
-            className={`${NUT} bg-indigo-600 text-white hover:bg-indigo-700`}
-          >
-            + Lập biên bản mới
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".xlsx"
+              hidden
+              onChange={e => {
+                const f = e.target.files?.[0];
+                if (f) void napFile(f);
+                e.target.value = '';
+              }}
+            />
+            <button
+              onClick={() => fileRef.current?.click()}
+              className={`${NUT} bg-emerald-600 text-white hover:bg-emerald-700`}
+            >
+              Tải biên bản Excel lên
+            </button>
+            <button
+              onClick={() => setBienBan(bienBanRong(user.uid))}
+              className={`${NUT} bg-indigo-600 text-white hover:bg-indigo-700`}
+            >
+              + Nhập trực tiếp
+            </button>
+          </div>
         </div>
 
         <div className="mb-4 flex gap-2">
@@ -333,7 +363,7 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
                     onClick={async () => {
                       if (!confirm('Xoá biên bản này? Không khôi phục được.')) return;
                       await xoaBienBan(bb.id);
-                      void taiDanhSach(user.uid);
+                      void taiDanhSach(user.uid, user.email);
                     }}
                     className={`${NUT} bg-rose-50 text-rose-700 hover:bg-rose-100`}
                   >
@@ -356,7 +386,7 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
     { khoa: 'ngay', nhan: 'Ngày dự giờ', kieu: 'date' },
     { khoa: 'nguoiDu', nhan: 'Người dự giờ' },
     { khoa: 'namHocKy', nhan: 'Năm học & kỳ học' },
-    { khoa: 'gvUid', nhan: 'UID giáo viên (để mời tự đánh giá)' },
+    { khoa: 'gvEmail', nhan: 'Email giáo viên (để mời tự đánh giá)', kieu: 'email' },
   ];
 
   // Giáo viên được mời: chỉ thấy phần tự đánh giá. KHÔNG cho họ xem điểm của
@@ -641,7 +671,9 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
         <section className="mb-8">
           <h2 className="mb-3 text-xl font-bold">
             4 · Đối chiếu với bản tự đánh giá của giáo viên
-            <span className="ml-2 text-sm font-normal text-slate-500">bước 5 của chu trình</span>
+            <span className="ml-2 text-sm font-normal text-slate-500">
+              bước 5 của chu trình · không bắt buộc
+            </span>
           </h2>
           <BangSoSanh bienBan={bienBan} />
         </section>

@@ -84,6 +84,14 @@
       "collectionGroup": "duGio",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "gvEmail", "order": "ASCENDING" },
+        { "fieldPath": "ngay", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "duGio",
+      "queryScope": "COLLECTION",
+      "fields": [
         { "fieldPath": "gvUid", "order": "ASCENDING" },
         { "fieldPath": "ngay", "order": "DESCENDING" }
       ]

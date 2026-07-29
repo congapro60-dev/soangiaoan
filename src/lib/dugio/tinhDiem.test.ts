@@ -206,6 +206,38 @@ describe('soSanhTuDanhGia', () => {
   });
 });
 
+// Mời giáo viên tự chấm là TÙY CHỌN. Người dự giờ phải chạy trọn được phân
+// tích, chấm điểm và xuất file mà không cần chờ ai. Khoá lại để sau này không
+// ai vô tình biến bước 5 thành điều kiện bắt buộc.
+describe('không phụ thuộc bản tự đánh giá', () => {
+  const chiNguoiDu = bb({
+    gvEmail: '',
+    diemChot: { '1a': 3, '3b': 2.5, '3c': 4 },
+    chamNguong: { '3b': 'có chia nhóm nhưng quá ngắn' },
+  });
+
+  it('tính điểm, xếp loại chạy đủ khi chưa mời ai', () => {
+    const kq = tinhDiem(chiNguoiDu);
+    expect(kq.trungBinh).not.toBeNull();
+    expect(kq.xepLoai).not.toBeNull();
+    expect(kq.soDaCham).toBe(3);
+  });
+
+  it('ràng buộc điểm lẻ vẫn hoạt động, không liên quan tự đánh giá', () => {
+    expect(thieuMinhChungChamNguong(chiNguoiDu)).toEqual([]);
+    expect(thieuMinhChungChamNguong({ ...chiNguoiDu, chamNguong: {} })).toHaveLength(1);
+  });
+
+  it('bảng đối chiếu báo chưa có bản tự chấm chứ không vỡ', () => {
+    const kq = soSanhTuDanhGia(chiNguoiDu);
+    expect(kq.daTuDanhGia).toBe(false);
+    expect(kq.lechLon).toEqual([]);
+    // vẫn liệt kê điểm của người dự giờ để xem lại
+    expect(kq.dong.map(d => d.ma)).toEqual(['1a', '3b', '3c']);
+    expect(kq.dong.every(d => d.giaoVien === null)).toBe(true);
+  });
+});
+
 describe('soVN', () => {
   it('dùng dấu phẩy thập phân và bỏ số 0 thừa', () => {
     expect(soVN(3.15)).toBe('3,15');

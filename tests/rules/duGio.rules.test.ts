@@ -172,13 +172,15 @@ describe('duGio · sửa và xoá', () => {
 // nhưng CHỈ ghi được đúng ô tuDanhGia — không chạm được vào điểm của người dự.
 describe('duGio · giáo viên được dự giờ tự đánh giá', () => {
   const UID_GV = 'uid-giao-vien';
-  const dbGV = () => testEnv.authenticatedContext(UID_GV, { email: 'gv@gmail.com' }).firestore();
+  const EMAIL_GV = 'gv@gmail.com';
+  const dbGV = () =>
+    testEnv.authenticatedContext(UID_GV, { email: EMAIL_GV, email_verified: true }).firestore();
 
   beforeEach(async () => {
     await testEnv.withSecurityRulesDisabled(async ctx => {
       await setDoc(
         doc(ctx.firestore(), 'duGio/bb-co-moi'),
-        bienBanMau({ gvUid: UID_GV, tuDanhGia: { diem: {}, ghiChu: {}, hoanThanhLuc: '' } }),
+        bienBanMau({ gvEmail: EMAIL_GV, tuDanhGia: { diem: {}, ghiChu: {}, hoanThanhLuc: '' } }),
       );
     });
   });
@@ -216,8 +218,8 @@ describe('duGio · giáo viên được dự giờ tự đánh giá', () => {
     );
   });
 
-  it('32. Giáo viên tự gán mình làm gvUid của biên bản khác → DENY', async () => {
-    await assertFails(updateDoc(doc(dbGV(), 'duGio/bb-cua-toi'), { gvUid: UID_GV }));
+  it('32. Giáo viên tự gán mình làm gvEmail của biên bản khác → DENY', async () => {
+    await assertFails(updateDoc(doc(dbGV(), 'duGio/bb-cua-toi'), { gvEmail: EMAIL_GV }));
   });
 
   it('33. Giáo viên xoá biên bản về mình → DENY', async () => {
@@ -230,8 +232,23 @@ describe('duGio · giáo viên được dự giờ tự đánh giá', () => {
 
   it('35. Giáo viên liệt kê biên bản về mình → ALLOW', async () => {
     await assertSucceeds(
-      getDocs(query(collection(dbGV(), 'duGio'), where('gvUid', '==', UID_GV))),
+      getDocs(query(collection(dbGV(), 'duGio'), where('gvEmail', '==', EMAIL_GV))),
     );
+  });
+
+  // Email chưa xác minh thì ai khai email gì cũng đọc được biên bản người khác.
+  it('36. Cùng email nhưng email_verified = false → DENY', async () => {
+    const db = testEnv
+      .authenticatedContext('uid-gia-mao', { email: EMAIL_GV, email_verified: false })
+      .firestore();
+    await assertFails(getDoc(doc(db, 'duGio/bb-co-moi')));
+  });
+
+  it('37. So khớp email KHÔNG phân biệt hoa thường → ALLOW', async () => {
+    const db = testEnv
+      .authenticatedContext('uid-hoa-thuong', { email: 'GV@Gmail.COM', email_verified: true })
+      .firestore();
+    await assertSucceeds(getDoc(doc(db, 'duGio/bb-co-moi')));
   });
 });
 

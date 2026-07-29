@@ -122,11 +122,13 @@ export interface BienBanDuGio {
   // Phần hành chính — đúng các ô ở đầu mẫu biên bản của trường.
   gvHoTen: string;
   /**
-   * UID của giáo viên được dự giờ, để họ tự đánh giá (bước 5).
-   * Rỗng khi chưa mời. Rules cho uid này ĐỌC biên bản và chỉ ghi được đúng
-   * trường tuDanhGia — không sửa được điểm của người dự giờ.
+   * Email giáo viên được dự giờ, để mời họ tự đánh giá (bước 5).
+   * Rỗng khi chưa mời. Đối chiếu theo email vì người dự giờ biết email đồng
+   * nghiệp, không ai biết uid của ai. Rules cho email này ĐỌC biên bản và chỉ
+   * ghi được đúng trường tuDanhGia — không sửa được điểm của người dự giờ.
+   * Luôn lưu ở dạng chữ thường.
    */
-  gvUid: string;
+  gvEmail: string;
   lop: string;
   tuan: string;
   bai: string;
@@ -167,7 +169,7 @@ export const bienBanRong = (userId: string): BienBanDuGio => ({
   id: '',
   userId,
   gvHoTen: '',
-  gvUid: '',
+  gvEmail: '',
   lop: '',
   tuan: '',
   bai: '',

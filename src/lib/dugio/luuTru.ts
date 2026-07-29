@@ -56,7 +56,7 @@ function tuDoc(id: string, d: Record<string, unknown>): BienBanDuGio {
     nhanXet: (d.nhanXet as BienBanDuGio['nhanXet']) ?? null,
     // Ba trường dưới đây thêm sau; biên bản lập trước đó không có, phải trả về
     // giá trị rỗng chứ không undefined, nếu không giao diện vỡ khi đọc bài cũ.
-    gvUid: (d.gvUid as string) || '',
+    gvEmail: (d.gvEmail as string) || '',
     keHoach: {
       ngayHop: '',
       trongTamQuanSat: [],
@@ -108,10 +108,10 @@ export async function danhSachCuaToi(uid: string): Promise<BienBanDuGio[]> {
 }
 
 /** Biên bản người khác lập VỀ mình — để giáo viên vào tự đánh giá (bước 5). */
-export async function danhSachVeToi(uid: string): Promise<BienBanDuGio[]> {
+export async function danhSachVeToi(email: string): Promise<BienBanDuGio[]> {
   const q = query(
     collection(db, COLL),
-    where('gvUid', '==', uid),
+    where('gvEmail', '==', email.trim().toLowerCase()),
     orderBy('ngay', 'desc'),
     limit(GIOI_HAN),
   );
