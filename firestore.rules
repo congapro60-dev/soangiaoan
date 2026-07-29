@@ -362,89 +362,34 @@ service cloud.firestore {
     }
 
     // ────────────────────────────────────────────────────────────────
-    // MODULE DỰ GIỜ — chấm điểm tiết dạy theo khung Danielson
+    // MODULE DỰ GIỜ — biên bản dự giờ theo khung Danielson
+    // Mô hình sở hữu giống lessonPlans: ai đăng nhập cũng tự lập được
+    // biên bản của mình, chỉ mình đọc; muốn chia sẻ thì bật isPublic.
     // ────────────────────────────────────────────────────────────────
-
-    /* ---------- helper cho module dự giờ ---------- */
-
-    // Đăng nhập Google hiện mở cho mọi Gmail nên đây là tầng chặn quan trọng
-    // nhất với dữ liệu đánh giá nhân sự.
-    function emailTruong() {
-      return request.auth != null
-             && request.auth.token.email != null
-             && request.auth.token.email_verified == true
-             && request.auth.token.email.lower().matches('.*@thedeweyschools[.]edu[.]vn$');
-    }
-
-    function coClaim(ten) {
-      return request.auth != null && ten in request.auth.token;
-    }
-
-    // Vai trò gán bằng custom claim: setCustomUserClaims(uid, { vai_tro: 'bgh' })
-    function laBGH() {
-      return emailTruong()
-             && ((coClaim('vai_tro') && request.auth.token.vai_tro == 'bgh')
-                 || (coClaim('admin') && request.auth.token.admin == true));
-    }
-
-    function laQuanLy() {
-      return laBGH()
-             || (emailTruong() && coClaim('vai_tro')
-                 && request.auth.token.vai_tro == 'to_truong');
-    }
-
-    // Bật true khi BGH quyết định cho giáo viên đọc biên bản về mình
-    // (chỉ đọc, chỉ sau khi đã trao đổi xong).
-    function choGVXemBienBan() {
-      return false;
-    }
-
-    /* ---------- danh sách giáo viên được dự giờ ---------- */
-
-    match /duGioGiaoVien/{gvId} {
-      allow read:  if laQuanLy();
-      allow write: if laBGH();
-    }
-
-    /* ---------- biên bản dự giờ ----------
-       Dữ liệu nhạy cảm nhất trong hệ thống: nhận định có tên về đồng nghiệp.
-       Quy tắc chặt hơn hẳn lessonPlans.                                     */
 
     match /duGio/{bienBanId} {
 
-      // list cần rule riêng: query phải tự lọc theo nguoiDuUid, nếu không
-      // Firestore từ chối cả truy vấn.
-      allow list: if laBGH()
-                  || (laQuanLy()
-                      && request.query.limit <= 200
-                      && resource.data.nguoiDuUid == request.auth.uid);
+      // KHÔNG dùng `allow list: if request.auth != null` như lessonPlans —
+      // thế là mọi người đăng nhập đều liệt kê được biên bản riêng của người
+      // khác. Ở đây mỗi document ứng viên phải tự thoả điều kiện, nên client
+      // buộc phải lọc theo userId hoặc theo isPublic.
+      allow list: if (request.auth != null && resource.data.userId == request.auth.uid)
+                  || resource.data.isPublic == true;
 
-      allow get: if laBGH()
-                 || (laQuanLy() && resource.data.nguoiDuUid == request.auth.uid)
-                 || (choGVXemBienBan()
-                     && emailTruong()
-                     && resource.data.gvUid == request.auth.uid
-                     && resource.data.trangThai == 'da_trao_doi');
+      allow get: if resource.data.isPublic == true
+                 || (request.auth != null && request.auth.uid == resource.data.userId);
 
-      // Bắt buộc tự ghi tên mình vào nguoiDuUid — chặn việc lập biên bản
-      // rồi gán cho người khác.
-      allow create: if laQuanLy()
-                    && request.resource.data.nguoiDuUid == request.auth.uid
-                    && request.resource.data.trangThai == 'nhap'
+      allow create: if request.auth != null
+                    && request.auth.uid == request.resource.data.userId
                     && request.resource.data.keys().hasAll(
-                         ['gvId', 'gvUid', 'nguoiDuUid', 'ngay', 'bienBan', 'trangThai']);
+                         ['userId', 'ngay', 'bienBan', 'isPublic']);
 
-      // Chỉ người lập sửa được, và chỉ khi chưa chốt trao đổi. Sau khi
-      // chuyển sang 'da_trao_doi' thì biên bản đóng băng: đã đọc nhận xét
-      // cho giáo viên nghe thì không sửa lại nội dung nữa.
-      allow update: if laQuanLy()
-                    && resource.data.nguoiDuUid == request.auth.uid
-                    && resource.data.trangThai != 'da_trao_doi'
-                    && request.resource.data.nguoiDuUid == resource.data.nguoiDuUid
-                    && request.resource.data.gvId == resource.data.gvId
-                    && request.resource.data.gvUid == resource.data.gvUid;
+      // Không cho đổi chủ sở hữu sau khi tạo.
+      allow update: if request.auth != null
+                    && request.auth.uid == resource.data.userId
+                    && request.resource.data.userId == resource.data.userId;
 
-      allow delete: if laBGH();
+      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }
   }
 }

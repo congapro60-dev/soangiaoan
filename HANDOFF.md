@@ -10,6 +10,41 @@
 
 ## 1. Trạng thái hiện tại
 
+### 1.0l Cập nhật phiên 2026-07-29 (chiều) — Dự giờ: ĐỔI MÔ HÌNH QUYỀN + giao diện + Excel theo mẫu trường
+
+**Quyết định của user làm thay đổi nền:** bỏ toàn bộ phân quyền `vai_tro`/BGH/tổ trưởng. **Ai đăng nhập Google cũng tự lập biên bản của mình, chỉ mình đọc; muốn chia sẻ thì bật `isPublic` — y hệt `lessonPlans`.** Tên giáo viên giữ nguyên khi chia sẻ (user quyết, tôi có nêu lo ngại và được bác).
+
+- `firestore.rules`: gỡ `emailTruong/laBGH/laQuanLy/choGVXemBienBan` và cả `duGioGiaoVien`. Còn `match /duGio/` theo `userId` + `isPublic`. **KHÔNG sao chép `allow list: if request.auth != null` của lessonPlans** — kiểu đó cho mọi người đăng nhập liệt kê biên bản riêng của người khác; ở đây mỗi document phải tự thoả điều kiện nên client buộc phải lọc theo `userId` hoặc `isPublic`. ⚠️ **`lessonPlans` vẫn đang có lỗ hổng list đó — chưa sửa, xem mục 6.**
+- `firestore.indexes.json`: `duGio` đổi sang `userId+ngay` và `isPublic+ngay`.
+- `tests/rules/duGio.rules.test.ts` viết lại — **23 ca**, gồm cả lưới an toàn lessonPlans.
+
+**Nguồn tiêu chí — đã đối chiếu 3 tài liệu, KHÔNG bê nguyên bản nào:**
+| Tài liệu | Vai trò |
+|---|---|
+| `VN_Danielson Framework For Teaching_bản đầy đủ.docx` | **Chuẩn.** 22 thành tố, rubric 4 mức (Chưa đạt/Cơ bản/Tốt/Xuất sắc), + **CÁC THÀNH TỐ CỐT LÕI** và **SUY NGẪM** (19/22 mục có) |
+| `Mẫu biên bản dự giờ.xlsx` | Bản **rút gọn 15 cấu phần** trường dùng khi dự giờ (bỏ 2b và cả Phần IV) → giữ ở `BO_DU_GIO`, là mặc định |
+| `Nguyên tắc chấm điểm Danielson - Tổ Toán.docx` | **Cách chấm**: ý nghĩa 4 mức, quy tắc điểm lẻ, lượng hóa 3b/3c/3d, quy tắc Phần I, tịnh tiến minh chứng |
+
+`src/data/khungDanielson.ts` sinh từ file .docx chuẩn (tên thành tố khớp chính xác bản dịch của trường). `src/data/nguyenTacChamDiem.ts` tách riêng vì khung nói ĐIỀU GÌ được đánh giá, quy tắc nói CHẤM THẾ NÀO — hai thứ đổi độc lập.
+
+**Hai nguyên tắc công bằng được thực thi bằng code, không chỉ nằm trong tài liệu:**
+1. **Điểm lẻ 0,5 = khẳng định có bằng chứng.** Chọn 1,5/2,5/3,5 thì bắt buộc ghi "hành động chạm ngưỡng đã quan sát"; bỏ trống → viền đỏ, `thieuMinhChungChamNguong()` chặn nút Lưu. AI cũng bị ép: đề xuất điểm lẻ mà không nêu được `cham_nguong` thì tự hạ về mức nguyên dưới. *(Tài liệu chỉ nêu tường minh 2,5 và 3,5; 1,5 tôi suy ra cùng công thức và đánh dấu `nguyenVan: false` trong dữ liệu.)*
+2. **"Không đánh giá" ≠ 0 điểm.** Là một nút riêng; thành tố đó bị loại khỏi mẫu số chứ không kéo trung bình xuống. Có test khoá: chấm 2/15 mục toàn 4 vẫn ra "Xuất sắc", không thành "Chưa đạt".
+
+**Excel — xuất ra GIỐNG HỆT mẫu trường.** Không dựng file mới bằng SheetJS (bản cộng đồng ghi ra mất sạch màu/viền/độ rộng cột). Cách làm: lấy `public/mau/bien-ban-du-gio.xlsx` làm khuôn, mở như ZIP bằng JSZip và **chỉ thay giá trị ô**, giữ thuộc tính style `s=`; chuỗi ghi dạng `inlineStr` để khỏi đụng `sharedStrings.xml`. Đã xác minh bằng mắt: render LibreOffice → PNG cho thấy logo Dewey, màu nền từng lĩnh vực, toàn bộ chữ rubric, viền đều nguyên vẹn; điểm vào đúng cột; dòng không đánh giá để TRỐNG. Nhớ `compression: 'DEFLATE'` — mặc định JSZip là STORE làm file phình 30 KB → 128 KB.
+
+**Nhập file lên cũng chạy:** `docFileExcel()` đọc cả file mẫu gốc lẫn file do chính app xuất ra (test vòng tròn khép kín). ⚠️ **Chuẩn hóa NFC ngay khi đọc** — Excel lưu tiếng Việt dạng NFD, chuỗi nhìn y hệt nhưng khác byte làm mọi phép so sánh trượt âm thầm (đã tốn một lần debug).
+
+**File mới:** `src/pages/DuGioPage.tsx` (route `/du-gio`, `/du-gio/:id` trong `main.tsx`), `src/components/features/dugio/{BangChamDiem,BangQuanSat}.tsx`, `src/lib/dugio/{types,tinhDiem,docJson,phanTich,excel,luuTru}.ts`, `src/data/nguyenTacChamDiem.ts`, `public/mau/bien-ban-du-gio.xlsx`.
+
+**Verify:** lint 0 lỗi · build PASS · `npm run test` **225/225** (29 ca dự giờ mới) · `npm run test:rules` **23/23** · trình duyệt: route + guard đúng, vòng xuất→đọc lại Excel chạy thật trên dev server.
+
+**Việc còn:**
+- ⚠️ **CHƯA deploy rules/index** — bắt buộc, xem 1.0k.
+- **Chưa test được màn soạn thảo khi đã đăng nhập** — chế độ demo của app dùng user giả (không có token Firebase) nên `onAuthStateChanged` không thấy user. Cần user đăng nhập Google thật để nghiệm thu luồng lưu/đọc Firestore.
+- Nút xuất Word cho biên bản (hiện chỉ có Excel).
+- Quy tắc "tịnh tiến minh chứng" mới chỉ hiện nhắc nhở, chưa tự nối sang biên bản lần trước của cùng giáo viên.
+
 ### 1.0k Cập nhật phiên 2026-07-28/29 — Module dự giờ Danielson: nền tảng bảo mật + dữ liệu khung
 
 Bối cảnh: thêm module **dự giờ & chấm điểm tiết dạy theo khung Danielson** (BGH/tổ trưởng dự giờ giáo viên, chấm 22 thành tố / 4 phần). Đây là dữ liệu **nhạy cảm nhất hệ thống** — nhận định có tên về đồng nghiệp — nên phiên này chỉ làm nền tảng bảo mật + dữ liệu, CHƯA có UI. Đặc tả gốc: thư mục `chấm điểm dự giờ/` (tên thư mục Unicode NFD — xem `tasks/lessons.md`). Tài liệu vận hành: **`docs/DU_GIO_DANIELSON.md`**.
@@ -494,6 +529,7 @@ Chặn được bơm field lạ, doc vô hạn hạn dùng và xoá cache hàng 
 
 ## 6. Nợ kỹ thuật / rủi ro còn cần chú ý
 
+- ⚠️ **`lessonPlans` có `allow list: if request.auth != null`** — vì `list` là một nhánh của `read`, luật này cho BẤT KỲ ai đã đăng nhập liệt kê TOÀN BỘ `lessonPlans`, kể cả giáo án riêng tư của người khác (`allow read` chặt hơn ở dưới không cứu được, các luật là OR). Chưa sửa vì ngoài phạm vi phiên dự giờ, và sửa thì phải rà lại mọi query đang gọi. `duGio` cố ý KHÔNG sao chép kiểu này.
 - ⚠️ **`firebase deploy --only firestore:indexes` xoá index không khai trong `firestore.indexes.json`.** Luôn đọc kỹ danh sách CLI hỏi xoá trước khi gõ Y. Thêm query `where(A) + orderBy(B)` mới thì phải khai index tương ứng.
 - ⚠️ **`personalizationCache` cho ghi công khai** (`allow read, write: if true`) — chi tiết ở mục 5.3.
 - ⚠️ **`firebase-tools` nằm trong devDependencies** (~300 gói) → Vercel cài khi build, build chậm đi. Cân nhắc gỡ, dùng `npx firebase-tools@15` cho `test:rules`.

@@ -4,6 +4,10 @@
  *   npm run test:rules
  *
  * Chạy trên Firestore emulator (firebase emulators:exec). Không chạm production.
+ *
+ * Mô hình: sở hữu cá nhân giống lessonPlans. Ai đăng nhập cũng tự lập được
+ * biên bản của mình; chỉ mình đọc; muốn chia sẻ thì bật isPublic — và khi
+ * chia sẻ thì BẮT BUỘC bỏ trống tên giáo viên được dự giờ.
  */
 import {
   assertFails,
@@ -17,7 +21,6 @@ import {
   doc,
   getDoc,
   getDocs,
-  limit,
   query,
   setDoc,
   updateDoc,
@@ -26,33 +29,21 @@ import {
 import { readFileSync } from 'node:fs';
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest';
 
-const TRUONG = 'thedeweyschools.edu.vn';
-
-const UID_BGH = 'uid-bgh';
-const UID_TO_TRUONG = 'uid-to-truong';
-const UID_TO_TRUONG_KHAC = 'uid-to-truong-khac';
-const UID_GIAO_VIEN = 'uid-giao-vien';
-
-/** Token giả lập: email trường + đã xác minh + custom claim vai_tro. */
-const tokenTruong = (local: string, vaiTro?: string) => ({
-  email: `${local}@${TRUONG}`,
-  email_verified: true,
-  ...(vaiTro ? { vai_tro: vaiTro } : {}),
-});
+const UID_TOI = 'uid-toi';
+const UID_NGUOI_KHAC = 'uid-nguoi-khac';
 
 let testEnv: RulesTestEnvironment;
 
-/** Biên bản mẫu do UID_TO_TRUONG lập, về giáo viên UID_GIAO_VIEN. */
+/** Biên bản mẫu do UID_TOI lập. Mặc định riêng tư và có tên giáo viên. */
 const bienBanMau = (ghiDe: Record<string, unknown> = {}) => ({
-  gvId: 'gv-01',
-  gvUid: UID_GIAO_VIEN,
-  nguoiDuUid: UID_TO_TRUONG,
+  userId: UID_TOI,
+  gvHoTen: 'Nguyễn Văn A',
   ngay: new Date('2026-03-10'),
   mon: 'Toán',
   lop: '10A1',
   bai: 'Định lí Vi-ét',
   bienBan: '7:30 GV đứng cửa lớp chào từng HS...',
-  trangThai: 'nhap',
+  isPublic: false,
   ...ghiDe,
 });
 
@@ -76,197 +67,141 @@ beforeEach(async () => {
   // Gieo dữ liệu bỏ qua rules để các ca đọc/sửa/xoá có cái mà thao tác.
   await testEnv.withSecurityRulesDisabled(async ctx => {
     const db = ctx.firestore();
-    await setDoc(doc(db, 'duGio/bb1'), bienBanMau());
-    await setDoc(doc(db, 'duGio/bb-khac'), bienBanMau({ nguoiDuUid: UID_TO_TRUONG_KHAC }));
-    await setDoc(doc(db, 'duGio/bb-da-trao-doi'), bienBanMau({ trangThai: 'da_trao_doi' }));
-    await setDoc(doc(db, 'duGio/bb-giao-vien-so-huu'), bienBanMau({ nguoiDuUid: UID_GIAO_VIEN }));
-    await setDoc(doc(db, 'lessonPlans/ga1'), { userId: UID_GIAO_VIEN, isPublic: false, title: 'Giáo án A' });
+    await setDoc(doc(db, 'duGio/bb-cua-toi'), bienBanMau());
+    await setDoc(doc(db, 'duGio/bb-nguoi-khac'), bienBanMau({ userId: UID_NGUOI_KHAC }));
+    await setDoc(
+      doc(db, 'duGio/bb-chia-se'),
+      bienBanMau({ userId: UID_NGUOI_KHAC, isPublic: true, gvHoTen: '' }),
+    );
+    await setDoc(doc(db, 'lessonPlans/ga1'), { userId: UID_TOI, isPublic: false, title: 'Giáo án A' });
   });
 });
 
-const dbCuaBGH = () => testEnv.authenticatedContext(UID_BGH, tokenTruong('bgh', 'bgh')).firestore();
-const dbCuaToTruong = () => testEnv.authenticatedContext(UID_TO_TRUONG, tokenTruong('totruong', 'to_truong')).firestore();
-const dbCuaGiaoVien = () => testEnv.authenticatedContext(UID_GIAO_VIEN, tokenTruong('giaovien', 'giao_vien')).firestore();
+const dbCuaToi = () => testEnv.authenticatedContext(UID_TOI, { email: 'toi@gmail.com' }).firestore();
+const dbNguoiKhac = () =>
+  testEnv.authenticatedContext(UID_NGUOI_KHAC, { email: 'khac@gmail.com' }).firestore();
+const dbAnDanh = () => testEnv.unauthenticatedContext().firestore();
 
-describe('duGio · chặn truy cập', () => {
-  it('1. Không đăng nhập → DENY đọc duGio/bb1', async () => {
-    const db = testEnv.unauthenticatedContext().firestore();
-    await assertFails(getDoc(doc(db, 'duGio/bb1')));
+describe('duGio · đọc biên bản riêng tư', () => {
+  it('1. Chưa đăng nhập → DENY đọc biên bản riêng tư', async () => {
+    await assertFails(getDoc(doc(dbAnDanh(), 'duGio/bb-cua-toi')));
   });
 
-  it('2. Gmail cá nhân ngoài trường (đã verified) → DENY', async () => {
-    const db = testEnv
-      .authenticatedContext('uid-nguoi-la', { email: 'nguoila@gmail.com', email_verified: true, vai_tro: 'bgh' })
-      .firestore();
-    await assertFails(getDoc(doc(db, 'duGio/bb1')));
+  it('2. Chủ sở hữu đọc biên bản của mình → ALLOW', async () => {
+    await assertSucceeds(getDoc(doc(dbCuaToi(), 'duGio/bb-cua-toi')));
   });
 
-  it('3. Email trường nhưng email_verified = false → DENY', async () => {
-    const db = testEnv
-      .authenticatedContext('uid-chua-xac-minh', { email: `chuaxacminh@${TRUONG}`, email_verified: false, vai_tro: 'bgh' })
-      .firestore();
-    await assertFails(getDoc(doc(db, 'duGio/bb1')));
-  });
-
-  it('4. Email trường, verified, KHÔNG có claim vai_tro → DENY', async () => {
-    const db = testEnv.authenticatedContext('uid-khong-vai-tro', tokenTruong('khongvaitro')).firestore();
-    await assertFails(getDoc(doc(db, 'duGio/bb1')));
+  it('3. Người đăng nhập khác đọc biên bản riêng tư của tôi → DENY', async () => {
+    await assertFails(getDoc(doc(dbNguoiKhac(), 'duGio/bb-cua-toi')));
   });
 });
 
-describe('duGio · đọc', () => {
-  it('5. to_truong đọc biên bản mình lập → ALLOW', async () => {
-    await assertSucceeds(getDoc(doc(dbCuaToTruong(), 'duGio/bb1')));
+describe('duGio · biên bản chia sẻ lên thư viện', () => {
+  it('4. Người đăng nhập khác đọc biên bản isPublic → ALLOW', async () => {
+    await assertSucceeds(getDoc(doc(dbCuaToi(), 'duGio/bb-chia-se')));
   });
 
-  it('6. to_truong đọc biên bản của tổ trưởng khác → DENY', async () => {
-    await assertFails(getDoc(doc(dbCuaToTruong(), 'duGio/bb-khac')));
+  it('5. Người khác KHÔNG sửa được biên bản đã chia sẻ → DENY', async () => {
+    await assertFails(updateDoc(doc(dbCuaToi(), 'duGio/bb-chia-se'), { bai: 'đổi trộm' }));
   });
 
-  it('7. bgh đọc biên bản của bất kỳ ai → ALLOW', async () => {
-    await assertSucceeds(getDoc(doc(dbCuaBGH(), 'duGio/bb-khac')));
-  });
-
-  // CA CANH CỜ. Khẳng định choGVXemBienBan() đang trả về false.
-  // Khi BGH quyết định bật cờ, ca này sẽ FAIL — đó là chủ đích: nó buộc người
-  // sửa phải nhận ra mình vừa đổi một CHÍNH SÁCH, không phải một dòng code.
-  // Lúc đó đổi assertFails → assertSucceeds và ghi lại quyết định của BGH.
-  it('8. giao_vien đọc biên bản về chính mình (da_trao_doi) → DENY (cờ đang tắt)', async () => {
-    await assertFails(getDoc(doc(dbCuaGiaoVien(), 'duGio/bb-da-trao-doi')));
+  it('6. Người khác KHÔNG xoá được biên bản đã chia sẻ → DENY', async () => {
+    await assertFails(deleteDoc(doc(dbCuaToi(), 'duGio/bb-chia-se')));
   });
 });
 
 describe('duGio · tạo', () => {
-  it('9. to_truong tạo với nguoiDuUid = mình, trangThai = nhap → ALLOW', async () => {
-    await assertSucceeds(setDoc(doc(dbCuaToTruong(), 'duGio/bb-moi'), bienBanMau()));
+  it('7. Đăng nhập, tạo biên bản mang userId của mình → ALLOW', async () => {
+    await assertSucceeds(setDoc(doc(dbCuaToi(), 'duGio/bb-moi'), bienBanMau()));
   });
 
-  it('10. to_truong tạo với nguoiDuUid của người khác → DENY', async () => {
+  it('8. Tạo biên bản gán userId cho người khác → DENY', async () => {
     await assertFails(
-      setDoc(doc(dbCuaToTruong(), 'duGio/bb-moi'), bienBanMau({ nguoiDuUid: UID_TO_TRUONG_KHAC })),
+      setDoc(doc(dbCuaToi(), 'duGio/bb-moi'), bienBanMau({ userId: UID_NGUOI_KHAC })),
     );
   });
 
-  it('11. to_truong tạo thẳng với trangThai = da_chot → DENY', async () => {
-    await assertFails(setDoc(doc(dbCuaToTruong(), 'duGio/bb-moi'), bienBanMau({ trangThai: 'da_chot' })));
+  it('9. Chưa đăng nhập → DENY tạo', async () => {
+    await assertFails(setDoc(doc(dbAnDanh(), 'duGio/bb-moi'), bienBanMau({ userId: 'ai-do' })));
   });
 
-  it('12. Tạo thiếu trường bắt buộc (bỏ gvId) → DENY', async () => {
-    const { gvId: _bo, ...thieu } = bienBanMau();
-    await assertFails(setDoc(doc(dbCuaToTruong(), 'duGio/bb-moi'), thieu));
+  it('10. Tạo thiếu trường bắt buộc (bỏ bienBan) → DENY', async () => {
+    const { bienBan: _bo, ...thieu } = bienBanMau();
+    await assertFails(setDoc(doc(dbCuaToi(), 'duGio/bb-moi'), thieu));
+  });
+});
+
+// Chia sẻ giữ nguyên tên giáo viên — quyết định của người dùng, ghi ở đây để
+// lần sau đọc rules không tưởng là thiếu sót.
+describe('duGio · chia sẻ lên thư viện', () => {
+  it('11. Tạo thẳng biên bản công khai còn nguyên tên giáo viên → ALLOW', async () => {
+    await assertSucceeds(
+      setDoc(doc(dbCuaToi(), 'duGio/bb-moi'), bienBanMau({ isPublic: true })),
+    );
+  });
+
+  it('12. Bật isPublic cho biên bản của mình → ALLOW', async () => {
+    await assertSucceeds(updateDoc(doc(dbCuaToi(), 'duGio/bb-cua-toi'), { isPublic: true }));
+  });
+
+  it('13. Người khác bật isPublic cho biên bản của tôi → DENY', async () => {
+    await assertFails(updateDoc(doc(dbNguoiKhac(), 'duGio/bb-cua-toi'), { isPublic: true }));
   });
 });
 
 describe('duGio · sửa và xoá', () => {
-  it('13. to_truong sửa biên bản của mình ở trangThai nhap → ALLOW', async () => {
-    await assertSucceeds(updateDoc(doc(dbCuaToTruong(), 'duGio/bb1'), { bienBan: 'ghi chép bổ sung' }));
+  it('16. Chủ sở hữu sửa biên bản của mình → ALLOW', async () => {
+    await assertSucceeds(updateDoc(doc(dbCuaToi(), 'duGio/bb-cua-toi'), { bienBan: 'ghi thêm' }));
   });
 
-  it('14. to_truong sửa biên bản đã da_trao_doi → DENY (biên bản đóng băng)', async () => {
-    await assertFails(updateDoc(doc(dbCuaToTruong(), 'duGio/bb-da-trao-doi'), { bienBan: 'sửa lại sau khi họp' }));
+  it('17. Sửa biên bản của người khác → DENY', async () => {
+    await assertFails(updateDoc(doc(dbCuaToi(), 'duGio/bb-nguoi-khac'), { bienBan: 'sửa trộm' }));
   });
 
-  it('15. to_truong đổi nguoiDuUid sang người khác → DENY', async () => {
-    await assertFails(updateDoc(doc(dbCuaToTruong(), 'duGio/bb1'), { nguoiDuUid: UID_TO_TRUONG_KHAC }));
+  it('18. Đổi userId sang người khác → DENY', async () => {
+    await assertFails(updateDoc(doc(dbCuaToi(), 'duGio/bb-cua-toi'), { userId: UID_NGUOI_KHAC }));
   });
 
-  it('16. to_truong xoá → DENY; bgh xoá → ALLOW', async () => {
-    await assertFails(deleteDoc(doc(dbCuaToTruong(), 'duGio/bb1')));
-    await assertSucceeds(deleteDoc(doc(dbCuaBGH(), 'duGio/bb1')));
-  });
-});
-
-// Lưới an toàn: khối dự giờ được CHÈN vào một file đang phục vụ tính năng chạy
-// thật. Nếu chèn sai chỗ làm hỏng lessonPlans, hai ca này báo ngay.
-describe('không phá vỡ tính năng cũ · lessonPlans', () => {
-  it('17. Người dùng thường đọc/ghi lessonPlans của chính mình → ALLOW', async () => {
-    const db = testEnv.authenticatedContext(UID_GIAO_VIEN, { email: 'ai-cung-duoc@gmail.com' }).firestore();
-    await assertSucceeds(getDoc(doc(db, 'lessonPlans/ga1')));
-    await assertSucceeds(updateDoc(doc(db, 'lessonPlans/ga1'), { title: 'Giáo án A (sửa)' }));
-  });
-
-  it('18. Người dùng thường đọc lessonPlans của người khác khi isPublic = false → DENY', async () => {
-    const db = testEnv.authenticatedContext('uid-nguoi-khac', { email: 'nguoikhac@gmail.com' }).firestore();
-    await assertFails(getDoc(doc(db, 'lessonPlans/ga1')));
+  it('19. Chủ sở hữu xoá → ALLOW; người khác xoá → DENY', async () => {
+    await assertFails(deleteDoc(doc(dbCuaToi(), 'duGio/bb-nguoi-khac')));
+    await assertSucceeds(deleteDoc(doc(dbCuaToi(), 'duGio/bb-cua-toi')));
   });
 });
 
 describe('duGio · truy vấn danh sách', () => {
-  it('19. bgh list toàn bộ duGio → ALLOW', async () => {
-    await assertSucceeds(getDocs(query(collection(dbCuaBGH(), 'duGio'), limit(200))));
-  });
-
-  it('20. to_truong list có lọc theo nguoiDuUid của mình → ALLOW', async () => {
+  it('20. Lọc theo userId của mình → ALLOW', async () => {
     await assertSucceeds(
-      getDocs(
-        query(
-          collection(dbCuaToTruong(), 'duGio'),
-          where('nguoiDuUid', '==', UID_TO_TRUONG),
-          limit(200),
-        ),
-      ),
+      getDocs(query(collection(dbCuaToi(), 'duGio'), where('userId', '==', UID_TOI))),
     );
   });
 
-  it('21. to_truong list không lọc theo nguoiDuUid → DENY', async () => {
-    await assertFails(getDocs(query(collection(dbCuaToTruong(), 'duGio'), limit(200))));
+  it('21. List không lọc → DENY (sẽ quét cả biên bản riêng tư của người khác)', async () => {
+    await assertFails(getDocs(query(collection(dbCuaToi(), 'duGio'))));
   });
 
-  it('22. to_truong list theo nguoiDuUid của người khác → DENY', async () => {
+  it('22. Lọc theo userId của người khác → DENY', async () => {
     await assertFails(
-      getDocs(
-        query(
-          collection(dbCuaToTruong(), 'duGio'),
-          where('nguoiDuUid', '==', UID_TO_TRUONG_KHAC),
-          limit(200),
-        ),
-      ),
+      getDocs(query(collection(dbCuaToi(), 'duGio'), where('userId', '==', UID_NGUOI_KHAC))),
     );
   });
 
-  it('23. to_truong list đúng nguoiDuUid nhưng thiếu limit → DENY', async () => {
-    await assertFails(
-      getDocs(
-        query(collection(dbCuaToTruong(), 'duGio'), where('nguoiDuUid', '==', UID_TO_TRUONG)),
-      ),
-    );
-  });
-
-  it('24. to_truong list đúng nguoiDuUid với limit 201 → DENY', async () => {
-    await assertFails(
-      getDocs(
-        query(
-          collection(dbCuaToTruong(), 'duGio'),
-          where('nguoiDuUid', '==', UID_TO_TRUONG),
-          limit(201),
-        ),
-      ),
+  it('23. Thư viện chung: lọc isPublic == true → ALLOW kể cả khi chưa đăng nhập', async () => {
+    await assertSucceeds(
+      getDocs(query(collection(dbAnDanh(), 'duGio'), where('isPublic', '==', true))),
     );
   });
 });
 
-describe('duGio · lưới an toàn schema và vai trò', () => {
-  it('25. giao_vien tạo biên bản → DENY', async () => {
-    await assertFails(
-      setDoc(
-        doc(dbCuaGiaoVien(), 'duGio/bb-giao-vien'),
-        bienBanMau({ nguoiDuUid: UID_GIAO_VIEN }),
-      ),
-    );
+// Lưới an toàn: khối dự giờ nằm trong một file đang phục vụ tính năng chạy
+// thật. Nếu sửa hỏng lessonPlans, hai ca này báo ngay.
+describe('không phá vỡ tính năng cũ · lessonPlans', () => {
+  it('24. Người dùng thường đọc/ghi lessonPlans của chính mình → ALLOW', async () => {
+    const db = dbCuaToi();
+    await assertSucceeds(getDoc(doc(db, 'lessonPlans/ga1')));
+    await assertSucceeds(updateDoc(doc(db, 'lessonPlans/ga1'), { title: 'Giáo án A (sửa)' }));
   });
 
-  it('26. giao_vien sửa biên bản mình đứng tên người dự → DENY', async () => {
-    await assertFails(
-      updateDoc(doc(dbCuaGiaoVien(), 'duGio/bb-giao-vien-so-huu'), { bienBan: 'không được sửa' }),
-    );
-  });
-
-  it('27. to_truong tạo thiếu gvUid → DENY', async () => {
-    const { gvUid: _bo, ...thieu } = bienBanMau();
-    await assertFails(setDoc(doc(dbCuaToTruong(), 'duGio/bb-thieu-gv-uid'), thieu));
-  });
-
-  it('28. to_truong đổi gvUid sau khi tạo → DENY', async () => {
-    await assertFails(updateDoc(doc(dbCuaToTruong(), 'duGio/bb1'), { gvUid: 'uid-giao-vien-khac' }));
+  it('25. Người dùng thường đọc lessonPlans của người khác khi isPublic = false → DENY', async () => {
+    await assertFails(getDoc(doc(dbNguoiKhac(), 'lessonPlans/ga1')));
   });
 });

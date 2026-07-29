@@ -52,7 +52,15 @@
       "collectionGroup": "duGio",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "nguoiDuUid", "order": "ASCENDING" },
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "ngay", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "duGio",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isPublic", "order": "ASCENDING" },
         { "fieldPath": "ngay", "order": "DESCENDING" }
       ]
     }
