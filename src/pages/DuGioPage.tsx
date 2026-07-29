@@ -25,6 +25,7 @@ import {
 import { BangChamDiem } from '../components/features/dugio/BangChamDiem';
 import { BangQuanSat } from '../components/features/dugio/BangQuanSat';
 import { BangSoSanh, BangTuDanhGia } from '../components/features/dugio/TuDanhGia';
+import { extractTextFromPDF, extractTextFromWord } from '../utils/fileUtils';
 import { docFileExcel, tenFileXuat, xuatTheoMau } from '../lib/dugio/excel';
 import { phanTichBienBan, soanGopY, soanNhanXet, vanBanQuanSat } from '../lib/dugio/phanTich';
 import { soVN, thieuMinhChungChamNguong, tinhDiem } from '../lib/dugio/tinhDiem';
@@ -76,6 +77,8 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
   const [thongBao, setThongBao] = useState('');
   const [hong, setHong] = useState<MaThanhTo[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
+  const giaoAnRef = useRef<HTMLInputElement>(null);
+  const hoSoRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     // Nhúng trong app thì App.tsx đã xác thực rồi, không cần lắng nghe lần nữa.
@@ -255,6 +258,30 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
       a.download = tenFileXuat(bienBan);
       a.click();
       URL.revokeObjectURL(a.href);
+    });
+
+  /**
+   * Nạp giáo án hoặc hồ sơ từ file Word/PDF vào ô văn bản tương ứng.
+   * Dùng lại extractTextFromWord/PDF sẵn có của repo — không thêm thư viện.
+   */
+  const napTaiLieu = (f: File, khoa: 'giaoAn' | 'hoSo') =>
+    chay('Đang đọc tài liệu…', async () => {
+      const duoi = f.name.split('.').pop()?.toLowerCase();
+      let chu = '';
+      if (duoi === 'pdf') chu = await extractTextFromPDF(f);
+      else if (duoi === 'docx' || duoi === 'doc') chu = await extractTextFromWord(f);
+      else throw new Error('Chỉ nhận file Word (.docx) hoặc PDF. File .doc đời cũ nên lưu lại thành .docx.');
+
+      chu = chu.normalize('NFC').trim();
+      if (chu.length < 50) {
+        throw new Error(
+          'Đọc được rất ít chữ từ file này. Nếu là PDF scan thành ảnh thì không rút được văn bản — hãy dán tay hoặc dùng bản Word.',
+        );
+      }
+      // Nối thêm chứ không ghi đè, phòng khi đã dán sẵn một phần.
+      const cu = bienBan?.[khoa] ?? '';
+      doi({ [khoa]: cu.trim() ? `${cu.trim()}\n\n${chu}` : chu } as Partial<BienBanDuGio>);
+      setThongBao(`Đã nạp ${Math.round(chu.length / 100) / 10}k ký tự từ ${f.name}.`);
     });
 
   const napFile = (f: File) =>
@@ -590,14 +617,51 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
         </p>
         <BangQuanSat bienBan={bienBan} onDoi={doi} chiDoc={chiDoc} />
 
+        {/* Giáo án và hồ sơ thường đã có sẵn thành file Word/PDF — bắt copy thủ
+            công vào ô là chỗ tắc thật khi dùng. Nút tải lên nạp thẳng nội dung. */}
+        <input
+          ref={giaoAnRef}
+          type="file"
+          accept=".docx,.doc,.pdf"
+          hidden
+          onChange={e => {
+            const f = e.target.files?.[0];
+            if (f) void napTaiLieu(f, 'giaoAn');
+            e.target.value = '';
+          }}
+        />
+        <input
+          ref={hoSoRef}
+          type="file"
+          accept=".docx,.doc,.pdf"
+          hidden
+          onChange={e => {
+            const f = e.target.files?.[0];
+            if (f) void napTaiLieu(f, 'hoSo');
+            e.target.value = '';
+          }}
+        />
+
         <div className="mt-4 grid gap-3 lg:grid-cols-3">
           {([
-            ['bienBan', 'Ghi chép thêm (tự do)', 'Những gì không xếp vừa vào bảng trên.'],
-            ['giaoAn', 'Giáo án / kế hoạch bài dạy', 'Dán vào đây thì mới chấm được Phần I.'],
-            ['hoSo', 'Tự phản tư & hồ sơ', 'Dán vào đây thì mới chấm được Phần IV.'],
-          ] as const).map(([khoa, nhan, goiY]) => (
+            ['bienBan', 'Ghi chép thêm (tự do)', 'Những gì không xếp vừa vào bảng trên.', null],
+            ['giaoAn', 'Giáo án / kế hoạch bài dạy', 'Tải file Word/PDF lên, hoặc dán vào đây. Có nội dung này mới chấm được Phần I.', giaoAnRef],
+            ['hoSo', 'Tự phản tư & hồ sơ', 'Tải file Word/PDF lên, hoặc dán vào đây. Có nội dung này mới chấm được Phần IV.', hoSoRef],
+          ] as const).map(([khoa, nhan, goiY, ref]) => (
             <label key={khoa} className="block">
-              <span className="mb-1 block text-sm font-medium text-slate-600">{nhan}</span>
+              <span className="mb-1 flex flex-wrap items-center justify-between gap-2 text-sm font-medium text-slate-600">
+                {nhan}
+                {ref && !chiDoc && (
+                  <button
+                    type="button"
+                    onClick={() => ref.current?.click()}
+                    disabled={!!dangChay}
+                    className="rounded-lg bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200 disabled:opacity-50"
+                  >
+                    Tải file Word/PDF
+                  </button>
+                )}
+              </span>
               <textarea
                 value={bienBan[khoa]}
                 disabled={chiDoc}
@@ -606,6 +670,11 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
                 onChange={e => doi({ [khoa]: e.target.value } as Partial<BienBanDuGio>)}
                 className={O}
               />
+              {ref && bienBan[khoa].trim().length > 0 && (
+                <span className="mt-1 block text-xs text-slate-500">
+                  Đã có {Math.round(bienBan[khoa].length / 100) / 10}k ký tự.
+                </span>
+              )}
             </label>
           ))}
         </div>
