@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { bienBanRong, type BienBanDuGio } from './types';
-import { soVN, thanhToTheoBo, thieuMinhChungChamNguong, tinhDiem } from './tinhDiem';
+import { soSanhTuDanhGia, soVN, thanhToTheoBo, thieuMinhChungChamNguong, tinhDiem } from './tinhDiem';
 
 const bb = (ghiDe: Partial<BienBanDuGio> = {}): BienBanDuGio => ({
   ...bienBanRong('u1'),
@@ -136,6 +136,73 @@ describe('thieuMinhChungChamNguong', () => {
     // 4a chỉ có trong bộ đầy đủ.
     expect(thieuMinhChungChamNguong(bb({ boTieuChi: 'dugio', diemChot: { '4a': 2.5 } }))).toEqual([]);
     expect(thieuMinhChungChamNguong(bb({ boTieuChi: 'daydu', diemChot: { '4a': 2.5 } }))).toHaveLength(1);
+  });
+});
+
+describe('soSanhTuDanhGia', () => {
+  it('chưa tự đánh giá thì báo rõ, không coi là lệch', () => {
+    const kq = soSanhTuDanhGia(bb({ diemChot: { '3b': 3, '3c': 2 } }));
+    expect(kq.daTuDanhGia).toBe(false);
+    expect(kq.lechLon).toEqual([]);
+    expect(kq.dong).toHaveLength(2);
+    expect(kq.dong[0].giaoVien).toBeNull();
+    expect(kq.dong[0].chenh).toBeNull();
+  });
+
+  it('tính chênh theo hướng giáo viên trừ người dự giờ', () => {
+    const kq = soSanhTuDanhGia(
+      bb({
+        diemChot: { '3b': 2, '3c': 4 },
+        tuDanhGia: { diem: { '3b': 4, '3c': 3 }, ghiChu: {}, hoanThanhLuc: '2026-04-06' },
+      }),
+    );
+    const b = kq.dong.find(d => d.ma === '3b')!;
+    const c = kq.dong.find(d => d.ma === '3c')!;
+    expect(b.chenh).toBe(2); // GV tự chấm cao hơn
+    expect(c.chenh).toBe(-1); // GV tự chấm thấp hơn
+    expect(kq.daTuDanhGia).toBe(true);
+  });
+
+  it('chỉ nêu lệch từ 1 mức trở lên; lệch 0,5 là sai số bình thường', () => {
+    const kq = soSanhTuDanhGia(
+      bb({
+        diemChot: { '3a': 3, '3b': 3, '3c': 3 },
+        tuDanhGia: {
+          diem: { '3a': 3.5, '3b': 4, '3c': 3 },
+          ghiChu: {},
+          hoanThanhLuc: '2026-04-06',
+        },
+      }),
+    );
+    expect(kq.lechLon.map(d => d.ma)).toEqual(['3b']);
+  });
+
+  it('sắp xếp lệch lớn nhất lên đầu', () => {
+    const kq = soSanhTuDanhGia(
+      bb({
+        diemChot: { '3a': 1, '3b': 3, '3c': 2 },
+        tuDanhGia: { diem: { '3a': 2, '3b': 1, '3c': 4 }, ghiChu: {}, hoanThanhLuc: 'x' },
+      }),
+    );
+    // chênh: 3a=+1, 3b=−2, 3c=+2 → xếp theo trị tuyệt đối giảm dần
+    expect(kq.lechLon.map(d => Math.abs(d.chenh as number))).toEqual([2, 2, 1]);
+  });
+
+  it('bỏ qua thành tố cả hai bên đều không đánh giá', () => {
+    const kq = soSanhTuDanhGia(
+      bb({ diemChot: { '3b': 3 }, tuDanhGia: { diem: {}, ghiChu: {}, hoanThanhLuc: 'x' } }),
+    );
+    expect(kq.dong.map(d => d.ma)).toEqual(['3b']);
+  });
+
+  it('mang theo ghi chú của giáo viên để đọc khi trao đổi', () => {
+    const kq = soSanhTuDanhGia(
+      bb({
+        diemChot: { '3b': 2 },
+        tuDanhGia: { diem: { '3b': 3 }, ghiChu: { '3b': 'Tôi có chờ 3 giây' }, hoanThanhLuc: 'x' },
+      }),
+    );
+    expect(kq.dong[0].ghiChu).toBe('Tôi có chờ 3 giây');
   });
 });
 

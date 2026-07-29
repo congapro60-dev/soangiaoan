@@ -24,6 +24,7 @@ import {
 } from '../data/huanLuyen';
 import { BangChamDiem } from '../components/features/dugio/BangChamDiem';
 import { BangQuanSat } from '../components/features/dugio/BangQuanSat';
+import { BangSoSanh, BangTuDanhGia } from '../components/features/dugio/TuDanhGia';
 import { docFileExcel, tenFileXuat, xuatTheoMau } from '../lib/dugio/excel';
 import { phanTichBienBan, soanGopY, soanNhanXet, vanBanQuanSat } from '../lib/dugio/phanTich';
 import { soVN, thieuMinhChungChamNguong, tinhDiem } from '../lib/dugio/tinhDiem';
@@ -133,7 +134,10 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
     [],
   );
 
-  const chiDoc = !!bienBan && !!user && bienBan.userId !== user.uid;
+  const laChu = !!bienBan && !!user && bienBan.userId === user.uid;
+  /** Giáo viên được mời tự đánh giá — chỉ ghi được ô tự chấm, rules chặn phần còn lại. */
+  const laGiaoVien = !!bienBan && !!user && !laChu && !!bienBan.gvUid && bienBan.gvUid === user.uid;
+  const chiDoc = !!bienBan && !laChu;
   const diem = useMemo(() => (bienBan ? tinhDiem(bienBan) : null), [bienBan]);
   const thieu = useMemo(() => (bienBan ? thieuMinhChungChamNguong(bienBan) : []), [bienBan]);
 
@@ -337,7 +341,81 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
     { khoa: 'ngay', nhan: 'Ngày dự giờ', kieu: 'date' },
     { khoa: 'nguoiDu', nhan: 'Người dự giờ' },
     { khoa: 'namHocKy', nhan: 'Năm học & kỳ học' },
+    { khoa: 'gvUid', nhan: 'UID giáo viên (để mời tự đánh giá)' },
   ];
+
+  // Giáo viên được mời: chỉ thấy phần tự đánh giá. KHÔNG cho họ xem điểm của
+  // người dự giờ trước khi tự chấm — thấy trước thì chấm theo, mất ý nghĩa.
+  if (laGiaoVien && bienBan) {
+    const daGui = !!bienBan.tuDanhGia.hoanThanhLuc;
+    return (
+      <KhungNgoai embedded={embedded}>
+        <button onClick={veDanhSach} className="mb-4 text-sm text-slate-500 hover:underline">
+          ← Danh sách biên bản
+        </button>
+
+        {dangChay && <Hop mau="indigo">{dangChay}</Hop>}
+        {loi && <Hop mau="rose">{loi}</Hop>}
+        {thongBao && !loi && <Hop mau="emerald">{thongBao}</Hop>}
+
+        <h1 className="text-2xl font-bold">Tự đánh giá tiết dạy</h1>
+        <p className="mt-1 text-slate-600">
+          {bienBan.bai || 'Tiết dạy'} · lớp {bienBan.lop || '—'} · {bienBan.ngay}
+        </p>
+
+        <Hop mau="slate">
+          Thầy/cô tự chấm trước, chưa xem điểm của người dự giờ. Sau khi gửi, hai bảng sẽ được đặt
+          cạnh nhau — chỗ lệch nhau là chỗ đáng trao đổi nhất.
+        </Hop>
+
+        {bienBan.keHoach.mongMuon && (
+          <div className="mb-4 rounded-xl border border-slate-200 bg-white p-4 text-sm">
+            <p className="font-semibold text-slate-800">Đã thống nhất trước tiết dạy</p>
+            <p className="mt-1 text-slate-700">Mong muốn học sinh đạt được: {bienBan.keHoach.mongMuon}</p>
+            {bienBan.keHoach.quanTam && (
+              <p className="text-slate-700">Điều quan tâm: {bienBan.keHoach.quanTam}</p>
+            )}
+          </div>
+        )}
+
+        <section className="mb-6">
+          <h2 className="mb-3 text-xl font-bold">Ghi chép quan sát của người dự giờ</h2>
+          <BangQuanSat bienBan={bienBan} onDoi={doi} chiDoc />
+        </section>
+
+        <section className="mb-6">
+          <h2 className="mb-3 text-xl font-bold">Bảng tự chấm của thầy/cô</h2>
+          <BangTuDanhGia bienBan={bienBan} onDoi={doi} chiDoc={daGui} />
+        </section>
+
+        <div className="sticky bottom-0 flex flex-wrap items-center gap-3 border-t border-slate-200 bg-white/90 py-3 backdrop-blur">
+          {daGui ? (
+            <span className="text-sm font-medium text-emerald-700">
+              Đã gửi lúc {bienBan.tuDanhGia.hoanThanhLuc}. Bản tự đánh giá đã khoá.
+            </span>
+          ) : (
+            <button
+              onClick={() =>
+                chay('Đang gửi…', async () => {
+                  const moi = {
+                    ...bienBan,
+                    tuDanhGia: { ...bienBan.tuDanhGia, hoanThanhLuc: new Date().toISOString().slice(0, 10) },
+                  };
+                  await luuBienBan(moi);
+                  setBienBan(moi);
+                  setThongBao('Đã gửi bản tự đánh giá.');
+                })
+              }
+              disabled={!!dangChay}
+              className={`${NUT} bg-emerald-600 text-white hover:bg-emerald-700`}
+            >
+              Gửi bản tự đánh giá
+            </button>
+          )}
+        </div>
+      </KhungNgoai>
+    );
+  }
 
   return (
     <KhungNgoai embedded={embedded}>
@@ -398,6 +476,47 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
           </label>
         </div>
       </section>
+
+      <details className="mb-8 rounded-xl border border-slate-200 bg-white p-4" open={!bienBan.id}>
+        <summary className="cursor-pointer text-xl font-bold text-slate-800">
+          Thống nhất trước tiết dạy
+          <span className="ml-2 text-sm font-normal text-slate-500">
+            bước 2 của chu trình · gặp giáo viên TRƯỚC khi dự
+          </span>
+        </summary>
+        <p className="mt-2 mb-3 text-sm text-slate-600">
+          Không có bước này thì dự giờ vẫn mang tính kiểm tra bất ngờ, dù nói chuyện tử tế đến đâu
+          sau đó.
+        </p>
+        <div className="grid gap-3 lg:grid-cols-3">
+          {([
+            ['mongMuon', 'Thầy/cô mong muốn học sinh đạt được điều gì?'],
+            ['quanTam', 'Điều gì quan trọng nhất với học sinh lúc này?'],
+            ['nhoQuanSat', 'Thầy/cô muốn tôi chú ý giúp điều gì?'],
+          ] as const).map(([khoa, nhan]) => (
+            <label key={khoa} className="block">
+              <span className="mb-1 block text-sm font-medium text-slate-600">{nhan}</span>
+              <textarea
+                value={bienBan.keHoach[khoa]}
+                disabled={chiDoc}
+                rows={3}
+                onChange={e => doi({ keHoach: { ...bienBan.keHoach, [khoa]: e.target.value } })}
+                className={O}
+              />
+            </label>
+          ))}
+        </div>
+        <label className="mt-3 block max-w-xs">
+          <span className="mb-1 block text-sm font-medium text-slate-600">Ngày họp trước tiết</span>
+          <input
+            type="date"
+            value={bienBan.keHoach.ngayHop}
+            disabled={chiDoc}
+            onChange={e => doi({ keHoach: { ...bienBan.keHoach, ngayHop: e.target.value } })}
+            className={O}
+          />
+        </label>
+      </details>
 
       <section className="mb-8">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
@@ -505,8 +624,18 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
 
       {!chiDoc && (
         <section className="mb-8">
+          <h2 className="mb-3 text-xl font-bold">
+            4 · Đối chiếu với bản tự đánh giá của giáo viên
+            <span className="ml-2 text-sm font-normal text-slate-500">bước 5 của chu trình</span>
+          </h2>
+          <BangSoSanh bienBan={bienBan} />
+        </section>
+      )}
+
+      {!chiDoc && (
+        <section className="mb-8">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-xl font-bold">4 · Chuẩn bị buổi trao đổi</h2>
+            <h2 className="text-xl font-bold">5 · Chuẩn bị buổi trao đổi</h2>
             <div className="flex flex-wrap gap-2">
               <button onClick={gopY} disabled={!!dangChay || !canGopY.length} className={`${NUT} bg-slate-100 text-slate-700 hover:bg-slate-200`}>
                 Soạn góp ý ({canGopY.length} mục dưới 3)

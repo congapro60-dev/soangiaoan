@@ -168,6 +168,73 @@ describe('duGio · sửa và xoá', () => {
   });
 });
 
+// Bước 5 của chu trình: giáo viên tự phân tích. Họ đọc được biên bản về mình
+// nhưng CHỈ ghi được đúng ô tuDanhGia — không chạm được vào điểm của người dự.
+describe('duGio · giáo viên được dự giờ tự đánh giá', () => {
+  const UID_GV = 'uid-giao-vien';
+  const dbGV = () => testEnv.authenticatedContext(UID_GV, { email: 'gv@gmail.com' }).firestore();
+
+  beforeEach(async () => {
+    await testEnv.withSecurityRulesDisabled(async ctx => {
+      await setDoc(
+        doc(ctx.firestore(), 'duGio/bb-co-moi'),
+        bienBanMau({ gvUid: UID_GV, tuDanhGia: { diem: {}, ghiChu: {}, hoanThanhLuc: '' } }),
+      );
+    });
+  });
+
+  it('26. Giáo viên được mời đọc biên bản về mình → ALLOW', async () => {
+    await assertSucceeds(getDoc(doc(dbGV(), 'duGio/bb-co-moi')));
+  });
+
+  it('27. Giáo viên KHÔNG được mời thì không đọc được → DENY', async () => {
+    await assertFails(getDoc(doc(dbGV(), 'duGio/bb-cua-toi')));
+  });
+
+  it('28. Giáo viên ghi ô tự đánh giá → ALLOW', async () => {
+    await assertSucceeds(
+      updateDoc(doc(dbGV(), 'duGio/bb-co-moi'), {
+        tuDanhGia: { diem: { '3b': 3 }, ghiChu: { '3b': 'tôi thấy mình hỏi mở nhiều hơn' }, hoanThanhLuc: '2026-04-06' },
+      }),
+    );
+  });
+
+  it('29. Giáo viên sửa điểm của người dự giờ → DENY', async () => {
+    await assertFails(updateDoc(doc(dbGV(), 'duGio/bb-co-moi'), { diemChot: { '3b': 4 } }));
+  });
+
+  it('30. Giáo viên sửa biên bản quan sát → DENY', async () => {
+    await assertFails(updateDoc(doc(dbGV(), 'duGio/bb-co-moi'), { bienBan: 'tôi sửa lại' }));
+  });
+
+  it('31. Giáo viên vừa ghi tự đánh giá vừa lén sửa điểm → DENY', async () => {
+    await assertFails(
+      updateDoc(doc(dbGV(), 'duGio/bb-co-moi'), {
+        tuDanhGia: { diem: { '3b': 3 }, ghiChu: {}, hoanThanhLuc: '' },
+        diemChot: { '3b': 4 },
+      }),
+    );
+  });
+
+  it('32. Giáo viên tự gán mình làm gvUid của biên bản khác → DENY', async () => {
+    await assertFails(updateDoc(doc(dbGV(), 'duGio/bb-cua-toi'), { gvUid: UID_GV }));
+  });
+
+  it('33. Giáo viên xoá biên bản về mình → DENY', async () => {
+    await assertFails(deleteDoc(doc(dbGV(), 'duGio/bb-co-moi')));
+  });
+
+  it('34. Người lạ không phải gvUid thì không đọc được → DENY', async () => {
+    await assertFails(getDoc(doc(dbNguoiKhac(), 'duGio/bb-co-moi')));
+  });
+
+  it('35. Giáo viên liệt kê biên bản về mình → ALLOW', async () => {
+    await assertSucceeds(
+      getDocs(query(collection(dbGV(), 'duGio'), where('gvUid', '==', UID_GV))),
+    );
+  });
+});
+
 describe('duGio · truy vấn danh sách', () => {
   it('20. Lọc theo userId của mình → ALLOW', async () => {
     await assertSucceeds(

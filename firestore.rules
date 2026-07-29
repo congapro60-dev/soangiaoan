@@ -367,6 +367,22 @@ service cloud.firestore {
     // biên bản của mình, chỉ mình đọc; muốn chia sẻ thì bật isPublic.
     // ────────────────────────────────────────────────────────────────
 
+    /* Giáo viên được dự giờ: chỉ có mặt khi người lập điền gvUid để mời họ
+       tự đánh giá (bước 5 của chu trình dự giờ phát triển). Dùng get() với giá
+       trị mặc định vì document cũ chưa có trường này — đọc thẳng sẽ ném lỗi. */
+    function laGiaoVienDuocDu() {
+      return request.auth != null
+             && resource.data.get('gvUid', '') != ''
+             && resource.data.get('gvUid', '') == request.auth.uid;
+    }
+
+    /* Giáo viên CHỈ được ghi đúng ô tự đánh giá. Không sửa được điểm, nhận xét
+       hay bất cứ thứ gì của người dự giờ. */
+    function chiSuaTuDanhGia() {
+      return request.resource.data.diff(resource.data)
+               .affectedKeys().hasOnly(['tuDanhGia', 'updatedAt', 'capNhatLuc']);
+    }
+
     match /duGio/{bienBanId} {
 
       // KHÔNG dùng `allow list: if request.auth != null` như lessonPlans —
@@ -374,10 +390,12 @@ service cloud.firestore {
       // khác. Ở đây mỗi document ứng viên phải tự thoả điều kiện, nên client
       // buộc phải lọc theo userId hoặc theo isPublic.
       allow list: if (request.auth != null && resource.data.userId == request.auth.uid)
-                  || resource.data.isPublic == true;
+                  || resource.data.isPublic == true
+                  || laGiaoVienDuocDu();
 
       allow get: if resource.data.isPublic == true
-                 || (request.auth != null && request.auth.uid == resource.data.userId);
+                 || (request.auth != null && request.auth.uid == resource.data.userId)
+                 || laGiaoVienDuocDu();
 
       allow create: if request.auth != null
                     && request.auth.uid == request.resource.data.userId
@@ -385,9 +403,10 @@ service cloud.firestore {
                          ['userId', 'ngay', 'bienBan', 'isPublic']);
 
       // Không cho đổi chủ sở hữu sau khi tạo.
-      allow update: if request.auth != null
-                    && request.auth.uid == resource.data.userId
-                    && request.resource.data.userId == resource.data.userId;
+      allow update: if (request.auth != null
+                        && request.auth.uid == resource.data.userId
+                        && request.resource.data.userId == resource.data.userId)
+                    || (laGiaoVienDuocDu() && chiSuaTuDanhGia());
 
       allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }

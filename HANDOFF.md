@@ -10,6 +10,38 @@
 
 ## 1. Trạng thái hiện tại
 
+### 1.0m Cập nhật phiên 2026-07-29 (tối) — Dự giờ: huấn luyện, chu trình 7 bước, giáo viên tự đánh giá
+
+Bối cảnh: đọc thư mục `Huấn luyện và cố vấn/` (bộ tập huấn song ngữ 56 trang + 2 poster). Mục tiêu tập huấn ghi thẳng: *"dùng minh chứng Khung Danielson để định hướng trao đổi"* và *"đặt câu hỏi thay vì đưa lời khuyên trực tiếp"*.
+
+**Sửa 2 lỗi dữ liệu có sẵn trong file .docx gốc của trường** (user phát hiện `2b`, tôi rà ra thêm `3a`):
+- `2b` mức 3–4: còn nguyên văn tiếng Anh chưa dịch (`"The culture of the"` / `"class is characterized"`).
+- `3a` mức 4: chép nhầm, **lặp lại y hệt mức 1** — nguy hiểm hơn vì không lộ ra bằng mắt.
+Cả hai lấy lại từ bảng tóm tắt trong cùng file. Đã đối chiếu cả 22 thành tố × 4 mức giữa hai nguồn; 13 chỗ lệch còn lại chỉ là khác diễn đạt. Riêng `3d` mức 4 thì bảng tóm tắt mới là bản vỡ → giữ bản chi tiết.
+⚠️ **`src/data/khungDanielson.test.ts` (74 ca) canh đúng loại lỗi này** — bốn mức phải khác nhau, mọi mức phải có dấu tiếng Việt, phải là câu hoàn chỉnh. **Sinh lại dữ liệu từ .docx thì chạy test này TRƯỚC khi tin kết quả.** Ba mục `1f`/`2d`/`3c` thiếu phần chi tiết là do NGUỒN thiếu, đã khoá bằng test để khỏi ai sửa nhầm.
+
+**`src/data/huanLuyen.ts`** — chu trình dự giờ 7 bước, cấu trúc trò chuyện 5 bước, tư duy huấn luyện, mẹo trò chuyện khó, cặp "thay vì nói / hãy hỏi", câu hỏi mạnh mẽ, phân biệt huấn luyện với cố vấn.
+
+**`soanNhanXet` sinh thêm 2 thứ** (thêm 1 lượt gọi AI, tổng 3):
+- Kịch bản 5 bước — mỗi bước MỘT câu nói ra miệng, không phải mục báo cáo.
+- Lượt huấn luyện theo khuôn ví dụ 3b trong tài liệu: nêu quan sát trung tính "Tôi nhận thấy…" → hỏi GV tự nhận ra → hỏi về tác động tới HS. Trường `tranhNoi` giữ lại câu phán xét ĐỪNG nói, đặt cạnh câu nên nói.
+Tư duy huấn luyện + mẹo trò chuyện khó đưa thẳng vào prompt làm ràng buộc.
+
+**Bước 2 & bước 5 của chu trình** (trước chỉ phủ bước 3–4 và 6):
+- **Bước 2 — thống nhất trước tiết dạy**: `keHoach` (mongMuon, quanTam, nhoQuanSat, ngayHop). Không có bước này thì dự giờ vẫn là kiểm tra bất ngờ.
+- **Bước 5 — giáo viên TỰ phân tích**: `gvUid` + `tuDanhGia`. GV được mời đọc biên bản về mình và tự chấm, **KHÔNG thấy điểm người dự trước khi gửi** (thấy trước thì chấm theo, mất ý nghĩa). Gửi xong thì khoá. `soSanhTuDanhGia()` đặt hai bảng cạnh nhau, nêu chỗ lệch ≥ 1 mức — lệch 0,5 coi là sai số.
+
+**Rules mở thêm cho `gvUid`, chặt ở chỗ ghi:** `laGiaoVienDuocDu()` cho đọc; `chiSuaTuDanhGia()` dùng `diff().affectedKeys().hasOnly([...])` nên GV **chỉ ghi được đúng `tuDanhGia`**, không chạm được điểm/nhận xét của người dự. Dùng `resource.data.get('gvUid','')` chứ không đọc thẳng — document cũ không có trường này, đọc thẳng sẽ ném lỗi. 10 ca test mới (26–35) phủ cả các đường lách: vừa ghi tự đánh giá vừa lén sửa điểm, tự gán mình làm gvUid của biên bản khác.
+
+**Sửa lỗi giao diện tự phát hiện:** "Dự giờ" dùng chung icon `ClipboardCheck` với "Chấm điểm AI" ngay trên nó → sidebar thu gọn không phân biệt được. Đổi sang `Eye`.
+
+**Verify:** lint 0 lỗi · build PASS · `npm run test` **305/305** · `npm run test:rules` **33/33** · trình duyệt xác nhận mục "Thống nhất trước tiết dạy", "Đối chiếu với bản tự đánh giá", bảng tra cách nói đều hiện.
+
+**Việc còn:**
+- Bước 1 (khởi động quan sát) và bước 7 (áp dụng kiến thức mới) của chu trình vẫn chưa có.
+- Mời giáo viên đang phải **dán UID thủ công** — chưa có tra cứu theo email. Đây là chỗ vướng nhất khi dùng thật.
+- Chưa nghiệm thu được luồng GV tự đánh giá bằng tài khoản thật (cần 2 tài khoản Google).
+
 ### 1.0l Cập nhật phiên 2026-07-29 (chiều) — Dự giờ: ĐỔI MÔ HÌNH QUYỀN + giao diện + Excel theo mẫu trường
 
 **Quyết định của user làm thay đổi nền:** bỏ toàn bộ phân quyền `vai_tro`/BGH/tổ trưởng. **Ai đăng nhập Google cũng tự lập biên bản của mình, chỉ mình đọc; muốn chia sẻ thì bật `isPublic` — y hệt `lessonPlans`.** Tên giáo viên giữ nguyên khi chia sẻ (user quyết, tôi có nêu lo ngại và được bác).

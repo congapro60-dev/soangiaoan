@@ -91,6 +91,55 @@ export function thieuMinhChungChamNguong(bb: BienBanDuGio): ThieuChamNguong[] {
     .map(c => ({ ma: c.ma, ten: c.ten, diem: bb.diemChot[c.ma] as number }));
 }
 
+export interface DongSoSanh {
+  ma: MaThanhTo;
+  ten: string;
+  nguoiDu: number | null;
+  giaoVien: number | null;
+  /** giaoVien − nguoiDu. null khi thiếu một trong hai. */
+  chenh: number | null;
+  ghiChu: string;
+}
+
+/**
+ * Đối chiếu bảng điểm của người dự giờ với bảng tự đánh giá của giáo viên.
+ *
+ * Chỗ hai bên chấm lệch nhau chính là chỗ đáng nói nhất trong buổi trao đổi:
+ * hoặc giáo viên chưa thấy điều người dự thấy, hoặc người dự bỏ sót ngữ cảnh
+ * mà chỉ giáo viên biết. Cả hai đều đáng hỏi, không phải để phân xử ai đúng.
+ */
+export function soSanhTuDanhGia(bb: BienBanDuGio): {
+  dong: DongSoSanh[];
+  lechLon: DongSoSanh[];
+  daTuDanhGia: boolean;
+} {
+  const trongBo = new Set(thanhToTheoBo(bb.boTieuChi));
+  const dong: DongSoSanh[] = COMPONENTS.filter(c => trongBo.has(c.ma))
+    .map(c => {
+      const nguoiDu = typeof bb.diemChot[c.ma] === 'number' ? (bb.diemChot[c.ma] as number) : null;
+      const giaoVien =
+        typeof bb.tuDanhGia.diem[c.ma] === 'number' ? (bb.tuDanhGia.diem[c.ma] as number) : null;
+      return {
+        ma: c.ma,
+        ten: c.ten,
+        nguoiDu,
+        giaoVien,
+        chenh: nguoiDu !== null && giaoVien !== null ? giaoVien - nguoiDu : null,
+        ghiChu: bb.tuDanhGia.ghiChu[c.ma] || '',
+      };
+    })
+    .filter(d => d.nguoiDu !== null || d.giaoVien !== null);
+
+  return {
+    dong,
+    // Lệch từ 1 mức trở lên mới đáng mang ra bàn; lệch 0,5 là sai số bình thường.
+    lechLon: dong
+      .filter(d => d.chenh !== null && Math.abs(d.chenh) >= 1)
+      .sort((a, b) => Math.abs(b.chenh as number) - Math.abs(a.chenh as number)),
+    daTuDanhGia: !!bb.tuDanhGia.hoanThanhLuc,
+  };
+}
+
 /** Số thập phân kiểu Việt Nam: 3.25 → "3,25". */
 export function soVN(n: number | null, le = 2): string {
   if (n === null || Number.isNaN(n)) return '—';

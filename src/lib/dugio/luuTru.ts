@@ -54,6 +54,23 @@ function tuDoc(id: string, d: Record<string, unknown>): BienBanDuGio {
     trongTam: (d.trongTam as BienBanDuGio['trongTam']) || {},
     dongQuanSat: (d.dongQuanSat as BienBanDuGio['dongQuanSat']) || [],
     nhanXet: (d.nhanXet as BienBanDuGio['nhanXet']) ?? null,
+    // Ba trường dưới đây thêm sau; biên bản lập trước đó không có, phải trả về
+    // giá trị rỗng chứ không undefined, nếu không giao diện vỡ khi đọc bài cũ.
+    gvUid: (d.gvUid as string) || '',
+    keHoach: {
+      ngayHop: '',
+      trongTamQuanSat: [],
+      mongMuon: '',
+      quanTam: '',
+      nhoQuanSat: '',
+      ...((d.keHoach as Partial<BienBanDuGio['keHoach']>) || {}),
+    },
+    tuDanhGia: {
+      diem: {},
+      ghiChu: {},
+      hoanThanhLuc: '',
+      ...((d.tuDanhGia as Partial<BienBanDuGio['tuDanhGia']>) || {}),
+    },
   };
 }
 

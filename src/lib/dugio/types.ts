@@ -86,12 +86,47 @@ export interface NhanXetTraoDoi {
 /** 15 cấu phần như mẫu Excel của trường, hoặc đủ 22 thành tố của khung. */
 export type BoTieuChi = 'dugio' | 'daydu';
 
+/**
+ * Bước 2 của chu trình — cuộc họp lên kế hoạch TRƯỚC tiết dạy.
+ * Không có bước này thì dự giờ vẫn mang tính kiểm tra bất ngờ, dù nói chuyện
+ * tử tế đến đâu sau đó.
+ */
+export interface KeHoachTruocTiet {
+  ngayHop: string;
+  /** Thành tố hai bên thống nhất sẽ tập trung quan sát. */
+  trongTamQuanSat: MaThanhTo[];
+  /** "Bạn mong muốn học sinh đạt được điều gì?" */
+  mongMuon: string;
+  /** "Điều gì là quan trọng nhất đối với học sinh của bạn lúc này?" */
+  quanTam: string;
+  /** Điều giáo viên muốn người dự giờ chú ý giúp. */
+  nhoQuanSat: string;
+}
+
+/**
+ * Bước 5 — giáo viên TỰ phân tích. Khung ghi rõ "Phân tích bởi Quan sát viên
+ * VÀ Giáo viên"; chỉ một chiều thì mất nửa giá trị của chu trình.
+ * Chênh lệch giữa hai bảng điểm chính là chỗ đáng nói nhất khi trao đổi.
+ */
+export interface TuDanhGia {
+  diem: Partial<Record<MaThanhTo, number | null>>;
+  ghiChu: Partial<Record<MaThanhTo, string>>;
+  /** Rỗng khi giáo viên chưa gửi. */
+  hoanThanhLuc: string;
+}
+
 export interface BienBanDuGio {
   id: string;
   userId: string;
 
   // Phần hành chính — đúng các ô ở đầu mẫu biên bản của trường.
   gvHoTen: string;
+  /**
+   * UID của giáo viên được dự giờ, để họ tự đánh giá (bước 5).
+   * Rỗng khi chưa mời. Rules cho uid này ĐỌC biên bản và chỉ ghi được đúng
+   * trường tuDanhGia — không sửa được điểm của người dự giờ.
+   */
+  gvUid: string;
   lop: string;
   tuan: string;
   bai: string;
@@ -120,6 +155,9 @@ export interface BienBanDuGio {
   trongTam: Partial<Record<MaThanhTo, boolean>>;
   nhanXet: NhanXetTraoDoi | null;
 
+  keHoach: KeHoachTruocTiet;
+  tuDanhGia: TuDanhGia;
+
   isPublic: boolean;
   createdAt: string;
   updatedAt: string;
@@ -129,6 +167,7 @@ export const bienBanRong = (userId: string): BienBanDuGio => ({
   id: '',
   userId,
   gvHoTen: '',
+  gvUid: '',
   lop: '',
   tuan: '',
   bai: '',
@@ -147,6 +186,8 @@ export const bienBanRong = (userId: string): BienBanDuGio => ({
   gopY: {},
   trongTam: {},
   nhanXet: null,
+  keHoach: { ngayHop: '', trongTamQuanSat: [], mongMuon: '', quanTam: '', nhoQuanSat: '' },
+  tuDanhGia: { diem: {}, ghiChu: {}, hoanThanhLuc: '' },
   isPublic: false,
   createdAt: '',
   updatedAt: '',
