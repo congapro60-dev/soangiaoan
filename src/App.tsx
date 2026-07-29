@@ -29,6 +29,8 @@ const ExamsTab = lazy(() => import('./components/tabs/ExamsTab').then(m => ({ de
 const AdaptiveLearningTab = lazy(() => import('./components/tabs/AdaptiveLearningTab').then(m => ({ default: m.AdaptiveLearningTab })));
 const AdaptiveLessonListPage = lazy(() => import('./pages/AdaptiveLessonListPage').then(m => ({ default: m.AdaptiveLessonListPage })));
 const AdaptiveLessonBuilderPage = lazy(() => import('./pages/AdaptiveLessonBuilderPage').then(m => ({ default: m.AdaptiveLessonBuilderPage })));
+// Trang dự giờ kéo theo xlsx + jszip nên tách gói riêng, đừng nhồi vào bundle chính.
+const DuGioPage = lazy(() => import('./pages/DuGioPage').then(m => ({ default: m.DuGioPage })));
 const AIToolsTab = lazy(() => import('./components/tabs/AIToolsTab').then(m => ({ default: m.AIToolsTab })));
 const ClassesTab = lazy(() => import('./components/tabs/ClassesTab').then(m => ({ default: m.ClassesTab })));
 const LessonUpgradeTab = lazy(() => import('./components/tabs/LessonUpgradeTab').then(m => ({ default: m.LessonUpgradeTab })));
@@ -51,7 +53,7 @@ export default function App() {
     saveGradingSession, deleteGradingSession, deleteGradingResult,
   } = useAppState(user, showToast);
   
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'classes' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading' | 'exams' | 'adaptiveLessons' | 'aiTools' | 'lessonUpgrade'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'classes' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading' | 'exams' | 'adaptiveLessons' | 'aiTools' | 'lessonUpgrade' | 'duGio'>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth >= 768);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [libraryTab, setLibraryTab] = useState<'personal' | 'community'>('personal');
@@ -394,6 +396,8 @@ export default function App() {
             {activeTab === 'exams' && (
               <ExamsTab user={user} data={data} showToast={showToast} />
             )}
+
+            {activeTab === 'duGio' && <DuGioPage embedded user={user} />}
 
             {activeTab === 'adaptiveLessons' && (
               isAdaptiveStatsOpen ? (

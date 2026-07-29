@@ -59,9 +59,9 @@ export function BangChamDiem({ bienBan, onDoi, chiDoc }: Props) {
     <div className="space-y-8">
       {cacPhan.map(phan => (
         <section key={phan}>
-          <header className="mb-3 border-b border-slate-200 pb-2 dark:border-slate-700">
-            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">{TEN_PHAN[phan]}</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400">{NGUON_PHAN[phan]}</p>
+          <header className="mb-3 border-b border-slate-200 pb-2">
+            <h3 className="text-lg font-bold text-slate-800">{TEN_PHAN[phan]}</h3>
+            <p className="text-sm text-slate-500">{NGUON_PHAN[phan]}</p>
           </header>
 
           <div className="space-y-3">
@@ -79,8 +79,8 @@ export function BangChamDiem({ bienBan, onDoi, chiDoc }: Props) {
                   key={c.ma}
                   className={`rounded-xl border p-4 transition ${
                     thieu
-                      ? 'border-rose-400 bg-rose-50 dark:border-rose-500/60 dark:bg-rose-950/30'
-                      : 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800/60'
+                      ? 'border-rose-400 bg-rose-50'
+                      : 'border-slate-200 bg-white'
                   }`}
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -88,16 +88,16 @@ export function BangChamDiem({ bienBan, onDoi, chiDoc }: Props) {
                       <button
                         type="button"
                         onClick={() => setMoRong(mo ? null : c.ma)}
-                        className="text-left font-semibold text-slate-800 hover:underline dark:text-slate-100"
+                        className="text-left font-semibold text-slate-800 hover:underline"
                       >
-                        <span className="mr-2 rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                        <span className="mr-2 rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-slate-600">
                           {c.ma}
                         </span>
                         {c.ten}
                       </button>
 
                       {kq && (
-                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        <p className="mt-1 text-xs text-slate-500">
                           AI đề xuất: <b>{kq.diem === null ? 'không đủ căn cứ' : nhanDiem(kq.diem)}</b>
                           {' · tin cậy '}
                           {{ cao: 'cao', vua: 'vừa', thap: 'thấp' }[kq.tinCay]}
@@ -113,8 +113,8 @@ export function BangChamDiem({ bienBan, onDoi, chiDoc }: Props) {
                         onClick={() => datDiem(c.ma, null)}
                         className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition ${
                           chuaCham
-                            ? 'border-slate-400 bg-slate-200 text-slate-700 dark:border-slate-500 dark:bg-slate-600 dark:text-slate-100'
-                            : 'border-slate-200 text-slate-500 hover:border-slate-400 dark:border-slate-600 dark:text-slate-400'
+                            ? 'border-slate-400 bg-slate-200 text-slate-700'
+                            : 'border-slate-200 text-slate-500 hover:border-slate-400'
                         }`}
                         title="Thành tố không quan sát được — bị loại khỏi trung bình, KHÔNG tính là 0 điểm"
                       >
@@ -131,8 +131,8 @@ export function BangChamDiem({ bienBan, onDoi, chiDoc }: Props) {
                             chot === d
                               ? 'border-indigo-500 bg-indigo-500 text-white'
                               : Number.isInteger(d)
-                                ? 'border-slate-200 text-slate-700 hover:border-indigo-400 dark:border-slate-600 dark:text-slate-200'
-                                : 'border-dashed border-slate-300 text-slate-500 hover:border-indigo-400 dark:border-slate-600 dark:text-slate-400'
+                                ? 'border-slate-200 text-slate-700 hover:border-indigo-400'
+                                : 'border-dashed border-slate-300 text-slate-500 hover:border-indigo-400'
                           }`}
                           title={
                             Number.isInteger(d)
@@ -148,11 +148,11 @@ export function BangChamDiem({ bienBan, onDoi, chiDoc }: Props) {
 
                   {canMinhChung && (
                     <div className="mt-3">
-                      <label className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-200">
+                      <label className="mb-1 block text-xs font-semibold text-slate-700">
                         Hành động chạm ngưỡng đã quan sát được{' '}
                         <span className="font-normal text-rose-600">· bắt buộc với điểm {nhanDiem(chot as number)}</span>
                       </label>
-                      <p className="mb-1.5 text-xs text-slate-500 dark:text-slate-400">
+                      <p className="mb-1.5 text-xs text-slate-500">
                         {CHAM_NGUONG[chot as 1.5 | 2.5 | 3.5].dieuKien}{' '}
                         <b>{CHAM_NGUONG[chot as 1.5 | 2.5 | 3.5].congThem}</b>
                       </p>
@@ -162,7 +162,7 @@ export function BangChamDiem({ bienBan, onDoi, chiDoc }: Props) {
                         onChange={e => datChamNguong(c.ma, e.target.value)}
                         rows={2}
                         placeholder={CHAM_NGUONG[chot as 1.5 | 2.5 | 3.5].viDu}
-                        className="w-full rounded-lg border border-slate-300 bg-white p-2 text-sm dark:border-slate-600 dark:bg-slate-900"
+                        className="w-full rounded-lg border border-slate-300 bg-white p-2 text-sm"
                       />
                       {thieu && (
                         <p className="mt-1 text-xs font-medium text-rose-600">
@@ -173,23 +173,23 @@ export function BangChamDiem({ bienBan, onDoi, chiDoc }: Props) {
                   )}
 
                   {mo && (
-                    <div className="mt-4 space-y-3 border-t border-slate-200 pt-3 text-sm dark:border-slate-700">
+                    <div className="mt-4 space-y-3 border-t border-slate-200 pt-3 text-sm">
                       {kq && kq.bangChung.length > 0 && (
                         <div>
-                          <p className="font-semibold text-slate-700 dark:text-slate-200">Bằng chứng trích từ biên bản</p>
-                          <ul className="mt-1 list-disc pl-5 text-slate-600 dark:text-slate-300">
+                          <p className="font-semibold text-slate-700">Bằng chứng trích từ biên bản</p>
+                          <ul className="mt-1 list-disc pl-5 text-slate-600">
                             {kq.bangChung.map((b, i) => (
                               <li key={i}>{b}</li>
                             ))}
                           </ul>
-                          {kq.lyDo && <p className="mt-1 text-slate-500 dark:text-slate-400">Lí do: {kq.lyDo}</p>}
+                          {kq.lyDo && <p className="mt-1 text-slate-500">Lí do: {kq.lyDo}</p>}
                         </div>
                       )}
 
                       {kq && kq.cauHoi.length > 0 && (
                         <div>
-                          <p className="font-semibold text-amber-700 dark:text-amber-400">Cần hỏi thêm giáo viên</p>
-                          <ul className="mt-1 list-disc pl-5 text-slate-600 dark:text-slate-300">
+                          <p className="font-semibold text-amber-700">Cần hỏi thêm giáo viên</p>
+                          <ul className="mt-1 list-disc pl-5 text-slate-600">
                             {kq.cauHoi.map((q, i) => (
                               <li key={i}>{q}</li>
                             ))}
@@ -198,11 +198,11 @@ export function BangChamDiem({ bienBan, onDoi, chiDoc }: Props) {
                       )}
 
                       {LUONG_HOA_PHAN_III[c.ma] && (
-                        <div className="rounded-lg bg-indigo-50 p-3 dark:bg-indigo-950/40">
-                          <p className="font-semibold text-indigo-800 dark:text-indigo-300">
+                        <div className="rounded-lg bg-indigo-50 p-3">
+                          <p className="font-semibold text-indigo-800">
                             Lượng hóa của tổ Toán · {LUONG_HOA_PHAN_III[c.ma]!.doLuong}
                           </p>
-                          <ul className="mt-1 space-y-0.5 text-slate-700 dark:text-slate-300">
+                          <ul className="mt-1 space-y-0.5 text-slate-700">
                             <li><b>Mức 2</b> nếu: {LUONG_HOA_PHAN_III[c.ma]!.muc2}</li>
                             <li><b>Mức 3</b> nếu: {LUONG_HOA_PHAN_III[c.ma]!.muc3}</li>
                             <li><b>Mức 4</b> nếu: {LUONG_HOA_PHAN_III[c.ma]!.muc4}</li>
@@ -211,10 +211,10 @@ export function BangChamDiem({ bienBan, onDoi, chiDoc }: Props) {
                       )}
 
                       <div>
-                        <p className="font-semibold text-slate-700 dark:text-slate-200">Thang 4 mức của khung</p>
-                        <ol className="mt-1 space-y-1 text-slate-600 dark:text-slate-300">
+                        <p className="font-semibold text-slate-700">Thang 4 mức của khung</p>
+                        <ol className="mt-1 space-y-1 text-slate-600">
                           {RUBRIC[c.ma].map((t, i) => (
-                            <li key={i} className={chot === i + 1 ? 'font-medium text-indigo-700 dark:text-indigo-300' : ''}>
+                            <li key={i} className={chot === i + 1 ? 'font-medium text-indigo-700' : ''}>
                               <b>{i + 1} {TEN_MUC[i]}:</b> {t}
                             </li>
                           ))}
@@ -223,8 +223,8 @@ export function BangChamDiem({ bienBan, onDoi, chiDoc }: Props) {
 
                       {COT_LOI[c.ma].length > 0 && (
                         <div>
-                          <p className="font-semibold text-slate-700 dark:text-slate-200">Thành tố cốt lõi</p>
-                          <ul className="mt-1 list-disc pl-5 text-slate-600 dark:text-slate-300">
+                          <p className="font-semibold text-slate-700">Thành tố cốt lõi</p>
+                          <ul className="mt-1 list-disc pl-5 text-slate-600">
                             {COT_LOI[c.ma].map((t, i) => (
                               <li key={i}>{t}</li>
                             ))}
@@ -234,8 +234,8 @@ export function BangChamDiem({ bienBan, onDoi, chiDoc }: Props) {
 
                       {SUY_NGAM[c.ma].length > 0 && (
                         <div>
-                          <p className="font-semibold text-slate-700 dark:text-slate-200">Câu hỏi suy ngẫm</p>
-                          <ul className="mt-1 list-disc pl-5 text-slate-600 dark:text-slate-300">
+                          <p className="font-semibold text-slate-700">Câu hỏi suy ngẫm</p>
+                          <ul className="mt-1 list-disc pl-5 text-slate-600">
                             {SUY_NGAM[c.ma].map((t, i) => (
                               <li key={i}>{t}</li>
                             ))}

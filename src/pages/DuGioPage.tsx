@@ -43,15 +43,21 @@ function docCaiDat(): Settings | null {
   }
 }
 
-const O = 'w-full rounded-lg border border-slate-300 bg-white p-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100';
+const O = 'w-full rounded-lg border border-slate-300 bg-white p-2 text-sm';
 const NUT = 'rounded-lg px-3 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50';
 
-export function DuGioPage() {
+interface DuGioPageProps {
+  /** true khi nhúng trong khung app chính (tab Dự giờ) — App.tsx đã có sidebar và user. */
+  embedded?: boolean;
+  user?: User | null;
+}
+
+export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [user, setUser] = useState<User | null>(null);
-  const [dangTaiAuth, setDangTaiAuth] = useState(true);
+  const [user, setUser] = useState<User | null>(embedded ? (userNgoai ?? null) : null);
+  const [dangTaiAuth, setDangTaiAuth] = useState(!embedded);
   const [bienBan, setBienBan] = useState<BienBanDuGio | null>(null);
   const [cuaToi, setCuaToi] = useState<BienBanDuGio[]>([]);
   const [thuVien, setThuVien] = useState<BienBanDuGio[]>([]);
@@ -62,7 +68,14 @@ export function DuGioPage() {
   const [hong, setHong] = useState<MaThanhTo[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => onAuthStateChanged(auth, u => { setUser(u); setDangTaiAuth(false); }), []);
+  useEffect(() => {
+    // Nhúng trong app thì App.tsx đã xác thực rồi, không cần lắng nghe lần nữa.
+    if (embedded) {
+      setUser(userNgoai ?? null);
+      return;
+    }
+    return onAuthStateChanged(auth, u => { setUser(u); setDangTaiAuth(false); });
+  }, [embedded, userNgoai]);
 
   const taiDanhSach = useCallback(async (uid: string) => {
     try {
@@ -73,6 +86,29 @@ export function DuGioPage() {
       setLoi('Không tải được danh sách: ' + (e as Error).message);
     }
   }, []);
+
+  /* Khi nhúng trong khung app thì KHÔNG đổi URL — chọn biên bản bằng state để
+     người dùng không bị văng ra khỏi sidebar. Chạy ở route riêng thì dùng URL
+     như bình thường, để còn gửi được đường dẫn cho người khác. */
+  const moBienBan = useCallback(
+    async (bbId: string) => {
+      if (!embedded) return navigate(`/du-gio/${bbId}`);
+      try {
+        const bb = await docBienBan(bbId);
+        if (bb) setBienBan(bb);
+        else setLoi('Không tìm thấy biên bản, hoặc bạn không có quyền đọc.');
+      } catch (e) {
+        setLoi('Không mở được biên bản: ' + (e as Error).message);
+      }
+    },
+    [embedded, navigate],
+  );
+
+  const veDanhSach = useCallback(() => {
+    if (!embedded) return navigate('/du-gio');
+    setBienBan(null);
+    if (user) void taiDanhSach(user.uid);
+  }, [embedded, navigate, user, taiDanhSach]);
 
   useEffect(() => {
     if (!user) return;
@@ -179,7 +215,7 @@ export function DuGioPage() {
       const idMoi = await luuBienBan({ ...bienBan, userId: user.uid });
       setBienBan({ ...bienBan, id: idMoi, userId: user.uid });
       setThongBao('Đã lưu.');
-      if (!id) navigate(`/du-gio/${idMoi}`, { replace: true });
+      if (!id && !embedded) navigate(`/du-gio/${idMoi}`, { replace: true });
     });
 
   const xuatExcel = () =>
@@ -203,26 +239,26 @@ export function DuGioPage() {
 
   /* ─────────── màn hình ─────────── */
 
-  if (dangTaiAuth) return <Khung><p className="text-slate-500">Đang kiểm tra đăng nhập…</p></Khung>;
+  if (dangTaiAuth) return <KhungNgoai embedded={embedded}><p className="text-slate-500">Đang kiểm tra đăng nhập…</p></KhungNgoai>;
 
   if (!user) {
     return (
-      <Khung>
+      <KhungNgoai embedded={embedded}>
         <h1 className="mb-2 text-2xl font-bold">Biên bản dự giờ</h1>
-        <p className="text-slate-600 dark:text-slate-300">
+        <p className="text-slate-600">
           Bạn cần đăng nhập bằng Google để lập biên bản. Biên bản của bạn chỉ mình bạn đọc, trừ khi bạn tự đưa lên thư viện.
         </p>
         <a href="/" className={`${NUT} mt-4 inline-block bg-indigo-600 text-white hover:bg-indigo-700`}>
           Về trang chính để đăng nhập
         </a>
-      </Khung>
+      </KhungNgoai>
     );
   }
 
   if (!bienBan) {
     const ds = tab === 'toi' ? cuaToi : thuVien;
     return (
-      <Khung>
+      <KhungNgoai embedded={embedded}>
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-bold">Biên bản dự giờ</h1>
           <button
@@ -238,7 +274,7 @@ export function DuGioPage() {
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`${NUT} ${tab === t ? 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}
+              className={`${NUT} ${tab === t ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600'}`}
             >
               {t === 'toi' ? `Của tôi (${cuaToi.length})` : `Thư viện chung (${thuVien.length})`}
             </button>
@@ -248,7 +284,7 @@ export function DuGioPage() {
         {loi && <Hop mau="rose">{loi}</Hop>}
 
         {ds.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-500 dark:border-slate-600">
+          <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
             {tab === 'toi' ? 'Bạn chưa có biên bản nào.' : 'Chưa có biên bản nào được chia sẻ.'}
           </p>
         ) : (
@@ -256,13 +292,13 @@ export function DuGioPage() {
             {ds.map(bb => (
               <li
                 key={bb.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800/60"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4"
               >
-                <button onClick={() => navigate(`/du-gio/${bb.id}`)} className="min-w-[14rem] flex-1 text-left">
-                  <p className="font-semibold text-slate-800 dark:text-slate-100">
+                <button onClick={() => void moBienBan(bb.id)} className="min-w-[14rem] flex-1 text-left">
+                  <p className="font-semibold text-slate-800">
                     {bb.gvHoTen || 'Chưa ghi tên giáo viên'} · {bb.bai || 'chưa ghi tên bài'}
                   </p>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                  <p className="text-sm text-slate-500">
                     {bb.ngay} · lớp {bb.lop || '—'}
                     {bb.isPublic && <span className="ml-2 text-emerald-600">· đã chia sẻ</span>}
                   </p>
@@ -274,7 +310,7 @@ export function DuGioPage() {
                       await xoaBienBan(bb.id);
                       void taiDanhSach(user.uid);
                     }}
-                    className={`${NUT} bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-300`}
+                    className={`${NUT} bg-rose-50 text-rose-700 hover:bg-rose-100`}
                   >
                     Xoá
                   </button>
@@ -283,7 +319,7 @@ export function DuGioPage() {
             ))}
           </ul>
         )}
-      </Khung>
+      </KhungNgoai>
     );
   }
 
@@ -298,13 +334,13 @@ export function DuGioPage() {
   ];
 
   return (
-    <Khung>
+    <KhungNgoai embedded={embedded}>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <button onClick={() => navigate('/du-gio')} className="text-sm text-slate-500 hover:underline">
+        <button onClick={veDanhSach} className="text-sm text-slate-500 hover:underline">
           ← Danh sách biên bản
         </button>
         {chiDoc && (
-          <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
+          <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
             Biên bản của người khác · chỉ đọc
           </span>
         )}
@@ -319,7 +355,7 @@ export function DuGioPage() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {meta.map(m => (
             <label key={m.khoa} className="block">
-              <span className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-300">{m.nhan}</span>
+              <span className="mb-1 block text-sm font-medium text-slate-600">{m.nhan}</span>
               <input
                 type={m.kieu || 'text'}
                 value={String(bienBan[m.khoa] ?? '')}
@@ -333,7 +369,7 @@ export function DuGioPage() {
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <label className="flex items-center gap-2 text-sm">
-            <span className="font-medium text-slate-600 dark:text-slate-300">Bộ tiêu chí</span>
+            <span className="font-medium text-slate-600">Bộ tiêu chí</span>
             <select
               value={bienBan.boTieuChi}
               disabled={chiDoc}
@@ -345,7 +381,7 @@ export function DuGioPage() {
             </select>
           </label>
 
-          <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+          <label className="flex items-center gap-2 text-sm text-slate-600">
             <input
               type="checkbox"
               checked={bienBan.isPublic}
@@ -373,13 +409,13 @@ export function DuGioPage() {
                   e.target.value = '';
                 }}
               />
-              <button onClick={() => fileRef.current?.click()} className={`${NUT} bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-200`}>
+              <button onClick={() => fileRef.current?.click()} className={`${NUT} bg-slate-100 text-slate-700 hover:bg-slate-200`}>
                 Tải file Excel đã ghi lên
               </button>
             </>
           )}
         </div>
-        <p className="mb-3 text-sm text-slate-500 dark:text-slate-400">
+        <p className="mb-3 text-sm text-slate-500">
           Dùng HS1, HS2 thay cho tên thật của học sinh.
         </p>
         <BangQuanSat bienBan={bienBan} onDoi={doi} chiDoc={chiDoc} />
@@ -391,7 +427,7 @@ export function DuGioPage() {
             ['hoSo', 'Tự phản tư & hồ sơ', 'Dán vào đây thì mới chấm được Phần IV.'],
           ] as const).map(([khoa, nhan, goiY]) => (
             <label key={khoa} className="block">
-              <span className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-300">{nhan}</span>
+              <span className="mb-1 block text-sm font-medium text-slate-600">{nhan}</span>
               <textarea
                 value={bienBan[khoa]}
                 disabled={chiDoc}
@@ -424,7 +460,7 @@ export function DuGioPage() {
                     setHong(h);
                   })}
                   disabled={!!dangChay}
-                  className={`${NUT} bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-950/40 dark:text-amber-300`}
+                  className={`${NUT} bg-amber-100 text-amber-800 hover:bg-amber-200`}
                 >
                   Chấm lại {hong.length} mục hỏng
                 </button>
@@ -443,9 +479,9 @@ export function DuGioPage() {
               ['Xếp loại', diem.xepLoai ?? '—'],
               ['Đã chấm', `${diem.soDaCham} / ${diem.tongThanhTo}`],
             ].map(([nhan, gt]) => (
-              <div key={nhan} className="rounded-xl border border-slate-200 bg-white p-3 text-center dark:border-slate-700 dark:bg-slate-800/60">
-                <p className="text-xs text-slate-500 dark:text-slate-400">{nhan}</p>
-                <p className="text-xl font-bold text-slate-800 dark:text-slate-100">{gt}</p>
+              <div key={nhan} className="rounded-xl border border-slate-200 bg-white p-3 text-center">
+                <p className="text-xs text-slate-500">{nhan}</p>
+                <p className="text-xl font-bold text-slate-800">{gt}</p>
               </div>
             ))}
           </div>
@@ -466,10 +502,10 @@ export function DuGioPage() {
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-xl font-bold">4 · Chuẩn bị buổi trao đổi</h2>
             <div className="flex flex-wrap gap-2">
-              <button onClick={gopY} disabled={!!dangChay || !canGopY.length} className={`${NUT} bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-200`}>
+              <button onClick={gopY} disabled={!!dangChay || !canGopY.length} className={`${NUT} bg-slate-100 text-slate-700 hover:bg-slate-200`}>
                 Soạn góp ý ({canGopY.length} mục dưới 3)
               </button>
-              <button onClick={nhanXet} disabled={!!dangChay} className={`${NUT} bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-200`}>
+              <button onClick={nhanXet} disabled={!!dangChay} className={`${NUT} bg-slate-100 text-slate-700 hover:bg-slate-200`}>
                 Soạn nhận xét
               </button>
             </div>
@@ -483,7 +519,7 @@ export function DuGioPage() {
                 const g = bienBan.gopY[ma]!;
                 const c = COMPONENTS.find(x => x.ma === ma)!;
                 return (
-                  <div key={ma} className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800/60">
+                  <div key={ma} className="rounded-xl border border-slate-200 bg-white p-4">
                     <label className="flex items-start gap-2">
                       <input
                         type="checkbox"
@@ -492,11 +528,11 @@ export function DuGioPage() {
                         className="mt-1"
                       />
                       <div>
-                        <p className="font-semibold text-slate-800 dark:text-slate-100">{ma} — {c.ten}</p>
-                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{g.hanChe}</p>
-                        {g.cauHoiPhanTu && <p className="mt-1 text-sm italic text-indigo-700 dark:text-indigo-300">“{g.cauHoiPhanTu}”</p>}
+                        <p className="font-semibold text-slate-800">{ma} — {c.ten}</p>
+                        <p className="mt-1 text-sm text-slate-600">{g.hanChe}</p>
+                        {g.cauHoiPhanTu && <p className="mt-1 text-sm italic text-indigo-700">“{g.cauHoiPhanTu}”</p>}
                         {g.coTheLam.length > 0 && (
-                          <ul className="mt-1 list-disc pl-5 text-sm text-slate-600 dark:text-slate-300">
+                          <ul className="mt-1 list-disc pl-5 text-sm text-slate-600">
                             {g.coTheLam.map((v, i) => <li key={i}>{v}</li>)}
                           </ul>
                         )}
@@ -509,12 +545,12 @@ export function DuGioPage() {
           )}
 
           {bienBan.nhanXet && (
-            <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800/60">
+            <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
               {bienBan.nhanXet.diemManh.length > 0 && (
                 <div>
-                  <p className="font-semibold text-emerald-700 dark:text-emerald-400">Điểm mạnh</p>
+                  <p className="font-semibold text-emerald-700">Điểm mạnh</p>
                   {bienBan.nhanXet.diemManh.map((d, i) => (
-                    <p key={i} className="mt-1 text-sm text-slate-700 dark:text-slate-300">
+                    <p key={i} className="mt-1 text-sm text-slate-700">
                       <b>{d.tieuDe}</b> — “{d.bangChung}”. {d.yNghia}
                     </p>
                   ))}
@@ -522,30 +558,30 @@ export function DuGioPage() {
               )}
               {bienBan.nhanXet.trongTam && (
                 <div>
-                  <p className="font-semibold text-amber-700 dark:text-amber-400">Trọng tâm cải thiện</p>
-                  <p className="text-sm text-slate-700 dark:text-slate-300">
+                  <p className="font-semibold text-amber-700">Trọng tâm cải thiện</p>
+                  <p className="text-sm text-slate-700">
                     <b>{bienBan.nhanXet.trongTam.tieuDe}</b> — “{bienBan.nhanXet.trongTam.bangChung}”
                   </p>
-                  <ul className="mt-1 list-disc pl-5 text-sm text-slate-700 dark:text-slate-300">
+                  <ul className="mt-1 list-disc pl-5 text-sm text-slate-700">
                     {bienBan.nhanXet.trongTam.hanhDong.map((v, i) => <li key={i}>{v}</li>)}
                   </ul>
-                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                  <p className="mt-1 text-sm text-slate-500">
                     Dấu hiệu thành công: {bienBan.nhanXet.trongTam.doThanhCong}
                   </p>
                 </div>
               )}
               {bienBan.nhanXet.cauHoiHuanLuyen.length > 0 && (
                 <div>
-                  <p className="font-semibold text-indigo-700 dark:text-indigo-300">Câu hỏi huấn luyện</p>
-                  <ul className="mt-1 list-disc pl-5 text-sm text-slate-700 dark:text-slate-300">
+                  <p className="font-semibold text-indigo-700">Câu hỏi huấn luyện</p>
+                  <ul className="mt-1 list-disc pl-5 text-sm text-slate-700">
                     {bienBan.nhanXet.cauHoiHuanLuyen.map((v, i) => <li key={i}>{v}</li>)}
                   </ul>
                 </div>
               )}
               {bienBan.nhanXet.canLamRo.length > 0 && (
                 <div>
-                  <p className="font-semibold text-slate-700 dark:text-slate-200">Cần làm rõ với giáo viên</p>
-                  <ul className="mt-1 list-disc pl-5 text-sm text-slate-700 dark:text-slate-300">
+                  <p className="font-semibold text-slate-700">Cần làm rõ với giáo viên</p>
+                  <ul className="mt-1 list-disc pl-5 text-sm text-slate-700">
                     {bienBan.nhanXet.canLamRo.map((v, i) => <li key={i}>{v}</li>)}
                   </ul>
                 </div>
@@ -555,7 +591,7 @@ export function DuGioPage() {
         </section>
       )}
 
-      <div className="sticky bottom-0 flex flex-wrap gap-2 border-t border-slate-200 bg-white/90 py-3 backdrop-blur dark:border-slate-700 dark:bg-slate-900/90">
+      <div className="sticky bottom-0 flex flex-wrap gap-2 border-t border-slate-200 bg-white/90 py-3 backdrop-blur">
         {!chiDoc && (
           <button onClick={luu} disabled={!!dangChay} className={`${NUT} bg-indigo-600 text-white hover:bg-indigo-700`}>
             Lưu biên bản
@@ -565,23 +601,26 @@ export function DuGioPage() {
           Xuất Excel theo mẫu trường
         </button>
       </div>
-    </Khung>
+    </KhungNgoai>
   );
 }
 
-function Khung({ children }: { children: React.ReactNode }) {
+function KhungNgoai({ embedded, children }: { embedded?: boolean; children: React.ReactNode }) {
+  // Nhúng trong app thì App.tsx đã lo nền và khoảng đệm; bọc thêm min-h-screen
+  // nữa sẽ thành hai lớp nền chồng nhau và sinh thanh cuộn thừa.
+  if (embedded) return <div className="max-w-6xl">{children}</div>;
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       <div className="mx-auto max-w-6xl p-4 sm:p-6">{children}</div>
     </div>
   );
 }
 
 const MAU = {
-  rose: 'border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-500/50 dark:bg-rose-950/40 dark:text-rose-200',
-  emerald: 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-500/50 dark:bg-emerald-950/40 dark:text-emerald-200',
-  indigo: 'border-indigo-300 bg-indigo-50 text-indigo-800 dark:border-indigo-500/50 dark:bg-indigo-950/40 dark:text-indigo-200',
-  slate: 'border-slate-300 bg-slate-100 text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300',
+  rose: 'border-rose-300 bg-rose-50 text-rose-800',
+  emerald: 'border-emerald-300 bg-emerald-50 text-emerald-800',
+  indigo: 'border-indigo-300 bg-indigo-50 text-indigo-800',
+  slate: 'border-slate-300 bg-slate-100 text-slate-700',
 };
 
 function Hop({ mau, children }: { mau: keyof typeof MAU; children: React.ReactNode }) {
