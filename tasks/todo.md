@@ -9,7 +9,14 @@ Nguồn: báo cáo QA module dự giờ Danielson do owner cung cấp ngày 2026
 - [x] P2: thêm composite index `duGio(nguoiDuUid ASC, ngay DESC)`.
 - [x] P2: thêm tài liệu thiết kế và kế hoạch triển khai.
 - [x] Nit: khai báo Node types cục bộ cho `scripts/gan-vai-tro.ts`.
-- [ ] Verify: rules tests, unit tests, lint, build và code review đều đạt.
+- [x] Verify: rules tests 28/28, unit tests 196/196, lint, build và code review đều đạt.
+
+## Review
+
+- TDD RED: 3 lỗi được tái hiện đúng — list hợp lệ của tổ trưởng bị deny, thiếu `gvUid` vẫn create được, đổi `gvUid` vẫn update được.
+- TDD GREEN: Firestore emulator đạt 28/28 ca.
+- Full suite: 196/196 unit tests; TypeScript lint exit 0; Vite build exit 0; main entry 974.15 KB.
+- Code review độc lập: không có Critical/Important; một lỗi tài liệu Minor đã sửa.
 
 ---
 

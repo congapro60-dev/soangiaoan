@@ -14,7 +14,7 @@ Khắc phục toàn bộ phát hiện P0–P2 và Nit trong báo cáo QA ngày 2
 
 ## Phạm vi và rủi ro
 
-Chỉ sửa `firestore.rules`, test rules, `firestore.indexes.json`, `tsconfig.json` và tài liệu kế hoạch. Không thay đổi UI hoặc dữ liệu production. Rủi ro chính là truy vấn client thiếu `where`/`limit` sẽ bị từ chối có chủ đích; dữ liệu cũ thiếu `gvUid` không bị sửa tự động và cần migration riêng nếu đã tồn tại.
+Chỉ sửa `firestore.rules`, test rules, `firestore.indexes.json`, `scripts/gan-vai-tro.ts` và tài liệu kế hoạch. Không thay đổi UI hoặc dữ liệu production. Rủi ro chính là truy vấn client thiếu `where`/`limit` sẽ bị từ chối có chủ đích; dữ liệu cũ thiếu `gvUid` không bị sửa tự động và cần migration riêng nếu đã tồn tại.
 
 ## Kiểm chứng
 
