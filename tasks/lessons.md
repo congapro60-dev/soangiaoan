@@ -131,3 +131,21 @@
 - **Cho người khác ghi vào document của mình: khoá bằng `diff().affectedKeys().hasOnly()`, đừng khoá bằng giao diện** — Giáo viên cần tự đánh giá trên biên bản dự giờ do người khác lập. Rules: `allow update: if laGiaoVienDuocDu() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['tuDanhGia','updatedAt'])`. Nhớ viết ca test "vừa ghi trường được phép vừa lén sửa trường khác" — đó là đường lách hiển nhiên nhất mà rule sai hay bỏ sót. Và đọc trường có thể vắng bằng `resource.data.get('field','')`, không đọc thẳng: document tạo trước khi thêm trường sẽ làm rule ném lỗi thay vì trả false. *(2026-07-29)*
 
 - **Regex dọn khoảng trắng trong JSX ăn cả dấu cách có nghĩa** — Gỡ 122 lớp `dark:` bằng `replace(/([\"'\`])\s+/g,'$1')` đã biến `type="button" onClick=` thành `type="button"onClick=` (lỗi cú pháp) và `{' '}` thành `{''}` (mất dấu cách hiển thị), kèm mất dấu cách đầu trong các chuỗi như `' · tin cậy '`. Sửa hàng loạt bằng regex thì CHỈ khớp đúng thứ cần xoá, đừng gộp thêm bước "dọn dẹp" khoảng trắng. Hỏng rồi thì `git checkout HEAD -- <file>` làm lại sạch hơn là đi vá từng chỗ. *(2026-07-29)*
+
+## Soạn giáo án (ban Toán) — bài học từ đợt rà Bài 19 (2026-07)
+
+- **Đề bài sai phạm vi thì ĐỔI ĐỀ, đừng vá** — Tiết 1 (mới học VTPT) có bài cực trị cần PT đoạn chắn và bài "qua 2 điểm" cần VTCP. Phản xạ sai là thêm gợi ý để HS vẫn làm được; đúng ra phải thay hẳn đề bằng bài chỉ dùng công cụ đã học. User: *"phải biết buông bỏ… chứ ko phải cứ bám vào 1 đề bài bị sai rồi nghĩ ra cách fix"*. Trước khi sửa một chi tiết, hỏi: chi tiết này có thuộc về tiết này không? *(2026-07-30)*
+
+- **Sửa nội dung bài học = phải rà CẢ phiếu học tập ở phụ lục** — đổi bài tập/bối cảnh mà quên phụ lục thì phiếu phát cho HS vẫn là bài cũ. Mỗi lần đổi đề phải quét lại: mục tiêu, bảng phân hóa, kịch bản, BTVN, và phụ lục. *(2026-07-30)*
+
+- **Prompt đã có luật vẫn không đủ — lỗi kiểm được thì phải đưa vào cổng chất lượng** — `toanFormats.ts` đã ghi rõ "KHÔNG lấn nội dung tiết sau (vd… không dạy vectơ chỉ phương)" mà AI vẫn vi phạm đúng chỗ đó. Phân biệt: lỗi *sinh ra* (văn phong, độ dày) → prompt uốn được; lỗi *kiểm được* (tổng thời gian, ô trống, thuật ngữ chưa giới thiệu, khối lặp) → chỉ luật deterministic trong `mathStandards.ts` mới chặn được. Thêm ví dụ few-shot KHÔNG sửa được nhóm thứ hai. *(2026-07-30)*
+
+- **Ví dụ few-shot dài gây lây nhiễm bối cảnh** — nhét nguyên một tiết mẫu (GPS/metro, tọa độ A(2;3)…) vào prompt thì tiết khác dễ bị kéo nguyên bối cảnh/số liệu sang. Dấu vết có thật: "Trạm trung tâm I" ma trong BTVN Tiết 2, ga "Ngọc Hồi" sai tuyến. Ưu tiên: luật + 1 hoạt động mẫu/loại, rồi ĐO bằng cách sinh thử và chấm cổng, tăng liều đúng chỗ yếu. *(2026-07-30)*
+
+- **Hằng số style phải thống nhất giữa MỌI đường xuất** — tỉ lệ cột bảng hoạt động tồn tại ở 2 nơi và lệch nhau: `buildSchoolFormDocx.COL3` (9/50/41) vs `toanStyleRules.TOAN_ACTIVITY_COL_RATIOS` (~11/54/35). Sửa một nơi là user vẫn thấy sai ở đường kia. Khi đổi hằng số hình thức, grep cả repo. *(2026-07-30)*
+
+- **Quét tìm khối lặp phải đi từng vị trí, không lấy mẫu theo bước nhảy** — bản đầu của `no-duplicate-block` lấy mẫu mỗi 20 ký tự nên chỉ bắt được khi khoảng cách lặp là bội số của 20; khối lặp lệch pha lọt lưới. Dùng bước 1 + hash cửa sổ. Ngưỡng 160 ký tự để không báo nhầm câu hỏi cốt lõi (~100) lặp lại hợp lệ. *(2026-07-30)*
+
+- **Công cụ Edit ghi file bằng CRLF trong khi repo dùng LF** — làm diff phình từ ~500 lên ~1900 dòng đổi. Sau khi sửa file bằng Edit/Write, kiểm `grep -c $'\r' <file>` và chuẩn hóa về LF trước khi `git add`. *(2026-07-30)*
+
+- **Sandbox Linux không chạy được vitest/tsc của repo này** — `node_modules` cài trên Windows nên thiếu `@rollup/rollup-linux-x64-gnu`; `tsc --noEmit` toàn project trên mount mạng chạy >20 phút không xong. Cách thay thế: `tsc --noEmit --skipLibCheck` nhắm đúng vài file đã sửa (nhanh, vẫn strict), và kiểm logic thuần bằng harness Node độc lập. Build/test đầy đủ phải chạy trên máy Windows của user. *(2026-07-30)*
