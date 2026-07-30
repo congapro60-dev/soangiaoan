@@ -30,6 +30,9 @@ const REPAIRABLE_MEDIUM_IDS = new Set<string>([
   'success-criteria',
   'teacher-script',
   'worksheet-appendix',
+  // Bổ sung 2026-07 (rà 3 giáo án định hướng Bài 19): hai lỗi này AI sửa được trong 1 lượt.
+  'term-introduced',
+  'no-duplicate-block',
 ]);
 
 /**

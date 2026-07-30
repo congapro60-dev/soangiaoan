@@ -356,6 +356,208 @@ const checkConcreteDifferentiation = (t: string): StandardsFinding => {
   };
 };
 
+// ── Bộ kiểm bổ sung 2026-07: rút từ đợt rà 3 giáo án định hướng Bài 19 ────────
+// Mỗi luật dưới đây tương ứng một lỗi THẬT đã lọt qua cổng cũ và phải sửa tay:
+//  1. time-continuity      — Tiết 2 hụt 3 phút (P35–P38 không hoạt động nào nhận)
+//  2. board-content-filled — ô "Nội dung ghi bảng" của Khởi động bỏ trống
+//  3. term-introduced      — Tiết 1 dùng VTCP / PT đoạn chắn / UNCLOS chưa hề giới thiệu
+//  4. no-duplicate-block   — Tiết 1 lặp nguyên một khối nháp trong cùng một ô
+// Cổng cũ chỉ dò từ khóa nên không bắt được nhóm lỗi này.
+
+/** Mốc "p7 – p35" (text đã lowercase). */
+const P_RANGE_RE = /p(\d+)\s*[–—-]\s*p(\d+)/g;
+/** Heading kiểu "(18 phút, p7–p25)". */
+const HEADING_TIME_RE = /\(\s*~?\s*(\d+)\s*phút\s*,\s*p(\d+)\s*[–—-]\s*p(\d+)\s*\)/g;
+
+const LESSON_MINUTES = 40;
+
+const checkTimeContinuity = (t: string): StandardsFinding => {
+  const ranges: Array<[number, number]> = [];
+  for (const m of t.matchAll(P_RANGE_RE)) {
+    const a = Number(m[1]);
+    const b = Number(m[2]);
+    if (Number.isFinite(a) && Number.isFinite(b) && b > a) ranges.push([a, b]);
+  }
+  // Bỏ trùng, sắp theo mốc bắt đầu.
+  const uniq = Array.from(new Map(ranges.map((r) => [`${r[0]}-${r[1]}`, r])).values()).sort(
+    (x, y) => x[0] - y[0],
+  );
+
+  const problems: string[] = [];
+
+  // (a) Thời lượng ghi ở heading phải khớp hiệu hai mốc.
+  for (const m of t.matchAll(HEADING_TIME_RE)) {
+    const stated = Number(m[1]);
+    const span = Number(m[3]) - Number(m[2]);
+    if (stated !== span) {
+      problems.push(`"(${stated} phút, P${m[2]}–P${m[3]})" — mốc chỉ dài ${span} phút`);
+    }
+  }
+
+  // (b) Các mốc phải nối liền nhau, không hở, không chồng.
+  for (let i = 0; i < uniq.length - 1; i += 1) {
+    const end = uniq[i][1];
+    const nextStart = uniq[i + 1][0];
+    if (nextStart > end) problems.push(`hở ${nextStart - end} phút giữa P${end} và P${nextStart}`);
+    else if (nextStart < end) problems.push(`chồng lấn giữa P${uniq[i][0]}–P${end} và P${nextStart}–P${uniq[i + 1][1]}`);
+  }
+
+  // (c) Phải phủ kín cả tiết 40 phút.
+  if (uniq.length > 0) {
+    const first = uniq[0][0];
+    const last = uniq[uniq.length - 1][1];
+    if (first > 0) problems.push(`chưa có hoạt động nào cho ${first} phút đầu (bắt đầu từ P${first})`);
+    if (last !== LESSON_MINUTES) problems.push(`mốc cuối là P${last}, chưa phủ kín P${LESSON_MINUTES}`);
+  }
+
+  const noRanges = uniq.length === 0;
+  return {
+    id: 'time-continuity',
+    title: 'Mốc thời gian liền mạch, khớp thời lượng và phủ kín 40 phút',
+    status: noRanges || problems.length > 0 ? 'fail' : 'pass',
+    severity: 'high',
+    evidence: noRanges
+      ? 'Không tìm thấy mốc phút dạng "P0 – P5" ở cột Thời gian.'
+      : problems.length > 0
+        ? `Lệch thời gian: ${problems.slice(0, 4).join('; ')}.`
+        : `Các mốc nối liền P${uniq[0][0]}→P${uniq[uniq.length - 1][1]}, khớp thời lượng.`,
+    suggestion:
+      'Ghi cột Thời gian dạng "P0 – P5" và heading dạng "(5 phút, P0–P5)". Mốc kết thúc của hoạt động trước phải TRÙNG mốc bắt đầu của hoạt động sau; hoạt động đầu bắt đầu từ P0 và hoạt động cuối kết thúc đúng P40 (đừng để hở phút nào).',
+    scope: 'all',
+  };
+};
+
+/** Tách các bảng hoạt động 3 cột trong markdown, trả về các hàng dữ liệu. */
+const activityTableRows = (t: string): string[][] => {
+  const lines = t.split('\n');
+  const rows: string[][] = [];
+  let inTable = false;
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith('|')) {
+      inTable = false;
+      continue;
+    }
+    const cells = trimmed.replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim());
+    if (cells.length !== 3) {
+      inTable = false;
+      continue;
+    }
+    const isHeader = /thời\s*gian/.test(cells[0]) && /nội\s*dung/.test(cells[2]);
+    if (isHeader) {
+      inTable = true;
+      continue;
+    }
+    const isSeparator = cells.every((c) => /^:?-{2,}:?$/.test(c));
+    if (isSeparator) continue;
+    if (inTable) rows.push(cells);
+  }
+  return rows;
+};
+
+const checkBoardContentFilled = (t: string): StandardsFinding => {
+  const rows = activityTableRows(t);
+  const empty = rows.filter((r) => r[2].length === 0);
+  const thin = rows.filter((r) => r[2].length > 0 && r[2].length < 15);
+  const ok = rows.length > 0 && empty.length === 0;
+  return {
+    id: 'board-content-filled',
+    title: 'Mọi hoạt động đều có "Nội dung ghi bảng" (không bỏ trống)',
+    status: rows.length === 0 ? 'warn' : ok ? 'pass' : 'fail',
+    severity: 'high',
+    evidence:
+      rows.length === 0
+        ? 'Chưa thấy bảng hoạt động 3 cột để kiểm tra.'
+        : empty.length > 0
+          ? `${empty.length}/${rows.length} hàng có cột "Nội dung ghi bảng" TRỐNG (mốc: ${empty.map((r) => r[0] || '?').slice(0, 3).join(', ')}).`
+          : thin.length > 0
+            ? `Đủ nội dung, nhưng ${thin.length} hàng ghi bảng rất ngắn — nên kiểm lại.`
+            : `Cả ${rows.length} hàng đều có nội dung ghi bảng.`,
+    suggestion:
+      'Mỗi hàng của bảng hoạt động PHẢI có cột "Nội dung ghi bảng" — ghi đúng thứ hiện trên bảng cho HS chép: công thức chốt, ĐÁP ÁN ra kết quả cuối của từng nhiệm vụ, và dòng "⚠ Lỗi phổ biến:" nếu có bẫy. Không để trống, không chỉ chép lại lời thoại.',
+    scope: 'all',
+  };
+};
+
+/**
+ * Thuật ngữ thuộc bài/tiết SAU — nếu đã dùng thì trong giáo án phải có chỗ giới thiệu.
+ * Bắt đúng lỗi: tiết VTPT lại dùng "vectơ chỉ phương"; tiết 1 dùng "PT đoạn chắn"; dùng
+ * "UNCLOS" như thuật ngữ quen thuộc mà không giải thích.
+ */
+const ADVANCED_TERMS: Array<{ label: string; re: RegExp }> = [
+  { label: 'vectơ chỉ phương', re: /vect(?:ơ|o)\s*chỉ\s*phương|\bvtcp\b|\bvcp\b/ },
+  { label: 'phương trình đoạn chắn', re: /(?:phương\s*trình|pt)\s*đoạn\s*chắn|đoạn\s*chắn/ },
+  { label: 'phương trình tham số', re: /(?:phương\s*trình|pt)\s*tham\s*số/ },
+  { label: 'UNCLOS', re: /unclos/ },
+];
+
+const checkTermIntroduced = (t: string): StandardsFinding => {
+  const used = ADVANCED_TERMS.filter((term) => term.re.test(t));
+  const notIntroduced = used.filter((term) => {
+    const src = term.re.source;
+    // Có giới thiệu nếu thuật ngữ đứng cạnh dấu hiệu định nghĩa/giới thiệu.
+    const intro = new RegExp(
+      `(?:thuật\\s*ngữ|giới\\s*thiệu|định\\s*nghĩa|gọi\\s*là|nghĩa\\s*là|tức\\s*là|nhắc\\s*lại)[^\\n]{0,160}(?:${src})` +
+        `|(?:${src})[^\\n]{0,160}(?:\\blà\\b|gọi\\s*là|nghĩa\\s*là|tức\\s*là|:\\s)`,
+    );
+    return !intro.test(t);
+  });
+  const ok = notIntroduced.length === 0;
+  return {
+    id: 'term-introduced',
+    title: 'Thuật ngữ nâng cao phải được giới thiệu trước khi dùng',
+    status: ok ? 'pass' : 'fail',
+    severity: 'medium',
+    evidence: ok
+      ? used.length > 0
+        ? `Các thuật ngữ nâng cao (${used.map((u) => u.label).join(', ')}) đều có phần giới thiệu.`
+        : 'Không dùng thuật ngữ vượt phạm vi tiết.'
+      : `Dùng nhưng chưa giới thiệu: ${notIntroduced.map((u) => u.label).join(', ')}.`,
+    suggestion:
+      'Hoặc BỎ thuật ngữ vượt phạm vi tiết (ưu tiên — đổi hẳn sang bài toán chỉ dùng công cụ đã học), hoặc giới thiệu tường minh ngay trước khi dùng (một câu định nghĩa ngắn + ghi vào mục Thuật ngữ). TUYỆT ĐỐI không dùng như thể HS đã biết.',
+    scope: 'all',
+  };
+};
+
+const checkNoDuplicateBlock = (t: string): StandardsFinding => {
+  // Tìm khối văn bản dài lặp lại NGUYÊN VĂN (dấu vết copy-paste / bản nháp còn sót).
+  // Quét từng vị trí (bước 1) và lưu hash để không bỏ sót khi khoảng cách lặp lệch pha —
+  // bản đầu lấy mẫu theo bước 20 nên chỉ bắt được lặp cách nhau bội số của 20.
+  // Ngưỡng 160 ký tự: dài hơn hẳn các câu lặp hợp lệ (câu hỏi cốt lõi ~100, dòng kỹ thuật
+  // chờ ~80) nên gần như chỉ nổ khi thật sự bị nhân đôi khối.
+  const CHUNK = 160;
+  const compact = t.replace(/\s+/g, ' ');
+  const seen = new Map<number, number>();
+  let duplicate = '';
+  let hash = 0;
+  for (let i = 0; i + CHUNK <= compact.length; i += 1) {
+    // Hash djb2 tính lại theo cửa sổ (đủ nhanh với độ dài một giáo án).
+    hash = 5381;
+    for (let k = i; k < i + CHUNK; k += 1) hash = ((hash * 33) ^ compact.charCodeAt(k)) | 0;
+    const prev = seen.get(hash);
+    if (prev !== undefined && i - prev >= CHUNK) {
+      // Xác thực lại để loại trừ trùng hash.
+      if (compact.slice(prev, prev + CHUNK) === compact.slice(i, i + CHUNK)) {
+        duplicate = compact.slice(i, i + CHUNK);
+        break;
+      }
+    }
+    if (prev === undefined) seen.set(hash, i);
+  }
+  return {
+    id: 'no-duplicate-block',
+    title: 'Không có khối nội dung bị lặp nguyên văn',
+    status: duplicate ? 'fail' : 'pass',
+    severity: 'medium',
+    evidence: duplicate
+      ? `Phát hiện đoạn lặp lại nguyên văn: "${duplicate.slice(0, 70).trim()}…".`
+      : 'Không thấy khối nội dung nào bị lặp.',
+    suggestion:
+      'Xóa bản lặp, chỉ giữ MỘT bản hoàn chỉnh (thường là bản có công thức/định dạng đầy đủ). Lỗi này hay xảy ra khi bản nháp và bản hoàn chỉnh cùng nằm trong một ô.',
+    scope: 'all',
+  };
+};
+
 const GENERAL_CHECKS = [
   checkFourPhases,
   checkDifferentiatedObjectives,
@@ -369,6 +571,10 @@ const GENERAL_CHECKS = [
   checkLearningIntentionSuccessCriteria,
   checkTeacherScript,
   checkWorksheetAppendix,
+  checkTimeContinuity,
+  checkBoardContentFilled,
+  checkTermIntroduced,
+  checkNoDuplicateBlock,
 ];
 
 const PRACTICE_CHECKS = [

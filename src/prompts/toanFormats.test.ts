@@ -35,13 +35,36 @@ describe('TOAN_COMMON_FORMAT — hợp đồng cấu trúc (theo v13)', () => {
 
   it('có đủ các thành phần v13: căn cứ điều chỉnh, mốc phút, 4 BƯỚC, kỹ thuật chờ, dự kiến khó khăn, lỗi phổ biến', () => {
     expect(TOAN_COMMON_FORMAT).toContain('Căn cứ điều chỉnh từ đánh giá tiết trước');
-    expect(TOAN_COMMON_FORMAT).toContain('P1–P5');
+    // Quy ước mốc phút bắt đầu từ P0 (đổi 2026-07: "5 phút, P1–P5" là SAI vì chỉ dài 4 phút).
+    expect(TOAN_COMMON_FORMAT).toContain('P0–P5');
     expect(TOAN_COMMON_FORMAT).toContain('BƯỚC 1: KẾT NỐI');
     expect(TOAN_COMMON_FORMAT).toContain('BƯỚC 4: CHUẨN HÓA');
     expect(TOAN_COMMON_FORMAT).toContain('Chờ ≥ 3 giây');
     expect(TOAN_COMMON_FORMAT).toContain('Dự kiến khó khăn');
     expect(TOAN_COMMON_FORMAT).toContain('⚠ Lỗi phổ biến');
     expect(TOAN_COMMON_FORMAT).toContain('HS yếu/TB');
+  });
+
+  it('có đủ 5 luật chống lỗi rút từ đợt rà giáo án Bài 19 (2026-07)', () => {
+    // Mỗi assert ứng với một lỗi THẬT đã phải sửa tay — xoá luật là mở đường cho lỗi quay lại.
+    expect(TOAN_COMMON_FORMAT).toContain('DÙNG CÔNG CỤ CHƯA HỌC');
+    expect(TOAN_COMMON_FORMAT).toContain('ĐỔI HẲN ĐỀ KHÁC');
+    expect(TOAN_COMMON_FORMAT).toContain('ĐỂ TRỐNG');
+    expect(TOAN_COMMON_FORMAT).toContain('MỐC THỜI GIAN HỞ HOẶC LỆCH');
+    expect(TOAN_COMMON_FORMAT).toContain('LẶP KHỐI NỘI DUNG');
+    expect(TOAN_COMMON_FORMAT).toContain('MÔ HÌNH TỔ CHỨC LỚP MÂU THUẪN');
+  });
+
+  it('quy ước mốc thời gian nêu rõ P0→P40 và cấm để hở phút', () => {
+    expect(TOAN_COMMON_FORMAT).toContain('QUY TẮC MỐC THỜI GIAN');
+    expect(TOAN_COMMON_FORMAT).toContain('kết thúc đúng **P40**');
+    expect(TOAN_COMMON_FORMAT).toContain('không hở phút nào');
+  });
+
+  it('có chuẩn trình bày phiếu học tập ở phụ lục', () => {
+    expect(TOAN_COMMON_FORMAT).toContain('PHIẾU HỌC TẬP Ở PHỤ LỤC');
+    expect(TOAN_COMMON_FORMAT).toContain('Họ và tên');
+    expect(TOAN_COMMON_FORMAT).toContain('Mỗi phiếu là một trang riêng');
   });
 
   it('liệt kê đủ danh sách nhãn đóng, và mọi nhãn đều khớp TOAN_NHAN_RE của style rules', () => {

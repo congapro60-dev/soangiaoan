@@ -46,8 +46,12 @@ export const isToanActivityTableHeader = (headerCells: string[]): boolean => {
   return /thoi gian/.test(c1) && /(giao vien|gv)/.test(c2) && /(noi dung|ghi bang)/.test(c3);
 };
 
-/** Tỉ lệ độ rộng 3 cột bảng hoạt động theo v13 (1000/4900/3126 của W=9026 ≈ 11%/54%/35%). */
-export const TOAN_ACTIVITY_COL_RATIOS = [1000 / 9026, 4900 / 9026, 3126 / 9026] as const;
+/**
+ * Tỉ lệ độ rộng 3 cột bảng hoạt động — chuẩn ban Toán 15/45/40.
+ * Chốt 2026-07 sau khi rà 3 giáo án định hướng Bài 19; phải KHỚP với COL3 trong
+ * lib/toanSchoolForm/buildSchoolFormDocx.ts (hai đường xuất Word khác nhau, cùng một chuẩn).
+ */
+export const TOAN_ACTIVITY_COL_RATIOS = [0.15, 0.45, 0.4] as const;
 
 /** Fill header bảng hoạt động. */
 export const TOAN_ACT_HEADER_FILL = 'cfe2f3';
@@ -70,3 +74,66 @@ export const TOAN_NHAN_RE =
 
 /** Màu chữ nhãn câu hỏi (v13: 1F4E79). */
 export const TOAN_NHAN_COLOR = '1F4E79';
+
+/**
+ * ── BỘ MÀU PHÂN LOẠI DÒNG (chuẩn ban Toán, chốt 2026-07) ────────────────────
+ * Mục đích: GV liếc mắt là phân biệt được đâu là kịch bản, đâu là gợi ý cho HS yếu,
+ * đâu là cảnh báo lỗi, đâu là ghi chú điều hành lớp. Trước đây mọi thứ đen trơn → rối mắt.
+ *
+ *  - (mặc định)  đen thường     : lời thoại / kịch bản chính
+ *  - CORE_Q      xanh, nghiêng  : câu hỏi cốt lõi giữ suốt tiết
+ *  - HINT        cam, nghiêng   : gợi ý / scaffold cho HS cần hỗ trợ
+ *  - WARNING     đỏ, đậm        : cảnh báo lỗi HS hay mắc
+ *  - WAIT        xám, nghiêng   : ghi chú điều hành lớp (thời gian chờ, gọi ngẫu nhiên)
+ *
+ * Nhận diện bám ĐÚNG các chuỗi mà toanFormats.ts yêu cầu AI sinh ra (⚠, ↳ Gợi ý, → Chờ…).
+ */
+export type ToanLineKind = 'core_q' | 'hint' | 'warning' | 'wait';
+
+export interface ToanLineStyle {
+  color: string;
+  bold?: boolean;
+  italic?: boolean;
+}
+
+export const TOAN_LINE_STYLES: Record<ToanLineKind, ToanLineStyle> = {
+  core_q: { color: '2E75B6', italic: true },
+  hint: { color: 'C55A11', italic: true },
+  warning: { color: 'C00000', bold: true },
+  wait: { color: '7F7F7F', italic: true },
+};
+
+const TOAN_LINE_MATCHERS: Array<{ kind: ToanLineKind; re: RegExp }> = [
+  // Cảnh báo lỗi: "⚠ Lỗi phổ biến:", "→ Dự kiến khó khăn:", "Dự kiến nhầm lẫn", "Lỗi cần tránh"
+  { kind: 'warning', re: /^\s*(?:[⚠️]|→\s*)?\s*(?:lỗi\s*(?:phổ\s*biến|cần\s*tránh|thường\s*gặp)|dự\s*kiến\s*(?:khó\s*khăn|nhầm\s*lẫn)|hay\s*nhầm)\s*[:：]/i },
+  // Gợi ý phân hóa: "↳ Gợi ý…", "💡 Gợi ý…", "Gợi ý (HS…)"
+  { kind: 'hint', re: /^\s*(?:[↳💡]\s*)?gợi\s*ý\b/i },
+  // Ghi chú điều hành: "→ Chờ ≥ 3 giây…"
+  { kind: 'wait', re: /^\s*→?\s*chờ\s*[≥>]?\s*\d/i },
+];
+
+/**
+ * Phân loại MỘT dòng để tô màu. Trả về undefined nếu là kịch bản thường (giữ đen).
+ * `isQuotedItalic`: dòng đang ở dạng *"…"* — dùng để nhận câu hỏi cốt lõi.
+ */
+export const matchToanLineKind = (
+  text: string,
+  opts?: { isQuotedItalic?: boolean },
+): ToanLineKind | undefined => {
+  const raw = (text || '').trim();
+  if (!raw) return undefined;
+  const hit = TOAN_LINE_MATCHERS.find(m => m.re.test(raw));
+  if (hit) return hit.kind;
+  // Câu hỏi cốt lõi: in nghiêng + nằm trong ngoặc kép + có dấu hỏi.
+  if (opts?.isQuotedItalic && /^["“].*[?？]["”]?\s*$/.test(raw)) return 'core_q';
+  return undefined;
+};
+
+/** Tra style tô màu cho một dòng; undefined = render thường. */
+export const matchToanLineStyle = (
+  text: string,
+  opts?: { isQuotedItalic?: boolean },
+): ToanLineStyle | undefined => {
+  const kind = matchToanLineKind(text, opts);
+  return kind ? TOAN_LINE_STYLES[kind] : undefined;
+};

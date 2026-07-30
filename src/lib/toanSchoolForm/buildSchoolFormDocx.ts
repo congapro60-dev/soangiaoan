@@ -132,8 +132,10 @@ const mucTieuTable = (m: ToanLessonModel): Table =>
     ),
   });
 
-// Bảng hoạt động 3 cột (Thời gian thực | Giáo viên và Học sinh | Nội dung), tỉ lệ đúng template.
-const COL3 = [1305, 7305, 6015];
+// Bảng hoạt động 3 cột (Thời gian thực | Giáo viên và Học sinh | Nội dung).
+// Tỉ lệ chuẩn ban Toán: 15/45/40 (chốt 2026-07 sau rà 3 giáo án định hướng Bài 19).
+// Trước đây là 9/50/41 — cột Thời gian quá hẹp làm mốc "P12 – P22" bị xuống dòng.
+const COL3 = [2194, 6581, 5850]; // = 15% / 45% / 40% của 14625
 const activityTable = (a: ToanLessonModel['activities'][number]): Table => {
   const headerCell = (t: string) =>
     new TableCell({
