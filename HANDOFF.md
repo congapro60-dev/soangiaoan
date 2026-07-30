@@ -1,6 +1,6 @@
 # HANDOFF — Soạn giáo án / học phân hoá
 
-**Cập nhật gần nhất**: 2026-07-29  
+**Cập nhật gần nhất**: 2026-07-30  
 **Repo**: `soangiaoan` — `https://github.com/congapro60-dev/soangiaoan`  
 **Branch chuẩn**: `main`  
 **Production URL để QA UI**: `https://giaoandewey.vercel.app`  
@@ -9,6 +9,83 @@
 ---
 
 ## 1. Trạng thái hiện tại
+
+### 1.0n Cập nhật phiên 2026-07-30 — Chuẩn "Giáo án ban Toán" vào 3 tầng (prompt / builder / cổng chất lượng)
+
+> ⏳ **CÒN VIỆC: chưa push. Xem mục "Việc cần làm ngay" ở cuối phần này.**
+
+Bối cảnh: rà tay 3 giáo án định hướng Bài 19 (PT đường thẳng) trong `C:\Users\ADMIN\Downloads\giáo án định hướng` — Tiết 1 hình thành kiến thức, Tiết 2 luyện tập, Tiết 3 đảo ngược. Sửa xong ~20 lỗi, rồi **đưa những gì học được vào code** thay vì chỉ giữ 3 file docx.
+
+**Nguyên tắc rút ra (quan trọng cho người tiếp theo):** prompt KHÔNG chặn được lỗi kiểm-được-bằng-máy. Bằng chứng: `toanFormats.ts` đã ghi rõ *"KHÔNG lấn nội dung tiết sau (vd… không dạy vectơ chỉ phương)"* mà AI vẫn vi phạm đúng chỗ đó ở Tiết 1. Phân biệt:
+- lỗi **sinh ra** (văn phong, độ dày kịch bản) → prompt uốn được;
+- lỗi **kiểm được** (tổng thời gian, ô trống, thuật ngữ chưa giới thiệu, khối lặp) → chỉ luật deterministic trong `mathStandards.ts` mới chặn được. Thêm ví dụ few-shot KHÔNG sửa được nhóm này.
+
+**Tầng cổng chất lượng — 4 luật mới trong `src/lib/lessonUpgrade/mathStandards.ts`:**
+
+| id | severity | bắt lỗi thật nào |
+|---|---|---|
+| `time-continuity` | high | Tiết 2 hở 3 phút (P35–P38 không hoạt động nào nhận); heading "(5 phút, P1–P5)" trong khi mốc chỉ dài 4 phút |
+| `board-content-filled` | high | ô "Nội dung ghi bảng" phần Khởi động Tiết 2 bỏ trống hoàn toàn |
+| `term-introduced` | medium* | Tiết 1 dùng VTCP / PT đoạn chắn / UNCLOS mà chưa hề giới thiệu |
+| `no-duplicate-block` | medium* | Tiết 1 lặp nguyên khối nháp trong cùng một ô |
+
+\* hai luật medium đã thêm vào `REPAIRABLE_MEDIUM_IDS` trong `src/lib/toanLessonQuality.ts` → AI tự sửa 1 lượt.
+
+**Tầng prompt — `src/prompts/toanFormats.ts`:**
+- **Sửa lỗi GỐC**: cả 3 khung kế hoạch đều lệch thời gian. `kien_thuc` cộng lại chỉ **37 phút** và ghi "3 phút" cho mốc dài 6 phút; cả ba đều bắt đầu từ P1 nên hoạt động đầu luôn hụt 1 phút. → chuẩn hoá **P0→P40**, cả ba khung nay khép kín đúng 40 phút.
+- Thêm mục **"Năm lỗi hay mắc nhất"** (dùng công cụ chưa học → *đổi hẳn đề*, không vá; ô ghi bảng trống; mốc thời gian hở; lặp khối; mô hình tổ chức lớp mâu thuẫn) và mục **chuẩn trình bày phiếu học tập ở phụ lục**.
+- Đổi tên mục công thức toán từ `D.` thành `F.` (chèn D, E ở giữa) — không có test nào bám chữ cái mục.
+
+**Tầng builder (hình thức Word):**
+- Tỉ lệ cột bảng hoạt động **15/45/40**. ⚠️ Hằng số này tồn tại ở **HAI** nơi và trước đây lệch nhau: `buildSchoolFormDocx.ts::COL3` (9/50/41) và `toanStyleRules.ts::TOAN_ACTIVITY_COL_RATIOS` (~11/54/35). Đổi một nơi là user vẫn thấy sai ở đường xuất kia — **sửa phải grep cả repo**.
+- **Bộ màu phân loại dòng** mới trong `toanStyleRules.ts` (`matchToanLineStyle`): cảnh báo lỗi = đỏ đậm, gợi ý = cam nghiêng, ghi chú điều hành (thời gian chờ) = xám nghiêng, câu hỏi cốt lõi = xanh nghiêng, còn lại giữ đen. Đã **nối vào `renderWordCore.ts`** ở 3 điểm: ô bảng (mỗi dòng tách bởi `<br>`), paragraph cấp tài liệu, và list item.
+
+⚠️ **`src/utils/renderWordCore.ts` chứa 12 byte NUL (`\x00`) CỐ Ý** — dùng làm ký tự mốc giấu công thức/code khi xử lý markdown (`\x00MATH1\x00`). Grep coi đây là file nhị phân. **Đừng sửa file này bằng công cụ text thường** — mất NUL là vỡ toàn bộ render công thức. Sửa bằng script đọc/ghi theo byte, và kiểm lại `count(b'\x00') == 12` sau khi sửa.
+
+**Hai bẫy regex tiếng Việt đã mắc (giữ test để không tái phạm):**
+- `\b` sau chữ có dấu KHÔNG tạo ranh giới từ ("ý" không phải `\w` ASCII) → `/gợi\s*ý\b/` trượt hết mọi dòng "Gợi ý: …".
+- Emoji ngoài BMP (💡 = U+1F4A1) đặt trong char class không bật cờ `u` bị tách thành 2 nửa surrogate → không bao giờ khớp. Cách chữa: bóc mọi ký tự không phải chữ ở đầu dòng bằng `/^[^\p{L}]+/u` rồi mới match.
+
+**Test đã thêm:**
+- `src/lib/lessonUpgrade/mathStandards.bai19.test.ts` — 13 ca, mỗi ca là một lỗi thật.
+- `src/utils/toanStyleRules.lineStyle.test.ts` — 18 ca cho bộ màu, gồm ca chống báo nhầm ("GV gợi ý cho nhóm yếu" giữa câu thì KHÔNG tô).
+- `src/prompts/toanFormats.test.ts` — cập nhật hợp đồng: đổi `P1–P5` thành `P0–P5`, thêm assert cho 5 luật mới + chuẩn phiếu học tập.
+
+**⚠️ Mức độ đã kiểm chứng (đọc kỹ trước khi tin):**
+- ✅ `tsc --noEmit --skipLibCheck --strict` nhắm từng file đã sửa: **sạch** (gồm cả `renderWordCore.ts` và 3 file test).
+- ✅ Logic 4 luật cổng + bộ màu: verify bằng harness Node độc lập, **34/34 ca đạt**. Harness bắt được 5 bug thật của chính đợt sửa này (quét khối lặp bỏ sót khi lệch pha; 4 bug regex tiếng Việt kể trên).
+- ❌ **CHƯA chạy `npm run build` và CHƯA chạy vitest thật.** Lý do: sandbox Linux dùng `node_modules` cài trên Windows → thiếu `@rollup/rollup-linux-x64-gnu`, `npm i` thì timeout; `tsc --noEmit` toàn project trên mount mạng chạy >20 phút không xong. **Phải chạy trên máy Windows.**
+
+#### Việc cần làm ngay (cho Claude Code / người tiếp theo)
+
+Nhánh `feat/toan-final-template`, đã có commit `d21cda5` (7 file, +508 −14). Phần nối bộ màu vào `renderWordCore.ts` + 2 file test mới **chưa commit**.
+
+```powershell
+# 1. Xoá 2 file khoá git còn sót (do tiến trình Windows giữ — đóng VS Code trước)
+del "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai\.git\HEAD.lock"
+del "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai\.git\index.lock"
+
+# 2. Build + test (BẮT BUỘC — main tự deploy Vercel)
+npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai" run build
+npx vitest run src/lib/lessonUpgrade/mathStandards.bai19.test.ts src/utils/toanStyleRules.lineStyle.test.ts src/prompts/toanFormats.test.ts src/utils/renderWordCore.toan.test.ts
+
+# 3. Commit phần còn lại rồi đẩy thẳng lên main (fast-forward, không cần merge)
+git -C "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai" add src/utils/renderWordCore.ts src/utils/toanStyleRules.ts src/utils/toanStyleRules.lineStyle.test.ts tasks/lessons.md
+git -C "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai" commit -m "feat(toan): noi bo mau phan loai dong vao xuat Word + test"
+git -C "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai" push origin feat/toan-final-template:main
+```
+
+Quay lui nếu hỏng: `git push origin b4ce673:main --force`.
+
+⚠️ Sau khi sửa file bằng công cụ tự động, **kiểm line-ending**: repo dùng LF nhưng tool hay ghi CRLF, làm diff phình từ ~500 lên ~1900 dòng. Kiểm bằng `grep -c $'\r' <file>` rồi chuẩn hoá về LF trước khi `git add`.
+
+#### Còn tồn (chưa làm)
+
+1. **Đo hiệu quả thay vì đoán**: sinh thử 1 tiết bằng app với prompt mới → chạy `validateToanLesson` → so với 3 file vàng trong `giáo án định hướng`. Chỗ nào mỏng thì tăng liều ví dụ few-shot ĐÚNG chỗ đó. Hiện prompt cố ý dùng liều nhẹ (luật + 1 hoạt động mẫu) vì nhét nguyên cả tiết gây **lây nhiễm bối cảnh** — dấu vết có thật: "Trạm trung tâm I" ma trong BTVN Tiết 2, ga "Ngọc Hồi" sai tuyến metro.
+2. `api/render-word-core.ts` (bản server) vẫn CHƯA mirror bộ màu + tỉ lệ cột mới — bot-push render generic. Nợ cũ, nay thêm phần màu.
+3. Chưa có luật kiểm **tính đúng của phép toán** trong đáp án (Tiết 3 từng ghi `x+2y−2=0` trong khi đáp án đúng là `2x+y−2=0`). Cần CAS nhẹ hoặc AI-check riêng — ngoài phạm vi cổng deterministic.
+
+---
 
 ### 1.0m Cập nhật phiên 2026-07-29 (tối) — Dự giờ: huấn luyện, chu trình 7 bước, giáo viên tự đánh giá
 

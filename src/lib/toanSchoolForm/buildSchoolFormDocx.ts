@@ -1,5 +1,5 @@
 // Dựng file Word theo ĐÚNG FORM trường (25-26_Mẫu giáo án_Ban Toán.docx): khổ Letter ngang,
-// font Arial, các dải màu pastel đúng mã màu template, bảng hoạt động 3 cột 9/50/41.
+// font Arial, các dải màu pastel đúng mã màu template, bảng hoạt động 3 cột 15/45/40.
 // Nội dung lấy từ ToanLessonModel (parse từ markdown AI sinh — KHÔNG đổi khâu sinh).
 //
 // Công thức LaTeX ($...$, $$...$$) render thành OMML native (tái dùng latexToOmml của

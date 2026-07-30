@@ -67,12 +67,13 @@ describe('renderWordCore styleProfile=toan — golden fixture', () => {
     expect(xml).toContain('FFF2CC');
   });
 
-  it('bảng hoạt động dùng độ rộng cột 11/54/35% + header cfe2f3', async () => {
+  it('bảng hoạt động dùng độ rộng cột 15/45/40% + header cfe2f3', async () => {
     const xml = await renderXml('toan');
-    // PRINTABLE_TWIPS_PORTRAIT = 9184 → floor(ratio × 9184) với ratio 1000/4900/3126 trên 9026
-    expect(xml).toContain('w:w="1017"');
-    expect(xml).toContain('w:w="4985"');
-    expect(xml).toContain('w:w="3180"');
+    // Chuẩn ban Toán 15/45/40 (chốt 2026-07, trước đây 11/54/35 — cột Thời gian quá hẹp
+    // làm mốc "P12 – P22" bị xuống dòng). PRINTABLE_TWIPS_PORTRAIT = 9184 → floor(ratio × 9184).
+    expect(xml).toContain('w:w="1377"');
+    expect(xml).toContain('w:w="4132"');
+    expect(xml).toContain('w:w="3673"');
     expect(xml).toMatch(/cfe2f3/i);
   });
 

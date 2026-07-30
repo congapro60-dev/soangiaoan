@@ -103,13 +103,30 @@ export const TOAN_LINE_STYLES: Record<ToanLineKind, ToanLineStyle> = {
   wait: { color: '7F7F7F', italic: true },
 };
 
+/**
+ * Bóc mọi ký hiệu dẫn đầu (⚠ → ↳ 💡 • - số thứ tự…) để chỉ còn phần chữ.
+ * Làm vậy thay vì liệt kê từng ký hiệu trong regex vì hai cái bẫy đã gặp:
+ *  - Emoji ngoài BMP (💡 = U+1F4A1) trong char class `[↳💡]` bị tách thành 2 nửa surrogate
+ *    khi regex không bật cờ `u` → không bao giờ khớp.
+ *  - Biến thể có VS16 ("⚠️" = ⚠ + U+FE0F) làm lệch phần `\s*` ngay sau.
+ */
+const stripLeadingSymbols = (s: string): string => s.replace(/^[^\p{L}]+/u, '');
+
+/**
+ * ⚠️ KHÔNG dùng \b sau chữ tiếng Việt có dấu: "ý" không phải ký tự \w trong chế độ ASCII nên
+ * \b không tạo được ranh giới từ → /gợi\s*ý\b/ KHÔNG khớp "Gợi ý: ...". Dùng neo ^ là đủ.
+ */
 const TOAN_LINE_MATCHERS: Array<{ kind: ToanLineKind; re: RegExp }> = [
-  // Cảnh báo lỗi: "⚠ Lỗi phổ biến:", "→ Dự kiến khó khăn:", "Dự kiến nhầm lẫn", "Lỗi cần tránh"
-  { kind: 'warning', re: /^\s*(?:[⚠️]|→\s*)?\s*(?:lỗi\s*(?:phổ\s*biến|cần\s*tránh|thường\s*gặp)|dự\s*kiến\s*(?:khó\s*khăn|nhầm\s*lẫn)|hay\s*nhầm)\s*[:：]/i },
+  // Cảnh báo lỗi: "Lỗi phổ biến:", "Dự kiến khó khăn:", "Dự kiến nhầm lẫn Bài 2:",
+  // "Lỗi cần tránh:", "Hay nhầm:" — cho phép vài chữ xen giữa từ khóa và dấu hai chấm.
+  {
+    kind: 'warning',
+    re: /^(?:lỗi\s*(?:phổ\s*biến|cần\s*tránh|thường\s*gặp)|dự\s*kiến\s*(?:khó\s*khăn|nhầm\s*lẫn)|hay\s*nhầm)[^:：\n]{0,40}[:：]/i,
+  },
   // Gợi ý phân hóa: "↳ Gợi ý…", "💡 Gợi ý…", "Gợi ý (HS…)"
-  { kind: 'hint', re: /^\s*(?:[↳💡]\s*)?gợi\s*ý\b/i },
-  // Ghi chú điều hành: "→ Chờ ≥ 3 giây…"
-  { kind: 'wait', re: /^\s*→?\s*chờ\s*[≥>]?\s*\d/i },
+  { kind: 'hint', re: /^gợi\s*ý/i },
+  // Ghi chú điều hành: "→ Chờ ≥ 3 giây…", "Chờ 5 giây…"
+  { kind: 'wait', re: /^chờ\s*[≥>]?\s*\d/i },
 ];
 
 /**
@@ -122,9 +139,12 @@ export const matchToanLineKind = (
 ): ToanLineKind | undefined => {
   const raw = (text || '').trim();
   if (!raw) return undefined;
-  const hit = TOAN_LINE_MATCHERS.find(m => m.re.test(raw));
+  // Ba nhóm dưới nhận diện trên phần CHỮ (đã bóc ký hiệu dẫn đầu).
+  const body = stripLeadingSymbols(raw);
+  const hit = TOAN_LINE_MATCHERS.find(m => m.re.test(body));
   if (hit) return hit.kind;
-  // Câu hỏi cốt lõi: in nghiêng + nằm trong ngoặc kép + có dấu hỏi.
+  // Câu hỏi cốt lõi: in nghiêng + nằm trong ngoặc kép + có dấu hỏi — dùng chuỗi GỐC vì
+  // dấu mở ngoặc kép chính là dấu hiệu nhận biết (bóc đi là mất).
   if (opts?.isQuotedItalic && /^["“].*[?？]["”]?\s*$/.test(raw)) return 'core_q';
   return undefined;
 };
