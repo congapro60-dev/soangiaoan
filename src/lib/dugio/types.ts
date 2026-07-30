@@ -103,6 +103,45 @@ export interface NhanXetTraoDoi {
 export type BoTieuChi = 'dugio' | 'daydu';
 
 /**
+ * Loại phân tích — quyết định chấm những Phần nào của khung.
+ *
+ * Tách ra vì ba nhóm người dùng khác nhau: người chỉ muốn soát giáo án trước khi
+ * dạy, người dự giờ một tiết, và người làm đánh giá toàn diện cả năm.
+ */
+export type LoaiPhanTich = 'giaoAn' | 'duGio' | 'dayDu';
+
+export const LOAI_PHAN_TICH: readonly {
+  ma: LoaiPhanTich;
+  ten: string;
+  moTa: string;
+  /** Phần của khung sẽ được chấm. */
+  phan: readonly (1 | 2 | 3 | 4)[];
+  can: string;
+}[] = [
+  {
+    ma: 'giaoAn',
+    ten: 'Chỉ giáo án',
+    moTa: 'Soát kế hoạch bài dạy trước khi lên lớp. Chấm Phần I.',
+    phan: [1],
+    can: 'giáo án',
+  },
+  {
+    ma: 'duGio',
+    ten: 'Dự giờ một tiết',
+    moTa: 'Chấm những gì quan sát được trong tiết. Phần II và III; thêm Phần I nếu có giáo án.',
+    phan: [1, 2, 3],
+    can: 'biên bản quan sát',
+  },
+  {
+    ma: 'dayDu',
+    ten: 'Đầy đủ bốn phần',
+    moTa: 'Đánh giá toàn diện. Cần cả giáo án và hồ sơ tự phản tư.',
+    phan: [1, 2, 3, 4],
+    can: 'biên bản, giáo án và hồ sơ',
+  },
+];
+
+/**
  * Bước 2 của chu trình — cuộc họp lên kế hoạch TRƯỚC tiết dạy.
  * Không có bước này thì dự giờ vẫn mang tính kiểm tra bất ngờ, dù nói chuyện
  * tử tế đến đâu sau đó.
@@ -162,8 +201,24 @@ export interface BienBanDuGio {
   hoSo: string;
 
   boTieuChi: BoTieuChi;
+  /** Loại phân tích người dùng chọn — quyết định chấm những Phần nào. */
+  loaiPhanTich: LoaiPhanTich;
   ketQua: Partial<Record<MaThanhTo, KetQuaThanhTo>>;
   diemChot: Partial<Record<MaThanhTo, number | null>>;
+  /**
+   * Điểm ở tầng TIÊU CHÍ CON, khoá là mã dạng "3b.2".
+   *
+   * Đây là tầng mà bản tự đánh giá và kế hoạch tự thúc đẩy của trường dùng.
+   * Điểm thành tố được ĐỀ XUẤT bằng trung bình các tiêu chí con (làm tròn 0,5)
+   * nhưng người dự giờ vẫn sửa được: nhìn tổng thể có thể khác bình quân máy tính.
+   */
+  diemTieuChiCon: Record<string, number | null>;
+  /** Minh chứng chạm ngưỡng cho điểm lẻ ở tầng tiêu chí con. */
+  chamNguongTieuChiCon: Record<string, string>;
+  /** Bằng chứng AI trích cho từng tiêu chí con. */
+  bangChungTieuChiCon: Record<string, string[]>;
+  /** Lí do AI dừng ở mức đó, theo từng tiêu chí con. */
+  lyDoTieuChiCon: Record<string, string>;
   /** Đánh dấu chỗ người chốt khác đề xuất của AI — để sau còn truy được. */
   daSua: Partial<Record<MaThanhTo, boolean>>;
   /** Minh chứng chạm ngưỡng cho điểm lẻ NGƯỜI DỰ GIỜ tự chốt (tách khỏi đề xuất AI). */
@@ -197,10 +252,15 @@ export const bienBanRong = (userId: string): BienBanDuGio => ({
   giaoAn: '',
   hoSo: '',
   boTieuChi: 'dugio',
+  loaiPhanTich: 'duGio',
   ketQua: {},
   diemChot: {},
   daSua: {},
   chamNguong: {},
+  diemTieuChiCon: {},
+  chamNguongTieuChiCon: {},
+  bangChungTieuChiCon: {},
+  lyDoTieuChiCon: {},
   gopY: {},
   trongTam: {},
   nhanXet: null,

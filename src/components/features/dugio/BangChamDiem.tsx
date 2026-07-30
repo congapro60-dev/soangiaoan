@@ -26,7 +26,8 @@ import {
   laDiemChamNguong,
 } from '../../../data/nguyenTacChamDiem';
 import { tieuChiConCua } from '../../../data/tieuChiCon';
-import { thanhToTheoBo } from '../../../lib/dugio/tinhDiem';
+import { laTieuChiPhanHoa, laTrongTam2627 } from '../../../data/phanHoa';
+import { diemDeXuatTuTieuChiCon, thanhToTheoBo } from '../../../lib/dugio/tinhDiem';
 import type { BienBanDuGio } from '../../../lib/dugio/types';
 
 interface Props {
@@ -123,6 +124,221 @@ function GiaiThichDiem({
               <li key={i}>{v}</li>
             ))}
           </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Chấm điểm ở TẦNG TIÊU CHÍ CON.
+ *
+ * Đây là tầng mà bản tự đánh giá và kế hoạch tự thúc đẩy của trường dùng. Điểm
+ * thành tố phía trên được đề xuất bằng trung bình các mục ở đây, nhưng người dự
+ * giờ vẫn sửa được — nhìn tổng thể có thể khác bình quân máy tính.
+ */
+function BangTieuChiCon({
+  thanhTo,
+  bienBan,
+  onDoi,
+  chiDoc,
+}: {
+  thanhTo: MaThanhTo;
+  bienBan: BienBanDuGio;
+  onDoi: (t: Partial<BienBanDuGio>) => void;
+  chiDoc?: boolean;
+}) {
+  const [mo, setMo] = useState(false);
+  const con = tieuChiConCua(thanhTo);
+  const deXuat = diemDeXuatTuTieuChiCon(bienBan, thanhTo);
+  const chotThanhTo = bienBan.diemChot[thanhTo];
+  const lechDeXuat =
+    deXuat.diem !== null && typeof chotThanhTo === 'number' && deXuat.diem !== chotThanhTo;
+
+  const dat = (ma: string, diem: number | null) =>
+    onDoi({ diemTieuChiCon: { ...bienBan.diemTieuChiCon, [ma]: diem } });
+  const datChamNguong = (ma: string, v: string) =>
+    onDoi({ chamNguongTieuChiCon: { ...bienBan.chamNguongTieuChiCon, [ma]: v } });
+
+  const thieuCn = con.filter(
+    t => laDiemChamNguong(bienBan.diemTieuChiCon[t.ma]) && !(bienBan.chamNguongTieuChiCon[t.ma] || '').trim(),
+  );
+
+  return (
+    <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50/60 p-3 text-sm">
+      <button
+        type="button"
+        onClick={() => setMo(!mo)}
+        className="flex w-full flex-wrap items-center justify-between gap-2 text-left"
+      >
+        <span className="font-semibold text-slate-800">
+          {mo ? '▾' : '▸'} Tiêu chí con · đã chấm {deXuat.soDaCham}/{deXuat.tong}
+        </span>
+        <span className="text-slate-600">
+          {deXuat.diem !== null && (
+            <>
+              trung bình <b>{nhanDiem(deXuat.diem)}</b>
+            </>
+          )}
+          {thieuCn.length > 0 && (
+            <span className="ml-2 font-medium text-rose-600">
+              {thieuCn.length} mục thiếu minh chứng chạm ngưỡng
+            </span>
+          )}
+        </span>
+      </button>
+
+      {lechDeXuat && (
+        <p className="mt-1.5 rounded-lg bg-amber-50 p-2 text-amber-900">
+          Trung bình tiêu chí con là <b>{nhanDiem(deXuat.diem as number)}</b> nhưng bạn chốt thành tố{' '}
+          <b>{nhanDiem(chotThanhTo as number)}</b>. Không sao — chỉ để bạn biết hai con số đang lệch.
+        </p>
+      )}
+
+      {mo && (
+        <div className="mt-3 space-y-2">
+          {con.map(t => {
+            const d = bienBan.diemTieuChiCon[t.ma];
+            const chuaCham = d === undefined || d === null;
+            const canCn = laDiemChamNguong(d);
+            const cn = bienBan.chamNguongTieuChiCon[t.ma] || '';
+            const bc = bienBan.bangChungTieuChiCon[t.ma] || [];
+            const ld = bienBan.lyDoTieuChiCon[t.ma] || '';
+
+            return (
+              <div
+                key={t.ma}
+                className={`rounded-lg border p-2.5 ${
+                  canCn && !cn.trim() ? 'border-rose-400 bg-rose-50' : 'border-slate-200 bg-white'
+                }`}
+              >
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <p className="min-w-[13rem] flex-1 font-medium text-slate-800">
+                    <span className="mr-1.5 font-mono text-xs text-slate-500">{t.ma}</span>
+                    {t.ten}
+                    {t.tuBoSung && (
+                      <span
+                        className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-normal text-amber-800"
+                        title="Trường chưa ban hành mô tả 4 mức cho mục này; đây là bản soạn bổ sung"
+                      >
+                        bản bổ sung
+                      </span>
+                    )}
+                    {laTieuChiPhanHoa(t.ma) && (
+                      <span
+                        className={`ml-2 rounded px-1.5 py-0.5 text-xs font-normal ${
+                          laTrongTam2627(t.ma)
+                            ? 'bg-rose-100 text-rose-800'
+                            : 'bg-slate-100 text-slate-700'
+                        }`}
+                        title={
+                          laTrongTam2627(t.ma)
+                            ? 'Dạy học phân hóa — trọng tâm quan sát năm 26-27'
+                            : 'Liên quan dạy học phân hóa'
+                        }
+                      >
+                        {laTrongTam2627(t.ma) ? 'phân hóa · trọng tâm' : 'phân hóa'}
+                      </span>
+                    )}
+                  </p>
+
+                  <div className="flex flex-wrap items-center gap-1">
+                    <button
+                      type="button"
+                      disabled={chiDoc}
+                      onClick={() => dat(t.ma, null)}
+                      className={`rounded border px-2 py-0.5 text-xs font-medium ${
+                        chuaCham
+                          ? 'border-slate-400 bg-slate-200 text-slate-700'
+                          : 'border-slate-200 text-slate-500 hover:border-slate-400'
+                      }`}
+                      title="Không quan sát được — bị loại khỏi trung bình, KHÔNG tính 0 điểm"
+                    >
+                      Không đánh giá
+                    </button>
+                    {MUC_DIEM.map(v => (
+                      <button
+                        key={v}
+                        type="button"
+                        disabled={chiDoc}
+                        onClick={() => dat(t.ma, v)}
+                        title={Number.isInteger(v) ? `${v} — ${TEN_MUC[v - 1]}` : `${nhanDiem(v)} — cần minh chứng chạm ngưỡng`}
+                        className={`w-9 rounded border py-0.5 text-xs font-semibold ${
+                          d === v
+                            ? 'border-indigo-500 bg-indigo-500 text-white'
+                            : Number.isInteger(v)
+                              ? 'border-slate-200 text-slate-700 hover:border-indigo-400'
+                              : 'border-dashed border-slate-300 text-slate-500 hover:border-indigo-400'
+                        }`}
+                      >
+                        {nhanDiem(v)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <p className="mt-1 text-slate-600">{t.dinhNghia}</p>
+
+                {bc.length > 0 && (
+                  <div className="mt-1.5">
+                    <p className="font-medium text-emerald-800">Bằng chứng AI trích</p>
+                    <ul className="list-disc pl-5 text-slate-700">
+                      {bc.map((x, i) => (
+                        <li key={i}>{x}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {ld && <p className="mt-1 text-slate-600">Lí do AI chấm mức này: {ld}</p>}
+
+                {canCn && (
+                  <div className="mt-1.5">
+                    <label className="mb-0.5 block text-xs font-semibold text-slate-700">
+                      Hành động chạm ngưỡng{' '}
+                      <span className="font-normal text-rose-600">· bắt buộc với điểm {nhanDiem(d as number)}</span>
+                    </label>
+                    <textarea
+                      value={cn}
+                      disabled={chiDoc}
+                      rows={2}
+                      placeholder={CHAM_NGUONG[d as 1.5 | 2.5 | 3.5].viDu}
+                      onChange={e => datChamNguong(t.ma, e.target.value)}
+                      className="w-full rounded border border-slate-300 bg-white p-1.5 text-sm"
+                    />
+                  </div>
+                )}
+
+                <details className="mt-1.5">
+                  <summary className="cursor-pointer text-xs text-slate-500">Xem thang 4 mức</summary>
+                  <ol className="mt-1 space-y-0.5 text-slate-600">
+                    {t.muc.map((x, i) => (
+                      <li key={i} className={d === i + 1 ? 'font-medium text-indigo-700' : ''}>
+                        <b>
+                          {i + 1} {TEN_MUC[i]}:
+                        </b>{' '}
+                        {x}
+                      </li>
+                    ))}
+                  </ol>
+                </details>
+              </div>
+            );
+          })}
+
+          {!chiDoc && deXuat.diem !== null && (
+            <button
+              type="button"
+              onClick={() =>
+                onDoi({
+                  diemChot: { ...bienBan.diemChot, [thanhTo]: deXuat.diem },
+                  daSua: { ...bienBan.daSua, [thanhTo]: false },
+                })
+              }
+              className="rounded-lg bg-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-300"
+            >
+              Đặt điểm thành tố = trung bình ({nhanDiem(deXuat.diem)})
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -266,6 +482,15 @@ export function BangChamDiem({ bienBan, onDoi, chiDoc }: Props) {
                     </div>
                   )}
 
+                  {tieuChiConCua(c.ma).length > 0 && (
+                    <BangTieuChiCon
+                      thanhTo={c.ma}
+                      bienBan={bienBan}
+                      onDoi={onDoi}
+                      chiDoc={chiDoc}
+                    />
+                  )}
+
                   {typeof chot === 'number' && (
                     <GiaiThichDiem
                       ma={c.ma}
@@ -312,56 +537,6 @@ export function BangChamDiem({ bienBan, onDoi, chiDoc }: Props) {
                             <li><b>Mức 3</b> nếu: {LUONG_HOA_PHAN_III[c.ma]!.muc3}</li>
                             <li><b>Mức 4</b> nếu: {LUONG_HOA_PHAN_III[c.ma]!.muc4}</li>
                           </ul>
-                        </div>
-                      )}
-
-                      {tieuChiConCua(c.ma).length > 0 && (
-                        <div>
-                          <p className="font-semibold text-slate-700">
-                            Tiêu chí con — tầng mà kế hoạch tự thúc đẩy nhắm vào
-                          </p>
-                          <div className="mt-1 space-y-2">
-                            {tieuChiConCua(c.ma).map(t => {
-                              // Bằng chứng AI đã gán xuống đúng tiêu chí con này.
-                              const bc = (kq?.bangChungCoNhan ?? []).filter(b => b.tieuChiCon === t.ma);
-                              return (
-                                <div key={t.ma} className="rounded-lg border border-slate-200 p-2">
-                                  <p className="font-medium text-slate-800">
-                                    <span className="mr-1.5 font-mono text-xs text-slate-500">{t.ma}</span>
-                                    {t.ten}
-                                    {t.tuBoSung && (
-                                      <span
-                                        className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-normal text-amber-800"
-                                        title="Trường chưa ban hành mô tả 4 mức cho mục này; đây là bản soạn bổ sung"
-                                      >
-                                        bản bổ sung
-                                      </span>
-                                    )}
-                                  </p>
-                                  <p className="mt-0.5 text-slate-600">{t.dinhNghia}</p>
-
-                                  {bc.length > 0 && (
-                                    <ul className="mt-1 list-disc pl-5 text-emerald-800">
-                                      {bc.map((b, i) => (
-                                        <li key={i}>{b.trich}</li>
-                                      ))}
-                                    </ul>
-                                  )}
-
-                                  <ol className="mt-1 space-y-0.5 text-slate-600">
-                                    {t.muc.map((x, i) => (
-                                      <li
-                                        key={i}
-                                        className={chot === i + 1 ? 'font-medium text-indigo-700' : ''}
-                                      >
-                                        <b>{i + 1}</b> {x}
-                                      </li>
-                                    ))}
-                                  </ol>
-                                </div>
-                              );
-                            })}
-                          </div>
                         </div>
                       )}
 

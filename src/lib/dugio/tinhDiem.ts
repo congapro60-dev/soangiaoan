@@ -5,6 +5,8 @@
  */
 import { COMPONENTS, BO_DU_GIO, TRONG_SO, type MaThanhTo, type SoPhan } from '../../data/khungDanielson';
 import { laDiemChamNguong } from '../../data/nguyenTacChamDiem';
+import { THANH_TO_TRONG_TAM_2627 } from '../../data/phanHoa';
+import { tieuChiConCua } from '../../data/tieuChiCon';
 import type { BienBanDuGio, BoTieuChi } from './types';
 
 /** Danh sách thành tố phải chấm theo bộ tiêu chí đang chọn. */
@@ -89,6 +91,76 @@ export function thieuMinhChungChamNguong(bb: BienBanDuGio): ThieuChamNguong[] {
     .filter(c => laDiemChamNguong(bb.diemChot[c.ma]))
     .filter(c => !(bb.chamNguong[c.ma] || '').trim())
     .map(c => ({ ma: c.ma, ten: c.ten, diem: bb.diemChot[c.ma] as number }));
+}
+
+/**
+ * Điểm thành tố ĐỀ XUẤT từ trung bình các tiêu chí con, làm tròn tới 0,5.
+ * null khi chưa chấm tiêu chí con nào của thành tố đó.
+ */
+export function diemDeXuatTuTieuChiCon(
+  bb: BienBanDuGio,
+  ma: MaThanhTo,
+): { diem: number | null; soDaCham: number; tong: number } {
+  const con = tieuChiConCua(ma);
+  const co = con
+    .map(t => bb.diemTieuChiCon[t.ma])
+    .filter((v): v is number => typeof v === 'number');
+  return {
+    diem: co.length ? Math.round((co.reduce((a, b) => a + b, 0) / co.length) * 2) / 2 : null,
+    soDaCham: co.length,
+    tong: con.length,
+  };
+}
+
+export interface ThanhToCanGopY {
+  ma: MaThanhTo;
+  ten: string;
+  diem: number;
+  /** Vì sao mục này được chọn — hiện cho người dùng để họ tin hoặc bỏ. */
+  lyDo: string[];
+}
+
+/**
+ * Chọn thành tố cần góp ý.
+ *
+ * Bản đầu dùng ngưỡng tuyệt đối `điểm < 3` và ĐÃ SAI NẶNG: bảng điểm thật của
+ * trường thấp nhất là 3, nên không mục nào thoả điều kiện → không sinh góp ý
+ * nào → nhận xét rỗng. Tài liệu tổ Toán ghi rõ "Mức 3 là kì vọng bình thường,
+ * KHÔNG phải thành tích" — mức 3 là sàn, không phải đích.
+ *
+ * Nay dùng xếp hạng tương đối, gộp ba nguồn:
+ *  - 3 thành tố điểm thấp nhất, bất kể điểm bao nhiêu
+ *  - mọi thành tố ≤ 3 (vì 3 mới là sàn)
+ *  - mọi thành tố thuộc trọng tâm 26-27 mà chưa đạt 3,5
+ */
+export function chonThanhToGopY(bb: BienBanDuGio, soThapNhat = 3): ThanhToCanGopY[] {
+  const trongBo = new Set(thanhToTheoBo(bb.boTieuChi));
+  const daCham = COMPONENTS.filter(
+    c => trongBo.has(c.ma) && typeof bb.diemChot[c.ma] === 'number',
+  ).map(c => ({ ma: c.ma, ten: c.ten, diem: bb.diemChot[c.ma] as number }));
+
+  const lyDo = new Map<MaThanhTo, string[]>();
+  const them = (ma: MaThanhTo, v: string) => {
+    if (!lyDo.has(ma)) lyDo.set(ma, []);
+    const ds = lyDo.get(ma)!;
+    if (!ds.includes(v)) ds.push(v);
+  };
+
+  [...daCham]
+    .sort((a, b) => a.diem - b.diem)
+    .slice(0, soThapNhat)
+    .forEach(x => them(x.ma, 'thuộc nhóm điểm thấp nhất'));
+
+  daCham.filter(x => x.diem <= 3).forEach(x => them(x.ma, 'mức 3 là sàn, chưa phải đích'));
+
+  daCham
+    .filter(x => x.diem < 3.5 && THANH_TO_TRONG_TAM_2627.includes(x.ma))
+    .forEach(x => them(x.ma, 'trọng tâm quan sát năm 26-27'));
+
+  return daCham
+    .filter(x => lyDo.has(x.ma))
+    .sort((a, b) => a.diem - b.diem)
+    .map(x => ({ ...x, lyDo: lyDo.get(x.ma)! }));
 }
 
 export interface DongSoSanh {

@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { bienBanRong, type BienBanDuGio } from './types';
-import { soSanhTuDanhGia, soVN, thanhToTheoBo, thieuMinhChungChamNguong, tinhDiem } from './tinhDiem';
+import {
+  chonThanhToGopY,
+  diemDeXuatTuTieuChiCon,
+  soSanhTuDanhGia,
+  soVN,
+  thanhToTheoBo,
+  thieuMinhChungChamNguong,
+  tinhDiem,
+} from './tinhDiem';
 
 const bb = (ghiDe: Partial<BienBanDuGio> = {}): BienBanDuGio => ({
   ...bienBanRong('u1'),
@@ -136,6 +144,89 @@ describe('thieuMinhChungChamNguong', () => {
     // 4a chỉ có trong bộ đầy đủ.
     expect(thieuMinhChungChamNguong(bb({ boTieuChi: 'dugio', diemChot: { '4a': 2.5 } }))).toEqual([]);
     expect(thieuMinhChungChamNguong(bb({ boTieuChi: 'daydu', diemChot: { '4a': 2.5 } }))).toHaveLength(1);
+  });
+});
+
+describe('diemDeXuatTuTieuChiCon', () => {
+  it('trung bình các tiêu chí con, làm tròn tới 0,5', () => {
+    // 3b có 3 tiêu chí con. (3 + 2 + 2)/3 = 2,33 → 2,5
+    const kq = diemDeXuatTuTieuChiCon(
+      bb({ diemTieuChiCon: { '3b.1': 3, '3b.2': 2, '3b.3': 2 } }),
+      '3b',
+    );
+    expect(kq.diem).toBe(2.5);
+    expect(kq.soDaCham).toBe(3);
+    expect(kq.tong).toBe(3);
+  });
+
+  it('chỉ tính mục đã chấm, mục chưa chấm không kéo xuống 0', () => {
+    const kq = diemDeXuatTuTieuChiCon(bb({ diemTieuChiCon: { '3b.1': 4 } }), '3b');
+    expect(kq.diem).toBe(4);
+    expect(kq.soDaCham).toBe(1);
+  });
+
+  it('chưa chấm mục nào thì null, không phải 0', () => {
+    expect(diemDeXuatTuTieuChiCon(bb(), '3b').diem).toBeNull();
+  });
+
+  it('null tường minh cũng là chưa chấm', () => {
+    expect(diemDeXuatTuTieuChiCon(bb({ diemTieuChiCon: { '3b.1': null } }), '3b').diem).toBeNull();
+  });
+});
+
+// Lỗi user QA phát hiện: ngưỡng "điểm < 3" ra 0 mục trên bảng điểm thật của
+// trường (thấp nhất là 3) nên nhận xét rỗng hoàn toàn.
+describe('chonThanhToGopY', () => {
+  const toanBa = () => {
+    const diemChot: BienBanDuGio['diemChot'] = {};
+    (['1a', '1b', '1c', '1d', '1e', '1f'] as const).forEach(m => (diemChot[m] = 3));
+    (['2a', '2c', '2d', '2e'] as const).forEach(m => (diemChot[m] = 3.5));
+    (['3a', '3b', '3c', '3d', '3e'] as const).forEach(m => (diemChot[m] = 3.5));
+    return bb({ diemChot });
+  };
+
+  it('bảng điểm toàn 3 và 3,5 vẫn ra danh sách góp ý, không rỗng', () => {
+    const ds = chonThanhToGopY(toanBa());
+    expect(ds.length).toBeGreaterThan(0);
+  });
+
+  it('mọi thành tố ≤ 3 đều vào danh sách, vì mức 3 là sàn', () => {
+    const ds = chonThanhToGopY(toanBa()).map(x => x.ma);
+    (['1a', '1b', '1c', '1d', '1e', '1f'] as const).forEach(m => expect(ds).toContain(m));
+  });
+
+  it('nêu rõ lí do chọn để người dùng còn kiểm', () => {
+    const ds = chonThanhToGopY(toanBa());
+    expect(ds[0].lyDo.length).toBeGreaterThan(0);
+    expect(ds.some(x => x.lyDo.includes('mức 3 là sàn, chưa phải đích'))).toBe(true);
+  });
+
+  it('luôn lấy đủ nhóm điểm thấp nhất dù mọi điểm đều cao', () => {
+    const diemChot: BienBanDuGio['diemChot'] = {};
+    (['3a', '3b', '3c', '3d', '3e'] as const).forEach(m => (diemChot[m] = 4));
+    diemChot['3b'] = 3.5;
+    const ds = chonThanhToGopY(bb({ diemChot }), 2);
+    expect(ds.length).toBeGreaterThanOrEqual(2);
+    // Mục thấp nhất phải đứng đầu
+    expect(ds[0].ma).toBe('3b');
+  });
+
+  it('thành tố thuộc trọng tâm 26-27 mà chưa đạt 3,5 thì được nêu lí do riêng', () => {
+    // 3c thuộc trọng tâm; cho nó 3 để vào diện
+    const diemChot: BienBanDuGio['diemChot'] = { '3c': 3, '2a': 4, '2c': 4, '2d': 4 };
+    const ds = chonThanhToGopY(bb({ diemChot }));
+    const x = ds.find(v => v.ma === '3c')!;
+    expect(x.lyDo).toContain('trọng tâm quan sát năm 26-27');
+  });
+
+  it('sắp xếp điểm thấp lên trước', () => {
+    const diemChot: BienBanDuGio['diemChot'] = { '3a': 3.5, '3b': 2, '3c': 3 };
+    const ds = chonThanhToGopY(bb({ diemChot }));
+    expect(ds.map(x => x.ma).slice(0, 2)).toEqual(['3b', '3c']);
+  });
+
+  it('chưa chấm gì thì không có mục nào để góp ý', () => {
+    expect(chonThanhToGopY(bb())).toEqual([]);
   });
 });
 

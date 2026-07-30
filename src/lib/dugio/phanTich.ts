@@ -38,9 +38,15 @@ import {
 import { tieuChiConCua } from '../../data/tieuChiCon';
 import { docJSON, docJSONdon } from './docJson';
 import { thanhToTheoBo } from './tinhDiem';
+import { LOAI_PHAN_TICH } from './types';
 import type { BienBanDuGio, GopYThanhTo, KetQuaThanhTo, NhanXetTraoDoi } from './types';
 
-const LO = 2;
+/**
+ * Một thành tố mỗi lượt gọi. Bản đầu gộp 2 để tiết kiệm lượt, nhưng khi phải
+ * chấm từng tiêu chí con kèm bằng chứng riêng thì phản hồi dài gấp mấy lần và
+ * bị cắt giữa chừng. Đổi thời gian lấy độ đầy đủ.
+ */
+const LO = 1;
 
 const mucDo = Object.entries(Y_NGHIA_MUC)
   .map(([n, v]) => `Mức ${n} — ${v.ten}: ${v.dauHieu}${v.trietLy ? ` Triết lí: "${v.trietLy}"` : ''}`)
@@ -67,9 +73,24 @@ LUẬT BẮT BUỘC:
 4. Mức 3 là chuẩn mực bình thường của tổ, không phải thành tích. Mức 4 đòi hỏi HỌC SINH là chủ thể của hành vi được mô tả.
 5. "ly_do" viết 1 câu, nêu rõ vì sao dừng ở mức đó chứ không phải mức liền kề.
 
-CHỈ trả về JSON hợp lệ, không có văn bản nào khác, không bọc trong khối mã.
-{"ket_qua":[{"ma":"2a","diem":3,"cham_nguong":"","tin_cay":"cao","bang_chung":[{"trich":"trích nguyên văn từ biên bản","tieu_chi_con":"2a.1"}],"ly_do":"...","cau_hoi":[]}]}
-Mỗi phần tử bang_chung PHẢI kèm "tieu_chi_con" là một mã có trong danh sách tiêu chí con của đúng thành tố đó. Không chắc thuộc mã nào thì để chuỗi rỗng, TUYỆT ĐỐI không bịa mã.
+CHẤM TỚI TỪNG TIÊU CHÍ CON, không chỉ chấm thành tố. Mỗi tiêu chí con là một mục riêng có điểm riêng, bằng chứng riêng, lí do riêng.
+
+CHỈ trả về JSON hợp lệ, không có văn bản nào khác, không bọc trong khối mã:
+{"ket_qua":[{
+  "ma":"2a",
+  "tin_cay":"cao",
+  "cau_hoi":["câu hỏi làm rõ nếu thiếu căn cứ"],
+  "tieu_chi_con":[
+    {"ma":"2a.1","diem":3,"cham_nguong":"","bang_chung":["trích nguyên văn 1","trích nguyên văn 2"],"ly_do":"vì sao dừng ở mức này chứ không phải mức liền kề"},
+    {"ma":"2a.2","diem":null,"cham_nguong":"","bang_chung":[],"ly_do":"biên bản không đủ căn cứ"}
+  ]
+}]}
+
+YÊU CẦU VỀ ĐỘ ĐẦY ĐỦ — đây là chỗ quan trọng nhất:
+- PHẢI trả về ĐỦ mọi tiêu chí con của thành tố, không bỏ mục nào. Mục không đủ căn cứ thì "diem": null kèm "ly_do" nói rõ thiếu gì.
+- Mỗi tiêu chí con lấy 1-3 trích dẫn. TRÍCH ĐỦ CÂU, không cắt ngắn cho gọn. Có bao nhiêu bằng chứng thật thì trích bấy nhiêu.
+- Cùng một câu trong biên bản được phép làm bằng chứng cho nhiều tiêu chí con khác nhau nếu thật sự liên quan.
+- "ly_do" viết 1-2 câu, nêu rõ vì sao mức này chứ không phải mức liền kề.
 tin_cay nhận một trong: "cao", "vua", "thap".`;
 
 /** Mô tả một thành tố kèm rubric, thành tố cốt lõi và quy tắc lượng hóa nếu có. */
@@ -81,8 +102,13 @@ function moTaThanhTo(ma: MaThanhTo): string {
   // hoạch tự thúc đẩy chuyên môn của trường đang dùng.
   const con = tieuChiConCua(ma);
   const dsCon = con.length
-    ? `\n   Tiêu chí con (gán mỗi bằng chứng vào ĐÚNG một mã trong số này):\n${con
-        .map(t => `      ${t.ma} — ${t.ten}: ${t.dinhNghia}`)
+    ? `\n   TIÊU CHÍ CON — phải chấm điểm cho TỪNG mục dưới đây:\n${con
+        .map(
+          t =>
+            `      ${t.ma} — ${t.ten}\n         Định nghĩa: ${t.dinhNghia}\n${t.muc
+              .map((x, i) => `         Mức ${i + 1} (${TEN_MUC[i]}): ${x}`)
+              .join('\n')}`,
+        )
         .join('\n')}`
     : '';
   const lh = LUONG_HOA_PHAN_III[ma];
@@ -126,6 +152,14 @@ interface DongBangChung {
   tieu_chi_con?: unknown;
 }
 
+interface DongTieuChiCon {
+  ma?: unknown;
+  diem?: unknown;
+  cham_nguong?: unknown;
+  bang_chung?: unknown;
+  ly_do?: unknown;
+}
+
 interface DongKetQua {
   ma?: string;
   diem?: unknown;
@@ -134,6 +168,47 @@ interface DongKetQua {
   bang_chung?: unknown;
   ly_do?: unknown;
   cau_hoi?: unknown;
+  tieu_chi_con?: unknown;
+}
+
+/** Kết quả chấm ở tầng tiêu chí con của một thành tố. */
+export interface KetQuaTieuChiCon {
+  ma: string;
+  diem: number | null;
+  chamNguong: string;
+  bangChung: string[];
+  lyDo: string;
+}
+
+const chuanDiem = (v: unknown): number | null => {
+  const d = typeof v === 'number' ? Math.round(v * 2) / 2 : null;
+  return d !== null && d >= 1 && d <= 4 ? d : null;
+};
+
+/**
+ * Đọc mảng tiêu chí con. Mã lạ thì BỎ — mã sai không làm vỡ gì ngay nhưng phá
+ * thống kê cộng dồn về sau, lúc không ai truy được nữa.
+ */
+export function docTieuChiCon(v: unknown, thanhTo: MaThanhTo): KetQuaTieuChiCon[] {
+  const hopLe = new Set(tieuChiConCua(thanhTo).map(t => t.ma));
+  return (Array.isArray(v) ? v : [])
+    .map((x): KetQuaTieuChiCon | null => {
+      const o = x as DongTieuChiCon;
+      const ma = typeof o?.ma === 'string' ? o.ma.trim() : '';
+      if (!hopLe.has(ma)) return null;
+      const diem = chuanDiem(o.diem);
+      const cn = typeof o.cham_nguong === 'string' ? o.cham_nguong.trim() : '';
+      return {
+        ma,
+        // Điểm lẻ mà không nêu được hành động chạm ngưỡng thì hạ về mức nguyên
+        // dưới — đúng nguyên tắc "không chấm lẻ theo cảm giác" của tổ Toán.
+        diem: diem !== null && Math.abs(diem % 1) === 0.5 && !cn ? Math.floor(diem) : diem,
+        chamNguong: cn,
+        bangChung: chuoiMang(o.bang_chung),
+        lyDo: typeof o.ly_do === 'string' ? o.ly_do.trim() : '',
+      };
+    })
+    .filter((x): x is KetQuaTieuChiCon => x !== null);
 }
 
 /**
@@ -170,16 +245,42 @@ export async function phanTichBienBan(
   opts: {
     chiCac?: MaThanhTo[];
     onTienDo?: (moTa: string) => void;
-    onLo?: (phan: Partial<Record<MaThanhTo, KetQuaThanhTo>>) => void;
+    onLo?: (
+      phan: Partial<Record<MaThanhTo, KetQuaThanhTo>>,
+      con: Record<string, KetQuaTieuChiCon>,
+    ) => void;
   } = {},
-): Promise<{ ketQua: Partial<Record<MaThanhTo, KetQuaThanhTo>>; hong: MaThanhTo[] }> {
+): Promise<{
+  ketQua: Partial<Record<MaThanhTo, KetQuaThanhTo>>;
+  tieuChiCon: Record<string, KetQuaTieuChiCon>;
+  hong: MaThanhTo[];
+  boQua: string[];
+}> {
   const vanBan = vanBanQuanSat(bb);
   const trongBo = new Set(opts.chiCac?.length ? opts.chiCac : thanhToTheoBo(bb.boTieuChi));
 
+  // Phần nào được chấm do LOẠI PHÂN TÍCH quyết định, nhưng vẫn phải có nguồn
+  // minh chứng tương ứng — chọn "đầy đủ" mà không dán hồ sơ thì Phần IV bỏ qua,
+  // và nói rõ vì sao bỏ chứ không im lặng.
+  const loai = LOAI_PHAN_TICH.find(l => l.ma === bb.loaiPhanTich) ?? LOAI_PHAN_TICH[1];
+  const boQua: string[] = [];
   const cacPhan: SoPhan[] = [];
-  if (bb.giaoAn.trim()) cacPhan.push(1);
-  cacPhan.push(2, 3);
-  if (bb.hoSo.trim()) cacPhan.push(4);
+  ([1, 2, 3, 4] as SoPhan[]).forEach(p => {
+    if (!loai.phan.includes(p)) return;
+    if (p === 1 && !bb.giaoAn.trim()) {
+      boQua.push(`${TEN_PHAN[1]}: chưa có giáo án`);
+      return;
+    }
+    if (p === 4 && !bb.hoSo.trim()) {
+      boQua.push(`${TEN_PHAN[4]}: chưa có hồ sơ tự phản tư`);
+      return;
+    }
+    if ((p === 2 || p === 3) && !vanBan.trim()) {
+      boQua.push(`${TEN_PHAN[p]}: chưa có ghi chép quan sát`);
+      return;
+    }
+    cacPhan.push(p);
+  });
 
   const congViec: { phan: SoPhan; lo: MaThanhTo[] }[] = [];
   cacPhan.forEach(phan => {
@@ -188,6 +289,7 @@ export async function phanTichBienBan(
   });
 
   const ketQua: Partial<Record<MaThanhTo, KetQuaThanhTo>> = {};
+  const tieuChiCon: Record<string, KetQuaTieuChiCon> = {};
   const hong: MaThanhTo[] = [];
 
   for (let i = 0; i < congViec.length; i++) {
@@ -201,7 +303,7 @@ ${lo.map(moTaThanhTo).join('\n\n')}
 
 ${nguonTheoPhan(phan, bb, vanBan)}
 
-Trả JSON cho đúng ${lo.length} thành tố trên. Mỗi thành tố tối đa 2 trích dẫn, mỗi trích dẫn tối đa 18 từ; "ly_do" tối đa 25 từ. Viết gọn nhất có thể.`;
+Trả JSON cho đúng ${lo.length} thành tố trên, kèm ĐẦY ĐỦ mọi tiêu chí con của nó. Không rút gọn để cho vừa — cần đủ và chi tiết.`;
 
     let items: DongKetQua[] | null = null;
     for (let lan = 0; lan < 2 && !items; lan++) {
@@ -218,21 +320,44 @@ Trả JSON cho đúng ${lo.length} thành tố trên. Mỗi thành tố tối đ
     }
 
     const cuaLo: Partial<Record<MaThanhTo, KetQuaThanhTo>> = {};
+    const conCuaLo: Record<string, KetQuaTieuChiCon> = {};
+
     items.forEach(r => {
       const ma = r.ma as MaThanhTo;
       if (!COMPONENTS.some(c => c.ma === ma)) return;
-      const raw = typeof r.diem === 'number' ? Math.round(r.diem * 2) / 2 : null;
-      const diem = raw !== null && raw >= 1 && raw <= 4 ? raw : null;
+
+      const dsCon = docTieuChiCon(r.tieu_chi_con, ma);
+      dsCon.forEach(t => (conCuaLo[t.ma] = t));
+
+      // Điểm thành tố: ưu tiên trung bình các tiêu chí con vì đó là chỗ AI vừa
+      // xét chi tiết. Chỉ dùng "diem" cấp thành tố khi AI không trả tiêu chí con.
+      const coDiem = dsCon.map(t => t.diem).filter((v): v is number => v !== null);
       const cn = typeof r.cham_nguong === 'string' ? r.cham_nguong.trim() : '';
+      const diemThanhTo = coDiem.length
+        ? Math.round((coDiem.reduce((a, b) => a + b, 0) / coDiem.length) * 2) / 2
+        : (() => {
+            const d = chuanDiem(r.diem);
+            return d !== null && Math.abs(d % 1) === 0.5 && !cn ? Math.floor(d) : d;
+          })();
+
+      // Bằng chứng cấp thành tố gộp từ các tiêu chí con, giữ nhãn để cộng dồn.
+      const goc = docBangChung(r.bang_chung, ma);
+      const tuCon = dsCon.flatMap(t => t.bangChung.map(x => ({ trich: x, tieuChiCon: t.ma })));
+      const coNhan = [...tuCon, ...goc.bangChungCoNhan];
+
       const tin = r.tin_cay;
       cuaLo[ma] = {
-        // Điểm lẻ mà AI không nêu được hành động chạm ngưỡng thì hạ về mức
-        // nguyên dưới — đúng nguyên tắc "không chấm lẻ theo cảm giác".
-        diem: diem !== null && Math.abs(diem % 1) === 0.5 && !cn ? Math.floor(diem) : diem,
-        chamNguong: cn,
+        diem: diemThanhTo,
+        chamNguong: cn || dsCon.find(t => t.chamNguong)?.chamNguong || '',
         tinCay: tin === 'cao' || tin === 'vua' ? tin : 'thap',
-        ...docBangChung(r.bang_chung, ma),
-        lyDo: typeof r.ly_do === 'string' ? r.ly_do : '',
+        bangChung: coNhan.map(x => x.trich),
+        bangChungCoNhan: coNhan,
+        lyDo:
+          (typeof r.ly_do === 'string' && r.ly_do.trim()) ||
+          dsCon
+            .filter(t => t.lyDo)
+            .map(t => `${t.ma}: ${t.lyDo}`)
+            .join(' · '),
         cauHoi: chuoiMang(r.cau_hoi),
       };
     });
@@ -241,10 +366,11 @@ Trả JSON cho đúng ${lo.length} thành tố trên. Mỗi thành tố tối đ
       if (!cuaLo[ma]) hong.push(ma);
     });
     Object.assign(ketQua, cuaLo);
-    opts.onLo?.(cuaLo);
+    Object.assign(tieuChiCon, conCuaLo);
+    opts.onLo?.(cuaLo, conCuaLo);
   }
 
-  return { ketQua, hong };
+  return { ketQua, tieuChiCon, hong, boQua };
 }
 
 interface DongGopY {
@@ -365,9 +491,9 @@ ${vanBan}
       `${nen}
 
 CHỈ trả JSON, không bọc trong khối mã, viết gọn:
-{"diem_manh":[{"tieu_de":"tối đa 8 từ","bang_chung":"trích từ biên bản, tối đa 18 từ","y_nghia":"1 câu, tối đa 20 từ"}],
-"trong_tam":{"tieu_de":"tối đa 8 từ","bang_chung":"trích, tối đa 18 từ","hanh_dong":["việc cụ thể, tối đa 15 từ","việc cụ thể, tối đa 15 từ"],"do_thanh_cong":"dấu hiệu nhận biết, tối đa 20 từ"}}
-diem_manh có đúng 2 phần tử. trong_tam chỉ chọn MỘT trọng tâm khả thi trong 4 tuần.`,
+{"diem_manh":[{"tieu_de":"ngắn gọn","bang_chung":"trích nguyên văn từ biên bản, đủ câu","y_nghia":"1-2 câu nói rõ vì sao điều này quan trọng với học sinh"}],
+"trong_tam":[{"tieu_de":"ngắn gọn","bang_chung":"trích nguyên văn","hanh_dong":["việc cụ thể làm được ngay","việc cụ thể thứ hai","việc thứ ba nếu có"],"do_thanh_cong":"dấu hiệu đếm được để biết đã cải thiện"}]}
+diem_manh có 3 phần tử. trong_tam có 2 phần tử, mỗi cái khả thi trong 4 tuần. Viết đầy đủ, KHÔNG rút gọn.`,
       settings,
     ),
   );
@@ -378,9 +504,9 @@ diem_manh có đúng 2 phần tử. trong_tam chỉ chọn MỘT trọng tâm kh
       `${nen}
 
 CHỈ trả JSON, không bọc trong khối mã, viết gọn:
-{"cau_hoi_huan_luyen":["câu hỏi mở, tối đa 20 từ","...","..."],
-"can_lam_ro":["điều biên bản chưa đủ căn cứ, cần hỏi giáo viên, tối đa 20 từ","..."]}
-cau_hoi_huan_luyen có 3 phần tử, can_lam_ro có 2 phần tử. Câu hỏi phải mở, không phải câu hỏi có/không.`,
+{"cau_hoi_huan_luyen":["câu hỏi mở","...","...","...","..."],
+"can_lam_ro":["điều biên bản chưa đủ căn cứ, cần hỏi giáo viên","...","..."]}
+cau_hoi_huan_luyen có 5 phần tử, can_lam_ro có 3 phần tử. Câu hỏi phải mở, không phải câu hỏi có/không.`,
       settings,
     ),
   );

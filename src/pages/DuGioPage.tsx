@@ -28,7 +28,7 @@ import { BangSoSanh, BangTuDanhGia } from '../components/features/dugio/TuDanhGi
 import { extractTextFromPDF, extractTextFromWord } from '../utils/fileUtils';
 import { docFileExcel, tenFileXuat, xuatTheoMau } from '../lib/dugio/excel';
 import { phanTichBienBan, soanGopY, soanNhanXet, vanBanQuanSat } from '../lib/dugio/phanTich';
-import { soVN, thieuMinhChungChamNguong, tinhDiem } from '../lib/dugio/tinhDiem';
+import { chonThanhToGopY, soVN, thieuMinhChungChamNguong, tinhDiem } from '../lib/dugio/tinhDiem';
 import {
   danhSachCuaToi,
   danhSachThuVien,
@@ -37,7 +37,7 @@ import {
   luuBienBan,
   xoaBienBan,
 } from '../lib/dugio/luuTru';
-import { bienBanRong, type BienBanDuGio } from '../lib/dugio/types';
+import { LOAI_PHAN_TICH, bienBanRong, type BienBanDuGio } from '../lib/dugio/types';
 
 const CACHE_KEY = 'smart_lesson_plan_data';
 
@@ -156,13 +156,11 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
   const diem = useMemo(() => (bienBan ? tinhDiem(bienBan) : null), [bienBan]);
   const thieu = useMemo(() => (bienBan ? thieuMinhChungChamNguong(bienBan) : []), [bienBan]);
 
-  const canGopY = useMemo(
-    () =>
-      bienBan
-        ? COMPONENTS.filter(c => typeof bienBan.diemChot[c.ma] === 'number' && (bienBan.diemChot[c.ma] as number) < 3).map(c => c.ma)
-        : [],
-    [bienBan],
-  );
+  /* Chọn thành tố cần góp ý bằng XẾP HẠNG, không bằng ngưỡng tuyệt đối. Ngưỡng
+     "điểm < 3" của bản đầu ra 0 mục trên bảng điểm thật của trường (thấp nhất là
+     3), nên nhận xét rỗng — đó là lỗi user QA phát hiện. */
+  const dsGopY = useMemo(() => (bienBan ? chonThanhToGopY(bienBan) : []), [bienBan]);
+  const canGopY = useMemo(() => dsGopY.map(x => x.ma), [dsGopY]);
 
   /* ─────────── hành động ─────────── */
 
@@ -192,12 +190,20 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
   const phanTich = () =>
     chay('Đang phân tích…', async () => {
       if (!bienBan) return;
-      if (vanBanQuanSat(bienBan).trim().length < 60) {
+      // Nguồn bắt buộc phụ thuộc LOẠI phân tích: chế độ "Chỉ giáo án" không có
+      // biên bản quan sát, nên không được đòi nó.
+      if (bienBan.loaiPhanTich === 'giaoAn') {
+        if (bienBan.giaoAn.trim().length < 200) {
+          throw new Error(
+            'Chế độ "Chỉ giáo án" cần nội dung giáo án. Tải file Word/PDF lên hoặc dán vào ô Giáo án ở mục 2.',
+          );
+        }
+      } else if (vanBanQuanSat(bienBan).trim().length < 60) {
         throw new Error('Biên bản còn quá ngắn để gán bằng chứng. Cần ít nhất vài dòng ghi chép quan sát.');
       }
-      const { ketQua, hong: h } = await phanTichBienBan(bienBan, caiDat(), {
+      const { ketQua, hong: h, boQua } = await phanTichBienBan(bienBan, caiDat(), {
         onTienDo: setDangChay,
-        onLo: phan =>
+        onLo: (phan, con) =>
           setBienBan(bb => {
             if (!bb) return bb;
             const chot = { ...bb.diemChot };
@@ -206,12 +212,33 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
               chot[ma] = phan[ma]!.diem;
               if (phan[ma]!.chamNguong) cn[ma] = phan[ma]!.chamNguong;
             });
-            return { ...bb, ketQua: { ...bb.ketQua, ...phan }, diemChot: chot, chamNguong: cn };
+            const dCon = { ...bb.diemTieuChiCon };
+            const cnCon = { ...bb.chamNguongTieuChiCon };
+            const bcCon = { ...bb.bangChungTieuChiCon };
+            const ldCon = { ...bb.lyDoTieuChiCon };
+            Object.values(con).forEach(t => {
+              dCon[t.ma] = t.diem;
+              if (t.chamNguong) cnCon[t.ma] = t.chamNguong;
+              if (t.bangChung.length) bcCon[t.ma] = t.bangChung;
+              if (t.lyDo) ldCon[t.ma] = t.lyDo;
+            });
+            return {
+              ...bb,
+              ketQua: { ...bb.ketQua, ...phan },
+              diemChot: chot,
+              chamNguong: cn,
+              diemTieuChiCon: dCon,
+              chamNguongTieuChiCon: cnCon,
+              bangChungTieuChiCon: bcCon,
+              lyDoTieuChiCon: ldCon,
+            };
           }),
       });
       setHong(h);
-      if (h.length) setThongBao(`Chưa chấm được: ${h.join(', ')}. Bấm phân tích lại để thử riêng các mục này.`);
-      else if (Object.keys(ketQua).length) setThongBao('Đã phân tích xong. Điểm dưới đây là ĐỀ XUẤT — bạn là người chốt.');
+      const phanBoQua = boQua.length ? ` Bỏ qua ${boQua.join('; ')}.` : '';
+      if (h.length) setThongBao(`Chưa chấm được: ${h.join(', ')}. Bấm phân tích lại để thử riêng các mục này.${phanBoQua}`);
+      else if (Object.keys(ketQua).length) setThongBao(`Đã phân tích xong. Điểm dưới đây là ĐỀ XUẤT — bạn là người chốt.${phanBoQua}`);
+      else setThongBao(`Không chấm được phần nào.${phanBoQua}`);
     });
 
   const gopY = () =>
@@ -525,6 +552,23 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <label className="flex items-center gap-2 text-sm">
+            <span className="font-medium text-slate-600">Loại phân tích</span>
+            <select
+              value={bienBan.loaiPhanTich}
+              disabled={chiDoc}
+              onChange={e => doi({ loaiPhanTich: e.target.value as BienBanDuGio['loaiPhanTich'] })}
+              className={O}
+              title={LOAI_PHAN_TICH.find(l => l.ma === bienBan.loaiPhanTich)?.moTa}
+            >
+              {LOAI_PHAN_TICH.map(l => (
+                <option key={l.ma} value={l.ma}>
+                  {l.ten}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="flex items-center gap-2 text-sm">
             <span className="font-medium text-slate-600">Bộ tiêu chí</span>
             <select
               value={bienBan.boTieuChi}
@@ -754,7 +798,7 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
             <h2 className="text-xl font-bold">5 · Chuẩn bị buổi trao đổi</h2>
             <div className="flex flex-wrap gap-2">
               <button onClick={gopY} disabled={!!dangChay || !canGopY.length} className={`${NUT} bg-slate-100 text-slate-700 hover:bg-slate-200`}>
-                Soạn góp ý ({canGopY.length} mục dưới 3)
+                Soạn góp ý ({canGopY.length} mục)
               </button>
               <button onClick={nhanXet} disabled={!!dangChay} className={`${NUT} bg-slate-100 text-slate-700 hover:bg-slate-200`}>
                 Soạn nhận xét
@@ -763,6 +807,27 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
           </div>
 
           <Hop mau="slate">{QUY_TAC_TINH_TIEN}</Hop>
+
+          {dsGopY.length > 0 && (
+            <div className="mb-4 rounded-xl border border-slate-200 bg-white p-3 text-sm">
+              <p className="font-semibold text-slate-800">
+                {dsGopY.length} thành tố được chọn để góp ý
+              </p>
+              <p className="mt-0.5 text-slate-600">
+                Chọn theo xếp hạng, không theo ngưỡng cố định — vì tài liệu tổ Toán ghi mức 3 là kì
+                vọng bình thường, không phải thành tích.
+              </p>
+              <ul className="mt-1.5 space-y-0.5 text-slate-700">
+                {dsGopY.map(x => (
+                  <li key={x.ma}>
+                    <span className="mr-1.5 font-mono text-xs text-slate-500">{x.ma}</span>
+                    {x.ten} — <b>{String(x.diem).replace('.', ',')}</b>{' '}
+                    <span className="text-slate-500">({x.lyDo.join(', ')})</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <details className="mb-4 rounded-xl border border-slate-200 bg-white p-4">
             <summary className="cursor-pointer font-semibold text-slate-800">
