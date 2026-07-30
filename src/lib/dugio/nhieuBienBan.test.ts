@@ -7,7 +7,14 @@
  */
 import * as XLSX from 'xlsx';
 import { describe, expect, it } from 'vitest';
-import { docNhieuBienBan, ghepGiaoAn, khongDau, tachGiaoAn } from './nhieuBienBan';
+import {
+  docBangChamDiem,
+  docNhieuBienBan,
+  ghepGiaoAn,
+  khongDau,
+  tachGiaoAn,
+  tenGiaoVienTuTenFile,
+} from './nhieuBienBan';
 import { bienBanRong, type BienBanDuGio } from './types';
 
 interface KhoiThu {
@@ -20,7 +27,7 @@ interface KhoiThu {
 }
 
 /** Dựng file .xlsx nhiều khối, mỗi khối dài khác nhau. */
-function taoFile(khoi: KhoiThu[], tenSheet = 'Cô Lan'): ArrayBuffer {
+function taoFile(khoi: KhoiThu[], tenSheet = 'Biên bản GĐCT 25-26'): ArrayBuffer {
   const rows: (string | number)[][] = [];
   khoi.forEach(k => {
     rows.push(['', 'BIÊN BẢN DỰ GIỜ KHÔNG CHÍNH THỨC']);
@@ -81,7 +88,9 @@ describe('docNhieuBienBan', () => {
     expect(bienBan.every(b => b.userId === 'u-abc')).toBe(true);
   });
 
-  it('lấy tên sheet làm tên giáo viên, theo thói quen của mẫu trường', () => {
+  // Đường dự phòng cho mẫu một-khối, nơi trường đặt TÊN GIÁO VIÊN làm tên sheet.
+  // File nhiều biên bản thì tên sheet luôn là "Biên bản …" nên không đi lối này.
+  it('sheet không theo hợp đồng thì lấy tên sheet làm tên giáo viên', () => {
     const { bienBan } = docNhieuBienBan(taoFile(BA_KHOI, 'Nguyễn Văn A'), 'u1');
     expect(bienBan[0].gvHoTen).toBe('Nguyễn Văn A');
   });
@@ -102,7 +111,7 @@ describe('docNhieuBienBan', () => {
       'u1',
     );
     expect(bienBan).toEqual([]);
-    expect(canhBao[0]).toContain('Không tìm thấy hàng tiêu đề');
+    expect(canhBao.some(c => c.includes('Không tìm thấy hàng tiêu đề'))).toBe(true);
   });
 
   // Fixture tự dựng có thể trùng khớp giả định của chính mình. Ca này chạy trên
@@ -124,6 +133,186 @@ describe('docNhieuBienBan', () => {
   it('khối thiếu tên bài thì cảnh báo là sẽ khó ghép giáo án', () => {
     const { canhBao } = docNhieuBienBan(taoFile([{ ...BA_KHOI[0], bai: '' }]), 'u1');
     expect(canhBao.some(c => c.includes('thiếu tên bài dạy'))).toBe(true);
+  });
+});
+
+/**
+ * Fixture mô phỏng đúng những chỗ file THẬT của trường khác với mẫu:
+ *  - nhiều sheet, tên "Biên bản GĐCT 24-25" / "25-26"
+ *  - một hàng tiêu đề MỒ CÔI ở đầu sheet, không có khối nào theo sau
+ *  - nhãn "LẦN 1" / "LẦN 2" ở cột A
+ *  - phần hành chính phần lớn BỎ TRỐNG (không có ngày, không có tên bài)
+ *  - dòng "Nhận xét chung:" đóng phần ghi chép
+ *
+ * Không dùng file thật làm fixture vì nó chứa tên giáo viên và tên học sinh.
+ */
+function taoFileNhuThat(): ArrayBuffer {
+  const wb = XLSX.utils.book_new();
+
+  const s1 = [
+    ['Lớp:', '11Baltimore', 'Ngày và thời gian dự giờ: Tiết 4 (12/2/2025)'],
+    ['Tuần:', '', 'Người dự giờ: Mr. Phúc'],
+    ['Tên bài dạy:', 'PT và BPT mũ', 'Năm học & Kỳ học: Kì 2; năm 2024-2025'],
+    [],
+    ['Thời gian', 'Hoạt động', 'Hoạt động của giáo viên', 'Hoạt động của học sinh', 'Ghi chú'],
+    ['8:00', 'Mở đầu', 'GV nêu bài toán', 'HS trả lời', ''],
+    ['8:10', '', 'GV chốt', '', 'ổn'],
+  ];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s1), 'Biên bản GĐCT 24-25');
+
+  const s2 = [
+    ['`'],
+    ['', 'BIÊN BẢN DỰ GIỜ CỦA GĐCT'],
+    // Hàng tiêu đề mồ côi — mẫu để sẵn, không có khối nào theo sau.
+    ['Thời gian', 'Hoạt động', 'Hoạt động của giáo viên', 'Hoạt động của học sinh', 'Ghi chú'],
+    [],
+    ['LẦN 1'],
+    ['', 'BIÊN BẢN DỰ GIỜ CỦA GĐCT'],
+    ['Lớp:', '10Victory', 'Ngày và thời gian dự giờ:'],
+    ['Tuần:', '', 'Người dự giờ: Dương Hồng Phúc'],
+    ['Tên bài dạy:', '', 'Năm học & Kỳ học:'],
+    [],
+    ['Thời gian', 'Hoạt động', 'Hoạt động của giáo viên', 'Hoạt động của học sinh', 'Ghi chú'],
+    ['8:56', 'Mở đầu', 'GV nêu bài toán khởi động', 'HS1 trả lời', ''],
+    ['9:04', '', 'GV dẫn dắt', 'HS2 nêu ý kiến', 'liền mạch'],
+    ['9:10', 'Hình thành', 'GV chốt khái niệm', '', ''],
+    ['Nhận xét chung:'],
+    ['tiết dạy tốt, cần chú ý thời gian chờ'],
+    [],
+    ['LẦN 2'],
+    ['', 'BIÊN BẢN DỰ GIỜ CỦA GĐCT'],
+    ['Lớp:', '12Detroit', 'Ngày và thời gian dự giờ:'],
+    ['Tuần:', '', 'Người dự giờ: Bùi Thị Nga'],
+    ['Tên bài dạy:', '', 'Năm học & Kỳ học:'],
+    [],
+    ['Thời gian', 'Hoạt động', 'Hoạt động của giáo viên', 'Hoạt động của học sinh', 'Ghi chú'],
+    ['10:00', 'Mở đầu', 'Chào hỏi điểm danh', 'HS ổn định', ''],
+    ['10:05', '', 'GV nêu trò chơi', 'HS tham gia', ''],
+  ];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s2), 'Biên bản GĐCT 25-26');
+
+  const s3 = [
+    ['', 'TIÊU CHÍ DỰ GIỜ VỚI GIÁO VIÊN', '', '', '', '', 'GĐCT', '', '', '', '', '', 'TTCM'],
+    ['', '', '', '', '', '', 'Lần 1', '', 'Lần 2', '', '', '', 'Lần 1'],
+    ['Lĩnh vực', 'Cấu phần', 'Chưa đáp ứng [1]', 'Cơ bản [2]', 'Thành thạo [3]', 'Xuất sắc [4]',
+      'Điểm', 'Bằng chứng', 'Điểm', 'Bằng chứng', '', '', 'Điểm', 'Bằng chứng'],
+    ['DOMAIN 1', '1a Applying Knowledge of Content', 'x', 'x', 'x', 'x', '3.5', 'bc A', '3', 'bc B'],
+    ['', '1b Knowing and Valuing Students', 'x', 'x', 'x', 'x', '4', '', '3.5', ''],
+    ['', '2b Fostering a Culture for Learning', 'x', 'x', 'x', 'x', '3', '', '3', ''],
+    ['', '4f Acting in Service of Students', 'x', 'x', 'x', 'x', '3.5', '', '3.5', ''],
+  ];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(s3), 'Chấm điểm 25-26');
+
+  return XLSX.write(wb, { type: 'array', bookType: 'xlsx' }) as ArrayBuffer;
+}
+
+describe('cấu trúc như file thật của trường', () => {
+  it('đọc HẾT các sheet biên bản, không chỉ sheet đầu', () => {
+    const { bienBan } = docNhieuBienBan(taoFileNhuThat(), 'u1');
+    // 1 khối ở sheet 24-25 + 2 khối ở sheet 25-26
+    expect(bienBan).toHaveLength(3);
+    expect(bienBan[0].lop).toBe('11Baltimore');
+    expect(bienBan[1].lop).toBe('10Victory');
+    expect(bienBan[2].lop).toBe('12Detroit');
+  });
+
+  // Hàng tiêu đề mồ côi từng sinh ra một biên bản rỗng lẫn vào danh sách.
+  it('bỏ hàng tiêu đề mồ côi, không sinh biên bản rác', () => {
+    const { bienBan } = docNhieuBienBan(taoFileNhuThat(), 'u1');
+    expect(bienBan.every(b => b.lop || b.bai || b.nguoiDu)).toBe(true);
+  });
+
+  it('bắt được nhãn "LẦN n" của trường', () => {
+    const { bienBan } = docNhieuBienBan(taoFileNhuThat(), 'u1');
+    expect(bienBan[1].tuan).toBe('Lần 1');
+    expect(bienBan[2].tuan).toBe('Lần 2');
+    // "LẦN 1" không được coi là một dòng ghi chép.
+    expect(bienBan[1].dongQuanSat.every(d => !/^L[ẦA]N/i.test(d.thoiGian))).toBe(true);
+  });
+
+  // Ngày mặc định là hôm nay sẽ thành một ngày trông rất thật mà hoàn toàn bịa.
+  it('file không ghi ngày thì để TRỐNG, không lấy ngày hôm nay', () => {
+    const { bienBan } = docNhieuBienBan(taoFileNhuThat(), 'u1');
+    expect(bienBan[1].ngay).toBe('');
+    expect(bienBan[0].ngay).toBe('Tiết 4 (12/2/2025)');
+  });
+
+  it('"Nhận xét chung:" đóng phần ghi chép, không lọt vào bảng quan sát', () => {
+    const { bienBan } = docNhieuBienBan(taoFileNhuThat(), 'u1');
+    expect(bienBan[1].dongQuanSat).toHaveLength(3);
+    const chu = JSON.stringify(bienBan[1].dongQuanSat);
+    expect(chu).not.toContain('Nhận xét chung');
+    expect(chu).not.toContain('cần chú ý thời gian chờ');
+  });
+
+  it('ô hành chính bỏ trống không ghi đè giá trị đã đọc được', () => {
+    const { bienBan } = docNhieuBienBan(taoFileNhuThat(), 'u1');
+    expect(bienBan[1].nguoiDu).toBe('Dương Hồng Phúc');
+    // "Năm học & Kỳ học:" trống thì giữ tên sheet làm mốc thời gian.
+    expect(bienBan[1].namHocKy).toBe('Biên bản GĐCT 25-26');
+    expect(bienBan[0].namHocKy).toBe('Kì 2; năm 2024-2025');
+  });
+});
+
+describe('tenGiaoVienTuTenFile', () => {
+  it('lấy tên giáo viên theo quy ước đặt tên file của trường', () => {
+    expect(tenGiaoVienTuTenFile('Vũ Việt Cường - BIÊN BẢN DỰ GIỜ.xlsx')).toBe('Vũ Việt Cường');
+    expect(tenGiaoVienTuTenFile('Nguyễn Thị Lan – Biên bản dự giờ.xlsx')).toBe('Nguyễn Thị Lan');
+  });
+
+  it('không có tên giáo viên thì trả rỗng, không bịa', () => {
+    expect(tenGiaoVienTuTenFile('BIÊN BẢN DỰ GIỜ.xlsx')).toBe('');
+    expect(tenGiaoVienTuTenFile('bb.xlsx')).toBe('');
+    expect(tenGiaoVienTuTenFile('')).toBe('');
+  });
+
+  it('gắn tên từ file vào mọi biên bản đọc được', () => {
+    const { bienBan } = docNhieuBienBan(taoFileNhuThat(), 'u1', 'Vũ Việt Cường - BIÊN BẢN DỰ GIỜ.xlsx');
+    expect(bienBan.every(b => b.gvHoTen === 'Vũ Việt Cường')).toBe(true);
+  });
+
+  // Hợp đồng với trường: tên sheet luôn chứa "Biên bản …". Sai hợp đồng thì
+  // báo rõ chứ không im lặng đọc sheet đầu rồi cho ra kết quả trông hợp lệ.
+  it('không sheet nào tên chứa "Biên bản" thì cảnh báo', () => {
+    const { canhBao } = docNhieuBienBan(taoFile(BA_KHOI, 'Sheet1'), 'u1');
+    expect(canhBao.some(c => c.includes('Không có sheet nào tên chứa'))).toBe(true);
+  });
+
+  it('sheet đặt đúng hợp đồng thì không cảnh báo gì', () => {
+    const { canhBao } = docNhieuBienBan(taoFile(BA_KHOI), 'u1');
+    expect(canhBao).toEqual([]);
+  });
+});
+
+describe('docBangChamDiem', () => {
+  it('đọc được nhiều buổi của nhiều người chấm', () => {
+    const { lan, canhBao } = docBangChamDiem(taoFileNhuThat());
+    expect(canhBao).toEqual([]);
+    expect(lan).toHaveLength(2); // TTCM Lần 1 chưa có điểm nên bị loại
+    expect(lan.map(l => `${l.nguoiCham} ${l.lan}`)).toEqual(['GĐCT Lần 1', 'GĐCT Lần 2']);
+  });
+
+  it('đọc đúng điểm theo mã thành tố, gồm cả Domain 4', () => {
+    const { lan } = docBangChamDiem(taoFileNhuThat());
+    expect(lan[0].diem).toEqual({ '1a': 3.5, '1b': 4, '2b': 3, '4f': 3.5 });
+    expect(lan[1].diem['1a']).toBe(3);
+  });
+
+  it('mang theo bằng chứng của người chấm', () => {
+    const { lan } = docBangChamDiem(taoFileNhuThat());
+    expect(lan[0].bangChung['1a']).toBe('bc A');
+    expect(lan[1].bangChung['1a']).toBe('bc B');
+  });
+
+  it('bỏ buổi chưa điền điểm nào, không đếm là buổi đã chấm', () => {
+    const { lan } = docBangChamDiem(taoFileNhuThat());
+    expect(lan.some(l => l.nguoiCham === 'TTCM')).toBe(false);
+  });
+
+  it('file không có sheet chấm điểm thì báo rõ', () => {
+    const { lan, canhBao } = docBangChamDiem(taoFile(BA_KHOI));
+    expect(lan).toEqual([]);
+    expect(canhBao[0]).toContain('không có sheet chấm điểm');
   });
 });
 
