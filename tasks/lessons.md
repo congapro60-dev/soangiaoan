@@ -149,3 +149,17 @@
 - **Công cụ Edit ghi file bằng CRLF trong khi repo dùng LF** — làm diff phình từ ~500 lên ~1900 dòng đổi. Sau khi sửa file bằng Edit/Write, kiểm `grep -c $'\r' <file>` và chuẩn hóa về LF trước khi `git add`. *(2026-07-30)*
 
 - **Sandbox Linux không chạy được vitest/tsc của repo này** — `node_modules` cài trên Windows nên thiếu `@rollup/rollup-linux-x64-gnu`; `tsc --noEmit` toàn project trên mount mạng chạy >20 phút không xong. Cách thay thế: `tsc --noEmit --skipLibCheck` nhắm đúng vài file đã sửa (nhanh, vẫn strict), và kiểm logic thuần bằng harness Node độc lập. Build/test đầy đủ phải chạy trên máy Windows của user. *(2026-07-30)*
+
+## Cổng chất lượng & quy trình đẩy lên main (2026-07-31)
+
+- **Thêm luật `high` mới vào bộ kiểm thì phải rà LẠI mọi fixture cũ đang khẳng định `passed === true`** — `time-continuity` (thêm ở `d21cda5`) đòi mốc phút dạng `P0 – P5`; mẫu `COMPLETE_KNOWLEDGE` trong `toanLessonQuality.test.ts` viết trước đó chỉ ghi giờ đồng hồ `(10:49 - 11:00)` nên bị bắt fail → `passed` thành `false` → `main` đỏ liên tiếp 4 run (#442–#445). Các commit `du-gio` đỏ theo vì thừa hưởng, không phải lỗi của chúng. QUY TẮC: luật mới severity `high` → `grep` ngay các test có `.passed).toBe(true)` / `failures).toHaveLength(0)` và cập nhật fixture cùng commit. Hướng sửa mặc định là SỬA FIXTURE cho khớp luật, không nới luật — vì luật đang khớp với chuẩn mà tầng prompt (`toanFormats.ts`) đã yêu cầu AI tuân theo. *(2026-07-31)*
+
+- **Chạy vài file test tự chọn là cách chắc chắn để CI vẫn đỏ** — `DAY-LEN-MAIN.bat` chỉ chạy 5 file test tự chọn nên cục bộ xanh mà CI đỏ, lặp lại 4 lần. Trước khi push phải chạy ĐÚNG hai lệnh workflow chạy: `npm run lint` (tsc toàn dự án) rồi `npm run test -- --run` (toàn bộ file test). Muốn chắc hơn nữa: dựng worktree sạch tại `origin/main`, chép bản vá vào, chạy lại hai lệnh đó — đúng thứ CI thấy. *(2026-07-31)*
+
+- **`git add` liệt kê tay từng đường dẫn thì sẽ bỏ sót** — chính chỗ này làm bản sửa `toanLessonQuality.test.ts` nằm lại trong thư mục làm việc suốt nhiều lượt push. Dùng `git add -u` (mọi file đã theo dõi bị sửa) + `git add src tasks HANDOFF.md` (file MỚI trong mã nguồn), đừng dùng `git add -A` ở gốc repo vì sẽ hốt cả `scratch_*`, `outputs/`, `*.docx`. *(2026-07-31)*
+
+- **Kiểm ngưỡng độ dài prompt phải đo đúng biến thể được GỬI ĐI** — test cũ bắt `buildToanClassroomMovesPrompt()` (không lọc) dưới 6000 ký tự trong khi `useLessonCreator` LUÔN gọi kèm loại kế hoạch, nên bản không lọc chẳng bao giờ tới tay AI. Đo nhánh không chạy là vừa đỏ oan vừa không nói lên gì về token thật. LƯU Ý CÒN LẠI: biến thể `luyen_tap` hiện 5971/6000 ký tự — thêm 1 nước đi nữa là vỡ ngưỡng, cần cân lại budget khi mở rộng thư viện. *(2026-07-31)*
+
+- **`.git/index.lock` kẹt do VS Code giữ** — thao tác git báo `Unable to create index.lock: File exists`. Kiểm không có tiến trình `git` nào đang chạy rồi xoá `.git/HEAD.lock` và `.git/index.lock`; đóng VS Code trước cho chắc. *(2026-07-31)*
+
+- **Bash tool KHÔNG hiểu here-string PowerShell `@'...'@`** — dùng nó cho `git commit -m` làm lọt ký tự `@` vào đầu dòng tiêu đề và một dòng `@` thừa ở cuối message. Trong Bash dùng heredoc `git commit -F - <<'MSG' … MSG`; here-string `@'…'@` chỉ dành cho tool PowerShell. *(2026-07-31)*
