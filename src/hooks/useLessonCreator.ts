@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { LessonPlan, AppData, TemplateFile, BuiltinFormat, ToanKeHoach } from '../types';
 import { TOAN_COMMON_FORMAT, TOAN_KE_HOACH_FORMATS, TOAN_ADDITIONAL_REQUIREMENTS } from '../prompts/toanFormats';
+import { buildToanClassroomMovesPrompt } from '../prompts/toanClassroomMoves';
 import { callAI, callAIStream, getActiveApiKey } from '../lib/aiProviders';
 import { cleanMarkdownOutput } from '../utils/markdownUtils';
 import { applyLessonRevisionPatchResponse, buildLessonRevisionPatchPrompt } from '../utils/lessonRevisionPatch';
@@ -673,7 +674,7 @@ LƯU Ý QUAN TRỌNG:
       } else if (builtinFormat === 'claude') {
         templateContext = CLAUDE_FORMAT + '\n' + VISUAL_AIDS_PROMPT;
       } else if (builtinFormat === 'toan') {
-        templateContext = TOAN_COMMON_FORMAT + '\n' + TOAN_KE_HOACH_FORMATS[toanKeHoach] + '\n' + VISUAL_AIDS_PROMPT;
+        templateContext = TOAN_COMMON_FORMAT + '\n' + TOAN_KE_HOACH_FORMATS[toanKeHoach] + '\n' + buildToanClassroomMovesPrompt(toanKeHoach) + '\n' + VISUAL_AIDS_PROMPT;
       } else if (selectedTemplate) {
         const samples = selectedTemplate.files.filter(f => f.category === 'sample').map(f => f.content).join('\n---\n');
         const criteria = selectedTemplate.files.filter(f => f.category === 'criteria').map(f => f.content).join('\n---\n');

@@ -1,16 +1,18 @@
 import { describe, it, expect } from 'vitest';
 import { validateToanLesson, buildToanRepairBrief } from './toanLessonQuality';
 
+// Mốc phút dạng P0–P40 là bắt buộc theo luật `time-continuity` (severity high): các mốc phải
+// nối liền nhau và phủ kín cả tiết 40 phút, thời lượng trong ngoặc bằng hiệu hai mốc.
 const COMPLETE_KNOWLEDGE = `
-# Khởi động (trải nghiệm thực tế)
+# Khởi động (trải nghiệm thực tế) (5 phút, P0–P5)
 Mục tiêu: Must do cơ bản, Should do trọng tâm, Could do nâng cao (🌶🌶🌶).
-# Hình thành kiến thức mới — định lý
+# Hình thành kiến thức mới — định lý (20 phút, P5–P25)
 GV hỏi: vì sao cần công thức này? Có cách khác không? Phản ví dụ là gì?
 Năng lực tư duy và lập luận, mô hình hóa, giải quyết vấn đề.
-# Luyện tập củng cố
+# Luyện tập củng cố (10 phút, P25–P35)
 Bài 1, Bài 2, Bài 3 từ dễ đến nâng cao. Sản phẩm dự kiến: đáp án đầy đủ.
 HĐ (10:49 - 11:00).
-# Sơ kết
+# Sơ kết (5 phút, P35–P40)
 ## BTVN
 Bài 1 trang 42, Bài 2 trang 43.
 # Phụ lục

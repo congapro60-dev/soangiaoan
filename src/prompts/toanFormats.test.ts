@@ -13,6 +13,7 @@ const NHAN_LABELS = [
   '[PHÁT HIỆN]', '[SO SÁNH]', '[SUY LUẬN]', '[DỰ ĐOÁN]', '[KHÁI QUÁT]',
   '[PHẢN BIỆN]', '[SÁNG TẠO]', '[SỐ HỌC]', '[MÔ HÌNH HÓA]',
   '[GHI NHỚ]', '[HIỂU]', '[VẬN DỤNG]', '[PHÂN TÍCH]',
+  '[HỆ QUẢ]',
   '[NB]', '[TH]', '[VD]', '[VDC]',
 ];
 

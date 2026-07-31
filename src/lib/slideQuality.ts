@@ -30,7 +30,7 @@ export interface SlideFinding {
 // renderer đã co font theo bậc (32/26/22pt) nên 48 ký tự vẫn nằm 1 dòng — dài hơn là quá tải nội dung.
 export const SLIDE_LIMITS = {
   maxTitleChars: 48,
-  maxBullets: 6,
+  maxBullets: 4,
   maxBulletChars: 160,
   maxTotalPointChars: 480,
 } as const;

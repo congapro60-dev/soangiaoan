@@ -70,7 +70,7 @@ export const matchToanObjectiveRowFill = (firstCellText: string): string | undef
  * trong toanFormats.ts (Socratic + Bloom + mức độ, kèm biến thể đánh số [NB-1]).
  */
 export const TOAN_NHAN_RE =
-  /^\s*\[(PHÁT HIỆN|SO SÁNH|SUY LUẬN|DỰ ĐOÁN|KHÁI QUÁT|PHẢN BIỆN|SÁNG TẠO|SỐ HỌC|MÔ HÌNH HÓA|GHI NHỚ|HIỂU|VẬN DỤNG|PHÂN TÍCH|NB|TH|VD|VDC)(-\d+)?\]/;
+  /^\s*\[(PHÁT HIỆN|SO SÁNH|SUY LUẬN|DỰ ĐOÁN|KHÁI QUÁT|PHẢN BIỆN|SÁNG TẠO|SỐ HỌC|MÔ HÌNH HÓA|GHI NHỚ|HIỂU|VẬN DỤNG|PHÂN TÍCH|HỆ QUẢ|NB|TH|VD|VDC)(-\d+)?\]/;
 
 /** Màu chữ nhãn câu hỏi (v13: 1F4E79). */
 export const TOAN_NHAN_COLOR = '1F4E79';

@@ -164,3 +164,86 @@ describe('no-duplicate-block', () => {
     expect(f.status).toBe('pass');
   });
 });
+
+describe('self-selection-fallback', () => {
+  it('BẮT tiết cho HS tự chọn mà thiếu kịch bản chọn sai', () => {
+    const content =
+      'HS TỰ CHỦ đánh giá năng lực và tự rút Lộ trình 1 hoặc Lộ trình 2 từ folder giữa bàn. ' +
+      'GV di chuyển quan sát, không giải thay.';
+    const f = findingOf(content, 'self-selection-fallback');
+    expect(f.status).toBe('fail');
+    expect(f.evidence).toMatch(/QUÁ SỨC/);
+    expect(f.evidence).toMatch(/DƯỚI SỨC/);
+  });
+
+  it('BẮT khi chỉ có một chiều (thiếu chiều chọn dưới sức)', () => {
+    const content =
+      'HS tự chọn Lộ trình 1 hoặc 2. Nếu HS chọn quá sức và bế tắc sau 3 phút, GV hạ cánh mềm: ' +
+      'không thu lại phiếu mà mời em nhận nhiệm vụ khác.';
+    const f = findingOf(content, 'self-selection-fallback');
+    expect(f.status).toBe('fail');
+    expect(f.evidence).toMatch(/DƯỚI SỨC/);
+  });
+
+  it('ĐẠT khi có đủ hai chiều (giống giáo án Tiết 2 do GV soạn tay)', () => {
+    const content =
+      'HS tự rút thẻ Lộ trình 1 hoặc Lộ trình 2. ' +
+      'Kịch bản 1 — HS chọn quá sức, ngồi cắn bút sau 3 phút: GV hạ cánh mềm, không thu lại phiếu. ' +
+      'Kịch bản 2 — HS giỏi chọn dưới sức, xong quá nhanh: GV nâng cấp tại chỗ bằng câu hỏi mở rộng.';
+    const f = findingOf(content, 'self-selection-fallback');
+    expect(f.status).toBe('pass');
+  });
+
+  it('KHÔNG đòi hỏi gì khi tiết không có cơ chế tự chọn', () => {
+    const content = 'GV chia nhóm đồng mức NB/TH/VD và giao nhiệm vụ tương ứng cho từng nhóm.';
+    const f = findingOf(content, 'self-selection-fallback');
+    expect(f.status).toBe('pass');
+    expect(f.evidence).toMatch(/không có cơ chế/);
+  });
+});
+
+describe('self-selection-fallback — KHÔNG báo nhầm', () => {
+  // Trục Sản phẩm của Tomlinson cho HS chọn CÁCH THỂ HIỆN — hợp lệ, không cần kịch bản dự phòng.
+  it.each([
+    'HS được tự chọn cách thể hiện sản phẩm: bảng con, giấy A3 hoặc trình bày miệng.',
+    'HS tự chọn làm việc cá nhân hoặc ngồi cặp đôi tùy phong cách học tập.',
+  ])('bỏ qua khi chỉ là chọn hình thức: %s', (content) => {
+    expect(findingOf(content, 'self-selection-fallback').status).toBe('pass');
+  });
+
+  it('vẫn BẮT khi tự chọn theo phiếu Tic-Tac-Toe mà thiếu dự phòng', () => {
+    const content = 'HS chọn 1 hàng/cột/chéo trong phiếu Tic-Tac-Toe 3x3 rồi làm trong 12 phút.';
+    expect(findingOf(content, 'self-selection-fallback').status).toBe('fail');
+  });
+});
+
+describe('group-model-coherence', () => {
+  it('BẮT trộn mảnh ghép với trạm quay vòng (lỗi thật Tiết 3)', () => {
+    const content =
+      'Chia lớp thành 3 nhóm chuyên gia theo kỹ thuật mảnh ghép. ' +
+      'Trong tiết, HS di chuyển qua cả 3 Trạm (A → B → C), mỗi trạm nghe chuyên gia trình bày.';
+    const f = findingOf(content, 'group-model-coherence');
+    expect(f.status).toBe('fail');
+    expect(f.evidence).toMatch(/không chạy đồng thời/);
+  });
+
+  it('ĐẠT khi chỉ dùng mảnh ghép', () => {
+    const content =
+      'Chia 3 nhóm chuyên gia A/B/C theo mảnh ghép; vào tiết ghép thành nhóm hỗn hợp, ' +
+      'mỗi bạn trình bày mảng của mình ngay trong nhóm.';
+    expect(findingOf(content, 'group-model-coherence').status).toBe('pass');
+  });
+
+  it('ĐẠT khi chỉ dùng trạm quay vòng', () => {
+    const content =
+      'Lớp chia 3 trạm học tập, các nhóm luân phiên đi qua trạm A, trạm B, trạm C theo hiệu lệnh.';
+    expect(findingOf(content, 'group-model-coherence').status).toBe('pass');
+  });
+
+  it('"Trạm Giáo viên" (bàn hỗ trợ) KHÔNG bị tính là trạm quay vòng', () => {
+    const content =
+      'Nhóm chuyên gia theo mảnh ghép. GV ngồi tại Trạm Giáo viên hỗ trợ HS chậm, ' +
+      'di chuyển quan sát vòng quanh lớp.';
+    expect(findingOf(content, 'group-model-coherence').status).toBe('pass');
+  });
+});

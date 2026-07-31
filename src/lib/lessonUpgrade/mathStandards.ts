@@ -558,6 +558,88 @@ const checkNoDuplicateBlock = (t: string): StandardsFinding => {
   };
 };
 
+/**
+ * Tiết cho HS TỰ CHỌN mức độ/lộ trình thì BẮT BUỘC có kịch bản khi HS chọn sai.
+ * Nguồn: giáo án Tiết 2 do GV bộ môn soạn tay có đủ 3 kịch bản (hạ cánh mềm / nâng cấp tại
+ * chỗ / để trải nghiệm bế tắc) — bản AI sinh thì không, vì prompt cũ chỉ bắt "dự kiến khó
+ * khăn" về TOÁN, bỏ trống khó khăn về VẬN HÀNH. Cho tự chọn mà không dự phòng là thiết kế
+ * dở: trên lớp chắc chắn có em chọn nhầm.
+ */
+const checkSelfSelectionFallback = (t: string): StandardsFinding => {
+  // CHỈ bắt khi HS tự chọn về ĐỘ KHÓ/NHIỆM VỤ. Cố ý KHÔNG bắt "tự chọn" chung chung, vì
+  // trục Sản phẩm của Tomlinson cho HS "chọn cách thể hiện (bảng con / A3 / trình bày miệng)"
+  // — chuyện đó hoàn toàn hợp lệ và không cần kịch bản "chọn quá sức".
+  const hasSelfSelection = has(
+    t,
+    /lộ\s*trình\s*[12]|thẻ\s*(?:thử\s*thách|dự\s*án|gợi\s*ý)|tic.?tac.?toe|tự\s*(?:chọn|rút)\s*(?:1\s*)?(?:mức|độ\s*khó|thử\s*thách|nhiệm\s*vụ|bài|lộ\s*trình|thẻ)|chọn\s*mức\s*(?:bài|độ)/,
+  );
+  if (!hasSelfSelection) {
+    return {
+      id: 'self-selection-fallback',
+      title: 'Có kịch bản xử lý khi HS chọn sai mức độ',
+      status: 'pass',
+      severity: 'medium',
+      evidence: 'Tiết này không có cơ chế HS tự chọn mức độ — không cần kịch bản dự phòng.',
+      suggestion: '',
+      scope: 'all',
+    };
+  }
+  const tooHard = has(t, /quá\s*sức|hạ\s*cánh\s*mềm|bế\s*tắc|không\s*viết\s*được|cắn\s*bút|chọn\s*nhầm.*khó/);
+  const tooEasy = has(t, /dưới\s*sức|nâng\s*cấp|xong\s*(?:sớm|quá\s*nhanh)|né\s*tránh|thăng\s*cấp|vượt\s*rào/);
+  const missing = [!tooHard && 'chọn QUÁ SỨC', !tooEasy && 'chọn DƯỚI SỨC'].filter(Boolean) as string[];
+  return {
+    id: 'self-selection-fallback',
+    title: 'Có kịch bản xử lý khi HS chọn sai mức độ',
+    status: missing.length === 0 ? 'pass' : 'fail',
+    severity: 'medium',
+    evidence:
+      missing.length === 0
+        ? 'Có kịch bản cho cả hai chiều chọn sai (quá sức và dưới sức).'
+        : `Tiết có cơ chế HS tự chọn nhưng thiếu kịch bản cho trường hợp: ${missing.join(' và ')}.`,
+    suggestion:
+      'Thêm vào cột "Giáo viên và Học sinh" hai tình huống: (1) HS chọn QUÁ SỨC — dấu hiệu nhận ' +
+      'biết + cách chuyển việc mà KHÔNG thu lại phiếu (giữ thể diện); (2) HS giỏi chọn DƯỚI SỨC — ' +
+      'tung câu hỏi mở rộng tại chỗ trước, HS trả lời được rồi mới mời nhận nhiệm vụ khó hơn.',
+    scope: 'all',
+  };
+};
+
+/**
+ * Mảnh ghép (jigsaw) và trạm quay vòng (gallery walk) là HAI cách vận hành lớp khác hẳn nhau,
+ * không chạy đồng thời được. Lỗi thật ở Tiết 3: cùng một tiết vừa mô tả "3 nhóm chuyên gia ghép
+ * lại làm dự án" vừa mô tả "HS luân phiên đi qua 3 trạm", phiếu ghi chép thì theo kiểu trạm.
+ * Prompt đã cấm ở mục "Năm lỗi hay mắc nhất" nhưng cần chặn được bằng máy.
+ *
+ * Lưu ý: "Trạm Giáo viên" (bàn hỗ trợ của GV) là thuật ngữ hợp lệ, KHÔNG tính là trạm quay vòng.
+ */
+const checkGroupModelCoherence = (t: string): StandardsFinding => {
+  const jigsaw = has(t, /mảnh\s*ghép|jigsaw|nhóm\s*chuyên\s*gia/);
+  const stationRotation = has(
+    t,
+    /trạm\s*[abc](?![\wà-ỹ])|(?:luân\s*phiên|di\s*chuyển|đi)\s+(?:qua|đến|tới)[^.\n]{0,15}trạm|quay\s*vòng[^.\n]{0,15}trạm/,
+  );
+  const conflict = jigsaw && stationRotation;
+  return {
+    id: 'group-model-coherence',
+    title: 'Mô hình tổ chức lớp nhất quán (không trộn mảnh ghép với trạm quay vòng)',
+    status: conflict ? 'fail' : 'pass',
+    severity: 'medium',
+    evidence: conflict
+      ? 'Tiết mô tả CẢ mảnh ghép/nhóm chuyên gia LẪN việc HS luân phiên đi qua các trạm — hai cách vận hành lớp khác nhau, không chạy đồng thời được.'
+      : jigsaw
+        ? 'Dùng mô hình mảnh ghép, nhất quán.'
+        : stationRotation
+          ? 'Dùng mô hình trạm quay vòng, nhất quán.'
+          : 'Không phát hiện mâu thuẫn mô hình tổ chức lớp.',
+    suggestion:
+      'Chọn MỘT mô hình và giữ nhất quán từ mục Tài liệu → kịch bản → phiếu học tập. ' +
+      'Nếu dùng mảnh ghép: các nhóm chuyên gia ghép lại thành nhóm hỗn hợp, phiếu ghi chép ghi ' +
+      '"nghe từ chuyên gia A/B/C trong nhóm" — KHÔNG cho HS luân phiên đi qua trạm. ' +
+      'Nếu dùng trạm quay vòng: mỗi nhóm đứng tại một trạm làm chủ nhà, HS khác đi qua nghe.',
+    scope: 'all',
+  };
+};
+
 const GENERAL_CHECKS = [
   checkFourPhases,
   checkDifferentiatedObjectives,
@@ -575,6 +657,8 @@ const GENERAL_CHECKS = [
   checkBoardContentFilled,
   checkTermIntroduced,
   checkNoDuplicateBlock,
+  checkSelfSelectionFallback,
+  checkGroupModelCoherence,
 ];
 
 const PRACTICE_CHECKS = [

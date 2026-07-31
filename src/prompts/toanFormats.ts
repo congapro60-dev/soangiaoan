@@ -80,6 +80,7 @@ B. QUY TẮC TRÌNH BÀY HOẠT ĐỘNG (TUYỆT ĐỐI TUÂN THỦ):
    - Nhãn Socratic: **[PHÁT HIỆN]** **[SO SÁNH]** **[SUY LUẬN]** **[DỰ ĐOÁN]** **[KHÁI QUÁT]** **[PHẢN BIỆN]** **[SÁNG TẠO]** **[SỐ HỌC]** **[MÔ HÌNH HÓA]**
    - Nhãn Bloom cho quiz: **[GHI NHỚ]** **[HIỂU]** **[VẬN DỤNG]** **[PHÂN TÍCH]**
    - Nhãn mức độ bài tập: **[NB]** **[TH]** **[VD]** **[VDC]**
+   - Nhãn hệ quả: **[HỆ QUẢ]** — hỏi hậu quả thực tế nếu mắc lỗi kỹ thuật vừa phân tích (biến lời nhắc "cẩn thận" thành câu đáng suy nghĩ).
    Phân bố: mỗi hoạt động chính ≥ 4 câu có nhãn; toàn tiết PHẢI có ≥ 1 câu **[PHẢN BIỆN]** (cài lời giải sai/quan điểm sai cho HS bắt lỗi) và ≥ 1 câu **[SÁNG TẠO]** (dành HS giỏi).
 
 4. KỸ THUẬT CHỜ — sau MỖI cụm câu hỏi ghi rõ: "→ Chờ ≥ 3 giây, gọi ngẫu nhiên (không gọi HS giơ tay), không tự trả lời, hỏi thêm 'Tại sao?'". Câu phản biện/sáng tạo: chờ ≥ 5 giây, hỏi "Bằng chứng nào?".
@@ -153,13 +154,15 @@ Mục II. TIẾN TRÌNH gồm ĐÚNG các hoạt động sau (đúng tên, đún
 ### 3. CÁC HOẠT ĐỘNG HỌC TẬP CHÍNH (~24 phút, P8–P32)
 - 1-2 hoạt động "**HĐ[n] — [tên đơn vị kiến thức] ([x] phút)**", MỖI HĐ đủ 4 BƯỚC:
   - BƯỚC 1 KẾT NỐI: từ HĐ khám phá SGK, chuỗi 2-3 câu **[SUY LUẬN]**/**[PHÁT HIỆN]** dẫn HS TỰ dẫn ra công thức.
+    → BẮT BUỘC có dòng dự phòng: "Nếu sau 2 câu hỏi lớp vẫn chưa rút ra được: GV KHÔNG đọc công thức. Hạ thang — cho một trường hợp SỐ CỤ THỂ, HS làm ra kết quả rồi mới hỏi 'thay số bằng chữ thì viết được gì?'. Vẫn bí thì cho trường hợp số thứ hai và hỏi 'hai lần vừa rồi giống nhau ở chỗ nào?'". Đây là rủi ro lớn nhất của tiết hình thành kiến thức — đọc công thức ra là hỏng mục tiêu tiết học.
   - BƯỚC 2 HÌNH THÀNH: nhóm ĐỒNG MỨC NB/TH/VD với 3 nhiệm vụ khác nhau (phiếu học tập); 1 câu **[KHÁI QUÁT]** (tự phát biểu định nghĩa) + 1 câu **[PHẢN BIỆN]** (quan điểm sai cài sẵn).
   - BƯỚC 3 KIỂM TRA: bảng con 1 bài nhanh + 1 câu **[PHẢN BIỆN]** bắt lỗi sai dấu/bẫy phổ biến.
   - BƯỚC 4 CHUẨN HÓA: **[KHÁI QUÁT]** phát biểu tổng quát + điều kiện; **[SÁNG TẠO]** (HS giỏi) trường hợp đặc biệt; HS thumbs up/down mục tiêu.
 - Cột 3 mỗi HĐ: công thức chốt $$...$$, các dạng đặc biệt, "**Đáp án PHT:** NB:... TH:... VD:...", "⚠ Lỗi phổ biến:...".
 
 ### 4. KIỂM TRA NHANH — MỞ RỘNG (6 phút, P32–P38)
-- Bảng con nhóm đôi 3 câu phân hóa **[NB]**/**[TH]**/**[VDC]** (VDC dành HS giỏi); cột 3 ghi ĐÁP ÁN cả 3.
+- (4 phút) Bảng con nhóm đôi 3 câu phân hóa **[NB]**/**[TH]**/**[VDC]** (VDC dành HS giỏi); cột 3 ghi ĐÁP ÁN cả 3.
+- (2 phút) Mở rộng ngắn: 1 tình huống thực tiễn áp dụng kiến thức vừa học + 1 câu **[HỆ QUẢ]** về lỗi hay mắc. Cột 3 ghi kết quả. HS xong sớm: nhiệm vụ neo (đặt thêm một bài tương tự cho bạn giải).
 
 ### 5. SƠ KẾT & EXIT TICKET (2 phút, P38–P40)
 - HS điền cột L, I của KWLI; 2 câu **[KHÁI QUÁT]**/**[SÁNG TẠO]** gọi ngẫu nhiên; Exit ticket 30 giây: "✓ Hiểu rõ nhất: ___" / "? Còn thắc mắc: ___".
@@ -216,11 +219,13 @@ Mục "3. Tài liệu dạy học" tách 2 phần: "TRƯỚC TIẾT HỌC (HS t�
 Mục II. TIẾN TRÌNH HOẠT ĐỘNG TRÊN LỚP gồm:
 
 Mục "TRƯỚC TIẾT HỌC" tổ chức theo JIGSAW + MICROLEARNING: chia lớp thành 2-3 NHÓM CHUYÊN GIA, mỗi nhóm tự học 1 mảng kiến thức qua học liệu NGẮN (video ≤ 7 phút/mục SGK cụ thể) + phiếu chuẩn bị riêng theo mảng; vào tiết mỗi chuyên gia chịu trách nhiệm mảng của mình trong nhóm dự án (nhóm đa mức).
+⚠ GIỮ ĐÚNG MỘT MÔ HÌNH: đây là MẢNH GHÉP — các nhóm chuyên gia ghép lại thành nhóm hỗn hợp, mỗi bạn trình bày mảng của mình NGAY TRONG NHÓM. TUYỆT ĐỐI KHÔNG mô tả HS luân phiên đi qua các trạm A/B/C (đó là mô hình khác). Phiếu ghi chép phải ghi "nghe từ chuyên gia A/B/C trong nhóm", không phải "đi qua trạm A/B/C".
 
 ### 1. KIỂM TRA CHUẨN BỊ & LÀM RÕ THẮC MẮC (7 phút, P0–P7)
 - Bước 1 (P0–P1): quan sát nhanh phiếu chuẩn bị, ghi lỗi phổ biến.
-- Bước 2 (4'): QUIZ 4-5 CÂU CHUỖI BLOOM tăng dần **[GHI NHỚ]** → **[HIỂU]** → **[VẬN DỤNG]** → **[PHÂN TÍCH]** (số liệu cụ thể; cột 3 ghi "QUIZ — ĐÁP ÁN" đủ; có thể chạy bằng Kahoot — nếu dùng, ghi chú "GV chuẩn bị bộ Kahoot theo 5 câu này"). HS sai Q1-Q2 → xếp vào nhóm có HS giỏi hỗ trợ.
-- Bước 3 (2'): "Em có câu hỏi gì từ video/phiếu?" — giải tối đa 2 câu ngắn, câu sâu chuyển vào dự án.
+- Bước 2 (P1–P5): QUIZ 4-5 CÂU CHUỖI BLOOM tăng dần **[GHI NHỚ]** → **[HIỂU]** → **[VẬN DỤNG]** → **[PHÂN TÍCH]** (số liệu cụ thể; cột 3 ghi "QUIZ — ĐÁP ÁN" đủ; có thể chạy bằng Kahoot — nếu dùng, ghi chú "GV chuẩn bị bộ Kahoot theo 5 câu này"). HS sai Q1-Q2 → xếp vào nhóm có HS giỏi hỗ trợ.
+- BẮT BUỘC có dòng dự phòng cho HS KHÔNG chuẩn bị ở nhà (kiểu hỏng phổ biến nhất của lớp học đảo ngược): không phạt, không cho ngồi ngoài — xếp vào nhóm với vai NGƯỜI GHI CHÉP kèm phiếu ghi chép, giao xem video làm bài bổ sung. Nếu quá nửa lớp chưa chuẩn bị: chiếu lại video tóm tắt 3 phút rồi rút ngắn phần dự án tương ứng.
+- Bước 3 (P5–P7): "Em có câu hỏi gì từ video/phiếu?" — giải tối đa 2 câu ngắn, câu sâu chuyển vào dự án.
 
 ### 2. XÁC ĐỊNH NHIỆM VỤ TIẾT HỌC (2 phút, P7–P9)
 - GV: "Hôm nay KHÔNG học lý thuyết — các em VẬN DỤNG và TRANH BIỆN" + 2 câu hỏi trọng tâm thực tiễn. Cột 3: "CẤU TRÚC TIẾT" liệt kê 5 mục + phút.
@@ -232,10 +237,10 @@ Mục "TRƯỚC TIẾT HỌC" tổ chức theo JIGSAW + MICROLEARNING: chia lớ
 - Cột 3: "DỰ ÁN — ĐÁP ÁN" giải đầy đủ TỪNG nhiệm vụ ra kết quả cuối.
 
 ### 4. HĐ2 — Trình bày & Tranh biện toán học (8 phút, P27–P35)
-- 1 nhóm trình bày A3 (3'); tranh biện (5') với QUY TẮC ghi rõ: "Tôi đồng ý/không đồng ý vì... + lập luận Toán học"; GV không nhận xét ngay — hỏi "Có ai phản bác không?"; ĐIỂM SAO: lập luận đúng +1, phản bác có cơ sở +1, tự đặt câu hỏi hay +1. ≥ 3 câu **[PHẢN BIỆN]**/**[SO SÁNH]**/**[KHÁI QUÁT]** (vd đổi hệ trục thì PT đổi không?). Cột 3: các phép kiểm tra bằng số + bảng điểm sao.
+- Trình bày (P27–P30): 1 nhóm trình bày A3. Tranh biện (P30–P35) với QUY TẮC ghi rõ: "Tôi đồng ý/không đồng ý vì... + lập luận Toán học"; GV không nhận xét ngay — hỏi "Có ai phản bác không?"; nếu cả lớp im (rất hay xảy ra vì đây là câu hỏi đóng): đổi sang câu buộc chọn phe — "Ai thấy bước 2 CHẮC CHẮN đúng thì giơ tay, ai còn phân vân để tay xuống" — rồi gọi đúng một em phân vân hỏi "chỗ nào làm em phân vân?"; ĐIỂM SAO: lập luận đúng +1, phản bác có cơ sở +1, tự đặt câu hỏi hay +1. ≥ 3 câu **[PHẢN BIỆN]**/**[SO SÁNH]**/**[KHÁI QUÁT]** (vd đổi hệ trục thì PT đổi không?). Cột 3: các phép kiểm tra bằng số + bảng điểm sao.
 
 ### 5. TỔNG HỢP — MINDMAP & SƠ KẾT (5 phút, P35–P40)
-- Cá nhân vẽ Mindmap bài học vào vở (3'): trung tâm + 4-5 nhánh GẮN MỨC ("Nhánh 1 (TB):... Nhánh 5 (giỏi):..."); chia sẻ nhanh 2 câu **[PHẢN BIỆN]**/**[SÁNG TẠO]** (câu sáng tạo hướng sang bài kế tiếp); Exit ticket: "1 điều tôi tự hào nhất...". Cột 3: khung mindmap + công thức cốt lõi.
+- Cá nhân vẽ Mindmap bài học vào vở (P35–P38): trung tâm + 4-5 nhánh GẮN MỨC ("Nhánh 1 (TB):... Nhánh 5 (giỏi):..."); chia sẻ nhanh 2 câu **[PHẢN BIỆN]**/**[SÁNG TẠO]** (P38–P40, câu sáng tạo hướng sang bài kế tiếp); Exit ticket: "1 điều tôi tự hào nhất...". Cột 3: khung mindmap + công thức cốt lõi.
 
 ### 6. BÀI TẬP VỀ NHÀ & CHUẨN BỊ — format chung 4 dòng (toàn lớp: video bài kế tiếp).
 ===== HẾT KẾ HOẠCH CHỈ ĐỊNH =====

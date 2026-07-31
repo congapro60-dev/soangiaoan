@@ -346,6 +346,66 @@ export const generateSlideData = async (
   }
 };
 
+// ── Text-to-Slide: 2 lượt (outline → expand) ─────────────────────────────────
+// Cùng lý do như generateSlideData: 1 call đơn bị trần output token bó hẹp,
+// deckTitle thường về trống/fallback. Tách phase outline (nhẹ, trả deckTitle chắc)
+// rồi phase expand (bám dàn ý) cho kết quả ổn định hơn.
+
+interface TextSlideSection {
+  id: string;
+  layout: string;
+  title: string;
+  contentBrief: string;
+}
+
+const buildTextSlideOutlinePrompt = (rawText: string): string => `
+BẠN LÀ CHUYÊN GIA THIẾT KẾ BÀI TRÌNH CHIẾU SƯ PHẠM ĐẲNG CẤP QUỐC TẾ.
+Đọc đoạn văn bản thô sau và lập DÀN Ý ngắn gọn cho bài trình chiếu.
+
+Văn bản thô:
+---
+${rawText}
+---
+
+NHIỆM VỤ:
+1. Xác định tiêu đề bài học (deckTitle) — ngắn gọn, đại diện cho toàn bộ nội dung, dùng làm tên file.
+2. Chia nội dung thành 5–10 slide theo logic: mở đầu → kiến thức chính → ứng dụng → kết luận.
+
+QUY TẮC layout:
+- "title-body": mặc định (slide có danh sách bullet)
+- "section-header": slide chuyển tiếp không có bullet (dùng khi bắt đầu phần lớn mới)
+
+CHỈ TRẢ VỀ JSON OBJECT, KHÔNG bọc \`\`\`json:
+{"deckTitle":"Tên bài học ngắn gọn","outline":[{"id":"s1","layout":"title-body","title":"TIÊU ĐỀ SLIDE (VIẾT HOA, ≤48 ký tự)","contentBrief":"Tóm tắt nội dung cần trình bày trong slide này"}]}
+`.trim();
+
+const buildTextSlideExpandPrompt = (rawText: string, outline: TextSlideSection[]): string => `
+BẠN LÀ CHUYÊN GIA THIẾT KẾ BÀI TRÌNH CHIẾU SƯ PHẠM ĐẲNG CẤP QUỐC TẾ.
+Soạn CHI TIẾT từng slide theo đúng dàn ý, bám sát văn bản gốc.
+
+Văn bản gốc:
+---
+${rawText}
+---
+
+DÀN Ý (PHẢI tạo đúng ${outline.length} phần tử):
+${JSON.stringify(outline, null, 2)}
+
+YÊU CẦU TỪNG SLIDE:
+- title: dùng tiêu đề từ dàn ý (được hoàn chỉnh thêm, ≤ 48 ký tự, VIẾT HOA).
+- layout: giữ nguyên layout từ dàn ý.
+- points: tối đa 4 ý ngắn gọn (≤ 160 ký tự/ý), trích/tóm tắt từ văn bản gốc.
+- speakerNotes: lời dẫn chi tiết cho người thuyết trình.
+- visualSuggestion: gợi ý hình ảnh minh họa bằng tiếng Việt.
+- imageUrls: để là [].
+- icon: emoji phù hợp nội dung.
+- TUYỆT ĐỐI KHÔNG đưa gợi ý hình ảnh/lời thoại vào "points".
+- CÔNG THỨC TOÁN HỌC: PPTX KHÔNG HỖ TRỢ LATEX — dùng ký hiệu text thường, tránh backslash.
+
+CHỈ TRẢ VỀ JSON MẢNG đúng ${outline.length} phần tử, KHÔNG bọc \`\`\`json:
+[{"id":"s1","layout":"title-body","title":"...","icon":"🎯","points":["..."],"imageUrls":[],"speakerNotes":"...","visualSuggestion":"..."}]
+`.trim();
+
 export const generateTextToSlideData = async (
   rawText: string,
   data: AppData,
@@ -354,78 +414,40 @@ export const generateTextToSlideData = async (
 ): Promise<{ slidesData: any[]; deckTitle: string } | null> => {
   try {
     setIsLoading(true);
-    showToast('Đang phân tích văn bản và thiết kế Slide bằng AI, vui lòng đợi...', 'info');
-    const prompt = `
-BẠN LÀ CHUYÊN GIA THIẾT KẾ BÀI TRÌNH CHIẾU SƯ PHẠM ĐẲNG CẤP QUỐC TẾ.
-Dựa vào đoạn văn bản thô sau đây, hãy tóm tắt và tạo cấu trúc Slide bài giảng từ 5–15 slides. Nội dung Slide cần ngắn gọn, súc tích (dạng bullet points), giữ nguyên các ý chính quan trọng.
 
-Văn bản thô:
----
-${rawText}
----
+    // Phase 1: outline — nhẹ, trả deckTitle + danh sách slide ngắn gọn
+    showToast('Đang lập dàn ý bài trình chiếu...', 'info');
+    const outlineResponse = await callAI(buildTextSlideOutlinePrompt(rawText), data.settings);
+    if (!outlineResponse) throw new Error('Không có phản hồi khi lập dàn ý');
 
-YÊU CẦU BẮT BUỘC:
-1. Trích xuất các ý chính để đưa vào mảng "points" (tối đa 3-4 ý mỗi slide).
-2. Viết lời dẫn chi tiết vào trường "speakerNotes" (Ghi chú diễn giả) để người thuyết trình đọc.
-3. Đề xuất hình ảnh minh họa bằng tiếng Việt vào trường "visualSuggestion".
-4. Trả về JSON thuần tuý là MỘT OBJECT theo đúng schema sau:
-{
-  "deckTitle": "Tên bài học ngắn gọn, ví dụ: Định lý Pythagore",
-  "slides": [
-    {
-      "type": "walt",
-      "title": "TIÊU ĐỀ / MỤC TIÊU BÀI HỌC",
-      "icon": "🎯",
-      "points": ["Điểm chính 1", "Điểm chính 2"],
-      "imageUrls": [],
-      "speakerNotes": "Lời dẫn mở đầu...",
-      "visualSuggestion": "Gợi ý ảnh minh họa..."
-    },
-    {
-      "type": "content",
-      "title": "PHẦN 1: NỘI DUNG...",
-      "icon": "📌",
-      "points": ["Ý 1", "Ý 2"],
-      "imageUrls": [],
-      "speakerNotes": "Lời diễn giải chi tiết...",
-      "visualSuggestion": "Gợi ý ảnh..."
+    const outlineCleaned = outlineResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+    const objMatch = outlineCleaned.match(/\{[\s\S]*\}/);
+    if (!objMatch) throw new Error('Không phân tích được dàn ý từ AI');
+    const outlineParsed = parseLooseJson(objMatch[0]);
+    if (!outlineParsed || !Array.isArray(outlineParsed.outline) || outlineParsed.outline.length < 2) {
+      throw new Error('Dàn ý slide không hợp lệ, vui lòng thử lại');
     }
-  ]
-}
+    const deckTitle: string = typeof outlineParsed.deckTitle === 'string' ? outlineParsed.deckTitle.trim() : '';
+    const outline: TextSlideSection[] = outlineParsed.outline;
 
-5. "deckTitle" là tên bài học tổng quát (dùng cho trang bìa và tên file). KHÔNG được bỏ trống.
-6. CÔNG THỨC TOÁN HỌC: PPTX KHÔNG HỖ TRỢ LATEX. BẮT BUỘC dùng ký hiệu text thường dễ đọc. HẠN CHẾ TỐI ĐA MÃ LATEX PHỨC TẠP.
-7. CẤU TRÚC: slide đầu là "walt", slide cuối là "wrapup" (kết luận), các slide giữa là "content".
-8. QUAN TRỌNG: TUYỆT ĐỐI KHÔNG ĐƯA "GỢI Ý HÌNH ẢNH" hay "GỢI Ý LỜI THOẠI" VÀO MẢNG "points".
-CHỈ TRẢ VỀ JSON, KHÔNG BỌC BỞI \`\`\`json.
-    `;
+    // Phase 2: expand — soạn chi tiết từng slide bám dàn ý
+    showToast(`Đang soạn chi tiết ${outline.length} slide...`, 'info');
+    const expandResponse = await callAI(buildTextSlideExpandPrompt(rawText, outline), data.settings);
+    if (!expandResponse) throw new Error('Không có phản hồi khi soạn chi tiết slide');
 
-    const response = await callAI(prompt, data.settings);
-    if (!response) throw new Error("No response");
-
-    const cleaned = response.replace(/```json/g, '').replace(/```/g, '').trim();
-    let slidesData: any[];
-    let deckTitle = '';
-
-    const objMatch = cleaned.match(/\{[\s\S]*\}/);
-    if (objMatch) {
-      const parsed = parseLooseJson(objMatch[0]);
-      if (parsed && !Array.isArray(parsed) && Array.isArray(parsed.slides)) {
-        slidesData = parsed.slides;
-        deckTitle = typeof parsed.deckTitle === 'string' ? parsed.deckTitle.trim() : '';
-      } else if (Array.isArray(parsed)) {
-        slidesData = parsed;
-      } else {
-        const arrMatch = cleaned.match(/\[[\s\S]*\]/);
-        slidesData = arrMatch ? parseLooseJson(arrMatch[0]) : [];
-      }
-    } else {
-      const arrMatch = cleaned.match(/\[[\s\S]*\]/);
-      slidesData = arrMatch ? parseLooseJson(arrMatch[0]) : [];
-    }
-
-    if (!Array.isArray(slidesData) || slidesData.length === 0 || slidesData[0]?.type !== 'walt') {
+    const expandCleaned = expandResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+    const arrMatch = expandCleaned.match(/\[[\s\S]*\]/);
+    if (!arrMatch) throw new Error('AI chưa trả về mảng slide hợp lệ. Vui lòng thử tạo lại bài trình chiếu.');
+    let slidesData: any[] = parseLooseJson(arrMatch[0]);
+    if (!Array.isArray(slidesData) || slidesData.length === 0) {
       throw new Error('AI chưa trả về cấu trúc slide hợp lệ. Vui lòng thử tạo lại bài trình chiếu.');
+    }
+
+    // Post-process type (deterministic — không giao cho AI)
+    slidesData[0].type = 'walt';
+    slidesData[slidesData.length - 1].type = 'wrapup';
+    for (let i = 1; i < slidesData.length - 1; i++) {
+      if (!slidesData[i].type) slidesData[i].type = 'content';
     }
 
     const gated = await applySlideQualityGate(slidesData, data, showToast);
@@ -552,7 +574,7 @@ export const downloadPPTX = async (slidesData: any[], title: string) => {
     // pptxgenjs chỉ được PowerPoint tính lại lúc edit, LibreOffice/render tĩnh bỏ qua,
     // nên phải quyết định cỡ chữ deterministic ngay khi xuất (QA thấy title 33 ký tự
     // wrap và tràn khỏi thanh xanh ở fontSize 32 cố định).
-    const headerFontSize = headerText.length <= 30 ? 32 : headerText.length <= 44 ? 26 : 22;
+    const headerFontSize = headerText.length <= 30 ? 32 : headerText.length <= 38 ? 30 : headerText.length <= 44 ? 28 : 26;
     pSlide.addText(headerText, {
       x: 0.4, y: 0.15, w: 9.2, h: 0.6,
       fontSize: headerFontSize, color: 'FFFFFF', bold: true,
@@ -574,11 +596,11 @@ export const downloadPPTX = async (slidesData: any[], title: string) => {
       const textObjects = s.points.map((p: string) => ({
         text: p,
         options: { 
-          bullet: { color: 'F97316' }, 
-          fontSize: 24, 
-          color: '334155', 
-          fontFace: 'Arial', 
-          breakLine: true 
+          bullet: { color: 'F97316' },
+          fontSize: 18,
+          color: '334155',
+          fontFace: 'Arial',
+          breakLine: true
         }
       }));
 
@@ -586,7 +608,7 @@ export const downloadPPTX = async (slidesData: any[], title: string) => {
         x: contentX, y: contentY, w: contentW, h: 3.8,
         valign: 'top',
         autoFit: true,
-        lineSpacing: 32
+        lineSpacing: 26
       });
     }
 

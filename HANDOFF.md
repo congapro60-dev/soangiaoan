@@ -10,6 +10,79 @@
 
 ## 1. Trạng thái hiện tại
 
+### 1.0p Cập nhật phiên 2026-07-30 (tối) — Phủ đều cho cả 3 loại kế hoạch
+
+GV hỏi đúng chỗ: giáo án mẫu dùng để rút thư viện là tiết LUYỆN TẬP, vậy hai khung kia được gì?
+Rà lại thì đúng là **hai khung kia mới chỉ hưởng phần dùng chung**, phần riêng gần như chưa đụng.
+Đã sửa ba việc:
+
+**1. Lọc thư viện nước đi theo loại kế hoạch.** Thiếu sót của chính bản trước: ghép cả 11 nước đi
+vào cả 3 khung, trong khi 3 nước đi tự-chọn-lộ-trình chỉ đúng với luyện tập. Khung hình thành kiến
+thức chia **NHÓM ĐỒNG MỨC do GV gán** — nhét cơ chế tự chọn vào là đẻ ra đúng lỗi "mâu thuẫn mô
+hình tổ chức lớp" mà bộ luật đang cấm. Nay `ToanClassroomMove` có trường `apDung?: ToanKeHoach[]`
+(bỏ trống = dùng chung) và `buildToanClassroomMovesPrompt(keHoach)` lọc theo đó.
+Kết quả: kien_thuc 8 nước đi (4477 ký tự), luyen_tap 11 (5971), dao_nguoc 10 (5619) — đều dưới ngưỡng.
+
+**2. Ba nước đi dự phòng đặc thù** (mỗi khung có rủi ro cốt lõi riêng, trước đây chỉ luyện tập có):
+- `khong-tu-rut-ra-cong-thuc` (kien_thuc): cả thiết kế đặt cược vào BƯỚC 1 "HS TỰ dẫn ra công thức";
+  nếu lớp không rút ra được thì trước đây GV không có kịch bản nào. Cách xử lý: KHÔNG đọc công thức,
+  hạ thang xuống trường hợp số cụ thể rồi mới khái quát.
+- `hs-khong-chuan-bi-o-nha` (dao_nguoc): kiểu hỏng phổ biến nhất của lớp học đảo ngược. Prompt cũ chỉ
+  lo em *trả lời sai*, không lo em *không xem video*.
+- `lop-im-lang-khi-tranh-bien` (dao_nguoc): "có ai phản bác không?" là câu hỏi ĐÓNG nên im lặng là mặc
+  định an toàn; đổi sang câu buộc chọn phe.
+
+**3. Hai chỉnh ở tầng cổng:**
+- **Siết `self-selection-fallback`** — trước đây bắt cả chuỗi "tự chọn" chung chung nên báo nhầm khi
+  HS chỉ chọn *cách thể hiện* (bảng con / A3 / miệng — trục Sản phẩm Tomlinson, hoàn toàn hợp lệ).
+  Nay chỉ bắt khi tự chọn về ĐỘ KHÓ/NHIỆM VỤ.
+- **Luật mới `group-model-coherence`** — chặn trộn mảnh ghép với trạm quay vòng. ⚠️ "Trạm Giáo viên"
+  (bàn hỗ trợ của GV) là thuật ngữ hợp lệ, đã loại trừ khỏi mẫu nhận diện.
+
+**Prompt hai khung** cũng được bổ sung trực tiếp: kien_thuc thêm dòng dự phòng ở BƯỚC 1 và cân đối
+lại mục 4 (6 phút giờ có nội dung tương xứng, trước đó tôi giãn thời gian mà quên thêm việc);
+dao_nguoc thêm dự phòng HS chưa chuẩn bị, dự phòng lớp im khi tranh biện, cảnh báo giữ đúng một mô
+hình, và thống nhất nốt ký hiệu mốc phút còn ghi kiểu "(4')".
+
+Kiểm chứng: tsc strict sạch; harness Node 10/10 ca cho hai luật cổng (gồm 4 ca chống báo nhầm) và
+9/9 ca lọc thư viện theo loại.
+
+---
+
+### 1.0o Cập nhật phiên 2026-07-30 (chiều) — Thư viện nước đi lớp học
+
+Bối cảnh: GV bộ môn tự soạn Tiết 2 từ web rồi chỉnh tay. Đối chiếu bản đó với bản AI sinh thuần
+cho thấy prompt cũ **bỏ trống hẳn tầng VẬN HÀNH LỚP** — điều phối, chuyển tiếp, và nhất là xử lý
+khi HS chọn sai nhiệm vụ. AI tự nghĩ thì ra thứ nhàn nhạt kiểu "GV quan sát và hỗ trợ HS".
+
+**`src/prompts/toanClassroomMoves.ts` (mới)** — 11 nước đi rút từ chính giáo án GV đã dạy thật,
+chia 5 nhóm (chờ-và-gọi / quan-sát / phân-hóa / chuyển-tiếp / đánh-giá). Mỗi mục có `khiNao`,
+`cachLam` (lời thoại dùng gần nguyên văn được) và **`viSao` — bắt buộc, không được bỏ trống**:
+thiếu lý do thì GV dạy thay tưởng là thủ tục hình thức rồi bỏ qua.
+
+Đáng chú ý nhất là bộ ba xử lý khi HS chọn sai lộ trình — thứ gần như không giáo án AI nào có:
+- **Hạ cánh mềm** (chọn quá sức): KHÔNG thu lại phiếu, đổi khung thành "chỗ kia đang cần em" → giữ thể diện.
+- **Nâng cấp tại chỗ** (chọn dưới sức): KHÔNG ép đổi phiếu, tung câu hỏi mở rộng tại chỗ trước.
+- **Để trải nghiệm bế tắc rồi bắc cầu**: cố ý để HS va vào sự phức tạp để CẢM được vì sao công cụ mới tốt hơn.
+
+`buildToanClassroomMovesPrompt()` dựng khối prompt dạng MENU để AI chọn 3–5 nước đi, không phải
+văn bản chép nguyên si. **Có test khoá độ dài < 6000 ký tự** — nhét dài vừa tốn token vừa gây
+"lây nhiễm bối cảnh" (đã gặp: "Trạm trung tâm I" ma, ga "Ngọc Hồi" sai tuyến). Ghép vào prompt tại
+`useLessonCreator.ts:677`.
+
+**Luật cổng mới `self-selection-fallback`** (medium, có auto-repair): tiết nào có cơ chế HS tự chọn
+mức độ/lộ trình thì BẮT BUỘC có kịch bản chọn sai **cả hai chiều**. Bổ khuyết đúng chỗ hổng: mục
+"Dự kiến khó khăn" cũ chỉ nhắm lỗi TOÁN, không nhắm lỗi VẬN HÀNH.
+
+**Nhãn `[HỆ QUẢ]`** — loại câu hỏi thứ 8, hỏi hậu quả thực tế nếu mắc lỗi kỹ thuật vừa phân tích.
+⚠️ Nhãn là danh sách ĐÓNG: thêm nhãn phải sửa đồng thời `toanFormats.ts` + `TOAN_NHAN_RE` trong
+`toanStyleRules.ts` + `NHAN_LABELS` trong `toanFormats.test.ts`, nếu không test sẽ đỏ.
+
+Kiểm chứng: tsc strict sạch trên toàn bộ file đã sửa; harness Node xác nhận 4/4 ca luật mới và
+9/9 chi tiết cốt lõi của thư viện còn nguyên sau khi rút gọn cho lọt ngưỡng 6000.
+
+---
+
 ### 1.0n Cập nhật phiên 2026-07-30 — Chuẩn "Giáo án ban Toán" vào 3 tầng (prompt / builder / cổng chất lượng)
 
 > ⏳ **CÒN VIỆC: chưa push. Xem mục "Việc cần làm ngay" ở cuối phần này.**
