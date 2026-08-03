@@ -10,6 +10,47 @@
 
 ## 1. Trạng thái hiện tại
 
+### 1.0r Cập nhật phiên 2026-08-03 (chiều) — Tách 2 tầng rà soát giáo án ở tab Nâng cấp
+
+Ghép **`Checklist tự kiểm tra giáo án.xlsx`** (thư mục `các yêu cầu về Toán cần đạt`) vào bộ rà
+soát deterministic của tab Nâng cấp. Trước đây tab này gọi thẳng `auditMathStandards`, nên giáo
+án Văn/Sử cũng bị chấm theo tiêu chí Toán. Nay tách làm hai tầng:
+
+```
+standardsTypes.ts    type dùng chung + mã Danielson 1a–1f (sheet "Domain 1")
+generalStandards.ts  10 phép kiểm từ sheet "Checklist" + detectSubject()   ← MỚI, mọi môn
+mathStandards.ts     22 phép kiểm Toán TDS, GIỮ NGUYÊN hành vi
+lessonAudit.ts       ghép 2 tầng + formatLessonReport()                    ← MỚI
+```
+
+10 phép kiểm mới: `student-profile` `plan-metadata` `activity-format-variety` `safe-environment`
+`differentiation-dimensions` `reflection-prompt` `global-citizenship` `digital-citizenship`
+`formative-assessment` `resources-listed`.
+
+**Ba chỗ đừng đụng vào mà không đọc kỹ:**
+- `auditMathStandards` giữ nguyên chữ ký lẫn hành vi — `toanLessonQuality.ts` (cổng sinh giáo án
+  Toán) phụ thuộc vào nó. Sửa nó là sửa luôn cổng chất lượng lô Toán.
+- `detectSubject` **cố ý thiên về Toán**: chỉ tắt lớp Toán khi giáo án tự khai môn khác, hoặc từ
+  khóa môn khác ≥3 lần mà không có dấu hiệu Toán nào. Đoán sai chiều này chỉ thừa vài tiêu chí;
+  đoán sai chiều kia làm mất sạch lớp kiểm Toán của một giáo án Toán thật.
+- `differentiation-dimensions` chỉ soi trong cửa sổ ±240 ký tự quanh chữ "phân hóa". Bỏ cửa sổ
+  này thì mọi giáo án đều đậu nhờ chữ "sản phẩm dự kiến" nằm ở chỗ khác.
+
+Checklist ô E6 ghi *"quy trình 5 bước dạy học môn toán tại TDS"*, còn
+`Hướng dẫn soạn giáo án môn Toán.docx` (2025–2026) ghi *"đủ 4 bước: Trải nghiệm – Hình thành –
+Rèn luyện, phát triển – Sơ kết"*. **Owner chốt giữ 4 bước** theo bản Hướng dẫn.
+
+Kiểm chứng: `npm run lint` 0 lỗi TS · `npm run test -- --run` **44 file / 657 test, 0 đỏ**
+(thêm 33 ca) · `npm run build` 58.89s · gọi `auditLesson` trong runtime dev server: giáo án Văn
+→ 10 tiêu chí không có lớp Toán, giáo án Toán luyện tập → 32 tiêu chí, 29 gắn mã Danielson.
+
+**CHƯA QA:** panel trên UI chưa E2E vì phải upload file .docx mà Browser pane không làm được.
+Owner tự QA trên `https://giaoandewey.vercel.app` sau khi Vercel build xong.
+
+**Lưu ý về working tree:** commit này CHỈ gồm lô `lessonUpgrade`. Các thay đổi module dự giờ
+(`src/lib/dugio/*`, `DuGioPage.tsx`, `docs/BAOCAO_QA_DuGio_Danielson_2026-07-28.md`) vẫn nằm
+trong working tree chưa commit, cố ý không gộp vào đây.
+
 ### 1.0q Cập nhật phiên 2026-08-03 — CI đã XANH, lô Toán đã nằm trên `main`
 
 **Trạng thái cổng chất lượng: XANH.** Chuỗi đỏ #442–#445 đã kết thúc từ phiên trước:

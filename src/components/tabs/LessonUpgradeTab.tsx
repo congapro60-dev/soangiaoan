@@ -93,7 +93,7 @@ export const LessonUpgradeTab = ({ data, isLoading, setIsLoading, showToast }: L
 
   const renderStandardsAudit = () => {
     if (!standardsAudit) return null;
-    const { findings, criticalFailures, lessonType } = standardsAudit;
+    const { findings, criticalFailures, lessonType, subjectLabel, mathLayerApplied } = standardsAudit;
     const passed = findings.filter(f => f.status === 'pass').length;
     const typeLabel: Record<string, string> = {
       practice: 'Tiết luyện tập', knowledge: 'Tiết hình thành kiến thức',
@@ -109,9 +109,11 @@ export const LessonUpgradeTab = ({ data, isLoading, setIsLoading, showToast }: L
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-slate-800">Rà soát theo chuẩn Toán</h3>
+              <h3 className="text-lg font-bold text-slate-800">
+                {mathLayerApplied ? 'Rà soát theo checklist trường + chuẩn Toán' : 'Rà soát theo checklist trường'}
+              </h3>
               <p className="text-sm text-slate-500">
-                {typeLabel[lessonType]} • Đạt {passed}/{findings.length} tiêu chí
+                {subjectLabel}{mathLayerApplied && ` • ${typeLabel[lessonType]}`} • Đạt {passed}/{findings.length} tiêu chí
                 {criticalFailures > 0 && <span className="text-red-600 font-semibold"> • {criticalFailures} tiêu chí quan trọng chưa đạt</span>}
               </p>
             </div>
@@ -133,6 +135,12 @@ export const LessonUpgradeTab = ({ data, isLoading, setIsLoading, showToast }: L
           </p>
         )}
 
+        {!mathLayerApplied && (
+          <p className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 mb-4">
+            Nhận diện đây là giáo án môn <b>{subjectLabel}</b> nên bỏ qua bộ tiêu chí riêng của môn Toán (4 bước, Polya, 2 lộ trình gợi ý).
+          </p>
+        )}
+
         <ul className="space-y-2">
           {findings.map(f => (
             <li key={f.id} className="text-sm">
@@ -140,6 +148,11 @@ export const LessonUpgradeTab = ({ data, isLoading, setIsLoading, showToast }: L
                 <span className="mt-0.5">{icon(f.status)}</span>
                 <div>
                   <span className="font-semibold text-slate-800">{f.title}</span>
+                  {f.danielson && (
+                    <span className="ml-2 px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 text-[11px] font-bold align-middle">
+                      Danielson {f.danielson}
+                    </span>
+                  )}
                   <span className="text-slate-500"> — {f.evidence}</span>
                   {f.status !== 'pass' && (
                     <p className="text-slate-500 italic mt-0.5">↳ {f.suggestion}</p>

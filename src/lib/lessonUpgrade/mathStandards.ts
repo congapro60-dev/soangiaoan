@@ -7,28 +7,10 @@
 // AI chứ không thay thế: bắt đúng các lỗi lặp đi lặp lại (thiếu pha, mục tiêu không phân hóa,
 // BTVN trống, sót câu hướng dẫn nội bộ, tiết luyện tập thiếu Polya/2 lộ trình gợi ý...).
 
-export type LessonType = 'practice' | 'knowledge' | 'flipped' | 'unknown';
+import { has, norm } from './standardsTypes';
+import type { LessonType, StandardsFinding } from './standardsTypes';
 
-export type FindingStatus = 'pass' | 'fail' | 'warn';
-export type FindingSeverity = 'high' | 'medium' | 'low';
-
-export interface StandardsFinding {
-  /** id ổn định, kebab-case — dùng cho UI/kiểm thử, KHÔNG đổi tuỳ tiện. */
-  id: string;
-  title: string;
-  status: FindingStatus;
-  severity: FindingSeverity;
-  /** Bằng chứng: đã tìm thấy gì / thiếu gì trong giáo án. */
-  evidence: string;
-  /** Hướng sửa cụ thể, không chung chung. */
-  suggestion: string;
-  /** Áp dụng cho mọi tiết, hay chỉ tiết luyện tập (mục C). */
-  scope: 'all' | 'practice';
-}
-
-const norm = (s: string): string => s.toLowerCase();
-
-const has = (text: string, re: RegExp): boolean => re.test(text);
+export type { FindingSeverity, FindingStatus, LessonType, StandardsFinding } from './standardsTypes';
 
 /** Nhận diện loại tiết để bật thêm bộ kiểm mục C cho tiết luyện tập. */
 export const detectLessonType = (content: string): LessonType => {
@@ -59,6 +41,7 @@ const checkFourPhases = (t: string): StandardsFinding => {
   ].filter(Boolean) as string[];
   return {
     id: 'four-phases',
+    danielson: '1e',
     title: 'Đủ 4 pha: Trải nghiệm → Hình thành → Rèn luyện → Sơ kết',
     status: missing.length === 0 ? 'pass' : 'fail',
     severity: 'high',
@@ -78,6 +61,7 @@ const checkDifferentiatedObjectives = (t: string): StandardsFinding => {
     (has(t, /mục\s*tiêu/) && has(t, /học\s*sinh\s*yếu|học\s*sinh\s*giỏi|phân\s*hóa|phân\s*hoá/));
   return {
     id: 'differentiated-objectives',
+    danielson: '1c',
     title: 'Mục tiêu đo được & phân hóa (tối thiểu / trọng tâm / nâng cao)',
     status: tiered ? 'pass' : 'fail',
     severity: 'high',
@@ -95,6 +79,7 @@ const checkGuidingQuestions = (t: string): StandardsFinding => {
   const ok = questionCount >= 3 && hasCritical;
   return {
     id: 'guiding-questions',
+    danielson: '1a',
     title: 'Dùng câu hỏi dẫn dắt & tư duy phản biện thay vì thuyết trình',
     status: ok ? 'pass' : questionCount >= 3 ? 'warn' : 'fail',
     severity: 'medium',
@@ -113,6 +98,7 @@ const checkPracticeMinThree = (t: string): StandardsFinding => {
   const enough = numbered.size >= 3 || (t.match(/🌶/g) || []).length >= 3;
   return {
     id: 'practice-min-three',
+    danielson: '1e',
     title: 'Hoạt động rèn luyện có tối thiểu 3 ý, từ dễ đến nâng cao',
     status: hasPractice && enough ? 'pass' : hasPractice ? 'warn' : 'fail',
     severity: 'high',
@@ -131,6 +117,7 @@ const checkExpectedProducts = (t: string): StandardsFinding => {
   const ok = mentions && !emptyProductCol;
   return {
     id: 'expected-products',
+    danielson: '1e',
     title: 'Có sản phẩm/đáp án dự kiến cho các hoạt động',
     status: ok ? 'pass' : 'fail',
     severity: 'high',
@@ -147,6 +134,7 @@ const checkHomework = (t: string): StandardsFinding => {
   if (!heading) {
     return {
       id: 'homework-present',
+      danielson: '1e',
       title: 'Bài tập về nhà (BTVN) có nhiệm vụ cụ thể',
       status: 'warn',
       severity: 'medium',
@@ -160,6 +148,7 @@ const checkHomework = (t: string): StandardsFinding => {
   const hasTask = has(after, /bài\s*\d|câu\s*\d|\d\s*[).]|đề\s*bài|làm\s*bài|hoàn\s*thành|giải|trang\s*\d/);
   return {
     id: 'homework-present',
+    danielson: '1e',
     title: 'Bài tập về nhà (BTVN) có nhiệm vụ cụ thể',
     status: hasTask ? 'pass' : 'fail',
     severity: 'medium',
@@ -193,6 +182,7 @@ const checkTimeCoverage = (t: string): StandardsFinding => {
   const ok = realClock || durations;
   return {
     id: 'time-coverage',
+    danielson: '1e',
     title: 'Có mốc thời gian / thời lượng khép kín cho các hoạt động',
     status: realClock ? 'pass' : durations ? 'warn' : 'fail',
     severity: 'low',
@@ -220,6 +210,7 @@ const checkLearningIntentionSuccessCriteria = (t: string): StandardsFinding => {
   const ok = hasWaltWilf || (hasIntention && hasCriteria);
   return {
     id: 'success-criteria',
+    danielson: '1c',
     title: 'Mục tiêu học tập nêu rõ tiêu chí thành công (WALT/WILF)',
     status: ok ? 'pass' : hasIntention ? 'warn' : 'fail',
     severity: 'medium',
@@ -241,6 +232,7 @@ const checkTeacherScript = (t: string): StandardsFinding => {
   const vagueOnly = has(t, /gv\s*(hướng\s*dẫn|hỗ\s*trợ|tổ\s*chức)/) && !hasScript;
   return {
     id: 'teacher-script',
+    danielson: '1a',
     title: 'Cột hoạt động có thoại/câu hỏi giáo viên cụ thể (Teacher script)',
     status: hasScript ? 'pass' : 'fail',
     severity: 'medium',
@@ -258,6 +250,7 @@ const checkWorksheetAppendix = (t: string): StandardsFinding => {
   const ok = has(t, /phiếu\s*(học\s*tập|bài\s*tập|giao\s*việc|luyện\s*tập)|phụ\s*lục|worksheet|experience\s*passport/);
   return {
     id: 'worksheet-appendix',
+    danielson: '1d',
     title: 'Có Phiếu học tập ở Phụ lục',
     status: ok ? 'pass' : 'fail',
     severity: 'medium',
@@ -279,6 +272,7 @@ const checkMathCompetencies = (t: string): StandardsFinding => {
   ].filter(Boolean) as string[];
   return {
     id: 'math-competencies',
+    danielson: '1a',
     title: 'Thể hiện các năng lực Toán cốt lõi',
     status: comps.length >= 3 ? 'pass' : comps.length >= 1 ? 'warn' : 'fail',
     severity: 'low',
@@ -302,6 +296,7 @@ const checkPolyaFourSteps = (t: string): StandardsFinding => {
   const missing = POLYA_STEPS.map(([, l]) => l).filter((l) => !found.includes(l));
   return {
     id: 'polya-4-steps',
+    danielson: '1a',
     title: '[Luyện tập] Đủ 4 bước Polya cho bài chữa chung',
     status: missing.length === 0 ? 'pass' : found.length >= 2 ? 'warn' : 'fail',
     severity: 'high',
@@ -318,6 +313,7 @@ const checkDualHintRoutes = (t: string): StandardsFinding => {
     (has(t, /thẻ\s*dắt\s*tay/) && has(t, /thẻ\s*thử\s*thách/));
   return {
     id: 'dual-hint-routes',
+    danielson: '1e',
     title: '[Luyện tập] Bước "Tìm hướng giải" có 2 bộ câu hỏi gợi ý',
     status: dual ? 'pass' : 'fail',
     severity: 'high',
@@ -331,6 +327,7 @@ const checkMethodMastery = (t: string): StandardsFinding => {
   const ok = has(t, /vì\s*sao\s*(chọn|dùng)|khi\s*nào\s*(dùng|áp\s*dụng|chọn)|lý\s*do\s*chọn\s*phương\s*pháp|dấu\s*hiệu\s*nhận\s*biết/);
   return {
     id: 'method-mastery',
+    danielson: '1a',
     title: '[Luyện tập] Học sinh hiểu vì sao & khi nào chọn phương pháp',
     status: ok ? 'pass' : 'fail',
     severity: 'medium',
@@ -345,6 +342,7 @@ const checkConcreteDifferentiation = (t: string): StandardsFinding => {
   const vagueOnly = has(t, /gv\s*hỗ\s*trợ|giáo\s*viên\s*hỗ\s*trợ/) && !concrete;
   return {
     id: 'concrete-differentiation',
+    danielson: '1e',
     title: '[Luyện tập] Phân hóa cụ thể (phiếu/thẻ/nhóm), không chung chung',
     status: concrete ? 'pass' : 'fail',
     severity: 'medium',
@@ -413,6 +411,7 @@ const checkTimeContinuity = (t: string): StandardsFinding => {
   const noRanges = uniq.length === 0;
   return {
     id: 'time-continuity',
+    danielson: '1e',
     title: 'Mốc thời gian liền mạch, khớp thời lượng và phủ kín 40 phút',
     status: noRanges || problems.length > 0 ? 'fail' : 'pass',
     severity: 'high',
@@ -462,6 +461,7 @@ const checkBoardContentFilled = (t: string): StandardsFinding => {
   const ok = rows.length > 0 && empty.length === 0;
   return {
     id: 'board-content-filled',
+    danielson: '1e',
     title: 'Mọi hoạt động đều có "Nội dung ghi bảng" (không bỏ trống)',
     status: rows.length === 0 ? 'warn' : ok ? 'pass' : 'fail',
     severity: 'high',
@@ -505,6 +505,7 @@ const checkTermIntroduced = (t: string): StandardsFinding => {
   const ok = notIntroduced.length === 0;
   return {
     id: 'term-introduced',
+    danielson: '1a',
     title: 'Thuật ngữ nâng cao phải được giới thiệu trước khi dùng',
     status: ok ? 'pass' : 'fail',
     severity: 'medium',
@@ -576,6 +577,7 @@ const checkSelfSelectionFallback = (t: string): StandardsFinding => {
   if (!hasSelfSelection) {
     return {
       id: 'self-selection-fallback',
+      danielson: '1e',
       title: 'Có kịch bản xử lý khi HS chọn sai mức độ',
       status: 'pass',
       severity: 'medium',
@@ -589,6 +591,7 @@ const checkSelfSelectionFallback = (t: string): StandardsFinding => {
   const missing = [!tooHard && 'chọn QUÁ SỨC', !tooEasy && 'chọn DƯỚI SỨC'].filter(Boolean) as string[];
   return {
     id: 'self-selection-fallback',
+    danielson: '1e',
     title: 'Có kịch bản xử lý khi HS chọn sai mức độ',
     status: missing.length === 0 ? 'pass' : 'fail',
     severity: 'medium',
@@ -621,6 +624,7 @@ const checkGroupModelCoherence = (t: string): StandardsFinding => {
   const conflict = jigsaw && stationRotation;
   return {
     id: 'group-model-coherence',
+    danielson: '1e',
     title: 'Mô hình tổ chức lớp nhất quán (không trộn mảnh ghép với trạm quay vòng)',
     status: conflict ? 'fail' : 'pass',
     severity: 'medium',
@@ -690,28 +694,3 @@ export const auditMathStandards = (content: string, forceType?: LessonType): Sta
   return { lessonType, findings, criticalFailures };
 };
 
-const STATUS_ICON: Record<FindingStatus, string> = { pass: '✅', warn: '🟡', fail: '❌' };
-const LESSON_TYPE_LABEL: Record<LessonType, string> = {
-  practice: 'Tiết luyện tập / hình thành kĩ năng',
-  knowledge: 'Tiết hình thành kiến thức',
-  flipped: 'Lớp học đảo ngược',
-  unknown: 'Chưa xác định loại tiết',
-};
-
-/**
- * Xuất báo cáo rà soát dạng Markdown (đạt/chưa đạt + bằng chứng + hướng sửa). Dùng cho panel
- * trên tab Nâng cấp và cho phần "NỘI DUNG ĐÃ BỔ SUNG" chèn vào file .docx gốc.
- */
-export const formatStandardsReport = (result: StandardsAuditResult): string => {
-  const passed = result.findings.filter((f) => f.status === 'pass').length;
-  const total = result.findings.length;
-  const lines: string[] = [];
-  lines.push(`## Rà soát theo chuẩn Toán — ${LESSON_TYPE_LABEL[result.lessonType]}`);
-  lines.push(`**Đạt ${passed}/${total} tiêu chí.** ${result.criticalFailures > 0 ? `Còn ${result.criticalFailures} tiêu chí quan trọng chưa đạt.` : 'Không còn tiêu chí quan trọng nào chưa đạt.'}`);
-  lines.push('');
-  for (const f of result.findings) {
-    lines.push(`- ${STATUS_ICON[f.status]} **${f.title}** — ${f.evidence}`);
-    if (f.status !== 'pass') lines.push(`  - Hướng sửa: ${f.suggestion}`);
-  }
-  return lines.join('\n');
-};

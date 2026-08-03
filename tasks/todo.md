@@ -1,3 +1,60 @@
+# Ghép "Checklist tự kiểm tra giáo án" vào bộ rà soát tab Nâng cấp — 2026-08-03
+
+Nguồn: `các yêu cầu về Toán cần đạt/Checklist tự kiểm tra giáo án.xlsx`
+(sheet `Checklist` — 15 đầu việc; sheet `Domain 1`/`Domain 2` — rubric Danielson).
+
+Quyết định của owner:
+- Tách 2 tầng: tiêu chí toàn trường (mọi môn) + tiêu chí Toán TDS (chỉ Toán).
+- Giữ quy trình **4 bước** theo `Hướng dẫn soạn giáo án môn Toán.docx` (2025–2026),
+  không theo cách diễn đạt "5 bước" ở ô E6 của checklist.
+
+## Kế hoạch
+
+- [x] Tách type dùng chung sang `standardsTypes.ts`, thêm trường `danielson?` → verify: `mathStandards.ts` re-export, mọi import cũ còn chạy.
+- [x] Viết `generalStandards.ts`: 10 phép kiểm rút từ checklist + `detectSubject` → verify: test riêng cho từng id.
+- [x] Gắn mã Danielson 1a–1f cho các phép kiểm sẵn có → verify: test cũ không đổi trạng thái.
+- [x] Viết `lessonAudit.ts` ghép 2 tầng → verify: giáo án Văn không bị chạy lớp Toán.
+- [x] Đấu vào `useLessonUpgrade` + panel UI → verify: build + hiển thị môn và badge Danielson.
+- [x] `npm run lint` + `npm run test -- --run` + `npm run build` → verify: 0 lỗi, 0 test đỏ.
+
+## Đối chiếu checklist → phép kiểm
+
+| # checklist | Phép kiểm | Trạng thái |
+|---|---|---|
+| 1 Nghiên cứu chương trình | — | Không kiểm được bằng regex, bỏ qua |
+| 2 Nhận diện đối tượng HS | `student-profile` | Mới |
+| 3 Điền thông tin bản kế hoạch | `plan-metadata` | Mới |
+| 4 Đặt mục tiêu tiết học | `differentiated-objectives`, `success-criteria` | Đã có |
+| 5 Tiến trình mạch lạc | `four-phases`, `guiding-questions`, `expected-products` | Đã có |
+| 5 Đa dạng hình thức tổ chức | `activity-format-variety` | Mới |
+| 5 Môi trường học tập an toàn | `safe-environment` | Mới |
+| 6 Phân bổ thời gian | `time-coverage`, `time-continuity` | Đã có |
+| 7 Dạy học phân hóa | `differentiation-dimensions` | Mới |
+| 8 Dạy học trải nghiệm + suy ngẫm | `reflection-prompt` | Mới |
+| 9 Công dân toàn cầu | `global-citizenship` | Mới |
+| 10 Công dân kỹ thuật số | `digital-citizenship` | Mới |
+| 11 Đánh giá thường xuyên | `formative-assessment` | Mới |
+| 12–14 Tài nguyên dạy học | `resources-listed` | Mới |
+| 15 Đồ dùng, phiếu học tập | `worksheet-appendix` | Đã có |
+
+## Review
+
+- 10 phép kiểm mới ở `generalStandards.ts` chạy cho **mọi môn**; 22 phép kiểm Toán TDS ở
+  `mathStandards.ts` chỉ chạy khi `detectSubject` không nhận ra môn khác. `lessonAudit.ts` ghép
+  hai tầng và xuất báo cáo Markdown kèm mã Danielson.
+- `auditMathStandards` giữ nguyên chữ ký lẫn hành vi → `toanLessonQuality.ts` (cổng sinh giáo án
+  Toán) không đổi, 16 + 25 ca test Toán cũ không phải sửa.
+- `formatStandardsReport` bị `formatLessonReport` thay thế nên đã gỡ khỏi `mathStandards.ts`.
+- `detectSubject` **cố ý thiên về Toán**: chỉ tắt lớp Toán khi giáo án tự khai môn khác, hoặc
+  khi từ khóa môn khác xuất hiện ≥3 lần mà không có dấu hiệu Toán nào.
+- Kiểm chứng: lint 0 lỗi TS · test **44 file / 657 ca, 0 đỏ** (thêm 33 ca) · build 58.89s ·
+  chạy `auditLesson` trên dev server thật: giáo án Văn → 10 tiêu chí, không có lớp Toán;
+  giáo án Toán luyện tập → 32 tiêu chí, 29 tiêu chí gắn mã Danielson.
+- CHƯA làm: panel trên UI chưa được E2E vì cần thao tác upload file mà Browser pane không làm
+  được; đã xác minh gián tiếp bằng build + gọi thẳng module trong runtime của dev server.
+
+---
+
 # Sửa lỗi QA module dự giờ Danielson — 2026-07-28
 
 Nguồn: báo cáo QA module dự giờ Danielson do owner cung cấp ngày 2026-07-28.

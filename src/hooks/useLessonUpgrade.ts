@@ -4,7 +4,7 @@ import { analyzeLessonPlan } from '../lib/lessonUpgrade/analysisPrompt';
 import { getProductPrompt } from '../lib/lessonUpgrade/productPrompts';
 import { processUploadedFile, downloadBlob, safeFilename } from '../utils/fileUtils';
 import { callAI } from '../lib/aiProviders';
-import { auditMathStandards, formatStandardsReport, type StandardsAuditResult } from '../lib/lessonUpgrade/mathStandards';
+import { auditLesson, formatLessonReport, type LessonAuditResult } from '../lib/lessonUpgrade/lessonAudit';
 import { buildRevisedDocxBlob } from '../utils/docxLessonRevision';
 import { exportToWordA4 } from '../utils/wordExportA4';
 
@@ -21,7 +21,7 @@ export const useLessonUpgrade = (data: AppData, showToast: (msg: string, icon?: 
   const [originalFiles, setOriginalFiles] = useState<TemplateFile[]>([]);
   const [lessonText, setLessonText] = useState<string>('');
   const [analysis, setAnalysis] = useState<LessonAnalysis | null>(null);
-  const [standardsAudit, setStandardsAudit] = useState<StandardsAuditResult | null>(null);
+  const [standardsAudit, setStandardsAudit] = useState<LessonAuditResult | null>(null);
   const [originalDocx, setOriginalDocx] = useState<OriginalDocx | null>(null);
   const [results, setResults] = useState<Record<UpgradeMenuItemId, UpgradeResult>>({} as Record<UpgradeMenuItemId, UpgradeResult>);
   const [activeMenuId, setActiveMenuId] = useState<UpgradeMenuItemId | null>(null);
@@ -59,8 +59,9 @@ export const useLessonUpgrade = (data: AppData, showToast: (msg: string, icon?: 
       const combinedText = processedFiles.map(f => f.content).join('\n\n');
       setLessonText(combinedText);
 
-      // Rà soát chuẩn Toán (deterministic) — chạy song song với phân tích AI.
-      setStandardsAudit(auditMathStandards(combinedText));
+      // Rà soát deterministic (checklist toàn trường + chuẩn Toán nếu đúng môn) — chạy song
+      // song với phân tích AI.
+      setStandardsAudit(auditLesson(combinedText));
 
       const analysisResult = await analyzeLessonPlan(combinedText, data.settings);
       setAnalysis(analysisResult);
@@ -83,7 +84,7 @@ export const useLessonUpgrade = (data: AppData, showToast: (msg: string, icon?: 
     try {
       // Ghép báo cáo rà soát + (nếu có) kết quả "Rà soát & góp ý toàn bộ" (menu N) do AI sinh.
       const aiReview = results['N']?.content ? `\n\n## Góp ý chuyên sâu (AI)\n\n${results['N'].content}` : '';
-      const supplement = formatStandardsReport(standardsAudit) + aiReview;
+      const supplement = formatLessonReport(standardsAudit) + aiReview;
 
       if (originalDocx) {
         const blob = await buildRevisedDocxBlob(originalDocx.bytes, supplement);
@@ -92,7 +93,7 @@ export const useLessonUpgrade = (data: AppData, showToast: (msg: string, icon?: 
         showToast('Đã tạo bản Word đã bổ sung (giữ layout gốc)!', 'success');
       } else {
         await exportToWordA4(
-          { title: `${analysis?.tenBai || 'Giao-an'} - Ra soat chuan Toan`, content: supplement },
+          { title: `${analysis?.tenBai || 'Giao-an'} - Bao cao ra soat`, content: supplement },
           showToast,
           'portrait',
         );
