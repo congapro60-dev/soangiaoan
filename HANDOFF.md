@@ -1,6 +1,6 @@
 # HANDOFF — Soạn giáo án / học phân hoá
 
-**Cập nhật gần nhất**: 2026-07-30  
+**Cập nhật gần nhất**: 2026-08-03  
 **Repo**: `soangiaoan` — `https://github.com/congapro60-dev/soangiaoan`  
 **Branch chuẩn**: `main`  
 **Production URL để QA UI**: `https://giaoandewey.vercel.app`  
@@ -9,6 +9,37 @@
 ---
 
 ## 1. Trạng thái hiện tại
+
+### 1.0q Cập nhật phiên 2026-08-03 — CI đã XANH, lô Toán đã nằm trên `main`
+
+**Trạng thái cổng chất lượng: XANH.** Chuỗi đỏ #442–#445 đã kết thúc từ phiên trước:
+run **#446** (`b79b151`) và **#447** (`12f5d0d`) đều `success`. `main` = `feat/toan-final-template`
+= `12f5d0d`, không còn commit nào chờ đẩy.
+
+Chạy lại đủ bộ tại máy để xác nhận, đúng hai lệnh CI dùng:
+`npm run lint` → 0 lỗi TS · `npm run test -- --run` → **41 file / 602 test, 0 đỏ** ·
+`npm run build` → built in 1m 2s. Bất biến còn nguyên: `renderWordCore.ts` đúng **12 byte NUL**,
+`buildSchoolFormDocx.ts::COL3` khớp `toanStyleRules.ts::TOAN_ACTIVITY_COL_RATIOS` (15/45/40).
+
+**Cảnh báo cho người tiếp theo — đừng tin brief cũ mà bỏ bước kiểm.** Bản brief mở phiên này mô tả
+`main` đang đỏ và lô Toán còn nằm trong working tree chờ commit; kiểm ra thì cả hai đều đã xong từ
+phiên trước. Ba chi tiết sai vì mục 1.0 không được cập nhật ngay sau khi CI chuyển xanh:
+- "`main` đỏ CI" → đã xanh ở #446/#447.
+- "bản sửa mốc phút chưa commit" → đã nằm trong `b79b151`.
+- "phải chuẩn hoá LF, không thì diff phình 10 → 340 dòng" → `core.autocrlf=true` đã lo sẵn;
+  `toanLessonQuality.test.ts` vốn đã LF thuần. Diff thật đúng ~78 dòng.
+
+Quy tắc rút ra: **cập nhật mục này ngay khi CI đổi màu**, không đợi tới phiên sau — nếu không,
+phiên kế tiếp sẽ mất một lượt chỉ để phát hiện việc đã làm rồi.
+
+Việc thật còn lại của phiên này chỉ là nới ngưỡng độ dài thư viện nước đi **6000 → 7000 ký tự**
+trong `toanClassroomMoves.test.ts`. Đây là **phanh chống phình dần**, không phải giới hạn model:
+đo thực tế kien_thuc 4477 · dao_nguoc 5619 · luyen_tap 5971 — ngưỡng cũ chỉ còn dư 29 ký tự,
+thêm một nước đi là đỏ. Nếu thư viện vượt ~20 nước đi thì **đừng nới tiếp**: đổi cách gửi, chỉ gửi
+"tên + khi nào" của tất cả, còn "cách làm + vì sao" gửi cho 3–5 nước đi AI đã chọn.
+
+> File này đang **~800 dòng, vượt trần 150** của skill `handoff`. Nên cắt mục 1.0a–1.0o sang
+> `docs/HANDOFF-ARCHIVE.md` ở phiên tới, giữ lại 1.0p–1.0q.
 
 ### 1.0p Cập nhật phiên 2026-07-30 (tối) — Phủ đều cho cả 3 loại kế hoạch
 

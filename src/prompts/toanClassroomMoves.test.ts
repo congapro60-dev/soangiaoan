@@ -90,7 +90,7 @@ describe('buildToanClassroomMovesPrompt', () => {
     expect(soLuongViSao).toBe(TOAN_CLASSROOM_MOVES.length);
   });
 
-  // Ngưỡng độ dài được kiểm ở "mọi biến thể theo loại đều dưới ngưỡng 6000 ký tự" bên dưới:
+  // Ngưỡng độ dài được kiểm ở "mọi biến thể theo loại đều dưới ngưỡng 7000 ký tự" bên dưới:
   // useLessonCreator LUÔN gọi kèm loại kế hoạch, nên bản đầy đủ (không lọc) không bao giờ
   // được gửi cho AI — đo độ dài của nó không nói lên điều gì về token thực tế tốn.
 
@@ -137,9 +137,18 @@ describe('lọc nước đi theo loại kế hoạch', () => {
     }
   });
 
-  it('mọi biến thể theo loại đều dưới ngưỡng 6000 ký tự', () => {
+  it('mọi biến thể theo loại đều dưới ngưỡng 7000 ký tự', () => {
+    // Đây là PHANH CHỐNG PHÌNH DẦN, không phải giới hạn kỹ thuật của model.
+    // Đo thực tế 2026-07: kien_thuc 4477 · dao_nguoc 5619 · luyen_tap 5971 ký tự.
+    // Đặt cạnh các mảnh khác của prompt tiết luyện tập (tổng ~22.700 ký tự): khung chung
+    // 11.218 (49%) · thư viện 5.971 (26%) · khung kế hoạch 3.771 (17%) · yêu cầu riêng 1.715 (8%).
+    // Ngưỡng cũ 6000 chỉ còn dư 29 ký tự cho luyen_tap — thêm một nước đi là đỏ, nên nới lên 7000.
+    // Lưu ý: ký tự chỉ là chỉ dấu THÔ; cái thực sự tốn là token (tiếng Việt ~2,2–2,8 ký tự/token,
+    // nên 7000 ký tự ≈ 2.500–3.200 token). Nếu thư viện vượt ~20 nước đi thì đừng nới tiếp —
+    // hãy đổi cách gửi: chỉ gửi "tên + khi nào" của tất cả, còn "cách làm + vì sao" chỉ gửi
+    // cho 3–5 nước đi AI đã chọn.
     for (const kh of ['kien_thuc', 'luyen_tap', 'dao_nguoc'] as const) {
-      expect(buildToanClassroomMovesPrompt(kh).length, kh).toBeLessThan(6000);
+      expect(buildToanClassroomMovesPrompt(kh).length, kh).toBeLessThan(7000);
     }
   });
 });
