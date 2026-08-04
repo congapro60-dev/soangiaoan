@@ -9,17 +9,17 @@ Trần **150 dòng**: vượt thì cắt mục cũ sang [`docs/HANDOFF-ARCHIVE.m
 
 ## 1. Trạng thái hiện tại
 
-**CI xanh.** `main` = `6b70a71`. Chuỗi đỏ #442–#445 đã kết thúc ở #446/#447.
+**CI xanh.** `main` = `90c1cb1`. Chuỗi đỏ #442–#445 đã kết thúc ở #446/#447.
 
 Ba lô gần nhất:
 
-- **Dự giờ Danielson** (phiên này, *chưa commit*) — sửa 2 lỗi thật thấy trên production + thêm 2 tầng làm sạch biên bản. Chi tiết ở mục 2.
+- **Dự giờ Danielson** (`90c1cb1`) — sửa 2 lỗi thật thấy trên production + thêm 2 tầng làm sạch biên bản. Chi tiết ở mục 2.
 - **Rà soát giáo án 2 tầng** (`6b70a71`) — tách `generalStandards.ts` (10 phép kiểm mọi môn, từ `Checklist tự kiểm tra giáo án.xlsx`) khỏi `mathStandards.ts` (22 phép kiểm Toán TDS). Trước đó giáo án Văn/Sử bị chấm bằng tiêu chí Toán. Ghép ở `lessonAudit.ts`.
 - **Thư viện nước đi lớp học** (`12f5d0d`) — 14 nước đi vận hành lớp, lọc theo loại kế hoạch qua `apDung`.
 
 ## 2. Đang dở / đừng đụng
 
-**Lô dự giờ đang nằm trong working tree, chưa commit.** Gồm `src/lib/dugio/{lamSach,deXuatSuaLoi}.ts` (mới), `excel.ts`, `phanTich.ts`, `DuyetSuaChinhTa.tsx` (mới), `DuGioPage.tsx`.
+**Lô dự giờ đã lên `main` (`90c1cb1`, CI xanh).** Gồm `src/lib/dugio/{lamSach,deXuatSuaLoi}.ts` (mới), `excel.ts`, `phanTich.ts`, `DuyetSuaChinhTa.tsx` (mới), `DuGioPage.tsx`.
 
 Bốn thay đổi và lý do — **đừng nới cái nào mà không đọc test kèm theo**:
 
