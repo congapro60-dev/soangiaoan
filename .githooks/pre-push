@@ -1,0 +1,91 @@
+#!/bin/sh
+# Chặn push khi HANDOFF.md không được cập nhật trong đám commit sắp đẩy đi.
+#
+# Vì sao là git hook chứ không phải hook của Claude Code:
+#  1. Hook của Claude Code chạy TRƯỚC khi lệnh thực thi, nên "git commit && git push"
+#     trong một lượt luôn bị chặn oan — nó thấy trạng thái cũ. Muốn đúng thì phải đoán
+#     lệnh sắp làm gì, tức là phải parse shell. Git hook chạy ĐÚNG LÚC push nên hết vấn đề.
+#  2. Hook đó chỉ chặn được Claude. Push tay từ terminal, từ VS Code, hay từ
+#     DAY-LEN-MAIN.bat đều đi vòng qua — thủng đúng chỗ hay dùng nhất.
+#
+# Bỏ qua một lần (hotfix gấp):  git push --no-verify
+# Đây là quyết định của NGƯỜI DÙNG. Trợ lý AI không được tự thêm cờ này để đi vòng.
+
+FILE="HANDOFF.md"
+KHONG="0000000000000000000000000000000000000000"
+TRAN=150
+loi=0
+
+canh_bao_do_dai() {
+  [ -f "$FILE" ] || return 0
+  n=$(wc -l < "$FILE" | tr -d ' ')
+  [ "$n" -gt "$TRAN" ] && printf >&2 '\n[handoff] ⚠ %s đang %s dòng, vượt trần %s. Nên cắt mục cũ sang docs/HANDOFF-ARCHIVE.md.\n' "$FILE" "$n" "$TRAN"
+  return 0
+}
+
+while read -r _local_ref local_sha remote_ref remote_sha; do
+  # Xoá nhánh từ xa thì không có gì để xét.
+  [ "$local_sha" = "$KHONG" ] && continue
+
+  # Tìm mốc đối chiếu. KHÔNG tin thẳng $remote_sha: git đưa về toàn số 0 khi chưa có
+  # ref theo dõi cho nhánh đích (hay gặp khi push chéo tên nhánh, vd HEAD:main), và
+  # `git diff <40 số 0>` thì gãy — rơi vào đó là hook phán sai.
+  moc=""
+  if [ "$remote_sha" != "$KHONG" ] && git cat-file -e "$remote_sha^{commit}" 2>/dev/null; then
+    moc="$remote_sha"
+  else
+    nhanh=${remote_ref#refs/heads/}
+    moc=$(git rev-parse --verify --quiet "refs/remotes/origin/$nhanh")
+  fi
+
+  if [ -n "$moc" ]; then
+    files=$(git diff --name-only "$moc" "$local_sha" 2>/dev/null)
+  else
+    # Nhánh hoàn toàn mới, không có mốc nào: xét commit ở đầu nhánh.
+    files=$(git show --pretty=format: --name-only "$local_sha" 2>/dev/null)
+  fi
+
+  # Không xác định được thay đổi (mốc không có ở local…) thì CHO QUA:
+  # chặn nhầm tai hại hơn bỏ lọt.
+  [ -z "$files" ] && continue
+
+  # Miễn trừ: commit chỉ đụng tài liệu thì không bắt cập nhật handoff.
+  chi_tai_lieu=1
+  for f in $files; do
+    case "$f" in
+      tasks/lessons.md|docs/*) ;;
+      *) chi_tai_lieu=0; break ;;
+    esac
+  done
+  [ "$chi_tai_lieu" = "1" ] && continue
+
+  if [ ! -f "$FILE" ]; then
+    printf >&2 '\n[handoff] CHẶN push: dự án chưa có %s.\n' "$FILE"
+    printf >&2 'Mọi dự án phải có file này để phiên/AI sau bắt nhịp được. Tạo theo khung trong skill `handoff`.\n'
+    loi=1
+    continue
+  fi
+
+  # printf ở đây KHÔNG được đẩy sang stderr: nó là đầu vào của grep, đổi hướng là grep
+  # rỗng và điều kiện luôn đúng — hook sẽ chặn mọi push.
+  if ! printf '%s\n' "$files" | grep -qx "$FILE"; then
+    printf >&2 '\n[handoff] CHẶN push: %s KHÔNG được cập nhật trong các commit sắp đẩy đi.\n\n' "$FILE"
+    printf >&2 'Commit đang chờ đẩy:\n'
+    if [ -n "$moc" ]; then
+      git log --oneline "$moc..$local_sha" | sed 's/^/  /' >&2
+    else
+      git log --oneline -1 "$local_sha" | sed 's/^/  /' >&2
+    fi
+    printf >&2 '\nTrước khi đưa ra ngoài, ghi vào %s:\n' "$FILE"
+    printf >&2 '  - đã đổi gì và VÌ SAO (lý do — git diff đã có danh sách file rồi)\n'
+    printf >&2 '  - còn dở gì, chỗ nào cố tình bỏ qua và vì sao\n'
+    printf >&2 '  - cái gì sắp cắn người sau (ngưỡng sắp vỡ, giả định ngầm)\n'
+    printf >&2 '  - lệnh nghiệm thu, copy chạy được\n\n'
+    printf >&2 'Commit chỉ đụng tasks/lessons.md hoặc docs/** thì được miễn.\n'
+    printf >&2 'Hotfix gấp: git push --no-verify\n'
+    loi=1
+  fi
+done
+
+canh_bao_do_dai
+exit $loi

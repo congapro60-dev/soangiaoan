@@ -71,7 +71,10 @@ $env:PATH = "C:\Program Files\Microsoft\jdk-21.0.11.10-hotspot\bin;$env:PATH"; n
 ```
 
 Ghi chú: `npm run lint` là `tsc --noEmit`. Cảnh báo chunk lớn của Vite là warning cũ, không phải blocker.
-Commit phải dùng `git add -u` + `git add src tasks HANDOFF.md` — liệt kê tay từng đường dẫn đã bỏ sót file và làm đỏ `main`.
+
+**Commit**: mặc định `git add -u` + `git add src tasks HANDOFF.md` — liệt kê tay từng đường dẫn đã bỏ sót file và làm đỏ `main`. **Ngoại lệ**: khi có phiên khác đang sửa dở trong cùng cây làm việc thì phải stage có chọn lọc, `git add -u` sẽ cuốn cả việc của họ.
+
+**Push**: repo có `.githooks/pre-push` (bật bằng `core.hooksPath=.githooks`) **chặn push nếu `HANDOFF.md` không nằm trong đám commit sắp đẩy đi**. Commit chỉ đụng `tasks/lessons.md` hoặc `docs/**` được miễn. Hotfix gấp: `git push --no-verify`.
 
 ## 5. File/khái niệm cốt lõi
 
