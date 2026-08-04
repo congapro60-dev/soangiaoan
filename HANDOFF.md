@@ -11,8 +11,9 @@ Trần **150 dòng**: vượt thì cắt mục cũ sang [`docs/HANDOFF-ARCHIVE.m
 
 **CI xanh.** `main` = `90c1cb1`. Chuỗi đỏ #442–#445 đã kết thúc ở #446/#447.
 
-Ba lô gần nhất:
+Bốn lô gần nhất:
 
+- **Giỏ sản phẩm + nối lỗi với công cụ vá** (phiên này, *chưa push*) — tab Nâng cấp gộp mọi sản phẩm AI đã sinh vào MỘT file Word thay vì 17 file rời; mỗi tiêu chí chưa đạt có nút dẫn thẳng tới mục menu vá được nó (`fixSuggestions.ts`). `markdownToOoxmlParagraphs` nay dựng được bảng Word thật.
 - **Dự giờ Danielson** (`90c1cb1`) — sửa 2 lỗi thật thấy trên production + thêm 2 tầng làm sạch biên bản. Chi tiết ở mục 2.
 - **Rà soát giáo án 2 tầng** (`6b70a71`) — tách `generalStandards.ts` (10 phép kiểm mọi môn, từ `Checklist tự kiểm tra giáo án.xlsx`) khỏi `mathStandards.ts` (22 phép kiểm Toán TDS). Trước đó giáo án Văn/Sử bị chấm bằng tiêu chí Toán. Ghép ở `lessonAudit.ts`.
 - **Thư viện nước đi lớp học** (`12f5d0d`) — 14 nước đi vận hành lớp, lọc theo loại kế hoạch qua `apDung`.
@@ -40,6 +41,7 @@ Bốn thay đổi và lý do — **đừng nới cái nào mà không đọc tes
 - **Một minh chứng ĐƯỢC dùng cho nhiều tiêu chí.** Đừng "sửa" thành 1-1. Quy định Tổ Toán dùng "bảng con" làm minh chứng cho **cả 3C lẫn 3D**. Hàng rào đúng là *mỗi tiêu chí phải có ít nhất một trích dẫn nói trúng hành vi của chính nó* — đã ghi trong prompt.
 - **Ba chỗ trong lô rà soát giáo án 2 tầng, đừng đụng mà chưa đọc kỹ:** (a) `auditMathStandards` phải giữ nguyên chữ ký lẫn hành vi — cổng sinh giáo án Toán `toanLessonQuality.ts` phụ thuộc vào nó; (b) `detectSubject` **cố ý thiên về Toán**, chỉ tắt lớp kiểm Toán khi giáo án tự khai môn khác — đoán sai chiều này chỉ thừa vài tiêu chí, đoán sai chiều kia làm mất sạch lớp kiểm của một giáo án Toán thật; (c) `differentiation-dimensions` chỉ soi trong cửa sổ ±240 ký tự quanh chữ "phân hóa", bỏ cửa sổ là mọi giáo án đều đậu nhờ chữ "sản phẩm dự kiến" nằm chỗ khác.
 - **Quy trình dạy Toán TDS giữ 4 bước** (Trải nghiệm – Hình thành – Rèn luyện, phát triển – Sơ kết) theo `Hướng dẫn soạn giáo án môn Toán.docx`. Ô E6 của Checklist ghi "5 bước" — owner đã chốt theo bản Hướng dẫn, đừng sửa ngược.
+- **`FIX_FOR_FINDING` cố ý KHÔNG phủ hết tiêu chí.** 8/26 tiêu chí chưa đạt không có nút vá, và đó là chủ ý: (a) `plan-metadata`/`student-profile` — app không được bịa tên người soạn, ngày, sĩ số lớp thật; (b) nhóm lỗi BIÊN TẬP (`board-content-filled`, `time-continuity`, `no-duplicate-block`, `term-introduced`, `no-internal-instructions`, `expected-products`, `homework-present`, `self-selection-fallback`, `group-model-coherence`) cần sửa TẠI CHỖ trong bài chứ không phải sinh nội dung mới — đó là mục menu "Vá lỗi biên tập" chưa làm, xem lô 3 trong `tasks/todo.md`. Đừng map bừa cho đủ: map sai sinh ra nội dung thừa mà lỗi vẫn nguyên. Test `fixSuggestions.test.ts` khoá mọi id trong bảng phải là tiêu chí và mục menu có thật.
 - **`personalizationCache` cho ghi công khai** (`allow read, write: if true`) — người lạ tính đúng cacheKey là ghi đè được nội dung bài học học sinh đọc. Vá đúng phải thêm `teacherId` vào document. Cần phiên riêng — xem chi tiết ở archive mục 5.3.
 - **`lessonPlans` có `allow list: if request.auth != null`** — bất kỳ ai đã đăng nhập đều liệt kê được TOÀN BỘ giáo án của người khác (các luật là OR nên `allow read` chặt hơn không cứu được). `duGio` cố ý không sao chép kiểu này.
 - **`firebase deploy --only firestore:indexes` XOÁ index không khai trong `firestore.indexes.json`.** Luôn đọc danh sách CLI hỏi xoá trước khi gõ Y. Thêm query `where(A) + orderBy(B)` là phải khai index cùng lúc.

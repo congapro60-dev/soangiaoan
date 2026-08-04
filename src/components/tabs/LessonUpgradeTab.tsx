@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { motion } from 'motion/react';
-import { Upload, Loader2, FileText, CheckCircle2, WandSparkles, Copy, RotateCcw, ArrowLeft, ShieldCheck, Download } from 'lucide-react';
+import { Upload, Loader2, FileText, CheckCircle2, WandSparkles, Copy, RotateCcw, ArrowLeft, ShieldCheck, Download, PackageCheck, PackagePlus, Wrench } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
@@ -9,6 +9,7 @@ import rehypeRaw from 'rehype-raw';
 import type { AppData } from '../../types';
 import { useLessonUpgrade } from '../../hooks/useLessonUpgrade';
 import { UPGRADE_MENU, UPGRADE_GROUPS } from '../../lib/lessonUpgrade/menu';
+import { countFixableFailures, getFixMenuIds } from '../../lib/lessonUpgrade/fixSuggestions';
 import { cn } from '../../lib/utils';
 import { exportToWordA4 } from '../../utils/wordExportA4';
 
@@ -32,6 +33,8 @@ export const LessonUpgradeTab = ({ data, isLoading, setIsLoading, showToast }: L
     reset,
     activeMenuId,
     setActiveMenuId,
+    basket,
+    toggleBasket,
     generateProduct,
     downloadRevisedDocx
   } = useLessonUpgrade(data, showToast);
@@ -91,6 +94,37 @@ export const LessonUpgradeTab = ({ data, isLoading, setIsLoading, showToast }: L
     );
   };
 
+  /** Nút dẫn thẳng từ một tiêu chí chưa đạt tới mục menu vá được nó. */
+  const renderFixButtons = (findingId: string) => {
+    const fixes = getFixMenuIds(findingId);
+    if (fixes.length === 0) {
+      return (
+        <p className="text-xs text-slate-400 mt-1">
+          Chưa có công cụ tự động cho mục này — sửa tay theo hướng dẫn trên.
+        </p>
+      );
+    }
+    return (
+      <div className="flex flex-wrap gap-1.5 mt-1.5">
+        {fixes.map(id => {
+          const item = UPGRADE_MENU.find(m => m.id === id);
+          if (!item) return null;
+          return (
+            <button
+              key={id}
+              onClick={() => generateProduct(id)}
+              title={item.label}
+              className="flex items-center gap-1 px-2 py-1 rounded-md border border-indigo-200 bg-indigo-50 text-indigo-700 text-xs font-bold hover:bg-indigo-100 transition-colors"
+            >
+              <Wrench className="w-3 h-3" />
+              Sửa bằng {id}
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
+
   const renderStandardsAudit = () => {
     if (!standardsAudit) return null;
     const { findings, criticalFailures, lessonType, subjectLabel, mathLayerApplied } = standardsAudit;
@@ -121,11 +155,14 @@ export const LessonUpgradeTab = ({ data, isLoading, setIsLoading, showToast }: L
           <button
             onClick={downloadRevisedDocx}
             disabled={isRevising}
-            title={hasOriginalDocx ? 'Chèn góp ý vào chính file .docx gốc, giữ nguyên layout' : 'Không có .docx gốc — sẽ xuất Word mới từ báo cáo rà soát'}
+            title={hasOriginalDocx ? 'Chèn báo cáo và các sản phẩm trong giỏ vào chính file .docx gốc, giữ nguyên layout' : 'Không có .docx gốc — sẽ xuất Word mới từ báo cáo rà soát'}
             className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors disabled:opacity-60"
           >
             {isRevising ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
             {hasOriginalDocx ? 'Tải Word đã bổ sung (giữ layout)' : 'Tải Word báo cáo rà soát'}
+            {basket.length > 0 && (
+              <span className="px-1.5 py-0.5 rounded bg-white/20 text-[11px]">+{basket.length} mục</span>
+            )}
           </button>
         </div>
 
@@ -155,7 +192,10 @@ export const LessonUpgradeTab = ({ data, isLoading, setIsLoading, showToast }: L
                   )}
                   <span className="text-slate-500"> — {f.evidence}</span>
                   {f.status !== 'pass' && (
-                    <p className="text-slate-500 italic mt-0.5">↳ {f.suggestion}</p>
+                    <>
+                      <p className="text-slate-500 italic mt-0.5">↳ {f.suggestion}</p>
+                      {renderFixButtons(f.id)}
+                    </>
                   )}
                 </div>
               </div>
@@ -178,24 +218,32 @@ export const LessonUpgradeTab = ({ data, isLoading, setIsLoading, showToast }: L
         
         <div className="grid gap-6">
           {UPGRADE_GROUPS.map(group => {
-            const groupItems = UPGRADE_MENU.filter(item => item.group === group.id);
+            const findings = standardsAudit?.findings ?? [];
+            // Mục nào vá được lỗi đang có thì nổi lên đầu nhóm.
+            const groupItems = UPGRADE_MENU
+              .filter(item => item.group === group.id)
+              .map(item => ({ item, fixCount: countFixableFailures(findings, item.id) }))
+              .sort((a, b) => b.fixCount - a.fixCount);
             if (groupItems.length === 0) return null;
-            
+
             return (
               <div key={group.id} className="space-y-3">
                 <h4 className="text-sm font-bold uppercase tracking-widest text-slate-400">{group.label}</h4>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {groupItems.map(item => {
+                  {groupItems.map(({ item, fixCount }) => {
                     const Icon = item.icon;
+                    const inBasket = basket.includes(item.id);
                     return (
                       <button
                         key={item.id}
                         onClick={() => generateProduct(item.id)}
                         className={cn(
                           "flex items-start gap-3 p-4 rounded-xl border text-left transition-all relative overflow-hidden",
-                          activeMenuId === item.id 
-                            ? "border-blue-500 bg-blue-50/50 shadow-[0_4px_12px_rgba(59,130,246,0.1)]" 
-                            : "border-slate-200 bg-white hover:border-blue-300 hover:shadow-sm"
+                          activeMenuId === item.id
+                            ? "border-blue-500 bg-blue-50/50 shadow-[0_4px_12px_rgba(59,130,246,0.1)]"
+                            : fixCount > 0
+                              ? "border-indigo-300 bg-white hover:border-indigo-400 hover:shadow-sm"
+                              : "border-slate-200 bg-white hover:border-blue-300 hover:shadow-sm"
                         )}
                       >
                         <div className={cn(
@@ -211,6 +259,18 @@ export const LessonUpgradeTab = ({ data, isLoading, setIsLoading, showToast }: L
                           )}>
                             {item.id}. {item.label}
                           </p>
+                          <div className="flex flex-wrap gap-1.5 mt-1.5">
+                            {fixCount > 0 && (
+                              <span className="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 text-[11px] font-bold">
+                                Vá {fixCount} lỗi
+                              </span>
+                            )}
+                            {inBasket && (
+                              <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[11px] font-bold">
+                                Đã trong giỏ
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </button>
                     );
@@ -251,7 +311,24 @@ export const LessonUpgradeTab = ({ data, isLoading, setIsLoading, showToast }: L
             <h3 className="text-lg font-bold text-slate-800">{menuItem?.label}</h3>
           </div>
           <div className="flex items-center gap-2">
-            <button 
+            <button
+              onClick={() => toggleBasket(activeMenuId)}
+              title={basket.includes(activeMenuId)
+                ? 'Bỏ khỏi giỏ — sẽ không gộp vào file Word bổ sung'
+                : 'Giữ lại để gộp vào file Word bổ sung'}
+              className={cn(
+                "flex items-center gap-2 px-3 py-1.5 text-sm font-bold rounded-lg transition-colors",
+                basket.includes(activeMenuId)
+                  ? "text-emerald-700 bg-emerald-50 hover:bg-emerald-100"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+              )}
+            >
+              {basket.includes(activeMenuId)
+                ? <PackageCheck className="w-4 h-4" />
+                : <PackagePlus className="w-4 h-4" />}
+              {basket.includes(activeMenuId) ? 'Đã giữ vào giỏ' : 'Giữ vào giỏ'}
+            </button>
+            <button
               onClick={() => {
                 navigator.clipboard.writeText(result.content);
                 showToast('Đã copy nội dung', 'success');

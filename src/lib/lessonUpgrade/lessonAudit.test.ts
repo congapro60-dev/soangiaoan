@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { auditLesson, formatLessonReport } from './lessonAudit';
+import { auditLesson, buildSupplementMarkdown, formatLessonReport } from './lessonAudit';
 
 const TOAN = `
 Trường THPT A. Lớp: 10A1. Giáo viên soạn: Nguyễn Văn A. Ngày soạn 12/08. Tiết 25 theo PPCT.
@@ -59,5 +59,28 @@ describe('formatLessonReport', () => {
   it('nói rõ khi chỉ áp bộ tiêu chí toàn trường', () => {
     const md = formatLessonReport(auditLesson(VAN));
     expect(md).toMatch(/Ngữ văn — chỉ áp bộ tiêu chí toàn trường/);
+  });
+});
+
+describe('buildSupplementMarkdown', () => {
+  it('gộp báo cáo với mọi sản phẩm trong giỏ, giữ nguyên thứ tự truyền vào', () => {
+    const md = buildSupplementMarkdown('BÁO CÁO', [
+      { id: 'E', label: 'Tạo phiếu học tập', content: 'Nội dung phiếu' },
+      { id: 'L', label: 'Tạo rubric', content: '| Tiêu chí | Tốt |\n|---|---|\n| a | b |' },
+    ]);
+    expect(md.indexOf('BÁO CÁO')).toBe(0);
+    expect(md.indexOf('## E. Tạo phiếu học tập')).toBeLessThan(md.indexOf('## L. Tạo rubric'));
+    expect(md).toContain('| Tiêu chí | Tốt |');
+  });
+
+  it('bỏ qua mục có nội dung rỗng', () => {
+    const md = buildSupplementMarkdown('BÁO CÁO', [
+      { id: 'E', label: 'Phiếu học tập', content: '   ' },
+    ]);
+    expect(md).toBe('BÁO CÁO');
+  });
+
+  it('giỏ rỗng thì trả về đúng báo cáo', () => {
+    expect(buildSupplementMarkdown('BÁO CÁO', [])).toBe('BÁO CÁO');
   });
 });

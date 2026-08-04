@@ -43,6 +43,57 @@ describe('markdownToOoxmlParagraphs', () => {
   });
 });
 
+describe('markdownToOoxmlParagraphs — bảng', () => {
+  const RUBRIC = [
+    '| Tiêu chí | Xuất sắc | Đạt |',
+    '|---|:---:|---|',
+    '| Lập luận | Chặt chẽ | Có ý |',
+    '| Trình bày | Rõ ràng | Tạm được |',
+  ].join('\n');
+
+  it('dựng <w:tbl> thật với đủ hàng và cột', () => {
+    const xml = markdownToOoxmlParagraphs(RUBRIC);
+    expect(xml).toContain('<w:tbl>');
+    expect((xml.match(/<w:tr>/g) || []).length).toBe(3); // 1 tiêu đề + 2 dữ liệu
+    expect((xml.match(/<w:tc>/g) || []).length).toBe(9); // 3 cột × 3 hàng
+    expect(xml).toContain('Lập luận');
+    expect(xml).toContain('Tạm được');
+    // Không còn dấu | thô của markdown
+    expect(xml).not.toContain('Tiêu chí | Xuất sắc');
+  });
+
+  it('hàng tiêu đề in đậm và có nền', () => {
+    const xml = markdownToOoxmlParagraphs(RUBRIC);
+    const firstRow = xml.slice(xml.indexOf('<w:tr>'), xml.indexOf('</w:tr>'));
+    expect(firstRow).toContain('<w:b/>');
+    expect(firstRow).toContain('<w:shd');
+  });
+
+  it('escape ký tự XML trong ô bảng', () => {
+    const xml = markdownToOoxmlParagraphs('| a | b |\n|---|---|\n| x < y | p & q |');
+    expect(xml).toContain('&lt;');
+    expect(xml).toContain('&amp;');
+  });
+
+  it('đệm ô thiếu khi hàng ngắn hơn tiêu đề', () => {
+    const xml = markdownToOoxmlParagraphs('| a | b | c |\n|---|---|---|\n| chỉ một |');
+    expect((xml.match(/<w:tc>/g) || []).length).toBe(6); // 3 cột × 2 hàng
+  });
+
+  it('dòng | đơn lẻ không có dòng phân cách thì vẫn là đoạn văn thường', () => {
+    const xml = markdownToOoxmlParagraphs('| không phải bảng |');
+    expect(xml).not.toContain('<w:tbl>');
+    expect(xml).toContain('không phải bảng');
+  });
+
+  it('bảng nằm giữa văn bản không nuốt phần sau', () => {
+    const xml = markdownToOoxmlParagraphs(`# Rubric\n\n${RUBRIC}\n\nGhi chú sau bảng`);
+    expect(xml).toContain('<w:tbl>');
+    expect(xml).toContain('Ghi chú sau bảng');
+    expect(xml.indexOf('Ghi chú sau bảng')).toBeGreaterThan(xml.indexOf('</w:tbl>'));
+  });
+});
+
 describe('injectBeforeBodySectPr', () => {
   it('chèn NGAY TRƯỚC sectPr cấp body', () => {
     const doc =

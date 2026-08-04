@@ -1,3 +1,41 @@
+# Tab Nâng cấp: giỏ sản phẩm + nối lỗi với công cụ vá — 2026-08-04
+
+Owner giao "cái nào hợp lý thì làm" sau bản báo cáo thiết kế 6 lô. Chọn **lô 1 + lô 2** vì rẻ
+và trị đúng hai cái đau nhất; lô 3–6 để phiên sau.
+
+## Kế hoạch
+
+- [x] `docxLessonRevision.ts`: markdown table → `<w:tbl>` thật → verify: test rubric 3×3, escape XML, đệm ô thiếu.
+- [x] `lessonAudit.ts::buildSupplementMarkdown` gộp báo cáo + giỏ → verify: test thứ tự, bỏ mục rỗng.
+- [x] `useLessonUpgrade`: state `basket`, tự thêm khi sinh xong, `toggleBasket` → verify: build.
+- [x] `fixSuggestions.ts`: bảng tiêu chí → mục menu + `countFixableFailures` → verify: test toàn vẹn 2 chiều.
+- [x] UI: nút "Giữ vào giỏ", nút "Sửa bằng X" trên mỗi lỗi, menu sắp theo số lỗi vá được, nhãn "+N mục" trên nút tải → verify: chạy thật trong runtime dev server.
+- [x] `npm run lint` + `npm run test -- --run` + `npm run build`.
+
+## Đã KHÔNG làm (cố ý)
+
+- **Lô 3 — mục menu "Vá lỗi biên tập"**: 8/26 tiêu chí chưa đạt vẫn không có nút vá. Đây là
+  nhóm lỗi phải sửa TẠI CHỖ trong bài, cần đường chèn khác hẳn. UI hiện ghi chú "Chưa có công
+  cụ tự động — sửa tay theo hướng dẫn trên" thay vì im lặng.
+- **Lô 4 — chế độ "Bản đã chèn"** (chèn vào giữa thân bài + màn duyệt diff): đụng định vị OOXML
+  trong bảng, chỗ dễ vỡ layout nhất. Tách phiên riêng.
+- **Lô 5 — lưu phiên**, **lô 6 — gộp lời gọi AI**.
+
+## Review
+
+- File Word bổ sung nay gộp: báo cáo rà soát + MỌI sản phẩm trong giỏ, theo thứ tự menu. Trước
+  đó chỉ mục N được gộp; phiếu học tập/rubric/trò chơi phải xuất thành file rời.
+- Bảng markdown giờ ra `<w:tbl>` có viền, hàng tiêu đề đậm + nền xám. Không có bước này thì
+  rubric (L) và bảng câu hỏi (F) gộp vào ra một đống `| a | b |` không đọc được.
+- `fixSuggestions.test.ts` khoá tính toàn vẹn **hai chiều**: mọi mục menu được trỏ tới phải tồn
+  tại, mọi tiêu chí được ánh xạ phải là tiêu chí thật. Đổi tên một id là test đỏ ngay.
+- Kiểm chứng: lint 0 lỗi TS · test **46 file / 698 ca, 0 đỏ** (thêm 41 ca) · build 1m 02s ·
+  chạy thật trong runtime dev server: giáo án Toán luyện tập 32 tiêu chí → 26 chưa đạt, 18 có
+  nút vá, 8 ghi chú sửa tay; menu Q và C mỗi mục gắn nhãn "Vá 4 lỗi"; rubric ra `<w:tbl>` đúng.
+- CHƯA QA: panel trên UI vẫn chưa E2E được vì cần upload .docx + khoá API. Owner tự QA.
+
+---
+
 # Ghép "Checklist tự kiểm tra giáo án" vào bộ rà soát tab Nâng cấp — 2026-08-03
 
 Nguồn: `các yêu cầu về Toán cần đạt/Checklist tự kiểm tra giáo án.xlsx`

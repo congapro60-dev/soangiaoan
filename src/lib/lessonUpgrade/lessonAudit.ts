@@ -92,3 +92,21 @@ export const formatLessonReport = (result: LessonAuditResult): string => {
   }
   return lines.join('\n');
 };
+
+/** Một sản phẩm AI đã sinh, được giáo viên giữ lại để gộp vào file Word bổ sung. */
+export interface SupplementItem {
+  id: string;
+  label: string;
+  content: string;
+}
+
+/**
+ * Ghép báo cáo rà soát với các sản phẩm trong giỏ thành MỘT khối markdown để chèn vào cuối
+ * file .docx gốc. Trước đây chỉ mục N được gộp, các sản phẩm khác phải xuất thành file rời.
+ */
+export const buildSupplementMarkdown = (report: string, items: SupplementItem[]): string => {
+  const blocks = items
+    .filter((it) => it.content.trim())
+    .map((it) => `\n\n## ${it.id}. ${it.label}\n\n${it.content.trim()}`);
+  return report + blocks.join('');
+};

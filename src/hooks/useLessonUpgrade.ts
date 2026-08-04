@@ -4,7 +4,8 @@ import { analyzeLessonPlan } from '../lib/lessonUpgrade/analysisPrompt';
 import { getProductPrompt } from '../lib/lessonUpgrade/productPrompts';
 import { processUploadedFile, downloadBlob, safeFilename } from '../utils/fileUtils';
 import { callAI } from '../lib/aiProviders';
-import { auditLesson, formatLessonReport, type LessonAuditResult } from '../lib/lessonUpgrade/lessonAudit';
+import { auditLesson, buildSupplementMarkdown, formatLessonReport, type LessonAuditResult } from '../lib/lessonUpgrade/lessonAudit';
+import { UPGRADE_MENU } from '../lib/lessonUpgrade/menu';
 import { buildRevisedDocxBlob } from '../utils/docxLessonRevision';
 import { exportToWordA4 } from '../utils/wordExportA4';
 
@@ -25,6 +26,8 @@ export const useLessonUpgrade = (data: AppData, showToast: (msg: string, icon?: 
   const [originalDocx, setOriginalDocx] = useState<OriginalDocx | null>(null);
   const [results, setResults] = useState<Record<UpgradeMenuItemId, UpgradeResult>>({} as Record<UpgradeMenuItemId, UpgradeResult>);
   const [activeMenuId, setActiveMenuId] = useState<UpgradeMenuItemId | null>(null);
+  /** Các sản phẩm giáo viên giữ lại để gộp vào file Word bổ sung. */
+  const [basket, setBasket] = useState<UpgradeMenuItemId[]>([]);
   const [isRevising, setIsRevising] = useState(false);
 
   const MAX_DOCX_BYTES = 20 * 1024 * 1024; // 20 MB
@@ -82,9 +85,11 @@ export const useLessonUpgrade = (data: AppData, showToast: (msg: string, icon?: 
     if (!standardsAudit) return;
     setIsRevising(true);
     try {
-      // Ghép báo cáo rà soát + (nếu có) kết quả "Rà soát & góp ý toàn bộ" (menu N) do AI sinh.
-      const aiReview = results['N']?.content ? `\n\n## Góp ý chuyên sâu (AI)\n\n${results['N'].content}` : '';
-      const supplement = formatLessonReport(standardsAudit) + aiReview;
+      // Ghép báo cáo rà soát + mọi sản phẩm đang nằm trong giỏ, theo đúng thứ tự menu.
+      const items = UPGRADE_MENU.filter((m) => basket.includes(m.id) && results[m.id]?.content).map(
+        (m) => ({ id: m.id, label: m.label, content: results[m.id].content }),
+      );
+      const supplement = buildSupplementMarkdown(formatLessonReport(standardsAudit), items);
 
       if (originalDocx) {
         const blob = await buildRevisedDocxBlob(originalDocx.bytes, supplement);
@@ -134,7 +139,9 @@ export const useLessonUpgrade = (data: AppData, showToast: (msg: string, icon?: 
           timestamp: Date.now()
         }
       }));
-      
+      // Sinh ra là để dùng — tự cho vào giỏ, giáo viên bỏ ra nếu không ưng.
+      setBasket(prev => prev.includes(menuId) ? prev : [...prev, menuId]);
+
       setState('result');
       showToast('Tạo sản phẩm thành công!', 'success');
     } catch (error: any) {
@@ -153,7 +160,11 @@ export const useLessonUpgrade = (data: AppData, showToast: (msg: string, icon?: 
     setOriginalDocx(null);
     setResults({} as Record<UpgradeMenuItemId, UpgradeResult>);
     setActiveMenuId(null);
+    setBasket([]);
   };
+
+  const toggleBasket = (menuId: UpgradeMenuItemId) =>
+    setBasket(prev => prev.includes(menuId) ? prev.filter(id => id !== menuId) : [...prev, menuId]);
 
   return {
     state,
@@ -167,6 +178,8 @@ export const useLessonUpgrade = (data: AppData, showToast: (msg: string, icon?: 
     results,
     activeMenuId,
     setActiveMenuId,
+    basket,
+    toggleBasket,
     handleFileUpload,
     generateProduct,
     downloadRevisedDocx,

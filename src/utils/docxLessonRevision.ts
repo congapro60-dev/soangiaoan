@@ -52,16 +52,72 @@ const paragraphXml = (
   return `<w:p>${ppr}${runs}</w:p>`;
 };
 
+// ── Bảng markdown → <w:tbl> ───────────────────────────────────────────────────
+// Rubric (menu L), bảng câu hỏi theo mức độ (F) và nhiệm vụ phân hóa (Q) đều là bảng markdown.
+// Không dựng thành bảng Word thật thì phụ lục ra một đống "| a | b |" không đọc được.
+
+const isTableRow = (l: string): boolean => /^\s*\|.*\|\s*$/.test(l);
+/** Dòng phân cách kiểu |---|:---:|---| ngay dưới hàng tiêu đề. */
+const isTableSeparator = (l: string): boolean => /^\s*\|(?:\s*:?-{2,}:?\s*\|)+\s*$/.test(l);
+
+const splitTableRow = (l: string): string[] =>
+  l.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim());
+
+const TABLE_BORDER = ['top', 'left', 'bottom', 'right', 'insideH', 'insideV']
+  .map((side) => `<w:${side} w:val="single" w:sz="4" w:color="A0A0A0"/>`)
+  .join('');
+
+const tableRowXml = (cells: string[], colWidth: number, header: boolean): string => {
+  const tcs = cells
+    .map((cell) => {
+      const shading = header ? '<w:shd w:val="clear" w:fill="F1F5F9"/>' : '';
+      const body = paragraphXml(inlineRuns(cell, { bold: header }));
+      return `<w:tc><w:tcPr><w:tcW w:w="${colWidth}" w:type="pct"/>${shading}</w:tcPr>${body}</w:tc>`;
+    })
+    .join('');
+  return `<w:tr>${tcs}</w:tr>`;
+};
+
+/** `rows[0]` là hàng tiêu đề. Mọi hàng được đệm/cắt cho bằng số cột của tiêu đề. */
+const tableXml = (rows: string[][]): string => {
+  const cols = Math.max(1, rows[0].length);
+  const colWidth = Math.floor(5000 / cols); // w:type="pct" — 5000 = 100%
+  const trs = rows
+    .map((cells, i) => {
+      const padded = Array.from({ length: cols }, (_, c) => cells[c] ?? '');
+      return tableRowXml(padded, colWidth, i === 0);
+    })
+    .join('');
+  const tblPr = `<w:tblPr><w:tblW w:w="5000" w:type="pct"/><w:tblBorders>${TABLE_BORDER}</w:tblBorders></w:tblPr>`;
+  // Đoạn rỗng sau bảng: Word cần một <w:p> ngăn cách, nếu không hai bảng liền nhau sẽ dính.
+  return `<w:tbl>${tblPr}${trs}</w:tbl>${paragraphXml('')}`;
+};
+
 /**
- * Chuyển markdown đơn giản (heading #, gạch đầu dòng -, **đậm**) sang chuỗi <w:p> OOXML.
- * Hàm thuần, dễ kiểm thử. `heading` đầu tiên được đặt pageBreakBefore để tách khỏi bài gốc.
+ * Chuyển markdown đơn giản (heading #, gạch đầu dòng -, **đậm**, bảng |…|) sang chuỗi OOXML.
+ * Hàm thuần, dễ kiểm thử. Block đầu tiên được đặt pageBreakBefore để tách khỏi bài gốc.
  */
 export const markdownToOoxmlParagraphs = (markdown: string): string => {
   const lines = (markdown || '').replace(/\r\n/g, '\n').split('\n');
   const out: string[] = [];
   let firstBlock = true;
-  for (const raw of lines) {
-    const line = raw.trimEnd();
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trimEnd();
+
+    if (isTableRow(line) && isTableSeparator(lines[i + 1] ?? '')) {
+      const rows = [splitTableRow(line)];
+      i += 2; // bỏ qua dòng phân cách
+      while (i < lines.length && isTableRow(lines[i])) {
+        rows.push(splitTableRow(lines[i]));
+        i++;
+      }
+      i--; // vòng for sẽ ++ lại
+      out.push(tableXml(rows));
+      firstBlock = false;
+      continue;
+    }
+
     if (line.trim() === '') {
       out.push(paragraphXml(''));
       continue;
@@ -107,7 +163,7 @@ export const injectBeforeBodySectPr = (documentXml: string, insertXml: string): 
 };
 
 const SUPPLEMENT_HEADER =
-  '# NỘI DUNG ĐÃ BỔ SUNG — RÀ SOÁT THEO CHUẨN TOÁN';
+  '# NỘI DUNG ĐÃ BỔ SUNG — BÁO CÁO RÀ SOÁT VÀ SẢN PHẨM NÂNG CẤP';
 
 /**
  * Nhận byte của file .docx gốc + phần bổ sung (markdown), trả về byte .docx MỚI đã chèn
