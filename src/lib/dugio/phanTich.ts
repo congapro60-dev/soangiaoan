@@ -56,7 +56,22 @@ const chamNguong = Object.entries(CHAM_NGUONG)
   .map(([d, v]) => `${d.replace('.', ',')} điểm = ${v.dieuKien} CỘNG THÊM ${v.congThem} Ví dụ: ${v.viDu}`)
   .join('\n');
 
-const LUAT_CHUNG = `Bạn là chuyên gia đánh giá giờ dạy theo Khung giảng dạy Danielson, làm việc với Tổ Toán một trường phổ thông Việt Nam. Nhiệm vụ: đọc BIÊN BẢN DỰ GIỜ, gán bằng chứng vào từng thành tố và đề xuất mức điểm.
+/**
+ * Nguồn minh chứng HỢP LỆ của từng phần — mỗi phần chấm một loại hồ sơ khác nhau.
+ *
+ * Quy định Tổ Toán đặt tiêu đề rõ: "NGUYÊN TẮC TỊNH TIẾN MINH CHỨNG CHO DOMAIN 1 & 4
+ * (ĐÁNH GIÁ HỒ SƠ)", và cả ba luật Domain 1 đều chỉ nhắc GIÁO ÁN, không nhắc biên bản.
+ * Trước đây `LUAT_CHUNG` cứng nhắc bắt "trích nguyên văn từ biên bản" cho MỌI phần, nên
+ * Phần I lấy minh chứng từ biên bản dự giờ — AI tuân đúng chữ, lỗi nằm ở prompt tự mâu thuẫn.
+ */
+const NGUON_MINH_CHUNG: Record<SoPhan, string> = {
+  1: 'GIÁO ÁN / KẾ HOẠCH BÀI DẠY',
+  2: 'BIÊN BẢN DỰ GIỜ',
+  3: 'BIÊN BẢN DỰ GIỜ',
+  4: 'HỒ SƠ TỰ PHẢN TƯ CỦA GIÁO VIÊN',
+};
+
+const luatChung = (nguon: string) => `Bạn là chuyên gia đánh giá giờ dạy theo Khung giảng dạy Danielson, làm việc với Tổ Toán một trường phổ thông Việt Nam. Nhiệm vụ: đọc ${nguon}, gán bằng chứng vào từng thành tố và đề xuất mức điểm.
 
 Ý NGHĨA BỐN MỨC (cốt lõi: AI LÀ NGƯỜI ĐANG LÀM VIỆC trong tiết học):
 ${mucDo}
@@ -64,11 +79,11 @@ ${mucDo}
 QUY TẮC ĐIỂM LẺ 0,5 — "CHẠM NGƯỠNG":
 ${chamNguong}
 ${CANH_BAO_DIEM_LE}
-Khi và chỉ khi đề xuất điểm lẻ, PHẢI điền "cham_nguong" bằng hành động cụ thể của mức trên đã quan sát được, trích từ biên bản. Không nêu được thì cho điểm nguyên.
+Khi và chỉ khi đề xuất điểm lẻ, PHẢI điền "cham_nguong" bằng hành động cụ thể của mức trên, trích từ ${nguon}. Không nêu được thì cho điểm nguyên.
 
 LUẬT BẮT BUỘC:
-1. Mọi bằng chứng phải TRÍCH NGUYÊN VĂN từ biên bản. Không viết lại, không thêm chi tiết không có trong biên bản.
-2. Biên bản không đủ căn cứ cho một thành tố: đặt "diem": null, "tin_cay": "thap", đưa 1-2 câu hỏi làm rõ. KHÔNG đoán điểm.
+1. Mọi bằng chứng phải TRÍCH NGUYÊN VĂN từ ${nguon}. Không viết lại, không thêm chi tiết không có trong đó. TUYỆT ĐỐI KHÔNG lấy minh chứng từ bất kỳ nguồn nào khác.
+2. ${nguon} không đủ căn cứ cho một thành tố: đặt "diem": null, "tin_cay": "thap", đưa 1-2 câu hỏi làm rõ. KHÔNG đoán điểm.
 3. "Không ghi nhận được" KHÔNG đồng nghĩa với "không có". Không suy diễn ngoài dữ liệu.
 4. Mức 3 là chuẩn mực bình thường của tổ, không phải thành tích. Mức 4 đòi hỏi HỌC SINH là chủ thể của hành vi được mô tả.
 5. "ly_do" viết 1 câu, nêu rõ vì sao dừng ở mức đó chứ không phải mức liền kề.
@@ -82,14 +97,14 @@ CHỈ trả về JSON hợp lệ, không có văn bản nào khác, không bọc
   "cau_hoi":["câu hỏi làm rõ nếu thiếu căn cứ"],
   "tieu_chi_con":[
     {"ma":"2a.1","diem":3,"cham_nguong":"","bang_chung":["trích nguyên văn 1","trích nguyên văn 2"],"ly_do":"vì sao dừng ở mức này chứ không phải mức liền kề"},
-    {"ma":"2a.2","diem":null,"cham_nguong":"","bang_chung":[],"ly_do":"biên bản không đủ căn cứ"}
+    {"ma":"2a.2","diem":null,"cham_nguong":"","bang_chung":[],"ly_do":"nguồn minh chứng không đủ căn cứ"}
   ]
 }]}
 
 YÊU CẦU VỀ ĐỘ ĐẦY ĐỦ — đây là chỗ quan trọng nhất:
 - PHẢI trả về ĐỦ mọi tiêu chí con của thành tố, không bỏ mục nào. Mục không đủ căn cứ thì "diem": null kèm "ly_do" nói rõ thiếu gì.
 - Mỗi tiêu chí con lấy 1-3 trích dẫn. TRÍCH ĐỦ CÂU, không cắt ngắn cho gọn. Có bao nhiêu bằng chứng thật thì trích bấy nhiêu.
-- Cùng một câu trong biên bản được phép làm bằng chứng cho nhiều tiêu chí con khác nhau nếu thật sự liên quan.
+- Cùng một câu được phép làm bằng chứng cho nhiều tiêu chí con khác nhau NẾU nó thật sự chứng minh được hành vi riêng của từng tiêu chí đó. Nhưng mỗi tiêu chí con phải có ít nhất một trích dẫn nói TRÚNG hành vi của chính nó — không được bê một câu chung chung đi đỡ điểm cho cả loạt.
 - "ly_do" viết 1-2 câu, nêu rõ vì sao mức này chứ không phải mức liền kề.
 tin_cay nhận một trong: "cao", "vua", "thap".`;
 
@@ -118,9 +133,12 @@ function moTaThanhTo(ma: MaThanhTo): string {
   return `${ma} — ${c.ten}${cot}${dsCon}\n   Thang điểm:\n${thang}${dem}`;
 }
 
-function nguonTheoPhan(phan: SoPhan, bb: BienBanDuGio, vanBan: string): string {
+export function nguonTheoPhan(phan: SoPhan, bb: BienBanDuGio, vanBan: string): string {
   if (phan === 1) {
-    return `GIÁO ÁN / KẾ HOẠCH BÀI DẠY:\n"""\n${bb.giaoAn}\n"""\n\nBIÊN BẢN DỰ GIỜ (đối chiếu):\n"""\n${vanBan}\n"""\n\nQUY TẮC RIÊNG PHẦN I:\n${QUY_TAC_PHAN_I.map(q => `- ${q}`).join('\n')}`;
+    // KHÔNG truyền biên bản dự giờ vào đây. Phần I là ĐÁNH GIÁ HỒ SƠ: chấm bản kế hoạch
+    // giáo viên soạn TRƯỚC khi lên lớp, nên diễn biến tiết dạy không phải căn cứ. Truyền vào
+    // "để đối chiếu" là đủ để AI lấy luôn làm minh chứng — lỗi thật đã gặp trên production.
+    return `GIÁO ÁN / KẾ HOẠCH BÀI DẠY:\n"""\n${bb.giaoAn}\n"""\n\nQUY TẮC RIÊNG PHẦN I:\n${QUY_TAC_PHAN_I.map(q => `- ${q}`).join('\n')}\n- Chỉ được trích minh chứng từ GIÁO ÁN ở trên. Không có biên bản dự giờ ở đây và cũng KHÔNG được suy đoán chuyện đã diễn ra trên lớp: Phần I chấm bản kế hoạch, không chấm tiết dạy.`;
   }
   if (phan === 4) {
     return `TỰ PHẢN TƯ CỦA GIÁO VIÊN VÀ HỒ SƠ KÈM THEO:\n"""\n${bb.hoSo}\n"""\n\nBIÊN BẢN DỰ GIỜ (đối chiếu):\n"""\n${vanBan}\n"""\n\nLƯU Ý RIÊNG PHẦN IV: tuyệt đối KHÔNG suy ra 4c, 4d, 4e, 4f từ biên bản dự giờ. Chỉ chấm thành tố có minh chứng hồ sơ nêu ở trên; còn lại đặt diem null và nêu rõ cần loại minh chứng gì.`;
@@ -296,7 +314,7 @@ export async function phanTichBienBan(
     const { phan, lo } = congViec[i];
     opts.onTienDo?.(`${TEN_PHAN[phan]} · ${lo.join(' + ')} — bước ${i + 1}/${congViec.length}`);
 
-    const prompt = `${LUAT_CHUNG}
+    const prompt = `${luatChung(NGUON_MINH_CHUNG[phan])}
 
 CÁC THÀNH TỐ CẦN XỬ LÍ (${TEN_PHAN[phan]}):
 ${lo.map(moTaThanhTo).join('\n\n')}

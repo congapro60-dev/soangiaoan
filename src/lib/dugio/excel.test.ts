@@ -238,6 +238,43 @@ describe('docFileExcel', () => {
   });
 });
 
+describe('docFileExcel — ô GIỜ lưu dạng số của Excel', () => {
+  /**
+   * Lỗi thật (2026-08-03, ảnh chụp production): minh chứng Phần I hiện
+   * "[0.5777777777777777] GV: …" thay vì "[13:52] GV: …".
+   *
+   * Excel lưu giờ là PHÂN SỐ CỦA MỘT NGÀY, nên đọc bằng `.v` rồi String() ra là
+   * con số thô. Phải đọc `.w` — văn bản đúng như Excel hiển thị.
+   */
+  const fileCoOGio = (): ArrayBuffer => {
+    const ws = XLSX.utils.aoa_to_sheet([['x']]);
+    // Hàng 8 = HANG_QUAN_SAT_DAU: ô A8 là giờ, định dạng h:mm như mẫu trường.
+    ws['A8'] = { t: 'n', v: 0.5777777777777777, z: 'h:mm', w: '13:52' };
+    ws['C8'] = { t: 's', v: 'GV chốt khái niệm phân số' };
+    ws['!ref'] = 'A1:E27';
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Nguyễn Văn A');
+    return XLSX.write(wb, { type: 'array', bookType: 'xlsx' }) as ArrayBuffer;
+  };
+
+  it('đổi số serial thành giờ đọc được, KHÔNG để lọt "0.577…"', () => {
+    const doc = docFileExcel(fileCoOGio(), 'u1');
+    const d = doc.dongQuanSat[0];
+    expect(d.thoiGian).toBe('13:52');
+    expect(d.thoiGian).not.toMatch(/^0\./);
+  });
+
+  it('ô giờ ghi tay dạng chữ thì giữ nguyên', () => {
+    const ws = XLSX.utils.aoa_to_sheet([['x']]);
+    ws['A8'] = { t: 's', v: '9h00' };
+    ws['!ref'] = 'A1:E27';
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'GV B');
+    const buf = XLSX.write(wb, { type: 'array', bookType: 'xlsx' }) as ArrayBuffer;
+    expect(docFileExcel(buf, 'u1').dongQuanSat[0].thoiGian).toBe('9h00');
+  });
+});
+
 describe('tenFileXuat', () => {
   it('bỏ ký tự cấm trong tên file Windows', () => {
     const bb = { ...bienBanRong('u1'), gvHoTen: 'A/B:C', ngay: '2026-04-05' };

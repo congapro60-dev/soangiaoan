@@ -6,8 +6,49 @@
  * ngay tại cửa vào.
  */
 import { describe, expect, it } from 'vitest';
-import { docBangChung, vanBanQuanSat } from './phanTich';
+import { docBangChung, nguonTheoPhan, vanBanQuanSat } from './phanTich';
 import { bienBanRong } from './types';
+
+/**
+ * Lỗi thật trên production (2026-08-03): chấm Phần I mà minh chứng lại là các dòng
+ * biên bản dự giờ ("[13:52] GV: … Ghi chú: …").
+ *
+ * Quy định Tổ Toán xếp Domain 1 vào nhóm "ĐÁNH GIÁ HỒ SƠ" và cả ba luật Domain 1 chỉ
+ * nhắc GIÁO ÁN. Phần I chấm bản kế hoạch soạn TRƯỚC khi lên lớp, nên diễn biến tiết dạy
+ * không được là căn cứ. Nới lại luật này là tái lập đúng lỗi cũ.
+ */
+describe('nguonTheoPhan — mỗi phần chỉ được thấy nguồn của nó', () => {
+  const bb = {
+    ...bienBanRong('u1'),
+    giaoAn: 'MỤC TIÊU PHÂN HÓA: HS yếu làm câu 1, HS giỏi làm câu 4.',
+    hoSo: 'Tôi tự nhận thấy cần tăng kiểm tra quá trình.',
+  };
+  const vanBan = '[13:52] GV: chốt khái niệm phân số HS: ghi bài Ghi chú: nói nhiều';
+
+  it('Phần I chỉ có giáo án, TUYỆT ĐỐI không có biên bản dự giờ', () => {
+    const nguon = nguonTheoPhan(1, bb, vanBan);
+    expect(nguon).toContain('MỤC TIÊU PHÂN HÓA');
+    expect(nguon).not.toContain(vanBan);
+    expect(nguon).not.toContain('13:52');
+    expect(nguon).not.toContain('Ghi chú:');
+  });
+
+  it('Phần I nói rõ cấm suy đoán chuyện đã diễn ra trên lớp', () => {
+    expect(nguonTheoPhan(1, bb, vanBan)).toMatch(/chấm bản kế hoạch, không chấm tiết dạy/);
+  });
+
+  it('Phần II và III vẫn dùng biên bản, không dính giáo án', () => {
+    for (const p of [2, 3] as const) {
+      const nguon = nguonTheoPhan(p, bb, vanBan);
+      expect(nguon, `phần ${p}`).toContain(vanBan);
+      expect(nguon, `phần ${p}`).not.toContain('MỤC TIÊU PHÂN HÓA');
+    }
+  });
+
+  it('Phần IV dùng hồ sơ tự phản tư', () => {
+    expect(nguonTheoPhan(4, bb, vanBan)).toContain('tăng kiểm tra quá trình');
+  });
+});
 
 describe('docBangChung', () => {
   it('giữ nhãn hợp lệ của đúng thành tố', () => {

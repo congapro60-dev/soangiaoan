@@ -11,6 +11,7 @@
 import JSZip from 'jszip';
 import * as XLSX from 'xlsx';
 import type { MaThanhTo } from '../../data/khungDanielson';
+import { lamSachDongQuanSat } from './lamSach';
 import type { BienBanDuGio, DongQuanSat } from './types';
 import { bienBanRong } from './types';
 
@@ -53,6 +54,12 @@ export function docFileExcel(data: ArrayBuffer, userId: string): BienBanDuGio {
   const sBienBan = wb.Sheets[wb.SheetNames[0]];
   if (sBienBan) {
     const o = (ref: string) => sBienBan[ref]?.v;
+    // Ô GIỜ phải đọc bằng .w (văn bản đúng như Excel hiển thị), không phải .v.
+    // Excel lưu giờ dưới dạng PHÂN SỐ CỦA MỘT NGÀY: 13:52 nằm trong file là
+    // 0.5777777777777777. Lấy .v rồi String() ra thì minh chứng gửi cho AI và
+    // hiện trên giao diện thành "[0.5777777777777777]" — vô nghĩa với người đọc,
+    // và AI mất luôn mốc thời gian để đối chiếu diễn biến tiết học.
+    const oGio = (ref: string) => chuoi(sBienBan[ref]?.w ?? sBienBan[ref]?.v);
     bb.gvHoTen = chuoi(wb.SheetNames[0]);
     bb.lop = chuoi(o('B2'));
     bb.tuan = chuoi(o('B3'));
@@ -64,7 +71,7 @@ export function docFileExcel(data: ArrayBuffer, userId: string): BienBanDuGio {
     const dong: DongQuanSat[] = [];
     for (let r = HANG_QUAN_SAT_DAU; r <= HANG_QUAN_SAT_CUOI; r++) {
       const d: DongQuanSat = {
-        thoiGian: chuoi(o('A' + r)),
+        thoiGian: oGio('A' + r),
         hoatDong: chuoi(o('B' + r)),
         cuaGiaoVien: chuoi(o('C' + r)),
         cuaHocSinh: chuoi(o('D' + r)),
@@ -72,7 +79,9 @@ export function docFileExcel(data: ArrayBuffer, userId: string): BienBanDuGio {
       };
       if (d.thoiGian || d.hoatDong || d.cuaGiaoVien || d.cuaHocSinh || d.ghiChu) dong.push(d);
     }
-    bb.dongQuanSat = dong;
+    // TẦNG A — làm sạch máy móc ngay tại cửa vào: bỏ ký tự rác, gộp dòng bị Excel
+    // ngắt giữa câu, gỡ nhãn "GV:/HS:" thừa. Không đoán chữ, không điền chỗ trống.
+    bb.dongQuanSat = lamSachDongQuanSat(dong).dong;
   }
 
   const sCham = wb.Sheets[wb.SheetNames[1]];

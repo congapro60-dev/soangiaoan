@@ -27,6 +27,15 @@ import { BangQuanSat } from '../components/features/dugio/BangQuanSat';
 import { BangSoSanh, BangTuDanhGia } from '../components/features/dugio/TuDanhGia';
 import { extractTextFromPDF, extractTextFromWord } from '../utils/fileUtils';
 import { docFileExcel, tenFileXuat, xuatTheoMau } from '../lib/dugio/excel';
+import { DuyetSuaChinhTa } from '../components/features/dugio/DuyetSuaChinhTa';
+import {
+  apDungDeXuat,
+  locDeXuat,
+  promptSuaLoi,
+  type DeXuatSua,
+} from '../lib/dugio/deXuatSuaLoi';
+import { callAI } from '../lib/aiProviders';
+import { docJSONdon } from '../lib/dugio/docJson';
 import { phanTichBienBan, soanGopY, soanNhanXet, vanBanQuanSat } from '../lib/dugio/phanTich';
 import { chonThanhToGopY, soVN, thieuMinhChungChamNguong, tinhDiem } from '../lib/dugio/tinhDiem';
 import {
@@ -76,6 +85,8 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
   const [loi, setLoi] = useState('');
   const [thongBao, setThongBao] = useState('');
   const [hong, setHong] = useState<MaThanhTo[]>([]);
+  /** Tầng B — đề xuất sửa chính tả đang chờ người dự giờ duyệt. null = chưa soát lần nào. */
+  const [deXuatSua, setDeXuatSua] = useState<{ ds: DeXuatSua[]; soBiLoai: number } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const giaoAnRef = useRef<HTMLInputElement>(null);
   const hoSoRef = useRef<HTMLInputElement>(null);
@@ -316,7 +327,27 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
       if (!user) return;
       const doc = docFileExcel(await f.arrayBuffer(), user.uid);
       setBienBan(bb => (bb ? { ...bb, ...doc, id: bb.id, userId: user.uid } : doc));
-      setThongBao('Đã nạp nội dung từ file. Kiểm tra lại rồi bấm “Phân tích bằng AI”.');
+      setDeXuatSua(null);
+      setThongBao(
+        `Đã nạp ${doc.dongQuanSat.length} dòng quan sát. Kiểm tra lại rồi bấm “Phân tích bằng AI”.`,
+      );
+    });
+
+  /**
+   * TẦNG B — nhờ AI soát chính tả rồi đưa người dự giờ DUYỆT từng mục.
+   * Không tự áp: đây là hồ sơ đánh giá một giáo viên cụ thể, mà tiếng Việt sai một dấu
+   * là đổi hẳn nghĩa. locDeXuat() loại sẵn mọi đề xuất vượt phạm vi sửa chính tả.
+   */
+  const soatChinhTa = () =>
+    chay('Đang soát chính tả…', async () => {
+      if (!bienBan) return;
+      const dong = bienBan.dongQuanSat;
+      if (dong.length === 0) throw new Error('Chưa có dòng quan sát nào để soát.');
+      const raw = await callAI(promptSuaLoi(dong), caiDat());
+      const o = docJSONdon<{ de_xuat?: unknown }>(raw);
+      const { deXuat, soBiLoai } = locDeXuat(o.de_xuat, dong);
+      setDeXuatSua({ ds: deXuat, soBiLoai });
+      if (deXuat.length === 0 && soBiLoai === 0) setThongBao('Không tìm thấy lỗi chính tả nào.');
     });
 
   /* ─────────── màn hình ─────────── */
@@ -660,6 +691,32 @@ export function DuGioPage({ embedded, user: userNgoai }: DuGioPageProps = {}) {
           Dùng HS1, HS2 thay cho tên thật của học sinh.
         </p>
         <BangQuanSat bienBan={bienBan} onDoi={doi} chiDoc={chiDoc} />
+
+        {!chiDoc && bienBan.dongQuanSat.length > 0 && (
+          <button
+            onClick={soatChinhTa}
+            disabled={!!dangChay}
+            className={`${NUT} mt-2 bg-slate-100 text-slate-700 hover:bg-slate-200`}
+          >
+            Soát chính tả bằng AI
+          </button>
+        )}
+
+        {deXuatSua && !chiDoc && (
+          <div className="mt-3">
+            <DuyetSuaChinhTa
+              deXuat={deXuatSua.ds}
+              soBiLoai={deXuatSua.soBiLoai}
+              dangChay={dangChay === 'Đang soát chính tả…'}
+              onDong={() => setDeXuatSua(null)}
+              onApDung={chon => {
+                doi({ dongQuanSat: apDungDeXuat(bienBan.dongQuanSat, chon) });
+                setDeXuatSua(null);
+                setThongBao(`Đã áp ${chon.length} sửa đổi bạn chọn.`);
+              }}
+            />
+          </div>
+        )}
 
         {/* Giáo án và hồ sơ thường đã có sẵn thành file Word/PDF — bắt copy thủ
             công vào ô là chỗ tắc thật khi dùng. Nút tải lên nạp thẳng nội dung. */}
