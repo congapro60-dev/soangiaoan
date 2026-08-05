@@ -1,5 +1,30 @@
 # Cẩm nang Kiểm thử E2E & Kịch bản Chuyển giao VS Code
 
+> ## ⛔ LEGACY — KHÔNG DÙNG LÀM CỔNG NGHIỆM THU (do-not-run-as-gate)
+>
+> Giữ lại làm tư liệu lịch sử. **Đừng chạy theo hướng dẫn bên dưới mà chưa đọc hết mục này.**
+>
+> Tính đến 2026-08-04, dự án **không có bộ E2E tự động nào**. Không có script nào trong
+> tài liệu này được tính là PASS/FAIL cho release.
+>
+> Ba lý do cụ thể, đã kiểm chứng:
+>
+> 1. **Đường dẫn sai.** `node start_chrome.js` và `node run_test.js` ở gốc repo **không tồn tại**.
+>    Bản có thật nằm ở `.agents/qa/scripts/`. Script `test:e2e` cũ trỏ vào `live_dom_test.js`
+>    ở gốc — cũng không tồn tại — nên đã bị **gỡ khỏi `package.json`** ngày 2026-08-04.
+> 2. **Chiếm Chrome cá nhân.** Kịch bản này mở Chrome bằng profile thật của người dùng qua
+>    cổng debug `9222`, có chỗ force-kill Chrome và xoá file `LOCK`. Nó chạy trên phiên
+>    đăng nhập thật, với khoá API thật.
+> 3. **Chạy thẳng vào production.** Kịch bản thao tác trên `giaoandewey.vercel.app` và có
+>    bước **"Xuất bản"** — tức là ghi dữ liệu thật. Và cơ chế `skip` tương tác cho phép bỏ
+>    qua một bước rồi vẫn in thông báo thành công: đó là false PASS.
+>
+> **Cái gì đang thay nó:** hiện chỉ có kiểm thử `firestore.rules` trên emulator
+> (`npm run test:rules`, 185 ca). Xem `QA_TESTING_PROTOCOL.md` mục 1 cho danh sách lệnh thật.
+>
+> Muốn dựng lại E2E thì viết mới, tracked trong `tests/e2e/`, browser context sạch, URL đích
+> lấy từ biến môi trường và không fallback sang production. Đừng sửa vá mấy script này.
+
 Tài liệu này cung cấp toàn bộ hướng dẫn, kịch bản kiến trúc và prompt chi tiết để bạn có thể tự mình chạy kịch bản kiểm thử E2E (End-to-End) hoàn hảo trên VS Code hoặc ủy quyền cho một AI khác kiểm thử trực tiếp trên máy của bạn.
 
 ---

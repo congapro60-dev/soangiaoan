@@ -1,5 +1,24 @@
 # Hướng dẫn Browser Testing với @playwright/mcp
 
+> ## ⛔ LEGACY — KHÔNG DÙNG LÀM CỔNG NGHIỆM THU (do-not-run-as-gate)
+>
+> **Bước 2 bên dưới mở Chrome bằng profile `Default` thật của người dùng.** Đó là phiên
+> đăng nhập Google thật, cookie thật, khoá API thật của họ. Một agent QA lái phiên đó là
+> đang thao tác dưới danh nghĩa người dùng trên production — không phải kiểm thử.
+>
+> Tài liệu này cũng mâu thuẫn với `e2e_testing_guide.md`: một bên bảo dùng Playwright MCP
+> qua CDP, bên kia dùng Puppeteer. Không có bên nào là nguồn sự thật, vì **dự án hiện không
+> có bộ E2E tự động nào**.
+>
+> **Nếu cần xem UI:** dùng browser tool sẵn có của phiên làm việc, trỏ vào `localhost:3000`
+> sau khi `npm run dev`. Không đụng profile cá nhân, không cần cổng `9222`.
+>
+> **Cảnh báo kèm theo:** `vite.config.ts:20-24` proxy `/api` sang
+> `https://giaoandewey.vercel.app`. Chạy localhost **không** đồng nghĩa an toàn — mọi lời gọi
+> API trên máy đều đi thẳng ra production. Chỉ smoke UI không ghi dữ liệu.
+>
+> Lệnh thật đang chạy được: xem `QA_TESTING_PROTOCOL.md` mục 1.
+
 ## Vấn đề thường gặp
 
 Khi có nhiều MCP browser được bật cùng lúc (`playwright` + `chrome-devtools`), Cline có thể tự chọn sai MCP, mở Chrome mới không có session đăng nhập → Google chặn, viewport sai.

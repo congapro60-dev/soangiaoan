@@ -5,10 +5,31 @@
 ---
 
 ## 1. Yêu Cầu Trước Kiểm Thử (Pre-Flight Checks)
-Trước khi test bất kỳ chức năng giao diện nào, AI bắt buộc phải chạy 2 lệnh sau ở Terminal:
 
-1. **`npm run test`**: Đảm bảo 100% các Unit Tests hiện có (Parse Markdown, Validation Skeleton, Security) đều vượt qua (PASS).
-2. **`npm run build`**: Đảm bảo ứng dụng được biên dịch thành công. Không có lỗi Typescript (`tsc`); **Chunk index (entry/runtime) có cảnh báo >500KB là KHÔNG chặn (non-blocking) miễn là <=1MB hoặc không tăng đột biến so với baseline.** Các chunk split (react-vendor, export-utils, charting...) >500KB cũng là điều bình thường. Hard-fail chỉ xảy ra khi chunk chính tăng vượt 1MB vô lý.
+Đây là **toàn bộ** lệnh kiểm thử tự động đang chạy được. Không có lệnh E2E — xem mục 2.5.1.
+Trên PowerShell luôn dùng dạng `npm --prefix "<đường dẫn dự án>" run <script>`.
+
+| Lệnh | Phủ cái gì | Chặn release? | Ghi chú |
+|---|---|---|---|
+| `npm run lint` | `tsc --noEmit` toàn app | CÓ | Zero lỗi TypeScript |
+| `npm run lint:api` | `tsc --noEmit` cho `api/` | CÓ | Vercel Functions |
+| `npm run test` | 698 unit test / 46 file | CÓ | Loại `tests/rules/**` có chủ đích (cần emulator) |
+| `npm run test:rules` | 185 ca `firestore.rules` trên emulator | CÓ | **Cần Java.** Tách khỏi `npm run test` có chủ đích |
+| `npm run build` | Vite production build | CÓ | Xem ngưỡng bundle bên dưới |
+
+`npm run test:rules` cần Java trong PATH:
+
+```powershell
+$env:PATH = "C:\Program Files\Microsoft\jdk-21.0.11.10-hotspot\bin;$env:PATH"; npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai" run test:rules
+```
+
+**Ngưỡng bundle:** cảnh báo Vite >500 KB là warning, không chặn — các chunk split
+(react-vendor, export-utils, charting…) vượt 500 KB là bình thường. Hard-fail chỉ khi chunk
+entry/runtime vượt 1.000 KB **vô lý so với baseline**. Baseline đo ngày 2026-08-04:
+`index` 1.209 KB · `export-utils` 1.434 KB · `pdf-export` 984 KB. Hai chunk đầu đã vượt
+1.000 KB và **đang được owner chấp nhận** — đừng báo FAIL vì con số này mà không đối chiếu
+baseline. Báo tách bạch: *biên dịch* (exit code) và *hiệu năng* (kích thước) là hai kết luận
+khác nhau; build exit 0 không mặc nhiên là release PASS.
 
 ---
 
@@ -61,6 +82,11 @@ Dưới đây là danh sách các module tính năng cần được giả lập/
 
 > **Mục đích:** Kiểm thử toàn bộ luồng từ soạn giáo án → tạo bài học phân hóa → xuất bản → trải nghiệm như học sinh.
 > **Dữ liệu test cố định:** Chủ đề **"Nhị thức Newton"**, template **"Giáo án phân hóa"**.
+>
+> **Đây là kịch bản CHẠY TAY.** Không có script tự động nào chạy được nó — các script trong
+> `.agents/qa/scripts/` đã bị đánh dấu legacy (xem `e2e_testing_guide.md`). Kịch bản có bước
+> **"Xuất bản"** tức là ghi dữ liệu thật, nên chỉ chạy khi owner cho phép, với prefix
+> `QA_YYYYMMDD_` và dọn tay qua UI ngay trong phiên.
 
 #### Bước 1: Soạn Giáo Án Phân Hóa
 - Vào tab **"Soạn giáo án"** từ sidebar.
@@ -140,9 +166,26 @@ Kết quả PASS: validator block, hiện error UI đỏ.
 Kết quả FAIL: iframe render được hoặc title parent đổi.
 
 ### 2.10. Firestore Security Rules
-- Nếu hệ thống có bộ test (VD: lệnh `npm run test:rules`), bắt buộc chạy.
-- Nếu KHÔNG CÓ bộ test tự động: QA Agent chỉ review/audit tĩnh mã nguồn `firestore.rules` xem có lỗ hổng và báo cáo coverage gap.
-- **Nghiêm cấm:** Không tự viết emulator script hay cố dựng emulator nếu chưa có setup ổn định.
+
+Bộ test đã có và **bắt buộc chạy**: `npm run test:rules` — 185 ca trên emulator, phủ 17/17
+collection khai trong `firestore.rules`.
+
+| File | Phủ |
+|---|---|
+| `tests/rules/duGio.rules.test.ts` | `duGio` + 2 ca lưới an toàn `lessonPlans` |
+| `tests/rules/soHuuCaNhan.rules.test.ts` | `lessonPlans` `userTemplates` `userSettings` `distributions` `savedExams` `gradingSessions` |
+| `tests/rules/hocPhanHoa.rules.test.ts` | `adaptiveLessons` `personalizationCache` `adaptiveSessionProgress` `studentLearningProfiles` `fallbackEvents` |
+| `tests/rules/thiOnline.rules.test.ts` | `exams` `examSubmissions` `lessonSimulations` `externalTools` |
+
+**Đọc kỹ trước khi "sửa cho xanh":** một số ca cố ý `assertSucceeds` cho hành vi KHÔNG an
+toàn — chúng nằm trong `describe` có chữ **"lỗ hổng đã biết"** và mỗi ca đánh dấu `[LỖ HỔNG]`.
+Chúng ghi lại hành vi production hiện tại để khi ai vá rules, test đỏ lên đúng chỗ và người
+đó biết mình vừa đổi đúng thứ định đổi. **Đừng xoá chúng. Đừng lật kỳ vọng mà chưa vá rules.**
+Tương tự, `duGio.rules.test.ts` có các "policy sentinel" cố ý — đọc comment trước khi động vào.
+
+- **Nghiêm cấm:** kiểm rules bằng cách chọc vào Firestore production. Chỉ dùng emulator.
+- Thêm collection mới vào `firestore.rules` thì **phải** thêm ca test cùng lúc, gồm cả ca âm:
+  chưa đăng nhập · đã đăng nhập nhưng không phải chủ · đổi trường định danh · ràng buộc list/query.
 
 ---
 
@@ -169,8 +212,28 @@ Không chấp nhận PASS chỉ bằng "không có lỗi".
 ---
 
 ## 4. Quy Định Chữa Lỗi (Bug Fixing Protocol)
-Nếu AI trong quá trình chạy QA Checklist này phát hiện ra lỗi (Failed Test, Error Console, App Crash):
-1. **Dừng lại ngay lập tức.**
-2. Báo cáo bằng định dạng Issue ngắn gọn: `[Module bị lỗi] - [Thao tác thực hiện] - [Lỗi bắt gặp]`.
-3. Tự động đề xuất file cần sửa và xin quyền `multi_replace_file_content` hoặc `run_command` để fix bug, trước khi sang bước test tiếp theo.
-4. KHÔNG ĐƯỢC bỏ qua bước nào trong lúc Test. Mọi kết quả Passed phải có bằng chứng từ log hoặc xác nhận thực tế.
+
+Gặp lỗi (Failed Test, Error Console, App Crash) thì **cô lập, không dừng cả buổi**:
+
+1. **Ghi lại lỗi kèm bằng chứng gốc** — thông báo lỗi nguyên văn, không phải lời kể.
+   Định dạng: `[Module] - [Thao tác] - [Lỗi bắt gặp]`.
+2. **Dừng các kịch bản PHỤ THUỘC vào chỗ vừa hỏng.** Đánh dấu chúng `BLOCKED`, không phải FAIL.
+3. **Vẫn chạy tiếp các kịch bản độc lập không ghi dữ liệu.** Dừng sạch ở lỗi đầu tiên làm mất
+   toàn bộ thông tin về 19 module còn lại — một buổi QA chỉ ra được một dòng.
+4. **Xin owner trước khi sửa code sản phẩm.** Một phiên QA mặc định là *chỉ QA*: sửa app giữa
+   chừng làm kết quả các bước sau không còn tái lập được trên cùng một SHA.
+
+### 4.1. Từ vựng kết luận — dùng đúng năm chữ này
+
+| Chữ | Nghĩa | Không phải là |
+|---|---|---|
+| `PASS` | Đã chạy, có bằng chứng, đúng kỳ vọng | — |
+| `FAIL` | Đã chạy, kết quả sai kỳ vọng | — |
+| `BLOCKED` | Không chạy được vì phụ thuộc thứ đang hỏng/thiếu quyền | ≠ PASS |
+| `NOT RUN` | Không chạy, kể cả vì hết giờ hay bị skip | ≠ PASS |
+| `INCONCLUSIVE` | Chạy rồi nhưng bằng chứng không đủ kết luận | ≠ PASS |
+
+Test bị `skip` là `NOT RUN`. Kết luận release phải là **NOT APPROVED** khi còn bất kỳ
+gate bắt buộc nào ở `FAIL` / `BLOCKED` / `NOT RUN`.
+
+Mọi kết quả `PASS` phải có bằng chứng theo mục 3.2 — không nhận "không thấy lỗi" làm PASS.
