@@ -162,16 +162,24 @@ export const PpctPickerModal = ({ initialSource = 'TDS', initialGrade, onPick, o
                         >
                           <div className="flex items-start justify-between gap-3">
                             <p className="text-sm font-bold text-slate-700">{lesson.title}</p>
-                            <span className="text-[10px] font-bold text-slate-400 whitespace-nowrap mt-0.5">
-                              {lesson.periodCount} tiết
+                            <span className="text-[10px] font-bold text-blue-500 whitespace-nowrap mt-0.5">
+                              {lesson.periodCount > 1
+                                ? `Tiết ${lesson.periodIndex}/${lesson.periodCount}`
+                                : '1 tiết'}
                             </span>
                           </div>
-                          {lesson.subject && (
-                            <p className="text-[11px] text-blue-500 font-bold mt-0.5">{lesson.subject}</p>
+                          <p className="text-[11px] font-bold mt-0.5 text-slate-400">
+                            {lesson.subject && <span className="text-blue-500">{lesson.subject} · </span>}
+                            Tiết {lesson.periodNo} theo PPCT
+                          </p>
+                          {lesson.detail && (
+                            <p className="text-[11px] text-slate-500 mt-1 line-clamp-2">
+                              {lesson.detail.replace(/\n/g, ' · ')}
+                            </p>
                           )}
-                          {(lesson.objectives || lesson.detail) && (
+                          {lesson.objectives && (
                             <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">
-                              {(lesson.objectives || lesson.detail).replace(/\n/g, ' · ').slice(0, 160)}
+                              {lesson.objectives.replace(/\n/g, ' · ').slice(0, 160)}
                             </p>
                           )}
                         </button>

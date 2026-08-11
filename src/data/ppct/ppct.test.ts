@@ -43,8 +43,8 @@ describe('dữ liệu phân phối chương trình', () => {
 
   it.each(PROGRAMS)('%s: số tiết tăng dần, không lặp', (_name, program) => {
     // TDS có lỗ số tiết là đúng: các tiết "Tự chọn / Teacher's choice" không ghi tên bài
-    // nên không phải bài để soạn, bộ đọc bỏ qua chúng.
-    const periods = program.lessons.flatMap(l => l.periods);
+    // nên không phải tiết để soạn, bộ đọc bỏ qua chúng.
+    const periods = program.lessons.map(l => l.periodNo).filter((p): p is number => p !== null);
     expect(new Set(periods).size).toBe(periods.length);
     for (let i = 1; i < periods.length; i++) {
       expect(periods[i]).toBeGreaterThan(periods[i - 1]);
@@ -54,14 +54,34 @@ describe('dữ liệu phân phối chương trình', () => {
   it.each(PROGRAMS.filter(([name]) => name.startsWith('MOET')))(
     '%s: số tiết liên tục 1→175, không nhảy cóc',
     (_name, program) => {
-      const periods = program.lessons.flatMap(l => l.periods);
+      const periods = program.lessons.map(l => l.periodNo);
       expect(periods[0]).toBe(1);
       expect(periods.at(-1)).toBe(175);
       for (let i = 1; i < periods.length; i++) {
-        expect(periods[i]).toBe(periods[i - 1] + 1);
+        expect(periods[i]).toBe(periods[i - 1]! + 1);
       }
     },
   );
+
+  // Giáo án soạn theo TỪNG TIẾT, nên mỗi tiết phải là một mục chọn riêng và phải biết
+  // nó là tiết thứ mấy trong bài.
+  it.each(PROGRAMS)('%s: mỗi tiết là một mục riêng, có vị trí trong bài', (_name, program) => {
+    for (const lesson of program.lessons) {
+      expect(lesson.periodIndex).toBeGreaterThanOrEqual(1);
+      expect(lesson.periodIndex).toBeLessThanOrEqual(lesson.periodCount);
+    }
+    const multi = program.lessons.filter(l => l.periodCount > 1);
+    expect(multi.length, 'phải có bài nhiều tiết, nếu không là gộp nhóm hỏng').toBeGreaterThan(10);
+  });
+
+  // Bản PDF MOET có trang bìa với bảng thiết bị; cột "Số lượng" chứa số 01 nằm đúng dải toạ độ
+  // của cột Tiết nên từng bị nuốt nguyên trang bìa thành một "bài học" dài 400 ký tự.
+  it.each(PROGRAMS)('%s: tên bài không dính chữ của trang bìa', (_name, program) => {
+    for (const lesson of program.lessons) {
+      expect(lesson.title.length).toBeLessThan(150);
+      expect(lesson.title).not.toMatch(/KHUNG KẾ HOẠCH|Số học sinh|Trình độ đào tạo|Tên phòng/i);
+    }
+  });
 
   it('MOET có yêu cầu cần đạt cho gần hết các bài', () => {
     for (const [name, program] of PROGRAMS.filter(([n]) => n.startsWith('MOET'))) {

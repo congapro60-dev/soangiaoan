@@ -34,8 +34,14 @@ const baseName = t => clean(t)
   .replace(/\s+/g, ' ')
   .trim();
 
-/** Gộp các tiết liên tiếp cùng một bài thành một mục để soạn. */
-const groupLessons = (rows, source, grade) => {
+/**
+ * Gom các tiết liên tiếp cùng một bài thành nhóm, RỒI trải lại thành từng tiết.
+ *
+ * Đơn vị chọn phải là TIẾT vì giáo án soạn theo từng tiết. Nhưng vẫn phải gom nhóm trước, vì
+ * hai thứ chỉ đúng ở mức bài: tên bài (ô gộp trong Excel) và ô "Yêu cầu cần đạt" của bản PDF
+ * MOET (ô gộp trải nhiều tiết, cắt theo tiết thì đứt giữa câu).
+ */
+const buildLessons = (rows, source, grade) => {
   const groups = [];
   for (const row of rows) {
     const name = baseName(row.title) || groups.at(-1)?.title;
@@ -44,42 +50,39 @@ const groupLessons = (rows, source, grade) => {
     const continues = last
       && last.title === name
       && (row.subject ? last.subject === row.subject : true)
-      && (row.periodNo === null || last.periods.at(-1) === null || row.periodNo === last.periods.at(-1) + 1);
+      && (row.periodNo === null || last.rows.at(-1).periodNo === null || row.periodNo === last.rows.at(-1).periodNo + 1);
 
-    if (continues) {
-      last.periods.push(row.periodNo);
-      last.weeks.add(row.week);
-      if (row.detail) last.details.push(row.detail);
-      if (row.objectives) last.objectiveParts.push(row.objectives);
-      if (row.notes && !last.notes.includes(row.notes)) last.notes.push(row.notes);
-    } else {
-      groups.push({
-        title: name,
-        subject: row.subject ?? '',
-        periods: [row.periodNo],
-        weeks: new Set([row.week]),
-        details: row.detail ? [row.detail] : [],
-        objectiveParts: row.objectives ? [row.objectives] : [],
-        notes: row.notes ? [row.notes] : [],
-      });
-    }
+    if (continues) last.rows.push(row);
+    else groups.push({ title: name, subject: row.subject ?? '', rows: [row] });
   }
 
-  return groups.map((g, i) => {
-    const weeks = [...g.weeks].filter(w => w !== null && w !== undefined).sort((a, b) => a - b);
-    return {
-      id: `${source.toLowerCase()}-g${grade}-${i + 1}`,
-      title: g.title,
-      subject: g.subject,
-      weeks,
-      week: weeks[0] ?? null,
-      periods: g.periods.filter(p => p !== null),
-      periodCount: g.periods.length,
-      detail: g.details.join('\n'),
-      objectives: g.objectiveParts.join(' ').replace(/\s+/g, ' ').trim(),
-      notes: g.notes.join(' · '),
-    };
-  });
+  const lessons = [];
+  let counter = 0;
+  for (const group of groups) {
+    const periods = group.rows.map(r => r.periodNo).filter(p => p !== null);
+    const weeks = [...new Set(group.rows.map(r => r.week).filter(Boolean))].sort((a, b) => a - b);
+    // Mục tiêu mức bài: MOET luôn dùng bản gộp; TDS THCS ghi mục tiêu riêng từng tiết nên giữ nguyên.
+    const groupObjectives = group.rows.map(r => r.objectives).filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
+
+    group.rows.forEach((row, index) => {
+      counter += 1;
+      lessons.push({
+        id: `${source.toLowerCase()}-g${grade}-${counter}`,
+        title: group.title,
+        subject: group.subject,
+        week: row.week ?? weeks[0] ?? null,
+        weeks,
+        periodNo: row.periodNo,
+        periodIndex: index + 1,
+        periodCount: group.rows.length,
+        lessonPeriods: periods,
+        detail: row.detail ?? '',
+        objectives: source === 'MOET' ? groupObjectives : (row.objectives || groupObjectives),
+        notes: row.notes ?? '',
+      });
+    });
+  }
+  return lessons;
 };
 
 // ───────────────────────────── TDS (xlsx) ─────────────────────────────
@@ -157,36 +160,61 @@ const MOET_BAND = { week: [0, 170], period: [170, 195], title: [195, 390], req: 
 const bandOf = x => Object.keys(MOET_BAND).find(k => x >= MOET_BAND[k][0] && x < MOET_BAND[k][1]);
 const MOET_HEADER_NOISE = /^(Tuần|Tiết|Bài học|Yêu cầu cần đạt|\(\d\))$/;
 
+/**
+ * Số trang in ở chân trang cũng là số và cũng nằm trong dải cột Tuần, nếu không loại thì nó bị
+ * đọc thành nhãn tuần. Nhưng KHÔNG được cắt theo chiều dọc cho mọi cột: hàng cuối của bảng nằm
+ * đúng y=76, cùng độ cao với số trang (tiết 80, 122, 135 của khối 10). Tách bằng chiều ngang —
+ * chỉ bỏ ô ở chân trang khi nó nằm trong dải cột Tuần.
+ */
+const MOET_FOOTER_Y = 82;
+
 const parseMoetPdf = async (file) => {
   const doc = await getDocument({ data: new Uint8Array(readFileSync(file)), useSystemFonts: true }).promise;
   const out = [];
-  let week = null;
+  const weekLabels = [];
 
   for (let p = 1; p <= doc.numPages; p++) {
     const page = await doc.getPage(p);
-    const cells = (await page.getTextContent()).items
-      .filter(i => i.str.trim() && !MOET_HEADER_NOISE.test(i.str.trim()))
-      .map(i => ({ band: bandOf(i.transform[4]), x: i.transform[4], y: i.transform[5], s: i.str }));
+    const items = (await page.getTextContent()).items.filter(i => i.str.trim());
+
+    // Trang bìa có bảng thiết bị và phòng học, cột "Số lượng" chứa số 01 nằm đúng dải toạ độ
+    // của cột Tiết. Bỏ qua mọi thứ nằm TRÊN dòng tiêu đề "Bài học", nếu không cả trang bìa bị
+    // nuốt thành một bài học khổng lồ.
+    const tableHeader = items.find(i => i.str.trim() === 'Bài học');
+    const headerY = tableHeader ? tableHeader.transform[5] : Infinity;
+
+    // Chặn đầu dưới: ngay sau bảng phân phối là mục "2. Kiểm tra, đánh giá định kỳ".
+    // Không chặn thì hàng tiết cuối cùng nuốt trọn bảng đó (tiết 175 từng dài 579 ký tự).
+    const endMarker = items.find(i => /^2\.\s*Ki[eể]m tra|^Th[oờ]i gian$/i.test(i.str.trim()));
+    const floorY = endMarker ? endMarker.transform[5] : -Infinity;
+
+    const cells = items
+      .filter(i => !MOET_HEADER_NOISE.test(i.str.trim()) && i.transform[5] < headerY && i.transform[5] > floorY)
+      .map(i => ({ band: bandOf(i.transform[4]), x: i.transform[4], y: i.transform[5], s: i.str }))
+      .filter(c => !(c.band === 'week' && c.y <= MOET_FOOTER_Y));
 
     // Mỗi số tiết neo một hàng của bảng; ranh giới hàng là trung điểm giữa hai số tiết liền nhau.
     const periods = cells.filter(c => c.band === 'period' && /^\d+$/.test(c.s.trim())).sort((a, b) => b.y - a.y);
     if (!periods.length) continue;
-    const weeks = cells.filter(c => c.band === 'week' && /^\d+$/.test(c.s.trim())).sort((a, b) => b.y - a.y);
+    // Nhãn tuần chỉ dùng để ĐỐI CHIẾU, không dùng để gán: nó được căn giữa ô gộp nên rơi vào
+    // giữa nhóm tiết chứ không nằm ở tiết đầu, đọc theo vị trí là tuần nhảy lung tung.
+    for (const c of cells.filter(c => c.band === 'week' && /^\d+$/.test(c.s.trim()))) {
+      weekLabels.push({ n: Number(c.s.trim()), y: c.y, page: p });
+    }
 
     for (let i = 0; i < periods.length; i++) {
       const top = i === 0 ? Infinity : (periods[i - 1].y + periods[i].y) / 2;
       const bottom = i === periods.length - 1 ? -Infinity : (periods[i].y + periods[i + 1].y) / 2;
       const inRow = c => c.y < top && c.y >= bottom;
 
-      const weekCell = weeks.find(inRow);
-      if (weekCell) week = Number(weekCell.s.trim());
-
       const pick = band => cells.filter(c => c.band === band && inRow(c))
         .sort((a, b) => (Math.abs(a.y - b.y) > 2 ? b.y - a.y : a.x - b.x))
         .map(c => c.s).join(' ').replace(/\s+/g, ' ').trim();
 
       out.push({
-        week: week ?? 1,
+        page: p,
+        y: periods[i].y,
+        week: null,
         periodNo: Number(periods[i].s.trim()),
         subject: '',
         title: pick('title'),
@@ -196,7 +224,56 @@ const parseMoetPdf = async (file) => {
       });
     }
   }
-  return out;
+
+  // Gán tuần bằng công thức, KHÔNG bằng vị trí nhãn. Định mức suy ra từ chính tài liệu:
+  // tổng số tiết chia cho số tuần lớn nhất mà tài liệu ghi.
+  const maxWeek = Math.max(...weekLabels.map(l => l.n));
+  const perWeek = Math.round(out.length / maxWeek);
+
+  // Đối chiếu: mỗi nhãn tuần phải nằm trong khoảng dọc của nhóm tiết mà công thức gán cho nó.
+  // Năm sau trường đổi định mức tiết/tuần thì phép kiểm này gãy ngay, thay vì sai âm thầm.
+  const lech = [];
+  let boQua = 0;
+  for (const label of weekLabels) {
+    const nhom = out.filter(r => r.page === label.page && Math.ceil(r.periodNo / perWeek) === label.n);
+    // Nhãn của tuần vắt qua hai trang: nhóm tiết của nó nằm hết ở trang sau, không đối chiếu được.
+    if (!nhom.length) { boQua += 1; continue; }
+    const top = Math.max(...nhom.map(r => r.y));
+    const bottom = Math.min(...nhom.map(r => r.y));
+    // Nhóm bị cắt ngang trang: nhãn căn giữa cho cả nhóm nên lệch khỏi phần còn thấy được.
+    const dungSai = nhom.length < perWeek ? 30 : 6;
+    if (label.y > top + dungSai || label.y < bottom - dungSai) {
+      lech.push(`tuần ${label.n} (trang ${label.page}, y=${Math.round(label.y)}, nhóm tiết y=${Math.round(bottom)}..${Math.round(top)})`);
+    }
+  }
+  if (lech.length) {
+    throw new Error(
+      `${file}: ${lech.length}/${weekLabels.length} nhãn tuần không khớp công thức tuần = ceil(tiết/${perWeek}): ` +
+      `${lech.join('; ')}. Cấu trúc PPCT đã đổi — đọc lại tài liệu trước khi sửa script.`,
+    );
+  }
+  if (boQua > 3) {
+    throw new Error(`${file}: ${boQua} nhãn tuần không đối chiếu được — bố cục file đã khác, kiểm lại.`);
+  }
+
+  // Kết quả phải chia đều: mỗi tuần đúng `perWeek` tiết, trừ tuần cuối có thể thiếu.
+  const soTiet = {};
+  for (const row of out) {
+    const w = Math.ceil(row.periodNo / perWeek);
+    soTiet[w] = (soTiet[w] ?? 0) + 1;
+  }
+  const tuanLe = Object.entries(soTiet).filter(([w, n]) => n !== perWeek && Number(w) !== maxWeek);
+  if (tuanLe.length) {
+    const coTiet = new Set(out.map(r => r.periodNo));
+    const thieu = [];
+    for (let n = 1; n <= perWeek * maxWeek; n++) if (!coTiet.has(n)) thieu.push(n);
+    throw new Error(
+      `${file}: tuần ${tuanLe.map(([w, n]) => `${w} có ${n} tiết`).join(', ')} — không đúng ${perWeek} tiết/tuần. ` +
+      `Thiếu tiết: ${thieu.join(', ') || 'không'} (đọc được ${out.length} hàng).`,
+    );
+  }
+
+  return out.map(({ page: _page, y: _y, ...row }) => ({ ...row, week: Math.ceil(row.periodNo / perWeek) }));
 };
 
 /** Ô yêu cầu gộp nhiều tiết nên đoạn đầu có thể là đuôi của bài trước — cắt tới gạch đầu dòng đầu tiên. */
@@ -217,12 +294,12 @@ const write = (source, grade, lessons, stream) => {
     JSON.stringify({ source, grade: Number(grade), stream, lessons }),
     'utf8',
   );
-  const weeks = new Set(lessons.flatMap(l => l.weeks));
+  const weeks = new Set(lessons.map(l => l.week).filter(Boolean));
   summary.push({
     nguồn: source,
     khối: grade,
-    bài: lessons.length,
-    tiết: lessons.reduce((n, l) => n + l.periodCount, 0),
+    tiết: lessons.length,
+    bài: new Set(lessons.map(l => `${l.title}|${l.lessonPeriods[0]}`)).size,
     tuần: `1→${Math.max(...weeks)}`,
     'thiếu mục tiêu': lessons.filter(l => !l.objectives).length,
   });
@@ -232,12 +309,12 @@ const tdsBook = XLSX.readFile(join(SRC_DIR, 'PPCT THCS-THPT 26-27.xlsx'));
 for (const [grade, sheetName] of Object.entries(TDS_SHEETS)) {
   const sheet = tdsBook.Sheets[sheetName];
   if (!sheet) throw new Error(`Thiếu sheet "${sheetName}"`);
-  write('TDS', grade, groupLessons(parseTdsSheet(sheet, grade), 'TDS', grade), 'Discover');
+  write('TDS', grade, buildLessons(parseTdsSheet(sheet, grade), 'TDS', grade), 'Discover');
 }
 
 for (const grade of [10, 11, 12]) {
   const rows = await parseMoetPdf(join(SRC_DIR, 'Moet', `26-27 Phân phối chương trình toán ${grade}.pdf`));
-  const lessons = groupLessons(rows, 'MOET', grade).map(l => ({ ...l, objectives: trimLeadingFragment(l.objectives) }));
+  const lessons = buildLessons(rows, 'MOET', grade).map(l => ({ ...l, objectives: trimLeadingFragment(l.objectives) }));
   write('MOET', grade, lessons, 'Chuẩn Bộ GD&ĐT');
 }
 

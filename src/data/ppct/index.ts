@@ -5,16 +5,23 @@
 
 export type PpctSource = 'TDS' | 'MOET';
 
+/** Một TIẾT dạy — đơn vị của một kế hoạch bài dạy. */
 export interface PpctLesson {
   id: string;
+  /** Tên bài. Nhiều tiết có thể cùng một bài. */
   title: string;
   /** Phân môn (Đại số / Hình học / Số học). MOET không ghi phân môn nên để rỗng. */
   subject: string;
-  weeks: number[];
   week: number | null;
-  periods: number[];
+  /** Các tuần mà cả bài trải qua. */
+  weeks: number[];
+  /** Số tiết theo phân phối, tính dồn từ đầu năm. */
+  periodNo: number | null;
+  /** Tiết thứ mấy trong bài, và bài có mấy tiết. */
+  periodIndex: number;
   periodCount: number;
-  /** Nội dung từng tiết — chỉ TDS THPT có. */
+  lessonPeriods: number[];
+  /** Nội dung của riêng tiết này — TDS ghi rõ "Tiết 2: ...", MOET để rỗng. */
   detail: string;
   /** Mục tiêu bài học (TDS THCS) hoặc yêu cầu cần đạt (MOET). TDS THPT không có. */
   objectives: string;

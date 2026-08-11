@@ -36,11 +36,15 @@ const buildRequirement = (
   grade: number,
   unitPlanContext?: string,
 ): string => {
+  const viTri = lesson.periodCount > 1
+    ? `tiết ${lesson.periodIndex}/${lesson.periodCount} của bài này`
+    : 'bài dạy 1 tiết';
   const parts = [
-    `Soạn theo phân phối chương trình ${source} lớp ${grade}, tuần ${lesson.weeks.join(', ')}, ${lesson.periodCount} tiết.`,
+    `Soạn ${viTri}, theo phân phối chương trình ${source} lớp ${grade}, tuần ${lesson.week}` +
+      (lesson.periodNo ? `, tiết ${lesson.periodNo} của năm học.` : '.'),
     lesson.subject && `Phân môn: ${lesson.subject}.`,
-    lesson.objectives && `\n${source === 'MOET' ? 'Yêu cầu cần đạt' : 'Mục tiêu bài học'} (trích nguyên văn PPCT):\n${lesson.objectives}`,
-    lesson.detail && `\nNội dung từng tiết theo PPCT:\n${lesson.detail}`,
+    lesson.detail && `\nNội dung của chính tiết này theo PPCT:\n${lesson.detail}`,
+    lesson.objectives && `\n${source === 'MOET' ? 'Yêu cầu cần đạt' : 'Mục tiêu'} của cả bài (trích nguyên văn PPCT):\n${lesson.objectives}`,
     lesson.notes && `\nGhi chú: ${lesson.notes}`,
     unitPlanContext && `\n${unitPlanContext}`,
     '\nLƯU Ý: các thông tin trên chỉ là tư liệu nội dung. Giữ nguyên bố cục và các mục của mẫu giáo án đã chọn, không thêm bớt mục nào.',
@@ -278,9 +282,15 @@ export const LessonControls = ({
                     <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-3 space-y-1">
                       <p className="text-xs font-black text-blue-800">{pickedLesson.lesson.title}</p>
                       <p className="text-[10px] text-blue-600 font-bold">
-                        {pickedLesson.source} · Lớp {pickedLesson.grade} · Tuần {pickedLesson.lesson.weeks.join(', ')} · {pickedLesson.lesson.periodCount} tiết
+                        {pickedLesson.source} · Lớp {pickedLesson.grade} · Tuần {pickedLesson.lesson.week}
+                        {pickedLesson.lesson.periodCount > 1
+                          ? ` · Tiết ${pickedLesson.lesson.periodIndex}/${pickedLesson.lesson.periodCount}`
+                          : ' · 1 tiết'}
                         {pickedLesson.lesson.subject ? ` · ${pickedLesson.lesson.subject}` : ''}
                       </p>
+                      {pickedLesson.lesson.detail && (
+                        <p className="text-[10px] text-slate-500">{pickedLesson.lesson.detail.split('\n')[0]}</p>
+                      )}
                       {!pickedLesson.lesson.objectives && (
                         <p className="text-[10px] text-amber-600 font-medium">
                           PPCT không ghi mục tiêu cho bài này — AI sẽ tự đề xuất mục tiêu.
