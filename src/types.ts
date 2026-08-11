@@ -232,8 +232,8 @@ export interface AppData {
     openaiCompatibleBaseUrl?: string;
     openaiCompatibleModelId?: string;
     models?: string[];
-    botApiUrl?: string;
-    botApiToken?: string;
+    /** ID thư mục Drive nhận giáo án, theo cặp chương trình + lớp (vd: tdsG10). */
+    driveFolders?: Partial<Record<'tdsG10' | 'tdsG11' | 'tdsG12' | 'moetG10' | 'moetG11' | 'moetG12', string>>;
   };
   gradingSessions: GradingSession[];
   exams: Exam[];
@@ -267,8 +267,7 @@ export const DEFAULT_DATA: AppData = {
     selectedProvider: 'gemini',
     selectedModel: 'gemini-2.5-flash',
     models: ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.5-flash-lite', 'gemini-2.0-flash', 'gemini-2.0-flash-lite'],
-    botApiUrl: '',
-    botApiToken: '',
+    driveFolders: {},
   },
   gradingSessions: [],
   exams: [],

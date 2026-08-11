@@ -1,256 +1,57 @@
-# Tab Nâng cấp: giỏ sản phẩm + nối lỗi với công cụ vá — 2026-08-04
+# Đẩy giáo án lên Drive + chọn bài theo PPCT — 2026-08-11
 
-Owner giao "cái nào hợp lý thì làm" sau bản báo cáo thiết kế 6 lô. Chọn **lô 1 + lô 2** vì rẻ
-và trị đúng hai cái đau nhất; lô 3–6 để phiên sau.
+Hai việc trong một phiên. Railway trial hết hạn làm chết chức năng đẩy Drive; đồng thời owner
+muốn soạn giáo án bằng cách chọn bài thẳng từ phân phối chương trình.
 
-## Kế hoạch
+## Lô A — Đẩy giáo án lên Google Drive (xong)
 
-- [x] `docxLessonRevision.ts`: markdown table → `<w:tbl>` thật → verify: test rubric 3×3, escape XML, đệm ô thiếu.
-- [x] `lessonAudit.ts::buildSupplementMarkdown` gộp báo cáo + giỏ → verify: test thứ tự, bỏ mục rỗng.
-- [x] `useLessonUpgrade`: state `basket`, tự thêm khi sinh xong, `toggleBasket` → verify: build.
-- [x] `fixSuggestions.ts`: bảng tiêu chí → mục menu + `countFixableFailures` → verify: test toàn vẹn 2 chiều.
-- [x] UI: nút "Giữ vào giỏ", nút "Sửa bằng X" trên mỗi lỗi, menu sắp theo số lỗi vá được, nhãn "+N mục" trên nút tải → verify: chạy thật trong runtime dev server.
-- [x] `npm run lint` + `npm run test -- --run` + `npm run build`.
+Bỏ hẳn đường qua bot Railway. Trình duyệt xin quyền Drive qua chính Firebase Google login rồi
+upload thẳng lên Drive API: không thêm Vercel function, không giữ secret ở đâu.
 
-## Đã KHÔNG làm (cố ý)
+- [x] `src/lib/googleDrive.ts`: xin access token + các phép Drive REST → verify: build sạch.
+- [x] `src/services/pushLessonToDrive.ts` thay `pushLessonToBot.ts`, giữ `/api/export-lesson`.
+- [x] Ô "Thư mục đích" trong hộp thoại đẩy; đẩy xong app nhớ thư mục theo cặp chương trình + lớp.
+- [x] Cài đặt: mục "Bot API" → mục "Google Drive" với 6 ô thư mục → verify: dán link Drive tự rút ra ID.
+- [x] Chặn phiên ẩn danh trước khi mở popup, tránh đổi phiên làm mất dữ liệu người dùng.
 
-- **Lô 3 — mục menu "Vá lỗi biên tập"**: 8/26 tiêu chí chưa đạt vẫn không có nút vá. Đây là
-  nhóm lỗi phải sửa TẠI CHỖ trong bài, cần đường chèn khác hẳn. UI hiện ghi chú "Chưa có công
-  cụ tự động — sửa tay theo hướng dẫn trên" thay vì im lặng.
-- **Lô 4 — chế độ "Bản đã chèn"** (chèn vào giữa thân bài + màn duyệt diff): đụng định vị OOXML
-  trong bảng, chỗ dễ vỡ layout nhất. Tách phiên riêng.
-- **Lô 5 — lưu phiên**, **lô 6 — gộp lời gọi AI**.
+## Lô B — Chọn bài theo PPCT (xong)
 
-## Review
+- [x] `scripts/build-ppct.mjs`: đọc cả hai nguồn, gộp theo **bài** chứ không theo tiết
+      → 684 bài TDS (khối 6–12) + 324 bài MOET (khối 10–12).
+- [x] `scripts/build-unitplan.mjs`: rút tổng quan học phần I từ 3 file .docx THPT.
+- [x] `src/data/ppct/index.ts` + `src/data/unitplan/index.ts`: nạp theo khối, Vite tách chunk riêng.
+- [x] `PpctPickerModal`: chọn nguồn → khối → tuần → bài, có ô tìm kiếm.
+- [x] Nối vào nhánh "Lấy từ PPCT" sẵn có trong `LessonControls`, điền tên bài + lớp + tuần + yêu cầu.
+- [x] Ô tick kèm tổng quan unit plan, mặc định tắt, hiện rõ danh sách chương để giáo viên tự quyết.
+- [x] `src/data/ppct/ppct.test.ts`: 26 phép kiểm canh dữ liệu sinh ra.
 
-- File Word bổ sung nay gộp: báo cáo rà soát + MỌI sản phẩm trong giỏ, theo thứ tự menu. Trước
-  đó chỉ mục N được gộp; phiếu học tập/rubric/trò chơi phải xuất thành file rời.
-- Bảng markdown giờ ra `<w:tbl>` có viền, hàng tiêu đề đậm + nền xám. Không có bước này thì
-  rubric (L) và bảng câu hỏi (F) gộp vào ra một đống `| a | b |` không đọc được.
-- `fixSuggestions.test.ts` khoá tính toàn vẹn **hai chiều**: mọi mục menu được trỏ tới phải tồn
-  tại, mọi tiêu chí được ánh xạ phải là tiêu chí thật. Đổi tên một id là test đỏ ngay.
-- Kiểm chứng: lint 0 lỗi TS · test **46 file / 698 ca, 0 đỏ** (thêm 41 ca) · build 1m 02s ·
-  chạy thật trong runtime dev server: giáo án Toán luyện tập 32 tiêu chí → 26 chưa đạt, 18 có
-  nút vá, 8 ghi chú sửa tay; menu Q và C mỗi mục gắn nhãn "Vá 4 lỗi"; rubric ra `<w:tbl>` đúng.
-- CHƯA QA: panel trên UI vẫn chưa E2E được vì cần upload .docx + khoá API. Owner tự QA.
+## Lỗi tự bắt được trong lô B
 
----
+Phép kiểm "số tiết không lặp" bắt được 12 bài khối 11 cùng mang số tiết **0**: ô số tiết trống bị
+`Number('')` biến thành 0. Sửa ở gốc trong `build-ppct.mjs`. Sau khi sửa, số bài khối 11 từ 117
+xuống 107 vì các bài trước đó bị cắt vụn nay gộp đúng.
 
-# Ghép "Checklist tự kiểm tra giáo án" vào bộ rà soát tab Nâng cấp — 2026-08-03
+## Quyết định thiết kế, kèm lý do
 
-Nguồn: `các yêu cầu về Toán cần đạt/Checklist tự kiểm tra giáo án.xlsx`
-(sheet `Checklist` — 15 đầu việc; sheet `Domain 1`/`Domain 2` — rubric Danielson).
+- **Đơn vị là bài, không phải tiết.** Ô "Yêu cầu cần đạt" trong PDF MOET là ô gộp trải nhiều tiết;
+  cắt theo tiết thì 11–17% số hàng đứt giữa câu và trôi sang tiết bên cạnh.
+- **Không tự đoán bài nào thuộc unit plan nào.** Đo thử cách khớp theo từ khoá tên chương: chỉ
+  trúng 34–53% ở học kỳ I mà khớp nhầm 19–26% bài học kỳ II. Bỏ, để giáo viên tự tick.
+- **PPCT chỉ là tư liệu.** Owner chốt ngày 2026-08-11: không được đổi bố cục mẫu giáo án. Yêu cầu
+  gửi cho AI có sẵn câu ràng buộc giữ nguyên các mục của mẫu đã chọn.
 
-Quyết định của owner:
-- Tách 2 tầng: tiêu chí toàn trường (mọi môn) + tiêu chí Toán TDS (chỉ Toán).
-- Giữ quy trình **4 bước** theo `Hướng dẫn soạn giáo án môn Toán.docx` (2025–2026),
-  không theo cách diễn đạt "5 bước" ở ô E6 của checklist.
+## Nghiệm thu
 
-## Kế hoạch
+- `npm run lint` sạch, `npm test` **724/724** xanh, `npm run build` xong.
+- Chạy thật trên dev server: chọn bài MOET lớp 11 → app điền Lớp 11, Tuần 30, dán nguyên văn yêu
+  cầu cần đạt. Bật ô unit plan → yêu cầu tăng từ 323 lên 4.584 ký tự, có đủ câu ràng buộc bố cục.
+- Dữ liệu tách chunk riêng theo khối, 12–48 KB mỗi khối, không phình bundle chính.
 
-- [x] Tách type dùng chung sang `standardsTypes.ts`, thêm trường `danielson?` → verify: `mathStandards.ts` re-export, mọi import cũ còn chạy.
-- [x] Viết `generalStandards.ts`: 10 phép kiểm rút từ checklist + `detectSubject` → verify: test riêng cho từng id.
-- [x] Gắn mã Danielson 1a–1f cho các phép kiểm sẵn có → verify: test cũ không đổi trạng thái.
-- [x] Viết `lessonAudit.ts` ghép 2 tầng → verify: giáo án Văn không bị chạy lớp Toán.
-- [x] Đấu vào `useLessonUpgrade` + panel UI → verify: build + hiển thị môn và badge Danielson.
-- [x] `npm run lint` + `npm run test -- --run` + `npm run build` → verify: 0 lỗi, 0 test đỏ.
+## Còn lại — chỉ owner làm được
 
-## Đối chiếu checklist → phép kiểm
-
-| # checklist | Phép kiểm | Trạng thái |
-|---|---|---|
-| 1 Nghiên cứu chương trình | — | Không kiểm được bằng regex, bỏ qua |
-| 2 Nhận diện đối tượng HS | `student-profile` | Mới |
-| 3 Điền thông tin bản kế hoạch | `plan-metadata` | Mới |
-| 4 Đặt mục tiêu tiết học | `differentiated-objectives`, `success-criteria` | Đã có |
-| 5 Tiến trình mạch lạc | `four-phases`, `guiding-questions`, `expected-products` | Đã có |
-| 5 Đa dạng hình thức tổ chức | `activity-format-variety` | Mới |
-| 5 Môi trường học tập an toàn | `safe-environment` | Mới |
-| 6 Phân bổ thời gian | `time-coverage`, `time-continuity` | Đã có |
-| 7 Dạy học phân hóa | `differentiation-dimensions` | Mới |
-| 8 Dạy học trải nghiệm + suy ngẫm | `reflection-prompt` | Mới |
-| 9 Công dân toàn cầu | `global-citizenship` | Mới |
-| 10 Công dân kỹ thuật số | `digital-citizenship` | Mới |
-| 11 Đánh giá thường xuyên | `formative-assessment` | Mới |
-| 12–14 Tài nguyên dạy học | `resources-listed` | Mới |
-| 15 Đồ dùng, phiếu học tập | `worksheet-appendix` | Đã có |
-
-## Review
-
-- 10 phép kiểm mới ở `generalStandards.ts` chạy cho **mọi môn**; 22 phép kiểm Toán TDS ở
-  `mathStandards.ts` chỉ chạy khi `detectSubject` không nhận ra môn khác. `lessonAudit.ts` ghép
-  hai tầng và xuất báo cáo Markdown kèm mã Danielson.
-- `auditMathStandards` giữ nguyên chữ ký lẫn hành vi → `toanLessonQuality.ts` (cổng sinh giáo án
-  Toán) không đổi, 16 + 25 ca test Toán cũ không phải sửa.
-- `formatStandardsReport` bị `formatLessonReport` thay thế nên đã gỡ khỏi `mathStandards.ts`.
-- `detectSubject` **cố ý thiên về Toán**: chỉ tắt lớp Toán khi giáo án tự khai môn khác, hoặc
-  khi từ khóa môn khác xuất hiện ≥3 lần mà không có dấu hiệu Toán nào.
-- Kiểm chứng: lint 0 lỗi TS · test **44 file / 657 ca, 0 đỏ** (thêm 33 ca) · build 58.89s ·
-  chạy `auditLesson` trên dev server thật: giáo án Văn → 10 tiêu chí, không có lớp Toán;
-  giáo án Toán luyện tập → 32 tiêu chí, 29 tiêu chí gắn mã Danielson.
-- CHƯA làm: panel trên UI chưa được E2E vì cần thao tác upload file mà Browser pane không làm
-  được; đã xác minh gián tiếp bằng build + gọi thẳng module trong runtime của dev server.
-
----
-
-# Sửa lỗi QA module dự giờ Danielson — 2026-07-28
-
-Nguồn: báo cáo QA module dự giờ Danielson do owner cung cấp ngày 2026-07-28.
-
-- [x] P0: sửa `allow list` của tổ trưởng dùng `resource.data.nguoiDuUid`.
-- [x] P1: thêm test list cho BGH/tổ trưởng có và không có bộ lọc hợp lệ.
-- [x] P1: bắt buộc và đóng băng `gvUid`.
-- [x] P2: thêm test vai trò `giao_vien` không được tạo/sửa.
-- [x] P2: thêm composite index `duGio(nguoiDuUid ASC, ngay DESC)`.
-- [x] P2: thêm tài liệu thiết kế và kế hoạch triển khai.
-- [x] Nit: khai báo Node types cục bộ cho `scripts/gan-vai-tro.ts`.
-- [x] Verify: rules tests 28/28, unit tests 196/196, lint, build và code review đều đạt.
-
-## Review
-
-- TDD RED: 3 lỗi được tái hiện đúng — list hợp lệ của tổ trưởng bị deny, thiếu `gvUid` vẫn create được, đổi `gvUid` vẫn update được.
-- TDD GREEN: Firestore emulator đạt 28/28 ca.
-- Full suite: 196/196 unit tests; TypeScript lint exit 0; Vite build exit 0; main entry 974.15 KB.
-- Code review độc lập: không có Critical/Important; một lỗi tài liệu Minor đã sửa.
-
----
-
-# Cập nhật model Gemini mới nhất (Gemini 3.6 Flash) — 2026-07-22
-
-Nguồn: 2 ảnh user gửi (email Google Developers) + tra cứu web. Google phát hành 21/07/2026:
-Gemini 3.6 Flash (`gemini-3.6-flash`) + Gemini 3.5 Flash-Lite (`gemini-3.5-flash-lite`).
-
-- [x] `src/data/models.ts`: thêm `gemini-3.6-flash` (isLatest, flagship) lên đầu; `gemini-3.5-flash`
-      tụt xuống (gỡ isLatest, gỡ tag flagship); thay `gemini-3.1-flash-lite` → `gemini-3.5-flash-lite`.
-- [x] `src/lib/gemini.ts`: `DEFAULT_GEMINI_RUNTIME_MODEL` = `gemini-3.6-flash` (user chốt);
-      runtime list giữ lại 3.5-flash làm lựa chọn, thay flash-lite cũ.
-- [x] Bỏ qua `gemini-3.5-flash-cyber` (chuyên dò lỗ hổng bảo mật, không liên quan app giáo dục).
-- [x] tsc 0 lỗi; 196/196 test (31 file).
-- [x] E2E Browser pane (demo mode → Cài đặt → AI Providers): danh sách Gemini render đúng thứ tự
-      3.6 Flash → 3.5 Flash → 3.1 Pro Preview → 3 Flash Preview → 3.5 Flash-Lite → 2.5 ×3;
-      3.6 Flash gắn nhãn "Mặc định runtime an toàn"; không còn 3.1 Flash-Lite; 0 console error
-      liên quan model (chỉ có Firebase permission-denied do demo mode chưa đăng nhập).
-- ⚠️ CHƯA ĐỤNG: `src/lib/adaptive/studentAiKey.ts:62` vẫn hardcode fallback `gemini-2.5-flash`
-      cho chấm ảnh cổng học sinh — ngoài phạm vi "model trong Cài đặt", chờ user quyết.
-
----
-
-# Cổng học sinh: key AI riêng của học sinh (branch: fix/format-agent-fallback) — 2026-07-21 lần 2
-
-User làm rõ thêm: cổng học sinh CŨNG phải để học sinh tự nhập API key (free hoặc do giáo
-viên phát), KHÔNG phải giữ relay key server như dự định trước.
-
-- [x] `src/lib/adaptive/studentAiKey.ts` (mới) — get/setStudentAiKey (localStorage),
-      callStudentGemini (gọi @google/genai trực tiếp, text + optional ảnh),
-      isStudentKeyMissingError. 4 test (localStorage stub vì vitest environment=node).
-- [x] AdaptiveStudentPortalPage: thêm ô nhập/lưu API key ở màn Bước 1 (cạnh Họ tên/Lớp/Mã HS),
-      link lấy key free, ghi rõ "không có key vẫn học được, chỉ mất tính năng AI".
-- [x] Thay 2 điểm gọi `/api/gemini-relay` (chấm ảnh bài làm + cá nhân hóa PA3) bằng
-      `callStudentGemini`; không có key → cá nhân hóa fallback về bài gốc (im lặng, đúng thiết
-      kế sẵn có "falls back to original lesson"); chấm ảnh → hiện message hướng dẫn nhập key.
-- [x] XÓA `api/gemini-relay.ts` — không còn ai gọi (client giáo viên đã bỏ ở bước trước; giờ
-      client học sinh cũng bỏ). Giảm 1 Vercel Function (9 → 8), đóng luôn cổng có thể bị dò quét.
-- [x] Cập nhật lại prompt cowork: bỏ hẳn "Việc 1 sửa key Vercel" (không còn cần), đổi thành
-      test live ô nhập key học sinh.
-- [x] Cập nhật memory `api-key-backup-co-y.md` (ghi rõ 2 bước đảo chính sách trong cùng phiên).
-- [x] E2E Browser pane: panel API key render đúng vị trí trên `/adaptive-portal` (sample lesson);
-      lưu key → localStorage đúng; reload → key được nhớ lại vào ô input; 0 network request
-      ra gemini-relay sau khi xóa key.
-- [x] tsc 0 lỗi; 193/193 test (30 file); build OK.
-
----
-
-# Chính sách API key riêng (branch: feat/require-own-api-key) — 2026-07-21
-
-User quyết định: bỏ TOÀN BỘ key dự phòng phía giáo viên — ai dùng AI phải nhập key riêng.
-
-- [x] aiProviders: xóa ROUTER_POOLS (key chia sẻ hardcode) + provider free-router + mọi
-      fallback relay (no-key/quota/vision/stream). Thêm `assertOwnApiKey` chặn sớm với
-      thông báo hướng dẫn; `isMissingApiKeyError` để UI hiện nguyên văn.
-- [x] GIỮ `/api/gemini-relay` CÓ CHỦ ĐÍCH — chỉ phục vụ cổng học sinh (chấm ảnh bài làm +
-      cá nhân hóa PA3, học sinh không thể có key). Không đụng generate-simulation (server
-      key, giáo viên bấm) — chờ user quyết riêng.
-- [x] Settings: bỏ tab Router Free; migrate settings cũ 'free-router' → gemini (chống crash).
-- [x] Banner App/AITools/Exams: đổi thông điệp "cần API key của riêng bạn".
-- [x] types.ts + apiLimits.ts: bỏ 'free-router' khỏi union.
-- [x] E2E Browser pane: banner mới ✅; Settings không crash với settings cũ ✅; generate
-      không key → 0 request mạng + toast hướng dẫn nguyên văn ✅.
-- [x] tsc 0 lỗi; 185/185 test; build OK.
-- [x] Cập nhật prompt cowork (relay key giờ CHỈ cho cổng học sinh) + memory api-key-backup-co-y.
-
----
-
-# Track A — Product Quality Gates (branch: feat/track-a-quality-gates)
-
-Nguồn tiêu chí: skill `lesson-plan-generator` + `ultimate-slides` (đọc từ ~/.gemini/config/skills).
-Nguyên tắc: tái dùng hạ tầng audit + repair loop đã có, KHÔNG destabilize luồng Toán mature.
-
-## 1. Mở rộng mathStandards.ts (giáo án) ✅
-- [x] `checkLearningIntentionSuccessCriteria` (id `success-criteria`) — WALT/WILF hoặc tiêu chí thành công. medium.
-- [x] `checkTeacherScript` (id `teacher-script`) — cột hoạt động có thoại/câu hỏi GV cụ thể. medium.
-- [x] `checkWorksheetAppendix` (id `worksheet-appendix`) — Phiếu học tập ở Phụ lục. medium.
-- Placeholder: ĐÃ CÓ (`no-internal-instructions`) → không nhân bản.
-- Learning Objectives: ĐÃ CÓ (`differentiated-objectives`) → không nhân bản.
-- [x] Detector nhận biến thể tiếng Việt để giáo án tốt vẫn PASS.
-
-## 2. Gate repair (toanLessonQuality.ts) ✅
-- [x] Whitelist 3 id medium mới vào diện auto-repair (`REPAIRABLE_MEDIUM_IDS`).
-- [x] Giữ nguyên hành vi cho các medium cũ (test khẳng định guiding-questions không vào repair).
-- [x] Cập nhật COMPLETE_KNOWLEDGE fixture (thêm Phiếu học tập) để "giáo án đủ vẫn passed".
-- [x] Test mới: giáo án thiếu 3 tiêu chí → failures chứa đúng id. (8/8 pass)
-
-## 3. Slide Quality Gateway (slideQuality.ts — file mới) ✅
-- [x] Audit JSON slide: title dài, >6 bullet, bullet dài, text density, thiếu visualSuggestion. LaTeX không tính độ dài.
-- [x] `buildSlideRepairBrief` — giữ số lượng slide, đính kèm JSON.
-- [x] Wire `applySlideQualityGate` vào CẢ generateSlideData + generateTextToSlideData: audit → repair → audit lại.
-- [x] Test golden cho slideQuality. (9/9 pass)
-
-## 4. Verify ✅
-- [x] `npx tsc --noEmit` sạch (sau khi exclude `outputs/`, `test_downloads/` — file scratch gây lỗi pre-existing).
-- [x] `npm run test` xanh: 185/185, 28 file.
-- [x] `npm run build` OK (warning chunk-size là pre-existing).
-- [x] Smoke test thực chiến (`npx tsx` trên `docs/giaoan_mau_test.md`): gate bắt 7 failure
-      vào diện repair (gồm 2 tiêu chí mới teacher-script + worksheet-appendix);
-      success-criteria trả warn đúng độ nhạy (có mục tiêu, thiếu tiêu chí thành công → không phạt oan).
-      Slide gate bắt đúng 3 blocking trên slide draft lỗi cài sẵn.
-- [x] Commit `303d35b` trên branch feat/track-a-quality-gates (CHƯA push main).
-
-## 5. E2E thực chiến trong app thật (Browser pane, demo mode) ✅
-- [x] Dev-proxy `/api` → https://giaoandewey.vercel.app trong vite.config (Vite không serve Vercel Function).
-- [x] Luồng Text-to-Slide chạy thật: paste giáo án → generate → **gate bắt lỗi → gọi repair → nhận bản sửa**
-      (quan sát 2 AI call: generate + repair; AI stub qua fetch-intercept vì relay prod đang cạn quota).
-- [x] Preview board render bản ĐÃ SỬA với KaTeX; bấm "Tải file PPTX" → blob 86.895 bytes đúng MIME.
-- [x] File `outputs/slide_tile_thuc_e2e.pptx`: zip OK, 6 slide + 6 notes; slide 3 chứa tiêu đề ngắn đã sửa,
-      KHÔNG còn bản lỗi 7 bullet/title 79 ký tự.
-- ⚠️ Phát hiện prod: relay https://giaoandewey.vercel.app/api/gemini-relay trả 500
-      "All fallback providers exhausted" — giáo viên không có key cá nhân hiện KHÔNG gọi được AI.
-- ⚠️ free-router pool (MiniMax/Conduit) lỗi "Connection error" khi gọi từ browser (khả năng CORS).
-
-## 6. Fix tràn tiêu đề PPTX + Ship ✅
-- [x] QA bằng mắt (LibreOffice→PNG) bắt lỗi title 33 ký tự tràn thanh xanh → fix co font
-      bậc thang 32/26/22pt + siết maxTitleChars 64→48 (`a1bbf55`). Verify render v2: 1 dòng gọn.
-- [x] Full suite 185/185, tsc 0 lỗi, build OK.
-- [x] Push `feat/track-a-quality-gates` + merge `main` + push (user ra lệnh "làm hết").
-- [x] Vercel deploy XÁC NHẬN: prod serve `index-D42gwlsR.js` chứa marker gate code.
-- [x] Viết prompt cowork: `tasks/prompt_cowork_fix_relay_va_test_live.md`
-      (Việc 1: thay GEMINI_FALLBACK_KEY/GROK_FALLBACK_KEY/DEEPSEEK_FALLBACK_KEYS trong
-      Vercel env + redeploy; Việc 2: test live model thật; Việc 3: kiểm CORS free-router).
-- [ ] CHỜ COWORK/USER: relay prod vẫn 500 "All fallback providers exhausted" — AI trên
-      production chưa dùng được cho user không có key cá nhân.
-
-## Ghi chú kiến trúc (chốt với user)
-- Track B để ở branch `academic-os-next`, tài liệu đặt tại `docs/architecture/academic-os/`
-  (vision/, knowledge-base/, rule-registry/, subject-packs/, design-system/) — KHÔNG tạo
-  thư mục academic-os trong src/. src/ chỉ chứa code đang chạy.
-# Live QA: student-owned AI key + teacher slide export — 2026-07-21
-
-- [x] Pre-flight: 193/193 unit tests pass; build succeeds; commit `1fce655`; main index 965.27 KB.
-- [x] Production student portal: API-key field/link/save feedback/persistence verified in Chrome.
-- [x] Production student flow: completed pre-test and reached the Advanced routed lesson; no console errors.
-- [ ] **FAIL/BLOCKED** Production image grading: Dewey conversion drops `responseMode: image_upload`; `InteractiveWorkedExampleCard` is defined but never rendered, so upload/grading UI is unreachable.
-- [x] Production teacher flow (continued by user request): personal Gemini key active; Text-to-Slide generated an 8-slide draft and downloaded `baigiang.pptx` without console errors.
-- [x] Inspect PPTX: valid 121,466-byte file; 9 rendered pages (1 cover + 8 content); automated overflow test passed; all content titles fit and bullet counts are 4/3/4/4/4/3/4/3 (all <= 6). Minor: cover title is generic `baigiang` instead of the lesson title.
-- [x] Capture screenshots and write QA sign-off with PASS/FAIL/NOT RUN evidence.
-- [x] Tạo báo cáo bàn giao lỗi cho Claude Code: `docs/BAOCAO_QA_PRODUCTION_PORTAL_HOC_SINH_VA_SLIDE_2026-07-21.md`.
-
----
+1. Google Cloud Console (project Firebase): bật **Google Drive API**, thêm scope
+   `https://www.googleapis.com/auth/drive`, thêm mình vào Test users.
+2. Đăng nhập bằng Google thật (không phải chế độ demo) rồi thử đẩy một giáo án lên Drive.
+3. Unit plan học kỳ II: chờ bản mới. Unit plan THCS (Toán 6–9) là PDF vỡ dấu tiếng Việt khi rút
+   chữ, cần bản .docx hoặc chấp nhận thêm bước chuẩn hoá.
+4. Chưa commit, chưa push. HANDOFF.md cập nhật khi chốt push.

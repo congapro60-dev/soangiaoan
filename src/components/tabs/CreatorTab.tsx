@@ -15,6 +15,7 @@ import { imagePromptBlockquote, imagePromptParagraph, imagePromptTd } from '../f
 import { callAI, getActiveApiKey } from '../../lib/aiProviders';
 import { AudioOverview } from '../features/AudioOverview';
 import { PushToDriveModal } from '../modals/PushToDriveModal';
+import type { DriveFolderKey } from '../../services/pushLessonToDrive';
 import { TextToSlideModal } from '../modals/TextToSlideModal';
 import { withGuardrail } from '../../utils/guardrailUtils';
 
@@ -80,6 +81,7 @@ interface CreatorTabProps {
   setSelectedDistributionId: (id: string) => void;
   deleteDistribution: (id: string) => void;
   onCreateExam?: () => void;
+  onSaveDriveFolder: (key: DriveFolderKey, folderId: string) => void;
 }
 
 export const CreatorTab = (props: CreatorTabProps) => {
@@ -407,6 +409,7 @@ export const CreatorTab = (props: CreatorTabProps) => {
         <PushToDriveModal
           currentPlan={props.currentPlan}
           settings={props.data.settings}
+          onSaveFolder={props.onSaveDriveFolder}
           showToast={props.showToast}
           onClose={() => setShowPushModal(false)}
         />

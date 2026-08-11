@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { Layers, FileText, UploadCloud, ChevronRight, X, Trash2, PenLine, BookOpen } from 'lucide-react';
 import { AppData, LessonPlan, TemplateFile, BuiltinFormat, ToanKeHoach } from '../../../types';
 import { TOAN_KE_HOACH_LABELS } from '../../../prompts/toanFormats';
+import { PpctPickerModal } from '../../modals/PpctPickerModal';
+import type { PpctLesson, PpctSource } from '../../../data/ppct';
+import { loadUnitPlan, UNIT_PLAN_GRADES, type UnitPlan } from '../../../data/unitplan';
 
 interface LessonControlsProps {
   generationMode: 'single' | 'bulk';
@@ -20,7 +23,30 @@ interface LessonControlsProps {
   setUploadingFiles: (val: { category: TemplateFile['category']; templateId?: string } | null) => void;
   fileInputRef: React.RefObject<HTMLInputElement>;
   deleteDistribution: (id: string) => void;
+  setSingleRequirement: (val: string) => void;
 }
+
+/**
+ * Gói bài đã chọn thành yêu cầu soạn, giữ nguyên chữ của PPCT để AI không tự bịa mục tiêu.
+ * Toàn bộ khối này là DỮ LIỆU ĐẦU VÀO — không được đổi bố cục mẫu giáo án người dùng đã chọn.
+ */
+const buildRequirement = (
+  lesson: PpctLesson,
+  source: PpctSource,
+  grade: number,
+  unitPlanContext?: string,
+): string => {
+  const parts = [
+    `Soạn theo phân phối chương trình ${source} lớp ${grade}, tuần ${lesson.weeks.join(', ')}, ${lesson.periodCount} tiết.`,
+    lesson.subject && `Phân môn: ${lesson.subject}.`,
+    lesson.objectives && `\n${source === 'MOET' ? 'Yêu cầu cần đạt' : 'Mục tiêu bài học'} (trích nguyên văn PPCT):\n${lesson.objectives}`,
+    lesson.detail && `\nNội dung từng tiết theo PPCT:\n${lesson.detail}`,
+    lesson.notes && `\nGhi chú: ${lesson.notes}`,
+    unitPlanContext && `\n${unitPlanContext}`,
+    '\nLƯU Ý: các thông tin trên chỉ là tư liệu nội dung. Giữ nguyên bố cục và các mục của mẫu giáo án đã chọn, không thêm bớt mục nào.',
+  ];
+  return parts.filter(Boolean).join('\n');
+};
 
 export const LessonControls = ({
   generationMode,
@@ -38,9 +64,50 @@ export const LessonControls = ({
   setSelectedDistributionId,
   setUploadingFiles,
   fileInputRef,
-  deleteDistribution
+  deleteDistribution,
+  setSingleRequirement
 }: LessonControlsProps) => {
   const [inputMode, setInputMode] = useState<'manual' | 'ppct'>('manual');
+  const [showPpctPicker, setShowPpctPicker] = useState(false);
+  const [pickedLesson, setPickedLesson] = useState<{ lesson: PpctLesson; source: PpctSource; grade: number } | null>(null);
+  const [unitPlan, setUnitPlan] = useState<UnitPlan | null>(null);
+  const [attachUnitPlan, setAttachUnitPlan] = useState(false);
+
+  const unitPlanContext = (plan: UnitPlan) =>
+    `Tư liệu unit plan — Kế hoạch học phần ${plan.term}, Toán ${plan.grade} (các chương: ${plan.chapters.join('; ')}):\n${plan.overview}`;
+
+  const applyPicked = (
+    picked: { lesson: PpctLesson; source: PpctSource; grade: number },
+    plan: UnitPlan | null,
+    attach: boolean,
+  ) => {
+    setSingleRequirement(
+      buildRequirement(picked.lesson, picked.source, picked.grade, attach && plan ? unitPlanContext(plan) : undefined),
+    );
+  };
+
+  const applyPpctLesson = async (lesson: PpctLesson, source: PpctSource, grade: number) => {
+    const picked = { lesson, source, grade };
+    setPickedLesson(picked);
+    setCurrentPlan(prev => ({
+      ...prev,
+      title: lesson.title,
+      grade: String(grade),
+      week: String(lesson.week ?? prev.week ?? 1),
+    }));
+    setShowPpctPicker(false);
+
+    // Unit plan chỉ có cho TDS lớp 10–12, và chỉ học phần I.
+    const plan = source === 'TDS' && UNIT_PLAN_GRADES.includes(grade) ? await loadUnitPlan(grade) : null;
+    setUnitPlan(plan);
+    setAttachUnitPlan(false);
+    applyPicked(picked, plan, false);
+  };
+
+  const toggleUnitPlan = (next: boolean) => {
+    setAttachUnitPlan(next);
+    if (pickedLesson) applyPicked(pickedLesson, unitPlan, next);
+  };
 
   return (
     <>
@@ -199,9 +266,49 @@ export const LessonControls = ({
                 </div>
               ) : (
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
-                    Phân phối môn (PPCT)
-                    <button 
+                  <button
+                    type="button"
+                    onClick={() => setShowPpctPicker(true)}
+                    className="w-full px-4 py-3 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 flex items-center justify-center gap-2"
+                  >
+                    <BookOpen className="w-4 h-4" /> Chọn bài từ PPCT có sẵn
+                  </button>
+
+                  {pickedLesson && (
+                    <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-3 space-y-1">
+                      <p className="text-xs font-black text-blue-800">{pickedLesson.lesson.title}</p>
+                      <p className="text-[10px] text-blue-600 font-bold">
+                        {pickedLesson.source} · Lớp {pickedLesson.grade} · Tuần {pickedLesson.lesson.weeks.join(', ')} · {pickedLesson.lesson.periodCount} tiết
+                        {pickedLesson.lesson.subject ? ` · ${pickedLesson.lesson.subject}` : ''}
+                      </p>
+                      {!pickedLesson.lesson.objectives && (
+                        <p className="text-[10px] text-amber-600 font-medium">
+                          PPCT không ghi mục tiêu cho bài này — AI sẽ tự đề xuất mục tiêu.
+                        </p>
+                      )}
+
+                      {unitPlan && (
+                        <label className="flex items-start gap-2 pt-1.5 cursor-pointer border-t border-blue-100 mt-1.5">
+                          <input
+                            type="checkbox"
+                            checked={attachUnitPlan}
+                            onChange={e => toggleUnitPlan(e.target.checked)}
+                            className="w-3.5 h-3.5 mt-0.5 rounded accent-blue-600"
+                          />
+                          <span className="text-[10px] text-slate-600 leading-snug">
+                            Kèm tổng quan <strong>học phần {unitPlan.term}</strong> làm tư liệu
+                            <span className="block text-slate-400">
+                              Gồm: {unitPlan.chapters.map(c => c.replace(/^Chương\s+[IVX]+\.\s*/i, '')).join(' · ')}. Chỉ tick nếu bài này thuộc các chương đó.
+                            </span>
+                          </span>
+                        </label>
+                      )}
+                    </div>
+                  )}
+
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between pt-2">
+                    Hoặc PPCT tự tải lên
+                    <button
                       onClick={() => { setUploadingFiles({ category: 'distribution' }); fileInputRef.current?.click(); }}
                       className="text-[10px] text-blue-600 font-bold hover:underline"
                     >
@@ -290,6 +397,14 @@ export const LessonControls = ({
             </div>
           )}
       </div>
+
+      {showPpctPicker && (
+        <PpctPickerModal
+          initialGrade={Number(currentPlan.grade) || undefined}
+          onPick={applyPpctLesson}
+          onClose={() => setShowPpctPicker(false)}
+        />
+      )}
     </>
   );
 };

@@ -21,7 +21,18 @@ import { cn } from '../../lib/utils';
 import { AppData } from '../../types';
 import { GEMINI_MODELS, CLAUDE_MODELS, OPENAI_MODELS, GROK_MODELS, DEEPSEEK_MODELS, NVIDIA_MODELS } from '../../lib/aiProviders';
 import { useTokenTracker } from '../../hooks/useTokenTracker';
+import { parseFolderId } from '../../lib/googleDrive';
+import type { DriveFolderKey } from '../../services/pushLessonToDrive';
 import type { ApiProvider } from '../../config/apiLimits';
+
+const DRIVE_FOLDER_FIELDS: { key: DriveFolderKey; label: string }[] = [
+  { key: 'tdsG10', label: 'TDS · Lớp 10' },
+  { key: 'moetG10', label: 'MOET · Lớp 10' },
+  { key: 'tdsG11', label: 'TDS · Lớp 11' },
+  { key: 'moetG11', label: 'MOET · Lớp 11' },
+  { key: 'tdsG12', label: 'TDS · Lớp 12' },
+  { key: 'moetG12', label: 'MOET · Lớp 12' },
+];
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -445,25 +456,29 @@ export const SettingsModal = ({
                   <div className="mb-4 flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-[var(--dewey-blue)]"><Database className="h-5 w-5" /></div>
                     <div>
-                      <h4 className="font-['Plus_Jakarta_Sans'] text-lg font-bold text-slate-900">Bot API — Đẩy giáo án lên Drive</h4>
-                      <p className="text-sm text-slate-500">URL Railway và token xác thực để kết nối bot Google Drive.</p>
+                      <h4 className="font-['Plus_Jakarta_Sans'] text-lg font-bold text-slate-900">Google Drive — Thư mục nhận giáo án</h4>
+                      <p className="text-sm text-slate-500">Dán link thư mục Drive cho từng chương trình và lớp. Để trống cũng được — lúc đẩy dán link vào là app tự nhớ.</p>
                     </div>
                   </div>
                   <div className="grid gap-3 md:grid-cols-2">
-                    <input
-                      type="text"
-                      value={data.settings.botApiUrl || ''}
-                      onChange={(e) => setData(prev => ({ ...prev, settings: { ...prev.settings, botApiUrl: e.target.value } }))}
-                      placeholder="https://edu-lesson-bot.railway.app"
-                      className="w-full rounded-2xl border border-slate-200 bg-blue-50/40 px-4 py-3 font-mono text-sm outline-none transition focus:border-[var(--dewey-blue)] focus:bg-white focus:ring-4 focus:ring-blue-100"
-                    />
-                    <input
-                      type="password"
-                      value={data.settings.botApiToken || ''}
-                      onChange={(e) => setData(prev => ({ ...prev, settings: { ...prev.settings, botApiToken: e.target.value } }))}
-                      placeholder="WEB_API_TOKEN từ Railway..."
-                      className="w-full rounded-2xl border border-slate-200 bg-blue-50/40 px-4 py-3 text-sm outline-none transition focus:border-[var(--dewey-blue)] focus:bg-white focus:ring-4 focus:ring-blue-100"
-                    />
+                    {DRIVE_FOLDER_FIELDS.map(({ key, label }) => (
+                      <label key={key} className="space-y-1.5">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{label}</span>
+                        <input
+                          type="text"
+                          value={data.settings.driveFolders?.[key] || ''}
+                          onChange={(e) => setData(prev => ({
+                            ...prev,
+                            settings: {
+                              ...prev.settings,
+                              driveFolders: { ...prev.settings.driveFolders, [key]: parseFolderId(e.target.value) },
+                            },
+                          }))}
+                          placeholder="Dán link thư mục Drive..."
+                          className="w-full rounded-2xl border border-slate-200 bg-blue-50/40 px-4 py-3 font-mono text-xs outline-none transition focus:border-[var(--dewey-blue)] focus:bg-white focus:ring-4 focus:ring-blue-100"
+                        />
+                      </label>
+                    ))}
                   </div>
                 </section>
               </div>

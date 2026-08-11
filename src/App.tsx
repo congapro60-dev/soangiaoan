@@ -373,6 +373,10 @@ export default function App() {
                 exportToPDF={(orientation) => exportUtils.exportToPDF(creator.currentPlan, showToast, orientation)}
                 exportToLaTeX={() => exportUtils.exportToLaTeX(creator.currentPlan, data, setIsLoading, setIsSettingsOpen, showToast, setLatexContent, setIsLatexModalOpen)}
                 onCreateExam={() => navigateToTesting(creator.currentPlan.content || '', creator.currentPlan.title || '')}
+                onSaveDriveFolder={(key, folderId) => setData(prev => ({
+                  ...prev,
+                  settings: { ...prev.settings, driveFolders: { ...prev.settings.driveFolders, [key]: folderId } },
+                }))}
               />
             )}
 

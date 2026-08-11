@@ -1,6 +1,6 @@
 # HANDOFF — Soạn giáo án / học phân hoá
 
-**Cập nhật**: 2026-08-04 · **Repo**: [`soangiaoan`](https://github.com/congapro60-dev/soangiaoan) · **Branch chuẩn**: `main` · **Production**: https://giaoandewey.vercel.app
+**Cập nhật**: 2026-08-11 · **Repo**: [`soangiaoan`](https://github.com/congapro60-dev/soangiaoan) · **Branch chuẩn**: `main` · **Production**: https://giaoandewey.vercel.app
 
 Ảnh chụp TRẠNG THÁI HIỆN TẠI, không phải nhật ký — `git log` đã lưu lịch sử tốt hơn.
 Trần **150 dòng**: vượt thì cắt mục cũ sang [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md).
@@ -11,8 +11,9 @@ Trần **150 dòng**: vượt thì cắt mục cũ sang [`docs/HANDOFF-ARCHIVE.m
 
 **`main` = `ca9158f`.** Chuỗi đỏ #442–#445 đã kết thúc ở #446/#447; trạng thái CI của `ca9158f` chưa xác nhận (máy này không có `gh`).
 
-Bốn lô gần nhất:
+Các lô gần nhất:
 
+- **Đẩy Drive không cần bot + chọn bài theo PPCT** (lô mới nhất) — bot Railway chết vì hết hạn dùng thử, chức năng đẩy giáo án được dựng lại **thẳng trong trình duyệt**: xin quyền Drive qua Firebase Google login rồi upload thẳng lên Drive API, không thêm hàm Vercel, không giữ secret. Kèm bộ chọn bài từ PPCT đóng sẵn: **684 bài TDS** (khối 6–12, hệ Discover) + **324 bài MOET** (khối 10–12), sinh từ `scripts/build-ppct.mjs`. Unit plan THPT học phần I nạp kèm khi giáo viên tự tick.
 - **Phủ kín kiểm thử `firestore.rules`** — 1/17 → 17/17 collection, `npm run test:rules` từ 35 lên **185 ca**. Ba file mới trong `tests/rules/`. Gỡ `test:e2e` khỏi `package.json` (trỏ vào file không tồn tại và bị `.gitignore` chặn). **Phơi ra 3 lỗ hổng rules chưa vá** — xem mục 3, trong đó `adaptiveLessons` là lỗ hổng MỚI phát hiện. Không sửa `firestore.rules` trong lô này: owner chốt phơi trước, vá ở phiên riêng.
 - **Giỏ sản phẩm + nối lỗi với công cụ vá** (`e77cf38`) — tab Nâng cấp gộp mọi sản phẩm AI đã sinh vào MỘT file Word thay vì 17 file rời; mỗi tiêu chí chưa đạt có nút dẫn thẳng tới mục menu vá được nó (`fixSuggestions.ts`). `markdownToOoxmlParagraphs` nay dựng được bảng Word thật. **Panel chưa QA trên UI** — cần upload .docx + khoá API.
 - **Dự giờ Danielson** (`90c1cb1`) — sửa 2 lỗi thật thấy trên production + thêm 2 tầng làm sạch biên bản. Chi tiết ở mục 2.
@@ -54,6 +55,11 @@ Bốn thay đổi và lý do — **đừng nới cái nào mà không đọc tes
 - **Ngưỡng 7000 ký tự của thư viện nước đi là PHANH CHỐNG PHÌNH, không phải giới hạn model.** Đo thực tế: kien_thuc 4477 · dao_nguoc 5619 · luyen_tap 5971. Vượt ~20 nước đi thì **đừng nới tiếp** — đổi cách gửi: gửi "tên + khi nào" của tất cả, "cách làm + vì sao" chỉ cho 3–5 nước đi AI đã chọn.
 - **`chấm điểm dự giờ/*.txt` là file THAM KHẢO, không biên dịch.** Đổi đuôi về `.ts` là `npm run lint` gãy.
 - **Custom claim `vai_tro` chỉ gán bằng `scripts/gan-vai-tro.ts` hoặc Firebase Console.** App không bao giờ được tự gán — làm thế là tự cấp quyền đọc đánh giá nhân sự.
+- **Đẩy Drive chặn phiên ẩn danh là CỐ Ý.** `getDriveAccessToken()` ném lỗi khi `currentUser.isAnonymous`. Nếu để popup Google chạy, `signInWithPopup` thay luôn phiên ẩn danh và cuốn theo dữ liệu app gắn với uid cũ. Scope `.../auth/drive` là scope **hạn chế chưa xác minh**: consent screen đang **In production / External**, người dùng thấy màn hình cảnh báo và có trần **100 người**. Đừng bấm *Back to testing* trong Google Auth Platform — làm thế là chặn đăng nhập Google của mọi người ngoài danh sách test.
+- **JSON trong `src/data/ppct/` và `src/data/unitplan/` là dữ liệu SINH RA, đừng sửa tay.** Nguồn nằm ở `Phan phoi va unit plan/` (không commit vì nặng ~8 MB); có PPCT năm mới thì thay file nguồn rồi chạy lại `node scripts/build-ppct.mjs` và `node scripts/build-unitplan.mjs`. `src/data/ppct/ppct.test.ts` canh 26 phép kiểm; nó từng bắt được lỗi thật `Number('')` biến ô số tiết trống thành 0.
+- **Đơn vị của bộ chọn bài là BÀI, không phải tiết** — ô "Yêu cầu cần đạt" trong PDF MOET là ô gộp trải nhiều tiết, cắt theo tiết thì 11–17% số hàng đứt giữa câu và trôi sang tiết bên cạnh. TDS có lỗ số tiết là đúng: các tiết `Tự chọn / Teacher's choice` không có tên bài nên bị bỏ.
+- **KHÔNG tự đoán bài nào thuộc unit plan nào.** Đo ngày 2026-08-11: khớp theo từ khoá tên chương chỉ trúng 34–53% ở học kỳ I mà khớp nhầm 19–26% bài học kỳ II. Ô tick để giáo viên tự quyết, mặc định tắt. Unit plan học kỳ II và bản THCS (PDF vỡ dấu tiếng Việt khi rút chữ) **chưa nạp**.
+- **PPCT chỉ là tư liệu đầu vào.** Owner chốt 2026-08-11: không được đổi bố cục mẫu giáo án người dùng chọn. `buildRequirement()` trong `LessonControls.tsx` gắn sẵn câu ràng buộc giữ nguyên các mục của mẫu — đừng gỡ.
 - **Tên thư mục/file tiếng Việt lưu dạng NFD.** Ghép chuỗi đường dẫn trong PowerShell/bash sẽ "không tìm thấy" dù nhìn đúng; phải duyệt bằng `Get-ChildItem` rồi dùng đối tượng file.
 
 ## 4. Lệnh nghiệm thu
@@ -96,6 +102,9 @@ in thông báo thành công sau khi bỏ qua bước. Nguồn sự thật về l
 | Prompt giáo án Toán | `src/prompts/{toanFormats,toanClassroomMoves}.ts` · `src/hooks/useLessonCreator.ts` |
 | Xuất Word/PDF | `api/render-word-core.ts` · `src/utils/{wordExportA4,examWordExport,exportUtils}.ts` |
 | Nhà cung cấp AI | `src/lib/aiProviders.ts` (BYOK, không còn relay khoá dự phòng) |
+| Đẩy giáo án lên Drive | `src/lib/googleDrive.ts` · `src/services/pushLessonToDrive.ts` · `src/components/modals/PushToDriveModal.tsx` |
+| Phân phối chương trình | `scripts/build-ppct.mjs` · `src/data/ppct/*` · `src/components/modals/PpctPickerModal.tsx` |
+| Unit plan học phần | `scripts/build-unitplan.mjs` · `src/data/unitplan/*` |
 | Quyền truy cập | `firestore.rules` · `firestore.indexes.json` (nguồn sự thật cho index production) |
 | Bài học đã rút | `tasks/lessons.md` — **đọc đầu phiên** |
 

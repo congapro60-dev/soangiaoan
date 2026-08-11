@@ -1,19 +1,22 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { X, CloudUpload, Loader2, CheckCircle, AlertTriangle, ExternalLink, FolderOpen } from 'lucide-react';
 import type { LessonPlan, AppData } from '../../types';
 import {
   checkLessonExists,
-  pushLessonToBot,
+  pushLessonToDrive,
+  savedFolderId,
+  driveFolderKey,
   ConflictError,
   type PushOptions,
   type PushResult,
   type PushFileResult,
   type CheckResult,
-} from '../../services/pushLessonToBot';
+} from '../../services/pushLessonToDrive';
 
 interface Props {
   currentPlan: Partial<LessonPlan>;
   settings: AppData['settings'];
+  onSaveFolder: (key: ReturnType<typeof driveFolderKey>, folderId: string) => void;
   showToast: (msg: string, type?: string) => void;
   onClose: () => void;
 }
@@ -30,12 +33,14 @@ const toWeek = (v: string | undefined): number => {
   return n >= 1 && n <= 40 ? n : 1;
 };
 
-export const PushToDriveModal = ({ currentPlan, settings, showToast, onClose }: Props) => {
+export const PushToDriveModal = ({ currentPlan, settings, onSaveFolder, showToast, onClose }: Props) => {
   const [lessonType, setLessonType] = useState<'TDS' | 'MOET'>('TDS');
   const [grade, setGrade] = useState<number>(toGrade(currentPlan.grade));
   const [week, setWeek] = useState<number>(toWeek(currentPlan.week));
   const [formats, setFormats] = useState<Set<'docx' | 'pdf'>>(new Set(['docx', 'pdf']));
   const [replaceExisting, setReplaceExisting] = useState(false);
+  const [useWeekFolder, setUseWeekFolder] = useState(true);
+  const [folderInput, setFolderInput] = useState('');
   const [step, setStep] = useState<Step>('config');
   const [checkResult, setCheckResult] = useState<CheckResult | null>(null);
   const [pushResult, setPushResult] = useState<PushResult | null>(null);
@@ -43,7 +48,16 @@ export const PushToDriveModal = ({ currentPlan, settings, showToast, onClose }: 
   const [errorMsg, setErrorMsg] = useState('');
   const [conflictFilename, setConflictFilename] = useState('');
 
-  const notConfigured = !settings.botApiUrl?.trim() || !settings.botApiToken?.trim();
+  // Đổi chương trình/lớp thì nạp lại thư mục đã lưu của cặp đó. Cố tình KHÔNG phụ thuộc vào
+  // `settings` — autosave đổi định danh object sẽ xoá mất link người dùng đang gõ dở.
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
+  useEffect(() => {
+    setFolderInput(savedFolderId(settingsRef.current, lessonType, grade));
+    setCheckResult(null);
+  }, [lessonType, grade]);
+
+  const noFolder = !folderInput.trim();
 
   const toggleFormat = (fmt: 'docx' | 'pdf') => {
     setFormats(prev => {
@@ -60,7 +74,7 @@ export const PushToDriveModal = ({ currentPlan, settings, showToast, onClose }: 
   const handleCheck = async () => {
     setStep('checking');
     try {
-      const result = await checkLessonExists({ lessonType, grade, week }, undefined, settings);
+      const result = await checkLessonExists({ lessonType, grade, week, folderInput, useWeekFolder }, undefined, settings);
       setCheckResult(result);
       setStep('checked');
     } catch (e: unknown) {
@@ -73,13 +87,17 @@ export const PushToDriveModal = ({ currentPlan, settings, showToast, onClose }: 
     setStep('pushing');
     try {
       const opts: PushOptions = {
-        lessonType, grade, week,
+        lessonType, grade, week, folderInput, useWeekFolder,
         formats: Array.from(formats),
         replaceExisting: forceReplace || replaceExisting,
       };
-      const result = await pushLessonToBot(currentPlan, opts, settings, setProgressMsg);
+      const result = await pushLessonToDrive(currentPlan, opts, settings, setProgressMsg);
       setPushResult(result);
       setStep('done');
+      // Nhớ thư mục vừa dùng để lần sau khỏi dán lại.
+      if (result.folderId !== savedFolderId(settings, lessonType, grade)) {
+        onSaveFolder(driveFolderKey(lessonType, grade), result.folderId);
+      }
       showToast('Đã đẩy giáo án lên Drive thành công!', 'success');
     } catch (e: unknown) {
       if (e instanceof ConflictError) {
@@ -105,7 +123,7 @@ export const PushToDriveModal = ({ currentPlan, settings, showToast, onClose }: 
             </div>
             <div>
               <h2 className="font-black text-slate-800 text-lg">Đẩy lên Google Drive</h2>
-              <p className="text-xs text-slate-400 font-medium">Qua Railway bot</p>
+              <p className="text-xs text-slate-400 font-medium">Upload thẳng từ trình duyệt</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
@@ -114,19 +132,6 @@ export const PushToDriveModal = ({ currentPlan, settings, showToast, onClose }: 
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-5">
-          {/* Not configured warning */}
-          {notConfigured && (
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3">
-              <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-bold text-amber-800">Chưa cấu hình Bot API</p>
-                <p className="text-xs text-amber-700 mt-1">
-                  Vào <strong>Cài đặt → Bot API</strong> để nhập URL Railway và WEB_API_TOKEN.
-                </p>
-              </div>
-            </div>
-          )}
-
           {/* Config / checked screen */}
           {isConfigStep && (
             <>
@@ -173,6 +178,22 @@ export const PushToDriveModal = ({ currentPlan, settings, showToast, onClose }: 
                 </div>
           </div>
 
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Thư mục đích</label>
+                <input
+                  type="text"
+                  value={folderInput}
+                  onChange={e => { setFolderInput(e.target.value); setCheckResult(null); }}
+                  placeholder="Dán link thư mục Drive..."
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-100 bg-slate-50 font-mono text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
+                />
+                <p className="text-[11px] text-slate-400">
+                  {noFolder
+                    ? 'Mở thư mục trên Drive rồi copy nguyên link trên thanh địa chỉ.'
+                    : 'Đẩy xong app sẽ nhớ thư mục này cho ' + lessonType + ' lớp ' + grade + '.'}
+                </p>
+              </div>
+
               <div className="space-y-2">
                 <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Định dạng upload</label>
                 <div className="flex gap-4">
@@ -189,6 +210,19 @@ export const PushToDriveModal = ({ currentPlan, settings, showToast, onClose }: 
                   ))}
                 </div>
               </div>
+
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={useWeekFolder}
+                  onChange={e => { setUseWeekFolder(e.target.checked); setCheckResult(null); }}
+                  className="w-4 h-4 mt-0.5 rounded accent-emerald-600"
+                />
+                <span className="text-sm text-slate-600">
+                  Bỏ vào thư mục con <strong>Tuần {String(week).padStart(2, '0')}</strong> bên trong
+                  <span className="block text-[11px] text-slate-400">Bỏ chọn nếu link trên đã trỏ đúng thư mục tuần.</span>
+                </span>
+              </label>
 
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
@@ -209,7 +243,7 @@ export const PushToDriveModal = ({ currentPlan, settings, showToast, onClose }: 
                     <FolderOpen className={`w-4 h-4 ${ checkResult.folderExists ? 'text-blue-500' : 'text-slate-400'}`} />
                     <p className="text-sm font-bold text-slate-700">
                       {checkResult.folderExists
-                        ? `Tuần ${String(week).padStart(2, '0')} đã có ${checkResult.files.length} file`
+                        ? `Thư mục đích đang có ${checkResult.files.length} file`
                         : `Tuần ${String(week).padStart(2, '0')} chưa có → sẽ tự tạo thư mục`}
                     </p>
                   </div>
@@ -253,7 +287,7 @@ export const PushToDriveModal = ({ currentPlan, settings, showToast, onClose }: 
                 <div>
                   <p className="text-sm font-bold text-amber-800">File đã tồn tại trên Drive</p>
                   <p className="text-xs text-amber-700 mt-1 break-all">
-                    <strong>{conflictFilename}</strong> đã có trong thư mục tuần này. Bạn có muốn ghi đè không?
+                    <strong>{conflictFilename}</strong> đã có trong thư mục này. Bạn có muốn ghi đè không?
                   </p>
                 </div>
               </div>
@@ -279,7 +313,7 @@ export const PushToDriveModal = ({ currentPlan, settings, showToast, onClose }: 
                     {r.folderUrl && (
                       <a href={r.folderUrl} target="_blank" rel="noopener noreferrer"
                          className="text-xs text-emerald-600 font-medium hover:underline flex items-center gap-1">
-                        <FolderOpen className="w-3 h-3" /> Mở thư mục tuần
+                        <FolderOpen className="w-3 h-3" /> Mở thư mục
                       </a>
                     )}
                   </div>
@@ -310,14 +344,14 @@ export const PushToDriveModal = ({ currentPlan, settings, showToast, onClose }: 
           <div className="p-6 border-t border-slate-100 flex gap-3">
             <button
               onClick={handleCheck}
-              disabled={notConfigured}
+              disabled={noFolder}
               className="flex-1 py-3 border border-slate-200 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all disabled:opacity-40"
             >
               Kiểm tra Drive
             </button>
             <button
               onClick={() => handlePush()}
-              disabled={notConfigured || !currentPlan.content}
+              disabled={noFolder || !currentPlan.content}
               className="flex-1 py-3 bg-emerald-600 text-white rounded-xl font-bold text-sm hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 disabled:opacity-40 flex items-center justify-center gap-2"
             >
               <CloudUpload className="w-4 h-4" /> Đẩy lên Drive
