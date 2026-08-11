@@ -70,6 +70,7 @@ const buildLessons = (rows, source, grade) => {
         id: `${source.toLowerCase()}-g${grade}-${counter}`,
         title: group.title,
         subject: group.subject,
+        isElective: Boolean(row.isElective),
         week: row.week ?? weeks[0] ?? null,
         weeks,
         periodNo: row.periodNo,
@@ -133,18 +134,21 @@ const parseTdsSheet = (sheet, grade) => {
       if (rawSubject) subject = rawSubject.split('\n')[0].trim();
     }
 
-    // Dòng "Tự chọn / Teacher's choice" có số tiết nhưng không có tên bài — không phải bài để soạn.
+    // Dòng "Tự chọn / Teacher's choice" có số tiết nhưng không ghi tên bài — trường để giáo viên
+    // tự quyết dạy gì. Vẫn phải đưa vào danh sách, đánh dấu riêng để giáo viên tự điền nội dung.
     const { title, detail } = splitTitle(row[cols.title]);
-    if (!title) continue;
+    const rawPeriod = clean(row[cols.period]);
+    const isElective = !title && /tự chọn|teacher/i.test(subject) && /^\d+$/.test(rawPeriod);
+    if (!title && !isElective) continue;
 
     // Ô số tiết trống phải ra null, không phải 0 — Number('') là 0 nên các bài không đánh
     // số tiết (hoạt động dự án, bài tập hè) sẽ cùng mang số 0 và nhìn như bị trùng.
-    const rawPeriod = clean(row[cols.period]);
     out.push({
       week,
       periodNo: /^\d+$/.test(rawPeriod) ? Number(rawPeriod) : null,
-      subject,
-      title,
+      subject: isElective ? '' : subject,
+      title: isElective ? 'Tiết tự chọn' : title,
+      isElective,
       detail,
       objectives: cols.objectives >= 0 ? clean(row[cols.objectives]) : '',
       notes: clean(row[cols.notes]),

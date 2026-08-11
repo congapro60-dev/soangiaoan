@@ -161,7 +161,9 @@ export const PpctPickerModal = ({ initialSource = 'TDS', initialGrade, onPick, o
                           className="w-full text-left px-3 py-2.5 rounded-xl border border-slate-100 hover:border-blue-300 hover:bg-blue-50/50 transition-all"
                         >
                           <div className="flex items-start justify-between gap-3">
-                            <p className="text-sm font-bold text-slate-700">{lesson.title}</p>
+                            <p className={`text-sm font-bold ${lesson.isElective ? 'text-amber-700' : 'text-slate-700'}`}>
+                              {lesson.title}
+                            </p>
                             <span className="text-[10px] font-bold text-blue-500 whitespace-nowrap mt-0.5">
                               {lesson.periodCount > 1
                                 ? `Tiết ${lesson.periodIndex}/${lesson.periodCount}`
@@ -172,6 +174,11 @@ export const PpctPickerModal = ({ initialSource = 'TDS', initialGrade, onPick, o
                             {lesson.subject && <span className="text-blue-500">{lesson.subject} · </span>}
                             Tiết {lesson.periodNo} theo PPCT
                           </p>
+                          {lesson.isElective && (
+                            <p className="text-[11px] text-amber-600 mt-1">
+                              PPCT để trống — chọn rồi tự điền nội dung muốn dạy.
+                            </p>
+                          )}
                           {lesson.detail && (
                             <p className="text-[11px] text-slate-500 mt-1 line-clamp-2">
                               {lesson.detail.replace(/\n/g, ' · ')}

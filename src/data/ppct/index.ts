@@ -12,6 +12,8 @@ export interface PpctLesson {
   title: string;
   /** Phân môn (Đại số / Hình học / Số học). MOET không ghi phân môn nên để rỗng. */
   subject: string;
+  /** Tiết "Tự chọn / Teacher's choice" — PPCT để trống nội dung, giáo viên tự quyết dạy gì. */
+  isElective: boolean;
   week: number | null;
   /** Các tuần mà cả bài trải qua. */
   weeks: number[];

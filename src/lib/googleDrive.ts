@@ -36,11 +36,33 @@ export const getDriveAccessToken = async (): Promise<string> => {
 
   const provider = new GoogleAuthProvider();
   provider.addScope(DRIVE_SCOPE);
+  // Gợi ý sẵn tài khoản đang đăng nhập. Không có dòng này thì trình duyệt nhiều tài khoản sẽ mở
+  // tài khoản mặc định, chọn nhầm là Firebase trả auth/user-mismatch.
+  if (user?.email) provider.setCustomParameters({ login_hint: user.email });
 
   const isGoogleUser = user?.providerData.some(p => p.providerId === 'google.com') ?? false;
-  const result = user && isGoogleUser
-    ? await reauthenticateWithPopup(user, provider)
-    : await signInWithPopup(auth, provider);
+
+  let result;
+  try {
+    result = user && isGoogleUser
+      ? await reauthenticateWithPopup(user, provider)
+      : await signInWithPopup(auth, provider);
+  } catch (err: unknown) {
+    const code = (err as { code?: string }).code ?? '';
+    if (code === 'auth/user-mismatch') {
+      throw new DriveAuthError(
+        `Cửa sổ Google vừa mở bằng tài khoản khác với tài khoản đang đăng nhập${user?.email ? ` (${user.email})` : ''}. ` +
+        'Chọn đúng tài khoản đó trong cửa sổ Google, hoặc đăng xuất khỏi app rồi đăng nhập lại bằng tài khoản bạn muốn dùng.',
+      );
+    }
+    if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+      throw new DriveAuthError('Cửa sổ cấp quyền Google đã bị đóng. Bấm "Đẩy lên Drive" lại khi bạn sẵn sàng.');
+    }
+    if (code === 'auth/popup-blocked') {
+      throw new DriveAuthError('Trình duyệt đang chặn cửa sổ bật lên. Cho phép pop-up cho trang này rồi thử lại.');
+    }
+    throw err;
+  }
 
   const token = GoogleAuthProvider.credentialFromResult(result)?.accessToken;
   if (!token) {

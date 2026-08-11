@@ -27,6 +27,30 @@ interface LessonControlsProps {
 }
 
 /**
+ * Tiêu đề giáo án phải phân biệt được từng tiết: một bài "Mệnh đề" có thể trải 4 tiết, lưu cả
+ * bốn cùng tên thì trong thư viện lẫn trên Drive không biết đâu là đâu.
+ * Ưu tiên số tiết mà chính PPCT ghi trong ô nội dung ("Tiết 3: ..."), vì nó đếm theo cả bài
+ * chứ không reset theo tuần.
+ */
+const buildTitle = (lesson: PpctLesson): string => {
+  if (lesson.isElective) {
+    return `Tiết tự chọn — Tuần ${lesson.week}${lesson.periodNo ? `, tiết ${lesson.periodNo}` : ''}`;
+  }
+  const nhanTiet = lesson.detail.match(/^\s*Ti[êế]t\s*(\d+)/i)?.[1];
+  if (nhanTiet) return `${lesson.title} — Tiết ${nhanTiet}`;
+  if (lesson.periodCount > 1) return `${lesson.title} — Tiết ${lesson.periodIndex}/${lesson.periodCount}`;
+  return lesson.title;
+};
+
+/** Mẫu giáo án ban Toán có ba kế hoạch; đoán từ chính chữ của PPCT, giáo viên đổi lại được. */
+const suyRaKeHoach = (lesson: PpctLesson): ToanKeHoach | null => {
+  const text = `${lesson.title} ${lesson.detail}`.toLowerCase();
+  if (/kiểm tra|trả bài|đề thi/.test(text)) return null; // tiết kiểm tra không hợp kế hoạch nào
+  if (/luyện tập|bài tập|ôn tập|thực hành|chữa bài/.test(text)) return 'luyen_tap';
+  return 'kien_thuc';
+};
+
+/**
  * Gói bài đã chọn thành yêu cầu soạn, giữ nguyên chữ của PPCT để AI không tự bịa mục tiêu.
  * Toàn bộ khối này là DỮ LIỆU ĐẦU VÀO — không được đổi bố cục mẫu giáo án người dùng đã chọn.
  */
@@ -42,6 +66,8 @@ const buildRequirement = (
   const parts = [
     `Soạn ${viTri}, theo phân phối chương trình ${source} lớp ${grade}, tuần ${lesson.week}` +
       (lesson.periodNo ? `, tiết ${lesson.periodNo} của năm học.` : '.'),
+    lesson.isElective && 'Đây là TIẾT TỰ CHỌN: phân phối chương trình để trống nội dung, giáo viên tự quyết dạy gì. '
+      + 'Hãy điền nội dung muốn dạy vào dòng dưới đây trước khi bấm soạn.\nNỘI DUNG TỰ CHỌN: ',
     lesson.subject && `Phân môn: ${lesson.subject}.`,
     lesson.detail && `\nNội dung của chính tiết này theo PPCT:\n${lesson.detail}`,
     lesson.objectives && `\n${source === 'MOET' ? 'Yêu cầu cần đạt' : 'Mục tiêu'} của cả bài (trích nguyên văn PPCT):\n${lesson.objectives}`,
@@ -95,10 +121,15 @@ export const LessonControls = ({
     setPickedLesson(picked);
     setCurrentPlan(prev => ({
       ...prev,
-      title: lesson.title,
+      title: buildTitle(lesson),
       grade: String(grade),
       week: String(lesson.week ?? prev.week ?? 1),
     }));
+    // Mẫu giáo án ban Toán soạn đúng một tiết theo kế hoạch được chỉ định — đoán sẵn cho đỡ thao tác.
+    if (builtinFormat === 'toan') {
+      const keHoach = suyRaKeHoach(lesson);
+      if (keHoach) setToanKeHoach(keHoach);
+    }
     setShowPpctPicker(false);
 
     // Unit plan chỉ có cho TDS lớp 10–12, và chỉ học phần I.
@@ -290,6 +321,16 @@ export const LessonControls = ({
                       </p>
                       {pickedLesson.lesson.detail && (
                         <p className="text-[10px] text-slate-500">{pickedLesson.lesson.detail.split('\n')[0]}</p>
+                      )}
+                      {pickedLesson.lesson.isElective && (
+                        <p className="text-[10px] text-amber-600 font-medium">
+                          Tiết tự chọn — điền nội dung muốn dạy vào ô yêu cầu bên dưới trước khi soạn.
+                        </p>
+                      )}
+                      {builtinFormat === 'toan' && suyRaKeHoach(pickedLesson.lesson) && (
+                        <p className="text-[10px] text-slate-500">
+                          Kế hoạch tự nhận: <strong>{TOAN_KE_HOACH_LABELS[suyRaKeHoach(pickedLesson.lesson)!]}</strong> — đổi lại ở mục trên nếu chưa đúng.
+                        </p>
                       )}
                       {!pickedLesson.lesson.objectives && (
                         <p className="text-[10px] text-amber-600 font-medium">
