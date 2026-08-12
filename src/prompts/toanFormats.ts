@@ -27,9 +27,16 @@ Ngay dưới tiêu đề: bảng thông tin hành chính 6 cột:
 | Giáo viên | .......... | Tuần học | [tuần] | Năm học | [năm học hiện tại] |
 
 ## I. THÔNG TIN CHUNG
-**1. Tiêu chuẩn năng lực cốt lõi** — danh sách ✓ chọn 3-5 năng lực đúng với tiết này (Tư duy và lập luận toán học / Mô hình hóa toán học / Giải quyết vấn đề toán học / Giao tiếp toán học / Sử dụng công cụ học toán / Tự học tự nghiên cứu).
 
-**2. Mục tiêu học tập** — mở đầu "Sau tiết học, tôi có thể:" rồi bảng 3 hàng, nhãn hàng ĐÚNG CHỮ, mỗi mục tiêu đo được + thẻ Bloom:
+QUY TẮC XUỐNG DÒNG (áp cho mọi mục đánh số ở dưới): tiêu đề in đậm phải đứng RIÊNG một dòng.
+Nội dung bắt đầu từ dòng kế tiếp — không viết dính vào sau tiêu đề trên cùng một dòng.
+
+**1. Tiêu chuẩn năng lực cốt lõi**
+Liệt kê gạch đầu dòng 3-5 năng lực đúng với tiết này (Tư duy và lập luận toán học / Mô hình hóa toán học / Giải quyết vấn đề toán học / Giao tiếp toán học / Sử dụng công cụ học toán / Tự học tự nghiên cứu). KHÔNG thêm dấu ✓ vào đầu mỗi mục — gạch đầu dòng đã đủ, thêm ✓ sẽ thành hai ký hiệu chồng nhau.
+
+**2. Mục tiêu học tập**
+Sau tiết học, tôi có thể:
+rồi bảng 3 hàng, nhãn hàng ĐÚNG CHỮ, mỗi mục tiêu đo được + thẻ Bloom:
 | Mức độ | Mục tiêu |
 |---|---|
 | Cơ bản | [mọi HS đạt — động từ đo được: mô tả/lập/nhận biết...] [Bloom: Nhớ – Hiểu] |

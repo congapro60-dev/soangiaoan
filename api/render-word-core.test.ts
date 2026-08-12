@@ -1,5 +1,41 @@
 import { describe, expect, it } from 'vitest';
-import { preprocessExamMarkdownForWord, splitBannerRowsFromTables } from './render-word-core';
+import {
+  preprocessExamMarkdownForWord,
+  splitBannerRowsFromTables,
+  stripImagePromptLines,
+  normalizeVietnamesePunctuation,
+} from './render-word-core';
+
+describe('stripImagePromptLines', () => {
+  it('gỡ mô tả ảnh tiếng Anh khỏi bản xuất', () => {
+    const input = ['Đoạn mở đầu.', '> 🎨 Image Prompt: 2D flat vector illustration, no text.', 'Đoạn sau.'].join('\n');
+
+    expect(stripImagePromptLines(input)).toBe('Đoạn mở đầu.\nĐoạn sau.');
+  });
+
+  it('không đụng vào câu tiếng Việt có chữ ảnh', () => {
+    const input = 'GV chiếu ảnh thanh dầm ngang song song với mặt sàn.';
+
+    expect(stripImagePromptLines(input)).toBe(input);
+  });
+});
+
+describe('normalizeVietnamesePunctuation', () => {
+  it('bỏ khoảng trắng thừa trước dấu câu', () => {
+    expect(normalizeVietnamesePunctuation('Học sinh nêu nhận xét .')).toBe('Học sinh nêu nhận xét.');
+    expect(normalizeVietnamesePunctuation('Ba mức : cơ bản , nâng cao .')).toBe('Ba mức: cơ bản, nâng cao.');
+  });
+
+  it('giữ nguyên số thập phân, giờ và tỉ số', () => {
+    const input = 'Tiết dài 1,5 giờ, bắt đầu 13:52, tỉ lệ 2:3.';
+
+    expect(normalizeVietnamesePunctuation(input)).toBe(input);
+  });
+
+  it('gỡ ký hiệu chồng lên gạch đầu dòng', () => {
+    expect(normalizeVietnamesePunctuation('- ✓ Tư duy và lập luận toán học')).toBe('- Tư duy và lập luận toán học');
+  });
+});
 
 describe('splitBannerRowsFromTables', () => {
   it('tách dải tiêu đề dính dưới bảng thành bảng một cột riêng', () => {

@@ -30,7 +30,7 @@ const EXAM_FORMAT_SYSTEM_INSTRUCTION = `Bạn là chuyên gia soạn đề thi T
 7. Hình vẽ minh họa: 
    - Nếu sơ đồ tư duy/lưu đồ: Dùng \`\`\`mermaid.
    - Nếu hình học cơ bản: Dùng \`\`\`latex (TikZ) với các lệnh cơ bản (draw, node, fill). KHÔNG dùng các thư viện ngoài như tkz-euclide.
-   - Nếu hình ảnh thực tế/phức tạp: TUYỆT ĐỐI KHÔNG viết code, chỉ viết Gợi ý ảnh bằng tiếng Anh trong blockquote \`> 🎨 Image Prompt: ...\`.`;
+   - Nếu hình ảnh thực tế/phức tạp: vẽ sơ đồ đơn giản hoá bằng TikZ. TUYỆT ĐỐI KHÔNG viết mô tả ảnh bằng tiếng Anh (kiểu "Image Prompt: ..."); vẽ không nổi thì bỏ hình và mô tả bằng một câu tiếng Việt.`;
 
 export interface GeminiCallResult {
   text: string;

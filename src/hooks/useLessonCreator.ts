@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { LessonPlan, AppData, TemplateFile, BuiltinFormat, ToanKeHoach } from '../types';
 import { TOAN_COMMON_FORMAT, TOAN_KE_HOACH_FORMATS, TOAN_ADDITIONAL_REQUIREMENTS } from '../prompts/toanFormats';
 import { buildToanClassroomMovesPrompt } from '../prompts/toanClassroomMoves';
+import { VIETNAMESE_WRITING_RULES } from '../prompts/vietnameseWriting';
 import { callAI, callAIStream, getActiveApiKey } from '../lib/aiProviders';
 import { cleanMarkdownOutput } from '../utils/markdownUtils';
 import { applyLessonRevisionPatchResponse, buildLessonRevisionPatchPrompt } from '../utils/lessonRevisionPatch';
@@ -655,18 +656,20 @@ QUY TẮC NGHIÊM NGẶT:
 - BẮT BUỘC CHỈ DÙNG CÁC MÀU CƠ BẢN CỦA LaTeX (black, white, red, green, blue, cyan, magenta, yellow, gray, lightgray) hoặc các màu từ gói dvipsnames (như NavyBlue, ForestGreen, BrickRed). TUYỆT ĐỐI KHÔNG tự sáng tạo tên màu lạ để tránh lỗi biên dịch.
 - GIỚI HẠN ĐỘ PHỨC TẠP: tối đa 2 hình TikZ trong một giáo án; mỗi hình không quá khoảng 40 dòng; chỉ dùng các lệnh TikZ cơ bản (\\draw, \\node, \\fill, \\path, \\foreach đơn giản). TUYỆT ĐỐI không dùng ảnh nền, external file, package/thư viện lạ (như tkz-euclide). Nếu hình quá phức tạp, hãy chuyển sang gợi ý ảnh (xem mục 2).
 
-2. Ảnh minh họa SGK/Thực tế (static_image):
-- Khi nào dùng: Cần bối cảnh thực tế hoặc sơ đồ tư duy khái quát (VD: Cây cầu treo, quỹ đạo vệ tinh).
-- Cách thực hiện: KHÔNG tự sinh mã. Viết gợi ý ảnh bằng tiếng Anh dạng: > 🎨 Image Prompt: mô tả chi tiết bằng tiếng Anh
-- Ràng buộc: "2D flat vector illustration, textbook educational diagram style, minimal blue and indigo color palette, white background. Strictly NO text, NO letters, NO math formulas, NO numbers, NO labels."
-- Có thể đặt ở bất kỳ đâu: trong ô bảng, trước/sau bảng đều được.
+2. Bối cảnh thực tế (cây cầu, thanh dầm, quỹ đạo...):
+- Vẫn VẼ bằng TikZ, ở mức sơ đồ đơn giản hoá: chỉ giữ những nét cần cho ý toán học.
+- TUYỆT ĐỐI KHÔNG viết mô tả ảnh bằng tiếng Anh (dạng "Image Prompt", "prompt: ...", "2D flat vector illustration..."). Giáo án là văn bản tiếng Việt đưa cho giáo viên, không phải chỗ đặt lệnh cho máy vẽ ảnh.
+- Nếu một hình thật sự không vẽ nổi bằng TikZ: BỎ HÌNH, và mô tả bằng một câu tiếng Việt ngắn trong nội dung (VD: "GV chiếu ảnh thanh dầm ngang song song với mặt sàn").
 
 LƯU Ý QUAN TRỌNG:
-- KHÔNG BAO GIỜ đặt khối code nhiều dòng (\`\`\`tikz, \`\`\`prompt) vào bên trong ô bảng Markdown. Markdown không hỗ trợ và sẽ hiển thị mã thô.
-- Nếu cần gợi ý ảnh trong bảng, dùng dạng blockquote: > 🎨 Image Prompt: mô tả
+- KHÔNG BAO GIỜ đặt khối code nhiều dòng (\`\`\`tikz) vào bên trong ô bảng Markdown. Markdown không hỗ trợ và sẽ hiển thị mã thô.
 - Hình TikZ phải đặt ngoài bảng, sau đó tham chiếu (VD: "Xem Hình 1 bên dưới").
 ===========================================================
 `;
+
+      // Luật trình bày tiếng Việt áp cho MỌI mẫu — nó chỉ chỉnh cách viết văn xuôi,
+      // không đụng vào bố cục mà từng mẫu quy định.
+      const VIET_RULES = VIETNAMESE_WRITING_RULES;
 
       let templateContext = '';
       if (builtinFormat === 'cv5512') {
@@ -688,6 +691,7 @@ LƯU Ý QUAN TRỌNG:
       } else {
         templateContext = ADAPTIVE_READY_FORMAT;
       }
+      templateContext += '\n' + VIET_RULES;
 
       const isAdaptiveReadyDefault = builtinFormat === 'default' && !selectedTemplate;
 

@@ -1,4 +1,5 @@
 import { UpgradeMenuItemId } from '../../types';
+import { VIETNAMESE_WRITING_RULES } from '../../prompts/vietnameseWriting';
 import { KNOWLEDGE_NANG_LUC_SO } from './knowledge/nangLucSo';
 import { KNOWLEDGE_NANG_LUC_AI } from './knowledge/nangLucAI';
 import { KNOWLEDGE_PHUONG_PHAP_DAY_HOC } from './knowledge/phuongPhapDayHoc';
@@ -17,6 +18,7 @@ ${analysisSummary}
 </phan_tich_tom_tat>
 
 Dựa trên dữ liệu trên, hãy thực hiện yêu cầu sau đây một cách chuyên nghiệp nhất, sử dụng định dạng Markdown rõ ràng, dễ đọc.
+${VIETNAMESE_WRITING_RULES}
 `;
 
   const prompts: Partial<Record<UpgradeMenuItemId, string>> = {
@@ -149,7 +151,7 @@ Vui lòng xuất nội dung hoàn toàn bằng Markdown.`,
 
     'P': `YÊU CẦU: Tạo học liệu số hỗ trợ bài giảng. 
 Dựa vào kiến thức trọng tâm, hãy cung cấp:
-1. 3-5 câu lệnh (Prompt) chi tiết để giáo viên copy dán vào các công cụ AI tạo ảnh (Midjourney, DALL-E) nhằm tạo ảnh minh họa trực quan.
+1. 3-5 gợi ý ảnh minh hoạ, MỖI GỢI Ý VIẾT BẰNG TIẾNG VIỆT: tả rõ cảnh cần vẽ, bố cục và chi tiết phải có. Giáo viên đọc là hình dung được ngay, cần thì tự dịch sang công cụ vẽ ảnh. TUYỆT ĐỐI không viết câu lệnh tiếng Anh.
 2. 2-3 từ khóa chuẩn tiếng Anh để giáo viên tìm kiếm video/mô phỏng trên YouTube hoặc PhET.
 Vui lòng xuất nội dung hoàn toàn bằng Markdown.`,
   };
