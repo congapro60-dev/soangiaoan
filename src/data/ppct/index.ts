@@ -34,6 +34,8 @@ export interface PpctProgram {
   source: PpctSource;
   grade: number;
   stream: string;
+  /** Năm học của bộ PPCT, ví dụ "2026 - 2027". Giáo án phải ghi đúng năm này. */
+  schoolYear: string;
   lessons: PpctLesson[];
 }
 

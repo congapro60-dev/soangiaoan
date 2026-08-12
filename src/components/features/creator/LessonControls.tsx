@@ -58,6 +58,7 @@ const buildRequirement = (
   lesson: PpctLesson,
   source: PpctSource,
   grade: number,
+  schoolYear: string,
   unitPlanContext?: string,
 ): string => {
   const viTri = lesson.periodCount > 1
@@ -66,6 +67,7 @@ const buildRequirement = (
   const parts = [
     `Soạn ${viTri}, theo phân phối chương trình ${source} lớp ${grade}, tuần ${lesson.week}` +
       (lesson.periodNo ? `, tiết ${lesson.periodNo} của năm học.` : '.'),
+    `Điền đúng vào các ô sẵn có ở đầu giáo án: Lớp ${grade} · Tuần học ${lesson.week} · Năm học ${schoolYear}.`,
     lesson.isElective && 'Đây là TIẾT TỰ CHỌN: phân phối chương trình để trống nội dung, giáo viên tự quyết dạy gì. '
       + 'Hãy điền nội dung muốn dạy vào dòng dưới đây trước khi bấm soạn.\nNỘI DUNG TỰ CHỌN: ',
     lesson.subject && `Phân môn: ${lesson.subject}.`,
@@ -99,7 +101,9 @@ export const LessonControls = ({
 }: LessonControlsProps) => {
   const [inputMode, setInputMode] = useState<'manual' | 'ppct'>('manual');
   const [showPpctPicker, setShowPpctPicker] = useState(false);
-  const [pickedLesson, setPickedLesson] = useState<{ lesson: PpctLesson; source: PpctSource; grade: number } | null>(null);
+  const [pickedLesson, setPickedLesson] = useState<
+    { lesson: PpctLesson; source: PpctSource; grade: number; schoolYear: string } | null
+  >(null);
   const [unitPlan, setUnitPlan] = useState<UnitPlan | null>(null);
   const [attachUnitPlan, setAttachUnitPlan] = useState(false);
 
@@ -107,17 +111,23 @@ export const LessonControls = ({
     `Tư liệu unit plan — Kế hoạch học phần ${plan.term}, Toán ${plan.grade} (các chương: ${plan.chapters.join('; ')}):\n${plan.overview}`;
 
   const applyPicked = (
-    picked: { lesson: PpctLesson; source: PpctSource; grade: number },
+    picked: { lesson: PpctLesson; source: PpctSource; grade: number; schoolYear: string },
     plan: UnitPlan | null,
     attach: boolean,
   ) => {
     setSingleRequirement(
-      buildRequirement(picked.lesson, picked.source, picked.grade, attach && plan ? unitPlanContext(plan) : undefined),
+      buildRequirement(
+        picked.lesson,
+        picked.source,
+        picked.grade,
+        picked.schoolYear,
+        attach && plan ? unitPlanContext(plan) : undefined,
+      ),
     );
   };
 
-  const applyPpctLesson = async (lesson: PpctLesson, source: PpctSource, grade: number) => {
-    const picked = { lesson, source, grade };
+  const applyPpctLesson = async (lesson: PpctLesson, source: PpctSource, grade: number, schoolYear: string) => {
+    const picked = { lesson, source, grade, schoolYear };
     setPickedLesson(picked);
     setCurrentPlan(prev => ({
       ...prev,
@@ -318,6 +328,7 @@ export const LessonControls = ({
                           ? ` · Tiết ${pickedLesson.lesson.periodIndex}/${pickedLesson.lesson.periodCount}`
                           : ' · 1 tiết'}
                         {pickedLesson.lesson.subject ? ` · ${pickedLesson.lesson.subject}` : ''}
+                        {` · Năm học ${pickedLesson.schoolYear}`}
                       </p>
                       {pickedLesson.lesson.detail && (
                         <p className="text-[10px] text-slate-500">{pickedLesson.lesson.detail.split('\n')[0]}</p>

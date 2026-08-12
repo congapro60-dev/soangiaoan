@@ -292,10 +292,13 @@ const trimLeadingFragment = text => {
 mkdirSync(OUT_DIR, { recursive: true });
 const summary = [];
 
+/** Năm học của bộ PPCT đang dùng — đi kèm dữ liệu để giáo án ghi đúng, không viết cứng trong UI. */
+const SCHOOL_YEAR = '2026 - 2027';
+
 const write = (source, grade, lessons, stream) => {
   writeFileSync(
     join(OUT_DIR, `${source.toLowerCase()}-g${grade}.json`),
-    JSON.stringify({ source, grade: Number(grade), stream, lessons }),
+    JSON.stringify({ source, grade: Number(grade), stream, schoolYear: SCHOOL_YEAR, lessons }),
     'utf8',
   );
   const weeks = new Set(lessons.map(l => l.week).filter(Boolean));

@@ -65,6 +65,10 @@ describe('dữ liệu phân phối chương trình', () => {
 
   // Giáo án soạn theo TỪNG TIẾT, nên mỗi tiết phải là một mục chọn riêng và phải biết
   // nó là tiết thứ mấy trong bài.
+  it.each(PROGRAMS)('%s: có năm học để giáo án ghi đúng', (_name, program) => {
+    expect(program.schoolYear).toMatch(/^\d{4} - \d{4}$/);
+  });
+
   it.each(PROGRAMS)('%s: mỗi tiết là một mục riêng, có vị trí trong bài', (_name, program) => {
     for (const lesson of program.lessons) {
       expect(lesson.periodIndex).toBeGreaterThanOrEqual(1);

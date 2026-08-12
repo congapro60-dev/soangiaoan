@@ -13,7 +13,7 @@ import {
 interface Props {
   initialSource?: PpctSource;
   initialGrade?: number;
-  onPick: (lesson: PpctLesson, source: PpctSource, grade: number) => void;
+  onPick: (lesson: PpctLesson, source: PpctSource, grade: number, schoolYear: string) => void;
   onClose: () => void;
 }
 
@@ -66,7 +66,9 @@ export const PpctPickerModal = ({ initialSource = 'TDS', initialGrade, onPick, o
             </div>
             <div>
               <h2 className="font-black text-slate-800 text-lg">Chọn bài theo phân phối chương trình</h2>
-              <p className="text-xs text-slate-400 font-medium">Năm học 2026–2027</p>
+              <p className="text-xs text-slate-400 font-medium">
+                {program ? `Năm học ${program.schoolYear}` : 'Đang mở phân phối chương trình...'}
+              </p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
@@ -157,7 +159,7 @@ export const PpctPickerModal = ({ initialSource = 'TDS', initialGrade, onPick, o
                       <li key={lesson.id}>
                         <button
                           type="button"
-                          onClick={() => onPick(lesson, source, grade)}
+                          onClick={() => onPick(lesson, source, grade, program.schoolYear)}
                           className="w-full text-left px-3 py-2.5 rounded-xl border border-slate-100 hover:border-blue-300 hover:bg-blue-50/50 transition-all"
                         >
                           <div className="flex items-start justify-between gap-3">
