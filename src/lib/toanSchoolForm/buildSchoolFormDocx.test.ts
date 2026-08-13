@@ -27,6 +27,58 @@ const buildXml = async (m: ToanLessonModel): Promise<string> => {
   return zip.file('word/document.xml')!.async('string');
 };
 
+describe('buildSchoolFormDocx — markup AI không được lọt vào Word', () => {
+  const withCell = async (gvHs: string): Promise<string> => {
+    const m = baseModel();
+    m.activities[0].rows[0].gvHs = gvHs;
+    return buildXml(m);
+  };
+
+  it('<br/> thành ngắt dòng OOXML thật, không in ra chữ', async () => {
+    const xml = await withCell('GV chốt công thức.<br/>GV hướng dẫn dựng bảng.');
+    expect(xml).not.toContain('&lt;br');
+    expect(xml).not.toContain('<br/>');
+    expect(xml).toContain('<w:br/>');
+    expect(xml).toContain('GV hướng dẫn dựng bảng.');
+  });
+
+  it('nhận mọi biến thể <br>, <BR />, <br /><br />', async () => {
+    const xml = await withCell('A<br>B<BR />C<br /><br />D');
+    expect(xml).not.toMatch(/&lt;br|&lt;BR/i);
+    expect((xml.match(/<w:br\/>/g) || []).length).toBeGreaterThanOrEqual(4);
+  });
+
+  it('ngắt dòng \\n từ parser cũng thành <w:br/>', async () => {
+    const xml = await withCell('Dòng 1\nDòng 2');
+    expect(xml).toContain('<w:br/>');
+    expect(xml).toContain('Dòng 2');
+  });
+
+  it('*nghiêng* thành chữ nghiêng, không in ra dấu sao', async () => {
+    const xml = await withCell('Giao *Nhóm TB:* làm bài 1');
+    expect(xml).toContain('<w:i/>');
+    expect(xml).not.toContain('*Nhóm TB:*');
+  });
+
+  it('KHÔNG hiểu nhầm dấu * của phép nhân là chữ nghiêng', async () => {
+    const xml = await withCell('Tính 3*4*5 rồi so sánh');
+    expect(xml).not.toContain('<w:i/>');
+    expect(xml).toContain('3*4*5');
+  });
+
+  it('**đậm** vẫn đúng, không bị bộ nghiêng ăn mất', async () => {
+    const xml = await withCell('**GV:** nêu bài toán');
+    expect(xml).toContain('<w:b/>');
+    expect(xml).not.toContain('**GV:**');
+  });
+
+  it('công thức trong ô có <br/> vẫn ra OMML', async () => {
+    const xml = await withCell('Cho $y=x^2$<br/>Tìm đỉnh');
+    expect(xml).toContain('<m:oMath');
+    expect(xml).toContain('<w:br/>');
+  });
+});
+
 describe('buildSchoolFormDocx', () => {
   it('dùng font Arial + đúng các mã màu pastel của template', async () => {
     const xml = await buildXml(baseModel());

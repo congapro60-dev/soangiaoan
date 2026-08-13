@@ -23,37 +23,45 @@ export const exportToPDF = async (
       throw new Error('Vui lòng mở giáo án (bấm Xem) trước khi xuất file PDF.');
     }
 
-    showToast('Đang chuẩn bị file PDF... Vui lòng chọn "Save as PDF" trong hộp thoại in.', 'info');
-    
-    // Add specific style for landscape if requested
-    let landscapeStyle: HTMLStyleElement | null = null;
-    if (orientation === 'landscape') {
-      landscapeStyle = document.createElement('style');
-      // Không dùng !important trong @page — một số bản Chromium loại bỏ cả khai báo khi
-      // gặp !important, khiến trang giữ nguyên khổ dọc. Rule này chèn sau index.css nên
-      // đã thắng theo thứ tự cascade mà không cần !important.
-      landscapeStyle.textContent = `@page { size: A4 landscape; margin: 20mm; }`;
-      document.head.appendChild(landscapeStyle);
-    }
+    const pdfName = safeFilename(currentPlan.title);
+    showToast(`Đang chuẩn bị "${pdfName}.pdf"... Vui lòng chọn "Save as PDF" trong hộp thoại in.`, 'info');
+
+    // KHỔ GIẤY DO NGƯỜI DÙNG CHỌN TRONG HỘP THOẠI IN.
+    // `@page { size: A4 }` ở index.css khoá cứng khổ giấy — Chrome khoá luôn ô "Paper size"
+    // nên giáo viên không đổi sang Letter/A3 được. Ở đây chỉ khai HƯỚNG giấy (khớp nút chọn
+    // trên thanh công cụ) và bỏ trống khổ, để ô chọn khổ trong hộp thoại in hoạt động lại.
+    // Không dùng !important trong @page — một số bản Chromium loại bỏ cả khai báo khi gặp
+    // !important. Rule này chèn sau index.css nên đã thắng theo thứ tự cascade.
+    const pageStyle = document.createElement('style');
+    pageStyle.textContent = `@page { size: ${orientation}; margin: 20mm; }`;
+    document.head.appendChild(pageStyle);
 
     // Create a temporary clone for printing
     const clone = element.cloneNode(true) as HTMLElement;
     clone.id = 'print-temp-container';
     clone.className = 'markdown-body report-paper'; // Ensure styling
-    
+
     // Hide original content and show clone
     document.body.classList.add('is-printing-temp');
     document.body.appendChild(clone);
 
+    // Chrome/Edge/Firefox lấy TÊN FILE PDF từ `document.title` tại lúc mở hộp thoại in.
+    // Không đổi thì mọi giáo án đều lưu thành "Smart Lesson Plan AI.pdf" (tiêu đề trang web).
+    // Dùng đúng `safeFilename` mà đường xuất Word dùng để hai file trùng tên nhau.
+    const previousTitle = document.title;
+    document.title = pdfName;
+
     // Wait for any async rendering
     setTimeout(() => {
-      window.print();
-      
-      // Cleanup
-      document.body.classList.remove('is-printing-temp');
-      document.body.removeChild(clone);
-      if (landscapeStyle) {
-        document.head.removeChild(landscapeStyle);
+      try {
+        // window.print() chặn luồng JS tới khi người dùng đóng hộp thoại, nên tới lúc trả
+        // tiêu đề về thì trình duyệt đã lấy xong tên file.
+        window.print();
+      } finally {
+        document.title = previousTitle;
+        document.body.classList.remove('is-printing-temp');
+        document.body.removeChild(clone);
+        document.head.removeChild(pageStyle);
       }
       showToast('Đã hoàn tất hộp thoại in PDF.', 'success');
     }, 500);

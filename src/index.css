@@ -427,6 +427,16 @@ body {
     padding: 0 !important;
     background: white !important;
   }
+
+  /* Chrome/Edge mặc định KHÔNG in nền màu (phải tự tick "Background graphics"). Dải màu
+     pastel và nền ô bảng của giáo án là THÔNG TIN — phân biệt các pha, đánh dấu hàng tiêu
+     đề — chứ không phải trang trí, nên ép in. Chỉ áp cho khối in tạm để không đổi hành vi
+     in đề thi. */
+  #print-temp-container,
+  #print-temp-container * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
 }
 
 /* 📐 OPTION GRID cho MCQ (dùng cả trên web và khi in) */

@@ -42,8 +42,24 @@ export interface ToanLessonModel {
 
 const clean = (s: string): string => (s || '').replace(/\s+/g, ' ').trim();
 
+/**
+ * Ô bảng markdown không xuống dòng được nên AI (và cả `cleanMarkdownOutput` khi vá bảng vỡ)
+ * dùng `<br/>` làm dấu ngắt dòng. `clean()` gộp mọi khoảng trắng nên nếu để nguyên thì chuỗi
+ * `<br/>` đi thẳng vào file Word và hiện ra như chữ. Đổi sang `\n` thật, giữ lại ngắt dòng —
+ * `buildSchoolFormDocx` dịch tiếp `\n` thành ngắt dòng OOXML.
+ */
+const cleanCell = (s: string): string =>
+  (s || '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/[^\S\n]+/g, ' ')
+    .split('\n')
+    .map((line) => line.trim())
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
 const cellText = (cell: Tokens.TableCell | { text?: string }): string =>
-  clean((cell as any).text || '');
+  cleanCell((cell as any).text || '');
 
 /** Bảng hành chính: quét mọi ô, ghép cặp nhãn→giá trị theo từ khóa. */
 const parseHeaderTable = (table: Tokens.Table): Partial<ToanLessonModel['header']> => {

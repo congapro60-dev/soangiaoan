@@ -39,8 +39,45 @@ const BORDER = { style: BorderStyle.SINGLE, size: 4, color: '999999' } as const;
 const cellBorders = { top: BORDER, bottom: BORDER, left: BORDER, right: BORDER } as const;
 const tableBorders = { ...cellBorders, insideHorizontal: BORDER, insideVertical: BORDER } as const;
 
-const textRun = (t: string, bold: boolean, size?: number): TextRun =>
-  new TextRun({ text: t, bold, font: FONT, size: size ?? SZ });
+const textRun = (t: string, bold: boolean, size?: number, italics = false, brk = 0): TextRun =>
+  new TextRun({ text: t, bold, italics, font: FONT, size: size ?? SZ, ...(brk ? { break: brk } : {}) });
+
+// `*nghiêng*` — CHỈ nhận khi dấu * ôm sát chữ và nằm ở biên từ, để không ăn nhầm phép nhân
+// kiểu "3*4" hay dấu * dùng làm chú thích. Chuỗi `**đậm**` đã được tách trước nên không lọt vào.
+const ITALIC_RE = /(^|[\s(["'«])\*(\S(?:[^*\n]*\S)?)\*(?=$|[\s).,;:!?\]"'»])/g;
+
+/**
+ * Đẩy một đoạn văn bản thuần vào danh sách run, xử lý hai thứ AI hay để lọt:
+ *  - ngắt dòng `\n` (nguồn gốc là `<br/>` trong ô bảng) → ngắt dòng OOXML thật;
+ *  - `*nghiêng*` → chữ nghiêng, thay vì in ra cả dấu sao.
+ */
+const pushPlain = (
+  out: ParagraphChild[],
+  text: string,
+  bold: boolean,
+  size?: number,
+): void => {
+  text.split('\n').forEach((line, li) => {
+    const brk = li === 0 ? 0 : 1;
+    if (line === '') {
+      if (brk) out.push(textRun('', bold, size, false, brk));
+      return;
+    }
+    let cursor = 0;
+    let first = true;
+    ITALIC_RE.lastIndex = 0;
+    let m: RegExpExecArray | null;
+    while ((m = ITALIC_RE.exec(line)) !== null) {
+      const before = line.slice(cursor, m.index) + m[1];
+      if (before) { out.push(textRun(before, bold, size, false, first ? brk : 0)); first = false; }
+      out.push(textRun(m[2], bold, size, true, first ? brk : 0));
+      first = false;
+      cursor = m.index + m[0].length;
+    }
+    const tail = line.slice(cursor);
+    if (tail || first) out.push(textRun(tail, bold, size, false, first ? brk : 0));
+  });
+};
 
 // Inline: tách **đậm** + render công thức $...$ / $$...$$ thành OMML native (Arial, đúng cỡ).
 // Placeholder @@MATHn@@ đủ đặc trưng để không đụng số/chữ thường trong văn bản.
@@ -48,6 +85,8 @@ const MATH_MARK = /@@MATH([0-9]+)@@/g;
 const runs = (text: string, base: { bold?: boolean; size?: number } = {}): ParagraphChild[] => {
   const slots: { latex: string; display: boolean }[] = [];
   const stashed = (text || '')
+    // Phòng thủ hai lớp: parser đã đổi <br/> thành \n, nhưng nội dung có thể tới từ đường khác.
+    .replace(/<br\s*\/?>/gi, '\n')
     .replace(/\$\$([^$]+)\$\$/g, (_, e) => { slots.push({ latex: e, display: true }); return `@@MATH${slots.length - 1}@@`; })
     .replace(/\$([^$\n]+)\$/g, (_, e) => { slots.push({ latex: e, display: false }); return `@@MATH${slots.length - 1}@@`; });
 
@@ -58,14 +97,14 @@ const runs = (text: string, base: { bold?: boolean; size?: number } = {}): Parag
     MATH_MARK.lastIndex = 0;
     let mm: RegExpExecArray | null;
     while ((mm = MATH_MARK.exec(seg)) !== null) {
-      if (mm.index > last) { const t = seg.slice(last, mm.index); if (t) children.push(textRun(t, bold, base.size)); }
+      if (mm.index > last) { const t = seg.slice(last, mm.index); if (t) pushPlain(children, t, bold, base.size); }
       const slot = slots[Number(mm[1])];
       const omml = slot ? latexToOmml(slot.latex.trim(), slot.display) : null;
       const child = omml ? ommlToParagraphChild(omml) : null;
       children.push(child ?? textRun(slot ? slot.latex : '', bold, base.size));
       last = mm.index + mm[0].length;
     }
-    if (last < seg.length) { const t = seg.slice(last); if (t) children.push(textRun(t, bold, base.size)); }
+    if (last < seg.length) { const t = seg.slice(last); if (t) pushPlain(children, t, bold, base.size); }
   });
   return children.length ? children : [textRun('', !!base.bold, base.size)];
 };
