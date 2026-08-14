@@ -12,28 +12,20 @@ import {
 import type { ParagraphChild } from 'docx';
 import type { ToanLessonModel } from './parseToanLesson';
 import { latexToOmml, ommlToParagraphChild } from '../../utils/renderWordCore';
+import { tokenizeInline } from './inlineTokens';
+import {
+  ACTIVITY_COL_TWIP, FILL, FONT, MARGIN_TWIP, OBJECTIVE_COL_RATIOS,
+  PAGE_TWIP, PRINTABLE_TWIP, PT,
+} from './schoolFormLayout';
 
-const FONT = 'Arial';
-const SZ = 22;       // 11pt
-const SZ_BAND = 24;  // 12pt bold band
-const SZ_TITLE = 30; // 15pt
+// Hằng số bố cục dùng chung với đường xuất HTML→PDF — xem schoolFormLayout.ts.
+const SZ = PT.body * 2;       // half-point
+const SZ_BAND = PT.band * 2;
+const SZ_TITLE = PT.title * 2;
 
-// Khổ Letter ngang + lề đúng template.
-const PAGE = { width: 15840, height: 12240 };
-const MARGIN = { top: 180, right: 720, bottom: 1440, left: 450 };
-const PRINTABLE = PAGE.width - MARGIN.left - MARGIN.right; // 14670
-
-// Mã màu pastel LẤY ĐÚNG từ template.
-const FILL = {
-  ttc: 'C9DAF8',       // I. THÔNG TIN CHUNG
-  sub: 'FCE5CD',       // tiểu mục
-  tienTrinh: 'CFE2F3', // II. TIẾN TRÌNH + header bảng
-  khoiDong: 'E6B8AF',  // khởi động
-  hoatDongChinh: 'B6D7A8',
-  hoatDong: 'D9EAD3',  // từng hoạt động
-  soKet: 'B4A7D6',
-  btvn: 'EAD1DC',
-} as const;
+const PAGE = PAGE_TWIP;
+const MARGIN = MARGIN_TWIP;
+const PRINTABLE = PRINTABLE_TWIP;
 
 const BORDER = { style: BorderStyle.SINGLE, size: 4, color: '999999' } as const;
 const cellBorders = { top: BORDER, bottom: BORDER, left: BORDER, right: BORDER } as const;
@@ -42,70 +34,23 @@ const tableBorders = { ...cellBorders, insideHorizontal: BORDER, insideVertical:
 const textRun = (t: string, bold: boolean, size?: number, italics = false, brk = 0): TextRun =>
   new TextRun({ text: t, bold, italics, font: FONT, size: size ?? SZ, ...(brk ? { break: brk } : {}) });
 
-// `*nghiêng*` — CHỈ nhận khi dấu * ôm sát chữ và nằm ở biên từ, để không ăn nhầm phép nhân
-// kiểu "3*4" hay dấu * dùng làm chú thích. Chuỗi `**đậm**` đã được tách trước nên không lọt vào.
-const ITALIC_RE = /(^|[\s(["'«])\*(\S(?:[^*\n]*\S)?)\*(?=$|[\s).,;:!?\]"'»])/g;
-
 /**
- * Đẩy một đoạn văn bản thuần vào danh sách run, xử lý hai thứ AI hay để lọt:
- *  - ngắt dòng `\n` (nguồn gốc là `<br/>` trong ô bảng) → ngắt dòng OOXML thật;
- *  - `*nghiêng*` → chữ nghiêng, thay vì in ra cả dấu sao.
+ * Dịch token inline dùng chung sang run của docx: `$...$` thành OMML native (Arial, đúng cỡ),
+ * ngắt dòng thành `<w:br/>`, `**đậm**` / `*nghiêng*` thành thuộc tính run.
  */
-const pushPlain = (
-  out: ParagraphChild[],
-  text: string,
-  bold: boolean,
-  size?: number,
-): void => {
-  text.split('\n').forEach((line, li) => {
-    const brk = li === 0 ? 0 : 1;
-    if (line === '') {
-      if (brk) out.push(textRun('', bold, size, false, brk));
-      return;
-    }
-    let cursor = 0;
-    let first = true;
-    ITALIC_RE.lastIndex = 0;
-    let m: RegExpExecArray | null;
-    while ((m = ITALIC_RE.exec(line)) !== null) {
-      const before = line.slice(cursor, m.index) + m[1];
-      if (before) { out.push(textRun(before, bold, size, false, first ? brk : 0)); first = false; }
-      out.push(textRun(m[2], bold, size, true, first ? brk : 0));
-      first = false;
-      cursor = m.index + m[0].length;
-    }
-    const tail = line.slice(cursor);
-    if (tail || first) out.push(textRun(tail, bold, size, false, first ? brk : 0));
-  });
-};
-
-// Inline: tách **đậm** + render công thức $...$ / $$...$$ thành OMML native (Arial, đúng cỡ).
-// Placeholder @@MATHn@@ đủ đặc trưng để không đụng số/chữ thường trong văn bản.
-const MATH_MARK = /@@MATH([0-9]+)@@/g;
 const runs = (text: string, base: { bold?: boolean; size?: number } = {}): ParagraphChild[] => {
-  const slots: { latex: string; display: boolean }[] = [];
-  const stashed = (text || '')
-    // Phòng thủ hai lớp: parser đã đổi <br/> thành \n, nhưng nội dung có thể tới từ đường khác.
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/\$\$([^$]+)\$\$/g, (_, e) => { slots.push({ latex: e, display: true }); return `@@MATH${slots.length - 1}@@`; })
-    .replace(/\$([^$\n]+)\$/g, (_, e) => { slots.push({ latex: e, display: false }); return `@@MATH${slots.length - 1}@@`; });
-
   const children: ParagraphChild[] = [];
-  stashed.split(/\*\*/).forEach((seg, i) => {
-    const bold = base.bold || i % 2 === 1;
-    let last = 0;
-    MATH_MARK.lastIndex = 0;
-    let mm: RegExpExecArray | null;
-    while ((mm = MATH_MARK.exec(seg)) !== null) {
-      if (mm.index > last) { const t = seg.slice(last, mm.index); if (t) pushPlain(children, t, bold, base.size); }
-      const slot = slots[Number(mm[1])];
-      const omml = slot ? latexToOmml(slot.latex.trim(), slot.display) : null;
+  for (const tok of tokenizeInline(text)) {
+    if (tok.kind === 'break') {
+      children.push(textRun('', !!base.bold, base.size, false, 1));
+    } else if (tok.kind === 'math') {
+      const omml = latexToOmml(tok.latex, tok.display);
       const child = omml ? ommlToParagraphChild(omml) : null;
-      children.push(child ?? textRun(slot ? slot.latex : '', bold, base.size));
-      last = mm.index + mm[0].length;
+      children.push(child ?? textRun(tok.latex, base.bold || tok.bold, base.size));
+    } else {
+      children.push(textRun(tok.text, base.bold || tok.bold, base.size, tok.italic));
     }
-    if (last < seg.length) { const t = seg.slice(last); if (t) pushPlain(children, t, bold, base.size); }
-  });
+  }
   return children.length ? children : [textRun('', !!base.bold, base.size)];
 };
 
@@ -159,7 +104,7 @@ const adminTable = (m: ToanLessonModel): Table => {
 const mucTieuTable = (m: ToanLessonModel): Table =>
   new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
-    columnWidths: [Math.floor(PRINTABLE * 0.18), Math.floor(PRINTABLE * 0.82)],
+    columnWidths: OBJECTIVE_COL_RATIOS.map((r) => Math.floor(PRINTABLE * r)),
     borders: tableBorders,
     rows: m.mucTieu.map((r) =>
       new TableRow({
@@ -172,9 +117,8 @@ const mucTieuTable = (m: ToanLessonModel): Table =>
   });
 
 // Bảng hoạt động 3 cột (Thời gian thực | Giáo viên và Học sinh | Nội dung).
-// Tỉ lệ chuẩn ban Toán: 15/45/40 (chốt 2026-07 sau rà 3 giáo án định hướng Bài 19).
-// Trước đây là 9/50/41 — cột Thời gian quá hẹp làm mốc "P12 – P22" bị xuống dòng.
-const COL3 = [2194, 6581, 5850]; // = 15% / 45% / 40% của 14625
+// Tỉ lệ 15/45/40 và bộ twip đều nằm ở schoolFormLayout.ts, dùng chung với đường HTML→PDF.
+const COL3 = ACTIVITY_COL_TWIP as unknown as number[];
 const activityTable = (a: ToanLessonModel['activities'][number]): Table => {
   const headerCell = (t: string) =>
     new TableCell({

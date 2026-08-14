@@ -16,10 +16,29 @@ export const exportToPDF = async (
   orientation: PdfOrientation = 'portrait'
 ) => {
   try {
+    // Giáo án ban Toán: dựng trang in SOI GƯƠNG form Word (cùng ToanLessonModel, cùng bộ màu
+    // và tỉ lệ cột) để PDF giống bản .docx, thay vì chụp lại khung markdown trên màn hình.
+    // Lỗi bất kỳ ở khâu parse → rơi về đường cũ để không mất bản in.
+    let schoolForm: { html: string; css: string } | null = null;
+    if (currentPlan.builtinFormat === 'toan' && currentPlan.content) {
+      try {
+        const [{ parseToanLesson }, { buildSchoolFormHtml, SCHOOL_FORM_PRINT_CSS }] = await Promise.all([
+          import('../lib/toanSchoolForm/parseToanLesson'),
+          import('../lib/toanSchoolForm/buildSchoolFormHtml'),
+        ]);
+        schoolForm = {
+          html: buildSchoolFormHtml(parseToanLesson(currentPlan.content)),
+          css: SCHOOL_FORM_PRINT_CSS,
+        };
+      } catch (formErr) {
+        console.warn('Dựng trang in form trường thất bại, in theo bản xem trên màn hình:', formErr);
+      }
+    }
+
     const selector = '.wmde-markdown, .markdown-body';
-    const element = document.querySelector(selector);
-    
-    if (!element) {
+    const element = schoolForm ? null : document.querySelector(selector);
+
+    if (!schoolForm && !element) {
       throw new Error('Vui lòng mở giáo án (bấm Xem) trước khi xuất file PDF.');
     }
 
@@ -33,13 +52,23 @@ export const exportToPDF = async (
     // Không dùng !important trong @page — một số bản Chromium loại bỏ cả khai báo khi gặp
     // !important. Rule này chèn sau index.css nên đã thắng theo thứ tự cascade.
     const pageStyle = document.createElement('style');
-    pageStyle.textContent = `@page { size: ${orientation}; margin: 20mm; }`;
+    // Trang form Toán mang sẵn @page riêng (lề đúng template, luôn nằm ngang như bản Word).
+    pageStyle.textContent = schoolForm
+      ? schoolForm.css
+      : `@page { size: ${orientation}; margin: 20mm; }`;
     document.head.appendChild(pageStyle);
 
-    // Create a temporary clone for printing
-    const clone = element.cloneNode(true) as HTMLElement;
+    // Khối in tạm: form Toán thì dựng mới, còn lại nhân bản khung xem trên màn hình.
+    let clone: HTMLElement;
+    if (schoolForm) {
+      clone = document.createElement('div');
+      clone.innerHTML = schoolForm.html;
+      clone.className = 'school-form';
+    } else {
+      clone = element!.cloneNode(true) as HTMLElement;
+      clone.className = 'markdown-body report-paper'; // Ensure styling
+    }
     clone.id = 'print-temp-container';
-    clone.className = 'markdown-body report-paper'; // Ensure styling
 
     // Hide original content and show clone
     document.body.classList.add('is-printing-temp');
