@@ -11,6 +11,7 @@ import { AdaptiveStudentPortalPage } from './pages/AdaptiveStudentPortalPage';
 import { AdaptiveLessonBuilderPage } from './pages/AdaptiveLessonBuilderPage';
 import { AdaptiveLessonListPage } from './pages/AdaptiveLessonListPage';
 import { DuGioPage } from './pages/DuGioPage';
+import { StudentPortalPage } from './pages/StudentPortalPage';
 import './index.css';
 import 'katex/dist/katex.min.css';
 
@@ -62,6 +63,8 @@ createRoot(document.getElementById('root')!).render(
     <ErrorBoundary>
       <BrowserRouter>
         <Routes>
+          <Route path="/lop" element={<StudentPortalPage />} />
+          <Route path="/lop/:joinCode" element={<StudentPortalPage />} />
           <Route path="/du-gio" element={<DuGioPage />} />
           <Route path="/du-gio/:id" element={<DuGioPage />} />
           <Route path="/adaptive-lessons" element={<AdaptiveLessonListPage />} />

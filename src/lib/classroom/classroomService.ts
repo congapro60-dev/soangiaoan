@@ -1,8 +1,14 @@
-import { collection, doc, getDocs, query, where, writeBatch } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where, writeBatch } from 'firebase/firestore';
 import { db, removeUndefinedFields } from '../firebase';
 import { TeacherClass } from '../../types';
 import { planLegacyClassMigration } from './migrateLegacyClasses';
-import { CLASSES_COL, STUDENTS_SUB } from './types';
+import { CLASSES_COL, STUDENTS_SUB, type ClassDoc } from './types';
+
+/** Lớp trên máy chủ, hoặc null nếu lớp này chưa được đồng bộ. */
+export const getClassDoc = async (classId: string): Promise<ClassDoc | null> => {
+  const snap = await getDoc(doc(db, CLASSES_COL, classId));
+  return snap.exists() ? (snap.data() as ClassDoc) : null;
+};
 
 /** Firestore chỉ nhận tối đa 500 phép ghi mỗi batch. Chừa biên cho an toàn. */
 const BATCH_LIMIT = 400;

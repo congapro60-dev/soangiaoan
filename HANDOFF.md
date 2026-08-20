@@ -9,10 +9,11 @@ Trần **150 dòng**: vượt thì cắt mục cũ sang [`docs/HANDOFF-ARCHIVE.m
 
 ## 1. Trạng thái hiện tại
 
-**`main` = `61457b4`.** Chuỗi đỏ #442–#445 đã kết thúc ở #446/#447; trạng thái CI các commit sau đó chưa xác nhận (máy này không có `gh`).
+**`main` = (lô 2 cổng học sinh).** Chuỗi đỏ #442–#445 đã kết thúc ở #446/#447; trạng thái CI các commit sau đó chưa xác nhận (máy này không có `gh`).
 
 Các lô gần nhất:
 
+- **Cổng học sinh — đăng nhập + dashboard** (lô mới nhất) — route `/lop/:joinCode`. Học sinh nhập mã lớp 6 ký tự, chọn tên, nhập PIN 4 số. Một hàm Vercel `api/classroom.ts` phục vụ 3 action (`roster` · `login` · `issuePins`) để không vượt trần 12 hàm — hiện dùng 10. **PIN 4 số chỉ an toàn nhờ KHOÁ 15 PHÚT SAU 5 LẦN SAI** (`api/_classroom-core.ts`, 12 unit test); bỏ phần khoá đi là PIN thành vô nghĩa vì chỉ có 10.000 khả năng. PIN thô chỉ trả về giáo viên ĐÚNG MỘT LẦN lúc cấp, máy chủ giữ bản băm scrypt. Cổng từ chối chạy khi trình duyệt đang có phiên giáo viên, vì `signInAnonymously` sẽ THAY phiên Google — cùng bẫy đã ghi ở đường đẩy Drive.
 - **Bộ xương lớp học** (`61457b4`, lô mới nhất) — nền cho việc giao bài / học sinh nộp bài / AI chấm đồng loạt. Bảy collection mới (`src/lib/classroom/types.ts`). Danh tính học sinh KHÔNG phải tài khoản Google: đăng nhập ẩn danh rồi server kiểm mã lớp + mã HS + PIN và ghi `studentLinks/{uid}`; rules hỏi document đó để biết người gọi là ai. `tests/rules/lopHoc.rules.test.ts` 35 ca, toàn repo 220/220 xanh, **đã kiểm bằng đột biến** (vá hỏng 4 chỗ → đúng 6 ca đỏ). Kèm nhập danh sách lớp từ Excel của trường, xoá lớp, xoá học sinh, xem trang của từng học sinh. Kế hoạch đầy đủ 6 lô ở `tasks/ke-hoach-lop-hoc-va-cham-AI.md` — **mới xong lô 1**.
 - **PDF giáo án Toán in từ trang soi gương bản Word** (`2cbeecd`) — `exportToPDF` không còn chụp lại khung markdown nữa: với `builtinFormat === 'toan'` nó dựng `buildSchoolFormHtml` từ CHÍNH `ToanLessonModel` mà bản .docx dùng. Ba module mới dùng chung cho cả hai đường xuất: `schoolFormLayout.ts` (màu/tỉ lệ cột/cỡ chữ/khổ giấy), `inlineTokens.ts` (tách `**đậm**` `*nghiêng*` `$ct$` `<br/>`), `buildSchoolFormHtml.ts`. Đo trong Chrome thật: cột ra đúng 15.0/45.0/40.0%, dải màu đúng `#C9DAF8`, Arial, KaTeX render đủ. **CHƯA QA bằng mắt trên file in thật** — owner tự làm.
 - **Ba lỗi xuất file người dùng báo** (`0a64551`) — (1) `<br/>` và `*nghiêng*` của AI in ra thành chữ trong ô bảng Word form Toán: `parseToanLesson::cellText` đổi `<br/>` → `\n`, `buildSchoolFormDocx::pushPlain` dịch tiếp thành `<w:br/>`; (2) PDF luôn lưu tên "Smart Lesson Plan AI.pdf" vì `window.print()` lấy tên từ `document.title` — nay đổi tạm sang `safeFilename(title)` như đường Word rồi trả lại trong `finally`; (3) `@page { size: A4 }` khoá luôn ô chọn khổ giấy của Chrome — nay chỉ khai `size: portrait|landscape`, trả khổ giấy về cho người dùng chọn. Kèm `print-color-adjust: exact` để dải màu pastel không mất khi in.
@@ -33,7 +34,7 @@ Bốn thay đổi và lý do — **đừng nới cái nào mà không đọc tes
 
 **CHƯA QA trên UI thật:** nút *"Soát chính tả bằng AI"* chưa bấm được vì cần đăng nhập Google + biên bản + khoá API. Mới chứng minh trang `/du-gio` nạp không lỗi console. Logic có 40 ca test phủ.
 
-**Lớp học mới xong LÔ 1/6.** Rules + index owner đã deploy ngày 2026-08-20. Chưa có: cổng đăng nhập học sinh, dashboard, nộp ảnh, AI chấm đồng loạt, hồ sơ tích luỹ, báo cáo phụ huynh. **Xoá lớp / xoá học sinh hiện chỉ xoá ở mảng cũ `userSettings.classes`** — sau khi phép chuyển chạy thật phải xoá cả document Firestore, làm ở lô 2. Mảng cũ CỐ Ý chưa xoá, đó là đường lùi.
+**Lớp học mới xong LÔ 2/6.** Rules + index owner đã deploy ngày 2026-08-20. **Đường đăng nhập học sinh CHƯA chạy thật lần nào** — cần `api/classroom.ts` lên production và Anonymous Auth bật trong Firebase Console; mới kiểm được giao diện 2 màn và đường lỗi. Chưa có: nộp ảnh, AI chấm đồng loạt, hồ sơ tích luỹ, báo cáo phụ huynh. **Xoá lớp / xoá học sinh hiện chỉ xoá ở mảng cũ `userSettings.classes`** — sau khi phép chuyển chạy thật phải xoá cả document Firestore, làm ở lô 2. Mảng cũ CỐ Ý chưa xoá, đó là đường lùi.
 
 ## 3. Cái sắp cắn người sau
 

@@ -5,7 +5,8 @@ import { User } from 'firebase/auth';
 import { AppData, ClassAssignment, Student, TeacherClass } from '../../types';
 import { useExams, getSubmissions } from '../../hooks/useExams';
 import { parseRosterRows } from '../../utils/classRosterImport';
-import { countUnmigratedClasses, migrateLegacyClasses } from '../../lib/classroom/classroomService';
+import { countUnmigratedClasses, getClassDoc, migrateLegacyClasses } from '../../lib/classroom/classroomService';
+import { issueClassPins } from '../../services/studentPortalApi';
 
 interface ClassesTabProps {
   data: AppData;
@@ -24,6 +25,7 @@ import {
   Eye,
   FileSpreadsheet,
   GraduationCap,
+  KeyRound,
   Plus,
   Search,
   Send,
@@ -283,6 +285,79 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
         icon: 'error',
         title: 'Không đọc được danh sách',
         text: error instanceof Error ? error.message : 'File không phải bảng Excel/CSV hợp lệ.',
+        confirmButtonColor: '#3085d6',
+      });
+    }
+  };
+
+  /**
+   * Mở bảng "mã lớp + PIN" để giáo viên in phát cho học sinh.
+   * PIN thô chỉ máy chủ trả về đúng lần cấp này — app chỉ giữ bản băm, nên mất là phải cấp lại.
+   */
+  const showClassAccess = async (cls: TeacherClass) => {
+    try {
+      const classDoc = await getClassDoc(cls.id);
+      if (!classDoc) {
+        Swal.fire({
+          icon: 'info',
+          title: 'Lớp chưa lên máy chủ',
+          text: 'Bấm "Đồng bộ ngay" ở dải nhắc phía trên trước, rồi quay lại cấp mã PIN.',
+          confirmButtonColor: '#3085d6',
+        });
+        return;
+      }
+
+      const link = `${window.location.origin}/lop/${classDoc.joinCode}`;
+      const { isConfirmed, isDenied } = await Swal.fire({
+        title: `Mã lớp ${classDoc.joinCode}`,
+        html: `
+          <p style="font-size:13px;color:#475569;text-align:left;">Học sinh vào lớp bằng link:</p>
+          <p style="font-size:13px;font-weight:700;word-break:break-all;text-align:left;color:#2563eb;">${escapeHtml(link)}</p>
+          <p style="font-size:12px;color:#64748b;text-align:left;margin-top:10px;">Mỗi em cần thêm một mã PIN 4 số. Cấp PIN xong bảng hiện ra chỉ một lần — nhớ in hoặc chép lại.</p>
+        `,
+        showCancelButton: true,
+        showDenyButton: true,
+        confirmButtonText: 'Cấp PIN cho em chưa có',
+        denyButtonText: 'Cấp lại PIN cho cả lớp',
+        cancelButtonText: 'Đóng',
+        confirmButtonColor: '#3085d6',
+        denyButtonColor: '#d97706',
+      });
+      if (!isConfirmed && !isDenied) return;
+
+      const { issued } = await issueClassPins(cls.id, isDenied);
+      if (issued.length === 0) {
+        showToast('Mọi học sinh trong lớp đều đã có mã PIN.', 'info');
+        return;
+      }
+
+      const rows = issued.map(item => `
+        <tr>
+          <td style="text-align:left;padding:6px 8px;border-bottom:1px solid #e2e8f0;">${escapeHtml(item.name)}</td>
+          <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;font-weight:700;font-size:16px;letter-spacing:2px;">${escapeHtml(item.pin)}</td>
+        </tr>`).join('');
+
+      await Swal.fire({
+        title: `Mã PIN lớp ${cls.name}`,
+        width: 560,
+        html: `
+          <p style="font-size:12px;color:#b45309;text-align:left;margin-bottom:8px;"><b>Bảng này chỉ hiện một lần.</b> In hoặc chụp lại ngay — máy chủ chỉ giữ bản mã hoá.</p>
+          <p style="font-size:13px;text-align:left;margin-bottom:8px;">Mã lớp: <b>${escapeHtml(classDoc.joinCode)}</b></p>
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead><tr style="background:#f8fafc;color:#475569;font-size:11px;text-transform:uppercase;">
+              <th style="text-align:left;padding:6px 8px;">Học sinh</th><th style="padding:6px 8px;">Mã PIN</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        `,
+        confirmButtonText: 'Đã lưu lại',
+        confirmButtonColor: '#3085d6',
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Không cấp được mã PIN',
+        text: error instanceof Error ? error.message : 'Thử lại sau ít phút.',
         confirmButtonColor: '#3085d6',
       });
     }
@@ -559,8 +634,9 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-1 border-t border-slate-100 bg-slate-50/80 p-2">
+              <div className="grid grid-cols-4 gap-1 border-t border-slate-100 bg-slate-50/80 p-2">
                 <button onClick={() => setSelectedClassId(item.id)} className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><Eye className="h-5 w-5" /> Danh sách</button>
+                <button onClick={() => showClassAccess(item)} title="Mã lớp và mã PIN để học sinh đăng nhập" className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><KeyRound className="h-5 w-5" /> Mã lớp</button>
                 <button onClick={() => assignExam(item)} title="Gán đề thi online cho lớp này" className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><Send className="h-5 w-5" /> Giao bài</button>
                 <button onClick={() => showClassReport(item)} title="Tổng hợp kết quả các đề đã giao" className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><BarChart3 className="h-5 w-5" /> Báo cáo</button>
               </div>
