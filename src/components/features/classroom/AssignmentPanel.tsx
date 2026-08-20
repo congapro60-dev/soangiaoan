@@ -88,6 +88,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
         dueAt: value.dueAt ? new Date(value.dueAt).toISOString() : undefined,
         attachments,
         answerKeyImageUrls,
+        answerKeyByAi: value.answerKeyByAi,
       });
       setMoForm(false);
       showToast(`Đã giao "${value.title}" cho ${className}.`, 'success');
@@ -139,7 +140,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
   return (
     <section className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
       {moForm && (
-        <AssignmentFormModal className={className} dangGui={dangGui} onClose={() => setMoForm(false)} onSubmit={guiBaiMoi} />
+        <AssignmentFormModal classId={classId} className={className} dangGui={dangGui} onClose={() => setMoForm(false)} onSubmit={guiBaiMoi} />
       )}
 
       <div className="flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
@@ -169,6 +170,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
                   <p className="text-xs font-semibold text-slate-500">
                     {a.isOpen ? 'Đang mở' : 'Đã đóng'} · {(a as any).answerKey ? 'có đáp án chuẩn' : 'không có đáp án'}
                     {(a.attachments?.length ?? 0) > 0 ? ` · ${a.attachments!.length} file đề` : ' · chưa đính kèm đề'}
+                    {a.answerKeyByAi ? ' · đáp án do AI giải' : ''}
                   </p>
                 </button>
                 <button

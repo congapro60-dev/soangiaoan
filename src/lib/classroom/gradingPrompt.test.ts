@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { buildHomeworkGradingPrompt, buildPracticePrompt, parseHomeworkGrade, parsePracticeQuestions } from './gradingPrompt';
+import {
+  buildHomeworkGradingPrompt,
+  buildPracticePrompt,
+  buildSolveExamPrompt,
+  parseHomeworkGrade,
+  parsePracticeQuestions,
+  parseSolvedAnswerKey,
+} from './gradingPrompt';
 
 describe('buildHomeworkGradingPrompt', () => {
   it('có đáp án thì bảo AI dùng làm mốc, không tự nghĩ đáp án khác', () => {
@@ -143,5 +150,45 @@ describe('đáp án dạng ảnh', () => {
 
     expect(p).toContain('Câu 1: x = 2');
     expect(p).toContain('THỨ TỰ ẢNH');
+  });
+});
+
+describe('AI tự giải đề', () => {
+  it('đề dạng chữ thì đưa thẳng vào prompt', () => {
+    const p = buildSolveExamPrompt({ examText: 'Câu 1: Giải x + 2 = 5', examImageCount: 0, maxScore: 10 });
+
+    expect(p).toContain('Câu 1: Giải x + 2 = 5');
+    expect(p).toContain('đúng bằng 10 điểm');
+    expect(p).not.toContain('ảnh gửi kèm');
+  });
+
+  it('đề dạng ảnh thì bảo AI đọc đề trong ảnh', () => {
+    const p = buildSolveExamPrompt({ examText: '', examImageCount: 3, maxScore: 20 });
+
+    expect(p).toContain('3 ảnh gửi kèm');
+    expect(p).toContain('đúng bằng 20 điểm');
+  });
+
+  it('LUÔN bắt AI nêu chỗ chưa chắc — một đáp án sai làm cả lớp bị chấm sai', () => {
+    const p = buildSolveExamPrompt({ examText: 'x', examImageCount: 0, maxScore: 10 });
+
+    expect(p).toContain('CHƯA CHẮC');
+    expect(p).toContain('đoán bừa');
+  });
+
+  it('đọc được đáp án và danh sách chỗ chưa chắc', () => {
+    const raw = JSON.stringify({ answerKey: 'Câu 1: x = 3 (2 điểm)', uncertainties: ['Câu 4 mờ, không đọc được số mũ'] });
+    const ket = parseSolvedAnswerKey(raw);
+
+    expect(ket.answerKey).toBe('Câu 1: x = 3 (2 điểm)');
+    expect(ket.uncertainties).toEqual(['Câu 4 mờ, không đọc được số mũ']);
+  });
+
+  it('AI trả đáp án rỗng thì NÉM lỗi, không trả chuỗi trống cho giáo viên tưởng là xong', () => {
+    expect(() => parseSolvedAnswerKey(JSON.stringify({ answerKey: '   ' }))).toThrow(/dán đáp án tay/);
+  });
+
+  it('không có JSON thì ném lỗi', () => {
+    expect(() => parseSolvedAnswerKey('xin lỗi tôi không giải được')).toThrow(/JSON/);
   });
 });

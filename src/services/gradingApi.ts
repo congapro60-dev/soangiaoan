@@ -73,3 +73,38 @@ export const fetchPractice = async (): Promise<{ questions: PracticeQuestion[]; 
   if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
   return data as { questions: PracticeQuestion[]; reason?: string };
 };
+
+export interface SolvedAnswerKeyResult {
+  answerKey: string;
+  uncertainties: string[];
+}
+
+/**
+ * Nhờ AI giải đề để dựng đáp án nháp. Kết quả trả về form cho giáo viên SOÁT rồi mới lưu —
+ * cố ý không tự ghi thẳng vào bài giao.
+ */
+export const solveAnswerKey = async (
+  classId: string,
+  examText: string,
+  examImages: string[],
+  maxScore: number,
+): Promise<SolvedAnswerKeyResult> => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Phiên đăng nhập đã hết hạn.');
+
+  const res = await fetch('/api/grade-homework', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'solveAnswerKey',
+      idToken: await user.getIdToken(),
+      classId,
+      examText,
+      examImages,
+      maxScore,
+    }),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
+  return data as SolvedAnswerKeyResult;
+};

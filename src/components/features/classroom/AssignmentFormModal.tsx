@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
-import { FileText, Loader2, Upload, X } from 'lucide-react';
+import { AlertTriangle, FileText, Loader2, Sparkles, Upload, X } from 'lucide-react';
 import { readSourceFile } from '../../../lib/classroom/readSourceFile';
+import { solveAnswerKey } from '../../../services/gradingApi';
 
 export interface AssignmentFormValue {
   title: string;
@@ -12,9 +13,12 @@ export interface AssignmentFormValue {
   deFiles: File[];
   /** Ảnh đáp án khi không rút được chữ — gửi kèm mỗi lượt chấm. */
   answerKeyImages: string[];
+  /** Đáp án do AI giải ra, ghi lại để sau này còn truy được nguồn. */
+  answerKeyByAi: boolean;
 }
 
 interface Props {
+  classId: string;
   className: string;
   dangGui: boolean;
   onClose: () => void;
@@ -23,7 +27,7 @@ interface Props {
 
 const O = 'w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold outline-none transition focus:border-blue-400 focus:bg-white';
 
-export const AssignmentFormModal = ({ className, dangGui, onClose, onSubmit }: Props) => {
+export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSubmit }: Props) => {
   const [title, setTitle] = useState('');
   const [dueAt, setDueAt] = useState('');
   const [maxScore, setMaxScore] = useState(10);
@@ -33,6 +37,9 @@ export const AssignmentFormModal = ({ className, dangGui, onClose, onSubmit }: P
   const [answerKeyImages, setAnswerKeyImages] = useState<string[]>([]);
   const [ghiChu, setGhiChu] = useState<Record<string, string>>({});
   const [dangDoc, setDangDoc] = useState('');
+  const [dangGiai, setDangGiai] = useState(false);
+  const [choChuaChac, setChoChuaChac] = useState<string[]>([]);
+  const [dapAnDoAi, setDapAnDoAi] = useState(false);
 
   const deRef = useRef<HTMLInputElement>(null);
   const dapAnRef = useRef<HTMLInputElement>(null);
@@ -54,6 +61,37 @@ export const AssignmentFormModal = ({ className, dangGui, onClose, onSubmit }: P
       setGhiChu(truoc => ({ ...truoc, [o]: error instanceof Error ? error.message : 'Không đọc được file.' }));
     } finally {
       setDangDoc('');
+    }
+  };
+
+  /**
+   * Nhờ AI giải đề khi giáo viên không có sẵn đáp án.
+   *
+   * Kết quả đổ vào ô để giáo viên SOÁT, không dùng thẳng. Một đáp án sai ở câu 5 làm cả lớp bị
+   * chấm sai câu 5, rồi sai đó còn nhân tiếp vào hồ sơ học tập từng em.
+   */
+  const nhoAiGiaiDe = async () => {
+    setDangGiai(true);
+    setChoChuaChac([]);
+    try {
+      const doc = await Promise.all(deFiles.map(readSourceFile));
+      const examText = doc.map(d => d.text).filter(Boolean).join('\n\n');
+      const examImages = doc.flatMap(d => d.images);
+
+      if (!examText.trim() && examImages.length === 0) {
+        setGhiChu(truoc => ({ ...truoc, dapAn: 'Không đọc được nội dung đề. Nếu đề là PDF scan, chụp lại thành ảnh rồi tải lên.' }));
+        return;
+      }
+
+      const ket = await solveAnswerKey(classId, examText, examImages, maxScore);
+      setAnswerKey(ket.answerKey);
+      setChoChuaChac(ket.uncertainties);
+      setDapAnDoAi(true);
+      setGhiChu(truoc => ({ ...truoc, dapAn: '' }));
+    } catch (error) {
+      setGhiChu(truoc => ({ ...truoc, dapAn: error instanceof Error ? error.message : 'Không giải được đề.' }));
+    } finally {
+      setDangGiai(false);
     }
   };
 
@@ -115,7 +153,19 @@ export const AssignmentFormModal = ({ className, dangGui, onClose, onSubmit }: P
               <p className="text-sm font-black text-slate-800">2. Đáp án chuẩn</p>
               <input ref={dapAnRef} type="file" accept=".pdf,.doc,.docx,image/*" className="hidden"
                 onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) void docFileVaoO(f, 'dapAn'); }} />
-              <NutTaiFile onClick={() => dapAnRef.current?.click()} label={dangDoc === 'dapAn' ? 'Đang đọc file...' : 'Tải file đáp án'} />
+              <div className="flex flex-wrap gap-2">
+                <NutTaiFile onClick={() => dapAnRef.current?.click()} label={dangDoc === 'dapAn' ? 'Đang đọc file...' : 'Tải file đáp án'} />
+                <button
+                  type="button"
+                  onClick={nhoAiGiaiDe}
+                  disabled={deFiles.length === 0 || dangGiai}
+                  title={deFiles.length === 0 ? 'Tải file đề ở mục 1 trước đã' : 'AI đọc đề rồi tự giải ra đáp án nháp'}
+                  className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-black text-blue-700 transition hover:bg-blue-100 disabled:opacity-40"
+                >
+                  {dangGiai ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                  {dangGiai ? 'AI đang giải đề...' : 'Để AI giải đề'}
+                </button>
+              </div>
             </div>
             <p className="mb-2 mt-1 text-xs font-semibold text-slate-500">
               Đây là thứ AI dùng làm mốc chấm, KHÔNG gửi cho học sinh. Tải file lên thì app đọc chữ ra ô dưới để thầy cô soát lại.
@@ -124,6 +174,22 @@ export const AssignmentFormModal = ({ className, dangGui, onClose, onSubmit }: P
               placeholder="Để trống thì AI phải tự đọc đề trong ảnh từng em rồi tự giải — kém chắc chắn và tốn hơn."
               className={`${O} font-normal`} />
             {ghiChu.dapAn && <p className="mt-1 text-xs font-bold text-amber-700">{ghiChu.dapAn}</p>}
+            {dapAnDoAi && (
+              <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                <p className="flex items-start gap-2 text-xs font-black text-amber-900">
+                  <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                  Đáp án này do AI giải, chưa ai kiểm. Soát lại trước khi giao — sai một câu ở đây là cả lớp bị chấm sai câu đó.
+                </p>
+                {choChuaChac.length > 0 && (
+                  <>
+                    <p className="mt-2 text-xs font-black text-amber-900">AI tự báo chưa chắc ở:</p>
+                    <ul className="mt-1 list-inside list-disc text-xs font-semibold text-amber-800">
+                      {choChuaChac.map(x => <li key={x}>{x}</li>)}
+                    </ul>
+                  </>
+                )}
+              </div>
+            )}
             {answerKeyImages.length > 0 && (
               <p className="mt-1 text-xs font-bold text-slate-500">Đã đính {answerKeyImages.length} ảnh đáp án.</p>
             )}
@@ -145,7 +211,7 @@ export const AssignmentFormModal = ({ className, dangGui, onClose, onSubmit }: P
         <div className="mt-5 flex justify-end gap-3 border-t border-slate-100 pt-4">
           <button onClick={onClose} className="rounded-2xl px-5 py-3 text-sm font-black text-slate-500 transition hover:bg-slate-50">Hủy</button>
           <button
-            onClick={() => onSubmit({ title: title.trim(), dueAt, maxScore, answerKey: answerKey.trim(), rubric: rubric.trim(), deFiles, answerKeyImages })}
+            onClick={() => onSubmit({ title: title.trim(), dueAt, maxScore, answerKey: answerKey.trim(), rubric: rubric.trim(), deFiles, answerKeyImages, answerKeyByAi: dapAnDoAi })}
             disabled={!title.trim() || dangGui || dangDoc !== ''}
             className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-black text-white transition hover:bg-blue-700 disabled:opacity-50"
           >

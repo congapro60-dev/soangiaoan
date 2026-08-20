@@ -156,3 +156,57 @@ export const parsePracticeQuestions = (raw: string): PracticeQuestion[] => {
     })
     .filter(q => q.question);
 };
+
+// ── AI tự giải đề khi giáo viên không có sẵn đáp án ──────────────────────────
+
+export interface SolveExamInput {
+  /** Nội dung đề dạng chữ, nếu rút được. */
+  examText: string;
+  /** Số ảnh đề gửi kèm, khi đề là ảnh hoặc PDF scan. */
+  examImageCount: number;
+  maxScore: number;
+}
+
+/**
+ * Bảo AI giải đề để dựng đáp án nháp.
+ *
+ * Kết quả này KHÔNG được dùng thẳng để chấm. Một đáp án sai ở câu 5 sẽ làm cả lớp bị chấm sai
+ * câu 5, rồi sai đó còn nhân tiếp vào hồ sơ học tập từng em. Nên prompt bắt AI tự nêu chỗ nó
+ * không chắc, để giáo viên biết cần soát kỹ chỗ nào.
+ */
+export const buildSolveExamPrompt = (input: SolveExamInput): string => `Bạn là giáo viên Toán đang soạn ĐÁP ÁN cho một đề bài tập của học sinh Việt Nam.
+
+${input.examImageCount > 0
+  ? `Đề nằm trong ${input.examImageCount} ảnh gửi kèm. Đọc kỹ đề trong ảnh trước khi giải.`
+  : `ĐỀ BÀI:\n${input.examText.trim()}`}
+
+Giải TỪNG câu, theo thứ tự đề ra. Với mỗi câu:
+- Ghi rõ số câu đúng như trong đề.
+- Nêu các bước chính, không tắt quá để giáo viên soát được.
+- Ghi đáp số cuối cùng.
+- Đề xuất số điểm cho câu đó, tổng cả đề đúng bằng ${input.maxScore} điểm.
+
+QUAN TRỌNG — chỗ nào bạn KHÔNG chắc thì phải nói ra:
+- Không đọc rõ đề, thiếu dữ kiện, hay có nhiều cách hiểu → ghi thẳng "CHƯA CHẮC: ..." ngay tại câu đó.
+- Thà nêu ra để giáo viên sửa, còn hơn đoán bừa rồi cả lớp bị chấm theo một đáp án sai.
+
+CHỈ TRẢ VỀ JSON THUẦN:
+{"answerKey":"toàn bộ đáp án dạng văn bản, xuống dòng bằng \n","uncertainties":["chỗ chưa chắc 1"]}`;
+
+export interface SolvedAnswerKey {
+  answerKey: string;
+  uncertainties: string[];
+}
+
+export const parseSolvedAnswerKey = (raw: string): SolvedAnswerKey => {
+  const text = String(raw || '');
+  const inCodeBlock = text.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
+  const jsonStr = inCodeBlock ? inCodeBlock[1] : text.match(/\{[\s\S]*\}/)?.[0];
+  if (!jsonStr) throw new Error('AI không trả về JSON hợp lệ');
+
+  const parsed = parseLooseJson<Record<string, unknown>>(jsonStr);
+  const answerKey = String(parsed.answerKey || '').trim();
+  if (!answerKey) throw new Error('AI không giải được đề này. Thầy cô dán đáp án tay giúp.');
+
+  return { answerKey, uncertainties: toStringArray(parsed.uncertainties) };
+};

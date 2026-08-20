@@ -33,6 +33,7 @@ export interface NewAssignment {
   dueAt?: string;
   attachments?: AssignmentAttachment[];
   answerKeyImageUrls?: string[];
+  answerKeyByAi?: boolean;
 }
 
 /**
@@ -79,6 +80,7 @@ export const createAssignment = async (input: NewAssignment): Promise<Assignment
     dueAt: input.dueAt,
     attachments: input.attachments || [],
     answerKeyImageUrls: input.answerKeyImageUrls || [],
+    answerKeyByAi: input.answerKeyByAi === true,
     isOpen: true,
     createdAt: now,
     updatedAt: now,

@@ -11,14 +11,17 @@ import {
   rollQuota,
   today,
   type GradeKind,
+  parseDataUrl,
   type InlineImage,
   type QuotaDoc,
 } from './_grading-core.js';
 import {
   buildHomeworkGradingPrompt,
   buildPracticePrompt,
+  buildSolveExamPrompt,
   parseHomeworkGrade,
   parsePracticeQuestions,
+  parseSolvedAnswerKey,
 } from '../src/lib/classroom/gradingPrompt.js';
 
 /**
@@ -270,6 +273,49 @@ const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<stri
   return res.status(200).json({ questions: parsePracticeQuestions(raw), topics });
 };
 
+/**
+ * AI giải đề để dựng ĐÁP ÁN NHÁP khi giáo viên không có sẵn.
+ *
+ * Kết quả trả thẳng về form cho giáo viên SOÁT rồi mới lưu — cố ý không tự ghi vào bài giao.
+ * Một đáp án sai ở câu 5 làm cả lớp bị chấm sai câu 5, rồi sai đó nhân tiếp vào hồ sơ từng em.
+ * Hai phút giáo viên đọc lại rẻ hơn nhiều so với đi sửa 26 bài đã chấm.
+ */
+const handleSolveAnswerKey = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Cần đăng nhập tài khoản giáo viên.' });
+
+  const classId = typeof body.classId === 'string' ? body.classId : '';
+  const classSnap = await db.collection('classes').doc(classId).get();
+  if (!classSnap.exists || classSnap.data()?.teacherId !== uid) {
+    return res.status(403).json({ error: 'Chỉ giáo viên chủ lớp mới dùng được chức năng này.' });
+  }
+
+  const examText = String(body.examText || '');
+  const rawImages = Array.isArray(body.examImages) ? body.examImages : [];
+  const examImages = rawImages
+    .slice(0, 3)
+    .map(x => parseDataUrl(String(x)))
+    .filter((img): img is InlineImage => img !== null);
+
+  if (!examText.trim() && examImages.length === 0) {
+    return res.status(400).json({ error: 'Chưa có đề để giải. Tải file đề lên trước đã.' });
+  }
+
+  const [quota, quotaRef] = await loadQuota(db, uid);
+  const verdict = remainingQuota(quota, 'teacher', '');
+  if (verdict.allowed <= 0) return res.status(429).json({ error: verdict.reason });
+
+  const prompt = buildSolveExamPrompt({
+    examText,
+    examImageCount: examImages.length,
+    maxScore: Number(body.maxScore) || 10,
+  });
+  const raw = await callGeminiVision(prompt, examImages, getGradingApiKey());
+  await quotaRef.set(bumpQuota(quota, 'teacher', '', 1));
+
+  return res.status(200).json(parseSolvedAnswerKey(raw));
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -284,6 +330,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (action === 'gradeAssignment') return await handleGradeAssignment(db, body, res);
     if (action === 'gradeOne') return await handleGradeOne(db, body, res);
     if (action === 'practice') return await handlePractice(db, body, res);
+    if (action === 'solveAnswerKey') return await handleSolveAnswerKey(db, body, res);
     return res.status(400).json({ error: `Hành động không hợp lệ: ${action}`, limits: QUOTA_LIMITS });
   } catch (error) {
     console.error('[grade-homework] lỗi', error);

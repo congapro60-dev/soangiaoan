@@ -84,6 +84,8 @@ export interface AssignmentDoc {
   attachments?: AssignmentAttachment[];
   /** Ảnh đáp án khi không rút được chữ — gửi kèm MỖI lượt chấm nên tốn hơn bản có chữ. */
   answerKeyImageUrls?: string[];
+  /** true khi đáp án do AI giải ra (giáo viên vẫn soát và sửa được trước khi giao). */
+  answerKeyByAi?: boolean;
   isOpen: boolean;
   createdAt: string;
   updatedAt: string;
