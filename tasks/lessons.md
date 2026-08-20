@@ -185,3 +185,32 @@
 - **Báo lỗi từ agent khác phải kiểm từng dòng, kể cả khi phần gốc đúng** — bản audit QA của codex chẩn đoán đúng `test:e2e` hỏng, nhưng sai hai chi tiết: (a) xếp nó vào diện "false PASS" trong khi nó exit 1, fail cứng — false PASS nằm ở chỗ khác (`run_test.js` skip-rồi-báo-thành-công); (b) coi việc `vitest.config.ts` loại `tests/rules/**` là "hệ quả cần sửa", trong khi đó là chủ ý đã ghi chú sẵn ở dòng 9-11, sửa vào là làm `npm run test` đỏ khi máy không có Java. Đúng họ với ca `mathStandards.test.ts` ngày 2026-07-31: **bản báo lỗi chẩn đoán đúng phần gốc vẫn kèm chi tiết sai**. *(2026-08-04)*
 
 - **Tài liệu QA không bắt được lỗi nào — đừng đổi công sức lấy giấy tờ** — bản audit đề xuất 7 file tài liệu mới, 1 dependency E2E, 5 npm script và ma trận phủ 20 module. Thứ duy nhất thật sự chặn được thiệt hại là mở rộng `tests/rules/`: chạy trên emulator, không đụng production, không thêm dependency, và **tự phơi ra ba lỗ hổng** mà HANDOFF chỉ mới chép thành checklist. Thêm Playwright thì ngược lại: dependency nặng đổi lấy một smoke test "trang tải không lỗi console" — thứ đã kiểm được bằng mắt. Khi nhận một danh sách việc dài, hỏi trước: *mục nào trong này thực sự làm hỏng-thì-biết?* *(2026-08-04)*
+
+## TDS DOCX fidelity (2026-08-17)
+- Khi người dùng yêu cầu bám mẫu giáo án, không được tạo template tổng quát: phải phân tích trực tiếp DOCX canonical ở khối 10/11, giữ cấu trúc section, table, style, lề và nhịp hoạt động; kiểm tra số bảng/OMML trước khi bàn giao.
+- Trước khi thay bản cũ, phải tạo bản nháp riêng, đối chiếu trực quan/nội tại với mẫu và chỉ đặt bản đạt vào thư mục tuần tương ứng.
+
+
+## TDS production pipeline — pre-batch 2026-08-19
+
+- DOCX có tên tiếng Việt phải được đọc qua bản sao tạm ASCII khi gọi công cụ ZIP trên Windows; checksum luôn tính trên exact DOCX gốc.
+- Timeline parser chỉ nhận interval trong ngữ cảnh thời lượng/cột Thời gian thực và phải loại period ID, tên file, handoff liên tiết; interval lặp do bảng/paragraph cần được merge trước khi kiểm coverage.
+- Production gates phải chuẩn hóa Unicode minus và dấu phân cách số trước khi kiểm mathematical core; không dùng literal token brittle.
+- `Môn học = TDS` của P52–P54 được giữ vì PPCT source là TDS, subject rỗng và `isElective=true`; không suy diễn thành Toán từ tên Unit Plan.
+- Chỉ promote DOCX khi verifier `overall_pass=true`; raw/debug/report không được copy vào thư mục bàn giao.
+
+## 2026-08-20 — Source validation và canonical identity
+- Không được coi `ppct_record_id`, `previous_lesson`, `next_lesson` hoặc `unit_plan_location` là hợp lệ chỉ vì chuỗi không rỗng; phải resolve tới record/slot/heading thật và đối chiếu grade/week/period/subject/isElective.
+- `required_concepts`, `required_tasks` và `benchmarks` là ba nhóm core độc lập; report riêng từng nhóm thiếu và fail-closed khi một nhóm thiếu.
+- Promotion phải dùng canonical lesson ID đầy đủ (`g10_w08_p055`, `g11_w12_p...`); bare period chỉ là định danh mơ hồ vì các khối có thể trùng số tiết.
+- Generalization test phải phân biệt lỗi verifier với lỗi chất lượng DOCX lịch sử; không nâng case lịch sử thành GOLD.
+
+## Lớp học · học sinh (2026-08-20)
+
+- **Đừng kết luận đang đăng nhập tài khoản nào từ tên hiển thị trên header** — tôi thấy "Vũ Việt Cường / Giáo viên" rồi báo với owner là tab đang mở tài khoản Google thật, và tự chặn mọi thao tác ghi. Thực ra đó chỉ là `data.authorName` đọc từ localStorage; phiên thật là mock demo offline (`uid: 'demo-agent-001'`) do Anonymous Auth chưa bật. Cách kiểm đúng, rẻ và chắc: đọc `indexedDB` kho `firebaseLocalStorageDb` — rỗng nghĩa là **không có phiên Firebase nào**, mọi lệnh Firestore sẽ `permission-denied`. Dấu hiệu đi kèm: `lessonPlans` đọc được (rule chỉ đòi `request.auth != null`... nhưng vẫn hỏng nếu không auth) trong khi `userSettings` ghi hỏng. *(2026-08-20)*
+
+- **Mã sinh tự động phải hợp lệ với chính bộ ký tự mình vừa định nghĩa** — `createJoinCode` cố ý loại `0 O 1 I L 5 S 8 B` cho dễ đọc to trong lớp, nhưng fixture test lại dùng `'ABCDEF'` (có `B`) nên `isValidJoinCode` trả false và test đỏ. Test bắt được lỗi của chính test — đó là dấu hiệu tốt. Khi định nghĩa bảng chữ cái hạn chế, sinh luôn fixture từ bảng đó thay vì gõ tay. *(2026-08-20)*
+
+- **PIN/bí mật phải nằm ở DOCUMENT RIÊNG, không nằm chung document với dữ liệu hiển thị** — Firestore rules chặn được cả document chứ không giấu được từng trường. Để giáo viên đọc được danh sách học sinh mà không đọc được PIN, PIN phải ở `classes/{id}/studentSecrets/{studentId}` với `allow read, write: if false` (chỉ Admin SDK vào được). Cùng lý do, danh sách học sinh KHÔNG mở cho người chưa đăng nhập dù biết mã lớp — màn "chọn tên mình" phải đi qua server, nếu không ai có mã lớp cũng lấy trọn danh sách tên trẻ em. *(2026-08-20)*
+
+- **Dữ liệu cá nhân của học sinh nằm trong thư mục repo phải vào `.gitignore` NGAY, và pattern phải dùng wildcard** — file danh sách lớp của trường chứa họ tên, email kèm mật khẩu mặc định, tên/SĐT phụ huynh, địa chỉ nhà. Repo đang có 272 mục untracked nên một lệnh `git add -A` là đẩy hết lên GitHub. Tên thư mục tiếng Việt lưu dạng NFD nên pattern gõ tay bằng NFC KHÔNG khớp — phải viết `Danh s*ch l*p d*y*/` rồi xác nhận bằng `git check-ignore -v "$(ls -d Danh*/)"`. *(2026-08-20)*

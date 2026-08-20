@@ -39,3 +39,7 @@ soangiaoan/
 
 # ── File thừa/tạm (không cần commit) ──
 _File thừa/
+
+# Du lieu hoc sinh — KHONG BAO GIO commit (ho ten, email + mat khau mac dinh, phu huynh, dia chi).
+# Dung wildcard vi ten thu muc tieng Viet luu dang NFD, go tay bang NFC se khong khop.
+Danh s*ch l*p d*y*/

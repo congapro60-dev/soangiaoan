@@ -420,5 +420,159 @@ service cloud.firestore {
 
       allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // LỚP HỌC — giao bài · học sinh nộp bài · hồ sơ học tập
+    //
+    // Danh tính học sinh KHÔNG phải tài khoản Google. Học sinh đăng nhập ẩn
+    // danh, rồi server (Admin SDK) kiểm mã lớp + mã học sinh + PIN và ghi một
+    // document `studentLinks/{uid}` gắn phiên đó với đúng một học sinh. Mọi
+    // luật bên dưới hỏi document ấy để biết người gọi là ai.
+    //
+    // Ba thứ cố ý KHÔNG cho client chạm tới:
+    //  1. `studentSecrets` chứa PIN đã băm — rules chặn cả đọc lẫn ghi, chỉ
+    //     Admin SDK (vốn bỏ qua rules) đụng vào được. Rules không giấu được
+    //     từng trường, nên PIN phải nằm ở document riêng chứ không nằm chung
+    //     với thông tin học sinh.
+    //  2. `studentLinks` — client đọc được phiên của chính mình để biết mình
+    //     là ai, nhưng không tự tạo được. Cho client ghi là cho nó tự nhận là
+    //     bất kỳ học sinh nào.
+    //  3. Điểm và nhận xét trong `submissions.grade` — học sinh sửa được bài
+    //     nộp khi chưa chấm, nhưng không bao giờ chạm được vào điểm.
+    //
+    // Danh sách học sinh trong lớp KHÔNG mở cho người chưa đăng nhập, kể cả
+    // khi biết mã lớp. Màn hình "chọn tên mình" lấy danh sách qua server sau
+    // khi đã kiểm mã lớp — nếu mở ở đây thì ai có mã lớp cũng lấy được trọn
+    // danh sách tên trẻ em.
+    // ═══════════════════════════════════════════════════════════════════
+
+    function laChuLop(classId) {
+      return request.auth != null
+             && get(/databases/$(database)/documents/classes/$(classId)).data.teacherId == request.auth.uid;
+    }
+
+    function coLienKetHocSinh() {
+      return request.auth != null
+             && exists(/databases/$(database)/documents/studentLinks/$(request.auth.uid));
+    }
+
+    function lienKetHocSinh() {
+      return get(/databases/$(database)/documents/studentLinks/$(request.auth.uid)).data;
+    }
+
+    function laHocSinh(studentId) {
+      return coLienKetHocSinh() && lienKetHocSinh().studentId == studentId;
+    }
+
+    function thuocLop(classId) {
+      return coLienKetHocSinh() && lienKetHocSinh().classId == classId;
+    }
+
+    // Phiên đăng nhập của học sinh. Chỉ server ghi, sau khi đã kiểm PIN.
+    match /studentLinks/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow list: if false;
+      allow create, update, delete: if false;
+    }
+
+    match /classes/{classId} {
+      // list chấm trên từng document ứng viên → client buộc phải lọc theo teacherId.
+      allow list: if request.auth != null && resource.data.teacherId == request.auth.uid;
+      allow get: if (request.auth != null && resource.data.teacherId == request.auth.uid)
+                 || thuocLop(classId);
+
+      allow create: if request.auth != null
+                    && request.resource.data.teacherId == request.auth.uid
+                    && request.resource.data.keys().hasAll(['teacherId', 'name', 'joinCode']);
+
+      // Không đổi chủ sở hữu sau khi tạo.
+      allow update: if request.auth != null
+                    && resource.data.teacherId == request.auth.uid
+                    && request.resource.data.teacherId == resource.data.teacherId;
+
+      allow delete: if request.auth != null && resource.data.teacherId == request.auth.uid;
+
+      match /students/{studentId} {
+        allow get: if laChuLop(classId) || laHocSinh(studentId);
+        allow list: if laChuLop(classId);
+        allow create, update, delete: if laChuLop(classId);
+      }
+
+      // PIN đã băm — không client nào chạm tới, kể cả giáo viên chủ lớp.
+      match /studentSecrets/{studentId} {
+        allow read, write: if false;
+      }
+    }
+
+    match /assignments/{assignmentId} {
+      allow list, get: if (request.auth != null && resource.data.teacherId == request.auth.uid)
+                       || (thuocLop(resource.data.classId) && resource.data.isOpen == true);
+
+      allow create: if request.auth != null
+                    && request.resource.data.teacherId == request.auth.uid
+                    && laChuLop(request.resource.data.classId)
+                    && request.resource.data.keys().hasAll(['teacherId', 'classId', 'title', 'type', 'isOpen']);
+
+      allow update: if request.auth != null
+                    && resource.data.teacherId == request.auth.uid
+                    && request.resource.data.teacherId == resource.data.teacherId
+                    && request.resource.data.classId == resource.data.classId;
+
+      allow delete: if request.auth != null && resource.data.teacherId == request.auth.uid;
+    }
+
+    match /submissions/{submissionId} {
+      // Học sinh nộp bài: mọi trường định danh phải khớp phiên của chính mình,
+      // và tuyệt đối không được kèm sẵn điểm.
+      function hocSinhNopHopLe() {
+        let d = request.resource.data;
+        return coLienKetHocSinh()
+               && d.studentId == lienKetHocSinh().studentId
+               && d.classId == lienKetHocSinh().classId
+               && d.teacherId == lienKetHocSinh().teacherId
+               && d.status == 'submitted'
+               && !('grade' in d)
+               && d.fileUrls is list
+               && d.fileUrls.size() >= 1
+               && d.fileUrls.size() <= 10;
+      }
+
+      // Nộp lại khi chưa chấm: chỉ được đổi file và ghi chú, không đụng gì khác.
+      function hocSinhNopLai() {
+        return laHocSinh(resource.data.studentId)
+               && resource.data.status == 'submitted'
+               && request.resource.data.diff(resource.data).affectedKeys()
+                    .hasOnly(['fileUrls', 'note', 'updatedAt']);
+      }
+
+      allow list, get: if (request.auth != null && resource.data.teacherId == request.auth.uid)
+                       || laHocSinh(resource.data.studentId);
+
+      allow create: if hocSinhNopHopLe()
+                    || (request.auth != null && request.resource.data.teacherId == request.auth.uid);
+
+      allow update: if hocSinhNopLai()
+                    || (request.auth != null
+                        && resource.data.teacherId == request.auth.uid
+                        && request.resource.data.teacherId == resource.data.teacherId
+                        && request.resource.data.studentId == resource.data.studentId);
+
+      allow delete: if request.auth != null && resource.data.teacherId == request.auth.uid;
+    }
+
+    // Hồ sơ tích luỹ. Học sinh ĐỌC được phần của mình, không bao giờ ghi được —
+    // đây là hồ sơ đánh giá năng lực, do giáo viên và máy chấm dựng nên.
+    match /studentProfiles/{studentId} {
+      allow get: if (request.auth != null && resource.data.teacherId == request.auth.uid)
+                 || laHocSinh(studentId);
+      allow list: if request.auth != null && resource.data.teacherId == request.auth.uid;
+
+      allow create: if request.auth != null && request.resource.data.teacherId == request.auth.uid;
+      allow update: if request.auth != null
+                    && resource.data.teacherId == request.auth.uid
+                    && request.resource.data.teacherId == resource.data.teacherId;
+      allow delete: if request.auth != null && resource.data.teacherId == request.auth.uid;
+    }
+
   }
 }

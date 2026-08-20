@@ -1,8 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Swal from 'sweetalert2';
+import * as XLSX from 'xlsx';
 import { User } from 'firebase/auth';
 import { AppData, ClassAssignment, Student, TeacherClass } from '../../types';
 import { useExams, getSubmissions } from '../../hooks/useExams';
+import { parseRosterRows } from '../../utils/classRosterImport';
+import { countUnmigratedClasses, migrateLegacyClasses } from '../../lib/classroom/classroomService';
 
 interface ClassesTabProps {
   data: AppData;
@@ -19,15 +22,17 @@ import {
   BookOpenCheck,
   ClipboardList,
   Eye,
+  FileSpreadsheet,
   GraduationCap,
-  MoreVertical,
   Plus,
   Search,
   Send,
   Sparkles,
+  Trash2,
   TrendingUp,
   UserPlus,
   Users,
+  X,
 } from 'lucide-react';
 
 
@@ -51,6 +56,44 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
   const [selectedClassId, setSelectedClassId] = useState(classes[0]?.id || '');
 
   const [query, setQuery] = useState('');
+  const rosterInputRef = useRef<HTMLInputElement>(null);
+  const [unmigrated, setUnmigrated] = useState(0);
+  const [syncing, setSyncing] = useState(false);
+  const [viewingStudent, setViewingStudent] = useState<Student | null>(null);
+
+  // Lớp học đang chuyển từ mảng trong userSettings sang collection Firestore thật.
+  // Mảng cũ CỐ Ý giữ nguyên để còn đường lùi, nên phải đếm xem còn lớp nào chưa chuyển.
+  useEffect(() => {
+    if (!user?.uid || classes.length === 0) {
+      setUnmigrated(0);
+      return;
+    }
+    let huy = false;
+    countUnmigratedClasses(user.uid, classes)
+      .then(count => { if (!huy) setUnmigrated(count); })
+      .catch(error => console.error('Không đếm được lớp chưa đồng bộ', error));
+    return () => { huy = true; };
+  }, [user?.uid, classes]);
+
+  const syncClassesToCloud = async () => {
+    if (!user?.uid) return;
+    setSyncing(true);
+    try {
+      const result = await migrateLegacyClasses(user.uid, classes);
+      setUnmigrated(0);
+      showToast(`Đã đồng bộ ${result.createdClasses} lớp và ${result.createdStudents} học sinh.`, 'success');
+    } catch (error) {
+      console.error('Lỗi đồng bộ lớp học', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Đồng bộ thất bại',
+        text: error instanceof Error ? error.message : 'Không ghi được lên máy chủ. Dữ liệu lớp trên máy vẫn còn nguyên.',
+        confirmButtonColor: '#3085d6',
+      });
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const selectedClass = classes.find((item) => item.id === selectedClassId) || classes[0];
   const filteredStudents = useMemo(() => {
@@ -165,6 +208,130 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
         }),
       };
     });
+  };
+
+  /**
+   * Nhập cả lớp từ file Excel/CSV của trường. Chỉ lấy họ tên và mã học sinh — mọi cột khác
+   * (email, mật khẩu mặc định, phụ huynh, số điện thoại, địa chỉ) cố ý KHÔNG đọc vào app.
+   */
+  const importRoster = async (file: File) => {
+    try {
+      const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, blankrows: false, defval: '' });
+
+      const suggestedName = file.name.replace(/\.[^.]+$/, '').replace(/^\s*\d{2}\s*-\s*\d{2}\s*/, '').trim();
+      const preview = parseRosterRows(rows, suggestedName);
+
+      const sampleNames = preview.students.slice(0, 5).map(s => escapeHtml(s.name)).join(', ');
+      const remaining = preview.students.length - 5;
+      const warnings = [
+        preview.duplicateCount > 0 ? `Đã bỏ ${preview.duplicateCount} dòng trùng mã học sinh.` : '',
+        preview.codeGenerated ? 'Bảng không có cột mã học sinh — app tự sinh mã theo thứ tự.' : '',
+      ].filter(Boolean);
+
+      const { value } = await Swal.fire({
+        title: `Tìm thấy ${preview.students.length} học sinh`,
+        html: `
+          <p style="font-size:13px;color:#475569;text-align:left;margin-bottom:10px;">
+            ${sampleNames}${remaining > 0 ? ` và ${remaining} em khác` : ''}.
+          </p>
+          ${warnings.map(w => `<p style="font-size:12px;color:#b45309;text-align:left;margin-bottom:6px;">${escapeHtml(w)}</p>`).join('')}
+          <input id="roster-class-name" class="swal2-input" placeholder="Tên lớp" value="${escapeHtml(suggestedName)}">
+          <input id="roster-class-track" class="swal2-input" placeholder="Nhóm/ghi chú, VD: Lộ trình 1">
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Tạo lớp',
+        cancelButtonText: 'Hủy',
+        confirmButtonColor: '#3085d6',
+        preConfirm: () => ({
+          name: (document.getElementById('roster-class-name') as HTMLInputElement).value.trim(),
+          track: (document.getElementById('roster-class-track') as HTMLInputElement).value.trim(),
+        }),
+      });
+      if (!value?.name) return;
+
+      if (classes.some(c => c.name.toLowerCase() === value.name.toLowerCase())) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Lỗi tạo lớp',
+          text: `Lớp học mang tên "${value.name}" đã tồn tại!`,
+          confirmButtonColor: '#3085d6',
+        });
+        return;
+      }
+
+      // Đọc lại với tên lớp đã chốt để mã tự sinh mang đúng tên lớp.
+      const { students } = parseRosterRows(rows, value.name);
+      const newClass: TeacherClass = {
+        id: `class-${Date.now()}`,
+        name: value.name,
+        track: value.track || 'Nhập từ Excel',
+        grade: value.name.match(/\d+/)?.[0] || '10',
+        studentCount: students.length,
+        activeAssignments: 0,
+        progress: 0,
+        tone: 'tertiary',
+        students,
+      };
+
+      setData((prev: AppData) => ({ ...prev, classes: [newClass, ...(prev.classes || [])] }));
+      setSelectedClassId(newClass.id);
+      showToast(`Đã tạo lớp ${value.name} với ${students.length} học sinh.`, 'success');
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Không đọc được danh sách',
+        text: error instanceof Error ? error.message : 'File không phải bảng Excel/CSV hợp lệ.',
+        confirmButtonColor: '#3085d6',
+      });
+    }
+  };
+
+  const deleteClass = async (cls: TeacherClass) => {
+    const { isConfirmed } = await Swal.fire({
+      icon: 'warning',
+      title: `Xoá lớp ${cls.name}?`,
+      html: `Lớp này có <b>${cls.students.length} học sinh</b>. Xoá lớp là xoá luôn danh sách học sinh trong đó.<br/><br/>Nhập lại được từ file Excel nếu anh chị còn giữ file.`,
+      showCancelButton: true,
+      confirmButtonText: 'Xoá lớp',
+      cancelButtonText: 'Giữ lại',
+      confirmButtonColor: '#dc2626',
+      focusCancel: true,
+    });
+    if (!isConfirmed) return;
+
+    setData((prev: AppData) => ({
+      ...prev,
+      classes: (prev.classes || []).filter(item => item.id !== cls.id),
+    }));
+    if (selectedClassId === cls.id) setSelectedClassId('');
+    showToast(`Đã xoá lớp ${cls.name}.`, 'success');
+  };
+
+  const deleteStudent = async (cls: TeacherClass, student: Student) => {
+    const { isConfirmed } = await Swal.fire({
+      icon: 'warning',
+      title: `Xoá ${student.name} khỏi ${cls.name}?`,
+      text: 'Chỉ xoá em này khỏi danh sách lớp, các lớp khác không ảnh hưởng.',
+      showCancelButton: true,
+      confirmButtonText: 'Xoá học sinh',
+      cancelButtonText: 'Giữ lại',
+      confirmButtonColor: '#dc2626',
+      focusCancel: true,
+    });
+    if (!isConfirmed) return;
+
+    setData((prev: AppData) => ({
+      ...prev,
+      classes: (prev.classes || []).map(item => {
+        if (item.id !== cls.id) return item;
+        const students = item.students.filter(s => s.id !== student.id);
+        return { ...item, students, studentCount: students.length };
+      }),
+    }));
+    if (viewingStudent?.id === student.id) setViewingStudent(null);
+    showToast(`Đã xoá ${student.name} khỏi ${cls.name}.`, 'success');
   };
 
   const assignExam = async (cls: TeacherClass) => {
@@ -306,8 +473,22 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
+            <input
+              ref={rosterInputRef}
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              className="hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = '';
+                if (file) void importRoster(file);
+              }}
+            />
             <button onClick={addStudent} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white/15 px-5 py-3 text-sm font-black text-white ring-1 ring-white/25 transition hover:bg-white/20">
               <UserPlus className="h-4 w-4" /> Thêm học sinh
+            </button>
+            <button onClick={() => rosterInputRef.current?.click()} title="Đọc họ tên và mã học sinh từ file Excel của trường" className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white/15 px-5 py-3 text-sm font-black text-white ring-1 ring-white/25 transition hover:bg-white/20">
+              <FileSpreadsheet className="h-4 w-4" /> Nhập từ Excel
             </button>
             <button onClick={addClass} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-black text-blue-700 shadow-lg shadow-blue-900/10 transition hover:-translate-y-0.5">
               <Plus className="h-4 w-4" /> Tạo lớp mới
@@ -315,6 +496,26 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
           </div>
         </div>
       </section>
+
+      {unmigrated > 0 && (
+        <section className="flex flex-col gap-3 rounded-3xl border border-amber-200 bg-amber-50 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-black text-amber-900">
+              {unmigrated} lớp chưa đồng bộ lên máy chủ
+            </p>
+            <p className="mt-1 text-sm font-semibold text-amber-800">
+              Học sinh chỉ đăng nhập và nộp bài được sau khi lớp đã lên máy chủ. Danh sách trên máy vẫn giữ nguyên.
+            </p>
+          </div>
+          <button
+            onClick={syncClassesToCloud}
+            disabled={syncing}
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-amber-600 px-5 py-3 text-sm font-black text-white transition hover:bg-amber-700 disabled:opacity-60"
+          >
+            {syncing ? 'Đang đồng bộ...' : 'Đồng bộ ngay'}
+          </button>
+        </section>
+      )}
 
       <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {[
@@ -346,7 +547,7 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
                     <p className="text-sm font-semibold text-slate-500">{item.track}</p>
                   </div>
                 </button>
-                <button disabled title="Tính năng đang phát triển" className="cursor-not-allowed rounded-full p-2 text-slate-300"><MoreVertical className="h-5 w-5" /></button>
+                <button onClick={() => deleteClass(item)} title={`Xoá lớp ${item.name}`} aria-label={`Xoá lớp ${item.name}`} className="rounded-full p-2 text-slate-300 transition hover:bg-red-50 hover:text-red-600"><Trash2 className="h-5 w-5" /></button>
               </div>
 
               <div className="flex flex-1 flex-col gap-4 p-5">
@@ -385,26 +586,74 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
           </div>
 
           <div className="mt-4 overflow-hidden rounded-3xl border border-slate-100">
-            <div className="hidden grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr] bg-slate-50 px-5 py-3 text-xs font-black uppercase tracking-wide text-slate-400 md:grid">
-              <span>Học sinh</span><span>Mã HS</span><span>Tiến độ</span><span>Trạng thái</span>
+            <div className="hidden grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr_auto] bg-slate-50 px-5 py-3 text-xs font-black uppercase tracking-wide text-slate-400 md:grid">
+              <span>Học sinh</span><span>Mã HS</span><span>Tiến độ</span><span>Trạng thái</span><span className="sr-only">Thao tác</span>
             </div>
             {filteredStudents.length === 0 ? (
               <div className="py-12 text-center text-sm font-semibold text-slate-400">Chưa có học sinh phù hợp.</div>
             ) : filteredStudents.map((student) => {
               const status = statusLabel[student.status];
               return (
-                <div key={student.id} className="grid gap-3 border-t border-slate-100 px-5 py-4 text-sm md:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr] md:items-center">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 font-black text-blue-700">{student.name.charAt(0)}</div>
-                    <div><p className="font-black text-slate-900">{student.name}</p><p className="text-xs font-semibold text-slate-400 md:hidden">{student.code}</p></div>
-                  </div>
+                <div key={student.id} className="grid gap-3 border-t border-slate-100 px-5 py-4 text-sm md:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr_auto] md:items-center">
+                  <button onClick={() => setViewingStudent(student)} title={`Xem trang của ${student.name}`} className="flex items-center gap-3 text-left transition hover:opacity-70">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-50 font-black text-blue-700">{student.name.charAt(0)}</div>
+                    <div><p className="font-black text-slate-900 underline decoration-slate-200 underline-offset-4">{student.name}</p><p className="text-xs font-semibold text-slate-400 md:hidden">{student.code}</p></div>
+                  </button>
                   <span className="hidden font-semibold text-slate-600 md:block">{student.code}</span>
                   <div className="flex items-center gap-3"><div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-blue-600" style={{ width: `${student.progress}%` }} /></div><span className="w-10 text-right font-black text-slate-700">{student.progress}%</span></div>
                   <span className={`w-fit rounded-full px-3 py-1 text-xs font-black ${status.className}`}>{status.label}</span>
+                  <button onClick={() => deleteStudent(selectedClass, student)} title={`Xoá ${student.name} khỏi lớp`} aria-label={`Xoá ${student.name} khỏi lớp`} className="w-fit rounded-full p-2 text-slate-300 transition hover:bg-red-50 hover:text-red-600"><Trash2 className="h-4 w-4" /></button>
                 </div>
               );
             })}
           </div>
+
+          {viewingStudent && (
+            <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/50 p-4 sm:p-8" onClick={() => setViewingStudent(null)}>
+              <div className="w-full max-w-2xl rounded-[2rem] bg-white p-6 shadow-2xl" onClick={event => event.stopPropagation()}>
+                <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-lg font-black text-blue-700">{viewingStudent.name.charAt(0)}</div>
+                    <div>
+                      <p className="text-lg font-black text-slate-900">{viewingStudent.name}</p>
+                      <p className="text-sm font-semibold text-slate-500">{selectedClass.name} · Mã HS {viewingStudent.code}</p>
+                    </div>
+                  </div>
+                  <button onClick={() => setViewingStudent(null)} aria-label="Đóng" className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100"><X className="h-5 w-5" /></button>
+                </div>
+
+                <p className="mt-4 rounded-2xl bg-blue-50 px-4 py-3 text-xs font-bold text-blue-900">
+                  Đây là trang mà học sinh sẽ thấy khi đăng nhập. Các mục còn trống vì chưa bật phần giao bài và nộp bài.
+                </p>
+
+                <div className="mt-4 grid grid-cols-3 gap-3">
+                  {[
+                    { label: 'Bài chưa nộp', value: '—' },
+                    { label: 'Điểm trung bình', value: '—' },
+                    { label: 'Tiến độ', value: `${viewingStudent.progress}%` },
+                  ].map(item => (
+                    <div key={item.label} className="rounded-2xl bg-slate-50 p-4">
+                      <p className="text-xs font-bold text-slate-500">{item.label}</p>
+                      <p className="mt-1 text-2xl font-black text-slate-900">{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {[
+                  { title: 'Bài được giao', empty: 'Chưa có bài nào được giao cho lớp này.' },
+                  { title: 'Bài đã chấm', empty: 'Chưa có bài nộp nào được chấm.' },
+                  { title: 'Hồ sơ của em', empty: 'Hồ sơ điểm mạnh, điểm yếu sẽ hiện ở đây sau vài bài đã chấm.' },
+                ].map(section => (
+                  <div key={section.title} className="mt-4">
+                    <p className="text-xs font-black uppercase tracking-wide text-slate-400">{section.title}</p>
+                    <div className="mt-2 rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm font-semibold text-slate-400">
+                      {section.empty}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="mt-5 grid gap-4 md:grid-cols-3">
             <div className="rounded-3xl bg-blue-50 p-4"><TrendingUp className="mb-3 h-5 w-5 text-blue-600" /><p className="text-xs font-bold uppercase text-blue-500">Gợi ý AI</p><p className="mt-1 text-sm font-semibold text-blue-950">Ưu tiên ôn tập cho nhóm dưới 60% trước khi giao bài mới.</p></div>
