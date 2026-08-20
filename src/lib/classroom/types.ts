@@ -88,8 +88,14 @@ export interface SubmissionGrade {
   maxScore: number;
   /** Nhận xét viết cho học sinh đọc. */
   feedback: string;
+  /** Ghi chú cho giáo viên — KHÔNG đưa nguyên văn cho học sinh. */
+  noteForTeacher?: string;
   strengths: string[];
   weaknesses: string[];
+  /** Chủ đề còn yếu, chỉ vào hồ sơ sau khi giáo viên duyệt. */
+  weakTopics?: string[];
+  /** true khi chấm mà không có đáp án chuẩn — kết quả kém tin cậy hơn. */
+  gradedWithoutAnswerKey?: boolean;
   gradedAt: string;
   /** true khi giáo viên đã xem và đồng ý — điều kiện để vào hồ sơ tích luỹ. */
   teacherApproved: boolean;

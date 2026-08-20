@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { collection, doc, getDoc, getDocs, limit, orderBy, query, where } from 'firebase/firestore';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -16,12 +16,24 @@ import {
   type SubmissionDoc,
 } from '../lib/classroom/types';
 import { fetchRoster, loginStudent, type RosterEntry } from '../services/studentPortalApi';
+import { submitHomework } from '../lib/classroom/submissionService';
+import { gradeOneSubmission } from '../services/gradingApi';
+
+const MAX_ANH = 4;
+
+const docAnh = (file: File): Promise<string> => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = () => resolve(String(reader.result));
+  reader.onerror = () => reject(new Error(`Không đọc được ảnh ${file.name}`));
+  reader.readAsDataURL(file);
+});
 
 type Stage = 'dang-tai' | 'nhap-ma-lop' | 'chon-ten' | 'dashboard';
 
 interface Phien {
   studentId: string;
   classId: string;
+  teacherId: string;
   className: string;
   studentName: string;
 }
@@ -51,6 +63,9 @@ export const StudentPortalPage = () => {
   const [assignments, setAssignments] = useState<AssignmentDoc[]>([]);
   const [submissions, setSubmissions] = useState<SubmissionDoc[]>([]);
   const [profile, setProfile] = useState<StudentProfileDoc | null>(null);
+  const [dangNop, setDangNop] = useState<string>('');
+  const uploadRef = useRef<HTMLInputElement>(null);
+  const targetRef = useRef<string | null>(null);
 
   // Phiên ẩn danh còn sống thì vào thẳng dashboard, khỏi bắt nhập lại mã lớp mỗi lần mở.
   useEffect(() => {
@@ -67,7 +82,7 @@ export const StudentPortalPage = () => {
           if (joinCodeParam) void moLop(normalizeJoinCode(joinCodeParam));
           return;
         }
-        const link = linkSnap.data() as { studentId: string; classId: string };
+        const link = linkSnap.data() as { studentId: string; classId: string; teacherId: string };
         const [classSnap, studentSnap] = await Promise.all([
           getDoc(doc(db, CLASSES_COL, link.classId)),
           getDoc(doc(db, CLASSES_COL, link.classId, 'students', link.studentId)),
@@ -75,6 +90,7 @@ export const StudentPortalPage = () => {
         setPhien({
           studentId: link.studentId,
           classId: link.classId,
+          teacherId: link.teacherId,
           className: (classSnap.data()?.name as string) || '',
           studentName: (studentSnap.data()?.name as string) || '',
         });
@@ -127,9 +143,43 @@ export const StudentPortalPage = () => {
     setStage('nhap-ma-lop');
   };
 
-  useEffect(() => {
-    if (stage !== 'dashboard' || !phien) return;
-    const tai = async () => {
+  const chonAnh = (assignmentId: string | null) => {
+    targetRef.current = assignmentId;
+    uploadRef.current?.click();
+  };
+
+  const nopBai = async (files: FileList) => {
+    if (!phien) return;
+    const chon = Array.from(files).slice(0, MAX_ANH);
+    setLoi('');
+    setDangNop(targetRef.current || 'tu-do');
+    try {
+      const images = await Promise.all(chon.map(docAnh));
+      const submission = await submitHomework({
+        classId: phien.classId,
+        studentId: phien.studentId,
+        teacherId: phien.teacherId,
+        assignmentId: targetRef.current,
+        images,
+      });
+      // Bài tự nộp thì chấm luôn, không phải chờ thầy cô bấm.
+      if (!targetRef.current) {
+        await gradeOneSubmission(submission.id).catch(error => {
+          setLoi(error instanceof Error ? error.message : 'Nộp được nhưng chưa chấm được, thầy cô sẽ chấm sau.');
+        });
+      }
+      await taiDuLieu();
+    } catch (error) {
+      setLoi(error instanceof Error ? error.message : 'Không nộp được bài.');
+    } finally {
+      setDangNop('');
+      targetRef.current = null;
+    }
+  };
+
+  const taiDuLieu = useCallback(async () => {
+    if (!phien) return;
+    {
       const [bai, nop, hoSo] = await Promise.all([
         getDocs(query(
           collection(db, ASSIGNMENTS_COL),
@@ -149,9 +199,12 @@ export const StudentPortalPage = () => {
       setAssignments(bai ? bai.docs.map(d => d.data() as AssignmentDoc) : []);
       setSubmissions(nop ? nop.docs.map(d => d.data() as SubmissionDoc) : []);
       setProfile(hoSo?.exists() ? (hoSo.data() as StudentProfileDoc) : null);
-    };
-    void tai();
-  }, [stage, phien]);
+    }
+  }, [phien]);
+
+  useEffect(() => {
+    if (stage === 'dashboard') void taiDuLieu();
+  }, [stage, taiDuLieu]);
 
   if (stage === 'dang-tai') {
     return (
@@ -250,6 +303,26 @@ export const StudentPortalPage = () => {
       </header>
 
       <main className="mx-auto max-w-3xl space-y-6 px-4 py-6">
+        <input
+          ref={uploadRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          multiple
+          className="hidden"
+          onChange={event => {
+            const files = event.target.files;
+            event.target.value = '';
+            if (files && files.length > 0) void nopBai(files);
+          }}
+        />
+
+        {loi && (
+          <p className="flex items-start gap-2 rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-800">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /> {loi}
+          </p>
+        )}
+
         <section className="grid grid-cols-3 gap-3">
           {[
             { label: 'Bài chưa nộp', value: String(chuaNop.length) },
@@ -275,8 +348,14 @@ export const StudentPortalPage = () => {
                   <p className="truncate font-bold text-slate-900">{a.title}</p>
                   <p className="text-sm font-semibold text-slate-500">{formatHan(a.dueAt)}</p>
                 </div>
-                <button disabled title="Nộp bài mở ở bước sau" className="shrink-0 cursor-not-allowed rounded-2xl bg-slate-100 px-4 py-2 text-sm font-black text-slate-400">
-                  <Camera className="mr-1 inline h-4 w-4" /> Nộp ảnh
+                <button
+                  onClick={() => chonAnh(a.id)}
+                  disabled={dangNop !== ''}
+                  className="shrink-0 rounded-2xl bg-blue-600 px-4 py-2 text-sm font-black text-white transition hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {dangNop === a.id
+                    ? 'Đang nộp...'
+                    : <><Camera className="mr-1 inline h-4 w-4" /> Nộp ảnh</>}
                 </button>
               </div>
             ))}
@@ -327,7 +406,16 @@ export const StudentPortalPage = () => {
         <section className="rounded-3xl border border-dashed border-slate-300 bg-white px-5 py-6 text-center">
           <BookOpenCheck className="mx-auto mb-2 h-6 w-6 text-slate-400" />
           <p className="text-sm font-bold text-slate-600">Nộp bài tự do</p>
-          <p className="mt-1 text-sm font-semibold text-slate-400">Chụp bài tập ở nhà để nhờ chấm — mở ở bước tiếp theo.</p>
+          <p className="mt-1 text-sm font-semibold text-slate-400">
+            Chụp bài tập ở nhà, chụp cả đề lẫn bài làm trong ảnh để máy đọc được em phải làm gì.
+          </p>
+          <button
+            onClick={() => chonAnh(null)}
+            disabled={dangNop !== ''}
+            className="mt-4 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-black text-white transition hover:bg-slate-800 disabled:opacity-50"
+          >
+            {dangNop === 'tu-do' ? 'Đang chấm, đợi chút...' : <><Camera className="mr-1 inline h-4 w-4" /> Chụp bài nhờ chấm</>}
+          </button>
         </section>
       </main>
     </div>

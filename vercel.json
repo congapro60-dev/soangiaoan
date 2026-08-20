@@ -23,6 +23,14 @@
     "api/exam.ts": {
       "maxDuration": 15,
       "memory": 512
+    },
+    "api/classroom.ts": {
+      "maxDuration": 15,
+      "memory": 512
+    },
+    "api/grade-homework.ts": {
+      "maxDuration": 60,
+      "memory": 1024
     }
   },
   "rewrites": [

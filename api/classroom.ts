@@ -124,6 +124,7 @@ const handleLogin = async (db: FirebaseFirestore.Firestore, body: Record<string,
   return res.status(200).json({
     studentId,
     classId: classDoc.id,
+    teacherId: classData.teacherId,
     className: classData.name || '',
     studentName: studentSnap.data()?.name || '',
   });

@@ -15,6 +15,7 @@ export interface RosterResponse {
 export interface LoginResponse {
   studentId: string;
   classId: string;
+  teacherId: string;
   className: string;
   studentName: string;
 }

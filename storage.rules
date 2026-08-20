@@ -13,6 +13,22 @@ service firebase.storage {
                             && request.auth.uid == teacherId;
     }
 
+    // Ảnh bài tập học sinh chụp nộp.
+    //
+    // Đường dẫn gắn theo UID của phiên đang ghi, KHÔNG theo studentId. Lý do: rules của Storage
+    // KHÔNG đọc được Firestore, nên không có cách nào kiểm `studentLinks` ở đây. Gắn theo uid là
+    // thứ duy nhất Storage tự xác minh được, và nó đủ để chặn em này ghi đè bài em kia.
+    //
+    // Giáo viên và máy chấm không đọc qua đường này mà qua link tải có token của Firebase —
+    // link đó nằm trong document bài nộp, vốn đã được firestore.rules canh.
+    match /homework/{uid}/{fileName} {
+      allow create: if request.auth != null
+                    && request.auth.uid == uid
+                    && request.resource.size < 6 * 1024 * 1024
+                    && request.resource.contentType.matches('image/.*');
+      allow read, update, delete: if request.auth != null && request.auth.uid == uid;
+    }
+
     match /{path=**} {
       allow read, write: if false;
     }

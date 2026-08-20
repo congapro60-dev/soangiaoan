@@ -1,0 +1,113 @@
+import { describe, it, expect } from 'vitest';
+import {
+  QUOTA_LIMITS,
+  bumpQuota,
+  emptyQuota,
+  parseDataUrl,
+  remainingQuota,
+  rollQuota,
+  today,
+} from '../_grading-core.js';
+
+const NGAY = '2026-08-20';
+
+describe('rollQuota — sang ngày mới là về 0', () => {
+  it('doc rỗng cho hạn mức mới', () => {
+    expect(rollQuota(null, NGAY)).toEqual(emptyQuota(NGAY));
+    expect(rollQuota(undefined, NGAY)).toEqual(emptyQuota(NGAY));
+  });
+
+  it('doc của hôm qua bị bỏ, không cộng dồn sang hôm nay', () => {
+    const homQua = { day: '2026-08-19', teacherCount: 300, selfCount: 100, byStudent: { s1: 5 } };
+    expect(rollQuota(homQua, NGAY)).toEqual(emptyQuota(NGAY));
+  });
+
+  it('doc cùng ngày thì giữ nguyên bộ đếm', () => {
+    const nay = { day: NGAY, teacherCount: 12, selfCount: 3, byStudent: { s1: 2 } };
+    expect(rollQuota(nay, NGAY)).toEqual(nay);
+  });
+
+  it('today() trả về dạng YYYY-MM-DD', () => {
+    expect(today(new Date('2026-08-20T23:30:00.000Z'))).toBe('2026-08-20');
+  });
+});
+
+describe('hạn mức đường giáo viên', () => {
+  it('chưa dùng thì còn đủ hạn mức ngày', () => {
+    const v = remainingQuota(emptyQuota(NGAY), 'teacher', '');
+    expect(v.allowed).toBe(QUOTA_LIMITS.teacherDaily);
+    expect(v.reason).toBe('');
+  });
+
+  it('trả về SỐ CÒN LẠI để chấm được phần đầu thay vì từ chối cả lô', () => {
+    const q = { ...emptyQuota(NGAY), teacherCount: QUOTA_LIMITS.teacherDaily - 7 };
+    expect(remainingQuota(q, 'teacher', '').allowed).toBe(7);
+  });
+
+  it('hết hạn mức thì chặn kèm lý do đọc được', () => {
+    const q = { ...emptyQuota(NGAY), teacherCount: QUOTA_LIMITS.teacherDaily };
+    const v = remainingQuota(q, 'teacher', '');
+    expect(v.allowed).toBe(0);
+    expect(v.reason).toMatch(/hạn mức/i);
+  });
+});
+
+describe('hạn mức đường học sinh tự nộp — chặt hơn hẳn', () => {
+  it('mỗi em có hạn mức riêng trong ngày', () => {
+    expect(remainingQuota(emptyQuota(NGAY), 'self', 's1').allowed).toBe(QUOTA_LIMITS.selfPerStudentDaily);
+  });
+
+  it('một em dùng hết thì chỉ em đó bị chặn, bạn khác vẫn nộp được', () => {
+    const q = { ...emptyQuota(NGAY), byStudent: { s1: QUOTA_LIMITS.selfPerStudentDaily } };
+
+    expect(remainingQuota(q, 'self', 's1').allowed).toBe(0);
+    expect(remainingQuota(q, 'self', 's2').allowed).toBe(QUOTA_LIMITS.selfPerStudentDaily);
+  });
+
+  it('trần cả lớp chặn được cả khi từng em chưa hết lượt', () => {
+    const q = { ...emptyQuota(NGAY), selfCount: QUOTA_LIMITS.selfDaily };
+    const v = remainingQuota(q, 'self', 's1');
+
+    expect(v.allowed).toBe(0);
+    expect(v.reason).toMatch(/lớp/i);
+  });
+
+  it('lấy giá trị nhỏ hơn giữa hạn mức em và hạn mức lớp', () => {
+    const q = { ...emptyQuota(NGAY), selfCount: QUOTA_LIMITS.selfDaily - 2 };
+    expect(remainingQuota(q, 'self', 's1').allowed).toBe(2);
+  });
+});
+
+describe('bumpQuota', () => {
+  it('cộng đúng bộ đếm của đường giáo viên', () => {
+    const q = bumpQuota(emptyQuota(NGAY), 'teacher', '', 26);
+    expect(q.teacherCount).toBe(26);
+    expect(q.selfCount).toBe(0);
+  });
+
+  it('đường học sinh cộng cả bộ đếm lớp lẫn bộ đếm từng em', () => {
+    let q = bumpQuota(emptyQuota(NGAY), 'self', 's1', 2);
+    q = bumpQuota(q, 'self', 's1', 1);
+    q = bumpQuota(q, 'self', 's2', 1);
+
+    expect(q.selfCount).toBe(4);
+    expect(q.byStudent).toEqual({ s1: 3, s2: 1 });
+  });
+
+  it('cộng 0 hoặc số âm thì không đổi gì', () => {
+    const q = emptyQuota(NGAY);
+    expect(bumpQuota(q, 'teacher', '', 0)).toBe(q);
+    expect(bumpQuota(q, 'self', 's1', -5)).toBe(q);
+  });
+});
+
+describe('parseDataUrl', () => {
+  it('tách được mime và phần base64', () => {
+    expect(parseDataUrl('data:image/jpeg;base64,QUJD')).toEqual({ mimeType: 'image/jpeg', data: 'QUJD' });
+  });
+
+  it('trả null với chuỗi không phải data URL', () => {
+    expect(parseDataUrl('https://storage/anh.jpg')).toBeNull();
+    expect(parseDataUrl('')).toBeNull();
+  });
+});
