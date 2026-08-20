@@ -7,9 +7,12 @@ import {
   listAssignmentsForClass,
   listSubmissionsForAssignment,
   setAssignmentOpen,
+  uploadAnswerKeyImages,
+  uploadAssignmentFiles,
 } from '../../../lib/classroom/submissionService';
 import type { AssignmentDoc, SubmissionDoc } from '../../../lib/classroom/types';
 import { gradeAssignmentAll } from '../../../services/gradingApi';
+import { AssignmentFormModal, type AssignmentFormValue } from './AssignmentFormModal';
 
 interface Props {
   classId: string;
@@ -31,6 +34,8 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
   const [submissions, setSubmissions] = useState<SubmissionDoc[]>([]);
   const [dangTai, setDangTai] = useState(false);
   const [tienDo, setTienDo] = useState('');
+  const [moForm, setMoForm] = useState(false);
+  const [dangGui, setDangGui] = useState(false);
 
   const taiBai = useCallback(async () => {
     setDangTai(true);
@@ -51,33 +56,8 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
     setSubmissions(await listSubmissionsForAssignment(assignmentId).catch(() => []));
   };
 
-  const giaoBai = async () => {
-    const { value } = await Swal.fire({
-      title: `Giao bài cho ${className}`,
-      width: 620,
-      html: `
-        <input id="asg-title" class="swal2-input" placeholder="Tên bài, VD: Phiếu bài tập §2">
-        <textarea id="asg-key" class="swal2-textarea" placeholder="Đáp án chuẩn — dán vào đây (để trống thì AI tự đọc đề trong ảnh học sinh nộp)" style="height:120px"></textarea>
-        <textarea id="asg-rubric" class="swal2-textarea" placeholder="Hướng dẫn chấm (không bắt buộc), VD: sai dấu trừ 0,25" style="height:70px"></textarea>
-        <input id="asg-max" class="swal2-input" type="number" value="10" placeholder="Điểm tối đa">
-        <p style="font-size:12px;color:#64748b;text-align:left;margin:8px 14px 0;">
-          Có đáp án thì cả lớp được chấm cùng một mốc, và tốn ít chi phí hơn hẳn so với để AI tự giải lại đề cho từng em.
-        </p>
-      `,
-      showCancelButton: true,
-      confirmButtonText: 'Giao bài',
-      cancelButtonText: 'Hủy',
-      confirmButtonColor: '#3085d6',
-      preConfirm: () => ({
-        title: (document.getElementById('asg-title') as HTMLInputElement).value.trim(),
-        answerKey: (document.getElementById('asg-key') as HTMLTextAreaElement).value.trim(),
-        rubric: (document.getElementById('asg-rubric') as HTMLTextAreaElement).value.trim(),
-        maxScore: Number((document.getElementById('asg-max') as HTMLInputElement).value) || 10,
-      }),
-    });
-    if (!value?.title) return;
-
-    if (!value.answerKey) {
+  const guiBaiMoi = async (value: AssignmentFormValue) => {
+    if (!value.answerKey && value.answerKeyImages.length === 0) {
       const { isConfirmed } = await Swal.fire({
         icon: 'warning',
         title: 'Giao bài không kèm đáp án?',
@@ -91,8 +71,25 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
       if (!isConfirmed) return;
     }
 
+    setDangGui(true);
     try {
-      await createAssignment({ teacherId, classId, ...value });
+      const [attachments, answerKeyImageUrls] = await Promise.all([
+        value.deFiles.length > 0 ? uploadAssignmentFiles(teacherId, value.deFiles) : Promise.resolve([]),
+        value.answerKeyImages.length > 0 ? uploadAnswerKeyImages(teacherId, value.answerKeyImages) : Promise.resolve([]),
+      ]);
+
+      await createAssignment({
+        teacherId,
+        classId,
+        title: value.title,
+        answerKey: value.answerKey,
+        rubric: value.rubric,
+        maxScore: value.maxScore,
+        dueAt: value.dueAt ? new Date(value.dueAt).toISOString() : undefined,
+        attachments,
+        answerKeyImageUrls,
+      });
+      setMoForm(false);
       showToast(`Đã giao "${value.title}" cho ${className}.`, 'success');
       await taiBai();
     } catch (error) {
@@ -102,6 +99,8 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
         text: error instanceof Error ? error.message : 'Thử lại sau.',
         confirmButtonColor: '#3085d6',
       });
+    } finally {
+      setDangGui(false);
     }
   };
 
@@ -139,12 +138,16 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
 
   return (
     <section className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      {moForm && (
+        <AssignmentFormModal className={className} dangGui={dangGui} onClose={() => setMoForm(false)} onSubmit={guiBaiMoi} />
+      )}
+
       <div className="flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-600">Bài tập nộp ảnh</p>
           <h3 className="mt-1 text-xl font-black text-slate-900">Giao bài & chấm bằng AI</h3>
         </div>
-        <button onClick={giaoBai} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white transition hover:bg-blue-700">
+        <button onClick={() => setMoForm(true)} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white transition hover:bg-blue-700">
           <Plus className="h-4 w-4" /> Giao bài mới
         </button>
       </div>
@@ -165,6 +168,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
                   <p className="truncate font-black text-slate-900">{a.title}</p>
                   <p className="text-xs font-semibold text-slate-500">
                     {a.isOpen ? 'Đang mở' : 'Đã đóng'} · {(a as any).answerKey ? 'có đáp án chuẩn' : 'không có đáp án'}
+                    {(a.attachments?.length ?? 0) > 0 ? ` · ${a.attachments!.length} file đề` : ' · chưa đính kèm đề'}
                   </p>
                 </button>
                 <button

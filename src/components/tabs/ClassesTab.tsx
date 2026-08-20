@@ -64,6 +64,7 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
   const [unmigrated, setUnmigrated] = useState(0);
   const [syncing, setSyncing] = useState(false);
   const [viewingStudent, setViewingStudent] = useState<Student | null>(null);
+  const assignmentPanelRef = useRef<HTMLDivElement>(null);
 
   // Lớp học đang chuyển từ mảng trong userSettings sang collection Firestore thật.
   // Mảng cũ CỐ Ý giữ nguyên để còn đường lùi, nên phải đếm xem còn lớp nào chưa chuyển.
@@ -411,6 +412,35 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
     showToast(`Đã xoá ${student.name} khỏi ${cls.name}.`, 'success');
   };
 
+  /**
+   * Nút "Giao bài" trên thẻ lớp từng trỏ thẳng sang luồng đề trắc nghiệm online, nên người dùng
+   * bấm vào chỉ nhận được thông báo "chưa có đề thi online" mà không hiểu vì sao. Nay hỏi rõ
+   * hai loại trước.
+   */
+  const chonKieuGiaoBai = async (cls: TeacherClass) => {
+    const { isConfirmed, isDenied } = await Swal.fire({
+      title: `Giao bài cho ${cls.name}`,
+      html: `
+        <p style="font-size:13px;color:#475569;text-align:left;margin-bottom:6px;"><b>Bài nộp ảnh</b> — gửi đề dạng PDF/ảnh/Word, học sinh chụp bài làm nộp lên, AI chấm cả lớp.</p>
+        <p style="font-size:13px;color:#475569;text-align:left;"><b>Đề trắc nghiệm online</b> — học sinh làm bài ngay trên web, máy chấm tự động.</p>
+      `,
+      showCancelButton: true,
+      showDenyButton: true,
+      confirmButtonText: 'Bài nộp ảnh (AI chấm)',
+      denyButtonText: 'Đề trắc nghiệm online',
+      cancelButtonText: 'Đóng',
+      confirmButtonColor: '#3085d6',
+      denyButtonColor: '#475569',
+    });
+
+    if (isConfirmed) {
+      setSelectedClassId(cls.id);
+      setTimeout(() => assignmentPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+      return;
+    }
+    if (isDenied) await assignExam(cls);
+  };
+
   const assignExam = async (cls: TeacherClass) => {
     if (exams.length === 0) {
       Swal.fire({
@@ -639,7 +669,7 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
               <div className="grid grid-cols-4 gap-1 border-t border-slate-100 bg-slate-50/80 p-2">
                 <button onClick={() => setSelectedClassId(item.id)} className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><Eye className="h-5 w-5" /> Danh sách</button>
                 <button onClick={() => showClassAccess(item)} title="Mã lớp và mã PIN để học sinh đăng nhập" className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><KeyRound className="h-5 w-5" /> Mã lớp</button>
-                <button onClick={() => assignExam(item)} title="Gán đề thi online cho lớp này" className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><Send className="h-5 w-5" /> Giao bài</button>
+                <button onClick={() => chonKieuGiaoBai(item)} title="Giao bài nộp ảnh hoặc đề trắc nghiệm online" className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><Send className="h-5 w-5" /> Giao bài</button>
                 <button onClick={() => showClassReport(item)} title="Tổng hợp kết quả các đề đã giao" className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><BarChart3 className="h-5 w-5" /> Báo cáo</button>
               </div>
             </article>
@@ -713,7 +743,7 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
           )}
 
           {user?.uid && (
-            <div className="mt-5">
+            <div ref={assignmentPanelRef} className="mt-5 scroll-mt-6">
               <AssignmentPanel classId={selectedClass.id} teacherId={user.uid} className={selectedClass.name} showToast={showToast} />
             </div>
           )}

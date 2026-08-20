@@ -29,6 +29,15 @@ service firebase.storage {
       allow read, update, delete: if request.auth != null && request.auth.uid == uid;
     }
 
+    // File đề giáo viên đính kèm khi giao bài. Học sinh mở bằng link tải có token nằm trong
+    // document bài giao, vốn đã được firestore.rules canh — nên không cần mở quyền đọc ở đây.
+    match /assignments/{uid}/{fileName} {
+      allow create: if request.auth != null
+                    && request.auth.uid == uid
+                    && request.resource.size < 15 * 1024 * 1024;
+      allow read, update, delete: if request.auth != null && request.auth.uid == uid;
+    }
+
     match /{path=**} {
       allow read, write: if false;
     }

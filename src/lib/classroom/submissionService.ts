@@ -1,11 +1,12 @@
 import { collection, doc, getDoc, getDocs, orderBy, query, setDoc, updateDoc, where } from 'firebase/firestore';
-import { getDownloadURL, ref, uploadString } from 'firebase/storage';
+import { getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
 import { auth, db, removeUndefinedFields, storage } from '../firebase';
 import { mergeTopics, removeEvidence } from './profileMerge';
 import {
   ASSIGNMENTS_COL,
   STUDENT_PROFILES_COL,
   SUBMISSIONS_COL,
+  type AssignmentAttachment,
   type AssignmentDoc,
   type StudentProfileDoc,
   type SubmissionDoc,
@@ -30,7 +31,41 @@ export interface NewAssignment {
   rubric?: string;
   maxScore?: number;
   dueAt?: string;
+  attachments?: AssignmentAttachment[];
+  answerKeyImageUrls?: string[];
 }
+
+/**
+ * Tải file đề (PDF, ảnh, Word) lên Storage để học sinh mở ra xem.
+ *
+ * Đường dẫn gắn theo uid giáo viên vì rules của Storage không đọc được Firestore. Học sinh mở
+ * bằng link tải có token nằm trong document bài giao — document đó đã được firestore.rules canh.
+ */
+export const uploadAssignmentFiles = async (
+  teacherUid: string,
+  files: File[],
+): Promise<AssignmentAttachment[]> => {
+  const ket: AssignmentAttachment[] = [];
+  for (const file of files) {
+    const an = file.name.replace(/[^\w.\-]+/g, '_');
+    const fileRef = ref(storage, `assignments/${teacherUid}/${newId('de')}-${an}`);
+    await uploadBytes(fileRef, file, { contentType: file.type || 'application/octet-stream' });
+    ket.push({ name: file.name, url: await getDownloadURL(fileRef) });
+  }
+  return ket;
+};
+
+/** Ảnh đáp án (data URL) lên Storage. Chỉ dùng khi file gốc không rút được chữ. */
+export const uploadAnswerKeyImages = async (teacherUid: string, images: string[]): Promise<string[]> => {
+  const urls: string[] = [];
+  for (const dataUrl of images) {
+    const mime = /^data:([^;,]+);/.exec(dataUrl)?.[1] || 'image/jpeg';
+    const fileRef = ref(storage, `assignments/${teacherUid}/${newId('dapan')}.${mime.split('/')[1] || 'jpg'}`);
+    await uploadString(fileRef, dataUrl, 'data_url', { contentType: mime });
+    urls.push(await getDownloadURL(fileRef));
+  }
+  return urls;
+};
 
 export const createAssignment = async (input: NewAssignment): Promise<AssignmentDoc> => {
   const now = new Date().toISOString();
@@ -42,6 +77,8 @@ export const createAssignment = async (input: NewAssignment): Promise<Assignment
     description: input.description || '',
     type: 'upload',
     dueAt: input.dueAt,
+    attachments: input.attachments || [],
+    answerKeyImageUrls: input.answerKeyImageUrls || [],
     isOpen: true,
     createdAt: now,
     updatedAt: now,

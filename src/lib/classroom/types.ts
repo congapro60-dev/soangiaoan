@@ -62,6 +62,11 @@ export interface StudentLinkDoc {
   createdAt: string;
 }
 
+export interface AssignmentAttachment {
+  name: string;
+  url: string;
+}
+
 export type AssignmentType = 'upload' | 'exam';
 
 /** Một bài giáo viên giao cho lớp. */
@@ -75,6 +80,10 @@ export interface AssignmentDoc {
   /** Chỉ có khi type === 'exam' — trỏ sang đề trong collection `exams`. */
   examId?: string;
   dueAt?: string;
+  /** File đề giáo viên đính kèm để học sinh mở ra xem (PDF, ảnh, Word). */
+  attachments?: AssignmentAttachment[];
+  /** Ảnh đáp án khi không rút được chữ — gửi kèm MỖI lượt chấm nên tốn hơn bản có chữ. */
+  answerKeyImageUrls?: string[];
   isOpen: boolean;
   createdAt: string;
   updatedAt: string;

@@ -64,11 +64,20 @@ const fetchImage = async (url: string): Promise<InlineImage | null> => {
   };
 };
 
+/** Ảnh đáp án chỉ tải một lần cho cả lô, không tải lại cho từng em. */
+const loadAnswerKeyImages = async (assignment: FirebaseFirestore.DocumentData): Promise<InlineImage[]> => {
+  const urls = (Array.isArray(assignment.answerKeyImageUrls) ? assignment.answerKeyImageUrls : []).slice(0, 4);
+  const anh = await Promise.all(urls.map((u: string) => fetchImage(u).catch(() => null)));
+  return anh.filter((img): img is InlineImage => img !== null);
+};
+
 interface GradeContext {
   answerKey: string;
   rubric: string;
   maxScore: number;
   assignmentTitle: string;
+  /** Ảnh đáp án của giáo viên, gửi TRƯỚC ảnh bài làm. Tải một lần rồi dùng cho cả lô. */
+  answerKeyImages: InlineImage[];
 }
 
 const gradeOneSubmission = async (
@@ -93,9 +102,11 @@ const gradeOneSubmission = async (
       rubric: ctx.rubric,
       maxScore: ctx.maxScore,
       assignmentTitle: ctx.assignmentTitle,
+      answerKeyImageCount: ctx.answerKeyImages.length,
     });
-    const raw = await callGeminiVision(prompt, images, apiKey);
-    const parsed = parseHomeworkGrade(raw, ctx.maxScore, ctx.answerKey.trim().length === 0);
+    const raw = await callGeminiVision(prompt, [...ctx.answerKeyImages, ...images], apiKey);
+    const khongCoDapAn = ctx.answerKey.trim().length === 0 && ctx.answerKeyImages.length === 0;
+    const parsed = parseHomeworkGrade(raw, ctx.maxScore, khongCoDapAn);
     const now = new Date().toISOString();
 
     await ref.update({
@@ -163,6 +174,7 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
     rubric: String(assignment.rubric || ''),
     maxScore: Number(assignment.maxScore) || 10,
     assignmentTitle: String(assignment.title || ''),
+    answerKeyImages: await loadAnswerKeyImages(assignment),
   };
   const apiKey = getGradingApiKey();
 
@@ -201,7 +213,7 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
   const verdict = remainingQuota(quota, kind, String(submission.studentId || ''));
   if (verdict.allowed <= 0) return res.status(429).json({ error: verdict.reason });
 
-  let ctx: GradeContext = { answerKey: '', rubric: '', maxScore: 10, assignmentTitle: '' };
+  let ctx: GradeContext = { answerKey: '', rubric: '', maxScore: 10, assignmentTitle: '', answerKeyImages: [] };
   if (submission.assignmentId) {
     const aSnap = await db.collection('assignments').doc(String(submission.assignmentId)).get();
     if (aSnap.exists) {
@@ -211,6 +223,7 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
         rubric: String(a.rubric || ''),
         maxScore: Number(a.maxScore) || 10,
         assignmentTitle: String(a.title || ''),
+        answerKeyImages: await loadAnswerKeyImages(a),
       };
     }
   }

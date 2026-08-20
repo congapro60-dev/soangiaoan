@@ -124,3 +124,24 @@ describe('bài bổ trợ', () => {
     expect(() => parsePracticeQuestions('xin lỗi')).toThrow(/JSON/);
   });
 });
+
+describe('đáp án dạng ảnh', () => {
+  it('dặn rõ mấy ảnh đầu là đáp án, không phải bài của em', () => {
+    const p = buildHomeworkGradingPrompt({ answerKey: '', maxScore: 10, answerKeyImageCount: 2 });
+
+    expect(p).toContain('2 ảnh ĐẦU TIÊN là ĐÁP ÁN CHUẨN');
+    expect(p).toContain('không chấm điểm cho ảnh đáp án');
+    expect(p).not.toContain('KHÔNG có đáp án chuẩn');
+  });
+
+  it('không có ảnh đáp án thì không chèn dặn dò thừa', () => {
+    expect(buildHomeworkGradingPrompt({ answerKey: 'x = 2', maxScore: 10 })).not.toContain('THỨ TỰ ẢNH');
+  });
+
+  it('có cả chữ lẫn ảnh thì ưu tiên nêu bản chữ', () => {
+    const p = buildHomeworkGradingPrompt({ answerKey: 'Câu 1: x = 2', maxScore: 10, answerKeyImageCount: 1 });
+
+    expect(p).toContain('Câu 1: x = 2');
+    expect(p).toContain('THỨ TỰ ẢNH');
+  });
+});

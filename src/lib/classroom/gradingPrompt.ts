@@ -15,6 +15,8 @@ export interface HomeworkGradingInput {
   rubric?: string;
   maxScore: number;
   assignmentTitle?: string;
+  /** Số ảnh đáp án gửi kèm TRƯỚC ảnh bài làm. AI phải biết để không chấm nhầm đáp án thành bài em. */
+  answerKeyImageCount?: number;
 }
 
 export interface HomeworkGrade {
@@ -37,12 +39,22 @@ Hãy tự đọc đề trong ảnh rồi tự giải trước, sau đó mới đ
 Nếu chỗ nào em viết mà bạn không đọc được hoặc không chắc, hãy nói rõ là không chắc thay vì đoán.`;
 
 export const buildHomeworkGradingPrompt = (input: HomeworkGradingInput): string => {
-  const coDapAn = input.answerKey.trim().length > 0;
+  const soAnhDapAn = input.answerKeyImageCount ?? 0;
+  const coDapAn = input.answerKey.trim().length > 0 || soAnhDapAn > 0;
+  const danAnh = soAnhDapAn > 0
+    ? `
+THỨ TỰ ẢNH: ${soAnhDapAn} ảnh ĐẦU TIÊN là ĐÁP ÁN CHUẨN của giáo viên, KHÔNG phải bài của em học sinh. Các ảnh còn lại mới là bài làm cần chấm. Tuyệt đối không chấm điểm cho ảnh đáp án.
+`
+    : '';
 
   return `Bạn là giáo viên chấm bài tập về nhà cho học sinh phổ thông Việt Nam.
 
 ${input.assignmentTitle ? `TÊN BÀI: ${input.assignmentTitle}\n` : ''}
-${coDapAn ? `ĐÁP ÁN CHUẨN (dùng làm mốc chấm, không tự nghĩ ra đáp án khác):\n${input.answerKey.trim()}` : KHONG_CO_DAP_AN}
+${danAnh}${coDapAn
+  ? (input.answerKey.trim()
+      ? `ĐÁP ÁN CHUẨN (dùng làm mốc chấm, không tự nghĩ ra đáp án khác):\n${input.answerKey.trim()}`
+      : 'ĐÁP ÁN CHUẨN nằm trong các ảnh đầu tiên nói trên. Dùng làm mốc chấm, không tự nghĩ ra đáp án khác.')
+  : KHONG_CO_DAP_AN}
 
 ${input.rubric?.trim() ? `HƯỚNG DẪN CHẤM CỦA GIÁO VIÊN:\n${input.rubric.trim()}\n` : ''}
 THANG ĐIỂM: tối đa ${input.maxScore} điểm. Quy đổi về đúng thang này.

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { collection, doc, getDoc, getDocs, limit, orderBy, query, where } from 'firebase/firestore';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { AlertTriangle, ArrowLeft, BookOpenCheck, Camera, Clock3, Loader2, LogOut, Target, TrendingUp } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, BookOpenCheck, Camera, Clock3, FileText, Loader2, LogOut, Target, TrendingUp } from 'lucide-react';
 import { auth, db } from '../lib/firebase';
 import { normalizeJoinCode } from '../lib/classroom/joinCode';
 import {
@@ -363,6 +363,15 @@ export const StudentPortalPage = () => {
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-bold text-slate-900">{a.title}</p>
                   <p className="text-sm font-semibold text-slate-500">{formatHan(a.dueAt)}</p>
+                  {(a.attachments || []).length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-3">
+                      {(a.attachments || []).map(file => (
+                        <a key={file.url} href={file.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm font-bold text-blue-600 underline">
+                          <FileText className="h-3.5 w-3.5" /> {file.name}
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <button
                   onClick={() => chonAnh(a.id)}
