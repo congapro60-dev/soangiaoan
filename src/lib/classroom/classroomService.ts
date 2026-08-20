@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, query, where, writeBatch } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, limit, query, where, writeBatch } from 'firebase/firestore';
 import { db, removeUndefinedFields } from '../firebase';
 import { TeacherClass } from '../../types';
 import { planLegacyClassMigration } from './migrateLegacyClasses';
@@ -37,10 +37,6 @@ export const migrateLegacyClasses = async (
   const existingClassIds = await listTeacherClassIds(teacherId);
   const plan = planLegacyClassMigration(legacy, teacherId, { existingClassIds });
 
-  if (plan.classes.length === 0) {
-    return { createdClasses: 0, createdStudents: 0, skippedClasses: plan.skipped.length };
-  }
-
   let batch = writeBatch(db);
   let count = 0;
   let createdStudents = 0;
@@ -53,12 +49,30 @@ export const migrateLegacyClasses = async (
     }
   };
 
+  // HAI GIAI ĐOẠN, KHÔNG GỘP LÀM MỘT.
+  //
+  // Luật của subcollection `students` là `laChuLop(classId)`, tức phải `get()` được document lớp
+  // để so teacherId. Firestore chấm từng phép ghi trong một batch dựa trên trạng thái database
+  // TRƯỚC batch, nên nếu ghi lớp và học sinh chung một batch thì lúc chấm phép ghi học sinh,
+  // document lớp vẫn chưa tồn tại → get() vào chỗ trống → cả batch bị từ chối.
+  //
+  // Đây chính là lỗi "Đồng bộ thất bại — Missing or insufficient permissions" người dùng báo
+  // ngày 2026-08-20. Ca tái lập nằm ở `tests/rules/taiLapLoiDongBo.rules.test.ts`.
   for (const cls of plan.classes) {
     batch.set(doc(db, CLASSES_COL, cls.id), removeUndefinedFields(cls));
     count += 1;
     if (count >= BATCH_LIMIT) await flush();
+  }
+  await flush();
 
-    for (const student of plan.studentsByClass[cls.id] || []) {
+  // Giai đoạn 2 ghi học sinh cho MỌI lớp, kể cả lớp đã có sẵn trên máy chủ.
+  //
+  // Lý do: nếu lần trước giai đoạn 1 xong mà giai đoạn 2 hỏng giữa chừng, sẽ có lớp tồn tại mà
+  // không có học sinh nào — và vì phép chuyển bỏ qua lớp đã tồn tại nên bấm lại cũng không cứu
+  // được. Id học sinh là cố định nên ghi lại nhiều lần vô hại.
+  const toanBo = planLegacyClassMigration(legacy, teacherId, {});
+  for (const cls of toanBo.classes) {
+    for (const student of toanBo.studentsByClass[cls.id] || []) {
       batch.set(doc(db, CLASSES_COL, cls.id, STUDENTS_SUB, student.id), removeUndefinedFields(student));
       count += 1;
       createdStudents += 1;
@@ -81,5 +95,16 @@ export const countUnmigratedClasses = async (
 ): Promise<number> => {
   if (legacy.length === 0) return 0;
   const existingClassIds = await listTeacherClassIds(teacherId);
-  return planLegacyClassMigration(legacy, teacherId, { existingClassIds }).classes.length;
+  const chuaChuyen = planLegacyClassMigration(legacy, teacherId, { existingClassIds }).classes.length;
+  if (chuaChuyen > 0) return chuaChuyen;
+
+  // Lớp đã lên máy chủ nhưng RỖNG học sinh: dấu vết của một lần đồng bộ hỏng giữa chừng.
+  // Vẫn phải nhắc, nếu không giáo viên mắc kẹt với lớp trống mà không có nút nào để sửa.
+  const lopRong = await Promise.all(existingClassIds.map(async id => {
+    const coHocSinh = legacy.find(c => c.id === id)?.students.length ?? 0;
+    if (coHocSinh === 0) return 0;
+    const snap = await getDocs(query(collection(db, CLASSES_COL, id, STUDENTS_SUB), limit(1)));
+    return snap.empty ? 1 : 0;
+  }));
+  return lopRong.reduce((a: number, b: number) => a + b, 0);
 };

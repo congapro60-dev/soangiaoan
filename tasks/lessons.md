@@ -214,3 +214,20 @@
 - **PIN/bí mật phải nằm ở DOCUMENT RIÊNG, không nằm chung document với dữ liệu hiển thị** — Firestore rules chặn được cả document chứ không giấu được từng trường. Để giáo viên đọc được danh sách học sinh mà không đọc được PIN, PIN phải ở `classes/{id}/studentSecrets/{studentId}` với `allow read, write: if false` (chỉ Admin SDK vào được). Cùng lý do, danh sách học sinh KHÔNG mở cho người chưa đăng nhập dù biết mã lớp — màn "chọn tên mình" phải đi qua server, nếu không ai có mã lớp cũng lấy trọn danh sách tên trẻ em. *(2026-08-20)*
 
 - **Dữ liệu cá nhân của học sinh nằm trong thư mục repo phải vào `.gitignore` NGAY, và pattern phải dùng wildcard** — file danh sách lớp của trường chứa họ tên, email kèm mật khẩu mặc định, tên/SĐT phụ huynh, địa chỉ nhà. Repo đang có 272 mục untracked nên một lệnh `git add -A` là đẩy hết lên GitHub. Tên thư mục tiếng Việt lưu dạng NFD nên pattern gõ tay bằng NFC KHÔNG khớp — phải viết `Danh s*ch l*p d*y*/` rồi xác nhận bằng `git check-ignore -v "$(ls -d Danh*/)"`. *(2026-08-20)*
+
+
+## 2026-08-20 — False negative ở gate đồng bộ Activity–Phiếu–Teacher Key
+
+Một gate content có thể tạo **false negative** nếu chỉ kiểm presence của các đáp án mong đợi mà không kiểm cấu trúc vùng văn bản hoặc không tạo fixture mismatch thực sự. Với các contract kiểm đồng bộ giữa Activity, Phiếu học sinh và Teacher Key, verifier phải fail-closed khi thiếu marker đầu/cuối của từng section; fixture âm phải làm lệch một giá trị ở đúng một vùng, để chứng minh gate phát hiện `activity` khác `teacher_key` thay vì chỉ kiểm forbidden text.
+
+Quy tắc áp dụng: `activity_teacher_key_math_consistency_pass` chỉ PASS khi Activity, Student Worksheet và Teacher Key đều được cắt đúng vùng; mọi required answer phải xuất hiện đúng ở các vùng được chỉ định; forbidden text không xuất hiện; và fixture mismatch độc lập phải FAIL. Khi sửa lỗi nội dung Toán, phải regenerate từ generator/rule, cập nhật lesson map/contract, render exact DOCX và chạy lại cả positive lẫn negative regression.
+
+## Lỗi "Đồng bộ thất bại" — batch write và rules (2026-08-20)
+
+- **Firestore chấm TỪNG phép ghi trong một batch dựa trên trạng thái database TRƯỚC batch** — nên ghi document cha và document con trong cùng một `writeBatch` sẽ hỏng nếu luật của con phải `get()` document cha. Ca thật: `migrateLegacyClasses` ghi `classes/{id}` và `classes/{id}/students/{id}` chung một batch; luật của `students` là `laChuLop(classId)` → `get()` vào chỗ trống → **cả batch bị deny**, người dùng thấy "Missing or insufficient permissions". Cách sửa: **hai giai đoạn**, commit cha xong rồi mới commit con. *(2026-08-20)*
+
+- **35 ca test rules xanh vẫn không bắt được lỗi này, vì test dựng kịch bản KHÁC thật** — mọi ca đều `beforeEach` tạo sẵn document lớp rồi mới thử ghi học sinh, tức luôn ở trạng thái "cha đã tồn tại". Đường thật thì cha và con sinh ra cùng lúc. QUY TẮC: khi viết test rules cho một luồng ghi, phải mô phỏng đúng **thứ tự và cách gói** mà code thật dùng (batch hay từng lệnh, cùng lúc hay tuần tự), không chỉ mô phỏng quyền. *(2026-08-20)*
+
+- **Dải nhắc hiện đúng số liệu là bằng chứng rules ĐÃ deploy** — trước khi nghi "chưa deploy rules", nhìn xem có phép ĐỌC nào đang chạy được không. Ở ca này banner hiện "3 lớp chưa đồng bộ", tức truy vấn `list` trên `classes` đã qua rules, nên lỗi chắc chắn nằm ở phép ghi chứ không phải ở việc deploy. Chẩn đoán sai chỗ này là đi deploy lại rồi vẫn hỏng. *(2026-08-20)*
+
+- **Phép chuyển dữ liệu nhiều giai đoạn phải TỰ VÁ được khi hỏng giữa chừng** — bản đầu bỏ qua lớp đã tồn tại, nên nếu giai đoạn 1 xong mà giai đoạn 2 hỏng thì lớp nằm đó rỗng học sinh và bấm lại cũng không cứu. Sửa: giai đoạn 2 ghi cho MỌI lớp (id cố định nên ghi lại vô hại), và phép đếm "chưa đồng bộ" phải đếm cả lớp đã lên nhưng rỗng học sinh — nếu không thì dải nhắc tắt và người dùng mắc kẹt không có nút nào để sửa. *(2026-08-20)*
