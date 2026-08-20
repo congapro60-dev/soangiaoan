@@ -1,6 +1,6 @@
 # HANDOFF — Soạn giáo án / học phân hoá
 
-**Cập nhật**: 2026-08-11 · **Repo**: [`soangiaoan`](https://github.com/congapro60-dev/soangiaoan) · **Branch chuẩn**: `main` · **Production**: https://giaoandewey.vercel.app
+**Cập nhật**: 2026-08-20 · **Repo**: [`soangiaoan`](https://github.com/congapro60-dev/soangiaoan) · **Branch chuẩn**: `main` · **Production**: https://giaoandewey.vercel.app
 
 Ảnh chụp TRẠNG THÁI HIỆN TẠI, không phải nhật ký — `git log` đã lưu lịch sử tốt hơn.
 Trần **150 dòng**: vượt thì cắt mục cũ sang [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md).
@@ -9,18 +9,16 @@ Trần **150 dòng**: vượt thì cắt mục cũ sang [`docs/HANDOFF-ARCHIVE.m
 
 ## 1. Trạng thái hiện tại
 
-**`main` = `0a64551`.** Chuỗi đỏ #442–#445 đã kết thúc ở #446/#447; trạng thái CI các commit sau đó chưa xác nhận (máy này không có `gh`).
+**`main` = `61457b4`.** Chuỗi đỏ #442–#445 đã kết thúc ở #446/#447; trạng thái CI các commit sau đó chưa xác nhận (máy này không có `gh`).
 
 Các lô gần nhất:
 
-- **PDF giáo án Toán in từ trang soi gương bản Word** (lô mới nhất) — `exportToPDF` không còn chụp lại khung markdown nữa: với `builtinFormat === 'toan'` nó dựng `buildSchoolFormHtml` từ CHÍNH `ToanLessonModel` mà bản .docx dùng. Ba module mới dùng chung cho cả hai đường xuất: `schoolFormLayout.ts` (màu/tỉ lệ cột/cỡ chữ/khổ giấy), `inlineTokens.ts` (tách `**đậm**` `*nghiêng*` `$ct$` `<br/>`), `buildSchoolFormHtml.ts`. Đo trong Chrome thật: cột ra đúng 15.0/45.0/40.0%, dải màu đúng `#C9DAF8`, Arial, KaTeX render đủ. **CHƯA QA bằng mắt trên file in thật** — owner tự làm.
+- **Bộ xương lớp học** (`61457b4`, lô mới nhất) — nền cho việc giao bài / học sinh nộp bài / AI chấm đồng loạt. Bảy collection mới (`src/lib/classroom/types.ts`). Danh tính học sinh KHÔNG phải tài khoản Google: đăng nhập ẩn danh rồi server kiểm mã lớp + mã HS + PIN và ghi `studentLinks/{uid}`; rules hỏi document đó để biết người gọi là ai. `tests/rules/lopHoc.rules.test.ts` 35 ca, toàn repo 220/220 xanh, **đã kiểm bằng đột biến** (vá hỏng 4 chỗ → đúng 6 ca đỏ). Kèm nhập danh sách lớp từ Excel của trường, xoá lớp, xoá học sinh, xem trang của từng học sinh. Kế hoạch đầy đủ 6 lô ở `tasks/ke-hoach-lop-hoc-va-cham-AI.md` — **mới xong lô 1**.
+- **PDF giáo án Toán in từ trang soi gương bản Word** (`2cbeecd`) — `exportToPDF` không còn chụp lại khung markdown nữa: với `builtinFormat === 'toan'` nó dựng `buildSchoolFormHtml` từ CHÍNH `ToanLessonModel` mà bản .docx dùng. Ba module mới dùng chung cho cả hai đường xuất: `schoolFormLayout.ts` (màu/tỉ lệ cột/cỡ chữ/khổ giấy), `inlineTokens.ts` (tách `**đậm**` `*nghiêng*` `$ct$` `<br/>`), `buildSchoolFormHtml.ts`. Đo trong Chrome thật: cột ra đúng 15.0/45.0/40.0%, dải màu đúng `#C9DAF8`, Arial, KaTeX render đủ. **CHƯA QA bằng mắt trên file in thật** — owner tự làm.
 - **Ba lỗi xuất file người dùng báo** (`0a64551`) — (1) `<br/>` và `*nghiêng*` của AI in ra thành chữ trong ô bảng Word form Toán: `parseToanLesson::cellText` đổi `<br/>` → `\n`, `buildSchoolFormDocx::pushPlain` dịch tiếp thành `<w:br/>`; (2) PDF luôn lưu tên "Smart Lesson Plan AI.pdf" vì `window.print()` lấy tên từ `document.title` — nay đổi tạm sang `safeFilename(title)` như đường Word rồi trả lại trong `finally`; (3) `@page { size: A4 }` khoá luôn ô chọn khổ giấy của Chrome — nay chỉ khai `size: portrait|landscape`, trả khổ giấy về cho người dùng chọn. Kèm `print-color-adjust: exact` để dải màu pastel không mất khi in.
 - **Đẩy Drive không cần bot + chọn bài theo PPCT** — bot Railway chết vì hết hạn dùng thử, chức năng đẩy giáo án được dựng lại **thẳng trong trình duyệt**: xin quyền Drive qua Firebase Google login rồi upload thẳng lên Drive API, không thêm hàm Vercel, không giữ secret. Kèm bộ chọn bài từ PPCT đóng sẵn: **684 bài TDS** (khối 6–12, hệ Discover) + **324 bài MOET** (khối 10–12), sinh từ `scripts/build-ppct.mjs`. Unit plan THPT học phần I nạp kèm khi giáo viên tự tick.
 - **Phủ kín kiểm thử `firestore.rules`** — 1/17 → 17/17 collection, `npm run test:rules` từ 35 lên **185 ca**. Ba file mới trong `tests/rules/`. Gỡ `test:e2e` khỏi `package.json` (trỏ vào file không tồn tại và bị `.gitignore` chặn). **Phơi ra 3 lỗ hổng rules chưa vá** — xem mục 3, trong đó `adaptiveLessons` là lỗ hổng MỚI phát hiện. Không sửa `firestore.rules` trong lô này: owner chốt phơi trước, vá ở phiên riêng.
-- **Giỏ sản phẩm + nối lỗi với công cụ vá** (`e77cf38`) — tab Nâng cấp gộp mọi sản phẩm AI đã sinh vào MỘT file Word thay vì 17 file rời; mỗi tiêu chí chưa đạt có nút dẫn thẳng tới mục menu vá được nó (`fixSuggestions.ts`). `markdownToOoxmlParagraphs` nay dựng được bảng Word thật. **Panel chưa QA trên UI** — cần upload .docx + khoá API.
 - **Dự giờ Danielson** (`90c1cb1`) — sửa 2 lỗi thật thấy trên production + thêm 2 tầng làm sạch biên bản. Chi tiết ở mục 2.
-- **Rà soát giáo án 2 tầng** (`6b70a71`) — tách `generalStandards.ts` (10 phép kiểm mọi môn, từ `Checklist tự kiểm tra giáo án.xlsx`) khỏi `mathStandards.ts` (22 phép kiểm Toán TDS). Trước đó giáo án Văn/Sử bị chấm bằng tiêu chí Toán. Ghép ở `lessonAudit.ts`.
-- **Thư viện nước đi lớp học** (`12f5d0d`) — 14 nước đi vận hành lớp, lọc theo loại kế hoạch qua `apDung`.
 
 ## 2. Đang dở / đừng đụng
 
@@ -34,6 +32,8 @@ Bốn thay đổi và lý do — **đừng nới cái nào mà không đọc tes
 4. **Hai tầng làm sạch biên bản** (`lamSach.ts` + `deXuatSuaLoi.ts`) — xem mục 3.
 
 **CHƯA QA trên UI thật:** nút *"Soát chính tả bằng AI"* chưa bấm được vì cần đăng nhập Google + biên bản + khoá API. Mới chứng minh trang `/du-gio` nạp không lỗi console. Logic có 40 ca test phủ.
+
+**Lớp học mới xong LÔ 1/6.** Rules + index owner đã deploy ngày 2026-08-20. Chưa có: cổng đăng nhập học sinh, dashboard, nộp ảnh, AI chấm đồng loạt, hồ sơ tích luỹ, báo cáo phụ huynh. **Xoá lớp / xoá học sinh hiện chỉ xoá ở mảng cũ `userSettings.classes`** — sau khi phép chuyển chạy thật phải xoá cả document Firestore, làm ở lô 2. Mảng cũ CỐ Ý chưa xoá, đó là đường lùi.
 
 ## 3. Cái sắp cắn người sau
 
@@ -77,6 +77,10 @@ Bốn thay đổi và lý do — **đừng nới cái nào mà không đọc tes
 - **Năm học đi kèm dữ liệu PPCT** (`schoolYear` trong mỗi file `src/data/ppct/*.json`, hiện `2026 - 2027`), không viết cứng trong giao diện. Chọn bài xong app tự đặt Lớp và Tuần trên web, đồng thời chèn dòng bắt giáo án điền đúng *Lớp · Tuần học · Năm học* vào các ô sẵn có ở đầu mẫu. Sang năm chỉ cần đổi `SCHOOL_YEAR` trong `scripts/build-ppct.mjs` rồi chạy lại.
 - **PPCT chỉ là tư liệu đầu vào.** Owner chốt 2026-08-11: không được đổi bố cục mẫu giáo án người dùng chọn. `buildRequirement()` trong `LessonControls.tsx` gắn sẵn câu ràng buộc giữ nguyên các mục của mẫu — đừng gỡ.
 - **Tên thư mục/file tiếng Việt lưu dạng NFD.** Ghép chuỗi đường dẫn trong PowerShell/bash sẽ "không tìm thấy" dù nhìn đúng; phải duyệt bằng `Get-ChildItem` rồi dùng đối tượng file.
+
+- **Khoá AI đã ĐẢO chiều ngày 2026-08-20, có giới hạn phạm vi.** Quyết định 2026-07-21 (ai cũng tự nhập khoá, xoá hẳn relay) nay bị owner đảo CHO RIÊNG luồng chấm bài: sẽ dựng lại đường server dùng khoá chung do owner trả tiền. Các luồng soạn giáo án / nâng cấp / dự giờ giữ nguyên "giáo viên tự nhập khoá". Hệ quả bắt buộc: **chặn lạm dụng là điều kiện, không phải tính năng thêm** — đường học sinh tự nộp bài là đường dễ đốt tiền nhất, ngưỡng phải chặt hơn đường lớp học.
+- **Hồ sơ học sinh là hồ sơ đánh giá một đứa trẻ, do AI viết.** Cùng họ với ranh giới đạo đức của lô dự giờ. Ba hàng rào đã chốt trong kế hoạch: điểm AI là ĐỀ XUẤT (vào hồ sơ phải qua cửa duyệt hoặc luôn sửa lại được); mọi kết luận phải truy được về một bài làm cụ thể; bản cho trẻ đọc viết khác bản cho người lớn đọc. OCR ảnh vở chụp thiếu sáng sai là chuyện thường — sai một bài mất một điểm, sai rồi ghi vĩnh viễn vào hồ sơ thì tự nhân lên qua bài bổ trợ.
+- **Danh sách học sinh thật nằm trong thư mục repo.** `.gitignore` đã chặn bằng pattern wildcard (tên thư mục tiếng Việt lưu NFD nên gõ tay NFC không khớp). File chứa họ tên, email kèm mật khẩu mặc định, SĐT phụ huynh, địa chỉ nhà. Đừng gỡ luật đó.
 
 ## 4. Lệnh nghiệm thu
 

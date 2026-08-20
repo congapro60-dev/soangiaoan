@@ -840,3 +840,9 @@ QUAN TRỌNG: audit code thật trước khi tin HANDOFF/plan — tài liệu c�
 Quy tắc: code lát cắt nhỏ, chạy npm run build, cập nhật HANDOFF, commit/push khi người dùng yêu cầu. KHÔNG bao giờ xóa onStreamChunk khỏi ContentAgent.
 ```
 
+
+## Cắt khỏi HANDOFF.md ngày 2026-08-20 (mục 1 — các lô cũ)
+
+- **Giỏ sản phẩm + nối lỗi với công cụ vá** (`e77cf38`) — tab Nâng cấp gộp mọi sản phẩm AI đã sinh vào MỘT file Word thay vì 17 file rời; mỗi tiêu chí chưa đạt có nút dẫn thẳng tới mục menu vá được nó (`fixSuggestions.ts`). `markdownToOoxmlParagraphs` nay dựng được bảng Word thật. **Panel chưa QA trên UI** — cần upload .docx + khoá API.
+- **Rà soát giáo án 2 tầng** (`6b70a71`) — tách `generalStandards.ts` (10 phép kiểm mọi môn, từ `Checklist tự kiểm tra giáo án.xlsx`) khỏi `mathStandards.ts` (22 phép kiểm Toán TDS). Trước đó giáo án Văn/Sử bị chấm bằng tiêu chí Toán. Ghép ở `lessonAudit.ts`.
+- **Thư viện nước đi lớp học** (`12f5d0d`) — 14 nước đi vận hành lớp, lọc theo loại kế hoạch qua `apDung`.
