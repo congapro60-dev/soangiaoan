@@ -36,7 +36,7 @@ Bốn thay đổi và lý do — **đừng nới cái nào mà không đọc tes
 
 **CHƯA QA trên UI thật:** nút *"Soát chính tả bằng AI"* chưa bấm được vì cần đăng nhập Google + biên bản + khoá API. Mới chứng minh trang `/du-gio` nạp không lỗi console. Logic có 40 ca test phủ.
 
-**Lớp học đã xong 6/6 lô về mặt mã nguồn.** Rules + index owner đã deploy ngày 2026-08-20. **Toàn bộ đường học sinh CHƯA chạy thật lần nào** (đăng nhập, nộp ảnh, chấm) — cần `api/classroom.ts` lên production và Anonymous Auth bật trong Firebase Console; mới kiểm được giao diện 2 màn và đường lỗi. Toàn bộ 6 lô đã có mã và test, NHƯNG chưa lô nào chạy thật với dữ liệu người dùng. **Xoá lớp / xoá học sinh hiện chỉ xoá ở mảng cũ `userSettings.classes`** — sau khi phép chuyển chạy thật phải xoá cả document Firestore, làm ở lô 2. Mảng cũ CỐ Ý chưa xoá, đó là đường lùi.
+**Lớp học đã xong 6/6 lô về mặt mã nguồn.** Bốn việc owner phải làm bên ngoài repo trước khi kiểm thử được (bật Anonymous Auth, đặt `GRADING_GEMINI_API_KEY` trên Vercel, deploy lại `storage.rules`, kiểm 5 index Firestore) — danh sách đầy đủ ở mục 6b của `tasks/ke-hoach-lop-hoc-va-cham-AI.md`. Rules + index owner đã deploy ngày 2026-08-20. **Toàn bộ đường học sinh CHƯA chạy thật lần nào** (đăng nhập, nộp ảnh, chấm) — cần `api/classroom.ts` lên production và Anonymous Auth bật trong Firebase Console; mới kiểm được giao diện 2 màn và đường lỗi. Toàn bộ 6 lô đã có mã và test, NHƯNG chưa lô nào chạy thật với dữ liệu người dùng. **Xoá lớp / xoá học sinh hiện chỉ xoá ở mảng cũ `userSettings.classes`** — sau khi phép chuyển chạy thật phải xoá cả document Firestore, làm ở lô 2. Mảng cũ CỐ Ý chưa xoá, đó là đường lùi.
 
 ## 3. Cái sắp cắn người sau
 

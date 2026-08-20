@@ -1,6 +1,6 @@
 # Nghiên cứu & kế hoạch — Giao bài cho lớp, học sinh nộp bài, AI chấm đồng loạt
 
-**Ngày**: 2026-08-20 · **Trạng thái**: bản khảo sát + đề xuất, CHƯA gõ dòng code nào.
+**Ngày**: 2026-08-20 · **Trạng thái**: đã cài đặt xong cả 6 lô, đã đẩy lên `main`. Chưa lô nào chạy thật với dữ liệu người dùng — xem mục 6b.
 
 Trả lời câu hỏi của owner: *"có làm được không?"* — **Làm được**, nhưng nút thắt không nằm ở code.
 Tài liệu này ghi lại (1) app đã có sẵn những gì, (2) thiếu gì, (3) ba ràng buộc cứng, (4) phản biện
@@ -82,7 +82,7 @@ Hệ quả nếu giữ nguyên mô hình đó:
 
 ### 3.2. Trần 12 Vercel Function
 
-Đang dùng 7 endpoint thật: `exam`, `export-lesson`, `render-word`, `adaptive-progress`,
+Đang dùng **11/12** sau khi thêm `classroom` và `grade-homework`. Ban đầu là 7: `exam`, `export-lesson`, `render-word`, `adaptive-progress`,
 `adaptive-progress-profile`, `generate-simulation`, `health/firebase-admin`. Còn dư ít nhất 3 khe.
 Đủ cho kế hoạch này nếu gộp endpoint theo action, **không** đủ nếu mỗi việc một file.
 
@@ -183,7 +183,7 @@ lỗi gọn, không vỡ. Khi deploy nhớ ĐỌC danh sách CLI hỏi xoá inde
 **Nợ kỹ thuật đã biết:** xoá lớp / xoá học sinh hiện chỉ xoá ở mảng cũ. Sau khi phép chuyển chạy
 thật, phải xoá cả document trên Firestore — làm ở lô 2, khi collection mới thành nguồn sự thật.
 
-### Lô 2 — Cổng học sinh: đăng nhập + dashboard cá nhân
+### Lô 2 — Cổng học sinh: đăng nhập + dashboard cá nhân ✅ XONG 2026-08-20
 
 Đây là mặt tiền của cả sản phẩm, không phải một trang phụ.
 
@@ -207,7 +207,7 @@ Vì học sinh quay lại nhiều lần trên cùng một thiết bị, phiên �
 Nghiệm thu: học sinh mở link trên điện thoại, thấy đúng bài và hồ sơ của mình, không thấy của bạn
 khác; đăng xuất rồi vào lại phải nhập PIN; giáo viên thu hồi quyền một em thì em đó mất truy cập ngay.
 
-### Lô 3 — Nộp bài bằng ảnh + AI chấm đồng loạt
+### Lô 3 — Nộp bài bằng ảnh + AI chấm đồng loạt ✅ XONG 2026-08-20
 
 - Học sinh chụp ảnh bài viết tay, upload lên Firebase Storage. Đường này đã có sẵn trong
   `AdaptiveStudentPortalPage`.
@@ -227,7 +227,7 @@ Nghiệm thu: một lớp 5 học sinh giả lập, nộp 5 ảnh, bấm một n
 cả 5 có điểm và nhận xét; một bài lỗi mạng thì 4 bài kia vẫn xong và bài lỗi hiện trạng thái `error`
 để chấm lại; gọi vượt ngưỡng thì bị từ chối và có thông báo tiếng Việt rõ ràng.
 
-### Lô 4 — Hồ sơ học tập tích luỹ
+### Lô 4 — Hồ sơ học tập tích luỹ ✅ XONG 2026-08-20
 
 - Mỗi lần chấm xong, rút điểm yếu thành **thẻ chủ đề** gắn vào `studentProfiles`, **kèm bài làm
   làm bằng chứng**. Không có bằng chứng thì không được ghi vào hồ sơ.
@@ -237,7 +237,7 @@ cả 5 có điểm và nhận xét; một bài lỗi mạng thì 4 bài kia vẫ
 Nghiệm thu: sau 3 bài nộp, hồ sơ chỉ đúng chủ đề yếu **lặp lại**, không phải mọi lỗi vặt; bấm vào một
 chủ đề yếu thì xem được đúng những bài làm đã tạo ra kết luận đó.
 
-### Lô 5 — Bài bổ trợ và luyện theo mục tiêu
+### Lô 5 — Bài bổ trợ và luyện theo mục tiêu ✅ XONG 2026-08-20
 
 - Từ chủ đề yếu trong hồ sơ, sinh bài luyện — **tái dùng động cơ phân hoá đã có**
   (`personalizationEngine.ts`, `diagnosticEngine.ts`) chứ không viết mới.
@@ -246,7 +246,7 @@ chủ đề yếu thì xem được đúng những bài làm đã tạo ra kết
 
 Nghiệm thu: em yếu "phương trình đường thẳng" nhận đúng bài về chủ đề đó, không nhận bài ngẫu nhiên.
 
-### Lô 6 — Báo cáo cho bố mẹ và thầy cô
+### Lô 6 — Báo cáo cho bố mẹ và thầy cô ✅ XONG 2026-08-20
 
 - Một trang tóm tắt cho mỗi học sinh: đã làm gì, tiến bộ ra sao, đang vướng đâu, nên làm gì tiếp.
 - Xuất PDF bằng đường xuất đã có sẵn trong repo.
@@ -286,6 +286,19 @@ Danielson. Ba hàng rào chuyển thẳng sang đây:
    online là đường phụ đã có sẵn.
 4. **Cổng học sinh là gì?** → **ĐÃ CHỐT 2026-08-20**: dashboard cá nhân, không phải trang nộp bài.
    Kéo theo việc hồ sơ tích luỹ phải có trong mô hình dữ liệu ngay từ lô 1. Chi tiết ở mục 4 và lô 2.
+
+---
+
+## 6b. Việc owner phải làm trước khi kiểm thử được
+
+Mã nguồn xong cả 6 lô, nhưng **chưa lô nào chạy thật với dữ liệu người dùng**. Bốn việc bên ngoài repo:
+
+1. **Bật Anonymous Auth** — Firebase Console → Authentication → Sign-in method → Anonymous → Enable. Không bật thì KHÔNG học sinh nào đăng nhập được.
+2. **Đặt biến `GRADING_GEMINI_API_KEY`** trên Vercel (Settings → Environment Variables). Đây là khoá owner trả tiền cho việc chấm. Thiếu thì mọi lượt chấm trả lỗi có nêu đúng tên biến.
+3. **Deploy lại Storage rules**: `firebase deploy --only storage`. Lô 3 đổi `storage.rules` để học sinh ghi được ảnh; chưa deploy thì nộp ảnh bị từ chối.
+4. **Kiểm index Firestore đã lên chưa**. Lô 1 thêm 5 index. Nếu lần deploy trước chỉ chạy `--only firestore:rules` thì các truy vấn mới sẽ báo thiếu index.
+
+**Trần Vercel Function: đang dùng 11/12.** Chỉ còn 1 khe. Endpoint mới phải gộp vào `classroom.ts` hoặc `grade-homework.ts` theo `action`, đừng thêm file.
 
 ---
 
