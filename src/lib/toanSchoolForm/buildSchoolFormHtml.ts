@@ -120,6 +120,16 @@ export const SCHOOL_FORM_PRINT_CSS = `
 #print-temp-container.school-form table.act thead { display: table-header-group; }
 #print-temp-container.school-form table.grid tr { break-inside: avoid; page-break-inside: avoid; }
 #print-temp-container.school-form .band { break-after: avoid; page-break-after: avoid; }
+/* Mỗi phiếu học tập một trang riêng — không để hai phiếu nối tiếp trên cùng một trang. */
+#print-temp-container.school-form .phieu { break-before: page; page-break-before: always; }
+#print-temp-container.school-form .phieu-title {
+  font-size: ${PT.title}pt; font-weight: 700; text-align: center; margin: 0 0 2pt;
+}
+#print-temp-container.school-form .phieu-sub { text-align: center; font-style: italic; margin: 0 0 6pt; }
+#print-temp-container.school-form .phieu-hoten { margin: 0 0 8pt; }
+#print-temp-container.school-form .phieu-muc { font-weight: 700; margin: 6pt 0 3pt; }
+/* Vùng trả lời phải đủ cao để học sinh viết tay. */
+#print-temp-container.school-form table.phieu-bang td:empty { height: 48pt; }
 `;
 
 /**
@@ -156,6 +166,32 @@ export const buildSchoolFormHtml = (m: ToanLessonModel): string => {
   out.push(bulletsHtml(m.soKet.length ? m.soKet : ['(chưa có)']));
   out.push(bandHtml('6. BTVN', FILL.btvn));
   out.push(bulletsHtml(m.btvn.length ? m.btvn : ['(chưa có)']));
+
+  // Phụ lục: mỗi phiếu một trang riêng. Trình duyệt KHÔNG đổi hướng giấy giữa chừng một cách
+  // đáng tin, nên ở đây phiếu theo hướng chung của tài liệu; chỉ file Word mới đúng dọc/ngang
+  // từng phiếu (mỗi phiếu là một section riêng trong buildSchoolFormDocx).
+  for (const p of m.phuLuc) {
+    out.push('<section class="phieu">');
+    out.push(`<div class="phieu-title">PHIẾU ${esc(p.so)}${p.ten ? ` — ${inlineHtml(p.ten)}` : ''}</div>`);
+    if (p.phuDe) out.push(`<div class="phieu-sub">${inlineHtml(p.phuDe)}</div>`);
+    out.push('<p class="phieu-hoten">Họ và tên: ...................................................&nbsp;&nbsp;&nbsp;Lớp: ..................</p>');
+    for (const b of p.khoi) {
+      if (b.kind === 'table') {
+        const head = b.header.map(h => `<th>${inlineHtml(h)}</th>`).join('');
+        const body = b.rows
+          .map(r => `<tr>${Array.from({ length: b.header.length }, (_, i) => `<td>${inlineHtml(r[i] ?? '')}</td>`).join('')}</tr>`)
+          .join('');
+        out.push(`<table class="grid phieu-bang"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`);
+      } else if (b.kind === 'bullets') {
+        out.push(bulletsHtml(b.items));
+      } else if (b.kind === 'heading') {
+        out.push(`<p class="phieu-muc">${inlineHtml(b.text)}</p>`);
+      } else {
+        out.push(`<p>${inlineHtml(b.text)}</p>`);
+      }
+    }
+    out.push('</section>');
+  }
 
   return out.join('\n');
 };

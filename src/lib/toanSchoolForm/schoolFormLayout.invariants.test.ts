@@ -26,6 +26,7 @@ const model = (): ToanLessonModel => ({
   ],
   btvn: ['Bài 1 trang 72'],
   soKet: ['Exit ticket'],
+  phuLuc: [],
 });
 
 describe('bất biến bố cục form Toán', () => {
@@ -117,5 +118,49 @@ describe('buildSchoolFormHtml — soi gương bản Word', () => {
 
   it('hàng tiêu đề bảng hoạt động lặp lại khi bảng tràn trang', () => {
     expect(SCHOOL_FORM_PRINT_CSS).toContain('display: table-header-group');
+  });
+
+  it('mỗi phiếu học tập ngắt sang trang mới', () => {
+    expect(SCHOOL_FORM_PRINT_CSS).toContain('break-before: page');
+  });
+});
+
+describe('phụ lục phiếu học tập trong bản in HTML', () => {
+  const withPhieu = () => {
+    const m = model();
+    m.phuLuc = [
+      {
+        so: '1', ten: 'KHẢO SÁT', phuDe: 'Hàm số bậc hai (Tiết 1 – dùng ở Hoạt động 2)',
+        hoatDong: 'Hoạt động 2', khoGiay: 'doc',
+        khoi: [{ kind: 'table', header: ['Nhiệm vụ', 'Yêu cầu', 'Lời giải'], rows: [['NV1', 'Lập bảng', '']] }],
+      },
+      {
+        so: '2', ten: 'LUYỆN TẬP', phuDe: '', hoatDong: '', khoGiay: 'ngang',
+        khoi: [{ kind: 'para', text: 'Giải $x^2-1=0$' }],
+      },
+    ];
+    return buildSchoolFormHtml(m);
+  };
+
+  it('mỗi phiếu là một khối riêng, đúng số phiếu', () => {
+    const html = withPhieu();
+    expect((html.match(/class="phieu"/g) || []).length).toBe(2);
+    expect(html).toContain('PHIẾU 1 — KHẢO SÁT');
+    expect(html).toContain('PHIẾU 2 — LUYỆN TẬP');
+  });
+
+  it('giữ bảng nhiệm vụ và dòng họ tên, không mất như trước', () => {
+    const html = withPhieu();
+    expect(html).toContain('NV1');
+    expect(html).toContain('Lập bảng');
+    expect((html.match(/Họ và tên:/g) || []).length).toBe(2);
+  });
+
+  it('công thức trong phiếu render bằng KaTeX', () => {
+    expect(withPhieu()).toContain('katex');
+  });
+
+  it('không có phiếu thì không sinh khối nào', () => {
+    expect(buildSchoolFormHtml(model())).not.toContain('class="phieu"');
   });
 });

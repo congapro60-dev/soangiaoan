@@ -57,6 +57,8 @@ interface CreatorTabProps {
   setLessonDocs: React.Dispatch<React.SetStateAction<TemplateFile[]>>;
   singleRequirement: string;
   setSingleRequirement: (val: string) => void;
+  /** Bảng soạn hàng loạt theo PPCT — dựng ở App vì cần hook hàng đợi. */
+  ppctBulkPanel?: React.ReactNode;
   distributionFile: TemplateFile | null;
   setDistributionFile: (val: TemplateFile | null) => void;
   bulkCommand: string;
@@ -118,6 +120,16 @@ export const CreatorTab = (props: CreatorTabProps) => {
   };
 
   const handleGenerateInclassWorksheet = async () => {
+    // Giáo án ban Toán đã có sẵn phiếu ở mục phụ lục — lấy thẳng, không gọi AI lần nữa.
+    // Bấm là có ngay, và phiếu khớp đúng với phiếu đã ghi trong kịch bản tiết dạy.
+    const { trichPhieuHocTap } = await import('../../lib/toanSchoolForm/phieuHocTap');
+    const coSan = trichPhieuHocTap(props.currentPlan.content || '');
+    if (coSan) {
+      setWorksheetPreview({ type: 'inclass', title: 'Phiếu học tập tại lớp', content: coSan });
+      props.showToast('Đã lấy phiếu học tập từ phụ lục của giáo án.', 'success');
+      return;
+    }
+
     props.setIsLoading(true);
     const content = await worksheetUtils.generateInclassWorksheetMarkdown(props.currentPlan, props.data, props.showToast);
     if (content) {

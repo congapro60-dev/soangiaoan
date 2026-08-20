@@ -21,6 +21,28 @@ export interface ToanActivity {
   rows: ActivityRow[];
 }
 
+/** Một khối nội dung trong phiếu. Giữ nguyên loại để dựng lại đúng ở file Word. */
+export type PhieuBlock =
+  | { kind: 'heading'; text: string }
+  | { kind: 'para'; text: string }
+  | { kind: 'bullets'; items: string[] }
+  | { kind: 'table'; header: string[]; rows: string[][] };
+
+/**
+ * Một phiếu học tập trong phụ lục — in ra phát cho học sinh, mỗi phiếu MỘT TRANG riêng.
+ * Trước đây parser không có mục cho phụ lục nên toàn bộ phần này bị mất khi xuất Word:
+ * tiêu đề phiếu biến mất, bảng nhiệm vụ mất sạch, mấy dòng lẻ rơi nhầm sang mục Sơ kết.
+ */
+export interface ToanPhieu {
+  so: string;
+  ten: string;
+  /** Dòng phụ dưới tiêu đề: tên bài, tiết, dùng ở hoạt động nào. */
+  phuDe: string;
+  hoatDong: string;
+  khoGiay: 'doc' | 'ngang';
+  khoi: PhieuBlock[];
+}
+
 export interface ToanLessonModel {
   title: string;
   header: {
@@ -38,6 +60,8 @@ export interface ToanLessonModel {
   activities: ToanActivity[];
   btvn: string[];
   soKet: string[];
+  /** Phụ lục phiếu học tập, đặt sau BTVN. */
+  phuLuc: ToanPhieu[];
 }
 
 const clean = (s: string): string => (s || '').replace(/\s+/g, ' ').trim();
@@ -85,7 +109,34 @@ const SECTION = {
   tienTrinh: /tiến\s*trình/i,
   btvn: /btvn|về\s*nhà/i,
   soKet: /sơ\s*kết|rút\s*kinh\s*nghiệm/i,
+  phuLuc: /phụ\s*lục/i,
 };
+
+/** Heading mở một phiếu mới: "PHIẾU 1 – KHẢO SÁT HÀM SỐ", "Phiếu số 2: Luyện tập". */
+const PHIEU_HEADING = /^phiếu\s*(?:số\s*)?(\d+)\s*[–—:.-]?\s*(.*)$/i;
+/** AI khai khổ giấy ngay dưới tên phiếu. */
+const KHO_GIAY = /^khổ\s*(?:giấy)?\s*[:：]\s*(dọc|ngang)/i;
+/** Dòng họ tên do bộ dựng Word tự phát sinh — bỏ ở đây để khỏi in hai lần. */
+const DONG_HO_TEN = /^họ\s*(?:và\s*)?tên\s*[:：]/i;
+
+const tableBlock = (table: Tokens.Table): PhieuBlock => ({
+  kind: 'table',
+  header: table.header.map(cellText),
+  rows: table.rows.map((r) => r.map(cellText)),
+});
+
+/**
+ * Khổ giấy khi AI quên khai: bảng rộng thì để ngang, còn lại để dọc. Đoán sai chỉ hơi xấu,
+ * còn không có luật dự phòng thì phiếu bảng 5 cột bị bóp chật vào khổ dọc.
+ */
+const suyRaKhoGiay = (khoi: PhieuBlock[]): 'doc' | 'ngang' => {
+  const rong = khoi.some((b) => b.kind === 'table' && b.header.length >= 4);
+  return rong ? 'ngang' : 'doc';
+};
+
+/** "Hàm số bậc hai (Tiết 1 – dùng ở Hoạt động 2)" → "Hoạt động 2". */
+const trichHoatDong = (phuDe: string): string =>
+  phuDe.match(/dùng\s*(?:ở|cho|trong|khi)\s*([^)（）]+)/i)?.[1]?.trim() ?? '';
 
 // Heading con trong THÔNG TIN CHUNG.
 const TTC_SUB = {
@@ -116,11 +167,11 @@ export const parseToanLesson = (markdown: string): ToanLessonModel => {
   const model: ToanLessonModel = {
     title: '',
     header: { lop: '', tenBai: '', mon: 'Toán', giaoVien: '', tuan: '', namHoc: '' },
-    nangLuc: [], mucTieu: [], phanHoa: [], taiLieu: [], activities: [], btvn: [], soKet: [],
+    nangLuc: [], mucTieu: [], phanHoa: [], taiLieu: [], activities: [], btvn: [], soKet: [], phuLuc: [],
   };
 
   const tokens = marked.lexer(markdown || '');
-  let section: 'none' | 'ttc' | 'tienTrinh' | 'btvn' | 'soKet' = 'none';
+  let section: 'none' | 'ttc' | 'tienTrinh' | 'btvn' | 'soKet' | 'phuLuc' = 'none';
   let ttcSub: keyof typeof TTC_SUB | null = null;
   let headerTableTaken = false;
   let current: ToanActivity | null = null;
@@ -130,6 +181,19 @@ export const parseToanLesson = (markdown: string): ToanLessonModel => {
     current = null;
   };
 
+  let phieu: ToanPhieu | null = null;
+  /** `khaiKho` nhớ AI có tự khai khổ giấy không, để chỉ suy ra khi thật sự thiếu. */
+  let khaiKho = false;
+  const pushPhieu = () => {
+    if (phieu) {
+      if (!khaiKho) phieu.khoGiay = suyRaKhoGiay(phieu.khoi);
+      if (!phieu.hoatDong) phieu.hoatDong = trichHoatDong(phieu.phuDe);
+      model.phuLuc.push(phieu);
+    }
+    phieu = null;
+    khaiKho = false;
+  };
+
   for (const tok of tokens) {
     if (tok.type === 'heading') {
       const h = tok as Tokens.Heading;
@@ -137,8 +201,20 @@ export const parseToanLesson = (markdown: string): ToanLessonModel => {
       if (h.depth === 1 && !model.title) { model.title = txt; continue; }
       if (SECTION.ttc.test(txt)) { pushActivity(); section = 'ttc'; ttcSub = null; continue; }
       if (SECTION.tienTrinh.test(txt)) { pushActivity(); section = 'tienTrinh'; continue; }
-      if (SECTION.btvn.test(txt)) { pushActivity(); section = 'btvn'; continue; }
-      if (SECTION.soKet.test(txt)) { pushActivity(); section = 'soKet'; continue; }
+      if (SECTION.btvn.test(txt)) { pushActivity(); pushPhieu(); section = 'btvn'; continue; }
+      if (SECTION.soKet.test(txt)) { pushActivity(); pushPhieu(); section = 'soKet'; continue; }
+      if (SECTION.phuLuc.test(txt)) { pushActivity(); pushPhieu(); section = 'phuLuc'; continue; }
+
+      if (section === 'phuLuc') {
+        const m = txt.match(PHIEU_HEADING);
+        if (m) {
+          pushPhieu();
+          phieu = { so: m[1], ten: clean(m[2]), phuDe: '', hoatDong: '', khoGiay: 'doc', khoi: [] };
+        } else if (phieu) {
+          phieu.khoi.push({ kind: 'heading', text: txt });
+        }
+        continue;
+      }
 
       if (section === 'ttc') {
         ttcSub = (Object.keys(TTC_SUB) as (keyof typeof TTC_SUB)[]).find((k) => TTC_SUB[k].test(txt)) || ttcSub;
@@ -206,10 +282,32 @@ export const parseToanLesson = (markdown: string): ToanLessonModel => {
       continue;
     }
 
+    if (section === 'phuLuc') {
+      if (!phieu) continue; // nội dung trước phiếu đầu tiên (lời dẫn phụ lục) — bỏ qua
+      if (tok.type === 'table') { phieu.khoi.push(tableBlock(tok as Tokens.Table)); continue; }
+      if (tok.type === 'list') {
+        const items = listItems(tok);
+        if (items.length) phieu.khoi.push({ kind: 'bullets', items });
+        continue;
+      }
+      if (tok.type === 'paragraph') {
+        const p = cleanCell((tok as Tokens.Paragraph).text);
+        if (!p) continue;
+        const kho = p.match(KHO_GIAY);
+        if (kho) { phieu.khoGiay = /ngang/i.test(kho[1]) ? 'ngang' : 'doc'; khaiKho = true; continue; }
+        if (DONG_HO_TEN.test(p)) continue;
+        // Đoạn đầu tiên ngay dưới tên phiếu là dòng phụ đề (tên bài, tiết, dùng ở hoạt động nào).
+        if (!phieu.phuDe && phieu.khoi.length === 0) { phieu.phuDe = p; continue; }
+        phieu.khoi.push({ kind: 'para', text: p });
+      }
+      continue;
+    }
+
     if (section === 'btvn') model.btvn.push(...listItems(tok));
     if (section === 'soKet') model.soKet.push(...listItems(tok));
   }
   pushActivity();
+  pushPhieu();
 
   if (!model.header.tenBai && model.title) {
     model.header.tenBai = model.title.replace(/^kế\s*hoạch\s*dạy\s*học\s*[—-]\s*/i, '').trim();

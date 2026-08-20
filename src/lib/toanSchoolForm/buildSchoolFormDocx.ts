@@ -10,12 +10,12 @@ import {
   WidthType, BorderStyle, AlignmentType, PageOrientation,
 } from 'docx';
 import type { ParagraphChild } from 'docx';
-import type { ToanLessonModel } from './parseToanLesson';
+import type { ToanLessonModel, ToanPhieu } from './parseToanLesson';
 import { latexToOmml, ommlToParagraphChild } from '../../utils/renderWordCore';
 import { tokenizeInline } from './inlineTokens';
 import {
   ACTIVITY_COL_TWIP, FILL, FONT, MARGIN_TWIP, OBJECTIVE_COL_RATIOS,
-  PAGE_TWIP, PRINTABLE_TWIP, PT,
+  PAGE_TWIP, PHIEU_MARGIN_TWIP, PHIEU_PAGE_TWIP, PRINTABLE_TWIP, PT, phieuPrintableTwip,
 } from './schoolFormLayout';
 
 // Hằng số bố cục dùng chung với đường xuất HTML→PDF — xem schoolFormLayout.ts.
@@ -142,6 +142,53 @@ const activityTable = (a: ToanLessonModel['activities'][number]): Table => {
   return new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, columnWidths: COL3, borders: tableBorders, rows });
 };
 
+// ── Phiếu học tập ở phụ lục ───────────────────────────────────────────────────
+
+/** Bảng trong phiếu: ô trống của cột "Lời giải" phải đủ cao để học sinh viết tay. */
+const phieuTable = (block: { header: string[]; rows: string[][] }, khoGiay: 'doc' | 'ngang'): Table => {
+  const cols = Math.max(1, block.header.length);
+  const rong = Math.floor(phieuPrintableTwip(khoGiay) / cols);
+  const cell = (t: string, header: boolean, cao = false) =>
+    new TableCell({
+      children: [
+        para(t, { bold: header }),
+        // Ô trả lời để trống: chèn thêm dòng rỗng lấy chỗ viết.
+        ...(cao && !t.trim() ? [spacer(), spacer(), spacer()] : []),
+      ],
+      ...(header ? { shading: { fill: FILL.tienTrinh, type: 'clear' as const, color: 'auto' } } : {}),
+      margins: { top: 60, bottom: 60, left: 100, right: 100 },
+    });
+  const rows = [
+    new TableRow({ tableHeader: true, children: block.header.map((h) => cell(h, true)) }),
+    ...block.rows.map((r) =>
+      new TableRow({
+        children: Array.from({ length: cols }, (_, i) => cell(r[i] ?? '', false, true)),
+      })),
+  ];
+  return new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    columnWidths: Array.from({ length: cols }, () => rong),
+    borders: tableBorders,
+    rows,
+  });
+};
+
+const phieuBody = (p: ToanPhieu): (Paragraph | Table)[] => {
+  const out: (Paragraph | Table)[] = [];
+  out.push(para(`PHIẾU ${p.so}${p.ten ? ` — ${p.ten}` : ''}`, { bold: true, size: SZ_TITLE, align: AlignmentType.CENTER }));
+  if (p.phuDe) out.push(para(p.phuDe, { align: AlignmentType.CENTER }));
+  out.push(para('Họ và tên: ...................................................   Lớp: ..................'));
+  out.push(spacer());
+
+  for (const b of p.khoi) {
+    if (b.kind === 'table') out.push(phieuTable(b, p.khoGiay));
+    else if (b.kind === 'bullets') out.push(...bullets(b.items));
+    else if (b.kind === 'heading') out.push(para(b.text, { bold: true, size: SZ_BAND }));
+    else out.push(para(b.text));
+  }
+  return out;
+};
+
 export const buildSchoolFormDocument = (m: ToanLessonModel): Document => {
   const body: (Paragraph | Table)[] = [];
   body.push(new Paragraph({ children: runs('KẾ HOẠCH DẠY HỌC', { bold: true, size: SZ_TITLE }), alignment: AlignmentType.CENTER, spacing: { before: 60, after: 120 } }));
@@ -184,6 +231,25 @@ export const buildSchoolFormDocument = (m: ToanLessonModel): Document => {
         properties: { page: { size: { width: PAGE.height, height: PAGE.width, orientation: PageOrientation.LANDSCAPE }, margin: MARGIN } },
         children: body,
       },
+      // Mỗi phiếu học tập là MỘT SECTION riêng. Hướng giấy trong OOXML là thuộc tính của
+      // section, nên đây là cách duy nhất để phiếu này dọc, phiếu kia ngang. Ngắt section
+      // đồng thời là ngắt trang, nên "không hai phiếu trên cùng một trang" được bảo đảm
+      // bằng cấu trúc chứ không bằng canh chỉnh thủ công.
+      ...m.phuLuc.map((p) => ({
+        properties: {
+          page: {
+            // LUÔN truyền số đo theo chiều DỌC — docx tự hoán đổi khi orientation=LANDSCAPE.
+            // Tự hoán đổi thêm ở đây là xoay hai lần, ra lại khổ dọc.
+            size: {
+              width: PHIEU_PAGE_TWIP.width,
+              height: PHIEU_PAGE_TWIP.height,
+              orientation: p.khoGiay === 'ngang' ? PageOrientation.LANDSCAPE : PageOrientation.PORTRAIT,
+            },
+            margin: PHIEU_MARGIN_TWIP,
+          },
+        },
+        children: phieuBody(p),
+      })),
     ],
   });
 };

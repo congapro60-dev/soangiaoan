@@ -19,6 +19,7 @@ const baseModel = (): ToanLessonModel => ({
   ],
   btvn: ['Bài 1 trang 72'],
   soKet: ['Exit ticket'],
+  phuLuc: [],
 });
 
 const buildXml = async (m: ToanLessonModel): Promise<string> => {
@@ -26,6 +27,66 @@ const buildXml = async (m: ToanLessonModel): Promise<string> => {
   const zip = await JSZip.loadAsync(buf);
   return zip.file('word/document.xml')!.async('string');
 };
+
+describe('buildSchoolFormDocx — phụ lục phiếu học tập', () => {
+  const phieu = (over: Partial<ToanLessonModel['phuLuc'][number]> = {}) => ({
+    so: '1', ten: 'KHẢO SÁT HÀM SỐ',
+    phuDe: 'Hàm số bậc hai (Tiết 1 – dùng ở Hoạt động 2)',
+    hoatDong: 'Hoạt động 2', khoGiay: 'doc' as const,
+    khoi: [{ kind: 'table' as const, header: ['Nhiệm vụ', 'Yêu cầu', 'Lời giải'], rows: [['NV1', 'Lập bảng biến thiên', '']] }],
+    ...over,
+  });
+
+  const withPhieu = (list: ToanLessonModel['phuLuc']) => {
+    const m = baseModel();
+    m.phuLuc = list;
+    return buildXml(m);
+  };
+
+  it('KHÔNG có phiếu thì file y như cũ — đúng một section', async () => {
+    const xml = await buildXml(baseModel());
+    expect((xml.match(/<w:sectPr/g) || []).length).toBe(1);
+  });
+
+  it('mỗi phiếu là một section riêng → số section = 1 + số phiếu', async () => {
+    const xml = await withPhieu([phieu({ so: '1' }), phieu({ so: '2' }), phieu({ so: '3' })]);
+    expect((xml.match(/<w:sectPr/g) || []).length).toBe(4);
+  });
+
+  it('phiếu khai khổ ngang ra landscape, khổ dọc ra portrait', async () => {
+    const xml = await withPhieu([phieu({ so: '1', khoGiay: 'doc' }), phieu({ so: '2', khoGiay: 'ngang' })]);
+    // Thân giáo án landscape + phiếu 2 landscape = 2; phiếu 1 portrait không ghi w:orient.
+    expect((xml.match(/w:orient="landscape"/g) || []).length).toBe(2);
+    expect(xml).toContain('w:w="11906"'); // A4 dọc
+    expect(xml).toContain('w:w="16838"'); // A4 ngang
+  });
+
+  it('thân giáo án vẫn Letter ngang, không bị phiếu làm đổi', async () => {
+    const xml = await withPhieu([phieu({ khoGiay: 'ngang' })]);
+    expect(xml).toContain('w:w="15840"');
+  });
+
+  it('mỗi phiếu có tiêu đề, phụ đề và đúng MỘT dòng họ tên', async () => {
+    const xml = await withPhieu([phieu()]);
+    expect(xml).toContain('PHIẾU 1 — KHẢO SÁT HÀM SỐ');
+    expect(xml).toContain('dùng ở Hoạt động 2');
+    expect((xml.match(/Họ và tên:/g) || []).length).toBe(1);
+  });
+
+  it('bảng nhiệm vụ trong phiếu được dựng thật, không mất như trước', async () => {
+    const xml = await withPhieu([phieu()]);
+    expect(xml).toContain('NV1');
+    expect(xml).toContain('Lập bảng biến thiên');
+    expect(xml).toContain('<w:tbl>');
+  });
+
+  it('công thức trong phiếu vẫn ra OMML', async () => {
+    const xml = await withPhieu([phieu({
+      khoi: [{ kind: 'para', text: 'Cho hàm số $y=x^2$' }],
+    })]);
+    expect(xml).toContain('<m:oMath');
+  });
+});
 
 describe('buildSchoolFormDocx — markup AI không được lọt vào Word', () => {
   const withCell = async (gvHs: string): Promise<string> => {

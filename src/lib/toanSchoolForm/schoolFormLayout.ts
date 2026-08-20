@@ -42,6 +42,19 @@ export const PRINTABLE_TWIP = PAGE_TWIP.width - MARGIN_TWIP.left - MARGIN_TWIP.r
 export const twipToInch = (twip: number): number => twip / 1440;
 
 /**
+ * Phiếu học tập ở phụ lục in trên khổ A4 (không phải Letter như thân giáo án) vì giáo viên
+ * photo phát cho học sinh. Số đo theo chiều DỌC; đường .docx tự hoán đổi khi để ngang.
+ */
+export const PHIEU_PAGE_TWIP = { width: 11906, height: 16838 } as const; // A4 = 210 × 297 mm
+export const PHIEU_MARGIN_TWIP = { top: 720, right: 720, bottom: 720, left: 900 } as const;
+
+/** Bề rộng in được của phiếu, theo từng hướng giấy. */
+export const phieuPrintableTwip = (khoGiay: 'doc' | 'ngang'): number => {
+  const rong = khoGiay === 'ngang' ? PHIEU_PAGE_TWIP.height : PHIEU_PAGE_TWIP.width;
+  return rong - PHIEU_MARGIN_TWIP.left - PHIEU_MARGIN_TWIP.right;
+};
+
+/**
  * Bảng hoạt động 3 cột (Thời gian thực | Giáo viên và Học sinh | Nội dung) — chuẩn ban Toán
  * 15/45/40, chốt 2026-07 sau khi rà 3 giáo án định hướng Bài 19. Trước đó là 9/50/41, cột
  * Thời gian quá hẹp làm mốc "P12 – P22" bị xuống dòng.
