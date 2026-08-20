@@ -4,6 +4,7 @@ import { AppData, LessonPlan, TemplateFile, BuiltinFormat, ToanKeHoach } from '.
 import { TOAN_KE_HOACH_LABELS } from '../../../prompts/toanFormats';
 import { PpctPickerModal } from '../../modals/PpctPickerModal';
 import type { PpctLesson, PpctSource } from '../../../data/ppct';
+import { buildRequirement, buildTitle, suyRaKeHoach } from '../../../lib/ppct/lessonJob';
 import { loadUnitPlan, UNIT_PLAN_GRADES, type UnitPlan } from '../../../data/unitplan';
 
 interface LessonControlsProps {
@@ -24,61 +25,9 @@ interface LessonControlsProps {
   fileInputRef: React.RefObject<HTMLInputElement>;
   deleteDistribution: (id: string) => void;
   setSingleRequirement: (val: string) => void;
+  /** Bảng soạn hàng loạt theo PPCT — dựng ở CreatorTab vì cần hook hàng đợi. */
+  ppctBulkPanel?: React.ReactNode;
 }
-
-/**
- * Tiêu đề giáo án phải phân biệt được từng tiết: một bài "Mệnh đề" có thể trải 4 tiết, lưu cả
- * bốn cùng tên thì trong thư viện lẫn trên Drive không biết đâu là đâu.
- * Ưu tiên số tiết mà chính PPCT ghi trong ô nội dung ("Tiết 3: ..."), vì nó đếm theo cả bài
- * chứ không reset theo tuần.
- */
-const buildTitle = (lesson: PpctLesson): string => {
-  if (lesson.isElective) {
-    return `Tiết tự chọn — Tuần ${lesson.week}${lesson.periodNo ? `, tiết ${lesson.periodNo}` : ''}`;
-  }
-  const nhanTiet = lesson.detail.match(/^\s*Ti[êế]t\s*(\d+)/i)?.[1];
-  if (nhanTiet) return `${lesson.title} — Tiết ${nhanTiet}`;
-  if (lesson.periodCount > 1) return `${lesson.title} — Tiết ${lesson.periodIndex}/${lesson.periodCount}`;
-  return lesson.title;
-};
-
-/** Mẫu giáo án ban Toán có ba kế hoạch; đoán từ chính chữ của PPCT, giáo viên đổi lại được. */
-const suyRaKeHoach = (lesson: PpctLesson): ToanKeHoach | null => {
-  const text = `${lesson.title} ${lesson.detail}`.toLowerCase();
-  if (/kiểm tra|trả bài|đề thi/.test(text)) return null; // tiết kiểm tra không hợp kế hoạch nào
-  if (/luyện tập|bài tập|ôn tập|thực hành|chữa bài/.test(text)) return 'luyen_tap';
-  return 'kien_thuc';
-};
-
-/**
- * Gói bài đã chọn thành yêu cầu soạn, giữ nguyên chữ của PPCT để AI không tự bịa mục tiêu.
- * Toàn bộ khối này là DỮ LIỆU ĐẦU VÀO — không được đổi bố cục mẫu giáo án người dùng đã chọn.
- */
-const buildRequirement = (
-  lesson: PpctLesson,
-  source: PpctSource,
-  grade: number,
-  schoolYear: string,
-  unitPlanContext?: string,
-): string => {
-  const viTri = lesson.periodCount > 1
-    ? `tiết ${lesson.periodIndex}/${lesson.periodCount} của bài này`
-    : 'bài dạy 1 tiết';
-  const parts = [
-    `Soạn ${viTri}, theo phân phối chương trình ${source} lớp ${grade}, tuần ${lesson.week}` +
-      (lesson.periodNo ? `, tiết ${lesson.periodNo} của năm học.` : '.'),
-    `Điền đúng vào các ô sẵn có ở đầu giáo án: Lớp ${grade} · Tuần học ${lesson.week} · Năm học ${schoolYear}.`,
-    lesson.isElective && 'Đây là TIẾT TỰ CHỌN: phân phối chương trình để trống nội dung, giáo viên tự quyết dạy gì. '
-      + 'Hãy điền nội dung muốn dạy vào dòng dưới đây trước khi bấm soạn.\nNỘI DUNG TỰ CHỌN: ',
-    lesson.subject && `Phân môn: ${lesson.subject}.`,
-    lesson.detail && `\nNội dung của chính tiết này theo PPCT:\n${lesson.detail}`,
-    lesson.objectives && `\n${source === 'MOET' ? 'Yêu cầu cần đạt' : 'Mục tiêu'} của cả bài (trích nguyên văn PPCT):\n${lesson.objectives}`,
-    lesson.notes && `\nGhi chú: ${lesson.notes}`,
-    unitPlanContext && `\n${unitPlanContext}`,
-    '\nLƯU Ý: các thông tin trên chỉ là tư liệu nội dung. Giữ nguyên bố cục và các mục của mẫu giáo án đã chọn, không thêm bớt mục nào.',
-  ];
-  return parts.filter(Boolean).join('\n');
-};
 
 export const LessonControls = ({
   generationMode,
@@ -97,7 +46,8 @@ export const LessonControls = ({
   setUploadingFiles,
   fileInputRef,
   deleteDistribution,
-  setSingleRequirement
+  setSingleRequirement,
+  ppctBulkPanel
 }: LessonControlsProps) => {
   const [inputMode, setInputMode] = useState<'manual' | 'ppct'>('manual');
   const [showPpctPicker, setShowPpctPicker] = useState(false);
@@ -165,13 +115,15 @@ export const LessonControls = ({
           </button>
           <button
             onClick={() => setGenerationMode('bulk')}
-            disabled={builtinFormat === 'toan'}
-            title={builtinFormat === 'toan' ? 'Giáo án ban Toán hiện chỉ hỗ trợ soạn đơn lẻ (từng tiết)' : undefined}
-            className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${generationMode === 'bulk' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'} ${builtinFormat === 'toan' ? 'opacity-40 cursor-not-allowed' : ''}`}
+            className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${generationMode === 'bulk' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
             <Layers className="w-4 h-4" /> Soạn Hàng loạt
           </button>
       </div>
+
+      {generationMode === 'bulk' && ppctBulkPanel && (
+        <div className="mb-6">{ppctBulkPanel}</div>
+      )}
 
       <div className="space-y-6">
           <div className="grid grid-cols-2 gap-4">

@@ -8,6 +8,8 @@ import { useAppState } from './hooks/useAppState';
 import { useLessonCreator } from './hooks/useLessonCreator';
 import { useChat } from './hooks/useChat';
 import { useLessonPlanActions } from './hooks/useLessonPlanActions';
+import { usePpctQueue } from './hooks/usePpctQueue';
+import { PpctBulkPanel } from './components/features/creator/PpctBulkPanel';
 import { useSavedExams, estimateQuestionCount } from './hooks/useSavedExams';
 
 // Components
@@ -83,8 +85,24 @@ export default function App() {
     (newContent) => creator.setCurrentPlan(prev => ({ ...prev, content: newContent }))
   );
 
-  const { saveLessonPlan, saveBulkPlans, duplicatePlan, deletePlan, updatePlanMetadata, toggleSharePlan } =
+  const { saveLessonPlan, saveOnePlan, saveBulkPlans, duplicatePlan, deletePlan, updatePlanMetadata, toggleSharePlan } =
     useLessonPlanActions({ user, data, setData, showToast, setIsLoading, setActiveTab, setAuthorName, creator });
+
+  // Hàng đợi soạn theo PPCT: gọi lại ĐÚNG đường soạn đơn của creator rồi lưu ngay từng tiết.
+  const ppctQueue = usePpctQueue({
+    soanMotTiet: (job) => creator.handleCreateLesson({
+      title: job.title,
+      requirement: job.requirement,
+      keHoach: job.keHoach,
+      grade: String(creator.currentPlan.grade || ''),
+      week: String(job.week),
+    }),
+    luuGiaoAn: saveOnePlan,
+    showToast,
+    builtinFormat: creator.builtinFormat,
+    subjectId: creator.currentPlan.subjectId,
+    grade: Number(creator.currentPlan.grade) || 10,
+  });
 
   const { savedExams, communityExams, fetchCommunityExams, saveExam: saveExamToLib, deleteExam: deleteExamFromLib, toggleShareExam } =
     useSavedExams(user);
@@ -370,6 +388,18 @@ export default function App() {
                 setUploadingFiles={setUploadingFiles} showToast={showToast}
                 saveLessonPlan={saveLessonPlan} saveBulkPlans={saveBulkPlans}
                 deleteDistribution={deleteDistribution}
+                ppctBulkPanel={(
+                  <PpctBulkPanel
+                    grade={creator.currentPlan.grade || '10'}
+                    tienDo={ppctQueue.tienDo}
+                    ketQua={ppctQueue.ketQua}
+                    banGhi={ppctQueue.banGhi}
+                    onChay={(plan, lo, chayTiep) =>
+                      ppctQueue.chay(plan, { ...lo, keHoachMacDinh: creator.toanKeHoach }, chayTiep)}
+                    onDung={ppctQueue.dung}
+                    onXoaTienDo={ppctQueue.xoaTienDo}
+                  />
+                )}
                 exportToPDF={(orientation) => exportUtils.exportToPDF(creator.currentPlan, showToast, orientation)}
                 exportToLaTeX={() => exportUtils.exportToLaTeX(creator.currentPlan, data, setIsLoading, setIsSettingsOpen, showToast, setLatexContent, setIsLatexModalOpen)}
                 onCreateExam={() => navigateToTesting(creator.currentPlan.content || '', creator.currentPlan.title || '')}

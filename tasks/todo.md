@@ -55,3 +55,68 @@ xuống 107 vì các bài trước đó bị cắt vụn nay gộp đúng.
 3. Unit plan học kỳ II: chờ bản mới. Unit plan THCS (Toán 6–9) là PDF vỡ dấu tiếng Việt khi rút
    chữ, cần bản .docx hoặc chấp nhận thêm bước chuẩn hoá.
 4. Chưa commit, chưa push. HANDOFF.md cập nhật khi chốt push.
+
+
+## Lô C — TDS production pipeline trước batch — 2026-08-19
+
+- [x] Timeline parser chỉ nhận interval P0–P40 trong heading thời lượng/cột Thời gian thực; không nhận period ID P47/P52 hay handoff P52→P53.
+- [x] Verifier dùng chung chạy PASS trên P47, P50, P52, P53, P54; report: `qa/reports/gold_locked_after_leak_map_fix.json`.
+- [x] Metadata Môn học được giữ theo policy source: P47/P50 dùng giá trị nguồn; P52–P54 giữ `subject_source_value=""` và display fallback `TDS` vì PPCT source field rỗng.
+- [x] Manifest `GOLD_LOCKED`, `GOLD_ALLOWLIST`, `NEGATIVE_FAIL_EXAMPLES` có provenance: `qa/reference/tds_reference_corpus.json`.
+- [x] Cài production gates fail-closed: source grounding, progression, mathematical core, provenance, percentages, placeholder, repetition, leakage, timeline, metadata, raw LaTeX, malformed math, visual clipping/overlap.
+- [x] Tạo cấu trúc `qa/tools`, `qa/reports`, `qa/logs`, `qa/archive`, staging ngoài thư mục bàn giao.
+- [x] Regression 10 negative fixtures + 5 GOLD_LOCKED đạt 15/15: `qa/reports/regression_15_cases.json`; chưa chạy batch toàn năm.
+- [x] Đối chiếu checksum/visual manifest pilot trước archive; cleanup mới chỉ dry-run, không xóa hoặc move artifact.
+- [x] Báo cáo bàn giao hoàn tất và dừng chờ người dùng duyệt trước batch 8–10 tiết.
+
+
+## Lô D — Batch 01 shadow/staging sau P54 — 2026-08-20
+
+- [x] Chốt scope PPCT liên tiếp P55–P64; P61–P62 là NEEDS_SOURCE vì PPCT/Unit Plan chỉ ghi TC.
+- [x] Tạo maps và manifest riêng trong `qa/reference/`; không thêm vào `GOLD_LOCKED`.
+- [x] Sinh tối đa 8 DOCX đủ source trong `temp/tds_staging/batch_2026-08-20/`; không ghi vào `giao an manus tao/`.
+- [x] Render exact từng DOCX bằng renderer thống nhất; đối chiếu SHA-256 DOCX–visual manifest.
+- [x] Chạy verifier generic và batch-level QA; phân loại mọi fail, không sửa DOCX tự động sau QA.
+- [x] Promotion chỉ dry-run; synthetic E2E smoke chỉ dùng candidate giả trong `temp/`.
+- [x] Chưa promote, chưa move/delete, chưa bàn giao batch vào production; dừng chờ review.
+
+### Review section — Lô D đã hoàn tất, chờ duyệt production
+
+Batch-level QA đạt `true`: 8/8 verifier PASS, visual exact PASS, 8/8 SHA match, 7–8 trang/tiết, production untouched, GOLD_LOCKED unchanged và promotion dry-run PASS trong thư mục tạm. P61–P62 vẫn HOLD với `NEEDS_SOURCE`. Chưa promotion production, chưa move/delete và chưa đưa DOCX vào thư mục bàn giao. Artifact chính: `qa/reports/batch01_handoff_2026-08-20.md` và `qa/reports/batch01_handoff_2026-08-20.json`.
+
+
+## Lô E — Regen-v3 pilot sau review nội dung Toán — 2026-08-20
+
+- [x] Sửa generator/rule cho P055, P056, P057, P060; không sửa trực tiếp DOCX.
+- [x] Regenerate 4 tiết vào staging `temp/tds_staging/batch_2026-08-20_regen4_v3/`.
+- [x] Bổ sung và kiểm regression độc lập cho `math_recomputation`, `answer_consistency`, `geometry_completeness`, `semantic_plausibility`.
+- [x] Regression 19 case sau patch: 14 negative fixture + 5 GOLD_LOCKED, tất cả PASS.
+- [x] Final verifier regen-v3: 4/4 `overall_pass=true`, visual exact PASS, SHA-256 khớp.
+- [x] Tạo report bàn giao pilot `qa/reports/batch01_regen4_v3_handoff_2026-08-20.md`.
+- [x] Dừng trước Batch 02; không promotion production, không move/delete artifact, không sửa GOLD_LOCKED.
+- [ ] Chờ người dùng duyệt regen-v3 pilot trước khi chạy Batch 02.
+- [ ] Không tăng quy mô vượt 40–50 tiết/batch trước khi Batch 02 đạt điều kiện 0 lỗi Toán nghiêm trọng.
+
+## Trạng thái kiểm soát
+
+`READY_FOR_CONTROLLED_SCALE` — chưa phải `READY_FOR_MASS_PRODUCTION`.
+
+Các report kiểm chứng: `qa/reports/content_gates_regression_post_regen_pilot.json`, `qa/reports/regression_post_regen_pilot.json`, `qa/reports/batch01_regen4_v3_verifier_final.json`.
+
+Các artifact hỗ trợ: `temp/tds_staging/batch_2026-08-20_regen4_v3/visual_results.json`, `qa/reference/batch01_regen4_v3_lesson_content_maps.json`, và 4 DOCX trong thư mục staging tương ứng.
+
+
+## Lô F — Regen5 pilot sau false negative P060 — 2026-08-20
+
+- [x] Audit false negative: gate Activity–Phiếu–Teacher Key trước đó chưa chứng minh mismatch thực sự.
+- [x] Cài `triangle_symbol_consistency_pass` với quy ước `a↔A`, `b↔B`, `c↔C` và các góc xen giữa.
+- [x] Cài `given_quantity_reassigned=0`, kiểm đồng bộ Activity–Phiếu–Teacher Key và `geometry_recomputation_pass`.
+- [x] Sửa generator/rule P060: `b=9`, `c=12`, `A=90°`, `a=15`, `S=54`; đồng bộ activity, GHI BẢNG, Phiếu HS, Teacher Key, map và geometry contract.
+- [x] Sửa generator/rule P056: `5,33` chỉ còn trong lời giải sai có bước sai cụ thể; chốt `n∈N`, `n_max=5`.
+- [x] Chỉ regenerate P056/P060; giữ nguyên P055/P057.
+- [x] Render exact regen5 và visual QA 100%: P055 8 trang, P056 8 trang, P057 7 trang, P060 8 trang; không clipping/overlap/leakage.
+- [x] Content-gate regression: `negative_fixtures_all_expected=true`, `positive_fixtures_all_pass=true`, `regen5_all_pass=true`, `overall_pass=true`.
+- [x] Regression 19 case: `negative_fixture_all_expected=true`, `gold_locked_all_pass=true`, `all_test_cases_pass=true`.
+- [x] Tạo báo cáo `qa/reports/batch01_regen5_pilot_handoff_2026-08-20.md`.
+- [x] Không promotion, không chạy Batch 02, không sửa GOLD_LOCKED, không move/delete artifact.
+- [ ] Chờ người dùng duyệt regen5 pilot.

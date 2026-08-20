@@ -74,12 +74,39 @@ export const useLessonPlanActions = ({
     }
   };
 
+  /**
+   * Lưu MỘT giáo án do hàng đợi PPCT vừa soạn xong. Ghi ngay chứ không gom cuối lô: chạy cả
+   * học kỳ mất vài giờ, sập tab ở tiết thứ 90 mà gom cuối lô thì mất sạch 89 tiết trước đó.
+   */
+  const saveOnePlan = async (plan: LessonPlan): Promise<string> => {
+    if (!user) throw new Error('Chưa đăng nhập, không lưu được giáo án.');
+    const toSave: LessonPlan = {
+      ...plan,
+      userId: user.uid,
+      authorName: data.authorName,
+      isPublic: false,
+    };
+    validateLessonPlan(toSave);
+    await setDoc(doc(db, 'lessonPlans', toSave.id), toSave);
+    setData(prev => ({ ...prev, lessonPlans: [toSave, ...prev.lessonPlans] }));
+    return toSave.id;
+  };
+
   const saveBulkPlans = async () => {
     if (creator.bulkResults.length === 0 || !user) return;
     setIsLoading(true);
     try {
+      // `builtinFormat`/`toanKeHoach` phải theo sang, nếu không giáo án soạn hàng loạt lưu xong
+      // sẽ không xuất được theo form trường (đường xuất Word route theo hai trường này).
+      // Firestore không nhận undefined nên phải spread có điều kiện.
       const plansToSave = creator.bulkResults.map(p => ({
-        ...p, status: 'completed' as 'draft' | 'completed', userId: user.uid, authorName: data.authorName, isPublic: false
+        ...p,
+        status: 'completed' as 'draft' | 'completed',
+        userId: user.uid,
+        authorName: data.authorName,
+        isPublic: false,
+        ...(creator.currentPlan.builtinFormat ? { builtinFormat: creator.currentPlan.builtinFormat } : {}),
+        ...(creator.currentPlan.toanKeHoach ? { toanKeHoach: creator.currentPlan.toanKeHoach } : {}),
       }));
       for (const plan of plansToSave) {
         validateLessonPlan(plan);
@@ -216,5 +243,5 @@ export const useLessonPlanActions = ({
     }
   };
 
-  return { saveLessonPlan, saveBulkPlans, duplicatePlan, deletePlan, updatePlanMetadata, toggleSharePlan };
+  return { saveLessonPlan, saveOnePlan, saveBulkPlans, duplicatePlan, deletePlan, updatePlanMetadata, toggleSharePlan };
 };

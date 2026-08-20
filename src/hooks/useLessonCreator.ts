@@ -103,8 +103,8 @@ export const useLessonCreator = (
       builtinFormat: format,
       toanKeHoach: format === 'toan' ? toanKeHoach : undefined,
     }));
-    // 'toan' Pha 1 chỉ hỗ trợ soạn đơn lẻ (đường bulk là prompt riêng, chưa nối format này).
-    if (format === 'toan') setGenerationMode('single');
+    // Trước đây 'toan' bị ép về soạn đơn vì đường bulk cũ dùng prompt riêng, không có format
+    // này. Hàng đợi PPCT gọi lại ĐÚNG đường soạn đơn nên không cần chặn nữa.
   };
 
   const setToanKeHoach = (keHoach: ToanKeHoach) => {
@@ -119,33 +119,52 @@ export const useLessonCreator = (
     showToast('Đang hủy soạn hàng loạt. Các yêu cầu AI đang chạy sẽ tự bỏ qua kết quả khi hoàn tất.', 'warning');
   };
 
-  const handleCreateLesson = async () => {
+  /**
+   * Một tiết cần soạn do hàng đợi PPCT đưa vào. Truyền `job` thì `handleCreateLesson` chạy ĐÚNG
+   * đường soạn đơn (pipeline nhiều agent + cổng chất lượng Toán) nhưng lấy tiêu đề/yêu cầu từ
+   * job thay vì từ form, không ghi vào `currentPlan`, và TRẢ VỀ nội dung.
+   *
+   * Cố ý không tách các chuỗi prompt ra module riêng: chúng dài hơn 500 dòng và là thứ đã kiểm
+   * chứng trên thật. Dời đi là rước rủi ro mà không được thêm gì — hàng đợi chỉ cần thay đầu vào.
+   */
+  type LessonJobInput = {
+    title: string;
+    requirement: string;
+    keHoach: ToanKeHoach;
+    grade?: string;
+    week?: string;
+  };
+
+  const handleCreateLesson = async (job?: LessonJobInput): Promise<string | null> => {
     if (!getActiveApiKey(data.settings)) {
       setIsSettingsOpen(true);
       showToast('Vui lòng nhập API Key trong Cài đặt!', 'warning');
-      return;
+      return null;
     }
 
-    if (generationMode === 'single' && !currentPlan.title) {
+    if (!job && generationMode === 'single' && !currentPlan.title) {
       showToast('Vui lòng nhập tiêu đề giáo án!', 'warning');
-      return;
+      return null;
     }
 
-    if (generationMode === 'bulk' && (!distributionFile && !selectedDistributionId) && !bulkCommand) {
+    if (!job && generationMode === 'bulk' && (!distributionFile && !selectedDistributionId) && !bulkCommand) {
       showToast('Vui lòng chọn hoặc tải lên phân phối chương trình!', 'warning');
-      return;
+      return null;
     }
 
-    setIsLoading(true);
-    setBulkResults([]);
-    cancelBulkRef.current = false;
+    // Hàng đợi tự quản cờ chạy và cờ huỷ của nó — không đụng trạng thái của form soạn đơn.
+    if (!job) {
+      setIsLoading(true);
+      setBulkResults([]);
+      cancelBulkRef.current = false;
 
-    // Mirror lại định dạng vào currentPlan (reset plan từ sidebar có thể đã xoá) — đảm bảo lưu/xuất route đúng.
-    setCurrentPlan(prev => ({
-      ...prev,
-      builtinFormat,
-      toanKeHoach: builtinFormat === 'toan' ? toanKeHoach : undefined,
-    }));
+      // Mirror lại định dạng vào currentPlan (reset plan từ sidebar có thể đã xoá) — đảm bảo lưu/xuất route đúng.
+      setCurrentPlan(prev => ({
+        ...prev,
+        builtinFormat,
+        toanKeHoach: builtinFormat === 'toan' ? toanKeHoach : undefined,
+      }));
+    }
 
     try {
       const subject = data.subjects.find(s => s.id === currentPlan.subjectId)?.name || 'Chung';
@@ -725,20 +744,20 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
 ===========================================================
       ` : '';
 
-      if (generationMode === 'single') {
+      if (job || generationMode === 'single') {
         const rawDocsContent = lessonDocs.map(f => f.content).join('\n---\n');
         const { truncatedText: lessonDocsContent, isTruncated: docsTruncated } = truncateToContextBudget(rawDocsContent);
-        
-        if (docsTruncated) {
+
+        if (docsTruncated && !job) {
           showToast(`Tài liệu tham khảo quá dài, AI chỉ sử dụng một phần để đảm bảo không lỗi hệ thống.`, 'warning');
         }
 
         const agentContext = {
-          title: currentPlan.title || '',
+          title: job?.title ?? currentPlan.title ?? '',
           subject: subject,
-          grade: currentPlan.grade || '',
-          week: currentPlan.week || '',
-          requirement: singleRequirement,
+          grade: job?.grade ?? currentPlan.grade ?? '',
+          week: job?.week ?? currentPlan.week ?? '',
+          requirement: job?.requirement ?? singleRequirement,
           templateFormat: isAdaptiveReadyDefault ? 'Adaptive' : (builtinFormat === 'cv5512' ? 'CV5512' : builtinFormat === 'toan' ? 'Toan' : 'Claude'),
           templateContext: templateContext + '\n' + skeletonPromptSection,
           additionalRequirements: builtinFormat === 'toan' ? TOAN_ADDITIONAL_REQUIREMENTS : isAdaptiveReadyDefault ? `
@@ -804,20 +823,23 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
           referenceContext: `${activeDist ? `PHÂN PHỐI CHƯƠNG TRÌNH:\n${activeDist.content}` : ''}\n${lessonDocsContent ? `TÀI LIỆU THAM KHẢO:\n${lessonDocsContent}` : ''}`,
           settings: data.settings,
           onStreamChunk: (chunk: string) => {
-            setCurrentPlan(prev => ({ ...prev, content: cleanMarkdownOutput(chunk) }));
+            // Hàng đợi soạn nhiều tiết: KHÔNG đổ vào currentPlan, tránh ghi đè bài giáo viên đang mở.
+            if (!job) setCurrentPlan(prev => ({ ...prev, content: cleanMarkdownOutput(chunk) }));
           },
           onStatusChange: (status: string) => {
-            showToast(status, 'info');
+            if (!job) showToast(status, 'info');
           }
         };
 
         try {
           const finalContent = await import('../lib/agents').then(m => m.runMultiAgentPipeline(agentContext));
+          // Bản sẽ trả về cho hàng đợi — cổng chất lượng bên dưới có thể thay bằng bản đã sửa.
+          let ketQua = finalContent;
           const skeletonValidation = validateMarkdownAgainstSkeleton(finalContent, activeSkeleton);
           if (activeSkeleton && skeletonValidation.issues.length > 0) {
             console.warn('Phase 2A Markdown Skeleton validation warnings:', skeletonValidation);
-            showToast(`Đã tạo giáo án, nhưng cần rà soát skeleton mẫu (${Math.round(skeletonValidation.score * 100)}%): ${skeletonValidation.issues[0].message}`, 'warning');
-          } else {
+            if (!job) showToast(`Đã tạo giáo án, nhưng cần rà soát skeleton mẫu (${Math.round(skeletonValidation.score * 100)}%): ${skeletonValidation.issues[0].message}`, 'warning');
+          } else if (!job) {
             showToast('Đã khởi tạo giáo án cấp độ Senior!');
           }
 
@@ -827,23 +849,29 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
           if (builtinFormat === 'toan') {
             try {
               const { validateToanLesson, buildToanRepairBrief } = await import('../lib/toanLessonQuality');
-              const { passed, failures } = validateToanLesson(finalContent, toanKeHoach);
+              const { passed, failures } = validateToanLesson(finalContent, job?.keHoach ?? toanKeHoach);
               if (!passed) {
-                showToast(`Đang tự rà soát & bổ sung ${failures.length} tiêu chí chuẩn Toán còn thiếu...`, 'info');
+                if (!job) showToast(`Đang tự rà soát & bổ sung ${failures.length} tiêu chí chuẩn Toán còn thiếu...`, 'info');
                 const repaired = await callAI(buildToanRepairBrief(finalContent, failures), data.settings);
                 const cleaned = cleanMarkdownOutput(extractLessonContent(repaired || ''));
                 // Chỉ nhận bản sửa nếu không bị cụt (giữ ≥60% độ dài bản gốc).
                 if (cleaned && cleaned.length >= finalContent.length * 0.6) {
-                  setCurrentPlan(prev => ({ ...prev, content: cleaned }));
-                  showToast('Đã bổ sung các tiêu chí chuẩn Toán còn thiếu.', 'success');
+                  ketQua = cleaned;
+                  if (!job) {
+                    setCurrentPlan(prev => ({ ...prev, content: cleaned }));
+                    showToast('Đã bổ sung các tiêu chí chuẩn Toán còn thiếu.', 'success');
+                  }
                 }
               }
             } catch (qErr) {
               console.warn('Bỏ qua cổng chất lượng Toán:', qErr);
             }
           }
+          if (job) return ketQua;
         } catch (e: any) {
           console.error(e);
+          // Hàng đợi tự ghi nhận tiết lỗi rồi chạy tiếp — ném lên để bên gọi biết.
+          if (job) throw e;
           // Đừng để editor kẹt ở dòng chờ "(Hệ thống đang chuẩn hóa...)" khi pipeline lỗi.
           setCurrentPlan(prev => (
             prev.content?.includes('Hệ thống đang chuẩn hóa') ? { ...prev, content: '' } : prev
@@ -1028,12 +1056,16 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
         }
       }
     } catch (error: any) {
+      if (job) throw error;
       showToast(error.message || 'Lỗi soạn thảo', 'error');
     } finally {
-      setIsLoading(false);
-      setBulkProgress({ current: 0, total: 0, currentTitle: '' });
-      cancelBulkRef.current = false;
+      if (!job) {
+        setIsLoading(false);
+        setBulkProgress({ current: 0, total: 0, currentTitle: '' });
+        cancelBulkRef.current = false;
+      }
     }
+    return null;
   };
 
   const handleReviseLesson = async () => {
