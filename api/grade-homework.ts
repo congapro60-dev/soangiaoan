@@ -14,7 +14,12 @@ import {
   type InlineImage,
   type QuotaDoc,
 } from './_grading-core.js';
-import { buildHomeworkGradingPrompt, parseHomeworkGrade } from '../src/lib/classroom/gradingPrompt.js';
+import {
+  buildHomeworkGradingPrompt,
+  buildPracticePrompt,
+  parseHomeworkGrade,
+  parsePracticeQuestions,
+} from '../src/lib/classroom/gradingPrompt.js';
 
 /**
  * Chấm bài tập bằng khoá AI của chủ dự án.
@@ -215,6 +220,43 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
   return res.status(200).json({ graded: ok ? 1 : 0, failed: ok ? 0 : 1, remaining: 0 });
 };
 
+/**
+ * Bài luyện thêm từ chủ đề còn yếu trong hồ sơ. Tính vào cùng hạn mức đường học sinh —
+ * đây cũng là một lượt gọi AI trả bằng tiền của chủ dự án.
+ */
+const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Phiên đăng nhập không hợp lệ.' });
+
+  const linkSnap = await db.collection('studentLinks').doc(uid).get();
+  if (!linkSnap.exists) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới lấy được bài luyện.' });
+  const link = linkSnap.data() as { studentId: string; classId: string; teacherId: string };
+
+  const profileSnap = await db.collection('studentProfiles').doc(link.studentId).get();
+  const topics = ((profileSnap.data()?.topics || []) as Array<{ topic: string; level: string }>)
+    .filter(t => t.level === 'weak' || t.level === 'developing')
+    .map(t => t.topic)
+    .slice(0, 3);
+
+  if (topics.length === 0) {
+    return res.status(200).json({ questions: [], reason: 'Hồ sơ chưa ghi nhận chủ đề nào cần luyện thêm.' });
+  }
+
+  const [quota, quotaRef] = await loadQuota(db, link.teacherId);
+  const verdict = remainingQuota(quota, 'self', link.studentId);
+  if (verdict.allowed <= 0) return res.status(429).json({ error: verdict.reason });
+
+  const classSnap = await db.collection('classes').doc(link.classId).get();
+  const raw = await callGeminiVision(
+    buildPracticePrompt(topics, String(classSnap.data()?.grade || '')),
+    [],
+    getGradingApiKey(),
+  );
+  await quotaRef.set(bumpQuota(quota, 'self', link.studentId, 1));
+
+  return res.status(200).json({ questions: parsePracticeQuestions(raw), topics });
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -228,6 +270,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const db = getAdminDb();
     if (action === 'gradeAssignment') return await handleGradeAssignment(db, body, res);
     if (action === 'gradeOne') return await handleGradeOne(db, body, res);
+    if (action === 'practice') return await handlePractice(db, body, res);
     return res.status(400).json({ error: `Hành động không hợp lệ: ${action}`, limits: QUOTA_LIMITS });
   } catch (error) {
     console.error('[grade-homework] lỗi', error);

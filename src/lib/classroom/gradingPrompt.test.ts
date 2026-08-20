@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildHomeworkGradingPrompt, parseHomeworkGrade } from './gradingPrompt';
+import { buildHomeworkGradingPrompt, buildPracticePrompt, parseHomeworkGrade, parsePracticeQuestions } from './gradingPrompt';
 
 describe('buildHomeworkGradingPrompt', () => {
   it('có đáp án thì bảo AI dùng làm mốc, không tự nghĩ đáp án khác', () => {
@@ -92,5 +92,35 @@ describe('parseHomeworkGrade', () => {
   it('ghi nhận cờ chấm khi không có đáp án chuẩn', () => {
     const g = parseHomeworkGrade(JSON.stringify(mau), 10, true);
     expect(g.gradedWithoutAnswerKey).toBe(true);
+  });
+});
+
+describe('bài bổ trợ', () => {
+  it('prompt bám đúng chủ đề yếu và cấm lan sang chủ đề khác', () => {
+    const p = buildPracticePrompt(['phương trình đường thẳng', 'dấu toạ độ'], '10', 3);
+
+    expect(p).toContain('phương trình đường thẳng');
+    expect(p).toContain('dấu toạ độ');
+    expect(p).toContain('không lan sang chủ đề khác');
+    expect(p).toContain('ĐÚNG 3 bài');
+  });
+
+  it('prompt KHÔNG nhắc lại việc em từng làm sai', () => {
+    expect(buildPracticePrompt(['đạo hàm'], '11')).toContain('không nhắc tới việc em từng làm sai');
+  });
+
+  it('đọc được danh sách bài và bỏ bài rỗng', () => {
+    const raw = JSON.stringify({ questions: [
+      { question: 'Viết PTTQ qua A(1;2)', hint: 'dùng VTPT', solution: 'x + 2y - 5 = 0' },
+      { question: '', hint: 'x', solution: 'y' },
+    ] });
+
+    const ket = parsePracticeQuestions(raw);
+    expect(ket).toHaveLength(1);
+    expect(ket[0].hint).toBe('dùng VTPT');
+  });
+
+  it('không có JSON thì ném lỗi', () => {
+    expect(() => parsePracticeQuestions('xin lỗi')).toThrow(/JSON/);
   });
 });

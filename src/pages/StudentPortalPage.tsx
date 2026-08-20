@@ -17,7 +17,7 @@ import {
 } from '../lib/classroom/types';
 import { fetchRoster, loginStudent, type RosterEntry } from '../services/studentPortalApi';
 import { submitHomework } from '../lib/classroom/submissionService';
-import { gradeOneSubmission } from '../services/gradingApi';
+import { fetchPractice, gradeOneSubmission, type PracticeQuestion } from '../services/gradingApi';
 
 const MAX_ANH = 4;
 
@@ -64,6 +64,8 @@ export const StudentPortalPage = () => {
   const [submissions, setSubmissions] = useState<SubmissionDoc[]>([]);
   const [profile, setProfile] = useState<StudentProfileDoc | null>(null);
   const [dangNop, setDangNop] = useState<string>('');
+  const [luyenTap, setLuyenTap] = useState<PracticeQuestion[]>([]);
+  const [dangLuyen, setDangLuyen] = useState(false);
   const uploadRef = useRef<HTMLInputElement>(null);
   const targetRef = useRef<string | null>(null);
 
@@ -141,6 +143,20 @@ export const StudentPortalPage = () => {
     setRoster([]);
     setChosenId('');
     setStage('nhap-ma-lop');
+  };
+
+  const layBaiLuyen = async () => {
+    setLoi('');
+    setDangLuyen(true);
+    try {
+      const ket = await fetchPractice();
+      setLuyenTap(ket.questions);
+      if (ket.questions.length === 0) setLoi(ket.reason || 'Chưa có chủ đề nào để luyện thêm.');
+    } catch (error) {
+      setLoi(error instanceof Error ? error.message : 'Không lấy được bài luyện.');
+    } finally {
+      setDangLuyen(false);
+    }
   };
 
   const chonAnh = (assignmentId: string | null) => {
@@ -401,6 +417,41 @@ export const StudentPortalPage = () => {
               </div>
             </div>
           )}
+        </section>
+
+        <section>
+          <h2 className="mb-2 text-xs font-black uppercase tracking-wide text-slate-400">Luyện thêm theo chủ đề</h2>
+          <div className="rounded-3xl bg-white p-5 shadow-sm">
+            {luyenTap.length === 0 ? (
+              <>
+                <p className="text-sm font-semibold text-slate-500">
+                  Máy sẽ ra bài luyện bám đúng chủ đề em còn vướng, dựa trên các bài đã chấm.
+                </p>
+                <button
+                  onClick={layBaiLuyen}
+                  disabled={dangLuyen}
+                  className="mt-3 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white transition hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {dangLuyen ? 'Đang soạn bài...' : 'Lấy bài luyện'}
+                </button>
+              </>
+            ) : (
+              <ol className="space-y-4">
+                {luyenTap.map((q, i) => (
+                  <li key={`${i}-${q.question.slice(0, 20)}`}>
+                    <p className="font-bold text-slate-900">Bài {i + 1}. {q.question}</p>
+                    {q.hint && <p className="mt-1 text-sm font-semibold text-slate-500">Gợi ý: {q.hint}</p>}
+                    {q.solution && (
+                      <details className="mt-1">
+                        <summary className="cursor-pointer text-sm font-bold text-blue-600">Xem lời giải</summary>
+                        <p className="mt-1 whitespace-pre-line text-sm font-semibold leading-6 text-slate-600">{q.solution}</p>
+                      </details>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
         </section>
 
         <section className="rounded-3xl border border-dashed border-slate-300 bg-white px-5 py-6 text-center">

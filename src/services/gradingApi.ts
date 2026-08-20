@@ -52,3 +52,24 @@ export const gradeAssignmentAll = async (
 /** Chấm một bài — dùng cho luồng học sinh tự nộp. */
 export const gradeOneSubmission = (submissionId: string): Promise<GradeBatchResult> =>
   call({ action: 'gradeOne', submissionId });
+
+export interface PracticeQuestion {
+  question: string;
+  hint: string;
+  solution: string;
+}
+
+/** Bài luyện thêm sinh từ chủ đề còn yếu trong hồ sơ của chính học sinh đang đăng nhập. */
+export const fetchPractice = async (): Promise<{ questions: PracticeQuestion[]; reason?: string }> => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Phiên đăng nhập đã hết hạn.');
+
+  const res = await fetch('/api/grade-homework', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'practice', idToken: await user.getIdToken() }),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
+  return data as { questions: PracticeQuestion[]; reason?: string };
+};

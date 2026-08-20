@@ -7,6 +7,8 @@ import { useExams, getSubmissions } from '../../hooks/useExams';
 import { parseRosterRows } from '../../utils/classRosterImport';
 import { countUnmigratedClasses, getClassDoc, migrateLegacyClasses } from '../../lib/classroom/classroomService';
 import { issueClassPins } from '../../services/studentPortalApi';
+import { AssignmentPanel } from '../features/classroom/AssignmentPanel';
+import { StudentReport } from '../features/classroom/StudentReport';
 
 interface ClassesTabProps {
   data: AppData;
@@ -698,36 +700,21 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
                   <button onClick={() => setViewingStudent(null)} aria-label="Đóng" className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100"><X className="h-5 w-5" /></button>
                 </div>
 
-                <p className="mt-4 rounded-2xl bg-blue-50 px-4 py-3 text-xs font-bold text-blue-900">
-                  Đây là trang mà học sinh sẽ thấy khi đăng nhập. Các mục còn trống vì chưa bật phần giao bài và nộp bài.
-                </p>
-
-                <div className="mt-4 grid grid-cols-3 gap-3">
-                  {[
-                    { label: 'Bài chưa nộp', value: '—' },
-                    { label: 'Điểm trung bình', value: '—' },
-                    { label: 'Tiến độ', value: `${viewingStudent.progress}%` },
-                  ].map(item => (
-                    <div key={item.label} className="rounded-2xl bg-slate-50 p-4">
-                      <p className="text-xs font-bold text-slate-500">{item.label}</p>
-                      <p className="mt-1 text-2xl font-black text-slate-900">{item.value}</p>
-                    </div>
-                  ))}
+                <div className="mt-4">
+                  <StudentReport
+                    studentId={viewingStudent.id}
+                    studentName={viewingStudent.name}
+                    studentCode={viewingStudent.code}
+                    className={selectedClass.name}
+                  />
                 </div>
-
-                {[
-                  { title: 'Bài được giao', empty: 'Chưa có bài nào được giao cho lớp này.' },
-                  { title: 'Bài đã chấm', empty: 'Chưa có bài nộp nào được chấm.' },
-                  { title: 'Hồ sơ của em', empty: 'Hồ sơ điểm mạnh, điểm yếu sẽ hiện ở đây sau vài bài đã chấm.' },
-                ].map(section => (
-                  <div key={section.title} className="mt-4">
-                    <p className="text-xs font-black uppercase tracking-wide text-slate-400">{section.title}</p>
-                    <div className="mt-2 rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm font-semibold text-slate-400">
-                      {section.empty}
-                    </div>
-                  </div>
-                ))}
               </div>
+            </div>
+          )}
+
+          {user?.uid && (
+            <div className="mt-5">
+              <AssignmentPanel classId={selectedClass.id} teacherId={user.uid} className={selectedClass.name} showToast={showToast} />
             </div>
           )}
 

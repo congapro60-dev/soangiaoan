@@ -103,3 +103,44 @@ export const parseHomeworkGrade = (
     gradedWithoutAnswerKey,
   };
 };
+
+// ── Bài bổ trợ theo chủ đề còn yếu ───────────────────────────────────────────
+
+export interface PracticeQuestion {
+  question: string;
+  hint: string;
+  solution: string;
+}
+
+export const buildPracticePrompt = (topics: string[], grade: string, count = 3): string =>
+  `Bạn là giáo viên ra bài luyện thêm cho một học sinh lớp ${grade || 'phổ thông'} ở Việt Nam.
+
+CHỦ ĐỀ EM CÒN YẾU (chỉ ra bài trong phạm vi này, không lan sang chủ đề khác):
+${topics.map(t => `- ${t}`).join('\n')}
+
+Ra ĐÚNG ${count} bài, xếp từ dễ đến khó. Bài đầu phải làm được ngay sau khi đọc gợi ý.
+Lời giải viết từng bước, nói rõ chỗ học sinh hay nhầm ở chủ đề này.
+Không dùng lời khen sáo rỗng, không nhắc tới việc em từng làm sai.
+
+CHỈ TRẢ VỀ JSON THUẦN:
+{"questions":[{"question":"...","hint":"...","solution":"..."}]}`;
+
+export const parsePracticeQuestions = (raw: string): PracticeQuestion[] => {
+  const text = String(raw || '');
+  const inCodeBlock = text.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
+  const jsonStr = inCodeBlock ? inCodeBlock[1] : text.match(/\{[\s\S]*\}/)?.[0];
+  if (!jsonStr) throw new Error('AI không trả về JSON hợp lệ');
+
+  const parsed = parseLooseJson<{ questions?: unknown }>(jsonStr);
+  const list = Array.isArray(parsed.questions) ? parsed.questions : [];
+  return list
+    .map(item => {
+      const q = item as Record<string, unknown>;
+      return {
+        question: String(q.question || '').trim(),
+        hint: String(q.hint || '').trim(),
+        solution: String(q.solution || '').trim(),
+      };
+    })
+    .filter(q => q.question);
+};
