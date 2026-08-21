@@ -36,13 +36,18 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
   const [tienDo, setTienDo] = useState('');
   const [moForm, setMoForm] = useState(false);
   const [dangGui, setDangGui] = useState(false);
+  const [loiTai, setLoiTai] = useState('');
 
   const taiBai = useCallback(async () => {
     setDangTai(true);
+    setLoiTai('');
     try {
       setAssignments(await listAssignmentsForClass(classId));
     } catch (error) {
+      // Nuốt lỗi vào console là kiểu hỏng khó lần nhất: giáo viên giao bài xong, mở ra thấy
+      // bảng trống, tưởng bài không được lưu. Phải hiện ra màn hình.
       console.error('Không tải được danh sách bài giao', error);
+      setLoiTai(error instanceof Error ? error.message : 'Không tải được danh sách bài giao.');
     } finally {
       setDangTai(false);
     }
@@ -53,7 +58,13 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
   const moBai = async (assignmentId: string) => {
     if (openId === assignmentId) { setOpenId(''); return; }
     setOpenId(assignmentId);
-    setSubmissions(await listSubmissionsForAssignment(assignmentId).catch(() => []));
+    setLoiTai('');
+    try {
+      setSubmissions(await listSubmissionsForAssignment(assignmentId));
+    } catch (error) {
+      setSubmissions([]);
+      setLoiTai(error instanceof Error ? error.message : 'Không tải được danh sách bài nộp.');
+    }
   };
 
   const guiBaiMoi = async (value: AssignmentFormValue) => {
@@ -152,6 +163,10 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
           <Plus className="h-4 w-4" /> Giao bài mới
         </button>
       </div>
+
+      {loiTai && (
+        <p className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-800">{loiTai}</p>
+      )}
 
       {dangTai ? (
         <p className="py-8 text-center text-sm font-semibold text-slate-400">Đang tải...</p>

@@ -19,9 +19,11 @@ import {
 import {
   buildHomeworkGradingPrompt,
   buildPracticePrompt,
+  buildRubricPrompt,
   buildSolveExamPrompt,
   parseHomeworkGrade,
   parsePracticeQuestions,
+  parseRubric,
   parseSolvedAnswerKey,
 } from '../src/lib/classroom/gradingPrompt.js';
 
@@ -326,6 +328,38 @@ const handleSolveAnswerKey = async (db: FirebaseFirestore.Firestore, body: Recor
   return res.status(200).json(parseSolvedAnswerKey(raw));
 };
 
+/** AI đề xuất hướng dẫn chấm từ đáp án đã có. Chỉ là văn bản nên nhẹ hơn hẳn việc giải đề. */
+const handleSuggestRubric = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Cần đăng nhập tài khoản giáo viên.' });
+
+  const classId = typeof body.classId === 'string' ? body.classId : '';
+  const classSnap = await db.collection('classes').doc(classId).get();
+  if (!classSnap.exists || classSnap.data()?.teacherId !== uid) {
+    return res.status(403).json({ error: 'Chỉ giáo viên chủ lớp mới dùng được chức năng này.' });
+  }
+
+  const answerKey = String(body.answerKey || '').trim();
+  if (!answerKey) {
+    return res.status(400).json({ error: 'Cần có đáp án trước đã. Hướng dẫn chấm là cách chia điểm CHO đáp án đó.' });
+  }
+
+  const [quota, quotaRef] = await loadQuota(db, uid);
+  const verdict = remainingQuota(quota, 'teacher', '');
+  if (verdict.allowed <= 0) return res.status(429).json({ error: verdict.reason });
+
+  const raw = await callGeminiVision(
+    buildRubricPrompt(answerKey, Number(body.maxScore) || 10),
+    [],
+    getGradingApiKey(),
+    GRADING_MODEL,
+    { maxOutputTokens: 8192, jsonMode: true },
+  );
+  await quotaRef.set(bumpQuota(quota, 'teacher', '', 1));
+
+  return res.status(200).json({ rubric: parseRubric(raw) });
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -341,6 +375,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (action === 'gradeOne') return await handleGradeOne(db, body, res);
     if (action === 'practice') return await handlePractice(db, body, res);
     if (action === 'solveAnswerKey') return await handleSolveAnswerKey(db, body, res);
+    if (action === 'suggestRubric') return await handleSuggestRubric(db, body, res);
     return res.status(400).json({ error: `Hành động không hợp lệ: ${action}`, limits: QUOTA_LIMITS });
   } catch (error) {
     console.error('[grade-homework] lỗi', error);

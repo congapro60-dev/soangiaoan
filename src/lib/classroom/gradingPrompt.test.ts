@@ -2,9 +2,11 @@ import { describe, it, expect } from 'vitest';
 import {
   buildHomeworkGradingPrompt,
   buildPracticePrompt,
+  buildRubricPrompt,
   buildSolveExamPrompt,
   parseHomeworkGrade,
   parsePracticeQuestions,
+  parseRubric,
   parseSolvedAnswerKey,
 } from './gradingPrompt';
 
@@ -190,5 +192,35 @@ describe('AI tự giải đề', () => {
 
   it('không đọc được nội dung thì ném lỗi', () => {
     expect(() => parseSolvedAnswerKey('xin lỗi tôi không giải được')).toThrow(/không đọc được/);
+  });
+});
+
+describe('AI đề xuất hướng dẫn chấm', () => {
+  it('bám vào đáp án và chia đúng tổng điểm', () => {
+    const p = buildRubricPrompt('Câu 1: x = 2\nCâu 2: y = 5', 20);
+
+    expect(p).toContain('Câu 1: x = 2');
+    expect(p).toContain('Chia 20 điểm');
+    expect(p).toContain('Tổng đúng bằng 20');
+  });
+
+  it('bắt nêu mốc điểm thành phần và chỗ vẫn cho điểm dù kết quả sai', () => {
+    const p = buildRubricPrompt('x', 10);
+
+    expect(p).toContain('điểm thành phần');
+    expect(p).toContain('phương pháp đúng');
+  });
+
+  it('đọc được hướng dẫn chấm', () => {
+    expect(parseRubric(JSON.stringify({ rubric: 'Câu 1 (2đ): đúng dạng 1đ, đúng số 1đ' })))
+      .toBe('Câu 1 (2đ): đúng dạng 1đ, đúng số 1đ');
+  });
+
+  it('rỗng thì NÉM lỗi chứ không trả chuỗi trống', () => {
+    expect(() => parseRubric(JSON.stringify({ rubric: '  ' }))).toThrow(/viết tay/);
+  });
+
+  it('không đọc được nội dung thì ném lỗi', () => {
+    expect(() => parseRubric('xin loi')).toThrow(/không đọc được/);
   });
 });

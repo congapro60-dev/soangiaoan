@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, orderBy, query, setDoc, updateDoc, where } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
 import { auth, db, removeUndefinedFields, storage } from '../firebase';
 import { mergeTopics, removeEvidence } from './profileMerge';
@@ -92,13 +92,19 @@ export const createAssignment = async (input: NewAssignment): Promise<Assignment
   return assignment;
 };
 
+/**
+ * CỐ Ý không dùng `orderBy` ở đây mà sắp xếp trong máy.
+ *
+ * `where + orderBy` bắt Firestore phải có index tổ hợp đúng cặp trường; thiếu là cả truy vấn hỏng
+ * và giáo viên chỉ thấy bảng trống. Một lớp có vài chục bài giao, sắp xếp trong máy không đáng kể
+ * — đổi lại bớt được một thứ phải deploy và phải nhớ giữ đồng bộ.
+ */
+const moiNhatTruoc = <T extends { createdAt?: string }>(ds: T[]): T[] =>
+  [...ds].sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+
 export const listAssignmentsForClass = async (classId: string): Promise<AssignmentDoc[]> => {
-  const snap = await getDocs(query(
-    collection(db, ASSIGNMENTS_COL),
-    where('classId', '==', classId),
-    orderBy('createdAt', 'desc'),
-  ));
-  return snap.docs.map(d => d.data() as AssignmentDoc);
+  const snap = await getDocs(query(collection(db, ASSIGNMENTS_COL), where('classId', '==', classId)));
+  return moiNhatTruoc(snap.docs.map(d => d.data() as AssignmentDoc));
 };
 
 export const setAssignmentOpen = async (assignmentId: string, isOpen: boolean): Promise<void> => {
@@ -106,12 +112,8 @@ export const setAssignmentOpen = async (assignmentId: string, isOpen: boolean): 
 };
 
 export const listSubmissionsForAssignment = async (assignmentId: string): Promise<SubmissionDoc[]> => {
-  const snap = await getDocs(query(
-    collection(db, SUBMISSIONS_COL),
-    where('assignmentId', '==', assignmentId),
-    orderBy('createdAt', 'desc'),
-  ));
-  return snap.docs.map(d => d.data() as SubmissionDoc);
+  const snap = await getDocs(query(collection(db, SUBMISSIONS_COL), where('assignmentId', '==', assignmentId)));
+  return moiNhatTruoc(snap.docs.map(d => d.data() as SubmissionDoc));
 };
 
 /**

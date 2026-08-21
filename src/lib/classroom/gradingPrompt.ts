@@ -210,3 +210,38 @@ export const parseSolvedAnswerKey = (raw: string): SolvedAnswerKey => {
 
   return { answerKey, uncertainties: toStringArray(parsed.uncertainties) };
 };
+
+// ── AI đề xuất hướng dẫn chấm từ đáp án ──────────────────────────────────────
+
+/**
+ * Hướng dẫn chấm KHÁC đáp án: đáp án nói kết quả đúng là gì, hướng dẫn chấm nói cho bao nhiêu
+ * điểm khi học sinh làm ĐÚNG MỘT PHẦN. Không có nó thì AI vẫn chấm được, nhưng cách chia điểm
+ * thành phần là do nó tự quyết — mỗi em một kiểu, và không khớp cách thầy cô vẫn chấm.
+ */
+export const buildRubricPrompt = (answerKey: string, maxScore: number): string =>
+  `Bạn là giáo viên đang viết HƯỚNG DẪN CHẤM cho bài tập dưới đây.
+
+ĐÁP ÁN CHUẨN:
+${answerKey.trim()}
+
+Viết hướng dẫn chấm để người khác chấm cũng ra cùng kết quả:
+- Chia ${maxScore} điểm cho từng câu, ghi rõ số điểm mỗi câu. Tổng đúng bằng ${maxScore}.
+- Trong mỗi câu, nêu các mốc cho điểm thành phần: làm được bước nào thì được bao nhiêu.
+- Nêu lỗi thường gặp ở dạng bài này và mức trừ tương ứng.
+- Nói rõ chỗ nào vẫn cho điểm dù kết quả cuối sai (ví dụ sai số học nhưng phương pháp đúng).
+
+Viết ngắn gọn, đúng việc, không giảng giải lý thuyết. Tiếng Việt.
+
+CHỈ TRẢ VỀ JSON THUẦN:
+{"rubric":"toàn bộ hướng dẫn chấm, xuống dòng bằng \n"}`;
+
+export const parseRubric = (raw: string): string => {
+  const text = String(raw || '');
+  const inCodeBlock = text.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
+  const jsonStr = inCodeBlock ? inCodeBlock[1] : text.match(/\{[\s\S]*\}/)?.[0];
+  if (!jsonStr) throw new Error('AI trả về nội dung không đọc được. Thử lại một lần nữa.');
+
+  const rubric = String(parseLooseJson<Record<string, unknown>>(jsonStr).rubric || '').trim();
+  if (!rubric) throw new Error('AI không soạn được hướng dẫn chấm. Thầy cô viết tay giúp.');
+  return rubric;
+};

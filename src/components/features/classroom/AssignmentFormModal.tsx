@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { AlertTriangle, FileText, Loader2, Sparkles, Upload, X } from 'lucide-react';
 import { readSourceFile } from '../../../lib/classroom/readSourceFile';
-import { solveAnswerKey } from '../../../services/gradingApi';
+import { solveAnswerKey, suggestRubric } from '../../../services/gradingApi';
 
 export interface AssignmentFormValue {
   title: string;
@@ -40,6 +40,7 @@ export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSu
   const [dangGiai, setDangGiai] = useState(false);
   const [choChuaChac, setChoChuaChac] = useState<string[]>([]);
   const [dapAnDoAi, setDapAnDoAi] = useState(false);
+  const [dangSoanRubric, setDangSoanRubric] = useState(false);
 
   const deRef = useRef<HTMLInputElement>(null);
   const dapAnRef = useRef<HTMLInputElement>(null);
@@ -92,6 +93,23 @@ export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSu
       setGhiChu(truoc => ({ ...truoc, dapAn: error instanceof Error ? error.message : 'Không giải được đề.' }));
     } finally {
       setDangGiai(false);
+    }
+  };
+
+  /**
+   * Hướng dẫn chấm KHÁC đáp án: đáp án nói kết quả đúng, hướng dẫn chấm nói cho bao nhiêu điểm
+   * khi học sinh làm đúng một phần. Phải có đáp án trước thì mới chia điểm cho nó được.
+   */
+  const nhoAiSoanHuongDan = async () => {
+    setDangSoanRubric(true);
+    try {
+      const ket = await suggestRubric(classId, answerKey, maxScore);
+      setRubric(ket);
+      setGhiChu(truoc => ({ ...truoc, rubric: 'AI soạn từ đáp án ở trên. Soát lại cách chia điểm cho khớp cách thầy cô vẫn chấm.' }));
+    } catch (error) {
+      setGhiChu(truoc => ({ ...truoc, rubric: error instanceof Error ? error.message : 'Không soạn được hướng dẫn chấm.' }));
+    } finally {
+      setDangSoanRubric(false);
     }
   };
 
@@ -200,9 +218,24 @@ export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSu
               <p className="text-sm font-black text-slate-800">3. Hướng dẫn chấm</p>
               <input ref={rubricRef} type="file" accept=".pdf,.doc,.docx,image/*" className="hidden"
                 onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) void docFileVaoO(f, 'rubric'); }} />
-              <NutTaiFile onClick={() => rubricRef.current?.click()} label={dangDoc === 'rubric' ? 'Đang đọc file...' : 'Tải file hướng dẫn'} />
+              <div className="flex flex-wrap gap-2">
+                <NutTaiFile onClick={() => rubricRef.current?.click()} label={dangDoc === 'rubric' ? 'Đang đọc file...' : 'Tải file hướng dẫn'} />
+                <button
+                  type="button"
+                  onClick={nhoAiSoanHuongDan}
+                  disabled={!answerKey.trim() || dangSoanRubric}
+                  title={!answerKey.trim() ? 'Cần có đáp án ở mục 2 trước đã' : 'AI chia điểm thành phần dựa trên đáp án ở mục 2'}
+                  className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-black text-blue-700 transition hover:bg-blue-100 disabled:opacity-40"
+                >
+                  {dangSoanRubric ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                  {dangSoanRubric ? 'AI đang soạn...' : 'Để AI đề xuất'}
+                </button>
+              </div>
             </div>
-            <p className="mb-2 mt-1 text-xs font-semibold text-slate-500">Không bắt buộc. VD: sai dấu trừ 0,25; thiếu kết luận trừ 0,5.</p>
+            <p className="mb-2 mt-1 text-xs font-semibold text-slate-500">
+              Không bắt buộc — thiếu thì AI vẫn chấm, nhưng cách chia điểm thành phần là do nó tự quyết.
+              Có mục này thì mọi em được chia điểm theo cùng một cách. VD: sai dấu trừ 0,25.
+            </p>
             <textarea value={rubric} onChange={e => setRubric(e.target.value)} rows={3} className={`${O} font-normal`} />
             {ghiChu.rubric && <p className="mt-1 text-xs font-bold text-amber-700">{ghiChu.rubric}</p>}
           </div>

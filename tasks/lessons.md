@@ -252,3 +252,11 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - **Bật `responseMimeType: 'application/json'` khi cần JSON** — model bị ràng buộc trả JSON hợp lệ, khỏi bọc ```json và khỏi thêm lời dẫn. Rẻ hơn nhiều so với đi vá regex bóc JSON. *(2026-08-20)*
 
 - **Thông báo lỗi hiện cho người dùng cuối không được viết bằng tiếng lập trình viên** — giáo viên đọc "AI không trả về JSON hợp lệ" rồi hỏi lại "lỗi jason gì này". Chính câu hỏi đó là bằng chứng thông báo viết hỏng. Lỗi kỹ thuật thì log cho lập trình viên, còn màn hình phải nói người dùng làm gì tiếp. *(2026-08-20)*
+
+## Truy vấn Firestore và index tổ hợp (2026-08-20)
+
+- **Index tổ hợp 3 trường KHÔNG phục vụ được truy vấn 2 trường cùng họ** — đã khai `assignments: classId + isOpen + createdAt` cho truy vấn phía học sinh, rồi tưởng truy vấn phía giáo viên `where(classId) + orderBy(createdAt)` dùng ké được. Không: Firestore đòi đúng cặp `classId ASC, createdAt DESC`, thiếu là cả truy vấn hỏng. Người dùng giao bài xong mở ra thấy bảng trống. QUY TẮC: mỗi cặp `where + orderBy` là MỘT index riêng, đếm đủ từng đường gọi chứ đừng suy ra từ index đã có. *(2026-08-20)*
+
+- **Với tập kết quả nhỏ, bỏ `orderBy` rồi sắp xếp trong máy là lựa chọn tốt hơn index** — vài chục bài giao mỗi lớp thì sắp xếp trong JS không đáng kể, đổi lại bớt được một index phải khai, phải deploy, phải nhớ giữ đồng bộ, và phải chờ Firestore dựng xong. Chỉ giữ `orderBy` phía máy chủ khi thật sự cần `limit` trên tập lớn. *(2026-08-20)*
+
+- **`.catch(() => [])` và `.catch(console.error)` trong hàm nạp dữ liệu là bẫy chẩn đoán** — lỗi thiếu index bị nuốt, giao diện hiện "chưa có bài nào" y hệt lúc thật sự chưa có bài. Người dùng tưởng dữ liệu không được lưu, còn mình đi tìm nhầm chỗ. Hàm nạp dữ liệu phải phân biệt được BA trạng thái: đang tải, rỗng thật, và hỏng — trạng thái hỏng bắt buộc hiện nguyên văn lỗi ra màn hình. *(2026-08-20)*

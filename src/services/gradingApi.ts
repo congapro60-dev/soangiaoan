@@ -108,3 +108,18 @@ export const solveAnswerKey = async (
   if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
   return data as SolvedAnswerKeyResult;
 };
+
+/** Nhờ AI đề xuất hướng dẫn chấm từ đáp án đã có. */
+export const suggestRubric = async (classId: string, answerKey: string, maxScore: number): Promise<string> => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Phiên đăng nhập đã hết hạn.');
+
+  const res = await fetch('/api/grade-homework', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'suggestRubric', idToken: await user.getIdToken(), classId, answerKey, maxScore }),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
+  return String((data as { rubric?: string })?.rubric || '');
+};
