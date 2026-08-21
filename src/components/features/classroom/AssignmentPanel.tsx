@@ -42,7 +42,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
     setDangTai(true);
     setLoiTai('');
     try {
-      setAssignments(await listAssignmentsForClass(classId));
+      setAssignments(await listAssignmentsForClass(classId, teacherId));
     } catch (error) {
       // Nuốt lỗi vào console là kiểu hỏng khó lần nhất: giáo viên giao bài xong, mở ra thấy
       // bảng trống, tưởng bài không được lưu. Phải hiện ra màn hình.
@@ -51,7 +51,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
     } finally {
       setDangTai(false);
     }
-  }, [classId]);
+  }, [classId, teacherId]);
 
   useEffect(() => { void taiBai(); }, [taiBai]);
 
@@ -60,7 +60,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
     setOpenId(assignmentId);
     setLoiTai('');
     try {
-      setSubmissions(await listSubmissionsForAssignment(assignmentId));
+      setSubmissions(await listSubmissionsForAssignment(assignmentId, teacherId));
     } catch (error) {
       setSubmissions([]);
       setLoiTai(error instanceof Error ? error.message : 'Không tải được danh sách bài nộp.');
@@ -126,7 +126,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
       const loi = result.failed > 0 ? `, ${result.failed} bài lỗi cần chấm lại` : '';
       showToast(`Chấm xong ${result.graded} bài${loi}.`, result.failed > 0 ? 'warning' : 'success');
       if (openId === assignment.id) {
-        setSubmissions(await listSubmissionsForAssignment(assignment.id).catch(() => []));
+        setSubmissions(await listSubmissionsForAssignment(assignment.id, teacherId).catch(() => []));
       }
     } catch (error) {
       Swal.fire({

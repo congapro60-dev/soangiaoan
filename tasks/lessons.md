@@ -260,3 +260,13 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - **Với tập kết quả nhỏ, bỏ `orderBy` rồi sắp xếp trong máy là lựa chọn tốt hơn index** — vài chục bài giao mỗi lớp thì sắp xếp trong JS không đáng kể, đổi lại bớt được một index phải khai, phải deploy, phải nhớ giữ đồng bộ, và phải chờ Firestore dựng xong. Chỉ giữ `orderBy` phía máy chủ khi thật sự cần `limit` trên tập lớn. *(2026-08-20)*
 
 - **`.catch(() => [])` và `.catch(console.error)` trong hàm nạp dữ liệu là bẫy chẩn đoán** — lỗi thiếu index bị nuốt, giao diện hiện "chưa có bài nào" y hệt lúc thật sự chưa có bài. Người dùng tưởng dữ liệu không được lưu, còn mình đi tìm nhầm chỗ. Hàm nạp dữ liệu phải phân biệt được BA trạng thái: đang tải, rỗng thật, và hỏng — trạng thái hỏng bắt buộc hiện nguyên văn lỗi ra màn hình. *(2026-08-20)*
+
+## Firestore chấm luật cho TRUY VẤN, không chấm từng document (2026-08-21)
+
+- **Firestore đòi truy vấn TỰ CHỨNG MINH được là thoả luật — nó KHÔNG lọc bớt document không được phép.** Luật `allow list: if resource.data.teacherId == request.auth.uid` mà truy vấn lại là `where('classId','==',X)` thì bị từ chối thẳng với `Missing or insufficient permissions`, dù mọi document trả về đều có `teacherId` đúng. Phải đưa chính điều kiện của luật vào truy vấn: `where('teacherId','==',uid) + where('classId','==',X)`. QUY TẮC: mỗi trường mà luật `list` kiểm tra PHẢI xuất hiện thành ràng buộc bằng nhau trong truy vấn. *(2026-08-21)*
+
+- **Toàn ràng buộc bằng nhau thì KHÔNG cần index tổ hợp** — Firestore tự trộn các index một trường. Nên thêm `where('teacherId')` để qua luật là miễn phí về index; chỉ khi thêm `orderBy` hoặc so sánh khoảng mới phải khai index. Đây là lý do nên sắp xếp trong máy với tập kết quả nhỏ. *(2026-08-21)*
+
+- **Chẩn đoán sai vì đoán thay vì tái lập** — thấy bảng trống, tôi kết luận "thiếu index tổ hợp" dựa trên suy luận, sửa theo hướng đó, báo người dùng là đã xong. Người dùng mở lên vẫn hỏng, và thông báo lỗi thật lại nói `permissions` chứ không phải index. QUY TẮC: trước khi tuyên bố nguyên nhân, phải TÁI LẬP được lỗi bằng test chạy thật trên emulator. Suy luận từ đọc code không đủ, kể cả khi nghe rất hợp lý. *(2026-08-21)*
+
+- **Test rules phải chạy ĐÚNG truy vấn client gọi, không phải truy vấn tương đương về mặt quyền** — bộ 35 ca cũ toàn dùng `where('teacherId')` nên xanh hết, trong khi app thật gọi `where('classId')` và hỏng. Cách phòng: liệt kê mọi `getDocs(query(...))` trong `src/` rồi dựng một ca test cho từng cái, sao chép nguyên hình dạng truy vấn. *(2026-08-21)*

@@ -93,17 +93,26 @@ export const createAssignment = async (input: NewAssignment): Promise<Assignment
 };
 
 /**
- * CỐ Ý không dùng `orderBy` ở đây mà sắp xếp trong máy.
+ * Hai điều bắt buộc với mọi truy vấn phía giáo viên ở đây:
  *
- * `where + orderBy` bắt Firestore phải có index tổ hợp đúng cặp trường; thiếu là cả truy vấn hỏng
- * và giáo viên chỉ thấy bảng trống. Một lớp có vài chục bài giao, sắp xếp trong máy không đáng kể
- * — đổi lại bớt được một thứ phải deploy và phải nhớ giữ đồng bộ.
+ * 1. PHẢI lọc theo `teacherId`, kể cả khi đã lọc theo `classId` hay `assignmentId`.
+ *    Firestore KHÔNG chấm luật trên từng document trả về — nó đòi truy vấn TỰ CHỨNG MINH được
+ *    mọi kết quả đều thoả luật. Luật đòi `resource.data.teacherId == request.auth.uid`, nên thiếu
+ *    ràng buộc đó trong truy vấn là bị từ chối thẳng, dù dữ liệu hoàn toàn hợp lệ.
+ *    Đây chính là lỗi "Missing or insufficient permissions" ngày 2026-08-21.
+ *
+ * 2. KHÔNG dùng `orderBy`, sắp xếp trong máy. Toàn ràng buộc bằng nhau thì Firestore tự lo,
+ *    không cần index tổ hợp; thêm `orderBy` là lại phải khai và deploy index.
  */
 const moiNhatTruoc = <T extends { createdAt?: string }>(ds: T[]): T[] =>
   [...ds].sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
 
-export const listAssignmentsForClass = async (classId: string): Promise<AssignmentDoc[]> => {
-  const snap = await getDocs(query(collection(db, ASSIGNMENTS_COL), where('classId', '==', classId)));
+export const listAssignmentsForClass = async (classId: string, teacherId: string): Promise<AssignmentDoc[]> => {
+  const snap = await getDocs(query(
+    collection(db, ASSIGNMENTS_COL),
+    where('teacherId', '==', teacherId),
+    where('classId', '==', classId),
+  ));
   return moiNhatTruoc(snap.docs.map(d => d.data() as AssignmentDoc));
 };
 
@@ -111,8 +120,22 @@ export const setAssignmentOpen = async (assignmentId: string, isOpen: boolean): 
   await updateDoc(doc(db, ASSIGNMENTS_COL, assignmentId), { isOpen, updatedAt: new Date().toISOString() });
 };
 
-export const listSubmissionsForAssignment = async (assignmentId: string): Promise<SubmissionDoc[]> => {
-  const snap = await getDocs(query(collection(db, SUBMISSIONS_COL), where('assignmentId', '==', assignmentId)));
+export const listSubmissionsForAssignment = async (assignmentId: string, teacherId: string): Promise<SubmissionDoc[]> => {
+  const snap = await getDocs(query(
+    collection(db, SUBMISSIONS_COL),
+    where('teacherId', '==', teacherId),
+    where('assignmentId', '==', assignmentId),
+  ));
+  return moiNhatTruoc(snap.docs.map(d => d.data() as SubmissionDoc));
+};
+
+/** Bài nộp của một học sinh, dùng cho báo cáo phía giáo viên. */
+export const listSubmissionsForStudent = async (studentId: string, teacherId: string): Promise<SubmissionDoc[]> => {
+  const snap = await getDocs(query(
+    collection(db, SUBMISSIONS_COL),
+    where('teacherId', '==', teacherId),
+    where('studentId', '==', studentId),
+  ));
   return moiNhatTruoc(snap.docs.map(d => d.data() as SubmissionDoc));
 };
 

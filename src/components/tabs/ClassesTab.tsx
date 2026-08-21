@@ -733,6 +733,7 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
                 <div className="mt-4">
                   <StudentReport
                     studentId={viewingStudent.id}
+                    teacherId={user?.uid || ''}
                     studentName={viewingStudent.name}
                     studentCode={viewingStudent.code}
                     className={selectedClass.name}

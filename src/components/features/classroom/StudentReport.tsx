@@ -1,16 +1,13 @@
 import { useEffect, useState } from 'react';
-import { collection, doc, getDoc, getDocs, orderBy, query, where } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { Printer, Target, TrendingUp } from 'lucide-react';
 import { db } from '../../../lib/firebase';
-import {
-  STUDENT_PROFILES_COL,
-  SUBMISSIONS_COL,
-  type StudentProfileDoc,
-  type SubmissionDoc,
-} from '../../../lib/classroom/types';
+import { STUDENT_PROFILES_COL, type StudentProfileDoc, type SubmissionDoc } from '../../../lib/classroom/types';
+import { listSubmissionsForStudent } from '../../../lib/classroom/submissionService';
 
 interface Props {
   studentId: string;
+  teacherId: string;
   studentName: string;
   className: string;
   studentCode: string;
@@ -27,7 +24,7 @@ const ngay = (iso?: string) => (iso ? new Date(iso).toLocaleDateString('vi-VN') 
  * bản cho học sinh chỉ nói việc cần làm tiếp. Đưa nguyên văn bản người lớn cho trẻ đọc là
  * biến một nhận xét kỹ thuật thành lời phán về chính nó.
  */
-export const StudentReport = ({ studentId, studentName, className, studentCode, forAdult = true }: Props) => {
+export const StudentReport = ({ studentId, teacherId, studentName, className, studentCode, forAdult = true }: Props) => {
   const [submissions, setSubmissions] = useState<SubmissionDoc[]>([]);
   const [profile, setProfile] = useState<StudentProfileDoc | null>(null);
   const [dangTai, setDangTai] = useState(true);
@@ -37,21 +34,17 @@ export const StudentReport = ({ studentId, studentName, className, studentCode, 
     const tai = async () => {
       setDangTai(true);
       const [nop, hoSo] = await Promise.all([
-        getDocs(query(
-          collection(db, SUBMISSIONS_COL),
-          where('studentId', '==', studentId),
-          orderBy('createdAt', 'desc'),
-        )).catch(() => null),
+        listSubmissionsForStudent(studentId, teacherId).catch(() => null),
         getDoc(doc(db, STUDENT_PROFILES_COL, studentId)).catch(() => null),
       ]);
       if (huy) return;
-      setSubmissions(nop ? nop.docs.map(d => d.data() as SubmissionDoc) : []);
+      setSubmissions(nop || []);
       setProfile(hoSo?.exists() ? (hoSo.data() as StudentProfileDoc) : null);
       setDangTai(false);
     };
     void tai();
     return () => { huy = true; };
-  }, [studentId]);
+  }, [studentId, teacherId]);
 
   const daCham = submissions.filter(s => s.status === 'graded' && s.grade);
   const daDuyet = daCham.filter(s => s.grade?.teacherApproved);
