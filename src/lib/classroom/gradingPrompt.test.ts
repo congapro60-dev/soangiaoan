@@ -92,8 +92,8 @@ describe('parseHomeworkGrade', () => {
   });
 
   it('KHÔNG tìm được JSON thì NÉM lỗi, không lặng lẽ cho 0 điểm', () => {
-    expect(() => parseHomeworkGrade('Xin lỗi, tôi không đọc được ảnh.', 10, false))
-      .toThrow(/JSON/);
+    expect(() => parseHomeworkGrade('Xin lỗi, tôi không xem được ảnh.', 10, false))
+      .toThrow(/không đọc được/);
   });
 
   it('ghi nhận cờ chấm khi không có đáp án chuẩn', () => {
@@ -127,8 +127,8 @@ describe('bài bổ trợ', () => {
     expect(ket[0].hint).toBe('dùng VTPT');
   });
 
-  it('không có JSON thì ném lỗi', () => {
-    expect(() => parsePracticeQuestions('xin lỗi')).toThrow(/JSON/);
+  it('không đọc được nội dung thì ném lỗi', () => {
+    expect(() => parsePracticeQuestions('xin lỗi')).toThrow(/không đọc được/);
   });
 });
 
@@ -188,7 +188,7 @@ describe('AI tự giải đề', () => {
     expect(() => parseSolvedAnswerKey(JSON.stringify({ answerKey: '   ' }))).toThrow(/dán đáp án tay/);
   });
 
-  it('không có JSON thì ném lỗi', () => {
-    expect(() => parseSolvedAnswerKey('xin lỗi tôi không giải được')).toThrow(/JSON/);
+  it('không đọc được nội dung thì ném lỗi', () => {
+    expect(() => parseSolvedAnswerKey('xin lỗi tôi không giải được')).toThrow(/không đọc được/);
   });
 });

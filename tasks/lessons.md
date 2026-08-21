@@ -231,3 +231,24 @@ Quy tắc áp dụng: `activity_teacher_key_math_consistency_pass` chỉ PASS kh
 - **Dải nhắc hiện đúng số liệu là bằng chứng rules ĐÃ deploy** — trước khi nghi "chưa deploy rules", nhìn xem có phép ĐỌC nào đang chạy được không. Ở ca này banner hiện "3 lớp chưa đồng bộ", tức truy vấn `list` trên `classes` đã qua rules, nên lỗi chắc chắn nằm ở phép ghi chứ không phải ở việc deploy. Chẩn đoán sai chỗ này là đi deploy lại rồi vẫn hỏng. *(2026-08-20)*
 
 - **Phép chuyển dữ liệu nhiều giai đoạn phải TỰ VÁ được khi hỏng giữa chừng** — bản đầu bỏ qua lớp đã tồn tại, nên nếu giai đoạn 1 xong mà giai đoạn 2 hỏng thì lớp nằm đó rỗng học sinh và bấm lại cũng không cứu. Sửa: giai đoạn 2 ghi cho MỌI lớp (id cố định nên ghi lại vô hại), và phép đếm "chưa đồng bộ" phải đếm cả lớp đã lên nhưng rỗng học sinh — nếu không thì dải nhắc tắt và người dùng mắc kẹt không có nút nào để sửa. *(2026-08-20)*
+
+## TDS CIS/HQT — Color coding evidence
+
+- **Color-code phải áp dụng ở cấp câu evidence trong tiến trình, không chỉ đổi màu nhãn** — [PHÂN HÓA], [ĐGTX], [CÔNG DÂN SỐ], [CÔNG DÂN TOÀN CẦU] và toàn bộ câu minh chứng phía sau nhãn phải cùng màu chữ; phần Toán/routine còn lại giữ màu đen. Không tô nền cả hoạt động dài. Nếu hai evidence chồng nhau, tách thành hai câu có nhãn riêng. Bảng MINH CHỨNG HQT/CIS chỉ là index, không thay cho evidence inline. Rule of 3 áp dụng tối thiểu 3 evidence explicit/tuần cho Differentiation và Formative Assessment; DC/GC theo dõi 2–3 lessons/tuần qua Weekly CIS Evidence Map. *(2026-08-20)*
+
+- **Danielson 1a–1f chỉ là working operational mapping** — ghi vị trí/minh chứng tương ứng, không gọi là rubric PR chính thức của tổ; mapping phải bao phủ content/pedagogy, students, outcomes, resources, coherent instruction và assessment. *(2026-08-20)*
+
+
+## Layout fidelity — 2026-08-20
+
+Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không được coi việc có cùng thứ tự nội dung là đủ. Baseline phải được kiểm ở cả ba tầng: tên tiêu đề và header metadata; các dải màu/section heading và bảng mục tiêu 3 mức; mật độ lời thoại, bảng 3 cột hoạt động và cách trình bày bảng CIS/HQT. Không đưa artifact nội bộ như `PPCT local`, `CANDIDATE — STAGING ONLY`, `CIS_EVIDENCE_GAP` hoặc trạng thái `pass` vào DOCX final. Mọi thay đổi layout phải regenerate ở staging, render trực quan và chỉ promotion sau khi người dùng duyệt.
+
+## Gọi Gemini 2.5 — trần token và finishReason (2026-08-20)
+
+- **`maxOutputTokens` của Gemini 2.5 tính CẢ token "suy nghĩ" của model** — đặt 2048 cho tác vụ giải cả một đề thì phần suy nghĩ ăn gần hết ngân sách, câu trả lời thật bị cắt cụt hoặc rỗng. Ngân sách phải theo ĐỘ DÀI ĐẦU RA THẬT của từng tác vụ: chấm một bài ~4k, sinh bài luyện ~6k, giải cả đề ~16k. Ca thật: người dùng bấm "Để AI giải đề" và nhận về `AI không trả về JSON hợp lệ`. *(2026-08-20)*
+
+- **Không đọc `finishReason` thì MỌI trục trặc đều hiện ra thành lỗi đọc JSON** — response bị cắt vì `MAX_TOKENS` để lại chuỗi thiếu dấu `}`, regex `\{[\s\S]*\}` không khớp, và nơi gọi báo "không trả về JSON hợp lệ". Đổ oan cho khâu đọc trong khi thủ phạm là ngân sách token. QUY TẮC: mọi lời gọi LLM phải đọc `finishReason` và dịch sang câu nói ĐÚNG nguyên nhân (`MAX_TOKENS` / `SAFETY` / `RECITATION`) TRƯỚC khi thử phân tích nội dung. *(2026-08-20)*
+
+- **Bật `responseMimeType: 'application/json'` khi cần JSON** — model bị ràng buộc trả JSON hợp lệ, khỏi bọc ```json và khỏi thêm lời dẫn. Rẻ hơn nhiều so với đi vá regex bóc JSON. *(2026-08-20)*
+
+- **Thông báo lỗi hiện cho người dùng cuối không được viết bằng tiếng lập trình viên** — giáo viên đọc "AI không trả về JSON hợp lệ" rồi hỏi lại "lỗi jason gì này". Chính câu hỏi đó là bằng chứng thông báo viết hỏng. Lỗi kỹ thuật thì log cho lập trình viên, còn màn hình phải nói người dùng làm gì tiếp. *(2026-08-20)*

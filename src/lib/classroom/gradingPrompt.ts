@@ -96,7 +96,7 @@ export const parseHomeworkGrade = (
   const text = String(raw || '');
   const inCodeBlock = text.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
   const jsonStr = inCodeBlock ? inCodeBlock[1] : text.match(/\{[\s\S]*\}/)?.[0];
-  if (!jsonStr) throw new Error('AI không trả về JSON hợp lệ');
+  if (!jsonStr) throw new Error('AI trả về nội dung không đọc được. Thử lại một lần nữa.');
 
   const parsed = parseLooseJson<Record<string, unknown>>(jsonStr);
   const parsedMax = Number(parsed.maxScore);
@@ -141,7 +141,7 @@ export const parsePracticeQuestions = (raw: string): PracticeQuestion[] => {
   const text = String(raw || '');
   const inCodeBlock = text.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
   const jsonStr = inCodeBlock ? inCodeBlock[1] : text.match(/\{[\s\S]*\}/)?.[0];
-  if (!jsonStr) throw new Error('AI không trả về JSON hợp lệ');
+  if (!jsonStr) throw new Error('AI trả về nội dung không đọc được. Thử lại một lần nữa.');
 
   const parsed = parseLooseJson<{ questions?: unknown }>(jsonStr);
   const list = Array.isArray(parsed.questions) ? parsed.questions : [];
@@ -202,7 +202,7 @@ export const parseSolvedAnswerKey = (raw: string): SolvedAnswerKey => {
   const text = String(raw || '');
   const inCodeBlock = text.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
   const jsonStr = inCodeBlock ? inCodeBlock[1] : text.match(/\{[\s\S]*\}/)?.[0];
-  if (!jsonStr) throw new Error('AI không trả về JSON hợp lệ');
+  if (!jsonStr) throw new Error('AI trả về nội dung không đọc được. Thử lại một lần nữa.');
 
   const parsed = parseLooseJson<Record<string, unknown>>(jsonStr);
   const answerKey = String(parsed.answerKey || '').trim();

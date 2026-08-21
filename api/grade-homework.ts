@@ -3,6 +3,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
 import { getAdminDb } from './_exam-core.js';
 import {
+  GRADING_MODEL,
   QUOTA_LIMITS,
   bumpQuota,
   callGeminiVision,
@@ -107,7 +108,10 @@ const gradeOneSubmission = async (
       assignmentTitle: ctx.assignmentTitle,
       answerKeyImageCount: ctx.answerKeyImages.length,
     });
-    const raw = await callGeminiVision(prompt, [...ctx.answerKeyImages, ...images], apiKey);
+    const raw = await callGeminiVision(prompt, [...ctx.answerKeyImages, ...images], apiKey, GRADING_MODEL, {
+      maxOutputTokens: 4096,
+      jsonMode: true,
+    });
     const khongCoDapAn = ctx.answerKey.trim().length === 0 && ctx.answerKeyImages.length === 0;
     const parsed = parseHomeworkGrade(raw, ctx.maxScore, khongCoDapAn);
     const now = new Date().toISOString();
@@ -267,6 +271,8 @@ const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<stri
     buildPracticePrompt(topics, String(classSnap.data()?.grade || '')),
     [],
     getGradingApiKey(),
+    GRADING_MODEL,
+    { maxOutputTokens: 6144, jsonMode: true },
   );
   await quotaRef.set(bumpQuota(quota, 'self', link.studentId, 1));
 
@@ -310,7 +316,11 @@ const handleSolveAnswerKey = async (db: FirebaseFirestore.Firestore, body: Recor
     examImageCount: examImages.length,
     maxScore: Number(body.maxScore) || 10,
   });
-  const raw = await callGeminiVision(prompt, examImages, getGradingApiKey());
+  // Giải cả một đề, từng câu kèm các bước — dài hơn hẳn chấm một bài, nên trần phải rộng.
+  const raw = await callGeminiVision(prompt, examImages, getGradingApiKey(), GRADING_MODEL, {
+    maxOutputTokens: 16384,
+    jsonMode: true,
+  });
   await quotaRef.set(bumpQuota(quota, 'teacher', '', 1));
 
   return res.status(200).json(parseSolvedAnswerKey(raw));

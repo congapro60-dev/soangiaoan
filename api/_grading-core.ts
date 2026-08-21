@@ -108,12 +108,56 @@ export const parseDataUrl = (dataUrl: string): InlineImage | null => {
   return { mimeType: match[1], data: match[2] };
 };
 
+export interface GeminiOptions {
+  /**
+   * Trần token đầu ra. Với Gemini 2.5, token "suy nghĩ" của model CŨNG tính vào trần này, nên
+   * đặt chặt là câu trả lời thật bị cắt cụt hoặc rỗng. Giải cả một đề cần rộng hơn hẳn chấm
+   * một bài.
+   */
+  maxOutputTokens?: number;
+  /** Bật chế độ JSON của Gemini: model bị ràng buộc trả JSON hợp lệ, khỏi bọc trong ```json. */
+  jsonMode?: boolean;
+}
+
+/**
+ * Dịch `finishReason` sang câu người dùng đọc hiểu.
+ *
+ * Bỏ qua bước này là mọi trục trặc đều hiện ra thành "AI không trả về JSON hợp lệ" — đổ oan cho
+ * khâu đọc JSON trong khi thủ phạm là câu trả lời bị cắt hoặc bị chặn. Đã mất một lượt đi tìm
+ * nhầm hướng vì đúng chỗ này.
+ */
+export const moTaFinishReason = (reason: string | undefined, coChu: boolean): string | null => {
+  if (reason === 'MAX_TOKENS') {
+    return 'AI trả lời dài quá trần cho phép nên bị cắt giữa chừng. Thử chia nhỏ đề, hoặc giảm số câu trong một lần.';
+  }
+  if (reason === 'SAFETY' || reason === 'PROHIBITED_CONTENT') {
+    return 'Gemini từ chối xử lý nội dung này. Kiểm tra lại ảnh đề xem có gì bất thường không.';
+  }
+  if (reason === 'RECITATION') {
+    return 'Gemini dừng vì nội dung trùng tài liệu có bản quyền. Thử ảnh đề khác.';
+  }
+  if (!coChu) {
+    return `Gemini không trả về chữ nào${reason ? ` (dừng vì ${reason})` : ''}.`;
+  }
+  if (reason && reason !== 'STOP') {
+    return `Gemini dừng bất thường: ${reason}.`;
+  }
+  return null;
+};
+
 export const callGeminiVision = async (
   prompt: string,
   images: InlineImage[],
   apiKey: string,
   model: string = GRADING_MODEL,
+  options: GeminiOptions = {},
 ): Promise<string> => {
+  const generationConfig: Record<string, unknown> = {
+    temperature: 0.2,
+    maxOutputTokens: options.maxOutputTokens ?? 4096,
+  };
+  if (options.jsonMode) generationConfig.responseMimeType = 'application/json';
+
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`,
     {
@@ -127,7 +171,7 @@ export const callGeminiVision = async (
             ...images.map(img => ({ inlineData: { mimeType: img.mimeType, data: img.data } })),
           ],
         }],
-        generationConfig: { temperature: 0.2, maxOutputTokens: 2048 },
+        generationConfig,
       }),
     },
   );
@@ -138,9 +182,13 @@ export const callGeminiVision = async (
   }
 
   const data = await res.json() as {
-    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    candidates?: Array<{ finishReason?: string; content?: { parts?: Array<{ text?: string }> } }>;
   };
-  const text = data.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
-  if (!text.trim()) throw new Error('Gemini trả về phản hồi rỗng');
+  const candidate = data.candidates?.[0];
+  const text = candidate?.content?.parts?.map(p => p.text || '').join('') || '';
+
+  const loi = moTaFinishReason(candidate?.finishReason, text.trim().length > 0);
+  if (loi) throw new Error(loi);
+
   return text;
 };

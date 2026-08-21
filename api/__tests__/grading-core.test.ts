@@ -3,6 +3,7 @@ import {
   QUOTA_LIMITS,
   bumpQuota,
   emptyQuota,
+  moTaFinishReason,
   parseDataUrl,
   remainingQuota,
   rollQuota,
@@ -109,5 +110,37 @@ describe('parseDataUrl', () => {
   it('trả null với chuỗi không phải data URL', () => {
     expect(parseDataUrl('https://storage/anh.jpg')).toBeNull();
     expect(parseDataUrl('')).toBeNull();
+  });
+});
+
+describe('moTaFinishReason — không đổ oan cho khâu đọc JSON', () => {
+  it('bị cắt vì hết token thì nói ĐÚNG là bị cắt, không nói lỗi JSON', () => {
+    const loi = moTaFinishReason('MAX_TOKENS', true);
+
+    expect(loi).toMatch(/bị cắt giữa chừng/);
+    expect(loi).not.toMatch(/JSON/);
+  });
+
+  it('bị chặn vì an toàn nội dung thì nói rõ là bị từ chối', () => {
+    expect(moTaFinishReason('SAFETY', true)).toMatch(/từ chối/);
+    expect(moTaFinishReason('PROHIBITED_CONTENT', false)).toMatch(/từ chối/);
+  });
+
+  it('trùng tài liệu bản quyền', () => {
+    expect(moTaFinishReason('RECITATION', true)).toMatch(/bản quyền/);
+  });
+
+  it('trả lời bình thường và có chữ thì KHÔNG báo lỗi', () => {
+    expect(moTaFinishReason('STOP', true)).toBeNull();
+    expect(moTaFinishReason(undefined, true)).toBeNull();
+  });
+
+  it('dừng bình thường nhưng rỗng chữ thì vẫn phải báo', () => {
+    expect(moTaFinishReason('STOP', false)).toMatch(/không trả về chữ nào/);
+    expect(moTaFinishReason(undefined, false)).toMatch(/không trả về chữ nào/);
+  });
+
+  it('lý do lạ thì nêu nguyên văn để còn lần ra', () => {
+    expect(moTaFinishReason('OTHER', true)).toMatch(/OTHER/);
   });
 });
