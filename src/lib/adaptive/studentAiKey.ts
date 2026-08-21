@@ -59,7 +59,7 @@ export const callStudentGemini = async (
   }
 
   const result = await ai.models.generateContent({
-    model: options.model || 'gemini-2.5-flash',
+    model: options.model || 'gemini-3.7-flash',
     contents: [{ parts }],
     config: { temperature: 0.2, maxOutputTokens: 8192 },
   });

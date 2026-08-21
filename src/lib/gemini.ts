@@ -1,11 +1,12 @@
 import { GoogleGenAI } from "@google/genai";
 
-export const DEFAULT_GEMINI_RUNTIME_MODEL = 'gemini-3.6-flash';
+export const DEFAULT_GEMINI_RUNTIME_MODEL = 'gemini-3.7-flash';
 
 // Runtime model list for Gemini generateContent on v1beta.
 // Keep the exact API IDs here; display labels can be shorter in src/data/models.ts.
 export const GEMINI_RUNTIME_MODELS = [
   DEFAULT_GEMINI_RUNTIME_MODEL,
+  'gemini-3.6-flash',
   'gemini-3.5-flash',
   'gemini-3.1-pro-preview',
   'gemini-3-flash-preview',

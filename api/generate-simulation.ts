@@ -5,7 +5,7 @@ import { cert, getApps, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 
-const GEMINI_MODEL = 'gemini-2.5-flash';
+const GEMINI_MODEL = 'gemini-3.7-flash';
 const MAX_PROBLEM_TEXT_LENGTH = 2000;
 const MAX_HTML_SIZE_BYTES = 200000;
 const RATE_LIMIT_WINDOW_MS = 60_000;

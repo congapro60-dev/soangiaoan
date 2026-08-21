@@ -29,7 +29,7 @@ Trả về duy nhất nội dung Markdown cuối cùng bên trong thẻ <lesson_
 
   let formatModel: string | undefined = undefined;
   const provider = context.settings.selectedProvider ?? 'gemini';
-  if (provider === 'gemini') formatModel = 'gemini-2.5-flash';
+  if (provider === 'gemini') formatModel = 'gemini-3.7-flash';
   else if (provider === 'claude') formatModel = 'claude-haiku-4-5-20251001';
   else if (provider === 'openai') formatModel = 'gpt-4o-mini';
 
