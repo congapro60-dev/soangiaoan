@@ -5,7 +5,7 @@
  * Chạy ĐÚNG truy vấn app gọi: where('classId','==',X), không kèm orderBy.
  */
 import { assertFails, assertSucceeds, initializeTestEnvironment, type RulesTestEnvironment } from '@firebase/rules-unit-testing';
-import { collection, doc, getDocs, limit, orderBy, query, setDoc, where } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDocs, limit, orderBy, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { readFileSync } from 'node:fs';
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest';
 
@@ -115,5 +115,38 @@ describe('soi TẤT CẢ truy vấn client đang dùng', () => {
       orderBy('createdAt', 'desc'),
       limit(50),
     )));
+  });
+});
+
+// Xem lại và sửa nội dung bài ĐÃ giao. Thiếu đường này thì cơ chế "đáp án AI giải ra phải để
+// giáo viên soát" chỉ đúng đúng một lần lúc bấm Giao bài.
+describe('sửa và xoá bài đã giao', () => {
+  it('giáo viên sửa được đáp án và hướng dẫn chấm', async () => {
+    await assertSucceeds(updateDoc(doc(dbGV(), 'assignments', 'asg_1'), {
+      answerKey: 'Câu 5 sửa lại: x = 3',
+      rubric: 'Sai dấu trừ 0,25',
+      updatedAt: 'y',
+    }));
+  });
+
+  it('giáo viên xoá được bài của mình', async () => {
+    await assertSucceeds(deleteDoc(doc(dbGV(), 'assignments', 'asg_1')));
+  });
+
+  it('KHÔNG được đổi chủ bài sang người khác', async () => {
+    await assertFails(updateDoc(doc(dbGV(), 'assignments', 'asg_1'), { teacherId: 'uid-nguoi-la' }));
+  });
+
+  it('KHÔNG được chuyển bài sang lớp khác', async () => {
+    await assertFails(updateDoc(doc(dbGV(), 'assignments', 'asg_1'), { classId: 'class-khac' }));
+  });
+
+  it('người lạ không sửa được', async () => {
+    const db = testEnv.authenticatedContext('uid-nguoi-la', { email: 'la@gmail.com' }).firestore();
+    await assertFails(updateDoc(doc(db, 'assignments', 'asg_1'), { answerKey: 'pha hoai' }));
+  });
+
+  it('học sinh không xoá được bài giao', async () => {
+    await assertFails(deleteDoc(doc(dbHS(), 'assignments', 'asg_1')));
   });
 });

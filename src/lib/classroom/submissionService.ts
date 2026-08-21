@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
 import { auth, db, removeUndefinedFields, storage } from '../firebase';
 import { mergeTopics, removeEvidence } from './profileMerge';
@@ -114,6 +114,28 @@ export const listAssignmentsForClass = async (classId: string, teacherId: string
     where('classId', '==', classId),
   ));
   return moiNhatTruoc(snap.docs.map(d => d.data() as AssignmentDoc));
+};
+
+/**
+ * Sửa đáp án / hướng dẫn chấm của bài ĐÃ giao.
+ *
+ * Thiếu hàm này thì cả cơ chế "đáp án AI giải ra phải để giáo viên soát" chỉ đúng đúng một lần
+ * lúc bấm Giao bài. Phát hiện AI giải sai câu 5 sau đó là bó tay, mà cả lớp thì vẫn sắp bị chấm
+ * theo câu 5 sai đó.
+ */
+export const updateAssignmentContent = async (
+  assignmentId: string,
+  patch: { answerKey?: string; rubric?: string },
+): Promise<void> => {
+  await updateDoc(doc(db, ASSIGNMENTS_COL, assignmentId), {
+    ...patch,
+    updatedAt: new Date().toISOString(),
+  });
+};
+
+/** Xoá bài giao. Nơi gọi phải chặn khi đã có bài nộp, để không bỏ lại bài nộp mồ côi. */
+export const deleteAssignment = async (assignmentId: string): Promise<void> => {
+  await deleteDoc(doc(db, ASSIGNMENTS_COL, assignmentId));
 };
 
 export const setAssignmentOpen = async (assignmentId: string, isOpen: boolean): Promise<void> => {

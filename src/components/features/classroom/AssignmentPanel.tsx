@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
-import { CheckCircle2, ClipboardList, Loader2, Play, Plus, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, ClipboardList, FileText, Loader2, Play, Plus, Save, ShieldCheck, Trash2 } from 'lucide-react';
 import {
   approveGrade,
   createAssignment,
   listAssignmentsForClass,
   listSubmissionsForAssignment,
+  deleteAssignment,
   setAssignmentOpen,
+  updateAssignmentContent,
   uploadAnswerKeyImages,
   uploadAssignmentFiles,
 } from '../../../lib/classroom/submissionService';
@@ -37,6 +39,9 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
   const [moForm, setMoForm] = useState(false);
   const [dangGui, setDangGui] = useState(false);
   const [loiTai, setLoiTai] = useState('');
+  // Bản nháp đang sửa của bài đang mở. Rỗng = chưa sửa gì.
+  const [nhap, setNhap] = useState<{ answerKey: string; rubric: string } | null>(null);
+  const [dangLuu, setDangLuu] = useState(false);
 
   const taiBai = useCallback(async () => {
     setDangTai(true);
@@ -56,9 +61,10 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
   useEffect(() => { void taiBai(); }, [taiBai]);
 
   const moBai = async (assignmentId: string) => {
-    if (openId === assignmentId) { setOpenId(''); return; }
+    if (openId === assignmentId) { setOpenId(''); setNhap(null); return; }
     setOpenId(assignmentId);
     setLoiTai('');
+    setNhap(null);
     try {
       setSubmissions(await listSubmissionsForAssignment(assignmentId, teacherId));
     } catch (error) {
@@ -140,6 +146,55 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
     }
   };
 
+  const luuNoiDung = async (a: AssignmentDoc) => {
+    if (!nhap) return;
+    setDangLuu(true);
+    try {
+      await updateAssignmentContent(a.id, nhap);
+      setNhap(null);
+      showToast('Đã lưu đáp án và hướng dẫn chấm.', 'success');
+      await taiBai();
+    } catch (error) {
+      setLoiTai(error instanceof Error ? error.message : 'Không lưu được.');
+    } finally {
+      setDangLuu(false);
+    }
+  };
+
+  const xoaBai = async (a: AssignmentDoc) => {
+    // Chặn khi đã có bài nộp: xoá bài giao mà để bài nộp nằm lại là tạo ra dữ liệu mồ côi,
+    // điểm của học sinh trỏ vào một bài không còn tồn tại.
+    if (submissions.length > 0) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Không xoá được',
+        text: `Đã có ${submissions.length} bài nộp cho bài này. Dùng "Đóng bài" để học sinh không nộp thêm.`,
+        confirmButtonColor: '#3085d6',
+      });
+      return;
+    }
+    const { isConfirmed } = await Swal.fire({
+      icon: 'warning',
+      title: `Xoá "${a.title}"?`,
+      text: 'Bài giao và đáp án sẽ mất hẳn. File đề đã tải lên vẫn còn trên máy chủ.',
+      showCancelButton: true,
+      confirmButtonText: 'Xoá',
+      cancelButtonText: 'Giữ lại',
+      confirmButtonColor: '#dc2626',
+      focusCancel: true,
+    });
+    if (!isConfirmed) return;
+
+    try {
+      await deleteAssignment(a.id);
+      setOpenId('');
+      showToast('Đã xoá bài giao.', 'success');
+      await taiBai();
+    } catch (error) {
+      setLoiTai(error instanceof Error ? error.message : 'Không xoá được.');
+    }
+  };
+
   const duyet = async (submission: SubmissionDoc) => {
     const dangDuyet = !submission.grade?.teacherApproved;
     await approveGrade(submission, dangDuyet);
@@ -206,6 +261,93 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
 
               {openId === a.id && (
                 <div className="border-t border-slate-100 p-4">
+                  {/* NỘI DUNG ĐÃ GIAO — phải xem lại và sửa được. Đáp án AI giải ra mà không mở
+                      lại được thì lời hứa "thầy cô soát trước khi chấm" chỉ đúng đúng một lần. */}
+                  <div className="mb-5 rounded-2xl bg-slate-50 p-4">
+                    <p className="text-xs font-black uppercase tracking-wide text-slate-500">Nội dung đã giao</p>
+
+                    <div className="mt-3">
+                      <p className="text-sm font-black text-slate-700">Đề gửi học sinh</p>
+                      {(a.attachments || []).length === 0 ? (
+                        <p className="text-sm font-semibold text-slate-400">Không đính kèm file — đề phát bản giấy.</p>
+                      ) : (
+                        <div className="mt-1 flex flex-wrap gap-3">
+                          {(a.attachments || []).map(f => (
+                            <a key={f.url} href={f.url} target="_blank" rel="noreferrer"
+                               className="inline-flex items-center gap-1 text-sm font-bold text-blue-600 underline">
+                              <FileText className="h-3.5 w-3.5" /> {f.name}
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mt-4">
+                      <div className="flex flex-wrap items-baseline gap-2">
+                        <p className="text-sm font-black text-slate-700">Đáp án chuẩn</p>
+                        {a.answerKeyByAi && (
+                          <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-800">
+                            do AI giải — soát lại giúp
+                          </span>
+                        )}
+                        {(a.answerKeyImageUrls || []).length > 0 && (
+                          <span className="text-[11px] font-bold text-slate-500">
+                            + {(a.answerKeyImageUrls || []).length} ảnh đáp án
+                          </span>
+                        )}
+                      </div>
+                      <textarea
+                        value={nhap ? nhap.answerKey : ((a as any).answerKey || '')}
+                        onChange={e => setNhap({
+                          answerKey: e.target.value,
+                          rubric: nhap ? nhap.rubric : ((a as any).rubric || ''),
+                        })}
+                        rows={8}
+                        placeholder="Chưa có đáp án. AI sẽ phải tự đọc đề trong ảnh từng em rồi tự giải."
+                        className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                      />
+                    </div>
+
+                    <div className="mt-3">
+                      <p className="text-sm font-black text-slate-700">Hướng dẫn chấm</p>
+                      <textarea
+                        value={nhap ? nhap.rubric : ((a as any).rubric || '')}
+                        onChange={e => setNhap({
+                          answerKey: nhap ? nhap.answerKey : ((a as any).answerKey || ''),
+                          rubric: e.target.value,
+                        })}
+                        rows={4}
+                        placeholder="Chưa có. Thiếu thì AI tự quyết cách chia điểm thành phần, mỗi em một kiểu."
+                        className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                      />
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <button
+                        onClick={() => luuNoiDung(a)}
+                        disabled={!nhap || dangLuu}
+                        className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-4 py-2 text-xs font-black text-white transition hover:bg-blue-700 disabled:opacity-40"
+                      >
+                        {dangLuu ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                        {dangLuu ? 'Đang lưu...' : 'Lưu thay đổi'}
+                      </button>
+                      {nhap && (
+                        <button onClick={() => setNhap(null)}
+                                className="rounded-2xl px-3 py-2 text-xs font-black text-slate-500 transition hover:bg-slate-100">
+                          Bỏ sửa
+                        </button>
+                      )}
+                      <span className="flex-1" />
+                      <button
+                        onClick={() => xoaBai(a)}
+                        className="inline-flex items-center gap-1 rounded-2xl border border-red-200 px-3 py-2 text-xs font-black text-red-700 transition hover:bg-red-50"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" /> Xoá bài
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="mb-2 text-xs font-black uppercase tracking-wide text-slate-500">Bài nộp</p>
                   {submissions.length === 0 ? (
                     <p className="py-4 text-center text-sm font-semibold text-slate-400">Chưa em nào nộp bài.</p>
                   ) : submissions.map(s => (

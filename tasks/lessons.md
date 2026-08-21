@@ -270,3 +270,13 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - **Chẩn đoán sai vì đoán thay vì tái lập** — thấy bảng trống, tôi kết luận "thiếu index tổ hợp" dựa trên suy luận, sửa theo hướng đó, báo người dùng là đã xong. Người dùng mở lên vẫn hỏng, và thông báo lỗi thật lại nói `permissions` chứ không phải index. QUY TẮC: trước khi tuyên bố nguyên nhân, phải TÁI LẬP được lỗi bằng test chạy thật trên emulator. Suy luận từ đọc code không đủ, kể cả khi nghe rất hợp lý. *(2026-08-21)*
 
 - **Test rules phải chạy ĐÚNG truy vấn client gọi, không phải truy vấn tương đương về mặt quyền** — bộ 35 ca cũ toàn dùng `where('teacherId')` nên xanh hết, trong khi app thật gọi `where('classId')` và hỏng. Cách phòng: liệt kê mọi `getDocs(query(...))` trong `src/` rồi dựng một ca test cho từng cái, sao chép nguyên hình dạng truy vấn. *(2026-08-21)*
+
+## Ghi được mà không đọc lại được (2026-08-21)
+
+- **Mỗi màn hình GHI dữ liệu phải có màn hình ĐỌC tương ứng, dựng cùng lúc.** Form giao bài có 6 ô nhập và 3 nút AI; phần hiển thị bài đã giao chỉ có MỘT dòng chữ. Giáo viên giao bài xong không mở lại xem được đề, đáp án, hướng dẫn chấm — cũng không sửa, không xoá được. Phép thử trước khi coi là xong: *"Người dùng vừa lưu thứ này xong, mai họ mở lại xem và sửa bằng cách nào?"* Chưa trả lời được là chưa xong. *(2026-08-21)*
+
+- **Hàng rào an toàn phải kiểm được ở MỌI thời điểm, không chỉ lúc tạo.** Tôi bắt "đáp án AI giải ra phải để giáo viên soát" rồi làm hệ thống mà soát xong bấm Lưu là không mở lại được. Hàng rào chỉ tồn tại đúng một khoảnh khắc thì trên thực tế không tồn tại. Nếu đã tuyên bố "con người phải duyệt", đường duyệt lại phải mở vĩnh viễn. *(2026-08-21)*
+
+- **Công sức bỏ ra đang tỉ lệ với ĐỘ THÚ VỊ của bài toán, đáng lẽ phải tỉ lệ với TẦN SUẤT người dùng chạm vào.** "AI tự giải đề" hay nên được prompt riêng, test riêng, dải cảnh báo riêng. "Dòng hiển thị bài đã giao" nhạt nên đúng là một dòng. Giáo viên chạm vào cái nhạt mỗi ngày. *(2026-08-21)*
+
+- **938 unit test xanh mà không bắt được lỗi nào người dùng gặp** — vì tôi chọn phép kiểm theo cái nào DỄ VIẾT, không theo cái nào giống việc người dùng làm. Test hàm thuần rẻ nên viết được 938 cái; phép kiểm đắt và phiền (tạo lớp → giao bài → xem lại → nộp → chấm) thì né mọi lần, và toàn bộ lỗi đến tay người dùng đều nằm đúng ở đó. Có sẵn phiên trình duyệt thật của người dùng mà chỉ dùng để tra dữ liệu, không dùng để đi thử luồng. *(2026-08-21)*
