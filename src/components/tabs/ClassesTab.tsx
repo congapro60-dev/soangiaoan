@@ -6,7 +6,7 @@ import { AppData, ClassAssignment, Student, TeacherClass } from '../../types';
 import { useExams, getSubmissions } from '../../hooks/useExams';
 import { parseRosterRows } from '../../utils/classRosterImport';
 import { countUnmigratedClasses, getClassDoc, migrateLegacyClasses } from '../../lib/classroom/classroomService';
-import { issueClassPins } from '../../services/studentPortalApi';
+import { issueClassPins, resetStudentPin } from '../../services/studentPortalApi';
 import { AssignmentPanel } from '../features/classroom/AssignmentPanel';
 import { StudentReport } from '../features/classroom/StudentReport';
 
@@ -79,6 +79,42 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
       .catch(error => console.error('Không đếm được lớp chưa đồng bộ', error));
     return () => { huy = true; };
   }, [user?.uid, classes]);
+
+  /**
+   * Cấp lại PIN cho MỘT em. Trước đây chỉ có nút đổi cả lớp, nên một em quên mã là 25 em kia
+   * cũng phải nhận mã mới — phiền cho cả lớp vì lỗi của một người.
+   */
+  const capLaiPinMotEm = async (cls: TeacherClass, student: Student) => {
+    const { isConfirmed } = await Swal.fire({
+      icon: 'question',
+      title: `Cấp lại mã PIN cho ${student.name}?`,
+      html: 'Mã cũ của em sẽ hết hiệu lực ngay. <b>Các bạn khác trong lớp giữ nguyên mã.</b><br/><br/>Mã mới chỉ hiện MỘT LẦN — chụp lại rồi hãy đóng.',
+      showCancelButton: true,
+      confirmButtonText: 'Cấp mã mới',
+      cancelButtonText: 'Hủy',
+      confirmButtonColor: '#3085d6',
+    });
+    if (!isConfirmed) return;
+
+    try {
+      const ket = await resetStudentPin(cls.id, student.id);
+      await Swal.fire({
+        icon: 'success',
+        title: `Mã PIN mới của ${escapeHtml(ket.name || student.name)}`,
+        html: `<p style="font-size:34px;font-weight:800;letter-spacing:8px;margin:14px 0;">${escapeHtml(ket.pin)}</p>
+               <p style="font-size:13px;color:#64748b;">Mã này không xem lại được. Quên nữa thì cấp lại lần khác.</p>`,
+        confirmButtonText: 'Tôi đã ghi lại',
+        confirmButtonColor: '#3085d6',
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Không cấp lại được',
+        text: error instanceof Error ? error.message : 'Thử lại sau.',
+        confirmButtonColor: '#3085d6',
+      });
+    }
+  };
 
   const syncClassesToCloud = async () => {
     if (!user?.uid) return;
@@ -710,6 +746,7 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
                   <span className="hidden font-semibold text-slate-600 md:block">{student.code}</span>
                   <div className="flex items-center gap-3"><div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-blue-600" style={{ width: `${student.progress}%` }} /></div><span className="w-10 text-right font-black text-slate-700">{student.progress}%</span></div>
                   <span className={`w-fit rounded-full px-3 py-1 text-xs font-black ${status.className}`}>{status.label}</span>
+                  <button onClick={() => capLaiPinMotEm(selectedClass, student)} title={`Cấp lại mã PIN cho ${student.name}`} aria-label={`Cấp lại mã PIN cho ${student.name}`} className="w-fit rounded-full p-2 text-slate-300 transition hover:bg-blue-50 hover:text-blue-600"><KeyRound className="h-4 w-4" /></button>
                   <button onClick={() => deleteStudent(selectedClass, student)} title={`Xoá ${student.name} khỏi lớp`} aria-label={`Xoá ${student.name} khỏi lớp`} className="w-fit rounded-full p-2 text-slate-300 transition hover:bg-red-50 hover:text-red-600"><Trash2 className="h-4 w-4" /></button>
                 </div>
               );

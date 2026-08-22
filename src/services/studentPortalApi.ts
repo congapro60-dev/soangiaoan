@@ -65,3 +65,14 @@ export const issueClassPins = async (classId: string, regenerate = false): Promi
   const idToken = await current.getIdToken();
   return call<{ issued: IssuedPin[]; total: number }>({ action: 'issuePins', classId, idToken, regenerate });
 };
+
+/**
+ * Cấp lại PIN cho một em. Trả về mã mới ĐÚNG MỘT LẦN — máy chủ chỉ giữ bản băm.
+ * Các em khác trong lớp giữ nguyên mã cũ.
+ */
+export const resetStudentPin = async (classId: string, studentId: string): Promise<IssuedPin> => {
+  const current = auth.currentUser;
+  if (!current || current.isAnonymous) throw new Error('Cần đăng nhập tài khoản giáo viên.');
+  const idToken = await current.getIdToken();
+  return call<IssuedPin>({ action: 'resetOnePin', classId, studentId, idToken });
+};
