@@ -8,7 +8,7 @@ Add GLM 5.2 as an optional SmartPlan AI provider using one owner-managed Vercel 
 
 ## Scope
 
-- Add a serverless `POST /api/ai-gateway` endpoint.
+- Add a serverless `POST /api/grade-homework (action: aiGateway)` endpoint.
 - Require a Firebase ID token in `Authorization: Bearer ...`.
 - Read `AI_GATEWAY_API_KEY` only from Vercel server environment variables.
 - Allow the fixed model `zai/glm-5.2` through `https://ai-gateway.vercel.sh/v1`.
@@ -34,7 +34,7 @@ Settings: select GLM 5.2
 src/lib/aiProviders.ts
         |  Firebase currentUser.getIdToken()
         v
-POST /api/ai-gateway  -- Bearer Firebase ID token --> Firebase Admin verifyIdToken
+POST /api/grade-homework (action: aiGateway)  -- Bearer Firebase ID token --> Firebase Admin verifyIdToken
         |
         |  AI_GATEWAY_API_KEY (server only)
         v

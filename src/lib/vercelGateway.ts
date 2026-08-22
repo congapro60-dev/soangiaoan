@@ -81,6 +81,9 @@ export const streamVercelGateway = async (
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
+  // Cờ hoàn tất: server gửi {done:true} rồi sentinel [DONE]. Luồng kết thúc mà chưa thấy
+  // cờ là bị đứt giữa chừng — phải báo lỗi thay vì im lặng coi nội dung cụt là đầy đủ.
+  let daXong = false;
 
   const consumeEvents = (flush = false) => {
     const events: string[] = [];
@@ -100,6 +103,7 @@ export const streamVercelGateway = async (
       if (!dataLine) continue;
       const payload = parseGatewaySseEvent(dataLine.slice('data:'.length));
       if (payload?.error) throw new Error(payload.error);
+      if (payload?.done === true || dataLine.trim() === 'data: [DONE]') daXong = true;
       if (payload?.text) onChunk(payload.text);
     }
   };
@@ -114,4 +118,6 @@ export const streamVercelGateway = async (
   } finally {
     reader.releaseLock();
   }
+
+  if (!daXong) throw new Error('Kết nối tới GLM 5.2 bị ngắt giữa chừng. Thử lại giúp em nhé.');
 };

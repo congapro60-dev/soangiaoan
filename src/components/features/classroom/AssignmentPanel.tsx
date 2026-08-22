@@ -7,6 +7,7 @@ import {
   listAssignmentsForClass,
   listClassRoster,
   listSubmissionsForClass,
+  xoaBaiNopHocSinh,
   deleteAssignment,
   setAssignmentOpen,
   updateAssignmentContent,
@@ -60,13 +61,15 @@ interface BaiNopTheoLopProps {
   chamLai: (s: SubmissionDoc, ten: string) => void | Promise<void>;
   suaDiem: (s: SubmissionDoc, ten: string) => void | Promise<void>;
   duyet: (s: SubmissionDoc) => void | Promise<void>;
+  xoaBaiNop: (s: SubmissionDoc, ten: string) => void | Promise<void>;
+  dangXoaNop: string;
 }
 
 /**
  * Danh sách ĐỦ CẢ LỚP theo một bài giao: em nào đã nộp (kèm trạng thái/điểm/hành động),
  * em nào chưa nộp — giáo viên kiểm soát một mắt nhìn thay vì đoán từ số lượng.
  */
-const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet }: BaiNopTheoLopProps) => {
+const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet, xoaBaiNop, dangXoaNop }: BaiNopTheoLopProps) => {
   const tenTheoId = new Map(lopHocSinh.map(hs => [hs.studentId, hs.name]));
   const daNopIds = new Set(baiNop.map(s => s.studentId));
   const chuaNop = lopHocSinh.filter(hs => !daNopIds.has(hs.studentId));
@@ -169,6 +172,15 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                       {s.grade.teacherApproved ? 'Đã duyệt' : 'Duyệt điểm'}
                     </button>
                   )}
+                  <button
+                    onClick={() => void xoaBaiNop(s, ten)}
+                    disabled={tienDo !== '' || dangXoaNop !== ''}
+                    title="Xoá hẳn lần nộp này — học sinh quay về trạng thái chưa nộp"
+                    className="inline-flex items-center gap-1 rounded-2xl border border-red-200 bg-white px-3 py-2 text-xs font-black text-red-700 transition hover:bg-red-50 disabled:opacity-50"
+                  >
+                    {dangXoaNop === s.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                    Xoá bài nộp
+                  </button>
                 </div>
               </div>
             )}
@@ -194,6 +206,8 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
   const [tatCaBaiNop, setTatCaBaiNop] = useState<SubmissionDoc[]>([]);
   const [lopHocSinh, setLopHocSinh] = useState<RosterStudent[]>([]);
   const [moRongId, setMoRongId] = useState('');
+  // Id bài nộp đang bị xoá — khoá nút trong lúc gọi để không bấm đúp xoá hai lần.
+  const [dangXoaNop, setDangXoaNop] = useState('');
   const [dangTai, setDangTai] = useState(false);
   const [tienDo, setTienDo] = useState('');
   const [moForm, setMoForm] = useState(false);
@@ -529,6 +543,38 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
     }
   };
 
+  /**
+   * Xoá HẲN một bài nộp: học sinh quay về trạng thái CHƯA NỘP và nộp lại từ đầu được.
+   * Khác với "Nộp lại" (attempt mới chồng lên lịch sử) — đây là nút cho trường hợp nộp nhầm
+   * hoàn toàn, giáo viên muốn xoá sạch dấu vết lần nộp đó. Bài đã duyệt sẽ tự gỡ bằng chứng
+   * khỏi hồ sơ tích luỹ trước khi xoá.
+   */
+  const xoaBaiNop = async (s: SubmissionDoc, tenHocSinh: string) => {
+    const { isConfirmed } = await Swal.fire({
+      icon: 'warning',
+      title: `Xoá bài nộp của ${tenHocSinh}?`,
+      html: 'Điểm và nhận xét lần nộp này <b>mất vĩnh viễn</b>. Học sinh sẽ thấy bài quay về trạng thái <b>chưa nộp</b> và nộp lại từ đầu được.<br/><span style="font-size:12px;color:#94a3b8;">Ảnh đã tải lên vẫn còn trên máy chủ.</span>',
+      showCancelButton: true,
+      confirmButtonText: 'Xoá bài nộp',
+      cancelButtonText: 'Giữ lại',
+      confirmButtonColor: '#dc2626',
+      focusCancel: true,
+    });
+    if (!isConfirmed) return;
+
+    setDangXoaNop(s.id);
+    try {
+      await xoaBaiNopHocSinh(s);
+      showToast(`Đã xoá bài nộp của ${tenHocSinh} — em ấy có thể nộp lại từ đầu.`, 'success');
+      setTatCaBaiNop(prev => prev.filter(x => x.id !== s.id));
+      if (moRongId === s.id) setMoRongId('');
+    } catch (error) {
+      setLoiTai(error instanceof Error ? error.message : 'Không xoá được bài nộp.');
+    } finally {
+      setDangXoaNop('');
+    }
+  };
+
   const duyet = async (submission: SubmissionDoc) => {
     const dangDuyet = !submission.grade?.teacherApproved;
     try {
@@ -741,6 +787,8 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
                     chamLai={chamLaiMotBai}
                     suaDiem={suaDiem}
                     duyet={duyet}
+                    xoaBaiNop={xoaBaiNop}
+                    dangXoaNop={dangXoaNop}
                   />
                   <p className="mt-3 rounded-2xl bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-500">
                     Điểm chỉ vào hồ sơ học tập của học sinh sau khi thầy cô bấm <b>Duyệt điểm</b>. Máy chấm không tự duyệt cho mình.

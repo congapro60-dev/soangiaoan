@@ -24,7 +24,7 @@ describe('rollQuota — sang ngày mới là về 0', () => {
   });
 
   it('doc cùng ngày thì giữ nguyên bộ đếm', () => {
-    const nay = { day: NGAY, teacherCount: 12, selfCount: 3, byStudent: { s1: 2 } };
+    const nay = { ...emptyQuota(NGAY), teacherCount: 12, selfCount: 3, byStudent: { s1: 2 } };
     expect(rollQuota(nay, NGAY)).toEqual(nay);
   });
 

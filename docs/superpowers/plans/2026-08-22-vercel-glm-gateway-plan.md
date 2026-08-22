@@ -4,7 +4,7 @@
 
 **Goal:** Add a secure, server-managed GLM 5.2 provider to SmartPlan AI for authenticated text and streaming requests.
 
-**Architecture:** The browser selects a fixed `vercel-gateway` provider and sends only a Firebase ID token plus prompt to `/api/ai-gateway`. The Vercel function verifies the token, reads `AI_GATEWAY_API_KEY`, calls the OpenAI-compatible Vercel AI Gateway with `zai/glm-5.2`, and returns JSON or SSE. Existing vision calls fail clearly instead of silently routing images to a text-only model.
+**Architecture:** The browser selects a fixed `vercel-gateway` provider and sends only a Firebase ID token plus prompt to `/api/grade-homework (action: aiGateway)`. The Vercel function verifies the token, reads `AI_GATEWAY_API_KEY`, calls the OpenAI-compatible Vercel AI Gateway with `zai/glm-5.2`, and returns JSON or SSE. Existing vision calls fail clearly instead of silently routing images to a text-only model.
 
 **Tech Stack:** React + TypeScript + Vite, Vercel Node functions, Firebase Admin Auth, OpenAI-compatible SDK, Vitest.
 

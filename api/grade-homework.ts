@@ -8,6 +8,7 @@ import {
   bumpQuota,
   callGeminiVision,
   getGradingApiKey,
+  loadQuotaDoc,
   remainingQuota,
   rollQuota,
   today,
@@ -43,6 +44,8 @@ import { handleAiGateway } from './_ai-gateway-handler.js';
 const BATCH_SIZE = 4;
 const MAX_IMAGES_PER_SUBMISSION = 4;
 const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
+/** Khai tường minh thay vì dựa default của Vercel — Hobby cap ở 60s. */
+export const maxDuration = 60;
 
 const readBody = (req: VercelRequest): Record<string, unknown> => {
   if (req.body && typeof req.body === 'object') return req.body as Record<string, unknown>;
@@ -151,12 +154,6 @@ const gradeOneSubmission = async (
   }
 };
 
-const loadQuota = async (db: FirebaseFirestore.Firestore, teacherId: string): Promise<[QuotaDoc, FirebaseFirestore.DocumentReference]> => {
-  const ref = db.collection('gradingQuota').doc(teacherId);
-  const snap = await ref.get();
-  return [rollQuota(snap.exists ? (snap.data() as Partial<QuotaDoc>) : null, today()), ref];
-};
-
 const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
   const uid = await uidFromIdToken(body.idToken);
   if (!uid) return res.status(401).json({ error: 'Cần đăng nhập tài khoản giáo viên.' });
@@ -186,7 +183,7 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
 
   if (hopLe.length === 0) return res.status(200).json({ graded: 0, failed: 0, remaining: 0 });
 
-  const [quota, quotaRef] = await loadQuota(db, uid);
+  const [quota, quotaRef] = await loadQuotaDoc(db, uid);
   const verdict = remainingQuota(quota, 'teacher', '');
   if (verdict.allowed <= 0) return res.status(429).json({ error: verdict.reason });
 
@@ -231,7 +228,7 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
   if (!isOwnerStudent && !isTeacher) return res.status(403).json({ error: 'Không có quyền chấm bài này.' });
 
   const kind: GradeKind = isTeacher ? 'teacher' : 'self';
-  const [quota, quotaRef] = await loadQuota(db, String(submission.teacherId || ''));
+  const [quota, quotaRef] = await loadQuotaDoc(db, String(submission.teacherId || ''));
   const verdict = remainingQuota(quota, kind, String(submission.studentId || ''));
   if (verdict.allowed <= 0) return res.status(429).json({ error: verdict.reason });
 
@@ -283,7 +280,7 @@ const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<stri
     return res.status(200).json({ questions: [], reason: 'Hồ sơ chưa ghi nhận chủ đề nào cần luyện thêm.' });
   }
 
-  const [quota, quotaRef] = await loadQuota(db, link.teacherId);
+  const [quota, quotaRef] = await loadQuotaDoc(db, link.teacherId);
   const verdict = remainingQuota(quota, 'self', link.studentId);
   if (verdict.allowed <= 0) return res.status(429).json({ error: verdict.reason });
 
@@ -328,7 +325,7 @@ const handleSolveAnswerKey = async (db: FirebaseFirestore.Firestore, body: Recor
     return res.status(400).json({ error: 'Chưa có đề để giải. Tải file đề lên trước đã.' });
   }
 
-  const [quota, quotaRef] = await loadQuota(db, uid);
+  const [quota, quotaRef] = await loadQuotaDoc(db, uid);
   const verdict = remainingQuota(quota, 'teacher', '');
   if (verdict.allowed <= 0) return res.status(429).json({ error: verdict.reason });
 
@@ -363,7 +360,7 @@ const handleSuggestRubric = async (db: FirebaseFirestore.Firestore, body: Record
     return res.status(400).json({ error: 'Cần có đáp án trước đã. Hướng dẫn chấm là cách chia điểm CHO đáp án đó.' });
   }
 
-  const [quota, quotaRef] = await loadQuota(db, uid);
+  const [quota, quotaRef] = await loadQuotaDoc(db, uid);
   const verdict = remainingQuota(quota, 'teacher', '');
   if (verdict.allowed <= 0) return res.status(429).json({ error: verdict.reason });
 
@@ -389,10 +386,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const action = String(body.action || '');
 
   try {
-    const db = getAdminDb();
-    // Gateway GLM 5.2 gộp vào đây (action 'aiGateway') — Vercel Hobby trần 12 Serverless
-    // Functions, đứng thành file riêng là cái thứ 13 và deployment vỡ lúc build.
+    // Gateway đặt TRƯỚC khi init Admin: lỗi cấu hình Firebase phải trả lỗi của gateway
+    // (nó tự khởi tạo Admin khi cần), chứ không nuốt vào 500 chung của route chấm bài.
     if (action === 'aiGateway') return await handleAiGateway(req, res);
+    const db = getAdminDb();
     if (action === 'gradeAssignment') return await handleGradeAssignment(db, body, res);
     if (action === 'gradeOne') return await handleGradeOne(db, body, res);
     if (action === 'practice') return await handlePractice(db, body, res);

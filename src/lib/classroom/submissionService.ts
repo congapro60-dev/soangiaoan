@@ -205,6 +205,29 @@ export const listClassRoster = async (classId: string): Promise<RosterStudent[]>
 };
 
 /**
+ * GV xoá HẲN một bài nộp — học sinh quay về trạng thái CHƯA NỘP và nộp lại từ đầu được
+ * (khác với "Nộp lại" tạo attempt mới chồng lên lịch sử). Bài đã duyệt thì gỡ bằng chứng
+ * khỏi hồ sơ tích luỹ TRƯỚC khi xoá document, không để lại nhãn mồ côi trỏ vào bài không tồn tại.
+ * Ảnh trên Storage cố ý giữ lại: storage.rules chỉ cho chính chủ ảnh xoá — dọn hàng loạt là việc của backlog.
+ */
+export const xoaBaiNopHocSinh = async (submission: SubmissionDoc): Promise<void> => {
+  if (submission.grade?.teacherApproved) {
+    const now = new Date().toISOString();
+    const profileRef = doc(db, STUDENT_PROFILES_COL, submission.studentId);
+    const snap = await getDoc(profileRef);
+    const existing = snap.exists() ? ((snap.data() as StudentProfileDoc).topics || []) : [];
+    await setDoc(profileRef, removeUndefinedFields({
+      studentId: submission.studentId,
+      classId: submission.classId,
+      teacherId: submission.teacherId,
+      topics: removeEvidence(existing, submission.id, now),
+      updatedAt: now,
+    } as StudentProfileDoc));
+  }
+  await deleteDoc(doc(db, SUBMISSIONS_COL, submission.id));
+};
+
+/**
  * Giáo viên sửa tay điểm/nhận xét sau khi máy chấm. Chỉ đụng các trường điểm —
  * không đụng định danh bài nộp; cờ editedByTeacher để màn hình phân biệt điểm máy và điểm người.
  */

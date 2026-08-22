@@ -16,20 +16,24 @@ export const QUOTA_LIMITS = {
   selfDaily: 100,
   /** Bài học sinh tự nộp, tính theo từng em, mỗi ngày. */
   selfPerStudentDaily: 5,
+  /** Lượt gọi GLM qua gateway (soạn/nâng cấp bằng khoá server), tính theo user, mỗi ngày. */
+  gatewayDaily: Number(process.env.AI_GATEWAY_DAILY_LIMIT) || 100,
 } as const;
 
-export type GradeKind = 'teacher' | 'self';
+export type GradeKind = 'teacher' | 'self' | 'gateway';
 
 export interface QuotaDoc {
   day: string;
   teacherCount: number;
   selfCount: number;
+  /** Lượt gọi GLM gateway của user, mỗi ngày. */
+  gatewayCount: number;
   byStudent: Record<string, number>;
 }
 
 export const today = (now: Date = new Date()): string => now.toISOString().slice(0, 10);
 
-export const emptyQuota = (day: string): QuotaDoc => ({ day, teacherCount: 0, selfCount: 0, byStudent: {} });
+export const emptyQuota = (day: string): QuotaDoc => ({ day, teacherCount: 0, selfCount: 0, gatewayCount: 0, byStudent: {} });
 
 /** Sang ngày mới thì bộ đếm về 0. Đọc doc cũ luôn phải đi qua hàm này trước khi dùng. */
 export const rollQuota = (raw: Partial<QuotaDoc> | null | undefined, day: string): QuotaDoc => {
@@ -38,6 +42,7 @@ export const rollQuota = (raw: Partial<QuotaDoc> | null | undefined, day: string
     day,
     teacherCount: raw.teacherCount ?? 0,
     selfCount: raw.selfCount ?? 0,
+    gatewayCount: raw.gatewayCount ?? 0,
     byStudent: raw.byStudent ?? {},
   };
 };
@@ -57,6 +62,12 @@ export const remainingQuota = (
   studentId: string,
   limits: typeof QUOTA_LIMITS = QUOTA_LIMITS,
 ): QuotaVerdict => {
+  if (kind === 'gateway') {
+    const left = limits.gatewayDaily - quota.gatewayCount;
+    return left > 0
+      ? { allowed: left, reason: '' }
+      : { allowed: 0, reason: `Hôm nay tài khoản này đã dùng hết ${limits.gatewayDaily} lượt GLM. Thử lại vào ngày mai.` };
+  }
   if (kind === 'teacher') {
     const left = limits.teacherDaily - quota.teacherCount;
     return left > 0
@@ -77,12 +88,23 @@ export const remainingQuota = (
 
 export const bumpQuota = (quota: QuotaDoc, kind: GradeKind, studentId: string, count: number): QuotaDoc => {
   if (count <= 0) return quota;
+  if (kind === 'gateway') return { ...quota, gatewayCount: quota.gatewayCount + count };
   if (kind === 'teacher') return { ...quota, teacherCount: quota.teacherCount + count };
   return {
     ...quota,
     selfCount: quota.selfCount + count,
     byStudent: { ...quota.byStudent, [studentId]: (quota.byStudent[studentId] ?? 0) + count },
   };
+};
+
+/** Nạp bộ đếm hạn mức của một user (giáo viên hoặc user dùng gateway), tự roll sang ngày mới. */
+export const loadQuotaDoc = async (
+  db: FirebaseFirestore.Firestore,
+  uid: string,
+): Promise<[QuotaDoc, FirebaseFirestore.DocumentReference]> => {
+  const ref = db.collection('gradingQuota').doc(uid);
+  const snap = await ref.get();
+  return [rollQuota(snap.exists ? (snap.data() as Partial<QuotaDoc>) : null, today()), ref];
 };
 
 // ── Gọi Gemini bằng khoá của chủ dự án ───────────────────────────────────────
