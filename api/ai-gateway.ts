@@ -10,7 +10,7 @@ import {
   getBearerToken,
   normalizeGatewayPrompt,
   resolveGatewayApiKey,
-} from './_ai-gateway-core';
+} from './_ai-gateway-core.js';
 
 interface GatewayBody {
   prompt?: unknown;
@@ -59,7 +59,9 @@ const handleStream = async (
 
   try {
     const completion = await client.chat.completions.create(buildGatewayChatRequest(prompt, true));
-    for await (const chunk of completion as AsyncIterable<{ choices?: Array<{ delta?: { content?: string } }> }>) {
+    // SDK trả về union ChatCompletion | Stream; khi stream=true kiểu union không tự hẹp được
+    // nên phải đi qua unknown — cast thẳng là TS2352.
+    for await (const chunk of (completion as unknown as AsyncIterable<{ choices?: Array<{ delta?: { content?: string } }> }>)) {
       const text = chunk.choices?.[0]?.delta?.content || '';
       if (text) writeStreamEvent(res, { text });
     }
