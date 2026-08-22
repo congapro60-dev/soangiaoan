@@ -168,16 +168,26 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
   const pending = await db.collection('submissions')
     .where('assignmentId', '==', assignmentId)
     .where('status', 'in', ['submitted', 'error'])
-    .limit(BATCH_SIZE + 1)
+    .limit(BATCH_SIZE + 20)
     .get();
 
   if (pending.empty) return res.status(200).json({ graded: 0, failed: 0, remaining: 0 });
+
+  // KHÓA NGUỒN GỐC: chỉ chấm bài nộp thật sự thuộc bài giao này (cùng giáo viên + cùng lớp).
+  // Truy vấn không lọc được hai trường này nếu không đòi index tổ hợp mới, nên lọc tại đây —
+  // document lệch lớp là rác do client bịa và tuyệt đối không được ăn điểm từ đáp án của bài khác.
+  const hopLe = pending.docs.filter(d => {
+    const s = d.data() as FirebaseFirestore.DocumentData;
+    return s.teacherId === uid && s.classId === assignment.classId;
+  });
+
+  if (hopLe.length === 0) return res.status(200).json({ graded: 0, failed: 0, remaining: 0 });
 
   const [quota, quotaRef] = await loadQuota(db, uid);
   const verdict = remainingQuota(quota, 'teacher', '');
   if (verdict.allowed <= 0) return res.status(429).json({ error: verdict.reason });
 
-  const batch = pending.docs.slice(0, Math.min(BATCH_SIZE, verdict.allowed));
+  const batch = hopLe.slice(0, Math.min(hopLe.length, verdict.allowed));
   const ctx: GradeContext = {
     answerKey: String(assignment.answerKey || ''),
     rubric: String(assignment.rubric || ''),
@@ -198,7 +208,7 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
   return res.status(200).json({
     graded,
     failed,
-    remaining: Math.max(0, pending.size - batch.length),
+    remaining: Math.max(0, hopLe.length - batch.length),
   });
 };
 
@@ -227,6 +237,12 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
     const aSnap = await db.collection('assignments').doc(String(submission.assignmentId)).get();
     if (aSnap.exists) {
       const a = aSnap.data() as FirebaseFirestore.DocumentData;
+      // KHÓA NGUỒN ĐÁP ÁN: assignment phải thuộc đúng lớp + giáo viên của bài nộp.
+      // Không khớp nghĩa là client đã bịa assignmentId để mượn đáp án của bài khác —
+      // từ chối thẳng thay vì im lặng chấm không key (lỗi bịa dữ liệu phải lộ ra).
+      if (a.teacherId !== submission.teacherId || a.classId !== submission.classId) {
+        return res.status(403).json({ error: 'Bài nộp không khớp với bài đã giao. Báo thầy cô kiểm tra lại.' });
+      }
       ctx = {
         answerKey: String(a.answerKey || ''),
         rubric: String(a.rubric || ''),

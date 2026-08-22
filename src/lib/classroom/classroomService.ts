@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, limit, query, where, writeBatch } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDoc, getDocs, limit, query, setDoc, where, writeBatch } from 'firebase/firestore';
 import { db, removeUndefinedFields } from '../firebase';
 import { TeacherClass } from '../../types';
 import { planLegacyClassMigration } from './migrateLegacyClasses';
@@ -8,6 +8,39 @@ import { CLASSES_COL, STUDENTS_SUB, type ClassDoc } from './types';
 export const getClassDoc = async (classId: string): Promise<ClassDoc | null> => {
   const snap = await getDoc(doc(db, CLASSES_COL, classId));
   return snap.exists() ? (snap.data() as ClassDoc) : null;
+};
+
+/**
+ * Thêm học sinh vào lớp ĐÃ đồng bộ trên server — em mới đăng nhập được NGAY, không phụ thuộc
+ * ai đó nhớ bấm "Đồng bộ ngay". Trả false khi lớp chưa lên server (caller tự cảnh báo sync).
+ */
+export const themHocSinhLenServer = async (
+  classId: string,
+  teacherId: string,
+  student: { id: string; name: string; code: string },
+): Promise<boolean> => {
+  const classSnap = await getDoc(doc(db, CLASSES_COL, classId));
+  if (!classSnap.exists()) return false;
+  await setDoc(doc(db, CLASSES_COL, classId, STUDENTS_SUB, student.id), removeUndefinedFields({
+    id: student.id,
+    classId,
+    teacherId,
+    name: student.name,
+    code: student.code.toUpperCase(),
+    status: 'active',
+    progress: 0,
+    createdAt: new Date().toISOString(),
+  }));
+  return true;
+};
+
+/** Xoá học sinh khỏi lớp đã đồng bộ trên server. Trả false nếu lớp chưa lên server. */
+export const xoaHocSinhKhoiServer = async (classId: string, studentId: string): Promise<boolean> => {
+  const ref = doc(db, CLASSES_COL, classId, STUDENTS_SUB, studentId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return false;
+  await deleteDoc(ref);
+  return true;
 };
 
 /** Firestore chỉ nhận tối đa 500 phép ghi mỗi batch. Chừa biên cho an toàn. */

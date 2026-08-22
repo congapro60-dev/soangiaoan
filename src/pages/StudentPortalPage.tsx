@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { collection, doc, getDoc, getDocs, limit, orderBy, query, where } from 'firebase/firestore';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+import Swal from 'sweetalert2';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -269,8 +270,9 @@ export const StudentPortalPage = () => {
         ? assignments.find(a => a.id === mucTieu)?.title || 'bài được giao'
         : 'bài tự nộp';
       setThanhCong(`Đã nộp "${tenBai}" thành công lúc ${new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}.`);
-      // Bài tự nộp thì chấm luôn, không phải chờ thầy cô bấm. Nộp đã xong thì không được
-      // báo đỏ như thất bại — chỉ cảnh báo vàng là "máy chưa chấm ngay".
+
+      // Bài tự nộp thì chấm luôn, không hỏi. Bài được giao mà thầy cô đã soạn đáp án hoặc
+      // hướng dẫn chấm thì học sinh chọn: máy chấm ngay, hay gửi thầy cô chấm.
       if (!mucTieu) {
         setBuocNop('Đã nộp! Máy đang chấm bài...');
         try {
@@ -279,6 +281,35 @@ export const StudentPortalPage = () => {
           console.error('Chấm bài tự do chưa xong', error);
           setCanhBao('Bài đã nộp thành công nhưng máy chưa chấm được ngay — thầy cô sẽ chấm giúp em sau.');
         }
+      } else {
+        const bai = assignments.find(a => a.id === mucTieu);
+        if (bai && (bai.answerKey || bai.rubric)) {
+          setBuocNop('');
+          const { isConfirmed } = await Swal.fire({
+            icon: 'success',
+            title: 'Nộp bài thành công!',
+            text: 'Bài này thầy cô đã soạn đáp án và hướng dẫn chấm. Em muốn máy chấm luôn để xem kết quả, hay gửi cho thầy cô chấm?',
+            showDenyButton: true,
+            confirmButtonText: 'Tự chấm ngay',
+            denyButtonText: 'Gửi thầy cô chấm',
+            confirmButtonColor: '#4f46e5',
+            denyButtonColor: '#64748b',
+            allowOutsideClick: false,
+          });
+          if (isConfirmed) {
+            setBuocNop('Máy đang chấm bài...');
+            try {
+              await gradeOneSubmission(submission.id);
+              setThanhCong(`Máy đã chấm xong bài "${tenBai}" — kéo xuống mục "Bài đã được chấm" xem điểm nhé!`);
+            } catch (error) {
+              console.error('Chấm bài giao chưa xong', error);
+              setCanhBao('Bài đã nộp thành công nhưng máy chưa chấm được ngay — thầy cô sẽ chấm giúp em sau.');
+            }
+          } else {
+            setThanhCong(`Đã nộp "${tenBai}" — bài của em đang chờ thầy cô chấm.`);
+          }
+        }
+        // Không có đáp án lẫn hướng dẫn chấm → mặc định gửi thầy cô, không hỏi cho mất thời gian.
       }
       await taiDuLieu();
     } catch (error) {
@@ -418,8 +449,26 @@ export const StudentPortalPage = () => {
     );
   }
 
-  const daCham = submissions.filter(s => s.status === 'graded' && s.grade);
-  const choCham = submissions.filter(s => s.status !== 'graded');
+  const daCham = (() => {
+    // LẦN NỘP HIỆN HÀNH = attempt mới nhất của mỗi bài giao (bài tự nộp thì mỗi bản là độc lập).
+    // Không chuẩn hoá thế là nộp lại 2 lần ra "2/1 đã chấm" và điểm TB gộp cả điểm cũ.
+    const moiNhat = new Map<string, SubmissionDoc>();
+    for (const s of submissions) {
+      const key = s.assignmentId ?? s.id;
+      const hienTai = moiNhat.get(key);
+      if (!hienTai || s.createdAt > hienTai.createdAt) moiNhat.set(key, s);
+    }
+    return [...moiNhat.values()].filter(s => s.status === 'graded' && s.grade);
+  })();
+  const choCham = (() => {
+    const moiNhat = new Map<string, SubmissionDoc>();
+    for (const s of submissions) {
+      const key = s.assignmentId ?? s.id;
+      const hienTai = moiNhat.get(key);
+      if (!hienTai || s.createdAt > hienTai.createdAt) moiNhat.set(key, s);
+    }
+    return [...moiNhat.values()].filter(s => s.status !== 'graded');
+  })();
   const diemTB = daCham.length > 0
     ? (daCham.reduce((sum, s) => sum + (s.grade?.score ?? 0), 0) / daCham.length).toFixed(1)
     : '—';
@@ -598,6 +647,15 @@ export const StudentPortalPage = () => {
                         {s.status === 'error' && s.errorMessage && (
                           <p className="mt-1 text-sm font-semibold text-red-700">{s.errorMessage}</p>
                         )}
+                        {s.assignmentId && (
+                          <button
+                            onClick={() => chonAnh(s.assignmentId)}
+                            disabled={dangNop !== ''}
+                            className="mt-2 inline-flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-600 transition hover:bg-slate-50 active:scale-[0.98] disabled:opacity-50"
+                          >
+                            <Camera className="h-3.5 w-3.5" /> Nộp lại bài này
+                          </button>
+                        )}
                       </div>
                     );
                   })}
@@ -628,6 +686,17 @@ export const StudentPortalPage = () => {
                           </div>
                           {s.grade?.feedback && (
                             <p className="mt-1 whitespace-pre-line text-sm font-medium leading-6 text-slate-600">{s.grade.feedback}</p>
+                          )}
+                          {/* Nộp lại sau phản hồi: tạo LẦN NỘP MỚI gắn cùng bài giao — điểm cũ còn nguyên
+                              trên bảng giáo viên để đối chiếu, thầy cô chấm lần mới thì điểm mới thay thế. */}
+                          {s.assignmentId && (
+                            <button
+                              onClick={() => chonAnh(s.assignmentId)}
+                              disabled={dangNop !== ''}
+                              className="mt-2 inline-flex items-center gap-1.5 rounded-2xl border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-black text-indigo-700 transition hover:bg-indigo-100 active:scale-[0.98] disabled:opacity-50"
+                            >
+                              <Camera className="h-3.5 w-3.5" /> Nộp lại bài này
+                            </button>
                           )}
                         </div>
                       </div>

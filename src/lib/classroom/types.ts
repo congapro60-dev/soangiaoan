@@ -80,6 +80,12 @@ export interface AssignmentDoc {
   /** Chỉ có khi type === 'exam' — trỏ sang đề trong collection `exams`. */
   examId?: string;
   dueAt?: string;
+  /** Đáp án chuẩn dạng văn bản — học sinh dùng để chọn chế độ "Tự chấm ngay". */
+  answerKey?: string;
+  /** Hướng dẫn chấm cho AI. */
+  rubric?: string;
+  /** Điểm tối đa, mặc định 10 khi không ghi. */
+  maxScore?: number;
   /** File đề giáo viên đính kèm để học sinh mở ra xem (PDF, ảnh, Word). */
   attachments?: AssignmentAttachment[];
   /** Ảnh đáp án khi không rút được chữ — gửi kèm MỖI lượt chấm nên tốn hơn bản có chữ. */
@@ -110,6 +116,8 @@ export interface SubmissionGrade {
   gradedAt: string;
   /** true khi giáo viên đã xem và đồng ý — điều kiện để vào hồ sơ tích luỹ. */
   teacherApproved: boolean;
+  /** true khi giáo viên sửa tay điểm/nhận xét sau khi máy chấm. */
+  editedByTeacher?: boolean;
 }
 
 /**

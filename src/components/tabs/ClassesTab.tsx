@@ -5,8 +5,9 @@ import { User } from 'firebase/auth';
 import { AppData, ClassAssignment, Student, TeacherClass } from '../../types';
 import { useExams, getSubmissions } from '../../hooks/useExams';
 import { parseRosterRows } from '../../utils/classRosterImport';
-import { countUnmigratedClasses, getClassDoc, migrateLegacyClasses } from '../../lib/classroom/classroomService';
-import { issueClassPins, resetStudentPin, viewStudentPin } from '../../services/studentPortalApi';
+import { countUnmigratedClasses, getClassDoc, migrateLegacyClasses, themHocSinhLenServer } from '../../lib/classroom/classroomService';
+import { listAssignmentsForClass, listSubmissionsForClass } from '../../lib/classroom/submissionService';
+import { issueClassPins, resetStudentPin, revokeClassData, revokeStudentAccessServer, viewStudentPin } from '../../services/studentPortalApi';
 import { AssignmentPanel } from '../features/classroom/AssignmentPanel';
 import { StudentReport } from '../features/classroom/StudentReport';
 
@@ -180,6 +181,39 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
   };
 
   const selectedClass = classes.find((item) => item.id === selectedClassId) || classes[0];
+
+  // Tiến độ THẬT từng học sinh: đếm từ bài nộp trên Firestore, không dùng trường `progress`
+  // cũ (mô hình lưu cục bộ, migrate lên mặc định 0 và không bao giờ được cập nhật).
+  const [tienDoThat, setTienDoThat] = useState<Map<string, { daNop: number; tongBai: number }> | null>(null);
+  useEffect(() => {
+    if (!selectedClass || !user) { setTienDoThat(null); return; }
+    let boQua = false;
+    void (async () => {
+      try {
+        const [dsBai, dsNop] = await Promise.all([
+          listAssignmentsForClass(selectedClass.id, user.uid),
+          listSubmissionsForClass(selectedClass.id, user.uid),
+        ]);
+        if (boQua) return;
+        const baiDangMo = dsBai.filter(b => b.isOpen);
+        const dem = new Map<string, Set<string>>();
+        for (const s of dsNop) {
+          if (!s.assignmentId || !baiDangMo.some(b => b.id === s.assignmentId)) continue;
+          if (!dem.has(s.studentId)) dem.set(s.studentId, new Set());
+          dem.get(s.studentId)!.add(s.assignmentId);
+        }
+        const map = new Map<string, { daNop: number; tongBai: number }>();
+        for (const hs of selectedClass.students) {
+          map.set(hs.id, { daNop: dem.get(hs.id)?.size ?? 0, tongBai: baiDangMo.length });
+        }
+        setTienDoThat(map);
+      } catch {
+        if (!boQua) setTienDoThat(null);
+      }
+    })();
+    return () => { boQua = true; };
+  }, [selectedClass, user]);
+
   const filteredStudents = useMemo(() => {
     if (!selectedClass) return [];
     const keyword = query.trim().toLowerCase();
@@ -275,6 +309,7 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
       return;
     }
 
+    const maHocSinhMoi = `student-${Date.now()}`;
     setData((prev: AppData) => {
       const existingClasses = prev.classes || [];
       return {
@@ -282,7 +317,7 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
         classes: existingClasses.map((item) => {
           if (item.id !== selectedClass.id) return item;
           const nextStudent: Student = {
-            id: `student-${Date.now()}`,
+            id: maHocSinhMoi,
             name: value.name,
             code: finalCode,
             progress: 0,
@@ -292,6 +327,20 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
         }),
       };
     });
+
+    // F-01: lớp ĐÃ đồng bộ thì ghi thẳng roster lên server — em mới đăng nhập được ngay.
+    // Trước đây chỉ lưu local, lớp đã sync không được cảnh báo lần nữa nên em mới mãi không vào được.
+    try {
+      const daLenServer = await themHocSinhLenServer(selectedClass.id, user?.uid || '', {
+        id: maHocSinhMoi,
+        name: value.name,
+        code: finalCode,
+      });
+      if (daLenServer) showToast(`Đã thêm ${value.name} — đăng nhập được ngay.`, 'success');
+      else showToast(`Đã thêm ${value.name}. Bấm "Đồng bộ ngay" để em ấy đăng nhập được.`, 'warning');
+    } catch {
+      showToast('Đã lưu trên máy này nhưng chưa lên được máy chủ — bấm "Đồng bộ ngay".', 'warning');
+    }
   };
 
   /**
@@ -449,46 +498,79 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
     const { isConfirmed } = await Swal.fire({
       icon: 'warning',
       title: `Xoá lớp ${cls.name}?`,
-      html: `Lớp này có <b>${cls.students.length} học sinh</b>. Xoá lớp là xoá luôn danh sách học sinh trong đó.<br/><br/>Nhập lại được từ file Excel nếu anh chị còn giữ file.`,
+      html: `Lớp này có <b>${cls.students.length} học sinh</b>. Xoá lớp là gỡ luôn danh sách học sinh và <b>thu hồi quyền đăng nhập</b> của cả lớp trên máy chủ.<br/><br/>Điểm và bài nộp đã chấm vẫn giữ lại để đối chiếu. Nhập lại danh sách được từ file Excel.`,
       showCancelButton: true,
-      confirmButtonText: 'Xoá lớp',
+      confirmButtonText: 'Xoá lớp & thu hồi quyền',
       cancelButtonText: 'Giữ lại',
       confirmButtonColor: '#dc2626',
       focusCancel: true,
     });
     if (!isConfirmed) return;
 
-    setData((prev: AppData) => ({
-      ...prev,
-      classes: (prev.classes || []).filter(item => item.id !== cls.id),
-    }));
-    if (selectedClassId === cls.id) setSelectedClassId('');
-    showToast(`Đã xoá lớp ${cls.name}.`, 'success');
+    try {
+      // F-02: gỡ dữ liệu lớp khỏi server trước — roster/secret/link biến mất thì quyền truy cập
+      // chết ngay, dù thiết bị nào đã đăng nhập trước đó. Lớp chưa sync thì chỉ xoá local.
+      const lopDaSync = await getClassDoc(cls.id);
+      if (lopDaSync) {
+        const ket = await revokeClassData(cls.id);
+        showToast(`Đã xoá lớp ${cls.name} (${ket.removedStudents} học sinh, ${ket.revokedLinks} phiên bị thu hồi).`, 'success');
+      } else {
+        showToast(`Đã xoá lớp ${cls.name} khỏi máy này.`, 'success');
+      }
+      setData((prev: AppData) => ({
+        ...prev,
+        classes: (prev.classes || []).filter(item => item.id !== cls.id),
+      }));
+      if (selectedClassId === cls.id) setSelectedClassId('');
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Chưa xoá được lớp',
+        text: error instanceof Error ? error.message : 'Không gỡ được dữ liệu trên máy chủ. Danh sách local giữ nguyên.',
+        confirmButtonColor: '#3085d6',
+      });
+    }
   };
 
   const deleteStudent = async (cls: TeacherClass, student: Student) => {
     const { isConfirmed } = await Swal.fire({
       icon: 'warning',
       title: `Xoá ${student.name} khỏi ${cls.name}?`,
-      text: 'Chỉ xoá em này khỏi danh sách lớp, các lớp khác không ảnh hưởng.',
+      html: 'Em này sẽ <b>mất quyền đăng nhập ngay lập tức</b> (mã lớp + PIN cũ không còn tác dụng).<br/>Các bài nộp đã chấm vẫn giữ lại để đối chiếu.',
       showCancelButton: true,
-      confirmButtonText: 'Xoá học sinh',
+      confirmButtonText: 'Xoá & thu hồi quyền',
       cancelButtonText: 'Giữ lại',
       confirmButtonColor: '#dc2626',
       focusCancel: true,
     });
     if (!isConfirmed) return;
 
-    setData((prev: AppData) => ({
-      ...prev,
-      classes: (prev.classes || []).map(item => {
-        if (item.id !== cls.id) return item;
-        const students = item.students.filter(s => s.id !== student.id);
-        return { ...item, students, studentCount: students.length };
-      }),
-    }));
-    if (viewingStudent?.id === student.id) setViewingStudent(null);
-    showToast(`Đã xoá ${student.name} khỏi ${cls.name}.`, 'success');
+    try {
+      // F-02: thu hồi trên server TRƯỚC khi xoá local. Lớp chưa sync thì không có gì để thu hồi.
+      const lopDaSync = await getClassDoc(cls.id);
+      if (lopDaSync) await revokeStudentAccessServer(cls.id, student.id);
+
+      setData((prev: AppData) => ({
+        ...prev,
+        classes: (prev.classes || []).map(item => {
+          if (item.id !== cls.id) return item;
+          const students = item.students.filter(s => s.id !== student.id);
+          return { ...item, students, studentCount: students.length };
+        }),
+      }));
+      if (viewingStudent?.id === student.id) setViewingStudent(null);
+      showToast(lopDaSync
+        ? `Đã xoá ${student.name} và thu hồi quyền đăng nhập.`
+        : `Đã xoá ${student.name} khỏi danh sách máy này.`,
+        'success');
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Chưa xoá được',
+        text: error instanceof Error ? error.message : 'Không thu hồi được quyền trên máy chủ. Danh sách local giữ nguyên.',
+        confirmButtonColor: '#3085d6',
+      });
+    }
   };
 
   /**
@@ -789,7 +871,19 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
                   <button onClick={() => xemPinHienTai(selectedClass, student)} title={`Xem mã PIN đang dùng của ${student.name} — muốn đổi thì bấm "Cấp mã mới" trong hộp thoại`} className="w-fit rounded-full bg-blue-50 px-3 py-1.5 text-xs font-black text-blue-700 transition hover:bg-blue-100">
                     <KeyRound className="mr-1 inline h-3.5 w-3.5" /> Xem PIN
                   </button>
-                  <div className="flex items-center gap-3"><div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-blue-600" style={{ width: `${student.progress}%` }} /></div><span className="w-10 text-right font-black text-slate-700">{student.progress}%</span></div>
+                  <div className="flex items-center gap-3">
+                    {(() => {
+                      const td = tienDoThat?.get(student.id);
+                      if (!td || td.tongBai === 0) return <span className="text-xs font-semibold text-slate-300">Chưa có bài đang mở</span>;
+                      const pt = Math.round((td.daNop / td.tongBai) * 100);
+                      return (
+                        <>
+                          <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-indigo-600" style={{ width: `${pt}%` }} /></div>
+                          <span className="w-16 text-right text-[11px] font-black text-slate-600">{td.daNop}/{td.tongBai} bài</span>
+                        </>
+                      );
+                    })()}
+                  </div>
                   <span className={`w-fit rounded-full px-3 py-1 text-xs font-black ${status.className}`}>{status.label}</span>
                   <button onClick={() => deleteStudent(selectedClass, student)} title={`Xoá ${student.name} khỏi lớp`} aria-label={`Xoá ${student.name} khỏi lớp`} className="w-fit rounded-full p-2 text-slate-300 transition hover:bg-red-50 hover:text-red-600"><Trash2 className="h-4 w-4" /></button>
                 </div>

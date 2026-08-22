@@ -91,3 +91,19 @@ export const viewStudentPin = async (classId: string, studentId: string): Promis
   const idToken = await current.getIdToken();
   return call<ViewedPin>({ action: 'viewPin', classId, studentId, idToken });
 };
+
+/** Xoá học sinh khỏi server + thu hồi quyền đăng nhập (roster, bí mật PIN, studentLinks). */
+export const revokeStudentAccessServer = async (classId: string, studentId: string): Promise<{ revokedLinks: number }> => {
+  const current = auth.currentUser;
+  if (!current || current.isAnonymous) throw new Error('Cần đăng nhập tài khoản giáo viên.');
+  const idToken = await current.getIdToken();
+  return call<{ revokedLinks: number }>({ action: 'revokeStudentAccess', classId, studentId, idToken });
+};
+
+/** Gỡ toàn bộ dữ liệu lớp khỏi server (roster/bí mật PIN/document lớp) + gỡ link học sinh. */
+export const revokeClassData = async (classId: string): Promise<{ removedStudents: number; revokedLinks: number }> => {
+  const current = auth.currentUser;
+  if (!current || current.isAnonymous) throw new Error('Cần đăng nhập tài khoản giáo viên.');
+  const idToken = await current.getIdToken();
+  return call<{ removedStudents: number; revokedLinks: number }>({ action: 'revokeClass', classId, idToken });
+};

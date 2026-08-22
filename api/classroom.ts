@@ -23,6 +23,8 @@ import {
  *   POST { action: 'issuePins', classId, idToken }          → giáo viên cấp PIN cho cả lớp
  *   POST { action: 'resetOnePin', classId, studentId, idToken } → cấp lại PIN cho MỘT em
  *   POST { action: 'viewPin', classId, studentId, idToken } → giáo viên xem PIN ĐANG DÙNG của một em
+ *   POST { action: 'revokeStudentAccess', classId, studentId, idToken } → xoá học sinh khỏi server + thu hồi đăng nhập
+ *   POST { action: 'revokeClass', classId, idToken } → gỡ toàn bộ dữ liệu lớp khỏi server (roster/secret/link)
  *
  * Vì sao phải đi qua server thay vì để client đọc thẳng Firestore:
  *  - PIN nằm ở `studentSecrets`, rules cấm MỌI client đọc. Chỉ Admin SDK kiểm được.
@@ -248,6 +250,89 @@ const handleViewPin = async (db: FirebaseFirestore.Firestore, body: Record<strin
   });
 };
 
+/**
+ * Xoá học sinh khỏi server và THU HỒI quyền truy cập: xoá roster, xoá bí mật PIN, gỡ mọi
+ * studentLinks đang trỏ vào em này. Không làm gì thì "xoá" trên giao diện chỉ là xoá local —
+ * em ấy vẫn vào được bằng mã lớp + PIN cũ.
+ */
+const handleRevokeStudentAccess = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Cần đăng nhập tài khoản giáo viên.' });
+
+  const classId = typeof body.classId === 'string' ? body.classId : '';
+  const studentId = typeof body.studentId === 'string' ? body.studentId : '';
+  const classSnap = await db.collection('classes').doc(classId).get();
+  if (!classSnap.exists) return res.status(404).json({ error: 'Không tìm thấy lớp.' });
+  if (classSnap.data()?.teacherId !== uid) {
+    return res.status(403).json({ error: 'Chỉ giáo viên chủ lớp mới thu hồi được quyền truy cập.' });
+  }
+
+  // Firestore delete trên document không tồn tại vẫn thành công — khỏi kiểm exists từng cái.
+  await classSnap.ref.collection('students').doc(studentId).delete();
+  await classSnap.ref.collection('studentSecrets').doc(studentId).delete();
+
+  const links = await db.collection('studentLinks').where('studentId', '==', studentId).get();
+  let batch = db.batch();
+  let pending = 0;
+  let revokedLinks = 0;
+  links.forEach(l => {
+    batch.delete(l.ref);
+    revokedLinks += 1;
+    pending += 1;
+    if (pending >= 400) { void batch.commit(); batch = db.batch(); pending = 0; }
+  });
+  if (pending > 0) await batch.commit();
+
+  return res.status(200).json({ revoked: true, revokedLinks });
+};
+
+/**
+ * Gỡ toàn bộ dữ liệu LỚP khỏi server khi giáo viên xoá lớp: roster, bí mật PIN, document lớp
+ * và mọi studentLinks của lớp. Điểm/bài nộp CỐ Ý GIỮ LẠI để đối chiếu sau; quyền truy cập
+ * học sinh chết ngay vì studentLinks đã bị gỡ.
+ */
+const handleRevokeClass = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Cần đăng nhập tài khoản giáo viên.' });
+
+  const classId = typeof body.classId === 'string' ? body.classId : '';
+  const classSnap = await db.collection('classes').doc(classId).get();
+  if (!classSnap.exists) return res.status(404).json({ error: 'Không tìm thấy lớp.' });
+  if (classSnap.data()?.teacherId !== uid) {
+    return res.status(403).json({ error: 'Chỉ giáo viên chủ lớp mới gỡ được dữ liệu lớp.' });
+  }
+
+  const [students, secrets, links] = await Promise.all([
+    classSnap.ref.collection('students').get(),
+    classSnap.ref.collection('studentSecrets').get(),
+    db.collection('studentLinks').where('classId', '==', classId).get(),
+  ]);
+
+  let batch = db.batch();
+  let pending = 0;
+  let removedStudents = 0;
+  let removedSecrets = 0;
+  let revokedLinks = 0;
+
+  const xoa = (ref: FirebaseFirestore.DocumentReference) => {
+    batch.delete(ref);
+    pending += 1;
+    if (pending >= 400) { void batch.commit(); batch = db.batch(); pending = 0; }
+  };
+  students.forEach(d => { xoa(d.ref); removedStudents += 1; });
+  secrets.forEach(d => { xoa(d.ref); removedSecrets += 1; });
+  links.forEach(d => { xoa(d.ref); revokedLinks += 1; });
+  xoa(classSnap.ref);
+  if (pending > 0) await batch.commit();
+
+  return res.status(200).json({
+    revoked: true,
+    removedStudents,
+    removedSecrets,
+    revokedLinks,
+  });
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -264,6 +349,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (action === 'issuePins') return await handleIssuePins(db, body, res);
     if (action === 'resetOnePin') return await handleResetOnePin(db, body, res);
     if (action === 'viewPin') return await handleViewPin(db, body, res);
+    if (action === 'revokeStudentAccess') return await handleRevokeStudentAccess(db, body, res);
+    if (action === 'revokeClass') return await handleRevokeClass(db, body, res);
     return res.status(400).json({ error: `Hành động không hợp lệ: ${action}` });
   } catch (error) {
     console.error('[classroom] lỗi', error);

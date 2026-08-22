@@ -4,6 +4,7 @@ import { auth, db, removeUndefinedFields, storage } from '../firebase';
 import { mergeTopics, removeEvidence } from './profileMerge';
 import {
   ASSIGNMENTS_COL,
+  CLASSES_COL,
   STUDENT_PROFILES_COL,
   SUBMISSIONS_COL,
   type AssignmentAttachment,
@@ -173,6 +174,52 @@ export const listSubmissionsForStudent = async (studentId: string, teacherId: st
     where('studentId', '==', studentId),
   ));
   return moiNhatTruoc(snap.docs.map(d => d.data() as SubmissionDoc));
+};
+
+/**
+ * MỌI bài nộp của một lớp — nạp MỘT lần để bảng giáo viên làm đủ ba việc:
+ * đếm "x/y đã nộp" trên từng bài, lọc bài nộp khi mở bài, và tính tiến độ thật từng học sinh.
+ * Hai ràng buộc bằng nhau (teacherId + classId) nên không cần index tổ hợp.
+ */
+export const listSubmissionsForClass = async (classId: string, teacherId: string): Promise<SubmissionDoc[]> => {
+  const snap = await getDocs(query(
+    collection(db, SUBMISSIONS_COL),
+    where('teacherId', '==', teacherId),
+    where('classId', '==', classId),
+  ));
+  return moiNhatTruoc(snap.docs.map(d => d.data() as SubmissionDoc));
+};
+
+/** Danh sách tên học sinh của lớp — để gắn tên vào từng bài nộp và liệt kê em nào chưa nộp. */
+export interface RosterStudent {
+  studentId: string;
+  name: string;
+}
+
+export const listClassRoster = async (classId: string): Promise<RosterStudent[]> => {
+  const snap = await getDocs(collection(db, CLASSES_COL, classId, 'students'));
+  return snap.docs
+    .map(d => ({ studentId: d.id, name: String(d.data()?.name || '') }))
+    .filter(s => s.name)
+    .sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+};
+
+/**
+ * Giáo viên sửa tay điểm/nhận xét sau khi máy chấm. Chỉ đụng các trường điểm —
+ * không đụng định danh bài nộp; cờ editedByTeacher để màn hình phân biệt điểm máy và điểm người.
+ */
+export const updateSubmissionGradeManually = async (
+  submissionId: string,
+  patch: { score: number; maxScore: number; feedback: string },
+): Promise<void> => {
+  await updateDoc(doc(db, SUBMISSIONS_COL, submissionId), {
+    'grade.score': patch.score,
+    'grade.maxScore': patch.maxScore,
+    'grade.feedback': patch.feedback,
+    'grade.editedByTeacher': true,
+    'grade.gradedAt': new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  });
 };
 
 /**
