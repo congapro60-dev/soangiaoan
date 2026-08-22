@@ -3,6 +3,8 @@ import { estimateTokenCount, recordTokenUsage } from '../hooks/useTokenTracker';
 import { CLAUDE_MODELS as TRACKER_CLAUDE_MODELS, DEEPSEEK_MODELS as TRACKER_DEEPSEEK_MODELS, GEMINI_MODELS as TRACKER_GEMINI_MODELS, GROK_MODELS as TRACKER_GROK_MODELS, OPENAI_MODELS as TRACKER_OPENAI_MODELS, NVIDIA_MODELS as TRACKER_NVIDIA_MODELS, toModelOption } from '../data/models';
 import type { ApiProvider } from '../config/apiLimits';
 import type { AppData } from '../types';
+import { callVercelGateway, SERVER_MANAGED_API_KEY, streamVercelGateway } from './vercelGateway';
+import { VERCEL_AI_GATEWAY_MODEL } from './vercelGatewayConfig';
 
 type Settings = AppData['settings'];
 
@@ -56,6 +58,8 @@ export function isMissingApiKeyError(err: unknown): boolean {
 
 function assertOwnApiKey(settings: Settings): void {
   const provider = (settings.selectedProvider ?? 'gemini') as string;
+  if (provider === 'vercel-gateway') return;
+
   const message = provider === 'free-router'
     ? `Chế độ "Router Free" (key dùng chung) đã ngừng hỗ trợ. ${NO_KEY_MESSAGE}`
     : NO_KEY_MESSAGE;
@@ -92,6 +96,7 @@ export const GEMINI_MODELS = TRACKER_GEMINI_MODELS.map(model => ({
 
 export function getActiveApiKey(settings: Settings): string {
   const provider = settings.selectedProvider ?? 'gemini';
+  if (provider === 'vercel-gateway') return SERVER_MANAGED_API_KEY;
   if (provider === 'claude') return settings.claudeApiKey || '';
   if (provider === 'openai') return settings.openaiApiKey || '';
   if (provider === 'grok') return settings.grokApiKey || '';
@@ -104,6 +109,7 @@ export function getActiveApiKey(settings: Settings): string {
 }
 
 const getActiveModelId = (provider: ApiProvider, settings: Settings, override?: string): string => {
+  if (provider === 'vercel-gateway') return VERCEL_AI_GATEWAY_MODEL;
   if (override) return override;
   if (provider === 'claude') return settings.selectedModel || CLAUDE_MODELS[0].id;
   if (provider === 'openai') return settings.selectedModel || OPENAI_MODELS[0].id;
@@ -143,6 +149,12 @@ async function callAIOnce(prompt: string, settings: Settings): Promise<RawResult
   assertOwnApiKey(settings);
 
   try {
+    if (provider === 'vercel-gateway') {
+      const result = await callVercelGateway(prompt);
+      recordEstimatedUsage(provider, result.model, prompt, result.text);
+      return { text: result.text, truncated: result.truncated };
+    }
+
     if (provider === 'claude') {
       const Anthropic = (await import('@anthropic-ai/sdk')).default;
       const client = new Anthropic({ apiKey: settings.claudeApiKey, dangerouslyAllowBrowser: true });
@@ -310,6 +322,10 @@ export async function callAIWithVision(
 ): Promise<string> {
   const provider = settings.selectedProvider ?? 'gemini';
   assertOwnApiKey(settings);
+  if (provider === 'vercel-gateway') {
+    throw new Error('GLM 5.2 qua AI Gateway hiện chỉ hỗ trợ tác vụ văn bản. Chọn Gemini hoặc model có vision để xử lý ảnh/PDF.');
+  }
+
   const urls = Array.isArray(imageDataUrls) ? imageDataUrls : [imageDataUrls];
 
   const parsedImages = urls.map(url => {
@@ -510,6 +526,17 @@ export async function callAIStream(
   assertOwnApiKey(settings);
 
   try {
+    if (provider === 'vercel-gateway') {
+      const model = getActiveModelId(provider, settings, modelOverride);
+      let output = '';
+      await streamVercelGateway(prompt, (chunk) => {
+        output += chunk;
+        onChunk(chunk);
+      });
+      recordEstimatedUsage(provider, model, prompt, output);
+      return;
+    }
+
     if (provider === 'claude') {
       const Anthropic = (await import('@anthropic-ai/sdk')).default;
       const client = new Anthropic({ apiKey: settings.claudeApiKey, dangerouslyAllowBrowser: true });

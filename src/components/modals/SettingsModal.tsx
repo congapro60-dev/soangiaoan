@@ -52,6 +52,7 @@ const PROVIDERS: { id: Provider; label: string; color: string; bg: string; borde
   { id: 'deepseek', label: 'DeepSeek', color: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-500', accent: 'from-cyan-500 to-blue-400' },
   { id: 'nvidia', label: 'NVIDIA NIM', color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-500', accent: 'from-green-500 to-lime-400' },
   { id: 'openai-compatible', label: 'Custom API', color: 'text-slate-600', bg: 'bg-slate-100', border: 'border-slate-400', accent: 'from-slate-500 to-gray-400' },
+  { id: 'vercel-gateway', label: 'GLM 5.2', color: 'text-pink-600', bg: 'bg-pink-50', border: 'border-pink-500', accent: 'from-pink-500 to-rose-400' },
 ];
 
 const PROVIDER_MODELS: Record<Provider, { id: string; name: string; desc: string }[]> = {
@@ -62,6 +63,7 @@ const PROVIDER_MODELS: Record<Provider, { id: string; name: string; desc: string
   deepseek: DEEPSEEK_MODELS,
   nvidia: NVIDIA_MODELS,
   'openai-compatible': [],
+  'vercel-gateway': [{ id: 'zai/glm-5.2', name: 'GLM 5.2 · Vercel AI Gateway', desc: 'Server-side · 1M ngữ cảnh · coding/agentic · không cần dán key ở đây' }],
 };
 
 const PROVIDER_LINKS: Record<Provider, { url: string; label: string }> = {
@@ -72,6 +74,7 @@ const PROVIDER_LINKS: Record<Provider, { url: string; label: string }> = {
   deepseek: { url: 'https://platform.deepseek.com/api_keys', label: 'Lấy DeepSeek API Key' },
   nvidia: { url: 'https://build.nvidia.com/explore/models', label: 'Lấy NVIDIA API Key' },
   'openai-compatible': { url: '#', label: 'API Tuỳ chỉnh' },
+  'vercel-gateway': { url: 'https://vercel.com/ai-gateway/models/glm-5.2', label: 'Xem GLM 5.2' },
 };
 
 const providerName = (provider: Provider): string => {
@@ -81,6 +84,7 @@ const providerName = (provider: Provider): string => {
   if (provider === 'deepseek') return 'DeepSeek';
   if (provider === 'nvidia') return 'NVIDIA NIM';
   if (provider === 'openai-compatible') return 'OpenAI Compatible';
+  if (provider === 'vercel-gateway') return 'Vercel AI Gateway · GLM 5.2';
   return 'OpenAI ChatGPT';
 };
 
@@ -151,6 +155,7 @@ export const SettingsModal = ({
     if (provider === 'deepseek') return data.settings.deepseekApiKey || '';
     if (provider === 'nvidia') return data.settings.nvidiaApiKey || '';
     if (provider === 'openai-compatible') return data.settings.openaiCompatibleApiKey || '';
+    if (provider === 'vercel-gateway') return '';
     return data.settings.openaiApiKey || '';
   };
 
@@ -224,7 +229,7 @@ export const SettingsModal = ({
                     </div>
                     <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600">
                       <span>API Key</span>
-                      <span className={activeApiKey ? 'text-emerald-600' : 'text-amber-600'}>{activeApiKey ? 'Đã nhập' : 'Chưa nhập'}</span>
+                      <span className={activeTab === 'vercel-gateway' || activeApiKey ? 'text-emerald-600' : 'text-amber-600'}>{activeTab === 'vercel-gateway' ? 'Server Vercel' : activeApiKey ? 'Đã nhập' : 'Chưa nhập'}</span>
                     </div>
                   </div>
                 </div>
@@ -255,7 +260,7 @@ export const SettingsModal = ({
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <h4 className="font-['Plus_Jakarta_Sans'] text-lg font-bold text-slate-900">Nền tảng AI đang dùng</h4>
-                      <p className="mt-1 text-sm text-slate-500">Chọn provider và nhập API key tương ứng. Dữ liệu được lưu cục bộ trong trình duyệt.</p>
+                      <p className="mt-1 text-sm text-slate-500">{activeTab === 'vercel-gateway' ? 'GLM 5.2 dùng kết nối server Vercel; key không được lưu trong trình duyệt.' : 'Chọn provider và nhập API key tương ứng. Dữ liệu được lưu cục bộ trong trình duyệt.'}</p>
                     </div>
                     <span className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-bold text-[var(--dewey-blue)]">{providerName(activeTab)}</span>
                   </div>
@@ -280,24 +285,33 @@ export const SettingsModal = ({
 
                   <div className="mt-5 space-y-2">
                     <label className="flex flex-wrap items-center justify-between gap-2 text-sm font-bold text-slate-700">
-                      <span className="flex items-center gap-2"><Key className="h-4 w-4" /> API Key — {providerName(activeTab)}</span>
+                      <span className="flex items-center gap-2">{activeTab === 'vercel-gateway' ? <Server className="h-4 w-4" /> : <Key className="h-4 w-4" />} {activeTab === 'vercel-gateway' ? 'Kết nối server' : `API Key — ${providerName(activeTab)}`}</span>
                       {link.url !== '#' && (
                         <a href={link.url} target="_blank" rel="noreferrer" className={cn('flex items-center gap-1 text-xs hover:underline', providerStyle.color)}>
                           {link.label} <ExternalLink className="h-3 w-3" />
                         </a>
                       )}
                     </label>
-                    <div className="relative">
-                      <LockKeyhole className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                      <input
-                        type="password"
-                        value={activeApiKey}
-                        onChange={(e) => handleApiKeyChange(activeTab, e.target.value)}
-                        placeholder={`Nhập ${providerStyle.label} API Key...`}
-                        className="w-full rounded-2xl border border-slate-200 bg-blue-50/40 py-3 pl-11 pr-4 text-sm outline-none transition focus:border-[var(--dewey-blue)] focus:bg-white focus:ring-4 focus:ring-blue-100"
-                      />
-                    </div>
-                    <p className="text-[11px] font-medium text-slate-400">API Key chỉ lưu cục bộ trong trình duyệt, không gửi lên máy chủ của chúng tôi.</p>
+                    {activeTab === 'vercel-gateway' ? (
+                      <div className="flex items-start gap-3 rounded-2xl border border-pink-100 bg-pink-50/70 px-4 py-3 text-sm font-semibold text-pink-800">
+                        <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-pink-600" />
+                        <span>GLM 5.2 dùng key chung được quản lý trên biến môi trường Vercel. Người dùng không cần và không được dán key vào trình duyệt.</span>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="relative">
+                          <LockKeyhole className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                          <input
+                            type="password"
+                            value={activeApiKey}
+                            onChange={(e) => handleApiKeyChange(activeTab, e.target.value)}
+                            placeholder={`Nhập ${providerStyle.label} API Key...`}
+                            className="w-full rounded-2xl border border-slate-200 bg-blue-50/40 py-3 pl-11 pr-4 text-sm outline-none transition focus:border-[var(--dewey-blue)] focus:bg-white focus:ring-4 focus:ring-blue-100"
+                          />
+                        </div>
+                        <p className="text-[11px] font-medium text-slate-400">API Key chỉ lưu cục bộ trong trình duyệt, không gửi lên máy chủ của chúng tôi.</p>
+                      </>
+                    )}
                   </div>
                 </section>
 

@@ -1,5 +1,24 @@
 # Đẩy giáo án lên Drive + chọn bài theo PPCT — 2026-08-11
 
+## Lô mới — Vercel AI Gateway GLM 5.2 — 2026-08-22
+
+- [x] Chốt design server-side: `AI_GATEWAY_API_KEY`, Firebase ID token, model cố định `zai/glm-5.2`, text/stream only.
+- [x] Tạo worktree riêng `codex/add-vercel-glm-gateway` để bảo vệ thay đổi chưa commit trên branch đang mở.
+- [x] Viết test contract và quan sát RED trước khi triển khai.
+- [x] Tạo API route `/api/ai-gateway` và client bridge cho JSON/SSE.
+- [x] Thêm provider GLM 5.2 vào Cài đặt, giữ Gemini làm mặc định.
+- [x] Chạy full test, lint, build và kiểm tra diff/secret safety.
+- [ ] Owner thêm `AI_GATEWAY_API_KEY` vào Vercel Environment Variables rồi smoke test Production/Preview.
+
+### Review — Vercel AI Gateway GLM 5.2
+
+- [x] Targeted tests: 4 files, 12 tests passed.
+- [x] Full Vitest suite: 63 files, 969 tests passed.
+- [x] `npm run lint` passed.
+- [x] `npm run build` passed; only existing Vite chunk/dynamic-import warnings remain.
+- [x] Repository scan found no real gateway secret; only the variable name and test placeholders are present.
+- [ ] Live Vercel smoke test pending owner configuration of `AI_GATEWAY_API_KEY`.
+
 Hai việc trong một phiên. Railway trial hết hạn làm chết chức năng đẩy Drive; đồng thời owner
 muốn soạn giáo án bằng cách chọn bài thẳng từ phân phối chương trình.
 

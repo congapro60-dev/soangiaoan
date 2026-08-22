@@ -353,10 +353,11 @@ export default function App() {
         {/* Banner nhắc nhập API Key khi chưa cấu hình */}
         {user && (() => {
           const s = data.settings;
+          const activeProvider = s.selectedProvider || 'gemini';
+          if (activeProvider === 'vercel-gateway') return null;
           const allEmpty = !s.geminiApiKey && !s.claudeApiKey && !s.openaiApiKey && !s.grokApiKey && !s.deepseekApiKey && !s.openaiCompatibleApiKey;
           const providerKey: Record<string, string | undefined> = { gemini: s.geminiApiKey, claude: s.claudeApiKey, openai: s.openaiApiKey, grok: s.grokApiKey, deepseek: s.deepseekApiKey, 'openai-compatible': s.openaiCompatibleApiKey };
           const providerLabel: Record<string, string> = { gemini: 'Google Gemini', claude: 'Claude', openai: 'OpenAI', grok: 'Grok', deepseek: 'DeepSeek', 'openai-compatible': 'Custom API' };
-          const activeProvider = s.selectedProvider || 'gemini';
           const activeKeyMissing = !allEmpty && !providerKey[activeProvider];
           if (!allEmpty && !activeKeyMissing) return null;
           return (
