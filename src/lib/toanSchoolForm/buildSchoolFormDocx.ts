@@ -13,6 +13,7 @@ import type { ParagraphChild } from 'docx';
 import type { ToanLessonModel, ToanPhieu } from './parseToanLesson';
 import { latexToOmml, ommlToParagraphChild } from '../../utils/renderWordCore';
 import { tokenizeInline } from './inlineTokens';
+import { detectCisColor } from './cisEvidence';
 import {
   ACTIVITY_COL_TWIP, FILL, FONT, MARGIN_TWIP, OBJECTIVE_COL_RATIOS,
   PAGE_TWIP, PHIEU_MARGIN_TWIP, PHIEU_PAGE_TWIP, PRINTABLE_TWIP, PT, phieuPrintableTwip,
@@ -31,8 +32,8 @@ const BORDER = { style: BorderStyle.SINGLE, size: 4, color: '999999' } as const;
 const cellBorders = { top: BORDER, bottom: BORDER, left: BORDER, right: BORDER } as const;
 const tableBorders = { ...cellBorders, insideHorizontal: BORDER, insideVertical: BORDER } as const;
 
-const textRun = (t: string, bold: boolean, size?: number, italics = false, brk = 0): TextRun =>
-  new TextRun({ text: t, bold, italics, font: FONT, size: size ?? SZ, ...(brk ? { break: brk } : {}) });
+const textRun = (t: string, bold: boolean, size?: number, italics = false, brk = 0, color?: string): TextRun =>
+  new TextRun({ text: t, bold, italics, font: FONT, size: size ?? SZ, ...(brk ? { break: brk } : {}), ...(color ? { color } : {}) });
 
 /**
  * Dịch token inline dùng chung sang run của docx: `$...$` thành OMML native (Arial, đúng cỡ),
@@ -40,18 +41,21 @@ const textRun = (t: string, bold: boolean, size?: number, italics = false, brk =
  */
 const runs = (text: string, base: { bold?: boolean; size?: number } = {}): ParagraphChild[] => {
   const children: ParagraphChild[] = [];
+  // Dòng mở đầu bằng nhãn minh chứng CIS thì CẢ CÂU mang màu, không chỉ riêng nhãn —
+  // người dự giờ phải nhìn thấy ngay minh chứng nằm ở đâu trong tiến trình.
+  const cis = detectCisColor(text);
   for (const tok of tokenizeInline(text)) {
     if (tok.kind === 'break') {
-      children.push(textRun('', !!base.bold, base.size, false, 1));
+      children.push(textRun('', !!base.bold, base.size, false, 1, cis));
     } else if (tok.kind === 'math') {
       const omml = latexToOmml(tok.latex, tok.display);
       const child = omml ? ommlToParagraphChild(omml) : null;
-      children.push(child ?? textRun(tok.latex, base.bold || tok.bold, base.size));
+      children.push(child ?? textRun(tok.latex, base.bold || tok.bold, base.size, false, 0, cis));
     } else {
-      children.push(textRun(tok.text, base.bold || tok.bold, base.size, tok.italic));
+      children.push(textRun(tok.text, base.bold || tok.bold, base.size, tok.italic, 0, cis));
     }
   }
-  return children.length ? children : [textRun('', !!base.bold, base.size)];
+  return children.length ? children : [textRun('', !!base.bold, base.size, false, 0, cis)];
 };
 
 const para = (text: string, opts: { bold?: boolean; size?: number; align?: (typeof AlignmentType)[keyof typeof AlignmentType] } = {}): Paragraph =>

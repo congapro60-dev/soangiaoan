@@ -12,6 +12,7 @@
 import katex from 'katex';
 import type { ToanLessonModel } from './parseToanLesson';
 import { tokenizeInline } from './inlineTokens';
+import { detectCisColor } from './cisEvidence';
 import {
   ACTIVITY_COL_RATIOS, FILL, FONT, LINE_HEIGHT, MARGIN_TWIP,
   OBJECTIVE_COL_RATIOS, PT, toPercents, twipToInch,
@@ -23,6 +24,9 @@ const esc = (s: string): string =>
 /** Dịch token inline dùng chung sang HTML. Công thức render bằng KaTeX. */
 export const inlineHtml = (text: string): string => {
   let out = '';
+  // Dòng minh chứng CIS: bọc cả câu trong một span màu — phải khớp với đường .docx,
+  // nếu hai đường lệch nhau thì bản in và bản xem trên web sẽ khác nhau.
+  const cis = detectCisColor(text);
   for (const tok of tokenizeInline(text)) {
     if (tok.kind === 'break') {
       out += '<br>';
@@ -40,6 +44,7 @@ export const inlineHtml = (text: string): string => {
       out += t;
     }
   }
+  if (cis) return `<span style="color:#${cis}">${out}</span>`;
   return out;
 };
 

@@ -96,6 +96,31 @@ B. QUY TẮC TRÌNH BÀY HOẠT ĐỘNG (TUYỆT ĐỐI TUÂN THỦ):
 
 6. DỰ KIẾN KHÓ KHĂN — mỗi hoạt động chính có dòng "→ Dự kiến khó khăn: [lỗi HS hay mắc] → GV [cách bẫy sớm/xử lý]".
 
+7. MINH CHỨNG CIS/HQT — bắt buộc, chốt tại họp Tổ trưởng chuyên môn 20/08/2026.
+   Trong tiến trình, mỗi minh chứng viết thành MỘT DÒNG RIÊNG mở đầu bằng nhãn trong ngoặc vuông:
+   **[🔴 PHÂN HÓA]** **[🟣 ĐGTX]** **[🔵 CÔNG DÂN SỐ]** **[🟢 CÔNG DÂN TOÀN CẦU]**
+   Bộ dựng Word sẽ TỰ TÔ MÀU CẢ CÂU theo nhãn — không cần viết mã màu, chỉ cần đặt nhãn đúng.
+   - Nhãn phải có CHỮ (emoji là tùy chọn) để bản in đen trắng vẫn nhận biết được.
+   - Chỉ tách riêng đúng câu là minh chứng. KHÔNG gộp cả hoạt động dài vào một dòng nhãn.
+   - Một dòng chỉ mang MỘT nhãn. Nếu một việc vừa là phân hóa vừa là đánh giá thường xuyên thì
+     tách thành hai dòng, không chồng hai nhãn.
+   - Mỗi minh chứng phải nêu đủ bốn phần: HS LÀM GÌ → GV THU ĐƯỢC MINH CHỨNG GÌ → MỤC ĐÍCH SƯ PHẠM
+     → NẰM Ở HOẠT ĐỘNG NÀO. Câu chung chung kiểu "có phân hóa", "GV đánh giá thường xuyên",
+     "HS sử dụng công nghệ" KHÔNG được tính là minh chứng.
+   - QUY TẮC 3 MINH CHỨNG: mỗi tuần phải có tối thiểu 3 minh chứng PHÂN HÓA và 3 minh chứng ĐGTX
+     nêu rõ tiết và hoạt động cụ thể.
+   - CÔNG DÂN SỐ và CÔNG DÂN TOÀN CẦU: chỉ gán cho tiết THẬT SỰ phù hợp, khuyến nghị 2–3 tiết mỗi
+     tuần. Tiết không phù hợp thì ghi "Không phải tiết trọng tâm" — TUYỆT ĐỐI không nhồi cho đủ màu.
+   - Dùng phần mềm KHÔNG đồng nghĩa với Công dân số. Chỉ tính khi có chủ đích dạy về kiểm chứng
+     nguồn, quyền riêng tư, dấu vết số, dùng công cụ có trách nhiệm — ví dụ đạt: "HS dùng phần mềm
+     dựng miền nghiệm rồi BẮT BUỘC kiểm chứng bằng phép thử điểm, không coi hình vẽ là bằng chứng
+     cuối cùng." Ví dụ KHÔNG đạt: "HS dùng phần mềm vẽ đồ thị."
+   - ĐGTX phải có VÒNG PHẢN HỒI, không chỉ "GV quan sát": nêu rõ GV thu được gì, ngưỡng quyết định
+     là bao nhiêu, và làm gì khi trên/dưới ngưỡng.
+   - CẤM số liệu học sinh bịa. Không viết "65% HS còn nhầm" nếu chưa đo. Chưa có dữ liệu thì viết
+     "Một số HS có thể..." và chừa chỗ cho GV điền n = ___ sau khi có kết quả thật.
+
+
 C. CHUẨN SƯ PHẠM BẮT BUỘC (theo khung dạy học phân hóa + kĩ thuật đặt câu hỏi + khung đánh giá giờ học mức Distinguished):
 
 1. PHỦ ĐỦ 7 LOẠI CÂU HỎI TOÁN trong mỗi tiết (theo tài liệu kĩ thuật đặt câu hỏi — thiếu loại nào là KHÔNG ĐẠT). Mục đích + câu mẫu từng loại:

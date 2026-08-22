@@ -43,3 +43,10 @@ _File thừa/
 # Du lieu hoc sinh — KHONG BAO GIO commit (ho ten, email + mat khau mac dinh, phu huynh, dia chi).
 # Dung wildcard vi ten thu muc tieng Viet luu dang NFD, go tay bang NFC se khong khop.
 Danh s*ch l*p d*y*/
+
+# ── Giáo án .docx do AI sinh (Manus/pipeline) — KHÔNG commit ──
+# Đây là sản phẩm đầu ra, không phải mã nguồn. Hơn 700 file, đẩy lên sẽ phình repo
+# và làm Vercel build chậm. Giữ ở local, chia sẻ qua Drive.
+giao an manus tao/
+giáo án định hướng/
+manus huong dan/

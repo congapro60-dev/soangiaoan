@@ -120,3 +120,28 @@ Các artifact hỗ trợ: `temp/tds_staging/batch_2026-08-20_regen4_v3/visual_re
 - [x] Tạo báo cáo `qa/reports/batch01_regen5_pilot_handoff_2026-08-20.md`.
 - [x] Không promotion, không chạy Batch 02, không sửa GOLD_LOCKED, không move/delete artifact.
 - [ ] Chờ người dùng duyệt regen5 pilot.
+
+
+## Lô G — Promotion staging Week56 G11–G12 sau duyệt — 2026-08-20
+
+- [x] Kiểm tra AGENTS, thư mục production đích và danh sách canonical IDs cần thay.
+- [x] Đối chiếu SHA-256 staging với production candidate; tạo backup có timestamp, không xóa file cũ.
+- [x] Thay có kiểm soát chỉ các file Tuần 5–6 Khối 11–12; không chạm Khối 10.
+- [x] Hậu kiểm số lượng, SHA-256, tên file, backup và ghi biên bản promotion; không thay file ngoài scope.
+- [ ] Chờ xác nhận cuối từ người dùng sau khi gửi biên bản.
+
+Trạng thái: promotion đã hoàn tất và hậu kiểm PASS; backup vẫn được giữ nguyên, không xóa file cũ.
+
+---
+
+## Lô H — Soạn lại 32 giáo án G11–G12 Tuần 5–6 theo mẫu Ban Toán — 2026-08-22
+
+- [x] Đọc `docs/KE_HOACH_FIX_G11_G12_W5_W6.md` và đối chiếu mẫu Ban Toán Khối 10 Tuần 5–6.
+- [x] Tạo staging mới, backup 32 file cũ, không sửa `src/`/PPCT JSON.
+- [x] Soạn lại đủ 32 DOCX theo bố cục Ban Toán, có Phiếu 1–2 và Teacher Key.
+- [x] QA XML/CIS: 32/32 PASS; QA theo tuần: 4/4 PASS.
+- [x] Render trực quan: 32/32 DOCX, 276 trang PNG, kiểm tra contact sheet và trang đại diện.
+- [x] Ghi đè đúng 32 file đích; checksum staging–đích khớp 32/32.
+- [x] `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai" run build` PASS; chỉ còn cảnh báo chunk/import vốn có.
+
+Backup bản cũ: `C:\Users\ADMIN\AppData\Local\Temp\smartplan-ban-toan-backup-20260822-084004`.

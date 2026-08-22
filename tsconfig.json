@@ -24,5 +24,5 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "exclude": ["api", "vite.config.ts", "node_modules", "dist", "soangiaoan", ".agents", "chrome-profile-qa", "bot_profile", "outputs", "test_downloads"]
+  "exclude": ["api", "manus huong dan", "giao an manus tao", "vite.config.ts", "node_modules", "dist", "soangiaoan", ".agents", "chrome-profile-qa", "bot_profile", "outputs", "test_downloads"]
 }
