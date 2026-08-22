@@ -430,10 +430,10 @@ service cloud.firestore {
     // luật bên dưới hỏi document ấy để biết người gọi là ai.
     //
     // Ba thứ cố ý KHÔNG cho client chạm tới:
-    //  1. `studentSecrets` chứa PIN đã băm — rules chặn cả đọc lẫn ghi, chỉ
-    //     Admin SDK (vốn bỏ qua rules) đụng vào được. Rules không giấu được
-    //     từng trường, nên PIN phải nằm ở document riêng chứ không nằm chung
-    //     với thông tin học sinh.
+    //  1. `studentSecrets` chứa PIN (bản băm để đối chiếu + bản thô để giáo viên chủ lớp xem
+    //     mã qua API) — rules chặn cả đọc lẫn ghi, chỉ Admin SDK (vốn bỏ qua rules) đụng vào
+    //     được. Rules không giấu được từng trường, nên PIN phải nằm ở document riêng chứ
+    //     không nằm chung với thông tin học sinh.
     //  2. `studentLinks` — client đọc được phiên của chính mình để biết mình
     //     là ai, nhưng không tự tạo được. Cho client ghi là cho nó tự nhận là
     //     bất kỳ học sinh nào.
@@ -498,7 +498,8 @@ service cloud.firestore {
         allow create, update, delete: if laChuLop(classId);
       }
 
-      // PIN đã băm — không client nào chạm tới, kể cả giáo viên chủ lớp.
+      // PIN: bản băm dùng đối chiếu đăng nhập + bản thô để máy chủ trả về khi giáo viên chủ lớp
+      // xem mã. Client KHÔNG đọc/ghi được document này bằng mọi giá — chỉ Admin SDK vào được.
       match /studentSecrets/{studentId} {
         allow read, write: if false;
       }

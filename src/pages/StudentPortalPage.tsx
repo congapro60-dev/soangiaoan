@@ -239,9 +239,9 @@ export const StudentPortalPage = () => {
     uploadRef.current?.click();
   };
 
-  const nopBai = async (files: FileList) => {
+  const nopBai = async (files: readonly File[]) => {
     if (!phien) return;
-    const chon = Array.from(files).slice(0, MAX_ANH);
+    const chon = files.slice(0, MAX_ANH);
     const mucTieu = targetRef.current;
     setLoi('');
     setCanhBao('');
@@ -458,9 +458,13 @@ export const StudentPortalPage = () => {
           multiple
           className="hidden"
           onChange={event => {
-            const files = event.target.files;
+            // FileList gắn SỐNG với ô input: đụng vào event.target.value trước là mảng rỗng ngay
+            // và nopBai không bao giờ chạy — đúng lỗi "bấm nộp xong không thấy gì" ngày 2026-08-22.
+            // Phải sao chép thành mảng File (đối tượng độc lập) TRƯỚC, rồi mới reset ô input
+            // để học sinh chọn lại được cùng một ảnh lần sau.
+            const files = Array.from(event.target.files ?? []);
             event.target.value = '';
-            if (files && files.length > 0) void nopBai(files);
+            if (files.length > 0) void nopBai(files);
           }}
         />
 

@@ -16,12 +16,13 @@ import {
 } from './_classroom-core.js';
 
 /**
- * Một hàm phục vụ ba việc, để không vượt trần 12 Serverless Function của Vercel:
+ * Một hàm phục vụ các việc sau, để không vượt trần 12 Serverless Function của Vercel:
  *
  *   POST { action: 'roster', joinCode }                     → danh sách tên để học sinh chọn
  *   POST { action: 'login', joinCode, studentId, pin, idToken } → gắn phiên vào studentLinks/{uid}
  *   POST { action: 'issuePins', classId, idToken }          → giáo viên cấp PIN cho cả lớp
  *   POST { action: 'resetOnePin', classId, studentId, idToken } → cấp lại PIN cho MỘT em
+ *   POST { action: 'viewPin', classId, studentId, idToken } → giáo viên xem PIN ĐANG DÙNG của một em
  *
  * Vì sao phải đi qua server thay vì để client đọc thẳng Firestore:
  *  - PIN nằm ở `studentSecrets`, rules cấm MỌI client đọc. Chỉ Admin SDK kiểm được.
@@ -29,6 +30,10 @@ import {
  *  - Danh sách tên học sinh không mở ở tầng rules; chỉ trả qua đây sau khi mã lớp đúng.
  *
  * PIN chỉ 4 số nên KHOÁ SAU 5 LẦN SAI là hàng rào thật, không phải tính năng thêm.
+ * Từ 2026-08-22 máy chủ lưu THÊM bản PIN thô (`pinPlain`) cạnh bản băm: chủ dự án chốt rằng
+ * giáo viên phải xem lại được mã đang dùng mọi lúc. Với mã 4 số thì băm vốn không chống nổi
+ * vét cạn (chỉ 10.000 khả năng), nên rủi ro cộng thêm là không đáng kể so với giá trị sử dụng;
+ * client vẫn không đọc trực tiếp được document bí mật, chỉ lấy qua API đã xác thực chủ lớp.
  */
 
 const readBody = (req: VercelRequest): Record<string, unknown> => {
@@ -158,6 +163,7 @@ const handleIssuePins = async (db: FirebaseFirestore.Firestore, body: Record<str
       studentId: studentDoc.id,
       classId: classId,
       pinHash: hashPin(pin),
+      pinPlain: pin,
       ...EMPTY_LOCK,
       updatedAt: now,
     });
@@ -171,7 +177,6 @@ const handleIssuePins = async (db: FirebaseFirestore.Firestore, body: Record<str
   }
   if (pending > 0) await batch.commit();
 
-  // PIN thô CHỈ trả về đúng lần này. Máy chủ chỉ giữ bản băm, nên mất là phải cấp lại.
   return res.status(200).json({ issued, total: students.size });
 };
 
@@ -179,8 +184,7 @@ const handleIssuePins = async (db: FirebaseFirestore.Firestore, body: Record<str
  * Cấp lại PIN cho ĐÚNG MỘT em.
  *
  * Thiếu đường này thì một em quên PIN là cả lớp phải đổi mã — 25 em kia bị phiền vì lỗi của
- * một người, và giáo viên phải phát lại toàn bộ bảng PIN. Máy chủ chỉ giữ bản băm nên không
- * đọc lại được PIN cũ; cấp mã mới là cách duy nhất.
+ * một người, và giáo viên phải phát lại toàn bộ bảng PIN.
  *
  * Cấp lại cũng XOÁ trạng thái khoá: em bị khoá vì sai 5 lần thì mã mới phải dùng được ngay.
  */
@@ -205,12 +209,43 @@ const handleResetOnePin = async (db: FirebaseFirestore.Firestore, body: Record<s
     studentId,
     classId,
     pinHash: hashPin(pin),
+    pinPlain: pin,
     ...EMPTY_LOCK,
     updatedAt: new Date().toISOString(),
   });
 
-  // PIN thô CHỈ trả về đúng lần này.
   return res.status(200).json({ studentId, name: String(studentSnap.data()?.name || ''), pin });
+};
+
+/**
+ * Xem PIN ĐANG DÙNG của một em — chỉ giáo viên chủ lớp.
+ *
+ * Trả `pin: null` khi mã được cấp trước 2026-08-22 (thời máy chủ chỉ giữ bản băm, không đọc
+ * ngược được): giáo viên cấp lại một lần là từ đó về sau xem lại được thoải mái.
+ */
+const handleViewPin = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Cần đăng nhập bằng tài khoản giáo viên.' });
+
+  const classId = typeof body.classId === 'string' ? body.classId : '';
+  const studentId = typeof body.studentId === 'string' ? body.studentId : '';
+  const classSnap = await db.collection('classes').doc(classId).get();
+  if (!classSnap.exists) return res.status(404).json({ error: 'Không tìm thấy lớp.' });
+  if (classSnap.data()?.teacherId !== uid) {
+    return res.status(403).json({ error: 'Chỉ giáo viên chủ lớp mới xem được mã PIN.' });
+  }
+
+  const studentSnap = await classSnap.ref.collection('students').doc(studentId).get();
+  if (!studentSnap.exists) return res.status(404).json({ error: 'Không tìm thấy học sinh trong lớp này.' });
+
+  const secretSnap = await classSnap.ref.collection('studentSecrets').doc(studentId).get();
+  const pin = String(secretSnap.data()?.pinPlain || '') || null;
+
+  return res.status(200).json({
+    studentId,
+    name: String(studentSnap.data()?.name || ''),
+    pin,
+  });
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -228,6 +263,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (action === 'login') return await handleLogin(db, body, res);
     if (action === 'issuePins') return await handleIssuePins(db, body, res);
     if (action === 'resetOnePin') return await handleResetOnePin(db, body, res);
+    if (action === 'viewPin') return await handleViewPin(db, body, res);
     return res.status(400).json({ error: `Hành động không hợp lệ: ${action}` });
   } catch (error) {
     console.error('[classroom] lỗi', error);

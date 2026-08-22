@@ -6,7 +6,7 @@ import { AppData, ClassAssignment, Student, TeacherClass } from '../../types';
 import { useExams, getSubmissions } from '../../hooks/useExams';
 import { parseRosterRows } from '../../utils/classRosterImport';
 import { countUnmigratedClasses, getClassDoc, migrateLegacyClasses } from '../../lib/classroom/classroomService';
-import { issueClassPins, resetStudentPin } from '../../services/studentPortalApi';
+import { issueClassPins, resetStudentPin, viewStudentPin } from '../../services/studentPortalApi';
 import { AssignmentPanel } from '../features/classroom/AssignmentPanel';
 import { StudentReport } from '../features/classroom/StudentReport';
 
@@ -84,6 +84,49 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
    * Cấp lại PIN cho MỘT em. Trước đây chỉ có nút đổi cả lớp, nên một em quên mã là 25 em kia
    * cũng phải nhận mã mới — phiền cho cả lớp vì lỗi của một người.
    */
+  /**
+   * Xem PIN ĐANG DÙNG của một em. Máy chủ giữ cả bản hiển thị (từ 2026-08-22) nên xem lại
+   * được thoải mái; muốn đổi sang mã khác thì bấm "Cấp mã mới" trong hộp thoại.
+   * Mã cấp trước ngày đó không đọc ngược được — phải cấp lại đúng một lần để có bản hiển thị.
+   */
+  const xemPinHienTai = async (cls: TeacherClass, student: Student) => {
+    try {
+      const ket = await viewStudentPin(cls.id, student.id);
+      if (!ket.pin) {
+        const { isConfirmed } = await Swal.fire({
+          icon: 'info',
+          title: `Chưa xem được mã hiện tại của ${escapeHtml(ket.name || student.name)}`,
+          html: 'Em này được cấp mã trước khi app lưu bản hiển thị, nên mã cũ không đọc ngược được.<br/>Bấm <b>"Cấp mã mới"</b> một lần là từ giờ xem lại được bất cứ lúc nào.',
+          showCancelButton: true,
+          confirmButtonText: 'Cấp mã mới',
+          cancelButtonText: 'Đóng',
+          confirmButtonColor: '#3085d6',
+        });
+        if (isConfirmed) await capLaiPinMotEm(cls, student);
+        return;
+      }
+
+      const { isDenied } = await Swal.fire({
+        title: `Mã PIN đang dùng · ${escapeHtml(ket.name || student.name)}`,
+        html: `<p style="font-size:36px;font-weight:800;letter-spacing:8px;margin:14px 0;">${escapeHtml(ket.pin)}</p>
+               <p style="font-size:13px;color:#64748b;">Đây là mã em ấy đang dùng để đăng nhập. Muốn đổi sang mã khác thì bấm "Cấp mã mới" — mã cũ hết hiệu lực ngay.</p>`,
+        showDenyButton: true,
+        denyButtonText: 'Cấp mã mới',
+        confirmButtonText: 'Đóng',
+        confirmButtonColor: '#3085d6',
+        denyButtonColor: '#d97706',
+      });
+      if (isDenied) await capLaiPinMotEm(cls, student);
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Không xem được mã PIN',
+        text: error instanceof Error ? error.message : 'Thử lại sau ít phút.',
+        confirmButtonColor: '#3085d6',
+      });
+    }
+  };
+
   const capLaiPinMotEm = async (cls: TeacherClass, student: Student) => {
     const { isConfirmed } = await Swal.fire({
       icon: 'question',
@@ -743,7 +786,7 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-50 font-black text-blue-700">{student.name.charAt(0)}</div>
                     <div><p className="font-black text-slate-900 underline decoration-slate-200 underline-offset-4">{student.name}</p></div>
                   </button>
-                  <button onClick={() => capLaiPinMotEm(selectedClass, student)} title={`Xem/cấp lại mã PIN cho ${student.name} — mã cũ sẽ hết hiệu lực`} className="w-fit rounded-full bg-blue-50 px-3 py-1.5 text-xs font-black text-blue-700 transition hover:bg-blue-100">
+                  <button onClick={() => xemPinHienTai(selectedClass, student)} title={`Xem mã PIN đang dùng của ${student.name} — muốn đổi thì bấm "Cấp mã mới" trong hộp thoại`} className="w-fit rounded-full bg-blue-50 px-3 py-1.5 text-xs font-black text-blue-700 transition hover:bg-blue-100">
                     <KeyRound className="mr-1 inline h-3.5 w-3.5" /> Xem PIN
                   </button>
                   <div className="flex items-center gap-3"><div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-blue-600" style={{ width: `${student.progress}%` }} /></div><span className="w-10 text-right font-black text-slate-700">{student.progress}%</span></div>

@@ -26,6 +26,13 @@ export interface IssuedPin {
   pin: string;
 }
 
+export interface ViewedPin {
+  studentId: string;
+  name: string;
+  /** null khi mã được cấp trước khi app lưu bản hiển thị — phải cấp lại một lần. */
+  pin: string | null;
+}
+
 const call = async <T,>(payload: Record<string, unknown>): Promise<T> => {
   const res = await fetch('/api/classroom', {
     method: 'POST',
@@ -67,7 +74,7 @@ export const issueClassPins = async (classId: string, regenerate = false): Promi
 };
 
 /**
- * Cấp lại PIN cho một em. Trả về mã mới ĐÚNG MỘT LẦN — máy chủ chỉ giữ bản băm.
+ * Cấp lại PIN cho một em. Trả về mã mới ĐÚNG MỘT LẦN — máy chủ giữ cả bản băm lẫn bản hiển thị.
  * Các em khác trong lớp giữ nguyên mã cũ.
  */
 export const resetStudentPin = async (classId: string, studentId: string): Promise<IssuedPin> => {
@@ -75,4 +82,12 @@ export const resetStudentPin = async (classId: string, studentId: string): Promi
   if (!current || current.isAnonymous) throw new Error('Cần đăng nhập tài khoản giáo viên.');
   const idToken = await current.getIdToken();
   return call<IssuedPin>({ action: 'resetOnePin', classId, studentId, idToken });
+};
+
+/** Xem PIN đang dùng của một em — chỉ chủ lớp xem được, qua API chứ không đọc trực tiếp Firestore. */
+export const viewStudentPin = async (classId: string, studentId: string): Promise<ViewedPin> => {
+  const current = auth.currentUser;
+  if (!current || current.isAnonymous) throw new Error('Cần đăng nhập tài khoản giáo viên.');
+  const idToken = await current.getIdToken();
+  return call<ViewedPin>({ action: 'viewPin', classId, studentId, idToken });
 };

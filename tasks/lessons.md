@@ -284,3 +284,16 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 ## Quyền push của app OpenCode (2026-08-22)
 
 - **"Không tự push" không có nghĩa là cấm push** — app phải cho phép commit/push khi người dùng yêu cầu hoặc bấm nút xác nhận. Chỉ tự động dừng trước bước push; vẫn phải stage đúng file của task, không dùng `git add .` để kéo theo thay đổi ngoài phạm vi. *(2026-08-22)*
+
+## Soạn lại giáo án theo mẫu thay vì vá bản cũ (2026-08-22)
+
+- Khi người dùng xác nhận muốn “soạn giáo án theo mẫu Ban Toán” và không cần bản cũ để đối chiếu, phải coi đó là yêu cầu thay thế artifact: dựng staging từ mẫu chuẩn, backup trước, rồi promotion đúng danh sách file; không tự sửa cấu trúc cũ hoặc chạm `src/`/PPCT JSON nếu không được yêu cầu.
+- XML pass chưa đủ cho DOCX: phải render từng file vào thư mục riêng, kiểm đủ số trang và xem hình đại diện/contact sheet; nếu font ảnh làm glyph thành ô vuông thì sửa asset trước khi promotion.
+
+## PIN học sinh — "bảo mật hơn nhu cầu" là tự làm khó người dùng (2026-08-22)
+
+- **Thiết kế hash-only cho mã 4 số khiến giáo viên không xem lại được PIN, user phải yêu cầu ba lần mới nghe** — lần đầu tôi thay bằng nút "cấp lại", user nhắc lại; lần hai tôi vẫn giữ hash-only và chỉ đổi chỗ nút, user bực: "sao ấn vào nó lại hiện đổi mã PIN? Tôi muốn NHÌN THẤY mã pin hiện tại". Sự thật kỹ thuật: scrypt băm mã 4 số KHÔNG chống nổi vét cạn (10.000 khả năng), giá trị thật của hash chỉ là không lộ trong console DB — lưu thêm bản thô (`pinPlain`) cạnh hash trong `studentSecrets`, trả về qua API xác thực chủ lớp (`viewPin`), client vẫn bị rules chặn đọc trực tiếp. Rủi ro cộng thêm ~0, giá trị sử dụng lớn (GV phát mã, hỗ trợ học sinh quên mã ngay tại lớp). QUY TẮC: (1) cân bằng bảo mật theo GIÁ TRỊ THỰC của bí mật — mã 4 số dùng trong lớp học không phải mật khẩu ngân hàng; (2) khi user yêu cầu một hành vi mà thiết kế hiện tại chặn, đừng chỉ giải thích giới hạn rồi vá quanh — hỏi lại "chủ dự án có chấp nhận đánh đổi này không", được chốt thì sửa TẦNG LƯU TRỮ chứ đừng vá UI; (3) mã cấp trước ngày chuyển đổi không đọc ngược được → UI phải có đường mời cấp lại một lần.
+
+## FileList gắn sống với ô input — gốc rễ thật của cả chuỗi "nộp ảnh không được" (2026-08-22)
+
+- **`const files = e.target.files; e.target.value = '';` là XOÁ SẠCH files trước khi kịp dùng** — FileList trả về từ `input.files` là view SỐNG theo control: reset `value` là `length` về 0 ngay, handler sau đó không bao giờ chạy. Đây mới là nguyên nhân "bấm nộp xong không thấy gì" ở cổng học sinh; tôi đã chẩn đoán sai HAI LẦN trước khi người khác soi ra: lần 1 đổ cho storage.rules chặn 6MB/thiếu nén, lần 2 đổ cho thiếu trạng thái xác nhận. Dấu hiệu lẽ ra phơi sớm: user nói "không thấy gì cả" — kể cả thanh tiến trình cũng không hiện nghĩa là HÀM XỬ LÝ chưa từng chạy, chứ không phải chạy mà UI không phản ánh. QUY TẮC: trong onChange của input file, SAO CHÉP `Array.from(e.target.files ?? [])` thành mảng TRƯỚC khi đụng vào `value` (đối tượng `File` độc lập với input nên vẫn dùng tốt); và khi user báo "không có gì xảy ra", kiểm chứng hàm xử lý có được gọi tới không (log đầu hàm) TRƯỚC khi đi soi tầng dưới như rules/mạng.
