@@ -30,6 +30,7 @@ import {
   UserRound,
 } from 'lucide-react';
 import { db, storage, removeUndefinedFields } from '../lib/firebase';
+import { dichLoiNopBai, nenAnhBaiLam } from '../utils/imageCompress';
 import { ExternalToolWidget } from '../components/adaptive/ExternalToolWidget';
 import { sampleAdaptiveLesson } from '../lib/adaptive/sampleAdaptiveLesson';
 import { adaptiveLessonToDeweyContent } from '../lib/adaptive/adaptiveToDewey';
@@ -202,15 +203,6 @@ const getExamplePlannedSeconds = (example: WorkedExample, unitSeconds: number, e
 const getExampleHintDelaySeconds = (example: WorkedExample, plannedSeconds: number) => (
   example.hintDelaySeconds || Math.min(90, Math.max(45, Math.floor(plannedSeconds / 2)))
 );
-
-const readFileAsDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
-  const reader = new FileReader();
-  reader.onload = () => resolve(String(reader.result || ''));
-  reader.onerror = () => reject(reader.error || new Error('Không đọc được ảnh bài làm.'));
-  reader.readAsDataURL(file);
-});
-
-const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 
 const hashStudentCode = async (studentCode: string): Promise<string> => {
   const encoder = new TextEncoder();
@@ -522,27 +514,23 @@ export const AdaptiveStudentPortalPage = () => {
       return;
     }
 
-    if (file.size > MAX_IMAGE_SIZE_BYTES) {
-      updateWorkedExampleInteraction(key, {
-        gradingError: `Ảnh quá lớn (${(file.size / 1024 / 1024).toFixed(1)}MB). Tối đa 5MB.`,
-      });
-      return;
-    }
-
     try {
-      const dataUrl = await readFileAsDataUrl(file);
+      // Nén trước khi lưu: ảnh điện thoại thường vượt 5MB mà storage.rules cho `student-uploads`.
+      const dataUrl = await nenAnhBaiLam(file);
       const [, base64 = ''] = dataUrl.split(',');
+      // Bản gốc dưới ngưỡng được giữ nguyên nên đọc mime từ chính data URL, đừng giả định JPEG.
+      const mimeType = /^data:([^;,]+);/.exec(dataUrl)?.[1] || 'image/jpeg';
       updateWorkedExampleInteraction(key, {
         imageName: file.name,
         imagePreviewUrl: dataUrl,
         imageBase64: base64,
-        imageMimeType: file.type,
+        imageMimeType: mimeType,
         gradingError: undefined,
         aiFeedback: undefined,
       });
     } catch (error) {
       console.error('Không đọc được ảnh bài làm tự luận', error);
-      updateWorkedExampleInteraction(key, { gradingError: 'Không đọc được ảnh bài làm. Em thử chụp lại rõ hơn hoặc chọn ảnh khác.' });
+      updateWorkedExampleInteraction(key, { gradingError: dichLoiNopBai(error) });
     }
   };
 
