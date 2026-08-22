@@ -8,6 +8,12 @@ export interface StudentAssignmentState {
   action: StudentAssignmentAction;
   label: string;
   detail?: string;
+  /**
+   * true khi bài đã có lần nộp (đang chờ hoặc đã chấm) mà học sinh vẫn phải nộp lại được —
+   * ví dụ nộp nhầm ảnh rồi nhận phản hồi yêu cầu chụp lại. Không set cho grading (đang xử
+   * lý thì khoá) và không set cho bài tự nộp.
+   */
+  canResubmit?: boolean;
 }
 
 const compareCreatedAt = (left: string, right: string): number => {
@@ -66,6 +72,7 @@ export const getStudentAssignmentState = (
         status: 'graded',
         action: 'review',
         label: 'Xem nhận xét',
+        canResubmit: true,
       };
     case 'grading':
       return {
@@ -86,6 +93,7 @@ export const getStudentAssignmentState = (
         status: 'waiting',
         action: 'status',
         label: 'Xem trạng thái',
+        canResubmit: true,
       };
   }
 };

@@ -56,18 +56,19 @@ describe('getStudentAssignmentState', () => {
   });
 
   it('shows waiting and status action after submission', () => {
-    expect(getStudentAssignmentState(assignment, submission({ status: 'submitted' }))).toMatchObject({ status: 'waiting', action: 'status' });
+    expect(getStudentAssignmentState(assignment, submission({ status: 'submitted' }))).toMatchObject({ status: 'waiting', action: 'status', canResubmit: true });
   });
 
-  it('keeps grading visible as an active state', () => {
+  it('keeps grading visible as an active state and locks resubmit while processing', () => {
     expect(getStudentAssignmentState(assignment, submission({ status: 'grading' }))).toMatchObject({ status: 'grading', action: 'status' });
+    expect(getStudentAssignmentState(assignment, submission({ status: 'grading' })).canResubmit).toBeFalsy();
   });
 
   it('turns a failed attempt into an explicit retry state', () => {
     expect(getStudentAssignmentState(assignment, submission({ status: 'error', errorMessage: 'Ảnh bị mờ' }))).toMatchObject({ status: 'retry', action: 'retry' });
   });
 
-  it('shows the graded result and review action', () => {
+  it('shows the graded result and review action, still allowing a fresh attempt', () => {
     expect(getStudentAssignmentState(assignment, submission({ status: 'graded', grade: {
       score: 8,
       maxScore: 10,
@@ -76,7 +77,12 @@ describe('getStudentAssignmentState', () => {
       weaknesses: [],
       gradedAt: '2026-08-22T11:00:00.000Z',
       teacherApproved: false,
-    } }))).toMatchObject({ status: 'graded', action: 'review' });
+    } }))).toMatchObject({ status: 'graded', action: 'review', canResubmit: true });
+  });
+
+  it('does not offer resubmit for assignments without an attempt or for self-submissions', () => {
+    expect(getStudentAssignmentState(assignment).canResubmit).toBeFalsy();
+    expect(getStudentAssignmentState(undefined, submission({ id: 'self-1', assignmentId: null })).canResubmit).toBeFalsy();
   });
 
   it('keeps a self-submission separate from assigned-task state', () => {

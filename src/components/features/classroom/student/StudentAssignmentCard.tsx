@@ -86,19 +86,33 @@ export const StudentAssignmentCard = ({ assignment, submission, state, uploading
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={handleAction}
-          disabled={uploading}
-          className={`inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-black transition active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 sm:w-auto ${
-            isUploadAction
-              ? state.status === 'retry' ? 'border border-red-200 bg-white text-red-700 hover:bg-red-50' : 'bg-indigo-600 text-white shadow-md shadow-indigo-200 hover:bg-indigo-700'
-              : 'border border-slate-200 bg-white text-slate-700 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700'
-          }`}
-        >
-          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : isUploadAction ? <Camera className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />}
-          {uploading ? 'Đang nộp...' : state.label}
-        </button>
+        <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto">
+          <button
+            type="button"
+            onClick={handleAction}
+            disabled={uploading}
+            className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-black transition active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 sm:w-auto ${
+              isUploadAction
+                ? state.status === 'retry' ? 'border border-red-200 bg-white text-red-700 hover:bg-red-50' : 'bg-indigo-600 text-white shadow-md shadow-indigo-200 hover:bg-indigo-700'
+                : 'border border-slate-200 bg-white text-slate-700 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700'
+            }`}
+          >
+            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : isUploadAction ? <Camera className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />}
+            {uploading ? 'Đang nộp...' : state.label}
+          </button>
+          {/* Nút phụ nộp lại: bài đã chấm/đang chờ vẫn phải tạo được lần nộp mới khi phản
+              hồi yêu cầu chụp lại — đây chính là P1 của báo cáo QA cổng học sinh 22/08. */}
+          {state.canResubmit && (
+            <button
+              type="button"
+              onClick={() => onUpload(assignment.id)}
+              disabled={uploading}
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-indigo-200 bg-white px-4 py-3 text-sm font-black text-indigo-700 transition hover:bg-indigo-50 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 sm:w-auto"
+            >
+              <Camera className="h-4 w-4" /> Nộp lại bài này
+            </button>
+          )}
+        </div>
       </div>
     </article>
   );
