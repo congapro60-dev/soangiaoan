@@ -27,6 +27,7 @@ interface Props {
   teacherId: string;
   className: string;
   showToast: (msg: string, icon?: any) => void;
+  view?: 'assignments' | 'submissions';
 }
 
 const trangThai: Record<SubmissionDoc['status'], { nhan: string; mau: string }> = {
@@ -198,7 +199,8 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
   );
 };
 
-export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Props) => {
+export const AssignmentPanel = ({ classId, teacherId, className, showToast, view = 'assignments' }: Props) => {
+  const submissionsOnly = view === 'submissions';
   const [assignments, setAssignments] = useState<AssignmentDoc[]>([]);
   const [openId, setOpenId] = useState('');
   // Nạp MỘT lần toàn bộ bài nộp của lớp: đếm "x/y đã nộp" trên từng bài, lọc khi mở bài,
@@ -601,16 +603,16 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
 
       <div className="flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-600">Bài tập nộp ảnh</p>
-          <h3 className="mt-1 text-xl font-black text-slate-900">Giao bài & chấm bằng AI</h3>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-600">{submissionsOnly ? 'Bài nộp của lớp' : 'Bài tập nộp ảnh'}</p>
+          <h3 className="mt-1 text-xl font-black text-slate-900">{submissionsOnly ? 'Theo dõi và chấm bài' : 'Giao bài & chấm bằng AI'}</h3>
         </div>
         <div className="flex gap-2">
           <button onClick={() => void taiBai()} disabled={dangTai} title="Làm mới danh sách bài nộp" className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-600 transition hover:bg-slate-50 disabled:opacity-50">
             <RefreshCw className={`h-4 w-4 ${dangTai ? 'animate-spin' : ''}`} /> Làm mới
           </button>
-          <button onClick={() => setMoForm(true)} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white transition hover:bg-blue-700">
+          {!submissionsOnly && <button onClick={() => setMoForm(true)} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white transition hover:bg-blue-700">
             <Plus className="h-4 w-4" /> Giao bài mới
-          </button>
+          </button>}
         </div>
       </div>
 
@@ -689,11 +691,11 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
                 </button>
               </div>
 
-              {openId === a.id && (
+              {(submissionsOnly || openId === a.id) && (
                 <div className="border-t border-slate-100 p-4">
                   {/* NỘI DUNG ĐÃ GIAO — phải xem lại và sửa được. Đáp án AI giải ra mà không mở
                       lại được thì lời hứa "thầy cô soát trước khi chấm" chỉ đúng đúng một lần. */}
-                  <div className="mb-5 rounded-2xl bg-slate-50 p-4">
+                  {!submissionsOnly && <div className="mb-5 rounded-2xl bg-slate-50 p-4">
                     <p className="text-xs font-black uppercase tracking-wide text-slate-500">Nội dung đã giao</p>
 
                     <div className="mt-3">
@@ -775,7 +777,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
                         <Trash2 className="h-3.5 w-3.5" /> Xoá bài
                       </button>
                     </div>
-                  </div>
+                  </div>}
 
                   <BaiNopTheoLop
                     baiNop={baiNopCua(a.id)}

@@ -10,6 +10,7 @@ import { listAssignmentsForClass, listSubmissionsForClass } from '../../lib/clas
 import { issueClassPins, resetStudentPin, revokeClassData, revokeStudentAccessServer, viewStudentPin } from '../../services/studentPortalApi';
 import { AssignmentPanel } from '../features/classroom/AssignmentPanel';
 import { StudentReport } from '../features/classroom/StudentReport';
+import { ClassWorkspaceNav, WorkspaceEmptyAction, type WorkspaceView } from '../features/classroom/ClassWorkspaceNav';
 
 interface ClassesTabProps {
   data: AppData;
@@ -32,7 +33,6 @@ import {
   Plus,
   Search,
   Send,
-  Sparkles,
   Trash2,
   TrendingUp,
   UserPlus,
@@ -59,6 +59,7 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
   const classes = data.classes || [];
   const { exams } = useExams(user);
   const [selectedClassId, setSelectedClassId] = useState(classes[0]?.id || '');
+  const [workspaceView, setWorkspaceView] = useState<WorkspaceView>('overview');
 
   const [query, setQuery] = useState('');
   const rosterInputRef = useRef<HTMLInputElement>(null);
@@ -181,6 +182,10 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
   };
 
   const selectedClass = classes.find((item) => item.id === selectedClassId) || classes[0];
+  const selectClass = (classId: string) => {
+    setSelectedClassId(classId);
+    setWorkspaceView('overview');
+  };
 
   // Tiến độ THẬT từng học sinh: đếm từ bài nộp trên Firestore, không dùng trường `progress`
   // cũ (mô hình lưu cục bộ, migrate lên mặc định 0 và không bao giờ được cập nhật).
@@ -521,7 +526,10 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
         ...prev,
         classes: (prev.classes || []).filter(item => item.id !== cls.id),
       }));
-      if (selectedClassId === cls.id) setSelectedClassId('');
+      if (selectedClassId === cls.id) {
+        setSelectedClassId('');
+        setWorkspaceView('overview');
+      }
     } catch (error) {
       Swal.fire({
         icon: 'error',
@@ -596,6 +604,7 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
 
     if (isConfirmed) {
       setSelectedClassId(cls.id);
+      setWorkspaceView('assignments');
       setTimeout(() => assignmentPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
       return;
     }
@@ -726,21 +735,20 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
     }
   };
 
+  const showRoster = workspaceView === 'overview' || workspaceView === 'students';
+  const showAssignments = workspaceView === 'overview' || workspaceView === 'assignments';
+  const showSubmissions = workspaceView === 'submissions';
+
   return (
     <div className="space-y-6 pb-10">
-      <section className="relative overflow-hidden rounded-[2rem] border border-blue-100 bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 p-6 text-white shadow-xl shadow-blue-100 sm:p-8">
-        <div className="absolute -right-14 -top-14 h-52 w-52 rounded-full bg-white/10 blur-2xl" />
-        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="max-w-2xl">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/15 px-3 py-1 text-xs font-black uppercase tracking-[0.2em] text-blue-50">
-              <Sparkles className="h-3.5 w-3.5" /> Classroom Hub
-            </div>
-            <h2 className="text-3xl font-black tracking-tight sm:text-4xl">Quản lý lớp học & học sinh</h2>
-            <p className="mt-3 text-sm leading-6 text-blue-50 sm:text-base">
-              Theo dõi sĩ số, bài tập đang mở và tiến độ học tập từng lớp theo phong cách dashboard rõ ràng, dễ thao tác cho giáo viên.
-            </p>
+      <section className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-indigo-600">Quản lý lớp học</p>
+            <h1 className="mt-1 text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">Class Workspace</h1>
+            <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-500">Chọn một lớp để đi thẳng vào danh sách học sinh, bài giao, bài nộp và báo cáo — không phải săn từng nút trên nhiều thẻ.</p>
           </div>
-          <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex flex-wrap gap-2">
             <input
               ref={rosterInputRef}
               type="file"
@@ -752,15 +760,8 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
                 if (file) void importRoster(file);
               }}
             />
-            <button onClick={addStudent} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white/15 px-5 py-3 text-sm font-black text-white ring-1 ring-white/25 transition hover:bg-white/20">
-              <UserPlus className="h-4 w-4" /> Thêm học sinh
-            </button>
-            <button onClick={() => rosterInputRef.current?.click()} title="Đọc họ tên và mã học sinh từ file Excel của trường" className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white/15 px-5 py-3 text-sm font-black text-white ring-1 ring-white/25 transition hover:bg-white/20">
-              <FileSpreadsheet className="h-4 w-4" /> Nhập từ Excel
-            </button>
-            <button onClick={addClass} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-black text-blue-700 shadow-lg shadow-blue-900/10 transition hover:-translate-y-0.5">
-              <Plus className="h-4 w-4" /> Tạo lớp mới
-            </button>
+            <button type="button" onClick={addClass} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-2.5 text-sm font-black text-white shadow-md shadow-indigo-200 transition hover:bg-indigo-700"><Plus className="h-4 w-4" /> Tạo lớp mới</button>
+            <button type="button" onClick={() => rosterInputRef.current?.click()} title="Đọc họ tên và mã học sinh từ file Excel của trường" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-black text-slate-700 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"><FileSpreadsheet className="h-4 w-4" /> Nhập Excel</button>
           </div>
         </div>
       </section>
@@ -801,14 +802,14 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
         ))}
       </section>
 
-      <section className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+      {classes.length === 0 ? <WorkspaceEmptyAction onAddClass={addClass} /> : <section className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         {classes.map((item) => {
           const tone = toneMap[item.tone];
           const isActive = item.id === selectedClass?.id;
           return (
             <article key={item.id} className={`flex flex-col overflow-hidden rounded-3xl border bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl ${isActive ? 'border-blue-300 ring-4 ring-blue-50' : 'border-slate-200'}`}>
               <div className="flex items-start justify-between border-b border-slate-100 p-5">
-                <button onClick={() => setSelectedClassId(item.id)} className="flex min-w-0 items-center gap-4 text-left">
+                <button type="button" onClick={() => selectClass(item.id)} className="flex min-w-0 items-center gap-4 text-left">
                   <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-xl font-black ${tone.avatar}`}>{item.grade}</div>
                   <div className="min-w-0">
                     <h3 className="truncate text-lg font-black text-slate-900">{item.name}</h3>
@@ -828,7 +829,7 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
               </div>
 
               <div className="grid grid-cols-4 gap-1 border-t border-slate-100 bg-slate-50/80 p-2">
-                <button onClick={() => setSelectedClassId(item.id)} className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><Eye className="h-5 w-5" /> Danh sách</button>
+                <button type="button" onClick={() => { selectClass(item.id); setWorkspaceView('students'); }} className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><Eye className="h-5 w-5" /> Danh sách</button>
                 <button onClick={() => showClassAccess(item)} title="Mã lớp và mã PIN để học sinh đăng nhập" className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><KeyRound className="h-5 w-5" /> Mã lớp</button>
                 <button onClick={() => chonKieuGiaoBai(item)} title="Giao bài nộp ảnh hoặc đề trắc nghiệm online" className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><Send className="h-5 w-5" /> Giao bài</button>
                 <button onClick={() => showClassReport(item)} title="Tổng hợp kết quả các đề đã giao" className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><BarChart3 className="h-5 w-5" /> Báo cáo</button>
@@ -836,10 +837,23 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
             </article>
           );
         })}
-      </section>
+      </section>}
+
+      {selectedClass && (
+        <ClassWorkspaceNav
+          selectedClass={selectedClass}
+          activeView={workspaceView}
+          onViewChange={setWorkspaceView}
+          onAccess={() => void showClassAccess(selectedClass)}
+          onAssign={() => void chonKieuGiaoBai(selectedClass)}
+          onReport={() => void showClassReport(selectedClass)}
+        />
+      )}
 
       {selectedClass && (
         <section className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          {showRoster && (
+            <>
           <div className="flex flex-col gap-4 border-b border-slate-100 pb-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-600">Danh sách học sinh</p>
@@ -891,6 +905,9 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
             })}
           </div>
 
+            </>
+          )}
+
           {viewingStudent && (
             <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/50 p-4 sm:p-8" onClick={() => setViewingStudent(null)}>
               <div className="w-full max-w-2xl rounded-[2rem] bg-white p-6 shadow-2xl" onClick={event => event.stopPropagation()}>
@@ -918,17 +935,32 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
             </div>
           )}
 
-          {user?.uid && (
-            <div ref={assignmentPanelRef} className="mt-5 scroll-mt-6">
-              <AssignmentPanel classId={selectedClass.id} teacherId={user.uid} className={selectedClass.name} showToast={showToast} />
+          {workspaceView === 'reports' && (
+            <div className="mt-5 rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-5 py-10 text-center">
+              <BarChart3 className="mx-auto mb-3 h-8 w-8 text-indigo-300" />
+              <h3 className="font-black text-slate-900">Báo cáo lớp</h3>
+              <p className="mx-auto mt-1 max-w-lg text-sm font-medium leading-6 text-slate-500">Mở báo cáo để tổng hợp kết quả các đề online đã giao. Bài nộp ảnh và điểm AI vẫn được theo dõi trong khu vực Bài nộp.</p>
+              <button type="button" onClick={() => void showClassReport(selectedClass)} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-black text-white shadow-md shadow-indigo-200 hover:bg-indigo-700"><BarChart3 className="h-4 w-4" /> Mở báo cáo</button>
             </div>
           )}
 
-          <div className="mt-5 grid gap-4 md:grid-cols-3">
+          {user?.uid && (showAssignments || showSubmissions) && (
+            <div ref={assignmentPanelRef} className="mt-5 scroll-mt-6">
+              <AssignmentPanel
+                classId={selectedClass.id}
+                teacherId={user.uid}
+                className={selectedClass.name}
+                showToast={showToast}
+                view={showSubmissions ? 'submissions' : 'assignments'}
+              />
+            </div>
+          )}
+
+          {workspaceView === 'overview' && <div className="mt-5 grid gap-4 md:grid-cols-3">
             <div className="rounded-3xl bg-blue-50 p-4"><TrendingUp className="mb-3 h-5 w-5 text-blue-600" /><p className="text-xs font-bold uppercase text-blue-500">Gợi ý AI</p><p className="mt-1 text-sm font-semibold text-blue-950">Ưu tiên ôn tập cho nhóm dưới 60% trước khi giao bài mới.</p></div>
             <div className="rounded-3xl bg-emerald-50 p-4"><BookOpenCheck className="mb-3 h-5 w-5 text-emerald-600" /><p className="text-xs font-bold uppercase text-emerald-600">Liên kết bài học</p><p className="mt-1 text-sm font-semibold text-emerald-950">Có thể dùng dữ liệu lớp để giao bài adaptive hoặc đề online.</p></div>
             <div className="rounded-3xl bg-amber-50 p-4"><ClipboardList className="mb-3 h-5 w-5 text-amber-600" /><p className="text-xs font-bold uppercase text-amber-600">Theo dõi</p><p className="mt-1 text-sm font-semibold text-amber-950">Báo cáo lớp sẽ gom tiến độ, bài nộp và kết quả chấm AI.</p></div>
-          </div>
+          </div>}
         </section>
       )}
     </div>
