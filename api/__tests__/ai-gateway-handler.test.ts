@@ -21,7 +21,7 @@ vi.mock('openai', () => ({
   },
 }));
 
-import handler from '../ai-gateway';
+import { handleAiGateway as handler } from '../_ai-gateway-handler.js';
 
 interface ResponseState {
   statusCode: number;

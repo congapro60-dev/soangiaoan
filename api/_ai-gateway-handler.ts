@@ -1,4 +1,10 @@
 /// <reference types="node" />
+// Handler GLM 5.2 — gộp vào route /api/grade-homework qua action 'aiGateway'.
+//
+// Vì sao không đứng thành function riêng: Vercel Hobby chỉ cho TỐI ĐA 12 Serverless Functions,
+// thêm file api/ai-gateway.ts là cái thứ 13 và CẢ HAI deployment đều vỡ lúc build. Gộp vào
+// route chấm bài bằng action riêng giữ nguyên hợp đồng client (Bearer idToken, JSON/SSE),
+// key vẫn nằm server-side, không đổi kiến trúc bảo mật.
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import OpenAI from 'openai';
 import { getAuth } from 'firebase-admin/auth';
@@ -17,7 +23,7 @@ interface GatewayBody {
   stream?: unknown;
 }
 
-const readBody = (req: VercelRequest): GatewayBody => {
+const readGatewayBody = (req: VercelRequest): GatewayBody => {
   if (req.body && typeof req.body === 'object') return req.body as GatewayBody;
   try {
     return JSON.parse(String(req.body || '{}')) as GatewayBody;
@@ -76,26 +82,30 @@ const handleStream = async (
   }
 };
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export const handleAiGateway = async (req: VercelRequest, res: VercelResponse): Promise<void> => {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
-    return sendError(res, 405, 'Chỉ nhận POST.');
+    void sendError(res, 405, 'Chỉ nhận POST.');
+    return;
   }
 
   const authenticated = await verifyFirebaseUser(req);
   if (!authenticated) {
-    return sendError(res, 401, 'Bạn cần đăng nhập để dùng GLM 5.2.');
+    void sendError(res, 401, 'Bạn cần đăng nhập để dùng GLM 5.2.');
+    return;
   }
 
   const apiKey = resolveGatewayApiKey();
   if (!apiKey) {
-    return sendError(res, 500, 'AI Gateway chưa được cấu hình trên Vercel.');
+    void sendError(res, 500, 'AI Gateway chưa được cấu hình trên Vercel.');
+    return;
   }
 
-  const body = readBody(req);
+  const body = readGatewayBody(req);
   const prompt = normalizeGatewayPrompt(body.prompt);
   if (!prompt) {
-    return sendError(res, 400, 'Nội dung gửi đến GLM 5.2 không hợp lệ.');
+    void sendError(res, 400, 'Nội dung gửi đến GLM 5.2 không hợp lệ.');
+    return;
   }
 
   const client = new OpenAI({ apiKey, baseURL: AI_GATEWAY_BASE_URL });
@@ -110,15 +120,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const completion = await client.chat.completions.create(buildGatewayChatRequest(prompt, false));
     const choice = completion.choices[0];
     const text = choice?.message?.content || '';
-    if (!text) return sendError(res, 502, 'GLM 5.2 không trả về nội dung.');
+    if (!text) {
+      void sendError(res, 502, 'GLM 5.2 không trả về nội dung.');
+      return;
+    }
 
-    return res.status(200).json({
+    void res.status(200).json({
       text,
       model: AI_GATEWAY_MODEL,
       truncated: choice.finish_reason === 'length',
     });
   } catch (error) {
     console.error('[ai-gateway] Request failed:', error);
-    return sendError(res, 502, 'Gọi GLM 5.2 thất bại. Vui lòng thử lại.');
+    void sendError(res, 502, 'Gọi GLM 5.2 thất bại. Vui lòng thử lại.');
   }
-}
+};

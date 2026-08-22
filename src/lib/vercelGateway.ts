@@ -46,10 +46,11 @@ const readErrorMessage = async (response: Response): Promise<string> => {
 };
 
 export const callVercelGateway = async (prompt: string): Promise<VercelGatewayTextResult> => {
-  const response = await fetch('/api/ai-gateway', {
+  // Gateway gộp vào route chấm bài qua action riêng — Vercel Hobby trần 12 Serverless Functions.
+  const response = await fetch('/api/grade-homework', {
     method: 'POST',
     headers: await getAuthHeaders(),
-    body: JSON.stringify({ prompt, stream: false }),
+    body: JSON.stringify({ action: 'aiGateway', prompt, stream: false }),
   });
 
   if (!response.ok) throw new Error(await readErrorMessage(response));
@@ -68,10 +69,10 @@ export const streamVercelGateway = async (
   prompt: string,
   onChunk: (chunk: string) => void,
 ): Promise<void> => {
-  const response = await fetch('/api/ai-gateway', {
+  const response = await fetch('/api/grade-homework', {
     method: 'POST',
     headers: await getAuthHeaders(),
-    body: JSON.stringify({ prompt, stream: true }),
+    body: JSON.stringify({ action: 'aiGateway', prompt, stream: true }),
   });
 
   if (!response.ok) throw new Error(await readErrorMessage(response));

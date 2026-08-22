@@ -26,14 +26,17 @@ import {
   parseRubric,
   parseSolvedAnswerKey,
 } from '../src/lib/classroom/gradingPrompt.js';
+import { handleAiGateway } from './_ai-gateway-handler.js';
 
 /**
- * Chấm bài tập bằng khoá AI của chủ dự án.
+ * Chấm bài tập bằng khoá AI của chủ dự án + gateway GLM 5.2 (gộp chung một function để
+ * không vượt trần 12 Serverless Functions của Vercel Hobby).
  *
  *   POST { action: 'gradeAssignment', assignmentId, idToken }  → giáo viên chấm cả lớp
  *   POST { action: 'gradeOne', submissionId, idToken }         → một bài (học sinh tự nộp)
+ *   POST { action: 'aiGateway', prompt, stream, Authorization: Bearer idToken } → GLM 5.2
  *
- * Mỗi lượt gọi chỉ chấm TỐI ĐA `BATCH_SIZE` bài rồi trả về số còn lại, vì Vercel có trần thời
+ * Mỗi lượt chấm chỉ TỐI ĐA `BATCH_SIZE` bài rồi trả về số còn lại, vì Vercel có trần thời
  * gian chạy còn một lớp 40 em thì không kịp trong một lượt. Client gọi lại đến khi hết —
  * đổi lại được thanh tiến độ thật thay vì một lượt chờ dài rồi timeout mất trắng.
  */
@@ -387,6 +390,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const db = getAdminDb();
+    // Gateway GLM 5.2 gộp vào đây (action 'aiGateway') — Vercel Hobby trần 12 Serverless
+    // Functions, đứng thành file riêng là cái thứ 13 và deployment vỡ lúc build.
+    if (action === 'aiGateway') return await handleAiGateway(req, res);
     if (action === 'gradeAssignment') return await handleGradeAssignment(db, body, res);
     if (action === 'gradeOne') return await handleGradeOne(db, body, res);
     if (action === 'practice') return await handlePractice(db, body, res);
