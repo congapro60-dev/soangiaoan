@@ -280,3 +280,7 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - **Công sức bỏ ra đang tỉ lệ với ĐỘ THÚ VỊ của bài toán, đáng lẽ phải tỉ lệ với TẦN SUẤT người dùng chạm vào.** "AI tự giải đề" hay nên được prompt riêng, test riêng, dải cảnh báo riêng. "Dòng hiển thị bài đã giao" nhạt nên đúng là một dòng. Giáo viên chạm vào cái nhạt mỗi ngày. *(2026-08-21)*
 
 - **938 unit test xanh mà không bắt được lỗi nào người dùng gặp** — vì tôi chọn phép kiểm theo cái nào DỄ VIẾT, không theo cái nào giống việc người dùng làm. Test hàm thuần rẻ nên viết được 938 cái; phép kiểm đắt và phiền (tạo lớp → giao bài → xem lại → nộp → chấm) thì né mọi lần, và toàn bộ lỗi đến tay người dùng đều nằm đúng ở đó. Có sẵn phiên trình duyệt thật của người dùng mà chỉ dùng để tra dữ liệu, không dùng để đi thử luồng. *(2026-08-21)*
+
+## Quyền push của app OpenCode (2026-08-22)
+
+- **"Không tự push" không có nghĩa là cấm push** — app phải cho phép commit/push khi người dùng yêu cầu hoặc bấm nút xác nhận. Chỉ tự động dừng trước bước push; vẫn phải stage đúng file của task, không dùng `git add .` để kéo theo thay đổi ngoài phạm vi. *(2026-08-22)*
