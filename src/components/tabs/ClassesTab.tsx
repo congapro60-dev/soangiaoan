@@ -731,7 +731,7 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
 
           <div className="mt-4 overflow-hidden rounded-3xl border border-slate-100">
             <div className="hidden grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr_auto] bg-slate-50 px-5 py-3 text-xs font-black uppercase tracking-wide text-slate-400 md:grid">
-              <span>Học sinh</span><span>Mã HS</span><span>Tiến độ</span><span>Trạng thái</span><span className="sr-only">Thao tác</span>
+              <span>Học sinh</span><span>Mã PIN</span><span>Tiến độ</span><span>Trạng thái</span><span className="sr-only">Thao tác</span>
             </div>
             {filteredStudents.length === 0 ? (
               <div className="py-12 text-center text-sm font-semibold text-slate-400">Chưa có học sinh phù hợp.</div>
@@ -741,12 +741,13 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
                 <div key={student.id} className="grid gap-3 border-t border-slate-100 px-5 py-4 text-sm md:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr_auto] md:items-center">
                   <button onClick={() => setViewingStudent(student)} title={`Xem trang của ${student.name}`} className="flex items-center gap-3 text-left transition hover:opacity-70">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-50 font-black text-blue-700">{student.name.charAt(0)}</div>
-                    <div><p className="font-black text-slate-900 underline decoration-slate-200 underline-offset-4">{student.name}</p><p className="text-xs font-semibold text-slate-400 md:hidden">{student.code}</p></div>
+                    <div><p className="font-black text-slate-900 underline decoration-slate-200 underline-offset-4">{student.name}</p></div>
                   </button>
-                  <span className="hidden font-semibold text-slate-600 md:block">{student.code}</span>
+                  <button onClick={() => capLaiPinMotEm(selectedClass, student)} title={`Xem/cấp lại mã PIN cho ${student.name} — mã cũ sẽ hết hiệu lực`} className="w-fit rounded-full bg-blue-50 px-3 py-1.5 text-xs font-black text-blue-700 transition hover:bg-blue-100">
+                    <KeyRound className="mr-1 inline h-3.5 w-3.5" /> Xem PIN
+                  </button>
                   <div className="flex items-center gap-3"><div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-blue-600" style={{ width: `${student.progress}%` }} /></div><span className="w-10 text-right font-black text-slate-700">{student.progress}%</span></div>
                   <span className={`w-fit rounded-full px-3 py-1 text-xs font-black ${status.className}`}>{status.label}</span>
-                  <button onClick={() => capLaiPinMotEm(selectedClass, student)} title={`Cấp lại mã PIN cho ${student.name}`} aria-label={`Cấp lại mã PIN cho ${student.name}`} className="w-fit rounded-full p-2 text-slate-300 transition hover:bg-blue-50 hover:text-blue-600"><KeyRound className="h-4 w-4" /></button>
                   <button onClick={() => deleteStudent(selectedClass, student)} title={`Xoá ${student.name} khỏi lớp`} aria-label={`Xoá ${student.name} khỏi lớp`} className="w-fit rounded-full p-2 text-slate-300 transition hover:bg-red-50 hover:text-red-600"><Trash2 className="h-4 w-4" /></button>
                 </div>
               );

@@ -1,4 +1,4 @@
-import { collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
+import { collection, deleteDoc, deleteField, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
 import { auth, db, removeUndefinedFields, storage } from '../firebase';
 import { mergeTopics, removeEvidence } from './profileMerge';
@@ -140,6 +140,20 @@ export const deleteAssignment = async (assignmentId: string): Promise<void> => {
 
 export const setAssignmentOpen = async (assignmentId: string, isOpen: boolean): Promise<void> => {
   await updateDoc(doc(db, ASSIGNMENTS_COL, assignmentId), { isOpen, updatedAt: new Date().toISOString() });
+};
+
+/**
+ * Đổi hạn nộp của bài đã giao (hoặc bỏ hẳn hạn khi truyền null). Chỉ đụng `dueAt` —
+ * nhãn nộp sớm/muộn của học sinh tính ĐỘNG lúc hiển thị nên mọi bài cũ tự phân loại lại theo hạn mới.
+ */
+export const updateAssignmentDeadline = async (
+  assignmentId: string,
+  dueAt: string | null,
+): Promise<void> => {
+  await updateDoc(doc(db, ASSIGNMENTS_COL, assignmentId), {
+    dueAt: dueAt ? dueAt : deleteField(),
+    updatedAt: new Date().toISOString(),
+  });
 };
 
 export const listSubmissionsForAssignment = async (assignmentId: string, teacherId: string): Promise<SubmissionDoc[]> => {

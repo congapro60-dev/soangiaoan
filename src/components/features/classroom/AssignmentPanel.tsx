@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
-import { CheckCircle2, ClipboardList, FileText, Loader2, Play, Plus, Save, ShieldCheck, Trash2 } from 'lucide-react';
+import { CalendarClock, CheckCircle2, ClipboardList, FileText, Loader2, Play, Plus, Save, ShieldCheck, Trash2 } from 'lucide-react';
 import {
   approveGrade,
   createAssignment,
@@ -9,10 +9,12 @@ import {
   deleteAssignment,
   setAssignmentOpen,
   updateAssignmentContent,
+  updateAssignmentDeadline,
   uploadAnswerKeyImages,
   uploadAssignmentFiles,
 } from '../../../lib/classroom/submissionService';
 import type { AssignmentDoc, SubmissionDoc } from '../../../lib/classroom/types';
+import { laNopQuaHan } from '../../../lib/classroom/hanNop';
 import { gradeAssignmentAll } from '../../../services/gradingApi';
 import { AssignmentFormModal, type AssignmentFormValue } from './AssignmentFormModal';
 
@@ -28,6 +30,21 @@ const trangThai: Record<SubmissionDoc['status'], { nhan: string; mau: string }> 
   grading: { nhan: 'Đang chấm', mau: 'bg-blue-50 text-blue-700' },
   graded: { nhan: 'Đã chấm', mau: 'bg-emerald-50 text-emerald-700' },
   error: { nhan: 'Lỗi', mau: 'bg-red-50 text-red-700' },
+};
+
+const denONhapNgay = (iso?: string): string => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const haiSo = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${haiSo(d.getMonth() + 1)}-${haiSo(d.getDate())}T${haiSo(d.getHours())}:${haiSo(d.getMinutes())}`;
+};
+
+const dinhDangHan = (iso?: string): string => {
+  if (!iso) return 'Không đặt hạn';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return 'Không đặt hạn';
+  return `Hạn: ${d.toLocaleDateString('vi-VN')} ${d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`;
 };
 
 export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Props) => {
@@ -161,6 +178,53 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
     }
   };
 
+  /**
+   * Đổi hạn nộp sau khi đã giao. Nhãn sớm/muộn của học sinh tính ĐỘNG từ hạn này
+   * nên đổi xong là mọi bài nộp cũ tự phân loại lại, không phải quét sửa dữ liệu.
+   */
+  const suaHanNop = async (a: AssignmentDoc) => {
+    const { isConfirmed } = await Swal.fire({
+      title: `Đổi hạn nộp "${a.title}"`,
+      html: `
+        <input id="swal-han" type="datetime-local" class="swal2-input" value="${denONhapNgay(a.dueAt)}">
+        <label style="display:flex;align-items:center;gap:6px;justify-content:center;font-size:13px;color:#64748b;">
+          <input id="swal-xoa-han" type="checkbox"> Bỏ hẳn hạn nộp
+        </label>
+        <p style="font-size:12px;color:#94a3b8;margin-top:6px;">Nhãn "đúng hạn / nộp muộn" của mọi bài nộp sẽ tự cập nhật theo hạn mới.</p>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Lưu hạn mới',
+      cancelButtonText: 'Hủy',
+      confirmButtonColor: '#3085d6',
+      focusConfirm: false,
+    });
+    if (!isConfirmed) return;
+
+    const boHan = (document.getElementById('swal-xoa-han') as HTMLInputElement | null)?.checked;
+    let moi: string | null = null;
+    if (!boHan) {
+      const raw = (document.getElementById('swal-han') as HTMLInputElement | null)?.value;
+      if (!raw) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Chưa chọn ngày giờ',
+          text: 'Chọn hạn nộp mới, hoặc tick "Bỏ hẳn hạn nộp".',
+          confirmButtonColor: '#3085d6',
+        });
+        return;
+      }
+      moi = new Date(raw).toISOString();
+    }
+
+    try {
+      await updateAssignmentDeadline(a.id, moi);
+      showToast('Đã cập nhật hạn nộp.', 'success');
+      await taiBai();
+    } catch (error) {
+      setLoiTai(error instanceof Error ? error.message : 'Không đổi được hạn nộp.');
+    }
+  };
+
   const xoaBai = async (a: AssignmentDoc) => {
     // Chặn khi đã có bài nộp: xoá bài giao mà để bài nộp nằm lại là tạo ra dữ liệu mồ côi,
     // điểm của học sinh trỏ vào một bài không còn tồn tại.
@@ -242,6 +306,13 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
                     {(a.attachments?.length ?? 0) > 0 ? ` · ${a.attachments!.length} file đề` : ' · chưa đính kèm đề'}
                     {a.answerKeyByAi ? ' · đáp án do AI giải' : ''}
                   </p>
+                </button>
+                <button
+                  onClick={() => suaHanNop(a)}
+                  title="Đổi hạn nộp — nhãn đúng hạn/muộn của học sinh tự cập nhật theo"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-2 text-xs font-black text-indigo-700 transition hover:bg-indigo-100"
+                >
+                  <CalendarClock className="h-3.5 w-3.5" /> {dinhDangHan(a.dueAt)}
                 </button>
                 <button
                   onClick={() => setAssignmentOpen(a.id, !a.isOpen).then(taiBai)}
@@ -356,6 +427,11 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast }: Pr
                         <span className={`rounded-full px-3 py-1 text-xs font-black ${trangThai[s.status].mau}`}>
                           {trangThai[s.status].nhan}
                         </span>
+                        {a.dueAt && (
+                          laNopQuaHan(s.createdAt, a.dueAt)
+                            ? <span className="rounded-full bg-red-50 px-2 py-1 text-[11px] font-bold text-red-700">Nộp muộn</span>
+                            : <span className="rounded-full bg-emerald-50 px-2 py-1 text-[11px] font-bold text-emerald-700">Đúng hạn</span>
+                        )}
                         {s.grade && (
                           <span className="text-sm font-black text-slate-900">{s.grade.score} / {s.grade.maxScore}</span>
                         )}
