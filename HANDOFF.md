@@ -9,7 +9,10 @@ Trần **150 dòng**: vượt thì cắt mục cũ sang [`docs/HANDOFF-ARCHIVE.m
 
 ## 1. Trạng thái hiện tại
 
-**`main` = (lô 2 cổng học sinh).** Chuỗi đỏ #442–#445 đã kết thúc ở #446/#447; trạng thái CI các commit sau đó chưa xác nhận (máy này không có `gh`).
+**`main` = lô cổng học sinh + GLM 5.2 server-side sau commit `dab09e7`.** Chuỗi đỏ #442–#445 đã kết thúc ở #446/#447; trạng thái CI các commit sau đó chưa xác nhận (máy này không có `gh`).
+
+- **Vercel AI Gateway GLM 5.2** (`dab09e7`) — thêm route xác thực Firebase đọc `AI_GATEWAY_API_KEY` trên Vercel, provider cố định `zai/glm-5.2`, JSON/SSE text; lý do là dùng một key chung mà không lộ key trong browser, Gemini vẫn là mặc định.
+- **Còn dở / cố ý bỏ / bẫy / nghiệm thu** — owner còn phải thêm biến `AI_GATEWAY_API_KEY` rồi smoke test Vercel; ảnh/PDF bị chặn có chủ ý vì route text-only; không có quota tầng app nhưng rate limit/chi phí provider vẫn tồn tại; `npm test` 63 files/970 tests, `npm run lint`, `npm run build` đã pass.
 
 Các lô gần nhất:
 
@@ -144,10 +147,4 @@ in thông báo thành công sau khi bỏ qua bước. Nguồn sự thật về l
 | Quyền truy cập | `firestore.rules` · `firestore.indexes.json` (nguồn sự thật cho index production) |
 | Bài học đã rút | `tasks/lessons.md` — **đọc đầu phiên** |
 
-## 6. Lịch sử
-
-Các phiên trước (1.0b → 1.0r), phase Skeleton đã xong, roadmap chưa code, checklist Vercel:
-xem [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md) và `git log`.
-
-> **Đừng tin file này thay cho việc đọc code.** Tài liệu drift: bản trước còn ghi "module dự giờ CHƯA có UI"
-> trong khi UI đã chạy trên production. Xác minh file/dòng còn tồn tại trước khi sửa theo.
+## 6. Lịch sử — Xem các phiên cũ trong [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md) và `git log`; luôn xác minh code hiện tại trước khi sửa theo handoff.
