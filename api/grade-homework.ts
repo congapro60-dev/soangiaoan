@@ -48,8 +48,10 @@ import {
   type PracticeQuestionKey,
   type PracticeSetDoc,
   type ProfileTopic,
+  type SubmissionDoc,
 } from '../src/lib/classroom/types.js';
 import { handleAiGateway } from './_ai-gateway-handler.js';
+import { archiveSubmissionGrade, removeSubmissionGradeEvidence } from './_grade-lifecycle.js';
 import { replaceSkillEvidenceAndRebuild } from './_skill-profile.js';
 
 /**
@@ -159,7 +161,10 @@ const gradeOneSubmission = async (
   data: FirebaseFirestore.DocumentData,
   ctx: GradeContext,
   apiKey: string,
+  actorUid: string,
 ): Promise<boolean> => {
+  const previous = { id: submissionId, ...data } as SubmissionDoc;
+  const previousStatus = previous.status;
   const ref = db.collection('submissions').doc(submissionId);
   await ref.update({ status: 'grading', updatedAt: new Date().toISOString() });
 
@@ -192,6 +197,9 @@ const gradeOneSubmission = async (
     const parsed = parseHomeworkGrade(raw, ctx.maxScore, khongCoDapAn);
     const now = new Date().toISOString();
 
+    // Snapshot trước khi thay grade hiện hành. Nếu đây là lần chấm đầu thì không tạo history rỗng.
+    await archiveSubmissionGrade(db, previous, 'ai_regrade', actorUid, now);
+
     await ref.update({
       status: 'graded',
       grade: {
@@ -211,12 +219,18 @@ const gradeOneSubmission = async (
       errorMessage: '',
       updatedAt: now,
     });
+    if (previous.grade) {
+      // Grade AI mới chưa duyệt; gỡ evidence của kết quả cũ đã được duyệt.
+      await removeSubmissionGradeEvidence(db, previous, now);
+    }
     return true;
   } catch (error) {
-    // Bài lỗi phải nhìn thấy được để chấm lại — KHÔNG lặng lẽ cho 0 điểm.
+    const message = error instanceof Error ? error.message : 'Chấm thất bại';
+    // Regrade lỗi không được làm mất grade hợp lệ đang có. Nếu chưa từng có grade,
+    // mới chuyển sang error để giáo viên/học sinh biết cần thử lại.
     await ref.update({
-      status: 'error',
-      errorMessage: error instanceof Error ? error.message : 'Chấm thất bại',
+      status: previous.grade ? (previousStatus === 'error' ? 'error' : 'graded') : 'error',
+      errorMessage: previous.grade ? '' : message,
       updatedAt: new Date().toISOString(),
     });
     return false;
@@ -327,7 +341,7 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
   let graded = 0;
   let failed = 0;
   for (const doc of batch) {
-    const ok = await gradeOneSubmission(db, doc.id, doc.data(), ctx, apiKey);
+    const ok = await gradeOneSubmission(db, doc.id, doc.data(), ctx, apiKey, uid);
     if (ok) graded += 1; else failed += 1;
   }
 
@@ -349,6 +363,9 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
   if (!snap.exists) return res.status(404).json({ error: 'Không tìm thấy bài nộp.' });
 
   const submission = snap.data() as FirebaseFirestore.DocumentData;
+  if (submission.status === 'grading') {
+    return res.status(409).json({ error: 'Bài đang được chấm. Chờ lượt hiện tại kết thúc rồi thử lại.' });
+  }
   const linkSnap = await db.collection('studentLinks').doc(uid).get();
   const isOwnerStudent = linkSnap.exists && linkSnap.data()?.studentId === submission.studentId;
   const isTeacher = submission.teacherId === uid;
@@ -393,8 +410,18 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
     }
   }
 
-  const ok = await gradeOneSubmission(db, submissionId, submission, ctx, getGradingApiKey());
+  const ok = await gradeOneSubmission(db, submissionId, submission, ctx, getGradingApiKey(), uid);
   await quotaRef.set(bumpQuota(quota, kind, String(submission.studentId || ''), 1));
+  if (!ok) {
+    const latest = await ref.get();
+    const latestData = latest.data() as FirebaseFirestore.DocumentData | undefined;
+    return res.status(422).json({
+      error: String(latestData?.errorMessage || 'Chấm lại chưa thành công. Điểm hiện tại vẫn được giữ nguyên.'),
+      graded: 0,
+      failed: 1,
+      remaining: 0,
+    });
+  }
   return res.status(200).json({ graded: ok ? 1 : 0, failed: ok ? 0 : 1, remaining: 0 });
 };
 

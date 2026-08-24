@@ -79,7 +79,7 @@ export const GradeReviewModal = ({ classId, studentName, submission, dangLuu, on
       <div className="w-full max-w-2xl rounded-[2rem] bg-white p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
         <div className="flex items-start justify-between border-b border-slate-100 pb-4">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-600">Chấm lại</p>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-600">Sửa điểm / chấm tay</p>
             <h3 className="mt-1 text-xl font-black text-slate-900">{studentName}</h3>
           </div>
           <button onClick={onClose} aria-label="Đóng" className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100"><X className="h-5 w-5" /></button>
@@ -163,7 +163,7 @@ export const GradeReviewModal = ({ classId, studentName, submission, dangLuu, on
             className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-black text-white transition hover:bg-blue-700 disabled:opacity-50"
           >
             {dangLuu ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            {dangLuu ? 'Đang lưu...' : 'Lưu chấm lại'}
+            {dangLuu ? 'Đang lưu...' : 'Lưu chấm tay'}
           </button>
         </div>
       </div>

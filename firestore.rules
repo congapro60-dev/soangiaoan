@@ -558,6 +558,12 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Lịch sử điểm là audit trail server-only. Client không được đọc, sửa hoặc xoá
+    // để học sinh/giáo viên không thể làm mất dấu các lần chấm trước.
+    match /submissionGradeHistory/{historyId} {
+      allow read, write: if false;
+    }
+
     match /submissions/{submissionId} {
       // Học sinh nộp bài: mọi trường định danh phải khớp phiên của chính mình,
       // và tuyệt đối không được kèm sẵn điểm.

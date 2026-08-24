@@ -177,6 +177,25 @@ export interface SubmissionGrade {
   editedByTeacher?: boolean;
 }
 
+export type SubmissionGradeRevisionAction = 'manual_edit' | 'delete' | 'ai_regrade';
+
+/**
+ * Bản chụp bất biến của một kết quả chấm trước khi giáo viên sửa/xóa hoặc AI chấm lại.
+ * Collection này chỉ do Admin SDK dùng; không đưa vào projection cho học sinh.
+ */
+export interface SubmissionGradeHistoryDoc {
+  id: string;
+  submissionId: string;
+  teacherId: string;
+  classId: string;
+  studentId: string;
+  assignmentId: string | null;
+  action: SubmissionGradeRevisionAction;
+  actorUid: string;
+  grade: SubmissionGrade;
+  createdAt: string;
+}
+
 /**
  * Một bài nộp. `assignmentId` rỗng nghĩa là học sinh tự nộp, không phải bài
  * được giao — đó chính là cửa "máy chấm bài về nhà".

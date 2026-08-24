@@ -347,3 +347,19 @@ describe('studentSkillEvidence · ledger server-only', () => {
     await assertFails(deleteDoc(doc(dbGV(), 'studentSkillEvidence/e-1')));
   });
 });
+
+describe('submissionGradeHistory · audit server-only', () => {
+  it('client không đọc/ghi/xóa được lịch sử điểm', async () => {
+    const payload = {
+      id: 'history-1', submissionId: 'bai-da-cham', teacherId: UID_GV,
+      classId: LOP, studentId: HS_A, assignmentId: 'bt-1', action: 'manual_edit',
+      actorUid: UID_GV, grade: { score: 8, maxScore: 10 }, createdAt: '2026-08-24T10:00:00.000Z',
+    };
+
+    await assertFails(getDoc(doc(dbGV(), 'submissionGradeHistory/history-1')));
+    await assertFails(getDocs(collection(dbHsA(), 'submissionGradeHistory')));
+    await assertFails(setDoc(doc(dbGV(), 'submissionGradeHistory/history-1'), payload));
+    await assertFails(updateDoc(doc(dbGV(), 'submissionGradeHistory/history-1'), { action: 'delete' }));
+    await assertFails(deleteDoc(doc(dbGV(), 'submissionGradeHistory/history-1')));
+  });
+});

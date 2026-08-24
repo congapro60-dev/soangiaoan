@@ -31,7 +31,7 @@ describe('buildManualGradeUpdate', () => {
     expect(update['grade.teacherApproved']).toBe(false);
   });
 
-  it('giữ cờ duyệt và thông tin nền khi giáo viên sửa bài đã duyệt', () => {
+  it('buộc duyệt lại khi giáo viên sửa bài đã duyệt', () => {
     const existingGrade = {
       score: 8,
       maxScore: 10,
@@ -48,7 +48,7 @@ describe('buildManualGradeUpdate', () => {
       weakTopics: [],
     }, '2026-08-24T12:00:00.000Z');
 
-    expect(update['grade.teacherApproved']).toBe(true);
+    expect(update['grade.teacherApproved']).toBe(false);
     expect(update['grade.strengths']).toEqual(['đúng phương pháp']);
     expect(update['grade.weaknesses']).toEqual(['nhầm dấu']);
   });

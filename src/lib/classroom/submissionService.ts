@@ -2,7 +2,7 @@ import { collection, deleteField, doc, getDoc, getDocs, query, setDoc, updateDoc
 import { deleteObject, getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
 import { auth, db, removeUndefinedFields, storage } from '../firebase';
 import { applyEvidence, mergeTopics, removeEvidence } from './profileMerge';
-import { buildManualGradeUpdate, type ManualGradeInput } from './manualGrade';
+import type { ManualGradeInput } from './manualGrade';
 import {
   ASSIGNMENTS_COL,
   CLASSES_COL,
@@ -265,6 +265,11 @@ export const xoaBaiNopHocSinh = async (submission: SubmissionDoc): Promise<void>
   await callClassroomTeacherApi({ action: 'deleteSubmission', submissionId: submission.id });
 };
 
+/** Xóa riêng kết quả chấm; bài nộp, file và lịch sử vẫn được giữ để chấm lại. */
+export const xoaDiemBaiNopHocSinh = async (submission: SubmissionDoc): Promise<void> => {
+  await callClassroomTeacherApi({ action: 'deleteSubmissionGrade', submissionId: submission.id });
+};
+
 /**
  * Giáo viên sửa tay điểm/nhận xét sau khi máy chấm. Chỉ đụng các trường điểm —
  * không đụng định danh bài nộp; cờ editedByTeacher để màn hình phân biệt điểm máy và điểm người.
@@ -273,35 +278,7 @@ export const updateSubmissionGradeManually = async (
   submission: SubmissionDoc,
   patch: ManualGradeInput,
 ): Promise<void> => {
-  const now = new Date().toISOString();
-
-  await updateDoc(doc(db, SUBMISSIONS_COL, submission.id), buildManualGradeUpdate(submission, patch, now));
-
-  // Bài đã duyệt thì hồ sơ tích luỹ phải chạy theo danh sách chủ đề MỚI.
-  // Thiếu bước này: giáo viên bỏ nhãn "yếu phương trình" trên màn hình, nhưng hồ sơ vẫn giữ
-  // nhãn đó và bài bổ trợ vẫn ra theo chủ đề giáo viên vừa bác bỏ.
-  if (submission.grade?.teacherApproved) {
-    const profileRef = doc(db, STUDENT_PROFILES_COL, submission.studentId);
-    const snap = await getDoc(profileRef);
-    const existing = snap.exists() ? ((snap.data() as StudentProfileDoc).topics || []) : [];
-
-    await setDoc(profileRef, removeUndefinedFields({
-      studentId: submission.studentId,
-      classId: submission.classId,
-      teacherId: submission.teacherId,
-      topics: applyEvidence({
-        existing,
-        weakTopics: patch.weakTopics,
-        strengths: submission.grade?.strengths || [],
-        submissionId: submission.id,
-        assignmentId: submission.assignmentId || undefined,
-        approved: true,
-        now,
-      }),
-      updatedAt: now,
-    } as StudentProfileDoc), { merge: true });
-    await callClassroomTeacherApi({ action: 'syncSkillEvidence', submissionId: submission.id });
-  }
+  await callClassroomTeacherApi({ action: 'saveSubmissionGrade', submissionId: submission.id, grade: patch });
 };
 
 /**

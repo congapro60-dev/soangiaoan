@@ -8,6 +8,7 @@ import {
   listClassRoster,
   listSubmissionsForClass,
   xoaBaiNopHocSinh,
+  xoaDiemBaiNopHocSinh,
   deleteAssignment,
   setAssignmentOpen,
   updateAssignmentContent,
@@ -69,6 +70,8 @@ interface BaiNopTheoLopProps {
   duyet: (s: SubmissionDoc) => void | Promise<void>;
   xoaBaiNop: (s: SubmissionDoc, ten: string) => void | Promise<void>;
   dangXoaNop: string;
+  xoaDiem: (s: SubmissionDoc, ten: string) => void | Promise<void>;
+  dangXoaDiem: string;
   selectedIds: ReadonlySet<string>;
   toggleSelected: (submissionId: string, selected: boolean) => void;
   toggleAllSubmissions: (selected: boolean) => void;
@@ -82,7 +85,7 @@ interface BaiNopTheoLopProps {
  * Danh sách ĐỦ CẢ LỚP theo một bài giao: em nào đã nộp (kèm trạng thái/điểm/hành động),
  * em nào chưa nộp — giáo viên kiểm soát một mắt nhìn thay vì đoán từ số lượng.
  */
-const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet, xoaBaiNop, dangXoaNop, selectedIds, toggleSelected, toggleAllSubmissions, bulkCham, bulkDuyet, bulkXoa, dangBulk }: BaiNopTheoLopProps) => {
+const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet, xoaBaiNop, dangXoaNop, xoaDiem, dangXoaDiem, selectedIds, toggleSelected, toggleAllSubmissions, bulkCham, bulkDuyet, bulkXoa, dangBulk }: BaiNopTheoLopProps) => {
   const tenTheoId = new Map(lopHocSinh.map(hs => [hs.studentId, hs.name]));
   const daNopIds = new Set(baiNop.map(s => s.studentId));
   const chuaNop = lopHocSinh.filter(hs => !daNopIds.has(hs.studentId));
@@ -227,6 +230,17 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                       {s.grade.teacherApproved ? 'Đã duyệt' : 'Duyệt điểm'}
                     </button>
                   )}
+                  {s.grade && (
+                    <button
+                      onClick={() => void xoaDiem(s, ten)}
+                      disabled={s.status === 'grading' || tienDo !== '' || dangXoaNop !== '' || dangXoaDiem !== ''}
+                      title="Xóa kết quả chấm nhưng giữ nguyên bài nộp và file"
+                      className="inline-flex items-center gap-1 rounded-2xl border border-amber-200 bg-white px-3 py-2 text-xs font-black text-amber-700 transition hover:bg-amber-50 disabled:opacity-50"
+                    >
+                      {dangXoaDiem === s.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                      Xóa điểm
+                    </button>
+                  )}
                   <button
                     onClick={() => void xoaBaiNop(s, ten)}
                     disabled={tienDo !== '' || dangXoaNop !== ''}
@@ -264,6 +278,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   const [moRongId, setMoRongId] = useState('');
   // Id bài nộp đang bị xoá — khoá nút trong lúc gọi để không bấm đúp xoá hai lần.
   const [dangXoaNop, setDangXoaNop] = useState('');
+  const [dangXoaDiem, setDangXoaDiem] = useState('');
   const [dangTai, setDangTai] = useState(false);
   const [tienDo, setTienDo] = useState('');
   const [moForm, setMoForm] = useState(false);
@@ -674,7 +689,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
     const { isConfirmed } = await Swal.fire({
       icon: 'question',
       title: `Chấm lại bằng AI cho ${tenHocSinh}?`,
-      text: 'Điểm và nhận xét cũ sẽ bị thay bằng kết quả mới.',
+      text: 'Kết quả cũ sẽ được lưu lịch sử. Kết quả AI mới cần giáo viên duyệt lại; nếu AI lỗi, điểm cũ vẫn được giữ.',
       showCancelButton: true,
       confirmButtonText: 'Chấm lại',
       cancelButtonText: 'Thôi',
@@ -727,34 +742,39 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
         weakTopics: value.weakTopics,
         teacherNote: value.teacherNote,
       });
-      showToast(`Đã lưu chấm lại cho ${dang.tenHocSinh}.`, 'success');
+      showToast(`Đã lưu chấm tay cho ${dang.tenHocSinh}; cần duyệt lại kết quả.`, 'success');
       setDangChamLai(null);
-      setTatCaBaiNop(prev => prev.map(x => {
-        if (x.id !== dang.submission.id) return x;
-        return {
-          ...x,
-          status: 'graded' as const,
-          // Dựng lại grade ĐẦY ĐỦ: bài chưa được máy chấm thì grade undefined, spread rỗng là
-          // mất các trường bắt buộc (strengths/weaknesses) và tsc đỏ.
-          grade: {
-            score: value.score,
-            maxScore: value.maxScore,
-            feedback: value.feedback,
-            weakTopics: value.weakTopics,
-            teacherNote: value.teacherNote,
-            editedByTeacher: true,
-            strengths: x.grade?.strengths || [],
-            weaknesses: x.grade?.weaknesses || [],
-            gradedAt: new Date().toISOString(),
-            teacherApproved: x.grade?.teacherApproved ?? false,
-            noteForTeacher: x.grade?.noteForTeacher,
-          },
-        };
-      }));
+      await taiBai();
     } catch (error) {
       setLoiTai(error instanceof Error ? error.message : 'Không lưu được điểm.');
     } finally {
       setDangLuuChamLai(false);
+    }
+  };
+
+  /** Xóa kết quả hiện hành nhưng giữ nguyên bài nộp, ảnh/file và cho phép chấm lại. */
+  const xoaDiem = async (s: SubmissionDoc, tenHocSinh: string) => {
+    const { isConfirmed } = await Swal.fire({
+      icon: 'warning',
+      title: `Xóa điểm của ${tenHocSinh}?`,
+      html: 'Chỉ xóa <b>kết quả chấm hiện hành</b>; bài nộp, ảnh, file và ghi chú của học sinh vẫn được giữ. Kết quả cũ vẫn lưu trong lịch sử để đối chiếu.',
+      showCancelButton: true,
+      confirmButtonText: 'Xóa điểm',
+      cancelButtonText: 'Giữ lại',
+      confirmButtonColor: '#d97706',
+      focusCancel: true,
+    });
+    if (!isConfirmed) return;
+
+    setDangXoaDiem(s.id);
+    try {
+      await xoaDiemBaiNopHocSinh(s);
+      showToast(`Đã xóa kết quả chấm của ${tenHocSinh}; bài nộp vẫn được giữ.`, 'success');
+      await taiBai();
+    } catch (error) {
+      setLoiTai(error instanceof Error ? error.message : 'Không xóa được kết quả chấm.');
+    } finally {
+      setDangXoaDiem('');
     }
   };
 
@@ -1038,6 +1058,8 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                     duyet={duyet}
                     xoaBaiNop={xoaBaiNop}
                     dangXoaNop={dangXoaNop}
+                    xoaDiem={xoaDiem}
+                    dangXoaDiem={dangXoaDiem}
                     selectedIds={selectedSubmissionIds}
                     toggleSelected={toggleSelected}
                     toggleAllSubmissions={selected => toggleAllSubmissions(a.id, selected)}

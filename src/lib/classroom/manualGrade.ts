@@ -1,4 +1,4 @@
-import type { SubmissionDoc } from './types';
+import type { SubmissionDoc, SubmissionGrade } from './types.js';
 
 export interface ManualGradeInput {
   score: number;
@@ -7,6 +7,34 @@ export interface ManualGradeInput {
   weakTopics: string[];
   teacherNote?: string;
 }
+
+export const buildManualGrade = (
+  submission: SubmissionDoc,
+  input: ManualGradeInput,
+  now: string,
+): SubmissionGrade => {
+  const maxScore = Number.isFinite(input.maxScore) && input.maxScore > 0 ? input.maxScore : 10;
+  const rawScore = Number.isFinite(input.score) ? input.score : 0;
+  const score = Math.min(Math.max(rawScore, 0), maxScore);
+  const oldGrade = submission.grade;
+
+  return {
+    score,
+    maxScore,
+    feedback: input.feedback.trim(),
+    ...(input.teacherNote?.trim() ? { teacherNote: input.teacherNote.trim() } : {}),
+    strengths: oldGrade?.strengths || [],
+    weaknesses: oldGrade?.weaknesses || [],
+    questionResults: oldGrade?.questionResults || [],
+    weakTopics: input.weakTopics.map(topic => topic.trim()).filter(Boolean),
+    gradedWithoutAnswerKey: oldGrade?.gradedWithoutAnswerKey ?? false,
+    ...(oldGrade?.noteForTeacher ? { noteForTeacher: oldGrade.noteForTeacher } : {}),
+    // Sửa điểm làm thay đổi kết luận; giáo viên phải xác nhận lại trước khi vào hồ sơ.
+    teacherApproved: false,
+    editedByTeacher: true,
+    gradedAt: now,
+  };
+};
 
 /**
  * Dựng patch Firestore cho chấm tay ở một chỗ duy nhất.
@@ -18,26 +46,24 @@ export const buildManualGradeUpdate = (
   input: ManualGradeInput,
   now: string,
 ): Record<string, unknown> => {
-  const maxScore = Number.isFinite(input.maxScore) && input.maxScore > 0 ? input.maxScore : 10;
-  const rawScore = Number.isFinite(input.score) ? input.score : 0;
-  const score = Math.min(Math.max(rawScore, 0), maxScore);
-  const oldGrade = submission.grade;
+  const grade = buildManualGrade(submission, input, now);
 
   return {
     status: 'graded',
     errorMessage: '',
-    'grade.score': score,
-    'grade.maxScore': maxScore,
-    'grade.feedback': input.feedback.trim(),
-    'grade.weakTopics': input.weakTopics.map(topic => topic.trim()).filter(Boolean),
-    'grade.teacherNote': input.teacherNote?.trim() || '',
-    'grade.strengths': oldGrade?.strengths || [],
-    'grade.weaknesses': oldGrade?.weaknesses || [],
-    'grade.questionResults': oldGrade?.questionResults || [],
-    'grade.gradedWithoutAnswerKey': oldGrade?.gradedWithoutAnswerKey ?? false,
-    'grade.teacherApproved': oldGrade?.teacherApproved ?? false,
-    'grade.editedByTeacher': true,
-    'grade.gradedAt': now,
+    'grade.score': grade.score,
+    'grade.maxScore': grade.maxScore,
+    'grade.feedback': grade.feedback,
+    'grade.weakTopics': grade.weakTopics || [],
+    'grade.teacherNote': grade.teacherNote || '',
+    'grade.strengths': grade.strengths,
+    'grade.weaknesses': grade.weaknesses,
+    'grade.questionResults': grade.questionResults || [],
+    'grade.gradedWithoutAnswerKey': grade.gradedWithoutAnswerKey ?? false,
+    'grade.teacherApproved': grade.teacherApproved,
+    'grade.editedByTeacher': grade.editedByTeacher,
+    'grade.noteForTeacher': grade.noteForTeacher || '',
+    'grade.gradedAt': grade.gradedAt,
     updatedAt: now,
   };
 };

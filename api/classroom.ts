@@ -6,6 +6,7 @@ import { uniqueStoragePaths } from './_classroom-storage.js';
 import { removeEvidence } from '../src/lib/classroom/profileMerge.js';
 import { mergeSubmissionEvidence } from '../src/lib/classroom/submissionRevision.js';
 import { buildHomeworkSkillEvidence } from '../src/lib/learning/skillProfile.js';
+import { buildManualGrade, type ManualGradeInput } from '../src/lib/classroom/manualGrade.js';
 import type { ProfileTopic, StudentAssignmentView, SubmissionDoc, SubmissionGrade } from '../src/lib/classroom/types.js';
 import {
   EMPTY_LOCK,
@@ -23,6 +24,11 @@ import {
   removeSkillEvidenceAndRebuild,
   replaceSkillEvidenceAndRebuild,
 } from './_skill-profile.js';
+import {
+  archiveSubmissionGrade,
+  removeSubmissionGradeEvidence,
+  submissionWithoutGrade,
+} from './_grade-lifecycle.js';
 
 /**
  * Một hàm phục vụ các việc sau, để không vượt trần 12 Serverless Function của Vercel:
@@ -38,6 +44,8 @@ import {
  *   POST { action: 'revokeClass', classId, idToken } → gỡ toàn bộ dữ liệu lớp khỏi server (roster/secret/link)
  *   POST { action: 'createSupplementSubmission', submission, idToken } → tạo revision ghép bài
  *   POST { action: 'deleteSubmission', submissionId, idToken } → xoá bài nộp và file Storage
+ *   POST { action: 'saveSubmissionGrade', submissionId, grade, idToken } → lưu chấm tay
+ *   POST { action: 'deleteSubmissionGrade', submissionId, idToken } → xoá kết quả chấm, giữ bài nộp
  *   POST { action: 'deleteAssignment', assignmentId, idToken } → xoá bài giao và file đề
  *
  * Vì sao phải đi qua server thay vì để client đọc thẳng Firestore:
@@ -236,6 +244,113 @@ const handleSyncSkillEvidence = async (db: FirebaseFirestore.Firestore, body: Re
     ? await replaceSkillEvidenceAndRebuild(db, owner, submissionId, evidence, new Date().toISOString())
     : await removeSkillEvidenceAndRebuild(db, owner, submissionId, new Date().toISOString());
   return res.status(200).json({ ok: true, skills });
+};
+
+const gradeInputFromBody = (value: unknown): ManualGradeInput | null => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const raw = value as Record<string, unknown>;
+  const score = Number(raw.score);
+  const maxScore = Number(raw.maxScore);
+  const feedback = typeof raw.feedback === 'string' ? raw.feedback.trim() : '';
+  const weakTopics = Array.isArray(raw.weakTopics)
+    ? raw.weakTopics
+      .filter((topic): topic is string => typeof topic === 'string')
+      .map(topic => topic.trim())
+      .filter(Boolean)
+    : [];
+  const teacherNote = typeof raw.teacherNote === 'string' ? raw.teacherNote.trim() : '';
+  if (!Number.isFinite(score) || !Number.isFinite(maxScore) || maxScore <= 0 || score < 0 || score > maxScore) return null;
+  if (feedback.length > 12000 || teacherNote.length > 6000 || weakTopics.length > 50 || weakTopics.some(topic => topic.length > 200)) return null;
+  return { score, maxScore, feedback, weakTopics, teacherNote };
+};
+
+const readOwnedSubmission = async (
+  db: FirebaseFirestore.Firestore,
+  body: Record<string, unknown>,
+  res: VercelResponse,
+): Promise<{ uid: string; submissionId: string; ref: FirebaseFirestore.DocumentReference; submission: SubmissionDoc } | null> => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) {
+    res.status(401).json({ error: 'Cần đăng nhập bằng tài khoản giáo viên.' });
+    return null;
+  }
+  const submissionId = typeof body.submissionId === 'string' ? body.submissionId.trim() : '';
+  if (!submissionId) {
+    res.status(400).json({ error: 'Thiếu mã bài nộp.' });
+    return null;
+  }
+  const ref = db.collection('submissions').doc(submissionId);
+  const snapshot = await ref.get();
+  if (!snapshot.exists) {
+    res.status(404).json({ error: 'Bài nộp không còn tồn tại.' });
+    return null;
+  }
+  const data = snapshot.data() || {};
+  if (data.teacherId !== uid) {
+    res.status(403).json({ error: 'Bạn không có quyền cập nhật kết quả chấm của bài này.' });
+    return null;
+  }
+  return {
+    uid,
+    submissionId,
+    ref,
+    submission: { id: submissionId, ...data } as SubmissionDoc,
+  };
+};
+
+const handleSaveSubmissionGrade = async (
+  db: FirebaseFirestore.Firestore,
+  body: Record<string, unknown>,
+  res: VercelResponse,
+) => {
+  const owned = await readOwnedSubmission(db, body, res);
+  if (!owned) return;
+  if (owned.submission.status === 'grading') {
+    return res.status(409).json({ error: 'Bài đang được AI chấm. Chờ máy xử lý xong rồi sửa điểm.' });
+  }
+
+  const input = gradeInputFromBody(body.grade);
+  if (!input) return res.status(422).json({ error: 'Điểm hoặc nội dung chấm tay không hợp lệ.' });
+
+  const now = new Date().toISOString();
+  const historyId = await archiveSubmissionGrade(db, owned.submission, 'manual_edit', owned.uid, now);
+  const grade = buildManualGrade(owned.submission, input, now);
+  await owned.ref.set({
+    ...owned.submission,
+    status: 'graded',
+    grade,
+    errorMessage: '',
+    updatedAt: now,
+  });
+  // Grade mới chưa duyệt nhưng vẫn phải gỡ evidence của grade cũ đã duyệt.
+  await removeSubmissionGradeEvidence(db, owned.submission, now);
+  return res.status(200).json({ saved: true, submissionId: owned.submissionId, historyId });
+};
+
+const handleDeleteSubmissionGrade = async (
+  db: FirebaseFirestore.Firestore,
+  body: Record<string, unknown>,
+  res: VercelResponse,
+) => {
+  const owned = await readOwnedSubmission(db, body, res);
+  if (!owned) return;
+  if (owned.submission.status === 'grading') {
+    return res.status(409).json({ error: 'Bài đang được AI chấm. Chờ máy xử lý xong rồi xóa kết quả.' });
+  }
+  if (!owned.submission.grade) {
+    return res.status(409).json({ error: 'Bài nộp này chưa có kết quả chấm để xóa.' });
+  }
+
+  const now = new Date().toISOString();
+  const historyId = await archiveSubmissionGrade(db, owned.submission, 'delete', owned.uid, now);
+  await removeSubmissionGradeEvidence(db, owned.submission, now);
+  await owned.ref.set({
+    ...submissionWithoutGrade(owned.submission),
+    status: 'submitted',
+    errorMessage: '',
+    updatedAt: now,
+  });
+  return res.status(200).json({ deletedGrade: true, submissionId: owned.submissionId, historyId });
 };
 
 const validAttachmentKind = (value: unknown): 'image' | 'pdf' | 'document' | 'unknown' | undefined => {
@@ -903,6 +1018,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (action === 'revokeClass') return await handleRevokeClass(db, body, res);
     if (action === 'createSupplementSubmission') return await handleCreateSupplementSubmission(db, body, res);
     if (action === 'deleteSubmission') return await handleDeleteSubmission(db, body, res);
+    if (action === 'saveSubmissionGrade') return await handleSaveSubmissionGrade(db, body, res);
+    if (action === 'deleteSubmissionGrade') return await handleDeleteSubmissionGrade(db, body, res);
     if (action === 'syncSkillEvidence') return await handleSyncSkillEvidence(db, body, res);
     if (action === 'deleteAssignment') return await handleDeleteAssignment(db, body, res);
     return res.status(400).json({ error: `Hành động không hợp lệ: ${action}` });

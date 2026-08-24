@@ -26,6 +26,15 @@
 - [x] Full unit/rules/lint/build/diff check; Ox Alpha Free đã được gọi nhưng lượt audit combined cuối bị provider network error nên không dùng verdict PASS giả định.
 - [ ] Authenticated browser E2E: bài đã chấm → bổ sung ảnh → chấm lại toàn bộ → refresh thấy revision mới.
 
+## P0 follow-up — vòng đời kết quả chấm an toàn dữ liệu
+
+- [x] Duyệt thiết kế: xóa kết quả chấm nhưng giữ submission/Storage; sửa tay phải duyệt lại; AI regrade non-destructive.
+- [x] Viết spec/implementation plan: `docs/superpowers/specs/2026-08-24-grade-result-lifecycle.md`, `docs/superpowers/plans/2026-08-24-grade-result-lifecycle.md`.
+- [x] Viết test hồi quy cho history, sửa tay, xóa điểm, payload không hợp lệ và AI regrade thất bại.
+- [x] Code server actions/UI; không thêm Vercel Function, không migration production.
+- [x] Full unit/rules/lint/build đã xanh; Ox Alpha/OpenCode được gọi đúng model nhưng provider trả `Endpoint is unavailable`, nên chưa có verdict PASS.
+- [ ] Merge `codex/classroom-ai-detailed-grading` vào `main`, push/deploy sau khi QA đạt.
+
 ## Phạm vi đã duyệt
 
 - [x] Profile evidence tương thích ngược: không xóa topic chưa được đánh giá, phân biệt cùng assignment nộp lại, ghi nhận strengths.
@@ -53,3 +62,9 @@
 - Recovery: stale `grading` query không bị giới hạn batch, có composite index, kiểm tra transaction lần cuối trước khi reset.
 - Verification hiện tại: targeted supplement/delete `17 tests` pass; full unit `74 files / 1,088 tests` pass; rules `7 files / 240 tests` pass; `lint` pass; `lint:api` pass; `npm run build` pass; `git diff --check` pass (chỉ cảnh báo LF/CRLF). Browser local tải `/lop` tới màn nhập mã lớp, không có console error; chưa chạy authenticated E2E vì chưa có xác nhận action-time để nhập PIN học sinh. Ox Alpha Free focused audit cuối kết thúc `Provider finish_reason: network_error`; không có verdict combined hợp lệ.
 - Giới hạn còn lại: practice quota được reserve trước AI nên lần gọi AI thất bại vẫn tiêu quota; leak detection là heuristic chống lộ trực tiếp, chưa chứng minh semantic equivalence; chưa authenticated E2E/production và chưa push/deploy.
+
+## Review/verification — vòng đời kết quả chấm (2026-08-25)
+
+- Targeted lifecycle: 3 files / 9 tests pass; full unit: 82 files / 1,122 tests pass; rules: 7 files / 242 tests pass; `lint`, `lint:api`, `build`, `git diff --check` pass.
+- Invariant đã kiểm: sửa tay lưu history và buộc duyệt lại; xóa điểm không đụng submission/ảnh/file/Storage; AI lỗi giữ grade cũ; history client-deny; ownership và trạng thái `grading` bị chặn.
+- Ox Alpha Free/OpenCode: model `opencode/x-preview-f-free` được xác nhận là “Ox Alpha Free (Unlimited)”, nhưng lượt audit cuối trả `Upstream request failed: Endpoint is unavailable`; không dùng làm PASS.
