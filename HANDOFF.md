@@ -1,6 +1,6 @@
 # HANDOFF — Soạn giáo án / học phân hoá
 
-**Cập nhật**: 2026-08-22 · **Repo**: [`soangiaoan`](https://github.com/congapro60-dev/soangiaoan) · **Branch chuẩn**: `main` · **Production**: https://giaoandewey.vercel.app
+**Cập nhật**: 2026-08-24 · **Repo**: [`soangiaoan`](https://github.com/congapro60-dev/soangiaoan) · **Branch chuẩn**: `main` · **Production**: https://giaoandewey.vercel.app
 
 Ảnh chụp TRẠNG THÁI HIỆN TẠI, không phải nhật ký — `git log` đã lưu lịch sử tốt hơn.
 Trần **150 dòng**: vượt thì cắt mục cũ sang [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md).
@@ -9,7 +9,11 @@ Trần **150 dòng**: vượt thì cắt mục cũ sang [`docs/HANDOFF-ARCHIVE.m
 
 ## 1. Trạng thái hiện tại
 
-**`main` sau lô đang bàn giao = `4ac7639` — redesign Classroom Workspace + Student Portal.** Chuỗi đỏ #442–#445 đã kết thúc ở #446/#447; trạng thái CI các commit sau đó chưa xác nhận (máy này không có `gh`).
+**`main` sau lô đang bàn giao = `afaa725` — chi tiết chấm AI + nguồn đề giáo viên + lệnh phạm vi chấm + QA lớp học.** Chuỗi đỏ #442–#445 đã kết thúc ở #446/#447; trạng thái CI các commit sau đó chưa xác nhận (máy này không có `gh`).
+
+- **Lô `afaa725` — đã kiểm chứng trước khi push:** AI lưu và hiển thị chi tiết từng câu; teacher source hỗ trợ ảnh/PDF/Word (text + ảnh scan); lệnh “chỉ chấm/bỏ qua” đi vào prompt, có cờ `ignoredByTeacherInstruction` để không tạo cảnh báo giả; bài Word/PDF học sinh giữ file gốc và text; báo cáo chỉ tính attempt hiện hành + điểm đã duyệt; duyệt/chấm/xoá hàng loạt có khóa/xác nhận; chấm tay giữ `graded`; upload có progress/error/success.
+- **Còn dở/cố ý bỏ:** OpenCode không có model Ox Alpha và fallback báo thiếu payment method nên không có external-agent patch; đã chạy diff review nội bộ + full gates. Xóa bài nộp chỉ xóa document Firestore, cố ý chưa dọn Storage vì rules không cho giáo viên xoá file theo uid học sinh. Lệnh chấm nằm trong document bài giao nên UI học sinh không hiện nhưng chưa phải field-level secret; nếu cần bảo mật tuyệt đối phải tách private grading config.
+- **Nghiệm thu lô:** `npm run lint`, `npm run lint:api`, `npm run test -- --run` (68 files / 1.028 tests), `npm run test:rules` (7 files / 238 tests), `npm run build` — đều pass. Warning build chỉ là chunk lớn/dynamic import cũ.
 
 - **Vercel AI Gateway GLM 5.2** (`dab09e7`) — thêm route xác thực Firebase đọc `AI_GATEWAY_API_KEY` trên Vercel, provider cố định `zai/glm-5.2`, JSON/SSE text; lý do là dùng một key chung mà không lộ key trong browser, Gemini vẫn là mặc định.
 - **Còn dở / cố ý bỏ / bẫy / nghiệm thu** — owner còn phải thêm biến `AI_GATEWAY_API_KEY` rồi smoke test Vercel; ảnh/PDF bị chặn có chủ ý vì route text-only; không có quota tầng app nhưng rate limit/chi phí provider vẫn tồn tại; `npm test` 63 files/970 tests, `npm run lint`, `npm run build` đã pass.
