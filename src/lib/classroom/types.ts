@@ -284,6 +284,7 @@ export interface PracticeKeyDoc {
   studentId: string;
   classId: string;
   teacherId: string;
+  skillIds?: string[];
   questions: PracticeQuestionKey[];
   createdAt: string;
 }

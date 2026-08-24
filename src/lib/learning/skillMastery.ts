@@ -5,7 +5,7 @@ import type {
   SkillStatus,
   SkillTrend,
   StudentSkillState,
-} from './skillTypes';
+} from './skillTypes.js';
 
 export const SKILL_MASTERY_POLICY = {
   sourceWeights: {
@@ -104,9 +104,10 @@ export const reduceSkillState = (
   }, 0);
   const totalWeight = evidence.reduce((sum, item) => sum + SKILL_MASTERY_POLICY.sourceWeights[item.source], 0);
   const masteryEstimate = totalWeight > 0 ? clamp01(weightedScore / totalWeight) : 0;
-  const confidence = clamp01(evidence.reduce((sum, item) => {
+  const confidenceTotal = evidence.reduce((sum, item) => {
     return sum + clamp01(item.confidence) * SKILL_MASTERY_POLICY.sourceWeights[item.source];
-  }, 0));
+  }, 0);
+  const confidence = totalWeight > 0 ? clamp01(confidenceTotal / totalWeight) : 0;
   const misconceptionCounts: Record<string, number> = {};
   for (const item of evidence) {
     for (const code of item.misconceptionCodes || []) {

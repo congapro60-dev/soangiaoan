@@ -36,6 +36,14 @@ const makeDb = (seed: Stored = {}) => {
         state[name][id] = { ...state[name][id], ...payload };
       },
     }),
+    where: (field: string, _operator: string, value: unknown) => ({
+      get: async () => {
+        const docs = Object.entries(state[name] || {})
+          .filter(([, data]) => data[field] === value)
+          .map(([id, data]) => ({ id, data: () => ({ ...data }) }));
+        return { docs, empty: docs.length === 0 };
+      },
+    }),
   });
   const runTransaction = async (work: (transaction: {
     get: (ref: { get: () => Promise<{ exists: boolean; data: () => Record<string, unknown> | undefined }> }) => Promise<{ exists: boolean; data: () => Record<string, unknown> | undefined }>;
@@ -124,6 +132,7 @@ describe('practice set/attempt privacy and persistence', () => {
     expect(state.statusCode).toBe(200);
     const payload = state.jsonBody as { setId: string; questions: Array<Record<string, unknown>> };
     expect(payload.questions).toEqual([{ id: 'q1', question: 'Giải x + 1 = 3', hint: 'Cô lập x.' }]);
+    expect((payload as { skillIds?: string[] }).skillIds).toEqual(['math.quadratic-equation']);
     expect(JSON.stringify(payload)).not.toContain('x = 2');
     expect(db.state.practiceKeys[payload.setId].questions).toEqual([
       expect.objectContaining({ id: 'q1', expectedAnswer: 'x = 2' }),
@@ -165,6 +174,15 @@ describe('practice set/attempt privacy and persistence', () => {
         expect.objectContaining({ submissionId: 'attempt-1', evidenceType: 'practice', confidence: 0.5 }),
       ],
     });
+    expect(db.state.studentSkillEvidence).toEqual(expect.objectContaining({
+      'student-1__attempt-1%3Amath.quadratic-equation': expect.objectContaining({
+        source: 'practice',
+        attemptId: 'attempt-1',
+      }),
+    }));
+    expect(db.state.studentProfiles['student-1'].skills).toEqual(expect.arrayContaining([
+      expect.objectContaining({ skillId: 'math.quadratic-equation', evidenceCount: 1 }),
+    ]));
 
     const replay = makeResponse();
     await handler(makeRequest({

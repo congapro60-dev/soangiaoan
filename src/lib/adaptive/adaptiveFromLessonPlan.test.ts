@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { runAdaptivePipeline, validateAdaptiveLessonPublishReadiness } from './adaptiveFromLessonPlan';
+import {
+  buildAdaptiveLessonFromContentJson,
+  runAdaptivePipeline,
+  validateAdaptiveLessonPublishReadiness,
+} from './adaptiveFromLessonPlan';
+import { mapObjectiveToSkill } from '../learning/skillBridge';
+import { sampleAdaptiveLesson } from './sampleAdaptiveLesson';
 import type { AdaptiveLessonSource } from './adaptiveFromLessonPlan';
 import type { AdaptiveLesson } from './types';
 
@@ -70,6 +76,44 @@ describe('validateAdaptiveLessonPublishReadiness', () => {
     const issues = validateAdaptiveLessonPublishReadiness(buildMinimalLesson());
 
     expect(issues.filter((issue) => issue.code === 'invalid_question_options')).toEqual([]);
+  });
+});
+
+describe('adaptive objective skill bridge', () => {
+  it('fixture Cấp số cộng dùng cùng skillId pilot và bridge nhận diện bằng metadata', () => {
+    const objective = sampleAdaptiveLesson.objectives.find(item => item.id === 'obj-common-difference');
+
+    expect(objective?.skillId).toBe('math.arithmetic-sequence');
+    expect(mapObjectiveToSkill({ id: objective?.id || '', skillId: objective?.skillId }).kind).toBe('unique');
+  });
+
+  it('giữ skillId explicit hợp lệ, bỏ skillId lạ và không tự đoán từ tiêu đề', () => {
+    const lesson = buildAdaptiveLessonFromContentJson(
+      {
+        title: 'Phương trình bậc hai',
+        content: 'Giáo án Toán về phương trình bậc hai.',
+        grade: '11',
+      },
+      'Bản rà soát đã duyệt',
+      JSON.stringify({
+        title: 'Phương trình bậc hai',
+        objectives: [
+          { title: 'Giải phương trình bậc hai', skillId: 'math.quadratic-equation', bloom: 'apply' },
+          { title: 'Hàm số bậc nhất', bloom: 'understand' },
+          { title: 'Skill không tồn tại', skillId: 'math.not-in-catalog', bloom: 'analyze' },
+        ],
+        engage: { story_hook: 'Học sinh quan sát các nghiệm của phương trình bậc hai trong một tình huống cụ thể.' },
+        units: [],
+        diagnostic_questions: [],
+        exit_ticket_questions: [],
+      }),
+      'teacher-1',
+    );
+
+    expect(lesson.objectives[0].skillId).toBe('math.quadratic-equation');
+    expect(mapObjectiveToSkill({ id: lesson.objectives[0].id, skillId: lesson.objectives[0].skillId }).kind).toBe('unique');
+    expect(lesson.objectives[1].skillId).toBeUndefined();
+    expect(lesson.objectives[2].skillId).toBeUndefined();
   });
 });
 

@@ -76,6 +76,7 @@ export interface PracticeAttemptResult {
   feedback?: string;
   questionResults?: PracticeAttemptQuestionResult[];
   evidenceType: 'practice';
+  skillIds?: string[];
   errorMessage?: string;
 }
 
@@ -83,6 +84,7 @@ export interface PracticeSetResult {
   setId: string;
   questions: PracticeQuestion[];
   topics: string[];
+  skillIds?: string[];
   createdAt: string;
   reason?: string;
   attempt?: PracticeAttemptResult;

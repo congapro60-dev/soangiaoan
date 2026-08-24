@@ -2,13 +2,13 @@ import {
   findSkillByTopic,
   SKILL_CATALOG,
   type SkillTopicMatch,
-} from './skillCatalog';
+} from './skillCatalog.js';
 import type {
   SkillDefinition,
   SkillEvidence,
   SkillEvidenceSource,
   SkillSignal,
-} from './skillTypes';
+} from './skillTypes.js';
 
 export const mapTopicToSkill = (topic: string, catalog: SkillDefinition[] = SKILL_CATALOG): SkillTopicMatch =>
   findSkillByTopic(topic, catalog);

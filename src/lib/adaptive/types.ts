@@ -308,6 +308,8 @@ export interface TeacherFlag {
 export interface StudentObjectiveMemory {
   objectiveId: string;
   objectiveCode: string;
+  /** Khóa năng lực dùng chung; chỉ có khi objective nguồn đã gắn explicit. */
+  skillId?: string;
   title: string;
   attempts: number;
   masteryEstimate: number;

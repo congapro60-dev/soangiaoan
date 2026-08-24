@@ -279,6 +279,7 @@ const buildProfile = ({
     return {
       objectiveId: objective.id,
       objectiveCode: objective.code,
+      ...(objective.skillId ? { skillId: objective.skillId } : {}),
       title: objective.title,
       attempts: (previous?.attempts || 0) + evidence.length,
       masteryEstimate,

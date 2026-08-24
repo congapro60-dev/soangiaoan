@@ -552,6 +552,12 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Evidence canonical của skill chỉ do Admin/API ghi và đọc để rebuild summary.
+    // Không đưa raw evidence vào studentProfiles vì học sinh được phép đọc summary của mình.
+    match /studentSkillEvidence/{evidenceId} {
+      allow read, write: if false;
+    }
+
     match /submissions/{submissionId} {
       // Học sinh nộp bài: mọi trường định danh phải khớp phiên của chính mình,
       // và tuyệt đối không được kèm sẵn điểm.

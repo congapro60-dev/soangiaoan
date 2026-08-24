@@ -3,6 +3,7 @@ import { AlertTriangle, BookOpenCheck, Camera, CheckCircle2, Clock3, GraduationC
 import type { PracticeAttemptResult, PracticeSetResult } from '../../../../services/gradingApi';
 import type { AssignmentDoc, StudentProfileDoc, SubmissionDoc } from '../../../../lib/classroom/types';
 import { getStudentAssignmentState, latestSubmissionByAssignment, type StudentAssignmentStatus } from '../../../../lib/classroom/portalViewModel';
+import { buildStudentSkillCards } from '../../../../lib/classroom/skillViewModel';
 import { StudentAssignmentCard } from './StudentAssignmentCard';
 
 interface SessionInfo {
@@ -144,8 +145,11 @@ export const StudentPortalDashboard = ({
     : '—';
   const completedCount = rows.filter(row => row.state.status !== 'todo').length;
   const progress = assignments.length > 0 ? Math.round((completedCount / assignments.length) * 100) : 0;
-  const weakTopics = (profile?.topics || []).filter(topic => topic.level === 'weak');
-  const strongTopics = (profile?.topics || []).filter(topic => topic.level === 'solid');
+  const legacyTopics = profile?.topics || [];
+  const weakTopics = legacyTopics.filter(topic => topic.level === 'weak');
+  const strongTopics = legacyTopics.filter(topic => topic.level === 'solid');
+  const skillCards = buildStudentSkillCards(profile?.skills);
+  const hasProfileData = skillCards.length > 0 || legacyTopics.length > 0;
   const counts = useMemo(() => ({
     all: rows.length,
     todo: rows.filter(row => row.state.status === 'todo').length,
@@ -362,15 +366,47 @@ export const StudentPortalDashboard = ({
             </div>
             <Target className="h-5 w-5 text-indigo-400" />
           </div>
-          {!profile || profile.topics.length === 0 ? (
+          {!hasProfileData ? (
             <div className="mt-3 rounded-[1.5rem] border border-slate-200 bg-white px-5 py-9 text-center shadow-sm">
               <Sparkles className="mx-auto mb-2 h-8 w-8 text-indigo-200" />
               <p className="text-sm font-medium leading-6 text-slate-500">Sau vài bài đã chấm, chỗ này sẽ ghi em đang vững phần nào và nên luyện thêm phần nào.</p>
             </div>
           ) : (
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm"><p className="mb-3 flex items-center gap-2 text-sm font-black text-emerald-700"><TrendingUp className="h-4 w-4" /> Em đang vững</p><div className="flex flex-wrap gap-2">{strongTopics.map(topic => <span key={topic.topic} className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">{topic.topic}</span>)}{strongTopics.length === 0 && <span className="text-sm font-semibold text-slate-400">Chưa đủ dữ liệu.</span>}</div></div>
-              <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm"><p className="mb-3 flex items-center gap-2 text-sm font-black text-amber-700"><Target className="h-4 w-4" /> Nên luyện thêm</p><div className="flex flex-wrap gap-2">{weakTopics.map(topic => <span key={topic.topic} className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700">{topic.topic}</span>)}{weakTopics.length === 0 && <span className="text-sm font-semibold text-slate-400">Chưa đủ dữ liệu.</span>}</div></div>
+            <div className="mt-3 space-y-3">
+              {skillCards.length > 0 && (
+                <div className="rounded-[1.5rem] border border-indigo-100 bg-white p-5 shadow-sm">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="flex items-center gap-2 text-sm font-black text-indigo-700"><Target className="h-4 w-4" /> Kỹ năng đã theo dõi</p>
+                    <span className="text-xs font-bold text-slate-400">{skillCards.length} kỹ năng</span>
+                  </div>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    {skillCards.map(card => (
+                      <article key={card.skillId} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <h3 className="min-w-0 text-sm font-black leading-5 text-slate-900">{card.title}</h3>
+                          <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-[11px] font-black text-indigo-700 ring-1 ring-indigo-100">{card.statusLabel}</span>
+                        </div>
+                        <div className="mt-3" aria-label={`Mức độ hiện tại ${card.masteryPercent}%`}>
+                          <div className="flex items-center justify-between text-[11px] font-bold text-slate-500"><span>Mức độ hiện tại</span><span>{card.masteryPercent}%</span></div>
+                          <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-200"><div className="h-full rounded-full bg-indigo-500 transition-all" style={{ width: `${card.masteryPercent}%` }} /></div>
+                        </div>
+                        <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs font-bold text-slate-500">
+                          <span>{card.trendLabel}</span>
+                          <span>Độ tin cậy {card.confidencePercent}%</span>
+                        </div>
+                        <p className="mt-2 text-[11px] font-semibold leading-5 text-slate-400">{card.sourceLabel} · {card.evidenceCount} minh chứng</p>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {legacyTopics.length > 0 && (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm"><p className="mb-3 flex items-center gap-2 text-sm font-black text-emerald-700"><TrendingUp className="h-4 w-4" /> Em đang vững</p><div className="flex flex-wrap gap-2">{strongTopics.map(topic => <span key={topic.topic} className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">{topic.topic}</span>)}{strongTopics.length === 0 && <span className="text-sm font-semibold text-slate-400">Chưa đủ dữ liệu.</span>}</div></div>
+                  <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm"><p className="mb-3 flex items-center gap-2 text-sm font-black text-amber-700"><Target className="h-4 w-4" /> Nên luyện thêm</p><div className="flex flex-wrap gap-2">{weakTopics.map(topic => <span key={topic.topic} className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700">{topic.topic}</span>)}{weakTopics.length === 0 && <span className="text-sm font-semibold text-slate-400">Chưa đủ dữ liệu.</span>}</div></div>
+                </div>
+              )}
             </div>
           )}
         </section>

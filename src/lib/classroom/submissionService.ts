@@ -299,7 +299,8 @@ export const updateSubmissionGradeManually = async (
         now,
       }),
       updatedAt: now,
-    } as StudentProfileDoc));
+    } as StudentProfileDoc), { merge: true });
+    await callClassroomTeacherApi({ action: 'syncSkillEvidence', submissionId: submission.id });
   }
 };
 
@@ -336,7 +337,8 @@ export const approveGrade = async (submission: SubmissionDoc, approved: boolean)
     topics,
     updatedAt: now,
   };
-  await setDoc(profileRef, removeUndefinedFields(profile));
+  await setDoc(profileRef, removeUndefinedFields(profile), { merge: true });
+  await callClassroomTeacherApi({ action: 'syncSkillEvidence', submissionId: submission.id });
 };
 
 // ── Học sinh: nộp bài ────────────────────────────────────────────────────────

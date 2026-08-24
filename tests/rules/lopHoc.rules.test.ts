@@ -329,3 +329,21 @@ describe('studentProfiles · hồ sơ tích luỹ', () => {
     await assertSucceeds(deleteDoc(doc(dbGV(), `classes/${LOP}`)));
   });
 });
+
+describe('studentSkillEvidence · ledger server-only', () => {
+  it('36. Mọi client đọc/ghi ledger skill trực tiếp → DENY', async () => {
+    const payload = {
+      studentId: HS_A,
+      classId: LOP,
+      teacherId: UID_GV,
+      evidenceId: 'submission-1:math.line-equation',
+      skillId: 'math.line-equation',
+      source: 'homework',
+    };
+
+    await assertFails(getDoc(doc(dbGV(), 'studentSkillEvidence/e-1')));
+    await assertFails(getDocs(collection(dbHsA(), 'studentSkillEvidence')));
+    await assertFails(setDoc(doc(dbGV(), 'studentSkillEvidence/e-1'), payload));
+    await assertFails(deleteDoc(doc(dbGV(), 'studentSkillEvidence/e-1')));
+  });
+});

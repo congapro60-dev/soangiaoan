@@ -52,7 +52,7 @@ export interface HomeworkGrade {
 const KHONG_CO_DAP_AN = `KHÔNG có đáp án chuẩn kèm theo. Hãy ưu tiên đọc ĐỀ / TÀI LIỆU THAM CHIẾU của giáo viên nếu có;
 nếu không có thì em học sinh phải chụp cả đề lẫn bài làm trong ảnh.
 Tự đọc đề rồi tự giải trước, sau đó mới đối chiếu với bài làm của em.
-Nếu chỗ nào em viết mà bạn không đọc được hoặc không chắc, hãy nói rõ là không chắc thay vì đoán.`;
+Nếu chỗ nào em viết không đọc rõ hoặc chưa đủ căn cứ, hãy nói rõ là chưa chắc thay vì đoán.`;
 
 export const buildHomeworkGradingPrompt = (input: HomeworkGradingInput): string => {
   const soAnhDe = input.assignmentImageCount ?? 0;
@@ -122,10 +122,10 @@ CÁCH PHÂN TÍCH THEO TỪNG CÂU — bắt buộc:
 
 CÁCH VIẾT NHẬN XÉT — quan trọng:
 - "feedbackForStudent" là để CHÍNH EM ĐÓ đọc. Xưng "em". Nói em làm đúng chỗ nào trước, rồi chỉ
-  đúng chỗ sai và cách sửa. Không phán xét năng lực, không so sánh với bạn khác.
+  đúng chỗ sai và cách sửa. Không phán xét năng lực, không so sánh em với học sinh khác.
 
 - "noteForTeacher" là để giáo viên đọc: mức độ nắm bài, lỗi có hệ thống hay lỗi vặt. 1-2 câu.
-- "weakTopics" chỉ ghi chủ đề mà bạn CÓ CĂN CỨ trong bài này, mỗi chủ đề là một cụm danh từ ngắn
+- "weakTopics" chỉ ghi chủ đề có CĂN CỨ trong bài này, mỗi chủ đề là một cụm danh từ ngắn
   (ví dụ "phương trình đường thẳng", "quy tắc dấu khi thay toạ độ"). Không chắc thì để mảng rỗng.
   Chủ đề này sẽ vào hồ sơ học tập lâu dài của em, ghi bừa là làm hỏng hồ sơ.
 
@@ -641,7 +641,7 @@ ${input.currentFeedback?.trim() ? `\nNhận xét máy viết trước đó (sẽ
 CÁCH VIẾT:
 - Viết cho CHÍNH EM ĐÓ đọc. Xưng "em".
 - Nói em làm được chỗ nào trước, rồi mới tới chỗ cần sửa và cách sửa.
-- Không phán xét năng lực, không so sánh với bạn khác, không khen sáo rỗng.
+- Không phán xét năng lực, không so sánh em với học sinh khác, không khen sáo rỗng.
 
 CÁCH TRÌNH BÀY NHẬN XÉT (áp dụng cho "feedbackForStudent") — học sinh và phụ huynh đọc:
 - Viết bằng Markdown. Mỗi ý một đoạn ngắn, có dòng trống giữa các đoạn. KHÔNG dồn thành một khối chữ dài.

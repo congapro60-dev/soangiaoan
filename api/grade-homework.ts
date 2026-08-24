@@ -35,6 +35,10 @@ import {
 } from '../src/lib/classroom/gradingPrompt.js';
 import { applyPracticeEvidence } from '../src/lib/classroom/profileMerge.js';
 import {
+  buildPracticeSkillEvidence,
+  skillIdsForTopics,
+} from '../src/lib/learning/skillProfile.js';
+import {
   PRACTICE_ATTEMPTS_COL,
   PRACTICE_KEYS_COL,
   PRACTICE_SETS_COL,
@@ -46,6 +50,7 @@ import {
   type ProfileTopic,
 } from '../src/lib/classroom/types.js';
 import { handleAiGateway } from './_ai-gateway-handler.js';
+import { upsertSkillEvidenceAndRebuild } from './_skill-profile.js';
 
 /**
  * Chấm bài tập bằng khoá AI của chủ dự án + gateway GLM 5.2 (gộp chung một function để
@@ -469,6 +474,7 @@ const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<stri
       setId: requestedSetId,
       questions,
       topics: Array.isArray(set.topics) ? set.topics.map(String) : [],
+      ...(Array.isArray(set.skillIds) && set.skillIds.length > 0 ? { skillIds: set.skillIds } : {}),
       createdAt: String(set.createdAt || ''),
       ...(attempt ? { attempt: attemptResponse(attempt) } : {}),
     });
@@ -521,6 +527,7 @@ const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<stri
 
   const setId = newPracticeId('practice');
   const now = new Date().toISOString();
+  const skillIds = skillIdsForTopics(topics);
   const keyQuestions: PracticeQuestionKey[] = privateQuestions.map(question => ({
     id: question.id,
     question: question.question,
@@ -534,6 +541,7 @@ const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<stri
     classId: link.classId,
     teacherId: link.teacherId,
     topics,
+    ...(skillIds.length > 0 ? { skillIds } : {}),
     questions: publicQuestions,
     createdAt: now,
     updatedAt: now,
@@ -543,6 +551,7 @@ const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<stri
     studentId: link.studentId,
     classId: link.classId,
     teacherId: link.teacherId,
+    ...(skillIds.length > 0 ? { skillIds } : {}),
     questions: keyQuestions,
     createdAt: now,
   };
@@ -551,7 +560,7 @@ const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<stri
     transaction.set(db.collection(PRACTICE_SETS_COL).doc(setId), set);
   });
 
-  return res.status(200).json({ setId, questions: publicQuestions, topics, createdAt: now });
+  return res.status(200).json({ setId, questions: publicQuestions, topics, ...(skillIds.length > 0 ? { skillIds } : {}), createdAt: now });
 };
 
 const asAnswerMap = (value: unknown, questionIds: Set<string>): Record<string, string> | null => {
@@ -573,6 +582,7 @@ const attemptResponse = (attempt: PracticeAttemptDoc): Record<string, unknown> =
   feedback: attempt.feedback,
   questionResults: attempt.questionResults,
   evidenceType: attempt.evidenceType,
+  ...(Array.isArray(attempt.skillIds) && attempt.skillIds.length > 0 ? { skillIds: attempt.skillIds } : {}),
   errorMessage: attempt.status === 'error' ? 'Chấm bài luyện chưa thành công. Em có thể thử lại.' : undefined,
 });
 
@@ -651,6 +661,9 @@ const handleSubmitPractice = async (db: FirebaseFirestore.Firestore, body: Recor
       studentId: link.studentId,
       classId: link.classId,
       teacherId: link.teacherId,
+      ...(Array.isArray(set.skillIds) && set.skillIds.length > 0
+        ? { skillIds: set.skillIds.filter(skillId => typeof skillId === 'string').map(String) }
+        : {}),
       answers,
       status: 'grading',
       evidenceType: 'practice',
@@ -747,6 +760,23 @@ const handleSubmitPractice = async (db: FirebaseFirestore.Firestore, body: Recor
       transaction.set(attemptRef, graded);
       return graded;
     });
+    const skillEvidence = buildPracticeSkillEvidence({
+      attemptId,
+      setId,
+      skillIds: finalized.skillIds,
+      topics: Array.isArray(set.topics) ? set.topics : [],
+      score: finalized.score,
+      maxScore: finalized.maxScore,
+      updatedAt: finalized.updatedAt,
+      status: finalized.status,
+    });
+    if (skillEvidence.length > 0) {
+      await upsertSkillEvidenceAndRebuild(db, {
+        studentId: link.studentId,
+        classId: link.classId,
+        teacherId: link.teacherId,
+      }, skillEvidence, finalized.updatedAt);
+    }
     return res.status(200).json(attemptResponse(finalized));
   } catch (error) {
     const failed: PracticeAttemptDoc = {

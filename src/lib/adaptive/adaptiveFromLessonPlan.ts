@@ -2,6 +2,7 @@ import { normalizeAdaptiveSimulationSpec } from './simulationValidation';
 import { checkTikzWithKroki } from '../krokiRender';
 import { repairMathDeep } from './mathText';
 import { sampleGeometry2DTriangleSimulation, sampleGeometry3DPyramidSimulation } from './simulationTypes';
+import { mapObjectiveToSkill } from '../learning/skillBridge';
 import type { AdaptiveSimulationSpec, HtmlSimulationSpec } from './simulationTypes';
 import type {
   AdaptiveAssessment,
@@ -80,6 +81,19 @@ const normalizeGrade = (grade?: string): AdaptiveGrade => {
   if (grade === '10' || grade === '11' || grade === '12') return grade;
   const match = String(grade || '').match(/1[0-2]/);
   return match && (match[0] === '10' || match[0] === '11' || match[0] === '12') ? match[0] : '10';
+};
+
+/**
+ * Chỉ nhận skillId đã có trong catalog. Không ánh xạ ngầm từ title: objective
+ * cũ phải tiếp tục chạy bình thường và mọi liên kết mới phải truy nguyên được
+ * về metadata explicit từ nguồn/pipeline.
+ */
+const normalizeExplicitSkillId = (value: unknown): string | undefined => {
+  if (typeof value !== 'string' || !value.trim()) return undefined;
+  const skillId = value.trim();
+  return mapObjectiveToSkill({ id: 'adaptive-objective', skillId }).kind === 'unique'
+    ? skillId
+    : undefined;
 };
 
 const cleanLine = (line: string) => line.replace(/^#+\s*/, '').replace(/^[-*]\s*/, '').trim();
@@ -518,6 +532,8 @@ interface QuestionJson {
 
 interface ObjectiveJson {
   title: string;
+  /** Chỉ copy từ metadata explicit; không suy luận từ title. */
+  skillId?: string;
   bloom?: string;
   threshold?: number;
 }
@@ -1107,16 +1123,20 @@ export const buildAdaptiveLessonFromContentJson = (
     : [{ title: 'Nắm được kiến thức trọng tâm của bài', bloom: 'understand' }];
 
   const bloomLevelValues = ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create'];
-  const objectives = rawObjectives.slice(0, 6).map((obj, index) => ({
-    id: uid('obj'),
-    code: `OBJ-${index + 1}`,
-    title: obj.title || `Mục tiêu ${index + 1}`,
-    description: obj.title || `Mục tiêu ${index + 1}`,
-    bloomLevel: (bloomLevelValues.includes(obj.bloom ?? '') ? obj.bloom : index < 2 ? 'understand' : 'apply') as BloomLevel,
-    masteryThreshold: typeof obj.threshold === 'number' ? obj.threshold : (index < 2 ? 0.7 : 0.75),
-    prerequisiteObjectiveIds: [],
-    commonMisconceptions: [],
-  }));
+  const objectives = rawObjectives.slice(0, 6).map((obj, index) => {
+    const skillId = normalizeExplicitSkillId(obj.skillId);
+    return {
+      id: uid('obj'),
+      code: `OBJ-${index + 1}`,
+      title: obj.title || `Mục tiêu ${index + 1}`,
+      description: obj.title || `Mục tiêu ${index + 1}`,
+      ...(skillId ? { skillId } : {}),
+      bloomLevel: (bloomLevelValues.includes(obj.bloom ?? '') ? obj.bloom : index < 2 ? 'understand' : 'apply') as BloomLevel,
+      masteryThreshold: typeof obj.threshold === 'number' ? obj.threshold : (index < 2 ? 0.7 : 0.75),
+      prerequisiteObjectiveIds: [],
+      commonMisconceptions: [],
+    };
+  });
   const objectiveIds = objectives.map(o => o.id);
 
   const engage = content.engage && typeof content.engage === 'object' ? content.engage : undefined;
@@ -1411,8 +1431,9 @@ QUY TẮC BẮT BUỘC:
 12. Nội dung học sinh đọc KHÔNG được lẫn thuật ngữ quy trình/hệ thống như UI/UX, bố cục 7:3, đồng hồ kép, mục lục thông minh, Socratic, Vở Ghi Chép, schema.
 13. RẤT QUAN TRỌNG: Vì output là JSON, bạn phải DOUBLE ESCAPE mọi dấu backslash trong LaTeX. Ví dụ: viết \\frac thay vì \frac, \\sqrt thay vì \sqrt, \\Delta thay vì \Delta. Nếu không JSON.parse sẽ báo lỗi.
 14. Trả về đúng JSON hợp lệ, không markdown, không giải thích ngoài JSON.
-15. engage.reading_instructions PHẢI trích hoặc paraphrase từ mục "Đọc trước"/"Chuẩn bị"/"Ôn tập" trong giáo án nguồn. KHÔNG bịa ngữ cảnh hoặc tên chủ đề không liên quan.
-16. engage.visual_cards BẮT BUỘC có đúng 4 thẻ SVG minh họa đúng chủ đề bài học này. Mỗi SVG phải: (a) có viewBox="0 0 640 420", (b) dùng gradient màu đẹp làm nền, (c) có text tiêu đề và chú thích bằng tiếng Việt, (d) minh họa một ứng dụng/khái niệm thực tế liên quan BÀI NÀY — TUYỆT ĐỐI không dùng hình Conic/Elip/Parabol/Hyperbol nếu bài không liên quan conic.
+15. Trường "skillId" nếu xuất hiện chỉ được SAO CHÉP từ metadata explicit đã có trong dữ liệu đầu vào; nếu không có thì bỏ qua. TUYỆT ĐỐI không tự suy luận skillId từ title, từ từ khóa hay từ điểm.
+16. engage.reading_instructions PHẢI trích hoặc diễn đạt lại từ mục "Đọc trước"/"Chuẩn bị"/"Ôn tập" trong giáo án nguồn. KHÔNG bịa ngữ cảnh hoặc tên chủ đề không liên quan.
+17. engage.visual_cards BẮT BUỘC có đúng 4 thẻ SVG minh họa đúng chủ đề bài học này. Mỗi SVG phải: (a) có viewBox="0 0 640 420", (b) dùng gradient màu đẹp làm nền, (c) có text tiêu đề và chú thích bằng tiếng Việt, (d) minh họa một ứng dụng/khái niệm thực tế liên quan BÀI NÀY — TUYỆT ĐỐI không dùng hình Conic/Elip/Parabol/Hyperbol nếu bài không liên quan conic.
 17. Mỗi unit BẮT BUỘC có ít nhất 1 học liệu trực quan. Ưu tiên theo thứ tự: (a) nếu có tool trong danh sách CÔNG CỤ CÓ SẪN phù hợp chủ đề → đặt id vào "externalToolIds"; (b) nếu cần hình 2D tĩnh → đặt mã TikZ hợp lệ vào "tikz_code" (BẮT BUỘC có \\begin{tikzpicture}...\\end{tikzpicture}, double-escape backslash vì trong JSON); (c) nếu hình học không gian → dùng "simulation_3d". KHÔNG để unit không có học liệu nào. Hình/mô phỏng này còn được TÁI DÙNG ở phần Luyện tập và Vận dụng nên hãy chọn học liệu thật sự minh hoạ được khái niệm cốt lõi của mảnh (đúng phân môn, KHÔNG vẽ hình hình học cho bài đại số/xác suất/giải tích).`;
 };
 
@@ -1680,7 +1701,8 @@ QUY TẮC:
 4. reading_instructions trích/paraphrase từ mục "Đọc trước"/"Chuẩn bị" trong giáo án nguồn — không bịa.
 5. Không lẫn thuật ngữ UI/UX vào nội dung học sinh đọc.
 6. Double-escape LaTeX trong JSON (\\\\frac thay vì \\frac).
-7. Trả về đúng JSON hợp lệ. Không markdown, không giải thích ngoài JSON.`;
+7. Trả về đúng JSON hợp lệ. Không markdown, không giải thích ngoài JSON.
+8. Trường "skillId" nếu xuất hiện chỉ được SAO CHÉP từ metadata explicit đã có trong dữ liệu đầu vào; nếu không có thì bỏ qua. TUYỆT ĐỐI không tự suy luận skillId từ title, từ từ khóa hay từ điểm.`;
 };
 
 const buildVisualCardsPrompt = (source: AdaptiveLessonSource, objectives: ObjectiveJson[]): string =>
@@ -2065,16 +2087,20 @@ export const runAdaptivePipeline = async (
         { title: 'Giải quyết bài toán nâng cao', bloom: 'analyze' },
       ];
 
-  const objectives = rawObjectives.slice(0, 6).map((obj, index) => ({
-    id: uid('obj'),
-    code: `OBJ-${index + 1}`,
-    title: obj.title || `Mục tiêu ${index + 1}`,
-    description: obj.title || `Mục tiêu ${index + 1}`,
-    bloomLevel: (bloomLevelValues.includes(obj.bloom ?? '') ? obj.bloom : index < 2 ? 'understand' : 'apply') as BloomLevel,
-    masteryThreshold: typeof obj.threshold === 'number' ? obj.threshold : (index < 2 ? 0.7 : 0.75),
-    prerequisiteObjectiveIds: [],
-    commonMisconceptions: [],
-  }));
+  const objectives = rawObjectives.slice(0, 6).map((obj, index) => {
+    const skillId = normalizeExplicitSkillId(obj.skillId);
+    return {
+      id: uid('obj'),
+      code: `OBJ-${index + 1}`,
+      title: obj.title || `Mục tiêu ${index + 1}`,
+      description: obj.title || `Mục tiêu ${index + 1}`,
+      ...(skillId ? { skillId } : {}),
+      bloomLevel: (bloomLevelValues.includes(obj.bloom ?? '') ? obj.bloom : index < 2 ? 'understand' : 'apply') as BloomLevel,
+      masteryThreshold: typeof obj.threshold === 'number' ? obj.threshold : (index < 2 ? 0.7 : 0.75),
+      prerequisiteObjectiveIds: [],
+      commonMisconceptions: [],
+    };
+  });
   const objectiveIds = objectives.map(o => o.id);
 
   const minUnits = Math.max(3, objectives.length);

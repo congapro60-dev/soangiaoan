@@ -81,5 +81,6 @@ describe('skillMastery — reducer deterministic theo bằng chứng', () => {
     expect(state.misconceptionCounts).toEqual({ 'line-sign-error': 2 });
     expect(state.masteryEstimate).toBeLessThanOrEqual(1);
     expect(state.confidence).toBeLessThanOrEqual(1);
+    expect(state.confidence).toBe(0.5);
   });
 });

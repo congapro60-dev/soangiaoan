@@ -1,4 +1,4 @@
-import type { SkillDefinition } from './skillTypes';
+import type { SkillDefinition } from './skillTypes.js';
 
 export const SKILL_CATALOG_VERSION = 'pilot-2026-08-24-v1';
 
@@ -59,6 +59,35 @@ export const SKILL_CATALOG: SkillDefinition[] = [
     prerequisiteSkillIds: ['math.linear-function'],
     misconceptionCodes: ['vertex-calculation-error', 'variation-table-error'],
     masteryThreshold: 0.8,
+  },
+  {
+    skillId: 'math.arithmetic-sequence',
+    domain: 'math.sequences',
+    title: 'Nhận diện và vận dụng cấp số cộng',
+    description: 'Nhận diện công sai, tính số hạng/tổng và mô hình hóa tình huống tăng giảm đều bằng cấp số cộng.',
+    aliases: [
+      'cấp số cộng',
+      'công sai',
+      'số hạng tổng quát của cấp số cộng',
+      'tổng n số hạng đầu',
+    ],
+    prerequisiteSkillIds: [],
+    misconceptionCodes: ['common-difference-error', 'term-vs-sum-confusion', 'indexing-error'],
+    masteryThreshold: 0.75,
+  },
+  {
+    skillId: 'math.quadratic-equation',
+    domain: 'math.algebra',
+    title: 'Giải phương trình bậc hai',
+    description: 'Nhận biết hệ số, biệt thức và nghiệm của phương trình bậc hai.',
+    aliases: [
+      'phương trình bậc hai',
+      'nghiệm phương trình bậc hai',
+      'biệt thức delta',
+    ],
+    prerequisiteSkillIds: [],
+    misconceptionCodes: ['discriminant-error', 'quadratic-root-error'],
+    masteryThreshold: 0.75,
   },
 ];
 

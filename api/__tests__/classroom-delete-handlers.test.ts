@@ -143,6 +143,12 @@ describe('POST /api/classroom · deleteSubmission', () => {
         { topic: 'Chu vi', level: 'solid', evidenceSubmissionIds: ['sub-khac'] },
       ] },
     };
+    harness.store['studentSkillEvidence'] = {
+      'hs-1__sub-1%3Amath.line-equation': {
+        studentId: 'hs-1', classId: 'lop-1', teacherId: 'gv-1',
+        evidenceId: 'sub-1:math.line-equation', submissionId: 'sub-1', skillId: 'math.line-equation',
+      },
+    };
 
     const res = await call({ action: 'deleteSubmission', submissionId: 'sub-1' });
 
@@ -152,8 +158,11 @@ describe('POST /api/classroom · deleteSubmission', () => {
     expect(harness.events).toEqual([
       `storage:homework/hs-uid/sub-1-0.jpg`,
       'set:studentProfiles/hs-1',
+      'delete:studentSkillEvidence/hs-1__sub-1%3Amath.line-equation',
+      'set:studentProfiles/hs-1',
       'delete:submissions/sub-1',
     ]);
+    expect(harness.store['studentSkillEvidence']['hs-1__sub-1%3Amath.line-equation']).toBeUndefined();
   });
 
   it('URL ngoài Firebase không chặn xoá document bằng lỗi chung — trả 422 kèm nguyên nhân, giữ bài nộp để sửa dữ liệu', async () => {
@@ -549,5 +558,55 @@ describe('POST /api/classroom · deleteAssignment', () => {
 
     expect(res.statusCode).toBe(403);
     expect(harness.events).toEqual([]);
+  });
+});
+
+describe('POST /api/classroom · syncSkillEvidence', () => {
+  beforeEach(() => { h.uid = 'gv-1'; });
+
+  it('approved homework ghi ledger và summary canonical, không ghi raw evidence vào profile', async () => {
+    const harness = buildHarness();
+    harness.store['submissions'] = {
+      'sub-approved': {
+        teacherId: 'gv-1', classId: 'lop-1', studentId: 'hs-1', assignmentId: 'asg-1',
+        updatedAt: '2026-08-24T10:00:00.000Z',
+        grade: {
+          score: 5, maxScore: 10, weakTopics: ['phương trình bậc hai'], strengths: [],
+          gradedAt: '2026-08-24T10:00:00.000Z', teacherApproved: true,
+        },
+      },
+    };
+    harness.store['studentProfiles'] = {
+      'hs-1': { studentId: 'hs-1', classId: 'lop-1', teacherId: 'gv-1', topics: [] },
+    };
+
+    const res = await call({ action: 'syncSkillEvidence', submissionId: 'sub-approved' });
+
+    expect(res.statusCode).toBe(200);
+    expect(harness.store['studentSkillEvidence']).toEqual(expect.objectContaining({
+      'hs-1__sub-approved%3Amath.quadratic-equation': expect.objectContaining({ source: 'homework' }),
+    }));
+    expect(harness.store['studentProfiles']['hs-1'].skills).toEqual(expect.arrayContaining([
+      expect.objectContaining({ skillId: 'math.quadratic-equation', evidenceCount: 1, status: 'developing' }),
+    ]));
+    expect(harness.store['studentProfiles']['hs-1'].skillEvidence).toBeUndefined();
+  });
+
+  it('AI draft chưa duyệt không được tạo authoritative ledger evidence', async () => {
+    const harness = buildHarness();
+    harness.store['submissions'] = {
+      'sub-draft': {
+        teacherId: 'gv-1', classId: 'lop-1', studentId: 'hs-1', assignmentId: 'asg-1',
+        grade: {
+          score: 5, maxScore: 10, weakTopics: ['phương trình bậc hai'], strengths: [],
+          gradedAt: '2026-08-24T10:00:00.000Z', teacherApproved: false,
+        },
+      },
+    };
+
+    const res = await call({ action: 'syncSkillEvidence', submissionId: 'sub-draft' });
+
+    expect(res.statusCode).toBe(200);
+    expect(harness.store['studentSkillEvidence']).toBeUndefined();
   });
 });

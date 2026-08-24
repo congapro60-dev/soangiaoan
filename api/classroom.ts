@@ -5,6 +5,7 @@ import { getAdminDb, getAdminStorage } from './_exam-core.js';
 import { uniqueStoragePaths } from './_classroom-storage.js';
 import { removeEvidence } from '../src/lib/classroom/profileMerge.js';
 import { mergeSubmissionEvidence } from '../src/lib/classroom/submissionRevision.js';
+import { buildHomeworkSkillEvidence } from '../src/lib/learning/skillProfile.js';
 import type { ProfileTopic, StudentAssignmentView, SubmissionDoc, SubmissionGrade } from '../src/lib/classroom/types.js';
 import {
   EMPTY_LOCK,
@@ -18,6 +19,10 @@ import {
   verifyPin,
   type LockState,
 } from './_classroom-core.js';
+import {
+  removeSkillEvidenceAndRebuild,
+  upsertSkillEvidenceAndRebuild,
+} from './_skill-profile.js';
 
 /**
  * Một hàm phục vụ các việc sau, để không vượt trần 12 Serverless Function của Vercel:
@@ -173,8 +178,64 @@ const handleDeleteSubmission = async (db: FirebaseFirestore.Firestore, body: Rec
     }
   }
 
+  await removeSkillEvidenceAndRebuild(db, {
+    studentId: String(submission.studentId || ''),
+    classId: String(submission.classId || ''),
+    teacherId: uid,
+  }, submissionId, new Date().toISOString());
+
   await submissionRef.delete();
   return res.status(200).json({ deleted: true, deletedFiles });
+};
+
+const storedHomeworkSkillEvidence = (submissionId: string, submission: Record<string, unknown>) => {
+  const rawGrade = submission.grade;
+  if (!rawGrade || typeof rawGrade !== 'object' || Array.isArray(rawGrade)) return [];
+  const grade = rawGrade as Record<string, unknown>;
+  const rawQuestionResults = Array.isArray(grade.questionResults) ? grade.questionResults : [];
+  return buildHomeworkSkillEvidence({
+    submissionId,
+    assignmentId: typeof submission.assignmentId === 'string' ? submission.assignmentId : undefined,
+    grade: {
+      score: Number(grade.score) || 0,
+      maxScore: Number(grade.maxScore) || 0,
+      weakTopics: Array.isArray(grade.weakTopics) ? grade.weakTopics.map(String) : [],
+      strengths: Array.isArray(grade.strengths) ? grade.strengths.map(String) : [],
+      teacherApproved: grade.teacherApproved === true,
+      gradedAt: String(grade.gradedAt || submission.updatedAt || new Date().toISOString()),
+      questionResults: rawQuestionResults.map(item => ({
+        confidence: item && typeof item === 'object' && typeof (item as Record<string, unknown>).confidence === 'number'
+          ? Number((item as Record<string, unknown>).confidence)
+          : undefined,
+      })),
+    },
+  });
+};
+
+const handleSyncSkillEvidence = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Cần đăng nhập bằng tài khoản giáo viên.' });
+
+  const submissionId = typeof body.submissionId === 'string' ? body.submissionId.trim() : '';
+  if (!submissionId) return res.status(400).json({ error: 'Thiếu mã bài nộp.' });
+
+  const submissionSnap = await db.collection('submissions').doc(submissionId).get();
+  if (!submissionSnap.exists) return res.status(404).json({ error: 'Bài nộp không còn tồn tại.' });
+  const submission = submissionSnap.data() || {};
+  if (submission.teacherId !== uid) return res.status(403).json({ error: 'Bạn không có quyền cập nhật minh chứng bài này.' });
+
+  const owner = {
+    studentId: String(submission.studentId || ''),
+    classId: String(submission.classId || ''),
+    teacherId: uid,
+  };
+  if (!owner.studentId || !owner.classId) return res.status(422).json({ error: 'Bài nộp thiếu thông tin lớp hoặc học sinh.' });
+
+  const evidence = storedHomeworkSkillEvidence(submissionId, submission);
+  const skills = submission.grade?.teacherApproved === true
+    ? await upsertSkillEvidenceAndRebuild(db, owner, evidence, new Date().toISOString())
+    : await removeSkillEvidenceAndRebuild(db, owner, submissionId, new Date().toISOString());
+  return res.status(200).json({ ok: true, skills });
 };
 
 const validAttachmentKind = (value: unknown): 'image' | 'pdf' | 'document' | 'unknown' | undefined => {
@@ -842,6 +903,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (action === 'revokeClass') return await handleRevokeClass(db, body, res);
     if (action === 'createSupplementSubmission') return await handleCreateSupplementSubmission(db, body, res);
     if (action === 'deleteSubmission') return await handleDeleteSubmission(db, body, res);
+    if (action === 'syncSkillEvidence') return await handleSyncSkillEvidence(db, body, res);
     if (action === 'deleteAssignment') return await handleDeleteAssignment(db, body, res);
     return res.status(400).json({ error: `Hành động không hợp lệ: ${action}` });
   } catch (error) {

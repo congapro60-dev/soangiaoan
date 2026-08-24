@@ -28,7 +28,7 @@ describe('buildHomeworkGradingPrompt', () => {
     const prompt = buildHomeworkGradingPrompt({ answerKey: '   ', maxScore: 10 });
 
     expect(prompt).toContain('KHÔNG có đáp án chuẩn');
-    expect(prompt).toContain('không chắc');
+    expect(prompt).toContain('chưa chắc');
   });
 
   it('gắn thang điểm và hướng dẫn chấm khi có', () => {
@@ -528,7 +528,8 @@ describe('AI viết lại nhận xét từ lời giáo viên', () => {
     const p = buildRewriteFeedbackPrompt({ teacherNote: 'x', score: 5, maxScore: 10 });
 
     expect(p).toContain('Không thêm nhận định mà giáo viên không nêu');
-    expect(p).toContain('không so sánh với bạn khác');
+    expect(p).toContain('không so sánh em với học sinh khác');
+    expect(p).not.toContain('không so sánh với bạn khác');
   });
 
   it('không để lộ với học sinh rằng nhận xét đã bị sửa', () => {
