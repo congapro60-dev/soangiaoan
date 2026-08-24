@@ -25,7 +25,8 @@ import {
   replaceSkillEvidenceAndRebuild,
 } from './_skill-profile.js';
 import {
-  archiveSubmissionGrade,
+  commitSubmissionGradeChange,
+  GradeLifecycleConflictError,
   removeSubmissionGradeEvidence,
   submissionWithoutGrade,
 } from './_grade-lifecycle.js';
@@ -131,6 +132,9 @@ const handleDeleteSubmission = async (db: FirebaseFirestore.Firestore, body: Rec
   const submission = submissionSnap.data() || {};
   if (submission.teacherId !== uid) {
     return res.status(403).json({ error: 'Bạn không có quyền xoá bài nộp này.' });
+  }
+  if (submission.status === 'grading') {
+    return res.status(409).json({ error: 'Bài đang được AI chấm. Chờ lượt hiện tại kết thúc rồi mới xóa bài nộp.' });
   }
 
   const urls = [
@@ -290,6 +294,26 @@ const readOwnedSubmission = async (
     res.status(403).json({ error: 'Bạn không có quyền cập nhật kết quả chấm của bài này.' });
     return null;
   }
+  const classId = typeof data.classId === 'string' ? data.classId.trim() : '';
+  const studentId = typeof data.studentId === 'string' ? data.studentId.trim() : '';
+  if (!classId || !studentId) {
+    res.status(422).json({ error: 'Bài nộp thiếu thông tin lớp hoặc học sinh; không thể sửa kết quả an toàn.' });
+    return null;
+  }
+
+  const assignmentId = data.assignmentId;
+  if (assignmentId !== null && assignmentId !== undefined && typeof assignmentId !== 'string') {
+    res.status(422).json({ error: 'Bài nộp có mã bài giao không hợp lệ.' });
+    return null;
+  }
+  if (typeof assignmentId === 'string' && assignmentId.trim()) {
+    const assignmentSnap = await db.collection('assignments').doc(assignmentId.trim()).get();
+    const assignment = assignmentSnap.exists ? assignmentSnap.data() || {} : null;
+    if (!assignment || assignment.teacherId !== uid || assignment.classId !== classId) {
+      res.status(422).json({ error: 'Bài nộp không khớp lớp và bài đã giao; không thể sửa kết quả an toàn.' });
+      return null;
+    }
+  }
   return {
     uid,
     submissionId,
@@ -313,15 +337,31 @@ const handleSaveSubmissionGrade = async (
   if (!input) return res.status(422).json({ error: 'Điểm hoặc nội dung chấm tay không hợp lệ.' });
 
   const now = new Date().toISOString();
-  const historyId = await archiveSubmissionGrade(db, owned.submission, 'manual_edit', owned.uid, now);
   const grade = buildManualGrade(owned.submission, input, now);
-  await owned.ref.set({
+  const nextSubmission = {
     ...owned.submission,
     status: 'graded',
     grade,
     errorMessage: '',
     updatedAt: now,
-  });
+  } as SubmissionDoc;
+  let historyId: string | null;
+  try {
+    historyId = await commitSubmissionGradeChange(
+      db,
+      owned.ref,
+      owned.submission,
+      'manual_edit',
+      owned.uid,
+      nextSubmission,
+      now,
+    );
+  } catch (error) {
+    if (error instanceof GradeLifecycleConflictError) {
+      return res.status(409).json({ error: error.message });
+    }
+    throw error;
+  }
   // Grade mới chưa duyệt nhưng vẫn phải gỡ evidence của grade cũ đã duyệt.
   await removeSubmissionGradeEvidence(db, owned.submission, now);
   return res.status(200).json({ saved: true, submissionId: owned.submissionId, historyId });
@@ -342,14 +382,30 @@ const handleDeleteSubmissionGrade = async (
   }
 
   const now = new Date().toISOString();
-  const historyId = await archiveSubmissionGrade(db, owned.submission, 'delete', owned.uid, now);
   await removeSubmissionGradeEvidence(db, owned.submission, now);
-  await owned.ref.set({
+  const nextSubmission = {
     ...submissionWithoutGrade(owned.submission),
     status: 'submitted',
     errorMessage: '',
     updatedAt: now,
-  });
+  } as SubmissionDoc;
+  let historyId: string | null;
+  try {
+    historyId = await commitSubmissionGradeChange(
+      db,
+      owned.ref,
+      owned.submission,
+      'delete',
+      owned.uid,
+      nextSubmission,
+      now,
+    );
+  } catch (error) {
+    if (error instanceof GradeLifecycleConflictError) {
+      return res.status(409).json({ error: error.message });
+    }
+    throw error;
+  }
   return res.status(200).json({ deletedGrade: true, submissionId: owned.submissionId, historyId });
 };
 

@@ -216,6 +216,8 @@ export interface SubmissionDoc {
   attachments?: SubmissionAttachment[];
   note: string;
   status: SubmissionStatus;
+  /** Token nội bộ của worker AI đang giữ lượt chấm; không do client tự đặt. */
+  gradingRunId?: string | null;
   grade?: SubmissionGrade;
   errorMessage?: string;
   createdAt: string;

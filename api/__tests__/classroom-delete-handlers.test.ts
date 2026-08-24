@@ -124,6 +124,23 @@ const call = async (body: DocData) => {
 describe('POST /api/classroom · deleteSubmission', () => {
   beforeEach(() => { h.uid = 'gv-1'; });
 
+  it('không xóa cả bài nộp khi worker đang giữ trạng thái grading', async () => {
+    const harness = buildHarness();
+    harness.store['submissions'] = {
+      'sub-1': {
+        teacherId: 'gv-1', classId: 'lop-1', studentId: 'hs-1', status: 'grading',
+        fileUrls: [baiLamUrl], attachments: [{ url: baiLamUrl }],
+      },
+    };
+
+    const res = await call({ action: 'deleteSubmission', submissionId: 'sub-1' });
+
+    expect(res.statusCode).toBe(409);
+    expect(harness.store.submissions['sub-1']).toBeDefined();
+    expect(harness.deletedPaths).toEqual([]);
+    expect(harness.events).toEqual([]);
+  });
+
   it('chủ lớp xoá được: dọn đúng path Storage (trùng URL chỉ xoá một lần) rồi mới xoá document', async () => {
     const harness = buildHarness();
     harness.store['submissions'] = {

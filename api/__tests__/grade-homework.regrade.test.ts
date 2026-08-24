@@ -35,21 +35,37 @@ const makeDb = (harness: Harness) => {
         .map(([id, data]) => ({ id, data: () => ({ ...data }) })),
     }),
   });
-  return {
-    collection: (name: string) => ({
-      doc: (id: string) => ({
-        get: async () => {
-          const data = ensure(name)[id];
-          return { exists: data !== undefined, data: () => (data ? { ...data } : undefined) };
-        },
-        update: async (patch: DocData) => { ensure(name)[id] = { ...ensure(name)[id], ...patch }; },
-        set: async (payload: DocData, options?: { merge?: boolean }) => {
-          ensure(name)[id] = options?.merge ? { ...ensure(name)[id], ...payload } : { ...payload };
-        },
-        delete: async () => { delete ensure(name)[id]; },
-      }),
-      where: (field: string, _operator: string, value: unknown) => query(name, [{ field, value }]),
+  const collection = (name: string) => ({
+    doc: (id: string) => ({
+      get: async () => {
+        const data = ensure(name)[id];
+        return { exists: data !== undefined, data: () => (data ? { ...data } : undefined) };
+      },
+      update: async (patch: DocData) => { ensure(name)[id] = { ...ensure(name)[id], ...patch }; },
+      set: async (payload: DocData, options?: { merge?: boolean }) => {
+        ensure(name)[id] = options?.merge ? { ...ensure(name)[id], ...payload } : { ...payload };
+      },
+      delete: async () => { delete ensure(name)[id]; },
     }),
+    where: (field: string, _operator: string, value: unknown) => query(name, [{ field, value }]),
+  });
+  const runTransaction = async (work: (transaction: {
+    get: (ref: { get: () => Promise<{ exists: boolean; data: () => DocData | undefined }> }) => Promise<{ exists: boolean; data: () => DocData | undefined }>;
+    update: (ref: { update: (patch: DocData) => Promise<void> }, patch: DocData) => void;
+    set: (ref: { set: (payload: DocData, options?: { merge?: boolean }) => Promise<void> }, payload: DocData, options?: { merge?: boolean }) => void;
+  }) => Promise<unknown>) => {
+    const operations: Array<() => Promise<void>> = [];
+    const result = await work({
+      get: ref => ref.get(),
+      update: (ref, patch) => { operations.push(() => ref.update(patch)); },
+      set: (ref, payload, options) => { operations.push(() => ref.set(payload, options)); },
+    });
+    for (const operation of operations) await operation();
+    return result;
+  };
+  return {
+    collection,
+    runTransaction,
   };
 };
 
@@ -140,5 +156,62 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
     expect(result.body?.error).toMatch(/giữ nguyên|chấm lại/i);
     expect(harness.state.submissions['sub-1']).toMatchObject({ status: 'graded', grade: oldGrade });
     expect(harness.state.submissionGradeHistory).toBeUndefined();
+  });
+
+  it('worker AI cũ không được ghi đè điểm mới sau khi mất claim', async () => {
+    const harness = seed();
+    h.db = makeDb(harness);
+    let release!: (response: Response) => void;
+    h.fetch = vi.fn(() => new Promise<Response>(resolve => { release = resolve; }));
+    vi.stubGlobal('fetch', h.fetch);
+
+    const pending = call({ action: 'gradeOne', submissionId: 'sub-1' });
+    for (let attempt = 0; attempt < 20 && harness.state.submissions['sub-1'].status !== 'grading'; attempt += 1) {
+      await new Promise(resolve => setTimeout(resolve, 0));
+    }
+    expect(harness.state.submissions['sub-1']).toMatchObject({ status: 'grading' });
+
+    harness.state.submissions['sub-1'] = {
+      ...harness.state.submissions['sub-1'],
+      status: 'graded',
+      grade: { ...oldGrade, score: 9, feedback: 'Điểm mới do giáo viên lưu' },
+      gradingRunId: null,
+      updatedAt: '2026-08-25T01:00:00.000Z',
+    };
+    release({
+      ok: true,
+      json: async () => ({ candidates: [{ finishReason: 'STOP', content: { parts: [{ text: JSON.stringify({
+        score: 2,
+        feedbackForStudent: 'Kết quả cũ không được dùng.',
+        noteForTeacher: '',
+        strengths: [],
+        weaknesses: [],
+        weakTopics: [],
+        questionResults: [],
+      }) }] } }] }),
+      text: async () => '',
+    } as Response);
+
+    const result = await pending;
+
+    expect(result.statusCode).toBe(422);
+    expect(harness.state.submissions['sub-1']).toMatchObject({
+      status: 'graded',
+      grade: expect.objectContaining({ score: 9, feedback: 'Điểm mới do giáo viên lưu' }),
+    });
+    expect(harness.state.submissionGradeHistory).toBeUndefined();
+  });
+
+  it('học sinh không được tự thay thế kết quả đã giáo viên duyệt', async () => {
+    const harness = seed();
+    harness.state.studentLinks = { 'student-uid': { studentId: 'hs-1', classId: 'lop-1', teacherId: 'gv-1' } };
+    harness.state.submissions['sub-1'].grade = { ...oldGrade, teacherApproved: true };
+    h.uid = 'student-uid';
+    h.db = makeDb(harness);
+
+    const result = await call({ action: 'gradeOne', submissionId: 'sub-1' });
+
+    expect(result.statusCode).toBe(403);
+    expect(harness.state.submissions['sub-1'].grade).toMatchObject({ score: 8, teacherApproved: true });
   });
 });

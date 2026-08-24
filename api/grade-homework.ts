@@ -51,7 +51,7 @@ import {
   type SubmissionDoc,
 } from '../src/lib/classroom/types.js';
 import { handleAiGateway } from './_ai-gateway-handler.js';
-import { archiveSubmissionGrade, removeSubmissionGradeEvidence } from './_grade-lifecycle.js';
+import { commitAiGradeIfClaimed, removeSubmissionGradeEvidence } from './_grade-lifecycle.js';
 import { replaceSkillEvidenceAndRebuild } from './_skill-profile.js';
 
 /**
@@ -71,6 +71,59 @@ export const STALE_GRADING_MS = 10 * 60 * 1000;
 const isStaleGradingTimestamp = (updatedAt: unknown, nowMs = Date.now()): boolean => {
   const timestamp = Date.parse(String(updatedAt || ''));
   return !Number.isFinite(timestamp) || nowMs - timestamp > STALE_GRADING_MS;
+};
+
+interface GradingClaim {
+  ref: FirebaseFirestore.DocumentReference;
+  previous: SubmissionDoc;
+  gradingRunId: string;
+}
+
+const newGradingRunId = (): string => typeof globalThis.crypto?.randomUUID === 'function'
+  ? globalThis.crypto.randomUUID()
+  : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+/** Claim nguyên tử để hai request chấm cùng một bài không cùng ghi kết quả. */
+const claimSubmissionForGrading = async (
+  db: FirebaseFirestore.Firestore,
+  submissionId: string,
+  allowApproved: boolean,
+): Promise<GradingClaim | null> => {
+  const ref = db.collection('submissions').doc(submissionId);
+  const gradingRunId = newGradingRunId();
+  const claimedAt = new Date().toISOString();
+  let previous: SubmissionDoc | null = null;
+
+  await db.runTransaction(async transaction => {
+    const snapshot = await transaction.get(ref);
+    if (!snapshot.exists) return;
+    const current = snapshot.data() as FirebaseFirestore.DocumentData;
+    if (current.status === 'grading' || (!allowApproved && current.grade?.teacherApproved === true)) return;
+    previous = { id: submissionId, ...current } as SubmissionDoc;
+    transaction.update(ref, {
+      status: 'grading',
+      gradingRunId,
+      errorMessage: '',
+      updatedAt: claimedAt,
+    });
+  });
+
+  return previous ? { ref, previous, gradingRunId } : null;
+};
+
+/** Chỉ khôi phục trạng thái nếu worker này vẫn còn giữ claim. */
+const restoreClaimIfOwned = async (
+  db: FirebaseFirestore.Firestore,
+  claim: GradingClaim,
+  patch: Record<string, unknown>,
+): Promise<void> => {
+  await db.runTransaction(async transaction => {
+    const snapshot = await transaction.get(claim.ref);
+    if (!snapshot.exists) return;
+    const current = snapshot.data() as FirebaseFirestore.DocumentData;
+    if (current.status !== 'grading' || current.gradingRunId !== claim.gradingRunId) return;
+    transaction.update(claim.ref, { ...patch, gradingRunId: null, updatedAt: new Date().toISOString() });
+  });
 };
 /** Khop voi tran phia hoc sinh: bo sot anh la cham thieu bai ma khong ai biet. */
 const MAX_SUBMISSION_FILES = 12;
@@ -158,21 +211,24 @@ interface GradeContext {
 const gradeOneSubmission = async (
   db: FirebaseFirestore.Firestore,
   submissionId: string,
-  data: FirebaseFirestore.DocumentData,
   ctx: GradeContext,
   apiKey: string,
   actorUid: string,
+  allowApproved: boolean,
 ): Promise<boolean> => {
-  const previous = { id: submissionId, ...data } as SubmissionDoc;
+  // Không dùng snapshot mà caller đã đọc từ trước để khóa/ghi bài: giữa lúc
+  // đọc và lúc worker chạy, giáo viên có thể đã sửa hoặc xóa điểm.
+  const claim = await claimSubmissionForGrading(db, submissionId, allowApproved);
+  if (!claim) return false;
+
+  const previous = claim.previous;
   const previousStatus = previous.status;
-  const ref = db.collection('submissions').doc(submissionId);
-  await ref.update({ status: 'grading', updatedAt: new Date().toISOString() });
 
   try {
-    const urls = (Array.isArray(data.fileUrls) ? data.fileUrls : []).slice(0, MAX_SUBMISSION_FILES);
+    const urls = (Array.isArray(previous.fileUrls) ? previous.fileUrls : []).slice(0, MAX_SUBMISSION_FILES);
     const images = (await Promise.all(urls.map((u: string) => fetchImage(u).catch(() => null))))
       .filter((img): img is InlineImage => img !== null);
-    const studentText = String(data.textContent || '').trim();
+    const studentText = String(previous.textContent || '').trim();
 
     if (images.length === 0 && !studentText) {
       throw new Error('Không đọc được bài làm. Em thử chụp lại hoặc nộp lại file.');
@@ -197,28 +253,34 @@ const gradeOneSubmission = async (
     const parsed = parseHomeworkGrade(raw, ctx.maxScore, khongCoDapAn);
     const now = new Date().toISOString();
 
-    // Snapshot trước khi thay grade hiện hành. Nếu đây là lần chấm đầu thì không tạo history rỗng.
-    await archiveSubmissionGrade(db, previous, 'ai_regrade', actorUid, now);
+    const grade = {
+      score: parsed.score,
+      maxScore: parsed.maxScore,
+      feedback: parsed.feedbackForStudent,
+      noteForTeacher: parsed.noteForTeacher,
+      strengths: parsed.strengths,
+      weaknesses: parsed.weaknesses,
+      questionResults: parsed.questionResults,
+      weakTopics: parsed.weakTopics,
+      gradedWithoutAnswerKey: parsed.gradedWithoutAnswerKey,
+      gradedAt: now,
+      // Máy chấm KHÔNG tự duyệt cho mình. Điểm chỉ vào hồ sơ tích luỹ sau khi giáo viên xác nhận.
+      teacherApproved: false,
+    };
 
-    await ref.update({
-      status: 'graded',
-      grade: {
-        score: parsed.score,
-        maxScore: parsed.maxScore,
-        feedback: parsed.feedbackForStudent,
-        noteForTeacher: parsed.noteForTeacher,
-        strengths: parsed.strengths,
-        weaknesses: parsed.weaknesses,
-        questionResults: parsed.questionResults,
-        weakTopics: parsed.weakTopics,
-        gradedWithoutAnswerKey: parsed.gradedWithoutAnswerKey,
-        gradedAt: now,
-        // Máy chấm KHÔNG tự duyệt cho mình. Điểm chỉ vào hồ sơ tích luỹ sau khi giáo viên xác nhận.
-        teacherApproved: false,
-      },
-      errorMessage: '',
-      updatedAt: now,
-    });
+    // History + grade mới chỉ commit nếu token vẫn thuộc worker hiện tại.
+    // Điều này chặn worker cũ ghi đè sau stale recovery/manual edit/delete.
+    const committed = await commitAiGradeIfClaimed(
+      db,
+      claim.ref,
+      previous,
+      claim.gradingRunId,
+      grade,
+      actorUid,
+      now,
+    );
+    if (!committed.committed) return false;
+
     if (previous.grade) {
       // Grade AI mới chưa duyệt; gỡ evidence của kết quả cũ đã được duyệt.
       await removeSubmissionGradeEvidence(db, previous, now);
@@ -228,10 +290,9 @@ const gradeOneSubmission = async (
     const message = error instanceof Error ? error.message : 'Chấm thất bại';
     // Regrade lỗi không được làm mất grade hợp lệ đang có. Nếu chưa từng có grade,
     // mới chuyển sang error để giáo viên/học sinh biết cần thử lại.
-    await ref.update({
+    await restoreClaimIfOwned(db, claim, {
       status: previous.grade ? (previousStatus === 'error' ? 'error' : 'graded') : 'error',
       errorMessage: previous.grade ? '' : message,
-      updatedAt: new Date().toISOString(),
     });
     return false;
   }
@@ -280,6 +341,7 @@ const recoverStaleGradingSubmissions = async (
       transaction.update(ref, {
         status: 'error',
         errorMessage: 'Lượt chấm trước đã quá lâu. Em hoặc thầy cô có thể thử chấm lại.',
+        gradingRunId: null,
         updatedAt: new Date().toISOString(),
       });
       recovered.add(candidate.id);
@@ -341,7 +403,7 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
   let graded = 0;
   let failed = 0;
   for (const doc of batch) {
-    const ok = await gradeOneSubmission(db, doc.id, doc.data(), ctx, apiKey, uid);
+    const ok = await gradeOneSubmission(db, doc.id, ctx, apiKey, uid, true);
     if (ok) graded += 1; else failed += 1;
   }
 
@@ -367,9 +429,16 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
     return res.status(409).json({ error: 'Bài đang được chấm. Chờ lượt hiện tại kết thúc rồi thử lại.' });
   }
   const linkSnap = await db.collection('studentLinks').doc(uid).get();
-  const isOwnerStudent = linkSnap.exists && linkSnap.data()?.studentId === submission.studentId;
+  const link = linkSnap.exists ? linkSnap.data() as FirebaseFirestore.DocumentData : null;
+  const isOwnerStudent = Boolean(link
+    && link.studentId === submission.studentId
+    && link.classId === submission.classId
+    && link.teacherId === submission.teacherId);
   const isTeacher = submission.teacherId === uid;
   if (!isOwnerStudent && !isTeacher) return res.status(403).json({ error: 'Không có quyền chấm bài này.' });
+  if (isOwnerStudent && submission.grade?.teacherApproved === true) {
+    return res.status(403).json({ error: 'Kết quả đã được giáo viên duyệt; chỉ giáo viên mới được chấm lại.' });
+  }
 
   const kind: GradeKind = isTeacher ? 'teacher' : 'self';
   const [quota, quotaRef] = await loadQuotaDoc(db, String(submission.teacherId || ''));
@@ -410,7 +479,7 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
     }
   }
 
-  const ok = await gradeOneSubmission(db, submissionId, submission, ctx, getGradingApiKey(), uid);
+  const ok = await gradeOneSubmission(db, submissionId, ctx, getGradingApiKey(), uid, isTeacher);
   await quotaRef.set(bumpQuota(quota, kind, String(submission.studentId || ''), 1));
   if (!ok) {
     const latest = await ref.get();

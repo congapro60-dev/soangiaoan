@@ -68,3 +68,11 @@
 - Targeted lifecycle: 3 files / 9 tests pass; full unit: 82 files / 1,122 tests pass; rules: 7 files / 242 tests pass; `lint`, `lint:api`, `build`, `git diff --check` pass.
 - Invariant đã kiểm: sửa tay lưu history và buộc duyệt lại; xóa điểm không đụng submission/ảnh/file/Storage; AI lỗi giữ grade cũ; history client-deny; ownership và trạng thái `grading` bị chặn.
 - Ox Alpha Free/OpenCode: model `opencode/x-preview-f-free` được xác nhận là “Ox Alpha Free (Unlimited)”, nhưng lượt audit cuối trả `Upstream request failed: Endpoint is unavailable`; không dùng làm PASS.
+
+## Hardening sau review — trước merge/deploy (2026-08-25)
+
+- [x] Thêm claim token + transaction finalize: worker AI cũ không thể ghi đè sau stale recovery/manual edit/delete.
+- [x] History dùng khóa revision ổn định; history và submission grade hiện hành commit cùng transaction.
+- [x] Khóa chéo lớp/học sinh/bài giao cho thao tác sửa/xóa điểm; chặn học sinh chấm đè kết quả đã duyệt.
+- [x] Chặn xóa cả bài và khóa sửa/duyệt/chấm lại trên UI trong lúc `grading`; sau xóa reload lại dữ liệu server.
+- [x] Test hồi quy hardening: `30 tests` targeted pass; full lint/test/rules/build và review Ox Alpha còn chờ.

@@ -38,8 +38,7 @@ const makeDb = (harness: Harness) => {
     },
   });
 
-  return {
-    collection: (name: string) => ({
+  const collection = (name: string) => ({
       doc: (id: string) => ({
         get: async () => {
           const data = ensure(name)[id];
@@ -59,8 +58,20 @@ const makeDb = (harness: Harness) => {
         },
       }),
       where: (field: string, _operator: string, value: unknown) => makeQuery(name, [{ field, value }]),
-    }),
+    });
+  const runTransaction = async (work: (transaction: {
+    get: (ref: { get: () => Promise<{ exists: boolean; data: () => DocData | undefined }> }) => Promise<{ exists: boolean; data: () => DocData | undefined }>;
+    set: (ref: { set: (payload: DocData, options?: { merge?: boolean }) => Promise<void> }, payload: DocData, options?: { merge?: boolean }) => void;
+  }) => Promise<unknown>) => {
+    const operations: Array<() => Promise<void>> = [];
+    const result = await work({
+      get: ref => ref.get(),
+      set: (ref, payload, options) => { operations.push(() => ref.set(payload, options)); },
+    });
+    for (const operation of operations) await operation();
+    return result;
   };
+  return { collection, runTransaction };
 };
 
 const call = async (body: DocData) => {
@@ -95,6 +106,9 @@ const seed = (): Harness => {
       textContent: 'Bài làm nguyên bản', note: 'Ghi chú của em', status: 'graded', grade: oldGrade,
       createdAt: '2026-08-24T09:00:00.000Z', updatedAt: '2026-08-24T10:00:00.000Z',
     },
+  };
+  harness.store.assignments = {
+    'asg-1': { id: 'asg-1', teacherId: 'gv-1', classId: 'lop-1', title: 'Bài kiểm tra' },
   };
   harness.store.studentProfiles = {
     'hs-1': {
@@ -188,5 +202,24 @@ describe('POST /api/classroom · grade lifecycle', () => {
     expect(result.statusCode).toBe(422);
     expect(harness.store.submissions['sub-1'].grade).toEqual(oldGrade);
     expect(harness.store.submissionGradeHistory).toBeUndefined();
+  });
+
+  it('từ chối bài nộp thiếu định danh lớp/học sinh hoặc trỏ sang bài giao khác lớp', async () => {
+    const missingIdentity = seed();
+    delete missingIdentity.store.submissions['sub-1'].classId;
+    const missing = await call({
+      action: 'saveSubmissionGrade', submissionId: 'sub-1',
+      grade: { score: 9, maxScore: 10, feedback: 'x', weakTopics: [] },
+    });
+    expect(missing.statusCode).toBe(422);
+    expect(missingIdentity.store.submissions['sub-1'].grade).toEqual(oldGrade);
+
+    const mismatched = seed();
+    mismatched.store.assignments['asg-1'] = { teacherId: 'gv-1', classId: 'lop-khac' };
+    const mismatch = await call({
+      action: 'deleteSubmissionGrade', submissionId: 'sub-1',
+    });
+    expect(mismatch.statusCode).toBe(422);
+    expect(mismatched.store.submissions['sub-1'].grade).toEqual(oldGrade);
   });
 });

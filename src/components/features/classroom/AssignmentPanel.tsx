@@ -208,13 +208,14 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     onClick={() => void chamLai(s, ten)}
-                    disabled={tienDo !== ''}
+                    disabled={s.status === 'grading' || tienDo !== ''}
                     className="inline-flex items-center gap-1 rounded-2xl bg-slate-900 px-3 py-2 text-xs font-black text-white transition hover:bg-slate-800 disabled:opacity-50"
                   >
                     <Sparkles className="h-3.5 w-3.5" /> Chấm lại bằng AI
                   </button>
                   <button
                     onClick={() => void suaDiem(s, ten)}
+                    disabled={s.status === 'grading' || tienDo !== ''}
                     className="inline-flex items-center gap-1 rounded-2xl border border-indigo-200 bg-white px-3 py-2 text-xs font-black text-indigo-700 transition hover:bg-indigo-50"
                   >
                     <PenLine className="h-3.5 w-3.5" /> Sửa điểm
@@ -222,6 +223,7 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                   {s.grade && (
                     <button
                       onClick={() => void duyet(s)}
+                      disabled={s.status === 'grading' || tienDo !== ''}
                       className={`inline-flex items-center gap-1 rounded-2xl px-3 py-2 text-xs font-black transition ${
                         s.grade.teacherApproved ? 'bg-emerald-600 text-white' : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
                       }`}
@@ -243,7 +245,7 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                   )}
                   <button
                     onClick={() => void xoaBaiNop(s, ten)}
-                    disabled={tienDo !== '' || dangXoaNop !== ''}
+                    disabled={s.status === 'grading' || tienDo !== '' || dangXoaNop !== ''}
                     title="Xóa lượt nộp này; lịch sử cũ (nếu có) vẫn giữ"
                     className="inline-flex items-center gap-1 rounded-2xl border border-red-200 bg-white px-3 py-2 text-xs font-black text-red-700 transition hover:bg-red-50 disabled:opacity-50"
                   >
@@ -800,7 +802,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
     try {
       await xoaBaiNopHocSinh(s);
       showToast(`Đã xóa lượt nộp của ${tenHocSinh}.`, 'success');
-      setTatCaBaiNop(prev => prev.filter(x => x.id !== s.id));
+      await taiBai();
       setSelectedSubmissionIds(previous => {
         const next = new Set(previous);
         next.delete(s.id);
