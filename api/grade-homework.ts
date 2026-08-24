@@ -20,10 +20,12 @@ import {
 import {
   buildHomeworkGradingPrompt,
   buildPracticePrompt,
+  buildRewriteFeedbackPrompt,
   buildRubricPrompt,
   buildSolveExamPrompt,
   parseHomeworkGrade,
   parsePracticeQuestions,
+  parseRewrittenFeedback,
   parseRubric,
   parseSolvedAnswerKey,
 } from '../src/lib/classroom/gradingPrompt.js';
@@ -376,6 +378,44 @@ const handleSuggestRubric = async (db: FirebaseFirestore.Firestore, body: Record
   return res.status(200).json({ rubric: parseRubric(raw) });
 };
 
+/** AI viết lại nhận xét gửi học sinh, bám theo lời giáo viên. Chỉ văn bản nên nhẹ. */
+const handleRewriteFeedback = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Cần đăng nhập tài khoản giáo viên.' });
+
+  const classId = typeof body.classId === 'string' ? body.classId : '';
+  const classSnap = await db.collection('classes').doc(classId).get();
+  if (!classSnap.exists || classSnap.data()?.teacherId !== uid) {
+    return res.status(403).json({ error: 'Chỉ giáo viên chủ lớp mới dùng được chức năng này.' });
+  }
+
+  const teacherNote = String(body.teacherNote || '').trim();
+  if (!teacherNote) {
+    return res.status(400).json({ error: 'Thầy cô viết nhận xét của mình trước đã — AI chỉ diễn đạt lại cho em dễ đọc.' });
+  }
+
+  const [quota, quotaRef] = await loadQuotaDoc(db, uid);
+  const verdict = remainingQuota(quota, 'teacher', '');
+  if (verdict.allowed <= 0) return res.status(429).json({ error: verdict.reason });
+
+  const raw = await callGeminiVision(
+    buildRewriteFeedbackPrompt({
+      teacherNote,
+      currentFeedback: String(body.currentFeedback || ''),
+      score: Number(body.score) || 0,
+      maxScore: Number(body.maxScore) || 10,
+      weakTopics: Array.isArray(body.weakTopics) ? body.weakTopics.map(String) : [],
+    }),
+    [],
+    getGradingApiKey(),
+    GRADING_MODEL,
+    { maxOutputTokens: 2048, jsonMode: true },
+  );
+  await quotaRef.set(bumpQuota(quota, 'teacher', '', 1));
+
+  return res.status(200).json({ feedback: parseRewrittenFeedback(raw) });
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -395,6 +435,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (action === 'practice') return await handlePractice(db, body, res);
     if (action === 'solveAnswerKey') return await handleSolveAnswerKey(db, body, res);
     if (action === 'suggestRubric') return await handleSuggestRubric(db, body, res);
+    if (action === 'rewriteFeedback') return await handleRewriteFeedback(db, body, res);
     return res.status(400).json({ error: `Hành động không hợp lệ: ${action}`, limits: QUOTA_LIMITS });
   } catch (error) {
     console.error('[grade-homework] lỗi', error);

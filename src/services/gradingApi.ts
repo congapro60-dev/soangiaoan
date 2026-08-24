@@ -123,3 +123,27 @@ export const suggestRubric = async (classId: string, answerKey: string, maxScore
   if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
   return String((data as { rubric?: string })?.rubric || '');
 };
+
+export interface RewriteFeedbackInput {
+  classId: string;
+  teacherNote: string;
+  currentFeedback?: string;
+  score: number;
+  maxScore: number;
+  weakTopics?: string[];
+}
+
+/** AI viết lại nhận xét gửi học sinh, bám theo lời giáo viên. Trả về để giáo viên SOÁT rồi mới lưu. */
+export const rewriteFeedback = async (input: RewriteFeedbackInput): Promise<string> => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Phiên đăng nhập đã hết hạn.');
+
+  const res = await fetch('/api/grade-homework', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'rewriteFeedback', idToken: await user.getIdToken(), ...input }),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
+  return String((data as { feedback?: string })?.feedback || '');
+};

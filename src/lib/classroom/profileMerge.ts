@@ -92,3 +92,55 @@ export const removeEvidence = (existing: ProfileTopic[], submissionId: string, n
       return { ...topic, evidenceSubmissionIds: bangChung, level: capDo(bangChung.length), updatedAt: now };
     })
     .filter(topic => topic.evidenceSubmissionIds.length > 0);
+
+/**
+ * Đồng bộ hồ sơ theo MỘT bài nộp, dùng cho cả lúc duyệt điểm lẫn lúc giáo viên sửa tay.
+ *
+ * Luôn GỠ HẾT dấu vết cũ của bài này trước rồi mới gộp lại theo danh sách chủ đề hiện tại.
+ * Thiếu bước gỡ thì sửa chủ đề lần hai sẽ chồng lên lần một: giáo viên bỏ nhãn "yếu phương
+ * trình" mà nhãn đó vẫn nằm nguyên trong hồ sơ, vì `mergeTopics` chỉ biết thêm chứ không biết
+ * bài này trước đây từng nêu chủ đề gì.
+ *
+ * Gọi lại nhiều lần với cùng dữ liệu cho ra cùng kết quả.
+ */
+export interface ApplyEvidenceInput {
+  existing: ProfileTopic[];
+  weakTopics: string[];
+  submissionId: string;
+  /** false = bỏ duyệt hoặc xoá bài: chỉ gỡ, không gộp lại. */
+  approved: boolean;
+  now: string;
+}
+
+/**
+ * Thêm bằng chứng cho các chủ đề nêu ra, KHÔNG làm tụt chủ đề khác.
+ *
+ * Khác `mergeTopics` đúng ở chỗ đó. Phép làm tụt chỉ đúng khi có bài MỚI nộp mà không nêu chủ
+ * đề cũ — nghĩa là em ấy đã làm đúng chỗ đó. Còn khi giáo viên sửa lại một bài đã chấm thì
+ * không có bài mới nào cả, làm tụt kết luận rút từ bài khác là bịa.
+ */
+const addEvidence = (existing: ProfileTopic[], weakTopics: string[], submissionId: string, now: string): ProfileTopic[] => {
+  const theoTen = new Map(existing.map(t => [chuanHoaChuDe(t.topic), t]));
+
+  for (const ten of new Set(weakTopics.map(chuanHoaChuDe).filter(Boolean))) {
+    const cu = theoTen.get(ten);
+    const bangChung = [...new Set([...(cu?.evidenceSubmissionIds || []), submissionId])];
+    theoTen.set(ten, { topic: ten, level: capDo(bangChung.length), evidenceSubmissionIds: bangChung, updatedAt: now });
+  }
+
+  return [...theoTen.values()].sort((a, b) => {
+    const uu: Record<MasteryLevel, number> = { weak: 0, developing: 1, solid: 2 };
+    return uu[a.level] - uu[b.level] || a.topic.localeCompare(b.topic, 'vi');
+  });
+};
+
+export const applyEvidence = ({ existing, weakTopics, submissionId, approved, now }: ApplyEvidenceInput): ProfileTopic[] => {
+  // Bài này đã từng được tính vào hồ sơ chưa? Quyết định có áp phép làm tụt hay không.
+  const daTungTinh = existing.some(t => (t.evidenceSubmissionIds || []).includes(submissionId));
+  const sach = removeEvidence(existing, submissionId, now);
+  if (!approved) return sach;
+
+  return daTungTinh
+    ? addEvidence(sach, weakTopics, submissionId, now)
+    : mergeTopics({ existing: sach, weakTopics, submissionId, now });
+};

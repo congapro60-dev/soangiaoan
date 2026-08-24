@@ -21,6 +21,7 @@ import type { AssignmentDoc, SubmissionDoc } from '../../../lib/classroom/types'
 import { laNopQuaHan } from '../../../lib/classroom/hanNop';
 import { gradeAssignmentAll, gradeOneSubmission } from '../../../services/gradingApi';
 import { AssignmentFormModal, type AssignmentFormValue } from './AssignmentFormModal';
+import { GradeReviewModal, type GradeReviewValue } from './GradeReviewModal';
 
 interface Props {
   classId: string;
@@ -215,6 +216,8 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   const [moForm, setMoForm] = useState(false);
   const [dangGui, setDangGui] = useState(false);
   const [loiTai, setLoiTai] = useState('');
+  const [dangChamLai, setDangChamLai] = useState<{ submission: SubmissionDoc; tenHocSinh: string } | null>(null);
+  const [dangLuuChamLai, setDangLuuChamLai] = useState(false);
   // Lỗi riêng cho việc tải BÀI NỘP: nếu nuốt thành mảng rỗng thì bảng hiện "0/x đã nộp",
   // giáo viên tưởng chưa ai nộp và nút Xoá bài lọt qua guard → xoá mất bài có bài nộp thật.
   const [loiBaiNop, setLoiBaiNop] = useState<string | null>(null);
@@ -493,55 +496,55 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   };
 
   /** Sửa tay điểm + nhận xét — máy chấm sai mà AI chấm lại vẫn sai thì người phải can thiệp được. */
-  const suaDiem = async (s: SubmissionDoc, tenHocSinh: string) => {
-    const maxHienTai = s.grade?.maxScore ?? 10;
-    const { value: form } = await Swal.fire({
-      title: `Sửa điểm · ${tenHocSinh}`,
-      html: `
-        <input id="swal-diem" type="number" min="0" max="${maxHienTai}" step="0.25" class="swal2-input" placeholder="Điểm (tối đa ${maxHienTai})" value="${s.grade?.score ?? ''}">
-        <textarea id="swal-nhan-xet" class="swal2-textarea" placeholder="Nhận xét gửi học sinh">${s.grade?.feedback || ''}</textarea>
-      `,
-      showCancelButton: true,
-      confirmButtonText: 'Lưu điểm',
-      cancelButtonText: 'Huỷ',
-      confirmButtonColor: '#3085d6',
-      focusConfirm: false,
-      preConfirm: () => {
-        const diem = Number((document.getElementById('swal-diem') as HTMLInputElement | null)?.value);
-        if (!Number.isFinite(diem) || diem < 0 || diem > maxHienTai) {
-          Swal.showValidationMessage(`Điểm phải nằm trong khoảng 0 – ${maxHienTai}.`);
-          return null;
-        }
-        return { diem, nhanXet: String((document.getElementById('swal-nhan-xet') as HTMLTextAreaElement | null)?.value || '').trim() };
-      },
-    });
-    if (!form) return;
+  const suaDiem = (s: SubmissionDoc, tenHocSinh: string) => {
+    setDangChamLai({ submission: s, tenHocSinh });
+  };
 
+  /**
+   * Lưu kết quả chấm lại. Chủ đề yếu đi kèm nên hồ sơ tích luỹ được đồng bộ luôn ở
+   * `updateSubmissionGradeManually` — sửa nhãn trên màn hình mà hồ sơ giữ nhãn cũ là kiểu sai
+   * âm thầm nhất: bài bổ trợ vẫn ra theo chủ đề thầy cô vừa bác bỏ.
+   */
+  const luuChamLai = async (value: GradeReviewValue) => {
+    const dang = dangChamLai;
+    if (!dang) return;
+    setDangLuuChamLai(true);
     try {
-      await updateSubmissionGradeManually(s.id, { score: form.diem, maxScore: maxHienTai, feedback: form.nhanXet });
-      showToast(`Đã lưu điểm mới cho ${tenHocSinh}.`, 'success');
+      await updateSubmissionGradeManually(dang.submission, {
+        score: value.score,
+        maxScore: value.maxScore,
+        feedback: value.feedback,
+        weakTopics: value.weakTopics,
+        teacherNote: value.teacherNote,
+      });
+      showToast(`Đã lưu chấm lại cho ${dang.tenHocSinh}.`, 'success');
+      setDangChamLai(null);
       setTatCaBaiNop(prev => prev.map(x => {
-        if (x.id !== s.id) return x;
+        if (x.id !== dang.submission.id) return x;
         return {
           ...x,
           status: 'graded' as const,
           // Dựng lại grade ĐẦY ĐỦ: bài chưa được máy chấm thì grade undefined, spread rỗng là
           // mất các trường bắt buộc (strengths/weaknesses) và tsc đỏ.
           grade: {
-            score: form.diem,
-            maxScore: maxHienTai,
-            feedback: form.nhanXet,
-            strengths: [],
-            weaknesses: [],
+            score: value.score,
+            maxScore: value.maxScore,
+            feedback: value.feedback,
+            weakTopics: value.weakTopics,
+            teacherNote: value.teacherNote,
+            editedByTeacher: true,
+            strengths: x.grade?.strengths || [],
+            weaknesses: x.grade?.weaknesses || [],
             gradedAt: new Date().toISOString(),
-            teacherApproved: false,
+            teacherApproved: x.grade?.teacherApproved ?? false,
             noteForTeacher: x.grade?.noteForTeacher,
-            weakTopics: x.grade?.weakTopics,
           },
         };
       }));
     } catch (error) {
       setLoiTai(error instanceof Error ? error.message : 'Không lưu được điểm.');
+    } finally {
+      setDangLuuChamLai(false);
     }
   };
 
@@ -597,6 +600,17 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
 
   return (
     <section className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      {dangChamLai && (
+        <GradeReviewModal
+          classId={classId}
+          studentName={dangChamLai.tenHocSinh}
+          submission={dangChamLai.submission}
+          dangLuu={dangLuuChamLai}
+          onClose={() => setDangChamLai(null)}
+          onSubmit={luuChamLai}
+        />
+      )}
+
       {moForm && (
         <AssignmentFormModal classId={classId} className={className} dangGui={dangGui} onClose={() => setMoForm(false)} onSubmit={guiBaiMoi} />
       )}

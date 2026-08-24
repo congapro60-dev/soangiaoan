@@ -245,3 +245,56 @@ export const parseRubric = (raw: string): string => {
   if (!rubric) throw new Error('AI không soạn được hướng dẫn chấm. Thầy cô viết tay giúp.');
   return rubric;
 };
+
+// ── AI viết lại nhận xét cho học sinh, dựa trên lời của giáo viên ─────────────
+
+export interface RewriteFeedbackInput {
+  /** Nhận xét thô của giáo viên. Đây là NGUỒN SỰ THẬT, AI chỉ diễn đạt lại. */
+  teacherNote: string;
+  /** Nhận xét máy viết trước đó, để AI biết cái gì đang bị thay. Có thể rỗng. */
+  currentFeedback?: string;
+  score: number;
+  maxScore: number;
+  /** Chủ đề còn yếu sau khi giáo viên đã sửa. */
+  weakTopics?: string[];
+}
+
+/**
+ * Đổi lời nhận xét của giáo viên thành lời viết cho học sinh đọc.
+ *
+ * Ranh giới quan trọng: AI KHÔNG được thêm nhận định mới. Giáo viên viết "nhầm dấu chứ không
+ * phải không hiểu bài" thì AI diễn đạt lại đúng ý đó cho em nghe được, chứ không tự suy ra em
+ * yếu chỗ khác. Thêm nhận định là quay lại đúng thứ giáo viên vừa bỏ công sửa.
+ */
+export const buildRewriteFeedbackPrompt = (input: RewriteFeedbackInput): string =>
+  `Bạn giúp một giáo viên Việt Nam viết lại lời nhận xét để gửi cho học sinh đọc.
+
+NHẬN XÉT CỦA GIÁO VIÊN (đây là nguồn sự thật, bám sát nó):
+${input.teacherNote.trim()}
+
+ĐIỂM: ${input.score}/${input.maxScore}
+${(input.weakTopics || []).length > 0 ? `CHỦ ĐỀ CẦN LUYỆN THÊM: ${(input.weakTopics || []).join(', ')}` : ''}
+${input.currentFeedback?.trim() ? `\nNhận xét máy viết trước đó (sẽ bị thay, chỉ để tham khảo giọng văn):\n${input.currentFeedback.trim()}` : ''}
+
+CÁCH VIẾT:
+- Viết cho CHÍNH EM ĐÓ đọc. Xưng "em". 2-4 câu.
+- Nói em làm được chỗ nào trước, rồi mới tới chỗ cần sửa và cách sửa.
+- Không phán xét năng lực, không so sánh với bạn khác, không khen sáo rỗng.
+
+TUYỆT ĐỐI KHÔNG:
+- Không thêm nhận định mà giáo viên không nêu. Không tự suy ra em yếu chỗ khác.
+- Không nhắc tới việc nhận xét này do máy viết hay đã được sửa.
+
+CHỈ TRẢ VỀ JSON THUẦN:
+{"feedback":"lời nhận xét gửi học sinh"}`;
+
+export const parseRewrittenFeedback = (raw: string): string => {
+  const text = String(raw || '');
+  const inCodeBlock = text.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
+  const jsonStr = inCodeBlock ? inCodeBlock[1] : text.match(/\{[\s\S]*\}/)?.[0];
+  if (!jsonStr) throw new Error('AI trả về nội dung không đọc được. Thử lại một lần nữa.');
+
+  const feedback = String(parseLooseJson<Record<string, unknown>>(jsonStr).feedback || '').trim();
+  if (!feedback) throw new Error('AI không viết được nhận xét. Thầy cô dùng luôn lời của mình nhé.');
+  return feedback;
+};

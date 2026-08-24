@@ -2,10 +2,12 @@ import { describe, it, expect } from 'vitest';
 import {
   buildHomeworkGradingPrompt,
   buildPracticePrompt,
+  buildRewriteFeedbackPrompt,
   buildRubricPrompt,
   buildSolveExamPrompt,
   parseHomeworkGrade,
   parsePracticeQuestions,
+  parseRewrittenFeedback,
   parseRubric,
   parseSolvedAnswerKey,
 } from './gradingPrompt';
@@ -222,5 +224,45 @@ describe('AI đề xuất hướng dẫn chấm', () => {
 
   it('không đọc được nội dung thì ném lỗi', () => {
     expect(() => parseRubric('xin loi')).toThrow(/không đọc được/);
+  });
+});
+
+describe('AI viết lại nhận xét từ lời giáo viên', () => {
+  it('lấy lời giáo viên làm nguồn sự thật', () => {
+    const p = buildRewriteFeedbackPrompt({ teacherNote: 'Em nhầm dấu chứ không phải không hiểu bài', score: 8, maxScore: 10 });
+
+    expect(p).toContain('Em nhầm dấu chứ không phải không hiểu bài');
+    expect(p).toContain('nguồn sự thật');
+    expect(p).toContain('8/10');
+  });
+
+  it('CẤM AI thêm nhận định giáo viên không nêu', () => {
+    const p = buildRewriteFeedbackPrompt({ teacherNote: 'x', score: 5, maxScore: 10 });
+
+    expect(p).toContain('Không thêm nhận định mà giáo viên không nêu');
+    expect(p).toContain('không so sánh với bạn khác');
+  });
+
+  it('không để lộ với học sinh rằng nhận xét đã bị sửa', () => {
+    expect(buildRewriteFeedbackPrompt({ teacherNote: 'x', score: 5, maxScore: 10 }))
+      .toContain('Không nhắc tới việc nhận xét này do máy viết hay đã được sửa');
+  });
+
+  it('gắn kèm chủ đề cần luyện khi có', () => {
+    const p = buildRewriteFeedbackPrompt({ teacherNote: 'x', score: 5, maxScore: 10, weakTopics: ['dấu toạ độ'] });
+    expect(p).toContain('CHỦ ĐỀ CẦN LUYỆN THÊM: dấu toạ độ');
+  });
+
+  it('không có chủ đề thì không chèn dòng thừa', () => {
+    expect(buildRewriteFeedbackPrompt({ teacherNote: 'x', score: 5, maxScore: 10 }))
+      .not.toContain('CHỦ ĐỀ CẦN LUYỆN THÊM');
+  });
+
+  it('đọc được nhận xét trả về', () => {
+    expect(parseRewrittenFeedback(JSON.stringify({ feedback: 'Em làm đúng dạng rồi.' }))).toBe('Em làm đúng dạng rồi.');
+  });
+
+  it('rỗng thì NÉM lỗi để giáo viên dùng lời của mình', () => {
+    expect(() => parseRewrittenFeedback(JSON.stringify({ feedback: '  ' }))).toThrow(/lời của mình/);
   });
 });

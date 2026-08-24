@@ -1,7 +1,7 @@
 import { collection, deleteDoc, deleteField, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
 import { auth, db, removeUndefinedFields, storage } from '../firebase';
-import { mergeTopics, removeEvidence } from './profileMerge';
+import { applyEvidence, mergeTopics, removeEvidence } from './profileMerge';
 import {
   ASSIGNMENTS_COL,
   CLASSES_COL,
@@ -232,17 +232,38 @@ export const xoaBaiNopHocSinh = async (submission: SubmissionDoc): Promise<void>
  * không đụng định danh bài nộp; cờ editedByTeacher để màn hình phân biệt điểm máy và điểm người.
  */
 export const updateSubmissionGradeManually = async (
-  submissionId: string,
-  patch: { score: number; maxScore: number; feedback: string },
+  submission: SubmissionDoc,
+  patch: { score: number; maxScore: number; feedback: string; weakTopics: string[]; teacherNote?: string },
 ): Promise<void> => {
-  await updateDoc(doc(db, SUBMISSIONS_COL, submissionId), {
+  const now = new Date().toISOString();
+
+  await updateDoc(doc(db, SUBMISSIONS_COL, submission.id), {
     'grade.score': patch.score,
     'grade.maxScore': patch.maxScore,
     'grade.feedback': patch.feedback,
+    'grade.weakTopics': patch.weakTopics,
+    'grade.teacherNote': patch.teacherNote || '',
     'grade.editedByTeacher': true,
-    'grade.gradedAt': new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    'grade.gradedAt': now,
+    updatedAt: now,
   });
+
+  // Bài đã duyệt thì hồ sơ tích luỹ phải chạy theo danh sách chủ đề MỚI.
+  // Thiếu bước này: giáo viên bỏ nhãn "yếu phương trình" trên màn hình, nhưng hồ sơ vẫn giữ
+  // nhãn đó và bài bổ trợ vẫn ra theo chủ đề giáo viên vừa bác bỏ.
+  if (submission.grade?.teacherApproved) {
+    const profileRef = doc(db, STUDENT_PROFILES_COL, submission.studentId);
+    const snap = await getDoc(profileRef);
+    const existing = snap.exists() ? ((snap.data() as StudentProfileDoc).topics || []) : [];
+
+    await setDoc(profileRef, removeUndefinedFields({
+      studentId: submission.studentId,
+      classId: submission.classId,
+      teacherId: submission.teacherId,
+      topics: applyEvidence({ existing, weakTopics: patch.weakTopics, submissionId: submission.id, approved: true, now }),
+      updatedAt: now,
+    } as StudentProfileDoc));
+  }
 };
 
 /**

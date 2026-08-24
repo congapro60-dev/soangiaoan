@@ -275,12 +275,12 @@ const handleRevokeStudentAccess = async (db: FirebaseFirestore.Firestore, body: 
   let batch = db.batch();
   let pending = 0;
   let revokedLinks = 0;
-  links.forEach(l => {
+  for (const l of links.docs) {
     batch.delete(l.ref);
     revokedLinks += 1;
     pending += 1;
-    if (pending >= 400) { void batch.commit(); batch = db.batch(); pending = 0; }
-  });
+    if (pending >= 400) { await batch.commit(); batch = db.batch(); pending = 0; }
+  }
   if (pending > 0) await batch.commit();
 
   return res.status(200).json({ revoked: true, revokedLinks });
@@ -314,15 +314,17 @@ const handleRevokeClass = async (db: FirebaseFirestore.Firestore, body: Record<s
   let removedSecrets = 0;
   let revokedLinks = 0;
 
-  const xoa = (ref: FirebaseFirestore.DocumentReference) => {
+  // await được thật sự: hàm phụ là async và mọi nơi gọi đều await. Bản trước dùng forEach nên
+  // lệnh ghi giữa chừng bị bắn đi mà không chờ — lỗi biến mất không dấu vết.
+  const xoa = async (ref: FirebaseFirestore.DocumentReference) => {
     batch.delete(ref);
     pending += 1;
-    if (pending >= 400) { void batch.commit(); batch = db.batch(); pending = 0; }
+    if (pending >= 400) { await batch.commit(); batch = db.batch(); pending = 0; }
   };
-  students.forEach(d => { xoa(d.ref); removedStudents += 1; });
-  secrets.forEach(d => { xoa(d.ref); removedSecrets += 1; });
-  links.forEach(d => { xoa(d.ref); revokedLinks += 1; });
-  xoa(classSnap.ref);
+  for (const d of students.docs) { await xoa(d.ref); removedStudents += 1; }
+  for (const d of secrets.docs) { await xoa(d.ref); removedSecrets += 1; }
+  for (const d of links.docs) { await xoa(d.ref); revokedLinks += 1; }
+  await xoa(classSnap.ref);
   if (pending > 0) await batch.commit();
 
   return res.status(200).json({

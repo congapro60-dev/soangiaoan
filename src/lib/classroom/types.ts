@@ -114,6 +114,8 @@ export interface SubmissionGrade {
   /** true khi chấm mà không có đáp án chuẩn — kết quả kém tin cậy hơn. */
   gradedWithoutAnswerKey?: boolean;
   gradedAt: string;
+  /** Nhận xét thô của giáo viên, nguồn để AI viết lại lời cho học sinh. Giữ để truy nguồn. */
+  teacherNote?: string;
   /** true khi giáo viên đã xem và đồng ý — điều kiện để vào hồ sơ tích luỹ. */
   teacherApproved: boolean;
   /** true khi giáo viên sửa tay điểm/nhận xét sau khi máy chấm. */
