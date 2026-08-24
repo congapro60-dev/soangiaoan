@@ -109,6 +109,14 @@ beforeEach(async () => {
       description: '', type: 'upload', isOpen: false,
       createdAt: '2026-08-20T00:00:00.000Z', updatedAt: '2026-08-20T00:00:00.000Z',
     });
+    await setDoc(doc(db, 'practiceKeys/set-1'), {
+      setId: 'set-1', studentId: HS_A, classId: LOP, teacherId: UID_GV,
+      questions: [{ id: 'q1', expectedAnswer: 'x = 2' }],
+    });
+    await setDoc(doc(db, 'practiceSets/set-1'), {
+      id: 'set-1', studentId: HS_A, classId: LOP, teacherId: UID_GV,
+      questions: [{ id: 'q1', question: 'Giải x + 1 = 3', hint: '' }],
+    });
 
     await setDoc(doc(db, 'submissions/bai-1'), baiNopMau());
     await setDoc(doc(db, 'submissions/bai-da-cham'), baiNopMau({
@@ -204,8 +212,8 @@ describe('studentLinks · phiên đăng nhập học sinh', () => {
 });
 
 describe('assignments · bài được giao', () => {
-  it('17. Học sinh đọc bài đang mở của lớp mình → ALLOW', async () => {
-    await assertSucceeds(getDoc(doc(dbHsA(), 'assignments/bt-1')));
+  it('17. Học sinh không đọc document assignment gốc nữa → DENY (dùng projection server)', async () => {
+    await assertFails(getDoc(doc(dbHsA(), 'assignments/bt-1')));
   });
 
   it('18. Học sinh đọc bài CHƯA phát hành → DENY', async () => {
@@ -215,6 +223,15 @@ describe('assignments · bài được giao', () => {
   it('19. Học sinh lớp khác đọc bài của lớp này → DENY', async () => {
     await assertFails(getDoc(doc(dbHsB(), 'assignments/bt-1')));
   });
+
+  it('19a. Học sinh không đọc được practice key chứa expectedAnswer → DENY', async () => {
+    await assertFails(getDoc(doc(dbHsA(), 'practiceKeys/set-1')));
+  });
+
+  it('19b. Học sinh không đọc trực tiếp practice set/attempt → DENY (đi qua API)', async () => {
+    await assertFails(getDoc(doc(dbHsA(), 'practiceSets/set-1')));
+    await assertFails(getDoc(doc(dbHsA(), 'practiceAttempts/attempt-1')));
+  });
 });
 
 describe('submissions · bài nộp', () => {
@@ -222,8 +239,8 @@ describe('submissions · bài nộp', () => {
     await assertFails(getDoc(doc(dbHsB(), 'submissions/bai-1')));
   });
 
-  it('21. Học sinh đọc bài nộp của chính mình → ALLOW', async () => {
-    await assertSucceeds(getDoc(doc(dbHsA(), 'submissions/bai-1')));
+  it('21. Học sinh không đọc raw submission vì có note nội bộ → DENY (dùng projection API)', async () => {
+    await assertFails(getDoc(doc(dbHsA(), 'submissions/bai-1')));
   });
 
   it('22. Học sinh nộp bài hợp lệ → ALLOW', async () => {

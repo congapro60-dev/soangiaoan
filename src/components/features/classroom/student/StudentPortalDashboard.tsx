@@ -1,6 +1,6 @@
-import { type ChangeEventHandler, type RefObject, useMemo, useState } from 'react';
+import { type ChangeEventHandler, type RefObject, useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, BookOpenCheck, Camera, CheckCircle2, Clock3, GraduationCap, Info, Loader2, LogOut, RefreshCw, Sparkles, Target, TrendingUp, X } from 'lucide-react';
-import type { PracticeQuestion } from '../../../../services/gradingApi';
+import type { PracticeAttemptResult, PracticeSetResult } from '../../../../services/gradingApi';
 import type { AssignmentDoc, StudentProfileDoc, SubmissionDoc } from '../../../../lib/classroom/types';
 import { getStudentAssignmentState, latestSubmissionByAssignment, type StudentAssignmentStatus } from '../../../../lib/classroom/portalViewModel';
 import { StudentAssignmentCard } from './StudentAssignmentCard';
@@ -22,15 +22,27 @@ interface Props {
   warningMessage: string;
   actionError: string;
   dataError: string;
-  practice: PracticeQuestion[];
+  practiceSet: PracticeSetResult | null;
+  practiceAnswers: Record<string, string>;
+  practiceAttempt: PracticeAttemptResult | null;
   loadingPractice: boolean;
+  submittingPractice: boolean;
+  practiceError: string;
   uploadRef: RefObject<HTMLInputElement | null>;
+  pendingFiles: readonly File[];
+  pendingAssignmentTitle: string | null;
+  maxPendingFiles: number;
   onFileChange: ChangeEventHandler<HTMLInputElement>;
-  onChooseImage: (assignmentId: string | null) => void;
+  onChooseImage: (assignmentId: string | null, supplementOf?: string) => void;
+  onAddMoreImages: () => void;
+  onRemovePendingFile: (index: number) => void;
+  onSubmitPendingFiles: () => void;
   onOpenAssignment: (assignment: AssignmentDoc | undefined, submission?: SubmissionDoc) => void;
   onSignOut: () => void;
   onReload: () => void;
   onLoadPractice: () => void;
+  onPracticeAnswerChange: (questionId: string, answer: string) => void;
+  onSubmitPractice: () => void;
   onDismissSuccess: () => void;
 }
 
@@ -69,18 +81,40 @@ export const StudentPortalDashboard = ({
   warningMessage,
   actionError,
   dataError,
-  practice,
+  practiceSet,
+  practiceAnswers,
+  practiceAttempt,
   loadingPractice,
+  submittingPractice,
+  practiceError,
   uploadRef,
+  pendingFiles,
+  pendingAssignmentTitle,
+  maxPendingFiles,
   onFileChange,
   onChooseImage,
+  onAddMoreImages,
+  onRemovePendingFile,
+  onSubmitPendingFiles,
   onOpenAssignment,
   onSignOut,
   onReload,
   onLoadPractice,
+  onPracticeAnswerChange,
+  onSubmitPractice,
   onDismissSuccess,
 }: Props) => {
   const [filter, setFilter] = useState<FilterKey>('all');
+  const pendingPreviewUrls = useMemo(() => pendingFiles.map(file => (
+    file.type.startsWith('image/') && typeof URL.createObjectURL === 'function'
+      ? URL.createObjectURL(file)
+      : null
+  )), [pendingFiles]);
+  useEffect(() => () => {
+    pendingPreviewUrls.forEach(url => {
+      if (url) URL.revokeObjectURL(url);
+    });
+  }, [pendingPreviewUrls]);
   const latest = useMemo(() => latestSubmissionByAssignment(submissions), [submissions]);
   const rows = useMemo(() => assignments.map(assignment => {
     const submission = latest.get(assignment.id);
@@ -119,6 +153,8 @@ export const StudentPortalDashboard = ({
     retry: rows.filter(row => row.state.status === 'retry').length,
     graded: rows.filter(row => row.state.status === 'graded').length,
   }), [rows]);
+  const practiceQuestions = practiceSet?.questions ?? [];
+  const practiceResults = new Map((practiceAttempt?.questionResults ?? []).map(result => [result.id, result]));
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-slate-50 pb-10">
@@ -192,6 +228,51 @@ export const StudentPortalDashboard = ({
             <p className="flex items-start gap-2 text-sm font-bold text-red-800"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /> <span>{dataError}</span></p>
             <button type="button" onClick={onReload} className="mt-2 inline-flex min-h-11 items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-xs font-black text-white hover:bg-red-700"><RefreshCw className="h-3.5 w-3.5" /> Thử lại</button>
           </div>
+        )}
+
+        {pendingFiles.length > 0 && (
+          <section aria-labelledby="pending-upload-heading" className="rounded-[1.5rem] border-2 border-indigo-200 bg-indigo-50 p-4 shadow-sm sm:p-5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">Bộ tệp đang chờ nộp</p>
+                <h2 id="pending-upload-heading" className="mt-1 break-words text-lg font-black text-slate-900">{pendingAssignmentTitle || 'Bài của em'}</h2>
+                <p className="mt-1 text-sm font-semibold leading-6 text-slate-600">Đã chụp/chọn {pendingFiles.length}/{maxPendingFiles} tệp. Em có thể chụp tiếp các trang còn lại rồi nộp một lần.</p>
+              </div>
+              <span className="inline-flex shrink-0 items-center rounded-full bg-white px-3 py-1.5 text-xs font-black text-indigo-700 ring-1 ring-indigo-200">Chưa nộp</span>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4" role="list" aria-label="Các tệp đang chờ nộp">
+              {pendingFiles.map((file, index) => {
+                const previewUrl = pendingPreviewUrls[index];
+                return (
+                  <div key={`${file.name}-${file.lastModified}-${index}`} role="listitem" className="overflow-hidden rounded-2xl border border-indigo-100 bg-white shadow-sm">
+                    <div className="flex aspect-square items-center justify-center bg-slate-100">
+                      {previewUrl ? (
+                        <img src={previewUrl} alt={`Ảnh ${index + 1}: ${file.name}`} className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="px-3 text-center text-xs font-black leading-5 text-slate-500">{file.name}</div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 p-2">
+                      <p className="min-w-0 flex-1 truncate text-[11px] font-bold text-slate-600" title={file.name}>Trang {index + 1}</p>
+                      <button type="button" onClick={() => onRemovePendingFile(index)} disabled={uploadingId !== ''} aria-label={`Xóa tệp ${index + 1}`} className="inline-flex min-h-9 min-w-9 shrink-0 items-center justify-center rounded-xl text-slate-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"><X className="h-4 w-4" /></button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+              <button type="button" onClick={onAddMoreImages} disabled={uploadingId !== '' || pendingFiles.length >= maxPendingFiles} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-indigo-200 bg-white px-4 py-3 text-sm font-black text-indigo-700 transition hover:bg-indigo-100 disabled:opacity-50">
+                <Camera className="h-4 w-4" />
+                {pendingFiles.length >= maxPendingFiles ? 'Đã đủ số tệp' : 'Chụp/chọn thêm'}
+              </button>
+              <button type="button" onClick={onSubmitPendingFiles} disabled={uploadingId !== ''} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-black text-white shadow-md shadow-indigo-200 transition hover:bg-indigo-700 disabled:opacity-60">
+                {uploadingId !== '' ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                {uploadingId !== '' ? 'Đang nộp...' : `Nộp ${pendingFiles.length} tệp`}
+              </button>
+            </div>
+          </section>
         )}
 
         <section aria-labelledby="assignments-heading">
@@ -303,20 +384,56 @@ export const StudentPortalDashboard = ({
             <BookOpenCheck className="h-5 w-5 text-indigo-400" />
           </div>
           <div className="mt-3 rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
-            {practice.length === 0 ? (
+            {practiceQuestions.length === 0 ? (
               <>
                 <p className="text-sm font-medium leading-6 text-slate-500">Máy sẽ ra bài luyện bám đúng chủ đề em còn vướng, dựa trên các bài đã chấm.</p>
+                {practiceError && <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-bold text-red-700" role="alert">{practiceError}</p>}
                 <button type="button" onClick={onLoadPractice} disabled={loadingPractice} className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-black text-white shadow-md shadow-indigo-200 hover:bg-indigo-700 disabled:opacity-60">
                   {loadingPractice && <Loader2 className="h-4 w-4 animate-spin" />}
                   {loadingPractice ? 'Đang soạn bài...' : 'Lấy bài luyện'}
                 </button>
               </>
             ) : (
-              <ol className="space-y-3">
-                {practice.map((question, index) => (
-                  <li key={`${index}-${question.question.slice(0, 20)}`} className="rounded-2xl bg-slate-50 p-4"><p className="break-words font-bold text-slate-900">Câu {index + 1}. {question.question}</p>{question.hint && <p className="mt-1 break-words text-sm font-semibold text-slate-500">Gợi ý: {question.hint}</p>}{question.solution && <details className="mt-1"><summary className="min-h-11 cursor-pointer py-3 text-sm font-bold text-indigo-600">Xem lời giải</summary><p className="whitespace-pre-line break-words text-sm font-semibold leading-6 text-slate-600">{question.solution}</p></details>}</li>
-                ))}
-              </ol>
+              <>
+                {practiceSet?.topics && practiceSet.topics.length > 0 && <p className="mb-4 text-xs font-black uppercase tracking-wide text-indigo-600">Chủ đề: {practiceSet.topics.join(' · ')}</p>}
+                <ol className="space-y-3">
+                  {practiceQuestions.map((question, index) => {
+                    const result = practiceResults.get(question.id);
+                    return (
+                      <li key={question.id} className="rounded-2xl bg-slate-50 p-4">
+                        <p className="break-words font-bold text-slate-900">Câu {index + 1}. {question.question}</p>
+                        {question.hint && <p className="mt-1 break-words text-sm font-semibold text-slate-500">Gợi ý: {question.hint}</p>}
+                        <label className="mt-3 block">
+                          <span className="mb-1.5 block text-xs font-black uppercase tracking-wide text-slate-400">Câu trả lời của em</span>
+                          <textarea
+                            value={practiceAnswers[question.id] || ''}
+                            onChange={event => onPracticeAnswerChange(question.id, event.target.value)}
+                            disabled={submittingPractice || practiceAttempt?.status === 'graded'}
+                            rows={3}
+                            className="w-full resize-y rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium leading-6 text-slate-800 outline-none transition focus:border-indigo-400 disabled:bg-slate-100"
+                            placeholder="Viết cách làm hoặc đáp án của em..."
+                          />
+                        </label>
+                        {practiceAttempt?.status === 'graded' && result && (
+                          <div className="mt-3 space-y-2 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-3 text-sm">
+                            <p className="font-black text-emerald-800">{result.score}/{result.maxScore} điểm · {result.feedback}</p>
+                            {result.expectedAnswer && <p className="whitespace-pre-line break-words font-semibold leading-6 text-slate-700"><span className="font-black text-indigo-700">Đáp án tham khảo:</span> {result.expectedAnswer}</p>}
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ol>
+                {practiceError && <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-bold text-red-700" role="alert">{practiceError}</p>}
+                {practiceAttempt?.status === 'graded' && (
+                  <p className="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800">Tổng: {practiceAttempt.score}/{practiceAttempt.maxScore} điểm. Đây là kết quả luyện tập, không thay thế điểm chính thức.</p>
+                )}
+                <button type="button" onClick={onSubmitPractice} disabled={submittingPractice || practiceAttempt?.status === 'graded'} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-black text-white shadow-md shadow-indigo-200 hover:bg-indigo-700 disabled:opacity-60">
+                  {submittingPractice && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {submittingPractice ? 'Đang chấm...' : practiceAttempt?.status === 'error' ? 'Thử chấm lại' : 'Nộp bài luyện'}
+                </button>
+                {practiceAttempt?.status === 'graded' && <button type="button" onClick={onLoadPractice} disabled={loadingPractice} className="ml-2 mt-4 inline-flex min-h-11 items-center gap-2 rounded-2xl border border-indigo-200 px-4 py-3 text-sm font-black text-indigo-700 hover:bg-indigo-50 disabled:opacity-60">Luyện lượt mới</button>}
+              </>
             )}
           </div>
         </section>

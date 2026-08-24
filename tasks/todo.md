@@ -1,12 +1,38 @@
 # Classroom learning loop — 2026-08-24
 
+## P0 follow-up — camera upload queue cho 11 Columbus
+
+- [x] Bổ sung addendum queue vào spec đã duyệt.
+- [x] Viết test đỏ cho append nhiều lần, cap số file và remove theo index.
+- [x] Code queue UI: preview/count, chụp thêm, xóa, submit một lần, giữ queue khi lỗi.
+- [x] Chạy targeted/full test, rules, lint, build và diff check; chưa push/deploy.
+- [ ] Authenticated browser E2E với tài khoản học sinh 11 Columbus trước gate deploy.
+
+## P0 follow-up — giáo viên chọn/xóa lượt nộp cũ
+
+- [x] Bổ sung addendum vào spec: checkbox mọi lượt; bulk delete mọi lượt đã chọn; Chấm AI/Duyệt chỉ lượt mới nhất.
+- [x] Viết test đỏ cho phạm vi selection xóa bao gồm lượt cũ nhưng selection chấm/duyệt vẫn chỉ hiện hành.
+- [x] Mở khóa checkbox lượt cũ, đổi select-all theo toàn bộ lượt, và bulk delete đúng các `submissionId` đã chọn.
+- [x] Xác nhận bằng bulk delete chỉ xóa lượt thành công; lượt lỗi còn lại để thử lại.
+- [ ] Chạy full test/build/diff check và Ox Alpha Free audit trên diff kết hợp trước gate deploy.
+- [ ] Authenticated browser E2E xác nhận tick/xóa lượt cũ trong tài khoản giáo viên trước khi deploy.
+
+## P0 follow-up — bổ sung ảnh sau khi đã chấm
+
+- [x] Bổ sung addendum vào spec và viết implementation plan cho revision `supplementOf`.
+- [x] Test đỏ rồi xanh: server ghép file cũ + mới đúng thứ tự, kiểm tra quyền parent, bài đóng, URL ngoài và Storage shared-reference khi xóa.
+- [x] Code server action tạo revision an toàn; mở rộng rules đúng field; grade revision bằng toàn bộ evidence.
+- [x] Code UI `Bổ sung ảnh và chấm lại`, giữ parent/queue, retry và lựa chọn tự chấm/gửi giáo viên.
+- [x] Full unit/rules/lint/build/diff check; Ox Alpha Free đã được gọi nhưng lượt audit combined cuối bị provider network error nên không dùng verdict PASS giả định.
+- [ ] Authenticated browser E2E: bài đã chấm → bổ sung ảnh → chấm lại toàn bộ → refresh thấy revision mới.
+
 ## Phạm vi đã duyệt
 
-- [ ] Profile evidence tương thích ngược: không xóa topic chưa được đánh giá, phân biệt cùng assignment nộp lại, ghi nhận strengths.
-- [ ] Practice set/attempt: học sinh trả lời được, lưu được, chấm được, không nhận solution trước.
-- [ ] Student assignment projection không lộ đáp án/hướng dẫn chấm.
-- [ ] Recovery submission kẹt `grading`.
-- [ ] QA độc lập bằng Ox Alpha và preflight/test/rules/build.
+- [x] Profile evidence tương thích ngược: không xóa topic chưa được đánh giá, phân biệt cùng assignment nộp lại, ghi nhận strengths.
+- [x] Practice set/attempt: học sinh trả lời được, lưu được, chấm được, không nhận solution trước.
+- [x] Student assignment projection không lộ đáp án/hướng dẫn chấm.
+- [x] Recovery submission kẹt `grading`.
+- [x] QA độc lập bằng Ox Alpha và preflight/test/rules/build.
 
 ## Ràng buộc production
 
@@ -18,3 +44,12 @@
 
 - Mọi thay đổi production code phải có test đỏ trước.
 - Nếu test/rules fail, dừng để chẩn đoán root cause, không chồng patch.
+
+## Review/verification
+
+- Profile evidence: hỗ trợ dữ liệu legacy và `evidenceRefs`, thay thế đúng khi học sinh nộp lại cùng assignment, xóa theo `submissionId`, ghi nhận `strengths` và practice evidence idempotent.
+- Practice: private answer key, public hint-only projection, canonical question IDs/scores, quota reservation transaction, attempt lock/idempotency và không trả solution trước khi chấm.
+- Privacy/rules: student assignments/submissions đi qua server projection; raw assignment/submission và practice collections bị chặn theo rules; projection không chứa answer key, rubric, instructions, teacher notes.
+- Recovery: stale `grading` query không bị giới hạn batch, có composite index, kiểm tra transaction lần cuối trước khi reset.
+- Verification hiện tại: targeted supplement/delete `17 tests` pass; full unit `74 files / 1,088 tests` pass; rules `7 files / 240 tests` pass; `lint` pass; `lint:api` pass; `npm run build` pass; `git diff --check` pass (chỉ cảnh báo LF/CRLF). Browser local tải `/lop` tới màn nhập mã lớp, không có console error; chưa chạy authenticated E2E vì chưa có xác nhận action-time để nhập PIN học sinh. Ox Alpha Free focused audit cuối kết thúc `Provider finish_reason: network_error`; không có verdict combined hợp lệ.
+- Giới hạn còn lại: practice quota được reserve trước AI nên lần gọi AI thất bại vẫn tiêu quota; leak detection là heuristic chống lộ trực tiếp, chưa chứng minh semantic equivalence; chưa authenticated E2E/production và chưa push/deploy.

@@ -30,6 +30,12 @@ export const selectedCurrentSubmissions = (
 ): SubmissionDoc[] => currentSubmissionsForAssignment(submissions)
   .filter(submission => selectedIds.has(submission.id));
 
+/** Trả mọi lượt nộp có id được chọn; dùng cho thao tác xóa có chủ đích của giáo viên. */
+export const selectedSubmissionsForAssignment = (
+  submissions: readonly SubmissionDoc[],
+  selectedIds: ReadonlySet<string>,
+): SubmissionDoc[] => submissions.filter(submission => selectedIds.has(submission.id));
+
 export interface SelectionSummary {
   total: number;
   pending: number;

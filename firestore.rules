@@ -506,8 +506,9 @@ service cloud.firestore {
     }
 
     match /assignments/{assignmentId} {
-      allow list, get: if (request.auth != null && resource.data.teacherId == request.auth.uid)
-                       || (thuocLop(resource.data.classId) && resource.data.isOpen == true);
+      // Học sinh nhận projection từ /api/classroom studentAssignments. Cho đọc document gốc
+      // sẽ làm lộ answerKey/rubric vì Firestore rules không che được từng field.
+      allow list, get: if request.auth != null && resource.data.teacherId == request.auth.uid;
 
       allow create: if request.auth != null
                     && request.resource.data.teacherId == request.auth.uid
@@ -536,6 +537,21 @@ service cloud.firestore {
       allow delete: if request.auth != null && resource.data.teacherId == request.auth.uid;
     }
 
+    // Practice đi qua Admin SDK ở /api/grade-homework để tách public question khỏi private key.
+    // Cấm client đọc/ghi trực tiếp cả ba collection: không thể lách API để lấy đáp án hoặc tự
+    // sửa điểm formative.
+    match /practiceSets/{setId} {
+      allow read, write: if false;
+    }
+
+    match /practiceKeys/{setId} {
+      allow read, write: if false;
+    }
+
+    match /practiceAttempts/{attemptId} {
+      allow read, write: if false;
+    }
+
     match /submissions/{submissionId} {
       // Học sinh nộp bài: mọi trường định danh phải khớp phiên của chính mình,
       // và tuyệt đối không được kèm sẵn điểm.
@@ -544,13 +560,15 @@ service cloud.firestore {
         return coLienKetHocSinh()
                && d.keys().hasOnly([
                     'id', 'teacherId', 'classId', 'studentId', 'assignmentId', 'fileUrls',
-                    'textContent', 'attachments', 'note', 'status', 'createdAt', 'updatedAt'
+                    'supplementOf', 'textContent', 'attachments', 'note', 'status', 'createdAt', 'updatedAt'
                   ])
                && d.id == submissionId
                && d.studentId == lienKetHocSinh().studentId
                && d.classId == lienKetHocSinh().classId
                && d.teacherId == lienKetHocSinh().teacherId
                && (d.assignmentId == null || d.assignmentId is string)
+               && (!('supplementOf' in d)
+                   || (d.supplementOf is string && d.supplementOf.size() <= 150))
                && d.status == 'submitted'
                && !('grade' in d)
                && d.fileUrls is list
@@ -570,8 +588,9 @@ service cloud.firestore {
                     .hasOnly(['fileUrls', 'textContent', 'attachments', 'note', 'updatedAt']);
       }
 
-      allow list, get: if (request.auth != null && resource.data.teacherId == request.auth.uid)
-                       || laHocSinh(resource.data.studentId);
+      // Học sinh nhận projection từ /api/classroom studentSubmissions để loại teacherNote/noteForTeacher;
+      // Firestore rules không redaction theo field nên không cho đọc document gốc trực tiếp.
+      allow list, get: if request.auth != null && resource.data.teacherId == request.auth.uid;
 
       allow create: if hocSinhNopHopLe()
                     || (request.auth != null && request.resource.data.teacherId == request.auth.uid);

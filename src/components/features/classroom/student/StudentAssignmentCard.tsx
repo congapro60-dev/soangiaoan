@@ -9,7 +9,7 @@ interface Props {
   submission?: SubmissionDoc;
   state: StudentAssignmentState;
   uploading: boolean;
-  onUpload: (assignmentId: string) => void;
+  onUpload: (assignmentId: string, supplementOf?: string) => void;
   onOpen: (assignment: AssignmentDoc, submission?: SubmissionDoc) => void;
 }
 
@@ -37,6 +37,7 @@ export const StudentAssignmentCard = ({ assignment, submission, state, uploading
   const StatusIcon = meta.icon;
   const due = dueLabel(assignment.dueAt);
   const isUploadAction = state.action === 'submit' || state.action === 'retry';
+  const canSupplement = state.canResubmit && Boolean(submission?.id);
   const handleAction = () => {
     if (isUploadAction) onUpload(assignment.id);
     else onOpen(assignment, submission);
@@ -124,11 +125,11 @@ export const StudentAssignmentCard = ({ assignment, submission, state, uploading
           {state.canResubmit && (
             <button
               type="button"
-              onClick={() => onUpload(assignment.id)}
+              onClick={() => onUpload(assignment.id, canSupplement ? submission?.id : undefined)}
               disabled={uploading}
               className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-indigo-200 bg-white px-4 py-3 text-sm font-black text-indigo-700 transition hover:bg-indigo-50 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 sm:w-auto"
             >
-              <Camera className="h-4 w-4" /> Nộp lại bài này
+              <Camera className="h-4 w-4" /> {canSupplement ? 'Bổ sung ảnh và chấm lại' : 'Bổ sung ảnh'}
             </button>
           )}
         </div>

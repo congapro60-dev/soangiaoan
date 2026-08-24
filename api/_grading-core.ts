@@ -107,6 +107,23 @@ export const loadQuotaDoc = async (
   return [rollQuota(snap.exists ? (snap.data() as Partial<QuotaDoc>) : null, today()), ref];
 };
 
+/** Reserve exactly one AI call atomically so concurrent practice requests cannot share one stale read. */
+export const reserveQuota = async (
+  db: FirebaseFirestore.Firestore,
+  uid: string,
+  kind: GradeKind,
+  studentId: string,
+): Promise<{ quota: QuotaDoc; verdict: QuotaVerdict }> => {
+  const ref = db.collection('gradingQuota').doc(uid);
+  return db.runTransaction(async transaction => {
+    const snap = await transaction.get(ref);
+    const quota = rollQuota(snap.exists ? (snap.data() as Partial<QuotaDoc>) : null, today());
+    const verdict = remainingQuota(quota, kind, studentId);
+    if (verdict.allowed > 0) transaction.set(ref, bumpQuota(quota, kind, studentId, 1));
+    return { quota, verdict };
+  });
+};
+
 // ── Gọi Gemini bằng khoá của chủ dự án ───────────────────────────────────────
 
 export interface InlineImage {

@@ -98,4 +98,26 @@ describe('grade-homework dispatcher', () => {
       expect(state.jsonBody).toMatchObject({ error: expect.stringContaining('đăng nhập') });
     },
   );
+
+  it('submitPractice kiểm tra student link trước khi chấm', async () => {
+    verifyIdToken.mockResolvedValue({ uid: 'student-uid' });
+    initializeAdmin.mockReturnValue({
+      collection: (name: string) => ({
+        doc: (_id: string) => ({
+          get: async () => ({ exists: name !== 'studentLinks', data: () => ({}) }),
+        }),
+      }),
+    });
+
+    const { response, state } = makeResponse();
+    await handler(makeRequest({
+      action: 'submitPractice',
+      idToken: 'token-dung',
+      attemptId: 'attempt-1',
+      answers: { q1: 'x = 2' },
+    }, 'Bearer token-dung'), response);
+
+    expect(state.statusCode).toBe(403);
+    expect(state.jsonBody).toMatchObject({ error: expect.stringContaining('học sinh') });
+  });
 });

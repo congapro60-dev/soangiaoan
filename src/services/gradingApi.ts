@@ -54,24 +54,92 @@ export const gradeOneSubmission = (submissionId: string): Promise<GradeBatchResu
   call({ action: 'gradeOne', submissionId });
 
 export interface PracticeQuestion {
+  id: string;
   question: string;
   hint: string;
-  solution: string;
+}
+
+export interface PracticeAttemptQuestionResult {
+  id: string;
+  score: number;
+  maxScore: number;
+  feedback: string;
+  expectedAnswer?: string;
+}
+
+export interface PracticeAttemptResult {
+  attemptId: string;
+  setId: string;
+  status: 'grading' | 'graded' | 'error';
+  score?: number;
+  maxScore?: number;
+  feedback?: string;
+  questionResults?: PracticeAttemptQuestionResult[];
+  evidenceType: 'practice';
+  errorMessage?: string;
+}
+
+export interface PracticeSetResult {
+  setId: string;
+  questions: PracticeQuestion[];
+  topics: string[];
+  createdAt: string;
+  reason?: string;
+  attempt?: PracticeAttemptResult;
 }
 
 /** Bài luyện thêm sinh từ chủ đề còn yếu trong hồ sơ của chính học sinh đang đăng nhập. */
-export const fetchPractice = async (): Promise<{ questions: PracticeQuestion[]; reason?: string }> => {
+export const fetchPractice = async (setId?: string, attemptId?: string): Promise<PracticeSetResult> => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Phiên đăng nhập đã hết hạn.');
+
+  const payload = {
+    action: 'practice',
+    idToken: await user.getIdToken(),
+    ...(setId ? { setId } : {}),
+    ...(attemptId ? { attemptId } : {}),
+  };
+  const res = await fetch('/api/grade-homework', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) {
+    const error = new Error(data?.error || `Máy chủ trả lỗi ${res.status}`) as Error & { status?: number };
+    error.status = res.status;
+    throw error;
+  }
+  return data as PracticeSetResult;
+};
+
+/** Nộp câu trả lời bài luyện; đáp án chuẩn chỉ xuất hiện trong kết quả sau khi server chấm. */
+export const submitPractice = async (
+  setId: string,
+  answers: Record<string, string>,
+  attemptId?: string,
+): Promise<PracticeAttemptResult> => {
   const user = auth.currentUser;
   if (!user) throw new Error('Phiên đăng nhập đã hết hạn.');
 
   const res = await fetch('/api/grade-homework', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'practice', idToken: await user.getIdToken() }),
+    body: JSON.stringify({
+      action: 'submitPractice',
+      idToken: await user.getIdToken(),
+      setId,
+      answers,
+      ...(attemptId ? { attemptId } : {}),
+    }),
   });
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
-  return data as { questions: PracticeQuestion[]; reason?: string };
+  if (!res.ok) {
+    const error = new Error(data?.error || `Máy chủ trả lỗi ${res.status}`) as Error & { status?: number };
+    error.status = res.status;
+    throw error;
+  }
+  return data as PracticeAttemptResult;
 };
 
 export interface SolvedAnswerKeyResult {
@@ -107,7 +175,11 @@ export const solveAnswerKey = async (
     }),
   });
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
+  if (!res.ok) {
+    const error = new Error(data?.error || `Máy chủ trả lỗi ${res.status}`) as Error & { status?: number };
+    error.status = res.status;
+    throw error;
+  }
   return data as SolvedAnswerKeyResult;
 };
 

@@ -234,3 +234,84 @@ Milestone chỉ được coi là đạt khi tất cả điều sau có bằng ch
 ## Kết luận thiết kế
 
 Milestone này ưu tiên một nguồn ngôn ngữ năng lực chung và một reducer có thể kiểm chứng. Nó cố ý không bắt đầu bằng biểu đồ, báo cáo phụ huynh hay thêm prompt AI, vì những phần đó chỉ có giá trị sau khi `skillId`, evidence quality và mastery semantics đã ổn định.
+
+## Addendum đã duyệt — P0 prerequisite: camera upload queue
+
+### Lý do
+
+Skill/mastery chỉ có ý nghĩa khi hệ thống nhận đủ bằng chứng bài làm. Trên điện thoại, mỗi lần học sinh chọn chụp từ camera thường trả về đúng một `File`; handler hiện tại submit ngay nên học sinh không có cơ hội chụp trang tiếp theo trong cùng một lần nộp. Đây là lỗi UX làm thiếu bằng chứng đầu vào cho cả grading và mastery bridge.
+
+### Phạm vi
+
+- Chỉ thay đổi luồng chọn/nộp file ở `StudentPortalPage` và `StudentPortalDashboard`.
+- Không đổi API `submitHomework`, schema Firestore, rules, quota hoặc giới hạn backend.
+- Giữ nguyên chọn nhiều file từ gallery; mỗi lần mở camera/gallery mới sẽ nối thêm vào queue hiện tại.
+- Giới hạn queue dùng giới hạn ảnh hiện tại của UI; không âm thầm tăng giới hạn backend.
+
+### Hành vi bắt buộc
+
+1. Lần chụp đầu tiên chỉ thêm file vào queue, không tự động submit.
+2. UI hiển thị số lượng, thumbnail/tên file và assignment đang chờ nộp.
+3. Học sinh có thể chụp/chọn thêm, xóa từng file, rồi bấm một nút `Nộp ... ảnh`.
+4. Nếu upload/submit lỗi, queue vẫn còn nguyên để học sinh retry; không bắt chụp lại.
+5. Queue chỉ được xóa sau submit thành công, sign-out hoặc đổi mục tiêu nộp một cách có chủ ý.
+6. Không cho trộn file của hai assignment; nếu đang có queue, thao tác chọn assignment khác phải được báo rõ.
+7. Luôn copy `FileList` thành mảng trước khi reset `event.target.value`.
+
+### Tiêu chí chấp nhận P0
+
+- Test chứng minh hai lần thêm liên tiếp tạo một queue hai file theo đúng thứ tự.
+- Test chứng minh queue bị giới hạn đúng số file và xóa một file không làm đổi thứ tự các file còn lại.
+- Build/typecheck pass; UI có trạng thái chờ nộp, đang upload, thành công và lỗi có hành động retry.
+- Không có thay đổi production/API/rules ngoài queue UI; authenticated browser E2E sẽ chạy ở gate trước deploy.
+
+## Addendum đã duyệt — P0 teacher chọn và xóa lượt nộp cũ
+
+### Lý do
+
+Một học sinh có thể nộp nhiều lần. Giao diện giáo viên đang hiển thị đúng các dòng `Lần nộp mới nhất` và `Lần nộp trước`, nhưng checkbox của lượt cũ bị khóa nên giáo viên không thể dọn đúng những bản không còn muốn giữ. Đây là lỗi ở phạm vi chọn của UI, không phải thiếu quyền xóa ở backend: API đã nhận `submissionId` cụ thể, kiểm tra đúng giáo viên, dọn Storage và gỡ evidence khi lượt đã duyệt.
+
+### Phạm vi
+
+- Cho phép giáo viên chọn checkbox ở mọi lượt nộp đang hiển thị, gồm cả lượt mới nhất và các lượt cũ.
+- Nút `Xóa (n)` xóa đúng các `submissionId` đã chọn; không tự động xóa các lượt khác của cùng học sinh.
+- Checkbox chọn tất cả trong một bài giao áp dụng cho toàn bộ lượt nộp của bài đó.
+- Tách ranh giới thao tác: `Chấm AI` và `Duyệt` chỉ nhận các lượt hiện hành/mới nhất; lượt cũ có thể được chọn để xóa nhưng không bị đưa vào hai bulk action này.
+- Giữ nguyên API `deleteSubmission`, kiểm tra quyền giáo viên, thứ tự dọn Storage trước document, và việc gỡ evidence đã duyệt.
+- Không thêm xóa trực tiếp Firestore từ client, không xóa cả lịch sử theo học sinh, không đổi schema/rules/quota.
+
+### Tiêu chí chấp nhận P0
+
+- Với học sinh có một lượt mới và ít nhất một lượt cũ, giáo viên tick được lượt cũ; chọn hai lượt hiển thị `Xóa (2)` và xác nhận xóa gửi đúng hai ID.
+- Xóa một lượt cũ không làm mất lượt mới; xóa lượt mới trong khi giữ lượt cũ cũng không làm mất lượt cũ — lượt còn lại trở thành lịch sử/hiện hành theo dữ liệu thực tế sau refresh.
+- Chỉ chọn lượt cũ thì `Chấm AI` và `Duyệt` vẫn không chạy; chọn lẫn lượt cũ và mới thì hai thao tác này chỉ xử lý lượt mới được chọn.
+- Sau bulk delete, chỉ các lượt xóa thành công biến mất khỏi danh sách; lượt lỗi vẫn còn để thử lại và selection không bị báo thành công giả.
+- Xác nhận xóa nêu rõ số lượng và phân biệt `lượt mới nhất`/`lượt cũ`; trạng thái loading khóa thao tác lặp.
+- Có unit test chứng minh selection delete bao gồm lượt cũ nhưng selection grade/approve chỉ gồm lượt mới nhất; targeted test, lint, build và authenticated browser E2E phải pass trước gate deploy.
+
+## Addendum đã duyệt — P0 bổ sung ảnh sau khi đã nộp/chấm
+
+### Lý do
+
+Queue camera giải quyết việc chụp đủ ảnh trước lần nộp đầu, nhưng trong thực tế học sinh có thể chỉ nhận ra mình thiếu trang sau khi bài đã được chấm. Nút `Nộp lại` hiện tại tạo một lượt mới chỉ chứa ảnh mới; nếu chấm ngay thì AI không có đủ toàn bộ bài để tính lại điểm. Cần phân biệt rõ `nộp lại độc lập` với `bổ sung vào revision trước`.
+
+### Phạm vi và contract
+
+- Khi bài giao còn mở và lượt hiện hành của học sinh đang `waiting` hoặc `graded`, cổng học sinh hiển thị hành động `Bổ sung ảnh và chấm lại`.
+- Ảnh bổ sung không ghi đè submission cũ. Hệ thống tạo một submission revision mới với `supplementOf` trỏ đến lượt trước.
+- Client chỉ upload file mới. Server xác thực parent thuộc đúng học sinh, giáo viên, lớp và assignment; sau đó ghép `fileUrls`, `attachments` và `textContent` của parent với phần mới, loại URL trùng và giữ thứ tự cũ trước mới.
+- Revision mới là nguồn chấm duy nhất: AI nhận toàn bộ ảnh/chữ đã ghép, tạo grade mới và luôn đặt `teacherApproved: false`. Lượt cũ và grade cũ vẫn giữ để truy nguồn cho tới khi giáo viên xử lý revision mới.
+- Sau khi upload thành công, học sinh được chọn `Tự chấm lại toàn bộ` hoặc `Gửi thầy cô chấm`; retry lỗi phải giữ nguyên queue ảnh mới.
+- Nếu giáo viên xóa một submission cha, Storage chỉ được dọn các URL không còn được submission khác tham chiếu. Revision con phải tiếp tục mở/chấm được sau khi cha bị xóa.
+- Không cho trộn queue bổ sung với assignment khác hoặc với queue nộp thường; sign-out, submit thành công và xóa hết queue phải reset cả target assignment lẫn parent revision.
+- Assignment đóng thì không nhận bổ sung; không thêm Vercel Function mới, dùng `/api/classroom` action hiện có và `/api/grade-homework` hiện có.
+
+### Tiêu chí chấp nhận P0
+
+1. Học sinh có lượt đã chấm, bấm `Bổ sung ảnh và chấm lại`, chụp thêm một hoặc nhiều ảnh; UI hiển thị rõ ảnh mới đang bổ sung cho bài nào và không tự submit ở ảnh đầu tiên.
+2. Server từ chối parent khác học sinh/lớp/giáo viên/assignment; parent hợp lệ tạo revision `submitted`, không chứa grade và không làm đổi submission cũ.
+3. Khi chấm revision, AI nhận toàn bộ evidence cũ + mới theo đúng thứ tự; điểm/feedback mới nằm trên revision mới, không cộng điểm thủ công vào grade cũ.
+4. Chọn `Gửi thầy cô chấm` để revision chờ giáo viên; chọn `Tự chấm lại toàn bộ` gọi đúng revision ID và không tự duyệt vào hồ sơ tích lũy.
+5. Xóa parent không làm mất URL mà revision con đang dùng; xóa revision con sau đó vẫn dọn được file khi không còn tham chiếu.
+6. Lỗi upload, lỗi server hoặc lỗi AI giữ được queue/hiển thị hành động retry; không báo thành công giả.
+7. Có unit/API/rules regression tests cho lineage, quyền, ghép evidence, quota/grade mới và Storage shared-reference; full tests, rules, lint, build và authenticated browser E2E phải pass trước gate deploy.

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { SubmissionDoc } from './types';
 import {
   currentSubmissionsForAssignment,
+  selectedSubmissionsForAssignment,
   selectedCurrentSubmissions,
   summarizeSelection,
 } from './submissionSelection';
@@ -38,6 +39,15 @@ describe('submissionSelection', () => {
     ];
 
     expect(selectedCurrentSubmissions(all, new Set(['old', 'new'])).map(item => item.id)).toEqual(['new']);
+  });
+
+  it('cho phép phạm vi xóa bao gồm cả lượt mới nhất và lượt cũ được chọn', () => {
+    const all = [
+      submission('new', 'student-1', '2026-08-24T12:00:00.000Z'),
+      submission('old', 'student-1', '2026-08-23T12:00:00.000Z'),
+    ];
+
+    expect(selectedSubmissionsForAssignment(all, new Set(['old', 'new'])).map(item => item.id)).toEqual(['new', 'old']);
   });
 
   it('tóm tắt đúng phạm vi xóa/duyệt/chấm', () => {

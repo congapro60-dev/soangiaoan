@@ -100,10 +100,19 @@ export interface AssignmentDoc {
   answerKeyImageUrls?: string[];
   /** true khi đáp án do AI giải ra (giáo viên vẫn soát và sửa được trước khi giao). */
   answerKeyByAi?: boolean;
+  /** Chỉ là cờ an toàn cho cổng học sinh; không chứa nội dung đáp án. */
+  hasAnswerKey?: boolean;
   isOpen: boolean;
   createdAt: string;
   updatedAt: string;
 }
+
+/** Projection cổng học sinh nhận từ server; không chứa answerKey/rubric/instructions. */
+export type StudentAssignmentView = Pick<
+  AssignmentDoc,
+  'id' | 'teacherId' | 'classId' | 'title' | 'description' | 'type' | 'examId'
+  | 'dueAt' | 'maxScore' | 'attachments' | 'isOpen' | 'createdAt' | 'updatedAt'
+> & { hasAnswerKey: boolean };
 
 export type SubmissionStatus = 'submitted' | 'grading' | 'graded' | 'error';
 
@@ -176,6 +185,8 @@ export interface SubmissionDoc {
   classId: string;
   studentId: string;
   assignmentId: string | null;
+  /** Revision này bổ sung vào submission trước; bản trước vẫn là lịch sử bất biến. */
+  supplementOf?: string;
   /** Đường dẫn ảnh/PDF/Word trên Firebase Storage. */
   fileUrls: string[];
   /** Chữ rút từ file Word — đường AI dùng khi bài không phải ảnh. */
@@ -202,12 +213,25 @@ export interface SubmissionAttachment {
 
 export type MasteryLevel = 'weak' | 'developing' | 'solid';
 
+export type ProfileEvidenceType = 'homework' | 'strength' | 'practice';
+
+/** Bằng chứng có định danh ổn định hơn submissionId để phân biệt nộp lại cùng một bài. */
+export interface ProfileEvidenceRef {
+  submissionId: string;
+  assignmentId?: string;
+  evidenceType?: ProfileEvidenceType;
+  assessedAt: string;
+  confidence?: number;
+}
+
 /** Một chủ đề trong hồ sơ, kèm bài làm làm bằng chứng. */
 export interface ProfileTopic {
   topic: string;
   level: MasteryLevel;
   /** Bài nộp đã dẫn tới kết luận này. Không có bằng chứng thì không được ghi. */
   evidenceSubmissionIds: string[];
+  /** Optional để giữ tương thích với hồ sơ cũ chỉ có evidenceSubmissionIds. */
+  evidenceRefs?: ProfileEvidenceRef[];
   updatedAt: string;
 }
 
@@ -220,6 +244,70 @@ export interface StudentProfileDoc {
   updatedAt: string;
 }
 
+export interface PracticeQuestionPublic {
+  id: string;
+  question: string;
+  hint: string;
+}
+
+/** Bản chỉ máy chủ được đọc; không ghi vào response gửi học sinh. */
+export interface PracticeQuestionKey {
+  id: string;
+  question: string;
+  hint: string;
+  expectedAnswer: string;
+  maxScore: number;
+}
+
+export interface PracticeSetDoc {
+  id: string;
+  studentId: string;
+  classId: string;
+  teacherId: string;
+  topics: string[];
+  questions: PracticeQuestionPublic[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PracticeKeyDoc {
+  setId: string;
+  studentId: string;
+  classId: string;
+  teacherId: string;
+  questions: PracticeQuestionKey[];
+  createdAt: string;
+}
+
+export type PracticeAttemptStatus = 'grading' | 'graded' | 'error';
+
+export interface PracticeQuestionResult {
+  id: string;
+  score: number;
+  maxScore: number;
+  feedback: string;
+  expectedAnswer?: string;
+}
+
+export interface PracticeAttemptDoc {
+  id: string;
+  setId: string;
+  studentId: string;
+  classId: string;
+  teacherId: string;
+  answers: Record<string, string>;
+  status: PracticeAttemptStatus;
+  score?: number;
+  maxScore?: number;
+  feedback?: string;
+  questionResults?: PracticeQuestionResult[];
+  /** Bằng chứng formative, không phải điểm chính thức hay teacher-approved grade. */
+  evidenceType: 'practice';
+  errorMessage?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export const CLASSES_COL = 'classes';
 export const STUDENTS_SUB = 'students';
 export const STUDENT_SECRETS_SUB = 'studentSecrets';
@@ -227,3 +315,6 @@ export const STUDENT_LINKS_COL = 'studentLinks';
 export const ASSIGNMENTS_COL = 'assignments';
 export const SUBMISSIONS_COL = 'submissions';
 export const STUDENT_PROFILES_COL = 'studentProfiles';
+export const PRACTICE_SETS_COL = 'practiceSets';
+export const PRACTICE_KEYS_COL = 'practiceKeys';
+export const PRACTICE_ATTEMPTS_COL = 'practiceAttempts';

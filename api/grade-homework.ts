@@ -10,6 +10,7 @@ import {
   getGradingApiKey,
   loadQuotaDoc,
   remainingQuota,
+  reserveQuota,
   rollQuota,
   today,
   type GradeKind,
@@ -19,16 +20,31 @@ import {
 } from './_grading-core.js';
 import {
   buildHomeworkGradingPrompt,
+  buildPracticeGradingPrompt,
   buildPracticePrompt,
   buildRewriteFeedbackPrompt,
   buildRubricPrompt,
   buildSolveExamPrompt,
   parseHomeworkGrade,
+  parsePracticeAssessment,
   parsePracticeQuestions,
   parseRewrittenFeedback,
   parseRubric,
   parseSolvedAnswerKey,
+  toPublicPracticeQuestions,
 } from '../src/lib/classroom/gradingPrompt.js';
+import { applyPracticeEvidence } from '../src/lib/classroom/profileMerge.js';
+import {
+  PRACTICE_ATTEMPTS_COL,
+  PRACTICE_KEYS_COL,
+  PRACTICE_SETS_COL,
+  type PracticeAttemptDoc,
+  type PracticeKeyDoc,
+  type PracticeQuestionPublic,
+  type PracticeQuestionKey,
+  type PracticeSetDoc,
+  type ProfileTopic,
+} from '../src/lib/classroom/types.js';
 import { handleAiGateway } from './_ai-gateway-handler.js';
 
 /**
@@ -44,6 +60,11 @@ import { handleAiGateway } from './_ai-gateway-handler.js';
  * đổi lại được thanh tiến độ thật thay vì một lượt chờ dài rồi timeout mất trắng.
  */
 const BATCH_SIZE = 4;
+export const STALE_GRADING_MS = 10 * 60 * 1000;
+const isStaleGradingTimestamp = (updatedAt: unknown, nowMs = Date.now()): boolean => {
+  const timestamp = Date.parse(String(updatedAt || ''));
+  return !Number.isFinite(timestamp) || nowMs - timestamp > STALE_GRADING_MS;
+};
 /** Khop voi tran phia hoc sinh: bo sot anh la cham thieu bai ma khong ai biet. */
 const MAX_SUBMISSION_FILES = 12;
 /** Chỉ gửi một số trang đề cần thiết làm ngữ cảnh chung; file gốc vẫn giữ đủ cho học sinh mở. */
@@ -51,6 +72,15 @@ const MAX_ASSIGNMENT_SOURCE_IMAGES = 6;
 const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
 /** Khai tường minh thay vì dựa default của Vercel — Hobby cap ở 60s. */
 export const maxDuration = 60;
+
+const newPracticeId = (prefix: string): string => {
+  const random = typeof globalThis.crypto?.randomUUID === 'function'
+    ? globalThis.crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  return `${prefix}_${random}`;
+};
+
+const isSafePracticeId = (value: string): boolean => /^[A-Za-z0-9_-]{1,128}$/u.test(value);
 
 const readBody = (req: VercelRequest): Record<string, unknown> => {
   if (req.body && typeof req.body === 'object') return req.body as Record<string, unknown>;
@@ -188,6 +218,58 @@ const gradeOneSubmission = async (
   }
 };
 
+/**
+ * Worker có thể bị Vercel dừng sau khi đã khóa bài ở `grading`. Chỉ mở khóa khi dấu thời gian
+ * đã quá 10 phút và dùng transaction để không reset nhầm một worker khác vừa bắt đầu xử lý.
+ * Các id vừa recovery được loại khỏi batch hiện tại; lượt retry kế tiếp mới chấm lại.
+ */
+const recoverStaleGradingSubmissions = async (
+  db: FirebaseFirestore.Firestore,
+  assignmentId: string,
+  teacherId: string,
+  classId: string,
+): Promise<Set<string>> => {
+  const nowMs = Date.now();
+  const candidates = await db.collection('submissions')
+    .where('assignmentId', '==', assignmentId)
+    .where('status', '==', 'grading')
+    .get();
+  const recovered = new Set<string>();
+
+  await Promise.all(candidates.docs.map(async candidate => {
+    const snapshotData = candidate.data() as FirebaseFirestore.DocumentData;
+    const candidateUpdatedAt = Date.parse(String(snapshotData.updatedAt || ''));
+    const isStale = snapshotData.status === 'grading'
+      && snapshotData.teacherId === teacherId
+      && snapshotData.classId === classId
+      && (!Number.isFinite(candidateUpdatedAt) || nowMs - candidateUpdatedAt > STALE_GRADING_MS);
+    if (!isStale) return;
+
+    const ref = db.collection('submissions').doc(candidate.id);
+    await db.runTransaction(async transaction => {
+      const latest = await transaction.get(ref);
+      if (!latest.exists) return;
+      const current = latest.data() as FirebaseFirestore.DocumentData;
+      const latestUpdatedAt = Date.parse(String(current.updatedAt || ''));
+      if (current.status !== 'grading'
+        || current.teacherId !== teacherId
+        || current.classId !== classId
+        || current.updatedAt !== snapshotData.updatedAt
+        || (Number.isFinite(latestUpdatedAt) && nowMs - latestUpdatedAt <= STALE_GRADING_MS)) {
+        return;
+      }
+      transaction.update(ref, {
+        status: 'error',
+        errorMessage: 'Lượt chấm trước đã quá lâu. Em hoặc thầy cô có thể thử chấm lại.',
+        updatedAt: new Date().toISOString(),
+      });
+      recovered.add(candidate.id);
+    });
+  }));
+
+  return recovered;
+};
+
 const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
   const uid = await uidFromIdToken(body.idToken);
   if (!uid) return res.status(401).json({ error: 'Cần đăng nhập tài khoản giáo viên.' });
@@ -198,6 +280,8 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
 
   const assignment = snap.data() as FirebaseFirestore.DocumentData;
   if (assignment.teacherId !== uid) return res.status(403).json({ error: 'Chỉ giáo viên giao bài mới chấm được.' });
+
+  const recovered = await recoverStaleGradingSubmissions(db, assignmentId, uid, String(assignment.classId || ''));
 
   const pending = await db.collection('submissions')
     .where('assignmentId', '==', assignmentId)
@@ -212,7 +296,7 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
   // document lệch lớp là rác do client bịa và tuyệt đối không được ăn điểm từ đáp án của bài khác.
   const hopLe = pending.docs.filter(d => {
     const s = d.data() as FirebaseFirestore.DocumentData;
-    return s.teacherId === uid && s.classId === assignment.classId;
+    return !recovered.has(d.id) && s.teacherId === uid && s.classId === assignment.classId;
   });
 
   if (hopLe.length === 0) return res.status(200).json({ graded: 0, failed: 0, remaining: 0 });
@@ -321,31 +405,369 @@ const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<stri
   if (!linkSnap.exists) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới lấy được bài luyện.' });
   const link = linkSnap.data() as { studentId: string; classId: string; teacherId: string };
 
+  const requestedSetId = typeof body.setId === 'string' ? body.setId.trim() : '';
+  if (requestedSetId) {
+    if (!isSafePracticeId(requestedSetId)) return res.status(400).json({ error: 'Mã bài luyện không hợp lệ.' });
+    const setSnap = await db.collection(PRACTICE_SETS_COL).doc(requestedSetId).get();
+    if (!setSnap.exists) return res.status(404).json({ error: 'Bài luyện không còn tồn tại.' });
+
+    const set = setSnap.data() as PracticeSetDoc;
+    if (set.studentId !== link.studentId || set.classId !== link.classId || set.teacherId !== link.teacherId) {
+      return res.status(403).json({ error: 'Bài luyện không thuộc tài khoản học sinh này.' });
+    }
+
+    const keySnap = await db.collection(PRACTICE_KEYS_COL).doc(requestedSetId).get();
+    if (!keySnap.exists) return res.status(409).json({ error: 'Bài luyện chưa sẵn sàng để mở lại. Tạo bài mới rồi thử lại.' });
+    const key = keySnap.data() as PracticeKeyDoc;
+    if (key.studentId !== link.studentId || key.classId !== link.classId || key.teacherId !== link.teacherId) {
+      return res.status(403).json({ error: 'Đáp án bài luyện không thuộc tài khoản học sinh này.' });
+    }
+
+    // Chỉ project đúng ba trường công khai và kiểm lại hint bằng private key, kể cả khi
+    // document public cũ bị ghi thêm solution hoặc bị AI tạo rò rỉ trước khi có validator.
+    const publicQuestions = (Array.isArray(set.questions) ? set.questions : [])
+      .map(question => ({
+        id: String(question.id || ''),
+        question: String(question.question || ''),
+        hint: String(question.hint || ''),
+      }))
+      .filter(question => question.id && question.question);
+    const storedKeyQuestions = Array.isArray(key.questions) ? key.questions : [];
+    if (storedKeyQuestions.length === 0 || new Set(storedKeyQuestions.map(question => question.id)).size !== storedKeyQuestions.length) {
+      return res.status(409).json({ error: 'Đáp án bài luyện không hợp lệ. Tạo bài mới rồi thử lại.' });
+    }
+    const keyById = new Map(storedKeyQuestions.map(question => [question.id, question]));
+    let questions: PracticeQuestionPublic[];
+    try {
+      questions = toPublicPracticeQuestions(publicQuestions.map(question => {
+        const privateQuestion = keyById.get(question.id);
+        if (!privateQuestion || !String(privateQuestion.expectedAnswer || '').trim()) {
+          throw new Error('Stored practice question has no matching private key.');
+        }
+        return { ...question, solution: String(privateQuestion.expectedAnswer) };
+      }));
+    } catch (error) {
+      console.error('[grade-homework] stored practice output rejected', error);
+      return res.status(409).json({ error: 'Bài luyện cũ không còn an toàn để mở lại. Tạo bài mới rồi thử lại.' });
+    }
+
+    const requestedAttemptId = typeof body.attemptId === 'string' ? body.attemptId.trim() : '';
+    if (requestedAttemptId && !isSafePracticeId(requestedAttemptId)) return res.status(400).json({ error: 'Mã lượt làm bài không hợp lệ.' });
+    let attempt: PracticeAttemptDoc | undefined;
+    if (requestedAttemptId) {
+      const attemptSnap = await db.collection(PRACTICE_ATTEMPTS_COL).doc(requestedAttemptId).get();
+      if (attemptSnap.exists) {
+        const candidate = attemptSnap.data() as PracticeAttemptDoc;
+        if (candidate.studentId !== link.studentId || candidate.classId !== link.classId || candidate.teacherId !== link.teacherId || candidate.setId !== requestedSetId) {
+          return res.status(403).json({ error: 'Lượt làm bài không thuộc tài khoản học sinh này.' });
+        }
+        attempt = candidate;
+      }
+    }
+
+    return res.status(200).json({
+      setId: requestedSetId,
+      questions,
+      topics: Array.isArray(set.topics) ? set.topics.map(String) : [],
+      createdAt: String(set.createdAt || ''),
+      ...(attempt ? { attempt: attemptResponse(attempt) } : {}),
+    });
+  }
+
   const profileSnap = await db.collection('studentProfiles').doc(link.studentId).get();
-  const topics = ((profileSnap.data()?.topics || []) as Array<{ topic: string; level: string }>)
+  const profile = (profileSnap.data() || {}) as { classId?: string; teacherId?: string; topics?: Array<{ topic: string; level: string }> };
+  if (profileSnap.exists && (profile.classId !== link.classId || profile.teacherId !== link.teacherId)) {
+    return res.status(403).json({ error: 'Hồ sơ học tập không thuộc lớp học này.' });
+  }
+  const topics = (profile.topics || [])
     .filter(t => t.level === 'weak' || t.level === 'developing')
     .map(t => t.topic)
     .slice(0, 3);
 
   if (topics.length === 0) {
-    return res.status(200).json({ questions: [], reason: 'Hồ sơ chưa ghi nhận chủ đề nào cần luyện thêm.' });
+    return res.status(200).json({ setId: '', questions: [], topics: [], createdAt: '', reason: 'Hồ sơ chưa ghi nhận chủ đề nào cần luyện thêm.' });
   }
 
-  const [quota, quotaRef] = await loadQuotaDoc(db, link.teacherId);
-  const verdict = remainingQuota(quota, 'self', link.studentId);
-  if (verdict.allowed <= 0) return res.status(429).json({ error: verdict.reason });
+  const reservation = await reserveQuota(db, link.teacherId, 'self', link.studentId);
+  if (reservation.verdict.allowed <= 0) return res.status(429).json({ error: reservation.verdict.reason });
 
   const classSnap = await db.collection('classes').doc(link.classId).get();
-  const raw = await callGeminiVision(
-    buildPracticePrompt(topics, String(classSnap.data()?.grade || '')),
-    [],
-    getGradingApiKey(),
-    GRADING_MODEL,
-    { maxOutputTokens: 6144, jsonMode: true },
-  );
-  await quotaRef.set(bumpQuota(quota, 'self', link.studentId, 1));
+  let raw: string;
+  try {
+    raw = await callGeminiVision(
+      buildPracticePrompt(topics, String(classSnap.data()?.grade || '')),
+      [],
+      getGradingApiKey(),
+      GRADING_MODEL,
+      { maxOutputTokens: 6144, jsonMode: true },
+    );
+  } catch (error) {
+    console.error('[grade-homework] practice generation failed', error);
+    return res.status(502).json({ error: 'AI chưa tạo được bài luyện. Thử lại sau.' });
+  }
 
-  return res.status(200).json({ questions: parsePracticeQuestions(raw), topics });
+  let privateQuestions: ReturnType<typeof parsePracticeQuestions>;
+  let publicQuestions: PracticeQuestionPublic[];
+  try {
+    privateQuestions = parsePracticeQuestions(raw).slice(0, 10);
+    publicQuestions = toPublicPracticeQuestions(privateQuestions);
+  } catch (error) {
+    console.error('[grade-homework] practice output rejected', error);
+    return res.status(502).json({ error: 'AI chưa tạo được bài luyện an toàn. Thử lại sau.' });
+  }
+  if (privateQuestions.length === 0) {
+    return res.status(502).json({ error: 'AI chưa tạo được bài luyện có đáp án. Thử lại sau.' });
+  }
+
+  const setId = newPracticeId('practice');
+  const now = new Date().toISOString();
+  const keyQuestions: PracticeQuestionKey[] = privateQuestions.map(question => ({
+    id: question.id,
+    question: question.question,
+    hint: question.hint,
+    expectedAnswer: question.solution,
+    maxScore: 1,
+  }));
+  const set: PracticeSetDoc = {
+    id: setId,
+    studentId: link.studentId,
+    classId: link.classId,
+    teacherId: link.teacherId,
+    topics,
+    questions: publicQuestions,
+    createdAt: now,
+    updatedAt: now,
+  };
+  const key: PracticeKeyDoc = {
+    setId,
+    studentId: link.studentId,
+    classId: link.classId,
+    teacherId: link.teacherId,
+    questions: keyQuestions,
+    createdAt: now,
+  };
+  await db.runTransaction(async transaction => {
+    transaction.set(db.collection(PRACTICE_KEYS_COL).doc(setId), key);
+    transaction.set(db.collection(PRACTICE_SETS_COL).doc(setId), set);
+  });
+
+  return res.status(200).json({ setId, questions: publicQuestions, topics, createdAt: now });
+};
+
+const asAnswerMap = (value: unknown, questionIds: Set<string>): Record<string, string> | null => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const result: Record<string, string> = {};
+  for (const id of questionIds) {
+    const raw = (value as Record<string, unknown>)[id];
+    result[id] = typeof raw === 'string' ? raw.trim().slice(0, 20000) : '';
+  }
+  return result;
+};
+
+const attemptResponse = (attempt: PracticeAttemptDoc): Record<string, unknown> => ({
+  attemptId: attempt.id,
+  setId: attempt.setId,
+  status: attempt.status,
+  score: attempt.score,
+  maxScore: attempt.maxScore,
+  feedback: attempt.feedback,
+  questionResults: attempt.questionResults,
+  evidenceType: attempt.evidenceType,
+  errorMessage: attempt.status === 'error' ? 'Chấm bài luyện chưa thành công. Em có thể thử lại.' : undefined,
+});
+
+/** Chấm bài luyện bằng private key; tuyệt đối không đọc key từ client hoặc trả key trước khi chấm. */
+const handleSubmitPractice = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Phiên đăng nhập không hợp lệ.' });
+
+  const linkSnap = await db.collection('studentLinks').doc(uid).get();
+  if (!linkSnap.exists) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới nộp bài luyện.' });
+  const link = linkSnap.data() as { studentId: string; classId: string; teacherId: string };
+
+  const setId = typeof body.setId === 'string' ? body.setId.trim() : '';
+  if (!setId) return res.status(400).json({ error: 'Thiếu mã bài luyện.' });
+  if (!isSafePracticeId(setId)) return res.status(400).json({ error: 'Mã bài luyện không hợp lệ.' });
+
+  const setSnap = await db.collection(PRACTICE_SETS_COL).doc(setId).get();
+  if (!setSnap.exists) return res.status(404).json({ error: 'Bài luyện không còn tồn tại.' });
+  const set = setSnap.data() as PracticeSetDoc;
+  if (set.studentId !== link.studentId || set.classId !== link.classId || set.teacherId !== link.teacherId) {
+    return res.status(403).json({ error: 'Bài luyện không thuộc tài khoản học sinh này.' });
+  }
+
+  const keySnap = await db.collection(PRACTICE_KEYS_COL).doc(setId).get();
+  if (!keySnap.exists) return res.status(409).json({ error: 'Bài luyện chưa sẵn sàng để chấm. Thử tạo bài mới.' });
+  const key = keySnap.data() as PracticeKeyDoc;
+  if (key.studentId !== link.studentId || key.classId !== link.classId || key.teacherId !== link.teacherId) {
+    return res.status(403).json({ error: 'Đáp án bài luyện không thuộc tài khoản học sinh này.' });
+  }
+
+  const keyQuestions = Array.isArray(key.questions) ? key.questions : [];
+  if (keyQuestions.length === 0 || new Set(keyQuestions.map(question => question.id)).size !== keyQuestions.length) {
+    return res.status(409).json({ error: 'Đáp án bài luyện không hợp lệ. Tạo bài mới rồi thử lại.' });
+  }
+  const questionIds = new Set(keyQuestions.map(question => question.id));
+  const answers = asAnswerMap(body.answers, questionIds);
+  if (!answers) return res.status(400).json({ error: 'Câu trả lời bài luyện không hợp lệ.' });
+
+  const attemptId = typeof body.attemptId === 'string' && body.attemptId.trim()
+    ? body.attemptId.trim()
+    : newPracticeId('attempt');
+  if (!isSafePracticeId(attemptId)) return res.status(400).json({ error: 'Mã lượt làm bài không hợp lệ.' });
+  const attemptRef = db.collection(PRACTICE_ATTEMPTS_COL).doc(attemptId);
+  const existingSnap = await attemptRef.get();
+  if (existingSnap.exists) {
+    const existing = existingSnap.data() as PracticeAttemptDoc;
+    if (existing.studentId !== link.studentId || existing.setId !== setId) {
+      return res.status(403).json({ error: 'Bài làm không thuộc tài khoản học sinh này.' });
+    }
+    if (existing.status === 'graded') return res.status(200).json(attemptResponse(existing));
+    if (existing.status === 'grading' && !isStaleGradingTimestamp(existing.updatedAt)) {
+      return res.status(409).json({ error: 'Bài luyện đang được chấm. Chờ một chút rồi tải lại.' });
+    }
+  }
+
+  type PracticeLockResult =
+    | { kind: 'graded'; attempt: PracticeAttemptDoc }
+    | { kind: 'locked' }
+    | { kind: 'forbidden' }
+    | { kind: 'started'; attempt: PracticeAttemptDoc };
+  const lockResult: PracticeLockResult = await db.runTransaction(async transaction => {
+    const latestSnap = await transaction.get(attemptRef);
+    if (latestSnap.exists) {
+      const latest = latestSnap.data() as PracticeAttemptDoc;
+      if (latest.studentId !== link.studentId || latest.setId !== setId || latest.classId !== link.classId || latest.teacherId !== link.teacherId) {
+        return { kind: 'forbidden' };
+      }
+      if (latest.status === 'graded') return { kind: 'graded', attempt: latest };
+      if (latest.status === 'grading' && !isStaleGradingTimestamp(latest.updatedAt)) return { kind: 'locked' };
+    }
+
+    const now = new Date().toISOString();
+    const baseAttempt: PracticeAttemptDoc = {
+      id: attemptId,
+      setId,
+      studentId: link.studentId,
+      classId: link.classId,
+      teacherId: link.teacherId,
+      answers,
+      status: 'grading',
+      evidenceType: 'practice',
+      createdAt: latestSnap.exists ? String((latestSnap.data() as PracticeAttemptDoc).createdAt || now) : now,
+      updatedAt: now,
+    };
+    transaction.set(attemptRef, baseAttempt);
+    return { kind: 'started', attempt: baseAttempt };
+  });
+
+  if (lockResult.kind === 'forbidden') return res.status(403).json({ error: 'Bài làm không thuộc tài khoản học sinh này.' });
+  if (lockResult.kind === 'graded') return res.status(200).json(attemptResponse(lockResult.attempt));
+  if (lockResult.kind === 'locked') return res.status(409).json({ error: 'Bài luyện đang được chấm. Chờ một chút rồi tải lại.' });
+  const baseAttempt = lockResult.attempt;
+
+  const reservation = await reserveQuota(db, link.teacherId, 'self', link.studentId);
+  if (reservation.verdict.allowed <= 0) {
+    const blocked: PracticeAttemptDoc = {
+      ...baseAttempt,
+      status: 'error',
+      errorMessage: reservation.verdict.reason,
+      updatedAt: new Date().toISOString(),
+    };
+    await attemptRef.set(blocked);
+    return res.status(429).json({ error: reservation.verdict.reason });
+  }
+
+  const profileRef = db.collection('studentProfiles').doc(link.studentId);
+  try {
+    const raw = await callGeminiVision(
+      buildPracticeGradingPrompt({
+        topics: Array.isArray(set.topics) ? set.topics : [],
+        questions: keyQuestions.map(question => ({
+          id: question.id,
+          question: question.question,
+          expectedAnswer: question.expectedAnswer,
+          maxScore: question.maxScore,
+        })),
+        answers,
+      }),
+      [],
+      getGradingApiKey(),
+      GRADING_MODEL,
+      { maxOutputTokens: 4096, jsonMode: true },
+    );
+    const assessment = parsePracticeAssessment(raw, keyQuestions.map(question => ({
+      id: question.id,
+      question: question.question,
+      expectedAnswer: question.expectedAnswer,
+      maxScore: question.maxScore,
+    })));
+    const graded: PracticeAttemptDoc = {
+      ...baseAttempt,
+      status: 'graded',
+      score: assessment.score,
+      maxScore: assessment.maxScore,
+      feedback: assessment.feedback,
+      questionResults: assessment.questionResults,
+      updatedAt: new Date().toISOString(),
+    };
+
+    const finalized = await db.runTransaction(async transaction => {
+      const latestSnap = await transaction.get(attemptRef);
+      if (!latestSnap.exists) return graded;
+      const latest = latestSnap.data() as PracticeAttemptDoc;
+      if (latest.status !== 'grading' || latest.updatedAt !== baseAttempt.updatedAt) return latest;
+
+      const profileSnap = await transaction.get(profileRef);
+      if (profileSnap.exists) {
+        const profileData = (profileSnap.data() || {}) as {
+          studentId?: string;
+          classId?: string;
+          teacherId?: string;
+          topics?: ProfileTopic[];
+        };
+        if (profileData.studentId === link.studentId
+          && profileData.classId === link.classId
+          && profileData.teacherId === link.teacherId) {
+          transaction.set(profileRef, {
+            ...profileData,
+            topics: applyPracticeEvidence({
+              existing: Array.isArray(profileData.topics) ? profileData.topics : [],
+              topics: Array.isArray(set.topics) ? set.topics : [],
+              attemptId,
+              // Practice là tín hiệu formative, không bao giờ có độ tin cậy ngang một grade
+              // đã được giáo viên duyệt, kể cả khi học sinh trả lời đúng toàn bộ.
+              confidence: assessment.maxScore > 0 ? Math.min(0.5, assessment.score / assessment.maxScore) : 0,
+              now: graded.updatedAt,
+            }),
+            updatedAt: graded.updatedAt,
+          }, { merge: true });
+        }
+      }
+      transaction.set(attemptRef, graded);
+      return graded;
+    });
+    return res.status(200).json(attemptResponse(finalized));
+  } catch (error) {
+    const failed: PracticeAttemptDoc = {
+      ...baseAttempt,
+      status: 'error',
+      errorMessage: error instanceof Error ? error.message : 'Chấm bài luyện thất bại.',
+      updatedAt: new Date().toISOString(),
+    };
+    const persisted = await db.runTransaction(async transaction => {
+      const latestSnap = await transaction.get(attemptRef);
+      if (!latestSnap.exists) {
+        transaction.set(attemptRef, failed);
+        return failed;
+      }
+      const latest = latestSnap.data() as PracticeAttemptDoc;
+      if (latest.status !== 'grading' || latest.updatedAt !== baseAttempt.updatedAt) return latest;
+      transaction.set(attemptRef, failed);
+      return failed;
+    });
+    return res.status(200).json(attemptResponse(persisted));
+  }
 };
 
 /**
@@ -483,6 +905,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (action === 'gradeAssignment') return await handleGradeAssignment(db, body, res);
     if (action === 'gradeOne') return await handleGradeOne(db, body, res);
     if (action === 'practice') return await handlePractice(db, body, res);
+    if (action === 'submitPractice') return await handleSubmitPractice(db, body, res);
     if (action === 'solveAnswerKey') return await handleSolveAnswerKey(db, body, res);
     if (action === 'suggestRubric') return await handleSuggestRubric(db, body, res);
     if (action === 'rewriteFeedback') return await handleRewriteFeedback(db, body, res);

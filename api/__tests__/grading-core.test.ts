@@ -6,6 +6,7 @@ import {
   moTaFinishReason,
   parseDataUrl,
   remainingQuota,
+  reserveQuota,
   rollQuota,
   today,
 } from '../_grading-core.js';
@@ -99,6 +100,43 @@ describe('bumpQuota', () => {
     const q = emptyQuota(NGAY);
     expect(bumpQuota(q, 'teacher', '', 0)).toBe(q);
     expect(bumpQuota(q, 'self', 's1', -5)).toBe(q);
+  });
+});
+
+describe('reserveQuota', () => {
+  it('đọc và cộng một lượt trong cùng transaction', async () => {
+    const state: Record<string, Record<string, unknown>> = {};
+    const db = {
+      collection: (name: string) => ({
+        doc: (id: string) => ({
+          get: async () => ({
+            exists: state[name]?.[id] !== undefined,
+            data: () => state[name]?.[id] as Record<string, unknown> | undefined,
+          }),
+          set: async (payload: Record<string, unknown>) => {
+            state[name] ||= {};
+            state[name][id] = payload;
+          },
+        }),
+      }),
+      runTransaction: async (work: (transaction: {
+        get: (ref: { get: () => Promise<{ exists: boolean; data: () => Record<string, unknown> | undefined }> }) => Promise<{ exists: boolean; data: () => Record<string, unknown> | undefined }>;
+        set: (ref: { set: (payload: Record<string, unknown>) => Promise<void> }, payload: Record<string, unknown>) => void;
+      }) => Promise<unknown>) => {
+        const writes: Promise<void>[] = [];
+        const result = await work({
+          get: ref => ref.get(),
+          set: (ref, payload) => { writes.push(ref.set(payload)); },
+        });
+        await Promise.all(writes);
+        return result;
+      },
+    } as never;
+
+    const result = await reserveQuota(db, 'teacher-1', 'self', 'student-1');
+
+    expect(result.verdict.allowed).toBeGreaterThan(0);
+    expect(state.gradingQuota['teacher-1']).toMatchObject({ selfCount: 1, byStudent: { 'student-1': 1 } });
   });
 });
 

@@ -1,5 +1,6 @@
 import { signInAnonymously } from 'firebase/auth';
 import { auth } from '../lib/firebase';
+import type { StudentAssignmentView, SubmissionDoc } from '../lib/classroom/types';
 
 export interface RosterEntry {
   studentId: string;
@@ -46,6 +47,24 @@ const call = async <T,>(payload: Record<string, unknown>): Promise<T> => {
 
 export const fetchRoster = (joinCode: string) =>
   call<RosterResponse>({ action: 'roster', joinCode });
+
+/** Assignment của học sinh qua projection server-side; không đọc document gốc chứa đáp án. */
+export const fetchStudentAssignments = async (): Promise<StudentAssignmentView[]> => {
+  const current = auth.currentUser;
+  if (!current || !current.isAnonymous) throw new Error('Cần phiên đăng nhập học sinh.');
+  const idToken = await current.getIdToken();
+  const response = await call<{ assignments: StudentAssignmentView[] }>({ action: 'studentAssignments', idToken });
+  return response.assignments || [];
+};
+
+/** Bài nộp của học sinh qua projection server-side, không tải grade.noteForTeacher/teacherNote. */
+export const fetchStudentSubmissions = async (): Promise<SubmissionDoc[]> => {
+  const current = auth.currentUser;
+  if (!current || !current.isAnonymous) throw new Error('Cần phiên đăng nhập học sinh.');
+  const idToken = await current.getIdToken();
+  const response = await call<{ submissions: SubmissionDoc[] }>({ action: 'studentSubmissions', idToken });
+  return response.submissions || [];
+};
 
 /**
  * Đăng nhập ẩn danh rồi nhờ máy chủ gắn phiên đó với đúng một học sinh.

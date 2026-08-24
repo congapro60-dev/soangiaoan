@@ -25,7 +25,7 @@ import { AssignmentFormModal, type AssignmentFormValue } from './AssignmentFormM
 import { NhanXetMarkdown } from './NhanXetMarkdown';
 import { GradeReviewModal, type GradeReviewValue } from './GradeReviewModal';
 import { QuestionResultsList } from './QuestionResultsList';
-import { currentSubmissionsForAssignment, selectedCurrentSubmissions, summarizeSelection } from '../../../lib/classroom/submissionSelection';
+import { currentSubmissionsForAssignment, selectedCurrentSubmissions, selectedSubmissionsForAssignment, summarizeSelection } from '../../../lib/classroom/submissionSelection';
 
 interface Props {
   classId: string;
@@ -71,7 +71,7 @@ interface BaiNopTheoLopProps {
   dangXoaNop: string;
   selectedIds: ReadonlySet<string>;
   toggleSelected: (submissionId: string, selected: boolean) => void;
-  toggleAllCurrent: (selected: boolean) => void;
+  toggleAllSubmissions: (selected: boolean) => void;
   bulkCham: () => void | Promise<void>;
   bulkDuyet: () => void | Promise<void>;
   bulkXoa: () => void | Promise<void>;
@@ -82,14 +82,16 @@ interface BaiNopTheoLopProps {
  * Danh sách ĐỦ CẢ LỚP theo một bài giao: em nào đã nộp (kèm trạng thái/điểm/hành động),
  * em nào chưa nộp — giáo viên kiểm soát một mắt nhìn thay vì đoán từ số lượng.
  */
-const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet, xoaBaiNop, dangXoaNop, selectedIds, toggleSelected, toggleAllCurrent, bulkCham, bulkDuyet, bulkXoa, dangBulk }: BaiNopTheoLopProps) => {
+const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet, xoaBaiNop, dangXoaNop, selectedIds, toggleSelected, toggleAllSubmissions, bulkCham, bulkDuyet, bulkXoa, dangBulk }: BaiNopTheoLopProps) => {
   const tenTheoId = new Map(lopHocSinh.map(hs => [hs.studentId, hs.name]));
   const daNopIds = new Set(baiNop.map(s => s.studentId));
   const chuaNop = lopHocSinh.filter(hs => !daNopIds.has(hs.studentId));
   const current = currentSubmissionsForAssignment(baiNop);
   const currentIds = new Set(current.map(s => s.id));
   const selectedCurrent = selectedCurrentSubmissions(baiNop, selectedIds);
-  const summary = summarizeSelection(selectedCurrent);
+  const selectedForDelete = selectedSubmissionsForAssignment(baiNop, selectedIds);
+  const currentSummary = summarizeSelection(selectedCurrent);
+  const deleteSummary = summarizeSelection(selectedForDelete);
 
   // Học sinh có thể NỘP LẠI nhiều lần (nộp nhầm ảnh rồi chụp lại theo phản hồi).
   // Không dựa vào thứ tự mảng để gắn nhãn — query phía giáo viên còn sort lại theo tên.
@@ -112,23 +114,23 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
         <label className="flex min-h-11 items-center gap-2 text-sm font-black text-slate-700">
           <input
             type="checkbox"
-            checked={current.length > 0 && current.every(s => selectedIds.has(s.id))}
-            onChange={event => toggleAllCurrent(event.target.checked)}
-            disabled={current.length === 0 || dangBulk !== ''}
+            checked={baiNop.length > 0 && baiNop.every(s => selectedIds.has(s.id))}
+            onChange={event => toggleAllSubmissions(event.target.checked)}
+            disabled={baiNop.length === 0 || dangBulk !== ''}
             className="h-4 w-4 accent-indigo-600"
           />
-          Chọn lượt hiện hành
+          Chọn lượt nộp
         </label>
-        <span className="text-xs font-bold text-slate-500">{summary.total} đã chọn · {current.length} lượt hiện hành</span>
+        <span className="text-xs font-bold text-slate-500">{deleteSummary.total} đã chọn · {current.length} lượt mới nhất được chấm/duyệt</span>
         <div className="flex flex-wrap gap-2 sm:ml-auto">
-          <button type="button" onClick={() => void bulkCham()} disabled={summary.pending === 0 || dangBulk !== '' || tienDo !== ''} className="inline-flex min-h-10 items-center gap-1 rounded-xl bg-slate-900 px-3 py-2 text-xs font-black text-white disabled:opacity-40">
-            {dangBulk === 'grade' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />} Chấm AI ({summary.pending})
+          <button type="button" onClick={() => void bulkCham()} disabled={currentSummary.pending === 0 || dangBulk !== '' || tienDo !== ''} className="inline-flex min-h-10 items-center gap-1 rounded-xl bg-slate-900 px-3 py-2 text-xs font-black text-white disabled:opacity-40">
+            {dangBulk === 'grade' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />} Chấm AI ({currentSummary.pending})
           </button>
-          <button type="button" onClick={() => void bulkDuyet()} disabled={summary.unapproved === 0 || dangBulk !== ''} className="inline-flex min-h-10 items-center gap-1 rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs font-black text-emerald-700 disabled:opacity-40">
-            {dangBulk === 'approve' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5" />} Duyệt ({summary.unapproved})
+          <button type="button" onClick={() => void bulkDuyet()} disabled={currentSummary.unapproved === 0 || dangBulk !== ''} className="inline-flex min-h-10 items-center gap-1 rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs font-black text-emerald-700 disabled:opacity-40">
+            {dangBulk === 'approve' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5" />} Duyệt ({currentSummary.unapproved})
           </button>
-          <button type="button" onClick={() => void bulkXoa()} disabled={summary.total === 0 || dangBulk !== '' || tienDo !== ''} className="inline-flex min-h-10 items-center gap-1 rounded-xl border border-red-200 bg-white px-3 py-2 text-xs font-black text-red-700 disabled:opacity-40">
-            {dangBulk === 'delete' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />} Xóa ({summary.total})
+          <button type="button" onClick={() => void bulkXoa()} disabled={deleteSummary.total === 0 || dangBulk !== '' || tienDo !== ''} className="inline-flex min-h-10 items-center gap-1 rounded-xl border border-red-200 bg-white px-3 py-2 text-xs font-black text-red-700 disabled:opacity-40">
+            {dangBulk === 'delete' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />} Xóa ({deleteSummary.total})
           </button>
         </div>
       </div>
@@ -142,8 +144,8 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                 type="checkbox"
                 checked={selectedIds.has(s.id)}
                 onChange={event => toggleSelected(s.id, event.target.checked)}
-                disabled={!currentIds.has(s.id) || dangBulk !== ''}
-                title={currentIds.has(s.id) ? 'Chọn lượt nộp hiện hành' : 'Lượt cũ không tham gia thao tác hàng loạt'}
+                disabled={dangBulk !== ''}
+                title={currentIds.has(s.id) ? 'Chọn lượt nộp mới nhất để chấm, duyệt hoặc xóa' : 'Chọn lượt nộp cũ để xóa theo mong muốn'}
                 className="h-4 w-4 shrink-0 accent-indigo-600 disabled:opacity-30"
               />
               <button type="button" onClick={() => troMoRong(dangMo ? '' : s.id)} className="flex min-w-0 flex-1 flex-wrap items-center gap-2 text-left transition hover:bg-slate-50">
@@ -337,19 +339,22 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
     });
   }, []);
 
-  const toggleAllCurrent = useCallback((assignmentId: string, selected: boolean) => {
-    const current = currentSubmissionsForAssignment(baiNopCua(assignmentId));
+  const toggleAllSubmissions = useCallback((assignmentId: string, selected: boolean) => {
+    const all = baiNopCua(assignmentId);
     setSelectedSubmissionIds(previous => {
       const next = new Set(previous);
-      for (const submission of current) {
+      for (const submission of all) {
         if (selected) next.add(submission.id); else next.delete(submission.id);
       }
       return next;
     });
   }, [baiNopCua]);
 
-  const selectedForAssignment = useCallback((assignmentId: string): SubmissionDoc[] =>
+  const selectedCurrentForAssignment = useCallback((assignmentId: string): SubmissionDoc[] =>
     selectedCurrentSubmissions(baiNopCua(assignmentId), selectedSubmissionIds), [baiNopCua, selectedSubmissionIds]);
+
+  const selectedForDeletion = useCallback((assignmentId: string): SubmissionDoc[] =>
+    selectedSubmissionsForAssignment(baiNopCua(assignmentId), selectedSubmissionIds), [baiNopCua, selectedSubmissionIds]);
 
   const guiBaiMoi = async (value: AssignmentFormValue) => {
     if (!value.answerKey && value.answerKeyImages.length === 0) {
@@ -434,7 +439,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
 
   /** Chấm tuần tự đúng các lượt hiện hành đã chọn, không vô tình chấm lịch sử cũ. */
   const chamDaChon = async (assignment: AssignmentDoc) => {
-    const selected = selectedForAssignment(assignment.id).filter(s => s.status === 'submitted' || s.status === 'error');
+    const selected = selectedCurrentForAssignment(assignment.id).filter(s => s.status === 'submitted' || s.status === 'error');
     if (selected.length === 0) return;
     setDangBulk('grade');
     let ok = 0;
@@ -467,7 +472,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
 
   /** Duyệt tuần tự để mỗi lần cập nhật hồ sơ tích lũy không ghi đè merge của em khác. */
   const duyetDaChon = async (assignment: AssignmentDoc) => {
-    const selected = selectedForAssignment(assignment.id).filter(s => s.grade && !s.grade.teacherApproved);
+    const selected = selectedCurrentForAssignment(assignment.id).filter(s => s.grade && !s.grade.teacherApproved);
     if (selected.length === 0) return;
     setDangBulk('approve');
     let ok = 0;
@@ -499,25 +504,29 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   };
 
   /**
-   * Xóa đúng các submission hiện hành được chọn. Lịch sử cũ không tự xóa; nếu còn, nó vẫn được
-   * giữ để đối chiếu và học sinh có thể nộp một attempt mới. Xác nhận luôn nói rõ điều này.
+   * Xóa đúng các submission giáo viên đã chọn, bao gồm cả lượt hiện hành và lượt lịch sử cũ.
+   * Các lượt không chọn vẫn giữ nguyên để đối chiếu và học sinh có thể nộp attempt mới.
    */
   const xoaDaChon = async (assignment: AssignmentDoc) => {
     if (loiBaiNop !== null) {
       await Swal.fire({ icon: 'warning', title: 'Chưa thể xóa an toàn', text: 'Danh sách bài nộp chưa tải chắc chắn. Bấm "Làm mới" trước khi xóa.', confirmButtonColor: '#3085d6' });
       return;
     }
-    const selected = selectedForAssignment(assignment.id);
+    const selected = selectedForDeletion(assignment.id);
     if (selected.length === 0) return;
     if (selected.some(s => s.status === 'grading')) {
       await Swal.fire({ icon: 'info', title: 'Có bài đang được chấm', text: 'Chờ máy chấm xong rồi mới xóa để không tạo trạng thái đua nhau.', confirmButtonColor: '#3085d6' });
       return;
     }
-    const names = selected.map(s => lopHocSinh.find(hs => hs.studentId === s.studentId)?.name || `HS …${s.studentId.slice(-4)}`);
+    const currentIds = new Set(currentSubmissionsForAssignment(baiNopCua(assignment.id)).map(s => s.id));
+    const names = selected.map(s => {
+      const name = lopHocSinh.find(hs => hs.studentId === s.studentId)?.name || `HS …${s.studentId.slice(-4)}`;
+      return `${name} — ${currentIds.has(s.id) ? 'lượt mới nhất' : 'lượt cũ'}`;
+    });
     const { isConfirmed } = await Swal.fire({
       icon: 'warning',
       title: `Xóa ${selected.length} lượt nộp đã chọn?`,
-      html: `<p>Phạm vi: <b>${names.join(', ')}</b>.</p><p style="margin-top:8px">Chỉ xóa lượt hiện hành được chọn của bài <b>${assignment.title}</b>. Lịch sử cũ (nếu có) vẫn giữ để đối chiếu. Điểm/nhận xét của lượt này sẽ mất.</p><p style="margin-top:8px;font-size:12px;color:#64748b">Document bài nộp và các file Storage của lượt này sẽ được dọn cùng nhau. Nếu máy chủ không dọn được file, lượt nộp sẽ giữ lại để thử lại.</p>`,
+       html: `<p>Phạm vi: <b>${names.join(', ')}</b>.</p><p style="margin-top:8px">Chỉ xóa đúng các lượt đã chọn của bài <b>${assignment.title}</b>; các lượt khác, kể cả lượt mới nhất hoặc lượt cũ, vẫn giữ nguyên. Điểm/nhận xét của các lượt này sẽ mất.</p><p style="margin-top:8px;font-size:12px;color:#64748b">Document bài nộp và các file Storage của từng lượt sẽ được dọn cùng nhau. Nếu máy chủ không dọn được file, lượt đó sẽ giữ lại để thử lại.</p>`,
       showCancelButton: true,
       confirmButtonText: 'Xóa các lượt đã chọn',
       cancelButtonText: 'Giữ lại',
@@ -1031,7 +1040,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                     dangXoaNop={dangXoaNop}
                     selectedIds={selectedSubmissionIds}
                     toggleSelected={toggleSelected}
-                    toggleAllCurrent={selected => toggleAllCurrent(a.id, selected)}
+                    toggleAllSubmissions={selected => toggleAllSubmissions(a.id, selected)}
                     bulkCham={() => chamDaChon(a)}
                     bulkDuyet={() => duyetDaChon(a)}
                     bulkXoa={() => xoaDaChon(a)}

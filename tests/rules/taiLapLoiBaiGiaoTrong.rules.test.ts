@@ -98,8 +98,8 @@ describe('soi TẤT CẢ truy vấn client đang dùng', () => {
     )));
   });
 
-  it('học sinh: bài được giao đang mở của lớp mình', async () => {
-    await assertSucceeds(getDocs(query(
+  it('học sinh: không còn đọc assignment gốc trực tiếp (dùng projection API)', async () => {
+    await assertFails(getDocs(query(
       collection(dbHS(), 'assignments'),
       where('classId', '==', LOP),
       where('isOpen', '==', true),
@@ -108,8 +108,8 @@ describe('soi TẤT CẢ truy vấn client đang dùng', () => {
     )));
   });
 
-  it('học sinh: bài nộp của chính mình', async () => {
-    await assertSucceeds(getDocs(query(
+  it('học sinh: không đọc raw bài nộp của chính mình (dùng projection API)', async () => {
+    await assertFails(getDocs(query(
       collection(dbHS(), 'submissions'),
       where('studentId', '==', HS),
       orderBy('createdAt', 'desc'),

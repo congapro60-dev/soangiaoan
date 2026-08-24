@@ -4,7 +4,8 @@ import { getAuth } from 'firebase-admin/auth';
 import { getAdminDb, getAdminStorage } from './_exam-core.js';
 import { uniqueStoragePaths } from './_classroom-storage.js';
 import { removeEvidence } from '../src/lib/classroom/profileMerge.js';
-import type { ProfileTopic } from '../src/lib/classroom/types.js';
+import { mergeSubmissionEvidence } from '../src/lib/classroom/submissionRevision.js';
+import type { ProfileTopic, StudentAssignmentView, SubmissionDoc, SubmissionGrade } from '../src/lib/classroom/types.js';
 import {
   EMPTY_LOCK,
   createPin,
@@ -23,11 +24,14 @@ import {
  *
  *   POST { action: 'roster', joinCode }                     → danh sách tên để học sinh chọn
  *   POST { action: 'login', joinCode, studentId, pin, idToken } → gắn phiên vào studentLinks/{uid}
+ *   POST { action: 'studentAssignments', idToken }           → projection assignment an toàn cho học sinh
+ *   POST { action: 'studentSubmissions', idToken }            → projection bài nộp không có ghi chú nội bộ
  *   POST { action: 'issuePins', classId, idToken }          → giáo viên cấp PIN cho cả lớp
  *   POST { action: 'resetOnePin', classId, studentId, idToken } → cấp lại PIN cho MỘT em
  *   POST { action: 'viewPin', classId, studentId, idToken } → giáo viên xem PIN ĐANG DÙNG của một em
  *   POST { action: 'revokeStudentAccess', classId, studentId, idToken } → xoá học sinh khỏi server + thu hồi đăng nhập
  *   POST { action: 'revokeClass', classId, idToken } → gỡ toàn bộ dữ liệu lớp khỏi server (roster/secret/link)
+ *   POST { action: 'createSupplementSubmission', submission, idToken } → tạo revision ghép bài
  *   POST { action: 'deleteSubmission', submissionId, idToken } → xoá bài nộp và file Storage
  *   POST { action: 'deleteAssignment', assignmentId, idToken } → xoá bài giao và file đề
  *
@@ -120,9 +124,29 @@ const handleDeleteSubmission = async (db: FirebaseFirestore.Firestore, body: Rec
     ...urlsFromValue(submission.fileUrls),
     ...urlsFromValue(submission.attachments),
   ];
+  // Một revision con giữ lại toàn bộ evidence của parent để chấm lại toàn bài. Vì vậy
+  // không được dọn URL chỉ vì giáo viên xoá parent: file vẫn còn được document khác trỏ tới.
+  const protectedUrls = new Set<string>();
+  if (typeof submission.studentId === 'string' && submission.studentId) {
+    const otherSubmissions = await db.collection('submissions')
+      .where('studentId', '==', submission.studentId)
+      .get();
+    for (const other of otherSubmissions.docs) {
+      if (other.id === submissionId) continue;
+      const otherData = other.data() || {};
+      for (const url of [
+        ...urlsFromValue(otherData.fileUrls),
+        ...urlsFromValue(otherData.attachments),
+      ]) {
+        const normalized = url.trim();
+        if (normalized) protectedUrls.add(normalized);
+      }
+    }
+  }
+  const urlsToDelete = urls.filter(url => !protectedUrls.has(url.trim()));
   let deletedFiles: number;
   try {
-    deletedFiles = await deleteStorageFiles(urls);
+    deletedFiles = await deleteStorageFiles(urlsToDelete);
   } catch (error) {
     if (error instanceof StorageCleanupError) {
       console.error('[classroom] xoá bài nộp: dữ liệu URL không dọn được', error);
@@ -143,7 +167,7 @@ const handleDeleteSubmission = async (db: FirebaseFirestore.Firestore, body: Rec
         studentId: submission.studentId,
         classId: String(submission.classId || ''),
         teacherId: uid,
-        topics: removeEvidence(existing, submissionId, new Date().toISOString()),
+        topics: removeEvidence(existing, submissionId, new Date().toISOString(), String(submission.assignmentId || '') || undefined),
         updatedAt: new Date().toISOString(),
       }, { merge: true });
     }
@@ -151,6 +175,151 @@ const handleDeleteSubmission = async (db: FirebaseFirestore.Firestore, body: Rec
 
   await submissionRef.delete();
   return res.status(200).json({ deleted: true, deletedFiles });
+};
+
+const validAttachmentKind = (value: unknown): 'image' | 'pdf' | 'document' | 'unknown' | undefined => {
+  const kind = String(value || '');
+  return ['image', 'pdf', 'document', 'unknown'].includes(kind)
+    ? kind as 'image' | 'pdf' | 'document' | 'unknown'
+    : undefined;
+};
+
+const sanitizeSubmissionAttachments = (value: unknown): SubmissionDoc['attachments'] => {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap(item => {
+    if (!item || typeof item !== 'object') return [];
+    const raw = item as Record<string, unknown>;
+    const name = String(raw.name || '').trim();
+    const url = String(raw.url || '').trim();
+    if (!name || !url) return [];
+    const kind = validAttachmentKind(raw.kind);
+    return [{
+      name: name.slice(0, 300),
+      url,
+      ...(typeof raw.mimeType === 'string' ? { mimeType: raw.mimeType.slice(0, 150) } : {}),
+      ...(typeof raw.size === 'number' && Number.isFinite(raw.size) && raw.size >= 0 ? { size: raw.size } : {}),
+      ...(kind ? { kind } : {}),
+    }];
+  });
+};
+
+const normalizedSubmissionUrls = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value
+    .filter((url): url is string => typeof url === 'string')
+    .map(url => url.trim())
+    .filter(Boolean))];
+};
+
+/**
+ * Tạo một lượt nộp mới sau khi học sinh nhận ra lượt trước thiếu ảnh.
+ * Không cho client ghi đè parent: server kiểm link học sinh + toàn bộ lineage rồi
+ * lưu một revision mới với evidence đã ghép, để grade-homework chấm lại toàn bộ.
+ */
+const handleCreateSupplementSubmission = async (
+  db: FirebaseFirestore.Firestore,
+  body: Record<string, unknown>,
+  res: VercelResponse,
+) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Phiên đăng nhập học sinh không hợp lệ.' });
+
+  const linkSnap = await db.collection('studentLinks').doc(uid).get();
+  if (!linkSnap.exists) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới được bổ sung bài.' });
+  const link = linkSnap.data() || {};
+  const studentId = typeof link.studentId === 'string' ? link.studentId : '';
+  const classId = typeof link.classId === 'string' ? link.classId : '';
+  const teacherId = typeof link.teacherId === 'string' ? link.teacherId : '';
+  if (!studentId || !classId || !teacherId) {
+    return res.status(403).json({ error: 'Phiên học sinh thiếu thông tin lớp.' });
+  }
+
+  const raw = body.submission;
+  if (!raw || typeof raw !== 'object') return res.status(400).json({ error: 'Thiếu dữ liệu lượt bổ sung.' });
+  const incoming = raw as Record<string, unknown>;
+  const id = typeof incoming.id === 'string' ? incoming.id.trim() : '';
+  const supplementOf = typeof incoming.supplementOf === 'string' ? incoming.supplementOf.trim() : '';
+  const assignmentId = typeof incoming.assignmentId === 'string' ? incoming.assignmentId.trim() : '';
+  const fileUrls = normalizedSubmissionUrls(incoming.fileUrls);
+  if (!id || !supplementOf || !assignmentId || fileUrls.length === 0) {
+    return res.status(400).json({ error: 'Lượt bổ sung thiếu mã bài, parent, bài giao hoặc tệp.' });
+  }
+  if (id.length > 150 || supplementOf.length > 150 || assignmentId.length > 150) {
+    return res.status(400).json({ error: 'Mã lượt nộp không hợp lệ.' });
+  }
+
+  const assignmentSnap = await db.collection('assignments').doc(assignmentId).get();
+  if (!assignmentSnap.exists) return res.status(404).json({ error: 'Bài giao không còn tồn tại.' });
+  const assignment = assignmentSnap.data() || {};
+  if (assignment.teacherId !== teacherId || assignment.classId !== classId) {
+    return res.status(403).json({ error: 'Bài giao không thuộc lớp học của em.' });
+  }
+  if (assignment.isOpen !== true) {
+    return res.status(409).json({ error: 'Bài giao đã đóng nên không thể bổ sung ảnh.' });
+  }
+
+  // Chỉ nhận object mà chính học sinh vừa upload trong namespace của mình. Nếu
+  // không chặn ở API này, client có thể gửi URL ngoài Storage để grade-homework
+  // tải nhầm tài nguyên không thuộc bài nộp.
+  const bucket = getAdminStorage();
+  const incomingPaths = uniqueStoragePaths(fileUrls, bucket.name);
+  const ownPrefix = `homework/${uid}/`;
+  if (incomingPaths.length !== fileUrls.length || incomingPaths.some(path => !path.startsWith(ownPrefix))) {
+    return res.status(422).json({ error: 'Tệp bổ sung không thuộc kho bài làm của em.' });
+  }
+
+  const submissionRef = db.collection('submissions').doc(id);
+  if ((await submissionRef.get()).exists) return res.status(409).json({ error: 'Lượt bổ sung đã tồn tại.' });
+
+  const parentSnap = await db.collection('submissions').doc(supplementOf).get();
+  if (!parentSnap.exists) return res.status(404).json({ error: 'Không tìm thấy lượt nộp cần bổ sung.' });
+  const parent = parentSnap.data() || {};
+  if (
+    parent.studentId !== studentId
+    || parent.classId !== classId
+    || parent.teacherId !== teacherId
+    || parent.assignmentId !== assignmentId
+  ) {
+    return res.status(403).json({ error: 'Lượt nộp này không thuộc đúng học sinh, lớp hoặc bài giao.' });
+  }
+
+  const merged = mergeSubmissionEvidence(
+    {
+      fileUrls: normalizedSubmissionUrls(parent.fileUrls),
+      attachments: sanitizeSubmissionAttachments(parent.attachments),
+      textContent: typeof parent.textContent === 'string' ? parent.textContent : '',
+    },
+    {
+      fileUrls,
+      attachments: sanitizeSubmissionAttachments(incoming.attachments),
+      textContent: typeof incoming.textContent === 'string' ? incoming.textContent : '',
+    },
+  );
+  if (merged.fileUrls.length > 12) {
+    return res.status(422).json({ error: 'Bài bổ sung vượt giới hạn 12 tệp. Em hãy xoá bớt tệp rồi thử lại.' });
+  }
+  if (merged.textContent.length > 60000) {
+    return res.status(422).json({ error: 'Nội dung bài bổ sung vượt giới hạn cho phép.' });
+  }
+
+  const now = new Date().toISOString();
+  const submission: SubmissionDoc = {
+    id,
+    teacherId,
+    classId,
+    studentId,
+    assignmentId,
+    supplementOf,
+    fileUrls: merged.fileUrls,
+    textContent: merged.textContent,
+    attachments: merged.attachments,
+    note: typeof incoming.note === 'string' ? incoming.note.slice(0, 2000) : '',
+    status: 'submitted',
+    createdAt: now,
+    updatedAt: now,
+  };
+  await submissionRef.set(submission);
+  return res.status(200).json({ submission });
 };
 
 const handleDeleteAssignment = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
@@ -217,6 +386,139 @@ const handleRoster = async (db: FirebaseFirestore.Firestore, body: Record<string
       .filter(s => s.name)
       .sort((a, b) => a.name.localeCompare(b.name, 'vi')),
   });
+};
+
+const projectStudentAssignment = (id: string, data: FirebaseFirestore.DocumentData): StudentAssignmentView => {
+  const attachments = (Array.isArray(data.attachments) ? data.attachments : [])
+    .filter((item: unknown): item is Record<string, unknown> => Boolean(item && typeof item === 'object'))
+    .map(item => ({
+      name: String(item.name || ''),
+      url: String(item.url || ''),
+      ...(item.mimeType ? { mimeType: String(item.mimeType) } : {}),
+      ...(typeof item.size === 'number' ? { size: item.size } : {}),
+    }))
+    .filter(item => item.name && item.url);
+  const answerKey = String(data.answerKey || '').trim();
+  const rubric = String(data.rubric || '').trim();
+  const answerKeyImages = Array.isArray(data.answerKeyImageUrls)
+    ? data.answerKeyImageUrls.map((url: unknown) => String(url || '')).filter(Boolean)
+    : [];
+
+  return {
+    id,
+    teacherId: String(data.teacherId || ''),
+    classId: String(data.classId || ''),
+    title: String(data.title || ''),
+    description: String(data.description || ''),
+    type: data.type === 'exam' ? 'exam' : 'upload',
+    ...(data.examId ? { examId: String(data.examId) } : {}),
+    ...(data.dueAt ? { dueAt: String(data.dueAt) } : {}),
+    ...(Number.isFinite(Number(data.maxScore)) ? { maxScore: Number(data.maxScore) } : {}),
+    attachments,
+    isOpen: true,
+    createdAt: String(data.createdAt || ''),
+    updatedAt: String(data.updatedAt || ''),
+    hasAnswerKey: Boolean(answerKey || rubric || answerKeyImages.length > 0),
+  };
+};
+
+const projectStudentSubmission = (id: string, data: FirebaseFirestore.DocumentData): SubmissionDoc => {
+  const rawGrade = data.grade as FirebaseFirestore.DocumentData | undefined;
+  const questionResults = Array.isArray(rawGrade?.questionResults)
+    ? rawGrade.questionResults
+      .filter((item: unknown): item is FirebaseFirestore.DocumentData => Boolean(item && typeof item === 'object'))
+      .map(item => ({
+        questionNumber: String(item.questionNumber || ''),
+        status: ['correct', 'partially_correct', 'incorrect', 'unreadable', 'not_attempted'].includes(String(item.status))
+          ? item.status
+          : 'unreadable',
+        score: Number(item.score) || 0,
+        maxScore: Number(item.maxScore) || 0,
+        studentAnswer: String(item.studentAnswer || ''),
+        expectedAnswer: String(item.expectedAnswer || ''),
+        errorType: String(item.errorType || ''),
+        explanation: String(item.explanation || ''),
+        correction: String(item.correction || ''),
+        nextPractice: String(item.nextPractice || ''),
+        ...(typeof item.confidence === 'number' ? { confidence: item.confidence } : {}),
+        ...(typeof item.ignoredByTeacherInstruction === 'boolean' ? { ignoredByTeacherInstruction: item.ignoredByTeacherInstruction } : {}),
+        needsTeacherReview: Boolean(item.needsTeacherReview),
+      }))
+    : undefined;
+  const grade: SubmissionGrade | undefined = rawGrade ? {
+    score: Number(rawGrade.score) || 0,
+    maxScore: Number(rawGrade.maxScore) || 0,
+    feedback: String(rawGrade.feedback || ''),
+    strengths: Array.isArray(rawGrade.strengths) ? rawGrade.strengths.map(String) : [],
+    weaknesses: Array.isArray(rawGrade.weaknesses) ? rawGrade.weaknesses.map(String) : [],
+    ...(questionResults ? { questionResults } : {}),
+    ...(typeof rawGrade.gradedWithoutAnswerKey === 'boolean' ? { gradedWithoutAnswerKey: rawGrade.gradedWithoutAnswerKey } : {}),
+    gradedAt: String(rawGrade.gradedAt || ''),
+    teacherApproved: rawGrade.teacherApproved === true,
+    ...(typeof rawGrade.editedByTeacher === 'boolean' ? { editedByTeacher: rawGrade.editedByTeacher } : {}),
+  } : undefined;
+
+  return {
+    id,
+    teacherId: String(data.teacherId || ''),
+    classId: String(data.classId || ''),
+    studentId: String(data.studentId || ''),
+    assignmentId: typeof data.assignmentId === 'string' ? data.assignmentId : null,
+    ...(typeof data.supplementOf === 'string' ? { supplementOf: data.supplementOf } : {}),
+    fileUrls: Array.isArray(data.fileUrls) ? data.fileUrls.map(String) : [],
+    attachments: Array.isArray(data.attachments) ? data.attachments : undefined,
+    note: String(data.note || ''),
+    status: ['submitted', 'grading', 'graded', 'error'].includes(String(data.status)) ? data.status : 'submitted',
+    ...(grade ? { grade } : {}),
+    ...(data.errorMessage ? { errorMessage: String(data.errorMessage) } : {}),
+    createdAt: String(data.createdAt || ''),
+    updatedAt: String(data.updatedAt || ''),
+  } as SubmissionDoc;
+};
+
+const handleStudentAssignments = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Phiên đăng nhập học sinh không hợp lệ.' });
+
+  const linkSnap = await db.collection('studentLinks').doc(uid).get();
+  if (!linkSnap.exists) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới xem được bài tập.' });
+  const link = linkSnap.data() as { classId?: unknown };
+  const classId = typeof link.classId === 'string' ? link.classId : '';
+  if (!classId) return res.status(403).json({ error: 'Phiên học sinh thiếu lớp học.' });
+
+  // Lọc isOpen ngay trong query: limit không được phép làm 100 bài đóng che mất bài đang mở.
+  const snap = await db.collection('assignments')
+    .where('classId', '==', classId)
+    .where('isOpen', '==', true)
+    .limit(100)
+    .get();
+  const assignments = snap.docs
+    .map(document => projectStudentAssignment(document.id, document.data()))
+    .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+  return res.status(200).json({ assignments });
+};
+
+const handleStudentSubmissions = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Phiên đăng nhập học sinh không hợp lệ.' });
+
+  const linkSnap = await db.collection('studentLinks').doc(uid).get();
+  if (!linkSnap.exists) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới xem được bài nộp.' });
+  const link = linkSnap.data() as { studentId?: unknown; classId?: unknown; teacherId?: unknown };
+  const studentId = typeof link.studentId === 'string' ? link.studentId : '';
+  const classId = typeof link.classId === 'string' ? link.classId : '';
+  const teacherId = typeof link.teacherId === 'string' ? link.teacherId : '';
+  if (!studentId || !classId || !teacherId) return res.status(403).json({ error: 'Phiên học sinh thiếu thông tin lớp.' });
+
+  const snap = await db.collection('submissions').where('studentId', '==', studentId).limit(50).get();
+  const submissions = snap.docs
+    .filter(document => {
+      const data = document.data();
+      return data.classId === classId && data.teacherId === teacherId;
+    })
+    .map(document => projectStudentSubmission(document.id, document.data()))
+    .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+  return res.status(200).json({ submissions });
 };
 
 const handleLogin = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
@@ -530,12 +832,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const db = getAdminDb();
     if (action === 'roster') return await handleRoster(db, body, res);
     if (action === 'login') return await handleLogin(db, body, res);
+    if (action === 'studentAssignments') return await handleStudentAssignments(db, body, res);
+    if (action === 'studentSubmissions') return await handleStudentSubmissions(db, body, res);
     if (action === 'issuePins') return await handleIssuePins(db, body, res);
     if (action === 'resetOnePin') return await handleResetOnePin(db, body, res);
     if (action === 'viewPin') return await handleViewPin(db, body, res);
     if (action === 'viewClassPins') return await handleViewClassPins(db, body, res);
     if (action === 'revokeStudentAccess') return await handleRevokeStudentAccess(db, body, res);
     if (action === 'revokeClass') return await handleRevokeClass(db, body, res);
+    if (action === 'createSupplementSubmission') return await handleCreateSupplementSubmission(db, body, res);
     if (action === 'deleteSubmission') return await handleDeleteSubmission(db, body, res);
     if (action === 'deleteAssignment') return await handleDeleteAssignment(db, body, res);
     return res.status(400).json({ error: `Hành động không hợp lệ: ${action}` });

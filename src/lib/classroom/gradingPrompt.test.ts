@@ -2,14 +2,17 @@ import { describe, it, expect } from 'vitest';
 import {
   buildHomeworkGradingPrompt,
   buildPracticePrompt,
+  buildPracticeGradingPrompt,
   buildRewriteFeedbackPrompt,
   buildRubricPrompt,
   buildSolveExamPrompt,
   parseHomeworkGrade,
+  parsePracticeAssessment,
   parsePracticeQuestions,
   parseRewrittenFeedback,
   parseRubric,
   parseSolvedAnswerKey,
+  toPublicPracticeQuestions,
 } from './gradingPrompt';
 
 describe('buildHomeworkGradingPrompt', () => {
@@ -229,8 +232,99 @@ describe('bài bổ trợ', () => {
     expect(ket[0].hint).toBe('dùng VTPT');
   });
 
+  it('không tin ID do model tự sinh: server canonicalize theo thứ tự câu', () => {
+    const ket = parsePracticeQuestions(JSON.stringify({ questions: [
+      { id: 'answer-leak', question: 'Câu một', hint: 'Gợi ý', solution: 'Đáp án một' },
+      { id: 'answer-leak', question: 'Câu hai', hint: 'Gợi ý', solution: 'Đáp án hai' },
+    ] }));
+
+    expect(ket.map(question => question.id)).toEqual(['q1', 'q2']);
+  });
+
   it('không đọc được nội dung thì ném lỗi', () => {
     expect(() => parsePracticeQuestions('xin lỗi')).toThrow(/không đọc được/);
+  });
+
+  it('prompt chấm bài luyện buộc AI đối chiếu đúng từng câu và không bỏ qua câu trả lời trống', () => {
+    const p = buildPracticeGradingPrompt({
+      topics: ['phương trình bậc hai'],
+      questions: [{ id: 'q1', question: 'Giải x + 1 = 3', expectedAnswer: 'x = 2' }],
+      answers: { q1: 'x = 4' },
+    });
+
+    expect(p).toContain('q1');
+    expect(p).toContain('x = 4');
+    expect(p).toContain('x = 2');
+    expect(p).toContain('questionResults');
+  });
+
+  it('parse kết quả practice kẹp điểm và giữ chi tiết từng câu', () => {
+    const result = parsePracticeAssessment(JSON.stringify({
+      score: 12,
+      maxScore: 10,
+      feedback: 'Em nhầm dấu ở bước chuyển vế.',
+      questionResults: [{ id: 'q1', score: 12, maxScore: 10, feedback: 'Sai dấu.', expectedAnswer: 'x = 2' }],
+    }), 10);
+
+    expect(result.score).toBe(10);
+    expect(result.maxScore).toBe(10);
+    expect(result.questionResults[0]).toMatchObject({ id: 'q1', score: 10, maxScore: 10 });
+  });
+
+  it('parse kết quả practice lấy ID, maxScore, expectedAnswer và tổng từ private key', () => {
+    const result = parsePracticeAssessment(JSON.stringify({
+      score: 999,
+      maxScore: 10,
+      feedback: 'Có nhận xét.',
+      questionResults: [
+        { id: 'q2', score: 9, maxScore: 10, feedback: 'Đúng một phần.', expectedAnswer: 'AI bịa' },
+        { id: 'q1', score: 7, maxScore: 10, feedback: 'Đúng.', expectedAnswer: 'AI bịa' },
+      ],
+    }), [
+      { id: 'q1', question: 'Câu 1', expectedAnswer: 'Đáp án 1', maxScore: 1 },
+      { id: 'q2', question: 'Câu 2', expectedAnswer: 'Đáp án 2', maxScore: 2 },
+    ]);
+
+    expect(result).toMatchObject({ score: 3, maxScore: 3 });
+    expect(result.questionResults).toEqual([
+      expect.objectContaining({ id: 'q1', score: 1, maxScore: 1, expectedAnswer: 'Đáp án 1' }),
+      expect.objectContaining({ id: 'q2', score: 2, maxScore: 2, expectedAnswer: 'Đáp án 2' }),
+    ]);
+  });
+
+  it('fail closed nếu AI đưa thiếu, trùng hoặc ID lạ trong kết quả chấm', () => {
+    expect(() => parsePracticeAssessment(JSON.stringify({
+      questionResults: [{ id: 'q1', score: 1, maxScore: 1, feedback: 'Đúng.' }],
+    }), [
+      { id: 'q1', question: 'Câu 1', expectedAnswer: 'A', maxScore: 1 },
+      { id: 'q2', question: 'Câu 2', expectedAnswer: 'B', maxScore: 1 },
+    ])).toThrow(/thiếu|trùng|ID/i);
+
+    expect(() => parsePracticeAssessment(JSON.stringify({
+      questionResults: [
+        { id: 'q1', score: 1, maxScore: 1, feedback: 'Đúng.' },
+        { id: 'q1', score: 1, maxScore: 1, feedback: 'Đúng.' },
+      ],
+    }), [{ id: 'q1', question: 'Câu 1', expectedAnswer: 'A', maxScore: 1 }])).toThrow(/thiếu|trùng|ID/i);
+  });
+
+  it('project bài luyện công khai không làm lộ solution', () => {
+    const publicQuestions = toPublicPracticeQuestions([{
+      id: 'q1', question: 'Giải x + 1 = 3', hint: 'Cô lập x.', solution: 'x = 2',
+    }]);
+
+    expect(publicQuestions).toEqual([{ id: 'q1', question: 'Giải x + 1 = 3', hint: 'Cô lập x.' }]);
+    expect(JSON.stringify(publicQuestions)).not.toContain('x = 2');
+  });
+
+  it('fail closed nếu hint chứa nguyên đáp án sau chuẩn hoá khoảng trắng/Unicode', () => {
+    expect(() => toPublicPracticeQuestions([{
+      id: 'q1', question: 'Giải x + 1 = 3', hint: 'Đáp án là x = 2', solution: 'x = 2',
+    }])).toThrow(/đáp án|an toàn|lộ/i);
+
+    expect(() => toPublicPracticeQuestions([{
+      id: 'q1', question: 'Kết quả là x = 2', hint: 'Cô lập x.', solution: 'x = 2',
+    }])).toThrow(/đáp án|an toàn|lộ/i);
   });
 });
 

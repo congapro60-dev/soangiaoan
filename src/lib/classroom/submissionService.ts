@@ -1,5 +1,5 @@
 import { collection, deleteField, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
-import { getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
+import { deleteObject, getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
 import { auth, db, removeUndefinedFields, storage } from '../firebase';
 import { applyEvidence, mergeTopics, removeEvidence } from './profileMerge';
 import { buildManualGradeUpdate, type ManualGradeInput } from './manualGrade';
@@ -78,6 +78,25 @@ const callClassroomTeacherApi = async <T>(payload: Record<string, unknown>): Pro
   const currentUser = auth.currentUser;
   if (!currentUser || currentUser.isAnonymous) {
     throw new Error('Cần đăng nhập bằng tài khoản giáo viên để thực hiện thao tác này.');
+  }
+
+  const idToken = await currentUser.getIdToken();
+  const response = await fetch('/api/classroom', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...payload, idToken }),
+  });
+  const data = await response.json().catch(() => null) as { error?: unknown } | null;
+  if (!response.ok) {
+    throw new Error(typeof data?.error === 'string' ? data.error : `Máy chủ trả lỗi ${response.status}.`);
+  }
+  return data as T;
+};
+
+const callClassroomStudentApi = async <T>(payload: Record<string, unknown>): Promise<T> => {
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    throw new Error('Phiên đăng nhập đã hết hạn. Tải lại trang rồi đăng nhập lại.');
   }
 
   const idToken = await currentUser.getIdToken();
@@ -270,7 +289,15 @@ export const updateSubmissionGradeManually = async (
       studentId: submission.studentId,
       classId: submission.classId,
       teacherId: submission.teacherId,
-      topics: applyEvidence({ existing, weakTopics: patch.weakTopics, submissionId: submission.id, approved: true, now }),
+      topics: applyEvidence({
+        existing,
+        weakTopics: patch.weakTopics,
+        strengths: submission.grade?.strengths || [],
+        submissionId: submission.id,
+        assignmentId: submission.assignmentId || undefined,
+        approved: true,
+        now,
+      }),
       updatedAt: now,
     } as StudentProfileDoc));
   }
@@ -295,10 +322,12 @@ export const approveGrade = async (submission: SubmissionDoc, approved: boolean)
     ? mergeTopics({
         existing,
         weakTopics: (submission.grade as { weakTopics?: string[] } | undefined)?.weakTopics || [],
+        strengths: submission.grade?.strengths || [],
         submissionId: submission.id,
+        assignmentId: submission.assignmentId || undefined,
         now,
       })
-    : removeEvidence(existing, submission.id, now);
+    : removeEvidence(existing, submission.id, now, submission.assignmentId || undefined);
 
   const profile: StudentProfileDoc = {
     studentId: submission.studentId,
@@ -325,6 +354,8 @@ export interface SubmitInput {
   /** Chữ rút từ DOCX — đường chấm dùng khi không có ảnh. */
   textContent?: string;
   note?: string;
+  /** Nếu có, tạo revision mới ghép với lượt này thay vì ghi một bài độc lập. */
+  supplementOf?: string;
 }
 
 const attachmentKind = (file: File): SubmissionAttachment['kind'] => {
@@ -343,43 +374,65 @@ export const submitHomework = async (input: SubmitInput): Promise<SubmissionDoc>
   const submissionId = newId('sub');
   const fileUrls: string[] = [];
   const attachments: SubmissionAttachment[] = [];
+  const uploadedRefs: ReturnType<typeof ref>[] = [];
 
-  for (let i = 0; i < input.images.length; i += 1) {
-    const dataUrl = input.images[i];
-    const mime = /^data:([^;,]+);/.exec(dataUrl)?.[1] || 'image/jpeg';
-    // Đường dẫn gắn theo uid vì storage.rules không đọc được Firestore để kiểm studentLinks.
-    const path = `homework/${uid}/${submissionId}-${i}.${mime.split('/')[1] || 'jpg'}`;
-    const fileRef = ref(storage, path);
-    await uploadString(fileRef, dataUrl, 'data_url', { contentType: mime });
-    const url = await getDownloadURL(fileRef);
-    fileUrls.push(url);
-    attachments.push({ name: `Ảnh bài làm ${i + 1}`, url, mimeType: mime, kind: 'image' });
+  try {
+    for (let i = 0; i < input.images.length; i += 1) {
+      const dataUrl = input.images[i];
+      const mime = /^data:([^;,]+);/.exec(dataUrl)?.[1] || 'image/jpeg';
+      // Đường dẫn gắn theo uid vì storage.rules không đọc được Firestore để kiểm studentLinks.
+      const path = `homework/${uid}/${submissionId}-${i}.${mime.split('/')[1] || 'jpg'}`;
+      const fileRef = ref(storage, path);
+      uploadedRefs.push(fileRef);
+      await uploadString(fileRef, dataUrl, 'data_url', { contentType: mime });
+      const url = await getDownloadURL(fileRef);
+      fileUrls.push(url);
+      attachments.push({ name: `Ảnh bài làm ${i + 1}`, url, mimeType: mime, kind: 'image' });
+    }
+
+    for (const file of input.rawFiles || []) {
+      const an = file.name.replace(/[^\w.\-]+/g, '_');
+      const fileRef = ref(storage, `homework/${uid}/${submissionId}-${an}`);
+      uploadedRefs.push(fileRef);
+      await uploadBytes(fileRef, file, { contentType: file.type || 'application/octet-stream' });
+      const url = await getDownloadURL(fileRef);
+      fileUrls.push(url);
+      attachments.push({ name: file.name, url, mimeType: file.type || undefined, size: file.size, kind: attachmentKind(file) });
+    }
+
+    const now = new Date().toISOString();
+    const submission: SubmissionDoc = {
+      id: submissionId,
+      teacherId: input.teacherId,
+      classId: input.classId,
+      studentId: input.studentId,
+      assignmentId: input.assignmentId,
+      ...(input.supplementOf ? { supplementOf: input.supplementOf } : {}),
+      fileUrls,
+      textContent: input.textContent?.trim() || '',
+      attachments,
+      note: input.note || '',
+      status: 'submitted',
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    if (input.supplementOf) {
+      const result = await callClassroomStudentApi<{ submission: SubmissionDoc }>({
+        action: 'createSupplementSubmission',
+        submission: removeUndefinedFields(submission),
+      });
+      return result.submission;
+    }
+
+    await setDoc(doc(db, SUBMISSIONS_COL, submissionId), removeUndefinedFields(submission));
+    return submission;
+  } catch (error) {
+    // Action revision có thể bị từ chối sau khi Storage đã nhận file (parent sai, quá 12 tệp,
+    // hoặc mạng lỗi). Dọn các object vừa tạo để không để rác mồ côi; lượt nộp cũ vẫn nguyên.
+    if (input.supplementOf && uploadedRefs.length > 0) {
+      await Promise.allSettled(uploadedRefs.map(fileRef => deleteObject(fileRef)));
+    }
+    throw error;
   }
-
-  for (const file of input.rawFiles || []) {
-    const an = file.name.replace(/[^\w.\-]+/g, '_');
-    const fileRef = ref(storage, `homework/${uid}/${submissionId}-${an}`);
-    await uploadBytes(fileRef, file, { contentType: file.type || 'application/octet-stream' });
-    const url = await getDownloadURL(fileRef);
-    fileUrls.push(url);
-    attachments.push({ name: file.name, url, mimeType: file.type || undefined, size: file.size, kind: attachmentKind(file) });
-  }
-
-  const now = new Date().toISOString();
-  const submission: SubmissionDoc = {
-    id: submissionId,
-    teacherId: input.teacherId,
-    classId: input.classId,
-    studentId: input.studentId,
-    assignmentId: input.assignmentId,
-    fileUrls,
-    textContent: input.textContent?.trim() || '',
-    attachments,
-    note: input.note || '',
-    status: 'submitted',
-    createdAt: now,
-    updatedAt: now,
-  };
-  await setDoc(doc(db, SUBMISSIONS_COL, submissionId), removeUndefinedFields(submission));
-  return submission;
 };
