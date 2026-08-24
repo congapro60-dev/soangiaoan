@@ -50,7 +50,7 @@ import {
   type ProfileTopic,
 } from '../src/lib/classroom/types.js';
 import { handleAiGateway } from './_ai-gateway-handler.js';
-import { upsertSkillEvidenceAndRebuild } from './_skill-profile.js';
+import { replaceSkillEvidenceAndRebuild } from './_skill-profile.js';
 
 /**
  * Chấm bài tập bằng khoá AI của chủ dự án + gateway GLM 5.2 (gộp chung một function để
@@ -470,6 +470,15 @@ const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<stri
       }
     }
 
+    if (attempt?.status === 'graded') {
+      try {
+        await syncPracticeSkillEvidence(db, link, set, attempt);
+      } catch (error) {
+        // Bài đã chấm vẫn được trả về; lượt mở lại sau sẽ thử đồng bộ ledger lần nữa.
+        console.error('[grade-homework] không đồng bộ lại minh chứng bài luyện', error);
+      }
+    }
+
     return res.status(200).json({
       setId: requestedSetId,
       questions,
@@ -586,6 +595,25 @@ const attemptResponse = (attempt: PracticeAttemptDoc): Record<string, unknown> =
   errorMessage: attempt.status === 'error' ? 'Chấm bài luyện chưa thành công. Em có thể thử lại.' : undefined,
 });
 
+const syncPracticeSkillEvidence = async (
+  db: FirebaseFirestore.Firestore,
+  owner: { studentId: string; classId: string; teacherId: string },
+  set: PracticeSetDoc,
+  attempt: PracticeAttemptDoc,
+): Promise<void> => {
+  const evidence = buildPracticeSkillEvidence({
+    attemptId: attempt.id,
+    setId: set.id,
+    skillIds: attempt.skillIds || set.skillIds,
+    topics: Array.isArray(set.topics) ? set.topics : [],
+    score: attempt.score,
+    maxScore: attempt.maxScore,
+    updatedAt: attempt.updatedAt,
+    status: attempt.status,
+  });
+  await replaceSkillEvidenceAndRebuild(db, owner, attempt.id, evidence, attempt.updatedAt);
+};
+
 /** Chấm bài luyện bằng private key; tuyệt đối không đọc key từ client hoặc trả key trước khi chấm. */
 const handleSubmitPractice = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
   const uid = await uidFromIdToken(body.idToken);
@@ -632,7 +660,14 @@ const handleSubmitPractice = async (db: FirebaseFirestore.Firestore, body: Recor
     if (existing.studentId !== link.studentId || existing.setId !== setId) {
       return res.status(403).json({ error: 'Bài làm không thuộc tài khoản học sinh này.' });
     }
-    if (existing.status === 'graded') return res.status(200).json(attemptResponse(existing));
+    if (existing.status === 'graded') {
+      try {
+        await syncPracticeSkillEvidence(db, link, set, existing);
+      } catch (error) {
+        console.error('[grade-homework] không đồng bộ lại minh chứng bài luyện', error);
+      }
+      return res.status(200).json(attemptResponse(existing));
+    }
     if (existing.status === 'grading' && !isStaleGradingTimestamp(existing.updatedAt)) {
       return res.status(409).json({ error: 'Bài luyện đang được chấm. Chờ một chút rồi tải lại.' });
     }
@@ -675,7 +710,14 @@ const handleSubmitPractice = async (db: FirebaseFirestore.Firestore, body: Recor
   });
 
   if (lockResult.kind === 'forbidden') return res.status(403).json({ error: 'Bài làm không thuộc tài khoản học sinh này.' });
-  if (lockResult.kind === 'graded') return res.status(200).json(attemptResponse(lockResult.attempt));
+  if (lockResult.kind === 'graded') {
+    try {
+      await syncPracticeSkillEvidence(db, link, set, lockResult.attempt);
+    } catch (error) {
+      console.error('[grade-homework] không đồng bộ lại minh chứng bài luyện', error);
+    }
+    return res.status(200).json(attemptResponse(lockResult.attempt));
+  }
   if (lockResult.kind === 'locked') return res.status(409).json({ error: 'Bài luyện đang được chấm. Chờ một chút rồi tải lại.' });
   const baseAttempt = lockResult.attempt;
 
@@ -760,22 +802,12 @@ const handleSubmitPractice = async (db: FirebaseFirestore.Firestore, body: Recor
       transaction.set(attemptRef, graded);
       return graded;
     });
-    const skillEvidence = buildPracticeSkillEvidence({
-      attemptId,
-      setId,
-      skillIds: finalized.skillIds,
-      topics: Array.isArray(set.topics) ? set.topics : [],
-      score: finalized.score,
-      maxScore: finalized.maxScore,
-      updatedAt: finalized.updatedAt,
-      status: finalized.status,
-    });
-    if (skillEvidence.length > 0) {
-      await upsertSkillEvidenceAndRebuild(db, {
-        studentId: link.studentId,
-        classId: link.classId,
-        teacherId: link.teacherId,
-      }, skillEvidence, finalized.updatedAt);
+    try {
+      await syncPracticeSkillEvidence(db, link, set, finalized);
+    } catch (error) {
+      // Ledger là projection có thể dựng lại từ attempt đã chấm; không được biến
+      // một lỗi projection thành lỗi chấm bài hoặc hạ kết quả của học sinh.
+      console.error('[grade-homework] không đồng bộ được minh chứng bài luyện', error);
     }
     return res.status(200).json(attemptResponse(finalized));
   } catch (error) {

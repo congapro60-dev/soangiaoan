@@ -19,7 +19,7 @@ import handler from '../grade-homework.js';
 
 type Stored = Record<string, Record<string, Record<string, unknown>>>;
 
-const makeDb = (seed: Stored = {}) => {
+const makeDb = (seed: Stored = {}, dbOptions: { failSkillLedgerSet?: boolean } = {}) => {
   const state: Stored = { ...seed };
   const collection = (name: string) => ({
     doc: (id: string) => ({
@@ -27,9 +27,10 @@ const makeDb = (seed: Stored = {}) => {
         const data = state[name]?.[id];
         return { exists: data !== undefined, data: () => (data ? { ...data } : undefined) };
       },
-      set: async (payload: Record<string, unknown>, options?: { merge?: boolean }) => {
+      set: async (payload: Record<string, unknown>, setOptions?: { merge?: boolean }) => {
+        if (name === 'studentSkillEvidence' && dbOptions.failSkillLedgerSet) throw new Error('skill ledger unavailable');
         state[name] ||= {};
-        state[name][id] = options?.merge ? { ...state[name][id], ...payload } : { ...payload };
+        state[name][id] = setOptions?.merge ? { ...state[name][id], ...payload } : { ...payload };
       },
       update: async (payload: Record<string, unknown>) => {
         state[name] ||= {};
@@ -75,7 +76,7 @@ const makeResponse = (): { response: VercelResponse; state: { statusCode: number
   return { response, state };
 };
 
-const seedStudentDb = () => makeDb({
+const seedStudentDb = (options: { failSkillLedgerSet?: boolean } = {}) => makeDb({
   studentLinks: {
     'student-uid': { studentId: 'student-1', classId: 'class-1', teacherId: 'teacher-1' },
   },
@@ -91,7 +92,7 @@ const seedStudentDb = () => makeDb({
   classes: {
     'class-1': { grade: '10' },
   },
-});
+}, options);
 
 describe('practice set/attempt privacy and persistence', () => {
   beforeEach(() => {
@@ -191,6 +192,50 @@ describe('practice set/attempt privacy and persistence', () => {
     expect(replay.state.statusCode).toBe(200);
     expect(replay.state.jsonBody).toMatchObject({ attemptId: 'attempt-1', status: 'graded', score: 1 });
     expect(practiceGradingAiCalls).toBe(1);
+  });
+
+  it('ledger skill lỗi sau khi chấm không được hạ attempt đã graded thành error', async () => {
+    const dbOptions = { failSkillLedgerSet: true };
+    const db = seedStudentDb(dbOptions);
+    db.state.practiceSets = {
+      'set-1': {
+        id: 'set-1', studentId: 'student-1', classId: 'class-1', teacherId: 'teacher-1',
+        topics: ['phương trình bậc hai'], questions: [{ id: 'q1', question: 'Giải x + 1 = 3', hint: '' }],
+        createdAt: '2026-08-24T10:00:00.000Z', updatedAt: '2026-08-24T10:00:00.000Z',
+      },
+    };
+    db.state.practiceKeys = {
+      'set-1': {
+        setId: 'set-1', studentId: 'student-1', classId: 'class-1', teacherId: 'teacher-1',
+        questions: [{ id: 'q1', question: 'Giải x + 1 = 3', hint: '', expectedAnswer: 'x = 2', maxScore: 1 }],
+        createdAt: '2026-08-24T10:00:00.000Z',
+      },
+    };
+    initializeAdmin.mockReturnValue(db);
+    const { response, state } = makeResponse();
+
+    await handler(makeRequest({
+      action: 'submitPractice', idToken: 'token-dung', setId: 'set-1', attemptId: 'attempt-ledger-fail', answers: { q1: 'x = 2' },
+    }), response);
+
+    expect(state.statusCode).toBe(200);
+    expect(state.jsonBody).toMatchObject({ attemptId: 'attempt-ledger-fail', status: 'graded', score: 1 });
+    expect(db.state.practiceAttempts['attempt-ledger-fail']).toMatchObject({ status: 'graded', score: 1 });
+    expect(db.state.studentSkillEvidence).toBeUndefined();
+
+    dbOptions.failSkillLedgerSet = false;
+    const reload = makeResponse();
+    await handler(makeRequest({
+      action: 'practice', idToken: 'token-dung', setId: 'set-1', attemptId: 'attempt-ledger-fail',
+    }), reload.response);
+    expect(reload.state.statusCode).toBe(200);
+    expect(reload.state.jsonBody).toMatchObject({
+      setId: 'set-1',
+      attempt: { attemptId: 'attempt-ledger-fail', status: 'graded' },
+    });
+    expect(db.state.studentSkillEvidence).toEqual(expect.objectContaining({
+      'student-1__attempt-ledger-fail%3Amath.quadratic-equation': expect.objectContaining({ source: 'practice' }),
+    }));
   });
 
   it('submitPractice cho retry attempt grading đã stale quá 10 phút', async () => {

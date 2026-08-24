@@ -73,12 +73,15 @@ export const upsertSkillEvidenceAndRebuild = async (
   return rebuildStudentSkillSummary(db, owner, now);
 };
 
-export const removeSkillEvidenceAndRebuild = async (
+const isEvidenceFromSource = (data: Record<string, unknown>, sourceId: string): boolean =>
+  data.submissionId === sourceId || data.attemptId === sourceId || data.evidenceId === sourceId;
+
+const removeSourceEvidence = async (
   db: SkillProfileDb,
   owner: SkillEvidenceOwner,
   sourceId: string,
-  now = new Date().toISOString(),
-): Promise<StudentSkillState[]> => {
+  keepDocumentIds: Set<string> = new Set(),
+): Promise<void> => {
   const collection = db.collection(SKILL_EVIDENCE_COL);
   const snapshot = await collection.where('studentId', '==', owner.studentId).get();
   for (const document of snapshot.docs) {
@@ -86,10 +89,42 @@ export const removeSkillEvidenceAndRebuild = async (
     if (
       data.classId === owner.classId
       && data.teacherId === owner.teacherId
-      && (data.submissionId === sourceId || data.attemptId === sourceId || data.evidenceId === sourceId)
+      && isEvidenceFromSource(data, sourceId)
+      && !keepDocumentIds.has(document.id)
     ) {
       await collection.doc(document.id).delete();
     }
   }
+};
+
+/** Ghi lại trọn bộ evidence của một nguồn, loại các skill cũ đã bị bỏ khi chấm lại. */
+export const replaceSkillEvidenceAndRebuild = async (
+  db: SkillProfileDb,
+  owner: SkillEvidenceOwner,
+  sourceId: string,
+  evidence: SkillEvidence[],
+  now = new Date().toISOString(),
+): Promise<StudentSkillState[]> => {
+  const collection = db.collection(SKILL_EVIDENCE_COL);
+  const keepDocumentIds = new Set<string>();
+  for (const item of evidence) {
+    const documentId = skillEvidenceDocId(owner, item.evidenceId);
+    keepDocumentIds.add(documentId);
+    await collection.doc(documentId).set({
+      ...owner,
+      ...item,
+    });
+  }
+  await removeSourceEvidence(db, owner, sourceId, keepDocumentIds);
+  return rebuildStudentSkillSummary(db, owner, now);
+};
+
+export const removeSkillEvidenceAndRebuild = async (
+  db: SkillProfileDb,
+  owner: SkillEvidenceOwner,
+  sourceId: string,
+  now = new Date().toISOString(),
+): Promise<StudentSkillState[]> => {
+  await removeSourceEvidence(db, owner, sourceId);
   return rebuildStudentSkillSummary(db, owner, now);
 };

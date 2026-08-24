@@ -579,6 +579,14 @@ describe('POST /api/classroom · syncSkillEvidence', () => {
     harness.store['studentProfiles'] = {
       'hs-1': { studentId: 'hs-1', classId: 'lop-1', teacherId: 'gv-1', topics: [] },
     };
+    harness.store['studentSkillEvidence'] = {
+      'hs-1__sub-approved%3Amath.line-equation': {
+        studentId: 'hs-1', classId: 'lop-1', teacherId: 'gv-1',
+        evidenceId: 'sub-approved:math.line-equation', submissionId: 'sub-approved',
+        skillId: 'math.line-equation', source: 'homework', signal: 'weak', confidence: 0.6,
+        scoreRatio: 0.2, assessedAt: '2026-08-24T10:00:00.000Z', approved: true,
+      },
+    };
 
     const res = await call({ action: 'syncSkillEvidence', submissionId: 'sub-approved' });
 
@@ -586,6 +594,7 @@ describe('POST /api/classroom · syncSkillEvidence', () => {
     expect(harness.store['studentSkillEvidence']).toEqual(expect.objectContaining({
       'hs-1__sub-approved%3Amath.quadratic-equation': expect.objectContaining({ source: 'homework' }),
     }));
+    expect(harness.store['studentSkillEvidence']['hs-1__sub-approved%3Amath.line-equation']).toBeUndefined();
     expect(harness.store['studentProfiles']['hs-1'].skills).toEqual(expect.arrayContaining([
       expect.objectContaining({ skillId: 'math.quadratic-equation', evidenceCount: 1, status: 'developing' }),
     ]));

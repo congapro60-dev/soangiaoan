@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   removeSkillEvidenceAndRebuild,
+  replaceSkillEvidenceAndRebuild,
   upsertSkillEvidenceAndRebuild,
 } from '../_skill-profile';
 import type { SkillEvidence } from '../../src/lib/learning/skillTypes';
@@ -85,5 +86,28 @@ describe('server-only skill evidence ledger', () => {
     expect(db.state.studentProfiles['student-1'].skills).toEqual(expect.arrayContaining([
       expect.objectContaining({ skillId: 'math.line-equation', evidenceCount: 1, status: 'developing' }),
     ]));
+  });
+
+  it('thay evidence cùng source thì loại skill cũ đã bị giáo viên bỏ khỏi lần duyệt lại', async () => {
+    const db = makeDb();
+    await upsertSkillEvidenceAndRebuild(db, owner, [
+      homeworkEvidence(),
+      homeworkEvidence({
+        evidenceId: 'submission-1:math.quadratic-equation',
+        skillId: 'math.quadratic-equation',
+      }),
+    ]);
+
+    await replaceSkillEvidenceAndRebuild(db, owner, 'submission-1', [
+      homeworkEvidence({
+        evidenceId: 'submission-1:math.quadratic-equation',
+        skillId: 'math.quadratic-equation',
+        signal: 'strong',
+        scoreRatio: 1,
+      }),
+    ]);
+
+    expect(db.state.studentSkillEvidence['student-1__submission-1%3Amath.line-equation']).toBeUndefined();
+    expect(db.state.studentSkillEvidence['student-1__submission-1%3Amath.quadratic-equation']).toBeDefined();
   });
 });

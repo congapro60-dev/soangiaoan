@@ -24,7 +24,7 @@ describe('skillViewModel — projection an toàn cho học sinh', () => {
       title: 'Lập và sử dụng phương trình đường thẳng',
       statusLabel: 'Đang phát triển',
       trendLabel: 'Đang tiến bộ',
-      sourceLabel: 'Bài đã được giáo viên duyệt · Luyện tập',
+      sourceLabel: 'Bài tập được giáo viên duyệt · Luyện tập',
       masteryPercent: 68,
       confidencePercent: 72,
       evidenceCount: 2,

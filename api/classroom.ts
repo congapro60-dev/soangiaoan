@@ -21,7 +21,7 @@ import {
 } from './_classroom-core.js';
 import {
   removeSkillEvidenceAndRebuild,
-  upsertSkillEvidenceAndRebuild,
+  replaceSkillEvidenceAndRebuild,
 } from './_skill-profile.js';
 
 /**
@@ -233,7 +233,7 @@ const handleSyncSkillEvidence = async (db: FirebaseFirestore.Firestore, body: Re
 
   const evidence = storedHomeworkSkillEvidence(submissionId, submission);
   const skills = submission.grade?.teacherApproved === true
-    ? await upsertSkillEvidenceAndRebuild(db, owner, evidence, new Date().toISOString())
+    ? await replaceSkillEvidenceAndRebuild(db, owner, submissionId, evidence, new Date().toISOString())
     : await removeSkillEvidenceAndRebuild(db, owner, submissionId, new Date().toISOString());
   return res.status(200).json({ ok: true, skills });
 };

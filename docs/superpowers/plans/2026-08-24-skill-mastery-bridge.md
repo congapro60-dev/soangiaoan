@@ -236,7 +236,7 @@
 
   Also run authenticated browser E2E for: approved homework → skill summary, practice → formative evidence, resubmission/delete → no double count or orphaned state. Run the Ox Alpha Free audit if the model is available; record a network/provider failure instead of treating it as approval.
 
-- [ ] **Step 4: Commit the verified milestone**
+- [x] **Step 4: Commit the verified milestone**
 
   ```powershell
   git add src/components/features/classroom/student tasks/session_2026-08-24-skill-mastery-bridge.md
@@ -247,12 +247,21 @@
 
 - Copy education gate: `tasks/2026-08-24-skill-mastery-bridge-copy-review.md` passed `vietnamese-education-copy` with `--doctype teacher-to-student --register edu-k12 --strict`: 0 errors, 0 warnings.
 - Focused milestone suite: 10 files, 115 tests passed.
-- Full unit suite (run independently): 80 files, 1.113 tests passed.
+- Full unit suite (run independently): 80 files, 1.115 tests passed.
 - Firestore rules emulator: 7 files, 241 tests passed; `studentSkillEvidence` client read/list/write/delete denied.
 - TypeScript/lint: `lint` and `lint:api` passed.
 - Production build: `npm run build` passed; existing Vite chunk-size/dynamic-import warnings remain non-blocking.
 - `git diff --check` passed.
 - Authenticated browser E2E and production deployment remain intentionally pending; no push/deploy was performed in this checkpoint.
+
+## Review hardening checkpoint — 2026-08-24
+
+- Re-approval now replaces the complete evidence set for the same submission/attempt: new documents are written first, then stale skill documents from that source are removed, followed by a canonical summary rebuild.
+- A failure while writing the practice evidence projection no longer enters the grading-failure path or lowers an already graded attempt. Re-opening a graded practice attempt retries the projection sync.
+- Regression coverage added for stale-skill removal, graded-attempt preservation during ledger failure, and successful resync on reload.
+- Adaptive prompt numbering and the student-facing source label were cleaned up while preserving the existing copy register.
+- Independent OpenCode audit: `opencode/ox-alpha-free` was not exposed by the installed CLI; the direct requests failed with provider references `err_bdc19a1b` and `err_777553c5`. The read-only fallback `opencode/x-preview-f-free` identified the stale-source and projection-failure risks, then re-reviewed the hardening with 29/29 focused tests and found no blocking issue. No model was described as Ox Alpha when it was not available.
+- The review's cross-class profile concern remains guarded by the existing `studentId/classId/teacherId` checks and is not silently expanded into a storage-key migration in this milestone.
 
 ## Self-review checklist
 

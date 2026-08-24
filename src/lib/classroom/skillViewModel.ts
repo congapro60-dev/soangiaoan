@@ -23,7 +23,7 @@ const STATUS_LABEL: Record<StudentSkillState['status'], string> = {
 };
 
 const SOURCE_LABEL: Record<SkillEvidenceSource, string> = {
-  homework: 'Bài đã được giáo viên duyệt',
+  homework: 'Bài tập được giáo viên duyệt',
   practice: 'Luyện tập',
   transfer: 'Bài vận dụng',
 };
