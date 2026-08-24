@@ -3,6 +3,7 @@ import { Loader2, Save, Sparkles, X } from 'lucide-react';
 import type { SubmissionDoc } from '../../../lib/classroom/types';
 import { rewriteFeedback } from '../../../services/gradingApi';
 import { NhanXetMarkdown } from './NhanXetMarkdown';
+import { QuestionResultsList } from './QuestionResultsList';
 
 export interface GradeReviewValue {
   score: number;
@@ -85,6 +86,7 @@ export const GradeReviewModal = ({ classId, studentName, submission, dangLuu, on
         </div>
 
         <div className="mt-4 space-y-5">
+          <QuestionResultsList results={g?.questionResults} title="Kết quả AI theo từng câu (chỉ xem)" />
           <div>
             <label className="mb-1 block text-sm font-black text-slate-700">Điểm (tối đa {maxScore})</label>
             <input type="number" min={0} max={maxScore} step={0.25} value={score}

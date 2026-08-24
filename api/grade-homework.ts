@@ -45,7 +45,9 @@ import { handleAiGateway } from './_ai-gateway-handler.js';
  */
 const BATCH_SIZE = 4;
 /** Khop voi tran phia hoc sinh: bo sot anh la cham thieu bai ma khong ai biet. */
-const MAX_IMAGES_PER_SUBMISSION = 10;
+const MAX_SUBMISSION_FILES = 12;
+/** Chỉ gửi một số trang đề cần thiết làm ngữ cảnh chung; file gốc vẫn giữ đủ cho học sinh mở. */
+const MAX_ASSIGNMENT_SOURCE_IMAGES = 6;
 const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
 /** Khai tường minh thay vì dựa default của Vercel — Hobby cap ở 60s. */
 export const maxDuration = 60;
@@ -71,10 +73,14 @@ const uidFromIdToken = async (idToken: unknown): Promise<string | null> => {
 const fetchImage = async (url: string): Promise<InlineImage | null> => {
   const res = await fetch(url);
   if (!res.ok) return null;
+  // Submission có thể giữ cả PDF/DOCX để giáo viên mở bản gốc. Gemini Vision chỉ nhận ảnh;
+  // phần chữ của DOCX đi qua `textContent`, còn file PDF đã có ảnh trang được tạo ở client.
+  const mimeType = res.headers.get('content-type')?.split(';')[0] || '';
+  if (mimeType && !mimeType.startsWith('image/')) return null;
   const buffer = Buffer.from(await res.arrayBuffer());
   if (buffer.byteLength === 0 || buffer.byteLength > MAX_IMAGE_BYTES) return null;
   return {
-    mimeType: res.headers.get('content-type')?.split(';')[0] || 'image/jpeg',
+    mimeType: mimeType || 'image/jpeg',
     data: buffer.toString('base64'),
   };
 };
@@ -86,11 +92,28 @@ const loadAnswerKeyImages = async (assignment: FirebaseFirestore.DocumentData): 
   return anh.filter((img): img is InlineImage => img !== null);
 };
 
+/** Ảnh đề của giáo viên — tải một lần cho cả lô, đứng trước ảnh đáp án và bài làm. */
+const loadAssignmentSourceImages = async (assignment: FirebaseFirestore.DocumentData): Promise<InlineImage[]> => {
+  const generatedUrls = Array.isArray(assignment.sourceImageUrls)
+    ? assignment.sourceImageUrls.map((url: unknown) => String(url || '')).filter(Boolean)
+    : [];
+  const attachmentUrls = (Array.isArray(assignment.attachments) ? assignment.attachments : [])
+    .map((item: unknown) => item && typeof item === 'object' ? String((item as { url?: unknown }).url || '') : '')
+    .filter(Boolean);
+  const urls = [...new Set([...generatedUrls, ...attachmentUrls])].slice(0, MAX_ASSIGNMENT_SOURCE_IMAGES);
+  const anh = await Promise.all(urls.map((u: string) => fetchImage(u).catch(() => null)));
+  return anh.filter((img): img is InlineImage => img !== null);
+};
+
 interface GradeContext {
   answerKey: string;
   rubric: string;
   maxScore: number;
   assignmentTitle: string;
+  assignmentText: string;
+  gradingInstructions: string;
+  /** Ảnh đề của giáo viên, gửi trước ảnh đáp án và bài làm. */
+  assignmentImages: InlineImage[];
   /** Ảnh đáp án của giáo viên, gửi TRƯỚC ảnh bài làm. Tải một lần rồi dùng cho cả lô. */
   answerKeyImages: InlineImage[];
 }
@@ -106,21 +129,28 @@ const gradeOneSubmission = async (
   await ref.update({ status: 'grading', updatedAt: new Date().toISOString() });
 
   try {
-    const urls = (Array.isArray(data.fileUrls) ? data.fileUrls : []).slice(0, MAX_IMAGES_PER_SUBMISSION);
+    const urls = (Array.isArray(data.fileUrls) ? data.fileUrls : []).slice(0, MAX_SUBMISSION_FILES);
     const images = (await Promise.all(urls.map((u: string) => fetchImage(u).catch(() => null))))
       .filter((img): img is InlineImage => img !== null);
+    const studentText = String(data.textContent || '').trim();
 
-    if (images.length === 0) throw new Error('Không tải được ảnh bài làm. Em thử chụp và nộp lại.');
+    if (images.length === 0 && !studentText) {
+      throw new Error('Không đọc được bài làm. Em thử chụp lại hoặc nộp lại file.');
+    }
 
     const prompt = buildHomeworkGradingPrompt({
       answerKey: ctx.answerKey,
       rubric: ctx.rubric,
       maxScore: ctx.maxScore,
       assignmentTitle: ctx.assignmentTitle,
+      assignmentText: ctx.assignmentText,
+      assignmentImageCount: ctx.assignmentImages.length,
       answerKeyImageCount: ctx.answerKeyImages.length,
+      gradingInstructions: ctx.gradingInstructions,
+      studentText,
     });
-    const raw = await callGeminiVision(prompt, [...ctx.answerKeyImages, ...images], apiKey, GRADING_MODEL, {
-      maxOutputTokens: 4096,
+    const raw = await callGeminiVision(prompt, [...ctx.assignmentImages, ...ctx.answerKeyImages, ...images], apiKey, GRADING_MODEL, {
+      maxOutputTokens: 8192,
       jsonMode: true,
     });
     const khongCoDapAn = ctx.answerKey.trim().length === 0 && ctx.answerKeyImages.length === 0;
@@ -136,6 +166,7 @@ const gradeOneSubmission = async (
         noteForTeacher: parsed.noteForTeacher,
         strengths: parsed.strengths,
         weaknesses: parsed.weaknesses,
+        questionResults: parsed.questionResults,
         weakTopics: parsed.weakTopics,
         gradedWithoutAnswerKey: parsed.gradedWithoutAnswerKey,
         gradedAt: now,
@@ -196,6 +227,10 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
     rubric: String(assignment.rubric || ''),
     maxScore: Number(assignment.maxScore) || 10,
     assignmentTitle: String(assignment.title || ''),
+    assignmentText: String(assignment.sourceText || ''),
+    // Ảnh generated xử lý PDF scan đã nằm trong sourceImageUrls; ảnh đính kèm cũ dùng fallback.
+    gradingInstructions: String(assignment.gradingInstructions || ''),
+    assignmentImages: await loadAssignmentSourceImages(assignment),
     answerKeyImages: await loadAnswerKeyImages(assignment),
   };
   const apiKey = getGradingApiKey();
@@ -235,7 +270,16 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
   const verdict = remainingQuota(quota, kind, String(submission.studentId || ''));
   if (verdict.allowed <= 0) return res.status(429).json({ error: verdict.reason });
 
-  let ctx: GradeContext = { answerKey: '', rubric: '', maxScore: 10, assignmentTitle: '', answerKeyImages: [] };
+  let ctx: GradeContext = {
+    answerKey: '',
+    rubric: '',
+    maxScore: 10,
+    assignmentTitle: '',
+    assignmentText: '',
+    gradingInstructions: '',
+    assignmentImages: [],
+    answerKeyImages: [],
+  };
   if (submission.assignmentId) {
     const aSnap = await db.collection('assignments').doc(String(submission.assignmentId)).get();
     if (aSnap.exists) {
@@ -251,6 +295,10 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
         rubric: String(a.rubric || ''),
         maxScore: Number(a.maxScore) || 10,
         assignmentTitle: String(a.title || ''),
+        assignmentText: String(a.sourceText || ''),
+        // Ảnh generated xử lý PDF scan đã nằm trong sourceImageUrls; ảnh đính kèm cũ dùng fallback.
+        gradingInstructions: String(a.gradingInstructions || ''),
+        assignmentImages: await loadAssignmentSourceImages(a),
         answerKeyImages: await loadAnswerKeyImages(a),
       };
     }

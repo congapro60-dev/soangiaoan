@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
-import { Printer, Target, TrendingUp } from 'lucide-react';
+import { Download, Printer, Target, TrendingUp } from 'lucide-react';
 import { db } from '../../../lib/firebase';
 import { STUDENT_PROFILES_COL, type StudentProfileDoc, type SubmissionDoc } from '../../../lib/classroom/types';
 import { listSubmissionsForStudent } from '../../../lib/classroom/submissionService';
 import { NhanXetMarkdown } from './NhanXetMarkdown';
+import { QuestionResultsList } from './QuestionResultsList';
+import { buildStudentReportModel } from '../../../lib/classroom/reportModel';
 
 interface Props {
   studentId: string;
@@ -17,6 +19,8 @@ interface Props {
 }
 
 const ngay = (iso?: string) => (iso ? new Date(iso).toLocaleDateString('vi-VN') : '');
+
+const csvCell = (value: unknown): string => `"${String(value ?? '').replace(/"/g, '""')}"`;
 
 /**
  * Báo cáo học tập của một học sinh.
@@ -47,13 +51,39 @@ export const StudentReport = ({ studentId, teacherId, studentName, className, st
     return () => { huy = true; };
   }, [studentId, teacherId]);
 
-  const daCham = submissions.filter(s => s.status === 'graded' && s.grade);
-  const daDuyet = daCham.filter(s => s.grade?.teacherApproved);
-  const diemTB = daCham.length > 0
-    ? (daCham.reduce((sum, s) => sum + (s.grade?.score ?? 0), 0) / daCham.length).toFixed(1)
-    : '—';
+  const model = buildStudentReportModel(submissions);
+  const diemTB = model.averagePercent === null ? '—' : `${model.averagePercent.toFixed(1)}%`;
   const yeu = (profile?.topics || []).filter(t => t.level === 'weak');
   const dangLen = (profile?.topics || []).filter(t => t.level === 'developing');
+
+  const taiCsv = () => {
+    const rows: string[][] = [[
+      'Học sinh', 'Mã học sinh', 'Submission ID', 'Bài giao', 'Ngày nộp', 'Điểm', 'Thang điểm',
+      'Đã duyệt', 'Trạng thái câu', 'Câu', 'Bài làm của học sinh', 'Đáp án / mốc cần đạt',
+      'Loại lỗi', 'Giải thích', 'Cách sửa', 'Luyện tiếp theo', 'Cần GV xem lại',
+    ]];
+    for (const submission of model.currentSubmissions) {
+      const grade = submission.grade;
+      const details = grade?.questionResults || [];
+      const base: string[] = [studentName, studentCode, submission.id, submission.assignmentId || 'Bài tự nộp', ngay(submission.createdAt),
+        grade?.score ?? '', grade?.maxScore ?? '', grade?.teacherApproved ? 'Có' : 'Chưa', submission.status].map(value => String(value));
+      if (details.length === 0) {
+        rows.push([...base, '', '', '', '', '', '', '', '', '']);
+      } else {
+        for (const detail of details) {
+          rows.push([...base, detail.status, detail.questionNumber, detail.studentAnswer, detail.expectedAnswer,
+            detail.errorType, detail.explanation, detail.correction, detail.nextPractice, detail.needsTeacherReview ? 'Có' : 'Không']);
+        }
+      }
+    }
+    const csv = '\uFEFF' + rows.map(row => row.map(csvCell).join(',')).join('\r\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `bao-cao-${studentCode || studentName}.csv`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
 
   if (dangTai) {
     return <p className="py-8 text-center text-sm font-semibold text-slate-400">Đang tải dữ liệu học tập...</p>;
@@ -63,9 +93,9 @@ export const StudentReport = ({ studentId, teacherId, studentName, className, st
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Bài đã nộp', value: String(submissions.length) },
+          { label: 'Bài hiện hành', value: String(model.currentSubmissions.length) },
           { label: 'Điểm trung bình', value: diemTB },
-          { label: 'Đã duyệt', value: `${daDuyet.length}/${daCham.length}` },
+          { label: 'Đã duyệt', value: `${model.approvedSubmissions.length}/${model.gradedSubmissions.length}` },
         ].map(item => (
           <div key={item.label} className="rounded-2xl bg-slate-50 p-4">
             <p className="text-xs font-bold text-slate-500">{item.label}</p>
@@ -77,11 +107,11 @@ export const StudentReport = ({ studentId, teacherId, studentName, className, st
       <div>
         <p className="text-xs font-black uppercase tracking-wide text-slate-400">Bài đã chấm</p>
         <div className="mt-2 space-y-2">
-          {daCham.length === 0 ? (
+          {model.gradedSubmissions.length === 0 ? (
             <p className="rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm font-semibold text-slate-400">
               Chưa có bài nào được chấm.
             </p>
-          ) : daCham.slice(0, 8).map(s => (
+          ) : model.gradedSubmissions.map(s => (
             <div key={s.id} className="rounded-2xl border border-slate-100 px-4 py-3">
               <div className="flex items-baseline gap-2">
                 <span className="text-sm font-black text-slate-900">{s.grade?.score} / {s.grade?.maxScore}</span>
@@ -94,6 +124,7 @@ export const StudentReport = ({ studentId, teacherId, studentName, className, st
                 )}
               </div>
               <NhanXetMarkdown>{s.grade?.feedback || ''}</NhanXetMarkdown>
+              <QuestionResultsList results={s.grade?.questionResults} />
               {forAdult && s.grade?.noteForTeacher && (
                 <p className="mt-1 text-xs font-semibold italic leading-5 text-slate-500">Ghi chú: {s.grade.noteForTeacher}</p>
               )}
@@ -148,8 +179,15 @@ export const StudentReport = ({ studentId, teacherId, studentName, className, st
             }}
             className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-black text-slate-700 transition hover:bg-slate-50"
           >
-            <Printer className="h-4 w-4" /> In báo cáo
+            <Printer className="h-4 w-4" /> In / lưu PDF
           </button>
+          <button
+            onClick={taiCsv}
+            className="ml-2 inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-black text-slate-700 transition hover:bg-slate-50"
+          >
+            <Download className="h-4 w-4" /> Tải CSV chi tiết
+          </button>
+          <p className="mt-2 text-[11px] font-semibold text-slate-400">CSV gồm từng câu; điểm trung bình chỉ tính bài đã duyệt.</p>
           <p className="text-[11px] font-semibold text-slate-400">Mã học sinh: {studentCode}</p>
         </>
       )}

@@ -28,6 +28,9 @@ import { StudentPortalDashboard } from '../components/features/classroom/student
  * van chan duoc ca xap anh chup nham.
  */
 const MAX_ANH = 10;
+/** File gốc chỉ để giáo viên mở; phần chấm vẫn đi qua ảnh/chữ đã kiểm soát. */
+const MAX_RAW_FILE_BYTES = 20 * 1024 * 1024;
+const MAX_STUDENT_TEXT_CHARS = 60000;
 type Stage = 'dang-tai' | 'nhap-ma-lop' | 'chon-ten' | 'dashboard';
 
 interface Phien {
@@ -222,22 +225,37 @@ export const StudentPortalPage = () => {
     setDangNop(mucTieu || 'tu-do');
     try {
       const images: string[] = [];
+      const rawFiles: File[] = [];
+      const textParts: string[] = [];
       for (let i = 0; i < chon.length; i += 1) {
         const file = chon[i];
+        if (file.size > MAX_RAW_FILE_BYTES) {
+          throw new Error(`${file.name} vượt quá giới hạn 20 MB. Em chọn file nhỏ hơn rồi thử lại nhé.`);
+        }
         setBuocNop(chon.length > 1 ? `Đang chuẩn bị tệp ${i + 1}/${chon.length}...` : 'Đang chuẩn bị bài...');
 
         // PDF: tach thanh tung trang anh roi cham nhu anh thuong. Duong cham dung Gemini Vision
         // nen phai la anh; tach o day thi may chu khong phai biet gi ve PDF.
+        // Giữ thêm file gốc để giáo viên mở khi cần đối chiếu trang PDF.
         if (/\.pdf$/i.test(file.name) || file.type === 'application/pdf') {
           const { pdfToImages } = await import('../utils/examImportUtils');
           const trang = await pdfToImages(file);
           if (trang.length === 0) throw new Error(`Không đọc được trang nào trong ${file.name}.`);
           images.push(...trang);
+          rawFiles.push(file);
+        } else if (/\.doc$/i.test(file.name)) {
+          throw new Error('Định dạng .doc cũ chưa được hỗ trợ ổn định. Em lưu lại thành .docx hoặc PDF rồi nộp lại nhé.');
+        } else if (/\.docx$/i.test(file.name) || file.type.includes('wordprocessingml')) {
+          const { extractTextFromWord } = await import('../utils/fileUtils');
+          const text = (await extractTextFromWord(file)).trim();
+          if (!text) throw new Error(`Không đọc được nội dung trong ${file.name}.`);
+          textParts.push(text.slice(0, MAX_STUDENT_TEXT_CHARS));
+          rawFiles.push(file);
         } else {
           images.push(await nenAnhBaiLam(file));
         }
       }
-      if (images.length === 0) throw new Error('Không có ảnh nào để nộp.');
+      if (images.length === 0 && rawFiles.length === 0) throw new Error('Không có bài nào để nộp.');
       if (images.length > MAX_ANH) images.length = MAX_ANH;
       setBuocNop('Đang tải bài lên máy chủ...');
       const submission = await submitHomework({
@@ -246,6 +264,8 @@ export const StudentPortalPage = () => {
         teacherId: phien.teacherId,
         assignmentId: mucTieu,
         images,
+        rawFiles,
+        textContent: textParts.join('\n\n').slice(0, MAX_STUDENT_TEXT_CHARS),
       });
       const tenBai = mucTieu
         ? assignments.find(a => a.id === mucTieu)?.title || 'bài được giao'
@@ -262,7 +282,7 @@ export const StudentPortalPage = () => {
         }
       } else {
         const bai = assignments.find(a => a.id === mucTieu);
-        if (bai && (bai.answerKey || bai.rubric)) {
+        if (bai && (bai.answerKey || bai.rubric || (bai.answerKeyImageUrls?.length ?? 0) > 0)) {
           setBuocNop('');
           const { isConfirmed } = await Swal.fire({
             icon: 'success',

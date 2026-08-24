@@ -39,10 +39,21 @@ export const readSourceFile = async (file: File): Promise<SourceFileResult> => {
     if (text.trim().length >= NGUONG_CHU) {
       return { text: text.trim(), images: [], note: `Đã đọc chữ từ ${file.name}. Soát lại rồi hãy giao bài.` };
     }
+    // PDF scan không có lớp chữ: chuyển tối đa vài trang thành ảnh để AI vẫn có thể đọc đề/
+    // đáp án. File PDF gốc vẫn được giữ riêng để học sinh và giáo viên mở lại khi cần.
+    const { pdfToImages } = await import('../../utils/examImportUtils');
+    const images = await pdfToImages(file);
+    if (images.length > 0) {
+      return {
+        text: '',
+        images,
+        note: `${file.name} là PDF scan; đã chuyển ${images.length} trang thành ảnh để AI đối chiếu.`,
+      };
+    }
     return {
       text: '',
       images: [],
-      note: `${file.name} là PDF scan, không có lớp chữ để đọc. Chụp lại thành ảnh rồi tải lên, hoặc gõ tay đáp án.`,
+      note: `${file.name} là PDF scan nhưng không chuyển được trang nào thành ảnh. Chụp lại thành ảnh rồi tải lên, hoặc gõ tay đáp án.`,
     };
   }
 

@@ -98,8 +98,15 @@ export const StudentPortalDashboard = ({
     ...assignedGraded,
     ...selfSubmissions.filter(submission => submission.status === 'graded'),
   ], [assignedGraded, selfSubmissions]);
-  const scoredAverage = allGraded.length > 0
-    ? (allGraded.reduce((sum, submission) => sum + (submission.grade?.score ?? 0), 0) / allGraded.length).toFixed(1)
+  // Điểm AI chưa được thầy cô duyệt chỉ là bản nháp, không đưa vào điểm trung bình chính thức.
+  // Đồng thời quy đổi theo phần trăm để bài 20 điểm không làm lệch bài 10 điểm.
+  const approvedGraded = allGraded.filter(submission => submission.grade?.teacherApproved === true);
+  const scoredAverage = approvedGraded.length > 0
+    ? `${(approvedGraded.reduce((sum, submission) => {
+        const score = submission.grade?.score ?? 0;
+        const max = submission.grade?.maxScore || 0;
+        return sum + (max > 0 ? (score / max) * 100 : 0);
+      }, 0) / approvedGraded.length).toFixed(1)}%`
     : '—';
   const completedCount = rows.filter(row => row.state.status !== 'todo').length;
   const progress = assignments.length > 0 ? Math.round((completedCount / assignments.length) * 100) : 0;
@@ -134,7 +141,7 @@ export const StudentPortalDashboard = ({
         {/* KHONG dat capture="environment": tren dien thoai capture THANG multiple, may mo thang
             camera va tra ve DUNG MOT anh. Bo di thi trinh chon cho phep chup moi lan nhieu tam
             va lay tu thu vien. Nhan them PDF vi nhieu em nop ban scan nhieu trang. */}
-        <input ref={uploadRef} type="file" accept="image/*,application/pdf,.pdf" multiple className="hidden" onChange={onFileChange} />
+        <input ref={uploadRef} type="file" accept="image/*,application/pdf,.pdf,.docx" multiple className="hidden" onChange={onFileChange} />
 
         <section className="overflow-hidden rounded-[1.75rem] bg-slate-900 p-5 text-white shadow-xl shadow-slate-200 sm:p-7">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
@@ -157,7 +164,7 @@ export const StudentPortalDashboard = ({
           </div>
           <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-5">
             <p className="text-xl font-black text-emerald-600 sm:text-2xl">{scoredAverage}</p>
-            <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-slate-400 sm:text-xs">Điểm trung bình</p>
+            <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-slate-400 sm:text-xs">Điểm đã duyệt</p>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-5">
             <p className="text-xl font-black text-slate-900 sm:text-2xl">{assignedGraded.length}<span className="text-sm font-bold text-slate-300">/{assignments.length}</span></p>

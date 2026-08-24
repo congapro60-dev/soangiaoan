@@ -512,12 +512,26 @@ service cloud.firestore {
       allow create: if request.auth != null
                     && request.resource.data.teacherId == request.auth.uid
                     && laChuLop(request.resource.data.classId)
-                    && request.resource.data.keys().hasAll(['teacherId', 'classId', 'title', 'type', 'isOpen']);
+                    && request.resource.data.keys().hasAll(['teacherId', 'classId', 'title', 'type', 'isOpen'])
+                    && (!('sourceText' in request.resource.data)
+                        || (request.resource.data.sourceText is string && request.resource.data.sourceText.size() <= 60000))
+                    && (!('sourceImageUrls' in request.resource.data)
+                        || (request.resource.data.sourceImageUrls is list && request.resource.data.sourceImageUrls.size() <= 6))
+                    && (!('gradingInstructions' in request.resource.data)
+                        || (request.resource.data.gradingInstructions is string && request.resource.data.gradingInstructions.size() <= 6000))
+                    && (!('attachments' in request.resource.data)
+                        || (request.resource.data.attachments is list && request.resource.data.attachments.size() <= 12));
 
       allow update: if request.auth != null
                     && resource.data.teacherId == request.auth.uid
                     && request.resource.data.teacherId == resource.data.teacherId
-                    && request.resource.data.classId == resource.data.classId;
+                    && request.resource.data.classId == resource.data.classId
+                    && (!('sourceText' in request.resource.data)
+                        || (request.resource.data.sourceText is string && request.resource.data.sourceText.size() <= 60000))
+                    && (!('sourceImageUrls' in request.resource.data)
+                        || (request.resource.data.sourceImageUrls is list && request.resource.data.sourceImageUrls.size() <= 6))
+                    && (!('gradingInstructions' in request.resource.data)
+                        || (request.resource.data.gradingInstructions is string && request.resource.data.gradingInstructions.size() <= 6000));
 
       allow delete: if request.auth != null && resource.data.teacherId == request.auth.uid;
     }
@@ -528,14 +542,24 @@ service cloud.firestore {
       function hocSinhNopHopLe() {
         let d = request.resource.data;
         return coLienKetHocSinh()
+               && d.keys().hasOnly([
+                    'id', 'teacherId', 'classId', 'studentId', 'assignmentId', 'fileUrls',
+                    'textContent', 'attachments', 'note', 'status', 'createdAt', 'updatedAt'
+                  ])
+               && d.id == submissionId
                && d.studentId == lienKetHocSinh().studentId
                && d.classId == lienKetHocSinh().classId
                && d.teacherId == lienKetHocSinh().teacherId
+               && (d.assignmentId == null || d.assignmentId is string)
                && d.status == 'submitted'
                && !('grade' in d)
                && d.fileUrls is list
                && d.fileUrls.size() >= 1
-               && d.fileUrls.size() <= 10;
+               && d.fileUrls.size() <= 12
+               && (!('textContent' in d)
+                   || (d.textContent is string && d.textContent.size() <= 60000))
+               && (!('attachments' in d)
+                   || (d.attachments is list && d.attachments.size() >= 1 && d.attachments.size() <= 12));
       }
 
       // Nộp lại khi chưa chấm: chỉ được đổi file và ghi chú, không đụng gì khác.
@@ -543,7 +567,7 @@ service cloud.firestore {
         return laHocSinh(resource.data.studentId)
                && resource.data.status == 'submitted'
                && request.resource.data.diff(resource.data).affectedKeys()
-                    .hasOnly(['fileUrls', 'note', 'updatedAt']);
+                    .hasOnly(['fileUrls', 'textContent', 'attachments', 'note', 'updatedAt']);
       }
 
       allow list, get: if (request.auth != null && resource.data.teacherId == request.auth.uid)

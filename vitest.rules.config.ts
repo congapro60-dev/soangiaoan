@@ -12,5 +12,8 @@ export default defineConfig({
     // clearFirestore() của file này không xoá dữ liệu file kia đang dùng.
     fileParallelism: false,
     testTimeout: 20000,
+    // Khởi tạo RulesTestEnvironment có thể vượt 10s khi emulator vừa cold-start
+    // hoặc đang chạy đủ các file rules tuần tự; đây là timeout của hook, không phải test nghiệp vụ.
+    hookTimeout: 30000,
   },
 });

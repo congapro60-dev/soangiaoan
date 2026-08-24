@@ -1,5 +1,6 @@
 import { AlertTriangle, CalendarClock, Camera, CheckCircle2, Clock3, FileText, Loader2, MessageCircle, RotateCcw } from 'lucide-react';
 import { NhanXetMarkdown } from '../NhanXetMarkdown';
+import { QuestionResultsList } from '../QuestionResultsList';
 import type { AssignmentDoc, SubmissionDoc } from '../../../../lib/classroom/types';
 import type { StudentAssignmentState } from '../../../../lib/classroom/portalViewModel';
 
@@ -99,6 +100,7 @@ export const StudentAssignmentCard = ({ assignment, submission, state, uploading
               {submission.grade.feedback && (
                 <div className="mt-1"><NhanXetMarkdown tone="sang">{submission.grade.feedback}</NhanXetMarkdown></div>
               )}
+              <QuestionResultsList results={submission.grade.questionResults} compact />
             </div>
           )}
         </div>

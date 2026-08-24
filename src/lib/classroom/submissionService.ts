@@ -2,6 +2,7 @@ import { collection, deleteDoc, deleteField, doc, getDoc, getDocs, query, setDoc
 import { getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
 import { auth, db, removeUndefinedFields, storage } from '../firebase';
 import { applyEvidence, mergeTopics, removeEvidence } from './profileMerge';
+import { buildManualGradeUpdate, type ManualGradeInput } from './manualGrade';
 import {
   ASSIGNMENTS_COL,
   CLASSES_COL,
@@ -9,6 +10,7 @@ import {
   SUBMISSIONS_COL,
   type AssignmentAttachment,
   type AssignmentDoc,
+  type SubmissionAttachment,
   type StudentProfileDoc,
   type SubmissionDoc,
 } from './types';
@@ -33,6 +35,9 @@ export interface NewAssignment {
   maxScore?: number;
   dueAt?: string;
   attachments?: AssignmentAttachment[];
+  sourceText?: string;
+  sourceImageUrls?: string[];
+  gradingInstructions?: string;
   answerKeyImageUrls?: string[];
   answerKeyByAi?: boolean;
 }
@@ -52,22 +57,26 @@ export const uploadAssignmentFiles = async (
     const an = file.name.replace(/[^\w.\-]+/g, '_');
     const fileRef = ref(storage, `assignments/${teacherUid}/${newId('de')}-${an}`);
     await uploadBytes(fileRef, file, { contentType: file.type || 'application/octet-stream' });
-    ket.push({ name: file.name, url: await getDownloadURL(fileRef) });
+    ket.push({ name: file.name, url: await getDownloadURL(fileRef), mimeType: file.type || undefined, size: file.size });
   }
   return ket;
 };
 
-/** Ảnh đáp án (data URL) lên Storage. Chỉ dùng khi file gốc không rút được chữ. */
-export const uploadAnswerKeyImages = async (teacherUid: string, images: string[]): Promise<string[]> => {
+/** Ảnh tham chiếu (data URL) lên Storage. Dùng cho ảnh đề/ảnh đáp án/PDF scan. */
+export const uploadAssignmentImages = async (teacherUid: string, images: string[], prefix: string): Promise<string[]> => {
   const urls: string[] = [];
   for (const dataUrl of images) {
     const mime = /^data:([^;,]+);/.exec(dataUrl)?.[1] || 'image/jpeg';
-    const fileRef = ref(storage, `assignments/${teacherUid}/${newId('dapan')}.${mime.split('/')[1] || 'jpg'}`);
+    const fileRef = ref(storage, `assignments/${teacherUid}/${newId(prefix)}.${mime.split('/')[1] || 'jpg'}`);
     await uploadString(fileRef, dataUrl, 'data_url', { contentType: mime });
     urls.push(await getDownloadURL(fileRef));
   }
   return urls;
 };
+
+/** Ảnh đáp án (data URL) lên Storage. Chỉ dùng khi file gốc không rút được chữ. */
+export const uploadAnswerKeyImages = async (teacherUid: string, images: string[]): Promise<string[]> =>
+  uploadAssignmentImages(teacherUid, images, 'dapan');
 
 export const createAssignment = async (input: NewAssignment): Promise<AssignmentDoc> => {
   const now = new Date().toISOString();
@@ -80,6 +89,9 @@ export const createAssignment = async (input: NewAssignment): Promise<Assignment
     type: 'upload',
     dueAt: input.dueAt,
     attachments: input.attachments || [],
+    sourceText: input.sourceText?.trim() || undefined,
+    sourceImageUrls: input.sourceImageUrls || [],
+    gradingInstructions: input.gradingInstructions?.trim() || undefined,
     answerKeyImageUrls: input.answerKeyImageUrls || [],
     answerKeyByAi: input.answerKeyByAi === true,
     isOpen: true,
@@ -126,7 +138,7 @@ export const listAssignmentsForClass = async (classId: string, teacherId: string
  */
 export const updateAssignmentContent = async (
   assignmentId: string,
-  patch: { answerKey?: string; rubric?: string },
+  patch: { answerKey?: string; rubric?: string; gradingInstructions?: string },
 ): Promise<void> => {
   await updateDoc(doc(db, ASSIGNMENTS_COL, assignmentId), {
     ...patch,
@@ -205,8 +217,9 @@ export const listClassRoster = async (classId: string): Promise<RosterStudent[]>
 };
 
 /**
- * GV xoá HẲN một bài nộp — học sinh quay về trạng thái CHƯA NỘP và nộp lại từ đầu được
- * (khác với "Nộp lại" tạo attempt mới chồng lên lịch sử). Bài đã duyệt thì gỡ bằng chứng
+ * GV xoá HẲN một lượt nộp. Nếu còn attempt cũ, attempt cũ vẫn là lịch sử để đối chiếu;
+ * học sinh vẫn có thể nộp attempt mới. (Khác với "Nộp lại" tạo attempt mới chồng lên lịch sử.)
+ * Bài đã duyệt thì gỡ bằng chứng
  * khỏi hồ sơ tích luỹ TRƯỚC khi xoá document, không để lại nhãn mồ côi trỏ vào bài không tồn tại.
  * Ảnh trên Storage cố ý giữ lại: storage.rules chỉ cho chính chủ ảnh xoá — dọn hàng loạt là việc của backlog.
  */
@@ -233,20 +246,11 @@ export const xoaBaiNopHocSinh = async (submission: SubmissionDoc): Promise<void>
  */
 export const updateSubmissionGradeManually = async (
   submission: SubmissionDoc,
-  patch: { score: number; maxScore: number; feedback: string; weakTopics: string[]; teacherNote?: string },
+  patch: ManualGradeInput,
 ): Promise<void> => {
   const now = new Date().toISOString();
 
-  await updateDoc(doc(db, SUBMISSIONS_COL, submission.id), {
-    'grade.score': patch.score,
-    'grade.maxScore': patch.maxScore,
-    'grade.feedback': patch.feedback,
-    'grade.weakTopics': patch.weakTopics,
-    'grade.teacherNote': patch.teacherNote || '',
-    'grade.editedByTeacher': true,
-    'grade.gradedAt': now,
-    updatedAt: now,
-  });
+  await updateDoc(doc(db, SUBMISSIONS_COL, submission.id), buildManualGradeUpdate(submission, patch, now));
 
   // Bài đã duyệt thì hồ sơ tích luỹ phải chạy theo danh sách chủ đề MỚI.
   // Thiếu bước này: giáo viên bỏ nhãn "yếu phương trình" trên màn hình, nhưng hồ sơ vẫn giữ
@@ -310,16 +314,29 @@ export interface SubmitInput {
   assignmentId: string | null;
   /** Ảnh dạng data URL. */
   images: string[];
+  /** File giữ nguyên (PDF/DOCX) để giáo viên mở bản gốc. */
+  rawFiles?: File[];
+  /** Chữ rút từ DOCX — đường chấm dùng khi không có ảnh. */
+  textContent?: string;
   note?: string;
 }
+
+const attachmentKind = (file: File): SubmissionAttachment['kind'] => {
+  const type = file.type.toLowerCase();
+  if (type.startsWith('image/') || /\.(png|jpe?g|webp|gif)$/i.test(file.name)) return 'image';
+  if (type === 'application/pdf' || /\.pdf$/i.test(file.name)) return 'pdf';
+  if (type.includes('word') || /\.docx?$/i.test(file.name)) return 'document';
+  return 'unknown';
+};
 
 export const submitHomework = async (input: SubmitInput): Promise<SubmissionDoc> => {
   const uid = auth.currentUser?.uid;
   if (!uid) throw new Error('Phiên đăng nhập đã hết hạn. Tải lại trang rồi đăng nhập lại.');
-  if (input.images.length === 0) throw new Error('Chưa chọn ảnh bài làm.');
+  if (input.images.length === 0 && (input.rawFiles || []).length === 0) throw new Error('Chưa chọn bài làm để nộp.');
 
   const submissionId = newId('sub');
   const fileUrls: string[] = [];
+  const attachments: SubmissionAttachment[] = [];
 
   for (let i = 0; i < input.images.length; i += 1) {
     const dataUrl = input.images[i];
@@ -328,7 +345,18 @@ export const submitHomework = async (input: SubmitInput): Promise<SubmissionDoc>
     const path = `homework/${uid}/${submissionId}-${i}.${mime.split('/')[1] || 'jpg'}`;
     const fileRef = ref(storage, path);
     await uploadString(fileRef, dataUrl, 'data_url', { contentType: mime });
-    fileUrls.push(await getDownloadURL(fileRef));
+    const url = await getDownloadURL(fileRef);
+    fileUrls.push(url);
+    attachments.push({ name: `Ảnh bài làm ${i + 1}`, url, mimeType: mime, kind: 'image' });
+  }
+
+  for (const file of input.rawFiles || []) {
+    const an = file.name.replace(/[^\w.\-]+/g, '_');
+    const fileRef = ref(storage, `homework/${uid}/${submissionId}-${an}`);
+    await uploadBytes(fileRef, file, { contentType: file.type || 'application/octet-stream' });
+    const url = await getDownloadURL(fileRef);
+    fileUrls.push(url);
+    attachments.push({ name: file.name, url, mimeType: file.type || undefined, size: file.size, kind: attachmentKind(file) });
   }
 
   const now = new Date().toISOString();
@@ -339,6 +367,8 @@ export const submitHomework = async (input: SubmitInput): Promise<SubmissionDoc>
     studentId: input.studentId,
     assignmentId: input.assignmentId,
     fileUrls,
+    textContent: input.textContent?.trim() || '',
+    attachments,
     note: input.note || '',
     status: 'submitted',
     createdAt: now,

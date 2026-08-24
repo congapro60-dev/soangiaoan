@@ -15,6 +15,7 @@ import {
   updateSubmissionGradeManually,
   uploadAnswerKeyImages,
   uploadAssignmentFiles,
+  uploadAssignmentImages,
   type RosterStudent,
 } from '../../../lib/classroom/submissionService';
 import type { AssignmentDoc, SubmissionDoc } from '../../../lib/classroom/types';
@@ -23,6 +24,8 @@ import { gradeAssignmentAll, gradeOneSubmission } from '../../../services/gradin
 import { AssignmentFormModal, type AssignmentFormValue } from './AssignmentFormModal';
 import { NhanXetMarkdown } from './NhanXetMarkdown';
 import { GradeReviewModal, type GradeReviewValue } from './GradeReviewModal';
+import { QuestionResultsList } from './QuestionResultsList';
+import { currentSubmissionsForAssignment, selectedCurrentSubmissions, summarizeSelection } from '../../../lib/classroom/submissionSelection';
 
 interface Props {
   classId: string;
@@ -66,30 +69,36 @@ interface BaiNopTheoLopProps {
   duyet: (s: SubmissionDoc) => void | Promise<void>;
   xoaBaiNop: (s: SubmissionDoc, ten: string) => void | Promise<void>;
   dangXoaNop: string;
+  selectedIds: ReadonlySet<string>;
+  toggleSelected: (submissionId: string, selected: boolean) => void;
+  toggleAllCurrent: (selected: boolean) => void;
+  bulkCham: () => void | Promise<void>;
+  bulkDuyet: () => void | Promise<void>;
+  bulkXoa: () => void | Promise<void>;
+  dangBulk: string;
 }
 
 /**
  * Danh sách ĐỦ CẢ LỚP theo một bài giao: em nào đã nộp (kèm trạng thái/điểm/hành động),
  * em nào chưa nộp — giáo viên kiểm soát một mắt nhìn thay vì đoán từ số lượng.
  */
-const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet, xoaBaiNop, dangXoaNop }: BaiNopTheoLopProps) => {
+const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet, xoaBaiNop, dangXoaNop, selectedIds, toggleSelected, toggleAllCurrent, bulkCham, bulkDuyet, bulkXoa, dangBulk }: BaiNopTheoLopProps) => {
   const tenTheoId = new Map(lopHocSinh.map(hs => [hs.studentId, hs.name]));
   const daNopIds = new Set(baiNop.map(s => s.studentId));
   const chuaNop = lopHocSinh.filter(hs => !daNopIds.has(hs.studentId));
+  const current = currentSubmissionsForAssignment(baiNop);
+  const currentIds = new Set(current.map(s => s.id));
+  const selectedCurrent = selectedCurrentSubmissions(baiNop, selectedIds);
+  const summary = summarizeSelection(selectedCurrent);
 
   // Học sinh có thể NỘP LẠI nhiều lần (nộp nhầm ảnh rồi chụp lại theo phản hồi).
-  // baiNop kế thừa thứ tự mới-nhất-trước, nên lần gặp đầu của mỗi em chính là lần mới nhất.
+  // Không dựa vào thứ tự mảng để gắn nhãn — query phía giáo viên còn sort lại theo tên.
   const conLaiTheoHs = new Map<string, number>();
   for (const s of baiNop) conLaiTheoHs.set(s.studentId, (conLaiTheoHs.get(s.studentId) ?? 0) + 1);
-  const daGanMoi = new Set<string>();
   const nhanLanNop = new Map<string, string>();
   for (const s of baiNop) {
-    if ((conLaiTheoHs.get(s.studentId) ?? 1) <= 1) continue;
-    if (!daGanMoi.has(s.studentId)) {
-      daGanMoi.add(s.studentId);
-      nhanLanNop.set(s.id, 'Lần nộp mới nhất');
-    } else {
-      nhanLanNop.set(s.id, 'Lần nộp trước');
+    if ((conLaiTheoHs.get(s.studentId) ?? 1) > 1) {
+      nhanLanNop.set(s.id, currentIds.has(s.id) ? 'Lần nộp mới nhất' : 'Lần nộp trước');
     }
   }
 
@@ -99,12 +108,45 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-100">
+      <div className="flex flex-col gap-3 border-b border-slate-100 bg-slate-50 px-3 py-3 sm:flex-row sm:items-center">
+        <label className="flex min-h-11 items-center gap-2 text-sm font-black text-slate-700">
+          <input
+            type="checkbox"
+            checked={current.length > 0 && current.every(s => selectedIds.has(s.id))}
+            onChange={event => toggleAllCurrent(event.target.checked)}
+            disabled={current.length === 0 || dangBulk !== ''}
+            className="h-4 w-4 accent-indigo-600"
+          />
+          Chọn lượt hiện hành
+        </label>
+        <span className="text-xs font-bold text-slate-500">{summary.total} đã chọn · {current.length} lượt hiện hành</span>
+        <div className="flex flex-wrap gap-2 sm:ml-auto">
+          <button type="button" onClick={() => void bulkCham()} disabled={summary.pending === 0 || dangBulk !== '' || tienDo !== ''} className="inline-flex min-h-10 items-center gap-1 rounded-xl bg-slate-900 px-3 py-2 text-xs font-black text-white disabled:opacity-40">
+            {dangBulk === 'grade' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />} Chấm AI ({summary.pending})
+          </button>
+          <button type="button" onClick={() => void bulkDuyet()} disabled={summary.unapproved === 0 || dangBulk !== ''} className="inline-flex min-h-10 items-center gap-1 rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs font-black text-emerald-700 disabled:opacity-40">
+            {dangBulk === 'approve' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5" />} Duyệt ({summary.unapproved})
+          </button>
+          <button type="button" onClick={() => void bulkXoa()} disabled={summary.total === 0 || dangBulk !== '' || tienDo !== ''} className="inline-flex min-h-10 items-center gap-1 rounded-xl border border-red-200 bg-white px-3 py-2 text-xs font-black text-red-700 disabled:opacity-40">
+            {dangBulk === 'delete' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />} Xóa ({summary.total})
+          </button>
+        </div>
+      </div>
       {baiNop.map(s => {
         const ten = tenTheoId.get(s.studentId) || `HS …${s.studentId.slice(-4)}`;
         const dangMo = moRongId === s.id;
         return (
           <div key={s.id} className="border-b border-slate-100 last:border-b-0">
-            <button onClick={() => troMoRong(dangMo ? '' : s.id)} className="flex w-full flex-wrap items-center gap-2 px-3 py-3 text-left transition hover:bg-slate-50">
+            <div className="flex items-center gap-2 px-3 py-3">
+              <input
+                type="checkbox"
+                checked={selectedIds.has(s.id)}
+                onChange={event => toggleSelected(s.id, event.target.checked)}
+                disabled={!currentIds.has(s.id) || dangBulk !== ''}
+                title={currentIds.has(s.id) ? 'Chọn lượt nộp hiện hành' : 'Lượt cũ không tham gia thao tác hàng loạt'}
+                className="h-4 w-4 shrink-0 accent-indigo-600 disabled:opacity-30"
+              />
+              <button type="button" onClick={() => troMoRong(dangMo ? '' : s.id)} className="flex min-w-0 flex-1 flex-wrap items-center gap-2 text-left transition hover:bg-slate-50">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[11px] font-black text-blue-700">{ten.charAt(0)}</span>
               <span className="font-black text-slate-900">{ten}</span>
               <span className={`rounded-full px-2 py-0.5 text-[11px] font-black ${trangThai[s.status].mau}`}>{trangThai[s.status].nhan}</span>
@@ -126,18 +168,25 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
               <span className="flex-1" />
               {s.grade && <span className="text-sm font-black text-slate-900">{s.grade.score}/{s.grade.maxScore}</span>}
               <span className="text-[11px] font-semibold text-slate-400">
-                {new Date(s.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} · {s.fileUrls.length} ảnh
+                {new Date(s.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} · {s.fileUrls.length} tệp
               </span>
-            </button>
+              </button>
+            </div>
 
             {dangMo && (
               <div className="space-y-3 rounded-2xl bg-slate-50 mx-3 mb-3 p-3">
                 {s.fileUrls.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
-                    {s.fileUrls.map((url, i) => (
-                      <a key={url} href={url} target="_blank" rel="noreferrer" title={`Mở ảnh ${i + 1} cỡ lớn`} className="block h-24 w-24 overflow-hidden rounded-xl ring-1 ring-slate-200 transition hover:ring-blue-400">
-                        <img src={url} alt={`Bài làm ${ten} - ảnh ${i + 1}`} loading="lazy" className="h-full w-full object-cover" />
-                      </a>
+                    {(s.attachments || s.fileUrls.map((url, i) => ({ name: `Tệp ${i + 1}`, url, kind: 'image' as const }))).map((file, i) => (
+                      file.kind === 'image' || file.mimeType?.startsWith('image/') ? (
+                        <a key={file.url} href={file.url} target="_blank" rel="noreferrer" title={`Mở ảnh ${i + 1} cỡ lớn`} className="block h-24 w-24 overflow-hidden rounded-xl ring-1 ring-slate-200 transition hover:ring-blue-400">
+                          <img src={file.url} alt={`Bài làm ${ten} - ảnh ${i + 1}`} loading="lazy" className="h-full w-full object-cover" />
+                        </a>
+                      ) : (
+                        <a key={file.url} href={file.url} target="_blank" rel="noreferrer" className="inline-flex min-h-11 max-w-full items-center gap-2 rounded-xl bg-white px-3 py-2 text-xs font-bold text-blue-700 ring-1 ring-slate-200">
+                          <FileText className="h-4 w-4 shrink-0" /> <span className="break-all">{file.name}</span>
+                        </a>
+                      )
                     ))}
                   </div>
                 ) : (
@@ -145,6 +194,7 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                 )}
 
                 {s.grade?.feedback && <NhanXetMarkdown>{s.grade.feedback}</NhanXetMarkdown>}
+                <QuestionResultsList results={s.grade?.questionResults} />
                 {s.grade?.gradedWithoutAnswerKey && (
                   <p className="text-xs font-bold text-amber-700">Bài chấm khi chưa đối chiếu đáp án chuẩn — nên soát lại giúp.</p>
                 )}
@@ -178,11 +228,11 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                   <button
                     onClick={() => void xoaBaiNop(s, ten)}
                     disabled={tienDo !== '' || dangXoaNop !== ''}
-                    title="Xoá hẳn lần nộp này — học sinh quay về trạng thái chưa nộp"
+                    title="Xóa lượt nộp này; lịch sử cũ (nếu có) vẫn giữ"
                     className="inline-flex items-center gap-1 rounded-2xl border border-red-200 bg-white px-3 py-2 text-xs font-black text-red-700 transition hover:bg-red-50 disabled:opacity-50"
                   >
                     {dangXoaNop === s.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
-                    Xoá bài nộp
+                    Xóa lượt nộp
                   </button>
                 </div>
               </div>
@@ -222,8 +272,11 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   // Lỗi riêng cho việc tải BÀI NỘP: nếu nuốt thành mảng rỗng thì bảng hiện "0/x đã nộp",
   // giáo viên tưởng chưa ai nộp và nút Xoá bài lọt qua guard → xoá mất bài có bài nộp thật.
   const [loiBaiNop, setLoiBaiNop] = useState<string | null>(null);
+  // Chỉ lưu id submission, không lưu cả object — sau khi refresh không bị dùng bản grade cũ.
+  const [selectedSubmissionIds, setSelectedSubmissionIds] = useState<Set<string>>(new Set());
+  const [dangBulk, setDangBulk] = useState('');
   // Bản nháp đang sửa của bài đang mở. Rỗng = chưa sửa gì.
-  const [nhap, setNhap] = useState<{ answerKey: string; rubric: string } | null>(null);
+  const [nhap, setNhap] = useState<{ answerKey: string; rubric: string; gradingInstructions: string } | null>(null);
   const [dangLuu, setDangLuu] = useState(false);
 
   const taiBai = useCallback(async () => {
@@ -276,6 +329,28 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
       .sort((a, b) => (tenTheoId.get(a.studentId) || '').localeCompare(tenTheoId.get(b.studentId) || '', 'vi'));
   }, [tatCaBaiNop, lopHocSinh]);
 
+  const toggleSelected = useCallback((submissionId: string, selected: boolean) => {
+    setSelectedSubmissionIds(previous => {
+      const next = new Set(previous);
+      if (selected) next.add(submissionId); else next.delete(submissionId);
+      return next;
+    });
+  }, []);
+
+  const toggleAllCurrent = useCallback((assignmentId: string, selected: boolean) => {
+    const current = currentSubmissionsForAssignment(baiNopCua(assignmentId));
+    setSelectedSubmissionIds(previous => {
+      const next = new Set(previous);
+      for (const submission of current) {
+        if (selected) next.add(submission.id); else next.delete(submission.id);
+      }
+      return next;
+    });
+  }, [baiNopCua]);
+
+  const selectedForAssignment = useCallback((assignmentId: string): SubmissionDoc[] =>
+    selectedCurrentSubmissions(baiNopCua(assignmentId), selectedSubmissionIds), [baiNopCua, selectedSubmissionIds]);
+
   const guiBaiMoi = async (value: AssignmentFormValue) => {
     if (!value.answerKey && value.answerKeyImages.length === 0) {
       const { isConfirmed } = await Swal.fire({
@@ -293,8 +368,9 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
 
     setDangGui(true);
     try {
-      const [attachments, answerKeyImageUrls] = await Promise.all([
+      const [attachments, sourceImageUrls, answerKeyImageUrls] = await Promise.all([
         value.deFiles.length > 0 ? uploadAssignmentFiles(teacherId, value.deFiles) : Promise.resolve([]),
+        value.sourceImages.length > 0 ? uploadAssignmentImages(teacherId, value.sourceImages, 'nguon-de') : Promise.resolve([]),
         value.answerKeyImages.length > 0 ? uploadAnswerKeyImages(teacherId, value.answerKeyImages) : Promise.resolve([]),
       ]);
 
@@ -307,6 +383,9 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
         maxScore: value.maxScore,
         dueAt: value.dueAt ? new Date(value.dueAt).toISOString() : undefined,
         attachments,
+        sourceText: value.sourceText,
+        sourceImageUrls,
+        gradingInstructions: value.gradingInstructions,
         answerKeyImageUrls,
         answerKeyByAi: value.answerKeyByAi,
       });
@@ -353,13 +432,134 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
     }
   };
 
+  /** Chấm tuần tự đúng các lượt hiện hành đã chọn, không vô tình chấm lịch sử cũ. */
+  const chamDaChon = async (assignment: AssignmentDoc) => {
+    const selected = selectedForAssignment(assignment.id).filter(s => s.status === 'submitted' || s.status === 'error');
+    if (selected.length === 0) return;
+    setDangBulk('grade');
+    let ok = 0;
+    let failed = 0;
+    try {
+      for (const submission of selected) {
+        try {
+          await gradeOneSubmission(submission.id);
+          ok += 1;
+        } catch {
+          failed += 1;
+        }
+      }
+      showToast(`Đã chấm ${ok}/${selected.length} bài đã chọn${failed > 0 ? `; ${failed} bài lỗi cần thử lại` : ''}.`, failed > 0 ? 'warning' : 'success');
+      setSelectedSubmissionIds(previous => {
+        const next = new Set(previous);
+        selected.forEach(s => next.delete(s.id));
+        return next;
+      });
+      try {
+        setTatCaBaiNop(await listSubmissionsForClass(classId, teacherId));
+        setLoiBaiNop(null);
+      } catch {
+        setLoiBaiNop('Đã chấm xong nhưng chưa tải lại được danh sách mới. Bấm "Làm mới" để cập nhật.');
+      }
+    } finally {
+      setDangBulk('');
+    }
+  };
+
+  /** Duyệt tuần tự để mỗi lần cập nhật hồ sơ tích lũy không ghi đè merge của em khác. */
+  const duyetDaChon = async (assignment: AssignmentDoc) => {
+    const selected = selectedForAssignment(assignment.id).filter(s => s.grade && !s.grade.teacherApproved);
+    if (selected.length === 0) return;
+    setDangBulk('approve');
+    let ok = 0;
+    let failed = 0;
+    try {
+      for (const submission of selected) {
+        try {
+          await approveGrade(submission, true);
+          ok += 1;
+        } catch {
+          failed += 1;
+        }
+      }
+      showToast(`Đã duyệt ${ok}/${selected.length} bài đã chọn${failed > 0 ? `; ${failed} bài lỗi` : ''}.`, failed > 0 ? 'warning' : 'success');
+      setSelectedSubmissionIds(previous => {
+        const next = new Set(previous);
+        selected.forEach(s => next.delete(s.id));
+        return next;
+      });
+      try {
+        setTatCaBaiNop(await listSubmissionsForClass(classId, teacherId));
+        setLoiBaiNop(null);
+      } catch {
+        setLoiBaiNop('Đã duyệt xong nhưng chưa tải lại được danh sách mới. Bấm "Làm mới" để cập nhật.');
+      }
+    } finally {
+      setDangBulk('');
+    }
+  };
+
+  /**
+   * Xóa đúng các submission hiện hành được chọn. Lịch sử cũ không tự xóa; nếu còn, nó vẫn được
+   * giữ để đối chiếu và học sinh có thể nộp một attempt mới. Xác nhận luôn nói rõ điều này.
+   */
+  const xoaDaChon = async (assignment: AssignmentDoc) => {
+    if (loiBaiNop !== null) {
+      await Swal.fire({ icon: 'warning', title: 'Chưa thể xóa an toàn', text: 'Danh sách bài nộp chưa tải chắc chắn. Bấm "Làm mới" trước khi xóa.', confirmButtonColor: '#3085d6' });
+      return;
+    }
+    const selected = selectedForAssignment(assignment.id);
+    if (selected.length === 0) return;
+    if (selected.some(s => s.status === 'grading')) {
+      await Swal.fire({ icon: 'info', title: 'Có bài đang được chấm', text: 'Chờ máy chấm xong rồi mới xóa để không tạo trạng thái đua nhau.', confirmButtonColor: '#3085d6' });
+      return;
+    }
+    const names = selected.map(s => lopHocSinh.find(hs => hs.studentId === s.studentId)?.name || `HS …${s.studentId.slice(-4)}`);
+    const { isConfirmed } = await Swal.fire({
+      icon: 'warning',
+      title: `Xóa ${selected.length} lượt nộp đã chọn?`,
+      html: `<p>Phạm vi: <b>${names.join(', ')}</b>.</p><p style="margin-top:8px">Chỉ xóa lượt hiện hành được chọn của bài <b>${assignment.title}</b>. Lịch sử cũ (nếu có) vẫn giữ để đối chiếu. Điểm/nhận xét của lượt này sẽ mất.</p><p style="margin-top:8px;font-size:12px;color:#94a3b8">Document bài nộp sẽ bị xóa; file Storage cũ chưa được dọn tự động.</p>`,
+      showCancelButton: true,
+      confirmButtonText: 'Xóa các lượt đã chọn',
+      cancelButtonText: 'Giữ lại',
+      confirmButtonColor: '#dc2626',
+      focusCancel: true,
+    });
+    if (!isConfirmed) return;
+
+    setDangBulk('delete');
+    let ok = 0;
+    let failed = 0;
+    const deletedIds = new Set<string>();
+    try {
+      for (const submission of selected) {
+        try {
+          await xoaBaiNopHocSinh(submission);
+          ok += 1;
+          deletedIds.add(submission.id);
+        } catch {
+          failed += 1;
+        }
+      }
+      // Chỉ xóa khỏi local list các lượt đã xác nhận thành công; không che lỗi partial failure.
+      setTatCaBaiNop(previous => previous.filter(s => !deletedIds.has(s.id)));
+      setSelectedSubmissionIds(previous => {
+        const next = new Set(previous);
+        deletedIds.forEach(id => next.delete(id));
+        return next;
+      });
+      showToast(`Đã xóa ${ok}/${selected.length} lượt nộp${failed > 0 ? `; ${failed} lượt chưa xóa được` : ''}.`, failed > 0 ? 'warning' : 'success');
+    } finally {
+      setDangBulk('');
+    }
+  };
+
   const luuNoiDung = async (a: AssignmentDoc) => {
     if (!nhap) return;
     setDangLuu(true);
     try {
       await updateAssignmentContent(a.id, nhap);
       setNhap(null);
-      showToast('Đã lưu đáp án và hướng dẫn chấm.', 'success');
+      showToast('Đã lưu đáp án, hướng dẫn và lệnh chấm riêng.', 'success');
       await taiBai();
     } catch (error) {
       setLoiTai(error instanceof Error ? error.message : 'Không lưu được.');
@@ -550,18 +750,17 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   };
 
   /**
-   * Xoá HẲN một bài nộp: học sinh quay về trạng thái CHƯA NỘP và nộp lại từ đầu được.
-   * Khác với "Nộp lại" (attempt mới chồng lên lịch sử) — đây là nút cho trường hợp nộp nhầm
-   * hoàn toàn, giáo viên muốn xoá sạch dấu vết lần nộp đó. Bài đã duyệt sẽ tự gỡ bằng chứng
-   * khỏi hồ sơ tích luỹ trước khi xoá.
+   * Xóa HẲN một lượt nộp đang mở. Lịch sử cũ (nếu có) vẫn giữ để đối chiếu; đây không phải
+   * thao tác xóa toàn bộ lịch sử của học sinh. Bài đã duyệt sẽ tự gỡ bằng chứng khỏi hồ sơ
+   * tích lũy trước khi xóa.
    */
   const xoaBaiNop = async (s: SubmissionDoc, tenHocSinh: string) => {
     const { isConfirmed } = await Swal.fire({
       icon: 'warning',
-      title: `Xoá bài nộp của ${tenHocSinh}?`,
-      html: 'Điểm và nhận xét lần nộp này <b>mất vĩnh viễn</b>. Học sinh sẽ thấy bài quay về trạng thái <b>chưa nộp</b> và nộp lại từ đầu được.<br/><span style="font-size:12px;color:#94a3b8;">Ảnh đã tải lên vẫn còn trên máy chủ.</span>',
+      title: `Xóa lượt nộp của ${tenHocSinh}?`,
+      html: 'Điểm và nhận xét lượt này <b>mất vĩnh viễn</b>. Lịch sử cũ (nếu có) vẫn giữ để đối chiếu và học sinh vẫn có thể nộp attempt mới.<br/><span style="font-size:12px;color:#94a3b8;">Document bài nộp bị xóa; file Storage cũ vẫn còn trên máy chủ.</span>',
       showCancelButton: true,
-      confirmButtonText: 'Xoá bài nộp',
+      confirmButtonText: 'Xóa lượt nộp',
       cancelButtonText: 'Giữ lại',
       confirmButtonColor: '#dc2626',
       focusCancel: true,
@@ -571,8 +770,13 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
     setDangXoaNop(s.id);
     try {
       await xoaBaiNopHocSinh(s);
-      showToast(`Đã xoá bài nộp của ${tenHocSinh} — em ấy có thể nộp lại từ đầu.`, 'success');
+      showToast(`Đã xóa lượt nộp của ${tenHocSinh}.`, 'success');
       setTatCaBaiNop(prev => prev.filter(x => x.id !== s.id));
+      setSelectedSubmissionIds(previous => {
+        const next = new Set(previous);
+        next.delete(s.id);
+        return next;
+      });
       if (moRongId === s.id) setMoRongId('');
     } catch (error) {
       setLoiTai(error instanceof Error ? error.message : 'Không xoá được bài nộp.');
@@ -665,8 +869,9 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                 <button onClick={() => moBai(a.id)} className="min-w-0 flex-1 text-left">
                   <p className="truncate font-black text-slate-900">{a.title}</p>
                   <p className="text-xs font-semibold text-slate-500">
-                    {a.isOpen ? 'Đang mở' : 'Đã đóng'} · {a.answerKey ? 'có đáp án chuẩn' : 'không có đáp án'}
+                    {a.isOpen ? 'Đang mở' : 'Đã đóng'} · {(a.answerKey || (a.answerKeyImageUrls?.length ?? 0) > 0) ? 'có đáp án chuẩn' : 'không có đáp án'}
                     {(a.attachments?.length ?? 0) > 0 ? ` · ${a.attachments!.length} file đề` : ' · chưa đính kèm đề'}
+                    {a.gradingInstructions ? ' · có lệnh chấm riêng' : ''}
                     {a.answerKeyByAi ? ' · đáp án do AI giải' : ''}
                   </p>
                 </button>
@@ -748,6 +953,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                         onChange={e => setNhap({
                           answerKey: e.target.value,
                           rubric: nhap ? nhap.rubric : (a.rubric || ''),
+                          gradingInstructions: nhap ? nhap.gradingInstructions : (a.gradingInstructions || ''),
                         })}
                         rows={8}
                         placeholder="Chưa có đáp án. AI sẽ phải tự đọc đề trong ảnh từng em rồi tự giải."
@@ -762,9 +968,26 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                         onChange={e => setNhap({
                           answerKey: nhap ? nhap.answerKey : (a.answerKey || ''),
                           rubric: e.target.value,
+                          gradingInstructions: nhap ? nhap.gradingInstructions : (a.gradingInstructions || ''),
                         })}
                         rows={4}
                         placeholder="Chưa có. Thiếu thì AI tự quyết cách chia điểm thành phần, mỗi em một kiểu."
+                        className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                      />
+                    </div>
+
+                    <div className="mt-3">
+                      <p className="text-sm font-black text-slate-700">Lệnh riêng cho AI khi chấm</p>
+                      <p className="mt-1 text-xs font-semibold text-slate-500">Chỉ chấm Câu 1, 3; bỏ qua Bài 2; không trừ phần bị bỏ qua. Đây là lệnh nội bộ, không hiển thị trong bài học sinh.</p>
+                      <textarea
+                        value={nhap ? nhap.gradingInstructions : (a.gradingInstructions || '')}
+                        onChange={e => setNhap({
+                          answerKey: nhap ? nhap.answerKey : (a.answerKey || ''),
+                          rubric: nhap ? nhap.rubric : (a.rubric || ''),
+                          gradingInstructions: e.target.value,
+                        })}
+                        rows={3}
+                        placeholder="Ví dụ: Chỉ dùng Câu 1 và Câu 3; bỏ qua phần trắc nghiệm; không tự suy ra câu ngoài đề."
                         className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
                       />
                     </div>
@@ -806,6 +1029,13 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                     duyet={duyet}
                     xoaBaiNop={xoaBaiNop}
                     dangXoaNop={dangXoaNop}
+                    selectedIds={selectedSubmissionIds}
+                    toggleSelected={toggleSelected}
+                    toggleAllCurrent={selected => toggleAllCurrent(a.id, selected)}
+                    bulkCham={() => chamDaChon(a)}
+                    bulkDuyet={() => duyetDaChon(a)}
+                    bulkXoa={() => xoaDaChon(a)}
+                    dangBulk={dangBulk}
                   />
                   <p className="mt-3 rounded-2xl bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-500">
                     Điểm chỉ vào hồ sơ học tập của học sinh sau khi thầy cô bấm <b>Duyệt điểm</b>. Máy chấm không tự duyệt cho mình.

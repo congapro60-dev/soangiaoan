@@ -65,6 +65,8 @@ export interface StudentLinkDoc {
 export interface AssignmentAttachment {
   name: string;
   url: string;
+  mimeType?: string;
+  size?: number;
 }
 
 export type AssignmentType = 'upload' | 'exam';
@@ -88,6 +90,12 @@ export interface AssignmentDoc {
   maxScore?: number;
   /** File đề giáo viên đính kèm để học sinh mở ra xem (PDF, ảnh, Word). */
   attachments?: AssignmentAttachment[];
+  /** Chữ rút từ file đề, dùng làm nguồn tham chiếu chung khi AI chấm cả lớp. */
+  sourceText?: string;
+  /** Ảnh đề/ảnh PDF scan đã chuẩn hoá, gửi một lần làm ngữ cảnh chấm. */
+  sourceImageUrls?: string[];
+  /** Lệnh nội bộ của giáo viên cho AI: phạm vi câu/bài, phần cần bỏ qua, cách xử lý đặc biệt. */
+  gradingInstructions?: string;
   /** Ảnh đáp án khi không rút được chữ — gửi kèm MỖI lượt chấm nên tốn hơn bản có chữ. */
   answerKeyImageUrls?: string[];
   /** true khi đáp án do AI giải ra (giáo viên vẫn soát và sửa được trước khi giao). */
@@ -99,6 +107,40 @@ export interface AssignmentDoc {
 
 export type SubmissionStatus = 'submitted' | 'grading' | 'graded' | 'error';
 
+export type QuestionResultStatus =
+  | 'correct'
+  | 'partially_correct'
+  | 'incorrect'
+  | 'unreadable'
+  | 'not_attempted';
+
+/** Chi tiết có cấu trúc của một câu — để học sinh biết mình sai ở đâu, không chỉ nhận một điểm tổng. */
+export interface QuestionResult {
+  /** Giữ đúng số câu trong đề: "Câu 1", "Bài 2a"... */
+  questionNumber: string;
+  status: QuestionResultStatus;
+  score: number;
+  maxScore: number;
+  /** Trích phần học sinh đã làm; không được AI tự bịa nếu ảnh/chữ không đọc được. */
+  studentAnswer: string;
+  /** Đáp án hoặc mốc chấm tương ứng của câu. */
+  expectedAnswer: string;
+  /** Ví dụ: "Sai dấu", "Thiếu bước biến đổi", "Chưa trả lời". */
+  errorType: string;
+  /** Vì sao phần làm đó đúng/sai. */
+  explanation: string;
+  /** Một chỉ dẫn sửa cụ thể, có thể làm theo. */
+  correction: string;
+  /** Bài luyện tiếp theo, không phải một nhãn yếu chung chung. */
+  nextPractice: string;
+  /** 0..1; chỉ có khi AI tự đánh giá được độ chắc chắn. */
+  confidence?: number;
+  /** true khi phần này được bỏ qua có chủ đích theo lệnh riêng của giáo viên. */
+  ignoredByTeacherInstruction?: boolean;
+  /** true khi giáo viên cần xem lại vì dữ liệu mờ, thiếu hoặc AI không chắc. */
+  needsTeacherReview: boolean;
+}
+
 /** Kết quả AI chấm, tách riêng để phân biệt rõ phần học sinh ghi và phần máy ghi. */
 export interface SubmissionGrade {
   score: number;
@@ -109,6 +151,8 @@ export interface SubmissionGrade {
   noteForTeacher?: string;
   strengths: string[];
   weaknesses: string[];
+  /** Chi tiết từng câu; optional để đọc được các bài chấm trước khi có schema này. */
+  questionResults?: QuestionResult[];
   /** Chủ đề còn yếu, chỉ vào hồ sơ sau khi giáo viên duyệt. */
   weakTopics?: string[];
   /** true khi chấm mà không có đáp án chuẩn — kết quả kém tin cậy hơn. */
@@ -132,14 +176,28 @@ export interface SubmissionDoc {
   classId: string;
   studentId: string;
   assignmentId: string | null;
-  /** Đường dẫn ảnh/PDF trên Firebase Storage. */
+  /** Đường dẫn ảnh/PDF/Word trên Firebase Storage. */
   fileUrls: string[];
+  /** Chữ rút từ file Word — đường AI dùng khi bài không phải ảnh. */
+  textContent?: string;
+  /** Metadata để giao diện mở đúng loại file thay vì cố render mọi file thành ảnh. */
+  attachments?: SubmissionAttachment[];
   note: string;
   status: SubmissionStatus;
   grade?: SubmissionGrade;
   errorMessage?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export type SubmissionAttachmentKind = 'image' | 'pdf' | 'document' | 'unknown';
+
+export interface SubmissionAttachment {
+  name: string;
+  url: string;
+  mimeType?: string;
+  size?: number;
+  kind?: SubmissionAttachmentKind;
 }
 
 export type MasteryLevel = 'weak' | 'developing' | 'solid';
