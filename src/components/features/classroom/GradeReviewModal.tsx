@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Loader2, Save, Sparkles, X } from 'lucide-react';
 import type { SubmissionDoc } from '../../../lib/classroom/types';
 import { rewriteFeedback } from '../../../services/gradingApi';
+import { NhanXetMarkdown } from './NhanXetMarkdown';
 
 export interface GradeReviewValue {
   score: number;
@@ -127,11 +128,21 @@ export const GradeReviewModal = ({ classId, studentName, submission, dangLuu, on
 
           <div>
             <label className="mb-1 block text-sm font-black text-slate-700">Nhận xét gửi học sinh</label>
-            <textarea value={feedback} onChange={e => { setFeedback(e.target.value); setAiVuaViet(false); }} rows={5} className={O} />
+            <textarea value={feedback} onChange={e => { setFeedback(e.target.value); setAiVuaViet(false); }} rows={5} className={`${O} font-mono text-[13px]`} />
             {aiVuaViet && (
               <p className="mt-1 text-xs font-bold text-amber-700">
                 AI vừa viết lại từ lời của thầy cô. Đọc lại trước khi lưu — em ấy sẽ đọc đúng những chữ này.
               </p>
+            )}
+
+            {/* XEM TRƯỚC — thầy cô sửa ở ô trên là mã thô (LaTeX, **đậm**), còn học sinh
+                thấy bản đã dựng. Thiếu khung này là sửa mù: không biết công thức có hiện đúng
+                không cho tới khi lưu rồi mở màn hình của em ra xem. */}
+            {feedback.trim() && (
+              <div className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4">
+                <p className="mb-2 text-xs font-black uppercase tracking-wide text-emerald-700">Học sinh sẽ thấy thế này</p>
+                <NhanXetMarkdown tone="sang">{feedback}</NhanXetMarkdown>
+              </div>
             )}
           </div>
         </div>
