@@ -335,6 +335,49 @@ const handleRevokeClass = async (db: FirebaseFirestore.Firestore, body: Record<s
   });
 };
 
+/**
+ * Bảng PIN của CẢ LỚP để giáo viên phát cho học sinh.
+ *
+ * Bảng lúc cấp chỉ hiện một lần, mà giáo viên thì cần phát lại nhiều lần: em mới vào lớp, phụ
+ * huynh hỏi lại, đổi điện thoại... Từ khi máy chủ lưu thêm `pinPlain` thì đọc lại được, nên
+ * không bắt cấp mã mới chỉ để xem mã cũ nữa.
+ *
+ * Em nào được cấp PIN trước khi có `pinPlain` sẽ trả `pin: null` — nơi gọi hiện rõ để giáo viên
+ * biết cần cấp lại riêng em đó, chứ không im lặng bỏ sót.
+ */
+const handleViewClassPins = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Cần đăng nhập bằng tài khoản giáo viên.' });
+
+  const classId = typeof body.classId === 'string' ? body.classId : '';
+  const classSnap = await db.collection('classes').doc(classId).get();
+  if (!classSnap.exists) return res.status(404).json({ error: 'Không tìm thấy lớp.' });
+  if (classSnap.data()?.teacherId !== uid) {
+    return res.status(403).json({ error: 'Chỉ giáo viên chủ lớp mới xem được mã PIN.' });
+  }
+
+  const [students, secrets] = await Promise.all([
+    classSnap.ref.collection('students').get(),
+    classSnap.ref.collection('studentSecrets').get(),
+  ]);
+  const pinTheoId = new Map(secrets.docs.map(d => [d.id, String(d.data()?.pinPlain || '')]));
+
+  const rows = students.docs
+    .map(d => ({
+      studentId: d.id,
+      name: String(d.data()?.name || ''),
+      pin: pinTheoId.get(d.id) || null,
+    }))
+    .filter(r => r.name)
+    .sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+
+  return res.status(200).json({
+    joinCode: String(classSnap.data()?.joinCode || ''),
+    className: String(classSnap.data()?.name || ''),
+    rows,
+  });
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -351,6 +394,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (action === 'issuePins') return await handleIssuePins(db, body, res);
     if (action === 'resetOnePin') return await handleResetOnePin(db, body, res);
     if (action === 'viewPin') return await handleViewPin(db, body, res);
+    if (action === 'viewClassPins') return await handleViewClassPins(db, body, res);
     if (action === 'revokeStudentAccess') return await handleRevokeStudentAccess(db, body, res);
     if (action === 'revokeClass') return await handleRevokeClass(db, body, res);
     return res.status(400).json({ error: `Hành động không hợp lệ: ${action}` });

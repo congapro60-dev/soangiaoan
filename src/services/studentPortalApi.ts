@@ -107,3 +107,18 @@ export const revokeClassData = async (classId: string): Promise<{ removedStudent
   const idToken = await current.getIdToken();
   return call<{ removedStudents: number; revokedLinks: number }>({ action: 'revokeClass', classId, idToken });
 };
+
+export interface ClassPinRow {
+  studentId: string;
+  name: string;
+  /** null = em này được cấp PIN trước khi máy chủ lưu bản hiển thị. Phải cấp lại mới xem được. */
+  pin: string | null;
+}
+
+/** Bảng mã PIN cả lớp để giáo viên phát cho học sinh. */
+export const viewClassPins = async (classId: string): Promise<{ joinCode: string; className: string; rows: ClassPinRow[] }> => {
+  const current = auth.currentUser;
+  if (!current || current.isAnonymous) throw new Error('Cần đăng nhập tài khoản giáo viên.');
+  const idToken = await current.getIdToken();
+  return call({ action: 'viewClassPins', classId, idToken });
+};

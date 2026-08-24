@@ -7,7 +7,7 @@ import { useExams, getSubmissions } from '../../hooks/useExams';
 import { parseRosterRows } from '../../utils/classRosterImport';
 import { countUnmigratedClasses, getClassDoc, migrateLegacyClasses, themHocSinhLenServer } from '../../lib/classroom/classroomService';
 import { listAssignmentsForClass, listSubmissionsForClass } from '../../lib/classroom/submissionService';
-import { issueClassPins, resetStudentPin, revokeClassData, revokeStudentAccessServer, viewStudentPin } from '../../services/studentPortalApi';
+import { issueClassPins, resetStudentPin, revokeClassData, revokeStudentAccessServer, viewClassPins, viewStudentPin } from '../../services/studentPortalApi';
 import { AssignmentPanel } from '../features/classroom/AssignmentPanel';
 import { StudentReport } from '../features/classroom/StudentReport';
 import { ClassWorkspaceNav, WorkspaceEmptyAction, type WorkspaceView } from '../features/classroom/ClassWorkspaceNav';
@@ -156,6 +156,107 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
         icon: 'error',
         title: 'Không cấp lại được',
         text: error instanceof Error ? error.message : 'Thử lại sau.',
+        confirmButtonColor: '#3085d6',
+      });
+    }
+  };
+
+  /** Chép vào clipboard, báo bằng toast. Trang chạy HTTPS nên `navigator.clipboard` dùng được. */
+  const chep = async (text: string, baoGi: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast(baoGi, 'success');
+    } catch {
+      // Trình duyệt chặn clipboard: hiện ra để giáo viên bôi đen chép tay, không im lặng nuốt.
+      Swal.fire({
+        title: 'Chép tay giúp thầy cô nhé',
+        html: `<textarea readonly style="width:100%;height:180px;font-size:13px;padding:8px;">${escapeHtml(text)}</textarea>`,
+        confirmButtonText: 'Đóng',
+        confirmButtonColor: '#3085d6',
+        width: 620,
+      });
+    }
+  };
+
+  const linkVaoLop = (joinCode: string) => `${window.location.origin}/lop/${joinCode}`;
+
+  /**
+   * Bảng phát cho lớp: link chung + PIN riêng từng em, sao chép được ngay.
+   *
+   * Trước đây link chỉ nằm dạng chữ trong hộp thoại mã lớp, còn bảng PIN thì hiện đúng một lần
+   * lúc cấp — giáo viên muốn phát lại cho em mới hay phụ huynh hỏi lại là bó tay.
+   */
+  const bangPhatChoLop = async (cls: TeacherClass) => {
+    try {
+      const classDoc = await getClassDoc(cls.id);
+      if (!classDoc) {
+        Swal.fire({
+          icon: 'info',
+          title: 'Lớp chưa lên máy chủ',
+          text: 'Bấm "Đồng bộ ngay" ở dải nhắc phía trên trước đã.',
+          confirmButtonColor: '#3085d6',
+        });
+        return;
+      }
+
+      const { rows } = await viewClassPins(cls.id);
+      const link = linkVaoLop(classDoc.joinCode);
+      const thieuPin = rows.filter(r => !r.pin).length;
+
+      const dongBang = rows.map(r => `
+        <tr>
+          <td style="text-align:left;padding:6px 8px;border-bottom:1px solid #e2e8f0;">${escapeHtml(r.name)}</td>
+          <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;font-weight:700;letter-spacing:2px;${r.pin ? '' : 'color:#b45309;font-weight:600;letter-spacing:0;font-size:12px;'}">
+            ${r.pin ? escapeHtml(r.pin) : 'chưa xem được — cấp lại'}
+          </td>
+        </tr>`).join('');
+
+      const { isConfirmed, isDenied } = await Swal.fire({
+        title: `Phát cho lớp ${escapeHtml(cls.name)}`,
+        width: 620,
+        html: `
+          <p style="font-size:13px;color:#475569;text-align:left;">Link vào lớp (gửi chung cả lớp được):</p>
+          <p style="font-size:13px;font-weight:700;word-break:break-all;text-align:left;color:#2563eb;margin-bottom:10px;">${escapeHtml(link)}</p>
+          ${thieuPin > 0 ? `<p style="font-size:12px;color:#b45309;text-align:left;margin-bottom:8px;"><b>${thieuPin} em</b> được cấp PIN từ trước nên không xem lại được mã. Bấm nút chìa khoá ở dòng em đó để cấp mã mới.</p>` : ''}
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead><tr style="background:#f8fafc;color:#475569;font-size:11px;text-transform:uppercase;">
+              <th style="text-align:left;padding:6px 8px;">Học sinh</th><th style="padding:6px 8px;">Mã PIN</th>
+            </tr></thead>
+            <tbody>${dongBang}</tbody>
+          </table>
+          <p style="font-size:12px;color:#64748b;text-align:left;margin-top:10px;">PIN là mã riêng từng em — gửi riêng, đừng gửi cả bảng vào nhóm chung.</p>
+        `,
+        showCancelButton: true,
+        showDenyButton: true,
+        confirmButtonText: 'Chép link lớp',
+        denyButtonText: 'Chép cả bảng',
+        cancelButtonText: 'Đóng',
+        confirmButtonColor: '#3085d6',
+        denyButtonColor: '#475569',
+        footer: '<button id="nut-cap-pin" style="background:none;border:none;color:#2563eb;font-weight:700;font-size:13px;cursor:pointer;">Cấp mã PIN cho em chưa có →</button>',
+        didOpen: () => {
+          document.getElementById('nut-cap-pin')?.addEventListener('click', () => {
+            Swal.close();
+            void showClassAccess(cls);
+          });
+        },
+      });
+
+      if (isConfirmed) {
+        await chep(`Link vào lớp ${cls.name}: ${link}`, 'Đã chép link lớp.');
+      } else if (isDenied) {
+        const vanBan = [
+          `Lớp ${cls.name} — link vào lớp: ${link}`,
+          '',
+          ...rows.map(r => `${r.name}\t${r.pin || '(cần cấp lại PIN)'}`),
+        ].join('\n');
+        await chep(vanBan, 'Đã chép cả bảng — dán vào Excel hoặc Zalo được.');
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Không mở được bảng phát',
+        text: error instanceof Error ? error.message : 'Thử lại sau ít phút.',
         confirmButtonColor: '#3085d6',
       });
     }
@@ -830,7 +931,7 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
 
               <div className="grid grid-cols-4 gap-1 border-t border-slate-100 bg-slate-50/80 p-2">
                 <button type="button" onClick={() => { selectClass(item.id); setWorkspaceView('students'); }} className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><Eye className="h-5 w-5" /> Danh sách</button>
-                <button onClick={() => showClassAccess(item)} title="Mã lớp và mã PIN để học sinh đăng nhập" className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><KeyRound className="h-5 w-5" /> Mã lớp</button>
+                <button onClick={() => bangPhatChoLop(item)} title="Link vào lớp và mã PIN từng em — chép sẵn để gửi học sinh" className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><KeyRound className="h-5 w-5" /> Mã lớp</button>
                 <button onClick={() => chonKieuGiaoBai(item)} title="Giao bài nộp ảnh hoặc đề trắc nghiệm online" className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><Send className="h-5 w-5" /> Giao bài</button>
                 <button onClick={() => showClassReport(item)} title="Tổng hợp kết quả các đề đã giao" className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><BarChart3 className="h-5 w-5" /> Báo cáo</button>
               </div>
@@ -844,7 +945,7 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
           selectedClass={selectedClass}
           activeView={workspaceView}
           onViewChange={setWorkspaceView}
-          onAccess={() => void showClassAccess(selectedClass)}
+          onAccess={() => void bangPhatChoLop(selectedClass)}
           onAssign={() => void chonKieuGiaoBai(selectedClass)}
           onReport={() => void showClassReport(selectedClass)}
         />
