@@ -73,6 +73,8 @@ export interface CommonMisconception {
 export interface LearningObjective {
   id: string;
   code: string;
+  /** Khóa năng lực dùng chung; objective cũ không có thì bridge không tự đoán. */
+  skillId?: string;
   title: string;
   description: string;
   bloomLevel: BloomLevel;

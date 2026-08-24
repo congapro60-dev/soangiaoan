@@ -1,3 +1,5 @@
+import type { StudentSkillState } from '../learning/skillTypes.js';
+
 /**
  * Mô hình dữ liệu lớp học — bộ xương dùng chung cho cả hai cửa vào:
  * giáo viên giao bài cho lớp, và học sinh tự nộp bài ("máy chấm bài về nhà").
@@ -213,12 +215,13 @@ export interface SubmissionAttachment {
 
 export type MasteryLevel = 'weak' | 'developing' | 'solid';
 
-export type ProfileEvidenceType = 'homework' | 'strength' | 'practice';
+export type ProfileEvidenceType = 'homework' | 'strength' | 'practice' | 'transfer';
 
 /** Bằng chứng có định danh ổn định hơn submissionId để phân biệt nộp lại cùng một bài. */
 export interface ProfileEvidenceRef {
   submissionId: string;
   assignmentId?: string;
+  skillId?: string;
   evidenceType?: ProfileEvidenceType;
   assessedAt: string;
   confidence?: number;
@@ -227,6 +230,7 @@ export interface ProfileEvidenceRef {
 /** Một chủ đề trong hồ sơ, kèm bài làm làm bằng chứng. */
 export interface ProfileTopic {
   topic: string;
+  skillId?: string;
   level: MasteryLevel;
   /** Bài nộp đã dẫn tới kết luận này. Không có bằng chứng thì không được ghi. */
   evidenceSubmissionIds: string[];
@@ -241,6 +245,8 @@ export interface StudentProfileDoc {
   classId: string;
   teacherId: string;
   topics: ProfileTopic[];
+  /** Summary canonical; optional để đọc được hồ sơ legacy chưa có skill layer. */
+  skills?: StudentSkillState[];
   updatedAt: string;
 }
 
@@ -248,6 +254,7 @@ export interface PracticeQuestionPublic {
   id: string;
   question: string;
   hint: string;
+  skillIds?: string[];
 }
 
 /** Bản chỉ máy chủ được đọc; không ghi vào response gửi học sinh. */
@@ -257,6 +264,7 @@ export interface PracticeQuestionKey {
   hint: string;
   expectedAnswer: string;
   maxScore: number;
+  skillIds?: string[];
 }
 
 export interface PracticeSetDoc {
@@ -265,6 +273,7 @@ export interface PracticeSetDoc {
   classId: string;
   teacherId: string;
   topics: string[];
+  skillIds?: string[];
   questions: PracticeQuestionPublic[];
   createdAt: string;
   updatedAt: string;
@@ -287,6 +296,7 @@ export interface PracticeQuestionResult {
   maxScore: number;
   feedback: string;
   expectedAnswer?: string;
+  skillIds?: string[];
 }
 
 export interface PracticeAttemptDoc {
@@ -295,6 +305,7 @@ export interface PracticeAttemptDoc {
   studentId: string;
   classId: string;
   teacherId: string;
+  skillIds?: string[];
   answers: Record<string, string>;
   status: PracticeAttemptStatus;
   score?: number;
