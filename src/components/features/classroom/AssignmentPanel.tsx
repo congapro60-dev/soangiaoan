@@ -21,6 +21,7 @@ import type { AssignmentDoc, SubmissionDoc } from '../../../lib/classroom/types'
 import { laNopQuaHan } from '../../../lib/classroom/hanNop';
 import { gradeAssignmentAll, gradeOneSubmission } from '../../../services/gradingApi';
 import { AssignmentFormModal, type AssignmentFormValue } from './AssignmentFormModal';
+import { NhanXetMarkdown } from './NhanXetMarkdown';
 import { GradeReviewModal, type GradeReviewValue } from './GradeReviewModal';
 
 interface Props {
@@ -143,7 +144,7 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                   <p className="text-sm font-semibold text-slate-400">Không có ảnh đính kèm.</p>
                 )}
 
-                {s.grade?.feedback && <p className="text-sm font-semibold leading-6 text-slate-600">{s.grade.feedback}</p>}
+                {s.grade?.feedback && <NhanXetMarkdown>{s.grade.feedback}</NhanXetMarkdown>}
                 {s.grade?.gradedWithoutAnswerKey && (
                   <p className="text-xs font-bold text-amber-700">Bài chấm khi chưa đối chiếu đáp án chuẩn — nên soát lại giúp.</p>
                 )}

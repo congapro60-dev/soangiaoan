@@ -4,6 +4,7 @@ import { Printer, Target, TrendingUp } from 'lucide-react';
 import { db } from '../../../lib/firebase';
 import { STUDENT_PROFILES_COL, type StudentProfileDoc, type SubmissionDoc } from '../../../lib/classroom/types';
 import { listSubmissionsForStudent } from '../../../lib/classroom/submissionService';
+import { NhanXetMarkdown } from './NhanXetMarkdown';
 
 interface Props {
   studentId: string;
@@ -92,7 +93,7 @@ export const StudentReport = ({ studentId, teacherId, studentName, className, st
                   <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">không có đáp án chuẩn</span>
                 )}
               </div>
-              <p className="mt-1 text-sm font-semibold leading-6 text-slate-600">{s.grade?.feedback}</p>
+              <NhanXetMarkdown>{s.grade?.feedback || ''}</NhanXetMarkdown>
               {forAdult && s.grade?.noteForTeacher && (
                 <p className="mt-1 text-xs font-semibold italic leading-5 text-slate-500">Ghi chú: {s.grade.noteForTeacher}</p>
               )}

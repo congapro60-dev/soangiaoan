@@ -22,7 +22,12 @@ import { submitHomework } from '../lib/classroom/submissionService';
 import { fetchPractice, gradeOneSubmission, type PracticeQuestion } from '../services/gradingApi';
 import { StudentPortalDashboard } from '../components/features/classroom/student/StudentPortalDashboard';
 
-const MAX_ANH = 4;
+/**
+ * Tran anh cho MOT lan nop. Moi anh la mot luot doc cua AI nen tra bang tien cua chu du an,
+ * nhung 4 tam thi khong du cho bai 2 trang viet ca hai mat. 10 la muc vua: du cho bai dai ma
+ * van chan duoc ca xap anh chup nham.
+ */
+const MAX_ANH = 10;
 type Stage = 'dang-tai' | 'nhap-ma-lop' | 'chon-ten' | 'dashboard';
 
 interface Phien {
@@ -218,9 +223,22 @@ export const StudentPortalPage = () => {
     try {
       const images: string[] = [];
       for (let i = 0; i < chon.length; i += 1) {
-        setBuocNop(chon.length > 1 ? `Đang chuẩn bị ảnh ${i + 1}/${chon.length}...` : 'Đang chuẩn bị ảnh...');
-        images.push(await nenAnhBaiLam(chon[i]));
+        const file = chon[i];
+        setBuocNop(chon.length > 1 ? `Đang chuẩn bị tệp ${i + 1}/${chon.length}...` : 'Đang chuẩn bị bài...');
+
+        // PDF: tach thanh tung trang anh roi cham nhu anh thuong. Duong cham dung Gemini Vision
+        // nen phai la anh; tach o day thi may chu khong phai biet gi ve PDF.
+        if (/\.pdf$/i.test(file.name) || file.type === 'application/pdf') {
+          const { pdfToImages } = await import('../utils/examImportUtils');
+          const trang = await pdfToImages(file);
+          if (trang.length === 0) throw new Error(`Không đọc được trang nào trong ${file.name}.`);
+          images.push(...trang);
+        } else {
+          images.push(await nenAnhBaiLam(file));
+        }
       }
+      if (images.length === 0) throw new Error('Không có ảnh nào để nộp.');
+      if (images.length > MAX_ANH) images.length = MAX_ANH;
       setBuocNop('Đang tải bài lên máy chủ...');
       const submission = await submitHomework({
         classId: phien.classId,

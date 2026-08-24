@@ -1,4 +1,5 @@
 import { AlertTriangle, CalendarClock, Camera, CheckCircle2, Clock3, FileText, Loader2, MessageCircle, RotateCcw } from 'lucide-react';
+import { NhanXetMarkdown } from '../NhanXetMarkdown';
 import type { AssignmentDoc, SubmissionDoc } from '../../../../lib/classroom/types';
 import type { StudentAssignmentState } from '../../../../lib/classroom/portalViewModel';
 
@@ -62,12 +63,26 @@ export const StudentAssignmentCard = ({ assignment, submission, state, uploading
             <p className="mt-1 whitespace-pre-line break-words text-sm font-medium leading-6 text-slate-600">{assignment.description}</p>
           )}
           {(assignment.attachments || []).length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {(assignment.attachments || []).map(file => (
-                <a key={file.url} href={file.url} target="_blank" rel="noreferrer" className="inline-flex max-w-full items-center gap-1 rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-700 underline-offset-2 hover:underline">
-                  <FileText className="h-3.5 w-3.5 shrink-0" /> <span className="break-all">{file.name}</span>
-                </a>
-              ))}
+            <div className="mt-3">
+              <p className="mb-2 text-xs font-black uppercase tracking-wide text-slate-400">Đề bài thầy cô giao</p>
+              {/* Ảnh hiện THẲNG ra chứ không chỉ là cái tên file: em mở bài là thấy đề ngay,
+                  không phải đoán cái pill kia là gì rồi mới bấm. Bấm vào ảnh thì mở cỡ lớn. */}
+              <div className="flex flex-wrap gap-2">
+                {(assignment.attachments || []).map(file => (
+                  /\.(png|jpe?g|webp|gif)$/i.test(file.name) ? (
+                    <a key={file.url} href={file.url} target="_blank" rel="noreferrer" title={`Mở ${file.name} cỡ lớn`}
+                       className="block overflow-hidden rounded-2xl ring-1 ring-slate-200 transition hover:ring-indigo-400">
+                      <img src={file.url} alt={`Đề bài: ${file.name}`} loading="lazy"
+                           className="h-40 w-auto max-w-full object-contain bg-slate-50 sm:h-52" />
+                    </a>
+                  ) : (
+                    <a key={file.url} href={file.url} target="_blank" rel="noreferrer"
+                       className="inline-flex min-h-11 max-w-full items-center gap-2 rounded-2xl bg-indigo-50 px-4 py-2.5 text-sm font-bold text-indigo-700 transition hover:bg-indigo-100">
+                      <FileText className="h-4 w-4 shrink-0" /> <span className="break-all">{file.name}</span>
+                    </a>
+                  )
+                ))}
+              </div>
             </div>
           )}
           {state.status === 'retry' && (
@@ -81,7 +96,9 @@ export const StudentAssignmentCard = ({ assignment, submission, state, uploading
               <p className="flex items-center gap-2 text-sm font-black text-emerald-800">
                 <CheckCircle2 className="h-4 w-4" /> {submission.grade.score}/{submission.grade.maxScore} điểm
               </p>
-              {submission.grade.feedback && <p className="mt-1 whitespace-pre-line break-words text-sm font-medium leading-6 text-emerald-950">{submission.grade.feedback}</p>}
+              {submission.grade.feedback && (
+                <div className="mt-1"><NhanXetMarkdown tone="sang">{submission.grade.feedback}</NhanXetMarkdown></div>
+              )}
             </div>
           )}
         </div>

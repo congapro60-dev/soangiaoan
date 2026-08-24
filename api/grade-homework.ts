@@ -44,7 +44,8 @@ import { handleAiGateway } from './_ai-gateway-handler.js';
  * đổi lại được thanh tiến độ thật thay vì một lượt chờ dài rồi timeout mất trắng.
  */
 const BATCH_SIZE = 4;
-const MAX_IMAGES_PER_SUBMISSION = 4;
+/** Khop voi tran phia hoc sinh: bo sot anh la cham thieu bai ma khong ai biet. */
+const MAX_IMAGES_PER_SUBMISSION = 10;
 const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
 /** Khai tường minh thay vì dựa default của Vercel — Hobby cap ở 60s. */
 export const maxDuration = 60;

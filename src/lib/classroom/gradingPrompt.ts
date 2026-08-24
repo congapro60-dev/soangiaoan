@@ -61,11 +61,22 @@ THANG ĐIỂM: tối đa ${input.maxScore} điểm. Quy đổi về đúng thang
 
 CÁCH VIẾT NHẬN XÉT — quan trọng:
 - "feedbackForStudent" là để CHÍNH EM ĐÓ đọc. Xưng "em". Nói em làm đúng chỗ nào trước, rồi chỉ
-  đúng chỗ sai và cách sửa. Không phán xét năng lực, không so sánh với bạn khác. 2-4 câu.
+  đúng chỗ sai và cách sửa. Không phán xét năng lực, không so sánh với bạn khác.
+
 - "noteForTeacher" là để giáo viên đọc: mức độ nắm bài, lỗi có hệ thống hay lỗi vặt. 1-2 câu.
 - "weakTopics" chỉ ghi chủ đề mà bạn CÓ CĂN CỨ trong bài này, mỗi chủ đề là một cụm danh từ ngắn
   (ví dụ "phương trình đường thẳng", "quy tắc dấu khi thay toạ độ"). Không chắc thì để mảng rỗng.
   Chủ đề này sẽ vào hồ sơ học tập lâu dài của em, ghi bừa là làm hỏng hồ sơ.
+
+CÁCH TRÌNH BÀY NHẬN XÉT (áp dụng cho "feedbackForStudent") — học sinh và phụ huynh đọc:
+- Viết bằng Markdown. Mỗi ý một đoạn ngắn, có dòng trống giữa các đoạn. KHÔNG dồn thành một khối chữ dài.
+- Chỗ nào liệt kê lỗi hay việc cần làm thì dùng gạch đầu dòng, mỗi dòng một ý.
+- Công thức toán BẮT BUỘC viết LaTeX: trong dòng dùng $...$, tách riêng dùng $$...$$.
+  Ví dụ đúng: $x^2 - 3x + 2 = 0$, $\frac{a+b}{2}$, $\sqrt{5}$.
+  Ví dụ SAI: x^2-3x+2=0, (a+b)/2, căn 5.
+- In đậm **số câu** khi nhắc tới câu cụ thể, ví dụ **Câu 3**.
+- Chuẩn tiếng Việt: dấu câu sát chữ trước, cách một khoảng sau. Không viết tắt kiểu "ko", "dc", "bt".
+
 
 CHỈ TRẢ VỀ JSON THUẦN, không kèm chữ nào khác:
 {
@@ -277,9 +288,19 @@ ${(input.weakTopics || []).length > 0 ? `CHỦ ĐỀ CẦN LUYỆN THÊM: ${(inp
 ${input.currentFeedback?.trim() ? `\nNhận xét máy viết trước đó (sẽ bị thay, chỉ để tham khảo giọng văn):\n${input.currentFeedback.trim()}` : ''}
 
 CÁCH VIẾT:
-- Viết cho CHÍNH EM ĐÓ đọc. Xưng "em". 2-4 câu.
+- Viết cho CHÍNH EM ĐÓ đọc. Xưng "em".
 - Nói em làm được chỗ nào trước, rồi mới tới chỗ cần sửa và cách sửa.
 - Không phán xét năng lực, không so sánh với bạn khác, không khen sáo rỗng.
+
+CÁCH TRÌNH BÀY NHẬN XÉT (áp dụng cho "feedbackForStudent") — học sinh và phụ huynh đọc:
+- Viết bằng Markdown. Mỗi ý một đoạn ngắn, có dòng trống giữa các đoạn. KHÔNG dồn thành một khối chữ dài.
+- Chỗ nào liệt kê lỗi hay việc cần làm thì dùng gạch đầu dòng, mỗi dòng một ý.
+- Công thức toán BẮT BUỘC viết LaTeX: trong dòng dùng $...$, tách riêng dùng $$...$$.
+  Ví dụ đúng: $x^2 - 3x + 2 = 0$, $\frac{a+b}{2}$, $\sqrt{5}$.
+  Ví dụ SAI: x^2-3x+2=0, (a+b)/2, căn 5.
+- In đậm **số câu** khi nhắc tới câu cụ thể, ví dụ **Câu 3**.
+- Chuẩn tiếng Việt: dấu câu sát chữ trước, cách một khoảng sau. Không viết tắt kiểu "ko", "dc", "bt".
+
 
 TUYỆT ĐỐI KHÔNG:
 - Không thêm nhận định mà giáo viên không nêu. Không tự suy ra em yếu chỗ khác.

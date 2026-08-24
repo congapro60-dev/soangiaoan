@@ -266,3 +266,29 @@ describe('AI viết lại nhận xét từ lời giáo viên', () => {
     expect(() => parseRewrittenFeedback(JSON.stringify({ feedback: '  ' }))).toThrow(/lời của mình/);
   });
 });
+
+describe('trình bày nhận xét cho học sinh và phụ huynh đọc', () => {
+  const cacPrompt = [
+    ['chấm bài', buildHomeworkGradingPrompt({ answerKey: 'x', maxScore: 10 })],
+    ['viết lại từ lời GV', buildRewriteFeedbackPrompt({ teacherNote: 'x', score: 5, maxScore: 10 })],
+  ] as const;
+
+  it.each(cacPrompt)('%s: bắt viết Markdown, ngắt đoạn, không dồn một khối', (_ten, p) => {
+    expect(p).toContain('Markdown');
+    expect(p).toContain('KHÔNG dồn thành một khối chữ dài');
+  });
+
+  it.each(cacPrompt)('%s: BẮT BUỘC công thức toán viết LaTeX', (_ten, p) => {
+    expect(p).toContain('BẮT BUỘC viết LaTeX');
+    expect(p).toContain('$$');
+  });
+
+  it.each(cacPrompt)('%s: nêu ví dụ SAI để AI không viết công thức thô', (_ten, p) => {
+    expect(p).toContain('Ví dụ SAI');
+  });
+
+  it.each(cacPrompt)('%s: giữ chuẩn dấu câu tiếng Việt, cấm viết tắt', (_ten, p) => {
+    expect(p).toContain('Chuẩn tiếng Việt');
+    expect(p).toContain('Không viết tắt');
+  });
+});

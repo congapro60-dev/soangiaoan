@@ -131,7 +131,10 @@ export const StudentPortalDashboard = ({
       </header>
 
       <main className="mx-auto max-w-5xl space-y-5 px-4 pt-5 sm:px-6 sm:pt-7">
-        <input ref={uploadRef} type="file" accept="image/*" capture="environment" multiple className="hidden" onChange={onFileChange} />
+        {/* KHONG dat capture="environment": tren dien thoai capture THANG multiple, may mo thang
+            camera va tra ve DUNG MOT anh. Bo di thi trinh chon cho phep chup moi lan nhieu tam
+            va lay tu thu vien. Nhan them PDF vi nhieu em nop ban scan nhieu trang. */}
+        <input ref={uploadRef} type="file" accept="image/*,application/pdf,.pdf" multiple className="hidden" onChange={onFileChange} />
 
         <section className="overflow-hidden rounded-[1.75rem] bg-slate-900 p-5 text-white shadow-xl shadow-slate-200 sm:p-7">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
