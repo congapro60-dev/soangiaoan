@@ -73,12 +73,19 @@ const urlsFromValue = (value: unknown): string[] => {
   });
 };
 
+/**
+ * Lỗi DỮ LIỆU xác định: URL không nhận diện được thì thử lại bao nhiêu lần cũng vậy.
+ * Phải trả nguyên văn message về giáo viên — nếu lọt vào catch tổng 500 "thử lại sau
+ * ít phút" thì giáo viên ngồi retry vô vọng mà không biết mình phải làm gì khác.
+ */
+class StorageCleanupError extends Error {}
+
 const deleteStorageFiles = async (urls: string[]): Promise<number> => {
   const bucket = getAdminStorage();
   const rawUrls = [...new Set(urls.map(url => url.trim()).filter(Boolean))];
   const paths = uniqueStoragePaths(rawUrls, bucket.name);
   if (paths.length !== rawUrls.length) {
-    throw new Error('Không xác định được đường dẫn file Storage để dọn an toàn.');
+    throw new StorageCleanupError('Không xác định được đường dẫn file Storage để dọn an toàn.');
   }
 
   await Promise.all(paths.map(async path => {
@@ -113,7 +120,16 @@ const handleDeleteSubmission = async (db: FirebaseFirestore.Firestore, body: Rec
     ...urlsFromValue(submission.fileUrls),
     ...urlsFromValue(submission.attachments),
   ];
-  const deletedFiles = await deleteStorageFiles(urls);
+  let deletedFiles: number;
+  try {
+    deletedFiles = await deleteStorageFiles(urls);
+  } catch (error) {
+    if (error instanceof StorageCleanupError) {
+      console.error('[classroom] xoá bài nộp: dữ liệu URL không dọn được', error);
+      return res.status(422).json({ error: error.message });
+    }
+    throw error;
+  }
 
   if (submission.grade?.teacherApproved === true && typeof submission.studentId === 'string') {
     const profileRef = db.collection('studentProfiles').doc(submission.studentId);
@@ -166,7 +182,16 @@ const handleDeleteAssignment = async (db: FirebaseFirestore.Firestore, body: Rec
     ...urlsFromValue(assignment.sourceImageUrls),
     ...urlsFromValue(assignment.answerKeyImageUrls),
   ];
-  const deletedFiles = await deleteStorageFiles(urls);
+  let deletedFiles: number;
+  try {
+    deletedFiles = await deleteStorageFiles(urls);
+  } catch (error) {
+    if (error instanceof StorageCleanupError) {
+      console.error('[classroom] xoá bài giao: dữ liệu URL không dọn được', error);
+      return res.status(422).json({ error: error.message });
+    }
+    throw error;
+  }
   await assignmentRef.delete();
   return res.status(200).json({ deleted: true, deletedFiles });
 };

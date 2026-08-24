@@ -164,3 +164,16 @@ Trạng thái: promotion đã hoàn tất và hậu kiểm PASS; backup vẫn đ
 - [x] `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai" run build` PASS; chỉ còn cảnh báo chunk/import vốn có.
 
 Backup bản cũ: `C:\Users\ADMIN\AppData\Local\Temp\smartplan-ban-toan-backup-20260822-084004`.
+
+## QA doc lap commit 057cd7b (don Storage khi xoa bai) - 2026-08-24
+
+- [x] Ra soat diff 057cd7b + toan bo luong lop hoc: quyen GV, attempt hien hanh, ho so tich luy, /api/classroom, parser Storage URL, xu ly loi.
+- [x] Baseline xanh: lint, lint:api, test (69 files/1032), test:rules (7/238), build.
+- [x] Phat hien 1 loi co bang chung: deleteStorageFiles nem loi du lieu URL huong (xac dinh) nhung catch tong che thanh 500 "Thu lai sau it phut" -> GV retry vo vang.
+- [x] Sua nho nhat: StorageCleanupError + 2 diem goi tra 422 kem nguyen van message; log console cho dev.
+- [x] Them 7 ca hoi quy api/__tests__/classroom-delete-handlers.test.ts (quyen, thu tu don-file-truoc-xoa-sau, dedupe URL, chan 409, 403, 422).
+- [x] Chay lai: lint, lint:api, test (70 files/1039), build - deu pass. test:rules khong anh huong (da pass truoc do, rules/client khong doi).
+
+### Review
+
+- Khong revert, khong push, khong deploy theo yeu cau.
