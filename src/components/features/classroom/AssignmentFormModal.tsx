@@ -117,7 +117,7 @@ export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSu
         return;
       }
 
-      const ket = await solveAnswerKey(classId, examText, examImages, maxScore);
+      const ket = await solveAnswerKey(classId, examText, examImages, maxScore, gradingInstructions);
       setAnswerKey(ket.answerKey);
       setChoChuaChac(ket.uncertainties);
       setDapAnDoAi(true);
@@ -136,7 +136,7 @@ export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSu
   const nhoAiSoanHuongDan = async () => {
     setDangSoanRubric(true);
     try {
-      const ket = await suggestRubric(classId, answerKey, maxScore);
+      const ket = await suggestRubric(classId, answerKey, maxScore, gradingInstructions);
       setRubric(ket);
       setGhiChu(truoc => ({ ...truoc, rubric: 'AI soạn từ đáp án ở trên. Soát lại cách chia điểm cho khớp cách thầy cô vẫn chấm.' }));
     } catch (error) {
@@ -207,6 +207,22 @@ export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSu
             )}
             {ghiChu.de && <p className="mt-2 text-xs font-bold text-amber-700">{ghiChu.de}</p>}
             {sourceText && <p className="mt-2 text-xs font-bold text-emerald-700">Đã rút được phần chữ của đề để AI đối chiếu khi chấm.</p>}
+            <div className="mt-3 rounded-xl border border-blue-100 bg-blue-50/50 p-3">
+              <p className="text-sm font-black text-slate-800">Lệnh riêng cho AI khi chấm (không bắt buộc)</p>
+              <p className="mb-2 mt-1 text-xs font-semibold text-slate-600">
+                Viết thật rõ phạm vi: “Bỏ bài 4.3, chỉ giao 4.1, 4.2 và 4.4”, “Chỉ chấm Câu 1, 3”, “Không trừ điểm phần bị bỏ qua”.
+                Lệnh này chỉ dành cho giáo viên, không hiện cho học sinh, được lưu cùng bài giao
+                và áp dụng cho mọi lần nộp, nộp lại, chấm lại về sau.
+                Hai nút “Để AI giải đề” và “Để AI đề xuất” bên dưới cũng dùng đúng lệnh này tại thời điểm bấm.
+              </p>
+              <textarea
+                value={gradingInstructions}
+                onChange={e => setGradingInstructions(e.target.value)}
+                rows={3}
+                placeholder="Ví dụ: Chỉ dùng Câu 1 và Câu 3; bỏ qua phần trắc nghiệm; không tự suy ra câu ngoài đề."
+                className={`${O} bg-white font-normal`}
+              />
+            </div>
           </div>
 
           <div className="rounded-2xl border border-slate-200 p-4">
@@ -281,21 +297,6 @@ export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSu
             </p>
             <textarea value={rubric} onChange={e => setRubric(e.target.value)} rows={3} className={`${O} font-normal`} />
             {ghiChu.rubric && <p className="mt-1 text-xs font-bold text-amber-700">{ghiChu.rubric}</p>}
-          </div>
-
-          <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4">
-            <p className="text-sm font-black text-slate-800">4. Lệnh riêng cho AI khi chấm (không bắt buộc)</p>
-            <p className="mb-2 mt-1 text-xs font-semibold text-slate-600">
-              Viết thật rõ phạm vi: “Chỉ chấm Câu 1, 3”, “Bỏ qua Bài 2”, “Không trừ điểm phần bị bỏ qua”.
-              Lệnh này chỉ dùng nội bộ khi chấm, không hiện cho học sinh.
-            </p>
-            <textarea
-              value={gradingInstructions}
-              onChange={e => setGradingInstructions(e.target.value)}
-              rows={3}
-              placeholder="Ví dụ: Chỉ dùng Câu 1 và Câu 3; bỏ qua phần trắc nghiệm; không tự suy ra câu ngoài đề."
-              className={`${O} bg-white font-normal`}
-            />
           </div>
         </div>
 

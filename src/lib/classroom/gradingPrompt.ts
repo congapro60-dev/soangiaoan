@@ -310,6 +310,8 @@ export interface SolveExamInput {
   /** Số ảnh đề gửi kèm, khi đề là ảnh hoặc PDF scan. */
   examImageCount: number;
   maxScore: number;
+  /** Lệnh riêng của giáo viên về phạm vi giải/chấm, lưu cùng bài giao. */
+  gradingInstructions?: string;
 }
 
 /**
@@ -319,13 +321,27 @@ export interface SolveExamInput {
  * câu 5, rồi sai đó còn nhân tiếp vào hồ sơ học tập từng em. Nên prompt bắt AI tự nêu chỗ nó
  * không chắc, để giáo viên biết cần soát kỹ chỗ nào.
  */
-export const buildSolveExamPrompt = (input: SolveExamInput): string => `Bạn là giáo viên Toán đang soạn ĐÁP ÁN cho một đề bài tập của học sinh Việt Nam.
+export const buildSolveExamPrompt = (input: SolveExamInput): string => {
+  const gradingInstructions = input.gradingInstructions?.trim() || '';
+  const lenhPhamVi = gradingInstructions
+    ? `
+LỆNH RIÊNG CỦA GIÁO VIÊN (ưu tiên cao hơn phạm vi đề gốc):
+${gradingInstructions.slice(0, 6000)}${gradingInstructions.length > 6000 ? '\n[Lệnh quá dài đã được cắt bớt.]' : ''}
+- Chỉ giải và đề xuất điểm cho các phần/câu ĐƯỢC GIAO theo lệnh trên.
+- Phần bị bỏ qua KHÔNG xuất hiện trong đáp án nháp, KHÔNG đề xuất điểm, không coi là phần phải làm.
+- Giữ nguyên thang điểm đã đặt: tổng cả đề vẫn đúng bằng ${input.maxScore} điểm.
+- Lệnh mơ hồ hoặc mâu thuẫn với đề thì ghi thẳng "CHƯA CHẮC: ..." để giáo viên soát, không tự đoán cách hiểu.
+`
+    : '';
+  return `Bạn là giáo viên Toán đang soạn ĐÁP ÁN cho một đề bài tập của học sinh Việt Nam.
 
 ${input.examImageCount > 0
-  ? `Đề nằm trong ${input.examImageCount} ảnh gửi kèm. Đọc kỹ đề trong ảnh trước khi giải.`
-  : `ĐỀ BÀI:\n${input.examText.trim()}`}
-
-Giải TỪNG câu, theo thứ tự đề ra. Với mỗi câu:
+    ? `Đề nằm trong ${input.examImageCount} ảnh gửi kèm. Đọc kỹ đề trong ảnh trước khi giải.`
+    : `ĐỀ BÀI:\n${input.examText.trim()}`}
+${lenhPhamVi}
+${gradingInstructions
+    ? 'Giải TỪNG câu THUỘC PHẠM VI ĐƯỢC GIAO ở lệnh trên, theo thứ tự đề ra. Với mỗi câu được giao:'
+    : 'Giải TỪNG câu, theo thứ tự đề ra. Với mỗi câu:'}
 - Ghi rõ số câu đúng như trong đề.
 - Nêu các bước chính, không tắt quá để giáo viên soát được.
 - Ghi đáp số cuối cùng.
@@ -337,6 +353,7 @@ QUAN TRỌNG — chỗ nào bạn KHÔNG chắc thì phải nói ra:
 
 CHỈ TRẢ VỀ JSON THUẦN:
 {"answerKey":"toàn bộ đáp án dạng văn bản, xuống dòng bằng \n","uncertainties":["chỗ chưa chắc 1"]}`;
+};
 
 export interface SolvedAnswerKey {
   answerKey: string;
@@ -363,14 +380,27 @@ export const parseSolvedAnswerKey = (raw: string): SolvedAnswerKey => {
  * điểm khi học sinh làm ĐÚNG MỘT PHẦN. Không có nó thì AI vẫn chấm được, nhưng cách chia điểm
  * thành phần là do nó tự quyết — mỗi em một kiểu, và không khớp cách thầy cô vẫn chấm.
  */
-export const buildRubricPrompt = (answerKey: string, maxScore: number): string =>
-  `Bạn là giáo viên đang viết HƯỚNG DẪN CHẤM cho bài tập dưới đây.
+export const buildRubricPrompt = (answerKey: string, maxScore: number, gradingInstructions?: string): string => {
+  const lenh = String(gradingInstructions || '').trim();
+  const lenhPhamVi = lenh
+    ? `
+LỆNH RIÊNG CỦA GIÁO VIÊN (ưu tiên cao hơn phạm vi đề gốc):
+${lenh.slice(0, 6000)}${lenh.length > 6000 ? '\n[Lệnh quá dài đã được cắt bớt.]' : ''}
+- Hướng dẫn chấm chỉ chia điểm cho các phần/câu ĐƯỢC GIAO theo lệnh trên.
+- Phần bị bỏ qua KHÔNG có mốc điểm, KHÔNG tạo lỗi thường gặp, không xuất hiện như một mục cần chấm.
+- Giữ nguyên tổng thang điểm đã giao: Tổng đúng bằng ${maxScore}. Nếu phạm vi làm tổng điểm không xác định được thì ghi rõ chỗ đó để cần giáo viên xác nhận.
+- Lệnh mơ hồ hoặc mâu thuẫn với đáp án thì nói rõ để giáo viên soát, không tự đoán cách hiểu.
+`
+    : '';
+  return `Bạn là giáo viên đang viết HƯỚNG DẪN CHẤM cho bài tập dưới đây.
 
 ĐÁP ÁN CHUẨN:
 ${answerKey.trim()}
-
+${lenhPhamVi}
 Viết hướng dẫn chấm để người khác chấm cũng ra cùng kết quả:
-- Chia ${maxScore} điểm cho từng câu, ghi rõ số điểm mỗi câu. Tổng đúng bằng ${maxScore}.
+${lenh
+    ? `- Chia ${maxScore} điểm cho TỪNG câu/phần THUỘC PHẠM VI ĐƯỢC GIAO ở lệnh trên, ghi rõ số điểm mỗi phần. Tổng đúng bằng ${maxScore}.`
+    : `- Chia ${maxScore} điểm cho từng câu, ghi rõ số điểm mỗi câu. Tổng đúng bằng ${maxScore}.`}
 - Trong mỗi câu, nêu các mốc cho điểm thành phần: làm được bước nào thì được bao nhiêu.
 - Nêu lỗi thường gặp ở dạng bài này và mức trừ tương ứng.
 - Nói rõ chỗ nào vẫn cho điểm dù kết quả cuối sai (ví dụ sai số học nhưng phương pháp đúng).
@@ -379,6 +409,7 @@ Viết ngắn gọn, đúng việc, không giảng giải lý thuyết. Tiếng 
 
 CHỈ TRẢ VỀ JSON THUẦN:
 {"rubric":"toàn bộ hướng dẫn chấm, xuống dòng bằng \n"}`;
+};
 
 export const parseRubric = (raw: string): string => {
   const text = String(raw || '');

@@ -88,6 +88,7 @@ export const solveAnswerKey = async (
   examText: string,
   examImages: string[],
   maxScore: number,
+  gradingInstructions?: string,
 ): Promise<SolvedAnswerKeyResult> => {
   const user = auth.currentUser;
   if (!user) throw new Error('Phiên đăng nhập đã hết hạn.');
@@ -102,6 +103,7 @@ export const solveAnswerKey = async (
       examText,
       examImages,
       maxScore,
+      gradingInstructions: gradingInstructions || '',
     }),
   });
   const data = await res.json().catch(() => null);
@@ -110,14 +112,26 @@ export const solveAnswerKey = async (
 };
 
 /** Nhờ AI đề xuất hướng dẫn chấm từ đáp án đã có. */
-export const suggestRubric = async (classId: string, answerKey: string, maxScore: number): Promise<string> => {
+export const suggestRubric = async (
+  classId: string,
+  answerKey: string,
+  maxScore: number,
+  gradingInstructions?: string,
+): Promise<string> => {
   const user = auth.currentUser;
   if (!user) throw new Error('Phiên đăng nhập đã hết hạn.');
 
   const res = await fetch('/api/grade-homework', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'suggestRubric', idToken: await user.getIdToken(), classId, answerKey, maxScore }),
+    body: JSON.stringify({
+      action: 'suggestRubric',
+      idToken: await user.getIdToken(),
+      classId,
+      answerKey,
+      maxScore,
+      gradingInstructions: gradingInstructions || '',
+    }),
   });
   const data = await res.json().catch(() => null);
   if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);

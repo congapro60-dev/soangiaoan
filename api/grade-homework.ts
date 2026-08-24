@@ -384,6 +384,7 @@ const handleSolveAnswerKey = async (db: FirebaseFirestore.Firestore, body: Recor
     examText,
     examImageCount: examImages.length,
     maxScore: Number(body.maxScore) || 10,
+    gradingInstructions: String(body.gradingInstructions || ''),
   });
   // Giải cả một đề, từng câu kèm các bước — dài hơn hẳn chấm một bài, nên trần phải rộng.
   const raw = await callGeminiVision(prompt, examImages, getGradingApiKey(), GRADING_MODEL, {
@@ -416,7 +417,7 @@ const handleSuggestRubric = async (db: FirebaseFirestore.Firestore, body: Record
   if (verdict.allowed <= 0) return res.status(429).json({ error: verdict.reason });
 
   const raw = await callGeminiVision(
-    buildRubricPrompt(answerKey, Number(body.maxScore) || 10),
+    buildRubricPrompt(answerKey, Number(body.maxScore) || 10, String(body.gradingInstructions || '')),
     [],
     getGradingApiKey(),
     GRADING_MODEL,

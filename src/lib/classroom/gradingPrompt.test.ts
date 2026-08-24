@@ -323,6 +323,102 @@ describe('AI đề xuất hướng dẫn chấm', () => {
   it('không đọc được nội dung thì ném lỗi', () => {
     expect(() => parseRubric('xin loi')).toThrow(/không đọc được/);
   });
+
+  it('có lệnh phạm vi thì hướng dẫn chấm chỉ chia điểm phần được giao', () => {
+    const lenh = 'Bỏ bài 4.3, chỉ giao 4.1, 4.2 và 4.4';
+    const p = buildRubricPrompt('Câu 4.1: x = 1\nCâu 4.3: y = 2', 10, lenh);
+
+    expect(p).toContain('LỆNH RIÊNG CỦA GIÁO VIÊN');
+    expect(p).toContain(lenh);
+    expect(p).toContain('Phần bị bỏ qua KHÔNG có mốc điểm');
+    expect(p).toContain('KHÔNG tạo lỗi thường gặp');
+    expect(p).toContain('Tổng đúng bằng 10');
+    expect(p).toContain('cần giáo viên xác nhận');
+    expect(p).toContain('không tự đoán');
+  });
+
+  it('không có lệnh thì không chèn khối lệnh vào hướng dẫn chấm', () => {
+    expect(buildRubricPrompt('x', 10)).not.toContain('LỆNH RIÊNG CỦA GIÁO VIÊN');
+  });
+});
+
+describe('lệnh phạm vi của giáo viên trong prompt giải đề và hướng dẫn chấm', () => {
+  const LENH = 'Bỏ bài 4.3, chỉ giao 4.1, 4.2 và 4.4';
+
+  it('prompt giải đề chứa lệnh và cấm tạo đáp án/điểm cho phần bị bỏ qua', () => {
+    const p = buildSolveExamPrompt({
+      examText: 'Bài 4.1: tính x. Bài 4.3: tính y. Bài 4.4: tính z.',
+      examImageCount: 0,
+      maxScore: 10,
+      gradingInstructions: LENH,
+    });
+
+    expect(p).toContain('LỆNH RIÊNG CỦA GIÁO VIÊN');
+    expect(p).toContain(LENH);
+    expect(p).toContain('Phần bị bỏ qua KHÔNG xuất hiện trong đáp án nháp');
+    expect(p).toContain('KHÔNG đề xuất điểm');
+    expect(p).toContain('Giữ nguyên thang điểm');
+    expect(p).toContain('đúng bằng 10 điểm');
+    expect(p).toContain('mâu thuẫn');
+    expect(p).toContain('không tự đoán');
+  });
+
+  it('không có lệnh thì không chèn khối lệnh vào prompt giải đề', () => {
+    const p = buildSolveExamPrompt({ examText: 'Câu 1: tính x', examImageCount: 0, maxScore: 10 });
+
+    expect(p).not.toContain('LỆNH RIÊNG CỦA GIÁO VIÊN');
+  });
+
+  // Regression: mệnh lệnh vô điều kiện đứng SAU khối lệnh phạm vi khiến AI có xu hướng
+  // theo lệnh gần nhất → vẫn giải/chia điểm cả phần bị bỏ qua.
+  it('có lệnh thì mệnh lệnh "giải từng câu" phải giới hạn trong phạm vi được giao', () => {
+    const p = buildSolveExamPrompt({
+      examText: 'Bài 4.1: tính x. Bài 4.3: tính y.',
+      examImageCount: 0,
+      maxScore: 10,
+      gradingInstructions: LENH,
+    });
+
+    expect(p).toContain('Giải TỪNG câu THUỘC PHẠM VI ĐƯỢC GIAO');
+    expect(p).not.toContain('Giải TỪNG câu, theo thứ tự đề ra');
+  });
+
+  it('không có lệnh thì giữ nguyên mệnh lệnh giải toàn bộ đề như cũ', () => {
+    expect(buildSolveExamPrompt({ examText: 'x', examImageCount: 0, maxScore: 10 }))
+      .toContain('Giải TỪNG câu, theo thứ tự đề ra');
+  });
+
+  // Regression: answerKey đầu vào có thể vẫn chứa câu bị bỏ — dòng "chia từng câu"
+  // vô điều kiện sẽ kéo AI tạo mốc điểm cho phần đó dù khối lệnh cấm.
+  it('có lệnh thì dòng chia điểm từng câu của hướng dẫn chấm phải bám phạm vi được giao', () => {
+    const p = buildRubricPrompt('Câu 4.1: x = 1\nCâu 4.3: y = 2', 10, LENH);
+
+    expect(p).toContain('TỪNG câu/phần THUỘC PHẠM VI ĐƯỢC GIAO');
+    expect(p).not.toContain('Chia 10 điểm cho từng câu,');
+  });
+
+  it('không có lệnh thì hướng dẫn chấm giữ nguyên cách chia điểm cũ', () => {
+    expect(buildRubricPrompt('Câu 1: x = 2', 20)).toContain('Chia 20 điểm cho từng câu,');
+  });
+});
+
+describe('giá trị lệnh biên — trắng và quá dài', () => {
+  const de = { examText: 'Câu 1: tính x', examImageCount: 0, maxScore: 10 } as const;
+
+  it('lệnh chỉ toàn khoảng trắng thì coi như không có lệnh', () => {
+    expect(buildSolveExamPrompt({ ...de, gradingInstructions: '   \n\t ' })).not.toContain('LỆNH RIÊNG CỦA GIÁO VIÊN');
+    expect(buildRubricPrompt('x', 10, '   ')).not.toContain('LỆNH RIÊNG CỦA GIÁO VIÊN');
+  });
+
+  it('lệnh quá dài thì cắt còn 6000 ký tự kèm báo hiệu, không làm vỡ prompt', () => {
+    const dai = 'giao'.repeat(2000);
+    const p = buildSolveExamPrompt({ ...de, gradingInstructions: dai });
+    expect(p).toContain(dai.slice(0, 6000));
+    expect(p).toContain('[Lệnh quá dài đã được cắt bớt.]');
+
+    const q = buildRubricPrompt('x', 10, dai);
+    expect(q).toContain('[Lệnh quá dài đã được cắt bớt.]');
+  });
 });
 
 describe('AI viết lại nhận xét từ lời giáo viên', () => {

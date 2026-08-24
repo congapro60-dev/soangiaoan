@@ -281,6 +281,12 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 
 - **938 unit test xanh mà không bắt được lỗi nào người dùng gặp** — vì tôi chọn phép kiểm theo cái nào DỄ VIẾT, không theo cái nào giống việc người dùng làm. Test hàm thuần rẻ nên viết được 938 cái; phép kiểm đắt và phiền (tạo lớp → giao bài → xem lại → nộp → chấm) thì né mọi lần, và toàn bộ lỗi đến tay người dùng đều nằm đúng ở đó. Có sẵn phiên trình duyệt thật của người dùng mà chỉ dùng để tra dữ liệu, không dùng để đi thử luồng. *(2026-08-21)*
 
+## Phạm vi lệnh AI phải nhất quán ở mọi điểm sinh/chấm — 2026-08-24
+
+- **Một lệnh lưu trên assignment phải đi qua cả ba đường: tạo đáp án, tạo hướng dẫn chấm và chấm các submission về sau.** Không được chỉ nối vào `buildHomeworkGradingPrompt`; nếu hai nút chuẩn bị đáp án/rubric bỏ sót trường này, giáo viên sẽ lưu một cấu hình nhưng AI đã sinh dữ liệu nền theo phạm vi khác.
+- **Prompt có lệnh không được giữ lại mệnh lệnh tổng quát mâu thuẫn ở phía sau.** Các câu như “giải từng câu” hoặc “chia điểm cho từng câu” phải đổi thành “từng câu/phần thuộc phạm vi được giao” khi có lệnh; test phải kiểm cả cụm bắt buộc và sự vắng mặt của cụm cũ, không chỉ kiểm lệnh được chèn vào.
+- **Lệnh là cấu hình dài hạn, không phải gọi AI theo từng phím gõ.** Form giữ một state/property duy nhất, truyền giá trị mới nhất lúc bấm nút, lưu cùng assignment; mọi lần nộp lại/chấm lại đọc bản mới nhất. Lệnh mơ hồ phải chuyển thành cảnh báo để giáo viên soát, không dùng regex hậu xử lý để cắt nhầm đáp án.
+
 ## Quyền push của app OpenCode (2026-08-22)
 
 - **"Không tự push" không có nghĩa là cấm push** — app phải cho phép commit/push khi người dùng yêu cầu hoặc bấm nút xác nhận. Chỉ tự động dừng trước bước push; vẫn phải stage đúng file của task, không dùng `git add .` để kéo theo thay đổi ngoài phạm vi. *(2026-08-22)*

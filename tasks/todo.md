@@ -1,5 +1,19 @@
 # Đẩy giáo án lên Drive + chọn bài theo PPCT — 2026-08-11
 
+## Lô mới — Lệnh phạm vi AI gắn với bài giao — 2026-08-24
+
+- [x] Chốt rằng `gradingInstructions` là cấu hình của assignment, không phải chỉ của một lần chấm.
+- [x] Nối lệnh vào AI giải đáp án và AI đề xuất hướng dẫn chấm; di chuyển ô lệnh cạnh “Đề gửi học sinh”.
+- [x] Bảo đảm các lần nộp, nộp lại và chấm lại sau này đọc lệnh mới nhất đã lưu trên assignment.
+- [x] OpenCode Ox Alpha implementer: TDD RED → GREEN, 54/54 targeted, 70 files/1.043 tests, lint, lint:api, build pass.
+- [x] OpenCode Ox Alpha independent QA: phát hiện và sửa hai mâu thuẫn prompt “giải từng câu”/“chia điểm từng câu”; 60/60 targeted, 70 files/1.049 tests, lint, lint:api, build pass.
+- [ ] Chưa deploy Vercel trong phiên này; cần xác minh credential và production sau khi push.
+
+### Review
+
+- Không dùng regex cắt đáp án sau khi AI trả về; phần bị bỏ qua được ràng buộc ngay trong prompt và cảnh báo mơ hồ để giáo viên soát.
+- Rủi ro còn lại: đáp án/hướng dẫn đã sinh trước khi nhập hoặc sửa lệnh không tự sinh lại; giáo viên cần bấm AI lại hoặc sửa tay.
+
 ## Lô mới — Vercel AI Gateway GLM 5.2 — 2026-08-22
 
 - [x] Chốt design server-side: `AI_GATEWAY_API_KEY`, Firebase ID token, model cố định `zai/glm-5.2`, text/stream only.
