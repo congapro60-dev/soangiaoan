@@ -9,12 +9,13 @@
 - [x] Giáo viên tải đề bằng ảnh/PDF/Word; phần chữ và ảnh scan được giữ làm nguồn tham chiếu cho AI, không chỉ để học sinh mở.
 - [x] Giáo viên có ô lệnh riêng khi giao bài (ví dụ chỉ chấm câu 1, bỏ qua bài 2); lệnh được truyền vào prompt và chỉnh sửa được sau khi giao.
 - [x] Giáo viên chọn học sinh rồi duyệt/chấm/xóa hàng loạt; xóa phải có xác nhận, khóa khi đang xử lý và báo rõ phạm vi xóa.
+- [x] Xóa bài nộp/bài giao dọn cả file Firebase Storage qua Admin SDK; giữ document nếu dọn file thất bại để có thể thử lại.
 - [x] Chấm tay phải chuyển trạng thái bài sang `graded` thật sự sau khi tải lại.
 - [x] Kiểm tra responsive/mobile qua cấu trúc giao diện và build; luồng upload có trạng thái thành công/lỗi rõ ràng.
 
 ## Cổng nghiệm thu
 
-1. Test thuần: prompt/parser, chọn lượt hiện hành, điểm duyệt, trạng thái chấm tay, chọn và xóa hàng loạt.
+1. Test thuần: prompt/parser, chọn lượt hiện hành, điểm duyệt, trạng thái chấm tay, chọn/xóa hàng loạt và parser đường dẫn Storage.
 2. `npm run lint` và `npm run lint:api` không lỗi.
 3. `npm run test -- --run` và `npm run test:rules` xanh nếu môi trường có Java/emulator.
 4. `npm run build` xanh.
@@ -31,11 +32,11 @@
 - Lượt nộp hiện hành = lượt mới nhất theo từng bài giao; lịch sử cũ không được nhân đôi điểm trong báo cáo.
 - Điểm trung bình chỉ tính grade đã `teacherApproved`; bài chưa duyệt phải có nhãn rõ và không làm thay đổi hồ sơ tích lũy.
 - Xóa hàng loạt mặc định xóa đúng các submission đang được chọn, không âm thầm xóa lịch sử khác; nếu còn lịch sử, UI phải nói rõ.
-- Không khẳng định đã dọn file Storage nếu thao tác mới chỉ xóa document Firestore.
+- Xóa Storage phải kiểm tra bucket + URL hợp lệ; URL ngoài Firebase hoặc file dọn lỗi phải làm thao tác thất bại an toàn, không xóa document trước.
 
 ## Kết quả kiểm chứng 2026-08-24
 
-- `npm run test -- --run`: 68 file, 1.028 test passed.
+- `npm run test -- --run`: 69 file, 1.032 test passed.
 - `npm run test:rules`: 7 file, 238 test passed; các dòng `PERMISSION_DENIED` là các ca DENY chủ đích.
 - `npm run lint`, `npm run lint:api`, `npm run build`: passed.
 - Build còn các cảnh báo chunk lớn/dynamic import đã tồn tại; không có lỗi TypeScript hoặc lỗi build.

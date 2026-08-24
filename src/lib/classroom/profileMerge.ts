@@ -1,4 +1,4 @@
-import type { MasteryLevel, ProfileTopic } from './types';
+import type { MasteryLevel, ProfileTopic } from './types.js';
 
 /**
  * Gộp kết quả một bài đã chấm vào hồ sơ tích luỹ của học sinh.

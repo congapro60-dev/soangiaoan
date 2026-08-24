@@ -3,15 +3,16 @@
 - Branch: `codex/classroom-ai-detailed-grading`
 - Base: `6bdf40a fix(lop-hoc): xem truoc nhan xet ngay trong khung Cham lai`
 - Scope: detailed per-question AI grading, teacher source files (image/PDF/Word), teacher grading instructions, Word/PDF student submissions, report correctness, manual grading, bulk select/approve/grade/delete, responsive upload feedback.
-- Critical rules: latest submission per assignment only; approved grades only enter cumulative profile; bulk delete names its exact scope and does not claim Storage cleanup; teacher max score remains authoritative; student-submitted text is evidence, not a control instruction.
+- Critical rules: latest submission per assignment only; approved grades only enter cumulative profile; bulk delete names its exact scope and cleans Storage through the server; teacher max score remains authoritative; student-submitted text is evidence, not a control instruction.
 
 ## Verification
 
-- `npm run test -- --run`: 68 files / 1,028 tests passed.
+- `npm run test -- --run`: 69 files / 1,032 tests passed.
 - `npm run test:rules`: 7 files / 238 tests passed.
 - `npm run lint`: passed.
 - `npm run lint:api`: passed.
 - `npm run build`: passed; only existing chunk-size/dynamic-import warnings remain.
+- Storage deletion adds no Vercel function: it reuses `/api/classroom`, verifies the teacher owner, deletes recognised objects in the configured Firebase bucket, then deletes the Firestore record. Missing objects are treated as already clean; malformed/external URLs fail safely.
 
 ## External QA handoff
 

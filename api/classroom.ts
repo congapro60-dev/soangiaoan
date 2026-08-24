@@ -1,7 +1,10 @@
 /// <reference types="node" />
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
-import { getAdminDb } from './_exam-core.js';
+import { getAdminDb, getAdminStorage } from './_exam-core.js';
+import { uniqueStoragePaths } from './_classroom-storage.js';
+import { removeEvidence } from '../src/lib/classroom/profileMerge.js';
+import type { ProfileTopic } from '../src/lib/classroom/types.js';
 import {
   EMPTY_LOCK,
   createPin,
@@ -25,6 +28,8 @@ import {
  *   POST { action: 'viewPin', classId, studentId, idToken } → giáo viên xem PIN ĐANG DÙNG của một em
  *   POST { action: 'revokeStudentAccess', classId, studentId, idToken } → xoá học sinh khỏi server + thu hồi đăng nhập
  *   POST { action: 'revokeClass', classId, idToken } → gỡ toàn bộ dữ liệu lớp khỏi server (roster/secret/link)
+ *   POST { action: 'deleteSubmission', submissionId, idToken } → xoá bài nộp và file Storage
+ *   POST { action: 'deleteAssignment', assignmentId, idToken } → xoá bài giao và file đề
  *
  * Vì sao phải đi qua server thay vì để client đọc thẳng Firestore:
  *  - PIN nằm ở `studentSecrets`, rules cấm MỌI client đọc. Chỉ Admin SDK kiểm được.
@@ -55,6 +60,115 @@ const uidFromIdToken = async (idToken: unknown): Promise<string | null> => {
   } catch {
     return null;
   }
+};
+
+const urlsFromValue = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap(item => {
+    if (typeof item === 'string') return [item];
+    if (item && typeof item === 'object' && typeof (item as { url?: unknown }).url === 'string') {
+      return [(item as { url: string }).url];
+    }
+    return [];
+  });
+};
+
+const deleteStorageFiles = async (urls: string[]): Promise<number> => {
+  const bucket = getAdminStorage();
+  const rawUrls = [...new Set(urls.map(url => url.trim()).filter(Boolean))];
+  const paths = uniqueStoragePaths(rawUrls, bucket.name);
+  if (paths.length !== rawUrls.length) {
+    throw new Error('Không xác định được đường dẫn file Storage để dọn an toàn.');
+  }
+
+  await Promise.all(paths.map(async path => {
+    try {
+      await bucket.file(path).delete();
+    } catch (error) {
+      const code = String((error as { code?: unknown })?.code || '');
+      // Xoá lặp lại là an toàn: object đã mất được coi là đã dọn xong.
+      if (code !== '404' && code !== 'storage/object-not-found') throw error;
+    }
+  }));
+  return paths.length;
+};
+
+const handleDeleteSubmission = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Cần đăng nhập bằng tài khoản giáo viên.' });
+
+  const submissionId = typeof body.submissionId === 'string' ? body.submissionId.trim() : '';
+  if (!submissionId) return res.status(400).json({ error: 'Thiếu mã bài nộp.' });
+
+  const submissionRef = db.collection('submissions').doc(submissionId);
+  const submissionSnap = await submissionRef.get();
+  if (!submissionSnap.exists) return res.status(404).json({ error: 'Bài nộp không còn tồn tại.' });
+
+  const submission = submissionSnap.data() || {};
+  if (submission.teacherId !== uid) {
+    return res.status(403).json({ error: 'Bạn không có quyền xoá bài nộp này.' });
+  }
+
+  const urls = [
+    ...urlsFromValue(submission.fileUrls),
+    ...urlsFromValue(submission.attachments),
+  ];
+  const deletedFiles = await deleteStorageFiles(urls);
+
+  if (submission.grade?.teacherApproved === true && typeof submission.studentId === 'string') {
+    const profileRef = db.collection('studentProfiles').doc(submission.studentId);
+    const profileSnap = await profileRef.get();
+    if (profileSnap.exists) {
+      const profile = profileSnap.data() || {};
+      const existing = Array.isArray(profile.topics)
+        ? (profile.topics as ProfileTopic[]).filter(topic => Array.isArray(topic?.evidenceSubmissionIds))
+        : [];
+      await profileRef.set({
+        studentId: submission.studentId,
+        classId: String(submission.classId || ''),
+        teacherId: uid,
+        topics: removeEvidence(existing, submissionId, new Date().toISOString()),
+        updatedAt: new Date().toISOString(),
+      }, { merge: true });
+    }
+  }
+
+  await submissionRef.delete();
+  return res.status(200).json({ deleted: true, deletedFiles });
+};
+
+const handleDeleteAssignment = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Cần đăng nhập bằng tài khoản giáo viên.' });
+
+  const assignmentId = typeof body.assignmentId === 'string' ? body.assignmentId.trim() : '';
+  if (!assignmentId) return res.status(400).json({ error: 'Thiếu mã bài giao.' });
+
+  const assignmentRef = db.collection('assignments').doc(assignmentId);
+  const assignmentSnap = await assignmentRef.get();
+  if (!assignmentSnap.exists) return res.status(404).json({ error: 'Bài giao không còn tồn tại.' });
+
+  const assignment = assignmentSnap.data() || {};
+  if (assignment.teacherId !== uid) {
+    return res.status(403).json({ error: 'Bạn không có quyền xoá bài giao này.' });
+  }
+
+  const submissions = await db.collection('submissions')
+    .where('assignmentId', '==', assignmentId)
+    .limit(1)
+    .get();
+  if (!submissions.empty) {
+    return res.status(409).json({ error: 'Bài giao đã có bài nộp. Hãy đóng bài hoặc xoá từng bài nộp trước.' });
+  }
+
+  const urls = [
+    ...urlsFromValue(assignment.attachments),
+    ...urlsFromValue(assignment.sourceImageUrls),
+    ...urlsFromValue(assignment.answerKeyImageUrls),
+  ];
+  const deletedFiles = await deleteStorageFiles(urls);
+  await assignmentRef.delete();
+  return res.status(200).json({ deleted: true, deletedFiles });
 };
 
 const findClassByJoinCode = async (db: FirebaseFirestore.Firestore, joinCode: string) => {
@@ -397,6 +511,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (action === 'viewClassPins') return await handleViewClassPins(db, body, res);
     if (action === 'revokeStudentAccess') return await handleRevokeStudentAccess(db, body, res);
     if (action === 'revokeClass') return await handleRevokeClass(db, body, res);
+    if (action === 'deleteSubmission') return await handleDeleteSubmission(db, body, res);
+    if (action === 'deleteAssignment') return await handleDeleteAssignment(db, body, res);
     return res.status(400).json({ error: `Hành động không hợp lệ: ${action}` });
   } catch (error) {
     console.error('[classroom] lỗi', error);

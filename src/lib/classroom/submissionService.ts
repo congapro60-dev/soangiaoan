@@ -1,4 +1,4 @@
-import { collection, deleteDoc, deleteField, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
+import { collection, deleteField, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
 import { auth, db, removeUndefinedFields, storage } from '../firebase';
 import { applyEvidence, mergeTopics, removeEvidence } from './profileMerge';
@@ -74,6 +74,25 @@ export const uploadAssignmentImages = async (teacherUid: string, images: string[
   return urls;
 };
 
+const callClassroomTeacherApi = async <T>(payload: Record<string, unknown>): Promise<T> => {
+  const currentUser = auth.currentUser;
+  if (!currentUser || currentUser.isAnonymous) {
+    throw new Error('Cần đăng nhập bằng tài khoản giáo viên để thực hiện thao tác này.');
+  }
+
+  const idToken = await currentUser.getIdToken();
+  const response = await fetch('/api/classroom', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...payload, idToken }),
+  });
+  const data = await response.json().catch(() => null) as { error?: unknown } | null;
+  if (!response.ok) {
+    throw new Error(typeof data?.error === 'string' ? data.error : `Máy chủ trả lỗi ${response.status}.`);
+  }
+  return data as T;
+};
+
 /** Ảnh đáp án (data URL) lên Storage. Chỉ dùng khi file gốc không rút được chữ. */
 export const uploadAnswerKeyImages = async (teacherUid: string, images: string[]): Promise<string[]> =>
   uploadAssignmentImages(teacherUid, images, 'dapan');
@@ -146,9 +165,9 @@ export const updateAssignmentContent = async (
   });
 };
 
-/** Xoá bài giao. Nơi gọi phải chặn khi đã có bài nộp, để không bỏ lại bài nộp mồ côi. */
+/** Xoá bài giao và toàn bộ file đề/ảnh đáp án trên Storage qua Admin SDK. */
 export const deleteAssignment = async (assignmentId: string): Promise<void> => {
-  await deleteDoc(doc(db, ASSIGNMENTS_COL, assignmentId));
+  await callClassroomTeacherApi({ action: 'deleteAssignment', assignmentId });
 };
 
 export const setAssignmentOpen = async (assignmentId: string, isOpen: boolean): Promise<void> => {
@@ -220,24 +239,11 @@ export const listClassRoster = async (classId: string): Promise<RosterStudent[]>
  * GV xoá HẲN một lượt nộp. Nếu còn attempt cũ, attempt cũ vẫn là lịch sử để đối chiếu;
  * học sinh vẫn có thể nộp attempt mới. (Khác với "Nộp lại" tạo attempt mới chồng lên lịch sử.)
  * Bài đã duyệt thì gỡ bằng chứng
- * khỏi hồ sơ tích luỹ TRƯỚC khi xoá document, không để lại nhãn mồ côi trỏ vào bài không tồn tại.
- * Ảnh trên Storage cố ý giữ lại: storage.rules chỉ cho chính chủ ảnh xoá — dọn hàng loạt là việc của backlog.
+ * khỏi hồ sơ tích luỹ và dọn file Storage qua server TRƯỚC khi xoá document. Nếu Storage lỗi,
+ * API giữ nguyên document để giáo viên thử lại, không tạo trạng thái xoá nửa chừng trên giao diện.
  */
 export const xoaBaiNopHocSinh = async (submission: SubmissionDoc): Promise<void> => {
-  if (submission.grade?.teacherApproved) {
-    const now = new Date().toISOString();
-    const profileRef = doc(db, STUDENT_PROFILES_COL, submission.studentId);
-    const snap = await getDoc(profileRef);
-    const existing = snap.exists() ? ((snap.data() as StudentProfileDoc).topics || []) : [];
-    await setDoc(profileRef, removeUndefinedFields({
-      studentId: submission.studentId,
-      classId: submission.classId,
-      teacherId: submission.teacherId,
-      topics: removeEvidence(existing, submission.id, now),
-      updatedAt: now,
-    } as StudentProfileDoc));
-  }
-  await deleteDoc(doc(db, SUBMISSIONS_COL, submission.id));
+  await callClassroomTeacherApi({ action: 'deleteSubmission', submissionId: submission.id });
 };
 
 /**

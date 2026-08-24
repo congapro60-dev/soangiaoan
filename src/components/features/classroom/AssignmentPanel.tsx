@@ -517,7 +517,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
     const { isConfirmed } = await Swal.fire({
       icon: 'warning',
       title: `Xóa ${selected.length} lượt nộp đã chọn?`,
-      html: `<p>Phạm vi: <b>${names.join(', ')}</b>.</p><p style="margin-top:8px">Chỉ xóa lượt hiện hành được chọn của bài <b>${assignment.title}</b>. Lịch sử cũ (nếu có) vẫn giữ để đối chiếu. Điểm/nhận xét của lượt này sẽ mất.</p><p style="margin-top:8px;font-size:12px;color:#94a3b8">Document bài nộp sẽ bị xóa; file Storage cũ chưa được dọn tự động.</p>`,
+      html: `<p>Phạm vi: <b>${names.join(', ')}</b>.</p><p style="margin-top:8px">Chỉ xóa lượt hiện hành được chọn của bài <b>${assignment.title}</b>. Lịch sử cũ (nếu có) vẫn giữ để đối chiếu. Điểm/nhận xét của lượt này sẽ mất.</p><p style="margin-top:8px;font-size:12px;color:#64748b">Document bài nộp và các file Storage của lượt này sẽ được dọn cùng nhau. Nếu máy chủ không dọn được file, lượt nộp sẽ giữ lại để thử lại.</p>`,
       showCancelButton: true,
       confirmButtonText: 'Xóa các lượt đã chọn',
       cancelButtonText: 'Giữ lại',
@@ -641,7 +641,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
     const { isConfirmed } = await Swal.fire({
       icon: 'warning',
       title: `Xoá "${a.title}"?`,
-      text: 'Bài giao và đáp án sẽ mất hẳn. File đề đã tải lên vẫn còn trên máy chủ.',
+      text: 'Bài giao, file đề, ảnh đề và ảnh đáp án sẽ được dọn khỏi máy chủ. Chỉ xoá được khi bài chưa có bài nộp.',
       showCancelButton: true,
       confirmButtonText: 'Xoá',
       cancelButtonText: 'Giữ lại',
@@ -758,7 +758,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
     const { isConfirmed } = await Swal.fire({
       icon: 'warning',
       title: `Xóa lượt nộp của ${tenHocSinh}?`,
-      html: 'Điểm và nhận xét lượt này <b>mất vĩnh viễn</b>. Lịch sử cũ (nếu có) vẫn giữ để đối chiếu và học sinh vẫn có thể nộp attempt mới.<br/><span style="font-size:12px;color:#94a3b8;">Document bài nộp bị xóa; file Storage cũ vẫn còn trên máy chủ.</span>',
+      html: 'Điểm và nhận xét lượt này <b>mất vĩnh viễn</b>. Lịch sử cũ (nếu có) vẫn giữ để đối chiếu và học sinh vẫn có thể nộp attempt mới.<br/><span style="font-size:12px;color:#64748b;">Document bài nộp và file Storage của lượt này sẽ được dọn cùng nhau. Nếu dọn file lỗi, lượt nộp vẫn giữ để thử lại.</span>',
       showCancelButton: true,
       confirmButtonText: 'Xóa lượt nộp',
       cancelButtonText: 'Giữ lại',

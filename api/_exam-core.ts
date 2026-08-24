@@ -3,6 +3,7 @@
 // nhưng vẫn import được từ api/exam.ts. Gồm: khởi tạo Firebase Admin + logic chấm thuần.
 import { cert, getApps, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import { getStorage } from 'firebase-admin/storage';
 
 // ── Firebase Admin (giống pattern adaptive-progress.ts) ──────────────────────
 
@@ -33,10 +34,24 @@ export const getAdminDb = () => {
     if (!serviceAccount) {
       throw new Error('Missing Firebase Admin service account environment variables');
     }
-    initializeApp({ credential: cert(serviceAccount) });
+    const projectId = String(
+      serviceAccount.projectId
+      || serviceAccount.project_id
+      || process.env.FIREBASE_PROJECT_ID
+      || '',
+    );
+    const storageBucket = process.env.FIREBASE_STORAGE_BUCKET
+      || process.env.VITE_FIREBASE_STORAGE_BUCKET
+      || (projectId ? `${projectId}.firebasestorage.app` : '');
+    initializeApp({
+      credential: cert(serviceAccount),
+      ...(storageBucket ? { storageBucket } : {}),
+    });
   }
   return getFirestore();
 };
+
+export const getAdminStorage = () => getStorage().bucket();
 
 // ── Logic chấm thuần — mirror src/utils/examScoring.computeAutoScore ──────────
 
