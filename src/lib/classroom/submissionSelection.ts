@@ -47,5 +47,9 @@ export const summarizeSelection = (submissions: readonly SubmissionDoc[]): Selec
   total: submissions.length,
   pending: submissions.filter(submission => submission.status === 'submitted' || submission.status === 'error').length,
   graded: submissions.filter(submission => submission.status === 'graded' && Boolean(submission.grade)).length,
-  unapproved: submissions.filter(submission => Boolean(submission.grade) && submission.grade?.teacherApproved !== true).length,
+  // Bài đang bị worker giữ khóa không được đưa vào bulk duyệt; dữ liệu UI có thể
+  // cũ hơn server một nhịp và endpoint duyệt cũ là client-side.
+  unapproved: submissions.filter(submission => submission.status === 'graded'
+    && Boolean(submission.grade)
+    && submission.grade?.teacherApproved !== true).length,
 });

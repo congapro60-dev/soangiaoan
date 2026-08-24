@@ -489,7 +489,8 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
 
   /** Duyệt tuần tự để mỗi lần cập nhật hồ sơ tích lũy không ghi đè merge của em khác. */
   const duyetDaChon = async (assignment: AssignmentDoc) => {
-    const selected = selectedCurrentForAssignment(assignment.id).filter(s => s.grade && !s.grade.teacherApproved);
+    const selected = selectedCurrentForAssignment(assignment.id)
+      .filter(s => s.status === 'graded' && s.grade && !s.grade.teacherApproved);
     if (selected.length === 0) return;
     setDangBulk('approve');
     let ok = 0;
@@ -817,6 +818,10 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   };
 
   const duyet = async (submission: SubmissionDoc) => {
+    if (submission.status === 'grading') {
+      showToast('Bài đang được AI chấm; chờ máy xử lý xong rồi duyệt.', 'warning');
+      return;
+    }
     const dangDuyet = !submission.grade?.teacherApproved;
     try {
       await approveGrade(submission, dangDuyet);

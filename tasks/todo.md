@@ -75,4 +75,5 @@
 - [x] History dùng khóa revision ổn định; history và submission grade hiện hành commit cùng transaction.
 - [x] Khóa chéo lớp/học sinh/bài giao cho thao tác sửa/xóa điểm; chặn học sinh chấm đè kết quả đã duyệt.
 - [x] Chặn xóa cả bài và khóa sửa/duyệt/chấm lại trên UI trong lúc `grading`; sau xóa reload lại dữ liệu server.
+- [x] Đưa duyệt/bỏ duyệt điểm qua server transaction, đồng bộ profile/evidence và chặn approve khi `grading`; bulk approve chỉ nhận lượt `graded`.
 - [x] Test hồi quy hardening: `30 tests` targeted pass; full lint/test/rules/build và review Ox Alpha còn chờ.

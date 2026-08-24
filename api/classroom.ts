@@ -3,7 +3,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
 import { getAdminDb, getAdminStorage } from './_exam-core.js';
 import { uniqueStoragePaths } from './_classroom-storage.js';
-import { removeEvidence } from '../src/lib/classroom/profileMerge.js';
+import { mergeTopics, removeEvidence } from '../src/lib/classroom/profileMerge.js';
 import { mergeSubmissionEvidence } from '../src/lib/classroom/submissionRevision.js';
 import { buildHomeworkSkillEvidence } from '../src/lib/learning/skillProfile.js';
 import { buildManualGrade, type ManualGradeInput } from '../src/lib/classroom/manualGrade.js';
@@ -47,6 +47,7 @@ import {
  *   POST { action: 'deleteSubmission', submissionId, idToken } → xoá bài nộp và file Storage
  *   POST { action: 'saveSubmissionGrade', submissionId, grade, idToken } → lưu chấm tay
  *   POST { action: 'deleteSubmissionGrade', submissionId, idToken } → xoá kết quả chấm, giữ bài nộp
+ *   POST { action: 'approveSubmissionGrade', submissionId, approved, idToken } → duyệt/bỏ duyệt
  *   POST { action: 'deleteAssignment', assignmentId, idToken } → xoá bài giao và file đề
  *
  * Vì sao phải đi qua server thay vì để client đọc thẳng Firestore:
@@ -407,6 +408,89 @@ const handleDeleteSubmissionGrade = async (
     throw error;
   }
   return res.status(200).json({ deletedGrade: true, submissionId: owned.submissionId, historyId });
+};
+
+const handleApproveSubmissionGrade = async (
+  db: FirebaseFirestore.Firestore,
+  body: Record<string, unknown>,
+  res: VercelResponse,
+) => {
+  const owned = await readOwnedSubmission(db, body, res);
+  if (!owned) return;
+  if (owned.submission.status === 'grading') {
+    return res.status(409).json({ error: 'Bài đang được AI chấm. Chờ lượt hiện tại kết thúc rồi duyệt.' });
+  }
+  if (!owned.submission.grade) {
+    return res.status(409).json({ error: 'Bài nộp chưa có kết quả chấm để duyệt.' });
+  }
+  if (typeof body.approved !== 'boolean') {
+    return res.status(422).json({ error: 'Thiếu trạng thái duyệt điểm hợp lệ.' });
+  }
+
+  const approved = body.approved;
+  const now = new Date().toISOString();
+  try {
+    await db.runTransaction(async transaction => {
+      const latestSnapshot = await transaction.get(owned.ref);
+      if (!latestSnapshot.exists) throw new GradeLifecycleConflictError();
+      const latest = latestSnapshot.data() as FirebaseFirestore.DocumentData;
+      const latestGradeAt = latest.grade && typeof latest.grade === 'object' ? latest.grade.gradedAt : undefined;
+      if (latest.teacherId !== owned.uid
+        || latest.updatedAt !== owned.submission.updatedAt
+        || latest.status !== owned.submission.status
+        || latestGradeAt !== owned.submission.grade?.gradedAt) {
+        throw new GradeLifecycleConflictError();
+      }
+      transaction.update(owned.ref, {
+        'grade.teacherApproved': approved,
+        updatedAt: now,
+      });
+    });
+  } catch (error) {
+    if (error instanceof GradeLifecycleConflictError) {
+      return res.status(409).json({ error: error.message });
+    }
+    throw error;
+  }
+
+  const nextGrade = { ...owned.submission.grade, teacherApproved: approved };
+  const profileRef = db.collection('studentProfiles').doc(owned.submission.studentId);
+  const profileSnap = await profileRef.get();
+  const profile = profileSnap.exists ? profileSnap.data() || {} : {};
+  const existing = Array.isArray(profile.topics)
+    ? (profile.topics as ProfileTopic[]).filter(topic => Array.isArray(topic?.evidenceSubmissionIds))
+    : [];
+  const topics = approved
+    ? mergeTopics({
+        existing,
+        weakTopics: nextGrade.weakTopics || [],
+        strengths: nextGrade.strengths || [],
+        submissionId: owned.submissionId,
+        assignmentId: owned.submission.assignmentId || undefined,
+        now,
+      })
+    : removeEvidence(existing, owned.submissionId, now, owned.submission.assignmentId || undefined);
+  await profileRef.set({
+    studentId: owned.submission.studentId,
+    classId: owned.submission.classId,
+    teacherId: owned.uid,
+    topics,
+    updatedAt: now,
+  }, { merge: true });
+
+  const evidenceSubmission = { ...owned.submission, grade: nextGrade } as SubmissionDoc;
+  const skills = approved
+    ? await replaceSkillEvidenceAndRebuild(db, {
+        studentId: evidenceSubmission.studentId,
+        classId: evidenceSubmission.classId,
+        teacherId: owned.uid,
+      }, owned.submissionId, storedHomeworkSkillEvidence(owned.submissionId, evidenceSubmission as unknown as Record<string, unknown>), now)
+    : await removeSkillEvidenceAndRebuild(db, {
+        studentId: evidenceSubmission.studentId,
+        classId: evidenceSubmission.classId,
+        teacherId: owned.uid,
+      }, owned.submissionId, now);
+  return res.status(200).json({ approved, submissionId: owned.submissionId, skills });
 };
 
 const validAttachmentKind = (value: unknown): 'image' | 'pdf' | 'document' | 'unknown' | undefined => {
@@ -1076,6 +1160,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (action === 'deleteSubmission') return await handleDeleteSubmission(db, body, res);
     if (action === 'saveSubmissionGrade') return await handleSaveSubmissionGrade(db, body, res);
     if (action === 'deleteSubmissionGrade') return await handleDeleteSubmissionGrade(db, body, res);
+    if (action === 'approveSubmissionGrade') return await handleApproveSubmissionGrade(db, body, res);
     if (action === 'syncSkillEvidence') return await handleSyncSkillEvidence(db, body, res);
     if (action === 'deleteAssignment') return await handleDeleteAssignment(db, body, res);
     return res.status(400).json({ error: `Hành động không hợp lệ: ${action}` });

@@ -1,17 +1,15 @@
-import { collection, deleteField, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
+import { collection, deleteField, doc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { deleteObject, getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
 import { auth, db, removeUndefinedFields, storage } from '../firebase';
-import { applyEvidence, mergeTopics, removeEvidence } from './profileMerge';
+import { applyEvidence } from './profileMerge';
 import type { ManualGradeInput } from './manualGrade';
 import {
   ASSIGNMENTS_COL,
   CLASSES_COL,
-  STUDENT_PROFILES_COL,
   SUBMISSIONS_COL,
   type AssignmentAttachment,
   type AssignmentDoc,
   type SubmissionAttachment,
-  type StudentProfileDoc,
   type SubmissionDoc,
 } from './types';
 
@@ -286,36 +284,7 @@ export const updateSubmissionGradeManually = async (
  * bỏ duyệt thì bằng chứng của bài đó cũng bị gỡ ra, không để lại nhãn mồ côi.
  */
 export const approveGrade = async (submission: SubmissionDoc, approved: boolean): Promise<void> => {
-  const now = new Date().toISOString();
-  await updateDoc(doc(db, SUBMISSIONS_COL, submission.id), {
-    'grade.teacherApproved': approved,
-    updatedAt: now,
-  });
-
-  const profileRef = doc(db, STUDENT_PROFILES_COL, submission.studentId);
-  const snap = await getDoc(profileRef);
-  const existing = snap.exists() ? ((snap.data() as StudentProfileDoc).topics || []) : [];
-
-  const topics = approved
-    ? mergeTopics({
-        existing,
-        weakTopics: (submission.grade as { weakTopics?: string[] } | undefined)?.weakTopics || [],
-        strengths: submission.grade?.strengths || [],
-        submissionId: submission.id,
-        assignmentId: submission.assignmentId || undefined,
-        now,
-      })
-    : removeEvidence(existing, submission.id, now, submission.assignmentId || undefined);
-
-  const profile: StudentProfileDoc = {
-    studentId: submission.studentId,
-    classId: submission.classId,
-    teacherId: submission.teacherId,
-    topics,
-    updatedAt: now,
-  };
-  await setDoc(profileRef, removeUndefinedFields(profile), { merge: true });
-  await callClassroomTeacherApi({ action: 'syncSkillEvidence', submissionId: submission.id });
+  await callClassroomTeacherApi({ action: 'approveSubmissionGrade', submissionId: submission.id, approved });
 };
 
 // ── Học sinh: nộp bài ────────────────────────────────────────────────────────

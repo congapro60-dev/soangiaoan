@@ -66,4 +66,21 @@ describe('submissionSelection', () => {
 
     expect(summarizeSelection(selected)).toEqual({ total: 2, pending: 1, graded: 1, unapproved: 1 });
   });
+
+  it('không đưa bài đang grading vào số lượng bulk duyệt', () => {
+    const grading = submission('grading', 'student-1', '2026-08-24T12:00:00.000Z', {
+      status: 'grading',
+      grade: {
+        score: 7,
+        maxScore: 10,
+        feedback: '',
+        strengths: [],
+        weaknesses: [],
+        teacherApproved: false,
+        gradedAt: '2026-08-25T00:00:00.000Z',
+      },
+    });
+
+    expect(summarizeSelection([grading]).unapproved).toBe(0);
+  });
 });

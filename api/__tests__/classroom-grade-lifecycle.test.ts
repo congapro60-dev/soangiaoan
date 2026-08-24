@@ -50,7 +50,16 @@ const makeDb = (harness: Harness) => {
         },
         update: async (payload: DocData) => {
           harness.events.push(`update:${name}/${id}`);
-          ensure(name)[id] = { ...ensure(name)[id], ...payload };
+          const next = { ...ensure(name)[id] };
+          for (const [key, value] of Object.entries(payload)) {
+            if (!key.includes('.')) {
+              next[key] = value;
+              continue;
+            }
+            const [parent, child] = key.split('.', 2);
+            next[parent] = { ...(next[parent] as DocData || {}), [child]: value };
+          }
+          ensure(name)[id] = next;
         },
         delete: async () => {
           harness.events.push(`delete:${name}/${id}`);
@@ -61,11 +70,13 @@ const makeDb = (harness: Harness) => {
     });
   const runTransaction = async (work: (transaction: {
     get: (ref: { get: () => Promise<{ exists: boolean; data: () => DocData | undefined }> }) => Promise<{ exists: boolean; data: () => DocData | undefined }>;
+    update: (ref: { update: (payload: DocData) => Promise<void> }, payload: DocData) => void;
     set: (ref: { set: (payload: DocData, options?: { merge?: boolean }) => Promise<void> }, payload: DocData, options?: { merge?: boolean }) => void;
   }) => Promise<unknown>) => {
     const operations: Array<() => Promise<void>> = [];
     const result = await work({
       get: ref => ref.get(),
+      update: (ref, payload) => { operations.push(() => ref.update(payload)); },
       set: (ref, payload, options) => { operations.push(() => ref.set(payload, options)); },
     });
     for (const operation of operations) await operation();
@@ -179,6 +190,29 @@ describe('POST /api/classroom · grade lifecycle', () => {
     expect(remove.statusCode).toBe(403);
     expect(harness.store.submissions['sub-1'].grade).toEqual(oldGrade);
     expect(harness.store.submissionGradeHistory).toBeUndefined();
+  });
+
+  it('duyệt điểm qua server và cập nhật evidence, không ghi trực tiếp từ client', async () => {
+    const harness = seed();
+    harness.store.submissions['sub-1'].grade = { ...oldGrade, teacherApproved: false };
+
+    const result = await call({ action: 'approveSubmissionGrade', submissionId: 'sub-1', approved: true });
+
+    expect(result.statusCode).toBe(200);
+    expect(harness.store.submissions['sub-1'].grade).toMatchObject({ teacherApproved: true });
+    expect(harness.store.studentProfiles['hs-1'].topics).toEqual(expect.arrayContaining([
+      expect.objectContaining({ topic: 'Dấu trong phương trình', evidenceSubmissionIds: ['sub-1'] }),
+    ]));
+  });
+
+  it('không duyệt điểm trong lúc worker đang grading', async () => {
+    const harness = seed();
+    harness.store.submissions['sub-1'].status = 'grading';
+
+    const result = await call({ action: 'approveSubmissionGrade', submissionId: 'sub-1', approved: true });
+
+    expect(result.statusCode).toBe(409);
+    expect(harness.store.submissions['sub-1'].grade).toEqual(oldGrade);
   });
 
   it('không xóa điểm trong lúc submission đang được AI chấm', async () => {
