@@ -19,6 +19,7 @@ const compareNumbers = (left: number, right: number): number => {
   const leftFinite = isFiniteNumber(left);
   const rightFinite = isFiniteNumber(right);
   if (leftFinite !== rightFinite) return leftFinite ? 1 : -1;
+  if (!leftFinite && !rightFinite) return 0;
   if (left === right) return 0;
   return left > right ? 1 : -1;
 };

@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import {
   aggregateLiveResponses,
   mergeLatestResponse,
@@ -82,6 +83,15 @@ describe('mergeLatestResponse', () => {
     const second = response({ id: 'b', clientNonce: 'a', value: 'second' });
 
     expect(mergeLatestResponse([first, second])).toEqual(mergeLatestResponse([second, first]));
+    expect(mergeLatestResponse([first, second])).toEqual([second]);
+  });
+
+  it('uses later tie-break fields when both updatedAt values are non-finite', () => {
+    const first = response({ id: 'a', updatedAt: Number.NaN, submittedAt: 100 });
+    const second = response({ id: 'b', updatedAt: Number.NaN, submittedAt: 100 });
+
+    expect(mergeLatestResponse([first, second]).map(({ id }) => id))
+      .toEqual(mergeLatestResponse([second, first]).map(({ id }) => id));
     expect(mergeLatestResponse([first, second])).toEqual([second]);
   });
 });
