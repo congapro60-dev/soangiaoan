@@ -56,6 +56,8 @@ const statusLabel: Record<Student['status'], { label: string; className: string 
   excellent: { label: 'Xuất sắc', className: 'bg-emerald-50 text-emerald-700' },
 };
 
+const EMPTY_CLASS_ASSIGNMENTS: ClassAssignment[] = [];
+
 export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) => {
   const classes = data.classes || [];
   const { exams } = useExams(user);
@@ -982,7 +984,7 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
               teacherId={user.uid}
               className={selectedClass.name}
               students={selectedClass.students}
-              onlineAssignments={selectedClass.assignments || []}
+              onlineAssignments={selectedClass.assignments ?? EMPTY_CLASS_ASSIGNMENTS}
               exams={exams}
             />
           )}

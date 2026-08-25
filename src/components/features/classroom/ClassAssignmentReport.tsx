@@ -79,13 +79,21 @@ export const adaptOnlineSubmission = (
   roster: readonly Student[],
   className: string,
 ): ClassReportSubmission | null => {
-  const byId = submission.studentId ? roster.find(student => student.id === submission.studentId) : undefined;
   const submittedClassKey = normalizeMatchText(submission.studentClass);
   const selectedClassKey = normalizeMatchText(className);
-  const byNameAndClass = roster.find(student =>
-    normalizeMatchText(student.name) === normalizeMatchText(submission.studentName)
-      && (!submittedClassKey || submittedClassKey === selectedClassKey));
-  const student = byId ?? byNameAndClass;
+  if (submittedClassKey && submittedClassKey !== selectedClassKey) return null;
+
+  const submittedNameKey = normalizeMatchText(submission.studentName);
+  let student: Student | undefined;
+  if (submission.studentId) {
+    const byId = roster.find(candidate => candidate.id === submission.studentId);
+    if (!byId || (submittedNameKey && normalizeMatchText(byId.name) !== submittedNameKey)) return null;
+    student = byId;
+  } else {
+    const nameMatches = roster.filter(candidate => normalizeMatchText(candidate.name) === submittedNameKey);
+    if (nameMatches.length !== 1) return null;
+    student = nameMatches[0];
+  }
   if (!student) return null;
 
   const questionResults: ClassReportQuestionResult[] = exam.questions.map((question, index) => {
@@ -94,7 +102,7 @@ export const adaptOnlineSubmission = (
     const maxScore = asFiniteNumber(question.points);
     const status = score === null
       ? 'not_attempted'
-      : score >= (maxScore ?? 0)
+      : maxScore !== null && maxScore > 0 && score >= maxScore
         ? 'correct'
         : score > 0 ? 'partial' : 'incorrect';
     return {
@@ -113,7 +121,7 @@ export const adaptOnlineSubmission = (
     createdAt: asText(submission.submittedAt || submission.startedAt),
     status: asText(submission.status),
     score: asFiniteNumber(submission.totalScore),
-    maxScore: asFiniteNumber(submission.maxScore) ?? asFiniteNumber(exam.maxScore),
+    maxScore: asFiniteNumber(exam.maxScore),
     official: submission.status === 'graded',
     weakTopics: [],
     questionResults,
@@ -129,13 +137,14 @@ const percentText = (value: number | null): string => value === null ? '' : `${(
 
 export const getQuestionOutcomeRows = (question: Pick<ClassReportQuestionStats, 'evidenceCount' | 'correct' | 'partial' | 'incorrect' | 'unreadable' | 'notAttempted'>): Array<{ metric: string; count: number; rate: number }> => {
   const denominator = question.evidenceCount;
-  return [
+  const outcomes: Array<[string, number]> = [
     ['Đúng', question.correct],
     ['Đúng một phần', question.partial],
     ['Sai', question.incorrect],
     ['Không đọc được', question.unreadable],
     ['Chưa làm', question.notAttempted],
-  ].map(([metric, count]) => ({ metric, count, rate: denominator > 0 ? count / denominator : 0 }));
+  ];
+  return outcomes.map(([metric, count]) => ({ metric, count, rate: denominator > 0 ? count / denominator : 0 }));
 };
 
 export const buildClassReportCsv = (reports: readonly ClassAssignmentReportMetrics[]): string => {
@@ -151,11 +160,12 @@ export const buildClassReportCsv = (reports: readonly ClassAssignmentReportMetri
       [type, title, 'Đã chấm', '', report.counters.graded.toString(), rate(report.counters.graded)],
       [type, title, 'Đã duyệt', '', report.counters.official.toString(), rate(report.counters.official)],
       [type, title, 'Chưa nộp', '', report.counters.missing.toString(), rate(report.counters.missing)],
-      [type, title, 'Điểm trung bình chính thức', '', report.averagePercent === null ? '' : report.averagePercent.toFixed(1), ''],
+      [type, title, 'Điểm trung bình chính thức', '', report.averagePercent === null ? '' : `${report.averagePercent.toFixed(1)}%`, ''],
     );
 
     const distributionTotal = report.metrics.officialEvidenceCount;
-    for (const [label, count] of Object.entries(report.scoreDistribution)) {
+    for (const label of ['0-<5', '5-<6.5', '6.5-<8', '8-10'] as const) {
+      const count = report.scoreDistribution[label];
       rows.push([type, title, 'Phân bố điểm', label, String(count), distributionTotal > 0 ? percentText(count / distributionTotal) : '']);
     }
     for (const question of report.questionStats) {
@@ -286,7 +296,7 @@ const LabelStats = ({ title, stats }: { title: string; stats: readonly { label: 
 const ReportBody = ({ report }: { report: ClassAssignmentReportMetrics }) => (
   <div className="mt-5 space-y-5">
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      <MetricCard label="Sĩ số" value={`${report.counters.roster}`} hint="roster hiện tại" />
+      <MetricCard label="Sĩ số" value={`${report.counters.roster}`} hint="danh sách lớp hiện tại" />
       <MetricCard label="Đã nộp" value={`${report.counters.submitted}`} />
       <MetricCard label="Đã chấm" value={`${report.counters.graded}`} />
       <MetricCard label="Đã duyệt" value={`${report.counters.official}`} hint="bằng chứng chính thức" />

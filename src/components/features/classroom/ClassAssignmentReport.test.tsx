@@ -80,7 +80,7 @@ describe('ClassAssignmentReport adapters', () => {
       submittedAt: '2026-08-25T08:00:00.000Z',
       status: 'graded',
       totalScore: 2.5,
-      maxScore: 5,
+      maxScore: 99,
       answers: [
         { questionId: 'q1', answer: 'A', autoScore: 2 },
         { questionId: 'q2', answer: 'B', aiScore: 0.5 },
@@ -148,6 +148,57 @@ describe('ClassAssignmentReport adapters', () => {
     } as ExamSubmission;
 
     expect(adaptOnlineSubmission(submission, exam, roster, '10A')?.studentKey).toBe('student-1');
+  });
+
+  it('rejects an ambiguous name fallback instead of assigning the first matching student', () => {
+    const exam = { id: 'exam-1', maxScore: 10, questions: [] } as Exam;
+    const duplicateRoster = [
+      ...roster,
+      { id: 'student-3', name: 'Nguyễn Minh An', code: '003', progress: 0, status: 'active' },
+    ] satisfies Student[];
+    const submission = {
+      id: 'ambiguous-name',
+      studentName: 'Nguyễn Minh An',
+      studentClass: '10A',
+      startedAt: '2026-08-25T07:00:00.000Z',
+      status: 'graded',
+      answers: [],
+      maxScore: 10,
+    } as ExamSubmission;
+
+    expect(adaptOnlineSubmission(submission, exam, duplicateRoster, '10A')).toBeNull();
+  });
+
+  it('rejects an explicit student id when the submitted name conflicts with the roster', () => {
+    const exam = { id: 'exam-1', maxScore: 10, questions: [] } as Exam;
+    const submission = {
+      id: 'mismatched-identity',
+      studentId: 'student-1',
+      studentName: 'Trần Bình',
+      studentClass: '10A',
+      startedAt: '2026-08-25T07:00:00.000Z',
+      status: 'graded',
+      answers: [],
+      maxScore: 10,
+    } as ExamSubmission;
+
+    expect(adaptOnlineSubmission(submission, exam, roster, '10A')).toBeNull();
+  });
+
+  it('does not call a zero-point question correct just because its score is zero', () => {
+    const exam = { id: 'exam-1', maxScore: 0, questions: [{ id: 'q1', points: 0 }] } as Exam;
+    const submission = {
+      id: 'zero-point',
+      studentId: 'student-1',
+      studentName: 'Nguyễn Minh An',
+      studentClass: '10A',
+      startedAt: '2026-08-25T07:00:00.000Z',
+      status: 'graded',
+      answers: [{ questionId: 'q1', answer: 'A', autoScore: 0 }],
+      maxScore: 0,
+    } as ExamSubmission;
+
+    expect(adaptOnlineSubmission(submission, exam, roster, '10A')?.questionResults[0].status).toBe('incorrect');
   });
 
   it('keeps incorrect and unreadable as separate question outcomes', () => {
