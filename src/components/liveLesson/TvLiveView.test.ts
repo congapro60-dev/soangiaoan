@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { getPilotLiveLessonDefinition } from '../../lib/liveLesson/definition';
 import type { LivePublicState, LivePublicStats } from '../../lib/liveLesson/types';
-import { getTvPresentation } from './TvLiveView';
+import { getTvListenerNotice, getTvPresentation } from './TvLiveView';
 
 describe('TvLiveView public projection', () => {
   it('renders only the public screen and aggregate stats', () => {
@@ -24,5 +24,19 @@ describe('TvLiveView public projection', () => {
   it('does not expose a screen or stats when public state is unavailable', () => {
     const definition = getPilotLiveLessonDefinition();
     expect(getTvPresentation(definition, null, null)).toEqual({ screen: null, stats: null });
+  });
+
+  it('distinguishes a public listener reconnect from a closed public state', () => {
+    const definition = getPilotLiveLessonDefinition();
+    const runningState: LivePublicState = { cueId: 'P12', tvScreenId: 'S8', status: 'running', showStats: true, updatedAt: 10 };
+    expect(getTvListenerNotice({ publicState: runningState, publicStateError: 'permission-denied', statsError: null })).toEqual({
+      tone: 'error',
+      message: 'Mất kết nối trạng thái công khai. Đang giữ màn hình cuối; phiên có thể đã đóng hoặc hết hạn.',
+    });
+    expect(getTvListenerNotice({ publicState: { ...runningState, status: 'closed' }, publicStateError: null, statsError: null })).toEqual({
+      tone: 'warning',
+      message: 'Phiên đã đóng. TV không tiếp tục đọc dữ liệu công khai.',
+    });
+    expect(definition.title).toBeTruthy();
   });
 });

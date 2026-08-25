@@ -241,7 +241,7 @@ export const getLiveLessonSession = async (sessionId: string): Promise<LiveLesso
   return snapshot.exists() ? normalizeSession(sessionId, snapshot.data()) : null;
 };
 
-export const updateLiveLessonState = async (sessionId: string, patch: LiveLessonStatePatch): Promise<void> => {
+export const updateLiveLessonState = async (sessionId: string, patch: LiveLessonStatePatch): Promise<LiveLessonSession> => {
   assertIdentifier(sessionId, 'sessionId');
   if (!isRecord(patch)) throw new Error('Live lesson state patch must be an object.');
   for (const key of Object.keys(patch)) {
@@ -254,10 +254,12 @@ export const updateLiveLessonState = async (sessionId: string, patch: LiveLesson
   if (patch.publicStateEnabled !== undefined && typeof patch.publicStateEnabled !== 'boolean') throw new Error('publicStateEnabled is invalid.');
   if (patch.publicStatsEnabled !== undefined && typeof patch.publicStatsEnabled !== 'boolean') throw new Error('publicStatsEnabled is invalid.');
   await updateDoc(doc(db, SESSIONS_COL, sessionId), { ...patch, updatedAt: serverTimestamp() });
-  await writePublicState(await readSnapshot(sessionId));
+  const session = await readSnapshot(sessionId);
+  await writePublicState(session);
+  return session;
 };
 
-export const closeLiveLessonSession = async (sessionId: string): Promise<void> => {
+export const closeLiveLessonSession = async (sessionId: string): Promise<LiveLessonSession> => {
   assertIdentifier(sessionId, 'sessionId');
   await updateDoc(doc(db, SESSIONS_COL, sessionId), {
     status: 'closed',
@@ -265,7 +267,9 @@ export const closeLiveLessonSession = async (sessionId: string): Promise<void> =
     publicStatsEnabled: false,
     updatedAt: serverTimestamp(),
   });
-  await writePublicState(await readSnapshot(sessionId));
+  const session = await readSnapshot(sessionId);
+  await writePublicState(session);
+  return session;
 };
 
 export const submitLiveResponse = async (input: SubmitLiveResponseInput): Promise<void> => {
@@ -334,6 +338,21 @@ export const subscribeToTeacherResponses = (
   return onSnapshot(responseQuery, (snapshot) => {
     try {
       onChange(snapshot.docs.map((item) => normalizeResponse(item.id, item.data())));
+    } catch (error) {
+      onError(asError(error));
+    }
+  }, (error) => onError(asError(error)));
+}, onError);
+
+export const subscribeToTeacherSession = (
+  sessionId: string,
+  onChange: (session: LiveLessonSession | null) => void,
+  onError: (error: Error) => void,
+): (() => void) => subscribeSafely(() => {
+  assertIdentifier(sessionId, 'sessionId');
+  return onSnapshot(doc(db, SESSIONS_COL, sessionId), (snapshot) => {
+    try {
+      onChange(snapshot.exists() ? normalizeSession(sessionId, snapshot.data()) : null);
     } catch (error) {
       onError(asError(error));
     }

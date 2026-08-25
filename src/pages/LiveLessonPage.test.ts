@@ -6,6 +6,8 @@ import {
   isTeacherSessionOwner,
   parseLiveLessonMode,
   projectLiveLessonDefinition,
+  mergeTeacherSessionSnapshot,
+  getPublicListenerFailureMode,
   shouldLoadParentLiveLessonSession,
 } from './LiveLessonPage';
 
@@ -51,5 +53,17 @@ describe('LiveLessonPage route helpers', () => {
     expect(shouldLoadParentLiveLessonSession('student')).toBe(false);
     const tv = projectLiveLessonDefinition(getPilotLiveLessonDefinition(), 'tv');
     expect(Object.keys(tv).sort()).toEqual(['durationSeconds', 'id', 'lessonId', 'title', 'tvScreens']);
+  });
+
+  it('does not let an older or malformed teacher snapshot overwrite newer local state', () => {
+    const current = {
+      teacherUid: 'teacher-1', updatedAt: 200, status: 'running', currentCueId: 'P02', currentTvScreenId: 'S2',
+    } as const;
+    const older = { ...current, updatedAt: 100, status: 'paused' as const };
+    const newer = { ...current, updatedAt: 300, status: 'paused' as const };
+    expect(mergeTeacherSessionSnapshot(current as never, older as never)).toBe(current);
+    expect(mergeTeacherSessionSnapshot(current as never, newer as never)).toBe(newer);
+    expect(getPublicListenerFailureMode(false)).toBe('initial');
+    expect(getPublicListenerFailureMode(true)).toBe('reconnect');
   });
 });

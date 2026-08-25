@@ -62,6 +62,7 @@ import {
   submitLiveResponse,
   subscribeToLivePublicState,
   subscribeToLivePublicStats,
+  subscribeToTeacherSession,
   subscribeToTeacherResponses,
   updateLiveLessonState,
 } from './liveLessonService';
@@ -201,10 +202,10 @@ describe('liveLessonService Firestore boundary', () => {
         id: 'session-1',
         data: () => sessionData({ status: 'closed', currentCueId: 'P01', currentTvScreenId: 'S1', publicStatsEnabled: false }),
       });
-    await updateLiveLessonState('session-1', { status: 'running', currentCueId: 'P01' });
+    await updateLiveLessonState('session-1', { status: 'running', currentCueId: 'P01', currentTvScreenId: 'S1' });
     expect(firestoreMocks.updateDoc).toHaveBeenCalledWith(
       expect.objectContaining({ path: '/liveLessonSessions/session-1' }),
-      { status: 'running', currentCueId: 'P01', updatedAt: { __type: 'serverTimestamp' } },
+      { status: 'running', currentCueId: 'P01', currentTvScreenId: 'S1', updatedAt: { __type: 'serverTimestamp' } },
     );
     expect(firestoreMocks.setDoc).toHaveBeenNthCalledWith(
       1,
@@ -320,6 +321,26 @@ describe('liveLessonService Firestore boundary', () => {
     stop();
     expect(unsubscribe).toHaveBeenCalledOnce();
     expect(firestoreMocks.query.mock.calls[0][1]).toEqual({ field: 'stepId', operator: '==', value: 'warmup' });
+  });
+
+  it('subscribes to the normalized owner session and rejects malformed snapshots', () => {
+    const unsubscribe = vi.fn();
+    const onChange = vi.fn();
+    const onError = vi.fn();
+    firestoreMocks.onSnapshot.mockImplementationOnce((_, onSnapshotChange, onSnapshotError) => {
+      onSnapshotChange({ exists: () => true, data: () => sessionData({ updatedAt: new FakeTimestamp(3000) }) });
+      onSnapshotChange({ exists: () => true, data: () => ({ schemaVersion: 2 }) });
+      expect(onSnapshotError).toBeTypeOf('function');
+      return unsubscribe;
+    });
+
+    const stop = subscribeToTeacherSession('session-1', onChange, onError);
+
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ id: 'session-1', updatedAt: 3000 }));
+    expect(onChange).toHaveBeenCalledOnce();
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringMatching(/lessonId|schemaVersion/i) }));
+    stop();
+    expect(unsubscribe).toHaveBeenCalledOnce();
   });
 
   it('maps public state and public stats snapshots without throwing synchronously', () => {
