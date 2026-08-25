@@ -171,12 +171,18 @@ describe('aggregateLiveResponses', () => {
       response({ participantUid: 'hs', value: 'HS001' }),
       response({ participantUid: 'constructor', value: 'constructor' }),
       response({ participantUid: 'to-string', value: 'toString' }),
-      response({ participantUid: 'safe', value: 'A' }),
-      response({ participantUid: 'safe-number', value: 'A12' }),
+      response({ participantUid: 'is-prototype-of', value: 'isPrototypeOf' }),
+      response({ participantUid: 'property-is-enumerable', value: 'propertyIsEnumerable' }),
+      response({ participantUid: 'to-locale-string', value: 'toLocaleString' }),
+      response({ participantUid: 'alice', value: 'Alice' }),
       response({ participantUid: 'mssv', value: 'MSSV2026001' }),
+      response({ participantUid: 'safe-a', value: 'A' }),
+      response({ participantUid: 'safe-g1', value: 'G1' }),
+      response({ participantUid: 'safe-yes', value: 'Yes' }),
+      response({ participantUid: 'safe-true', responseType: 'boolean', value: true }),
     ], 'warmup');
 
-    expect(result.choiceCounts).toEqual({ A: 1, A12: 1 });
+    expect(result.choiceCounts).toEqual({ A: 1, G1: 1, Yes: 1, true: 1 });
   });
 
   it('counts ai-error categories without exposing the category as a choice value', () => {
@@ -206,12 +212,16 @@ describe('toPublicStats', () => {
       submittedCount: 2,
       choiceCounts: {
         Yes: 2,
-        'A/B': 1,
+        B: 1,
         G1: 3,
         HS001: 4,
         constructor: 5,
         toString: 6,
         MSSV2026001: 7,
+        isPrototypeOf: 8,
+        propertyIsEnumerable: 9,
+        toLocaleString: 10,
+        Alice: 11,
         'raw free text': 8,
         'student-12345': 9,
         participantUid: 10,
@@ -238,7 +248,7 @@ describe('toPublicStats', () => {
       stepId: 'warmup',
       participantCount: 2,
       submittedCount: 2,
-      choiceCounts: { Yes: 2, 'A/B': 1, G1: 3 },
+      choiceCounts: { Yes: 2, B: 1, G1: 3 },
       routeCounts: { M: 1, S: 0, C: 1 },
       errorCategoryCounts: {
         Conceptual: 1,

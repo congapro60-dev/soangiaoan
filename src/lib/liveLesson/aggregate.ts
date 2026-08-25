@@ -104,28 +104,15 @@ const isErrorCategory = (value: string): value is LiveErrorCategory => (
 
 const isRoute = (value: string): value is LiveRoute => ROUTES.includes(value as LiveRoute);
 
-const PUBLIC_CHOICE_KEY_PATTERN = /^[A-Za-z0-9]+(?:[._:/-][A-Za-z0-9]+)*$/;
-const IDENTIFIER_LIKE_CHOICE_KEY_PATTERN = /^(?:hs|sv|student|p|u|uid|participant|user)(?:\d+|[-_.:/]\d+)$/i;
-const PRIVATE_CHOICE_KEY_PATTERN = /(student|participant|uid|user)/i;
-const STUDENT_CODE_PATTERN = /\d{4,}/;
-const RESERVED_CHOICE_KEYS = new Set([
-  'constructor',
-  'prototype',
-  '__proto__',
-  'tostring',
-  'valueof',
-  'hasownproperty',
+const PUBLIC_CHOICE_KEYS = new Set([
+  'A', 'B', 'C', 'D',
+  'G1', 'G2', 'G3',
+  'Yes', 'No', 'true', 'false',
+  'x', 'y', '=', '<=', '>=',
+  '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
 ]);
 
-const isPublicChoiceKey = (value: string): boolean => (
-  value.length > 0
-  && value.length <= 24
-  && PUBLIC_CHOICE_KEY_PATTERN.test(value)
-  && !IDENTIFIER_LIKE_CHOICE_KEY_PATTERN.test(value)
-  && !PRIVATE_CHOICE_KEY_PATTERN.test(value)
-  && !STUDENT_CODE_PATTERN.test(value)
-  && !RESERVED_CHOICE_KEYS.has(value.toLowerCase())
-);
+const isPublicChoiceKey = (value: string): boolean => PUBLIC_CHOICE_KEYS.has(value);
 
 export function aggregateLiveResponses(
   responses: LiveResponse[],
