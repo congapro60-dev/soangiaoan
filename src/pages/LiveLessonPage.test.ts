@@ -45,4 +45,11 @@ describe('LiveLessonPage route helpers', () => {
     expect(canLoadParentLiveLessonSession({ mode: 'teacher', authReady: true, userUid: 'teacher-1' })).toBe(true);
     expect(canLoadParentLiveLessonSession({ mode: 'tv', authReady: false, userUid: null })).toBe(false);
   });
+
+  it('keeps TV and student routes public-only', () => {
+    expect(shouldLoadParentLiveLessonSession('tv')).toBe(false);
+    expect(shouldLoadParentLiveLessonSession('student')).toBe(false);
+    const tv = projectLiveLessonDefinition(getPilotLiveLessonDefinition(), 'tv');
+    expect(Object.keys(tv).sort()).toEqual(['durationSeconds', 'id', 'lessonId', 'title', 'tvScreens']);
+  });
 });

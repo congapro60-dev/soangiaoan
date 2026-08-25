@@ -5,6 +5,8 @@ import { auth } from '../lib/firebase';
 import { getPilotLiveLessonDefinition } from '../lib/liveLesson/definition';
 import type { LiveLessonDefinition, LiveLessonMode, LiveLessonSession, LivePublicState } from '../lib/liveLesson/types';
 import { getLiveLessonSession, subscribeToLivePublicState } from '../services/liveLessonService';
+import { TeacherLiveView } from '../components/liveLesson/TeacherLiveView';
+import { TvLiveView } from '../components/liveLesson/TvLiveView';
 
 type TvDefinitionProjection = Pick<LiveLessonDefinition, 'id' | 'lessonId' | 'title' | 'durationSeconds' | 'tvScreens'>;
 type StudentDefinitionProjection = Pick<LiveLessonDefinition, 'id' | 'lessonId' | 'title' | 'durationSeconds' | 'studentScreens' | 'allowedStepIds' | 'responseSteps'>;
@@ -26,11 +28,9 @@ export const getLiveLessonRouteError = ({ mode, session, publicState, definition
   if (!parseLiveLessonMode(mode)) return 'Chế độ tiết trực tiếp không hợp lệ. Hãy dùng mode=teacher, mode=tv hoặc mode=student.';
   if (mode === 'teacher') {
     if (!session) return 'Không tìm thấy phiên tiết trực tiếp này. Bạn có thể quay lại và mở một phiên mới.';
-    if (session.status === 'closed') return 'Phiên tiết trực tiếp đã đóng. Hãy yêu cầu giáo viên mở phiên mới.';
     if (session.expiresAt <= Date.now()) return 'Phiên tiết trực tiếp đã hết hạn. Hãy yêu cầu giáo viên mở phiên mới.';
   } else {
     if (!publicState) return 'Không tìm thấy trạng thái công khai của phiên. Phiên có thể đã đóng hoặc hết hạn; hãy yêu cầu giáo viên mở phiên mới.';
-    if (publicState.status === 'closed') return 'Phiên tiết trực tiếp đã đóng. Hãy yêu cầu giáo viên mở phiên mới.';
   }
   if (!definition) return 'Không tải được định nghĩa pilot của phiên. Phiên chưa sẵn sàng để hiển thị.';
   if (mode === 'teacher') {
@@ -126,5 +126,11 @@ export const LiveLessonPage = () => {
   if (loadError) return <RouteError message={loadError} />;
   const routeError = getLiveLessonRouteError({ mode: modeParam, session, publicState, definition, userUid: user?.uid });
   if (routeError || !mode || !definition || (mode === 'teacher' && !session) || (mode !== 'teacher' && !publicState)) return <RouteError message={routeError || 'Phiên tiết trực tiếp chưa sẵn sàng.'} />;
+  if (mode === 'teacher' && session) {
+    return <TeacherLiveView definition={definition} session={session} onSessionChange={setSession} />;
+  }
+  if (mode === 'tv' && publicState) {
+    return <TvLiveView definition={projectLiveLessonDefinition(definition, 'tv')} sessionId={sessionId} publicState={publicState} />;
+  }
   return <PlaceholderPanel mode={mode} projection={projectLiveLessonDefinition(definition, mode)} />;
 };
