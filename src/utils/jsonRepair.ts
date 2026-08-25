@@ -243,5 +243,11 @@ export function parseJsonWithRecovery<T = unknown>(raw: string): JsonRecoveryRes
 }
 
 /** Compatibility wrapper for callers that only need the parsed value. */
-export const parseLooseJson = <T = any>(jsonStr: string): T =>
-  parseJsonWithRecovery<T>(jsonStr).value;
+export const parseLooseJson = <T = any>(jsonStr: string): T => {
+  try {
+    return parseJsonWithRecovery<T>(jsonStr).value;
+  } catch {
+    const repaired = jsonStr.replace(/\\(?!["\\/bfnrtu])/g, '\\\\');
+    return JSON.parse(repaired) as T;
+  }
+};

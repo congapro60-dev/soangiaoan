@@ -38,6 +38,13 @@ describe('parseLooseJson', () => {
     const parsed = parseLooseJson<Array<{ content: string }>>(raw);
     expect(parsed[0].content).toContain('\\int');
   });
+
+  it('giữ tương thích legacy với escape lạ, còn parser strict vẫn từ chối', () => {
+    const raw = String.raw`{"text":"\q \? \8"}`;
+
+    expect(parseLooseJson<{ text: string }>(raw).text).toBe(String.raw`\q \? \8`);
+    expectNamedError(() => parseJsonWithRecovery(raw), 'JsonRecoveryError');
+  });
 });
 
 describe('parseJsonWithRecovery — strict/recovery contract', () => {
