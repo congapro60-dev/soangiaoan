@@ -231,8 +231,19 @@ describe('buildClassAssignmentReport', () => {
     const report = buildClassAssignmentReport(input);
 
     expect(report.official.map(submission => submission.id)).toEqual(['official-graded']);
-    expect(report.counters).toMatchObject({ graded: 2, official: 1, pending: 3, missing: 0 });
+    expect(report.counters).toMatchObject({ graded: 2, official: 1, pending: 4, missing: 0 });
     expect(report.metrics.averagePercent).toBe(70);
+  });
+
+  it('đưa non-graded official vào pending vì không đạt official gate', () => {
+    const report = buildClassAssignmentReport(baseInput([
+      baseSubmission({ id: 'graded-official', studentKey: 'student-1', status: 'graded', official: true, score: 8 }),
+      baseSubmission({ id: 'submitted-official', studentKey: 'student-2', status: 'submitted', official: true, score: null }),
+      baseSubmission({ id: 'grading-official', studentKey: 'student-3', status: 'grading', official: true, score: null }),
+      baseSubmission({ id: 'error-official', studentKey: 'student-4', status: 'error', official: true, score: null }),
+    ]));
+
+    expect(report.counters).toMatchObject({ official: 1, pending: 3 });
   });
 
   it('gom weakTopics ở cấp submission và cấp câu vào cùng topicStats', () => {
@@ -346,5 +357,37 @@ describe('buildClassAssignmentReport', () => {
     expect(first.recommendations).toEqual(second.recommendations);
     expect(first.recommendations.join(' ')).toMatch(/Hàm số|Sai dấu/);
     expect(first.recommendations.join(' ')).not.toContain('Chưa đủ dữ liệu');
+  });
+
+  it('không kết luận câu yếu nếu question evidenceCount dưới 3', () => {
+    const report = buildClassAssignmentReport(baseInput([
+      baseSubmission({
+        id: 's1',
+        studentKey: 'student-1',
+        score: 6,
+        questionResults: [
+          { questionNumber: '1', status: 'incorrect', score: 0, maxScore: 2 },
+          { questionNumber: '2', status: 'correct', score: 2, maxScore: 2 },
+        ],
+      }),
+      baseSubmission({
+        id: 's2',
+        studentKey: 'student-2',
+        score: 6,
+        questionResults: [
+          { questionNumber: '1', status: 'incorrect', score: 0, maxScore: 2 },
+          { questionNumber: '2', status: 'correct', score: 2, maxScore: 2 },
+        ],
+      }),
+      baseSubmission({
+        id: 's3',
+        studentKey: 'student-3',
+        score: 6,
+        questionResults: [{ questionNumber: '2', status: 'correct', score: 2, maxScore: 2 }],
+      }),
+    ]));
+
+    expect(report.questionStats.find(question => question.questionNumber === '1')?.evidenceCount).toBe(2);
+    expect(report.recommendations.some(recommendation => recommendation.includes('câu 1'))).toBe(false);
   });
 });

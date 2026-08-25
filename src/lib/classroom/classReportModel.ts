@@ -299,7 +299,7 @@ const buildRecommendations = (
     recommendations.push('Giáo viên nên duy trì luyện tập phân hóa và mở rộng nhiệm vụ cho học sinh đã nắm chắc kiến thức.');
   }
 
-  const weakestQuestion = [...questionStats].sort((left, right) =>
+  const weakestQuestion = questionStats.filter(question => question.evidenceCount >= 3).sort((left, right) =>
     left.correctRate - right.correctRate || left.questionNumber.localeCompare(right.questionNumber, undefined, { numeric: true }))[0];
   if (weakestQuestion && weakestQuestion.correctRate < 0.5) {
     recommendations.push(`Nên chữa mẫu câu ${weakestQuestion.questionNumber}, yêu cầu học sinh nêu bằng chứng và tự kiểm tra kết quả.`);
@@ -346,7 +346,7 @@ export const buildClassAssignmentReport = (input: ClassReportInput): ClassAssign
     submission.official === true && normalizeKey(submission.status) === 'graded';
   const officialSubmissions = latestSubmissions.filter(isOfficial);
   const graded = latestSubmissions.filter(submission => normalizeKey(submission.status) === 'graded');
-  const pending = latestSubmissions.filter(submission => submission.official !== true);
+  const pending = latestSubmissions.filter(submission => !isOfficial(submission));
   const scorePairs = officialSubmissions
     .map(submission => scorePair(submission, assignment.maxScore))
     .filter((pair): pair is { score: number; maxScore: number } => pair !== null);
