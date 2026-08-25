@@ -45,7 +45,22 @@ export const validateLiveLessonLaunch = ({ lessonReady, classId }: { lessonReady
   return { ok: true };
 };
 
-const isServerClass = (item: ClassContext): item is ClassDoc => 'teacherId' in item && 'joinCode' in item && typeof item.teacherId === 'string' && typeof item.joinCode === 'string';
+const isServerClass = (item: unknown): item is ClassDoc => {
+  if (!item || typeof item !== 'object') return false;
+  const value = item as Partial<ClassDoc>;
+  return typeof value.id === 'string'
+    && typeof value.teacherId === 'string'
+    && typeof value.name === 'string'
+    && typeof value.track === 'string'
+    && typeof value.grade === 'string'
+    && typeof value.joinCode === 'string'
+    && typeof value.studentCount === 'number'
+    && Number.isFinite(value.studentCount)
+    && typeof value.createdAt === 'string'
+    && typeof value.updatedAt === 'string';
+};
+
+export const isAuthoritativeServerClassList = (items: unknown[] | undefined): items is ClassDoc[] => Boolean(items && items.length > 0 && items.every(isServerClass));
 
 const getOwnedSynchronizedClasses = (items: ClassContext[], uid: string): ClassDoc[] => items.filter(isServerClass).filter(item => item.teacherId === uid);
 
@@ -133,8 +148,7 @@ export const LiveLessonLauncher = ({ lesson: selectedLesson, lessonId, user: con
           if (active) setAvailableClasses([]);
           return;
         }
-        const hasServerContext = classes?.some(isServerClass) ?? false;
-        const serverClasses = classes && hasServerContext ? classes : await listTeacherClasses(uid);
+        const serverClasses = isAuthoritativeServerClassList(classes) ? classes : await listTeacherClasses(uid);
         const ownedClasses = getOwnedSynchronizedClasses(serverClasses, uid);
         if (!active) return;
         setAvailableClasses(ownedClasses);

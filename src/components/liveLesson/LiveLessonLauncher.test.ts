@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildLiveLessonUrls, getPilotDefinitionForLesson, validateLiveLessonLaunch } from './LiveLessonLauncher';
+import { buildLiveLessonUrls, getPilotDefinitionForLesson, isAuthoritativeServerClassList, validateLiveLessonLaunch } from './LiveLessonLauncher';
 
 describe('live lesson launcher helpers', () => {
   it('blocks creation when there is no owned synchronized class', () => {
@@ -25,5 +25,18 @@ describe('live lesson launcher helpers', () => {
       durationMinutes: 40,
       status: 'published',
     } as never)).toThrow(/pilot/i);
+  });
+
+  it('falls back from mixed legacy and server class input', () => {
+    const serverClass = {
+      id: 'class-1', teacherId: 'teacher-1', name: '10A', track: '', grade: '10',
+      joinCode: 'JOIN10A', studentCount: 1, createdAt: 'now', updatedAt: 'now',
+    };
+    const legacyClass = { id: 'class-legacy', name: '10B', grade: '10', students: [] };
+
+    expect(isAuthoritativeServerClassList([serverClass])).toBe(true);
+    expect(isAuthoritativeServerClassList([serverClass, legacyClass])).toBe(false);
+    expect(isAuthoritativeServerClassList([legacyClass])).toBe(false);
+    expect(isAuthoritativeServerClassList([{ ...serverClass, studentCount: 'invalid' }])).toBe(false);
   });
 });

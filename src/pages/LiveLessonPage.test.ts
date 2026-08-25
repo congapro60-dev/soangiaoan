@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { getPilotLiveLessonDefinition } from '../lib/liveLesson/definition';
 import {
   getLiveLessonRouteError,
+  canLoadParentLiveLessonSession,
   isTeacherSessionOwner,
   parseLiveLessonMode,
   projectLiveLessonDefinition,
@@ -36,5 +37,12 @@ describe('LiveLessonPage route helpers', () => {
     expect(shouldLoadParentLiveLessonSession('teacher')).toBe(true);
     expect(shouldLoadParentLiveLessonSession('tv')).toBe(false);
     expect(shouldLoadParentLiveLessonSession('student')).toBe(false);
+  });
+
+  it('gates the teacher parent load until auth is ready and signed in', () => {
+    expect(canLoadParentLiveLessonSession({ mode: 'teacher', authReady: false, userUid: 'teacher-1' })).toBe(false);
+    expect(canLoadParentLiveLessonSession({ mode: 'teacher', authReady: true, userUid: null })).toBe(false);
+    expect(canLoadParentLiveLessonSession({ mode: 'teacher', authReady: true, userUid: 'teacher-1' })).toBe(true);
+    expect(canLoadParentLiveLessonSession({ mode: 'tv', authReady: false, userUid: null })).toBe(false);
   });
 });

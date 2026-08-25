@@ -12,6 +12,7 @@ export type LiveLessonDefinitionProjection = LiveLessonDefinition | TvDefinition
 
 export const parseLiveLessonMode = (value: string | null): LiveLessonMode | null => value === 'teacher' || value === 'tv' || value === 'student' ? value : null;
 export const shouldLoadParentLiveLessonSession = (mode: LiveLessonMode): boolean => mode === 'teacher';
+export const canLoadParentLiveLessonSession = ({ mode, authReady, userUid }: { mode: LiveLessonMode; authReady: boolean; userUid: string | null | undefined }): boolean => shouldLoadParentLiveLessonSession(mode) && authReady && Boolean(userUid);
 
 export const isTeacherSessionOwner = (session: Pick<LiveLessonSession, 'teacherUid'>, uid: string | null | undefined): boolean => Boolean(uid && session.teacherUid === uid);
 
@@ -54,13 +55,18 @@ export const LiveLessonPage = () => {
   const modeParam = useMemo(() => new URLSearchParams(location.search).get('mode'), [location.search]);
   const mode = parseLiveLessonMode(modeParam);
   const [user, setUser] = useState<User | null>(auth.currentUser);
+  const [authReady, setAuthReady] = useState(false);
   const [session, setSession] = useState<LiveLessonSession | null>(null);
   const [publicState, setPublicState] = useState<LivePublicState | null>(null);
   const [definition, setDefinition] = useState<LiveLessonDefinition | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const authDependency = mode === 'teacher' ? `${authReady}:${user?.uid ?? ''}` : 'public';
 
-  useEffect(() => onAuthStateChanged(auth, setUser), []);
+  useEffect(() => onAuthStateChanged(auth, nextUser => {
+    setUser(nextUser);
+    setAuthReady(true);
+  }), []);
 
   useEffect(() => {
     let active = true;
@@ -81,9 +87,15 @@ export const LiveLessonPage = () => {
         setLoading(false);
         return;
       }
+      if (mode === 'teacher' && !authReady) return;
+      if (mode === 'teacher' && !user?.uid) {
+        setLoadError('Chế độ giáo viên yêu cầu đăng nhập.');
+        setLoading(false);
+        return;
+      }
       try {
         setDefinition(getPilotLiveLessonDefinition());
-        if (shouldLoadParentLiveLessonSession(mode)) {
+        if (canLoadParentLiveLessonSession({ mode, authReady, userUid: user?.uid })) {
           const found = await getLiveLessonSession(sessionId);
           if (!active) return;
           setSession(found);
@@ -108,7 +120,7 @@ export const LiveLessonPage = () => {
     };
     void load();
     return () => { active = false; stopPublicState(); };
-  }, [mode, sessionId]);
+  }, [authDependency, mode, sessionId]);
 
   if (loading) return <main className="flex min-h-screen items-center justify-center bg-slate-950 p-6 text-white"><p className="text-sm font-black">Đang tải phiên tiết trực tiếp...</p></main>;
   if (loadError) return <RouteError message={loadError} />;
