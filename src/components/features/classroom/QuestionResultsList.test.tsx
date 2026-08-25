@@ -57,6 +57,32 @@ describe('QuestionResultsList', () => {
     expect(html.slice(expectedLabel)).toContain('class="katex"');
   });
 
+  it('chuẩn hóa \\(…\\) và \\[…\\] để SSR render inline/display math bằng KaTeX', () => {
+    const html = renderToStaticMarkup(
+      <QuestionResultsList
+        results={[{
+          questionNumber: 'Bài 4.2c',
+          status: 'correct',
+          score: 1,
+          maxScore: 1,
+          studentAnswer: '\\(D \\in SA\\)',
+          expectedAnswer: '\\[\\frac{x}{2}\\]',
+          errorType: 'Không có',
+          explanation: 'Lập luận đầy đủ.',
+          correction: '',
+          nextPractice: '',
+          needsTeacherReview: false,
+        }]}
+      />,
+    );
+
+    const studentLabel = html.indexOf('Bài làm của em');
+    const expectedLabel = html.indexOf('Đáp án / mốc cần đạt');
+    expect(html.slice(studentLabel, expectedLabel)).toContain('class="katex"');
+    expect(html.slice(expectedLabel)).toContain('class="katex"');
+    expect(html.slice(expectedLabel)).toContain('\\displaystyle');
+  });
+
   it('giữ nội dung khi KaTeX gặp lệnh không hỗ trợ, không tạo raw HTML từ dữ liệu AI', () => {
     const render = () => renderToStaticMarkup(
       <QuestionResultsList

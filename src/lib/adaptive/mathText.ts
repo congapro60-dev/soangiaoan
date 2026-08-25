@@ -100,9 +100,12 @@ export const tokenizeMath = (input: string): MathToken[] => {
 };
 
 const joinTokens = (tokens: MathToken[]): string =>
-  tokens.map(t => t.type === 'text'
-    ? t.content
-    : (t.open || '$') + t.content + (t.close || '$')).join('');
+  tokens.map(t => {
+    if (t.type === 'text') return t.content;
+    const open = t.open === '\\(' ? '$' : t.open === '\\[' ? '$$' : (t.open || '$');
+    const close = t.close === '\\)' ? '$' : t.close === '\\]' ? '$$' : (t.close || '$');
+    return open + t.content + close;
+  }).join('');
 
 /** [Vùng TEXT] Đổi luỹ thừa caret đơn (a^2, =b^2) sang chữ số trên (a², =b²). */
 const convertCaretsInText = (s: string): string =>

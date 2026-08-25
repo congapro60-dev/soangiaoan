@@ -147,7 +147,7 @@ describe('sanitizeDisplayText — production-like hình học không có delimit
   it('giữ delimiter LaTeX hiện có và chỉ đổi => bên trong vùng math', () => {
     const input = 'Kết luận \\(a => b\\) và \\[\\frac{1}{2}\\]';
 
-    expect(sanitizeDisplayText(input)).toBe('Kết luận \\(a \\Rightarrow b\\) và \\[\\displaystyle \\frac{1}{2}\\]');
+    expect(sanitizeDisplayText(input)).toBe('Kết luận $a \\Rightarrow b$ và $$\\displaystyle \\frac{1}{2}$$');
   });
 
   it('giữ lệnh LaTeX không hỗ trợ ở fallback text mà không chèn HTML', () => {
