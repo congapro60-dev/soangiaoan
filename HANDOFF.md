@@ -102,3 +102,13 @@ git diff --check
 - Không dùng `git add .` trong worktree có thay đổi ngoài phạm vi.
 - Không tuyên bố deploy production nếu chưa kiểm tra deployment thực tế.
 - Với prompt có phạm vi, test phải kiểm cả chỉ dẫn mới và sự vắng mặt của chỉ dẫn tổng quát mâu thuẫn.
+
+## 8. Lô sửa JSON/LaTeX chấm bài — QA bổ sung 2026-08-25
+
+- Nhánh đang kiểm thử: `codex/fix-classroom-math-render-duplicate`, HEAD `1cb9830` (`fix(classroom): normalize markdown math delimiters`). Chưa push `main`, chưa deploy và không chạm dữ liệu thật của 11 Columbus.
+- Parser JSON chấm AI ưu tiên parse strict, phục hồi có kiểm soát lỗi escape LaTeX/ký tự Unicode không hợp lệ/ký tự điều khiển; hợp đồng điểm nghiêm ngặt; chỉ retry tối đa một lần với lỗi có thể phục hồi.
+- Khi retry hoặc chấm lại thất bại: không nhân quota/lịch sử, giữ điểm cũ nếu có; bản học sinh không nhận thông tin nội bộ của giáo viên/provider; lỗi được hiển thị an toàn.
+- Công thức trong **Bài làm của em**, **Đáp án / mốc cần đạt** và nhận xét đi qua Markdown/KaTeX; đã chuẩn hóa cả `$...$`, `$$...$$`, `\(...\)`, `\[...\]`.
+- Bằng chứng: full Vitest **83 files / 1.184 tests pass**; focused parser/contract/math/UI/privacy **152 tests pass**; `npm run lint`, `npm run lint:api`, `npm run build`, `git diff --check` đều pass. Build chỉ còn các cảnh báo chunk/dynamic import hiện hữu.
+- QA độc lập OpenCode/Ox Alpha Free (`opencode/x-preview-f-free`): **PASS**; xác nhận các hạng mục parser, contract, retry, quota/history/điểm cũ, privacy và render công thức. Còn 3 rủi ro P2 đã ghi nhận: batch regrade được phép ghi đè điểm đã duyệt theo chủ đích, bắt JSON nhiều object dùng greedy brace match, và quota không hoàn lại khi chi phí AI đã phát sinh.
+- Báo cáo tổng hợp theo từng bài (phân bố điểm, tỷ lệ đúng từng câu, lỗi phổ biến, chủ đề yếu và khuyến nghị) **chưa thuộc lô này**; báo cáo học sinh hiện có và dữ liệu `questionResults`/`weakTopics` là nền cho milestone analytics riêng.
