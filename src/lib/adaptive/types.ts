@@ -1,4 +1,4 @@
-import type { AdaptiveSimulationSpec } from './simulationTypes';
+import type { AdaptiveSimulationSpec } from './simulationTypes.js';
 
 export type LearningRoute = 'foundation' | 'standard' | 'challenge';
 export type LessonStatus = 'draft' | 'published' | 'archived';

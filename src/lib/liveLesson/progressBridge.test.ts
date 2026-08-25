@@ -3,6 +3,7 @@ import { getPilotLiveLessonDefinition } from './definition';
 import {
   ProgressBridgeInputError,
   buildProgressBridgeResult,
+  buildProgressBridgeResults,
   type ProgressBridgeInput,
   type TrustedParticipantMetadata,
 } from './progressBridge';
@@ -64,11 +65,10 @@ const completeInput = (overrides: Partial<ProgressBridgeInput> = {}): ProgressBr
     responses: [
       response('ai-error-w01', 'choice', 'Conceptual', 1_001),
       response('quick-check', 'choice', 'B', 1_002),
-      response('exit-ticket', 'exit_ticket', 'x > 2', 1_003),
+      response('exit-ticket', 'text', 'x > 2', 1_003),
     ],
   }],
   participantMetadata: [metadata],
-  now: '2026-08-25T10:00:00.000Z',
   ...overrides,
 });
 
@@ -89,6 +89,7 @@ describe('live lesson progress bridge', () => {
 
     expect(result.kind).toBe('ready');
     if (result.kind !== 'ready') return;
+    expect(definition.responseSteps.find((step) => step.id === 'exit-ticket')?.responseTypes).toEqual(['text']);
     expect(result.record.studentId).toBe(metadata.studentId);
     expect(result.record.studentId).not.toBe(metadata.participantUid);
     expect(result.record.studentCode).toBe(metadata.studentCode);
@@ -116,5 +117,81 @@ describe('live lesson progress bridge', () => {
     const result = buildProgressBridgeResult(completeInput({ participantMetadata: [] }));
 
     expect(result).toEqual({ kind: 'not_ready', reason: 'missing_diagnostic' });
+  });
+
+  it('validates every response instead of silently ignoring extra submissions', () => {
+    const input = completeInput({
+      submissions: [{
+        participantUid: metadata.participantUid,
+        responses: [
+          response('warmup', 'choice', 'A', 1_000),
+          response('ai-error-w01', 'choice', 'Conceptual', 1_001),
+          response('quick-check', 'choice', 'B', 1_002),
+          response('exit-ticket', 'text', 'x > 2', 1_003),
+        ],
+      }],
+    });
+
+    expect(buildProgressBridgeResult(input).kind).toBe('ready');
+  });
+
+  it.each([
+    ['wrong participant', { participantUid: 'other-anonymous' }],
+    ['wrong class', { classId: 'class-2' }],
+    ['disallowed step', { stepId: 'not-a-live-step' }],
+    ['non-canonical exit response type', { stepId: 'exit-ticket', responseType: 'exit_ticket' as const }],
+  ])('rejects every %s response', (_label, change) => {
+    const invalidResponse = response('exit-ticket', 'text', 'x > 2', 1_003);
+    const changedResponse = { ...invalidResponse, ...change } as LiveResponse;
+    const input = completeInput({
+      submissions: [{
+        participantUid: metadata.participantUid,
+        responses: [
+          response('ai-error-w01', 'choice', 'Conceptual', 1_001),
+          response('quick-check', 'choice', 'B', 1_002),
+          changedResponse,
+        ],
+      }],
+    });
+
+    expect(() => buildProgressBridgeResult(input)).toThrowError(ProgressBridgeInputError);
+  });
+
+  it('rejects a definition that fails canonical validation', () => {
+    const invalidDefinition = {
+      ...definition,
+      allowedStepIds: [...definition.allowedStepIds, 'not-a-live-step'],
+    } as typeof definition;
+
+    expect(() => buildProgressBridgeResult(completeInput({ definition: invalidDefinition })))
+      .toThrowError(ProgressBridgeInputError);
+  });
+
+  it('uses the closed session timestamp when now is omitted', () => {
+    const input = completeInput();
+    const first = buildProgressBridgeResult(input);
+    const second = buildProgressBridgeResult({ ...input, now: undefined });
+
+    expect(first).toEqual(second);
+    if (first.kind !== 'ready') return;
+    expect(first.record.completedAt).toBe(new Date(session().updatedAt).toISOString());
+  });
+
+  it('processes every participant instead of dropping submissions after the first', () => {
+    const secondMetadata = { ...metadata, participantUid: 'anonymous-2', studentId: 'teacher-1_TRAN-B', studentCode: 'TRAN-B', studentName: 'Trần B' };
+    const secondResponses = [
+      response('ai-error-w01', 'choice', 'Algebraic', 1_001),
+      response('quick-check', 'choice', 'C', 1_002),
+      response('exit-ticket', 'text', 'x < 3', 1_003),
+    ].map(item => ({ ...item, participantUid: secondMetadata.participantUid, classId: secondMetadata.classId, id: `${secondMetadata.participantUid}__${item.stepId}` }));
+    const input = completeInput({
+      submissions: [
+        ...completeInput().submissions,
+        { participantUid: secondMetadata.participantUid, responses: secondResponses },
+      ],
+      participantMetadata: [metadata, secondMetadata],
+    });
+
+    expect(buildProgressBridgeResults(input)).toHaveLength(2);
   });
 });

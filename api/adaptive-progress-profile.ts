@@ -27,7 +27,7 @@ export const mergeProfileWithExisting = ({ existingProfile, incomingProfile, pro
 
   const currentMemory = Array.isArray(existingProfile.objectiveMemory) ? existingProfile.objectiveMemory : [];
   const incomingMemory = Array.isArray(incomingProfile.objectiveMemory) ? incomingProfile.objectiveMemory : [];
-  const objectiveMemory = incomingMemory.map((incoming: any) => {
+  const objectiveMemory = incomingMemory.length === 0 ? currentMemory : incomingMemory.map((incoming: any) => {
     const previous = currentMemory.find((item: any) => item?.objectiveId === incoming?.objectiveId);
     return {
       ...previous,

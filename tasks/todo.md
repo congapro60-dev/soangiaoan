@@ -177,9 +177,19 @@ Backup bản cũ: `C:\Users\ADMIN\AppData\Local\Temp\smartplan-ban-toan-backup-2
 
 ## Task 8 — Close-session progress bridge — 2026-08-25
 
-- [x] Tạo bridge fail-closed và 5 test focused: session phải `closed`; cần AI Error/diagnostic, quick-check, exit-ticket và trusted mapping; ID/attempt/timestamp deterministic; không dùng anonymous UID.
-- [x] Nối close flow để báo số record eligible/not-ready, không lộ raw responses ra TV/student và không tuyên bố cả lớp hoàn thành.
+- [x] Sửa bridge theo response contract canonical thực tế: route P16 là response server-confirmed, exit-ticket là `responseType: text`; validate definition và từng response; xử lý toàn bộ submissions; timestamp retry lấy từ session closed/updated timestamp.
+- [x] Nối close flow vào action của `/api/adaptive-progress` để server xác minh token, session closed, teacher ownership, class ownership, `studentLinks` và roster trước khi ghi từng record ready.
+- [x] Tạo/reuse profileRecord server-side hợp lệ, không bịa objective mastery; chỉ ghi khi lesson đã published/portal-enabled; UI phân biệt eligible/saved/failed/incomplete.
 - [x] Viết hướng dẫn vận hành tiếng Việt tại `docs/features/08-live-lesson-realtime.md`, gồm route, laptop/TV/Vcast/thiết bị HS, launch/close, troubleshooting và fallback V2.
-- [x] Verification: focused live tests `5 files / 61 tests PASS`; full Vitest `76 files / 1096 tests PASS`; `lint`, `lint:api`, `build` PASS (build chỉ cảnh báo chunk/import vốn có).
-- [ ] Rules: `npm run test:rules` chưa chạy được vì Firestore Emulator không bind cổng 8080 đang bị process khác chiếm; không dừng process ngoài phạm vi.
-- [ ] Safe limitation: teacher runtime hiện chưa có endpoint cung cấp trusted participant metadata/profile payload cho close flow; vì vậy chưa tự ghi `adaptiveSessionProgress`, chỉ báo eligibility.
+- [x] Focused live/API/route verification 42/42 pass; full Vitest 76 files/1110 tests pass; `lint`, `lint:api`, `build` pass. Build chỉ còn warning chunk/import vốn có.
+- [x] Rules: chạy trực tiếp Vitest Rules suite trên Firestore Emulator đang chạy đúng worktree — 8 files/260 tests pass. Wrapper `npm run test:rules` không dùng được vì nó cố khởi động thêm emulator trên cổng 8080.
+- [x] Không deploy/push; commit riêng sau khi các gate trên có evidence.
+
+### Task 8 review evidence — 2026-08-25
+
+- Focused route/API set: 4 files / 42 tests PASS: live definition, progress bridge, adaptive-progress API, StudentLiveView.
+- Full Vitest: 76 files / 1110 tests PASS.
+- `npm run lint` và `npm run lint:api`: PASS.
+- `npm run build`: PASS; Vite chỉ cảnh báo module externalized/chunk >500KB và index chunk hiện có.
+- Rules direct run: 8 files / 260 tests PASS trên emulator PID 18096 đã chạy với đúng `firestore.rules`; wrapper `npm run test:rules` bị chặn do cố bind lại cổng 8080.
+- Server mapping evidence: roster doc ID được dùng để kiểm link, adaptive ID là `${teacherUid}_${normalizeStudentCode(roster.code)}`; route lấy từ response server hoặc trusted profile, thiếu cả hai trả `incomplete`.

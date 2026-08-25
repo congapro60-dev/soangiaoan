@@ -1,4 +1,4 @@
-import type { LiveCue } from '../../data/liveLessonPackages/g10_w5_p31_bpt_tiet1.cues';
+import type { LiveCue } from '../../data/liveLessonPackages/g10_w5_p31_bpt_tiet1.cues.js';
 
 export type LiveLessonMode = 'teacher' | 'tv' | 'student';
 export type LiveSessionStatus = 'lobby' | 'running' | 'paused' | 'closed';

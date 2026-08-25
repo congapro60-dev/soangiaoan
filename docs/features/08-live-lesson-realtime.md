@@ -37,8 +37,9 @@ AI Error W01 nằm trong bước đã định nghĩa của pilot. Giáo viên v�
 - Trước khi mở tiết, lớp phải là lớp mà tài khoản giáo viên đang sở hữu và bài phải ở trạng thái **published**. Nếu danh sách lớp hoặc bài vừa thay đổi, tải lại trang trước khi tạo phiên.
 - Khi đang dạy, chỉ giáo viên điều khiển cue. Học sinh gửi phản hồi vào đúng phiên qua link/PIN hiện có.
 - Khi kết thúc, giáo viên bấm **Đóng phiên** trên laptop. Từ lúc đó response mới bị chặn.
-- Sau khi đóng, hệ thống chỉ báo số học sinh **đủ điều kiện ghép tiến trình** và số học sinh **chưa đủ minh chứng**. Không coi cả lớp đã hoàn thành.
-- Một record adaptive chỉ đủ điều kiện khi có mapping học sinh được máy chủ tin cậy, AI Error/diagnostic, quick-check và exit-ticket. Thiếu mapping hoặc thiếu một minh chứng thì không ghi record hoàn tất.
+- Sau khi đóng, hệ thống báo tách bốn trạng thái: **eligible** (đủ điều kiện), **saved** (đã ghi thành công), **failed** (đã đủ điều kiện nhưng ghi lỗi) và **incomplete** (thiếu mapping/route/minh chứng). `eligible` không có nghĩa là đã ghi; chỉ `saved` mới là kết quả đã xác nhận.
+- Một record adaptive chỉ được ghi khi máy chủ xác minh session đã đóng, giáo viên sở hữu session/lớp, `studentLinks/{participantUid}` trỏ đúng roster document, adaptive student ID được tạo từ mã học sinh trong roster, route đến từ response `route` đã lưu trên server hoặc adaptive profile server và có AI Error/diagnostic, quick-check, exit-ticket. Thiếu mapping, route hoặc một minh chứng thì fail-closed, không ghi record hoàn tất.
+- Retry sau khi đóng dùng cùng progress ID và timestamp đóng session; record đã ghi không làm tăng `totalSessions` lần nữa. Không suy diễn route từ UID, từ G1/G2/G3 hoặc từ giá trị mặc định.
 
 ## Xử lý sự cố
 

@@ -289,6 +289,7 @@ const responseSteps: LiveResponseStep[] = [
   { id: 'warmup', label: 'Khởi động', screenId: 'HS1', responseTypes: ['choice'] },
   { id: 'notice-wonder', label: 'Notice/Wonder', screenId: 'HS2', responseTypes: ['choice', 'text'], maxTextLength: 120 },
   { id: 'goals', label: 'Mục tiêu cá nhân', screenId: 'HS3', responseTypes: ['choice'] },
+  { id: 'route', label: 'Tuyến học M/S/C', screenId: 'HS7', responseTypes: ['route'] },
   { id: 'model', label: 'Mô hình', screenId: 'HS4', responseTypes: ['choice', 'text'] },
   { id: 'ai-error-w01', label: 'AI Error of the Week W01', screenId: 'HS6', responseTypes: ['choice', 'text'] },
   { id: 'quick-check', label: 'Quick check', screenId: 'HS9', responseTypes: ['choice', 'text'] },
