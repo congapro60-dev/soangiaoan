@@ -123,3 +123,23 @@ git diff --check
 - CSV chỉ xuất số liệu tổng hợp; không xuất `studentKey`, bài làm, đáp án, ghi chú riêng của giáo viên hay dữ liệu từng học sinh.
 - Bằng chứng kiểm thử: focused **2 files / 23 tests pass**; full Vitest **85 files / 1.207 tests pass**; `npm run lint`, `npm run lint:api`, `npm run build`, `git diff --check` đều pass. Build chỉ còn cảnh báo chunk/dynamic import vốn có.
 - QA độc lập Ox Alpha Free/OpenCode (`opencode/x-preview-f-free`) trên đúng HEAD code `680aaed`: **PASS**, không có P0/P1/P2. Ba lưu ý P3: dữ liệu online legacy thiếu lớp có giới hạn không thể phân biệt trùng tên khác lớp; câu online chưa có điểm đang được xếp vào `Chưa làm`; CSV điểm trung bình đã được chuẩn hóa hiển thị theo `%`.
+
+## 10. Lô tương thích công thức legacy trong nhận xét chấm — 2026-08-25
+
+- Commit code `9267b59` bổ sung lớp tương thích hiển thị cho dữ liệu chấm cũ bị mất dấu `\\`: phục hồi có điều kiện các toán tử dạng chữ `in`, `notin`, `subset`, `supset`, `cap`, `cup` thành LaTeX/KaTeX trong `src/lib/adaptive/mathText.ts`.
+- Lý do: một số nhận xét cũ của lớp 11 Columbus hiện `D in SA`, `SA subset (SAB)` thay vì công thức; đây là lỗi biểu diễn payload legacy, không phải điểm hay đáp án mới bị thay đổi.
+- Phạm vi cố ý không chạm: không backfill Firestore, không sửa/xóa/regrade submission, không thay điểm, không thay API/Storage/rules; `repairMathString` vẫn giữ nguyên chuỗi legacy ở đường lưu dữ liệu.
+- Hàng rào: chỉ chuyển đổi khi hai vế có hình dạng ký hiệu Toán; câu thường như `Học sinh in bài rồi.`, `Fill in the blanks.` và `Please log in now.` giữ nguyên. Chuỗi LaTeX hợp lệ hiện có vẫn đi qua như trước.
+- Bằng chứng: targeted **27/27**; full Vitest **85 files / 1.208 tests**; `npm run lint`, `npm run lint:api`, `npm run build`, `git diff --check` pass; Ox Alpha Free/OpenCode (`opencode/x-preview-f-free`) QA **PASS**.
+- Còn cần xác nhận sau deploy: mở lại một nhận xét cũ của 11 Columbus và kiểm tra trực quan cả **Bài làm của em** lẫn **Đáp án / mốc cần đạt**; chỉ refresh/đọc, không chạy chấm lại hàng loạt.
+- Ngưỡng còn lại: heuristic không thể khôi phục chắc chắn mọi chuỗi legacy có biến chữ thường hoặc câu bị mất nhiều cấu trúc; các ca không đủ hình dạng vẫn được giữ nguyên để tránh sửa nhầm văn bản.
+
+### Lệnh nghiệm thu lô công thức legacy
+
+```powershell
+npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" run test
+npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" run lint
+npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" run lint:api
+npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" run build
+git diff --check
+```
