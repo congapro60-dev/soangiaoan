@@ -112,6 +112,15 @@ describe('mergeLatestResponse', () => {
       .toEqual(mergeLatestResponse([infinite, nan]));
     expect(mergeLatestResponse([nan, infinite])).toEqual([nan]);
   });
+
+  it('totalizes NaN versus Infinity updatedAt tie-breaking regardless of input order', () => {
+    const nan = response({ id: 'same', clientNonce: 'same', updatedAt: Number.NaN });
+    const infinite = response({ id: 'same', clientNonce: 'same', updatedAt: Number.POSITIVE_INFINITY });
+
+    expect(mergeLatestResponse([nan, infinite]))
+      .toEqual(mergeLatestResponse([infinite, nan]));
+    expect(mergeLatestResponse([nan, infinite])).toEqual([nan]);
+  });
 });
 
 describe('aggregateLiveResponses', () => {
@@ -163,9 +172,11 @@ describe('aggregateLiveResponses', () => {
       response({ participantUid: 'constructor', value: 'constructor' }),
       response({ participantUid: 'to-string', value: 'toString' }),
       response({ participantUid: 'safe', value: 'A' }),
+      response({ participantUid: 'safe-number', value: 'A12' }),
+      response({ participantUid: 'mssv', value: 'MSSV2026001' }),
     ], 'warmup');
 
-    expect(result.choiceCounts).toEqual({ A: 1 });
+    expect(result.choiceCounts).toEqual({ A: 1, A12: 1 });
   });
 
   it('counts ai-error categories without exposing the category as a choice value', () => {
@@ -200,6 +211,7 @@ describe('toPublicStats', () => {
         HS001: 4,
         constructor: 5,
         toString: 6,
+        MSSV2026001: 7,
         'raw free text': 8,
         'student-12345': 9,
         participantUid: 10,

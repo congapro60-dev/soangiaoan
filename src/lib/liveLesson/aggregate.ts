@@ -15,6 +15,17 @@ const ERROR_CATEGORIES: LiveErrorCategory[] = [
 
 const isFiniteNumber = (value: number): boolean => Number.isFinite(value);
 
+const nonFiniteNumberTag = (value: number): string => {
+  if (Number.isNaN(value)) return 'NaN';
+  return value === Number.POSITIVE_INFINITY ? '+Infinity' : '-Infinity';
+};
+
+const NON_FINITE_NUMBER_RANK: Record<string, number> = {
+  '-Infinity': 0,
+  '+Infinity': 1,
+  NaN: 2,
+};
+
 const valueFingerprint = (value: LiveResponse['value']): string => {
   if (typeof value === 'number') {
     if (Number.isNaN(value)) return 'number:NaN';
@@ -31,8 +42,13 @@ const compareNumbers = (left: number, right: number): number => {
   const leftFinite = isFiniteNumber(left);
   const rightFinite = isFiniteNumber(right);
   if (leftFinite !== rightFinite) return leftFinite ? 1 : -1;
-  if (!leftFinite && !rightFinite) return 0;
-  if (left === right) return 0;
+  if (!leftFinite && !rightFinite) {
+    return NON_FINITE_NUMBER_RANK[nonFiniteNumberTag(left)]
+      - NON_FINITE_NUMBER_RANK[nonFiniteNumberTag(right)];
+  }
+  if (Object.is(left, right)) return 0;
+  if (Object.is(left, -0)) return -1;
+  if (Object.is(right, -0)) return 1;
   return left > right ? 1 : -1;
 };
 
@@ -91,6 +107,7 @@ const isRoute = (value: string): value is LiveRoute => ROUTES.includes(value as 
 const PUBLIC_CHOICE_KEY_PATTERN = /^[A-Za-z0-9]+(?:[._:/-][A-Za-z0-9]+)*$/;
 const IDENTIFIER_LIKE_CHOICE_KEY_PATTERN = /^(?:hs|sv|student|p|u|uid|participant|user)(?:\d+|[-_.:/]\d+)$/i;
 const PRIVATE_CHOICE_KEY_PATTERN = /(student|participant|uid|user)/i;
+const STUDENT_CODE_PATTERN = /\d{4,}/;
 const RESERVED_CHOICE_KEYS = new Set([
   'constructor',
   'prototype',
@@ -106,6 +123,7 @@ const isPublicChoiceKey = (value: string): boolean => (
   && PUBLIC_CHOICE_KEY_PATTERN.test(value)
   && !IDENTIFIER_LIKE_CHOICE_KEY_PATTERN.test(value)
   && !PRIVATE_CHOICE_KEY_PATTERN.test(value)
+  && !STUDENT_CODE_PATTERN.test(value)
   && !RESERVED_CHOICE_KEYS.has(value.toLowerCase())
 );
 
