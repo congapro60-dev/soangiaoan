@@ -1,4 +1,4 @@
-import pilotPackageText from '../../data/liveLessonPackages/g10_w5_p31_bpt_tiet1.json?raw';
+import runtimePilotPackageText from '../../data/liveLessonPackages/g10_w5_p31_bpt_tiet1.runtime.json?raw';
 
 import {
   g10W5P31BptTiet1Cues,
@@ -20,7 +20,14 @@ interface PilotScreen {
   action?: string;
 }
 
-interface PilotPackage {
+interface PilotPackageProjection {
+  meta: { id: string; title: string; durationMinutes: number };
+  tvScreens: PilotScreen[];
+  studentScreens: PilotScreen[];
+  aiErrorOfTheWeek: LiveAiErrorOfTheWeek;
+}
+
+interface PilotPackage extends PilotPackageProjection {
   meta: { id: string; title: string; durationMinutes: number };
   displayContract: Record<string, unknown>;
   timeline: unknown[];
@@ -36,6 +43,8 @@ interface PilotPackage {
   fallback: Record<string, unknown>;
 }
 
+interface RuntimePilotPackage extends PilotPackageProjection {}
+
 const MAX_TEXT_LENGTH = 2000;
 
 function fail(code: string, message: string): never {
@@ -44,6 +53,14 @@ function fail(code: string, message: string): never {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isDenseArray(value: unknown): value is unknown[] {
+  if (!Array.isArray(value)) return false;
+  for (let index = 0; index < value.length; index += 1) {
+    if (!Object.prototype.hasOwnProperty.call(value, index)) return false;
+  }
+  return true;
 }
 
 function isNonEmptyString(value: unknown): value is string {
@@ -79,7 +96,7 @@ function isRouteTask(value: unknown): boolean {
   return isRecord(value)
     && isNonEmptyString(value.prompt)
     && isNonEmptyString(value.answer)
-    && Array.isArray(value.hints)
+    && isDenseArray(value.hints)
     && value.hints.length > 0
     && value.hints.every(isNonEmptyString);
 }
@@ -148,43 +165,54 @@ function isPilotPackage(value: unknown): value is PilotPackage {
     && typeof meta.title === 'string'
     && typeof meta.durationMinutes === 'number'
     && isRecord(value.displayContract)
-    && Array.isArray(value.timeline)
-    && Array.isArray(value.tvScreens)
+    && isDenseArray(value.timeline)
+    && isDenseArray(value.tvScreens)
     && value.tvScreens.every(isPilotScreen)
-    && Array.isArray(value.studentScreens)
+    && isDenseArray(value.studentScreens)
     && value.studentScreens.every(isPilotScreen)
     && isAiErrorOfTheWeek(value.aiErrorOfTheWeek)
     && isRecord(value.routeTasks)
     && ['M', 'S', 'C'].every((routeId) => isRouteTask(value.routeTasks[routeId]))
-    && Array.isArray(value.quickCheck)
+    && isDenseArray(value.quickCheck)
     && value.quickCheck.length >= 3
     && value.quickCheck.every(isQuickCheckItem)
     && isRecord(value.exitTicket)
     && isNonEmptyString(value.exitTicket.prompt)
     && isNonEmptyString(value.exitTicket.answer)
-    && Array.isArray(value.exitTicket.lookFor)
+    && isDenseArray(value.exitTicket.lookFor)
     && value.exitTicket.lookFor.length > 0
     && value.exitTicket.lookFor.every(isNonEmptyString)
     && isRecord(value.board)
     && isRecord(value.notebook)
-    && Array.isArray(value.resources)
+    && isDenseArray(value.resources)
     && isRecord(value.fallback);
 }
 
-function assertPilotPackage(value: unknown): asserts value is PilotPackage {
-  if (!isPilotPackage(value)) {
-    fail('LIVE_PACKAGE_INVALID', 'Pilot package is missing required canonical fields or has an invalid shape.');
-  }
+function isRuntimePilotPackage(value: unknown): value is RuntimePilotPackage {
+  if (!isRecord(value)) return false;
+  const allowedKeys = new Set(['meta', 'tvScreens', 'studentScreens', 'aiErrorOfTheWeek']);
+  return Object.keys(value).every((key) => allowedKeys.has(key))
+    && isRecord(value.meta)
+    && isNonEmptyString(value.meta.id)
+    && isNonEmptyString(value.meta.title)
+    && typeof value.meta.durationMinutes === 'number'
+    && isDenseArray(value.tvScreens)
+    && value.tvScreens.every(isPilotScreen)
+    && isDenseArray(value.studentScreens)
+    && value.studentScreens.every(isPilotScreen)
+    && isAiErrorOfTheWeek(value.aiErrorOfTheWeek);
 }
 
-function parsePilotPackage(): PilotPackage {
+function parseRuntimePilotPackage(): RuntimePilotPackage {
   let parsed: unknown;
   try {
-    parsed = JSON.parse(pilotPackageText) as unknown;
+    parsed = JSON.parse(runtimePilotPackageText) as unknown;
   } catch {
-    fail('LIVE_PACKAGE_INVALID', 'Pilot package JSON could not be parsed.');
+    fail('LIVE_PACKAGE_INVALID', 'Runtime pilot package JSON could not be parsed.');
   }
-  assertPilotPackage(parsed);
+  if (!isRuntimePilotPackage(parsed)) {
+    fail('LIVE_PACKAGE_INVALID', 'Runtime pilot package has an invalid safe projection.');
+  }
   return parsed;
 }
 
@@ -214,17 +242,17 @@ function isLiveLessonDefinitionShape(value: unknown): value is LiveLessonDefinit
     && typeof value.lessonId === 'string'
     && typeof value.title === 'string'
     && typeof value.durationSeconds === 'number'
-    && Array.isArray(value.cues)
+    && isDenseArray(value.cues)
     && value.cues.every(isLiveCue)
-    && Array.isArray(value.tvScreens)
+    && isDenseArray(value.tvScreens)
     && value.tvScreens.every(isPublicScreen)
-    && Array.isArray(value.studentScreens)
+    && isDenseArray(value.studentScreens)
     && value.studentScreens.every(isPublicScreen)
-    && Array.isArray(value.allowedStepIds)
+    && isDenseArray(value.allowedStepIds)
     && value.allowedStepIds.every((stepId) => typeof stepId === 'string')
     && typeof value.aiErrorStepId === 'string'
     && isAiErrorOfTheWeek(value.aiErrorOfTheWeek)
-    && Array.isArray(value.responseSteps)
+    && isDenseArray(value.responseSteps)
     && value.responseSteps.every(isLiveResponseStepShape);
 }
 
@@ -271,7 +299,9 @@ export function normalizeLiveLessonDefinition(
   pilotPackage: unknown,
   cues = g10W5P31BptTiet1Cues,
 ): LiveLessonDefinition {
-  assertPilotPackage(pilotPackage);
+  if (!isPilotPackage(pilotPackage) && !isRuntimePilotPackage(pilotPackage)) {
+    fail('LIVE_PACKAGE_INVALID', 'Pilot package is missing required canonical fields or has an invalid safe projection.');
+  }
   const definition: LiveLessonDefinition = {
     id: 'g10_w5_p31_bpt_tiet1',
     lessonId: pilotPackage.meta.id,
@@ -303,7 +333,7 @@ export function validateLiveLessonDefinition(
   const stepIds = new Set(definition.responseSteps.map((step) => step.id));
 
   for (const step of definition.responseSteps) {
-    if (!Array.isArray(step.responseTypes) || !step.responseTypes.every(isLiveResponseType)) {
+    if (!isDenseArray(step.responseTypes) || !step.responseTypes.every(isLiveResponseType)) {
       fail('LIVE_RESPONSE_TYPE_INVALID', `Response step ${step.id} has an invalid response type.`);
     }
   }
@@ -378,7 +408,7 @@ export function validateLiveLessonDefinition(
 }
 
 export function getPilotLiveLessonDefinition(): LiveLessonDefinition {
-  return normalizeLiveLessonDefinition(parsePilotPackage());
+  return normalizeLiveLessonDefinition(parseRuntimePilotPackage());
 }
 
 export { LiveLessonDefinitionError } from './types';

@@ -21,6 +21,15 @@ describe('g10_w5_p31_bpt_tiet1 live lesson definition', () => {
     expect(definition.allowedStepIds).toContain('quick-check');
   });
 
+  it('does not ship canonical answer payloads in the runtime definition', () => {
+    const serialized = JSON.stringify(getPilotLiveLessonDefinition());
+
+    expect(serialized).not.toContain('aiAnswer');
+    expect(serialized).not.toContain('routeTasks');
+    expect(serialized).not.toContain('quickCheck');
+    expect(serialized).not.toContain('teacherScript');
+  });
+
   it('rejects a cue that references an undeclared TV screen', () => {
     const definition = getPilotLiveLessonDefinition();
     const badDefinition = {
@@ -82,6 +91,17 @@ describe('g10_w5_p31_bpt_tiet1 live lesson definition', () => {
     expect(() => validateLiveLessonDefinition({} as never)).toThrowError(
       expect.objectContaining({ code: 'LIVE_DEFINITION_INVALID' }),
     );
+  });
+
+  it('rejects sparse runtime arrays before iteration', () => {
+    const definition = getPilotLiveLessonDefinition();
+    const sparseCues = [...definition.cues];
+    delete sparseCues[1];
+
+    expect(() => validateLiveLessonDefinition({
+      ...definition,
+      cues: sparseCues,
+    })).toThrowError(expect.objectContaining({ code: 'LIVE_DEFINITION_INVALID' }));
   });
 
   it('requires cues to start at zero and end at the lesson duration', () => {

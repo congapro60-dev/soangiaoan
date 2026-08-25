@@ -3,6 +3,8 @@ import type { LiveCue } from '../../data/liveLessonPackages/g10_w5_p31_bpt_tiet1
 export type LiveLessonMode = 'teacher' | 'tv' | 'student';
 export type LiveSessionStatus = 'lobby' | 'running' | 'paused' | 'closed';
 export type LiveResponseType = 'choice' | 'text' | 'boolean' | 'route' | 'hint' | 'exit_ticket';
+export type LiveRoute = 'M' | 'S' | 'C';
+export type LiveErrorCategory = 'Conceptual' | 'Algebraic' | 'Logical' | 'Missing condition';
 
 export interface LiveLessonScreen {
   id: string;
@@ -56,8 +58,11 @@ export interface LiveResponse {
 export interface LiveLessonSession {
   id: string;
   lessonId: string;
+  title: string;
   classId: string;
   teacherUid: string;
+  allowedStepIds: string[];
+  expiresAt: number;
   mode: LiveLessonMode;
   status: LiveSessionStatus;
   currentCueId: string;
@@ -85,7 +90,12 @@ export interface LiveLessonStatePatch {
 export interface LivePublicStats {
   responseCount: number;
   participantCount: number;
+  routeCounts: Record<LiveRoute, number>;
+  errorCategoryCounts: Record<LiveErrorCategory, number>;
+  hintUseCount: number;
+  updatedAt: number;
   lastUpdatedAt: number;
+  showStats: boolean;
 }
 
 export interface LivePublicState {
@@ -94,6 +104,8 @@ export interface LivePublicState {
   status: LiveSessionStatus;
   currentCueId: string;
   currentTvScreenId: string;
+  showStats: boolean;
+  updatedAt: number;
   stats?: LivePublicStats;
 }
 
