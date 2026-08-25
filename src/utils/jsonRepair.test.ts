@@ -67,6 +67,46 @@ describe('parseJsonWithRecovery — strict/recovery contract', () => {
     expect(result.repairKinds).toContain('latex_backslash');
   });
 
+  it.each([
+    ['frac', String.raw`{"text":"\frac{x}{y}"}`, '\\frac{x}{y}'],
+    ['text', String.raw`{"text":"\text{hello}"}`, '\\text{hello}'],
+    ['begin', String.raw`{"text":"\begin{aligned}"}`, '\\begin{aligned}'],
+    ['nabla', String.raw`{"text":"\nabla f"}`, '\\nabla f'],
+    ['right', String.raw`{"text":"x\right)"}`, 'x\\right)'],
+  ])('repair known LaTeX command that overlaps JSON escape: \\%s', (_command, raw, expected) => {
+    const result = parseJsonWithRecovery<{ text: string }>(raw);
+
+    expect(result.value.text).toBe(expected);
+    expect(result.parseMode).toBe('repaired');
+    expect(result.repairKinds).toEqual(['latex_backslash']);
+  });
+
+  it('giữ escape JSON hợp lệ khi chuỗi không phải lệnh LaTeX đã biết', () => {
+    const raw = String.raw`{"text":"\foo"}`;
+
+    const result = parseJsonWithRecovery<{ text: string }>(raw);
+
+    expect(result.value.text).toBe(String.fromCharCode(12) + 'oo');
+    expect(result.parseMode).toBe('strict');
+    expect(result.repairKinds).toEqual([]);
+  });
+
+  it('repair invalid Unicode escape và ghi nhận đúng loại repair', () => {
+    const result = parseJsonWithRecovery<{ text: string }>(String.raw`{"text":"\u12G4"}`);
+
+    expect(result.value.text).toBe(String.raw`\u12G4`);
+    expect(result.parseMode).toBe('repaired');
+    expect(result.repairKinds).toEqual(['invalid_unicode_escape']);
+  });
+
+  it.each([
+    ['letter', String.raw`{"text":"\q"}`],
+    ['question mark', String.raw`{"text":"\?"}`],
+    ['digit', String.raw`{"text":"\8"}`],
+  ])('reject unknown invalid escape: \\%s', (_kind, raw) => {
+    expectNamedError(() => parseJsonWithRecovery(raw), 'JsonRecoveryError');
+  });
+
   it('giữ nguyên các escape JSON hợp lệ gồm newline, tab, quote, slash và unicode', () => {
     const result = parseJsonWithRecovery<{ text: string }>(
       String.raw`{"text":"dòng1\ndòng2\t\"trích\" \/ \u00E1"}`,

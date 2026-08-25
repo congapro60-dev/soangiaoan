@@ -2,9 +2,9 @@
  * Parse JSON từ phản hồi AI, chịu được backslash LaTeX thô.
  *
  * Nội dung Toán (\cos, \sqrt, \left, \begin...) khi AI nhét vào chuỗi JSON
- * thường là escape không hợp lệ → JSON.parse ném lỗi. Hàm này thử parse thẳng trước;
- * chỉ khi thất bại mới chạy scanner có trạng thái để sửa escape trong string mà không
- * đụng tới cấu trúc JSON.
+ * thường là escape không hợp lệ hoặc bị JSON.parse hiểu nhầm thành escape hợp lệ.
+ * Scanner có trạng thái sẽ nhận diện lệnh LaTeX đã biết trong string trước khi
+ * parse strict, rồi sửa escape mà không đụng tới cấu trúc JSON.
  */
 
 export type JsonParseMode = 'strict' | 'repaired';
@@ -32,35 +32,98 @@ export class JsonRecoveryError extends Error {
 
 const JSON_STRING_ESCAPES = new Set(['"', '\\', '/', 'b', 'f', 'n', 'r', 't']);
 
-const LATEX_COMMANDS_STARTING_WITH_U = new Set([
-  'underbrace',
-  'underline',
-  'underbar',
-  'uparrow',
-  'updownarrow',
-  'downarrow',
-  'usepackage',
-  'url',
-  'unit',
+const KNOWN_LATEX_COMMANDS = new Set([
+  // Existing parser coverage and the overlapping JSON escape cases.
+  'begin', 'end', 'frac', 'dfrac', 'tfrac', 'sqrt', 'text',
+  'cos', 'left', 'right', 'nabla', 'int', 'in', 'subset', 'Rightarrow',
+  // Common math commands already emitted by the app's prompts and exporters.
+  'alpha', 'beta', 'gamma', 'delta', 'Delta', 'epsilon', 'theta', 'Theta',
+  'lambda', 'Lambda', 'mu', 'nu', 'pi', 'Pi', 'rho', 'sigma', 'Sigma',
+  'phi', 'Phi', 'psi', 'Psi', 'omega', 'Omega', 'xi', 'Xi', 'infty', 'partial',
+  'sin', 'tan', 'cot', 'sec', 'csc', 'ln', 'log', 'exp', 'lim', 'max', 'min',
+  'sum', 'prod', 'iint', 'iiint', 'oint', 'pm', 'mp', 'times', 'cdot', 'div',
+  'le', 'leq', 'ge', 'geq', 'neq', 'approx', 'equiv', 'sim', 'propto',
+  'notin', 'supset', 'supseteq', 'subseteq', 'cap', 'cup', 'setminus', 'emptyset',
+  'to', 'rightarrow', 'leftarrow', 'leftrightarrow', 'Leftarrow',
+  'Leftrightarrow', 'mapsto', 'uparrow', 'downarrow', 'updownarrow',
+  'vec', 'hat', 'bar', 'dot', 'ddot', 'overline', 'underline', 'underbar',
+  'underbrace', 'overbrace', 'overset', 'underset', 'mathrm', 'mathbf', 'mathbb',
+  'mathcal', 'mathit', 'textbf', 'textit', 'operatorname', 'displaystyle',
+  'quad', 'qquad', 'cases', 'matrix', 'pmatrix', 'bmatrix', 'Bmatrix',
+  'vmatrix', 'Vmatrix', 'array', 'binom',
+  // Commands retained from the previous U-prefixed allowlist and TikZ payloads.
+  'url', 'unit', 'usepackage', 'documentclass', 'definecolor', 'includegraphics',
+  'textwidth', 'hline', 'longtable', 'item', 'itemize', 'enumerate',
+  'draw', 'fill', 'clip', 'coordinate', 'node', 'foreach', 'useasboundingbox',
+  'pgfplotsset', 'addplot', 'tikzpicture',
+]);
+
+const KNOWN_LATEX_SYMBOL_COMMANDS = new Set([
+  ' ',
+  '!',
+  '#',
+  '$',
+  '%',
+  '&',
+  ',',
+  ';',
+  ':',
+  '_',
+  '^',
+  '{',
+  '}',
+  '~',
 ]);
 
 const isHexDigit = (character: string | undefined): boolean =>
   character !== undefined && /^[0-9A-Fa-f]$/.test(character);
 
-const isAsciiLetter = (character: string | undefined): boolean =>
-  character !== undefined && /^[A-Za-z]$/.test(character);
+const latexCommandToken = (raw: string, slashIndex: number): string | undefined =>
+  raw.slice(slashIndex + 1).match(/^[A-Za-z]+/)?.[0];
 
-const startsLatexCommand = (raw: string, slashIndex: number): boolean => {
-  const command = raw.slice(slashIndex + 1).match(/^[A-Za-z]+/)?.[0];
-  if (!command) {
-    return false;
+const startsKnownLatexCommand = (raw: string, slashIndex: number): boolean => {
+  const command = latexCommandToken(raw, slashIndex);
+  if (command !== undefined) {
+    return KNOWN_LATEX_COMMANDS.has(command);
   }
 
-  if (command[0] === 'u') {
-    return LATEX_COMMANDS_STARTING_WITH_U.has(command);
+  const symbol = raw[slashIndex + 1];
+  return symbol !== undefined && KNOWN_LATEX_SYMBOL_COMMANDS.has(symbol);
+};
+
+const containsKnownLatexCommand = (raw: string): boolean => {
+  let inString = false;
+  let escaped = false;
+
+  for (let index = 0; index < raw.length; index += 1) {
+    const character = raw[index];
+
+    if (!inString) {
+      if (character === '"') {
+        inString = true;
+      }
+      continue;
+    }
+
+    if (escaped) {
+      if (startsKnownLatexCommand(raw, index - 1)) {
+        return true;
+      }
+      escaped = false;
+      continue;
+    }
+
+    if (character === '"') {
+      inString = false;
+      continue;
+    }
+
+    if (character === '\\') {
+      escaped = true;
+    }
   }
 
-  return true;
+  return false;
 };
 
 const addRepairKind = (
@@ -73,14 +136,16 @@ const addRepairKind = (
 };
 
 export function parseJsonWithRecovery<T = unknown>(raw: string): JsonRecoveryResult<T> {
-  try {
-    return {
-      value: JSON.parse(raw) as T,
-      parseMode: 'strict',
-      repairKinds: [],
-    };
-  } catch {
-    // Continue with the deterministic, string-aware recovery pass below.
+  if (!containsKnownLatexCommand(raw)) {
+    try {
+      return {
+        value: JSON.parse(raw) as T,
+        parseMode: 'strict',
+        repairKinds: [],
+      };
+    } catch {
+      // Continue with the deterministic, string-aware recovery pass below.
+    }
   }
 
   let inString = false;
@@ -108,13 +173,27 @@ export function parseJsonWithRecovery<T = unknown>(raw: string): JsonRecoveryRes
         continue;
       }
 
-      if (JSON_STRING_ESCAPES.has(character)) {
-        repaired.push('\\' + character);
+      if (startsKnownLatexCommand(raw, index - 1)) {
+        repaired.push('\\\\' + character);
+        addRepairKind(repairKinds, 'latex_backslash');
         escaped = false;
         continue;
       }
 
-      if (character === 'u' && !startsLatexCommand(raw, index - 1)) {
+      if (character === 'u') {
+        const command = latexCommandToken(raw, index - 1);
+        const nextCharacter = raw[index + 1];
+        const isUnicodeEscape = command === 'u'
+          && (
+            nextCharacter === undefined
+            || nextCharacter === '"'
+            || isHexDigit(nextCharacter)
+          );
+
+        if (!isUnicodeEscape) {
+          throw new JsonRecoveryError('Escape JSON chưa được nhận diện');
+        }
+
         const unicodeDigits = raw.slice(index + 1, index + 5);
         if (
           unicodeDigits.length === 4
@@ -132,17 +211,13 @@ export function parseJsonWithRecovery<T = unknown>(raw: string): JsonRecoveryRes
         continue;
       }
 
-      if (isAsciiLetter(character) || startsLatexCommand(raw, index - 1)) {
-        repaired.push('\\\\' + character);
-        addRepairKind(repairKinds, 'latex_backslash');
+      if (JSON_STRING_ESCAPES.has(character)) {
+        repaired.push('\\' + character);
         escaped = false;
         continue;
       }
 
-      repaired.push('\\\\' + character);
-      addRepairKind(repairKinds, 'latex_backslash');
-      escaped = false;
-      continue;
+      throw new JsonRecoveryError('Escape JSON chưa được nhận diện');
     }
 
     if (character === '"') {
@@ -166,7 +241,7 @@ export function parseJsonWithRecovery<T = unknown>(raw: string): JsonRecoveryRes
   }
 
   if (escaped) {
-    repaired.push('\\\\');
+    throw new JsonRecoveryError('JSON kết thúc bằng backslash escape chưa hoàn chỉnh');
   }
 
   try {
