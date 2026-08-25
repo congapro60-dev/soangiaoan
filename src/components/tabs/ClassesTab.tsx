@@ -3,12 +3,13 @@ import Swal from 'sweetalert2';
 import * as XLSX from 'xlsx';
 import { User } from 'firebase/auth';
 import { AppData, ClassAssignment, Student, TeacherClass } from '../../types';
-import { useExams, getSubmissions } from '../../hooks/useExams';
+import { useExams } from '../../hooks/useExams';
 import { parseRosterRows } from '../../utils/classRosterImport';
 import { countUnmigratedClasses, getClassDoc, migrateLegacyClasses, themHocSinhLenServer } from '../../lib/classroom/classroomService';
 import { listAssignmentsForClass, listSubmissionsForClass } from '../../lib/classroom/submissionService';
 import { issueClassPins, resetStudentPin, revokeClassData, revokeStudentAccessServer, viewClassPins, viewStudentPin } from '../../services/studentPortalApi';
 import { AssignmentPanel } from '../features/classroom/AssignmentPanel';
+import { ClassAssignmentReport } from '../features/classroom/ClassAssignmentReport';
 import { StudentReport } from '../features/classroom/StudentReport';
 import { ClassWorkspaceNav, WorkspaceEmptyAction, type WorkspaceView } from '../features/classroom/ClassWorkspaceNav';
 
@@ -770,70 +771,9 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
     }
   };
 
-  const showClassReport = async (cls: TeacherClass) => {
-    const assignments = cls.assignments || [];
-    if (assignments.length === 0) {
-      Swal.fire({
-        icon: 'info',
-        title: 'Chưa giao bài nào',
-        text: `Dùng nút "Giao bài" để gán đề thi online cho ${cls.name} trước, báo cáo sẽ gom kết quả tại đây.`,
-        confirmButtonColor: '#3085d6',
-      });
-      return;
-    }
-
-    Swal.fire({
-      title: `Đang tổng hợp báo cáo ${cls.name}...`,
-      allowOutsideClick: false,
-      showConfirmButton: false,
-      didOpen: () => Swal.showLoading(),
-    });
-
-    try {
-      const classKey = cls.name.trim().toLowerCase();
-      const rows = await Promise.all(assignments.map(async assignment => {
-        const submissions = await getSubmissions(assignment.examId);
-        const done = submissions.filter(s => s.status !== 'in_progress');
-        const ofClass = done.filter(s => (s.studentClass || '').trim().toLowerCase() === classKey);
-        const scored = ofClass.filter(s => typeof s.totalScore === 'number');
-        const avg = scored.length > 0
-          ? (scored.reduce((sum, s) => sum + (s.totalScore || 0), 0) / scored.length).toFixed(2)
-          : '—';
-        return { assignment, classCount: ofClass.length, totalCount: done.length, avg };
-      }));
-
-      const tableRows = rows.map(({ assignment, classCount, totalCount, avg }) => `
-        <tr>
-          <td style="text-align:left;padding:6px 8px;border-bottom:1px solid #e2e8f0;">${escapeHtml(assignment.examTitle)}<br/><span style="color:#64748b;font-size:11px;">#${escapeHtml(assignment.examCode)}</span></td>
-          <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;font-weight:700;">${classCount}</td>
-          <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;color:#64748b;">${totalCount}</td>
-          <td style="padding:6px 8px;border-bottom:1px solid #e2e8f0;font-weight:700;color:#2563eb;">${avg}</td>
-        </tr>`).join('');
-
-      Swal.fire({
-        title: `Báo cáo lớp ${cls.name}`,
-        width: 680,
-        html: `
-          <table style="width:100%;border-collapse:collapse;font-size:13px;">
-            <thead>
-              <tr style="background:#f8fafc;color:#475569;font-size:11px;text-transform:uppercase;">
-                <th style="text-align:left;padding:6px 8px;">Đề đã giao</th>
-                <th style="padding:6px 8px;">Nộp (lớp này)</th>
-                <th style="padding:6px 8px;">Nộp (tổng)</th>
-                <th style="padding:6px 8px;">Điểm TB lớp</th>
-              </tr>
-            </thead>
-            <tbody>${tableRows}</tbody>
-          </table>
-          <p style="margin-top:10px;font-size:11px;color:#94a3b8;text-align:left;">"Nộp (lớp này)" khớp theo tên lớp học sinh nhập khi vào thi (${escapeHtml(cls.name)}). Xem chi tiết từng bài trong tab Thi online.</p>
-        `,
-        confirmButtonText: 'Đóng',
-        confirmButtonColor: '#3085d6',
-      });
-    } catch (error) {
-      console.error('Lỗi tổng hợp báo cáo lớp', error);
-      Swal.fire({ icon: 'error', title: 'Không tải được dữ liệu bài nộp', text: 'Vui lòng thử lại sau.', confirmButtonColor: '#3085d6' });
-    }
+  const showClassReport = (cls: TeacherClass) => {
+    setSelectedClassId(cls.id);
+    setWorkspaceView('reports');
   };
 
   const showRoster = workspaceView === 'overview' || workspaceView === 'students';
@@ -1036,13 +976,15 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
             </div>
           )}
 
-          {workspaceView === 'reports' && (
-            <div className="mt-5 rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-5 py-10 text-center">
-              <BarChart3 className="mx-auto mb-3 h-8 w-8 text-indigo-300" />
-              <h3 className="font-black text-slate-900">Báo cáo lớp</h3>
-              <p className="mx-auto mt-1 max-w-lg text-sm font-medium leading-6 text-slate-500">Mở báo cáo để tổng hợp kết quả các đề online đã giao. Bài nộp ảnh và điểm AI vẫn được theo dõi trong khu vực Bài nộp.</p>
-              <button type="button" onClick={() => void showClassReport(selectedClass)} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-black text-white shadow-md shadow-indigo-200 hover:bg-indigo-700"><BarChart3 className="h-4 w-4" /> Mở báo cáo</button>
-            </div>
+          {workspaceView === 'reports' && user?.uid && (
+            <ClassAssignmentReport
+              classId={selectedClass.id}
+              teacherId={user.uid}
+              className={selectedClass.name}
+              students={selectedClass.students}
+              onlineAssignments={selectedClass.assignments || []}
+              exams={exams}
+            />
           )}
 
           {user?.uid && (showAssignments || showSubmissions) && (
