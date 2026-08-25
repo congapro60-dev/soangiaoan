@@ -316,7 +316,7 @@ const requireField = (value: Record<string, unknown>, key: string): unknown => {
 const requireString = (value: Record<string, unknown>, key: string): string => {
   const field = requireField(value, key);
   if (typeof field !== 'string') contractError(`Field ${key} phải là chuỗi`);
-  return field;
+  return field as string;
 };
 
 const requireStringArray = (value: Record<string, unknown>, key: string): string[] => {
@@ -324,7 +324,7 @@ const requireStringArray = (value: Record<string, unknown>, key: string): string
   if (!Array.isArray(field) || !field.every(item => typeof item === 'string')) {
     contractError(`Field ${key} phải là mảng chuỗi`);
   }
-  return field;
+  return field as string[];
 };
 
 const requireFiniteNumber = (value: Record<string, unknown>, key: string): number => {
@@ -332,7 +332,7 @@ const requireFiniteNumber = (value: Record<string, unknown>, key: string): numbe
   if (typeof field !== 'number' || !Number.isFinite(field)) {
     contractError(`Field ${key} phải là số hữu hạn`);
   }
-  return field;
+  return field as number;
 };
 
 const isQuestionResultStatus = (value: unknown): value is QuestionResultStatus =>
@@ -366,9 +366,11 @@ const parseStrictQuestionResult = (
   index: number,
   seenQuestionNumbers: Set<string>,
 ): QuestionResult => {
-  if (!isRecord(value)) contractError(`questionResults[${index}] phải là object`);
+  const record = isRecord(value)
+    ? value
+    : contractError(`questionResults[${index}] phải là object`);
 
-  const questionNumber = requireString(value, 'questionNumber');
+  const questionNumber = requireString(record, 'questionNumber');
   const normalizedQuestionNumber = questionNumber.trim();
   if (!normalizedQuestionNumber) contractError(`questionResults[${index}].questionNumber không được rỗng`);
   if (seenQuestionNumbers.has(normalizedQuestionNumber)) {
@@ -376,45 +378,45 @@ const parseStrictQuestionResult = (
   }
   seenQuestionNumbers.add(normalizedQuestionNumber);
 
-  const status = requireString(value, 'status');
-  if (!isQuestionResultStatus(status)) {
-    contractError(`questionResults[${index}].status không hợp lệ`);
-  }
+  const statusValue = requireString(record, 'status');
+  const status = isQuestionResultStatus(statusValue)
+    ? statusValue
+    : contractError(`questionResults[${index}].status không hợp lệ`);
 
-  const score = requireFiniteNumber(value, 'score');
-  const maxScore = requireFiniteNumber(value, 'maxScore');
+  const score = requireFiniteNumber(record, 'score');
+  const maxScore = requireFiniteNumber(record, 'maxScore');
   if (score < 0 || maxScore < 0 || score > maxScore) {
     contractError(`questionResults[${index}] có khoảng điểm không hợp lệ`);
   }
 
-  const studentAnswer = requireString(value, 'studentAnswer');
-  const expectedAnswer = requireString(value, 'expectedAnswer');
-  const errorType = requireString(value, 'errorType');
-  const explanation = requireString(value, 'explanation');
-  const correction = requireString(value, 'correction');
-  const nextPractice = requireString(value, 'nextPractice');
+  const studentAnswer = requireString(record, 'studentAnswer');
+  const expectedAnswer = requireString(record, 'expectedAnswer');
+  const errorType = requireString(record, 'errorType');
+  const explanation = requireString(record, 'explanation');
+  const correction = requireString(record, 'correction');
+  const nextPractice = requireString(record, 'nextPractice');
 
-  const hasConfidence = hasOwn(value, 'confidence');
+  const hasConfidence = hasOwn(record, 'confidence');
   let confidence: number | undefined;
   if (hasConfidence) {
-    confidence = requireFiniteNumber(value, 'confidence');
+    confidence = requireFiniteNumber(record, 'confidence');
     if (confidence < 0 || confidence > 1) {
       contractError(`questionResults[${index}].confidence phải nằm trong 0..1`);
     }
   }
 
-  const needsTeacherReview = requireField(value, 'needsTeacherReview');
-  if (typeof needsTeacherReview !== 'boolean') {
-    contractError(`questionResults[${index}].needsTeacherReview phải là boolean`);
-  }
+  const needsTeacherReviewValue = requireField(record, 'needsTeacherReview');
+  const needsTeacherReview = typeof needsTeacherReviewValue === 'boolean'
+    ? needsTeacherReviewValue
+    : contractError(`questionResults[${index}].needsTeacherReview phải là boolean`);
 
-  const hasIgnoredByTeacherInstruction = hasOwn(value, 'ignoredByTeacherInstruction');
+  const hasIgnoredByTeacherInstruction = hasOwn(record, 'ignoredByTeacherInstruction');
   let ignoredByTeacherInstruction: boolean | undefined;
   if (hasIgnoredByTeacherInstruction) {
-    ignoredByTeacherInstruction = requireField(value, 'ignoredByTeacherInstruction');
-    if (typeof ignoredByTeacherInstruction !== 'boolean') {
-      contractError(`questionResults[${index}].ignoredByTeacherInstruction phải là boolean`);
-    }
+    const ignoredByTeacherInstructionValue = requireField(record, 'ignoredByTeacherInstruction');
+    ignoredByTeacherInstruction = typeof ignoredByTeacherInstructionValue === 'boolean'
+      ? ignoredByTeacherInstructionValue
+      : contractError(`questionResults[${index}].ignoredByTeacherInstruction phải là boolean`);
   }
 
   return {
@@ -438,22 +440,22 @@ export const parseHomeworkGradeForCommit = (
   raw: string,
   maxScore: number,
   gradedWithoutAnswerKey: boolean,
-  retryCount = 0,
+  retryCount: 0 | 1 = 0,
 ): HomeworkGradeParseResult => {
   if (retryCount !== 0 && retryCount !== 1) {
     contractError('retryCount phải là 0 hoặc 1');
   }
 
   const parsed = parseJsonWithRecovery<unknown>(extractStrictHomeworkJson(raw));
-  if (!isRecord(parsed.value)) {
-    contractError('Payload chấm phải có root object không null và không phải array');
-  }
+  const parsedValue = isRecord(parsed.value)
+    ? parsed.value
+    : contractError('Payload chấm phải có root object không null và không phải array');
   if (typeof maxScore !== 'number' || !Number.isFinite(maxScore)) {
     contractError('Thang điểm assignment phải là số hữu hạn');
   }
 
-  const score = requireFiniteNumber(parsed.value, 'score');
-  const parsedMaxScore = requireFiniteNumber(parsed.value, 'maxScore');
+  const score = requireFiniteNumber(parsedValue, 'score');
+  const parsedMaxScore = requireFiniteNumber(parsedValue, 'maxScore');
   if (Math.abs(parsedMaxScore - maxScore) > 0.000001) {
     contractError('maxScore của AI không khớp thang điểm assignment');
   }
@@ -461,22 +463,22 @@ export const parseHomeworkGradeForCommit = (
     contractError('score nằm ngoài thang điểm assignment');
   }
 
-  const questionResultsValue = requireField(parsed.value, 'questionResults');
+  const questionResultsValue = requireField(parsedValue, 'questionResults');
   if (!Array.isArray(questionResultsValue)) {
     contractError('Field questionResults phải là mảng');
   }
   const seenQuestionNumbers = new Set<string>();
-  const questionResults = questionResultsValue.map((questionResult, index) =>
+  const questionResults = (questionResultsValue as unknown[]).map((questionResult, index) =>
     parseStrictQuestionResult(questionResult, index, seenQuestionNumbers));
 
   const grade: HomeworkGrade = {
     score,
     maxScore,
-    feedbackForStudent: requireString(parsed.value, 'feedbackForStudent'),
-    noteForTeacher: requireString(parsed.value, 'noteForTeacher'),
-    strengths: requireStringArray(parsed.value, 'strengths'),
-    weaknesses: requireStringArray(parsed.value, 'weaknesses'),
-    weakTopics: requireStringArray(parsed.value, 'weakTopics'),
+    feedbackForStudent: requireString(parsedValue, 'feedbackForStudent'),
+    noteForTeacher: requireString(parsedValue, 'noteForTeacher'),
+    strengths: requireStringArray(parsedValue, 'strengths'),
+    weaknesses: requireStringArray(parsedValue, 'weaknesses'),
+    weakTopics: requireStringArray(parsedValue, 'weakTopics'),
     questionResults,
     gradedWithoutAnswerKey,
   };

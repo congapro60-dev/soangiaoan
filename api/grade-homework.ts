@@ -7,6 +7,7 @@ import {
   QUOTA_LIMITS,
   bumpQuota,
   callGeminiVision,
+  GeminiResponseError,
   getGradingApiKey,
   loadQuotaDoc,
   remainingQuota,
@@ -20,19 +21,23 @@ import {
 } from './_grading-core.js';
 import {
   buildHomeworkGradingPrompt,
+  buildHomeworkGradingRetryPrompt,
   buildPracticeGradingPrompt,
   buildPracticePrompt,
   buildRewriteFeedbackPrompt,
   buildRubricPrompt,
   buildSolveExamPrompt,
-  parseHomeworkGrade,
+  parseHomeworkGradeForCommit,
   parsePracticeAssessment,
   parsePracticeQuestions,
   parseRewrittenFeedback,
   parseRubric,
   parseSolvedAnswerKey,
   toPublicPracticeQuestions,
+  HomeworkGradeContractError,
+  type HomeworkGradeParseResult,
 } from '../src/lib/classroom/gradingPrompt.js';
+import { JsonRecoveryError } from '../src/utils/jsonRepair.js';
 import { applyPracticeEvidence } from '../src/lib/classroom/profileMerge.js';
 import {
   buildPracticeSkillEvidence,
@@ -49,6 +54,7 @@ import {
   type PracticeSetDoc,
   type ProfileTopic,
   type SubmissionDoc,
+  type SubmissionGrade,
 } from '../src/lib/classroom/types.js';
 import { handleAiGateway } from './_ai-gateway-handler.js';
 import { commitAiGradeIfClaimed, removeSubmissionGradeEvidence } from './_grade-lifecycle.js';
@@ -130,6 +136,8 @@ const MAX_SUBMISSION_FILES = 12;
 /** Chỉ gửi một số trang đề cần thiết làm ngữ cảnh chung; file gốc vẫn giữ đủ cho học sinh mở. */
 const MAX_ASSIGNMENT_SOURCE_IMAGES = 6;
 const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
+const UNREADABLE_HOMEWORK_MESSAGE = 'Không đọc được bài làm. Em thử chụp lại hoặc nộp lại file.';
+const SAFE_GRADING_ERROR_MESSAGE = 'AI gặp lỗi định dạng khi đọc kết quả chấm. Bài và ảnh vẫn được giữ nguyên; hệ thống đã tự thử phục hồi. Thầy/cô có thể chấm lại bằng AI hoặc sửa điểm bằng tay.';
 /** Khai tường minh thay vì dựa default của Vercel — Hobby cap ở 60s. */
 export const maxDuration = 60;
 
@@ -208,6 +216,88 @@ interface GradeContext {
   answerKeyImages: InlineImage[];
 }
 
+type GradingRecovery = {
+  mode: 'syntax_repaired' | 'retry_recovered';
+  retryCount: 0 | 1;
+  repairKinds: string[];
+};
+
+interface GradeAttemptResult {
+  grade: SubmissionGrade & { gradingRecovery?: GradingRecovery };
+  recovery?: HomeworkGradeParseResult['recovery'];
+}
+
+const attemptHomeworkGrade = async (
+  ctx: GradeContext,
+  images: InlineImage[],
+  studentText: string,
+  apiKey: string,
+  retryCount: 0 | 1,
+): Promise<GradeAttemptResult> => {
+  const promptInput = {
+    answerKey: ctx.answerKey,
+    rubric: ctx.rubric,
+    maxScore: ctx.maxScore,
+    assignmentTitle: ctx.assignmentTitle,
+    assignmentText: ctx.assignmentText,
+    assignmentImageCount: ctx.assignmentImages.length,
+    answerKeyImageCount: ctx.answerKeyImages.length,
+    gradingInstructions: ctx.gradingInstructions,
+    studentText,
+  };
+  const basePrompt = buildHomeworkGradingPrompt(promptInput);
+  const prompt = retryCount === 0
+    ? basePrompt
+    : `${basePrompt}\n\n${buildHomeworkGradingRetryPrompt(promptInput)}`;
+  const raw = await callGeminiVision(
+    prompt,
+    [...ctx.assignmentImages, ...ctx.answerKeyImages, ...images],
+    apiKey,
+    GRADING_MODEL,
+    { maxOutputTokens: 8192, jsonMode: true },
+  );
+  const gradedWithoutAnswerKey = ctx.answerKey.trim().length === 0 && ctx.answerKeyImages.length === 0;
+  const parsed = parseHomeworkGradeForCommit(raw, ctx.maxScore, gradedWithoutAnswerKey, retryCount);
+  const recovery = parsed.recovery;
+  const gradingRecovery = recovery
+    ? {
+        mode: recovery.retryCount === 0 ? 'syntax_repaired' as const : 'retry_recovered' as const,
+        retryCount: recovery.retryCount,
+        repairKinds: recovery.repairKinds,
+      }
+    : undefined;
+
+  return {
+    grade: {
+      score: parsed.grade.score,
+      maxScore: parsed.grade.maxScore,
+      feedback: parsed.grade.feedbackForStudent,
+      noteForTeacher: parsed.grade.noteForTeacher,
+      strengths: parsed.grade.strengths,
+      weaknesses: parsed.grade.weaknesses,
+      questionResults: parsed.grade.questionResults,
+      weakTopics: parsed.grade.weakTopics,
+      gradedWithoutAnswerKey: parsed.grade.gradedWithoutAnswerKey,
+      gradedAt: new Date().toISOString(),
+      // Máy chấm KHÔNG tự duyệt cho mình. Điểm chỉ vào hồ sơ tích luỹ sau khi giáo viên xác nhận.
+      teacherApproved: false,
+      ...(gradingRecovery ? { gradingRecovery } : {}),
+    },
+    recovery,
+  };
+};
+
+const isRetryableGradeAttemptError = (error: unknown): boolean =>
+  error instanceof HomeworkGradeContractError
+  || error instanceof JsonRecoveryError
+  || (error instanceof GeminiResponseError && (error.kind === 'empty' || error.kind === 'max_tokens'));
+
+const safeGradeErrorMessage = (error: unknown): string => {
+  if (error instanceof GeminiResponseError) return error.message;
+  if (error instanceof Error && error.message === UNREADABLE_HOMEWORK_MESSAGE) return error.message;
+  return SAFE_GRADING_ERROR_MESSAGE;
+};
+
 const gradeOneSubmission = async (
   db: FirebaseFirestore.Firestore,
   submissionId: string,
@@ -231,42 +321,18 @@ const gradeOneSubmission = async (
     const studentText = String(previous.textContent || '').trim();
 
     if (images.length === 0 && !studentText) {
-      throw new Error('Không đọc được bài làm. Em thử chụp lại hoặc nộp lại file.');
+      throw new Error(UNREADABLE_HOMEWORK_MESSAGE);
     }
 
-    const prompt = buildHomeworkGradingPrompt({
-      answerKey: ctx.answerKey,
-      rubric: ctx.rubric,
-      maxScore: ctx.maxScore,
-      assignmentTitle: ctx.assignmentTitle,
-      assignmentText: ctx.assignmentText,
-      assignmentImageCount: ctx.assignmentImages.length,
-      answerKeyImageCount: ctx.answerKeyImages.length,
-      gradingInstructions: ctx.gradingInstructions,
-      studentText,
-    });
-    const raw = await callGeminiVision(prompt, [...ctx.assignmentImages, ...ctx.answerKeyImages, ...images], apiKey, GRADING_MODEL, {
-      maxOutputTokens: 8192,
-      jsonMode: true,
-    });
-    const khongCoDapAn = ctx.answerKey.trim().length === 0 && ctx.answerKeyImages.length === 0;
-    const parsed = parseHomeworkGrade(raw, ctx.maxScore, khongCoDapAn);
-    const now = new Date().toISOString();
-
-    const grade = {
-      score: parsed.score,
-      maxScore: parsed.maxScore,
-      feedback: parsed.feedbackForStudent,
-      noteForTeacher: parsed.noteForTeacher,
-      strengths: parsed.strengths,
-      weaknesses: parsed.weaknesses,
-      questionResults: parsed.questionResults,
-      weakTopics: parsed.weakTopics,
-      gradedWithoutAnswerKey: parsed.gradedWithoutAnswerKey,
-      gradedAt: now,
-      // Máy chấm KHÔNG tự duyệt cho mình. Điểm chỉ vào hồ sơ tích luỹ sau khi giáo viên xác nhận.
-      teacherApproved: false,
-    };
+    let attempt: GradeAttemptResult;
+    try {
+      attempt = await attemptHomeworkGrade(ctx, images, studentText, apiKey, 0);
+    } catch (error) {
+      if (!isRetryableGradeAttemptError(error)) throw error;
+      attempt = await attemptHomeworkGrade(ctx, images, studentText, apiKey, 1);
+    }
+    const { grade } = attempt;
+    const now = grade.gradedAt;
 
     // History + grade mới chỉ commit nếu token vẫn thuộc worker hiện tại.
     // Điều này chặn worker cũ ghi đè sau stale recovery/manual edit/delete.
@@ -287,7 +353,7 @@ const gradeOneSubmission = async (
     }
     return true;
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Chấm thất bại';
+    const message = safeGradeErrorMessage(error);
     // Regrade lỗi không được làm mất grade hợp lệ đang có. Nếu chưa từng có grade,
     // mới chuyển sang error để giáo viên/học sinh biết cần thử lại.
     await restoreClaimIfOwned(db, claim, {

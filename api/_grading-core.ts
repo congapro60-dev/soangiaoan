@@ -159,6 +159,25 @@ export interface GeminiOptions {
   jsonMode?: boolean;
 }
 
+export type GeminiFailureKind =
+  | 'http'
+  | 'empty'
+  | 'max_tokens'
+  | 'safety'
+  | 'recitation'
+  | 'provider';
+
+export class GeminiResponseError extends Error {
+  constructor(
+    readonly kind: GeminiFailureKind,
+    message: string,
+    readonly finishReason?: string,
+  ) {
+    super(message);
+    this.name = 'GeminiResponseError';
+  }
+}
+
 /**
  * Dịch `finishReason` sang câu người dùng đọc hiểu.
  *
@@ -217,18 +236,59 @@ export const callGeminiVision = async (
   );
 
   if (!res.ok) {
-    const detail = await res.text().catch(() => '');
-    throw new Error(`Gemini trả lỗi ${res.status}: ${detail.slice(0, 200)}`);
+    throw new GeminiResponseError('http', 'Gemini không thể xử lý yêu cầu lúc này. Thử lại sau ít phút.');
   }
 
-  const data = await res.json() as {
+  let data: {
     candidates?: Array<{ finishReason?: string; content?: { parts?: Array<{ text?: string }> } }>;
+    promptFeedback?: { blockReason?: string };
+    error?: unknown;
   };
+  try {
+    data = await res.json() as typeof data;
+  } catch {
+    throw new GeminiResponseError('provider', 'Gemini trả về phản hồi không hợp lệ. Thử lại sau ít phút.');
+  }
+  if (data.error) {
+    throw new GeminiResponseError('provider', 'Gemini không hoàn tất yêu cầu. Thử lại sau ít phút.');
+  }
+
   const candidate = data.candidates?.[0];
   const text = candidate?.content?.parts?.map(p => p.text || '').join('') || '';
+  const finishReason = candidate?.finishReason || data.promptFeedback?.blockReason;
+  const hasText = text.trim().length > 0;
 
-  const loi = moTaFinishReason(candidate?.finishReason, text.trim().length > 0);
-  if (loi) throw new Error(loi);
+  if (finishReason === 'MAX_TOKENS') {
+    throw new GeminiResponseError(
+      'max_tokens',
+      moTaFinishReason(finishReason, hasText) || 'AI trả lời dài quá trần cho phép. Thử lại với đề ngắn hơn.',
+      finishReason,
+    );
+  }
+  if (finishReason === 'SAFETY' || finishReason === 'PROHIBITED_CONTENT') {
+    throw new GeminiResponseError(
+      'safety',
+      moTaFinishReason(finishReason, hasText) || 'Gemini từ chối xử lý nội dung này. Kiểm tra lại ảnh đề.',
+      finishReason,
+    );
+  }
+  if (finishReason === 'RECITATION') {
+    throw new GeminiResponseError(
+      'recitation',
+      moTaFinishReason(finishReason, hasText) || 'Gemini dừng vì nội dung trùng tài liệu có bản quyền. Thử ảnh đề khác.',
+      finishReason,
+    );
+  }
+  if (finishReason && finishReason !== 'STOP') {
+    throw new GeminiResponseError('provider', 'Gemini dừng bất thường. Thử lại sau ít phút.', finishReason);
+  }
+  if (!hasText) {
+    throw new GeminiResponseError(
+      'empty',
+      moTaFinishReason(finishReason, false) || 'Gemini không trả về kết quả. Thử lại sau ít phút.',
+      finishReason,
+    );
+  }
 
   return text;
 };

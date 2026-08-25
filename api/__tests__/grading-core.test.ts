@@ -1,5 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
+  callGeminiVision,
+  GeminiResponseError,
   QUOTA_LIMITS,
   bumpQuota,
   emptyQuota,
@@ -180,5 +182,47 @@ describe('moTaFinishReason — không đổ oan cho khâu đọc JSON', () => {
 
   it('lý do lạ thì nêu nguyên văn để còn lần ra', () => {
     expect(moTaFinishReason('OTHER', true)).toMatch(/OTHER/);
+  });
+});
+
+describe('callGeminiVision — phân loại lỗi provider bằng type', () => {
+  const responseFor = (finishReason: string | undefined, text = '') => ({
+    ok: true,
+    json: async () => ({
+      candidates: [{
+        ...(finishReason ? { finishReason } : {}),
+        ...(text ? { content: { parts: [{ text }] } } : {}),
+      }],
+    }),
+  });
+
+  it.each([
+    ['STOP', '', 'empty'],
+    ['MAX_TOKENS', '{', 'max_tokens'],
+    ['SAFETY', '', 'safety'],
+    ['PROHIBITED_CONTENT', '', 'safety'],
+    ['RECITATION', '', 'recitation'],
+    ['OTHER', 'provider text', 'provider'],
+  ] as const)('maps finishReason %s to %s', async (finishReason, text, kind) => {
+    vi.stubGlobal('fetch', vi.fn(async () => responseFor(finishReason, text)));
+
+    const failure = await callGeminiVision('prompt', [], 'key').catch(error => error);
+
+    expect(failure).toBeInstanceOf(GeminiResponseError);
+    expect(failure).toMatchObject({ kind });
+  });
+
+  it('maps HTTP failures without exposing provider response text', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: false,
+      status: 503,
+      text: async () => 'provider down with sensitive details',
+    })));
+
+    const failure = await callGeminiVision('prompt', [], 'key').catch(error => error);
+
+    expect(failure).toBeInstanceOf(GeminiResponseError);
+    expect(failure).toMatchObject({ kind: 'http' });
+    expect(String(failure.message)).not.toContain('provider down');
   });
 });
