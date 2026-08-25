@@ -103,6 +103,15 @@ describe('mergeLatestResponse', () => {
       .toEqual(mergeLatestResponse([string, numeric]));
     expect(mergeLatestResponse([numeric, string])).toEqual([string]);
   });
+
+  it('distinguishes NaN and Infinity in the value tie-break', () => {
+    const nan = response({ id: 'same', clientNonce: 'same', value: Number.NaN });
+    const infinite = response({ id: 'same', clientNonce: 'same', value: Number.POSITIVE_INFINITY });
+
+    expect(mergeLatestResponse([nan, infinite]))
+      .toEqual(mergeLatestResponse([infinite, nan]));
+    expect(mergeLatestResponse([nan, infinite])).toEqual([nan]);
+  });
 });
 
 describe('aggregateLiveResponses', () => {
@@ -132,6 +141,8 @@ describe('aggregateLiveResponses', () => {
     const result = aggregateLiveResponses([
       response({ participantUid: 'choice', value: 'Yes' }),
       response({ participantUid: 'boolean', responseType: 'boolean', value: true }),
+      response({ participantUid: 'raw-choice', value: 'this is raw choice text' }),
+      response({ participantUid: 'student-choice', value: 'student-12345' }),
       response({ participantUid: 'text', responseType: 'text', value: 'secret text' }),
       response({ participantUid: 'exit', responseType: 'exit_ticket', value: 'private exit' }),
       response({ participantUid: 'hint', responseType: 'hint', value: 'used' }),
@@ -139,8 +150,8 @@ describe('aggregateLiveResponses', () => {
 
     expect(result.choiceCounts).toEqual({ Yes: 1, true: 1 });
     expect(result.hintUseCount).toBe(1);
-    expect(result.participantCount).toBe(5);
-    expect(result.submittedCount).toBe(5);
+    expect(result.participantCount).toBe(7);
+    expect(result.submittedCount).toBe(7);
     expect(JSON.stringify(result)).not.toContain('secret text');
     expect(JSON.stringify(result)).not.toContain('private exit');
     expect(JSON.stringify(result)).not.toContain('u-a');
@@ -171,7 +182,14 @@ describe('toPublicStats', () => {
       stepId: 'warmup',
       participantCount: 2,
       submittedCount: 2,
-      choiceCounts: { Yes: 2 },
+      choiceCounts: {
+        Yes: 2,
+        'A/B': 1,
+        G1: 3,
+        'raw free text': 8,
+        'student-12345': 9,
+        participantUid: 10,
+      },
       routeCounts: { M: 1, S: 0, C: 1, privateRoute: 8 },
       errorCategoryCounts: {
         Conceptual: 1,
@@ -194,7 +212,7 @@ describe('toPublicStats', () => {
       stepId: 'warmup',
       participantCount: 2,
       submittedCount: 2,
-      choiceCounts: { Yes: 2 },
+      choiceCounts: { Yes: 2, 'A/B': 1, G1: 3 },
       routeCounts: { M: 1, S: 0, C: 1 },
       errorCategoryCounts: {
         Conceptual: 1,

@@ -15,6 +15,18 @@ const ERROR_CATEGORIES: LiveErrorCategory[] = [
 
 const isFiniteNumber = (value: number): boolean => Number.isFinite(value);
 
+const valueFingerprint = (value: LiveResponse['value']): string => {
+  if (typeof value === 'number') {
+    if (Number.isNaN(value)) return 'number:NaN';
+    if (value === Number.POSITIVE_INFINITY) return 'number:+Infinity';
+    if (value === Number.NEGATIVE_INFINITY) return 'number:-Infinity';
+    if (Object.is(value, -0)) return 'number:-0';
+    return `number:${value}`;
+  }
+  if (typeof value === 'string') return `string:${JSON.stringify(value)}`;
+  return `boolean:${value}`;
+};
+
 const compareNumbers = (left: number, right: number): number => {
   const leftFinite = isFiniteNumber(left);
   const rightFinite = isFiniteNumber(right);
@@ -32,8 +44,7 @@ const compareStrings = (left: string, right: string): number => {
 const responseFingerprint = (response: LiveResponse): string => JSON.stringify([
   response.classId,
   response.responseType,
-  typeof response.value,
-  response.value,
+  valueFingerprint(response.value),
 ]);
 
 const compareResponseVersion = (left: LiveResponse, right: LiveResponse): number => {
@@ -77,6 +88,16 @@ const isErrorCategory = (value: string): value is LiveErrorCategory => (
 
 const isRoute = (value: string): value is LiveRoute => ROUTES.includes(value as LiveRoute);
 
+const PUBLIC_CHOICE_KEY_PATTERN = /^[A-Za-z0-9]+(?:[._:/-][A-Za-z0-9]+)*$/;
+const PRIVATE_CHOICE_KEY_PATTERN = /(student|participant|uid|user)/i;
+
+const isPublicChoiceKey = (value: string): boolean => (
+  value.length > 0
+  && value.length <= 24
+  && PUBLIC_CHOICE_KEY_PATTERN.test(value)
+  && !PRIVATE_CHOICE_KEY_PATTERN.test(value)
+);
+
 export function aggregateLiveResponses(
   responses: LiveResponse[],
   stepId: string,
@@ -104,7 +125,10 @@ export function aggregateLiveResponses(
       (response.responseType === 'choice' || response.responseType === 'boolean')
       && !(stepId === 'ai-error-w01' && isErrorCategory(stringValue))
     ) {
-      choiceCounts[stringValue] = (choiceCounts[stringValue] ?? 0) + 1;
+      const isCountableValue = typeof response.value !== 'number' || Number.isFinite(response.value);
+      if (isCountableValue && isPublicChoiceKey(stringValue)) {
+        choiceCounts[stringValue] = (choiceCounts[stringValue] ?? 0) + 1;
+      }
     } else if (response.responseType === 'hint') {
       hintUseCount += 1;
     }
@@ -125,7 +149,9 @@ export function aggregateLiveResponses(
 export function toPublicStats(input: LivePublicStats): LivePublicStats {
   const choiceCounts: Record<string, number> = {};
   for (const [key, value] of Object.entries(input.choiceCounts ?? {})) {
-    if (typeof value === 'number' && Number.isFinite(value)) choiceCounts[key] = value;
+    if (isPublicChoiceKey(key) && typeof value === 'number' && Number.isFinite(value)) {
+      choiceCounts[key] = value;
+    }
   }
 
   const routeCounts = emptyRouteCounts();
