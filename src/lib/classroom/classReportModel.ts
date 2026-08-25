@@ -94,8 +94,7 @@ const QUESTION_STATUSES = new Set(['correct', 'partial', 'incorrect', 'unreadabl
 const SCORE_RANGES = ['0-<5', '5-<6.5', '6.5-<8', '8-10'] as const;
 
 const asFiniteNumber = (value: unknown): number | null => {
-  const number = typeof value === 'number' ? value : Number(value);
-  return Number.isFinite(number) ? number : null;
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
 };
 
 const normalizeWhitespace = (value: unknown): string =>

@@ -186,6 +186,46 @@ describe('buildClassAssignmentReport', () => {
     expect(JSON.stringify(report)).not.toContain('noteForTeacher');
   });
 
+  it('giữ điểm thiếu là null và không tính vào bằng chứng chính thức hoặc scoreRate câu', () => {
+    const report = buildClassAssignmentReport(baseInput([
+      baseSubmission({
+        id: 'missing-score',
+        studentKey: 'student-1',
+        score: null,
+        questionResults: [{ questionNumber: '1', status: 'correct', score: null, maxScore: 2 }],
+      }),
+      baseSubmission({
+        id: 'graded-score',
+        studentKey: 'student-2',
+        score: 8,
+        questionResults: [{ questionNumber: '1', status: 'correct', score: 2, maxScore: 2 }],
+      }),
+    ]));
+
+    expect(report.metrics).toMatchObject({
+      averagePercent: 80,
+      medianPercent: 80,
+      officialEvidenceCount: 1,
+    });
+    expect(report.scoreDistribution).toEqual({
+      '0-<5': 0,
+      '5-<6.5': 0,
+      '6.5-<8': 0,
+      '8-10': 1,
+    });
+    expect(report.questionStats).toEqual([expect.objectContaining({
+      questionNumber: '1',
+      evidenceCount: 2,
+      correct: 2,
+      scoreRate: 1,
+    })]);
+    expect(report.official[0]).toMatchObject({
+      id: 'missing-score',
+      score: null,
+      questionResults: [{ score: null }],
+    });
+  });
+
   it('không suy diễn điểm câu từ thang bài và không đếm nhãn ngoài bằng chứng câu', () => {
     const report = buildClassAssignmentReport(baseInput([
       baseSubmission({
