@@ -139,6 +139,25 @@ describe('g10_w5_p31_bpt_tiet1 live lesson definition', () => {
     );
   });
 
+  it('whitelists the normalized AI error payload', () => {
+    const basePackage = JSON.parse(pilotPackageText) as Record<string, unknown>;
+    const leakedPackage = JSON.parse(JSON.stringify(basePackage)) as Record<string, unknown>;
+    const aiError = leakedPackage.aiErrorOfTheWeek as Record<string, unknown>;
+    aiError.answer = 'leaked answer';
+    aiError.title = 'leaked title';
+    aiError.libraryCard = 'leaked library card';
+
+    const definition = normalizeLiveLessonDefinition(leakedPackage);
+    expect(definition.aiErrorOfTheWeek).toEqual({
+      id: 'W01',
+      category: 'Logical error',
+      correction: '160>150 nên điều kiện 160≤150 sai; (6;7) không là nghiệm.',
+      proof: 'Thay x=6,y=7: 15·6+10·7=160; 160≤150 là mệnh đề sai.',
+    });
+    expect(definition.aiErrorOfTheWeek).not.toHaveProperty('answer');
+    expect(definition.aiErrorOfTheWeek).not.toHaveProperty('title');
+  });
+
   it('rejects response types outside the runtime union', () => {
     const definition = getPilotLiveLessonDefinition();
     const badDefinition = {
@@ -150,6 +169,20 @@ describe('g10_w5_p31_bpt_tiet1 live lesson definition', () => {
 
     expect(() => validateLiveLessonDefinition(badDefinition as never)).toThrowError(
       expect.objectContaining({ code: 'LIVE_RESPONSE_TYPE_INVALID' }),
+    );
+  });
+
+  it('rejects non-finite cue timing with a stable error code', () => {
+    const definition = getPilotLiveLessonDefinition();
+    const badDefinition = {
+      ...definition,
+      cues: definition.cues.map((cue, index) =>
+        index === 1 ? { ...cue, atSeconds: Number.NaN } : cue,
+      ),
+    };
+
+    expect(() => validateLiveLessonDefinition(badDefinition)).toThrowError(
+      expect.objectContaining({ code: 'LIVE_CUE_ORDER_INVALID' }),
     );
   });
 });

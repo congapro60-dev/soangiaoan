@@ -199,6 +199,15 @@ function normalizeScreens(screens: PilotScreen[]): LiveLessonScreen[] {
   });
 }
 
+function normalizeAiErrorOfTheWeek(error: LiveAiErrorOfTheWeek): LiveAiErrorOfTheWeek {
+  return {
+    id: error.id,
+    category: error.category,
+    correction: error.correction,
+    proof: error.proof,
+  };
+}
+
 function isLiveLessonDefinitionShape(value: unknown): value is LiveLessonDefinition {
   return isRecord(value)
     && typeof value.id === 'string'
@@ -273,7 +282,7 @@ export function normalizeLiveLessonDefinition(
     studentScreens: normalizeScreens(pilotPackage.studentScreens),
     allowedStepIds: responseSteps.map((step) => step.id),
     aiErrorStepId: 'ai-error-w01',
-    aiErrorOfTheWeek: { ...pilotPackage.aiErrorOfTheWeek },
+    aiErrorOfTheWeek: normalizeAiErrorOfTheWeek(pilotPackage.aiErrorOfTheWeek),
     responseSteps: responseSteps.map((step) => ({ ...step, responseTypes: [...step.responseTypes] })),
   };
 
@@ -306,6 +315,10 @@ export function validateLiveLessonDefinition(
   if (definition.cues.length === 0) {
     fail('LIVE_CUES_EMPTY', 'Live lesson must contain at least one cue.');
   }
+  if (!Number.isFinite(definition.cues[0].atSeconds)
+    || !Number.isFinite(definition.cues[definition.cues.length - 1].atSeconds)) {
+    fail('LIVE_CUE_INVALID', 'Cue timing must use finite numbers.');
+  }
   if (definition.cues[0].atSeconds !== 0) {
     fail('LIVE_CUE_START_INVALID', 'The first cue must start at 0 seconds.');
   }
@@ -321,7 +334,9 @@ export function validateLiveLessonDefinition(
 
   let previousAtSeconds = -1;
   for (const cue of definition.cues) {
-    if (cue.atSeconds <= previousAtSeconds || cue.atSeconds > definition.durationSeconds) {
+    if (!Number.isFinite(cue.atSeconds)
+      || cue.atSeconds <= previousAtSeconds
+      || cue.atSeconds > definition.durationSeconds) {
       fail('LIVE_CUE_ORDER_INVALID', `Cue ${cue.id} is outside the increasing timeline.`);
     }
     previousAtSeconds = cue.atSeconds;
