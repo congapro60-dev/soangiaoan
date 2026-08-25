@@ -4,6 +4,7 @@ import {
   currentSubmissionsForAssignment,
   selectedSubmissionsForAssignment,
   selectedCurrentSubmissions,
+  submissionsForHistoryMode,
   summarizeSelection,
 } from './submissionSelection';
 
@@ -30,6 +31,17 @@ describe('submissionSelection', () => {
     ]);
 
     expect(current.map(item => item.id)).toEqual(['new', 'other']);
+  });
+
+  it('chọn projection lượt mới nhất hoặc toàn bộ lịch sử theo mode', () => {
+    const all = [
+      submission('new', 'student-1', '2026-08-24T12:00:00.000Z'),
+      submission('old', 'student-1', '2026-08-23T12:00:00.000Z'),
+      submission('other', 'student-2', '2026-08-24T11:00:00.000Z'),
+    ];
+
+    expect(submissionsForHistoryMode(all, 'latest').map(item => item.id)).toEqual(['new', 'other']);
+    expect(submissionsForHistoryMode(all, 'all').map(item => item.id)).toEqual(['new', 'old', 'other']);
   });
 
   it('không cho selection của lượt cũ lọt vào thao tác hàng loạt', () => {

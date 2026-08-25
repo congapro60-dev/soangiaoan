@@ -23,6 +23,16 @@ export const currentSubmissionsForAssignment = (submissions: readonly Submission
     left.studentId.localeCompare(right.studentId, 'vi') || newestFirst(left, right));
 };
 
+export type SubmissionHistoryMode = 'latest' | 'all';
+
+/** Chọn projection hiển thị: lượt hiện hành mặc định hoặc toàn bộ lịch sử để đối chiếu. */
+export const submissionsForHistoryMode = (
+  submissions: readonly SubmissionDoc[],
+  mode: SubmissionHistoryMode,
+): SubmissionDoc[] => mode === 'latest'
+  ? currentSubmissionsForAssignment(submissions)
+  : [...submissions];
+
 /** Chỉ trả các lượt hiện hành có id được chọn; lượt lịch sử cũ bị loại khỏi bulk action. */
 export const selectedCurrentSubmissions = (
   submissions: readonly SubmissionDoc[],

@@ -16,7 +16,7 @@
 - Modify: `src/lib/classroom/submissionSelection.test.ts`
 - Modify: `src/lib/classroom/submissionSelection.ts`
 
-- [ ] **Step 1: Viết test cho hai chế độ hiển thị**
+- [x] **Step 1: Viết test cho hai chế độ hiển thị**
 
 Thêm test chứng minh `latest` trả đúng một submission mới nhất mỗi học sinh, còn `all` giữ đủ cả bản cũ và mới:
 
@@ -33,13 +33,13 @@ it('chọn projection lượt mới nhất hoặc toàn bộ lịch sử theo mo
 });
 ```
 
-- [ ] **Step 2: Chạy test để xác nhận RED**
+- [x] **Step 2: Chạy test để xác nhận RED**
 
 Run: `npm test -- src/lib/classroom/submissionSelection.test.ts`
 
 Expected: FAIL vì helper `submissionsForHistoryMode` chưa tồn tại.
 
-- [ ] **Step 3: Viết implementation tối thiểu**
+- [x] **Step 3: Viết implementation tối thiểu**
 
 Thêm:
 
@@ -54,7 +54,7 @@ export const submissionsForHistoryMode = (
   : [...submissions];
 ```
 
-- [ ] **Step 4: Chạy test targeted GREEN**
+- [x] **Step 4: Chạy test targeted GREEN**
 
 Run: `npm test -- src/lib/classroom/submissionSelection.test.ts`
 
@@ -65,19 +65,19 @@ Expected: tất cả test trong file PASS.
 **Files:**
 - Modify: `src/components/features/classroom/AssignmentPanel.tsx`
 
-- [ ] **Step 1: Thêm state và projection hiển thị trong `BaiNopTheoLop`**
+- [x] **Step 1: Thêm state và projection hiển thị trong `BaiNopTheoLop`**
 
 Import `useState` đã có, import `SubmissionHistoryMode` và `submissionsForHistoryMode`; đặt mode mặc định `latest`, tạo `baiNopHienThi`, và tính summary/checkbox từ projection hiển thị. `currentSubmissionsForAssignment(baiNop)` vẫn là nguồn duy nhất cho bulk chấm/duyệt.
 
-- [ ] **Step 2: Thêm control có nhãn tiếng Việt rõ ràng**
+- [x] **Step 2: Thêm control có nhãn tiếng Việt rõ ràng**
 
 Hiển thị hai nút `Chỉ lượt mới nhất (n)` và `Hiện cả lịch sử (m)`, có `aria-pressed`. Nút thứ hai cho phép giáo viên quay lại xem bản cũ mà không xóa dữ liệu.
 
-- [ ] **Step 3: Giới hạn “Chọn tất cả” vào các dòng đang thấy**
+- [x] **Step 3: Giới hạn “Chọn tất cả” vào các dòng đang thấy**
 
 Đổi callback chọn tất cả để nhận `submissionIds` của `baiNopHienThi`; khi ở chế độ mới nhất, không thêm ID của lượt cũ vào selection. Render danh sách bằng `baiNopHienThi`, còn `chuaNop` và distinct-student count vẫn dựa trên toàn bộ `baiNop`.
 
-- [ ] **Step 4: Chạy typecheck và test targeted**
+- [x] **Step 4: Chạy typecheck và test targeted**
 
 Run: `npm test -- src/lib/classroom/submissionSelection.test.ts && npm run lint`
 
@@ -89,17 +89,17 @@ Expected: test và TypeScript PASS.
 - Modify: `tasks/todo.md`
 - Modify: `docs/superpowers/plans/2026-08-25-teacher-submission-history-filter-plan.md`
 
-- [ ] **Step 1: Kiểm tra diff đúng phạm vi**
+- [x] **Step 1: Kiểm tra diff đúng phạm vi**
 
 Run: `git diff --check` và `git status --short`; chỉ có thay đổi classroom, test và tài liệu kế hoạch/spec cùng phần sửa renderer đã chờ từ trước.
 
-- [ ] **Step 2: Chạy toàn bộ kiểm thử và build**
+- [x] **Step 2: Chạy toàn bộ kiểm thử và build**
 
 Run lần lượt: `npm test`, `npm run lint`, `npm run lint:api`, `npm run build`.
 
 Expected: exit code 0; không có test fail hoặc TypeScript error.
 
-- [ ] **Step 3: QA độc lập**
+- [x] **Step 3: QA độc lập**
 
 Nếu `opencode` và model `opencode/x-preview-f-free` khả dụng, gửi diff/acceptance criteria cho Ox Alpha review. Nếu provider không khả dụng, ghi rõ blocker và không dùng verdict chưa chạy.
 
@@ -115,3 +115,12 @@ git commit -m "feat(classroom): filter submission history safely"
 - [ ] **Step 5: Push trực tiếp lên `origin/main` sau khi kiểm tra remote không đổi**
 
 Run `git fetch origin`, xác nhận `origin/main` vẫn là `b0a9a47`, rồi `git push origin HEAD:main`. Không force-push và không stage thay đổi từ checkout giáo án đang bẩn.
+
+## Verification notes
+
+- Targeted projection test: `6/6` pass sau vòng RED (`1 failed / 5 passed` vì helper chưa tồn tại).
+- Full unit: `83 files / 1.131 tests` pass.
+- Rules: `7 files / 242 tests` pass trên Firestore emulator.
+- `npm run lint`, `npm run lint:api`, `npm run build`, `git diff --check`: pass; build chỉ ghi nhận warning chunk/dynamic import baseline.
+- Production smoke trước deploy xác nhận dữ liệu 11Columbus còn nguyên, có các dòng mới/cũ; chưa thể xác nhận control mới trên production trước khi deploy.
+- Ox Alpha Free/OpenCode đã được gọi đúng model `opencode/x-preview-f-free`, variant `max`, nhưng provider trả `Endpoint is unavailable`; không dùng verdict PASS từ lượt này.

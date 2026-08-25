@@ -60,8 +60,8 @@ export const QuestionResultsList = ({ results, title = 'Phân tích từng câu'
                 {result.needsTeacherReview && <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" aria-label="Cần giáo viên xem lại" />}
               </summary>
               <div className="grid gap-3 border-t border-slate-100 bg-slate-50/70 p-3 sm:grid-cols-2">
-                <TextBlock label="Bài làm của em" value={result.studentAnswer} />
-                <TextBlock label="Đáp án / mốc cần đạt" value={result.expectedAnswer} />
+                <TextBlock label="Bài làm của em" value={result.studentAnswer} markdown />
+                <TextBlock label="Đáp án / mốc cần đạt" value={result.expectedAnswer} markdown />
                 <TextBlock label="Loại lỗi" value={result.errorType} />
                 <TextBlock label="Vì sao" value={result.explanation} markdown />
                 <TextBlock label="Cách sửa" value={result.correction} markdown />

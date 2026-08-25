@@ -26,7 +26,7 @@ import { AssignmentFormModal, type AssignmentFormValue } from './AssignmentFormM
 import { NhanXetMarkdown } from './NhanXetMarkdown';
 import { GradeReviewModal, type GradeReviewValue } from './GradeReviewModal';
 import { QuestionResultsList } from './QuestionResultsList';
-import { currentSubmissionsForAssignment, selectedCurrentSubmissions, selectedSubmissionsForAssignment, summarizeSelection } from '../../../lib/classroom/submissionSelection';
+import { currentSubmissionsForAssignment, selectedCurrentSubmissions, selectedSubmissionsForAssignment, submissionsForHistoryMode, summarizeSelection, type SubmissionHistoryMode } from '../../../lib/classroom/submissionSelection';
 
 interface Props {
   classId: string;
@@ -74,7 +74,7 @@ interface BaiNopTheoLopProps {
   dangXoaDiem: string;
   selectedIds: ReadonlySet<string>;
   toggleSelected: (submissionId: string, selected: boolean) => void;
-  toggleAllSubmissions: (selected: boolean) => void;
+  toggleAllSubmissions: (submissionIds: readonly string[], selected: boolean) => void;
   bulkCham: () => void | Promise<void>;
   bulkDuyet: () => void | Promise<void>;
   bulkXoa: () => void | Promise<void>;
@@ -86,15 +86,18 @@ interface BaiNopTheoLopProps {
  * em nào chưa nộp — giáo viên kiểm soát một mắt nhìn thay vì đoán từ số lượng.
  */
 const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet, xoaBaiNop, dangXoaNop, xoaDiem, dangXoaDiem, selectedIds, toggleSelected, toggleAllSubmissions, bulkCham, bulkDuyet, bulkXoa, dangBulk }: BaiNopTheoLopProps) => {
+  const [historyMode, setHistoryMode] = useState<SubmissionHistoryMode>('latest');
   const tenTheoId = new Map(lopHocSinh.map(hs => [hs.studentId, hs.name]));
   const daNopIds = new Set(baiNop.map(s => s.studentId));
   const chuaNop = lopHocSinh.filter(hs => !daNopIds.has(hs.studentId));
   const current = currentSubmissionsForAssignment(baiNop);
+  const baiNopHienThi = submissionsForHistoryMode(baiNop, historyMode);
   const currentIds = new Set(current.map(s => s.id));
-  const selectedCurrent = selectedCurrentSubmissions(baiNop, selectedIds);
-  const selectedForDelete = selectedSubmissionsForAssignment(baiNop, selectedIds);
+  const selectedCurrent = selectedCurrentSubmissions(baiNopHienThi, selectedIds);
+  const selectedForDelete = selectedSubmissionsForAssignment(baiNopHienThi, selectedIds);
   const currentSummary = summarizeSelection(selectedCurrent);
   const deleteSummary = summarizeSelection(selectedForDelete);
+  const allVisibleSelected = baiNopHienThi.length > 0 && baiNopHienThi.every(s => selectedIds.has(s.id));
 
   // Học sinh có thể NỘP LẠI nhiều lần (nộp nhầm ảnh rồi chụp lại theo phản hồi).
   // Không dựa vào thứ tự mảng để gắn nhãn — query phía giáo viên còn sort lại theo tên.
@@ -113,19 +116,40 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
 
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-100">
-      <div className="flex flex-col gap-3 border-b border-slate-100 bg-slate-50 px-3 py-3 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 border-b border-slate-100 bg-slate-50 px-3 py-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <label className="flex min-h-11 items-center gap-2 text-sm font-black text-slate-700">
           <input
             type="checkbox"
-            checked={baiNop.length > 0 && baiNop.every(s => selectedIds.has(s.id))}
-            onChange={event => toggleAllSubmissions(event.target.checked)}
-            disabled={baiNop.length === 0 || dangBulk !== ''}
+            checked={allVisibleSelected}
+            onChange={event => toggleAllSubmissions(baiNopHienThi.map(s => s.id), event.target.checked)}
+            disabled={baiNopHienThi.length === 0 || dangBulk !== ''}
             className="h-4 w-4 accent-indigo-600"
           />
-          Chọn lượt nộp
+          Chọn lượt đang hiển thị
         </label>
-        <span className="text-xs font-bold text-slate-500">{deleteSummary.total} đã chọn · {current.length} lượt mới nhất được chấm/duyệt</span>
+        <span className="text-xs font-bold text-slate-500">
+          {deleteSummary.total} đã chọn · đang xem {baiNopHienThi.length}/{baiNop.length} lượt · {current.length} lượt mới nhất được chấm/duyệt
+        </span>
         <div className="flex flex-wrap gap-2 sm:ml-auto">
+          <div role="group" aria-label="Phạm vi lượt nộp" className="flex rounded-xl border border-slate-200 bg-white p-1">
+            <button
+              type="button"
+              aria-pressed={historyMode === 'latest'}
+              onClick={() => setHistoryMode('latest')}
+              className={`min-h-9 rounded-lg px-2.5 py-1.5 text-[11px] font-black transition ${historyMode === 'latest' ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}
+            >
+              Chỉ lượt mới nhất ({current.length})
+            </button>
+            <button
+              type="button"
+              aria-pressed={historyMode === 'all'}
+              onClick={() => setHistoryMode('all')}
+              className={`min-h-9 rounded-lg px-2.5 py-1.5 text-[11px] font-black transition ${historyMode === 'all' ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}
+            >
+              Hiện cả lịch sử ({baiNop.length})
+            </button>
+          </div>
           <button type="button" onClick={() => void bulkCham()} disabled={currentSummary.pending === 0 || dangBulk !== '' || tienDo !== ''} className="inline-flex min-h-10 items-center gap-1 rounded-xl bg-slate-900 px-3 py-2 text-xs font-black text-white disabled:opacity-40">
             {dangBulk === 'grade' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />} Chấm AI ({currentSummary.pending})
           </button>
@@ -136,8 +160,12 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
             {dangBulk === 'delete' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />} Xóa ({deleteSummary.total})
           </button>
         </div>
+        </div>
+        {historyMode === 'latest' && baiNop.length > current.length && (
+          <p className="text-xs font-semibold text-slate-500">Đang ẩn {baiNop.length - current.length} lượt nộp cũ; chuyển sang “Hiện cả lịch sử” để đối chiếu hoặc xóa có chủ đích.</p>
+        )}
       </div>
-      {baiNop.map(s => {
+      {baiNopHienThi.map(s => {
         const ten = tenTheoId.get(s.studentId) || `HS …${s.studentId.slice(-4)}`;
         const dangMo = moRongId === s.id;
         return (
@@ -356,16 +384,15 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
     });
   }, []);
 
-  const toggleAllSubmissions = useCallback((assignmentId: string, selected: boolean) => {
-    const all = baiNopCua(assignmentId);
+  const toggleAllSubmissions = useCallback((submissionIds: readonly string[], selected: boolean) => {
     setSelectedSubmissionIds(previous => {
       const next = new Set(previous);
-      for (const submission of all) {
-        if (selected) next.add(submission.id); else next.delete(submission.id);
+      for (const submissionId of submissionIds) {
+        if (selected) next.add(submissionId); else next.delete(submissionId);
       }
       return next;
     });
-  }, [baiNopCua]);
+  }, []);
 
   const selectedCurrentForAssignment = useCallback((assignmentId: string): SubmissionDoc[] =>
     selectedCurrentSubmissions(baiNopCua(assignmentId), selectedSubmissionIds), [baiNopCua, selectedSubmissionIds]);
@@ -1069,7 +1096,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                     dangXoaDiem={dangXoaDiem}
                     selectedIds={selectedSubmissionIds}
                     toggleSelected={toggleSelected}
-                    toggleAllSubmissions={selected => toggleAllSubmissions(a.id, selected)}
+                    toggleAllSubmissions={toggleAllSubmissions}
                     bulkCham={() => chamDaChon(a)}
                     bulkDuyet={() => duyetDaChon(a)}
                     bulkXoa={() => xoaDaChon(a)}

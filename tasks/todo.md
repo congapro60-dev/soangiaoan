@@ -1,3 +1,18 @@
+# P0 — Bộ lọc lịch sử lượt nộp giáo viên (2026-08-25)
+
+- [x] Chốt spec: mặc định chỉ lượt mới nhất; lịch sử vẫn giữ nguyên và mở được khi cần.
+- [x] Test đỏ/xanh cho projection `latest`/`all`.
+- [x] Code bộ lọc và giới hạn “Chọn lượt đang hiển thị” theo đúng projection.
+- [ ] Chạy full test, lint, lint:api, build, QA độc lập và push `origin/main`.
+
+# P0 — Công thức nhận xét và chẩn đoán nộp trùng (2026-08-25)
+
+- [x] Test đỏ rồi xanh: công thức ở `Bài làm của em` và `Đáp án / mốc cần đạt` đi qua KaTeX.
+- [x] Sửa renderer, chạy targeted test xanh.
+- [x] Kiểm chứng một lần chọn nhiều ảnh chỉ tạo một lượt nộp; phân biệt với nộp lại/bổ sung ảnh.
+- [x] Không tái hiện race/double-submit; giữ nguyên guard UI và không thêm dedupe có thể làm mất nộp bổ sung hợp lệ.
+- [x] Chạy full test/lint/build/diff check và Ox Alpha QA; chưa push/deploy khi chưa có lệnh riêng.
+
 # Classroom learning loop — 2026-08-24
 
 ## P0 follow-up — camera upload queue cho 11 Columbus
