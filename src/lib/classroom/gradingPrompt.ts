@@ -1,4 +1,5 @@
-import { parseLooseJson } from '../../utils/jsonRepair.js';
+import { parseJsonWithRecovery, parseLooseJson } from '../../utils/jsonRepair.js';
+import type { JsonParseMode, JsonRepairKind } from '../../utils/jsonRepair.js';
 import type {
   PracticeQuestionPublic,
   PracticeQuestionResult,
@@ -47,6 +48,26 @@ export interface HomeworkGrade {
   weakTopics: string[];
   /** true khi chấm mà KHÔNG có đáp án chuẩn — kết quả kém tin cậy hơn. */
   gradedWithoutAnswerKey: boolean;
+}
+
+export interface HomeworkGradeRecovery {
+  parseMode: JsonParseMode;
+  repairKinds: JsonRepairKind[];
+  retryCount: 0 | 1;
+}
+
+export interface HomeworkGradeParseResult {
+  grade: HomeworkGrade;
+  recovery?: HomeworkGradeRecovery;
+}
+
+export class HomeworkGradeContractError extends Error {
+  readonly retryable = true;
+
+  constructor(message: string) {
+    super(message);
+    this.name = 'HomeworkGradeContractError';
+  }
 }
 
 const KHONG_CO_DAP_AN = `KHÔNG có đáp án chuẩn kèm theo. Hãy ưu tiên đọc ĐỀ / TÀI LIỆU THAM CHIẾU của giáo viên nếu có;
@@ -166,6 +187,14 @@ CHỈ TRẢ VỀ JSON THUẦN, không kèm chữ nào khác:
 }`;
 };
 
+export const buildHomeworkGradingRetryPrompt = (input: HomeworkGradingInput): string => `
+LẦN THỬ LẠI KẾT QUẢ CHẤM:
+Chỉ trả về JSON thuần, không có code fence và không có lời dẫn ngoài JSON.
+Dùng đúng schema đã yêu cầu, gồm các field "score", "maxScore", "feedbackForStudent", "noteForTeacher", "strengths", "weaknesses", "weakTopics" và "questionResults" cùng đầy đủ field của từng câu.
+Trong mọi chuỗi JSON, escape mọi dấu gạch chéo ngược trước khi trả về; vẫn giữ nguyên công thức LaTeX và không đổi phạm vi chấm, đề, đáp án hay thang điểm tối đa ${input.maxScore}.
+Không đưa raw output lỗi của lần trước vào câu trả lời.
+`;
+
 const toStringArray = (value: unknown): string[] =>
   Array.isArray(value) ? value.map(v => String(v).trim()).filter(Boolean) : [];
 
@@ -229,6 +258,14 @@ const toQuestionResults = (value: unknown): QuestionResult[] => {
     .filter((item): item is QuestionResult => item !== null);
 };
 
+const extractHomeworkJson = (raw: string): string => {
+  const text = String(raw || '');
+  const inCodeBlock = text.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
+  const jsonStr = inCodeBlock ? inCodeBlock[1] : text.match(/\{[\s\S]*\}/)?.[0];
+  if (!jsonStr) throw new Error('AI trả về nội dung không đọc được. Thử lại một lần nữa.');
+  return jsonStr;
+};
+
 /**
  * Đọc JSON AI trả về. Ném lỗi khi không tìm được JSON — nơi gọi bắt và đánh dấu bài ở trạng thái
  * 'error' để chấm lại, KHÔNG được lặng lẽ cho 0 điểm.
@@ -238,12 +275,7 @@ export const parseHomeworkGrade = (
   maxScore: number,
   gradedWithoutAnswerKey: boolean,
 ): HomeworkGrade => {
-  const text = String(raw || '');
-  const inCodeBlock = text.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
-  const jsonStr = inCodeBlock ? inCodeBlock[1] : text.match(/\{[\s\S]*\}/)?.[0];
-  if (!jsonStr) throw new Error('AI trả về nội dung không đọc được. Thử lại một lần nữa.');
-
-  const parsed = parseLooseJson<Record<string, unknown>>(jsonStr);
+  const parsed = parseLooseJson<Record<string, unknown>>(extractHomeworkJson(raw));
   const parsedMax = Number(parsed.maxScore);
   // Thang điểm của giáo viên là nguồn sự thật. AI chỉ được trả điểm trong thang đó,
   // không được tự đổi 10 thành 8/20 vì hiểu sai đề hoặc vì lệnh bỏ qua một phần.
@@ -264,6 +296,203 @@ export const parseHomeworkGrade = (
     questionResults: toQuestionResults(parsed.questionResults ?? parsed.questionDetails),
     gradedWithoutAnswerKey,
   };
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const hasOwn = (value: Record<string, unknown>, key: string): boolean =>
+  Object.prototype.hasOwnProperty.call(value, key);
+
+const contractError = (message: string): never => {
+  throw new HomeworkGradeContractError(message);
+};
+
+const requireField = (value: Record<string, unknown>, key: string): unknown => {
+  if (!hasOwn(value, key)) contractError(`Thiếu field bắt buộc: ${key}`);
+  return value[key];
+};
+
+const requireString = (value: Record<string, unknown>, key: string): string => {
+  const field = requireField(value, key);
+  if (typeof field !== 'string') contractError(`Field ${key} phải là chuỗi`);
+  return field;
+};
+
+const requireStringArray = (value: Record<string, unknown>, key: string): string[] => {
+  const field = requireField(value, key);
+  if (!Array.isArray(field) || !field.every(item => typeof item === 'string')) {
+    contractError(`Field ${key} phải là mảng chuỗi`);
+  }
+  return field;
+};
+
+const requireFiniteNumber = (value: Record<string, unknown>, key: string): number => {
+  const field = requireField(value, key);
+  if (typeof field !== 'number' || !Number.isFinite(field)) {
+    contractError(`Field ${key} phải là số hữu hạn`);
+  }
+  return field;
+};
+
+const isQuestionResultStatus = (value: unknown): value is QuestionResultStatus =>
+  value === 'correct'
+  || value === 'partially_correct'
+  || value === 'incorrect'
+  || value === 'unreadable'
+  || value === 'not_attempted';
+
+const fencedHomeworkPayload = (raw: string): string | undefined =>
+  String(raw || '').match(/```(?:json)?\s*([\s\S]*?)\s*```/)?.[1].trim();
+
+const extractStrictHomeworkJson = (raw: string): string => {
+  const text = String(raw || '');
+  const candidate = fencedHomeworkPayload(text) ?? text.trim();
+  const firstContainer = candidate.match(/[\[{]/)?.[0];
+  if (firstContainer === '[') {
+    contractError('Payload chấm phải có root object, không phải root array');
+  }
+
+  try {
+    return extractHomeworkJson(text);
+  } catch {
+    // Allow strict validation to report scalar roots such as null/number as contract errors.
+    return candidate;
+  }
+};
+
+const parseStrictQuestionResult = (
+  value: unknown,
+  index: number,
+  seenQuestionNumbers: Set<string>,
+): QuestionResult => {
+  if (!isRecord(value)) contractError(`questionResults[${index}] phải là object`);
+
+  const questionNumber = requireString(value, 'questionNumber');
+  const normalizedQuestionNumber = questionNumber.trim();
+  if (!normalizedQuestionNumber) contractError(`questionResults[${index}].questionNumber không được rỗng`);
+  if (seenQuestionNumbers.has(normalizedQuestionNumber)) {
+    contractError(`questionResults bị trùng questionNumber: ${questionNumber}`);
+  }
+  seenQuestionNumbers.add(normalizedQuestionNumber);
+
+  const status = requireString(value, 'status');
+  if (!isQuestionResultStatus(status)) {
+    contractError(`questionResults[${index}].status không hợp lệ`);
+  }
+
+  const score = requireFiniteNumber(value, 'score');
+  const maxScore = requireFiniteNumber(value, 'maxScore');
+  if (score < 0 || maxScore < 0 || score > maxScore) {
+    contractError(`questionResults[${index}] có khoảng điểm không hợp lệ`);
+  }
+
+  const studentAnswer = requireString(value, 'studentAnswer');
+  const expectedAnswer = requireString(value, 'expectedAnswer');
+  const errorType = requireString(value, 'errorType');
+  const explanation = requireString(value, 'explanation');
+  const correction = requireString(value, 'correction');
+  const nextPractice = requireString(value, 'nextPractice');
+
+  const hasConfidence = hasOwn(value, 'confidence');
+  let confidence: number | undefined;
+  if (hasConfidence) {
+    confidence = requireFiniteNumber(value, 'confidence');
+    if (confidence < 0 || confidence > 1) {
+      contractError(`questionResults[${index}].confidence phải nằm trong 0..1`);
+    }
+  }
+
+  const needsTeacherReview = requireField(value, 'needsTeacherReview');
+  if (typeof needsTeacherReview !== 'boolean') {
+    contractError(`questionResults[${index}].needsTeacherReview phải là boolean`);
+  }
+
+  const hasIgnoredByTeacherInstruction = hasOwn(value, 'ignoredByTeacherInstruction');
+  let ignoredByTeacherInstruction: boolean | undefined;
+  if (hasIgnoredByTeacherInstruction) {
+    ignoredByTeacherInstruction = requireField(value, 'ignoredByTeacherInstruction');
+    if (typeof ignoredByTeacherInstruction !== 'boolean') {
+      contractError(`questionResults[${index}].ignoredByTeacherInstruction phải là boolean`);
+    }
+  }
+
+  return {
+    questionNumber,
+    status,
+    score,
+    maxScore,
+    studentAnswer,
+    expectedAnswer,
+    errorType,
+    explanation,
+    correction,
+    nextPractice,
+    ...(hasConfidence ? { confidence } : {}),
+    ...(hasIgnoredByTeacherInstruction ? { ignoredByTeacherInstruction } : {}),
+    needsTeacherReview,
+  };
+};
+
+export const parseHomeworkGradeForCommit = (
+  raw: string,
+  maxScore: number,
+  gradedWithoutAnswerKey: boolean,
+  retryCount = 0,
+): HomeworkGradeParseResult => {
+  if (retryCount !== 0 && retryCount !== 1) {
+    contractError('retryCount phải là 0 hoặc 1');
+  }
+
+  const parsed = parseJsonWithRecovery<unknown>(extractStrictHomeworkJson(raw));
+  if (!isRecord(parsed.value)) {
+    contractError('Payload chấm phải có root object không null và không phải array');
+  }
+  if (typeof maxScore !== 'number' || !Number.isFinite(maxScore)) {
+    contractError('Thang điểm assignment phải là số hữu hạn');
+  }
+
+  const score = requireFiniteNumber(parsed.value, 'score');
+  const parsedMaxScore = requireFiniteNumber(parsed.value, 'maxScore');
+  if (Math.abs(parsedMaxScore - maxScore) > 0.000001) {
+    contractError('maxScore của AI không khớp thang điểm assignment');
+  }
+  if (score < 0 || score > maxScore) {
+    contractError('score nằm ngoài thang điểm assignment');
+  }
+
+  const questionResultsValue = requireField(parsed.value, 'questionResults');
+  if (!Array.isArray(questionResultsValue)) {
+    contractError('Field questionResults phải là mảng');
+  }
+  const seenQuestionNumbers = new Set<string>();
+  const questionResults = questionResultsValue.map((questionResult, index) =>
+    parseStrictQuestionResult(questionResult, index, seenQuestionNumbers));
+
+  const grade: HomeworkGrade = {
+    score,
+    maxScore,
+    feedbackForStudent: requireString(parsed.value, 'feedbackForStudent'),
+    noteForTeacher: requireString(parsed.value, 'noteForTeacher'),
+    strengths: requireStringArray(parsed.value, 'strengths'),
+    weaknesses: requireStringArray(parsed.value, 'weaknesses'),
+    weakTopics: requireStringArray(parsed.value, 'weakTopics'),
+    questionResults,
+    gradedWithoutAnswerKey,
+  };
+
+  if (parsed.parseMode === 'repaired' || retryCount === 1) {
+    return {
+      grade,
+      recovery: {
+        parseMode: parsed.parseMode,
+        repairKinds: parsed.repairKinds,
+        retryCount,
+      },
+    };
+  }
+
+  return { grade };
 };
 
 // ── Bài bổ trợ theo chủ đề còn yếu ───────────────────────────────────────────

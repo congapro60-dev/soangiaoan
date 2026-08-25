@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   buildHomeworkGradingPrompt,
+  buildHomeworkGradingRetryPrompt,
   buildPracticePrompt,
   buildPracticeGradingPrompt,
   buildRewriteFeedbackPrompt,
@@ -208,6 +209,26 @@ describe('parseHomeworkGrade', () => {
   });
 });
 
+describe('buildHomeworkGradingRetryPrompt', () => {
+  it('yêu cầu JSON thuần theo schema và không đưa raw output lỗi vào prompt', () => {
+    const failedOutput = 'RAW_FAILED_OUTPUT';
+    const prompt = buildHomeworkGradingRetryPrompt({
+      answerKey: failedOutput,
+      maxScore: 10,
+      studentText: failedOutput,
+    });
+
+    expect(prompt).toContain('JSON thuần');
+    expect(prompt).toContain('không có code fence');
+    expect(prompt).toContain('escape mọi dấu gạch chéo ngược');
+    expect(prompt).toContain('LaTeX');
+    expect(prompt).toContain('phạm vi chấm');
+    expect(prompt).toContain('"questionResults"');
+    expect(prompt).toContain('"feedbackForStudent"');
+    expect(prompt).not.toContain(failedOutput);
+  });
+});
+
 describe('parseHomeworkGradeForCommit — strict homework contract', () => {
   const valid = {
     score: 8,
@@ -266,6 +287,33 @@ describe('parseHomeworkGradeForCommit — strict homework contract', () => {
 
     expect(result.grade.score).toBe(8);
     expect(result.grade.feedbackForStudent).toBe('Em làm đúng phần chính.');
+    expect(result.recovery).toBeUndefined();
+  });
+
+  it('ghi nhận recovery khi JSON có backslash LaTeX thô', () => {
+    const raw = JSON.stringify(valid).replaceAll(
+      String.raw`D \\in (SAB)`,
+      String.raw`D \in (SAB)`,
+    );
+
+    const result = parseHomeworkGradeForCommit(raw, 10, false);
+
+    expect(result.grade.questionResults[0].studentAnswer).toBe(String.raw`D \in (SAB)`);
+    expect(result.recovery).toEqual({
+      parseMode: 'repaired',
+      repairKinds: ['latex_backslash'],
+      retryCount: 0,
+    });
+  });
+
+  it('ghi nhận retryCount dù lần retry trả JSON strict', () => {
+    const result = parseHomeworkGradeForCommit(JSON.stringify(valid), 10, false, 1);
+
+    expect(result.recovery).toEqual({
+      parseMode: 'strict',
+      repairKinds: [],
+      retryCount: 1,
+    });
   });
 
   it('từ chối root array', () => {
