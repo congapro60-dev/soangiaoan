@@ -174,3 +174,12 @@ Backup bản cũ: `C:\Users\ADMIN\AppData\Local\Temp\smartplan-ban-toan-backup-2
 - [x] Full Vitest baseline: 64 test files, 1013 tests passed.
 - [ ] Baseline còn 1 test timeout có sẵn ngoài phạm vi V3: `api/__tests__/ai-gateway-handler.test.ts` — SSE raw `[DONE]` sentinel timeout ở 5 giây.
 - [x] `npm install` trong worktree bị treo; đã dừng an toàn và dùng junction tới dependency tree đã có ở checkout chính. Bản cài dở được giữ ngoài workspace tại `C:\Users\ADMIN\AppData\Local\Temp\smart-lesson-plan-ai-node_modules-incomplete-20260825`.
+
+## Task 8 — Close-session progress bridge — 2026-08-25
+
+- [x] Tạo bridge fail-closed và 5 test focused: session phải `closed`; cần AI Error/diagnostic, quick-check, exit-ticket và trusted mapping; ID/attempt/timestamp deterministic; không dùng anonymous UID.
+- [x] Nối close flow để báo số record eligible/not-ready, không lộ raw responses ra TV/student và không tuyên bố cả lớp hoàn thành.
+- [x] Viết hướng dẫn vận hành tiếng Việt tại `docs/features/08-live-lesson-realtime.md`, gồm route, laptop/TV/Vcast/thiết bị HS, launch/close, troubleshooting và fallback V2.
+- [x] Verification: focused live tests `5 files / 61 tests PASS`; full Vitest `76 files / 1096 tests PASS`; `lint`, `lint:api`, `build` PASS (build chỉ cảnh báo chunk/import vốn có).
+- [ ] Rules: `npm run test:rules` chưa chạy được vì Firestore Emulator không bind cổng 8080 đang bị process khác chiếm; không dừng process ngoài phạm vi.
+- [ ] Safe limitation: teacher runtime hiện chưa có endpoint cung cấp trusted participant metadata/profile payload cho close flow; vì vậy chưa tự ghi `adaptiveSessionProgress`, chỉ báo eligibility.
