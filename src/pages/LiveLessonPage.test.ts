@@ -28,6 +28,10 @@ describe('LiveLessonPage route helpers', () => {
     expect('aiErrorOfTheWeek' in student).toBe(false);
     expect(JSON.stringify(tv)).not.toContain(definition.cues[0].teacher);
     expect(JSON.stringify(student)).not.toContain(definition.cues[0].boardLarge);
+    expect(student).toHaveProperty('tvScreens');
+    expect(student).toHaveProperty('studentCues');
+    expect(Object.keys(student.studentCues[0]).sort()).toEqual(['id', 'studentScreenId']);
+    expect(JSON.stringify(student.studentCues)).not.toContain('observerEvidence');
   });
 
   it('allows teacher mode only for the session owner', () => {
@@ -53,6 +57,7 @@ describe('LiveLessonPage route helpers', () => {
     expect(shouldLoadParentLiveLessonSession('student')).toBe(false);
     const tv = projectLiveLessonDefinition(getPilotLiveLessonDefinition(), 'tv');
     expect(Object.keys(tv).sort()).toEqual(['durationSeconds', 'id', 'lessonId', 'title', 'tvScreens']);
+    expect(canLoadParentLiveLessonSession({ mode: 'student', authReady: true, userUid: 'teacher-1' })).toBe(false);
   });
 
   it('does not let an older or malformed teacher snapshot overwrite newer local state', () => {

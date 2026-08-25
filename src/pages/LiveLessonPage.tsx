@@ -7,9 +7,11 @@ import type { LiveLessonDefinition, LiveLessonMode, LiveLessonSession, LivePubli
 import { getLiveLessonSession, subscribeToLivePublicState, subscribeToTeacherSession } from '../services/liveLessonService';
 import { TeacherLiveView } from '../components/liveLesson/TeacherLiveView';
 import { TvLiveView } from '../components/liveLesson/TvLiveView';
+import { StudentLiveView } from '../components/liveLesson/StudentLiveView';
 
 export type TvDefinitionProjection = Pick<LiveLessonDefinition, 'id' | 'lessonId' | 'title' | 'durationSeconds' | 'tvScreens'>;
-export type StudentDefinitionProjection = Pick<LiveLessonDefinition, 'id' | 'lessonId' | 'title' | 'durationSeconds' | 'studentScreens' | 'allowedStepIds' | 'responseSteps'>;
+export type StudentCueProjection = { id: string; studentScreenId: string; responseStepId?: string };
+export type StudentDefinitionProjection = Pick<LiveLessonDefinition, 'id' | 'lessonId' | 'title' | 'durationSeconds' | 'tvScreens' | 'studentScreens' | 'allowedStepIds' | 'responseSteps'> & { studentCues: StudentCueProjection[] };
 export type LiveLessonDefinitionProjection = LiveLessonDefinition | TvDefinitionProjection | StudentDefinitionProjection;
 
 export const parseLiveLessonMode = (value: string | null): LiveLessonMode | null => value === 'teacher' || value === 'tv' || value === 'student' ? value : null;
@@ -25,7 +27,18 @@ export function projectLiveLessonDefinition(definition: LiveLessonDefinition, mo
 export function projectLiveLessonDefinition(definition: LiveLessonDefinition, mode: LiveLessonMode): LiveLessonDefinitionProjection {
   if (mode === 'teacher') return definition;
   if (mode === 'tv') return { id: definition.id, lessonId: definition.lessonId, title: definition.title, durationSeconds: definition.durationSeconds, tvScreens: definition.tvScreens.map(screen => ({ ...screen })) };
-  return { id: definition.id, lessonId: definition.lessonId, title: definition.title, durationSeconds: definition.durationSeconds, studentScreens: definition.studentScreens.map(screen => ({ ...screen })), allowedStepIds: [...definition.allowedStepIds], responseSteps: definition.responseSteps.map(step => ({ ...step, responseTypes: [...step.responseTypes] })) };
+  const stepScreenIds = new Map(definition.responseSteps.map(step => [step.id, step.screenId ?? 'HS0']));
+  return {
+    id: definition.id,
+    lessonId: definition.lessonId,
+    title: definition.title,
+    durationSeconds: definition.durationSeconds,
+    tvScreens: definition.tvScreens.map(screen => ({ ...screen })),
+    studentScreens: definition.studentScreens.map(screen => ({ ...screen })),
+    allowedStepIds: [...definition.allowedStepIds],
+    responseSteps: definition.responseSteps.map(step => ({ ...step, responseTypes: [...step.responseTypes] })),
+    studentCues: definition.cues.map(cue => ({ id: cue.id, studentScreenId: cue.responseStepId ? (stepScreenIds.get(cue.responseStepId) ?? 'HS0') : 'HS0', ...(cue.responseStepId ? { responseStepId: cue.responseStepId } : {}) })),
+  };
 }
 
 export const mergeTeacherSessionSnapshot = (current: LiveLessonSession | null, incoming: LiveLessonSession): LiveLessonSession => (
@@ -173,6 +186,9 @@ export const LiveLessonPage = () => {
   if (mode === 'tv' && publicState) {
     const tvDefinition = projectLiveLessonDefinition(definition, 'tv');
     return <TvLiveView definition={tvDefinition} sessionId={sessionId} publicState={publicState} publicStateError={publicStateError} />;
+  }
+  if (mode === 'student' && publicState) {
+    return <StudentLiveView definition={projectLiveLessonDefinition(definition, 'student')} sessionId={sessionId} publicState={publicState} publicStateError={publicStateError} />;
   }
   return <PlaceholderPanel mode={mode} projection={projectLiveLessonDefinition(definition, mode)} />;
 };
