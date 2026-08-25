@@ -86,6 +86,11 @@ const toEpochMillis = (value: unknown, label: string): number => {
 
 const asError = (error: unknown): Error => error instanceof Error ? error : new Error(String(error));
 
+const isPermissionDeniedError = (error: unknown): boolean => {
+  if (!isRecord(error) || typeof error.code !== 'string') return false;
+  return error.code.toLowerCase().split('/').pop() === 'permission-denied';
+};
+
 const normalizeSession = (sessionId: string, value: unknown): LiveLessonSession => {
   if (!isRecord(value)) throw new Error('Live lesson session data is invalid.');
   assertNonEmptyString(value.lessonId, 'lessonId');
@@ -283,7 +288,19 @@ export const submitLiveResponse = async (input: SubmitLiveResponseInput): Promis
   if (typeof input.value === 'string' && input.value.length > 2000) throw new Error('Response text cannot exceed 2000 characters.');
   assertNonEmptyString(input.clientNonce, 'clientNonce');
   const responseId = `${input.participantUid}__${input.stepId}`;
-  await setDoc(doc(db, SESSIONS_COL, input.sessionId, RESPONSES_SUB, responseId), {
+  const responseRef = doc(db, SESSIONS_COL, input.sessionId, RESPONSES_SUB, responseId);
+  try {
+    await setDoc(responseRef, {
+      responseType: input.responseType,
+      value: input.value,
+      clientNonce: input.clientNonce,
+      updatedAt: serverTimestamp(),
+    }, { merge: true });
+    return;
+  } catch (error) {
+    if (!isPermissionDeniedError(error)) throw error;
+  }
+  await setDoc(responseRef, {
     participantUid: input.participantUid,
     classId: input.classId,
     stepId: input.stepId,

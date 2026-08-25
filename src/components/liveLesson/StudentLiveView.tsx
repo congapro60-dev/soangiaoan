@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { User } from 'firebase/auth';
+import { onAuthStateChanged, type User } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
 import type { StudentDefinitionProjection } from '../../pages/LiveLessonPage';
 import type { LiveResponseType, LivePublicState, SubmitLiveResponseInput } from '../../lib/liveLesson/types';
 import {
   enqueueLiveResponse,
   flushLiveResponseQueue,
+  getLiveResponseStepState,
   getQueuedLiveResponses,
+  type LiveResponseQueueFailure,
 } from '../../lib/liveLesson/offlineQueue';
-import { getStudentLoginSession, loginStudent, type LoginResponse } from '../../services/studentPortalApi';
+import { getStudentLoginSession, loginStudent, saveStudentLoginSession, type StudentLoginSession } from '../../services/studentPortalApi';
 import { submitLiveResponse } from '../../services/liveLessonService';
 import { LiveLessonStatus } from './LiveLessonStatus';
 
@@ -18,15 +20,18 @@ type StepStatus = Record<string, StudentStatus>;
 export interface StudentLiveViewProps {
   definition: StudentDefinitionProjection;
   sessionId: string;
+  expectedClassId: string | null;
   publicState: LivePublicState;
   publicStateError?: string | null;
 }
 
 export const resolveStudentLiveIdentity = (
   user: Pick<User, 'uid' | 'isAnonymous'> | null,
-  login: Pick<LoginResponse, 'classId'> | null,
+  login: Pick<StudentLoginSession, 'classId' | 'anonymousUid'> | null,
+  expectedClassId: string | null,
 ): { participantUid: string; classId: string } | null => {
-  if (!user?.isAnonymous || !user.uid.trim() || !login?.classId.trim()) return null;
+  if (!user?.isAnonymous || !user.uid.trim() || !login?.anonymousUid || login.anonymousUid !== user.uid) return null;
+  if (!login.classId.trim() || !expectedClassId?.trim() || login.classId !== expectedClassId) return null;
   return { participantUid: user.uid, classId: login.classId };
 };
 
@@ -43,9 +48,12 @@ const choiceOptions = (stepId: string): string[] => {
 
 const statusForError = (error: unknown): StudentStatus => {
   const message = error instanceof Error ? error.message : 'Chưa đồng bộ được phản hồi.';
-  const permanent = /permission|closed|expired|hết hạn|đóng/i.test(message);
-  return { tone: 'error', message: permanent ? `Không thể gửi phản hồi: ${message}` : `Chưa đồng bộ — hãy thử lại khi có mạng. (${message})` };
+  return { tone: 'error', message: `Không thể lưu phản hồi trên thiết bị: ${message}` };
 };
+
+const statusForQueueFailure = (failure: LiveResponseQueueFailure): StudentStatus => failure.kind === 'blocked'
+  ? { tone: 'error', message: `Phản hồi bị chặn và không tự thử lại: ${failure.message}. Hãy gửi câu trả lời mới để mở lại bước này.` }
+  : { tone: 'warning', message: `Chưa đồng bộ — phản hồi vẫn được giữ trên thiết bị và sẽ thử lại khi có mạng. (${failure.message})` };
 
 const activeUserSafetyMessage = (user: User | null): string | null => (
   user && !user.isAnonymous ? 'Trình duyệt đang ở phiên giáo viên. Hãy đăng xuất trước khi vào chế độ học sinh.' : null
@@ -68,9 +76,9 @@ const ResponseControl = ({
   return null;
 };
 
-export const StudentLiveView = ({ definition, sessionId, publicState, publicStateError = null }: StudentLiveViewProps) => {
+export const StudentLiveView = ({ definition, sessionId, expectedClassId, publicState, publicStateError = null }: StudentLiveViewProps) => {
   const [user, setUser] = useState<User | null>(auth.currentUser);
-  const [student, setStudent] = useState<LoginResponse | null>(() => getStudentLoginSession());
+  const [student, setStudent] = useState<StudentLoginSession | null>(() => auth.currentUser?.isAnonymous ? getStudentLoginSession(auth.currentUser.uid) : null);
   const [joinCode, setJoinCode] = useState('');
   const [studentId, setStudentId] = useState('');
   const [pin, setPin] = useState('');
@@ -80,11 +88,16 @@ export const StudentLiveView = ({ definition, sessionId, publicState, publicStat
   const [textValue, setTextValue] = useState('');
   const [stepStatuses, setStepStatuses] = useState<StepStatus>({});
   const [queueCount, setQueueCount] = useState(0);
+  const [blockedQueueCount, setBlockedQueueCount] = useState(0);
+  const [retryableQueueCount, setRetryableQueueCount] = useState(0);
   const [flushing, setFlushing] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged?.(setUser);
-    return () => unsubscribe?.();
+    const unsubscribe = onAuthStateChanged(auth, nextUser => {
+      setUser(nextUser);
+      setStudent(nextUser?.isAnonymous ? getStudentLoginSession(nextUser.uid) : null);
+    });
+    return unsubscribe;
   }, []);
 
   const currentCue = definition.studentCues.find(cue => cue.id === publicState.cueId);
@@ -92,27 +105,52 @@ export const StudentLiveView = ({ definition, sessionId, publicState, publicStat
   const studentScreen = definition.studentScreens.find(screen => screen.id === currentCue?.studentScreenId) ?? definition.studentScreens[0];
   const tvScreen = definition.tvScreens.find(screen => screen.id === publicState.tvScreenId) ?? null;
   const activeSafetyMessage = activeUserSafetyMessage(user);
-  const identity = resolveStudentLiveIdentity(user, student);
+  const identity = resolveStudentLiveIdentity(user, student, expectedClassId);
   const participantUid = identity?.participantUid ?? null;
 
   const refreshQueueState = useCallback(() => {
-    if (!student || !participantUid) { setQueueCount(0); return; }
-    setQueueCount(getQueuedLiveResponses(sessionId, participantUid).length);
-  }, [participantUid, sessionId, student]);
+    if (!student || !participantUid) {
+      setQueueCount(0);
+      setBlockedQueueCount(0);
+      setRetryableQueueCount(0);
+      return;
+    }
+    const queued = getQueuedLiveResponses(sessionId, participantUid);
+    setQueueCount(queued.length);
+    setBlockedQueueCount(queued.filter(item => item.deliveryState === 'blocked').length);
+    setRetryableQueueCount(queued.filter(item => item.deliveryState === 'pending').length);
+    if (!step) return;
+    const savedState = getLiveResponseStepState(sessionId, participantUid, step.id);
+    if (savedState) {
+      setStepStatuses(current => current[step.id] ? current : {
+        ...current,
+        [step.id]: savedState.status === 'blocked'
+          ? { tone: 'error', message: `Phản hồi bị chặn: ${savedState.lastError ?? 'cần gửi câu trả lời mới.'}` }
+          : savedState.status === 'pending'
+            ? { tone: 'warning', message: `Phản hồi đang chờ đồng bộ. ${savedState.lastError ?? ''}`.trim() }
+            : { tone: 'success', message: 'Đã xác nhận trên máy chủ.' },
+      });
+    }
+  }, [participantUid, sessionId, step, student]);
 
   const flushQueue = useCallback(async () => {
     if (!student || !participantUid || !navigator.onLine || flushing) return;
     setFlushing(true);
-    const result = await flushLiveResponseQueue(
-      response => submitLiveResponse(response),
-      sessionId,
-      participantUid,
-    );
-    setFlushing(false);
-    refreshQueueState();
-    if (result.failed) setStepStatuses(current => ({ ...current, [result.failed!.stepId]: statusForError(new Error('Phản hồi đang chờ đồng bộ.')) }));
-    if (!result.failed && result.synced > 0) setStepStatuses(current => ({ ...current, [step?.id ?? '']: { tone: 'success', message: 'Đã xác nhận trên máy chủ.' } }));
-  }, [flushing, participantUid, refreshQueueState, sessionId, step?.id, student]);
+    try {
+      const result = await flushLiveResponseQueue(
+        response => submitLiveResponse(response),
+        sessionId,
+        participantUid,
+      );
+      refreshQueueState();
+      if (result.failed) setStepStatuses(current => ({ ...current, [result.failed.item.stepId]: statusForQueueFailure(result.failed) }));
+      if (!result.failed && result.synced > 0 && step) setStepStatuses(current => ({ ...current, [step.id]: { tone: 'success', message: 'Đã xác nhận trên máy chủ.' } }));
+    } catch (error) {
+      if (step) setStepStatuses(current => ({ ...current, [step.id]: statusForError(error) }));
+    } finally {
+      setFlushing(false);
+    }
+  }, [flushing, participantUid, refreshQueueState, sessionId, step, student]);
 
   useEffect(() => {
     refreshQueueState();
@@ -125,17 +163,30 @@ export const StudentLiveView = ({ definition, sessionId, publicState, publicStat
 
   const submit = async (responseType: LiveResponseType, rawValue: string | boolean | number) => {
     if (!student || !step || !definition.allowedStepIds.includes(step.id)) return;
+    if (!identity) {
+      setStepStatuses(current => ({ ...current, [step.id]: { tone: 'error', message: 'Liên kết học sinh không khớp với lớp của phiên; không gửi phản hồi.' } }));
+      return;
+    }
+    if (!step.responseTypes.includes(responseType)) {
+      setStepStatuses(current => ({ ...current, [step.id]: { tone: 'error', message: 'Bước này không hỗ trợ loại phản hồi đã chọn.' } }));
+      return;
+    }
     const value = responseType === 'boolean' ? rawValue === true || rawValue === 'true' : rawValue;
     if (typeof value === 'string' && value.trim().length === 0) return;
     if (typeof value === 'string' && value.length > (step.maxTextLength ?? 2000)) {
       setStepStatuses(current => ({ ...current, [step.id]: { tone: 'error', message: `Câu trả lời tối đa ${step.maxTextLength} ký tự.` } }));
       return;
     }
-    if (!participantUid) {
-      setStepStatuses(current => ({ ...current, [step.id]: { tone: 'error', message: 'Phiên xác thực học sinh chưa sẵn sàng; không gửi phản hồi.' } }));
-      return;
-    }
-    const payload: SubmitLiveResponseInput = { sessionId, participantUid, classId: identity!.classId, stepId: step.id, responseType, value, clientNonce: createNonce() };
+    const savedState = getLiveResponseStepState(sessionId, identity.participantUid, step.id);
+    const payload: SubmitLiveResponseInput = {
+      sessionId,
+      participantUid: identity.participantUid,
+      classId: identity.classId,
+      stepId: step.id,
+      responseType,
+      value,
+      clientNonce: savedState?.clientNonce ?? createNonce(),
+    };
     try {
       enqueueLiveResponse(payload);
       refreshQueueState();
@@ -150,13 +201,18 @@ export const StudentLiveView = ({ definition, sessionId, publicState, publicStat
     event.preventDefault();
     setLoginError(null);
     if (activeSafetyMessage) { setLoginError(activeSafetyMessage); return; }
+    if (!expectedClassId) { setLoginError('Liên kết học sinh thiếu mã lớp phiên; không thể tiếp tục.'); return; }
     setLoginBusy(true);
     try {
       const result = await loginStudent(joinCode.trim(), studentId.trim(), pin.trim());
       if (!result.classId || !result.studentId) throw new Error('Phiên học sinh không hợp lệ; không thể tiếp tục.');
-      if (!auth.currentUser?.uid || !auth.currentUser.isAnonymous) throw new Error('Không xác định được phiên học sinh an toàn.');
-      setUser(auth.currentUser);
-      setStudent(result);
+      if (result.classId !== expectedClassId) throw new Error('Mã lớp của tài khoản không khớp liên kết phiên này.');
+      const activeStudentUser = auth.currentUser;
+      if (!activeStudentUser?.uid || !activeStudentUser.isAnonymous) throw new Error('Không xác định được phiên học sinh an toàn.');
+      const saved = saveStudentLoginSession(result, activeStudentUser.uid);
+      if (!saved) throw new Error('Không lưu được danh tính học sinh an toàn.');
+      setUser(activeStudentUser);
+      setStudent(saved);
     } catch (error) {
       setLoginError(error instanceof Error ? error.message : 'Không thể vào lớp.');
     } finally { setLoginBusy(false); }
@@ -165,7 +221,9 @@ export const StudentLiveView = ({ definition, sessionId, publicState, publicStat
   const status = step ? stepStatuses[step.id] : null;
   const textControl = useMemo(() => step && (step.responseTypes.includes('text') || step.responseTypes.includes('exit_ticket')), [step]);
 
+  if (!expectedClassId) return <main className="flex min-h-screen items-center justify-center bg-slate-100 p-4 text-slate-900"><section className="w-full max-w-xl rounded-[2rem] bg-white p-7 text-center shadow-xl"><p className="text-xs font-black uppercase tracking-[0.2em] text-red-600">Học sinh · liên kết không hợp lệ</p><h1 className="mt-2 text-2xl font-black">Không thể vào phiên học</h1><div className="mt-4"><LiveLessonStatus tone="error">Liên kết học sinh thiếu mã lớp của phiên. Không có phản hồi nào được gửi.</LiveLessonStatus></div></section></main>;
+  if (student && !identity) return <main className="flex min-h-screen items-center justify-center bg-slate-100 p-4 text-slate-900"><section className="w-full max-w-xl rounded-[2rem] bg-white p-7 text-center shadow-xl"><p className="text-xs font-black uppercase tracking-[0.2em] text-red-600">Học sinh · danh tính bị chặn</p><h1 className="mt-2 text-2xl font-black">Không thể gửi phản hồi</h1><div className="mt-4"><LiveLessonStatus tone="error">{activeSafetyMessage ?? 'Phiên đăng nhập hoặc mã lớp không khớp liên kết này. Hãy đăng nhập lại từ đúng liên kết học sinh.'}</LiveLessonStatus></div></section></main>;
   if (!student) return <main className="flex min-h-screen items-center justify-center bg-slate-100 p-4 text-slate-900"><form onSubmit={login} className="w-full max-w-md rounded-[2rem] bg-white p-6 shadow-xl sm:p-8"><p className="text-xs font-black uppercase tracking-[0.2em] text-indigo-600">SmartPlan · Học sinh</p><h1 className="mt-2 text-2xl font-black">Vào tiết học trực tiếp</h1><p className="mt-2 text-sm font-semibold leading-6 text-slate-500">Dùng mã lớp và PIN hiện có. PIN chỉ được gửi để xác thực, không lưu trên thiết bị.</p>{activeSafetyMessage && <LiveLessonStatus tone="error">{activeSafetyMessage}</LiveLessonStatus>}{loginError && <div className="mt-4"><LiveLessonStatus tone="error">{loginError}</LiveLessonStatus></div>}<div className="mt-5 space-y-3"><input required value={joinCode} onChange={event => setJoinCode(event.target.value)} placeholder="Mã lớp" autoComplete="off" className="w-full rounded-xl border border-slate-200 px-4 py-3 font-semibold" /><input required value={studentId} onChange={event => setStudentId(event.target.value)} placeholder="Mã học sinh" autoComplete="off" className="w-full rounded-xl border border-slate-200 px-4 py-3 font-semibold" /><input required value={pin} onChange={event => setPin(event.target.value)} placeholder="PIN" inputMode="numeric" type="password" autoComplete="off" className="w-full rounded-xl border border-slate-200 px-4 py-3 font-semibold" /></div><button disabled={loginBusy || Boolean(activeSafetyMessage)} className="mt-5 w-full rounded-xl bg-indigo-600 px-4 py-3 font-black text-white disabled:opacity-50">{loginBusy ? 'Đang xác thực…' : 'Vào lớp'}</button></form></main>;
 
-  return <main className="min-h-screen bg-slate-100 p-4 text-slate-900 sm:p-8"><div className="mx-auto max-w-4xl space-y-4"><header className="rounded-[2rem] bg-slate-950 p-5 text-white shadow-xl sm:p-7"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">Học sinh · tiết trực tiếp</p><h1 className="mt-2 text-2xl font-black sm:text-4xl">{definition.title}</h1><p className="mt-2 text-sm font-semibold text-slate-300">{student.studentName} · {student.className}</p></div><span className="rounded-full border border-emerald-400/50 px-3 py-1 text-xs font-black uppercase text-emerald-300">{publicState.status}</span></div>{publicStateError && <div className="mt-4"><LiveLessonStatus tone="warning">Mất kết nối trạng thái. Đang giữ màn hình cuối; sẽ tự kết nối lại.</LiveLessonStatus></div>}</header><section className="grid gap-4 md:grid-cols-2"><article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-black uppercase tracking-widest text-cyan-700">Màn hình chung</p><h2 className="mt-3 text-xl font-black">{tvScreen?.title ?? 'Đang chờ màn hình'}</h2><p className="mt-3 whitespace-pre-line text-sm font-semibold leading-6 text-slate-600">{tvScreen?.body ?? 'Chưa có nội dung công khai.'}</p></article><article className="rounded-3xl border border-indigo-100 bg-indigo-50 p-5 shadow-sm"><p className="text-xs font-black uppercase tracking-widest text-indigo-700">Việc của em</p><h2 className="mt-3 text-xl font-black text-indigo-950">{studentScreen?.label ?? 'Theo dõi hướng dẫn'}</h2><p className="mt-3 text-sm font-semibold leading-6 text-indigo-900">{studentScreen?.action ?? 'Chờ giáo viên chuyển sang bước phản hồi.'}</p></article></section>{step && <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-widest text-indigo-600">Bước phản hồi</p><h2 className="mt-2 text-2xl font-black">{step.label}</h2></div>{queueCount > 0 && <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-800">{queueCount} phản hồi chờ đồng bộ</span>}</div><div className="mt-5 space-y-4"><ResponseControl responseTypes={step.responseTypes} stepId={step.id} value={selectedValue} onChange={(value, type) => { setSelectedValue(value); if (type === 'choice' || type === 'route' || type === 'boolean') void submit(type, value); }} />{step.responseTypes.includes('hint') && <div className="flex gap-2"><button type="button" onClick={() => void submit('hint', 1)} className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-black text-amber-800">Gợi ý 1</button><button type="button" onClick={() => void submit('hint', 2)} className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-black text-amber-800">Gợi ý 2</button></div>}{textControl && <><textarea value={textValue} maxLength={step.maxTextLength ?? 2000} onChange={event => setTextValue(event.target.value)} placeholder="Viết câu trả lời của em…" className="min-h-32 w-full rounded-2xl border border-slate-200 p-4 font-semibold" /><button type="button" onClick={() => void submit(step.responseTypes.includes('exit_ticket') ? 'exit_ticket' : 'text', textValue)} className="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-black text-white">Gửi</button></>}{status && <LiveLessonStatus tone={status.tone}>{status.message}</LiveLessonStatus>}<button type="button" onClick={() => void flushQueue()} disabled={flushing || !navigator.onLine} className="text-sm font-black text-indigo-700 underline disabled:text-slate-400">{flushing ? 'Đang thử lại…' : 'Thử đồng bộ lại'}</button></div></section>}{!step && <LiveLessonStatus>Chưa đến bước cần phản hồi. Theo dõi màn hình chung và hướng dẫn của giáo viên.</LiveLessonStatus>}</div></main>;
+  return <main className="min-h-screen bg-slate-100 p-4 text-slate-900 sm:p-8"><div className="mx-auto max-w-4xl space-y-4"><header className="rounded-[2rem] bg-slate-950 p-5 text-white shadow-xl sm:p-7"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">Học sinh · tiết trực tiếp</p><h1 className="mt-2 text-2xl font-black sm:text-4xl">{definition.title}</h1><p className="mt-2 text-sm font-semibold text-slate-300">{student.studentName} · {student.className}</p></div><span className="rounded-full border border-emerald-400/50 px-3 py-1 text-xs font-black uppercase text-emerald-300">{publicState.status}</span></div>{publicStateError && <div className="mt-4"><LiveLessonStatus tone="warning">Mất kết nối trạng thái. Đang giữ màn hình cuối; sẽ tự kết nối lại.</LiveLessonStatus></div>}</header><section className="grid gap-4 md:grid-cols-2"><article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-black uppercase tracking-widest text-cyan-700">Màn hình chung</p><h2 className="mt-3 text-xl font-black">{tvScreen?.title ?? 'Đang chờ màn hình'}</h2><p className="mt-3 whitespace-pre-line text-sm font-semibold leading-6 text-slate-600">{tvScreen?.body ?? 'Chưa có nội dung công khai.'}</p></article><article className="rounded-3xl border border-indigo-100 bg-indigo-50 p-5 shadow-sm"><p className="text-xs font-black uppercase tracking-widest text-indigo-700">Việc của em</p><h2 className="mt-3 text-xl font-black text-indigo-950">{studentScreen?.label ?? 'Theo dõi hướng dẫn'}</h2><p className="mt-3 text-sm font-semibold leading-6 text-indigo-900">{studentScreen?.action ?? 'Chờ giáo viên chuyển sang bước phản hồi.'}</p></article></section>{(blockedQueueCount > 0 || retryableQueueCount > 0) && <LiveLessonStatus tone={blockedQueueCount > 0 ? 'error' : 'warning'}>{blockedQueueCount > 0 ? `${blockedQueueCount} phản hồi bị chặn; hãy gửi câu trả lời mới ở bước tương ứng.` : `${retryableQueueCount} phản hồi đang chờ mạng để đồng bộ.`}</LiveLessonStatus>}{step && <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-widest text-indigo-600">Bước phản hồi</p><h2 className="mt-2 text-2xl font-black">{step.label}</h2></div>{queueCount > 0 && <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-800">{queueCount} phản hồi cần đồng bộ hoặc xử lý</span>}</div><div className="mt-5 space-y-4"><ResponseControl responseTypes={step.responseTypes} stepId={step.id} value={selectedValue} onChange={(value, type) => { setSelectedValue(value); if (type === 'choice' || type === 'route' || type === 'boolean') void submit(type, value); }} />{step.responseTypes.includes('hint') && <div><p className="mb-2 text-sm font-semibold text-amber-800">Chỉ mức gợi ý gần nhất của bước này được lưu; mức mới sẽ cập nhật mức trước.</p><div className="flex gap-2"><button type="button" onClick={() => void submit('hint', 1)} className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-black text-amber-800">Gợi ý 1</button><button type="button" onClick={() => void submit('hint', 2)} className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-black text-amber-800">Gợi ý 2</button></div></div>}{textControl && <><textarea value={textValue} maxLength={step.maxTextLength ?? 2000} onChange={event => setTextValue(event.target.value)} placeholder="Viết câu trả lời của em…" className="min-h-32 w-full rounded-2xl border border-slate-200 p-4 font-semibold" /><button type="button" onClick={() => void submit(step.responseTypes.includes('exit_ticket') ? 'exit_ticket' : 'text', textValue)} className="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-black text-white">Gửi</button></>}{status && <LiveLessonStatus tone={status.tone}>{status.message}</LiveLessonStatus>}<button type="button" onClick={() => void flushQueue()} disabled={flushing || !navigator.onLine} className="text-sm font-black text-indigo-700 underline disabled:text-slate-400">{flushing ? 'Đang thử lại…' : 'Thử đồng bộ lại'}</button></div></section>}{!step && <LiveLessonStatus>Chưa đến bước cần phản hồi. Theo dõi màn hình chung và hướng dẫn của giáo viên.</LiveLessonStatus>}</div></main>;
 };

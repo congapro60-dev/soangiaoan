@@ -20,6 +20,10 @@ export interface LoginResponse {
   studentName: string;
 }
 
+export interface StudentLoginSession extends LoginResponse {
+  anonymousUid: string;
+}
+
 const STUDENT_LOGIN_SESSION_KEY = 'smartplan-ai:live-student-session';
 const LOGIN_RESPONSE_KEYS: (keyof LoginResponse)[] = [
   'studentId',
@@ -36,6 +40,12 @@ const isLoginResponse = (value: unknown): value is LoginResponse => (
     && ((value as Record<string, unknown>)[key] as string).trim().length > 0)
 );
 
+const isStudentLoginSession = (value: unknown): value is StudentLoginSession => (
+  isLoginResponse(value)
+  && typeof (value as unknown as { anonymousUid?: unknown }).anonymousUid === 'string'
+  && ((value as unknown as { anonymousUid: string }).anonymousUid).trim().length > 0
+);
+
 const getSessionStorage = (): Storage | null => {
   try {
     return typeof sessionStorage === 'undefined' ? null : sessionStorage;
@@ -44,34 +54,38 @@ const getSessionStorage = (): Storage | null => {
   }
 };
 
-export const saveStudentLoginSession = (value: LoginResponse): void => {
-  if (!isLoginResponse(value)) return;
-  const payload: LoginResponse = {
+export const saveStudentLoginSession = (value: LoginResponse, anonymousUid: string): StudentLoginSession | null => {
+  if (!isLoginResponse(value) || typeof anonymousUid !== 'string' || !anonymousUid.trim()) return null;
+  const payload: StudentLoginSession = {
     studentId: value.studentId,
     classId: value.classId,
     teacherId: value.teacherId,
     className: value.className,
     studentName: value.studentName,
+    anonymousUid,
   };
   try {
     getSessionStorage()?.setItem(STUDENT_LOGIN_SESSION_KEY, JSON.stringify(payload));
   } catch {
     // Storage is optional; login behavior must not depend on it.
   }
+  return payload;
 };
 
-export const getStudentLoginSession = (): LoginResponse | null => {
+export const getStudentLoginSession = (anonymousUid: string | null | undefined): StudentLoginSession | null => {
+  if (typeof anonymousUid !== 'string' || !anonymousUid.trim()) return null;
   try {
     const raw = getSessionStorage()?.getItem(STUDENT_LOGIN_SESSION_KEY);
     if (!raw) return null;
     const parsed: unknown = JSON.parse(raw);
-    if (!isLoginResponse(parsed)) return null;
+    if (!isStudentLoginSession(parsed) || parsed.anonymousUid !== anonymousUid) return null;
     return {
       studentId: parsed.studentId,
       classId: parsed.classId,
       teacherId: parsed.teacherId,
       className: parsed.className,
       studentName: parsed.studentName,
+      anonymousUid: parsed.anonymousUid,
     };
   } catch {
     return null;

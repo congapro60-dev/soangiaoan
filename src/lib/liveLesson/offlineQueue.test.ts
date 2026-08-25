@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { SubmitLiveResponseInput } from './types';
 import {
+  classifyLiveResponseError,
   enqueueLiveResponse,
   flushLiveResponseQueue,
   getQueuedLiveResponses,
@@ -22,6 +23,15 @@ const storage = (): Storage => {
 };
 
 describe('live lesson offline response queue', () => {
+  it.each(['permission-denied', 'failed-precondition', 'not-found', 'invalid-argument', 'closed', 'expired'])('classifies %s as a permanent blocked failure', code => {
+    expect(classifyLiveResponseError({ code })).toBe('blocked');
+  });
+
+  it('keeps network failures retryable', () => {
+    expect(classifyLiveResponseError({ code: 'unavailable' })).toBe('retryable');
+    expect(classifyLiveResponseError(new Error('network down'))).toBe('retryable');
+  });
+
   it('keeps only the latest response for one participant and step', () => {
     const store = storage();
     enqueueLiveResponse(input(), store, 1);
@@ -46,9 +56,35 @@ describe('live lesson offline response queue', () => {
     enqueueLiveResponse(input({ stepId: 'warmup' }), store, 1);
     enqueueLiveResponse(input({ stepId: 'goals', clientNonce: 'nonce-223456789012345678901234' }), store, 2);
     const result = await flushLiveResponseQueue(vi.fn().mockRejectedValue(new Error('network down')), 'session-1', 'student-1', store);
-    expect(result.failed).toMatchObject({ stepId: 'warmup' });
+    expect(result.failed).toMatchObject({ kind: 'retryable', message: 'network down', item: { stepId: 'warmup' } });
     expect(result.synced).toBe(0);
     expect(getQueuedLiveResponses('session-1', 'student-1', store)).toHaveLength(2);
+  });
+
+  it('blocks permanent failures, does not retry blocked items, and allows a new answer to unblock the step', async () => {
+    const store = storage();
+    const first = enqueueLiveResponse(input(), store, 1);
+    const submit = vi.fn().mockRejectedValue(Object.assign(new Error('permission-denied'), { code: 'permission-denied' }));
+
+    const failed = await flushLiveResponseQueue(submit, 'session-1', 'student-1', store);
+    expect(failed.failed).toMatchObject({ kind: 'blocked', item: { stepId: 'warmup', deliveryState: 'blocked' } });
+    expect(getQueuedLiveResponses('session-1', 'student-1', store)[0]).toMatchObject({ deliveryState: 'blocked', lastError: 'permission-denied' });
+
+    await flushLiveResponseQueue(submit, 'session-1', 'student-1', store);
+    expect(submit).toHaveBeenCalledOnce();
+
+    const replacement = enqueueLiveResponse(input({ value: 'B', clientNonce: 'new-client-nonce' }), store, 2);
+    expect(replacement).toMatchObject({ value: 'B', clientNonce: first.clientNonce, deliveryState: 'pending' });
+  });
+
+  it('keeps one stable nonce after sync and collapses hint tiers to the latest response for the step', async () => {
+    const store = storage();
+    const first = enqueueLiveResponse(input({ responseType: 'hint', value: 1 }), store, 1);
+    await expect(flushLiveResponseQueue(vi.fn().mockResolvedValue(undefined), 'session-1', 'student-1', store)).resolves.toMatchObject({ synced: 1 });
+    const latest = enqueueLiveResponse(input({ responseType: 'hint', value: 2, clientNonce: 'another-nonce' }), store, 2);
+
+    expect(latest.clientNonce).toBe(first.clientNonce);
+    expect(getQueuedLiveResponses('session-1', 'student-1', store)).toEqual([expect.objectContaining({ value: 2, stepId: 'warmup' })]);
   });
 
   it('rejects malformed payloads before storage and never stores a PIN', () => {

@@ -10,12 +10,19 @@ describe('live lesson launcher helpers', () => {
   });
 
   it('builds teacher, TV and student URLs with one session id', () => {
-    const urls = buildLiveLessonUrls('session-123', 'https://smartplan.test');
+    const urls = buildLiveLessonUrls('session-123', 'https://smartplan.test', 'class-123');
     expect(urls.teacher).toBe('https://smartplan.test/adaptive-live/session-123?mode=teacher');
     expect(urls.tv).toBe('https://smartplan.test/adaptive-live/session-123?mode=tv');
-    expect(urls.student).toBe('https://smartplan.test/adaptive-live/session-123?mode=student');
+    expect(urls.student).toBe('https://smartplan.test/adaptive-live/session-123?mode=student&classId=class-123');
     expect(new Set(Object.values(urls).map(url => url.match(/adaptive-live\/([^?]+)/)?.[1]))).toEqual(new Set(['session-123']));
     expect(Object.values(urls).join(' ')).not.toMatch(/pin|secret/i);
+  });
+
+  it('does not add the class binding to teacher or TV URLs', () => {
+    const urls = buildLiveLessonUrls('session-123', 'https://smartplan.test', 'class/secret?no');
+    expect(urls.teacher).not.toContain('classId');
+    expect(urls.tv).not.toContain('classId');
+    expect(urls.student).toContain('classId=class%2Fsecret%3Fno');
   });
 
   it('rejects a published lesson without the matching pilot definition', () => {

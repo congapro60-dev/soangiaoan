@@ -239,7 +239,8 @@ describe('liveLessonService Firestore boundary', () => {
     await expect(updateLiveLessonState('session-1', { status: undefined })).rejects.toThrow(/undefined/i);
   });
 
-  it('overwrites the deterministic response document and writes no client timestamp or PIN', async () => {
+  it('creates a deterministic response after the merge-update probe and writes no client timestamp or PIN', async () => {
+    firestoreMocks.setDoc.mockRejectedValueOnce(Object.assign(new Error('missing response document'), { code: 'permission-denied' }));
     await submitLiveResponse({
       sessionId: 'session-1',
       participantUid: 'student-1',
@@ -249,7 +250,8 @@ describe('liveLessonService Firestore boundary', () => {
       value: 'A',
       clientNonce: 'nonce-1',
     });
-    const payload = firestoreMocks.setDoc.mock.calls[0][1] as Record<string, unknown>;
+    const updateProbe = firestoreMocks.setDoc.mock.calls[0][1] as Record<string, unknown>;
+    const payload = firestoreMocks.setDoc.mock.calls[1][1] as Record<string, unknown>;
 
     expect(firestoreMocks.doc).toHaveBeenCalledWith(
       firestoreMocks.db,
@@ -258,12 +260,53 @@ describe('liveLessonService Firestore boundary', () => {
       'responses',
       'student-1__warmup',
     );
+    expect(updateProbe).toEqual({
+      responseType: 'choice', value: 'A', clientNonce: 'nonce-1', updatedAt: { __type: 'serverTimestamp' },
+    });
+    expect(firestoreMocks.setDoc.mock.calls[0][2]).toEqual({ merge: true });
     expect(Object.keys(payload).sort()).toEqual([
       'classId', 'clientNonce', 'participantUid', 'responseType', 'stepId', 'submittedAt', 'updatedAt', 'value',
     ].sort());
     expect(JSON.stringify(payload)).not.toContain('pin');
     expect(payload.submittedAt).toEqual({ __type: 'serverTimestamp' });
     expect(payload.updatedAt).toEqual({ __type: 'serverTimestamp' });
+  });
+
+  it('updates an existing response without replacing its original submittedAt or clientNonce', async () => {
+    firestoreMocks.setDoc.mockResolvedValueOnce(undefined);
+    await submitLiveResponse({
+      sessionId: 'session-1', participantUid: 'student-1', classId: 'class-1', stepId: 'warmup',
+      responseType: 'choice', value: 'B', clientNonce: 'nonce-1',
+    });
+
+    expect(firestoreMocks.setDoc).toHaveBeenCalledOnce();
+    expect(firestoreMocks.setDoc.mock.calls[0][1]).toEqual({
+      responseType: 'choice', value: 'B', clientNonce: 'nonce-1', updatedAt: { __type: 'serverTimestamp' },
+    });
+    expect(firestoreMocks.setDoc.mock.calls[0][1]).not.toHaveProperty('submittedAt');
+    expect(firestoreMocks.setDoc.mock.calls[0][2]).toEqual({ merge: true });
+  });
+
+  it('uses the same response path and nonce for create then update-compatible resubmission', async () => {
+    firestoreMocks.setDoc
+      .mockRejectedValueOnce(Object.assign(new Error('missing response document'), { code: 'permission-denied' }))
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined);
+    const base = {
+      sessionId: 'session-1', participantUid: 'student-1', classId: 'class-1', stepId: 'warmup',
+      responseType: 'choice' as const, clientNonce: 'stable-nonce',
+    };
+
+    await submitLiveResponse({ ...base, value: 'A' });
+    await submitLiveResponse({ ...base, value: 'B' });
+
+    expect(firestoreMocks.setDoc).toHaveBeenCalledTimes(3);
+    expect(firestoreMocks.setDoc.mock.calls[0][0].path).toBe(firestoreMocks.setDoc.mock.calls[1][0].path);
+    expect(firestoreMocks.setDoc.mock.calls[1][0].path).toBe(firestoreMocks.setDoc.mock.calls[2][0].path);
+    expect(firestoreMocks.setDoc.mock.calls[1][1]).toMatchObject({ clientNonce: 'stable-nonce', value: 'A' });
+    expect(firestoreMocks.setDoc.mock.calls[2][1]).toMatchObject({ clientNonce: 'stable-nonce', value: 'B' });
+    expect(firestoreMocks.setDoc.mock.calls[2][1]).not.toHaveProperty('submittedAt');
+    expect(firestoreMocks.setDoc.mock.calls[2][2]).toEqual({ merge: true });
   });
 
   it('rejects unsafe response inputs before writing', async () => {
@@ -402,7 +445,7 @@ describe('listTeacherClasses', () => {
 });
 
 describe('student login session storage', () => {
-  it('stores only LoginResponse fields and never a PIN or join code', () => {
+  it('stores the anonymous Firebase uid with LoginResponse fields and never a PIN or join code', () => {
     let stored = '';
     const storage = {
       getItem: vi.fn(() => stored || null),
@@ -411,12 +454,14 @@ describe('student login session storage', () => {
     };
     vi.stubGlobal('sessionStorage', storage);
 
-    saveStudentLoginSession({ ...login, pin: '1234', joinCode: 'JOIN' } as never);
+    saveStudentLoginSession({ ...login, pin: '1234', joinCode: 'JOIN' } as never, 'anon-1');
     expect(stored).not.toContain('1234');
     expect(stored).not.toContain('joinCode');
-    expect(getStudentLoginSession()).toEqual(login);
+    expect(JSON.parse(stored)).toMatchObject({ ...login, anonymousUid: 'anon-1' });
+    expect(getStudentLoginSession('anon-1')).toMatchObject({ ...login, anonymousUid: 'anon-1' });
+    expect(getStudentLoginSession('stale-anon')).toBeNull();
     clearStudentLoginSession();
-    expect(getStudentLoginSession()).toBeNull();
+    expect(getStudentLoginSession('anon-1')).toBeNull();
   });
 
   it('returns null for malformed or invalid storage and tolerates unavailable storage', () => {
@@ -426,12 +471,14 @@ describe('student login session storage', () => {
       removeItem: vi.fn(),
     };
     vi.stubGlobal('sessionStorage', storage);
-    expect(getStudentLoginSession()).toBeNull();
+    expect(getStudentLoginSession('anon-1')).toBeNull();
     storage.getItem.mockReturnValue(JSON.stringify({ ...login, studentId: '' }));
-    expect(getStudentLoginSession()).toBeNull();
+    expect(getStudentLoginSession('anon-1')).toBeNull();
+    storage.getItem.mockReturnValue(JSON.stringify({ ...login, anonymousUid: 'other-anon' }));
+    expect(getStudentLoginSession('anon-1')).toBeNull();
     vi.stubGlobal('sessionStorage', undefined);
-    expect(getStudentLoginSession()).toBeNull();
-    expect(() => saveStudentLoginSession(login)).not.toThrow();
+    expect(getStudentLoginSession('anon-1')).toBeNull();
+    expect(() => saveStudentLoginSession(login, 'anon-1')).not.toThrow();
     expect(() => clearStudentLoginSession()).not.toThrow();
   });
 });

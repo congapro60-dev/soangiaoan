@@ -77,6 +77,10 @@ export const LiveLessonPage = () => {
   const location = useLocation();
   const modeParam = useMemo(() => new URLSearchParams(location.search).get('mode'), [location.search]);
   const mode = parseLiveLessonMode(modeParam);
+  const expectedStudentClassId = useMemo(
+    () => mode === 'student' ? (new URLSearchParams(location.search).get('classId')?.trim() || null) : null,
+    [location.search, mode],
+  );
   const [user, setUser] = useState<User | null>(auth.currentUser);
   const [authReady, setAuthReady] = useState(false);
   const [session, setSession] = useState<LiveLessonSession | null>(null);
@@ -188,7 +192,7 @@ export const LiveLessonPage = () => {
     return <TvLiveView definition={tvDefinition} sessionId={sessionId} publicState={publicState} publicStateError={publicStateError} />;
   }
   if (mode === 'student' && publicState) {
-    return <StudentLiveView definition={projectLiveLessonDefinition(definition, 'student')} sessionId={sessionId} publicState={publicState} publicStateError={publicStateError} />;
+    return <StudentLiveView definition={projectLiveLessonDefinition(definition, 'student')} sessionId={sessionId} expectedClassId={expectedStudentClassId} publicState={publicState} publicStateError={publicStateError} />;
   }
   return <PlaceholderPanel mode={mode} projection={projectLiveLessonDefinition(definition, mode)} />;
 };
