@@ -60,6 +60,7 @@ const repairDollarBalance = (s: string): string => {
 /** Tách chuỗi (đã cân `$`) thành mảng vùng math/text. Index lẻ sau split('$') = math. */
 export const tokenizeMath = (input: string): MathToken[] => {
   const delimiters = [
+    { open: '$$', close: '$$' },
     { open: '$', close: '$' },
     { open: '\\(', close: '\\)' },
     { open: '\\[', close: '\\]' },

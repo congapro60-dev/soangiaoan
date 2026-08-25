@@ -19,6 +19,10 @@ describe('sanitizeDisplayText — F2: không phá vùng $...$ có sẵn', () => 
     expect(out).toBe('$a^2 = b^2 + c^2$');
     expect(assertClean(out)).toBe(true);
   });
+
+  it('giữ nguyên delimiter display math $$...$$, không bọc thành nhiều dấu $', () => {
+    expect(sanitizeDisplayText('$$\\frac{x}{2}$$')).toBe('$$\\displaystyle \\frac{x}{2}$$');
+  });
 });
 
 describe('sanitizeDisplayText — F1: option thiếu $ mở, LaTeX + unicode trộn lẫn', () => {
