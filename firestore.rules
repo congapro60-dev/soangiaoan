@@ -416,7 +416,53 @@ service cloud.firestore {
       }
 
       function llv3SafeCount(data) {
-        return data is number && data >= 0 && data <= 10000;
+        return data is number && data == data && data >= 0 && data <= 10000;
+      }
+
+      function llv3SafeChoiceCountsABCD(data) {
+        return !data.keys().hasAny(['A', 'B', 'C', 'D'])
+               || ((!('A' in data) || llv3SafeCount(data['A']))
+                   && (!('B' in data) || llv3SafeCount(data['B']))
+                   && (!('C' in data) || llv3SafeCount(data['C']))
+                   && (!('D' in data) || llv3SafeCount(data['D'])));
+      }
+
+      function llv3SafeChoiceCountsGroups(data) {
+        return !data.keys().hasAny(['G1', 'G2', 'G3', 'Yes', 'No'])
+               || ((!('G1' in data) || llv3SafeCount(data['G1']))
+                   && (!('G2' in data) || llv3SafeCount(data['G2']))
+                   && (!('G3' in data) || llv3SafeCount(data['G3']))
+                   && (!('Yes' in data) || llv3SafeCount(data['Yes']))
+                   && (!('No' in data) || llv3SafeCount(data['No'])));
+      }
+
+      function llv3SafeChoiceCountsTokens(data) {
+        return !data.keys().hasAny(['true', 'false', 'x', 'y', '=', '<=', '>='])
+               || ((!('true' in data) || llv3SafeCount(data['true']))
+                   && (!('false' in data) || llv3SafeCount(data['false']))
+                   && (!('x' in data) || llv3SafeCount(data['x']))
+                   && (!('y' in data) || llv3SafeCount(data['y']))
+                   && (!('=' in data) || llv3SafeCount(data['=']))
+                   && (!('<=' in data) || llv3SafeCount(data['<=']))
+                   && (!('>=' in data) || llv3SafeCount(data['>='])));
+      }
+
+      function llv3SafeChoiceCountsDigitsLow(data) {
+        return !data.keys().hasAny(['0', '1', '2', '3', '4'])
+               || ((!('0' in data) || llv3SafeCount(data['0']))
+                   && (!('1' in data) || llv3SafeCount(data['1']))
+                   && (!('2' in data) || llv3SafeCount(data['2']))
+                   && (!('3' in data) || llv3SafeCount(data['3']))
+                   && (!('4' in data) || llv3SafeCount(data['4'])));
+      }
+
+      function llv3SafeChoiceCountsDigitsHigh(data) {
+        return !data.keys().hasAny(['5', '6', '7', '8', '9'])
+               || ((!('5' in data) || llv3SafeCount(data['5']))
+                   && (!('6' in data) || llv3SafeCount(data['6']))
+                   && (!('7' in data) || llv3SafeCount(data['7']))
+                   && (!('8' in data) || llv3SafeCount(data['8']))
+                   && (!('9' in data) || llv3SafeCount(data['9'])));
       }
 
       function llv3SafeChoiceCounts(data) {
@@ -426,19 +472,32 @@ service cloud.firestore {
                     'true', 'false', 'x', 'y', '=', '<=', '>=',
                     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
                   ])
-               && data.keys().size() <= 25;
+               && data.keys().size() <= 25
+               && llv3SafeChoiceCountsABCD(data)
+               && llv3SafeChoiceCountsGroups(data)
+               && llv3SafeChoiceCountsTokens(data)
+               && llv3SafeChoiceCountsDigitsLow(data)
+               && llv3SafeChoiceCountsDigitsHigh(data);
       }
 
       function llv3SafeRouteCounts(data) {
                return data is map
                && data.keys().hasOnly(['M', 'S', 'C'])
-               && data.keys().size() <= 3;
+               && data.keys().size() <= 3
+               && (!('M' in data) || llv3SafeCount(data['M']))
+               && (!('S' in data) || llv3SafeCount(data['S']))
+               && (!('C' in data) || llv3SafeCount(data['C']));
       }
 
       function llv3SafeErrorCounts(data) {
                return data is map
                && data.keys().hasOnly(['Conceptual', 'Algebraic', 'Logical', 'Missing condition'])
-               && data.keys().size() <= 4;
+               && data.keys().size() <= 4
+               && (!('Conceptual' in data) || llv3SafeCount(data['Conceptual']))
+               && (!('Algebraic' in data) || llv3SafeCount(data['Algebraic']))
+               && (!('Logical' in data) || llv3SafeCount(data['Logical']))
+               && (!('Missing condition' in data)
+                   || llv3SafeCount(data['Missing condition']));
       }
 
       function llv3ValidPublicState(data) {

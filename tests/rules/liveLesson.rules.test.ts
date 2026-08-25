@@ -320,10 +320,19 @@ describe('liveLessonSessions/{sessionId}/public · safe public documents', () =>
 
   it('public count maps reject unknown keys and negative counts → DENY', async () => {
     await assertFails(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
+      choiceCounts: { A: -1 },
+    })));
+    await assertFails(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
       choiceCounts: { PII: 1 },
     })));
     await assertFails(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
+      routeCounts: { M: -1 },
+    })));
+    await assertFails(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
       routeCounts: { M: 1, S: 0, C: 0, X: 1 },
+    })));
+    await assertFails(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
+      errorCategoryCounts: { Conceptual: -1 },
     })));
     await assertFails(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
       errorCategoryCounts: { Conceptual: 1, PII: 1 },
