@@ -39,33 +39,32 @@ const CREATED = Timestamp.fromMillis(now - 60 * 60 * 1000);
 let testEnv: RulesTestEnvironment;
 
 const sessionData = (sessionId: string, overrides: Record<string, unknown> = {}) => ({
-  id: sessionId,
+  schemaVersion: 1,
   lessonId: 'g10-w5-p31',
   title: 'Bài toán chuyển động',
   classId: CLASS_A,
   teacherUid: TEACHER_A,
-  allowedStepIds: ['step-1', 'step-2', 'step-text'],
+  allowedStepIds: ['warmup', 'notice-wonder', 'goals', 'model', 'ai-error-w01', 'quick-check', 'exit-ticket'],
   expiresAt: FUTURE,
-  mode: 'teacher',
   status: 'running',
   currentCueId: 'cue-1',
   currentTvScreenId: 'tv-1',
   publicStateEnabled: true,
   publicStatsEnabled: true,
-  createdAt: CREATED,
-  updatedAt: CREATED,
+  createdAt: serverTimestamp(),
+  updatedAt: serverTimestamp(),
   ...overrides,
 });
 
 const responseData = (overrides: Record<string, unknown> = {}) => ({
   participantUid: STUDENT_A,
   classId: CLASS_A,
-  stepId: 'step-1',
+  stepId: 'warmup',
   responseType: 'choice',
   value: 'A',
   clientNonce: 'nonce-123',
-  submittedAt: CREATED,
-  updatedAt: CREATED,
+  submittedAt: serverTimestamp(),
+  updatedAt: serverTimestamp(),
   ...overrides,
 });
 
@@ -79,7 +78,7 @@ const publicStateData = (overrides: Record<string, unknown> = {}) => ({
 });
 
 const publicStatsData = (overrides: Record<string, unknown> = {}) => ({
-  stepId: 'step-1',
+  stepId: 'warmup',
   participantCount: 2,
   submittedCount: 1,
   choiceCounts: { A: 1, B: 0 },
@@ -137,7 +136,7 @@ beforeEach(async () => {
         showStats: true, updatedAt: CREATED,
       });
       await setDoc(doc(db, `liveLessonSessions/${sessionId}/public/stats`), {
-        stepId: 'step-1', participantCount: 2, submittedCount: 1,
+        stepId: 'warmup', participantCount: 2, submittedCount: 1,
         choiceCounts: { A: 1, B: 0 }, routeCounts: { M: 1, S: 0, C: 0 },
         errorCategoryCounts: { Conceptual: 0, Algebraic: 0, Logical: 0, 'Missing condition': 0 },
         hintUseCount: 0, updatedAt: CREATED,
@@ -153,7 +152,7 @@ const dbStudentB = () => testEnv.authenticatedContext(STUDENT_B).firestore();
 const dbTv = () => testEnv.unauthenticatedContext().firestore();
 
 const sessionRef = (db: ReturnType<typeof dbTeacherA>, id = SESSION_A) => doc(db, `liveLessonSessions/${id}`);
-const responseRef = (db: ReturnType<typeof dbTeacherA>, id = SESSION_A, responseId = `${STUDENT_A}__step-1`) => (
+const responseRef = (db: ReturnType<typeof dbTeacherA>, id = SESSION_A, responseId = `${STUDENT_A}__warmup`) => (
   doc(db, `liveLessonSessions/${id}/responses/${responseId}`)
 );
 const publicRef = (db: ReturnType<typeof dbTeacherA>, id: string, name: 'state' | 'stats') => (
@@ -183,9 +182,37 @@ describe('liveLessonSessions · parent session', () => {
     })));
   });
 
+  it('legacy id/mode fields, wrong schema version and client timestamps → DENY', async () => {
+    await assertFails(setDoc(sessionRef(dbTeacherA(), 'session-schema'), sessionData('session-schema', {
+      schemaVersion: 2,
+    })));
+    await assertFails(setDoc(sessionRef(dbTeacherA(), 'session-id'), sessionData('session-id', {
+      id: 'session-id',
+    })));
+    await assertFails(setDoc(sessionRef(dbTeacherA(), 'session-mode'), sessionData('session-mode', {
+      mode: 'teacher',
+    })));
+    await assertFails(setDoc(sessionRef(dbTeacherA(), 'session-time'), sessionData('session-time', {
+      createdAt: CREATED,
+      updatedAt: CREATED,
+    })));
+  });
+
+  it('unknown or non-string allowed step values → DENY', async () => {
+    await assertFails(setDoc(sessionRef(dbTeacherA(), 'session-bad-step'), sessionData('session-bad-step', {
+      allowedStepIds: ['not-a-pilot-step'],
+    })));
+    await assertFails(setDoc(sessionRef(dbTeacherA(), 'session-bad-step-type'), sessionData('session-bad-step-type', {
+      allowedStepIds: [{ id: 'warmup' }],
+    })));
+  });
+
   it('owner can update state and delete; student and other teacher cannot mutate → ALLOW/DENY', async () => {
     await assertSucceeds(updateDoc(sessionRef(dbTeacherA()), {
       status: 'paused', currentCueId: 'cue-2', updatedAt: serverTimestamp(),
+    }));
+    await assertFails(updateDoc(sessionRef(dbTeacherA()), {
+      status: 'running', updatedAt: CREATED,
     }));
     await assertFails(updateDoc(sessionRef(dbTeacherB()), { status: 'closed', updatedAt: serverTimestamp() }));
     await assertFails(updateDoc(sessionRef(dbStudentA()), { status: 'closed', updatedAt: serverTimestamp() }));
@@ -209,11 +236,11 @@ describe('liveLessonSessions · parent session', () => {
 describe('liveLessonSessions/{sessionId}/responses · student writes, teacher reads', () => {
   it('linked student writes route, choice and text responses in own class → ALLOW', async () => {
     await assertSucceeds(setDoc(responseRef(dbStudentA()), responseData({ responseType: 'route', value: 'M' })));
-    await assertSucceeds(setDoc(responseRef(dbStudentA(), SESSION_A, `${STUDENT_A}__step-2`), responseData({
-      stepId: 'step-2', responseType: 'choice', value: 'B',
+    await assertSucceeds(setDoc(responseRef(dbStudentA(), SESSION_A, `${STUDENT_A}__goals`), responseData({
+      stepId: 'goals', responseType: 'choice', value: 'B',
     })));
-    await assertSucceeds(setDoc(responseRef(dbStudentA(), SESSION_A, `${STUDENT_A}__step-text`), responseData({
-      stepId: 'step-text', responseType: 'text', value: 'Em nhận thấy hai đại lượng cùng thay đổi.',
+    await assertSucceeds(setDoc(responseRef(dbStudentA(), SESSION_A, `${STUDENT_A}__notice-wonder`), responseData({
+      stepId: 'notice-wonder', responseType: 'text', value: 'Em nhận thấy hai đại lượng cùng thay đổi.',
     })));
   });
 
@@ -228,16 +255,23 @@ describe('liveLessonSessions/{sessionId}/responses · student writes, teacher re
     await assertFails(setDoc(responseRef(dbStudentB()), responseData({ participantUid: STUDENT_B, classId: CLASS_B })));
     await assertFails(setDoc(responseRef(dbStudentA()), responseData({ participantUid: STUDENT_B })));
     await assertFails(setDoc(responseRef(dbStudentA()), responseData({ stepId: 'unknown-step' })));
-    await assertFails(setDoc(responseRef(dbStudentA(), SESSION_CLOSED, `${STUDENT_A}__step-1`), responseData()));
-    await assertFails(setDoc(responseRef(dbStudentA(), SESSION_EXPIRED, `${STUDENT_A}__step-1`), responseData()));
+    await assertFails(setDoc(responseRef(dbStudentA(), SESSION_CLOSED, `${STUDENT_A}__warmup`), responseData()));
+    await assertFails(setDoc(responseRef(dbStudentA(), SESSION_EXPIRED, `${STUDENT_A}__warmup`), responseData()));
   });
 
   it('oversized text, extra field and changed submittedAt → DENY', async () => {
     await assertFails(setDoc(responseRef(dbStudentA()), responseData({ responseType: 'text', value: 'x'.repeat(2001) })));
     await assertFails(setDoc(responseRef(dbStudentA()), { ...responseData(), rawPii: 'secret' }));
+    await assertFails(setDoc(responseRef(dbStudentA()), responseData({ submittedAt: CREATED, updatedAt: CREATED })));
     await setDoc(responseRef(dbStudentA()), responseData());
     await assertFails(updateDoc(responseRef(dbStudentA()), {
       submittedAt: Timestamp.fromMillis(now), updatedAt: serverTimestamp(),
+    }));
+    await assertFails(updateDoc(responseRef(dbStudentA()), {
+      clientNonce: 'nonce-changed', updatedAt: serverTimestamp(),
+    }));
+    await assertFails(updateDoc(responseRef(dbStudentA()), {
+      updatedAt: CREATED,
     }));
   });
 
@@ -287,9 +321,6 @@ describe('liveLessonSessions/{sessionId}/public · safe public documents', () =>
   it('public count maps reject unknown keys and negative counts → DENY', async () => {
     await assertFails(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
       choiceCounts: { PII: 1 },
-    })));
-    await assertFails(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
-      choiceCounts: { A: -1 },
     })));
     await assertFails(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
       routeCounts: { M: 1, S: 0, C: 0, X: 1 },

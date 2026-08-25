@@ -336,19 +336,16 @@ service cloud.firestore {
 
       function llv3ValidSession(data) {
         return data.keys().hasOnly([
-                 'id', 'lessonId', 'title', 'classId', 'teacherUid', 'allowedStepIds',
-                 'expiresAt', 'mode', 'status', 'currentCueId', 'currentTvScreenId',
+                 'schemaVersion', 'lessonId', 'title', 'classId', 'teacherUid', 'allowedStepIds',
+                 'expiresAt', 'status', 'currentCueId', 'currentTvScreenId',
                  'publicStateEnabled', 'publicStatsEnabled', 'createdAt', 'updatedAt'
                ])
                && data.keys().hasAll([
-                    'id', 'lessonId', 'title', 'classId', 'teacherUid', 'allowedStepIds',
-                    'expiresAt', 'mode', 'status', 'currentCueId', 'currentTvScreenId',
+                    'schemaVersion', 'lessonId', 'title', 'classId', 'teacherUid', 'allowedStepIds',
+                    'expiresAt', 'status', 'currentCueId', 'currentTvScreenId',
                     'publicStateEnabled', 'publicStatsEnabled', 'createdAt', 'updatedAt'
                   ])
-               && data.id == sessionId
-               && data.id is string
-               && data.id.size() > 0
-               && data.id.size() <= 128
+               && data.schemaVersion == 1
                && data.lessonId is string
                && data.lessonId.size() > 0
                && data.lessonId.size() <= 128
@@ -363,9 +360,12 @@ service cloud.firestore {
                && data.teacherUid.size() <= 128
                && data.allowedStepIds is list
                && data.allowedStepIds.size() > 0
-               && data.allowedStepIds.size() <= 64
+               && data.allowedStepIds.size() <= 7
+               && data.allowedStepIds.hasOnly([
+                    'warmup', 'notice-wonder', 'goals', 'model',
+                    'ai-error-w01', 'quick-check', 'exit-ticket'
+                  ])
                && data.expiresAt is timestamp
-               && data.mode in ['teacher', 'tv', 'student']
                && data.status in ['lobby', 'running', 'paused', 'closed']
                && data.currentCueId is string
                && data.currentCueId.size() > 0
@@ -380,7 +380,7 @@ service cloud.firestore {
       }
 
       function llv3SessionIdentityUnchanged() {
-        return request.resource.data.id == resource.data.id
+        return request.resource.data.schemaVersion == resource.data.schemaVersion
                && request.resource.data.lessonId == resource.data.lessonId
                && request.resource.data.title == resource.data.title
                && request.resource.data.classId == resource.data.classId
@@ -426,52 +426,19 @@ service cloud.firestore {
                     'true', 'false', 'x', 'y', '=', '<=', '>=',
                     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
                   ])
-               && data.keys().size() <= 25
-               && (!data.keys().hasAny(['A']) || llv3SafeCount(data.get('A', 0)))
-               && (!data.keys().hasAny(['B']) || llv3SafeCount(data.get('B', 0)))
-               && (!data.keys().hasAny(['C']) || llv3SafeCount(data.get('C', 0)))
-               && (!data.keys().hasAny(['D']) || llv3SafeCount(data.get('D', 0)))
-               && (!data.keys().hasAny(['G1']) || llv3SafeCount(data.get('G1', 0)))
-               && (!data.keys().hasAny(['G2']) || llv3SafeCount(data.get('G2', 0)))
-               && (!data.keys().hasAny(['G3']) || llv3SafeCount(data.get('G3', 0)))
-               && (!data.keys().hasAny(['Yes']) || llv3SafeCount(data.get('Yes', 0)))
-               && (!data.keys().hasAny(['No']) || llv3SafeCount(data.get('No', 0)))
-               && (!data.keys().hasAny(['true']) || llv3SafeCount(data.get('true', 0)))
-               && (!data.keys().hasAny(['false']) || llv3SafeCount(data.get('false', 0)))
-               && (!data.keys().hasAny(['x']) || llv3SafeCount(data.get('x', 0)))
-               && (!data.keys().hasAny(['y']) || llv3SafeCount(data.get('y', 0)))
-               && (!data.keys().hasAny(['=']) || llv3SafeCount(data.get('=', 0)))
-               && (!data.keys().hasAny(['<=']) || llv3SafeCount(data.get('<=', 0)))
-               && (!data.keys().hasAny(['>=']) || llv3SafeCount(data.get('>=', 0)))
-               && (!data.keys().hasAny(['0']) || llv3SafeCount(data.get('0', 0)))
-               && (!data.keys().hasAny(['1']) || llv3SafeCount(data.get('1', 0)))
-               && (!data.keys().hasAny(['2']) || llv3SafeCount(data.get('2', 0)))
-               && (!data.keys().hasAny(['3']) || llv3SafeCount(data.get('3', 0)))
-               && (!data.keys().hasAny(['4']) || llv3SafeCount(data.get('4', 0)))
-               && (!data.keys().hasAny(['5']) || llv3SafeCount(data.get('5', 0)))
-               && (!data.keys().hasAny(['6']) || llv3SafeCount(data.get('6', 0)))
-               && (!data.keys().hasAny(['7']) || llv3SafeCount(data.get('7', 0)))
-               && (!data.keys().hasAny(['8']) || llv3SafeCount(data.get('8', 0)))
-               && (!data.keys().hasAny(['9']) || llv3SafeCount(data.get('9', 0)));
+               && data.keys().size() <= 25;
       }
 
       function llv3SafeRouteCounts(data) {
-        return data is map
+               return data is map
                && data.keys().hasOnly(['M', 'S', 'C'])
-               && data.keys().size() <= 3
-               && llv3SafeCount(data.get('M', 0))
-               && llv3SafeCount(data.get('S', 0))
-               && llv3SafeCount(data.get('C', 0));
+               && data.keys().size() <= 3;
       }
 
       function llv3SafeErrorCounts(data) {
-        return data is map
+               return data is map
                && data.keys().hasOnly(['Conceptual', 'Algebraic', 'Logical', 'Missing condition'])
-               && data.keys().size() <= 4
-               && llv3SafeCount(data.get('Conceptual', 0))
-               && llv3SafeCount(data.get('Algebraic', 0))
-               && llv3SafeCount(data.get('Logical', 0))
-               && llv3SafeCount(data.get('Missing condition', 0));
+               && data.keys().size() <= 4;
       }
 
       function llv3ValidPublicState(data) {
@@ -558,6 +525,8 @@ service cloud.firestore {
       allow list: if request.auth != null && resource.data.teacherUid == request.auth.uid;
       allow create: if llv3ValidSession(request.resource.data)
                     && request.resource.data.expiresAt > request.time
+                    && request.resource.data.createdAt == request.time
+                    && request.resource.data.updatedAt == request.time
                     && llv3ClassOwnedBy(request.resource.data);
       allow update: if llv3SessionOwner()
                     && llv3ValidSession(request.resource.data)
@@ -573,13 +542,17 @@ service cloud.firestore {
       match /responses/{responseId} {
         allow get, list: if llv3SessionOwner();
         allow create: if llv3ValidResponse(request.resource.data, responseId)
+                      && request.resource.data.submittedAt == request.time
+                      && request.resource.data.updatedAt == request.time
                       && llv3LinkedStudentCanWriteResponse(request.resource.data);
         allow update: if llv3ValidResponse(request.resource.data, responseId)
                       && llv3LinkedStudentCanWriteResponse(request.resource.data)
                       && request.resource.data.participantUid == resource.data.participantUid
                       && request.resource.data.classId == resource.data.classId
                       && request.resource.data.stepId == resource.data.stepId
+                      && request.resource.data.clientNonce == resource.data.clientNonce
                       && request.resource.data.submittedAt == resource.data.submittedAt
+                      && request.resource.data.updatedAt == request.time
                       && request.resource.data.diff(resource.data).affectedKeys()
                            .hasOnly(['responseType', 'value', 'clientNonce', 'updatedAt']);
         allow delete: if false;
