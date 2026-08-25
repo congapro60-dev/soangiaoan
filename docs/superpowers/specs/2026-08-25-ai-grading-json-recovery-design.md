@@ -118,6 +118,16 @@ Thay lỗi thô `Bad escaped character...` bằng nội dung phù hợp:
 
 Log server chỉ ghi error category, finishReason, parseMode, retryCount, model và submissionId đã rút gọn/băm; không ghi toàn bộ ảnh hoặc raw response chứa bài làm vào client.
 
+### 7. Hiển thị công thức nhất quán cho học sinh
+
+Các trường `studentAnswer`, `expectedAnswer`, `explanation`, `correction`, `nextPractice` và `feedbackForStudent` có thể chứa LaTeX do AI nhận dạng từ bài viết tay. Phía học sinh phải đọc được công thức bằng KaTeX/Markdown giống phía giáo viên, kể cả khi dữ liệu cũ có lệnh LaTeX trần ngoài dấu `$...$` như `\\in`, `\\subset`, `\\cap` hoặc `\\Rightarrow`.
+
+- Dùng cùng một đường chuẩn hóa/render ở `QuestionResultsList` và thẻ/báo cáo học sinh; không tạo một cách hiển thị riêng chỉ cho màn hình giáo viên.
+- Chuẩn hóa ở thời điểm hiển thị, không rewrite dữ liệu Firestore chỉ để thêm dấu `$`; giữ nguyên câu trả lời gốc và ảnh bài làm.
+- Giữ nguyên công thức đã có delimiter `$...$`, `\\(...\\)` hoặc `\\[...\\]`; chỉ bọc các đoạn công thức trần đủ nhận diện, không bọc cả câu tiếng Việt vào math mode.
+- Phải có fallback an toàn khi KaTeX không hiểu một lệnh: không làm mất nội dung, không render HTML từ dữ liệu AI và không để lệnh LaTeX trần ở các ca chuẩn đã được nhận diện.
+- Test hồi quy phải bao gồm đúng mẫu trong QA: `DE \\in (CDE) và AB \\in (SAB) => DE \\cap AB = {F}` cùng mẫu đã có dấu `$`; kiểm tra cả SSR của `QuestionResultsList` và đường hiển thị cổng học sinh.
+
 ## File và ranh giới dự kiến
 
 - `src/utils/jsonRepair.ts` hoặc utility mới: parser stateful và metadata.
@@ -125,6 +135,7 @@ Log server chỉ ghi error category, finishReason, parseMode, retryCount, model 
 - `api/grade-homework.ts`: phân loại lỗi, retry một lần, giữ claim/lifecycle/quota an toàn.
 - `api/_grading-core.ts`: giữ finishReason gate và truyền metadata lỗi có cấu trúc nếu cần.
 - `src/lib/classroom/types.ts`, `api/classroom.ts`, `AssignmentPanel.tsx`: thêm `gradingRecovery` optional, nhãn phục hồi ở màn hình giáo viên và loại trường này khỏi student projection; không đổi các field grade học sinh đang nhận ngoài copy lỗi.
+- `src/lib/adaptive/mathText.ts`, `src/components/features/classroom/NhanXetMarkdown.tsx`, `src/components/features/classroom/QuestionResultsList.tsx`, `src/components/features/classroom/student/StudentAssignmentCard.tsx`, `src/components/features/classroom/QuestionResultsList.test.tsx`: dùng/chỉnh đường chuẩn hóa công thức hiển thị chung cho bài làm của học sinh, đáp án và nhận xét; không tạo dữ liệu test từ bài thật của lớp 11 Columbus.
 - Không thêm route/serverless function mới, không sửa Firestore rules/indexes và không chạy migration.
 
 ## Kiểm thử và tiêu chí nghiệm thu
