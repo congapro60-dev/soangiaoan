@@ -225,4 +225,20 @@ describe('callGeminiVision — phân loại lỗi provider bằng type', () => {
     expect(failure).toMatchObject({ kind: 'http' });
     expect(String(failure.message)).not.toContain('provider down');
   });
+
+  it.each([null, [], 'provider raw payload', 42])(
+    'normalizes non-object response JSON (%s) to a safe provider error',
+    async payload => {
+      vi.stubGlobal('fetch', vi.fn(async () => ({
+        ok: true,
+        json: async () => payload,
+      })));
+
+      const failure = await callGeminiVision('prompt', [], 'key').catch(error => error);
+
+      expect(failure).toBeInstanceOf(GeminiResponseError);
+      expect(failure).toMatchObject({ kind: 'provider' });
+      expect(failure.message).toBe('Gemini trả về phản hồi không hợp lệ. Thử lại sau ít phút.');
+    },
+  );
 });

@@ -27,11 +27,14 @@ const makeDb = (harness: Harness) => {
     harness.state[name] ||= {};
     return harness.state[name];
   };
-  const query = (name: string, constraints: Array<{ field: string; value: unknown }>) => ({
-    where: (field: string, _operator: string, value: unknown) => query(name, [...constraints, { field, value }]),
+  const query = (name: string, constraints: Array<{ field: string; operator: string; value: unknown }>) => ({
+    where: (field: string, operator: string, value: unknown) => query(name, [...constraints, { field, operator, value }]),
+    limit: (_count: number) => query(name, constraints),
     get: async () => ({
       docs: Object.entries(ensure(name))
-        .filter(([, data]) => constraints.every(item => data[item.field] === item.value))
+        .filter(([, data]) => constraints.every(item => item.operator === 'in'
+          ? Array.isArray(item.value) && item.value.includes(data[item.field])
+          : data[item.field] === item.value))
         .map(([id, data]) => ({ id, data: () => ({ ...data }) })),
     }),
   });
@@ -47,7 +50,7 @@ const makeDb = (harness: Harness) => {
       },
       delete: async () => { delete ensure(name)[id]; },
     }),
-    where: (field: string, _operator: string, value: unknown) => query(name, [{ field, value }]),
+    where: (field: string, operator: string, value: unknown) => query(name, [{ field, operator, value }]),
   });
   const runTransaction = async (work: (transaction: {
     get: (ref: { get: () => Promise<{ exists: boolean; data: () => DocData | undefined }> }) => Promise<{ exists: boolean; data: () => DocData | undefined }>;
@@ -349,5 +352,58 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
 
     expect(result.statusCode).toBe(403);
     expect(harness.state.submissions['sub-1'].grade).toMatchObject({ score: 8, teacherApproved: true });
+  });
+
+  it('gradeAssignment không dừng batch khi submission trước thất bại', async () => {
+    const harness: Harness = {
+      state: {
+        assignments: {
+          'asg-1': {
+            id: 'asg-1', teacherId: 'gv-1', classId: 'lop-1', title: 'Bài kiểm tra', maxScore: 10,
+          },
+        },
+        submissions: {
+          'sub-fail': {
+            id: 'sub-fail', teacherId: 'gv-1', classId: 'lop-1', studentId: 'hs-1', assignmentId: 'asg-1',
+            fileUrls: [], textContent: 'Bài làm lỗi schema', note: '', status: 'submitted',
+            createdAt: '2026-08-25T09:00:00.000Z', updatedAt: '2026-08-25T09:00:00.000Z',
+          },
+          'sub-next': {
+            id: 'sub-next', teacherId: 'gv-1', classId: 'lop-1', studentId: 'hs-2', assignmentId: 'asg-1',
+            fileUrls: [], textContent: 'Bài làm hợp lệ', note: '', status: 'submitted',
+            createdAt: '2026-08-25T09:01:00.000Z', updatedAt: '2026-08-25T09:01:00.000Z',
+          },
+        },
+        gradingQuota: {
+          'gv-1': {
+            day: quotaDay,
+            teacherCount: 0,
+            selfCount: 0,
+            gatewayCount: 0,
+            byStudent: {},
+          },
+        },
+      },
+    };
+    h.db = makeDb(harness);
+    const firstInvalid = JSON.stringify({ score: 6, maxScore: 10, noteForTeacher: 'Thiếu feedback.' });
+    stubGeminiResponses(
+      makeGeminiResponse(firstInvalid),
+      makeGeminiResponse(firstInvalid),
+      makeGeminiResponse(validGradeJson(7)),
+    );
+
+    const result = await call({ action: 'gradeAssignment', assignmentId: 'asg-1' });
+
+    expect(result.statusCode).toBe(200);
+    expect(result.body).toMatchObject({ graded: 1, failed: 1, remaining: 0 });
+    expect(h.fetch).toHaveBeenCalledTimes(3);
+    expect(harness.state.submissions['sub-fail']).toMatchObject({ status: 'error' });
+    expect(harness.state.submissions['sub-fail'].grade).toBeUndefined();
+    expect(harness.state.submissions['sub-next']).toMatchObject({
+      status: 'graded',
+      grade: expect.objectContaining({ score: 7, teacherApproved: false }),
+    });
+    expect(harness.state.gradingQuota?.['gv-1']).toMatchObject({ teacherCount: 2, selfCount: 0 });
   });
 });

@@ -239,16 +239,20 @@ export const callGeminiVision = async (
     throw new GeminiResponseError('http', 'Gemini không thể xử lý yêu cầu lúc này. Thử lại sau ít phút.');
   }
 
-  let data: {
+  let rawData: unknown;
+  try {
+    rawData = await res.json();
+  } catch {
+    throw new GeminiResponseError('provider', 'Gemini trả về phản hồi không hợp lệ. Thử lại sau ít phút.');
+  }
+  if (!rawData || typeof rawData !== 'object' || Array.isArray(rawData)) {
+    throw new GeminiResponseError('provider', 'Gemini trả về phản hồi không hợp lệ. Thử lại sau ít phút.');
+  }
+  const data = rawData as {
     candidates?: Array<{ finishReason?: string; content?: { parts?: Array<{ text?: string }> } }>;
     promptFeedback?: { blockReason?: string };
     error?: unknown;
   };
-  try {
-    data = await res.json() as typeof data;
-  } catch {
-    throw new GeminiResponseError('provider', 'Gemini trả về phản hồi không hợp lệ. Thử lại sau ít phút.');
-  }
   if (data.error) {
     throw new GeminiResponseError('provider', 'Gemini không hoàn tất yêu cầu. Thử lại sau ít phút.');
   }
