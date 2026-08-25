@@ -88,14 +88,14 @@ export interface LiveLessonStatePatch {
 }
 
 export interface LivePublicStats {
-  responseCount: number;
+  stepId: string;
   participantCount: number;
+  submittedCount: number;
+  choiceCounts: Record<string, number>;
   routeCounts: Record<LiveRoute, number>;
   errorCategoryCounts: Record<LiveErrorCategory, number>;
   hintUseCount: number;
   updatedAt: number;
-  lastUpdatedAt: number;
-  showStats: boolean;
 }
 
 export interface LivePublicState {
