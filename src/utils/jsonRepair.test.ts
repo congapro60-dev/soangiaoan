@@ -1,5 +1,19 @@
 import { describe, it, expect } from 'vitest';
-import { JsonRecoveryError, parseJsonWithRecovery, parseLooseJson } from './jsonRepair';
+import { parseJsonWithRecovery, parseLooseJson } from './jsonRepair';
+
+const expectNamedError = (run: () => unknown, expectedName: string) => {
+  let thrown: unknown;
+  try {
+    run();
+  } catch (error) {
+    thrown = error;
+  }
+
+  const actualName = thrown && typeof thrown === 'object'
+    ? (thrown as { name?: unknown }).name
+    : undefined;
+  expect(actualName).toBe(expectedName);
+};
 
 describe('parseLooseJson', () => {
   it('parse JSON hợp lệ như bình thường', () => {
@@ -27,14 +41,12 @@ describe('parseLooseJson', () => {
 });
 
 describe('parseJsonWithRecovery — strict/recovery contract', () => {
-  it('trả metadata strict và không ghi nhận repair khi JSON hợp lệ', () => {
+  it('trả metadata flat strict và không ghi nhận repair khi JSON hợp lệ', () => {
     const result = parseJsonWithRecovery<{ score: number }>('{"score":8}');
 
     expect(result.value).toEqual({ score: 8 });
-    expect(result.metadata).toMatchObject({
-      parseMode: 'strict',
-      repairKinds: [],
-    });
+    expect(result.parseMode).toBe('strict');
+    expect(result.repairKinds).toEqual([]);
   });
 
   it('chỉ repair backslash LaTeX trong string, giữ nguyên cấu trúc JSON', () => {
@@ -51,8 +63,8 @@ describe('parseJsonWithRecovery — strict/recovery contract', () => {
       score: 8,
       nested: { ok: true },
     });
-    expect(result.metadata.parseMode).toBe('repaired');
-    expect(result.metadata.repairKinds).toContain('latex_backslash');
+    expect(result.parseMode).toBe('repaired');
+    expect(result.repairKinds).toContain('latex_backslash');
   });
 
   it('giữ nguyên các escape JSON hợp lệ gồm newline, tab, quote, slash và unicode', () => {
@@ -61,7 +73,7 @@ describe('parseJsonWithRecovery — strict/recovery contract', () => {
     );
 
     expect(result.value.text).toBe('dòng1\ndòng2\t"trích" / á');
-    expect(result.metadata.parseMode).toBe('strict');
+    expect(result.parseMode).toBe('strict');
   });
 
   it('escape raw control newline trong string', () => {
@@ -70,11 +82,11 @@ describe('parseJsonWithRecovery — strict/recovery contract', () => {
     const result = parseJsonWithRecovery<{ text: string }>(rawControlNewline);
 
     expect(result.value.text).toBe('dòng1\ndòng2');
-    expect(result.metadata.parseMode).toBe('repaired');
+    expect(result.parseMode).toBe('repaired');
   });
 
   it('ném JsonRecoveryError khi thiếu quote hoặc object bị cắt', () => {
-    expect(() => parseJsonWithRecovery('{"text":"thiếu quote}')).toThrow(JsonRecoveryError);
-    expect(() => parseJsonWithRecovery('{"score":8')).toThrow(JsonRecoveryError);
+    expectNamedError(() => parseJsonWithRecovery('{"text":"thiếu quote}'), 'JsonRecoveryError');
+    expectNamedError(() => parseJsonWithRecovery('{"score":8'), 'JsonRecoveryError');
   });
 });

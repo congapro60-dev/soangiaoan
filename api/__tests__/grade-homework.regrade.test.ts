@@ -95,10 +95,21 @@ const makeGeminiResponse = (text: string, finishReason = 'STOP') => ({
   text: async () => '',
 });
 
+type GeminiRequestBody = {
+  contents?: Array<{ parts?: Array<{ text?: unknown }> }>;
+};
+
 const stubGeminiResponses = (...responses: ReturnType<typeof makeGeminiResponse>[]) => {
   let index = 0;
-  h.fetch = vi.fn(async () => responses[Math.min(index++, responses.length - 1)]);
+  const promptTexts: string[] = [];
+  h.fetch = vi.fn(async (_url: unknown, init?: { body?: unknown }) => {
+    const request = JSON.parse(String(init?.body || '{}')) as GeminiRequestBody;
+    const prompt = request.contents?.[0]?.parts?.find(part => typeof part.text === 'string')?.text;
+    promptTexts.push(typeof prompt === 'string' ? prompt : '');
+    return responses[Math.min(index++, responses.length - 1)];
+  });
   vi.stubGlobal('fetch', h.fetch);
+  return promptTexts;
 };
 
 const validGradeJson = (score = 6) => JSON.stringify({
@@ -123,6 +134,8 @@ const oldGrade = {
   gradedAt: '2026-08-24T10:00:00.000Z',
 };
 
+const quotaDay = new Date().toISOString().slice(0, 10);
+
 const seed = (): Harness => ({
   state: {
     submissions: {
@@ -130,6 +143,15 @@ const seed = (): Harness => ({
         id: 'sub-1', teacherId: 'gv-1', classId: 'lop-1', studentId: 'hs-1', assignmentId: null,
         fileUrls: [], textContent: 'Bài làm của em', note: '', status: 'graded', grade: oldGrade,
         createdAt: '2026-08-24T09:00:00.000Z', updatedAt: '2026-08-24T10:00:00.000Z',
+      },
+    },
+    gradingQuota: {
+      'gv-1': {
+        day: quotaDay,
+        teacherCount: 0,
+        selfCount: 0,
+        gatewayCount: 0,
+        byStudent: {},
       },
     },
   },
@@ -148,6 +170,7 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
       ok: true,
       json: async () => ({ candidates: [{ finishReason: 'STOP', content: { parts: [{ text: JSON.stringify({
         score: 6,
+        maxScore: 10,
         feedbackForStudent: 'Em cần trình bày rõ hơn.',
         noteForTeacher: 'AI chưa chắc ở câu cuối.',
         strengths: ['Biết lập luận'],
@@ -202,6 +225,11 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
         score: 6,
         feedback: expect.stringContaining('\\in'),
         teacherApproved: false,
+        gradingRecovery: expect.objectContaining({
+          mode: 'syntax_repaired',
+          retryCount: 0,
+          repairKinds: expect.arrayContaining(['latex_backslash']),
+        }),
       }),
     });
   });
@@ -209,17 +237,28 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
   it('schema-invalid lần đầu thì retry và commit response hợp lệ lần sau', async () => {
     const harness = seed();
     h.db = makeDb(harness);
-    const schemaInvalid = JSON.stringify({ score: 6, maxScore: 10, noteForTeacher: 'Thiếu feedback.' });
-    stubGeminiResponses(makeGeminiResponse(schemaInvalid), makeGeminiResponse(validGradeJson(7)));
+    const rawSentinel = 'RAW_SENTINEL_123';
+    const schemaInvalid = JSON.stringify({ score: 6, maxScore: 10, noteForTeacher: `Thiếu feedback ${rawSentinel}.` });
+    const promptTexts = stubGeminiResponses(makeGeminiResponse(schemaInvalid), makeGeminiResponse(validGradeJson(7)));
 
     const result = await call({ action: 'gradeOne', submissionId: 'sub-1' });
 
     expect(result.statusCode).toBe(200);
     expect(h.fetch).toHaveBeenCalledTimes(2);
+    expect(promptTexts).toHaveLength(2);
+    expect(promptTexts[1]).not.toContain(rawSentinel);
     expect(harness.state.submissions['sub-1']).toMatchObject({
       status: 'graded',
-      grade: expect.objectContaining({ score: 7, teacherApproved: false }),
+      grade: expect.objectContaining({
+        score: 7,
+        teacherApproved: false,
+        gradingRecovery: expect.objectContaining({
+          mode: 'retry_recovered',
+          retryCount: 1,
+        }),
+      }),
     });
+    expect(harness.state.gradingQuota?.['gv-1']).toMatchObject({ teacherCount: 1, selfCount: 0 });
   });
 
   it('cả hai response schema-invalid thì giữ grade cũ và không tạo history giả', async () => {
@@ -238,7 +277,7 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
     expect(harness.state.submissionGradeHistory).toBeUndefined();
   });
 
-  it('Gemini SAFETY thì giữ grade cũ và trả lỗi từ chối nội dung', async () => {
+  it('Gemini SAFETY thì giữ grade cũ và trả lỗi an toàn để thử lại', async () => {
     const harness = seed();
     h.db = makeDb(harness);
     stubGeminiResponses(makeGeminiResponse('', 'SAFETY'));
@@ -247,7 +286,9 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
 
     expect(result.statusCode).toBe(422);
     expect(h.fetch).toHaveBeenCalledTimes(1);
-    expect(result.body?.error).toMatch(/từ chối|nội dung/i);
+    const errorText = String(result.body?.error || '');
+    expect(errorText).toMatch(/giữ nguyên|chấm lại/i);
+    expect(errorText).not.toMatch(/SAFETY|provider down/i);
     expect(harness.state.submissions['sub-1']).toMatchObject({ status: 'graded', grade: oldGrade });
     expect(harness.state.submissionGradeHistory).toBeUndefined();
   });
@@ -276,6 +317,7 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
       ok: true,
       json: async () => ({ candidates: [{ finishReason: 'STOP', content: { parts: [{ text: JSON.stringify({
         score: 2,
+        maxScore: 10,
         feedbackForStudent: 'Kết quả cũ không được dùng.',
         noteForTeacher: '',
         strengths: [],

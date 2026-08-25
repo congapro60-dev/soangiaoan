@@ -234,37 +234,63 @@ describe('parseHomeworkGradeForCommit — strict homework contract', () => {
 
   const raw = (value: Record<string, unknown>) => JSON.stringify(value);
   const parse = (value: Record<string, unknown>) => parseHomeworkGradeForCommit(raw(value), 10, false);
+  const expectContractError = (run: () => unknown) => {
+    let thrown: unknown;
+    try {
+      run();
+    } catch (error) {
+      thrown = error;
+    }
+
+    const actualName = thrown && typeof thrown === 'object'
+      ? (thrown as { name?: unknown }).name
+      : undefined;
+    expect(actualName).toBe('HomeworkGradeContractError');
+  };
+  const expectContractOrRecoveryError = (run: () => unknown) => {
+    let thrown: unknown;
+    try {
+      run();
+    } catch (error) {
+      thrown = error;
+    }
+
+    const actualName = thrown && typeof thrown === 'object'
+      ? (thrown as { name?: unknown }).name
+      : undefined;
+    expect(['JsonRecoveryError', 'HomeworkGradeContractError']).toContain(actualName);
+  };
 
   it('chấp nhận payload commit hợp lệ và giữ đúng kiểu dữ liệu', () => {
     const result = parse(valid);
 
-    expect(result.score).toBe(8);
-    expect(result.feedbackForStudent).toBe('Em làm đúng phần chính.');
+    expect(result.grade.score).toBe(8);
+    expect(result.grade.feedbackForStudent).toBe('Em làm đúng phần chính.');
   });
 
   it('từ chối root array', () => {
-    expect(() => parseHomeworkGradeForCommit(JSON.stringify([valid]), 10, false)).toThrow();
+    expectContractError(() => parseHomeworkGradeForCommit(JSON.stringify([valid]), 10, false));
   });
 
   it('từ chối thiếu feedbackForStudent', () => {
     const value = { ...valid } as Record<string, unknown>;
     delete value.feedbackForStudent;
 
-    expect(() => parse(value)).toThrow();
+    expectContractError(() => parse(value));
   });
 
   it('từ chối score dạng string', () => {
-    expect(() => parse({ ...valid, score: '8' })).toThrow();
+    expectContractError(() => parse({ ...valid, score: '8' }));
   });
 
   it('từ chối score vượt thang 12/10', () => {
-    expect(() => parse({ ...valid, score: 12 })).toThrow();
+    expectContractError(() => parse({ ...valid, score: 12 }));
   });
 
   it('từ chối NaN thay vì biến thành điểm hợp lệ', () => {
     const rawWithNaN = raw(valid).replace('"score":8', '"score":NaN');
 
-    expect(() => parseHomeworkGradeForCommit(rawWithNaN, 10, false)).toThrow();
+    expectContractOrRecoveryError(() => parseHomeworkGradeForCommit(rawWithNaN, 10, false));
   });
 
   it('từ chối questionResults có questionNumber trùng nhau', () => {
@@ -274,7 +300,7 @@ describe('parseHomeworkGradeForCommit — strict homework contract', () => {
       questionResults: [first, { ...first, score: 7 }],
     };
 
-    expect(() => parse(value)).toThrow();
+    expectContractError(() => parse(value));
   });
 });
 
