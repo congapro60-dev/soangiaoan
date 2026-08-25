@@ -11,7 +11,8 @@
 - [x] Code báo cáo read-only cho bài nộp ảnh/AI và đề online; thêm CSV tổng hợp và nối vào màn hình lớp học.
 - [x] Siết privacy/identity: không xuất dữ liệu riêng; không gán dòng đầu khi trùng tên; thang điểm online lấy từ cấu hình đề.
 - [x] Focused 23/23, full Vitest 85 files/1.207 tests, lint, lint:api, build, diff check và Ox Alpha Free QA PASS.
-- [ ] Merge vào `main`, push `origin/main`, kiểm tra deployment; không thao tác dữ liệu lớp 11 Columbus.
+- [x] Merge vào `main` và push `origin/main` ở `c50e09a`; HTTP smoke production trả 200; không thao tác dữ liệu lớp 11 Columbus.
+- [ ] Xác nhận Vercel deployment của `c50e09a` ở trạng thái Ready/Production khi có CLI hoặc dashboard khả dụng.
 
 # P0 — Công thức nhận xét và chẩn đoán nộp trùng (2026-08-25)
 

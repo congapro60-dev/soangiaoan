@@ -115,11 +115,11 @@ git diff --check
 
 ## 9. Lô báo cáo tổng hợp theo từng bài giao — 2026-08-25
 
-- Nhánh: `codex/fix-classroom-math-render-duplicate`; HEAD đã kiểm thử: `680aaed` (`fix(classroom): harden report identity matching`). Chưa merge/push/deploy tại thời điểm ghi chú này; không đọc/ghi hay thay đổi dữ liệu production.
+- Nhánh triển khai: `main`; đã fast-forward và push thành công tới `origin/main` ở `c50e09a` (`docs(classroom): record assignment analytics handoff`), bao gồm code hardening `680aaed`. HTTP smoke `https://giaoandewey.vercel.app` trả 200; Vercel CLI không có trong môi trường nên chưa xác nhận được trạng thái deployment `Ready` theo commit. Không đọc/ghi hay thay đổi dữ liệu production.
 - Màn hình **Báo cáo** của từng lớp nay có bộ chọn từng bài và báo cáo chỉ đọc cho cả hai nguồn: bài nộp ảnh/AI và đề online.
 - Mỗi bài có: sĩ số, đã nộp, đã chấm, đã duyệt, chưa nộp, điểm trung bình chính thức, phân bố điểm, tỷ lệ đúng và tỷ lệ điểm theo từng câu, năm trạng thái câu hỏi (**Đúng / Đúng một phần / Sai / Không đọc được / Chưa làm**), lỗi phổ biến, chủ đề cần củng cố và khuyến nghị dạy học.
 - Chỉ lượt mới nhất của mỗi học sinh được tính. Bài nộp ảnh/AI chỉ vào số liệu chính thức khi `graded` và giáo viên đã duyệt; đề online chỉ vào số liệu chính thức khi `graded`. Điểm online dùng thang điểm canonical từ cấu hình đề.
 - Ghép học sinh online theo ID kèm kiểm tra tên; nếu không có ID chỉ nhận đúng một kết quả khớp tên đã chuẩn hóa, không tự chọn dòng đầu khi trùng tên. Lớp không khớp bị loại khỏi báo cáo.
 - CSV chỉ xuất số liệu tổng hợp; không xuất `studentKey`, bài làm, đáp án, ghi chú riêng của giáo viên hay dữ liệu từng học sinh.
 - Bằng chứng kiểm thử: focused **2 files / 23 tests pass**; full Vitest **85 files / 1.207 tests pass**; `npm run lint`, `npm run lint:api`, `npm run build`, `git diff --check` đều pass. Build chỉ còn cảnh báo chunk/dynamic import vốn có.
-- QA độc lập Ox Alpha Free/OpenCode (`opencode/x-preview-f-free`) trên đúng HEAD `680aaed`: **PASS**, không có P0/P1/P2. Ba lưu ý P3: dữ liệu online legacy thiếu lớp có giới hạn không thể phân biệt trùng tên khác lớp; câu online chưa có điểm đang được xếp vào `Chưa làm`; CSV điểm trung bình đã được chuẩn hóa hiển thị theo `%`.
+- QA độc lập Ox Alpha Free/OpenCode (`opencode/x-preview-f-free`) trên đúng HEAD code `680aaed`: **PASS**, không có P0/P1/P2. Ba lưu ý P3: dữ liệu online legacy thiếu lớp có giới hạn không thể phân biệt trùng tên khác lớp; câu online chưa có điểm đang được xếp vào `Chưa làm`; CSV điểm trung bình đã được chuẩn hóa hiển thị theo `%`.
