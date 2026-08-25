@@ -1,8 +1,8 @@
 import type { LiveCue } from '../../data/liveLessonPackages/g10_w5_p31_bpt_tiet1.cues';
 
-export type LiveLessonMode = 'teacher' | 'student' | 'public';
-export type LiveSessionStatus = 'draft' | 'ready' | 'live' | 'paused' | 'ended' | 'archived';
-export type LiveResponseType = 'text' | 'number' | 'boolean' | 'choice';
+export type LiveLessonMode = 'teacher' | 'tv' | 'student';
+export type LiveSessionStatus = 'lobby' | 'running' | 'paused' | 'closed';
+export type LiveResponseType = 'choice' | 'text' | 'boolean' | 'route' | 'hint' | 'exit_ticket';
 
 export interface LiveLessonScreen {
   id: string;

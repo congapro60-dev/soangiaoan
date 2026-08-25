@@ -44,7 +44,7 @@ const responseSteps: LiveResponseStep[] = [
   { id: 'goals', label: 'Mục tiêu cá nhân', screenId: 'HS3', responseTypes: ['choice'] },
   { id: 'model', label: 'Mô hình', screenId: 'HS4', responseTypes: ['choice', 'text'] },
   { id: 'ai-error-w01', label: 'AI Error of the Week W01', screenId: 'HS6', responseTypes: ['choice', 'text'] },
-  { id: 'quick-check', label: 'Quick check', screenId: 'HS9', responseTypes: ['choice', 'text', 'number'] },
+  { id: 'quick-check', label: 'Quick check', screenId: 'HS9', responseTypes: ['choice', 'text'] },
   { id: 'exit-ticket', label: 'Exit ticket', screenId: 'HS10', responseTypes: ['text'] },
 ];
 
