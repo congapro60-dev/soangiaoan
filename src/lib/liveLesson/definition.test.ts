@@ -185,4 +185,19 @@ describe('g10_w5_p31_bpt_tiet1 live lesson definition', () => {
       expect.objectContaining({ code: 'LIVE_CUE_ORDER_INVALID' }),
     );
   });
+
+  it('rejects extra AI error fields on an already normalized definition', () => {
+    const definition = getPilotLiveLessonDefinition();
+    const badDefinition = {
+      ...definition,
+      aiErrorOfTheWeek: {
+        ...definition.aiErrorOfTheWeek,
+        answer: 'leaked answer',
+      },
+    };
+
+    expect(() => validateLiveLessonDefinition(badDefinition)).toThrowError(
+      expect.objectContaining({ code: 'LIVE_AI_ERROR_INVALID' }),
+    );
+  });
 });

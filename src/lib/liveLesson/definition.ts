@@ -361,6 +361,10 @@ export function validateLiveLessonDefinition(
   }
 
   const aiError = definition.aiErrorOfTheWeek;
+  const allowedAiErrorKeys = new Set(['id', 'category', 'correction', 'proof']);
+  if (Object.keys(aiError).some((key) => !allowedAiErrorKeys.has(key))) {
+    fail('LIVE_AI_ERROR_INVALID', 'AI Error payload contains fields outside the public contract.');
+  }
   if (definition.aiErrorStepId !== 'ai-error-w01' || aiError.id !== 'W01') {
     fail('LIVE_AI_ERROR_STEP_INVALID', 'AI Error step must be ai-error-w01 for W01.');
   }
