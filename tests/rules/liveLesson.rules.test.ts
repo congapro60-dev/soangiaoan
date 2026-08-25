@@ -18,7 +18,7 @@ import {
   where,
 } from 'firebase/firestore';
 import { readFileSync } from 'node:fs';
-import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 const TEACHER_A = 'teacher-A';
 const TEACHER_B = 'teacher-B';
@@ -30,6 +30,11 @@ const SESSION_A = 'session-A';
 const SESSION_CLOSED = 'session-closed';
 const SESSION_EXPIRED = 'session-expired';
 const SESSION_DISABLED = 'session-disabled';
+const ALL_CHOICE_KEYS = [
+  'A', 'B', 'C', 'D', 'G1', 'G2', 'G3', 'Yes', 'No',
+  'true', 'false', 'x', 'y', '=', '<=', '>=',
+  '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+] as const;
 
 const now = Date.now();
 const FUTURE = Timestamp.fromMillis(now + 60 * 60 * 1000);
@@ -150,6 +155,17 @@ const dbTeacherB = () => testEnv.authenticatedContext(TEACHER_B).firestore();
 const dbStudentA = () => testEnv.authenticatedContext(STUDENT_A).firestore();
 const dbStudentB = () => testEnv.authenticatedContext(STUDENT_B).firestore();
 const dbTv = () => testEnv.unauthenticatedContext().firestore();
+
+const assertRuleDenied = async (operation: Promise<unknown>) => {
+  try {
+    await operation;
+    throw new Error('Expected operation to be denied by Firestore Rules');
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    expect(message).not.toContain('maximum of 1000 expressions');
+    expect((error as { code?: string }).code).toBe('permission-denied');
+  }
+};
 
 const sessionRef = (db: ReturnType<typeof dbTeacherA>, id = SESSION_A) => doc(db, `liveLessonSessions/${id}`);
 const responseRef = (db: ReturnType<typeof dbTeacherA>, id = SESSION_A, responseId = `${STUDENT_A}__warmup`) => (
@@ -318,23 +334,48 @@ describe('liveLessonSessions/{sessionId}/public · safe public documents', () =>
     await assertFails(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({ rawResponse: 'secret' })));
   });
 
+  it('owner can write the full allowlisted choice-count map → ALLOW', async () => {
+    const fullChoiceCounts = Object.fromEntries(
+      ALL_CHOICE_KEYS.map((key, index) => [key, index]),
+    );
+
+    await assertSucceeds(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
+      choiceCounts: fullChoiceCounts,
+    })));
+  });
+
   it('public count maps reject unknown keys and negative counts → DENY', async () => {
-    await assertFails(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
+    await assertRuleDenied(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
       choiceCounts: { A: -1 },
     })));
-    await assertFails(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
+    await assertRuleDenied(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
       choiceCounts: { PII: 1 },
     })));
-    await assertFails(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
+    await assertRuleDenied(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
+      choiceCounts: { A: Number.NaN },
+    })));
+    await assertRuleDenied(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
+      choiceCounts: { A: Number.POSITIVE_INFINITY },
+    })));
+    await assertRuleDenied(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
+      choiceCounts: { A: Number.NEGATIVE_INFINITY },
+    })));
+    await assertRuleDenied(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
+      choiceCounts: { A: 10001 },
+    })));
+    await assertRuleDenied(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
+      choiceCounts: { A: '1' },
+    })));
+    await assertRuleDenied(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
       routeCounts: { M: -1 },
     })));
-    await assertFails(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
+    await assertRuleDenied(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
       routeCounts: { M: 1, S: 0, C: 0, X: 1 },
     })));
-    await assertFails(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
+    await assertRuleDenied(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
       errorCategoryCounts: { Conceptual: -1 },
     })));
-    await assertFails(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
+    await assertRuleDenied(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
       errorCategoryCounts: { Conceptual: 1, PII: 1 },
     })));
   });
