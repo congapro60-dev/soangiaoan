@@ -164,3 +164,13 @@ Trạng thái: promotion đã hoàn tất và hậu kiểm PASS; backup vẫn đ
 - [x] `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai" run build` PASS; chỉ còn cảnh báo chunk/import vốn có.
 
 Backup bản cũ: `C:\Users\ADMIN\AppData\Local\Temp\smartplan-ban-toan-backup-20260822-084004`.
+
+## V3 Live Lesson Firestore realtime — baseline 2026-08-25
+
+- [x] Worktree riêng: `codex/g10-p31-firestore`.
+- [x] `npm run lint`: PASS.
+- [x] `npm run lint:api`: PASS.
+- [x] `npm run build`: PASS; chỉ còn cảnh báo Vite chunk/dynamic import đã có từ trước.
+- [x] Full Vitest baseline: 64 test files, 1013 tests passed.
+- [ ] Baseline còn 1 test timeout có sẵn ngoài phạm vi V3: `api/__tests__/ai-gateway-handler.test.ts` — SSE raw `[DONE]` sentinel timeout ở 5 giây.
+- [x] `npm install` trong worktree bị treo; đã dừng an toàn và dùng junction tới dependency tree đã có ở checkout chính. Bản cài dở được giữ ngoài workspace tại `C:\Users\ADMIN\AppData\Local\Temp\smart-lesson-plan-ai-node_modules-incomplete-20260825`.
