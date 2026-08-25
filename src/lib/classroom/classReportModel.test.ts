@@ -57,7 +57,7 @@ describe('buildClassAssignmentReport', () => {
       submitted: 3,
       graded: 2,
       official: 1,
-      pending: 1,
+      pending: 2,
       missing: 1,
     });
     expect(report.metrics.averagePercent).toBe(0);
@@ -143,6 +143,7 @@ describe('buildClassAssignmentReport', () => {
         partial: 0,
         incorrect: 0,
         unreadable: 1,
+        notAttempted: 0,
         correctRate: 0.5,
         scoreRate: 0.5,
       }),
@@ -152,6 +153,9 @@ describe('buildClassAssignmentReport', () => {
         correct: 0,
         partial: 1,
         correctRate: 0,
+        incorrect: 0,
+        unreadable: 0,
+        notAttempted: 0,
         scoreRate: 0.5,
       }),
     ]);
@@ -203,8 +207,8 @@ describe('buildClassAssignmentReport', () => {
           status: 'not_attempted',
           score: 0,
           maxScore: 1,
-          errorType: 'Không tính',
-          weakTopics: ['Không tính'],
+          errorType: '',
+          weakTopics: [],
         }],
       }),
     ]));
@@ -212,6 +216,120 @@ describe('buildClassAssignmentReport', () => {
     expect(report.questionStats[0].scoreRate).toBe(0);
     expect(report.errorStats).toEqual([{ label: 'Cần kiểm tra', evidenceCount: 1 }]);
     expect(report.topicStats).toEqual([{ label: 'Đồ thị', evidenceCount: 1 }]);
+  });
+
+  it('chỉ coi official đã graded là chính thức và pending gồm mọi lượt không official', () => {
+    const input = baseInput([
+      baseSubmission({ id: 'official-graded', studentKey: 'student-1', status: 'graded', official: true, score: 7 }),
+      baseSubmission({ id: 'official-submitted', studentKey: 'student-2', status: 'submitted', official: true, score: 9 }),
+      baseSubmission({ id: 'grading', studentKey: 'student-3', status: 'grading', official: false, score: null }),
+      baseSubmission({ id: 'error', studentKey: 'student-4', status: 'error', official: false, score: null }),
+      baseSubmission({ id: 'graded-pending', studentKey: 'student-5', status: 'graded', official: false, score: 6 }),
+    ]);
+    input.roster = [...input.roster, { studentKey: 'student-5' }];
+
+    const report = buildClassAssignmentReport(input);
+
+    expect(report.official.map(submission => submission.id)).toEqual(['official-graded']);
+    expect(report.counters).toMatchObject({ graded: 2, official: 1, pending: 3, missing: 0 });
+    expect(report.metrics.averagePercent).toBe(70);
+  });
+
+  it('gom weakTopics ở cấp submission và cấp câu vào cùng topicStats', () => {
+    const report = buildClassAssignmentReport(baseInput([
+      baseSubmission({
+        id: 's1',
+        studentKey: 'student-1',
+        weakTopics: [' Hàm số ', 'hàm số'],
+        questionResults: [{ questionNumber: '1', status: 'correct', score: 1, maxScore: 1, weakTopics: ['Đồ thị'] }],
+      }),
+      baseSubmission({
+        id: 's2',
+        studentKey: 'student-2',
+        weakTopics: ['HÀM SỐ'],
+        questionResults: [{ questionNumber: '1', status: 'partial', score: 1, maxScore: 2, weakTopics: [' đồ   thị '] }],
+      }),
+    ]));
+
+    expect(report.topicStats).toEqual([
+      { label: 'Hàm số', evidenceCount: 3 },
+      { label: 'Đồ thị', evidenceCount: 2 },
+    ]);
+  });
+
+  it('project latest và official thành bản an toàn, không trả raw submission/question', () => {
+    const rawSubmission = {
+      ...baseSubmission({
+        studentKey: 'student-1',
+        questionResults: [{
+          questionNumber: '1',
+          status: 'correct',
+          score: 1,
+          maxScore: 1,
+          errorType: '',
+          weakTopics: [],
+          studentAnswer: 'x = 42',
+        }],
+      }),
+      noteForTeacher: 'nội bộ',
+      teacherNote: 'ghi chú thô',
+      studentAnswer: 'raw answer',
+    };
+
+    const report = buildClassAssignmentReport(baseInput([rawSubmission]));
+
+    expect(report.latest[0]).not.toBe(rawSubmission);
+    expect(Object.keys(report.latest[0]).sort()).toEqual([
+      'createdAt',
+      'id',
+      'maxScore',
+      'official',
+      'questionResults',
+      'score',
+      'status',
+      'studentKey',
+      'weakTopics',
+    ]);
+    expect(Object.keys(report.latest[0].questionResults[0]).sort()).toEqual([
+      'errorType',
+      'maxScore',
+      'questionNumber',
+      'score',
+      'status',
+      'weakTopics',
+    ]);
+    expect(JSON.stringify(report)).not.toContain('raw answer');
+    expect(JSON.stringify(report)).not.toContain('nội bộ');
+    expect(JSON.stringify(report)).not.toContain('ghi chú thô');
+    expect(JSON.stringify(report)).not.toContain('studentAnswer');
+    expect(JSON.stringify(report)).not.toContain('noteForTeacher');
+    expect(JSON.stringify(report)).not.toContain('teacherNote');
+  });
+
+  it('tính not_attempted là evidence, nhưng bỏ status thiếu hoặc unknown', () => {
+    const report = buildClassAssignmentReport(baseInput([baseSubmission({
+      questionResults: [
+        { questionNumber: '1', status: 'correct', score: 1, maxScore: 2 },
+        { questionNumber: '1', status: 'partial', score: 1, maxScore: 2 },
+        { questionNumber: '1', status: 'incorrect', score: 0, maxScore: 2 },
+        { questionNumber: '1', status: 'unreadable', score: 0, maxScore: 2 },
+        { questionNumber: '1', status: 'not_attempted', score: 0, maxScore: 2, errorType: '', weakTopics: [] },
+        { questionNumber: '1', status: 'unknown', score: 2, maxScore: 2 },
+        { questionNumber: '1', status: undefined as unknown as string, score: 2, maxScore: 2 },
+      ],
+    })]));
+
+    expect(report.questionStats).toEqual([{
+      questionNumber: '1',
+      evidenceCount: 5,
+      correct: 1,
+      partial: 1,
+      incorrect: 1,
+      unreadable: 1,
+      notAttempted: 1,
+      correctRate: 0.2,
+      scoreRate: 0.2,
+    }]);
   });
 
   it('sinh khuyến nghị deterministic khi có ít nhất ba bằng chứng chính thức', () => {

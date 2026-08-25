@@ -13,6 +13,7 @@ export interface ClassReportQuestionResult {
   weakTopics?: readonly string[] | string | null;
 }
 
+/** Input normalized by the upload/exam adapters; raw answer and grading notes are not part of this contract. */
 export interface ClassReportSubmission {
   id: string;
   studentKey: string;
@@ -21,9 +22,12 @@ export interface ClassReportSubmission {
   score?: number | null;
   maxScore?: number | null;
   official: boolean;
+  /** Grade-level weak-topic evidence, in addition to question-level weakTopics. */
+  weakTopics?: readonly string[] | string | null;
   questionResults?: readonly ClassReportQuestionResult[];
 }
 
+/** One assignment after its upload/exam source has been normalized for this pure model. */
 export interface ClassReportAssignment {
   id: string;
   title: string;
@@ -59,6 +63,7 @@ export interface ClassReportQuestionStats {
   partial: number;
   incorrect: number;
   unreadable: number;
+  notAttempted: number;
   correctRate: number;
   scoreRate: number;
 }
@@ -70,8 +75,9 @@ export interface ClassReportLabelStats {
 
 export interface ClassAssignmentReport {
   assignment: Pick<ClassReportAssignment, 'id' | 'title' | 'type' | 'maxScore'>;
-  latest: ClassReportSubmission[];
-  official: ClassReportSubmission[];
+  /** Safe projections only; raw submission/question objects never leave the model. */
+  latest: ClassReportSubmissionProjection[];
+  official: ClassReportSubmissionProjection[];
   counters: ClassReportCounters;
   metrics: ClassReportMetrics;
   averagePercent: number | null;
@@ -84,7 +90,7 @@ export interface ClassAssignmentReport {
   recommendations: string[];
 }
 
-const QUESTION_STATUSES = new Set(['correct', 'partial', 'incorrect', 'unreadable']);
+const QUESTION_STATUSES = new Set(['correct', 'partial', 'incorrect', 'unreadable', 'not_attempted']);
 const SCORE_RANGES = ['0-<5', '5-<6.5', '6.5-<8', '8-10'] as const;
 
 const asFiniteNumber = (value: unknown): number | null => {
@@ -92,9 +98,10 @@ const asFiniteNumber = (value: unknown): number | null => {
   return Number.isFinite(number) ? number : null;
 };
 
-const normalizeWhitespace = (value: string): string => value.trim().replace(/\s+/g, ' ');
+const normalizeWhitespace = (value: unknown): string =>
+  typeof value === 'string' ? value.trim().replace(/\s+/g, ' ') : '';
 
-const normalizeKey = (value: string): string => normalizeWhitespace(value).toLocaleLowerCase('vi-VN');
+const normalizeKey = (value: unknown): string => normalizeWhitespace(value).toLocaleLowerCase('vi-VN');
 
 const normalizeLabel = (value: unknown): { key: string; label: string } | null => {
   if (typeof value !== 'string') return null;
@@ -115,6 +122,11 @@ const isNewer = (candidate: ClassReportSubmission, current: ClassReportSubmissio
 
 const studentKeyOf = (entry: ClassReportRosterEntry | string): string =>
   typeof entry === 'string' ? entry : entry.studentKey;
+
+const topicValues = (value: unknown): readonly unknown[] => {
+  if (Array.isArray(value)) return value;
+  return typeof value === 'string' ? [value] : [];
+};
 
 const scorePair = (
   submission: Pick<ClassReportSubmission, 'score' | 'maxScore'>,
@@ -157,18 +169,21 @@ const sortLabelStats = (stats: Map<string, ClassReportLabelStats>): ClassReportL
 const collectLabelStats = (
   submissions: readonly ClassReportSubmission[],
   labelsOf: (result: ClassReportQuestionResult) => readonly unknown[],
+  submissionLabelsOf?: (submission: ClassReportSubmission) => readonly unknown[],
 ): ClassReportLabelStats[] => {
   const stats = new Map<string, ClassReportLabelStats>();
+  const addLabel = (rawLabel: unknown): void => {
+    const normalized = normalizeLabel(rawLabel);
+    if (!normalized) return;
+    const current = stats.get(normalized.key);
+    if (current) current.evidenceCount += 1;
+    else stats.set(normalized.key, { label: normalized.label, evidenceCount: 1 });
+  };
   for (const submission of submissions) {
+    for (const rawLabel of submissionLabelsOf?.(submission) ?? []) addLabel(rawLabel);
     for (const result of submission.questionResults ?? []) {
       if (!isCountableQuestionResult(result)) continue;
-      for (const rawLabel of labelsOf(result)) {
-        const normalized = normalizeLabel(rawLabel);
-        if (!normalized) continue;
-        const current = stats.get(normalized.key);
-        if (current) current.evidenceCount += 1;
-        else stats.set(normalized.key, { label: normalized.label, evidenceCount: 1 });
-      }
+      for (const rawLabel of labelsOf(result)) addLabel(rawLabel);
     }
   }
   return sortLabelStats(stats);
@@ -191,13 +206,15 @@ const buildQuestionStats = (
         partial: 0,
         incorrect: 0,
         unreadable: 0,
+        notAttempted: 0,
         correctRate: 0,
         scoreRate: 0,
         score: 0,
         maxScore: 0,
       };
       current.evidenceCount += 1;
-      current[status as 'correct' | 'partial' | 'incorrect' | 'unreadable'] += 1;
+      const statusKey = status === 'not_attempted' ? 'notAttempted' : status;
+      current[statusKey as 'correct' | 'partial' | 'incorrect' | 'unreadable' | 'notAttempted'] += 1;
       const pair = scorePair(result);
       if (pair) {
         current.score += pair.score;
@@ -220,6 +237,48 @@ const isCountableQuestionResult = (result: ClassReportQuestionResult): boolean =
   const status = normalizeKey(result.status).replace('partially_correct', 'partial');
   return QUESTION_STATUSES.has(status) && Boolean(normalizeWhitespace(String(result.questionNumber ?? '')));
 };
+
+export interface ClassReportQuestionProjection {
+  questionNumber: string;
+  status: string;
+  score: number | null;
+  maxScore: number | null;
+  errorType: string | null;
+  weakTopics: string[];
+}
+
+export interface ClassReportSubmissionProjection {
+  id: string;
+  studentKey: string;
+  createdAt: string;
+  status: string;
+  score: number | null;
+  maxScore: number | null;
+  official: boolean;
+  weakTopics: string[];
+  questionResults: ClassReportQuestionProjection[];
+}
+
+const projectQuestionResult = (result: ClassReportQuestionResult): ClassReportQuestionProjection => ({
+  questionNumber: normalizeWhitespace(result.questionNumber),
+  status: typeof result.status === 'string' ? result.status : '',
+  score: asFiniteNumber(result.score),
+  maxScore: asFiniteNumber(result.maxScore),
+  errorType: typeof result.errorType === 'string' ? result.errorType : null,
+  weakTopics: topicValues(result.weakTopics).filter((topic): topic is string => typeof topic === 'string'),
+});
+
+const projectSubmission = (submission: ClassReportSubmission): ClassReportSubmissionProjection => ({
+  id: String(submission.id ?? ''),
+  studentKey: normalizeWhitespace(submission.studentKey),
+  createdAt: String(submission.createdAt ?? ''),
+  status: typeof submission.status === 'string' ? submission.status : '',
+  score: asFiniteNumber(submission.score),
+  maxScore: asFiniteNumber(submission.maxScore),
+  official: submission.official === true,
+  weakTopics: topicValues(submission.weakTopics).filter((topic): topic is string => typeof topic === 'string'),
+  questionResults: (submission.questionResults ?? []).map(projectQuestionResult),
+});
 
 const buildRecommendations = (
   metrics: ClassReportMetrics,
@@ -282,11 +341,13 @@ export const buildClassAssignmentReport = (input: ClassReportInput): ClassAssign
     if (!current || isNewer(submission, current)) latestByStudent.set(key, submission);
   }
 
-  const latest = [...latestByStudent.values()];
-  const official = latest.filter(submission => submission.official === true);
-  const graded = latest.filter(submission => normalizeKey(submission.status) === 'graded');
-  const pending = graded.filter(submission => submission.official !== true);
-  const scorePairs = official
+  const latestSubmissions = [...latestByStudent.values()];
+  const isOfficial = (submission: ClassReportSubmission): boolean =>
+    submission.official === true && normalizeKey(submission.status) === 'graded';
+  const officialSubmissions = latestSubmissions.filter(isOfficial);
+  const graded = latestSubmissions.filter(submission => normalizeKey(submission.status) === 'graded');
+  const pending = latestSubmissions.filter(submission => submission.official !== true);
+  const scorePairs = officialSubmissions
     .map(submission => scorePair(submission, assignment.maxScore))
     .filter((pair): pair is { score: number; maxScore: number } => pair !== null);
   const percentages = scorePairs.map(pair => (pair.score / pair.maxScore) * 100);
@@ -300,17 +361,20 @@ export const buildClassAssignmentReport = (input: ClassReportInput): ClassAssign
     medianPercent: median(percentages),
     officialEvidenceCount: scorePairs.length,
   };
-  const questionStats = buildQuestionStats(official);
-  const errorStats = collectLabelStats(official, result => result.errorType ? [result.errorType] : []);
-  const topicStats = collectLabelStats(official, result =>
-    Array.isArray(result.weakTopics) ? result.weakTopics : result.weakTopics ? [result.weakTopics] : []);
+  const questionStats = buildQuestionStats(officialSubmissions);
+  const errorStats = collectLabelStats(officialSubmissions, result => result.errorType ? [result.errorType] : []);
+  const topicStats = collectLabelStats(
+    officialSubmissions,
+    result => topicValues(result.weakTopics),
+    submission => topicValues(submission.weakTopics),
+  );
   const counters: ClassReportCounters = {
     roster: rosterKeys.size,
-    submitted: latest.length,
+    submitted: latestSubmissions.length,
     graded: graded.length,
-    official: official.length,
+    official: officialSubmissions.length,
     pending: pending.length,
-    missing: Math.max(0, rosterKeys.size - latest.length),
+    missing: Math.max(0, rosterKeys.size - latestSubmissions.length),
   };
   const recommendations = buildRecommendations(metrics, questionStats, errorStats, topicStats);
 
@@ -321,8 +385,8 @@ export const buildClassAssignmentReport = (input: ClassReportInput): ClassAssign
       type: assignment.type,
       maxScore: assignment.maxScore,
     },
-    latest,
-    official,
+    latest: latestSubmissions.map(projectSubmission),
+    official: officialSubmissions.map(projectSubmission),
     counters,
     metrics,
     averagePercent: metrics.averagePercent,
