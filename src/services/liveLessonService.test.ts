@@ -94,14 +94,13 @@ const responseData = (overrides: Record<string, unknown> = {}) => ({
 });
 
 const sessionData = (overrides: Record<string, unknown> = {}) => ({
-  id: 'session-1',
+  schemaVersion: 1,
   lessonId: 'lesson-1',
   title: 'Lesson',
   classId: 'class-1',
   teacherUid: 'teacher-1',
   allowedStepIds: ['warmup'],
   expiresAt: new FakeTimestamp(9000),
-  mode: 'teacher',
   status: 'lobby',
   currentCueId: 'P00',
   currentTvScreenId: 'S0',
@@ -132,7 +131,6 @@ describe('liveLessonService Firestore boundary', () => {
       id: 'auto-1',
       exists: () => true,
       data: () => sessionData({
-        id: 'auto-1',
         lessonId: definition.lessonId,
         title: definition.title,
         allowedStepIds: [...definition.allowedStepIds],
@@ -149,9 +147,12 @@ describe('liveLessonService Firestore boundary', () => {
     expect(firestoreMocks.doc).toHaveBeenCalledWith(expect.objectContaining({ path: 'liveLessonSessions' }));
     expect(Object.keys(payload).sort()).toEqual([
       'allowedStepIds', 'classId', 'createdAt', 'currentCueId', 'currentTvScreenId', 'expiresAt',
-      'id', 'lessonId', 'mode', 'publicStateEnabled', 'publicStatsEnabled', 'status', 'teacherUid',
+      'lessonId', 'publicStateEnabled', 'publicStatsEnabled', 'schemaVersion', 'status', 'teacherUid',
       'title', 'updatedAt',
     ].sort());
+    expect(payload).not.toHaveProperty('id');
+    expect(payload).not.toHaveProperty('mode');
+    expect(payload.schemaVersion).toBe(1);
     expect(payload.allowedStepIds).toEqual(definition.allowedStepIds);
     expect(payload.status).toBe('lobby');
     expect(payload.publicStatsEnabled).toBe(false);
@@ -179,6 +180,13 @@ describe('liveLessonService Firestore boundary', () => {
 
     firestoreMocks.getDoc.mockResolvedValueOnce({ exists: () => false, id: 'missing', data: () => undefined });
     await expect(getLiveLessonSession('missing')).resolves.toBeNull();
+
+    firestoreMocks.getDoc.mockResolvedValueOnce({
+      exists: () => true,
+      id: 'bad-version',
+      data: () => sessionData({ schemaVersion: 2 }),
+    });
+    await expect(getLiveLessonSession('bad-version')).rejects.toThrow(/schemaVersion/i);
   });
 
   it('writes only a validated session patch and closes public flags', async () => {

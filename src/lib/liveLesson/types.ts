@@ -57,13 +57,13 @@ export interface LiveResponse {
 
 export interface LiveLessonSession {
   id: string;
+  schemaVersion: 1;
   lessonId: string;
   title: string;
   classId: string;
   teacherUid: string;
   allowedStepIds: string[];
   expiresAt: number;
-  mode: LiveLessonMode;
   status: LiveSessionStatus;
   currentCueId: string;
   currentTvScreenId: string;

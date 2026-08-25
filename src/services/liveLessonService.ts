@@ -28,7 +28,6 @@ const SESSIONS_COL = 'liveLessonSessions';
 const RESPONSES_SUB = 'responses';
 const PUBLIC_SUB = 'public';
 const RESPONSE_TYPES: LiveResponseType[] = ['choice', 'text', 'boolean', 'route', 'hint', 'exit_ticket'];
-const SESSION_MODES = ['teacher', 'tv', 'student'] as const;
 const SESSION_STATUSES = ['lobby', 'running', 'paused', 'closed'] as const;
 const SESSION_PATCH_KEYS = new Set([
   'status',
@@ -57,10 +56,6 @@ function assertNonEmptyString(value: unknown, label: string): asserts value is s
 
 const isLiveResponseType = (value: unknown): value is LiveResponseType => (
   typeof value === 'string' && RESPONSE_TYPES.includes(value as LiveResponseType)
-);
-
-const isSessionMode = (value: unknown): value is LiveLessonSession['mode'] => (
-  typeof value === 'string' && SESSION_MODES.includes(value as LiveLessonSession['mode'])
 );
 
 const isSessionStatus = (value: unknown): value is LiveLessonSession['status'] => (
@@ -101,7 +96,7 @@ const normalizeSession = (sessionId: string, value: unknown): LiveLessonSession 
     || !value.allowedStepIds.every((stepId) => typeof stepId === 'string' && stepId.length > 0 && !stepId.includes('/'))) {
     throw new Error('allowedStepIds must contain at least one Firestore-safe step id.');
   }
-  if (!isSessionMode(value.mode)) throw new Error('Session mode is invalid.');
+  if (value.schemaVersion !== 1) throw new Error('Live lesson session schemaVersion must be 1.');
   if (!isSessionStatus(value.status)) throw new Error('Session status is invalid.');
   assertNonEmptyString(value.currentCueId, 'currentCueId');
   assertNonEmptyString(value.currentTvScreenId, 'currentTvScreenId');
@@ -110,13 +105,13 @@ const normalizeSession = (sessionId: string, value: unknown): LiveLessonSession 
   }
   return {
     id: sessionId,
+    schemaVersion: 1,
     lessonId: value.lessonId,
     title: value.title,
     classId: value.classId,
     teacherUid: value.teacherUid,
     allowedStepIds: [...value.allowedStepIds],
     expiresAt: toEpochMillis(value.expiresAt, 'expiresAt'),
-    mode: value.mode,
     status: value.status,
     currentCueId: value.currentCueId,
     currentTvScreenId: value.currentTvScreenId,
@@ -220,14 +215,13 @@ export const createLiveLessonSession = async ({ definition, teacherUid, classId 
     Timestamp.now().toMillis() + (sessionDefinition.durationSeconds + EXPIRY_BUFFER_SECONDS) * 1000,
   );
   await setDoc(sessionRef, {
-    id: sessionRef.id,
+    schemaVersion: 1,
     lessonId: sessionDefinition.lessonId,
     title: sessionDefinition.title,
     classId,
     teacherUid,
     allowedStepIds: [...sessionDefinition.allowedStepIds],
     expiresAt,
-    mode: 'teacher',
     status: 'lobby',
     currentCueId: firstCue.id,
     currentTvScreenId: firstCue.tvScreenId,
