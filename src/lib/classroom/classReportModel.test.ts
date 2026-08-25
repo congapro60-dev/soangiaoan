@@ -320,12 +320,12 @@ describe('buildClassAssignmentReport', () => {
           errorType: '',
           weakTopics: [],
           studentAnswer: 'x = 42',
-        }],
+        }] as unknown as ClassReportInput['assignment']['submissions'][number]['questionResults'],
       }),
       noteForTeacher: 'nội bộ',
       teacherNote: 'ghi chú thô',
       studentAnswer: 'raw answer',
-    };
+    } as unknown as ClassReportInput['assignment']['submissions'][number];
 
     const report = buildClassAssignmentReport(baseInput([rawSubmission]));
 
