@@ -22,6 +22,32 @@ export interface MathToken {
 /** Lệnh LaTeX phổ biến — xuất hiện NGOÀI vùng $...$ nghĩa là dữ liệu lỗi cần vá. */
 const LATEX_CMD_RE = /\\(?:frac|sqrt|left|right|cdot|pm|mp|times|div|leq?|geq?|neq?|approx|infty|alpha|beta|gamma|Delta|delta|theta|lambda|mu|pi|sigma|omega|displaystyle|sin|cos|tan|cot|log|ln|lim|vec|overline|hat|underline|text|mathbb|mathrm|mathbf|begin|end|in|notin|subset|supset|cap|cup|Rightarrow|Leftrightarrow|to|le|ge|ne)\b/;
 
+/**
+ * Dữ liệu chấm cũ đôi khi làm mất dấu `\\` khi đi qua JSON, ví dụ `D in SA`.
+ * Chỉ phục hồi trong một cặp toán tử có hai vế mang hình dạng ký hiệu Toán;
+ * không thay mọi từ `in` trong câu thường của tiếng Việt/tiếng Anh.
+ */
+const LEGACY_MATH_ATOM = '(?:[A-Z][A-Z0-9]{0,3}|[a-z]|\\([^()\\r\\n]{1,24}\\)|\\{[^{}\\r\\n]{1,24}\\})';
+const LEGACY_WORD_OPERATOR_RE = new RegExp(
+  `(^|[\\s,(;:])(${LEGACY_MATH_ATOM})\\s+(in|notin|subset|supset|cap|cup)\\s+(${LEGACY_MATH_ATOM})(?=$|[\\s,.;:)])`,
+  'g',
+);
+const LEGACY_WORD_OPERATOR_LATEX = {
+  in: '\\in',
+  notin: '\\notin',
+  subset: '\\subset',
+  supset: '\\supset',
+  cap: '\\cap',
+  cup: '\\cup',
+} as const;
+
+const normalizeLegacyWordOperators = (s: string): string =>
+  s.replace(
+    LEGACY_WORD_OPERATOR_RE,
+    (_match: string, boundary: string, left: string, operator: string, right: string) =>
+      `${boundary}${left} ${LEGACY_WORD_OPERATOR_LATEX[operator as keyof typeof LEGACY_WORD_OPERATOR_LATEX]} ${right}`,
+  );
+
 const SUP: Record<string, string> = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
 
 /** Mảnh toán "trần" trong vùng TEXT cần bọc $ (toạ độ F_1(3;0), luỹ thừa có dấu =…). */
@@ -169,11 +195,12 @@ const wrapBareSegment = (segment: string): string => {
   const trailing = right > left ? segment.slice(right) : '';
   const core = segment.slice(left, right > left ? right : segment.length);
   if (core === '=>') return `${leading}$\\Rightarrow$${trailing}`;
-  const hasCommand = LATEX_CMD_RE.test(core);
+  const normalizedCore = normalizeLegacyWordOperators(core);
+  const hasCommand = LATEX_CMD_RE.test(normalizedCore);
   const hasRelation = /[=]/.test(core);
   if (!hasCommand && !hasRelation) return leading + convertCaretsInText(core) + trailing;
 
-  const source = hasCommand ? core : convertCaretsInText(core);
+  const source = hasCommand ? normalizedCore : convertCaretsInText(core);
   const commandIndex = source.search(LATEX_CMD_RE);
   if (commandIndex <= 0) return leading + wrapWhole(source) + trailing;
 

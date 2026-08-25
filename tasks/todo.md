@@ -1,3 +1,17 @@
+# P0 — Tương thích công thức cũ trong nhận xét chấm (2026-08-25)
+
+- [x] Tái hiện lỗi dữ liệu cũ mất dấu `\\` ở `in/subset/cap` trong màn hình nhận xét.
+- [x] Viết test đỏ/xanh cho chuỗi hình học cũ và kiểm tra không đổi câu thường.
+- [x] Khôi phục toán tử dạng chữ có điều kiện trong module math duy nhất; không sửa dữ liệu/điểm đã lưu.
+- [x] Targeted 27/27, full Vitest 85 files/1,208 tests, `lint`, `lint:api`, `build`, `git diff --check` và Ox Alpha Free QA PASS.
+- [ ] Push/deploy sau khi có lệnh tích hợp riêng.
+
+## Review/verification — tương thích công thức cũ
+
+- Chuỗi `D in SA, SA subset (SAB) => D in (SAB)` được chuyển thành vùng KaTeX an toàn ở lớp hiển thị.
+- Câu thường như `Học sinh in bài rồi.`, `Fill in the blanks.` và `Please log in now.` giữ nguyên; `repairMathString` không đổi dữ liệu nguồn cũ.
+- Chỉ thay đổi `src/lib/adaptive/mathText.ts` và test của module; không chạm Firestore, Storage, submission, grade hay production.
+
 # P0 — Bộ lọc lịch sử lượt nộp giáo viên (2026-08-25)
 
 - [x] Chốt spec: mặc định chỉ lượt mới nhất; lịch sử vẫn giữ nguyên và mở được khi cần.

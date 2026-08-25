@@ -188,4 +188,18 @@ describe('sanitizeDisplayText — production-like hình học không có delimit
     expect(assertClean(out)).toBe(true);
     expect(out).not.toContain('<');
   });
+
+  it('khôi phục toán tử dạng chữ từ dữ liệu chấm cũ nhưng không đổi câu tiếng Việt', () => {
+    const input = 'D in SA, SA subset (SAB) => D in (SAB); E in SB, SB subset (SAB) => E in (SAB); Suy ra DE subset (SAB).';
+
+    const out = sanitizeDisplayText(input);
+
+    expect(out).toContain('$D \\in SA, SA \\subset (SAB)$');
+    expect(out).toContain('D \\in (SAB)');
+    expect(out).toContain('E \\in SB, SB \\subset (SAB)');
+    expect(out).toContain('E \\in (SAB)');
+    expect(out).toContain('DE \\subset (SAB)');
+    expect(out).toContain('$\\Rightarrow$');
+    expect(sanitizeDisplayText('Học sinh in bài rồi.')).toBe('Học sinh in bài rồi.');
+  });
 });
