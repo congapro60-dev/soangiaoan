@@ -128,6 +128,17 @@ describe('g10_w5_p31_bpt_tiet1 live lesson definition', () => {
     });
   });
 
+  it('rejects non-string public screen fields with a stable package error', () => {
+    const basePackage = JSON.parse(pilotPackageText) as Record<string, unknown>;
+    const badPackage = JSON.parse(JSON.stringify(basePackage)) as Record<string, unknown>;
+    const tvScreens = badPackage.tvScreens as Array<Record<string, unknown>>;
+    tvScreens[0].title = 42;
+
+    expect(() => normalizeLiveLessonDefinition(badPackage)).toThrowError(
+      expect.objectContaining({ code: 'LIVE_PACKAGE_INVALID' }),
+    );
+  });
+
   it('rejects response types outside the runtime union', () => {
     const definition = getPilotLiveLessonDefinition();
     const badDefinition = {

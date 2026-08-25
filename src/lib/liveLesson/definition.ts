@@ -46,8 +46,19 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function hasPublicScreenFieldTypes(value: Record<string, unknown>): boolean {
+  return isNonEmptyString(value.id)
+    && ['label', 'title', 'body', 'action'].every((key) => (
+      value[key] === undefined || typeof value[key] === 'string'
+    ));
+}
+
 function isPilotScreen(value: unknown): value is PilotScreen {
-  return isRecord(value) && typeof value.id === 'string';
+  return isRecord(value) && hasPublicScreenFieldTypes(value);
 }
 
 function isPublicScreen(value: unknown): value is LiveLessonScreen {
@@ -62,10 +73,6 @@ function isAiErrorOfTheWeek(value: unknown): value is LiveAiErrorOfTheWeek {
     && typeof value.category === 'string'
     && typeof value.correction === 'string'
     && typeof value.proof === 'string';
-}
-
-function isNonEmptyString(value: unknown): value is string {
-  return typeof value === 'string' && value.trim().length > 0;
 }
 
 function isRouteTask(value: unknown): boolean {
