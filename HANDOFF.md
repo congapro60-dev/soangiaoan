@@ -112,3 +112,14 @@ git diff --check
 - Bằng chứng: full Vitest **83 files / 1.184 tests pass**; focused parser/contract/math/UI/privacy **152 tests pass**; `npm run lint`, `npm run lint:api`, `npm run build`, `git diff --check` đều pass. Build chỉ còn các cảnh báo chunk/dynamic import hiện hữu.
 - QA độc lập OpenCode/Ox Alpha Free (`opencode/x-preview-f-free`): **PASS**; xác nhận các hạng mục parser, contract, retry, quota/history/điểm cũ, privacy và render công thức. Còn 3 rủi ro P2 đã ghi nhận: batch regrade được phép ghi đè điểm đã duyệt theo chủ đích, bắt JSON nhiều object dùng greedy brace match, và quota không hoàn lại khi chi phí AI đã phát sinh.
 - Báo cáo tổng hợp theo từng bài (phân bố điểm, tỷ lệ đúng từng câu, lỗi phổ biến, chủ đề yếu và khuyến nghị) **chưa thuộc lô này**; báo cáo học sinh hiện có và dữ liệu `questionResults`/`weakTopics` là nền cho milestone analytics riêng.
+
+## 9. Lô báo cáo tổng hợp theo từng bài giao — 2026-08-25
+
+- Nhánh: `codex/fix-classroom-math-render-duplicate`; HEAD đã kiểm thử: `680aaed` (`fix(classroom): harden report identity matching`). Chưa merge/push/deploy tại thời điểm ghi chú này; không đọc/ghi hay thay đổi dữ liệu production.
+- Màn hình **Báo cáo** của từng lớp nay có bộ chọn từng bài và báo cáo chỉ đọc cho cả hai nguồn: bài nộp ảnh/AI và đề online.
+- Mỗi bài có: sĩ số, đã nộp, đã chấm, đã duyệt, chưa nộp, điểm trung bình chính thức, phân bố điểm, tỷ lệ đúng và tỷ lệ điểm theo từng câu, năm trạng thái câu hỏi (**Đúng / Đúng một phần / Sai / Không đọc được / Chưa làm**), lỗi phổ biến, chủ đề cần củng cố và khuyến nghị dạy học.
+- Chỉ lượt mới nhất của mỗi học sinh được tính. Bài nộp ảnh/AI chỉ vào số liệu chính thức khi `graded` và giáo viên đã duyệt; đề online chỉ vào số liệu chính thức khi `graded`. Điểm online dùng thang điểm canonical từ cấu hình đề.
+- Ghép học sinh online theo ID kèm kiểm tra tên; nếu không có ID chỉ nhận đúng một kết quả khớp tên đã chuẩn hóa, không tự chọn dòng đầu khi trùng tên. Lớp không khớp bị loại khỏi báo cáo.
+- CSV chỉ xuất số liệu tổng hợp; không xuất `studentKey`, bài làm, đáp án, ghi chú riêng của giáo viên hay dữ liệu từng học sinh.
+- Bằng chứng kiểm thử: focused **2 files / 23 tests pass**; full Vitest **85 files / 1.207 tests pass**; `npm run lint`, `npm run lint:api`, `npm run build`, `git diff --check` đều pass. Build chỉ còn cảnh báo chunk/dynamic import vốn có.
+- QA độc lập Ox Alpha Free/OpenCode (`opencode/x-preview-f-free`) trên đúng HEAD `680aaed`: **PASS**, không có P0/P1/P2. Ba lưu ý P3: dữ liệu online legacy thiếu lớp có giới hạn không thể phân biệt trùng tên khác lớp; câu online chưa có điểm đang được xếp vào `Chưa làm`; CSV điểm trung bình đã được chuẩn hóa hiển thị theo `%`.

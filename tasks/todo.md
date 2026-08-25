@@ -5,6 +5,14 @@
 - [x] Code bộ lọc và giới hạn “Chọn lượt đang hiển thị” theo đúng projection.
 - [ ] Chạy full test, lint, lint:api, build, QA độc lập và push `origin/main`.
 
+# P0 — Báo cáo tổng hợp theo từng bài giao (2026-08-25)
+
+- [x] Duyệt spec và mô hình hóa số liệu latest/official, phân bố điểm, câu hỏi, lỗi, chủ đề và khuyến nghị.
+- [x] Code báo cáo read-only cho bài nộp ảnh/AI và đề online; thêm CSV tổng hợp và nối vào màn hình lớp học.
+- [x] Siết privacy/identity: không xuất dữ liệu riêng; không gán dòng đầu khi trùng tên; thang điểm online lấy từ cấu hình đề.
+- [x] Focused 23/23, full Vitest 85 files/1.207 tests, lint, lint:api, build, diff check và Ox Alpha Free QA PASS.
+- [ ] Merge vào `main`, push `origin/main`, kiểm tra deployment; không thao tác dữ liệu lớp 11 Columbus.
+
 # P0 — Công thức nhận xét và chẩn đoán nộp trùng (2026-08-25)
 
 - [x] Test đỏ rồi xanh: công thức ở `Bài làm của em` và `Đáp án / mốc cần đạt` đi qua KaTeX.
