@@ -84,6 +84,34 @@ const call = async (body: DocData) => {
   return state;
 };
 
+const makeGeminiResponse = (text: string, finishReason = 'STOP') => ({
+  ok: true,
+  json: async () => ({
+    candidates: [{
+      finishReason,
+      ...(text ? { content: { parts: [{ text }] } } : {}),
+    }],
+  }),
+  text: async () => '',
+});
+
+const stubGeminiResponses = (...responses: ReturnType<typeof makeGeminiResponse>[]) => {
+  let index = 0;
+  h.fetch = vi.fn(async () => responses[Math.min(index++, responses.length - 1)]);
+  vi.stubGlobal('fetch', h.fetch);
+};
+
+const validGradeJson = (score = 6) => JSON.stringify({
+  score,
+  maxScore: 10,
+  feedbackForStudent: 'Em cần trình bày rõ hơn.',
+  noteForTeacher: 'AI chưa chắc ở câu cuối.',
+  strengths: ['Biết lập luận'],
+  weaknesses: ['Thiếu kết luận'],
+  weakTopics: ['Trình bày kết luận'],
+  questionResults: [],
+});
+
 const oldGrade = {
   score: 8,
   maxScore: 10,
@@ -154,6 +182,72 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
 
     expect(result.statusCode).toBe(422);
     expect(result.body?.error).toMatch(/giữ nguyên|chấm lại/i);
+    expect(harness.state.submissions['sub-1']).toMatchObject({ status: 'graded', grade: oldGrade });
+    expect(harness.state.submissionGradeHistory).toBeUndefined();
+  });
+
+  it('AI trả JSON có raw LaTeX \\in thì repair và vẫn commit được grade mới', async () => {
+    const harness = seed();
+    h.db = makeDb(harness);
+    const rawWithLatex = '{"score":6,"maxScore":10,"feedbackForStudent":"Em làm đúng: D \\in (SAB).","noteForTeacher":"Có thể duyệt sau khi xem lại.","strengths":[],"weaknesses":[],"weakTopics":[],"questionResults":[]}';
+    stubGeminiResponses(makeGeminiResponse(rawWithLatex));
+
+    const result = await call({ action: 'gradeOne', submissionId: 'sub-1' });
+
+    expect(result.statusCode).toBe(200);
+    expect(h.fetch).toHaveBeenCalledTimes(1);
+    expect(harness.state.submissions['sub-1']).toMatchObject({
+      status: 'graded',
+      grade: expect.objectContaining({
+        score: 6,
+        feedback: expect.stringContaining('\\in'),
+        teacherApproved: false,
+      }),
+    });
+  });
+
+  it('schema-invalid lần đầu thì retry và commit response hợp lệ lần sau', async () => {
+    const harness = seed();
+    h.db = makeDb(harness);
+    const schemaInvalid = JSON.stringify({ score: 6, maxScore: 10, noteForTeacher: 'Thiếu feedback.' });
+    stubGeminiResponses(makeGeminiResponse(schemaInvalid), makeGeminiResponse(validGradeJson(7)));
+
+    const result = await call({ action: 'gradeOne', submissionId: 'sub-1' });
+
+    expect(result.statusCode).toBe(200);
+    expect(h.fetch).toHaveBeenCalledTimes(2);
+    expect(harness.state.submissions['sub-1']).toMatchObject({
+      status: 'graded',
+      grade: expect.objectContaining({ score: 7, teacherApproved: false }),
+    });
+  });
+
+  it('cả hai response schema-invalid thì giữ grade cũ và không tạo history giả', async () => {
+    const harness = seed();
+    h.db = makeDb(harness);
+    const firstInvalid = JSON.stringify({ score: 6, maxScore: 10, noteForTeacher: 'Thiếu feedback.' });
+    const secondInvalid = JSON.stringify({ score: 'bảy', maxScore: 10, feedbackForStudent: 'Sai kiểu điểm.' });
+    stubGeminiResponses(makeGeminiResponse(firstInvalid), makeGeminiResponse(secondInvalid));
+
+    const result = await call({ action: 'gradeOne', submissionId: 'sub-1' });
+
+    expect(result.statusCode).toBe(422);
+    expect(h.fetch).toHaveBeenCalledTimes(2);
+    expect(result.body?.error).toMatch(/giữ nguyên|chấm lại|không hợp lệ/i);
+    expect(harness.state.submissions['sub-1']).toMatchObject({ status: 'graded', grade: oldGrade });
+    expect(harness.state.submissionGradeHistory).toBeUndefined();
+  });
+
+  it('Gemini SAFETY thì giữ grade cũ và trả lỗi từ chối nội dung', async () => {
+    const harness = seed();
+    h.db = makeDb(harness);
+    stubGeminiResponses(makeGeminiResponse('', 'SAFETY'));
+
+    const result = await call({ action: 'gradeOne', submissionId: 'sub-1' });
+
+    expect(result.statusCode).toBe(422);
+    expect(h.fetch).toHaveBeenCalledTimes(1);
+    expect(result.body?.error).toMatch(/từ chối|nội dung/i);
     expect(harness.state.submissions['sub-1']).toMatchObject({ status: 'graded', grade: oldGrade });
     expect(harness.state.submissionGradeHistory).toBeUndefined();
   });

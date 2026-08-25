@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseLooseJson } from './jsonRepair';
+import { JsonRecoveryError, parseJsonWithRecovery, parseLooseJson } from './jsonRepair';
 
 describe('parseLooseJson', () => {
   it('parse JSON hợp lệ như bình thường', () => {
@@ -23,5 +23,58 @@ describe('parseLooseJson', () => {
     const raw = '[{"id":"q1","content":"Tính $\\int_0^1 x\\,dx$","points":1}]';
     const parsed = parseLooseJson<Array<{ content: string }>>(raw);
     expect(parsed[0].content).toContain('\\int');
+  });
+});
+
+describe('parseJsonWithRecovery — strict/recovery contract', () => {
+  it('trả metadata strict và không ghi nhận repair khi JSON hợp lệ', () => {
+    const result = parseJsonWithRecovery<{ score: number }>('{"score":8}');
+
+    expect(result.value).toEqual({ score: 8 });
+    expect(result.metadata).toMatchObject({
+      parseMode: 'strict',
+      repairKinds: [],
+    });
+  });
+
+  it('chỉ repair backslash LaTeX trong string, giữ nguyên cấu trúc JSON', () => {
+    const raw = '{"answer":"D \\in SA \\subset (SAB) \\Rightarrow D \\in (SAB)","score":8,"nested":{"ok":true}}';
+
+    const result = parseJsonWithRecovery<{
+      answer: string;
+      score: number;
+      nested: { ok: boolean };
+    }>(raw);
+
+    expect(result.value).toEqual({
+      answer: 'D \\in SA \\subset (SAB) \\Rightarrow D \\in (SAB)',
+      score: 8,
+      nested: { ok: true },
+    });
+    expect(result.metadata.parseMode).toBe('repaired');
+    expect(result.metadata.repairKinds).toContain('latex_backslash');
+  });
+
+  it('giữ nguyên các escape JSON hợp lệ gồm newline, tab, quote, slash và unicode', () => {
+    const result = parseJsonWithRecovery<{ text: string }>(
+      String.raw`{"text":"dòng1\ndòng2\t\"trích\" \/ \u00E1"}`,
+    );
+
+    expect(result.value.text).toBe('dòng1\ndòng2\t"trích" / á');
+    expect(result.metadata.parseMode).toBe('strict');
+  });
+
+  it('escape raw control newline trong string', () => {
+    const rawControlNewline = '{"text":"dòng1' + String.fromCharCode(10) + 'dòng2"}';
+
+    const result = parseJsonWithRecovery<{ text: string }>(rawControlNewline);
+
+    expect(result.value.text).toBe('dòng1\ndòng2');
+    expect(result.metadata.parseMode).toBe('repaired');
+  });
+
+  it('ném JsonRecoveryError khi thiếu quote hoặc object bị cắt', () => {
+    expect(() => parseJsonWithRecovery('{"text":"thiếu quote}')).toThrow(JsonRecoveryError);
+    expect(() => parseJsonWithRecovery('{"score":8')).toThrow(JsonRecoveryError);
   });
 });

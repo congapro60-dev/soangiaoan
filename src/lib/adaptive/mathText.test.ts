@@ -126,3 +126,14 @@ describe('an toàn tổng quát', () => {
     expect(sanitizeDisplayText('   ')).toBe('');
   });
 });
+
+describe('sanitizeDisplayText — production-like hình học không có delimiter', () => {
+  it('bọc từng đoạn công thức và giữ liên từ tiếng Việt ngoài vùng math', () => {
+    const input = 'D \\in (CDE) và AB \\in (SAB) => DE \\cap AB = {F} => F là điểm chung của (CDE) và (SAB)';
+
+    const out = sanitizeDisplayText(input);
+
+    expect(out).toBe('$D \\in (CDE)$ và $AB \\in (SAB)$ => $DE \\cap AB = {F}$ => F là điểm chung của $(CDE)$ và $(SAB)$');
+    expect(assertClean(out)).toBe(true);
+  });
+});

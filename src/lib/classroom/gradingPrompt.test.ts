@@ -7,6 +7,7 @@ import {
   buildRubricPrompt,
   buildSolveExamPrompt,
   parseHomeworkGrade,
+  parseHomeworkGradeForCommit,
   parsePracticeAssessment,
   parsePracticeQuestions,
   parseRewrittenFeedback,
@@ -204,6 +205,76 @@ describe('parseHomeworkGrade', () => {
 
     expect(g.questionResults[0].ignoredByTeacherInstruction).toBe(true);
     expect(g.questionResults[0].needsTeacherReview).toBe(false);
+  });
+});
+
+describe('parseHomeworkGradeForCommit — strict homework contract', () => {
+  const valid = {
+    score: 8,
+    maxScore: 10,
+    feedbackForStudent: 'Em làm đúng phần chính.',
+    noteForTeacher: 'Có thể duyệt sau khi xem lại câu cuối.',
+    strengths: ['Biết lập luận'],
+    weaknesses: [],
+    weakTopics: [],
+    questionResults: [{
+      questionNumber: 'Câu 1',
+      status: 'correct',
+      score: 8,
+      maxScore: 10,
+      studentAnswer: 'D \\in (SAB)',
+      expectedAnswer: 'D \\in (SAB)',
+      errorType: 'Không có',
+      explanation: 'Lập luận đúng.',
+      correction: 'Không cần sửa.',
+      nextPractice: 'Luyện thêm một bài tương tự.',
+      needsTeacherReview: false,
+    }],
+  };
+
+  const raw = (value: Record<string, unknown>) => JSON.stringify(value);
+  const parse = (value: Record<string, unknown>) => parseHomeworkGradeForCommit(raw(value), 10, false);
+
+  it('chấp nhận payload commit hợp lệ và giữ đúng kiểu dữ liệu', () => {
+    const result = parse(valid);
+
+    expect(result.score).toBe(8);
+    expect(result.feedbackForStudent).toBe('Em làm đúng phần chính.');
+  });
+
+  it('từ chối root array', () => {
+    expect(() => parseHomeworkGradeForCommit(JSON.stringify([valid]), 10, false)).toThrow();
+  });
+
+  it('từ chối thiếu feedbackForStudent', () => {
+    const value = { ...valid } as Record<string, unknown>;
+    delete value.feedbackForStudent;
+
+    expect(() => parse(value)).toThrow();
+  });
+
+  it('từ chối score dạng string', () => {
+    expect(() => parse({ ...valid, score: '8' })).toThrow();
+  });
+
+  it('từ chối score vượt thang 12/10', () => {
+    expect(() => parse({ ...valid, score: 12 })).toThrow();
+  });
+
+  it('từ chối NaN thay vì biến thành điểm hợp lệ', () => {
+    const rawWithNaN = raw(valid).replace('"score":8', '"score":NaN');
+
+    expect(() => parseHomeworkGradeForCommit(rawWithNaN, 10, false)).toThrow();
+  });
+
+  it('từ chối questionResults có questionNumber trùng nhau', () => {
+    const first = valid.questionResults[0];
+    const value = {
+      ...valid,
+      questionResults: [first, { ...first, score: 7 }],
+    };
+
+    expect(() => parse(value)).toThrow();
   });
 });
 
