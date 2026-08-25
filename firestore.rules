@@ -416,9 +416,8 @@ service cloud.firestore {
       }
 
       function llv3SafeCount(data) {
-        // Relational bounds reject NaN (both comparisons are false) and +/-Infinity
-        // (one bound is false) without the extra evaluator cost of data == data.
-        return data is number && data >= 0 && data <= 10000;
+        // The int type excludes fractional, NaN and +/-Infinity values before bounds apply.
+        return data is int && data >= 0 && data <= 10000;
       }
 
       function llv3SafeChoiceCounts(data) {

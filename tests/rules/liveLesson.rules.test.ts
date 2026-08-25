@@ -344,6 +344,26 @@ describe('liveLessonSessions/{sessionId}/public · safe public documents', () =>
     })));
   });
 
+  it('public aggregate counts reject fractional high-level values → DENY', async () => {
+    for (const field of ['participantCount', 'submittedCount', 'hintUseCount']) {
+      await assertRuleDenied(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
+        [field]: 1.5,
+      })));
+    }
+  });
+
+  it('public count maps reject fractional choice, route and error values → DENY', async () => {
+    await assertRuleDenied(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
+      choiceCounts: { A: 1.5 },
+    })));
+    await assertRuleDenied(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
+      routeCounts: { M: 1.5 },
+    })));
+    await assertRuleDenied(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
+      errorCategoryCounts: { Conceptual: 1.5 },
+    })));
+  });
+
   it('public count maps reject unknown keys and negative counts → DENY', async () => {
     await assertRuleDenied(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), publicStatsData({
       choiceCounts: { A: -1 },
