@@ -739,6 +739,7 @@ const projectStudentAssignment = (id: string, data: FirebaseFirestore.DocumentDa
 };
 
 const projectStudentSubmission = (id: string, data: FirebaseFirestore.DocumentData): SubmissionDoc => {
+  const status = ['submitted', 'grading', 'graded', 'error'].includes(String(data.status)) ? data.status : 'submitted';
   const rawGrade = data.grade as FirebaseFirestore.DocumentData | undefined;
   const questionResults = Array.isArray(rawGrade?.questionResults)
     ? rawGrade.questionResults
@@ -784,9 +785,9 @@ const projectStudentSubmission = (id: string, data: FirebaseFirestore.DocumentDa
     fileUrls: Array.isArray(data.fileUrls) ? data.fileUrls.map(String) : [],
     attachments: Array.isArray(data.attachments) ? data.attachments : undefined,
     note: String(data.note || ''),
-    status: ['submitted', 'grading', 'graded', 'error'].includes(String(data.status)) ? data.status : 'submitted',
+    status,
     ...(grade ? { grade } : {}),
-    ...(data.errorMessage ? { errorMessage: String(data.errorMessage) } : {}),
+    ...(status === 'error' ? { errorMessage: 'Bài đã được nhận nhưng kết quả chấm chưa hoàn tất. Em chưa cần nộp lại ảnh; thầy/cô sẽ chấm lại hoặc kiểm tra bài.' } : {}),
     createdAt: String(data.createdAt || ''),
     updatedAt: String(data.updatedAt || ''),
   } as SubmissionDoc;

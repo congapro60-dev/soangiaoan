@@ -152,6 +152,12 @@ export interface QuestionResult {
   needsTeacherReview: boolean;
 }
 
+export interface GradingRecovery {
+  mode: 'syntax_repaired' | 'retry_recovered';
+  retryCount: 0 | 1;
+  repairKinds: string[];
+}
+
 /** Kết quả AI chấm, tách riêng để phân biệt rõ phần học sinh ghi và phần máy ghi. */
 export interface SubmissionGrade {
   score: number;
@@ -175,6 +181,8 @@ export interface SubmissionGrade {
   teacherApproved: boolean;
   /** true khi giáo viên sửa tay điểm/nhận xét sau khi máy chấm. */
   editedByTeacher?: boolean;
+  /** Metadata tối thiểu để giáo viên biết kết quả đã được hệ thống phục hồi. */
+  gradingRecovery?: GradingRecovery;
 }
 
 export type SubmissionGradeRevisionAction = 'manual_edit' | 'delete' | 'ai_regrade';

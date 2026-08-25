@@ -139,4 +139,49 @@ describe('sanitizeDisplayText — production-like hình học không có delimit
     expect(out).toContain('F là điểm chung');
     expect(assertClean(out)).toBe(true);
   });
+
+  it('giữ delimiter LaTeX hiện có và chỉ đổi => bên trong vùng math', () => {
+    const input = 'Kết luận \\(a => b\\) và \\[\\frac{1}{2}\\]';
+
+    expect(sanitizeDisplayText(input)).toBe('Kết luận \\(a \\Rightarrow b\\) và \\[\\displaystyle \\frac{1}{2}\\]');
+  });
+
+  it('giữ lệnh LaTeX không hỗ trợ ở fallback text mà không chèn HTML', () => {
+    const out = sanitizeDisplayText('Ký hiệu \\unknown{x} vẫn giữ nội dung');
+
+    expect(out).toContain('\\unknown{x}');
+    expect(out).not.toContain('<');
+  });
+
+  it('đưa => vào một đoạn math riêng và đổi thành \\Rightarrow', () => {
+    const out = sanitizeDisplayText('DE \\in (CDE) và AB \\in (SAB) => DE \\cap AB = {F} => F là điểm chung');
+
+    expect(out).toContain('$\\Rightarrow$');
+    expect(out).not.toContain('=>');
+    expect(out).toContain('$DE \\in (CDE)$ và $AB \\in (SAB)$');
+    expect(out).toContain('$DE \\cap AB = {F}$');
+    expect(out).toContain('F là điểm chung');
+  });
+
+  it('không nuốt phần văn bản tiếng Việt trước công thức có lệnh LaTeX', () => {
+    const out = sanitizeDisplayText('Vì ta có \\frac{x}{y} = 1 nên kết luận đúng.');
+
+    expect(out).toContain('Vì ta có ');
+    expect(out).toContain('$\\frac{x}{y} = 1$');
+    expect(out).toContain(' nên kết luận đúng.');
+    expect(out).not.toContain('$Vì');
+  });
+
+  it('nhận diện đủ nhóm lệnh hình học và đại số dùng trong lớp học', () => {
+    const input = 'D \\notin A \\subset B \\supset C \\cap D \\cup E \\Rightarrow F \\Leftrightarrow G \\to H \\le I \\ge J \\ne K \\frac{x}{y} + \\sqrt{x} + \\underline{x} + \\text{và} + \\mathrm{AB} + \\mathbf{x}';
+    const out = sanitizeDisplayText(input);
+
+    expect(out.startsWith('$')).toBe(true);
+    expect(out.endsWith('$')).toBe(true);
+    for (const command of ['\\notin', '\\subset', '\\supset', '\\cap', '\\cup', '\\Rightarrow', '\\Leftrightarrow', '\\to', '\\le', '\\ge', '\\ne', '\\frac', '\\sqrt', '\\underline', '\\text', '\\mathrm', '\\mathbf']) {
+      expect(out).toContain(command);
+    }
+    expect(assertClean(out)).toBe(true);
+    expect(out).not.toContain('<');
+  });
 });

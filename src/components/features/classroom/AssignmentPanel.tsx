@@ -58,6 +58,8 @@ const dinhDangHan = (iso?: string): string => {
   return `Hạn: ${d.toLocaleDateString('vi-VN')} ${d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`;
 };
 
+const TEACHER_GRADING_ERROR_COPY = 'AI gặp lỗi định dạng khi đọc kết quả chấm. Bài và ảnh vẫn được giữ nguyên; hệ thống đã tự thử phục hồi. Thầy/cô có thể chấm lại bằng AI hoặc sửa điểm bằng tay.';
+
 interface BaiNopTheoLopProps {
   baiNop: SubmissionDoc[];
   hanNop?: string;
@@ -191,6 +193,9 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
               {s.grade?.editedByTeacher && (
                 <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[11px] font-bold text-violet-700">GV sửa điểm</span>
               )}
+              {s.grade?.gradingRecovery && (
+                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700">AI đã tự phục hồi định dạng</span>
+              )}
               {nhanLanNop.get(s.id) && (
                 <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
                   nhanLanNop.get(s.id) === 'Lần nộp mới nhất' ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-100 text-slate-500'
@@ -231,7 +236,7 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                 {s.grade?.gradedWithoutAnswerKey && (
                   <p className="text-xs font-bold text-amber-700">Bài chấm khi chưa đối chiếu đáp án chuẩn — nên soát lại giúp.</p>
                 )}
-                {s.status === 'error' && <p className="text-sm font-semibold text-red-700">{s.errorMessage}</p>}
+                {s.status === 'error' && <p className="text-sm font-semibold text-red-700">{TEACHER_GRADING_ERROR_COPY}</p>}
 
                 <div className="flex flex-wrap items-center gap-2">
                   <button

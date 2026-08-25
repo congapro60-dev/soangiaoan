@@ -32,6 +32,8 @@ const dueLabel = (iso?: string): { label: string; className: string } => {
   return { label, className: 'text-slate-500' };
 };
 
+const STUDENT_GRADING_ERROR_COPY = 'Bài đã được nhận nhưng kết quả chấm chưa hoàn tất. Em chưa cần nộp lại ảnh; thầy/cô sẽ chấm lại hoặc kiểm tra bài.';
+
 export const StudentAssignmentCard = ({ assignment, submission, state, uploading, onUpload, onOpen }: Props) => {
   const meta = statusMeta[state.status];
   const StatusIcon = meta.icon;
@@ -90,7 +92,7 @@ export const StudentAssignmentCard = ({ assignment, submission, state, uploading
           {state.status === 'retry' && (
             <p className="mt-3 flex items-start gap-2 text-sm font-bold text-red-700">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-              {state.detail || 'Lần nộp trước chưa xử lý được. Em có thể chụp lại và nộp lại.'}
+              {STUDENT_GRADING_ERROR_COPY}
             </p>
           )}
           {state.status === 'graded' && submission?.grade && (

@@ -482,11 +482,18 @@ describe('POST /api/classroom · studentSubmissions', () => {
     harness.store['submissions'] = {
       'sub-visible': {
         teacherId: 'gv-1', classId: 'lop-1', studentId: 'hs-1', assignmentId: 'asg-1',
-        supplementOf: 'sub-old', fileUrls: ['https://storage/work.jpg'], note: 'Em xin nộp lại', status: 'graded',
+        supplementOf: 'sub-old', fileUrls: ['https://storage/work.jpg'], note: 'Em xin nộp lại', status: 'error',
         createdAt: '2026-08-24T02:00:00.000Z', updatedAt: '2026-08-24T03:00:00.000Z',
+        errorMessage: 'Bad escaped character at position 7 from provider response',
         grade: {
           score: 8, maxScore: 10, feedback: 'Em cần kiểm tra dấu.', noteForTeacher: 'Không cho học sinh thấy',
-          teacherNote: 'Ghi chú riêng', strengths: [], weaknesses: [], gradedAt: '2026-08-24T03:00:00.000Z', teacherApproved: true,
+          teacherNote: 'Ghi chú riêng', gradingRecovery: { mode: 'syntax_repaired', retryCount: 0, repairKinds: ['latex_backslash'] },
+          strengths: [], weaknesses: [], gradedAt: '2026-08-24T03:00:00.000Z', teacherApproved: true,
+          questionResults: [{
+            questionNumber: 'Câu 1', status: 'partially_correct', score: 1, maxScore: 2,
+            studentAnswer: 'D \\in SA', expectedAnswer: 'D \\in (SAB)', errorType: 'Thiếu kết luận',
+            explanation: 'Cần nêu mặt phẳng chứa D.', correction: 'Bổ sung kết luận.', nextPractice: 'Luyện thêm.', needsTeacherReview: false,
+          }],
         },
       },
       'sub-other-class': {
@@ -500,10 +507,22 @@ describe('POST /api/classroom · studentSubmissions', () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.payload?.submissions).toEqual([expect.objectContaining({
-      id: 'sub-visible', supplementOf: 'sub-old', grade: expect.objectContaining({ feedback: 'Em cần kiểm tra dấu.' }),
+      id: 'sub-visible', supplementOf: 'sub-old', grade: expect.objectContaining({
+        score: 8,
+        feedback: 'Em cần kiểm tra dấu.',
+        questionResults: [expect.objectContaining({ studentAnswer: 'D \\in SA', expectedAnswer: 'D \\in (SAB)' })],
+      }),
     })]);
+    const projected = (res.payload?.submissions as DocData[])[0];
+    const projectedGrade = projected.grade as DocData;
+    expect(projectedGrade).not.toHaveProperty('gradingRecovery');
+    expect(projectedGrade).not.toHaveProperty('noteForTeacher');
+    expect(projectedGrade).not.toHaveProperty('teacherNote');
+    expect(projected.errorMessage).toBe('Bài đã được nhận nhưng kết quả chấm chưa hoàn tất. Em chưa cần nộp lại ảnh; thầy/cô sẽ chấm lại hoặc kiểm tra bài.');
     expect(JSON.stringify(res.payload)).not.toContain('Không cho học sinh thấy');
     expect(JSON.stringify(res.payload)).not.toContain('Ghi chú riêng');
+    expect(JSON.stringify(res.payload)).not.toContain('latex_backslash');
+    expect(JSON.stringify(res.payload)).not.toContain('Bad escaped character');
     expect(JSON.stringify(res.payload)).not.toContain('sub-other-class');
   });
 });

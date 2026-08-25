@@ -56,4 +56,27 @@ describe('QuestionResultsList', () => {
     expect(html.slice(studentLabel, expectedLabel)).toContain('class="katex"');
     expect(html.slice(expectedLabel)).toContain('class="katex"');
   });
+
+  it('giữ nội dung khi KaTeX gặp lệnh không hỗ trợ, không tạo raw HTML từ dữ liệu AI', () => {
+    const render = () => renderToStaticMarkup(
+      <QuestionResultsList
+        results={[{
+          questionNumber: 'Bài 4.2c',
+          status: 'unreadable',
+          score: 0,
+          maxScore: 1,
+          studentAnswer: '$\\unknown{x}$',
+          expectedAnswer: 'Chưa có đáp án.',
+          errorType: 'Chưa đọc rõ',
+          explanation: 'Cần xem lại bài gốc.',
+          correction: '',
+          nextPractice: '',
+          needsTeacherReview: true,
+        }]}
+      />,
+    );
+
+    expect(render).not.toThrow();
+    expect(render()).not.toContain('<unknown');
+  });
 });

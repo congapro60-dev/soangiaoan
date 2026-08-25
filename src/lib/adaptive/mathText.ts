@@ -15,19 +15,19 @@
 export interface MathToken {
   type: 'math' | 'text';
   content: string;
+  open?: string;
+  close?: string;
 }
 
 /** Lệnh LaTeX phổ biến — xuất hiện NGOÀI vùng $...$ nghĩa là dữ liệu lỗi cần vá. */
-const LATEX_CMD_RE = /\\(?:frac|sqrt|left|right|cdot|pm|mp|times|div|leq?|geq?|neq?|approx|infty|alpha|beta|gamma|Delta|delta|theta|lambda|mu|pi|sigma|omega|displaystyle|sin|cos|tan|cot|log|ln|lim|vec|overline|hat|text|mathbb|mathrm|begin|end)\b/;
+const LATEX_CMD_RE = /\\(?:frac|sqrt|left|right|cdot|pm|mp|times|div|leq?|geq?|neq?|approx|infty|alpha|beta|gamma|Delta|delta|theta|lambda|mu|pi|sigma|omega|displaystyle|sin|cos|tan|cot|log|ln|lim|vec|overline|hat|underline|text|mathbb|mathrm|mathbf|begin|end|in|notin|subset|supset|cap|cup|Rightarrow|Leftrightarrow|to|le|ge|ne)\b/;
 
 const SUP: Record<string, string> = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
 
 /** Mảnh toán "trần" trong vùng TEXT cần bọc $ (toạ độ F_1(3;0), luỹ thừa có dấu =…). */
-const MATH_FRAGMENT_RE = /(^|[\s(])([A-Z]\.?\s*)?([a-zA-Z][\w']*\^\{?[-\w]+\}?\s*=\s*[-+]?\s*\d|[A-Z]_[12]?\s*\([-+]?\d+\s*[;,]\s*[-+]?\d+\)|[a-zA-Z]\^\{?\d+\}?\s*[+\-=])/g;
-
 /** Gỡ double-escape (\\frac → \frac) do chuỗi bị JSON-escape 2 lần. */
 const fixDoubleEscapes = (s: string): string =>
-  s.replace(/\\\\(frac|sqrt|Delta|alpha|beta|gamma|displaystyle|left|right|cdot|pm|le|ge|ne|infty|sin|cos|tan)/g, '\\$1');
+  s.replace(/\\\\(frac|sqrt|Delta|alpha|beta|gamma|displaystyle|left|right|cdot|pm|mp|times|div|leq?|geq?|neq?|approx|infty|sin|cos|tan|cot|log|ln|lim|vec|overline|hat|underline|text|mathbb|mathrm|mathbf|in|notin|subset|supset|cap|cup|Rightarrow|Leftrightarrow|to|le|ge|ne)/g, '\\$1');
 
 /** Bọc cả chuỗi bằng $…$, giữ tiền tố nhãn phương án "A." nếu có. */
 const wrapWhole = (s: string): string => {
@@ -58,31 +58,142 @@ const repairDollarBalance = (s: string): string => {
 };
 
 /** Tách chuỗi (đã cân `$`) thành mảng vùng math/text. Index lẻ sau split('$') = math. */
-export const tokenizeMath = (input: string): MathToken[] =>
-  input.split('$').map((content, i) => ({ type: i % 2 === 1 ? ('math' as const) : ('text' as const), content }));
+export const tokenizeMath = (input: string): MathToken[] => {
+  const delimiters = [
+    { open: '$', close: '$' },
+    { open: '\\(', close: '\\)' },
+    { open: '\\[', close: '\\]' },
+  ] as const;
+  const tokens: MathToken[] = [];
+  let cursor = 0;
+
+  while (cursor < input.length) {
+    let next: { index: number; open: string; close: string } | null = null;
+    for (const delimiter of delimiters) {
+      const index = input.indexOf(delimiter.open, cursor);
+      if (index < 0 || (next && next.index <= index)) continue;
+      next = { index, ...delimiter };
+    }
+    if (!next) break;
+    if (next.index > cursor) tokens.push({ type: 'text', content: input.slice(cursor, next.index) });
+
+    const contentStart = next.index + next.open.length;
+    const closeIndex = input.indexOf(next.close, contentStart);
+    if (closeIndex < 0) {
+      tokens.push({ type: 'text', content: input.slice(next.index) });
+      cursor = input.length;
+      break;
+    }
+    tokens.push({
+      type: 'math',
+      content: input.slice(contentStart, closeIndex),
+      open: next.open,
+      close: next.close,
+    });
+    cursor = closeIndex + next.close.length;
+  }
+
+  if (cursor < input.length) tokens.push({ type: 'text', content: input.slice(cursor) });
+  if (tokens.length === 0) tokens.push({ type: 'text', content: '' });
+  return tokens;
+};
 
 const joinTokens = (tokens: MathToken[]): string =>
-  tokens.map(t => (t.type === 'math' ? `$${t.content}$` : t.content)).join('');
+  tokens.map(t => t.type === 'text'
+    ? t.content
+    : (t.open || '$') + t.content + (t.close || '$')).join('');
 
 /** [Vùng TEXT] Đổi luỹ thừa caret đơn (a^2, =b^2) sang chữ số trên (a², =b²). */
 const convertCaretsInText = (s: string): string =>
   s.replace(/([A-Za-z0-9)\]}])\^\{?(\d)\}?/g, (_m, base: string, d: string) => base + SUP[d]);
 
 /** [Vùng TEXT] Bọc `$` cho mảnh toán trần còn sót (toạ độ, biểu thức có caret phức tạp). */
+const isWordCharacter = (char: string | undefined): boolean => Boolean(char && /[A-Za-zÀ-ỹ0-9_]/.test(char));
+
+/** Tách liên từ khỏi ứng viên math; brace depth giữ \text{và} nguyên vẹn. */
+const splitBareText = (s: string): string[] => {
+  const connectors = ['do đó', 'suy ra', 'và', 'nên', 'vì', 'là'];
+  const chunks: string[] = [];
+  let cursor = 0;
+  let braceDepth = 0;
+  let index = 0;
+
+  while (index < s.length) {
+    if (s[index] === '{') braceDepth += 1;
+    if (s[index] === '}') braceDepth = Math.max(0, braceDepth - 1);
+
+    if (braceDepth === 0 && s[index] === '=' && s[index + 1] === '>') {
+      chunks.push(s.slice(cursor, index));
+      chunks.push('=>');
+      index += 2;
+      cursor = index;
+      continue;
+    }
+
+    if (braceDepth === 0 && s[index - 1] !== '\\') {
+      const rest = s.slice(index).toLowerCase();
+      const connector = connectors.find(item => rest.startsWith(item));
+      if (connector
+        && !isWordCharacter(s[index - 1])
+        && !isWordCharacter(s[index + connector.length])) {
+        chunks.push(s.slice(cursor, index));
+        chunks.push(s.slice(index, index + connector.length));
+        index += connector.length;
+        cursor = index;
+        continue;
+      }
+    }
+
+    index += 1;
+  }
+
+  chunks.push(s.slice(cursor));
+  return chunks;
+};
+
+const mathStartBeforeCommand = (prefix: string): number => {
+  const trimmed = prefix.trimEnd();
+  const match = trimmed.match(/[A-Za-z0-9_()[\]{}.,;:+\-*/<>]+$/);
+  return match ? trimmed.lastIndexOf(match[0]) : prefix.length;
+};
+
+const wrapBareSegment = (segment: string): string => {
+  const left = segment.search(/\S/);
+  if (left < 0) return segment;
+  const right = segment.search(/\s*$/);
+  const leading = segment.slice(0, left);
+  const trailing = right > left ? segment.slice(right) : '';
+  const core = segment.slice(left, right > left ? right : segment.length);
+  if (core === '=>') return `${leading}$\\Rightarrow$${trailing}`;
+  const hasCommand = LATEX_CMD_RE.test(core);
+  const hasRelation = /[=]/.test(core);
+  if (!hasCommand && !hasRelation) return leading + convertCaretsInText(core) + trailing;
+
+  const source = hasCommand ? core : convertCaretsInText(core);
+  const commandIndex = source.search(LATEX_CMD_RE);
+  if (commandIndex <= 0) return leading + wrapWhole(source) + trailing;
+
+  const start = mathStartBeforeCommand(source.slice(0, commandIndex));
+  return leading + source.slice(0, start) + wrapWhole(source.slice(start)) + trailing;
+};
+
+/** [Vùng TEXT] Bọc từng mảnh toán trần; không bọc liên từ hay câu nối tiếng Việt. */
 const wrapBareFragmentsInText = (s: string): string =>
-  s.replace(MATH_FRAGMENT_RE, (match, prefix) => `${prefix || ''}$${match.slice((prefix || '').length).trim()}$`);
+  splitBareText(s).map(wrapBareSegment).join('');
 
 /** [Vùng MATH] \frac ở đầu công thức → thêm \displaystyle cho phân số to rõ (giữ hành vi cũ). */
 const fixDisplaystyleInMath = (s: string): string =>
   s.trimStart().startsWith('\\frac') && !s.includes('\\displaystyle') ? `\\displaystyle ${s}` : s;
 
 /** Hậu-kiểm: `$` chẵn, không còn lệnh LaTeX/caret-số trần ngoài vùng math. */
+const normalizeMathContent = (s: string): string =>
+  fixDisplaystyleInMath(s).replace(/=>/g, '\\Rightarrow');
+
 export const assertClean = (s: string): boolean => {
   if (((s.match(/\$/g) || []).length) % 2 === 1) return false;
-  return !s
-    .split('$')
-    .filter((_, i) => i % 2 === 0)
-    .some(part => LATEX_CMD_RE.test(part) || /[a-zA-Z]\^\d/.test(part));
+  return !tokenizeMath(s)
+    .filter(token => token.type === 'text')
+    .some(token => LATEX_CMD_RE.test(token.content) || /[a-zA-Z]\^\d/.test(token.content));
 };
 
 /** Bóc markdown lẫn trong phương án/đoạn text (**đậm**, gạch đầu dòng) do AI hay chèn. */
@@ -98,11 +209,10 @@ export const sanitizeDisplayText = (value: string | undefined | null): string =>
   if (!raw) return '';
   let s = fixDoubleEscapes(raw);
   s = repairDollarBalance(s);
-  if (!s.includes('$') && LATEX_CMD_RE.test(s)) s = wrapWhole(s);
   const out = tokenizeMath(s).map(t =>
     t.type === 'math'
-      ? { ...t, content: fixDisplaystyleInMath(t.content) }
-      : { ...t, content: wrapBareFragmentsInText(convertCaretsInText(t.content)) },
+      ? { ...t, content: normalizeMathContent(t.content) }
+      : { ...t, content: wrapBareFragmentsInText(t.content) },
   );
   let result = joinTokens(out);
   if (!assertClean(result)) {
