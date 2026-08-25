@@ -20,6 +20,72 @@ export interface LoginResponse {
   studentName: string;
 }
 
+const STUDENT_LOGIN_SESSION_KEY = 'smartplan-ai:live-student-session';
+const LOGIN_RESPONSE_KEYS: (keyof LoginResponse)[] = [
+  'studentId',
+  'classId',
+  'teacherId',
+  'className',
+  'studentName',
+];
+
+const isLoginResponse = (value: unknown): value is LoginResponse => (
+  typeof value === 'object'
+  && value !== null
+  && LOGIN_RESPONSE_KEYS.every((key) => typeof (value as Record<string, unknown>)[key] === 'string'
+    && ((value as Record<string, unknown>)[key] as string).trim().length > 0)
+);
+
+const getSessionStorage = (): Storage | null => {
+  try {
+    return typeof sessionStorage === 'undefined' ? null : sessionStorage;
+  } catch {
+    return null;
+  }
+};
+
+export const saveStudentLoginSession = (value: LoginResponse): void => {
+  if (!isLoginResponse(value)) return;
+  const payload: LoginResponse = {
+    studentId: value.studentId,
+    classId: value.classId,
+    teacherId: value.teacherId,
+    className: value.className,
+    studentName: value.studentName,
+  };
+  try {
+    getSessionStorage()?.setItem(STUDENT_LOGIN_SESSION_KEY, JSON.stringify(payload));
+  } catch {
+    // Storage is optional; login behavior must not depend on it.
+  }
+};
+
+export const getStudentLoginSession = (): LoginResponse | null => {
+  try {
+    const raw = getSessionStorage()?.getItem(STUDENT_LOGIN_SESSION_KEY);
+    if (!raw) return null;
+    const parsed: unknown = JSON.parse(raw);
+    if (!isLoginResponse(parsed)) return null;
+    return {
+      studentId: parsed.studentId,
+      classId: parsed.classId,
+      teacherId: parsed.teacherId,
+      className: parsed.className,
+      studentName: parsed.studentName,
+    };
+  } catch {
+    return null;
+  }
+};
+
+export const clearStudentLoginSession = (): void => {
+  try {
+    getSessionStorage()?.removeItem(STUDENT_LOGIN_SESSION_KEY);
+  } catch {
+    // Storage is optional; clearing it must remain best-effort.
+  }
+};
+
 export interface IssuedPin {
   studentId: string;
   name: string;
