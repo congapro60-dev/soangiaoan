@@ -98,10 +98,9 @@ export interface LivePublicState {
 }
 
 export interface CreateLiveSessionInput {
-  lessonId: string;
-  classId: string;
+  definition: LiveLessonDefinition;
   teacherUid: string;
-  mode?: LiveLessonMode;
+  classId: string;
 }
 
 export interface SubmitLiveResponseInput {

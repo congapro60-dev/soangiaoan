@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   LiveLessonDefinitionError,
   getPilotLiveLessonDefinition,
+  normalizeLiveLessonDefinition,
   validateLiveLessonDefinition,
 } from './definition';
 
@@ -47,5 +48,25 @@ describe('g10_w5_p31_bpt_tiet1 live lesson definition', () => {
     expect(definition.responseSteps.map((step) => step.id)).toEqual(
       expect.arrayContaining(['ai-error-w01', 'quick-check', 'exit-ticket']),
     );
+  });
+
+  it('rejects a malformed canonical package with a stable error code', () => {
+    expect(() => normalizeLiveLessonDefinition({})).toThrowError(
+      expect.objectContaining({ code: 'LIVE_PACKAGE_INVALID' }),
+    );
+  });
+
+  it('requires cues to start at zero and end at the lesson duration', () => {
+    const definition = getPilotLiveLessonDefinition();
+
+    expect(() => validateLiveLessonDefinition({
+      ...definition,
+      cues: [{ ...definition.cues[0], atSeconds: 1 }, ...definition.cues.slice(1)],
+    })).toThrowError(expect.objectContaining({ code: 'LIVE_CUE_START_INVALID' }));
+
+    expect(() => validateLiveLessonDefinition({
+      ...definition,
+      cues: [...definition.cues.slice(0, -1), { ...definition.cues.at(-1)!, atSeconds: 2399 }],
+    })).toThrowError(expect.objectContaining({ code: 'LIVE_CUE_END_INVALID' }));
   });
 });

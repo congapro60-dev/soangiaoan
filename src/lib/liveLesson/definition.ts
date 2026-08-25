@@ -19,9 +19,18 @@ interface PilotScreen {
 
 interface PilotPackage {
   meta: { id: string; title: string; durationMinutes: number };
+  displayContract: Record<string, unknown>;
+  timeline: unknown[];
   tvScreens: PilotScreen[];
   studentScreens: PilotScreen[];
   aiErrorOfTheWeek: LiveAiErrorOfTheWeek;
+  routeTasks: Record<string, unknown>;
+  quickCheck: unknown[];
+  exitTicket: Record<string, unknown>;
+  board: Record<string, unknown>;
+  notebook: Record<string, unknown>;
+  resources: unknown[];
+  fallback: Record<string, unknown>;
 }
 
 const MAX_TEXT_LENGTH = 2000;
@@ -30,8 +39,78 @@ function fail(code: string, message: string): never {
   throw new LiveLessonDefinitionError(code, message);
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isPilotScreen(value: unknown): value is PilotScreen {
+  return isRecord(value) && typeof value.id === 'string';
+}
+
+function isAiErrorOfTheWeek(value: unknown): value is LiveAiErrorOfTheWeek {
+  return isRecord(value)
+    && typeof value.id === 'string'
+    && typeof value.category === 'string'
+    && typeof value.correction === 'string'
+    && typeof value.proof === 'string';
+}
+
+function isPilotPackage(value: unknown): value is PilotPackage {
+  if (!isRecord(value)) return false;
+
+  const requiredKeys = [
+    'meta',
+    'displayContract',
+    'timeline',
+    'tvScreens',
+    'studentScreens',
+    'aiErrorOfTheWeek',
+    'routeTasks',
+    'quickCheck',
+    'exitTicket',
+    'board',
+    'notebook',
+    'resources',
+    'fallback',
+  ];
+  if (requiredKeys.some((key) => value[key] === undefined || value[key] === null)) return false;
+
+  const meta = value.meta;
+  return isRecord(meta)
+    && typeof meta.id === 'string'
+    && typeof meta.title === 'string'
+    && typeof meta.durationMinutes === 'number'
+    && isRecord(value.displayContract)
+    && Array.isArray(value.timeline)
+    && Array.isArray(value.tvScreens)
+    && value.tvScreens.every(isPilotScreen)
+    && Array.isArray(value.studentScreens)
+    && value.studentScreens.every(isPilotScreen)
+    && isAiErrorOfTheWeek(value.aiErrorOfTheWeek)
+    && isRecord(value.routeTasks)
+    && Array.isArray(value.quickCheck)
+    && isRecord(value.exitTicket)
+    && isRecord(value.board)
+    && isRecord(value.notebook)
+    && Array.isArray(value.resources)
+    && isRecord(value.fallback);
+}
+
+function assertPilotPackage(value: unknown): asserts value is PilotPackage {
+  if (!isPilotPackage(value)) {
+    fail('LIVE_PACKAGE_INVALID', 'Pilot package is missing required canonical fields or has an invalid shape.');
+  }
+}
+
 function parsePilotPackage(): PilotPackage {
-  return JSON.parse(pilotPackageText) as PilotPackage;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(pilotPackageText) as unknown;
+  } catch {
+    fail('LIVE_PACKAGE_INVALID', 'Pilot package JSON could not be parsed.');
+  }
+  assertPilotPackage(parsed);
+  return parsed;
 }
 
 function normalizeScreens(screens: PilotScreen[]): LiveLessonScreen[] {
@@ -49,9 +128,10 @@ const responseSteps: LiveResponseStep[] = [
 ];
 
 export function normalizeLiveLessonDefinition(
-  pilotPackage: PilotPackage,
+  pilotPackage: unknown,
   cues = g10W5P31BptTiet1Cues,
 ): LiveLessonDefinition {
+  assertPilotPackage(pilotPackage);
   const definition: LiveLessonDefinition = {
     id: 'g10_w5_p31_bpt_tiet1',
     lessonId: pilotPackage.meta.id,
@@ -81,6 +161,16 @@ export function validateLiveLessonDefinition(
 
   if (new Set(definition.allowedStepIds).size !== definition.allowedStepIds.length) {
     fail('LIVE_STEP_ID_DUPLICATE', 'allowedStepIds must not contain duplicates.');
+  }
+
+  if (definition.cues.length === 0) {
+    fail('LIVE_CUES_EMPTY', 'Live lesson must contain at least one cue.');
+  }
+  if (definition.cues[0].atSeconds !== 0) {
+    fail('LIVE_CUE_START_INVALID', 'The first cue must start at 0 seconds.');
+  }
+  if (definition.cues[definition.cues.length - 1].atSeconds !== definition.durationSeconds) {
+    fail('LIVE_CUE_END_INVALID', 'The last cue must end at the lesson duration.');
   }
 
   for (const stepId of definition.allowedStepIds) {
