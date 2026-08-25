@@ -5,6 +5,7 @@ import {
   adaptOnlineSubmission,
   adaptUploadSubmission,
   buildClassReportCsv,
+  getQuestionOutcomeRows,
 } from './ClassAssignmentReport';
 
 const roster: Student[] = [
@@ -74,7 +75,7 @@ describe('ClassAssignmentReport adapters', () => {
     const submission = {
       id: 'exam-submission',
       studentName: '  Nguyễn   Minh An ',
-      studentClass: ' 12Z ',
+      studentClass: ' 10A ',
       startedAt: '2026-08-25T07:00:00.000Z',
       submittedAt: '2026-08-25T08:00:00.000Z',
       status: 'graded',
@@ -119,6 +120,59 @@ describe('ClassAssignmentReport adapters', () => {
     expect(adaptOnlineSubmission(submission, exam, roster, '10A')).toBeNull();
   });
 
+  it('rejects name fallback when a non-empty submitted class differs from the selected class', () => {
+    const exam = { id: 'exam-1', maxScore: 10, questions: [] } as Exam;
+    const submission = {
+      id: 'wrong-class',
+      studentName: 'Nguyễn Minh An',
+      studentClass: '10B',
+      startedAt: '2026-08-25T07:00:00.000Z',
+      status: 'graded',
+      answers: [],
+      maxScore: 10,
+    } as ExamSubmission;
+
+    expect(adaptOnlineSubmission(submission, exam, roster, '10A')).toBeNull();
+  });
+
+  it('allows legacy name fallback when the submitted class is empty', () => {
+    const exam = { id: 'exam-1', maxScore: 10, questions: [] } as Exam;
+    const submission = {
+      id: 'legacy-no-class',
+      studentName: ' Nguyễn   Minh An ',
+      studentClass: '',
+      startedAt: '2026-08-25T07:00:00.000Z',
+      status: 'graded',
+      answers: [],
+      maxScore: 10,
+    } as ExamSubmission;
+
+    expect(adaptOnlineSubmission(submission, exam, roster, '10A')?.studentKey).toBe('student-1');
+  });
+
+  it('keeps incorrect and unreadable as separate question outcomes', () => {
+    const question = {
+      questionNumber: '1',
+      evidenceCount: 10,
+      correct: 2,
+      partial: 1,
+      incorrect: 3,
+      unreadable: 2,
+      notAttempted: 2,
+      correctRate: 0.2,
+      scoreRate: 0.2,
+    };
+    const outcomes = getQuestionOutcomeRows(question);
+
+    expect(outcomes.map(outcome => [outcome.metric, outcome.count])).toEqual([
+      ['Đúng', 2],
+      ['Đúng một phần', 1],
+      ['Sai', 3],
+      ['Không đọc được', 2],
+      ['Chưa làm', 2],
+    ]);
+  });
+
   it('exports only aggregate rows', () => {
     const csv = buildClassReportCsv([{
       assignment: { id: 'a1', title: 'Bài tổng hợp', type: 'upload', maxScore: 10 },
@@ -130,7 +184,7 @@ describe('ClassAssignmentReport adapters', () => {
       medianPercent: 75,
       scoreDistribution: { '0-<5': 0, '5-<6.5': 0, '6.5-<8': 0, '8-10': 1 },
       distribution: { '0-<5': 0, '5-<6.5': 0, '6.5-<8': 0, '8-10': 1 },
-      questionStats: [{ questionNumber: '1', evidenceCount: 1, correct: 1, partial: 0, incorrect: 0, unreadable: 0, notAttempted: 0, correctRate: 1, scoreRate: 1 }],
+      questionStats: [{ questionNumber: '1', evidenceCount: 10, correct: 2, partial: 1, incorrect: 3, unreadable: 2, notAttempted: 2, correctRate: 0.2, scoreRate: 0.2 }],
       errorStats: [],
       topicStats: [],
       recommendations: [],
@@ -138,6 +192,10 @@ describe('ClassAssignmentReport adapters', () => {
 
     expect(csv).toContain('Bài tổng hợp');
     expect(csv).toContain('Câu 1');
+    expect(csv).toMatch(/,Sai,Câu 1,3,/);
+    expect(csv).toMatch(/,Không đọc được,Câu 1,2,/);
+    expect(csv).toMatch(/,Chưa làm,Câu 1,2,/);
+    expect(csv).not.toContain('Chưa đạt');
     expect(csv).not.toContain('studentKey');
     expect(csv).not.toContain('studentAnswer');
     expect(csv).not.toContain('noteForTeacher');

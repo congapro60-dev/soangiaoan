@@ -6,6 +6,7 @@ import {
   buildClassAssignmentReport,
   type ClassAssignmentReport as ClassAssignmentReportMetrics,
   type ClassReportAssignment,
+  type ClassReportQuestionStats,
   type ClassReportQuestionResult,
   type ClassReportSubmission,
 } from '../../../lib/classroom/classReportModel';
@@ -79,9 +80,11 @@ export const adaptOnlineSubmission = (
   className: string,
 ): ClassReportSubmission | null => {
   const byId = submission.studentId ? roster.find(student => student.id === submission.studentId) : undefined;
-  const fallbackKey = `${normalizeMatchText(submission.studentName)}|${normalizeMatchText(className)}`;
+  const submittedClassKey = normalizeMatchText(submission.studentClass);
+  const selectedClassKey = normalizeMatchText(className);
   const byNameAndClass = roster.find(student =>
-    `${normalizeMatchText(student.name)}|${normalizeMatchText(className)}` === fallbackKey);
+    normalizeMatchText(student.name) === normalizeMatchText(submission.studentName)
+      && (!submittedClassKey || submittedClassKey === selectedClassKey));
   const student = byId ?? byNameAndClass;
   if (!student) return null;
 
@@ -124,6 +127,17 @@ const csvCell = (value: unknown): string => {
 
 const percentText = (value: number | null): string => value === null ? '' : `${(value * 100).toFixed(1)}%`;
 
+export const getQuestionOutcomeRows = (question: Pick<ClassReportQuestionStats, 'evidenceCount' | 'correct' | 'partial' | 'incorrect' | 'unreadable' | 'notAttempted'>): Array<{ metric: string; count: number; rate: number }> => {
+  const denominator = question.evidenceCount;
+  return [
+    ['Đúng', question.correct],
+    ['Đúng một phần', question.partial],
+    ['Sai', question.incorrect],
+    ['Không đọc được', question.unreadable],
+    ['Chưa làm', question.notAttempted],
+  ].map(([metric, count]) => ({ metric, count, rate: denominator > 0 ? count / denominator : 0 }));
+};
+
 export const buildClassReportCsv = (reports: readonly ClassAssignmentReportMetrics[]): string => {
   const rows: string[][] = [['Loại bài', 'Tên bài', 'Chỉ số', 'Câu hoặc nhãn', 'Số lượng', 'Tỷ lệ']];
   for (const report of reports) {
@@ -146,14 +160,8 @@ export const buildClassReportCsv = (reports: readonly ClassAssignmentReportMetri
     }
     for (const question of report.questionStats) {
       const questionLabel = `Câu ${question.questionNumber}`;
-      const questionRows: [string, number, number][] = [
-        ['Đúng', question.correct, question.evidenceCount],
-        ['Đúng một phần', question.partial, question.evidenceCount],
-        ['Chưa đạt', question.incorrect + question.unreadable, question.evidenceCount],
-        ['Chưa làm', question.notAttempted, question.evidenceCount],
-      ];
-      for (const [metric, count, denominator] of questionRows) {
-        rows.push([type, title, metric, questionLabel, String(count), denominator > 0 ? percentText(count / denominator) : '']);
+      for (const outcome of getQuestionOutcomeRows(question)) {
+        rows.push([type, title, outcome.metric, questionLabel, String(outcome.count), percentText(outcome.rate)]);
       }
       rows.push([type, title, 'Tỷ lệ đúng', questionLabel, '', percentText(question.correctRate)]);
       rows.push([type, title, 'Tỷ lệ điểm', questionLabel, '', percentText(question.scoreRate)]);
@@ -228,23 +236,27 @@ const QuestionStats = ({ report }: { report: ClassAssignmentReportMetrics }) => 
           <thead className="border-b border-slate-200 text-xs font-black uppercase tracking-wide text-slate-400">
             <tr>
               <th className="px-3 py-3">Câu</th><th className="px-3 py-3">Bằng chứng</th><th className="px-3 py-3">Đúng</th>
-              <th className="px-3 py-3">Đúng một phần</th><th className="px-3 py-3">Chưa đạt</th><th className="px-3 py-3">Chưa làm</th>
+              <th className="px-3 py-3">Đúng một phần</th><th className="px-3 py-3">Sai</th><th className="px-3 py-3">Không đọc được</th><th className="px-3 py-3">Chưa làm</th>
               <th className="px-3 py-3">Tỷ lệ đúng</th><th className="px-3 py-3">Tỷ lệ điểm</th>
             </tr>
           </thead>
           <tbody>
-            {report.questionStats.map(question => (
+            {report.questionStats.map(question => {
+              const outcomes = getQuestionOutcomeRows(question);
+              return (
               <tr key={question.questionNumber} className="border-b border-slate-100 last:border-0">
                 <td className="px-3 py-3 font-black text-slate-800">{question.questionNumber}</td>
                 <td className="px-3 py-3 font-semibold text-slate-600">{question.evidenceCount}</td>
-                <td className="px-3 py-3 font-bold text-emerald-700">{question.correct}</td>
-                <td className="px-3 py-3 font-bold text-amber-700">{question.partial}</td>
-                <td className="px-3 py-3 font-bold text-rose-700">{question.incorrect + question.unreadable}</td>
-                <td className="px-3 py-3 font-bold text-slate-600">{question.notAttempted}</td>
+                <td className="px-3 py-3 font-bold text-emerald-700">{outcomes[0].count}</td>
+                <td className="px-3 py-3 font-bold text-amber-700">{outcomes[1].count}</td>
+                <td className="px-3 py-3 font-bold text-rose-700">{outcomes[2].count}</td>
+                <td className="px-3 py-3 font-bold text-orange-700">{outcomes[3].count}</td>
+                <td className="px-3 py-3 font-bold text-slate-600">{outcomes[4].count}</td>
                 <td className="px-3 py-3 font-black text-slate-800">{formatRate(question.correctRate)}</td>
                 <td className="px-3 py-3 font-black text-slate-800">{formatRate(question.scoreRate)}</td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>
