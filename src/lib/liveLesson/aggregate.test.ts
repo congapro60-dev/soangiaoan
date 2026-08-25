@@ -157,6 +157,17 @@ describe('aggregateLiveResponses', () => {
     expect(JSON.stringify(result)).not.toContain('u-a');
   });
 
+  it('ignores identifier-like and prototype choice keys during aggregation', () => {
+    const result = aggregateLiveResponses([
+      response({ participantUid: 'hs', value: 'HS001' }),
+      response({ participantUid: 'constructor', value: 'constructor' }),
+      response({ participantUid: 'to-string', value: 'toString' }),
+      response({ participantUid: 'safe', value: 'A' }),
+    ], 'warmup');
+
+    expect(result.choiceCounts).toEqual({ A: 1 });
+  });
+
   it('counts ai-error categories without exposing the category as a choice value', () => {
     const result = aggregateLiveResponses([
       response({
@@ -186,6 +197,9 @@ describe('toPublicStats', () => {
         Yes: 2,
         'A/B': 1,
         G1: 3,
+        HS001: 4,
+        constructor: 5,
+        toString: 6,
         'raw free text': 8,
         'student-12345': 9,
         participantUid: 10,

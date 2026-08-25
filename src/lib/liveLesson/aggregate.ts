@@ -89,13 +89,24 @@ const isErrorCategory = (value: string): value is LiveErrorCategory => (
 const isRoute = (value: string): value is LiveRoute => ROUTES.includes(value as LiveRoute);
 
 const PUBLIC_CHOICE_KEY_PATTERN = /^[A-Za-z0-9]+(?:[._:/-][A-Za-z0-9]+)*$/;
+const IDENTIFIER_LIKE_CHOICE_KEY_PATTERN = /^(?:hs|sv|student|p|u|uid|participant|user)(?:\d+|[-_.:/]\d+)$/i;
 const PRIVATE_CHOICE_KEY_PATTERN = /(student|participant|uid|user)/i;
+const RESERVED_CHOICE_KEYS = new Set([
+  'constructor',
+  'prototype',
+  '__proto__',
+  'tostring',
+  'valueof',
+  'hasownproperty',
+]);
 
 const isPublicChoiceKey = (value: string): boolean => (
   value.length > 0
   && value.length <= 24
   && PUBLIC_CHOICE_KEY_PATTERN.test(value)
+  && !IDENTIFIER_LIKE_CHOICE_KEY_PATTERN.test(value)
   && !PRIVATE_CHOICE_KEY_PATTERN.test(value)
+  && !RESERVED_CHOICE_KEYS.has(value.toLowerCase())
 );
 
 export function aggregateLiveResponses(
@@ -127,7 +138,10 @@ export function aggregateLiveResponses(
     ) {
       const isCountableValue = typeof response.value !== 'number' || Number.isFinite(response.value);
       if (isCountableValue && isPublicChoiceKey(stringValue)) {
-        choiceCounts[stringValue] = (choiceCounts[stringValue] ?? 0) + 1;
+        const currentCount = Object.prototype.hasOwnProperty.call(choiceCounts, stringValue)
+          ? choiceCounts[stringValue]
+          : 0;
+        choiceCounts[stringValue] = currentCount + 1;
       }
     } else if (response.responseType === 'hint') {
       hintUseCount += 1;
