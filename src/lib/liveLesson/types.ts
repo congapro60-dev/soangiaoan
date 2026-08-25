@@ -99,14 +99,11 @@ export interface LivePublicStats {
 }
 
 export interface LivePublicState {
-  sessionId: string;
-  lessonId: string;
+  cueId: string;
+  tvScreenId: string;
   status: LiveSessionStatus;
-  currentCueId: string;
-  currentTvScreenId: string;
   showStats: boolean;
   updatedAt: number;
-  stats?: LivePublicStats;
 }
 
 export interface CreateLiveSessionInput {

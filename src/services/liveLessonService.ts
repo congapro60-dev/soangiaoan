@@ -171,30 +171,35 @@ const normalizePublicStats = (value: unknown): LivePublicStats => {
   });
 };
 
-const normalizePublicState = (sessionId: string, value: unknown): LivePublicState => {
+const normalizePublicState = (value: unknown): LivePublicState => {
   if (!isRecord(value)) throw new Error('Live public state data is invalid.');
-  assertNonEmptyString(value.lessonId, 'lessonId');
+  assertNonEmptyString(value.cueId, 'cueId');
+  assertNonEmptyString(value.tvScreenId, 'tvScreenId');
   if (!isSessionStatus(value.status)) throw new Error('Public state status is invalid.');
-  assertNonEmptyString(value.currentCueId, 'currentCueId');
-  assertNonEmptyString(value.currentTvScreenId, 'currentTvScreenId');
   if (typeof value.showStats !== 'boolean') throw new Error('Public state showStats is invalid.');
-  const state: LivePublicState = {
-    sessionId,
-    lessonId: value.lessonId,
+  return {
+    cueId: value.cueId,
+    tvScreenId: value.tvScreenId,
     status: value.status,
-    currentCueId: value.currentCueId,
-    currentTvScreenId: value.currentTvScreenId,
     showStats: value.showStats,
     updatedAt: toEpochMillis(value.updatedAt, 'updatedAt'),
   };
-  if (value.stats !== undefined) state.stats = normalizePublicStats(value.stats);
-  return state;
 };
 
 const readSnapshot = async (sessionId: string): Promise<LiveLessonSession> => {
   const snapshot = await getDoc(doc(db, SESSIONS_COL, sessionId));
   if (!snapshot.exists()) throw new Error('Created live lesson session could not be read back.');
   return normalizeSession(sessionId, snapshot.data());
+};
+
+const writePublicState = async (session: LiveLessonSession): Promise<void> => {
+  await setDoc(doc(db, SESSIONS_COL, session.id, PUBLIC_SUB, 'state'), {
+    cueId: session.currentCueId,
+    tvScreenId: session.currentTvScreenId,
+    status: session.status,
+    showStats: session.publicStatsEnabled,
+    updatedAt: serverTimestamp(),
+  });
 };
 
 export const createLiveLessonSession = async ({ definition, teacherUid, classId }: CreateLiveSessionInput): Promise<LiveLessonSession> => {
@@ -227,11 +232,13 @@ export const createLiveLessonSession = async ({ definition, teacherUid, classId 
     currentCueId: firstCue.id,
     currentTvScreenId: firstCue.tvScreenId,
     publicStateEnabled: true,
-    publicStatsEnabled: true,
+    publicStatsEnabled: false,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
-  return readSnapshot(sessionRef.id);
+  const session = await readSnapshot(sessionRef.id);
+  await writePublicState(session);
+  return session;
 };
 
 export const getLiveLessonSession = async (sessionId: string): Promise<LiveLessonSession | null> => {
@@ -253,6 +260,7 @@ export const updateLiveLessonState = async (sessionId: string, patch: LiveLesson
   if (patch.publicStateEnabled !== undefined && typeof patch.publicStateEnabled !== 'boolean') throw new Error('publicStateEnabled is invalid.');
   if (patch.publicStatsEnabled !== undefined && typeof patch.publicStatsEnabled !== 'boolean') throw new Error('publicStatsEnabled is invalid.');
   await updateDoc(doc(db, SESSIONS_COL, sessionId), { ...patch, updatedAt: serverTimestamp() });
+  await writePublicState(await readSnapshot(sessionId));
 };
 
 export const closeLiveLessonSession = async (sessionId: string): Promise<void> => {
@@ -263,6 +271,7 @@ export const closeLiveLessonSession = async (sessionId: string): Promise<void> =
     publicStatsEnabled: false,
     updatedAt: serverTimestamp(),
   });
+  await writePublicState(await readSnapshot(sessionId));
 };
 
 export const submitLiveResponse = async (input: SubmitLiveResponseInput): Promise<void> => {
@@ -345,7 +354,7 @@ export const subscribeToLivePublicState = (
   assertIdentifier(sessionId, 'sessionId');
   return onSnapshot(doc(db, SESSIONS_COL, sessionId, PUBLIC_SUB, 'state'), (snapshot) => {
     try {
-      onChange(snapshot.exists() ? normalizePublicState(sessionId, snapshot.data()) : null);
+      onChange(snapshot.exists() ? normalizePublicState(snapshot.data()) : null);
     } catch (error) {
       onError(asError(error));
     }

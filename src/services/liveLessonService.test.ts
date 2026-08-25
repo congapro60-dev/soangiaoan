@@ -138,11 +138,13 @@ describe('liveLessonService Firestore boundary', () => {
         allowedStepIds: [...definition.allowedStepIds],
         currentCueId: definition.cues[0].id,
         currentTvScreenId: definition.cues[0].tvScreenId,
+        publicStatsEnabled: false,
       }),
     });
 
     const result = await createLiveLessonSession({ definition, teacherUid: 'teacher-1', classId: 'class-1' });
     const payload = firestoreMocks.setDoc.mock.calls[0][1] as Record<string, unknown>;
+    const publicStatePayload = firestoreMocks.setDoc.mock.calls[1][1] as Record<string, unknown>;
 
     expect(firestoreMocks.doc).toHaveBeenCalledWith(expect.objectContaining({ path: 'liveLessonSessions' }));
     expect(Object.keys(payload).sort()).toEqual([
@@ -152,8 +154,16 @@ describe('liveLessonService Firestore boundary', () => {
     ].sort());
     expect(payload.allowedStepIds).toEqual(definition.allowedStepIds);
     expect(payload.status).toBe('lobby');
+    expect(payload.publicStatsEnabled).toBe(false);
     expect(payload.currentCueId).toBe(definition.cues[0].id);
     expect(payload.currentTvScreenId).toBe(definition.cues[0].tvScreenId);
+    expect(publicStatePayload).toEqual({
+      cueId: definition.cues[0].id,
+      tvScreenId: definition.cues[0].tvScreenId,
+      status: 'lobby',
+      showStats: false,
+      updatedAt: { __type: 'serverTimestamp' },
+    });
     expect(result.createdAt).toBe(1000);
     expect(result.expiresAt).toBe(9000);
   });
@@ -172,16 +182,49 @@ describe('liveLessonService Firestore boundary', () => {
   });
 
   it('writes only a validated session patch and closes public flags', async () => {
+    firestoreMocks.getDoc
+      .mockResolvedValueOnce({
+        exists: () => true,
+        id: 'session-1',
+        data: () => sessionData({ status: 'running', currentCueId: 'P01', currentTvScreenId: 'S1', publicStatsEnabled: true }),
+      })
+      .mockResolvedValueOnce({
+        exists: () => true,
+        id: 'session-1',
+        data: () => sessionData({ status: 'closed', currentCueId: 'P01', currentTvScreenId: 'S1', publicStatsEnabled: false }),
+      });
     await updateLiveLessonState('session-1', { status: 'running', currentCueId: 'P01' });
     expect(firestoreMocks.updateDoc).toHaveBeenCalledWith(
       expect.objectContaining({ path: '/liveLessonSessions/session-1' }),
       { status: 'running', currentCueId: 'P01', updatedAt: { __type: 'serverTimestamp' } },
+    );
+    expect(firestoreMocks.setDoc).toHaveBeenNthCalledWith(
+      1,
+      expect.anything(),
+      {
+        cueId: 'P01',
+        tvScreenId: 'S1',
+        status: 'running',
+        showStats: true,
+        updatedAt: { __type: 'serverTimestamp' },
+      },
     );
 
     await closeLiveLessonSession('session-1');
     expect(firestoreMocks.updateDoc).toHaveBeenLastCalledWith(
       expect.objectContaining({ path: '/liveLessonSessions/session-1' }),
       { status: 'closed', publicStateEnabled: false, publicStatsEnabled: false, updatedAt: { __type: 'serverTimestamp' } },
+    );
+    expect(firestoreMocks.setDoc).toHaveBeenNthCalledWith(
+      2,
+      expect.anything(),
+      {
+        cueId: 'P01',
+        tvScreenId: 'S1',
+        status: 'closed',
+        showStats: false,
+        updatedAt: { __type: 'serverTimestamp' },
+      },
     );
     await expect(updateLiveLessonState('session-1', { unknown: 'field' } as never)).rejects.toThrow(/unknown/i);
     await expect(updateLiveLessonState('session-1', { status: undefined })).rejects.toThrow(/undefined/i);
@@ -279,8 +322,8 @@ describe('liveLessonService Firestore boundary', () => {
     firestoreMocks.onSnapshot
       .mockImplementationOnce((_, onChange) => {
         onChange({ exists: () => true, data: () => ({
-          sessionId: 'session-1', lessonId: 'lesson-1', status: 'running', currentCueId: 'P01',
-          currentTvScreenId: 'S1', showStats: true, updatedAt: new FakeTimestamp(3000), teacherCue: 'secret',
+          cueId: 'P01', tvScreenId: 'S1', status: 'running', showStats: false,
+          updatedAt: new FakeTimestamp(3000), teacherCue: 'secret', lessonId: 'must-not-leak',
         }) });
         return stateStop;
       })
@@ -297,8 +340,11 @@ describe('liveLessonService Firestore boundary', () => {
     const stopState = subscribeToLivePublicState('session-1', stateChange, vi.fn());
     const stopStats = subscribeToLivePublicStats('session-1', statsChange, vi.fn());
 
-    expect(stateChange).toHaveBeenCalledWith(expect.objectContaining({ updatedAt: 3000 }));
+    expect(stateChange).toHaveBeenCalledWith({
+      cueId: 'P01', tvScreenId: 'S1', status: 'running', showStats: false, updatedAt: 3000,
+    });
     expect(stateChange.mock.calls[0][0]).not.toHaveProperty('teacherCue');
+    expect(stateChange.mock.calls[0][0]).not.toHaveProperty('lessonId');
     expect(statsChange).toHaveBeenCalledWith(expect.objectContaining({ updatedAt: 4000 }));
     expect(statsChange.mock.calls[0][0]).not.toHaveProperty('participantUid');
     stopState();
