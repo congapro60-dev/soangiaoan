@@ -32,7 +32,8 @@ const compareStrings = (left: string, right: string): number => {
 const responseFingerprint = (response: LiveResponse): string => JSON.stringify([
   response.classId,
   response.responseType,
-  String(response.value),
+  typeof response.value,
+  response.value,
 ]);
 
 const compareResponseVersion = (left: LiveResponse, right: LiveResponse): number => {

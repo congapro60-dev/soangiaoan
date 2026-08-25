@@ -94,6 +94,15 @@ describe('mergeLatestResponse', () => {
       .toEqual(mergeLatestResponse([second, first]).map(({ id }) => id));
     expect(mergeLatestResponse([first, second])).toEqual([second]);
   });
+
+  it('preserves value type when tie-breaking otherwise identical responses', () => {
+    const numeric = response({ id: 'same', clientNonce: 'same', value: 1 });
+    const string = response({ id: 'same', clientNonce: 'same', value: '1' });
+
+    expect(mergeLatestResponse([numeric, string]))
+      .toEqual(mergeLatestResponse([string, numeric]));
+    expect(mergeLatestResponse([numeric, string])).toEqual([string]);
+  });
 });
 
 describe('aggregateLiveResponses', () => {
