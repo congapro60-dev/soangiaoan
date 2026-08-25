@@ -19,6 +19,7 @@ import { FloatingChatWidget } from './components/layout/FloatingChatWidget';
 import { DashboardTab } from './components/tabs/DashboardTab';
 import { SettingsModal } from './components/modals/SettingsModal';
 import { LatexModal } from './components/modals/LatexModal';
+import { LiveLessonLauncher } from './components/liveLesson/LiveLessonLauncher';
 
 // Lazy-loaded tabs (splits heavy chunks, loaded on first visit)
 const CreatorTab = lazy(() => import('./components/tabs/CreatorTab').then(m => ({ default: m.CreatorTab })));
@@ -44,6 +45,7 @@ import { downloadBlob, safeFilename } from './utils/fileUtils';
 
 // Types
 import { TemplateFile } from './types';
+import type { AdaptiveLesson } from './lib/adaptive/types';
 
 export default function App() {
   const { user, isAuthLoading, handleLogin, handleLogout, handleDemoLogin, showToast } = useAuth();
@@ -64,6 +66,7 @@ export default function App() {
   const [latexContent, setLatexContent] = useState('');
   const [testingInitialContent, setTestingInitialContent] = useState<string | undefined>();
   const [adaptiveWorkspaceLessonId, setAdaptiveWorkspaceLessonId] = useState<string | null>(null);
+  const [liveLessonToLaunch, setLiveLessonToLaunch] = useState<AdaptiveLesson | null>(null);
   const [isAdaptiveStatsOpen, setIsAdaptiveStatsOpen] = useState(false);
 
   const navigateToTesting = (lessonContent: string, lessonTitle: string) => {
@@ -329,6 +332,7 @@ export default function App() {
   return (
     <div className="h-screen w-full flex bg-slate-50 font-sans overflow-hidden">
       <input type="file" ref={fileInputRef} onChange={handleFileUpload} multiple className="hidden" />
+      {liveLessonToLaunch && <LiveLessonLauncher lesson={liveLessonToLaunch} user={user} classes={data.classes} onClose={() => setLiveLessonToLaunch(null)} />}
       
       {/* Mobile backdrop — closes sidebar when tapping outside */}
       {isSidebarOpen && (
@@ -463,6 +467,8 @@ export default function App() {
                   onCreateLesson={() => setAdaptiveWorkspaceLessonId('new')}
                   onOpenLesson={setAdaptiveWorkspaceLessonId}
                   onPreviewLesson={(lessonId) => window.open(`/adaptive-portal/${encodeURIComponent(lessonId)}`, '_blank', 'noopener,noreferrer')}
+                  onOpenLiveLesson={setLiveLessonToLaunch}
+                  classes={data.classes}
                   onOpenLearnerStats={() => setIsAdaptiveStatsOpen(true)}
                 />
               )

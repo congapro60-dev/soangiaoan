@@ -4,10 +4,14 @@ import { BarChart3, Edit3, Eye, Plus, Trash2, WandSparkles } from 'lucide-react'
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import type { AdaptiveLesson } from '../lib/adaptive/types';
+import type { TeacherClass } from '../types';
+import type { ClassDoc } from '../lib/classroom/types';
+import { LiveLessonLauncher } from '../components/liveLesson/LiveLessonLauncher';
 import { deleteLessonFromFirestore, listLessonsForTeacher } from '../services/adaptiveLessonService';
 
 export const resolveAdaptiveBuilderUrl = (lessonId: string): string => `/adaptive-builder/${encodeURIComponent(lessonId)}`;
 export const resolveAdaptivePortalUrl = (lessonId: string): string => `/adaptive-portal/${encodeURIComponent(lessonId)}`;
+export const shouldShowLiveLessonAction = (lesson: Pick<AdaptiveLesson, 'status'>): boolean => lesson.status === 'published';
 
 const statusLabel: Record<AdaptiveLesson['status'], string> = {
   draft: 'Nháp',
@@ -26,13 +30,16 @@ interface AdaptiveLessonListPageProps {
   onCreateLesson?: () => void;
   onOpenLesson?: (lessonId: string) => void;
   onPreviewLesson?: (lessonId: string) => void;
+  onOpenLiveLesson?: (lesson: AdaptiveLesson) => void;
+  classes?: Array<ClassDoc | TeacherClass>;
   onOpenLearnerStats?: () => void;
 }
 
-export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpenLesson, onPreviewLesson, onOpenLearnerStats }: AdaptiveLessonListPageProps) => {
+export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpenLesson, onPreviewLesson, onOpenLiveLesson, classes, onOpenLearnerStats }: AdaptiveLessonListPageProps) => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(auth.currentUser);
   const [lessons, setLessons] = useState<AdaptiveLesson[]>([]);
+  const [internalLiveLesson, setInternalLiveLesson] = useState<AdaptiveLesson | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -91,6 +98,12 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
   const previewLesson = (lessonId: string) => {
     if (onPreviewLesson) onPreviewLesson(lessonId);
     else navigate(resolveAdaptivePortalUrl(lessonId));
+  };
+
+  const openLiveLesson = (lesson: AdaptiveLesson) => {
+    if (!shouldShowLiveLessonAction(lesson)) return;
+    if (onOpenLiveLesson) onOpenLiveLesson(lesson);
+    else setInternalLiveLesson(lesson);
   };
 
   return (
@@ -155,6 +168,7 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
                         <div className="flex justify-end gap-2">
                           <button type="button" onClick={(event) => { event.stopPropagation(); openLesson(lesson.id); }} className="inline-flex items-center gap-1 rounded-xl border border-slate-200 px-3 py-2 text-xs font-black text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"><Edit3 className="h-3.5 w-3.5" /> Mở bài</button>
                           <button type="button" onClick={(event) => { event.stopPropagation(); previewLesson(lesson.id); }} className="inline-flex items-center gap-1 rounded-xl border border-green-100 bg-green-50 px-3 py-2 text-xs font-black text-green-700 transition hover:bg-green-100"><Eye className="h-3.5 w-3.5" /> Xem cổng</button>
+                          {shouldShowLiveLessonAction(lesson) && <button type="button" onClick={(event) => { event.stopPropagation(); openLiveLesson(lesson); }} className="inline-flex items-center gap-1 rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-2 text-xs font-black text-indigo-700 transition hover:bg-indigo-100"><WandSparkles className="h-3.5 w-3.5" /> Mở tiết trực tiếp</button>}
                           <button disabled={deletingId === lesson.id} onClick={(event) => { event.stopPropagation(); void handleDelete(lesson.id); }} className="inline-flex items-center gap-1 rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs font-black text-red-600 transition hover:bg-red-100 disabled:opacity-60"><Trash2 className="h-3.5 w-3.5" /> Xóa</button>
                         </div>
                       </td>
@@ -166,6 +180,7 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
           )}
         </section>
       </div>
+      {!onOpenLiveLesson && internalLiveLesson && <LiveLessonLauncher lesson={internalLiveLesson} classes={classes} onClose={() => setInternalLiveLesson(null)} />}
     </div>
   );
 };
