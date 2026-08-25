@@ -111,4 +111,34 @@ describe('g10_w5_p31_bpt_tiet1 live lesson definition', () => {
       expect.objectContaining({ code: 'LIVE_CUE_CONTRACT_INVALID' }),
     );
   });
+
+  it('whitelists public screen fields during normalization', () => {
+    const basePackage = JSON.parse(pilotPackageText) as Record<string, unknown>;
+    const leakedPackage = JSON.parse(JSON.stringify(basePackage)) as Record<string, unknown>;
+    const tvScreens = leakedPackage.tvScreens as Array<Record<string, unknown>>;
+    tvScreens[0].teacher = 'leaked teacher script';
+    tvScreens[0].boardLarge = 'leaked board content';
+    tvScreens[0].teacherScript = 'leaked script';
+
+    const definition = normalizeLiveLessonDefinition(leakedPackage);
+    expect(definition.tvScreens[0]).toEqual({
+      id: 'S0',
+      title: 'BẮT ĐẦU KHI SẴN SÀNG',
+      body: 'Bất phương trình bậc nhất hai ẩn\nMở portal trên thiết bị cá nhân. Chưa cần ghi bài.',
+    });
+  });
+
+  it('rejects response types outside the runtime union', () => {
+    const definition = getPilotLiveLessonDefinition();
+    const badDefinition = {
+      ...definition,
+      responseSteps: definition.responseSteps.map((step, index) =>
+        index === 0 ? { ...step, responseTypes: ['number'] } : step,
+      ),
+    };
+
+    expect(() => validateLiveLessonDefinition(badDefinition as never)).toThrowError(
+      expect.objectContaining({ code: 'LIVE_RESPONSE_TYPE_INVALID' }),
+    );
+  });
 });

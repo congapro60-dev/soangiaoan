@@ -50,6 +50,12 @@ function isPilotScreen(value: unknown): value is PilotScreen {
   return isRecord(value) && typeof value.id === 'string';
 }
 
+function isPublicScreen(value: unknown): value is LiveLessonScreen {
+  if (!isPilotScreen(value)) return false;
+  const allowedKeys = new Set(['id', 'label', 'title', 'body', 'action']);
+  return Object.keys(value).every((key) => allowedKeys.has(key));
+}
+
 function isAiErrorOfTheWeek(value: unknown): value is LiveAiErrorOfTheWeek {
   return isRecord(value)
     && typeof value.id === 'string'
@@ -94,12 +100,19 @@ function isLiveCue(value: unknown): value is LiveCue {
     && (value.responseStepId === undefined || typeof value.responseStepId === 'string');
 }
 
-function isLiveResponseStep(value: unknown): boolean {
+function isLiveResponseStepShape(value: unknown): boolean {
   return isRecord(value)
     && typeof value.id === 'string'
-    && typeof value.label === 'string'
-    && Array.isArray(value.responseTypes)
-    && value.responseTypes.every((responseType) => typeof responseType === 'string');
+    && typeof value.label === 'string';
+}
+
+function isLiveResponseType(value: unknown): boolean {
+  return value === 'choice'
+    || value === 'text'
+    || value === 'boolean'
+    || value === 'route'
+    || value === 'hint'
+    || value === 'exit_ticket';
 }
 
 function isPilotPackage(value: unknown): value is PilotPackage {
@@ -169,7 +182,14 @@ function parsePilotPackage(): PilotPackage {
 }
 
 function normalizeScreens(screens: PilotScreen[]): LiveLessonScreen[] {
-  return screens.map((screen) => ({ ...screen }));
+  return screens.map((screen) => {
+    const normalized: LiveLessonScreen = { id: screen.id };
+    if (screen.label !== undefined) normalized.label = screen.label;
+    if (screen.title !== undefined) normalized.title = screen.title;
+    if (screen.body !== undefined) normalized.body = screen.body;
+    if (screen.action !== undefined) normalized.action = screen.action;
+    return normalized;
+  });
 }
 
 function isLiveLessonDefinitionShape(value: unknown): value is LiveLessonDefinition {
@@ -181,15 +201,15 @@ function isLiveLessonDefinitionShape(value: unknown): value is LiveLessonDefinit
     && Array.isArray(value.cues)
     && value.cues.every(isLiveCue)
     && Array.isArray(value.tvScreens)
-    && value.tvScreens.every(isPilotScreen)
+    && value.tvScreens.every(isPublicScreen)
     && Array.isArray(value.studentScreens)
-    && value.studentScreens.every(isPilotScreen)
+    && value.studentScreens.every(isPublicScreen)
     && Array.isArray(value.allowedStepIds)
     && value.allowedStepIds.every((stepId) => typeof stepId === 'string')
     && typeof value.aiErrorStepId === 'string'
     && isAiErrorOfTheWeek(value.aiErrorOfTheWeek)
     && Array.isArray(value.responseSteps)
-    && value.responseSteps.every(isLiveResponseStep);
+    && value.responseSteps.every(isLiveResponseStepShape);
 }
 
 function assertPilotCueContract(definition: LiveLessonDefinition): void {
@@ -265,6 +285,12 @@ export function validateLiveLessonDefinition(
 
   const tvScreenIds = new Set(definition.tvScreens.map((screen) => screen.id));
   const stepIds = new Set(definition.responseSteps.map((step) => step.id));
+
+  for (const step of definition.responseSteps) {
+    if (!Array.isArray(step.responseTypes) || !step.responseTypes.every(isLiveResponseType)) {
+      fail('LIVE_RESPONSE_TYPE_INVALID', `Response step ${step.id} has an invalid response type.`);
+    }
+  }
 
   if (new Set(definition.allowedStepIds).size !== definition.allowedStepIds.length) {
     fail('LIVE_STEP_ID_DUPLICATE', 'allowedStepIds must not contain duplicates.');
