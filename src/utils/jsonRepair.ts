@@ -181,19 +181,6 @@ export function parseJsonWithRecovery<T = unknown>(raw: string): JsonRecoveryRes
       }
 
       if (character === 'u') {
-        const command = latexCommandToken(raw, index - 1);
-        const nextCharacter = raw[index + 1];
-        const isUnicodeEscape = command === 'u'
-          && (
-            nextCharacter === undefined
-            || nextCharacter === '"'
-            || isHexDigit(nextCharacter)
-          );
-
-        if (!isUnicodeEscape) {
-          throw new JsonRecoveryError('Escape JSON chưa được nhận diện');
-        }
-
         const unicodeDigits = raw.slice(index + 1, index + 5);
         if (
           unicodeDigits.length === 4

@@ -99,6 +99,14 @@ describe('parseJsonWithRecovery — strict/recovery contract', () => {
     expect(result.repairKinds).toEqual(['invalid_unicode_escape']);
   });
 
+  it('repair invalid Unicode escape khi ký tự đầu tiên không phải hex', () => {
+    const result = parseJsonWithRecovery<{ text: string }>(String.raw`{"text":"\uZZZZ"}`);
+
+    expect(result.value.text).toBe(String.raw`\uZZZZ`);
+    expect(result.parseMode).toBe('repaired');
+    expect(result.repairKinds).toEqual(['invalid_unicode_escape']);
+  });
+
   it.each([
     ['letter', String.raw`{"text":"\q"}`],
     ['question mark', String.raw`{"text":"\?"}`],
