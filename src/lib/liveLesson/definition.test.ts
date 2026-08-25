@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import pilotPackageText from '../../data/liveLessonPackages/g10_w5_p31_bpt_tiet1.json?raw';
+
 import {
   LiveLessonDefinitionError,
   getPilotLiveLessonDefinition,
@@ -56,6 +58,32 @@ describe('g10_w5_p31_bpt_tiet1 live lesson definition', () => {
     );
   });
 
+  it('rejects incomplete route, quick-check, and exit-ticket content', () => {
+    const basePackage = JSON.parse(pilotPackageText) as Record<string, unknown>;
+    const badRoutePackage = JSON.parse(JSON.stringify(basePackage)) as Record<string, unknown>;
+    const routeTasks = badRoutePackage.routeTasks as Record<string, unknown>;
+    delete routeTasks.C;
+
+    const badQuickCheckPackage = JSON.parse(JSON.stringify(basePackage)) as Record<string, unknown>;
+    badQuickCheckPackage.quickCheck = [];
+
+    const badExitTicketPackage = JSON.parse(JSON.stringify(basePackage)) as Record<string, unknown>;
+    const exitTicket = badExitTicketPackage.exitTicket as Record<string, unknown>;
+    exitTicket.lookFor = [];
+
+    for (const badPackage of [badRoutePackage, badQuickCheckPackage, badExitTicketPackage]) {
+      expect(() => normalizeLiveLessonDefinition(badPackage)).toThrowError(
+        expect.objectContaining({ code: 'LIVE_PACKAGE_INVALID' }),
+      );
+    }
+  });
+
+  it('rejects a malformed definition before accessing missing runtime arrays', () => {
+    expect(() => validateLiveLessonDefinition({} as never)).toThrowError(
+      expect.objectContaining({ code: 'LIVE_DEFINITION_INVALID' }),
+    );
+  });
+
   it('requires cues to start at zero and end at the lesson duration', () => {
     const definition = getPilotLiveLessonDefinition();
 
@@ -68,5 +96,19 @@ describe('g10_w5_p31_bpt_tiet1 live lesson definition', () => {
       ...definition,
       cues: [...definition.cues.slice(0, -1), { ...definition.cues.at(-1)!, atSeconds: 2399 }],
     })).toThrowError(expect.objectContaining({ code: 'LIVE_CUE_END_INVALID' }));
+  });
+
+  it('rejects pilot cue text drift after structural checks', () => {
+    const definition = getPilotLiveLessonDefinition();
+    const badDefinition = {
+      ...definition,
+      cues: definition.cues.map((cue, index) =>
+        index === 6 ? { ...cue, teacher: `${cue.teacher} lệch canonical` } : cue,
+      ),
+    };
+
+    expect(() => validateLiveLessonDefinition(badDefinition)).toThrowError(
+      expect.objectContaining({ code: 'LIVE_CUE_CONTRACT_INVALID' }),
+    );
   });
 });

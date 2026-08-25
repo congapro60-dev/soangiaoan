@@ -1,6 +1,9 @@
 import pilotPackageText from '../../data/liveLessonPackages/g10_w5_p31_bpt_tiet1.json?raw';
 
-import { g10W5P31BptTiet1Cues } from '../../data/liveLessonPackages/g10_w5_p31_bpt_tiet1.cues';
+import {
+  g10W5P31BptTiet1Cues,
+  type LiveCue,
+} from '../../data/liveLessonPackages/g10_w5_p31_bpt_tiet1.cues';
 import type {
   LiveAiErrorOfTheWeek,
   LiveLessonDefinition,
@@ -55,6 +58,50 @@ function isAiErrorOfTheWeek(value: unknown): value is LiveAiErrorOfTheWeek {
     && typeof value.proof === 'string';
 }
 
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function isRouteTask(value: unknown): boolean {
+  return isRecord(value)
+    && isNonEmptyString(value.prompt)
+    && isNonEmptyString(value.answer)
+    && Array.isArray(value.hints)
+    && value.hints.length > 0
+    && value.hints.every(isNonEmptyString);
+}
+
+function isQuickCheckItem(value: unknown): boolean {
+  return isRecord(value)
+    && isNonEmptyString(value.id)
+    && isNonEmptyString(value.prompt)
+    && isNonEmptyString(value.answer)
+    && isNonEmptyString(value.why);
+}
+
+function isLiveCue(value: unknown): value is LiveCue {
+  return isRecord(value)
+    && typeof value.id === 'string'
+    && typeof value.atSeconds === 'number'
+    && typeof value.label === 'string'
+    && typeof value.tvScreenId === 'string'
+    && typeof value.teacher === 'string'
+    && typeof value.student === 'string'
+    && typeof value.boardLarge === 'string'
+    && typeof value.boardSide === 'string'
+    && typeof value.notebook === 'string'
+    && typeof value.observerEvidence === 'string'
+    && (value.responseStepId === undefined || typeof value.responseStepId === 'string');
+}
+
+function isLiveResponseStep(value: unknown): boolean {
+  return isRecord(value)
+    && typeof value.id === 'string'
+    && typeof value.label === 'string'
+    && Array.isArray(value.responseTypes)
+    && value.responseTypes.every((responseType) => typeof responseType === 'string');
+}
+
 function isPilotPackage(value: unknown): value is PilotPackage {
   if (!isRecord(value)) return false;
 
@@ -88,8 +135,16 @@ function isPilotPackage(value: unknown): value is PilotPackage {
     && value.studentScreens.every(isPilotScreen)
     && isAiErrorOfTheWeek(value.aiErrorOfTheWeek)
     && isRecord(value.routeTasks)
+    && ['M', 'S', 'C'].every((routeId) => isRouteTask(value.routeTasks[routeId]))
     && Array.isArray(value.quickCheck)
+    && value.quickCheck.length >= 3
+    && value.quickCheck.every(isQuickCheckItem)
     && isRecord(value.exitTicket)
+    && isNonEmptyString(value.exitTicket.prompt)
+    && isNonEmptyString(value.exitTicket.answer)
+    && Array.isArray(value.exitTicket.lookFor)
+    && value.exitTicket.lookFor.length > 0
+    && value.exitTicket.lookFor.every(isNonEmptyString)
     && isRecord(value.board)
     && isRecord(value.notebook)
     && Array.isArray(value.resources)
@@ -115,6 +170,55 @@ function parsePilotPackage(): PilotPackage {
 
 function normalizeScreens(screens: PilotScreen[]): LiveLessonScreen[] {
   return screens.map((screen) => ({ ...screen }));
+}
+
+function isLiveLessonDefinitionShape(value: unknown): value is LiveLessonDefinition {
+  return isRecord(value)
+    && typeof value.id === 'string'
+    && typeof value.lessonId === 'string'
+    && typeof value.title === 'string'
+    && typeof value.durationSeconds === 'number'
+    && Array.isArray(value.cues)
+    && value.cues.every(isLiveCue)
+    && Array.isArray(value.tvScreens)
+    && value.tvScreens.every(isPilotScreen)
+    && Array.isArray(value.studentScreens)
+    && value.studentScreens.every(isPilotScreen)
+    && Array.isArray(value.allowedStepIds)
+    && value.allowedStepIds.every((stepId) => typeof stepId === 'string')
+    && typeof value.aiErrorStepId === 'string'
+    && isAiErrorOfTheWeek(value.aiErrorOfTheWeek)
+    && Array.isArray(value.responseSteps)
+    && value.responseSteps.every(isLiveResponseStep);
+}
+
+function assertPilotCueContract(definition: LiveLessonDefinition): void {
+  if (definition.id !== 'g10_w5_p31_bpt_tiet1') return;
+  if (definition.cues.length !== g10W5P31BptTiet1Cues.length) {
+    fail('LIVE_CUE_CONTRACT_INVALID', 'Pilot cue count does not match the canonical cue source.');
+  }
+  const textFields: Array<keyof LiveCue> = [
+    'label',
+    'tvScreenId',
+    'teacher',
+    'student',
+    'boardLarge',
+    'boardSide',
+    'notebook',
+    'observerEvidence',
+  ];
+  for (const [index, cue] of definition.cues.entries()) {
+    const canonicalCue = g10W5P31BptTiet1Cues[index];
+    const textChanged = textFields.some((field) => cue[field] !== canonicalCue[field]);
+    if (
+      cue.id !== canonicalCue.id
+      || cue.atSeconds !== canonicalCue.atSeconds
+      || cue.responseStepId !== canonicalCue.responseStepId
+      || textChanged
+    ) {
+      fail('LIVE_CUE_CONTRACT_INVALID', `Pilot cue ${cue.id} differs from the canonical cue source.`);
+    }
+  }
 }
 
 const responseSteps: LiveResponseStep[] = [
@@ -152,6 +256,9 @@ export function normalizeLiveLessonDefinition(
 export function validateLiveLessonDefinition(
   definition: LiveLessonDefinition,
 ): LiveLessonDefinition {
+  if (!isLiveLessonDefinitionShape(definition)) {
+    fail('LIVE_DEFINITION_INVALID', 'Live lesson definition has an invalid runtime shape.');
+  }
   if (definition.durationSeconds !== 2400) {
     fail('LIVE_DURATION_INVALID', 'Live lesson duration must be exactly 2400 seconds.');
   }
@@ -212,6 +319,8 @@ export function validateLiveLessonDefinition(
   if (!aiError.category.trim()) fail('LIVE_AI_ERROR_INCOMPLETE', 'AI Error category is required.');
   if (!aiError.correction.trim()) fail('LIVE_AI_ERROR_INCOMPLETE', 'AI Error correction is required.');
   if (!aiError.proof.trim()) fail('LIVE_AI_ERROR_INCOMPLETE', 'AI Error proof is required.');
+
+  assertPilotCueContract(definition);
 
   return definition;
 }
