@@ -240,6 +240,7 @@ git -C $worktree diff --check
 - `npm run build`: PASS; chỉ còn cảnh báo Vite chunk/dynamic import vốn có.
 - `git diff --check`: PASS.
 - Browser smoke local đã tới route live nhưng session lịch sử bị Firestore từ chối `Missing or insufficient permissions`; chưa claim visual PASS từ session đó.
+- `main` đã push ở `35ac4d8`; Vercel deployment `dpl_5PwBUAn4bsV2rEeVvumZEQnC7mjg` báo `READY / Production`, alias `https://giaoandewey.vercel.app`; HTTP smoke `/` và route live đều trả 200.
 
 ### Còn dở / cố tình bỏ qua
 

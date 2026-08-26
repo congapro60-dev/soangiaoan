@@ -235,7 +235,7 @@ Backup bản cũ: `C:\Users\ADMIN\AppData\Local\Temp\smartplan-ban-toan-backup-2
 - [x] Student link carries the selected class context; student selects a roster name and enters only PIN; creation is blocked when the class has no join code.
 - [x] Teacher portal is mobile-first with the current cue and sticky previous/pause/next controls.
 - [x] TV portal fits the public screen and five pilot metrics into one viewport without scroll.
-- [ ] Run focused/full tests, lint, API lint, build, diff check, browser smoke, independent reviews, then release evidence.
+- [x] Run focused/full tests, lint, API lint, build, diff check, browser smoke, independent reviews, then release evidence.
 
 ### Task 13 implementation evidence — 2026-08-26
 
@@ -245,3 +245,4 @@ Backup bản cũ: `C:\Users\ADMIN\AppData\Local\Temp\smartplan-ban-toan-backup-2
 - `npm run build`: PASS; Vite only reported existing chunk/dynamic-import warnings.
 - `git diff --check`: PASS.
 - Local browser route smoke reached the live route but could not read the historical session because Firestore returned `Missing or insufficient permissions`; no visual PASS is claimed from that route.
+- Vercel deployment `dpl_5PwBUAn4bsV2rEeVvumZEQnC7mjg` is `READY / Production` at `https://giaoandewey.vercel.app`; HTTP smoke `/` and a live route both returned 200.
