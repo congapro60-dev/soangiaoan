@@ -38,6 +38,7 @@ const SESSION_PATCH_KEYS = new Set([
   'publicStatsEnabled',
 ]);
 const EXPIRY_BUFFER_SECONDS = 5 * 60;
+const SERVER_TIMESTAMP_RETRY_DELAYS_MS = [50, 150, 300, 600] as const;
 
 const isRecord = (value: unknown): value is Record<string, unknown> => (
   typeof value === 'object' && value !== null
@@ -187,11 +188,26 @@ const normalizePublicState = (value: unknown): LivePublicState => {
   };
 };
 
+const isPendingUpdatedAtError = (error: unknown): boolean => (
+  error instanceof Error && error.message === 'updatedAt must be a Firestore Timestamp or finite number.'
+);
+
 const readSnapshot = async (sessionId: string, readFromServer = false): Promise<LiveLessonSession> => {
   const sessionRef = doc(db, SESSIONS_COL, sessionId);
-  const snapshot = await (readFromServer ? getDocFromServer(sessionRef) : getDoc(sessionRef));
-  if (!snapshot.exists()) throw new Error('Created live lesson session could not be read back.');
-  return normalizeSession(sessionId, snapshot.data());
+  const maxAttempts = readFromServer ? SERVER_TIMESTAMP_RETRY_DELAYS_MS.length + 1 : 1;
+  let lastError: unknown;
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    if (attempt > 0) await new Promise(resolve => setTimeout(resolve, SERVER_TIMESTAMP_RETRY_DELAYS_MS[attempt - 1]));
+    const snapshot = await (readFromServer ? getDocFromServer(sessionRef) : getDoc(sessionRef));
+    if (!snapshot.exists()) throw new Error('Created live lesson session could not be read back.');
+    try {
+      return normalizeSession(sessionId, snapshot.data());
+    } catch (error) {
+      if (!readFromServer || !isPendingUpdatedAtError(error) || attempt === maxAttempts - 1) throw error;
+      lastError = error;
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error('Live lesson session could not be read back.');
 };
 
 const writePublicState = async (session: LiveLessonSession): Promise<void> => {

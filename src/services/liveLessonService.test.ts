@@ -242,22 +242,23 @@ describe('liveLessonService Firestore boundary', () => {
   });
 
   it('reads the server-acknowledged timestamp after a state patch', async () => {
-    firestoreMocks.getDoc.mockResolvedValueOnce({
-      exists: () => true,
-      id: 'session-1',
-      data: () => sessionData({ updatedAt: null, publicStatsEnabled: false }),
-    });
-    firestoreMocks.getDocFromServer.mockResolvedValueOnce({
-      exists: () => true,
-      id: 'session-1',
-      data: () => sessionData({ updatedAt: 3000, publicStatsEnabled: true }),
-    });
+    firestoreMocks.getDocFromServer
+      .mockResolvedValueOnce({
+        exists: () => true,
+        id: 'session-1',
+        data: () => sessionData({ updatedAt: null, publicStatsEnabled: false }),
+      })
+      .mockResolvedValueOnce({
+        exists: () => true,
+        id: 'session-1',
+        data: () => sessionData({ updatedAt: 3000, publicStatsEnabled: true }),
+      });
 
     await expect(updateLiveLessonState('session-1', { publicStatsEnabled: true })).resolves.toMatchObject({
       updatedAt: 3000,
       publicStatsEnabled: true,
     });
-    expect(firestoreMocks.getDocFromServer).toHaveBeenCalledTimes(1);
+    expect(firestoreMocks.getDocFromServer).toHaveBeenCalledTimes(2);
   });
 
   it('creates a deterministic response after the merge-update probe and writes no client timestamp or PIN', async () => {
