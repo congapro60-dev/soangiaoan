@@ -223,3 +223,44 @@ npm --prefix $worktree run lint:api
 npm --prefix $worktree run build
 git -C $worktree diff --check
 ```
+
+## Lô Task 13 — UX ba cổng live lesson — 2026-08-26
+
+### Đã đổi và vì sao
+
+- `41ebc6d`: link HS sinh từ lớp GV đã chọn, mang `classId` + `joinCode`; HS tải roster đúng lớp, chọn tên và chỉ nhập PIN. Roster được kiểm lại `classId` trước khi hiển thị; link cũ thiếu ngữ cảnh bị chặn rõ ràng.
+- `1264560`: cổng GV chuyển sang mobile-first cho điện thoại: cue hiện tại là vùng thao tác chính, bảng/HS/vở nằm trong panel mở rộng, điều khiển Trước/Pause/Sau cố định ở đáy màn hình.
+- `bc20e8e`: cổng TV dùng khung `100dvh`, không cuộn, năm chỉ số pilot nằm cùng một hàng; launcher chặn lớp thiếu `joinCode` để không tạo link HS hỏng.
+- `c70e8a6`: ghi đặc tả và kế hoạch UX ba cổng; không đổi schema Firestore, không tạo collection mới, không đưa kịch bản GV lên TV.
+
+### Bằng chứng nghiệm thu
+
+- Focused live suite: **5 files / 29 tests PASS** trước commit cuối; sau bổ sung guard mã lớp, full suite ghi nhận **98 files / 1.323 tests PASS**.
+- `npm run lint`: PASS; `npm run lint:api`: PASS.
+- `npm run build`: PASS; chỉ còn cảnh báo Vite chunk/dynamic import vốn có.
+- `git diff --check`: PASS.
+- Browser smoke local đã tới route live nhưng session lịch sử bị Firestore từ chối `Missing or insufficient permissions`; chưa claim visual PASS từ session đó.
+
+### Còn dở / cố tình bỏ qua
+
+- Chưa chạy authenticated smoke trên một session mới bằng tài khoản GV production và thiết bị HS riêng; session lịch sử không đủ làm bằng chứng vì có thể đã hết hạn/không thuộc quyền hiện tại.
+- Không bỏ guard chặn dùng cổng HS trên cùng trình duyệt đang giữ phiên GV; GV dùng điện thoại riêng và HS dùng thiết bị riêng theo thiết kế an toàn.
+- Không thêm Kahoot/Mentimeter/AI call hay collection mới; các phần đó không cần cho tiết demo và làm tăng điểm hỏng tích hợp.
+- Không xử lý cảnh báo chunk lớn của Vite trong lô này vì không liên quan hành vi ba cổng.
+
+### Ngưỡng sắp cắn người
+
+- Khi tạo phiên, lớp phải là `ClassDoc` server-side thuộc đúng UID GV và phải có `joinCode`; lớp cũ chưa đồng bộ sẽ bị chặn với hướng dẫn hành động.
+- Link HS chỉ hợp lệ khi có cả `classId` và `joinCode`; không dùng lại link HS cũ thiếu hai tham số này.
+- TV chỉ hiển thị public state và thống kê tổng hợp; câu trả lời cá nhân vẫn không được chiếu.
+
+### Lệnh nghiệm thu lô Task 13
+
+```powershell
+$worktree = "C:\Users\ADMIN\.config\superpowers\worktrees\smart-lesson-plan-ai\live-lesson-think-v3"
+npm --prefix $worktree run test
+npm --prefix $worktree run lint
+npm --prefix $worktree run lint:api
+npm --prefix $worktree run build
+git -C $worktree diff --check
+```
