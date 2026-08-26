@@ -333,3 +333,4 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 
 - Sau `updateDoc` có `serverTimestamp()`, snapshot đọc từ cache có thể tạm thời chứa `updatedAt:null`. Không được chuẩn hoá snapshot đó ngay như dữ liệu đã xác nhận.
 - Các mutation điều khiển phiên phải đọc lại bằng `getDocFromServer` trước khi ghi public state; nếu không, giao diện có thể đã đổi nút nhưng public state không được cập nhật và báo lỗi giả cho giáo viên.
+- Các listener `onSnapshot` cũng nhận bản cục bộ có `metadata.hasPendingWrites=true`; phải bỏ qua bản này và chờ snapshot server, nếu không listener sẽ tự hiển thị lỗi dù mutation cuối cùng thành công.

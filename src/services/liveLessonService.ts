@@ -342,6 +342,10 @@ const subscribeSafely = (
   }
 };
 
+const isPendingServerWriteSnapshot = (snapshot: { metadata?: { hasPendingWrites?: boolean } }): boolean => (
+  snapshot.metadata?.hasPendingWrites === true
+);
+
 export const subscribeToTeacherResponses = (
   sessionId: string,
   stepId: string,
@@ -355,6 +359,7 @@ export const subscribeToTeacherResponses = (
     where('stepId', '==', stepId),
   );
   return onSnapshot(responseQuery, (snapshot) => {
+    if (isPendingServerWriteSnapshot(snapshot)) return;
     try {
       onChange(snapshot.docs.map((item) => normalizeResponse(item.id, item.data())));
     } catch (error) {
@@ -370,6 +375,7 @@ export const subscribeToTeacherSession = (
 ): (() => void) => subscribeSafely(() => {
   assertIdentifier(sessionId, 'sessionId');
   return onSnapshot(doc(db, SESSIONS_COL, sessionId), (snapshot) => {
+    if (isPendingServerWriteSnapshot(snapshot)) return;
     try {
       onChange(snapshot.exists() ? normalizeSession(sessionId, snapshot.data()) : null);
     } catch (error) {
@@ -385,6 +391,7 @@ export const subscribeToLivePublicState = (
 ): (() => void) => subscribeSafely(() => {
   assertIdentifier(sessionId, 'sessionId');
   return onSnapshot(doc(db, SESSIONS_COL, sessionId, PUBLIC_SUB, 'state'), (snapshot) => {
+    if (isPendingServerWriteSnapshot(snapshot)) return;
     try {
       onChange(snapshot.exists() ? normalizePublicState(snapshot.data()) : null);
     } catch (error) {
@@ -400,6 +407,7 @@ export const subscribeToLivePublicStats = (
 ): (() => void) => subscribeSafely(() => {
   assertIdentifier(sessionId, 'sessionId');
   return onSnapshot(doc(db, SESSIONS_COL, sessionId, PUBLIC_SUB, 'stats'), (snapshot) => {
+    if (isPendingServerWriteSnapshot(snapshot)) return;
     try {
       onChange(snapshot.exists() ? normalizePublicStats(snapshot.data()) : null);
     } catch (error) {

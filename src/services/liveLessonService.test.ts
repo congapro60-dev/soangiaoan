@@ -374,14 +374,17 @@ describe('liveLessonService Firestore boundary', () => {
 
   it('maps teacher response snapshots and returns a usable unsubscribe', () => {
     const unsubscribe = vi.fn();
+    const onError = vi.fn();
     firestoreMocks.onSnapshot.mockImplementationOnce((_, onChange) => {
+      onChange({ metadata: { hasPendingWrites: true }, docs: [{ id: 'student-1__warmup', data: () => responseData({ submittedAt: null, updatedAt: null }) }] });
       onChange({ docs: [{ id: 'student-1__warmup', data: () => responseData() }] });
       return unsubscribe;
     });
     const onChange = vi.fn();
-    const stop = subscribeToTeacherResponses('session-1', 'warmup', onChange, vi.fn());
+    const stop = subscribeToTeacherResponses('session-1', 'warmup', onChange, onError);
 
     expect(onChange).toHaveBeenCalledWith([expect.objectContaining({ id: 'student-1__warmup', submittedAt: 1000, updatedAt: 2000 })]);
+    expect(onError).not.toHaveBeenCalled();
     stop();
     expect(unsubscribe).toHaveBeenCalledOnce();
     expect(firestoreMocks.query.mock.calls[0][1]).toEqual({ field: 'stepId', operator: '==', value: 'warmup' });
@@ -392,6 +395,7 @@ describe('liveLessonService Firestore boundary', () => {
     const onChange = vi.fn();
     const onError = vi.fn();
     firestoreMocks.onSnapshot.mockImplementationOnce((_, onSnapshotChange, onSnapshotError) => {
+      onSnapshotChange({ metadata: { hasPendingWrites: true }, exists: () => true, data: () => sessionData({ updatedAt: null }) });
       onSnapshotChange({ exists: () => true, data: () => sessionData({ updatedAt: new FakeTimestamp(3000) }) });
       onSnapshotChange({ exists: () => true, data: () => ({ schemaVersion: 2 }) });
       expect(onSnapshotError).toBeTypeOf('function');
@@ -410,10 +414,15 @@ describe('liveLessonService Firestore boundary', () => {
   it('maps public state and public stats snapshots without throwing synchronously', () => {
     const stateChange = vi.fn();
     const statsChange = vi.fn();
+    const stateError = vi.fn();
+    const statsError = vi.fn();
     const stateStop = vi.fn();
     const statsStop = vi.fn();
     firestoreMocks.onSnapshot
       .mockImplementationOnce((_, onChange) => {
+        onChange({ metadata: { hasPendingWrites: true }, exists: () => true, data: () => ({
+          cueId: 'P01', tvScreenId: 'S1', status: 'running', showStats: false, updatedAt: null,
+        }) });
         onChange({ exists: () => true, data: () => ({
           cueId: 'P01', tvScreenId: 'S1', status: 'running', showStats: false,
           updatedAt: new FakeTimestamp(3000), teacherCue: 'secret', lessonId: 'must-not-leak',
@@ -421,6 +430,12 @@ describe('liveLessonService Firestore boundary', () => {
         return stateStop;
       })
       .mockImplementationOnce((_, onChange) => {
+        onChange({ metadata: { hasPendingWrites: true }, exists: () => true, data: () => ({
+          stepId: 'warmup', participantCount: 1, submittedCount: 1, choiceCounts: { A: 1 },
+          routeCounts: { M: 0, S: 0, C: 0 },
+          errorCategoryCounts: { Conceptual: 0, Algebraic: 0, Logical: 0, 'Missing condition': 0 },
+          hintUseCount: 0, updatedAt: null,
+        }) });
         onChange({ exists: () => true, data: () => ({
           stepId: 'warmup', participantCount: 1, submittedCount: 1, choiceCounts: { A: 1 },
           routeCounts: { M: 0, S: 0, C: 0 },
@@ -430,8 +445,8 @@ describe('liveLessonService Firestore boundary', () => {
         return statsStop;
       });
 
-    const stopState = subscribeToLivePublicState('session-1', stateChange, vi.fn());
-    const stopStats = subscribeToLivePublicStats('session-1', statsChange, vi.fn());
+    const stopState = subscribeToLivePublicState('session-1', stateChange, stateError);
+    const stopStats = subscribeToLivePublicStats('session-1', statsChange, statsError);
 
     expect(stateChange).toHaveBeenCalledWith({
       cueId: 'P01', tvScreenId: 'S1', status: 'running', showStats: false, updatedAt: 3000,
@@ -440,6 +455,8 @@ describe('liveLessonService Firestore boundary', () => {
     expect(stateChange.mock.calls[0][0]).not.toHaveProperty('lessonId');
     expect(statsChange).toHaveBeenCalledWith(expect.objectContaining({ updatedAt: 4000 }));
     expect(statsChange.mock.calls[0][0]).not.toHaveProperty('participantUid');
+    expect(stateError).not.toHaveBeenCalled();
+    expect(statsError).not.toHaveBeenCalled();
     stopState();
     stopStats();
     expect(stateStop).toHaveBeenCalledOnce();
