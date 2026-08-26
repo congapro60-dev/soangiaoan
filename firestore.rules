@@ -602,10 +602,10 @@ service cloud.firestore {
       }
 
       match /public/stats {
-        allow get: if llv3ValidPublicStats(resource.data)
-                   && llv3PublicAudience()
+        allow get: if llv3PublicAudience()
                    && llv3ActiveSession()
-                   && get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.publicStatsEnabled == true;
+                   && get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.publicStatsEnabled == true
+                   && (resource == null || llv3ValidPublicStats(resource.data));
         allow create, update: if llv3SessionOwner()
                               && request.resource.data.keys().hasOnly([
                                    'stepId', 'participantCount', 'submittedCount', 'choiceCounts',

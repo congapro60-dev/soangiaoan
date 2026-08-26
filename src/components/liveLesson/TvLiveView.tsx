@@ -14,6 +14,8 @@ export const getTvListenerNotice = ({ publicState, publicStateError, statsError 
   return null;
 };
 
+export const shouldSubscribeToLivePublicStats = (publicState: Pick<LivePublicState, 'showStats'>) => publicState.showStats;
+
 export const getTvPresentation = (definition: TvLiveDefinition, state: LivePublicState | null, stats: LivePublicStats | null) => ({ screen: state ? definition.tvScreens.find(screen => screen.id === state.tvScreenId) ?? null : null, stats: state?.showStats ? stats : null });
 
 export interface TvLiveViewProps { definition: TvLiveDefinition; sessionId: string; publicState: LivePublicState; publicStateError?: string | null; }
@@ -21,7 +23,14 @@ export interface TvLiveViewProps { definition: TvLiveDefinition; sessionId: stri
 export const TvLiveView = ({ definition, sessionId, publicState, publicStateError = null }: TvLiveViewProps) => {
   const [stats, setStats] = useState<LivePublicStats | null>(null);
   const [statsError, setStatsError] = useState<string | null>(null);
-  useEffect(() => subscribeToLivePublicStats(sessionId, nextStats => { setStats(nextStats); setStatsError(null); }, nextError => setStatsError(nextError.message)), [sessionId]);
+  useEffect(() => {
+    if (!shouldSubscribeToLivePublicStats(publicState)) {
+      setStats(null);
+      setStatsError(null);
+      return undefined;
+    }
+    return subscribeToLivePublicStats(sessionId, nextStats => { setStats(nextStats); setStatsError(null); }, nextError => setStatsError(nextError.message));
+  }, [publicState, sessionId]);
   const presentation = getTvPresentation(definition, publicState, stats);
   const screen = presentation.screen;
   const listenerNotice = getTvListenerNotice({ publicState, publicStateError, statsError });

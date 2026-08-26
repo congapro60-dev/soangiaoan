@@ -325,6 +325,13 @@ describe('liveLessonSessions/{sessionId}/public · safe public documents', () =>
     await assertSucceeds(getDoc(publicRef(dbStudentA(), SESSION_A, 'stats')));
   });
 
+  it('unauthenticated TV can keep a stats listener open before the first aggregate exists → ALLOW', async () => {
+    await testEnv.withSecurityRulesDisabled(async ctx => {
+      await deleteDoc(publicRef(ctx.firestore(), SESSION_A, 'stats'));
+    });
+    await assertSucceeds(getDoc(publicRef(dbTv(), SESSION_A, 'stats')));
+  });
+
   it('disabled, closed and expired sessions deny public state/stats reads → DENY', async () => {
     for (const sessionId of [SESSION_DISABLED, SESSION_CLOSED, SESSION_EXPIRED]) {
       await assertFails(getDoc(publicRef(dbTv(), sessionId, 'state')));

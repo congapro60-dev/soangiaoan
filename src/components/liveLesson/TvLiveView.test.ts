@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { getPilotLiveLessonDefinition } from '../../lib/liveLesson/definition';
 import type { LivePublicState, LivePublicStats } from '../../lib/liveLesson/types';
-import { getTvListenerNotice, getTvPresentation } from './TvLiveView';
+import { getTvListenerNotice, getTvPresentation, shouldSubscribeToLivePublicStats } from './TvLiveView';
 
 describe('TvLiveView public projection', () => {
   it('renders only the public screen and aggregate stats', () => {
@@ -24,6 +24,13 @@ describe('TvLiveView public projection', () => {
   it('does not expose a screen or stats when public state is unavailable', () => {
     const definition = getPilotLiveLessonDefinition();
     expect(getTvPresentation(definition, null, null)).toEqual({ screen: null, stats: null });
+  });
+
+  it('waits for the teacher to expose stats before subscribing to the public stats document', () => {
+    const hiddenState: LivePublicState = { cueId: 'P00', tvScreenId: 'S0', status: 'lobby', showStats: false, updatedAt: 10 };
+    const visibleState: LivePublicState = { ...hiddenState, showStats: true };
+    expect(shouldSubscribeToLivePublicStats(hiddenState)).toBe(false);
+    expect(shouldSubscribeToLivePublicStats(visibleState)).toBe(true);
   });
 
   it('distinguishes a public listener reconnect from a closed public state', () => {

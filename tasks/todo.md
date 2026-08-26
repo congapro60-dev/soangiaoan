@@ -210,3 +210,12 @@ Backup bản cũ: `C:\Users\ADMIN\AppData\Local\Temp\smartplan-ban-toan-backup-2
 - [x] Rules Emulator xanh: 8 file / 265 test.
 - [x] Chạy full unit, lint, build và kiểm tra diff.
 - [ ] Deploy Firestore Rules lên `smartplan-ai-14200`, xác minh release production và smoke test tạo phiên.
+
+## Task 11 — Ổn định listener thống kê TV — 2026-08-26
+
+- [x] Production smoke phát hiện TV báo lỗi stats ngay ở `lobby` dù phiên tạo thành công.
+- [x] TDD: test UI và Rules đỏ trước khi sửa; nguyên nhân là TV subscribe khi `showStats=false` và Rules chặn document stats chưa tồn tại.
+- [x] Sửa tối thiểu: TV chỉ subscribe khi `showStats=true`; Rules cho phép đọc document stats còn thiếu nhưng vẫn kiểm tra đầy đủ document khi đã tồn tại.
+- [x] Targeted UI test 4/4 và Rules 8 file / 266 test PASS.
+- [x] Chạy full unit, lint, build và kiểm tra diff.
+- [ ] Deploy Vercel frontend + Firestore Rules và smoke test lại TV/HS.

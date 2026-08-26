@@ -323,3 +323,8 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 
 - Test Rules với fixture rút gọn có thể xanh nhưng vẫn chặn luồng thật: fixture cũ chỉ có 7 bước, còn định nghĩa pilot runtime có 8 bước và thêm `route`.
 - Khi một document có allowlist bước, phải có ít nhất một ca test lấy đủ danh sách canonical từ luồng runtime; không chỉ test bước lạ và kiểu dữ liệu.
+
+## Listener public tùy chọn phải mở đúng thời điểm — 2026-08-26
+
+- TV không nên subscribe document thống kê khi giáo viên chưa bật `showStats`; nếu không, document chưa tồn tại sẽ bị Rules từ chối và listener đã lỗi thì không tự hồi phục khi stats xuất hiện.
+- Với document public được tạo muộn, Rules phải cho phép đọc trạng thái “chưa tồn tại” trong đúng điều kiện audience/active/feature-flag, nhưng vẫn validate toàn bộ schema khi document đã tồn tại.
