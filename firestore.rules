@@ -314,6 +314,310 @@ service cloud.firestore {
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
     }
 
+    // Live lesson sessions — teacher-owned control plane, class-linked student responses,
+    // and deliberately redacted public projections.
+    match /liveLessonSessions/{sessionId} {
+      function llv3SessionExists() {
+        return exists(/databases/$(database)/documents/liveLessonSessions/$(sessionId));
+      }
+
+      function llv3SessionOwner() {
+        return request.auth != null
+               && llv3SessionExists()
+               && get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.teacherUid == request.auth.uid;
+      }
+
+      function llv3ClassOwnedBy(data) {
+        return request.auth != null
+               && data.teacherUid == request.auth.uid
+               && exists(/databases/$(database)/documents/classes/$(data.classId))
+               && get(/databases/$(database)/documents/classes/$(data.classId)).data.teacherId == data.teacherUid;
+      }
+
+      function llv3ValidSession(data) {
+        return data.keys().hasOnly([
+                 'schemaVersion', 'lessonId', 'title', 'classId', 'teacherUid', 'allowedStepIds',
+                 'expiresAt', 'status', 'currentCueId', 'currentTvScreenId',
+                 'publicStateEnabled', 'publicStatsEnabled', 'createdAt', 'updatedAt'
+               ])
+               && data.keys().hasAll([
+                    'schemaVersion', 'lessonId', 'title', 'classId', 'teacherUid', 'allowedStepIds',
+                    'expiresAt', 'status', 'currentCueId', 'currentTvScreenId',
+                    'publicStateEnabled', 'publicStatsEnabled', 'createdAt', 'updatedAt'
+                  ])
+               && data.schemaVersion == 1
+               && data.lessonId is string
+               && data.lessonId.size() > 0
+               && data.lessonId.size() <= 128
+               && data.title is string
+               && data.title.size() > 0
+               && data.title.size() <= 240
+               && data.classId is string
+               && data.classId.size() > 0
+               && data.classId.size() <= 128
+               && data.teacherUid is string
+               && data.teacherUid.size() > 0
+               && data.teacherUid.size() <= 128
+               && data.allowedStepIds is list
+               && data.allowedStepIds.size() > 0
+               && data.allowedStepIds.size() <= 7
+               && data.allowedStepIds.hasOnly([
+                    'warmup', 'notice-wonder', 'goals', 'model',
+                    'ai-error-w01', 'quick-check', 'exit-ticket'
+                  ])
+               && data.expiresAt is timestamp
+               && data.status in ['lobby', 'running', 'paused', 'closed']
+               && data.currentCueId is string
+               && data.currentCueId.size() > 0
+               && data.currentCueId.size() <= 128
+               && data.currentTvScreenId is string
+               && data.currentTvScreenId.size() > 0
+               && data.currentTvScreenId.size() <= 128
+               && data.publicStateEnabled is bool
+               && data.publicStatsEnabled is bool
+               && data.createdAt is timestamp
+               && data.updatedAt is timestamp;
+      }
+
+      function llv3SessionIdentityUnchanged() {
+        return request.resource.data.schemaVersion == resource.data.schemaVersion
+               && request.resource.data.lessonId == resource.data.lessonId
+               && request.resource.data.title == resource.data.title
+               && request.resource.data.classId == resource.data.classId
+               && request.resource.data.teacherUid == resource.data.teacherUid
+               && request.resource.data.allowedStepIds == resource.data.allowedStepIds
+               && request.resource.data.expiresAt == resource.data.expiresAt
+               && request.resource.data.createdAt == resource.data.createdAt;
+      }
+
+      function llv3ActiveSession() {
+        return llv3SessionExists()
+               && get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.status in ['lobby', 'running', 'paused']
+               && request.time < get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.expiresAt;
+      }
+
+      function llv3StudentLinkedToSession() {
+        return request.auth != null
+               && exists(/databases/$(database)/documents/studentLinks/$(request.auth.uid))
+               && llv3SessionExists()
+               && get(/databases/$(database)/documents/studentLinks/$(request.auth.uid)).data.classId
+                    == get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.classId;
+      }
+
+      function llv3PublicAudience() {
+        return request.auth == null || llv3SessionOwner() || llv3StudentLinkedToSession();
+      }
+
+      function llv3FiniteNumber(data) {
+        return data is number
+               && data == data
+               && data > -1000000000000
+               && data < 1000000000000;
+      }
+
+      function llv3SafeCount(data) {
+        // The int type excludes fractional, NaN and +/-Infinity values before bounds apply.
+        return data is int && data >= 0 && data <= 10000;
+      }
+
+      function llv3SafeChoiceCounts(data) {
+        return data is map
+               && data.keys().hasOnly([
+                    'A', 'B', 'C', 'D', 'G1', 'G2', 'G3', 'Yes', 'No',
+                    'true', 'false', 'x', 'y', '=', '<=', '>=',
+                    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+                  ])
+               && llv3SafeCount(data.get('A', 0))
+               && llv3SafeCount(data.get('B', 0))
+               && llv3SafeCount(data.get('C', 0))
+               && llv3SafeCount(data.get('D', 0))
+               && llv3SafeCount(data.get('G1', 0))
+               && llv3SafeCount(data.get('G2', 0))
+               && llv3SafeCount(data.get('G3', 0))
+               && llv3SafeCount(data.get('Yes', 0))
+               && llv3SafeCount(data.get('No', 0))
+               && llv3SafeCount(data.get('true', 0))
+               && llv3SafeCount(data.get('false', 0))
+               && llv3SafeCount(data.get('x', 0))
+               && llv3SafeCount(data.get('y', 0))
+               && llv3SafeCount(data.get('=', 0))
+               && llv3SafeCount(data.get('<=', 0))
+               && llv3SafeCount(data.get('>=', 0))
+               && llv3SafeCount(data.get('0', 0))
+               && llv3SafeCount(data.get('1', 0))
+               && llv3SafeCount(data.get('2', 0))
+               && llv3SafeCount(data.get('3', 0))
+               && llv3SafeCount(data.get('4', 0))
+               && llv3SafeCount(data.get('5', 0))
+               && llv3SafeCount(data.get('6', 0))
+               && llv3SafeCount(data.get('7', 0))
+               && llv3SafeCount(data.get('8', 0))
+               && llv3SafeCount(data.get('9', 0));
+      }
+
+      function llv3SafeRouteCounts(data) {
+               return data is map
+               && data.keys().hasOnly(['M', 'S', 'C'])
+               && llv3SafeCount(data.get('M', 0))
+               && llv3SafeCount(data.get('S', 0))
+               && llv3SafeCount(data.get('C', 0));
+      }
+
+      function llv3SafeErrorCounts(data) {
+               return data is map
+               && data.keys().hasOnly(['Conceptual', 'Algebraic', 'Logical', 'Missing condition'])
+               && llv3SafeCount(data.get('Conceptual', 0))
+               && llv3SafeCount(data.get('Algebraic', 0))
+               && llv3SafeCount(data.get('Logical', 0))
+               && llv3SafeCount(data.get('Missing condition', 0));
+      }
+
+      function llv3ValidPublicState(data) {
+        return data.keys().hasOnly(['cueId', 'tvScreenId', 'status', 'showStats', 'updatedAt'])
+               && data.keys().hasAll(['cueId', 'tvScreenId', 'status', 'showStats', 'updatedAt'])
+               && data.cueId is string
+               && data.cueId.size() > 0
+               && data.cueId.size() <= 128
+               && data.tvScreenId is string
+               && data.tvScreenId.size() > 0
+               && data.tvScreenId.size() <= 128
+               && data.status in ['lobby', 'running', 'paused', 'closed']
+               && data.showStats is bool
+               && data.updatedAt is timestamp;
+      }
+
+      function llv3ValidPublicStats(data) {
+        return data.keys().hasOnly([
+                 'stepId', 'participantCount', 'submittedCount', 'choiceCounts',
+                 'routeCounts', 'errorCategoryCounts', 'hintUseCount', 'updatedAt'
+               ])
+               && data.keys().hasAll([
+                    'stepId', 'participantCount', 'submittedCount', 'choiceCounts',
+                    'routeCounts', 'errorCategoryCounts', 'hintUseCount', 'updatedAt'
+                  ])
+               && data.stepId is string
+               && data.stepId.size() > 0
+               && data.stepId.size() <= 128
+               && llv3SafeCount(data.participantCount)
+               && llv3SafeCount(data.submittedCount)
+               && llv3SafeChoiceCounts(data.choiceCounts)
+               && llv3SafeRouteCounts(data.routeCounts)
+               && llv3SafeErrorCounts(data.errorCategoryCounts)
+               && llv3SafeCount(data.hintUseCount)
+               && data.updatedAt is timestamp;
+      }
+
+      function llv3ValidResponse(data, responseId) {
+        return data.keys().hasOnly([
+                 'participantUid', 'classId', 'stepId', 'responseType', 'value',
+                 'clientNonce', 'submittedAt', 'updatedAt'
+               ])
+               && data.keys().hasAll([
+                    'participantUid', 'classId', 'stepId', 'responseType', 'value',
+                    'clientNonce', 'submittedAt', 'updatedAt'
+                  ])
+               && data.participantUid is string
+               && data.participantUid.size() > 0
+               && data.participantUid.size() <= 128
+               && data.classId is string
+               && data.classId.size() > 0
+               && data.classId.size() <= 128
+               && data.stepId is string
+               && data.stepId.size() > 0
+               && data.stepId.size() <= 128
+               && responseId == data.participantUid + '__' + data.stepId
+               && data.responseType in ['choice', 'text', 'boolean', 'route', 'hint', 'exit_ticket']
+               && ((data.value is string && data.value.size() <= 2000)
+                   || (data.value is number && llv3FiniteNumber(data.value))
+                   || data.value is bool)
+               && (data.responseType != 'route'
+                   || (data.value is string && data.value in ['M', 'S', 'C']))
+               && (data.responseType != 'boolean' || data.value is bool)
+               && data.clientNonce is string
+               && data.clientNonce.size() > 0
+               && data.clientNonce.size() <= 128
+               && data.submittedAt is timestamp
+               && data.updatedAt is timestamp;
+      }
+
+      function llv3LinkedStudentCanWriteResponse(data) {
+        return request.auth != null
+               && request.auth.uid == data.participantUid
+               && exists(/databases/$(database)/documents/studentLinks/$(request.auth.uid))
+               && get(/databases/$(database)/documents/studentLinks/$(request.auth.uid)).data.classId
+                    == get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.classId
+               && data.classId == get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.classId
+               && data.stepId in get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.allowedStepIds
+               && llv3ActiveSession();
+      }
+
+      allow get: if llv3SessionOwner()
+                 || (llv3StudentLinkedToSession() && llv3ActiveSession());
+      allow list: if request.auth != null && resource.data.teacherUid == request.auth.uid;
+      allow create: if llv3ValidSession(request.resource.data)
+                    && request.resource.data.expiresAt > request.time
+                    && request.resource.data.createdAt == request.time
+                    && request.resource.data.updatedAt == request.time
+                    && llv3ClassOwnedBy(request.resource.data);
+      allow update: if llv3SessionOwner()
+                    && llv3ValidSession(request.resource.data)
+                    && llv3SessionIdentityUnchanged()
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly([
+                           'status', 'currentCueId', 'currentTvScreenId',
+                           'publicStateEnabled', 'publicStatsEnabled', 'updatedAt'
+                         ])
+                    && request.resource.data.updatedAt == request.time;
+      allow delete: if llv3SessionOwner();
+
+      match /responses/{responseId} {
+        allow get, list: if llv3SessionOwner();
+        allow create: if llv3ValidResponse(request.resource.data, responseId)
+                      && request.resource.data.submittedAt == request.time
+                      && request.resource.data.updatedAt == request.time
+                      && llv3LinkedStudentCanWriteResponse(request.resource.data);
+        allow update: if llv3ValidResponse(request.resource.data, responseId)
+                      && llv3LinkedStudentCanWriteResponse(request.resource.data)
+                      && request.resource.data.participantUid == resource.data.participantUid
+                      && request.resource.data.classId == resource.data.classId
+                      && request.resource.data.stepId == resource.data.stepId
+                      && request.resource.data.clientNonce == resource.data.clientNonce
+                      && request.resource.data.submittedAt == resource.data.submittedAt
+                      && request.resource.data.updatedAt == request.time
+                      && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['responseType', 'value', 'clientNonce', 'updatedAt']);
+        allow delete: if false;
+      }
+
+      match /public/state {
+        allow get: if llv3ValidPublicState(resource.data)
+                   && llv3PublicAudience()
+                   && llv3ActiveSession()
+                   && get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.publicStateEnabled == true;
+        allow create, update: if llv3SessionOwner()
+                              && request.resource.data.keys().hasOnly(['cueId', 'tvScreenId', 'status', 'showStats', 'updatedAt'])
+                              && llv3ValidPublicState(request.resource.data)
+                              && request.resource.data.updatedAt == request.time;
+        allow delete: if false;
+      }
+
+      match /public/stats {
+        allow get: if llv3ValidPublicStats(resource.data)
+                   && llv3PublicAudience()
+                   && llv3ActiveSession()
+                   && get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.publicStatsEnabled == true;
+        allow create, update: if llv3SessionOwner()
+                              && request.resource.data.keys().hasOnly([
+                                   'stepId', 'participantCount', 'submittedCount', 'choiceCounts',
+                                   'routeCounts', 'errorCategoryCounts', 'hintUseCount', 'updatedAt'
+                                 ])
+                              && llv3ValidPublicStats(request.resource.data)
+                              && request.resource.data.stepId in get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.allowedStepIds
+                              && request.resource.data.updatedAt == request.time;
+        allow delete: if false;
+      }
+    }
+
     // ────────────────────────────────────────────────────────────────
     // External Tools Registry (V5 - Phase 2)
     // ────────────────────────────────────────────────────────────────

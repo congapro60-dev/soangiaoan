@@ -12,6 +12,7 @@ import { AdaptiveLessonBuilderPage } from './pages/AdaptiveLessonBuilderPage';
 import { AdaptiveLessonListPage } from './pages/AdaptiveLessonListPage';
 import { DuGioPage } from './pages/DuGioPage';
 import { StudentPortalPage } from './pages/StudentPortalPage';
+import { LiveLessonPage } from './pages/LiveLessonPage';
 import './index.css';
 import 'katex/dist/katex.min.css';
 
@@ -71,6 +72,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/adaptive-builder/:id" element={<AdaptiveLessonBuilderPage />} />
           <Route path="/adaptive-portal/:id" element={<AdaptiveStudentPortalPage />} />
           <Route path="/adaptive-portal" element={<AdaptiveStudentPortalPage />} />
+          <Route path="/adaptive-live/:sessionId" element={<LiveLessonPage />} />
           <Route path="/adaptive/student/:teacherId" element={<AdaptiveStudentPortalPage />} />
           <Route path="/exam/:code/review/:submissionId" element={<AnswerReviewPage />} />
           <Route path="/exam/:code/result/:submissionId" element={<StudentResultPage />} />

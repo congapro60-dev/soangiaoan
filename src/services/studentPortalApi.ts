@@ -21,6 +21,86 @@ export interface LoginResponse {
   studentName: string;
 }
 
+export interface StudentLoginSession extends LoginResponse {
+  anonymousUid: string;
+}
+
+const STUDENT_LOGIN_SESSION_KEY = 'smartplan-ai:live-student-session';
+const LOGIN_RESPONSE_KEYS: (keyof LoginResponse)[] = [
+  'studentId',
+  'classId',
+  'teacherId',
+  'className',
+  'studentName',
+];
+
+const isLoginResponse = (value: unknown): value is LoginResponse => (
+  typeof value === 'object'
+  && value !== null
+  && LOGIN_RESPONSE_KEYS.every((key) => typeof (value as Record<string, unknown>)[key] === 'string'
+    && ((value as Record<string, unknown>)[key] as string).trim().length > 0)
+);
+
+const isStudentLoginSession = (value: unknown): value is StudentLoginSession => (
+  isLoginResponse(value)
+  && typeof (value as unknown as { anonymousUid?: unknown }).anonymousUid === 'string'
+  && ((value as unknown as { anonymousUid: string }).anonymousUid).trim().length > 0
+);
+
+const getSessionStorage = (): Storage | null => {
+  try {
+    return typeof sessionStorage === 'undefined' ? null : sessionStorage;
+  } catch {
+    return null;
+  }
+};
+
+export const saveStudentLoginSession = (value: LoginResponse, anonymousUid: string): StudentLoginSession | null => {
+  if (!isLoginResponse(value) || typeof anonymousUid !== 'string' || !anonymousUid.trim()) return null;
+  const payload: StudentLoginSession = {
+    studentId: value.studentId,
+    classId: value.classId,
+    teacherId: value.teacherId,
+    className: value.className,
+    studentName: value.studentName,
+    anonymousUid,
+  };
+  try {
+    getSessionStorage()?.setItem(STUDENT_LOGIN_SESSION_KEY, JSON.stringify(payload));
+  } catch {
+    // Storage is optional; login behavior must not depend on it.
+  }
+  return payload;
+};
+
+export const getStudentLoginSession = (anonymousUid: string | null | undefined): StudentLoginSession | null => {
+  if (typeof anonymousUid !== 'string' || !anonymousUid.trim()) return null;
+  try {
+    const raw = getSessionStorage()?.getItem(STUDENT_LOGIN_SESSION_KEY);
+    if (!raw) return null;
+    const parsed: unknown = JSON.parse(raw);
+    if (!isStudentLoginSession(parsed) || parsed.anonymousUid !== anonymousUid) return null;
+    return {
+      studentId: parsed.studentId,
+      classId: parsed.classId,
+      teacherId: parsed.teacherId,
+      className: parsed.className,
+      studentName: parsed.studentName,
+      anonymousUid: parsed.anonymousUid,
+    };
+  } catch {
+    return null;
+  }
+};
+
+export const clearStudentLoginSession = (): void => {
+  try {
+    getSessionStorage()?.removeItem(STUDENT_LOGIN_SESSION_KEY);
+  } catch {
+    // Storage is optional; clearing it must remain best-effort.
+  }
+};
+
 export interface IssuedPin {
   studentId: string;
   name: string;

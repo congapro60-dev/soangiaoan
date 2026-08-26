@@ -115,3 +115,80 @@
 - [x] Chặn xóa cả bài và khóa sửa/duyệt/chấm lại trên UI trong lúc `grading`; sau xóa reload lại dữ liệu server.
 - [x] Đưa duyệt/bỏ duyệt điểm qua server transaction, đồng bộ profile/evidence và chặn approve khi `grading`; bulk approve chỉ nhận lượt `graded`.
 - [x] Test hồi quy hardening: `30 tests` targeted pass; full unit `82 files / 1,129 tests`, rules `7 files / 242 tests`, `lint`, `lint:api`, `build`, `git diff --check` và Ox Alpha Free audit đều đạt; production mới chỉ QA read-only, chưa claim authenticated E2E.
+## Trạng thái kiểm soát
+
+`READY_FOR_CONTROLLED_SCALE` — chưa phải `READY_FOR_MASS_PRODUCTION`.
+
+Các report kiểm chứng: `qa/reports/content_gates_regression_post_regen_pilot.json`, `qa/reports/regression_post_regen_pilot.json`, `qa/reports/batch01_regen4_v3_verifier_final.json`.
+
+Các artifact hỗ trợ: `temp/tds_staging/batch_2026-08-20_regen4_v3/visual_results.json`, `qa/reference/batch01_regen4_v3_lesson_content_maps.json`, và 4 DOCX trong thư mục staging tương ứng.
+
+
+## Lô F — Regen5 pilot sau false negative P060 — 2026-08-20
+
+- [x] Audit false negative: gate Activity–Phiếu–Teacher Key trước đó chưa chứng minh mismatch thực sự.
+- [x] Cài `triangle_symbol_consistency_pass` với quy ước `a↔A`, `b↔B`, `c↔C` và các góc xen giữa.
+- [x] Cài `given_quantity_reassigned=0`, kiểm đồng bộ Activity–Phiếu–Teacher Key và `geometry_recomputation_pass`.
+- [x] Sửa generator/rule P060: `b=9`, `c=12`, `A=90°`, `a=15`, `S=54`; đồng bộ activity, GHI BẢNG, Phiếu HS, Teacher Key, map và geometry contract.
+- [x] Sửa generator/rule P056: `5,33` chỉ còn trong lời giải sai có bước sai cụ thể; chốt `n∈N`, `n_max=5`.
+- [x] Chỉ regenerate P056/P060; giữ nguyên P055/P057.
+- [x] Render exact regen5 và visual QA 100%: P055 8 trang, P056 8 trang, P057 7 trang, P060 8 trang; không clipping/overlap/leakage.
+- [x] Content-gate regression: `negative_fixtures_all_expected=true`, `positive_fixtures_all_pass=true`, `regen5_all_pass=true`, `overall_pass=true`.
+- [x] Regression 19 case: `negative_fixture_all_expected=true`, `gold_locked_all_pass=true`, `all_test_cases_pass=true`.
+- [x] Tạo báo cáo `qa/reports/batch01_regen5_pilot_handoff_2026-08-20.md`.
+- [x] Không promotion, không chạy Batch 02, không sửa GOLD_LOCKED, không move/delete artifact.
+- [ ] Chờ người dùng duyệt regen5 pilot.
+
+
+## Lô G — Promotion staging Week56 G11–G12 sau duyệt — 2026-08-20
+
+- [x] Kiểm tra AGENTS, thư mục production đích và danh sách canonical IDs cần thay.
+- [x] Đối chiếu SHA-256 staging với production candidate; tạo backup có timestamp, không xóa file cũ.
+- [x] Thay có kiểm soát chỉ các file Tuần 5–6 Khối 11–12; không chạm Khối 10.
+- [x] Hậu kiểm số lượng, SHA-256, tên file, backup và ghi biên bản promotion; không thay file ngoài scope.
+- [ ] Chờ xác nhận cuối từ người dùng sau khi gửi biên bản.
+
+Trạng thái: promotion đã hoàn tất và hậu kiểm PASS; backup vẫn được giữ nguyên, không xóa file cũ.
+
+---
+
+## Lô H — Soạn lại 32 giáo án G11–G12 Tuần 5–6 theo mẫu Ban Toán — 2026-08-22
+
+- [x] Đọc `docs/KE_HOACH_FIX_G11_G12_W5_W6.md` và đối chiếu mẫu Ban Toán Khối 10 Tuần 5–6.
+- [x] Tạo staging mới, backup 32 file cũ, không sửa `src/`/PPCT JSON.
+- [x] Soạn lại đủ 32 DOCX theo bố cục Ban Toán, có Phiếu 1–2 và Teacher Key.
+- [x] QA XML/CIS: 32/32 PASS; QA theo tuần: 4/4 PASS.
+- [x] Render trực quan: 32/32 DOCX, 276 trang PNG, kiểm tra contact sheet và trang đại diện.
+- [x] Ghi đè đúng 32 file đích; checksum staging–đích khớp 32/32.
+- [x] `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai" run build` PASS; chỉ còn cảnh báo chunk/import vốn có.
+
+Backup bản cũ: `C:\Users\ADMIN\AppData\Local\Temp\smartplan-ban-toan-backup-20260822-084004`.
+
+## V3 Live Lesson Firestore realtime — baseline 2026-08-25
+
+- [x] Worktree riêng: `codex/g10-p31-firestore`.
+- [x] `npm run lint`: PASS.
+- [x] `npm run lint:api`: PASS.
+- [x] `npm run build`: PASS; chỉ còn cảnh báo Vite chunk/dynamic import đã có từ trước.
+- [x] Full Vitest baseline: 64 test files, 1013 tests passed.
+- [ ] Baseline còn 1 test timeout có sẵn ngoài phạm vi V3: `api/__tests__/ai-gateway-handler.test.ts` — SSE raw `[DONE]` sentinel timeout ở 5 giây.
+- [x] `npm install` trong worktree bị treo; đã dừng an toàn và dùng junction tới dependency tree đã có ở checkout chính. Bản cài dở được giữ ngoài workspace tại `C:\Users\ADMIN\AppData\Local\Temp\smart-lesson-plan-ai-node_modules-incomplete-20260825`.
+
+## Task 8 — Close-session progress bridge — 2026-08-25
+
+- [x] Sửa bridge theo response contract canonical thực tế: route P16 là response server-confirmed, exit-ticket là `responseType: text`; validate definition và từng response; xử lý toàn bộ submissions; timestamp retry lấy từ session closed/updated timestamp.
+- [x] Nối close flow vào action của `/api/adaptive-progress` để server xác minh token, session closed, teacher ownership, class ownership, `studentLinks` và roster trước khi ghi từng record ready.
+- [x] Tạo/reuse profileRecord server-side hợp lệ, không bịa objective mastery; chỉ ghi khi lesson đã published/portal-enabled; UI phân biệt eligible/saved/failed/incomplete.
+- [x] Viết hướng dẫn vận hành tiếng Việt tại `docs/features/08-live-lesson-realtime.md`, gồm route, laptop/TV/Vcast/thiết bị HS, launch/close, troubleshooting và fallback V2.
+- [x] Focused live/API/route verification 42/42 pass; full Vitest 76 files/1110 tests pass; `lint`, `lint:api`, `build` pass. Build chỉ còn warning chunk/import vốn có.
+- [x] Rules: chạy trực tiếp Vitest Rules suite trên Firestore Emulator đang chạy đúng worktree — 8 files/260 tests pass. Wrapper `npm run test:rules` không dùng được vì nó cố khởi động thêm emulator trên cổng 8080.
+- [x] Không deploy/push; commit riêng sau khi các gate trên có evidence.
+
+### Task 8 review evidence — 2026-08-25
+
+- Focused route/API set: 4 files / 42 tests PASS: live definition, progress bridge, adaptive-progress API, StudentLiveView.
+- Full Vitest: 76 files / 1110 tests PASS.
+- `npm run lint` và `npm run lint:api`: PASS.
+- `npm run build`: PASS; Vite chỉ cảnh báo module externalized/chunk >500KB và index chunk hiện có.
+- Rules direct run: 8 files / 260 tests PASS trên emulator PID 18096 đã chạy với đúng `firestore.rules`; wrapper `npm run test:rules` bị chặn do cố bind lại cổng 8080.
+- Server mapping evidence: roster doc ID được dùng để kiểm link, adaptive ID là `${teacherUid}_${normalizeStudentCode(roster.code)}`; route lấy từ response server hoặc trusted profile, thiếu cả hai trả `incomplete`.

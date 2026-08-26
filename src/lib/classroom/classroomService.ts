@@ -57,6 +57,14 @@ export const listTeacherClassIds = async (teacherId: string): Promise<string[]> 
   return snap.docs.map(d => d.id);
 };
 
+export const listTeacherClasses = async (teacherId: string): Promise<ClassDoc[]> => {
+  if (typeof teacherId !== 'string' || teacherId.trim().length === 0 || teacherId.includes('/')) return [];
+  const snap = await getDocs(query(collection(db, CLASSES_COL), where('teacherId', '==', teacherId)));
+  return snap.docs
+    .map((document) => ({ ...(document.data() as Omit<ClassDoc, 'id'>), id: document.id }))
+    .sort((left, right) => String(left.name ?? '').localeCompare(String(right.name ?? '')));
+};
+
 /**
  * Đưa lớp học từ mảng cũ trong `userSettings` sang collection thật.
  *

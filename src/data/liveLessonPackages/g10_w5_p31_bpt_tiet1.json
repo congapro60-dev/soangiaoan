@@ -1,0 +1,352 @@
+{
+  "meta": {
+    "id": "tds-g10-30-pilot",
+    "subject": "Toán",
+    "grade": 10,
+    "week": 5,
+    "period": 31,
+    "durationMinutes": 40,
+    "version": "v2",
+    "lessonKind": "theory",
+    "lessonType": "Hình thành kiến thức",
+    "title": "Bất phương trình bậc nhất hai ẩn — Tiết 1",
+    "scopeNote": "Tiết này hình thành khái niệm, nghiệm và mô hình hóa; chưa dạy miền nghiệm bằng đồ thị. Nội dung miền nghiệm thuộc tiết sau.",
+    "sourceGrounding": [
+      "docs/MAU_GIAO_AN_BAN_TOAN.md",
+      "docs/adaptive_learning_design.md",
+      "docs/features/07-adaptive-learning.md",
+      "giao an manus tao/TDS/Cong cu so/README_HUONG_DAN_KET_NOI_VA_CONG_CU.md"
+    ]
+  },
+  "designPrinciples": [
+    "Khởi động tạo câu hỏi của học sinh trước khi giáo viên công bố mục tiêu.",
+    "Mỗi học sinh chọn mục tiêu cá nhân và minh chứng phù hợp.",
+    "Thiết bị hỗ trợ quyết định và phản hồi; lời giải phải được nói với bạn/người và ghi vào vở.",
+    "Hai bảng trắng bắt đầu trống; mọi nét viết có thời điểm và người chịu trách nhiệm.",
+    "Phân hóa theo tuyến M–S–C nhưng không gắn nhãn năng lực công khai.",
+    "AI Error of the Week là một micro-audit gắn vào kiến thức vừa hình thành, không phải một tiết AI riêng.",
+    "Một bài học chỉ dùng một câu hỏi nhanh và một exit ticket để tránh chết thời gian."
+  ],
+  "displayContract": {
+    "principle": "Mỗi bề mặt hiển thị đúng một vai trò; không bề mặt nào lặp nội dung của bề mặt khác và không bề mặt nào thay cho giao tiếp người–người.",
+    "surfaces": [
+      { "id": "TV", "role": "nội dung chung của lớp", "shows": ["bối cảnh", "câu hỏi chung", "mục tiêu", "nhiệm vụ chung", "kiểm tra nhanh", "exit ticket"], "neverShows": ["đáp án tuyến M/S/C", "teacher console", "kết quả cá nhân của học sinh"] },
+      { "id": "BL", "role": "đường suy luận chung lưu lại cả tiết", "shows": ["tiêu đề", "câu hỏi định hướng", "đích đến G1–G3", "biến và mô hình", "định nghĩa BPT và nghiệm", "câu nhắc chốt"], "neverShows": ["lời giải tuyến", "đáp án quick check"] },
+      { "id": "BP", "role": "tiếng nói học sinh và điều phối phân hóa", "shows": ["câu hỏi của HS", "thẻ AI EOW 01", "tuyến M/S/C", "lỗi cần soi", "việc nối tiết sau"], "neverShows": ["lời giải đầy đủ trước khi HS làm"] },
+      { "id": "PORTAL", "role": "lựa chọn và trả lời ngắn của từng học sinh", "storage": "localStorage trên thiết bị của chính em", "neverShows": ["không hiện đáp án trước lần gửi đầu"] },
+      { "id": "VO_SO", "role": "minh chứng suy luận cá nhân", "requires": ["mục tiêu cá nhân", "định nghĩa", "một mô hình", "một bài tuyến", "exit ticket"] },
+      { "id": "CONSOLE", "role": "thẻ nhắc nhịp và board prompt cho giáo viên", "rule": "chỉ trên laptop GV; chuyển cue sau khi thao tác thật hoàn tất" }
+    ],
+    "offlineFirst": {
+      "rule": "Toàn bộ thiết bị chạy cục bộ từ file; mất mạng chỉ đổi phương tiện (PPTX cục bộ, phiếu giấy), không đổi kịch bản.",
+      "noRealtimeClaim": "Portal không đồng bộ thời gian thực và không tự chấm về máy GV; bằng chứng thu qua vở, trao đổi, gọi tên. Không quảng bá tính năng realtime."
+    }
+  },
+  "objectiveReview": {
+    "principle": "Mục tiêu do HS chọn cho mình trước khi vào nội dung và được tự rà lại ít nhất hai lần trong tiết.",
+    "personalChoice": {
+      "when": "P5:00–P8:00",
+      "how": "Mỗi em chọn 1–2 trong G1/G2/G3 và một minh chứng (phép thay / mô hình / giải thích); không công khai so sánh lựa chọn giữa các em.",
+      "recordLine": "Vở ghi: “Mục tiêu cá nhân: G__”"
+    },
+    "reviewPoints": [
+      { "when": "P32:00–P38:00", "where": "Quick check", "action": "HS tự đánh dấu mục tiêu đạt/chưa đạt dựa trên câu mình vừa sửa." },
+      { "when": "P38:00–P40:00", "where": "Exit ticket", "action": "HS tự đánh dấu lại G1/G2/G3; vở mở để GV quét nhanh." },
+      { "when": "Sau tiết", "where": "Giáo viên", "action": "Đối chiếu exit ticket với mục tiêu cá nhân để chọn điểm xuất phát tiết sau." }
+    ],
+    "successCriteria": {
+      "G1": "Kiểm tra đúng ít nhất 2 cặp, có phép thay và kết luận.",
+      "G2": "Mô hình có ý nghĩa biến và dấu ≤ đúng theo bối cảnh.",
+      "G3": "Nêu được nghiệm là cặp số làm BPT đúng; không đọc lại đáp án."
+    }
+  },
+  "revealPolicy": {
+    "principle": "Không bề mặt nào lộ đáp án trước khi học sinh đã gửi lựa chọn hoặc đã tự kiểm.",
+    "rules": [
+      { "moment": "Khởi động A/B/C/D", "policy": "Phép tính từng cặp chỉ hiện trên portal sau khi HS gửi lựa chọn." },
+      { "moment": "Tuyến M/S/C", "policy": "Gợi ý mở theo yêu cầu tối đa 2 tầng; đáp án khóa sau khi nộp cho đến khi HS tự kiểm." },
+      { "moment": "AI Error W01", "policy": "Loại lỗi và câu sửa không lên bảng hay TV trước khi HS gửi phân loại và câu sửa." },
+      { "moment": "Quick check", "policy": "Sau lần gửi đầu không chiếu đáp án đầy đủ; từ P35:30 chỉ dẫn sửa bằng câu hỏi." },
+      { "moment": "Exit ticket", "policy": "GV xem sau tiết để chọn điểm xuất phát; không công bố điểm trước lớp." }
+    ]
+  },
+  "drivingQuestion": "Làm thế nào mô tả điều kiện của tất cả các phương án phù hợp mà không phải thử từng phương án?",
+  "context": {
+    "story": "Một nhóm có 150 nghìn đồng để mua bánh và nước cho hoạt động lớp. Một chiếc bánh giá 15 nghìn đồng, một chai nước giá 10 nghìn đồng.",
+    "variables": [
+      { "symbol": "x", "meaning": "số chiếc bánh", "domain": "số nguyên không âm" },
+      { "symbol": "y", "meaning": "số chai nước", "domain": "số nguyên không âm" }
+    ],
+    "model": "15x + 10y ≤ 150 ⇔ 3x + 2y ≤ 30",
+    "modelReason": "Tổng tiền không vượt quá ngân sách; dấu ≤, không phải dấu =.",
+    "warmupPairs": [
+      { "id": "A", "pair": "(4; 9)", "calculation": "15·4 + 10·9 = 150", "valid": true },
+      { "id": "B", "pair": "(6; 7)", "calculation": "15·6 + 10·7 = 160", "valid": false },
+      { "id": "C", "pair": "(2; 12)", "calculation": "15·2 + 10·12 = 150", "valid": true },
+      { "id": "D", "pair": "(5; 8)", "calculation": "15·5 + 10·8 = 155", "valid": false }
+    ]
+  },
+  "objectives": [
+    {
+      "id": "G1",
+      "studentText": "Tôi kiểm tra được một cặp số có thỏa điều kiện hay không bằng cách thay vào.",
+      "evidence": "Kết luận đúng cho ít nhất 2 cặp và viết phép thay thế.",
+      "success": "Không chỉ nói đúng/sai; chỉ ra phép tính làm căn cứ."
+    },
+    {
+      "id": "G2",
+      "studentText": "Tôi lập được bất phương trình bậc nhất hai ẩn từ một tình huống có giới hạn.",
+      "evidence": "Gắn đúng ý nghĩa x, y và chọn dấu ≤ cho ngân sách.",
+      "success": "Mô hình có biến được giải thích bằng lời."
+    },
+    {
+      "id": "G3",
+      "studentText": "Tôi giải thích được nghiệm là một cặp số làm cho bất phương trình đúng.",
+      "evidence": "Viết định nghĩa và kiểm tra được một cặp trong bài tuyến.",
+      "success": "Phân biệt nghiệm của mô hình với cặp không phù hợp trong bối cảnh."
+    }
+  ],
+  "timeline": [
+    {
+      "phase": "HĐ1-Khởi động",
+      "from": 0,
+      "to": 5,
+      "teacher": "Viết tiêu đề trên bảng lớn; chiếu bối cảnh và 4 cặp; hỏi “cặp nào phù hợp, vì sao?”; chốt câu hỏi định hướng từ ý kiến HS.",
+      "student": "Chọn A/B/C/D trên thiết bị; nói với bạn một căn cứ; gửi một Notice hoặc Wonder.",
+      "tv": "S1 bối cảnh → S2 bốn cặp → S3 Notice/Wonder.",
+      "boardLarge": "P0:00 tiêu đề; P4:00 câu hỏi định hướng.",
+      "boardSide": "P4:00 ghi 3 cụm câu hỏi của HS: kiểm tra / mô tả / giải thích.",
+      "notebook": "Chưa ghi nội dung; chỉ mở vở và ghi 1 câu hỏi nếu GV yêu cầu ở P4:20.",
+      "device": "Mỗi thao tác dưới 20 giây; không yêu cầu gõ câu dài.",
+      "observer": "HS xuất phát từ dữ kiện, tự nêu câu hỏi; GV không công bố mục tiêu trước khi có câu hỏi.",
+      "visual": "TV S0 → S1 → S2 → S3 theo mốc P0:20 / P1:20 / P3:10.",
+      "boardAction": [
+        { "at": "P0:00–P0:20", "board": "BL", "action": "Viết đúng một dòng tiêu đề “BÀI: BẤT PHƯƠNG TRÌNH BẬC NHẤT HAI ẨN”; không viết gì khác." },
+        { "at": "P4:00–P4:20", "board": "BP", "action": "Ghi 3 cụm câu hỏi của HS: kiểm tra / mô tả / giải thích; khoanh cụm lớp chọn nhiều nhất." },
+        { "at": "P4:20–P5:00", "board": "BL", "action": "Viết câu hỏi định hướng dưới tiêu đề và đọc chậm; dòng này giữ đến cuối tiết." }
+      ],
+      "notebookProduct": "Chưa có sản phẩm bắt buộc; tối đa một câu hỏi nếu HS kịp ghi ở P4:20."
+    },
+    {
+      "phase": "HĐ1-Mục tiêu",
+      "from": 5,
+      "to": 8,
+      "teacher": "Chiếu 3 mục tiêu dạng học sinh; yêu cầu mỗi em chọn 1–2 mục tiêu và minh chứng; tổng hợp thành G1–G3 trên bảng lớn.",
+      "student": "Chọn mục tiêu cá nhân; chọn minh chứng muốn để lại; ghi mục tiêu vào vở.",
+      "tv": "S4 mục tiêu và minh chứng.",
+      "boardLarge": "P6:10 ghi G1/G2/G3 dạng rút gọn.",
+      "boardSide": "Giữ nguyên câu hỏi HS; khoanh nhóm câu hỏi đang được giải quyết.",
+      "notebook": "Ghi “Mục tiêu cá nhân: G__”; ghi một minh chứng: phép thay / mô hình / giải thích.",
+      "device": "Chọn nút, không viết lại mục tiêu dài.",
+      "observer": "Mục tiêu cá nhân liên kết trực tiếp với bằng chứng và sản phẩm.",
+      "visual": "TV S4 mục tiêu và minh chứng.",
+      "boardAction": [
+        { "at": "P6:10–P6:50", "board": "BL", "action": "Ghi ĐÍCH ĐẾN rút gọn: G1 kiểm tra cặp số | G2 lập mô hình | G3 giải thích nghiệm." },
+        { "at": "P5:00–P8:00", "board": "BP", "action": "Giữ câu hỏi HS; khoanh cụm câu hỏi đang được giải quyết." }
+      ],
+      "notebookProduct": "Dòng “Mục tiêu cá nhân: G__” kèm một từ khóa minh chứng (phép thay / mô hình / giải thích)."
+    },
+    {
+      "phase": "HĐ2-Hình thành mô hình",
+      "from": 8,
+      "to": 20,
+      "teacher": "Dẫn từ ý nghĩa biến đến 15x+10y≤150; hỏi dấu nào phù hợp; cho kiểm tra cặp; chốt định nghĩa BPT và nghiệm.",
+      "student": "Đề xuất biến; chọn ≤/=; kiểm tra cặp; giải thích tại sao một cặp là nghiệm.",
+      "tv": "S5 mô hình; S6 phân loại biểu thức; S7 ghi nhớ; S8 AI Error of the Week.",
+      "boardLarge": "Viết biến, mô hình, định nghĩa BPT, định nghĩa nghiệm; giữ lại suốt tiết.",
+      "boardSide": "P16:45 ghi thẻ AI Error of the Week 01; P19:30 ghi tuyến M/S/C và quy tắc: mô hình phải gắn ý nghĩa biến.",
+      "notebook": "Ghi định nghĩa, ví dụ mô hình và một lỗi AI đã sửa; không chép mọi lời thoại.",
+      "device": "Các lựa chọn ngắn, gợi ý theo 2 tầng; AI audit dùng 1 lỗi logic rồi mới chuyển tuyến.",
+      "observer": "GV dùng câu hỏi gợi mở; HS tự sửa từ dấu = sang ≤, phân biệt nghiệm và kiểm chứng lời giải AI.",
+      "visual": "TV S5 → S6 → S7 → S8 theo mốc P8:00 / P11:30 / P14:30 / P16:45.",
+      "boardAction": [
+        { "at": "P8:00–P10:30", "board": "BL", "action": "Viết biến x, y rồi mô hình 15x + 10y ≤ 150 ⇔ 3x + 2y ≤ 30; gạch nhẹ dấu ≤; giữ lại suốt tiết." },
+        { "at": "P13:00–P16:45", "board": "BL", "action": "Viết định nghĩa BPT bậc nhất hai ẩn và định nghĩa nghiệm; dừng bút sau từng cụm để HS diễn giải." },
+        { "at": "P16:45–P19:30", "board": "BP", "action": "Chưa viết đáp án trong lúc HS tìm lỗi; P19:30 ghi thẻ AI EOW 01 | LOGICAL kèm câu sửa." }
+      ],
+      "notebookProduct": "Ý nghĩa x, y; mô hình gốc và dạng rút gọn; định nghĩa BPT và nghiệm; thẻ W01 gồm loại lỗi, câu sửa và phép chứng minh."
+    },
+    {
+      "phase": "HĐ2-Phân hóa",
+      "from": 20,
+      "to": 32,
+      "teacher": "Công bố ba tuyến không gắn nhãn trình độ; cho HS tự chọn; đi vòng theo bảng điều khiển; can thiệp tối đa 2 gợi ý trước khi đổi cách hỗ trợ.",
+      "student": "Làm tuyến M/S/C; đổi bài với bạn; kiểm theo 3 tiêu chí; ghi một bước vào vở.",
+      "tv": "S9 mô tả ba tuyến; không chiếu đáp án.",
+      "boardLarge": "Không viết lời giải mới; chỉ chỉ vào định nghĩa/mô hình đã có khi cần.",
+      "boardSide": "Giữ tuyến và ghi một lỗi chung nếu xuất hiện.",
+      "notebook": "Ghi bài tuyến đã chọn và một câu giải thích vì sao đáp án đúng.",
+      "device": "Hiển thị gợi ý theo yêu cầu; khóa đáp án sau khi nộp cho đến khi tự kiểm.",
+      "observer": "HS có lựa chọn thực; GV điều chỉnh hỗ trợ theo bằng chứng, không phân loại công khai.",
+      "visual": "TV S9 ba tuyến; không chiếu đáp án tuyến.",
+      "boardAction": [
+        { "at": "P19:50–P20:30", "board": "BP", "action": "Ghi TUYẾN HỌC: M — Củng cố / S — Chuẩn / C — Thử thách." },
+        { "at": "P20:00–P32:00", "board": "BP", "action": "Chỉ ghi thêm dòng LỖI CẦN SOI nếu lỗi chung thật sự xuất hiện; không viết lời giải tuyến." }
+      ],
+      "notebookProduct": "Tên tuyến đã chọn + một phép tính hoặc một câu giải thích vì sao đáp án đúng."
+    },
+    {
+      "phase": "Kiểm tra nhanh",
+      "from": 32,
+      "to": 38,
+      "teacher": "Cho 3 câu; đọc tín hiệu sai chung; yêu cầu sửa một câu, không giảng lại toàn bộ.",
+      "student": "Trả lời cá nhân; xem phản hồi; sửa câu sai; đánh dấu mục tiêu đạt/chưa đạt.",
+      "tv": "S10 quick check; sau P35:30 chiếu chỉ dẫn sửa, không chiếu đáp án đầy đủ.",
+      "boardLarge": "P36:45 thêm một câu ngắn: “Biến phải mang ý nghĩa trong bối cảnh”.",
+      "boardSide": "Đánh dấu lỗi chung: dấu ≤ / thay cặp / điều kiện x,y.",
+      "notebook": "Sửa đúng một lỗi và gạch chân từ khóa.",
+      "device": "3 câu trắc nghiệm/ngắn; tối đa 2 lần gửi.",
+      "observer": "Có kiểm tra–phản hồi–sửa ngay trong tiết.",
+      "visual": "TV S10; sau P35:30 chỉ chiếu chỉ dẫn sửa, không chiếu đáp án đầy đủ.",
+      "boardAction": [
+        { "at": "P34:30–P35:30", "board": "BP", "action": "Nếu có tín hiệu sai chung, ghi LỖI CẦN SOI: dấu ≤ | thay cặp | x,y nguyên không âm." },
+        { "at": "P36:45–P37:30", "board": "BL", "action": "Viết câu nhắc chốt: “Mô hình toán học phải gắn với ý nghĩa của biến.”" }
+      ],
+      "notebookProduct": "Một lỗi được sửa kèm lý do ngắn; gạch chân từ khóa biến – điều kiện – nghiệm."
+    },
+    {
+      "phase": "Kết thúc",
+      "from": 38,
+      "to": 40,
+      "teacher": "Cho exit ticket; mời 1–2 HS đọc câu trả lời; nối lại câu hỏi định hướng và mục tiêu.",
+      "student": "Viết mô hình hoặc giải thích nghiệm trong 1–2 câu; tự đánh dấu G1/G2/G3.",
+      "tv": "S11 exit ticket và câu nhắc cuối.",
+      "boardLarge": "Khoanh câu hỏi định hướng; gạch chân 3 từ khóa: biến–điều kiện–nghiệm.",
+      "boardSide": "Ghi việc tiếp nối: tiết sau biểu diễn miền nghiệm.",
+      "notebook": "Hoàn thành exit ticket; giữ vở mở để GV quét nhanh.",
+      "device": "Một ô trả lời ngắn; không yêu cầu chia sẻ toàn lớp.",
+      "observer": "Sản phẩm cuối trả lời câu hỏi định hướng và quay về mục tiêu cá nhân.",
+      "visual": "TV S11 exit ticket và câu nhắc cuối.",
+      "boardAction": [
+        { "at": "P38:00–P40:00", "board": "BL", "action": "Khoanh câu hỏi định hướng; gạch chân 3 từ khóa: biến – điều kiện – nghiệm." },
+        { "at": "P38:00", "board": "BP", "action": "Ghi việc tiếp nối: “Tiết sau: biểu diễn miền nghiệm.”" }
+      ],
+      "notebookProduct": "Exit ticket hoàn chỉnh (mô hình hoặc câu giải thích nghiệm) và tự đánh dấu G1/G2/G3 đạt/chưa đạt."
+    }
+  ],
+  "tvScreens": [
+    { "id": "S0", "time": "T−5", "title": "BẮT ĐẦU KHI SẴN SÀNG", "body": "Bất phương trình bậc nhất hai ẩn\nMở portal trên thiết bị cá nhân. Chưa cần ghi bài." },
+    { "id": "S1", "time": "P0:20", "title": "TÌNH HUỐNG", "body": "150 nghìn đồng\nBánh: 15 nghìn/chiếc\nNước: 10 nghìn/chai\nKhông vượt ngân sách." },
+    { "id": "S2", "time": "P1:20", "title": "CẶP NÀO PHÙ HỢP?", "body": "A (4;9)    B (6;7)\nC (2;12)   D (5;8)\nChọn một cặp và nêu căn cứ." },
+    { "id": "S3", "time": "P3:10", "title": "NOTICE / WONDER", "body": "Tôi nhận thấy…\nTôi tự hỏi…\nCâu hỏi nào cần giải quyết trước?" },
+    { "id": "S4", "time": "P5", "title": "MỤC TIÊU DO TÔI CHỌN", "body": "G1 Kiểm tra một cặp số\nG2 Lập mô hình có giới hạn\nG3 Giải thích nghiệm\nChọn 1–2 mục tiêu + minh chứng." },
+    { "id": "S5", "time": "P8", "title": "TỪ TÌNH HUỐNG ĐẾN MÔ HÌNH", "body": "x: số bánh        y: số nước\n15x + 10y ≤ 150\n⇔ 3x + 2y ≤ 30\nVì sao là ≤?" },
+    { "id": "S6", "time": "P11:30", "title": "ĐÂU LÀ BPT BẬC NHẤT HAI ẨN?", "body": "2x − y ≤ 5\nx² + y ≤ 4\n3xy ≥ 1\nx + y = 4\nChọn và giải thích tiêu chí." },
+    { "id": "S7", "time": "P14:30", "title": "ĐIỀU CẦN GIỮ", "body": "BPT bậc nhất hai ẩn: ax+by < c; ≤; >; ≥\na,b không đồng thời bằng 0.\n(x₀;y₀) là nghiệm nếu thay vào làm BPT đúng." },
+    { "id": "S8", "time": "P16:45", "title": "AI ERROR OF THE WEEK 01", "body": "AI viết: 15·6 + 10·7 = 160.\nVì 160 > 150 nên (6;7) là nghiệm.\nTìm lỗi → phân loại → sửa → chứng minh → giải thích." },
+    { "id": "S9", "time": "P20", "title": "TỰ CHỌN TUYẾN", "body": "M — Củng cố: nhận diện + kiểm tra\nS — Chuẩn: lập mô hình + kiểm tra\nC — Thử thách: thêm điều kiện và giải thích\nCó thể đổi tuyến." },
+    { "id": "S10", "time": "P32", "title": "KIỂM TRA NHANH", "body": "1. 2x−y≥4 là BPT?\n2. (2;1) có là nghiệm của 2x+y≤6?\n3. Trong bối cảnh, x,y thuộc loại nào?" },
+    { "id": "S11", "time": "P38", "title": "EXIT TICKET", "body": "Viết mô hình cho: vé 2 điểm và 3 điểm, ngân sách 18 điểm.\nHoặc giải thích “nghiệm” bằng một câu của em.\nTiết sau: miền nghiệm." }
+  ],
+  "studentScreens": [
+    { "id": "HS0", "label": "Sẵn sàng", "action": "Nhập tên tùy chọn; chọn Bắt đầu." },
+    { "id": "HS1", "label": "Khởi động", "action": "Chọn A/B/C/D; xem phép tính sau khi gửi." },
+    { "id": "HS2", "label": "Notice/Wonder", "action": "Chọn một câu hỏi mẫu hoặc gõ tối đa 120 ký tự." },
+    { "id": "HS3", "label": "Mục tiêu", "action": "Chọn 1–2 mục tiêu và minh chứng." },
+    { "id": "HS4", "label": "Mô hình", "action": "Chọn biến, dấu và mô hình; dùng gợi ý nếu cần." },
+    { "id": "HS5", "label": "Nhận diện", "action": "Chọn biểu thức là BPT bậc nhất hai ẩn; kiểm tra cặp." },
+    { "id": "HS6", "label": "AI Error of the Week", "action": "Tìm lỗi, phân loại, sửa, chứng minh và chọn lý do AI có thể mắc lỗi." },
+    { "id": "HS7", "label": "Tuyến M/S/C", "action": "Chọn tuyến; làm bài; tự kiểm trước khi xem phản hồi." },
+    { "id": "HS8", "label": "Peer-check", "action": "Kiểm 3 mục: biến rõ, dấu đúng, kết luận có căn cứ." },
+    { "id": "HS9", "label": "Quick check", "action": "Trả lời 3 câu; sai được sửa một lần." },
+    { "id": "HS10", "label": "Exit ticket", "action": "Viết mô hình hoặc định nghĩa nghiệm; gửi." }
+  ],
+  "aiErrorOfTheWeek": {
+    "id": "W01",
+    "title": "AI Error of the Week 01 — Khi kết luận đảo chiều dấu",
+    "prompt": "Kiểm tra xem (6;7) có là nghiệm của 15x+10y≤150 không.",
+    "aiAnswer": "Đặt x là số chiếc bánh, y là số chai nước. Với (6;7), 15·6+10·7=160. Vì 160>150 nên (6;7) là nghiệm.",
+    "category": "Logical error",
+    "correction": "160>150 nên điều kiện 160≤150 sai; (6;7) không là nghiệm.",
+    "proof": "Thay x=6,y=7: 15·6+10·7=160; 160≤150 là mệnh đề sai.",
+    "whyAiMayErr": "Mô hình có thể bắt chước cụm từ “so sánh rồi kết luận” nhưng đảo chiều quan hệ hoặc không kiểm tra lại điều kiện sau khi tính.",
+    "libraryCard": "W01 | Logical error | Đảo chiều kết luận sau phép thay | Sửa bằng cách giữ nguyên dấu ≤ và kiểm tra mệnh đề."
+  },
+  "routeTasks": {
+    "M": {
+      "label": "Củng cố",
+      "prompt": "Chọn biểu thức là BPT bậc nhất hai ẩn: 2x−y≤5; x²+y≤4; 3xy≥1; x+y=4. Sau đó kiểm tra (2;4) với 2x−y≤5.",
+      "answer": "Chỉ 2x−y≤5; 2·2−4=0≤5 nên (2;4) là nghiệm.",
+      "hints": ["Bậc nhất nghĩa là mỗi ẩn chỉ có lũy thừa 1 và không nhân với nhau.", "Thay x=2, y=4 rồi so sánh hai vế."],
+      "notebook": "Ghi biểu thức đúng và một phép thay cặp số."
+    },
+    "S": {
+      "label": "Chuẩn",
+      "prompt": "Một quyển vở 20 nghìn, một cây bút 15 nghìn; ngân sách 200 nghìn. Đặt x,y; lập BPT; kiểm tra (5;6) và (7;4).",
+      "answer": "20x+15y≤200; (5;6):190≤200 đúng; (7;4):200≤200 đúng; x,y nguyên không âm.",
+      "hints": ["x,y phải nói rõ đang đếm gì.", "Ngân sách không vượt quá nên dùng ≤; thay từng cặp vào vế trái."],
+      "notebook": "Ghi mô hình, miền bối cảnh và một kết luận có phép tính."
+    },
+    "C": {
+      "label": "Thử thách",
+      "prompt": "Hai loại vé có giá trị 2 và 3 điểm; tổng ngân sách không quá 18 điểm. Lập mô hình có điều kiện x,y nguyên không âm và tạo một nghiệm khác (3;2). Giải thích vì sao nghiệm phụ thuộc bối cảnh.",
+      "answer": "2x+3y≤18; x,y∈Z≥0; (3;2):6+6=12≤18; nghiệm toán học phải đồng thời phù hợp miền bối cảnh.",
+      "hints": ["Đừng quên điều kiện số lượng không âm và nguyên.", "Một cặp là nghiệm khi thay vào bất phương trình và điều kiện bối cảnh đều đúng."],
+      "notebook": "Ghi mô hình, điều kiện x,y và một câu giải thích về nghiệm."
+    }
+  },
+  "quickCheck": [
+    { "id": "Q1", "prompt": "2x−y≥4 có phải BPT bậc nhất hai ẩn không?", "answer": "Có.", "why": "Hai ẩn x,y ở bậc nhất; a,b không đồng thời bằng 0." },
+    { "id": "Q2", "prompt": "(2;1) có là nghiệm của 2x+y≤6 không?", "answer": "Có.", "why": "2·2+1=5≤6." },
+    { "id": "Q3", "prompt": "Trong bài mua bánh/nước, x,y thuộc loại nào?", "answer": "Số nguyên không âm.", "why": "x,y là số lượng đồ vật." }
+  ],
+  "exitTicket": {
+    "prompt": "Vé loại 1 có giá trị 2 điểm, vé loại 2 có giá trị 3 điểm, ngân sách không quá 18 điểm. Viết mô hình và nêu điều kiện của x,y; hoặc giải thích “nghiệm” bằng một câu của em.",
+    "answer": "2x+3y≤18; x,y∈Z≥0. Một cặp số là nghiệm nếu thay vào làm bất phương trình đúng và phù hợp bối cảnh.",
+    "lookFor": ["ý nghĩa biến", "dấu ≤", "điều kiện nguyên không âm", "phép thay hoặc diễn giải nghiệm"]
+  },
+  "board": {
+    "initialState": "Hai bảng trắng hoàn toàn trống.",
+    "largeBoard": [
+      { "at": "P0:00–P0:20", "write": "BÀI: BẤT PHƯƠNG TRÌNH BẬC NHẤT HAI ẨN" },
+      { "at": "P4:00–P5:00", "write": "CÂU HỎI ĐỊNH HƯỚNG:\nLàm thế nào mô tả điều kiện của tất cả\ncác phương án phù hợp mà không phải thử từng phương án?" },
+      { "at": "P6:10–P6:50", "write": "ĐÍCH ĐẾN: G1 kiểm tra cặp số | G2 lập mô hình | G3 giải thích nghiệm" },
+      { "at": "P8:00–P10:30", "write": "x: số chiếc bánh\ny: số chai nước\n15x + 10y ≤ 150 ⇔ 3x + 2y ≤ 30" },
+      { "at": "P13:00–P16:45", "write": "BPT bậc nhất hai ẩn:\nax+by<c; ax+by≤c; ax+by>c; ax+by≥c\na,b không đồng thời bằng 0.\n(x₀;y₀) là nghiệm nếu thay vào làm BPT đúng." },
+      { "at": "P16:45–P19:30", "write": "AI ERROR OF THE WEEK 01\nLogical error: 160>150 nhưng nói “thỏa”.\nSửa: 160≤150 sai → (6;7) không là nghiệm." },
+      { "at": "P36:45", "write": "Mô hình toán học phải gắn với ý nghĩa của biến." },
+      { "at": "P38:00–P40:00", "write": "Khoanh câu hỏi định hướng; gạch chân: biến – điều kiện – nghiệm." }
+    ],
+    "sideBoard": [
+      { "at": "P4:00", "write": "CÂU HỎI CỦA HỌC SINH\n1. Kiểm tra một phương án?\n2. Mô tả điều kiện?\n3. Giải thích nghiệm?" },
+      { "at": "P19:30", "write": "AI ERROR OF THE WEEK 01\nLogical error: 160>150 nhưng nói “thỏa”.\nSửa: 160≤150 sai → không là nghiệm." },
+      { "at": "P19:50", "write": "TUYẾN HỌC\nM — Củng cố\nS — Chuẩn\nC — Thử thách" },
+      { "at": "P32:00", "write": "LỖI CẦN SOI\ndấu ≤ | thay cặp | x,y nguyên không âm" },
+      { "at": "P38:00", "write": "Tiết sau: biểu diễn miền nghiệm." }
+    ]
+  },
+  "notebook": {
+    "studentWrites": [
+      "Mục tiêu cá nhân: G__.",
+      "BPT bậc nhất hai ẩn và bốn dấu; a,b không đồng thời bằng 0.",
+      "(x₀;y₀) là nghiệm nếu thay vào làm bất phương trình đúng.",
+      "Một mô hình tình huống có giải thích biến và dấu ≤.",
+      "Một bài tuyến M/S/C có phép tính hoặc câu giải thích.",
+      "Một thẻ AI Error: loại lỗi, câu sửa và phép chứng minh.",
+      "Exit ticket và một lỗi đã sửa."
+    ],
+    "teacherDoesNotRequire": [
+      "Không chép toàn bộ slide.",
+      "Không chép lời thoại hoặc mã màn hình.",
+      "Không ghi đáp án tuyến khác nếu chưa làm."
+    ]
+  },
+  "resources": [
+    { "id": "TV", "resource": "Một TV trình chiếu", "job": "bối cảnh, câu hỏi chung, mục tiêu, nhiệm vụ chung", "owner": "GV laptop/HDMI" },
+    { "id": "BL", "resource": "Bảng lớn trắng", "job": "dòng suy luận chung và định nghĩa lưu lại", "owner": "GV viết trực tiếp" },
+    { "id": "BP", "resource": "Bảng phụ trắng", "job": "câu hỏi của HS, tuyến, lỗi chung, việc tiếp nối", "owner": "GV viết trực tiếp" },
+    { "id": "HS", "resource": "Laptop/iPad/điện thoại HS", "job": "lựa chọn ngắn, gợi ý, bài tuyến, quick/exit", "owner": "HS" },
+    { "id": "V", "resource": "Vở Toán", "job": "minh chứng suy luận cá nhân", "owner": "HS" },
+    { "id": "GC", "resource": "Teacher console", "job": "nhắc nhịp, board prompt, answer key; không chiếu lên TV", "owner": "GV laptop" },
+    { "id": "SLIDE", "resource": "teacher_tv_slides.pptx", "job": "trình chiếu TV theo S0–S11", "owner": "GV" },
+    { "id": "PORTAL", "resource": "student_portal.html", "job": "màn hình cá nhân theo HS0–HS10", "owner": "HS" },
+    { "id": "AEL", "resource": "ai_error_library.md", "job": "ghi lại thẻ lỗi tuần 01 và làm mẫu cho các tuần sau", "owner": "GV + HS" }
+  ],
+  "fallback": {
+    "noNetwork": "GV chiếu PPTX cục bộ; HS dùng offline_student_sheet.docx/in ra giấy; GV dùng thẻ M/S/C trong runbook.",
+    "noTV": "GV đọc nội dung slide từ teacher_console; bảng lớn giữ câu hỏi + mô hình; bảng phụ giữ tuyến.",
+    "noStudentDevice": "GV dùng 4 thẻ A/B/C/D và 3 thẻ G1/G2/G3 bằng giấy; HS vẫn ghi vở và làm tuyến.",
+    "oneDeviceOnly": "Một HS đại diện thao tác; cả lớp trả lời bằng ngón tay/trao đổi; không chờ từng em đăng nhập.",
+    "timeLoss": "Bỏ Notice/Wonder gõ dài trước; chuyển sang chọn cụm câu hỏi trên bảng phụ; giữ quick check và exit ticket."
+  }
+}
