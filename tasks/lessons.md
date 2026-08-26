@@ -335,3 +335,8 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - Các mutation điều khiển phiên phải đọc lại bằng `getDocFromServer` trước khi ghi public state; nếu không, giao diện có thể đã đổi nút nhưng public state không được cập nhật và báo lỗi giả cho giáo viên.
 - Các listener `onSnapshot` cũng nhận bản cục bộ có `metadata.hasPendingWrites=true`; phải bỏ qua bản này và chờ snapshot server, nếu không listener sẽ tự hiển thị lỗi dù mutation cuối cùng thành công.
 - Nếu `getDocFromServer` vẫn trả snapshot chưa có timestamp ngay sau mutation, retry ngắn có điều kiện cho đúng lỗi `updatedAt`; không nuốt hoặc retry vô hạn các lỗi schema/quyền khác.
+
+## Live lesson: link học sinh phải mang đủ ngữ cảnh lớp — 2026-08-26
+
+- Khi giáo viên đã chọn lớp lúc tạo phiên, URL học sinh phải mang cả `classId` và `joinCode`; cổng học sinh dùng `joinCode` để tải đúng roster rồi kiểm lại `roster.classId` trước khi cho chọn tên.
+- Nếu lớp thiếu `joinCode`, phải chặn ngay lúc tạo phiên với hướng dẫn đồng bộ/cấp mã lớp; không tạo một link HS trông hợp lệ nhưng không thể đăng nhập.

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { getPilotLiveLessonDefinition } from '../../lib/liveLesson/definition';
 import type { LivePublicState, LivePublicStats } from '../../lib/liveLesson/types';
-import { getTvListenerNotice, getTvPresentation, shouldSubscribeToLivePublicStats } from './TvLiveView';
+import { getTvListenerNotice, getTvPresentation, getTvStatsItems, shouldSubscribeToLivePublicStats } from './TvLiveView';
 
 describe('TvLiveView public projection', () => {
   it('renders only the public screen and aggregate stats', () => {
@@ -24,6 +24,23 @@ describe('TvLiveView public projection', () => {
   it('does not expose a screen or stats when public state is unavailable', () => {
     const definition = getPilotLiveLessonDefinition();
     expect(getTvPresentation(definition, null, null)).toEqual({ screen: null, stats: null });
+  });
+
+  it('returns the five public stats items in the TV order', () => {
+    const stats: LivePublicStats = {
+      stepId: 'ai-error-w01', participantCount: 12, submittedCount: 8,
+      choiceCounts: {}, routeCounts: { M: 4, S: 3, C: 1 },
+      errorCategoryCounts: { Conceptual: 0, Algebraic: 0, Logical: 0, 'Missing condition': 0 },
+      hintUseCount: 0, updatedAt: 10,
+    };
+
+    expect(getTvStatsItems(stats)).toEqual([
+      { label: 'Tham gia', value: 12 },
+      { label: 'Đã gửi', value: 8 },
+      { label: 'Tuyến M', value: 4 },
+      { label: 'Tuyến S', value: 3 },
+      { label: 'Tuyến C', value: 1 },
+    ]);
   });
 
   it('waits for the teacher to expose stats before subscribing to the public stats document', () => {

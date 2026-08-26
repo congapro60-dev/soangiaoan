@@ -232,7 +232,16 @@ Backup bản cũ: `C:\Users\ADMIN\AppData\Local\Temp\smartplan-ban-toan-backup-2
 
 ## Task 13 — Three-portal UX: mobile GV, fit-to-screen TV, class-context HS — 2026-08-26
 
-- [ ] Student link carries the selected class context; student selects a roster name and enters only PIN.
-- [ ] Teacher portal is mobile-first with the current cue and sticky previous/pause/next controls.
-- [ ] TV portal fits the public screen and five pilot metrics into one viewport without scroll.
+- [x] Student link carries the selected class context; student selects a roster name and enters only PIN; creation is blocked when the class has no join code.
+- [x] Teacher portal is mobile-first with the current cue and sticky previous/pause/next controls.
+- [x] TV portal fits the public screen and five pilot metrics into one viewport without scroll.
 - [ ] Run focused/full tests, lint, API lint, build, diff check, browser smoke, independent reviews, then release evidence.
+
+### Task 13 implementation evidence — 2026-08-26
+
+- Focused live suite: 5 files / 29 tests PASS after the three-portal changes.
+- Full Vitest: 98 files / 1322 tests PASS.
+- `npm run lint`: PASS; `npm run lint:api`: PASS.
+- `npm run build`: PASS; Vite only reported existing chunk/dynamic-import warnings.
+- `git diff --check`: PASS.
+- Local browser route smoke reached the live route but could not read the historical session because Firestore returned `Missing or insufficient permissions`; no visual PASS is claimed from that route.

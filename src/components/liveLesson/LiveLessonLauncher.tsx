@@ -42,9 +42,10 @@ export const buildLiveLessonUrls = (sessionId: string, baseUrl = '', studentClas
   };
 };
 
-export const validateLiveLessonLaunch = ({ lessonReady, classId }: { lessonReady: boolean; classId: string }): { ok: true } | { ok: false; message: string } => {
+export const validateLiveLessonLaunch = ({ lessonReady, classId, joinCode }: { lessonReady: boolean; classId: string; joinCode?: string }): { ok: true } | { ok: false; message: string } => {
   if (!lessonReady) return { ok: false, message: 'Không thể mở tiết trực tiếp vì định nghĩa pilot chưa sẵn sàng.' };
   if (!classId.trim()) return { ok: false, message: 'Chưa có lớp đã đồng bộ và thuộc tài khoản giáo viên để mở tiết trực tiếp.' };
+  if (!joinCode?.trim()) return { ok: false, message: 'Lớp chưa có mã lớp để mở cổng học sinh. Hãy đồng bộ hoặc cấp mã lớp trước.' };
   return { ok: true };
 };
 
@@ -185,7 +186,7 @@ export const LiveLessonLauncher = ({ lesson: selectedLesson, lessonId, user: con
       setError('Bạn cần đăng nhập bằng tài khoản giáo viên để mở tiết trực tiếp.');
       return;
     }
-    const validation = validateLiveLessonLaunch({ lessonReady: Boolean(definition), classId: selectedClass?.id ?? '' });
+    const validation = validateLiveLessonLaunch({ lessonReady: Boolean(definition), classId: selectedClass?.id ?? '', joinCode: selectedClass?.joinCode ?? '' });
     if (validation.ok === false) {
       setError(validation.message);
       return;

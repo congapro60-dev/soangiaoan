@@ -9,6 +9,13 @@ describe('live lesson launcher helpers', () => {
     });
   });
 
+  it('blocks creation when the selected class has no join code for the student portal', () => {
+    expect(validateLiveLessonLaunch({ lessonReady: true, classId: 'class-123', joinCode: '' })).toEqual({
+      ok: false,
+      message: expect.stringContaining('mã lớp'),
+    });
+  });
+
   it('builds teacher, TV and student URLs with one session id', () => {
     const urls = buildLiveLessonUrls('session-123', 'https://smartplan.test', 'class-123');
     expect(urls.teacher).toBe('https://smartplan.test/adaptive-live/session-123?mode=teacher');
