@@ -229,3 +229,10 @@ Backup bản cũ: `C:\Users\ADMIN\AppData\Local\Temp\smartplan-ban-toan-backup-2
 - [x] Retry có điều kiện khi snapshot server vẫn chưa materialize `updatedAt`; không retry các lỗi dữ liệu khác.
 - [x] TDD targeted service 16/16 PASS; full unit riêng 97 file / 1.309 test, `lint`, `lint:api`, `build` PASS; chỉ còn cảnh báo Vite vốn có. Full run song song từng có 1 ca SSE timeout do tranh chấp tài nguyên, đã loại trừ bằng run riêng.
 - [x] Deploy bản sửa cuối lên Vercel `dpl_DAWLo3R3yuNom98BnDXgqUoNks3u` (`READY`, alias `giaoandewey.vercel.app`); release lại `firestore.rules` thành công và smoke GV → TV → HS không còn lỗi quyền/timestamp.
+
+## Task 13 — Three-portal UX: mobile GV, fit-to-screen TV, class-context HS — 2026-08-26
+
+- [ ] Student link carries the selected class context; student selects a roster name and enters only PIN.
+- [ ] Teacher portal is mobile-first with the current cue and sticky previous/pause/next controls.
+- [ ] TV portal fits the public screen and five pilot metrics into one viewport without scroll.
+- [ ] Run focused/full tests, lint, API lint, build, diff check, browser smoke, independent reviews, then release evidence.
