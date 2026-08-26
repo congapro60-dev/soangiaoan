@@ -228,4 +228,4 @@ Backup bản cũ: `C:\Users\ADMIN\AppData\Local\Temp\smartplan-ban-toan-backup-2
 - [x] Listener bỏ qua snapshot cục bộ đang `hasPendingWrites=true`, chờ bản server đã có timestamp trước khi chuẩn hoá.
 - [x] Retry có điều kiện khi snapshot server vẫn chưa materialize `updatedAt`; không retry các lỗi dữ liệu khác.
 - [x] TDD targeted service 16/16 PASS; full unit riêng 97 file / 1.309 test, `lint`, `lint:api`, `build` PASS; chỉ còn cảnh báo Vite vốn có. Full run song song từng có 1 ca SSE timeout do tranh chấp tài nguyên, đã loại trừ bằng run riêng.
-- [ ] Deploy bản sửa cuối lên Vercel và smoke lại thao tác GV → TV.
+- [x] Deploy bản sửa cuối lên Vercel `dpl_DAWLo3R3yuNom98BnDXgqUoNks3u` (`READY`, alias `giaoandewey.vercel.app`); release lại `firestore.rules` thành công và smoke GV → TV → HS không còn lỗi quyền/timestamp.
