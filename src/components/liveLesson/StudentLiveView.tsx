@@ -10,7 +10,7 @@ import {
   getQueuedLiveResponses,
   type LiveResponseQueueFailure,
 } from '../../lib/liveLesson/offlineQueue';
-import { getStudentLoginSession, loginStudent, saveStudentLoginSession, type StudentLoginSession } from '../../services/studentPortalApi';
+import { fetchRoster, getStudentLoginSession, loginStudent, saveStudentLoginSession, type RosterResponse, type StudentLoginSession } from '../../services/studentPortalApi';
 import { submitLiveResponse } from '../../services/liveLessonService';
 import { LiveLessonStatus } from './LiveLessonStatus';
 
@@ -21,6 +21,7 @@ export interface StudentLiveViewProps {
   definition: StudentDefinitionProjection;
   sessionId: string;
   expectedClassId: string | null;
+  expectedJoinCode: string | null;
   publicState: LivePublicState;
   publicStateError?: string | null;
 }
@@ -33,6 +34,19 @@ export const resolveStudentLiveIdentity = (
   if (!user?.isAnonymous || !user.uid.trim() || !login?.anonymousUid || login.anonymousUid !== user.uid) return null;
   if (!login.classId.trim() || !expectedClassId?.trim() || login.classId !== expectedClassId) return null;
   return { participantUid: user.uid, classId: login.classId };
+};
+
+export type StudentRosterContextResult = { ok: true; roster: RosterResponse } | { ok: false; message: string };
+
+export const validateStudentRosterContext = (
+  roster: RosterResponse,
+  expectedClassId: string | null,
+  expectedJoinCode: string | null,
+): StudentRosterContextResult => {
+  if (!expectedJoinCode?.trim()) return { ok: false, message: 'Liên kết cũ thiếu ngữ cảnh lớp. Hãy yêu cầu giáo viên mở phiên mới.' };
+  if (!expectedClassId?.trim()) return { ok: false, message: 'Liên kết học sinh thiếu mã lớp của phiên; không thể tiếp tục.' };
+  if (roster.classId !== expectedClassId) return { ok: false, message: 'Danh sách học sinh không khớp lớp của liên kết này.' };
+  return { ok: true, roster };
 };
 
 const createNonce = (): string => {
@@ -82,12 +96,14 @@ const ResponseControl = ({
   return null;
 };
 
-export const StudentLiveView = ({ definition, sessionId, expectedClassId, publicState, publicStateError = null }: StudentLiveViewProps) => {
+export const StudentLiveView = ({ definition, sessionId, expectedClassId, expectedJoinCode, publicState, publicStateError = null }: StudentLiveViewProps) => {
   const [user, setUser] = useState<User | null>(auth.currentUser);
   const [student, setStudent] = useState<StudentLoginSession | null>(() => auth.currentUser?.isAnonymous ? getStudentLoginSession(auth.currentUser.uid) : null);
-  const [joinCode, setJoinCode] = useState('');
-  const [studentId, setStudentId] = useState('');
+  const [selectedStudentId, setSelectedStudentId] = useState('');
   const [pin, setPin] = useState('');
+  const [roster, setRoster] = useState<RosterResponse | null>(null);
+  const [rosterLoading, setRosterLoading] = useState(false);
+  const [rosterError, setRosterError] = useState<string | null>(null);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [loginBusy, setLoginBusy] = useState(false);
   const [selectedValue, setSelectedValue] = useState('');
@@ -105,6 +121,38 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, public
     });
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    const classId = expectedClassId?.trim() ?? '';
+    const joinCode = expectedJoinCode?.trim() ?? '';
+    setRoster(null);
+    setRosterError(null);
+    setRosterLoading(false);
+    if (!joinCode) {
+      setRosterError('Liên kết cũ thiếu ngữ cảnh lớp. Hãy yêu cầu giáo viên mở phiên mới.');
+      return () => { active = false; };
+    }
+    if (!classId) {
+      setRosterError('Liên kết học sinh thiếu mã lớp của phiên; không thể tiếp tục.');
+      return () => { active = false; };
+    }
+    setRosterLoading(true);
+    void fetchRoster(joinCode).then(nextRoster => {
+      if (!active) return;
+      const result = validateStudentRosterContext(nextRoster, classId, joinCode);
+      if (result.ok === false) {
+        setRosterError(result.message);
+        return;
+      }
+      setRoster(result.roster);
+    }).catch(error => {
+      if (active) setRosterError(error instanceof Error ? error.message : 'Không tải được danh sách học sinh của lớp.');
+    }).finally(() => {
+      if (active) setRosterLoading(false);
+    });
+    return () => { active = false; };
+  }, [expectedClassId, expectedJoinCode]);
 
   const currentCue = definition.studentCues.find(cue => cue.id === publicState.cueId);
   const step = currentCue?.responseStepId ? definition.responseSteps.find(item => item.id === currentCue.responseStepId) ?? null : null;
@@ -207,10 +255,12 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, public
     event.preventDefault();
     setLoginError(null);
     if (activeSafetyMessage) { setLoginError(activeSafetyMessage); return; }
+    if (!expectedJoinCode?.trim()) { setLoginError('Liên kết cũ thiếu ngữ cảnh lớp. Hãy yêu cầu giáo viên mở phiên mới.'); return; }
     if (!expectedClassId) { setLoginError('Liên kết học sinh thiếu mã lớp phiên; không thể tiếp tục.'); return; }
+    if (!roster) { setLoginError(rosterError ?? 'Chưa tải được danh sách học sinh của lớp.'); return; }
     setLoginBusy(true);
     try {
-      const result = await loginStudent(joinCode.trim(), studentId.trim(), pin.trim());
+      const result = await loginStudent(expectedJoinCode.trim(), selectedStudentId.trim(), pin.trim());
       if (!result.classId || !result.studentId) throw new Error('Phiên học sinh không hợp lệ; không thể tiếp tục.');
       if (result.classId !== expectedClassId) throw new Error('Mã lớp của tài khoản không khớp liên kết phiên này.');
       const activeStudentUser = auth.currentUser;
@@ -227,9 +277,12 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, public
   const status = step ? stepStatuses[step.id] : null;
   const textControl = useMemo(() => step && (step.responseTypes.includes('text') || step.responseTypes.includes('exit_ticket')), [step]);
 
+  if (!expectedJoinCode) return <main className="flex min-h-screen items-center justify-center bg-slate-100 p-4 text-slate-900"><section className="w-full max-w-xl rounded-[2rem] bg-white p-7 text-center shadow-xl"><p className="text-xs font-black uppercase tracking-[0.2em] text-red-600">Học sinh · liên kết cũ</p><h1 className="mt-2 text-2xl font-black">Không thể vào phiên học</h1><div className="mt-4"><LiveLessonStatus tone="error">Liên kết cũ thiếu ngữ cảnh lớp. Hãy yêu cầu giáo viên mở phiên mới.</LiveLessonStatus></div></section></main>;
   if (!expectedClassId) return <main className="flex min-h-screen items-center justify-center bg-slate-100 p-4 text-slate-900"><section className="w-full max-w-xl rounded-[2rem] bg-white p-7 text-center shadow-xl"><p className="text-xs font-black uppercase tracking-[0.2em] text-red-600">Học sinh · liên kết không hợp lệ</p><h1 className="mt-2 text-2xl font-black">Không thể vào phiên học</h1><div className="mt-4"><LiveLessonStatus tone="error">Liên kết học sinh thiếu mã lớp của phiên. Không có phản hồi nào được gửi.</LiveLessonStatus></div></section></main>;
+  if (rosterError) return <main className="flex min-h-screen items-center justify-center bg-slate-100 p-4 text-slate-900"><section className="w-full max-w-xl rounded-[2rem] bg-white p-7 text-center shadow-xl"><p className="text-xs font-black uppercase tracking-[0.2em] text-red-600">Học sinh · không tải được lớp</p><h1 className="mt-2 text-2xl font-black">Không thể chọn học sinh</h1><div className="mt-4"><LiveLessonStatus tone="error">{rosterError}</LiveLessonStatus></div></section></main>;
+  if (rosterLoading || !roster) return <main className="flex min-h-screen items-center justify-center bg-slate-100 p-4 text-slate-900"><section className="w-full max-w-xl rounded-[2rem] bg-white p-7 text-center shadow-xl"><p className="text-xs font-black uppercase tracking-[0.2em] text-indigo-600">Học sinh · đang tải lớp</p><h1 className="mt-2 text-2xl font-black">Đang tải danh sách học sinh</h1><p className="mt-4 text-sm font-semibold text-slate-500">Chờ một chút để hiện các tên thuộc đúng lớp của phiên.</p></section></main>;
   if (student && !identity) return <main className="flex min-h-screen items-center justify-center bg-slate-100 p-4 text-slate-900"><section className="w-full max-w-xl rounded-[2rem] bg-white p-7 text-center shadow-xl"><p className="text-xs font-black uppercase tracking-[0.2em] text-red-600">Học sinh · danh tính bị chặn</p><h1 className="mt-2 text-2xl font-black">Không thể gửi phản hồi</h1><div className="mt-4"><LiveLessonStatus tone="error">{activeSafetyMessage ?? 'Phiên đăng nhập hoặc mã lớp không khớp liên kết này. Hãy đăng nhập lại từ đúng liên kết học sinh.'}</LiveLessonStatus></div></section></main>;
-  if (!student) return <main className="flex min-h-screen items-center justify-center bg-slate-100 p-4 text-slate-900"><form onSubmit={login} className="w-full max-w-md rounded-[2rem] bg-white p-6 shadow-xl sm:p-8"><p className="text-xs font-black uppercase tracking-[0.2em] text-indigo-600">SmartPlan · Học sinh</p><h1 className="mt-2 text-2xl font-black">Vào tiết học trực tiếp</h1><p className="mt-2 text-sm font-semibold leading-6 text-slate-500">Dùng mã lớp và PIN hiện có. PIN chỉ được gửi để xác thực, không lưu trên thiết bị.</p>{activeSafetyMessage && <LiveLessonStatus tone="error">{activeSafetyMessage}</LiveLessonStatus>}{loginError && <div className="mt-4"><LiveLessonStatus tone="error">{loginError}</LiveLessonStatus></div>}<div className="mt-5 space-y-3"><input required value={joinCode} onChange={event => setJoinCode(event.target.value)} placeholder="Mã lớp" autoComplete="off" className="w-full rounded-xl border border-slate-200 px-4 py-3 font-semibold" /><input required value={studentId} onChange={event => setStudentId(event.target.value)} placeholder="Mã học sinh" autoComplete="off" className="w-full rounded-xl border border-slate-200 px-4 py-3 font-semibold" /><input required value={pin} onChange={event => setPin(event.target.value)} placeholder="PIN" inputMode="numeric" type="password" autoComplete="off" className="w-full rounded-xl border border-slate-200 px-4 py-3 font-semibold" /></div><button disabled={loginBusy || Boolean(activeSafetyMessage)} className="mt-5 w-full rounded-xl bg-indigo-600 px-4 py-3 font-black text-white disabled:opacity-50">{loginBusy ? 'Đang xác thực…' : 'Vào lớp'}</button></form></main>;
+  if (!student) return <main className="flex min-h-screen items-center justify-center bg-slate-100 p-4 text-slate-900"><form onSubmit={login} className="w-full max-w-md rounded-[2rem] bg-white p-6 shadow-xl sm:p-8"><p className="text-xs font-black uppercase tracking-[0.2em] text-indigo-600">SmartPlan · Học sinh</p><h1 className="mt-2 text-2xl font-black">Vào tiết học trực tiếp</h1><p className="mt-2 text-sm font-semibold leading-6 text-slate-500">Chọn tên của em trong lớp rồi nhập PIN. PIN chỉ được gửi để xác thực, không lưu trên thiết bị.</p>{activeSafetyMessage && <LiveLessonStatus tone="error">{activeSafetyMessage}</LiveLessonStatus>}{loginError && <div className="mt-4"><LiveLessonStatus tone="error">{loginError}</LiveLessonStatus></div>}<div className="mt-5 space-y-3"><label className="block text-sm font-black text-slate-700">Lớp {roster.className}<select required value={selectedStudentId} onChange={event => setSelectedStudentId(event.target.value)} autoComplete="off" className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 font-semibold"><option value="">Chọn tên của em</option>{roster.students.map(item => <option key={item.studentId} value={item.studentId}>{item.name}</option>)}</select></label><input required value={pin} onChange={event => setPin(event.target.value)} placeholder="PIN" inputMode="numeric" type="password" autoComplete="off" className="w-full rounded-xl border border-slate-200 px-4 py-3 font-semibold" /></div><button disabled={loginBusy || Boolean(activeSafetyMessage) || !selectedStudentId} className="mt-5 w-full rounded-xl bg-indigo-600 px-4 py-3 font-black text-white disabled:opacity-50">{loginBusy ? 'Đang xác thực…' : 'Vào lớp'}</button></form></main>;
 
   return <main className="min-h-screen bg-slate-100 p-4 text-slate-900 sm:p-8"><div className="mx-auto max-w-4xl space-y-4"><header className="rounded-[2rem] bg-slate-950 p-5 text-white shadow-xl sm:p-7"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">Học sinh · tiết trực tiếp</p><h1 className="mt-2 text-2xl font-black sm:text-4xl">{definition.title}</h1><p className="mt-2 text-sm font-semibold text-slate-300">{student.studentName} · {student.className}</p></div><span className="rounded-full border border-emerald-400/50 px-3 py-1 text-xs font-black uppercase text-emerald-300">{publicState.status}</span></div>{publicStateError && <div className="mt-4"><LiveLessonStatus tone="warning">Mất kết nối trạng thái. Đang giữ màn hình cuối; sẽ tự kết nối lại.</LiveLessonStatus></div>}</header><section className="grid gap-4 md:grid-cols-2"><article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-black uppercase tracking-widest text-cyan-700">Màn hình chung</p><h2 className="mt-3 text-xl font-black">{tvScreen?.title ?? 'Đang chờ màn hình'}</h2><p className="mt-3 whitespace-pre-line text-sm font-semibold leading-6 text-slate-600">{tvScreen?.body ?? 'Chưa có nội dung công khai.'}</p></article><article className="rounded-3xl border border-indigo-100 bg-indigo-50 p-5 shadow-sm"><p className="text-xs font-black uppercase tracking-widest text-indigo-700">Việc của em</p><h2 className="mt-3 text-xl font-black text-indigo-950">{studentScreen?.label ?? 'Theo dõi hướng dẫn'}</h2><p className="mt-3 text-sm font-semibold leading-6 text-indigo-900">{studentScreen?.action ?? 'Chờ giáo viên chuyển sang bước phản hồi.'}</p></article></section>{(blockedQueueCount > 0 || retryableQueueCount > 0) && <LiveLessonStatus tone={blockedQueueCount > 0 ? 'error' : 'warning'}>{blockedQueueCount > 0 ? `${blockedQueueCount} phản hồi bị chặn; hãy gửi câu trả lời mới ở bước tương ứng.` : `${retryableQueueCount} phản hồi đang chờ mạng để đồng bộ.`}</LiveLessonStatus>}{step && <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-widest text-indigo-600">Bước phản hồi</p><h2 className="mt-2 text-2xl font-black">{step.label}</h2></div>{queueCount > 0 && <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-800">{queueCount} phản hồi cần đồng bộ hoặc xử lý</span>}</div><div className="mt-5 space-y-4"><ResponseControl responseTypes={step.responseTypes} stepId={step.id} value={selectedValue} onChange={(value, type) => { setSelectedValue(value); if (type === 'choice' || type === 'route' || type === 'boolean') void submit(type, value); }} />{step.responseTypes.includes('hint') && <div><p className="mb-2 text-sm font-semibold text-amber-800">Chỉ mức gợi ý gần nhất của bước này được lưu; mức mới sẽ cập nhật mức trước.</p><div className="flex gap-2"><button type="button" onClick={() => void submit('hint', 1)} className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-black text-amber-800">Gợi ý 1</button><button type="button" onClick={() => void submit('hint', 2)} className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-black text-amber-800">Gợi ý 2</button></div></div>}{textControl && <><textarea value={textValue} maxLength={step.maxTextLength ?? 2000} onChange={event => setTextValue(event.target.value)} placeholder="Viết câu trả lời của em…" className="min-h-32 w-full rounded-2xl border border-slate-200 p-4 font-semibold" /><button type="button" onClick={() => void submit(step.responseTypes.includes('exit_ticket') ? 'exit_ticket' : 'text', textValue)} className="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-black text-white">Gửi</button></>}{status && <LiveLessonStatus tone={status.tone}>{status.message}</LiveLessonStatus>}<button type="button" onClick={() => void flushQueue()} disabled={flushing || !navigator.onLine} className="text-sm font-black text-indigo-700 underline disabled:text-slate-400">{flushing ? 'Đang thử lại…' : 'Thử đồng bộ lại'}</button></div></section>}{!step && <LiveLessonStatus>Chưa đến bước cần phản hồi. Theo dõi màn hình chung và hướng dẫn của giáo viên.</LiveLessonStatus>}</div></main>;
 };

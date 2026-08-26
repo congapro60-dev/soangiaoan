@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { getStudentChoiceOptions, getStudentChoiceLabel, resolveStudentLiveIdentity } from './StudentLiveView';
+import type { RosterResponse } from '../../services/studentPortalApi';
+import { getStudentChoiceOptions, getStudentChoiceLabel, resolveStudentLiveIdentity, validateStudentRosterContext } from './StudentLiveView';
 
 describe('student live identity boundary', () => {
   it('uses the authenticated anonymous uid for participantUid and login classId for classId', () => {
@@ -23,5 +24,28 @@ describe('student THINK choice projection', () => {
     expect(getStudentChoiceLabel('ai-think-w01', 'Yes')).toBe('Là nghiệm');
     expect(getStudentChoiceLabel('ai-think-w01', 'No')).toBe('Không là nghiệm');
     expect(getStudentChoiceLabel('ai-think-w01', 'Unsure')).toBe('Chưa chắc');
+  });
+});
+
+describe('student roster context boundary', () => {
+  const roster: RosterResponse = {
+    classId: 'class-123',
+    className: '10A',
+    students: [{ studentId: 'student-1', name: 'Nguyễn An' }],
+  };
+
+  it('accepts a roster only when it belongs to the linked class', () => {
+    expect(validateStudentRosterContext(roster, 'class-123', 'JOIN42')).toEqual({ ok: true, roster });
+    expect(validateStudentRosterContext({ ...roster, classId: 'class-999' }, 'class-123', 'JOIN42')).toEqual({
+      ok: false,
+      message: expect.stringContaining('không khớp'),
+    });
+  });
+
+  it('requires a fresh link when the join code is missing', () => {
+    expect(validateStudentRosterContext(roster, 'class-123', null)).toEqual({
+      ok: false,
+      message: 'Liên kết cũ thiếu ngữ cảnh lớp. Hãy yêu cầu giáo viên mở phiên mới.',
+    });
   });
 });

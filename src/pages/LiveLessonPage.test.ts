@@ -9,6 +9,7 @@ import {
   mergeTeacherSessionSnapshot,
   getPublicListenerFailureMode,
   shouldLoadParentLiveLessonSession,
+  getStudentLiveContext,
 } from './LiveLessonPage';
 
 describe('LiveLessonPage route helpers', () => {
@@ -58,6 +59,17 @@ describe('LiveLessonPage route helpers', () => {
     const tv = projectLiveLessonDefinition(getPilotLiveLessonDefinition(), 'tv');
     expect(Object.keys(tv).sort()).toEqual(['durationSeconds', 'id', 'lessonId', 'title', 'tvScreens']);
     expect(canLoadParentLiveLessonSession({ mode: 'student', authReady: true, userUid: 'teacher-1' })).toBe(false);
+  });
+
+  it('parses both class context values for student routes only', () => {
+    expect(getStudentLiveContext('?mode=student&classId=class-123&joinCode=JOIN42')).toEqual({
+      expectedClassId: 'class-123',
+      expectedJoinCode: 'JOIN42',
+    });
+    expect(getStudentLiveContext('?mode=teacher&classId=class-123&joinCode=JOIN42')).toEqual({
+      expectedClassId: null,
+      expectedJoinCode: null,
+    });
   });
 
   it('does not let an older or malformed teacher snapshot overwrite newer local state', () => {

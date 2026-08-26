@@ -15,6 +15,14 @@ export type StudentDefinitionProjection = Pick<LiveLessonDefinition, 'id' | 'les
 export type LiveLessonDefinitionProjection = LiveLessonDefinition | TvDefinitionProjection | StudentDefinitionProjection;
 
 export const parseLiveLessonMode = (value: string | null): LiveLessonMode | null => value === 'teacher' || value === 'tv' || value === 'student' ? value : null;
+export const getStudentLiveContext = (search: string): { expectedClassId: string | null; expectedJoinCode: string | null } => {
+  const params = new URLSearchParams(search);
+  if (params.get('mode') !== 'student') return { expectedClassId: null, expectedJoinCode: null };
+  return {
+    expectedClassId: params.get('classId')?.trim() || null,
+    expectedJoinCode: params.get('joinCode')?.trim() || null,
+  };
+};
 export const shouldLoadParentLiveLessonSession = (mode: LiveLessonMode): boolean => mode === 'teacher';
 export const canLoadParentLiveLessonSession = ({ mode, authReady, userUid }: { mode: LiveLessonMode; authReady: boolean; userUid: string | null | undefined }): boolean => shouldLoadParentLiveLessonSession(mode) && authReady && Boolean(userUid);
 
@@ -77,10 +85,7 @@ export const LiveLessonPage = () => {
   const location = useLocation();
   const modeParam = useMemo(() => new URLSearchParams(location.search).get('mode'), [location.search]);
   const mode = parseLiveLessonMode(modeParam);
-  const expectedStudentClassId = useMemo(
-    () => mode === 'student' ? (new URLSearchParams(location.search).get('classId')?.trim() || null) : null,
-    [location.search, mode],
-  );
+  const studentContext = useMemo(() => getStudentLiveContext(location.search), [location.search]);
   const [user, setUser] = useState<User | null>(auth.currentUser);
   const [authReady, setAuthReady] = useState(false);
   const [session, setSession] = useState<LiveLessonSession | null>(null);
@@ -192,7 +197,7 @@ export const LiveLessonPage = () => {
     return <TvLiveView definition={tvDefinition} sessionId={sessionId} publicState={publicState} publicStateError={publicStateError} />;
   }
   if (mode === 'student' && publicState) {
-    return <StudentLiveView definition={projectLiveLessonDefinition(definition, 'student')} sessionId={sessionId} expectedClassId={expectedStudentClassId} publicState={publicState} publicStateError={publicStateError} />;
+    return <StudentLiveView definition={projectLiveLessonDefinition(definition, 'student')} sessionId={sessionId} expectedClassId={studentContext.expectedClassId} expectedJoinCode={studentContext.expectedJoinCode} publicState={publicState} publicStateError={publicStateError} />;
   }
   return <PlaceholderPanel mode={mode} projection={projectLiveLessonDefinition(definition, mode)} />;
 };

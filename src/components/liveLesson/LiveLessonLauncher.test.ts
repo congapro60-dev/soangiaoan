@@ -18,6 +18,16 @@ describe('live lesson launcher helpers', () => {
     expect(Object.values(urls).join(' ')).not.toMatch(/pin|secret/i);
   });
 
+  it('puts the selected class context only on the student URL', () => {
+    const urls = buildLiveLessonUrls('session-123', 'https://smartplan.test', 'class-123', 'JOIN42');
+
+    expect(urls.student).toBe('https://smartplan.test/adaptive-live/session-123?mode=student&classId=class-123&joinCode=JOIN42');
+    expect(urls.teacher).not.toContain('classId');
+    expect(urls.teacher).not.toContain('joinCode');
+    expect(urls.tv).not.toContain('classId');
+    expect(urls.tv).not.toContain('joinCode');
+  });
+
   it('does not add the class binding to teacher or TV URLs', () => {
     const urls = buildLiveLessonUrls('session-123', 'https://smartplan.test', 'class/secret?no');
     expect(urls.teacher).not.toContain('classId');

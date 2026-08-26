@@ -125,8 +125,8 @@ const call = async <T,>(payload: Record<string, unknown>): Promise<T> => {
   return data as T;
 };
 
-export const fetchRoster = (joinCode: string) =>
-  call<RosterResponse>({ action: 'roster', joinCode });
+export const fetchRoster = (joinCode: string): Promise<RosterResponse> =>
+  call<RosterResponse>({ action: 'roster', joinCode: joinCode.trim() });
 
 /** Assignment của học sinh qua projection server-side; không đọc document gốc chứa đáp án. */
 export const fetchStudentAssignments = async (): Promise<StudentAssignmentView[]> => {

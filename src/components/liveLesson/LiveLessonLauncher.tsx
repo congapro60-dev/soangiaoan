@@ -29,11 +29,12 @@ export interface LiveLessonUrls {
   student: string;
 }
 
-export const buildLiveLessonUrls = (sessionId: string, baseUrl = '', studentClassId = ''): LiveLessonUrls => {
+export const buildLiveLessonUrls = (sessionId: string, baseUrl = '', studentClassId = '', studentJoinCode = ''): LiveLessonUrls => {
   const prefix = baseUrl.replace(/\/$/, '');
   const path = `/adaptive-live/${encodeURIComponent(sessionId)}`;
   const studentQuery = new URLSearchParams({ mode: 'student' });
   if (studentClassId.trim()) studentQuery.set('classId', studentClassId);
+  if (studentJoinCode.trim()) studentQuery.set('joinCode', studentJoinCode);
   return {
     teacher: `${prefix}${path}?mode=teacher`,
     tv: `${prefix}${path}?mode=tv`,
@@ -174,7 +175,7 @@ export const LiveLessonLauncher = ({ lesson: selectedLesson, lessonId, user: con
   }, [classes, contextUser?.uid, currentUser?.uid]);
 
   const selectedClass = useMemo(() => availableClasses.find(item => item.id === selectedClassId), [availableClasses, selectedClassId]);
-  const urls = session ? buildLiveLessonUrls(session.id, window.location.origin, session.classId) : null;
+  const urls = session ? buildLiveLessonUrls(session.id, window.location.origin, session.classId, selectedClass?.joinCode ?? '') : null;
   const noOwnedSynchronizedClass = !classesLoading && availableClasses.length === 0;
 
   const createSession = async () => {
