@@ -3,6 +3,7 @@ import { getPilotLiveLessonDefinition } from '../../lib/liveLesson/definition';
 import {
   buildTeacherStatePatch,
   getCueNavigation,
+  getTeacherMobileControlModel,
   getTimerSnapshot,
 } from './TeacherLiveView';
 
@@ -27,5 +28,29 @@ describe('TeacherLiveView controls', () => {
     });
     expect(buildTeacherStatePatch(definition, 'P05', 'paused')).toEqual({ status: 'running' });
     expect(buildTeacherStatePatch(definition, 'P05', 'closed')).toBeNull();
+  });
+
+  it('describes the current cue and mobile control labels', () => {
+    expect(getTeacherMobileControlModel(definition, {
+      currentCueId: 'P12',
+      status: 'running',
+      publicStatsEnabled: true,
+    })).toEqual({
+      currentCueInstruction: definition.cues[12].teacher,
+      cueIndex: 13,
+      cueTotal: 22,
+      pauseResumeLabel: 'Tạm dừng',
+      secondaryLabels: {
+        timeline: 'Mở timeline',
+        stats: 'Ẩn thống kê TV',
+        close: 'Đóng phiên',
+      },
+    });
+
+    expect(getTeacherMobileControlModel(definition, {
+      currentCueId: 'P12',
+      status: 'paused',
+      publicStatsEnabled: false,
+    }).pauseResumeLabel).toBe('Bắt đầu / tiếp tục');
   });
 });
