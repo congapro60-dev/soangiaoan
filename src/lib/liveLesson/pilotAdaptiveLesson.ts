@@ -125,6 +125,10 @@ export const buildPilotAdaptiveLesson = (
   if (!teacherId.trim()) throw new Error('teacherId phải là chuỗi không rỗng.');
 
   const liveDefinition = getPilotLiveLessonDefinition();
+  const durationMinutes = liveDefinition.durationSeconds / 60;
+  if (durationMinutes !== 40) {
+    throw new Error(`Pilot lesson phải có 40 phút, nhận được ${durationMinutes}.`);
+  }
   const objectives = [
     makeObjective(
       'G1',
@@ -348,7 +352,7 @@ export const buildPilotAdaptiveLesson = (
     title: liveDefinition.title,
     subjectId: 'math',
     grade: '10',
-    durationMinutes: liveDefinition.durationSeconds / 60,
+    durationMinutes: 40,
     status: 'published',
     teacherId,
     createdAt: now,
