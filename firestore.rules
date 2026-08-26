@@ -360,10 +360,10 @@ service cloud.firestore {
                && data.teacherUid.size() <= 128
                && data.allowedStepIds is list
                && data.allowedStepIds.size() > 0
-               && data.allowedStepIds.size() <= 8
+               && data.allowedStepIds.size() <= 9
                && data.allowedStepIds.hasOnly([
                     'warmup', 'notice-wonder', 'goals', 'route', 'model',
-                    'ai-error-w01', 'quick-check', 'exit-ticket'
+                    'ai-think-w01', 'ai-error-w01', 'quick-check', 'exit-ticket'
                   ])
                && data.expiresAt is timestamp
                && data.status in ['lobby', 'running', 'paused', 'closed']
@@ -424,35 +424,20 @@ service cloud.firestore {
         return data is map
                && data.keys().hasOnly([
                     'A', 'B', 'C', 'D', 'G1', 'G2', 'G3', 'Yes', 'No',
-                    'true', 'false', 'x', 'y', '=', '<=', '>=',
-                    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+                    'Unsure', 'true', 'false'
                   ])
-               && llv3SafeCount(data.get('A', 0))
-               && llv3SafeCount(data.get('B', 0))
-               && llv3SafeCount(data.get('C', 0))
-               && llv3SafeCount(data.get('D', 0))
-               && llv3SafeCount(data.get('G1', 0))
-               && llv3SafeCount(data.get('G2', 0))
-               && llv3SafeCount(data.get('G3', 0))
-               && llv3SafeCount(data.get('Yes', 0))
-               && llv3SafeCount(data.get('No', 0))
-               && llv3SafeCount(data.get('true', 0))
-               && llv3SafeCount(data.get('false', 0))
-               && llv3SafeCount(data.get('x', 0))
-               && llv3SafeCount(data.get('y', 0))
-               && llv3SafeCount(data.get('=', 0))
-               && llv3SafeCount(data.get('<=', 0))
-               && llv3SafeCount(data.get('>=', 0))
-               && llv3SafeCount(data.get('0', 0))
-               && llv3SafeCount(data.get('1', 0))
-               && llv3SafeCount(data.get('2', 0))
-               && llv3SafeCount(data.get('3', 0))
-               && llv3SafeCount(data.get('4', 0))
-               && llv3SafeCount(data.get('5', 0))
-               && llv3SafeCount(data.get('6', 0))
-               && llv3SafeCount(data.get('7', 0))
-               && llv3SafeCount(data.get('8', 0))
-               && llv3SafeCount(data.get('9', 0));
+               && (!('A' in data) || llv3SafeCount(data.get('A', 0)))
+               && (!('B' in data) || llv3SafeCount(data.get('B', 0)))
+               && (!('C' in data) || llv3SafeCount(data.get('C', 0)))
+               && (!('D' in data) || llv3SafeCount(data.get('D', 0)))
+               && (!('G1' in data) || llv3SafeCount(data.get('G1', 0)))
+               && (!('G2' in data) || llv3SafeCount(data.get('G2', 0)))
+               && (!('G3' in data) || llv3SafeCount(data.get('G3', 0)))
+               && (!('Yes' in data) || llv3SafeCount(data.get('Yes', 0)))
+               && (!('No' in data) || llv3SafeCount(data.get('No', 0)))
+               && (!('Unsure' in data) || llv3SafeCount(data.get('Unsure', 0)))
+               && (!('true' in data) || llv3SafeCount(data.get('true', 0)))
+               && (!('false' in data) || llv3SafeCount(data.get('false', 0)));
       }
 
       function llv3SafeRouteCounts(data) {
@@ -548,6 +533,8 @@ service cloud.firestore {
                     == get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.classId
                && data.classId == get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.classId
                && data.stepId in get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.allowedStepIds
+               && (data.stepId != 'ai-error-w01'
+                   || exists(/databases/$(database)/documents/liveLessonSessions/$(sessionId)/responses/$(request.auth.uid + '__ai-think-w01')))
                && llv3ActiveSession();
       }
 

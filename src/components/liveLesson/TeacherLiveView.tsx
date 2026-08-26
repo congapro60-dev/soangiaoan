@@ -2,6 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import type { LiveCue } from '../../data/liveLessonPackages/g10_w5_p31_bpt_tiet1.cues';
 import type { LiveLessonDefinition, LiveLessonSession, LivePublicStats, LiveResponse } from '../../lib/liveLesson/types';
 import { aggregateLiveResponses } from '../../lib/liveLesson/aggregate';
+import {
+  createEmptyTeacherEvidence,
+  loadTeacherEvidence,
+  saveTeacherEvidence,
+  type LiveTeacherEvidence,
+} from '../../lib/liveLesson/teacherEvidence';
 import { saveClosedLiveLessonProgressViaApi } from '../../services/adaptiveProgressApi';
 import { closeLiveLessonSession, publishLivePublicStats, subscribeToTeacherResponses, updateLiveLessonState } from '../../services/liveLessonService';
 import { LiveLessonStatus } from './LiveLessonStatus';
@@ -49,6 +55,8 @@ export const TeacherLiveView = ({ definition, session, sessionError, onSessionCh
   const [responses, setResponses] = useState<LiveResponse[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [progressSummary, setProgressSummary] = useState<string | null>(null);
+  const [teacherEvidence, setTeacherEvidence] = useState<LiveTeacherEvidence>(() => createEmptyTeacherEvidence());
+  const [evidenceSaved, setEvidenceSaved] = useState(false);
   const cue = findCue(definition, session.currentCueId);
   const timer = getTimerSnapshot(definition, session.currentCueId, session.status);
   const responseStepId = cue.responseStepId;
@@ -65,6 +73,11 @@ export const TeacherLiveView = ({ definition, session, sessionError, onSessionCh
     ));
     return () => stops.forEach(stop => stop());
   }, [definition.allowedStepIds, session.id, session.status]);
+  useEffect(() => {
+    if (session.status !== 'closed') return;
+    setTeacherEvidence(loadTeacherEvidence(session.id));
+    setEvidenceSaved(false);
+  }, [session.id, session.status]);
   useEffect(() => {
     if (!stats || !session.publicStatsEnabled) return;
     void publishLivePublicStats(session.id, stats).catch(nextError => setError(nextError instanceof Error ? nextError.message : 'Không thể cập nhật thống kê công khai.'));
@@ -96,12 +109,25 @@ export const TeacherLiveView = ({ definition, session, sessionError, onSessionCh
     catch (nextError) { setError(nextError instanceof Error ? nextError.message : 'Không thể đóng phiên.'); }
   };
   const isClosed = session.status === 'closed';
+  const saveEvidence = () => {
+    setTeacherEvidence(current => saveTeacherEvidence(session.id, current));
+    setEvidenceSaved(true);
+  };
+  const updateEvidence = <K extends keyof LiveTeacherEvidence>(key: K, value: LiveTeacherEvidence[K]) => {
+    setTeacherEvidence(current => ({ ...current, [key]: value }));
+    setEvidenceSaved(false);
+  };
+  const updateHumanEvidence = (key: keyof LiveTeacherEvidence['humanEvidence'], value: boolean) => {
+    setTeacherEvidence(current => ({ ...current, humanEvidence: { ...current.humanEvidence, [key]: value } }));
+    setEvidenceSaved(false);
+  };
   const index = definition.cues.findIndex(item => item.id === cue.id);
   const navigate = (direction: CueDirection) => applyPatch(getCueNavigation(definition, session.currentCueId, direction));
 
   return <main className="min-h-screen bg-slate-100 p-4 text-slate-900 sm:p-6"><div className="mx-auto max-w-6xl space-y-4">
     <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-slate-950 p-5 text-white"><div><p className="text-xs font-black uppercase tracking-[0.2em] text-indigo-300">Giáo viên · G10 pilot</p><h1 className="mt-1 text-2xl font-black">{session.title}</h1></div><div className="text-right"><p className="text-xs font-bold uppercase text-slate-400">Mốc timeline · {timer.status === 'paused' ? 'tạm dừng' : 'theo cue, không đo wall-clock'}</p><p className="text-3xl font-black tabular-nums">{formatDuration(timer.elapsedSeconds)} <span className="text-base text-slate-400">/ còn {formatDuration(timer.remainingSeconds)}</span></p></div></header>
     {sessionError && <LiveLessonStatus tone="error">Lỗi trạng thái phiên: {sessionError}</LiveLessonStatus>}{error && <LiveLessonStatus tone="error">Lỗi giáo viên: {error}</LiveLessonStatus>}{isClosed && <LiveLessonStatus tone="warning">Phiên đã đóng. Các nút điều khiển đã khóa.</LiveLessonStatus>}{progressSummary && <LiveLessonStatus tone="warning">{progressSummary}</LiveLessonStatus>}
+    {isClosed && <section className="rounded-2xl border border-indigo-100 bg-white p-5 shadow-sm"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-widest text-indigo-600">Minh chứng sau giờ · GV</p><h2 className="mt-1 text-xl font-black">Ghi nhanh để nối sang tiết sau</h2></div>{evidenceSaved && <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-700">Đã lưu trên thiết bị</span>}</div><p className="mt-2 text-sm font-semibold text-slate-500">Chỉ giáo viên nhìn thấy. Không gửi câu trả lời cá nhân lên TV; không ghi tên học sinh vào ô ghi chú.</p><div className="mt-4 grid gap-3 md:grid-cols-3"><label className="text-sm font-bold text-slate-700">Lỗi AI W01<select value={teacherEvidence.aiErrorCategory} onChange={event => updateEvidence('aiErrorCategory', event.target.value as LiveTeacherEvidence['aiErrorCategory'])} className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2"><option value="">Chưa chốt</option><option value="Conceptual">Conceptual · khái niệm</option><option value="Algebraic">Algebraic · đại số</option><option value="Logical">Logical · lập luận</option><option value="Missing condition">Missing condition · điều kiện</option></select></label><label className="text-sm font-bold text-slate-700">Lỗi Quick check<select value={teacherEvidence.quickCheckIssue} onChange={event => updateEvidence('quickCheckIssue', event.target.value as LiveTeacherEvidence['quickCheckIssue'])} className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2"><option value="">Chưa chốt</option><option value="substitution">Thay cặp số</option><option value="sign">Dấu bất phương trình</option><option value="condition">Điều kiện/nghĩa của biến</option></select></label><label className="text-sm font-bold text-slate-700">Ưu tiên tiết sau<select value={teacherEvidence.nextPriority} onChange={event => updateEvidence('nextPriority', event.target.value as LiveTeacherEvidence['nextPriority'])} className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2"><option value="">Chưa chốt</option><option value="M">M · củng cố</option><option value="S">S · chuẩn</option><option value="C">C · thử thách</option><option value="verify">VERIFY · kiểm chứng</option></select></label></div><div className="mt-4 flex flex-wrap gap-4 text-sm font-bold text-slate-700"><label className="flex items-center gap-2"><input type="checkbox" checked={teacherEvidence.humanEvidence.think} onChange={event => updateHumanEvidence('think', event.target.checked)} /> Có dự đoán trước AI</label><label className="flex items-center gap-2"><input type="checkbox" checked={teacherEvidence.humanEvidence.peerCheck} onChange={event => updateHumanEvidence('peerCheck', event.target.checked)} /> Có peer-check</label><label className="flex items-center gap-2"><input type="checkbox" checked={teacherEvidence.humanEvidence.notebook} onChange={event => updateHumanEvidence('notebook', event.target.checked)} /> Có sản phẩm trong vở</label></div><textarea value={teacherEvidence.note} maxLength={500} onChange={event => updateEvidence('note', event.target.value)} placeholder="Một lỗi chung hoặc bước tiếp theo (tối đa 500 ký tự)…" className="mt-4 min-h-24 w-full rounded-xl border border-slate-200 p-3 text-sm font-semibold" /><button type="button" onClick={saveEvidence} className="mt-3 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-black text-white hover:bg-indigo-700">Lưu minh chứng trên thiết bị này</button></section>}
     <section className="grid gap-4 lg:grid-cols-[1.35fr_0.65fr]"><article className="rounded-2xl bg-white p-5 shadow-sm"><div className="flex items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-widest text-indigo-600">{cue.id} · {cue.label}</p><h2 className="mt-1 text-2xl font-black">Cue hiện tại</h2></div><span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black">{session.status}</span></div><div className="mt-5 grid gap-3 md:grid-cols-2"><div className="rounded-xl bg-indigo-50 p-4"><p className="text-xs font-black uppercase text-indigo-700">GV nói/làm</p><p className="mt-2 whitespace-pre-line text-sm font-semibold leading-6">{cue.teacher}</p></div><div className="rounded-xl bg-amber-50 p-4"><p className="text-xs font-black uppercase text-amber-700">HS trên thiết bị</p><p className="mt-2 whitespace-pre-line text-sm font-semibold leading-6">{cue.student}</p></div><div className="rounded-xl bg-slate-900 p-4 text-white"><p className="text-xs font-black uppercase text-slate-300">Bảng lớn / bảng phụ</p><p className="mt-2 whitespace-pre-line text-sm font-semibold leading-6">{cue.boardLarge}{'\n'}{cue.boardSide}</p></div><div className="rounded-xl bg-emerald-50 p-4"><p className="text-xs font-black uppercase text-emerald-700">Vở & minh chứng</p><p className="mt-2 whitespace-pre-line text-sm font-semibold leading-6">{cue.notebook}{'\n'}{cue.observerEvidence}</p></div></div></article>
     <aside className="space-y-4 rounded-2xl bg-white p-5 shadow-sm"><p className="text-xs font-black uppercase tracking-widest text-slate-500">Điều khiển phiên</p><div className="grid grid-cols-2 gap-2"><button disabled={index <= 0 || isClosed} onClick={() => void navigate('previous')} className="rounded-xl border px-3 py-3 text-sm font-black disabled:opacity-40">← Trước</button><button disabled={index >= definition.cues.length - 1 || isClosed} onClick={() => void navigate('next')} className="rounded-xl border px-3 py-3 text-sm font-black disabled:opacity-40">Sau →</button></div><div className="grid gap-2"><button disabled={isClosed} onClick={() => void applyPatch({ status: session.status === 'running' ? 'paused' : 'running' })} className="rounded-xl bg-indigo-600 px-3 py-3 text-sm font-black text-white disabled:opacity-40">{session.status === 'running' ? 'Tạm dừng' : 'Bắt đầu / tiếp tục'}</button><button disabled={isClosed} onClick={() => void applyPatch({ publicStatsEnabled: !session.publicStatsEnabled })} className="rounded-xl border px-3 py-3 text-sm font-black disabled:opacity-40">{session.publicStatsEnabled ? 'Ẩn thống kê TV' : 'Hiện thống kê TV'}</button><button disabled={isClosed} onClick={() => void close()} className="rounded-xl bg-rose-600 px-3 py-3 text-sm font-black text-white disabled:opacity-40">Đóng phiên</button>{isClosed && <button onClick={() => void saveProgress(session)} className="rounded-xl border border-indigo-200 px-3 py-3 text-sm font-black text-indigo-700">Ghi lại tiến trình</button>}</div><div className="rounded-xl bg-slate-50 p-4"><p className="text-xs font-black uppercase text-slate-500">Bước phản hồi</p><p className="mt-1 font-black">{responseStepId ?? 'Không có'}</p><p className="mt-3 text-xs font-black uppercase text-slate-500">Đã gửi / tham gia</p><p className="mt-1 text-3xl font-black">{stats?.submittedCount ?? 0}</p></div></aside></section>
     <nav className="flex gap-2 overflow-x-auto rounded-2xl bg-white p-3 shadow-sm" aria-label="Timeline cues">{definition.cues.map(item => <button key={item.id} type="button" onClick={() => void applyPatch({ currentCueId: item.id, currentTvScreenId: item.tvScreenId })} disabled={isClosed} className={`min-w-14 rounded-lg px-2 py-2 text-xs font-black ${item.id === cue.id ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'} disabled:opacity-40`}>{item.id}</button>)}</nav>

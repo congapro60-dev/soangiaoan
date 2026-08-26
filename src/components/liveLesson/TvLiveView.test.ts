@@ -6,7 +6,7 @@ import { getTvListenerNotice, getTvPresentation, shouldSubscribeToLivePublicStat
 describe('TvLiveView public projection', () => {
   it('renders only the public screen and aggregate stats', () => {
     const definition = getPilotLiveLessonDefinition();
-    const state: LivePublicState = { cueId: 'P12', tvScreenId: 'S8', status: 'running', showStats: true, updatedAt: 10 };
+    const state: LivePublicState = { cueId: 'P12', tvScreenId: 'S8A', status: 'running', showStats: true, updatedAt: 10 };
     const stats: LivePublicStats = {
       stepId: 'ai-error-w01', participantCount: 4, submittedCount: 4,
       choiceCounts: {}, routeCounts: { M: 0, S: 0, C: 0 },
@@ -14,7 +14,7 @@ describe('TvLiveView public projection', () => {
       hintUseCount: 0, updatedAt: 10,
     };
     const presentation = getTvPresentation(definition, state, stats);
-    expect(presentation.screen?.id).toBe('S8');
+    expect(presentation.screen?.id).toBe('S8A');
     expect(presentation.stats?.participantCount).toBe(4);
     expect(JSON.stringify(presentation)).not.toContain(definition.cues[12].teacher);
     expect(JSON.stringify(presentation)).not.toContain(definition.cues[12].boardLarge);
@@ -35,7 +35,7 @@ describe('TvLiveView public projection', () => {
 
   it('distinguishes a public listener reconnect from a closed public state', () => {
     const definition = getPilotLiveLessonDefinition();
-    const runningState: LivePublicState = { cueId: 'P12', tvScreenId: 'S8', status: 'running', showStats: true, updatedAt: 10 };
+    const runningState: LivePublicState = { cueId: 'P12', tvScreenId: 'S8A', status: 'running', showStats: true, updatedAt: 10 };
     expect(getTvListenerNotice({ publicState: runningState, publicStateError: 'permission-denied', statsError: null })).toEqual({
       tone: 'error',
       message: 'Mất kết nối trạng thái công khai. Đang giữ màn hình cuối; phiên có thể đã đóng hoặc hết hạn.',

@@ -39,11 +39,17 @@ const createNonce = (): string => {
   try { return crypto.randomUUID(); } catch { return `student-${Date.now()}-${Math.random().toString(36).slice(2)}`; }
 };
 
-const choiceOptions = (stepId: string): string[] => {
+export const getStudentChoiceOptions = (stepId: string): string[] => {
   if (stepId === 'goals') return ['G1', 'G2', 'G3'];
+  if (stepId === 'ai-think-w01') return ['Yes', 'No', 'Unsure'];
   if (stepId === 'ai-error-w01') return ['Conceptual', 'Algebraic', 'Logical', 'Missing condition'];
   if (stepId === 'notice-wonder') return ['Tôi nhận thấy…', 'Tôi tự hỏi…', 'Câu hỏi cần giải quyết'];
   return ['A', 'B', 'C', 'D'];
+};
+
+export const getStudentChoiceLabel = (stepId: string, option: string): string => {
+  if (stepId !== 'ai-think-w01') return option;
+  return { Yes: 'Là nghiệm', No: 'Không là nghiệm', Unsure: 'Chưa chắc' }[option] ?? option;
 };
 
 const statusForError = (error: unknown): StudentStatus => {
@@ -72,7 +78,7 @@ const ResponseControl = ({
 }) => {
   if (responseTypes.includes('route')) return <div className="grid gap-2 sm:grid-cols-3">{['M', 'S', 'C'].map(route => <button key={route} type="button" onClick={() => onChange(route, 'route')} className={`rounded-2xl border px-4 py-4 text-left font-black ${value === route ? 'border-indigo-600 bg-indigo-50 text-indigo-800' : 'border-slate-200 bg-white text-slate-700'}`}><span className="text-lg">Tuyến {route}</span><span className="mt-1 block text-xs font-semibold text-slate-500">{route === 'M' ? 'Củng cố' : route === 'S' ? 'Chuẩn' : 'Thử thách'}</span></button>)}</div>;
   if (responseTypes.includes('boolean')) return <div className="grid grid-cols-2 gap-2">{['true', 'false'].map(option => <button key={option} type="button" onClick={() => onChange(option, 'boolean')} className={`rounded-xl border px-4 py-3 font-black ${value === option ? 'border-indigo-600 bg-indigo-50 text-indigo-800' : 'border-slate-200 bg-white text-slate-700'}`}>{option === 'true' ? 'Đúng' : 'Chưa đúng'}</button>)}</div>;
-  if (responseTypes.includes('choice')) return <div className="grid gap-2 sm:grid-cols-2">{choiceOptions(stepId).map(option => <button key={option} type="button" onClick={() => onChange(option, 'choice')} className={`rounded-xl border px-4 py-3 text-left font-bold ${value === option ? 'border-indigo-600 bg-indigo-50 text-indigo-800' : 'border-slate-200 bg-white text-slate-700'}`}>{option}</button>)}</div>;
+  if (responseTypes.includes('choice')) return <div className="grid gap-2 sm:grid-cols-2">{getStudentChoiceOptions(stepId).map(option => <button key={option} type="button" onClick={() => onChange(option, 'choice')} className={`rounded-xl border px-4 py-3 text-left font-bold ${value === option ? 'border-indigo-600 bg-indigo-50 text-indigo-800' : 'border-slate-200 bg-white text-slate-700'}`}>{getStudentChoiceLabel(stepId, option)}</button>)}</div>;
   return null;
 };
 

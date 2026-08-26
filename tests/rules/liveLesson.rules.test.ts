@@ -27,17 +27,17 @@ const STUDENT_B = 'student-B';
 const CLASS_A = 'class-A';
 const CLASS_B = 'class-B';
 const SESSION_A = 'session-A';
+const SESSION_THINK = 'session-think';
 const SESSION_CLOSED = 'session-closed';
 const SESSION_EXPIRED = 'session-expired';
 const SESSION_DISABLED = 'session-disabled';
 const ALL_CHOICE_KEYS = [
-  'A', 'B', 'C', 'D', 'G1', 'G2', 'G3', 'Yes', 'No',
-  'true', 'false', 'x', 'y', '=', '<=', '>=',
-  '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+  'A', 'B', 'C', 'D', 'G1', 'G2', 'G3', 'Yes', 'No', 'Unsure',
+  'true', 'false',
 ] as const;
 const PILOT_ALLOWED_STEP_IDS = [
   'warmup', 'notice-wonder', 'goals', 'route', 'model',
-  'ai-error-w01', 'quick-check', 'exit-ticket',
+  'ai-think-w01', 'ai-error-w01', 'quick-check', 'exit-ticket',
 ] as const;
 
 const now = Date.now();
@@ -184,7 +184,7 @@ describe('liveLessonSessions · parent session', () => {
     await assertSucceeds(setDoc(sessionRef(dbTeacherA(), 'session-new'), sessionData('session-new')));
   });
 
-  it('owner can create the canonical G10 P31 pilot session with all 8 response steps → ALLOW', async () => {
+  it('owner can create the canonical G10 P31 pilot session with all 9 response steps → ALLOW', async () => {
     await assertSucceeds(setDoc(sessionRef(dbTeacherA(), 'session-g10-p31-pilot'), sessionData('session-g10-p31-pilot', {
       lessonId: 'tds-g10-30-pilot',
       title: 'Bất phương trình bậc nhất hai ẩn — Tiết 1',
@@ -271,6 +271,22 @@ describe('liveLessonSessions/{sessionId}/responses · student writes, teacher re
     })));
     await assertSucceeds(setDoc(responseRef(dbStudentA(), SESSION_A, `${STUDENT_A}__notice-wonder`), responseData({
       stepId: 'notice-wonder', responseType: 'text', value: 'Em nhận thấy hai đại lượng cùng thay đổi.',
+    })));
+  });
+
+  it('requires the THINK response before the student can write the AI Error response → DENY/ALLOW', async () => {
+    await assertSucceeds(setDoc(sessionRef(dbTeacherA(), SESSION_THINK), sessionData(SESSION_THINK, {
+      allowedStepIds: [...PILOT_ALLOWED_STEP_IDS],
+    })));
+
+    await assertFails(setDoc(responseRef(dbStudentA(), SESSION_THINK, `${STUDENT_A}__ai-error-w01`), responseData({
+      stepId: 'ai-error-w01', value: 'Logical',
+    })));
+    await assertSucceeds(setDoc(responseRef(dbStudentA(), SESSION_THINK, `${STUDENT_A}__ai-think-w01`), responseData({
+      stepId: 'ai-think-w01', value: 'Unsure',
+    })));
+    await assertSucceeds(setDoc(responseRef(dbStudentA(), SESSION_THINK, `${STUDENT_A}__ai-error-w01`), responseData({
+      stepId: 'ai-error-w01', value: 'Logical',
     })));
   });
 

@@ -66,6 +66,14 @@ export const isAuthoritativeServerClassList = (items: unknown[] | undefined): it
 
 const getOwnedSynchronizedClasses = (items: ClassContext[], uid: string): ClassDoc[] => items.filter(isServerClass).filter(item => item.teacherId === uid);
 
+export const formatLiveLessonLaunchError = (error: unknown): string => {
+  const code = error && typeof error === 'object' && 'code' in error && typeof error.code === 'string' ? error.code : '';
+  if (code.toLowerCase().split('/').pop() === 'permission-denied') {
+    return 'Firestore từ chối thao tác. Hãy kiểm tra lớp đã đồng bộ thuộc đúng tài khoản giáo viên và Rules realtime đã được triển khai; dữ liệu lớp cũ trên máy không đủ để mở phiên.';
+  }
+  return error instanceof Error ? error.message : 'Không thể mở phiên tiết trực tiếp.';
+};
+
 export const getPilotDefinitionForLesson = (lesson: AdaptiveLesson): LiveLessonDefinition => {
   if (lesson.status !== 'published') {
     throw new LiveLessonDefinitionError('LIVE_LESSON_NOT_PUBLISHED', 'Chỉ bài học đã xuất bản mới có thể mở tiết trực tiếp.');
@@ -156,7 +164,7 @@ export const LiveLessonLauncher = ({ lesson: selectedLesson, lessonId, user: con
         setAvailableClasses(ownedClasses);
         setSelectedClassId(current => ownedClasses.some(item => item.id === current) ? current : (ownedClasses.length === 1 ? ownedClasses[0].id : ''));
       } catch (loadError) {
-        if (active) setError(loadError instanceof Error ? loadError.message : 'Không tải được danh sách lớp đã đồng bộ.');
+        if (active) setError(formatLiveLessonLaunchError(loadError));
       } finally {
         if (active) setClassesLoading(false);
       }
@@ -190,7 +198,7 @@ export const LiveLessonLauncher = ({ lesson: selectedLesson, lessonId, user: con
       const created = await createLiveLessonSession({ definition: definition!, teacherUid: activeUser.uid, classId: selectedClass.id });
       setSession(created);
     } catch (createError) {
-      setError(createError instanceof Error ? createError.message : 'Không tạo được phiên tiết trực tiếp.');
+      setError(formatLiveLessonLaunchError(createError));
     } finally {
       setCreating(false);
     }

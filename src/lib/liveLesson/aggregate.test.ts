@@ -202,6 +202,17 @@ describe('aggregateLiveResponses', () => {
     });
     expect(result.choiceCounts).toEqual({});
   });
+
+  it('counts the safe third THINK choice without exposing personal responses', () => {
+    const result = aggregateLiveResponses([
+      response({ stepId: 'ai-think-w01', value: 'Unsure' }),
+      response({ stepId: 'ai-think-w01', participantUid: 'private-student', value: 'private answer' }),
+    ], 'ai-think-w01');
+
+    expect(result.choiceCounts).toEqual({ Unsure: 1 });
+    expect(JSON.stringify(result)).not.toContain('private-student');
+    expect(JSON.stringify(result)).not.toContain('private answer');
+  });
 });
 
 describe('toPublicStats', () => {

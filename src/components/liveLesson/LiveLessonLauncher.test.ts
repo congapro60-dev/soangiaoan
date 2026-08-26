@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildLiveLessonUrls, getPilotDefinitionForLesson, isAuthoritativeServerClassList, validateLiveLessonLaunch } from './LiveLessonLauncher';
+import { buildLiveLessonUrls, formatLiveLessonLaunchError, getPilotDefinitionForLesson, isAuthoritativeServerClassList, validateLiveLessonLaunch } from './LiveLessonLauncher';
 
 describe('live lesson launcher helpers', () => {
   it('blocks creation when there is no owned synchronized class', () => {
@@ -45,5 +45,10 @@ describe('live lesson launcher helpers', () => {
     expect(isAuthoritativeServerClassList([serverClass, legacyClass])).toBe(false);
     expect(isAuthoritativeServerClassList([legacyClass])).toBe(false);
     expect(isAuthoritativeServerClassList([{ ...serverClass, studentCount: 'invalid' }])).toBe(false);
+  });
+
+  it('turns Firestore permission errors into an actionable teacher message', () => {
+    expect(formatLiveLessonLaunchError(Object.assign(new Error('Missing or insufficient permissions.'), { code: 'permission-denied' }))).toContain('đồng bộ');
+    expect(formatLiveLessonLaunchError(new Error('network down'))).toBe('network down');
   });
 });

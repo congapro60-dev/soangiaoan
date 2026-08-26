@@ -27,10 +27,12 @@ Giáo viên giữ cửa sổ `mode=teacher` trên laptop. TV chỉ nhận cửa 
 |---|---|
 | Bảng lớn/bảng phụ và vở | Giáo viên chốt ý, học sinh giải thích, làm bảng, trao đổi bạn đôi và ghi kết luận/ví dụ. Nội dung bảng không được thay bằng việc nhìn màn hình. |
 | TV/Vcast Sender | Tiêu đề, câu hỏi chung, hướng dẫn hoạt động và thống kê tổng hợp được phép hiện. Không có kịch bản giáo viên, tên học sinh, PIN, câu trả lời riêng hoặc đáp án ẩn. |
-| Thiết bị học sinh | Chọn mục tiêu/tuyến, phân loại AI Error W01, làm quick-check, dùng gợi ý và gửi exit-ticket khi đã hoàn tất. Chỉ gửi khi chọn hoặc bấm **Gửi**, không gửi từng phím đang gõ. |
+| Thiết bị học sinh | Chọn mục tiêu/tuyến, dự đoán ở cổng **THINK** trước khi xem AI, phân loại/sửa/chứng minh ở **VERIFY**, làm quick-check, dùng gợi ý và gửi exit-ticket khi đã hoàn tất. Chỉ gửi khi chọn hoặc bấm **Gửi**, không gửi từng phím đang gõ. |
 | Laptop giáo viên | Cue P00–P40, đồng hồ theo cue, việc GV/HS, bảng/vở, điều khiển phiên và trạng thái dữ liệu. Raw response chỉ ở ranh giới giáo viên, không phải nội dung TV. |
 
-AI Error W01 nằm trong bước đã định nghĩa của pilot. Giáo viên vẫn dùng đối thoại và bảng để học sinh giải thích vì sao sai; thống kê TV chỉ là tín hiệu nhanh, không phải điểm chính thức.
+AI Error W01 nằm trong bước đã định nghĩa của pilot. Ở P16:45, TV hiện S8A để học sinh dự đoán `(6;7)` trước; từ P17:15, TV mới chuyển S8B để đối chiếu lời giải AI. Firestore không cho ghi AI Error nếu học sinh chưa có phản hồi THINK. Giáo viên vẫn dùng đối thoại và bảng để học sinh giải thích vì sao sai; thống kê TV chỉ là tín hiệu nhanh, không phải điểm chính thức.
+
+Sau khi đóng phiên, laptop giáo viên hiện form **Minh chứng sau giờ**. Form lưu cục bộ theo session trên thiết bị giáo viên, chỉ gồm loại lỗi, lỗi Quick check, ưu tiên tiết sau, ba cờ minh chứng người–người và một ghi chú ngắn; không gửi lên TV và không thay thế hồ sơ đánh giá chính thức.
 
 ## Đồng bộ lớp, bài xuất bản và đóng phiên
 
@@ -50,6 +52,10 @@ Kiểm tra link có đúng `sessionId` và `classId` không; học sinh đăng x
 ### Bài chưa đồng bộ hoặc chưa xuất bản
 
 Quay lại tab **Bài học phân hoá**, kiểm tra bài đúng phiên bản đã xuất bản và lớp đúng tài khoản giáo viên. Tải lại rồi mở phiên mới; không dùng một session cũ gắn với bài/lớp khác.
+
+### “Missing or insufficient permissions” khi tạo phiên
+
+Đây là lỗi quyền Firestore, không phải lỗi của màn hình TV. Kiểm tra ba điều: (1) tài khoản hiện tại là tài khoản giáo viên thật, không phải phiên dùng thử/mock; (2) lớp đã đồng bộ thành document `classes/{classId}` và trường `teacherId` đúng UID hiện tại; (3) Rules của project `smartplan-ai-14200` đã được deploy cùng bản web đang chạy. Sau khi sửa, tải lại **Bài học phân hoá** và tạo phiên mới; không dùng lại session tạo dở.
 
 ### Phiên hết hạn hoặc đã đóng
 

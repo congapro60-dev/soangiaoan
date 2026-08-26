@@ -107,7 +107,7 @@ const isRoute = (value: string): value is LiveRoute => ROUTES.includes(value as 
 const PUBLIC_CHOICE_KEYS = new Set([
   'A', 'B', 'C', 'D',
   'G1', 'G2', 'G3',
-  'Yes', 'No', 'true', 'false',
+  'Yes', 'No', 'Unsure', 'true', 'false',
   'x', 'y', '=', '<=', '>=',
   '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
 ]);

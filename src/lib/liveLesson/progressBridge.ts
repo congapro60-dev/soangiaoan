@@ -54,6 +54,7 @@ const CANONICAL_STEP_CONTRACT: Record<string, LiveResponse['responseType'][]> = 
   goals: ['choice'],
   route: ['route'],
   model: ['choice', 'text'],
+  'ai-think-w01': ['choice'],
   'ai-error-w01': ['choice', 'text'],
   'quick-check': ['choice', 'text'],
   'exit-ticket': ['text'],

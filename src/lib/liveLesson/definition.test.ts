@@ -15,9 +15,10 @@ describe('g10_w5_p31_bpt_tiet1 live lesson definition', () => {
 
     expect(definition.durationSeconds).toBe(2400);
     expect(definition.cues.length).toBeGreaterThanOrEqual(20);
-    expect(definition.tvScreens).toHaveLength(12);
-    expect(definition.studentScreens).toHaveLength(11);
+    expect(definition.tvScreens).toHaveLength(13);
+    expect(definition.studentScreens).toHaveLength(12);
     expect(definition.aiErrorStepId).toBe('ai-error-w01');
+    expect(definition.allowedStepIds).toContain('ai-think-w01');
     expect(definition.allowedStepIds).toContain('quick-check');
   });
 
@@ -57,8 +58,23 @@ describe('g10_w5_p31_bpt_tiet1 live lesson definition', () => {
       definition.allowedStepIds.length,
     );
     expect(definition.responseSteps.map((step) => step.id)).toEqual(
-      expect.arrayContaining(['ai-error-w01', 'quick-check', 'exit-ticket']),
+      expect.arrayContaining(['ai-think-w01', 'ai-error-w01', 'quick-check', 'exit-ticket']),
     );
+  });
+
+  it('keeps the AI answer behind the THINK gate', () => {
+    const definition = getPilotLiveLessonDefinition();
+    const thinkCue = definition.cues.find(cue => cue.id === 'P12');
+    const verifyCue = definition.cues.find(cue => cue.id === 'P13');
+    const thinkScreen = definition.tvScreens.find(screen => screen.id === 'S8A');
+    const verifyScreen = definition.tvScreens.find(screen => screen.id === 'S8B');
+
+    expect(thinkCue).toMatchObject({ tvScreenId: 'S8A', responseStepId: 'ai-think-w01' });
+    expect(verifyCue).toMatchObject({ tvScreenId: 'S8B', responseStepId: 'ai-error-w01' });
+    expect(thinkScreen?.body).not.toContain('160');
+    expect(thinkScreen?.body).not.toContain('không là nghiệm');
+    expect(verifyScreen?.body).toContain('160');
+    expect(verifyScreen?.title).toContain('VERIFY');
   });
 
   it('rejects a malformed canonical package with a stable error code', () => {
