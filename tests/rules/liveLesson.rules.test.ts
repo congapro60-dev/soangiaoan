@@ -35,6 +35,10 @@ const ALL_CHOICE_KEYS = [
   'true', 'false', 'x', 'y', '=', '<=', '>=',
   '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
 ] as const;
+const PILOT_ALLOWED_STEP_IDS = [
+  'warmup', 'notice-wonder', 'goals', 'route', 'model',
+  'ai-error-w01', 'quick-check', 'exit-ticket',
+] as const;
 
 const now = Date.now();
 const FUTURE = Timestamp.fromMillis(now + 60 * 60 * 1000);
@@ -178,6 +182,16 @@ const publicRef = (db: ReturnType<typeof dbTeacherA>, id: string, name: 'state' 
 describe('liveLessonSessions · parent session', () => {
   it('owner creates a valid session → ALLOW', async () => {
     await assertSucceeds(setDoc(sessionRef(dbTeacherA(), 'session-new'), sessionData('session-new')));
+  });
+
+  it('owner can create the canonical G10 P31 pilot session with all 8 response steps → ALLOW', async () => {
+    await assertSucceeds(setDoc(sessionRef(dbTeacherA(), 'session-g10-p31-pilot'), sessionData('session-g10-p31-pilot', {
+      lessonId: 'tds-g10-30-pilot',
+      title: 'Bất phương trình bậc nhất hai ẩn — Tiết 1',
+      allowedStepIds: [...PILOT_ALLOWED_STEP_IDS],
+      currentCueId: 'P00',
+      currentTvScreenId: 'TV0',
+    })));
   });
 
   it('other teacher cannot create in owner class → DENY', async () => {

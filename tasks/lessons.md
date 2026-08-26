@@ -318,3 +318,8 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - Gói runtime trong `src/data/liveLessonPackages/` chỉ là mã nội dung; trang Quản lý bài học phân hoá chỉ hiển thị document từ `adaptiveLessons` có `teacherId` đúng tài khoản. Deploy source không đồng nghĩa đã seed dữ liệu cho giáo viên.
 - Khi mở một pilot từ danh sách, phải kiểm đồng thời `lesson.id`, tiêu đề, thời lượng và trạng thái `published`; dùng nhầm bài mẫu khác chủ đề sẽ làm cổng học sinh hiển thị sai nội dung dù nút live vẫn mở được.
 - API tiến trình mới phải thử document canonical theo `lessonId` trước, nhưng giữ fallback document legacy theo `teacherId`; mọi nhánh đều phải kiểm `teacherId`, `lesson.id` và `portalEnabled`.
+
+## Luật phải bám hợp đồng runtime canonical — 2026-08-26
+
+- Test Rules với fixture rút gọn có thể xanh nhưng vẫn chặn luồng thật: fixture cũ chỉ có 7 bước, còn định nghĩa pilot runtime có 8 bước và thêm `route`.
+- Khi một document có allowlist bước, phải có ít nhất một ca test lấy đủ danh sách canonical từ luồng runtime; không chỉ test bước lạ và kiểu dữ liệu.

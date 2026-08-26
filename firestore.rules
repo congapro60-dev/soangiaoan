@@ -360,9 +360,9 @@ service cloud.firestore {
                && data.teacherUid.size() <= 128
                && data.allowedStepIds is list
                && data.allowedStepIds.size() > 0
-               && data.allowedStepIds.size() <= 7
+               && data.allowedStepIds.size() <= 8
                && data.allowedStepIds.hasOnly([
-                    'warmup', 'notice-wonder', 'goals', 'model',
+                    'warmup', 'notice-wonder', 'goals', 'route', 'model',
                     'ai-error-w01', 'quick-check', 'exit-ticket'
                   ])
                && data.expiresAt is timestamp

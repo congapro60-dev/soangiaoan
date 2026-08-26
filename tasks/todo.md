@@ -202,3 +202,11 @@ Backup bản cũ: `C:\Users\ADMIN\AppData\Local\Temp\smartplan-ban-toan-backup-2
 - [x] Targeted 14/14, full Vitest 97 files/1307 tests, rules 8 files/264 tests, lint, lint:api và build PASS; chỉ còn cảnh báo Vite vốn có.
 - [x] Commit `c6eec47` và bản sửa type `069da51`; deployment cuối `dpl_AMePBtDn2e6HuRyaDgXaQ23TxEuW` báo `READY` và đã alias vào `https://giaoandewey.vercel.app`.
 - [x] Authenticated browser smoke test: nút hiện ngay trong trang `Bài học phân hoá`; bấm cài thành công, bài `Bất phương trình bậc nhất hai ẩn — Tiết 1` / `tds-g10-30-pilot` xuất hiện ở dòng đầu với các thao tác `Mở bài`, `Xem cổng`, `Mở tiết trực tiếp`, `Xóa`.
+
+## Task 10 — Sửa quyền tạo phiên pilot 8 bước — 2026-08-26
+
+- [x] Tái lập lỗi production bằng ca test đúng bộ `allowedStepIds` canonical của G10 P31: 8 bước, có `route`; test đỏ trước khi sửa.
+- [x] Sửa `firestore.rules` tối thiểu: giới hạn 8 bước và thêm `route` vào allowlist; không mở thêm field/quyền khác.
+- [x] Rules Emulator xanh: 8 file / 265 test.
+- [x] Chạy full unit, lint, build và kiểm tra diff.
+- [ ] Deploy Firestore Rules lên `smartplan-ai-14200`, xác minh release production và smoke test tạo phiên.
