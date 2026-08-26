@@ -179,3 +179,47 @@ npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grad
 npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" run build
 git diff --check
 ```
+
+## 12. Lô G10 P31 THINK → AI → VERIFY — 2026-08-26
+
+### Đã đổi và vì sao
+
+- Commit code `ec1c26f` cập nhật đúng luồng **Bài học phân hoá → Mở tiết trực tiếp**: P12 dùng màn hình `S8A` làm cổng THINK để học sinh chọn `Là nghiệm / Không là nghiệm / Chưa chắc`; P13–P15 mới chuyển sang `S8B` để xem lời giải AI, tìm lỗi, phân loại, sửa và chứng minh. Không tăng thời lượng 40 phút và không đưa kịch bản giáo viên lên TV.
+- Thêm response step `ai-think-w01`, lựa chọn `Unsure` trong aggregate an toàn và kiểm tra contract/progress bridge; Firestore Rules chặn ghi `ai-error-w01` nếu cùng học sinh chưa ghi THINK trước đó. Đồng thời thu gọn/giới hạn map thống kê để tránh vượt trần biểu thức Rules.
+- Sau khi đóng phiên, laptop giáo viên có form **Minh chứng sau giờ** lưu theo `sessionId` ở localStorage: loại lỗi AI, lỗi Quick check, ưu tiên tiết sau, ba cờ minh chứng tương tác người–người và ghi chú tối đa 500 ký tự. Form không hiện trên TV/học sinh và không thay thế hồ sơ đánh giá chính thức.
+- Launcher có thông báo hành động được khi gặp `permission-denied`, phân biệt lớp server chưa đồng bộ/khác UID/Rules chưa release với dữ liệu lớp cũ trên máy.
+
+### Bằng chứng nghiệm thu
+
+- Focused live-lesson: **12 files / 100 tests PASS**.
+- Full Vitest: **98 files / 1.316 tests PASS**.
+- Firestore Rules emulator: **8 files / 267 tests PASS**, bao gồm THINK trước AI Error.
+- `npm run lint`, `npm run lint:api`, `npm run build`, `git diff --check`: PASS; build chỉ còn cảnh báo chunk/dynamic import hiện hữu.
+- Rules production đã release thành công lên Firebase project `smartplan-ai-14200` bằng `firebase deploy --only firestore:rules --project smartplan-ai-14200`.
+
+### Còn dở / cố tình bỏ qua
+
+- Chưa triển khai hồ sơ lỗi tích luỹ C/P/R/M/A cho từng học sinh; cần pilot quan sát trước để tránh biến một hoạt động tư duy thành hệ thống chấm nhãn.
+- Chưa thêm Kahoot/Mentimeter hay AI call mới; các công cụ đó không cần thiết cho mục tiêu và sẽ tăng điểm tích hợp trong tiết demo.
+- Minh chứng sau giờ hiện chỉ lưu cục bộ trên laptop giáo viên, cố ý không đẩy dữ liệu nhận diện học sinh lên Firestore trong lô này.
+- Sau push cần xác nhận Vercel Production `READY` và smoke bằng tài khoản giáo viên thật; emulator không chứng minh được phiên đăng nhập production.
+
+### Ngưỡng sắp cắn người
+
+- Muốn tạo phiên thật phải đăng nhập Firebase Auth bằng đúng tài khoản giáo viên và chọn `classes/{classId}` đã đồng bộ trên server với `teacherId` trùng UID; lớp mock/local hoặc session cũ không đủ quyền.
+- TV/Vcast chỉ nhận public state/stats tổng hợp, không nhận câu trả lời cá nhân; phải mở session mới sau khi Rules và web cùng release, rồi dùng đúng URL `mode=tv`.
+- Session cũ thiếu `ai-think-w01` không được tái sử dụng cho pilot mới; khi đổi contract hãy tạo phiên mới.
+
+### Lệnh nghiệm thu lô THINK → VERIFY
+
+```powershell
+$worktree = "C:\Users\ADMIN\.config\superpowers\worktrees\smart-lesson-plan-ai\live-lesson-think-v3"
+$javaBin = "C:\Program Files\Microsoft\jdk-21.0.11.10-hotspot\bin"
+$env:PATH = "$javaBin;$env:PATH"
+npm --prefix $worktree run test
+npm --prefix $worktree run test:rules
+npm --prefix $worktree run lint
+npm --prefix $worktree run lint:api
+npm --prefix $worktree run build
+git -C $worktree diff --check
+```
