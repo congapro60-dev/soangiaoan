@@ -1,6 +1,6 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
 
-**Cập nhật:** 2026-08-25
+**Cập nhật:** 2026-08-26
 **Repo:** `soangiaoan` · **Branch chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
@@ -102,6 +102,42 @@ git diff --check
 - Không dùng `git add .` trong worktree có thay đổi ngoài phạm vi.
 - Không tuyên bố deploy production nếu chưa kiểm tra deployment thực tế.
 - Với prompt có phạm vi, test phải kiểm cả chỉ dẫn mới và sự vắng mặt của chỉ dẫn tổng quát mâu thuẫn.
+
+## 11. Lô V3 Live Lesson realtime G10 P31 — 2026-08-26
+
+### Đã đổi và vì sao
+
+- Đồng bộ `firestore.rules` với runtime pilot canonical: đủ 8 bước, gồm `route`; trước đó Rules chỉ cho 7 bước nên tạo phiên production báo `Missing or insufficient permissions`.
+- TV chỉ subscribe `public/stats` khi giáo viên bật thống kê; document thống kê chưa tồn tại được đọc an toàn theo feature flag nhưng document đã có vẫn phải qua schema đầy đủ.
+- Mutation điều khiển phiên đọc lại snapshot server sau `serverTimestamp`; retry ngắn có điều kiện khi `updatedAt` chưa materialize.
+- Mọi listener `onSnapshot` bỏ qua snapshot cục bộ `hasPendingWrites=true`, tránh hiển thị lỗi giả trong lúc Firestore đang xác nhận ghi.
+- Bổ sung regression tests cho Rules, TV và service; không mở thêm field/quyền ngoài contract V3.
+
+### Bằng chứng nghiệm thu
+
+- Full Vitest chạy riêng: **97 files / 1.309 tests PASS**.
+- `npm run lint`, `npm run lint:api`, `npm run build`, `git diff --check`: PASS; build chỉ còn cảnh báo chunk/dynamic import hiện hữu.
+- Rules emulator trước promotion: **8 files / 266 tests PASS**; `firebase deploy --only firestore:rules --project smartplan-ai-14200` compile/release thành công và báo bản cloud đã up-to-date.
+- Vercel production: deployment `dpl_DAWLo3R3yuNom98BnDXgqUoNks3u`, **READY**, alias `https://giaoandewey.vercel.app`.
+- Smoke phiên `LPw7TMjrxj4jnpoZLEpq`: tạo phiên thành công; GV/TV không còn lỗi quyền, stats listener hoặc timestamp; bật/tắt/bật lại thống kê thành công; TV hiện “Đang chờ thống kê tổng hợp…” khi chưa có bài nộp; phiên được trả về cue P00.
+
+### Còn dở / cố tình bỏ qua
+
+- Cổng học sinh đã tải đúng route và không còn lỗi quyền; smoke cùng trình duyệt đang đăng nhập GV nên bị nhắc đăng xuất. Cần kiểm thử nộp câu trả lời thật trên thiết bị/tài khoản học sinh riêng trước khi mở rộng đại trà.
+- Không xử lý cảnh báo npm audit/chunk lớn trong lô này vì không liên quan lỗi live lesson và có thể tạo thay đổi dependency ngoài phạm vi.
+- Không dùng `git push --no-verify`; hook handoff phải tiếp tục bảo vệ các lần phát hành sau.
+
+### Lệnh nghiệm thu lô V3
+
+```powershell
+$worktree = "C:\Users\ADMIN\.config\superpowers\worktrees\smart-lesson-plan-ai\g10-p31-firestore-production"
+npm --prefix $worktree run test
+npm --prefix $worktree run lint
+npm --prefix $worktree run lint:api
+npm --prefix $worktree run build
+npm --prefix $worktree exec -- vitest run src/services/liveLessonService.test.ts
+git diff --check
+```
 
 ## 8. Lô sửa JSON/LaTeX chấm bài — QA bổ sung 2026-08-25
 
