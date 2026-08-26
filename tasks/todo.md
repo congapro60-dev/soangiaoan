@@ -192,3 +192,12 @@ Backup bản cũ: `C:\Users\ADMIN\AppData\Local\Temp\smartplan-ban-toan-backup-2
 - `npm run build`: PASS; Vite chỉ cảnh báo module externalized/chunk >500KB và index chunk hiện có.
 - Rules direct run: 8 files / 260 tests PASS trên emulator PID 18096 đã chạy với đúng `firestore.rules`; wrapper `npm run test:rules` bị chặn do cố bind lại cổng 8080.
 - Server mapping evidence: roster doc ID được dùng để kiểm link, adaptive ID là `${teacherUid}_${normalizeStudentCode(roster.code)}`; route lấy từ response server hoặc trusted profile, thiếu cả hai trả `incomplete`.
+
+## Task 9 — Seed bài pilot vào danh sách Bài học phân hoá — 2026-08-26
+
+- [x] Xác định root cause: gói runtime `g10_w5_p31_bpt_tiet1` chỉ nằm trong source, chưa có document `adaptiveLessons` cho tài khoản giáo viên.
+- [x] Viết test đỏ/xanh cho bản `AdaptiveLesson` pilot đúng mã `tds-g10-30-pilot`, tiêu đề, lớp 10, 40 phút, nội dung BPT và trạng thái published.
+- [x] Thêm nút `Cài bài demo G10 P31` ngay trong trang Quản lý bài học phân hoá; sau khi lưu, bài xuất hiện như một dòng bài bình thường.
+- [x] Sửa API tiến trình để tìm document theo `lessonId` trước, vẫn tương thích document legacy theo UID giáo viên.
+- [x] Targeted 14/14, full Vitest 97 files/1307 tests, rules 8 files/264 tests, lint, lint:api và build PASS; chỉ còn cảnh báo Vite vốn có.
+- [ ] Commit và deploy production cùng project `giaoandewey`; kiểm tra authenticated browser sau deploy.

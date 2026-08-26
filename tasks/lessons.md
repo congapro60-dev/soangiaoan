@@ -312,3 +312,9 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 ## FileList gắn sống với ô input — gốc rễ thật của cả chuỗi "nộp ảnh không được" (2026-08-22)
 
 - **`const files = e.target.files; e.target.value = '';` là XOÁ SẠCH files trước khi kịp dùng** — FileList trả về từ `input.files` là view SỐNG theo control: reset `value` là `length` về 0 ngay, handler sau đó không bao giờ chạy. Đây mới là nguyên nhân "bấm nộp xong không thấy gì" ở cổng học sinh; tôi đã chẩn đoán sai HAI LẦN trước khi người khác soi ra: lần 1 đổ cho storage.rules chặn 6MB/thiếu nén, lần 2 đổ cho thiếu trạng thái xác nhận. Dấu hiệu lẽ ra phơi sớm: user nói "không thấy gì cả" — kể cả thanh tiến trình cũng không hiện nghĩa là HÀM XỬ LÝ chưa từng chạy, chứ không phải chạy mà UI không phản ánh. QUY TẮC: trong onChange của input file, SAO CHÉP `Array.from(e.target.files ?? [])` thành mảng TRƯỚC khi đụng vào `value` (đối tượng `File` độc lập với input nên vẫn dùng tốt); và khi user báo "không có gì xảy ra", kiểm chứng hàm xử lý có được gọi tới không (log đầu hàm) TRƯỚC khi đi soi tầng dưới như rules/mạng.
+
+## Bài học pilot realtime — 2026-08-26
+
+- Gói runtime trong `src/data/liveLessonPackages/` chỉ là mã nội dung; trang Quản lý bài học phân hoá chỉ hiển thị document từ `adaptiveLessons` có `teacherId` đúng tài khoản. Deploy source không đồng nghĩa đã seed dữ liệu cho giáo viên.
+- Khi mở một pilot từ danh sách, phải kiểm đồng thời `lesson.id`, tiêu đề, thời lượng và trạng thái `published`; dùng nhầm bài mẫu khác chủ đề sẽ làm cổng học sinh hiển thị sai nội dung dù nút live vẫn mở được.
+- API tiến trình mới phải thử document canonical theo `lessonId` trước, nhưng giữ fallback document legacy theo `teacherId`; mọi nhánh đều phải kiểm `teacherId`, `lesson.id` và `portalEnabled`.

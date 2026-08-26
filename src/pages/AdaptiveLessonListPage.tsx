@@ -7,7 +7,8 @@ import type { AdaptiveLesson } from '../lib/adaptive/types';
 import type { TeacherClass } from '../types';
 import type { ClassDoc } from '../lib/classroom/types';
 import { LiveLessonLauncher } from '../components/liveLesson/LiveLessonLauncher';
-import { deleteLessonFromFirestore, listLessonsForTeacher } from '../services/adaptiveLessonService';
+import { buildPilotAdaptiveLesson } from '../lib/liveLesson/pilotAdaptiveLesson';
+import { deleteLessonFromFirestore, listLessonsForTeacher, saveLessonToFirestore } from '../services/adaptiveLessonService';
 
 export const resolveAdaptiveBuilderUrl = (lessonId: string): string => `/adaptive-builder/${encodeURIComponent(lessonId)}`;
 export const resolveAdaptivePortalUrl = (lessonId: string): string => `/adaptive-portal/${encodeURIComponent(lessonId)}`;
@@ -43,6 +44,8 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [seedingPilot, setSeedingPilot] = useState(false);
+  const [seedMessage, setSeedMessage] = useState<string | null>(null);
 
   useEffect(() => onAuthStateChanged(auth, setUser), []);
 
@@ -90,6 +93,35 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
     else navigate(resolveAdaptiveBuilderUrl('new'));
   };
 
+  const hasPilotLesson = lessons.some(lesson => lesson.id === 'tds-g10-30-pilot' && lesson.status === 'published');
+
+  const handleSeedPilot = async () => {
+    const currentUser = auth.currentUser ?? user;
+    if (!currentUser) {
+      setError('Bạn cần đăng nhập để cài bài demo vào danh sách bài học.');
+      return;
+    }
+
+    setSeedingPilot(true);
+    setError(null);
+    setSeedMessage(null);
+    try {
+      const pilotLesson = buildPilotAdaptiveLesson(currentUser.uid);
+      await saveLessonToFirestore(pilotLesson);
+      setLessons(previous => [
+        ...previous.filter(lesson => lesson.id !== pilotLesson.id),
+        pilotLesson,
+      ].sort((left, right) => (right.updatedAt || '').localeCompare(left.updatedAt || '')));
+      setSeedMessage('Đã cài bài demo G10 P31. Bài đã xuất bản và có thể mở cổng học sinh hoặc tiết trực tiếp.');
+    } catch (seedError) {
+      console.error('Không cài được bài demo G10 P31', seedError);
+      const detail = seedError instanceof Error ? ` ${seedError.message}` : '';
+      setError(`Không cài được bài demo vào Firestore.${detail}`);
+    } finally {
+      setSeedingPilot(false);
+    }
+  };
+
   const openLesson = (lessonId: string) => {
     if (onOpenLesson) onOpenLesson(lessonId);
     else navigate(resolveAdaptiveBuilderUrl(lessonId));
@@ -122,6 +154,9 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
                   <BarChart3 className="h-4 w-4" /> Thống kê người học
                 </button>
               )}
+              <button disabled={hasPilotLesson || seedingPilot || !user} onClick={() => void handleSeedPilot()} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/15 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-900/10 backdrop-blur transition hover:bg-white/25 disabled:cursor-not-allowed disabled:opacity-60">
+                <WandSparkles className="h-4 w-4" /> {seedingPilot ? 'Đang cài bài demo...' : hasPilotLesson ? 'Đã có bài demo G10 P31' : 'Cài bài demo G10 P31'}
+              </button>
               <button onClick={openCreate} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-black text-blue-700 shadow-lg shadow-blue-900/10 transition hover:bg-blue-50">
                 <WandSparkles className="h-4 w-4" /> Tạo từ giáo án nguồn
               </button>
@@ -130,17 +165,23 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
         </section>
 
         {error && <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-bold text-red-600">{error}</div>}
+        {seedMessage && <div className="rounded-2xl border border-green-100 bg-green-50 px-4 py-3 text-sm font-bold text-green-700">{seedMessage}</div>}
 
         <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
           {loading ? (
             <div className="py-12 text-center text-sm font-bold text-slate-500">Đang tải danh sách bài học...</div>
-          ) : !error && lessons.length === 0 ? (
+          ) : lessons.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center">
               <h2 className="text-lg font-black text-slate-800">Chưa có bài học phân hoá</h2>
               <p className="mt-2 text-sm font-semibold text-slate-500">Bắt đầu bằng cách chọn giáo án đã soạn hoặc tải giáo án lên để AI rà soát và chuyển thành bài học phân hoá.</p>
-              <button onClick={openCreate} className="mt-5 inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white transition hover:bg-blue-700">
-                <WandSparkles className="h-4 w-4" /> Tạo từ giáo án nguồn
-              </button>
+              <div className="mt-5 flex flex-col justify-center gap-2 sm:flex-row">
+                <button disabled={seedingPilot || !user} onClick={() => void handleSeedPilot()} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-black text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60">
+                  <WandSparkles className="h-4 w-4" /> {seedingPilot ? 'Đang cài bài demo...' : 'Cài bài demo G10 P31'}
+                </button>
+                <button onClick={openCreate} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white transition hover:bg-blue-700">
+                  <WandSparkles className="h-4 w-4" /> Tạo từ giáo án nguồn
+                </button>
+              </div>
             </div>
           ) : (
             <div className="overflow-hidden rounded-2xl border border-slate-100">

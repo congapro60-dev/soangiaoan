@@ -290,6 +290,24 @@ describe('adaptive-progress live lesson close action', () => {
     expect(adminFakes.writes.filter(write => write.path.startsWith('studentLearningProfiles/'))).toHaveLength(1);
   });
 
+  it('accepts the canonical lesson document stored under lessonId', async () => {
+    const definition = seedLiveLesson();
+    adminFakes.docs.delete('adaptiveLessons/teacher-1');
+    adminFakes.docs.set(`adaptiveLessons/${definition.lessonId}`, {
+      id: definition.lessonId,
+      teacherId: 'teacher-1',
+      title: definition.title,
+      status: 'published',
+      portalEnabled: true,
+    });
+
+    const result = makeResponse();
+    await handler(makeRequest({ action: 'saveLiveLessonProgress', sessionId: 'session-1', definition, idToken: 'teacher-token' }), result.response);
+
+    expect(result.state.statusCode).toBe(200);
+    expect(result.state.body).toEqual({ ok: true, eligible: 1, saved: 1, failed: 0, incomplete: 0 });
+  });
+
   it('fails closed with incomplete when server mapping is absent', async () => {
     const definition = seedLiveLesson(false);
     const result = makeResponse();

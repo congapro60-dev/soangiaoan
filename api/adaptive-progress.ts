@@ -97,6 +97,31 @@ const normalizeLiveSession = (sessionId: string, value: FirebaseFirestore.Docume
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
 
+const findAdaptiveLessonDocument = async (
+  db: FirebaseFirestore.Firestore,
+  teacherId: string,
+  lessonId: string,
+): Promise<{ data: FirebaseFirestore.DocumentData; lesson: Record<string, unknown> } | null> => {
+  const candidateIds = [...new Set([lessonId, teacherId].filter(Boolean))];
+
+  for (const candidateId of candidateIds) {
+    const snapshot = await db.collection('adaptiveLessons').doc(candidateId).get();
+    if (!snapshot.exists) continue;
+
+    const data = snapshot.data() || {};
+    const lesson = isRecord(data.lesson) ? data.lesson : data;
+    const storedTeacherId = typeof data.teacherId === 'string'
+      ? data.teacherId
+      : (typeof lesson.teacherId === 'string' ? lesson.teacherId : (candidateId === teacherId ? candidateId : undefined));
+    const storedLessonId = typeof lesson.id === 'string' ? lesson.id : data.lessonId;
+
+    if (storedTeacherId !== teacherId || storedLessonId !== lessonId || data.portalEnabled !== true) continue;
+    return { data, lesson };
+  }
+
+  return null;
+};
+
 const normalizeLiveResponse = (id: string, value: FirebaseFirestore.DocumentData): LiveResponse => ({
   id,
   participantUid: String(value.participantUid || ''),
@@ -214,10 +239,9 @@ const handleLiveLessonProgressClose = async (
   if (!classSnapshot.exists || classSnapshot.data()?.teacherId !== uid) {
     return res.status(403).json({ error: 'Lớp của phiên không thuộc giáo viên hiện tại.' });
   }
-  const lessonSnapshot = await db.collection('adaptiveLessons').doc(uid).get();
-  const lessonData = lessonSnapshot.data() || {};
-  const lesson = lessonData.lesson || {};
-  if (!lessonSnapshot.exists || lessonData.portalEnabled !== true || lesson.id !== session.lessonId || lesson.status !== 'published') {
+  const adaptiveLesson = await findAdaptiveLessonDocument(db, uid, session.lessonId);
+  const lesson = adaptiveLesson?.lesson || {};
+  if (!adaptiveLesson || lesson.status !== 'published') {
     return res.status(403).json({ error: 'Bài học chưa published/portal-enabled; chưa ghi tiến trình.' });
   }
 
@@ -363,9 +387,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(403).json({ error: 'Adaptive profile lookup denied' });
       }
 
-      const lessonSnapshot = await db.collection('adaptiveLessons').doc(teacherId).get();
-      const lessonData = lessonSnapshot.data() || {};
-      if (!lessonSnapshot.exists || lessonData.portalEnabled !== true || lessonData.lesson?.id !== profile.lastLessonId) {
+      const adaptiveLesson = await findAdaptiveLessonDocument(db, teacherId, profile.lastLessonId);
+      if (!adaptiveLesson) {
         return res.status(403).json({ error: 'Student portal is not enabled for this profile' });
       }
 
@@ -429,15 +452,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const db = getAdminDb();
-    const lessonSnapshot = await db.collection('adaptiveLessons').doc(teacherId).get();
+    const adaptiveLesson = await findAdaptiveLessonDocument(db, teacherId, lessonId);
 
-    if (!lessonSnapshot.exists) {
+    if (!adaptiveLesson) {
       return res.status(404).json({ error: 'Adaptive lesson not found' });
-    }
-
-    const lessonData = lessonSnapshot.data() || {};
-    if (lessonData.portalEnabled !== true || lessonData.lesson?.id !== lessonId) {
-      return res.status(403).json({ error: 'Student portal is not enabled for this lesson' });
     }
 
     const profileRef = db.collection('studentLearningProfiles').doc(studentId);
