@@ -328,3 +328,8 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 
 - TV không nên subscribe document thống kê khi giáo viên chưa bật `showStats`; nếu không, document chưa tồn tại sẽ bị Rules từ chối và listener đã lỗi thì không tự hồi phục khi stats xuất hiện.
 - Với document public được tạo muộn, Rules phải cho phép đọc trạng thái “chưa tồn tại” trong đúng điều kiện audience/active/feature-flag, nhưng vẫn validate toàn bộ schema khi document đã tồn tại.
+
+## Server timestamp sau mutation — 2026-08-26
+
+- Sau `updateDoc` có `serverTimestamp()`, snapshot đọc từ cache có thể tạm thời chứa `updatedAt:null`. Không được chuẩn hoá snapshot đó ngay như dữ liệu đã xác nhận.
+- Các mutation điều khiển phiên phải đọc lại bằng `getDocFromServer` trước khi ghi public state; nếu không, giao diện có thể đã đổi nút nhưng public state không được cập nhật và báo lỗi giả cho giáo viên.

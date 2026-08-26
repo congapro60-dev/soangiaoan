@@ -25,6 +25,7 @@ const firestoreMocks = vi.hoisted(() => {
     collection,
     doc,
     getDoc: vi.fn(),
+    getDocFromServer: vi.fn(),
     getDocs: vi.fn(),
     onSnapshot: vi.fn(),
     query: vi.fn((target, ...constraints) => ({ kind: 'query', target, constraints })),
@@ -40,6 +41,7 @@ vi.mock('firebase/firestore', () => ({
   collection: firestoreMocks.collection,
   doc: firestoreMocks.doc,
   getDoc: firestoreMocks.getDoc,
+  getDocFromServer: firestoreMocks.getDocFromServer,
   getDocs: firestoreMocks.getDocs,
   onSnapshot: firestoreMocks.onSnapshot,
   query: firestoreMocks.query,
@@ -191,7 +193,7 @@ describe('liveLessonService Firestore boundary', () => {
   });
 
   it('writes only a validated session patch and closes public flags', async () => {
-    firestoreMocks.getDoc
+    firestoreMocks.getDocFromServer
       .mockResolvedValueOnce({
         exists: () => true,
         id: 'session-1',
@@ -237,6 +239,25 @@ describe('liveLessonService Firestore boundary', () => {
     );
     await expect(updateLiveLessonState('session-1', { unknown: 'field' } as never)).rejects.toThrow(/unknown/i);
     await expect(updateLiveLessonState('session-1', { status: undefined })).rejects.toThrow(/undefined/i);
+  });
+
+  it('reads the server-acknowledged timestamp after a state patch', async () => {
+    firestoreMocks.getDoc.mockResolvedValueOnce({
+      exists: () => true,
+      id: 'session-1',
+      data: () => sessionData({ updatedAt: null, publicStatsEnabled: false }),
+    });
+    firestoreMocks.getDocFromServer.mockResolvedValueOnce({
+      exists: () => true,
+      id: 'session-1',
+      data: () => sessionData({ updatedAt: 3000, publicStatsEnabled: true }),
+    });
+
+    await expect(updateLiveLessonState('session-1', { publicStatsEnabled: true })).resolves.toMatchObject({
+      updatedAt: 3000,
+      publicStatsEnabled: true,
+    });
+    expect(firestoreMocks.getDocFromServer).toHaveBeenCalledTimes(1);
   });
 
   it('creates a deterministic response after the merge-update probe and writes no client timestamp or PIN', async () => {

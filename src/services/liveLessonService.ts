@@ -2,6 +2,7 @@ import {
   collection,
   doc,
   getDoc,
+  getDocFromServer,
   onSnapshot,
   query,
   serverTimestamp,
@@ -186,8 +187,9 @@ const normalizePublicState = (value: unknown): LivePublicState => {
   };
 };
 
-const readSnapshot = async (sessionId: string): Promise<LiveLessonSession> => {
-  const snapshot = await getDoc(doc(db, SESSIONS_COL, sessionId));
+const readSnapshot = async (sessionId: string, readFromServer = false): Promise<LiveLessonSession> => {
+  const sessionRef = doc(db, SESSIONS_COL, sessionId);
+  const snapshot = await (readFromServer ? getDocFromServer(sessionRef) : getDoc(sessionRef));
   if (!snapshot.exists()) throw new Error('Created live lesson session could not be read back.');
   return normalizeSession(sessionId, snapshot.data());
 };
@@ -259,7 +261,7 @@ export const updateLiveLessonState = async (sessionId: string, patch: LiveLesson
   if (patch.publicStateEnabled !== undefined && typeof patch.publicStateEnabled !== 'boolean') throw new Error('publicStateEnabled is invalid.');
   if (patch.publicStatsEnabled !== undefined && typeof patch.publicStatsEnabled !== 'boolean') throw new Error('publicStatsEnabled is invalid.');
   await updateDoc(doc(db, SESSIONS_COL, sessionId), { ...patch, updatedAt: serverTimestamp() });
-  const session = await readSnapshot(sessionId);
+  const session = await readSnapshot(sessionId, true);
   await writePublicState(session);
   return session;
 };
@@ -272,7 +274,7 @@ export const closeLiveLessonSession = async (sessionId: string): Promise<LiveLes
     publicStatsEnabled: false,
     updatedAt: serverTimestamp(),
   });
-  const session = await readSnapshot(sessionId);
+  const session = await readSnapshot(sessionId, true);
   await writePublicState(session);
   return session;
 };

@@ -209,7 +209,7 @@ Backup bản cũ: `C:\Users\ADMIN\AppData\Local\Temp\smartplan-ban-toan-backup-2
 - [x] Sửa `firestore.rules` tối thiểu: giới hạn 8 bước và thêm `route` vào allowlist; không mở thêm field/quyền khác.
 - [x] Rules Emulator xanh: 8 file / 265 test.
 - [x] Chạy full unit, lint, build và kiểm tra diff.
-- [ ] Deploy Firestore Rules lên `smartplan-ai-14200`, xác minh release production và smoke test tạo phiên.
+- [x] Deploy Firestore Rules lên `smartplan-ai-14200`, xác minh release production và smoke test tạo phiên.
 
 ## Task 11 — Ổn định listener thống kê TV — 2026-08-26
 
@@ -218,4 +218,12 @@ Backup bản cũ: `C:\Users\ADMIN\AppData\Local\Temp\smartplan-ban-toan-backup-2
 - [x] Sửa tối thiểu: TV chỉ subscribe khi `showStats=true`; Rules cho phép đọc document stats còn thiếu nhưng vẫn kiểm tra đầy đủ document khi đã tồn tại.
 - [x] Targeted UI test 4/4 và Rules 8 file / 266 test PASS.
 - [x] Chạy full unit, lint, build và kiểm tra diff.
-- [ ] Deploy Vercel frontend + Firestore Rules và smoke test lại TV/HS.
+- [x] Deploy Vercel frontend + Firestore Rules và smoke test lại TV/HS.
+
+## Task 12 — Ổn định timestamp sau điều khiển phiên — 2026-08-26
+
+- [x] Production smoke tái lập lỗi: bật thống kê làm UI báo `updatedAt must be a Firestore Timestamp or finite number`.
+- [x] TDD đỏ/xanh: service test kiểm tra cache có `updatedAt:null` và snapshot server đã xác nhận timestamp.
+- [x] Sau `updateDoc`/đóng phiên, đọc lại snapshot bằng `getDocFromServer` trước khi chuẩn hoá và ghi public state.
+- [x] Full unit 97 file / 1.309 test, `lint`, `lint:api`, `build` PASS; chỉ còn cảnh báo Vite vốn có.
+- [ ] Deploy bản sửa cuối lên Vercel và smoke lại thao tác GV → TV.
