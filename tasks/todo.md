@@ -1,3 +1,20 @@
+# P0 — Báo cáo thủ công và cộng tác giáo viên (2026-08-27)
+
+- [x] Duyệt spec và tạo worktree sạch từ `origin/main`.
+- [ ] Nút **Tạo báo cáo** tính lại báo cáo với 0 hoặc nhiều lượt nộp, giữ snapshot khi lỗi.
+- [ ] Membership giáo viên: mời bằng email, co-owner, chuyển quyền, rời/xóa thành viên.
+- [ ] Nối quyền server-side cho lớp/bài giao/lượt nộp/báo cáo; giữ nguyên namespace dữ liệu cũ.
+- [ ] Đổi tên lớp, học sinh, bài giao; sửa điểm/nhận xét có history và yêu cầu duyệt lại.
+- [ ] Hỗ trợ nhất quán bài nộp ảnh và bài online; không lộ đáp án cho học sinh.
+- [ ] Chạy focused/full tests, rules, lint, build, diff check và QA đăng nhập thật/Ox Alpha.
+- [ ] Chưa push/deploy cho tới khi có lệnh tích hợp riêng.
+
+## Review/verification — báo cáo thủ công và cộng tác giáo viên
+
+- Đang triển khai trong branch `codex/class-report-collaboration`.
+- Spec: `docs/superpowers/specs/2026-08-27-class-report-collaboration-design.md`.
+- Plan: `docs/superpowers/plans/2026-08-27-class-report-collaboration-plan.md`.
+
 # P0 — Tương thích công thức cũ trong nhận xét chấm (2026-08-25)
 
 - [x] Tái hiện lỗi dữ liệu cũ mất dấu `\\` ở `in/subset/cap` trong màn hình nhận xét.
