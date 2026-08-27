@@ -95,4 +95,62 @@ describe('live lesson offline response queue', () => {
     expect(JSON.stringify(store)).not.toContain('1234');
     expect(() => validateLiveResponsePayload(input({ responseType: 'boolean', value: 'yes' } as never))).toThrow(/boolean/i);
   });
+
+  it('applies exponential backoff on retryable failures and skips items before retryAfter', async () => {
+    const store = storage();
+    const now = 1000;
+    enqueueLiveResponse(input(), store, now);
+    const submit = vi.fn().mockRejectedValue(new Error('network down'));
+
+    // First attempt → fails with retryable
+    const first = await flushLiveResponseQueue(submit, 'session-1', 'student-1', store, now);
+    expect(first.failed).toMatchObject({ kind: 'retryable' });
+    expect(first.failed?.item.retryCount).toBe(1);
+    expect(first.failed?.item.retryAfter).toBe(1000); // 1s backoff
+    expect(first.failed?.item.deliveryState).toBe('failed');
+
+    // Immediate retry should skip the item (backoff not elapsed)
+    const skipped = await flushLiveResponseQueue(submit, 'session-1', 'student-1', store, now + 500);
+    expect(skipped.attempted).toBe(0);
+    expect(skipped.synced).toBe(0);
+
+    // After backoff elapses, retry should succeed
+    const retried = await flushLiveResponseQueue(vi.fn().mockResolvedValue(undefined), 'session-1', 'student-1', store, now + 1100);
+    expect(retried.synced).toBe(1);
+    expect(retried.failed).toBeNull();
+  });
+
+  it('blocks permanently after max retries (5)', async () => {
+    const store = storage();
+    const now = 1000;
+    enqueueLiveResponse(input(), store, now);
+    const submit = vi.fn().mockRejectedValue(new Error('network down'));
+
+    // Fail 5 times; each time advance `now` past the backoff window
+    // backoff: 1s, 2s, 4s, 8s, 16s → need to advance now by cumulative backoff
+    let result = await flushLiveResponseQueue(submit, 'session-1', 'student-1', store, now);
+    let elapsed = 0;
+    for (let i = 1; i < 5; i++) {
+      elapsed += 1000 * Math.pow(2, i - 1) + 100; // advance past each backoff + buffer
+      result = await flushLiveResponseQueue(submit, 'session-1', 'student-1', store, now + elapsed);
+    }
+    // After 5th failure, should be blocked (permanent)
+    expect(result.failed?.item.deliveryState).toBe('blocked');
+    expect(result.failed?.item.retryCount).toBe(5);
+
+    // Subsequent flush should not attempt this item
+    const final = await flushLiveResponseQueue(submit, 'session-1', 'student-1', store, now + 100000);
+    expect(final.attempted).toBe(0);
+  });
+
+  it('preserves nonce across re-enqueue after failed state', async () => {
+    const store = storage();
+    const first = enqueueLiveResponse(input(), store, 1);
+    const submit = vi.fn().mockRejectedValue(new Error('network down'));
+    await flushLiveResponseQueue(submit, 'session-1', 'student-1', store, 1);
+
+    const replacement = enqueueLiveResponse(input({ value: 'B', clientNonce: 'new-nonce' }), store, 2);
+    expect(replacement.clientNonce).toBe(first.clientNonce);
+    expect(replacement.deliveryState).toBe('pending');
+  });
 });

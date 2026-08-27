@@ -436,4 +436,199 @@ describe('liveLessonSessions/{sessionId}/public · safe public documents', () =>
       errorCategoryCounts: { Conceptual: 1, PII: 1 },
     })));
   });
+
+  it('full stats map with all allowed choice keys and valid route/error maps does NOT cause evaluation error → ALLOW', async () => {
+    const fullChoiceCounts: Record<string, number> = {};
+    for (const key of ALL_CHOICE_KEYS) fullChoiceCounts[key] = 1;
+    const fullStatsData = {
+      stepId: 'model',
+      participantCount: 30,
+      submittedCount: 28,
+      choiceCounts: fullChoiceCounts,
+      routeCounts: { M: 10, S: 8, C: 10 },
+      errorCategoryCounts: { Conceptual: 7, Algebraic: 6, Logical: 8, 'Missing condition': 7 },
+      hintUseCount: 4,
+      updatedAt: serverTimestamp(),
+    };
+    await assertSucceeds(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), fullStatsData));
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────
+// V4: evidence / groupProposals / groups subcollections
+// ────────────────────────────────────────────────────────────────────
+
+const evidenceRef = (db: ReturnType<typeof dbTeacherA>, id = SESSION_A, evidenceId = `${STUDENT_A}__warmup`) => (
+  doc(db, `liveLessonSessions/${id}/evidence/${evidenceId}`)
+);
+
+const proposalRef = (db: ReturnType<typeof dbTeacherA>, id = SESSION_A) => (
+  doc(db, `liveLessonSessions/${id}/groupProposals/current`)
+);
+
+const groupRef = (db: ReturnType<typeof dbTeacherA>, id = SESSION_A, groupId = 'group-1') => (
+  doc(db, `liveLessonSessions/${id}/groups/${groupId}`)
+);
+
+const evidenceData = (overrides: Record<string, unknown> = {}) => ({
+  studentId: STUDENT_A,
+  stepId: 'warmup',
+  confidence: 0.8,
+  signal: 'choice_correct',
+  privateReason: 'Identified boundary concept',
+  createdAt: serverTimestamp(),
+  updatedAt: serverTimestamp(),
+  ...overrides,
+});
+
+const proposalData = (overrides: Record<string, unknown> = {}) => ({
+  proposals: [
+    {
+      groupId: 'group-1',
+      purpose: 'same_need_workshop',
+      memberIds: [STUDENT_A, STUDENT_B],
+      scaffold: 'Scaffold card for boundary concept',
+      reason: 'Both students showed emerging evidence',
+      checkpointId: 'cp-1',
+    },
+  ],
+  updatedAt: serverTimestamp(),
+  ...overrides,
+});
+
+const groupData = (overrides: Record<string, unknown> = {}) => ({
+  groupId: 'group-1',
+  memberIds: [STUDENT_A, STUDENT_B],
+  scaffold: 'Same_need_workshop scaffold',
+  startedAt: Date.now(),
+  updatedAt: serverTimestamp(),
+  ...overrides,
+});
+
+describe('V4 · evidence · teacher-only private data', () => {
+  it('session teacher can read and write evidence → ALLOW', async () => {
+    await assertSucceeds(setDoc(evidenceRef(dbTeacherA()), evidenceData()));
+    await assertSucceeds(getDoc(evidenceRef(dbTeacherA())));
+  });
+
+  it('other teacher cannot read or write evidence → DENY', async () => {
+    await testEnv.withSecurityRulesDisabled(async ctx => {
+      await setDoc(evidenceRef(ctx.firestore()), evidenceData());
+    });
+    await assertFails(getDoc(evidenceRef(dbTeacherB())));
+    await assertFails(setDoc(evidenceRef(dbTeacherB()), evidenceData()));
+  });
+
+  it('student cannot read or write evidence → DENY', async () => {
+    await testEnv.withSecurityRulesDisabled(async ctx => {
+      await setDoc(evidenceRef(ctx.firestore()), evidenceData());
+    });
+    await assertFails(getDoc(evidenceRef(dbStudentA())));
+    await assertFails(setDoc(evidenceRef(dbStudentA()), evidenceData()));
+  });
+
+  it('TV (unauthenticated) cannot read evidence → DENY', async () => {
+    await testEnv.withSecurityRulesDisabled(async ctx => {
+      await setDoc(evidenceRef(ctx.firestore()), evidenceData());
+    });
+    await assertFails(getDoc(evidenceRef(dbTv())));
+  });
+
+  it('evidence with extra fields is denied → DENY', async () => {
+    await assertFails(setDoc(evidenceRef(dbTeacherA()), evidenceData({ leakedField: 'secret' })));
+  });
+});
+
+describe('V4 · groupProposals · teacher-only private data', () => {
+  it('session teacher can read and write groupProposals → ALLOW', async () => {
+    await assertSucceeds(setDoc(proposalRef(dbTeacherA()), proposalData()));
+    await assertSucceeds(getDoc(proposalRef(dbTeacherA())));
+  });
+
+  it('student cannot read groupProposals → DENY', async () => {
+    await testEnv.withSecurityRulesDisabled(async ctx => {
+      await setDoc(proposalRef(ctx.firestore()), proposalData());
+    });
+    await assertFails(getDoc(proposalRef(dbStudentA())));
+  });
+
+  it('other teacher cannot write groupProposals → DENY', async () => {
+    await assertFails(setDoc(proposalRef(dbTeacherB()), proposalData()));
+  });
+
+  it('TV (unauthenticated) cannot read groupProposals → DENY', async () => {
+    await testEnv.withSecurityRulesDisabled(async ctx => {
+      await setDoc(proposalRef(ctx.firestore()), proposalData());
+    });
+    await assertFails(getDoc(proposalRef(dbTv())));
+  });
+});
+
+describe('V4 · groups · teacher writes, assigned student reads', () => {
+  it('session teacher can read and write groups → ALLOW', async () => {
+    await assertSucceeds(setDoc(groupRef(dbTeacherA()), groupData()));
+    await assertSucceeds(getDoc(groupRef(dbTeacherA())));
+  });
+
+  it('unassigned student cannot read group → DENY', async () => {
+    await testEnv.withSecurityRulesDisabled(async ctx => {
+      await setDoc(groupRef(ctx.firestore()), groupData());
+    });
+    await assertFails(getDoc(groupRef(dbStudentA())));
+  });
+
+  it('assigned student can read their own group subcollection → ALLOW', async () => {
+    await testEnv.withSecurityRulesDisabled(async ctx => {
+      const db = ctx.firestore();
+      const groupPath = `liveLessonSessions/${SESSION_A}/groups/group-1`;
+      await setDoc(doc(db, groupPath), groupData());
+      // Write student assignment with realistic payload (no peer data)
+      await setDoc(doc(db, `${groupPath}/students/${STUDENT_A}`), {
+        groupId: 'group-1',
+        scaffold: 'Same_need_workshop scaffold',
+        startedAt: Date.now(),
+      });
+    });
+    const assignedStudentRef = doc(dbStudentA(), `liveLessonSessions/${SESSION_A}/groups/group-1/students/${STUDENT_A}`);
+    await assertSucceeds(getDoc(assignedStudentRef));
+  });
+
+  it('other student cannot read assigned student group subcollection → DENY', async () => {
+    await testEnv.withSecurityRulesDisabled(async ctx => {
+      const db = ctx.firestore();
+      const groupPath = `liveLessonSessions/${SESSION_A}/groups/group-1`;
+      await setDoc(doc(db, groupPath), groupData());
+      await setDoc(doc(db, `${groupPath}/students/${STUDENT_A}`), {
+        groupId: 'group-1',
+        scaffold: 'Same_need_workshop scaffold',
+        startedAt: Date.now(),
+      });
+    });
+    const otherStudentRef = doc(dbStudentB(), `liveLessonSessions/${SESSION_A}/groups/group-1/students/${STUDENT_A}`);
+    await assertFails(getDoc(otherStudentRef));
+  });
+
+  it('student cannot write to groups → DENY', async () => {
+    await assertFails(setDoc(groupRef(dbStudentA()), groupData()));
+  });
+
+  it('groups with extra fields are denied → DENY', async () => {
+    await assertFails(setDoc(groupRef(dbTeacherA()), groupData({ privateReason: 'secret' })));
+  });
+});
+
+describe('V4 · closed/expired session blocks V4 writes', () => {
+  it('teacher cannot write evidence in closed session → DENY', async () => {
+    await assertFails(setDoc(evidenceRef(dbTeacherA(), SESSION_CLOSED), evidenceData()));
+  });
+
+  it('teacher cannot write groupProposals in expired session → DENY', async () => {
+    await assertFails(setDoc(proposalRef(dbTeacherA(), SESSION_EXPIRED), proposalData()));
+  });
+
+  it('teacher CAN write groups in active session with disabled public state → ALLOW', async () => {
+    // SESSION_DISABLED has publicStateEnabled:false but status=running and expires in future
+    // Private teacher data (groups/evidence) is not affected by public projection flags
+    await assertSucceeds(setDoc(groupRef(dbTeacherA(), SESSION_DISABLED), groupData()));
+  });
 });

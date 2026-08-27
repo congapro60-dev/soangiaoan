@@ -563,6 +563,7 @@ service cloud.firestore {
                     && request.resource.data.updatedAt == request.time;
       allow delete: if llv3SessionOwner();
 
+      // V4 — student can only create/update their own response; class/step/session validated.
       match /responses/{responseId} {
         allow get, list: if llv3SessionOwner();
         allow create: if llv3ValidResponse(request.resource.data, responseId)
@@ -580,6 +581,72 @@ service cloud.firestore {
                       && request.resource.data.diff(resource.data).affectedKeys()
                            .hasOnly(['responseType', 'value', 'clientNonce', 'updatedAt']);
         allow delete: if false;
+      }
+
+      // V4 — evidence: readable/writable ONLY by the session teacher. Students and TV cannot read.
+      // Write requires active session (not closed/expired).
+      match /evidence/{evidenceId} {
+        allow get, list: if llv3SessionOwner();
+        allow create, update: if llv3SessionOwner()
+                              && llv3ActiveSession()
+                              && request.resource.data.keys().hasOnly([
+                                   'studentId', 'stepId', 'confidence', 'signal',
+                                   'privateReason', 'createdAt', 'updatedAt'
+                                 ])
+                              && request.resource.data.studentId is string
+                              && request.resource.data.studentId.size() > 0
+                              && request.resource.data.studentId.size() <= 128
+                              && request.resource.data.stepId is string
+                              && request.resource.data.stepId.size() > 0
+                              && request.resource.data.stepId.size() <= 128
+                              && request.resource.data.confidence is number
+                              && request.resource.data.confidence >= 0
+                              && request.resource.data.confidence <= 1
+                              && request.resource.data.signal is string
+                              && request.resource.data.signal.size() > 0
+                              && request.resource.data.signal.size() <= 500
+                              && request.resource.data.privateReason is string
+                              && request.resource.data.privateReason.size() <= 1000
+                              && request.resource.data.updatedAt == request.time;
+        allow delete: if llv3SessionOwner();
+      }
+
+      // V4 — groupProposals: readable/writable ONLY by the session teacher. Students and TV cannot read.
+      // Write requires active session.
+      match /groupProposals/{docId} {
+        allow get, list: if llv3SessionOwner();
+        allow create, update: if llv3SessionOwner()
+                              && llv3ActiveSession()
+                              && request.resource.data.keys().hasAll(['proposals', 'updatedAt'])
+                              && request.resource.data.proposals is list
+                              && request.resource.data.proposals.size() <= 10
+                              && request.resource.data.updatedAt == request.time;
+        allow delete: if llv3SessionOwner();
+      }
+
+      // V4 — groups: teacher reads/writes all; student reads ONLY their own approved group.
+      // Write requires active session.
+      match /groups/{groupId} {
+        allow get, list: if llv3SessionOwner();
+        allow create, update: if llv3SessionOwner()
+                              && llv3ActiveSession()
+                              && request.resource.data.keys().hasOnly([
+                                   'groupId', 'memberIds', 'scaffold', 'startedAt', 'updatedAt'
+                                 ])
+                              && request.resource.data.groupId == groupId
+                              && request.resource.data.memberIds is list
+                              && request.resource.data.memberIds.size() <= 12
+                              && request.resource.data.scaffold is string
+                              && request.resource.data.scaffold.size() <= 2000
+                              && request.resource.data.updatedAt == request.time;
+        allow delete: if llv3SessionOwner();
+        // Student can read their own group assignment (not other groups).
+        match /students/{assignedStudentId} {
+          allow get: if request.auth != null
+                     && request.auth.uid == assignedStudentId
+                     && llv3ActiveSession();
+          allow list, create, update, delete: if false;
+        }
       }
 
       match /public/state {

@@ -1,18 +1,22 @@
 import type { LiveResponseType, SubmitLiveResponseInput } from './types';
 
-export type LiveResponseDeliveryState = 'pending' | 'blocked';
+export type LiveResponseDeliveryState = 'pending' | 'blocked' | 'failed';
 export type LiveResponseQueueFailureKind = 'retryable' | 'blocked';
 
 export interface QueuedLiveResponse extends SubmitLiveResponseInput {
   enqueuedAt: number;
   deliveryState: LiveResponseDeliveryState;
   lastError?: string;
+  retryAfter?: number;
+  retryCount?: number;
 }
 
 export interface LiveResponseStepState {
   clientNonce: string;
   status: LiveResponseDeliveryState | 'synced';
   lastError?: string;
+  retryAfter?: number;
+  retryCount?: number;
 }
 
 export interface LiveResponseQueueFailure {
@@ -37,6 +41,9 @@ const QUEUE_PREFIX = 'smartplan-ai:live-response-queue:v2';
 const LEGACY_QUEUE_PREFIX = 'smartplan-ai:live-response-queue:v1';
 const responseTypes = new Set<LiveResponseType>(['choice', 'text', 'boolean', 'route', 'hint', 'exit_ticket']);
 const permanentErrorCodes = new Set(['permission-denied', 'failed-precondition', 'not-found', 'invalid-argument', 'closed', 'expired']);
+const BASE_BACKOFF_MS = 1000;
+const MAX_BACKOFF_MS = 30_000;
+const MAX_RETRY_COUNT = 5;
 
 const isStorage = (value: Storage | null | undefined): value is Storage => Boolean(value && typeof value.getItem === 'function');
 
@@ -100,11 +107,16 @@ const normalizeEntry = (value: unknown): QueuedLiveResponse | null => {
     const item = value as Partial<QueuedLiveResponse>;
     const payload = validateLiveResponsePayload(item as SubmitLiveResponseInput);
     if (typeof item.enqueuedAt !== 'number' || !Number.isFinite(item.enqueuedAt)) return null;
+    const deliveryState = item.deliveryState === 'blocked' ? 'blocked'
+      : item.deliveryState === 'failed' ? 'failed'
+        : 'pending';
     return {
       ...payload,
       enqueuedAt: item.enqueuedAt,
-      deliveryState: item.deliveryState === 'blocked' ? 'blocked' : 'pending',
+      deliveryState,
       ...(typeof item.lastError === 'string' && item.lastError ? { lastError: item.lastError.slice(0, 500) } : {}),
+      ...(typeof item.retryAfter === 'number' && Number.isFinite(item.retryAfter) && item.retryAfter > 0 ? { retryAfter: item.retryAfter } : {}),
+      ...(typeof item.retryCount === 'number' && Number.isFinite(item.retryCount) && item.retryCount >= 0 ? { retryCount: Math.floor(item.retryCount) } : {}),
     };
   } catch {
     return null;
@@ -115,11 +127,13 @@ const normalizeStepState = (value: unknown): LiveResponseStepState | null => {
   if (!value || typeof value !== 'object') return null;
   const state = value as Partial<LiveResponseStepState>;
   if (typeof state.clientNonce !== 'string' || !state.clientNonce.trim()) return null;
-  if (state.status !== 'pending' && state.status !== 'blocked' && state.status !== 'synced') return null;
+  if (state.status !== 'pending' && state.status !== 'blocked' && state.status !== 'failed' && state.status !== 'synced') return null;
   return {
     clientNonce: state.clientNonce,
     status: state.status,
     ...(typeof state.lastError === 'string' && state.lastError ? { lastError: state.lastError.slice(0, 500) } : {}),
+    ...(typeof state.retryAfter === 'number' && Number.isFinite(state.retryAfter) && state.retryAfter > 0 ? { retryAfter: state.retryAfter } : {}),
+    ...(typeof state.retryCount === 'number' && Number.isFinite(state.retryCount) && state.retryCount >= 0 ? { retryCount: Math.floor(state.retryCount) } : {}),
   };
 };
 
@@ -212,13 +226,21 @@ export const enqueueLiveResponse = (
     clientNonce: previous?.clientNonce ?? payload.clientNonce,
     enqueuedAt,
     deliveryState: 'pending',
+    // Preserve retry info from previous attempt when deduplicating by step
+    ...(previous && 'retryCount' in previous && typeof (previous as LiveResponseStepState).retryCount === 'number'
+      ? { retryCount: (previous as LiveResponseStepState).retryCount }
+      : {}),
   };
   const nextState: StoredQueueState = {
     version: 2,
     items: [...state.items.filter(item => item.stepId !== payload.stepId), next],
     stepStates: {
       ...state.stepStates,
-      [payload.stepId]: { clientNonce: next.clientNonce, status: 'pending' },
+      [payload.stepId]: {
+        clientNonce: next.clientNonce,
+        status: 'pending',
+        ...(next.retryCount !== undefined ? { retryCount: next.retryCount } : {}),
+      },
     },
   };
   writeState(payload.sessionId, payload.participantUid, nextState, storage);
@@ -250,10 +272,19 @@ const markFailed = (
   message: string,
   storage: Storage | null | undefined,
 ): QueuedLiveResponse => {
+  const previousRetryCount = item.retryCount ?? 0;
+  const newRetryCount = kind === 'blocked' ? previousRetryCount : previousRetryCount + 1;
+  const backoffMs = kind === 'blocked'
+    ? undefined
+    : Math.min(BASE_BACKOFF_MS * Math.pow(2, previousRetryCount), MAX_BACKOFF_MS);
+  const isPermanentlyFailed = kind === 'blocked' || newRetryCount >= MAX_RETRY_COUNT;
+
   const failed: QueuedLiveResponse = {
     ...item,
-    deliveryState: kind === 'blocked' ? 'blocked' : 'pending',
+    deliveryState: isPermanentlyFailed ? 'blocked' : 'failed',
     lastError: message.slice(0, 500),
+    retryCount: newRetryCount,
+    ...(backoffMs !== undefined ? { retryAfter: backoffMs } : {}),
   };
   const state = readState(sessionId, participantUid, storage);
   const isCurrent = (candidate: QueuedLiveResponse) => candidate.stepId === item.stepId
@@ -265,7 +296,13 @@ const markFailed = (
     items: state.items.map(candidate => isCurrent(candidate) ? failed : candidate),
     stepStates: {
       ...state.stepStates,
-      [item.stepId]: { clientNonce: item.clientNonce, status: failed.deliveryState, lastError: failed.lastError },
+      [item.stepId]: {
+        clientNonce: item.clientNonce,
+        status: failed.deliveryState,
+        lastError: failed.lastError,
+        retryAfter: failed.retryAfter,
+        retryCount: failed.retryCount,
+      },
     },
   }, storage);
   return failed;
@@ -276,6 +313,7 @@ export const flushLiveResponseQueue = async (
   sessionId: string,
   participantUid: string,
   storage = defaultStorage(),
+  now = Date.now(),
 ): Promise<FlushLiveResponseResult> => {
   const items = getQueuedLiveResponses(sessionId, participantUid, storage);
   let attempted = 0;
@@ -287,6 +325,11 @@ export const flushLiveResponseQueue = async (
         synced,
         failed: { item, kind: 'blocked', message: item.lastError ?? 'Phản hồi bị chặn; cần một câu trả lời mới.' },
       };
+    }
+    // Skip items that are in 'failed' state but haven't reached their retry-after time
+    if (item.deliveryState === 'failed' && item.retryAfter !== undefined && item.retryAfter > 0) {
+      const retryAfterTime = item.enqueuedAt + item.retryAfter;
+      if (now < retryAfterTime) continue;
     }
     attempted += 1;
     try {

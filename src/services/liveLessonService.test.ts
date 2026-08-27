@@ -64,6 +64,7 @@ import {
   submitLiveResponse,
   subscribeToLivePublicState,
   subscribeToLivePublicStats,
+  subscribeToStudentGroup,
   subscribeToTeacherSession,
   subscribeToTeacherResponses,
   updateLiveLessonState,
@@ -462,6 +463,30 @@ describe('liveLessonService Firestore boundary', () => {
     stopStats();
     expect(stateStop).toHaveBeenCalledOnce();
     expect(statsStop).toHaveBeenCalledOnce();
+  });
+
+  it('subscribes to the student assignment subdoc and normalizes payload', () => {
+    const unsubscribe = vi.fn();
+    const onChange = vi.fn();
+    const onError = vi.fn();
+    let capturedTarget: { path: string } | undefined;
+    firestoreMocks.onSnapshot.mockImplementationOnce((target, onChangeCb) => {
+      capturedTarget = target;
+      onChangeCb({
+        exists: () => true,
+        data: () => ({ groupId: 'group-1', scaffold: 'Scaffold card', startedAt: 1000 }),
+      });
+      return unsubscribe;
+    });
+
+    const stop = subscribeToStudentGroup('session-1', 'group-1', 'student-1', onChange, onError);
+
+    expect(capturedTarget?.path).toBe('/liveLessonSessions/session-1/groups/group-1/students/student-1');
+    expect(onChange).toHaveBeenCalledWith({ groupId: 'group-1', scaffold: 'Scaffold card', startedAt: 1000 });
+    expect(onChange).toHaveBeenCalledOnce();
+    expect(onError).not.toHaveBeenCalled();
+    stop();
+    expect(unsubscribe).toHaveBeenCalledOnce();
   });
 });
 

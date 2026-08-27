@@ -447,6 +447,8 @@ export const subscribeToLivePublicStats = (
 
 const PROPOSALS_SUB = 'groupProposals';
 const GROUPS_SUB = 'groups';
+const STUDENTS_SUB = 'students';
+const EVIDENCE_SUB = 'evidence';
 
 export interface GroupProposalFirestore {
   groupId: string;
@@ -462,6 +464,22 @@ export interface ApprovedGroupFirestore {
   memberIds: string[];
   scaffold: string;
   startedAt: number;
+}
+
+export interface StudentGroupPayload {
+  groupId: string;
+  scaffold: string;
+  startedAt: number;
+}
+
+export interface EvidenceFirestore {
+  studentId: string;
+  stepId: string;
+  confidence: number;
+  signal: string;
+  privateReason: string;
+  createdAt: number;
+  updatedAt: number;
 }
 
 const normalizeGroupProposal = (value: unknown): GroupProposalFirestore | null => {
@@ -489,6 +507,35 @@ const normalizeApprovedGroup = (value: unknown): ApprovedGroupFirestore | null =
     memberIds: value.memberIds.filter((id): id is string => typeof id === 'string'),
     scaffold: value.scaffold,
     startedAt: isFiniteNumber(value.startedAt) ? value.startedAt : Date.now(),
+  };
+};
+
+const normalizeStudentGroupPayload = (value: unknown): StudentGroupPayload | null => {
+  if (!isRecord(value)) return null;
+  if (typeof value.groupId !== 'string') return null;
+  if (typeof value.scaffold !== 'string') return null;
+  return {
+    groupId: value.groupId,
+    scaffold: value.scaffold,
+    startedAt: isFiniteNumber(value.startedAt) ? value.startedAt : Date.now(),
+  };
+};
+
+const normalizeEvidence = (value: unknown): EvidenceFirestore | null => {
+  if (!isRecord(value)) return null;
+  assertIdentifier(value.studentId, 'studentId');
+  assertIdentifier(value.stepId, 'stepId');
+  if (!isFiniteNumber(value.confidence) || value.confidence < 0 || value.confidence > 1) return null;
+  assertNonEmptyString(value.signal, 'signal');
+  if (typeof value.privateReason !== 'string') return null;
+  return {
+    studentId: value.studentId,
+    stepId: value.stepId,
+    confidence: value.confidence,
+    signal: value.signal,
+    privateReason: value.privateReason,
+    createdAt: toEpochMillis(value.createdAt, 'createdAt'),
+    updatedAt: toEpochMillis(value.updatedAt, 'updatedAt'),
   };
 };
 
@@ -525,6 +572,118 @@ export const subscribeToApprovedGroup = (
   return onSnapshot(doc(db, SESSIONS_COL, sessionId, GROUPS_SUB, groupId), (snapshot) => {
     try {
       onChange(snapshot.exists() ? normalizeApprovedGroup(snapshot.data()) : null);
+    } catch (error) {
+      onError(asError(error));
+    }
+  }, (error) => onError(asError(error)));
+}, onError);
+
+// --- V4: Evidence read/write (teacher-only) ---
+
+export const writeEvidence = async (
+  sessionId: string,
+  studentId: string,
+  stepId: string,
+  evidence: Omit<EvidenceFirestore, 'createdAt' | 'updatedAt'>,
+): Promise<void> => {
+  assertIdentifier(sessionId, 'sessionId');
+  assertIdentifier(studentId, 'studentId');
+  assertIdentifier(stepId, 'stepId');
+  const evidenceId = `${studentId}__${stepId}`;
+  await setDoc(doc(db, SESSIONS_COL, sessionId, EVIDENCE_SUB, evidenceId), {
+    ...evidence,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+};
+
+export const readEvidence = async (
+  sessionId: string,
+  studentId: string,
+  stepId: string,
+): Promise<EvidenceFirestore | null> => {
+  assertIdentifier(sessionId, 'sessionId');
+  assertIdentifier(studentId, 'studentId');
+  assertIdentifier(stepId, 'stepId');
+  const evidenceId = `${studentId}__${stepId}`;
+  const snapshot = await getDoc(doc(db, SESSIONS_COL, sessionId, EVIDENCE_SUB, evidenceId));
+  return snapshot.exists() ? normalizeEvidence(snapshot.data()) : null;
+};
+
+// --- V4: Approved group read/write (teacher writes, assigned student reads) ---
+
+export const writeApprovedGroup = async (
+  sessionId: string,
+  group: ApprovedGroupFirestore,
+): Promise<void> => {
+  assertIdentifier(sessionId, 'sessionId');
+  assertIdentifier(group.groupId, 'groupId');
+  const groupDocRef = doc(db, SESSIONS_COL, sessionId, GROUPS_SUB, group.groupId);
+  await setDoc(groupDocRef, {
+    ...group,
+    updatedAt: serverTimestamp(),
+  });
+  for (const studentId of group.memberIds) {
+    assertIdentifier(studentId, 'memberId');
+    const studentRef = doc(db, SESSIONS_COL, sessionId, GROUPS_SUB, group.groupId, STUDENTS_SUB, studentId);
+    await setDoc(studentRef, {
+      groupId: group.groupId,
+      scaffold: group.scaffold,
+      startedAt: group.startedAt,
+    });
+  }
+};
+
+export const readApprovedGroup = async (
+  sessionId: string,
+  groupId: string,
+): Promise<ApprovedGroupFirestore | null> => {
+  assertIdentifier(sessionId, 'sessionId');
+  assertIdentifier(groupId, 'groupId');
+  const snapshot = await getDoc(doc(db, SESSIONS_COL, sessionId, GROUPS_SUB, groupId));
+  return snapshot.exists() ? normalizeApprovedGroup(snapshot.data()) : null;
+};
+
+// --- V4: Group proposals read/write (teacher-only) ---
+
+export const writeGroupProposals = async (
+  sessionId: string,
+  proposals: GroupProposalFirestore[],
+): Promise<void> => {
+  assertIdentifier(sessionId, 'sessionId');
+  await setDoc(doc(db, SESSIONS_COL, sessionId, PROPOSALS_SUB, 'current'), {
+    proposals,
+    updatedAt: serverTimestamp(),
+  });
+};
+
+export const readGroupProposals = async (
+  sessionId: string,
+): Promise<GroupProposalFirestore[]> => {
+  assertIdentifier(sessionId, 'sessionId');
+  const snapshot = await getDoc(doc(db, SESSIONS_COL, sessionId, PROPOSALS_SUB, 'current'));
+  if (!snapshot.exists()) return [];
+  const data = snapshot.data();
+  if (!isRecord(data) || !Array.isArray(data.proposals)) return [];
+  return data.proposals.map(normalizeGroupProposal).filter((p): p is GroupProposalFirestore => p !== null);
+};
+
+// --- V4: Subscribe to assigned student's group (student reads their own assignment) ---
+
+export const subscribeToStudentGroup = (
+  sessionId: string,
+  groupId: string,
+  studentId: string,
+  onChange: (group: StudentGroupPayload | null) => void,
+  onError: (error: Error) => void,
+): (() => void) => subscribeSafely(() => {
+  assertIdentifier(sessionId, 'sessionId');
+  assertIdentifier(groupId, 'groupId');
+  assertIdentifier(studentId, 'studentId');
+  // Student reads ONLY their own assignment subdoc (parent group doc is teacher-only)
+  return onSnapshot(doc(db, SESSIONS_COL, sessionId, GROUPS_SUB, groupId, STUDENTS_SUB, studentId), (snapshot) => {
+    try {
+      onChange(snapshot.exists() ? normalizeStudentGroupPayload(snapshot.data()) : null);
     } catch (error) {
       onError(asError(error));
     }
