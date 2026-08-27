@@ -444,3 +444,89 @@ export const subscribeToLivePublicStats = (
     }
   }, (error) => onError(asError(error)));
 }, onError);
+
+const PROPOSALS_SUB = 'groupProposals';
+const GROUPS_SUB = 'groups';
+
+export interface GroupProposalFirestore {
+  groupId: string;
+  purpose: string;
+  memberIds: string[];
+  scaffold: string;
+  reason: string;
+  checkpointId: string;
+}
+
+export interface ApprovedGroupFirestore {
+  groupId: string;
+  memberIds: string[];
+  scaffold: string;
+  startedAt: number;
+}
+
+const normalizeGroupProposal = (value: unknown): GroupProposalFirestore | null => {
+  if (!isRecord(value)) return null;
+  if (typeof value.groupId !== 'string' || typeof value.purpose !== 'string') return null;
+  if (!Array.isArray(value.memberIds)) return null;
+  if (typeof value.scaffold !== 'string' || typeof value.reason !== 'string') return null;
+  return {
+    groupId: value.groupId,
+    purpose: value.purpose,
+    memberIds: value.memberIds.filter((id): id is string => typeof id === 'string'),
+    scaffold: value.scaffold,
+    reason: value.reason,
+    checkpointId: typeof value.checkpointId === 'string' ? value.checkpointId : '',
+  };
+};
+
+const normalizeApprovedGroup = (value: unknown): ApprovedGroupFirestore | null => {
+  if (!isRecord(value)) return null;
+  if (typeof value.groupId !== 'string') return null;
+  if (!Array.isArray(value.memberIds)) return null;
+  if (typeof value.scaffold !== 'string') return null;
+  return {
+    groupId: value.groupId,
+    memberIds: value.memberIds.filter((id): id is string => typeof id === 'string'),
+    scaffold: value.scaffold,
+    startedAt: isFiniteNumber(value.startedAt) ? value.startedAt : Date.now(),
+  };
+};
+
+export const subscribeToGroupProposals = (
+  sessionId: string,
+  onChange: (proposals: GroupProposalFirestore[]) => void,
+  onError: (error: Error) => void,
+): (() => void) => subscribeSafely(() => {
+  assertIdentifier(sessionId, 'sessionId');
+  return onSnapshot(doc(db, SESSIONS_COL, sessionId, PROPOSALS_SUB, 'current'), (snapshot) => {
+    try {
+      if (!snapshot.exists()) { onChange([]); return; }
+      const data = snapshot.data();
+      if (isRecord(data) && Array.isArray(data.proposals)) {
+        const proposals = data.proposals.map(normalizeGroupProposal).filter((p): p is GroupProposalFirestore => p !== null);
+        onChange(proposals);
+      } else {
+        onChange([]);
+      }
+    } catch (error) {
+      onError(asError(error));
+    }
+  }, (error) => onError(asError(error)));
+}, onError);
+
+export const subscribeToApprovedGroup = (
+  sessionId: string,
+  groupId: string,
+  onChange: (group: ApprovedGroupFirestore | null) => void,
+  onError: (error: Error) => void,
+): (() => void) => subscribeSafely(() => {
+  assertIdentifier(sessionId, 'sessionId');
+  assertIdentifier(groupId, 'groupId');
+  return onSnapshot(doc(db, SESSIONS_COL, sessionId, GROUPS_SUB, groupId), (snapshot) => {
+    try {
+      onChange(snapshot.exists() ? normalizeApprovedGroup(snapshot.data()) : null);
+    } catch (error) {
+      onError(asError(error));
+    }
+  }, (error) => onError(asError(error)));
+}, onError);

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { RosterResponse } from '../../services/studentPortalApi';
 import {
   buildOfflineStatusText,
+  buildStudentGroupAssignment,
   buildStudentLanguageChip,
   buildStudentLanguageChoiceState,
   getStudentChoiceOptions,
@@ -127,5 +128,28 @@ describe('returning student language preference', () => {
     expect(result.view.language).toBe('ko');
     expect(result.view.supportMode).toBe('approved_full_translation');
     expect(result.needsFirstRunChoice).toBe(false);
+  });
+});
+
+describe('student group assignment privacy', () => {
+  it('student receives ONLY groupId, scaffold, and start time — NOT the private reason', () => {
+    const assignment = buildStudentGroupAssignment('grp-1', 'Hình/khung câu/thuật ngữ đã chuẩn bị.', 1_787_827_200_000);
+    const json = JSON.stringify(assignment);
+
+    expect(assignment.groupId).toBe('grp-1');
+    expect(assignment.scaffold).toBe('Hình/khung câu/thuật ngữ đã chuẩn bị.');
+    expect(assignment.startedAt).toBe(1_787_827_200_000);
+    expect(json).not.toContain('reason');
+    expect(json).not.toContain('privateReason');
+    expect(json).not.toContain('memberIds');
+    expect(json).not.toContain('purpose');
+  });
+
+  it('assignment JSON does not leak teacher private rationale', () => {
+    const assignment = buildStudentGroupAssignment('grp-mixed', 'Thêm điều kiện, phản ví dụ.', Date.now());
+    const json = JSON.stringify(assignment);
+    expect(json).not.toContain('HS chưa phân biệt');
+    expect(json).not.toContain('teacher_defined');
+    expect(json).not.toContain('same_need_workshop');
   });
 });

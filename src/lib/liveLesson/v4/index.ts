@@ -66,3 +66,9 @@ export {
   proposeGroups,
   type GroupProposal,
 } from './grouping';
+export {
+  buildPublicTvState,
+  projectToPublicTvState,
+  isPrivateFieldLeaked,
+  type PublicProjectionInput,
+} from './publicProjection';

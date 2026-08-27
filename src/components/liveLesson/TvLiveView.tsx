@@ -28,6 +28,22 @@ export const getTvStatsItems = (stats: LivePublicStats): TvStatsItem[] => [
   { label: 'Tuyến C', value: stats.routeCounts.C },
 ];
 
+const MAX_STAT_CARDS = 4;
+
+export const getStatCards = (stats: LivePublicStats): Array<{ label: string; value: number; accent?: boolean }> => {
+  const cards: Array<{ label: string; value: number; accent?: boolean }> = [
+    { label: 'Tham gia', value: stats.participantCount },
+    { label: 'Đã gửi', value: stats.submittedCount },
+  ];
+  const routeEntries = Object.entries(stats.routeCounts);
+  for (const [route, count] of routeEntries) {
+    if (cards.length >= MAX_STAT_CARDS) break;
+    if (count === 0) continue;
+    cards.push({ label: `Tuyến ${route}`, value: count, accent: true });
+  }
+  return cards;
+};
+
 export interface TvLiveViewProps { definition: TvLiveDefinition; sessionId: string; publicState: LivePublicState; publicStateError?: string | null; }
 
 export const TvLiveView = ({ definition, sessionId, publicState, publicStateError = null }: TvLiveViewProps) => {

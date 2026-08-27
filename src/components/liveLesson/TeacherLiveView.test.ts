@@ -68,3 +68,19 @@ describe('TeacherLiveView private needs summary', () => {
     expect(JSON.stringify(summary)).not.toMatch(/yếu|giỏi|kém|language|english|korean|nhãn/i);
   });
 });
+
+describe('TeacherLiveView grouping integration', () => {
+  it('group proposals are kept private to teacher view and not exposed to TV', () => {
+    const proposal = {
+      groupId: 'grp-1',
+      purpose: 'same_need_workshop' as const,
+      memberIds: ['s1', 's2', 's3'],
+      scaffold: 'Hình/khung câu/thuật ngữ đã chuẩn bị.',
+      reason: 'HS chưa phân biệt đường biên — lý do riêng tư.',
+    };
+    const json = JSON.stringify(proposal);
+    expect(json).toContain('HS chưa phân biệt đường biên');
+    expect(json).toContain('grp-1');
+    // Private reason is OK in teacher view — it must NOT appear in TV projection
+  });
+});

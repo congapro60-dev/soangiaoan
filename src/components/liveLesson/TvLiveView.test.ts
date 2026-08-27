@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { getPilotLiveLessonDefinition } from '../../lib/liveLesson/definition';
 import type { LivePublicState, LivePublicStats } from '../../lib/liveLesson/types';
-import { getTvListenerNotice, getTvPresentation, getTvStatsItems, shouldSubscribeToLivePublicStats } from './TvLiveView';
+import { getStatCards, getTvListenerNotice, getTvPresentation, getTvStatsItems, shouldSubscribeToLivePublicStats } from './TvLiveView';
 
 describe('TvLiveView public projection', () => {
   it('renders only the public screen and aggregate stats', () => {
@@ -62,5 +62,109 @@ describe('TvLiveView public projection', () => {
       message: 'Phiên đã đóng. TV không tiếp tục đọc dữ liệu công khai.',
     });
     expect(definition.title).toBeTruthy();
+  });
+});
+
+describe('TvLiveView stat cards max', () => {
+  it('returns at most 4 stat cards (participantCount + submittedCount + 2 route entries)', () => {
+    const stats: LivePublicStats = {
+      stepId: 'P16',
+      participantCount: 32,
+      submittedCount: 21,
+      choiceCounts: {},
+      routeCounts: { M: 8, S: 17, C: 7 },
+      errorCategoryCounts: { Conceptual: 2, Algebraic: 4, Logical: 11, 'Missing condition': 4 },
+      hintUseCount: 0,
+      updatedAt: Date.now(),
+    };
+    const cards = getStatCards(stats);
+    expect(cards.length).toBeLessThanOrEqual(4);
+    expect(cards[0]).toEqual({ label: 'Tham gia', value: 32 });
+    expect(cards[1]).toEqual({ label: 'Đã gửi', value: 21 });
+  });
+
+  it('shows only participantCount + submittedCount when routeCounts are empty', () => {
+    const stats: LivePublicStats = {
+      stepId: 'P00',
+      participantCount: 5,
+      submittedCount: 3,
+      choiceCounts: {},
+      routeCounts: { M: 0, S: 0, C: 0 },
+      errorCategoryCounts: { Conceptual: 0, Algebraic: 0, Logical: 0, 'Missing condition': 0 },
+      hintUseCount: 0,
+      updatedAt: Date.now(),
+    };
+    const cards = getStatCards(stats);
+    expect(cards.length).toBe(2);
+  });
+
+  it('does not include name, studentId, languageSupportPlan, rawText, or privateReason in JSON', () => {
+    const definition = getPilotLiveLessonDefinition();
+    const state: LivePublicState = { cueId: 'P16', tvScreenId: 'S4', status: 'running', showStats: true, updatedAt: Date.now() };
+    const stats: LivePublicStats = {
+      stepId: 'P16', participantCount: 10, submittedCount: 5,
+      choiceCounts: {}, routeCounts: { M: 2, S: 3, C: 0 },
+      errorCategoryCounts: { Conceptual: 1, Algebraic: 0, Logical: 4, 'Missing condition': 0 },
+      hintUseCount: 0, updatedAt: Date.now(),
+    };
+    const presentation = getTvPresentation(definition, state, stats);
+    const json = JSON.stringify(presentation);
+    expect(json).not.toContain('name');
+    expect(json).not.toContain('studentId');
+    expect(json).not.toContain('languageSupportPlan');
+    expect(json).not.toContain('rawText');
+    expect(json).not.toContain('privateReason');
+  });
+});
+
+describe('TvLiveView stat cards max', () => {
+  it('returns at most 4 stat cards (participantCount + submittedCount + 2 route entries)', () => {
+    const stats: LivePublicStats = {
+      stepId: 'P16',
+      participantCount: 32,
+      submittedCount: 21,
+      choiceCounts: {},
+      routeCounts: { M: 8, S: 17, C: 7 },
+      errorCategoryCounts: { Conceptual: 2, Algebraic: 4, Logical: 11, 'Missing condition': 4 },
+      hintUseCount: 0,
+      updatedAt: Date.now(),
+    };
+    const cards = getStatCards(stats);
+    expect(cards.length).toBeLessThanOrEqual(4);
+    expect(cards[0]).toEqual({ label: 'Tham gia', value: 32 });
+    expect(cards[1]).toEqual({ label: 'Đã gửi', value: 21 });
+  });
+
+  it('shows only participantCount + submittedCount when routeCounts are empty', () => {
+    const stats: LivePublicStats = {
+      stepId: 'P00',
+      participantCount: 5,
+      submittedCount: 3,
+      choiceCounts: {},
+      routeCounts: { M: 0, S: 0, C: 0 },
+      errorCategoryCounts: { Conceptual: 0, Algebraic: 0, Logical: 0, 'Missing condition': 0 },
+      hintUseCount: 0,
+      updatedAt: Date.now(),
+    };
+    const cards = getStatCards(stats);
+    expect(cards.length).toBe(2);
+  });
+
+  it('does not include name, studentId, languageSupportPlan, rawText, or privateReason in JSON', () => {
+    const definition = getPilotLiveLessonDefinition();
+    const state: LivePublicState = { cueId: 'P16', tvScreenId: 'S4', status: 'running', showStats: true, updatedAt: Date.now() };
+    const stats: LivePublicStats = {
+      stepId: 'P16', participantCount: 10, submittedCount: 5,
+      choiceCounts: {}, routeCounts: { M: 2, S: 3, C: 0 },
+      errorCategoryCounts: { Conceptual: 1, Algebraic: 0, Logical: 4, 'Missing condition': 0 },
+      hintUseCount: 0, updatedAt: Date.now(),
+    };
+    const presentation = getTvPresentation(definition, state, stats);
+    const json = JSON.stringify(presentation);
+    expect(json).not.toContain('name');
+    expect(json).not.toContain('studentId');
+    expect(json).not.toContain('languageSupportPlan');
+    expect(json).not.toContain('rawText');
+    expect(json).not.toContain('privateReason');
   });
 });
