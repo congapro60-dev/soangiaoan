@@ -8,7 +8,18 @@
 
 ## 0. Lô báo cáo lớp và cộng tác giáo viên — 2026-08-27
 
-**Commit code:** `cb7d9e9` · **Spec:** `f731b7c` · **Branch chờ push:** `codex/class-report-collaboration`
+**Nền tảng commit code:** `7c6964f` · **Spec:** `f731b7c` · **Lô bổ sung:** commit phát hành hiện tại trên `codex/class-report-collaboration`
+
+### Lô bổ sung báo cáo, xem câu hỏi và ảnh bài nộp — 2026-08-27
+
+- Khuyến nghị dạy học nay nêu rõ dữ liệu ghi nhận, việc làm trên lớp và cách kiểm tra lại; nhãn trung tính như “Không có” không bị tính thành lỗi.
+- Thêm ma trận học sinh × bài giao, gồm trạng thái chưa nộp/đang làm/chờ chấm/đã duyệt, điểm, số lượt nộp, tỷ lệ hoàn thành và điểm trung bình chính thức. Ma trận dùng lại snapshot báo cáo đã tải, không gọi thêm API và không ghi dữ liệu.
+- Trong thống kê theo câu, giáo viên có thể di chuột hoặc bấm số câu để xem nội dung câu thật. Đề online dùng cấu hình đề; đề upload có chữ được tách theo nhãn câu; nguồn không đủ cấu trúc hiện thông báo trung thực và liên kết đề gốc, không suy đoán.
+- Nội dung câu hỏi, đáp án tham chiếu và nhận xét đi qua renderer Markdown/KaTeX hiện có để công thức hiển thị đúng.
+- Ảnh bài nộp của từng học sinh mở trong một modal duy nhất có ảnh Trước/Sau, số thứ tự, phím mũi tên và Esc; PDF/Word vẫn mở theo liên kết tệp riêng.
+- Không migration, không đổi schema/ID, không ghi/xóa Firestore/Storage và không đụng điểm, nhận xét, bài giao hoặc bài nộp hiện có của lớp 11 Columbus.
+- Đã xác minh: focused 4 file/37 test PASS, `lint`, `lint:api`, `build`, `git diff --check` PASS. Build chỉ còn cảnh báo chunk/dynamic import vốn có.
+- Chưa chạy authenticated browser E2E trong phiên này; sau khi deployment Ready/Production, chủ lớp có thể tự QA luồng báo cáo và viewer bằng dữ liệu thật ở chế độ đọc.
 
 ### Hotfix tải báo cáo — 2026-08-27
 

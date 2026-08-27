@@ -280,3 +280,32 @@ Backup bản cũ: `C:\Users\ADMIN\AppData\Local\Temp\smartplan-ban-toan-backup-2
 - [ ] QA lớp học, giao/nộp bài, chấm điểm và giao diện học sinh theo rủi ro.
 - [ ] Review độc lập, full gates, push main, production smoke chỉ đọc.
 - [ ] Báo cáo lỗi còn lại và đề xuất nâng cấp.
+
+## Task 15 — Khuyến nghị dạy học có bằng chứng — 2026-08-27
+
+- [x] Tách nhãn trung tính như “Không có” khỏi thống kê lỗi và khuyến nghị.
+- [x] TDD khuyến nghị phải nêu dữ liệu, ưu tiên, hành động trên lớp, thời lượng và cách kiểm tra lại.
+- [x] Sinh khuyến nghị theo điểm lớp, độ phủ nộp bài, câu/chủ đề/lỗi yếu; không suy diễn khi thiếu bằng chứng.
+- [x] Hiển thị bản tiếng Việt giáo dục rõ ràng, đọc được trên màn hình báo cáo.
+- [x] Chạy focused test, lint, lint:api, build và rà soát diff.
+
+## Task 16 — Ma trận tiến độ học sinh theo bài giao — 2026-08-27
+
+- [x] Tái sử dụng snapshot báo cáo đã tải; không gọi thêm API và không sửa dữ liệu.
+- [x] Hiển thị ma trận học sinh × bài giao: thiếu/nộp/chờ chấm/đã duyệt, điểm và số lượt nộp.
+- [x] Có tổng hợp theo từng học sinh: số bài đã nộp, tỷ lệ hoàn thành, điểm trung bình chính thức.
+- [x] Có lọc/tìm kiếm và bảng cuộn ngang để dùng được khi lớp nhiều học sinh/bài.
+- [x] TDD model ma trận, build kiểm tra UI và chạy các gate trước khi bàn giao.
+
+## Task 17 — Xem nội dung câu hỏi và ảnh bài nộp — 2026-08-27
+
+- [x] Trong báo cáo, di chuột/bấm vào số câu để mở nội dung câu hỏi thật; không suy đoán khi nguồn không có cấu trúc.
+- [x] Với đề online và đề upload có chữ, hiển thị nội dung qua renderer công thức chuẩn; với ảnh scan, cho mở đề gốc.
+- [x] Thay việc mở từng ảnh bài nộp bằng một trình xem ảnh có Trước/Sau, số thứ tự và phím tắt.
+
+### Review/verification — các nâng cấp báo cáo và xem ảnh
+
+- Focused: 4 file test / 37 test pass (`questionCatalog`, `classReportModel`, `classProgressModel`, `ClassAssignmentReport`).
+- `npm run lint`: PASS; `npm run lint:api`: PASS; `npm run build`: PASS.
+- `git diff --check`: PASS; build chỉ còn cảnh báo Vite chunk/dynamic import vốn có.
+- Chưa chạy authenticated browser E2E; chờ người dùng tự QA sau deployment.

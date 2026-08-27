@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
-import { AlertTriangle, CalendarClock, CheckCircle2, ClipboardList, FileText, Hourglass, Loader2, PenLine, Play, Plus, RefreshCw, Save, ShieldCheck, Sparkles, Trash2, UserRound } from 'lucide-react';
+import { AlertTriangle, CalendarClock, CheckCircle2, ChevronLeft, ChevronRight, ClipboardList, FileText, Hourglass, Loader2, PenLine, Play, Plus, RefreshCw, Save, ShieldCheck, Sparkles, Trash2, UserRound, X } from 'lucide-react';
 import {
   approveGrade,
   createAssignment,
@@ -60,6 +60,82 @@ const dinhDangHan = (iso?: string): string => {
 };
 
 const TEACHER_GRADING_ERROR_COPY = 'AI gặp lỗi định dạng khi đọc kết quả chấm. Bài và ảnh vẫn được giữ nguyên; hệ thống đã tự thử phục hồi. Thầy/cô có thể chấm lại bằng AI hoặc sửa điểm bằng tay.';
+
+interface SubmissionViewFile {
+  name: string;
+  url: string;
+  kind?: string;
+  mimeType?: string;
+}
+
+const isImageSubmissionFile = (file: SubmissionViewFile): boolean => file.kind === 'image' || file.mimeType?.startsWith('image/') === true;
+
+const SubmissionImageViewer = ({ images, studentName }: { images: SubmissionViewFile[]; studentName: string }) => {
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (selectedIndex === null) return undefined;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSelectedIndex(null);
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        setSelectedIndex(index => index === null ? null : Math.max(0, index - 1));
+      }
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        setSelectedIndex(index => index === null ? null : Math.min(images.length - 1, index + 1));
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [images.length, selectedIndex]);
+
+  if (images.length === 0) return null;
+  const selectedImage = selectedIndex === null ? null : images[selectedIndex];
+
+  return (
+    <>
+      <div className="flex flex-wrap gap-2">
+        {images.map((image, index) => (
+          <button
+            key={image.url}
+            type="button"
+            onClick={() => setSelectedIndex(index)}
+            title={`Xem ảnh ${index + 1} — có thể chuyển bằng nút Trước/Sau`}
+            aria-label={`Xem ảnh ${index + 1} của ${studentName}`}
+            className="relative block h-24 w-24 overflow-hidden rounded-xl ring-1 ring-slate-200 transition hover:ring-2 hover:ring-blue-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <img src={image.url} alt={`Bài làm ${studentName} - ảnh ${index + 1}`} loading="lazy" className="h-full w-full object-cover" />
+            <span className="absolute bottom-1 right-1 rounded-md bg-slate-900/75 px-1.5 py-0.5 text-[10px] font-black text-white">{index + 1}/{images.length}</span>
+          </button>
+        ))}
+      </div>
+
+      {selectedImage && selectedIndex !== null && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/80 p-4 sm:p-8"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Ảnh ${selectedIndex + 1} của bài làm ${studentName}`}
+          onMouseDown={event => { if (event.target === event.currentTarget) setSelectedIndex(null); }}
+        >
+          <div className="flex max-h-full w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-slate-900 shadow-2xl">
+            <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3 text-white">
+              <p className="min-w-0 truncate text-sm font-black">Bài làm của {studentName} · Ảnh {selectedIndex + 1}/{images.length}</p>
+              <button type="button" onClick={() => setSelectedIndex(null)} aria-label="Đóng trình xem ảnh" className="rounded-lg p-2 text-slate-300 transition hover:bg-white/10 hover:text-white"><X className="h-5 w-5" /></button>
+            </div>
+            <div className="flex min-h-0 flex-1 items-center justify-center gap-2 p-3 sm:gap-4 sm:p-5">
+              <button type="button" onClick={() => setSelectedIndex(index => index === null ? null : Math.max(0, index - 1))} disabled={selectedIndex === 0} aria-label="Ảnh trước" className="shrink-0 rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-30"><ChevronLeft className="h-6 w-6" /></button>
+              <img src={selectedImage.url} alt={`Bài làm ${studentName} - ảnh ${selectedIndex + 1}`} className="max-h-[calc(100vh-10rem)] max-w-[calc(100vw-7rem)] object-contain" />
+              <button type="button" onClick={() => setSelectedIndex(index => index === null ? null : Math.min(images.length - 1, index + 1))} disabled={selectedIndex === images.length - 1} aria-label="Ảnh sau" className="shrink-0 rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-30"><ChevronRight className="h-6 w-6" /></button>
+            </div>
+            <p className="border-t border-white/10 px-4 py-2 text-center text-xs font-semibold text-slate-400">Dùng nút Trước/Sau hoặc phím ← → · Esc để đóng</p>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
 
 interface BaiNopTheoLopProps {
   baiNop: SubmissionDoc[];
@@ -214,20 +290,26 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
 
             {dangMo && (
               <div className="space-y-3 rounded-2xl bg-slate-50 mx-3 mb-3 p-3">
-                {s.fileUrls.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {(s.attachments || s.fileUrls.map((url, i) => ({ name: `Tệp ${i + 1}`, url, kind: 'image' as const }))).map((file, i) => (
-                      file.kind === 'image' || file.mimeType?.startsWith('image/') ? (
-                        <a key={file.url} href={file.url} target="_blank" rel="noreferrer" title={`Mở ảnh ${i + 1} cỡ lớn`} className="block h-24 w-24 overflow-hidden rounded-xl ring-1 ring-slate-200 transition hover:ring-blue-400">
-                          <img src={file.url} alt={`Bài làm ${ten} - ảnh ${i + 1}`} loading="lazy" className="h-full w-full object-cover" />
-                        </a>
-                      ) : (
-                        <a key={file.url} href={file.url} target="_blank" rel="noreferrer" className="inline-flex min-h-11 max-w-full items-center gap-2 rounded-xl bg-white px-3 py-2 text-xs font-bold text-blue-700 ring-1 ring-slate-200">
-                          <FileText className="h-4 w-4 shrink-0" /> <span className="break-all">{file.name}</span>
-                        </a>
-                      )
-                    ))}
-                  </div>
+                {(s.attachments && s.attachments.length > 0) || s.fileUrls.length > 0 ? (
+                  (() => {
+                    const files: SubmissionViewFile[] = s.attachments && s.attachments.length > 0
+                      ? s.attachments
+                      : s.fileUrls.map((url, i) => ({ name: `Tệp ${i + 1}`, url, kind: 'image' }));
+                    const images = files.filter(isImageSubmissionFile);
+                    const otherFiles = files.filter(file => !isImageSubmissionFile(file));
+                    return (
+                      <>
+                        <SubmissionImageViewer images={images} studentName={ten} />
+                        {otherFiles.length > 0 && <div className="flex flex-wrap gap-2">
+                          {otherFiles.map(file => (
+                            <a key={file.url} href={file.url} target="_blank" rel="noreferrer" className="inline-flex min-h-11 max-w-full items-center gap-2 rounded-xl bg-white px-3 py-2 text-xs font-bold text-blue-700 ring-1 ring-slate-200">
+                              <FileText className="h-4 w-4 shrink-0" /> <span className="break-all">{file.name}</span>
+                            </a>
+                          ))}
+                        </div>}
+                      </>
+                    );
+                  })()
                 ) : (
                   <p className="text-sm font-semibold text-slate-400">Không có ảnh đính kèm.</p>
                 )}

@@ -4,6 +4,7 @@ import type { AssignmentDoc, SubmissionDoc } from '../../../lib/classroom/types'
 import {
   adaptOnlineSubmission,
   adaptUploadSubmission,
+  buildAssignmentQuestionSources,
   buildClassReportCsv,
   getQuestionOutcomeRows,
   loadClassAssignmentReports,
@@ -132,6 +133,20 @@ describe('ClassAssignmentReport adapters', () => {
     })]);
     expect(JSON.stringify(adapted)).not.toContain('raw answer');
     expect(JSON.stringify(adapted)).not.toContain('noteForTeacher');
+  });
+
+  it('giữ nguồn đề gốc an toàn để popup mở đối chiếu khi đề upload là ảnh scan', () => {
+    expect(buildAssignmentQuestionSources({
+      attachments: [
+        { name: 'de-toan.pdf', url: 'https://example.com/de-toan.pdf', mimeType: 'application/pdf' },
+        { name: 'de-toan.pdf', url: 'https://example.com/de-toan.pdf', mimeType: 'application/pdf' },
+        { name: 'không hợp lệ', url: 'javascript:alert(1)' },
+      ],
+      sourceImageUrls: ['https://example.com/page-1.png'],
+    })).toEqual([
+      { name: 'de-toan.pdf', url: 'https://example.com/de-toan.pdf', mimeType: 'application/pdf' },
+      { name: 'Ảnh đề trang 1', url: 'https://example.com/page-1.png', mimeType: 'image/*' },
+    ]);
   });
 
   it('matches online submissions by student id, then normalized name and class', () => {

@@ -180,7 +180,7 @@ describe('buildClassAssignmentReport', () => {
     expect(report.metrics.medianPercent).toBe(0);
     expect(report.metrics.officialEvidenceCount).toBe(1);
     expect(report.recommendations).toEqual([
-      expect.stringContaining('Chưa đủ dữ liệu'),
+      expect.objectContaining({ title: expect.stringContaining('Chưa đủ dữ liệu') }),
     ]);
     expect(JSON.stringify(report)).not.toContain('studentAnswer');
     expect(JSON.stringify(report)).not.toContain('noteForTeacher');
@@ -331,6 +331,7 @@ describe('buildClassAssignmentReport', () => {
 
     expect(report.latest[0]).not.toBe(rawSubmission);
     expect(Object.keys(report.latest[0]).sort()).toEqual([
+      'attemptCount',
       'createdAt',
       'id',
       'maxScore',
@@ -395,8 +396,40 @@ describe('buildClassAssignmentReport', () => {
 
     expect(first.recommendations.length).toBeGreaterThan(0);
     expect(first.recommendations).toEqual(second.recommendations);
-    expect(first.recommendations.join(' ')).toMatch(/Hàm số|Sai dấu/);
-    expect(first.recommendations.join(' ')).not.toContain('Chưa đủ dữ liệu');
+    const firstText = first.recommendations.map(recommendation => Object.values(recommendation).join(' ')).join(' ');
+    expect(firstText).toMatch(/Hàm số|Sai dấu/);
+    expect(firstText).not.toContain('Chưa đủ dữ liệu');
+    expect(first.recommendations[0]).toEqual(expect.objectContaining({
+      title: expect.any(String),
+      evidence: expect.any(String),
+      action: expect.any(String),
+      check: expect.any(String),
+    }));
+  });
+
+  it('không coi nhãn trung tính là lỗi cần sửa', () => {
+    const report = buildClassAssignmentReport(baseInput([
+      baseSubmission({ id: 's1', studentKey: 'student-1', questionResults: [{ questionNumber: '1', status: 'correct', score: 2, maxScore: 2, errorType: 'Không có', weakTopics: [] }] }),
+      baseSubmission({ id: 's2', studentKey: 'student-2', questionResults: [{ questionNumber: '1', status: 'correct', score: 2, maxScore: 2, errorType: 'không có lỗi', weakTopics: [] }] }),
+      baseSubmission({ id: 's3', studentKey: 'student-3', questionResults: [{ questionNumber: '1', status: 'correct', score: 2, maxScore: 2, errorType: 'N/A', weakTopics: [] }] }),
+    ]));
+
+    expect(report.errorStats).toEqual([]);
+    expect(report.recommendations.map(recommendation => Object.values(recommendation).join(' ')).join(' ')).not.toMatch(/lỗi “(Không có|không có lỗi|N\/A)”/i);
+  });
+
+  it('đưa số liệu câu yếu, việc làm trên lớp và cách kiểm tra lại vào khuyến nghị', () => {
+    const report = buildClassAssignmentReport(baseInput([
+      baseSubmission({ id: 's1', studentKey: 'student-1', score: 4, questionResults: [{ questionNumber: '1', status: 'incorrect', score: 0, maxScore: 2, errorType: 'Sai dấu', weakTopics: ['Hàm số'] }] }),
+      baseSubmission({ id: 's2', studentKey: 'student-2', score: 5, questionResults: [{ questionNumber: '1', status: 'partial', score: 1, maxScore: 2, errorType: 'Sai dấu', weakTopics: ['Hàm số'] }] }),
+      baseSubmission({ id: 's3', studentKey: 'student-3', score: 6, questionResults: [{ questionNumber: '1', status: 'incorrect', score: 0, maxScore: 2, errorType: 'Thiếu bước', weakTopics: ['Hàm số'] }] }),
+    ]));
+
+    const recommendationText = report.recommendations.map(recommendation => Object.values(recommendation).join(' ')).join(' ');
+    expect(recommendationText).toContain('Câu 1');
+    expect(recommendationText).toMatch(/0\/3|1\/3/);
+    expect(recommendationText).toMatch(/phút|nhiệm vụ|phiếu thoát/i);
+    expect(recommendationText).toMatch(/Kiểm tra lại|đạt ít nhất/i);
   });
 
   it('không kết luận câu yếu nếu question evidenceCount dưới 3', () => {
@@ -428,6 +461,6 @@ describe('buildClassAssignmentReport', () => {
     ]));
 
     expect(report.questionStats.find(question => question.questionNumber === '1')?.evidenceCount).toBe(2);
-    expect(report.recommendations.some(recommendation => recommendation.includes('câu 1'))).toBe(false);
+    expect(report.recommendations.some(recommendation => Object.values(recommendation).join(' ').includes('câu 1'))).toBe(false);
   });
 });

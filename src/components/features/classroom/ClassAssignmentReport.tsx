@@ -7,12 +7,17 @@ import {
   buildClassAssignmentReport,
   type ClassAssignmentReport as ClassAssignmentReportMetrics,
   type ClassReportAssignment,
+  type ClassReportQuestionCatalogItem,
+  type ClassReportQuestionSource,
   type ClassReportQuestionStats,
   type ClassReportQuestionResult,
   type ClassReportSubmission,
 } from '../../../lib/classroom/classReportModel';
+import { extractQuestionCatalogFromText, normalizeQuestionKey } from '../../../lib/classroom/questionCatalog';
 import type { AssignmentDoc, SubmissionDoc } from '../../../lib/classroom/types';
 import type { ClassAssignment, Exam, ExamSubmission, Student } from '../../../types';
+import { ClassStudentProgressMatrix } from './ClassStudentProgressMatrix';
+import { NhanXetMarkdown } from './NhanXetMarkdown';
 
 export interface ClassAssignmentReportProps {
   classId: string;
@@ -88,6 +93,36 @@ const asFiniteNumber = (value: unknown): number | null =>
   typeof value === 'number' && Number.isFinite(value) ? value : null;
 
 const asText = (value: unknown): string => (typeof value === 'string' ? value : String(value ?? ''));
+
+const safeHttpUrl = (value: unknown): string => {
+  const url = asText(value).trim();
+  return /^https?:\/\//iu.test(url) ? url : '';
+};
+
+export const buildAssignmentQuestionSources = (
+  assignment: Pick<AssignmentDoc, 'attachments' | 'sourceImageUrls'>,
+): ClassReportQuestionSource[] => {
+  const seen = new Set<string>();
+  const sources: ClassReportQuestionSource[] = [];
+  const add = (name: unknown, url: unknown, mimeType?: unknown) => {
+    const safeUrl = safeHttpUrl(url);
+    if (!safeUrl || seen.has(safeUrl)) return;
+    seen.add(safeUrl);
+    sources.push({
+      name: asText(name).trim() || 'Đề gốc',
+      url: safeUrl,
+      ...(typeof mimeType === 'string' && mimeType ? { mimeType } : {}),
+    });
+  };
+
+  for (const attachment of assignment.attachments ?? []) {
+    add(attachment.name, attachment.url, attachment.mimeType);
+  }
+  for (const [index, url] of (assignment.sourceImageUrls ?? []).entries()) {
+    add(`Ảnh đề trang ${index + 1}`, url, 'image/*');
+  }
+  return sources;
+};
 
 const normalizeMatchText = (value: unknown): string => asText(value)
   .normalize('NFD')
@@ -198,6 +233,11 @@ const csvCell = (value: unknown): string => {
 
 const percentText = (value: number | null): string => value === null ? '' : `${(value * 100).toFixed(1)}%`;
 
+const questionCatalogItem = (
+  catalog: readonly ClassReportQuestionCatalogItem[] | undefined,
+  questionNumber: string,
+): ClassReportQuestionCatalogItem | undefined => catalog?.find(item => normalizeQuestionKey(item.questionNumber) === normalizeQuestionKey(questionNumber));
+
 export const getQuestionOutcomeRows = (question: Pick<ClassReportQuestionStats, 'evidenceCount' | 'correct' | 'partial' | 'incorrect' | 'unreadable' | 'notAttempted'>): Array<{ metric: string; count: number; rate: number }> => {
   const denominator = question.evidenceCount;
   const outcomes: Array<[string, number]> = [
@@ -298,44 +338,137 @@ const Distribution = ({ report }: { report: ClassAssignmentReportMetrics }) => {
   );
 };
 
-const QuestionStats = ({ report }: { report: ClassAssignmentReportMetrics }) => (
-  <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6" aria-labelledby="question-stats-heading">
-    <h3 id="question-stats-heading" className="text-lg font-black text-slate-900">Thống kê theo câu</h3>
-    {report.questionStats.length === 0 ? (
-      <p className="mt-4 text-sm font-semibold text-slate-500">Chưa có dữ liệu câu hỏi chính thức.</p>
-    ) : (
-      <div className="mt-4 overflow-x-auto">
-        <table className="min-w-[760px] w-full text-left text-sm">
-          <thead className="border-b border-slate-200 text-xs font-black uppercase tracking-wide text-slate-400">
-            <tr>
-              <th className="px-3 py-3">Câu</th><th className="px-3 py-3">Bằng chứng</th><th className="px-3 py-3">Đúng</th>
-              <th className="px-3 py-3">Đúng một phần</th><th className="px-3 py-3">Sai</th><th className="px-3 py-3">Không đọc được</th><th className="px-3 py-3">Chưa làm</th>
-              <th className="px-3 py-3">Tỷ lệ đúng</th><th className="px-3 py-3">Tỷ lệ điểm</th>
-            </tr>
-          </thead>
-          <tbody>
-            {report.questionStats.map(question => {
-              const outcomes = getQuestionOutcomeRows(question);
-              return (
-              <tr key={question.questionNumber} className="border-b border-slate-100 last:border-0">
-                <td className="px-3 py-3 font-black text-slate-800">{question.questionNumber}</td>
-                <td className="px-3 py-3 font-semibold text-slate-600">{question.evidenceCount}</td>
-                <td className="px-3 py-3 font-bold text-emerald-700">{outcomes[0].count}</td>
-                <td className="px-3 py-3 font-bold text-amber-700">{outcomes[1].count}</td>
-                <td className="px-3 py-3 font-bold text-rose-700">{outcomes[2].count}</td>
-                <td className="px-3 py-3 font-bold text-orange-700">{outcomes[3].count}</td>
-                <td className="px-3 py-3 font-bold text-slate-600">{outcomes[4].count}</td>
-                <td className="px-3 py-3 font-black text-slate-800">{formatRate(question.correctRate)}</td>
-                <td className="px-3 py-3 font-black text-slate-800">{formatRate(question.scoreRate)}</td>
-              </tr>
-              );
-            })}
-          </tbody>
-        </table>
+const QuestionStats = ({ report }: { report: ClassAssignmentReportMetrics }) => {
+  const [activeQuestionNumber, setActiveQuestionNumber] = useState<string | null>(null);
+  const [pinnedQuestionNumber, setPinnedQuestionNumber] = useState<string | null>(null);
+  const activeQuestion = report.questionStats.find(question => question.questionNumber === activeQuestionNumber);
+  const activeCatalogItem = activeQuestion
+    ? questionCatalogItem(report.assignment.questionCatalog, activeQuestion.questionNumber)
+    : undefined;
+  const sourceLinks = report.assignment.questionSources ?? [];
+
+  const openQuestion = (questionNumber: string) => {
+    if (!pinnedQuestionNumber) setActiveQuestionNumber(questionNumber);
+  };
+  const togglePinnedQuestion = (questionNumber: string) => {
+    setPinnedQuestionNumber(previous => previous === questionNumber ? null : questionNumber);
+    setActiveQuestionNumber(questionNumber);
+  };
+  const closeQuestion = () => {
+    setPinnedQuestionNumber(null);
+    setActiveQuestionNumber(null);
+  };
+
+  return (
+    <section
+      className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
+      aria-labelledby="question-stats-heading"
+      onMouseLeave={() => { if (!pinnedQuestionNumber) setActiveQuestionNumber(null); }}
+    >
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h3 id="question-stats-heading" className="text-lg font-black text-slate-900">Thống kê theo câu</h3>
+        {report.questionStats.length > 0 && <p className="text-xs font-semibold text-slate-500">Di chuột hoặc bấm vào số câu để xem đề</p>}
       </div>
-    )}
-  </section>
-);
+      {report.questionStats.length === 0 ? (
+        <p className="mt-4 text-sm font-semibold text-slate-500">Chưa có dữ liệu câu hỏi chính thức.</p>
+      ) : (
+        <>
+          <div className="mt-4 overflow-x-auto">
+            <table className="min-w-[760px] w-full text-left text-sm">
+              <thead className="border-b border-slate-200 text-xs font-black uppercase tracking-wide text-slate-400">
+                <tr>
+                  <th className="px-3 py-3">Câu</th><th className="px-3 py-3">Bằng chứng</th><th className="px-3 py-3">Đúng</th>
+                  <th className="px-3 py-3">Đúng một phần</th><th className="px-3 py-3">Sai</th><th className="px-3 py-3">Không đọc được</th><th className="px-3 py-3">Chưa làm</th>
+                  <th className="px-3 py-3">Tỷ lệ đúng</th><th className="px-3 py-3">Tỷ lệ điểm</th>
+                </tr>
+              </thead>
+              <tbody>
+                {report.questionStats.map(question => {
+                  const outcomes = getQuestionOutcomeRows(question);
+                  const isActive = activeQuestionNumber === question.questionNumber;
+                  const hasCatalogItem = Boolean(questionCatalogItem(report.assignment.questionCatalog, question.questionNumber));
+                  return (
+                    <tr key={question.questionNumber} className="border-b border-slate-100 last:border-0">
+                      <td className="px-3 py-3">
+                        <button
+                          type="button"
+                          className={`rounded-lg px-2 py-1 font-black underline decoration-dotted underline-offset-4 transition ${isActive ? 'bg-indigo-100 text-indigo-800' : 'text-slate-800 hover:bg-indigo-50 hover:text-indigo-700'}`}
+                          title={hasCatalogItem ? 'Di chuột hoặc bấm để xem nội dung câu hỏi' : 'Xem trạng thái nguồn câu hỏi'}
+                          aria-label={`Xem nội dung Câu ${question.questionNumber}`}
+                          aria-expanded={isActive}
+                          onMouseEnter={() => openQuestion(question.questionNumber)}
+                          onFocus={() => openQuestion(question.questionNumber)}
+                          onClick={() => togglePinnedQuestion(question.questionNumber)}
+                        >
+                          {question.questionNumber}
+                        </button>
+                      </td>
+                      <td className="px-3 py-3 font-semibold text-slate-600">{question.evidenceCount}</td>
+                      <td className="px-3 py-3 font-bold text-emerald-700">{outcomes[0].count}</td>
+                      <td className="px-3 py-3 font-bold text-amber-700">{outcomes[1].count}</td>
+                      <td className="px-3 py-3 font-bold text-rose-700">{outcomes[2].count}</td>
+                      <td className="px-3 py-3 font-bold text-orange-700">{outcomes[3].count}</td>
+                      <td className="px-3 py-3 font-bold text-slate-600">{outcomes[4].count}</td>
+                      <td className="px-3 py-3 font-black text-slate-800">{formatRate(question.correctRate)}</td>
+                      <td className="px-3 py-3 font-black text-slate-800">{formatRate(question.scoreRate)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {activeQuestion && (
+            <div
+              className="mt-4 rounded-2xl border border-indigo-200 bg-indigo-50/70 p-4 text-slate-800"
+              role="region"
+              aria-label={`Nội dung Câu ${activeQuestion.questionNumber}`}
+              onMouseEnter={() => openQuestion(activeQuestion.questionNumber)}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-wide text-indigo-600">Xem câu hỏi</p>
+                  <h4 className="mt-1 text-base font-black text-slate-900">Câu {activeQuestion.questionNumber}</h4>
+                </div>
+                <button type="button" onClick={closeQuestion} className="rounded-lg px-2 py-1 text-xs font-black text-indigo-700 hover:bg-white" aria-label="Đóng nội dung câu hỏi">Đóng</button>
+              </div>
+              {activeCatalogItem?.content ? (
+                <>
+                  <p className="mt-3 text-xs font-black uppercase tracking-wide text-slate-500">Nội dung câu hỏi</p>
+                  <NhanXetMarkdown>{activeCatalogItem.content}</NhanXetMarkdown>
+                  {activeCatalogItem.expectedAnswer && (
+                    <div className="mt-3 border-t border-indigo-200 pt-3">
+                      <p className="text-xs font-black uppercase tracking-wide text-slate-500">Đáp án tham chiếu</p>
+                      <NhanXetMarkdown>{activeCatalogItem.expectedAnswer}</NhanXetMarkdown>
+                    </div>
+                  )}
+                  {activeCatalogItem.imageUrl && (
+                    <a className="mt-2 inline-flex text-sm font-black text-indigo-700 underline" href={activeCatalogItem.imageUrl} target="_blank" rel="noreferrer">Mở hình đề</a>
+                  )}
+                </>
+              ) : (
+                <p className="mt-3 rounded-xl bg-white/70 p-3 text-sm font-semibold leading-6 text-slate-700">
+                  Chưa có nội dung câu hỏi dạng chữ được lưu cho bài này. Không suy đoán từ số liệu chấm; hãy mở đề gốc để đối chiếu.
+                </p>
+              )}
+              {sourceLinks.length > 0 && (
+                <div className="mt-3 border-t border-indigo-200 pt-3">
+                  <p className="text-xs font-black uppercase tracking-wide text-slate-500">Nguồn đề gốc</p>
+                  <ul className="mt-1 space-y-1">
+                    {sourceLinks.map(source => <li key={source.url}><a className="text-sm font-bold text-indigo-700 underline" href={source.url} target="_blank" rel="noreferrer">{source.name}</a></li>)}
+                  </ul>
+                </div>
+              )}
+              <div className="mt-3 grid gap-2 border-t border-indigo-200 pt-3 text-xs font-bold text-slate-600 sm:grid-cols-5">
+                {getQuestionOutcomeRows(activeQuestion).map(outcome => <span key={outcome.metric}>{outcome.metric}: {outcome.count} ({formatRate(outcome.rate)})</span>)}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </section>
+  );
+};
 
 const LabelStats = ({ title, stats }: { title: string; stats: readonly { label: string; evidenceCount: number }[] }) => {
   const total = stats.reduce((sum, stat) => sum + stat.evidenceCount, 0);
@@ -371,8 +504,15 @@ const ReportBody = ({ report }: { report: ClassAssignmentReportMetrics }) => (
       <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6" aria-labelledby="recommendations-heading">
         <h3 id="recommendations-heading" className="text-lg font-black text-slate-900">Khuyến nghị dạy học</h3>
         <ul className="mt-4 space-y-3">
-          {report.recommendations.map(recommendation => (
-            <li key={recommendation} className="rounded-2xl bg-indigo-50 px-4 py-3 text-sm font-semibold leading-6 text-indigo-950">{recommendation}</li>
+          {report.recommendations.map((recommendation, index) => (
+            <li key={`${recommendation.title}-${index}`} className="rounded-2xl bg-indigo-50 px-4 py-3 text-sm leading-6 text-indigo-950">
+              <h4 className="font-black">{recommendation.title}</h4>
+              <div className="mt-2 grid gap-2">
+                <p><span className="font-black">Dữ liệu ghi nhận:</span> {recommendation.evidence}</p>
+                <p><span className="font-black">Việc làm trên lớp:</span> {recommendation.action}</p>
+                <p><span className="font-black">Kiểm tra lại:</span> {recommendation.check}</p>
+              </div>
+            </li>
           ))}
         </ul>
       </section>
@@ -408,14 +548,19 @@ export const loadClassAssignmentReports = async (
     const uploadAssignments = uploadAssignmentsResult.value;
     const uploadSubmissions = uploadSubmissionsResult.value;
     for (const assignment of uploadAssignments) {
+      const submissions = uploadSubmissions
+        .filter(submission => submission.assignmentId === assignment.id)
+        .map(submission => adaptUploadSubmission(submission, assignment));
+      const questionNumbers = [...new Set(submissions.flatMap(submission =>
+        (submission.questionResults ?? []).map(result => result.questionNumber).filter(Boolean)))];
       const normalized: ClassReportAssignment = {
         id: assignment.id,
         title: assignment.title,
         type: 'Bài nộp ảnh/AI',
         maxScore: asFiniteNumber(assignment.maxScore),
-        submissions: uploadSubmissions
-          .filter(submission => submission.assignmentId === assignment.id)
-          .map(submission => adaptUploadSubmission(submission, assignment)),
+        questionCatalog: extractQuestionCatalogFromText(assignment.sourceText, questionNumbers),
+        questionSources: buildAssignmentQuestionSources(assignment),
+        submissions,
       };
       reports.push(buildClassAssignmentReport({
         roster: input.students.map(student => ({ studentKey: student.id })),
@@ -442,6 +587,13 @@ export const loadClassAssignmentReports = async (
         title: assignment.examTitle || exam.title,
         type: 'Đề online',
         maxScore: asFiniteNumber(exam.maxScore),
+        questionCatalog: exam.questions.map((question, index) => ({
+          questionNumber: String(index + 1),
+          content: asText(question.content).trim(),
+          maxScore: asFiniteNumber(question.points),
+          expectedAnswer: asText(question.correctAnswer).trim() || undefined,
+          imageUrl: safeHttpUrl(question.imageUrl) || undefined,
+        })),
         submissions: submissions
           .map(submission => adaptOnlineSubmission(submission, exam, input.students, input.className, input.classNameAliases))
           .filter((submission): submission is ClassReportSubmission => submission !== null),
@@ -605,6 +757,7 @@ export const ClassAssignmentReport = ({
         </div>
       ) : (
         <>
+          <ClassStudentProgressMatrix students={students} reports={reports} />
           <div className="flex items-center justify-between gap-4">
             <div><p className="text-xs font-black uppercase tracking-wide text-indigo-600">{selectedReport.assignment.type}</p><h3 className="mt-1 text-xl font-black text-slate-900">{selectedReport.assignment.title}</h3></div>
             <p className="hidden text-right text-xs font-semibold text-slate-500 sm:block">{selectedReport.metrics.officialEvidenceCount} bằng chứng chính thức</p>
