@@ -271,3 +271,38 @@ export const buildProgressBridgeResult = (input: ProgressBridgeInput): ProgressB
   }
   return buildProgressBridgeResults(input)[0];
 };
+
+// --- Evidence adapter: feed valid checkpoints into V4 evidence engine ---
+
+export interface EvidenceAdapterOutput {
+  participantUid: string;
+  responses: Array<{
+    stepId: string;
+    responseType: string;
+    value: string | number | boolean;
+    submittedAt: number;
+    updatedAt: number;
+    clientNonce: string;
+  }>;
+}
+
+export const buildEvidenceAdapterInput = (input: ProgressBridgeInput): EvidenceAdapterOutput[] => {
+  assertClosedSession(input.session);
+  if (input.definition.lessonId !== input.session.lessonId) {
+    throw new ProgressBridgeInputError('Định nghĩa bài học không khớp phiên đã đóng.');
+  }
+  assertCanonicalDefinition(input.definition);
+  assertAllResponsesMatchContract(input);
+
+  return input.submissions.map(submission => ({
+    participantUid: submission.participantUid,
+    responses: submission.responses.map(r => ({
+      stepId: r.stepId,
+      responseType: r.responseType,
+      value: r.value,
+      submittedAt: r.submittedAt,
+      updatedAt: r.updatedAt,
+      clientNonce: r.clientNonce,
+    })),
+  }));
+};

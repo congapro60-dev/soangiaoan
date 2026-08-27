@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { getPilotLiveLessonDefinition } from './definition';
 import {
   ProgressBridgeInputError,
+  buildEvidenceAdapterInput,
   buildProgressBridgeResult,
   buildProgressBridgeResults,
   type ProgressBridgeInput,
@@ -193,5 +194,37 @@ describe('live lesson progress bridge', () => {
     });
 
     expect(buildProgressBridgeResults(input)).toHaveLength(2);
+  });
+
+  describe('buildEvidenceAdapterInput', () => {
+    it('extracts valid responses for the evidence engine', () => {
+      const result = buildEvidenceAdapterInput(completeInput());
+      expect(result).toHaveLength(1);
+      expect(result[0].participantUid).toBe(metadata.participantUid);
+      expect(result[0].responses).toHaveLength(3);
+      expect(result[0].responses[0].stepId).toBe('ai-error-w01');
+      expect(result[0].responses[0].responseType).toBe('choice');
+    });
+
+    it('rejects session not closed', () => {
+      expect(() => buildEvidenceAdapterInput(completeInput({ session: session('running') })))
+        .toThrowError(ProgressBridgeInputError);
+    });
+
+    it('rejects definition mismatch', () => {
+      const input = completeInput();
+      (input.session as { lessonId: string }).lessonId = 'wrong-lesson';
+      expect(() => buildEvidenceAdapterInput(input)).toThrowError(ProgressBridgeInputError);
+    });
+
+    it('preserves response values without writing fake scores', () => {
+      const result = buildEvidenceAdapterInput(completeInput());
+      for (const r of result[0].responses) {
+        expect(r).toHaveProperty('value');
+        expect(typeof r.value).not.toBe('undefined');
+        // No fake score field — only raw response data
+        expect(r).not.toHaveProperty('score');
+      }
+    });
   });
 });

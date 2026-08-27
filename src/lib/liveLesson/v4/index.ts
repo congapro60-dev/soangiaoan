@@ -56,3 +56,13 @@ export {
   findApprovedGlossaryItem,
   type StudentGlossaryPopupPayload,
 } from './glossary';
+export {
+  buildEvidenceVectors,
+  deduplicateResponses,
+  type EvidenceAdapterInput,
+  type StudentEvidence,
+} from './evidence';
+export {
+  proposeGroups,
+  type GroupProposal,
+} from './grouping';
