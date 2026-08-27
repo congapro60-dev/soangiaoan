@@ -13,6 +13,14 @@ import type { StudentSkillState } from '../learning/skillTypes.js';
 export interface ClassDoc {
   id: string;
   teacherId: string;
+  /** Chủ sở hữu hiện tại; fallback về teacherId cho lớp legacy. */
+  ownerId?: string;
+  /** UID người tạo lớp, chỉ dùng để audit/bảo vệ quyền gốc. */
+  originalOwnerId?: string;
+  /** Projection UID giáo viên đang có quyền vận hành lớp. */
+  teacherIds?: string[];
+  /** Tên lớp cũ, chỉ để ghép bài online legacy sau khi đổi tên; không phải định danh quyền. */
+  previousNames?: string[];
   name: string;
   /** Ghi chú tự do: "Lớp chủ nhiệm", "Lộ trình Toán 1"... */
   track: string;
@@ -22,6 +30,41 @@ export interface ClassDoc {
   studentCount: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export type ClassTeacherRole = 'owner' | 'co_owner';
+export type ClassTeacherStatus = 'active' | 'removed';
+
+/** Thành viên giáo viên dùng bởi API; không để client tự quyết định quyền. */
+export interface ClassMemberDoc {
+  id: string;
+  classId: string;
+  uid: string;
+  email: string;
+  displayName?: string;
+  role: ClassTeacherRole;
+  status: ClassTeacherStatus;
+  invitedBy?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ClassInvitationRole = 'co_owner' | 'transfer_owner';
+export type ClassInvitationStatus = 'pending' | 'accepted' | 'declined' | 'revoked';
+
+/** Lời mời lưu email chuẩn hóa; không phụ thuộc email service bên ngoài. */
+export interface ClassInvitationDoc {
+  id: string;
+  classId: string;
+  inviterUid: string;
+  inviterEmail: string;
+  inviteeEmail: string;
+  inviteeUid?: string;
+  role: ClassInvitationRole;
+  status: ClassInvitationStatus;
+  createdAt: string;
+  updatedAt: string;
+  acceptedAt?: string;
 }
 
 export type StudentStatus = 'active' | 'needs_support' | 'excellent';
@@ -41,6 +84,8 @@ export interface StudentDoc {
   status: StudentStatus;
   progress: number;
   createdAt: string;
+  updatedAt?: string;
+  updatedBy?: string;
 }
 
 /** PIN đã băm. Chỉ server (Admin SDK) đọc/ghi — rules từ chối mọi client. */
@@ -102,6 +147,11 @@ export interface AssignmentDoc {
   answerKeyImageUrls?: string[];
   /** true khi đáp án do AI giải ra (giáo viên vẫn soát và sửa được trước khi giao). */
   answerKeyByAi?: boolean;
+  /** Người tạo/cập nhật gần nhất; không thay đổi namespace teacherId legacy. */
+  createdBy?: string;
+  updatedBy?: string;
+  /** Ghi chú nguồn dành cho giáo viên khi tổng hợp báo cáo. */
+  teacherNote?: string;
   /** Chỉ là cờ an toàn cho cổng học sinh; không chứa nội dung đáp án. */
   hasAnswerKey?: boolean;
   isOpen: boolean;
@@ -350,6 +400,8 @@ export interface PracticeAttemptDoc {
 }
 
 export const CLASSES_COL = 'classes';
+export const CLASS_MEMBERS_COL = 'classMembers';
+export const CLASS_INVITATIONS_COL = 'classInvitations';
 export const STUDENTS_SUB = 'students';
 export const STUDENT_SECRETS_SUB = 'studentSecrets';
 export const STUDENT_LINKS_COL = 'studentLinks';

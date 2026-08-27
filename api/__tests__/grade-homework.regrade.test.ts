@@ -15,6 +15,7 @@ vi.mock('../_exam-core.js', () => ({
 }));
 
 import handler from '../grade-homework';
+import { classMemberId } from '../_classroom-access';
 
 type DocData = Record<string, unknown>;
 
@@ -195,6 +196,30 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
     });
     expect(Object.values(harness.state.submissionGradeHistory || {})).toEqual([
       expect.objectContaining({ action: 'ai_regrade', actorUid: 'gv-1', grade: oldGrade }),
+    ]);
+  });
+
+  it('co-owner được chấm lại bằng AI trong namespace của chủ lớp', async () => {
+    const harness = seed();
+    harness.state.classes = {
+      'lop-1': { teacherId: 'gv-1', ownerId: 'gv-1', originalOwnerId: 'gv-1', name: '11 Columbus' },
+    };
+    harness.state.classMembers = {
+      [classMemberId('lop-1', 'co-1')]: { classId: 'lop-1', uid: 'co-1', role: 'co_owner', status: 'active' },
+    };
+    h.uid = 'co-1';
+    h.db = makeDb(harness);
+    stubGeminiResponses(makeGeminiResponse(validGradeJson(6)));
+
+    const result = await call({ action: 'gradeOne', submissionId: 'sub-1' });
+
+    expect(result.statusCode).toBe(200);
+    expect(harness.state.submissions['sub-1']).toMatchObject({
+      status: 'graded',
+      grade: expect.objectContaining({ score: 6, teacherApproved: false }),
+    });
+    expect(Object.values(harness.state.submissionGradeHistory || {})).toEqual([
+      expect.objectContaining({ action: 'ai_regrade', actorUid: 'co-1' }),
     ]);
   });
 
@@ -405,5 +430,49 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
       grade: expect.objectContaining({ score: 7, teacherApproved: false }),
     });
     expect(harness.state.gradingQuota?.['gv-1']).toMatchObject({ teacherCount: 2, selfCount: 0 });
+  });
+
+  it('co-owner được chấm AI cả lớp và quota ghi theo actor đang thao tác', async () => {
+    const harness: Harness = {
+      state: {
+        classes: {
+          'lop-1': { teacherId: 'gv-1', ownerId: 'gv-1', originalOwnerId: 'gv-1', name: '11 Columbus' },
+        },
+        classMembers: {
+          [classMemberId('lop-1', 'co-1')]: { classId: 'lop-1', uid: 'co-1', role: 'co_owner', status: 'active' },
+        },
+        assignments: {
+          'asg-1': {
+            id: 'asg-1', teacherId: 'gv-1', classId: 'lop-1', title: 'Bài kiểm tra', maxScore: 10,
+          },
+        },
+        submissions: {
+          'sub-1': {
+            id: 'sub-1', teacherId: 'gv-1', classId: 'lop-1', studentId: 'hs-1', assignmentId: 'asg-1',
+            fileUrls: [], textContent: 'Bài làm hợp lệ', note: '', status: 'submitted',
+            createdAt: '2026-08-25T09:00:00.000Z', updatedAt: '2026-08-25T09:00:00.000Z',
+          },
+        },
+        gradingQuota: {
+          'co-1': {
+            day: quotaDay,
+            teacherCount: 0,
+            selfCount: 0,
+            gatewayCount: 0,
+            byStudent: {},
+          },
+        },
+      },
+    };
+    h.uid = 'co-1';
+    h.db = makeDb(harness);
+    stubGeminiResponses(makeGeminiResponse(validGradeJson(7)));
+
+    const result = await call({ action: 'gradeAssignment', assignmentId: 'asg-1' });
+
+    expect(result.statusCode).toBe(200);
+    expect(result.body).toMatchObject({ graded: 1, failed: 0, remaining: 0 });
+    expect(harness.state.submissions['sub-1']).toMatchObject({ status: 'graded' });
+    expect(harness.state.gradingQuota?.['co-1']).toMatchObject({ teacherCount: 1 });
   });
 });

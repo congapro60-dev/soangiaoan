@@ -1,12 +1,13 @@
 # P0 — Báo cáo thủ công và cộng tác giáo viên (2026-08-27)
 
 - [x] Duyệt spec và tạo worktree sạch từ `origin/main`.
-- [ ] Nút **Tạo báo cáo** tính lại báo cáo với 0 hoặc nhiều lượt nộp, giữ snapshot khi lỗi.
-- [ ] Membership giáo viên: mời bằng email, co-owner, chuyển quyền, rời/xóa thành viên.
-- [ ] Nối quyền server-side cho lớp/bài giao/lượt nộp/báo cáo; giữ nguyên namespace dữ liệu cũ.
-- [ ] Đổi tên lớp, học sinh, bài giao; sửa điểm/nhận xét có history và yêu cầu duyệt lại.
-- [ ] Hỗ trợ nhất quán bài nộp ảnh và bài online; không lộ đáp án cho học sinh.
-- [ ] Chạy focused/full tests, rules, lint, build, diff check và QA đăng nhập thật/Ox Alpha.
+- [x] Nút **Tạo báo cáo** tính lại báo cáo với 0 hoặc nhiều lượt nộp, giữ snapshot khi lỗi.
+- [x] Membership giáo viên: mời bằng email, co-owner, chuyển quyền, rời/xóa thành viên.
+- [x] Nối quyền server-side cho lớp/bài giao/lượt nộp/báo cáo; giữ nguyên namespace dữ liệu cũ.
+- [x] Đổi tên lớp, học sinh, bài giao; sửa điểm/nhận xét có history và yêu cầu duyệt lại.
+- [x] Hỗ trợ nhất quán bài nộp ảnh và bài online; không lộ đáp án cho học sinh.
+- [x] Chạy focused/full tests, lint, lint:api, build và diff check.
+- [ ] QA bằng phiên đăng nhập thật/Ox Alpha: Chrome connector không khả dụng; Ox Alpha đã lỗi provider hai lần, chưa có verdict PASS.
 - [ ] Chưa push/deploy cho tới khi có lệnh tích hợp riêng.
 
 ## Review/verification — báo cáo thủ công và cộng tác giáo viên
@@ -14,6 +15,13 @@
 - Đang triển khai trong branch `codex/class-report-collaboration`.
 - Spec: `docs/superpowers/specs/2026-08-27-class-report-collaboration-design.md`.
 - Plan: `docs/superpowers/plans/2026-08-27-class-report-collaboration-plan.md`.
+- Tạo báo cáo: có thể ép tính lại cho bài chưa có lượt nộp; lỗi nguồn không thay snapshot đang hiển thị; hỗ trợ dữ liệu bài ảnh và bài online.
+- Cộng tác: quyền được kiểm tra ở API Admin; mời co-owner, chuyển quyền sau khi chấp nhận, rời lớp, xóa thành viên; bảo vệ chủ gốc và không xóa dữ liệu bài nộp.
+- Đổi tên: giữ nguyên `classId`/namespace và lưu `previousNames` để ghép bài online legacy sau khi đổi tên; đổi tên học sinh/bài giao không tạo ID mới.
+- Chấm: co-owner đi qua cùng cổng AI/manual/duyệt/xóa điểm; sửa tay lưu history và buộc duyệt lại; AI regrade lỗi không làm mất điểm cũ.
+- Bằng chứng tự động cuối: focused `4 files / 40 tests` pass; full `100 files / 1,344 tests` pass; `lint` pass; `lint:api` pass; `npm run build` pass; `git diff --check` pass.
+- QA trình duyệt: local app tải được và không có console error ở smoke unauthenticated; Chrome connector báo `Browser is not available: chrome`, nên chưa thể xác nhận luồng đăng nhập thật/production.
+- Ox Alpha Free/OpenCode: model `opencode/x-preview-f-free` đã được gọi nhưng provider trả lỗi `Unexpected server error` ở refs `err_81d184c4` và `err_a6cfdca1`; không dùng làm verdict PASS.
 
 # P0 — Tương thích công thức cũ trong nhận xét chấm (2026-08-25)
 

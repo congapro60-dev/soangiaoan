@@ -6,6 +6,8 @@ import {
   adaptUploadSubmission,
   buildClassReportCsv,
   getQuestionOutcomeRows,
+  loadClassAssignmentReports,
+  shouldReplaceReportSnapshot,
 } from './ClassAssignmentReport';
 
 const roster: Student[] = [
@@ -14,6 +16,49 @@ const roster: Student[] = [
 ];
 
 describe('ClassAssignmentReport adapters', () => {
+  it('explicitly creates a report even when an assignment has zero submissions', async () => {
+    const result = await loadClassAssignmentReports({
+      classId: 'class-11-columbus',
+      teacherId: 'teacher-1',
+      className: '11 Columbus',
+      students: roster,
+      onlineAssignments: [],
+      exams: [],
+    }, {
+      listAssignmentsForClass: async () => [{
+        id: 'upload-empty',
+        teacherId: 'teacher-1',
+        classId: 'class-11-columbus',
+        title: 'BTVN hôm nay',
+        description: '',
+        type: 'upload',
+        isOpen: true,
+        createdAt: '2026-08-27T08:00:00.000Z',
+        updatedAt: '2026-08-27T08:00:00.000Z',
+        maxScore: 10,
+      }],
+      listSubmissionsForClass: async () => [],
+      getSubmissions: async () => [],
+    });
+
+    expect(result.reports).toHaveLength(1);
+    expect(result.reports[0].counters).toEqual(expect.objectContaining({
+      roster: 2,
+      submitted: 0,
+      official: 0,
+      missing: 2,
+    }));
+    expect(result.reports[0].averagePercent).toBeNull();
+  });
+
+  it('keeps the visible snapshot when a manual refresh has a source error', () => {
+    expect(shouldReplaceReportSnapshot([
+      { assignment: { id: 'old' } } as never,
+    ], { reports: [], sourceErrors: ['Không tải được dữ liệu.'] })).toBe(false);
+    expect(shouldReplaceReportSnapshot([], { reports: [], sourceErrors: ['Không tải được dữ liệu.'] })).toBe(true);
+    expect(shouldReplaceReportSnapshot([], { reports: [], sourceErrors: [] })).toBe(true);
+  });
+
   it('maps upload grading data to the safe report contract', () => {
     const submission = {
       id: 'upload-submission',
@@ -148,6 +193,21 @@ describe('ClassAssignmentReport adapters', () => {
     } as ExamSubmission;
 
     expect(adaptOnlineSubmission(submission, exam, roster, '10A')?.studentKey).toBe('student-1');
+  });
+
+  it('vẫn ghép được bài online legacy sau khi lớp đổi tên nhờ tên lớp cũ', () => {
+    const exam = { id: 'exam-1', maxScore: 10, questions: [] } as Exam;
+    const submission = {
+      id: 'renamed-class',
+      studentName: 'Nguyễn Minh An',
+      studentClass: '10A cũ',
+      startedAt: '2026-08-25T07:00:00.000Z',
+      status: 'graded',
+      answers: [],
+      maxScore: 10,
+    } as ExamSubmission;
+
+    expect(adaptOnlineSubmission(submission, exam, roster, '10A mới', ['10A cũ'])?.studentKey).toBe('student-1');
   });
 
   it('rejects an ambiguous name fallback instead of assigning the first matching student', () => {

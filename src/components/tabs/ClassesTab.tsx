@@ -1,15 +1,17 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Swal from 'sweetalert2';
 import * as XLSX from 'xlsx';
 import { User } from 'firebase/auth';
-import { AppData, ClassAssignment, Student, TeacherClass } from '../../types';
+import { AppData, ClassAssignment, Exam, Student, TeacherClass } from '../../types';
 import { useExams } from '../../hooks/useExams';
 import { parseRosterRows } from '../../utils/classRosterImport';
-import { countUnmigratedClasses, getClassDoc, migrateLegacyClasses, themHocSinhLenServer } from '../../lib/classroom/classroomService';
+import { countUnmigratedClasses, getClassDoc, listAccessibleClasses, migrateLegacyClasses, themHocSinhLenServer, type AccessibleClassDoc } from '../../lib/classroom/classroomService';
 import { listAssignmentsForClass, listSubmissionsForClass } from '../../lib/classroom/submissionService';
+import { acceptTeacherInvitation, createExamAssignment, declineTeacherInvitation, listAccessibleExams, listPendingTeacherInvitations, renameClass as renameClassOnServer, renameStudent as renameStudentOnServer, type PendingTeacherInvitation } from '../../lib/classroom/teacherService';
 import { issueClassPins, resetStudentPin, revokeClassData, revokeStudentAccessServer, viewClassPins, viewStudentPin } from '../../services/studentPortalApi';
 import { AssignmentPanel } from '../features/classroom/AssignmentPanel';
 import { ClassAssignmentReport } from '../features/classroom/ClassAssignmentReport';
+import { ClassTeacherMembersPanel } from '../features/classroom/ClassTeacherMembersPanel';
 import { StudentReport } from '../features/classroom/StudentReport';
 import { ClassWorkspaceNav, WorkspaceEmptyAction, type WorkspaceView } from '../features/classroom/ClassWorkspaceNav';
 
@@ -32,6 +34,7 @@ import {
   GraduationCap,
   KeyRound,
   Plus,
+  Pencil,
   Search,
   Send,
   Trash2,
@@ -58,11 +61,44 @@ const statusLabel: Record<Student['status'], { label: string; className: string 
 
 const EMPTY_CLASS_ASSIGNMENTS: ClassAssignment[] = [];
 
+const teacherClassFromServer = (remote: AccessibleClassDoc, local?: TeacherClass): TeacherClass => {
+  const onlineAssignments = remote.assignments
+    .filter(assignment => assignment.type === 'exam' && Boolean(assignment.examId))
+    .map(assignment => ({
+      examId: assignment.examId as string,
+      examCode: '',
+      examTitle: assignment.title,
+      assignedAt: assignment.createdAt,
+    }));
+  const students: Student[] = remote.students.map(student => ({
+    id: student.id,
+    name: student.name,
+    code: student.code,
+    progress: Number.isFinite(student.progress) ? student.progress : 0,
+    status: student.status,
+  }));
+  return {
+    id: remote.id,
+    name: remote.name,
+    previousNames: remote.previousNames,
+    track: remote.track,
+    grade: remote.grade,
+    studentCount: remote.studentCount ?? students.length,
+    activeAssignments: remote.assignments.filter(assignment => assignment.isOpen !== false).length,
+    progress: local?.progress ?? 0,
+    tone: local?.tone ?? 'primary',
+    students,
+    assignments: onlineAssignments,
+  };
+};
+
 export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) => {
   const classes = data.classes || [];
   const { exams } = useExams(user);
   const [selectedClassId, setSelectedClassId] = useState(classes[0]?.id || '');
   const [workspaceView, setWorkspaceView] = useState<WorkspaceView>('overview');
+  const [managingClassId, setManagingClassId] = useState('');
+  const [pendingInvitations, setPendingInvitations] = useState<PendingTeacherInvitation[]>([]);
 
   const [query, setQuery] = useState('');
   const rosterInputRef = useRef<HTMLInputElement>(null);
@@ -70,6 +106,34 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
   const [syncing, setSyncing] = useState(false);
   const [viewingStudent, setViewingStudent] = useState<Student | null>(null);
   const assignmentPanelRef = useRef<HTMLDivElement>(null);
+
+  const refreshAccessibleClasses = useCallback(async () => {
+    if (!user?.uid) return;
+    const remoteClasses = await listAccessibleClasses();
+    setData((previous: AppData) => {
+      const localClasses = previous.classes || [];
+      const remoteIds = new Set(remoteClasses.map(item => item.id));
+      const merged = remoteClasses.map(remote => teacherClassFromServer(remote, localClasses.find(local => local.id === remote.id)));
+      return { ...previous, classes: [...merged, ...localClasses.filter(local => !remoteIds.has(local.id))] };
+    });
+  }, [setData, user?.uid]);
+
+  // Classroom server là nguồn lớp chung cho owner/co-owner; userSettings chỉ còn là cache
+  // tương thích cho lớp local chưa đồng bộ, không được phép ghi đè lớp cộng tác bằng mảng rỗng.
+  useEffect(() => {
+    let huy = false;
+    void refreshAccessibleClasses().catch(error => { if (!huy) console.error('Không tải được lớp được cấp quyền', error); });
+    return () => { huy = true; };
+  }, [refreshAccessibleClasses]);
+
+  useEffect(() => {
+    if (!user?.uid) { setPendingInvitations([]); return; }
+    let huy = false;
+    void listPendingTeacherInvitations()
+      .then(invitations => { if (!huy) setPendingInvitations(invitations); })
+      .catch(error => { if (!huy) console.error('Không tải được lời mời giáo viên', error); });
+    return () => { huy = true; };
+  }, [user?.uid]);
 
   // Lớp học đang chuyển từ mảng trong userSettings sang collection Firestore thật.
   // Mảng cũ CỐ Ý giữ nguyên để còn đường lùi, nên phải đếm xem còn lớp nào chưa chuyển.
@@ -337,6 +401,80 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
     students: classes.reduce((sum, item) => sum + item.studentCount, 0),
     assignments: classes.reduce((sum, item) => sum + item.activeAssignments, 0),
   }), [classes]);
+
+  const doiTenLop = async (cls: TeacherClass) => {
+    const { value } = await Swal.fire({
+      title: `Đổi tên ${cls.name}`,
+      html: '<input id="rename-class-name" class="swal2-input" placeholder="Tên lớp"><input id="rename-class-track" class="swal2-input" placeholder="Nhóm/ghi chú">',
+      inputValue: cls.name,
+      showCancelButton: true,
+      confirmButtonText: 'Lưu tên mới',
+      cancelButtonText: 'Hủy',
+      preConfirm: () => ({
+        name: (document.getElementById('rename-class-name') as HTMLInputElement).value.trim(),
+        track: (document.getElementById('rename-class-track') as HTMLInputElement).value.trim(),
+      }),
+      didOpen: () => {
+        const nameInput = document.getElementById('rename-class-name') as HTMLInputElement | null;
+        const trackInput = document.getElementById('rename-class-track') as HTMLInputElement | null;
+        if (nameInput) nameInput.value = cls.name;
+        if (trackInput) trackInput.value = cls.track;
+      },
+    });
+    if (!value?.name || (value.name === cls.name && value.track === cls.track)) return;
+
+    let synced = false;
+    try {
+      await renameClassOnServer(cls.id, value.name, value.track);
+      synced = true;
+    } catch (error) {
+      const serverClass = await getClassDoc(cls.id).catch(() => null);
+      if (serverClass) {
+        await Swal.fire({ icon: 'error', title: 'Chưa đổi được tên lớp', text: error instanceof Error ? error.message : 'Thử lại sau.', confirmButtonColor: '#3085d6' });
+        return;
+      }
+    }
+    setData((prev: AppData) => ({
+      ...prev,
+      classes: (prev.classes || []).map(item => item.id === cls.id ? { ...item, name: value.name, track: value.track || item.track } : item),
+    }));
+    showToast(synced ? 'Đã đổi tên lớp trên máy chủ.' : 'Đã đổi tên lớp trên máy này; đồng bộ lớp để tài khoản khác thấy thay đổi.', synced ? 'success' : 'warning');
+  };
+
+  const doiTenHocSinh = async (cls: TeacherClass, student: Student) => {
+    const { value: name } = await Swal.fire({
+      title: `Đổi tên ${student.name}`,
+      input: 'text',
+      inputValue: student.name,
+      inputPlaceholder: 'Họ và tên học sinh',
+      showCancelButton: true,
+      confirmButtonText: 'Lưu tên mới',
+      cancelButtonText: 'Hủy',
+      inputValidator: value => value.trim() ? undefined : 'Tên học sinh không được để trống.',
+    });
+    const normalized = typeof name === 'string' ? name.trim() : '';
+    if (!normalized || normalized === student.name) return;
+
+    let synced = false;
+    try {
+      await renameStudentOnServer(cls.id, student.id, normalized);
+      synced = true;
+    } catch (error) {
+      const serverClass = await getClassDoc(cls.id).catch(() => null);
+      if (serverClass) {
+        await Swal.fire({ icon: 'error', title: 'Chưa đổi được tên học sinh', text: error instanceof Error ? error.message : 'Thử lại sau.', confirmButtonColor: '#3085d6' });
+        return;
+      }
+    }
+    setData((prev: AppData) => ({
+      ...prev,
+      classes: (prev.classes || []).map(item => item.id === cls.id
+        ? { ...item, students: item.students.map(current => current.id === student.id ? { ...current, name: normalized } : current) }
+        : item),
+    }));
+    setViewingStudent(current => current?.id === student.id ? { ...current, name: normalized } : current);
+    showToast(synced ? 'Đã đổi tên học sinh trên máy chủ.' : 'Đã đổi tên học sinh trên máy này; đồng bộ lớp để tài khoản khác thấy thay đổi.', synced ? 'success' : 'warning');
+  };
 
   const addClass = async () => {
     const { value } = await Swal.fire({
@@ -716,7 +854,14 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
   };
 
   const assignExam = async (cls: TeacherClass) => {
-    if (exams.length === 0) {
+    let availableExams: Exam[] = [];
+    try {
+      availableExams = await listAccessibleExams(cls.id);
+    } catch {
+      // Local-only classes do not have a server namespace yet; preserve the legacy flow.
+      availableExams = exams;
+    }
+    if (availableExams.length === 0) {
       Swal.fire({
         icon: 'info',
         title: 'Chưa có đề thi online',
@@ -726,7 +871,7 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
       return;
     }
 
-    const options = exams.reduce<Record<string, string>>((acc, exam) => {
+    const options = availableExams.reduce<Record<string, string>>((acc, exam) => {
       acc[exam.id] = `${exam.title} (#${exam.code})${exam.isActive ? '' : ' — chưa phát hành'}`;
       return acc;
     }, {});
@@ -742,8 +887,20 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
     });
     if (!examId) return;
 
-    const exam = exams.find(item => item.id === examId);
+    const exam = availableExams.find(item => item.id === examId);
     if (!exam) return;
+
+    let synced = false;
+    try {
+      await createExamAssignment({ classId: cls.id, examId: exam.id, title: exam.title, maxScore: exam.maxScore });
+      synced = true;
+    } catch (error) {
+      const serverClass = await getClassDoc(cls.id).catch(() => null);
+      if (serverClass) {
+        await Swal.fire({ icon: 'error', title: 'Chưa giao được đề online', text: error instanceof Error ? error.message : 'Thử lại sau.', confirmButtonColor: '#3085d6' });
+        return;
+      }
+    }
 
     const assignment: ClassAssignment = {
       examId: exam.id,
@@ -754,22 +911,39 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
 
     setData((prev: AppData) => ({
       ...prev,
-      classes: (prev.classes || []).map(item => {
-        if (item.id !== cls.id) return item;
-        const assignments = [...(item.assignments || []).filter(a => a.examId !== exam.id), assignment];
-        return { ...item, assignments, activeAssignments: assignments.length };
-      }),
+       classes: (prev.classes || []).map(item => {
+         if (item.id !== cls.id) return item;
+         const hadAssignment = (item.assignments || []).some(a => a.examId === exam.id);
+         const assignments = [...(item.assignments || []).filter(a => a.examId !== exam.id), assignment];
+         return { ...item, assignments, activeAssignments: hadAssignment ? item.activeAssignments : item.activeAssignments + 1 };
+       }),
     }));
 
     const url = `${window.location.origin}/exam/${exam.code}`;
     try {
       await navigator.clipboard.writeText(url);
-      showToast(`Đã giao "${exam.title}" cho ${cls.name} — link làm bài đã copy!`, 'success');
+       showToast(`Đã giao "${exam.title}" cho ${cls.name} — link làm bài đã copy!${synced ? '' : ' (mới lưu trên máy này)'}`, synced ? 'success' : 'warning');
     } catch {
-      showToast(`Đã giao "${exam.title}" cho ${cls.name}. Link: ${url}`, 'success');
+       showToast(`Đã giao "${exam.title}" cho ${cls.name}. Link: ${url}${synced ? '' : ' (mới lưu trên máy này)'}`, synced ? 'success' : 'warning');
     }
     if (!exam.isActive) {
       showToast('Đề này chưa phát hành — nhớ bật "Mở đề" trong tab Thi online để học sinh vào làm.', 'warning');
+    }
+  };
+
+  const xuLyLoiMoi = async (invitation: PendingTeacherInvitation, action: 'accept' | 'decline') => {
+    try {
+      if (action === 'accept') {
+        await acceptTeacherInvitation(invitation.id);
+        showToast(`Đã tham gia lớp ${invitation.className || invitation.classId}.`, 'success');
+      } else {
+        await declineTeacherInvitation(invitation.id);
+        showToast('Đã từ chối lời mời.', 'info');
+      }
+      setPendingInvitations(previous => previous.filter(item => item.id !== invitation.id));
+      if (action === 'accept') await refreshAccessibleClasses();
+    } catch (error) {
+      await Swal.fire({ icon: 'error', title: action === 'accept' ? 'Chưa nhận được lời mời' : 'Chưa từ chối được', text: error instanceof Error ? error.message : 'Thử lại sau.', confirmButtonColor: '#3085d6' });
     }
   };
 
@@ -781,6 +955,7 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
   const showRoster = workspaceView === 'overview' || workspaceView === 'students';
   const showAssignments = workspaceView === 'overview' || workspaceView === 'assignments';
   const showSubmissions = workspaceView === 'submissions';
+  const managingClass = classes.find(item => item.id === managingClassId);
 
   return (
     <div className="space-y-6 pb-10">
@@ -829,6 +1004,26 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
         </section>
       )}
 
+      {pendingInvitations.length > 0 && (
+        <section className="rounded-3xl border border-indigo-200 bg-indigo-50 p-5">
+          <p className="text-sm font-black text-indigo-950">Bạn có {pendingInvitations.length} lời mời cộng tác lớp học</p>
+          <div className="mt-3 space-y-3">
+            {pendingInvitations.map(invitation => (
+              <div key={invitation.id} className="flex flex-col gap-3 rounded-2xl bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="font-black text-slate-900">{invitation.className || invitation.classId}</p>
+                  <p className="text-xs font-semibold text-slate-500">{invitation.inviterEmail} mời bạn {invitation.role === 'transfer_owner' ? 'nhận chuyển quyền chủ lớp' : 'làm đồng giáo viên'}.</p>
+                </div>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => void xuLyLoiMoi(invitation, 'decline')} className="min-h-10 rounded-2xl border border-slate-200 px-3 py-2 text-xs font-black text-slate-600 hover:bg-slate-50">Từ chối</button>
+                  <button type="button" onClick={() => void xuLyLoiMoi(invitation, 'accept')} className="min-h-10 rounded-2xl bg-indigo-600 px-4 py-2 text-xs font-black text-white hover:bg-indigo-700">Chấp nhận</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {[
           { label: 'Tổng số lớp', value: totals.classes, icon: GraduationCap, color: 'text-blue-600 bg-blue-50' },
@@ -859,7 +1054,11 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
                     <p className="text-sm font-semibold text-slate-500">{item.track}</p>
                   </div>
                 </button>
-                <button onClick={() => deleteClass(item)} title={`Xoá lớp ${item.name}`} aria-label={`Xoá lớp ${item.name}`} className="rounded-full p-2 text-slate-300 transition hover:bg-red-50 hover:text-red-600"><Trash2 className="h-5 w-5" /></button>
+                 <div className="flex shrink-0 items-center gap-1">
+                   <button onClick={() => void doiTenLop(item)} title={`Đổi tên lớp ${item.name}`} aria-label={`Đổi tên lớp ${item.name}`} className="rounded-full p-2 text-slate-300 transition hover:bg-indigo-50 hover:text-indigo-600"><Pencil className="h-5 w-5" /></button>
+                   <button onClick={() => setManagingClassId(item.id)} title={`Quản lý giáo viên lớp ${item.name}`} aria-label={`Quản lý giáo viên lớp ${item.name}`} className="rounded-full p-2 text-slate-300 transition hover:bg-indigo-50 hover:text-indigo-600"><Users className="h-5 w-5" /></button>
+                   <button onClick={() => deleteClass(item)} title={`Xoá lớp ${item.name}`} aria-label={`Xoá lớp ${item.name}`} className="rounded-full p-2 text-slate-300 transition hover:bg-red-50 hover:text-red-600"><Trash2 className="h-5 w-5" /></button>
+                 </div>
               </div>
 
               <div className="flex flex-1 flex-col gap-4 p-5">
@@ -871,11 +1070,12 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
                 </div>
               </div>
 
-              <div className="grid grid-cols-4 gap-1 border-t border-slate-100 bg-slate-50/80 p-2">
+               <div className="grid grid-cols-5 gap-1 border-t border-slate-100 bg-slate-50/80 p-2">
                 <button type="button" onClick={() => { selectClass(item.id); setWorkspaceView('students'); }} className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><Eye className="h-5 w-5" /> Danh sách</button>
                 <button onClick={() => bangPhatChoLop(item)} title="Link vào lớp và mã PIN từng em — chép sẵn để gửi học sinh" className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><KeyRound className="h-5 w-5" /> Mã lớp</button>
                 <button onClick={() => chonKieuGiaoBai(item)} title="Giao bài nộp ảnh hoặc đề trắc nghiệm online" className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><Send className="h-5 w-5" /> Giao bài</button>
-                <button onClick={() => showClassReport(item)} title="Tổng hợp kết quả các đề đã giao" className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><BarChart3 className="h-5 w-5" /> Báo cáo</button>
+                 <button onClick={() => showClassReport(item)} title="Tổng hợp kết quả các đề đã giao" className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><BarChart3 className="h-5 w-5" /> Báo cáo</button>
+                 <button onClick={() => setManagingClassId(item.id)} title="Mời và quản lý giáo viên cùng lớp" className="flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-xs font-black text-blue-700 transition hover:bg-white"><Users className="h-5 w-5" /> Giáo viên</button>
               </div>
             </article>
           );
@@ -887,10 +1087,11 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
           selectedClass={selectedClass}
           activeView={workspaceView}
           onViewChange={setWorkspaceView}
-          onAccess={() => void bangPhatChoLop(selectedClass)}
-          onAssign={() => void chonKieuGiaoBai(selectedClass)}
-          onReport={() => void showClassReport(selectedClass)}
-        />
+           onAccess={() => void bangPhatChoLop(selectedClass)}
+           onAssign={() => void chonKieuGiaoBai(selectedClass)}
+           onReport={() => void showClassReport(selectedClass)}
+           onManageMembers={() => setManagingClassId(selectedClass.id)}
+         />
       )}
 
       {selectedClass && (
@@ -942,7 +1143,10 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
                     })()}
                   </div>
                   <span className={`w-fit rounded-full px-3 py-1 text-xs font-black ${status.className}`}>{status.label}</span>
-                  <button onClick={() => deleteStudent(selectedClass, student)} title={`Xoá ${student.name} khỏi lớp`} aria-label={`Xoá ${student.name} khỏi lớp`} className="w-fit rounded-full p-2 text-slate-300 transition hover:bg-red-50 hover:text-red-600"><Trash2 className="h-4 w-4" /></button>
+                   <div className="flex items-center gap-1">
+                     <button onClick={() => void doiTenHocSinh(selectedClass, student)} title={`Đổi tên ${student.name}`} aria-label={`Đổi tên ${student.name}`} className="w-fit rounded-full p-2 text-slate-300 transition hover:bg-indigo-50 hover:text-indigo-600"><Pencil className="h-4 w-4" /></button>
+                     <button onClick={() => deleteStudent(selectedClass, student)} title={`Xoá ${student.name} khỏi lớp`} aria-label={`Xoá ${student.name} khỏi lớp`} className="w-fit rounded-full p-2 text-slate-300 transition hover:bg-red-50 hover:text-red-600"><Trash2 className="h-4 w-4" /></button>
+                   </div>
                 </div>
               );
             })}
@@ -983,6 +1187,7 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
               classId={selectedClass.id}
               teacherId={user.uid}
               className={selectedClass.name}
+              classNameAliases={selectedClass.previousNames}
               students={selectedClass.students}
               onlineAssignments={selectedClass.assignments ?? EMPTY_CLASS_ASSIGNMENTS}
               exams={exams}
@@ -1007,6 +1212,20 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
             <div className="rounded-3xl bg-amber-50 p-4"><ClipboardList className="mb-3 h-5 w-5 text-amber-600" /><p className="text-xs font-bold uppercase text-amber-600">Theo dõi</p><p className="mt-1 text-sm font-semibold text-amber-950">Báo cáo lớp sẽ gom tiến độ, bài nộp và kết quả chấm AI.</p></div>
           </div>}
         </section>
+      )}
+
+      {managingClass && user?.uid && (
+        <ClassTeacherMembersPanel
+          classId={managingClass.id}
+          className={managingClass.name}
+          currentUid={user.uid}
+          onClose={() => setManagingClassId('')}
+          onLeft={() => {
+            setManagingClassId('');
+            void refreshAccessibleClasses().catch(error => console.error('Không làm mới lớp sau khi rời lớp', error));
+          }}
+          showToast={showToast}
+        />
       )}
     </div>
   );

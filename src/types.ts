@@ -16,6 +16,8 @@ export interface ClassAssignment {
 export interface TeacherClass {
   id: string;
   name: string;
+  /** Tên lớp cũ để ghép các bài online legacy sau khi giáo viên đổi tên lớp. */
+  previousNames?: string[];
   track: string;
   grade: string;
   studentCount: number;

@@ -59,6 +59,7 @@ import {
 import { handleAiGateway } from './_ai-gateway-handler.js';
 import { commitAiGradeIfClaimed, removeSubmissionGradeEvidence } from './_grade-lifecycle.js';
 import { replaceSkillEvidenceAndRebuild } from './_skill-profile.js';
+import { canTeacherAccessLegacyNamespace } from './_classroom-access.js';
 
 /**
  * Chấm bài tập bằng khoá AI của chủ dự án + gateway GLM 5.2 (gộp chung một function để
@@ -426,9 +427,13 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
   if (!snap.exists) return res.status(404).json({ error: 'Không tìm thấy bài đã giao.' });
 
   const assignment = snap.data() as FirebaseFirestore.DocumentData;
-  if (assignment.teacherId !== uid) return res.status(403).json({ error: 'Chỉ giáo viên giao bài mới chấm được.' });
+  const assignmentTeacherId = typeof assignment.teacherId === 'string' ? assignment.teacherId.trim() : '';
+  const assignmentClassId = typeof assignment.classId === 'string' ? assignment.classId.trim() : '';
+  if (!assignmentTeacherId || !await canTeacherAccessLegacyNamespace(db, uid, assignmentClassId, assignmentTeacherId)) {
+    return res.status(403).json({ error: 'Chỉ giáo viên thuộc lớp được cấp quyền mới chấm được.' });
+  }
 
-  const recovered = await recoverStaleGradingSubmissions(db, assignmentId, uid, String(assignment.classId || ''));
+  const recovered = await recoverStaleGradingSubmissions(db, assignmentId, assignmentTeacherId, assignmentClassId);
 
   const pending = await db.collection('submissions')
     .where('assignmentId', '==', assignmentId)
@@ -443,7 +448,7 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
   // document lệch lớp là rác do client bịa và tuyệt đối không được ăn điểm từ đáp án của bài khác.
   const hopLe = pending.docs.filter(d => {
     const s = d.data() as FirebaseFirestore.DocumentData;
-    return !recovered.has(d.id) && s.teacherId === uid && s.classId === assignment.classId;
+    return !recovered.has(d.id) && s.teacherId === assignmentTeacherId && s.classId === assignmentClassId;
   });
 
   if (hopLe.length === 0) return res.status(200).json({ graded: 0, failed: 0, remaining: 0 });
@@ -500,7 +505,8 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
     && link.studentId === submission.studentId
     && link.classId === submission.classId
     && link.teacherId === submission.teacherId);
-  const isTeacher = submission.teacherId === uid;
+  const isTeacher = submission.teacherId === uid
+    || await canTeacherAccessLegacyNamespace(db, uid, submission.classId, submission.teacherId);
   if (!isOwnerStudent && !isTeacher) return res.status(403).json({ error: 'Không có quyền chấm bài này.' });
   if (isOwnerStudent && submission.grade?.teacherApproved === true) {
     return res.status(403).json({ error: 'Kết quả đã được giáo viên duyệt; chỉ giáo viên mới được chấm lại.' });
@@ -1007,8 +1013,9 @@ const handleSolveAnswerKey = async (db: FirebaseFirestore.Firestore, body: Recor
 
   const classId = typeof body.classId === 'string' ? body.classId : '';
   const classSnap = await db.collection('classes').doc(classId).get();
-  if (!classSnap.exists || classSnap.data()?.teacherId !== uid) {
-    return res.status(403).json({ error: 'Chỉ giáo viên chủ lớp mới dùng được chức năng này.' });
+  const classData = classSnap.data() || {};
+  if (!classSnap.exists || !await canTeacherAccessLegacyNamespace(db, uid, classId, classData.teacherId)) {
+    return res.status(403).json({ error: 'Chỉ giáo viên thuộc lớp được cấp quyền mới dùng được chức năng này.' });
   }
 
   const examText = String(body.examText || '');
@@ -1049,8 +1056,9 @@ const handleSuggestRubric = async (db: FirebaseFirestore.Firestore, body: Record
 
   const classId = typeof body.classId === 'string' ? body.classId : '';
   const classSnap = await db.collection('classes').doc(classId).get();
-  if (!classSnap.exists || classSnap.data()?.teacherId !== uid) {
-    return res.status(403).json({ error: 'Chỉ giáo viên chủ lớp mới dùng được chức năng này.' });
+  const classData = classSnap.data() || {};
+  if (!classSnap.exists || !await canTeacherAccessLegacyNamespace(db, uid, classId, classData.teacherId)) {
+    return res.status(403).json({ error: 'Chỉ giáo viên thuộc lớp được cấp quyền mới dùng được chức năng này.' });
   }
 
   const answerKey = String(body.answerKey || '').trim();
@@ -1081,8 +1089,9 @@ const handleRewriteFeedback = async (db: FirebaseFirestore.Firestore, body: Reco
 
   const classId = typeof body.classId === 'string' ? body.classId : '';
   const classSnap = await db.collection('classes').doc(classId).get();
-  if (!classSnap.exists || classSnap.data()?.teacherId !== uid) {
-    return res.status(403).json({ error: 'Chỉ giáo viên chủ lớp mới dùng được chức năng này.' });
+  const classData = classSnap.data() || {};
+  if (!classSnap.exists || !await canTeacherAccessLegacyNamespace(db, uid, classId, classData.teacherId)) {
+    return res.status(403).json({ error: 'Chỉ giáo viên thuộc lớp được cấp quyền mới dùng được chức năng này.' });
   }
 
   const teacherNote = String(body.teacherNote || '').trim();

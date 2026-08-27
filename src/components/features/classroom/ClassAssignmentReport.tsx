@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, BarChart3, Download, Loader2, RefreshCw } from 'lucide-react';
 import { getSubmissions } from '../../../hooks/useExams';
 import { listAssignmentsForClass, listSubmissionsForClass } from '../../../lib/classroom/submissionService';
+import { getAccessibleExam as getAccessibleExamFromServer, listAccessibleExamSubmissions } from '../../../lib/classroom/teacherService';
 import {
   buildClassAssignmentReport,
   type ClassAssignmentReport as ClassAssignmentReportMetrics,
@@ -17,10 +18,49 @@ export interface ClassAssignmentReportProps {
   classId: string;
   teacherId: string;
   className: string;
+  classNameAliases?: string[];
   students: Student[];
   onlineAssignments: ClassAssignment[];
   exams: Exam[];
 }
+
+export interface ClassAssignmentReportLoadInput extends Pick<ClassAssignmentReportProps, 'classId' | 'teacherId' | 'className' | 'classNameAliases' | 'students' | 'onlineAssignments' | 'exams'> {}
+
+export interface ClassAssignmentReportLoaders {
+  listAssignmentsForClass: typeof listAssignmentsForClass;
+  listSubmissionsForClass: typeof listSubmissionsForClass;
+  getSubmissions: typeof getSubmissions;
+  getAccessibleExam?: typeof getAccessibleExamFromServer;
+  getAccessibleExamSubmissions?: typeof listAccessibleExamSubmissions;
+}
+
+export interface ClassAssignmentReportRefreshResult {
+  reports: ClassAssignmentReportMetrics[];
+  sourceErrors: string[];
+}
+
+const defaultReportLoaders: ClassAssignmentReportLoaders = {
+  listAssignmentsForClass,
+  listSubmissionsForClass,
+  getSubmissions,
+  getAccessibleExam: async (classId, examId) => {
+    try {
+      return await getAccessibleExamFromServer(classId, examId);
+    } catch {
+      const { getExamById } = await import('../../../hooks/useExams');
+      const legacyExam = await getExamById(examId);
+      if (!legacyExam) throw new Error('không tìm thấy cấu hình đề trong danh sách hiện tại.');
+      return legacyExam;
+    }
+  },
+  getAccessibleExamSubmissions: async (classId, examId) => {
+    try {
+      return await listAccessibleExamSubmissions(classId, examId);
+    } catch {
+      return getSubmissions(examId);
+    }
+  },
+};
 
 const asFiniteNumber = (value: unknown): number | null =>
   typeof value === 'number' && Number.isFinite(value) ? value : null;
@@ -78,10 +118,11 @@ export const adaptOnlineSubmission = (
   exam: Exam,
   roster: readonly Student[],
   className: string,
+  classNameAliases: readonly string[] = [],
 ): ClassReportSubmission | null => {
   const submittedClassKey = normalizeMatchText(submission.studentClass);
-  const selectedClassKey = normalizeMatchText(className);
-  if (submittedClassKey && submittedClassKey !== selectedClassKey) return null;
+  const selectedClassKeys = new Set([className, ...classNameAliases].map(normalizeMatchText).filter(Boolean));
+  if (submittedClassKey && !selectedClassKeys.has(submittedClassKey)) return null;
 
   const submittedNameKey = normalizeMatchText(submission.studentName);
   let student: Student | undefined;
@@ -325,10 +366,81 @@ const ReportBody = ({ report }: { report: ClassAssignmentReportMetrics }) => (
 const sourceErrorText = (source: string, error: unknown): string =>
   `${source}: ${error instanceof Error ? error.message : 'không tải được dữ liệu.'}`;
 
+export const shouldReplaceReportSnapshot = (
+  previousReports: readonly ClassAssignmentReportMetrics[],
+  next: Pick<ClassAssignmentReportRefreshResult, 'reports' | 'sourceErrors'>,
+): boolean => previousReports.length === 0 || next.sourceErrors.length === 0;
+
+export const loadClassAssignmentReports = async (
+  input: ClassAssignmentReportLoadInput,
+  loaders: ClassAssignmentReportLoaders = defaultReportLoaders,
+): Promise<ClassAssignmentReportRefreshResult> => {
+  const [uploadAssignmentsResult, uploadSubmissionsResult] = await Promise.allSettled([
+    loaders.listAssignmentsForClass(input.classId, input.teacherId),
+    loaders.listSubmissionsForClass(input.classId, input.teacherId),
+  ]);
+  const sourceErrors: string[] = [];
+  const reports: ClassAssignmentReportMetrics[] = [];
+
+  if (uploadAssignmentsResult.status === 'fulfilled' && uploadSubmissionsResult.status === 'fulfilled') {
+    const uploadAssignments = uploadAssignmentsResult.value;
+    const uploadSubmissions = uploadSubmissionsResult.value;
+    for (const assignment of uploadAssignments) {
+      const normalized: ClassReportAssignment = {
+        id: assignment.id,
+        title: assignment.title,
+        type: 'Bài nộp ảnh/AI',
+        maxScore: asFiniteNumber(assignment.maxScore),
+        submissions: uploadSubmissions
+          .filter(submission => submission.assignmentId === assignment.id)
+          .map(submission => adaptUploadSubmission(submission, assignment)),
+      };
+      reports.push(buildClassAssignmentReport({
+        roster: input.students.map(student => ({ studentKey: student.id })),
+        assignment: normalized,
+      }));
+    }
+  } else {
+    if (uploadAssignmentsResult.status === 'rejected') sourceErrors.push(sourceErrorText('Bài nộp ảnh/AI — danh sách bài giao', uploadAssignmentsResult.reason));
+    if (uploadSubmissionsResult.status === 'rejected') sourceErrors.push(sourceErrorText('Bài nộp ảnh/AI — bài nộp', uploadSubmissionsResult.reason));
+  }
+
+  const onlineResults = await Promise.all(input.onlineAssignments.map(async assignment => {
+    try {
+      const submissions = loaders.getAccessibleExamSubmissions
+        ? await loaders.getAccessibleExamSubmissions(input.classId, assignment.examId)
+        : await loaders.getSubmissions(assignment.examId);
+      const exam = input.exams.find(item => item.id === assignment.examId)
+        || (loaders.getAccessibleExam ? await loaders.getAccessibleExam(input.classId, assignment.examId) : undefined);
+      if (!exam) throw new Error('không tìm thấy cấu hình đề trong danh sách hiện tại.');
+      const normalized: ClassReportAssignment = {
+        id: `exam:${assignment.examId}`,
+        title: assignment.examTitle || exam.title,
+        type: 'Đề online',
+        maxScore: asFiniteNumber(exam.maxScore),
+        submissions: submissions
+          .map(submission => adaptOnlineSubmission(submission, exam, input.students, input.className, input.classNameAliases))
+          .filter((submission): submission is ClassReportSubmission => submission !== null),
+      };
+      return buildClassAssignmentReport({
+        roster: input.students.map(student => ({ studentKey: student.id })),
+        assignment: normalized,
+      });
+    } catch (error) {
+      sourceErrors.push(sourceErrorText(`Đề online “${assignment.examTitle || assignment.examId}”`, error));
+      return null;
+    }
+  }));
+  reports.push(...onlineResults.filter((report): report is ClassAssignmentReportMetrics => report !== null));
+
+  return { reports, sourceErrors };
+};
+
 export const ClassAssignmentReport = ({
   classId,
   teacherId,
   className,
+  classNameAliases = [],
   students,
   onlineAssignments,
   exams,
@@ -337,79 +449,59 @@ export const ClassAssignmentReport = ({
   const [selectedAssignmentId, setSelectedAssignmentId] = useState('');
   const [sourceErrors, setSourceErrors] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastGeneratedAt, setLastGeneratedAt] = useState<string | null>(null);
+  const refreshVersion = useRef(0);
+
+  const refreshReports = useCallback(async (resetVisibleSnapshot: boolean) => {
+    const version = refreshVersion.current + 1;
+    refreshVersion.current = version;
+    if (resetVisibleSnapshot) setLoading(true);
+    else setRefreshing(true);
+
+    let result: ClassAssignmentReportRefreshResult;
+    try {
+      result = await loadClassAssignmentReports({
+        classId,
+        teacherId,
+        className,
+        classNameAliases,
+        students,
+        onlineAssignments,
+        exams,
+      });
+    } catch (error) {
+      if (version !== refreshVersion.current) return;
+      setSourceErrors([sourceErrorText('Báo cáo lớp', error)]);
+      setLoading(false);
+      setRefreshing(false);
+      return;
+    }
+    if (version !== refreshVersion.current) return;
+
+    setSourceErrors(result.sourceErrors);
+    setReports(previousReports => {
+      if (!shouldReplaceReportSnapshot(previousReports, result)) return previousReports;
+      setSelectedAssignmentId(previousId => result.reports.some(report => report.assignment.id === previousId)
+        ? previousId
+        : result.reports[0]?.assignment.id || '');
+      return result.reports;
+    });
+    setLastGeneratedAt(new Date().toISOString());
+    setLoading(false);
+    setRefreshing(false);
+  }, [classId, teacherId, className, classNameAliases, students, onlineAssignments, exams]);
 
   useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
+    refreshVersion.current += 1;
     setReports([]);
     setSelectedAssignmentId('');
     setSourceErrors([]);
+    setLastGeneratedAt(null);
+    void refreshReports(true);
 
-    void (async () => {
-      const [uploadAssignmentsResult, uploadSubmissionsResult] = await Promise.allSettled([
-        listAssignmentsForClass(classId, teacherId),
-        listSubmissionsForClass(classId, teacherId),
-      ]);
-      const errors: string[] = [];
-      const nextReports: ClassAssignmentReportMetrics[] = [];
-
-      if (uploadAssignmentsResult.status === 'fulfilled' && uploadSubmissionsResult.status === 'fulfilled') {
-        const uploadAssignments = uploadAssignmentsResult.value;
-        const uploadSubmissions = uploadSubmissionsResult.value;
-        for (const assignment of uploadAssignments) {
-          const normalized: ClassReportAssignment = {
-            id: assignment.id,
-            title: assignment.title,
-            type: 'Bài nộp ảnh/AI',
-            maxScore: asFiniteNumber(assignment.maxScore),
-            submissions: uploadSubmissions
-              .filter(submission => submission.assignmentId === assignment.id)
-              .map(submission => adaptUploadSubmission(submission, assignment)),
-          };
-          nextReports.push(buildClassAssignmentReport({
-            roster: students.map(student => ({ studentKey: student.id })),
-            assignment: normalized,
-          }));
-        }
-      } else {
-        if (uploadAssignmentsResult.status === 'rejected') errors.push(sourceErrorText('Bài nộp ảnh/AI — danh sách bài giao', uploadAssignmentsResult.reason));
-        if (uploadSubmissionsResult.status === 'rejected') errors.push(sourceErrorText('Bài nộp ảnh/AI — bài nộp', uploadSubmissionsResult.reason));
-      }
-
-      const onlineResults = await Promise.all(onlineAssignments.map(async assignment => {
-        try {
-          const submissions = await getSubmissions(assignment.examId);
-          const exam = exams.find(item => item.id === assignment.examId);
-          if (!exam) throw new Error('không tìm thấy cấu hình đề trong danh sách hiện tại.');
-          const normalized: ClassReportAssignment = {
-            id: `exam:${assignment.examId}`,
-            title: assignment.examTitle || exam.title,
-            type: 'Đề online',
-            maxScore: asFiniteNumber(exam.maxScore),
-            submissions: submissions
-              .map(submission => adaptOnlineSubmission(submission, exam, students, className))
-              .filter((submission): submission is ClassReportSubmission => submission !== null),
-          };
-          return buildClassAssignmentReport({
-            roster: students.map(student => ({ studentKey: student.id })),
-            assignment: normalized,
-          });
-        } catch (error) {
-          errors.push(sourceErrorText(`Đề online “${assignment.examTitle || assignment.examId}”`, error));
-          return null;
-        }
-      }));
-      nextReports.push(...onlineResults.filter((report): report is ClassAssignmentReportMetrics => report !== null));
-
-      if (cancelled) return;
-      setReports(nextReports);
-      setSelectedAssignmentId(nextReports[0]?.assignment.id || '');
-      setSourceErrors(errors);
-      setLoading(false);
-    })();
-
-    return () => { cancelled = true; };
-  }, [classId, teacherId, className, students, onlineAssignments, exams]);
+    return () => { refreshVersion.current += 1; };
+  }, [refreshReports]);
 
   const selectedReport = useMemo(
     () => reports.find(report => report.assignment.id === selectedAssignmentId) || reports[0],
@@ -448,12 +540,23 @@ export const ClassAssignmentReport = ({
           </select>
           <button
             type="button"
+            onClick={() => void refreshReports(false)}
+            disabled={loading || refreshing}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-indigo-200 bg-white px-4 py-3 text-sm font-black text-indigo-700 shadow-sm transition hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} /> Tạo báo cáo
+          </button>
+          <button
+            type="button"
             onClick={downloadCsv}
             disabled={loading || reports.length === 0}
             className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-black text-white shadow-md shadow-indigo-200 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Download className="h-4 w-4" /> Tải CSV tổng hợp
           </button>
+        </div>
+        <div className="mt-3 text-xs font-semibold text-indigo-700 sm:mt-0">
+          {lastGeneratedAt ? `Cập nhật: ${new Date(lastGeneratedAt).toLocaleString('vi-VN')}` : 'Báo cáo được tính từ dữ liệu mới nhất'}
         </div>
       </div>
 

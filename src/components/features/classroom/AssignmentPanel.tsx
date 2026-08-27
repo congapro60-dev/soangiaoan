@@ -27,6 +27,7 @@ import { NhanXetMarkdown } from './NhanXetMarkdown';
 import { GradeReviewModal, type GradeReviewValue } from './GradeReviewModal';
 import { QuestionResultsList } from './QuestionResultsList';
 import { currentSubmissionsForAssignment, selectedCurrentSubmissions, selectedSubmissionsForAssignment, submissionsForHistoryMode, summarizeSelection, type SubmissionHistoryMode } from '../../../lib/classroom/submissionSelection';
+import { renameAssignment } from '../../../lib/classroom/teacherService';
 
 interface Props {
   classId: string;
@@ -631,6 +632,28 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
    * Đổi hạn nộp sau khi đã giao. Nhãn sớm/muộn của học sinh tính ĐỘNG từ hạn này
    * nên đổi xong là mọi bài nộp cũ tự phân loại lại, không phải quét sửa dữ liệu.
    */
+  const doiTenBai = async (a: AssignmentDoc) => {
+    const { value: title } = await Swal.fire({
+      title: 'Đổi tên bài giao',
+      input: 'text',
+      inputValue: a.title,
+      inputPlaceholder: 'Tên bài giao',
+      showCancelButton: true,
+      confirmButtonText: 'Lưu tên mới',
+      cancelButtonText: 'Hủy',
+      inputValidator: value => value.trim() ? undefined : 'Tên bài giao không được để trống.',
+    });
+    const normalized = typeof title === 'string' ? title.trim() : '';
+    if (!normalized || normalized === a.title) return;
+    try {
+      await renameAssignment(a.id, normalized);
+      showToast('Đã đổi tên bài giao; ID và toàn bộ bài nộp vẫn giữ nguyên.', 'success');
+      await taiBai();
+    } catch (error) {
+      setLoiTai(error instanceof Error ? error.message : 'Không đổi được tên bài giao.');
+    }
+  };
+
   const suaHanNop = async (a: AssignmentDoc) => {
     const { isConfirmed } = await Swal.fire({
       title: `Đổi hạn nộp "${a.title}"`,
@@ -942,6 +965,14 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                     {a.gradingInstructions ? ' · có lệnh chấm riêng' : ''}
                     {a.answerKeyByAi ? ' · đáp án do AI giải' : ''}
                   </p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void doiTenBai(a)}
+                  title="Đổi tên bài giao; không đổi mã bài hoặc bài nộp"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-2 text-xs font-black text-slate-600 transition hover:bg-indigo-50 hover:text-indigo-700"
+                >
+                  <PenLine className="h-3.5 w-3.5" /> Đổi tên
                 </button>
                 {(() => {
                   // Đếm THEO HỌC SINH (distinct), không đếm số submission: một em nộp lại 2 lần

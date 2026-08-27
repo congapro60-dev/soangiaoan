@@ -30,6 +30,8 @@ import {
   removeSubmissionGradeEvidence,
   submissionWithoutGrade,
 } from './_grade-lifecycle.js';
+import { handleTeacherAction } from './_classroom-teacher.js';
+import { readClassAccess } from './_classroom-access.js';
 
 /**
  * Một hàm phục vụ các việc sau, để không vượt trần 12 Serverless Function của Vercel:
@@ -79,6 +81,22 @@ const uidFromIdToken = async (idToken: unknown): Promise<string | null> => {
   } catch {
     return null;
   }
+};
+
+/** Kiểm tra namespace legacy sau khi đã kiểm tra membership của lớp. */
+const teacherCanAccessClass = async (
+  db: FirebaseFirestore.Firestore,
+  uid: string,
+  classId: unknown,
+  legacyTeacherId: unknown,
+): Promise<boolean> => {
+  const normalizedClassId = typeof classId === 'string' ? classId.trim() : '';
+  const legacyUid = typeof legacyTeacherId === 'string' ? legacyTeacherId.trim() : '';
+  if (!normalizedClassId) return legacyUid === uid;
+  const classAccess = await readClassAccess(db, normalizedClassId, uid);
+  // Bài legacy mồ côi không còn document lớp vẫn giữ namespace teacherId cũ. Không
+  // mở rộng quyền trong ca này; chỉ giữ tương thích với hành vi owner cũ.
+  return classAccess ? classAccess.data.teacherId === legacyUid : legacyUid === uid;
 };
 
 const urlsFromValue = (value: unknown): string[] => {
@@ -131,7 +149,7 @@ const handleDeleteSubmission = async (db: FirebaseFirestore.Firestore, body: Rec
   if (!submissionSnap.exists) return res.status(404).json({ error: 'Bài nộp không còn tồn tại.' });
 
   const submission = submissionSnap.data() || {};
-  if (submission.teacherId !== uid) {
+  if (!await teacherCanAccessClass(db, uid, submission.classId, submission.teacherId)) {
     return res.status(403).json({ error: 'Bạn không có quyền xoá bài nộp này.' });
   }
   if (submission.status === 'grading') {
@@ -184,7 +202,7 @@ const handleDeleteSubmission = async (db: FirebaseFirestore.Firestore, body: Rec
       await profileRef.set({
         studentId: submission.studentId,
         classId: String(submission.classId || ''),
-        teacherId: uid,
+        teacherId: String(submission.teacherId || uid),
         topics: removeEvidence(existing, submissionId, new Date().toISOString(), String(submission.assignmentId || '') || undefined),
         updatedAt: new Date().toISOString(),
       }, { merge: true });
@@ -194,7 +212,7 @@ const handleDeleteSubmission = async (db: FirebaseFirestore.Firestore, body: Rec
   await removeSkillEvidenceAndRebuild(db, {
     studentId: String(submission.studentId || ''),
     classId: String(submission.classId || ''),
-    teacherId: uid,
+    teacherId: String(submission.teacherId || uid),
   }, submissionId, new Date().toISOString());
 
   await submissionRef.delete();
@@ -235,12 +253,12 @@ const handleSyncSkillEvidence = async (db: FirebaseFirestore.Firestore, body: Re
   const submissionSnap = await db.collection('submissions').doc(submissionId).get();
   if (!submissionSnap.exists) return res.status(404).json({ error: 'Bài nộp không còn tồn tại.' });
   const submission = submissionSnap.data() || {};
-  if (submission.teacherId !== uid) return res.status(403).json({ error: 'Bạn không có quyền cập nhật minh chứng bài này.' });
+  if (!await teacherCanAccessClass(db, uid, submission.classId, submission.teacherId)) return res.status(403).json({ error: 'Bạn không có quyền cập nhật minh chứng bài này.' });
 
   const owner = {
     studentId: String(submission.studentId || ''),
     classId: String(submission.classId || ''),
-    teacherId: uid,
+    teacherId: String(submission.teacherId || uid),
   };
   if (!owner.studentId || !owner.classId) return res.status(422).json({ error: 'Bài nộp thiếu thông tin lớp hoặc học sinh.' });
 
@@ -291,14 +309,15 @@ const readOwnedSubmission = async (
     return null;
   }
   const data = snapshot.data() || {};
-  if (data.teacherId !== uid) {
-    res.status(403).json({ error: 'Bạn không có quyền cập nhật kết quả chấm của bài này.' });
-    return null;
-  }
   const classId = typeof data.classId === 'string' ? data.classId.trim() : '';
   const studentId = typeof data.studentId === 'string' ? data.studentId.trim() : '';
   if (!classId || !studentId) {
     res.status(422).json({ error: 'Bài nộp thiếu thông tin lớp hoặc học sinh; không thể sửa kết quả an toàn.' });
+    return null;
+  }
+
+  if (!await teacherCanAccessClass(db, uid, classId, data.teacherId)) {
+    res.status(403).json({ error: 'Bạn không có quyền cập nhật kết quả chấm của bài này.' });
     return null;
   }
 
@@ -310,7 +329,7 @@ const readOwnedSubmission = async (
   if (typeof assignmentId === 'string' && assignmentId.trim()) {
     const assignmentSnap = await db.collection('assignments').doc(assignmentId.trim()).get();
     const assignment = assignmentSnap.exists ? assignmentSnap.data() || {} : null;
-    if (!assignment || assignment.teacherId !== uid || assignment.classId !== classId) {
+    if (!assignment || assignment.classId !== classId || !await teacherCanAccessClass(db, uid, classId, assignment.teacherId)) {
       res.status(422).json({ error: 'Bài nộp không khớp lớp và bài đã giao; không thể sửa kết quả an toàn.' });
       return null;
     }
@@ -435,7 +454,7 @@ const handleApproveSubmissionGrade = async (
       if (!latestSnapshot.exists) throw new GradeLifecycleConflictError();
       const latest = latestSnapshot.data() as FirebaseFirestore.DocumentData;
       const latestGradeAt = latest.grade && typeof latest.grade === 'object' ? latest.grade.gradedAt : undefined;
-      if (latest.teacherId !== owned.uid
+      if (latest.teacherId !== owned.submission.teacherId
         || latest.updatedAt !== owned.submission.updatedAt
         || latest.status !== owned.submission.status
         || latestGradeAt !== owned.submission.grade?.gradedAt) {
@@ -473,7 +492,7 @@ const handleApproveSubmissionGrade = async (
   await profileRef.set({
     studentId: owned.submission.studentId,
     classId: owned.submission.classId,
-    teacherId: owned.uid,
+    teacherId: owned.submission.teacherId,
     topics,
     updatedAt: now,
   }, { merge: true });
@@ -483,12 +502,12 @@ const handleApproveSubmissionGrade = async (
     ? await replaceSkillEvidenceAndRebuild(db, {
         studentId: evidenceSubmission.studentId,
         classId: evidenceSubmission.classId,
-        teacherId: owned.uid,
+        teacherId: owned.submission.teacherId,
       }, owned.submissionId, storedHomeworkSkillEvidence(owned.submissionId, evidenceSubmission as unknown as Record<string, unknown>), now)
     : await removeSkillEvidenceAndRebuild(db, {
         studentId: evidenceSubmission.studentId,
         classId: evidenceSubmission.classId,
-        teacherId: owned.uid,
+        teacherId: owned.submission.teacherId,
       }, owned.submissionId, now);
   return res.status(200).json({ approved, submissionId: owned.submissionId, skills });
 };
@@ -650,7 +669,7 @@ const handleDeleteAssignment = async (db: FirebaseFirestore.Firestore, body: Rec
   if (!assignmentSnap.exists) return res.status(404).json({ error: 'Bài giao không còn tồn tại.' });
 
   const assignment = assignmentSnap.data() || {};
-  if (assignment.teacherId !== uid) {
+  if (!await teacherCanAccessClass(db, uid, assignment.classId, assignment.teacherId)) {
     return res.status(403).json({ error: 'Bạn không có quyền xoá bài giao này.' });
   }
 
@@ -903,8 +922,8 @@ const handleIssuePins = async (db: FirebaseFirestore.Firestore, body: Record<str
   const classId = typeof body.classId === 'string' ? body.classId : '';
   const classSnap = await db.collection('classes').doc(classId).get();
   if (!classSnap.exists) return res.status(404).json({ error: 'Không tìm thấy lớp.' });
-  if (classSnap.data()?.teacherId !== uid) {
-    return res.status(403).json({ error: 'Chỉ giáo viên chủ lớp mới cấp được mã PIN.' });
+  if (!await teacherCanAccessClass(db, uid, classId, classSnap.data()?.teacherId)) {
+    return res.status(403).json({ error: 'Bạn không có quyền cấp mã PIN cho lớp này.' });
   }
 
   const regenerate = body.regenerate === true;
@@ -956,8 +975,8 @@ const handleResetOnePin = async (db: FirebaseFirestore.Firestore, body: Record<s
   const studentId = typeof body.studentId === 'string' ? body.studentId : '';
   const classSnap = await db.collection('classes').doc(classId).get();
   if (!classSnap.exists) return res.status(404).json({ error: 'Không tìm thấy lớp.' });
-  if (classSnap.data()?.teacherId !== uid) {
-    return res.status(403).json({ error: 'Chỉ giáo viên chủ lớp mới cấp lại được mã PIN.' });
+  if (!await teacherCanAccessClass(db, uid, classId, classSnap.data()?.teacherId)) {
+    return res.status(403).json({ error: 'Bạn không có quyền cấp lại mã PIN cho lớp này.' });
   }
 
   const studentRef = classSnap.ref.collection('students').doc(studentId);
@@ -991,8 +1010,8 @@ const handleViewPin = async (db: FirebaseFirestore.Firestore, body: Record<strin
   const studentId = typeof body.studentId === 'string' ? body.studentId : '';
   const classSnap = await db.collection('classes').doc(classId).get();
   if (!classSnap.exists) return res.status(404).json({ error: 'Không tìm thấy lớp.' });
-  if (classSnap.data()?.teacherId !== uid) {
-    return res.status(403).json({ error: 'Chỉ giáo viên chủ lớp mới xem được mã PIN.' });
+  if (!await teacherCanAccessClass(db, uid, classId, classSnap.data()?.teacherId)) {
+    return res.status(403).json({ error: 'Bạn không có quyền xem mã PIN của lớp này.' });
   }
 
   const studentSnap = await classSnap.ref.collection('students').doc(studentId).get();
@@ -1021,8 +1040,8 @@ const handleRevokeStudentAccess = async (db: FirebaseFirestore.Firestore, body: 
   const studentId = typeof body.studentId === 'string' ? body.studentId : '';
   const classSnap = await db.collection('classes').doc(classId).get();
   if (!classSnap.exists) return res.status(404).json({ error: 'Không tìm thấy lớp.' });
-  if (classSnap.data()?.teacherId !== uid) {
-    return res.status(403).json({ error: 'Chỉ giáo viên chủ lớp mới thu hồi được quyền truy cập.' });
+  if (!await teacherCanAccessClass(db, uid, classId, classSnap.data()?.teacherId)) {
+    return res.status(403).json({ error: 'Bạn không có quyền thu hồi học sinh khỏi lớp này.' });
   }
 
   // Firestore delete trên document không tồn tại vẫn thành công — khỏi kiểm exists từng cái.
@@ -1056,7 +1075,8 @@ const handleRevokeClass = async (db: FirebaseFirestore.Firestore, body: Record<s
   const classId = typeof body.classId === 'string' ? body.classId : '';
   const classSnap = await db.collection('classes').doc(classId).get();
   if (!classSnap.exists) return res.status(404).json({ error: 'Không tìm thấy lớp.' });
-  if (classSnap.data()?.teacherId !== uid) {
+  const classAccess = await readClassAccess(db, classId, uid);
+  if (!classAccess || !classAccess.access.isOwner) {
     return res.status(403).json({ error: 'Chỉ giáo viên chủ lớp mới gỡ được dữ liệu lớp.' });
   }
 
@@ -1110,8 +1130,8 @@ const handleViewClassPins = async (db: FirebaseFirestore.Firestore, body: Record
   const classId = typeof body.classId === 'string' ? body.classId : '';
   const classSnap = await db.collection('classes').doc(classId).get();
   if (!classSnap.exists) return res.status(404).json({ error: 'Không tìm thấy lớp.' });
-  if (classSnap.data()?.teacherId !== uid) {
-    return res.status(403).json({ error: 'Chỉ giáo viên chủ lớp mới xem được mã PIN.' });
+  if (!await teacherCanAccessClass(db, uid, classId, classSnap.data()?.teacherId)) {
+    return res.status(403).json({ error: 'Bạn không có quyền xem mã PIN của lớp này.' });
   }
 
   const [students, secrets] = await Promise.all([
@@ -1147,6 +1167,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const db = getAdminDb();
+    if (await handleTeacherAction(db, body, res)) return;
     if (action === 'roster') return await handleRoster(db, body, res);
     if (action === 'login') return await handleLogin(db, body, res);
     if (action === 'studentAssignments') return await handleStudentAssignments(db, body, res);

@@ -10,6 +10,7 @@ interface Props {
   onAccess: () => void;
   onAssign: () => void;
   onReport: () => void;
+  onManageMembers: () => void;
 }
 
 const tabs: Array<{ view: WorkspaceView; label: string; icon: typeof Eye }> = [
@@ -20,7 +21,7 @@ const tabs: Array<{ view: WorkspaceView; label: string; icon: typeof Eye }> = [
   { view: 'reports', label: 'Báo cáo', icon: BarChart3 },
 ];
 
-export const ClassWorkspaceNav = ({ selectedClass, activeView, onViewChange, onAccess, onAssign, onReport }: Props) => (
+export const ClassWorkspaceNav = ({ selectedClass, activeView, onViewChange, onAccess, onAssign, onReport, onManageMembers }: Props) => (
   <section className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
     <div className="flex flex-col gap-4 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
       <div className="flex min-w-0 items-center gap-3">
@@ -35,6 +36,7 @@ export const ClassWorkspaceNav = ({ selectedClass, activeView, onViewChange, onA
         <button type="button" onClick={onAccess} className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-black text-slate-700 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"><KeyRound className="h-4 w-4" /> Mã lớp & PIN</button>
         <button type="button" onClick={onAssign} className="inline-flex min-h-11 items-center gap-2 rounded-2xl bg-indigo-600 px-4 py-2.5 text-sm font-black text-white shadow-md shadow-indigo-200 transition hover:bg-indigo-700"><Send className="h-4 w-4" /> Giao bài</button>
         <button type="button" onClick={onReport} className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-black text-slate-700 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"><BarChart3 className="h-4 w-4" /> Báo cáo</button>
+        <button type="button" onClick={onManageMembers} className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-black text-slate-700 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"><Users className="h-4 w-4" /> Giáo viên</button>
       </div>
     </div>
     <nav className="flex overflow-x-auto border-t border-slate-100 px-3 sm:px-5" role="tablist" aria-label="Khu vực quản lý lớp">

@@ -1,11 +1,8 @@
-import { collection, deleteField, doc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { deleteObject, getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
 import { auth, db, removeUndefinedFields, storage } from '../firebase';
-import { applyEvidence } from './profileMerge';
 import type { ManualGradeInput } from './manualGrade';
 import {
-  ASSIGNMENTS_COL,
-  CLASSES_COL,
   SUBMISSIONS_COL,
   type AssignmentAttachment,
   type AssignmentDoc,
@@ -137,8 +134,11 @@ export const createAssignment = async (input: NewAssignment): Promise<Assignment
     rubric: input.rubric || '',
     maxScore: input.maxScore ?? 10,
   };
-  await setDoc(doc(db, ASSIGNMENTS_COL, assignment.id), removeUndefinedFields(assignment));
-  return assignment;
+  const result = await callClassroomTeacherApi<{ assignment: AssignmentDoc }>({
+    action: 'createAssignment',
+    assignment: removeUndefinedFields(assignment),
+  });
+  return result.assignment;
 };
 
 /**
@@ -157,12 +157,9 @@ const moiNhatTruoc = <T extends { createdAt?: string }>(ds: T[]): T[] =>
   [...ds].sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
 
 export const listAssignmentsForClass = async (classId: string, teacherId: string): Promise<AssignmentDoc[]> => {
-  const snap = await getDocs(query(
-    collection(db, ASSIGNMENTS_COL),
-    where('teacherId', '==', teacherId),
-    where('classId', '==', classId),
-  ));
-  return moiNhatTruoc(snap.docs.map(d => d.data() as AssignmentDoc));
+  void teacherId;
+  const result = await callClassroomTeacherApi<{ assignments: AssignmentDoc[] }>({ action: 'teacherAssignments', classId });
+  return moiNhatTruoc(result.assignments || []);
 };
 
 /**
@@ -176,10 +173,7 @@ export const updateAssignmentContent = async (
   assignmentId: string,
   patch: { answerKey?: string; rubric?: string; gradingInstructions?: string },
 ): Promise<void> => {
-  await updateDoc(doc(db, ASSIGNMENTS_COL, assignmentId), {
-    ...patch,
-    updatedAt: new Date().toISOString(),
-  });
+  await callClassroomTeacherApi({ action: 'updateAssignmentContent', assignmentId, patch });
 };
 
 /** Xoá bài giao và toàn bộ file đề/ảnh đáp án trên Storage qua Admin SDK. */
@@ -188,7 +182,7 @@ export const deleteAssignment = async (assignmentId: string): Promise<void> => {
 };
 
 export const setAssignmentOpen = async (assignmentId: string, isOpen: boolean): Promise<void> => {
-  await updateDoc(doc(db, ASSIGNMENTS_COL, assignmentId), { isOpen, updatedAt: new Date().toISOString() });
+  await callClassroomTeacherApi({ action: 'setAssignmentOpen', assignmentId, isOpen });
 };
 
 /**
@@ -199,29 +193,20 @@ export const updateAssignmentDeadline = async (
   assignmentId: string,
   dueAt: string | null,
 ): Promise<void> => {
-  await updateDoc(doc(db, ASSIGNMENTS_COL, assignmentId), {
-    dueAt: dueAt ? dueAt : deleteField(),
-    updatedAt: new Date().toISOString(),
-  });
+  await callClassroomTeacherApi({ action: 'updateAssignmentDeadline', assignmentId, dueAt });
 };
 
 export const listSubmissionsForAssignment = async (assignmentId: string, teacherId: string): Promise<SubmissionDoc[]> => {
-  const snap = await getDocs(query(
-    collection(db, SUBMISSIONS_COL),
-    where('teacherId', '==', teacherId),
-    where('assignmentId', '==', assignmentId),
-  ));
-  return moiNhatTruoc(snap.docs.map(d => d.data() as SubmissionDoc));
+  void teacherId;
+  const result = await callClassroomTeacherApi<{ submissions: SubmissionDoc[] }>({ action: 'teacherSubmissions', assignmentId });
+  return moiNhatTruoc(result.submissions || []);
 };
 
 /** Bài nộp của một học sinh, dùng cho báo cáo phía giáo viên. */
 export const listSubmissionsForStudent = async (studentId: string, teacherId: string): Promise<SubmissionDoc[]> => {
-  const snap = await getDocs(query(
-    collection(db, SUBMISSIONS_COL),
-    where('teacherId', '==', teacherId),
-    where('studentId', '==', studentId),
-  ));
-  return moiNhatTruoc(snap.docs.map(d => d.data() as SubmissionDoc));
+  void teacherId;
+  const result = await callClassroomTeacherApi<{ submissions: SubmissionDoc[] }>({ action: 'teacherSubmissions', studentId });
+  return moiNhatTruoc(result.submissions || []);
 };
 
 /**
@@ -230,12 +215,9 @@ export const listSubmissionsForStudent = async (studentId: string, teacherId: st
  * Hai ràng buộc bằng nhau (teacherId + classId) nên không cần index tổ hợp.
  */
 export const listSubmissionsForClass = async (classId: string, teacherId: string): Promise<SubmissionDoc[]> => {
-  const snap = await getDocs(query(
-    collection(db, SUBMISSIONS_COL),
-    where('teacherId', '==', teacherId),
-    where('classId', '==', classId),
-  ));
-  return moiNhatTruoc(snap.docs.map(d => d.data() as SubmissionDoc));
+  void teacherId;
+  const result = await callClassroomTeacherApi<{ submissions: SubmissionDoc[] }>({ action: 'teacherSubmissions', classId });
+  return moiNhatTruoc(result.submissions || []);
 };
 
 /** Danh sách tên học sinh của lớp — để gắn tên vào từng bài nộp và liệt kê em nào chưa nộp. */
@@ -245,11 +227,8 @@ export interface RosterStudent {
 }
 
 export const listClassRoster = async (classId: string): Promise<RosterStudent[]> => {
-  const snap = await getDocs(collection(db, CLASSES_COL, classId, 'students'));
-  return snap.docs
-    .map(d => ({ studentId: d.id, name: String(d.data()?.name || '') }))
-    .filter(s => s.name)
-    .sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+  const result = await callClassroomTeacherApi<{ students: RosterStudent[] }>({ action: 'teacherRoster', classId });
+  return (result.students || []).sort((a, b) => a.name.localeCompare(b.name, 'vi'));
 };
 
 /**

@@ -1,13 +1,38 @@
 import { collection, deleteDoc, doc, getDoc, getDocs, limit, query, setDoc, where, writeBatch } from 'firebase/firestore';
-import { db, removeUndefinedFields } from '../firebase';
+import { auth, db, removeUndefinedFields } from '../firebase';
 import { TeacherClass } from '../../types';
 import { planLegacyClassMigration } from './migrateLegacyClasses';
-import { CLASSES_COL, STUDENTS_SUB, type ClassDoc } from './types';
+import { CLASSES_COL, STUDENTS_SUB, type AssignmentDoc, type ClassDoc, type StudentDoc } from './types';
+
+const callTeacherApi = async <T>(payload: Record<string, unknown>): Promise<T> => {
+  const currentUser = auth.currentUser;
+  if (!currentUser || currentUser.isAnonymous) throw new Error('Cần đăng nhập bằng tài khoản giáo viên.');
+  const idToken = await currentUser.getIdToken();
+  const response = await fetch('/api/classroom', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...payload, idToken }),
+  });
+  const data = await response.json().catch(() => null) as { error?: unknown } | null;
+  if (!response.ok) throw new Error(typeof data?.error === 'string' ? data.error : `Máy chủ trả lỗi ${response.status}.`);
+  return data as T;
+};
+
+export interface AccessibleClassDoc extends ClassDoc {
+  students: StudentDoc[];
+  assignments: AssignmentDoc[];
+  access: { role: 'owner' | 'co_owner'; isOwner: boolean; isOriginalOwner: boolean };
+}
 
 /** Lớp trên máy chủ, hoặc null nếu lớp này chưa được đồng bộ. */
 export const getClassDoc = async (classId: string): Promise<ClassDoc | null> => {
-  const snap = await getDoc(doc(db, CLASSES_COL, classId));
-  return snap.exists() ? (snap.data() as ClassDoc) : null;
+  try {
+    const snap = await getDoc(doc(db, CLASSES_COL, classId));
+    return snap.exists() ? ({ id: snap.id, ...(snap.data() as ClassDoc) }) : null;
+  } catch {
+    const result = await callTeacherApi<{ class?: ClassDoc }>({ action: 'getAccessibleClass', classId });
+    return result.class || null;
+  }
 };
 
 /**
@@ -19,6 +44,14 @@ export const themHocSinhLenServer = async (
   teacherId: string,
   student: { id: string; name: string; code: string },
 ): Promise<boolean> => {
+  try {
+    const result = await callTeacherApi<{ student?: StudentDoc }>({
+      action: 'addStudent', classId, studentId: student.id, name: student.name, code: student.code,
+    });
+    return Boolean(result.student);
+  } catch {
+    // Lớp local chưa đồng bộ chưa có document để API nhận; giữ đường lùi migration cũ.
+  }
   const classSnap = await getDoc(doc(db, CLASSES_COL, classId));
   if (!classSnap.exists()) return false;
   await setDoc(doc(db, CLASSES_COL, classId, STUDENTS_SUB, student.id), removeUndefinedFields({
@@ -59,10 +92,21 @@ export const listTeacherClassIds = async (teacherId: string): Promise<string[]> 
 
 export const listTeacherClasses = async (teacherId: string): Promise<ClassDoc[]> => {
   if (typeof teacherId !== 'string' || teacherId.trim().length === 0 || teacherId.includes('/')) return [];
-  const snap = await getDocs(query(collection(db, CLASSES_COL), where('teacherId', '==', teacherId)));
-  return snap.docs
-    .map((document) => ({ ...(document.data() as Omit<ClassDoc, 'id'>), id: document.id }))
-    .sort((left, right) => String(left.name ?? '').localeCompare(String(right.name ?? '')));
+  try {
+    const snap = await getDocs(query(collection(db, CLASSES_COL), where('teacherId', '==', teacherId)));
+    return snap.docs
+      .map((document) => ({ ...(document.data() as Omit<ClassDoc, 'id'>), id: document.id }))
+      .sort((left, right) => String(left.name ?? '').localeCompare(String(right.name ?? '')));
+  } catch {
+    const accessible = await listAccessibleClasses();
+    return accessible.map(({ students: _students, assignments: _assignments, access: _access, ...classDoc }) => classDoc);
+  }
+};
+
+/** Lớp owner/co-owner hiện tại; dùng làm server-authoritative cache cho Classroom. */
+export const listAccessibleClasses = async (): Promise<AccessibleClassDoc[]> => {
+  const result = await callTeacherApi<{ classes: AccessibleClassDoc[] }>({ action: 'listAccessibleClasses' });
+  return (result.classes || []).map(item => ({ ...item, id: item.id }));
 };
 
 /**
