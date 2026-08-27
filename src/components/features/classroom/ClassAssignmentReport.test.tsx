@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { Exam, ExamSubmission, Student } from '../../../types';
 import type { AssignmentDoc, SubmissionDoc } from '../../../lib/classroom/types';
 import {
@@ -7,7 +7,9 @@ import {
   buildClassReportCsv,
   getQuestionOutcomeRows,
   loadClassAssignmentReports,
+  resolveClassNameAliases,
   shouldReplaceReportSnapshot,
+  withReportSourceTimeout,
 } from './ClassAssignmentReport';
 
 const roster: Student[] = [
@@ -16,6 +18,31 @@ const roster: Student[] = [
 ];
 
 describe('ClassAssignmentReport adapters', () => {
+  it('reuses one empty alias list when a class has never been renamed', () => {
+    const first = resolveClassNameAliases(undefined);
+    const second = resolveClassNameAliases(undefined);
+
+    expect(first).toBe(second);
+    expect(first).toEqual([]);
+  });
+
+  it('stops waiting when a report source never responds', async () => {
+    vi.useFakeTimers();
+    try {
+      const pending = withReportSourceTimeout(
+        'Danh sách bài giao',
+        () => new Promise<never>(() => undefined),
+        1_000,
+      );
+      const rejected = expect(pending).rejects.toThrow('Danh sách bài giao không phản hồi sau 1 giây.');
+
+      await vi.advanceTimersByTimeAsync(1_000);
+      await rejected;
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('explicitly creates a report even when an assignment has zero submissions', async () => {
     const result = await loadClassAssignmentReports({
       classId: 'class-11-columbus',

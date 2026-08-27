@@ -271,3 +271,12 @@ Backup bản cũ: `C:\Users\ADMIN\AppData\Local\Temp\smartplan-ban-toan-backup-2
 - `git diff --check`: PASS.
 - Local browser route smoke reached the live route but could not read the historical session because Firestore returned `Missing or insufficient permissions`; no visual PASS is claimed from that route.
 - Vercel deployment `dpl_5PwBUAn4bsV2rEeVvumZEQnC7mjg` is `READY / Production` at `https://giaoandewey.vercel.app`; HTTP smoke `/` and a live route both returned 200.
+
+## Task 14 — Report request storm + classroom/grading/student QA — 2026-08-27
+
+- [x] Xác định production gọi lặp `/api/classroom`; không phải AI sinh báo cáo chậm.
+- [ ] TDD lỗi dependency không ổn định và request treo.
+- [ ] Sửa tối thiểu, không migration/ghi/xóa dữ liệu lớp.
+- [ ] QA lớp học, giao/nộp bài, chấm điểm và giao diện học sinh theo rủi ro.
+- [ ] Review độc lập, full gates, push main, production smoke chỉ đọc.
+- [ ] Báo cáo lỗi còn lại và đề xuất nâng cấp.

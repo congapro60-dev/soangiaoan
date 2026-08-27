@@ -39,6 +39,28 @@ export interface ClassAssignmentReportRefreshResult {
   sourceErrors: string[];
 }
 
+const EMPTY_CLASS_NAME_ALIASES: string[] = [];
+const REPORT_SOURCE_TIMEOUT_MS = 20_000;
+
+export const resolveClassNameAliases = (aliases: string[] | undefined): string[] =>
+  aliases ?? EMPTY_CLASS_NAME_ALIASES;
+
+export const withReportSourceTimeout = <T,>(
+  source: string,
+  load: () => Promise<T>,
+  timeoutMs = REPORT_SOURCE_TIMEOUT_MS,
+): Promise<T> => new Promise((resolve, reject) => {
+  const timeout = globalThis.setTimeout(() => {
+    reject(new Error(`${source} không phản hồi sau ${Math.max(1, Math.ceil(timeoutMs / 1_000))} giây.`));
+  }, timeoutMs);
+  Promise.resolve()
+    .then(load)
+    .then(
+      value => { globalThis.clearTimeout(timeout); resolve(value); },
+      error => { globalThis.clearTimeout(timeout); reject(error); },
+    );
+});
+
 const defaultReportLoaders: ClassAssignmentReportLoaders = {
   listAssignmentsForClass,
   listSubmissionsForClass,
@@ -376,8 +398,8 @@ export const loadClassAssignmentReports = async (
   loaders: ClassAssignmentReportLoaders = defaultReportLoaders,
 ): Promise<ClassAssignmentReportRefreshResult> => {
   const [uploadAssignmentsResult, uploadSubmissionsResult] = await Promise.allSettled([
-    loaders.listAssignmentsForClass(input.classId, input.teacherId),
-    loaders.listSubmissionsForClass(input.classId, input.teacherId),
+    withReportSourceTimeout('Danh sách bài giao', () => loaders.listAssignmentsForClass(input.classId, input.teacherId)),
+    withReportSourceTimeout('Danh sách bài nộp', () => loaders.listSubmissionsForClass(input.classId, input.teacherId)),
   ]);
   const sourceErrors: string[] = [];
   const reports: ClassAssignmentReportMetrics[] = [];
@@ -408,10 +430,12 @@ export const loadClassAssignmentReports = async (
   const onlineResults = await Promise.all(input.onlineAssignments.map(async assignment => {
     try {
       const submissions = loaders.getAccessibleExamSubmissions
-        ? await loaders.getAccessibleExamSubmissions(input.classId, assignment.examId)
-        : await loaders.getSubmissions(assignment.examId);
+        ? await withReportSourceTimeout('Bài nộp đề online', () => loaders.getAccessibleExamSubmissions!(input.classId, assignment.examId))
+        : await withReportSourceTimeout('Bài nộp đề online', () => loaders.getSubmissions(assignment.examId));
       const exam = input.exams.find(item => item.id === assignment.examId)
-        || (loaders.getAccessibleExam ? await loaders.getAccessibleExam(input.classId, assignment.examId) : undefined);
+        || (loaders.getAccessibleExam
+          ? await withReportSourceTimeout('Cấu hình đề online', () => loaders.getAccessibleExam!(input.classId, assignment.examId))
+          : undefined);
       if (!exam) throw new Error('không tìm thấy cấu hình đề trong danh sách hiện tại.');
       const normalized: ClassReportAssignment = {
         id: `exam:${assignment.examId}`,
@@ -440,11 +464,12 @@ export const ClassAssignmentReport = ({
   classId,
   teacherId,
   className,
-  classNameAliases = [],
+  classNameAliases: classNameAliasesProp,
   students,
   onlineAssignments,
   exams,
 }: ClassAssignmentReportProps) => {
+  const classNameAliases = resolveClassNameAliases(classNameAliasesProp);
   const [reports, setReports] = useState<ClassAssignmentReportMetrics[]>([]);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState('');
   const [sourceErrors, setSourceErrors] = useState<string[]>([]);

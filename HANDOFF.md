@@ -10,6 +10,13 @@
 
 **Commit code:** `cb7d9e9` · **Spec:** `f731b7c` · **Branch chờ push:** `codex/class-report-collaboration`
 
+### Hotfix tải báo cáo — 2026-08-27
+
+- Ổn định danh sách tên lớp cũ khi lớp chưa từng đổi tên, tránh `useEffect` tạo vòng lặp gọi lại `/api/classroom` sau mỗi lần render.
+- Giới hạn thời gian chờ từng nguồn đọc báo cáo ở 20 giây; khi nguồn treo, giao diện báo lỗi thay vì quay vô hạn. Đây là read-only guard, không hủy/xóa/sửa dữ liệu.
+- Regression test đã có cho cả hai lỗi; không migration, không thay đổi ID, Firestore/Storage, điểm, nhận xét, bài giao hoặc bài nộp của bất kỳ lớp nào.
+- Đã xác minh: test báo cáo 15/15, test nhóm lớp/chấm 302/302, `lint`, `lint:api`, `build` và `git diff --check` PASS. Full suite/E2E sẽ chạy tiếp sau khi hotfix lên main.
+
 ### Đã đổi và vì sao
 
 - Thêm nút **Tạo báo cáo** để giáo viên chủ động tính lại báo cáo cho mọi bài đã giao, kể cả bài chưa có học sinh nộp; khi một nguồn lỗi, snapshot đang hiển thị không bị thay bằng số liệu rỗng.
