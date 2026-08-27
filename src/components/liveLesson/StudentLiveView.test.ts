@@ -7,6 +7,7 @@ import {
   getStudentChoiceOptions,
   getStudentChoiceLabel,
   resolveStudentLiveIdentity,
+  validateStudentLoginClassId,
   validateStudentRosterContext,
 } from './StudentLiveView';
 import type { StudentLanguageView } from '../../lib/liveLesson/v4';
@@ -78,5 +79,53 @@ describe('student V4 language view helpers', () => {
     expect(buildOfflineStatusText(true, 2, 0)).toBe('Đang đồng bộ 2 phản hồi đã lưu trên máy.');
     expect(buildOfflineStatusText(true, 0, 1)).toBe('Lỗi — dùng vở; 1 phản hồi bị chặn.');
     expect(buildOfflineStatusText(true, 0, 0)).toBe('Đã gửi.');
+  });
+});
+
+describe('validateStudentLoginClassId', () => {
+  it('rejects when result classId does not match expected classId (class A vs class B)', () => {
+    expect(validateStudentLoginClassId('class-B', 'class-A')).toEqual({
+      ok: false,
+      message: expect.stringContaining('khớp'),
+    });
+  });
+
+  it('rejects when result classId is empty', () => {
+    expect(validateStudentLoginClassId('', 'class-A')).toEqual({
+      ok: false,
+      message: expect.stringContaining('không hợp lệ'),
+    });
+  });
+
+  it('rejects when expected classId is null', () => {
+    expect(validateStudentLoginClassId('class-A', null)).toEqual({
+      ok: false,
+      message: expect.stringContaining('thiếu'),
+    });
+  });
+
+  it('accepts matching classIds', () => {
+    expect(validateStudentLoginClassId('class-A', 'class-A')).toEqual({ ok: true });
+  });
+});
+
+describe('returning student language preference', () => {
+  it('keeps a returning student language preference without re-prompting', () => {
+    const saved: StudentLanguageView = {
+      language: 'ja', supportMode: 'bilingual', showGlossary: true, showSentenceFrames: true, curriculumBridgeIds: [],
+    };
+    const result = buildStudentLanguageChoiceState(saved);
+    expect(result.view).toEqual(saved);
+    expect(result.needsFirstRunChoice).toBe(false);
+  });
+
+  it('retains the language preference across multiple sessions', () => {
+    const saved: StudentLanguageView = {
+      language: 'ko', supportMode: 'approved_full_translation', showGlossary: false, showSentenceFrames: true, curriculumBridgeIds: [],
+    };
+    const result = buildStudentLanguageChoiceState(saved);
+    expect(result.view.language).toBe('ko');
+    expect(result.view.supportMode).toBe('approved_full_translation');
+    expect(result.needsFirstRunChoice).toBe(false);
   });
 });

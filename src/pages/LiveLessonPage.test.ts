@@ -72,6 +72,11 @@ describe('LiveLessonPage route helpers', () => {
     });
   });
 
+  it('rejects student mode when public state is missing (session expired or closed)', () => {
+    expect(getLiveLessonRouteError({ mode: 'student', session: null, publicState: null })).toContain('Không tìm thấy trạng thái công khai');
+    expect(getLiveLessonRouteError({ mode: 'student', session: null, publicState: null, definition: getPilotLiveLessonDefinition() })).toBeTruthy();
+  });
+
   it('does not let an older or malformed teacher snapshot overwrite newer local state', () => {
     const current = {
       teacherUid: 'teacher-1', updatedAt: 200, status: 'running', currentCueId: 'P02', currentTvScreenId: 'S2',

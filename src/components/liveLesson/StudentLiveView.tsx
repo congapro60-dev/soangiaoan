@@ -109,6 +109,13 @@ export const buildOfflineStatusText = (online: boolean, retryableQueueCount: num
   return 'Đã gửi.';
 };
 
+export const validateStudentLoginClassId = (resultClassId: string, expectedClassId: string | null): { ok: true } | { ok: false; message: string } => {
+  if (!resultClassId.trim()) return { ok: false, message: 'Phiên học sinh không hợp lệ; không thể tiếp tục.' };
+  if (!expectedClassId?.trim()) return { ok: false, message: 'Liên kết học sinh thiếu mã lớp phiên; không thể tiếp tục.' };
+  if (resultClassId !== expectedClassId) return { ok: false, message: 'Mã lớp của tài khoản không khớp liên kết phiên này.' };
+  return { ok: true };
+};
+
 const readSavedLanguageView = (participantUid: string | null): unknown => {
   if (!participantUid) return null;
   try {
@@ -345,7 +352,8 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
     try {
       const result = await loginStudent(expectedJoinCode.trim(), selectedStudentId.trim(), pin.trim());
       if (!result.classId || !result.studentId) throw new Error('Phiên học sinh không hợp lệ; không thể tiếp tục.');
-      if (result.classId !== expectedClassId) throw new Error('Mã lớp của tài khoản không khớp liên kết phiên này.');
+      const classCheck = validateStudentLoginClassId(result.classId, expectedClassId);
+      if (classCheck.ok !== true) throw new Error(classCheck.message);
       const activeStudentUser = auth.currentUser;
       if (!activeStudentUser?.uid || !activeStudentUser.isAnonymous) throw new Error('Không xác định được phiên học sinh an toàn.');
       const saved = saveStudentLoginSession(result, activeStudentUser.uid);

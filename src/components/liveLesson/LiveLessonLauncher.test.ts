@@ -17,10 +17,12 @@ describe('live lesson launcher helpers', () => {
   });
 
   it('builds teacher, TV and student URLs with one session id', () => {
-    const urls = buildLiveLessonUrls('session-123', 'https://smartplan.test', 'class-123');
+    const urls = buildLiveLessonUrls('session-123', 'https://smartplan.test', 'class-123', 'JOIN123');
     expect(urls.teacher).toBe('https://smartplan.test/adaptive-live/session-123?mode=teacher');
     expect(urls.tv).toBe('https://smartplan.test/adaptive-live/session-123?mode=tv');
-    expect(urls.student).toBe('https://smartplan.test/adaptive-live/session-123?mode=student&classId=class-123');
+    expect(urls.student).toContain('mode=student');
+    expect(urls.student).toContain('classId=class-123');
+    expect(urls.student).toContain('joinCode=JOIN123');
     expect(new Set(Object.values(urls).map(url => url.match(/adaptive-live\/([^?]+)/)?.[1]))).toEqual(new Set(['session-123']));
     expect(Object.values(urls).join(' ')).not.toMatch(/pin|secret/i);
   });
@@ -35,11 +37,20 @@ describe('live lesson launcher helpers', () => {
     expect(urls.tv).not.toContain('joinCode');
   });
 
-  it('does not add the class binding to teacher or TV URLs', () => {
-    const urls = buildLiveLessonUrls('session-123', 'https://smartplan.test', 'class/secret?no');
+  it('omits joinCode from student URL when joinCode is empty', () => {
+    const urls = buildLiveLessonUrls('session-456', 'https://smartplan.test', 'class-456');
+    expect(urls.student).toContain('classId=class-456');
+    expect(urls.student).not.toContain('joinCode');
+  });
+
+  it('does not add the class binding or joinCode to teacher or TV URLs', () => {
+    const urls = buildLiveLessonUrls('session-123', 'https://smartplan.test', 'class/secret?no', 'CODE?X');
     expect(urls.teacher).not.toContain('classId');
+    expect(urls.teacher).not.toContain('joinCode');
     expect(urls.tv).not.toContain('classId');
+    expect(urls.tv).not.toContain('joinCode');
     expect(urls.student).toContain('classId=class%2Fsecret%3Fno');
+    expect(urls.student).toContain('joinCode=CODE%3FX');
   });
 
   it('rejects a published lesson without the matching pilot definition', () => {
