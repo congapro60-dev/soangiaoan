@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { toPublicStats } from '../lib/liveLesson/aggregate';
+import { sanitizeStudentLanguagePreference } from '../lib/liveLesson/v4/languageSupport';
 import type {
   CreateLiveSessionInput,
   LiveLessonDefinition,
@@ -24,6 +25,9 @@ import type {
   LiveResponseType,
   SubmitLiveResponseInput,
 } from '../lib/liveLesson/types';
+import type { StudentLanguageView } from '../lib/liveLesson/v4/types';
+
+type SubmitLiveResponseWithLanguagePreference = SubmitLiveResponseInput & { languagePreference?: StudentLanguageView };
 
 const SESSIONS_COL = 'liveLessonSessions';
 const RESPONSES_SUB = 'responses';
@@ -210,6 +214,22 @@ const readSnapshot = async (sessionId: string, readFromServer = false): Promise<
   throw lastError instanceof Error ? lastError : new Error('Live lesson session could not be read back.');
 };
 
+export const buildLiveResponseFirestorePayload = (input: SubmitLiveResponseWithLanguagePreference, includeIdentity: boolean): Record<string, unknown> => {
+  const languagePreference = sanitizeStudentLanguagePreference(input.languagePreference);
+  return {
+    ...(includeIdentity ? {
+      participantUid: input.participantUid,
+      classId: input.classId,
+      stepId: input.stepId,
+    } : {}),
+    responseType: input.responseType,
+    value: input.value,
+    clientNonce: input.clientNonce,
+    ...(languagePreference ? { languagePreference } : {}),
+  };
+};
+};
+
 const writePublicState = async (session: LiveLessonSession): Promise<void> => {
   await setDoc(doc(db, SESSIONS_COL, session.id, PUBLIC_SUB, 'state'), {
     cueId: session.currentCueId,
@@ -309,9 +329,7 @@ export const submitLiveResponse = async (input: SubmitLiveResponseInput): Promis
   const responseRef = doc(db, SESSIONS_COL, input.sessionId, RESPONSES_SUB, responseId);
   try {
     await setDoc(responseRef, {
-      responseType: input.responseType,
-      value: input.value,
-      clientNonce: input.clientNonce,
+      ...buildLiveResponseFirestorePayload(input as SubmitLiveResponseWithLanguagePreference, false),
       updatedAt: serverTimestamp(),
     }, { merge: true });
     return;
@@ -319,12 +337,7 @@ export const submitLiveResponse = async (input: SubmitLiveResponseInput): Promis
     if (!isPermissionDeniedError(error)) throw error;
   }
   await setDoc(responseRef, {
-    participantUid: input.participantUid,
-    classId: input.classId,
-    stepId: input.stepId,
-    responseType: input.responseType,
-    value: input.value,
-    clientNonce: input.clientNonce,
+    ...buildLiveResponseFirestorePayload(input as SubmitLiveResponseWithLanguagePreference, true),
     submittedAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });

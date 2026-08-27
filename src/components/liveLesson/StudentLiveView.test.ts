@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import type { RosterResponse } from '../../services/studentPortalApi';
-import { getStudentChoiceOptions, getStudentChoiceLabel, resolveStudentLiveIdentity, validateStudentRosterContext } from './StudentLiveView';
+import {
+  buildOfflineStatusText,
+  buildStudentLanguageChip,
+  buildStudentLanguageChoiceState,
+  getStudentChoiceOptions,
+  getStudentChoiceLabel,
+  resolveStudentLiveIdentity,
+  validateStudentRosterContext,
+} from './StudentLiveView';
+import type { StudentLanguageView } from '../../lib/liveLesson/v4';
 
 describe('student live identity boundary', () => {
   it('uses the authenticated anonymous uid for participantUid and login classId for classId', () => {
@@ -47,5 +56,27 @@ describe('student roster context boundary', () => {
       ok: false,
       message: 'Liên kết cũ thiếu ngữ cảnh lớp. Hãy yêu cầu giáo viên mở phiên mới.',
     });
+  });
+});
+
+describe('student V4 language view helpers', () => {
+  const saved: StudentLanguageView = {
+    language: 'en', supportMode: 'bilingual', showGlossary: true, showSentenceFrames: true, curriculumBridgeIds: [],
+  };
+
+  it('shows first-run language choice only when no valid preference exists', () => {
+    expect(buildStudentLanguageChoiceState(null)).toEqual({ view: expect.objectContaining({ language: 'vi', supportMode: 'vi_anchor' }), needsFirstRunChoice: true });
+    expect(buildStudentLanguageChoiceState(saved)).toEqual({ view: saved, needsFirstRunChoice: false });
+  });
+
+  it('keeps a persistent language chip with an explicit change action label', () => {
+    expect(buildStudentLanguageChip(saved)).toEqual({ label: 'Tiếng Việt + EN', actionLabel: 'Đổi ngôn ngữ' });
+  });
+
+  it('uses explicit offline status text without pretending realtime succeeded', () => {
+    expect(buildOfflineStatusText(false, 1, 0)).toBe('Đã lưu trên máy — chờ đồng bộ.');
+    expect(buildOfflineStatusText(true, 2, 0)).toBe('Đang đồng bộ 2 phản hồi đã lưu trên máy.');
+    expect(buildOfflineStatusText(true, 0, 1)).toBe('Lỗi — dùng vở; 1 phản hồi bị chặn.');
+    expect(buildOfflineStatusText(true, 0, 0)).toBe('Đã gửi.');
   });
 });

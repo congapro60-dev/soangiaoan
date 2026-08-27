@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { getPilotLiveLessonDefinition } from '../../lib/liveLesson/definition';
 import {
+  buildPrivateNeedsSummary,
   buildTeacherStatePatch,
   getCueNavigation,
   getTeacherMobileControlModel,
@@ -52,5 +53,18 @@ describe('TeacherLiveView controls', () => {
       status: 'paused',
       publicStatsEnabled: false,
     }).pauseResumeLabel).toBe('Bắt đầu / tiếp tục');
+  });
+});
+
+describe('TeacherLiveView private needs summary', () => {
+  it('aggregates need signals privately without public ability or language labels', () => {
+    const summary = buildPrivateNeedsSummary([
+      { need: 'terminology', count: 3 },
+      { need: 'sentence_frame', count: 2 },
+      { need: 'extra_processing_time', count: 1 },
+    ]);
+
+    expect(summary).toEqual({ title: 'Nhu cầu hỗ trợ riêng', lines: ['Thuật ngữ: 3', 'Khung câu: 2', 'Thêm thời gian xử lý: 1'] });
+    expect(JSON.stringify(summary)).not.toMatch(/yếu|giỏi|kém|language|english|korean|nhãn/i);
   });
 });

@@ -304,7 +304,7 @@ Backup bản cũ: `C:\Users\ADMIN\AppData\Local\Temp\smartplan-ban-toan-backup-2
 
 ## Task 15 — Khuyến nghị dạy học có bằng chứng — 2026-08-27
 
-- [x] Tách nhãn trung tính như “Không có” khỏi thống kê lỗi và khuyến nghị.
+- [x] Tách nhãn trung tính như "Không có" khỏi thống kê lỗi và khuyến nghị.
 - [x] TDD khuyến nghị phải nêu dữ liệu, ưu tiên, hành động trên lớp, thời lượng và cách kiểm tra lại.
 - [x] Sinh khuyến nghị theo điểm lớp, độ phủ nộp bài, câu/chủ đề/lỗi yếu; không suy diễn khi thiếu bằng chứng.
 - [x] Hiển thị bản tiếng Việt giáo dục rõ ràng, đọc được trên màn hình báo cáo.
@@ -330,3 +330,21 @@ Backup bản cũ: `C:\Users\ADMIN\AppData\Local\Temp\smartplan-ban-toan-backup-2
 - `npm run lint`: PASS; `npm run lint:api`: PASS; `npm run build`: PASS.
 - `git diff --check`: PASS; build chỉ còn cảnh báo Vite chunk/dynamic import vốn có.
 - Chưa chạy authenticated browser E2E; chờ người dùng tự QA sau deployment.
+
+## Live Lesson V4 Task 3 — Language/glossary privacy — 2026-08-27
+
+- [x] Đọc Task 3 plan, design sections 6/6.2/6.3/11.3, V4 contract/package và pattern test thuần hiện có.
+- [x] Viết test trước cho `languageSupport` và `glossary`: enum giới hạn, preference hợp lệ được reuse, default `vi_anchor`, draft/retired không ra student runtime, ký hiệu Toán giữ nguyên.
+- [x] Cài `src/lib/liveLesson/v4/languageSupport.ts` và `glossary.ts` thuần, không gọi AI và không suy ngôn ngữ thành năng lực.
+- [x] Thêm helper/test thuần cho `StudentLiveView`: first-run choice, chip đổi ngôn ngữ, popup glossary, trạng thái offline `Đã lưu trên máy`.
+- [x] Sửa `liveLessonService` chỉ gửi/lưu `languagePreference` enum size-limited; không gửi support plan/PIN/private data.
+- [x] Thêm helper/test thuần cho `TeacherLiveView`: summary nhu cầu riêng tư aggregate, không nhãn công khai năng lực/ngôn ngữ.
+- [x] Nghiệm thu: chạy full liveLesson suite theo lệnh user và `npm run lint`.
+
+### Review — Live Lesson V4 Task 3
+
+- RED đã quan sát trước implementation: 5 file test mới/sửa fail vì thiếu module/export đúng kỳ vọng.
+- Focused Task 3 tests: 5 files / 21 tests PASS.
+- Full requested liveLesson suite: 12 files / 95 tests PASS.
+- `npm run lint`: PASS (`tsc --noEmit`).
+- Không sửa `firestore.rules`, `TvLiveView`, v4 contract/package Task 1/2 hoặc deploy/push.
