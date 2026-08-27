@@ -6,6 +6,44 @@
 
 Đây là snapshot hiện tại. Lịch sử các lô cũ xem trong [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md) và `git log`.
 
+## 0. Lô báo cáo lớp và cộng tác giáo viên — 2026-08-27
+
+**Commit code:** `cb7d9e9` · **Spec:** `f731b7c` · **Branch chờ push:** `codex/class-report-collaboration`
+
+### Đã đổi và vì sao
+
+- Thêm nút **Tạo báo cáo** để giáo viên chủ động tính lại báo cáo cho mọi bài đã giao, kể cả bài chưa có học sinh nộp; khi một nguồn lỗi, snapshot đang hiển thị không bị thay bằng số liệu rỗng.
+- Báo cáo giữ projection lượt mới nhất, bài ảnh/AI và bài online; không giới hạn theo số học sinh nộp, không lưu thêm report document và không đụng dữ liệu chấm/bài nộp hiện có.
+- Thêm cổng server-side cho giáo viên cộng tác: mời bằng email tài khoản, đồng giáo viên, chuyển quyền sau khi chấp nhận, rời lớp và xóa thành viên; chủ gốc được bảo vệ và thao tác xóa thành viên không xóa bài nộp/ảnh.
+- Đưa đọc lớp, bài giao, bài nộp, chấm AI, sửa tay, duyệt, xóa điểm và chấm lại qua kiểm tra quyền lớp; giữ nguyên `classId`, `teacherId` namespace legacy và đường học sinh hiện có để bảo vệ dữ liệu 11 Columbus.
+- Cho phép đổi tên lớp, học sinh và bài giao mà không đổi ID; lưu tên lớp cũ để ghép bài online legacy sau khi đổi tên. Sửa điểm/nhận xét vẫn lưu history và buộc duyệt lại.
+- Giao đề online cho lớp dùng projection không chứa câu hỏi/đáp án, đồng thời co-owner lấy đúng namespace đề của lớp thay vì namespace riêng.
+
+### Còn dở và cố tình bỏ qua
+
+- Chưa có email gửi ra ngoài; lời mời hiện nằm trong ứng dụng và chỉ hiện cho tài khoản đăng nhập đúng email. Đây là lựa chọn có chủ đích để không thêm dịch vụ gửi thư/secret vào lô này.
+- Chưa chạy được authenticated E2E trên production: Chrome connector không khả dụng trong phiên này. Local unauthenticated smoke không có console error nhưng không thay thế xác nhận tài khoản thật.
+- Ox Alpha Free/OpenCode đã được gọi bằng `opencode/x-preview-f-free` nhưng provider trả `Unexpected server error` ở `err_81d184c4` và `err_a6cfdca1`; không dùng làm verdict QA PASS. Subagent review cũng hết quota.
+- Không thay đổi Firestore/Storage rules, không migration/bulk mutation và không thao tác dữ liệu thật của lớp 11 Columbus trong lô này; các thao tác cộng tác giáo viên đi qua API Admin hiện có.
+
+### Ngưỡng sắp cắn người sau khi deploy
+
+- Chỉ dùng các nút cộng tác sau khi deployment của `cb7d9e9` ở trạng thái **Ready / Production**; kiểm tra alias production trước khi thao tác dữ liệu thật.
+- Tài khoản giáo viên được mời phải đăng nhập đúng email nhận lời mời; chuyển quyền chỉ hoàn tất sau khi người nhận bấm chấp nhận.
+- Sau khi deploy, kiểm tra read-only lớp 11 Columbus trước; không dùng bài thật đang nộp làm fixture cho xóa điểm/xóa lượt/chấm lại.
+- Báo cáo online legacy không có `studentId` chỉ ghép an toàn khi tên và tên lớp (kể cả `previousNames`) không mơ hồ; trường hợp mơ hồ phải hiện thiếu dữ liệu thay vì tự gán.
+
+### Lệnh nghiệm thu lô
+
+```powershell
+$worktree = "C:\Users\ADMIN\.config\superpowers\worktrees\smart-lesson-plan-ai\class-report-collaboration"
+npm --prefix $worktree run test -- --run
+npm --prefix $worktree run lint
+npm --prefix $worktree run lint:api
+npm --prefix $worktree run build
+git -C $worktree diff --check
+```
+
 ## 1. Trạng thái đã bàn giao
 
 `main` trước lô phát hành này ở `b0a9a478`; commit sắp đẩy là `ca9fd1a` (kèm spec commit `074f288`), gồm nền tảng các lô trước và các thay đổi classroom sau:
