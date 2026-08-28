@@ -1,3 +1,12 @@
+import type {
+  ActivityExportBundle,
+  ActivityPurpose,
+  DeliveryMode,
+  GradeState,
+  GradingPolicy,
+  GradingSource,
+} from './lib/classroom/types';
+
 export interface Student {
   id: string;
   name: string;
@@ -11,6 +20,11 @@ export interface ClassAssignment {
   examCode: string;
   examTitle: string;
   assignedAt: string;
+  purpose?: ActivityPurpose;
+  deliveryMode?: DeliveryMode;
+  skillIds?: string[];
+  contentVersion?: string;
+  exportBundle?: ActivityExportBundle;
 }
 
 export interface TeacherClass {
@@ -160,6 +174,13 @@ export interface Exam {
   hideLeaderboard?: boolean;
   preExamNotice?: string;
   tfScoringMode?: 'all_or_nothing' | 'thpt2025';
+  purpose?: ActivityPurpose;
+  contentVersion?: string;
+  parentExamId?: string;
+  skillIds?: string[];
+  sourceReportId?: string;
+  exportBundle?: ActivityExportBundle;
+  isImmutableAfterPublish?: boolean;
 }
 
 export interface StudentAnswer {
@@ -190,6 +211,15 @@ export interface ExamSubmission {
   tabSwitches?: number;
   /** Unauthenticated student submissions are protected primarily by an unguessable document id. */
   clientNonce?: string;
+  classId?: string;
+  assignmentId?: string;
+  attemptNumber?: number;
+  activityPurpose?: ActivityPurpose;
+  gradeState?: GradeState;
+  gradingSource?: GradingSource;
+  approvalMode?: 'automatic_policy' | 'teacher';
+  teacherApprovedAt?: string;
+  supersedesSubmissionId?: string;
 }
 
 export type GradeLevel = 'cap2' | 'lop1011' | 'lop12';

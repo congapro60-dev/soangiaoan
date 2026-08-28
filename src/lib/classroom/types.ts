@@ -118,6 +118,33 @@ export interface AssignmentAttachment {
 
 export type AssignmentType = 'upload' | 'exam';
 
+export type ActivityPurpose = 'practice' | 'remediation' | 'assignment' | 'assessment';
+export type DeliveryMode = 'online' | 'file' | 'both';
+export type GradingPolicy = 'automatic' | 'mixed' | 'teacher_review';
+export type GradeState = 'provisional' | 'pending_teacher_review' | 'official';
+export type GradingSource = 'automatic' | 'ai' | 'teacher' | 'mixed';
+
+export type ActivityExportStatus = 'pending' | 'ready' | 'error';
+
+/** Metadata chung cho các file dẫn xuất từ đúng một snapshot nội dung. */
+export interface ActivityExportBundle {
+  status: ActivityExportStatus;
+  contentVersion: string;
+  contentHash: string;
+  studentPdfUrl?: string;
+  studentDocxUrl?: string;
+  teacherKeyPdfUrl?: string;
+  teacherKeyDocxUrl?: string;
+  generatedAt?: string;
+  errorMessage?: string;
+}
+
+/** Phần export an toàn có thể gửi vào projection học sinh. */
+export type StudentActivityExportBundle = Pick<
+  ActivityExportBundle,
+  'status' | 'contentVersion' | 'contentHash' | 'studentPdfUrl' | 'studentDocxUrl' | 'generatedAt'
+>;
+
 /** Một bài giáo viên giao cho lớp. */
 export interface AssignmentDoc {
   id: string;
@@ -154,6 +181,22 @@ export interface AssignmentDoc {
   teacherNote?: string;
   /** Chỉ là cờ an toàn cho cổng học sinh; không chứa nội dung đáp án. */
   hasAnswerKey?: boolean;
+  /** Mục đích sư phạm; bài legacy được adapter mặc định là assignment. */
+  purpose?: ActivityPurpose;
+  /** Kênh phát hành; upload legacy mặc định là file, exam legacy là online. */
+  deliveryMode?: DeliveryMode;
+  /** Kỹ năng mà hoạt động nhắm tới. */
+  skillIds?: string[];
+  /** Báo cáo đã sinh ra hoạt động này, nếu có. */
+  sourceReportId?: string;
+  /** Chính sách xác định điểm chính thức. */
+  gradingPolicy?: GradingPolicy;
+  /** Phiên nội dung bất biến mà bài giao đang trỏ tới. */
+  contentVersion?: string;
+  /** File dẫn xuất từ đúng snapshot nội dung. */
+  exportBundle?: ActivityExportBundle;
+  /** Nhóm học sinh đích; vắng field nghĩa là cả lớp. */
+  targetStudentIds?: string[];
   isOpen: boolean;
   createdAt: string;
   updatedAt: string;
@@ -164,7 +207,12 @@ export type StudentAssignmentView = Pick<
   AssignmentDoc,
   'id' | 'teacherId' | 'classId' | 'title' | 'description' | 'type' | 'examId'
   | 'dueAt' | 'maxScore' | 'attachments' | 'isOpen' | 'createdAt' | 'updatedAt'
-> & { hasAnswerKey: boolean };
+  | 'purpose' | 'deliveryMode' | 'skillIds' | 'sourceReportId' | 'gradingPolicy' | 'contentVersion'
+  | 'targetStudentIds'
+> & {
+  hasAnswerKey: boolean;
+  exportBundle?: StudentActivityExportBundle;
+};
 
 export type SubmissionStatus = 'submitted' | 'grading' | 'graded' | 'error';
 
@@ -411,3 +459,38 @@ export const STUDENT_PROFILES_COL = 'studentProfiles';
 export const PRACTICE_SETS_COL = 'practiceSets';
 export const PRACTICE_KEYS_COL = 'practiceKeys';
 export const PRACTICE_ATTEMPTS_COL = 'practiceAttempts';
+
+export type ActivitySourceType = 'assignment' | 'online_exam' | 'practice';
+
+export type StudentActivityStatus =
+  | 'not_started'
+  | 'in_progress'
+  | 'submitted'
+  | 'grading'
+  | 'pending_teacher'
+  | 'official'
+  | 'formative_complete'
+  | 'error';
+
+/** Projection dùng chung cho dashboard học sinh và ma trận tiến trình. */
+export interface StudentActivityView {
+  id: string;
+  sourceType: ActivitySourceType;
+  assignmentId?: string;
+  examId?: string;
+  practiceSetId?: string;
+  title: string;
+  purpose: ActivityPurpose;
+  deliveryMode: DeliveryMode;
+  gradingPolicy?: GradingPolicy;
+  skillIds: string[];
+  contentVersion: string;
+  dueAt?: string;
+  maxScore?: number;
+  attemptCount: number;
+  latestAttemptAt?: string;
+  provisionalScore: number | null;
+  officialScore: number | null;
+  status: StudentActivityStatus;
+  nextAction: 'start' | 'resume' | 'view_feedback' | 'wait_teacher' | 'retry' | 'practice_again';
+}
