@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, browserLocalPersistence, setPersistence } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getAuth, GoogleAuthProvider, browserLocalPersistence, setPersistence, connectAuthEmulator } from 'firebase/auth';
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
@@ -18,11 +18,22 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
-setPersistence(auth, browserLocalPersistence).catch(() => {});
-export const googleProvider = new GoogleAuthProvider();
 
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);
+
+// Dev-only local emulator wiring for the V4 live-lesson browser pilot.
+// Guarded so production/preview keep the real Firebase connection untouched:
+// only connects under `vite dev` (DEV) AND the explicit opt-in flag. The
+// service-layer pilot (test/pilot) connects the emulators itself and does NOT
+// set this flag, so there is never a duplicate connection.
+if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATOR === '1') {
+  connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
+  connectFirestoreEmulator(db, '127.0.0.1', 8080);
+}
+
+setPersistence(auth, browserLocalPersistence).catch(() => {});
+export const googleProvider = new GoogleAuthProvider();
 
 // Initialize Firebase Storage
 export const storage = getStorage(app);
