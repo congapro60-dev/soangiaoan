@@ -2,11 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { getPilotLiveLessonDefinition } from '../../lib/liveLesson/definition';
 import {
   buildPrivateNeedsSummary,
+  buildTeacherOfflineChecklist,
   buildTeacherStatePatch,
   getCueNavigation,
   getTeacherMobileControlModel,
   getTimerSnapshot,
 } from './TeacherLiveView';
+import { getG10P31V4Contract } from '../../data/liveLessonPackages/g10_w5_p31_bpt_tiet1.v4';
+import { buildOfflinePackContents } from '../../lib/liveLesson/v4/offlinePack';
 
 describe('TeacherLiveView controls', () => {
   const definition = getPilotLiveLessonDefinition();
@@ -82,5 +85,33 @@ describe('TeacherLiveView grouping integration', () => {
     expect(json).toContain('HS chưa phân biệt đường biên');
     expect(json).toContain('grp-1');
     // Private reason is OK in teacher view — it must NOT appear in TV projection
+  });
+});
+
+describe('TeacherLiveView offline checklist', () => {
+  it('builds a complete checklist from a valid V4 contract', () => {
+    const contract = getG10P31V4Contract();
+    const contents = buildOfflinePackContents(contract);
+    expect(contents).not.toBeNull();
+    const checklist = buildTeacherOfflineChecklist(contents!);
+    expect(checklist.length).toBe(7);
+    expect(checklist.every((item) => item.ready)).toBe(true);
+  });
+
+  it('shows post-check items as ready when all task variants have valid post-checks', () => {
+    const contract = getG10P31V4Contract();
+    const contents = buildOfflinePackContents(contract);
+    const checklist = buildTeacherOfflineChecklist(contents!);
+    const postCheckItem = checklist.find((item) => item.label.includes('M/S/C'));
+    expect(postCheckItem?.ready).toBe(true);
+  });
+
+  it('pure helper returns consistent results with offline pack builder', () => {
+    const contract = getG10P31V4Contract();
+    const contents = buildOfflinePackContents(contract);
+    const checklist = buildTeacherOfflineChecklist(contents!);
+    // All items should be ready for a complete contract
+    const readyCount = checklist.filter((item) => item.ready).length;
+    expect(readyCount).toBe(checklist.length);
   });
 });

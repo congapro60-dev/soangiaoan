@@ -72,3 +72,24 @@ export {
   isPrivateFieldLeaked,
   type PublicProjectionInput,
 } from './publicProjection';
+export {
+  getRoutedVariant,
+  getOrderedHints,
+  revealNextHint,
+  createHintState,
+  getRevealedHints,
+  computeHintOpacity,
+  hasMoreHints,
+  getExtension,
+  type RoutedTask,
+  type HintRevealState,
+} from './taskRouting';
+export {
+  buildOfflinePackContents,
+  buildOfflineChecklist,
+  validateOfflinePackReadiness,
+  validatePostChecks,
+  validateGlossaryApproved,
+  type OfflinePackContents,
+  type OfflinePackValidation,
+} from './offlinePack';
