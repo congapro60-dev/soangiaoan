@@ -1,5 +1,31 @@
 # P0 — Khôi phục nội dung câu hỏi từ PDF/Word/ảnh trong báo cáo (2026-08-28)
 
+# Live Lesson V4 Service Pilot — 2026-08-28
+
+## Scope
+
+- [x] Study `liveLessonService`, singleton Firebase wiring, current `firestore.rules`, rules-test shapes, and emulator config.
+- [x] Add only permitted local pilot wiring: auth emulator in `firebase.json`, `vitest.pilot.config.ts`, `test:pilot` script.
+- [x] Create `test/pilot/liveLessonServicePilot.test.ts` driving the real service against Firestore/Auth emulators, with REST bypass seeding.
+- [x] Create `qa_artifacts/live-lesson-v4/service-pilot-report.md` with checks and run instructions.
+- [x] Run `npm run test:pilot` and capture output; do not use browser, deploy, push, or production data.
+
+## Review
+
+- [x] `npm run test:pilot` PASS: 1 file, 1 test.
+- [x] All service allow-path operations logged PASS; deny-path `permission-denied` checks logged PASS.
+- [x] No production wiring/rules/service/API/V4 contract files edited.
+
+## Constraints
+
+- Do not edit `src/lib/firebase.ts`, `src/services/liveLessonService.ts`, `firestore.rules`, `api/`, or V4 contract files.
+- Only local emulator; no real student data.
+- Deny-path evaluator traces are acceptable; all allow-path operations must succeed.
+
+---
+
+# Đẩy giáo án lên Drive + chọn bài theo PPCT — 2026-08-11
+
 - [x] TDD parser nhãn `Phần/Tự luận` và dòng chi tiết neo ngay dưới câu được chọn.
 - [x] TDD reader PDF chữ, PDF scan, ảnh và Word có ảnh; OCR chỉ chạy khi thiếu chữ.
 - [x] Nối reader lazy vào báo cáo giáo viên, cache trong phiên, không ghi bài nộp/điểm.

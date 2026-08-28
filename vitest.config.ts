@@ -8,6 +8,7 @@ export default defineConfig({
     // không chạy trùng toàn bộ suite và không bị lệch khi mirror đó không được cập nhật.
     // tests/rules cần Firestore emulator → chạy riêng bằng `npm run test:rules`,
     // không để `npm run test` gọi vào rồi fail vì không có emulator.
-    exclude: [...configDefaults.exclude, 'soangiaoan/**', 'tests/rules/**'],
+    // test/pilot cần Firestore + Auth emulator → chạy riêng bằng `npm run test:pilot`.
+    exclude: [...configDefaults.exclude, 'soangiaoan/**', 'tests/rules/**', 'test/pilot/**'],
   },
 });
