@@ -76,6 +76,24 @@ export interface ClassReportQuestionStats {
   scoreRate: number;
 }
 
+export type ClassReportQuestionStatsTableRow =
+  | { kind: 'question'; question: ClassReportQuestionStats }
+  | { kind: 'detail'; questionNumber: string };
+
+/**
+ * Giữ hộp xem câu hỏi cạnh đúng dòng đang chọn thay vì dồn xuống cuối bảng.
+ * Tách thứ tự hiển thị thành hàm thuần để không thể vô tình làm sai khi đổi UI.
+ */
+export const buildQuestionStatsTableRows = (
+  stats: readonly ClassReportQuestionStats[],
+  activeQuestionNumber: string | null,
+): ClassReportQuestionStatsTableRow[] => stats.flatMap(question => [
+  { kind: 'question' as const, question },
+  ...(question.questionNumber === activeQuestionNumber
+    ? [{ kind: 'detail' as const, questionNumber: question.questionNumber }]
+    : []),
+]);
+
 export interface ClassReportLabelStats {
   label: string;
   evidenceCount: number;

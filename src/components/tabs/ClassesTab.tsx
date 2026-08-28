@@ -1191,6 +1191,7 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
               students={selectedClass.students}
               onlineAssignments={selectedClass.assignments ?? EMPTY_CLASS_ASSIGNMENTS}
               exams={exams}
+              settings={data.settings}
             />
           )}
 

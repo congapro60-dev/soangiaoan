@@ -1,6 +1,6 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
 
-**Cập nhật:** 2026-08-26
+**Cập nhật:** 2026-08-28
 **Repo:** `soangiaoan` · **Branch chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
@@ -20,6 +20,16 @@
 - Không migration, không đổi schema/ID, không ghi/xóa Firestore/Storage và không đụng điểm, nhận xét, bài giao hoặc bài nộp hiện có của lớp 11 Columbus.
 - Đã xác minh: focused 4 file/37 test PASS, `lint`, `lint:api`, `build`, `git diff --check` PASS. Build chỉ còn cảnh báo chunk/dynamic import vốn có.
 - Chưa chạy authenticated browser E2E trong phiên này; sau khi deployment Ready/Production, chủ lớp có thể tự QA luồng báo cáo và viewer bằng dữ liệu thật ở chế độ đọc.
+
+### Bản sửa đọc câu hỏi từ PDF/Word/ảnh — 2026-08-28
+
+- Sửa bảng **Thống kê theo câu** để dòng xem câu hỏi nằm ngay dưới câu giáo viên đang hover/focus/chọn, không còn dồn xuống cuối bảng; click vẫn ghim, có nút đóng và giữ hỗ trợ bàn phím.
+- Với bài upload thiếu catalog, báo cáo chỉ đọc nguồn đề khi giáo viên mở câu: ưu tiên chữ đã lưu/chữ PDF-Word, sau đó đọc PDF scan, ảnh và ảnh nhúng trong DOCX bằng Vision OCR; nội dung và công thức hiển thị qua Markdown/KaTeX hiện có.
+- Parser giữ ngữ cảnh `Phần II/III`, ghép `Tự luận – Bài 1` với `Bài 1 (TL)`, nhận tiêu đề Markdown do OCR trả về và không gán một khối OCR nhiều câu cho nhiều câu.
+- Reader chỉ dùng URL `http(s)`, giới hạn 8 nguồn/6 ảnh/20 MB mỗi file, timeout nguồn 20 giây, cảnh báo + nút thử lại; kết quả chỉ cập nhật snapshot bộ nhớ của báo cáo, không ghi Firestore/Storage và không thay đổi bài nộp, điểm, nhận xét hay dữ liệu lớp.
+- Đã chạy local read-only smoke: trang tải thành công, không có log console error/warning; chưa claim authenticated E2E/production và chưa push/deploy.
+- Verification cuối: focused **4 file/50 test PASS**; full Vitest **103 file/1.370 test PASS**; `lint`, `lint:api`, `build` và `git diff --check` PASS. Build vẫn có cảnh báo chunk lớn/dynamic import vốn có; entry chunk khoảng 1,45 MB nhưng không làm build thất bại.
+- Branch hiện tại là `codex/class-report-collaboration`; chưa push `main`/deploy. Báo cáo production cần QA bằng phiên đăng nhập thật sau khi có lệnh tích hợp riêng.
 
 ### Hotfix tải báo cáo — 2026-08-27
 

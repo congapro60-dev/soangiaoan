@@ -1,3 +1,24 @@
+# P0 — Khôi phục nội dung câu hỏi từ PDF/Word/ảnh trong báo cáo (2026-08-28)
+
+- [x] TDD parser nhãn `Phần/Tự luận` và dòng chi tiết neo ngay dưới câu được chọn.
+- [x] TDD reader PDF chữ, PDF scan, ảnh và Word có ảnh; OCR chỉ chạy khi thiếu chữ.
+- [x] Nối reader lazy vào báo cáo giáo viên, cache trong phiên, không ghi bài nộp/điểm.
+- [x] Chạy focused/full test, lint, lint:api, build, diff check và QA read-only.
+- [ ] Chờ lệnh riêng mới push/deploy.
+
+Plan: `docs/superpowers/plans/2026-08-28-class-report-question-source-ocr.md`.
+
+## Review/verification — khôi phục nội dung câu hỏi từ nguồn gốc
+
+- Đã sửa trong branch `codex/class-report-collaboration`; chưa push `main`, chưa deploy.
+- Thống kê theo câu nay chèn dòng chi tiết ngay sau câu được chọn trong cùng bảng; hover/focus/click vẫn giữ, click có thể ghim và có nút đóng.
+- Khi catalog thiếu, chỉ lúc giáo viên mở câu mới tải nguồn đề `http(s)` ở chế độ read-only; ưu tiên `sourceText`/chữ PDF-Word, sau đó đọc ảnh scan/ảnh nhúng DOCX và gọi Vision OCR một lần cho các câu còn thiếu. Kết quả chỉ nằm trong snapshot bộ nhớ hiện tại và có cache/retry; không ghi Firestore, Storage, bài nộp, điểm hoặc nhận xét.
+- Parser giữ ngữ cảnh `Phần II/III`, nhận alias `Tự luận – Bài 1`/`Bài 1 (TL)`, hỗ trợ tiêu đề Markdown do OCR trả về; nội dung/đáp án đi qua `NhanXetMarkdown` + KaTeX.
+- Guard an toàn: URL chỉ `http(s)`, tối đa 8 nguồn/6 ảnh, file tối đa 20 MB, nguồn treo bị ngắt sau 20 giây; cảnh báo không làm mất số liệu hoặc liên kết đề gốc.
+- Focused cuối: **4 files / 50 tests PASS**; full Vitest sau thay đổi timeout: **103 files / 1.370 tests PASS**.
+- `lint`, `lint:api`, `npm run build` và `git diff --check`: PASS. Build vẫn hiện cảnh báo chunk lớn/dynamic import vốn có; chunk entry hiện khoảng 1,45 MB, không phải lỗi build và không liên quan dữ liệu lớp.
+- Local browser smoke: trang landing tải được, không có console error/warning; chưa có authenticated E2E cho màn hình báo cáo và không dùng dữ liệu thật của lớp 11 Columbus.
+
 # P0 — Báo cáo thủ công và cộng tác giáo viên (2026-08-27)
 
 - [x] Duyệt spec và tạo worktree sạch từ `origin/main`.

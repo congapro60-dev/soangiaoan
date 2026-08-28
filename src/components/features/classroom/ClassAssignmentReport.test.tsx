@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { Exam, ExamSubmission, Student } from '../../../types';
+import type { AppData, Exam, ExamSubmission, Student } from '../../../types';
 import type { AssignmentDoc, SubmissionDoc } from '../../../lib/classroom/types';
 import {
   adaptOnlineSubmission,
@@ -7,11 +7,18 @@ import {
   buildAssignmentQuestionSources,
   buildClassReportCsv,
   getQuestionOutcomeRows,
+  loadQuestionCatalogForReport,
   loadClassAssignmentReports,
   resolveClassNameAliases,
   shouldReplaceReportSnapshot,
   withReportSourceTimeout,
 } from './ClassAssignmentReport';
+import type { ClassAssignmentReport as ClassAssignmentReportMetrics } from '../../../lib/classroom/classReportModel';
+
+const reportSettings = {
+  selectedProvider: 'gemini',
+  geminiApiKey: 'test-key',
+} as AppData['settings'];
 
 const roster: Student[] = [
   { id: 'student-1', name: 'Nguyễn Minh An', code: '001', progress: 0, status: 'active' },
@@ -19,6 +26,34 @@ const roster: Student[] = [
 ];
 
 describe('ClassAssignmentReport adapters', () => {
+  it('tải catalog thiếu theo nguồn đề mà không thay đổi dữ liệu bài nộp', async () => {
+    const reader = vi.fn(async () => ({
+      catalog: [{ questionNumber: 'Câu 1', content: 'Giải $x=1$.' }],
+      mode: 'ocr' as const,
+      warnings: [],
+    }));
+    const report = {
+      assignment: {
+        id: 'assignment-1',
+        title: 'Bài ảnh',
+        type: 'Bài nộp ảnh/AI',
+        questionCatalog: [],
+        questionSources: [{ name: 'de-scan.pdf', url: 'https://example.test/de-scan.pdf' }],
+      },
+      questionStats: [{ questionNumber: 'Câu 1' }],
+    } as unknown as ClassAssignmentReportMetrics;
+
+    const result = await loadQuestionCatalogForReport(report, reportSettings, reader);
+
+    expect(reader).toHaveBeenCalledWith(expect.objectContaining({
+      sources: report.assignment.questionSources,
+      questionNumbers: ['Câu 1'],
+      settings: reportSettings,
+    }));
+    expect(result.catalog).toEqual([{ questionNumber: 'Câu 1', content: 'Giải $x=1$.' }]);
+    expect(result.warnings).toEqual([]);
+  });
+
   it('reuses one empty alias list when a class has never been renamed', () => {
     const first = resolveClassNameAliases(undefined);
     const second = resolveClassNameAliases(undefined);

@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { buildClassAssignmentReport, type ClassReportInput } from './classReportModel';
+import {
+  buildClassAssignmentReport,
+  buildQuestionStatsTableRows,
+  type ClassReportInput,
+} from './classReportModel';
 
 const baseSubmission = (patch: Partial<ClassReportInput['assignment']['submissions'][number]> = {}) => ({
   id: 'submission-1',
@@ -462,5 +466,15 @@ describe('buildClassAssignmentReport', () => {
 
     expect(report.questionStats.find(question => question.questionNumber === '1')?.evidenceCount).toBe(2);
     expect(report.recommendations.some(recommendation => Object.values(recommendation).join(' ').includes('câu 1'))).toBe(false);
+  });
+});
+
+describe('buildQuestionStatsTableRows', () => {
+  it('đặt dòng xem câu hỏi ngay sau dòng thống kê đang chọn', () => {
+    expect(buildQuestionStatsTableRows([
+      { questionNumber: 'Câu 1', evidenceCount: 1, correct: 1, partial: 0, incorrect: 0, unreadable: 0, notAttempted: 0, correctRate: 1, scoreRate: 1 },
+      { questionNumber: 'Câu 2', evidenceCount: 1, correct: 0, partial: 0, incorrect: 1, unreadable: 0, notAttempted: 0, correctRate: 0, scoreRate: 0 },
+    ], 'Câu 2').map(row => row.kind === 'question' ? row.question.questionNumber : `detail:${row.questionNumber}`))
+      .toEqual(['Câu 1', 'Câu 2', 'detail:Câu 2']);
   });
 });

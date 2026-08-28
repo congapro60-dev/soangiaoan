@@ -5,6 +5,7 @@ import { listAssignmentsForClass, listSubmissionsForClass } from '../../../lib/c
 import { getAccessibleExam as getAccessibleExamFromServer, listAccessibleExamSubmissions } from '../../../lib/classroom/teacherService';
 import {
   buildClassAssignmentReport,
+  buildQuestionStatsTableRows,
   type ClassAssignmentReport as ClassAssignmentReportMetrics,
   type ClassReportAssignment,
   type ClassReportQuestionCatalogItem,
@@ -15,7 +16,12 @@ import {
 } from '../../../lib/classroom/classReportModel';
 import { extractQuestionCatalogFromText, normalizeQuestionKey } from '../../../lib/classroom/questionCatalog';
 import type { AssignmentDoc, SubmissionDoc } from '../../../lib/classroom/types';
-import type { ClassAssignment, Exam, ExamSubmission, Student } from '../../../types';
+import {
+  readQuestionCatalogFromSources,
+  type QuestionSourceReadInput,
+  type QuestionSourceReadResult,
+} from '../../../lib/classroom/questionSourceReader';
+import type { AppData, ClassAssignment, Exam, ExamSubmission, Student } from '../../../types';
 import { ClassStudentProgressMatrix } from './ClassStudentProgressMatrix';
 import { NhanXetMarkdown } from './NhanXetMarkdown';
 
@@ -27,6 +33,7 @@ export interface ClassAssignmentReportProps {
   students: Student[];
   onlineAssignments: ClassAssignment[];
   exams: Exam[];
+  settings: AppData['settings'];
 }
 
 export interface ClassAssignmentReportLoadInput extends Pick<ClassAssignmentReportProps, 'classId' | 'teacherId' | 'className' | 'classNameAliases' | 'students' | 'onlineAssignments' | 'exams'> {}
@@ -238,6 +245,25 @@ const questionCatalogItem = (
   questionNumber: string,
 ): ClassReportQuestionCatalogItem | undefined => catalog?.find(item => normalizeQuestionKey(item.questionNumber) === normalizeQuestionKey(questionNumber));
 
+export type ReportQuestionCatalogReader = (
+  input: QuestionSourceReadInput,
+) => Promise<QuestionSourceReadResult>;
+
+export const loadQuestionCatalogForReport = async (
+  report: ClassAssignmentReportMetrics,
+  settings: AppData['settings'],
+  reader: ReportQuestionCatalogReader = readQuestionCatalogFromSources,
+): Promise<QuestionSourceReadResult> => {
+  const questionNumbers = report.questionStats
+    .filter(question => !questionCatalogItem(report.assignment.questionCatalog, question.questionNumber))
+    .map(question => question.questionNumber);
+  return reader({
+    sources: report.assignment.questionSources ?? [],
+    questionNumbers,
+    settings,
+  });
+};
+
 export const getQuestionOutcomeRows = (question: Pick<ClassReportQuestionStats, 'evidenceCount' | 'correct' | 'partial' | 'incorrect' | 'unreadable' | 'notAttempted'>): Array<{ metric: string; count: number; rate: number }> => {
   const denominator = question.evidenceCount;
   const outcomes: Array<[string, number]> = [
@@ -338,7 +364,19 @@ const Distribution = ({ report }: { report: ClassAssignmentReportMetrics }) => {
   );
 };
 
-const QuestionStats = ({ report }: { report: ClassAssignmentReportMetrics }) => {
+export interface QuestionSourceUiState {
+  status: 'idle' | 'loading' | 'ready' | 'error';
+  mode?: QuestionSourceReadResult['mode'];
+  warnings: string[];
+}
+
+interface QuestionStatsProps {
+  report: ClassAssignmentReportMetrics;
+  sourceReadState?: QuestionSourceUiState;
+  onQuestionSourceRequested?: (report: ClassAssignmentReportMetrics, force?: boolean) => void;
+}
+
+const QuestionStats = ({ report, sourceReadState, onQuestionSourceRequested }: QuestionStatsProps) => {
   const [activeQuestionNumber, setActiveQuestionNumber] = useState<string | null>(null);
   const [pinnedQuestionNumber, setPinnedQuestionNumber] = useState<string | null>(null);
   const activeQuestion = report.questionStats.find(question => question.questionNumber === activeQuestionNumber);
@@ -347,10 +385,13 @@ const QuestionStats = ({ report }: { report: ClassAssignmentReportMetrics }) => 
     : undefined;
   const sourceLinks = report.assignment.questionSources ?? [];
 
+  const requestQuestionSource = (force = false) => onQuestionSourceRequested?.(report, force);
   const openQuestion = (questionNumber: string) => {
+    requestQuestionSource();
     if (!pinnedQuestionNumber) setActiveQuestionNumber(questionNumber);
   };
   const togglePinnedQuestion = (questionNumber: string) => {
+    requestQuestionSource();
     setPinnedQuestionNumber(previous => previous === questionNumber ? null : questionNumber);
     setActiveQuestionNumber(questionNumber);
   };
@@ -383,7 +424,78 @@ const QuestionStats = ({ report }: { report: ClassAssignmentReportMetrics }) => 
                 </tr>
               </thead>
               <tbody>
-                {report.questionStats.map(question => {
+                {buildQuestionStatsTableRows(report.questionStats, activeQuestionNumber).map(row => {
+                  if (row.kind === 'detail') {
+                    if (!activeQuestion) return null;
+                    return (
+                      <tr key={`detail-${row.questionNumber}`} data-question-detail-row>
+                        <td colSpan={9} className="px-3 pb-4">
+                          <div
+                            className="rounded-2xl border border-indigo-200 bg-indigo-50/70 p-4 text-slate-800"
+                            role="region"
+                            aria-label={`Nội dung Câu ${activeQuestion.questionNumber}`}
+                            onMouseEnter={() => openQuestion(activeQuestion.questionNumber)}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <p className="text-xs font-black uppercase tracking-wide text-indigo-600">Xem câu hỏi</p>
+                                <h4 className="mt-1 text-base font-black text-slate-900">Câu {activeQuestion.questionNumber}</h4>
+                              </div>
+                              <button type="button" onClick={closeQuestion} className="rounded-lg px-2 py-1 text-xs font-black text-indigo-700 hover:bg-white" aria-label="Đóng nội dung câu hỏi">Đóng</button>
+                            </div>
+                            {activeCatalogItem?.content ? (
+                              <>
+                                <p className="mt-3 text-xs font-black uppercase tracking-wide text-slate-500">Nội dung câu hỏi</p>
+                                <NhanXetMarkdown>{activeCatalogItem.content}</NhanXetMarkdown>
+                                {activeCatalogItem.expectedAnswer && (
+                                  <div className="mt-3 border-t border-indigo-200 pt-3">
+                                    <p className="text-xs font-black uppercase tracking-wide text-slate-500">Đáp án tham chiếu</p>
+                                    <NhanXetMarkdown>{activeCatalogItem.expectedAnswer}</NhanXetMarkdown>
+                                  </div>
+                                )}
+                                {activeCatalogItem.imageUrl && (
+                                  <a className="mt-2 inline-flex text-sm font-black text-indigo-700 underline" href={activeCatalogItem.imageUrl} target="_blank" rel="noreferrer">Mở hình đề</a>
+                                )}
+                              </>
+                            ) : sourceReadState?.status === 'loading' ? (
+                              <p className="mt-3 rounded-xl bg-white/70 p-3 text-sm font-semibold leading-6 text-indigo-900">Đang đọc đề gốc để lấy nội dung câu hỏi…</p>
+                            ) : sourceReadState?.status === 'error' ? (
+                              <div className="mt-3 rounded-xl bg-white/70 p-3 text-sm font-semibold leading-6 text-amber-900">
+                                <p>Chưa đọc được nội dung câu hỏi từ đề gốc.</p>
+                                {sourceReadState.warnings.length > 0 && <ul className="mt-2 list-disc space-y-1 pl-5">{sourceReadState.warnings.map(warning => <li key={warning}>{warning}</li>)}</ul>}
+                                {onQuestionSourceRequested && <button type="button" onClick={() => requestQuestionSource(true)} className="mt-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-black text-amber-900 hover:bg-amber-100">Thử đọc lại đề gốc</button>}
+                              </div>
+                            ) : (
+                              <p className="mt-3 rounded-xl bg-white/70 p-3 text-sm font-semibold leading-6 text-slate-700">
+                                Chưa có nội dung câu hỏi dạng chữ được lưu cho bài này. Không suy đoán từ số liệu chấm; hãy mở đề gốc để đối chiếu.
+                              </p>
+                            )}
+                            {sourceReadState?.status === 'ready' && sourceReadState.mode === 'ocr' && (
+                              <p className="mt-3 text-xs font-semibold text-indigo-800">Nội dung được đọc từ ảnh/scan bằng OCR; công thức đã được chuẩn hóa để hiển thị.</p>
+                            )}
+                            {sourceReadState && sourceReadState.warnings.length > 0 && (
+                              <ul className="mt-3 list-disc space-y-1 border-t border-indigo-200 pt-3 pl-5 text-xs font-semibold leading-5 text-amber-900">
+                                {sourceReadState.warnings.map(warning => <li key={warning}>{warning}</li>)}
+                              </ul>
+                            )}
+                            {sourceLinks.length > 0 && (
+                              <div className="mt-3 border-t border-indigo-200 pt-3">
+                                <p className="text-xs font-black uppercase tracking-wide text-slate-500">Nguồn đề gốc</p>
+                                <ul className="mt-1 space-y-1">
+                                  {sourceLinks.map(source => <li key={source.url}><a className="text-sm font-bold text-indigo-700 underline" href={source.url} target="_blank" rel="noreferrer">{source.name}</a></li>)}
+                                </ul>
+                              </div>
+                            )}
+                            <div className="mt-3 grid gap-2 border-t border-indigo-200 pt-3 text-xs font-bold text-slate-600 sm:grid-cols-5">
+                              {getQuestionOutcomeRows(activeQuestion).map(outcome => <span key={outcome.metric}>{outcome.metric}: {outcome.count} ({formatRate(outcome.rate)})</span>)}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  }
+
+                  const question = row.question;
                   const outcomes = getQuestionOutcomeRows(question);
                   const isActive = activeQuestionNumber === question.questionNumber;
                   const hasCatalogItem = Boolean(questionCatalogItem(report.assignment.questionCatalog, question.questionNumber));
@@ -417,53 +529,6 @@ const QuestionStats = ({ report }: { report: ClassAssignmentReportMetrics }) => 
               </tbody>
             </table>
           </div>
-
-          {activeQuestion && (
-            <div
-              className="mt-4 rounded-2xl border border-indigo-200 bg-indigo-50/70 p-4 text-slate-800"
-              role="region"
-              aria-label={`Nội dung Câu ${activeQuestion.questionNumber}`}
-              onMouseEnter={() => openQuestion(activeQuestion.questionNumber)}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs font-black uppercase tracking-wide text-indigo-600">Xem câu hỏi</p>
-                  <h4 className="mt-1 text-base font-black text-slate-900">Câu {activeQuestion.questionNumber}</h4>
-                </div>
-                <button type="button" onClick={closeQuestion} className="rounded-lg px-2 py-1 text-xs font-black text-indigo-700 hover:bg-white" aria-label="Đóng nội dung câu hỏi">Đóng</button>
-              </div>
-              {activeCatalogItem?.content ? (
-                <>
-                  <p className="mt-3 text-xs font-black uppercase tracking-wide text-slate-500">Nội dung câu hỏi</p>
-                  <NhanXetMarkdown>{activeCatalogItem.content}</NhanXetMarkdown>
-                  {activeCatalogItem.expectedAnswer && (
-                    <div className="mt-3 border-t border-indigo-200 pt-3">
-                      <p className="text-xs font-black uppercase tracking-wide text-slate-500">Đáp án tham chiếu</p>
-                      <NhanXetMarkdown>{activeCatalogItem.expectedAnswer}</NhanXetMarkdown>
-                    </div>
-                  )}
-                  {activeCatalogItem.imageUrl && (
-                    <a className="mt-2 inline-flex text-sm font-black text-indigo-700 underline" href={activeCatalogItem.imageUrl} target="_blank" rel="noreferrer">Mở hình đề</a>
-                  )}
-                </>
-              ) : (
-                <p className="mt-3 rounded-xl bg-white/70 p-3 text-sm font-semibold leading-6 text-slate-700">
-                  Chưa có nội dung câu hỏi dạng chữ được lưu cho bài này. Không suy đoán từ số liệu chấm; hãy mở đề gốc để đối chiếu.
-                </p>
-              )}
-              {sourceLinks.length > 0 && (
-                <div className="mt-3 border-t border-indigo-200 pt-3">
-                  <p className="text-xs font-black uppercase tracking-wide text-slate-500">Nguồn đề gốc</p>
-                  <ul className="mt-1 space-y-1">
-                    {sourceLinks.map(source => <li key={source.url}><a className="text-sm font-bold text-indigo-700 underline" href={source.url} target="_blank" rel="noreferrer">{source.name}</a></li>)}
-                  </ul>
-                </div>
-              )}
-              <div className="mt-3 grid gap-2 border-t border-indigo-200 pt-3 text-xs font-bold text-slate-600 sm:grid-cols-5">
-                {getQuestionOutcomeRows(activeQuestion).map(outcome => <span key={outcome.metric}>{outcome.metric}: {outcome.count} ({formatRate(outcome.rate)})</span>)}
-              </div>
-            </div>
-          )}
         </>
       )}
     </section>
@@ -489,7 +554,13 @@ const LabelStats = ({ title, stats }: { title: string; stats: readonly { label: 
   );
 };
 
-const ReportBody = ({ report }: { report: ClassAssignmentReportMetrics }) => (
+interface ReportBodyProps {
+  report: ClassAssignmentReportMetrics;
+  sourceReadState?: QuestionSourceUiState;
+  onQuestionSourceRequested?: (report: ClassAssignmentReportMetrics, force?: boolean) => void;
+}
+
+const ReportBody = ({ report, sourceReadState, onQuestionSourceRequested }: ReportBodyProps) => (
   <div className="mt-5 space-y-5">
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       <MetricCard label="Sĩ số" value={`${report.counters.roster}`} hint="danh sách lớp hiện tại" />
@@ -517,7 +588,7 @@ const ReportBody = ({ report }: { report: ClassAssignmentReportMetrics }) => (
         </ul>
       </section>
     </div>
-    <QuestionStats report={report} />
+    <QuestionStats report={report} sourceReadState={sourceReadState} onQuestionSourceRequested={onQuestionSourceRequested} />
     <div className="grid gap-5 lg:grid-cols-2">
       <LabelStats title="Lỗi phổ biến" stats={report.errorStats} />
       <LabelStats title="Chủ đề cần củng cố" stats={report.topicStats} />
@@ -527,6 +598,18 @@ const ReportBody = ({ report }: { report: ClassAssignmentReportMetrics }) => (
 
 const sourceErrorText = (source: string, error: unknown): string =>
   `${source}: ${error instanceof Error ? error.message : 'không tải được dữ liệu.'}`;
+
+const mergeQuestionCatalog = (
+  existing: readonly ClassReportQuestionCatalogItem[] | undefined,
+  additions: readonly ClassReportQuestionCatalogItem[],
+): ClassReportQuestionCatalogItem[] => {
+  const merged = new Map<string, ClassReportQuestionCatalogItem>();
+  for (const item of [...(existing ?? []), ...additions]) {
+    const key = normalizeQuestionKey(item.questionNumber);
+    if (key) merged.set(key, item);
+  }
+  return [...merged.values()];
+};
 
 export const shouldReplaceReportSnapshot = (
   previousReports: readonly ClassAssignmentReportMetrics[],
@@ -620,6 +703,7 @@ export const ClassAssignmentReport = ({
   students,
   onlineAssignments,
   exams,
+  settings,
 }: ClassAssignmentReportProps) => {
   const classNameAliases = resolveClassNameAliases(classNameAliasesProp);
   const [reports, setReports] = useState<ClassAssignmentReportMetrics[]>([]);
@@ -628,7 +712,10 @@ export const ClassAssignmentReport = ({
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastGeneratedAt, setLastGeneratedAt] = useState<string | null>(null);
+  const [questionSourceStates, setQuestionSourceStates] = useState<Record<string, QuestionSourceUiState>>({});
   const refreshVersion = useRef(0);
+  const questionSourceGeneration = useRef(0);
+  const questionSourcePromises = useRef(new Map<string, Promise<QuestionSourceReadResult>>());
 
   const refreshReports = useCallback(async (resetVisibleSnapshot: boolean) => {
     const version = refreshVersion.current + 1;
@@ -671,6 +758,9 @@ export const ClassAssignmentReport = ({
 
   useEffect(() => {
     refreshVersion.current += 1;
+    questionSourceGeneration.current += 1;
+    questionSourcePromises.current.clear();
+    setQuestionSourceStates({});
     setReports([]);
     setSelectedAssignmentId('');
     setSourceErrors([]);
@@ -679,6 +769,63 @@ export const ClassAssignmentReport = ({
 
     return () => { refreshVersion.current += 1; };
   }, [refreshReports]);
+
+  const loadQuestionSourceForReport = useCallback((report: ClassAssignmentReportMetrics, force = false) => {
+    const missing = report.questionStats.some(question => !questionCatalogItem(report.assignment.questionCatalog, question.questionNumber));
+    if (!missing) return;
+
+    const sourceKey = [
+      report.assignment.id,
+      ...(report.assignment.questionSources ?? []).map(source => `${source.url}|${source.name}`),
+      ...report.questionStats.map(question => normalizeQuestionKey(question.questionNumber)),
+    ].join('::');
+    if (force) questionSourcePromises.current.delete(sourceKey);
+    if (questionSourcePromises.current.has(sourceKey)) return;
+
+    const generation = questionSourceGeneration.current;
+    setQuestionSourceStates(previous => ({
+      ...previous,
+      [report.assignment.id]: { status: 'loading', warnings: [] },
+    }));
+
+    const promise = loadQuestionCatalogForReport(report, settings)
+      .then(result => {
+        if (generation !== questionSourceGeneration.current) return result;
+        setReports(previous => previous.map(current => current.assignment.id === report.assignment.id
+          ? {
+            ...current,
+            assignment: {
+              ...current.assignment,
+              questionCatalog: mergeQuestionCatalog(current.assignment.questionCatalog, result.catalog),
+            },
+          }
+          : current));
+        setQuestionSourceStates(previous => ({
+          ...previous,
+          [report.assignment.id]: {
+            status: result.catalog.length > 0 ? 'ready' : 'error',
+            mode: result.mode,
+            warnings: result.warnings,
+          },
+        }));
+        return result;
+      })
+      .catch(error => {
+        const result: QuestionSourceReadResult = {
+          catalog: [],
+          mode: 'empty',
+          warnings: [`Không thể đọc đề gốc: ${sourceErrorText('Nguồn đề', error)}`],
+        };
+        if (generation === questionSourceGeneration.current) {
+          setQuestionSourceStates(previous => ({
+            ...previous,
+            [report.assignment.id]: { status: 'error', mode: result.mode, warnings: result.warnings },
+          }));
+        }
+        return result;
+      });
+    questionSourcePromises.current.set(sourceKey, promise);
+  }, [settings]);
 
   const selectedReport = useMemo(
     () => reports.find(report => report.assignment.id === selectedAssignmentId) || reports[0],
@@ -762,7 +909,11 @@ export const ClassAssignmentReport = ({
             <div><p className="text-xs font-black uppercase tracking-wide text-indigo-600">{selectedReport.assignment.type}</p><h3 className="mt-1 text-xl font-black text-slate-900">{selectedReport.assignment.title}</h3></div>
             <p className="hidden text-right text-xs font-semibold text-slate-500 sm:block">{selectedReport.metrics.officialEvidenceCount} bằng chứng chính thức</p>
           </div>
-          <ReportBody report={selectedReport} />
+          <ReportBody
+            report={selectedReport}
+            sourceReadState={questionSourceStates[selectedReport.assignment.id]}
+            onQuestionSourceRequested={loadQuestionSourceForReport}
+          />
         </>
       )}
     </div>
