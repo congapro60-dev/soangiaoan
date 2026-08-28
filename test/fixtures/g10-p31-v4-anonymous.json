@@ -1,0 +1,59 @@
+{
+  "classId": "class-g10-p31-v4-anon",
+  "students": [
+    {
+      "uid": "HS-1",
+      "classId": "class-g10-p31-v4-anon",
+      "script": {
+        "languageChoice": {
+          "language": "vi",
+          "supportMode": "vi_anchor",
+          "showGlossary": true,
+          "showSentenceFrames": false,
+          "curriculumBridgeIds": []
+        },
+        "p16AiErrorCategory": "Logical",
+        "p19GroupApproval": "approved",
+        "p27PostCheckText": "2x + y = 13 > 12 nên (5;3) không thuộc miền nghiệm.",
+        "p30RoutePick": "M",
+        "p38ExitTicket": "Em hiểu cách thay điểm để kiểm tra; em cần luyện thêm cách tô miền."
+      }
+    },
+    {
+      "uid": "HS-2",
+      "classId": "class-g10-p31-v4-anon",
+      "script": {
+        "languageChoice": {
+          "language": "en",
+          "supportMode": "bilingual",
+          "showGlossary": true,
+          "showSentenceFrames": true,
+          "curriculumBridgeIds": ["bridge-halfplane"]
+        },
+        "p16AiErrorCategory": "Logical",
+        "p19GroupApproval": "approved",
+        "p27PostCheckText": "Substitute (5;3): 2*5 + 3 = 13, so it is outside because 13 > 12.",
+        "p30RoutePick": "S",
+        "p38ExitTicket": "I can check a point by substitution; I still need Vietnamese terms for boundary line."
+      }
+    },
+    {
+      "uid": "HS-3",
+      "classId": "class-g10-p31-v4-anon",
+      "script": {
+        "languageChoice": {
+          "language": "vi",
+          "supportMode": "bilingual",
+          "showGlossary": true,
+          "showSentenceFrames": true,
+          "curriculumBridgeIds": []
+        },
+        "p16AiErrorCategory": "Algebraic",
+        "p19GroupApproval": "teacher_adjusted",
+        "p27PostCheckText": "Thay (5;3) được 13, lớn hơn 12 nên điểm không thỏa điều kiện.",
+        "p30RoutePick": "C",
+        "p38ExitTicket": "Em hiểu cần kiểm điều kiện biên; em muốn luyện phản ví dụ."
+      }
+    }
+  ]
+}

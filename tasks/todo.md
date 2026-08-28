@@ -348,3 +348,12 @@ Backup bản cũ: `C:\Users\ADMIN\AppData\Local\Temp\smartplan-ban-toan-backup-2
 - Full requested liveLesson suite: 12 files / 95 tests PASS.
 - `npm run lint`: PASS (`tsc --noEmit`).
 - Không sửa `firestore.rules`, `TvLiveView`, v4 contract/package Task 1/2 hoặc deploy/push.
+
+## Live Lesson V4 Task 10 — deterministic multi-client E2E — 2026-08-28
+
+- [x] Create pure anonymous fixture `test/fixtures/g10-p31-v4-anonymous.json` with 3 scripted students and no real names.
+- [x] Create `test/e2e-v4-live-lesson.mjs` using only relative imports into this worktree and real V4 lib functions.
+- [x] Assert 9 required checks: teacher projection, TV public projection, student projection, language/glossary/evidence neutrality, grouping approval, post-check integrity, offline queue, TV privacy, timeline integrity/timing budget.
+- [x] Create QA docs under `qa_artifacts/live-lesson-v4/` with coverage table and manifest.
+- [x] Verify `npx tsx test/e2e-v4-live-lesson.mjs` exits 0 and prints each PASS line.
+- [x] Verify `npm run build` still passes; do not modify contract, `firestore.rules`, or `api/`.
