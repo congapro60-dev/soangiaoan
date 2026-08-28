@@ -201,6 +201,14 @@ describe('examSubmissions · học sinh nặc danh vào thi', () => {
       setDoc(doc(dbHS(), 'examSubmissions/bai-moi'), baiLamMau({ id: 'bai-moi', studentName: '' })),
     );
   });
+
+  it('14b. Học sinh không được ghi trực tiếp attempt thuộc lớp — phải qua API server', async () => {
+    await assertFails(
+      setDoc(doc(dbHS(), 'examSubmissions/class-attempt'), baiLamMau({
+        id: 'class-attempt', classId: 'lop-1', assignmentId: 'assignment-1',
+      })),
+    );
+  });
 });
 
 describe('examSubmissions · học sinh làm bài và nộp', () => {

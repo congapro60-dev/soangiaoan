@@ -1,4 +1,4 @@
-import type { Exam, ExamQuestion } from '../../types';
+import type { Exam, ExamQuestion } from '../../types.js';
 
 export type StudentExamQuestion = Omit<ExamQuestion, 'correctAnswer' | 'explanation'>;
 

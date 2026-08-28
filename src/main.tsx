@@ -13,6 +13,7 @@ import { AdaptiveLessonListPage } from './pages/AdaptiveLessonListPage';
 import { DuGioPage } from './pages/DuGioPage';
 import { StudentPortalPage } from './pages/StudentPortalPage';
 import { LiveLessonPage } from './pages/LiveLessonPage';
+import { StudentClassExamPage } from './pages/StudentClassExamPage';
 import './index.css';
 import 'katex/dist/katex.min.css';
 
@@ -65,6 +66,7 @@ createRoot(document.getElementById('root')!).render(
       <BrowserRouter>
         <Routes>
           <Route path="/lop" element={<StudentPortalPage />} />
+          <Route path="/lop/:joinCode/exam/:assignmentId" element={<StudentClassExamPage />} />
           <Route path="/lop/:joinCode" element={<StudentPortalPage />} />
           <Route path="/du-gio" element={<DuGioPage />} />
           <Route path="/du-gio/:id" element={<DuGioPage />} />

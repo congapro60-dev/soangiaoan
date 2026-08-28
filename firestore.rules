@@ -242,6 +242,10 @@ service cloud.firestore {
                && request.resource.data.tabSwitches is number
                && request.resource.data.clientNonce is string
                && request.resource.data.clientNonce.size() >= 24
+               // Bài làm gắn lớp phải đi qua API server để xác minh studentLink,
+               // assignment, hạn nộp và số lần làm; không cho client giả mạo trực tiếp.
+               && !('classId' in request.resource.data)
+               && !('assignmentId' in request.resource.data)
                && examDoc(request.resource.data.examId).data.isActive == true
                && examDoc(request.resource.data.examId).data.code == request.resource.data.examCode;
       }
@@ -253,6 +257,8 @@ service cloud.firestore {
                && keepsSubmissionIdentity()
                && request.resource.data.status in ['in_progress', 'submitted']
                && request.resource.data.answers is list
+               && !('classId' in request.resource.data)
+               && !('assignmentId' in request.resource.data)
                && (!('submittedAt' in request.resource.data) || request.resource.data.submittedAt is string)
                && (!('totalScore' in request.resource.data)
                    || (request.resource.data.totalScore is number

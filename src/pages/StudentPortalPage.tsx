@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import Swal from 'sweetalert2';
@@ -105,6 +105,7 @@ const KhungDangNhap = ({ children }: { children: ReactNode }) => (
 
 export const StudentPortalPage = () => {
   const { joinCode: joinCodeParam } = useParams<{ joinCode?: string }>();
+  const navigate = useNavigate();
   const [stage, setStage] = useState<Stage>('dang-tai');
   const [joinCode, setJoinCode] = useState(normalizeJoinCode(joinCodeParam || ''));
   const [roster, setRoster] = useState<RosterEntry[]>([]);
@@ -499,6 +500,10 @@ export const StudentPortalPage = () => {
   };
 
   const moChiTiet = (assignment: AssignmentDoc | undefined, submission?: SubmissionDoc) => {
+    if (assignment?.type === 'exam') {
+      navigate(`/lop/${encodeURIComponent(joinCode)}/exam/${encodeURIComponent(assignment.id)}`);
+      return;
+    }
     const title = assignment?.title || 'Bài tự nộp';
     const text = submission?.status === 'graded'
       ? `${submission.grade?.score ?? 0}/${submission.grade?.maxScore ?? 10} điểm${submission.grade?.feedback ? `\n\n${submission.grade.feedback}` : ''}`

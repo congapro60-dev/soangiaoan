@@ -5,7 +5,7 @@ import type {
   GradeState,
   GradingPolicy,
   GradingSource,
-} from './lib/classroom/types';
+} from './lib/classroom/types.js';
 
 export interface Student {
   id: string;
@@ -94,7 +94,7 @@ export interface TemplateFile {
   content: string;
   category: 'sample' | 'criteria' | 'lesson_doc' | 'distribution' | 'test' | 'matrix';
   /** Phase 2A MVP: Markdown Skeleton trích từ mẫu để giữ heading/bảng/placeholder khi gọi AI. */
-  skeleton?: import('./lib/documentSkeleton').DocumentSkeleton;
+  skeleton?: import('./lib/documentSkeleton.js').DocumentSkeleton;
 }
 
 export interface LessonTemplate {
