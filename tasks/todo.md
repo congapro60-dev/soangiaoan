@@ -275,11 +275,11 @@ Backup bản cũ: `C:\Users\ADMIN\AppData\Local\Temp\smartplan-ban-toan-backup-2
 - [x] Commit `c6eec47` và bản sửa type `069da51`; deployment cuối `dpl_AMePBtDn2e6HuRyaDgXaQ23TxEuW` báo `READY` và đã alias vào `https://giaoandewey.vercel.app`.
 - [x] Authenticated browser smoke test: nút hiện ngay trong trang `Bài học phân hoá`; bấm cài thành công, bài `Bất phương trình bậc nhất hai ẩn — Tiết 1` / `tds-g10-30-pilot` xuất hiện ở dòng đầu với các thao tác `Mở bài`, `Xem cổng`, `Mở tiết trực tiếp`, `Xóa`.
 
-## Task 10 — Sửa quyền tạo phiên pilot 8 bước — 2026-08-26
+## Task 10 — Sửa quyền tạo phiên pilot theo contract — 2026-08-26
 
-- [x] Tái lập lỗi production bằng ca test đúng bộ `allowedStepIds` canonical của G10 P31: 8 bước, có `route`; test đỏ trước khi sửa.
-- [x] Sửa `firestore.rules` tối thiểu: giới hạn 8 bước và thêm `route` vào allowlist; không mở thêm field/quyền khác.
-- [x] Rules Emulator xanh: 8 file / 265 test.
+- [x] Tái lập lỗi production bằng ca test đúng bộ `allowedStepIds` canonical của G10 P31: 9 bước, có THINK và `route`; test đỏ trước khi sửa.
+- [x] Sửa `firestore.rules` tối thiểu: giới hạn 9 bước và giữ `THINK`/`route` trong allowlist; không mở thêm field/quyền khác.
+- [x] Rules Emulator xanh: 8 file / 299 test trên nhánh tích hợp.
 - [x] Chạy full unit, lint, build và kiểm tra diff.
 - [x] Deploy Firestore Rules lên `smartplan-ai-14200`, xác minh release production và smoke test tạo phiên.
 
@@ -384,15 +384,22 @@ Backup bản cũ: `C:\Users\ADMIN\AppData\Local\Temp\smartplan-ban-toan-backup-2
 - [x] Verify `npx tsx test/e2e-v4-live-lesson.mjs` exits 0 and prints each PASS line.
 - [x] Verify `npm run build` still passes; do not modify contract, `firestore.rules`, or `api/`.
 
-## V4 final local QA checkpoint — 2026-08-29
+## V4 final local QA checkpoint — 2026-08-29/30
 
 - [x] Fix `closeLiveLessonSession`: do not write the public projection after closing revokes public Rules access.
 - [x] Add guarded dev-only emulator wiring; production path remains unchanged when `VITE_USE_EMULATOR` is off.
-- [x] Browser smoke against Auth/Firestore Emulator: teacher → TV realtime, student join/PIN, language preference, response, anonymous TV aggregates, and close-session UI.
-- [x] Rules suite: 8 files / 291 tests PASS; deny-path evaluator traces remain explicitly documented, no zero-trace claim.
+- [ ] Browser wiring/service smoke against Auth/Firestore Emulator is PASS; three-viewport teacher/TV/student flow is not claimed.
+- [x] Rules suite: 8 files / 299 tests PASS; deny-path evaluator traces remain explicitly documented, no zero-trace claim.
 - [x] Regression: response `languagePreference` can be updated after an existing response, while the validator still rejects unsupported/private fields.
-- [x] Full unit suite: 90 files / 1311 tests PASS.
+- [x] Full unit suite: 133 files / 1635 tests PASS.
 - [x] Service pilot: 13/13 checks PASS; deterministic V4 E2E: 9/9 checks PASS.
 - [x] `lint`, `lint:api`, and `build` PASS.
 - [x] Write `qa_artifacts/live-lesson-v4/browser-pilot-report.md` with evidence and limits.
-- [ ] Real teacher-authenticated staging smoke, Vercel deployment/HTTP smoke, and push: not authorized/not performed.
+- [ ] Real teacher-authenticated staging smoke and Vercel deployment/HTTP smoke remain pending; push to `main` is a separate release gate.
+
+### Integration QA — 2026-08-30
+
+- [x] Reconciled V4 commits onto `origin/main` in isolated worktree `codex/v4-main-integration`.
+- [x] Fixed integration compile regressions, restored the THINK prerequisite, made missing public stats reads safe, and aligned the TV fixture with canonical screen `S8A`.
+- [x] `npm run lint`, `npm run lint:api`, `npm run test`, `npm run test:rules`, `npm run test:pilot`, and `npm run build` pass on the integration worktree.
+- [ ] Real teacher account, production/Vercel HTTP smoke, and human three-viewport classroom flow are still user-facing QA gates.

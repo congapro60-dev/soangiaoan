@@ -1,26 +1,24 @@
 # V4 live lesson — QA checkpoint
 
-Date: 2026-08-29  
-Scope: local feature worktree `codex/g10-p31-firestore` only  
+Date: 2026-08-30
+Scope: isolated integration worktree `codex/v4-main-integration` based on `origin/main`
 Environment: Vite + Firestore/Auth Emulator; synthetic QA data; no production classroom data
 
 ## Verdict
 
-**PASS có điều kiện cho pilot local/staging. Chưa phải release production.**
+**PASS có điều kiện cho service/emulator và static integration gates. Chưa phải release production.**
 
-The browser wiring and service layer were exercised against the local emulators. The final static, unit, Rules, service-pilot, deterministic E2E, and build gates passed. Production deployment, real teacher authentication, and a Vercel classroom smoke were not performed.
+The app singleton wiring and service round-trip were exercised against the local emulators. The final static, unit, Rules, service-pilot, deterministic E2E, and build gates passed. A full three-viewport browser classroom run, real teacher authentication, production deployment, and a Vercel classroom smoke were not performed.
 
-## Verified browser flow
+## Verified browser wiring/service flow
 
 - `VITE_USE_EMULATOR=1` connected the app singleton to Auth Emulator `127.0.0.1:9099` and Firestore Emulator `127.0.0.1:8080`; the production path remained unchanged when the flag was off.
 - Anonymous browser authentication completed against the Auth Emulator.
 - A teacher session was created and read back through the app service; the session was not read from production.
-- Teacher state/cue changes reached the public TV view in realtime.
-- The student join flow accepted the selected class, roster name, and PIN; the selected language preference was persisted through the allowed preference path.
-- Student choice submission reached the teacher and anonymous TV aggregates; the TV did not display student identity or answer text.
-- The language UI exposed `VI`, `EN`, `JA`, `KO`, and `ZH`. The P31 pilot kept Vietnamese as the mathematical anchor and used bilingual scaffolding; full translation stayed disabled because a complete reviewed localized lesson pack was not available.
-- Closing a session no longer attempts a public-state write after Rules revoke public access. The UI reported the closed state and locked controls.
-- A student can change `languagePreference` after an existing response without changing the response value or bypassing the language validator; the Rules regression test passed.
+- The app authenticated anonymously against Auth Emulator and created/read a session through the app service against Firestore Emulator.
+- The service pilot separately exercised teacher update, three student responses, public TV state/stats listener, privacy projection, and deny-path identity checks.
+- The pure deterministic E2E separately covers language/glossary, grouping approval, post-check, offline queue, TV privacy, and the 2400-second contract.
+- The real teacher/TV/student browser choreography and human latency were not claimed from these checks.
 
 ## Automated evidence
 
@@ -28,8 +26,8 @@ The browser wiring and service layer were exercised against the local emulators.
 | --- | --- |
 | `npm run lint` | PASS, exit 0 |
 | `npm run lint:api` | PASS, exit 0 |
-| `npm run test` | PASS, 90 files / 1311 tests |
-| `npm run test:rules` | PASS, 8 files / 291 tests |
+| `npm run test` | PASS, 133 files / 1635 tests |
+| `npm run test:rules` | PASS, 8 files / 299 tests |
 | `npm run test:pilot` | PASS, 13/13 pilot checks, 1 test |
 | `npm run build` | PASS, exit 0; existing Vite chunk/import warnings only |
 | `npm exec -- tsx test/e2e-v4-live-lesson.mjs` | PASS, 9/9 checks |
@@ -42,10 +40,10 @@ The latest regression was real and was fixed before this checkpoint: response up
 
 ## Known limits
 
-- The browser smoke used synthetic/emulator identities. The real teacher-auth progress bridge was not claimed as passed by this harness.
+- The browser wiring used synthetic/emulator identities. The real teacher-auth progress bridge was not claimed as passed by this harness.
 - The deterministic E2E validates projections, privacy, language neutrality, grouping, post-check, offline queue, and the 2400-second contract; it cannot measure human join, language-choice, approval, or movement latency.
 - The malformed-parent negative fixture was removed from the Rules suite after reproducing that the emulator emits an evaluator trace while denying a document whose ownership field is absent. This fixture is not a valid app write. Runtime protection remains for valid-schema documents; malformed data must be blocked at contract/service/seed boundaries.
-- At the time this checkpoint report was created, no commit, push, Vercel deployment, or production smoke had been performed.
+- This report does not claim a Vercel deployment, production HTTP smoke, or real teacher-authenticated staging run.
 
 ## Next release gate
 

@@ -255,15 +255,15 @@ describe('liveLessonSessions · parent session', () => {
     })));
   });
 
-  it('canonical 8-step g10_w5_p31 allowedStepIds including route → ALLOW', async () => {
+  it('canonical 9-step g10_w5_p31 allowedStepIds including THINK and route → ALLOW', async () => {
     await assertSucceeds(setDoc(sessionRef(dbTeacherA(), 'session-canonical'), sessionData('session-canonical', {
-      allowedStepIds: ['warmup', 'notice-wonder', 'goals', 'route', 'model', 'ai-error-w01', 'quick-check', 'exit-ticket'],
+      allowedStepIds: [...PILOT_ALLOWED_STEP_IDS],
     })));
   });
 
-  it('exceeding 8 allowedStepIds → DENY', async () => {
+  it('exceeding 9 allowedStepIds → DENY', async () => {
     await assertFails(setDoc(sessionRef(dbTeacherA(), 'session-9-steps'), sessionData('session-9-steps', {
-      allowedStepIds: ['warmup', 'notice-wonder', 'goals', 'route', 'model', 'ai-error-w01', 'quick-check', 'exit-ticket', 'warmup'],
+      allowedStepIds: [...PILOT_ALLOWED_STEP_IDS, 'warmup'],
     })));
   });
 

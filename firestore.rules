@@ -596,6 +596,8 @@ service cloud.firestore {
                     == get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('classId', '')
                && data.get('classId', '') == get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('classId', '')
                && data.get('stepId', '') in get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('allowedStepIds', [])
+               && (data.get('stepId', '') != 'ai-error-w01'
+                   || exists(/databases/$(database)/documents/liveLessonSessions/$(sessionId)/responses/$(request.auth.uid + '__ai-think-w01')))
                && llv3ActiveSession();
       }
 
@@ -778,10 +780,10 @@ service cloud.firestore {
       }
 
       match /public/stats {
-        allow get: if llv3ReadablePublicStats(resource.data)
+        allow get: if resource == null || (llv3ReadablePublicStats(resource.data)
                    && llv3PublicAudience()
                    && llv3ActiveSession()
-                   && get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('publicStatsEnabled', false) == true;
+                   && get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('publicStatsEnabled', false) == true);
         allow create, update: if llv3SessionOwner()
                               && request.resource.data.keys().hasOnly([
                                    'stepId', 'participantCount', 'submittedCount', 'choiceCounts',

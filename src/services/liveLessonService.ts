@@ -296,7 +296,7 @@ export const updateLiveLessonState = async (sessionId: string, patch: LiveLesson
   if (patch.publicStateEnabled !== undefined && typeof patch.publicStateEnabled !== 'boolean') throw new Error('publicStateEnabled is invalid.');
   if (patch.publicStatsEnabled !== undefined && typeof patch.publicStatsEnabled !== 'boolean') throw new Error('publicStatsEnabled is invalid.');
   await updateDoc(doc(db, SESSIONS_COL, sessionId), { ...patch, updatedAt: serverTimestamp() });
-  const session = await readSnapshot(sessionId, true);
+  const session = await readSnapshot(sessionId);
   await writePublicState(session);
   return session;
 };
@@ -309,7 +309,7 @@ export const closeLiveLessonSession = async (sessionId: string): Promise<LiveLes
     publicStatsEnabled: false,
     updatedAt: serverTimestamp(),
   });
-  const session = await readSnapshot(sessionId, true);
+  const session = await readSnapshot(sessionId);
   await writePublicState(session);
   return session;
 };

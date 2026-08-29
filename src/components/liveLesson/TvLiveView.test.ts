@@ -139,7 +139,7 @@ describe('TvLiveView stat cards max', () => {
 
   it('[B4] getTvPresentation with showStats=true but no stats doc yet returns null stats (no crash)', () => {
     const definition = getPilotLiveLessonDefinition();
-    const state: LivePublicState = { cueId: 'P12', tvScreenId: 'S8', status: 'running', showStats: true, updatedAt: 10 };
+    const state: LivePublicState = { cueId: 'P12', tvScreenId: 'S8A', status: 'running', showStats: true, updatedAt: 10 };
     // stats = null simulates subscription active but doc not yet received
     const presentation = getTvPresentation(definition, state, null);
     expect(presentation.stats).toBeNull();

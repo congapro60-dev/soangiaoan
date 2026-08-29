@@ -10,7 +10,7 @@ import {
   getQueuedLiveResponses,
   type LiveResponseQueueFailure,
 } from '../../lib/liveLesson/offlineQueue';
-import { getStudentLoginSession, loginStudent, saveStudentLoginSession, fetchRoster, type StudentLoginSession, type RosterEntry } from '../../services/studentPortalApi';
+import { getStudentLoginSession, loginStudent, saveStudentLoginSession, fetchRoster, type RosterResponse, type StudentLoginSession, type RosterEntry } from '../../services/studentPortalApi';
 import {
   readStudentLanguagePreference,
   saveStudentLanguagePreference,
