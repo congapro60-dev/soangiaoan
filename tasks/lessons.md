@@ -4,6 +4,8 @@
 
 - **Live lesson close mapping must separate roster IDs from adaptive IDs** — `studentLinks/{uid}.studentId` points to an arbitrary roster document ID (for example `student-a`), while adaptive records use `${teacherUid}_${normalizeStudentCode(roster.code)}`. Always verify the link against the roster document first, then derive the adaptive ID from the server roster code; never copy the roster ID into `StudentLearningProfile`/`StudentSessionProgressRecord`. *(2026-08-25)*
 - **Never infer live route from G1/G2/G3 or default it during close** — route must come from a server-confirmed `route` response or a trusted adaptive profile; mark a participant incomplete when neither exists. *(2026-08-25)*
+- **A V4 field is not implemented until its whole boundary agrees** — adding `languagePreference` required the shared type, student payload, sanitizer, Firestore allowlist/validation, privacy tests, and a real emulator write. Keep it separate from the teacher-verified `languageSupportPlan`; a UI-only field creates a false sense of completion. *(2026-08-28)*
+- **`getDocFromServer` alone does not prove a server timestamp is resolved immediately after a browser write** — the browser/emulator pilot reproduced a transient `updatedAt` normalization failure that skipped the public TV projection. Retry only the timestamp-normalization case with a short bounded backoff, and keep a browser regression step after unit tests. *(2026-08-28)*
 
 ---
 
@@ -327,7 +329,7 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 ## Listener public tùy chọn phải mở đúng thời điểm — 2026-08-26
 
 - TV không nên subscribe document thống kê khi giáo viên chưa bật `showStats`; nếu không, document chưa tồn tại sẽ bị Rules từ chối và listener đã lỗi thì không tự hồi phục khi stats xuất hiện.
-- Với document public được tạo muộn, Rules phải cho phép đọc trạng thái “chưa tồn tại” trong đúng điều kiện audience/active/feature-flag, nhưng vẫn validate toàn bộ schema khi document đã tồn tại.
+- Với document public được tạo muộn, Rules phải cho phép đọc trạng thái "chưa tồn tại" trong đúng điều kiện audience/active/feature-flag, nhưng vẫn validate toàn bộ schema khi document đã tồn tại.
 
 ## Server timestamp sau mutation — 2026-08-26
 
@@ -340,3 +342,5 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 
 - Khi giáo viên đã chọn lớp lúc tạo phiên, URL học sinh phải mang cả `classId` và `joinCode`; cổng học sinh dùng `joinCode` để tải đúng roster rồi kiểm lại `roster.classId` trước khi cho chọn tên.
 - Nếu lớp thiếu `joinCode`, phải chặn ngay lúc tạo phiên với hướng dẫn đồng bộ/cấp mã lớp; không tạo một link HS trông hợp lệ nhưng không thể đăng nhập.
+
+- **Rules/fixture QA phải tách seed hợp lệ khỏi tài liệu malformed** — ownership rule cần đọc `teacherUid` để bảo vệ dữ liệu; một parent document thiếu schema có thể làm Rules Emulator ghi evaluator trace trên deny-path dù mọi allow-path hợp lệ. Không coi fixture malformed là bằng chứng app runtime hỏng; chặn từ contract/service/seed và kiểm tra allow-path thật. Đồng thời session đóng không được publish public projection sau khi Rules đã revoke public access. *(2026-08-29)*

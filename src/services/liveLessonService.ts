@@ -5,6 +5,7 @@ import {
   getDocFromServer,
   onSnapshot,
   query,
+  runTransaction,
   serverTimestamp,
   setDoc,
   Timestamp,
@@ -14,6 +15,7 @@ import {
 import { db } from '../lib/firebase';
 import { toPublicStats } from '../lib/liveLesson/aggregate';
 import { sanitizeStudentLanguagePreference } from '../lib/liveLesson/v4/languageSupport';
+import type { StudentLanguageView } from '../lib/liveLesson/v4/types.js';
 import type {
   CreateLiveSessionInput,
   LiveLessonDefinition,
@@ -25,12 +27,9 @@ import type {
   LiveResponseType,
   SubmitLiveResponseInput,
 } from '../lib/liveLesson/types';
-import type { StudentLanguageView } from '../lib/liveLesson/v4/types';
-
-type SubmitLiveResponseWithLanguagePreference = SubmitLiveResponseInput & { languagePreference?: StudentLanguageView };
-
 const SESSIONS_COL = 'liveLessonSessions';
 const RESPONSES_SUB = 'responses';
+const PREFERENCES_SUB = 'preferences';
 const PUBLIC_SUB = 'public';
 const RESPONSE_TYPES: LiveResponseType[] = ['choice', 'text', 'boolean', 'route', 'hint', 'exit_ticket'];
 const SESSION_STATUSES = ['lobby', 'running', 'paused', 'closed'] as const;
@@ -42,7 +41,7 @@ const SESSION_PATCH_KEYS = new Set([
   'publicStatsEnabled',
 ]);
 const EXPIRY_BUFFER_SECONDS = 5 * 60;
-const SERVER_TIMESTAMP_RETRY_DELAYS_MS = [50, 150, 300, 600] as const;
+const SERVER_TIMESTAMP_READ_RETRY_DELAYS_MS = [50, 100, 200] as const;
 
 const isRecord = (value: unknown): value is Record<string, unknown> => (
   typeof value === 'object' && value !== null
@@ -92,10 +91,9 @@ const toEpochMillis = (value: unknown, label: string): number => {
 
 const asError = (error: unknown): Error => error instanceof Error ? error : new Error(String(error));
 
-const isPermissionDeniedError = (error: unknown): boolean => {
-  if (!isRecord(error) || typeof error.code !== 'string') return false;
-  return error.code.toLowerCase().split('/').pop() === 'permission-denied';
-};
+const isUnresolvedTimestampReadError = (error: unknown): boolean => (
+  error instanceof Error && /must be a Firestore Timestamp or finite number\.$/.test(error.message)
+);
 
 const normalizeSession = (sessionId: string, value: unknown): LiveLessonSession => {
   if (!isRecord(value)) throw new Error('Live lesson session data is invalid.');
@@ -192,29 +190,7 @@ const normalizePublicState = (value: unknown): LivePublicState => {
   };
 };
 
-const isPendingUpdatedAtError = (error: unknown): boolean => (
-  error instanceof Error && error.message === 'updatedAt must be a Firestore Timestamp or finite number.'
-);
-
-const readSnapshot = async (sessionId: string, readFromServer = false): Promise<LiveLessonSession> => {
-  const sessionRef = doc(db, SESSIONS_COL, sessionId);
-  const maxAttempts = readFromServer ? SERVER_TIMESTAMP_RETRY_DELAYS_MS.length + 1 : 1;
-  let lastError: unknown;
-  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-    if (attempt > 0) await new Promise(resolve => setTimeout(resolve, SERVER_TIMESTAMP_RETRY_DELAYS_MS[attempt - 1]));
-    const snapshot = await (readFromServer ? getDocFromServer(sessionRef) : getDoc(sessionRef));
-    if (!snapshot.exists()) throw new Error('Created live lesson session could not be read back.');
-    try {
-      return normalizeSession(sessionId, snapshot.data());
-    } catch (error) {
-      if (!readFromServer || !isPendingUpdatedAtError(error) || attempt === maxAttempts - 1) throw error;
-      lastError = error;
-    }
-  }
-  throw lastError instanceof Error ? lastError : new Error('Live lesson session could not be read back.');
-};
-
-export const buildLiveResponseFirestorePayload = (input: SubmitLiveResponseWithLanguagePreference, includeIdentity: boolean): Record<string, unknown> => {
+export const buildLiveResponseFirestorePayload = (input: SubmitLiveResponseInput, includeIdentity: boolean): Record<string, unknown> => {
   const languagePreference = sanitizeStudentLanguagePreference(input.languagePreference);
   return {
     ...(includeIdentity ? {
@@ -228,9 +204,32 @@ export const buildLiveResponseFirestorePayload = (input: SubmitLiveResponseWithL
     ...(languagePreference ? { languagePreference } : {}),
   };
 };
+
+const readSnapshot = async (sessionId: string): Promise<LiveLessonSession> => {
+  // Use getDocFromServer to bypass local cache so serverTimestamp fields are resolved.
+  // The emulator/browser can still return a pending serverTimestamp for one immediate
+  // read after a write; retry only that normalization case and never hide other errors.
+  let lastError: Error | null = null;
+  for (let attempt = 0; attempt <= SERVER_TIMESTAMP_READ_RETRY_DELAYS_MS.length; attempt += 1) {
+    try {
+      const snapshot = await getDocFromServer(doc(db, SESSIONS_COL, sessionId));
+      if (!snapshot.exists()) throw new Error('Created live lesson session could not be read back.');
+      return normalizeSession(sessionId, snapshot.data());
+    } catch (error) {
+      lastError = asError(error);
+      const delay = SERVER_TIMESTAMP_READ_RETRY_DELAYS_MS[attempt];
+      if (!isUnresolvedTimestampReadError(lastError) || delay === undefined) throw lastError;
+      await new Promise<void>(resolve => setTimeout(resolve, delay));
+    }
+  }
+  throw lastError ?? new Error('Live lesson session could not be read back.');
 };
 
 const writePublicState = async (session: LiveLessonSession): Promise<void> => {
+  // Closing a session revokes public reads in Firestore Rules. Do not write a
+  // final public document after that revocation; the existing public listener
+  // will be denied and the TV will retain its last safe screen.
+  if (session.status === 'closed' || !session.publicStateEnabled) return;
   await setDoc(doc(db, SESSIONS_COL, session.id, PUBLIC_SUB, 'state'), {
     cueId: session.currentCueId,
     tvScreenId: session.currentTvScreenId,
@@ -325,22 +324,68 @@ export const submitLiveResponse = async (input: SubmitLiveResponseInput): Promis
   if (typeof input.value === 'number' && !Number.isFinite(input.value)) throw new Error('Response value must be finite.');
   if (typeof input.value === 'string' && input.value.length > 2000) throw new Error('Response text cannot exceed 2000 characters.');
   assertNonEmptyString(input.clientNonce, 'clientNonce');
+
   const responseId = `${input.participantUid}__${input.stepId}`;
   const responseRef = doc(db, SESSIONS_COL, input.sessionId, RESPONSES_SUB, responseId);
-  try {
-    await setDoc(responseRef, {
-      ...buildLiveResponseFirestorePayload(input as SubmitLiveResponseWithLanguagePreference, false),
+
+  // One read-before-write transaction distinguishes a brand-new response from a
+  // resubmission. No merge-first probe and no permission-denied retry on the
+  // allow-path: the create payload is always complete and server-timestamped.
+  await runTransaction(db, async (tx) => {
+    const snapshot = await tx.get(responseRef);
+    if (snapshot.exists()) {
+      // Idempotent resubmission: only mutable fields change. submittedAt and
+      // clientNonce are immutable after creation, so they are never rewritten.
+      const updatePayload: Record<string, unknown> = {
+        responseType: input.responseType,
+        value: input.value,
+        updatedAt: serverTimestamp(),
+      };
+      const languagePreference = sanitizeStudentLanguagePreference(input.languagePreference);
+      if (languagePreference) updatePayload.languagePreference = languagePreference;
+      tx.update(responseRef, updatePayload);
+      return;
+    }
+    tx.set(responseRef, {
+      ...buildLiveResponseFirestorePayload(input, true),
+      submittedAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-    }, { merge: true });
-    return;
-  } catch (error) {
-    if (!isPermissionDeniedError(error)) throw error;
-  }
-  await setDoc(responseRef, {
-    ...buildLiveResponseFirestorePayload(input as SubmitLiveResponseWithLanguagePreference, true),
-    submittedAt: serverTimestamp(),
+    });
+  });
+};
+
+// --- V4: student-owned language preference ---
+
+export const saveStudentLanguagePreference = async (
+  sessionId: string,
+  participantUid: string,
+  classId: string,
+  languagePreference: StudentLanguageView,
+): Promise<void> => {
+  assertIdentifier(sessionId, 'sessionId');
+  assertIdentifier(participantUid, 'participantUid');
+  assertIdentifier(classId, 'classId');
+  const sanitized = sanitizeStudentLanguagePreference(languagePreference);
+  if (!sanitized) throw new Error('Student language preference is invalid.');
+  await setDoc(doc(db, SESSIONS_COL, sessionId, PREFERENCES_SUB, participantUid), {
+    participantUid,
+    classId,
+    languagePreference: sanitized,
     updatedAt: serverTimestamp(),
   });
+};
+
+export const readStudentLanguagePreference = async (
+  sessionId: string,
+  participantUid: string,
+): Promise<StudentLanguageView | null> => {
+  assertIdentifier(sessionId, 'sessionId');
+  assertIdentifier(participantUid, 'participantUid');
+  const snapshot = await getDoc(doc(db, SESSIONS_COL, sessionId, PREFERENCES_SUB, participantUid));
+  if (!snapshot.exists()) return null;
+  const data = snapshot.data();
+  if (!isRecord(data)) return null;
+  return sanitizeStudentLanguagePreference(data.languagePreference);
 };
 
 export const publishLivePublicStats = async (sessionId: string, stats: LivePublicStats): Promise<void> => {

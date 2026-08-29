@@ -383,3 +383,16 @@ Backup bản cũ: `C:\Users\ADMIN\AppData\Local\Temp\smartplan-ban-toan-backup-2
 - [x] Create QA docs under `qa_artifacts/live-lesson-v4/` with coverage table and manifest.
 - [x] Verify `npx tsx test/e2e-v4-live-lesson.mjs` exits 0 and prints each PASS line.
 - [x] Verify `npm run build` still passes; do not modify contract, `firestore.rules`, or `api/`.
+
+## V4 final local QA checkpoint — 2026-08-29
+
+- [x] Fix `closeLiveLessonSession`: do not write the public projection after closing revokes public Rules access.
+- [x] Add guarded dev-only emulator wiring; production path remains unchanged when `VITE_USE_EMULATOR` is off.
+- [x] Browser smoke against Auth/Firestore Emulator: teacher → TV realtime, student join/PIN, language preference, response, anonymous TV aggregates, and close-session UI.
+- [x] Rules suite: 8 files / 291 tests PASS; deny-path evaluator traces remain explicitly documented, no zero-trace claim.
+- [x] Regression: response `languagePreference` can be updated after an existing response, while the validator still rejects unsupported/private fields.
+- [x] Full unit suite: 90 files / 1311 tests PASS.
+- [x] Service pilot: 13/13 checks PASS; deterministic V4 E2E: 9/9 checks PASS.
+- [x] `lint`, `lint:api`, and `build` PASS.
+- [x] Write `qa_artifacts/live-lesson-v4/browser-pilot-report.md` with evidence and limits.
+- [ ] Real teacher-authenticated staging smoke, Vercel deployment/HTTP smoke, and push: not authorized/not performed.

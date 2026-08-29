@@ -43,12 +43,16 @@ export type {
 
 export { validateV4Contract } from './validateContract';
 export {
+  APPROVED_CURRICULUM_BRIDGE_IDS,
+  buildStudentSupportModeOptions,
   DEFAULT_STUDENT_LANGUAGE_VIEW,
+  hasApprovedFullTranslationPack,
   V4_LANGUAGES,
   V4_SUPPORT_MODES,
   changeStudentLanguageView,
   resolveStudentLanguageView,
   sanitizeStudentLanguagePreference,
+  type StudentSupportModeOption,
   type StudentLanguageViewSource,
 } from './languageSupport';
 export {

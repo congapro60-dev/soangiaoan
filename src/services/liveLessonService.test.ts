@@ -29,6 +29,7 @@ const firestoreMocks = vi.hoisted(() => {
     getDocs: vi.fn(),
     onSnapshot: vi.fn(),
     query: vi.fn((target, ...constraints) => ({ kind: 'query', target, constraints })),
+    runTransaction: vi.fn(),
     serverTimestamp,
     Timestamp,
     setDoc: vi.fn(),
@@ -45,6 +46,7 @@ vi.mock('firebase/firestore', () => ({
   getDocs: firestoreMocks.getDocs,
   onSnapshot: firestoreMocks.onSnapshot,
   query: firestoreMocks.query,
+  runTransaction: firestoreMocks.runTransaction,
   serverTimestamp: firestoreMocks.serverTimestamp,
   setDoc: firestoreMocks.setDoc,
   Timestamp: firestoreMocks.Timestamp,
@@ -56,11 +58,14 @@ vi.mock('../lib/firebase', () => ({ db: firestoreMocks.db }));
 
 import { getPilotLiveLessonDefinition } from '../lib/liveLesson/definition';
 import { toPublicStats } from '../lib/liveLesson/aggregate';
+import type { StudentLanguageView } from '../lib/liveLesson/v4/types';
 import {
   closeLiveLessonSession,
   createLiveLessonSession,
   getLiveLessonSession,
   publishLivePublicStats,
+  readStudentLanguagePreference,
+  saveStudentLanguagePreference,
   submitLiveResponse,
   subscribeToLivePublicState,
   subscribeToLivePublicStats,
@@ -123,15 +128,44 @@ const login: LoginResponse = {
   studentName: 'An',
 };
 
+// Transaction harness for submitLiveResponse: runTransaction reads the response
+// doc to decide create vs update, then calls tx.set (create) or tx.update (resubmit).
+// `liveTx.exists` controls whether the read finds an existing document.
+const liveTx = {
+  exists: false,
+  data: {} as Record<string, unknown>,
+  calls: [] as Array<{ kind: 'set' | 'update'; ref: { path: string }; data: Record<string, unknown> }>,
+};
+
 beforeEach(() => {
   vi.clearAllMocks();
   vi.unstubAllGlobals();
+  liveTx.exists = false;
+  liveTx.data = {};
+  liveTx.calls = [];
+  firestoreMocks.runTransaction.mockImplementation(async (_db: unknown, fn: (tx: unknown) => Promise<void>) => {
+    const tx = {
+      get: vi.fn(async () => ({
+        exists: () => liveTx.exists,
+        data: () => liveTx.data,
+        id: 'student-1__warmup',
+      })),
+      set: (ref: { path: string }, data: Record<string, unknown>) => {
+        liveTx.calls.push({ kind: 'set', ref, data });
+      },
+      update: (ref: { path: string }, data: Record<string, unknown>) => {
+        liveTx.calls.push({ kind: 'update', ref, data });
+      },
+    };
+    await fn(tx);
+  });
 });
 
 describe('liveLessonService Firestore boundary', () => {
   it('creates an auto-id session with metadata, allowed steps, lobby state, and timestamps', async () => {
     const definition = getPilotLiveLessonDefinition();
-    firestoreMocks.getDoc.mockResolvedValue({
+    // readSnapshot uses getDocFromServer (not getDoc) to bypass local cache with unresolved serverTimestamp.
+    firestoreMocks.getDocFromServer.mockResolvedValue({
       id: 'auto-1',
       exists: () => true,
       data: () => sessionData({
@@ -194,6 +228,7 @@ describe('liveLessonService Firestore boundary', () => {
   });
 
   it('writes only a validated session patch and closes public flags', async () => {
+    // readSnapshot uses getDocFromServer so serverTimestamp fields are resolved after write.
     firestoreMocks.getDocFromServer
       .mockResolvedValueOnce({
         exists: () => true,
@@ -227,43 +262,55 @@ describe('liveLessonService Firestore boundary', () => {
       expect.objectContaining({ path: '/liveLessonSessions/session-1' }),
       { status: 'closed', publicStateEnabled: false, publicStatsEnabled: false, updatedAt: { __type: 'serverTimestamp' } },
     );
-    expect(firestoreMocks.setDoc).toHaveBeenNthCalledWith(
-      2,
-      expect.anything(),
-      {
-        cueId: 'P01',
-        tvScreenId: 'S1',
-        status: 'closed',
-        showStats: false,
-        updatedAt: { __type: 'serverTimestamp' },
-      },
-    );
+    // Rules revoke public reads as soon as the session is closed. The service
+    // must not attempt to publish a final public document after that revocation.
+    expect(firestoreMocks.setDoc).toHaveBeenCalledTimes(1);
     await expect(updateLiveLessonState('session-1', { unknown: 'field' } as never)).rejects.toThrow(/unknown/i);
     await expect(updateLiveLessonState('session-1', { status: undefined })).rejects.toThrow(/undefined/i);
   });
 
-  it('reads the server-acknowledged timestamp after a state patch', async () => {
+  it('[B3 regression] readSnapshot uses getDocFromServer not getDoc to resolve serverTimestamp after write', async () => {
+    // Regression for Blocker 3: immediately reading via getDoc after serverTimestamp write returns
+    // unresolved FieldValue sentinel, causing toEpochMillis to fail and writePublicState to be skipped.
+    // Service must use getDocFromServer which forces a network round-trip.
+    firestoreMocks.getDocFromServer.mockResolvedValueOnce({
+      exists: () => true,
+      id: 'session-1',
+      data: () => sessionData({ status: 'running', currentCueId: 'P01', currentTvScreenId: 'S1' }),
+    });
+    await updateLiveLessonState('session-1', { status: 'running' });
+    // getDocFromServer must be called (not getDoc) for the readSnapshot after write
+    expect(firestoreMocks.getDocFromServer).toHaveBeenCalledWith(
+      expect.objectContaining({ path: '/liveLessonSessions/session-1' }),
+    );
+    // getDoc must NOT have been called for this session read.
+    expect(firestoreMocks.getDoc).not.toHaveBeenCalled();
+  });
+
+  it('[B3 regression] retries when the first server read still has an unresolved timestamp', async () => {
     firestoreMocks.getDocFromServer
       .mockResolvedValueOnce({
         exists: () => true,
         id: 'session-1',
-        data: () => sessionData({ updatedAt: null, publicStatsEnabled: false }),
+        data: () => sessionData({ status: 'running', updatedAt: null }),
       })
       .mockResolvedValueOnce({
         exists: () => true,
         id: 'session-1',
-        data: () => sessionData({ updatedAt: 3000, publicStatsEnabled: true }),
+        data: () => sessionData({ status: 'running', updatedAt: new FakeTimestamp(3000) }),
       });
 
-    await expect(updateLiveLessonState('session-1', { publicStatsEnabled: true })).resolves.toMatchObject({
+    await expect(updateLiveLessonState('session-1', { status: 'running' })).resolves.toMatchObject({
+      id: 'session-1',
+      status: 'running',
       updatedAt: 3000,
-      publicStatsEnabled: true,
     });
     expect(firestoreMocks.getDocFromServer).toHaveBeenCalledTimes(2);
   });
 
-  it('creates a deterministic response after the merge-update probe and writes no client timestamp or PIN', async () => {
-    firestoreMocks.setDoc.mockRejectedValueOnce(Object.assign(new Error('missing response document'), { code: 'permission-denied' }));
+  it('first submit reads the response doc in a transaction then writes the full identity payload via tx.set (no merge-first probe)', async () => {
+    // liveTx.exists=false simulates a missing document, so the transaction must CREATE.
+    liveTx.exists = false;
     await submitLiveResponse({
       sessionId: 'session-1',
       participantUid: 'student-1',
@@ -273,63 +320,211 @@ describe('liveLessonService Firestore boundary', () => {
       value: 'A',
       clientNonce: 'nonce-1',
     });
-    const updateProbe = firestoreMocks.setDoc.mock.calls[0][1] as Record<string, unknown>;
-    const payload = firestoreMocks.setDoc.mock.calls[1][1] as Record<string, unknown>;
 
-    expect(firestoreMocks.doc).toHaveBeenCalledWith(
-      firestoreMocks.db,
-      'liveLessonSessions',
-      'session-1',
-      'responses',
-      'student-1__warmup',
-    );
-    expect(updateProbe).toEqual({
-      responseType: 'choice', value: 'A', clientNonce: 'nonce-1', updatedAt: { __type: 'serverTimestamp' },
-    });
-    expect(firestoreMocks.setDoc.mock.calls[0][2]).toEqual({ merge: true });
+    // Exactly one transaction; the create path uses tx.set, never standalone setDoc,
+    // and there is NO permission-denied merge-first fallback.
+    expect(firestoreMocks.runTransaction).toHaveBeenCalledOnce();
+    expect(firestoreMocks.setDoc).not.toHaveBeenCalled();
+    expect(firestoreMocks.updateDoc).not.toHaveBeenCalled();
+    expect(liveTx.calls).toHaveLength(1);
+    expect(liveTx.calls[0].kind).toBe('set');
+    expect(liveTx.calls[0].ref.path).toBe('/liveLessonSessions/session-1/responses/student-1__warmup');
+
+    const payload = liveTx.calls[0].data;
     expect(Object.keys(payload).sort()).toEqual([
       'classId', 'clientNonce', 'participantUid', 'responseType', 'stepId', 'submittedAt', 'updatedAt', 'value',
     ].sort());
-    expect(JSON.stringify(payload)).not.toContain('pin');
+    expect(payload).not.toHaveProperty('pin');
     expect(payload.submittedAt).toEqual({ __type: 'serverTimestamp' });
     expect(payload.updatedAt).toEqual({ __type: 'serverTimestamp' });
+    expect(payload).toMatchObject({
+      participantUid: 'student-1',
+      classId: 'class-1',
+      stepId: 'warmup',
+      responseType: 'choice',
+      value: 'A',
+      clientNonce: 'nonce-1',
+    });
   });
 
-  it('updates an existing response without replacing its original submittedAt or clientNonce', async () => {
-    firestoreMocks.setDoc.mockResolvedValueOnce(undefined);
+  it('resubmit reads existing doc then writes only the update-compatible payload (no submittedAt/clientNonce)', async () => {
+    liveTx.exists = true;
+    liveTx.data = {
+      participantUid: 'student-1', classId: 'class-1', stepId: 'warmup',
+      responseType: 'choice', value: 'A', clientNonce: 'nonce-1',
+      submittedAt: 1000, updatedAt: 1000,
+    };
     await submitLiveResponse({
       sessionId: 'session-1', participantUid: 'student-1', classId: 'class-1', stepId: 'warmup',
       responseType: 'choice', value: 'B', clientNonce: 'nonce-1',
     });
 
-    expect(firestoreMocks.setDoc).toHaveBeenCalledOnce();
-    expect(firestoreMocks.setDoc.mock.calls[0][1]).toEqual({
-      responseType: 'choice', value: 'B', clientNonce: 'nonce-1', updatedAt: { __type: 'serverTimestamp' },
+    expect(firestoreMocks.runTransaction).toHaveBeenCalledOnce();
+    expect(firestoreMocks.setDoc).not.toHaveBeenCalled();
+    expect(liveTx.calls).toHaveLength(1);
+    expect(liveTx.calls[0].kind).toBe('update');
+    // Update payload must NOT rewrite immutable submittedAt or clientNonce.
+    expect(liveTx.calls[0].data).toEqual({
+      responseType: 'choice', value: 'B', updatedAt: { __type: 'serverTimestamp' },
     });
-    expect(firestoreMocks.setDoc.mock.calls[0][1]).not.toHaveProperty('submittedAt');
-    expect(firestoreMocks.setDoc.mock.calls[0][2]).toEqual({ merge: true });
+    expect(liveTx.calls[0].data).not.toHaveProperty('submittedAt');
+    expect(liveTx.calls[0].data).not.toHaveProperty('clientNonce');
+    expect(liveTx.calls[0].data).not.toHaveProperty('participantUid');
   });
 
-  it('uses the same response path and nonce for create then update-compatible resubmission', async () => {
-    firestoreMocks.setDoc
-      .mockRejectedValueOnce(Object.assign(new Error('missing response document'), { code: 'permission-denied' }))
-      .mockResolvedValueOnce(undefined)
-      .mockResolvedValueOnce(undefined);
+  it('persists the sanitized languagePreference without private support-plan fields', async () => {
+    liveTx.exists = false;
+    const languagePreference = {
+      language: 'en',
+      supportMode: 'bilingual',
+      showGlossary: true,
+      showSentenceFrames: true,
+      curriculumBridgeIds: ['bridge-halfplane', '../private'],
+      languageSupportPlan: 'tier intensive',
+    } as never;
+
+    await submitLiveResponse({
+      sessionId: 'session-1',
+      participantUid: 'student-1',
+      classId: 'class-1',
+      stepId: 'warmup',
+      responseType: 'choice',
+      value: 'A',
+      clientNonce: 'nonce-1',
+      languagePreference,
+    });
+
+    expect(liveTx.calls[0].kind).toBe('set');
+    expect(liveTx.calls[0].data).toMatchObject({
+      languagePreference: {
+        language: 'en',
+        supportMode: 'bilingual',
+        showGlossary: true,
+        showSentenceFrames: true,
+        curriculumBridgeIds: ['bridge-halfplane'],
+      },
+    });
+    expect(liveTx.calls[0].data).not.toHaveProperty('languageSupportPlan');
+    expect(JSON.stringify(liveTx.calls[0].data)).not.toContain('tier intensive');
+  });
+
+  it('resubmit keeps a valid languagePreference and still omits submittedAt/clientNonce', async () => {
+    liveTx.exists = true;
+    liveTx.data = {
+      participantUid: 'student-1', classId: 'class-1', stepId: 'warmup',
+      responseType: 'choice', value: 'A', clientNonce: 'nonce-1',
+      submittedAt: 1000, updatedAt: 1000,
+    };
+    await submitLiveResponse({
+      sessionId: 'session-1', participantUid: 'student-1', classId: 'class-1', stepId: 'warmup',
+      responseType: 'text', value: 'Em sửa ý kiến.', clientNonce: 'nonce-1',
+      languagePreference: {
+        language: 'en', supportMode: 'bilingual', showGlossary: true, showSentenceFrames: true,
+        curriculumBridgeIds: ['bridge-halfplane'],
+      },
+    });
+
+    expect(liveTx.calls).toHaveLength(1);
+    expect(liveTx.calls[0].kind).toBe('update');
+    expect(liveTx.calls[0].data).toEqual({
+      responseType: 'text',
+      value: 'Em sửa ý kiến.',
+      languagePreference: {
+        language: 'en', supportMode: 'bilingual', showGlossary: true, showSentenceFrames: true,
+        curriculumBridgeIds: ['bridge-halfplane'],
+      },
+      updatedAt: { __type: 'serverTimestamp' },
+    });
+    expect(liveTx.calls[0].data).not.toHaveProperty('submittedAt');
+    expect(liveTx.calls[0].data).not.toHaveProperty('clientNonce');
+  });
+
+  it('persists a session-scoped student language preference without private fields', async () => {
+    const languagePreference: StudentLanguageView = {
+      language: 'en',
+      supportMode: 'bilingual',
+      showGlossary: true,
+      showSentenceFrames: true,
+      curriculumBridgeIds: ['bridge-halfplane', 'unreviewed-bridge'],
+    };
+
+    await saveStudentLanguagePreference('session-1', 'student-1', 'class-1', languagePreference);
+
+    expect(firestoreMocks.doc).toHaveBeenCalledWith(
+      firestoreMocks.db,
+      'liveLessonSessions',
+      'session-1',
+      'preferences',
+      'student-1',
+    );
+    expect(firestoreMocks.setDoc.mock.calls[0][1]).toEqual({
+      participantUid: 'student-1',
+      classId: 'class-1',
+      languagePreference: {
+        language: 'en',
+        supportMode: 'bilingual',
+        showGlossary: true,
+        showSentenceFrames: true,
+        curriculumBridgeIds: ['bridge-halfplane'],
+      },
+      updatedAt: { __type: 'serverTimestamp' },
+    });
+    expect(JSON.stringify(firestoreMocks.setDoc.mock.calls[0][1])).not.toContain('languageSupportPlan');
+  });
+
+  it('reads and sanitizes only the student language view from the private preference document', async () => {
+    firestoreMocks.getDoc.mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({
+        participantUid: 'student-1',
+        classId: 'class-1',
+        languagePreference: {
+          language: 'ja',
+          supportMode: 'bilingual',
+          showGlossary: true,
+          showSentenceFrames: true,
+          curriculumBridgeIds: ['bridge-halfplane', '../private'],
+          languageSupportPlan: 'secret',
+        },
+      }),
+    });
+
+    await expect(readStudentLanguagePreference('session-1', 'student-1'))
+      .resolves.toEqual({
+        language: 'ja',
+        supportMode: 'bilingual',
+        showGlossary: true,
+        showSentenceFrames: true,
+        curriculumBridgeIds: ['bridge-halfplane'],
+      });
+  });
+
+  it('uses the same response path for create then idempotent resubmission in a transaction', async () => {
     const base = {
       sessionId: 'session-1', participantUid: 'student-1', classId: 'class-1', stepId: 'warmup',
       responseType: 'choice' as const, clientNonce: 'stable-nonce',
     };
 
+    liveTx.exists = false;
     await submitLiveResponse({ ...base, value: 'A' });
+    liveTx.exists = true;
+    liveTx.data = {
+      participantUid: 'student-1', classId: 'class-1', stepId: 'warmup',
+      responseType: 'choice', value: 'A', clientNonce: 'stable-nonce',
+      submittedAt: 1000, updatedAt: 1000,
+    };
     await submitLiveResponse({ ...base, value: 'B' });
 
-    expect(firestoreMocks.setDoc).toHaveBeenCalledTimes(3);
-    expect(firestoreMocks.setDoc.mock.calls[0][0].path).toBe(firestoreMocks.setDoc.mock.calls[1][0].path);
-    expect(firestoreMocks.setDoc.mock.calls[1][0].path).toBe(firestoreMocks.setDoc.mock.calls[2][0].path);
-    expect(firestoreMocks.setDoc.mock.calls[1][1]).toMatchObject({ clientNonce: 'stable-nonce', value: 'A' });
-    expect(firestoreMocks.setDoc.mock.calls[2][1]).toMatchObject({ clientNonce: 'stable-nonce', value: 'B' });
-    expect(firestoreMocks.setDoc.mock.calls[2][1]).not.toHaveProperty('submittedAt');
-    expect(firestoreMocks.setDoc.mock.calls[2][2]).toEqual({ merge: true });
+    expect(firestoreMocks.runTransaction).toHaveBeenCalledTimes(2);
+    expect(liveTx.calls).toHaveLength(2);
+    expect(liveTx.calls[0].ref.path).toBe(liveTx.calls[1].ref.path);
+    expect(liveTx.calls[0].ref.path).toBe('/liveLessonSessions/session-1/responses/student-1__warmup');
+    expect(liveTx.calls[0].kind).toBe('set');
+    expect(liveTx.calls[0].data).toMatchObject({ clientNonce: 'stable-nonce', value: 'A' });
+    expect(liveTx.calls[1].kind).toBe('update');
+    expect(liveTx.calls[1].data).toMatchObject({ value: 'B' });
+    expect(liveTx.calls[1].data).not.toHaveProperty('submittedAt');
+    expect(liveTx.calls[1].data).not.toHaveProperty('clientNonce');
   });
 
   it('rejects unsafe response inputs before writing', async () => {
@@ -341,7 +536,7 @@ describe('liveLessonService Firestore boundary', () => {
     await expect(submitLiveResponse({ ...input, value: 'ok', responseType: 'unsafe' as never })).rejects.toThrow(/response type/i);
     await expect(submitLiveResponse({ ...input, value: 'ok', clientNonce: '' })).rejects.toThrow(/nonce/i);
     await expect(submitLiveResponse({ ...input, value: 'ok', stepId: 'bad/step' })).rejects.toThrow(/identifier/i);
-    expect(firestoreMocks.setDoc).not.toHaveBeenCalled();
+    expect(firestoreMocks.runTransaction).not.toHaveBeenCalled();
   });
 
   it('publishes only the exact sanitized public stats contract', async () => {

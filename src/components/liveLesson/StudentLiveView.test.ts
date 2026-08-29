@@ -8,6 +8,7 @@ import {
   buildStudentLanguageChoiceState,
   getStudentChoiceOptions,
   getStudentChoiceLabel,
+  buildStudentLanguagePreferenceKey,
   resolveStudentLiveIdentity,
   validateStudentLoginClassId,
   validateStudentRosterContext,
@@ -84,6 +85,13 @@ describe('student V4 language view helpers', () => {
 
   it('keeps a persistent language chip with an explicit change action label', () => {
     expect(buildStudentLanguageChip(saved)).toEqual({ label: 'Tiếng Việt + EN', actionLabel: 'Đổi ngôn ngữ' });
+  });
+
+  it('scopes the saved preference to both the live session and the anonymous participant', () => {
+    expect(buildStudentLanguagePreferenceKey('session-1', 'anon-1'))
+      .toBe('smartplan-ai:live-language:v2:session-1:anon-1');
+    expect(buildStudentLanguagePreferenceKey('session-2', 'anon-1'))
+      .not.toBe(buildStudentLanguagePreferenceKey('session-1', 'anon-1'));
   });
 
   it('uses explicit offline status text without pretending realtime succeeded', () => {

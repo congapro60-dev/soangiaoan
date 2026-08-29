@@ -115,6 +115,36 @@ describe('TvLiveView stat cards max', () => {
     expect(json).not.toContain('rawText');
     expect(json).not.toContain('privateReason');
   });
+
+  // Blocker 4: stats hidden when showStats=false, no spurious warnings
+  it('[B4] presentation.stats is null when showStats=false regardless of stats doc', () => {
+    const definition = getPilotLiveLessonDefinition();
+    const state: LivePublicState = { cueId: 'P12', tvScreenId: 'S8', status: 'running', showStats: false, updatedAt: 10 };
+    const stats: LivePublicStats = {
+      stepId: 'warmup', participantCount: 4, submittedCount: 2,
+      choiceCounts: {}, routeCounts: { M: 1, S: 2, C: 1 },
+      errorCategoryCounts: { Conceptual: 0, Algebraic: 0, Logical: 0, 'Missing condition': 0 },
+      hintUseCount: 0, updatedAt: 10,
+    };
+    const presentation = getTvPresentation(definition, state, stats);
+    // stats must be null even when a stats doc exists — the show gate controls visibility
+    expect(presentation.stats).toBeNull();
+  });
+
+  it('[B4] getTvListenerNotice does not emit spurious statsError warning when stats are hidden', () => {
+    const runningState: LivePublicState = { cueId: 'P12', tvScreenId: 'S8', status: 'running', showStats: false, updatedAt: 10 };
+    // A stale listener error must not be shown after the teacher hides stats.
+    expect(getTvListenerNotice({ publicState: runningState, publicStateError: null, statsError: 'permission-denied' })).toBeNull();
+  });
+
+  it('[B4] getTvPresentation with showStats=true but no stats doc yet returns null stats (no crash)', () => {
+    const definition = getPilotLiveLessonDefinition();
+    const state: LivePublicState = { cueId: 'P12', tvScreenId: 'S8', status: 'running', showStats: true, updatedAt: 10 };
+    // stats = null simulates subscription active but doc not yet received
+    const presentation = getTvPresentation(definition, state, null);
+    expect(presentation.stats).toBeNull();
+    expect(presentation.screen).not.toBeNull();
+  });
 });
 
 describe('TvLiveView stat cards max', () => {

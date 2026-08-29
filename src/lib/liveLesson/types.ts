@@ -1,5 +1,7 @@
 import type { LiveCue } from '../../data/liveLessonPackages/g10_w5_p31_bpt_tiet1.cues.js';
 
+import type { StudentLanguageView } from './v4/types.js';
+
 export type LiveLessonMode = 'teacher' | 'tv' | 'student';
 export type LiveSessionStatus = 'lobby' | 'running' | 'paused' | 'closed';
 export type LiveResponseType = 'choice' | 'text' | 'boolean' | 'route' | 'hint' | 'exit_ticket';
@@ -120,6 +122,7 @@ export interface SubmitLiveResponseInput {
   responseType: LiveResponseType;
   value: string | number | boolean;
   clientNonce: string;
+  languagePreference?: StudentLanguageView;
 }
 
 export class LiveLessonDefinitionError extends Error {

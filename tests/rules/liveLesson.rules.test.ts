@@ -53,7 +53,7 @@ const sessionData = (sessionId: string, overrides: Record<string, unknown> = {})
   title: 'Bài toán chuyển động',
   classId: CLASS_A,
   teacherUid: TEACHER_A,
-  allowedStepIds: ['warmup', 'notice-wonder', 'goals', 'model', 'ai-error-w01', 'quick-check', 'exit-ticket'],
+  allowedStepIds: ['warmup', 'notice-wonder', 'goals', 'route', 'model', 'ai-error-w01', 'quick-check', 'exit-ticket'],
   expiresAt: FUTURE,
   status: 'running',
   currentCueId: 'cue-1',
@@ -179,6 +179,24 @@ const publicRef = (db: ReturnType<typeof dbTeacherA>, id: string, name: 'state' 
   doc(db, `liveLessonSessions/${id}/public/${name}`)
 );
 
+const preferenceRef = (db: ReturnType<typeof dbTeacherA>, id = SESSION_A, participantUid = STUDENT_A) => (
+  doc(db, `liveLessonSessions/${id}/preferences/${participantUid}`)
+);
+
+const languagePreferenceData = (overrides: Record<string, unknown> = {}) => ({
+  participantUid: STUDENT_A,
+  classId: CLASS_A,
+  languagePreference: {
+    language: 'en',
+    supportMode: 'bilingual',
+    showGlossary: true,
+    showSentenceFrames: true,
+    curriculumBridgeIds: [],
+  },
+  updatedAt: serverTimestamp(),
+  ...overrides,
+});
+
 describe('liveLessonSessions · parent session', () => {
   it('owner creates a valid session → ALLOW', async () => {
     await assertSucceeds(setDoc(sessionRef(dbTeacherA(), 'session-new'), sessionData('session-new')));
@@ -237,6 +255,18 @@ describe('liveLessonSessions · parent session', () => {
     })));
   });
 
+  it('canonical 8-step g10_w5_p31 allowedStepIds including route → ALLOW', async () => {
+    await assertSucceeds(setDoc(sessionRef(dbTeacherA(), 'session-canonical'), sessionData('session-canonical', {
+      allowedStepIds: ['warmup', 'notice-wonder', 'goals', 'route', 'model', 'ai-error-w01', 'quick-check', 'exit-ticket'],
+    })));
+  });
+
+  it('exceeding 8 allowedStepIds → DENY', async () => {
+    await assertFails(setDoc(sessionRef(dbTeacherA(), 'session-9-steps'), sessionData('session-9-steps', {
+      allowedStepIds: ['warmup', 'notice-wonder', 'goals', 'route', 'model', 'ai-error-w01', 'quick-check', 'exit-ticket', 'warmup'],
+    })));
+  });
+
   it('owner can update state and delete; student and other teacher cannot mutate → ALLOW/DENY', async () => {
     await assertSucceeds(updateDoc(sessionRef(dbTeacherA()), {
       status: 'paused', currentCueId: 'cue-2', updatedAt: serverTimestamp(),
@@ -261,11 +291,15 @@ describe('liveLessonSessions · parent session', () => {
     await assertFails(getDoc(sessionRef(dbTeacherB())));
     await assertFails(getDocs(collection(dbStudentA(), 'liveLessonSessions')));
   });
+
 });
 
 describe('liveLessonSessions/{sessionId}/responses · student writes, teacher reads', () => {
   it('linked student writes route, choice and text responses in own class → ALLOW', async () => {
-    await assertSucceeds(setDoc(responseRef(dbStudentA()), responseData({ responseType: 'route', value: 'M' })));
+    // route response must use stepId=route and responseId=participantUid__route
+    await assertSucceeds(setDoc(responseRef(dbStudentA(), SESSION_A, `${STUDENT_A}__route`), responseData({
+      stepId: 'route', responseType: 'route', value: 'M',
+    })));
     await assertSucceeds(setDoc(responseRef(dbStudentA(), SESSION_A, `${STUDENT_A}__goals`), responseData({
       stepId: 'goals', responseType: 'choice', value: 'B',
     })));
@@ -297,6 +331,28 @@ describe('liveLessonSessions/{sessionId}/responses · student writes, teacher re
     }));
   });
 
+  it('student can update languagePreference after the response already exists → ALLOW', async () => {
+    await assertSucceeds(setDoc(responseRef(dbStudentA()), responseData({
+      languagePreference: {
+        language: 'en',
+        supportMode: 'bilingual',
+        showGlossary: true,
+        showSentenceFrames: true,
+        curriculumBridgeIds: [],
+      },
+    })));
+    await assertSucceeds(updateDoc(responseRef(dbStudentA()), {
+      languagePreference: {
+        language: 'ja',
+        supportMode: 'bilingual',
+        showGlossary: true,
+        showSentenceFrames: true,
+        curriculumBridgeIds: [],
+      },
+      updatedAt: serverTimestamp(),
+    }));
+  });
+
   it('wrong-class, forged participant, wrong step, closed and expired writes → DENY', async () => {
     await assertFails(setDoc(responseRef(dbStudentB()), responseData({ participantUid: STUDENT_B, classId: CLASS_B })));
     await assertFails(setDoc(responseRef(dbStudentA()), responseData({ participantUid: STUDENT_B })));
@@ -321,15 +377,100 @@ describe('liveLessonSessions/{sessionId}/responses · student writes, teacher re
     }));
   });
 
-  it('only teacher owner can read raw responses; student, TV and other teacher cannot → ALLOW/DENY', async () => {
+  it('only teacher owner can read raw responses; TV and other teacher cannot → ALLOW/DENY', async () => {
     await testEnv.withSecurityRulesDisabled(async ctx => {
       await setDoc(responseRef(ctx.firestore()), responseData());
     });
     await assertSucceeds(getDoc(responseRef(dbTeacherA())));
     await assertSucceeds(getDocs(collection(dbTeacherA(), `liveLessonSessions/${SESSION_A}/responses`)));
-    await assertFails(getDoc(responseRef(dbStudentA())));
     await assertFails(getDoc(responseRef(dbTv())));
     await assertFails(getDoc(responseRef(dbTeacherB())));
+  });
+
+  it('student reads only their own response; other student, TV and other teacher cannot → ALLOW/DENY', async () => {
+    await testEnv.withSecurityRulesDisabled(async ctx => {
+      await setDoc(responseRef(ctx.firestore(), SESSION_A, `${STUDENT_A}__warmup`), responseData());
+      await setDoc(responseRef(ctx.firestore(), SESSION_A, `${STUDENT_B}__warmup`), responseData({
+        participantUid: STUDENT_B, clientNonce: 'nonce-b',
+      }));
+    });
+    // Own response is readable (enables the submit transaction's read-before-write).
+    await assertSucceeds(getDoc(responseRef(dbStudentA(), SESSION_A, `${STUDENT_A}__warmup`)));
+    // Another student's response is denied even for a linked student.
+    await assertFails(getDoc(responseRef(dbStudentA(), SESSION_A, `${STUDENT_B}__warmup`)));
+    // TV (unauthenticated) and other teacher are denied.
+    await assertFails(getDoc(responseRef(dbTv(), SESSION_A, `${STUDENT_A}__warmup`)));
+    await assertFails(getDoc(responseRef(dbTeacherB(), SESSION_A, `${STUDENT_A}__warmup`)));
+  });
+
+  it('responseId with prefix before student UID is DENIED (regex anchor regression)', async () => {
+    // Security regression: without ^/$ anchors, responseId "evil-student-A__warmup"
+    // would match the pattern because "student-A" appears in the middle.
+    const spoofedId = `evil-${STUDENT_A}__warmup`;
+    await testEnv.withSecurityRulesDisabled(async ctx => {
+      await setDoc(responseRef(ctx.firestore(), SESSION_A, spoofedId), responseData({
+        participantUid: STUDENT_A,
+      }));
+    });
+    await assertFails(getDoc(responseRef(dbStudentA(), SESSION_A, spoofedId)));
+  });
+
+  it('student cannot read own response in a closed or expired session → DENY', async () => {
+    await testEnv.withSecurityRulesDisabled(async ctx => {
+      await setDoc(responseRef(ctx.firestore(), SESSION_CLOSED, `${STUDENT_A}__warmup`), responseData({
+        submittedAt: CREATED, updatedAt: CREATED,
+      }));
+      await setDoc(responseRef(ctx.firestore(), SESSION_EXPIRED, `${STUDENT_A}__warmup`), responseData({
+        submittedAt: CREATED, updatedAt: CREATED,
+      }));
+    });
+    await assertFails(getDoc(responseRef(dbStudentA(), SESSION_CLOSED, `${STUDENT_A}__warmup`)));
+    await assertFails(getDoc(responseRef(dbStudentA(), SESSION_EXPIRED, `${STUDENT_A}__warmup`)));
+  });
+
+  it('response with valid languagePreference map is accepted → ALLOW', async () => {
+    await assertSucceeds(setDoc(responseRef(dbStudentA()), responseData({
+      languagePreference: {
+        language: 'en',
+        supportMode: 'bilingual',
+        showGlossary: true,
+        showSentenceFrames: true,
+        curriculumBridgeIds: [],
+      },
+    })));
+    // vi anchor with no curriculum bridges also accepted
+    await assertSucceeds(setDoc(responseRef(dbStudentA(), SESSION_A, `${STUDENT_A}__goals`), responseData({
+      stepId: 'goals', responseType: 'choice', value: 'A',
+      languagePreference: {
+        language: 'vi', supportMode: 'vi_anchor', showGlossary: true, showSentenceFrames: false, curriculumBridgeIds: [],
+      },
+    })));
+  });
+
+  it('response with invalid languagePreference map is rejected → DENY', async () => {
+    // unknown language
+    await assertRuleDenied(setDoc(responseRef(dbStudentA()), responseData({
+      languagePreference: { language: 'fr', supportMode: 'bilingual', showGlossary: true, showSentenceFrames: true, curriculumBridgeIds: [] },
+    })));
+    // unknown supportMode
+    await assertRuleDenied(setDoc(responseRef(dbStudentA()), responseData({
+      languagePreference: { language: 'en', supportMode: 'full_translation', showGlossary: true, showSentenceFrames: true, curriculumBridgeIds: [] },
+    })));
+    // extra private field (languageSupportPlan) must be denied
+    await assertRuleDenied(setDoc(responseRef(dbStudentA()), responseData({
+      languagePreference: { language: 'en', supportMode: 'bilingual', showGlossary: true, showSentenceFrames: true, curriculumBridgeIds: [], languageSupportPlan: 'secret' },
+    })));
+    // missing required subfields
+    await assertRuleDenied(setDoc(responseRef(dbStudentA()), responseData({
+      languagePreference: { language: 'en', supportMode: 'bilingual' },
+    })));
+    // bridge IDs are content references, never arbitrary objects or unbounded payloads
+    await assertRuleDenied(setDoc(responseRef(dbStudentA()), responseData({
+      languagePreference: {
+        language: 'en', supportMode: 'bilingual', showGlossary: true, showSentenceFrames: true,
+        curriculumBridgeIds: [{ id: 'bridge-halfplane' }],
+      },
+    })));
   });
 });
 
@@ -451,6 +592,57 @@ describe('liveLessonSessions/{sessionId}/public · safe public documents', () =>
       updatedAt: serverTimestamp(),
     };
     await assertSucceeds(setDoc(publicRef(dbTeacherA(), SESSION_A, 'stats'), fullStatsData));
+  });
+});
+
+describe('V4 · preferences · student-owned language view', () => {
+  it('linked student can create, read and update only their own session preference → ALLOW', async () => {
+    await assertSucceeds(setDoc(preferenceRef(dbStudentA()), languagePreferenceData()));
+    await assertSucceeds(getDoc(preferenceRef(dbStudentA())));
+    await assertSucceeds(updateDoc(preferenceRef(dbStudentA()), {
+      languagePreference: {
+        language: 'ja',
+        supportMode: 'bilingual',
+        showGlossary: true,
+        showSentenceFrames: true,
+        curriculumBridgeIds: [],
+      },
+      updatedAt: serverTimestamp(),
+    }));
+  });
+
+  it('teacher, TV and another student cannot read a student preference → DENY', async () => {
+    await testEnv.withSecurityRulesDisabled(async ctx => {
+      await setDoc(preferenceRef(ctx.firestore()), languagePreferenceData());
+    });
+    await assertFails(getDoc(preferenceRef(dbTeacherA())));
+    await assertFails(getDoc(preferenceRef(dbTv())));
+    await assertFails(getDoc(preferenceRef(dbStudentB())));
+  });
+
+  it('preference rejects private fields, identity changes and invalid language modes → DENY', async () => {
+    await assertRuleDenied(setDoc(preferenceRef(dbStudentA()), languagePreferenceData({
+      languageSupportPlan: 'secret',
+    })));
+    await assertRuleDenied(setDoc(preferenceRef(dbStudentA()), languagePreferenceData({
+      participantUid: STUDENT_B,
+    })));
+    await assertRuleDenied(setDoc(preferenceRef(dbStudentA()), languagePreferenceData({
+      languagePreference: {
+        language: 'fr', supportMode: 'bilingual', showGlossary: true, showSentenceFrames: true, curriculumBridgeIds: [],
+      },
+    })));
+    await assertRuleDenied(setDoc(preferenceRef(dbStudentA()), languagePreferenceData({
+      languagePreference: {
+        language: 'en', supportMode: 'bilingual', showGlossary: true, showSentenceFrames: true,
+        curriculumBridgeIds: [], languageSupportPlan: 'secret',
+      },
+    })));
+  });
+
+  it('closed or expired sessions block preference writes → DENY', async () => {
+    await assertFails(setDoc(preferenceRef(dbStudentA(), SESSION_CLOSED), languagePreferenceData()));
+    await assertFails(setDoc(preferenceRef(dbStudentA(), SESSION_EXPIRED), languagePreferenceData()));
   });
 });
 
