@@ -72,6 +72,48 @@ npm --prefix $worktree run build
 git -C $worktree diff --check
 ```
 
+## Lô classroom learning loop và báo cáo online — 2026-08-29
+
+### Đã đổi và vì sao
+
+- Commit `227b22b` hoàn thiện vòng học sinh: bài ảnh, bài online, bài luyện, tiến trình theo kỹ năng, trạng thái chờ giáo viên và báo cáo an toàn cho phụ huynh.
+- Thêm API xác minh quyền theo lớp/giáo viên/học sinh cho bài online; attempt online được chuẩn hóa vào báo cáo nhưng không đưa đáp án thô hoặc ghi chú nội bộ vào projection học sinh.
+- Thêm luồng giáo viên xem lượt làm online, chấm tự động/AI, sửa điểm và nhận xét, duyệt, xóa điểm; dữ liệu gốc và lịch sử revision được giữ.
+- Thêm tạo hoạt động hỗ trợ từ báo cáo, bộ lọc ma trận học sinh × bài giao, file backup PDF/DOCX theo snapshot nội dung và đồng bộ minh chứng kỹ năng chỉ sau khi chính thức.
+- Sửa lỗi một bài online bị xuất hiện hai lần trong danh sách báo cáo: bài `type=exam` không còn bị dựng thêm báo cáo bài nộp ảnh rỗng.
+- Không migration, không bulk mutation, không đổi `classId`, không sửa/xóa/chấm lại dữ liệu production; dữ liệu lớp 11 Columbus được giữ nguyên.
+
+### Bằng chứng nghiệm thu
+
+- Full Vitest: **119 files / 1.432 tests PASS**.
+- `npm run lint`: PASS; `npm run lint:api`: PASS; `npm run build`: PASS với 4.630 modules; chỉ còn cảnh báo chunk/dynamic import vốn có.
+- `git diff --check`: PASS.
+- Audit độc lập OpenCode bằng `opencode/muse-spark-1.2-contributor-free` (cost catalog `0`): **PASS_WITH_RISKS**; không phát hiện lỗi quyền, cô lập lớp/học sinh, lộ đáp án/ghi chú hoặc nhân đôi báo cáo.
+- `opencode/nemotron-3-ultra-free` có metadata mạnh nhưng health-check không trả lời sau hơn 90 giây nên không dùng cho audit.
+
+### Còn dở / cố tình bỏ qua
+
+- Chưa chạy authenticated browser E2E trên production; sau deploy cần smoke bằng tài khoản giáo viên/học sinh thật, chỉ đọc trước và không dùng bài thật để thử xóa/chấm lại.
+- Dữ liệu online legacy thiếu `gradeState` vẫn được coi là chính thức khi `status=graded` để giữ tương thích với dữ liệu cũ; không tự backfill/siết lại trong lô này vì có thể ảnh hưởng dữ liệu hiện hữu.
+- Chưa deploy Firestore Rules trong lô này vì không thay đổi `firestore.rules`.
+
+### Ngưỡng sắp cắn người
+
+- Báo cáo chính thức chỉ dùng lượt mới nhất của mỗi học sinh; điểm provisional/chờ duyệt không vào hồ sơ kỹ năng, báo cáo chính thức hoặc parent-safe report.
+- Bài online legacy thiếu mã bài giao hợp lệ sẽ bị bỏ qua an toàn thay vì đoán ghép vào lớp/bài khác.
+- File backup chỉ chuyển sang `deliveryMode=both` sau khi đủ bốn URL và cùng `contentVersion/contentHash` với đề hiện tại.
+
+### Lệnh nghiệm thu lô classroom learning loop
+
+```powershell
+$worktree = "C:\Users\ADMIN\.config\superpowers\worktrees\smart-lesson-plan-ai\class-report-collaboration"
+npm --prefix $worktree run test
+npm --prefix $worktree run lint
+npm --prefix $worktree run lint:api
+npm --prefix $worktree run build
+git -C $worktree diff --check
+```
+
 ## 1. Trạng thái đã bàn giao
 
 `main` trước lô phát hành này ở `b0a9a478`; commit sắp đẩy là `ca9fd1a` (kèm spec commit `074f288`), gồm nền tảng các lô trước và các thay đổi classroom sau:
