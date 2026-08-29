@@ -7,7 +7,13 @@ import { mergeTopics, removeEvidence } from '../src/lib/classroom/profileMerge.j
 import { mergeSubmissionEvidence } from '../src/lib/classroom/submissionRevision.js';
 import { buildHomeworkSkillEvidence } from '../src/lib/learning/skillProfile.js';
 import { buildManualGrade, type ManualGradeInput } from '../src/lib/classroom/manualGrade.js';
-import type { ProfileTopic, StudentAssignmentView, SubmissionDoc, SubmissionGrade } from '../src/lib/classroom/types.js';
+import type {
+  ProfileTopic,
+  StudentActivityExportBundle,
+  StudentAssignmentView,
+  SubmissionDoc,
+  SubmissionGrade,
+} from '../src/lib/classroom/types.js';
 import {
   EMPTY_LOCK,
   createPin,
@@ -724,6 +730,28 @@ const handleRoster = async (db: FirebaseFirestore.Firestore, body: Record<string
   });
 };
 
+const studentExportBundle = (value: unknown): StudentActivityExportBundle | undefined => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const raw = value as Record<string, unknown>;
+  const status = String(raw.status || '');
+  const contentVersion = String(raw.contentVersion || '').trim();
+  const contentHash = String(raw.contentHash || '').trim();
+  if (!['pending', 'ready', 'error'].includes(status) || !contentVersion || !contentHash) return undefined;
+  return {
+    status: status as StudentActivityExportBundle['status'],
+    contentVersion,
+    contentHash,
+    ...(String(raw.studentPdfUrl || '').trim() ? { studentPdfUrl: String(raw.studentPdfUrl).trim() } : {}),
+    ...(String(raw.studentDocxUrl || '').trim() ? { studentDocxUrl: String(raw.studentDocxUrl).trim() } : {}),
+    ...(String(raw.generatedAt || '').trim() ? { generatedAt: String(raw.generatedAt).trim() } : {}),
+  };
+};
+
+const safeEnum = <T extends string>(value: unknown, allowed: readonly T[]): T | undefined => {
+  const text = typeof value === 'string' ? value : '';
+  return (allowed as readonly string[]).includes(text) ? text as T : undefined;
+};
+
 const projectStudentAssignment = (id: string, data: FirebaseFirestore.DocumentData): StudentAssignmentView => {
   const attachments = (Array.isArray(data.attachments) ? data.attachments : [])
     .filter((item: unknown): item is Record<string, unknown> => Boolean(item && typeof item === 'object'))
@@ -740,6 +768,14 @@ const projectStudentAssignment = (id: string, data: FirebaseFirestore.DocumentDa
     ? data.answerKeyImageUrls.map((url: unknown) => String(url || '')).filter(Boolean)
     : [];
 
+  const purpose = safeEnum(data.purpose, ['practice', 'remediation', 'assignment', 'assessment'] as const);
+  const deliveryMode = safeEnum(data.deliveryMode, ['online', 'file', 'both'] as const);
+  const gradingPolicy = safeEnum(data.gradingPolicy, ['automatic', 'mixed', 'teacher_review'] as const);
+  const skillIds = Array.isArray(data.skillIds)
+    ? data.skillIds.filter((skillId: unknown): skillId is string => typeof skillId === 'string' && Boolean(skillId.trim())).map((skillId: string) => skillId.trim())
+    : [];
+  const exportBundle = studentExportBundle(data.exportBundle);
+
   return {
     id,
     teacherId: String(data.teacherId || ''),
@@ -755,6 +791,13 @@ const projectStudentAssignment = (id: string, data: FirebaseFirestore.DocumentDa
     createdAt: String(data.createdAt || ''),
     updatedAt: String(data.updatedAt || ''),
     hasAnswerKey: Boolean(answerKey || rubric || answerKeyImages.length > 0),
+    ...(purpose ? { purpose } : {}),
+    ...(deliveryMode ? { deliveryMode } : {}),
+    ...(skillIds.length > 0 ? { skillIds } : {}),
+    ...(typeof data.sourceReportId === 'string' && data.sourceReportId.trim() ? { sourceReportId: data.sourceReportId.trim() } : {}),
+    ...(gradingPolicy ? { gradingPolicy } : {}),
+    ...(typeof data.contentVersion === 'string' && data.contentVersion.trim() ? { contentVersion: data.contentVersion.trim() } : {}),
+    ...(exportBundle ? { exportBundle } : {}),
   };
 };
 
@@ -772,9 +815,9 @@ const projectStudentSubmission = (id: string, data: FirebaseFirestore.DocumentDa
         score: Number(item.score) || 0,
         maxScore: Number(item.maxScore) || 0,
         studentAnswer: String(item.studentAnswer || ''),
-        expectedAnswer: String(item.expectedAnswer || ''),
+        expectedAnswer: rawGrade?.teacherApproved === true ? String(item.expectedAnswer || '') : '',
         errorType: String(item.errorType || ''),
-        explanation: String(item.explanation || ''),
+        explanation: rawGrade?.teacherApproved === true ? String(item.explanation || '') : '',
         correction: String(item.correction || ''),
         nextPractice: String(item.nextPractice || ''),
         ...(typeof item.confidence === 'number' ? { confidence: item.confidence } : {}),
@@ -819,9 +862,10 @@ const handleStudentAssignments = async (db: FirebaseFirestore.Firestore, body: R
 
   const linkSnap = await db.collection('studentLinks').doc(uid).get();
   if (!linkSnap.exists) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới xem được bài tập.' });
-  const link = linkSnap.data() as { classId?: unknown };
+  const link = linkSnap.data() as { classId?: unknown; studentId?: unknown };
   const classId = typeof link.classId === 'string' ? link.classId : '';
-  if (!classId) return res.status(403).json({ error: 'Phiên học sinh thiếu lớp học.' });
+  const studentId = typeof link.studentId === 'string' ? link.studentId : '';
+  if (!classId || !studentId) return res.status(403).json({ error: 'Phiên học sinh thiếu thông tin lớp.' });
 
   // Lọc isOpen ngay trong query: limit không được phép làm 100 bài đóng che mất bài đang mở.
   const snap = await db.collection('assignments')
@@ -830,6 +874,12 @@ const handleStudentAssignments = async (db: FirebaseFirestore.Firestore, body: R
     .limit(100)
     .get();
   const assignments = snap.docs
+    .filter(document => {
+      const targetStudentIds = document.data().targetStudentIds;
+      return !Array.isArray(targetStudentIds)
+        || targetStudentIds.length === 0
+        || targetStudentIds.some((targetId: unknown) => targetId === studentId);
+    })
     .map(document => projectStudentAssignment(document.id, document.data()))
     .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
   return res.status(200).json({ assignments });

@@ -1171,6 +1171,7 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
 
                 <div className="mt-4">
                   <StudentReport
+                    classId={selectedClass.id}
                     studentId={viewingStudent.id}
                     teacherId={user?.uid || ''}
                     studentName={viewingStudent.name}
@@ -1192,6 +1193,7 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
               onlineAssignments={selectedClass.assignments ?? EMPTY_CLASS_ASSIGNMENTS}
               exams={exams}
               settings={data.settings}
+              showToast={showToast}
             />
           )}
 

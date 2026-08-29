@@ -2,19 +2,19 @@ import { useMemo, useState } from 'react';
 import { ClipboardList, Search } from 'lucide-react';
 import type { Student } from '../../../types';
 import type { ClassAssignmentReport as ClassAssignmentReportMetrics } from '../../../lib/classroom/classReportModel';
-import { buildClassProgressMatrix, type ClassProgressCell } from '../../../lib/classroom/classProgressModel';
+import {
+  buildClassProgressMatrix,
+  filterClassProgressRows,
+  selectClassProgressAssignments,
+  type ClassProgressAssignment,
+  type ClassProgressCell,
+  type ClassProgressFilters,
+} from '../../../lib/classroom/classProgressModel';
 
 interface Props {
   students: readonly Student[];
   reports: readonly ClassAssignmentReportMetrics[];
 }
-
-type ProgressFilter = 'all' | 'missing' | 'pending' | 'low';
-
-const normalized = (value: string): string => value
-  .normalize('NFD')
-  .replace(/[\u0300-\u036f]/g, '')
-  .toLocaleLowerCase('vi-VN');
 
 const formatScore = (score: number | null, maxScore: number | null): string | null => {
   if (score === null || maxScore === null || maxScore <= 0) return null;
@@ -30,41 +30,53 @@ const statusOf = (cell: ClassProgressCell): { label: string; className: string }
   return { label: 'Chờ duyệt', className: 'text-indigo-700' };
 };
 
-const isLowScore = (cell: ClassProgressCell, assignmentMaxScore: number | null): boolean => {
-  const maxScore = cell.maxScore ?? assignmentMaxScore;
-  const score = formatScore(cell.score, maxScore);
-  return Boolean(score && maxScore && cell.score !== null && cell.score / maxScore < 0.65);
+const purposeLabel: Record<ClassProgressAssignment['purpose'], string> = {
+  practice: 'Luyện tập',
+  remediation: 'Bổ trợ',
+  assignment: 'Bài tập',
+  assessment: 'Đánh giá',
 };
 
-const ProgressCell = ({ cell, maxScore }: { cell: ClassProgressCell; maxScore: number | null }) => {
+const ProgressCell = ({
+  cell,
+  assignment,
+  studentName,
+  onSelect,
+}: {
+  cell: ClassProgressCell;
+  assignment: ClassProgressAssignment;
+  studentName: string;
+  onSelect: () => void;
+}) => {
   const status = statusOf(cell);
-  const score = formatScore(cell.score, cell.maxScore ?? maxScore);
+  const score = formatScore(cell.score, cell.maxScore ?? assignment.maxScore);
   return (
     <td className="border-b border-slate-100 px-3 py-3 align-top">
-      <div className={`min-w-28 rounded-xl bg-slate-50 px-3 py-2 ${status.className}`}>
+      <button
+        type="button"
+        onClick={onSelect}
+        className={`min-w-28 rounded-xl bg-slate-50 px-3 py-2 text-left transition hover:ring-2 hover:ring-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${status.className}`}
+        aria-label={`Xem ${assignment.title} của ${studentName}`}
+        title="Bấm để xem chi tiết lượt làm"
+      >
         {score && <p className="text-sm font-black text-slate-900">{score}</p>}
         <p className="mt-0.5 text-xs font-black">{status.label}</p>
         {cell.attemptCount > 1 && <p className="mt-0.5 text-[11px] font-bold text-slate-500">{cell.attemptCount} lượt nộp</p>}
-      </div>
+      </button>
     </td>
   );
 };
 
 export const ClassStudentProgressMatrix = ({ students, reports }: Props) => {
-  const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<ProgressFilter>('all');
+  const [filters, setFilters] = useState<ClassProgressFilters>({ query: '', assignmentId: '', purpose: 'all', status: 'all' });
+  const [selectedCell, setSelectedCell] = useState<{ student: Student; assignment: ClassProgressAssignment; cell: ClassProgressCell } | null>(null);
   const matrix = useMemo(() => buildClassProgressMatrix(students, reports), [students, reports]);
+  const visibleAssignments = useMemo(() => selectClassProgressAssignments(matrix, filters), [filters, matrix]);
   const visibleRows = useMemo(() => {
-    const search = normalized(query.trim());
-    return matrix.rows.filter(row => {
-      const matchesSearch = !search || normalized(`${row.studentName} ${row.studentCode}`).includes(search);
-      if (!matchesSearch) return false;
-      if (filter === 'missing') return row.cells.some(cell => cell.status === 'missing');
-      if (filter === 'pending') return row.cells.some(cell => cell.status !== 'missing' && !cell.official);
-      if (filter === 'low') return row.cells.some((cell, index) => isLowScore(cell, matrix.assignments[index]?.maxScore ?? null));
-      return true;
-    });
-  }, [filter, matrix.rows, query]);
+    return filterClassProgressRows(matrix, filters, visibleAssignments);
+  }, [filters, matrix, visibleAssignments]);
+  const visibleAttemptCount = visibleRows.reduce((total, row) => total + visibleAssignments.reduce((rowTotal, assignment) => rowTotal + (row.cells.find(cell => cell.assignmentId === assignment.id)?.attemptCount ?? 0), 0), 0);
+  const visibleOfficialCount = visibleRows.reduce((total, row) => total + visibleAssignments.reduce((rowTotal, assignment) => rowTotal + (row.cells.find(cell => cell.assignmentId === assignment.id)?.official ? 1 : 0), 0), 0);
 
   return (
     <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6" aria-labelledby="class-progress-heading">
@@ -80,15 +92,35 @@ export const ClassStudentProgressMatrix = ({ students, reports }: Props) => {
           <label className="relative block">
             <span className="sr-only">Tìm học sinh</span>
             <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
-            <input value={query} onChange={event => setQuery(event.target.value)} placeholder="Tìm học sinh…" className="min-h-10 w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm font-semibold outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 sm:w-52" />
+            <input value={filters.query} onChange={event => setFilters(previous => ({ ...previous, query: event.target.value }))} placeholder="Tìm học sinh…" className="min-h-10 w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm font-semibold outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 sm:w-52" />
           </label>
           <label>
-            <span className="sr-only">Lọc tiến độ</span>
-            <select value={filter} onChange={event => setFilter(event.target.value as ProgressFilter)} className="min-h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 sm:w-44">
-              <option value="all">Tất cả học sinh</option>
-              <option value="missing">Có bài chưa nộp</option>
-              <option value="pending">Có bài chờ xử lý</option>
-              <option value="low">Có điểm dưới 6,5</option>
+            <span className="sr-only">Lọc bài</span>
+            <select value={filters.assignmentId} onChange={event => setFilters(previous => ({ ...previous, assignmentId: event.target.value }))} className="min-h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 sm:w-52">
+              <option value="">Tất cả bài giao</option>
+              {matrix.assignments.map(assignment => <option key={assignment.id} value={assignment.id}>{assignment.title}</option>)}
+            </select>
+          </label>
+          <label>
+            <span className="sr-only">Lọc mục đích</span>
+            <select value={filters.purpose} onChange={event => setFilters(previous => ({ ...previous, purpose: event.target.value as ClassProgressFilters['purpose'] }))} className="min-h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 sm:w-40">
+              <option value="all">Mọi mục đích</option>
+              <option value="assignment">Bài tập</option>
+              <option value="practice">Luyện tập</option>
+              <option value="remediation">Bổ trợ</option>
+              <option value="assessment">Đánh giá</option>
+            </select>
+          </label>
+          <label>
+            <span className="sr-only">Lọc trạng thái</span>
+            <select value={filters.status} onChange={event => setFilters(previous => ({ ...previous, status: event.target.value as ClassProgressFilters['status'] }))} className="min-h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 sm:w-44">
+              <option value="all">Mọi trạng thái</option>
+              <option value="missing">Chưa nộp</option>
+              <option value="in_progress">Đang làm</option>
+              <option value="pending">Chờ xử lý</option>
+              <option value="official">Đã duyệt</option>
+              <option value="error">Lỗi chấm</option>
+              <option value="low">Điểm dưới 6,5</option>
             </select>
           </label>
         </div>
@@ -96,9 +128,9 @@ export const ClassStudentProgressMatrix = ({ students, reports }: Props) => {
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-2xl bg-indigo-50 px-4 py-3"><p className="text-xs font-black uppercase tracking-wide text-indigo-500">Bài giao</p><p className="mt-1 text-2xl font-black text-indigo-950">{matrix.assignments.length}</p></div>
-        <div className="rounded-2xl bg-slate-50 px-4 py-3"><p className="text-xs font-black uppercase tracking-wide text-slate-500">Tổng lượt nộp</p><p className="mt-1 text-2xl font-black text-slate-900">{matrix.totalAttempts}</p></div>
-        <div className="rounded-2xl bg-amber-50 px-4 py-3"><p className="text-xs font-black uppercase tracking-wide text-amber-600">Ô đã có bài</p><p className="mt-1 text-2xl font-black text-amber-950">{matrix.totalSubmitted}</p></div>
-        <div className="rounded-2xl bg-emerald-50 px-4 py-3"><p className="text-xs font-black uppercase tracking-wide text-emerald-600">Bài đã duyệt</p><p className="mt-1 text-2xl font-black text-emerald-950">{matrix.totalOfficial}</p></div>
+        <div className="rounded-2xl bg-slate-50 px-4 py-3"><p className="text-xs font-black uppercase tracking-wide text-slate-500">Lượt trong bộ lọc</p><p className="mt-1 text-2xl font-black text-slate-900">{visibleAttemptCount}</p></div>
+        <div className="rounded-2xl bg-amber-50 px-4 py-3"><p className="text-xs font-black uppercase tracking-wide text-amber-600">Học sinh đang xem</p><p className="mt-1 text-2xl font-black text-amber-950">{visibleRows.length}</p></div>
+        <div className="rounded-2xl bg-emerald-50 px-4 py-3"><p className="text-xs font-black uppercase tracking-wide text-emerald-600">Ô đã duyệt</p><p className="mt-1 text-2xl font-black text-emerald-950">{visibleOfficialCount}</p></div>
       </div>
 
       {reports.length === 0 ? (
@@ -112,7 +144,7 @@ export const ClassStudentProgressMatrix = ({ students, reports }: Props) => {
               <tr>
                 <th className="sticky left-0 z-10 min-w-56 border-b border-r border-slate-200 bg-slate-50 px-4 py-3">Học sinh</th>
                 <th className="min-w-28 border-b border-slate-200 px-3 py-3">Hoàn thành</th>
-                {matrix.assignments.map(assignment => <th key={assignment.id} className="min-w-36 border-b border-slate-200 px-3 py-3">{assignment.title}<span className="mt-1 block normal-case font-semibold text-slate-400">{assignment.type}</span></th>)}
+                {visibleAssignments.map(assignment => <th key={assignment.id} className="min-w-36 border-b border-slate-200 px-3 py-3">{assignment.title}<span className="mt-1 block normal-case font-semibold text-slate-400">{purposeLabel[assignment.purpose]} · {assignment.type}</span></th>)}
               </tr>
             </thead>
             <tbody>
@@ -125,14 +157,34 @@ export const ClassStudentProgressMatrix = ({ students, reports }: Props) => {
                     <p className="mt-0.5 text-xs font-semibold text-slate-500">Điểm chính thức: {row.averagePercent === null ? '—' : `${row.averagePercent.toFixed(1).replace('.', ',')}%`}</p>
                   </td>
                   <td className="border-b border-slate-100 px-3 py-3 align-top text-xs font-bold text-slate-600">{row.officialCount}/{row.assignmentCount} bài duyệt</td>
-                  {row.cells.map((cell, index) => <ProgressCell key={`${row.studentKey}-${cell.assignmentId}`} cell={cell} maxScore={matrix.assignments[index]?.maxScore ?? null} />)}
+                  {visibleAssignments.map(assignment => {
+                    const cell = row.cells.find(item => item.assignmentId === assignment.id) || { assignmentId: assignment.id, submissionId: null, status: 'missing', score: null, maxScore: null, official: false, attemptCount: 0 };
+                    return <ProgressCell key={`${row.studentKey}-${assignment.id}`} cell={cell} assignment={assignment} studentName={row.studentName} onSelect={() => setSelectedCell({ student: students.find(student => student.id === row.studentKey) || { id: row.studentKey, name: row.studentName, code: row.studentCode, progress: 0, status: 'active' }, assignment, cell })} />;
+                  })}
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
-      <p className="mt-3 text-xs font-semibold text-slate-500">Đang hiển thị {visibleRows.length}/{matrix.rows.length} học sinh. “Lượt nộp” bao gồm cả các lần bổ sung/nộp lại; màn hình giữ điểm của lượt mới nhất.</p>
+      {selectedCell && (
+        <div className="mt-4 rounded-2xl border border-indigo-200 bg-indigo-50/70 p-4" role="region" aria-label="Chi tiết tiến độ học sinh">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-black uppercase tracking-wide text-indigo-600">Chi tiết lượt làm</p>
+              <h4 className="mt-1 text-base font-black text-slate-900">{selectedCell.student.name} · {selectedCell.assignment.title}</h4>
+            </div>
+            <button type="button" onClick={() => setSelectedCell(null)} className="rounded-lg px-2 py-1 text-xs font-black text-indigo-700 hover:bg-white">Đóng</button>
+          </div>
+          <div className="mt-3 grid gap-2 text-sm font-semibold text-slate-700 sm:grid-cols-3">
+            <span>Trạng thái: <strong>{statusOf(selectedCell.cell).label}</strong></span>
+            <span>Điểm: <strong>{formatScore(selectedCell.cell.score, selectedCell.cell.maxScore ?? selectedCell.assignment.maxScore) || '—'}</strong></span>
+            <span>Số lượt: <strong>{selectedCell.cell.attemptCount || 0}</strong></span>
+          </div>
+          <p className="mt-3 text-xs font-semibold leading-5 text-slate-600">{selectedCell.cell.submissionId ? `Lượt hiện hành: ${selectedCell.cell.submissionId}. Mở khu vực Bài nộp để xem bài làm và lịch sử chi tiết.` : 'Học sinh chưa có lượt nộp cho bài này.'}</p>
+        </div>
+      )}
+      <p className="mt-3 text-xs font-semibold text-slate-500">Đang hiển thị {visibleRows.length}/{matrix.rows.length} học sinh · {visibleAssignments.length}/{matrix.assignments.length} bài. “Lượt nộp” bao gồm cả các lần bổ sung/nộp lại; màn hình giữ điểm của lượt mới nhất.</p>
     </section>
   );
 };

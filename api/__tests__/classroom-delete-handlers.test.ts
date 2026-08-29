@@ -17,7 +17,10 @@ const h = vi.hoisted(() => ({
 }));
 
 vi.mock('firebase-admin/auth', () => ({
-  getAuth: () => ({ verifyIdToken: async () => ({ uid: h.uid }) }),
+  getAuth: () => ({
+    verifyIdToken: async () => ({ uid: h.uid }),
+    getUser: async (uid: string) => ({ uid, email: `${uid}@example.com` }),
+  }),
 }));
 
 vi.mock('../_exam-core.js', () => ({
@@ -434,14 +437,27 @@ describe('POST /api/classroom · studentAssignments', () => {
         type: 'upload', isOpen: true, answerKey: 'không trả',
         createdAt: '2026-08-24T03:00:00.000Z', updatedAt: '2026-08-24T03:00:00.000Z',
       },
+      'asg-target-self': {
+        id: 'asg-target-self', teacherId: 'gv-1', classId: 'lop-1', title: 'Phiếu hỗ trợ riêng', description: '',
+        type: 'upload', isOpen: true, targetStudentIds: ['hs-1'], purpose: 'remediation',
+        createdAt: '2026-08-24T04:00:00.000Z', updatedAt: '2026-08-24T04:00:00.000Z',
+      },
+      'asg-target-peer': {
+        id: 'asg-target-peer', teacherId: 'gv-1', classId: 'lop-1', title: 'Phiếu của bạn khác', description: '',
+        type: 'upload', isOpen: true, targetStudentIds: ['hs-2'],
+        createdAt: '2026-08-24T05:00:00.000Z', updatedAt: '2026-08-24T05:00:00.000Z',
+      },
     };
 
     const res = await call({ action: 'studentAssignments' });
 
     expect(res.statusCode).toBe(200);
-    expect(res.payload?.assignments).toEqual([expect.objectContaining({
-      id: 'asg-open', title: 'Columbus', hasAnswerKey: true,
-    })]);
+    expect(res.payload?.assignments).toEqual([
+      expect.objectContaining({ id: 'asg-target-self', title: 'Phiếu hỗ trợ riêng', purpose: 'remediation' }),
+      expect.objectContaining({ id: 'asg-open', title: 'Columbus', hasAnswerKey: true }),
+    ]);
+    expect(JSON.stringify(res.payload)).not.toContain('asg-target-peer');
+    expect(JSON.stringify(res.payload)).not.toContain('targetStudentIds');
     expect(JSON.stringify(res.payload)).not.toContain('x = 2');
     expect(JSON.stringify(res.payload)).not.toContain('Mỗi bước 1 điểm');
     expect(JSON.stringify(res.payload)).not.toContain('Chấm câu 1-3');
@@ -524,6 +540,100 @@ describe('POST /api/classroom · studentSubmissions', () => {
     expect(JSON.stringify(res.payload)).not.toContain('latex_backslash');
     expect(JSON.stringify(res.payload)).not.toContain('Bad escaped character');
     expect(JSON.stringify(res.payload)).not.toContain('sub-other-class');
+  });
+
+  it('không trả đáp án chuẩn và giải thích nội bộ khi điểm AI chưa được giáo viên duyệt', async () => {
+    const harness = buildHarness();
+    harness.store['studentLinks'] = {
+      'hs-uid': { studentId: 'hs-1', classId: 'lop-1', teacherId: 'gv-1' },
+    };
+    harness.store['submissions'] = {
+      'sub-provisional': {
+        teacherId: 'gv-1', classId: 'lop-1', studentId: 'hs-1', assignmentId: 'asg-1',
+        fileUrls: [], note: '', status: 'graded', createdAt: '2026-08-24T04:00:00.000Z', updatedAt: '2026-08-24T04:00:00.000Z',
+        grade: {
+          score: 5, maxScore: 10, feedback: 'Kết quả tạm thời.', strengths: [], weaknesses: [], gradedAt: '', teacherApproved: false,
+          questionResults: [{
+            questionNumber: 'Câu 1', status: 'incorrect', score: 0, maxScore: 2,
+            studentAnswer: 'Đáp án của em', expectedAnswer: 'Đáp án chuẩn bí mật', errorType: 'Sai',
+            explanation: 'Giải thích nội bộ bí mật', correction: 'Sửa lại', nextPractice: 'Luyện thêm', needsTeacherReview: true,
+          }],
+        },
+      },
+    };
+
+    const res = await call({ action: 'studentSubmissions' });
+
+    expect(res.statusCode).toBe(200);
+    const question = (((res.payload?.submissions as DocData[])[0].grade as DocData).questionResults as DocData[])[0];
+    expect(question).toEqual(expect.objectContaining({ studentAnswer: 'Đáp án của em', expectedAnswer: '', explanation: '' }));
+    expect(JSON.stringify(res.payload)).not.toContain('Đáp án chuẩn bí mật');
+    expect(JSON.stringify(res.payload)).not.toContain('Giải thích nội bộ bí mật');
+  });
+
+  it('gộp bài online vào hồ sơ học sinh khi GV có quyền đúng lớp', async () => {
+    const harness = buildHarness();
+    h.uid = 'gv-1';
+    harness.store['classes'] = {
+      'lop-1': { teacherId: 'gv-1', ownerId: 'gv-1', name: '11 Columbus' },
+      'lop-khac': { teacherId: 'gv-1', ownerId: 'gv-1', name: '10 Linda' },
+    };
+    harness.store['assignments'] = {
+      'asg-online': { teacherId: 'gv-1', classId: 'lop-1', type: 'exam', examId: 'exam-1', title: 'Luyện tập online' },
+      'asg-other': { teacherId: 'gv-1', classId: 'lop-khac', type: 'exam', examId: 'exam-2', title: 'Không thuộc lớp đang xem' },
+    };
+    harness.store['examSubmissions'] = {
+      'attempt-1': {
+        studentId: 'hs-1', classId: 'lop-1', assignmentId: 'asg-online', examId: 'exam-1',
+        status: 'graded', startedAt: '2026-08-24T05:00:00.000Z', submittedAt: '2026-08-24T05:20:00.000Z',
+        grade: { score: 8, maxScore: 10, feedback: 'Đã nắm được trọng tâm.', strengths: [], weaknesses: [], teacherApproved: true, gradedAt: '2026-08-24T05:21:00.000Z' },
+      },
+      'attempt-outsider': {
+        studentId: 'hs-1', classId: 'lop-khac', assignmentId: 'asg-other', examId: 'exam-2',
+        status: 'graded', startedAt: '2026-08-24T05:00:00.000Z', grade: { score: 10, maxScore: 10, feedback: 'Không được lộ', strengths: [], weaknesses: [], teacherApproved: true, gradedAt: '' },
+      },
+    };
+
+    const res = await call({ action: 'teacherSubmissions', studentId: 'hs-1', classId: 'lop-1' });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.payload?.submissions).toEqual([expect.objectContaining({
+      id: 'attempt-1', assignmentId: 'asg-online', classId: 'lop-1', status: 'graded',
+      grade: expect.objectContaining({ score: 8, teacherApproved: true }),
+    })]);
+    expect(JSON.stringify(res.payload)).not.toContain('attempt-outsider');
+    expect(JSON.stringify(res.payload)).not.toContain('Không được lộ');
+  });
+
+  it('gộp lượt online khi tải bài nộp cả lớp nhưng chỉ chiếu grade, không lộ answers', async () => {
+    const harness = buildHarness();
+    h.uid = 'gv-1';
+    harness.store['classes'] = {
+      'lop-1': { teacherId: 'gv-1', ownerId: 'gv-1', name: '11 Columbus' },
+    };
+    harness.store['assignments'] = {
+      'asg-online': { teacherId: 'gv-1', classId: 'lop-1', type: 'exam', examId: 'exam-1', title: 'Luyện tập online' },
+    };
+    harness.store['submissions'] = {
+      'sub-upload': { teacherId: 'gv-1', classId: 'lop-1', studentId: 'hs-2', assignmentId: 'asg-upload', status: 'graded', createdAt: '2026-08-24T05:00:00.000Z' },
+    };
+    harness.store['examSubmissions'] = {
+      'attempt-provisional': {
+        studentId: 'hs-1', classId: 'lop-1', assignmentId: 'asg-online', examId: 'exam-1', status: 'graded',
+        submittedAt: '2026-08-24T05:20:00.000Z', answers: [{ questionId: 'q1', answer: 'A', expectedAnswer: 'B' }],
+        grade: { score: 6, maxScore: 10, feedback: 'Chờ thầy cô duyệt.', strengths: [], weaknesses: [], teacherApproved: false, gradedAt: '2026-08-24T05:21:00.000Z' },
+      },
+    };
+
+    const res = await call({ action: 'teacherSubmissions', classId: 'lop-1' });
+    const submissions = res.payload?.submissions as DocData[];
+
+    expect(res.statusCode).toBe(200);
+    expect(submissions).toEqual([expect.objectContaining({
+      id: 'attempt-provisional', assignmentId: 'asg-online', classId: 'lop-1', studentId: 'hs-1',
+      grade: expect.objectContaining({ score: 6, teacherApproved: false }),
+    }), expect.objectContaining({ id: 'sub-upload' })]);
+    expect(JSON.stringify(res.payload)).not.toContain('expectedAnswer');
   });
 });
 

@@ -202,10 +202,14 @@ export const listSubmissionsForAssignment = async (assignmentId: string, teacher
   return moiNhatTruoc(result.submissions || []);
 };
 
-/** Bài nộp của một học sinh, dùng cho báo cáo phía giáo viên. */
-export const listSubmissionsForStudent = async (studentId: string, teacherId: string): Promise<SubmissionDoc[]> => {
+/** Bài nộp của một học sinh trong đúng lớp, dùng cho báo cáo phía giáo viên. */
+export const listSubmissionsForStudent = async (studentId: string, teacherId: string, classId?: string): Promise<SubmissionDoc[]> => {
   void teacherId;
-  const result = await callClassroomTeacherApi<{ submissions: SubmissionDoc[] }>({ action: 'teacherSubmissions', studentId });
+  const result = await callClassroomTeacherApi<{ submissions: SubmissionDoc[] }>({
+    action: 'teacherSubmissions',
+    studentId,
+    ...(classId ? { classId } : {}),
+  });
   return moiNhatTruoc(result.submissions || []);
 };
 

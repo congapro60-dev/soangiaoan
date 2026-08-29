@@ -15,8 +15,9 @@ import {
   type StudentAssignmentView,
   type SubmissionDoc,
 } from '../lib/classroom/types';
+import type { ExamSubmission } from '../types';
 import { dichLoiNopBai, nenAnhBaiLam } from '../utils/imageCompress';
-import { fetchRoster, fetchStudentAssignments, fetchStudentSubmissions, loginStudent, type RosterEntry } from '../services/studentPortalApi';
+import { fetchRoster, fetchStudentAssignments, fetchStudentOnlineSubmissions, fetchStudentSubmissions, loginStudent, type RosterEntry } from '../services/studentPortalApi';
 import { submitHomework } from '../lib/classroom/submissionService';
 import { appendPendingFiles, removePendingFile } from '../lib/classroom/uploadQueue';
 import {
@@ -118,6 +119,7 @@ export const StudentPortalPage = () => {
 
   const [assignments, setAssignments] = useState<StudentAssignmentView[]>([]);
   const [submissions, setSubmissions] = useState<SubmissionDoc[]>([]);
+  const [onlineSubmissions, setOnlineSubmissions] = useState<ExamSubmission[]>([]);
   const [profile, setProfile] = useState<StudentProfileDoc | null>(null);
   const [dangTaiDu, setDangTaiDu] = useState(true);
   const [dangNop, setDangNop] = useState('');
@@ -209,6 +211,10 @@ export const StudentPortalPage = () => {
     if (phien) clearStoredPractice(phien);
     setPhien(null);
     setRoster([]);
+    setAssignments([]);
+    setSubmissions([]);
+    setOnlineSubmissions([]);
+    setProfile(null);
     setChosenId('');
     setPracticeSet(null);
     setPracticeAnswers({});
@@ -296,13 +302,15 @@ export const StudentPortalPage = () => {
     if (!phien) return;
     setDangTaiDu(true);
     try {
-      const [bai, nop, hoSo] = await Promise.all([
+      const [bai, nop, baiOnline, hoSo] = await Promise.all([
         fetchStudentAssignments(),
         fetchStudentSubmissions(),
+        fetchStudentOnlineSubmissions(),
         getDoc(doc(db, STUDENT_PROFILES_COL, phien.studentId)),
       ]);
       setAssignments(bai);
       setSubmissions(nop);
+      setOnlineSubmissions(baiOnline);
       setProfile(hoSo.exists() ? (hoSo.data() as StudentProfileDoc) : null);
       setLoiDuLieu('');
 
@@ -554,9 +562,10 @@ export const StudentPortalPage = () => {
     : 'Bài tự nộp';
   return (
     <StudentPortalDashboard
-      session={{ studentName: phien.studentName, className: phien.className }}
+      session={{ studentId: phien.studentId, studentName: phien.studentName, className: phien.className }}
       assignments={assignments}
       submissions={submissions}
+      onlineSubmissions={onlineSubmissions}
       profile={profile}
       loading={dangTaiDu}
       uploadingId={dangNop}

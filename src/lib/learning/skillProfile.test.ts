@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildHomeworkSkillEvidence,
+  buildOnlineSkillEvidence,
   buildPracticeSkillEvidence,
   buildSkillSummary,
 } from './skillProfile';
@@ -85,5 +86,34 @@ describe('skillProfile — chuẩn hóa evidence trước khi ghi ledger', () =>
     expect(states).toHaveLength(5);
     expect(states.find(state => state.skillId === 'math.line-equation')?.status).toBe('developing');
     expect(states.find(state => state.skillId === 'math.quadratic-function')?.status).toBe('not_seen');
+  });
+
+  it('online chỉ tạo minh chứng homework khi điểm đã chính thức và không nhận skill lạ', () => {
+    expect(buildOnlineSkillEvidence({
+      attemptId: 'attempt-online-1',
+      assignmentId: 'assignment-online-1',
+      skillIds: ['math.line-equation', 'skill-khong-ton-tai'],
+      score: 8,
+      maxScore: 10,
+      teacherApproved: true,
+      gradedAt: '2026-08-24T12:00:00.000Z',
+    })).toEqual([expect.objectContaining({
+      evidenceId: 'attempt-online-1:math.line-equation',
+      skillId: 'math.line-equation',
+      source: 'homework',
+      signal: 'strong',
+      assignmentId: 'assignment-online-1',
+      submissionId: 'attempt-online-1',
+      approved: true,
+    })]);
+
+    expect(buildOnlineSkillEvidence({
+      attemptId: 'attempt-draft',
+      skillIds: ['math.line-equation'],
+      score: 10,
+      maxScore: 10,
+      teacherApproved: false,
+      gradedAt: '2026-08-24T12:00:00.000Z',
+    })).toEqual([]);
   });
 });

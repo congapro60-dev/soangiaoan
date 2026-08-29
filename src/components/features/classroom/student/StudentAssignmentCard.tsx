@@ -121,7 +121,7 @@ export const StudentAssignmentCard = ({ assignment, submission, state, uploading
             }`}
           >
             {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : isOnlineExam ? <BookOpen className="h-4 w-4" /> : isUploadAction ? <Camera className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />}
-            {uploading ? 'Đang nộp...' : isOnlineExam ? (state.status === 'graded' ? 'Xem kết quả' : state.status === 'todo' ? 'Làm bài online' : 'Mở bài online') : state.label}
+            {uploading ? 'Đang nộp...' : isOnlineExam ? (state.status === 'graded' ? 'Xem kết quả' : state.status === 'todo' ? 'Làm bài online' : state.label) : state.label}
           </button>
           {/* Nút phụ nộp lại: bài đã chấm/đang chờ vẫn phải tạo được lần nộp mới khi phản
               hồi yêu cầu chụp lại — đây chính là P1 của báo cáo QA cổng học sinh 22/08. */}

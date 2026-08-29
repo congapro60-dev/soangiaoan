@@ -189,6 +189,9 @@ export interface StudentAnswer {
   autoScore?: number;
   aiScore?: number;
   aiFeedback?: string;
+  /** Điểm/nhận xét giáo viên sửa cho riêng câu; khác với đề xuất AI. */
+  teacherScore?: number;
+  teacherFeedback?: string;
   // Server nhúng đáp án + giải thích vào bài nộp khi chấm (chỉ khi giáo viên bật allowReview),
   // để trang kết quả xem lại được mà không cần đọc đề gốc (đề gửi học sinh đã lược đáp án).
   correctAnswer?: string;
@@ -208,6 +211,8 @@ export interface ExamSubmission {
   totalScore?: number;
   maxScore: number;
   status: 'in_progress' | 'submitted' | 'graded';
+  /** Kết quả chấm online có vòng đời provisional → teacher review → official. */
+  grade?: import('./lib/classroom/types.js').SubmissionGrade;
   tabSwitches?: number;
   /** Unauthenticated student submissions are protected primarily by an unguessable document id. */
   clientNonce?: string;

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, BarChart3, Download, Loader2, RefreshCw } from 'lucide-react';
+import { AlertCircle, BarChart3, Download, Loader2, Plus, RefreshCw } from 'lucide-react';
 import { getSubmissions } from '../../../hooks/useExams';
 import { listAssignmentsForClass, listSubmissionsForClass } from '../../../lib/classroom/submissionService';
 import { getAccessibleExam as getAccessibleExamFromServer, listAccessibleExamSubmissions } from '../../../lib/classroom/teacherService';
@@ -24,6 +24,7 @@ import {
 import type { AppData, ClassAssignment, Exam, ExamSubmission, Student } from '../../../types';
 import { ClassStudentProgressMatrix } from './ClassStudentProgressMatrix';
 import { NhanXetMarkdown } from './NhanXetMarkdown';
+import { SupportActivityModal } from './SupportActivityModal';
 
 export interface ClassAssignmentReportProps {
   classId: string;
@@ -34,6 +35,7 @@ export interface ClassAssignmentReportProps {
   onlineAssignments: ClassAssignment[];
   exams: Exam[];
   settings: AppData['settings'];
+  showToast?: (message: string, type?: string) => void;
 }
 
 export interface ClassAssignmentReportLoadInput extends Pick<ClassAssignmentReportProps, 'classId' | 'teacherId' | 'className' | 'classNameAliases' | 'students' | 'onlineAssignments' | 'exams'> {}
@@ -175,7 +177,15 @@ export const adaptUploadSubmission = (
 };
 
 const scoreForAnswer = (answer: ExamSubmission['answers'][number] | undefined): number | null =>
-  asFiniteNumber(answer?.autoScore) ?? asFiniteNumber(answer?.aiScore);
+  asFiniteNumber(answer?.teacherScore) ?? asFiniteNumber(answer?.autoScore) ?? asFiniteNumber(answer?.aiScore);
+
+const isOfficialOnlineSubmission = (submission: ExamSubmission): boolean => {
+  if (submission.status !== 'graded') return false;
+  if (submission.grade) return submission.grade.teacherApproved === true;
+  // Bài online legacy chưa có vòng đời grade mới: giữ tương thích dữ liệu cũ,
+  // nhưng không coi rõ ràng provisional/pending là bằng chứng chính thức.
+  return submission.gradeState !== 'provisional' && submission.gradeState !== 'pending_teacher_review';
+};
 
 export const adaptOnlineSubmission = (
   submission: ExamSubmission,
@@ -201,7 +211,10 @@ export const adaptOnlineSubmission = (
   }
   if (!student) return null;
 
-  const questionResults: ClassReportQuestionResult[] = exam.questions.map((question, index) => {
+  const gradedQuestionResults = submission.grade?.questionResults ?? [];
+  const questionResults: ClassReportQuestionResult[] = gradedQuestionResults.length > 0
+    ? gradedQuestionResults.map(mapQuestionResult)
+    : exam.questions.map((question, index) => {
     const answer = submission.answers.find(item => item.questionId === question.id);
     const score = scoreForAnswer(answer);
     const maxScore = asFiniteNumber(question.points);
@@ -218,17 +231,17 @@ export const adaptOnlineSubmission = (
       errorType: null,
       weakTopics: [],
     };
-  });
+    });
 
   return {
     id: asText(submission.id),
     studentKey: student.id,
     createdAt: asText(submission.submittedAt || submission.startedAt),
     status: asText(submission.status),
-    score: asFiniteNumber(submission.totalScore),
-    maxScore: asFiniteNumber(exam.maxScore),
-    official: submission.status === 'graded',
-    weakTopics: [],
+    score: asFiniteNumber(submission.grade?.score) ?? asFiniteNumber(submission.totalScore),
+    maxScore: asFiniteNumber(submission.grade?.maxScore) ?? asFiniteNumber(exam.maxScore),
+    official: isOfficialOnlineSubmission(submission),
+    weakTopics: submission.grade?.weakTopics ?? [],
     questionResults,
   };
 };
@@ -558,9 +571,10 @@ interface ReportBodyProps {
   report: ClassAssignmentReportMetrics;
   sourceReadState?: QuestionSourceUiState;
   onQuestionSourceRequested?: (report: ClassAssignmentReportMetrics, force?: boolean) => void;
+  onCreateSupportActivity?: () => void;
 }
 
-const ReportBody = ({ report, sourceReadState, onQuestionSourceRequested }: ReportBodyProps) => (
+const ReportBody = ({ report, sourceReadState, onQuestionSourceRequested, onCreateSupportActivity }: ReportBodyProps) => (
   <div className="mt-5 space-y-5">
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       <MetricCard label="Sĩ số" value={`${report.counters.roster}`} hint="danh sách lớp hiện tại" />
@@ -583,6 +597,7 @@ const ReportBody = ({ report, sourceReadState, onQuestionSourceRequested }: Repo
                 <p><span className="font-black">Việc làm trên lớp:</span> {recommendation.action}</p>
                 <p><span className="font-black">Kiểm tra lại:</span> {recommendation.check}</p>
               </div>
+              {onCreateSupportActivity && <button type="button" onClick={onCreateSupportActivity} className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-xl border border-indigo-200 bg-white px-3 py-2 text-xs font-black text-indigo-700 shadow-sm transition hover:bg-indigo-100"><Plus className="h-4 w-4" /> Tạo hoạt động hỗ trợ</button>}
             </li>
           ))}
         </ul>
@@ -628,7 +643,10 @@ export const loadClassAssignmentReports = async (
   const reports: ClassAssignmentReportMetrics[] = [];
 
   if (uploadAssignmentsResult.status === 'fulfilled' && uploadSubmissionsResult.status === 'fulfilled') {
-    const uploadAssignments = uploadAssignmentsResult.value;
+    // Online assignments are loaded again below with their exam-specific
+    // question catalog and grading lifecycle. Do not create a second,
+    // empty "Bài nộp ảnh/AI" report for the same assignment here.
+    const uploadAssignments = uploadAssignmentsResult.value.filter(assignment => assignment.type !== 'exam');
     const uploadSubmissions = uploadSubmissionsResult.value;
     for (const assignment of uploadAssignments) {
       const submissions = uploadSubmissions
@@ -640,6 +658,8 @@ export const loadClassAssignmentReports = async (
         id: assignment.id,
         title: assignment.title,
         type: 'Bài nộp ảnh/AI',
+        purpose: assignment.purpose ?? 'assignment',
+        deliveryMode: assignment.deliveryMode ?? 'file',
         maxScore: asFiniteNumber(assignment.maxScore),
         questionCatalog: extractQuestionCatalogFromText(assignment.sourceText, questionNumbers),
         questionSources: buildAssignmentQuestionSources(assignment),
@@ -669,6 +689,8 @@ export const loadClassAssignmentReports = async (
         id: `exam:${assignment.examId}`,
         title: assignment.examTitle || exam.title,
         type: 'Đề online',
+        purpose: assignment.purpose ?? 'assignment',
+        deliveryMode: assignment.deliveryMode ?? 'online',
         maxScore: asFiniteNumber(exam.maxScore),
         questionCatalog: exam.questions.map((question, index) => ({
           questionNumber: String(index + 1),
@@ -704,6 +726,7 @@ export const ClassAssignmentReport = ({
   onlineAssignments,
   exams,
   settings,
+  showToast,
 }: ClassAssignmentReportProps) => {
   const classNameAliases = resolveClassNameAliases(classNameAliasesProp);
   const [reports, setReports] = useState<ClassAssignmentReportMetrics[]>([]);
@@ -713,6 +736,7 @@ export const ClassAssignmentReport = ({
   const [refreshing, setRefreshing] = useState(false);
   const [lastGeneratedAt, setLastGeneratedAt] = useState<string | null>(null);
   const [questionSourceStates, setQuestionSourceStates] = useState<Record<string, QuestionSourceUiState>>({});
+  const [supportReport, setSupportReport] = useState<ClassAssignmentReportMetrics | null>(null);
   const refreshVersion = useRef(0);
   const questionSourceGeneration = useRef(0);
   const questionSourcePromises = useRef(new Map<string, Promise<QuestionSourceReadResult>>());
@@ -765,6 +789,7 @@ export const ClassAssignmentReport = ({
     setSelectedAssignmentId('');
     setSourceErrors([]);
     setLastGeneratedAt(null);
+    setSupportReport(null);
     void refreshReports(true);
 
     return () => { refreshVersion.current += 1; };
@@ -872,6 +897,14 @@ export const ClassAssignmentReport = ({
           </button>
           <button
             type="button"
+            onClick={() => selectedReport && setSupportReport(selectedReport)}
+            disabled={loading || !selectedReport}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-indigo-200 bg-white px-4 py-3 text-sm font-black text-indigo-700 shadow-sm transition hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Plus className="h-4 w-4" /> Tạo hoạt động
+          </button>
+          <button
+            type="button"
             onClick={downloadCsv}
             disabled={loading || reports.length === 0}
             className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-black text-white shadow-md shadow-indigo-200 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
@@ -913,8 +946,19 @@ export const ClassAssignmentReport = ({
             report={selectedReport}
             sourceReadState={questionSourceStates[selectedReport.assignment.id]}
             onQuestionSourceRequested={loadQuestionSourceForReport}
+            onCreateSupportActivity={() => setSupportReport(selectedReport)}
           />
         </>
+      )}
+      {supportReport && (
+        <SupportActivityModal
+          classId={classId}
+          report={supportReport}
+          students={students}
+          showToast={showToast ?? ((message) => console.info(message))}
+          onCreated={() => void refreshReports(false)}
+          onClose={() => setSupportReport(null)}
+        />
       )}
     </div>
   );

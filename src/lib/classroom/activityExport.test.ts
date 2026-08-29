@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Exam } from '../../types';
 import {
   buildActivityExportPlan,
+  buildExamExportMarkdown,
   finalizeActivityExportBundle,
 } from './activityExport';
 
@@ -79,5 +80,18 @@ describe('activity export contract', () => {
 
     expect(second.contentHash).not.toBe(first.contentHash);
     expect(second.contentVersion).not.toBe(first.contentVersion);
+  });
+
+  it('builds separate student and teacher documents without leaking the answer key', () => {
+    const plan = buildActivityExportPlan(exam(), 'both');
+    const student = buildExamExportMarkdown(plan, 'student');
+    const teacher = buildExamExportMarkdown(plan, 'teacher');
+
+    expect(student).toContain('$x+1=2$');
+    expect(student).not.toContain('Đáp án chuẩn');
+    expect(student).not.toContain('Trừ 1 ở hai vế');
+    expect(teacher).toContain('Đáp án chuẩn');
+    expect(teacher).toContain('$1$');
+    expect(teacher).toContain('Trừ 1 ở hai vế');
   });
 });

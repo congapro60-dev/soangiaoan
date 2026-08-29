@@ -1,12 +1,15 @@
 import { type ChangeEventHandler, type RefObject, useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, BookOpenCheck, Camera, CheckCircle2, Clock3, GraduationCap, Info, Loader2, LogOut, RefreshCw, Sparkles, Target, TrendingUp, X } from 'lucide-react';
 import type { PracticeAttemptResult, PracticeSetResult } from '../../../../services/gradingApi';
-import type { AssignmentDoc, StudentProfileDoc, SubmissionDoc } from '../../../../lib/classroom/types';
-import { getStudentAssignmentState, latestSubmissionByAssignment, type StudentAssignmentStatus } from '../../../../lib/classroom/portalViewModel';
+import type { ExamSubmission } from '../../../../types';
+import type { AssignmentDoc, StudentActivityView, StudentProfileDoc, SubmissionDoc } from '../../../../lib/classroom/types';
+import { getStudentAssignmentState, latestSubmissionByAssignment, type StudentAssignmentState, type StudentAssignmentStatus } from '../../../../lib/classroom/portalViewModel';
+import { buildStudentProgressSummary, studentActivityNextActionLabel, studentActivityStatusLabel } from '../../../../lib/classroom/studentProgressModel';
 import { buildStudentSkillCards } from '../../../../lib/classroom/skillViewModel';
 import { StudentAssignmentCard } from './StudentAssignmentCard';
 
 interface SessionInfo {
+  studentId: string;
   studentName: string;
   className: string;
 }
@@ -15,6 +18,7 @@ interface Props {
   session: SessionInfo;
   assignments: AssignmentDoc[];
   submissions: SubmissionDoc[];
+  onlineSubmissions: ExamSubmission[];
   profile: StudentProfileDoc | null;
   loading: boolean;
   uploadingId: string;
@@ -70,10 +74,30 @@ const statusLabel = (status: StudentAssignmentStatus): string => {
   return 'Đang xử lý';
 };
 
+const onlineAssignmentState = (activity?: StudentActivityView): StudentAssignmentState => {
+  if (!activity || activity.status === 'not_started') {
+    return { status: 'todo', action: 'submit', label: 'Làm bài online' };
+  }
+  if (activity.status === 'in_progress') {
+    return { status: 'waiting', action: 'status', label: 'Tiếp tục làm', detail: 'Bài đang được lưu dở.' };
+  }
+  if (activity.status === 'error') {
+    return { status: 'retry', action: 'retry', label: 'Thử lại', detail: 'Lượt làm trước chưa hoàn tất.' };
+  }
+  if (activity.status === 'official') {
+    return { status: 'graded', action: 'review', label: 'Xem kết quả' };
+  }
+  if (activity.status === 'grading') {
+    return { status: 'grading', action: 'status', label: 'Đang chấm' };
+  }
+  return { status: 'waiting', action: 'status', label: 'Chờ kết quả' };
+};
+
 export const StudentPortalDashboard = ({
   session,
   assignments,
   submissions,
+  onlineSubmissions,
   profile,
   loading,
   uploadingId,
@@ -117,37 +141,39 @@ export const StudentPortalDashboard = ({
     });
   }, [pendingPreviewUrls]);
   const latest = useMemo(() => latestSubmissionByAssignment(submissions), [submissions]);
+  const progressSummary = useMemo(() => buildStudentProgressSummary({
+    studentId: session.studentId,
+    assignments,
+    submissions,
+    examSubmissions: onlineSubmissions,
+    profile,
+  }), [assignments, onlineSubmissions, profile, session.studentId, submissions]);
+  const activityByAssignment = useMemo(() => new Map(
+    progressSummary.assignmentActivities
+      .filter(activity => Boolean(activity.assignmentId))
+      .map(activity => [activity.assignmentId as string, activity]),
+  ), [progressSummary.assignmentActivities]);
   const rows = useMemo(() => assignments.map(assignment => {
     const submission = latest.get(assignment.id);
-    return { assignment, submission, state: getStudentAssignmentState(assignment, submission) };
-  }), [assignments, latest]);
+    return assignment.type === 'exam'
+      ? { assignment, submission: undefined, state: onlineAssignmentState(activityByAssignment.get(assignment.id)) }
+      : { assignment, submission, state: getStudentAssignmentState(assignment, submission) };
+  }), [activityByAssignment, assignments, latest]);
   const visibleRows = useMemo(() => rows.filter(row => statusFilterMatch(row.state.status, filter)), [filter, rows]);
   const selfSubmissions = useMemo(() => submissions
     .filter(submission => !submission.assignmentId)
     .sort((left, right) => right.createdAt.localeCompare(left.createdAt)), [submissions]);
-  const assignedGraded = useMemo(() => rows
-    .filter(row => row.state.status === 'graded')
-    .map(row => row.submission)
-    .filter((item): item is SubmissionDoc => Boolean(item)), [rows]);
-  const allGraded = useMemo(() => [
-    ...assignedGraded,
-    ...selfSubmissions.filter(submission => submission.status === 'graded'),
-  ], [assignedGraded, selfSubmissions]);
-  // Điểm AI chưa được thầy cô duyệt chỉ là bản nháp, không đưa vào điểm trung bình chính thức.
-  // Đồng thời quy đổi theo phần trăm để bài 20 điểm không làm lệch bài 10 điểm.
-  const approvedGraded = allGraded.filter(submission => submission.grade?.teacherApproved === true);
-  const scoredAverage = approvedGraded.length > 0
-    ? `${(approvedGraded.reduce((sum, submission) => {
-        const score = submission.grade?.score ?? 0;
-        const max = submission.grade?.maxScore || 0;
-        return sum + (max > 0 ? (score / max) * 100 : 0);
-      }, 0) / approvedGraded.length).toFixed(1)}%`
-    : '—';
-  const completedCount = rows.filter(row => row.state.status !== 'todo').length;
-  const progress = assignments.length > 0 ? Math.round((completedCount / assignments.length) * 100) : 0;
+  const scoredAverage = progressSummary.officialAveragePercent === null
+    ? '—'
+    : `${progressSummary.officialAveragePercent.toFixed(1)}%`;
+  const progress = Math.round(progressSummary.completionRate * 100);
   const legacyTopics = profile?.topics || [];
-  const weakTopics = legacyTopics.filter(topic => topic.level === 'weak');
-  const strongTopics = legacyTopics.filter(topic => topic.level === 'solid');
+  const weakTopics = progressSummary.weakTopics.length > 0
+    ? progressSummary.weakTopics
+    : legacyTopics.filter(topic => topic.level === 'weak').map(topic => topic.topic);
+  const strongTopics = progressSummary.strongTopics.length > 0
+    ? progressSummary.strongTopics
+    : legacyTopics.filter(topic => topic.level === 'solid').map(topic => topic.topic);
   const skillCards = buildStudentSkillCards(profile?.skills);
   const hasProfileData = skillCards.length > 0 || legacyTopics.length > 0;
   const counts = useMemo(() => ({
@@ -207,9 +233,48 @@ export const StudentPortalDashboard = ({
             <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-slate-400 sm:text-xs">Điểm đã duyệt</p>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-5">
-            <p className="text-xl font-black text-slate-900 sm:text-2xl">{assignedGraded.length}<span className="text-sm font-bold text-slate-300">/{assignments.length}</span></p>
+            <p className="text-xl font-black text-slate-900 sm:text-2xl">{progressSummary.officialCount}<span className="text-sm font-bold text-slate-300">/{assignments.length}</span></p>
             <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-slate-400 sm:text-xs">Đã chấm</p>
           </div>
+        </section>
+
+        <section aria-labelledby="student-progress-heading">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">Theo dõi quá trình</p>
+              <h2 id="student-progress-heading" className="mt-1 text-xl font-black text-slate-900">Tiến trình học của em</h2>
+            </div>
+            <span className="text-xs font-bold text-slate-400">{progressSummary.assignmentCount} bài được giao</span>
+          </div>
+          {progressSummary.timeline.length === 0 ? (
+            <div className="mt-3 rounded-[1.5rem] border border-dashed border-slate-300 bg-white px-5 py-8 text-center shadow-sm">
+              <Clock3 className="mx-auto mb-2 h-7 w-7 text-slate-300" />
+              <p className="text-sm font-semibold text-slate-500">Chưa có hoạt động học tập để hiển thị.</p>
+            </div>
+          ) : (
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              {progressSummary.timeline.slice(0, 6).map(item => (
+                <article key={item.id} className="rounded-[1.25rem] border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="min-w-0 break-words text-sm font-black leading-5 text-slate-900">{item.title}</h3>
+                    <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black ${item.official ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                      {studentActivityStatusLabel(item.status)}
+                    </span>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold text-slate-500">
+                    {item.score !== null && item.maxScore !== null && <span>{item.score}/{item.maxScore} điểm</span>}
+                    <span>{item.attemptCount} lượt làm</span>
+                    <span>{studentActivityNextActionLabel(item.nextAction)}</span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+          {progressSummary.nextAction && (
+            <p className="mt-3 rounded-2xl bg-indigo-50 px-4 py-3 text-sm font-bold leading-6 text-indigo-800">
+              Việc tiếp theo: <span className="font-black">{progressSummary.nextAction.title}</span> · {studentActivityNextActionLabel(progressSummary.nextAction.nextAction)}.
+            </p>
+          )}
         </section>
 
         {uploadStep && (
@@ -403,8 +468,8 @@ export const StudentPortalDashboard = ({
 
               {legacyTopics.length > 0 && (
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm"><p className="mb-3 flex items-center gap-2 text-sm font-black text-emerald-700"><TrendingUp className="h-4 w-4" /> Em đang vững</p><div className="flex flex-wrap gap-2">{strongTopics.map(topic => <span key={topic.topic} className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">{topic.topic}</span>)}{strongTopics.length === 0 && <span className="text-sm font-semibold text-slate-400">Chưa đủ dữ liệu.</span>}</div></div>
-                  <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm"><p className="mb-3 flex items-center gap-2 text-sm font-black text-amber-700"><Target className="h-4 w-4" /> Nên luyện thêm</p><div className="flex flex-wrap gap-2">{weakTopics.map(topic => <span key={topic.topic} className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700">{topic.topic}</span>)}{weakTopics.length === 0 && <span className="text-sm font-semibold text-slate-400">Chưa đủ dữ liệu.</span>}</div></div>
+                  <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm"><p className="mb-3 flex items-center gap-2 text-sm font-black text-emerald-700"><TrendingUp className="h-4 w-4" /> Em đang vững</p><div className="flex flex-wrap gap-2">{strongTopics.map(topic => <span key={topic} className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">{topic}</span>)}{strongTopics.length === 0 && <span className="text-sm font-semibold text-slate-400">Chưa đủ dữ liệu.</span>}</div></div>
+                  <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm"><p className="mb-3 flex items-center gap-2 text-sm font-black text-amber-700"><Target className="h-4 w-4" /> Nên luyện thêm</p><div className="flex flex-wrap gap-2">{weakTopics.map(topic => <span key={topic} className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700">{topic}</span>)}{weakTopics.length === 0 && <span className="text-sm font-semibold text-slate-400">Chưa đủ dữ liệu.</span>}</div></div>
                 </div>
               )}
             </div>

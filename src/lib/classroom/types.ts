@@ -208,7 +208,6 @@ export type StudentAssignmentView = Pick<
   'id' | 'teacherId' | 'classId' | 'title' | 'description' | 'type' | 'examId'
   | 'dueAt' | 'maxScore' | 'attachments' | 'isOpen' | 'createdAt' | 'updatedAt'
   | 'purpose' | 'deliveryMode' | 'skillIds' | 'sourceReportId' | 'gradingPolicy' | 'contentVersion'
-  | 'targetStudentIds'
 > & {
   hasAnswerKey: boolean;
   exportBundle?: StudentActivityExportBundle;
@@ -283,7 +282,7 @@ export interface SubmissionGrade {
   gradingRecovery?: GradingRecovery;
 }
 
-export type SubmissionGradeRevisionAction = 'manual_edit' | 'delete' | 'ai_regrade';
+export type SubmissionGradeRevisionAction = 'manual_edit' | 'approve' | 'delete' | 'automatic_regrade' | 'ai_regrade';
 
 /**
  * Bản chụp bất biến của một kết quả chấm trước khi giáo viên sửa/xóa hoặc AI chấm lại.

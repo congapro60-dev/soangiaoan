@@ -1,6 +1,7 @@
 import { signInAnonymously } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import type { StudentAssignmentView, SubmissionDoc } from '../lib/classroom/types';
+import type { ExamSubmission } from '../types';
 
 export interface RosterEntry {
   studentId: string;
@@ -143,6 +144,15 @@ export const fetchStudentSubmissions = async (): Promise<SubmissionDoc[]> => {
   if (!current || !current.isAnonymous) throw new Error('Cần phiên đăng nhập học sinh.');
   const idToken = await current.getIdToken();
   const response = await call<{ submissions: SubmissionDoc[] }>({ action: 'studentSubmissions', idToken });
+  return response.submissions || [];
+};
+
+/** Lượt làm bài online của chính học sinh; server đã bỏ đáp án, câu trả lời và ghi chú nội bộ. */
+export const fetchStudentOnlineSubmissions = async (): Promise<ExamSubmission[]> => {
+  const current = auth.currentUser;
+  if (!current || !current.isAnonymous) throw new Error('Cần phiên đăng nhập học sinh.');
+  const idToken = await current.getIdToken();
+  const response = await call<{ submissions: ExamSubmission[] }>({ action: 'studentOnlineSubmissions', idToken });
   return response.submissions || [];
 };
 

@@ -114,6 +114,53 @@ describe('ClassAssignmentReport adapters', () => {
     expect(result.reports[0].averagePercent).toBeNull();
   });
 
+  it('does not duplicate an online assignment in the upload report list', async () => {
+    const result = await loadClassAssignmentReports({
+      classId: 'class-11-columbus',
+      teacherId: 'teacher-1',
+      className: '11 Columbus',
+      students: roster,
+      onlineAssignments: [{
+        examId: 'exam-1',
+        examCode: 'TOAN-01',
+        examTitle: 'Đề online',
+        assignedAt: '2026-08-27T08:00:00.000Z',
+      }],
+      exams: [{ id: 'exam-1', title: 'Đề online', maxScore: 10, questions: [] } as Exam],
+    }, {
+      listAssignmentsForClass: async () => [{
+        id: 'exam-assignment',
+        teacherId: 'teacher-1',
+        classId: 'class-11-columbus',
+        title: 'Đề online',
+        description: '',
+        type: 'exam',
+        examId: 'exam-1',
+        isOpen: true,
+        createdAt: '2026-08-27T08:00:00.000Z',
+        updatedAt: '2026-08-27T08:00:00.000Z',
+      }],
+      listSubmissionsForClass: async () => [],
+      getSubmissions: async () => [{
+        id: 'online-submission',
+        examId: 'exam-1',
+        examCode: 'TOAN-01',
+        studentId: 'student-1',
+        studentName: 'Nguyễn Minh An',
+        studentClass: '11 Columbus',
+        startedAt: '2026-08-27T08:00:00.000Z',
+        submittedAt: '2026-08-27T08:15:00.000Z',
+        answers: [],
+        totalScore: 8,
+        maxScore: 10,
+        status: 'graded',
+      }],
+    });
+
+    expect(result.sourceErrors).toEqual([]);
+    expect(result.reports.map(report => report.assignment.id)).toEqual(['exam:exam-1']);
+  });
+
   it('keeps the visible snapshot when a manual refresh has a source error', () => {
     expect(shouldReplaceReportSnapshot([
       { assignment: { id: 'old' } } as never,
@@ -225,6 +272,51 @@ describe('ClassAssignmentReport adapters', () => {
       expect.objectContaining({ questionNumber: '3', status: 'not_attempted', score: null, maxScore: 1 }),
     ]);
     expect(JSON.stringify(adapted)).not.toContain('answer');
+  });
+
+  it('ưu tiên điểm giáo viên và chỉ tính lượt online đã được duyệt là chính thức', () => {
+    const exam = {
+      id: 'exam-1',
+      maxScore: 5,
+      questions: [{ id: 'q1', points: 2 }, { id: 'q2', points: 3 }],
+    } as Exam;
+    const submission = {
+      id: 'teacher-review',
+      studentId: 'student-1',
+      studentName: 'Nguyễn Minh An',
+      studentClass: '10A',
+      startedAt: '2026-08-25T07:00:00.000Z',
+      submittedAt: '2026-08-25T08:00:00.000Z',
+      status: 'graded',
+      gradeState: 'provisional',
+      totalScore: 4.5,
+      maxScore: 5,
+      answers: [
+        { questionId: 'q1', answer: 'A', autoScore: 2, teacherScore: 1 },
+        { questionId: 'q2', answer: 'B', autoScore: 2.5, teacherScore: 1.5 },
+      ],
+      grade: {
+        score: 2.5,
+        maxScore: 5,
+        feedback: 'Cần sửa.',
+        strengths: [],
+        weaknesses: [],
+        teacherApproved: false,
+        gradedAt: '2026-08-25T08:01:00.000Z',
+        questionResults: [
+          { questionNumber: 'Câu 1', status: 'partially_correct', score: 1, maxScore: 2, errorType: 'Sai bước', weakTopics: [] },
+          { questionNumber: 'Câu 2', status: 'incorrect', score: 1.5, maxScore: 3, errorType: 'Sai kết quả', weakTopics: [] },
+        ],
+      },
+    } as unknown as ExamSubmission;
+
+    const adapted = adaptOnlineSubmission(submission, exam, roster, '10A');
+
+    expect(adapted).toEqual(expect.objectContaining({ score: 2.5, official: false }));
+    expect(adapted?.questionResults).toEqual([
+      expect.objectContaining({ questionNumber: 'Câu 1', score: 1, maxScore: 2, errorType: 'Sai bước' }),
+      expect.objectContaining({ questionNumber: 'Câu 2', score: 1.5, maxScore: 3, errorType: 'Sai kết quả' }),
+    ]);
   });
 
   it('drops online submissions that cannot be matched to the current roster', () => {

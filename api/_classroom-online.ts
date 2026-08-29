@@ -1,6 +1,8 @@
 import type { VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
 import { stripAnswerKey } from './_exam-core.js';
+import { readClassAccess, type ClassAccess } from './_classroom-access.js';
+import { callGeminiVision, getGradingApiKey, GRADING_MODEL, reserveQuota } from './_grading-core.js';
 import {
   buildExamContentSnapshot,
   type ExamContentSnapshot,
@@ -14,7 +16,28 @@ import {
   type VerifiedStudentLink,
 } from '../src/lib/classroom/studentExamPolicy.js';
 import type { Exam, ExamQuestion, ExamSubmission, StudentAnswer } from '../src/types.js';
-import type { StudentAssignmentView, StudentActivityExportBundle } from '../src/lib/classroom/types.js';
+import {
+  applyTeacherOnlineGradeEdit,
+  approveOnlineGrade,
+  buildAutomaticOnlineGrade,
+  applyAiOnlineGradeSuggestion,
+  projectOnlineGradeForStudent,
+  removeOnlineGrade,
+  OnlineGradeValidationError,
+  type OnlineGradeSource,
+  type TeacherOnlineGradeEdit,
+} from '../src/lib/classroom/onlineGradeLifecycle.js';
+import { buildOnlineSkillEvidence } from '../src/lib/learning/skillProfile.js';
+import { replaceSkillEvidenceAndRebuild } from './_skill-profile.js';
+import type {
+  GradingPolicy,
+  StudentAssignmentView,
+  StudentActivityExportBundle,
+  SubmissionGrade,
+  SubmissionGradeHistoryDoc,
+  SubmissionGradeRevisionAction,
+} from '../src/lib/classroom/types.js';
+import { buildHomeworkGradingPrompt, parseHomeworkGradeForCommit } from '../src/lib/classroom/gradingPrompt.js';
 
 type Db = FirebaseFirestore.Firestore;
 type Body = Record<string, unknown>;
@@ -52,6 +75,22 @@ interface StoredOnlineAttempt extends StudentExamAttemptContext {
   activityPurpose?: string;
   gradeState?: string;
   gradingSource?: string;
+  approvalMode?: ExamSubmission['approvalMode'];
+  teacherApprovedAt?: string;
+  totalScore?: number;
+  grade?: SubmissionGrade;
+}
+
+interface TeacherOnlineAttemptContext {
+  uid: string;
+  classId: string;
+  access: ClassAccess;
+  assignmentRef: FirebaseFirestore.DocumentReference;
+  assignment: FirebaseFirestore.DocumentData;
+  examRef: FirebaseFirestore.DocumentReference;
+  exam: FirebaseFirestore.DocumentData;
+  attemptRef: FirebaseFirestore.DocumentReference;
+  attempt: StoredOnlineAttempt;
 }
 
 class ClassroomOnlineError extends Error {
@@ -84,6 +123,19 @@ const verifyStudentUid = async (idToken: unknown): Promise<string> => {
     return decoded.uid;
   } catch {
     throw new ClassroomOnlineError(401, 'Phiên đăng nhập học sinh không hợp lệ.');
+  }
+};
+
+const verifyTeacherUid = async (idToken: unknown): Promise<string> => {
+  if (typeof idToken !== 'string' || !idToken.trim()) {
+    throw new ClassroomOnlineError(401, 'Phiên đăng nhập giáo viên không hợp lệ.');
+  }
+  try {
+    const decoded = await getAuth().verifyIdToken(idToken);
+    if (!decoded.uid) throw new Error('missing uid');
+    return decoded.uid;
+  } catch {
+    throw new ClassroomOnlineError(401, 'Phiên đăng nhập giáo viên không hợp lệ.');
   }
 };
 
@@ -193,7 +245,7 @@ const studentAnswers = (value: unknown, questions: readonly ExamQuestion[]): Stu
     .filter((answer): answer is StudentAnswer => Boolean(answer));
 };
 
-const safeAttempt = (id: string, data: StoredOnlineAttempt): ExamSubmission => ({
+const safeAttempt = (id: string, data: StoredOnlineAttempt, allowReview = false): ExamSubmission => ({
   id,
   examId: asString(data.examId),
   examCode: asString(data.examCode),
@@ -208,6 +260,7 @@ const safeAttempt = (id: string, data: StoredOnlineAttempt): ExamSubmission => (
       .map(item => ({ questionId: asString(item.questionId), answer: asString(item.answer) }))
     : [],
   ...(finiteNumber(data.maxScore) !== null ? { maxScore: finiteNumber(data.maxScore)! } : { maxScore: 0 }),
+  ...(finiteNumber(data.totalScore) !== null ? { totalScore: finiteNumber(data.totalScore)! } : {}),
   status: ['in_progress', 'submitted', 'graded'].includes(asString(data.status))
     ? data.status as ExamSubmission['status']
     : 'in_progress',
@@ -218,6 +271,9 @@ const safeAttempt = (id: string, data: StoredOnlineAttempt): ExamSubmission => (
   ...(asString(data.activityPurpose) ? { activityPurpose: data.activityPurpose as ExamSubmission['activityPurpose'] } : {}),
   ...(asString(data.gradeState) ? { gradeState: data.gradeState as ExamSubmission['gradeState'] } : {}),
   ...(asString(data.gradingSource) ? { gradingSource: data.gradingSource as ExamSubmission['gradingSource'] } : {}),
+  ...(data.grade && typeof data.grade === 'object' ? { grade: projectOnlineGradeForStudent(data.grade, allowReview) } : {}),
+  ...(asString(data.approvalMode) ? { approvalMode: data.approvalMode } : {}),
+  ...(asString(data.teacherApprovedAt) ? { teacherApprovedAt: data.teacherApprovedAt } : {}),
 });
 
 const decisionMessage = (reason: string): string => {
@@ -301,7 +357,7 @@ const attemptProjection = (context: StudentOnlineContext, id: string, attempt: S
   studentId: context.link.studentId,
   assignmentId: context.assignmentRef.id,
   maxScore: finiteNumber(context.assignment.maxScore) ?? finiteNumber(context.exam.maxScore) ?? 0,
-});
+}, context.exam.allowReview === true);
 
 const onlineResponse = (context: StudentOnlineContext, id: string, attempt: StoredOnlineAttempt) => ({
   assignment: assignmentProjection(context.assignmentRef.id, context.assignment),
@@ -325,6 +381,52 @@ const readRelevantAttempts = async (
     .filter(attempt => attempt.studentId === link.studentId
       && attempt.classId === link.classId
       && attempt.assignmentId === assignmentId);
+};
+
+/** Projection gọn cho dashboard học sinh; không trả answer text hay ghi chú chấm nội bộ. */
+const studentOnlineAttemptProjection = (
+  id: string,
+  data: FirebaseFirestore.DocumentData,
+  link: VerifiedStudentLink,
+): ExamSubmission => ({
+  id,
+  examId: asString(data.examId),
+  examCode: '',
+  studentName: '',
+  studentId: link.studentId,
+  studentClass: '',
+  classId: link.classId,
+  assignmentId: asString(data.assignmentId),
+  startedAt: asString(data.startedAt),
+  ...(asString(data.submittedAt) ? { submittedAt: asString(data.submittedAt) } : {}),
+  answers: [],
+  ...(finiteNumber(data.totalScore) !== null ? { totalScore: finiteNumber(data.totalScore)! } : {}),
+  maxScore: finiteNumber(data.maxScore) ?? 0,
+  status: ['in_progress', 'submitted', 'graded'].includes(asString(data.status))
+    ? data.status as ExamSubmission['status']
+    : 'submitted',
+  ...(asString(data.activityPurpose) ? { activityPurpose: data.activityPurpose as ExamSubmission['activityPurpose'] } : {}),
+  ...(asString(data.gradeState) ? { gradeState: data.gradeState as ExamSubmission['gradeState'] } : {}),
+  ...(asString(data.gradingSource) ? { gradingSource: data.gradingSource as ExamSubmission['gradingSource'] } : {}),
+  ...(asString(data.approvalMode) ? { approvalMode: data.approvalMode as ExamSubmission['approvalMode'] } : {}),
+  ...(asString(data.teacherApprovedAt) ? { teacherApprovedAt: data.teacherApprovedAt } : {}),
+  ...(data.grade && typeof data.grade === 'object'
+    ? { grade: projectOnlineGradeForStudent(data.grade as SubmissionGrade, false) }
+    : {}),
+});
+
+const studentOnlineSubmissions = async (db: Db, body: Body, res: ResponseLike): Promise<void> => {
+  const uid = await verifyStudentUid(body.idToken);
+  const link = await readStudentLink(db, uid);
+  const snapshot = await db.collection('examSubmissions')
+    .where('studentId', '==', link.studentId)
+    .limit(100)
+    .get();
+  const submissions = snapshot.docs
+    .filter(document => document.data().classId === link.classId)
+    .map(document => studentOnlineAttemptProjection(document.id, document.data(), link))
+    .sort((left, right) => String(right.submittedAt || right.startedAt).localeCompare(String(left.submittedAt || left.startedAt)));
+  return void res.status(200).json({ submissions });
 };
 
 const lockIdFor = (link: VerifiedStudentLink, assignmentId: string): string => {
@@ -500,17 +602,419 @@ const submitExam = async (db: Db, body: Body, res: ResponseLike): Promise<void> 
   return void res.status(200).json({ submitted: true, alreadySubmitted: false, attempt: attemptProjection(loaded.context, loaded.attemptRef.id, next || loaded.attempt) });
 };
 
+const storedAnswers = (value: unknown, questions: readonly ExamQuestion[]): StudentAnswer[] => {
+  if (!Array.isArray(value)) return [];
+  const validQuestionIds = new Set(questions.map(question => question.id));
+  const answers: StudentAnswer[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) continue;
+    const raw = item as Record<string, unknown>;
+    const questionId = asString(raw.questionId).trim();
+    if (!validQuestionIds.has(questionId)) continue;
+    const answer: StudentAnswer = { questionId, answer: asString(raw.answer) };
+    for (const key of ['autoScore', 'aiScore', 'teacherScore'] as const) {
+      const score = finiteNumber(raw[key]);
+      if (score !== null) answer[key] = score;
+    }
+    if (typeof raw.aiFeedback === 'string') answer.aiFeedback = raw.aiFeedback.slice(0, 4000);
+    if (typeof raw.teacherFeedback === 'string') answer.teacherFeedback = raw.teacherFeedback.slice(0, 4000);
+    answers.push(answer);
+  }
+  return answers;
+};
+
+const examQuestions = (exam: FirebaseFirestore.DocumentData): ExamQuestion[] => (
+  Array.isArray(exam.questions)
+    ? exam.questions.filter((question: unknown): question is ExamQuestion => Boolean(question && typeof question === 'object' && !Array.isArray(question)))
+    : []
+);
+
+const gradingPolicyFor = (assignment: FirebaseFirestore.DocumentData, questions: readonly ExamQuestion[]): GradingPolicy => {
+  const configured = asString(assignment.gradingPolicy);
+  if (configured === 'automatic' || configured === 'mixed' || configured === 'teacher_review') return configured;
+  return questions.some(question => question.type === 'essay') ? 'mixed' : 'automatic';
+};
+
+const teacherGradeEdit = (value: unknown): TeacherOnlineGradeEdit => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new OnlineGradeValidationError('Dữ liệu sửa điểm không hợp lệ.');
+  }
+  const raw = value as Record<string, unknown>;
+  const edit: TeacherOnlineGradeEdit = {};
+  const scores = raw.questionScores;
+  if (scores !== undefined) {
+    if (!scores || typeof scores !== 'object' || Array.isArray(scores)) throw new OnlineGradeValidationError('Điểm theo câu không hợp lệ.');
+    edit.questionScores = {};
+    for (const [questionId, valueForQuestion] of Object.entries(scores)) {
+      const score = finiteNumber(valueForQuestion);
+      if (!validId(questionId) || score === null) throw new OnlineGradeValidationError('Điểm theo câu không hợp lệ.');
+      edit.questionScores[questionId] = score;
+    }
+  }
+  const feedbacks = raw.questionFeedback;
+  if (feedbacks !== undefined) {
+    if (!feedbacks || typeof feedbacks !== 'object' || Array.isArray(feedbacks)) throw new OnlineGradeValidationError('Nhận xét theo câu không hợp lệ.');
+    edit.questionFeedback = {};
+    for (const [questionId, valueForQuestion] of Object.entries(feedbacks)) {
+      if (!validId(questionId) || typeof valueForQuestion !== 'string' || valueForQuestion.length > 4000) {
+        throw new OnlineGradeValidationError('Nhận xét theo câu không hợp lệ.');
+      }
+      edit.questionFeedback[questionId] = valueForQuestion;
+    }
+  }
+  for (const key of ['feedback', 'teacherNote'] as const) {
+    if (raw[key] !== undefined) {
+      if (typeof raw[key] !== 'string' || raw[key].length > 4000) throw new OnlineGradeValidationError('Nhận xét không hợp lệ.');
+      edit[key] = raw[key];
+    }
+  }
+  for (const key of ['weakTopics', 'strengths', 'weaknesses'] as const) {
+    if (raw[key] !== undefined) {
+      if (!Array.isArray(raw[key])) throw new OnlineGradeValidationError('Danh sách nhận xét không hợp lệ.');
+      edit[key] = raw[key]
+        .filter((item): item is string => typeof item === 'string')
+        .map(item => item.trim())
+        .filter(Boolean)
+        .slice(0, 50);
+    }
+  }
+  if (raw.score !== undefined) {
+    const score = finiteNumber(raw.score);
+    if (score === null) throw new OnlineGradeValidationError('Điểm tổng không hợp lệ.');
+    edit.score = score;
+  }
+  return edit;
+};
+
+const loadTeacherOnlineAttempt = async (
+  db: Db,
+  body: Body,
+): Promise<TeacherOnlineAttemptContext> => {
+  const uid = await verifyTeacherUid(body.idToken);
+  const attemptId = asString(body.attemptId).trim();
+  if (!validId(attemptId)) throw new ClassroomOnlineError(400, 'Thiếu mã lượt làm bài hợp lệ.');
+  const attemptRef = db.collection('examSubmissions').doc(attemptId);
+  const attemptData = await readDocData(attemptRef, 'Không tìm thấy lượt làm bài.');
+  const attempt = { id: attemptId, ...attemptData } as StoredOnlineAttempt;
+  const classId = asString(attempt.classId).trim();
+  const assignmentId = asString(attempt.assignmentId).trim();
+  const examId = asString(attempt.examId).trim();
+  if (!validId(classId) || !validId(assignmentId) || !validId(examId)) {
+    throw new ClassroomOnlineError(403, 'Lượt làm bài chưa gắn đủ lớp, bài giao và đề online.');
+  }
+  const requestedClassId = asString(body.classId).trim();
+  if (requestedClassId && requestedClassId !== classId) throw new ClassroomOnlineError(403, 'Lượt làm bài không thuộc lớp được yêu cầu.');
+  const accessRecord = await readClassAccess(db, classId, uid);
+  if (!accessRecord) throw new ClassroomOnlineError(403, 'Bạn không có quyền chấm bài trong lớp này.');
+  const assignmentRef = db.collection('assignments').doc(assignmentId);
+  const assignment = await readDocData(assignmentRef, 'Bài giao không còn tồn tại.');
+  if (asString(assignment.classId) !== classId || assignment.type !== 'exam' || asString(assignment.examId) !== examId) {
+    throw new ClassroomOnlineError(403, 'Bài giao không khớp với lượt làm bài.');
+  }
+  const examRef = db.collection('exams').doc(examId);
+  const exam = await readDocData(examRef, 'Đề online không còn tồn tại.');
+  if (exam.teacherId && assignment.teacherId && exam.teacherId !== assignment.teacherId) {
+    throw new ClassroomOnlineError(403, 'Đề online không thuộc bài giao này.');
+  }
+  return { uid, classId, access: accessRecord.access, assignmentRef, assignment, examRef, exam, attemptRef, attempt };
+};
+
+const teacherAttemptProjection = (context: TeacherOnlineAttemptContext, attempt: StoredOnlineAttempt): ExamSubmission => {
+  const projection = safeAttempt(context.attemptRef.id, {
+    ...attempt,
+    examId: context.examRef.id,
+    examCode: asString(context.exam.code),
+    classId: context.classId,
+    assignmentId: context.assignmentRef.id,
+    maxScore: finiteNumber(context.assignment.maxScore) ?? finiteNumber(context.exam.maxScore) ?? finiteNumber(attempt.maxScore) ?? 0,
+  }, true);
+  return {
+    ...projection,
+    ...(attempt.grade ? { grade: attempt.grade } : {}),
+  };
+};
+
+const gradeAtOf = (value: FirebaseFirestore.DocumentData | StoredOnlineAttempt): string => (
+  value.grade && typeof value.grade === 'object' ? asString(value.grade.gradedAt) : ''
+);
+
+const onlineGradeHistoryId = (attempt: StoredOnlineAttempt, action: SubmissionGradeRevisionAction): string => (
+  `online_grade_${attempt.id}_${action}_${encodeURIComponent(gradeAtOf(attempt) || asString(attempt.updatedAt) || 'unknown')}`
+);
+
+const stringList = (value: unknown): string[] => (
+  Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string' && Boolean(item.trim())).map(item => item.trim()) : []
+);
+
+/** Chỉ đồng bộ năng lực từ kết quả online đã official; mọi bản nháp đều gỡ evidence cũ. */
+const syncOnlineSkillEvidence = async (
+  db: Db,
+  context: TeacherOnlineAttemptContext,
+  attempt: StoredOnlineAttempt,
+  now: string,
+): Promise<void> => {
+  const studentId = asString(attempt.studentId).trim();
+  const classId = context.classId.trim();
+  const teacherId = asString(context.assignment.teacherId).trim()
+    || asString(context.exam.teacherId).trim()
+    || context.access.ownerId;
+  if (!studentId || !classId || !teacherId) return;
+
+  const grade = attempt.grade;
+  const maxScore = finiteNumber(grade?.maxScore)
+    ?? finiteNumber(context.assignment.maxScore)
+    ?? finiteNumber(context.exam.maxScore)
+    ?? finiteNumber(attempt.maxScore)
+    ?? 0;
+  const score = finiteNumber(grade?.score) ?? finiteNumber(attempt.totalScore) ?? 0;
+  const skillIds = [...new Set([
+    ...stringList(context.assignment.skillIds),
+    ...stringList(context.exam.skillIds),
+  ])];
+  const evidence = buildOnlineSkillEvidence({
+    attemptId: attempt.id,
+    assignmentId: context.assignmentRef.id,
+    skillIds,
+    score,
+    maxScore,
+    teacherApproved: grade?.teacherApproved === true && attempt.gradeState === 'official',
+    gradedAt: gradeAtOf(attempt) || asString(attempt.teacherApprovedAt) || asString(attempt.updatedAt) || now,
+  });
+  await replaceSkillEvidenceAndRebuild(db, { studentId, classId, teacherId }, attempt.id, evidence, now);
+};
+
+const commitOnlineGradeChange = async (
+  db: Db,
+  context: TeacherOnlineAttemptContext,
+  update: { answers: StudentAnswer[]; status: ExamSubmission['status']; totalScore?: number; grade?: SubmissionGrade; gradeState?: ExamSubmission['gradeState']; gradingSource?: ExamSubmission['gradingSource']; approvalMode?: ExamSubmission['approvalMode']; teacherApprovedAt?: string },
+  action: SubmissionGradeRevisionAction,
+  now: string,
+): Promise<StoredOnlineAttempt> => {
+  let committed: StoredOnlineAttempt | null = null;
+  await db.runTransaction(async transaction => {
+    const latestSnapshot = await transaction.get(context.attemptRef);
+    if (!latestSnapshot.exists) throw new ClassroomOnlineError(404, 'Lượt làm bài không còn tồn tại.');
+    const latest = { id: context.attemptRef.id, ...latestSnapshot.data() } as StoredOnlineAttempt;
+    if (latest.classId !== context.classId || latest.assignmentId !== context.assignmentRef.id || latest.examId !== context.examRef.id) {
+      throw new ClassroomOnlineError(403, 'Lượt làm bài không thuộc lớp hoặc bài giao này.');
+    }
+    if (latest.updatedAt !== context.attempt.updatedAt || gradeAtOf(latest) !== gradeAtOf(context.attempt) || latest.status !== context.attempt.status) {
+      throw new ClassroomOnlineError(409, 'Kết quả vừa thay đổi ở một cửa sổ khác. Tải lại bài rồi thử lại.');
+    }
+
+    const nextDocument: Record<string, unknown> = {
+      ...latest,
+      answers: update.answers,
+      status: update.status,
+      updatedAt: now,
+    };
+    const optionalFields: Array<keyof typeof update> = ['totalScore', 'grade', 'gradeState', 'gradingSource', 'approvalMode', 'teacherApprovedAt'];
+    for (const field of optionalFields) {
+      if (update[field] === undefined) delete nextDocument[field];
+      else nextDocument[field] = update[field];
+    }
+
+    const previousGrade = latest.grade && typeof latest.grade === 'object' ? latest.grade : undefined;
+    const historyGrade = previousGrade || update.grade;
+    if (historyGrade) {
+      const historyId = onlineGradeHistoryId(latest, action);
+      const history: SubmissionGradeHistoryDoc = {
+        id: historyId,
+        submissionId: latest.id,
+        teacherId: asString(context.assignment.teacherId) || asString(context.exam.teacherId) || context.access.ownerId,
+        classId: context.classId,
+        studentId: asString(latest.studentId),
+        assignmentId: context.assignmentRef.id,
+        action,
+        actorUid: context.uid,
+        grade: historyGrade,
+        createdAt: now,
+      };
+      transaction.set(db.collection('submissionGradeHistory').doc(historyId), history);
+    }
+    transaction.set(context.attemptRef, nextDocument);
+    committed = nextDocument as unknown as StoredOnlineAttempt;
+  });
+  if (!committed) throw new ClassroomOnlineError(500, 'Không thể lưu kết quả chấm.');
+  try {
+    await syncOnlineSkillEvidence(db, context, committed, now);
+  } catch (error) {
+    // Điểm/lịch sử đã nằm trong transaction; hồ sơ năng lực là projection phụ và sẽ
+    // được đồng bộ lại ở lần thay đổi điểm kế tiếp nếu Firestore tạm thời lỗi.
+    console.error('[classroom-online] không đồng bộ hồ sơ năng lực', error);
+  }
+  return committed;
+};
+
+const teacherOnlineSaveGrade = async (db: Db, body: Body, res: ResponseLike): Promise<void> => {
+  const context = await loadTeacherOnlineAttempt(db, body);
+  if (context.attempt.status === 'in_progress') throw new ClassroomOnlineError(409, 'Học sinh chưa nộp bài; chưa thể chấm.');
+  const questions = examQuestions(context.exam);
+  const maxScore = finiteNumber(context.assignment.maxScore) ?? finiteNumber(context.exam.maxScore) ?? finiteNumber(context.attempt.maxScore) ?? 0;
+  const source: OnlineGradeSource = {
+    answers: storedAnswers(context.attempt.answers, questions),
+    maxScore,
+    status: context.attempt.status,
+    ...(context.attempt.grade ? { grade: context.attempt.grade } : {}),
+  };
+  const now = nowIso();
+  const update = applyTeacherOnlineGradeEdit(source, questions, teacherGradeEdit(body.edit), now);
+  const committed = await commitOnlineGradeChange(db, context, update, 'manual_edit', now);
+  return void res.status(200).json({ saved: true, attempt: teacherAttemptProjection(context, committed) });
+};
+
+const teacherOnlineApproveGrade = async (db: Db, body: Body, res: ResponseLike): Promise<void> => {
+  const context = await loadTeacherOnlineAttempt(db, body);
+  if (context.attempt.status === 'in_progress') throw new ClassroomOnlineError(409, 'Học sinh chưa nộp bài; chưa thể duyệt.');
+  const storedTotalScore = finiteNumber(context.attempt.totalScore);
+  const source: OnlineGradeSource = {
+    answers: storedAnswers(context.attempt.answers, examQuestions(context.exam)),
+    maxScore: finiteNumber(context.assignment.maxScore) ?? finiteNumber(context.exam.maxScore) ?? finiteNumber(context.attempt.maxScore) ?? 0,
+    status: context.attempt.status,
+    ...(context.attempt.grade ? { grade: context.attempt.grade } : {}),
+    ...(storedTotalScore !== null ? { totalScore: storedTotalScore } : {}),
+  };
+  const now = nowIso();
+  const update = approveOnlineGrade(source, now);
+  const committed = await commitOnlineGradeChange(db, context, update, 'approve', now);
+  return void res.status(200).json({ approved: true, attempt: teacherAttemptProjection(context, committed) });
+};
+
+const teacherOnlineDeleteGrade = async (db: Db, body: Body, res: ResponseLike): Promise<void> => {
+  const context = await loadTeacherOnlineAttempt(db, body);
+  const questions = examQuestions(context.exam);
+  const source: OnlineGradeSource = {
+    answers: storedAnswers(context.attempt.answers, questions),
+    maxScore: finiteNumber(context.assignment.maxScore) ?? finiteNumber(context.exam.maxScore) ?? finiteNumber(context.attempt.maxScore) ?? 0,
+    status: context.attempt.status,
+    ...(context.attempt.grade ? { grade: context.attempt.grade } : {}),
+  };
+  const update = removeOnlineGrade(source, questions);
+  const committed = await commitOnlineGradeChange(db, context, update, 'delete', nowIso());
+  return void res.status(200).json({ deleted: true, attempt: teacherAttemptProjection(context, committed) });
+};
+
+const teacherOnlineRegrade = async (db: Db, body: Body, res: ResponseLike): Promise<void> => {
+  const context = await loadTeacherOnlineAttempt(db, body);
+  if (context.attempt.status === 'in_progress') throw new ClassroomOnlineError(409, 'Học sinh chưa nộp bài; chưa thể chấm lại.');
+  const questions = examQuestions(context.exam);
+  const rawAnswers = storedAnswers(context.attempt.answers, questions).map(answer => ({ questionId: answer.questionId, answer: answer.answer }));
+  const maxScore = finiteNumber(context.assignment.maxScore) ?? finiteNumber(context.exam.maxScore) ?? finiteNumber(context.attempt.maxScore) ?? 0;
+  const now = nowIso();
+  const update = buildAutomaticOnlineGrade({
+    questions,
+    answers: rawAnswers,
+    maxScore,
+    gradingPolicy: gradingPolicyFor(context.assignment, questions),
+    now,
+  });
+  const committed = await commitOnlineGradeChange(db, context, update, 'automatic_regrade', now);
+  return void res.status(200).json({ regraded: true, attempt: teacherAttemptProjection(context, committed) });
+};
+
+const teacherOnlineAiRegrade = async (db: Db, body: Body, res: ResponseLike): Promise<void> => {
+  const context = await loadTeacherOnlineAttempt(db, body);
+  if (context.attempt.status === 'in_progress') throw new ClassroomOnlineError(409, 'Học sinh chưa nộp bài; chưa thể chấm lại.');
+  const questions = examQuestions(context.exam);
+  const maxScore = finiteNumber(context.assignment.maxScore) ?? finiteNumber(context.exam.maxScore) ?? finiteNumber(context.attempt.maxScore) ?? 0;
+  const rawAnswers = storedAnswers(context.attempt.answers, questions).map(answer => ({
+    questionId: answer.questionId,
+    answer: answer.answer,
+  }));
+  const answerKey = questions.map((question, index) => [
+    `Câu ${index + 1}: ${asString(question.correctAnswer) || '[không có đáp án chuẩn]'}`,
+    question.explanation ? `Mốc giải thích: ${asString(question.explanation)}` : '',
+  ].filter(Boolean).join('\n')).join('\n');
+  const studentText = JSON.stringify(rawAnswers, null, 2);
+  const reservation = await reserveQuota(db, context.uid, 'teacher', asString(context.attempt.studentId));
+  if (reservation.verdict.allowed <= 0) throw new ClassroomOnlineError(429, reservation.verdict.reason);
+
+  const raw = await callGeminiVision(
+    buildHomeworkGradingPrompt({
+      answerKey,
+      rubric: asString(context.assignment.rubric),
+      maxScore,
+      assignmentTitle: asString(context.assignment.title) || asString(context.exam.title),
+      assignmentText: questions.map((question, index) => `Câu ${index + 1}: ${question.content}`).join('\n'),
+      gradingInstructions: asString(context.assignment.gradingInstructions),
+      studentText,
+    }),
+    [],
+    getGradingApiKey(),
+    GRADING_MODEL,
+    { maxOutputTokens: 8192, jsonMode: true },
+  );
+  const parsed = parseHomeworkGradeForCommit(raw, maxScore, questions.every(question => !asString(question.correctAnswer).trim()), 0);
+  const now = nowIso();
+  const update = applyAiOnlineGradeSuggestion({ answers: rawAnswers, maxScore }, questions, {
+    score: parsed.grade.score,
+    maxScore: parsed.grade.maxScore,
+    feedback: parsed.grade.feedbackForStudent,
+    noteForTeacher: parsed.grade.noteForTeacher,
+    strengths: parsed.grade.strengths,
+    weaknesses: parsed.grade.weaknesses,
+    weakTopics: parsed.grade.weakTopics,
+    questionResults: parsed.grade.questionResults,
+    gradedWithoutAnswerKey: parsed.grade.gradedWithoutAnswerKey,
+  }, now);
+  const committed = await commitOnlineGradeChange(db, context, update, 'ai_regrade', now);
+  return void res.status(200).json({ regraded: true, source: 'ai', attempt: teacherAttemptProjection(context, committed) });
+};
+
+const teacherOnlineSubmissions = async (db: Db, body: Body, res: ResponseLike): Promise<void> => {
+  const uid = await verifyTeacherUid(body.idToken);
+  const classId = asString(body.classId).trim();
+  const assignmentId = asString(body.assignmentId).trim();
+  if (!validId(classId) || !validId(assignmentId)) throw new ClassroomOnlineError(400, 'Thiếu mã lớp hoặc bài giao hợp lệ.');
+  const accessRecord = await readClassAccess(db, classId, uid);
+  if (!accessRecord) throw new ClassroomOnlineError(403, 'Bạn không có quyền xem bài làm trong lớp này.');
+  const assignmentRef = db.collection('assignments').doc(assignmentId);
+  const assignment = await readDocData(assignmentRef, 'Bài giao không còn tồn tại.');
+  const examId = asString(assignment.examId).trim();
+  if (asString(assignment.classId) !== classId || assignment.type !== 'exam' || !validId(examId)) {
+    throw new ClassroomOnlineError(403, 'Bài giao không thuộc lớp hoặc không phải hoạt động online.');
+  }
+  const examRef = db.collection('exams').doc(examId);
+  const exam = await readDocData(examRef, 'Đề online không còn tồn tại.');
+  const snapshot = await db.collection('examSubmissions')
+    .where('classId', '==', classId)
+    .limit(500)
+    .get();
+  const base = { uid, classId, access: accessRecord.access, assignmentRef, assignment, examRef, exam };
+  const submissions = snapshot.docs
+    .map(document => ({ id: document.id, ...document.data() } as StoredOnlineAttempt))
+    .filter(attempt => attempt.assignmentId === assignmentId && attempt.examId === examId)
+    .map(attempt => teacherAttemptProjection({
+      ...base,
+      attemptRef: db.collection('examSubmissions').doc(attempt.id),
+      attempt,
+    }, attempt));
+  return void res.status(200).json({ submissions });
+};
+
 export const handleClassroomOnlineAction = async (db: Db, body: Body, res: ResponseLike): Promise<boolean> => {
   const action = asString(body.action);
   try {
+    if (action === 'studentOnlineSubmissions') { await studentOnlineSubmissions(db, body, res); return true; }
     if (action === 'studentExamStart') { await startExam(db, body, res); return true; }
     if (action === 'studentExamResume') { await resumeExam(db, body, res); return true; }
     if (action === 'studentExamSave') { await saveExam(db, body, res); return true; }
     if (action === 'studentExamSubmit') { await submitExam(db, body, res); return true; }
+    if (action === 'teacherOnlineSaveGrade') { await teacherOnlineSaveGrade(db, body, res); return true; }
+    if (action === 'teacherOnlineApproveGrade') { await teacherOnlineApproveGrade(db, body, res); return true; }
+    if (action === 'teacherOnlineDeleteGrade') { await teacherOnlineDeleteGrade(db, body, res); return true; }
+    if (action === 'teacherOnlineRegrade') { await teacherOnlineRegrade(db, body, res); return true; }
+    if (action === 'teacherOnlineAutoGrade') { await teacherOnlineRegrade(db, body, res); return true; }
+    if (action === 'teacherOnlineAiRegrade') { await teacherOnlineAiRegrade(db, body, res); return true; }
+    if (action === 'teacherOnlineSubmissions') { await teacherOnlineSubmissions(db, body, res); return true; }
     return false;
   } catch (error) {
     if (error instanceof ClassroomOnlineError) {
       res.status(error.statusCode).json({ error: error.message });
+      return true;
+    }
+    if (error instanceof OnlineGradeValidationError) {
+      res.status(422).json({ error: error.message });
       return true;
     }
     throw error;

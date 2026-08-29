@@ -28,6 +28,7 @@ import { GradeReviewModal, type GradeReviewValue } from './GradeReviewModal';
 import { QuestionResultsList } from './QuestionResultsList';
 import { currentSubmissionsForAssignment, selectedCurrentSubmissions, selectedSubmissionsForAssignment, submissionsForHistoryMode, summarizeSelection, type SubmissionHistoryMode } from '../../../lib/classroom/submissionSelection';
 import { renameAssignment } from '../../../lib/classroom/teacherService';
+import { OnlineAssignmentReview } from './OnlineAssignmentReview';
 
 interface Props {
   classId: string;
@@ -1042,7 +1043,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                 <button onClick={() => moBai(a.id)} className="min-w-0 flex-1 text-left">
                   <p className="truncate font-black text-slate-900">{a.title}</p>
                   <p className="text-xs font-semibold text-slate-500">
-                    {a.isOpen ? 'Đang mở' : 'Đã đóng'} · {(a.answerKey || (a.answerKeyImageUrls?.length ?? 0) > 0) ? 'có đáp án chuẩn' : 'không có đáp án'}
+                    {a.isOpen ? 'Đang mở' : 'Đã đóng'} · {a.type === 'exam' ? 'bài kiểm tra online' : ((a.answerKey || (a.answerKeyImageUrls?.length ?? 0) > 0) ? 'có đáp án chuẩn' : 'không có đáp án')}
                     {(a.attachments?.length ?? 0) > 0 ? ` · ${a.attachments!.length} file đề` : ' · chưa đính kèm đề'}
                     {a.gradingInstructions ? ' · có lệnh chấm riêng' : ''}
                     {a.answerKeyByAi ? ' · đáp án do AI giải' : ''}
@@ -1056,7 +1057,11 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                 >
                   <PenLine className="h-3.5 w-3.5" /> Đổi tên
                 </button>
-                {(() => {
+                {a.type === 'exam' ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-3 py-2 text-xs font-black text-indigo-700">
+                    <ClipboardList className="h-3.5 w-3.5" /> Online · xem lượt làm
+                  </span>
+                ) : (() => {
                   // Đếm THEO HỌC SINH (distinct), không đếm số submission: một em nộp lại 2 lần
                   // là 2 document nhưng chỉ là 1/30 đã nộp, không thể hiện "2/1".
                   const soHsDaNop = new Set(baiNopCua(a.id).map(s => s.studentId)).size;
@@ -1082,18 +1087,32 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                 >
                   {a.isOpen ? 'Đóng bài' : 'Mở lại'}
                 </button>
-                <button
-                  onClick={() => chamCaLop(a)}
-                  disabled={tienDo !== ''}
-                  className="inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-4 py-2 text-xs font-black text-white transition hover:bg-slate-800 disabled:opacity-50"
-                >
-                  {tienDo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-                  {tienDo || 'Chấm cả lớp'}
-                </button>
+                {a.type === 'exam' ? (
+                  <button
+                    type="button"
+                    onClick={() => moBai(a.id)}
+                    className="inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-4 py-2 text-xs font-black text-white transition hover:bg-indigo-700"
+                  >
+                    <ClipboardList className="h-4 w-4" /> Xem lượt làm
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => chamCaLop(a)}
+                    disabled={tienDo !== ''}
+                    className="inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-4 py-2 text-xs font-black text-white transition hover:bg-slate-800 disabled:opacity-50"
+                  >
+                    {tienDo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+                    {tienDo || 'Chấm cả lớp'}
+                  </button>
+                )}
               </div>
 
               {(submissionsOnly || openId === a.id) && (
                 <div className="border-t border-slate-100 p-4">
+                  {a.type === 'exam' ? (
+                    <OnlineAssignmentReview classId={classId} assignment={a} showToast={showToast} />
+                  ) : (
+                    <>
                   {/* NỘI DUNG ĐÃ GIAO — phải xem lại và sửa được. Đáp án AI giải ra mà không mở
                       lại được thì lời hứa "thầy cô soát trước khi chấm" chỉ đúng đúng một lần. */}
                   {!submissionsOnly && <div className="mb-5 rounded-2xl bg-slate-50 p-4">
@@ -1223,6 +1242,8 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                   <p className="mt-3 rounded-2xl bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-500">
                     Điểm chỉ vào hồ sơ học tập của học sinh sau khi thầy cô bấm <b>Duyệt điểm</b>. Máy chấm không tự duyệt cho mình.
                   </p>
+                    </>
+                  )}
                 </div>
               )}
             </div>

@@ -19,6 +19,16 @@ export interface HomeworkSkillEvidenceInput {
   grade: HomeworkGradeInput;
 }
 
+export interface OnlineSkillEvidenceInput {
+  attemptId: string;
+  assignmentId?: string;
+  skillIds?: string[];
+  score: number;
+  maxScore: number;
+  teacherApproved: boolean;
+  gradedAt: string;
+}
+
 interface PracticeEvidenceInput {
   attemptId: string;
   setId: string;
@@ -93,6 +103,39 @@ export const buildHomeworkSkillEvidence = ({ submissionId, assignmentId, grade }
     ...(assignmentId?.trim() ? { assignmentId: assignmentId.trim() } : {}),
     submissionId: submissionId.trim(),
     assessedAt: grade.gradedAt.trim(),
+    approved: true,
+  }));
+};
+
+/** Online attempt chỉ trở thành minh chứng homework sau khi có điểm chính thức. */
+export const buildOnlineSkillEvidence = ({
+  attemptId,
+  assignmentId,
+  skillIds,
+  score,
+  maxScore,
+  teacherApproved,
+  gradedAt,
+}: OnlineSkillEvidenceInput): SkillEvidence[] => {
+  const sourceId = attemptId.trim();
+  const assessedAt = gradedAt.trim();
+  if (!teacherApproved || !sourceId || !assessedAt) return [];
+
+  const ids = [...new Set(uniqueStrings(skillIds))]
+    .filter(skillId => SKILL_CATALOG.some(skill => skill.skillId === skillId));
+  if (ids.length === 0) return [];
+
+  const ratio = maxScore > 0 ? clamp01(score / maxScore) : 0;
+  return ids.map(skillId => ({
+    evidenceId: `${sourceId}:${skillId}`,
+    skillId,
+    source: 'homework' as const,
+    signal: signalFromRatio(ratio),
+    scoreRatio: ratio,
+    confidence: 0.8,
+    ...(assignmentId?.trim() ? { assignmentId: assignmentId.trim() } : {}),
+    submissionId: sourceId,
+    assessedAt,
     approved: true,
   }));
 };

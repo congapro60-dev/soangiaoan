@@ -1,4 +1,5 @@
 import type { ClassReportQuestionCatalogItem, ClassReportQuestionSource } from './questionCatalog';
+import type { ActivityPurpose, DeliveryMode } from './types';
 
 export type { ClassReportQuestionCatalogItem, ClassReportQuestionSource } from './questionCatalog';
 
@@ -36,6 +37,8 @@ export interface ClassReportAssignment {
   id: string;
   title: string;
   type: string;
+  purpose?: ActivityPurpose;
+  deliveryMode?: DeliveryMode;
   maxScore?: number | null;
   /** Nội dung câu hỏi đã chuẩn hóa từ đề online hoặc phần chữ của đề upload. */
   questionCatalog?: readonly ClassReportQuestionCatalogItem[];
@@ -107,7 +110,7 @@ export interface ClassReportRecommendation {
 }
 
 export interface ClassAssignmentReport {
-  assignment: Pick<ClassReportAssignment, 'id' | 'title' | 'type' | 'maxScore'> & {
+  assignment: Pick<ClassReportAssignment, 'id' | 'title' | 'type' | 'purpose' | 'deliveryMode' | 'maxScore'> & {
     questionCatalog?: ClassReportQuestionCatalogItem[];
     questionSources?: ClassReportQuestionSource[];
   };

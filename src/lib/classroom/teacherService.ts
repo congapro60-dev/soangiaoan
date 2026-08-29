@@ -1,10 +1,25 @@
 import { auth } from '../firebase';
-import type { Exam, ExamSubmission } from '../../types';
+import type { Exam, ExamQuestion, ExamSubmission } from '../../types';
 import type {
   AssignmentDoc,
+  ActivityExportBundle,
   ClassInvitationDoc,
   ClassMemberDoc,
 } from './types';
+import type { TeacherOnlineGradeEdit } from './onlineGradeLifecycle';
+
+export interface CreateSupportActivityInput {
+  classId: string;
+  sourceReportId: string;
+  purpose: 'practice' | 'remediation' | 'assignment' | 'assessment';
+  title: string;
+  objective: string;
+  durationMinutes?: number;
+  dueAt?: string;
+  targetStudentIds?: string[];
+  skillIds?: string[];
+  questions: ExamQuestion[];
+}
 
 export interface TeacherAccessView {
   role: 'owner' | 'co_owner';
@@ -93,6 +108,31 @@ export const createExamAssignment = async (input: {
   return result.assignment;
 };
 
+export const createSupportActivity = async (
+  input: CreateSupportActivityInput,
+): Promise<{ exam: Exam; assignment: AssignmentDoc }> => {
+  const result = await callTeacherApi<{ exam: Exam; assignment: AssignmentDoc }>({
+    action: 'createSupportActivity',
+    ...input,
+  });
+  return result;
+};
+
+export const updateActivityExportBundle = async (
+  assignmentId: string,
+  examId: string,
+  bundle: ActivityExportBundle,
+  classId?: string,
+): Promise<void> => {
+  await callTeacherApi({
+    action: 'updateActivityExportBundle',
+    assignmentId,
+    examId,
+    ...(classId ? { classId } : {}),
+    bundle,
+  });
+};
+
 export const listAccessibleExams = async (classId: string): Promise<Exam[]> => {
   const result = await callTeacherApi<{ exams: Exam[] }>({ action: 'teacherExams', classId });
   return result.exams || [];
@@ -106,4 +146,59 @@ export const getAccessibleExam = async (classId: string, examId: string): Promis
 export const listAccessibleExamSubmissions = async (classId: string, examId: string): Promise<ExamSubmission[]> => {
   const result = await callTeacherApi<{ submissions: ExamSubmission[] }>({ action: 'teacherExamSubmissions', classId, examId });
   return result.submissions || [];
+};
+
+export const listOnlineAssignmentSubmissions = async (classId: string, assignmentId: string): Promise<ExamSubmission[]> => {
+  const result = await callTeacherApi<{ submissions: ExamSubmission[] }>({ action: 'teacherOnlineSubmissions', classId, assignmentId });
+  return result.submissions || [];
+};
+
+export const saveOnlineGrade = async (
+  attemptId: string,
+  edit: TeacherOnlineGradeEdit,
+  classId?: string,
+): Promise<ExamSubmission> => {
+  const result = await callTeacherApi<{ attempt: ExamSubmission }>({
+    action: 'teacherOnlineSaveGrade',
+    attemptId,
+    ...(classId ? { classId } : {}),
+    edit,
+  });
+  return result.attempt;
+};
+
+export const approveOnlineGrade = async (attemptId: string, classId?: string): Promise<ExamSubmission> => {
+  const result = await callTeacherApi<{ attempt: ExamSubmission }>({
+    action: 'teacherOnlineApproveGrade',
+    attemptId,
+    ...(classId ? { classId } : {}),
+  });
+  return result.attempt;
+};
+
+export const deleteOnlineGrade = async (attemptId: string, classId?: string): Promise<ExamSubmission> => {
+  const result = await callTeacherApi<{ attempt: ExamSubmission }>({
+    action: 'teacherOnlineDeleteGrade',
+    attemptId,
+    ...(classId ? { classId } : {}),
+  });
+  return result.attempt;
+};
+
+export const regradeOnlineGrade = async (attemptId: string, classId?: string): Promise<ExamSubmission> => {
+  const result = await callTeacherApi<{ attempt: ExamSubmission }>({
+    action: 'teacherOnlineAiRegrade',
+    attemptId,
+    ...(classId ? { classId } : {}),
+  });
+  return result.attempt;
+};
+
+export const autoGradeOnline = async (attemptId: string, classId?: string): Promise<ExamSubmission> => {
+  const result = await callTeacherApi<{ attempt: ExamSubmission }>({
+    action: 'teacherOnlineAutoGrade',
+    attemptId,
+    ...(classId ? { classId } : {}),
+  });
+  return result.attempt;
 };

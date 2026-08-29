@@ -190,6 +190,65 @@ describe('POST /api/classroom · teacher collaboration', () => {
     expect(assignment).not.toHaveProperty('answerKey');
   });
 
+  it('tạo hoạt động hỗ trợ từ báo cáo với cùng snapshot cho đề và bài giao', async () => {
+    const harness = buildHarness();
+    harness.store.classes = { 'shared-class': { teacherId: 'owner-1', name: '11 Columbus', track: 'Toán', grade: '11' } };
+    harness.store.classMembers = {};
+    harness.store['classes/shared-class/students'] = {
+      'student-1': { name: 'Nguyễn An' },
+      'student-2': { name: 'Trần Bình' },
+    };
+
+    const res = await call({
+      action: 'createSupportActivity',
+      classId: 'shared-class',
+      sourceReportId: 'assignment-1',
+      purpose: 'remediation',
+      title: 'Phiếu hỗ trợ phương trình',
+      objective: 'Sửa lỗi nhầm công thức.',
+      durationMinutes: 20,
+      targetStudentIds: ['student-1', 'student-2', 'student-1'],
+      questions: [
+        { id: 'support-q1', type: 'essay', content: 'Giải phương trình tương tự.', points: 2 },
+        { id: 'support-q2', type: 'multiple_choice', content: 'Chọn quy tắc đúng.', options: ['A', 'B', 'C', 'D'], correctAnswer: 'A', points: 1 },
+      ],
+    });
+
+    expect(res.statusCode).toBe(200);
+    const exams = Object.values(harness.store.exams || {});
+    const assignments = Object.values(harness.store.assignments || {});
+    expect(exams).toHaveLength(1);
+    expect(assignments).toHaveLength(1);
+    expect(exams[0]).toEqual(expect.objectContaining({ sourceReportId: 'assignment-1', contentVersion: expect.any(String) }));
+    expect(assignments[0]).toEqual(expect.objectContaining({
+      type: 'exam',
+      purpose: 'remediation',
+      sourceReportId: 'assignment-1',
+      targetStudentIds: ['student-1', 'student-2'],
+      contentVersion: exams[0].contentVersion,
+    }));
+    expect(assignments[0]).not.toHaveProperty('answerKey');
+  });
+
+  it('từ chối hoạt động hỗ trợ có học sinh ngoài lớp hoặc câu hỏi rỗng', async () => {
+    const harness = buildHarness();
+    harness.store.classes = { 'shared-class': { teacherId: 'owner-1', name: '11 Columbus' } };
+    harness.store['classes/shared-class/students'] = { 'student-1': { name: 'Nguyễn An' } };
+
+    const res = await call({
+      action: 'createSupportActivity',
+      classId: 'shared-class',
+      sourceReportId: 'assignment-1',
+      purpose: 'practice',
+      title: 'Phiếu hỗ trợ',
+      questions: [{ id: 'support-q1', type: 'essay', content: '   ', points: 1 }],
+      targetStudentIds: ['outside-class'],
+    });
+
+    expect(res.statusCode).toBe(422);
+    expect(Object.values(harness.store.exams || {})).toHaveLength(0);
+  });
+
   it('chấp nhận lời mời chuyển quyền trong transaction và giữ chủ cũ làm đồng giáo viên', async () => {
     const harness = buildHarness();
     h.uid = 'co-1';

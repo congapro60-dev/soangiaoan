@@ -13,6 +13,7 @@ import {
 } from './_classroom-access.js';
 import type {
   AssignmentDoc,
+  ActivityExportBundle,
   ClassDoc,
   ClassInvitationDoc,
   ClassInvitationRole,
@@ -20,6 +21,9 @@ import type {
   StudentDoc,
   SubmissionDoc,
 } from '../src/lib/classroom/types.js';
+import { buildExamContentSnapshot } from '../src/lib/classroom/activitySnapshot.js';
+import type { ActivityPurpose, GradingPolicy } from '../src/lib/classroom/types.js';
+import type { Exam, ExamQuestion, QuestionType } from '../src/types.js';
 
 type Db = FirebaseFirestore.Firestore;
 type Body = Record<string, unknown>;
@@ -104,6 +108,49 @@ const submissionFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData
   ...data,
 }) as SubmissionDoc;
 
+const onlineSubmissionStatus = (value: unknown): SubmissionDoc['status'] | null => {
+  if (value === 'in_progress') return 'grading';
+  if (value === 'submitted' || value === 'graded' || value === 'error') return value;
+  return null;
+};
+
+/**
+ * Chuẩn hoá một attempt online về cùng hợp đồng với bài nộp ảnh.
+ * Không đưa answers thô vào hồ sơ học sinh; màn hình chấm online vẫn đọc attempt
+ * qua endpoint riêng có kiểm quyền theo lớp/đề.
+ */
+const onlineSubmissionFromSnapshot = (
+  id: string,
+  data: FirebaseFirestore.DocumentData,
+  assignment: AssignmentDoc,
+): SubmissionDoc | null => {
+  const studentId = typeof data.studentId === 'string' ? data.studentId.trim() : '';
+  const assignmentId = typeof data.assignmentId === 'string' ? data.assignmentId.trim() : '';
+  const examId = typeof data.examId === 'string' ? data.examId.trim() : '';
+  const status = onlineSubmissionStatus(data.status);
+  if (!studentId || !assignmentId || assignmentId !== assignment.id || !examId || examId !== assignment.examId || !status) return null;
+
+  const grade = data.grade && typeof data.grade === 'object' && !Array.isArray(data.grade) ? data.grade : undefined;
+  const createdAt = [data.submittedAt, data.startedAt, data.updatedAt, data.createdAt]
+    .find(value => typeof value === 'string' && value.trim()) || '';
+  const updatedAt = [data.updatedAt, data.submittedAt, data.startedAt, data.createdAt]
+    .find(value => typeof value === 'string' && value.trim()) || createdAt;
+
+  return compact({
+    id,
+    teacherId: String(assignment.teacherId || ''),
+    classId: String(assignment.classId || ''),
+    studentId,
+    assignmentId,
+    fileUrls: [],
+    note: '',
+    status,
+    grade,
+    createdAt,
+    updatedAt,
+  }) as SubmissionDoc;
+};
+
 const studentFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData, classId: string): StudentDoc => ({
   id,
   classId,
@@ -145,6 +192,14 @@ const teacherAssignmentProjection = (id: string, data: FirebaseFirestore.Documen
     updatedAt: data.updatedAt,
     createdBy: data.createdBy,
     updatedBy: data.updatedBy,
+    purpose: data.purpose,
+    deliveryMode: data.deliveryMode,
+    skillIds: data.skillIds,
+    sourceReportId: data.sourceReportId,
+    gradingPolicy: data.gradingPolicy,
+    contentVersion: data.contentVersion,
+    exportBundle: data.exportBundle,
+    targetStudentIds: data.targetStudentIds,
   });
   return allowed as AssignmentDoc;
 };
@@ -293,26 +348,94 @@ export const handleTeacherSubmissions = async (db: Db, body: Body, res: VercelRe
     const assignmentSnapshot = await db.collection('assignments').doc(assignmentId).get();
     classId = typeof assignmentSnapshot.data()?.classId === 'string' ? assignmentSnapshot.data()?.classId : '';
   }
-  if (!classId && studentId) {
+  if (studentId) {
     const identity = await identityFromIdToken(body.idToken);
     if (!identity) return void res.status(401).json({ error: 'Cần đăng nhập bằng tài khoản giáo viên.' });
+    const studentClassId = classId;
     const snapshot = await db.collection('submissions').where('studentId', '==', studentId).get();
     const submissions: SubmissionDoc[] = [];
+    const accessByClass = new Map<string, Awaited<ReturnType<typeof readClassAccess>>>();
+    const readAccess = async (candidateClassId: string) => {
+      if (!candidateClassId) return null;
+      if (!accessByClass.has(candidateClassId)) accessByClass.set(candidateClassId, await readClassAccess(db, candidateClassId, identity.uid));
+      return accessByClass.get(candidateClassId) || null;
+    };
+    if (studentClassId) {
+      const context = await teacherContext(db, { ...body, classId: studentClassId }, res);
+      if (!context) return;
+      accessByClass.set(studentClassId, {
+        ref: context.classRef,
+        data: context.classData,
+        access: context.access,
+      });
+    }
     for (const document of snapshot.docs) {
       const submission = submissionFromSnapshot(document.id, document.data() || {});
-      const context = await readClassAccess(db, String(submission.classId || ''), identity.uid);
+      if (studentClassId && submission.classId !== studentClassId) continue;
+      if (assignmentId && submission.assignmentId !== assignmentId) continue;
+      const context = await readAccess(String(submission.classId || ''));
       if (context && submission.teacherId === context.data.teacherId) submissions.push(submission);
+    }
+
+    // Hồ sơ học sinh dùng chung một hợp đồng với bài nộp ảnh. Bài online được
+    // ghép qua bài giao đã xác thực; không nhận attempt chỉ vì biết studentId.
+    const onlineSnapshot = await db.collection('examSubmissions').where('studentId', '==', studentId).get();
+    const onlineClassIds = studentClassId
+      ? [studentClassId]
+      : [...new Set(onlineSnapshot.docs
+        .map(document => document.data() || {})
+        .map(data => typeof data.classId === 'string' ? data.classId.trim() : '')
+        .filter(Boolean))];
+    const assignmentsById = new Map<string, AssignmentDoc>();
+    for (const candidateClassId of onlineClassIds) {
+      const context = await readAccess(candidateClassId);
+      if (!context) continue;
+      const assignmentSnapshot = await db.collection('assignments').where('classId', '==', candidateClassId).get();
+      for (const document of assignmentSnapshot.docs) {
+        const assignment = assignmentFromSnapshot(document.id, document.data() || {});
+        if (assignment.type === 'exam' && assignment.teacherId === context.data.teacherId) assignmentsById.set(assignment.id, assignment);
+      }
+    }
+    for (const document of onlineSnapshot.docs) {
+      const data = document.data() || {};
+      const candidateClassId = typeof data.classId === 'string' ? data.classId.trim() : '';
+      const candidateAssignmentId = typeof data.assignmentId === 'string' ? data.assignmentId.trim() : '';
+      if (studentClassId && candidateClassId !== studentClassId) continue;
+      if (assignmentId && candidateAssignmentId !== assignmentId) continue;
+      const assignment = assignmentsById.get(candidateAssignmentId);
+      const context = await readAccess(candidateClassId);
+      if (!context || !assignment || assignment.classId !== candidateClassId || assignment.teacherId !== context.data.teacherId) continue;
+      const onlineSubmission = onlineSubmissionFromSnapshot(document.id, data, assignment);
+      if (onlineSubmission && onlineSubmission.studentId === studentId) submissions.push(onlineSubmission);
     }
     submissions.sort((left, right) => String(right.createdAt || '').localeCompare(String(left.createdAt || '')));
     return void res.status(200).json({ submissions });
   }
   const context = await teacherContext(db, { ...body, classId }, res);
   if (!context) return;
-  const snapshot = await db.collection('submissions').where('classId', '==', context.classId).get();
-  const submissions = snapshot.docs
+  const [snapshot, onlineSnapshot, assignmentSnapshot] = await Promise.all([
+    db.collection('submissions').where('classId', '==', context.classId).get(),
+    db.collection('examSubmissions').where('classId', '==', context.classId).get(),
+    db.collection('assignments').where('classId', '==', context.classId).get(),
+  ]);
+  const examAssignments = new Map<string, AssignmentDoc>();
+  for (const document of assignmentSnapshot.docs) {
+    const assignment = assignmentFromSnapshot(document.id, document.data() || {});
+    if (assignment.type === 'exam' && assignment.teacherId === context.classData.teacherId) examAssignments.set(assignment.id, assignment);
+  }
+  const legacySubmissions = snapshot.docs
     .map(document => submissionFromSnapshot(document.id, document.data() || {}))
     .filter(submission => submission.teacherId === context.classData.teacherId)
-    .filter(submission => !assignmentId || submission.assignmentId === assignmentId)
+    .filter(submission => !assignmentId || submission.assignmentId === assignmentId);
+  const onlineSubmissions = onlineSnapshot.docs
+    .map(document => {
+      const data = document.data() || {};
+      const assignment = typeof data.assignmentId === 'string' ? examAssignments.get(data.assignmentId.trim()) : undefined;
+      return assignment ? onlineSubmissionFromSnapshot(document.id, data, assignment) : null;
+    })
+    .filter((submission): submission is SubmissionDoc => submission !== null)
+    .filter(submission => !assignmentId || submission.assignmentId === assignmentId);
+  const submissions = [...legacySubmissions, ...onlineSubmissions]
     .sort((left, right) => String(right.createdAt || '').localeCompare(String(left.createdAt || '')));
   return void res.status(200).json({ submissions });
 };
@@ -393,6 +516,150 @@ export const handleCreateExamAssignment = async (db: Db, body: Body, res: Vercel
   return void res.status(200).json({ assignment });
 };
 
+const SUPPORT_PURPOSES = new Set<ActivityPurpose>(['practice', 'remediation', 'assignment', 'assessment']);
+const SUPPORT_QUESTION_TYPES = new Set<QuestionType>(['multiple_choice', 'true_false', 'short_answer', 'essay']);
+
+const supportText = (value: unknown, maxLength: number): string => {
+  const text = typeof value === 'string' ? value.trim() : '';
+  return text.length <= maxLength ? text : text.slice(0, maxLength).trim();
+};
+
+const supportQuestion = (value: unknown, index: number): ExamQuestion | null => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const input = value as Body;
+  const type = input.type;
+  if (typeof type !== 'string' || !SUPPORT_QUESTION_TYPES.has(type as QuestionType)) return null;
+  const content = supportText(input.content, 12_000);
+  const points = typeof input.points === 'number' && Number.isFinite(input.points) ? input.points : NaN;
+  if (!content || !Number.isFinite(points) || points <= 0 || points > 100) return null;
+  const id = safeId(input.id, `support-q-${index + 1}`);
+  const options = Array.isArray(input.options)
+    ? input.options.map(option => supportText(option, 2_000)).slice(0, 8)
+    : undefined;
+  const correctAnswer = supportText(input.correctAnswer, 2_000);
+  const explanation = supportText(input.explanation, 4_000);
+  return {
+    id,
+    type: type as QuestionType,
+    content,
+    ...(options && options.length > 0 ? { options } : {}),
+    ...(correctAnswer ? { correctAnswer } : {}),
+    ...(explanation ? { explanation } : {}),
+    points,
+  };
+};
+
+const normalizeSupportPurpose = (value: unknown): ActivityPurpose =>
+  typeof value === 'string' && SUPPORT_PURPOSES.has(value as ActivityPurpose)
+    ? value as ActivityPurpose
+    : 'remediation';
+
+const createSupportExamCode = (): string => `SP${Date.now().toString(36).toUpperCase().slice(-6)}${Math.random().toString(36).slice(2, 5).toUpperCase()}`;
+
+/** Tạo đề hỗ trợ và bản ghi bài giao từ đúng payload giáo viên đã duyệt. */
+export const handleCreateSupportActivity = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
+  const context = await teacherContext(db, body, res);
+  if (!context) return;
+
+  const sourceReportId = supportText(body.sourceReportId, 150);
+  const title = supportText(body.title, 200);
+  const objective = supportText(body.objective, 12_000);
+  const questions = Array.isArray(body.questions)
+    ? body.questions.map(supportQuestion).filter((question): question is ExamQuestion => question !== null)
+    : [];
+  if (!sourceReportId || !title || !objective || questions.length === 0 || questions.length > 40) {
+    return void res.status(422).json({ error: 'Hoạt động hỗ trợ thiếu nguồn báo cáo, mục tiêu hoặc câu hỏi hợp lệ.' });
+  }
+  if (new Set(questions.map(question => question.id)).size !== questions.length) {
+    return void res.status(422).json({ error: 'Các câu hỏi hỗ trợ không được trùng mã.' });
+  }
+
+  const rosterSnapshot = await context.classRef.collection('students').get();
+  const rosterIds = new Set(rosterSnapshot.docs.map(document => document.id));
+  const requestedTargets = Array.isArray(body.targetStudentIds)
+    ? [...new Set(body.targetStudentIds.filter((value): value is string => typeof value === 'string').map(value => value.trim()).filter(Boolean))]
+    : [];
+  if (requestedTargets.some(studentId => !rosterIds.has(studentId))) {
+    return void res.status(422).json({ error: 'Nhóm học sinh hỗ trợ có em không thuộc lớp này.' });
+  }
+
+  const purpose = normalizeSupportPurpose(body.purpose);
+  const durationMinutes = typeof body.durationMinutes === 'number' && Number.isFinite(body.durationMinutes)
+    ? Math.min(180, Math.max(5, Math.round(body.durationMinutes)))
+    : 20;
+  const skillIds = Array.isArray(body.skillIds)
+    ? [...new Set(body.skillIds.filter((value): value is string => typeof value === 'string').map(value => supportText(value, 120)).filter(Boolean))].slice(0, 30)
+    : [];
+  const gradingPolicy: GradingPolicy = questions.some(question => question.type === 'essay') ? 'teacher_review' : 'automatic';
+  const now = nowIso();
+  const examId = safeId(body.examId, `support_exam_${Date.now()}_${Math.random().toString(16).slice(2)}`);
+  const assignmentId = safeId(body.assignmentId, `support_assignment_${Date.now()}_${Math.random().toString(16).slice(2)}`);
+  const teacherName = identityFromIdToken(body.idToken).then(identity => identity?.displayName || identity?.email || context.uid);
+  const resolvedTeacherName = await teacherName;
+  const examBase: Exam = {
+    id: examId,
+    code: createSupportExamCode(),
+    title,
+    subjectId: supportText(context.classData.track, 100) || 'support',
+    subjectName: supportText(context.classData.track, 100) || undefined,
+    grade: supportText(context.classData.grade, 20) || undefined,
+    teacherId: String(context.classData.teacherId || context.uid),
+    teacherName: resolvedTeacherName,
+    questions,
+    durationMinutes,
+    maxScore: questions.reduce((sum, question) => sum + question.points, 0),
+    isActive: true,
+    allowReview: true,
+    shuffleQuestions: false,
+    createdAt: now,
+    updatedAt: now,
+    purpose,
+    sourceReportId,
+    ...(skillIds.length > 0 ? { skillIds } : {}),
+    isImmutableAfterPublish: true,
+  };
+  const snapshot = buildExamContentSnapshot(examBase);
+  const exam: Exam = {
+    ...examBase,
+    contentVersion: snapshot.contentVersion,
+    exportBundle: {
+      status: 'pending',
+      contentVersion: snapshot.contentVersion,
+      contentHash: snapshot.contentHash,
+    },
+  };
+  const assignment = compact({
+    id: assignmentId,
+    teacherId: String(context.classData.teacherId || context.uid),
+    classId: context.classId,
+    title,
+    description: objective,
+    type: 'exam',
+    examId,
+    dueAt: typeof body.dueAt === 'string' ? body.dueAt : undefined,
+    maxScore: exam.maxScore,
+    isOpen: body.isOpen !== false,
+    createdAt: now,
+    updatedAt: now,
+    createdBy: context.uid,
+    updatedBy: context.uid,
+    purpose,
+    deliveryMode: 'online',
+    sourceReportId,
+    gradingPolicy,
+    contentVersion: snapshot.contentVersion,
+    exportBundle: exam.exportBundle,
+    ...(skillIds.length > 0 ? { skillIds } : {}),
+    ...(requestedTargets.length > 0 ? { targetStudentIds: requestedTargets } : {}),
+  });
+
+  await db.runTransaction(async transaction => {
+    transaction.set(db.collection('exams').doc(examId), exam);
+    transaction.set(db.collection('assignments').doc(assignmentId), assignment);
+  });
+  return void res.status(200).json({ exam, assignment });
+};
+
 const assignmentContext = async (db: Db, body: Body, res: VercelResponse): Promise<{
   context: TeacherClassContext;
   assignmentRef: FirebaseFirestore.DocumentReference;
@@ -445,6 +712,56 @@ export const handleUpdateAssignment = async (db: Db, body: Body, res: VercelResp
   }
   await found.assignmentRef.update(patch);
   return void res.status(200).json({ updated: true, assignmentId: found.assignmentRef.id });
+};
+
+const exportUrl = (value: unknown): string => {
+  const url = typeof value === 'string' ? value.trim() : '';
+  return /^https:\/\//iu.test(url) && url.length <= 2_000 ? url : '';
+};
+
+export const handleUpdateActivityExportBundle = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
+  const found = await assignmentContext(db, body, res);
+  if (!found) return;
+  const examId = typeof body.examId === 'string' ? body.examId.trim() : '';
+  const rawBundle = body.bundle;
+  if (!examId || examId.includes('/') || !rawBundle || typeof rawBundle !== 'object' || Array.isArray(rawBundle)) {
+    return void res.status(422).json({ error: 'Thiếu mã đề hoặc gói backup hợp lệ.' });
+  }
+  if (found.assignment.examId !== examId) return void res.status(409).json({ error: 'Bài giao không còn trỏ tới đề này.' });
+  const examRef = db.collection('exams').doc(examId);
+  const examSnapshot = await examRef.get();
+  if (!examSnapshot.exists) return void res.status(404).json({ error: 'Không tìm thấy đề của hoạt động.' });
+  const exam = { id: examId, ...(examSnapshot.data() || {}) } as Exam;
+  if (exam.teacherId !== found.context.classData.teacherId) return void res.status(403).json({ error: 'Đề không thuộc không gian lớp này.' });
+  const snapshot = buildExamContentSnapshot(exam);
+  const input = rawBundle as Body;
+  const status = input.status === 'ready' || input.status === 'error' || input.status === 'pending' ? input.status : '';
+  const contentVersion = typeof input.contentVersion === 'string' ? input.contentVersion.trim() : '';
+  const contentHash = typeof input.contentHash === 'string' ? input.contentHash.trim() : '';
+  if (!status || contentVersion !== snapshot.contentVersion || contentHash !== snapshot.contentHash) {
+    return void res.status(409).json({ error: 'Gói backup không cùng phiên nội dung với đề hiện tại. Hãy tạo lại từ đề mới nhất.' });
+  }
+  const bundle: ActivityExportBundle = {
+    status,
+    contentVersion,
+    contentHash,
+    ...(exportUrl(input.studentPdfUrl) ? { studentPdfUrl: exportUrl(input.studentPdfUrl) } : {}),
+    ...(exportUrl(input.studentDocxUrl) ? { studentDocxUrl: exportUrl(input.studentDocxUrl) } : {}),
+    ...(exportUrl(input.teacherKeyPdfUrl) ? { teacherKeyPdfUrl: exportUrl(input.teacherKeyPdfUrl) } : {}),
+    ...(exportUrl(input.teacherKeyDocxUrl) ? { teacherKeyDocxUrl: exportUrl(input.teacherKeyDocxUrl) } : {}),
+    ...(typeof input.generatedAt === 'string' ? { generatedAt: input.generatedAt.slice(0, 80) } : {}),
+    ...(typeof input.errorMessage === 'string' ? { errorMessage: input.errorMessage.slice(0, 1_000) } : {}),
+  };
+  const requiredUrls = [bundle.studentPdfUrl, bundle.studentDocxUrl, bundle.teacherKeyPdfUrl, bundle.teacherKeyDocxUrl];
+  if (status === 'ready' && requiredUrls.some(url => !url)) {
+    return void res.status(422).json({ error: 'Không thể đánh dấu sẵn sàng khi thiếu một trong bốn file backup.' });
+  }
+  const nextDeliveryMode = status === 'ready' ? 'both' : found.assignment.deliveryMode;
+  await Promise.all([
+    found.assignmentRef.update({ exportBundle: bundle, contentVersion, ...(nextDeliveryMode ? { deliveryMode: nextDeliveryMode } : {}), updatedAt: nowIso(), updatedBy: found.context.uid }),
+    examRef.update({ exportBundle: bundle, contentVersion, updatedAt: nowIso() }),
+  ]);
+  return void res.status(200).json({ updated: true, assignmentId: found.assignmentRef.id, examId, exportBundle: bundle });
 };
 
 export const handleRenameClass = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
@@ -697,7 +1014,9 @@ export const handleTeacherAction = async (db: Db, body: Body, res: VercelRespons
   if (action === 'teacherRoster') { await handleTeacherRoster(db, body, res); return true; }
   if (action === 'createAssignment') { await handleCreateAssignment(db, body, res); return true; }
   if (action === 'createExamAssignment') { await handleCreateExamAssignment(db, body, res); return true; }
+  if (action === 'createSupportActivity') { await handleCreateSupportActivity(db, body, res); return true; }
   if (['renameAssignment', 'updateAssignmentContent', 'updateAssignmentDeadline', 'setAssignmentOpen'].includes(action)) { await handleUpdateAssignment(db, body, res); return true; }
+  if (action === 'updateActivityExportBundle') { await handleUpdateActivityExportBundle(db, body, res); return true; }
   if (action === 'renameClass') { await handleRenameClass(db, body, res); return true; }
   if (action === 'renameStudent') { await handleRenameStudent(db, body, res); return true; }
   if (action === 'addStudent') { await handleAddStudent(db, body, res); return true; }

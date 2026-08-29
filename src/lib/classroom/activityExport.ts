@@ -35,6 +35,8 @@ export interface ActivityExportOutputs {
   generatedAt?: string;
 }
 
+export type ActivityExportAudience = 'student' | 'teacher';
+
 const requestedFormatsFor = (format: ActivityExportFormat | 'both'): ActivityExportFormat[] =>
   format === 'both' ? ['pdf', 'docx'] : [format];
 
@@ -63,6 +65,32 @@ export const buildActivityExportPlan = (
     },
     snapshot,
   };
+};
+
+/** Tạo đúng nội dung tài liệu từ snapshot; không gọi AI và không đọc lại đề nguồn. */
+export const buildExamExportMarkdown = (
+  plan: Pick<ActivityExportPlan, 'title' | 'student' | 'teacher'>,
+  audience: ActivityExportAudience,
+): string => {
+  const questions = audience === 'student' ? plan.student.questions : plan.teacher.questions;
+  const lines = [`# ${plan.title}`, '', audience === 'student' ? '## Phiếu luyện tập' : '## Đáp án và hướng dẫn chấm', ''];
+  questions.forEach((question, index) => {
+    const teacherQuestion = audience === 'teacher' ? plan.teacher.questions[index] : undefined;
+    lines.push(`## Câu ${index + 1}`);
+    lines.push(question.content.trim());
+    if (question.options?.length) {
+      question.options.forEach((option, optionIndex) => {
+        lines.push(`${String.fromCharCode(65 + optionIndex)}. ${option}`);
+      });
+    }
+    lines.push(`Điểm: ${question.points}`);
+    if (teacherQuestion) {
+      lines.push(`Đáp án chuẩn: ${teacherQuestion.correctAnswer?.trim() || 'Giáo viên chấm theo bài làm và rubric.'}`);
+      if (teacherQuestion.explanation?.trim()) lines.push(`Giải thích: ${teacherQuestion.explanation.trim()}`);
+    }
+    lines.push('');
+  });
+  return lines.join('\n').trim();
 };
 
 export const finalizeActivityExportBundle = (
