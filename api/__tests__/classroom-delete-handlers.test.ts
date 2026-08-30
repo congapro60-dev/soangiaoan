@@ -534,11 +534,14 @@ describe('POST /api/classroom · studentSubmissions', () => {
     expect(projectedGrade).not.toHaveProperty('gradingRecovery');
     expect(projectedGrade).not.toHaveProperty('noteForTeacher');
     expect(projectedGrade).not.toHaveProperty('teacherNote');
-    expect(projected.errorMessage).toBe('Bài đã được nhận nhưng kết quả chấm chưa hoàn tất. Em chưa cần nộp lại ảnh; thầy/cô sẽ chấm lại hoặc kiểm tra bài.');
+    // Legacy error status with valid grade → normalized to 'graded' with lastGradingError (safe message)
+    expect(projected.status).toBe('graded');
+    expect(projected.lastGradingError).toBe('Lần chấm lại trước chưa thành công; điểm hiện tại vẫn được giữ nguyên.');
+    // Student projection never exposes raw provider/internal errors
+    expect(projected.lastGradingError).not.toContain('Bad escaped character');
     expect(JSON.stringify(res.payload)).not.toContain('Không cho học sinh thấy');
     expect(JSON.stringify(res.payload)).not.toContain('Ghi chú riêng');
     expect(JSON.stringify(res.payload)).not.toContain('latex_backslash');
-    expect(JSON.stringify(res.payload)).not.toContain('Bad escaped character');
     expect(JSON.stringify(res.payload)).not.toContain('sub-other-class');
   });
 

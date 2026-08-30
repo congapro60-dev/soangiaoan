@@ -45,6 +45,17 @@ const trangThai: Record<SubmissionDoc['status'], { nhan: string; mau: string }> 
   error: { nhan: 'Lỗi', mau: 'bg-red-50 text-red-700' },
 };
 
+const getApprovalLabel = (grade?: SubmissionDoc['grade']): { label: string; className: string } | null => {
+  if (!grade?.teacherApproved) {
+    if (grade) return { label: 'Chờ GV duyệt', className: 'bg-amber-50 text-amber-700' };
+    return null;
+  }
+  if (grade.approvalSource === 'student_ai') {
+    return { label: 'AI tự duyệt', className: 'bg-indigo-50 text-indigo-700' };
+  }
+  return { label: 'GV đã duyệt', className: 'bg-emerald-50 text-emerald-700' };
+};
+
 const denONhapNgay = (iso?: string): string => {
   if (!iso) return '';
   const d = new Date(iso);
@@ -159,13 +170,14 @@ interface BaiNopTheoLopProps {
   bulkDuyet: () => void | Promise<void>;
   bulkXoa: () => void | Promise<void>;
   dangBulk: string;
+  retryEvidenceSync: (s: SubmissionDoc) => void | Promise<void>;
 }
 
 /**
  * Danh sách ĐỦ CẢ LỚP theo một bài giao: em nào đã nộp (kèm trạng thái/điểm/hành động),
  * em nào chưa nộp — giáo viên kiểm soát một mắt nhìn thay vì đoán từ số lượng.
  */
-const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet, xoaBaiNop, dangXoaNop, xoaDiem, dangXoaDiem, selectedIds, toggleSelected, toggleAllSubmissions, bulkCham, bulkDuyet, bulkXoa, dangBulk }: BaiNopTheoLopProps) => {
+const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet, xoaBaiNop, dangXoaNop, xoaDiem, dangXoaDiem, selectedIds, toggleSelected, toggleAllSubmissions, bulkCham, bulkDuyet, bulkXoa, dangBulk, retryEvidenceSync }: BaiNopTheoLopProps) => {
   const [historyMode, setHistoryMode] = useState<SubmissionHistoryMode>('latest');
   const tenTheoId = new Map(lopHocSinh.map(hs => [hs.studentId, hs.name]));
   const daNopIds = new Set(baiNop.map(s => s.studentId));
@@ -274,6 +286,12 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
               {s.grade?.gradingRecovery && (
                 <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700">AI đã tự phục hồi định dạng</span>
               )}
+              {(s.status === 'graded' && s.lastGradingError) && (
+                <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700" title={s.lastGradingError}>Đã giữ điểm (lỗi chấm lại)</span>
+              )}
+              {s.evidenceSyncError && (
+                <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[11px] font-bold text-violet-700" title={s.evidenceSyncError}>Đồng bộ minh chứng đang chờ</span>
+              )}
               {nhanLanNop.get(s.id) && (
                 <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
                   nhanLanNop.get(s.id) === 'Lần nộp mới nhất' ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-100 text-slate-500'
@@ -281,8 +299,15 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                   {nhanLanNop.get(s.id)}
                 </span>
               )}
-              <span className="flex-1" />
-              {s.grade && <span className="text-sm font-black text-slate-900">{s.grade.score}/{s.grade.maxScore}</span>}
+              {/* Điểm + nhãn duyệt */}
+              <span className="flex items-center gap-1.5">
+                {s.grade && <span className="text-sm font-black text-slate-900">{s.grade.score}/{s.grade.maxScore}</span>}
+                {(() => {
+                  const approval = getApprovalLabel(s.grade);
+                  if (!approval) return null;
+                  return <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${approval.className}`}>{approval.label}</span>;
+                })()}
+              </span>
               <span className="text-[11px] font-semibold text-slate-400">
                 {new Date(s.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} · {s.fileUrls.length} tệp
               </span>
@@ -320,7 +345,26 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                 {s.grade?.gradedWithoutAnswerKey && (
                   <p className="text-xs font-bold text-amber-700">Bài chấm khi chưa đối chiếu đáp án chuẩn — nên soát lại giúp.</p>
                 )}
-                {s.status === 'error' && <p className="text-sm font-semibold text-red-700">{TEACHER_GRADING_ERROR_COPY}</p>}
+                {s.status === 'error' && !s.grade && <p className="text-sm font-semibold text-red-700">{TEACHER_GRADING_ERROR_COPY}</p>}
+                {s.status === 'graded' && s.grade && s.lastGradingError && (
+                  <div className="rounded-xl bg-amber-50 p-3 ring-1 ring-amber-100">
+                    <p className="text-sm font-bold text-amber-800">⚠️ Lần chấm lại chưa thành công; điểm hiện tại vẫn được giữ nguyên.</p>
+                    <p className="mt-1 text-xs font-semibold text-amber-700 break-words">{s.lastGradingError}</p>
+                  </div>
+                )}
+                {s.evidenceSyncError && (
+                  <div className="rounded-xl bg-violet-50 p-3 ring-1 ring-violet-100 flex items-center gap-2">
+                    <p className="flex-1 text-sm font-bold text-violet-800">⚠️ Điểm đã duyệt nhưng đồng bộ minh chứng thất bại.</p>
+                    <p className="text-xs font-semibold text-violet-700 break-words">{s.evidenceSyncError}</p>
+                    <button
+                      type="button"
+                      onClick={() => retryEvidenceSync(s)}
+                      className="inline-flex items-center gap-1 rounded-xl bg-violet-600 px-3 py-1.5 text-xs font-black text-white hover:bg-violet-700"
+                    >
+                      <RefreshCw className="h-3.5 w-3.5" /> Thử lại
+                    </button>
+                  </div>
+                )}
 
                 <div className="flex flex-wrap items-center gap-2">
                   <button
@@ -861,6 +905,28 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
     }
   };
 
+  /** Thử lại đồng bộ minh chứng sau khi duyệt điểm. */
+  const retryEvidenceSync = async (s: SubmissionDoc) => {
+    try {
+      const { getAuth } = await import('firebase/auth');
+      const currentUser = getAuth().currentUser;
+      const idToken = currentUser ? await currentUser.getIdToken() : '';
+      const res = await fetch('/api/classroom', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'retryEvidenceSync', submissionId: s.id, idToken }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || 'Thử lại thất bại');
+      }
+      showToast('Đã thử đồng bộ lại minh chứng.', 'success');
+      setTatCaBaiNop(await listSubmissionsForClass(classId, teacherId));
+    } catch (e) {
+      showToast('Thử lại thất bại: ' + (e instanceof Error ? e.message : 'Lỗi không xác định'), 'error');
+    }
+  };
+
   /** Sửa tay điểm + nhận xét — máy chấm sai mà AI chấm lại vẫn sai thì người phải can thiệp được. */
   const suaDiem = (s: SubmissionDoc, tenHocSinh: string) => {
     setDangChamLai({ submission: s, tenHocSinh });
@@ -1238,9 +1304,10 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                     bulkDuyet={() => duyetDaChon(a)}
                     bulkXoa={() => xoaDaChon(a)}
                     dangBulk={dangBulk}
+                    retryEvidenceSync={retryEvidenceSync}
                   />
                   <p className="mt-3 rounded-2xl bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-500">
-                    Điểm chỉ vào hồ sơ học tập của học sinh sau khi thầy cô bấm <b>Duyệt điểm</b>. Máy chấm không tự duyệt cho mình.
+                    Học sinh tự chấm AI thành công → tự động ghi nhận vào hồ sơ (AI tự duyệt). Chấm lại của thầy cô / sửa điểm tay → cần bấm <b>Duyệt điểm</b> mới vào hồ sơ.
                   </p>
                     </>
                   )}

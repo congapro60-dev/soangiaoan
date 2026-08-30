@@ -41,6 +41,8 @@ const historyForGrade = (
  * Chốt một kết quả AI cùng history trong MỘT transaction, nhưng chỉ khi worker
  * còn giữ đúng token đã claim. Worker cũ sau recovery/manual edit sẽ không thể
  * ghi grade hoặc tạo history giả.
+ * Cũng xóa lastGradingError, lastGradingErrorRaw, evidenceSyncError trong cùng
+ * transaction để tránh race condition với cleanup sau commit.
  */
 export const commitAiGradeIfClaimed = async (
   db: FirebaseFirestore.Firestore,
@@ -72,6 +74,9 @@ export const commitAiGradeIfClaimed = async (
       errorMessage: '',
       gradingRunId: null,
       updatedAt: now,
+      lastGradingError: '',
+      lastGradingErrorRaw: '',
+      evidenceSyncError: '',
     });
     committed = true;
   });

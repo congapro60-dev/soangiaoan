@@ -12,8 +12,6 @@ import {
   loadQuotaDoc,
   remainingQuota,
   reserveQuota,
-  rollQuota,
-  today,
   type GradeKind,
   parseDataUrl,
   type InlineImage,
@@ -40,9 +38,11 @@ import {
 import { JsonRecoveryError } from '../src/utils/jsonRepair.js';
 import { applyPracticeEvidence } from '../src/lib/classroom/profileMerge.js';
 import {
+  buildHomeworkSkillEvidence,
   buildPracticeSkillEvidence,
   skillIdsForTopics,
 } from '../src/lib/learning/skillProfile.js';
+import { syncApprovedGradeEvidence } from './_skill-profile.js';
 import {
   PRACTICE_ATTEMPTS_COL,
   PRACTICE_KEYS_COL,
@@ -234,6 +234,7 @@ const attemptHomeworkGrade = async (
   studentText: string,
   apiKey: string,
   retryCount: 0 | 1,
+  isStudentActor: boolean,
 ): Promise<GradeAttemptResult> => {
   const promptInput = {
     answerKey: ctx.answerKey,
@@ -268,24 +269,24 @@ const attemptHomeworkGrade = async (
       }
     : undefined;
 
-  return {
-    grade: {
-      score: parsed.grade.score,
-      maxScore: parsed.grade.maxScore,
-      feedback: parsed.grade.feedbackForStudent,
-      noteForTeacher: parsed.grade.noteForTeacher,
-      strengths: parsed.grade.strengths,
-      weaknesses: parsed.grade.weaknesses,
-      questionResults: parsed.grade.questionResults,
-      weakTopics: parsed.grade.weakTopics,
-      gradedWithoutAnswerKey: parsed.grade.gradedWithoutAnswerKey,
-      gradedAt: new Date().toISOString(),
-      // Máy chấm KHÔNG tự duyệt cho mình. Điểm chỉ vào hồ sơ tích luỹ sau khi giáo viên xác nhận.
-      teacherApproved: false,
-      ...(gradingRecovery ? { gradingRecovery } : {}),
-    },
-    recovery,
+  const now = new Date().toISOString();
+  const grade = {
+    score: parsed.grade.score,
+    maxScore: parsed.grade.maxScore,
+    feedback: parsed.grade.feedbackForStudent,
+    noteForTeacher: parsed.grade.noteForTeacher,
+    strengths: parsed.grade.strengths,
+    weaknesses: parsed.grade.weaknesses,
+    questionResults: parsed.grade.questionResults,
+    weakTopics: parsed.grade.weakTopics,
+    gradedWithoutAnswerKey: parsed.grade.gradedWithoutAnswerKey,
+    gradedAt: now,
+    teacherApproved: isStudentActor,
+    approvalSource: isStudentActor ? 'student_ai' as const : 'teacher' as const,
+    ...(gradingRecovery ? { gradingRecovery } : {}),
   };
+
+  return { grade, recovery };
 };
 
 const isRetryableGradeAttemptError = (error: unknown): boolean =>
@@ -305,15 +306,17 @@ const gradeOneSubmission = async (
   ctx: GradeContext,
   apiKey: string,
   actorUid: string,
-  allowApproved: boolean,
-): Promise<boolean> => {
+  isTeacher: boolean,
+): Promise<{ success: boolean; gradePreserved?: boolean; syncPending?: boolean; syncError?: string }> => {
   // Không dùng snapshot mà caller đã đọc từ trước để khóa/ghi bài: giữa lúc
   // đọc và lúc worker chạy, giáo viên có thể đã sửa hoặc xóa điểm.
-  const claim = await claimSubmissionForGrading(db, submissionId, allowApproved);
-  if (!claim) return false;
+  const claim = await claimSubmissionForGrading(db, submissionId, isTeacher);
+  if (!claim) return { success: false };
 
   const previous = claim.previous;
   const previousStatus = previous.status;
+  const hadPreviousGrade = Boolean(previous.grade);
+  const isStudentActor = !isTeacher;
 
   try {
     const urls = (Array.isArray(previous.fileUrls) ? previous.fileUrls : []).slice(0, MAX_SUBMISSION_FILES);
@@ -327,16 +330,18 @@ const gradeOneSubmission = async (
 
     let attempt: GradeAttemptResult;
     try {
-      attempt = await attemptHomeworkGrade(ctx, images, studentText, apiKey, 0);
+      attempt = await attemptHomeworkGrade(ctx, images, studentText, apiKey, 0, isStudentActor);
     } catch (error) {
       if (!isRetryableGradeAttemptError(error)) throw error;
-      attempt = await attemptHomeworkGrade(ctx, images, studentText, apiKey, 1);
+      attempt = await attemptHomeworkGrade(ctx, images, studentText, apiKey, 1, isStudentActor);
     }
     const { grade } = attempt;
     const now = grade.gradedAt;
 
     // History + grade mới chỉ commit nếu token vẫn thuộc worker hiện tại.
     // Điều này chặn worker cũ ghi đè sau stale recovery/manual edit/delete.
+    // commitAiGradeIfClaimed cũng xóa lastGradingError, lastGradingErrorRaw, evidenceSyncError
+    // trong cùng transaction để tránh race condition.
     const committed = await commitAiGradeIfClaimed(
       db,
       claim.ref,
@@ -346,22 +351,77 @@ const gradeOneSubmission = async (
       actorUid,
       now,
     );
-    if (!committed.committed) return false;
+    if (!committed.committed) return { success: false };
 
-    if (previous.grade) {
-      // Grade AI mới chưa duyệt; gỡ evidence của kết quả cũ đã được duyệt.
-      await removeSubmissionGradeEvidence(db, previous, now);
+    // If student self-grade succeeded, sync evidence (auto-approval)
+    if (isStudentActor) {
+      try {
+        await syncApprovedGradeEvidence(db, {
+          submissionId,
+          assignmentId: previous.assignmentId,
+          grade,
+          owner: {
+            studentId: previous.studentId,
+            classId: previous.classId,
+            teacherId: previous.teacherId,
+          },
+          now,
+          approved: true,
+        });
+      } catch (syncError) {
+        // Sync failed but grade is committed and approved — record pending marker (best-effort)
+        const errorMessage = syncError instanceof Error ? syncError.message : 'Đồng bộ minh chứng thất bại';
+        try {
+          await db.runTransaction(async transaction => {
+            const latestSnapshot = await transaction.get(claim.ref);
+            if (latestSnapshot.exists) {
+              transaction.update(claim.ref, { evidenceSyncError: errorMessage });
+            }
+          });
+        } catch {
+          // Best-effort: don't overwrite successful response
+        }
+        return { success: true, syncPending: true, syncError: errorMessage };
+      }
+    } else {
+      // Teacher AI regrade: new grade is NOT approved, remove old evidence if any (best-effort)
+      if (hadPreviousGrade) {
+        try {
+          await removeSubmissionGradeEvidence(db, previous, now);
+        } catch (cleanupError) {
+          // Best-effort: evidence cleanup failure must not turn a committed grade into a failure
+          // Record actionable marker for teacher (not exposed to students)
+          const errorMessage = cleanupError instanceof Error ? cleanupError.message : 'Dọn minh chứng cũ thất bại';
+          try {
+            await db.runTransaction(async transaction => {
+              const latestSnapshot = await transaction.get(claim.ref);
+              if (latestSnapshot.exists) {
+                transaction.update(claim.ref, { evidenceSyncError: errorMessage });
+              }
+            });
+          } catch {
+            // Best-effort: marker write failure must not overwrite successful response
+          }
+        }
+      }
     }
-    return true;
+    return { success: true };
   } catch (error) {
-    const message = safeGradeErrorMessage(error);
-    // Regrade lỗi không được làm mất grade hợp lệ đang có. Nếu chưa từng có grade,
-    // mới chuyển sang error để giáo viên/học sinh biết cần thử lại.
+    const safeMessage = safeGradeErrorMessage(error);
+    const rawMessage = error instanceof Error ? error.message : String(error);
+    // Regrade lỗi không được làm mất grade hợp lệ đang có. Luôn giữ status='graded'
+    // khi đã có grade trước đó; chỉ chuyển sang error khi chưa từng có grade.
+    const newStatus = hadPreviousGrade ? 'graded' : 'error';
+    const newErrorMessage = hadPreviousGrade ? '' : safeMessage;
+    const newLastGradingError = hadPreviousGrade ? safeMessage : undefined;
+    const newLastGradingErrorRaw = hadPreviousGrade ? rawMessage : undefined;
     await restoreClaimIfOwned(db, claim, {
-      status: previous.grade ? (previousStatus === 'error' ? 'error' : 'graded') : 'error',
-      errorMessage: previous.grade ? '' : message,
+      status: newStatus,
+      errorMessage: newErrorMessage,
+      ...(newLastGradingError ? { lastGradingError: newLastGradingError } : {}),
+      ...(newLastGradingErrorRaw ? { lastGradingErrorRaw: newLastGradingErrorRaw } : {}),
     });
-    return false;
+    return { success: false, gradePreserved: hadPreviousGrade };
   }
 };
 
@@ -474,8 +534,8 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
   let graded = 0;
   let failed = 0;
   for (const doc of batch) {
-    const ok = await gradeOneSubmission(db, doc.id, ctx, apiKey, uid, true);
-    if (ok) graded += 1; else failed += 1;
+    const result = await gradeOneSubmission(db, doc.id, ctx, apiKey, uid, true);
+    if (result.success) graded += 1; else failed += 1;
   }
 
   await quotaRef.set(bumpQuota(quota, 'teacher', '', graded + failed));
@@ -551,19 +611,35 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
     }
   }
 
-  const ok = await gradeOneSubmission(db, submissionId, ctx, getGradingApiKey(), uid, isTeacher);
+  const result = await gradeOneSubmission(db, submissionId, ctx, getGradingApiKey(), uid, isTeacher);
   await quotaRef.set(bumpQuota(quota, kind, String(submission.studentId || ''), 1));
-  if (!ok) {
+  if (!result.success) {
     const latest = await ref.get();
     const latestData = latest.data() as FirebaseFirestore.DocumentData | undefined;
-    return res.status(422).json({
-      error: String(latestData?.errorMessage || 'Chấm lại chưa thành công. Điểm hiện tại vẫn được giữ nguyên.'),
+    const errorMessage = String(latestData?.errorMessage || 'Chấm lại chưa thành công. Điểm hiện tại vẫn được giữ nguyên.');
+    const response: Record<string, unknown> = {
+      error: errorMessage,
       graded: 0,
       failed: 1,
       remaining: 0,
-    });
+    };
+    if (result.gradePreserved) {
+      response.gradePreserved = true;
+      // Safe message for student-facing callers
+      response.lastGradingError = latestData?.lastGradingError || 'Lần chấm lại trước chưa thành công; điểm hiện tại vẫn được giữ nguyên.';
+      // Raw error for teacher-facing callers only (actionable detail)
+      if (isTeacher && latestData?.lastGradingErrorRaw) {
+        response.lastGradingErrorRaw = latestData.lastGradingErrorRaw;
+      }
+    }
+    return res.status(422).json(response);
   }
-  return res.status(200).json({ graded: ok ? 1 : 0, failed: ok ? 0 : 1, remaining: 0 });
+  const response: Record<string, unknown> = { graded: 1, failed: 0, remaining: 0 };
+  if (result.syncPending) {
+    response.syncPending = true;
+    response.syncError = result.syncError;
+  }
+  return res.status(200).json(response);
 };
 
 /**

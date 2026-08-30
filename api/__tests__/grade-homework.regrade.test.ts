@@ -432,7 +432,7 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
     expect(harness.state.gradingQuota?.['gv-1']).toMatchObject({ teacherCount: 2, selfCount: 0 });
   });
 
-  it('co-owner được chấm AI cả lớp và quota ghi theo actor đang thao tác', async () => {
+it('co-owner được chấm AI cả lớp và quota ghi theo actor đang thao tác', async () => {
     const harness: Harness = {
       state: {
         classes: {
@@ -474,5 +474,62 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
     expect(result.body).toMatchObject({ graded: 1, failed: 0, remaining: 0 });
     expect(harness.state.submissions['sub-1']).toMatchObject({ status: 'graded' });
     expect(harness.state.gradingQuota?.['co-1']).toMatchObject({ teacherCount: 1 });
+  });
+
+it('teacher regrade: removeSubmissionGradeEvidence failure does NOT turn committed grade into failure', async () => {
+    const harness = seed();
+    harness.state.studentProfiles = {
+      'hs-1': {
+        studentId: 'hs-1', classId: 'lop-1', teacherId: 'gv-1',
+        topics: [{ topic: 'Chủ đề cũ', level: 'weak', evidenceSubmissionIds: ['sub-1'], updatedAt: '2026-08-24T10:00:00.000Z' }],
+      },
+    };
+    harness.state.studentSkillEvidence = {
+      'hs-1__sub-1%3Amath.line-equation': {
+        studentId: 'hs-1', classId: 'lop-1', teacherId: 'gv-1', submissionId: 'sub-1', skillId: 'math.line-equation',
+        evidenceId: 'sub-1:math.line-equation', source: 'homework', approved: true,
+      },
+    };
+    h.db = makeDb(harness);
+    stubGeminiResponses(makeGeminiResponse(validGradeJson(7)));
+
+    // Force removeSubmissionGradeEvidence to fail by making the studentProfiles collection's set throw
+    const originalCollection = h.db.collection;
+    h.db.collection = vi.fn((name: string) => {
+      const col = originalCollection(name);
+      if (name === 'studentProfiles') {
+        return {
+          ...col,
+          doc: (id: string) => ({
+            ...col.doc(id),
+            set: async () => { throw new Error('Evidence cleanup failed'); },
+            get: async () => ({ exists: true, data: () => harness.state.studentProfiles['hs-1'] }),
+          }),
+        };
+      }
+      return col;
+    });
+
+    try {
+      const result = await call({ action: 'gradeOne', submissionId: 'sub-1' });
+
+      // Should still succeed because grade was committed before evidence cleanup
+      expect(result.statusCode).toBe(200);
+      expect(result.body).toMatchObject({ graded: 1, failed: 0, remaining: 0 });
+      // Grade should be committed with teacherApproved=false (teacher regrade)
+      expect(harness.state.submissions['sub-1']).toMatchObject({
+        status: 'graded',
+        grade: expect.objectContaining({ score: 7, teacherApproved: false }),
+      });
+      // History should have been created
+      expect(Object.values(harness.state.submissionGradeHistory || {})).toEqual([
+        expect.objectContaining({ action: 'ai_regrade', actorUid: 'gv-1', grade: oldGrade }),
+      ]);
+      // evidenceSyncError should be set with the cleanup error
+      expect(typeof harness.state.submissions['sub-1'].evidenceSyncError).toBe('string');
+      expect(harness.state.submissions['sub-1'].evidenceSyncError.length).toBeGreaterThan(0);
+    } finally {
+      h.db.collection = originalCollection;
+    }
   });
 });

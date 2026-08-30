@@ -2,8 +2,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
 import { getAdminDb, getAdminStorage } from './_exam-core.js';
+import { FieldValue } from 'firebase-admin/firestore';
 import { uniqueStoragePaths } from './_classroom-storage.js';
-import { mergeTopics, removeEvidence } from '../src/lib/classroom/profileMerge.js';
+import { removeEvidence } from '../src/lib/classroom/profileMerge.js';
 import { mergeSubmissionEvidence } from '../src/lib/classroom/submissionRevision.js';
 import { buildHomeworkSkillEvidence } from '../src/lib/learning/skillProfile.js';
 import { buildManualGrade, type ManualGradeInput } from '../src/lib/classroom/manualGrade.js';
@@ -29,6 +30,7 @@ import {
 import {
   removeSkillEvidenceAndRebuild,
   replaceSkillEvidenceAndRebuild,
+  syncApprovedGradeEvidence,
 } from './_skill-profile.js';
 import {
   commitSubmissionGradeChange,
@@ -370,6 +372,8 @@ const handleSaveSubmissionGrade = async (
     status: 'graded',
     grade,
     errorMessage: '',
+    lastGradingError: '',
+    lastGradingErrorRaw: '',
     updatedAt: now,
   } as SubmissionDoc;
   let historyId: string | null;
@@ -389,8 +393,25 @@ const handleSaveSubmissionGrade = async (
     }
     throw error;
   }
-  // Grade mới chưa duyệt nhưng vẫn phải gỡ evidence của grade cũ đã duyệt.
-  await removeSubmissionGradeEvidence(db, owned.submission, now);
+  // Grade mới chưa duyệt nhưng vẫn phải gỡ evidence của grade cũ đã duyệt (best-effort).
+  try {
+    await removeSubmissionGradeEvidence(db, owned.submission, now);
+    // Clear any previous evidence sync error since grade changed (best-effort)
+    try {
+      await db.collection('submissions').doc(owned.submissionId).update({ evidenceSyncError: '' });
+    } catch {
+      // Best-effort: don't overwrite successful response
+    }
+  } catch (cleanupError) {
+    // Best-effort: evidence cleanup failure must not turn a committed grade into a failure
+    // Record actionable marker for teacher
+    const errorMessage = cleanupError instanceof Error ? cleanupError.message : 'Dọn minh chứng cũ thất bại';
+    try {
+      await db.collection('submissions').doc(owned.submissionId).update({ evidenceSyncError: errorMessage });
+    } catch {
+      // Best-effort: marker write failure must not overwrite successful response
+    }
+  }
   return res.status(200).json({ saved: true, submissionId: owned.submissionId, historyId });
 };
 
@@ -409,11 +430,30 @@ const handleDeleteSubmissionGrade = async (
   }
 
   const now = new Date().toISOString();
-  await removeSubmissionGradeEvidence(db, owned.submission, now);
+  // Remove evidence of the grade being deleted. If cleanup fails, we MUST NOT
+  // delete the grade — return an error and preserve grade/submission/history.
+  // We do NOT set evidenceSyncError because:
+  // 1. The grade deletion is aborted - the grade remains intact
+  // 2. retryEvidenceSync is for syncing evidence, not for failed deletion cleanup
+  try {
+    await removeSubmissionGradeEvidence(db, owned.submission, now);
+  } catch (cleanupError) {
+    const errorMessage = cleanupError instanceof Error ? cleanupError.message : 'Dọn minh chứng cũ thất bại';
+    return res.status(500).json({ error: `Không thể xóa điểm: ${errorMessage}. Điểm hiện tại được giữ nguyên.` });
+  }
+  // Clear any previous evidence sync error since grade removed (best-effort)
+  try {
+    await db.collection('submissions').doc(owned.submissionId).update({ evidenceSyncError: '' });
+  } catch {
+    // Best-effort: don't overwrite successful response
+  }
   const nextSubmission = {
     ...submissionWithoutGrade(owned.submission),
     status: 'submitted',
     errorMessage: '',
+    lastGradingError: '',
+    lastGradingErrorRaw: '',
+    evidenceSyncError: '',
     updatedAt: now,
   } as SubmissionDoc;
   let historyId: string | null;
@@ -467,8 +507,10 @@ const handleApproveSubmissionGrade = async (
         || latestGradeAt !== owned.submission.grade?.gradedAt) {
         throw new GradeLifecycleConflictError();
       }
+      const approvalSourceUpdate = approved ? 'teacher' : FieldValue.delete();
       transaction.update(owned.ref, {
         'grade.teacherApproved': approved,
+        'grade.approvalSource': approvalSourceUpdate,
         updatedAt: now,
       });
     });
@@ -480,43 +522,107 @@ const handleApproveSubmissionGrade = async (
   }
 
   const nextGrade = { ...owned.submission.grade, teacherApproved: approved };
-  const profileRef = db.collection('studentProfiles').doc(owned.submission.studentId);
-  const profileSnap = await profileRef.get();
-  const profile = profileSnap.exists ? profileSnap.data() || {} : {};
-  const existing = Array.isArray(profile.topics)
-    ? (profile.topics as ProfileTopic[]).filter(topic => Array.isArray(topic?.evidenceSubmissionIds))
-    : [];
-  const topics = approved
-    ? mergeTopics({
-        existing,
-        weakTopics: nextGrade.weakTopics || [],
-        strengths: nextGrade.strengths || [],
-        submissionId: owned.submissionId,
-        assignmentId: owned.submission.assignmentId || undefined,
-        now,
-      })
-    : removeEvidence(existing, owned.submissionId, now, owned.submission.assignmentId || undefined);
-  await profileRef.set({
-    studentId: owned.submission.studentId,
-    classId: owned.submission.classId,
-    teacherId: owned.submission.teacherId,
-    topics,
-    updatedAt: now,
-  }, { merge: true });
+  if (approved) {
+    nextGrade.approvalSource = 'teacher';
+  }
+  let syncPending = false;
+  let syncError: string | undefined;
+  try {
+    await syncApprovedGradeEvidence(db, {
+      submissionId: owned.submissionId,
+      assignmentId: owned.submission.assignmentId,
+      grade: nextGrade,
+      owner: {
+        studentId: owned.submission.studentId,
+        classId: owned.submission.classId,
+        teacherId: owned.submission.teacherId,
+      },
+      now,
+      approved,
+    });
+    // Sync succeeded, clear any previous sync error (best-effort)
+    try {
+      await db.collection('submissions').doc(owned.submissionId).update({ evidenceSyncError: '' });
+    } catch {
+      // Best-effort: don't overwrite successful response
+    }
+  } catch (error) {
+    // Sync failed but grade approval is committed — record pending marker (best-effort)
+    syncPending = true;
+    syncError = error instanceof Error ? error.message : 'Đồng bộ minh chứng thất bại';
+    try {
+      await db.collection('submissions').doc(owned.submissionId).update({ evidenceSyncError: syncError });
+    } catch {
+      // Best-effort: don't overwrite successful response
+    }
+  }
 
-  const evidenceSubmission = { ...owned.submission, grade: nextGrade } as SubmissionDoc;
-  const skills = approved
-    ? await replaceSkillEvidenceAndRebuild(db, {
-        studentId: evidenceSubmission.studentId,
-        classId: evidenceSubmission.classId,
-        teacherId: owned.submission.teacherId,
-      }, owned.submissionId, storedHomeworkSkillEvidence(owned.submissionId, evidenceSubmission as unknown as Record<string, unknown>), now)
-    : await removeSkillEvidenceAndRebuild(db, {
-        studentId: evidenceSubmission.studentId,
-        classId: evidenceSubmission.classId,
-        teacherId: owned.submission.teacherId,
-      }, owned.submissionId, now);
-  return res.status(200).json({ approved, submissionId: owned.submissionId, skills });
+  const response: Record<string, unknown> = { approved, submissionId: owned.submissionId };
+  if (syncPending) {
+    response.syncPending = true;
+    response.syncError = syncError;
+  }
+  return res.status(200).json(response);
+};
+
+const handleRetryEvidenceSync = async (
+  db: FirebaseFirestore.Firestore,
+  body: Record<string, unknown>,
+  res: VercelResponse,
+) => {
+  const owned = await readOwnedSubmission(db, body, res);
+  if (!owned) return;
+  if (owned.submission.status === 'grading') {
+    return res.status(409).json({ error: 'Bài đang được AI chấm. Chờ lượt hiện tại kết thúc rồi thử lại.' });
+  }
+  if (!owned.submission.grade) {
+    return res.status(409).json({ error: 'Bài nộp chưa có kết quả chấm để đồng bộ.' });
+  }
+  if (!owned.submission.evidenceSyncError) {
+    return res.status(409).json({ error: 'Không có lỗi đồng bộ đang chờ xử lý.' });
+  }
+
+  const now = new Date().toISOString();
+  const isApproved = owned.submission.grade.teacherApproved === true;
+  // Preserve original approvalSource; retry sync doesn't change approval
+  const nextGrade = { ...owned.submission.grade };
+
+  try {
+    if (isApproved) {
+      // Approved grade: retry syncing approved evidence (current path)
+      await syncApprovedGradeEvidence(db, {
+        submissionId: owned.submissionId,
+        assignmentId: owned.submission.assignmentId,
+        grade: nextGrade,
+        owner: {
+          studentId: owned.submission.studentId,
+          classId: owned.submission.classId,
+          teacherId: owned.submission.teacherId,
+        },
+        now,
+        approved: true,
+      });
+    } else {
+      // Unapproved grade (teacher AI regrade or manual edit): retry cleaning up stale evidence
+      await removeSubmissionGradeEvidence(db, owned.submission, now);
+    }
+    // Sync/cleanup succeeded, clear the error marker (best-effort)
+    try {
+      await db.collection('submissions').doc(owned.submissionId).update({ evidenceSyncError: '' });
+    } catch {
+      // Best-effort: don't overwrite successful response
+    }
+    return res.status(200).json({ retried: true, submissionId: owned.submissionId });
+  } catch (error) {
+    const syncError = error instanceof Error ? error.message : 'Đồng bộ minh chứng thất bại';
+    // Record error marker (best-effort)
+    try {
+      await db.collection('submissions').doc(owned.submissionId).update({ evidenceSyncError: syncError });
+    } catch {
+      // Best-effort: don't overwrite error response
+    }
+    return res.status(500).json({ retried: false, error: syncError });
+  }
 };
 
 const validAttachmentKind = (value: unknown): 'image' | 'pdf' | 'document' | 'unknown' | undefined => {
@@ -802,8 +908,15 @@ const projectStudentAssignment = (id: string, data: FirebaseFirestore.DocumentDa
 };
 
 const projectStudentSubmission = (id: string, data: FirebaseFirestore.DocumentData): SubmissionDoc => {
-  const status = ['submitted', 'grading', 'graded', 'error'].includes(String(data.status)) ? data.status : 'submitted';
+  const rawStatus = String(data.status || 'submitted');
   const rawGrade = data.grade as FirebaseFirestore.DocumentData | undefined;
+  const hasValidGrade = rawGrade && typeof rawGrade.score === 'number' && typeof rawGrade.maxScore === 'number';
+
+  // Normalize legacy status='error' with a valid grade to 'graded' at projection time
+  // This preserves historical data while presenting correct status to users
+  const normalizedStatus = (rawStatus === 'error' && hasValidGrade) ? 'graded' :
+    (['submitted', 'grading', 'graded', 'error'].includes(rawStatus) ? rawStatus : 'submitted');
+
   const questionResults = Array.isArray(rawGrade?.questionResults)
     ? rawGrade.questionResults
       .filter((item: unknown): item is FirebaseFirestore.DocumentData => Boolean(item && typeof item === 'object'))
@@ -835,8 +948,16 @@ const projectStudentSubmission = (id: string, data: FirebaseFirestore.DocumentDa
     ...(typeof rawGrade.gradedWithoutAnswerKey === 'boolean' ? { gradedWithoutAnswerKey: rawGrade.gradedWithoutAnswerKey } : {}),
     gradedAt: String(rawGrade.gradedAt || ''),
     teacherApproved: rawGrade.teacherApproved === true,
+    approvalSource: typeof rawGrade.approvalSource === 'string' ? rawGrade.approvalSource as 'student_ai' | 'teacher' : undefined,
     ...(typeof rawGrade.editedByTeacher === 'boolean' ? { editedByTeacher: rawGrade.editedByTeacher } : {}),
+    // noteForTeacher and teacherNote are teacher-only fields — not exposed to students
   } : undefined;
+
+  // Student-safe error message: never expose raw provider/internal errors
+  const STUDENT_SAFE_GRADING_ERROR = 'Lần chấm lại trước chưa thành công; điểm hiện tại vẫn được giữ nguyên.';
+  const rawLastGradingError = typeof data.lastGradingError === 'string' ? data.lastGradingError : undefined;
+  const rawErrorMessage = typeof data.errorMessage === 'string' ? data.errorMessage : undefined;
+  const studentLastGradingError = rawLastGradingError || rawErrorMessage ? STUDENT_SAFE_GRADING_ERROR : undefined;
 
   return {
     id,
@@ -848,9 +969,13 @@ const projectStudentSubmission = (id: string, data: FirebaseFirestore.DocumentDa
     fileUrls: Array.isArray(data.fileUrls) ? data.fileUrls.map(String) : [],
     attachments: Array.isArray(data.attachments) ? data.attachments : undefined,
     note: String(data.note || ''),
-    status,
+    status: normalizedStatus,
     ...(grade ? { grade } : {}),
-    ...(status === 'error' ? { errorMessage: 'Bài đã được nhận nhưng kết quả chấm chưa hoàn tất. Em chưa cần nộp lại ảnh; thầy/cô sẽ chấm lại hoặc kiểm tra bài.' } : {}),
+    // Expose separate error information based on data presence, not status
+    // This ensures lastGradingError surfaces even when status='graded'
+    ...(hasValidGrade && studentLastGradingError ? { lastGradingError: studentLastGradingError } : {}),
+    ...(normalizedStatus === 'error' && !hasValidGrade ? { errorMessage: 'Bài đã được nhận nhưng kết quả chấm chưa hoàn tất. Em chưa cần nộp lại ảnh; thầy/cô sẽ chấm lại hoặc kiểm tra bài.' } : {}),
+    // evidenceSyncError is teacher/internal-only; never exposed to students
     createdAt: String(data.createdAt || ''),
     updatedAt: String(data.updatedAt || ''),
   } as SubmissionDoc;
@@ -1235,6 +1360,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (action === 'saveSubmissionGrade') return await handleSaveSubmissionGrade(db, body, res);
     if (action === 'deleteSubmissionGrade') return await handleDeleteSubmissionGrade(db, body, res);
     if (action === 'approveSubmissionGrade') return await handleApproveSubmissionGrade(db, body, res);
+    if (action === 'retryEvidenceSync') return await handleRetryEvidenceSync(db, body, res);
     if (action === 'syncSkillEvidence') return await handleSyncSkillEvidence(db, body, res);
     if (action === 'deleteAssignment') return await handleDeleteAssignment(db, body, res);
     return res.status(400).json({ error: `Hành động không hợp lệ: ${action}` });

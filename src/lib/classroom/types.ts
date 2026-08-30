@@ -276,13 +276,17 @@ export interface SubmissionGrade {
   teacherNote?: string;
   /** true khi giáo viên đã xem và đồng ý — điều kiện để vào hồ sơ tích luỹ. */
   teacherApproved: boolean;
+  /** Nguồn duyệt điểm: 'student_ai' khi học sinh tự chấm AI thành công, 'teacher' khi giáo viên duyệt. */
+  approvalSource?: ApprovalSource;
   /** true khi giáo viên sửa tay điểm/nhận xét sau khi máy chấm. */
   editedByTeacher?: boolean;
   /** Metadata tối thiểu để giáo viên biết kết quả đã được hệ thống phục hồi. */
   gradingRecovery?: GradingRecovery;
 }
 
-export type SubmissionGradeRevisionAction = 'manual_edit' | 'approve' | 'delete' | 'automatic_regrade' | 'ai_regrade';
+export type SubmissionGradeRevisionAction = 'manual_edit' | 'approve' | 'delete' | 'automatic_regrade' | 'ai_regrade' | 'student_ai';
+
+export type ApprovalSource = 'student_ai' | 'teacher';
 
 /**
  * Bản chụp bất biến của một kết quả chấm trước khi giáo viên sửa/xóa hoặc AI chấm lại.
@@ -325,6 +329,10 @@ export interface SubmissionDoc {
   gradingRunId?: string | null;
   grade?: SubmissionGrade;
   errorMessage?: string;
+  /** Lỗi xử lý gần nhất khi chấm lại thất bại nhưng grade cũ vẫn hợp lệ — không dùng làm fatal error. */
+  lastGradingError?: string;
+  /** Lỗi đồng bộ minh chứng sau khi duyệt điểm — grade vẫn được duyệt, chỉ sync pending. */
+  evidenceSyncError?: string;
   createdAt: string;
   updatedAt: string;
 }

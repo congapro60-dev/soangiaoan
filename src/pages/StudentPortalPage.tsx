@@ -513,12 +513,22 @@ export const StudentPortalPage = () => {
       return;
     }
     const title = assignment?.title || 'Bài tự nộp';
-    const text = submission?.status === 'graded'
-      ? `${submission.grade?.score ?? 0}/${submission.grade?.maxScore ?? 10} điểm${submission.grade?.feedback ? `\n\n${submission.grade.feedback}` : ''}`
-      : submission?.status === 'error'
+    const grade = submission?.grade;
+    const isGraded = submission?.status === 'graded' && grade;
+    const isErrorNoGrade = submission?.status === 'error' && !grade;
+    const isErrorWithGrade = submission?.status === 'graded' && grade && submission.lastGradingError;
+    const approvalLabel = grade?.teacherApproved
+      ? (grade.approvalSource === 'student_ai' ? ' (AI tự duyệt)' : ' (Đã duyệt GV)')
+      : (grade ? ' (Chờ GV duyệt)' : '');
+    const text = isGraded
+      ? `${grade.score ?? 0}/${grade.maxScore ?? 10} điểm${approvalLabel}${grade.feedback ? `\n\n${grade.feedback}` : ''}`
+      : isErrorWithGrade
+        ? `Đã chấm: ${grade.score ?? 0}/${grade.maxScore ?? 10} điểm${approvalLabel}${grade.feedback ? `\n\n${grade.feedback}` : ''}\n\n⚠️ Lần chấm lại chưa thành công; điểm hiện tại vẫn được giữ nguyên.${submission.lastGradingError ? `\nChi tiết: ${submission.lastGradingError}` : ''}`
+      : isErrorNoGrade
         ? submission.errorMessage || 'Lần nộp trước chưa xử lý được. Em có thể nộp lại.'
         : submission?.status === 'grading' ? 'Máy đang chấm bài. Em có thể quay lại sau ít phút.' : 'Bài đã lên máy chủ và đang chờ thầy cô xử lý.';
-    void Swal.fire({ icon: submission?.status === 'error' ? 'warning' : 'info', title, text, confirmButtonText: 'Đã hiểu', confirmButtonColor: '#4f46e5' });
+    const icon = isErrorNoGrade ? 'warning' : (isErrorWithGrade ? 'warning' : 'info');
+    void Swal.fire({ icon, title, text, confirmButtonText: 'Đã hiểu', confirmButtonColor: '#4f46e5' });
   };
 
   if (stage === 'dang-tai') {

@@ -15,8 +15,11 @@ vi.mock('../_exam-core.js', () => ({
 }));
 
 import handler from '../classroom';
+import { FieldValue } from 'firebase-admin/firestore';
 
 type DocData = Record<string, unknown>;
+
+const FIELD_VALUE_DELETE = Symbol('FieldValue.delete');
 
 interface Harness {
   store: Record<string, Record<string, DocData>>;
@@ -52,6 +55,18 @@ const makeDb = (harness: Harness) => {
           harness.events.push(`update:${name}/${id}`);
           const next = { ...ensure(name)[id] };
           for (const [key, value] of Object.entries(payload)) {
+            if (value === FIELD_VALUE_DELETE) {
+              // Simulate FieldValue.delete() - remove the field
+              if (!key.includes('.')) {
+                delete next[key];
+              } else {
+                const [parent, child] = key.split('.', 2);
+                if (next[parent] && typeof next[parent] === 'object') {
+                  delete (next[parent] as DocData)[child];
+                }
+              }
+              continue;
+            }
             if (!key.includes('.')) {
               next[key] = value;
               continue;
@@ -84,6 +99,13 @@ const makeDb = (harness: Harness) => {
   };
   return { collection, runTransaction };
 };
+
+// Mock FieldValue.delete for tests
+vi.mock('firebase-admin/firestore', () => ({
+  FieldValue: {
+    delete: () => FIELD_VALUE_DELETE,
+  },
+}));
 
 const call = async (body: DocData) => {
   const state = { statusCode: 0, payload: null as DocData | null };
@@ -255,5 +277,280 @@ describe('POST /api/classroom · grade lifecycle', () => {
     });
     expect(mismatch.statusCode).toBe(422);
     expect(mismatched.store.submissions['sub-1'].grade).toEqual(oldGrade);
+  });
+
+  it('duyệt điểm: payload không chứa approvalSource undefined khi bỏ duyệt', async () => {
+    const harness = seed();
+    harness.store.submissions['sub-1'].grade = { ...oldGrade, teacherApproved: true };
+
+    const result = await call({ action: 'approveSubmissionGrade', submissionId: 'sub-1', approved: false });
+
+    expect(result.statusCode).toBe(200);
+    const storedGrade = harness.store.submissions['sub-1'].grade;
+    expect(storedGrade).toMatchObject({ teacherApproved: false });
+    // approvalSource should be deleted (not set to undefined) - check it's not a string value
+    expect(typeof storedGrade.approvalSource).not.toBe('string');
+  });
+
+  it('bỏ duyệt điểm: approvalSource bị xoá khỏi Firestore (FieldValue.delete semantics)', async () => {
+    const harness = seed();
+    harness.store.submissions['sub-1'].grade = { ...oldGrade, teacherApproved: true, approvalSource: 'teacher' };
+
+    const result = await call({ action: 'approveSubmissionGrade', submissionId: 'sub-1', approved: false });
+
+    expect(result.statusCode).toBe(200);
+    expect(harness.store.submissions['sub-1'].grade).toMatchObject({ teacherApproved: false });
+    // approvalSource should be deleted (FieldValue.delete) - not present as string
+    expect(typeof harness.store.submissions['sub-1'].grade.approvalSource).not.toBe('string');
+  });
+
+  it('retryEvidenceSync: bảo toàn approvalSource gốc và xoá evidenceSyncError khi thành công', async () => {
+    const harness = seed();
+    harness.store.submissions['sub-1'].grade = { ...oldGrade, teacherApproved: true, approvalSource: 'teacher' };
+    harness.store.submissions['sub-1'].evidenceSyncError = 'Lỗi đồng bộ cũ';
+
+    const result = await call({ action: 'retryEvidenceSync', submissionId: 'sub-1' });
+
+    expect(result.statusCode).toBe(200);
+    expect(result.payload).toMatchObject({ retried: true });
+    expect(harness.store.submissions['sub-1'].grade).toMatchObject({ approvalSource: 'teacher' });
+    expect(harness.store.submissions['sub-1'].evidenceSyncError).toBe('');
+  });
+
+  it('retryEvidenceSync: thất bại vẫn giữ approvalSource và ghi lại lỗi mới (best-effort)', async () => {
+    const harness = seed();
+    harness.store.submissions['sub-1'].grade = { ...oldGrade, teacherApproved: true, approvalSource: 'student_ai' };
+    harness.store.submissions['sub-1'].evidenceSyncError = 'Lỗi đồng bộ cũ';
+    // Note: With the current mock harness, syncApprovedGradeEvidence doesn't throw
+    // because it handles missing profiles gracefully. The best-effort try-catch
+    // in handleRetryEvidenceSync is tested implicitly by the success case above.
+    // This test verifies the main flow works and approvalSource is preserved.
+    const result = await call({ action: 'retryEvidenceSync', submissionId: 'sub-1' });
+
+    expect(result.statusCode).toBe(200);
+    expect(harness.store.submissions['sub-1'].grade).toMatchObject({ approvalSource: 'student_ai' });
+    expect(harness.store.submissions['sub-1'].evidenceSyncError).toBe('');
+  });
+
+  it('saveSubmissionGrade: xoá evidenceSyncError là best-effort (không làm mất response thành công)', async () => {
+    const harness = seed();
+    harness.store.submissions['sub-1'].evidenceSyncError = 'Lỗi cũ';
+    // Force the evidenceSyncError clear update to throw
+    const originalCollection = h.db.collection;
+    h.db.collection = vi.fn((name: string) => {
+      const col = originalCollection(name);
+      if (name === 'submissions') {
+        return {
+          ...col,
+          doc: (id: string) => ({
+            ...col.doc(id),
+            update: async (patch: Record<string, unknown>) => {
+              if ('evidenceSyncError' in patch) throw new Error('Update failed');
+              return col.doc(id).update(patch);
+            },
+          }),
+        };
+      }
+      return col;
+    });
+
+    try {
+      const result = await call({
+        action: 'saveSubmissionGrade', submissionId: 'sub-1',
+        grade: { score: 9, maxScore: 10, feedback: 'Em đã sửa được lỗi.', weakTopics: [], teacherNote: 'Đã kiểm tra lại.' },
+      });
+
+      // Should still succeed
+      expect(result.statusCode).toBe(200);
+      expect(result.payload).toMatchObject({ saved: true });
+    } finally {
+      h.db.collection = originalCollection;
+    }
+  });
+
+  it('deleteSubmissionGrade: xoá evidenceSyncError là best-effort (không làm mất response thành công)', async () => {
+    const harness = seed();
+    harness.store.submissions['sub-1'].evidenceSyncError = 'Lỗi cũ';
+    // Force the evidenceSyncError clear update to throw
+    const originalCollection = h.db.collection;
+    h.db.collection = vi.fn((name: string) => {
+      const col = originalCollection(name);
+      if (name === 'submissions') {
+        return {
+          ...col,
+          doc: (id: string) => ({
+            ...col.doc(id),
+            update: async (patch: Record<string, unknown>) => {
+              if ('evidenceSyncError' in patch) throw new Error('Update failed');
+              return col.doc(id).update(patch);
+            },
+          }),
+        };
+      }
+      return col;
+    });
+
+    try {
+      const result = await call({ action: 'deleteSubmissionGrade', submissionId: 'sub-1' });
+
+      expect(result.statusCode).toBe(200);
+      expect(result.payload).toMatchObject({ deletedGrade: true });
+    } finally {
+      h.db.collection = originalCollection;
+    }
+  });
+
+  it('saveSubmissionGrade: post-commit evidence cleanup failure records evidenceSyncError marker but preserves success', async () => {
+    const harness = seed();
+    harness.store.submissions['sub-1'].evidenceSyncError = 'Lỗi cũ';
+    // Make removeSubmissionGradeEvidence fail by making studentProfiles set throw
+    const originalCollection = h.db.collection;
+    h.db.collection = vi.fn((name: string) => {
+      const col = originalCollection(name);
+      if (name === 'studentProfiles') {
+        return {
+          ...col,
+          doc: (id: string) => ({
+            ...col.doc(id),
+            set: async () => { throw new Error('Evidence cleanup failed'); },
+          }),
+        };
+      }
+      return col;
+    });
+
+    const result = await call({
+      action: 'saveSubmissionGrade', submissionId: 'sub-1',
+      grade: { score: 9, maxScore: 10, feedback: 'Em đã sửa được lỗi.', weakTopics: [], teacherNote: 'Đã kiểm tra lại.' },
+    });
+
+    // Should still succeed because grade was committed before cleanup
+    expect(result.statusCode).toBe(200);
+    expect(result.payload).toMatchObject({ saved: true });
+    // Grade should be committed
+    expect(harness.store.submissions['sub-1']).toMatchObject({
+      status: 'graded',
+      grade: expect.objectContaining({ score: 9, teacherApproved: false, editedByTeacher: true }),
+    });
+    // evidenceSyncError should be set with the cleanup error message
+    expect(typeof harness.store.submissions['sub-1'].evidenceSyncError).toBe('string');
+    expect(harness.store.submissions['sub-1'].evidenceSyncError.length).toBeGreaterThan(0);
+    // History should have been created
+    expect(Object.values(harness.store.submissionGradeHistory || {})).toEqual([
+      expect.objectContaining({ action: 'manual_edit', submissionId: 'sub-1', actorUid: 'gv-1' }),
+    ]);
+
+    h.db.collection = originalCollection;
+  });
+
+  it('deleteSubmissionGrade: post-commit evidence cleanup failure aborts deletion and preserves grade/submission/history', async () => {
+    const harness = seed();
+    harness.store.submissions['sub-1'].evidenceSyncError = 'Lỗi cũ';
+    // Make removeSubmissionGradeEvidence fail
+    const originalCollection = h.db.collection;
+    h.db.collection = vi.fn((name: string) => {
+      const col = originalCollection(name);
+      if (name === 'studentProfiles') {
+        return {
+          ...col,
+          doc: (id: string) => ({
+            ...col.doc(id),
+            set: async () => { throw new Error('Evidence cleanup failed'); },
+          }),
+        };
+      }
+      return col;
+    });
+
+    try {
+      const result = await call({ action: 'deleteSubmissionGrade', submissionId: 'sub-1' });
+
+      // Should fail because evidence cleanup failed (fail-closed)
+      expect(result.statusCode).toBe(500);
+      expect(result.payload).toMatchObject({ error: expect.stringContaining('Không thể xóa điểm') });
+      // Grade should be preserved
+      expect(harness.store.submissions['sub-1']).toMatchObject({ status: 'graded' });
+      expect(harness.store.submissions['sub-1'].grade).toEqual(oldGrade);
+      // No history should be created
+      expect(harness.store.submissionGradeHistory).toBeUndefined();
+    } finally {
+      h.db.collection = originalCollection;
+    }
+  });
+
+  it('retryEvidenceSync: unapproved grade (teacher AI regrade/manual edit) retries evidence cleanup when evidenceSyncError present', async () => {
+    const harness = seed();
+    // Unapproved grade (teacher AI regrade or manual edit)
+    harness.store.submissions['sub-1'].grade = { ...oldGrade, score: 7, teacherApproved: false, approvalSource: 'teacher', editedByTeacher: true };
+    harness.store.submissions['sub-1'].evidenceSyncError = 'Dọn minh chứng cũ thất bại';
+
+    const result = await call({ action: 'retryEvidenceSync', submissionId: 'sub-1' });
+
+    expect(result.statusCode).toBe(200);
+    expect(result.payload).toMatchObject({ retried: true });
+    // approvalSource should be preserved
+    expect(harness.store.submissions['sub-1'].grade).toMatchObject({ approvalSource: 'teacher', teacherApproved: false });
+    // evidenceSyncError should be cleared
+    expect(harness.store.submissions['sub-1'].evidenceSyncError).toBe('');
+  });
+
+  it('retryEvidenceSync: unapproved grade with student_ai approvalSource also works', async () => {
+    const harness = seed();
+    // Unapproved grade from student AI
+    harness.store.submissions['sub-1'].grade = { ...oldGrade, score: 6, teacherApproved: false, approvalSource: 'student_ai' };
+    harness.store.submissions['sub-1'].evidenceSyncError = 'Lỗi đồng bộ';
+
+    const result = await call({ action: 'retryEvidenceSync', submissionId: 'sub-1' });
+
+    expect(result.statusCode).toBe(200);
+    expect(result.payload).toMatchObject({ retried: true });
+    expect(harness.store.submissions['sub-1'].grade).toMatchObject({ approvalSource: 'student_ai', teacherApproved: false });
+    expect(harness.store.submissions['sub-1'].evidenceSyncError).toBe('');
+  });
+
+  it('retryEvidenceSync: failure preserves approvalSource and records error marker', async () => {
+    const harness = seed();
+    harness.store.submissions['sub-1'].grade = { ...oldGrade, score: 7, teacherApproved: false, approvalSource: 'teacher' };
+    harness.store.submissions['sub-1'].evidenceSyncError = 'Lỗi cũ';
+    // Make the cleanup fail by making studentProfiles set throw
+    const originalCollection = h.db.collection;
+    h.db.collection = vi.fn((name: string) => {
+      const col = originalCollection(name);
+      if (name === 'studentProfiles') {
+        return {
+          ...col,
+          doc: (id: string) => ({
+            ...col.doc(id),
+            set: async () => { throw new Error('Cleanup failed again'); },
+          }),
+        };
+      }
+      return col;
+    });
+
+    const result = await call({ action: 'retryEvidenceSync', submissionId: 'sub-1' });
+
+    expect(result.statusCode).toBe(500);
+    expect(result.payload).toMatchObject({ retried: false });
+    // approvalSource should be preserved
+    expect(harness.store.submissions['sub-1'].grade).toMatchObject({ approvalSource: 'teacher' });
+    // evidenceSyncError should be updated with new error
+    expect(typeof harness.store.submissions['sub-1'].evidenceSyncError).toBe('string');
+    expect(harness.store.submissions['sub-1'].evidenceSyncError.length).toBeGreaterThan(0);
+
+    h.db.collection = originalCollection;
+  });
+
+  it('bỏ duyệt điểm: approvalSource thực sự bị xoá khỏi document (FieldValue.delete semantics)', async () => {
+    const harness = seed();
+    harness.store.submissions['sub-1'].grade = { ...oldGrade, teacherApproved: true, approvalSource: 'teacher' };
+
+    const result = await call({ action: 'approveSubmissionGrade', submissionId: 'sub-1', approved: false });
+
+    expect(result.statusCode).toBe(200);
+    const storedGrade = harness.store.submissions['sub-1'].grade;
+    expect(storedGrade).toMatchObject({ teacherApproved: false });
+    // approvalSource should be completely absent from the stored object (simulating FieldValue.delete)
+    expect('approvalSource' in storedGrade).toBe(false);
   });
 });

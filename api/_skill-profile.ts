@@ -1,5 +1,8 @@
 import { buildSkillSummary } from '../src/lib/learning/skillProfile.js';
 import type { SkillEvidence, StudentSkillState } from '../src/lib/learning/skillTypes.js';
+import type { ProfileTopic, SubmissionGrade } from '../src/lib/classroom/types.js';
+import { mergeTopics, removeEvidence, applyEvidence } from '../src/lib/classroom/profileMerge.js';
+import { buildHomeworkSkillEvidence } from '../src/lib/learning/skillProfile.js';
 
 export const SKILL_EVIDENCE_COL = 'studentSkillEvidence';
 const STUDENT_PROFILES_COL = 'studentProfiles';
@@ -11,6 +14,7 @@ export interface SkillEvidenceOwner {
 }
 
 interface SkillProfileDocRef {
+  get(): Promise<{ exists: boolean; data(): Record<string, unknown> | undefined }>;
   set(payload: Record<string, unknown>, options?: { merge?: boolean }): Promise<unknown>;
   delete(): Promise<unknown>;
 }
@@ -127,4 +131,81 @@ export const removeSkillEvidenceAndRebuild = async (
 ): Promise<StudentSkillState[]> => {
   await removeSourceEvidence(db, owner, sourceId);
   return rebuildStudentSkillSummary(db, owner, now);
+};
+
+/**
+ * Đồng bộ hóa hồ sơ chủ đề (profile topics) VÀ kỹ năng (skill evidence) cho một bài nộp ĐÃ DUYỆT.
+ *
+ * Hàm này là CỬA DUY NHẤT để commit bằng chứng vào hồ sơ tích luỹ — được dùng bởi:
+ *  - Học sinh tự chấm AI thành công (auto-approval): approvalSource='student_ai'
+ *  - Giáo viên duyệt/bỏ duyệt điểm: approvalSource='teacher'
+ *
+ * Idempotent: gọi lại nhiều lần với cùng submissionId + grade cho ra cùng kết quả.
+ * Nếu sync thất bại, ném lỗi để caller quyết định retry (grade vẫn được giữ approved).
+ */
+export interface SyncApprovedGradeInput {
+  submissionId: string;
+  assignmentId: string | null;
+  grade: SubmissionGrade;
+  owner: SkillEvidenceOwner;
+  now: string;
+  /** true khi đang bật duyệt (approved), false khi bỏ duyệt/xoá grade. */
+  approved: boolean;
+}
+
+export const syncApprovedGradeEvidence = async (
+  db: SkillProfileDb,
+  input: SyncApprovedGradeInput,
+): Promise<{ topics: ProfileTopic[]; skills: StudentSkillState[] }> => {
+  const { submissionId, assignmentId, grade, owner, now, approved } = input;
+
+  // 1) Lấy hồ sơ chủ đề hiện tại
+  const profileRef = db.collection('studentProfiles').doc(owner.studentId);
+  const profileSnap = await profileRef.get();
+  const profile = profileSnap.exists ? profileSnap.data() || {} : {};
+  const existingTopics = Array.isArray(profile.topics) ? (profile.topics as ProfileTopic[]) : [];
+
+  // 2) Áp dụng bằng chứng cho hồ sơ chủ đề (merge/remove)
+  const nextTopics = applyEvidence({
+    existing: existingTopics,
+    weakTopics: grade.weakTopics || [],
+    strengths: grade.strengths || [],
+    submissionId,
+    assignmentId: assignmentId || undefined,
+    approved,
+    now,
+  });
+
+  // 3) Ghi hồ sơ chủ đề
+  await profileRef.set({
+    ...owner,
+    topics: nextTopics,
+    updatedAt: now,
+  }, { merge: true });
+
+  // 4) Đồng bộ skill evidence canonical
+  const skillEvidence = buildHomeworkSkillEvidence({
+    submissionId,
+    assignmentId: assignmentId || undefined,
+    grade: {
+      score: grade.score,
+      maxScore: grade.maxScore,
+      weakTopics: grade.weakTopics || [],
+      strengths: grade.strengths || [],
+      teacherApproved: approved,
+      gradedAt: grade.gradedAt,
+      questionResults: grade.questionResults?.map(q => ({
+        confidence: q.confidence,
+      })) || [],
+    },
+  });
+
+  let skills: StudentSkillState[];
+  if (approved) {
+    skills = await replaceSkillEvidenceAndRebuild(db, owner, submissionId, skillEvidence, now);
+  } else {
+    skills = await removeSkillEvidenceAndRebuild(db, owner, submissionId, now);
+  }
+
+  return { topics: nextTopics, skills };
 };

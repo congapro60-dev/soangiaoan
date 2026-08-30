@@ -103,10 +103,86 @@ const assignmentFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData
   ...data,
 }) as AssignmentDoc;
 
-const submissionFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData): SubmissionDoc => ({
-  id,
-  ...data,
-}) as SubmissionDoc;
+const submissionFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData): SubmissionDoc => {
+  const rawStatus = String(data.status || 'submitted');
+  const rawGrade = data.grade as FirebaseFirestore.DocumentData | undefined;
+  const hasValidGrade = rawGrade && typeof rawGrade.score === 'number' && typeof rawGrade.maxScore === 'number';
+
+  // Normalize legacy status='error' with a valid grade to 'graded' at projection time
+  const normalizedStatus = (rawStatus === 'error' && hasValidGrade) ? 'graded' : rawStatus;
+
+  // Teacher sees raw error for debugging; student projection sanitizes this
+  // Include error fields based on data presence, not status
+  const lastGradingError = hasValidGrade && typeof data.lastGradingError === 'string'
+    ? data.lastGradingError
+    : undefined;
+  const lastGradingErrorRaw = hasValidGrade && typeof data.lastGradingErrorRaw === 'string'
+    ? data.lastGradingErrorRaw
+    : undefined;
+  // For status error without grade, teacher sees the actual error message
+  const errorMessage = normalizedStatus === 'error' && !hasValidGrade && typeof data.errorMessage === 'string'
+    ? data.errorMessage
+    : undefined;
+
+  const gradeObj = rawGrade ? {
+      score: Number(rawGrade.score) || 0,
+      maxScore: Number(rawGrade.maxScore) || 0,
+      feedback: String(rawGrade.feedback || ''),
+      strengths: Array.isArray(rawGrade.strengths) ? rawGrade.strengths.map(String) : [],
+      weaknesses: Array.isArray(rawGrade.weaknesses) ? rawGrade.weaknesses.map(String) : [],
+      questionResults: Array.isArray(rawGrade.questionResults)
+        ? rawGrade.questionResults
+          .filter((item: unknown): item is FirebaseFirestore.DocumentData => Boolean(item && typeof item === 'object'))
+          .map(item => ({
+            questionNumber: String(item.questionNumber || ''),
+            status: ['correct', 'partially_correct', 'incorrect', 'unreadable', 'not_attempted'].includes(String(item.status))
+              ? item.status
+              : 'unreadable',
+            score: Number(item.score) || 0,
+            maxScore: Number(item.maxScore) || 0,
+            studentAnswer: String(item.studentAnswer || ''),
+            expectedAnswer: rawGrade?.teacherApproved === true ? String(item.expectedAnswer || '') : '',
+            errorType: String(item.errorType || ''),
+            explanation: rawGrade?.teacherApproved === true ? String(item.explanation || '') : '',
+            correction: String(item.correction || ''),
+            nextPractice: String(item.nextPractice || ''),
+            ...(typeof item.confidence === 'number' ? { confidence: item.confidence } : {}),
+            ...(typeof item.ignoredByTeacherInstruction === 'boolean' ? { ignoredByTeacherInstruction: item.ignoredByTeacherInstruction } : {}),
+            needsTeacherReview: Boolean(item.needsTeacherReview),
+          }))
+        : undefined,
+      weakTopics: Array.isArray(rawGrade.weakTopics) ? rawGrade.weakTopics.map(String) : [],
+      gradedWithoutAnswerKey: rawGrade.gradedWithoutAnswerKey === true,
+      gradedAt: String(rawGrade.gradedAt || ''),
+      teacherApproved: rawGrade.teacherApproved === true,
+      approvalSource: typeof rawGrade.approvalSource === 'string' ? rawGrade.approvalSource as 'student_ai' | 'teacher' : undefined,
+      editedByTeacher: rawGrade.editedByTeacher === true,
+      noteForTeacher: typeof rawGrade.noteForTeacher === 'string' ? rawGrade.noteForTeacher : undefined,
+      gradingRecovery: rawGrade.gradingRecovery,
+    } : undefined;
+
+  return {
+    id,
+    teacherId: String(data.teacherId || ''),
+    classId: String(data.classId || ''),
+    studentId: String(data.studentId || ''),
+    assignmentId: typeof data.assignmentId === 'string' ? data.assignmentId : null,
+    ...(typeof data.supplementOf === 'string' ? { supplementOf: data.supplementOf } : {}),
+    fileUrls: Array.isArray(data.fileUrls) ? data.fileUrls.map(String) : [],
+    textContent: typeof data.textContent === 'string' ? data.textContent : undefined,
+    attachments: Array.isArray(data.attachments) ? data.attachments : undefined,
+    note: String(data.note || ''),
+    status: normalizedStatus,
+    gradingRunId: data.gradingRunId,
+    ...(gradeObj ? { grade: gradeObj } : {}),
+    ...(lastGradingError ? { lastGradingError } : {}),
+    ...(lastGradingErrorRaw ? { lastGradingErrorRaw } : {}),
+    ...(errorMessage ? { errorMessage } : {}),
+    ...(typeof data.evidenceSyncError === 'string' && data.evidenceSyncError ? { evidenceSyncError: data.evidenceSyncError } : {}),
+    createdAt: String(data.createdAt || ''),
+    updatedAt: String(data.updatedAt || ''),
+  } as SubmissionDoc;
+};
 
 const onlineSubmissionStatus = (value: unknown): SubmissionDoc['status'] | null => {
   if (value === 'in_progress') return 'grading';
