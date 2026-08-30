@@ -74,3 +74,44 @@ git -C $worktree diff --check
 - `firestore.rules`
 - `test/pilot/liveLessonServicePilot.test.ts`
 - `qa_artifacts/live-lesson-v4/browser-pilot-report.md`
+
+## Submission grading lifecycle — 2026-08-30
+
+### Đã đổi và vì sao
+
+- AI chấm thành công do học sinh yêu cầu được ghi nhận là `student_ai` và tự động duyệt; AI chấm lại do giáo viên và chấm tay vẫn chờ giáo viên duyệt.
+- Khi chấm lại lỗi nhưng đã có điểm hợp lệ, giữ nguyên điểm/trạng thái/history; lưu lỗi an toàn cho người dùng và lỗi thô chỉ cho giáo viên.
+- Xoá lỗi cũ khi lần chấm mới thành công; bỏ trạng thái `error` giả ở projection nếu bài đã có grade hợp lệ.
+- Đồng bộ hồ sơ chủ đề/kỹ năng có retry; lỗi đồng bộ không biến một grade đã commit thành lỗi giả. Xoá điểm fail-closed nếu chưa dọn được minh chứng.
+- Bổ sung badge và thông báo rõ trong màn hình giáo viên/học sinh, không làm lộ lỗi provider hoặc minh chứng nội bộ cho học sinh.
+
+### Commit và trạng thái
+
+- Commit release: `3393b7a` — `fix(classroom): preserve grades across regrade failures`.
+- Đã kiểm tra trên worktree sạch; không đọc/ghi dữ liệu Firestore lớp học thật.
+- Push main sẽ để Vercel tự build theo cấu hình repository; chưa claim QA production sau deploy.
+
+### Chưa claim / cần người sở hữu kiểm tra
+
+- Chưa chạy browser E2E bằng tài khoản thật sau release.
+- Legacy `status=error` có grade hợp lệ được chuẩn hoá khi đọc, chưa migration ngược dữ liệu cũ.
+- Nếu đồng bộ minh chứng thất bại, giáo viên dùng nút **Thử lại**; không tự retry vô hạn.
+- Luồng online exam không thuộc phạm vi thay đổi này.
+
+### Bằng chứng nghiệm thu local
+
+- `npm run test -- --run`: **134 files / 1,656 tests PASS**.
+- `npm run lint:api`: PASS.
+- `npm run lint`: PASS.
+- `npm run build`: PASS; chỉ còn cảnh báo Vite chunk/dynamic import.
+
+### Lệnh nghiệm thu
+
+```powershell
+$worktree = "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading"
+npm --prefix $worktree run lint:api
+npm --prefix $worktree run lint
+npm --prefix $worktree test -- --run
+npm --prefix $worktree run build
+git -C $worktree diff --check
+```
