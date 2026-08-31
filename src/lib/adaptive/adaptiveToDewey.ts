@@ -1,4 +1,4 @@
-import type { AdaptiveLesson, AdaptiveQuestion, LearningRoute, PracticeSet, PracticeMCQ, PracticeTFGroup, PracticeShort, PracticeEssay } from './types';
+import type { AdaptiveLesson, AdaptiveQuestion, LearningRoute, PracticeSet, PracticeTask, PracticeMCQ, PracticeTFGroup, PracticeShort, PracticeEssay } from './types';
 import type {
   DeweyAdaptiveQuestion,
   DeweyKnowledgeUnit,
@@ -231,6 +231,58 @@ const buildStructuredPacks = (ps: PracticeSet): [DeweyOlympiaPack, DeweyOlympiaP
   ];
 };
 
+/**
+ * V4 đã có nhiệm vụ M/S/C ở knowledgeUnits.routes nhưng chưa có practiceSet.
+ * Dùng chính các nhiệm vụ đó cho cổng tự học, tránh rơi vào placeholder khi
+ * converter cũ chia hai quick-check vào ba gói luyện tập.
+ */
+const routeTaskToDewey = (task: PracticeTask, route: LearningRoute, points: number): DeweyAdaptiveQuestion => {
+  const answer = normalizeLatexText(task.expectedAnswer, 'Ghi rõ dữ kiện, bước làm, kết luận và phép kiểm.');
+  const hints = (task.hints ?? [])
+    .map(hint => formatStepLines(normalizeLatexText(hint, '')))
+    .filter(Boolean);
+  return {
+    id: `route-${route}-${pid()}`,
+    type: 'essay',
+    prompt: normalizeLatexText(task.prompt, 'Nhiệm vụ đang được chuẩn bị.'),
+    essayParts: [{
+      prompt: 'Trình bày lời giải theo đúng dữ kiện, lập luận, kết luận và phép kiểm.',
+      hint: hints.join('\n') || 'Đọc lại dữ kiện, viết một bước có căn cứ rồi kiểm tra kết luận.',
+      answer,
+    }],
+    theory: 'Nhớ lại định nghĩa/công thức liên quan rồi thử lại — chưa cần xem đáp án.',
+    hint1: hints[0] || 'Gạch chân dữ kiện và điều kiện trước khi làm.',
+    hint2: hints.slice(0, 2).join('\n') || 'Nêu phép tính hoặc lập luận làm căn cứ.',
+    hint3: hints.join('\n') || 'Viết kết luận rồi kiểm tra lại bằng một trường hợp cụ thể.',
+    solution: '',
+    points,
+  };
+};
+
+const hasDifferentiatedRouteTasksForUnit = (unit: AdaptiveLesson['knowledgeUnits'][number]): boolean =>
+  ['foundation', 'standard', 'challenge'].every(route =>
+    unit.routes.some(item => item.route === route && item.practiceTasks?.length > 0)
+  );
+
+const hasDifferentiatedRouteTasks = (lesson: AdaptiveLesson): boolean => lesson.knowledgeUnits.some(hasDifferentiatedRouteTasksForUnit);
+
+const buildRoutePacks = (lesson: AdaptiveLesson): [DeweyOlympiaPack, DeweyOlympiaPack, DeweyOlympiaPack] => {
+  const unit = lesson.knowledgeUnits.find(hasDifferentiatedRouteTasksForUnit);
+  const definitions: Array<{ route: LearningRoute; label: string; points: number }> = [
+    { route: 'foundation', label: 'Nhận biết', points: 10 },
+    { route: 'standard', label: 'Thông hiểu', points: 20 },
+    { route: 'challenge', label: 'Vận dụng', points: 30 },
+  ];
+  return definitions.map(({ route, label, points }) => {
+    const task = unit?.routes.find(item => item.route === route)?.practiceTasks[0];
+    return {
+      id: `pack-${route}`,
+      packLabel: label,
+      questions: task ? [routeTaskToDewey(task, route, points)] : [placeholder(points)],
+    };
+  }) as [DeweyOlympiaPack, DeweyOlympiaPack, DeweyOlympiaPack];
+};
+
 export function adaptiveLessonToDeweyContent(
   lesson: AdaptiveLesson,
   route: LearningRoute = 'standard',
@@ -354,6 +406,8 @@ export function adaptiveLessonToDeweyContent(
   // E9: bài MỚI có practiceSet → 3 gói Nhận biết/Thông hiểu/Vận dụng; bài CŨ → fallback chia quick check theo điểm.
   const packs: [DeweyOlympiaPack, DeweyOlympiaPack, DeweyOlympiaPack] = lesson.practiceSet
     ? buildStructuredPacks(lesson.practiceSet)
+    : hasDifferentiatedRouteTasks(lesson)
+      ? buildRoutePacks(lesson)
     : ([0, 1, 2].map(i => {
         const slice = allQC.slice(cursor, cursor + counts[i]);
         cursor += counts[i];

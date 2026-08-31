@@ -47,7 +47,9 @@ const hasRealOptions = (question: AdaptiveQuestion): boolean => {
 
 const validateQuestionForPublish = (question: AdaptiveQuestion, path: string, issues: AdaptiveLessonQualityIssue[]): void => {
   if (!hasRealText(question.prompt)) issues.push({ severity: 'warning', code: 'invalid_question_prompt', message: 'Câu hỏi còn thiếu nội dung thật hoặc còn placeholder.', path: `${path}.prompt` });
-  if (!hasRealOptions(question)) issues.push({ severity: 'warning', code: 'invalid_question_options', message: 'Câu hỏi phải có 4 phương án thật và đáp án đúng khớp một phương án.', path: `${path}.options` });
+  if (question.type === 'multiple_choice' && !hasRealOptions(question)) {
+    issues.push({ severity: 'warning', code: 'invalid_question_options', message: 'Câu hỏi trắc nghiệm phải có 4 phương án thật và đáp án đúng khớp một phương án.', path: `${path}.options` });
+  }
   if (!hasRealText(question.explanation)) issues.push({ severity: 'warning', code: 'weak_question_explanation', message: 'Giải thích đáp án còn thiếu hoặc chung chung.', path: `${path}.explanation` });
 };
 

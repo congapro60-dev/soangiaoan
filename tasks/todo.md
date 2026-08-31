@@ -403,3 +403,44 @@ Backup bản cũ: `C:\Users\ADMIN\AppData\Local\Temp\smartplan-ban-toan-backup-2
 - [x] Fixed integration compile regressions, restored the THINK prerequisite, made missing public stats reads safe, and aligned the TV fixture with canonical screen `S8A`.
 - [x] `npm run lint`, `npm run lint:api`, `npm run test`, `npm run test:rules`, `npm run test:pilot`, and `npm run build` pass on the integration worktree.
 - [ ] Real teacher account, production/Vercel HTTP smoke, and human three-viewport classroom flow are still user-facing QA gates.
+
+## V4 all Ban Toán W5–W6 — 48 lesson packages — 2026-08-30
+
+Đặc tả: `docs/superpowers/specs/2026-08-30-live-lesson-v4-all-ban-toan-design.md`
+Kế hoạch: `docs/superpowers/plans/2026-08-30-live-lesson-v4-all-ban-toan-plan.md`
+
+- [ ] Chụp snapshot/provenance từ `LESSON_SPECS` hiện hành; không dùng `lesson-data.json` stale.
+- [ ] Tạo adapter `LessonSpec → LiveLessonV4Contract`, đúng 2400 giây, formation/practice/elective-practice.
+- [ ] Sinh registry/runtime artifact cho đủ 48 bài, giữ compatibility P31.
+- [ ] Tích hợp lookup exact vào chức năng `Bài học phân hoá`, không match title mơ hồ.
+- [ ] Giữ `languagePreference` là lựa chọn HS; glossary vi/en/ja/ko/zh và privacy allowlist.
+- [ ] Tạo evidence/group proposal/post-check/offline cho từng gói; grouping phải chờ GV duyệt.
+- [ ] Chạy focused tests → review độc lập → full lint/lint:api/test/build; chưa commit/push/deploy.
+- [ ] Viết `tasks/session_v4_all_lesson_packages.md` sau khi kết thúc phiên.
+
+## V4 three-portal QA continuation — 2026-08-31
+
+- [x] Tái lập và sửa blocker Rules: checkpoint V4 canonical được allowlist đúng, vẫn giới hạn 9 bước.
+- [x] Tái lập và sửa race listener HS sau anonymous sign-in: public projection không bị revoke chỉ vì auth state đổi.
+- [x] Tái lập và sửa raw LaTeX trên TV/HS bằng renderer KaTeX dùng chung; thêm test chuẩn hóa công thức.
+- [x] Browser pilot local dùng dữ liệu giả: GV điều khiển `P00 → P03 → P05 → P08 → P16 → P19 → P20 → P27`; TV và HS nhận realtime; HS gửi choice/text/post-check; TV chỉ hiện thống kê aggregate.
+- [x] Visual QA TV/HS: công thức render đúng, TV không tràn khung ở viewport 1280×720; TV không hiện tên HS hoặc text phản hồi cá nhân.
+- [x] Gates sau patch: `npm run lint`, `npm run lint:api`, `npm run test`, `npm run test:rules`, `npm run build` đều PASS.
+- [ ] Chưa có real teacher-authenticated staging, Vercel/production HTTP smoke hoặc deployment; không được gọi là release production.
+
+## V4 sequential publication — 2026-08-31
+
+- [x] Thêm strict audit đối chiếu source/assessment/route/AI Error/40 phút/glossary trước publish.
+- [x] Publish tuần tự một bài mỗi lần, skip bài đã published, chặn khác owner/foreign identity, tiếp tục và báo lỗi từng bài.
+- [x] Thêm nút `Xuất bản tuần tự 48 bài`, progress `n/48` và thống kê published/skipped/audit fail/error trong Bài học phân hóa.
+- [x] Emulator local: REST xác nhận 48/48 V4 document `published`, 48 source key duy nhất, tất cả 40 phút.
+- [ ] Chưa publish Firestore production; cần deploy code trước rồi mới chạy nút trên tài khoản thật.
+
+## Release QA: title/delete/self-study — 2026-08-31
+
+- [x] Tiêu đề draft V4 dùng tên bài + `— Tiết N`, không dùng chuỗi kỹ thuật khó tìm.
+- [x] Nút xóa giữ xác nhận rõ ràng, có nhãn truy cập và chỉ cập nhật danh sách sau khi Firestore xóa thành công.
+- [x] Browser QA cổng tự học bằng dữ liệu tổng hợp: nhập thông tin → diagnostic → bài học → scaffold → 3 gói M/S/C → vận dụng → tổng kết → lưu tiến trình.
+- [x] Phát hiện và sửa gói `Vận dụng` placeholder: converter dùng trực tiếp route task V4 khi lesson chưa có `practiceSet`.
+- [x] Phát hiện và sửa công thức kết luận dài tràn ngang: tách các dòng công thức và giới hạn vùng MathJax trong card/vở ghi.
+- [x] Chạy lại toàn bộ gate; push `main` đang chờ pre-push handoff gate.

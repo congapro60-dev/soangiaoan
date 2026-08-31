@@ -311,6 +311,12 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - Chạy `C:\Users\ADMIN\.codex\skills\vietnamese-education-copy\scripts\validate_copy.py` trên artifact copy giáo dục với đúng `--doctype` và `--register`; không áp validator của văn bản hành chính lên toàn bộ UI e-learning.
 - Khi full QA có nhiều tiến trình nặng, chạy unit suite độc lập để phân biệt timeout do tranh chấp tài nguyên với lỗi logic; một ca timeout khi chạy song song không đủ căn cứ để sửa code.
 
+## Xuất bản tuần tự V4 và QA màn hình chiếu (2026-08-31)
+
+- Không biến kiểm tra cấu trúc 48/48 thành giấy phép publish. Publication gate phải đối chiếu exact source key, câu hỏi/đáp án diagnostic, quick-check, exit-ticket, ví dụ tuyến, AI Error và teacher ownership; bài published phải idempotent và không ghi đè.
+- Khi chạy batch publish, một bài save lỗi phải thành report lỗi rồi tiếp tục bài sau; UI phải hiện sourceKey hiện tại, tiến độ và thống kê audit fail/lỗi để giáo viên không tưởng batch đã hoàn tất.
+- Với màn hình TV 16:9, kiểm tra ở stage 1280×720 và “3-metre test”: một ý chính/màn hình, tương phản cao, lề an toàn, không thu nhỏ chữ để nhét nội dung; công thức phải render chứ không in raw LaTeX. Chi tiết lời GV để ở cổng GV, không đưa lên TV.
+
 ## FileList gắn sống với ô input — gốc rễ thật của cả chuỗi "nộp ảnh không được" (2026-08-22)
 
 - **`const files = e.target.files; e.target.value = '';` là XOÁ SẠCH files trước khi kịp dùng** — FileList trả về từ `input.files` là view SỐNG theo control: reset `value` là `length` về 0 ngay, handler sau đó không bao giờ chạy. Đây mới là nguyên nhân "bấm nộp xong không thấy gì" ở cổng học sinh; tôi đã chẩn đoán sai HAI LẦN trước khi người khác soi ra: lần 1 đổ cho storage.rules chặn 6MB/thiếu nén, lần 2 đổ cho thiếu trạng thái xác nhận. Dấu hiệu lẽ ra phơi sớm: user nói "không thấy gì cả" — kể cả thanh tiến trình cũng không hiện nghĩa là HÀM XỬ LÝ chưa từng chạy, chứ không phải chạy mà UI không phản ánh. QUY TẮC: trong onChange của input file, SAO CHÉP `Array.from(e.target.files ?? [])` thành mảng TRƯỚC khi đụng vào `value` (đối tượng `File` độc lập với input nên vẫn dùng tốt); và khi user báo "không có gì xảy ra", kiểm chứng hàm xử lý có được gọi tới không (log đầu hàm) TRƯỚC khi đi soi tầng dưới như rules/mạng.
@@ -344,3 +350,16 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - Nếu lớp thiếu `joinCode`, phải chặn ngay lúc tạo phiên với hướng dẫn đồng bộ/cấp mã lớp; không tạo một link HS trông hợp lệ nhưng không thể đăng nhập.
 
 - **Rules/fixture QA phải tách seed hợp lệ khỏi tài liệu malformed** — ownership rule cần đọc `teacherUid` để bảo vệ dữ liệu; một parent document thiếu schema có thể làm Rules Emulator ghi evaluator trace trên deny-path dù mọi allow-path hợp lệ. Không coi fixture malformed là bằng chứng app runtime hỏng; chặn từ contract/service/seed và kiểm tra allow-path thật. Đồng thời session đóng không được publish public projection sau khi Rules đã revoke public access. *(2026-08-29)*
+
+## V4 ba cổng — public listener, công thức và thứ tự nghiệm thu (2026-08-31)
+
+- Nghiệm thu V4 phải bắt đầu bằng nhịp GV → TV → HS cùng một session; cổng adaptive tự học không thay thế browser choreography của giờ dạy trực tiếp.
+- `public/state` đã cho phép người chưa đăng nhập đọc projection thì không nên chặn người vừa đăng nhập nếu projection vẫn được bật và đã redact. Chặn theo `request.auth` tạo race: HS đăng nhập trước khi `studentLinks/{uid}` được server ghi, listener chết và không tự hồi phục. Giữ private data ở Rules riêng; kiểm chứng bằng test trước/sau authentication.
+- Raw LaTeX trong `LiveLessonScreen.body` không tự render khi dùng React text node. Với nguồn công thức không có delimiter, phải chuẩn hóa đường công thức trước khi đưa qua `remark-math`/`rehype-katex`, rồi kiểm cả screenshot và kích thước scroll TV.
+- Nút GV nhận phản hồi chưa đủ bằng chứng. Pilot phải chuyển ít nhất qua diagnostic, AI Error, route M/S/C, group product và post-check; kiểm TV chỉ nhận aggregate, HS nhận trạng thái/câu hỏi riêng, GV nhận count.
+
+## Cổng tự học phải được QA như một sản phẩm riêng (2026-08-31)
+
+- V4 live classroom và cổng tự học dùng chung lesson data nhưng không dùng chung đường kiểm thử. Phải chạy riêng identify → diagnostic → knowledge → practice → application → summary → save; một live pilot xanh không chứng minh cổng tự học xanh.
+- Khi lesson đã có route foundation/standard/challenge nhưng chưa có `practiceSet`, converter không được tự lấp gói thiếu bằng placeholder. Ưu tiên route task đã được kiểm tra nguồn; nếu không đủ dữ liệu thì báo thiếu nội dung trước publish.
+- Chuỗi nhiều công thức nối bằng newline phải tách thành các vùng MathJax riêng trước render. Đồng thời chặn overflow ở card/note cục bộ để một công thức dài không kéo tràn toàn trang.

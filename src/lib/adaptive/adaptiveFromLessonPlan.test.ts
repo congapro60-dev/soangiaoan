@@ -77,6 +77,19 @@ describe('validateAdaptiveLessonPublishReadiness', () => {
 
     expect(issues.filter((issue) => issue.code === 'invalid_question_options')).toEqual([]);
   });
+
+  it('không đòi phương án trắc nghiệm cho câu trả lời ngắn của gói Toán', () => {
+    const lesson = buildMinimalLesson();
+    lesson.diagnosticTest.questions[0] = {
+      ...lesson.diagnosticTest.questions[0],
+      type: 'short_answer',
+      options: undefined,
+      correctAnswer: '12',
+    };
+    const issues = validateAdaptiveLessonPublishReadiness(lesson);
+
+    expect(issues.filter((issue) => issue.code === 'invalid_question_options')).toEqual([]);
+  });
 });
 
 describe('adaptive objective skill bridge', () => {

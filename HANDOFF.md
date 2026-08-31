@@ -75,6 +75,49 @@ git -C $worktree diff --check
 - `test/pilot/liveLessonServicePilot.test.ts`
 - `qa_artifacts/live-lesson-v4/browser-pilot-report.md`
 
+## V4 all Ban Toán W5–W6 + self-study — 2026-08-31
+
+### Đã đổi và vì sao
+
+- Bổ sung snapshot có provenance và adapter/registry/runtime cho đủ 48 source key Ban Toán W5–W6; mỗi bài giữ đúng source key, 40 phút, 3 tuyến M/S/C và nội dung nguồn.
+- Tích hợp vào **Bài học phân hoá** hiện tại bằng nút `Xuất bản tuần tự 48 bài`: xử lý từng bài, audit exact source/assessment/route/AI Error/glossary trước khi lưu, bỏ qua bài đã xuất bản và chặn khác chủ sở hữu.
+- Chuẩn hóa tiêu đề theo tên giáo viên dễ tìm, dạng `Tên bài — Tiết N`; draft cũ có hậu tố kỹ thuật được sửa tên khi xuất bản lại mà không đổi nội dung.
+- Giữ nút `Xóa` trong danh sách với xác nhận nêu đúng tên bài, nhãn truy cập và chỉ cập nhật UI sau khi lệnh xóa owner-scoped thành công.
+- Sửa cổng tự học: khi lesson V4 có route task nhưng chưa có `practiceSet`, ba gói Nhận biết/Thông hiểu/Vận dụng dùng chính nhiệm vụ M/S/C thay vì placeholder; tách công thức nhiều dòng và giới hạn MathJax trong card/vở ghi để không tràn ngang.
+
+### Bằng chứng nghiệm thu local
+
+- `npm run lint`: PASS.
+- `npm run lint:api`: PASS.
+- `npm run test -- --run --maxWorkers=1`: **145 files / 1,720 tests PASS**.
+- `npm run test:rules`: **8 files / 301 tests PASS**.
+- `npm run test:pilot`: **13/13 checks PASS** trên Firestore/Auth Emulator.
+- `npm exec -- tsx test/e2e-v4-live-lesson.mjs`: **9/9 checks PASS**.
+- `npm run build`: PASS; chỉ còn cảnh báo Vite chunk/dynamic import vốn có.
+- Browser self-study QA bằng dữ liệu tổng hợp: identify → diagnostic → bài học/scaffold → đủ 3 gói → vận dụng → tổng kết → lưu tiến trình; không còn placeholder và công thức kết luận hiển thị đủ trong card.
+- Rules stderr vẫn có `evaluation error` ở nhánh DENY cố ý; không được gọi là “zero-evaluator-error”.
+
+### Chưa claim / cần người sở hữu kiểm tra
+
+- Chưa seed 48 bài vào Firestore production; nút xuất bản phải được giáo viên bấm trên tài khoản thật sau khi deploy.
+- Chưa xác nhận Vercel Ready/Production hoặc HTTP smoke cho commit này.
+- Browser live classroom và self-study đã chạy local với identity/dữ liệu tổng hợp; chưa thay thế pilot GV thật + TV/Vcast + thiết bị học sinh thật.
+- Không xóa bài production trong QA; nút xóa đã có test helper và Rules owner-delete hiện hành.
+
+### Lệnh nghiệm thu cho commit này
+
+```powershell
+$worktree = "C:\Users\ADMIN\.config\superpowers\worktrees\smart-lesson-plan-ai\v4-all-lesson-packages"
+npm --prefix $worktree run lint
+npm --prefix $worktree run lint:api
+npm --prefix $worktree run test -- --run --maxWorkers=1
+npm --prefix $worktree run test:rules
+npm --prefix $worktree run test:pilot
+npm --prefix $worktree exec -- tsx test/e2e-v4-live-lesson.mjs
+npm --prefix $worktree run build
+git -C $worktree diff --check
+```
+
 ## Submission grading lifecycle — 2026-08-30
 
 ### Đã đổi và vì sao

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildLiveLessonUrls, formatLiveLessonLaunchError, getPilotDefinitionForLesson, isAuthoritativeServerClassList, validateLiveLessonLaunch } from './LiveLessonLauncher';
+import { buildLiveLessonUrls, formatLiveLessonLaunchError, getLiveDefinitionForLesson, getPilotDefinitionForLesson, isAuthoritativeServerClassList, validateLiveLessonLaunch } from './LiveLessonLauncher';
 
 describe('live lesson launcher helpers', () => {
   it('blocks creation when there is no owned synchronized class', () => {
@@ -60,6 +60,29 @@ describe('live lesson launcher helpers', () => {
       durationMinutes: 40,
       status: 'published',
     } as never)).toThrow(/pilot/i);
+  });
+
+  it('opens a published Ban Toán V4 lesson only through its exact source identity', () => {
+    const definition = getLiveDefinitionForLesson({
+      id: 'adaptive-v4-10-5-37-teacher-1',
+      title: 'Bất phương trình bậc nhất hai ẩn · V4',
+      grade: '10',
+      durationMinutes: 40,
+      status: 'published',
+      curriculumRef: { programType: 'TDS', week: '5', period: 37, lessonCode: '10-5-37' },
+    } as never);
+    expect(definition.id).toBe('g10_w5_p37_v4');
+    expect(definition.lessonId).toBe('adaptive-v4-10-5-37-teacher-1');
+  });
+
+  it('adds V4 definition context to all three links without changing legacy links', () => {
+    const urls = buildLiveLessonUrls('session-123', 'https://smartplan.test', 'class-123', 'JOIN123', {
+      definitionKey: '10-5-37',
+      lessonId: 'adaptive-v4-10-5-37-teacher-1',
+    });
+    expect(urls.teacher).toContain('definitionKey=10-5-37');
+    expect(urls.tv).toContain('lessonId=adaptive-v4-10-5-37-teacher-1');
+    expect(urls.student).toContain('classId=class-123');
   });
 
   it('falls back from mixed legacy and server class input', () => {

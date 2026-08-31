@@ -19,7 +19,6 @@ import { FloatingChatWidget } from './components/layout/FloatingChatWidget';
 import { DashboardTab } from './components/tabs/DashboardTab';
 import { SettingsModal } from './components/modals/SettingsModal';
 import { LatexModal } from './components/modals/LatexModal';
-import { LiveLessonLauncher } from './components/liveLesson/LiveLessonLauncher';
 
 // Lazy-loaded tabs (splits heavy chunks, loaded on first visit)
 const CreatorTab = lazy(() => import('./components/tabs/CreatorTab').then(m => ({ default: m.CreatorTab })));
@@ -32,6 +31,7 @@ const ExamsTab = lazy(() => import('./components/tabs/ExamsTab').then(m => ({ de
 const AdaptiveLearningTab = lazy(() => import('./components/tabs/AdaptiveLearningTab').then(m => ({ default: m.AdaptiveLearningTab })));
 const AdaptiveLessonListPage = lazy(() => import('./pages/AdaptiveLessonListPage').then(m => ({ default: m.AdaptiveLessonListPage })));
 const AdaptiveLessonBuilderPage = lazy(() => import('./pages/AdaptiveLessonBuilderPage').then(m => ({ default: m.AdaptiveLessonBuilderPage })));
+const LiveLessonLauncher = lazy(() => import('./components/liveLesson/LiveLessonLauncher').then(m => ({ default: m.LiveLessonLauncher })));
 // Trang dự giờ kéo theo xlsx + jszip nên tách gói riêng, đừng nhồi vào bundle chính.
 const DuGioPage = lazy(() => import('./pages/DuGioPage').then(m => ({ default: m.DuGioPage })));
 const AIToolsTab = lazy(() => import('./components/tabs/AIToolsTab').then(m => ({ default: m.AIToolsTab })));

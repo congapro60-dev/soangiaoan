@@ -9,6 +9,7 @@ import { listTeacherClasses } from '../../lib/classroom/classroomService';
 import { getPilotLiveLessonDefinition, validateLiveLessonDefinition } from '../../lib/liveLesson/definition';
 import type { LiveLessonDefinition, LiveLessonSession } from '../../lib/liveLesson/types';
 import { LiveLessonDefinitionError } from '../../lib/liveLesson/types';
+import { buildLiveLessonDefinitionFromV4, getBanToanV4PackageForLesson } from '../../lib/liveLesson/v4';
 import { createLiveLessonSession } from '../../services/liveLessonService';
 import { getLessonFromFirestore } from '../../services/adaptiveLessonService';
 import type { TeacherClass } from '../../types';
@@ -29,15 +30,34 @@ export interface LiveLessonUrls {
   student: string;
 }
 
-export const buildLiveLessonUrls = (sessionId: string, baseUrl = '', studentClassId = '', studentJoinCode = ''): LiveLessonUrls => {
+export interface LiveLessonUrlOptions {
+  definitionKey?: string;
+  lessonId?: string;
+}
+
+export const buildLiveLessonUrls = (
+  sessionId: string,
+  baseUrl = '',
+  studentClassId = '',
+  studentJoinCode = '',
+  options?: LiveLessonUrlOptions,
+): LiveLessonUrls => {
   const prefix = baseUrl.replace(/\/$/, '');
   const path = `/adaptive-live/${encodeURIComponent(sessionId)}`;
-  const studentQuery = new URLSearchParams({ mode: 'student' });
+  const withDefinitionContext = (mode: 'teacher' | 'tv' | 'student') => {
+    const query = new URLSearchParams({ mode });
+    if (options?.definitionKey?.trim()) query.set('definitionKey', options.definitionKey.trim());
+    if (options?.lessonId?.trim()) query.set('lessonId', options.lessonId.trim());
+    return query;
+  };
+  const teacherQuery = withDefinitionContext('teacher');
+  const tvQuery = withDefinitionContext('tv');
+  const studentQuery = withDefinitionContext('student');
   if (studentClassId.trim()) studentQuery.set('classId', studentClassId);
   if (studentJoinCode.trim()) studentQuery.set('joinCode', studentJoinCode);
   return {
-    teacher: `${prefix}${path}?mode=teacher`,
-    tv: `${prefix}${path}?mode=tv`,
+    teacher: `${prefix}${path}?${teacherQuery.toString()}`,
+    tv: `${prefix}${path}?${tvQuery.toString()}`,
     student: `${prefix}${path}?${studentQuery.toString()}`,
   };
 };
@@ -87,6 +107,20 @@ export const getPilotDefinitionForLesson = (lesson: AdaptiveLesson): LiveLessonD
   return definition;
 };
 
+export const getLiveDefinitionForLesson = (lesson: AdaptiveLesson): LiveLessonDefinition => {
+  if (lesson.status !== 'published') {
+    throw new LiveLessonDefinitionError('LIVE_LESSON_NOT_PUBLISHED', 'Chỉ bài học đã xuất bản mới có thể mở tiết trực tiếp.');
+  }
+
+  if (lesson.id === 'tds-g10-30-pilot') return getPilotDefinitionForLesson(lesson);
+
+  const binding = getBanToanV4PackageForLesson(lesson);
+  if (!binding) {
+    throw new LiveLessonDefinitionError('LIVE_V4_PACKAGE_NOT_FOUND', 'Bài học chưa có gói V4 Ban Toán khớp source key; chưa thể mở tiết trực tiếp.');
+  }
+  return buildLiveLessonDefinitionFromV4(binding.contract, lesson.id);
+};
+
 const copyText = async (value: string): Promise<void> => {
   if (!navigator.clipboard) throw new Error('Trình duyệt không cho phép sao chép liên kết.');
   await navigator.clipboard.writeText(value);
@@ -134,10 +168,10 @@ export const LiveLessonLauncher = ({ lesson: selectedLesson, lessonId, user: con
       try {
         const loaded = selectedLesson ?? (lessonId ? await getLessonFromFirestore(lessonId) : null);
         if (!loaded) throw new Error('Không tìm thấy bài học phân hoá để mở tiết trực tiếp.');
-        const pilotDefinition = getPilotDefinitionForLesson(loaded);
+        const liveDefinition = getLiveDefinitionForLesson(loaded);
         if (!active) return;
         setLesson(loaded);
-        setDefinition(pilotDefinition);
+        setDefinition(liveDefinition);
       } catch (loadError) {
         if (!active) return;
         setDefinition(null);
@@ -176,7 +210,16 @@ export const LiveLessonLauncher = ({ lesson: selectedLesson, lessonId, user: con
   }, [classes, contextUser?.uid, currentUser?.uid]);
 
   const selectedClass = useMemo(() => availableClasses.find(item => item.id === selectedClassId), [availableClasses, selectedClassId]);
-  const urls = session ? buildLiveLessonUrls(session.id, window.location.origin, session.classId, selectedClass?.joinCode ?? '') : null;
+  const definitionKey = lesson && lesson.id !== 'tds-g10-30-pilot'
+    ? getBanToanV4PackageForLesson(lesson)?.sourceKey
+    : undefined;
+  const urls = session ? buildLiveLessonUrls(
+    session.id,
+    window.location.origin,
+    session.classId,
+    selectedClass?.joinCode ?? '',
+    definitionKey ? { definitionKey, lessonId: lesson?.id } : undefined,
+  ) : null;
   const noOwnedSynchronizedClass = !classesLoading && availableClasses.length === 0;
 
   const createSession = async () => {
@@ -210,7 +253,7 @@ export const LiveLessonLauncher = ({ lesson: selectedLesson, lessonId, user: con
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/50 p-4" role="dialog" aria-modal="true" aria-label="Mở tiết trực tiếp">
       <section className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-[2rem] bg-white p-6 text-slate-900 shadow-2xl sm:p-8">
         <div className="flex items-start justify-between gap-4">
-          <div><p className="text-xs font-black uppercase tracking-[0.18em] text-indigo-600">Live lesson pilot</p><h2 className="mt-2 text-2xl font-black">Mở tiết trực tiếp</h2><p className="mt-1 text-sm font-semibold text-slate-500">Chỉ dùng gói runtime pilot đã được kiểm tra; không tạo phiên cho bài học chưa khớp định nghĩa.</p></div>
+          <div><p className="text-xs font-black uppercase tracking-[0.18em] text-indigo-600">Live lesson V3/V4</p><h2 className="mt-2 text-2xl font-black">Mở tiết trực tiếp</h2><p className="mt-1 text-sm font-semibold text-slate-500">Chỉ mở bài đã xuất bản và có định nghĩa runtime V3/P31 hoặc V4 khớp exact source key; không dò theo tiêu đề.</p></div>
           {onClose && <button type="button" onClick={onClose} className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Đóng"><X className="h-5 w-5" /></button>}
         </div>
         {lesson && <div className="mt-5 rounded-2xl border border-indigo-100 bg-indigo-50 p-4"><p className="text-xs font-black uppercase text-indigo-600">Bài học</p><p className="mt-1 font-black text-indigo-950">{lesson.title}</p><p className="mt-1 text-xs font-semibold text-indigo-700">{lesson.id}</p></div>}

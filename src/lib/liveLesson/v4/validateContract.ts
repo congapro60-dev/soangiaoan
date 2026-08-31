@@ -208,6 +208,83 @@ function validateOfflinePack(contract: LiveLessonV4Contract, errors: V4Validatio
   }
 }
 
+function validatePackageIdentity(contract: LiveLessonV4Contract, errors: V4ValidationError[]): void {
+  if (contract.lessonMode !== undefined
+    && !['formation', 'practice', 'elective-practice'].includes(contract.lessonMode)) {
+    errors.push({
+      code: 'LESSON_MODE_INVALID',
+      message: `lessonMode không hợp lệ: ${String(contract.lessonMode)}.`,
+      path: 'lessonMode',
+    });
+  }
+
+  if (contract.sourceKey !== undefined && !/^\d{2}-[56]-\d+$/.test(contract.sourceKey)) {
+    errors.push({
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: `sourceKey không đúng dạng grade-week-period: ${contract.sourceKey}.`,
+      path: 'sourceKey',
+    });
+  }
+  if (contract.sourceFingerprint !== undefined && !/^[a-f0-9]{64}$/.test(contract.sourceFingerprint)) {
+    errors.push({
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'sourceFingerprint phải là SHA-256 dạng hex 64 ký tự.',
+      path: 'sourceFingerprint',
+    });
+  }
+
+  if (contract.selfChoice === true) {
+    const policy = contract.choicePolicy;
+    const allowedRoutes = Array.isArray(policy?.allowedRoutes) ? policy.allowedRoutes : [];
+    const commonSuccessCriteria = Array.isArray(policy?.commonSuccessCriteria)
+      ? policy.commonSuccessCriteria
+      : [];
+    if (!policy
+      || !policy.enabled
+      || allowedRoutes.length !== 3
+      || new Set(allowedRoutes).size !== 3
+      || !allowedRoutes.every((route) => ['M', 'S', 'C'].includes(route))
+      || commonSuccessCriteria.length === 0
+      || isBlank(policy.commonPostCheckId)) {
+      errors.push({
+        code: 'CHOICE_POLICY_INVALID',
+        message: 'Bài tự chọn phải có policy M/S/C và post-check chung.',
+        path: 'choicePolicy',
+      });
+    }
+  }
+}
+
+function validateSourceContent(contract: LiveLessonV4Contract, errors: V4ValidationError[]): void {
+  const content = contract.sourceContent;
+  if (content === undefined) return;
+
+  const formulas = Array.isArray(content.formulas) ? content.formulas : [];
+  const examples = Array.isArray(content.examples) ? content.examples : [];
+  const exercises = Array.isArray(content.exercises) ? content.exercises : [];
+  const quickChecks = Array.isArray(content.quickChecks) ? content.quickChecks : [];
+  const mistakes = Array.isArray(content.mistakes) ? content.mistakes : [];
+  const invalidCount = formulas.length === 0 || examples.length !== 2 || exercises.length !== 6 || quickChecks.length !== 2 || mistakes.length === 0;
+  const invalidFormula = formulas.some((item) => isBlank(item));
+  const invalidExample = examples.some((item) => isBlank(item?.question) || isBlank(item?.solution) || isBlank(item?.sourceRef));
+  const invalidExercise = exercises.some((item) => (
+    !['NB', 'TH', 'VD'].includes(item?.level)
+    || isBlank(item?.question)
+    || isBlank(item?.answer)
+    || isBlank(item?.sourceRef)
+  ));
+  const invalidQuickCheck = quickChecks.some((item) => isBlank(item?.question) || isBlank(item?.solution) || isBlank(item?.sourceRef));
+  const invalidMistake = mistakes.some((item) => isBlank(item));
+
+  if (invalidCount || invalidFormula || invalidExample || invalidExercise || invalidQuickCheck || invalidMistake) {
+    errors.push({
+      code: 'SOURCE_CONTENT_INVALID',
+      message: 'sourceContent phải có công thức, 2 ví dụ, 6 bài tập, 2 quick check và lỗi nguồn có đủ nội dung/truy nguyên.',
+      path: 'sourceContent',
+    });
+  }
+}
+
 /**
  * Kiểm tra một hợp đồng bài học V4 trước khi cho phép sinh projection hoặc xuất bản.
  * Trả về tất cả lỗi tìm được (không dừng ở lỗi đầu tiên) với mã ổn định.
@@ -230,6 +307,8 @@ export function validateV4Contract(contract: LiveLessonV4Contract): V4Validation
   validateGlossary(contract, errors);
   validateTvProjection(contract, errors);
   validateOfflinePack(contract, errors);
+  validatePackageIdentity(contract, errors);
+  validateSourceContent(contract, errors);
 
   return { ok: errors.length === 0, errors };
 }

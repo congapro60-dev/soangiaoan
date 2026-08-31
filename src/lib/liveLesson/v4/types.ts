@@ -10,6 +10,7 @@ export type V4NonViLanguage = Exclude<V4Language, 'vi'>;
 export type SupportMode = 'vi_anchor' | 'bilingual' | 'approved_full_translation';
 export type V4Route = 'M' | 'S' | 'C';
 export type GroupPurpose = 'same_need_workshop' | 'mixed_reasoning' | 'teacher_defined';
+export type V4LessonMode = 'formation' | 'practice' | 'elective-practice';
 
 export type V4ErrorCategory = 'Conceptual' | 'Algebraic' | 'Logical' | 'Missing condition';
 
@@ -181,6 +182,49 @@ export interface GroupingCheckpoint {
   postCheckId: string;             // mỗi nhóm vẫn có post-check cá nhân
 }
 
+export interface V4ChoicePolicy {
+  enabled: boolean;
+  prompt: string;
+  allowedRoutes: V4Route[];
+  commonSuccessCriteria: string[];
+  commonPostCheckId: string;
+}
+
+export interface V4SourceIdentity {
+  sourceKey: string;
+  grade: number;
+  week: number;
+  period: number;
+  kind: 'formation' | 'practice';
+  selfChoice: boolean;
+  sourceFingerprint: string;
+  sourceRef: string;
+}
+
+export type V4SourceExerciseLevel = 'NB' | 'TH' | 'VD';
+
+export interface V4SourceExample {
+  question: string;
+  solution: string;
+  sourceRef: string;
+}
+
+export interface V4SourceExercise {
+  level: V4SourceExerciseLevel;
+  question: string;
+  answer: string;
+  sourceRef: string;
+}
+
+/** Nội dung Toán đã duyệt được giữ nguyên để draft adaptive không rơi về placeholder. */
+export interface V4SourceContent {
+  formulas: string[];
+  examples: V4SourceExample[];
+  exercises: V4SourceExercise[];
+  quickChecks: V4SourceExample[];
+  mistakes: string[];
+}
+
 // --- AI Error of the Week ---
 
 export interface AiErrorOfTheWeek {
@@ -262,6 +306,14 @@ export interface LiveLessonV4Contract {
   lessonId: string;
   title: string;
   durationSeconds: 2400;
+  /** Metadata required by generated Ban Toán packages; optional for old V4 pilot fixtures. */
+  lessonMode?: V4LessonMode;
+  sourceKey?: string;
+  sourceFingerprint?: string;
+  source?: V4SourceIdentity;
+  sourceContent?: V4SourceContent;
+  selfChoice?: boolean;
+  choicePolicy?: V4ChoicePolicy;
   timeline: TimelineBlock[];           // P00–P40, tổng đúng 2400 giây
   objectives: {
     math: Objective[];
@@ -301,7 +353,11 @@ export type V4ValidationCode =
   | 'GLOSSARY_MISSING_METADATA'
   | 'UNAPPROVED_GLOSSARY'
   | 'TV_PRIVATE_FIELD'
-  | 'OFFLINE_PACK_INCOMPLETE';
+  | 'OFFLINE_PACK_INCOMPLETE'
+  | 'LESSON_MODE_INVALID'
+  | 'SOURCE_IDENTITY_INVALID'
+  | 'CHOICE_POLICY_INVALID'
+  | 'SOURCE_CONTENT_INVALID';
 
 export interface V4ValidationError {
   code: V4ValidationCode;

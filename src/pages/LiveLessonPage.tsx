@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { useLocation, useParams } from 'react-router-dom';
 import { auth } from '../lib/firebase';
-import { getPilotLiveLessonDefinition } from '../lib/liveLesson/definition';
+import { getLiveLessonDefinitionForRoute } from '../lib/liveLesson/routeDefinition';
 import type { LiveLessonDefinition, LiveLessonMode, LiveLessonSession, LivePublicState } from '../lib/liveLesson/types';
 import { getLiveLessonSession, subscribeToLivePublicState, subscribeToTeacherSession } from '../services/liveLessonService';
 import { TeacherLiveView } from '../components/liveLesson/TeacherLiveView';
@@ -21,6 +21,13 @@ export const getStudentLiveContext = (search: string): { expectedClassId: string
   return {
     expectedClassId: params.get('classId')?.trim() || null,
     expectedJoinCode: params.get('joinCode')?.trim() || null,
+  };
+};
+export const getLiveLessonDefinitionContext = (search: string): { definitionKey: string | null; lessonId: string | null } => {
+  const params = new URLSearchParams(search);
+  return {
+    definitionKey: params.get('definitionKey')?.trim() || null,
+    lessonId: params.get('lessonId')?.trim() || null,
   };
 };
 export const shouldLoadParentLiveLessonSession = (mode: LiveLessonMode): boolean => mode === 'teacher';
@@ -63,9 +70,9 @@ export const getLiveLessonRouteError = ({ mode, session, publicState, definition
   } else {
     if (!publicState) return 'Không tìm thấy trạng thái công khai của phiên. Phiên có thể đã đóng hoặc hết hạn; hãy yêu cầu giáo viên mở phiên mới.';
   }
-  if (!definition) return 'Không tải được định nghĩa pilot của phiên. Phiên chưa sẵn sàng để hiển thị.';
+  if (!definition) return 'Không tải được định nghĩa bài học của phiên. Phiên chưa sẵn sàng để hiển thị.';
   if (mode === 'teacher') {
-    if (definition.lessonId !== session!.lessonId) return 'Định nghĩa pilot không khớp với bài học của phiên; phiên bị chặn để tránh hiển thị sai nội dung.';
+    if (definition.lessonId !== session!.lessonId) return 'Định nghĩa bài học không khớp với bài học của phiên; phiên bị chặn để tránh hiển thị sai nội dung.';
     if (!userUid) return 'Chế độ giáo viên yêu cầu đăng nhập.';
     if (!isTeacherSessionOwner(session!, userUid)) return 'Tài khoản hiện tại không sở hữu phiên tiết trực tiếp này.';
   }
@@ -86,6 +93,7 @@ export const LiveLessonPage = () => {
   const modeParam = useMemo(() => new URLSearchParams(location.search).get('mode'), [location.search]);
   const mode = parseLiveLessonMode(modeParam);
   const studentContext = useMemo(() => getStudentLiveContext(location.search), [location.search]);
+  const definitionContext = useMemo(() => getLiveLessonDefinitionContext(location.search), [location.search]);
   const [user, setUser] = useState<User | null>(auth.currentUser);
   const [authReady, setAuthReady] = useState(false);
   const [session, setSession] = useState<LiveLessonSession | null>(null);
@@ -132,7 +140,7 @@ export const LiveLessonPage = () => {
         return;
       }
       try {
-        setDefinition(getPilotLiveLessonDefinition());
+        setDefinition(getLiveLessonDefinitionForRoute(definitionContext.definitionKey, definitionContext.lessonId));
         if (canLoadParentLiveLessonSession({ mode, authReady, userUid: user?.uid })) {
           const found = await getLiveLessonSession(sessionId);
           if (!active) return;
@@ -183,7 +191,7 @@ export const LiveLessonPage = () => {
     };
     void load();
     return () => { active = false; stopPublicState(); stopTeacherSession(); };
-  }, [authDependency, mode, sessionId]);
+  }, [authDependency, definitionContext.definitionKey, definitionContext.lessonId, mode, sessionId]);
 
   if (loading) return <main className="flex min-h-screen items-center justify-center bg-slate-950 p-6 text-white"><p className="text-sm font-black">Đang tải phiên tiết trực tiếp...</p></main>;
   if (loadError) return <RouteError message={loadError} />;

@@ -5,6 +5,7 @@ export type {
   SupportMode,
   V4Route,
   GroupPurpose,
+  V4LessonMode,
   V4ErrorCategory,
   V4SessionStatus,
   V4ResponseType,
@@ -27,6 +28,8 @@ export type {
   EvidencePoint,
   EvidenceVector,
   GroupingCheckpoint,
+  V4ChoicePolicy,
+  V4SourceIdentity,
   AiErrorOfTheWeek,
   PublicTvField,
   TeacherProjection,
@@ -42,6 +45,29 @@ export type {
 } from './types';
 
 export { validateV4Contract } from './validateContract';
+export {
+  getAllBanToanV4Contracts,
+  getBanToanV4Contract,
+  getBanToanV4DisplayTitle,
+  getBanToanV4PackageMetadata,
+  getBanToanV4SourceFingerprint,
+  type BanToanV4PackageMetadata,
+} from './lessonAdapter';
+export {
+  buildLiveLessonDefinitionFromV4,
+} from './runtimeDefinition';
+export {
+  buildBanToanV4AdaptiveLessonDraft,
+} from './adaptiveDraft';
+export {
+  getBanToanV4ContractByPackageId,
+  getBanToanV4ContractForLesson,
+  getBanToanV4ContractForLiveDefinitionId,
+  getBanToanV4PackageCount,
+  getBanToanV4PackageForLesson,
+  getBanToanV4SourceKeyForLesson,
+  type BanToanV4LessonBinding,
+} from './lessonRegistry';
 export {
   APPROVED_CURRICULUM_BRIDGE_IDS,
   buildStudentSupportModeOptions,
@@ -97,3 +123,14 @@ export {
   type OfflinePackContents,
   type OfflinePackValidation,
 } from './offlinePack';
+export {
+  auditLesson,
+  buildCanonicalDraft,
+  getAllSourceKeys,
+  publishSequentially,
+  summarizeReports,
+  type AuditIssue,
+  type AuditResult,
+  type PublicationReport,
+  type SaveCallback,
+} from './sequentialPublication';

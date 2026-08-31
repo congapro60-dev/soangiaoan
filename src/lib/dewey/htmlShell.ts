@@ -217,6 +217,18 @@ const BASE_CSS = String.raw`
     border: 1px dashed var(--secondary);
     white-space: pre-line;
   }
+  /* Giữ công thức dài trong card/vở ghi; không để nó kéo tràn toàn trang. */
+  .unit-completion-panel,
+  .notebook-area { min-width: 0; overflow-x: hidden; }
+  .unit-completion-panel > mjx-container,
+  .unit-completion-panel .theory-box mjx-container,
+  .notebook-area .note-item mjx-container {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 2px;
+  }
   .eval-true { color: var(--success); font-weight: 800; }
   .eval-false { color: var(--accent); font-weight: 800; }
   .svg-enigma, .enigma-container, .lightbulb-container, .robot-grid, .oly-grid {

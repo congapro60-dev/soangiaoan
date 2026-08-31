@@ -369,7 +369,12 @@ service cloud.firestore {
                && data.get('allowedStepIds', []).size() <= 9
                && data.get('allowedStepIds', []).hasOnly([
                     'warmup', 'notice-wonder', 'goals', 'route', 'model',
-                    'ai-think-w01', 'ai-error-w01', 'quick-check', 'exit-ticket'
+                    'ai-think-w01', 'ai-error-w01', 'quick-check', 'exit-ticket',
+                    // V4 packages use reviewed checkpoint ids. Keep this an exact
+                    // allowlist: a teacher cannot add arbitrary response channels.
+                    'cp-guiding-question', 'cp-student-goal', 'cp-diagnostic',
+                    'cp-ai-error', 'cp-route-choice', 'cp-group-product',
+                    'cp-post-check', 'cp-quick-check', 'cp-exit-ticket'
                   ])
                && data.get('expiresAt', null) is timestamp
                && data.get('status', '') in ['lobby', 'running', 'paused', 'closed']
@@ -411,7 +416,10 @@ service cloud.firestore {
       }
 
       function llv3PublicAudience() {
-        return request.auth == null || llv3SessionOwner() || llv3StudentLinkedToSession();
+        // This subtree is the deliberately redacted public projection. Anyone
+        // can already read it while signed out, so signing in must never revoke
+        // the listener during student identity linking.
+        return true;
       }
 
       function llv3FiniteNumber(data) {

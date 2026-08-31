@@ -10,6 +10,7 @@ import {
   getPublicListenerFailureMode,
   shouldLoadParentLiveLessonSession,
   getStudentLiveContext,
+  getLiveLessonDefinitionContext,
 } from './LiveLessonPage';
 
 describe('LiveLessonPage route helpers', () => {
@@ -70,6 +71,14 @@ describe('LiveLessonPage route helpers', () => {
       expectedClassId: null,
       expectedJoinCode: null,
     });
+  });
+
+  it('parses V4 definition context carried by teacher, TV and student links', () => {
+    expect(getLiveLessonDefinitionContext('?mode=tv&definitionKey=10-5-37&lessonId=adaptive-v4-10-5-37-teacher-1')).toEqual({
+      definitionKey: '10-5-37',
+      lessonId: 'adaptive-v4-10-5-37-teacher-1',
+    });
+    expect(getLiveLessonDefinitionContext('?mode=tv')).toEqual({ definitionKey: null, lessonId: null });
   });
 
   it('rejects student mode when public state is missing (session expired or closed)', () => {

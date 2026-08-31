@@ -1,4 +1,4 @@
-import { StrictMode, Component } from 'react';
+import { StrictMode, Component, lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import App from './App.tsx';
@@ -8,14 +8,21 @@ import { AnswerReviewPage } from './pages/AnswerReviewPage';
 import { TeacherGradingPage } from './pages/TeacherGradingPage';
 import { ExamConfigPage } from './pages/ExamConfigPage';
 import { AdaptiveStudentPortalPage } from './pages/AdaptiveStudentPortalPage';
-import { AdaptiveLessonBuilderPage } from './pages/AdaptiveLessonBuilderPage';
-import { AdaptiveLessonListPage } from './pages/AdaptiveLessonListPage';
 import { DuGioPage } from './pages/DuGioPage';
 import { StudentPortalPage } from './pages/StudentPortalPage';
-import { LiveLessonPage } from './pages/LiveLessonPage';
 import { StudentClassExamPage } from './pages/StudentClassExamPage';
 import './index.css';
 import 'katex/dist/katex.min.css';
+
+const AdaptiveLessonListPage = lazy(() => import('./pages/AdaptiveLessonListPage').then(m => ({ default: m.AdaptiveLessonListPage })));
+const AdaptiveLessonBuilderPage = lazy(() => import('./pages/AdaptiveLessonBuilderPage').then(m => ({ default: m.AdaptiveLessonBuilderPage })));
+const LiveLessonPage = lazy(() => import('./pages/LiveLessonPage').then(m => ({ default: m.LiveLessonPage })));
+
+const RouteLoading = () => (
+  <main className="flex min-h-screen items-center justify-center bg-slate-50 p-6 text-slate-700">
+    <p className="text-sm font-black">Đang tải chức năng...</p>
+  </main>
+);
 
 // Error Boundary để ngăn màn trắng khi có lỗi bất ngờ
 class ErrorBoundary extends Component {
@@ -70,11 +77,11 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/lop/:joinCode" element={<StudentPortalPage />} />
           <Route path="/du-gio" element={<DuGioPage />} />
           <Route path="/du-gio/:id" element={<DuGioPage />} />
-          <Route path="/adaptive-lessons" element={<AdaptiveLessonListPage />} />
-          <Route path="/adaptive-builder/:id" element={<AdaptiveLessonBuilderPage />} />
+          <Route path="/adaptive-lessons" element={<Suspense fallback={<RouteLoading />}><AdaptiveLessonListPage /></Suspense>} />
+          <Route path="/adaptive-builder/:id" element={<Suspense fallback={<RouteLoading />}><AdaptiveLessonBuilderPage /></Suspense>} />
           <Route path="/adaptive-portal/:id" element={<AdaptiveStudentPortalPage />} />
           <Route path="/adaptive-portal" element={<AdaptiveStudentPortalPage />} />
-          <Route path="/adaptive-live/:sessionId" element={<LiveLessonPage />} />
+          <Route path="/adaptive-live/:sessionId" element={<Suspense fallback={<RouteLoading />}><LiveLessonPage /></Suspense>} />
           <Route path="/adaptive/student/:teacherId" element={<AdaptiveStudentPortalPage />} />
           <Route path="/exam/:code/review/:submissionId" element={<AnswerReviewPage />} />
           <Route path="/exam/:code/result/:submissionId" element={<StudentResultPage />} />

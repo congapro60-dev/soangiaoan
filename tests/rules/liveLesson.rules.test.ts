@@ -39,6 +39,11 @@ const PILOT_ALLOWED_STEP_IDS = [
   'warmup', 'notice-wonder', 'goals', 'route', 'model',
   'ai-think-w01', 'ai-error-w01', 'quick-check', 'exit-ticket',
 ] as const;
+const V4_ALLOWED_STEP_IDS = [
+  'cp-guiding-question', 'cp-student-goal', 'cp-diagnostic', 'cp-ai-error',
+  'cp-route-choice', 'cp-group-product', 'cp-post-check', 'cp-quick-check',
+  'cp-exit-ticket',
+] as const;
 
 const now = Date.now();
 const FUTURE = Timestamp.fromMillis(now + 60 * 60 * 1000);
@@ -212,6 +217,16 @@ describe('liveLessonSessions · parent session', () => {
     })));
   });
 
+  it('owner can create a V4 session with its canonical checkpoint ids → ALLOW', async () => {
+    await assertSucceeds(setDoc(sessionRef(dbTeacherA(), 'session-v4'), sessionData('session-v4', {
+      lessonId: 'adaptive-v4-10-5-31',
+      title: 'Bất phương trình bậc nhất hai ẩn · V4',
+      allowedStepIds: [...V4_ALLOWED_STEP_IDS],
+      currentCueId: 'P00',
+      currentTvScreenId: 'S0',
+    })));
+  });
+
   it('other teacher cannot create in owner class → DENY', async () => {
     await assertFails(setDoc(sessionRef(dbTeacherB(), 'session-other'), sessionData('session-other', {
       teacherUid: TEACHER_B,
@@ -252,6 +267,9 @@ describe('liveLessonSessions · parent session', () => {
     })));
     await assertFails(setDoc(sessionRef(dbTeacherA(), 'session-bad-step-type'), sessionData('session-bad-step-type', {
       allowedStepIds: [{ id: 'warmup' }],
+    })));
+    await assertFails(setDoc(sessionRef(dbTeacherA(), 'session-bad-v4-step'), sessionData('session-bad-v4-step', {
+      allowedStepIds: [...V4_ALLOWED_STEP_IDS.slice(0, -1), 'cp-injected-step'],
     })));
   });
 
@@ -295,6 +313,22 @@ describe('liveLessonSessions · parent session', () => {
 });
 
 describe('liveLessonSessions/{sessionId}/responses · student writes, teacher reads', () => {
+  it('linked student writes a response to an allowed V4 checkpoint → ALLOW', async () => {
+    const v4SessionId = 'session-v4-response';
+    await assertSucceeds(setDoc(sessionRef(dbTeacherA(), v4SessionId), sessionData(v4SessionId, {
+      lessonId: 'adaptive-v4-10-5-31',
+      title: 'Bất phương trình bậc nhất hai ẩn · V4',
+      allowedStepIds: [...V4_ALLOWED_STEP_IDS],
+      currentCueId: 'P08',
+      currentTvScreenId: 'S3',
+    })));
+
+    await assertSucceeds(setDoc(
+      responseRef(dbStudentA(), v4SessionId, `${STUDENT_A}__cp-diagnostic`),
+      responseData({ stepId: 'cp-diagnostic', value: 'A' }),
+    ));
+  });
+
   it('linked student writes route, choice and text responses in own class → ALLOW', async () => {
     // route response must use stepId=route and responseId=participantUid__route
     await assertSucceeds(setDoc(responseRef(dbStudentA(), SESSION_A, `${STUDENT_A}__route`), responseData({
@@ -475,9 +509,14 @@ describe('liveLessonSessions/{sessionId}/responses · student writes, teacher re
 });
 
 describe('liveLessonSessions/{sessionId}/public · safe public documents', () => {
-  it('unauthenticated TV and linked student read enabled active state/stats → ALLOW', async () => {
+  it('public projection stays readable before and after authentication → ALLOW', async () => {
     await assertSucceeds(getDoc(publicRef(dbTv(), SESSION_A, 'state')));
     await assertSucceeds(getDoc(publicRef(dbTv(), SESSION_A, 'stats')));
+    // Authentication must not revoke a document that is already deliberately
+    // public; otherwise the student listener dies between anonymous sign-in
+    // and the server creating studentLinks/{uid}.
+    await assertSucceeds(getDoc(publicRef(dbTeacherB(), SESSION_A, 'state')));
+    await assertSucceeds(getDoc(publicRef(dbTeacherB(), SESSION_A, 'stats')));
     await assertSucceeds(getDoc(publicRef(dbStudentA(), SESSION_A, 'state')));
     await assertSucceeds(getDoc(publicRef(dbStudentA(), SESSION_A, 'stats')));
   });

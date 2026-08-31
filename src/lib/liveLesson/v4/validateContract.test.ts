@@ -267,4 +267,27 @@ describe('validateV4Contract', () => {
     const result = validateV4Contract(contract);
     expect(result.errors.map((e) => e.code)).toContain('OFFLINE_PACK_INCOMPLETE');
   });
+
+  it('bắt source content có shape sai mà không làm validator throw', () => {
+    const contract = buildValidContract();
+    (contract as unknown as { sourceContent: unknown }).sourceContent = {
+      examples: [],
+      exercises: 'not-an-array',
+      quickChecks: [],
+      mistakes: [],
+    };
+    expect(() => validateV4Contract(contract)).not.toThrow();
+    expect(codes(contract)).toContain('SOURCE_CONTENT_INVALID');
+  });
+
+  it('bắt choice policy malformed mà không đọc thuộc tính trên undefined', () => {
+    const contract = buildValidContract();
+    contract.selfChoice = true;
+    (contract as unknown as { choicePolicy: unknown }).choicePolicy = {
+      enabled: true,
+      allowedRoutes: undefined,
+    };
+    expect(() => validateV4Contract(contract)).not.toThrow();
+    expect(codes(contract)).toContain('CHOICE_POLICY_INVALID');
+  });
 });

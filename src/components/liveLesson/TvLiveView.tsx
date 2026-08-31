@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { LiveLessonDefinition, LivePublicState, LivePublicStats } from '../../lib/liveLesson/types';
 import { subscribeToLivePublicStats } from '../../services/liveLessonService';
 import { LiveLessonStatus } from './LiveLessonStatus';
+import { LiveLessonRichText } from './LiveLessonRichText';
 
 export type TvLiveDefinition = Pick<LiveLessonDefinition, 'title' | 'tvScreens'>;
 
@@ -74,7 +75,7 @@ export const TvLiveView = ({ definition, sessionId, publicState, publicStateErro
 
         {listenerNotice && <div className="mt-[clamp(0.5rem,1vh,1rem)] shrink-0"><LiveLessonStatus tone={listenerNotice.tone}>{listenerNotice.message}</LiveLessonStatus></div>}
         {!screen && <div className="flex min-h-0 flex-1 items-center justify-center"><p className="text-center text-[clamp(1.25rem,3vw,2.5rem)] font-black text-slate-400">Đang chờ màn hình công khai…</p></div>}
-        {screen && <section className="min-h-0 flex-1 overflow-hidden py-[clamp(0.5rem,1.5vh,1.5rem)]"><div className="flex h-full min-h-0 flex-col justify-center"><p className="text-[clamp(0.75rem,1.3vw,1.25rem)] font-black uppercase tracking-[0.14em] text-cyan-300">{screen.label}</p><h2 className="mt-2 text-[clamp(2rem,6vw,6rem)] font-black leading-[0.98]">{screen.title}</h2><p className="mt-3 max-w-5xl whitespace-pre-line text-[clamp(1rem,2.5vw,2.5rem)] font-semibold leading-[1.2] text-slate-200">{screen.body}</p>{screen.action && <p className="mt-3 text-[clamp(1rem,2.2vw,2.25rem)] font-black leading-tight text-amber-300">{screen.action}</p>}</div></section>}
+        {screen && <section className="min-h-0 flex-1 overflow-hidden py-[clamp(0.5rem,1.5vh,1.5rem)]"><div className="flex h-full min-h-0 flex-col justify-center"><p className="text-[clamp(0.75rem,1.3vw,1.25rem)] font-black uppercase tracking-[0.14em] text-cyan-300">{screen.label}</p><h2 className="mt-2 text-[clamp(2rem,6vw,6rem)] font-black leading-[0.98]">{screen.title}</h2><LiveLessonRichText text={screen.body} className="mt-3 max-w-5xl text-[clamp(1rem,2.5vw,2.5rem)] font-semibold leading-[1.2] text-slate-200" />{screen.action && <p className="mt-3 text-[clamp(1rem,2.2vw,2.25rem)] font-black leading-tight text-amber-300">{screen.action}</p>}</div></section>}
         {statsItems && <footer className="grid shrink-0 grid-cols-5 gap-[clamp(0.35rem,1vw,1rem)]">{statsItems.map((item, index) => <div key={item.label} className={`min-w-0 rounded-xl p-[clamp(0.45rem,1vw,1rem)] ${index < 2 ? 'bg-white/10' : 'bg-cyan-400/15'}`}><p className={`truncate whitespace-nowrap text-[clamp(0.5rem,1vw,0.85rem)] font-black uppercase ${index < 2 ? 'text-slate-400' : 'text-cyan-300'}`}>{item.label}</p><p className="mt-1 text-[clamp(1.4rem,3.5vw,3rem)] font-black leading-none">{item.value}</p></div>)}</footer>}
         {!presentation.stats && publicState.showStats && <p className="mt-[clamp(0.35rem,0.8vh,0.75rem)] shrink-0 text-center text-[clamp(0.75rem,1.3vw,1.1rem)] font-bold text-slate-400">Đang chờ thống kê tổng hợp…</p>}
       </div>

@@ -20,7 +20,7 @@ export interface MathToken {
 }
 
 /** Lệnh LaTeX phổ biến — xuất hiện NGOÀI vùng $...$ nghĩa là dữ liệu lỗi cần vá. */
-const LATEX_CMD_RE = /\\(?:frac|sqrt|left|right|cdot|pm|mp|times|div|leq?|geq?|neq?|approx|infty|alpha|beta|gamma|Delta|delta|theta|lambda|mu|pi|sigma|omega|displaystyle|sin|cos|tan|cot|log|ln|lim|vec|overline|hat|underline|text|mathbb|mathrm|mathbf|begin|end|in|notin|subset|supset|cap|cup|Rightarrow|Leftrightarrow|to|le|ge|ne)\b/;
+const LATEX_CMD_RE = /\\(?:frac|sqrt|left|right|cdot|pm|mp|times|div|leq?|geq?|neq?|approx|infty|alpha|beta|gamma|Delta|delta|theta|lambda|mu|pi|sigma|omega|displaystyle|sin|cos|tan|cot|log|ln|lim|vec|overline|hat|underline|text|mathbb|mathrm|mathbf|begin|end|in|notin|subset|supset|cap|cup|Rightarrow|Leftrightarrow|to|le|ge|ne)(?![A-Za-z])/;
 
 /**
  * Dữ liệu chấm cũ đôi khi làm mất dấu `\\` khi đi qua JSON, ví dụ `D in SA`.
@@ -183,7 +183,7 @@ const splitBareText = (s: string): string[] => {
 
 const mathStartBeforeCommand = (prefix: string): number => {
   const trimmed = prefix.trimEnd();
-  const match = trimmed.match(/[A-Za-z0-9_()[\]{}.,;:+\-*/<>]+$/);
+  const match = trimmed.match(/[A-Za-z0-9_()[\]{}.,;:=+\-*/<>\\^]+$/);
   return match ? trimmed.lastIndexOf(match[0]) : prefix.length;
 };
 
@@ -210,7 +210,9 @@ const wrapBareSegment = (segment: string): string => {
 
 /** [Vùng TEXT] Bọc từng mảnh toán trần; không bọc liên từ hay câu nối tiếng Việt. */
 const wrapBareFragmentsInText = (s: string): string =>
-  splitBareText(s).map(wrapBareSegment).join('');
+  // Giữ xuống dòng có chủ đích: một chuỗi kết luận nhiều công thức không được
+  // gom thành một vùng math dài duy nhất, nếu không MathJax sẽ tràn ngang card.
+  s.split('\n').map(line => splitBareText(line).map(wrapBareSegment).join('')).join('\n');
 
 /** [Vùng MATH] \frac ở đầu công thức → thêm \displaystyle cho phân số to rõ (giữ hành vi cũ). */
 const fixDisplaystyleInMath = (s: string): string =>

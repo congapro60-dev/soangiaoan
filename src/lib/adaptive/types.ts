@@ -73,6 +73,8 @@ export interface CommonMisconception {
 export interface LearningObjective {
   id: string;
   code: string;
+  /** Phân biệt mục tiêu nội dung và mục tiêu ngôn ngữ khi có nguồn tách riêng. */
+  kind?: 'math' | 'language';
   /** Khóa năng lực dùng chung; objective cũ không có thì bridge không tự đoán. */
   skillId?: string;
   title: string;

@@ -32,6 +32,8 @@ import { callAI, getActiveApiKey } from '../lib/aiProviders';
 import type { AppData, LessonPlan } from '../types';
 import { getLessonFromFirestore, saveLessonToFirestore } from '../services/adaptiveLessonService';
 import { extractTextFromPDF, extractTextFromWord } from '../utils/fileUtils';
+import { adaptiveQuestionTypeOptions, normalizeQuestionTypeChange } from '../lib/adaptive/questionEditor';
+import { getObjectiveCoverage } from '../lib/adaptive/lessonCompleteness';
 
 const bloomLevels: BloomLevel[] = ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create'];
 const gradeOptions: AdaptiveLesson['grade'][] = ['10', '11', '12'];
@@ -270,15 +272,16 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
 
   const objectiveOptions = lesson?.objectives || [];
   const steps = ['Thông tin cơ bản', 'Mục tiêu & Chẩn đoán', 'Các mảnh kiến thức', 'Hoàn tất & Xuất bản'];
+  const objectiveCoverage = lesson ? getObjectiveCoverage(lesson.objectives, lesson.knowledgeUnits) : { total: 0, covered: 0, uncoveredObjectiveIds: [], ratio: 0 };
   const lessonCompleteness = lesson ? Math.min(100, Math.round(
     (lesson.title.trim() ? 15 : 0) +
     Math.min(20, (lesson.objectives.length / 3) * 20) +
     Math.min(15, (lesson.diagnosticTest.questions.length / 5) * 15) +
-    Math.min(30, (lesson.knowledgeUnits.length / Math.max(1, lesson.objectives.length)) * 30) +
+    Math.min(30, objectiveCoverage.ratio * 30) +
     Math.min(10, lesson.knowledgeUnits.filter(u => (u.quickCheck?.questions?.length || 0) >= 2).length / Math.max(1, lesson.knowledgeUnits.length) * 10) +
     Math.min(10, (lesson.exitTicket.questions.length / 3) * 10)
   )) : 0;
-  const unitsUnderObjectives = lesson ? lesson.knowledgeUnits.length < lesson.objectives.length : false;
+  const unitsUnderObjectives = objectiveCoverage.uncoveredObjectiveIds.length > 0;
 
   const updateLesson = (patch: Partial<AdaptiveLesson>) => {
     setLesson(prev => prev ? { ...prev, ...patch, updatedAt: new Date().toISOString() } : prev);
@@ -623,7 +626,7 @@ export const AdaptiveLessonBuilderPage = ({ embedded = false, lessonId, settings
               </div>
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-blue-600" style={{ width: `${lessonCompleteness}%` }} /></div>
               {unitsUnderObjectives && (
-                <p className="mt-2 text-xs font-bold text-amber-600">⚠️ Cần thêm {lesson.objectives.length - lesson.knowledgeUnits.length} mảnh kiến thức để bao trùm hết mục tiêu</p>
+                <p className="mt-2 text-xs font-bold text-amber-600">⚠️ Còn {objectiveCoverage.uncoveredObjectiveIds.length} mục tiêu Toán chưa được gắn vào mảnh kiến thức</p>
               )}
               <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs font-black text-slate-500">
                 <div className="rounded-2xl bg-slate-50 p-3"><Target className="mx-auto mb-1 h-4 w-4 text-blue-600" />{lesson.objectives.length} mục tiêu</div>
@@ -856,32 +859,52 @@ const QuestionEditor = ({ title, questions, objectives, onAdd, onDelete, onChang
       <button onClick={onAdd} className={secondaryButtonClass}><Plus className="h-4 w-4" /> Thêm câu hỏi</button>
     </div>
     {questions.map((question, index) => {
-      const options = question.options?.length ? question.options : ['A', 'B', 'C', 'D'];
+      const questionType = question.type || 'multiple_choice';
+      const options = questionType === 'multiple_choice'
+        ? (question.options?.length ? question.options : ['A', 'B', 'C', 'D'])
+        : [];
       return (
         <div key={question.id} className="space-y-3 rounded-xl bg-slate-50 p-4">
           <div className="flex items-center justify-between">
             <p className="font-black text-slate-700">Câu {index + 1}</p>
             <button aria-label={`Xóa câu hỏi ${index + 1} trong ${title}`} title="Xóa câu hỏi" onClick={() => onDelete(question.id)} className={dangerButtonClass}><Trash2 className="h-4 w-4" /></button>
           </div>
+          <select aria-label={`Loại câu hỏi ${index + 1} trong ${title}`} title="Loại câu hỏi" value={questionType} onChange={event => onChange(question.id, normalizeQuestionTypeChange(question, event.target.value as AdaptiveQuestion['type']))} className={inputClass}>
+            {adaptiveQuestionTypeOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+          </select>
           <textarea aria-label={`Nội dung câu hỏi ${index + 1} trong ${title}`} title="Nội dung câu hỏi" value={question.prompt} onChange={event => onChange(question.id, { prompt: event.target.value })} className={textareaClass} placeholder="Nội dung câu hỏi" />
-          <div className="grid gap-2 md:grid-cols-4">
-            {options.map((option, optionIndex) => (
-              <input key={optionIndex} aria-label={`Phương án ${optionIndex + 1} của câu ${index + 1} trong ${title}`} title={`Phương án ${optionIndex + 1}`} value={option} onChange={event => {
-                const nextOptions = [...options];
-                nextOptions[optionIndex] = event.target.value;
-                onChange(question.id, { options: nextOptions });
-              }} className={inputClass} placeholder={`Option ${optionIndex + 1}`} />
-            ))}
-          </div>
+          {questionType === 'multiple_choice' && (
+            <div className="grid gap-2 md:grid-cols-4">
+              {options.map((option, optionIndex) => (
+                <input key={optionIndex} aria-label={`Phương án ${optionIndex + 1} của câu ${index + 1} trong ${title}`} title={`Phương án ${optionIndex + 1}`} value={option} onChange={event => {
+                  const nextOptions = [...options];
+                  nextOptions[optionIndex] = event.target.value;
+                  onChange(question.id, { options: nextOptions });
+                }} className={inputClass} placeholder={`Option ${optionIndex + 1}`} />
+              ))}
+            </div>
+          )}
           <div className="grid gap-3 md:grid-cols-2">
-            <select aria-label={`Đáp án đúng của câu ${index + 1} trong ${title}`} title="Đáp án đúng" value={question.correctAnswer || ''} onChange={event => onChange(question.id, { correctAnswer: event.target.value })} className={inputClass}>
-              {options.map(option => <option key={option} value={option}>{option}</option>)}
-            </select>
+            {questionType === 'multiple_choice' && (
+              <select aria-label={`Đáp án đúng của câu ${index + 1} trong ${title}`} title="Đáp án đúng" value={question.correctAnswer || ''} onChange={event => onChange(question.id, { correctAnswer: event.target.value })} className={inputClass}>
+                {options.map(option => <option key={option} value={option}>{option}</option>)}
+              </select>
+            )}
+            {questionType === 'true_false' && (
+              <select aria-label={`Đáp án đúng của câu ${index + 1} trong ${title}`} title="Đáp án đúng" value={question.correctAnswer || 'Đúng'} onChange={event => onChange(question.id, { correctAnswer: event.target.value })} className={inputClass}>
+                <option value="Đúng">Đúng</option>
+                <option value="Sai">Sai</option>
+              </select>
+            )}
+            {(questionType === 'short_answer' || questionType === 'essay') && (
+              <textarea aria-label={`${questionType === 'short_answer' ? 'Đáp án tham chiếu' : 'Đáp án hoặc tiêu chí tham chiếu'} của câu ${index + 1} trong ${title}`} title={questionType === 'short_answer' ? 'Đáp án tham chiếu' : 'Đáp án hoặc tiêu chí tham chiếu'} value={question.correctAnswer || ''} onChange={event => onChange(question.id, { correctAnswer: event.target.value })} className={textareaClass} placeholder={questionType === 'short_answer' ? 'Đáp án tham chiếu để chấm/đối chiếu' : 'Đáp án hoặc tiêu chí để giáo viên đối chiếu'} />
+            )}
             <select aria-label={`Mục tiêu liên kết của câu ${index + 1} trong ${title}`} title="Mục tiêu liên kết" value={question.objectiveIds[0] || ''} onChange={event => onChange(question.id, { objectiveIds: event.target.value ? [event.target.value] : [] })} className={inputClass}>
               <option value="">Chọn mục tiêu</option>
               {objectives.map(objective => <option key={objective.id} value={objective.id}>{objective.title || objective.code}</option>)}
             </select>
           </div>
+          <textarea aria-label={`Giải thích của câu ${index + 1} trong ${title}`} title="Giải thích đáp án" value={question.explanation} onChange={event => onChange(question.id, { explanation: event.target.value })} className={textareaClass} placeholder="Giải thích đáp án hoặc tiêu chí đánh giá" />
         </div>
       );
     })}

@@ -132,6 +132,31 @@ describe('an toàn tổng quát', () => {
 });
 
 describe('sanitizeDisplayText — production-like hình học không có delimiter', () => {
+  it('tách các dòng công thức trần thành từng vùng math để kết luận dài không tràn một dòng', () => {
+    const input = [
+      'ax+by\\le c\\quad(\\text{hoặc }<,\\ge,>)\\quad a,b\\ \\text{không đồng thời bằng }0',
+      '(x_0;y_0)\\ \\text{là nghiệm nếu thay vào làm bất phương trình đúng}',
+      '15x+10y\\le150',
+      '3x+2y\\le30',
+    ].join('\n');
+
+    const out = sanitizeDisplayText(input);
+    const lines = out.split('\n').map(line => line.trim()).filter(Boolean);
+
+    expect(lines).toHaveLength(4);
+    expect(lines.every(line => line.startsWith('$') && line.endsWith('$'))).toBe(true);
+    expect(lines[2]).toBe('$15x+10y\\le150$');
+    expect(lines[3]).toBe('$3x+2y\\le30$');
+    expect(assertClean(out)).toBe(true);
+  });
+
+  it('giữ trọn luỹ thừa trước lệnh LaTeX trong công thức trần', () => {
+    const out = sanitizeDisplayText(String.raw`a^2=b^2+c^2-2bc\cos A`);
+
+    expect(out).toBe(String.raw`$a^2=b^2+c^2-2bc\cos A$`);
+    expect(assertClean(out)).toBe(true);
+  });
+
   it('bọc từng đoạn công thức và giữ liên từ tiếng Việt ngoài vùng math', () => {
     const input = 'D \\in (CDE) và AB \\in (SAB) => DE \\cap AB = {F} => F là điểm chung của (CDE) và (SAB)';
 

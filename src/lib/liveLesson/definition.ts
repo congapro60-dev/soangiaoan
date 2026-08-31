@@ -397,8 +397,12 @@ export function validateLiveLessonDefinition(
   if (Object.keys(aiError).some((key) => !allowedAiErrorKeys.has(key))) {
     fail('LIVE_AI_ERROR_INVALID', 'AI Error payload contains fields outside the public contract.');
   }
-  if (definition.aiErrorStepId !== 'ai-error-w01' || aiError.id !== 'W01') {
-    fail('LIVE_AI_ERROR_STEP_INVALID', 'AI Error step must be ai-error-w01 for W01.');
+  if (!stepIds.has(definition.aiErrorStepId)) {
+    fail('LIVE_AI_ERROR_STEP_INVALID', `AI Error step ${definition.aiErrorStepId} is not declared.`);
+  }
+  if (definition.id === 'g10_w5_p31_bpt_tiet1'
+    && (definition.aiErrorStepId !== 'ai-error-w01' || aiError.id !== 'W01')) {
+    fail('LIVE_AI_ERROR_STEP_INVALID', 'Pilot AI Error step must be ai-error-w01 for W01.');
   }
   if (!aiError.category.trim()) fail('LIVE_AI_ERROR_INCOMPLETE', 'AI Error category is required.');
   if (!aiError.correction.trim()) fail('LIVE_AI_ERROR_INCOMPLETE', 'AI Error correction is required.');
