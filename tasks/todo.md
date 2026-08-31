@@ -443,4 +443,4 @@ Kế hoạch: `docs/superpowers/plans/2026-08-30-live-lesson-v4-all-ban-toan-pla
 - [x] Browser QA cổng tự học bằng dữ liệu tổng hợp: nhập thông tin → diagnostic → bài học → scaffold → 3 gói M/S/C → vận dụng → tổng kết → lưu tiến trình.
 - [x] Phát hiện và sửa gói `Vận dụng` placeholder: converter dùng trực tiếp route task V4 khi lesson chưa có `practiceSet`.
 - [x] Phát hiện và sửa công thức kết luận dài tràn ngang: tách các dòng công thức và giới hạn vùng MathJax trong card/vở ghi.
-- [x] Chạy lại toàn bộ gate; push `main` đang chờ pre-push handoff gate.
+- [x] Chạy lại toàn bộ gate và push `main` thành công (`0a1f381`).

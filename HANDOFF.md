@@ -77,6 +77,10 @@ git -C $worktree diff --check
 
 ## V4 all Ban Toán W5–W6 + self-study — 2026-08-31
 
+### Commit và trạng thái
+
+- Release commit `0a1f381` đã được push thành công vào `origin/main`; không force-push, không seed Firestore production và không deploy thủ công trong lượt này.
+
 ### Đã đổi và vì sao
 
 - Bổ sung snapshot có provenance và adapter/registry/runtime cho đủ 48 source key Ban Toán W5–W6; mỗi bài giữ đúng source key, 40 phút, 3 tuyến M/S/C và nội dung nguồn.
