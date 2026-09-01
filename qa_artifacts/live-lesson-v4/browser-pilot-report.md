@@ -121,3 +121,11 @@ This validates the self-study content path with synthetic data. It does not repl
 - The P31 legacy demo is resolved by its grade/week/period tuple, upgraded in place, and counted as one of the 48 logical lessons. The remaining 47 keys create new lesson documents.
 - V4 formation, practice, review and elective lessons use the same live action when published; drafts/archived lessons remain blocked.
 - Focused regression checks: 4 files / 49 tests PASS. This UI change is local-code verified; production publication remains a separate authenticated action.
+
+## Production publication QA — 2026-09-01
+
+- Vercel deployment `dpl_4Y5atCwE2sW2aUxMFWLtafsivYi5` reached `READY / Production` at `https://giaoandewey.vercel.app`.
+- Using the authenticated teacher browser session, the explicit `Tạo và xuất bản 48 bài` action completed with `48 xuất bản, 0 bỏ qua, 0 audit fail, 0 lỗi`.
+- The production table contains 51 rows: 48 V4 lessons plus the 3 pre-existing non-V4 lessons. The P31 title appears exactly once; the legacy `tds-g10-30-pilot` document is counted as the canonical `10-5-31` lesson and was upgraded in place.
+- Production UI checks found 48 `Mở tiết trực tiếp` actions, 51 `Xem cổng` actions and 51 `Xóa` actions. All six Ôn tập and six Tự chọn V4 rows had the live action. No `G/W/P` catalog grid remained in the rendered table.
+- This proves authenticated production publication and list rendering. It does not claim a full physical GV-phone/TV-Vcast/HS classroom choreography or post-deploy live session.

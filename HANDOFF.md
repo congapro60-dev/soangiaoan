@@ -79,7 +79,7 @@ git -C $worktree diff --check
 
 ### Commit và trạng thái
 
-- Base release commit `0a1f381` đã được push thành công vào `origin/main`; bản list UX/deduplicate hiện đang chờ commit và push tiếp. Không force-push, không seed Firestore production và không deploy thủ công trong lượt này.
+- Release commit `bd90e63` đã được push thành công vào `origin/main` và deploy Production `dpl_4Y5atCwE2sW2aUxMFWLtafsivYi5`; không force-push.
 
 ### Đã đổi và vì sao
 
@@ -110,8 +110,8 @@ git -C $worktree diff --check
 
 ### Chưa claim / cần người sở hữu kiểm tra
 
-- Chưa seed 48 bài vào Firestore production; sau khi Vercel nhận commit list UX, giáo viên phải bấm nút xuất bản một lần trên tài khoản thật.
-- Chưa xác nhận Vercel Ready/Production hoặc HTTP smoke cho commit này.
+- Đã seed production bằng tài khoản giáo viên thật qua nút `Tạo và xuất bản 48 bài`: 48 xuất bản, 0 bỏ qua, 0 audit fail, 0 lỗi; demo P31 giữ id `tds-g10-30-pilot`, 47 source còn lại tạo mới.
+- Đã xác nhận Vercel deployment `READY / Production` và kiểm tra UI production sau deploy; chưa thực hiện full classroom run với TV/Vcast và thiết bị HS thật.
 - Browser live classroom và self-study đã chạy local với identity/dữ liệu tổng hợp; chưa thay thế pilot GV thật + TV/Vcast + thiết bị học sinh thật.
 - Không xóa bài production trong QA; nút xóa đã có test helper và Rules owner-delete hiện hành.
 
