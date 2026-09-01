@@ -28,6 +28,8 @@ import { buildBanToanV4AdaptiveLessonDraft } from './adaptiveDraft';
 import { validateV4Contract } from './validateContract';
 import type { LiveLessonV4Contract } from './types';
 
+const LEGACY_P31_DEMO_ID = 'tds-g10-30-pilot';
+
 // ── Audit result types ──────────────────────────────────────────────────
 
 export interface AuditIssue {
@@ -73,6 +75,10 @@ function isPlaceholder(value: string | undefined): boolean {
 function isBlankOrGeneric(value: string | undefined): boolean {
   if (!value) return true;
   return value.trim().length < 3;
+}
+
+function isLegacyP31Demo(lesson: AdaptiveLesson | undefined, sourceKey: string): boolean {
+  return sourceKey === '10-5-31' && lesson?.id === LEGACY_P31_DEMO_ID;
 }
 
 // ── Contract-level audit ────────────────────────────────────────────────
@@ -476,19 +482,10 @@ export async function publishSequentially(
     const existing = existingLessons.get(sourceKey);
     const contract = getBanToanV4Contract(sourceKey);
 
-    // Skip already published
-    if (existing?.status === 'published') {
-      reports.push({
-        sourceKey,
-        status: 'skipped_already_published',
-        issues: [],
-        lessonId: existing.id,
-      });
-      continue;
-    }
-
     // If existing lesson has different source identity, block
-    if (existing && existing.curriculumRef?.lessonCode !== sourceKey) {
+    if (existing
+      && existing.curriculumRef?.lessonCode !== sourceKey
+      && !isLegacyP31Demo(existing, sourceKey)) {
       reports.push({
         sourceKey,
         status: 'audit_failed',
@@ -514,9 +511,28 @@ export async function publishSequentially(
       continue;
     }
 
+    // The original P31 demo is the first V4 lesson, not a second lesson.
+    // Upgrade it in place so its existing link/document id remains usable.
+    if (existing?.status === 'published' && !isLegacyP31Demo(existing, sourceKey)) {
+      reports.push({
+        sourceKey,
+        status: 'skipped_already_published',
+        issues: [],
+        lessonId: existing.id,
+      });
+      continue;
+    }
+
     // Build or use existing draft
     let lessonToPublish: AdaptiveLesson;
-    if (existing) {
+    if (isLegacyP31Demo(existing, sourceKey)) {
+      const canonical = buildCanonicalDraft(sourceKey, teacherId);
+      lessonToPublish = {
+        ...canonical,
+        id: existing.id,
+        createdAt: existing.createdAt,
+      };
+    } else if (existing) {
       lessonToPublish = {
         ...existing,
         // V4 list titles are the teacher-facing lookup key; repair legacy

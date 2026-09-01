@@ -106,3 +106,18 @@ Environment: local Vite on `127.0.0.1:3002` with Firestore/Auth Emulator; synthe
 - The delete control was not exercised against production; its action remains guarded by explicit confirmation and the existing owner-scoped Firestore service call.
 
 This validates the self-study content path with synthetic data. It does not replace real teacher/TV/student production choreography or a Vercel smoke.
+
+## Demo P31 deduplication QA — 2026-08-31
+
+- The existing `tds-g10-30-pilot` document is resolved to canonical source `10-5-31` through its explicit grade/week/period identity.
+- Publication now upgrades that document in place to the canonical V4 lesson content/title and preserves its document id; the remaining 47 source keys create new documents.
+- The launcher selects the V4 runtime for the legacy demo once the canonical source identity is present, while preserving the old pilot fallback only for legacy documents without V4 identity.
+- Focused regression checks cover no-duplicate upgrade, registry resolution, and V4 runtime selection.
+
+## Single-list UI QA — 2026-09-01
+
+- The V4 catalog grid showing `G/W/P` cards was removed from the main lesson-management view. The real lesson table is now the only lesson list.
+- The primary action is `Tạo và xuất bản 48 bài`; it calls the existing sequential publisher only after an explicit click and updates the real lesson table after each save.
+- The P31 legacy demo is resolved by its grade/week/period tuple, upgraded in place, and counted as one of the 48 logical lessons. The remaining 47 keys create new lesson documents.
+- V4 formation, practice, review and elective lessons use the same live action when published; drafts/archived lessons remain blocked.
+- Focused regression checks: 4 files / 49 tests PASS. This UI change is local-code verified; production publication remains a separate authenticated action.

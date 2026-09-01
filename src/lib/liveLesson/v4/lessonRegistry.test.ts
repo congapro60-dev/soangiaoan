@@ -23,6 +23,12 @@ describe('Ban Toán V4 lesson registry', () => {
       grade: '12',
       curriculumRef: { week: '6', period: 41, lessonCode: '' },
     })).toBe('12-6-41');
+
+    expect(getBanToanV4SourceKeyForLesson({
+      id: 'tds-g10-30-pilot',
+      grade: '10',
+      curriculumRef: { week: '5', period: 31, lessonCode: 'tds-g10-30-pilot' },
+    })).toBe('10-5-31');
   });
 
   it('accepts the stable source key or package id as an exact reference', () => {

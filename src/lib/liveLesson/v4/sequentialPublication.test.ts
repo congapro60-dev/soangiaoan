@@ -10,6 +10,7 @@ import {
 import { getAllBanToanV4Contracts, getBanToanV4Contract, getBanToanV4DisplayTitle } from './lessonAdapter';
 import { validateV4Contract } from './validateContract';
 import type { AdaptiveLesson } from '../../adaptive/types';
+import { buildPilotAdaptiveLesson } from '../pilotAdaptiveLesson';
 
 describe('sequentialPublication', () => {
   // ── Pure: 48 lessons ready from generator ────────────────────────────
@@ -276,14 +277,14 @@ describe('sequentialPublication', () => {
 
       // Pre-publish 3 lessons
       const existingLessons = new Map<string, AdaptiveLesson>();
-      for (const key of ['10-5-31', '10-5-37', '11-6-35']) {
+      for (const key of ['10-5-32', '10-5-37', '11-6-35']) {
         const draft = buildCanonicalDraft(key, 'teacher-1');
         existingLessons.set(key, { ...draft, status: 'published' });
       }
 
       const result = await publishSequentially({
         existingLessons,
-        teacherId: 'teacher-skip',
+        teacherId: 'teacher-1',
         save,
       });
 
@@ -293,7 +294,7 @@ describe('sequentialPublication', () => {
       expect(stats.published).toBe(45);
 
       // Published lessons should not include the 3 skipped
-      expect(publishedOrder).not.toContain('10-5-31');
+      expect(publishedOrder).not.toContain('10-5-32');
       expect(publishedOrder).not.toContain('10-5-37');
       expect(publishedOrder).not.toContain('11-6-35');
     });
@@ -306,20 +307,61 @@ describe('sequentialPublication', () => {
 
       // Pre-publish 1 lesson
       const existingLessons = new Map<string, AdaptiveLesson>();
-      const draft = buildCanonicalDraft('10-5-31', 'teacher-1');
-      existingLessons.set('10-5-31', { ...draft, status: 'published' });
+      const draft = buildCanonicalDraft('10-5-32', 'teacher-1');
+      existingLessons.set('10-5-32', { ...draft, status: 'published' });
 
       const result = await publishSequentially({
       existingLessons,
-      teacherId: 'teacher-noskip',
+      teacherId: 'teacher-1',
       save,
     });
 
       const stats = summarizeReports(result);
       expect(stats.skipped).toBe(1);
       expect(stats.published).toBe(47);
-      expect(publishedOrder).not.toContain('10-5-31');
+      expect(publishedOrder).not.toContain('10-5-32');
     });
+  });
+
+  it('upgrades the existing P31 demo in place instead of creating a duplicate lesson', async () => {
+    const legacyDemo = buildPilotAdaptiveLesson('teacher-1', '2026-08-20T10:00:00.000Z');
+    const existingLessons = new Map<string, AdaptiveLesson>([
+      ['10-5-31', legacyDemo],
+    ]);
+    let saved: AdaptiveLesson | undefined;
+
+    const result = await publishSequentially({
+      existingLessons,
+      teacherId: 'teacher-1',
+      sourceKeys: ['10-5-31'],
+      save: async (lesson) => { saved = lesson; },
+    });
+
+    expect(result[0]?.status).toBe('published');
+    expect(saved?.id).toBe('tds-g10-30-pilot');
+    expect(saved?.title).toBe(getBanToanV4DisplayTitle('10-5-31'));
+    expect(saved?.curriculumRef?.lessonCode).toBe('10-5-31');
+    expect(saved?.knowledgeUnits[0]?.routes).toHaveLength(3);
+  });
+
+  it('publishes 48 logical lessons when the legacy demo already occupies P31', async () => {
+    const existingLessons = new Map<string, AdaptiveLesson>([
+      ['10-5-31', buildPilotAdaptiveLesson('teacher-1', '2026-08-20T10:00:00.000Z')],
+    ]);
+    const saved: AdaptiveLesson[] = [];
+
+    const result = await publishSequentially({
+      existingLessons,
+      teacherId: 'teacher-1',
+      save: async (lesson) => { saved.push(lesson); },
+    });
+
+    expect(result).toHaveLength(48);
+    expect(summarizeReports(result)).toMatchObject({ published: 48, skipped: 0, failed: 0, errors: 0 });
+    expect(saved).toHaveLength(48);
+    expect(saved.filter(lesson => lesson.curriculumRef?.lessonCode === '10-5-31')).toHaveLength(1);
+    expect(saved.find(lesson => lesson.curriculumRef?.lessonCode === '10-5-31')?.id).toBe('tds-g10-30-pilot');
+    expect(new Set(saved.map(lesson => lesson.id)).size).toBe(48);
   });
 
   it('normalizes an existing draft to the canonical searchable title before publishing', async () => {

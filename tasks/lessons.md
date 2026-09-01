@@ -363,3 +363,8 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - V4 live classroom và cổng tự học dùng chung lesson data nhưng không dùng chung đường kiểm thử. Phải chạy riêng identify → diagnostic → knowledge → practice → application → summary → save; một live pilot xanh không chứng minh cổng tự học xanh.
 - Khi lesson đã có route foundation/standard/challenge nhưng chưa có `practiceSet`, converter không được tự lấp gói thiếu bằng placeholder. Ưu tiên route task đã được kiểm tra nguồn; nếu không đủ dữ liệu thì báo thiếu nội dung trước publish.
 - Chuỗi nhiều công thức nối bằng newline phải tách thành các vùng MathJax riêng trước render. Đồng thời chặn overflow ở card/note cục bộ để một công thức dài không kéo tràn toàn trang.
+
+## Demo cũ phải được coi là alias của source canonical (2026-08-31)
+
+- Khi một bài demo đã có người dùng/URL thật và trùng source key, không tạo document mới chỉ vì id kỹ thuật khác. Resolve bằng identity rõ ràng (grade/week/period hoặc alias đã biết), audit lại nội dung theo source, rồi nâng cấp tại chỗ để giữ liên kết cũ.
+- Runtime live cũng phải dùng cùng identity canonical; nếu chỉ sửa publisher mà launcher vẫn special-case id cũ, danh sách sẽ “một bài” nhưng giờ dạy chạy definition khác.

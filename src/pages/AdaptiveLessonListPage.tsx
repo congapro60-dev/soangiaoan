@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BarChart3, Edit3, Eye, Plus, Trash2, WandSparkles } from 'lucide-react';
+import { BarChart3, Edit3, Eye, Trash2, WandSparkles } from 'lucide-react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import type { AdaptiveLesson } from '../lib/adaptive/types';
@@ -8,7 +8,7 @@ import type { TeacherClass } from '../types';
 import type { ClassDoc } from '../lib/classroom/types';
 import { LiveLessonLauncher } from '../components/liveLesson/LiveLessonLauncher';
 import { buildPilotAdaptiveLesson } from '../lib/liveLesson/pilotAdaptiveLesson';
-import { buildBanToanV4AdaptiveLessonDraft, getBanToanV4PackageForLesson, getBanToanV4PackageMetadata } from '../lib/liveLesson/v4';
+import { getBanToanV4PackageForLesson } from '../lib/liveLesson/v4';
 import { publishSequentially, summarizeReports, getAllSourceKeys, type PublicationReport } from '../lib/liveLesson/v4/sequentialPublication';
 import { deleteLessonFromFirestore, listLessonsForTeacher, saveLessonToFirestore } from '../services/adaptiveLessonService';
 
@@ -21,8 +21,6 @@ export const shouldShowLiveLessonAction = (lesson: Pick<AdaptiveLesson, 'status'
   if (!lesson.id) return true;
   return lesson.id === 'tds-g10-30-pilot' || Boolean(getBanToanV4PackageForLesson(lesson));
 };
-
-const banToanV4Metadata = getBanToanV4PackageMetadata();
 
 const statusLabel: Record<AdaptiveLesson['status'], string> = {
   draft: 'Nháp',
@@ -56,8 +54,6 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [seedingPilot, setSeedingPilot] = useState(false);
   const [seedMessage, setSeedMessage] = useState<string | null>(null);
-  const [seedingV4, setSeedingV4] = useState(false);
-  const [v4SeedMessage, setV4SeedMessage] = useState<string | null>(null);
   const [sequentialPublishing, setSequentialPublishing] = useState(false);
   const [sequentialProgress, setSequentialProgress] = useState<{ current: number; total: number; currentKey: string } | null>(null);
   const [sequentialResult, setSequentialResult] = useState<PublicationReport[] | null>(null);
@@ -138,33 +134,6 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
     }
   };
 
-  const handleSeedV4Packages = async () => {
-    const currentUser = auth.currentUser ?? user;
-    if (!currentUser) {
-      setError('Bạn cần đăng nhập để cài các gói V4 vào danh sách bài học.');
-      return;
-    }
-
-    setSeedingV4(true);
-    setError(null);
-    setV4SeedMessage(null);
-    try {
-      const generated = banToanV4Metadata.map((metadata) => buildBanToanV4AdaptiveLessonDraft(metadata.sourceKey, currentUser.uid));
-      await Promise.all(generated.map((lesson) => saveLessonToFirestore(lesson)));
-      setLessons(previous => [
-        ...previous.filter(lesson => !generated.some(item => item.id === lesson.id)),
-        ...generated,
-      ].sort((left, right) => (right.updatedAt || '').localeCompare(left.updatedAt || '')));
-      setV4SeedMessage(`Đã cài ${generated.length} gói V4 Ban Toán W5–W6 dưới dạng nháp. Hãy mở rà nội dung, xuất bản bài cần dạy rồi mới mở tiết trực tiếp.`);
-    } catch (seedError) {
-      console.error('Không cài được các gói V4 Ban Toán', seedError);
-      const detail = seedError instanceof Error ? ` ${seedError.message}` : '';
-      setError(`Không cài đủ các gói V4 Ban Toán vào Firestore.${detail}`);
-    } finally {
-      setSeedingV4(false);
-    }
-  };
-
   const handleSequentialPublish = async () => {
     const currentUser = auth.currentUser ?? user;
     if (!currentUser) {
@@ -236,7 +205,7 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
 
       setSequentialProgress({ current: sourceKeys.length, total: sourceKeys.length, currentKey: '' });
       const stats = summarizeReports(reports);
-      setV4SeedMessage(
+      setSeedMessage(
         `Xuất bản tuần tự xong: ${stats.published} xuất bản, ${stats.skipped} bỏ qua, ${stats.failed} audit fail, ${stats.errors} lỗi.`,
       );
     } catch (publishError) {
@@ -283,9 +252,6 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
               <button disabled={hasPilotLesson || seedingPilot || !user} onClick={() => void handleSeedPilot()} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/15 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-900/10 backdrop-blur transition hover:bg-white/25 disabled:cursor-not-allowed disabled:opacity-60">
                 <WandSparkles className="h-4 w-4" /> {seedingPilot ? 'Đang cài bài demo...' : hasPilotLesson ? 'Đã có bài demo G10 P31' : 'Cài bài demo G10 P31'}
               </button>
-              <button disabled={seedingV4 || !user} onClick={() => void handleSeedV4Packages()} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/40 bg-white/15 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-900/10 backdrop-blur transition hover:bg-white/25 disabled:cursor-not-allowed disabled:opacity-60">
-                <WandSparkles className="h-4 w-4" /> {seedingV4 ? 'Đang cài 48 gói V4...' : 'Cài 48 gói V4 W5–W6'}
-              </button>
               <button onClick={openCreate} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-black text-blue-700 shadow-lg shadow-blue-900/10 transition hover:bg-blue-50">
                 <WandSparkles className="h-4 w-4" /> Tạo từ giáo án nguồn
               </button>
@@ -295,23 +261,15 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
 
         {error && <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-bold text-red-600">{error}</div>}
         {seedMessage && <div className="rounded-2xl border border-green-100 bg-green-50 px-4 py-3 text-sm font-bold text-green-700">{seedMessage}</div>}
-        {v4SeedMessage && <div className="rounded-2xl border border-indigo-100 bg-indigo-50 px-4 py-3 text-sm font-bold text-indigo-700">{v4SeedMessage}</div>}
 
         <section className="rounded-3xl border border-indigo-100 bg-indigo-50/70 p-6 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-indigo-600">V4 · Ban Toán W5–W6</p>
-              <h2 className="mt-1 text-xl font-black text-indigo-950">48 gói bài học phân hoá ứng viên</h2>
-              <p className="mt-1 text-sm font-semibold text-indigo-800">Nguồn exact key grade–week–period; không tự xuất bản và không dùng tiêu đề để đoán bài.</p>
+              <h2 className="mt-1 text-xl font-black text-indigo-950">48 gói bài học phân hoá</h2>
+              <p className="mt-1 text-sm font-semibold text-indigo-800">Nguồn Ban Toán Khối 10–12, Tuần 5–6. Tạo và xuất bản tuần tự từng bài, cập nhật bảng bài ngay sau mỗi lần.</p>
             </div>
-            <button disabled={seedingV4 || !user} onClick={() => void handleSeedV4Packages()} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-black text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"><Plus className="h-4 w-4" /> {seedingV4 ? 'Đang cài...' : 'Cài thành nháp'}</button>
-            <button disabled={sequentialPublishing || seedingV4 || !user} onClick={() => void handleSequentialPublish()} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-black text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"><WandSparkles className="h-4 w-4" /> {sequentialPublishing ? `Đang xuất bản ${sequentialProgress?.current ?? 0}/${sequentialProgress?.total ?? 48}...` : 'Xuất bản tuần tự 48 bài'}</button>
-          </div>
-          <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {banToanV4Metadata.map(metadata => {
-              const installed = lessons.some(lesson => getBanToanV4PackageForLesson(lesson)?.sourceKey === metadata.sourceKey);
-              return <div key={metadata.sourceKey} className="flex items-center justify-between gap-3 rounded-2xl border border-indigo-100 bg-white px-3 py-2"><div className="min-w-0"><p className="truncate text-sm font-black text-slate-800">G{metadata.grade} · W{metadata.week} · P{metadata.period}</p><p className="truncate text-xs font-semibold text-slate-500">{metadata.title}</p></div><span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-black ${installed ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>{installed ? 'Đã có' : metadata.lessonMode === 'elective-practice' ? 'Tự chọn' : metadata.lessonMode === 'formation' ? 'Hình thành' : 'Luyện tập'}</span></div>;
-            })}
+            <button disabled={sequentialPublishing || !user} onClick={() => void handleSequentialPublish()} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-black text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"><WandSparkles className="h-4 w-4" /> {sequentialPublishing ? `Đang xuất bản ${sequentialProgress?.current ?? 0}/${sequentialProgress?.total ?? 48}...` : 'Tạo và xuất bản 48 bài'}</button>
           </div>
           {sequentialProgress && (
             <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
@@ -370,7 +328,11 @@ export const AdaptiveLessonListPage = ({ embedded = false, onCreateLesson, onOpe
                     <tr key={lesson.id} onClick={() => openLesson(lesson.id)} className="cursor-pointer bg-white align-top transition hover:bg-blue-50/40">
                       <td className="px-4 py-4">
                         <p className="font-black text-slate-800">{lesson.title || 'Bài học chưa đặt tên'}</p>
-                        <p className="mt-1 text-xs font-semibold text-slate-400">{lesson.id}</p>
+                        {(() => {
+                          const binding = getBanToanV4PackageForLesson(lesson);
+                          if (!binding) return <p className="mt-1 text-xs font-semibold text-slate-400">{lesson.id}</p>;
+                          return <p className="mt-1 text-xs font-semibold text-slate-400">Lớp {binding.metadata.grade} · Tuần {binding.metadata.week} · Tiết {binding.metadata.period}</p>;
+                        })()}
                       </td>
                       <td className="px-4 py-4 font-bold text-slate-600">{lesson.grade}</td>
                       <td className="px-4 py-4"><span className={`inline-flex rounded-full border px-3 py-1 text-xs font-black ${statusClass[lesson.status]}`}>{statusLabel[lesson.status]}</span></td>

@@ -112,13 +112,12 @@ export const getLiveDefinitionForLesson = (lesson: AdaptiveLesson): LiveLessonDe
     throw new LiveLessonDefinitionError('LIVE_LESSON_NOT_PUBLISHED', 'Chỉ bài học đã xuất bản mới có thể mở tiết trực tiếp.');
   }
 
-  if (lesson.id === 'tds-g10-30-pilot') return getPilotDefinitionForLesson(lesson);
-
   const binding = getBanToanV4PackageForLesson(lesson);
-  if (!binding) {
-    throw new LiveLessonDefinitionError('LIVE_V4_PACKAGE_NOT_FOUND', 'Bài học chưa có gói V4 Ban Toán khớp source key; chưa thể mở tiết trực tiếp.');
+  if (binding) {
+    return buildLiveLessonDefinitionFromV4(binding.contract, lesson.id);
   }
-  return buildLiveLessonDefinitionFromV4(binding.contract, lesson.id);
+  if (lesson.id === 'tds-g10-30-pilot') return getPilotDefinitionForLesson(lesson);
+  throw new LiveLessonDefinitionError('LIVE_V4_PACKAGE_NOT_FOUND', 'Bài học chưa có gói V4 Ban Toán khớp source key; chưa thể mở tiết trực tiếp.');
 };
 
 const copyText = async (value: string): Promise<void> => {
@@ -210,9 +209,7 @@ export const LiveLessonLauncher = ({ lesson: selectedLesson, lessonId, user: con
   }, [classes, contextUser?.uid, currentUser?.uid]);
 
   const selectedClass = useMemo(() => availableClasses.find(item => item.id === selectedClassId), [availableClasses, selectedClassId]);
-  const definitionKey = lesson && lesson.id !== 'tds-g10-30-pilot'
-    ? getBanToanV4PackageForLesson(lesson)?.sourceKey
-    : undefined;
+  const definitionKey = lesson ? getBanToanV4PackageForLesson(lesson)?.sourceKey : undefined;
   const urls = session ? buildLiveLessonUrls(
     session.id,
     window.location.origin,

@@ -79,7 +79,7 @@ git -C $worktree diff --check
 
 ### Commit và trạng thái
 
-- Release commit `0a1f381` đã được push thành công vào `origin/main`; không force-push, không seed Firestore production và không deploy thủ công trong lượt này.
+- Base release commit `0a1f381` đã được push thành công vào `origin/main`; bản list UX/deduplicate hiện đang chờ commit và push tiếp. Không force-push, không seed Firestore production và không deploy thủ công trong lượt này.
 
 ### Đã đổi và vì sao
 
@@ -88,22 +88,29 @@ git -C $worktree diff --check
 - Chuẩn hóa tiêu đề theo tên giáo viên dễ tìm, dạng `Tên bài — Tiết N`; draft cũ có hậu tố kỹ thuật được sửa tên khi xuất bản lại mà không đổi nội dung.
 - Giữ nút `Xóa` trong danh sách với xác nhận nêu đúng tên bài, nhãn truy cập và chỉ cập nhật UI sau khi lệnh xóa owner-scoped thành công.
 - Sửa cổng tự học: khi lesson V4 có route task nhưng chưa có `practiceSet`, ba gói Nhận biết/Thông hiểu/Vận dụng dùng chính nhiệm vụ M/S/C thay vì placeholder; tách công thức nhiều dòng và giới hạn MathJax trong card/vở ghi để không tràn ngang.
+- Gỡ lưới catalog `G/W/P` khỏi màn hình chính; bảng `Bài học của tôi` là nơi duy nhất hiển thị lesson thật, với metadata lớp/tuần/tiết và một nút `Tạo và xuất bản 48 bài`.
+- Demo `tds-g10-30-pilot` được nhận diện là source `10-5-31`, nâng cấp nội dung V4 tại chỗ và giữ document id/link cũ; 47 source còn lại tạo document mới, tổng cộng 48 lesson logic không trùng P31.
+- Launcher dùng runtime V4 và `definitionKey=10-5-31` cho demo sau nâng cấp; các bài Hình thành, Luyện tập, Ôn tập và Tự chọn đều hiện nút live khi `published`.
+- Gỡ lưới catalog `G/W/P` khỏi màn hình chính; bảng `Bài học của tôi` là nơi duy nhất hiển thị lesson thật, với metadata lớp/tuần/tiết và một nút `Tạo và xuất bản 48 bài`.
+- Demo `tds-g10-30-pilot` được nhận diện là source `10-5-31`, nâng cấp nội dung V4 tại chỗ và giữ document id/link cũ; không tạo bản sao. Launcher dùng runtime V4 khi demo có identity nguồn.
+- Các bài Hình thành, Luyện tập, Ôn tập và Tự chọn đều được mở live nếu lesson V4 đã `published`; bài chưa publish không hiện nút live.
 
 ### Bằng chứng nghiệm thu local
 
 - `npm run lint`: PASS.
 - `npm run lint:api`: PASS.
-- `npm run test -- --run --maxWorkers=1`: **145 files / 1,720 tests PASS**.
+- `npm run test -- --run --maxWorkers=1`: **145 files / 1,731 tests PASS**.
 - `npm run test:rules`: **8 files / 301 tests PASS**.
 - `npm run test:pilot`: **13/13 checks PASS** trên Firestore/Auth Emulator.
 - `npm exec -- tsx test/e2e-v4-live-lesson.mjs`: **9/9 checks PASS**.
 - `npm run build`: PASS; chỉ còn cảnh báo Vite chunk/dynamic import vốn có.
 - Browser self-study QA bằng dữ liệu tổng hợp: identify → diagnostic → bài học/scaffold → đủ 3 gói → vận dụng → tổng kết → lưu tiến trình; không còn placeholder và công thức kết luận hiển thị đủ trong card.
+- Focused dedup/list QA: **4 files / 49 tests PASS**, gồm demo P31 nâng cấp tại chỗ, batch 48 lesson duy nhất, registry mapping và V4 launcher.
 - Rules stderr vẫn có `evaluation error` ở nhánh DENY cố ý; không được gọi là “zero-evaluator-error”.
 
 ### Chưa claim / cần người sở hữu kiểm tra
 
-- Chưa seed 48 bài vào Firestore production; nút xuất bản phải được giáo viên bấm trên tài khoản thật sau khi deploy.
+- Chưa seed 48 bài vào Firestore production; sau khi Vercel nhận commit list UX, giáo viên phải bấm nút xuất bản một lần trên tài khoản thật.
 - Chưa xác nhận Vercel Ready/Production hoặc HTTP smoke cho commit này.
 - Browser live classroom và self-study đã chạy local với identity/dữ liệu tổng hợp; chưa thay thế pilot GV thật + TV/Vcast + thiết bị học sinh thật.
 - Không xóa bài production trong QA; nút xóa đã có test helper và Rules owner-delete hiện hành.

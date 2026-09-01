@@ -444,3 +444,18 @@ Kế hoạch: `docs/superpowers/plans/2026-08-30-live-lesson-v4-all-ban-toan-pla
 - [x] Phát hiện và sửa gói `Vận dụng` placeholder: converter dùng trực tiếp route task V4 khi lesson chưa có `practiceSet`.
 - [x] Phát hiện và sửa công thức kết luận dài tràn ngang: tách các dòng công thức và giới hạn vùng MathJax trong card/vở ghi.
 - [x] Chạy lại toàn bộ gate và push `main` thành công (`0a1f381`).
+
+## V4 list UX — one real lesson list — 2026-08-31
+
+- [x] Bỏ lưới catalog `G/W/P` khỏi màn hình chính; giữ catalog dưới dạng tóm tắt.
+- [x] Đổi thao tác chính thành `Tạo và xuất bản 48 bài`, xử lý tuần tự và cập nhật bảng bài thật ngay sau từng bài.
+- [x] Hiển thị metadata lớp/tuần/tiết dưới tên bài; giữ đủ Mở bài, Xem cổng, Mở tiết trực tiếp, Xóa.
+- [x] Xóa state/handler/import chỉ phục vụ nút cài 48 nháp (`handleSeedV4Packages`, `seedingV4`, `v4SeedMessage`, `Plus`, `buildBanToanV4AdaptiveLessonDraft`, `getBanToanV4PackageMetadata`, `banToanV4Metadata`).
+- [x] Viết test thuần: `shouldShowLiveLessonAction` cho pilot/V4/legacy, `getDeleteLessonConfirmation`, `resolveAdaptiveBuilderUrl`, `resolveAdaptivePortalUrl`.
+- [x] Focused test: 2 files / 32 tests PASS; `lint` PASS.
+- [x] Demo P31 `tds-g10-30-pilot` được nhận diện là source `10-5-31`, nâng cấp tại chỗ, không tạo bản sao; runtime launcher dùng V4 khi có identity nguồn.
+- [x] QA pure state: published V4 formation/practice/elective và legacy P31 đều có runtime live; draft/archived bị chặn.
+- [x] Gỡ catalog grid, giữ một bảng lesson thật và một nút `Tạo và xuất bản 48 bài`; focused 4 files / 49 tests PASS.
+- [x] Full unit 145 files / 1.731 tests, Rules 8 files / 301 tests, service pilot 13/13, build và lint PASS sau thay đổi.
+- [ ] QA browser production sau deploy: xuất bản 48 document thật, kiểm 48 logic lesson/47 document mới + demo P31, không duplicate.
+- [ ] Chạy gate cuối, commit và push `main`.

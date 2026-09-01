@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildLiveLessonUrls, formatLiveLessonLaunchError, getLiveDefinitionForLesson, getPilotDefinitionForLesson, isAuthoritativeServerClassList, validateLiveLessonLaunch } from './LiveLessonLauncher';
+import { buildPilotAdaptiveLesson } from '../../lib/liveLesson/pilotAdaptiveLesson';
 
 describe('live lesson launcher helpers', () => {
   it('blocks creation when there is no owned synchronized class', () => {
@@ -73,6 +74,14 @@ describe('live lesson launcher helpers', () => {
     } as never);
     expect(definition.id).toBe('g10_w5_p37_v4');
     expect(definition.lessonId).toBe('adaptive-v4-10-5-37-teacher-1');
+  });
+
+  it('reuses the legacy P31 demo document with the canonical V4 runtime', () => {
+    const legacyDemo = buildPilotAdaptiveLesson('teacher-1', '2026-08-31T00:00:00.000Z');
+    const definition = getLiveDefinitionForLesson(legacyDemo);
+
+    expect(definition.id).toBe('g10_w5_p31_v4');
+    expect(definition.lessonId).toBe('tds-g10-30-pilot');
   });
 
   it('adds V4 definition context to all three links without changing legacy links', () => {
