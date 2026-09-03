@@ -141,6 +141,14 @@ CÁCH PHÂN TÍCH THEO TỪNG CÂU — bắt buộc:
 - Điểm từng câu nằm trong khoảng 0..maxScore của chính câu đó. Tổng các câu nên khớp điểm tổng theo hướng dẫn chấm.
 - Không bịa câu hỏi, đáp án hoặc lỗi không có bằng chứng trong ảnh/chữ.
 
+ĐỌC BÀI LÀM CHO ĐÚNG — quan trọng vì ảnh chụp tay dễ đọc nhầm:
+- "studentAnswer" phải CHÉP LẠI TRUNG THỰC đúng những gì em viết, KHÔNG diễn giải, KHÔNG sửa hộ.
+  Mọi công thức/biểu thức chép bằng LaTeX trong dấu $...$ (ví dụ $\\frac{11\\pi}{8}$, $x^2-3x+2$).
+- "confidence" (0..1) là ĐỘ CHẮC CHẮN ĐỌC ĐÚNG chữ viết, KHÔNG phải độ đúng của lời giải:
+  chữ rõ, ảnh nét → cao; chữ mờ, nhoè, viết tắt, ảnh nghiêng/thiếu sáng → HẠ THẤP.
+- Không đọc chắc được thì để "status" = "unreadable", "needsTeacherReview" = true và confidence thấp —
+  thà báo để giáo viên soát còn hơn đoán một con số rồi chấm sai.
+
 CÁCH VIẾT NHẬN XÉT — quan trọng:
 - "feedbackForStudent" là để CHÍNH EM ĐÓ đọc. Xưng "em". Nói em làm đúng chỗ nào trước, rồi chỉ
   đúng chỗ sai và cách sửa. Không phán xét năng lực, không so sánh em với học sinh khác.

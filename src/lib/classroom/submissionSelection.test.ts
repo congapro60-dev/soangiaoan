@@ -2,11 +2,13 @@ import { describe, expect, it } from 'vitest';
 import type { SubmissionDoc } from './types';
 import {
   currentSubmissionsForAssignment,
+  hasUncertainRead,
   selectedSubmissionsForAssignment,
   selectedCurrentSubmissions,
   submissionsForHistoryMode,
   summarizeSelection,
 } from './submissionSelection';
+import type { QuestionResult, SubmissionGrade } from './types';
 
 const submission = (id: string, studentId: string, createdAt: string, patch: Partial<SubmissionDoc> = {}): SubmissionDoc => ({
   id,
@@ -109,5 +111,32 @@ describe('submissionSelection', () => {
     });
 
     expect(summarizeSelection([grading]).unapproved).toBe(0);
+  });
+});
+
+describe('hasUncertainRead — nhắc soát khi máy đọc chưa chắc', () => {
+  const qr = (patch: Partial<QuestionResult>): QuestionResult => ({
+    questionNumber: 'C1', status: 'correct', score: 2, maxScore: 2,
+    studentAnswer: 'x=1', expectedAnswer: 'x=1', errorType: 'Không có',
+    explanation: '', correction: '', nextPractice: '', needsTeacherReview: false, ...patch,
+  });
+  const grade = (questionResults?: SubmissionGrade['questionResults']): SubmissionGrade => ({
+    score: 5, maxScore: 10, feedback: '', strengths: [], weaknesses: [], teacherApproved: false,
+    gradedAt: '2026-09-03T00:00:00.000Z', ...(questionResults ? { questionResults } : {}),
+  });
+
+  it('không có questionResults thì coi là chắc', () => {
+    expect(hasUncertainRead(undefined)).toBe(false);
+    expect(hasUncertainRead(grade())).toBe(false);
+  });
+
+  it('bắt câu unreadable, cần soát, hoặc confidence thấp', () => {
+    expect(hasUncertainRead(grade([qr({ status: 'unreadable', needsTeacherReview: true })]))).toBe(true);
+    expect(hasUncertainRead(grade([qr({ needsTeacherReview: true })]))).toBe(true);
+    expect(hasUncertainRead(grade([qr({ confidence: 0.3 })]))).toBe(true);
+  });
+
+  it('đọc rõ, confidence cao thì không cảnh báo', () => {
+    expect(hasUncertainRead(grade([qr({ confidence: 0.95 })]))).toBe(false);
   });
 });

@@ -26,7 +26,7 @@ import { AssignmentFormModal, type AssignmentFormValue } from './AssignmentFormM
 import { NhanXetMarkdown } from './NhanXetMarkdown';
 import { GradeReviewModal, type GradeReviewValue } from './GradeReviewModal';
 import { QuestionResultsList } from './QuestionResultsList';
-import { currentSubmissionsForAssignment, selectedCurrentSubmissions, selectedSubmissionsForAssignment, submissionsForHistoryMode, summarizeSelection, type SubmissionHistoryMode } from '../../../lib/classroom/submissionSelection';
+import { currentSubmissionsForAssignment, hasUncertainRead, selectedCurrentSubmissions, selectedSubmissionsForAssignment, submissionsForHistoryMode, summarizeSelection, type SubmissionHistoryMode } from '../../../lib/classroom/submissionSelection';
 import { renameAssignment } from '../../../lib/classroom/teacherService';
 import { OnlineAssignmentReview } from './OnlineAssignmentReview';
 
@@ -289,6 +289,9 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
               )}
               {s.grade?.gradingRecovery && (
                 <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700">AI đã tự phục hồi định dạng</span>
+              )}
+              {s.grade && hasUncertainRead(s.grade) && (
+                <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700" title="AI báo có câu đọc chưa chắc — mở ra soát mục 'Bài làm của em'">Máy đọc chưa chắc</span>
               )}
               {(s.status === 'graded' && s.lastGradingError) && (
                 <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700" title={s.lastGradingError}>Đã giữ điểm (lỗi chấm lại)</span>

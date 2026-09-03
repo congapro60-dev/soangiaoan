@@ -1,4 +1,20 @@
-import type { SubmissionDoc } from './types';
+import type { SubmissionDoc, SubmissionGrade } from './types';
+
+/** Dưới ngưỡng này coi là máy đọc chữ chưa chắc, nên nhắc giáo viên soát lại. */
+export const READ_CONFIDENCE_FLOOR = 0.6;
+
+/**
+ * Máy đọc bài "chưa chắc": có câu không đọc rõ, có câu tự đánh dấu cần giáo viên soát, hoặc độ
+ * chắc chắn đọc chữ thấp. Dùng để hiện nhãn nhắc GV mở ra kiểm — bắt lỗi AI đọc nhầm công thức.
+ */
+export const hasUncertainRead = (grade?: SubmissionGrade): boolean => {
+  const results = grade?.questionResults;
+  if (!Array.isArray(results)) return false;
+  return results.some(question =>
+    question?.status === 'unreadable'
+    || question?.needsTeacherReview === true
+    || (typeof question?.confidence === 'number' && question.confidence < READ_CONFIDENCE_FLOOR));
+};
 
 const createdAtValue = (value?: string): number => {
   const parsed = Date.parse(String(value || ''));
