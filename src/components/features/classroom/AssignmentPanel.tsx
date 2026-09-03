@@ -21,7 +21,7 @@ import {
 } from '../../../lib/classroom/submissionService';
 import type { AssignmentDoc, SubmissionDoc } from '../../../lib/classroom/types';
 import { laNopQuaHan } from '../../../lib/classroom/hanNop';
-import { gradeAssignmentAll, gradeOneSubmission } from '../../../services/gradingApi';
+import { gradeAssignmentAll, gradeOneSubmission, solveAnswerKeyForAssignment, suggestRubric } from '../../../services/gradingApi';
 import { AssignmentFormModal, type AssignmentFormValue } from './AssignmentFormModal';
 import { NhanXetMarkdown } from './NhanXetMarkdown';
 import { GradeReviewModal, type GradeReviewValue } from './GradeReviewModal';
@@ -458,6 +458,10 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   // Bản nháp đang sửa của bài đang mở. Rỗng = chưa sửa gì.
   const [nhap, setNhap] = useState<{ answerKey: string; rubric: string; gradingInstructions: string } | null>(null);
   const [dangLuu, setDangLuu] = useState(false);
+  // AI giải lại đáp án / gợi ý lại hướng dẫn chấm ngay trong panel — kết quả ra NHÁP, GV soát rồi lưu.
+  const [dangGiaiLai, setDangGiaiLai] = useState(false);
+  const [dangGoiYRubric, setDangGoiYRubric] = useState(false);
+  const [choChuaChac, setChoChuaChac] = useState<string[]>([]);
 
   const taiBai = useCallback(async () => {
     setDangTai(true);
@@ -496,6 +500,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   useEffect(() => { void taiBai(); }, [taiBai]);
 
   const moBai = (assignmentId: string) => {
+    setChoChuaChac([]);
     if (openId === assignmentId) { setOpenId(''); setNhap(null); return; }
     setOpenId(assignmentId);
     setNhap(null);
@@ -746,12 +751,82 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
     try {
       await updateAssignmentContent(a.id, nhap);
       setNhap(null);
+      setChoChuaChac([]);
       showToast('Đã lưu đáp án, hướng dẫn và lệnh chấm riêng.', 'success');
       await taiBai();
     } catch (error) {
       setLoiTai(error instanceof Error ? error.message : 'Không lưu được.');
     } finally {
       setDangLuu(false);
+    }
+  };
+
+  /** Bản nháp hiện hành: ưu tiên nội dung GV đang sửa, chưa sửa thì lấy từ bài đã lưu. */
+  const draftHienHanh = (a: AssignmentDoc) =>
+    nhap ?? { answerKey: a.answerKey || '', rubric: a.rubric || '', gradingInstructions: a.gradingInstructions || '' };
+
+  /**
+   * AI giải LẠI đáp án từ đề đã lưu, theo Lệnh riêng đang gõ. Kết quả đổ vào ô NHÁP để GV soát
+   * rồi mới bấm Lưu — cố ý không tự ghi, vì một đáp án sai làm cả lớp bị chấm sai.
+   */
+  const giaiLaiDapAn = async (a: AssignmentDoc) => {
+    const base = draftHienHanh(a);
+    const { isConfirmed } = await Swal.fire({
+      icon: 'question',
+      title: 'AI giải lại đáp án từ đề?',
+      html: 'AI đọc lại đề đã lưu rồi dựng đáp án nháp mới.<br/>Nội dung ô <b>Đáp án chuẩn</b> hiện tại sẽ bị thay bằng bản nháp — <b>chưa lưu</b> cho tới khi bấm <b>Lưu thay đổi</b>.<br/><span style="font-size:12px;color:#94a3b8;">Giải theo đúng Lệnh riêng đang gõ. Tốn 1 lượt AI.</span>',
+      showCancelButton: true,
+      confirmButtonText: 'Giải lại',
+      cancelButtonText: 'Thôi',
+      confirmButtonColor: '#2563eb',
+    });
+    if (!isConfirmed) return;
+
+    setDangGiaiLai(true);
+    setChoChuaChac([]);
+    try {
+      const ket = await solveAnswerKeyForAssignment(a.id, base.gradingInstructions);
+      setNhap({ ...base, answerKey: ket.answerKey });
+      setChoChuaChac(Array.isArray(ket.uncertainties) ? ket.uncertainties : []);
+      showToast('AI đã giải xong — soát kỹ rồi bấm Lưu thay đổi.', 'success');
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Chưa giải lại được',
+        text: error instanceof Error ? error.message : 'Thử lại sau ít phút.',
+        confirmButtonColor: '#3085d6',
+      });
+    } finally {
+      setDangGiaiLai(false);
+    }
+  };
+
+  /** AI gợi ý LẠI hướng dẫn chấm từ đáp án hiện có (nháp) + Lệnh riêng. Cũng ra nháp để GV soát. */
+  const goiYLaiRubric = async (a: AssignmentDoc) => {
+    const base = draftHienHanh(a);
+    if (!base.answerKey.trim()) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Cần có đáp án trước',
+        text: 'Hướng dẫn chấm là cách chia điểm CHO đáp án. Giải lại hoặc nhập đáp án trước đã.',
+        confirmButtonColor: '#3085d6',
+      });
+      return;
+    }
+    setDangGoiYRubric(true);
+    try {
+      const rubric = await suggestRubric(classId, base.answerKey, a.maxScore || 10, base.gradingInstructions);
+      setNhap({ ...base, rubric });
+      showToast('AI đã gợi ý hướng dẫn chấm — soát rồi bấm Lưu thay đổi.', 'success');
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Chưa gợi ý được',
+        text: error instanceof Error ? error.message : 'Thử lại sau ít phút.',
+        confirmButtonColor: '#3085d6',
+      });
+    } finally {
+      setDangGoiYRubric(false);
     }
   };
 
@@ -1213,6 +1288,16 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                             + {(a.answerKeyImageUrls || []).length} ảnh đáp án
                           </span>
                         )}
+                        <span className="flex-1" />
+                        <button
+                          onClick={() => void giaiLaiDapAn(a)}
+                          disabled={dangGiaiLai || dangGoiYRubric}
+                          title="AI đọc lại đề đã lưu rồi dựng đáp án nháp mới theo Lệnh riêng"
+                          className="inline-flex items-center gap-1 rounded-2xl border border-blue-200 bg-white px-3 py-1.5 text-xs font-black text-blue-700 transition hover:bg-blue-50 disabled:opacity-40"
+                        >
+                          {dangGiaiLai ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                          {dangGiaiLai ? 'Đang giải...' : 'AI giải lại đáp án'}
+                        </button>
                       </div>
                       <textarea
                         value={nhap ? nhap.answerKey : (a.answerKey || '')}
@@ -1225,10 +1310,30 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                         placeholder="Chưa có đáp án. AI sẽ phải tự đọc đề trong ảnh từng em rồi tự giải."
                         className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
                       />
+                      {choChuaChac.length > 0 && (
+                        <div className="mt-2 rounded-2xl bg-amber-50 px-3 py-2 ring-1 ring-amber-100">
+                          <p className="text-xs font-black text-amber-800">AI báo chưa chắc ở {choChuaChac.length} chỗ — soát kỹ trước khi lưu:</p>
+                          <ul className="mt-1 list-disc space-y-0.5 pl-5 text-xs font-semibold text-amber-800">
+                            {choChuaChac.map((c, i) => <li key={i}>{c}</li>)}
+                          </ul>
+                        </div>
+                      )}
                     </div>
 
                     <div className="mt-3">
-                      <p className="text-sm font-black text-slate-700">Hướng dẫn chấm</p>
+                      <div className="flex flex-wrap items-baseline gap-2">
+                        <p className="text-sm font-black text-slate-700">Hướng dẫn chấm</p>
+                        <span className="flex-1" />
+                        <button
+                          onClick={() => void goiYLaiRubric(a)}
+                          disabled={dangGiaiLai || dangGoiYRubric}
+                          title="AI đề xuất cách chia điểm cho đáp án hiện tại theo Lệnh riêng"
+                          className="inline-flex items-center gap-1 rounded-2xl border border-blue-200 bg-white px-3 py-1.5 text-xs font-black text-blue-700 transition hover:bg-blue-50 disabled:opacity-40"
+                        >
+                          {dangGoiYRubric ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                          {dangGoiYRubric ? 'Đang gợi ý...' : 'AI gợi ý lại hướng dẫn chấm'}
+                        </button>
+                      </div>
                       <textarea
                         value={nhap ? nhap.rubric : (a.rubric || '')}
                         onChange={e => setNhap({
@@ -1268,7 +1373,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                         {dangLuu ? 'Đang lưu...' : 'Lưu thay đổi'}
                       </button>
                       {nhap && (
-                        <button onClick={() => setNhap(null)}
+                        <button onClick={() => { setNhap(null); setChoChuaChac([]); }}
                                 className="rounded-2xl px-3 py-2 text-xs font-black text-slate-500 transition hover:bg-slate-100">
                           Bỏ sửa
                         </button>

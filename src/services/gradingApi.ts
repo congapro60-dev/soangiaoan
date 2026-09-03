@@ -185,6 +185,37 @@ export const solveAnswerKey = async (
   return data as SolvedAnswerKeyResult;
 };
 
+/**
+ * Nhờ AI giải LẠI đáp án cho một bài ĐÃ GIAO, dùng đề đã lưu trên máy chủ (không phải tải lại
+ * file). `gradingInstructions` truyền bản nháp giáo viên đang gõ để giải đúng phạm vi. Kết quả
+ * là nháp để giáo viên soát rồi mới lưu.
+ */
+export const solveAnswerKeyForAssignment = async (
+  assignmentId: string,
+  gradingInstructions?: string,
+): Promise<SolvedAnswerKeyResult> => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Phiên đăng nhập đã hết hạn.');
+
+  const res = await fetch('/api/grade-homework', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'solveAnswerKeyForAssignment',
+      idToken: await user.getIdToken(),
+      assignmentId,
+      gradingInstructions: gradingInstructions || '',
+    }),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) {
+    const error = new Error(data?.error || `Máy chủ trả lỗi ${res.status}`) as Error & { status?: number };
+    error.status = res.status;
+    throw error;
+  }
+  return data as SolvedAnswerKeyResult;
+};
+
 /** Nhờ AI đề xuất hướng dẫn chấm từ đáp án đã có. */
 export const suggestRubric = async (
   classId: string,

@@ -1127,6 +1127,56 @@ const handleSolveAnswerKey = async (db: FirebaseFirestore.Firestore, body: Recor
   return res.status(200).json(parseSolvedAnswerKey(raw));
 };
 
+/**
+ * AI giải lại đáp án cho một bài ĐÃ GIAO — dùng đề đã lưu (sourceText + ảnh trang) thay vì bắt
+ * giáo viên tải lại file. Kết quả vẫn là NHÁP để giáo viên soát rồi mới lưu, không tự ghi vào
+ * bài giao (một đáp án sai làm cả lớp bị chấm sai). Nhận lệnh riêng từ bản nháp đang sửa để
+ * giải theo đúng phạm vi giáo viên vừa gõ, kể cả khi chưa bấm Lưu.
+ */
+const handleSolveAnswerKeyForAssignment = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Cần đăng nhập tài khoản giáo viên.' });
+
+  const assignmentId = typeof body.assignmentId === 'string' ? body.assignmentId : '';
+  const snap = await db.collection('assignments').doc(assignmentId).get();
+  if (!snap.exists) return res.status(404).json({ error: 'Không tìm thấy bài đã giao.' });
+
+  const assignment = snap.data() as FirebaseFirestore.DocumentData;
+  const assignmentTeacherId = typeof assignment.teacherId === 'string' ? assignment.teacherId.trim() : '';
+  const assignmentClassId = typeof assignment.classId === 'string' ? assignment.classId.trim() : '';
+  if (!assignmentTeacherId || !await canTeacherAccessLegacyNamespace(db, uid, assignmentClassId, assignmentTeacherId)) {
+    return res.status(403).json({ error: 'Chỉ giáo viên thuộc lớp được cấp quyền mới dùng được chức năng này.' });
+  }
+
+  const examText = String(assignment.sourceText || '');
+  const examImages = await loadAssignmentSourceImages(assignment);
+  if (!examText.trim() && examImages.length === 0) {
+    return res.status(400).json({ error: 'Bài này chưa có đề đọc được. Đính kèm lại file đề (PDF/ảnh) rồi thử lại.' });
+  }
+
+  const [quota, quotaRef] = await loadQuotaDoc(db, uid);
+  const verdict = remainingQuota(quota, 'teacher', '');
+  if (verdict.allowed <= 0) return res.status(429).json({ error: verdict.reason });
+
+  // Lệnh riêng: ưu tiên bản nháp gửi lên (giáo viên vừa gõ, chưa lưu), rồi mới tới bản đã lưu.
+  const gradingInstructions = typeof body.gradingInstructions === 'string'
+    ? body.gradingInstructions
+    : String(assignment.gradingInstructions || '');
+  const prompt = buildSolveExamPrompt({
+    examText,
+    examImageCount: examImages.length,
+    maxScore: Number(assignment.maxScore) || 10,
+    gradingInstructions,
+  });
+  const raw = await callGeminiVision(prompt, examImages, getGradingApiKey(), GRADING_MODEL, {
+    maxOutputTokens: 16384,
+    jsonMode: true,
+  });
+  await quotaRef.set(bumpQuota(quota, 'teacher', '', 1));
+
+  return res.status(200).json(parseSolvedAnswerKey(raw));
+};
+
 /** AI đề xuất hướng dẫn chấm từ đáp án đã có. Chỉ là văn bản nên nhẹ hơn hẳn việc giải đề. */
 const handleSuggestRubric = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
   const uid = await uidFromIdToken(body.idToken);
@@ -1218,6 +1268,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (action === 'practice') return await handlePractice(db, body, res);
     if (action === 'submitPractice') return await handleSubmitPractice(db, body, res);
     if (action === 'solveAnswerKey') return await handleSolveAnswerKey(db, body, res);
+    if (action === 'solveAnswerKeyForAssignment') return await handleSolveAnswerKeyForAssignment(db, body, res);
     if (action === 'suggestRubric') return await handleSuggestRubric(db, body, res);
     if (action === 'rewriteFeedback') return await handleRewriteFeedback(db, body, res);
     return res.status(400).json({ error: `Hành động không hợp lệ: ${action}`, limits: QUOTA_LIMITS });
