@@ -5,6 +5,17 @@
 
 Handoff ngắn cho lô V4 live lesson. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Làm lại đáp án + chấm lại loạt + đọc công thức tốt hơn — 2026-09-03
+
+Bốn phần, giao dần rồi push một thể (`f89fce5`, `44ca210`, `73a3ec6`, `eb20035`).
+
+1. **Đọc PDF đề bằng ảnh trang** — `readSourceFile(file, { renderPdfPages: true })`: PDF Toán render trang thành ảnh cho Gemini Vision đọc đúng công thức, thay vì lớp chữ pdf.js làm nát. Chỉ luồng lớp học bật cờ; caller khác giữ nguyên. `handleSolveAnswerKey` nới cap ảnh đề lên `MAX_ASSIGNMENT_SOURCE_IMAGES`.
+2. **Nút AI trong panel chi tiết** — "AI giải lại đáp án" (server action `solveAnswerKeyForAssignment`, dựng đề từ `sourceText`+`sourceImageUrls` đã lưu, theo lệnh riêng đang gõ) + "AI gợi ý lại hướng dẫn chấm" (`suggestRubric`). Kết quả ra NHÁP để GV soát rồi Lưu; hiện "chỗ chưa chắc".
+3. **Chấm lại loạt** — `summarizeSelection.regradable` + nút "Chấm lại (n)": chấm lại bài đã `graded` theo đáp án mới, **bỏ qua `editedByTeacher`**. Lifecycle bài đã duyệt (về chờ duyệt lại + gỡ bằng chứng cũ) do server main lo sẵn.
+4. **Đọc bài chính xác hơn** (bản nhẹ) — prompt bắt AI chép `studentAnswer` bằng LaTeX + hiệu chỉnh `confidence` theo độ rõ chữ; `hasUncertainRead()` + nhãn "Máy đọc chưa chắc" trên dòng bài nộp. KHÔNG làm 2 pha gọi AI riêng vì UI đã hiện sẵn studentAnswer/confidence/unreadable từng câu.
+
+Nghiệm thu: `npm run lint`, `lint:api`, `test` **1766/1766**, `build` đều PASS. Chưa smoke production bằng phiên GV thật.
+
 ## Fix Firestore undefined khi duyệt điểm — 2026-09-03
 
 ### Lỗi & nguyên nhân
