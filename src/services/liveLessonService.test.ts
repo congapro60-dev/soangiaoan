@@ -227,9 +227,61 @@ describe('liveLessonService Firestore boundary', () => {
     await expect(getLiveLessonSession('bad-version')).rejects.toThrow(/schemaVersion/i);
   });
 
+  it('[close marker] writes closed public-state marker BEFORE updating parent to closed', async () => {
+    firestoreMocks.getDocFromServer
+      .mockResolvedValueOnce({
+        exists: () => true,
+        id: 'session-1',
+        data: () => sessionData({ status: 'running', currentCueId: 'P01', currentTvScreenId: 'S1' }),
+      })
+      .mockResolvedValueOnce({
+        exists: () => true,
+        id: 'session-1',
+        data: () => sessionData({ status: 'closed', currentCueId: 'P01', currentTvScreenId: 'S1', publicStatsEnabled: false }),
+      });
+    await closeLiveLessonSession('session-1');
+
+    const setDocCalls = firestoreMocks.setDoc.mock.calls;
+    const updateDocCalls = firestoreMocks.updateDoc.mock.calls;
+
+    // Exactly 1 setDoc: the closed marker. writePublicState is NOT called after
+    // close because the service no longer delegates to it (it would skip closed).
+    expect(setDocCalls).toHaveLength(1);
+
+    // The setDoc call must be the closed marker
+    const markerPayload = setDocCalls[0][1] as Record<string, unknown>;
+    expect(markerPayload).toEqual({
+      cueId: 'P01',
+      tvScreenId: 'S1',
+      status: 'closed',
+      showStats: false,
+      updatedAt: { __type: 'serverTimestamp' },
+    });
+    expect(markerPayload).not.toHaveProperty('teacherScript');
+    expect(markerPayload).not.toHaveProperty('lessonId');
+
+    // The setDoc path must target public/state
+    const markerDoc = setDocCalls[0][0] as { path: string };
+    expect(markerDoc.path).toContain('/public/state');
+
+    // Exactly 1 updateDoc: the parent status revocation
+    expect(updateDocCalls).toHaveLength(1);
+    const parentPayload = updateDocCalls[0][1] as Record<string, unknown>;
+    expect(parentPayload).toMatchObject({
+      status: 'closed',
+      publicStateEnabled: false,
+      publicStatsEnabled: false,
+    });
+  });
+
   it('writes only a validated session patch and closes public flags', async () => {
     // readSnapshot uses getDocFromServer so serverTimestamp fields are resolved after write.
     firestoreMocks.getDocFromServer
+      .mockResolvedValueOnce({
+        exists: () => true,
+        id: 'session-1',
+        data: () => sessionData({ status: 'running', currentCueId: 'P01', currentTvScreenId: 'S1', publicStatsEnabled: true }),
+      })
       .mockResolvedValueOnce({
         exists: () => true,
         id: 'session-1',
@@ -262,9 +314,13 @@ describe('liveLessonService Firestore boundary', () => {
       expect.objectContaining({ path: '/liveLessonSessions/session-1' }),
       { status: 'closed', publicStateEnabled: false, publicStatsEnabled: false, updatedAt: { __type: 'serverTimestamp' } },
     );
-    // Rules revoke public reads as soon as the session is closed. The service
-    // must not attempt to publish a final public document after that revocation.
-    expect(firestoreMocks.setDoc).toHaveBeenCalledTimes(1);
+    // After close, setDoc is called twice: (1) the closed marker written to
+    // public/state BEFORE the parent update, and (2) the earlier writePublicState
+    // call from updateLiveLessonState. writePublicState skips the closed session
+    // itself, so no third setDoc occurs.
+    expect(firestoreMocks.setDoc).toHaveBeenCalledTimes(2);
+    const closeMarkerPayload = firestoreMocks.setDoc.mock.calls[1][1] as Record<string, unknown>;
+    expect(closeMarkerPayload).toMatchObject({ status: 'closed', showStats: false });
     await expect(updateLiveLessonState('session-1', { unknown: 'field' } as never)).rejects.toThrow(/unknown/i);
     await expect(updateLiveLessonState('session-1', { status: undefined })).rejects.toThrow(/undefined/i);
   });

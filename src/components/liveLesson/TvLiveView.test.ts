@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { getPilotLiveLessonDefinition } from '../../lib/liveLesson/definition';
 import type { LivePublicState, LivePublicStats } from '../../lib/liveLesson/types';
-import { getStatCards, getTvListenerNotice, getTvPresentation, getTvStatsItems, shouldSubscribeToLivePublicStats } from './TvLiveView';
+import { lookupTvMedia } from '../../lib/liveLesson/v4/mediaManifest';
+import { getStatCards, getTvListenerNotice, getTvMediaPlaybackState, getTvPresentation, getTvStatsItems, shouldSubscribeToLivePublicStats } from './TvLiveView';
 
 describe('TvLiveView public projection', () => {
   it('renders only the public screen and aggregate stats', () => {
@@ -196,5 +197,96 @@ describe('TvLiveView stat cards max', () => {
     expect(json).not.toContain('languageSupportPlan');
     expect(json).not.toContain('rawText');
     expect(json).not.toContain('privateReason');
+  });
+});
+
+describe('getTvMediaPlaybackState video fallback policy', () => {
+  it('running + no error → shouldPlay true, no poster fallback (S1 is the media screen)', () => {
+    const result = getTvMediaPlaybackState({ definitionKey: '10-5-31', screenId: 'S1', status: 'running', mediaError: false });
+    expect(result.media).not.toBeNull();
+    expect(result.shouldPlay).toBe(true);
+    expect(result.showPosterFallback).toBe(false);
+  });
+
+  it('running + mediaError → shouldPlay false, poster fallback shown', () => {
+    const result = getTvMediaPlaybackState({ definitionKey: '10-5-31', screenId: 'S1', status: 'running', mediaError: true });
+    expect(result.media).not.toBeNull();
+    expect(result.shouldPlay).toBe(false);
+    expect(result.showPosterFallback).toBe(true);
+  });
+
+  it('paused + media → shouldPlay false, poster fallback shown', () => {
+    const result = getTvMediaPlaybackState({ definitionKey: '10-5-31', screenId: 'S1', status: 'paused', mediaError: false });
+    expect(result.media).not.toBeNull();
+    expect(result.shouldPlay).toBe(false);
+    expect(result.showPosterFallback).toBe(true);
+  });
+
+  it('closed + media → shouldPlay false, poster fallback shown', () => {
+    const result = getTvMediaPlaybackState({ definitionKey: '10-5-31', screenId: 'S1', status: 'closed', mediaError: false });
+    expect(result.media).not.toBeNull();
+    expect(result.shouldPlay).toBe(false);
+    expect(result.showPosterFallback).toBe(true);
+  });
+
+  it('lobby + media → shouldPlay false, no poster fallback (poster only, no play)', () => {
+    const result = getTvMediaPlaybackState({ definitionKey: '10-5-31', screenId: 'S1', status: 'lobby', mediaError: false });
+    expect(result.media).not.toBeNull();
+    expect(result.shouldPlay).toBe(false);
+    expect(result.showPosterFallback).toBe(false);
+  });
+
+  it('non-media screen (S0) → media null, no play, no fallback', () => {
+    const result = getTvMediaPlaybackState({ definitionKey: '10-5-31', screenId: 'S0', status: 'running', mediaError: false });
+    expect(result.media).toBeNull();
+    expect(result.shouldPlay).toBe(false);
+    expect(result.showPosterFallback).toBe(false);
+  });
+
+  it('non-10-5-31 definitionKey → media null, no play, no fallback', () => {
+    const result = getTvMediaPlaybackState({ definitionKey: '99-9-99', screenId: 'S1', status: 'running', mediaError: false });
+    expect(result.media).toBeNull();
+    expect(result.shouldPlay).toBe(false);
+    expect(result.showPosterFallback).toBe(false);
+  });
+
+  it('no definitionKey → media null, no play, no fallback', () => {
+    const result = getTvMediaPlaybackState({ definitionKey: undefined, screenId: 'S1', status: 'running', mediaError: false });
+    expect(result.media).toBeNull();
+    expect(result.shouldPlay).toBe(false);
+    expect(result.showPosterFallback).toBe(false);
+  });
+
+  it('all statuses produce valid results for non-media screens', () => {
+    const statuses = ['lobby', 'running', 'paused', 'closed'] as const;
+    for (const status of statuses) {
+      const result = getTvMediaPlaybackState({ definitionKey: '10-5-31', screenId: 'S8A', status, mediaError: false });
+      expect(result.media).toBeNull();
+      expect(result.shouldPlay).toBe(false);
+      expect(result.showPosterFallback).toBe(false);
+    }
+  });
+});
+
+describe('TvLiveView definitionKey passthrough', () => {
+  it('definitionKey prop is optional — TvLiveViewProps compiles without it', () => {
+    const propsWithoutKey = { definition: { title: 'T', tvScreens: [] }, sessionId: 's', publicState: { cueId: 'P00', tvScreenId: 'S0', status: 'lobby' as const, showStats: false, updatedAt: 0 } };
+    expect('definitionKey' in propsWithoutKey).toBe(false);
+  });
+
+  it('definitionKey prop is accepted when provided', () => {
+    const propsWithKey = { definition: { title: 'T', tvScreens: [] }, sessionId: 's', publicState: { cueId: 'P00', tvScreenId: 'S0', status: 'lobby' as const, showStats: false, updatedAt: 0 }, definitionKey: '10-5-31' };
+    expect(propsWithKey.definitionKey).toBe('10-5-31');
+  });
+
+  it('lookupTvMedia returns entry for 10-5-31 S1 — the integration seam', () => {
+    const entry = lookupTvMedia('10-5-31', 'S1');
+    expect(entry).not.toBeNull();
+    expect(entry!.videoSrc).toBe('/media/g10-w5-p31-p00-whiteboard.mp4');
+  });
+
+  it('lookupTvMedia returns null for non-S1 screens — isolation preserved', () => {
+    expect(lookupTvMedia('10-5-31', 'S0')).toBeNull();
+    expect(lookupTvMedia('10-5-31', 'S8A')).toBeNull();
   });
 });

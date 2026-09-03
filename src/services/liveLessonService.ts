@@ -303,14 +303,27 @@ export const updateLiveLessonState = async (sessionId: string, patch: LiveLesson
 
 export const closeLiveLessonSession = async (sessionId: string): Promise<LiveLessonSession> => {
   assertIdentifier(sessionId, 'sessionId');
+  // Fail-closed: read current session so we can write a safe public-state marker
+  // with the last known cueId/tvScreenId before revoking public access.
+  const current = await readSnapshot(sessionId);
+  // 1) Write the closed marker to public/state FIRST so the TV listener receives
+  //    status:'closed' before Firestore Rules revoke the read.
+  await setDoc(doc(db, SESSIONS_COL, sessionId, PUBLIC_SUB, 'state'), {
+    cueId: current.currentCueId,
+    tvScreenId: current.currentTvScreenId,
+    status: 'closed',
+    showStats: false,
+    updatedAt: serverTimestamp(),
+  });
+  // 2) Revoke public access on the parent document.
   await updateDoc(doc(db, SESSIONS_COL, sessionId), {
     status: 'closed',
     publicStateEnabled: false,
     publicStatsEnabled: false,
     updatedAt: serverTimestamp(),
   });
+  // 3) Read the final parent state to return.
   const session = await readSnapshot(sessionId);
-  await writePublicState(session);
   return session;
 };
 

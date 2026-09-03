@@ -202,7 +202,7 @@ export const LiveLessonPage = () => {
   }
   if (mode === 'tv' && publicState) {
     const tvDefinition = projectLiveLessonDefinition(definition, 'tv');
-    return <TvLiveView definition={tvDefinition} sessionId={sessionId} publicState={publicState} publicStateError={publicStateError} />;
+    return <TvLiveView definition={tvDefinition} sessionId={sessionId} publicState={publicState} publicStateError={publicStateError} definitionKey={definitionContext.definitionKey ?? undefined} />;
   }
   if (mode === 'student' && publicState) {
     return <StudentLiveView definition={projectLiveLessonDefinition(definition, 'student')} sessionId={sessionId} expectedClassId={studentContext.expectedClassId} expectedJoinCode={studentContext.expectedJoinCode} publicState={publicState} publicStateError={publicStateError} />;

@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
-import type { LiveLessonDefinition, LivePublicState, LivePublicStats } from '../../lib/liveLesson/types';
+import { useEffect, useRef, useState } from 'react';
+import type { LiveLessonDefinition, LivePublicState, LivePublicStats, LiveSessionStatus } from '../../lib/liveLesson/types';
 import { subscribeToLivePublicStats } from '../../services/liveLessonService';
 import { LiveLessonStatus } from './LiveLessonStatus';
 import { LiveLessonRichText } from './LiveLessonRichText';
+import { lookupTvMedia, type TvMediaEntry } from '../../lib/liveLesson/v4/mediaManifest';
 
 export type TvLiveDefinition = Pick<LiveLessonDefinition, 'title' | 'tvScreens'>;
 
@@ -45,11 +46,38 @@ export const getStatCards = (stats: LivePublicStats): Array<{ label: string; val
   return cards;
 };
 
-export interface TvLiveViewProps { definition: TvLiveDefinition; sessionId: string; publicState: LivePublicState; publicStateError?: string | null; }
+export interface TvMediaPlaybackState {
+  media: TvMediaEntry | null;
+  shouldPlay: boolean;
+  showPosterFallback: boolean;
+}
 
-export const TvLiveView = ({ definition, sessionId, publicState, publicStateError = null }: TvLiveViewProps) => {
+export const getTvMediaPlaybackState = ({
+  definitionKey,
+  screenId,
+  status,
+  mediaError,
+}: {
+  definitionKey: string | undefined;
+  screenId: string;
+  status: LiveSessionStatus;
+  mediaError: boolean;
+}): TvMediaPlaybackState => {
+  const media = (screenId === 'S1' && definitionKey) ? lookupTvMedia(definitionKey, screenId) : null;
+  if (!media) return { media: null, shouldPlay: false, showPosterFallback: false };
+  const shouldPlay = status === 'running' && !mediaError;
+  const showPosterFallback = mediaError || status === 'paused' || status === 'closed';
+  return { media, shouldPlay, showPosterFallback };
+};
+
+export interface TvLiveViewProps { definition: TvLiveDefinition; sessionId: string; publicState: LivePublicState; publicStateError?: string | null; definitionKey?: string; }
+
+export const TvLiveView = ({ definition, sessionId, publicState, publicStateError = null, definitionKey }: TvLiveViewProps) => {
   const [stats, setStats] = useState<LivePublicStats | null>(null);
   const [statsError, setStatsError] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [mediaError, setMediaError] = useState(false);
+
   useEffect(() => {
     if (!shouldSubscribeToLivePublicStats(publicState)) {
       setStats(null);
@@ -58,10 +86,34 @@ export const TvLiveView = ({ definition, sessionId, publicState, publicStateErro
     }
     return subscribeToLivePublicStats(sessionId, nextStats => { setStats(nextStats); setStatsError(null); }, nextError => setStatsError(nextError.message));
   }, [publicState, sessionId]);
+
   const presentation = getTvPresentation(definition, publicState, stats);
   const screen = presentation.screen;
   const statsItems = presentation.stats ? getTvStatsItems(presentation.stats) : null;
   const listenerNotice = getTvListenerNotice({ publicState, publicStateError, statsError });
+
+  const playbackState = getTvMediaPlaybackState({
+    definitionKey,
+    screenId: screen?.id ?? '',
+    status: publicState.status,
+    mediaError,
+  });
+  const { media, shouldPlay, showPosterFallback } = playbackState;
+
+  useEffect(() => {
+    setMediaError(false);
+  }, [media?.videoSrc, screen?.id]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !media) return;
+    if (shouldPlay) {
+      video.play().catch(() => { setMediaError(true); });
+    } else {
+      video.pause();
+    }
+  }, [media, shouldPlay]);
+
   return (
     <main className="h-[100dvh] min-h-[100dvh] overflow-hidden bg-black text-white">
       <div className="mx-auto flex h-[100dvh] min-h-[100dvh] max-w-7xl flex-col overflow-hidden rounded-3xl border border-white/10 bg-slate-950 px-[clamp(1rem,2vw,2.5rem)] py-[clamp(0.75rem,1.8vh,2rem)] shadow-2xl">
@@ -75,7 +127,37 @@ export const TvLiveView = ({ definition, sessionId, publicState, publicStateErro
 
         {listenerNotice && <div className="mt-[clamp(0.5rem,1vh,1rem)] shrink-0"><LiveLessonStatus tone={listenerNotice.tone}>{listenerNotice.message}</LiveLessonStatus></div>}
         {!screen && <div className="flex min-h-0 flex-1 items-center justify-center"><p className="text-center text-[clamp(1.25rem,3vw,2.5rem)] font-black text-slate-400">Đang chờ màn hình công khai…</p></div>}
-        {screen && <section className="min-h-0 flex-1 overflow-hidden py-[clamp(0.5rem,1.5vh,1.5rem)]"><div className="flex h-full min-h-0 flex-col justify-center"><p className="text-[clamp(0.75rem,1.3vw,1.25rem)] font-black uppercase tracking-[0.14em] text-cyan-300">{screen.label}</p><h2 className="mt-2 text-[clamp(2rem,6vw,6rem)] font-black leading-[0.98]">{screen.title}</h2><LiveLessonRichText text={screen.body} className="mt-3 max-w-5xl text-[clamp(1rem,2.5vw,2.5rem)] font-semibold leading-[1.2] text-slate-200" />{screen.action && <p className="mt-3 text-[clamp(1rem,2.2vw,2.25rem)] font-black leading-tight text-amber-300">{screen.action}</p>}</div></section>}
+        {screen && (
+          <section className="min-h-0 flex-1 overflow-hidden py-[clamp(0.5rem,1.5vh,1.5rem)]">
+            <div className="flex h-full min-h-0 flex-col">
+              <p className="shrink-0 text-[clamp(0.75rem,1.3vw,1.25rem)] font-black uppercase tracking-[0.14em] text-cyan-300">{screen.label}</p>
+              <h2 className={`mt-2 shrink-0 font-black leading-[0.98] ${media ? 'text-[clamp(1.2rem,3.5vw,3.5rem)]' : 'text-[clamp(2rem,6vw,6rem)]'}`}>{screen.title}</h2>
+              {media && (
+                <div className="mt-3 flex shrink-0 justify-center">
+                  {showPosterFallback ? (
+                    <img src={media.posterSrc} alt={media.altText} className="max-h-[42vh] w-auto rounded-xl object-contain" />
+                  ) : (
+                    <video
+                      ref={videoRef}
+                      src={media.videoSrc}
+                      poster={media.posterSrc}
+                      muted
+                      playsInline
+                      onError={() => setMediaError(true)}
+                      onLoadedData={() => { if (publicState.status === 'running' && videoRef.current) { videoRef.current.play().catch(() => setMediaError(true)); } }}
+                      className="max-h-[42vh] w-auto rounded-xl object-contain"
+                      aria-label={media.altText}
+                    />
+                  )}
+                </div>
+              )}
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                <LiveLessonRichText text={screen.body} className={`mt-3 max-w-5xl font-semibold leading-[1.2] text-slate-200 ${media ? 'text-[clamp(0.85rem,1.8vw,1.6rem)]' : 'text-[clamp(1rem,2.5vw,2.5rem)]'}`} />
+                {screen.action && <p className={`mt-3 font-black leading-tight text-amber-300 ${media ? 'text-[clamp(0.85rem,1.6vw,1.4rem)]' : 'text-[clamp(1rem,2.2vw,2.25rem)]'}`}>{screen.action}</p>}
+              </div>
+            </div>
+          </section>
+        )}
         {statsItems && <footer className="grid shrink-0 grid-cols-5 gap-[clamp(0.35rem,1vw,1rem)]">{statsItems.map((item, index) => <div key={item.label} className={`min-w-0 rounded-xl p-[clamp(0.45rem,1vw,1rem)] ${index < 2 ? 'bg-white/10' : 'bg-cyan-400/15'}`}><p className={`truncate whitespace-nowrap text-[clamp(0.5rem,1vw,0.85rem)] font-black uppercase ${index < 2 ? 'text-slate-400' : 'text-cyan-300'}`}>{item.label}</p><p className="mt-1 text-[clamp(1.4rem,3.5vw,3rem)] font-black leading-none">{item.value}</p></div>)}</footer>}
         {!presentation.stats && publicState.showStats && <p className="mt-[clamp(0.35rem,0.8vh,0.75rem)] shrink-0 text-center text-[clamp(0.75rem,1.3vw,1.1rem)] font-bold text-slate-400">Đang chờ thống kê tổng hợp…</p>}
       </div>

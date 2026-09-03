@@ -11,11 +11,17 @@
 
 ## TypeScript
 
+- **V4 media phải bám `cue.tvScreenId`, không đoán `S0` từ tên P00** — P00 của gói `10-5-31` thực tế chiếu trên `S1`; mapping nhầm làm build và unit helper vẫn xanh nhưng TV không hiện media. *(2026-09-02)*
+
+- **Whiteboard asset phải kiểm tra frame thật, không chỉ source PNG** — tài nguyên bàn tay mặc định có chữ Trung; kiểm tra đầu/giữa/cuối MP4, dùng đầu bút không chữ và fallback poster trước khi đưa lên TV. *(2026-09-02)*
+
 - **setBulkProgress reset must include all fields** — `{ current: 0, total: 0, currentTitle: '' }` not just `{ current: 0, total: 0 }`. Local Vite build passes but GitHub CI (strict tsc) catches it. Always run `npx tsc --noEmit` before committing. *(2026-04-21)*
 
 - **`replace_all: false` fails when string appears twice** — When using Edit tool, if `old_string` matches more than once the edit fails. Add more surrounding context to make it unique. *(2026-04-21)*
 
 ## Firebase
+
+- **Đóng live session phải phát marker public `closed` trước khi thu hồi quyền đọc** — nếu chỉ đóng parent, listener TV có thể giữ `publicState=running` và tiếp tục phát media; marker phải an toàn, không PII, rồi mới revoke parent. *(2026-09-02)*
 
 - **`browserSessionPersistence` logs users out on tab close** — Use `browserLocalPersistence` (Firebase default) unless logout-on-close is intentional. *(2026-04-21)*
 

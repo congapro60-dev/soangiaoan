@@ -40,9 +40,14 @@ const PILOT_ALLOWED_STEP_IDS = [
   'ai-think-w01', 'ai-error-w01', 'quick-check', 'exit-ticket',
 ] as const;
 const V4_ALLOWED_STEP_IDS = [
-  'cp-guiding-question', 'cp-student-goal', 'cp-diagnostic', 'cp-ai-error',
-  'cp-route-choice', 'cp-group-product', 'cp-post-check', 'cp-quick-check',
-  'cp-exit-ticket',
+  'cp-student-goal', 'cp-teacher-synthesis', 'cp-model', 'cp-ai-error',
+  'cp-group-product', 'cp-postcheck-m', 'cp-postcheck-s', 'cp-postcheck-c',
+  'cp-route', 'cp-exit-ticket',
+] as const;
+const LEGACY_V4_ALLOWED_STEP_IDS = [
+  'cp-guiding-question', 'cp-diagnostic', 'cp-route-choice',
+  'cp-post-check', 'cp-quick-check', 'cp-model', 'cp-ai-error',
+  'cp-student-goal', 'cp-exit-ticket',
 ] as const;
 
 const now = Date.now();
@@ -227,6 +232,16 @@ describe('liveLessonSessions · parent session', () => {
     })));
   });
 
+  it('owner can create a legacy V4 session with old checkpoint ids → ALLOW', async () => {
+    await assertSucceeds(setDoc(sessionRef(dbTeacherA(), 'session-legacy-v4'), sessionData('session-legacy-v4', {
+      lessonId: 'adaptive-v4-10-5-31-legacy',
+      title: 'Bất phương trình bậc nhất hai ẩn · Legacy V4',
+      allowedStepIds: [...LEGACY_V4_ALLOWED_STEP_IDS],
+      currentCueId: 'P04',
+      currentTvScreenId: 'S2',
+    })));
+  });
+
   it('other teacher cannot create in owner class → DENY', async () => {
     await assertFails(setDoc(sessionRef(dbTeacherB(), 'session-other'), sessionData('session-other', {
       teacherUid: TEACHER_B,
@@ -279,9 +294,9 @@ describe('liveLessonSessions · parent session', () => {
     })));
   });
 
-  it('exceeding 9 allowedStepIds → DENY', async () => {
-    await assertFails(setDoc(sessionRef(dbTeacherA(), 'session-9-steps'), sessionData('session-9-steps', {
-      allowedStepIds: [...PILOT_ALLOWED_STEP_IDS, 'warmup'],
+  it('exceeding 10 allowedStepIds → DENY', async () => {
+    await assertFails(setDoc(sessionRef(dbTeacherA(), 'session-11-steps'), sessionData('session-11-steps', {
+      allowedStepIds: [...PILOT_ALLOWED_STEP_IDS, 'warmup', 'notice-wonder'],
     })));
   });
 
@@ -324,8 +339,8 @@ describe('liveLessonSessions/{sessionId}/responses · student writes, teacher re
     })));
 
     await assertSucceeds(setDoc(
-      responseRef(dbStudentA(), v4SessionId, `${STUDENT_A}__cp-diagnostic`),
-      responseData({ stepId: 'cp-diagnostic', value: 'A' }),
+      responseRef(dbStudentA(), v4SessionId, `${STUDENT_A}__cp-student-goal`),
+      responseData({ stepId: 'cp-student-goal', value: 'A' }),
     ));
   });
 
