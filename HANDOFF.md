@@ -13,6 +13,7 @@ Bốn phần, giao dần rồi push một thể (`f89fce5`, `44ca210`, `73a3ec6`
 2. **Nút AI trong panel chi tiết** — "AI giải lại đáp án" (server action `solveAnswerKeyForAssignment`, dựng đề từ `sourceText`+`sourceImageUrls` đã lưu, theo lệnh riêng đang gõ) + "AI gợi ý lại hướng dẫn chấm" (`suggestRubric`). Kết quả ra NHÁP để GV soát rồi Lưu; hiện "chỗ chưa chắc".
 3. **Chấm lại loạt** — `summarizeSelection.regradable` + nút "Chấm lại (n)": chấm lại bài đã `graded` theo đáp án mới, **bỏ qua `editedByTeacher`**. Lifecycle bài đã duyệt (về chờ duyệt lại + gỡ bằng chứng cũ) do server main lo sẵn.
 4. **Đọc bài chính xác hơn** (bản nhẹ) — prompt bắt AI chép `studentAnswer` bằng LaTeX + hiệu chỉnh `confidence` theo độ rõ chữ; `hasUncertainRead()` + nhãn "Máy đọc chưa chắc" trên dòng bài nộp. KHÔNG làm 2 pha gọi AI riêng vì UI đã hiện sẵn studentAnswer/confidence/unreadable từng câu.
+5. **Thử lại đồng bộ hàng loạt** (`8b23849`) — sau khi vá lỗi Firestore undefined, marker "đồng bộ minh chứng đang chờ" CŨ vẫn nằm trên các bài duyệt trước lúc deploy (fix không tự xoá dấu cũ, không tự ghi bù). Nút "Thử lại đồng bộ (N)" trên thanh bulk quét các lượt hiện hành còn `evidenceSyncError` rồi retry một lượt qua cơ chế `retryEvidenceSync` sẵn có; mỗi lần thành công ghi bù minh chứng + xoá marker. Chưa cắn: retry chỉ trên lượt HIỆN HÀNH, marker trên lượt lịch sử cũ để nguyên (không đáng ghi bù).
 
 Nghiệm thu: `npm run lint`, `lint:api`, `test` **1766/1766**, `build` đều PASS. Chưa smoke production bằng phiên GV thật.
 
