@@ -83,7 +83,9 @@ const teacherClassFromServer = (remote: AccessibleClassDoc, local?: TeacherClass
     previousNames: remote.previousNames,
     track: remote.track,
     grade: remote.grade,
-    studentCount: remote.studentCount ?? students.length,
+    // Đếm theo roster THẬT vừa tải, không tin `studentCount` denormalized — trường đó từng lệch
+    // (xem migrateLegacyClasses) nên card báo sĩ số cũ dù danh sách đã có em mới.
+    studentCount: students.length,
     activeAssignments: remote.assignments.filter(assignment => assignment.isOpen !== false).length,
     progress: local?.progress ?? 0,
     tone: local?.tone ?? 'primary',
@@ -583,8 +585,14 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
         name: value.name,
         code: finalCode,
       });
-      if (daLenServer) showToast(`Đã thêm ${value.name} — đăng nhập được ngay.`, 'success');
-      else showToast(`Đã thêm ${value.name}. Bấm "Đồng bộ ngay" để em ấy đăng nhập được.`, 'warning');
+      if (daLenServer) {
+        showToast(`Đã thêm ${value.name} — đăng nhập được ngay.`, 'success');
+        // Lớp đã đồng bộ: kéo lại roster thật để sĩ số card khớp máy chủ ngay, không chỉ dựa vào
+        // bản tăng lạc quan (phòng khi trước đó card đang giữ studentCount cũ bị lệch).
+        void refreshAccessibleClasses().catch(() => {});
+      } else {
+        showToast(`Đã thêm ${value.name}. Bấm "Đồng bộ ngay" để em ấy đăng nhập được.`, 'warning');
+      }
     } catch {
       showToast('Đã lưu trên máy này nhưng chưa lên được máy chủ — bấm "Đồng bộ ngay".', 'warning');
     }

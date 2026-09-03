@@ -5,6 +5,10 @@
 
 Handoff ngắn cho lô V4 live lesson. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Fix sĩ số card không khớp roster — 2026-09-03
+
+Card lớp đọc `remote.studentCount` (field denormalized, HAY LỆCH — migrateLegacyClasses đã ghi "không tin studentCount cũ") nên thêm học sinh xong sĩ số không đổi dù danh sách đã có em mới. Sửa `teacherClassFromServer` đếm theo `students.length` (roster thật vừa tải, `listAccessibleClasses` trả full roster); thêm HS vào lớp đã đồng bộ thì gọi `refreshAccessibleClasses()` để card khớp máy chủ ngay. Lớp chưa đồng bộ vẫn dựa bản tăng lạc quan + cảnh báo "Đồng bộ ngay". `lint`/`lint:api`/`build` PASS.
+
 ## Làm lại đáp án + chấm lại loạt + đọc công thức tốt hơn — 2026-09-03
 
 Bốn phần, giao dần rồi push một thể (`f89fce5`, `44ca210`, `73a3ec6`, `eb20035`).
