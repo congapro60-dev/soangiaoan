@@ -167,6 +167,7 @@ interface BaiNopTheoLopProps {
   toggleSelected: (submissionId: string, selected: boolean) => void;
   toggleAllSubmissions: (submissionIds: readonly string[], selected: boolean) => void;
   bulkCham: () => void | Promise<void>;
+  bulkChamLai: () => void | Promise<void>;
   bulkDuyet: () => void | Promise<void>;
   bulkXoa: () => void | Promise<void>;
   dangBulk: string;
@@ -177,7 +178,7 @@ interface BaiNopTheoLopProps {
  * Danh sách ĐỦ CẢ LỚP theo một bài giao: em nào đã nộp (kèm trạng thái/điểm/hành động),
  * em nào chưa nộp — giáo viên kiểm soát một mắt nhìn thay vì đoán từ số lượng.
  */
-const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet, xoaBaiNop, dangXoaNop, xoaDiem, dangXoaDiem, selectedIds, toggleSelected, toggleAllSubmissions, bulkCham, bulkDuyet, bulkXoa, dangBulk, retryEvidenceSync }: BaiNopTheoLopProps) => {
+const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet, xoaBaiNop, dangXoaNop, xoaDiem, dangXoaDiem, selectedIds, toggleSelected, toggleAllSubmissions, bulkCham, bulkChamLai, bulkDuyet, bulkXoa, dangBulk, retryEvidenceSync }: BaiNopTheoLopProps) => {
   const [historyMode, setHistoryMode] = useState<SubmissionHistoryMode>('latest');
   const tenTheoId = new Map(lopHocSinh.map(hs => [hs.studentId, hs.name]));
   const daNopIds = new Set(baiNop.map(s => s.studentId));
@@ -244,6 +245,9 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
           </div>
           <button type="button" onClick={() => void bulkCham()} disabled={currentSummary.pending === 0 || dangBulk !== '' || tienDo !== ''} className="inline-flex min-h-10 items-center gap-1 rounded-xl bg-slate-900 px-3 py-2 text-xs font-black text-white disabled:opacity-40">
             {dangBulk === 'grade' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />} Chấm AI ({currentSummary.pending})
+          </button>
+          <button type="button" onClick={() => void bulkChamLai()} disabled={currentSummary.regradable === 0 || dangBulk !== '' || tienDo !== ''} title="Chấm lại các bài ĐÃ chấm bằng AI theo đáp án mới; bỏ qua bài thầy cô đã sửa tay" className="inline-flex min-h-10 items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-black text-slate-700 disabled:opacity-40">
+            {dangBulk === 'regrade' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />} Chấm lại ({currentSummary.regradable})
           </button>
           <button type="button" onClick={() => void bulkDuyet()} disabled={currentSummary.unapproved === 0 || dangBulk !== ''} className="inline-flex min-h-10 items-center gap-1 rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs font-black text-emerald-700 disabled:opacity-40">
             {dangBulk === 'approve' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5" />} Duyệt ({currentSummary.unapproved})
@@ -646,6 +650,64 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
         setLoiBaiNop(null);
       } catch {
         setLoiBaiNop('Đã chấm xong nhưng chưa tải lại được danh sách mới. Bấm "Làm mới" để cập nhật.');
+      }
+    } finally {
+      setDangBulk('');
+    }
+  };
+
+  /**
+   * Chấm LẠI loạt các bài ĐÃ chấm bằng AI sau khi giáo viên đổi đáp án/hướng dẫn/lệnh riêng.
+   *
+   * Bỏ đúng bài giáo viên đã sửa tay (`editedByTeacher`) để không đè lên chỉnh sửa của thầy cô —
+   * bài sửa tay muốn chấm lại vẫn dùng nút "Chấm lại bằng AI" của từng em (có chủ đích). Server
+   * đã lo phần còn lại: bài đã duyệt bị chấm lại sẽ về "chờ duyệt lại" và bằng chứng cũ được gỡ
+   * khỏi hồ sơ tích luỹ; điểm cũ được giữ nếu lượt chấm lại lỗi.
+   */
+  const chamLaiDaChon = async (assignment: AssignmentDoc) => {
+    const chon = selectedCurrentForAssignment(assignment.id).filter(s => s.status === 'graded' && Boolean(s.grade));
+    const selected = chon.filter(s => s.grade?.editedByTeacher !== true);
+    const boQuaSuaTay = chon.length - selected.length;
+    if (selected.length === 0) {
+      showToast(boQuaSuaTay > 0
+        ? `Các bài đã chọn đều do thầy cô sửa tay — không chấm lại loạt để khỏi đè. Dùng "Chấm lại bằng AI" từng em nếu muốn.`
+        : 'Chưa chọn bài đã chấm nào để chấm lại.', 'info');
+      return;
+    }
+    const { isConfirmed } = await Swal.fire({
+      icon: 'question',
+      title: `Chấm lại ${selected.length} bài đã chấm bằng AI?`,
+      html: `Điểm và nhận xét cũ do AI chấm sẽ bị thay bằng kết quả mới theo đáp án hiện tại.<br/>Bài đã <b>duyệt</b> sẽ quay về <b>chờ duyệt lại</b>.${boQuaSuaTay > 0 ? `<br/><span style="font-size:12px;color:#94a3b8;">Bỏ qua ${boQuaSuaTay} bài thầy cô đã sửa tay.</span>` : ''}`,
+      showCancelButton: true,
+      confirmButtonText: 'Chấm lại',
+      cancelButtonText: 'Thôi',
+      confirmButtonColor: '#2563eb',
+    });
+    if (!isConfirmed) return;
+
+    setDangBulk('regrade');
+    let ok = 0;
+    let failed = 0;
+    try {
+      for (const submission of selected) {
+        try {
+          await gradeOneSubmission(submission.id);
+          ok += 1;
+        } catch {
+          failed += 1;
+        }
+      }
+      showToast(`Đã chấm lại ${ok}/${selected.length} bài${failed > 0 ? `; ${failed} bài lỗi cần thử lại` : ''}${boQuaSuaTay > 0 ? `; bỏ qua ${boQuaSuaTay} bài GV sửa tay` : ''}.`, failed > 0 ? 'warning' : 'success');
+      setSelectedSubmissionIds(previous => {
+        const next = new Set(previous);
+        selected.forEach(s => next.delete(s.id));
+        return next;
+      });
+      try {
+        setTatCaBaiNop(await listSubmissionsForClass(classId, teacherId));
+        setLoiBaiNop(null);
+      } catch {
+        setLoiBaiNop('Đã chấm lại xong nhưng chưa tải lại được danh sách mới. Bấm "Làm mới" để cập nhật.');
       }
     } finally {
       setDangBulk('');
@@ -1406,6 +1468,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                     toggleSelected={toggleSelected}
                     toggleAllSubmissions={toggleAllSubmissions}
                     bulkCham={() => chamDaChon(a)}
+                    bulkChamLai={() => chamLaiDaChon(a)}
                     bulkDuyet={() => duyetDaChon(a)}
                     bulkXoa={() => xoaDaChon(a)}
                     dangBulk={dangBulk}

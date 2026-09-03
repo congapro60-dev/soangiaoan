@@ -76,7 +76,22 @@ describe('submissionSelection', () => {
       } }),
     ];
 
-    expect(summarizeSelection(selected)).toEqual({ total: 2, pending: 1, graded: 1, unapproved: 1 });
+    expect(summarizeSelection(selected)).toEqual({ total: 2, pending: 1, graded: 1, unapproved: 1, regradable: 1 });
+  });
+
+  it('không tính bài giáo viên đã sửa tay vào diện chấm lại loạt', () => {
+    const selected = [
+      submission('ai', 'student-1', '2026-08-24T12:00:00.000Z', { status: 'graded', grade: {
+        score: 8, maxScore: 10, feedback: '', strengths: [], weaknesses: [], teacherApproved: true,
+        gradedAt: '2026-08-24T12:00:00.000Z',
+      } }),
+      submission('taysua', 'student-2', '2026-08-24T11:00:00.000Z', { status: 'graded', grade: {
+        score: 9, maxScore: 10, feedback: '', strengths: [], weaknesses: [], teacherApproved: true,
+        editedByTeacher: true, gradedAt: '2026-08-24T11:00:00.000Z',
+      } }),
+    ];
+
+    expect(summarizeSelection(selected).regradable).toBe(1);
   });
 
   it('không đưa bài đang grading vào số lượng bulk duyệt', () => {

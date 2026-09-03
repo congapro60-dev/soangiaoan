@@ -51,6 +51,12 @@ export interface SelectionSummary {
   pending: number;
   graded: number;
   unapproved: number;
+  /**
+   * Bài ĐÃ chấm mà chấm lại AI được: bỏ đúng bài giáo viên đã sửa tay (`editedByTeacher`) để
+   * chấm lại loạt sau khi đổi đáp án KHÔNG đè lên chỉnh sửa của giáo viên. Bài đã sửa tay muốn
+   * chấm lại vẫn làm được qua nút "Chấm lại bằng AI" của từng em (hành động có chủ đích).
+   */
+  regradable: number;
 }
 
 export const summarizeSelection = (submissions: readonly SubmissionDoc[]): SelectionSummary => ({
@@ -62,4 +68,7 @@ export const summarizeSelection = (submissions: readonly SubmissionDoc[]): Selec
   unapproved: submissions.filter(submission => submission.status === 'graded'
     && Boolean(submission.grade)
     && submission.grade?.teacherApproved !== true).length,
+  regradable: submissions.filter(submission => submission.status === 'graded'
+    && Boolean(submission.grade)
+    && submission.grade?.editedByTeacher !== true).length,
 });
