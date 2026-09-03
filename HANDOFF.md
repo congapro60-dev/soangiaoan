@@ -5,6 +5,22 @@
 
 Handoff ngắn cho lô V4 live lesson. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Fix Firestore undefined khi duyệt điểm — 2026-09-03
+
+### Lỗi & nguyên nhân
+- Production: GV duyệt điểm → "đồng bộ minh chứng thất bại" + `Cannot use "undefined" as a Firestore value (found in field topics.0.evidenceRefs.0.confidence)`. Grade đã commit, chỉ bước đồng bộ hồ sơ hỏng — KHÔNG rollback điểm.
+- Gốc: `profileMerge.normalizeEvidenceRefs` luôn tạo key optional `assignmentId`/`confidence` kể cả khi `undefined`; `profileRef.set()` qua Admin SDK bị từ chối (client có `removeUndefinedFields`, server thì không).
+
+### Đã sửa (3 tầng, giữ nguyên semantics)
+- Builder canonical: chỉ gắn field optional khi hợp lệ (giữ `confidence` 0, loại NaN/Infinity, loại `assignmentId` rỗng).
+- Hàng rào server: `api/_firestore-sanitize.stripUndefinedDeep` áp trước mọi `profileRef.set()` (`_skill-profile`, `_grade-lifecycle`, `classroom`).
+- Lưới đỡ toàn cục `ignoreUndefinedProperties` tại 2 chỗ init: `getAdminDb()` (`api/_exam-core.ts`) + client `db` (`src/lib/firebase.ts` → `initializeFirestore`). Mọi write hiện tại + tương lai miễn nhiễm.
+
+### Trạng thái
+- Release commit trên `main`: fix nằm ngay sau `f2ab15f` (rebase sạch, không đụng file live-lesson).
+- Nghiệm thu worktree: full test **1741/1741**, `lint`/`lint:api`/`build` PASS, `git diff --check` sạch.
+- Chưa smoke production bằng phiên GV thật — cần kiểm sau deploy: duyệt 1 grade có chủ đề yếu, xác nhận hết lỗi + nút Thử lại xoá marker `evidenceSyncError`.
+
 ## V4 whiteboard media — G10 P31 — 2026-09-03
 
 ### Đã đổi và vì sao
