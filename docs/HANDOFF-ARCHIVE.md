@@ -1226,3 +1226,40 @@ Quy tắc: code lát cắt nhỏ, chạy npm run build, cập nhật HANDOFF, co
 - **Giỏ sản phẩm + nối lỗi với công cụ vá** (`e77cf38`) — tab Nâng cấp gộp mọi sản phẩm AI đã sinh vào MỘT file Word thay vì 17 file rời; mỗi tiêu chí chưa đạt có nút dẫn thẳng tới mục menu vá được nó (`fixSuggestions.ts`). `markdownToOoxmlParagraphs` nay dựng được bảng Word thật. **Panel chưa QA trên UI** — cần upload .docx + khoá API.
 - **Rà soát giáo án 2 tầng** (`6b70a71`) — tách `generalStandards.ts` (10 phép kiểm mọi môn, từ `Checklist tự kiểm tra giáo án.xlsx`) khỏi `mathStandards.ts` (22 phép kiểm Toán TDS). Trước đó giáo án Văn/Sử bị chấm bằng tiêu chí Toán. Ghép ở `lessonAudit.ts`.
 - **Thư viện nước đi lớp học** (`12f5d0d`) — 14 nước đi vận hành lớp, lọc theo loại kế hoạch qua `apDung`.
+
+
+## Cắt khỏi HANDOFF.md ngày 2026-09-03 (nhường chỗ mục whiteboard media)
+
+### V4 live lesson — G10 P31 (lô tích hợp đầu)
+
+**Đã đổi và vì sao**
+
+- Đưa bài Bài học phân hoá vào live session realtime hiện có, giữ ba cổng GV/TV/HS.
+- GV dùng điện thoại điều khiển cue; bảng lớn/bảng phụ/vở vẫn là nơi dạy và ghi chép; TV chỉ nhận nội dung chung và thống kê ẩn danh.
+- HS vào đúng lớp qua roster/PIN, chọn ngôn ngữ; `languagePreference` chỉ điều khiển giao diện/scaffold, không suy ra năng lực. Tiếng Việt là mỏ neo Toán học.
+- Luồng THINK → AI → VERIFY có prerequisite `ai-think-w01` trước `ai-error-w01`; nhóm chỉ là đề xuất, GV phải duyệt.
+- Có glossary đã duyệt, post-check cá nhân, offline queue và projection TV đã lọc UID/tên/raw answer/support plan/private reason/teacher script.
+- Response write dùng transaction `get → set/update`; không còn merge-first update→create tạo deny trace trên allow-path.
+- Firebase Emulator chỉ nối khi `import.meta.env.DEV && VITE_USE_EMULATOR === '1'`; cờ tắt giữ nguyên đường production.
+
+**Commit và trạng thái**: V4 ghép vào worktree sạch `codex/v4-main-integration` từ `origin/main`; commit tích hợp trước handoff hook `b732aeb`. Không force-push.
+
+**Bằng chứng local**: lint/lint:api PASS; test 133 files/1.635; test:rules 8/299; test:pilot 13/13; build PASS; e2e 9/9. Rules stderr có evaluation error ở nhánh DENY cố ý.
+
+**Chưa claim**: chưa browser run đủ 3 viewport bằng tài khoản GV/TV/HS thật; chưa xác minh Vercel Production Ready + HTTP smoke cho commit đó; identity pilot là synthetic/emulator.
+
+### Submission grading lifecycle — 2026-08-30
+
+**Đã đổi và vì sao**
+
+- AI chấm thành công do HS yêu cầu ghi nhận `student_ai` và tự duyệt; AI chấm lại do GV và chấm tay vẫn chờ GV duyệt.
+- Chấm lại lỗi nhưng đã có điểm hợp lệ → giữ nguyên điểm/trạng thái/history; lưu lỗi an toàn cho người dùng, lỗi thô chỉ cho GV.
+- Xoá lỗi cũ khi lần chấm mới thành công; bỏ trạng thái `error` giả ở projection nếu đã có grade hợp lệ.
+- Đồng bộ hồ sơ chủ đề/kỹ năng có retry; lỗi đồng bộ không biến grade đã commit thành lỗi giả; xoá điểm fail-closed nếu chưa dọn được minh chứng.
+- Badge/thông báo rõ ở màn hình GV/HS, không lộ lỗi provider hoặc minh chứng nội bộ cho HS.
+
+**Commit và trạng thái**: release `3393b7a` — `fix(classroom): preserve grades across regrade failures`. Kiểm trên worktree sạch; không đọc/ghi Firestore lớp thật. Push main để Vercel tự build; chưa claim QA production sau deploy.
+
+**Chưa claim**: chưa browser E2E bằng tài khoản thật sau release; legacy `status=error` có grade hợp lệ chuẩn hoá khi đọc, chưa migration ngược; đồng bộ minh chứng thất bại thì GV dùng nút Thử lại; luồng online exam ngoài phạm vi.
+
+**Bằng chứng local**: test 134 files/1.656 PASS; lint/lint:api PASS; build PASS.
