@@ -172,18 +172,21 @@ interface BaiNopTheoLopProps {
   bulkXoa: () => void | Promise<void>;
   dangBulk: string;
   retryEvidenceSync: (s: SubmissionDoc) => void | Promise<void>;
+  bulkRetrySync: () => void | Promise<void>;
 }
 
 /**
  * Danh sách ĐỦ CẢ LỚP theo một bài giao: em nào đã nộp (kèm trạng thái/điểm/hành động),
  * em nào chưa nộp — giáo viên kiểm soát một mắt nhìn thay vì đoán từ số lượng.
  */
-const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet, xoaBaiNop, dangXoaNop, xoaDiem, dangXoaDiem, selectedIds, toggleSelected, toggleAllSubmissions, bulkCham, bulkChamLai, bulkDuyet, bulkXoa, dangBulk, retryEvidenceSync }: BaiNopTheoLopProps) => {
+const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet, xoaBaiNop, dangXoaNop, xoaDiem, dangXoaDiem, selectedIds, toggleSelected, toggleAllSubmissions, bulkCham, bulkChamLai, bulkDuyet, bulkXoa, dangBulk, retryEvidenceSync, bulkRetrySync }: BaiNopTheoLopProps) => {
   const [historyMode, setHistoryMode] = useState<SubmissionHistoryMode>('latest');
   const tenTheoId = new Map(lopHocSinh.map(hs => [hs.studentId, hs.name]));
   const daNopIds = new Set(baiNop.map(s => s.studentId));
   const chuaNop = lopHocSinh.filter(hs => !daNopIds.has(hs.studentId));
   const current = currentSubmissionsForAssignment(baiNop);
+  // Marker "đồng bộ minh chứng đang chờ" trên các lượt hiện hành — thử lại hàng loạt được.
+  const soCanDongBo = current.filter(s => Boolean(s.evidenceSyncError)).length;
   const baiNopHienThi = submissionsForHistoryMode(baiNop, historyMode);
   const currentIds = new Set(current.map(s => s.id));
   const selectedCurrent = selectedCurrentSubmissions(baiNopHienThi, selectedIds);
@@ -255,6 +258,11 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
           <button type="button" onClick={() => void bulkXoa()} disabled={deleteSummary.total === 0 || dangBulk !== '' || tienDo !== ''} className="inline-flex min-h-10 items-center gap-1 rounded-xl border border-red-200 bg-white px-3 py-2 text-xs font-black text-red-700 disabled:opacity-40">
             {dangBulk === 'delete' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />} Xóa ({deleteSummary.total})
           </button>
+          {soCanDongBo > 0 && (
+            <button type="button" onClick={() => void bulkRetrySync()} disabled={dangBulk !== '' || tienDo !== ''} title="Thử đồng bộ lại minh chứng cho các bài đang treo marker; ghi bù vào hồ sơ và xóa dấu chờ" className="inline-flex min-h-10 items-center gap-1 rounded-xl border border-violet-200 bg-white px-3 py-2 text-xs font-black text-violet-700 disabled:opacity-40">
+              {dangBulk === 'retrySync' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />} Thử lại đồng bộ ({soCanDongBo})
+            </button>
+          )}
         </div>
         </div>
         {historyMode === 'latest' && baiNop.length > current.length && (
@@ -1046,24 +1054,63 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   };
 
   /** Thử lại đồng bộ minh chứng sau khi duyệt điểm. */
+  /** Gọi retry cho MỘT bài, ném lỗi nếu thất bại. Không toast/không reload để dùng lại trong bulk. */
+  const callRetryEvidenceSync = async (submissionId: string): Promise<void> => {
+    const { getAuth } = await import('firebase/auth');
+    const currentUser = getAuth().currentUser;
+    const idToken = currentUser ? await currentUser.getIdToken() : '';
+    const res = await fetch('/api/classroom', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'retryEvidenceSync', submissionId, idToken }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      throw new Error(data?.error || 'Thử lại thất bại');
+    }
+  };
+
   const retryEvidenceSync = async (s: SubmissionDoc) => {
     try {
-      const { getAuth } = await import('firebase/auth');
-      const currentUser = getAuth().currentUser;
-      const idToken = currentUser ? await currentUser.getIdToken() : '';
-      const res = await fetch('/api/classroom', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'retryEvidenceSync', submissionId: s.id, idToken }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.error || 'Thử lại thất bại');
-      }
+      await callRetryEvidenceSync(s.id);
       showToast('Đã thử đồng bộ lại minh chứng.', 'success');
       setTatCaBaiNop(await listSubmissionsForClass(classId, teacherId));
     } catch (e) {
       showToast('Thử lại thất bại: ' + (e instanceof Error ? e.message : 'Lỗi không xác định'), 'error');
+    }
+  };
+
+  /**
+   * Thử đồng bộ lại HÀNG LOẠT các bài đang treo marker "đồng bộ minh chứng đang chờ".
+   *
+   * Marker cũ hay gặp sau khi vá lỗi đồng bộ: fix chặn lỗi mới nhưng không tự xoá dấu cũ và không
+   * tự ghi bù minh chứng. Nút này quét đúng các lượt hiện hành còn treo rồi retry một lượt — mỗi
+   * lần thành công server ghi bù minh chứng vào hồ sơ và xoá marker.
+   */
+  const thuLaiDongBoTatCa = async (assignment: AssignmentDoc) => {
+    const canRetry = currentSubmissionsForAssignment(baiNopCua(assignment.id)).filter(s => Boolean(s.evidenceSyncError));
+    if (canRetry.length === 0) return;
+    setDangBulk('retrySync');
+    let ok = 0;
+    let failed = 0;
+    try {
+      for (const submission of canRetry) {
+        try {
+          await callRetryEvidenceSync(submission.id);
+          ok += 1;
+        } catch {
+          failed += 1;
+        }
+      }
+      showToast(`Đã đồng bộ lại ${ok}/${canRetry.length} bài${failed > 0 ? `; ${failed} bài vẫn lỗi, thử lại sau` : ''}.`, failed > 0 ? 'warning' : 'success');
+      try {
+        setTatCaBaiNop(await listSubmissionsForClass(classId, teacherId));
+        setLoiBaiNop(null);
+      } catch {
+        setLoiBaiNop('Đã đồng bộ nhưng chưa tải lại được danh sách mới. Bấm "Làm mới" để cập nhật.');
+      }
+    } finally {
+      setDangBulk('');
     }
   };
 
@@ -1476,6 +1523,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                     bulkXoa={() => xoaDaChon(a)}
                     dangBulk={dangBulk}
                     retryEvidenceSync={retryEvidenceSync}
+                    bulkRetrySync={() => thuLaiDongBoTatCa(a)}
                   />
                   <p className="mt-3 rounded-2xl bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-500">
                     Học sinh tự chấm AI thành công → tự động ghi nhận vào hồ sơ (AI tự duyệt). Chấm lại của thầy cô / sửa điểm tay → cần bấm <b>Duyệt điểm</b> mới vào hồ sơ.
