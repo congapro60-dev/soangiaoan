@@ -58,7 +58,7 @@ export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSu
   const docDeVaoBoNho = async (files: File[]) => {
     setDangDoc('de');
     try {
-      const docs = await Promise.all(files.map(readSourceFile));
+      const docs = await Promise.all(files.map(f => readSourceFile(f, { renderPdfPages: true })));
       const text = docs.map(d => d.text).filter(Boolean).join('\n\n').trim();
       setSourceText(text.slice(0, 60000));
       // Ảnh gốc đã nằm trong attachments; chỉ upload bản ảnh chuẩn hoá bổ sung cho PDF scan,
@@ -82,7 +82,7 @@ export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSu
   const docFileVaoO = async (file: File, o: 'dapAn' | 'rubric') => {
     setDangDoc(o);
     try {
-      const ket = await readSourceFile(file);
+      const ket = await readSourceFile(file, { renderPdfPages: true });
       if (ket.text) {
         if (o === 'dapAn') setAnswerKey(truoc => (truoc ? `${truoc}\n\n${ket.text}` : ket.text));
         else setRubric(truoc => (truoc ? `${truoc}\n\n${ket.text}` : ket.text));
@@ -108,7 +108,7 @@ export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSu
     setDangGiai(true);
     setChoChuaChac([]);
     try {
-      const doc = await Promise.all(deFiles.map(readSourceFile));
+      const doc = await Promise.all(deFiles.map(f => readSourceFile(f, { renderPdfPages: true })));
       const examText = doc.map(d => d.text).filter(Boolean).join('\n\n');
       const examImages = doc.flatMap(d => d.images);
 

@@ -1096,8 +1096,10 @@ const handleSolveAnswerKey = async (db: FirebaseFirestore.Firestore, body: Recor
 
   const examText = String(body.examText || '');
   const rawImages = Array.isArray(body.examImages) ? body.examImages : [];
+  // Đề Toán nhiều trang render mỗi trang một ảnh nên cần rộng hơn 3, nhưng vẫn chặn trên để
+  // một đề dày bất thường không nuốt trọn ngân sách token của lượt giải.
   const examImages = rawImages
-    .slice(0, 3)
+    .slice(0, MAX_ASSIGNMENT_SOURCE_IMAGES)
     .map(x => parseDataUrl(String(x)))
     .filter((img): img is InlineImage => img !== null);
 
