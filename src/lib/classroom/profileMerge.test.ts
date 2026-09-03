@@ -290,6 +290,78 @@ describe('applyEvidence — chỉ cập nhật bằng chứng đã được đá
   });
 });
 
+describe('không bao giờ tạo field undefined trước khi ghi Firestore', () => {
+  // Quét đệ quy thay vì JSON.stringify: JSON tự bỏ key undefined nên sẽ giấu đúng lỗi cần bắt.
+  const timDuongDanUndefined = (value: unknown, path = ''): string[] => {
+    if (Array.isArray(value)) {
+      return value.flatMap((item, i) => timDuongDanUndefined(item, path ? `${path}.${i}` : String(i)));
+    }
+    if (value && typeof value === 'object') {
+      return Object.entries(value as Record<string, unknown>).flatMap(([key, item]) => {
+        const p = path ? `${path}.${key}` : key;
+        return item === undefined ? [p] : timDuongDanUndefined(item, p);
+      });
+    }
+    return [];
+  };
+
+  it('scanner bắt được undefined lồng sâu (chứng minh test có răng)', () => {
+    expect(timDuongDanUndefined([{ evidenceRefs: [{ confidence: undefined }] }]))
+      .toEqual(['0.evidenceRefs.0.confidence']);
+  });
+
+  it('topic mới không có confidence/assignmentId: không sinh key undefined', () => {
+    const ket = mergeTopics({ existing: [], weakTopics: ['đạo hàm'], submissionId: 'b1', now: NOW });
+
+    expect(timDuongDanUndefined(ket)).toEqual([]);
+    expect('confidence' in ket[0].evidenceRefs![0]).toBe(false);
+    expect('assignmentId' in ket[0].evidenceRefs![0]).toBe(false);
+  });
+
+  it('topic cũ có evidenceRefs thiếu confidence và assignmentId vẫn được làm sạch', () => {
+    const existing: ProfileTopic[] = [{
+      topic: 'hàm số', level: 'developing', evidenceSubmissionIds: ['b1'], updatedAt: NOW,
+      evidenceRefs: [{ submissionId: 'b1', evidenceType: 'homework', assessedAt: NOW }],
+    }];
+    const ket = mergeTopics({ existing, weakTopics: ['hàm số'], submissionId: 'b2', now: NOW });
+
+    expect(timDuongDanUndefined(ket)).toEqual([]);
+  });
+
+  it('confidence NaN/Infinity bị loại chứ không lọt thành undefined', () => {
+    const existing: ProfileTopic[] = [{
+      topic: 'hàm số', level: 'developing', evidenceSubmissionIds: ['b1'], updatedAt: NOW,
+      evidenceRefs: [
+        { submissionId: 'b1', evidenceType: 'homework', assessedAt: NOW, confidence: NaN },
+        { submissionId: 'b2', evidenceType: 'homework', assessedAt: NOW, confidence: Infinity },
+      ],
+    }];
+    const ket = mergeTopics({ existing, weakTopics: [], submissionId: 'b3', now: NOW });
+
+    expect(timDuongDanUndefined(ket)).toEqual([]);
+    for (const ref of ket[0].evidenceRefs!) expect('confidence' in ref).toBe(false);
+  });
+
+  it('assignmentId chuỗi rỗng bị loại, không thành field rỗng/undefined', () => {
+    const existing: ProfileTopic[] = [{
+      topic: 'hàm số', level: 'developing', evidenceSubmissionIds: ['b1'], updatedAt: NOW,
+      evidenceRefs: [{ submissionId: 'b1', assignmentId: '   ', evidenceType: 'homework', assessedAt: NOW }],
+    }];
+    const ket = mergeTopics({ existing, weakTopics: ['hàm số'], submissionId: 'b2', now: NOW });
+
+    expect(timDuongDanUndefined(ket)).toEqual([]);
+  });
+
+  it('practice evidence giữ confidence 0 hợp lệ và không sinh undefined', () => {
+    const existing = [chuDe('hàm số', ['b1'], 'developing')];
+    const ket = applyPracticeEvidence({ existing, topics: ['hàm số'], attemptId: 'at-1', confidence: 0, now: NOW });
+
+    expect(timDuongDanUndefined(ket)).toEqual([]);
+    const practice = ket[0].evidenceRefs!.find(ref => ref.submissionId === 'at-1');
+    expect(practice?.confidence).toBe(0);
+  });
+});
+
 describe('applyPracticeEvidence — formative, không tự nâng mastery', () => {
   it('ghi evidence practice có confidence thấp nhưng giữ nguyên level', () => {
     const existing = [chuDe('hàm số', ['b1'], 'developing')];

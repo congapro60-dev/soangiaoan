@@ -3,6 +3,7 @@ import type { SkillEvidence, StudentSkillState } from '../src/lib/learning/skill
 import type { ProfileTopic, SubmissionGrade } from '../src/lib/classroom/types.js';
 import { mergeTopics, removeEvidence, applyEvidence } from '../src/lib/classroom/profileMerge.js';
 import { buildHomeworkSkillEvidence } from '../src/lib/learning/skillProfile.js';
+import { stripUndefinedDeep } from './_firestore-sanitize.js';
 
 export const SKILL_EVIDENCE_COL = 'studentSkillEvidence';
 const STUDENT_PROFILES_COL = 'studentProfiles';
@@ -53,11 +54,11 @@ export const rebuildStudentSkillSummary = async (
 ): Promise<StudentSkillState[]> => {
   const evidence = await listOwnerEvidence(db, owner);
   const skills = buildSkillSummary(evidence);
-  await db.collection(STUDENT_PROFILES_COL).doc(owner.studentId).set({
+  await db.collection(STUDENT_PROFILES_COL).doc(owner.studentId).set(stripUndefinedDeep({
     ...owner,
     skills,
     updatedAt: now,
-  }, { merge: true });
+  }), { merge: true });
   return skills;
 };
 
@@ -69,10 +70,10 @@ export const upsertSkillEvidenceAndRebuild = async (
 ): Promise<StudentSkillState[]> => {
   const collection = db.collection(SKILL_EVIDENCE_COL);
   for (const item of evidence) {
-    await collection.doc(skillEvidenceDocId(owner, item.evidenceId)).set({
+    await collection.doc(skillEvidenceDocId(owner, item.evidenceId)).set(stripUndefinedDeep({
       ...owner,
       ...item,
-    });
+    }));
   }
   return rebuildStudentSkillSummary(db, owner, now);
 };
@@ -114,10 +115,10 @@ export const replaceSkillEvidenceAndRebuild = async (
   for (const item of evidence) {
     const documentId = skillEvidenceDocId(owner, item.evidenceId);
     keepDocumentIds.add(documentId);
-    await collection.doc(documentId).set({
+    await collection.doc(documentId).set(stripUndefinedDeep({
       ...owner,
       ...item,
-    });
+    }));
   }
   await removeSourceEvidence(db, owner, sourceId, keepDocumentIds);
   return rebuildStudentSkillSummary(db, owner, now);
@@ -177,11 +178,11 @@ export const syncApprovedGradeEvidence = async (
   });
 
   // 3) Ghi hồ sơ chủ đề
-  await profileRef.set({
+  await profileRef.set(stripUndefinedDeep({
     ...owner,
     topics: nextTopics,
     updatedAt: now,
-  }, { merge: true });
+  }), { merge: true });
 
   // 4) Đồng bộ skill evidence canonical
   const skillEvidence = buildHomeworkSkillEvidence({

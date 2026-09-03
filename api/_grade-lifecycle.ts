@@ -7,6 +7,7 @@ import type {
   SubmissionGradeRevisionAction,
 } from '../src/lib/classroom/types.js';
 import { removeSkillEvidenceAndRebuild } from './_skill-profile.js';
+import { stripUndefinedDeep } from './_firestore-sanitize.js';
 
 const historyIdForGrade = (
   submission: SubmissionDoc,
@@ -142,13 +143,13 @@ export const removeSubmissionGradeEvidence = async (
       const existing = Array.isArray(profile.topics)
         ? (profile.topics as ProfileTopic[]).filter(topic => Array.isArray(topic?.evidenceSubmissionIds))
         : [];
-      await profileRef.set({
+      await profileRef.set(stripUndefinedDeep({
         studentId: submission.studentId,
         classId: submission.classId,
         teacherId: submission.teacherId,
         topics: removeEvidence(existing, submission.id, now, submission.assignmentId || undefined),
         updatedAt: now,
-      }, { merge: true });
+      }), { merge: true });
     }
   }
 

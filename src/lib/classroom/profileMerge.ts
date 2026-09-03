@@ -44,13 +44,21 @@ const normalizeEvidenceRefs = (topic: ProfileTopic): ProfileEvidenceRef[] => {
   const bySubmission = new Map<string, ProfileEvidenceRef>();
   for (const item of raw) {
     if (!item || typeof item.submissionId !== 'string' || !item.submissionId.trim()) continue;
+    // Chỉ gắn field optional khi có giá trị hợp lệ. Firestore Admin SDK từ chối cả document
+    // nếu bất kỳ field nào mang giá trị undefined ("Cannot use undefined as a Firestore value
+    // ... in field topics.0.evidenceRefs.0.confidence"), nên builder canonical không được để
+    // lọt key optional rỗng. Giữ confidence 0 hợp lệ và loại NaN/Infinity.
     const ref: ProfileEvidenceRef = {
       submissionId: item.submissionId,
-      assignmentId: typeof item.assignmentId === 'string' && item.assignmentId.trim() ? item.assignmentId : undefined,
       evidenceType: item.evidenceType || 'homework',
       assessedAt: item.assessedAt || topic.updatedAt,
-      confidence: typeof item.confidence === 'number' ? item.confidence : undefined,
     };
+    if (typeof item.assignmentId === 'string' && item.assignmentId.trim()) {
+      ref.assignmentId = item.assignmentId;
+    }
+    if (typeof item.confidence === 'number' && Number.isFinite(item.confidence)) {
+      ref.confidence = item.confidence;
+    }
     const previous = bySubmission.get(ref.submissionId);
     if (!previous || (!previous.assignmentId && ref.assignmentId)) bySubmission.set(ref.submissionId, ref);
   }

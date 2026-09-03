@@ -28,7 +28,10 @@ const parseServiceAccount = () => {
   return null;
 };
 
+let adminDb: ReturnType<typeof getFirestore> | null = null;
+
 export const getAdminDb = () => {
+  if (adminDb) return adminDb;
   if (!getApps().length) {
     const serviceAccount = parseServiceAccount();
     if (!serviceAccount) {
@@ -48,7 +51,14 @@ export const getAdminDb = () => {
       ...(storageBucket ? { storageBucket } : {}),
     });
   }
-  return getFirestore();
+  const db = getFirestore();
+  // Admin SDK KHÔNG tự bỏ field undefined như đường client (removeUndefinedFields đệ quy).
+  // Bật ở chỗ init DUY NHẤT này để mọi write server — hiện tại và về sau — không bao giờ ném
+  // "Cannot use undefined as a Firestore value". Đây là lưới đỡ CHỒNG LÊN builder canonical sạch,
+  // không thay cho nó. settings() chỉ gọi được một lần trước thao tác đầu, nên cache lại instance.
+  db.settings({ ignoreUndefinedProperties: true });
+  adminDb = db;
+  return adminDb;
 };
 
 export const getAdminStorage = () => getStorage().bucket();

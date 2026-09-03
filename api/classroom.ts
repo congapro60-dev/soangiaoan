@@ -38,6 +38,7 @@ import {
   removeSubmissionGradeEvidence,
   submissionWithoutGrade,
 } from './_grade-lifecycle.js';
+import { stripUndefinedDeep } from './_firestore-sanitize.js';
 import { handleTeacherAction } from './_classroom-teacher.js';
 import { readClassAccess } from './_classroom-access.js';
 import { handleClassroomOnlineAction } from './_classroom-online.js';
@@ -208,13 +209,13 @@ const handleDeleteSubmission = async (db: FirebaseFirestore.Firestore, body: Rec
       const existing = Array.isArray(profile.topics)
         ? (profile.topics as ProfileTopic[]).filter(topic => Array.isArray(topic?.evidenceSubmissionIds))
         : [];
-      await profileRef.set({
+      await profileRef.set(stripUndefinedDeep({
         studentId: submission.studentId,
         classId: String(submission.classId || ''),
         teacherId: String(submission.teacherId || uid),
         topics: removeEvidence(existing, submissionId, new Date().toISOString(), String(submission.assignmentId || '') || undefined),
         updatedAt: new Date().toISOString(),
-      }, { merge: true });
+      }), { merge: true });
     }
   }
 
