@@ -192,6 +192,12 @@ export const StudentPortalDashboard = ({
     retry: rows.filter(row => row.state.status === 'retry').length,
     graded: rows.filter(row => row.state.status === 'graded').length,
   }), [rows]);
+  // Việc CẦN LÀM ngay: bài chưa nộp trước, rồi tới bài cần nộp lại. Đây là hành động chính của
+  // trang — làm nổi bật để HS không bấm nhầm nút "chấm thử" tưởng là nộp bài.
+  const viecCanLam = useMemo(
+    () => rows.find(row => row.state.status === 'todo') || rows.find(row => row.state.status === 'retry') || null,
+    [rows],
+  );
   const practiceQuestions = practiceSet?.questions ?? [];
   const practiceResults = new Map((practiceAttempt?.questionResults ?? []).map(result => [result.id, result]));
 
@@ -219,16 +225,49 @@ export const StudentPortalDashboard = ({
         <input ref={uploadRef} type="file" accept="image/*,application/pdf,.pdf,.docx" multiple className="hidden" onChange={onFileChange} />
 
         <section className="overflow-hidden rounded-[1.75rem] bg-slate-900 p-5 text-white shadow-xl shadow-slate-200 sm:p-7">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-            <div className="min-w-0">
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-indigo-300">Bảng việc của em</p>
-              <h1 className="mt-2 break-words text-2xl font-black tracking-tight sm:text-3xl">Hôm nay em cần làm gì?</h1>
-              <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-300">Mỗi bài chỉ có một bước tiếp theo rõ ràng. Em có thể nộp ảnh bằng điện thoại và xem ngay bài đang chờ chấm ở đây.</p>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-indigo-300">Bảng việc của em</p>
+          <h1 className="mt-2 break-words text-2xl font-black tracking-tight sm:text-3xl">Hôm nay em cần làm gì?</h1>
+
+          {viecCanLam ? (
+            <div className="mt-4 rounded-2xl bg-white/10 p-4 ring-1 ring-white/15 sm:p-5">
+              <p className="text-[11px] font-black uppercase tracking-[0.16em] text-indigo-300">
+                {viecCanLam.state.status === 'retry' ? 'Cần nộp lại' : 'Việc cần làm ngay'}
+              </p>
+              <p className="mt-1 break-words text-lg font-black leading-6">{viecCanLam.assignment.title}</p>
+              <p className="mt-1 text-sm font-semibold text-slate-300">{viecCanLam.state.label}</p>
+              <button
+                type="button"
+                onClick={() => onChooseImage(viecCanLam.assignment.id)}
+                disabled={uploadingId !== ''}
+                className="mt-3 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-indigo-500 px-5 py-3 text-base font-black text-white shadow-lg shadow-indigo-950/40 transition hover:bg-indigo-400 disabled:opacity-60 sm:w-auto"
+              >
+                {uploadingId === viecCanLam.assignment.id ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
+                {uploadingId === viecCanLam.assignment.id ? 'Đang xử lý...' : 'Chụp & nộp bài này'}
+              </button>
+              {counts.todo + counts.retry > 1 && (
+                <p className="mt-2 text-xs font-semibold text-slate-400">Còn {counts.todo + counts.retry - 1} bài nữa cần làm — cuộn xuống danh sách bên dưới.</p>
+              )}
             </div>
-            <button type="button" onClick={() => onChooseImage(null)} disabled={uploadingId !== ''} className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-2xl bg-indigo-500 px-5 py-3 text-sm font-black text-white shadow-lg shadow-indigo-950/40 transition hover:bg-indigo-400 disabled:opacity-60">
-              {uploadingId === 'tu-do' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
-              {uploadingId === 'tu-do' ? 'Đang xử lý...' : 'Tự chấm bài'}
+          ) : (
+            <div className="mt-4 flex items-center gap-2 rounded-2xl bg-white/10 p-4 ring-1 ring-white/15">
+              <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-300" />
+              <p className="text-sm font-bold text-slate-100">Em đã nộp hết bài được giao. Làm tốt lắm!</p>
+            </div>
+          )}
+
+          {/* Nút PHỤ, cố ý nhỏ/nhạt hơn hẳn nút nộp: HS hay bấm nhầm nút này tưởng là nộp bài.
+              Đây chỉ là chấm thử để tự kiểm, KHÔNG tính điểm và KHÔNG phải nộp. */}
+          <div className="mt-4 flex flex-col gap-1 border-t border-white/10 pt-3 sm:flex-row sm:items-center sm:gap-3">
+            <button
+              type="button"
+              onClick={() => onChooseImage(null)}
+              disabled={uploadingId !== ''}
+              className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-white/25 bg-transparent px-4 py-2 text-sm font-bold text-slate-200 transition hover:bg-white/10 disabled:opacity-60"
+            >
+              {uploadingId === 'tu-do' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+              {uploadingId === 'tu-do' ? 'Đang xử lý...' : 'Chấm thử (không tính điểm)'}
             </button>
+            <span className="text-xs font-medium text-slate-400">Chụp bài cho AI xem thử đúng/sai trước — KHÔNG phải nộp bài.</span>
           </div>
         </section>
 

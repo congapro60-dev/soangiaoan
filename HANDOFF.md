@@ -5,6 +5,10 @@
 
 Handoff ngắn cho lô V4 live lesson. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Cổng HS: hero "Việc cần làm" + hạ cấp nút chấm thử — 2026-09-04
+
+HS hay bấm nhầm nút to "Tự chấm bài" (tự chấm rời, không tính điểm) tưởng là nộp bài. Sửa thứ bậc: hero hiện thẳng bài gấp nhất (`viecCanLam` = todo trước, rồi retry) + nút to "Chụp & nộp bài này" gọi `onChooseImage(assignmentId)`; hết bài thì báo "đã nộp hết". Nút cũ đổi thành "Chấm thử (không tính điểm)" nhỏ/nhạt (viền, icon Sparkles) + dòng phụ giải thích không phải nộp. `lint`/`build` PASS. Chưa smoke bằng phiên HS thật.
+
 ## Chấm 2 pha (chép trước, chấm sau) — 2026-09-04
 
 Đọc chữ tay/công thức Toán hay sai và mỗi lần một kiểu. Thêm pha 1 CHÉP bài trước khi chấm:
