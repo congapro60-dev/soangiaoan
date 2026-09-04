@@ -751,6 +751,27 @@ describe('chấm 2 pha — chép trước (parseTranscription)', () => {
   });
 });
 
+describe('chấm đề nhiều lựa chọn + câu đề cố tình sai', () => {
+  it('prompt chấm dạy chọn 1 trong nhiều bộ, không trừ bộ không làm', () => {
+    const p = buildHomeworkGradingPrompt({ answerKey: 'x', maxScore: 10 });
+    expect(p).toContain('NHIỀU BỘ');
+    expect(p).toContain('CHẤM ĐÚNG BỘ ĐÓ');
+    expect(p).toContain('không trừ điểm');
+  });
+
+  it('prompt chấm coi phát hiện đề vô nghiệm là đúng', () => {
+    const p = buildHomeworkGradingPrompt({ answerKey: 'x', maxScore: 10 });
+    expect(p).toContain('VÔ NGHIỆM');
+    expect(p).toContain('cho ĐỦ điểm');
+  });
+
+  it('prompt giải đáp án không bịa đáp số cho câu vô nghiệm', () => {
+    const p = buildSolveExamPrompt({ examText: 'đề', examImageCount: 0, maxScore: 10 });
+    expect(p).toContain('không bịa');
+    expect(p).toContain('vô nghiệm');
+  });
+});
+
 describe('isReadTooUncertain — AI chưa chắc thì không chấm bừa', () => {
   it('không có câu / rỗng thì KHÔNG chặn (để pipeline tự xử)', () => {
     expect(isReadTooUncertain(undefined)).toBe(false);

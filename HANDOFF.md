@@ -5,6 +5,13 @@
 
 Handoff ngắn cho lô V4 live lesson. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Chấm đề nhiều lựa chọn + câu đề cố tình sai — 2026-09-04
+
+Chẩn đoán ca thật (BTVN Đại số 27/08 lớp 11Columbus, HS làm nhiều mà 3đ): đáp án "do AI giải" chưa soát + đề có 2 bộ (Cơ bản/Thử thách, mỗi bộ thang 10) mà bộ chấm không chắc chắn nhận ra HS chọn bộ nào → tính cả bộ không làm thành thiếu; và câu đề cố tình vô nghiệm bị AI "giải đại" ra đáp số nên HS phát hiện đúng lại bị chấm sai.
+- `buildHomeworkGradingPrompt`: thêm luật "đề có nhiều bộ, HS làm 1" (nhận bộ em làm, chấm đúng bộ đó trên thang đầy đủ, KHÔNG trừ bộ không chọn, các bài đó not_attempted) + luật "câu vô nghiệm" (HS chỉ ra đề sai = đúng, cho đủ điểm; nếu đáp án chuẩn ghi đáp số thì ưu tiên HS + needsTeacherReview).
+- `buildSolveExamPrompt`: khi giải đáp án KHÔNG bịa đáp số cho câu vô nghiệm, ghi vào uncertainties.
+- Test bảo vệ 2 luật. Vẫn cần GV soát/sửa đáp án AI + ghi rõ ở Lệnh riêng. full 1777/1777, lint/build PASS.
+
 ## AI không chấm bừa khi chưa chắc + model pro — 2026-09-04
 
 - **(a) Không chấm bừa**: `isReadTooUncertain(questionResults)` (gradingPrompt, thuần + test) — đa số câu `unreadable` HOẶC mọi câu có confidence và TB < 0.4. Trong `gradeOneSubmission`, sau khi chấm mà đọc quá không chắc thì ném `UNCERTAIN_READ_MESSAGE` → nhánh catch giữ điểm cũ nếu có, chưa có thì `status='error'` + báo HS "chụp lại rõ hơn / thầy cô chấm tay". Không phọt điểm sai. Ngưỡng bảo thủ để không chặn oan.
