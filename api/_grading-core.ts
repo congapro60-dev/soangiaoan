@@ -139,7 +139,8 @@ export const getGradingApiKey = (): string => {
 };
 
 // Doi model khong can sua code: dat bien GRADING_MODEL tren Vercel roi redeploy.
-export const GRADING_MODEL = process.env.GRADING_MODEL || 'gemini-3.7-flash';
+// Mac dinh gemini-3.8-flash (moi hon 3.7): doc chu tay + cong thuc Toan tot hon o chi phi tuong duong.
+export const GRADING_MODEL = process.env.GRADING_MODEL || 'gemini-3.8-flash';
 
 /** Tách "data:image/jpeg;base64,xxx" thành phần Gemini nhận được. */
 export const parseDataUrl = (dataUrl: string): InlineImage | null => {

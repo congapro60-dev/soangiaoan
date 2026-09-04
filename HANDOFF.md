@@ -5,6 +5,10 @@
 
 Handoff ngắn cho lô V4 live lesson. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Đổi model chấm mặc định gemini-3.8-flash — 2026-09-03
+
+`GRADING_MODEL` default `gemini-3.7-flash` → `gemini-3.8-flash` (đọc chữ tay + công thức tốt hơn, chi phí tương đương). Vẫn override được bằng env `GRADING_MODEL` trên Vercel. Chỉ đổi model chấm bài (`_grading-core.ts`), không đụng model của simulation/format/adaptive. Nếu id model sai → chấm lỗi ngay; lùi bằng env hoặc revert. `lint:api`/`build` PASS.
+
 ## Fix cổng HS nộp bổ sung + đọc ảnh ổn định hơn — 2026-09-03
 
 - **Nộp bổ sung "không thấy gì" trên điện thoại**: khối "đang chờ nộp" render ở ĐẦU trang, HS bấm bổ sung ở thẻ bài giữa/dưới trang nên chọn ảnh xong không thấy. Thêm `pendingSectionRef` + `scrollIntoView` khi có tệp chọn (StudentPortalDashboard) + `scroll-mt-20` tránh header dính. Phụ chưa xử lý: ảnh HEIC iPhone `<img>` không render preview (vẫn nộp được), để lần sau nếu cần.
