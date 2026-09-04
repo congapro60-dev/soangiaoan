@@ -76,7 +76,9 @@ import { canTeacherAccessLegacyNamespace } from './_classroom-access.js';
  * gian chạy còn một lớp 40 em thì không kịp trong một lượt. Client gọi lại đến khi hết —
  * đổi lại được thanh tiến độ thật thay vì một lượt chờ dài rồi timeout mất trắng.
  */
-const BATCH_SIZE = 4;
+// Chấm 2 pha (chép + chấm) làm mỗi bài tốn ~gấp đôi thời gian; hạ batch xuống 2 để một lượt
+// "Chấm cả lớp" không chạm trần 60s của Vercel (client tự gọi lại nhiều lượt cho tới hết).
+const BATCH_SIZE = 2;
 export const STALE_GRADING_MS = 10 * 60 * 1000;
 const isStaleGradingTimestamp = (updatedAt: unknown, nowMs = Date.now()): boolean => {
   const timestamp = Date.parse(String(updatedAt || ''));

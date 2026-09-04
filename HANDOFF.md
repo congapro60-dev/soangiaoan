@@ -5,6 +5,13 @@
 
 Handoff ngắn cho lô V4 live lesson. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Fix 504 khi giải đề (pro quá chậm) + thêm 3.8-flash vào Cài đặt — 2026-09-04
+
+- **504 "AI giải đề"**: model pro (`gemini-3.1-pro-preview`) chạy quá trần 60s Vercel Hobby cho lệnh nặng (giải cả đề 16k token + nhiều ảnh) → timeout. REVERT `GRADING_MODEL` default về `gemini-3.8-flash`. Pro không hợp serverless 60s (cả "Chấm cả lớp" batch×2 pha cũng sẽ 504). Muốn pro thì env + nâng gói Vercel.
+- **BATCH_SIZE 4 → 2**: chấm 2 pha tốn ~gấp đôi/bài; hạ batch để một lượt "Chấm cả lớp" không chạm 60s (client tự gọi lại nhiều lượt).
+- **models.ts**: thêm `gemini-3.8-flash` (isLatest) vào GEMINI_MODELS → hiện trong Cài đặt để GV chọn cho tính năng client (soạn giáo án/chat). 3.7 bỏ isLatest.
+full 1777/1777, lint/build PASS.
+
 ## Chấm đề nhiều lựa chọn + câu đề cố tình sai — 2026-09-04
 
 Chẩn đoán ca thật (BTVN Đại số 27/08 lớp 11Columbus, HS làm nhiều mà 3đ): đáp án "do AI giải" chưa soát + đề có 2 bộ (Cơ bản/Thử thách, mỗi bộ thang 10) mà bộ chấm không chắc chắn nhận ra HS chọn bộ nào → tính cả bộ không làm thành thiếu; và câu đề cố tình vô nghiệm bị AI "giải đại" ra đáp số nên HS phát hiện đúng lại bị chấm sai.

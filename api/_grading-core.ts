@@ -139,10 +139,11 @@ export const getGradingApiKey = (): string => {
 };
 
 // Doi model khong can sua code: dat bien GRADING_MODEL tren Vercel roi redeploy.
-// Mac dinh model PRO (doc chu tay + cong thuc Toan chac hon flash). LUU Y: pro dat hon va gioi han
-// toc do THAP hon nhieu -> cham ca lop dong (nhat la 2 pha) de dinh 429. Muon re/nhanh thi dat
-// env GRADING_MODEL=gemini-3.8-flash; muon ban GA on dinh thi gemini-2.5-pro.
-export const GRADING_MODEL = process.env.GRADING_MODEL || 'gemini-3.1-pro-preview';
+// Mac dinh gemini-3.8-flash: pro (gemini-3.1-pro-preview) doc chac hon NHUNG qua cham so voi tran
+// 60s cua Vercel Hobby -> "AI giai de" (16k token, nhieu anh) va "Cham ca lop" (batch x 2 pha) bi
+// timeout 504. Flash chay trong 60s. Muon thu pro thi dat env GRADING_MODEL=gemini-3.1-pro-preview
+// (chi nen dung cho "Cham lai" tung bai, va can nang Vercel len goi co maxDuration cao hon).
+export const GRADING_MODEL = process.env.GRADING_MODEL || 'gemini-3.8-flash';
 
 /** Tách "data:image/jpeg;base64,xxx" thành phần Gemini nhận được. */
 export const parseDataUrl = (dataUrl: string): InlineImage | null => {
