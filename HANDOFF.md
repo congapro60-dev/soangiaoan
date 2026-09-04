@@ -5,6 +5,11 @@
 
 Handoff ngắn cho lô V4 live lesson. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Fix cổng HS nộp bổ sung + đọc ảnh ổn định hơn — 2026-09-03
+
+- **Nộp bổ sung "không thấy gì" trên điện thoại**: khối "đang chờ nộp" render ở ĐẦU trang, HS bấm bổ sung ở thẻ bài giữa/dưới trang nên chọn ảnh xong không thấy. Thêm `pendingSectionRef` + `scrollIntoView` khi có tệp chọn (StudentPortalDashboard) + `scroll-mt-20` tránh header dính. Phụ chưa xử lý: ảnh HEIC iPhone `<img>` không render preview (vẫn nộp được), để lần sau nếu cần.
+- **Chấm lại đọc "mỗi lần một kiểu"**: `callGeminiVision` đang `temperature: 0.2`. Thêm `options.temperature` (mặc định 0.2) và truyền **temperature 0** cho đường ĐỌC/chấm (`attemptHomeworkGrade`) và giải đề (`handleSolveAnswerKey`, `handleSolveAnswerKeyForAssignment`) → đọc chữ/công thức ổn định hơn giữa các lần. Bản chất OCR chữ tay Toán vẫn hạn chế: đòn cuối là đổi `GRADING_MODEL` sang bản pro/3.8 (đắt hơn). AI đã nêu chỗ chưa chắc qua `needsTeacherReview`/confidence/nhãn "Máy đọc chưa chắc" (Phase 4) để GV điền Lệnh riêng.
+
 ## Fix sĩ số card không khớp roster — 2026-09-03
 
 Card lớp đọc `remote.studentCount` (field denormalized, HAY LỆCH — migrateLegacyClasses đã ghi "không tin studentCount cũ") nên thêm học sinh xong sĩ số không đổi dù danh sách đã có em mới. Sửa `teacherClassFromServer` đếm theo `students.length` (roster thật vừa tải, `listAccessibleClasses` trả full roster); thêm HS vào lớp đã đồng bộ thì gọi `refreshAccessibleClasses()` để card khớp máy chủ ngay. Lớp chưa đồng bộ vẫn dựa bản tăng lạc quan + cảnh báo "Đồng bộ ngay". `lint`/`lint:api`/`build` PASS.

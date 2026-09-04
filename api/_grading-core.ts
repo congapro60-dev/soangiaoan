@@ -157,6 +157,11 @@ export interface GeminiOptions {
   maxOutputTokens?: number;
   /** Bật chế độ JSON của Gemini: model bị ràng buộc trả JSON hợp lệ, khỏi bọc trong ```json. */
   jsonMode?: boolean;
+  /**
+   * Nhiệt độ sinh. Mặc định 0.2. Tác vụ ĐỌC/chấm nên đặt 0 để mỗi lần chấm lại đọc chữ và công
+   * thức ổn định hơn, không "mỗi lần một kiểu". Tác vụ cần đa dạng (sinh bài luyện) giữ >0.
+   */
+  temperature?: number;
 }
 
 export type GeminiFailureKind =
@@ -212,7 +217,7 @@ export const callGeminiVision = async (
   options: GeminiOptions = {},
 ): Promise<string> => {
   const generationConfig: Record<string, unknown> = {
-    temperature: 0.2,
+    temperature: options.temperature ?? 0.2,
     maxOutputTokens: options.maxOutputTokens ?? 4096,
   };
   if (options.jsonMode) generationConfig.responseMimeType = 'application/json';

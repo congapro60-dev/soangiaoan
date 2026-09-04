@@ -256,7 +256,8 @@ const attemptHomeworkGrade = async (
     [...ctx.assignmentImages, ...ctx.answerKeyImages, ...images],
     apiKey,
     GRADING_MODEL,
-    { maxOutputTokens: 8192, jsonMode: true },
+    // temperature 0: đọc chữ + công thức ổn định giữa các lần chấm lại, bớt "mỗi lần một kiểu".
+    { maxOutputTokens: 8192, jsonMode: true, temperature: 0 },
   );
   const gradedWithoutAnswerKey = ctx.answerKey.trim().length === 0 && ctx.answerKeyImages.length === 0;
   const parsed = parseHomeworkGradeForCommit(raw, ctx.maxScore, gradedWithoutAnswerKey, retryCount);
@@ -1121,6 +1122,7 @@ const handleSolveAnswerKey = async (db: FirebaseFirestore.Firestore, body: Recor
   const raw = await callGeminiVision(prompt, examImages, getGradingApiKey(), GRADING_MODEL, {
     maxOutputTokens: 16384,
     jsonMode: true,
+    temperature: 0,
   });
   await quotaRef.set(bumpQuota(quota, 'teacher', '', 1));
 
@@ -1171,6 +1173,7 @@ const handleSolveAnswerKeyForAssignment = async (db: FirebaseFirestore.Firestore
   const raw = await callGeminiVision(prompt, examImages, getGradingApiKey(), GRADING_MODEL, {
     maxOutputTokens: 16384,
     jsonMode: true,
+    temperature: 0,
   });
   await quotaRef.set(bumpQuota(quota, 'teacher', '', 1));
 

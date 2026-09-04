@@ -1,4 +1,4 @@
-import { type ChangeEventHandler, type RefObject, useEffect, useMemo, useState } from 'react';
+import { type ChangeEventHandler, type RefObject, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, BookOpenCheck, Camera, CheckCircle2, Clock3, GraduationCap, Info, Loader2, LogOut, RefreshCw, Sparkles, Target, TrendingUp, X } from 'lucide-react';
 import type { PracticeAttemptResult, PracticeSetResult } from '../../../../services/gradingApi';
 import type { ExamSubmission } from '../../../../types';
@@ -130,6 +130,15 @@ export const StudentPortalDashboard = ({
   onDismissSuccess,
 }: Props) => {
   const [filter, setFilter] = useState<FilterKey>('all');
+  // Khối "đang chờ nộp" nằm ở đầu trang; học sinh bấm bổ sung ảnh ở thẻ bài giữa/dưới trang nên
+  // chọn xong không thấy gì trên điện thoại. Cuộn khối đó vào tầm mắt ngay khi có tệp được chọn.
+  const pendingSectionRef = useRef<HTMLElement>(null);
+  const soTepChoNop = pendingFiles.length;
+  useEffect(() => {
+    if (soTepChoNop > 0) {
+      pendingSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [soTepChoNop]);
   const pendingPreviewUrls = useMemo(() => pendingFiles.map(file => (
     file.type.startsWith('image/') && typeof URL.createObjectURL === 'function'
       ? URL.createObjectURL(file)
@@ -300,7 +309,7 @@ export const StudentPortalDashboard = ({
         )}
 
         {pendingFiles.length > 0 && (
-          <section aria-labelledby="pending-upload-heading" className="rounded-[1.5rem] border-2 border-indigo-200 bg-indigo-50 p-4 shadow-sm sm:p-5">
+          <section ref={pendingSectionRef} aria-labelledby="pending-upload-heading" className="scroll-mt-20 rounded-[1.5rem] border-2 border-indigo-200 bg-indigo-50 p-4 shadow-sm sm:p-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0">
                 <p className="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">Bộ tệp đang chờ nộp</p>
