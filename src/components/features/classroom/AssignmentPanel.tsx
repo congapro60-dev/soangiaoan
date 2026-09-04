@@ -356,6 +356,14 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                 )}
 
                 {s.grade?.feedback && <NhanXetMarkdown>{s.grade.feedback}</NhanXetMarkdown>}
+                {s.grade?.transcription && (
+                  <details className="rounded-xl bg-slate-50 ring-1 ring-slate-200">
+                    <summary className="cursor-pointer px-3 py-2 text-xs font-black text-slate-600">Máy đọc được từ ảnh (bản chép) — soát xem có đọc nhầm công thức không</summary>
+                    <div className="border-t border-slate-200 px-3 py-2">
+                      <NhanXetMarkdown>{s.grade.transcription}</NhanXetMarkdown>
+                    </div>
+                  </details>
+                )}
                 <QuestionResultsList results={s.grade?.questionResults} />
                 {s.grade?.gradedWithoutAnswerKey && (
                   <p className="text-xs font-bold text-amber-700">Bài chấm khi chưa đối chiếu đáp án chuẩn — nên soát lại giúp.</p>

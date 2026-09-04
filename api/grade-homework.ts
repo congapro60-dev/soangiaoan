@@ -25,6 +25,8 @@ import {
   buildRewriteFeedbackPrompt,
   buildRubricPrompt,
   buildSolveExamPrompt,
+  buildTranscriptionPrompt,
+  parseTranscription,
   parseHomeworkGradeForCommit,
   parsePracticeAssessment,
   parsePracticeQuestions,
@@ -228,6 +230,22 @@ interface GradeAttemptResult {
   recovery?: HomeworkGradeParseResult['recovery'];
 }
 
+/**
+ * Pha 1 của chấm 2 pha: chép trung thực bài làm học sinh từ ảnh (chỉ ảnh bài làm, không kèm
+ * đề/đáp án cho gọn và rẻ). Best-effort — lỗi thì trả rỗng để pha chấm vẫn chạy như một pha.
+ */
+const transcribeStudentWork = async (images: InlineImage[], apiKey: string): Promise<string> => {
+  if (images.length === 0) return '';
+  const raw = await callGeminiVision(
+    buildTranscriptionPrompt(),
+    images,
+    apiKey,
+    GRADING_MODEL,
+    { maxOutputTokens: 4096, jsonMode: true, temperature: 0 },
+  );
+  return parseTranscription(raw);
+};
+
 const attemptHomeworkGrade = async (
   ctx: GradeContext,
   images: InlineImage[],
@@ -235,7 +253,13 @@ const attemptHomeworkGrade = async (
   apiKey: string,
   retryCount: 0 | 1,
   isStudentActor: boolean,
+  transcription: string,
 ): Promise<GradeAttemptResult> => {
+  // Tiêm bản chép của pha 1 vào ô "bài làm dạng chữ": pha chấm suy luận trên văn bản sạch,
+  // vẫn còn ảnh để đối chiếu khi nghi ngờ. Không có bản chép thì chấm thẳng như một pha.
+  const studentTextForGrading = transcription
+    ? `${studentText}${studentText ? '\n\n' : ''}[MÁY ĐÃ CHÉP LẠI BÀI LÀM TỪ ẢNH — dùng làm nguồn đọc chính, đối chiếu ảnh nếu nghi ngờ]:\n${transcription}`
+    : studentText;
   const promptInput = {
     answerKey: ctx.answerKey,
     rubric: ctx.rubric,
@@ -245,7 +269,7 @@ const attemptHomeworkGrade = async (
     assignmentImageCount: ctx.assignmentImages.length,
     answerKeyImageCount: ctx.answerKeyImages.length,
     gradingInstructions: ctx.gradingInstructions,
-    studentText,
+    studentText: studentTextForGrading,
   };
   const basePrompt = buildHomeworkGradingPrompt(promptInput);
   const prompt = retryCount === 0
@@ -285,6 +309,7 @@ const attemptHomeworkGrade = async (
     teacherApproved: isStudentActor,
     approvalSource: isStudentActor ? 'student_ai' as const : 'teacher' as const,
     ...(gradingRecovery ? { gradingRecovery } : {}),
+    ...(transcription ? { transcription } : {}),
   };
 
   return { grade, recovery };
@@ -329,12 +354,23 @@ const gradeOneSubmission = async (
       throw new Error(UNREADABLE_HOMEWORK_MESSAGE);
     }
 
+    // PHA 1 (chép trước): đọc trung thực bài làm thành chữ/LaTeX MỘT LẦN cho cả hai lượt chấm.
+    // Best-effort — pha này lỗi thì chấm thẳng như một pha, không làm hỏng lượt chấm.
+    let transcription = '';
+    if (images.length > 0) {
+      try {
+        transcription = await transcribeStudentWork(images, apiKey);
+      } catch (error) {
+        console.warn('[grade-homework] pha chép bài lỗi, chấm trực tiếp từ ảnh', error);
+      }
+    }
+
     let attempt: GradeAttemptResult;
     try {
-      attempt = await attemptHomeworkGrade(ctx, images, studentText, apiKey, 0, isStudentActor);
+      attempt = await attemptHomeworkGrade(ctx, images, studentText, apiKey, 0, isStudentActor, transcription);
     } catch (error) {
       if (!isRetryableGradeAttemptError(error)) throw error;
-      attempt = await attemptHomeworkGrade(ctx, images, studentText, apiKey, 1, isStudentActor);
+      attempt = await attemptHomeworkGrade(ctx, images, studentText, apiKey, 1, isStudentActor, transcription);
     }
     const { grade } = attempt;
     const now = grade.gradedAt;

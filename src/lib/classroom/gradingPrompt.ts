@@ -847,6 +847,31 @@ export const parseRubric = (raw: string): string => {
   return rubric;
 };
 
+/**
+ * Pha 1 của chấm 2 pha: CHÉP LẠI bài làm học sinh từ ảnh, KHÔNG chấm. Ép model đọc kỹ một lần
+ * rồi mới suy luận ở pha 2 trên văn bản sạch; đồng thời cho giáo viên soát máy đọc ra gì.
+ */
+export const buildTranscriptionPrompt = (): string =>
+  `Bạn đọc ảnh BÀI LÀM viết tay của học sinh và CHÉP LẠI TRUNG THỰC. KHÔNG chấm, KHÔNG sửa, KHÔNG giải hộ.
+- Chép đúng những gì em viết, kể cả chỗ sai. Mọi công thức/biểu thức viết bằng LaTeX trong dấu $...$ (ví dụ $\\frac{11\\pi}{8}$, $x^2-3x+2$).
+- Giữ đúng số câu như em ghi ("Câu 1", "Bài 2a"...) và thứ tự trong bài.
+- Chỗ nào mờ/nhoè/không đọc chắc thì ghi [không đọc rõ], TUYỆT ĐỐI không đoán nội dung.
+- Nhiều ảnh là nhiều trang của cùng bài làm; chép nối tiếp theo thứ tự ảnh.
+CHỈ TRẢ VỀ JSON THUẦN: {"transcription":"toàn bộ bài làm đã chép, xuống dòng bằng \\n"}`;
+
+/** Đọc bản chép của pha 1. Best-effort: hỏng thì trả rỗng để KHÔNG chặn việc chấm. */
+export const parseTranscription = (raw: string): string => {
+  const text = String(raw || '');
+  const inCodeBlock = text.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
+  const jsonStr = inCodeBlock ? inCodeBlock[1] : text.match(/\{[\s\S]*\}/)?.[0];
+  if (!jsonStr) return '';
+  try {
+    return String(parseLooseJson<Record<string, unknown>>(jsonStr).transcription || '').trim();
+  } catch {
+    return '';
+  }
+};
+
 // ── AI viết lại nhận xét cho học sinh, dựa trên lời của giáo viên ─────────────
 
 export interface RewriteFeedbackInput {

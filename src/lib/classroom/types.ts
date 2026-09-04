@@ -282,6 +282,8 @@ export interface SubmissionGrade {
   editedByTeacher?: boolean;
   /** Metadata tối thiểu để giáo viên biết kết quả đã được hệ thống phục hồi. */
   gradingRecovery?: GradingRecovery;
+  /** Bản máy CHÉP LẠI bài làm từ ảnh ở pha 1 (chấm 2 pha) — để giáo viên soát máy đọc ra gì. */
+  transcription?: string;
 }
 
 export type SubmissionGradeRevisionAction = 'manual_edit' | 'approve' | 'delete' | 'automatic_regrade' | 'ai_regrade' | 'student_ai';

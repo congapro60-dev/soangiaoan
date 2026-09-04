@@ -5,6 +5,15 @@
 
 Handoff ngắn cho lô V4 live lesson. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Chấm 2 pha (chép trước, chấm sau) — 2026-09-04
+
+Đọc chữ tay/công thức Toán hay sai và mỗi lần một kiểu. Thêm pha 1 CHÉP bài trước khi chấm:
+- `buildTranscriptionPrompt`/`parseTranscription` (gradingPrompt): chép trung thực bài làm bằng LaTeX, không chấm; parse best-effort trả '' khi hỏng (không chặn chấm).
+- `grade-homework`: `transcribeStudentWork` chạy 1 lần cho cả 2 lượt retry, temperature 0, chỉ gửi ảnh bài làm; bản chép tiêm vào `studentText` của pha chấm (nguồn đọc chính, vẫn có ảnh đối chiếu) và lưu `grade.transcription`.
+- UI: khối gập "Máy đọc được từ ảnh (bản chép)" trong bài nộp phía GV để soát đọc nhầm.
+- Chi phí: ~2 lượt gọi/bài (user đã chấp nhận). Pha chép lỗi → tự lùi về chấm 1 pha.
+Test parseTranscription + full 1769/1769, lint/build PASS.
+
 ## Đổi model chấm mặc định gemini-3.8-flash — 2026-09-03
 
 `GRADING_MODEL` default `gemini-3.7-flash` → `gemini-3.8-flash` (đọc chữ tay + công thức tốt hơn, chi phí tương đương). Vẫn override được bằng env `GRADING_MODEL` trên Vercel. Chỉ đổi model chấm bài (`_grading-core.ts`), không đụng model của simulation/format/adaptive. Nếu id model sai → chấm lỗi ngay; lùi bằng env hoặc revert. `lint:api`/`build` PASS.

@@ -7,6 +7,8 @@ import {
   buildRewriteFeedbackPrompt,
   buildRubricPrompt,
   buildSolveExamPrompt,
+  buildTranscriptionPrompt,
+  parseTranscription,
   parseHomeworkGrade,
   parseHomeworkGradeForCommit,
   parsePracticeAssessment,
@@ -724,5 +726,26 @@ describe('trình bày nhận xét cho học sinh và phụ huynh đọc', () => 
   it.each(cacPrompt)('%s: giữ chuẩn dấu câu tiếng Việt, cấm viết tắt', (_ten, p) => {
     expect(p).toContain('Chuẩn tiếng Việt');
     expect(p).toContain('Không viết tắt');
+  });
+});
+
+describe('chấm 2 pha — chép trước (parseTranscription)', () => {
+  it('prompt yêu cầu chép trung thực, LaTeX, không chấm', () => {
+    const p = buildTranscriptionPrompt();
+    expect(p).toContain('CHÉP LẠI TRUNG THỰC');
+    expect(p).toContain('LaTeX');
+    expect(p).toContain('KHÔNG chấm');
+    expect(p).toContain('transcription');
+  });
+
+  it('đọc được transcription từ JSON thuần và trong ```json', () => {
+    expect(parseTranscription('{"transcription":"Câu 1: $x=2$"}')).toBe('Câu 1: $x=2$');
+    expect(parseTranscription('```json\n{"transcription":"Bài 2a: $\\\\sin\\\\alpha$"}\n```')).toContain('Bài 2a');
+  });
+
+  it('best-effort: JSON hỏng hoặc thiếu field trả rỗng, KHÔNG ném lỗi', () => {
+    expect(parseTranscription('không phải json')).toBe('');
+    expect(parseTranscription('{"khac":"x"}')).toBe('');
+    expect(parseTranscription('')).toBe('');
   });
 });
