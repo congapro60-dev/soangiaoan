@@ -859,6 +859,26 @@ export const buildTranscriptionPrompt = (): string =>
 - Nhiều ảnh là nhiều trang của cùng bài làm; chép nối tiếp theo thứ tự ảnh.
 CHỈ TRẢ VỀ JSON THUẦN: {"transcription":"toàn bộ bài làm đã chép, xuống dòng bằng \\n"}`;
 
+/**
+ * AI đọc bài "quá không chắc" — dùng để KHÔNG chấm bừa (thà báo chụp lại / thầy cô chấm tay còn
+ * hơn phọt một điểm sai). Bảo thủ để không chặn oan bài đọc được:
+ *  - đa số câu ở trạng thái "unreadable" (máy tự nhận không đọc được), HOẶC
+ *  - mọi câu đều có confidence và trung bình rất thấp (< 0.4).
+ */
+export const isReadTooUncertain = (
+  results: Array<{ status?: string; confidence?: number }> | undefined,
+): boolean => {
+  if (!Array.isArray(results) || results.length === 0) return false;
+  const unreadable = results.filter(item => item?.status === 'unreadable').length;
+  if (unreadable > results.length / 2) return true;
+  const withConfidence = results.filter(item => typeof item?.confidence === 'number');
+  if (withConfidence.length === results.length) {
+    const avg = withConfidence.reduce((sum, item) => sum + (item.confidence || 0), 0) / withConfidence.length;
+    if (avg < 0.4) return true;
+  }
+  return false;
+};
+
 /** Đọc bản chép của pha 1. Best-effort: hỏng thì trả rỗng để KHÔNG chặn việc chấm. */
 export const parseTranscription = (raw: string): string => {
   const text = String(raw || '');

@@ -5,6 +5,13 @@
 
 Handoff ngắn cho lô V4 live lesson. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## AI không chấm bừa khi chưa chắc + model pro — 2026-09-04
+
+- **(a) Không chấm bừa**: `isReadTooUncertain(questionResults)` (gradingPrompt, thuần + test) — đa số câu `unreadable` HOẶC mọi câu có confidence và TB < 0.4. Trong `gradeOneSubmission`, sau khi chấm mà đọc quá không chắc thì ném `UNCERTAIN_READ_MESSAGE` → nhánh catch giữ điểm cũ nếu có, chưa có thì `status='error'` + báo HS "chụp lại rõ hơn / thầy cô chấm tay". Không phọt điểm sai. Ngưỡng bảo thủ để không chặn oan.
+- **(b) Model pro**: `GRADING_MODEL` default `gemini-3.8-flash` → **`gemini-3.1-pro-preview`** (đọc chắc hơn). ⚠ Pro rate-limit THẤP hơn nhiều + là preview → chấm cả lớp đông (2 pha) dễ 429; đắt hơn. Revert nhanh bằng env `GRADING_MODEL=gemini-3.8-flash`, hoặc GA ổn định `gemini-2.5-pro`. Chưa smoke tải thật.
+
+full test 1774/1774, lint/lint:api/build PASS.
+
 ## Cổng HS: hero "Việc cần làm" + hạ cấp nút chấm thử — 2026-09-04
 
 HS hay bấm nhầm nút to "Tự chấm bài" (tự chấm rời, không tính điểm) tưởng là nộp bài. Sửa thứ bậc: hero hiện thẳng bài gấp nhất (`viecCanLam` = todo trước, rồi retry) + nút to "Chụp & nộp bài này" gọi `onChooseImage(assignmentId)`; hết bài thì báo "đã nộp hết". Nút cũ đổi thành "Chấm thử (không tính điểm)" nhỏ/nhạt (viền, icon Sparkles) + dòng phụ giải thích không phải nộp. `lint`/`build` PASS. Chưa smoke bằng phiên HS thật.

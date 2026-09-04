@@ -27,6 +27,7 @@ import {
   buildSolveExamPrompt,
   buildTranscriptionPrompt,
   parseTranscription,
+  isReadTooUncertain,
   parseHomeworkGradeForCommit,
   parsePracticeAssessment,
   parsePracticeQuestions,
@@ -140,6 +141,7 @@ const MAX_SUBMISSION_FILES = 12;
 const MAX_ASSIGNMENT_SOURCE_IMAGES = 6;
 const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
 const UNREADABLE_HOMEWORK_MESSAGE = 'Không đọc được bài làm. Em thử chụp lại hoặc nộp lại file.';
+const UNCERTAIN_READ_MESSAGE = 'AI đọc chưa rõ bài này nên chưa chấm để tránh chấm sai. Em chụp lại rõ hơn (đủ sáng, chụp thẳng, mỗi trang một ảnh) rồi nộp lại, hoặc chờ thầy cô chấm tay.';
 const SAFE_GRADING_ERROR_MESSAGE = 'AI gặp lỗi định dạng khi đọc kết quả chấm. Bài và ảnh vẫn được giữ nguyên; hệ thống đã tự thử phục hồi. Thầy/cô có thể chấm lại bằng AI hoặc sửa điểm bằng tay.';
 /** Khai tường minh thay vì dựa default của Vercel — Hobby cap ở 60s. */
 export const maxDuration = 60;
@@ -322,7 +324,7 @@ const isRetryableGradeAttemptError = (error: unknown): boolean =>
 
 const safeGradeErrorMessage = (error: unknown): string => {
   if (error instanceof GeminiResponseError) return error.message;
-  if (error instanceof Error && error.message === UNREADABLE_HOMEWORK_MESSAGE) return error.message;
+  if (error instanceof Error && (error.message === UNREADABLE_HOMEWORK_MESSAGE || error.message === UNCERTAIN_READ_MESSAGE)) return error.message;
   return SAFE_GRADING_ERROR_MESSAGE;
 };
 
@@ -373,6 +375,14 @@ const gradeOneSubmission = async (
       attempt = await attemptHomeworkGrade(ctx, images, studentText, apiKey, 1, isStudentActor, transcription);
     }
     const { grade } = attempt;
+
+    // (a) AI chưa chắc thì KHÔNG chấm bừa: khi đọc quá không chắc (đa số câu không đọc được, hoặc
+    // độ chắc chắn trung bình quá thấp) thì báo chụp lại / thầy cô chấm tay, KHÔNG phọt điểm sai.
+    // Ném lỗi để nhánh catch giữ nguyên điểm cũ nếu có, hoặc để status='error' khi chưa từng có điểm.
+    if (isReadTooUncertain(grade.questionResults)) {
+      throw new Error(UNCERTAIN_READ_MESSAGE);
+    }
+
     const now = grade.gradedAt;
 
     // History + grade mới chỉ commit nếu token vẫn thuộc worker hiện tại.

@@ -9,6 +9,7 @@ import {
   buildSolveExamPrompt,
   buildTranscriptionPrompt,
   parseTranscription,
+  isReadTooUncertain,
   parseHomeworkGrade,
   parseHomeworkGradeForCommit,
   parsePracticeAssessment,
@@ -747,5 +748,36 @@ describe('chấm 2 pha — chép trước (parseTranscription)', () => {
     expect(parseTranscription('không phải json')).toBe('');
     expect(parseTranscription('{"khac":"x"}')).toBe('');
     expect(parseTranscription('')).toBe('');
+  });
+});
+
+describe('isReadTooUncertain — AI chưa chắc thì không chấm bừa', () => {
+  it('không có câu / rỗng thì KHÔNG chặn (để pipeline tự xử)', () => {
+    expect(isReadTooUncertain(undefined)).toBe(false);
+    expect(isReadTooUncertain([])).toBe(false);
+  });
+
+  it('đa số câu unreadable thì chặn', () => {
+    expect(isReadTooUncertain([
+      { status: 'unreadable' }, { status: 'unreadable' }, { status: 'correct' },
+    ])).toBe(true);
+  });
+
+  it('thiểu số unreadable thì vẫn chấm', () => {
+    expect(isReadTooUncertain([
+      { status: 'unreadable' }, { status: 'correct' }, { status: 'incorrect' },
+    ])).toBe(false);
+  });
+
+  it('mọi câu có confidence và trung bình quá thấp thì chặn', () => {
+    expect(isReadTooUncertain([
+      { status: 'correct', confidence: 0.3 }, { status: 'incorrect', confidence: 0.2 },
+    ])).toBe(true);
+  });
+
+  it('confidence cao thì không chặn', () => {
+    expect(isReadTooUncertain([
+      { status: 'correct', confidence: 0.9 }, { status: 'incorrect', confidence: 0.8 },
+    ])).toBe(false);
   });
 });
