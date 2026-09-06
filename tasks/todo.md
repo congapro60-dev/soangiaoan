@@ -1,3 +1,11 @@
+# AI grading quick/thorough modes — 2026-09-07
+
+- [x] Add gradeOne tests: quick skips transcription, thorough stores transcription, student actor is forced quick.
+- [x] Update `api/grade-homework.ts` to whitelist mode, default quick, force students/batch quick, and pass mode to the grading worker.
+- [x] Update `src/services/gradingApi.ts` and teacher/student callers to send the intended mode.
+- [x] Run `npm run lint`, `npm run lint:api`, `npm run test -- --run`, and `npm run build`.
+- [x] Do not commit, push, deploy, delete broadly, or touch files outside grading mode scope.
+
 # P0 — Khôi phục nội dung câu hỏi từ PDF/Word/ảnh trong báo cáo (2026-08-28)
 
 # Live Lesson V4 Service Pilot — 2026-08-28

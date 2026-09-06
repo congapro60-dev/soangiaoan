@@ -418,7 +418,7 @@ export const StudentPortalPage = () => {
       if (!mucTieu) {
         setBuocNop('Đã nộp! Máy đang chấm bài...');
         try {
-          await gradeOneSubmission(submission.id);
+          await gradeOneSubmission(submission.id, 'quick');
         } catch (error) {
           console.error('Chấm bài tự do chưa xong', error);
           setCanhBao('Bài đã nộp thành công nhưng máy chưa chấm được ngay — thầy cô sẽ chấm giúp em sau.');
@@ -443,7 +443,7 @@ export const StudentPortalPage = () => {
           if (isConfirmed) {
             setBuocNop('Máy đang chấm bài...');
             try {
-              await gradeOneSubmission(submission.id);
+              await gradeOneSubmission(submission.id, 'quick');
               setThanhCong(`${supplementOf ? 'Máy đã chấm lại toàn bộ' : 'Máy đã chấm xong'} bài "${tenBai}" — mở mục "Đã chấm" để xem nhận xét nhé!`);
             } catch (error) {
               console.error('Chấm bài giao chưa xong', error);

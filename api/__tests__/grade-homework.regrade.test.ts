@@ -99,6 +99,12 @@ const makeGeminiResponse = (text: string, finishReason = 'STOP') => ({
   text: async () => '',
 });
 
+const makeImageResponse = () => ({
+  ok: true,
+  headers: { get: (name: string) => name.toLowerCase() === 'content-type' ? 'image/jpeg' : null },
+  arrayBuffer: async () => new Uint8Array([1, 2, 3]).buffer,
+});
+
 type GeminiRequestBody = {
   contents?: Array<{ parts?: Array<{ text?: unknown }> }>;
 };
@@ -111,6 +117,22 @@ const stubGeminiResponses = (...responses: ReturnType<typeof makeGeminiResponse>
     const prompt = request.contents?.[0]?.parts?.find(part => typeof part.text === 'string')?.text;
     promptTexts.push(typeof prompt === 'string' ? prompt : '');
     return responses[Math.min(index++, responses.length - 1)];
+  });
+  vi.stubGlobal('fetch', h.fetch);
+  return promptTexts;
+};
+
+const stubImageThenGeminiResponses = (...responses: ReturnType<typeof makeGeminiResponse>[]) => {
+  let geminiIndex = 0;
+  const promptTexts: string[] = [];
+  h.fetch = vi.fn(async (url: unknown, init?: { body?: unknown }) => {
+    if (typeof url === 'string' && url.startsWith('https://storage.test/')) {
+      return makeImageResponse();
+    }
+    const request = JSON.parse(String(init?.body || '{}')) as GeminiRequestBody;
+    const prompt = request.contents?.[0]?.parts?.find(part => typeof part.text === 'string')?.text;
+    promptTexts.push(typeof prompt === 'string' ? prompt : '');
+    return responses[Math.min(geminiIndex++, responses.length - 1)];
   });
   vi.stubGlobal('fetch', h.fetch);
   return promptTexts;
@@ -197,6 +219,66 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
     expect(Object.values(harness.state.submissionGradeHistory || {})).toEqual([
       expect.objectContaining({ action: 'ai_regrade', actorUid: 'gv-1', grade: oldGrade }),
     ]);
+  });
+
+  it('mode quick chấm trực tiếp và không lưu bản chép bài làm', async () => {
+    const harness = seed();
+    harness.state.submissions['sub-1'].fileUrls = ['https://storage.test/sub-1.jpg'];
+    h.db = makeDb(harness);
+    stubImageThenGeminiResponses(makeGeminiResponse(validGradeJson(6)));
+
+    const result = await call({ action: 'gradeOne', submissionId: 'sub-1', mode: 'quick' });
+
+    expect(result.statusCode).toBe(200);
+    expect(h.fetch).toHaveBeenCalledTimes(2);
+    expect(harness.state.submissions['sub-1']).toMatchObject({
+      status: 'graded',
+      grade: expect.objectContaining({ score: 6, teacherApproved: false }),
+    });
+    expect((harness.state.submissions['sub-1'].grade as DocData).transcription).toBeUndefined();
+  });
+
+  it('mode thorough chạy pha chép và lưu transcription vào grade', async () => {
+    const harness = seed();
+    harness.state.submissions['sub-1'].fileUrls = ['https://storage.test/sub-1.jpg'];
+    h.db = makeDb(harness);
+    stubImageThenGeminiResponses(
+      makeGeminiResponse(JSON.stringify({ transcription: 'Bản chép bài làm.' })),
+      makeGeminiResponse(validGradeJson(7)),
+    );
+
+    const result = await call({ action: 'gradeOne', submissionId: 'sub-1', mode: 'thorough' });
+
+    expect(result.statusCode).toBe(200);
+    expect(h.fetch).toHaveBeenCalledTimes(3);
+    expect(harness.state.submissions['sub-1']).toMatchObject({
+      status: 'graded',
+      grade: expect.objectContaining({ score: 7, transcription: 'Bản chép bài làm.' }),
+    });
+  });
+
+  it('học sinh gửi mode thorough vẫn bị ép chấm nhanh', async () => {
+    const harness = seed();
+    harness.state.studentLinks = { 'student-uid': { studentId: 'hs-1', classId: 'lop-1', teacherId: 'gv-1' } };
+    harness.state.submissions['sub-1'] = {
+      ...harness.state.submissions['sub-1'],
+      status: 'submitted',
+      grade: undefined,
+      fileUrls: ['https://storage.test/sub-1.jpg'],
+    };
+    h.uid = 'student-uid';
+    h.db = makeDb(harness);
+    stubImageThenGeminiResponses(makeGeminiResponse(validGradeJson(8)));
+
+    const result = await call({ action: 'gradeOne', submissionId: 'sub-1', mode: 'thorough' });
+
+    expect(result.statusCode).toBe(200);
+    expect(h.fetch).toHaveBeenCalledTimes(2);
+    expect(harness.state.submissions['sub-1']).toMatchObject({
+      status: 'graded',
+      grade: expect.objectContaining({ score: 8, teacherApproved: true }),
+    });
+    expect((harness.state.submissions['sub-1'].grade as DocData).transcription).toBeUndefined();
   });
 
   it('co-owner được chấm lại bằng AI trong namespace của chủ lớp', async () => {

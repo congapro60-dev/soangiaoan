@@ -6,6 +6,8 @@ export interface GradeBatchResult {
   remaining: number;
 }
 
+export type HomeworkGradingMode = 'quick' | 'thorough';
+
 const call = async (payload: Record<string, unknown>): Promise<GradeBatchResult> => {
   const user = auth.currentUser;
   if (!user) throw new Error('Phiên đăng nhập đã hết hạn. Tải lại trang rồi thử lại.');
@@ -37,7 +39,7 @@ export const gradeAssignmentAll = async (
   for (let round = 0; round < 60; round += 1) {
     if (shouldStop?.()) break;
 
-    const result = await call({ action: 'gradeAssignment', assignmentId });
+    const result = await call({ action: 'gradeAssignment', assignmentId, mode: 'quick' });
     total.graded += result.graded;
     total.failed += result.failed;
     total.remaining = result.remaining;
@@ -49,9 +51,9 @@ export const gradeAssignmentAll = async (
   return total;
 };
 
-/** Chấm một bài — dùng cho luồng học sinh tự nộp. */
-export const gradeOneSubmission = (submissionId: string): Promise<GradeBatchResult> =>
-  call({ action: 'gradeOne', submissionId });
+/** Chấm một bài — mặc định để server chọn quick; teacher UI có thể yêu cầu thorough. */
+export const gradeOneSubmission = (submissionId: string, mode?: HomeworkGradingMode): Promise<GradeBatchResult> =>
+  call({ action: 'gradeOne', submissionId, ...(mode ? { mode } : {}) });
 
 export interface PracticeQuestion {
   id: string;

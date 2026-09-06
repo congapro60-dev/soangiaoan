@@ -21,7 +21,7 @@ import {
 } from '../../../lib/classroom/submissionService';
 import type { AssignmentDoc, SubmissionDoc } from '../../../lib/classroom/types';
 import { laNopQuaHan } from '../../../lib/classroom/hanNop';
-import { gradeAssignmentAll, gradeOneSubmission, solveAnswerKeyForAssignment, suggestRubric } from '../../../services/gradingApi';
+import { gradeAssignmentAll, gradeOneSubmission, solveAnswerKeyForAssignment, suggestRubric, type HomeworkGradingMode } from '../../../services/gradingApi';
 import { AssignmentFormModal, type AssignmentFormValue } from './AssignmentFormModal';
 import { NhanXetMarkdown } from './NhanXetMarkdown';
 import { GradeReviewModal, type GradeReviewValue } from './GradeReviewModal';
@@ -156,7 +156,7 @@ interface BaiNopTheoLopProps {
   moRongId: string;
   troMoRong: (id: string) => void;
   tienDo: string;
-  chamLai: (s: SubmissionDoc, ten: string) => void | Promise<void>;
+  chamLai: (s: SubmissionDoc, ten: string, mode: HomeworkGradingMode) => void | Promise<void>;
   suaDiem: (s: SubmissionDoc, ten: string) => void | Promise<void>;
   duyet: (s: SubmissionDoc) => void | Promise<void>;
   xoaBaiNop: (s: SubmissionDoc, ten: string) => void | Promise<void>;
@@ -391,11 +391,24 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
 
                 <div className="flex flex-wrap items-center gap-2">
                   <button
-                    onClick={() => void chamLai(s, ten)}
+                    type="button"
+                    aria-label={`Chấm nhanh bằng AI cho ${ten}`}
+                    title="Chấm nhanh: AI chấm trực tiếp, không chạy pha chép bài."
+                    onClick={() => void chamLai(s, ten, 'quick')}
                     disabled={s.status === 'grading' || tienDo !== ''}
                     className="inline-flex items-center gap-1 rounded-2xl bg-slate-900 px-3 py-2 text-xs font-black text-white transition hover:bg-slate-800 disabled:opacity-50"
                   >
-                    <Sparkles className="h-3.5 w-3.5" /> Chấm lại bằng AI
+                    <Sparkles className="h-3.5 w-3.5" /> Chấm nhanh
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={`Chấm kĩ bằng AI cho ${ten}`}
+                    title="Chấm kĩ: AI chép bài làm từ ảnh trước rồi mới chấm."
+                    onClick={() => void chamLai(s, ten, 'thorough')}
+                    disabled={s.status === 'grading' || tienDo !== ''}
+                    className="inline-flex items-center gap-1 rounded-2xl border border-slate-300 bg-white px-3 py-2 text-xs font-black text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" /> Chấm kĩ
                   </button>
                   <button
                     onClick={() => void suaDiem(s, ten)}
@@ -652,7 +665,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
     try {
       for (const submission of selected) {
         try {
-          await gradeOneSubmission(submission.id);
+          await gradeOneSubmission(submission.id, 'quick');
           ok += 1;
         } catch {
           failed += 1;
@@ -679,7 +692,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
    * Chấm LẠI loạt các bài ĐÃ chấm bằng AI sau khi giáo viên đổi đáp án/hướng dẫn/lệnh riêng.
    *
    * Bỏ đúng bài giáo viên đã sửa tay (`editedByTeacher`) để không đè lên chỉnh sửa của thầy cô —
-   * bài sửa tay muốn chấm lại vẫn dùng nút "Chấm lại bằng AI" của từng em (có chủ đích). Server
+    * bài sửa tay muốn chấm lại vẫn dùng nút chấm từng em (có chủ đích). Server
    * đã lo phần còn lại: bài đã duyệt bị chấm lại sẽ về "chờ duyệt lại" và bằng chứng cũ được gỡ
    * khỏi hồ sơ tích luỹ; điểm cũ được giữ nếu lượt chấm lại lỗi.
    */
@@ -689,7 +702,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
     const boQuaSuaTay = chon.length - selected.length;
     if (selected.length === 0) {
       showToast(boQuaSuaTay > 0
-        ? `Các bài đã chọn đều do thầy cô sửa tay — không chấm lại loạt để khỏi đè. Dùng "Chấm lại bằng AI" từng em nếu muốn.`
+        ? 'Các bài đã chọn đều do thầy cô sửa tay — không chấm lại loạt để khỏi đè. Dùng nút chấm từng em nếu muốn.'
         : 'Chưa chọn bài đã chấm nào để chấm lại.', 'info');
       return;
     }
@@ -710,7 +723,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
     try {
       for (const submission of selected) {
         try {
-          await gradeOneSubmission(submission.id);
+          await gradeOneSubmission(submission.id, 'quick');
           ok += 1;
         } catch {
           failed += 1;
@@ -1026,22 +1039,25 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   };
 
   /** Chạy lại AI cho ĐÚNG MỘT bài nộp — giáo viên xem thấy chấm sai thì không phải đợi cả lớp. */
-  const chamLaiMotBai = async (s: SubmissionDoc, tenHocSinh: string) => {
+  const chamLaiMotBai = async (s: SubmissionDoc, tenHocSinh: string, mode: HomeworkGradingMode) => {
+    const laChamKi = mode === 'thorough';
     const { isConfirmed } = await Swal.fire({
       icon: 'question',
-      title: `Chấm lại bằng AI cho ${tenHocSinh}?`,
-      text: 'Kết quả cũ sẽ được lưu lịch sử. Kết quả AI mới cần giáo viên duyệt lại; nếu AI lỗi, điểm cũ vẫn được giữ.',
+      title: `${laChamKi ? 'Chấm kĩ' : 'Chấm nhanh'} bằng AI cho ${tenHocSinh}?`,
+      text: laChamKi
+        ? 'AI sẽ chép bài làm từ ảnh trước rồi mới chấm. Kết quả cũ được lưu lịch sử; nếu AI lỗi, điểm cũ vẫn được giữ.'
+        : 'AI sẽ chấm trực tiếp để trả kết quả nhanh hơn. Kết quả cũ được lưu lịch sử; nếu AI lỗi, điểm cũ vẫn được giữ.',
       showCancelButton: true,
-      confirmButtonText: 'Chấm lại',
+      confirmButtonText: laChamKi ? 'Chấm kĩ' : 'Chấm nhanh',
       cancelButtonText: 'Thôi',
       confirmButtonColor: '#3085d6',
     });
     if (!isConfirmed) return;
 
-    setTienDo(`Đang chấm lại bài của ${tenHocSinh}...`);
+    setTienDo(`Đang ${laChamKi ? 'chấm kĩ' : 'chấm nhanh'} bài của ${tenHocSinh}...`);
     try {
-      await gradeOneSubmission(s.id);
-      showToast(`Đã chấm lại bài của ${tenHocSinh}.`, 'success');
+      await gradeOneSubmission(s.id, mode);
+      showToast(`Đã ${laChamKi ? 'chấm kĩ' : 'chấm nhanh'} bài của ${tenHocSinh}.`, 'success');
       try {
         setTatCaBaiNop(await listSubmissionsForClass(classId, teacherId));
         setLoiBaiNop(null);
@@ -1052,7 +1068,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
     } catch (error) {
       Swal.fire({
         icon: 'error',
-        title: 'Chấm lại thất bại',
+        title: `${laChamKi ? 'Chấm kĩ' : 'Chấm nhanh'} thất bại`,
         text: error instanceof Error ? error.message : 'Thử lại sau ít phút.',
         confirmButtonColor: '#3085d6',
       });

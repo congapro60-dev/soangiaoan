@@ -231,6 +231,12 @@ type GradingRecovery = {
   repairKinds: string[];
 };
 
+type HomeworkGradingMode = 'quick' | 'thorough';
+
+const parseHomeworkGradingMode = (value: unknown): HomeworkGradingMode => (
+  value === 'thorough' || value === 'quick' ? value : 'quick'
+);
+
 interface GradeAttemptResult {
   grade: SubmissionGrade & { gradingRecovery?: GradingRecovery };
   recovery?: HomeworkGradeParseResult['recovery'];
@@ -339,6 +345,7 @@ const gradeOneSubmission = async (
   apiKey: string,
   actorUid: string,
   isTeacher: boolean,
+  mode: HomeworkGradingMode,
 ): Promise<{ success: boolean; gradePreserved?: boolean; syncPending?: boolean; syncError?: string }> => {
   // Không dùng snapshot mà caller đã đọc từ trước để khóa/ghi bài: giữa lúc
   // đọc và lúc worker chạy, giáo viên có thể đã sửa hoặc xóa điểm.
@@ -363,7 +370,7 @@ const gradeOneSubmission = async (
     // PHA 1 (chép trước): đọc trung thực bài làm thành chữ/LaTeX MỘT LẦN cho cả hai lượt chấm.
     // Best-effort — pha này lỗi thì chấm thẳng như một pha, không làm hỏng lượt chấm.
     let transcription = '';
-    if (images.length > 0) {
+    if (mode === 'thorough' && images.length > 0) {
       try {
         transcription = await transcribeStudentWork(images, apiKey);
       } catch (error) {
@@ -585,7 +592,7 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
   let graded = 0;
   let failed = 0;
   for (const doc of batch) {
-    const result = await gradeOneSubmission(db, doc.id, ctx, apiKey, uid, true);
+    const result = await gradeOneSubmission(db, doc.id, ctx, apiKey, uid, true, 'quick');
     if (result.success) graded += 1; else failed += 1;
   }
 
@@ -607,6 +614,7 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
   if (!snap.exists) return res.status(404).json({ error: 'Không tìm thấy bài nộp.' });
 
   const submission = snap.data() as FirebaseFirestore.DocumentData;
+  const requestedMode = parseHomeworkGradingMode(body.mode);
   // Chỉ chặn khi bài ĐANG thật sự được chấm (khoá còn tươi). Khoá "grading" quá cũ là do worker
   // trước chết giữa chừng (Vercel kill ở 60s / timeout) chưa kịp mở khoá — phải cho chấm lại,
   // không thì bài kẹt "Đang chấm" vĩnh viễn, không ai gỡ được.
@@ -622,6 +630,7 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
   const isTeacher = submission.teacherId === uid
     || await canTeacherAccessLegacyNamespace(db, uid, submission.classId, submission.teacherId);
   if (!isOwnerStudent && !isTeacher) return res.status(403).json({ error: 'Không có quyền chấm bài này.' });
+  const mode: HomeworkGradingMode = isTeacher && !isOwnerStudent ? requestedMode : 'quick';
   if (isOwnerStudent && submission.grade?.teacherApproved === true) {
     return res.status(403).json({ error: 'Kết quả đã được giáo viên duyệt; chỉ giáo viên mới được chấm lại.' });
   }
@@ -665,7 +674,7 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
     }
   }
 
-  const result = await gradeOneSubmission(db, submissionId, ctx, getGradingApiKey(), uid, isTeacher);
+  const result = await gradeOneSubmission(db, submissionId, ctx, getGradingApiKey(), uid, isTeacher, mode);
   await quotaRef.set(bumpQuota(quota, kind, String(submission.studentId || ''), 1));
   if (!result.success) {
     const latest = await ref.get();
