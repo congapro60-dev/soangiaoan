@@ -5,6 +5,29 @@
 
 Handoff ngắn cho lô V4 live lesson. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Chấm nhanh / chấm kĩ — 2026-09-07
+
+- Tách lựa chọn cho giáo viên: `quick` gọi Flash trực tiếp một pha; `thorough` chép bài từ ảnh trước rồi chấm hai pha. Lý do: giữ chất lượng đọc khi cần nhưng không để chấm cả lớp chạm trần 60 giây Vercel.
+- Batch/chấm cả lớp luôn ép `quick`; phía học sinh luôn bị server ép `quick`, kể cả gửi `thorough`. Chỉ giáo viên chấm từng bài được yêu cầu `thorough`.
+- Server whitelist mode và mặc định `quick`; UI giáo viên có hai nút; cổng học sinh gửi `quick`. Test hồi quy gồm quick không lưu transcription, thorough lưu transcription và học sinh bị ép quick.
+- Nghiệm thu local/main: full Vitest **147 files / 1.780 tests PASS**, `npm run lint`, `npm run lint:api`, `npm run build`, `git diff --check` PASS. Build còn warning chunk/dynamic import vốn có.
+
+### Còn dở / ngưỡng sắp cắn người
+
+- Chưa claim authenticated browser E2E/production trước khi deployment mới Ready; cần thử đúng một bài thật ở chế độ đọc, không xóa dữ liệu.
+- `thorough` tạo thêm một lượt Gemini và có thể chậm; chỉ dùng từng bài. Không mở mode này cho batch hoặc học sinh nếu chưa nâng giới hạn server.
+
+### Lệnh nghiệm thu
+
+```powershell
+$worktree = "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading"
+npm --prefix $worktree run test -- --run
+npm --prefix $worktree run lint
+npm --prefix $worktree run lint:api
+npm --prefix $worktree run build
+git -C $worktree diff --check
+```
+
 ## Fix bài kẹt "Đang chấm" vĩnh viễn — 2026-09-07
 
 Worker chấm chết giữa chừng (Vercel kill ở 60s / timeout pro cũ) trước khi mở khoá → bài nằm mãi ở `status='grading'`; `handleGradeOne` chặn cứng 409 với MỌI bài grading nên nút "Chấm lại bằng AI" cũng vô hiệu → kẹt không gỡ được. Sửa: chỉ chặn khi khoá còn TƯƠI — `handleGradeOne` (grade-homework.ts) và `claimSubmissionForGrading` đều thêm `!isStaleGradingTimestamp(updatedAt)` (>10 phút = khoá chết, cho giành lại). Mirror đúng pattern đã có ở luồng bài luyện; transaction chống double-claim. full 1777/1777, lint/build PASS. (Chưa thêm test e2e gradeOne-on-stale vì harness cần mock quota/access nặng.)
