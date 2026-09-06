@@ -5,6 +5,10 @@
 
 Handoff ngắn cho lô V4 live lesson. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Fix bài kẹt "Đang chấm" vĩnh viễn — 2026-09-07
+
+Worker chấm chết giữa chừng (Vercel kill ở 60s / timeout pro cũ) trước khi mở khoá → bài nằm mãi ở `status='grading'`; `handleGradeOne` chặn cứng 409 với MỌI bài grading nên nút "Chấm lại bằng AI" cũng vô hiệu → kẹt không gỡ được. Sửa: chỉ chặn khi khoá còn TƯƠI — `handleGradeOne` (grade-homework.ts) và `claimSubmissionForGrading` đều thêm `!isStaleGradingTimestamp(updatedAt)` (>10 phút = khoá chết, cho giành lại). Mirror đúng pattern đã có ở luồng bài luyện; transaction chống double-claim. full 1777/1777, lint/build PASS. (Chưa thêm test e2e gradeOne-on-stale vì harness cần mock quota/access nặng.)
+
 ## Fix 504 khi giải đề (pro quá chậm) + thêm 3.8-flash vào Cài đặt — 2026-09-04
 
 - **504 "AI giải đề"**: model pro (`gemini-3.1-pro-preview`) chạy quá trần 60s Vercel Hobby cho lệnh nặng (giải cả đề 16k token + nhiều ảnh) → timeout. REVERT `GRADING_MODEL` default về `gemini-3.8-flash`. Pro không hợp serverless 60s (cả "Chấm cả lớp" batch×2 pha cũng sẽ 504). Muốn pro thì env + nâng gói Vercel.

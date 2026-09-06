@@ -110,7 +110,9 @@ const claimSubmissionForGrading = async (
     const snapshot = await transaction.get(ref);
     if (!snapshot.exists) return;
     const current = snapshot.data() as FirebaseFirestore.DocumentData;
-    if (current.status === 'grading' || (!allowApproved && current.grade?.teacherApproved === true)) return;
+    // Khoá "grading" còn tươi thì không giành; khoá cũ (worker chết chưa mở khoá) thì cho giành lại.
+    const dangKhoaTuoi = current.status === 'grading' && !isStaleGradingTimestamp(current.updatedAt);
+    if (dangKhoaTuoi || (!allowApproved && current.grade?.teacherApproved === true)) return;
     previous = { id: submissionId, ...current } as SubmissionDoc;
     transaction.update(ref, {
       status: 'grading',
@@ -605,7 +607,10 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
   if (!snap.exists) return res.status(404).json({ error: 'Không tìm thấy bài nộp.' });
 
   const submission = snap.data() as FirebaseFirestore.DocumentData;
-  if (submission.status === 'grading') {
+  // Chỉ chặn khi bài ĐANG thật sự được chấm (khoá còn tươi). Khoá "grading" quá cũ là do worker
+  // trước chết giữa chừng (Vercel kill ở 60s / timeout) chưa kịp mở khoá — phải cho chấm lại,
+  // không thì bài kẹt "Đang chấm" vĩnh viễn, không ai gỡ được.
+  if (submission.status === 'grading' && !isStaleGradingTimestamp(submission.updatedAt)) {
     return res.status(409).json({ error: 'Bài đang được chấm. Chờ lượt hiện tại kết thúc rồi thử lại.' });
   }
   const linkSnap = await db.collection('studentLinks').doc(uid).get();
