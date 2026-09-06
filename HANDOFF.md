@@ -28,6 +28,12 @@ npm --prefix $worktree run build
 git -C $worktree diff --check
 ```
 
+## Mở khóa UI cho bài grading bị kẹt — 2026-09-07
+
+- Backend đã cho phép giành lại khóa `grading` quá 10 phút, nhưng UI vẫn disable nút chấm lại với mọi `status='grading'`; học sinh Hồ Khánh Phương vì thế vẫn bị kẹt trên màn hình.
+- Dùng chung `isStaleGradingTimestamp` ở projection UI: chỉ khóa còn tươi mới disable `Chấm nhanh`/`Chấm kĩ`; không mở bulk, sửa điểm hoặc xóa dữ liệu.
+- Regression `submissionSelection`: khóa 9:59 còn tươi, 10:00+ và timestamp hỏng là stale; cần chạy lại full test/lint/build sau hotfix.
+
 ## Fix bài kẹt "Đang chấm" vĩnh viễn — 2026-09-07
 
 Worker chấm chết giữa chừng (Vercel kill ở 60s / timeout pro cũ) trước khi mở khoá → bài nằm mãi ở `status='grading'`; `handleGradeOne` chặn cứng 409 với MỌI bài grading nên nút "Chấm lại bằng AI" cũng vô hiệu → kẹt không gỡ được. Sửa: chỉ chặn khi khoá còn TƯƠI — `handleGradeOne` (grade-homework.ts) và `claimSubmissionForGrading` đều thêm `!isStaleGradingTimestamp(updatedAt)` (>10 phút = khoá chết, cho giành lại). Mirror đúng pattern đã có ở luồng bài luyện; transaction chống double-claim. full 1777/1777, lint/build PASS. (Chưa thêm test e2e gradeOne-on-stale vì harness cần mock quota/access nặng.)

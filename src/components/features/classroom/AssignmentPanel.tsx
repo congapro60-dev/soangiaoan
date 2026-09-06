@@ -26,7 +26,7 @@ import { AssignmentFormModal, type AssignmentFormValue } from './AssignmentFormM
 import { NhanXetMarkdown } from './NhanXetMarkdown';
 import { GradeReviewModal, type GradeReviewValue } from './GradeReviewModal';
 import { QuestionResultsList } from './QuestionResultsList';
-import { currentSubmissionsForAssignment, hasUncertainRead, selectedCurrentSubmissions, selectedSubmissionsForAssignment, submissionsForHistoryMode, summarizeSelection, type SubmissionHistoryMode } from '../../../lib/classroom/submissionSelection';
+import { currentSubmissionsForAssignment, hasUncertainRead, isStaleGradingTimestamp, selectedCurrentSubmissions, selectedSubmissionsForAssignment, submissionsForHistoryMode, summarizeSelection, type SubmissionHistoryMode } from '../../../lib/classroom/submissionSelection';
 import { renameAssignment } from '../../../lib/classroom/teacherService';
 import { OnlineAssignmentReview } from './OnlineAssignmentReview';
 
@@ -272,6 +272,7 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
       {baiNopHienThi.map(s => {
         const ten = tenTheoId.get(s.studentId) || `HS …${s.studentId.slice(-4)}`;
         const dangMo = moRongId === s.id;
+        const gradingLockFresh = s.status === 'grading' && !isStaleGradingTimestamp(s.updatedAt);
         return (
           <div key={s.id} className="border-b border-slate-100 last:border-b-0">
             <div className="flex items-center gap-2 px-3 py-3">
@@ -395,7 +396,7 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                     aria-label={`Chấm nhanh bằng AI cho ${ten}`}
                     title="Chấm nhanh: AI chấm trực tiếp, không chạy pha chép bài."
                     onClick={() => void chamLai(s, ten, 'quick')}
-                    disabled={s.status === 'grading' || tienDo !== ''}
+                    disabled={gradingLockFresh || tienDo !== ''}
                     className="inline-flex items-center gap-1 rounded-2xl bg-slate-900 px-3 py-2 text-xs font-black text-white transition hover:bg-slate-800 disabled:opacity-50"
                   >
                     <Sparkles className="h-3.5 w-3.5" /> Chấm nhanh
@@ -405,7 +406,7 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                     aria-label={`Chấm kĩ bằng AI cho ${ten}`}
                     title="Chấm kĩ: AI chép bài làm từ ảnh trước rồi mới chấm."
                     onClick={() => void chamLai(s, ten, 'thorough')}
-                    disabled={s.status === 'grading' || tienDo !== ''}
+                    disabled={gradingLockFresh || tienDo !== ''}
                     className="inline-flex items-center gap-1 rounded-2xl border border-slate-300 bg-white px-3 py-2 text-xs font-black text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
                   >
                     <RefreshCw className="h-3.5 w-3.5" /> Chấm kĩ

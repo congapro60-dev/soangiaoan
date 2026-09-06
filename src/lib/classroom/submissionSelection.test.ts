@@ -3,6 +3,7 @@ import type { SubmissionDoc } from './types';
 import {
   currentSubmissionsForAssignment,
   hasUncertainRead,
+  isStaleGradingTimestamp,
   selectedSubmissionsForAssignment,
   selectedCurrentSubmissions,
   submissionsForHistoryMode,
@@ -25,6 +26,14 @@ const submission = (id: string, studentId: string, createdAt: string, patch: Par
 });
 
 describe('submissionSelection', () => {
+  it('nhận diện khóa grading cũ để UI cho giáo viên chấm lại', () => {
+    const now = Date.parse('2026-09-07T12:00:00.000Z');
+
+    expect(isStaleGradingTimestamp('2026-09-07T11:50:01.000Z', now)).toBe(false);
+    expect(isStaleGradingTimestamp('2026-09-07T11:49:59.000Z', now)).toBe(true);
+    expect(isStaleGradingTimestamp('not-a-date', now)).toBe(true);
+  });
+
   it('chọn lượt mới nhất theo timestamp, không phụ thuộc thứ tự Firestore trả về', () => {
     const current = currentSubmissionsForAssignment([
       submission('new', 'student-1', '2026-08-24T12:00:00.000Z'),

@@ -3,6 +3,14 @@ import type { SubmissionDoc, SubmissionGrade } from './types';
 /** Dưới ngưỡng này coi là máy đọc chữ chưa chắc, nên nhắc giáo viên soát lại. */
 export const READ_CONFIDENCE_FLOOR = 0.6;
 
+/** Khóa grading cũ hơn 10 phút có thể là worker đã chết giữa chừng. */
+export const STALE_GRADING_MS = 10 * 60 * 1000;
+
+export const isStaleGradingTimestamp = (updatedAt?: string, nowMs = Date.now()): boolean => {
+  const timestamp = Date.parse(String(updatedAt || ''));
+  return !Number.isFinite(timestamp) || nowMs - timestamp > STALE_GRADING_MS;
+};
+
 /**
  * Máy đọc bài "chưa chắc": có câu không đọc rõ, có câu tự đánh dấu cần giáo viên soát, hoặc độ
  * chắc chắn đọc chữ thấp. Dùng để hiện nhãn nhắc GV mở ra kiểm — bắt lỗi AI đọc nhầm công thức.
