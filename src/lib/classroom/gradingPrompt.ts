@@ -293,33 +293,47 @@ const extractHomeworkJson = (raw: string): string => {
  * Đọc JSON AI trả về. Ném lỗi khi không tìm được JSON — nơi gọi bắt và đánh dấu bài ở trạng thái
  * 'error' để chấm lại, KHÔNG được lặng lẽ cho 0 điểm.
  */
-export const parseHomeworkGrade = (
-  raw: string,
+/**
+ * Chuẩn hoá một payload chấm ĐÃ parse thành HomeworkGrade, KHOAN DUNG với khiếm khuyết schema:
+ * thiếu field → mặc định rỗng/0, sai kiểu → ép kiểu, điểm ngoài thang → kẹp lại. KHÔNG ném lỗi.
+ * Thang điểm giáo viên là nguồn sự thật; AI trả maxScore lệch (vd 20 do gộp 2 lựa chọn) bị bỏ qua.
+ * Thiếu điểm tổng nhưng có điểm từng câu thì CỘNG lại thay vì mặc định 0 (0 oan cho học sinh).
+ */
+const coerceHomeworkGrade = (
+  parsed: Record<string, unknown>,
   maxScore: number,
   gradedWithoutAnswerKey: boolean,
 ): HomeworkGrade => {
-  const parsed = parseLooseJson<Record<string, unknown>>(extractHomeworkJson(raw));
   const parsedMax = Number(parsed.maxScore);
-  // Thang điểm của giáo viên là nguồn sự thật. AI chỉ được trả điểm trong thang đó,
-  // không được tự đổi 10 thành 8/20 vì hiểu sai đề hoặc vì lệnh bỏ qua một phần.
   const effectiveMax = Number.isFinite(maxScore) && maxScore > 0
     ? maxScore
     : (Number.isFinite(parsedMax) && parsedMax > 0 ? parsedMax : 10);
+  const questionResults = toQuestionResults(parsed.questionResults ?? parsed.questionDetails);
   const rawScore = Number(parsed.score);
+  const summedScore = questionResults.reduce((sum, q) => sum + (Number.isFinite(q.score) ? q.score : 0), 0);
+  const baseScore = Number.isFinite(rawScore)
+    ? rawScore
+    : (questionResults.length > 0 ? summedScore : 0);
 
   return {
-    // Điểm ngoài thang là dấu hiệu AI hiểu sai thang, kẹp lại còn hơn ghi 12/10 vào học bạ.
-    score: clamp(Number.isFinite(rawScore) ? rawScore : 0, 0, effectiveMax),
+    score: clamp(baseScore, 0, effectiveMax),
     maxScore: effectiveMax,
     feedbackForStudent: String(parsed.feedbackForStudent || '').trim(),
     noteForTeacher: String(parsed.noteForTeacher || '').trim(),
     strengths: toStringArray(parsed.strengths),
     weaknesses: toStringArray(parsed.weaknesses),
     weakTopics: toStringArray(parsed.weakTopics),
-    questionResults: toQuestionResults(parsed.questionResults ?? parsed.questionDetails),
+    questionResults,
     gradedWithoutAnswerKey,
   };
 };
+
+export const parseHomeworkGrade = (
+  raw: string,
+  maxScore: number,
+  gradedWithoutAnswerKey: boolean,
+): HomeworkGrade =>
+  coerceHomeworkGrade(parseLooseJson<Record<string, unknown>>(extractHomeworkJson(raw)), maxScore, gradedWithoutAnswerKey);
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -356,6 +370,17 @@ const requireFiniteNumber = (value: Record<string, unknown>, key: string): numbe
     contractError(`Field ${key} phải là số hữu hạn`);
   }
   return field as number;
+};
+
+const coerceFiniteNumber = (value: Record<string, unknown>, key: string): number => {
+  const field = requireField(value, key);
+  const number = typeof field === 'number'
+    ? field
+    : typeof field === 'string' && field.trim() !== ''
+      ? Number(field)
+      : Number.NaN;
+  if (!Number.isFinite(number)) contractError(`Field ${key} phải là số hữu hạn`);
+  return number;
 };
 
 const isQuestionResultStatus = (value: unknown): value is QuestionResultStatus =>
@@ -468,43 +493,47 @@ export const parseHomeworkGradeForCommit = (
   if (retryCount !== 0 && retryCount !== 1) {
     contractError('retryCount phải là 0 hoặc 1');
   }
+  if (typeof maxScore !== 'number' || !Number.isFinite(maxScore)) {
+    contractError('Thang điểm assignment phải là số hữu hạn');
+  }
 
   const parsed = parseJsonWithRecovery<unknown>(extractStrictHomeworkJson(raw));
   const parsedValue = isRecord(parsed.value)
     ? parsed.value
     : contractError('Payload chấm phải có root object không null và không phải array');
-  if (typeof maxScore !== 'number' || !Number.isFinite(maxScore)) {
-    contractError('Thang điểm assignment phải là số hữu hạn');
+
+  // Envelope vẫn phải đủ thông tin để không chấm bừa; chỉ nới lỏng field chi tiết từng câu.
+  const score = hasOwn(parsedValue, 'score') ? coerceFiniteNumber(parsedValue, 'score') : undefined;
+  if (hasOwn(parsedValue, 'maxScore')) coerceFiniteNumber(parsedValue, 'maxScore');
+  requireString(parsedValue, 'feedbackForStudent');
+  requireString(parsedValue, 'noteForTeacher');
+  requireStringArray(parsedValue, 'strengths');
+  requireStringArray(parsedValue, 'weaknesses');
+  requireStringArray(parsedValue, 'weakTopics');
+  const questionResultsValue = hasOwn(parsedValue, 'questionResults')
+    ? parsedValue.questionResults
+    : parsedValue.questionDetails;
+  if (!Array.isArray(questionResultsValue)) contractError('Field questionResults phải là mảng');
+  const seenQuestionNumbers = new Set<string>();
+  for (const [index, item] of (questionResultsValue as unknown[]).entries()) {
+    const record = isRecord(item)
+      ? item
+      : contractError(`questionResults[${index}] phải là object`);
+    const questionNumber = String(record.questionNumber ?? record.question ?? '').trim();
+    if (!questionNumber) contractError(`questionResults[${index}].questionNumber không được rỗng`);
+    if (seenQuestionNumbers.has(questionNumber)) contractError(`questionResults bị trùng questionNumber: ${questionNumber}`);
+    seenQuestionNumbers.add(questionNumber);
   }
 
-  const score = requireFiniteNumber(parsedValue, 'score');
-  const parsedMaxScore = requireFiniteNumber(parsedValue, 'maxScore');
-  if (Math.abs(parsedMaxScore - maxScore) > 0.000001) {
-    contractError('maxScore của AI không khớp thang điểm assignment');
+  // Model flash hay thiếu lẻ field trong từng câu; coerce các chi tiết đó thành dữ liệu cần soát.
+  // Không bịa điểm: payload không có điểm tổng và không có câu nào vẫn bị từ chối.
+  const grade = coerceHomeworkGrade(parsedValue, maxScore, gradedWithoutAnswerKey);
+  if (score === undefined && grade.questionResults.length === 0) {
+    contractError('Payload chấm không có điểm số hợp lệ và không có kết quả câu nào');
   }
-  if (score < 0 || score > maxScore) {
+  if (score !== undefined && (score < 0 || score > maxScore)) {
     contractError('score nằm ngoài thang điểm assignment');
   }
-
-  const questionResultsValue = requireField(parsedValue, 'questionResults');
-  if (!Array.isArray(questionResultsValue)) {
-    contractError('Field questionResults phải là mảng');
-  }
-  const seenQuestionNumbers = new Set<string>();
-  const questionResults = (questionResultsValue as unknown[]).map((questionResult, index) =>
-    parseStrictQuestionResult(questionResult, index, seenQuestionNumbers));
-
-  const grade: HomeworkGrade = {
-    score,
-    maxScore,
-    feedbackForStudent: requireString(parsedValue, 'feedbackForStudent'),
-    noteForTeacher: requireString(parsedValue, 'noteForTeacher'),
-    strengths: requireStringArray(parsedValue, 'strengths'),
-    weaknesses: requireStringArray(parsedValue, 'weaknesses'),
-    weakTopics: requireStringArray(parsedValue, 'weakTopics'),
-    questionResults,
-    gradedWithoutAnswerKey,
-  };
 
   if (parsed.parseMode === 'repaired' || retryCount === 1) {
     return {

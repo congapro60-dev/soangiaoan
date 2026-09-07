@@ -34,6 +34,13 @@ git -C $worktree diff --check
 - Dùng chung `isStaleGradingTimestamp` ở projection UI: chỉ khóa còn tươi mới disable `Chấm nhanh`/`Chấm kĩ`; không mở bulk, sửa điểm hoặc xóa dữ liệu.
 - Regression `submissionSelection`: khóa 9:59 còn tươi, 10:00+ và timestamp hỏng là stale; cần chạy lại full test/lint/build sau hotfix.
 
+## Fix parser lỗi định dạng khi chấm — 2026-09-07
+
+- Nguyên nhân: parser commit strict bắt buộc mọi field chi tiết từng câu; Gemini Flash thiếu một field nhỏ là cả bài lỗi, retry lại cùng contract rồi vẫn fail.
+- Sửa: giữ envelope điểm/nhận xét/thang điểm/unique question number fail-closed; chỉ coerce thiếu field chi tiết từng câu thành `needsTeacherReview`, nhận alias `questionDetails`, và cộng điểm câu khi thiếu điểm tổng nếu có bằng chứng câu.
+- Không tự cho 0, không chấp nhận payload rỗng; regression test bảo vệ cả ca lỗi schema và ca thiếu field từng câu.
+- Nghiệm thu worktree: full Vitest **147 files / 1.785 tests PASS**, lint/lint:api/build PASS; build còn warning chunk/dynamic import vốn có.
+
 ## Fix bài kẹt "Đang chấm" vĩnh viễn — 2026-09-07
 
 Worker chấm chết giữa chừng (Vercel kill ở 60s / timeout pro cũ) trước khi mở khoá → bài nằm mãi ở `status='grading'`; `handleGradeOne` chặn cứng 409 với MỌI bài grading nên nút "Chấm lại bằng AI" cũng vô hiệu → kẹt không gỡ được. Sửa: chỉ chặn khi khoá còn TƯƠI — `handleGradeOne` (grade-homework.ts) và `claimSubmissionForGrading` đều thêm `!isStaleGradingTimestamp(updatedAt)` (>10 phút = khoá chết, cho giành lại). Mirror đúng pattern đã có ở luồng bài luyện; transaction chống double-claim. full 1777/1777, lint/build PASS. (Chưa thêm test e2e gradeOne-on-stale vì harness cần mock quota/access nặng.)

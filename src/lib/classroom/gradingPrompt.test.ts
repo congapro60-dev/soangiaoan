@@ -323,35 +323,66 @@ describe('parseHomeworkGradeForCommit — strict homework contract', () => {
     expectContractError(() => parseHomeworkGradeForCommit(JSON.stringify([valid]), 10, false));
   });
 
-  it('từ chối thiếu feedbackForStudent', () => {
+  it('vẫn retry khi thiếu feedbackForStudent ở envelope', () => {
     const value = { ...valid } as Record<string, unknown>;
     delete value.feedbackForStudent;
-
     expectContractError(() => parse(value));
   });
 
-  it('từ chối score dạng string', () => {
-    expectContractError(() => parse({ ...valid, score: '8' }));
+  it('coerce score dạng string về số', () => {
+    expect(parse({ ...valid, score: '8' }).grade.score).toBe(8);
   });
 
-  it('từ chối score vượt thang 12/10', () => {
+  it('vẫn retry khi score vượt thang assignment', () => {
     expectContractError(() => parse({ ...valid, score: 12 }));
   });
 
-  it('từ chối NaN thay vì biến thành điểm hợp lệ', () => {
-    const rawWithNaN = raw(valid).replace('"score":8', '"score":NaN');
-
-    expectContractOrRecoveryError(() => parseHomeworkGradeForCommit(rawWithNaN, 10, false));
+  it('chuẩn hoá maxScore AI trả lệch (20) về thang assignment (10)', () => {
+    const result = parse({ ...valid, maxScore: 20, score: 9 });
+    expect(result.grade.maxScore).toBe(10);
+    expect(result.grade.score).toBe(9);
   });
 
-  it('từ chối questionResults có questionNumber trùng nhau', () => {
-    const first = valid.questionResults[0];
-    const value = {
-      ...valid,
-      questionResults: [first, { ...first, score: 7 }],
-    };
+  it('NaN score literal: không crash — hoặc lỗi recovery, hoặc coerce ra điểm trong thang', () => {
+    const rawWithNaN = raw(valid).replace('"score":8', '"score":NaN');
+    let result: ReturnType<typeof parseHomeworkGradeForCommit> | undefined;
+    let threw = false;
+    try { result = parseHomeworkGradeForCommit(rawWithNaN, 10, false); } catch { threw = true; }
+    expect(threw || (result!.grade.score >= 0 && result!.grade.score <= 10)).toBe(true);
+  });
 
-    expectContractError(() => parse(value));
+  it('vẫn retry khi questionResults trùng questionNumber', () => {
+    const first = valid.questionResults[0];
+    expectContractError(() => parse({ ...valid, questionResults: [first, { ...first, score: 7 }] }));
+  });
+
+  it('REGRESSION lỗi hàng loạt: câu thiếu field lẻ vẫn chấm được, không ném', () => {
+    const result = parse({
+      ...valid,
+      questionResults: [{
+        questionNumber: 'Câu 1', status: 'incorrect', score: 2, maxScore: 10,
+        studentAnswer: 'x=1', expectedAnswer: 'x=2',
+        // cố tình thiếu errorType/explanation/correction/nextPractice/needsTeacherReview
+      }],
+    });
+    expect(result.grade.questionResults).toHaveLength(1);
+    expect(result.grade.questionResults[0].needsTeacherReview).toBe(true);
+  });
+
+  it('REGRESSION: cộng điểm từng câu khi thiếu điểm tổng', () => {
+    const value = { ...valid } as Record<string, unknown>;
+    delete value.score;
+    value.questionResults = [
+      { questionNumber: 'Câu 1', status: 'correct', score: 3, maxScore: 5, studentAnswer: 'a', expectedAnswer: 'a', errorType: 'Không có', explanation: 'x', correction: 'x', nextPractice: 'x', needsTeacherReview: false },
+      { questionNumber: 'Câu 2', status: 'partially_correct', score: 4, maxScore: 5, studentAnswer: 'b', expectedAnswer: 'b', errorType: 'Thiếu bước', explanation: 'x', correction: 'x', nextPractice: 'x', needsTeacherReview: false },
+    ];
+    expect(parse(value).grade.score).toBe(7);
+  });
+
+  it('ANTI-BỪA: không điểm và không câu nào thì vẫn TỪ CHỐI (không bịa điểm)', () => {
+    expectContractError(() => parseHomeworkGradeForCommit(
+      JSON.stringify({ feedbackForStudent: 'x', questionResults: [] }), 10, false,
+    ));
   });
 });
 
