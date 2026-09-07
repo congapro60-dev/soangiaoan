@@ -83,6 +83,25 @@ export interface StudentLanguageView {
   curriculumBridgeIds: string[];
 }
 
+// Bản dịch tĩnh, đã rà soát, cho phần chữ HS nhìn thấy (KHÔNG dịch công thức —
+// ký hiệu Toán giữ nguyên ở trường dùng chung). copyByKey khóa theo id màn hình
+// HS (HS0..HS10) hoặc id checkpoint (cp-*).
+export interface LocalizedStudentCopy {
+  label: string;
+  action?: string;
+  responsePrompt?: string;
+  sentenceFrames?: string[];
+}
+
+export interface StudentLanguagePack {
+  definitionKey: string;
+  language: V4NonViLanguage;
+  // reviewed=true chỉ khi có người rà soát bản dịch; điều khiển quyền tuyên bố
+  // "Dịch đầy đủ". Bản máy sinh chưa rà phải để false ⇒ chỉ hiện song ngữ.
+  reviewed: boolean;
+  copyByKey: Record<string, LocalizedStudentCopy>;
+}
+
 // Chỉ nguồn nhà trường/GV đã xác nhận cung cấp — KHÔNG gộp với StudentLanguageView.
 export interface VerifiedLanguageSupportPlan {
   studentId: string;
@@ -300,12 +319,27 @@ export interface PublicationGate {
 
 // --- Hợp đồng tổng ---
 
+/**
+ * Nội dung công khai của một màn hình TV theo từng cue. Khi contract khai báo
+ * mảng này, runtime dùng nó thay cho template screenId cố định — cần cho các
+ * bài thủ công có dòng hoạt động riêng (không khớp cung bậc S0..S10 mặc định).
+ * Chỉ chứa nội dung công khai: không teacherScript, không đáp án riêng, không PII.
+ */
+export interface PublicTvScreen {
+  screenId: string;
+  label: string;
+  title: string;
+  body: string;
+}
+
 export interface LiveLessonV4Contract {
   schemaVersion: 4;
   id: string;
   lessonId: string;
   title: string;
   durationSeconds: 2400;
+  /** Ghi đè nội dung TV theo từng cue (bài thủ công); vắng mặt ⇒ dùng template screenId. */
+  publicTvScreens?: PublicTvScreen[];
   /** Metadata required by generated Ban Toán packages; optional for old V4 pilot fixtures. */
   lessonMode?: V4LessonMode;
   sourceKey?: string;

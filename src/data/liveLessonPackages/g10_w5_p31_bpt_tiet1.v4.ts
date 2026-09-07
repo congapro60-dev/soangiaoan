@@ -2,6 +2,7 @@ import type {
   Checkpoint,
   GlossaryItem,
   LiveLessonV4Contract,
+  PublicTvScreen,
   ScaffoldSet,
   TaskVariant,
   TimelineBlock,
@@ -53,7 +54,7 @@ function buildTimeline(): TimelineBlock[] {
       'P00-P03: Tình huống bánh nước',
       0,
       180,
-      'S1',
+      'S0',
       `${cueText('P01', 'teacher')} ${cueText('P02', 'teacher')} Hỏi: “Có thể biểu diễn mọi cách chọn bằng một hình như thế nào, và làm sao biết một điểm có hợp lệ?”`,
       'Dự đoán cá nhân 20-30 giây, nói với bạn bên cạnh; chưa cần đăng nhập.',
       cueText('P00', 'boardLarge'),
@@ -64,7 +65,7 @@ function buildTimeline(): TimelineBlock[] {
       'P03-P05: Mục tiêu cá nhân',
       180,
       300,
-      'S3',
+      'S1',
       'Mỗi em viết một điều muốn tự làm được cuối tiết. Sau 45 giây, bấm tổng hợp từ khóa và đọc 2-3 ý tiêu biểu.',
       'Chọn 1-2 mục tiêu gợi ý hoặc nhập tối đa một câu ngắn; dùng khung câu nếu cần.',
       'Giữ tiêu đề và câu hỏi định hướng đang hình thành.',
@@ -76,7 +77,7 @@ function buildTimeline(): TimelineBlock[] {
       'P05-P08: Chốt mục tiêu chung',
       300,
       480,
-      'S4',
+      'S2',
       `${cueText('P05', 'teacher')} ${cueText('P06', 'teacher')} Viết 2-3 mục tiêu Toán và 1 mục tiêu diễn đạt lên bảng phụ.`,
       'Đối chiếu mục tiêu cá nhân với mục tiêu chung, hỏi nếu chưa hiểu.',
       cueText('P06', 'boardLarge'),
@@ -88,7 +89,7 @@ function buildTimeline(): TimelineBlock[] {
       'P08-P16: Đường biên và miền nghiệm',
       480,
       960,
-      'S7',
+      'S3',
       `${cueText('P07', 'teacher')} ${cueText('P08', 'teacher')} ${cueText('P09', 'teacher')} ${cueText('P10', 'teacher')} ${cueText('P11', 'teacher')} Dựng trục tọa độ, đường biên và miền nghiệm; hỏi “vì sao dấu là ≤?”.`,
       'Quan sát, ghi hình/biến đổi vào vở; bấm thuật ngữ nếu cần, không gửi đáp án liên tục.',
       `${cueText('P07', 'boardLarge')}\n${cueText('P08', 'boardLarge')}\n${cueText('P09', 'boardLarge')}\n${cueText('P11', 'boardLarge')}`,
@@ -100,7 +101,7 @@ function buildTimeline(): TimelineBlock[] {
       'P16-P19: AI Error of the Week',
       960,
       1140,
-      'S8',
+      'S4',
       `AI Error of the Week. ${cueText('P12', 'teacher')} ${cueText('P13', 'teacher')} ${cueText('P14', 'teacher')} Chốt: “160>150 nên 160≤150 sai; (6;7) không là nghiệm.”`,
       'Chọn loại lỗi trong 30-40 giây, trao đổi cặp đôi, ghi bước sửa vào vở.',
       'Lời giải AI cần kiểm: Với (6;7), 15·6 + 10·7 = 160. AI kết luận 160 ≤ 150 nên phương án hợp lệ.',
@@ -112,7 +113,7 @@ function buildTimeline(): TimelineBlock[] {
       'P19-P20: Duyệt nhóm',
       1140,
       1200,
-      'S8',
+      'S5',
       'Xem đề xuất riêng, chọn Duyệt/Đổi nhóm/Mặc định; nói: “Nhóm khác nhau về điểm cần hỗ trợ, không phải nhãn người học.”',
       'Nhận mã nhóm trên thiết bị và di chuyển theo sơ đồ chỗ ngồi đã có.',
       'Giữ lời giải đúng và định nghĩa trên bảng lớn.',
@@ -123,7 +124,7 @@ function buildTimeline(): TimelineBlock[] {
       'P20-P27: Nhiệm vụ nhóm M/S/C',
       1200,
       1620,
-      'S9',
+      'S6',
       `${cueText('P16', 'teacher')} ${cueText('P17', 'teacher')} Giao cùng câu hỏi lớn, đi tới nhóm đồng nhu cầu trước, hỏi bằng chứng chứ không đọc lời giải.`,
       'Ổn định nhóm, giải, trình bày/đối chiếu; thiết bị đặt xuống khi làm nhóm.',
       '3 tiêu chí: biến rõ; dấu đúng; kết luận có căn cứ.',
@@ -135,7 +136,7 @@ function buildTimeline(): TimelineBlock[] {
       'P27-P30: Post-check cá nhân',
       1620,
       1800,
-      'S10',
+      'S7',
       'Yêu cầu từng HS làm một post-check khác dữ kiện nhưng cùng tiêu chí; không cho nhóm trả lời thay.',
       'Tự giải và kiểm tra một điểm/điều kiện; gửi đáp án ngắn hoặc giơ vở.',
       'Post-check: Với 2x + y ≤ 12, kiểm tra điểm (5;3) và nêu kết luận.',
@@ -147,7 +148,7 @@ function buildTimeline(): TimelineBlock[] {
       'P30-P35: Nhiệm vụ cá nhân theo tuyến',
       1800,
       2100,
-      'S10',
+      'S8',
       `${cueText('P18', 'teacher')} Cho HS chọn/nhận tuyến M/S/C; chỉ dẫn trên điện thoại GV nêu nhóm nào cần gợi ý, GV vẫn hỏi-đáp trực tiếp.`,
       'Làm nhiệm vụ cá nhân phù hợp, dùng tối đa một gợi ý rồi tự hoàn thiện.',
       'Giữ mô hình + định nghĩa + tiêu chí.',
@@ -159,7 +160,7 @@ function buildTimeline(): TimelineBlock[] {
       'P35-P38: Chốt Toán và phản ví dụ',
       2100,
       2280,
-      'S10',
+      'S9',
       `${cueText('P19', 'teacher')} Gọi một lời giải, một phản ví dụ và một phép kiểm; chốt trên bảng lớn, đối chiếu mục tiêu trên bảng phụ.`,
       'Giải thích/đặt câu hỏi, sửa vở nếu cần.',
       'Mô hình toán học phải gắn với ý nghĩa của biến; nghiệm phải thỏa điều kiện.',
@@ -170,7 +171,7 @@ function buildTimeline(): TimelineBlock[] {
       'P38-P40: Exit ticket',
       2280,
       2400,
-      'S11',
+      'S10',
       `${cueText('P20', 'teacher')} “Một điều em đã hiểu, một điều còn cần kiểm chứng.” Đóng phiên sau khi đủ thời gian.`,
       'Viết một câu hoặc gửi lựa chọn + câu ngắn; dùng khung câu nếu cần.',
       cueText('P20', 'boardLarge'),
@@ -315,6 +316,15 @@ function buildCheckpoints(): Checkpoint[] {
       teacherNextActions: ['Đi tới nhóm cần scaffold trước', 'Gọi nhóm trình bày ngắn'],
     },
     {
+      id: 'cp-postcheck',
+      stepId: 'P27',
+      kind: 'post_check',
+      prompt: 'Với 2x + y ≤ 12, kiểm tra điểm (5;3) và nêu kết luận có căn cứ.',
+      responseType: 'text',
+      evidenceSignal: 'Bằng chứng cá nhân sau hoạt động nhóm — dữ kiện mới, cùng tiêu chí.',
+      teacherNextActions: ['Đọc nhanh vài vở', 'Ghi nhận HS cần hỗ trợ khi vào tuyến ở P30'],
+    },
+    {
       id: 'cp-postcheck-m',
       stepId: 'P27',
       kind: 'post_check',
@@ -392,14 +402,59 @@ function buildTaskVariants(): TaskVariant[] {
   ];
 }
 
+// Nhãn ngắn (eyebrow) cho từng cue trên màn hình TV — theo hoạt động thật của
+// bài này, không theo cung bậc S0..S10 mặc định.
+const TV_EYEBROW: Record<string, string> = {
+  P00: 'MỞ ĐẦU',
+  P03: 'MỤC TIÊU CÁ NHÂN',
+  P05: 'MỤC TIÊU CHUNG',
+  P08: 'HÌNH THÀNH',
+  P16: 'TƯ DUY PHẢN BIỆN',
+  P19: 'HỢP TÁC',
+  P20: 'HỢP TÁC',
+  P27: 'ĐÁNH GIÁ LẠI',
+  P30: 'PHÂN HÓA',
+  P35: 'CHỐT TOÁN',
+  P38: 'KẾT THÚC',
+};
+
+// Bối cảnh mở đầu công khai cho cue P00 (bảng lớp bắt đầu trắng nên board không
+// mang dữ kiện). Chỉ dùng dữ kiện đề bài công khai (ngân sách + đơn giá), KHÔNG
+// nêu sẵn mô hình bất phương trình (đó là phần HS xây dựng ở bước hình thành).
+const TV_OPENING_CONTEXT_P00 = [
+  'Tình huống: Em có 150 nghìn đồng để mua bánh và nước cho nhóm.',
+  'Mỗi chiếc bánh: 15 nghìn đồng · Mỗi chai nước: 10 nghìn đồng.',
+  'Chọn số chiếc bánh và số chai nước sao cho không vượt quá số tiền có.',
+  'Làm sao mô tả tất cả phương án phù hợp mà không phải thử từng phương án?',
+].join('\n');
+
+// Nội dung TV công khai theo từng cue: title từ label hoạt động, body từ bảng
+// lớn + bảng phụ (đều là nội dung công khai). Không bao giờ dùng teacherScript.
+function buildPublicTvScreens(timeline: TimelineBlock[]): PublicTvScreen[] {
+  return timeline.map((block) => {
+    const derivedBody = [block.boardLarge, block.boardSide]
+      .map((text) => text?.trim())
+      .filter((text): text is string => Boolean(text))
+      .join('\n\n');
+    return {
+      screenId: block.tvScreenId,
+      label: TV_EYEBROW[block.id] ?? 'LIVE CLASSROOM',
+      title: block.label.replace(/^P\d+(?:-P\d+)?:\s*/, '').toUpperCase(),
+      body: block.id === 'P00' ? TV_OPENING_CONTEXT_P00 : derivedBody,
+    };
+  });
+}
+
 export function getG10P31V4Contract(): LiveLessonV4Contract {
+  const timeline = buildTimeline();
   return {
     schemaVersion: 4,
     id: 'g10_w5_p31_bpt_tiet1_v4',
     lessonId: 'g10_w5_p31_bpt_tiet1',
     title: 'Bất phương trình bậc nhất hai ẩn — Tiết 1',
     durationSeconds: 2400,
-    timeline: buildTimeline(),
+    timeline,
+    publicTvScreens: buildPublicTvScreens(timeline),
     objectives: {
       math: [
         { id: 'obj-math-1', kind: 'math', text: 'Lập được bất phương trình bậc nhất hai ẩn từ bối cảnh đơn giản.' },

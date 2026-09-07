@@ -46,7 +46,7 @@ describe('TeacherLiveView controls', () => {
       pauseResumeLabel: 'Tạm dừng',
       secondaryLabels: {
         timeline: 'Mở timeline',
-        stats: 'Ẩn thống kê TV',
+        stats: 'Ẩn thống kê trên TV',
         close: 'Đóng phiên',
       },
     });
