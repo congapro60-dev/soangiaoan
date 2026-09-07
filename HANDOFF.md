@@ -1,9 +1,30 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-09-03
+**Cập nhật:** 2026-09-07
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
 Handoff ngắn cho lô V4 live lesson. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
+
+## V4 TV/HS QA, language, stats — 2026-09-07
+
+- Đã merge vào `main`: mapping canonical P31 TV/HS, rich-text/formula line breaks, HS task-first layout, P27 `cp-postcheck`/HS7, EN student copy và fail-closed JA/KO/ZH fallback.
+- TV có density typography, cue transition, owner-auth `tv-control`, public TV read-only và step-aware anonymous stats. Anonymous không được vào teacher/control branch.
+- Preview offline có `Trước`/`Sau`, counter và stats minh họa có nhãn; không chứa teacherScript/PII/private fields.
+- Chưa deploy hoặc re-seed production. Production cần canonical P31 identity + Rules deploy; browser smoke `tv-control` bằng tài khoản GV non-anonymous còn phải chạy.
+- Nghiệm thu sau merge trên `main`: full Vitest **152 files / 1866 tests PASS**, `npm run lint`, `npm run lint:api`, `npm run build`, `git diff --check`; Rules Emulator **8 files / 303 tests PASS**; service pilot **1/1 PASS**.
+
+### Lệnh nghiệm thu V4
+
+```powershell
+$worktree = "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading"
+npm --prefix $worktree test
+npm --prefix $worktree run lint
+npm --prefix $worktree run lint:api
+npm --prefix $worktree run test:rules
+npm --prefix $worktree run test:pilot
+npm --prefix $worktree run build
+git -C $worktree diff --check
+```
 
 ## Chấm nhanh / chấm kĩ — 2026-09-07
 
