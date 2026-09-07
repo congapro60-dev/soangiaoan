@@ -4,9 +4,10 @@ import { useLocation, useParams } from 'react-router-dom';
 import { auth } from '../lib/firebase';
 import { getLiveLessonDefinitionForRoute } from '../lib/liveLesson/routeDefinition';
 import type { LiveLessonDefinition, LiveLessonMode, LiveLessonSession, LivePublicState } from '../lib/liveLesson/types';
-import { getLiveLessonSession, subscribeToLivePublicState, subscribeToTeacherSession } from '../services/liveLessonService';
+import { getLiveLessonSession, subscribeToLivePublicState, subscribeToTeacherSession, updateLiveLessonState } from '../services/liveLessonService';
 import { TeacherLiveView } from '../components/liveLesson/TeacherLiveView';
 import { TvLiveView } from '../components/liveLesson/TvLiveView';
+import { TvPresenterControls } from '../components/liveLesson/TvPresenterControls';
 import { StudentLiveView } from '../components/liveLesson/StudentLiveView';
 
 export type TvDefinitionProjection = Pick<LiveLessonDefinition, 'id' | 'lessonId' | 'title' | 'durationSeconds' | 'tvScreens'>;
@@ -14,7 +15,9 @@ export type StudentCueProjection = { id: string; studentScreenId: string; respon
 export type StudentDefinitionProjection = Pick<LiveLessonDefinition, 'id' | 'lessonId' | 'title' | 'durationSeconds' | 'tvScreens' | 'studentScreens' | 'allowedStepIds' | 'responseSteps'> & { studentCues: StudentCueProjection[] };
 export type LiveLessonDefinitionProjection = LiveLessonDefinition | TvDefinitionProjection | StudentDefinitionProjection;
 
-export const parseLiveLessonMode = (value: string | null): LiveLessonMode | null => value === 'teacher' || value === 'tv' || value === 'student' ? value : null;
+export const parseLiveLessonMode = (value: string | null): LiveLessonMode | null => value === 'teacher' || value === 'tv' || value === 'student' || value === 'tv-control' ? value : null;
+// Chế độ dựa trên phiên GV (cần đăng nhập + sở hữu): teacher và tv-control.
+export const isOwnerLiveLessonMode = (mode: LiveLessonMode): boolean => mode === 'teacher' || mode === 'tv-control';
 export const getStudentLiveContext = (search: string): { expectedClassId: string | null; expectedJoinCode: string | null } => {
   const params = new URLSearchParams(search);
   if (params.get('mode') !== 'student') return { expectedClassId: null, expectedJoinCode: null };
@@ -30,8 +33,8 @@ export const getLiveLessonDefinitionContext = (search: string): { definitionKey:
     lessonId: params.get('lessonId')?.trim() || null,
   };
 };
-export const shouldLoadParentLiveLessonSession = (mode: LiveLessonMode): boolean => mode === 'teacher';
-export const canLoadParentLiveLessonSession = ({ mode, authReady, userUid }: { mode: LiveLessonMode; authReady: boolean; userUid: string | null | undefined }): boolean => shouldLoadParentLiveLessonSession(mode) && authReady && Boolean(userUid);
+export const shouldLoadParentLiveLessonSession = (mode: LiveLessonMode): boolean => isOwnerLiveLessonMode(mode);
+export const canLoadParentLiveLessonSession = ({ mode, authReady, userUid, userIsAnonymous = false }: { mode: LiveLessonMode; authReady: boolean; userUid: string | null | undefined; userIsAnonymous?: boolean }): boolean => shouldLoadParentLiveLessonSession(mode) && authReady && Boolean(userUid) && !userIsAnonymous;
 
 export const isTeacherSessionOwner = (session: Pick<LiveLessonSession, 'teacherUid'>, uid: string | null | undefined): boolean => Boolean(uid && session.teacherUid === uid);
 
@@ -62,18 +65,20 @@ export const mergeTeacherSessionSnapshot = (current: LiveLessonSession | null, i
 
 export const getPublicListenerFailureMode = (hasSeenPublicState: boolean): 'initial' | 'reconnect' => hasSeenPublicState ? 'reconnect' : 'initial';
 
-export const getLiveLessonRouteError = ({ mode, session, publicState, definition, userUid }: { mode: string | null; session: LiveLessonSession | null; publicState?: LivePublicState | null; definition?: LiveLessonDefinition | null; userUid?: string | null }): string | null => {
-  if (!parseLiveLessonMode(mode)) return 'Chế độ tiết trực tiếp không hợp lệ. Hãy dùng mode=teacher, mode=tv hoặc mode=student.';
-  if (mode === 'teacher') {
+export const getLiveLessonRouteError = ({ mode, session, publicState, definition, userUid, userIsAnonymous = false }: { mode: string | null; session: LiveLessonSession | null; publicState?: LivePublicState | null; definition?: LiveLessonDefinition | null; userUid?: string | null; userIsAnonymous?: boolean }): string | null => {
+  const parsedMode = parseLiveLessonMode(mode);
+  if (!parsedMode) return 'Chế độ tiết trực tiếp không hợp lệ. Hãy dùng mode=teacher, mode=tv, mode=student hoặc mode=tv-control.';
+  const ownerMode = isOwnerLiveLessonMode(parsedMode);
+  if (ownerMode) {
     if (!session) return 'Không tìm thấy phiên tiết trực tiếp này. Bạn có thể quay lại và mở một phiên mới.';
     if (session.expiresAt <= Date.now()) return 'Phiên tiết trực tiếp đã hết hạn. Hãy yêu cầu giáo viên mở phiên mới.';
   } else {
     if (!publicState) return 'Không tìm thấy trạng thái công khai của phiên. Phiên có thể đã đóng hoặc hết hạn; hãy yêu cầu giáo viên mở phiên mới.';
   }
   if (!definition) return 'Không tải được định nghĩa bài học của phiên. Phiên chưa sẵn sàng để hiển thị.';
-  if (mode === 'teacher') {
+  if (ownerMode) {
     if (definition.lessonId !== session!.lessonId) return 'Định nghĩa bài học không khớp với bài học của phiên; phiên bị chặn để tránh hiển thị sai nội dung.';
-    if (!userUid) return 'Chế độ giáo viên yêu cầu đăng nhập.';
+    if (!userUid || userIsAnonymous) return 'Chế độ điều khiển yêu cầu đăng nhập bằng tài khoản giáo viên chủ phiên.';
     if (!isTeacherSessionOwner(session!, userUid)) return 'Tài khoản hiện tại không sở hữu phiên tiết trực tiếp này.';
   }
   return null;
@@ -103,7 +108,9 @@ export const LiveLessonPage = () => {
   const [definition, setDefinition] = useState<LiveLessonDefinition | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const authDependency = mode === 'teacher' ? `${authReady}:${user?.uid ?? ''}` : 'public';
+  const [presenterBusy, setPresenterBusy] = useState(false);
+  const [presenterError, setPresenterError] = useState<string | null>(null);
+  const authDependency = mode && isOwnerLiveLessonMode(mode) ? `${authReady}:${user?.uid ?? ''}:${user?.isAnonymous ? 'anonymous' : 'account'}` : 'public';
 
   useEffect(() => onAuthStateChanged(auth, nextUser => {
     setUser(nextUser);
@@ -133,15 +140,16 @@ export const LiveLessonPage = () => {
         setLoading(false);
         return;
       }
-      if (mode === 'teacher' && !authReady) return;
-      if (mode === 'teacher' && !user?.uid) {
-        setLoadError('Chế độ giáo viên yêu cầu đăng nhập.');
+      const ownerMode = isOwnerLiveLessonMode(mode);
+      if (ownerMode && !authReady) return;
+      if (ownerMode && (!user?.uid || user.isAnonymous)) {
+        setLoadError('Chế độ điều khiển yêu cầu đăng nhập bằng tài khoản giáo viên chủ phiên.');
         setLoading(false);
         return;
       }
       try {
         setDefinition(getLiveLessonDefinitionForRoute(definitionContext.definitionKey, definitionContext.lessonId));
-        if (canLoadParentLiveLessonSession({ mode, authReady, userUid: user?.uid })) {
+        if (canLoadParentLiveLessonSession({ mode, authReady, userUid: user?.uid, userIsAnonymous: user?.isAnonymous })) {
           const found = await getLiveLessonSession(sessionId);
           if (!active) return;
           setSession(found);
@@ -195,17 +203,48 @@ export const LiveLessonPage = () => {
 
   if (loading) return <main className="flex min-h-screen items-center justify-center bg-slate-950 p-6 text-white"><p className="text-sm font-black">Đang tải phiên tiết trực tiếp...</p></main>;
   if (loadError) return <RouteError message={loadError} />;
-  const routeError = getLiveLessonRouteError({ mode: modeParam, session, publicState, definition, userUid: user?.uid });
-  if (routeError || !mode || !definition || (mode === 'teacher' && !session) || (mode !== 'teacher' && !publicState)) return <RouteError message={routeError || 'Phiên tiết trực tiếp chưa sẵn sàng.'} />;
+  const routeError = getLiveLessonRouteError({ mode: modeParam, session, publicState, definition, userUid: user?.uid, userIsAnonymous: user?.isAnonymous });
+  if (routeError || !mode || !definition || (isOwnerLiveLessonMode(mode) && !session) || (!isOwnerLiveLessonMode(mode) && !publicState)) return <RouteError message={routeError || 'Phiên tiết trực tiếp chưa sẵn sàng.'} />;
   if (mode === 'teacher' && session) {
-    return <TeacherLiveView definition={definition} session={session} sessionError={teacherSessionError} onSessionChange={setSession} />;
+    return <TeacherLiveView definition={definition} session={session} sessionError={teacherSessionError} onSessionChange={setSession} definitionKey={definitionContext.definitionKey ?? undefined} />;
+  }
+  if (mode === 'tv-control' && session) {
+    const controlTvDefinition = projectLiveLessonDefinition(definition, 'tv');
+    const presenterPublicState: LivePublicState = {
+      cueId: session.currentCueId,
+      tvScreenId: session.currentTvScreenId,
+      status: session.status,
+      showStats: session.publicStatsEnabled,
+      updatedAt: session.updatedAt,
+    };
+    const applyPresenterPatch = async (patch: Parameters<typeof updateLiveLessonState>[1]) => {
+      setPresenterBusy(true);
+      setPresenterError(null);
+      try {
+        setSession(await updateLiveLessonState(sessionId, patch));
+      } catch (patchError) {
+        setPresenterError(patchError instanceof Error ? patchError.message : 'Không cập nhật được phiên.');
+      } finally {
+        setPresenterBusy(false);
+      }
+    };
+    return <TvLiveView definition={controlTvDefinition} sessionId={sessionId} publicState={presenterPublicState} publicStateError={teacherSessionError} definitionKey={definitionContext.definitionKey ?? undefined} presenterControls={
+      <TvPresenterControls
+        definition={definition}
+        session={session}
+        busy={presenterBusy}
+        error={presenterError}
+        onNavigate={(patch) => { void applyPresenterPatch(patch); }}
+        onToggleStatus={() => { void applyPresenterPatch({ status: session.status === 'running' ? 'paused' : 'running' }); }}
+      />
+    } />;
   }
   if (mode === 'tv' && publicState) {
     const tvDefinition = projectLiveLessonDefinition(definition, 'tv');
     return <TvLiveView definition={tvDefinition} sessionId={sessionId} publicState={publicState} publicStateError={publicStateError} definitionKey={definitionContext.definitionKey ?? undefined} />;
   }
   if (mode === 'student' && publicState) {
-    return <StudentLiveView definition={projectLiveLessonDefinition(definition, 'student')} sessionId={sessionId} expectedClassId={studentContext.expectedClassId} expectedJoinCode={studentContext.expectedJoinCode} publicState={publicState} publicStateError={publicStateError} />;
+    return <StudentLiveView definition={projectLiveLessonDefinition(definition, 'student')} sessionId={sessionId} expectedClassId={studentContext.expectedClassId} expectedJoinCode={studentContext.expectedJoinCode} publicState={publicState} publicStateError={publicStateError} definitionKey={definitionContext.definitionKey ?? undefined} />;
   }
   return <PlaceholderPanel mode={mode} projection={projectLiveLessonDefinition(definition, mode)} />;
 };

@@ -15,7 +15,9 @@ function registerMedia(definitionKey: string, screenId: string, entry: TvMediaEn
   screenMap.set(screenId, entry);
 }
 
-registerMedia('10-5-31', 'S1', {
+// Cue P00 của bài canonical 10-5-31 dùng màn hình S0 (mở đầu). Video whiteboard
+// gắn với cue mở đầu này; các màn hình/định nghĩa khác không có media.
+registerMedia('10-5-31', 'S0', {
   videoSrc: '/media/g10-w5-p31-p00-whiteboard.mp4',
   posterSrc: '/media/g10-w5-p31-p00-whiteboard.png',
   altText: 'Bảng trắng bài học Bất phương trình bậc nhất hai ẩn — Tiết 1',

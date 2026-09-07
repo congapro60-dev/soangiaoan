@@ -16,6 +16,8 @@ export type {
   GlossaryItem,
   CurriculumBridge,
   StudentLanguageView,
+  LocalizedStudentCopy,
+  StudentLanguagePack,
   VerifiedLanguageSupportPlan,
   ScaffoldSet,
   FadingRule,
@@ -36,6 +38,7 @@ export type {
   PublicTvProjection,
   StudentProjection,
   PublicTvState,
+  PublicTvScreen,
   OfflinePack,
   PublicationGate,
   LiveLessonV4Contract,
@@ -81,6 +84,11 @@ export {
   type StudentSupportModeOption,
   type StudentLanguageViewSource,
 } from './languageSupport';
+export {
+  getStudentLanguagePack,
+  getLocalizedStudentCopy,
+  hasReviewedStudentLanguagePack,
+} from './languagePack';
 export {
   buildStudentGlossaryPopup,
   findApprovedGlossaryItem,

@@ -3,6 +3,7 @@ import { getPilotLiveLessonDefinition } from '../lib/liveLesson/definition';
 import {
   getLiveLessonRouteError,
   canLoadParentLiveLessonSession,
+  isOwnerLiveLessonMode,
   isTeacherSessionOwner,
   parseLiveLessonMode,
   projectLiveLessonDefinition,
@@ -50,6 +51,7 @@ describe('LiveLessonPage route helpers', () => {
   it('gates the teacher parent load until auth is ready and signed in', () => {
     expect(canLoadParentLiveLessonSession({ mode: 'teacher', authReady: false, userUid: 'teacher-1' })).toBe(false);
     expect(canLoadParentLiveLessonSession({ mode: 'teacher', authReady: true, userUid: null })).toBe(false);
+    expect(canLoadParentLiveLessonSession({ mode: 'teacher', authReady: true, userUid: 'anonymous-1', userIsAnonymous: true })).toBe(false);
     expect(canLoadParentLiveLessonSession({ mode: 'teacher', authReady: true, userUid: 'teacher-1' })).toBe(true);
     expect(canLoadParentLiveLessonSession({ mode: 'tv', authReady: false, userUid: null })).toBe(false);
   });
@@ -96,5 +98,44 @@ describe('LiveLessonPage route helpers', () => {
     expect(mergeTeacherSessionSnapshot(current as never, newer as never)).toBe(newer);
     expect(getPublicListenerFailureMode(false)).toBe('initial');
     expect(getPublicListenerFailureMode(true)).toBe('reconnect');
+  });
+});
+
+describe('tv-control mode (authenticated presenter)', () => {
+  const definition = getPilotLiveLessonDefinition();
+  const ownerSession = {
+    lessonId: definition.lessonId,
+    teacherUid: 'owner-1',
+    expiresAt: Date.now() + 3_600_000,
+  } as never;
+
+  it('parses tv-control and treats it as an owner (session-based) mode', () => {
+    expect(parseLiveLessonMode('tv-control')).toBe('tv-control');
+    expect(isOwnerLiveLessonMode('tv-control')).toBe(true);
+    expect(isOwnerLiveLessonMode('tv')).toBe(false);
+    expect(shouldLoadParentLiveLessonSession('tv-control')).toBe(true);
+    expect(shouldLoadParentLiveLessonSession('tv')).toBe(false);
+  });
+
+  it('requires the authenticated owner before rendering controls', () => {
+    // No session yet.
+    expect(getLiveLessonRouteError({ mode: 'tv-control', session: null })).toContain('Không tìm thấy');
+    // Not logged in.
+    expect(getLiveLessonRouteError({ mode: 'tv-control', session: ownerSession, definition, userUid: null }))
+      .toContain('đăng nhập');
+    expect(getLiveLessonRouteError({ mode: 'tv-control', session: ownerSession, definition, userUid: 'owner-1', userIsAnonymous: true }))
+      .toContain('đăng nhập');
+    // Logged in but not the owner.
+    expect(getLiveLessonRouteError({ mode: 'tv-control', session: ownerSession, definition, userUid: 'someone-else' }))
+      .toContain('không sở hữu');
+    // Owner → allowed.
+    expect(getLiveLessonRouteError({ mode: 'tv-control', session: ownerSession, definition, userUid: 'owner-1' }))
+      .toBeNull();
+  });
+
+  it('public tv stays read-only and never becomes an owner mode', () => {
+    expect(isOwnerLiveLessonMode('tv')).toBe(false);
+    // Public tv still requires a public state (it never loads the parent session).
+    expect(getLiveLessonRouteError({ mode: 'tv', session: null, publicState: null })).toContain('công khai');
   });
 });

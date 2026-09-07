@@ -25,6 +25,7 @@ const responseTypeMap: Record<V4ResponseType, LiveResponseType> = {
 };
 
 const checkpointScreenMap: Record<string, string> = {
+  // IDs legacy (48 bài adapter Ban Toán)
   'cp-guiding-question': 'HS1',
   'cp-student-goal': 'HS2',
   'cp-diagnostic': 'HS3',
@@ -34,6 +35,15 @@ const checkpointScreenMap: Record<string, string> = {
   'cp-post-check': 'HS7',
   'cp-quick-check': 'HS8',
   'cp-exit-ticket': 'HS10',
+  // IDs canonical (bài thủ công P31) — nếu thiếu, cổng HS rơi về HS0 "Sẵn sàng"
+  // trong lúc HS đang thực sự làm việc.
+  'cp-teacher-synthesis': 'HS2',
+  'cp-model': 'HS3',
+  'cp-postcheck': 'HS7',
+  'cp-postcheck-m': 'HS7',
+  'cp-postcheck-s': 'HS7',
+  'cp-postcheck-c': 'HS7',
+  'cp-route': 'HS6',
 };
 
 const studentScreens: LiveLessonScreen[] = [
@@ -123,6 +133,16 @@ function publicScreenBody(contract: LiveLessonV4Contract, screenId: string): str
 }
 
 function buildTvScreens(contract: LiveLessonV4Contract): LiveLessonScreen[] {
+  // Bài thủ công khai báo nội dung TV theo từng cue ⇒ dùng trực tiếp, không ép
+  // vào cung bậc screenId cố định (tránh dùng lại một screenId cho nhiều hoạt động).
+  if (contract.publicTvScreens?.length) {
+    return contract.publicTvScreens.map((screen) => ({
+      id: screen.screenId,
+      label: screen.label,
+      title: screen.title,
+      body: screen.body,
+    }));
+  }
   const screenIds = [...new Set(contract.timeline.map((block) => block.tvScreenId))];
   return screenIds.map((id) => ({
     id,

@@ -41,7 +41,7 @@ const PILOT_ALLOWED_STEP_IDS = [
 ] as const;
 const V4_ALLOWED_STEP_IDS = [
   'cp-student-goal', 'cp-teacher-synthesis', 'cp-model', 'cp-ai-error',
-  'cp-group-product', 'cp-postcheck-m', 'cp-postcheck-s', 'cp-postcheck-c',
+  'cp-group-product', 'cp-postcheck', 'cp-postcheck-m', 'cp-postcheck-s', 'cp-postcheck-c',
   'cp-route', 'cp-exit-ticket',
 ] as const;
 const LEGACY_V4_ALLOWED_STEP_IDS = [
@@ -294,9 +294,15 @@ describe('liveLessonSessions · parent session', () => {
     })));
   });
 
-  it('exceeding 10 allowedStepIds → DENY', async () => {
-    await assertFails(setDoc(sessionRef(dbTeacherA(), 'session-11-steps'), sessionData('session-11-steps', {
-      allowedStepIds: [...PILOT_ALLOWED_STEP_IDS, 'warmup', 'notice-wonder'],
+  it('exactly 11 allowedStepIds (canonical V4 incl. cp-postcheck) → ALLOW', async () => {
+    await assertSucceeds(setDoc(sessionRef(dbTeacherA(), 'session-11-steps'), sessionData('session-11-steps', {
+      allowedStepIds: [...V4_ALLOWED_STEP_IDS],
+    })));
+  });
+
+  it('exceeding 11 allowedStepIds → DENY (all ids valid; only the size cap is violated)', async () => {
+    await assertFails(setDoc(sessionRef(dbTeacherA(), 'session-12-steps'), sessionData('session-12-steps', {
+      allowedStepIds: [...V4_ALLOWED_STEP_IDS, 'warmup'],
     })));
   });
 

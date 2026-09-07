@@ -2,7 +2,9 @@ import type { LiveCue } from '../../data/liveLessonPackages/g10_w5_p31_bpt_tiet1
 
 import type { StudentLanguageView } from './v4/types.js';
 
-export type LiveLessonMode = 'teacher' | 'tv' | 'student';
+// 'tv-control' = màn hình TV có nút điều khiển cho GV chủ phiên (đã xác thực).
+// 'tv' công khai vẫn chỉ đọc, không bao giờ ghi Firestore.
+export type LiveLessonMode = 'teacher' | 'tv' | 'student' | 'tv-control';
 export type LiveSessionStatus = 'lobby' | 'running' | 'paused' | 'closed';
 export type LiveResponseType = 'choice' | 'text' | 'boolean' | 'route' | 'hint' | 'exit_ticket';
 export type LiveRoute = 'M' | 'S' | 'C';

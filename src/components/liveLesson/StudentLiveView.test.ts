@@ -98,7 +98,18 @@ describe('student V4 language view helpers', () => {
     expect(buildOfflineStatusText(false, 1, 0)).toBe('Đã lưu trên máy — chờ đồng bộ.');
     expect(buildOfflineStatusText(true, 2, 0)).toBe('Đang đồng bộ 2 phản hồi đã lưu trên máy.');
     expect(buildOfflineStatusText(true, 0, 1)).toBe('Lỗi — dùng vở; 1 phản hồi bị chặn.');
-    expect(buildOfflineStatusText(true, 0, 0)).toBe('Đã gửi.');
+    expect(buildOfflineStatusText(true, 0, 0, true)).toBe('Đã gửi.');
+  });
+
+  it('does not show a false "Đã gửi." before the student has submitted anything', () => {
+    // Initial load: empty queue, nothing submitted → must NOT claim success.
+    expect(buildOfflineStatusText(true, 0, 0)).toBe('Sẵn sàng.');
+    expect(buildOfflineStatusText(true, 0, 0, false)).toBe('Sẵn sàng.');
+    // Only after a real submit (queue drained) does it confirm.
+    expect(buildOfflineStatusText(true, 0, 0, true)).toBe('Đã gửi.');
+    // A blocked/pending queue still takes priority over the submitted flag.
+    expect(buildOfflineStatusText(true, 0, 1, true)).toBe('Lỗi — dùng vở; 1 phản hồi bị chặn.');
+    expect(buildOfflineStatusText(true, 2, 0, true)).toBe('Đang đồng bộ 2 phản hồi đã lưu trên máy.');
   });
 });
 

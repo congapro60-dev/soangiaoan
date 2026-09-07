@@ -366,14 +366,14 @@ service cloud.firestore {
                && data.get('teacherUid', '').size() <= 128
                && data.get('allowedStepIds', []) is list
                && data.get('allowedStepIds', []).size() > 0
-               && data.get('allowedStepIds', []).size() <= 10
+               && data.get('allowedStepIds', []).size() <= 11
                && data.get('allowedStepIds', []).hasOnly([
                     'warmup', 'notice-wonder', 'goals', 'route', 'model',
                     'ai-think-w01', 'ai-error-w01', 'quick-check', 'exit-ticket',
                     // V4 packages use reviewed checkpoint ids. Keep this an exact
                     // allowlist: a teacher cannot add arbitrary response channels.
                     'cp-student-goal', 'cp-teacher-synthesis', 'cp-model', 'cp-ai-error',
-                    'cp-group-product', 'cp-postcheck-m', 'cp-postcheck-s', 'cp-postcheck-c',
+                    'cp-group-product', 'cp-postcheck', 'cp-postcheck-m', 'cp-postcheck-s', 'cp-postcheck-c',
                     'cp-route', 'cp-exit-ticket',
                     // Legacy V4 checkpoint ids — existing sessions still reference these.
                     'cp-guiding-question', 'cp-diagnostic', 'cp-route-choice',
