@@ -138,12 +138,11 @@ export const getGradingApiKey = (): string => {
   return key;
 };
 
-// Doi model khong can sua code: dat bien GRADING_MODEL tren Vercel roi redeploy.
-// Mac dinh gemini-3.8-flash: pro (gemini-3.1-pro-preview) doc chac hon NHUNG qua cham so voi tran
-// 60s cua Vercel Hobby -> "AI giai de" (16k token, nhieu anh) va "Cham ca lop" (batch x 2 pha) bi
-// timeout 504. Flash chay trong 60s. Muon thu pro thi dat env GRADING_MODEL=gemini-3.1-pro-preview
-// (chi nen dung cho "Cham lai" tung bai, va can nang Vercel len goi co maxDuration cao hon).
-export const GRADING_MODEL = process.env.GRADING_MODEL || 'gemini-3.8-flash';
+// Ghim trong code, KHONG doc env nua. Truoc day env GRADING_MODEL override duoc: mot lan dat pro
+// (gemini-3.1-pro-preview) roi quen go la production am tham chay model vuot tran 60s cua Vercel
+// Hobby, trong khi code da revert ve flash -> ca lop ket "Dang cham" ma doc code khong thay gi sai.
+// Doi model = sua dong nay roi deploy, de trang thai that luon nam trong git.
+export const GRADING_MODEL = 'gemini-3.8-flash';
 
 /** Tách "data:image/jpeg;base64,xxx" thành phần Gemini nhận được. */
 export const parseDataUrl = (dataUrl: string): InlineImage | null => {
@@ -166,6 +165,12 @@ export interface GeminiOptions {
    * thức ổn định hơn, không "mỗi lần một kiểu". Tác vụ cần đa dạng (sinh bài luyện) giữ >0.
    */
   temperature?: number;
+  /**
+   * Trần thời gian chờ Gemini, mili giây. Không đặt là chờ vô hạn — mà hàm serverless bị Vercel
+   * giết ở 60s thì bài nộp nằm lại "đang chấm" mãi vì không nhánh nào kịp mở khoá. Luôn truyền
+   * phần thời gian còn lại của lượt chấm vào đây.
+   */
+  timeoutMs?: number;
 }
 
 export type GeminiFailureKind =
@@ -226,26 +231,44 @@ export const callGeminiVision = async (
   };
   if (options.jsonMode) generationConfig.responseMimeType = 'application/json';
 
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{
-          role: 'user',
-          parts: [
-            { text: prompt },
-            ...images.map(img => ({ inlineData: { mimeType: img.mimeType, data: img.data } })),
-          ],
-        }],
-        generationConfig,
-      }),
-    },
-  );
+  let res: Response;
+  try {
+    res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            role: 'user',
+            parts: [
+              { text: prompt },
+              ...images.map(img => ({ inlineData: { mimeType: img.mimeType, data: img.data } })),
+            ],
+          }],
+          generationConfig,
+        }),
+        ...(options.timeoutMs ? { signal: AbortSignal.timeout(options.timeoutMs) } : {}),
+      },
+    );
+  } catch (error) {
+    // Hết giờ chờ thì phải ném ra để nhánh gọi kịp mở khoá bài nộp trước khi Vercel giết hàm.
+    const timedOut = error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError');
+    throw new GeminiResponseError(
+      'provider',
+      timedOut
+        ? 'AI xử lý quá lâu nên máy chủ phải dừng lượt chấm này. Thử lại, hoặc chụp gọn lại bài (ít ảnh hơn).'
+        : 'Không gọi được Gemini lúc này. Thử lại sau ít phút.',
+    );
+  }
 
   if (!res.ok) {
-    throw new GeminiResponseError('http', 'Gemini không thể xử lý yêu cầu lúc này. Thử lại sau ít phút.');
+    // Kèm mã HTTP: 429 (hết hạn mức), 400 (payload sai), 503 (Gemini quá tải) đòi ba cách xử lý
+    // hoàn toàn khác nhau, mà thông điệp chung chung thì giáo viên lẫn người sửa lỗi đều mù.
+    throw new GeminiResponseError(
+      'http',
+      `Gemini không thể xử lý yêu cầu lúc này (mã ${res.status}). Thử lại sau ít phút.`,
+    );
   }
 
   let rawData: unknown;

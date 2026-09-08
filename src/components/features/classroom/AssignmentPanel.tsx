@@ -26,7 +26,7 @@ import { AssignmentFormModal, type AssignmentFormValue } from './AssignmentFormM
 import { NhanXetMarkdown } from './NhanXetMarkdown';
 import { GradeReviewModal, type GradeReviewValue } from './GradeReviewModal';
 import { QuestionResultsList } from './QuestionResultsList';
-import { currentSubmissionsForAssignment, hasUncertainRead, isStaleGradingTimestamp, selectedCurrentSubmissions, selectedSubmissionsForAssignment, submissionsForHistoryMode, summarizeSelection, type SubmissionHistoryMode } from '../../../lib/classroom/submissionSelection';
+import { currentSubmissionsForAssignment, hasUncertainRead, isGradableNow, isStaleGradingTimestamp, selectedCurrentSubmissions, selectedSubmissionsForAssignment, submissionsForHistoryMode, summarizeSelection, type SubmissionHistoryMode } from '../../../lib/classroom/submissionSelection';
 import { renameAssignment } from '../../../lib/classroom/teacherService';
 import { OnlineAssignmentReview } from './OnlineAssignmentReview';
 
@@ -413,7 +413,7 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                   </button>
                   <button
                     onClick={() => void suaDiem(s, ten)}
-                    disabled={s.status === 'grading' || tienDo !== ''}
+                    disabled={gradingLockFresh || tienDo !== ''}
                     className="inline-flex items-center gap-1 rounded-2xl border border-indigo-200 bg-white px-3 py-2 text-xs font-black text-indigo-700 transition hover:bg-indigo-50"
                   >
                     <PenLine className="h-3.5 w-3.5" /> Sửa điểm
@@ -421,7 +421,7 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                   {s.grade && (
                     <button
                       onClick={() => void duyet(s)}
-                      disabled={s.status === 'grading' || tienDo !== ''}
+                      disabled={gradingLockFresh || tienDo !== ''}
                       className={`inline-flex items-center gap-1 rounded-2xl px-3 py-2 text-xs font-black transition ${
                         s.grade.teacherApproved ? 'bg-emerald-600 text-white' : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
                       }`}
@@ -433,7 +433,7 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                   {s.grade && (
                     <button
                       onClick={() => void xoaDiem(s, ten)}
-                      disabled={s.status === 'grading' || tienDo !== '' || dangXoaNop !== '' || dangXoaDiem !== ''}
+                      disabled={gradingLockFresh || tienDo !== '' || dangXoaNop !== '' || dangXoaDiem !== ''}
                       title="Xóa kết quả chấm nhưng giữ nguyên bài nộp và file"
                       className="inline-flex items-center gap-1 rounded-2xl border border-amber-200 bg-white px-3 py-2 text-xs font-black text-amber-700 transition hover:bg-amber-50 disabled:opacity-50"
                     >
@@ -443,7 +443,7 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                   )}
                   <button
                     onClick={() => void xoaBaiNop(s, ten)}
-                    disabled={s.status === 'grading' || tienDo !== '' || dangXoaNop !== ''}
+                    disabled={gradingLockFresh || tienDo !== '' || dangXoaNop !== ''}
                     title="Xóa lượt nộp này; lịch sử cũ (nếu có) vẫn giữ"
                     className="inline-flex items-center gap-1 rounded-2xl border border-red-200 bg-white px-3 py-2 text-xs font-black text-red-700 transition hover:bg-red-50 disabled:opacity-50"
                   >
@@ -658,7 +658,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
 
   /** Chấm tuần tự đúng các lượt hiện hành đã chọn, không vô tình chấm lịch sử cũ. */
   const chamDaChon = async (assignment: AssignmentDoc) => {
-    const selected = selectedCurrentForAssignment(assignment.id).filter(s => s.status === 'submitted' || s.status === 'error');
+    const selected = selectedCurrentForAssignment(assignment.id).filter(s => isGradableNow(s));
     if (selected.length === 0) return;
     setDangBulk('grade');
     let ok = 0;
@@ -792,7 +792,8 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
     }
     const selected = selectedForDeletion(assignment.id);
     if (selected.length === 0) return;
-    if (selected.some(s => s.status === 'grading')) {
+    // Chỉ chặn khi máy ĐANG thật sự chấm; khoá đã chết thì bài kẹt vĩnh viễn và chờ cũng vô ích.
+    if (selected.some(s => s.status === 'grading' && !isStaleGradingTimestamp(s.updatedAt))) {
       await Swal.fire({ icon: 'info', title: 'Có bài đang được chấm', text: 'Chờ máy chấm xong rồi mới xóa để không tạo trạng thái đua nhau.', confirmButtonColor: '#3085d6' });
       return;
     }
@@ -1234,7 +1235,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   };
 
   const duyet = async (submission: SubmissionDoc) => {
-    if (submission.status === 'grading') {
+    if (submission.status === 'grading' && !isStaleGradingTimestamp(submission.updatedAt)) {
       showToast('Bài đang được AI chấm; chờ máy xử lý xong rồi duyệt.', 'warning');
       return;
     }

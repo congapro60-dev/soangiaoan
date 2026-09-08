@@ -216,6 +216,7 @@ Chỉ trả về JSON thuần, không có code fence và không có lời dẫn 
 Dùng đúng schema đã yêu cầu, gồm các field "score", "maxScore", "feedbackForStudent", "noteForTeacher", "strengths", "weaknesses", "weakTopics" và "questionResults" cùng đầy đủ field của từng câu.
 Trong mọi chuỗi JSON, escape mọi dấu gạch chéo ngược trước khi trả về; vẫn giữ nguyên công thức LaTeX và không đổi phạm vi chấm, đề, đáp án hay thang điểm tối đa ${input.maxScore}.
 Không đưa raw output lỗi của lần trước vào câu trả lời.
+Lần trước rất có thể hỏng vì câu trả lời quá dài và bị cắt giữa chừng: viết GỌN lại. Mỗi field chữ của từng câu giữ trong một hai câu ngắn, không nhắc lại đề, không diễn giải dài dòng. Chấm đúng vẫn quan trọng hơn lời văn hay.
 `;
 
 const toStringArray = (value: unknown): string[] =>

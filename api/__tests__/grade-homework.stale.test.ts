@@ -81,7 +81,7 @@ describe('gradeAssignment · stale grading recovery', () => {
     verifyIdToken.mockResolvedValue({ uid: 'teacher-1' });
   });
 
-  it('grading mới được giữ nguyên, grading quá 10 phút chuyển error và không bị auto-grade cùng lượt', async () => {
+  it('grading mới được giữ nguyên, grading quá hạn chuyển error và không bị auto-grade cùng lượt', async () => {
     const now = Date.now();
     const db = makeDb({
       assignments: {
@@ -94,7 +94,7 @@ describe('gradeAssignment · stale grading recovery', () => {
         },
         'fresh-1': {
           assignmentId: 'assignment-1', teacherId: 'teacher-1', classId: 'class-1', studentId: 'student-2',
-          status: 'grading', updatedAt: new Date(now - 60 * 1000).toISOString(), fileUrls: [],
+          status: 'grading', updatedAt: new Date(now - 30 * 1000).toISOString(), fileUrls: [],
         },
       },
     });
@@ -107,6 +107,31 @@ describe('gradeAssignment · stale grading recovery', () => {
     expect(db.state.submissions['stale-1']).toMatchObject({ status: 'error' });
     expect(String(db.state.submissions['stale-1'].errorMessage)).toMatch(/quá lâu|thử lại/i);
     expect(db.state.submissions['fresh-1']).toMatchObject({ status: 'grading' });
-    expect(state.jsonBody).toEqual({ graded: 0, failed: 0, remaining: 0 });
+    // Đã gỡ được một bài = CÒN việc, để client chấm tiếp ngay trong cùng một lần bấm
+    // "Chấm cả lớp" thay vì bắt giáo viên bấm lần thứ hai.
+    expect(state.jsonBody).toEqual({ graded: 0, failed: 0, recovered: 1, remaining: 1 });
+  });
+
+  it('khoá chết sau 2 phút đã được gỡ — không bắt lớp treo "Đang chấm" tới 10 phút', async () => {
+    const now = Date.now();
+    const db = makeDb({
+      assignments: {
+        'assignment-1': { teacherId: 'teacher-1', classId: 'class-1', title: 'Bài 11 Columbus', answerKey: 'x = 2', maxScore: 10 },
+      },
+      submissions: {
+        'chet-1': {
+          assignmentId: 'assignment-1', teacherId: 'teacher-1', classId: 'class-1', studentId: 'student-1',
+          // Hàm chấm bị Vercel giết ở 60s, nên khoá 3 phút tuổi chắc chắn là khoá chết.
+          status: 'grading', updatedAt: new Date(now - 3 * 60 * 1000).toISOString(), fileUrls: [],
+        },
+      },
+    });
+    initializeAdmin.mockReturnValue(db);
+    const { response, state } = makeResponse();
+
+    await handler(makeRequest({ action: 'gradeAssignment', idToken: 'teacher-token', assignmentId: 'assignment-1' }), response);
+
+    expect(state.statusCode).toBe(200);
+    expect(db.state.submissions['chet-1']).toMatchObject({ status: 'error', gradingRunId: null });
   });
 });

@@ -79,7 +79,14 @@ import { canTeacherAccessLegacyNamespace } from './_classroom-access.js';
 // Chấm 2 pha (chép + chấm) làm mỗi bài tốn ~gấp đôi thời gian; hạ batch xuống 2 để một lượt
 // "Chấm cả lớp" không chạm trần 60s của Vercel (client tự gọi lại nhiều lượt cho tới hết).
 const BATCH_SIZE = 2;
-export const STALE_GRADING_MS = 10 * 60 * 1000;
+/**
+ * Sau bao lâu thì coi khoá "đang chấm" là khoá chết và cho giành lại.
+ *
+ * Hàm chấm bị Vercel giết ở 60s (`maxDuration`), nên không worker LÀNH nào giữ khoá quá chừng
+ * đó. Để 10 phút như trước là bài nộp treo "Đang chấm" gần cả buổi rồi mới có ai gỡ được —
+ * đúng cảnh cả lớp kẹt từ 20h. Hai phút đã rộng gấp đôi tuổi thọ tối đa của một worker.
+ */
+export const STALE_GRADING_MS = 2 * 60 * 1000;
 const isStaleGradingTimestamp = (updatedAt: unknown, nowMs = Date.now()): boolean => {
   const timestamp = Date.parse(String(updatedAt || ''));
   return !Number.isFinite(timestamp) || nowMs - timestamp > STALE_GRADING_MS;
@@ -149,6 +156,16 @@ const UNCERTAIN_READ_MESSAGE = 'AI đọc chưa rõ bài này nên chưa chấm 
 const SAFE_GRADING_ERROR_MESSAGE = 'AI gặp lỗi định dạng khi đọc kết quả chấm. Bài và ảnh vẫn được giữ nguyên; hệ thống đã tự thử phục hồi. Thầy/cô có thể chấm lại bằng AI hoặc sửa điểm bằng tay.';
 /** Khai tường minh thay vì dựa default của Vercel — Hobby cap ở 60s. */
 export const maxDuration = 60;
+/**
+ * Ngân sách cho MỘT bài: hết ngân sách là dừng và mở khoá, thay vì để Vercel giết hàm ở 60s.
+ * Bị giết thì không nhánh nào chạy, bài nộp nằm lại `status='grading'` vĩnh viễn — đây chính là
+ * cách 15 bài trong lớp kẹt "Đang chấm". Chừa ~10s cuối để kịp ghi Firestore và trả lời client.
+ */
+const GRADING_BUDGET_MS = 45_000;
+/** Tải một ảnh không được phép ngốn hết ngân sách của cả lượt chấm. */
+const IMAGE_FETCH_TIMEOUT_MS = 10_000;
+/** Dưới mức này thì không còn đủ giờ cho một lượt gọi Gemini nữa; thà báo lỗi còn hơn bị giết. */
+const MIN_GEMINI_BUDGET_MS = 12_000;
 
 const newPracticeId = (prefix: string): string => {
   const random = typeof globalThis.crypto?.randomUUID === 'function'
@@ -178,7 +195,7 @@ const uidFromIdToken = async (idToken: unknown): Promise<string | null> => {
 };
 
 const fetchImage = async (url: string): Promise<InlineImage | null> => {
-  const res = await fetch(url);
+  const res = await fetch(url, { signal: AbortSignal.timeout(IMAGE_FETCH_TIMEOUT_MS) });
   if (!res.ok) return null;
   // Submission có thể giữ cả PDF/DOCX để giáo viên mở bản gốc. Gemini Vision chỉ nhận ảnh;
   // phần chữ của DOCX đi qua `textContent`, còn file PDF đã có ảnh trang được tạo ở client.
@@ -246,14 +263,14 @@ interface GradeAttemptResult {
  * Pha 1 của chấm 2 pha: chép trung thực bài làm học sinh từ ảnh (chỉ ảnh bài làm, không kèm
  * đề/đáp án cho gọn và rẻ). Best-effort — lỗi thì trả rỗng để pha chấm vẫn chạy như một pha.
  */
-const transcribeStudentWork = async (images: InlineImage[], apiKey: string): Promise<string> => {
+const transcribeStudentWork = async (images: InlineImage[], apiKey: string, timeoutMs: number): Promise<string> => {
   if (images.length === 0) return '';
   const raw = await callGeminiVision(
     buildTranscriptionPrompt(),
     images,
     apiKey,
     GRADING_MODEL,
-    { maxOutputTokens: 4096, jsonMode: true, temperature: 0 },
+    { maxOutputTokens: 4096, jsonMode: true, temperature: 0, timeoutMs },
   );
   return parseTranscription(raw);
 };
@@ -266,6 +283,7 @@ const attemptHomeworkGrade = async (
   retryCount: 0 | 1,
   isStudentActor: boolean,
   transcription: string,
+  timeoutMs: number,
 ): Promise<GradeAttemptResult> => {
   // Tiêm bản chép của pha 1 vào ô "bài làm dạng chữ": pha chấm suy luận trên văn bản sạch,
   // vẫn còn ảnh để đối chiếu khi nghi ngờ. Không có bản chép thì chấm thẳng như một pha.
@@ -293,7 +311,16 @@ const attemptHomeworkGrade = async (
     apiKey,
     GRADING_MODEL,
     // temperature 0: đọc chữ + công thức ổn định giữa các lần chấm lại, bớt "mỗi lần một kiểu".
-    { maxOutputTokens: 8192, jsonMode: true, temperature: 0 },
+    //
+    // Trần token: 8192 là quá chật và đã gây lỗi thật trên lớp — bài nhiều câu, mỗi câu 8 field
+    // chữ, cộng thêm token "suy nghĩ" của model cũng tính vào đây, nên câu trả lời bị cắt giữa
+    // chừng (`MAX_TOKENS`) rồi lượt thử lại y hệt cũng cắt tiếp. Nới rộng, lượt thử lại rộng hơn.
+    {
+      maxOutputTokens: retryCount === 0 ? 16384 : 24576,
+      jsonMode: true,
+      temperature: 0,
+      timeoutMs,
+    },
   );
   const gradedWithoutAnswerKey = ctx.answerKey.trim().length === 0 && ctx.answerKeyImages.length === 0;
   const parsed = parseHomeworkGradeForCommit(raw, ctx.maxScore, gradedWithoutAnswerKey, retryCount);
@@ -356,6 +383,10 @@ const gradeOneSubmission = async (
   const previousStatus = previous.status;
   const hadPreviousGrade = Boolean(previous.grade);
   const isStudentActor = !isTeacher;
+  // Đồng hồ đếm ngược bắt đầu NGAY SAU khi khoá được đặt: từ giây này trở đi, mọi đường thoát
+  // đều phải kịp chạy nhánh mở khoá bên dưới trước khi Vercel giết hàm.
+  const deadlineAt = Date.now() + GRADING_BUDGET_MS;
+  const conLaiMs = () => deadlineAt - Date.now();
 
   try {
     const urls = (Array.isArray(previous.fileUrls) ? previous.fileUrls : []).slice(0, MAX_SUBMISSION_FILES);
@@ -370,9 +401,11 @@ const gradeOneSubmission = async (
     // PHA 1 (chép trước): đọc trung thực bài làm thành chữ/LaTeX MỘT LẦN cho cả hai lượt chấm.
     // Best-effort — pha này lỗi thì chấm thẳng như một pha, không làm hỏng lượt chấm.
     let transcription = '';
-    if (mode === 'thorough' && images.length > 0) {
+    // Pha chép chỉ được tiêu một nửa ngân sách còn lại: pha chấm mới là pha bắt buộc phải xong.
+    const nganSachChep = Math.min(Math.floor(conLaiMs() / 2), 20_000);
+    if (mode === 'thorough' && images.length > 0 && nganSachChep >= MIN_GEMINI_BUDGET_MS) {
       try {
-        transcription = await transcribeStudentWork(images, apiKey);
+        transcription = await transcribeStudentWork(images, apiKey, nganSachChep);
       } catch (error) {
         console.warn('[grade-homework] pha chép bài lỗi, chấm trực tiếp từ ảnh', error);
       }
@@ -380,10 +413,13 @@ const gradeOneSubmission = async (
 
     let attempt: GradeAttemptResult;
     try {
-      attempt = await attemptHomeworkGrade(ctx, images, studentText, apiKey, 0, isStudentActor, transcription);
+      attempt = await attemptHomeworkGrade(ctx, images, studentText, apiKey, 0, isStudentActor, transcription, conLaiMs());
     } catch (error) {
       if (!isRetryableGradeAttemptError(error)) throw error;
-      attempt = await attemptHomeworkGrade(ctx, images, studentText, apiKey, 1, isStudentActor, transcription);
+      // Không còn đủ giờ cho lượt thử lại thì báo lỗi luôn. Cố thêm một lượt nữa là chắc chắn bị
+      // Vercel giết giữa chừng, và bài nộp sẽ nằm lại "Đang chấm" không ai gỡ được.
+      if (conLaiMs() < MIN_GEMINI_BUDGET_MS) throw error;
+      attempt = await attemptHomeworkGrade(ctx, images, studentText, apiKey, 1, isStudentActor, transcription, conLaiMs());
     }
     const { grade } = attempt;
 
@@ -559,7 +595,10 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
     .limit(BATCH_SIZE + 20)
     .get();
 
-  if (pending.empty) return res.status(200).json({ graded: 0, failed: 0, remaining: 0 });
+  // Bài vừa gỡ khỏi khoá chết bị loại khỏi chính lượt này, nhưng vẫn phải báo là CÒN việc —
+  // không thì client dừng ngay sau khi gỡ khoá, và giáo viên phải bấm "Chấm cả lớp" lần thứ hai
+  // mới thật sự chấm.
+  if (pending.empty) return res.status(200).json({ graded: 0, failed: 0, recovered: recovered.size, remaining: recovered.size });
 
   // KHÓA NGUỒN GỐC: chỉ chấm bài nộp thật sự thuộc bài giao này (cùng giáo viên + cùng lớp).
   // Truy vấn không lọc được hai trường này nếu không đòi index tổ hợp mới, nên lọc tại đây —
@@ -569,13 +608,15 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
     return !recovered.has(d.id) && s.teacherId === assignmentTeacherId && s.classId === assignmentClassId;
   });
 
-  if (hopLe.length === 0) return res.status(200).json({ graded: 0, failed: 0, remaining: 0 });
+  if (hopLe.length === 0) return res.status(200).json({ graded: 0, failed: 0, recovered: recovered.size, remaining: recovered.size });
 
   const [quota, quotaRef] = await loadQuotaDoc(db, uid);
   const verdict = remainingQuota(quota, 'teacher', '');
   if (verdict.allowed <= 0) return res.status(429).json({ error: verdict.reason });
 
-  const batch = hopLe.slice(0, Math.min(hopLe.length, verdict.allowed));
+  // BATCH_SIZE phải nằm trong phép cắt này. Thiếu nó thì một request cố chấm tới 22 bài liền
+  // trong khi Vercel giết hàm ở 60s — chấm được vài bài rồi chết, bài đang dở kẹt "Đang chấm".
+  const batch = hopLe.slice(0, Math.min(BATCH_SIZE, verdict.allowed));
   const ctx: GradeContext = {
     answerKey: String(assignment.answerKey || ''),
     rubric: String(assignment.rubric || ''),
@@ -600,7 +641,8 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
   return res.status(200).json({
     graded,
     failed,
-    remaining: Math.max(0, hopLe.length - batch.length),
+    recovered: recovered.size,
+    remaining: Math.max(0, hopLe.length - batch.length) + recovered.size,
   });
 };
 

@@ -4,6 +4,8 @@ export interface GradeBatchResult {
   graded: number;
   failed: number;
   remaining: number;
+  /** Số bài vừa được gỡ khỏi khoá "đang chấm" chết. Cũng là tiến độ, dù chưa chấm được bài nào. */
+  recovered?: number;
 }
 
 export type HomeworkGradingMode = 'quick' | 'thorough';
@@ -46,7 +48,9 @@ export const gradeAssignmentAll = async (
     onProgress?.(total.graded + total.failed, result.remaining);
 
     if (result.remaining <= 0) break;
-    if (result.graded + result.failed === 0) break; // không tiến thêm được thì dừng, tránh lặp vô hạn
+    // Một vòng chỉ gỡ khoá chết mà chưa chấm được bài nào VẪN là tiến thêm — dừng ở đây là bắt
+    // giáo viên bấm "Chấm cả lớp" lần thứ hai mới thật sự chấm.
+    if (result.graded + result.failed + (result.recovered ?? 0) === 0) break; // đứng yên thì dừng, tránh lặp vô hạn
   }
   return total;
 };

@@ -1,3 +1,53 @@
+# Fix dứt điểm: bài nộp kẹt "Đang chấm" + "Lỗi" khi chấm AI — 2026-09-08
+
+**Branch**: `fix/grading-stuck-lock` · base `origin/main` = `cc4f1b6`
+
+## Bằng chứng production (đọc Firestore 08/09/2026)
+
+- 15/50 bài gần nhất ở `status='grading'` mà `gradingRunId` VẪN CÒN → khoá chết, không worker nào mở.
+- 06/09 15:18–15:25 UTC: 9 bài kẹt liên tiếp → một lượt "Chấm cả lớp" bị Vercel giết giữa chừng.
+- Lỗi thật trong `errorMessage`/`lastGradingErrorRaw`: `"AI trả lời dài quá trần cho phép nên bị cắt giữa chừng"` → `finishReason = MAX_TOKENS`.
+- 06/09 16:0x–16:37: 5 bài `"Gemini không thể xử lý yêu cầu lúc này"` → HTTP không ok mà code nuốt mất status code.
+- Mốc giờ khớp chính xác ảnh giáo viên gửi (13:29 UTC = 20:29, 15:11 UTC = 22:11).
+
+## Nguyên nhân gốc
+
+1. **Khoá chỉ do worker mở.** `claimSubmissionForGrading` ghi `status='grading'`, chỉ nhánh `catch` mở khoá. Worker chết (Vercel 60s, HS tắt máy giữa chừng) → kẹt vĩnh viễn. Không `fetch` nào trong luồng chấm có timeout.
+2. **`maxOutputTokens: 8192` quá chật** — token "suy nghĩ" cũng ăn vào trần này; retry dùng y nguyên cấu hình nên hỏng lần hai.
+3. **`BATCH_SIZE = 2` không được áp dụng** — `handleGradeAssignment` cắt batch theo hạn mức ngày, một request cố chấm tới 22 bài.
+4. **Bulk "Chấm AI" bỏ sót bài kẹt** (lọc `submitted | error`) → hiện "(0)" dù 8 bài đang treo.
+
+## Việc cần làm
+
+- [x] 1. Ngân sách 45s mỗi lượt chấm + timeout cho mọi `fetch`; hết ngân sách thì bỏ retry
+- [x] 2. `maxOutputTokens` 8192 → 16384 (thử lại 24576) + prompt thử lại yêu cầu viết gọn
+- [x] 3. Hạ ngưỡng khoá chết 10 phút → 2 phút (cả server lẫn client)
+- [x] 4. Áp đúng `BATCH_SIZE` cho "Chấm cả lớp"; trả thêm `recovered` để một lần bấm là đủ
+- [x] 5. Bulk "Chấm AI" và các nút từng dòng nhận cả bài `grading` đã quá hạn
+- [x] 6. Ghim model chấm = `gemini-3.8-flash` trong code, bỏ env override
+- [x] 7. Ghi mã HTTP của Gemini vào thông điệp lỗi
+- [x] 8. `lint` 0 · `lint:api` 0 · test 1873/1873 · `build` ✓
+
+## Review
+
+**Đổi gì** — 8 file, +221/−54. Bốn cổng kiểm tra đều pass.
+
+`api/_grading-core.ts`: `callGeminiVision` nhận `timeoutMs`, bọc `fetch` trong try/catch và dịch abort thành lỗi đọc được; thông điệp lỗi HTTP kèm mã trạng thái; `GRADING_MODEL` ghim cứng.
+
+`api/grade-homework.ts`: `GRADING_BUDGET_MS = 45s` tính từ lúc đặt khoá, truyền phần thời gian còn lại xuống từng lượt gọi; bỏ lượt thử lại khi không còn đủ giờ; `STALE_GRADING_MS` 2 phút; `BATCH_SIZE` được áp thật; trả thêm `recovered`.
+
+`submissionSelection.ts`: thêm `isGradableNow` — bài `grading` quá hạn cũng là bài chấm được. Dùng cho bộ đếm nút "Chấm AI" và bulk.
+
+`AssignmentPanel.tsx`: các nút từng dòng (Sửa điểm / Duyệt / Xóa điểm / Xóa lượt nộp) chỉ khoá khi máy ĐANG thật sự chấm.
+
+**Test mới**: `api/__tests__/grade-homework.deadline.test.ts` (5 ca) khoá cả hai nguyên nhân gốc — Gemini treo thì bài phải mở khoá chứ không nằm lại "Đang chấm"; trần token phải > 8192; lượt thử lại phải rộng hơn và đòi viết gọn; lỗi HTTP phải lộ mã trạng thái.
+
+**Chưa làm, có chủ ý**: không đặt `thinkingConfig` để chặn token "suy nghĩ" — không có khoá Gemini để thử ở máy này, mà tham số không được model chấp nhận thì trả 400 và chết TOÀN BỘ đường chấm. Nới trần token là cách an toàn hơn cho cùng triệu chứng. Nếu vẫn còn `MAX_TOKENS` sau lô này thì đó là bước tiếp theo, và lúc đó phải thử trên preview trước.
+
+**Còn lại cho chủ dự án**: xoá biến `GRADING_MODEL` trong Vercel nếu còn đặt (giờ code không đọc nữa, nhưng để lại thì gây hiểu nhầm).
+
+---
+
 # AI grading quick/thorough modes — 2026-09-07
 
 - [x] Add gradeOne tests: quick skips transcription, thorough stores transcription, student actor is forced quick.
