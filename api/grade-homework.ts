@@ -312,15 +312,11 @@ const attemptHomeworkGrade = async (
     GRADING_MODEL,
     // temperature 0: đọc chữ + công thức ổn định giữa các lần chấm lại, bớt "mỗi lần một kiểu".
     //
-    // Trần token: 8192 là quá chật và đã gây lỗi thật trên lớp — bài nhiều câu, mỗi câu 8 field
-    // chữ, cộng thêm token "suy nghĩ" của model cũng tính vào đây, nên câu trả lời bị cắt giữa
-    // chừng (`MAX_TOKENS`) rồi lượt thử lại y hệt cũng cắt tiếp. Nới rộng, lượt thử lại rộng hơn.
-    {
-      maxOutputTokens: retryCount === 0 ? 16384 : 24576,
-      jsonMode: true,
-      temperature: 0,
-      timeoutMs,
-    },
+    // Trần token: KHÔNG đặt, để model dùng trần tối đa của chính nó. Mức 8192 cũ đã gây lỗi thật
+    // trên lớp — bài nhiều câu, mỗi câu 8 field chữ, cộng token "suy nghĩ" cũng tính vào đây, nên
+    // câu trả lời bị cắt (`MAX_TOKENS`) rồi lượt thử lại y hệt cũng cắt tiếp. Ở đường chấm bài,
+    // bị cắt là hỏng nguyên lượt chấm của một em; phanh thời gian bên dưới mới là thứ giữ an toàn.
+    { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs },
   );
   const gradedWithoutAnswerKey = ctx.answerKey.trim().length === 0 && ctx.answerKeyImages.length === 0;
   const parsed = parseHomeworkGradeForCommit(raw, ctx.maxScore, gradedWithoutAnswerKey, retryCount);

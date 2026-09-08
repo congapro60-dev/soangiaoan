@@ -147,7 +147,7 @@ describe('gradeOne · trần thời gian và trần token', () => {
     expect(init?.signal).toBeInstanceOf(AbortSignal);
   });
 
-  it('trần token đủ rộng để bài nhiều câu không bị cắt giữa chừng', async () => {
+  it('đường chấm bài không gửi trần token nào, để model dùng trần tối đa của nó', async () => {
     const harness = seed();
     h.db = makeDb(harness);
     const fetchMock = vi.fn(async () => geminiOk(validGradeJson));
@@ -156,12 +156,16 @@ describe('gradeOne · trần thời gian và trần token', () => {
     await call({ action: 'gradeOne', submissionId: 'sub-1' });
 
     const init = fetchMock.mock.calls[0][1] as { body?: string };
-    const request = JSON.parse(String(init.body)) as { generationConfig?: { maxOutputTokens?: number } };
-    // 8192 là mức đã gây lỗi "AI trả lời dài quá trần cho phép" trên lớp thật.
-    expect(request.generationConfig?.maxOutputTokens).toBeGreaterThan(8192);
+    const request = JSON.parse(String(init.body)) as {
+      generationConfig?: Record<string, unknown>;
+    };
+    // Mức 8192 cũ đã gây lỗi "AI trả lời dài quá trần cho phép" trên lớp thật. Không gửi field
+    // này nữa; tự điền con số là hoặc vẫn chật, hoặc vượt trần model rồi bị từ chối.
+    expect(request.generationConfig).not.toHaveProperty('maxOutputTokens');
+    expect(request.generationConfig?.temperature).toBe(0);
   });
 
-  it('bị cắt vì MAX_TOKENS thì lượt thử lại được nới trần và yêu cầu viết gọn', async () => {
+  it('nếu vẫn bị cắt vì MAX_TOKENS thì lượt thử lại phải yêu cầu viết gọn', async () => {
     const harness = seed();
     h.db = makeDb(harness);
     let lan = 0;
@@ -172,15 +176,9 @@ describe('gradeOne · trần thời gian và trần token', () => {
 
     expect(result.statusCode).toBe(200);
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    const lanDau = JSON.parse(String((fetchMock.mock.calls[0][1] as { body?: string }).body)) as {
-      generationConfig?: { maxOutputTokens?: number };
-    };
     const lanHai = JSON.parse(String((fetchMock.mock.calls[1][1] as { body?: string }).body)) as {
-      generationConfig?: { maxOutputTokens?: number };
       contents?: Array<{ parts?: Array<{ text?: string }> }>;
     };
-    expect(lanHai.generationConfig?.maxOutputTokens)
-      .toBeGreaterThan(Number(lanDau.generationConfig?.maxOutputTokens));
     expect(String(lanHai.contents?.[0]?.parts?.[0]?.text)).toMatch(/viết GỌN|quá dài/i);
   });
 

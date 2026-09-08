@@ -153,11 +153,14 @@ export const parseDataUrl = (dataUrl: string): InlineImage | null => {
 
 export interface GeminiOptions {
   /**
-   * Trần token đầu ra. Với Gemini 2.5, token "suy nghĩ" của model CŨNG tính vào trần này, nên
-   * đặt chặt là câu trả lời thật bị cắt cụt hoặc rỗng. Giải cả một đề cần rộng hơn hẳn chấm
-   * một bài.
+   * Trần token đầu ra. Token "suy nghĩ" của model CŨNG tính vào trần này, nên đặt chặt là câu
+   * trả lời thật bị cắt cụt hoặc rỗng. Giải cả một đề cần rộng hơn hẳn chấm một bài.
+   *
+   * `'model-max'` = KHÔNG gửi trần nào cả, để model dùng trần tối đa của chính nó. Dùng cho
+   * đường chấm bài: ở đó bị cắt giữa chừng là hỏng nguyên lượt chấm của một em, mà tự đoán một
+   * con số thì hoặc vẫn chật, hoặc vượt trần model rồi bị từ chối thẳng.
    */
-  maxOutputTokens?: number;
+  maxOutputTokens?: number | 'model-max';
   /** Bật chế độ JSON của Gemini: model bị ràng buộc trả JSON hợp lệ, khỏi bọc trong ```json. */
   jsonMode?: boolean;
   /**
@@ -227,8 +230,11 @@ export const callGeminiVision = async (
 ): Promise<string> => {
   const generationConfig: Record<string, unknown> = {
     temperature: options.temperature ?? 0.2,
-    maxOutputTokens: options.maxOutputTokens ?? 4096,
   };
+  const maxOutputTokens = options.maxOutputTokens ?? 4096;
+  // Bỏ hẳn field khi gọi 'model-max': Gemini không nhận field này thì tự lấy trần lớn nhất của
+  // model. An toàn hơn tự điền một con số — điền quá tay là bị từ chối, điền dè là lại bị cắt.
+  if (maxOutputTokens !== 'model-max') generationConfig.maxOutputTokens = maxOutputTokens;
   if (options.jsonMode) generationConfig.responseMimeType = 'application/json';
 
   let res: Response;
