@@ -38,6 +38,8 @@ const MAX_ANH = 10;
 /** File gốc chỉ để giáo viên mở; phần chấm vẫn đi qua ảnh/chữ đã kiểm soát. */
 const MAX_RAW_FILE_BYTES = 20 * 1024 * 1024;
 const MAX_STUDENT_TEXT_CHARS = 60000;
+/** Máy chủ nhận bài rồi chấm ngầm — không bắt học sinh giữ màn hình cho tới lúc có điểm. */
+const DANG_CHAM_NGAM = 'Máy đã nhận bài và đang chấm. Em cứ tắt máy, lát nữa vào lại mục "Đã chấm" để xem điểm và nhận xét nhé!';
 type Stage = 'dang-tai' | 'nhap-ma-lop' | 'chon-ten' | 'dashboard';
 
 interface Phien {
@@ -418,7 +420,8 @@ export const StudentPortalPage = () => {
       if (!mucTieu) {
         setBuocNop('Đã nộp! Máy đang chấm bài...');
         try {
-          await gradeOneSubmission(submission.id, 'quick');
+          const ketQua = await gradeOneSubmission(submission.id, 'quick');
+          if (ketQua.pending) setThanhCong(DANG_CHAM_NGAM);
         } catch (error) {
           console.error('Chấm bài tự do chưa xong', error);
           setCanhBao('Bài đã nộp thành công nhưng máy chưa chấm được ngay — thầy cô sẽ chấm giúp em sau.');
@@ -443,8 +446,10 @@ export const StudentPortalPage = () => {
           if (isConfirmed) {
             setBuocNop('Máy đang chấm bài...');
             try {
-              await gradeOneSubmission(submission.id, 'quick');
-              setThanhCong(`${supplementOf ? 'Máy đã chấm lại toàn bộ' : 'Máy đã chấm xong'} bài "${tenBai}" — mở mục "Đã chấm" để xem nhận xét nhé!`);
+              const ketQua = await gradeOneSubmission(submission.id, 'quick');
+              setThanhCong(ketQua.pending
+                ? DANG_CHAM_NGAM
+                : `${supplementOf ? 'Máy đã chấm lại toàn bộ' : 'Máy đã chấm xong'} bài "${tenBai}" — mở mục "Đã chấm" để xem nhận xét nhé!`);
             } catch (error) {
               console.error('Chấm bài giao chưa xong', error);
               setCanhBao('Bài đã nộp thành công nhưng máy chưa chấm được ngay — thầy cô sẽ chấm giúp em sau.');

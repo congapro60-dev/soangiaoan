@@ -7,6 +7,7 @@ import {
   QUOTA_LIMITS,
   bumpQuota,
   callGeminiVision,
+  chayNgam,
   GeminiResponseError,
   getGradingApiKey,
   loadQuotaDoc,
@@ -710,6 +711,34 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
         answerKeyImages: await loadAnswerKeyImages(a),
       };
     }
+  }
+
+  // HỌC SINH tự chấm: trả lời ngay rồi chấm tiếp ở phía máy chủ. Em nộp bằng điện thoại xong
+  // tắt máy là chuyện thường; để việc chấm nằm trong request của em thì request đứt là worker
+  // chết giữa chừng và bài kẹt "Đang chấm". Giáo viên vẫn chấm đồng bộ vì đang ngồi nhìn màn hình.
+  // Nền tảng không cho chạy ngầm (chạy local, chạy test) thì tự lùi về chờ xong như cũ.
+  if (!isTeacher) {
+    const nen = gradeOneSubmission(db, submissionId, ctx, getGradingApiKey(), uid, isTeacher, mode)
+      .catch(error => {
+        console.error('[grade-homework] lượt chấm ngầm hỏng', error);
+        return { success: false };
+      });
+    if (chayNgam(nen)) {
+      // Trừ hạn mức ngay, không đợi kết quả: nếu không, bấm liên tục là lách được hạn mức.
+      await quotaRef.set(bumpQuota(quota, kind, String(submission.studentId || ''), 1));
+      return res.status(202).json({ graded: 0, failed: 0, remaining: 0, pending: true });
+    }
+    await nen;
+    await quotaRef.set(bumpQuota(quota, kind, String(submission.studentId || ''), 1));
+    const sau = await ref.get();
+    const sauData = sau.data() as FirebaseFirestore.DocumentData | undefined;
+    if (sauData?.status === 'graded') return res.status(200).json({ graded: 1, failed: 0, remaining: 0 });
+    return res.status(422).json({
+      error: String(sauData?.errorMessage || 'Chấm bài chưa thành công. Em thử lại hoặc chờ thầy cô chấm.'),
+      graded: 0,
+      failed: 1,
+      remaining: 0,
+    });
   }
 
   const result = await gradeOneSubmission(db, submissionId, ctx, getGradingApiKey(), uid, isTeacher, mode);

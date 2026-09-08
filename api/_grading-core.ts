@@ -124,6 +124,29 @@ export const reserveQuota = async (
   });
 };
 
+// ── Chạy ngầm sau khi đã trả lời client ──────────────────────────────────────
+
+/**
+ * Giữ việc chạy tiếp trên máy chủ SAU KHI đã trả lời client.
+ *
+ * Học sinh nộp bài bằng điện thoại rồi tắt máy là chuyện bình thường; nếu việc chấm nằm trong
+ * chính request của em thì request đứt là worker chết giữa chừng và bài kẹt "Đang chấm". Có
+ * `waitUntil` thì trả lời ngay "máy đang chấm, em cứ tắt máy" mà việc chấm vẫn chạy nốt.
+ *
+ * Vercel đặt hàm này vào request context toàn cục (`@vercel/functions` cũng đọc đúng chỗ này).
+ * Nền tảng không cung cấp — chạy local, chạy test — thì trả `false` để nhánh gọi tự lùi về cách
+ * cũ là chờ xong rồi mới trả lời. LƯU Ý: `waitUntil` KHÔNG vượt được `maxDuration`; nó bỏ được
+ * phụ thuộc vào máy học sinh, không nới thêm được giây nào.
+ */
+export const chayNgam = (work: Promise<unknown>): boolean => {
+  const store = (globalThis as Record<symbol, unknown>)[Symbol.for('@vercel/request-context')] as
+    { get?: () => { waitUntil?: (promise: Promise<unknown>) => void } | undefined } | undefined;
+  const waitUntil = store?.get?.()?.waitUntil;
+  if (typeof waitUntil !== 'function') return false;
+  waitUntil(work);
+  return true;
+};
+
 // ── Gọi Gemini bằng khoá của chủ dự án ───────────────────────────────────────
 
 export interface InlineImage {

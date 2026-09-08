@@ -1,9 +1,37 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-09-07
+**Cập nhật:** 2026-09-08
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
 Handoff ngắn cho lô V4 live lesson. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
+
+## SEV chấm bài: kẹt "Đang chấm" + MAX_TOKENS — 2026-09-08
+
+Sự cố thật 06–08/09: 15/50 bài nộp gần nhất nằm ở `status='grading'` với `gradingRunId` còn nguyên, vài em hiện "Lỗi", nút "Chấm AI" đếm ra 0 nên giáo viên không gỡ được.
+
+**Nguyên nhân gốc — đọc thẳng Firestore production, không phải suy đoán:**
+
+1. **Khoá chỉ do chính worker mở.** Không `fetch` nào trong luồng chấm có timeout, nên worker bị Vercel giết ở 60s (hoặc học sinh tắt máy giữa chừng) là khoá nằm lại vĩnh viễn.
+2. **`maxOutputTokens: 8192` quá chật.** Token "suy nghĩ" cũng tính vào trần này; `errorMessage` thật ghi *"AI trả lời dài quá trần cho phép nên bị cắt giữa chừng"* — tức `MAX_TOKENS`, KHÔNG phải lỗi parser như lô `7fda9fe` đã đoán.
+3. **`BATCH_SIZE = 2` không hề được áp dụng** — batch cắt theo hạn mức ngày, một request cố chấm tới 22 bài.
+4. **Bulk "Chấm AI" lọc `submitted|error`** nên bỏ sót đúng nhóm bài đang kẹt.
+
+**Đã sửa:**
+
+- `GRADING_BUDGET_MS = 45s` tính từ lúc đặt khoá; thời gian còn lại truyền xuống từng lượt gọi Gemini và từng lần tải ảnh qua `AbortSignal.timeout`; bỏ lượt thử lại khi không còn đủ giờ. Đây là mảnh chặn tận gốc — worker chết kiểu gì cũng không để lại khoá.
+- Đường chấm bài **không gửi `maxOutputTokens`** nữa (`'model-max'`), để model dùng trần tối đa của chính nó.
+- `STALE_GRADING_MS` 10 phút → **2 phút**, đồng bộ cả `api/grade-homework.ts` lẫn `src/lib/classroom/submissionSelection.ts`. Hai mốc này phải luôn khớp nhau.
+- `BATCH_SIZE` được áp thật; trả thêm `recovered` để một lần bấm "Chấm cả lớp" là vừa gỡ vừa chấm.
+- `isGradableNow`: bài `grading` quá hạn cũng là bài chấm được. Các nút từng dòng chỉ khoá khi máy ĐANG thật sự chấm.
+- `GRADING_MODEL` **ghim cứng** `gemini-3.8-flash`, bỏ env override — từng bị đặt pro trên Vercel rồi quên gỡ, làm bản revert trong code vô hiệu mà đọc code không thấy gì sai.
+- Thông điệp lỗi HTTP của Gemini kèm mã trạng thái (429/400/503 đòi ba cách xử lý khác nhau).
+- **Học sinh tự chấm chạy ngầm**: server trả `202 { pending: true }` ngay, chấm tiếp bằng `waitUntil`; em tắt máy vẫn ra điểm. Giáo viên vẫn chấm đồng bộ. `chayNgam()` đọc request context của Vercel qua `Symbol.for('@vercel/request-context')`, không thêm dependency; nền tảng không cung cấp thì tự lùi về chờ xong rồi trả lời.
+
+**Ngưỡng sắp cắn người:**
+
+- `waitUntil` **KHÔNG vượt được `maxDuration`** — vẫn 60s trên gói Hobby. Nó chỉ bỏ phụ thuộc vào máy học sinh. Muốn "đợi bao lâu cũng được" thật thì phải rời khỏi trần 60s: Vercel Pro (300s) hoặc chuyển riêng worker chấm sang Cloud Run / Firebase Functions v2. Chủ dự án đã chốt KHÔNG mua Pro.
+- Chưa đặt `thinkingConfig` để chặn token suy nghĩ — máy dev không có khoá Gemini để thử, mà tham số sai là API trả 400 và chết TOÀN BỘ đường chấm. Nếu còn `MAX_TOKENS` sau lô này thì đây là bước kế, và phải thử trên preview trước.
+- Nghiệm thu: `lint` 0, `lint:api` 0, full Vitest **153 files / 1875 tests PASS**, `build` PASS, `git diff --check` sạch.
 
 ## V4 TV/HS QA, language, stats — 2026-09-07
 

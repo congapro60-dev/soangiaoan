@@ -6,6 +6,11 @@ export interface GradeBatchResult {
   remaining: number;
   /** Số bài vừa được gỡ khỏi khoá "đang chấm" chết. Cũng là tiến độ, dù chưa chấm được bài nào. */
   recovered?: number;
+  /**
+   * Máy chủ đã nhận bài và đang chấm ngầm; chưa có điểm ngay lúc trả lời. Học sinh tắt máy vẫn
+   * ra điểm, chỉ cần quay lại xem sau.
+   */
+  pending?: boolean;
 }
 
 export type HomeworkGradingMode = 'quick' | 'thorough';

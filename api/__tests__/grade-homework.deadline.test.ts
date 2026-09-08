@@ -182,6 +182,50 @@ describe('gradeOne · trần thời gian và trần token', () => {
     expect(String(lanHai.contents?.[0]?.parts?.[0]?.text)).toMatch(/viết GỌN|quá dài/i);
   });
 
+  it('học sinh tự chấm: trả lời NGAY rồi chấm ngầm, em tắt máy vẫn ra điểm', async () => {
+    const harness = seed();
+    harness.state.studentLinks = { 'hs-uid': { studentId: 'hs-1', classId: 'lop-1', teacherId: 'gv-1' } };
+    h.uid = 'hs-uid';
+    h.db = makeDb(harness);
+    vi.stubGlobal('fetch', vi.fn(async () => geminiOk(validGradeJson)));
+
+    // Giả lập đúng chỗ Vercel đặt waitUntil vào request context.
+    const nen: Promise<unknown>[] = [];
+    (globalThis as Record<symbol, unknown>)[Symbol.for('@vercel/request-context')] = {
+      get: () => ({ waitUntil: (promise: Promise<unknown>) => { nen.push(promise); } }),
+    };
+
+    try {
+      const result = await call({ action: 'gradeOne', submissionId: 'sub-1' });
+
+      // Trả lời trước, chấm sau: máy học sinh không còn phải giữ kết nối tới lúc có điểm.
+      expect(result.statusCode).toBe(202);
+      expect(result.body).toMatchObject({ pending: true });
+      expect(nen).toHaveLength(1);
+      // Hạn mức phải trừ ngay, không đợi kết quả, kẻo bấm liên tục là lách được.
+      expect(harness.state.gradingQuota['gv-1'].byStudent).toMatchObject({ 'hs-1': 1 });
+
+      await Promise.all(nen);
+      expect(harness.state.submissions['sub-1']).toMatchObject({ status: 'graded' });
+    } finally {
+      delete (globalThis as Record<symbol, unknown>)[Symbol.for('@vercel/request-context')];
+    }
+  });
+
+  it('nền tảng không cho chạy ngầm thì lùi về chờ xong rồi mới trả lời', async () => {
+    const harness = seed();
+    harness.state.studentLinks = { 'hs-uid': { studentId: 'hs-1', classId: 'lop-1', teacherId: 'gv-1' } };
+    h.uid = 'hs-uid';
+    h.db = makeDb(harness);
+    vi.stubGlobal('fetch', vi.fn(async () => geminiOk(validGradeJson)));
+
+    const result = await call({ action: 'gradeOne', submissionId: 'sub-1' });
+
+    expect(result.statusCode).toBe(200);
+    expect(result.body).toMatchObject({ graded: 1 });
+    expect(harness.state.submissions['sub-1']).toMatchObject({ status: 'graded' });
+  });
+
   it('Gemini trả lỗi HTTP thì thông điệp có mã trạng thái để còn lần ra nguyên nhân', async () => {
     const harness = seed();
     h.db = makeDb(harness);
