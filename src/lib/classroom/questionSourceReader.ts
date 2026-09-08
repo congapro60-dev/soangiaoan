@@ -69,8 +69,24 @@ const defaultDeps: QuestionSourceReaderDeps = {
   ),
 };
 
-const asErrorMessage = (error: unknown): string =>
-  error instanceof Error && error.message.trim() ? error.message.trim() : 'không đọc được file.';
+/**
+ * Giáo viên không đọc được "Failed to fetch". Đó là câu trình duyệt ném ra khi không tải nổi
+ * file đề — thường vì kho ảnh chưa cho phép trang này tải trực tiếp, chứ không phải file hỏng.
+ * Dịch sang câu nói rõ chuyện gì đang xảy ra và làm gì tiếp.
+ */
+const asErrorMessage = (error: unknown): string => {
+  const raw = error instanceof Error ? error.message.trim() : '';
+  if (!raw) return 'không đọc được file.';
+  if (/failed to fetch|networkerror|load failed|network request failed/iu.test(raw)) {
+    return 'không tải được file đề về trình duyệt. Mở link đề gốc bên dưới để xem trực tiếp.';
+  }
+  return raw;
+};
+
+/** Danh sách nhãn câu dài dằng dặc làm cảnh báo thành một khối chữ không ai đọc. */
+const listSummary = (items: readonly string[], limit = 3): string => items.length <= limit
+  ? items.join(', ')
+  : `${items.slice(0, limit).join(', ')} và ${items.length - limit} câu khác`;
 
 const extensionOf = (name: string, mimeType?: string): string => {
   const match = name.toLowerCase().match(/\.([a-z0-9]+)$/u);
@@ -211,7 +227,7 @@ export const readQuestionCatalogFromSources = async (
 
   const images = [...new Set(downloaded.flatMap(item => item.images).filter(Boolean))].slice(0, MAX_SOURCE_IMAGES);
   if (images.length === 0) {
-    warnings.push(`Chưa tìm thấy nội dung ${unresolved.join(', ')} trong lớp chữ của nguồn đề.`);
+    warnings.push(`Chưa tìm thấy nội dung ${listSummary(unresolved)} trong lớp chữ của nguồn đề.`);
     return { catalog: textCatalog, mode: textCatalog.length > 0 ? 'text' : 'empty', warnings };
   }
 
@@ -221,7 +237,7 @@ export const readQuestionCatalogFromSources = async (
     const catalog = mergeCatalog(requested, textCatalog, fromOcr);
     if (fromOcr.length === 0) warnings.push('OCR đã chạy nhưng chưa tách chắc chắn được câu hỏi cần xem; hãy mở đề gốc để đối chiếu.');
     const stillMissing = missingQuestions(requested, catalog);
-    if (stillMissing.length > 0) warnings.push(`Chưa đọc chắc chắn được: ${stillMissing.join(', ')}.`);
+    if (stillMissing.length > 0) warnings.push(`Chưa đọc chắc chắn được: ${listSummary(stillMissing)}.`);
     return {
       catalog,
       mode: catalog.length > textCatalog.length ? (textCatalog.length > 0 ? 'mixed' : 'ocr') : textCatalog.length > 0 ? 'text' : 'empty',

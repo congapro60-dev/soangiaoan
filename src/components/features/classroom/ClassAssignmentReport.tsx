@@ -14,7 +14,7 @@ import {
   type ClassReportQuestionResult,
   type ClassReportSubmission,
 } from '../../../lib/classroom/classReportModel';
-import { extractQuestionCatalogFromText, normalizeQuestionKey } from '../../../lib/classroom/questionCatalog';
+import { extractQuestionCatalogFromText, normalizeQuestionKey, questionGroupKey } from '../../../lib/classroom/questionCatalog';
 import type { AssignmentDoc, SubmissionDoc } from '../../../lib/classroom/types';
 import {
   readQuestionCatalogFromSources,
@@ -256,7 +256,10 @@ const percentText = (value: number | null): string => value === null ? '' : `${(
 const questionCatalogItem = (
   catalog: readonly ClassReportQuestionCatalogItem[] | undefined,
   questionNumber: string,
-): ClassReportQuestionCatalogItem | undefined => catalog?.find(item => normalizeQuestionKey(item.questionNumber) === normalizeQuestionKey(questionNumber));
+): ClassReportQuestionCatalogItem | undefined => catalog?.find(item => normalizeQuestionKey(item.questionNumber) === normalizeQuestionKey(questionNumber))
+  // Nhãn trong danh mục và nhãn AI đặt hiếm khi trùng từng chữ ("Bài 3.5 – Ý 1" với
+  // "Bài 3.5 – Ý 1: Tính cos A"), nên khớp tiếp theo khoá gộp trước khi chịu thua.
+  ?? catalog?.find(item => questionGroupKey(item.questionNumber) === questionGroupKey(questionNumber));
 
 export type ReportQuestionCatalogReader = (
   input: QuestionSourceReadInput,
@@ -486,7 +489,9 @@ const QuestionStats = ({ report, sourceReadState, onQuestionSourceRequested }: Q
                             {sourceReadState?.status === 'ready' && sourceReadState.mode === 'ocr' && (
                               <p className="mt-3 text-xs font-semibold text-indigo-800">Nội dung được đọc từ ảnh/scan bằng OCR; công thức đã được chuẩn hóa để hiển thị.</p>
                             )}
-                            {sourceReadState && sourceReadState.warnings.length > 0 && (
+                            {/* Nhánh lỗi phía trên đã in danh sách cảnh báo rồi; in lại ở đây là
+                                giáo viên thấy đúng khối chữ đó hai lần liên tiếp. */}
+                            {sourceReadState && sourceReadState.status !== 'error' && sourceReadState.warnings.length > 0 && (
                               <ul className="mt-3 list-disc space-y-1 border-t border-indigo-200 pt-3 pl-5 text-xs font-semibold leading-5 text-amber-900">
                                 {sourceReadState.warnings.map(warning => <li key={warning}>{warning}</li>)}
                               </ul>

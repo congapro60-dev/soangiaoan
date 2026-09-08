@@ -1,3 +1,4 @@
+import { questionGroupKey } from './questionCatalog';
 import type { ClassReportQuestionCatalogItem, ClassReportQuestionSource } from './questionCatalog';
 import type { ActivityPurpose, DeliveryMode } from './types';
 
@@ -256,17 +257,35 @@ const collectLabelStats = (
   return sortLabelStats(stats);
 };
 
+/**
+ * Nhãn hiển thị cho một nhóm câu: lấy cách viết được dùng nhiều nhất, hoà nhau thì lấy bản ngắn
+ * gọn nhất. Bảng cần một cái tên sạch để đọc; phần mô tả dài đã nằm ở nội dung câu hỏi.
+ */
+const bestQuestionLabel = (labels: ReadonlyMap<string, number>): string => [...labels.entries()]
+  .sort(([leftLabel, leftCount], [rightLabel, rightCount]) =>
+    rightCount - leftCount
+    || leftLabel.length - rightLabel.length
+    || leftLabel.localeCompare(rightLabel, 'vi'))[0][0];
+
+/**
+ * Gộp theo `questionGroupKey`, KHÔNG theo chuỗi chữ thô.
+ *
+ * Model đặt tên câu mỗi lượt chấm một kiểu, nên gộp theo chuỗi thô là xé một câu thành nhiều
+ * dòng và chia nhỏ mẫu số — cùng một câu ra 100% ở dòng này và 50% ở dòng kia. Đây là số liệu
+ * giáo viên nhìn để quyết dạy lại câu nào, sai ở đây là dẫn tới quyết định sai.
+ */
 const buildQuestionStats = (
   submissions: readonly ClassReportSubmission[],
 ): ClassReportQuestionStats[] => {
-  const stats = new Map<string, ClassReportQuestionStats & { score: number; maxScore: number }>();
+  const stats = new Map<string, ClassReportQuestionStats & { score: number; maxScore: number; labels: Map<string, number> }>();
 
   for (const submission of submissions) {
     for (const result of submission.questionResults ?? []) {
       if (!isCountableQuestionResult(result)) continue;
       const status = normalizeKey(result.status).replace('partially_correct', 'partial');
       const questionNumber = normalizeWhitespace(String(result.questionNumber ?? ''));
-      const current = stats.get(questionNumber) ?? {
+      const groupKey = questionGroupKey(questionNumber) || questionNumber;
+      const current = stats.get(groupKey) ?? {
         questionNumber,
         evidenceCount: 0,
         correct: 0,
@@ -278,7 +297,9 @@ const buildQuestionStats = (
         scoreRate: 0,
         score: 0,
         maxScore: 0,
+        labels: new Map<string, number>(),
       };
+      current.labels.set(questionNumber, (current.labels.get(questionNumber) ?? 0) + 1);
       current.evidenceCount += 1;
       const statusKey = status === 'not_attempted' ? 'notAttempted' : status;
       current[statusKey as 'correct' | 'partial' | 'incorrect' | 'unreadable' | 'notAttempted'] += 1;
@@ -287,13 +308,14 @@ const buildQuestionStats = (
         current.score += pair.score;
         current.maxScore += pair.maxScore;
       }
-      stats.set(questionNumber, current);
+      stats.set(groupKey, current);
     }
   }
 
   return [...stats.values()]
-    .map(({ score, maxScore, ...stat }) => ({
+    .map(({ score, maxScore, labels, ...stat }) => ({
       ...stat,
+      questionNumber: bestQuestionLabel(labels),
       correctRate: stat.evidenceCount > 0 ? stat.correct / stat.evidenceCount : 0,
       scoreRate: maxScore > 0 ? score / maxScore : 0,
     }))

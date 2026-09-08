@@ -1,5 +1,53 @@
 import { describe, expect, it } from 'vitest';
-import { extractQuestionCatalogFromText, normalizeQuestionKey } from './questionCatalog';
+import { extractQuestionCatalogFromText, normalizeQuestionKey, questionGroupKey } from './questionCatalog';
+
+/**
+ * Nhãn có thật, chép từ bảng thống kê của giáo viên ngày 08/09/2026: cùng một câu bị model đặt
+ * tên sáu kiểu nên bảng xé thành sáu dòng, dòng báo 100% dòng báo 50%.
+ */
+describe('questionGroupKey — gộp nhãn cùng một câu', () => {
+  it('gộp mọi biến thể của Bài 3.5 Ý 1 về một khoá', () => {
+    const key = questionGroupKey('Bài 3.5 – Ý 1');
+    expect(questionGroupKey('Bài 3.5 – Ý 1 (Tính cos A)')).toBe(key);
+    expect(questionGroupKey('Bài 3.5 – Ý 1: Tính cos A')).toBe(key);
+    expect(questionGroupKey('Bài 3.5 (Ý 1)')).toBe(key);
+    expect(questionGroupKey('Bài 3.5 (Ý 1 – Tính cos A)')).toBe(key);
+  });
+
+  it('gộp Ý 2 và Ý 3 theo cùng cách, và không trộn lẫn các ý với nhau', () => {
+    expect(questionGroupKey('Bài 3.5 – Ý 2 (Tính diện tích S)')).toBe(questionGroupKey('Bài 3.5 – Ý 2: Tính diện tích S'));
+    expect(questionGroupKey('Bài 3.5 (Ý 2 – Tính S)')).toBe(questionGroupKey('Bài 3.5 – Ý 2'));
+    expect(questionGroupKey('Bài 3.5 – Ý 3 (Tính bán kính r)')).toBe(questionGroupKey('Bài 3.5 (Ý 3)'));
+
+    const keys = ['Bài 3.5 – Ý 1', 'Bài 3.5 – Ý 2', 'Bài 3.5 – Ý 3'].map(questionGroupKey);
+    expect(new Set(keys).size).toBe(3);
+  });
+
+  it('câu mẹ không bị nuốt vào câu con', () => {
+    expect(questionGroupKey('Bài 3.5')).not.toBe(questionGroupKey('Bài 3.5 – Ý 1'));
+  });
+
+  it('gộp cách viết rời và viết dính của cùng một phần', () => {
+    expect(questionGroupKey('Bài 3.9a')).toBe(questionGroupKey('Bài 3.9 – Câu a'));
+    expect(questionGroupKey('Bài 3.9 – Câu a: Tính các góc tam giác ABC')).toBe(questionGroupKey('Bài 3.9a'));
+    expect(questionGroupKey('Bài 3.9b')).not.toBe(questionGroupKey('Bài 3.9a'));
+  });
+
+  it('bỏ phần mô tả dài kể cả khi không có ý con', () => {
+    expect(questionGroupKey('Bài 3.11 (Độ dài đường hầm giảm bao nhiêu)')).toBe(questionGroupKey('Bài 3.11'));
+    expect(questionGroupKey('Bài 3.11: Tính độ dài đường mới giảm')).toBe(questionGroupKey('Bài 3.11'));
+  });
+
+  it('giữ ngữ cảnh phần và tự luận, không gộp nhầm hai phần khác nhau', () => {
+    expect(questionGroupKey('Phần II – Câu 4')).not.toBe(questionGroupKey('Phần III – Câu 4'));
+    expect(questionGroupKey('Tự luận – Bài 1')).toBe(questionGroupKey('Bài 1 (TL)'));
+  });
+
+  it('nhãn không có số vẫn giữ khoá riêng, không dồn hết vào một dòng', () => {
+    expect(questionGroupKey('Tính chiều cao toà nhà')).not.toBe(questionGroupKey('Tính diện tích tam giác'));
+    expect(questionGroupKey('')).toBe('');
+  });
+});
 
 describe('questionCatalog', () => {
   it('chuẩn hóa số câu có tiền tố và dấu câu để ghép với thống kê', () => {

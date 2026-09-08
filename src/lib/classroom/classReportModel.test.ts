@@ -33,6 +33,45 @@ const baseInput = (submissions: ClassReportInput['assignment']['submissions']): 
   },
 });
 
+describe('buildQuestionStats — gộp nhãn cùng một câu', () => {
+  /**
+   * Dựng lại đúng ca thật ngày 08/09/2026: bốn học sinh, cùng một câu, model đặt tên bốn kiểu.
+   * Trước khi sửa, bảng ra bốn dòng và tỉ lệ đúng bị xé thành 100% / 100% / 0% / 0%.
+   */
+  it('bốn cách viết của một câu cho đúng một dòng với tỉ lệ tính trên đủ bốn em', () => {
+    const ketQua = (questionNumber: string, status: string) => ({
+      questionNumber, status, score: status === 'correct' ? 2 : 0, maxScore: 2, errorType: null, weakTopics: [],
+    });
+    const report = buildClassAssignmentReport(baseInput([
+      baseSubmission({ id: 's1', studentKey: 'student-1', questionResults: [ketQua('Bài 3.5 – Ý 1', 'correct')] }),
+      baseSubmission({ id: 's2', studentKey: 'student-2', questionResults: [ketQua('Bài 3.5 – Ý 1 (Tính cos A)', 'correct')] }),
+      baseSubmission({ id: 's3', studentKey: 'student-3', questionResults: [ketQua('Bài 3.5 – Ý 1: Tính cos A', 'incorrect')] }),
+      baseSubmission({ id: 's4', studentKey: 'student-4', questionResults: [ketQua('Bài 3.5 (Ý 1)', 'incorrect')] }),
+    ]));
+
+    expect(report.questionStats).toHaveLength(1);
+    expect(report.questionStats[0]).toMatchObject({
+      // Nhãn hiển thị lấy bản gọn nhất trong nhóm, không lấy bản dính đuôi mô tả.
+      questionNumber: 'Bài 3.5 – Ý 1',
+      evidenceCount: 4,
+      correct: 2,
+      incorrect: 2,
+      correctRate: 0.5,
+    });
+  });
+
+  it('câu mẹ và các ý con vẫn là những dòng riêng', () => {
+    const ketQua = (questionNumber: string) => ({
+      questionNumber, status: 'correct', score: 2, maxScore: 2, errorType: null, weakTopics: [],
+    });
+    const report = buildClassAssignmentReport(baseInput([
+      baseSubmission({ id: 's1', questionResults: [ketQua('Bài 3.5'), ketQua('Bài 3.5 – Ý 1'), ketQua('Bài 3.5 – Ý 2')] }),
+    ]));
+
+    expect(report.questionStats).toHaveLength(3);
+  });
+});
+
 describe('buildClassAssignmentReport', () => {
   it('chỉ giữ lượt mới nhất và tách các counter theo trạng thái', () => {
     const report = buildClassAssignmentReport(baseInput([

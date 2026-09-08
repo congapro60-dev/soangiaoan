@@ -1,3 +1,32 @@
+# Báo cáo theo câu: gộp đúng câu + nội dung câu hỏi lưu sẵn — 2026-09-08
+
+**Branch**: `fix/report-question-catalog` · base `main` = `4c64b8c`
+
+## Ba lỗi đã xác định (đọc code đang chạy production)
+
+1. **Một câu bị đếm thành nhiều câu.** `buildQuestionStats` gộp theo đúng chuỗi chữ AI tự đặt, chỉ cắt khoảng trắng ([classReportModel.ts:268](../src/lib/classroom/classReportModel.ts)). `Bài 3.5 – Ý 1`, `Bài 3.5 (Ý 1)`, `Bài 3.5 – Ý 1: Tính cos A` thành ba dòng. Hệ quả nặng: mọi tỉ lệ đều sai vì mẫu số bị xé — cùng một câu ra 100% và 50%.
+2. **"Failed to fetch".** Nội dung câu hỏi KHÔNG được lưu ở đâu cả; mỗi lần mở báo cáo, trình duyệt mới tải đề gốc về rồi OCR tại chỗ ([ClassAssignmentReport.tsx:664](../src/components/features/classroom/ClassAssignmentReport.tsx)) — CORS chặn. Trong khi máy chủ ĐÃ đọc trọn đề ở nút "AI giải đề" rồi vứt đi ([grade-homework.ts:1301](../api/grade-homework.ts)).
+3. **Khối cảnh báo in hai lần** + liệt kê đủ 20 nhãn câu → khối chữ lằng nhằng.
+
+## Lô 1 — gộp câu + dọn giao diện
+
+- [ ] 1. `questionGroupKey()`: rút token cấu trúc (`bài <số>`, `ý <n>`, `câu <chữ>`), bỏ mô tả tự do → verify: test bằng đúng 14 nhãn thật trong ảnh giáo viên gửi
+- [ ] 2. `buildQuestionStats` gộp theo khoá đó; nhãn hiển thị chọn bản đầy đủ nhất → verify: test tỉ lệ gộp đúng
+- [ ] 3. Bỏ khối cảnh báo in trùng; dịch lỗi tiếng Anh; gấp danh sách nhãn dài → verify: đọc lại JSX
+
+## Lô 2 — danh mục câu hỏi dựng ở máy chủ
+
+- [ ] 4. Action mới trên `/api/grade-homework` (không thêm function, đang chạm trần 12): đọc đề bằng vision, tách từng câu kèm LaTeX chuẩn, lưu `assignments/{id}.questionCatalog`
+- [ ] 5. "AI giải đề" lưu luôn danh mục trong cùng lượt
+- [ ] 6. Báo cáo đọc danh mục đã lưu; nút "Đọc lại đề" gọi máy chủ thay vì OCR trong trình duyệt
+- [ ] 7. `lint`, `lint:api`, `test`, `build` pass
+
+## Review
+
+(điền sau khi xong)
+
+---
+
 # Fix dứt điểm: bài nộp kẹt "Đang chấm" + "Lỗi" khi chấm AI — 2026-09-08
 
 **Branch**: `fix/grading-stuck-lock` · base `origin/main` = `cc4f1b6`
