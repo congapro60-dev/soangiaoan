@@ -907,6 +907,83 @@ export const buildTranscriptionPrompt = (): string =>
 - Nhiều ảnh là nhiều trang của cùng bài làm; chép nối tiếp theo thứ tự ảnh.
 CHỈ TRẢ VỀ JSON THUẦN: {"transcription":"toàn bộ bài làm đã chép, xuống dòng bằng \\n"}`;
 
+// ── Danh mục câu hỏi của đề: đọc MỘT LẦN ở máy chủ rồi lưu lại ───────────────
+
+export interface QuestionCatalogEntry {
+  questionNumber: string;
+  content: string;
+  maxScore?: number;
+  expectedAnswer?: string;
+}
+
+/**
+ * Đọc đề thành danh mục từng câu, để báo cáo có nội dung câu hỏi mà KHÔNG phải tải đề gốc về
+ * trình duyệt rồi OCR lại mỗi lần giáo viên bấm xem.
+ *
+ * Nhãn câu phải chép NGUYÊN VĂN theo đề: đây chính là thứ dùng để khớp với nhãn mà lượt chấm
+ * đặt cho từng câu, đặt tên khác đi là danh mục vô dụng.
+ */
+export const buildQuestionCatalogPrompt = (input: { examText: string; examImageCount: number; maxScore: number }): string => `
+Bạn đọc ĐỀ BÀI và lập danh mục từng câu hỏi cho giáo viên tra cứu. KHÔNG giải, KHÔNG chấm, KHÔNG bình luận.
+
+NGUỒN ĐỀ:
+${input.examImageCount > 0 ? `- ${input.examImageCount} ảnh trang đề gửi kèm.` : '- Không có ảnh, chỉ có phần chữ dưới đây.'}
+${input.examText.trim() ? `- Phần chữ đã rút được từ file đề:\n"""\n${input.examText.slice(0, 20000)}\n"""` : ''}
+
+YÊU CẦU:
+- Mỗi câu/ý trong đề là MỘT phần tử. Câu có các ý a), b), c) hoặc Ý 1, Ý 2 thì tách thành từng phần tử riêng.
+- "questionNumber" chép NGUYÊN VĂN nhãn trong đề ("Bài 3.5", "Bài 3.5 – Ý 1", "Câu 2a"), không tự đặt lại, không thêm mô tả vào nhãn.
+- "content" là ĐỀ BÀI của câu đó, chép đủ ý, giữ nguyên số liệu. Mọi công thức viết bằng LaTeX trong $...$ (ví dụ $\\frac{11\\pi}{8}$, $x^2-3x+2$). Không tóm tắt thành một dòng cụt.
+- "maxScore" chỉ ghi khi đề ghi rõ điểm của câu đó; không có thì bỏ trống. Thang điểm cả bài là ${input.maxScore}.
+- Chỗ nào mờ không đọc chắc thì ghi [không đọc rõ] ngay tại chỗ đó, TUYỆT ĐỐI không đoán.
+- Không bịa thêm câu không có trong đề.
+
+CHỈ TRẢ VỀ JSON THUẦN, không code fence, không lời dẫn:
+{"questions":[{"questionNumber":"Bài 1","content":"...","maxScore":2.0}]}
+`.trim();
+
+/**
+ * Đọc danh mục câu hỏi. Khoan dung có kiểm soát: bỏ qua phần tử hỏng thay vì ném lỗi làm mất cả
+ * danh mục — bài học từ sự cố parser chấm bài ngày 08/09. Nhưng phần tử thiếu nhãn hoặc thiếu
+ * nội dung thì loại thẳng, vì hiện một câu rỗng còn tệ hơn không hiện gì.
+ */
+export const parseQuestionCatalog = (raw: string): QuestionCatalogEntry[] => {
+  const text = String(raw || '');
+  const inCodeBlock = text.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
+  const jsonStr = inCodeBlock ? inCodeBlock[1] : text.match(/\{[\s\S]*\}/)?.[0];
+  if (!jsonStr) return [];
+
+  let parsed: Record<string, unknown>;
+  try {
+    parsed = parseLooseJson<Record<string, unknown>>(jsonStr);
+  } catch {
+    return [];
+  }
+
+  const rows = Array.isArray(parsed.questions) ? parsed.questions : [];
+  const seen = new Set<string>();
+  const entries: QuestionCatalogEntry[] = [];
+  for (const row of rows) {
+    if (!row || typeof row !== 'object' || Array.isArray(row)) continue;
+    const record = row as Record<string, unknown>;
+    const questionNumber = String(record.questionNumber ?? record.question ?? '').trim();
+    const content = String(record.content ?? record.text ?? '').trim();
+    if (!questionNumber || !content) continue;
+    const key = questionNumber.toLocaleLowerCase('vi-VN');
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const maxScore = Number(record.maxScore);
+    const expectedAnswer = String(record.expectedAnswer ?? '').trim();
+    entries.push({
+      questionNumber,
+      content,
+      ...(Number.isFinite(maxScore) && maxScore > 0 ? { maxScore } : {}),
+      ...(expectedAnswer ? { expectedAnswer } : {}),
+    });
+  }
+  return entries;
+};
+
 /**
  * AI đọc bài "quá không chắc" — dùng để KHÔNG chấm bừa (thà báo chụp lại / thầy cô chấm tay còn
  * hơn phọt một điểm sai). Bảo thủ để không chặn oan bài đọc được:

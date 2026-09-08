@@ -30,6 +30,9 @@ import {
   parseTranscription,
   isReadTooUncertain,
   parseHomeworkGradeForCommit,
+  buildQuestionCatalogPrompt,
+  parseQuestionCatalog,
+  type QuestionCatalogEntry,
   parsePracticeAssessment,
   parsePracticeQuestions,
   parseRewrittenFeedback,
@@ -1259,6 +1262,79 @@ const handleSolveAnswerKey = async (db: FirebaseFirestore.Firestore, body: Recor
 };
 
 /**
+ * Đọc đề MỘT LẦN thành danh mục câu hỏi rồi lưu vào bài giao.
+ *
+ * Trước đây nội dung câu hỏi không được lưu ở đâu cả: mỗi lần giáo viên bấm xem một câu trong
+ * báo cáo, trình duyệt mới tải đề gốc về rồi OCR tại chỗ — chậm, lặp lại vô ích, và chết ngay ở
+ * bước tải file nên giáo viên chỉ thấy "Failed to fetch". Máy chủ thì vốn đã đọc trọn cái đề đó
+ * mỗi lần chấm. Đọc một lần, lưu lại, báo cáo chỉ việc hiển thị.
+ */
+const handleBuildQuestionCatalog = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Cần đăng nhập tài khoản giáo viên.' });
+
+  const assignmentId = typeof body.assignmentId === 'string' ? body.assignmentId : '';
+  const ref = db.collection('assignments').doc(assignmentId);
+  const snap = await ref.get();
+  if (!snap.exists) return res.status(404).json({ error: 'Không tìm thấy bài đã giao.' });
+
+  const assignment = snap.data() as FirebaseFirestore.DocumentData;
+  const assignmentTeacherId = typeof assignment.teacherId === 'string' ? assignment.teacherId.trim() : '';
+  const assignmentClassId = typeof assignment.classId === 'string' ? assignment.classId.trim() : '';
+  if (!assignmentTeacherId || !await canTeacherAccessLegacyNamespace(db, uid, assignmentClassId, assignmentTeacherId)) {
+    return res.status(403).json({ error: 'Chỉ giáo viên thuộc lớp được cấp quyền mới dùng được chức năng này.' });
+  }
+
+  // Đã có danh mục thì dùng lại, trừ khi giáo viên chủ động bấm đọc lại.
+  const existing = Array.isArray(assignment.questionCatalog) ? assignment.questionCatalog : [];
+  if (existing.length > 0 && body.force !== true) {
+    return res.status(200).json({ questionCatalog: existing, cached: true });
+  }
+
+  const catalog = await readAssignmentQuestionCatalog(db, uid, assignment);
+  if ('error' in catalog) return res.status(catalog.status).json({ error: catalog.error });
+
+  await ref.update({ questionCatalog: catalog.questionCatalog, updatedAt: new Date().toISOString() });
+  return res.status(200).json({ questionCatalog: catalog.questionCatalog, cached: false });
+};
+
+/** Đọc đề bằng vision và trả danh mục câu; dùng chung cho action riêng và cho lượt giải đáp án. */
+const readAssignmentQuestionCatalog = async (
+  db: FirebaseFirestore.Firestore,
+  uid: string,
+  assignment: FirebaseFirestore.DocumentData,
+): Promise<{ questionCatalog: QuestionCatalogEntry[] } | { error: string; status: number }> => {
+  const examText = String(assignment.sourceText || '');
+  const examImages = await loadAssignmentSourceImages(assignment);
+  if (!examText.trim() && examImages.length === 0) {
+    return { error: 'Bài này chưa có đề đọc được. Đính kèm lại file đề (PDF/ảnh) rồi thử lại.', status: 400 };
+  }
+
+  const [quota, quotaRef] = await loadQuotaDoc(db, uid);
+  const verdict = remainingQuota(quota, 'teacher', '');
+  if (verdict.allowed <= 0) return { error: verdict.reason, status: 429 };
+
+  const raw = await callGeminiVision(
+    buildQuestionCatalogPrompt({
+      examText,
+      examImageCount: examImages.length,
+      maxScore: Number(assignment.maxScore) || 10,
+    }),
+    examImages,
+    getGradingApiKey(),
+    GRADING_MODEL,
+    { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: GRADING_BUDGET_MS },
+  );
+  await quotaRef.set(bumpQuota(quota, 'teacher', '', 1));
+
+  const questionCatalog = parseQuestionCatalog(raw);
+  if (questionCatalog.length === 0) {
+    return { error: 'Chưa tách được câu hỏi nào từ đề gốc. Thử đính kèm file đề rõ hơn.', status: 422 };
+  }
+  return { questionCatalog };
+};
+
+/**
  * AI giải lại đáp án cho một bài ĐÃ GIAO — dùng đề đã lưu (sourceText + ảnh trang) thay vì bắt
  * giáo viên tải lại file. Kết quả vẫn là NHÁP để giáo viên soát rồi mới lưu, không tự ghi vào
  * bài giao (một đáp án sai làm cả lớp bị chấm sai). Nhận lệnh riêng từ bản nháp đang sửa để
@@ -1401,6 +1477,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (action === 'submitPractice') return await handleSubmitPractice(db, body, res);
     if (action === 'solveAnswerKey') return await handleSolveAnswerKey(db, body, res);
     if (action === 'solveAnswerKeyForAssignment') return await handleSolveAnswerKeyForAssignment(db, body, res);
+    if (action === 'buildQuestionCatalog') return await handleBuildQuestionCatalog(db, body, res);
     if (action === 'suggestRubric') return await handleSuggestRubric(db, body, res);
     if (action === 'rewriteFeedback') return await handleRewriteFeedback(db, body, res);
     return res.status(400).json({ error: `Hành động không hợp lệ: ${action}`, limits: QUOTA_LIMITS });

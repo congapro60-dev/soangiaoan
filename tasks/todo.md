@@ -10,20 +10,28 @@
 
 ## Lô 1 — gộp câu + dọn giao diện
 
-- [ ] 1. `questionGroupKey()`: rút token cấu trúc (`bài <số>`, `ý <n>`, `câu <chữ>`), bỏ mô tả tự do → verify: test bằng đúng 14 nhãn thật trong ảnh giáo viên gửi
-- [ ] 2. `buildQuestionStats` gộp theo khoá đó; nhãn hiển thị chọn bản đầy đủ nhất → verify: test tỉ lệ gộp đúng
-- [ ] 3. Bỏ khối cảnh báo in trùng; dịch lỗi tiếng Anh; gấp danh sách nhãn dài → verify: đọc lại JSX
+- [x] 1. `questionGroupKey()`: rút token cấu trúc, bỏ mô tả tự do
+- [x] 2. `buildQuestionStats` gộp theo khoá đó; nhãn hiển thị lấy bản gọn nhất
+- [x] 3. Bỏ khối cảnh báo in trùng; dịch lỗi tiếng Anh; gấp danh sách nhãn dài
 
 ## Lô 2 — danh mục câu hỏi dựng ở máy chủ
 
-- [ ] 4. Action mới trên `/api/grade-homework` (không thêm function, đang chạm trần 12): đọc đề bằng vision, tách từng câu kèm LaTeX chuẩn, lưu `assignments/{id}.questionCatalog`
-- [ ] 5. "AI giải đề" lưu luôn danh mục trong cùng lượt
-- [ ] 6. Báo cáo đọc danh mục đã lưu; nút "Đọc lại đề" gọi máy chủ thay vì OCR trong trình duyệt
-- [ ] 7. `lint`, `lint:api`, `test`, `build` pass
+- [x] 4. Action `buildQuestionCatalog` trên `/api/grade-homework` (không thêm function): đọc đề bằng vision, tách từng câu kèm LaTeX, lưu `assignments/{id}.questionCatalog`
+- [~] 5. "AI giải đề" lưu luôn danh mục — **BỎ CÓ CHỦ Ý**, xem phần Review
+- [x] 6. Báo cáo đọc danh mục đã lưu; "Đọc lại đề" gọi máy chủ thay vì OCR trong trình duyệt
+- [x] 7. `lint` 0 · `lint:api` 0 · test 1894/1894 · `build` ✓
 
 ## Review
 
-(điền sau khi xong)
+**Lô 1** — `questionGroupKey` đọc nhãn từ trái sang, giữ giá trị của token cấu trúc và dừng ở từ mô tả đầu tiên. `Bài 3.5 – Ý 1 (Tính cos A)` và `Bài 3.5 (Ý 1)` cùng khoá `3.5:1`; `Bài 3.5` trơ trọi vẫn là `3.5` nên câu mẹ không bị nuốt vào câu con; `Bài 3.9a` khớp `Bài 3.9 – Câu a`. Nhãn không có số thì lùi về `normalizeQuestionKey` — trả khoá rỗng sẽ dồn mọi nhãn mô tả vào một dòng, sai nặng hơn hiện trạng.
+
+**Lô 2** — máy chủ đọc đề một lần rồi lưu `questionCatalog` vào bài giao. Báo cáo đọc thẳng danh mục đó: hết tải file trong trình duyệt, hết OCR lặp lại, hết `Failed to fetch`, và công thức hiện đúng vì đã ở dạng LaTeX. Đã có danh mục thì trả lại luôn (`cached: true`), chỉ đọc lại khi giáo viên bấm.
+
+**Việc 5 bỏ có chủ ý.** Nhét thêm một lượt gọi Gemini vào chính request "AI giải đề" là đẩy nó chạm trần 60 giây của Vercel — đúng cái bẫy vừa sửa sáng nay. Danh mục đọc theo yêu cầu, một lần cho mỗi bài giao, rẻ hơn và không đe doạ đường đang chạy tốt.
+
+**Chưa làm**: cắt ảnh từng câu. Cần toạ độ từng câu trên trang; vision model trả khung không đủ chắc trên đề scan nghiêng và chữ Toán viết tay — cắt trúng nửa câu còn khó hiểu hơn không cắt. Chữ + LaTeX đã đủ dùng, vẫn giữ link mở ảnh đề để đối chiếu.
+
+**Chưa cần sửa CORS của Storage** — trình duyệt không còn tải file đề nữa nên lỗi đó không còn đường xuất hiện ở báo cáo.
 
 ---
 

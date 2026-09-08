@@ -21,6 +21,7 @@ import {
   type QuestionSourceReadInput,
   type QuestionSourceReadResult,
 } from '../../../lib/classroom/questionSourceReader';
+import { buildQuestionCatalog } from '../../../services/gradingApi';
 import type { AppData, ClassAssignment, Exam, ExamSubmission, Student } from '../../../types';
 import { ClassStudentProgressMatrix } from './ClassStudentProgressMatrix';
 import { NhanXetMarkdown } from './NhanXetMarkdown';
@@ -265,14 +266,44 @@ export type ReportQuestionCatalogReader = (
   input: QuestionSourceReadInput,
 ) => Promise<QuestionSourceReadResult>;
 
+/** Báo cáo của đề online có id dạng `exam:<id>`, không phải một bài giao để đọc đề. */
+const uploadAssignmentIdOf = (report: ClassAssignmentReportMetrics): string =>
+  report.assignment.id.startsWith('exam:') ? '' : report.assignment.id;
+
+/**
+ * Lấy nội dung câu hỏi cho báo cáo — MÁY CHỦ đọc đề rồi lưu, không OCR trong trình duyệt nữa.
+ *
+ * Cách cũ tải file đề về máy giáo viên rồi OCR tại chỗ mỗi lần mở báo cáo: lặp vô ích, và hỏng
+ * ngay ở bước tải file nên giáo viên chỉ thấy "Failed to fetch". Máy chủ vốn đã đọc cái đề đó
+ * mỗi lượt chấm — đọc một lần, lưu vào bài giao, các lần sau chỉ việc đọc ra.
+ *
+ * `reader` chỉ còn dùng cho nhánh không có bài giao để đọc (và cho test tiêm sẵn).
+ */
 export const loadQuestionCatalogForReport = async (
   report: ClassAssignmentReportMetrics,
   settings: AppData['settings'],
   reader: ReportQuestionCatalogReader = readQuestionCatalogFromSources,
+  force = false,
 ): Promise<QuestionSourceReadResult> => {
   const questionNumbers = report.questionStats
     .filter(question => !questionCatalogItem(report.assignment.questionCatalog, question.questionNumber))
     .map(question => question.questionNumber);
+
+  const assignmentId = uploadAssignmentIdOf(report);
+  if (assignmentId) {
+    const { questionCatalog } = await buildQuestionCatalog(assignmentId, force);
+    return {
+      catalog: questionCatalog.map(item => ({
+        questionNumber: item.questionNumber,
+        content: item.content,
+        ...(typeof item.maxScore === 'number' ? { maxScore: item.maxScore } : {}),
+        ...(item.expectedAnswer ? { expectedAnswer: item.expectedAnswer } : {}),
+      })),
+      mode: questionCatalog.length > 0 ? 'text' : 'empty',
+      warnings: [],
+    };
+  }
+
   return reader({
     sources: report.assignment.questionSources ?? [],
     questionNumbers,
@@ -666,7 +697,11 @@ export const loadClassAssignmentReports = async (
         purpose: assignment.purpose ?? 'assignment',
         deliveryMode: assignment.deliveryMode ?? 'file',
         maxScore: asFiniteNumber(assignment.maxScore),
-        questionCatalog: extractQuestionCatalogFromText(assignment.sourceText, questionNumbers),
+        // Danh mục máy chủ đã đọc và lưu là nguồn tốt nhất: có công thức LaTeX, không phải dò
+        // lại chữ. Bài giao cũ chưa có thì tạm dò trong sourceText cho tới khi giáo viên bấm đọc.
+        questionCatalog: assignment.questionCatalog?.length
+          ? assignment.questionCatalog
+          : extractQuestionCatalogFromText(assignment.sourceText, questionNumbers),
         questionSources: buildAssignmentQuestionSources(assignment),
         submissions,
       };
@@ -818,7 +853,7 @@ export const ClassAssignmentReport = ({
       [report.assignment.id]: { status: 'loading', warnings: [] },
     }));
 
-    const promise = loadQuestionCatalogForReport(report, settings)
+    const promise = loadQuestionCatalogForReport(report, settings, readQuestionCatalogFromSources, force)
       .then(result => {
         if (generation !== questionSourceGeneration.current) return result;
         setReports(previous => previous.map(current => current.assignment.id === report.assignment.id

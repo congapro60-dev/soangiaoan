@@ -1,4 +1,5 @@
 import { auth } from '../lib/firebase';
+import type { AssignmentQuestionCatalogItem } from '../lib/classroom/types';
 
 export interface GradeBatchResult {
   graded: number;
@@ -225,6 +226,37 @@ export const solveAnswerKeyForAssignment = async (
     throw error;
   }
   return data as SolvedAnswerKeyResult;
+};
+
+/**
+ * Nhờ MÁY CHỦ đọc đề thành danh mục câu hỏi rồi lưu vào bài giao.
+ *
+ * Thay cho việc tải đề gốc về trình duyệt rồi OCR tại chỗ mỗi lần mở báo cáo — cách cũ vừa lặp
+ * vô ích vừa hỏng ở bước tải file. Máy chủ đọc một lần, lưu lại, các lần sau chỉ đọc ra.
+ */
+export const buildQuestionCatalog = async (
+  assignmentId: string,
+  force = false,
+): Promise<{ questionCatalog: AssignmentQuestionCatalogItem[]; cached: boolean }> => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Phiên đăng nhập đã hết hạn.');
+
+  const res = await fetch('/api/grade-homework', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'buildQuestionCatalog',
+      idToken: await user.getIdToken(),
+      assignmentId,
+      force,
+    }),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
+  return {
+    questionCatalog: Array.isArray(data?.questionCatalog) ? data.questionCatalog : [],
+    cached: data?.cached === true,
+  };
 };
 
 /** Nhờ AI đề xuất hướng dẫn chấm từ đáp án đã có. */

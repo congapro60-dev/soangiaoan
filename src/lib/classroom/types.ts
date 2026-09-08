@@ -145,6 +145,16 @@ export type StudentActivityExportBundle = Pick<
   'status' | 'contentVersion' | 'contentHash' | 'studentPdfUrl' | 'studentDocxUrl' | 'generatedAt'
 >;
 
+/** Nội dung một câu của đề, do máy chủ đọc một lần rồi lưu cùng bài giao. */
+export interface AssignmentQuestionCatalogItem {
+  /** Nhãn chép nguyên văn theo đề, dùng để khớp với nhãn từng câu của lượt chấm. */
+  questionNumber: string;
+  /** Đề bài của câu đó, công thức đã ở dạng LaTeX để hiển thị được ngay. */
+  content: string;
+  maxScore?: number;
+  expectedAnswer?: string;
+}
+
 /** Một bài giáo viên giao cho lớp. */
 export interface AssignmentDoc {
   id: string;
@@ -166,6 +176,13 @@ export interface AssignmentDoc {
   attachments?: AssignmentAttachment[];
   /** Chữ rút từ file đề, dùng làm nguồn tham chiếu chung khi AI chấm cả lớp. */
   sourceText?: string;
+  /**
+   * Nội dung từng câu của đề, máy chủ đọc MỘT LẦN rồi lưu lại.
+   *
+   * Thiếu nó thì báo cáo phải tải đề gốc về trình duyệt và OCR lại mỗi lần giáo viên bấm xem
+   * một câu — chậm, lặp vô ích, và hỏng ngay ở bước tải file.
+   */
+  questionCatalog?: AssignmentQuestionCatalogItem[];
   /** Ảnh đề/ảnh PDF scan đã chuẩn hoá, gửi một lần làm ngữ cảnh chấm. */
   sourceImageUrls?: string[];
   /** Lệnh nội bộ của giáo viên cho AI: phạm vi câu/bài, phần cần bỏ qua, cách xử lý đặc biệt. */
