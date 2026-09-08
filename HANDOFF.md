@@ -5,6 +5,28 @@
 
 Handoff ngắn cho lô V4 live lesson. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Báo cáo theo câu: gộp đúng câu + nội dung câu hỏi lưu sẵn — 2026-09-08
+
+Giáo viên báo bảng thống kê theo câu "lộn xộn", bấm vào ra một khối chữ khó hiểu. Ba lỗi riêng, nuôi nhau:
+
+1. **Một câu đếm thành nhiều câu.** `buildQuestionStats` gộp theo đúng chuỗi chữ AI tự đặt. Model mỗi lượt chấm đặt tên một kiểu → `Bài 3.5 – Ý 1`, `Bài 3.5 (Ý 1)`, `Bài 3.5 – Ý 1: Tính cos A` thành ba dòng, mẫu số bị xé nên **cùng một câu ra 100% ở dòng này và 50% ở dòng kia**.
+2. **Nội dung câu hỏi không được lưu ở đâu.** Mỗi lần bấm xem một câu, trình duyệt mới tải đề gốc về rồi OCR tại chỗ → CORS chặn → `Failed to fetch`. Máy chủ thì vốn đã đọc trọn cái đề đó ở nút "AI giải đề" rồi vứt đi.
+3. **Khối cảnh báo in hai lần** + liệt kê đủ hơn 20 nhãn câu.
+
+**Đã sửa:**
+
+- `questionGroupKey()` trong `questionCatalog.ts`: đọc nhãn từ trái sang, giữ giá trị token cấu trúc (`bài/câu/ý` + số), **dừng ở từ mô tả đầu tiên**. Giữ nguyên ngữ cảnh `Phần II` / `Tự luận`. Nhãn không có số thì lùi về `normalizeQuestionKey` — trả khoá rỗng sẽ dồn mọi nhãn mô tả vào một dòng, sai nặng hơn.
+- `buildQuestionStats` gộp theo khoá đó; nhãn hiển thị lấy bản dùng nhiều nhất, hoà thì lấy bản gọn nhất.
+- Action **`buildQuestionCatalog`** trên `/api/grade-homework` (không thêm Vercel function — đang chạm trần 12): máy chủ đọc đề bằng vision, tách từng câu kèm LaTeX, lưu `assignments/{id}.questionCatalog`. Đã có thì trả lại luôn (`cached: true`), chỉ đọc lại khi `force`.
+- Báo cáo đọc thẳng danh mục đã lưu; "Đọc lại đề gốc" gọi máy chủ. Đề online (`exam:*`) không có bài giao để đọc nên vẫn dùng nguồn sẵn có.
+
+**Ngưỡng sắp cắn người:**
+
+- **KHÔNG gộp việc đọc danh mục vào "AI giải đề"** — thêm một lượt gọi Gemini vào request đó là đẩy nó chạm trần 60s. Nếu sau này muốn gộp thì phải mở rộng schema của `buildSolveExamPrompt` để lấy cả hai trong MỘT lượt, đừng gọi hai lần.
+- Bài giao **cũ** chưa có danh mục: lần đầu mở báo cáo sẽ tốn một lượt Gemini để đọc đề, sau đó là miễn phí. Đây là lý do có `cached`.
+- Chưa cắt ảnh từng câu (cần toạ độ, vision trả khung không đủ chắc trên đề scan nghiêng). Chưa cần sửa CORS Storage vì trình duyệt không còn tải file đề.
+- Nghiệm thu: `lint` 0, `lint:api` 0, full Vitest **154 files / 1894 tests PASS**, `build` PASS, `git diff --check` sạch.
+
 ## SEV chấm bài: kẹt "Đang chấm" + MAX_TOKENS — 2026-09-08
 
 Sự cố thật 06–08/09: 15/50 bài nộp gần nhất nằm ở `status='grading'` với `gradingRunId` còn nguyên, vài em hiện "Lỗi", nút "Chấm AI" đếm ra 0 nên giáo viên không gỡ được.
