@@ -1,9 +1,31 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-09-08
+**Cập nhật:** 2026-09-09
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
 Handoff ngắn cho lô V4 live lesson. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
+
+## Chuông thông báo cho học sinh — 2026-09-09
+
+Giáo viên xoá bài nộp thì bài biến mất khỏi màn hình em mà không một lời nào. Nửa "yêu cầu nộp lại" vốn đã chạy sẵn (document biến mất → `portalViewModel` trả `todo` → "Nộp ảnh"); thiếu đúng phần nói cho em biết **vì sao**.
+
+**Quyết định thiết kế quan trọng — chỉ lưu MỘT loại sự kiện.** `studentNotifications` chỉ nhận `submission_deleted`. Bốn loại còn lại (nộp xong, chấm xong, chấm lỗi, giáo viên duyệt điểm) suy thẳng từ bài nộp trong `buildStudentFeed` — giữ thêm bản sao trong Firestore chỉ tạo cơ hội cho hai nguồn nói khác nhau. Ai định thêm loại thông báo mới: hỏi trước "việc này có suy ra được từ dữ liệu em đã có không?", suy được thì **đừng lưu**.
+
+**Đã làm:**
+
+- `handleDeleteSubmission` ghi thông báo **SAU KHI** xoá xong (ghi trước mà lỗi giữa chừng là báo em bài đã bị xoá trong khi nó còn nguyên), kèm tên bài và lý do giáo viên gõ. Best-effort — lỗi ở bước này chỉ log, không được biến một lượt xoá đã thành công thành lỗi.
+- Action `studentNotifications` trên `/api/classroom` (không thêm Vercel function): lọc theo `studentId` lấy từ `studentLinks` **của phiên**, không theo tham số client gửi lên.
+- Hộp thoại xoá của giáo viên có ô "Lý do cho học sinh (tuỳ chọn)".
+- Cổng học sinh: nút chuông + huy hiệu chưa đọc + bảng thông báo, và dải nhắc đỏ ngay trên thẻ bài vừa bị xoá.
+
+**Ngưỡng sắp cắn người:**
+
+- Mốc "đã đọc" nằm ở **localStorage theo máy**, không theo tài khoản — đổi máy thì đếm lại từ đầu. Cố ý: huy hiệu chưa đọc không đáng thêm một lượt ghi máy chủ mỗi lần bấm chuông.
+- Đánh dấu đã đọc bằng mốc của **mục mới nhất**, không phải `Date.now()` — thông báo đến trong lúc bảng đang mở vẫn tính là chưa đọc ở lần sau. Đừng "sửa" thành `Date.now()`.
+- Test `classroom-delete-handlers` khẳng định **đúng thứ tự** thao tác xoá; thêm bước ghi nào vào `handleDeleteSubmission` là phải cập nhật kỳ vọng ở đó.
+- Chưa có chỗ dọn thông báo cũ. Mỗi lượt xoá bài sinh một document, action đọc `limit(100)` rồi cắt còn 50 — lớp dùng vài năm thì nên thêm dọn định kỳ.
+- **Chưa kiểm bằng mắt**: cổng học sinh cần mã lớp + PIN thật mới vào dashboard. Trang nạp sạch, không lỗi console; phần tính toán có test đủ. Phần nhìn thấy cần mở bằng tài khoản học sinh thật.
+- Nghiệm thu: `lint` 0, `lint:api` 0, full Vitest **156 files / 1906 tests PASS**, `build` PASS.
 
 ## Báo cáo theo câu: gộp đúng câu + nội dung câu hỏi lưu sẵn — 2026-09-08
 
