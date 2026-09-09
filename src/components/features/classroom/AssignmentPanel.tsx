@@ -1204,10 +1204,15 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
    * tích lũy trước khi xóa.
    */
   const xoaBaiNop = async (s: SubmissionDoc, tenHocSinh: string) => {
-    const { isConfirmed } = await Swal.fire({
+    const { isConfirmed, value } = await Swal.fire({
       icon: 'warning',
       title: `Xóa lượt nộp của ${tenHocSinh}?`,
       html: 'Điểm và nhận xét lượt này <b>mất vĩnh viễn</b>. Lịch sử cũ (nếu có) vẫn giữ để đối chiếu và học sinh vẫn có thể nộp attempt mới.<br/><span style="font-size:12px;color:#64748b;">Document bài nộp và file Storage của lượt này sẽ được dọn cùng nhau. Nếu dọn file lỗi, lượt nộp vẫn giữ để thử lại.</span>',
+      // Bài biến mất khỏi máy em mà không kèm lời nào thì em chỉ biết nộp lại y hệt bài cũ.
+      input: 'text',
+      inputLabel: 'Lý do cho học sinh (tuỳ chọn)',
+      inputPlaceholder: 'VD: ảnh mờ quá, em chụp lại nhé',
+      inputAttributes: { maxlength: '200' },
       showCancelButton: true,
       confirmButtonText: 'Xóa lượt nộp',
       cancelButtonText: 'Giữ lại',
@@ -1218,7 +1223,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
 
     setDangXoaNop(s.id);
     try {
-      await xoaBaiNopHocSinh(s);
+      await xoaBaiNopHocSinh(s, typeof value === 'string' ? value.trim() : '');
       showToast(`Đã xóa lượt nộp của ${tenHocSinh}.`, 'success');
       await taiBai();
       setSelectedSubmissionIds(previous => {

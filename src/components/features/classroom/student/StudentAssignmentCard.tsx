@@ -8,6 +8,8 @@ interface Props {
   assignment: AssignmentDoc;
   submission?: SubmissionDoc;
   state: StudentAssignmentState;
+  /** Lời nhắc khi thầy cô vừa xoá bài nộp của em. Không có thì không hiện gì. */
+  deletedNotice?: string;
   uploading: boolean;
   onUpload: (assignmentId: string, supplementOf?: string) => void;
   onOpen: (assignment: AssignmentDoc, submission?: SubmissionDoc) => void;
@@ -34,7 +36,7 @@ const dueLabel = (iso?: string): { label: string; className: string } => {
 
 const STUDENT_GRADING_ERROR_COPY = 'Bài đã được nhận nhưng kết quả chấm chưa hoàn tất. Em chưa cần nộp lại ảnh; thầy/cô sẽ chấm lại hoặc kiểm tra bài.';
 
-export const StudentAssignmentCard = ({ assignment, submission, state, uploading, onUpload, onOpen }: Props) => {
+export const StudentAssignmentCard = ({ assignment, submission, state, deletedNotice, uploading, onUpload, onOpen }: Props) => {
   const meta = statusMeta[state.status];
   const StatusIcon = meta.icon;
   const due = dueLabel(assignment.dueAt);
@@ -60,6 +62,14 @@ export const StudentAssignmentCard = ({ assignment, submission, state, uploading
           <CalendarClock className="h-3.5 w-3.5" /> {due.label}
         </span>
       </div>
+
+      {/* Bài tự nhiên quay về "Cần nộp" mà không lời nào thì em tưởng máy nuốt mất bài. */}
+      {deletedNotice && (
+        <p className="mt-3 flex items-start gap-2 rounded-2xl bg-red-50 px-3 py-2 text-xs font-bold leading-5 text-red-800">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{deletedNotice}</span>
+        </p>
+      )}
 
       <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0 flex-1">

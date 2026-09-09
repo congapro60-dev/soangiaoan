@@ -145,6 +145,28 @@ export type StudentActivityExportBundle = Pick<
   'status' | 'contentVersion' | 'contentHash' | 'studentPdfUrl' | 'studentDocxUrl' | 'generatedAt'
 >;
 
+/**
+ * Thông báo gửi tới một học sinh.
+ *
+ * CHỈ lưu những việc không suy ra được từ dữ liệu em đã có. Bài bị giáo viên xoá là ca duy nhất
+ * như vậy: document bài nộp biến mất nên không còn dấu vết nào để cổng học sinh dựng lại. Các
+ * việc khác (nộp xong, chấm xong, chấm lỗi, giáo viên duyệt điểm) đọc thẳng từ bài nộp — lưu
+ * thêm một bản sao chỉ tạo cơ hội cho hai nguồn lệch nhau.
+ */
+export interface StudentNotificationDoc {
+  id: string;
+  studentId: string;
+  classId: string;
+  teacherId: string;
+  type: 'submission_deleted';
+  assignmentId?: string;
+  /** Tên bài lúc xoá — giữ lại vì bài giao có thể bị đổi tên hoặc xoá sau đó. */
+  assignmentTitle?: string;
+  /** Lời giáo viên gõ khi xoá. Bỏ trống thì cổng học sinh dùng câu mặc định. */
+  reason?: string;
+  createdAt: string;
+}
+
 /** Nội dung một câu của đề, do máy chủ đọc một lần rồi lưu cùng bài giao. */
 export interface AssignmentQuestionCatalogItem {
   /** Nhãn chép nguyên văn theo đề, dùng để khớp với nhãn từng câu của lượt chấm. */

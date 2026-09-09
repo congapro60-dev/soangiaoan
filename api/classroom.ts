@@ -226,7 +226,48 @@ const handleDeleteSubmission = async (db: FirebaseFirestore.Firestore, body: Rec
   }, submissionId, new Date().toISOString());
 
   await submissionRef.delete();
+
+  // Bài biến mất khỏi màn hình em mà không một lời giải thích thì em tưởng máy nuốt mất bài. Phải
+  // ghi tại đây: sau lệnh delete ở trên không còn dấu vết nào để cổng học sinh dựng lại việc này.
+  await writeSubmissionDeletedNotification(db, submissionId, submission, body.reason);
+
   return res.status(200).json({ deleted: true, deletedFiles });
+};
+
+/** Best-effort: hỏng bước thông báo KHÔNG được biến một lượt xoá đã thành công thành lỗi. */
+const writeSubmissionDeletedNotification = async (
+  db: FirebaseFirestore.Firestore,
+  submissionId: string,
+  submission: Record<string, unknown>,
+  rawReason: unknown,
+): Promise<void> => {
+  const studentId = String(submission.studentId || '').trim();
+  if (!studentId) return;
+
+  try {
+    const assignmentId = String(submission.assignmentId || '').trim();
+    let assignmentTitle = '';
+    if (assignmentId) {
+      const assignmentSnap = await db.collection('assignments').doc(assignmentId).get();
+      assignmentTitle = String(assignmentSnap.data()?.title || '').trim();
+    }
+    const reason = (typeof rawReason === 'string' ? rawReason : '').trim().slice(0, 500);
+    const now = new Date().toISOString();
+    const id = `del_${submissionId}_${Date.now()}`;
+    await db.collection('studentNotifications').doc(id).set(stripUndefinedDeep({
+      id,
+      studentId,
+      classId: String(submission.classId || ''),
+      teacherId: String(submission.teacherId || ''),
+      type: 'submission_deleted',
+      ...(assignmentId ? { assignmentId } : {}),
+      ...(assignmentTitle ? { assignmentTitle } : {}),
+      ...(reason ? { reason } : {}),
+      createdAt: now,
+    }));
+  } catch (error) {
+    console.error('[classroom] không ghi được thông báo xoá bài nộp', error);
+  }
 };
 
 const storedHomeworkSkillEvidence = (submissionId: string, submission: Record<string, unknown>) => {
@@ -1034,6 +1075,37 @@ const handleStudentSubmissions = async (db: FirebaseFirestore.Firestore, body: R
   return res.status(200).json({ submissions });
 };
 
+/**
+ * Thông báo của CHÍNH học sinh đang đăng nhập.
+ *
+ * Lọc theo `studentId` lấy từ `studentLinks` của phiên, không lấy theo tham số client gửi lên —
+ * nhận studentId từ client là mở đường cho em này đọc thông báo của em khác.
+ */
+const handleStudentNotifications = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Phiên đăng nhập học sinh không hợp lệ.' });
+
+  const linkSnap = await db.collection('studentLinks').doc(uid).get();
+  if (!linkSnap.exists) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới xem được thông báo.' });
+  const link = linkSnap.data() as { studentId?: unknown; classId?: unknown; teacherId?: unknown };
+  const studentId = typeof link.studentId === 'string' ? link.studentId : '';
+  const classId = typeof link.classId === 'string' ? link.classId : '';
+  const teacherId = typeof link.teacherId === 'string' ? link.teacherId : '';
+  if (!studentId || !classId || !teacherId) return res.status(403).json({ error: 'Phiên học sinh thiếu thông tin lớp.' });
+
+  const snap = await db.collection('studentNotifications')
+    .where('studentId', '==', studentId)
+    .limit(100)
+    .get();
+  const notifications = snap.docs
+    .map(document => ({ id: document.id, ...(document.data() || {}) } as Record<string, unknown>))
+    // Cùng một mã học sinh có thể tồn tại ở lớp khác của giáo viên khác; chỉ trả đúng lớp của phiên.
+    .filter(item => item.classId === classId && item.teacherId === teacherId)
+    .sort((left, right) => String(right.createdAt || '').localeCompare(String(left.createdAt || '')))
+    .slice(0, 50);
+  return res.status(200).json({ notifications });
+};
+
 const handleLogin = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
   const uid = await uidFromIdToken(body.idToken);
   if (!uid) return res.status(401).json({ error: 'Phiên đăng nhập không hợp lệ. Tải lại trang rồi thử lại.' });
@@ -1350,6 +1422,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (action === 'login') return await handleLogin(db, body, res);
     if (action === 'studentAssignments') return await handleStudentAssignments(db, body, res);
     if (action === 'studentSubmissions') return await handleStudentSubmissions(db, body, res);
+    if (action === 'studentNotifications') return await handleStudentNotifications(db, body, res);
     if (action === 'issuePins') return await handleIssuePins(db, body, res);
     if (action === 'resetOnePin') return await handleResetOnePin(db, body, res);
     if (action === 'viewPin') return await handleViewPin(db, body, res);

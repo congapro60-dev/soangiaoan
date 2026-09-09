@@ -7,6 +7,8 @@ import { getStudentAssignmentState, latestSubmissionByAssignment, type StudentAs
 import { buildStudentProgressSummary, studentActivityNextActionLabel, studentActivityStatusLabel } from '../../../../lib/classroom/studentProgressModel';
 import { buildStudentSkillCards } from '../../../../lib/classroom/skillViewModel';
 import { StudentAssignmentCard } from './StudentAssignmentCard';
+import { StudentNotificationBell } from './StudentNotificationBell';
+import type { StudentFeedItem } from '../../../../lib/classroom/studentNotifications';
 
 interface SessionInfo {
   studentId: string;
@@ -43,6 +45,10 @@ interface Props {
   onRemovePendingFile: (index: number) => void;
   onSubmitPendingFiles: () => void;
   onOpenAssignment: (assignment: AssignmentDoc | undefined, submission?: SubmissionDoc) => void;
+  /** Dòng thời gian thông báo đã gộp sẵn ở trang cha. */
+  notifications: readonly StudentFeedItem[];
+  notificationsLastSeenAt: string | null;
+  onNotificationsOpened: (seenAt: string) => void;
   onSignOut: () => void;
   onReload: () => void;
   onLoadPractice: () => void;
@@ -122,6 +128,9 @@ export const StudentPortalDashboard = ({
   onRemovePendingFile,
   onSubmitPendingFiles,
   onOpenAssignment,
+  notifications,
+  notificationsLastSeenAt,
+  onNotificationsOpened,
   onSignOut,
   onReload,
   onLoadPractice,
@@ -198,6 +207,13 @@ export const StudentPortalDashboard = ({
     () => rows.find(row => row.state.status === 'todo') || rows.find(row => row.state.status === 'retry') || null,
     [rows],
   );
+  // Bài vừa bị thầy cô xoá thì quay về "Cần nộp"; kèm luôn lời nhắc ngay trên thẻ bài để em
+  // không phải mở chuông mới hiểu vì sao bài biến mất.
+  const deletedNotices = useMemo(() => new Map(
+    notifications
+      .filter(item => item.kind === 'submission_deleted' && item.assignmentId)
+      .map(item => [item.assignmentId as string, item.body] as const),
+  ), [notifications]);
   const practiceQuestions = practiceSet?.questions ?? [];
   const practiceResults = new Map((practiceAttempt?.questionResults ?? []).map(result => [result.id, result]));
 
@@ -212,6 +228,12 @@ export const StudentPortalDashboard = ({
             <p className="truncate text-sm font-black leading-tight text-slate-900">{session.studentName}</p>
             <p className="truncate text-xs font-semibold text-slate-400">{session.className}</p>
           </div>
+          <StudentNotificationBell
+            items={notifications}
+            lastSeenAt={notificationsLastSeenAt}
+            onOpened={onNotificationsOpened}
+            onSelectAssignment={assignmentId => onOpenAssignment(assignments.find(item => item.id === assignmentId), latestSubmissionByAssignment(submissions).get(assignmentId))}
+          />
           <button type="button" onClick={onSignOut} title="Đăng xuất" aria-label="Đăng xuất" className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-2xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
             <LogOut className="h-5 w-5" />
           </button>
@@ -438,6 +460,7 @@ export const StudentPortalDashboard = ({
                   assignment={row.assignment}
                   submission={row.submission}
                   state={row.state}
+                  deletedNotice={row.state.status === 'todo' ? deletedNotices.get(row.assignment.id) : undefined}
                   uploading={uploadingId !== ''}
                   onUpload={onChooseImage}
                   onOpen={onOpenAssignment}

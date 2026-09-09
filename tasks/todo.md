@@ -1,3 +1,65 @@
+# Chuông thông báo cho học sinh — 2026-09-09
+
+**Branch**: `feat/student-notifications` · base `main` = `b49fe2a`
+
+## Yêu cầu
+
+Giáo viên xoá bài của học sinh thì em phải biết bài bị xoá và cần nộp lại. Cổng học sinh có nút
+chuông kiểu Facebook, liệt kê: nộp thành công, bị xoá bài, chấm xong có điểm, chấm lỗi, giáo viên
+sửa/duyệt điểm. Giáo viên gõ được lý do khi xoá (không bắt buộc).
+
+## Đã khảo sát
+
+- **Nửa "yêu cầu nộp lại" đã chạy sẵn**: xoá bài nộp là document biến mất, `portalViewModel` tự
+  trả về `todo` → "Nộp ảnh". Thiếu đúng phần nói cho em biết VÌ SAO.
+- Xoá bài đi qua máy chủ (`handleDeleteSubmission` trong `api/classroom.ts`) → ghi thông báo được
+  ngay tại đó, không cần đụng quyền Firestore.
+- Học sinh đọc dữ liệu qua action `studentAssignments` / `studentSubmissions` trên `/api/classroom`
+  — thêm action mới ở đó, KHÔNG thêm Vercel function (đang chạm trần 12).
+
+## Quyết định thiết kế
+
+**Chỉ lưu sự kiện xoá bài.** Bốn loại còn lại suy ra được từ chính bài nộp mà cổng học sinh đã
+tải; lưu thêm bản sao chỉ tạo cơ hội cho hai nguồn lệch nhau. Bài bị xoá thì document biến mất,
+không còn gì để suy ra — đó là lý do nó phải được ghi lại.
+
+## Việc
+
+- [x] 1. Collection `studentNotifications` + kiểu dữ liệu; máy chủ ghi khi xoá bài, kèm lý do
+- [x] 2. Action `studentNotifications` cho học sinh đọc thông báo của CHÍNH em
+- [x] 3. Hộp thoại xoá của giáo viên thêm ô "Lý do (tuỳ chọn)"
+- [x] 4. Gộp thông báo đã lưu với sự kiện suy ra từ bài nộp thành một dòng thời gian
+- [x] 5. Nút chuông + bảng thông báo + huy hiệu chưa đọc
+- [x] 6. Thêm: dải nhắc ngay trên thẻ bài vừa bị xoá, không bắt em mở chuông mới hiểu
+- [x] 7. `lint` 0 · `lint:api` 0 · test 1906/1906 · `build` ✓
+
+## Review
+
+**Chỉ lưu một loại sự kiện.** `studentNotifications` chỉ nhận `submission_deleted`. Bốn loại còn
+lại (nộp xong, chấm xong, chấm lỗi, giáo viên duyệt) suy thẳng từ bài nộp trong `buildStudentFeed`
+— giữ thêm bản sao trong Firestore chỉ tạo cơ hội cho hai nguồn nói khác nhau. Một bài chỉ sinh
+một mục, lấy trạng thái mới nhất, nên bảng không thành chồng dòng cùng nói về một bài.
+
+**Ghi thông báo sau khi xoá xong, và best-effort.** Ghi trước thì lỗi giữa chừng sẽ báo em bài đã
+bị xoá trong khi nó còn nguyên. Lỗi ở bước ghi cũng không được biến một lượt xoá đã thành công
+thành lỗi — chỉ log lại.
+
+**Bảo mật**: action lọc theo `studentId` lấy từ `studentLinks` của phiên, không theo tham số client
+gửi lên. Có test cho việc em này không đọc được thông báo của em khác.
+
+**Mốc "đã đọc" để ở localStorage theo máy** — huy hiệu chưa đọc là tiện nghi của riêng máy em đang
+cầm, không đáng thêm một lượt ghi máy chủ mỗi lần bấm chuông. Đổi máy thì đếm lại từ đầu.
+
+**Đánh dấu đã đọc bằng mốc của mục mới nhất**, không phải "bây giờ": thông báo đến trong lúc bảng
+đang mở vẫn được tính là chưa đọc ở lần sau.
+
+**Chưa kiểm được bằng mắt**: cổng học sinh cần mã lớp + PIN thật mới vào được dashboard, nên tôi
+không tự đăng nhập bằng dữ liệu thật. Đã xác nhận trang nạp sạch, không lỗi console, và toàn bộ
+phần tính toán (dòng thời gian, bộ đếm chưa đọc, hai handler máy chủ) có test. Phần nhìn thấy của
+chuông cần giáo viên mở thử trên máy thật.
+
+---
+
 # Báo cáo theo câu: gộp đúng câu + nội dung câu hỏi lưu sẵn — 2026-09-08
 
 **Branch**: `fix/report-question-catalog` · base `main` = `4c64b8c`
