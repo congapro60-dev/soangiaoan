@@ -14,13 +14,14 @@ import {
   type ClassReportQuestionResult,
   type ClassReportSubmission,
 } from '../../../lib/classroom/classReportModel';
-import { extractQuestionCatalogFromText, normalizeQuestionKey } from '../../../lib/classroom/questionCatalog';
+import { extractQuestionCatalogFromText, normalizeQuestionKey, questionGroupKey } from '../../../lib/classroom/questionCatalog';
 import type { AssignmentDoc, SubmissionDoc } from '../../../lib/classroom/types';
 import {
   readQuestionCatalogFromSources,
   type QuestionSourceReadInput,
   type QuestionSourceReadResult,
 } from '../../../lib/classroom/questionSourceReader';
+import { buildQuestionCatalog } from '../../../services/gradingApi';
 import type { AppData, ClassAssignment, Exam, ExamSubmission, Student } from '../../../types';
 import { ClassStudentProgressMatrix } from './ClassStudentProgressMatrix';
 import { NhanXetMarkdown } from './NhanXetMarkdown';
@@ -256,20 +257,53 @@ const percentText = (value: number | null): string => value === null ? '' : `${(
 const questionCatalogItem = (
   catalog: readonly ClassReportQuestionCatalogItem[] | undefined,
   questionNumber: string,
-): ClassReportQuestionCatalogItem | undefined => catalog?.find(item => normalizeQuestionKey(item.questionNumber) === normalizeQuestionKey(questionNumber));
+): ClassReportQuestionCatalogItem | undefined => catalog?.find(item => normalizeQuestionKey(item.questionNumber) === normalizeQuestionKey(questionNumber))
+  // Nhãn trong danh mục và nhãn AI đặt hiếm khi trùng từng chữ ("Bài 3.5 – Ý 1" với
+  // "Bài 3.5 – Ý 1: Tính cos A"), nên khớp tiếp theo khoá gộp trước khi chịu thua.
+  ?? catalog?.find(item => questionGroupKey(item.questionNumber) === questionGroupKey(questionNumber));
 
 export type ReportQuestionCatalogReader = (
   input: QuestionSourceReadInput,
 ) => Promise<QuestionSourceReadResult>;
 
+/** Báo cáo của đề online có id dạng `exam:<id>`, không phải một bài giao để đọc đề. */
+const uploadAssignmentIdOf = (report: ClassAssignmentReportMetrics): string =>
+  report.assignment.id.startsWith('exam:') ? '' : report.assignment.id;
+
+/**
+ * Lấy nội dung câu hỏi cho báo cáo — MÁY CHỦ đọc đề rồi lưu, không OCR trong trình duyệt nữa.
+ *
+ * Cách cũ tải file đề về máy giáo viên rồi OCR tại chỗ mỗi lần mở báo cáo: lặp vô ích, và hỏng
+ * ngay ở bước tải file nên giáo viên chỉ thấy "Failed to fetch". Máy chủ vốn đã đọc cái đề đó
+ * mỗi lượt chấm — đọc một lần, lưu vào bài giao, các lần sau chỉ việc đọc ra.
+ *
+ * `reader` chỉ còn dùng cho nhánh không có bài giao để đọc (và cho test tiêm sẵn).
+ */
 export const loadQuestionCatalogForReport = async (
   report: ClassAssignmentReportMetrics,
   settings: AppData['settings'],
   reader: ReportQuestionCatalogReader = readQuestionCatalogFromSources,
+  force = false,
 ): Promise<QuestionSourceReadResult> => {
   const questionNumbers = report.questionStats
     .filter(question => !questionCatalogItem(report.assignment.questionCatalog, question.questionNumber))
     .map(question => question.questionNumber);
+
+  const assignmentId = uploadAssignmentIdOf(report);
+  if (assignmentId) {
+    const { questionCatalog } = await buildQuestionCatalog(assignmentId, force);
+    return {
+      catalog: questionCatalog.map(item => ({
+        questionNumber: item.questionNumber,
+        content: item.content,
+        ...(typeof item.maxScore === 'number' ? { maxScore: item.maxScore } : {}),
+        ...(item.expectedAnswer ? { expectedAnswer: item.expectedAnswer } : {}),
+      })),
+      mode: questionCatalog.length > 0 ? 'text' : 'empty',
+      warnings: [],
+    };
+  }
+
   return reader({
     sources: report.assignment.questionSources ?? [],
     questionNumbers,
@@ -486,7 +520,9 @@ const QuestionStats = ({ report, sourceReadState, onQuestionSourceRequested }: Q
                             {sourceReadState?.status === 'ready' && sourceReadState.mode === 'ocr' && (
                               <p className="mt-3 text-xs font-semibold text-indigo-800">Nội dung được đọc từ ảnh/scan bằng OCR; công thức đã được chuẩn hóa để hiển thị.</p>
                             )}
-                            {sourceReadState && sourceReadState.warnings.length > 0 && (
+                            {/* Nhánh lỗi phía trên đã in danh sách cảnh báo rồi; in lại ở đây là
+                                giáo viên thấy đúng khối chữ đó hai lần liên tiếp. */}
+                            {sourceReadState && sourceReadState.status !== 'error' && sourceReadState.warnings.length > 0 && (
                               <ul className="mt-3 list-disc space-y-1 border-t border-indigo-200 pt-3 pl-5 text-xs font-semibold leading-5 text-amber-900">
                                 {sourceReadState.warnings.map(warning => <li key={warning}>{warning}</li>)}
                               </ul>
@@ -661,7 +697,11 @@ export const loadClassAssignmentReports = async (
         purpose: assignment.purpose ?? 'assignment',
         deliveryMode: assignment.deliveryMode ?? 'file',
         maxScore: asFiniteNumber(assignment.maxScore),
-        questionCatalog: extractQuestionCatalogFromText(assignment.sourceText, questionNumbers),
+        // Danh mục máy chủ đã đọc và lưu là nguồn tốt nhất: có công thức LaTeX, không phải dò
+        // lại chữ. Bài giao cũ chưa có thì tạm dò trong sourceText cho tới khi giáo viên bấm đọc.
+        questionCatalog: assignment.questionCatalog?.length
+          ? assignment.questionCatalog
+          : extractQuestionCatalogFromText(assignment.sourceText, questionNumbers),
         questionSources: buildAssignmentQuestionSources(assignment),
         submissions,
       };
@@ -813,7 +853,7 @@ export const ClassAssignmentReport = ({
       [report.assignment.id]: { status: 'loading', warnings: [] },
     }));
 
-    const promise = loadQuestionCatalogForReport(report, settings)
+    const promise = loadQuestionCatalogForReport(report, settings, readQuestionCatalogFromSources, force)
       .then(result => {
         if (generation !== questionSourceGeneration.current) return result;
         setReports(previous => previous.map(current => current.assignment.id === report.assignment.id

@@ -7,6 +7,7 @@ import {
   QUOTA_LIMITS,
   bumpQuota,
   callGeminiVision,
+  chayNgam,
   GeminiResponseError,
   getGradingApiKey,
   loadQuotaDoc,
@@ -29,6 +30,9 @@ import {
   parseTranscription,
   isReadTooUncertain,
   parseHomeworkGradeForCommit,
+  buildQuestionCatalogPrompt,
+  parseQuestionCatalog,
+  type QuestionCatalogEntry,
   parsePracticeAssessment,
   parsePracticeQuestions,
   parseRewrittenFeedback,
@@ -79,7 +83,14 @@ import { canTeacherAccessLegacyNamespace } from './_classroom-access.js';
 // Chấm 2 pha (chép + chấm) làm mỗi bài tốn ~gấp đôi thời gian; hạ batch xuống 2 để một lượt
 // "Chấm cả lớp" không chạm trần 60s của Vercel (client tự gọi lại nhiều lượt cho tới hết).
 const BATCH_SIZE = 2;
-export const STALE_GRADING_MS = 10 * 60 * 1000;
+/**
+ * Sau bao lâu thì coi khoá "đang chấm" là khoá chết và cho giành lại.
+ *
+ * Hàm chấm bị Vercel giết ở 60s (`maxDuration`), nên không worker LÀNH nào giữ khoá quá chừng
+ * đó. Để 10 phút như trước là bài nộp treo "Đang chấm" gần cả buổi rồi mới có ai gỡ được —
+ * đúng cảnh cả lớp kẹt từ 20h. Hai phút đã rộng gấp đôi tuổi thọ tối đa của một worker.
+ */
+export const STALE_GRADING_MS = 2 * 60 * 1000;
 const isStaleGradingTimestamp = (updatedAt: unknown, nowMs = Date.now()): boolean => {
   const timestamp = Date.parse(String(updatedAt || ''));
   return !Number.isFinite(timestamp) || nowMs - timestamp > STALE_GRADING_MS;
@@ -149,6 +160,16 @@ const UNCERTAIN_READ_MESSAGE = 'AI đọc chưa rõ bài này nên chưa chấm 
 const SAFE_GRADING_ERROR_MESSAGE = 'AI gặp lỗi định dạng khi đọc kết quả chấm. Bài và ảnh vẫn được giữ nguyên; hệ thống đã tự thử phục hồi. Thầy/cô có thể chấm lại bằng AI hoặc sửa điểm bằng tay.';
 /** Khai tường minh thay vì dựa default của Vercel — Hobby cap ở 60s. */
 export const maxDuration = 60;
+/**
+ * Ngân sách cho MỘT bài: hết ngân sách là dừng và mở khoá, thay vì để Vercel giết hàm ở 60s.
+ * Bị giết thì không nhánh nào chạy, bài nộp nằm lại `status='grading'` vĩnh viễn — đây chính là
+ * cách 15 bài trong lớp kẹt "Đang chấm". Chừa ~10s cuối để kịp ghi Firestore và trả lời client.
+ */
+const GRADING_BUDGET_MS = 45_000;
+/** Tải một ảnh không được phép ngốn hết ngân sách của cả lượt chấm. */
+const IMAGE_FETCH_TIMEOUT_MS = 10_000;
+/** Dưới mức này thì không còn đủ giờ cho một lượt gọi Gemini nữa; thà báo lỗi còn hơn bị giết. */
+const MIN_GEMINI_BUDGET_MS = 12_000;
 
 const newPracticeId = (prefix: string): string => {
   const random = typeof globalThis.crypto?.randomUUID === 'function'
@@ -178,7 +199,7 @@ const uidFromIdToken = async (idToken: unknown): Promise<string | null> => {
 };
 
 const fetchImage = async (url: string): Promise<InlineImage | null> => {
-  const res = await fetch(url);
+  const res = await fetch(url, { signal: AbortSignal.timeout(IMAGE_FETCH_TIMEOUT_MS) });
   if (!res.ok) return null;
   // Submission có thể giữ cả PDF/DOCX để giáo viên mở bản gốc. Gemini Vision chỉ nhận ảnh;
   // phần chữ của DOCX đi qua `textContent`, còn file PDF đã có ảnh trang được tạo ở client.
@@ -246,14 +267,14 @@ interface GradeAttemptResult {
  * Pha 1 của chấm 2 pha: chép trung thực bài làm học sinh từ ảnh (chỉ ảnh bài làm, không kèm
  * đề/đáp án cho gọn và rẻ). Best-effort — lỗi thì trả rỗng để pha chấm vẫn chạy như một pha.
  */
-const transcribeStudentWork = async (images: InlineImage[], apiKey: string): Promise<string> => {
+const transcribeStudentWork = async (images: InlineImage[], apiKey: string, timeoutMs: number): Promise<string> => {
   if (images.length === 0) return '';
   const raw = await callGeminiVision(
     buildTranscriptionPrompt(),
     images,
     apiKey,
     GRADING_MODEL,
-    { maxOutputTokens: 4096, jsonMode: true, temperature: 0 },
+    { maxOutputTokens: 4096, jsonMode: true, temperature: 0, timeoutMs },
   );
   return parseTranscription(raw);
 };
@@ -266,6 +287,7 @@ const attemptHomeworkGrade = async (
   retryCount: 0 | 1,
   isStudentActor: boolean,
   transcription: string,
+  timeoutMs: number,
 ): Promise<GradeAttemptResult> => {
   // Tiêm bản chép của pha 1 vào ô "bài làm dạng chữ": pha chấm suy luận trên văn bản sạch,
   // vẫn còn ảnh để đối chiếu khi nghi ngờ. Không có bản chép thì chấm thẳng như một pha.
@@ -293,7 +315,12 @@ const attemptHomeworkGrade = async (
     apiKey,
     GRADING_MODEL,
     // temperature 0: đọc chữ + công thức ổn định giữa các lần chấm lại, bớt "mỗi lần một kiểu".
-    { maxOutputTokens: 8192, jsonMode: true, temperature: 0 },
+    //
+    // Trần token: KHÔNG đặt, để model dùng trần tối đa của chính nó. Mức 8192 cũ đã gây lỗi thật
+    // trên lớp — bài nhiều câu, mỗi câu 8 field chữ, cộng token "suy nghĩ" cũng tính vào đây, nên
+    // câu trả lời bị cắt (`MAX_TOKENS`) rồi lượt thử lại y hệt cũng cắt tiếp. Ở đường chấm bài,
+    // bị cắt là hỏng nguyên lượt chấm của một em; phanh thời gian bên dưới mới là thứ giữ an toàn.
+    { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs },
   );
   const gradedWithoutAnswerKey = ctx.answerKey.trim().length === 0 && ctx.answerKeyImages.length === 0;
   const parsed = parseHomeworkGradeForCommit(raw, ctx.maxScore, gradedWithoutAnswerKey, retryCount);
@@ -356,6 +383,10 @@ const gradeOneSubmission = async (
   const previousStatus = previous.status;
   const hadPreviousGrade = Boolean(previous.grade);
   const isStudentActor = !isTeacher;
+  // Đồng hồ đếm ngược bắt đầu NGAY SAU khi khoá được đặt: từ giây này trở đi, mọi đường thoát
+  // đều phải kịp chạy nhánh mở khoá bên dưới trước khi Vercel giết hàm.
+  const deadlineAt = Date.now() + GRADING_BUDGET_MS;
+  const conLaiMs = () => deadlineAt - Date.now();
 
   try {
     const urls = (Array.isArray(previous.fileUrls) ? previous.fileUrls : []).slice(0, MAX_SUBMISSION_FILES);
@@ -370,9 +401,11 @@ const gradeOneSubmission = async (
     // PHA 1 (chép trước): đọc trung thực bài làm thành chữ/LaTeX MỘT LẦN cho cả hai lượt chấm.
     // Best-effort — pha này lỗi thì chấm thẳng như một pha, không làm hỏng lượt chấm.
     let transcription = '';
-    if (mode === 'thorough' && images.length > 0) {
+    // Pha chép chỉ được tiêu một nửa ngân sách còn lại: pha chấm mới là pha bắt buộc phải xong.
+    const nganSachChep = Math.min(Math.floor(conLaiMs() / 2), 20_000);
+    if (mode === 'thorough' && images.length > 0 && nganSachChep >= MIN_GEMINI_BUDGET_MS) {
       try {
-        transcription = await transcribeStudentWork(images, apiKey);
+        transcription = await transcribeStudentWork(images, apiKey, nganSachChep);
       } catch (error) {
         console.warn('[grade-homework] pha chép bài lỗi, chấm trực tiếp từ ảnh', error);
       }
@@ -380,10 +413,13 @@ const gradeOneSubmission = async (
 
     let attempt: GradeAttemptResult;
     try {
-      attempt = await attemptHomeworkGrade(ctx, images, studentText, apiKey, 0, isStudentActor, transcription);
+      attempt = await attemptHomeworkGrade(ctx, images, studentText, apiKey, 0, isStudentActor, transcription, conLaiMs());
     } catch (error) {
       if (!isRetryableGradeAttemptError(error)) throw error;
-      attempt = await attemptHomeworkGrade(ctx, images, studentText, apiKey, 1, isStudentActor, transcription);
+      // Không còn đủ giờ cho lượt thử lại thì báo lỗi luôn. Cố thêm một lượt nữa là chắc chắn bị
+      // Vercel giết giữa chừng, và bài nộp sẽ nằm lại "Đang chấm" không ai gỡ được.
+      if (conLaiMs() < MIN_GEMINI_BUDGET_MS) throw error;
+      attempt = await attemptHomeworkGrade(ctx, images, studentText, apiKey, 1, isStudentActor, transcription, conLaiMs());
     }
     const { grade } = attempt;
 
@@ -559,7 +595,10 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
     .limit(BATCH_SIZE + 20)
     .get();
 
-  if (pending.empty) return res.status(200).json({ graded: 0, failed: 0, remaining: 0 });
+  // Bài vừa gỡ khỏi khoá chết bị loại khỏi chính lượt này, nhưng vẫn phải báo là CÒN việc —
+  // không thì client dừng ngay sau khi gỡ khoá, và giáo viên phải bấm "Chấm cả lớp" lần thứ hai
+  // mới thật sự chấm.
+  if (pending.empty) return res.status(200).json({ graded: 0, failed: 0, recovered: recovered.size, remaining: recovered.size });
 
   // KHÓA NGUỒN GỐC: chỉ chấm bài nộp thật sự thuộc bài giao này (cùng giáo viên + cùng lớp).
   // Truy vấn không lọc được hai trường này nếu không đòi index tổ hợp mới, nên lọc tại đây —
@@ -569,13 +608,15 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
     return !recovered.has(d.id) && s.teacherId === assignmentTeacherId && s.classId === assignmentClassId;
   });
 
-  if (hopLe.length === 0) return res.status(200).json({ graded: 0, failed: 0, remaining: 0 });
+  if (hopLe.length === 0) return res.status(200).json({ graded: 0, failed: 0, recovered: recovered.size, remaining: recovered.size });
 
   const [quota, quotaRef] = await loadQuotaDoc(db, uid);
   const verdict = remainingQuota(quota, 'teacher', '');
   if (verdict.allowed <= 0) return res.status(429).json({ error: verdict.reason });
 
-  const batch = hopLe.slice(0, Math.min(hopLe.length, verdict.allowed));
+  // BATCH_SIZE phải nằm trong phép cắt này. Thiếu nó thì một request cố chấm tới 22 bài liền
+  // trong khi Vercel giết hàm ở 60s — chấm được vài bài rồi chết, bài đang dở kẹt "Đang chấm".
+  const batch = hopLe.slice(0, Math.min(BATCH_SIZE, verdict.allowed));
   const ctx: GradeContext = {
     answerKey: String(assignment.answerKey || ''),
     rubric: String(assignment.rubric || ''),
@@ -600,7 +641,8 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
   return res.status(200).json({
     graded,
     failed,
-    remaining: Math.max(0, hopLe.length - batch.length),
+    recovered: recovered.size,
+    remaining: Math.max(0, hopLe.length - batch.length) + recovered.size,
   });
 };
 
@@ -672,6 +714,34 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
         answerKeyImages: await loadAnswerKeyImages(a),
       };
     }
+  }
+
+  // HỌC SINH tự chấm: trả lời ngay rồi chấm tiếp ở phía máy chủ. Em nộp bằng điện thoại xong
+  // tắt máy là chuyện thường; để việc chấm nằm trong request của em thì request đứt là worker
+  // chết giữa chừng và bài kẹt "Đang chấm". Giáo viên vẫn chấm đồng bộ vì đang ngồi nhìn màn hình.
+  // Nền tảng không cho chạy ngầm (chạy local, chạy test) thì tự lùi về chờ xong như cũ.
+  if (!isTeacher) {
+    const nen = gradeOneSubmission(db, submissionId, ctx, getGradingApiKey(), uid, isTeacher, mode)
+      .catch(error => {
+        console.error('[grade-homework] lượt chấm ngầm hỏng', error);
+        return { success: false };
+      });
+    if (chayNgam(nen)) {
+      // Trừ hạn mức ngay, không đợi kết quả: nếu không, bấm liên tục là lách được hạn mức.
+      await quotaRef.set(bumpQuota(quota, kind, String(submission.studentId || ''), 1));
+      return res.status(202).json({ graded: 0, failed: 0, remaining: 0, pending: true });
+    }
+    await nen;
+    await quotaRef.set(bumpQuota(quota, kind, String(submission.studentId || ''), 1));
+    const sau = await ref.get();
+    const sauData = sau.data() as FirebaseFirestore.DocumentData | undefined;
+    if (sauData?.status === 'graded') return res.status(200).json({ graded: 1, failed: 0, remaining: 0 });
+    return res.status(422).json({
+      error: String(sauData?.errorMessage || 'Chấm bài chưa thành công. Em thử lại hoặc chờ thầy cô chấm.'),
+      graded: 0,
+      failed: 1,
+      remaining: 0,
+    });
   }
 
   const result = await gradeOneSubmission(db, submissionId, ctx, getGradingApiKey(), uid, isTeacher, mode);
@@ -1192,6 +1262,79 @@ const handleSolveAnswerKey = async (db: FirebaseFirestore.Firestore, body: Recor
 };
 
 /**
+ * Đọc đề MỘT LẦN thành danh mục câu hỏi rồi lưu vào bài giao.
+ *
+ * Trước đây nội dung câu hỏi không được lưu ở đâu cả: mỗi lần giáo viên bấm xem một câu trong
+ * báo cáo, trình duyệt mới tải đề gốc về rồi OCR tại chỗ — chậm, lặp lại vô ích, và chết ngay ở
+ * bước tải file nên giáo viên chỉ thấy "Failed to fetch". Máy chủ thì vốn đã đọc trọn cái đề đó
+ * mỗi lần chấm. Đọc một lần, lưu lại, báo cáo chỉ việc hiển thị.
+ */
+const handleBuildQuestionCatalog = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Cần đăng nhập tài khoản giáo viên.' });
+
+  const assignmentId = typeof body.assignmentId === 'string' ? body.assignmentId : '';
+  const ref = db.collection('assignments').doc(assignmentId);
+  const snap = await ref.get();
+  if (!snap.exists) return res.status(404).json({ error: 'Không tìm thấy bài đã giao.' });
+
+  const assignment = snap.data() as FirebaseFirestore.DocumentData;
+  const assignmentTeacherId = typeof assignment.teacherId === 'string' ? assignment.teacherId.trim() : '';
+  const assignmentClassId = typeof assignment.classId === 'string' ? assignment.classId.trim() : '';
+  if (!assignmentTeacherId || !await canTeacherAccessLegacyNamespace(db, uid, assignmentClassId, assignmentTeacherId)) {
+    return res.status(403).json({ error: 'Chỉ giáo viên thuộc lớp được cấp quyền mới dùng được chức năng này.' });
+  }
+
+  // Đã có danh mục thì dùng lại, trừ khi giáo viên chủ động bấm đọc lại.
+  const existing = Array.isArray(assignment.questionCatalog) ? assignment.questionCatalog : [];
+  if (existing.length > 0 && body.force !== true) {
+    return res.status(200).json({ questionCatalog: existing, cached: true });
+  }
+
+  const catalog = await readAssignmentQuestionCatalog(db, uid, assignment);
+  if ('error' in catalog) return res.status(catalog.status).json({ error: catalog.error });
+
+  await ref.update({ questionCatalog: catalog.questionCatalog, updatedAt: new Date().toISOString() });
+  return res.status(200).json({ questionCatalog: catalog.questionCatalog, cached: false });
+};
+
+/** Đọc đề bằng vision và trả danh mục câu; dùng chung cho action riêng và cho lượt giải đáp án. */
+const readAssignmentQuestionCatalog = async (
+  db: FirebaseFirestore.Firestore,
+  uid: string,
+  assignment: FirebaseFirestore.DocumentData,
+): Promise<{ questionCatalog: QuestionCatalogEntry[] } | { error: string; status: number }> => {
+  const examText = String(assignment.sourceText || '');
+  const examImages = await loadAssignmentSourceImages(assignment);
+  if (!examText.trim() && examImages.length === 0) {
+    return { error: 'Bài này chưa có đề đọc được. Đính kèm lại file đề (PDF/ảnh) rồi thử lại.', status: 400 };
+  }
+
+  const [quota, quotaRef] = await loadQuotaDoc(db, uid);
+  const verdict = remainingQuota(quota, 'teacher', '');
+  if (verdict.allowed <= 0) return { error: verdict.reason, status: 429 };
+
+  const raw = await callGeminiVision(
+    buildQuestionCatalogPrompt({
+      examText,
+      examImageCount: examImages.length,
+      maxScore: Number(assignment.maxScore) || 10,
+    }),
+    examImages,
+    getGradingApiKey(),
+    GRADING_MODEL,
+    { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: GRADING_BUDGET_MS },
+  );
+  await quotaRef.set(bumpQuota(quota, 'teacher', '', 1));
+
+  const questionCatalog = parseQuestionCatalog(raw);
+  if (questionCatalog.length === 0) {
+    return { error: 'Chưa tách được câu hỏi nào từ đề gốc. Thử đính kèm file đề rõ hơn.', status: 422 };
+  }
+  return { questionCatalog };
+};
+
+/**
  * AI giải lại đáp án cho một bài ĐÃ GIAO — dùng đề đã lưu (sourceText + ảnh trang) thay vì bắt
  * giáo viên tải lại file. Kết quả vẫn là NHÁP để giáo viên soát rồi mới lưu, không tự ghi vào
  * bài giao (một đáp án sai làm cả lớp bị chấm sai). Nhận lệnh riêng từ bản nháp đang sửa để
@@ -1334,6 +1477,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (action === 'submitPractice') return await handleSubmitPractice(db, body, res);
     if (action === 'solveAnswerKey') return await handleSolveAnswerKey(db, body, res);
     if (action === 'solveAnswerKeyForAssignment') return await handleSolveAnswerKeyForAssignment(db, body, res);
+    if (action === 'buildQuestionCatalog') return await handleBuildQuestionCatalog(db, body, res);
     if (action === 'suggestRubric') return await handleSuggestRubric(db, body, res);
     if (action === 'rewriteFeedback') return await handleRewriteFeedback(db, body, res);
     return res.status(400).json({ error: `Hành động không hợp lệ: ${action}`, limits: QUOTA_LIMITS });

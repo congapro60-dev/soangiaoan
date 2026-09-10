@@ -1,4 +1,8 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+const { buildQuestionCatalogMock } = vi.hoisted(() => ({ buildQuestionCatalogMock: vi.fn() }));
+vi.mock('../../../services/gradingApi', () => ({ buildQuestionCatalog: buildQuestionCatalogMock }));
+
 import type { AppData, Exam, ExamSubmission, Student } from '../../../types';
 import type { AssignmentDoc, SubmissionDoc } from '../../../lib/classroom/types';
 import {
@@ -26,12 +30,18 @@ const roster: Student[] = [
 ];
 
 describe('ClassAssignmentReport adapters', () => {
-  it('tải catalog thiếu theo nguồn đề mà không thay đổi dữ liệu bài nộp', async () => {
-    const reader = vi.fn(async () => ({
-      catalog: [{ questionNumber: 'Câu 1', content: 'Giải $x=1$.' }],
-      mode: 'ocr' as const,
-      warnings: [],
-    }));
+  beforeEach(() => {
+    buildQuestionCatalogMock.mockReset();
+  });
+
+  it('bài nộp ảnh: lấy nội dung câu hỏi từ MÁY CHỦ, không OCR trong trình duyệt', async () => {
+    // Cách cũ tải đề gốc về máy giáo viên rồi OCR tại chỗ — hỏng ngay ở bước tải file nên giáo
+    // viên chỉ thấy "Failed to fetch". Giờ máy chủ đọc một lần và lưu; trình duyệt chỉ đọc ra.
+    const reader = vi.fn(async () => ({ catalog: [], mode: 'empty' as const, warnings: [] }));
+    buildQuestionCatalogMock.mockResolvedValue({
+      questionCatalog: [{ questionNumber: 'Câu 1', content: 'Giải $x=1$.', maxScore: 2 }],
+      cached: false,
+    });
     const report = {
       assignment: {
         id: 'assignment-1',
@@ -45,13 +55,43 @@ describe('ClassAssignmentReport adapters', () => {
 
     const result = await loadQuestionCatalogForReport(report, reportSettings, reader);
 
-    expect(reader).toHaveBeenCalledWith(expect.objectContaining({
-      sources: report.assignment.questionSources,
-      questionNumbers: ['Câu 1'],
-      settings: reportSettings,
-    }));
-    expect(result.catalog).toEqual([{ questionNumber: 'Câu 1', content: 'Giải $x=1$.' }]);
+    expect(buildQuestionCatalogMock).toHaveBeenCalledWith('assignment-1', false);
+    expect(reader).not.toHaveBeenCalled();
+    expect(result.catalog).toEqual([{ questionNumber: 'Câu 1', content: 'Giải $x=1$.', maxScore: 2 }]);
     expect(result.warnings).toEqual([]);
+  });
+
+  it('giáo viên bấm đọc lại thì truyền force xuống máy chủ', async () => {
+    buildQuestionCatalogMock.mockResolvedValue({ questionCatalog: [], cached: false });
+    const report = {
+      assignment: { id: 'assignment-2', questionCatalog: [], questionSources: [] },
+      questionStats: [{ questionNumber: 'Câu 1' }],
+    } as unknown as ClassAssignmentReportMetrics;
+
+    await loadQuestionCatalogForReport(report, reportSettings, undefined, true);
+
+    expect(buildQuestionCatalogMock).toHaveBeenCalledWith('assignment-2', true);
+  });
+
+  it('đề online không có bài giao để đọc nên vẫn dùng nguồn đề sẵn có', async () => {
+    const reader = vi.fn(async () => ({
+      catalog: [{ questionNumber: 'Câu 1', content: 'Giải $x=1$.' }],
+      mode: 'text' as const,
+      warnings: [],
+    }));
+    const report = {
+      assignment: {
+        id: 'exam:de-1',
+        questionCatalog: [],
+        questionSources: [{ name: 'de.pdf', url: 'https://example.test/de.pdf' }],
+      },
+      questionStats: [{ questionNumber: 'Câu 1' }],
+    } as unknown as ClassAssignmentReportMetrics;
+
+    const result = await loadQuestionCatalogForReport(report, reportSettings, reader);
+
+    expect(reader).toHaveBeenCalledWith(expect.objectContaining({ questionNumbers: ['Câu 1'] }));
+    expect(result.catalog).toEqual([{ questionNumber: 'Câu 1', content: 'Giải $x=1$.' }]);
   });
 
   it('reuses one empty alias list when a class has never been renamed', () => {

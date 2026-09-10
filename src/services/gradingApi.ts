@@ -1,9 +1,17 @@
 import { auth } from '../lib/firebase';
+import type { AssignmentQuestionCatalogItem } from '../lib/classroom/types';
 
 export interface GradeBatchResult {
   graded: number;
   failed: number;
   remaining: number;
+  /** Số bài vừa được gỡ khỏi khoá "đang chấm" chết. Cũng là tiến độ, dù chưa chấm được bài nào. */
+  recovered?: number;
+  /**
+   * Máy chủ đã nhận bài và đang chấm ngầm; chưa có điểm ngay lúc trả lời. Học sinh tắt máy vẫn
+   * ra điểm, chỉ cần quay lại xem sau.
+   */
+  pending?: boolean;
 }
 
 export type HomeworkGradingMode = 'quick' | 'thorough';
@@ -46,7 +54,9 @@ export const gradeAssignmentAll = async (
     onProgress?.(total.graded + total.failed, result.remaining);
 
     if (result.remaining <= 0) break;
-    if (result.graded + result.failed === 0) break; // không tiến thêm được thì dừng, tránh lặp vô hạn
+    // Một vòng chỉ gỡ khoá chết mà chưa chấm được bài nào VẪN là tiến thêm — dừng ở đây là bắt
+    // giáo viên bấm "Chấm cả lớp" lần thứ hai mới thật sự chấm.
+    if (result.graded + result.failed + (result.recovered ?? 0) === 0) break; // đứng yên thì dừng, tránh lặp vô hạn
   }
   return total;
 };
@@ -216,6 +226,37 @@ export const solveAnswerKeyForAssignment = async (
     throw error;
   }
   return data as SolvedAnswerKeyResult;
+};
+
+/**
+ * Nhờ MÁY CHỦ đọc đề thành danh mục câu hỏi rồi lưu vào bài giao.
+ *
+ * Thay cho việc tải đề gốc về trình duyệt rồi OCR tại chỗ mỗi lần mở báo cáo — cách cũ vừa lặp
+ * vô ích vừa hỏng ở bước tải file. Máy chủ đọc một lần, lưu lại, các lần sau chỉ đọc ra.
+ */
+export const buildQuestionCatalog = async (
+  assignmentId: string,
+  force = false,
+): Promise<{ questionCatalog: AssignmentQuestionCatalogItem[]; cached: boolean }> => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Phiên đăng nhập đã hết hạn.');
+
+  const res = await fetch('/api/grade-homework', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'buildQuestionCatalog',
+      idToken: await user.getIdToken(),
+      assignmentId,
+      force,
+    }),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
+  return {
+    questionCatalog: Array.isArray(data?.questionCatalog) ? data.questionCatalog : [],
+    cached: data?.cached === true,
+  };
 };
 
 /** Nhờ AI đề xuất hướng dẫn chấm từ đáp án đã có. */

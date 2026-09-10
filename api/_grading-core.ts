@@ -124,6 +124,29 @@ export const reserveQuota = async (
   });
 };
 
+// ── Chạy ngầm sau khi đã trả lời client ──────────────────────────────────────
+
+/**
+ * Giữ việc chạy tiếp trên máy chủ SAU KHI đã trả lời client.
+ *
+ * Học sinh nộp bài bằng điện thoại rồi tắt máy là chuyện bình thường; nếu việc chấm nằm trong
+ * chính request của em thì request đứt là worker chết giữa chừng và bài kẹt "Đang chấm". Có
+ * `waitUntil` thì trả lời ngay "máy đang chấm, em cứ tắt máy" mà việc chấm vẫn chạy nốt.
+ *
+ * Vercel đặt hàm này vào request context toàn cục (`@vercel/functions` cũng đọc đúng chỗ này).
+ * Nền tảng không cung cấp — chạy local, chạy test — thì trả `false` để nhánh gọi tự lùi về cách
+ * cũ là chờ xong rồi mới trả lời. LƯU Ý: `waitUntil` KHÔNG vượt được `maxDuration`; nó bỏ được
+ * phụ thuộc vào máy học sinh, không nới thêm được giây nào.
+ */
+export const chayNgam = (work: Promise<unknown>): boolean => {
+  const store = (globalThis as Record<symbol, unknown>)[Symbol.for('@vercel/request-context')] as
+    { get?: () => { waitUntil?: (promise: Promise<unknown>) => void } | undefined } | undefined;
+  const waitUntil = store?.get?.()?.waitUntil;
+  if (typeof waitUntil !== 'function') return false;
+  waitUntil(work);
+  return true;
+};
+
 // ── Gọi Gemini bằng khoá của chủ dự án ───────────────────────────────────────
 
 export interface InlineImage {
@@ -138,12 +161,11 @@ export const getGradingApiKey = (): string => {
   return key;
 };
 
-// Doi model khong can sua code: dat bien GRADING_MODEL tren Vercel roi redeploy.
-// Mac dinh gemini-3.8-flash: pro (gemini-3.1-pro-preview) doc chac hon NHUNG qua cham so voi tran
-// 60s cua Vercel Hobby -> "AI giai de" (16k token, nhieu anh) va "Cham ca lop" (batch x 2 pha) bi
-// timeout 504. Flash chay trong 60s. Muon thu pro thi dat env GRADING_MODEL=gemini-3.1-pro-preview
-// (chi nen dung cho "Cham lai" tung bai, va can nang Vercel len goi co maxDuration cao hon).
-export const GRADING_MODEL = process.env.GRADING_MODEL || 'gemini-3.8-flash';
+// Ghim trong code, KHONG doc env nua. Truoc day env GRADING_MODEL override duoc: mot lan dat pro
+// (gemini-3.1-pro-preview) roi quen go la production am tham chay model vuot tran 60s cua Vercel
+// Hobby, trong khi code da revert ve flash -> ca lop ket "Dang cham" ma doc code khong thay gi sai.
+// Doi model = sua dong nay roi deploy, de trang thai that luon nam trong git.
+export const GRADING_MODEL = 'gemini-3.8-flash';
 
 /** Tách "data:image/jpeg;base64,xxx" thành phần Gemini nhận được. */
 export const parseDataUrl = (dataUrl: string): InlineImage | null => {
@@ -154,11 +176,14 @@ export const parseDataUrl = (dataUrl: string): InlineImage | null => {
 
 export interface GeminiOptions {
   /**
-   * Trần token đầu ra. Với Gemini 2.5, token "suy nghĩ" của model CŨNG tính vào trần này, nên
-   * đặt chặt là câu trả lời thật bị cắt cụt hoặc rỗng. Giải cả một đề cần rộng hơn hẳn chấm
-   * một bài.
+   * Trần token đầu ra. Token "suy nghĩ" của model CŨNG tính vào trần này, nên đặt chặt là câu
+   * trả lời thật bị cắt cụt hoặc rỗng. Giải cả một đề cần rộng hơn hẳn chấm một bài.
+   *
+   * `'model-max'` = KHÔNG gửi trần nào cả, để model dùng trần tối đa của chính nó. Dùng cho
+   * đường chấm bài: ở đó bị cắt giữa chừng là hỏng nguyên lượt chấm của một em, mà tự đoán một
+   * con số thì hoặc vẫn chật, hoặc vượt trần model rồi bị từ chối thẳng.
    */
-  maxOutputTokens?: number;
+  maxOutputTokens?: number | 'model-max';
   /** Bật chế độ JSON của Gemini: model bị ràng buộc trả JSON hợp lệ, khỏi bọc trong ```json. */
   jsonMode?: boolean;
   /**
@@ -166,6 +191,12 @@ export interface GeminiOptions {
    * thức ổn định hơn, không "mỗi lần một kiểu". Tác vụ cần đa dạng (sinh bài luyện) giữ >0.
    */
   temperature?: number;
+  /**
+   * Trần thời gian chờ Gemini, mili giây. Không đặt là chờ vô hạn — mà hàm serverless bị Vercel
+   * giết ở 60s thì bài nộp nằm lại "đang chấm" mãi vì không nhánh nào kịp mở khoá. Luôn truyền
+   * phần thời gian còn lại của lượt chấm vào đây.
+   */
+  timeoutMs?: number;
 }
 
 export type GeminiFailureKind =
@@ -222,30 +253,51 @@ export const callGeminiVision = async (
 ): Promise<string> => {
   const generationConfig: Record<string, unknown> = {
     temperature: options.temperature ?? 0.2,
-    maxOutputTokens: options.maxOutputTokens ?? 4096,
   };
+  const maxOutputTokens = options.maxOutputTokens ?? 4096;
+  // Bỏ hẳn field khi gọi 'model-max': Gemini không nhận field này thì tự lấy trần lớn nhất của
+  // model. An toàn hơn tự điền một con số — điền quá tay là bị từ chối, điền dè là lại bị cắt.
+  if (maxOutputTokens !== 'model-max') generationConfig.maxOutputTokens = maxOutputTokens;
   if (options.jsonMode) generationConfig.responseMimeType = 'application/json';
 
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{
-          role: 'user',
-          parts: [
-            { text: prompt },
-            ...images.map(img => ({ inlineData: { mimeType: img.mimeType, data: img.data } })),
-          ],
-        }],
-        generationConfig,
-      }),
-    },
-  );
+  let res: Response;
+  try {
+    res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            role: 'user',
+            parts: [
+              { text: prompt },
+              ...images.map(img => ({ inlineData: { mimeType: img.mimeType, data: img.data } })),
+            ],
+          }],
+          generationConfig,
+        }),
+        ...(options.timeoutMs ? { signal: AbortSignal.timeout(options.timeoutMs) } : {}),
+      },
+    );
+  } catch (error) {
+    // Hết giờ chờ thì phải ném ra để nhánh gọi kịp mở khoá bài nộp trước khi Vercel giết hàm.
+    const timedOut = error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError');
+    throw new GeminiResponseError(
+      'provider',
+      timedOut
+        ? 'AI xử lý quá lâu nên máy chủ phải dừng lượt chấm này. Thử lại, hoặc chụp gọn lại bài (ít ảnh hơn).'
+        : 'Không gọi được Gemini lúc này. Thử lại sau ít phút.',
+    );
+  }
 
   if (!res.ok) {
-    throw new GeminiResponseError('http', 'Gemini không thể xử lý yêu cầu lúc này. Thử lại sau ít phút.');
+    // Kèm mã HTTP: 429 (hết hạn mức), 400 (payload sai), 503 (Gemini quá tải) đòi ba cách xử lý
+    // hoàn toàn khác nhau, mà thông điệp chung chung thì giáo viên lẫn người sửa lỗi đều mù.
+    throw new GeminiResponseError(
+      'http',
+      `Gemini không thể xử lý yêu cầu lúc này (mã ${res.status}). Thử lại sau ít phút.`,
+    );
   }
 
   let rawData: unknown;

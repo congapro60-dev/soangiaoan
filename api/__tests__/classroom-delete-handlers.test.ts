@@ -175,13 +175,16 @@ describe('POST /api/classroom · deleteSubmission', () => {
     expect(res.statusCode).toBe(200);
     expect(res.payload).toMatchObject({ deleted: true, deletedFiles: 1 });
     // File dọn TRƯỚC, document xoá SAU — lỗi giữa chừng thì bài nộp còn để thử lại.
-    expect(harness.events).toEqual([
+    // Thông báo cho học sinh ghi SAU CÙNG: nó chỉ có nghĩa khi việc xoá đã thật sự xong.
+    expect(harness.events.slice(0, 5)).toEqual([
       `storage:homework/hs-uid/sub-1-0.jpg`,
       'set:studentProfiles/hs-1',
       'delete:studentSkillEvidence/hs-1__sub-1%3Amath.line-equation',
       'set:studentProfiles/hs-1',
       'delete:submissions/sub-1',
     ]);
+    expect(harness.events[5]).toMatch(/^set:studentNotifications\/del_sub-1_/u);
+    expect(harness.events).toHaveLength(6);
     expect(harness.store['studentSkillEvidence']['hs-1__sub-1%3Amath.line-equation']).toBeUndefined();
   });
 

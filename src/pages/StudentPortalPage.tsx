@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -18,7 +18,9 @@ import {
 import type { ExamSubmission } from '../types';
 import { dichLoiNopBai, nenAnhBaiLam } from '../utils/imageCompress';
 import { fetchRoster, fetchStudentAssignments, fetchStudentOnlineSubmissions, fetchStudentSubmissions, loginStudent, type RosterEntry } from '../services/studentPortalApi';
-import { submitHomework } from '../lib/classroom/submissionService';
+import { layThongBaoHocSinh, submitHomework } from '../lib/classroom/submissionService';
+import { buildStudentFeed } from '../lib/classroom/studentNotifications';
+import type { StudentNotificationDoc } from '../lib/classroom/types';
 import { appendPendingFiles, removePendingFile } from '../lib/classroom/uploadQueue';
 import {
   fetchPractice,
@@ -38,6 +40,8 @@ const MAX_ANH = 10;
 /** File gốc chỉ để giáo viên mở; phần chấm vẫn đi qua ảnh/chữ đã kiểm soát. */
 const MAX_RAW_FILE_BYTES = 20 * 1024 * 1024;
 const MAX_STUDENT_TEXT_CHARS = 60000;
+/** Máy chủ nhận bài rồi chấm ngầm — không bắt học sinh giữ màn hình cho tới lúc có điểm. */
+const DANG_CHAM_NGAM = 'Máy đã nhận bài và đang chấm. Em cứ tắt máy, lát nữa vào lại mục "Đã chấm" để xem điểm và nhận xét nhé!';
 type Stage = 'dang-tai' | 'nhap-ma-lop' | 'chon-ten' | 'dashboard';
 
 interface Phien {
@@ -89,6 +93,31 @@ const clearStoredPractice = (session: Phien): void => {
   }
 };
 
+/**
+ * Mốc học sinh mở chuông lần gần nhất, lưu theo MÁY chứ không theo tài khoản.
+ *
+ * Cố ý chọn localStorage: huy hiệu "chưa đọc" là tiện nghi của riêng máy em đang cầm, không
+ * đáng để thêm một lượt ghi máy chủ mỗi lần bấm chuông. Đổi máy thì đếm lại từ đầu — chấp nhận.
+ */
+const notificationSeenKey = (session: Phien): string =>
+  `smartplan:notifications-seen:${session.classId}:${session.studentId}`;
+
+const readNotificationsSeenAt = (session: Phien): string | null => {
+  try {
+    return window.localStorage.getItem(notificationSeenKey(session));
+  } catch {
+    return null;
+  }
+};
+
+const writeNotificationsSeenAt = (session: Phien, seenAt: string): void => {
+  try {
+    window.localStorage.setItem(notificationSeenKey(session), seenAt);
+  } catch {
+    // Chế độ riêng tư khoá localStorage: chuông vẫn chạy, chỉ là lần sau đếm lại.
+  }
+};
+
 const KhungDangNhap = ({ children }: { children: ReactNode }) => (
   <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-indigo-50 via-white to-white p-4">
     <div className="w-full max-w-md">
@@ -121,6 +150,8 @@ export const StudentPortalPage = () => {
   const [submissions, setSubmissions] = useState<SubmissionDoc[]>([]);
   const [onlineSubmissions, setOnlineSubmissions] = useState<ExamSubmission[]>([]);
   const [profile, setProfile] = useState<StudentProfileDoc | null>(null);
+  const [notifications, setNotifications] = useState<StudentNotificationDoc[]>([]);
+  const [notificationsSeenAt, setNotificationsSeenAt] = useState<string | null>(null);
   const [dangTaiDu, setDangTaiDu] = useState(true);
   const [dangNop, setDangNop] = useState('');
   const [buocNop, setBuocNop] = useState('');
@@ -134,6 +165,11 @@ export const StudentPortalPage = () => {
   const [dangNopLuyen, setDangNopLuyen] = useState(false);
   const [loiLuyen, setLoiLuyen] = useState('');
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  // Gộp thông báo đã lưu (bị xoá bài) với các việc suy ra từ chính bài nộp.
+  const notificationFeed = useMemo(
+    () => buildStudentFeed({ submissions, assignments, notifications }),
+    [submissions, assignments, notifications],
+  );
   const uploadRef = useRef<HTMLInputElement>(null);
   const targetRef = useRef<string | null>(null);
   const targetSupplementRef = useRef<string | null>(null);
@@ -302,16 +338,19 @@ export const StudentPortalPage = () => {
     if (!phien) return;
     setDangTaiDu(true);
     try {
-      const [bai, nop, baiOnline, hoSo] = await Promise.all([
+      const [bai, nop, baiOnline, hoSo, thongBao] = await Promise.all([
         fetchStudentAssignments(),
         fetchStudentSubmissions(),
         fetchStudentOnlineSubmissions(),
         getDoc(doc(db, STUDENT_PROFILES_COL, phien.studentId)),
+        // Chuông hỏng không được làm hỏng cả màn hình bài tập.
+        layThongBaoHocSinh().catch(() => [] as StudentNotificationDoc[]),
       ]);
       setAssignments(bai);
       setSubmissions(nop);
       setOnlineSubmissions(baiOnline);
       setProfile(hoSo.exists() ? (hoSo.data() as StudentProfileDoc) : null);
+      setNotifications(thongBao);
       setLoiDuLieu('');
 
       const stored = readStoredPractice(phien);
@@ -348,8 +387,11 @@ export const StudentPortalPage = () => {
   }, [phien]);
 
   useEffect(() => {
-    if (stage === 'dashboard') void taiDuLieu();
-  }, [stage, taiDuLieu]);
+    if (stage !== 'dashboard') return;
+    // Đọc mốc đã xem của đúng em này trên máy này trước khi tính huy hiệu chưa đọc.
+    if (phien) setNotificationsSeenAt(readNotificationsSeenAt(phien));
+    void taiDuLieu();
+  }, [stage, phien, taiDuLieu]);
 
   const nopBai = async (files: readonly File[]) => {
     if (!phien) return;
@@ -418,7 +460,8 @@ export const StudentPortalPage = () => {
       if (!mucTieu) {
         setBuocNop('Đã nộp! Máy đang chấm bài...');
         try {
-          await gradeOneSubmission(submission.id, 'quick');
+          const ketQua = await gradeOneSubmission(submission.id, 'quick');
+          if (ketQua.pending) setThanhCong(DANG_CHAM_NGAM);
         } catch (error) {
           console.error('Chấm bài tự do chưa xong', error);
           setCanhBao('Bài đã nộp thành công nhưng máy chưa chấm được ngay — thầy cô sẽ chấm giúp em sau.');
@@ -443,8 +486,10 @@ export const StudentPortalPage = () => {
           if (isConfirmed) {
             setBuocNop('Máy đang chấm bài...');
             try {
-              await gradeOneSubmission(submission.id, 'quick');
-              setThanhCong(`${supplementOf ? 'Máy đã chấm lại toàn bộ' : 'Máy đã chấm xong'} bài "${tenBai}" — mở mục "Đã chấm" để xem nhận xét nhé!`);
+              const ketQua = await gradeOneSubmission(submission.id, 'quick');
+              setThanhCong(ketQua.pending
+                ? DANG_CHAM_NGAM
+                : `${supplementOf ? 'Máy đã chấm lại toàn bộ' : 'Máy đã chấm xong'} bài "${tenBai}" — mở mục "Đã chấm" để xem nhận xét nhé!`);
             } catch (error) {
               console.error('Chấm bài giao chưa xong', error);
               setCanhBao('Bài đã nộp thành công nhưng máy chưa chấm được ngay — thầy cô sẽ chấm giúp em sau.');
@@ -605,6 +650,12 @@ export const StudentPortalPage = () => {
       onLoadPractice={() => void layBaiLuyen()}
       onPracticeAnswerChange={capNhatCauTraLoi}
       onSubmitPractice={() => void nopBaiLuyen()}
+      notifications={notificationFeed}
+      notificationsLastSeenAt={notificationsSeenAt}
+      onNotificationsOpened={seenAt => {
+        setNotificationsSeenAt(seenAt);
+        if (phien) writeNotificationsSeenAt(phien, seenAt);
+      }}
       onDismissSuccess={() => setThanhCong('')}
     />
   );

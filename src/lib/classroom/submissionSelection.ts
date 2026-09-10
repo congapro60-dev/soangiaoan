@@ -3,13 +3,27 @@ import type { SubmissionDoc, SubmissionGrade } from './types';
 /** Dưới ngưỡng này coi là máy đọc chữ chưa chắc, nên nhắc giáo viên soát lại. */
 export const READ_CONFIDENCE_FLOOR = 0.6;
 
-/** Khóa grading cũ hơn 10 phút có thể là worker đã chết giữa chừng. */
-export const STALE_GRADING_MS = 10 * 60 * 1000;
+/**
+ * Khóa grading cũ hơn ngần này là worker đã chết giữa chừng. Phải khớp `STALE_GRADING_MS` bên
+ * `api/grade-homework.ts`: máy chủ giết hàm chấm ở 60s nên không worker lành nào giữ khoá lâu hơn.
+ */
+export const STALE_GRADING_MS = 2 * 60 * 1000;
 
 export const isStaleGradingTimestamp = (updatedAt?: string, nowMs = Date.now()): boolean => {
   const timestamp = Date.parse(String(updatedAt || ''));
   return !Number.isFinite(timestamp) || nowMs - timestamp > STALE_GRADING_MS;
 };
+
+/**
+ * Bài có thể đưa vào một lượt chấm AI hay không.
+ *
+ * Gồm cả bài mang nhãn "Đang chấm" mà khoá đã chết: bỏ sót nhóm này thì nút "Chấm AI" đếm ra 0
+ * trong khi cả chục bài treo trên màn hình, và giáo viên không còn đường nào gỡ.
+ */
+export const isGradableNow = (submission: SubmissionDoc, nowMs = Date.now()): boolean =>
+  submission.status === 'submitted'
+  || submission.status === 'error'
+  || (submission.status === 'grading' && isStaleGradingTimestamp(submission.updatedAt, nowMs));
 
 /**
  * Máy đọc bài "chưa chắc": có câu không đọc rõ, có câu tự đánh dấu cần giáo viên soát, hoặc độ
@@ -85,7 +99,7 @@ export interface SelectionSummary {
 
 export const summarizeSelection = (submissions: readonly SubmissionDoc[]): SelectionSummary => ({
   total: submissions.length,
-  pending: submissions.filter(submission => submission.status === 'submitted' || submission.status === 'error').length,
+  pending: submissions.filter(submission => isGradableNow(submission)).length,
   graded: submissions.filter(submission => submission.status === 'graded' && Boolean(submission.grade)).length,
   // Bài đang bị worker giữ khóa không được đưa vào bulk duyệt; dữ liệu UI có thể
   // cũ hơn server một nhịp và endpoint duyệt cũ là client-side.

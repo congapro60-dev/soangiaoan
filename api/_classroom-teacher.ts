@@ -257,6 +257,8 @@ const teacherAssignmentProjection = (id: string, data: FirebaseFirestore.Documen
     rubric: data.rubric,
     attachments: data.attachments,
     sourceText: data.sourceText,
+    // Báo cáo theo câu đọc thẳng danh mục này; thiếu nó là quay lại cảnh OCR trong trình duyệt.
+    questionCatalog: data.questionCatalog,
     sourceImageUrls: data.sourceImageUrls,
     gradingInstructions: data.gradingInstructions,
     answerKeyImageUrls: data.answerKeyImageUrls,

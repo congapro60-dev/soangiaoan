@@ -1,3 +1,152 @@
+# Chuông thông báo cho học sinh — 2026-09-09
+
+**Branch**: `feat/student-notifications` · base `main` = `b49fe2a`
+
+## Yêu cầu
+
+Giáo viên xoá bài của học sinh thì em phải biết bài bị xoá và cần nộp lại. Cổng học sinh có nút
+chuông kiểu Facebook, liệt kê: nộp thành công, bị xoá bài, chấm xong có điểm, chấm lỗi, giáo viên
+sửa/duyệt điểm. Giáo viên gõ được lý do khi xoá (không bắt buộc).
+
+## Đã khảo sát
+
+- **Nửa "yêu cầu nộp lại" đã chạy sẵn**: xoá bài nộp là document biến mất, `portalViewModel` tự
+  trả về `todo` → "Nộp ảnh". Thiếu đúng phần nói cho em biết VÌ SAO.
+- Xoá bài đi qua máy chủ (`handleDeleteSubmission` trong `api/classroom.ts`) → ghi thông báo được
+  ngay tại đó, không cần đụng quyền Firestore.
+- Học sinh đọc dữ liệu qua action `studentAssignments` / `studentSubmissions` trên `/api/classroom`
+  — thêm action mới ở đó, KHÔNG thêm Vercel function (đang chạm trần 12).
+
+## Quyết định thiết kế
+
+**Chỉ lưu sự kiện xoá bài.** Bốn loại còn lại suy ra được từ chính bài nộp mà cổng học sinh đã
+tải; lưu thêm bản sao chỉ tạo cơ hội cho hai nguồn lệch nhau. Bài bị xoá thì document biến mất,
+không còn gì để suy ra — đó là lý do nó phải được ghi lại.
+
+## Việc
+
+- [x] 1. Collection `studentNotifications` + kiểu dữ liệu; máy chủ ghi khi xoá bài, kèm lý do
+- [x] 2. Action `studentNotifications` cho học sinh đọc thông báo của CHÍNH em
+- [x] 3. Hộp thoại xoá của giáo viên thêm ô "Lý do (tuỳ chọn)"
+- [x] 4. Gộp thông báo đã lưu với sự kiện suy ra từ bài nộp thành một dòng thời gian
+- [x] 5. Nút chuông + bảng thông báo + huy hiệu chưa đọc
+- [x] 6. Thêm: dải nhắc ngay trên thẻ bài vừa bị xoá, không bắt em mở chuông mới hiểu
+- [x] 7. `lint` 0 · `lint:api` 0 · test 1906/1906 · `build` ✓
+
+## Review
+
+**Chỉ lưu một loại sự kiện.** `studentNotifications` chỉ nhận `submission_deleted`. Bốn loại còn
+lại (nộp xong, chấm xong, chấm lỗi, giáo viên duyệt) suy thẳng từ bài nộp trong `buildStudentFeed`
+— giữ thêm bản sao trong Firestore chỉ tạo cơ hội cho hai nguồn nói khác nhau. Một bài chỉ sinh
+một mục, lấy trạng thái mới nhất, nên bảng không thành chồng dòng cùng nói về một bài.
+
+**Ghi thông báo sau khi xoá xong, và best-effort.** Ghi trước thì lỗi giữa chừng sẽ báo em bài đã
+bị xoá trong khi nó còn nguyên. Lỗi ở bước ghi cũng không được biến một lượt xoá đã thành công
+thành lỗi — chỉ log lại.
+
+**Bảo mật**: action lọc theo `studentId` lấy từ `studentLinks` của phiên, không theo tham số client
+gửi lên. Có test cho việc em này không đọc được thông báo của em khác.
+
+**Mốc "đã đọc" để ở localStorage theo máy** — huy hiệu chưa đọc là tiện nghi của riêng máy em đang
+cầm, không đáng thêm một lượt ghi máy chủ mỗi lần bấm chuông. Đổi máy thì đếm lại từ đầu.
+
+**Đánh dấu đã đọc bằng mốc của mục mới nhất**, không phải "bây giờ": thông báo đến trong lúc bảng
+đang mở vẫn được tính là chưa đọc ở lần sau.
+
+**Chưa kiểm được bằng mắt**: cổng học sinh cần mã lớp + PIN thật mới vào được dashboard, nên tôi
+không tự đăng nhập bằng dữ liệu thật. Đã xác nhận trang nạp sạch, không lỗi console, và toàn bộ
+phần tính toán (dòng thời gian, bộ đếm chưa đọc, hai handler máy chủ) có test. Phần nhìn thấy của
+chuông cần giáo viên mở thử trên máy thật.
+
+---
+
+# Báo cáo theo câu: gộp đúng câu + nội dung câu hỏi lưu sẵn — 2026-09-08
+
+**Branch**: `fix/report-question-catalog` · base `main` = `4c64b8c`
+
+## Ba lỗi đã xác định (đọc code đang chạy production)
+
+1. **Một câu bị đếm thành nhiều câu.** `buildQuestionStats` gộp theo đúng chuỗi chữ AI tự đặt, chỉ cắt khoảng trắng ([classReportModel.ts:268](../src/lib/classroom/classReportModel.ts)). `Bài 3.5 – Ý 1`, `Bài 3.5 (Ý 1)`, `Bài 3.5 – Ý 1: Tính cos A` thành ba dòng. Hệ quả nặng: mọi tỉ lệ đều sai vì mẫu số bị xé — cùng một câu ra 100% và 50%.
+2. **"Failed to fetch".** Nội dung câu hỏi KHÔNG được lưu ở đâu cả; mỗi lần mở báo cáo, trình duyệt mới tải đề gốc về rồi OCR tại chỗ ([ClassAssignmentReport.tsx:664](../src/components/features/classroom/ClassAssignmentReport.tsx)) — CORS chặn. Trong khi máy chủ ĐÃ đọc trọn đề ở nút "AI giải đề" rồi vứt đi ([grade-homework.ts:1301](../api/grade-homework.ts)).
+3. **Khối cảnh báo in hai lần** + liệt kê đủ 20 nhãn câu → khối chữ lằng nhằng.
+
+## Lô 1 — gộp câu + dọn giao diện
+
+- [x] 1. `questionGroupKey()`: rút token cấu trúc, bỏ mô tả tự do
+- [x] 2. `buildQuestionStats` gộp theo khoá đó; nhãn hiển thị lấy bản gọn nhất
+- [x] 3. Bỏ khối cảnh báo in trùng; dịch lỗi tiếng Anh; gấp danh sách nhãn dài
+
+## Lô 2 — danh mục câu hỏi dựng ở máy chủ
+
+- [x] 4. Action `buildQuestionCatalog` trên `/api/grade-homework` (không thêm function): đọc đề bằng vision, tách từng câu kèm LaTeX, lưu `assignments/{id}.questionCatalog`
+- [~] 5. "AI giải đề" lưu luôn danh mục — **BỎ CÓ CHỦ Ý**, xem phần Review
+- [x] 6. Báo cáo đọc danh mục đã lưu; "Đọc lại đề" gọi máy chủ thay vì OCR trong trình duyệt
+- [x] 7. `lint` 0 · `lint:api` 0 · test 1894/1894 · `build` ✓
+
+## Review
+
+**Lô 1** — `questionGroupKey` đọc nhãn từ trái sang, giữ giá trị của token cấu trúc và dừng ở từ mô tả đầu tiên. `Bài 3.5 – Ý 1 (Tính cos A)` và `Bài 3.5 (Ý 1)` cùng khoá `3.5:1`; `Bài 3.5` trơ trọi vẫn là `3.5` nên câu mẹ không bị nuốt vào câu con; `Bài 3.9a` khớp `Bài 3.9 – Câu a`. Nhãn không có số thì lùi về `normalizeQuestionKey` — trả khoá rỗng sẽ dồn mọi nhãn mô tả vào một dòng, sai nặng hơn hiện trạng.
+
+**Lô 2** — máy chủ đọc đề một lần rồi lưu `questionCatalog` vào bài giao. Báo cáo đọc thẳng danh mục đó: hết tải file trong trình duyệt, hết OCR lặp lại, hết `Failed to fetch`, và công thức hiện đúng vì đã ở dạng LaTeX. Đã có danh mục thì trả lại luôn (`cached: true`), chỉ đọc lại khi giáo viên bấm.
+
+**Việc 5 bỏ có chủ ý.** Nhét thêm một lượt gọi Gemini vào chính request "AI giải đề" là đẩy nó chạm trần 60 giây của Vercel — đúng cái bẫy vừa sửa sáng nay. Danh mục đọc theo yêu cầu, một lần cho mỗi bài giao, rẻ hơn và không đe doạ đường đang chạy tốt.
+
+**Chưa làm**: cắt ảnh từng câu. Cần toạ độ từng câu trên trang; vision model trả khung không đủ chắc trên đề scan nghiêng và chữ Toán viết tay — cắt trúng nửa câu còn khó hiểu hơn không cắt. Chữ + LaTeX đã đủ dùng, vẫn giữ link mở ảnh đề để đối chiếu.
+
+**Chưa cần sửa CORS của Storage** — trình duyệt không còn tải file đề nữa nên lỗi đó không còn đường xuất hiện ở báo cáo.
+
+---
+
+# Fix dứt điểm: bài nộp kẹt "Đang chấm" + "Lỗi" khi chấm AI — 2026-09-08
+
+**Branch**: `fix/grading-stuck-lock` · base `origin/main` = `cc4f1b6`
+
+## Bằng chứng production (đọc Firestore 08/09/2026)
+
+- 15/50 bài gần nhất ở `status='grading'` mà `gradingRunId` VẪN CÒN → khoá chết, không worker nào mở.
+- 06/09 15:18–15:25 UTC: 9 bài kẹt liên tiếp → một lượt "Chấm cả lớp" bị Vercel giết giữa chừng.
+- Lỗi thật trong `errorMessage`/`lastGradingErrorRaw`: `"AI trả lời dài quá trần cho phép nên bị cắt giữa chừng"` → `finishReason = MAX_TOKENS`.
+- 06/09 16:0x–16:37: 5 bài `"Gemini không thể xử lý yêu cầu lúc này"` → HTTP không ok mà code nuốt mất status code.
+- Mốc giờ khớp chính xác ảnh giáo viên gửi (13:29 UTC = 20:29, 15:11 UTC = 22:11).
+
+## Nguyên nhân gốc
+
+1. **Khoá chỉ do worker mở.** `claimSubmissionForGrading` ghi `status='grading'`, chỉ nhánh `catch` mở khoá. Worker chết (Vercel 60s, HS tắt máy giữa chừng) → kẹt vĩnh viễn. Không `fetch` nào trong luồng chấm có timeout.
+2. **`maxOutputTokens: 8192` quá chật** — token "suy nghĩ" cũng ăn vào trần này; retry dùng y nguyên cấu hình nên hỏng lần hai.
+3. **`BATCH_SIZE = 2` không được áp dụng** — `handleGradeAssignment` cắt batch theo hạn mức ngày, một request cố chấm tới 22 bài.
+4. **Bulk "Chấm AI" bỏ sót bài kẹt** (lọc `submitted | error`) → hiện "(0)" dù 8 bài đang treo.
+
+## Việc cần làm
+
+- [x] 1. Ngân sách 45s mỗi lượt chấm + timeout cho mọi `fetch`; hết ngân sách thì bỏ retry
+- [x] 2. `maxOutputTokens` 8192 → 16384 (thử lại 24576) + prompt thử lại yêu cầu viết gọn
+- [x] 3. Hạ ngưỡng khoá chết 10 phút → 2 phút (cả server lẫn client)
+- [x] 4. Áp đúng `BATCH_SIZE` cho "Chấm cả lớp"; trả thêm `recovered` để một lần bấm là đủ
+- [x] 5. Bulk "Chấm AI" và các nút từng dòng nhận cả bài `grading` đã quá hạn
+- [x] 6. Ghim model chấm = `gemini-3.8-flash` trong code, bỏ env override
+- [x] 7. Ghi mã HTTP của Gemini vào thông điệp lỗi
+- [x] 8. `lint` 0 · `lint:api` 0 · test 1873/1873 · `build` ✓
+
+## Review
+
+**Đổi gì** — 8 file, +221/−54. Bốn cổng kiểm tra đều pass.
+
+`api/_grading-core.ts`: `callGeminiVision` nhận `timeoutMs`, bọc `fetch` trong try/catch và dịch abort thành lỗi đọc được; thông điệp lỗi HTTP kèm mã trạng thái; `GRADING_MODEL` ghim cứng.
+
+`api/grade-homework.ts`: `GRADING_BUDGET_MS = 45s` tính từ lúc đặt khoá, truyền phần thời gian còn lại xuống từng lượt gọi; bỏ lượt thử lại khi không còn đủ giờ; `STALE_GRADING_MS` 2 phút; `BATCH_SIZE` được áp thật; trả thêm `recovered`.
+
+`submissionSelection.ts`: thêm `isGradableNow` — bài `grading` quá hạn cũng là bài chấm được. Dùng cho bộ đếm nút "Chấm AI" và bulk.
+
+`AssignmentPanel.tsx`: các nút từng dòng (Sửa điểm / Duyệt / Xóa điểm / Xóa lượt nộp) chỉ khoá khi máy ĐANG thật sự chấm.
+
+**Test mới**: `api/__tests__/grade-homework.deadline.test.ts` (5 ca) khoá cả hai nguyên nhân gốc — Gemini treo thì bài phải mở khoá chứ không nằm lại "Đang chấm"; trần token phải > 8192; lượt thử lại phải rộng hơn và đòi viết gọn; lỗi HTTP phải lộ mã trạng thái.
+
+**Chưa làm, có chủ ý**: không đặt `thinkingConfig` để chặn token "suy nghĩ" — không có khoá Gemini để thử ở máy này, mà tham số không được model chấp nhận thì trả 400 và chết TOÀN BỘ đường chấm. Nới trần token là cách an toàn hơn cho cùng triệu chứng. Nếu vẫn còn `MAX_TOKENS` sau lô này thì đó là bước tiếp theo, và lúc đó phải thử trên preview trước.
+
+**Còn lại cho chủ dự án**: xoá biến `GRADING_MODEL` trong Vercel nếu còn đặt (giờ code không đọc nữa, nhưng để lại thì gây hiểu nhầm).
+
+---
+
 # AI grading quick/thorough modes — 2026-09-07
 
 - [x] Add gradeOne tests: quick skips transcription, thorough stores transcription, student actor is forced quick.

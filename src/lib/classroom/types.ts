@@ -145,6 +145,38 @@ export type StudentActivityExportBundle = Pick<
   'status' | 'contentVersion' | 'contentHash' | 'studentPdfUrl' | 'studentDocxUrl' | 'generatedAt'
 >;
 
+/**
+ * Thông báo gửi tới một học sinh.
+ *
+ * CHỈ lưu những việc không suy ra được từ dữ liệu em đã có. Bài bị giáo viên xoá là ca duy nhất
+ * như vậy: document bài nộp biến mất nên không còn dấu vết nào để cổng học sinh dựng lại. Các
+ * việc khác (nộp xong, chấm xong, chấm lỗi, giáo viên duyệt điểm) đọc thẳng từ bài nộp — lưu
+ * thêm một bản sao chỉ tạo cơ hội cho hai nguồn lệch nhau.
+ */
+export interface StudentNotificationDoc {
+  id: string;
+  studentId: string;
+  classId: string;
+  teacherId: string;
+  type: 'submission_deleted';
+  assignmentId?: string;
+  /** Tên bài lúc xoá — giữ lại vì bài giao có thể bị đổi tên hoặc xoá sau đó. */
+  assignmentTitle?: string;
+  /** Lời giáo viên gõ khi xoá. Bỏ trống thì cổng học sinh dùng câu mặc định. */
+  reason?: string;
+  createdAt: string;
+}
+
+/** Nội dung một câu của đề, do máy chủ đọc một lần rồi lưu cùng bài giao. */
+export interface AssignmentQuestionCatalogItem {
+  /** Nhãn chép nguyên văn theo đề, dùng để khớp với nhãn từng câu của lượt chấm. */
+  questionNumber: string;
+  /** Đề bài của câu đó, công thức đã ở dạng LaTeX để hiển thị được ngay. */
+  content: string;
+  maxScore?: number;
+  expectedAnswer?: string;
+}
+
 /** Một bài giáo viên giao cho lớp. */
 export interface AssignmentDoc {
   id: string;
@@ -166,6 +198,13 @@ export interface AssignmentDoc {
   attachments?: AssignmentAttachment[];
   /** Chữ rút từ file đề, dùng làm nguồn tham chiếu chung khi AI chấm cả lớp. */
   sourceText?: string;
+  /**
+   * Nội dung từng câu của đề, máy chủ đọc MỘT LẦN rồi lưu lại.
+   *
+   * Thiếu nó thì báo cáo phải tải đề gốc về trình duyệt và OCR lại mỗi lần giáo viên bấm xem
+   * một câu — chậm, lặp vô ích, và hỏng ngay ở bước tải file.
+   */
+  questionCatalog?: AssignmentQuestionCatalogItem[];
   /** Ảnh đề/ảnh PDF scan đã chuẩn hoá, gửi một lần làm ngữ cảnh chấm. */
   sourceImageUrls?: string[];
   /** Lệnh nội bộ của giáo viên cho AI: phạm vi câu/bài, phần cần bỏ qua, cách xử lý đặc biệt. */

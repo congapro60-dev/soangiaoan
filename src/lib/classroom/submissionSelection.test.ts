@@ -3,6 +3,7 @@ import type { SubmissionDoc } from './types';
 import {
   currentSubmissionsForAssignment,
   hasUncertainRead,
+  isGradableNow,
   isStaleGradingTimestamp,
   selectedSubmissionsForAssignment,
   selectedCurrentSubmissions,
@@ -29,9 +30,29 @@ describe('submissionSelection', () => {
   it('nhận diện khóa grading cũ để UI cho giáo viên chấm lại', () => {
     const now = Date.parse('2026-09-07T12:00:00.000Z');
 
-    expect(isStaleGradingTimestamp('2026-09-07T11:50:01.000Z', now)).toBe(false);
-    expect(isStaleGradingTimestamp('2026-09-07T11:49:59.000Z', now)).toBe(true);
+    // Máy chủ giết hàm chấm ở 60s, nên khoá quá 2 phút chắc chắn là khoá chết.
+    expect(isStaleGradingTimestamp('2026-09-07T11:58:01.000Z', now)).toBe(false);
+    expect(isStaleGradingTimestamp('2026-09-07T11:57:59.000Z', now)).toBe(true);
     expect(isStaleGradingTimestamp('not-a-date', now)).toBe(true);
+  });
+
+  it('bài mang nhãn "Đang chấm" mà khoá đã chết vẫn nằm trong số chấm được', () => {
+    const now = Date.parse('2026-09-07T12:00:00.000Z');
+    const ket = submission('ket', 'student-1', '2026-09-07T11:40:00.000Z', { status: 'grading' });
+    const dangCham = submission('dang', 'student-2', '2026-09-07T11:59:30.000Z', { status: 'grading' });
+
+    // Sự cố thật: 8 bài treo "Đang chấm" mà nút "Chấm AI" đếm ra 0 — giáo viên hết đường gỡ.
+    expect(isGradableNow(ket, now)).toBe(true);
+    expect(isGradableNow(dangCham, now)).toBe(false);
+
+    // Bộ đếm của nút "Chấm AI" đọc đồng hồ thật, nên mốc thời gian ở đây phải tính từ bây giờ.
+    const bayGio = new Date().toISOString();
+    const vuaKhoa = submission('vua', 'student-3', bayGio, { status: 'grading', updatedAt: bayGio });
+    const ketThat = submission('ket-that', 'student-4', bayGio, {
+      status: 'grading',
+      updatedAt: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
+    });
+    expect(summarizeSelection([vuaKhoa, ketThat]).pending).toBe(1);
   });
 
   it('chọn lượt mới nhất theo timestamp, không phụ thuộc thứ tự Firestore trả về', () => {

@@ -6,6 +6,7 @@ import {
   SUBMISSIONS_COL,
   type AssignmentAttachment,
   type AssignmentDoc,
+  type StudentNotificationDoc,
   type SubmissionAttachment,
   type SubmissionDoc,
 } from './types';
@@ -242,8 +243,21 @@ export const listClassRoster = async (classId: string): Promise<RosterStudent[]>
  * khỏi hồ sơ tích luỹ và dọn file Storage qua server TRƯỚC khi xoá document. Nếu Storage lỗi,
  * API giữ nguyên document để giáo viên thử lại, không tạo trạng thái xoá nửa chừng trên giao diện.
  */
-export const xoaBaiNopHocSinh = async (submission: SubmissionDoc): Promise<void> => {
-  await callClassroomTeacherApi({ action: 'deleteSubmission', submissionId: submission.id });
+export const xoaBaiNopHocSinh = async (submission: SubmissionDoc, reason = ''): Promise<void> => {
+  // `reason` đi kèm vào thông báo gửi học sinh, để em biết phải sửa gì khi nộp lại.
+  await callClassroomTeacherApi({
+    action: 'deleteSubmission',
+    submissionId: submission.id,
+    ...(reason.trim() ? { reason: reason.trim() } : {}),
+  });
+};
+
+/** Thông báo gửi riêng cho học sinh đang đăng nhập; máy chủ lọc theo phiên, không theo tham số. */
+export const layThongBaoHocSinh = async (): Promise<StudentNotificationDoc[]> => {
+  const result = await callClassroomStudentApi<{ notifications: StudentNotificationDoc[] }>({
+    action: 'studentNotifications',
+  });
+  return Array.isArray(result.notifications) ? result.notifications : [];
 };
 
 /** Xóa riêng kết quả chấm; bài nộp, file và lịch sử vẫn được giữ để chấm lại. */
