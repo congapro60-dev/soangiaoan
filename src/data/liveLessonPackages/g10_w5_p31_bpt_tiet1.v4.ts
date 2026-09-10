@@ -440,7 +440,13 @@ function buildPublicTvScreens(timeline: TimelineBlock[]): PublicTvScreen[] {
       screenId: block.tvScreenId,
       label: TV_EYEBROW[block.id] ?? 'LIVE CLASSROOM',
       title: block.label.replace(/^P\d+(?:-P\d+)?:\s*/, '').toUpperCase(),
-      body: block.id === 'P00' ? TV_OPENING_CONTEXT_P00 : derivedBody,
+      body: block.id === 'P00' ? TV_OPENING_CONTEXT_P00
+        : block.id === 'P16' ? [
+          block.boardLarge,
+          'Suy nghĩ cá nhân: em đồng ý với kết luận của AI không?',
+          'Trao đổi với bạn: chỉ ra bước đáng nghi và dùng phép tính để kiểm chứng.',
+          'Chuẩn bị giải thích trước lớp; ghi bước sửa và bằng chứng vào vở.',
+        ].join('\n\n') : derivedBody,
     };
   });
 }
