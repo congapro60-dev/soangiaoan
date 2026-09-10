@@ -1,0 +1,99 @@
+.live-tv {
+  --tv-ink: #f4f7fc;
+  min-height: 100dvh;
+  color: var(--tv-ink);
+  background: #0b1220;
+}
+.tv-shell {
+  min-height: 100dvh;
+  padding: clamp(20px, 2.5vw, 64px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 2vh, 30px);
+}
+.live-tv[data-controls="true"] .tv-shell { padding-bottom: 100px; }
+.tv-lesson-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #ffffff20;
+}
+.tv-lesson-title {
+  margin-top: 6px;
+  font-size: clamp(16px, 1.45vw, 30px);
+  line-height: 1.35;
+  font-weight: 600;
+  color: #aebed4;
+}
+.tv-cue-stage { flex: 1; min-width: 0; }
+.tv-slide-layout { display: grid; gap: clamp(16px, 2vh, 28px); align-content: start; }
+.tv-slide-title {
+  margin: 0;
+  font-size: clamp(28px, 3vw, 62px);
+  line-height: 1.15;
+  font-weight: 750;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.tv-content-card {
+  min-width: 0;
+  padding: clamp(20px, 2.3vw, 48px);
+  border: 1px solid #b4c9e52b;
+  border-left: 5px solid #67e8f9;
+  border-radius: 18px;
+  background: #142135;
+}
+.tv-slide-copy {
+  margin: 0;
+  max-width: none;
+  font-size: clamp(24px, 2.55vw, 52px);
+  line-height: 1.45;
+  color: #ecf2fa;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.tv-slide-copy p + p { margin-top: .45em; }
+.live-tv[data-density="dense"] .tv-slide-copy { font-size: clamp(22px, 2vw, 40px); line-height: 1.35; }
+.tv-slide-action { font-size: clamp(22px, 2vw, 40px); line-height: 1.4; }
+.tv-media { min-width: 0; display: flex; align-items: center; justify-content: center; }
+.tv-media video, .tv-media img { width: 100%; max-height: 46vh; object-fit: contain; border-radius: 16px; }
+.tv-stats-region { border-top: 1px solid #ffffff20; padding-top: 16px; }
+.tv-stats-region footer > div { gap: 12px; }
+.tv-stats-region footer > div > div { flex: 1 1 120px; padding: 14px 18px; border: 1px solid #ffffff12; }
+.tv-stats-region footer > div > div > p:first-child { font-size: clamp(14px, 1.25vw, 24px); white-space: normal; }
+.tv-stats-region footer > div > div > p:last-child { font-size: clamp(30px, 3vw, 56px); }
+@media (min-width: 1100px) {
+  .live-tv[data-media="true"] .tv-slide-layout { grid-template-columns: 1.1fr 1fr; align-items: start; }
+  .live-tv[data-media="true"] .tv-slide-layout > p,
+  .live-tv[data-media="true"] .tv-slide-title { grid-column: 1 / -1; }
+  .live-tv[data-media="true"] .tv-slide-copy { font-size: clamp(22px, 1.8vw, 38px); }
+}
+.live-student { min-height: 100dvh; background: #f3f6fb; color: #17243b; padding: 20px 16px 48px; }
+.student-shell { max-width: 1120px; margin: auto; display: flex; flex-direction: column; gap: 18px; }
+.student-lesson-header { padding: 20px 24px; border-radius: 18px; color: white; background: #172b49; }
+.student-lesson-title { margin: 6px 0; font-size: clamp(18px, 2vw, 26px); font-weight: 650; line-height: 1.35; }
+.student-task-card { background: #eaf1ff; border: 1px solid #ccdcf7; border-left: 5px solid #3568cd; border-radius: 16px; padding: 22px 24px; }
+.student-task-card h2 { margin-top: 8px; font-size: clamp(23px, 2.3vw, 30px); line-height: 1.3; }
+.student-task-card > div { margin-top: 10px; font-size: 18px; line-height: 1.65; }
+.student-response-card { padding: 24px; border: 1px solid #d4deed; border-radius: 18px; background: white; box-shadow: 0 4px 16px #243b6406; }
+.student-response-card > div:first-of-type { font-size: clamp(20px, 2vw, 26px); line-height: 1.5; }
+.student-response-card button { min-height: 52px; font-size: 17px; transition: background-color .15s, box-shadow .15s; }
+.student-response-card button:focus-visible, .live-student button:focus-visible,
+.student-answer-input:focus-visible { outline: 3px solid #3b82f6; outline-offset: 3px; }
+.student-answer-input { width: 100%; min-height: 140px; resize: vertical; padding: 16px; border: 1px solid #b9c9de; border-radius: 12px; background: #fbfdff; font-size: 18px; line-height: 1.6; }
+.student-tv-reference { padding: 20px 24px; background: #fff; border: 1px solid #dce4ef; border-radius: 16px; }
+.student-tv-reference h2 { font-size: 19px; line-height: 1.4; }
+.student-tv-reference > div { font-size: 16px; line-height: 1.6; }
+.live-student [role="status"] { line-height: 1.5; }
+@media (max-width: 600px) {
+  .live-student { padding: 12px 12px 32px; }
+  .student-shell { gap: 12px; }
+  .student-lesson-header, .student-task-card, .student-response-card, .student-tv-reference { padding: 18px; border-radius: 14px; }
+  .student-lesson-header > div > div:last-child { align-items: flex-start; }
+  .student-response-card button { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-student *, .live-tv * { animation: none !important; transition: none !important; }
+}

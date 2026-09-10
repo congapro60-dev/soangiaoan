@@ -5,6 +5,7 @@ import { LiveLessonStatus } from './LiveLessonStatus';
 import { LiveLessonRichText } from './LiveLessonRichText';
 import { lookupTvMedia, type TvMediaEntry } from '../../lib/liveLesson/v4/mediaManifest';
 import { TvStatsPanel } from './TvStatsPanel';
+import './liveClassroom.css';
 
 export type TvLiveDefinition = Pick<LiveLessonDefinition, 'title' | 'tvScreens'>;
 
@@ -100,12 +101,11 @@ export const TvLiveView = ({ definition, sessionId, publicState, publicStateErro
   });
   const { media, shouldPlay, showPosterFallback } = playbackState;
 
-  // Cỡ chữ theo mật độ nội dung: màn hình nhiều chữ/nhiều dòng thu nhỏ để vừa 16:9.
   const bodyText = screen?.body ?? '';
-  const dense = bodyText.length > 140 || bodyText.split('\n').filter(Boolean).length > 3;
-  const titleSize = media ? 'text-[clamp(1.5rem,3.8vw,3.5rem)]' : dense ? 'text-[clamp(1.8rem,4.2vw,3.8rem)]' : 'text-[clamp(2rem,6vw,5.5rem)]';
-  const bodySize = media ? 'text-[clamp(1rem,2vw,1.8rem)]' : dense ? 'text-[clamp(1.2rem,2.35vw,2.4rem)]' : 'text-[clamp(1.1rem,2.4vw,2.4rem)]';
-  const actionSize = media ? 'text-[clamp(1rem,1.8vw,1.6rem)]' : dense ? 'text-[clamp(1.1rem,2vw,2rem)]' : 'text-[clamp(1.05rem,2.1vw,2rem)]';
+  const dense = bodyText.length > 480 || bodyText.split('\n').filter(Boolean).length > 7;
+  const titleSize = 'tv-slide-title';
+  const bodySize = 'tv-slide-copy';
+  const actionSize = 'tv-slide-action';
 
   useEffect(() => {
     setMediaError(false);
@@ -122,13 +122,13 @@ export const TvLiveView = ({ definition, sessionId, publicState, publicStateErro
   }, [media, shouldPlay]);
 
   return (
-    <main className="h-[100dvh] min-h-[100dvh] overflow-hidden bg-black text-white">
+    <main className="live-tv" data-density={dense ? "dense" : "normal"} data-media={Boolean(media)} data-controls={Boolean(presenterControls)}>
       <style>{'@keyframes tvCueIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}.tv-cue-stage{animation:tvCueIn .28s ease-out}@media (prefers-reduced-motion: reduce){.tv-cue-stage{animation:none}}'}</style>
-      <div className="mx-auto flex h-[100dvh] min-h-[100dvh] max-w-7xl flex-col overflow-hidden rounded-3xl border border-white/10 bg-slate-950 px-[clamp(1rem,2vw,2.5rem)] py-[clamp(0.75rem,1.8vh,2rem)] shadow-2xl">
-        <header className="flex shrink-0 items-center justify-between gap-3">
+      <div className="tv-shell">
+        <header className="tv-lesson-header">
           <div className="min-w-0">
             <p className="text-[clamp(0.55rem,0.9vw,0.8rem)] font-black uppercase tracking-[0.2em] text-cyan-300 sm:tracking-[0.3em]">SmartPlan · Live classroom</p>
-            <h1 className="mt-1 truncate text-[clamp(1.4rem,3.2vw,3.5rem)] font-black leading-tight">{definition.title}</h1>
+            <h1 className="tv-lesson-title">{definition.title}</h1>
           </div>
           <span className="shrink-0 rounded-full border border-emerald-400/50 px-3 py-1.5 text-[clamp(0.6rem,1vw,0.85rem)] font-black uppercase text-emerald-300">{publicState.status}</span>
         </header>
@@ -136,12 +136,12 @@ export const TvLiveView = ({ definition, sessionId, publicState, publicStateErro
         {listenerNotice && <div className="mt-[clamp(0.5rem,1vh,1rem)] shrink-0"><LiveLessonStatus tone={listenerNotice.tone}>{listenerNotice.message}</LiveLessonStatus></div>}
         {!screen && <div className="flex min-h-0 flex-1 items-center justify-center"><p className="text-center text-[clamp(1.25rem,3vw,2.5rem)] font-black text-slate-400">Đang chờ màn hình công khai…</p></div>}
         {screen && (
-          <section key={screen.id} className="tv-cue-stage min-h-0 flex-1 overflow-hidden py-[clamp(0.5rem,1.5vh,1.5rem)]">
-            <div className="flex h-full min-h-0 flex-col">
+          <section key={screen.id} className="tv-cue-stage">
+            <div className="tv-slide-layout">
               <p className="shrink-0 text-[clamp(0.75rem,1.3vw,1.25rem)] font-black uppercase tracking-[0.14em] text-cyan-300">{screen.label}</p>
               <h2 className={`mt-2 shrink-0 font-black leading-[0.98] ${titleSize}`}>{screen.title}</h2>
               {media && (
-                <div className="mt-3 flex shrink-0 justify-center">
+                <div className="tv-media">
                   {showPosterFallback ? (
                     <img src={media.posterSrc} alt={media.altText} className="max-h-[42vh] w-auto rounded-xl object-contain" />
                   ) : (
@@ -159,14 +159,14 @@ export const TvLiveView = ({ definition, sessionId, publicState, publicStateErro
                   )}
                 </div>
               )}
-              <div className="flex min-h-0 flex-1 flex-col justify-center overflow-hidden">
+              <div className="tv-content-card">
                 <LiveLessonRichText text={screen.body} className={`mt-3 max-w-5xl font-semibold leading-[1.2] text-slate-200 ${bodySize}`} />
                 {screen.action && <p className={`mt-3 font-black leading-tight text-amber-300 ${actionSize}`}>{screen.action}</p>}
               </div>
             </div>
           </section>
         )}
-        <div className="mt-[clamp(0.35rem,0.8vh,0.75rem)] shrink-0"><TvStatsPanel stats={presentation.stats} showStats={publicState.showStats} /></div>
+        <div className="tv-stats-region"><TvStatsPanel stats={presentation.stats} showStats={publicState.showStats} /></div>
       </div>
       {presenterControls}
     </main>
