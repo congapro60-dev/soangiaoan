@@ -402,52 +402,142 @@ function buildTaskVariants(): TaskVariant[] {
   ];
 }
 
-// Nhãn ngắn (eyebrow) cho từng cue trên màn hình TV — theo hoạt động thật của
-// bài này, không theo cung bậc S0..S10 mặc định.
-const TV_EYEBROW: Record<string, string> = {
-  P00: 'MỞ ĐẦU',
-  P03: 'MỤC TIÊU CÁ NHÂN',
-  P05: 'MỤC TIÊU CHUNG',
-  P08: 'HÌNH THÀNH',
-  P16: 'TƯ DUY PHẢN BIỆN',
-  P19: 'HỢP TÁC',
-  P20: 'HỢP TÁC',
-  P27: 'ĐÁNH GIÁ LẠI',
-  P30: 'PHÂN HÓA',
-  P35: 'CHỐT TOÁN',
-  P38: 'KẾT THÚC',
+// Nội dung TRÌNH CHIẾU cho từng cue. Đây là chữ học sinh đọc trên TV, nên viết
+// thành câu đầy đủ; KHÔNG lấy từ boardLarge/boardSide (đó là ghi chú tốc ký cho
+// giáo viên viết bảng: "Giữ mô hình + định nghĩa", "LỖI CẦN SOI: dấu ≤ | thay
+// cặp") và KHÔNG bao giờ lấy từ teacherScript.
+interface TvSlideCopy { label: string; title: string; body: string; action: string }
+
+const TV_SLIDES: Record<string, TvSlideCopy> = {
+  P00: {
+    label: 'MỞ ĐẦU',
+    title: 'TÌNH HUỐNG MỞ ĐẦU',
+    body: [
+      'Em có 150 nghìn đồng để mua bánh và nước cho nhóm.',
+      'Mỗi chiếc bánh 15 nghìn đồng. Mỗi chai nước 10 nghìn đồng.',
+      'Số tiền phải trả không được vượt quá số tiền em đang có.',
+      'Làm sao mô tả mọi cách chọn hợp lệ mà không phải thử từng cách?',
+    ].join('\n'),
+    action: 'Nghĩ 30 giây rồi nói dự đoán của em với bạn bên cạnh. Chưa cần mở máy.',
+  },
+  P03: {
+    label: 'MỤC TIÊU CÁ NHÂN',
+    title: 'CUỐI TIẾT EM MUỐN LÀM ĐƯỢC GÌ?',
+    body: [
+      'Cuối tiết này, em muốn tự làm được điều gì khi gặp một bất phương trình hai ẩn?',
+      'Ví dụ: em muốn tự kiểm tra được một cách chọn có hợp lệ hay không.',
+      'Ví dụ: em muốn giải thích được vì sao một cách chọn bị loại.',
+    ].join('\n'),
+    action: 'Mở màn hình của em: chọn 1–2 mục tiêu, hoặc viết một câu ngắn của riêng em.',
+  },
+  P05: {
+    label: 'MỤC TIÊU CHUNG',
+    title: 'MỤC TIÊU CHUNG CỦA LỚP',
+    body: [
+      '1. Viết được bất phương trình mô tả điều kiện của bài toán.',
+      '2. Chỉ ra đường biên và mô tả miền nghiệm bằng hình, ký hiệu hoặc lời nói.',
+      '3. Kiểm tra được một điểm có thuộc miền nghiệm hay không.',
+      '4. Giải thích kết luận bằng một câu có căn cứ.',
+    ].join('\n'),
+    action: 'So mục tiêu em vừa viết với bốn mục tiêu này. Chỗ nào chưa rõ thì hỏi ngay.',
+  },
+  P08: {
+    label: 'HÌNH THÀNH',
+    title: 'ĐƯỜNG BIÊN VÀ MIỀN NGHIỆM',
+    body: [
+      'Gọi x là số chiếc bánh, y là số chai nước. Điều kiện của bài toán: 15x + 10y ≤ 150.',
+      'Đường biên là đường thẳng 15x + 10y = 150.',
+      'Miền nghiệm là tất cả các điểm (x ; y) làm bất phương trình trở thành mệnh đề đúng.',
+      'Câu hỏi: vì sao dấu ở đây là ≤ chứ không phải < ?',
+    ].join('\n'),
+    action: 'Vẽ trục toạ độ và đường biên vào vở. Ghi lại bốn từ khoá đang có trên bảng.',
+  },
+  P16: {
+    label: 'TƯ DUY PHẢN BIỆN',
+    title: 'KIỂM CHỨNG LỜI GIẢI CỦA AI',
+    body: [
+      'Lời giải của AI cần kiểm:',
+      'Với (6 ; 7) ta có 15 · 6 + 10 · 7 = 160. Vì 160 ≤ 150 nên (6 ; 7) là phương án hợp lệ.',
+      'Em có đồng ý với kết luận này không?',
+      'Chỉ ra bước đáng nghi, rồi dùng một phép tính để chứng minh điều em nói.',
+    ].join('\n'),
+    action: 'Trên máy: chọn loại lỗi trước khi thảo luận. Sau đó ghi bước sửa vào vở.',
+  },
+  P19: {
+    label: 'HỢP TÁC',
+    title: 'CHIA NHÓM LÀM VIỆC',
+    body: [
+      'Mỗi nhóm nhận một mã nhóm và một nhiệm vụ.',
+      'Các nhóm khác nhau ở chỗ cần hỗ trợ, không phải ở việc ai giỏi hơn ai.',
+      'Câu hỏi lớn của cả lớp vẫn là một.',
+    ].join('\n'),
+    action: 'Xem mã nhóm trên máy của em, rồi di chuyển theo sơ đồ chỗ ngồi.',
+  },
+  P20: {
+    label: 'HỢP TÁC',
+    title: 'NHIỆM VỤ NHÓM',
+    body: [
+      'Câu hỏi chung: làm sao biết một điểm có thuộc miền nghiệm mà không cần nhìn đáp án?',
+      'Bài của nhóm đạt khi có đủ ba điều:',
+      '1. Nói rõ x và y là gì. 2. Dùng đúng dấu của bất phương trình. 3. Kết luận có kèm căn cứ.',
+    ].join('\n'),
+    action: 'Đặt thiết bị xuống khi cả nhóm cùng giải thích. Khung câu: “Điểm ___ thuộc miền vì ___.”',
+  },
+  P27: {
+    label: 'ĐÁNH GIÁ LẠI',
+    title: 'TỰ KIỂM TRA CÁ NHÂN',
+    body: [
+      'Cho bất phương trình 2x + y ≤ 12.',
+      'Điểm (5 ; 3) có thuộc miền nghiệm không? Vì sao?',
+      'Làm một mình: thay toạ độ, so sánh hai vế, rồi kết luận.',
+    ].join('\n'),
+    action: 'Tự làm và gửi câu trả lời của riêng em. Bước này không hỏi nhóm.',
+  },
+  P30: {
+    label: 'PHÂN HÓA',
+    title: 'BA CỬA VÀO, MỘT ĐÍCH ĐẾN',
+    body: [
+      'M — Củng cố: kiểm tra một điểm cho trước và giải thích kết luận.',
+      'S — Chuẩn: tự lập bất phương trình rồi mô tả miền nghiệm.',
+      'C — Thử thách: thêm điều kiện x và y là số nguyên không âm.',
+      'Ba chỗ dễ sai: nhầm dấu ≤ với < ; thay nhầm x với y ; bỏ quên điều kiện của bài toán.',
+    ].join('\n'),
+    action: 'Chọn tuyến trên máy, làm bài, dùng nhiều nhất một gợi ý rồi tự hoàn thiện.',
+  },
+  P35: {
+    label: 'CHỐT TOÁN',
+    title: 'CHỐT LẠI VÀ PHẢN VÍ DỤ',
+    body: [
+      'Một mô hình toán học chỉ có nghĩa khi đã nói rõ x và y là gì.',
+      'Một điểm là nghiệm khi thay toạ độ vào ta được một mệnh đề đúng.',
+      'Một phản ví dụ là đủ để bác bỏ một kết luận.',
+    ].join('\n'),
+    action: 'Đối chiếu với mục tiêu em viết đầu tiết. Sửa lại vở nếu cần.',
+  },
+  P38: {
+    label: 'KẾT THÚC',
+    title: 'EXIT TICKET',
+    body: [
+      'Viết hai câu trước khi rời lớp:',
+      '1. Một điều em đã hiểu, kèm một căn cứ.',
+      '2. Một điều em còn cần kiểm chứng.',
+      'Tiết sau: biểu diễn miền nghiệm trên mặt phẳng toạ độ.',
+    ].join('\n'),
+    action: 'Gửi exit ticket trên máy của em, rồi giữ vở mở.',
+  },
 };
 
-// Bối cảnh mở đầu công khai cho cue P00 (bảng lớp bắt đầu trắng nên board không
-// mang dữ kiện). Chỉ dùng dữ kiện đề bài công khai (ngân sách + đơn giá), KHÔNG
-// nêu sẵn mô hình bất phương trình (đó là phần HS xây dựng ở bước hình thành).
-const TV_OPENING_CONTEXT_P00 = [
-  'Tình huống: Em có 150 nghìn đồng để mua bánh và nước cho nhóm.',
-  'Mỗi chiếc bánh: 15 nghìn đồng · Mỗi chai nước: 10 nghìn đồng.',
-  'Chọn số chiếc bánh và số chai nước sao cho không vượt quá số tiền có.',
-  'Làm sao mô tả tất cả phương án phù hợp mà không phải thử từng phương án?',
-].join('\n');
+const TV_SLIDE_FALLBACK: TvSlideCopy = {
+  label: 'LIVE CLASSROOM',
+  title: 'THEO DÕI HƯỚNG DẪN',
+  body: 'Nghe hướng dẫn của thầy cô và chuẩn bị cho hoạt động tiếp theo.',
+  action: 'Giữ vở mở và chờ bước tiếp theo.',
+};
 
-// Nội dung TV công khai theo từng cue: title từ label hoạt động, body từ bảng
-// lớn + bảng phụ (đều là nội dung công khai). Không bao giờ dùng teacherScript.
 function buildPublicTvScreens(timeline: TimelineBlock[]): PublicTvScreen[] {
   return timeline.map((block) => {
-    const derivedBody = [block.boardLarge, block.boardSide]
-      .map((text) => text?.trim())
-      .filter((text): text is string => Boolean(text))
-      .join('\n\n');
-    return {
-      screenId: block.tvScreenId,
-      label: TV_EYEBROW[block.id] ?? 'LIVE CLASSROOM',
-      title: block.label.replace(/^P\d+(?:-P\d+)?:\s*/, '').toUpperCase(),
-      body: block.id === 'P00' ? TV_OPENING_CONTEXT_P00
-        : block.id === 'P16' ? [
-          block.boardLarge,
-          'Suy nghĩ cá nhân: em đồng ý với kết luận của AI không?',
-          'Trao đổi với bạn: chỉ ra bước đáng nghi và dùng phép tính để kiểm chứng.',
-          'Chuẩn bị giải thích trước lớp; ghi bước sửa và bằng chứng vào vở.',
-        ].join('\n\n') : derivedBody,
-    };
+    const copy = TV_SLIDES[block.id] ?? TV_SLIDE_FALLBACK;
+    return { screenId: block.tvScreenId, label: copy.label, title: copy.title, body: copy.body, action: copy.action };
   });
 }
 

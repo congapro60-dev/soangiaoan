@@ -60,7 +60,9 @@ describe('LiveLessonPage route helpers', () => {
     expect(shouldLoadParentLiveLessonSession('tv')).toBe(false);
     expect(shouldLoadParentLiveLessonSession('student')).toBe(false);
     const tv = projectLiveLessonDefinition(getPilotLiveLessonDefinition(), 'tv');
-    expect(Object.keys(tv).sort()).toEqual(['durationSeconds', 'id', 'lessonId', 'title', 'tvScreens']);
+    expect(Object.keys(tv).sort()).toEqual(['durationSeconds', 'id', 'lessonId', 'title', 'tvCues', 'tvScreens']);
+    expect(Object.keys(tv.tvCues[0]).sort()).toEqual(['atSeconds', 'id', 'tvScreenId']);
+    expect(JSON.stringify(tv.tvCues)).not.toContain('observerEvidence');
     expect(canLoadParentLiveLessonSession({ mode: 'student', authReady: true, userUid: 'teacher-1' })).toBe(false);
   });
 

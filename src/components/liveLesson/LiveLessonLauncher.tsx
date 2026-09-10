@@ -27,6 +27,8 @@ export interface LiveLessonLauncherProps {
 export interface LiveLessonUrls {
   teacher: string;
   tv: string;
+  /** Cùng slide TV nhưng có thanh Trước/Sau/Chạy tự ẩn — dành cho máy giáo viên đang cast lên TV. */
+  tvControl: string;
   student: string;
 }
 
@@ -44,7 +46,7 @@ export const buildLiveLessonUrls = (
 ): LiveLessonUrls => {
   const prefix = baseUrl.replace(/\/$/, '');
   const path = `/adaptive-live/${encodeURIComponent(sessionId)}`;
-  const withDefinitionContext = (mode: 'teacher' | 'tv' | 'student') => {
+  const withDefinitionContext = (mode: 'teacher' | 'tv' | 'tv-control' | 'student') => {
     const query = new URLSearchParams({ mode });
     if (options?.definitionKey?.trim()) query.set('definitionKey', options.definitionKey.trim());
     if (options?.lessonId?.trim()) query.set('lessonId', options.lessonId.trim());
@@ -52,12 +54,14 @@ export const buildLiveLessonUrls = (
   };
   const teacherQuery = withDefinitionContext('teacher');
   const tvQuery = withDefinitionContext('tv');
+  const tvControlQuery = withDefinitionContext('tv-control');
   const studentQuery = withDefinitionContext('student');
   if (studentClassId.trim()) studentQuery.set('classId', studentClassId);
   if (studentJoinCode.trim()) studentQuery.set('joinCode', studentJoinCode);
   return {
     teacher: `${prefix}${path}?${teacherQuery.toString()}`,
     tv: `${prefix}${path}?${tvQuery.toString()}`,
+    tvControl: `${prefix}${path}?${tvControlQuery.toString()}`,
     student: `${prefix}${path}?${studentQuery.toString()}`,
   };
 };
@@ -125,7 +129,7 @@ const copyText = async (value: string): Promise<void> => {
   await navigator.clipboard.writeText(value);
 };
 
-const LinkRow = ({ label, url }: { label: string; url: string }) => {
+const LinkRow = ({ label, url, hint }: { label: string; url: string; hint?: string }) => {
   const [copied, setCopied] = useState(false);
   const copy = async () => {
     try {
@@ -138,7 +142,7 @@ const LinkRow = ({ label, url }: { label: string; url: string }) => {
   };
   return (
     <div className="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-3 sm:flex-row sm:items-center">
-      <span className="w-14 shrink-0 text-xs font-black uppercase text-slate-500">{label}</span>
+      <span className="w-16 shrink-0 text-xs font-black uppercase text-slate-500">{label}{hint && <span className="mt-0.5 block text-[10px] font-bold normal-case text-slate-400">{hint}</span>}</span>
       <a className="min-w-0 flex-1 break-all text-sm font-semibold text-blue-700 underline" href={url} target="_blank" rel="noreferrer">{url}</a>
       <button type="button" onClick={() => void copy()} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-600 hover:bg-blue-50">{copied ? 'Đã chép' : 'Sao chép'}</button>
     </div>
@@ -256,7 +260,7 @@ export const LiveLessonLauncher = ({ lesson: selectedLesson, lessonId, user: con
         {lesson && <div className="mt-5 rounded-2xl border border-indigo-100 bg-indigo-50 p-4"><p className="text-xs font-black uppercase text-indigo-600">Bài học</p><p className="mt-1 font-black text-indigo-950">{lesson.title}</p><p className="mt-1 text-xs font-semibold text-indigo-700">{lesson.id}</p></div>}
         {error && <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">{error}</div>}
         {!urls && <div className="mt-5 space-y-4"><div className="rounded-2xl border border-slate-200 p-4"><p className="text-sm font-black text-slate-800">Lớp học</p>{classesLoading ? <p className="mt-2 text-sm font-semibold text-slate-500">Đang kiểm tra các lớp đã đồng bộ...</p> : noOwnedSynchronizedClass ? <p className="mt-2 text-sm font-bold text-amber-700">Chưa có lớp đã đồng bộ và thuộc tài khoản này. Hãy đồng bộ lớp trong mục Lớp học trước khi mở tiết trực tiếp.</p> : <select value={selectedClassId} onChange={event => setSelectedClassId(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700"><option value="">Chọn một lớp</option>{availableClasses.map(item => <option key={item.id} value={item.id}>{item.name} · {item.grade}</option>)}</select>}</div><button type="button" disabled={lessonLoading || classesLoading || creating || !definition || !selectedClass} onClick={() => void createSession()} className="w-full rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-black text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50">{creating ? 'Đang tạo phiên...' : 'Tạo phiên tiết trực tiếp'}</button></div>}
-        {urls && <div className="mt-5 space-y-4"><div className="rounded-2xl border border-green-200 bg-green-50 p-4"><p className="font-black text-green-800">Đã tạo phiên chung: {session?.id}</p><p className="mt-1 text-sm font-semibold text-green-700">Ba liên kết dưới đây dùng cùng một session ID.</p></div><div className="space-y-2"><LinkRow label="GV" url={urls.teacher} /><LinkRow label="TV" url={urls.tv} /><LinkRow label="HS" url={urls.student} /></div><div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-200 p-5"><QRCodeSVG value={urls.student} size={180} includeMargin /><p className="text-center text-sm font-black text-slate-700">Quét mã để mở giao diện học sinh</p><p className="max-w-xl break-all text-center text-xs font-semibold text-slate-500">{urls.student}</p></div></div>}
+        {urls && <div className="mt-5 space-y-4"><div className="rounded-2xl border border-green-200 bg-green-50 p-4"><p className="font-black text-green-800">Đã tạo phiên chung: {session?.id}</p><p className="mt-1 text-sm font-semibold text-green-700">Ba liên kết dưới đây dùng cùng một session ID.</p></div><div className="space-y-2"><LinkRow label="GV" url={urls.teacher} hint="laptop" /><LinkRow label="TV" url={urls.tvControl} hint="cast + điều khiển" /><LinkRow label="TV phụ" url={urls.tv} hint="chỉ xem" /><LinkRow label="HS" url={urls.student} hint="điện thoại" /></div><p className="rounded-2xl bg-slate-50 px-4 py-3 text-xs font-semibold leading-5 text-slate-600">Mở link <b>TV</b> trên máy đang cast lên màn hình lớn: slide chạy toàn màn hình, thanh Trước/Sau/Chạy tự ẩn sau vài giây và có phím tắt ← → Space. Link <b>TV phụ</b> chỉ xem, dùng cho màn hình thứ hai.</p><div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-200 p-5"><QRCodeSVG value={urls.student} size={180} includeMargin /><p className="text-center text-sm font-black text-slate-700">Quét mã để mở giao diện học sinh</p><p className="max-w-xl break-all text-center text-xs font-semibold text-slate-500">{urls.student}</p></div></div>}
       </section>
     </div>
   );

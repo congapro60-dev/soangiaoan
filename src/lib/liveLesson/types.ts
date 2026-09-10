@@ -33,6 +33,19 @@ export interface LiveAiErrorOfTheWeek {
   proof: string;
 }
 
+/**
+ * Khung mục tiêu hiện thường trực trên TV. Bám tiêu chí dự giờ CIS 1.1:
+ * WALT (hôm nay học gì) và WILF (đạt khi làm được gì) phải nhìn thấy được ở mọi
+ * thời điểm của tiết, không chỉ lúc slide mục tiêu đang chiếu. Trường tiếng Anh
+ * là tuỳ chọn — chỉ hiện khi gói bài học có bản dịch thật, không tự dịch máy.
+ */
+export interface LiveLessonIntent {
+  walt: string;
+  waltEn?: string;
+  wilf: string[];
+  wilfEn?: string[];
+}
+
 export interface LiveLessonDefinition {
   id: string;
   lessonId: string;
@@ -45,6 +58,7 @@ export interface LiveLessonDefinition {
   aiErrorStepId: string;
   aiErrorOfTheWeek: LiveAiErrorOfTheWeek;
   responseSteps: LiveResponseStep[];
+  intent?: LiveLessonIntent;
 }
 
 export interface LiveResponse {

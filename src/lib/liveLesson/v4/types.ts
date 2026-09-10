@@ -330,6 +330,8 @@ export interface PublicTvScreen {
   label: string;
   title: string;
   body: string;
+  /** Một câu duy nhất nói việc HS làm ngay lúc này (thiết bị hoặc vở). */
+  action?: string;
 }
 
 export interface LiveLessonV4Contract {

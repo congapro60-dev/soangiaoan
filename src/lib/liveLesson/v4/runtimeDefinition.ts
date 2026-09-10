@@ -8,6 +8,7 @@ import type {
 import { validateV4Contract } from './validateContract';
 import type {
   LiveLessonDefinition,
+  LiveLessonIntent,
   LiveLessonScreen,
   LiveResponseStep,
   LiveResponseType,
@@ -132,6 +133,25 @@ function publicScreenBody(contract: LiveLessonV4Contract, screenId: string): str
   }
 }
 
+// Dòng hành động công khai trên TV: một câu nói việc HS làm ngay lúc này. Đây là
+// chữ chiếu cho cả lớp đọc nên luôn viết thành câu, không dùng tốc ký bảng.
+function publicScreenAction(screenId: string): string {
+  switch (screenId) {
+    case 'S0': return 'Quan sát và nghĩ 30 giây, rồi nói dự đoán với bạn bên cạnh. Chưa cần mở máy.';
+    case 'S1': return 'Trên máy của em: chọn hoặc viết điều em muốn biết từ tình huống này.';
+    case 'S2': return 'Trên máy của em: chọn 1–2 mục tiêu em muốn đạt được cuối tiết.';
+    case 'S3': return 'Ghi mô hình và từ khoá vào vở. Bấm vào thuật ngữ trên máy nếu chưa rõ nghĩa.';
+    case 'S4': return 'Trên máy: chọn loại lỗi trước khi thảo luận. Sau đó ghi bước sửa vào vở.';
+    case 'S5': return 'Đặt thiết bị xuống khi cả nhóm cùng giải thích. Mỗi bạn nói được một căn cứ.';
+    case 'S6': return 'Chọn tuyến trên máy, làm bài, dùng nhiều nhất một gợi ý rồi tự hoàn thiện.';
+    case 'S7': return 'Tự làm và gửi câu trả lời của riêng em. Bước này không hỏi nhóm.';
+    case 'S8': return 'Trả lời nhanh trên máy, đọc phản hồi và sửa lại một lỗi nếu có.';
+    case 'S9': return 'Đối chiếu với mục tiêu em viết đầu tiết. Sửa lại vở nếu cần.';
+    case 'S10': return 'Gửi exit ticket trên máy của em, rồi giữ vở mở.';
+    default: return 'Theo dõi hướng dẫn của thầy cô và chuẩn bị cho bước tiếp theo.';
+  }
+}
+
 function buildTvScreens(contract: LiveLessonV4Contract): LiveLessonScreen[] {
   // Bài thủ công khai báo nội dung TV theo từng cue ⇒ dùng trực tiếp, không ép
   // vào cung bậc screenId cố định (tránh dùng lại một screenId cho nhiều hoạt động).
@@ -141,6 +161,7 @@ function buildTvScreens(contract: LiveLessonV4Contract): LiveLessonScreen[] {
       label: screen.label,
       title: screen.title,
       body: screen.body,
+      ...(screen.action?.trim() ? { action: screen.action.trim() } : {}),
     }));
   }
   const screenIds = [...new Set(contract.timeline.map((block) => block.tvScreenId))];
@@ -149,7 +170,17 @@ function buildTvScreens(contract: LiveLessonV4Contract): LiveLessonScreen[] {
     label: tvScreenMeta[id]?.label ?? 'LIVE CLASSROOM',
     title: tvScreenMeta[id]?.title ?? id,
     body: publicScreenBody(contract, id),
+    action: publicScreenAction(id),
   }));
+}
+
+// WALT lấy đúng tên bài đang học; WILF lấy các mục tiêu Toán đã khai báo trong
+// contract. Không sinh thêm nội dung mới và không tự dịch sang tiếng Anh.
+function buildIntent(contract: LiveLessonV4Contract): LiveLessonIntent {
+  return {
+    walt: contract.title,
+    wilf: contract.objectives.math.map((objective) => objective.text),
+  };
 }
 
 function notebookText(block: TimelineBlock): string {
@@ -219,6 +250,7 @@ export function buildLiveLessonDefinitionFromV4(
       proof: contract.aiError.proof,
     },
     responseSteps,
+    intent: buildIntent(contract),
   };
   return validateLiveLessonDefinition(definition);
 }

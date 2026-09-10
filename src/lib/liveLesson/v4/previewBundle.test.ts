@@ -31,8 +31,8 @@ describe('buildPreviewModel (from live runtime definition)', () => {
 
   it('carries the corrected per-cue TV titles', () => {
     const byCue = new Map(model.cues.map((c) => [c.cueId, c]));
-    expect(byCue.get('P00')!.tv.title).toBe('TÌNH HUỐNG BÁNH NƯỚC');
-    expect(byCue.get('P16')!.tv.title).toBe('AI ERROR OF THE WEEK');
+    expect(byCue.get('P00')!.tv.title).toBe('TÌNH HUỐNG MỞ ĐẦU');
+    expect(byCue.get('P16')!.tv.title).toBe('KIỂM CHỨNG LỜI GIẢI CỦA AI');
     expect(byCue.get('P38')!.tv.title).toBe('EXIT TICKET');
   });
 
