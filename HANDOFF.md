@@ -26,6 +26,13 @@ npm --prefix $worktree run build
 git -C $worktree diff --check
 ```
 
+## Tinh chỉnh giao diện TV/HS — 2026-09-10
+
+- TV dùng bố cục theo chiều ngang, tiêu đề gọn hơn, nội dung đặt trong khối tương phản, slide có media dùng hai cột trên màn rộng, stats dễ đọc hơn.
+- HS hiển thị theo thứ tự `Việc em cần làm` → `Phản hồi nhanh` → `Màn hình chung` → `Thuật ngữ`; nút và ô nhập có kích thước/focus rõ hơn trên máy tính và điện thoại.
+- CSS dùng chung ở `src/components/liveLesson/liveClassroom.css`; import từ `TvLiveView.tsx` và `StudentLiveView.tsx`.
+- Đưa lên `main` để chủ sở hữu tự QA giao diện; chưa chạy thêm test/QA theo yêu cầu phiên này.
+
 ## Chấm nhanh / chấm kĩ — 2026-09-07
 
 - Tách lựa chọn cho giáo viên: `quick` gọi Flash trực tiếp một pha; `thorough` chép bài từ ảnh trước rồi chấm hai pha. Lý do: giữ chất lượng đọc khi cần nhưng không để chấm cả lớp chạm trần 60 giây Vercel.
