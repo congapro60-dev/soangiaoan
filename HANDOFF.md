@@ -103,6 +103,8 @@ git -C $worktree diff --check
 - TV dùng bố cục theo chiều ngang, tiêu đề gọn hơn, nội dung đặt trong khối tương phản, slide có media dùng hai cột trên màn rộng, stats dễ đọc hơn.
 - HS hiển thị theo thứ tự `Việc em cần làm` → `Phản hồi nhanh` → `Màn hình chung` → `Thuật ngữ`; nút và ô nhập có kích thước/focus rõ hơn trên máy tính và điện thoại.
 - CSS dùng chung ở `src/components/liveLesson/liveClassroom.css`; import từ `TvLiveView.tsx` và `StudentLiveView.tsx`.
+- HS có hướng dẫn nhịp học, tiêu chí tự đối chiếu và khung câu mở theo nhu cầu; mục tiêu G1/G2/G3 và loại lỗi AI đã đổi thành nhãn có nghĩa.
+- TV P16 giữ câu hỏi kiểm chứng, trao đổi cặp đôi và yêu cầu ghi bằng chứng; không lộ sẵn phần chốt lỗi trước khi HS suy nghĩ.
 - Đưa lên `main` để chủ sở hữu tự QA giao diện; chưa chạy thêm test/QA theo yêu cầu phiên này.
 
 ## Chấm nhanh / chấm kĩ — 2026-09-07
