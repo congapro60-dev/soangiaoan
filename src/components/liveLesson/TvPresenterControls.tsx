@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { LiveLessonDefinition, LiveLessonSession } from '../../lib/liveLesson/types';
 
 export type PresenterDirection = 'previous' | 'next';
@@ -30,6 +31,23 @@ export const canPresenterControl = (
   uid: string | null | undefined,
 ): boolean => Boolean(uid && session.teacherUid === uid);
 
+// Phím tắt kiểu phần mềm trình chiếu. Bỏ qua khi con trỏ đang ở ô nhập liệu để
+// không cướp phím của giáo viên đang gõ.
+export const getPresenterKeyAction = (
+  key: string,
+  targetTagName: string | undefined,
+): 'previous' | 'next' | 'toggle' | 'fullscreen' | null => {
+  const tag = (targetTagName ?? '').toLowerCase();
+  if (tag === 'input' || tag === 'textarea' || tag === 'select') return null;
+  if (key === 'ArrowRight' || key === 'PageDown') return 'next';
+  if (key === 'ArrowLeft' || key === 'PageUp') return 'previous';
+  if (key === ' ' || key === 'Spacebar') return 'toggle';
+  if (key === 'f' || key === 'F') return 'fullscreen';
+  return null;
+};
+
+const IDLE_HIDE_MS = 3500;
+
 export interface TvPresenterControlsProps {
   definition: Pick<LiveLessonDefinition, 'cues'>;
   session: Pick<LiveLessonSession, 'currentCueId' | 'status'>;
@@ -43,28 +61,80 @@ export const TvPresenterControls = ({ definition, session, busy = false, error =
   const index = Math.max(0, definition.cues.findIndex((cue) => cue.id === session.currentCueId));
   const total = definition.cues.length;
   const isClosed = session.status === 'closed';
+  const [visible, setVisible] = useState(true);
+  const hideTimer = useRef<number | null>(null);
+
+  // Thanh điều khiển tự ẩn sau vài giây: cửa sổ này đang được chiếu lên TV nên
+  // nút bấm không được nằm thường trực trước mặt học sinh.
+  const wake = useCallback(() => {
+    setVisible(true);
+    if (hideTimer.current !== null) window.clearTimeout(hideTimer.current);
+    hideTimer.current = window.setTimeout(() => setVisible(false), IDLE_HIDE_MS);
+  }, []);
+
+  const goPrevious = useCallback(() => {
+    if (index <= 0 || isClosed || busy) return;
+    onNavigate(getPresenterCueNavigation(definition, session.currentCueId, 'previous'));
+  }, [busy, definition, index, isClosed, onNavigate, session.currentCueId]);
+
+  const goNext = useCallback(() => {
+    if (index >= total - 1 || isClosed || busy) return;
+    onNavigate(getPresenterCueNavigation(definition, session.currentCueId, 'next'));
+  }, [busy, definition, index, isClosed, onNavigate, session.currentCueId, total]);
+
+  const toggleFullscreen = useCallback(() => {
+    if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
+    else void document.documentElement.requestFullscreen?.().catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    wake();
+    const onPointer = () => wake();
+    const onKey = (event: KeyboardEvent) => {
+      const action = getPresenterKeyAction(event.key, (event.target as HTMLElement | null)?.tagName);
+      if (!action) return;
+      event.preventDefault();
+      wake();
+      if (action === 'next') goNext();
+      else if (action === 'previous') goPrevious();
+      else if (action === 'fullscreen') toggleFullscreen();
+      else if (!isClosed && !busy) onToggleStatus();
+    };
+    window.addEventListener('mousemove', onPointer);
+    window.addEventListener('touchstart', onPointer);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('mousemove', onPointer);
+      window.removeEventListener('touchstart', onPointer);
+      window.removeEventListener('keydown', onKey);
+      if (hideTimer.current !== null) window.clearTimeout(hideTimer.current);
+    };
+  }, [busy, goNext, goPrevious, isClosed, onToggleStatus, toggleFullscreen, wake]);
+
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-center gap-2 border-t border-white/10 bg-slate-950/80 px-4 py-3 backdrop-blur">
-      {error && <span className="mr-3 text-xs font-bold text-rose-300">{error}</span>}
+    <div className={visible || error ? 'tv-presenter-bar is-visible' : 'tv-presenter-bar'} onMouseEnter={wake}>
+      {error && <span className="tv-presenter-error">{error}</span>}
       <button
         type="button"
         disabled={index <= 0 || isClosed || busy}
-        onClick={() => onNavigate(getPresenterCueNavigation(definition, session.currentCueId, 'previous'))}
-        className="min-h-11 rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-black text-white disabled:opacity-40"
+        onClick={goPrevious}
+        className="tv-presenter-btn"
       >← Trước</button>
-      <span className="min-w-16 text-center text-sm font-black tabular-nums text-cyan-200">{index + 1}/{total}</span>
+      <span className="tv-presenter-count">{index + 1}/{total}</span>
       <button
         type="button"
         disabled={isClosed || busy}
         onClick={onToggleStatus}
-        className="min-h-11 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-black text-white disabled:opacity-40"
+        className="tv-presenter-btn is-primary"
       >{session.status === 'running' ? 'Tạm dừng' : 'Chạy'}</button>
       <button
         type="button"
         disabled={index >= total - 1 || isClosed || busy}
-        onClick={() => onNavigate(getPresenterCueNavigation(definition, session.currentCueId, 'next'))}
-        className="min-h-11 rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-black text-white disabled:opacity-40"
+        onClick={goNext}
+        className="tv-presenter-btn"
       >Sau →</button>
+      <button type="button" onClick={toggleFullscreen} className="tv-presenter-btn">Toàn màn hình</button>
+      <span className="tv-presenter-hint">← → chuyển slide · Space chạy/dừng · F toàn màn hình</span>
     </div>
   );
 };

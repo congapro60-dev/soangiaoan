@@ -6,11 +6,11 @@ import { getLiveLessonDefinitionForRoute } from '../lib/liveLesson/routeDefiniti
 import type { LiveLessonDefinition, LiveLessonMode, LiveLessonSession, LivePublicState } from '../lib/liveLesson/types';
 import { getLiveLessonSession, subscribeToLivePublicState, subscribeToTeacherSession, updateLiveLessonState } from '../services/liveLessonService';
 import { TeacherLiveView } from '../components/liveLesson/TeacherLiveView';
-import { TvLiveView } from '../components/liveLesson/TvLiveView';
+import { TvLiveView, type TvCueTiming } from '../components/liveLesson/TvLiveView';
 import { TvPresenterControls } from '../components/liveLesson/TvPresenterControls';
 import { StudentLiveView } from '../components/liveLesson/StudentLiveView';
 
-export type TvDefinitionProjection = Pick<LiveLessonDefinition, 'id' | 'lessonId' | 'title' | 'durationSeconds' | 'tvScreens'>;
+export type TvDefinitionProjection = Pick<LiveLessonDefinition, 'id' | 'lessonId' | 'title' | 'durationSeconds' | 'tvScreens' | 'intent'> & { tvCues: TvCueTiming[] };
 export type StudentCueProjection = { id: string; studentScreenId: string; responseStepId?: string };
 export type StudentDefinitionProjection = Pick<LiveLessonDefinition, 'id' | 'lessonId' | 'title' | 'durationSeconds' | 'tvScreens' | 'studentScreens' | 'allowedStepIds' | 'responseSteps'> & { studentCues: StudentCueProjection[] };
 export type LiveLessonDefinitionProjection = LiveLessonDefinition | TvDefinitionProjection | StudentDefinitionProjection;
@@ -44,7 +44,9 @@ export function projectLiveLessonDefinition(definition: LiveLessonDefinition, mo
 export function projectLiveLessonDefinition(definition: LiveLessonDefinition, mode: LiveLessonMode): LiveLessonDefinitionProjection;
 export function projectLiveLessonDefinition(definition: LiveLessonDefinition, mode: LiveLessonMode): LiveLessonDefinitionProjection {
   if (mode === 'teacher') return definition;
-  if (mode === 'tv') return { id: definition.id, lessonId: definition.lessonId, title: definition.title, durationSeconds: definition.durationSeconds, tvScreens: definition.tvScreens.map(screen => ({ ...screen })) };
+  // tvCues chỉ mang mốc thời gian và id màn hình công khai — đủ để TV tự đếm giờ
+  // và vẽ thanh tiến trình, không kèm kịch bản giáo viên hay nội dung bảng.
+  if (mode === 'tv') return { id: definition.id, lessonId: definition.lessonId, title: definition.title, durationSeconds: definition.durationSeconds, tvScreens: definition.tvScreens.map(screen => ({ ...screen })), tvCues: definition.cues.map(cue => ({ id: cue.id, tvScreenId: cue.tvScreenId, atSeconds: cue.atSeconds })), ...(definition.intent ? { intent: definition.intent } : {}) };
   const stepScreenIds = new Map(definition.responseSteps.map(step => [step.id, step.screenId ?? 'HS0']));
   return {
     id: definition.id,
@@ -228,7 +230,7 @@ export const LiveLessonPage = () => {
         setPresenterBusy(false);
       }
     };
-    return <TvLiveView definition={controlTvDefinition} sessionId={sessionId} publicState={presenterPublicState} publicStateError={teacherSessionError} definitionKey={definitionContext.definitionKey ?? undefined} presenterControls={
+    return <TvLiveView definition={controlTvDefinition} sessionId={sessionId} publicState={presenterPublicState} publicStateError={teacherSessionError} definitionKey={definitionContext.definitionKey ?? undefined} cueTimeline={controlTvDefinition.tvCues} durationSeconds={controlTvDefinition.durationSeconds} intent={controlTvDefinition.intent} presenterControls={
       <TvPresenterControls
         definition={definition}
         session={session}
@@ -241,7 +243,7 @@ export const LiveLessonPage = () => {
   }
   if (mode === 'tv' && publicState) {
     const tvDefinition = projectLiveLessonDefinition(definition, 'tv');
-    return <TvLiveView definition={tvDefinition} sessionId={sessionId} publicState={publicState} publicStateError={publicStateError} definitionKey={definitionContext.definitionKey ?? undefined} />;
+    return <TvLiveView definition={tvDefinition} sessionId={sessionId} publicState={publicState} publicStateError={publicStateError} definitionKey={definitionContext.definitionKey ?? undefined} cueTimeline={tvDefinition.tvCues} durationSeconds={tvDefinition.durationSeconds} intent={tvDefinition.intent} />;
   }
   if (mode === 'student' && publicState) {
     return <StudentLiveView definition={projectLiveLessonDefinition(definition, 'student')} sessionId={sessionId} expectedClassId={studentContext.expectedClassId} expectedJoinCode={studentContext.expectedJoinCode} publicState={publicState} publicStateError={publicStateError} definitionKey={definitionContext.definitionKey ?? undefined} />;

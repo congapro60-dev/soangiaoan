@@ -7,17 +7,19 @@ import { getAllBanToanV4Contracts } from './lessonAdapter';
 
 // Regression cho P0: mỗi cue của bài P31 phải hiển thị đúng hoạt động của nó trên
 // TV (không dùng lại một screenId cho nhiều hoạt động, không để title literal Sxx).
+// Title là chữ chiếu cho học sinh đọc nên viết theo ngôn ngữ lớp học, không dùng
+// tên kỹ thuật của bước ("post-check", "duyệt nhóm", "AI Error of the Week").
 const EXPECTED: Array<{ cue: string; screen: string; label: string; title: string }> = [
-  { cue: 'P00', screen: 'S0', label: 'MỞ ĐẦU', title: 'TÌNH HUỐNG BÁNH NƯỚC' },
-  { cue: 'P03', screen: 'S1', label: 'MỤC TIÊU CÁ NHÂN', title: 'MỤC TIÊU CÁ NHÂN' },
-  { cue: 'P05', screen: 'S2', label: 'MỤC TIÊU CHUNG', title: 'CHỐT MỤC TIÊU CHUNG' },
+  { cue: 'P00', screen: 'S0', label: 'MỞ ĐẦU', title: 'TÌNH HUỐNG MỞ ĐẦU' },
+  { cue: 'P03', screen: 'S1', label: 'MỤC TIÊU CÁ NHÂN', title: 'CUỐI TIẾT EM MUỐN LÀM ĐƯỢC GÌ?' },
+  { cue: 'P05', screen: 'S2', label: 'MỤC TIÊU CHUNG', title: 'MỤC TIÊU CHUNG CỦA LỚP' },
   { cue: 'P08', screen: 'S3', label: 'HÌNH THÀNH', title: 'ĐƯỜNG BIÊN VÀ MIỀN NGHIỆM' },
-  { cue: 'P16', screen: 'S4', label: 'TƯ DUY PHẢN BIỆN', title: 'AI ERROR OF THE WEEK' },
-  { cue: 'P19', screen: 'S5', label: 'HỢP TÁC', title: 'DUYỆT NHÓM' },
-  { cue: 'P20', screen: 'S6', label: 'HỢP TÁC', title: 'NHIỆM VỤ NHÓM M/S/C' },
-  { cue: 'P27', screen: 'S7', label: 'ĐÁNH GIÁ LẠI', title: 'POST-CHECK CÁ NHÂN' },
-  { cue: 'P30', screen: 'S8', label: 'PHÂN HÓA', title: 'NHIỆM VỤ CÁ NHÂN THEO TUYẾN' },
-  { cue: 'P35', screen: 'S9', label: 'CHỐT TOÁN', title: 'CHỐT TOÁN VÀ PHẢN VÍ DỤ' },
+  { cue: 'P16', screen: 'S4', label: 'TƯ DUY PHẢN BIỆN', title: 'KIỂM CHỨNG LỜI GIẢI CỦA AI' },
+  { cue: 'P19', screen: 'S5', label: 'HỢP TÁC', title: 'CHIA NHÓM LÀM VIỆC' },
+  { cue: 'P20', screen: 'S6', label: 'HỢP TÁC', title: 'NHIỆM VỤ NHÓM' },
+  { cue: 'P27', screen: 'S7', label: 'ĐÁNH GIÁ LẠI', title: 'TỰ KIỂM TRA CÁ NHÂN' },
+  { cue: 'P30', screen: 'S8', label: 'PHÂN HÓA', title: 'BA CỬA VÀO, MỘT ĐÍCH ĐẾN' },
+  { cue: 'P35', screen: 'S9', label: 'CHỐT TOÁN', title: 'CHỐT LẠI VÀ PHẢN VÍ DỤ' },
   { cue: 'P38', screen: 'S10', label: 'KẾT THÚC', title: 'EXIT TICKET' },
 ];
 
@@ -35,7 +37,18 @@ describe('P31 canonical cue → TV screen mapping', () => {
     expect(s, `screen ${screen} exists`).toBeTruthy();
     expect(s!.label).toBe(label);
     expect(s!.title).toBe(title);
+    expect(s!.action?.trim(), 'slide phải nói việc học sinh làm').toBeTruthy();
     expect(s!.title).not.toMatch(/^S\d+$/); // no literal "Sxx" title
+  });
+
+  it('keeps teacher board shorthand out of every projected TV screen', () => {
+    for (const screen of def.tvScreens) {
+      const projected = `${screen.title} ${screen.body ?? ''} ${screen.action ?? ''}`;
+      expect(projected).not.toContain('LỖI CẦN SOI');
+      expect(projected).not.toContain('KHUNG CÂU:');
+      expect(projected).not.toContain('TỪ KHÓA:');
+      expect(projected).not.toContain('Giữ mô hình');
+    }
   });
 
   it('gives every cue a unique TV screen (no reused screenId across activities)', () => {
@@ -61,7 +74,7 @@ describe('P31 canonical cue → TV screen mapping', () => {
 
   it('shows the AI faulty statement on the AI-error screen (S4)', () => {
     expect(screenById.get('S4')!.body).toContain('160');
-    expect(screenById.get('S4')!.title).toBe('AI ERROR OF THE WEEK');
+    expect(screenById.get('S4')!.title).toBe('KIỂM CHỨNG LỜI GIẢI CỦA AI');
   });
 
   it('P27 presents an individual post-check with a response on a real student screen', () => {

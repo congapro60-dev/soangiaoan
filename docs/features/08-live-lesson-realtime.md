@@ -6,7 +6,9 @@ Chỉ dùng một đường web cho một phiên:
 
 `/adaptive-live/{sessionId}?mode=teacher` — giáo viên mở trên laptop.
 
-`/adaptive-live/{sessionId}?mode=tv` — giáo viên mở thêm một cửa sổ riêng để đưa lên TV bằng Vcast/Sender.
+`/adaptive-live/{sessionId}?mode=tv-control` — cửa sổ slide đưa lên TV bằng Vcast/Sender. Giáo viên chuyển slide ngay trên cửa sổ này: thanh **Trước / Chạy / Sau** tự ẩn sau 3,5 giây và hiện lại khi có chuột hoặc phím; phím tắt ← → chuyển slide, Space chạy/tạm dừng, F toàn màn hình. Chỉ tài khoản giáo viên chủ phiên mới mở được.
+
+`/adaptive-live/{sessionId}?mode=tv` — cùng slide đó nhưng chỉ xem, không có nút điều khiển. Dùng cho màn hình thứ hai hoặc khi người khác cast hộ.
 
 `/adaptive-live/{sessionId}?mode=student&classId={classId}` — học sinh mở trên điện thoại, laptop hoặc iPad.
 
@@ -18,15 +20,15 @@ Giáo viên giữ cửa sổ `mode=teacher` trên laptop. TV chỉ nhận cửa 
 2. Mở bài, chọn **Mở tiết học trực tiếp**, rồi chọn đúng lớp hiện tại.
 3. Kiểm tra mã lớp/PIN hiện có. Không tạo một lớp hoặc một PIN thứ hai cho tiết trực tiếp.
 4. Sao chép link học sinh/QR có kèm `classId`, gửi cho lớp. Học sinh dùng mã lớp, mã học sinh và PIN đã được cấp.
-5. Mở link `mode=tv` ở cửa sổ hoặc tab riêng. Đưa đúng cửa sổ này lên TV bằng Vcast/Sender.
-6. Giữ link `mode=teacher` ở laptop. Giáo viên bấm **Bắt đầu / tiếp tục**, chuyển cue bằng **Trước/Sau** hoặc chọn mốc timeline.
+5. Mở link **TV** (`mode=tv-control`) ở cửa sổ riêng, bấm **Toàn màn hình**, rồi đưa đúng cửa sổ này lên TV bằng Vcast/Sender. Chuyển slide bằng ← → ngay trên cửa sổ đó; không cần quay về laptop.
+6. Link `mode=teacher` vẫn giữ ở laptop khi cần bảng điều khiển đầy đủ: kịch bản, minh chứng, duyệt nhóm, đóng phiên. Hai cửa sổ điều khiển cùng một phiên, ai bấm trước thì cả lớp theo cái đó.
 
 ## Trong tiết học: màn hình nào làm việc gì
 
 | Nơi hiển thị | Nội dung chính |
 |---|---|
 | Bảng lớn/bảng phụ và vở | Giáo viên chốt ý, học sinh giải thích, làm bảng, trao đổi bạn đôi và ghi kết luận/ví dụ. Nội dung bảng không được thay bằng việc nhìn màn hình. |
-| TV/Vcast Sender | Tiêu đề, câu hỏi chung, hướng dẫn hoạt động và thống kê tổng hợp được phép hiện. Không có kịch bản giáo viên, tên học sinh, PIN, câu trả lời riêng hoặc đáp án ẩn. |
+| TV/Vcast Sender | Slide trình chiếu: nhãn hoạt động, tiêu đề, nội dung viết thành câu cho học sinh đọc, dải **Việc của em bây giờ**, đồng hồ đếm ngược của hoạt động, thanh tiến trình các hoạt động và thống kê tổng hợp. Không có kịch bản giáo viên, tên học sinh, PIN, câu trả lời riêng hoặc đáp án ẩn. |
 | Thiết bị học sinh | Chọn mục tiêu/tuyến, dự đoán ở cổng **THINK** trước khi xem AI, phân loại/sửa/chứng minh ở **VERIFY**, làm quick-check, dùng gợi ý và gửi exit-ticket khi đã hoàn tất. Chỉ gửi khi chọn hoặc bấm **Gửi**, không gửi từng phím đang gõ. |
 | Laptop giáo viên | Cue P00–P40, đồng hồ theo cue, việc GV/HS, bảng/vở, điều khiển phiên và trạng thái dữ liệu. Raw response chỉ ở ranh giới giáo viên, không phải nội dung TV. |
 
@@ -63,7 +65,7 @@ Không thể gửi response mới. Giáo viên mở phiên mới; học sinh dù
 
 ### TV hiện sai cửa sổ Vcast/Sender
 
-Dừng chia sẻ, chọn đúng cửa sổ/tab có URL `mode=tv`. Laptop phải giữ `mode=teacher`. Nếu TV hiện nút điều khiển, kịch bản GV hoặc ô nhập câu trả lời, đang chiếu nhầm cửa sổ; dừng và chọn lại ngay.
+Dừng chia sẻ, chọn đúng cửa sổ/tab có URL `mode=tv-control` hoặc `mode=tv`. Thanh Trước/Chạy/Sau của `mode=tv-control` là bình thường — nó tự ẩn sau vài giây, chỉ cần rời tay khỏi chuột. Nhưng nếu TV hiện **kịch bản giáo viên**, danh sách học sinh hoặc ô nhập câu trả lời thì đang chiếu nhầm cửa sổ `mode=teacher` hoặc `mode=student`; dừng và chọn lại ngay.
 
 ### Thống kê TV cập nhật chậm
 
