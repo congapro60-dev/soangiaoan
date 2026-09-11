@@ -9,6 +9,22 @@ import type { StudentSkillState } from '../learning/skillTypes.js';
  * đọc được phần của mình mà không đọc được của bạn khác.
  */
 
+/**
+ * Tab Google Sheet theo dõi BTVN mà giáo viên đã nối cho lớp.
+ *
+ * Máy chủ chỉ lưu cấu hình này. Việc đọc và ghi sheet chạy trong trình duyệt bằng quyền Google
+ * của chính giáo viên — không có token hay khoá Google nào nằm trên máy chủ.
+ */
+export interface ClassSheetSync {
+  spreadsheetId: string;
+  spreadsheetTitle: string;
+  /** `gid` của tab — giữ đúng tab kể cả khi giáo viên đổi tên tab. */
+  sheetId: number;
+  sheetTitle: string;
+  linkedAt: string;
+  linkedBy: string;
+}
+
 /** Lớp học của một giáo viên. */
 export interface ClassDoc {
   id: string;
@@ -28,6 +44,8 @@ export interface ClassDoc {
   /** Mã học sinh gõ vào để vào lớp. Không chứa ký tự dễ nhìn nhầm. */
   joinCode: string;
   studentCount: number;
+  /** Tab Google Sheet đã nối để đồng bộ BTVN; vắng hoặc null là lớp không đồng bộ. */
+  sheetSync?: ClassSheetSync | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -10,6 +10,7 @@ import { listAssignmentsForClass, listSubmissionsForClass } from '../../lib/clas
 import { acceptTeacherInvitation, createExamAssignment, declineTeacherInvitation, listAccessibleExams, listPendingTeacherInvitations, renameClass as renameClassOnServer, renameStudent as renameStudentOnServer, type PendingTeacherInvitation } from '../../lib/classroom/teacherService';
 import { issueClassPins, resetStudentPin, revokeClassData, revokeStudentAccessServer, viewClassPins, viewStudentPin } from '../../services/studentPortalApi';
 import { AssignmentPanel } from '../features/classroom/AssignmentPanel';
+import { SheetSyncPanel } from '../features/classroom/SheetSyncPanel';
 import { ClassAssignmentReport } from '../features/classroom/ClassAssignmentReport';
 import { ClassTeacherMembersPanel } from '../features/classroom/ClassTeacherMembersPanel';
 import { StudentReport } from '../features/classroom/StudentReport';
@@ -91,6 +92,7 @@ const teacherClassFromServer = (remote: AccessibleClassDoc, local?: TeacherClass
     tone: local?.tone ?? 'primary',
     students,
     assignments: onlineAssignments,
+    sheetSync: remote.sheetSync ?? null,
   };
 };
 
@@ -1207,6 +1209,13 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
 
           {user?.uid && (showAssignments || showSubmissions) && (
             <div ref={assignmentPanelRef} className="mt-5 scroll-mt-6">
+              <SheetSyncPanel
+                classId={selectedClass.id}
+                teacherId={user.uid}
+                sheetSync={selectedClass.sheetSync}
+                onChanged={refreshAccessibleClasses}
+                showToast={showToast}
+              />
               <AssignmentPanel
                 classId={selectedClass.id}
                 teacherId={user.uid}

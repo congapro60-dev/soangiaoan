@@ -864,6 +864,37 @@ export const handleRenameClass = async (db: Db, body: Body, res: VercelResponse)
   return void res.status(200).json({ updated: true, classId: context.classId, ...patch });
 };
 
+/**
+ * Nối hoặc bỏ nối tab Google Sheet theo dõi BTVN cho lớp.
+ *
+ * Máy chủ chỉ LƯU cấu hình. Đọc và ghi sheet chạy trong trình duyệt bằng quyền Google của chính
+ * giáo viên, nên ở đây không có token hay khoá Google nào, và app không chạm được sheet của người
+ * khác chỉ vì biết mã file.
+ */
+export const handleSetClassSheetSync = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
+  const context = await teacherContext(db, body, res);
+  if (!context) return;
+  const now = nowIso();
+  if (body.sheetSync === null) {
+    await context.classRef.update({ sheetSync: null, updatedAt: now, updatedBy: context.uid });
+    return void res.status(200).json({ updated: true, classId: context.classId, sheetSync: null });
+  }
+
+  const raw = (body.sheetSync && typeof body.sheetSync === 'object' ? body.sheetSync : {}) as Record<string, unknown>;
+  const spreadsheetId = typeof raw.spreadsheetId === 'string' ? raw.spreadsheetId.trim() : '';
+  const sheetTitle = typeof raw.sheetTitle === 'string' ? raw.sheetTitle.trim() : '';
+  const spreadsheetTitle = typeof raw.spreadsheetTitle === 'string' ? raw.spreadsheetTitle.trim().slice(0, 200) : '';
+  const sheetId = Number(raw.sheetId);
+  if (!/^[A-Za-z0-9_-]{20,200}$/.test(spreadsheetId) || !sheetTitle || sheetTitle.length > 100
+    || !Number.isInteger(sheetId) || sheetId < 0) {
+    return void res.status(422).json({ error: 'Thông tin Google Sheet không hợp lệ.' });
+  }
+
+  const sheetSync = { spreadsheetId, spreadsheetTitle, sheetId, sheetTitle, linkedAt: now, linkedBy: context.uid };
+  await context.classRef.update({ sheetSync, updatedAt: now, updatedBy: context.uid });
+  return void res.status(200).json({ updated: true, classId: context.classId, sheetSync });
+};
+
 export const handleRenameStudent = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
   const studentId = typeof body.studentId === 'string' ? body.studentId.trim() : '';
   const context = await teacherContext(db, body, res);
@@ -1096,6 +1127,7 @@ export const handleTeacherAction = async (db: Db, body: Body, res: VercelRespons
   if (['renameAssignment', 'updateAssignmentContent', 'updateAssignmentDeadline', 'setAssignmentOpen'].includes(action)) { await handleUpdateAssignment(db, body, res); return true; }
   if (action === 'updateActivityExportBundle') { await handleUpdateActivityExportBundle(db, body, res); return true; }
   if (action === 'renameClass') { await handleRenameClass(db, body, res); return true; }
+  if (action === 'setClassSheetSync') { await handleSetClassSheetSync(db, body, res); return true; }
   if (action === 'renameStudent') { await handleRenameStudent(db, body, res); return true; }
   if (action === 'addStudent') { await handleAddStudent(db, body, res); return true; }
   if (action === 'teacherMembers') { await handleTeacherMembers(db, body, res); return true; }

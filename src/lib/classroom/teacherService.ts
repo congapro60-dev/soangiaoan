@@ -89,6 +89,18 @@ export const renameClass = async (classId: string, name: string, track?: string)
   await callTeacherApi({ action: 'renameClass', classId, name, ...(track === undefined ? {} : { track }) });
 };
 
+export interface ClassSheetSyncInput {
+  spreadsheetId: string;
+  spreadsheetTitle: string;
+  sheetId: number;
+  sheetTitle: string;
+}
+
+/** Lưu tab Google Sheet đã nối cho lớp; truyền null để bỏ nối. */
+export const setClassSheetSync = async (classId: string, sheetSync: ClassSheetSyncInput | null): Promise<void> => {
+  await callTeacherApi({ action: 'setClassSheetSync', classId, sheetSync });
+};
+
 export const renameStudent = async (classId: string, studentId: string, name: string): Promise<void> => {
   await callTeacherApi({ action: 'renameStudent', classId, studentId, name });
 };

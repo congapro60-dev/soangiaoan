@@ -1,3 +1,100 @@
+# Đồng bộ BTVN sang Google Sheet (nút trong app) — KẾ HOẠCH, chờ duyệt — 2026-09-11
+
+**Branch**: `feat/sheet-sync` · base `main` = `646527e`
+
+## Đã chốt với chủ dự án
+
+- Nút **trong app**, chỉ chạy khi bấm. Không chạy định kỳ.
+- **Mỗi giáo viên tự cấp quyền** bằng tài khoản Google của mình; không dùng email robot của app.
+- Bài giao trong app chưa có cột thì **app tự tạo cột**.
+- Hai tab 10 Olinda và 12 Toán LT1 **được bổ sung `⏰ Nộp muộn`** giống file 11 Columbus.
+- **Không động vào** tab liên lạc phụ huynh, ghi chú học sinh, quỹ lớp. Chỉ BTVN và logic đi kèm.
+- Tính năng **tuỳ chọn theo lớp, mặc định tắt** — giáo viên khác không có sheet thì app chạy như cũ.
+
+## Đã khảo sát (đọc thật hai file, không đoán)
+
+- File 1 "11 Columbus | Quản lý lớp" là **nguồn** của 11 Columbus. Tab `02. BTVN`: dòng 3 Môn, 4 Nội dung,
+  5 Hạn kiểm tra, 6 Link, 7 Tính lỗi?, 8–10 ô đếm, 11 tiêu đề, học sinh ở `B12:B37`, trạng thái ở `C12:BI37`.
+- Tab `03. HẠNH KIỂM` đọc tab BTVN **bằng công thức** (`MATCH` tên ở cột B, `INDEX` dải `C12:BI37`, so ngày ở
+  dòng 5). Sửa ô BTVN là hạnh kiểm tính lại ngay. App không cần và không được ghi vào tab Hạnh kiểm.
+- File 2 "Theo dõi BTVN | 3 lớp": `10. OLINDA` (18 em, `C12:BJ29`) và `12. TOÁN LT1` (8 em, `C12:BJ19`) chấm thẳng
+  tại file 2, cùng khuôn với file 1, **chưa có cột bài nào**, danh sách chọn **không có** `⏰ Nộp muộn`.
+- `11. COLUMBUS (LINK)` trong file 2 là **bản chiếu một chiều** bằng `IMPORTRANGE('02. BTVN'!A1:BJ37)` từ file 1.
+  Ghi vào đó là vỡ công thức.
+- App đã có luồng lấy quyền Google của giáo viên (`src/lib/googleDrive.ts`, scope Drive, dùng cho "Đẩy giáo án lên
+  Drive"). Quyền đó gọi được Sheets API → **dùng lại, không mở rộng thêm quyền, không phải cài đặt Google Cloud mới**.
+- Vercel đang 12/12 function → đồng bộ chạy trong trình duyệt giáo viên; máy chủ chỉ thêm một action lưu cấu hình.
+
+## Vùng được phép chạm — cam kết nằm ở code
+
+Google cấp quyền theo cả file, không theo tab, nên giới hạn phải do code giữ. Mọi lời gọi Sheets API đi qua một
+cổng duy nhất kiểm range; range ngoài danh sách bị chặn trước khi gửi, có test.
+
+| | Được đọc | Được ghi |
+|---|---|---|
+| Tab đã nối | `A3:B11` (nhận diện mẫu), `B12:B<cuối>` (tên), dòng 3–6 các cột bài, ô trạng thái + ghi chú ô | Dòng 4–6 của **cột app tự tạo**, ô trạng thái `C12:<cuối>`, ghi chú trên ô app điền |
+| Olinda, Toán LT1 (một lần, có xác nhận) | — | Danh sách chọn ô trạng thái (thêm `⏰ Nộp muộn`), công thức dòng 8 (đếm Đủ + Nộp muộn, y hệt file 1) |
+| **Không bao giờ** | Tab khác | Cột A, B · dòng 1–2 và 7–11 · tab Hạnh kiểm, liên lạc PH, lưu ý HS, quỹ lớp · tab `(LINK)` |
+
+## Nối sheet cho một lớp (làm một lần)
+
+1. Trang lớp → **"Nối Google Sheet"** → dán link file → app liệt kê các tab → chọn tab.
+2. App kiểm tab có đúng khuôn (nhãn cột A dòng 3–11). Sai khuôn → báo rõ, không lưu.
+3. Tab là bản chiếu (`A4` là công thức `IMPORTRANGE`) → từ chối, nhắc nối file gốc.
+4. Khớp tên học sinh app ↔ cột B (bỏ dấu, gộp khoảng trắng). Tên không khớp hoặc trùng → liệt kê cho giáo viên sửa.
+5. Lưu vào lớp: `spreadsheetId`, tên tab, `gid`, người nối, thời điểm.
+
+## Bấm "Đồng bộ sang Sheet"
+
+1. Đọc các vùng cho phép.
+2. **Khớp cột ↔ bài**: dòng 6 chứa link bài của app (`…?baiGiao=<id>`) là cột của bài đó. Cột không có link = cột tay,
+   bỏ qua hoàn toàn.
+3. **Cột tay trùng tên bài app** (vd cột D "BTVN Đại số 27/08/2026" đã gõ tay) → đề xuất **gắn link vào cột có sẵn**,
+   không tạo cột trùng.
+4. Bài app chưa có cột → **tạo ở cột trống đầu tiên** (dòng 3–6 đều trống) trong vùng đã định dạng sẵn. Điền Nội dung
+   = tên bài, Hạn = hạn nộp (**giá trị ngày thật** vì công thức Hạnh kiểm so ngày), Link = link app. Môn để trống cho
+   giáo viên. Hết cột trống → báo, **không chèn cột** (chèn cột làm lệch công thức và danh sách chọn).
+5. **Tính trạng thái** mỗi em mỗi bài, theo hạn ở dòng 5 của sheet:
+   - Có bài nộp trước hạn → `✅ Đủ`; sau hạn → `⏰ Nộp muộn`.
+   - Không có bài + đã qua hạn → `❌ Chưa làm`; chưa qua hạn hoặc không có hạn → để trống.
+   - Bài giao cho nhóm em → em ngoài nhóm `➖ Không áp dụng`.
+   - `⚠️ Thiếu` → app **không bao giờ** ghi.
+6. **Người sửa luôn thắng** — mỗi ô app điền được gắn ghi chú `SmartPlan: <giá trị> · <thời điểm>`:
+   - Ô trống → app ghi.
+   - Ô còn đúng giá trị trong ghi chú SmartPlan → app được cập nhật (vd `❌ Chưa làm` → `⏰ Nộp muộn`).
+   - Ô có giá trị khác ghi chú, hoặc có giá trị mà không có ghi chú SmartPlan → **người đã chọn, không bao giờ động**.
+   - Ghi chú đi theo ô khi chèn, xoá hay kéo cột, nên không lệch như lưu toạ độ ô trong database.
+7. **Xem trước rồi mới ghi**: "Gắn link 2 cột có sẵn · Tạo 1 cột · Điền 31 ô · Bỏ qua 4 ô người đã sửa · 1 em không
+   khớp tên" → bấm **"Ghi vào Sheet"**. Không bấm thì không ghi gì.
+8. Ghi một lượt (`batchUpdate`), báo kết quả.
+
+## Phạm vi v1
+
+- Chỉ bài giao nộp ảnh/file. Đề thi online để sau.
+
+## Việc
+
+- [x] 1. Hàm thuần + test: nhận diện khuôn tab, khớp tên, khớp cột ↔ bài (link, rồi tên bài), tính trạng thái,
+      quy tắc người sửa luôn thắng, cổng kiểm range — `src/lib/classroom/sheetSync.ts`, 36 test
+- [x] 2. Lớp gọi Sheets API (đọc vùng, đọc ghi chú, `batchUpdate`) dùng token từ `googleDrive.ts` — `sheetsApi.ts`
+- [x] 3. Action `setClassSheetSync` lưu cấu hình nối sheet vào lớp + trả về trong dữ liệu lớp — 5 test
+- [x] 4. Giao diện `SheetSyncPanel` "Nối Google Sheet" + "Đồng bộ sang Sheet" (xem trước → ghi), đặt trên khung bài tập
+- [x] 5. Bổ sung `⏰ Nộp muộn` cho tab chưa có — ô tích trong bản xem trước, mặc định bật
+- [x] 6. `lint` 0 · `lint:api` 0 · test 1948/1948 · `build` ✓
+- [ ] 7. Chủ dự án thử trên **bản sao** hai file trước khi nối file gốc
+
+## Rủi ro đã biết
+
+- Hộp cấp quyền Google ghi "toàn bộ Drive" vì tính năng đẩy giáo án đang dùng scope đó. Lô này không mở rộng thêm.
+  Muốn thu hẹp về từng file thì sau này chuyển sang Google Picker + `drive.file`.
+- Không thử được với sheet thật từ máy dev (token nằm trong trình duyệt giáo viên) → bước 7 bắt buộc.
+
+## Review
+
+(điền sau khi xong)
+
+---
+
 # Chuông thông báo cho học sinh — 2026-09-09
 
 **Branch**: `feat/student-notifications` · base `main` = `b49fe2a`

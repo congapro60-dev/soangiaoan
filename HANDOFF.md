@@ -1,9 +1,31 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-09-10
+**Cập nhật:** 2026-09-11
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
 Handoff ngắn cho lô V4 live lesson. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
+
+## Đồng bộ BTVN sang Google Sheet — 2026-09-11
+
+Nút trong app, chỉ chạy khi giáo viên bấm. Tuỳ chọn theo lớp, mặc định tắt. Kế hoạch đầy đủ và khảo sát hai file thật của chủ dự án nằm ở `tasks/todo.md`.
+
+**Kiến trúc:**
+
+- Đồng bộ chạy **trong trình duyệt giáo viên**, bằng quyền Google của chính giáo viên — dùng lại `getDriveAccessToken()` của tính năng "Đẩy giáo án lên Drive". Không email robot, không token Google trên máy chủ, giáo viên này không chạm được sheet của giáo viên khác.
+- Máy chủ chỉ thêm action `setClassSheetSync` (lưu `classes/{id}.sheetSync`) trên `/api/classroom` hiện có. Không thêm Vercel function.
+- `src/lib/classroom/sheetSync.ts` là toàn bộ phần quyết định (thuần, 36 test). `sheetsApi.ts` chỉ đọc ảnh chụp tab và gửi lệnh đã dựng. `SheetSyncPanel.tsx` là giao diện.
+
+**Ngưỡng sắp cắn người:**
+
+- **Cam kết "không động vào tab liên lạc phụ huynh, ghi chú học sinh, quỹ lớp, hạnh kiểm" nằm ở CODE**, không ở Google (Google cấp quyền theo cả file). Mọi lệnh ghi đi qua `assertWriteAllowed` + `applySheetRequests` kiểm `sheetId`. Ai thêm loại ghi mới phải thêm vào cổng này, không gọi `batchUpdate` thẳng.
+- **Người sửa luôn thắng**: ghi chú `SmartPlan: <giá trị> · <giờ>` trên ô là trí nhớ của app. Ô khác giá trị ghi chú hoặc không có ghi chú = người đã chọn, không bao giờ ghi đè. Đừng đổi sang lưu toạ độ ô trong Firestore — chèn cột là lệch.
+- **Không chèn cột**: hết cột trống đã định dạng sẵn (có danh sách chọn ở dòng 12) thì báo. Chèn cột làm lệch công thức Hạnh kiểm của file 11 Columbus.
+- Chuỗi trạng thái phải đúng từng ký tự kể cả biểu tượng (`SHEET_STATUS`) — công thức đếm và công thức Hạnh kiểm so chuỗi y hệt.
+- "Chưa làm" chỉ ghi **sau** giờ ở dòng 5; không bao giờ ghi "Thiếu".
+- Tab `11. COLUMBUS (LINK)` của file theo dõi 3 lớp là bản `IMPORTRANGE` — app từ chối nối, phải nối file gốc.
+- v1 chỉ bài giao nộp ảnh/file (`type !== 'exam'`, `purpose` = assignment). Đề online chưa lên sheet.
+- **Chưa thử với sheet thật**: token nằm trong trình duyệt giáo viên. Chủ dự án thử trên bản sao hai file trước.
+- Nghiệm thu: `lint` 0, `lint:api` 0, full Vitest **158 files / 1948 tests PASS**, `build` PASS.
 
 ## TV thành slide trình chiếu điều khiển tại chỗ — 2026-09-10
 
