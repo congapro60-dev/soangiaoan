@@ -13,6 +13,7 @@ import {
   matchStudents,
   planSheetSync,
   sheetDeadlineMs,
+  sheetsErrorMessage,
   upgradeCountFormula,
   type SheetCell,
   type SheetSnapshot,
@@ -368,5 +369,26 @@ describe('cổng chặn vùng ghi', () => {
     });
     plan.writes.push(status(3, 4));
     expect(() => buildSheetRequests(plan, snapshot)).toThrow(SheetRangeError);
+  });
+});
+
+describe('sheetsErrorMessage', () => {
+  it('API chưa bật thì nói đúng nguyên nhân và đưa link bật, không đổ cho quyền của file', () => {
+    // Nguyên văn lỗi Google trả về ở lần QA đầu tiên trên production (08/09 → 11/09/2026).
+    const detail = 'Google Sheets API has not been used in project 1030734458631 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/sheets.googleapis.com/overview?project=1030734458631 then retry.';
+    const message = sheetsErrorMessage(403, detail);
+
+    expect(message).toContain('chưa được bật');
+    expect(message).toContain('https://console.developers.google.com/apis/api/sheets.googleapis.com/overview?project=1030734458631');
+    expect(message).not.toContain('chưa có quyền sửa file');
+  });
+
+  it('403 thật sự về quyền thì vẫn báo là thiếu quyền với file', () => {
+    expect(sheetsErrorMessage(403, 'The caller does not have permission')).toContain('chưa có quyền sửa file');
+  });
+
+  it('404 và lỗi khác có câu riêng', () => {
+    expect(sheetsErrorMessage(404, '')).toContain('Không tìm thấy file');
+    expect(sheetsErrorMessage(500, 'Internal error')).toBe('Google Sheets trả lỗi 500 (Internal error).');
   });
 });

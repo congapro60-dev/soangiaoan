@@ -24,7 +24,7 @@ Nút trong app, chỉ chạy khi giáo viên bấm. Tuỳ chọn theo lớp, m�
 - "Chưa làm" chỉ ghi **sau** giờ ở dòng 5; không bao giờ ghi "Thiếu".
 - Tab `11. COLUMBUS (LINK)` của file theo dõi 3 lớp là bản `IMPORTRANGE` — app từ chối nối, phải nối file gốc.
 - v1 chỉ bài giao nộp ảnh/file (`type !== 'exam'`, `purpose` = assignment). Đề online chưa lên sheet.
-- **Chưa thử với sheet thật**: token nằm trong trình duyệt giáo viên. Chủ dự án thử trên bản sao hai file trước.
+- **Phải bật Google Sheets API** trong dự án GCP `smartplan-ai-14200` (số `1030734458631`). QA đầu tiên trên production (11/09) báo `SERVICE_DISABLED`: Drive API đã bật từ trước cho tính năng đẩy giáo án, nhưng Sheets API là API riêng. `sheetsErrorMessage` giờ báo đúng nguyên nhân kèm link bật, không còn đổ cho quyền của file.
 - Nghiệm thu: `lint` 0, `lint:api` 0, full Vitest **158 files / 1948 tests PASS**, `build` PASS.
 
 ## TV thành slide trình chiếu điều khiển tại chỗ — 2026-09-10

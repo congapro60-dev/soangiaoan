@@ -9,7 +9,7 @@
  * `sheetSync.ts` và đã qua cổng chặn vùng ghi trước khi tới đây.
  */
 import { DriveAuthError, clearDriveAccessToken, getDriveAccessToken } from '../googleDrive';
-import { SHEET_LAYOUT, type SheetCell, type SheetColumnHeader, type SheetSnapshot } from './sheetSync';
+import { SHEET_LAYOUT, sheetsErrorMessage, type SheetCell, type SheetColumnHeader, type SheetSnapshot } from './sheetSync';
 
 const SHEETS_BASE = 'https://sheets.googleapis.com/v4/spreadsheets';
 /** Đọc tới dòng 91 — dư cho mọi lớp, tab dài hơn thì học sinh ngoài vùng này bị báo không khớp. */
@@ -50,12 +50,7 @@ const sheetsFetch = async (url: string, init: RequestInit = {}): Promise<Record<
     clearDriveAccessToken();
     throw new DriveAuthError('Phiên cấp quyền Google đã hết. Bấm lại để cấp quyền rồi thử tiếp.');
   }
-  if (!res.ok) {
-    const detail = body?.error?.message ? ` (${body.error.message})` : '';
-    if (res.status === 403) throw new Error(`Tài khoản Google của bạn chưa có quyền sửa file này${detail}.`);
-    if (res.status === 404) throw new Error('Không tìm thấy file. Kiểm tra lại link Google Sheet.');
-    throw new Error(`Google Sheets trả lỗi ${res.status}${detail}.`);
-  }
+  if (!res.ok) throw new Error(sheetsErrorMessage(res.status, body?.error?.message ?? ''));
   return (body ?? {}) as Record<string, unknown>;
 };
 

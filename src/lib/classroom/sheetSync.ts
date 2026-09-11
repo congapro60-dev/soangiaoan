@@ -608,3 +608,21 @@ export const buildSheetRequests = (plan: SheetSyncPlan, snapshot: SheetSnapshot)
   }
   return requests;
 };
+
+/**
+ * Dịch lỗi của Google Sheets sang câu nói ĐÚNG nguyên nhân.
+ *
+ * Google trả 403 cho cả hai chuyện rất khác nhau: tài khoản không có quyền với file, và dự án của
+ * app chưa bật Sheets API. Gộp chung thành "chưa có quyền sửa file" là đẩy giáo viên đi xin quyền
+ * một file mà họ vốn là chủ — chuyện đã xảy ra ở lần QA đầu tiên.
+ */
+export const sheetsErrorMessage = (status: number, detail: string): string => {
+  if (/has not been used in project|it is disabled|SERVICE_DISABLED|accessNotConfigured/i.test(detail)) {
+    const link = /https:\/\/console\.developers\.google\.com\/apis\/api\/sheets\.googleapis\.com\/overview\?project=\d+/.exec(detail)?.[0];
+    return `Google Sheets API chưa được bật cho app này. Chủ app cần bật một lần${link ? ` tại ${link}` : ' trong Google Cloud Console'}, đợi vài phút rồi thử lại.`;
+  }
+  const suffix = detail ? ` (${detail})` : '';
+  if (status === 403) return `Tài khoản Google của bạn chưa có quyền sửa file này${suffix}.`;
+  if (status === 404) return 'Không tìm thấy file. Kiểm tra lại link Google Sheet.';
+  return `Google Sheets trả lỗi ${status}${suffix}.`;
+};

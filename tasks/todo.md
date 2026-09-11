@@ -22,7 +22,7 @@
 - `11. COLUMBUS (LINK)` trong file 2 là **bản chiếu một chiều** bằng `IMPORTRANGE('02. BTVN'!A1:BJ37)` từ file 1.
   Ghi vào đó là vỡ công thức.
 - App đã có luồng lấy quyền Google của giáo viên (`src/lib/googleDrive.ts`, scope Drive, dùng cho "Đẩy giáo án lên
-  Drive"). Quyền đó gọi được Sheets API → **dùng lại, không mở rộng thêm quyền, không phải cài đặt Google Cloud mới**.
+  Drive"). Quyền đó gọi được Sheets API → **dùng lại, không mở rộng thêm quyền**. ⚠ Giả định "không phải cài đặt Google Cloud" là SAI: dự án GCP vẫn phải **bật Sheets API** một lần (QA production 11/09 báo SERVICE_DISABLED).
 - Vercel đang 12/12 function → đồng bộ chạy trong trình duyệt giáo viên; máy chủ chỉ thêm một action lưu cấu hình.
 
 ## Vùng được phép chạm — cam kết nằm ở code
