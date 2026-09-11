@@ -25,6 +25,7 @@ Nút trong app, chỉ chạy khi giáo viên bấm. Tuỳ chọn theo lớp, m�
 - Tab `11. COLUMBUS (LINK)` của file theo dõi 3 lớp là bản `IMPORTRANGE` — app từ chối nối, phải nối file gốc.
 - v1 chỉ bài giao nộp ảnh/file (`type !== 'exam'`, `purpose` = assignment). Đề online chưa lên sheet.
 - **Phải bật Google Sheets API** trong dự án GCP `smartplan-ai-14200` (số `1030734458631`). QA đầu tiên trên production (11/09) báo `SERVICE_DISABLED`: Drive API đã bật từ trước cho tính năng đẩy giáo án, nhưng Sheets API là API riêng. `sheetsErrorMessage` giờ báo đúng nguyên nhân kèm link bật, không còn đổ cho quyền của file.
+- **Deploy làm hỏng tab đang mở** ("Failed to fetch dynamically imported module"): Vercel xoá file JS của bản cũ, tab cũ bấm sang mục chưa tải là hỏng. `src/lib/staleChunkReload.ts` + `main.tsx` giờ tự tải lại MỘT lần (nghe `vite:preloadError` và bắt ở ErrorBoundary), có chặn vòng lặp 30 giây. Chỉ bảo vệ những tab mở SAU bản `fix/chunk-reload`; tab mở trước đó vẫn gặp một lần.
 - Nghiệm thu: `lint` 0, `lint:api` 0, full Vitest **158 files / 1948 tests PASS**, `build` PASS.
 
 ## TV thành slide trình chiếu điều khiển tại chỗ — 2026-09-10
