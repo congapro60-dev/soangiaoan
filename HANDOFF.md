@@ -1,11 +1,22 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-09-10
+**Cập nhật:** 2026-09-12
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
 Handoff ngắn cho lô V4 live lesson. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
-## TV thành slide trình chiếu điều khiển tại chỗ — 2026-09-10
+## TV/HS — kết quả trực tiếp và nhịp 40 phút — 2026-09-12
+
+- TV có biểu đồ theo hoạt động; GV và tv-control đều có nút công bố/ẩn. Chỉ owner đọc phản hồi để tổng hợp. Số người gửi không được coi là số người làm đúng.
+- Hoạt động nhóm: HS chọn số nhóm 1–12 thầy cô đã thông báo; groupMemberships giữ riêng tư. TV nhận public/groupProgress gồm số thành viên và số người gửi theo nhóm, không tên/UID/bài làm.
+- HS đọc nhiệm vụ từng tuyến trước khi chọn; tiêu chí và khung câu theo nội dung giáo án. Bài AI Error giữ loại lỗi cùng giải thích; mở gợi ý không ghi đè phản hồi tuyến.
+- Đồng hồ dùng cueStartedAt + cueElapsedSeconds: tạm dừng giữ thời gian, tiếp tục cộng tiếp; bật/tắt thống kê không reset. Chuyển cue bắt đầu thời lượng mới. TV/HS hiện khoảng phút dự kiến trong tiết.
+- Chuyển cue và public state ghi cùng transaction; publisher kiểm tra lại cue/cờ công bố trước khi ghi để tránh bảng của bước trước.
+- Phải triển khai firestore.rules cùng ứng dụng: clock có trường optional tương thích session cũ; thêm hai đường dữ liệu nhóm giới hạn quyền.
+- Không chạy QA/test/build theo yêu cầu chủ sở hữu. Các số test PASS bên dưới thuộc phiên bản cũ, không chứng minh lô này. Không tự chia nhóm, không tự đánh giá đúng/sai hoặc chiếu bài làm.
+- Chi tiết và hướng dẫn: docs/features/2026-09-11-live-activity-results.md.
+
+## TV thành slide trình chiếu điều khiển tại chỗ — 2026-09-10 (lịch sử)
 
 Chủ sở hữu báo ba việc trên production: TV không có Trước/Sau/đồng hồ nên phải chạy về laptop; chữ trên TV đầy tốc ký kỹ thuật; TV không giống một file slide gắn với màn hình học sinh.
 
@@ -20,7 +31,7 @@ Chủ sở hữu báo ba việc trên production: TV không có Trước/Sau/đ�
 - 11 slide P31 viết lại thành chữ trình chiếu qua bảng `TV_SLIDES` tường minh; mỗi slide kèm một câu "việc của em". 48 bài Ban Toán sinh tự động lấy `publicScreenAction` trong `runtimeDefinition.ts`.
 - TV có đồng hồ **đếm ngược hoạt động** (quá giờ đổi vàng, hiện `+m:ss`), thanh tiến trình theo cue và bộ đếm "Hoạt động k/n". Mốc đếm là `publicState.updatedAt` — TV, laptop GV và máy HS cùng một mốc, không máy nào chạy đồng hồ riêng.
 - Thanh Trước/Chạy/Sau **tự ẩn sau 3,5 giây**, hiện lại khi có chuột hoặc phím; phím tắt ← → Space F. Đây là cách hoà giải với thiết kế cũ vốn cấm nút trên TV vì sợ học sinh nhìn thấy.
-- Khung **WALT/WILF cố định dưới mọi slide** (`LiveLessonDefinition.intent`, dựng từ `contract.objectives.math`). Tiêu chí dự giờ CIS 1.1 đòi mục tiêu luôn nhìn thấy được; trước đó mục tiêu chỉ hiện 3 phút trong 40 phút.
+- Khung **WALT/WILF cố định dưới mọi slide** (`LiveLessonDefinition.intent`, dựng từ `contract.objectives.math`) là lựa chọn thiết kế hỗ trợ đối chiếu mục tiêu; không phải xác nhận tuân thủ một điều khoản CIS.
 - Cỡ chữ bám cả `vw` lẫn `vh` để màn 16:9 không còn cảnh chữ bé giữa khoảng trống, và slide luôn gói gọn trong một màn hình.
 - `docs/features/08-live-lesson-realtime.md` sửa lại: câu cũ dạy rằng "TV hiện nút điều khiển là đang chiếu nhầm cửa sổ" nay đã sai.
 

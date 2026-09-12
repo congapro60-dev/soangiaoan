@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+import { CLASS_GROUPS, subscribeToLiveGroupProgress, type LiveGroupProgress } from '../../services/liveActivityService';
 import type { LivePublicStats } from '../../lib/liveLesson/types';
 
 // Bảng thống kê TV — CHỈ hiển thị số liệu tổng hợp đã được khử danh tính. Không
@@ -68,34 +70,58 @@ export function getTvStatsView(stats: LivePublicStats): TvStatsView {
 export interface TvStatsPanelProps {
   stats: LivePublicStats | null;
   showStats: boolean;
+  sessionId?: string;
+  cueId?: string;
+  stepId?: string;
 }
 
-export const TvStatsPanel = ({ stats, showStats }: TvStatsPanelProps) => {
-  if (!showStats) {
-    return <footer className="shrink-0 text-center text-[clamp(0.7rem,1.2vw,1rem)] font-bold text-slate-500">Thống kê đang ẩn.</footer>;
-  }
-  if (!stats) {
-    return <footer className="shrink-0 text-center text-[clamp(0.7rem,1.2vw,1rem)] font-bold text-slate-400">Đang chờ dữ liệu thống kê tổng hợp…</footer>;
-  }
-  const view = getTvStatsView(stats);
-  const countTiles = (
-    <>
-      <div className="min-w-0 rounded-xl bg-white/10 p-[clamp(0.45rem,1vw,1rem)]"><p className="truncate text-[clamp(0.65rem,1.1vw,0.95rem)] font-black uppercase text-slate-400">Tham gia</p><p className="mt-1 text-[clamp(1.5rem,3.5vw,3rem)] font-black leading-none">{view.participantCount}</p></div>
-      <div className="min-w-0 rounded-xl bg-white/10 p-[clamp(0.45rem,1vw,1rem)]"><p className="truncate text-[clamp(0.65rem,1.1vw,0.95rem)] font-black uppercase text-slate-400">Đã gửi</p><p className="mt-1 text-[clamp(1.5rem,3.5vw,3rem)] font-black leading-none">{view.submittedCount}</p></div>
-    </>
-  );
-  return (
-    <footer className="shrink-0">
-      <p className="text-[clamp(0.75rem,1.3vw,1rem)] font-black uppercase tracking-[0.14em] text-cyan-300">{view.title}</p>
-      <div className="mt-2 flex flex-wrap gap-[clamp(0.35rem,1vw,1rem)]">
-        {countTiles}
-        {view.kind !== 'counts' && view.items.map((item) => (
-          <div key={item.label} className={`min-w-0 rounded-xl p-[clamp(0.45rem,1vw,1rem)] ${item.accent ? 'bg-cyan-400/15' : 'bg-white/10'}`}>
-            <p className={`truncate whitespace-nowrap text-[clamp(0.65rem,1.1vw,0.95rem)] font-black uppercase ${item.accent ? 'text-cyan-300' : 'text-slate-400'}`}>{item.label}</p>
-            <p className="mt-1 text-[clamp(1.5rem,3.5vw,3rem)] font-black leading-none">{item.count}</p>
-          </div>
-        ))}
-      </div>
-    </footer>
-  );
+const PUBLIC_LABELS: Record<string, string> = {
+  Conceptual: 'Khái niệm', Algebraic: 'Tính toán / biến đổi', Logical: 'Lập luận',
+  'Missing condition': 'Điều kiện', G1: 'Kiểm tra nghiệm', G2: 'Lập mô hình',
+  G3: 'Giải thích', true: 'Đúng', false: 'Chưa đúng', Yes: 'Có', No: 'Không',
+};
+
+export const TvStatsPanel = ({ stats, showStats, sessionId, cueId, stepId }: TvStatsPanelProps) => {
+  const [groups, setGroups] = useState<LiveGroupProgress | null>(null);
+  const [groupError, setGroupError] = useState(false);
+  useEffect(() => {
+    setGroups(null); setGroupError(false);
+    if (!showStats || stepId !== 'cp-group-product' || !sessionId) return;
+    return subscribeToLiveGroupProgress(sessionId, value => { setGroups(value); setGroupError(false); }, () => setGroupError(true));
+  }, [showStats, sessionId, cueId, stepId]);
+
+  if (!showStats) return <footer className="tv-results-hidden"><span aria-hidden="true">◌</span> Cùng suy nghĩ · Kết quả chờ thầy cô mở</footer>;
+  const view = stats ? getTvStatsView(stats) : null;
+  const items = view && view.kind !== 'counts' ? view.items : [];
+  const total = items.reduce((sum, item) => sum + item.count, 0);
+  const groupRows = groups?.cueId === cueId && groups.stepId === stepId
+    ? CLASS_GROUPS.filter(key => groups.members[key] > 0) : [];
+  return <section className="tv-results-panel" aria-label="Kết quả hoạt động">
+    <header className="tv-results-header">
+      <span className="tv-results-live"><span aria-hidden="true" /> Theo phản hồi đã nhận</span>
+      <h3>{stepId === 'cp-group-product' ? 'Nhịp làm việc của các nhóm' : view?.title ?? 'Kết quả của lớp'}</h3>
+    </header>
+    {!view ? <p className="tv-results-empty">Đang chờ phản hồi của hoạt động này…</p> : <>
+      <div className="tv-response-total"><strong>{view.submittedCount}</strong><span>học sinh đã gửi</span></div>
+      {items.length > 0 && <div className="tv-result-bars">{items.map(item => {
+        const percent = total ? Math.round(item.count / total * 100) : 0;
+        return <div key={item.label} className="tv-result-row">
+          <div className="tv-result-row-label"><span>{PUBLIC_LABELS[item.label] ?? item.label}</span><strong>{item.count}</strong></div>
+          <div className="tv-result-track" aria-hidden="true"><span style={{ width: `${percent}%` }} /></div>
+        </div>;
+      })}</div>}
+      {view.submittedCount === 0 && <p className="tv-results-empty">Chưa có phản hồi. Hãy dành thời gian suy nghĩ trước khi gửi.</p>}
+    </>}
+    {stepId === 'cp-group-product' && <div className="tv-group-progress">
+      {groupError ? <p className="tv-results-empty">Chưa kết nối được tiến độ nhóm.</p>
+        : groupRows.length === 0 ? <p className="tv-results-empty">HS chọn số nhóm thầy cô đã phân công trên thiết bị.</p>
+        : groupRows.map(key => <div className="tv-group-tile" key={key}>
+          <div><strong>Nhóm {key}</strong><span>{groups!.submitted[key] ?? 0}/{groups!.members[key]} đã gửi</span></div>
+          <div className="tv-result-track" aria-hidden="true"><span style={{ width: `${Math.min(100, (groups!.submitted[key] ?? 0) / groups!.members[key] * 100)}%` }} /></div>
+        </div>)}
+    </div>}
+    <p className="tv-results-caption">{stepId === 'cp-group-product'
+      ? 'Theo số thành viên đã chọn nhóm. Lượt gửi là tín hiệu tiến độ, chưa phải đánh giá chất lượng.'
+      : items.length ? 'Số lượt chọn để cùng thảo luận, không phải bảng xếp hạng.' : 'Thầy cô đọc bài và chọn điểm cần trao đổi. Số lượt gửi không phải số câu đúng.'}</p>
+  </section>;
 };

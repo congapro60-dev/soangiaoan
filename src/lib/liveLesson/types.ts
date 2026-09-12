@@ -85,6 +85,8 @@ export interface LiveLessonSession {
   status: LiveSessionStatus;
   currentCueId: string;
   currentTvScreenId: string;
+  cueStartedAt?: number;
+  cueElapsedSeconds?: number;
   publicStateEnabled: boolean;
   publicStatsEnabled: boolean;
   createdAt: number;
@@ -122,6 +124,8 @@ export interface LivePublicState {
   status: LiveSessionStatus;
   showStats: boolean;
   updatedAt: number;
+  cueStartedAt?: number;
+  cueElapsedSeconds?: number;
 }
 
 export interface CreateLiveSessionInput {

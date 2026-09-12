@@ -124,6 +124,8 @@ const normalizeSession = (sessionId: string, value: unknown): LiveLessonSession 
     status: value.status,
     currentCueId: value.currentCueId,
     currentTvScreenId: value.currentTvScreenId,
+    ...(isFiniteNumber(value.cueStartedAt) ? { cueStartedAt: value.cueStartedAt } : {}),
+    ...(isFiniteNumber(value.cueElapsedSeconds) ? { cueElapsedSeconds: value.cueElapsedSeconds } : {}),
     publicStateEnabled: value.publicStateEnabled,
     publicStatsEnabled: value.publicStatsEnabled,
     createdAt: toEpochMillis(value.createdAt, 'createdAt'),
@@ -186,6 +188,8 @@ const normalizePublicState = (value: unknown): LivePublicState => {
     tvScreenId: value.tvScreenId,
     status: value.status,
     showStats: value.showStats,
+    ...(isFiniteNumber(value.cueStartedAt) ? { cueStartedAt: value.cueStartedAt } : {}),
+    ...(isFiniteNumber(value.cueElapsedSeconds) ? { cueElapsedSeconds: value.cueElapsedSeconds } : {}),
     updatedAt: toEpochMillis(value.updatedAt, 'updatedAt'),
   };
 };
@@ -235,6 +239,8 @@ const writePublicState = async (session: LiveLessonSession): Promise<void> => {
     tvScreenId: session.currentTvScreenId,
     status: session.status,
     showStats: session.publicStatsEnabled,
+    ...(session.cueStartedAt !== undefined ? { cueStartedAt: session.cueStartedAt } : {}),
+    ...(session.cueElapsedSeconds !== undefined ? { cueElapsedSeconds: session.cueElapsedSeconds } : {}),
     updatedAt: serverTimestamp(),
   });
 };
@@ -267,6 +273,8 @@ export const createLiveLessonSession = async ({ definition, teacherUid, classId 
     status: 'lobby',
     currentCueId: firstCue.id,
     currentTvScreenId: firstCue.tvScreenId,
+    cueStartedAt: 0,
+    cueElapsedSeconds: 0,
     publicStateEnabled: true,
     publicStatsEnabled: false,
     createdAt: serverTimestamp(),
@@ -295,10 +303,38 @@ export const updateLiveLessonState = async (sessionId: string, patch: LiveLesson
   if (patch.currentTvScreenId !== undefined) assertNonEmptyString(patch.currentTvScreenId, 'currentTvScreenId');
   if (patch.publicStateEnabled !== undefined && typeof patch.publicStateEnabled !== 'boolean') throw new Error('publicStateEnabled is invalid.');
   if (patch.publicStatsEnabled !== undefined && typeof patch.publicStatsEnabled !== 'boolean') throw new Error('publicStatsEnabled is invalid.');
-  await updateDoc(doc(db, SESSIONS_COL, sessionId), { ...patch, updatedAt: serverTimestamp() });
-  const session = await readSnapshot(sessionId);
-  await writePublicState(session);
-  return session;
+  await runTransaction(db, async tx => {
+    const sessionRef = doc(db, SESSIONS_COL, sessionId);
+    const snapshot = await tx.get(sessionRef);
+    if (!snapshot.exists()) throw new Error('Phiên tiết học không còn tồn tại.');
+    const current = normalizeSession(sessionId, snapshot.data());
+    if (current.status === 'closed') throw new Error('Phiên đã đóng.');
+    const now = Date.now();
+    const changedCue = patch.currentCueId !== undefined && patch.currentCueId !== current.currentCueId;
+    const nextStatus = patch.status ?? current.status;
+    let cueStartedAt = current.cueStartedAt ?? (current.status === 'running' ? current.updatedAt : 0);
+    let cueElapsedSeconds = current.cueElapsedSeconds ?? 0;
+    if (changedCue) {
+      cueElapsedSeconds = 0;
+      cueStartedAt = nextStatus === 'running' ? now : 0;
+    } else if (current.status === 'running' && nextStatus !== 'running') {
+      cueElapsedSeconds += Math.max(0, (now - cueStartedAt) / 1000);
+      cueStartedAt = 0;
+    } else if (current.status !== 'running' && nextStatus === 'running') {
+      cueStartedAt = now;
+    }
+    cueElapsedSeconds = Math.min(86400, cueElapsedSeconds);
+    const next = { ...current, ...patch, cueStartedAt, cueElapsedSeconds };
+    tx.update(sessionRef, { ...patch, cueStartedAt, cueElapsedSeconds, updatedAt: serverTimestamp() });
+    if (next.status !== 'closed' && next.publicStateEnabled) {
+      tx.set(doc(sessionRef, PUBLIC_SUB, 'state'), {
+        cueId: next.currentCueId, tvScreenId: next.currentTvScreenId,
+        status: next.status, showStats: next.publicStatsEnabled,
+        cueStartedAt, cueElapsedSeconds, updatedAt: serverTimestamp(),
+      });
+    }
+  });
+  return readSnapshot(sessionId);
 };
 
 export const closeLiveLessonSession = async (sessionId: string): Promise<LiveLessonSession> => {

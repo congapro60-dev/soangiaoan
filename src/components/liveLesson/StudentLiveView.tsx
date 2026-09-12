@@ -1,5 +1,6 @@
 import './liveClassroom.css';
 import { StudentActivityGuide } from './StudentActivityGuide';
+import { StudentGroupPicker } from './StudentGroupPicker';
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
@@ -223,14 +224,16 @@ const ResponseControl = ({
   responseTypes,
   stepId,
   value,
+  routeOptions,
   onChange,
 }: {
   responseTypes: LiveResponseType[];
   stepId: string;
   value: string;
+  routeOptions?: Array<{ route: string; prompt: string }>;
   onChange: (value: string, type: LiveResponseType) => void;
 }) => {
-  if (responseTypes.includes('route')) return <div className="grid gap-2 sm:grid-cols-3">{['M', 'S', 'C'].map(route => <button key={route} type="button" onClick={() => onChange(route, 'route')} className={`rounded-2xl border px-4 py-4 text-left font-black ${value === route ? 'border-indigo-600 bg-indigo-50 text-indigo-800' : 'border-slate-200 bg-white text-slate-700'}`}><span className="text-lg">Tuyến {route}</span><span className="mt-1 block text-xs font-semibold text-slate-500">{route === 'M' ? 'Củng cố' : route === 'S' ? 'Chuẩn' : 'Thử thách'}</span></button>)}</div>;
+  if (responseTypes.includes('route')) return <div className="student-route-choices"><p className="student-route-note">Chọn nhiệm vụ phù hợp với điều em muốn luyện. Đọc nhiệm vụ trước khi chọn; em có thể đổi lựa chọn.</p><div className="grid gap-3 sm:grid-cols-3">{(routeOptions ?? []).map(({ route, prompt }) => <button key={route} type="button" aria-pressed={value === route} onClick={() => onChange(route, 'route')} className={`student-route-option ${value === route ? 'is-selected' : ''}`}><span className="student-route-heading">{route === 'M' ? 'Bắt đầu với hỗ trợ' : route === 'S' ? 'Kết nối kiến thức' : 'Mở rộng lập luận'}</span><LiveLessonRichText text={prompt} className="student-route-description" /><span className="student-route-state">{value === route ? '✓ Đang chọn' : 'Chọn nhiệm vụ này'}</span></button>)}</div></div>;
   if (responseTypes.includes('boolean')) return <div className="grid grid-cols-2 gap-2">{['true', 'false'].map(option => <button key={option} type="button" onClick={() => onChange(option, 'boolean')} className={`rounded-xl border px-4 py-3 font-black ${value === option ? 'border-indigo-600 bg-indigo-50 text-indigo-800' : 'border-slate-200 bg-white text-slate-700'}`}>{option === 'true' ? 'Đúng' : 'Chưa đúng'}</button>)}</div>;
   if (responseTypes.includes('choice')) return <div className="grid gap-2 sm:grid-cols-2">{getStudentChoiceOptions(stepId).map(option => <button key={option} type="button" onClick={() => onChange(option, 'choice')} className={`rounded-xl border px-4 py-3 text-left font-bold ${value === option ? 'border-indigo-600 bg-indigo-50 text-indigo-800' : 'border-slate-200 bg-white text-slate-700'}`}>{getStudentChoiceLabel(stepId, option)}</button>)}</div>;
   return null;
@@ -277,7 +280,6 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
   const [blockedQueueCount, setBlockedQueueCount] = useState(0);
   const [retryableQueueCount, setRetryableQueueCount] = useState(0);
   const [flushing, setFlushing] = useState(false);
-  const [hasSubmitted, setHasSubmitted] = useState(false);
   const [languageChoiceOpen, setLanguageChoiceOpen] = useState(false);
   const [languageChangeNote, setLanguageChangeNote] = useState<string | null>(null);
   const [languageView, setLanguageView] = useState<StudentLanguageView>(() => buildStudentLanguageChoiceState(null).view);
@@ -328,6 +330,11 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
 
   const currentCue = definition.studentCues.find(cue => cue.id === publicState.cueId);
   const step = currentCue?.responseStepId ? definition.responseSteps.find(item => item.id === currentCue.responseStepId) ?? null : null;
+  const hasSubmitted = Boolean(step && stepStatuses[step.id]?.tone === 'success');
+  useEffect(() => {
+    setSelectedValue('');
+    setTextValue('');
+  }, [step?.id]);
   const studentScreen = definition.studentScreens.find(screen => screen.id === currentCue?.studentScreenId) ?? definition.studentScreens[0];
   const tvScreen = definition.tvScreens.find(screen => screen.id === publicState.tvScreenId) ?? null;
   const activeSafetyMessage = activeUserSafetyMessage(user);
@@ -439,16 +446,8 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
     const next = revealNextHint(hintState);
     if (next > hintState.revealedCount) {
       setHintState({ ...hintState, revealedCount: next });
-      if (step && identity) {
-        enqueueLiveResponse(buildHintUsePayload({
-          sessionId,
-          participantUid: identity.participantUid,
-          classId: identity.classId,
-          stepId: step.id,
-          revealedCount: next,
-          languagePreference: languageView,
-        }));
-      }
+      // Hints are local assistance. A hint must not overwrite this step's
+      // single response document and erase the selected learning route.
     }
   }, [hintState, step, identity, sessionId, languageView]);
 
@@ -466,14 +465,13 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
     if (!step) return;
     const savedState = getLiveResponseStepState(sessionId, participantUid, step.id);
     if (savedState) {
-      setStepStatuses(current => current[step.id] ? current : {
-        ...current,
-        [step.id]: savedState.status === 'blocked'
+      const nextStatus: StudentStatus = savedState.status === 'synced'
+        ? { tone: 'success', message: 'Đã xác nhận trên máy chủ.' }
+        : savedState.status === 'blocked'
           ? { tone: 'error', message: `Phản hồi bị chặn: ${savedState.lastError ?? 'cần gửi câu trả lời mới.'}` }
-          : savedState.status === 'pending'
-            ? { tone: 'warning', message: `Phản hồi đang chờ đồng bộ. ${savedState.lastError ?? ''}`.trim() }
-            : { tone: 'success', message: 'Đã xác nhận trên máy chủ.' },
-      });
+          : { tone: 'warning', message: `Phản hồi đang chờ đồng bộ. ${savedState.lastError ?? ''}`.trim() };
+      setStepStatuses(current => current[step.id]?.tone === nextStatus.tone && current[step.id]?.message === nextStatus.message
+        ? current : { ...current, [step.id]: nextStatus });
     }
   }, [participantUid, sessionId, step, student]);
 
@@ -484,7 +482,6 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
       const result = await flushLiveResponseQueue(response => submitLiveResponse(response), sessionId, participantUid);
       refreshQueueState();
       if (result.failed) setStepStatuses(current => ({ ...current, [result.failed.item.stepId]: statusForQueueFailure(result.failed) }));
-      if (!result.failed && result.synced > 0 && step) setStepStatuses(current => ({ ...current, [step.id]: { tone: 'success', message: 'Đã xác nhận trên máy chủ.' } }));
     } catch (error) {
       if (step) setStepStatuses(current => ({ ...current, [step.id]: statusForError(error) }));
     } finally {
@@ -515,7 +512,13 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
       setStepStatuses(current => ({ ...current, [step.id]: { tone: 'error', message: 'Bước này không hỗ trợ loại phản hồi đã chọn.' } }));
       return;
     }
-    const value = responseType === 'boolean' ? rawValue === true || rawValue === 'true' : rawValue;
+    const aiError = step.id === 'cp-ai-error' || step.id === 'ai-error-w01';
+    const explanation = responseType === 'text' ? String(rawValue).trim() : textValue.trim();
+    const category = responseType === 'choice' ? String(rawValue) : selectedValue;
+    const combined = aiError && ['Conceptual', 'Algebraic', 'Logical', 'Missing condition'].includes(category)
+      && explanation && step.responseTypes.includes('text');
+    const value = combined ? JSON.stringify({ category, explanation })
+      : responseType === 'boolean' ? rawValue === true || rawValue === 'true' : rawValue;
     if (typeof value === 'string' && value.trim().length === 0) return;
     if (typeof value === 'string' && value.length > (step.maxTextLength ?? 2000)) {
       setStepStatuses(current => ({ ...current, [step.id]: { tone: 'error', message: `Câu trả lời tối đa ${step.maxTextLength} ký tự.` } }));
@@ -527,14 +530,13 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
       participantUid: identity.participantUid,
       classId: identity.classId,
       stepId: step.id,
-      responseType,
+      responseType: combined ? 'text' : responseType,
       value,
       clientNonce: savedState?.clientNonce ?? createNonce(),
       languagePreference: languageView,
     };
     try {
       enqueueLiveResponse(payload);
-      setHasSubmitted(true);
       if (responseType === 'route') {
         const route = String(value).trim().toUpperCase() as V4Route;
         if (['M', 'S', 'C'].includes(route)) setCurrentRoute(route);
@@ -582,5 +584,5 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
   if (student && !identity) return <main className="flex min-h-screen items-center justify-center bg-slate-100 p-4 text-slate-900"><section className="w-full max-w-xl rounded-[2rem] bg-white p-7 text-center shadow-xl"><p className="text-xs font-black uppercase tracking-[0.2em] text-red-600">Học sinh · danh tính bị chặn</p><h1 className="mt-2 text-2xl font-black">Không thể gửi phản hồi</h1><div className="mt-4"><LiveLessonStatus tone="error">{activeSafetyMessage ?? 'Phiên đăng nhập hoặc mã lớp không khớp liên kết này. Hãy đăng nhập lại từ đúng liên kết học sinh.'}</LiveLessonStatus></div></section></main>;
   if (!student) return <main className="flex min-h-screen items-center justify-center bg-slate-100 p-4 text-slate-900"><form onSubmit={login} className="w-full max-w-md rounded-[2rem] bg-white p-6 shadow-xl sm:p-8"><p className="text-xs font-black uppercase tracking-[0.2em] text-indigo-600">SmartPlan · Học sinh</p><h1 className="mt-2 text-2xl font-black">Vào tiết học trực tiếp</h1><p className="mt-2 text-sm font-semibold leading-6 text-slate-500">Chọn tên của em trong lớp rồi nhập PIN. PIN chỉ được gửi để xác thực, không lưu trên thiết bị.</p>{activeSafetyMessage && <LiveLessonStatus tone="error">{activeSafetyMessage}</LiveLessonStatus>}{loginError && <div className="mt-4"><LiveLessonStatus tone="error">{loginError}</LiveLessonStatus></div>}<div className="mt-5 space-y-3"><label className="block text-sm font-black text-slate-700">Lớp {roster.className}<select required value={selectedStudentId} onChange={event => setSelectedStudentId(event.target.value)} autoComplete="off" className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 font-semibold"><option value="">Chọn tên của em</option>{roster.students.map(item => <option key={item.studentId} value={item.studentId}>{item.name}</option>)}</select></label><input required value={pin} onChange={event => setPin(event.target.value)} placeholder="PIN" inputMode="numeric" type="password" autoComplete="off" className="w-full rounded-xl border border-slate-200 px-4 py-3 font-semibold" /></div><button disabled={loginBusy || Boolean(activeSafetyMessage) || !selectedStudentId} className="mt-5 w-full rounded-xl bg-indigo-600 px-4 py-3 font-black text-white disabled:opacity-50">{loginBusy ? 'Đang xác thực…' : 'Vào lớp'}</button></form></main>;
 
-  return <main className="live-student"><div className="student-shell"><header className="student-lesson-header"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">Học sinh · tiết trực tiếp</p><h1 className="student-lesson-title">{definition.title}</h1><p className="mt-2 text-sm font-semibold text-slate-300">{student.studentName} · {student.className}</p></div><div className="flex flex-col items-end gap-2"><span className="rounded-full border border-emerald-400/50 px-3 py-1 text-xs font-black uppercase text-emerald-300">{publicState.status}</span><button type="button" onClick={() => setLanguageChoiceOpen(true)} className="rounded-full border border-cyan-300/60 px-3 py-1 text-xs font-black text-cyan-100">{languageChip.label} · {languageChip.actionLabel}</button></div></div>{publicStateError && <div className="mt-4"><LiveLessonStatus tone="warning">Mất kết nối trạng thái. Đang giữ màn hình cuối; sẽ tự kết nối lại.</LiveLessonStatus></div>}</header>{languageChoiceOpen && <LanguageChoicePanel view={languageView} fullTranslationAvailable={fullTranslationAvailable} onPick={pickLanguage} />}{languageChangeNote && <LiveLessonStatus tone="neutral">{languageChangeNote}</LiveLessonStatus>}<LiveLessonStatus tone={blockedQueueCount > 0 ? 'error' : retryableQueueCount > 0 ? 'warning' : hasSubmitted ? 'success' : 'neutral'}>{offlineStatusText}</LiveLessonStatus>{assignedGroup && <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm"><p className="text-xs font-black uppercase tracking-widest text-emerald-700">Nhóm đã phân công</p><p className="mt-2 text-lg font-black text-emerald-900">{assignedGroup.groupId}</p><p className="mt-1 text-sm font-semibold text-emerald-800">{assignedGroup.scaffold}</p><p className="mt-1 text-xs text-emerald-600">Bắt đầu: {new Date(assignedGroup.startedAt).toLocaleTimeString()}</p></section>}{routedTask && <section className="rounded-3xl border border-indigo-200 bg-indigo-50 p-5 shadow-sm"><p className="text-xs font-black uppercase tracking-widest text-indigo-700">Nhiệm vụ tuyến {currentRoute}</p><LiveLessonRichText text={routedTask.variant.prompt} className="mt-2 text-sm font-semibold leading-6 text-indigo-950" />{routedTask.variant.extension && <LiveLessonRichText text={`Mở rộng: ${routedTask.variant.extension}`} className="mt-2 text-xs font-semibold text-indigo-700" />}{revealedHints.length > 0 && <div className="mt-3 space-y-2">{revealedHints.map((hint, idx) => <LiveLessonRichText key={idx} text={hint} className="rounded-lg bg-white/80 px-3 py-2 text-xs font-semibold text-indigo-800" />)}</div>}{hasMoreHints(hintState) && <button type="button" onClick={revealHint} className="mt-3 rounded-xl border border-indigo-300 bg-white px-4 py-2 text-xs font-black text-indigo-700 hover:bg-indigo-100">Gợi ý tiếp theo ({hintState.revealedCount + 1}/{hintState.totalHints})</button>}</section>}<StudentActivityGuide contract={v4Contract} cueId={publicState.cueId} /><section className="student-current-task"><article className="student-task-card"><p className="text-xs font-black uppercase tracking-widest text-indigo-700">Việc em cần làm lúc này</p><h2 className="mt-3 text-xl font-black text-indigo-950">{studentScreenLabel}</h2><LiveLessonRichText text={studentScreenAction} className="mt-3 text-sm font-semibold leading-6 text-indigo-900" /></article></section>{step && <section className="student-response-card"><p className="text-xs font-black uppercase tracking-widest text-slate-500">Phản hồi nhanh</p><LiveLessonRichText text={stepLabel} className="mt-2 text-xl font-black" /><div className="mt-4 space-y-4"><ResponseControl responseTypes={step.responseTypes} stepId={step.id} value={selectedValue} onChange={(value, type) => { setSelectedValue(value); void submit(type, value); }} />{textControl && <div className="space-y-2"><textarea value={textValue} onChange={event => setTextValue(event.target.value)} maxLength={step.maxTextLength ?? 2000} placeholder="Viết câu trả lời ngắn" className="student-answer-input" /><button type="button" onClick={() => void submit(step.responseTypes.includes('exit_ticket') ? 'exit_ticket' : 'text', textValue)} className="rounded-xl bg-indigo-600 px-4 py-3 text-sm font-black text-white">Gửi câu trả lời</button></div>}{status && <LiveLessonStatus tone={status.tone}>{status.message}</LiveLessonStatus>}</div></section>}<article className="student-tv-reference"><p className="text-xs font-black uppercase tracking-widest text-cyan-700">Màn hình chung (trên TV)</p><h2 className="mt-3 text-xl font-black">{tvScreen?.title ?? 'Đang chờ màn hình'}</h2><LiveLessonRichText text={tvScreen?.body ?? 'Chưa có nội dung công khai.'} className="mt-3 text-sm font-semibold leading-6 text-slate-600" /></article><section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-black uppercase tracking-widest text-slate-500">Thuật ngữ</p><div className="mt-3 flex flex-wrap gap-2">{glossaryTerms.map(term => <button key={term.id} type="button" onClick={() => setGlossaryPopup(buildStudentGlossaryPopup(v4Contract.glossary, term.id, languageView))} className="rounded-full bg-slate-100 px-3 py-2 text-xs font-black text-slate-700">{term.vietnamese}</button>)}</div>{glossaryPopup && <div className="mt-4 rounded-2xl border border-indigo-100 bg-indigo-50 p-4"><div className="flex items-start justify-between gap-3"><div><LiveLessonRichText text={`${glossaryPopup.vietnamese}${glossaryPopup.translation ? ` · ${glossaryPopup.translation}` : ''}`} className="font-black text-indigo-950" /><LiveLessonRichText text={glossaryPopup.explanation} className="mt-2 text-sm font-semibold leading-6 text-indigo-900" />{glossaryPopup.notation && <LiveLessonRichText text={glossaryPopup.notation} className="mt-2 font-mono text-sm font-black text-indigo-950" />}{glossaryPopup.example && <LiveLessonRichText text={`Ví dụ: ${glossaryPopup.example}`} className="mt-2 text-sm font-semibold text-indigo-900" />}</div><button type="button" onClick={() => setGlossaryPopup(null)} className="rounded-full bg-white px-3 py-1 text-xs font-black text-indigo-700">Đóng</button></div></div>}</section>{queueCount > 0 && <LiveLessonStatus tone={blockedQueueCount > 0 ? 'error' : 'warning'}>{blockedQueueCount > 0 ? `${blockedQueueCount} phản hồi bị chặn; hãy gửi câu trả lời mới.` : `${queueCount} phản hồi đã lưu trên máy.`}</LiveLessonStatus>}</div></main>;
+  return <main className="live-student"><div className="student-shell"><header className="student-lesson-header"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">Học sinh · tiết trực tiếp</p><h1 className="student-lesson-title">{definition.title}</h1><p className="mt-2 text-sm font-semibold text-slate-300">{student.studentName} · {student.className}</p></div><div className="flex flex-col items-end gap-2"><span className="rounded-full border border-emerald-400/50 px-3 py-1 text-xs font-black uppercase text-emerald-300">{{ lobby: 'Sẵn sàng', running: 'Đang học', paused: 'Tạm dừng', closed: 'Đã kết thúc' }[publicState.status]}</span><button type="button" onClick={() => setLanguageChoiceOpen(true)} className="rounded-full border border-cyan-300/60 px-3 py-1 text-xs font-black text-cyan-100">{languageChip.label} · {languageChip.actionLabel}</button></div></div>{publicStateError && <div className="mt-4"><LiveLessonStatus tone="warning">Mất kết nối trạng thái. Đang giữ màn hình cuối; sẽ tự kết nối lại.</LiveLessonStatus></div>}</header>{languageChoiceOpen && <LanguageChoicePanel view={languageView} fullTranslationAvailable={fullTranslationAvailable} onPick={pickLanguage} />}{languageChangeNote && <LiveLessonStatus tone="neutral">{languageChangeNote}</LiveLessonStatus>}<LiveLessonStatus tone={blockedQueueCount > 0 ? 'error' : retryableQueueCount > 0 ? 'warning' : hasSubmitted ? 'success' : 'neutral'}>{offlineStatusText}</LiveLessonStatus>{assignedGroup && <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm"><p className="text-xs font-black uppercase tracking-widest text-emerald-700">Nhóm đã phân công</p><p className="mt-2 text-lg font-black text-emerald-900">{assignedGroup.groupId}</p><p className="mt-1 text-sm font-semibold text-emerald-800">{assignedGroup.scaffold}</p><p className="mt-1 text-xs text-emerald-600">Bắt đầu: {new Date(assignedGroup.startedAt).toLocaleTimeString()}</p></section>}{routedTask && step?.responseTypes.includes('route') && <section className="rounded-3xl border border-indigo-200 bg-indigo-50 p-5 shadow-sm"><p className="text-xs font-black uppercase tracking-widest text-indigo-700">Nhiệm vụ tuyến {currentRoute}</p><LiveLessonRichText text={routedTask.variant.prompt} className="mt-2 text-sm font-semibold leading-6 text-indigo-950" />{routedTask.variant.extension && <LiveLessonRichText text={`Mở rộng: ${routedTask.variant.extension}`} className="mt-2 text-xs font-semibold text-indigo-700" />}{revealedHints.length > 0 && <div className="mt-3 space-y-2">{revealedHints.map((hint, idx) => <LiveLessonRichText key={idx} text={hint} className="rounded-lg bg-white/80 px-3 py-2 text-xs font-semibold text-indigo-800" />)}</div>}{hasMoreHints(hintState) && <button type="button" onClick={revealHint} className="mt-3 rounded-xl border border-indigo-300 bg-white px-4 py-2 text-xs font-black text-indigo-700 hover:bg-indigo-100">Gợi ý tiếp theo ({hintState.revealedCount + 1}/{hintState.totalHints})</button>}</section>}{step?.id === 'cp-group-product' && participantUid && <StudentGroupPicker key={participantUid} sessionId={sessionId} participantUid={participantUid} />}<StudentActivityGuide key={publicState.cueId} contract={v4Contract} cueId={publicState.cueId} label={studentScreenLabel} action={languageView.language === "vi" ? (v4Contract.timeline.find(item => item.id === publicState.cueId)?.studentAction ?? studentScreenAction) : studentScreenAction} route={currentRoute} />{step && <section className="student-response-card"><p className="text-xs font-black uppercase tracking-widest text-slate-500">Phản hồi nhanh</p><LiveLessonRichText text={stepLabel} className="mt-2 text-xl font-black" /><div className="mt-4 space-y-4"><ResponseControl responseTypes={step.responseTypes} stepId={step.id} value={selectedValue} routeOptions={v4Contract.taskVariants.map(item => ({ route: item.route, prompt: item.prompt }))} onChange={(value, type) => { setSelectedValue(value); void submit(type, value); }} />{textControl && <div className="space-y-2"><textarea value={textValue} onChange={event => setTextValue(event.target.value)} maxLength={step.maxTextLength ?? 2000} placeholder="Viết câu trả lời ngắn" className="student-answer-input" /><button type="button" onClick={() => void submit(step.responseTypes.includes('exit_ticket') ? 'exit_ticket' : 'text', textValue)} className="rounded-xl bg-indigo-600 px-4 py-3 text-sm font-black text-white">Gửi câu trả lời</button></div>}{status && <LiveLessonStatus tone={status.tone}>{status.message}</LiveLessonStatus>}{hasSubmitted && <aside className="student-after-submit"><strong>Tiếp theo</strong><p>Giữ lại phép kiểm hoặc bước giải trong vở. Khi thầy cô mời, giải thích vì sao em chọn câu trả lời này và đối chiếu với tiêu chí.</p><p className="mt-2">Nếu đổi ý, em có thể gửi lại câu trả lời ở bước này.</p></aside>}</div></section>}<article className="student-tv-reference"><p className="text-xs font-black uppercase tracking-widest text-cyan-700">Màn hình chung (trên TV)</p><h2 className="mt-3 text-xl font-black">{tvScreen?.title ?? 'Đang chờ màn hình'}</h2><LiveLessonRichText text={tvScreen?.body ?? 'Chưa có nội dung công khai.'} className="mt-3 text-sm font-semibold leading-6 text-slate-600" /></article><section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-black uppercase tracking-widest text-slate-500">Thuật ngữ</p><div className="mt-3 flex flex-wrap gap-2">{glossaryTerms.map(term => <button key={term.id} type="button" onClick={() => setGlossaryPopup(buildStudentGlossaryPopup(v4Contract.glossary, term.id, languageView))} className="rounded-full bg-slate-100 px-3 py-2 text-xs font-black text-slate-700">{term.vietnamese}</button>)}</div>{glossaryPopup && <div className="mt-4 rounded-2xl border border-indigo-100 bg-indigo-50 p-4"><div className="flex items-start justify-between gap-3"><div><LiveLessonRichText text={`${glossaryPopup.vietnamese}${glossaryPopup.translation ? ` · ${glossaryPopup.translation}` : ''}`} className="font-black text-indigo-950" /><LiveLessonRichText text={glossaryPopup.explanation} className="mt-2 text-sm font-semibold leading-6 text-indigo-900" />{glossaryPopup.notation && <LiveLessonRichText text={glossaryPopup.notation} className="mt-2 font-mono text-sm font-black text-indigo-950" />}{glossaryPopup.example && <LiveLessonRichText text={`Ví dụ: ${glossaryPopup.example}`} className="mt-2 text-sm font-semibold text-indigo-900" />}</div><button type="button" onClick={() => setGlossaryPopup(null)} className="rounded-full bg-white px-3 py-1 text-xs font-black text-indigo-700">Đóng</button></div></div>}</section>{queueCount > 0 && <LiveLessonStatus tone={blockedQueueCount > 0 ? 'error' : 'warning'}>{blockedQueueCount > 0 ? `${blockedQueueCount} phản hồi bị chặn; hãy gửi câu trả lời mới.` : `${queueCount} phản hồi đã lưu trên máy.`}</LiveLessonStatus>}</div></main>;
 };

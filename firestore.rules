@@ -344,7 +344,7 @@ service cloud.firestore {
         return data.keys().hasOnly([
                  'schemaVersion', 'lessonId', 'title', 'classId', 'teacherUid', 'allowedStepIds',
                  'expiresAt', 'status', 'currentCueId', 'currentTvScreenId',
-                 'publicStateEnabled', 'publicStatsEnabled', 'createdAt', 'updatedAt'
+                 'publicStateEnabled', 'publicStatsEnabled', 'createdAt', 'updatedAt', 'cueStartedAt', 'cueElapsedSeconds'
                ])
                && data.keys().hasAll([
                     'schemaVersion', 'lessonId', 'title', 'classId', 'teacherUid', 'allowedStepIds',
@@ -389,6 +389,7 @@ service cloud.firestore {
                && data.get('currentTvScreenId', '').size() <= 128
                && data.get('publicStateEnabled', false) is bool
                && data.get('publicStatsEnabled', false) is bool
+               && llv3ValidCueClock(data)
                && data.get('createdAt', null) is timestamp
                && data.get('updatedAt', null) is timestamp;
       }
@@ -474,8 +475,12 @@ service cloud.firestore {
                && llv3SafeCount(data.get('Missing condition', 0));
       }
 
+      function llv3ValidCueClock(data) {
+        return data.get('cueStartedAt', 0) is number && data.get('cueStartedAt', 0) >= 0 && data.get('cueStartedAt', 0) < 100000000000000
+          && data.get('cueElapsedSeconds', 0) is number && data.get('cueElapsedSeconds', 0) >= 0 && data.get('cueElapsedSeconds', 0) <= 86400;
+      }
       function llv3ValidPublicState(data) {
-        return data.keys().hasOnly(['cueId', 'tvScreenId', 'status', 'showStats', 'updatedAt'])
+        return data.keys().hasOnly(['cueId', 'tvScreenId', 'status', 'showStats', 'updatedAt', 'cueStartedAt', 'cueElapsedSeconds'])
                && data.keys().hasAll(['cueId', 'tvScreenId', 'status', 'showStats', 'updatedAt'])
                && data.get('cueId', '') is string
                && data.get('cueId', '').size() > 0
@@ -485,6 +490,7 @@ service cloud.firestore {
                && data.get('tvScreenId', '').size() <= 128
                && data.get('status', '') in ['lobby', 'running', 'paused', 'closed']
                && data.get('showStats', false) is bool
+               && llv3ValidCueClock(data)
                && data.get('updatedAt', null) is timestamp;
       }
 
@@ -784,10 +790,56 @@ service cloud.firestore {
                    && llv3ActiveSession()
                    && get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('publicStateEnabled', false) == true;
         allow create, update: if llv3SessionOwner()
-                              && request.resource.data.keys().hasOnly(['cueId', 'tvScreenId', 'status', 'showStats', 'updatedAt'])
+                              && request.resource.data.keys().hasOnly(['cueId', 'tvScreenId', 'status', 'showStats', 'updatedAt', 'cueStartedAt', 'cueElapsedSeconds'])
                               && llv3ValidPublicState(request.resource.data)
                               && request.resource.data.get('updatedAt', null) == request.time;
         allow delete: if false;
+      }
+
+      // Students select the numbered group announced in class; membership is private.
+      match /groupMemberships/{participantUid} {
+        allow get: if llv3SessionOwner() || (request.auth != null
+          && request.auth.uid == participantUid && llv3StudentLinkedToSession() && llv3ActiveSession());
+        allow list: if llv3SessionOwner();
+        allow create, update: if request.auth != null && request.auth.uid == participantUid
+          && llv3StudentLinkedToSession() && llv3ActiveSession()
+          && request.resource.data.keys().hasOnly(['groupNumber', 'updatedAt'])
+          && request.resource.data.get('groupNumber', '') in ['1','2','3','4','5','6','7','8','9','10','11','12']
+          && request.resource.data.get('updatedAt', null) == request.time;
+        allow delete: if false;
+      }
+
+      function validGroupCount(members, submitted, key) {
+        return members.get(key, 0) is int && members.get(key, 0) >= 0 && members.get(key, 0) <= 500
+          && submitted.get(key, 0) is int && submitted.get(key, 0) >= 0
+          && submitted.get(key, 0) <= members.get(key, 0);
+      }
+      function validGroupProgress(data) {
+        return data is map && data.keys().hasOnly(['cueId', 'stepId', 'members', 'submitted', 'updatedAt'])
+          && data.get('cueId', '') is string && data.get('cueId', '').size() > 0 && data.get('cueId', '').size() <= 128
+          && data.get('stepId', '') == 'cp-group-product'
+          && data.get('members', null) is map && data.get('submitted', null) is map
+          && data.members.keys().hasOnly(['1','2','3','4','5','6','7','8','9','10','11','12'])
+          && data.submitted.keys().hasOnly(['1','2','3','4','5','6','7','8','9','10','11','12'])
+          && validGroupCount(data.members, data.submitted, '1') && validGroupCount(data.members, data.submitted, '2')
+          && validGroupCount(data.members, data.submitted, '3') && validGroupCount(data.members, data.submitted, '4')
+          && validGroupCount(data.members, data.submitted, '5') && validGroupCount(data.members, data.submitted, '6')
+          && validGroupCount(data.members, data.submitted, '7') && validGroupCount(data.members, data.submitted, '8')
+          && validGroupCount(data.members, data.submitted, '9') && validGroupCount(data.members, data.submitted, '10')
+          && validGroupCount(data.members, data.submitted, '11') && validGroupCount(data.members, data.submitted, '12')
+          && data.get('updatedAt', null) is timestamp;
+      }
+      match /public/groupProgress {
+        allow get: if llv3ActiveSession()
+          && get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('publicStateEnabled', false) == true
+          && get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('publicStatsEnabled', false) == true
+          && (resource == null || validGroupProgress(resource.data));
+        allow create, update: if llv3SessionOwner() && llv3ActiveSession()
+          && validGroupProgress(request.resource.data)
+          && request.resource.data.cueId == get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.currentCueId
+          && request.resource.data.stepId in get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.allowedStepIds
+          && request.resource.data.updatedAt == request.time;
+        allow list, delete: if false;
       }
 
       match /public/stats {

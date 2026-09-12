@@ -471,7 +471,7 @@ const TV_SLIDES: Record<string, TvSlideCopy> = {
       'Các nhóm khác nhau ở chỗ cần hỗ trợ, không phải ở việc ai giỏi hơn ai.',
       'Câu hỏi lớn của cả lớp vẫn là một.',
     ].join('\n'),
-    action: 'Xem mã nhóm trên máy của em, rồi di chuyển theo sơ đồ chỗ ngồi.',
+    action: 'Di chuyển theo số nhóm thầy cô phân công. Đến bước làm nhóm, chọn số nhóm đó trên máy của em.',
   },
   P20: {
     label: 'HỢP TÁC',
@@ -481,7 +481,7 @@ const TV_SLIDES: Record<string, TvSlideCopy> = {
       'Bài của nhóm đạt khi có đủ ba điều:',
       '1. Nói rõ x và y là gì. 2. Dùng đúng dấu của bất phương trình. 3. Kết luận có kèm căn cứ.',
     ].join('\n'),
-    action: 'Đặt thiết bị xuống khi cả nhóm cùng giải thích. Khung câu: “Điểm ___ thuộc miền vì ___.”',
+    action: 'Chọn số nhóm trên máy, rồi đặt thiết bị xuống để cùng giải thích. Cuối hoạt động, mỗi em gửi một kết luận có phép kiểm của mình.',
   },
   P27: {
     label: 'ĐÁNH GIÁ LẠI',
@@ -497,12 +497,12 @@ const TV_SLIDES: Record<string, TvSlideCopy> = {
     label: 'PHÂN HÓA',
     title: 'BA CỬA VÀO, MỘT ĐÍCH ĐẾN',
     body: [
-      'M — Củng cố: kiểm tra một điểm cho trước và giải thích kết luận.',
-      'S — Chuẩn: tự lập bất phương trình rồi mô tả miền nghiệm.',
-      'C — Thử thách: thêm điều kiện x và y là số nguyên không âm.',
+      'M — Từ hình có sẵn: xác định miền nghiệm của 3x + 2y ≤ 30 và kiểm tra hai điểm.',
+      'S — Kết nối các cách biểu diễn: nối bất phương trình 3x + 2y ≤ 30 với đường biên và miền nghiệm.',
+      'C — Lập luận bằng phản ví dụ: bác một kết luận sai về miền nghiệm bằng phép thay điểm.',
       'Ba chỗ dễ sai: nhầm dấu ≤ với < ; thay nhầm x với y ; bỏ quên điều kiện của bài toán.',
     ].join('\n'),
-    action: 'Chọn tuyến trên máy, làm bài, dùng nhiều nhất một gợi ý rồi tự hoàn thiện.',
+    action: 'Chọn cách bắt đầu phù hợp trên máy. Cùng tiêu chí thành công; cần đổi tuyến hoặc thêm hỗ trợ thì trao đổi với thầy cô.',
   },
   P35: {
     label: 'CHỐT TOÁN',

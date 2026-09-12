@@ -10,7 +10,7 @@ import './liveClassroom.css';
 export type TvLiveDefinition = Pick<LiveLessonDefinition, 'title' | 'tvScreens'>;
 
 /** Lịch cue rút gọn — chỉ dữ liệu công khai đủ để TV đếm giờ và vẽ thanh tiến trình. */
-export interface TvCueTiming { id: string; tvScreenId: string; atSeconds: number }
+export interface TvCueTiming { id: string; tvScreenId: string; atSeconds: number; responseStepId?: string }
 
 export interface TvListenerState { publicState: LivePublicState; publicStateError: string | null; statsError: string | null; }
 
@@ -85,9 +85,9 @@ export interface TvPacing {
 }
 
 /**
- * Nhịp thời gian của slide đang chiếu. Mốc đếm là `anchorAt` — thời điểm giáo viên
- * chuyển cue (publicState.updatedAt) — nên TV, laptop GV và máy học sinh cùng đếm
- * từ một mốc thay vì mỗi máy chạy một đồng hồ riêng. Phiên dừng thì đồng hồ đứng.
+ * Nhịp slide dùng mốc chạy và thời gian tích lũy công khai của phiên.
+ * Khi tạm dừng, giữ thời gian đã dùng; bật thống kê không làm đổi mốc chạy.
+ * Phiên cũ chưa có clock dùng updatedAt cho đến lần điều khiển tiếp theo.
  */
 export const getTvPacing = ({
   cues,
@@ -96,6 +96,7 @@ export const getTvPacing = ({
   anchorAt,
   now,
   running,
+  accumulatedSeconds = 0,
 }: {
   cues: TvCueTiming[];
   cueId: string;
@@ -103,6 +104,7 @@ export const getTvPacing = ({
   anchorAt: number;
   now: number;
   running: boolean;
+  accumulatedSeconds?: number;
 }): TvPacing | null => {
   if (cues.length === 0) return null;
   const index = cues.findIndex(cue => cue.id === cueId);
@@ -110,7 +112,7 @@ export const getTvPacing = ({
   const start = cues[index].atSeconds;
   const end = cues[index + 1]?.atSeconds ?? durationSeconds;
   const plannedSeconds = Math.max(0, end - start);
-  const elapsedSeconds = running ? Math.max(0, Math.floor((now - anchorAt) / 1000)) : 0;
+  const elapsedSeconds = Math.floor(Math.max(0, accumulatedSeconds) + (running ? Math.max(0, (now - anchorAt) / 1000) : 0));
   const remainingSeconds = plannedSeconds - elapsedSeconds;
   return { index, total: cues.length, plannedSeconds, elapsedSeconds, remainingSeconds, overrun: remainingSeconds < 0 };
 };
@@ -153,7 +155,7 @@ export const TvLiveView = ({ definition, sessionId, publicState, publicStateErro
       return undefined;
     }
     return subscribeToLivePublicStats(sessionId, nextStats => { setStats(nextStats); setStatsError(null); }, nextError => setStatsError(nextError.message));
-  }, [publicState, sessionId]);
+  }, [publicState.showStats, sessionId]);
 
   // Nhịp 1 giây chỉ chạy khi tiết đang diễn ra; dừng thì không render lại vô ích.
   useEffect(() => {
@@ -164,13 +166,16 @@ export const TvLiveView = ({ definition, sessionId, publicState, publicStateErro
   }, [publicState.status, publicState.updatedAt]);
 
   const presentation = getTvPresentation(definition, publicState, stats);
+  const activeStepId = cueTimeline.find(cue => cue.id === publicState.cueId)?.responseStepId;
+  const currentStats = activeStepId && presentation.stats?.stepId === activeStepId ? presentation.stats : null;
   const screen = presentation.screen;
   const listenerNotice = getTvListenerNotice({ publicState, publicStateError, statsError });
   const pacing = getTvPacing({
     cues: cueTimeline,
     cueId: publicState.cueId,
     durationSeconds,
-    anchorAt: publicState.updatedAt,
+    anchorAt: publicState.cueStartedAt ?? publicState.updatedAt,
+    accumulatedSeconds: publicState.cueElapsedSeconds ?? 0,
     now,
     running: publicState.status === 'running',
   });
@@ -201,7 +206,7 @@ export const TvLiveView = ({ definition, sessionId, publicState, publicStateErro
   }, [media, shouldPlay]);
 
   return (
-    <main className="live-tv" data-density={dense ? 'dense' : 'normal'} data-media={Boolean(media)} data-controls={Boolean(presenterControls)}>
+    <main className="live-tv" data-density={dense ? 'dense' : 'normal'} data-media={Boolean(media)} data-controls={Boolean(presenterControls)} data-results={Boolean(publicState.showStats && activeStepId)}>
       <style>{'@keyframes tvCueIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}.tv-cue-stage{animation:tvCueIn .28s ease-out}@media (prefers-reduced-motion: reduce){.tv-cue-stage{animation:none}}'}</style>
       <div className="tv-shell">
         <header className="tv-lesson-header">
@@ -210,7 +215,7 @@ export const TvLiveView = ({ definition, sessionId, publicState, publicStateErro
             <h1 className="tv-lesson-title">{definition.title}</h1>
           </div>
           <div className="tv-header-meta">
-            {pacing && <span className="tv-step-counter">Hoạt động {pacing.index + 1}/{pacing.total}</span>}
+            {pacing && <span className="tv-step-counter">Chặng {pacing.index + 1}/{pacing.total}<small className="block font-normal">Kế hoạch {Math.floor(cueTimeline[pacing.index].atSeconds / 60)}–{Math.ceil((cueTimeline[pacing.index + 1]?.atSeconds ?? durationSeconds) / 60)}′ · tiết {Math.ceil(durationSeconds / 60)}′</small></span>}
             {pacing && (
               <span
                 className={pacing.overrun ? 'tv-clock is-over' : 'tv-clock'}
@@ -233,11 +238,18 @@ export const TvLiveView = ({ definition, sessionId, publicState, publicStateErro
 
         {listenerNotice && <div className="shrink-0"><LiveLessonStatus tone={listenerNotice.tone}>{listenerNotice.message}</LiveLessonStatus></div>}
         {!screen && <div className="flex min-h-0 flex-1 items-center justify-center"><p className="text-center text-[clamp(1.25rem,3vw,2.5rem)] font-black text-slate-400">Đang chờ màn hình công khai…</p></div>}
+        <div className="tv-workspace">
         {screen && (
           <section key={screen.id} className="tv-cue-stage">
             <div className="tv-slide-layout">
               <p className="tv-slide-eyebrow">{screen.label}</p>
               <h2 className="tv-slide-title">{screen.title}</h2>
+              {screen.action && (
+                <div className="tv-action-strip">
+                  <p className="tv-action-label">Cùng thực hiện</p>
+                  <LiveLessonRichText text={screen.action} className="tv-action-copy" />
+                </div>
+              )}
               {media && (
                 <div className="tv-media">
                   {showPosterFallback ? (
@@ -259,24 +271,20 @@ export const TvLiveView = ({ definition, sessionId, publicState, publicStateErro
               <div className="tv-content-card">
                 <LiveLessonRichText text={screen.body ?? ''} className="tv-slide-copy" />
               </div>
-              {screen.action && (
-                <div className="tv-action-strip">
-                  <p className="tv-action-label">Việc của em bây giờ</p>
-                  <LiveLessonRichText text={screen.action} className="tv-action-copy" />
-                </div>
-              )}
             </div>
           </section>
         )}
+        {activeStepId && <div className="tv-stats-region"><TvStatsPanel key={`${sessionId}:${publicState.cueId}`} sessionId={sessionId} cueId={publicState.cueId} stepId={activeStepId} stats={currentStats} showStats={publicState.showStats} /></div>}
+        </div>
         {intent && (
           <section className="tv-intent-frame" aria-label="Mục tiêu và tiêu chí thành công">
             <div className="tv-intent-col">
-              <p className="tv-intent-tag">WALT · Hôm nay học gì</p>
+              <p className="tv-intent-tag">Mục tiêu chung</p>
               <p className="tv-intent-text">{intent.walt}</p>
               {intent.waltEn && <p className="tv-intent-en">{intent.waltEn}</p>}
             </div>
             <div className="tv-intent-col">
-              <p className="tv-intent-tag">WILF · Đạt khi em làm được</p>
+              <p className="tv-intent-tag">Bằng chứng thành công</p>
               <ol className="tv-intent-list">
                 {intent.wilf.map((item, itemIndex) => <li key={item}>{itemIndex + 1}. {item}</li>)}
               </ol>
@@ -284,7 +292,6 @@ export const TvLiveView = ({ definition, sessionId, publicState, publicStateErro
             </div>
           </section>
         )}
-        <div className="tv-stats-region"><TvStatsPanel stats={presentation.stats} showStats={publicState.showStats} /></div>
       </div>
       {presenterControls}
     </main>

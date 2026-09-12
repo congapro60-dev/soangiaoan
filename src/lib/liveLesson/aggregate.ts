@@ -130,8 +130,17 @@ export function aggregateLiveResponses(
       updatedAt = updatedAt === undefined ? response.updatedAt : Math.max(updatedAt, response.updatedAt);
     }
 
-    const stringValue = String(response.value);
-    if (stepId === 'ai-error-w01' && isErrorCategory(stringValue)) {
+    let stringValue = String(response.value);
+    // The student can submit the category together with a private explanation.
+    if ((stepId === 'cp-ai-error' || stepId === 'ai-error-w01') && response.responseType === 'text') {
+      try {
+        const answer: unknown = JSON.parse(stringValue);
+        if (answer && typeof answer === 'object' && 'category' in answer && typeof answer.category === 'string' && isErrorCategory(answer.category)) stringValue = answer.category;
+      } catch { /* A plain written answer contributes only to the response count. */ }
+    }
+    const isAiErrorChoice = (stepId === 'ai-error-w01' || stepId === 'cp-ai-error')
+      && (response.responseType === 'choice' || response.responseType === 'text') && isErrorCategory(stringValue);
+    if (isAiErrorChoice && isErrorCategory(stringValue)) {
       errorCategoryCounts[stringValue] += 1;
     }
 
@@ -139,7 +148,7 @@ export function aggregateLiveResponses(
       if (isRoute(stringValue)) routeCounts[stringValue] += 1;
     } else if (
       (response.responseType === 'choice' || response.responseType === 'boolean')
-      && !(stepId === 'ai-error-w01' && isErrorCategory(stringValue))
+      && !isAiErrorChoice
     ) {
       const isCountableValue = typeof response.value !== 'number' || Number.isFinite(response.value);
       if (isCountableValue && isPublicChoiceKey(stringValue)) {

@@ -75,7 +75,36 @@
 .tv-progress-seg.is-done { background: #67e8f955; }
 .tv-progress-seg.is-current { background: var(--tv-accent); }
 
+.tv-workspace { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 16px; }
 .tv-cue-stage { flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; }
+.live-tv[data-results="true"] .tv-workspace { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 29%); gap: clamp(16px, 2vw, 40px); }
+.live-tv[data-results="true"] .tv-stats-region { padding: 0; border: 0; min-height: 0; }
+.live-tv[data-results="true"] .tv-slide-title { font-size: clamp(25px, min(3vw, 5vh), 60px); }
+.live-tv[data-results="true"] .tv-slide-copy { font-size: clamp(19px, min(2vw, 3.5vh), 38px); }
+.live-tv[data-results="true"][data-media="true"] .tv-slide-layout { display: flex; }
+.live-tv[data-results="true"] .tv-media video, .live-tv[data-results="true"] .tv-media img { max-height: 24vh; }
+.tv-results-panel { height: 100%; min-height: 0; overflow-y: auto; padding: clamp(16px, 1.7vw, 32px); border-radius: 24px; border: 1px solid #68d8e733; background: linear-gradient(150deg, #142b40, #101b30 75%); box-shadow: 0 16px 50px #00000024; }
+.tv-results-live { display: flex; align-items: center; gap: 8px; color: #8fe2d0; font-size: clamp(12px, 1vw, 18px); font-weight: 650; }
+.tv-results-live > span { width: 7px; height: 7px; border-radius: 50%; background: #5eead4; box-shadow: 0 0 0 5px #5eead415; }
+.tv-results-header h3 { margin-top: 16px; color: #f8fafc; font-size: clamp(20px, 1.7vw, 32px); font-weight: 750; line-height: 1.25; text-wrap: balance; }
+.tv-response-total { display: flex; align-items: baseline; gap: 12px; margin: clamp(14px, 2vh, 30px) 0; }
+.tv-response-total strong { font-size: clamp(38px, min(4.8vw, 7vh), 82px); line-height: 1; letter-spacing: -.045em; color: #f1f5f9; font-variant-numeric: tabular-nums; }
+.tv-response-total > span { font-size: clamp(14px, 1.1vw, 21px); color: #b8c9dd; }
+.tv-result-bars { display: grid; gap: clamp(12px, 1.6vh, 24px); }
+.tv-result-row-label { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; margin-bottom: 8px; font-size: clamp(15px, 1.25vw, 25px); color: #deebf7; }
+.tv-result-row-label strong { font-variant-numeric: tabular-nums; color: #f8fafc; }
+.tv-result-track { height: clamp(7px, .85vh, 12px); border-radius: 999px; overflow: hidden; background: #ffffff12; }
+.tv-result-track > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #2dd4bf, #67e8f9); transition: width .35s ease; }
+.tv-result-row:nth-child(2) .tv-result-track > span { background: linear-gradient(90deg, #818cf8, #a5b4fc); }
+.tv-result-row:nth-child(3) .tv-result-track > span { background: linear-gradient(90deg, #38bdf8, #7dd3fc); }
+.tv-result-row:nth-child(4) .tv-result-track > span { background: linear-gradient(90deg, #e8b563, #fde68a); }
+.tv-group-progress { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.tv-group-tile { padding: 12px; border: 1px solid #ffffff12; border-radius: 14px; background: #ffffff06; }
+.tv-group-tile > div:first-child { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+.tv-group-tile strong { font-size: clamp(14px, 1.1vw, 22px); }
+.tv-group-tile span { font-size: clamp(12px, .9vw, 17px); color: #adc5d9; }
+.tv-results-caption, .tv-results-empty { font-size: clamp(13px, .95vw, 18px); line-height: 1.55; color: #a8bdd2; margin-top: 20px; }
+.tv-results-hidden { display: flex; align-items: center; justify-content: center; gap: 10px; color: #97b0c9; font-size: clamp(13px, 1.1vw, 20px); }
 .tv-slide-layout {
   flex: 1;
   min-width: 0;
@@ -127,7 +156,7 @@
   font-weight: 500;
   overflow-wrap: anywhere;
 }
-.tv-slide-copy p + p { margin-top: .35em; }
+.tv-slide-copy p + p { margin-top: .5em; padding-top: .5em; border-top: 1px solid #ffffff14; }
 .live-tv[data-density="dense"] .tv-slide-copy { font-size: clamp(17px, min(1.95vw, 3.4vh), 38px); line-height: 1.28; }
 
 .tv-action-strip {
@@ -188,7 +217,8 @@
   pointer-events: none;
   transition: opacity .2s ease, transform .2s ease;
 }
-.tv-presenter-bar.is-visible { opacity: 1; transform: none; pointer-events: auto; }
+.tv-presenter-bar.is-visible, .tv-presenter-bar:focus-within, .tv-presenter-bar:hover { opacity: 1; transform: none; pointer-events: auto; }
+.tv-presenter-btn:focus-visible { outline: 3px solid #67e8f9; outline-offset: 3px; }
 .tv-presenter-btn {
   min-height: 46px;
   padding: 10px 20px;
@@ -213,8 +243,8 @@
   .live-tv[data-media="true"] .tv-slide-copy { font-size: clamp(22px, 1.75vw, 36px); }
 }
 
-/* CIS 1.1 — khung WALT/WILF phải nhìn thấy suốt tiết, không chỉ lúc slide mục
-   tiêu đang chiếu. Giữ mảnh và gọn để không lấn phần nội dung chính. */
+/* Mục tiêu và tiêu chí chung giúp lớp đối chiếu bài làm trong tiết.
+   Đây là lựa chọn thiết kế sư phạm, không phải tuyên bố tuân thủ CIS. */
 .tv-intent-frame {
   flex-shrink: 0;
   display: grid;
@@ -256,16 +286,41 @@
 .tv-intent-en { margin-top: 2px; font-size: clamp(11px, 0.9vw, 17px); font-style: italic; color: #94a3b8; }
 
 
-.live-student { min-height: 100dvh; background: #f3f6fb; color: #17243b; padding: 20px 16px 48px; }
+.live-student { min-height: 100dvh; background: radial-gradient(ellipse at 5% 0%, #dcecfb 0, transparent 45%), radial-gradient(ellipse at 100% 25%, #e9e5ff 0, transparent 40%), #f5f7fc; color: #17243b; padding: 24px 16px 48px; }
 .student-shell { max-width: 1120px; margin: auto; display: flex; flex-direction: column; gap: 18px; }
-.student-lesson-header { padding: 20px 24px; border-radius: 18px; color: white; background: #172b49; }
+.student-lesson-header { padding: 22px 28px; border-radius: 22px; color: white; background: linear-gradient(120deg, #142b49, #284977); box-shadow: 0 12px 32px #24466e16; border: 1px solid #ffffff22; }
 .student-lesson-title { margin: 6px 0; font-size: clamp(18px, 2vw, 26px); font-weight: 650; line-height: 1.35; }
-.student-task-card { background: #eaf1ff; border: 1px solid #ccdcf7; border-left: 5px solid #3568cd; border-radius: 16px; padding: 22px 24px; }
+.student-task-card { background: linear-gradient(125deg, #ffffff, #edf4ff); border: 1px solid #ccdcf7; border-left: 5px solid #3568cd; border-radius: 20px; padding: 24px 28px; box-shadow: 0 6px 24px #29467008; }
+.student-task-card details { border-color: #dce5f4; background: #ffffffb3; }
+.student-task-card details[open] summary { color: #305ac0; }
+.student-group-card { padding: 24px; border: 1px solid #bfe5dd; border-radius: 22px; background: linear-gradient(115deg, #effcf7, #fff); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px; box-shadow: 0 6px 24px #14532d08; }
+.activity-kicker { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #147763; }
+.student-group-card h2 { font-size: 24px; font-weight: 750; margin: 6px 0; }
+.student-group-card p { line-height: 1.6; color: #365768; }
+.student-group-form { display: flex; align-items: end; gap: 10px; }
+.student-group-form label { display: grid; gap: 6px; font-size: 14px; font-weight: 650; }
+.student-group-form select { padding: 12px; border-radius: 12px; border: 1px solid #a7d4c9; min-height: 48px; background: white; }
+.student-group-form button { min-height: 48px; padding: 12px 18px; border-radius: 12px; background: #126958; color: white; font-weight: 700; }
+.student-group-form button:disabled { opacity: .5; }
+.student-group-form select:focus-visible { outline: 3px solid #0d9488; outline-offset: 2px; }
+.student-group-note, .student-group-card [role="alert"] { grid-column: 1 / -1; font-size: 14px; }
+.student-group-card [role="alert"] { color: #b91c1c; }
 .student-task-card h2 { margin-top: 8px; font-size: clamp(23px, 2.3vw, 30px); line-height: 1.3; }
+.student-activity-time { margin-top: 8px; color: #5b7194; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .student-task-card > div { margin-top: 10px; font-size: 18px; line-height: 1.65; }
 .student-response-card { padding: 24px; border: 1px solid #d4deed; border-radius: 18px; background: white; box-shadow: 0 4px 16px #243b6406; }
 .student-response-card > div:first-of-type { font-size: clamp(20px, 2vw, 26px); line-height: 1.5; }
 .student-response-card button { min-height: 52px; font-size: 17px; transition: background-color .15s, box-shadow .15s; }
+.student-route-note { margin-bottom: 14px; color: #475569; font-size: 16px; line-height: 1.6; }
+.student-route-option { display: flex; flex-direction: column; gap: 14px; padding: 20px; text-align: left; border-radius: 16px; border: 2px solid #dbe4f0; background: #fff; color: #17243b; }
+.student-route-option:hover { border-color: #809ed2; background: #f8faff; }
+.student-route-option.is-selected { border-color: #365bc5; background: #eef3ff; }
+.student-route-heading { font-size: 18px; font-weight: 750; }
+.student-route-description { font-size: 16px; font-weight: 400; line-height: 1.65; }
+.student-route-state { margin-top: auto; padding-top: 12px; font-size: 14px; font-weight: 700; color: #365bc5; }
+.student-after-submit { padding: 18px; border-radius: 12px; background: #ecfdf5; border: 1px solid #a7f3d0; color: #14532d; line-height: 1.6; }
+.student-after-submit strong { display: block; margin-bottom: 6px; }
+.student-task-card summary:focus-visible { outline: 3px solid #3b82f6; outline-offset: 4px; }
 .student-response-card button:focus-visible, .live-student button:focus-visible,
 .student-answer-input:focus-visible { outline: 3px solid #3b82f6; outline-offset: 3px; }
 .student-answer-input { width: 100%; min-height: 140px; resize: vertical; padding: 16px; border: 1px solid #b9c9de; border-radius: 12px; background: #fbfdff; font-size: 18px; line-height: 1.6; }
@@ -274,11 +329,20 @@
 .student-tv-reference > div { font-size: 16px; line-height: 1.6; }
 .live-student [role="status"] { line-height: 1.5; }
 @media (max-width: 600px) {
+  .student-group-card { grid-template-columns: 1fr; padding: 18px; }
+  .student-group-form { flex-wrap: wrap; }
   .live-student { padding: 12px 12px 32px; }
   .student-shell { gap: 12px; }
   .student-lesson-header, .student-task-card, .student-response-card, .student-tv-reference { padding: 18px; border-radius: 14px; }
   .student-lesson-header > div > div:last-child { align-items: flex-start; }
   .student-response-card button { width: 100%; }
+}
+@media (max-width: 900px) {
+  .live-tv[data-results="true"] .tv-workspace { grid-template-columns: 1fr; overflow-y: auto; }
+  .live-tv[data-results="true"] .tv-results-panel { height: auto; }
+  .tv-header-meta { flex-wrap: wrap; justify-content: flex-end; }
+  .tv-lesson-header { gap: 10px; }
+  .live-tv[data-results="true"] .tv-slide-layout { min-height: 300px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .live-student *, .live-tv * { animation: none !important; transition: none !important; }

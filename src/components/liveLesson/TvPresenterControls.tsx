@@ -55,9 +55,11 @@ export interface TvPresenterControlsProps {
   error?: string | null;
   onNavigate: (patch: { currentCueId: string; currentTvScreenId: string }) => void;
   onToggleStatus: () => void;
+  showStats?: boolean;
+  onToggleStats?: () => void;
 }
 
-export const TvPresenterControls = ({ definition, session, busy = false, error = null, onNavigate, onToggleStatus }: TvPresenterControlsProps) => {
+export const TvPresenterControls = ({ definition, session, busy = false, error = null, onNavigate, onToggleStatus, showStats = false, onToggleStats }: TvPresenterControlsProps) => {
   const index = Math.max(0, definition.cues.findIndex((cue) => cue.id === session.currentCueId));
   const total = definition.cues.length;
   const isClosed = session.status === 'closed';
@@ -74,12 +76,14 @@ export const TvPresenterControls = ({ definition, session, busy = false, error =
 
   const goPrevious = useCallback(() => {
     if (index <= 0 || isClosed || busy) return;
-    onNavigate(getPresenterCueNavigation(definition, session.currentCueId, 'previous'));
+    const { currentCueId, currentTvScreenId } = getPresenterCueNavigation(definition, session.currentCueId, 'previous');
+    onNavigate({ currentCueId, currentTvScreenId });
   }, [busy, definition, index, isClosed, onNavigate, session.currentCueId]);
 
   const goNext = useCallback(() => {
     if (index >= total - 1 || isClosed || busy) return;
-    onNavigate(getPresenterCueNavigation(definition, session.currentCueId, 'next'));
+    const { currentCueId, currentTvScreenId } = getPresenterCueNavigation(definition, session.currentCueId, 'next');
+    onNavigate({ currentCueId, currentTvScreenId });
   }, [busy, definition, index, isClosed, onNavigate, session.currentCueId, total]);
 
   const toggleFullscreen = useCallback(() => {
@@ -91,6 +95,8 @@ export const TvPresenterControls = ({ definition, session, busy = false, error =
     wake();
     const onPointer = () => wake();
     const onKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (event.defaultPrevented || event.repeat || event.ctrlKey || event.metaKey || event.altKey || target?.isContentEditable || target?.closest('button, a, summary, [role="button"], [role="textbox"]')) return;
       const action = getPresenterKeyAction(event.key, (event.target as HTMLElement | null)?.tagName);
       if (!action) return;
       event.preventDefault();
@@ -112,7 +118,7 @@ export const TvPresenterControls = ({ definition, session, busy = false, error =
   }, [busy, goNext, goPrevious, isClosed, onToggleStatus, toggleFullscreen, wake]);
 
   return (
-    <div className={visible || error ? 'tv-presenter-bar is-visible' : 'tv-presenter-bar'} onMouseEnter={wake}>
+    <div className={visible || error ? 'tv-presenter-bar is-visible' : 'tv-presenter-bar'} onMouseEnter={wake} onFocusCapture={wake} role="navigation" aria-label="Điều khiển trình chiếu">
       {error && <span className="tv-presenter-error">{error}</span>}
       <button
         type="button"
@@ -134,6 +140,7 @@ export const TvPresenterControls = ({ definition, session, busy = false, error =
         className="tv-presenter-btn"
       >Sau →</button>
       <button type="button" onClick={toggleFullscreen} className="tv-presenter-btn">Toàn màn hình</button>
+      {onToggleStats && <button type="button" disabled={isClosed || busy} aria-pressed={showStats} onClick={onToggleStats} className="tv-presenter-btn">{showStats ? 'Ẩn kết quả' : 'Hiện kết quả lớp'}</button>}
       <span className="tv-presenter-hint">← → chuyển slide · Space chạy/dừng · F toàn màn hình</span>
     </div>
   );

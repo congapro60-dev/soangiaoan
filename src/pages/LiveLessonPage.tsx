@@ -9,6 +9,7 @@ import { TeacherLiveView } from '../components/liveLesson/TeacherLiveView';
 import { TvLiveView, type TvCueTiming } from '../components/liveLesson/TvLiveView';
 import { TvPresenterControls } from '../components/liveLesson/TvPresenterControls';
 import { StudentLiveView } from '../components/liveLesson/StudentLiveView';
+import { LiveActivityPublisher } from '../components/liveLesson/LiveActivityPublisher';
 
 export type TvDefinitionProjection = Pick<LiveLessonDefinition, 'id' | 'lessonId' | 'title' | 'durationSeconds' | 'tvScreens' | 'intent'> & { tvCues: TvCueTiming[] };
 export type StudentCueProjection = { id: string; studentScreenId: string; responseStepId?: string };
@@ -46,7 +47,7 @@ export function projectLiveLessonDefinition(definition: LiveLessonDefinition, mo
   if (mode === 'teacher') return definition;
   // tvCues chỉ mang mốc thời gian và id màn hình công khai — đủ để TV tự đếm giờ
   // và vẽ thanh tiến trình, không kèm kịch bản giáo viên hay nội dung bảng.
-  if (mode === 'tv') return { id: definition.id, lessonId: definition.lessonId, title: definition.title, durationSeconds: definition.durationSeconds, tvScreens: definition.tvScreens.map(screen => ({ ...screen })), tvCues: definition.cues.map(cue => ({ id: cue.id, tvScreenId: cue.tvScreenId, atSeconds: cue.atSeconds })), ...(definition.intent ? { intent: definition.intent } : {}) };
+  if (mode === 'tv') return { id: definition.id, lessonId: definition.lessonId, title: definition.title, durationSeconds: definition.durationSeconds, tvScreens: definition.tvScreens.map(screen => ({ ...screen })), tvCues: definition.cues.map(cue => ({ id: cue.id, tvScreenId: cue.tvScreenId, atSeconds: cue.atSeconds, ...(cue.responseStepId ? { responseStepId: cue.responseStepId } : {}) })), ...(definition.intent ? { intent: definition.intent } : {}) };
   const stepScreenIds = new Map(definition.responseSteps.map(step => [step.id, step.screenId ?? 'HS0']));
   return {
     id: definition.id,
@@ -211,6 +212,7 @@ export const LiveLessonPage = () => {
     return <TeacherLiveView definition={definition} session={session} sessionError={teacherSessionError} onSessionChange={setSession} definitionKey={definitionContext.definitionKey ?? undefined} />;
   }
   if (mode === 'tv-control' && session) {
+    const responseStepId = definition.cues.find(cue => cue.id === session.currentCueId)?.responseStepId;
     const controlTvDefinition = projectLiveLessonDefinition(definition, 'tv');
     const presenterPublicState: LivePublicState = {
       cueId: session.currentCueId,
@@ -218,6 +220,8 @@ export const LiveLessonPage = () => {
       status: session.status,
       showStats: session.publicStatsEnabled,
       updatedAt: session.updatedAt,
+      cueStartedAt: session.cueStartedAt,
+      cueElapsedSeconds: session.cueElapsedSeconds,
     };
     const applyPresenterPatch = async (patch: Parameters<typeof updateLiveLessonState>[1]) => {
       setPresenterBusy(true);
@@ -230,7 +234,8 @@ export const LiveLessonPage = () => {
         setPresenterBusy(false);
       }
     };
-    return <TvLiveView definition={controlTvDefinition} sessionId={sessionId} publicState={presenterPublicState} publicStateError={teacherSessionError} definitionKey={definitionContext.definitionKey ?? undefined} cueTimeline={controlTvDefinition.tvCues} durationSeconds={controlTvDefinition.durationSeconds} intent={controlTvDefinition.intent} presenterControls={
+    return <TvLiveView definition={controlTvDefinition} sessionId={sessionId} publicState={presenterPublicState} publicStateError={teacherSessionError} definitionKey={definitionContext.definitionKey ?? undefined} cueTimeline={controlTvDefinition.tvCues} durationSeconds={controlTvDefinition.durationSeconds} intent={controlTvDefinition.intent} presenterControls={<>
+      {responseStepId && <LiveActivityPublisher key={`${session.id}:${session.currentCueId}`} sessionId={session.id} cueId={session.currentCueId} stepId={responseStepId} enabled={session.publicStatsEnabled && session.status !== 'closed'} />}
       <TvPresenterControls
         definition={definition}
         session={session}
@@ -238,8 +243,10 @@ export const LiveLessonPage = () => {
         error={presenterError}
         onNavigate={(patch) => { void applyPresenterPatch(patch); }}
         onToggleStatus={() => { void applyPresenterPatch({ status: session.status === 'running' ? 'paused' : 'running' }); }}
+        showStats={session.publicStatsEnabled}
+        onToggleStats={() => { void applyPresenterPatch({ publicStatsEnabled: !session.publicStatsEnabled }); }}
       />
-    } />;
+    </>} />;
   }
   if (mode === 'tv' && publicState) {
     const tvDefinition = projectLiveLessonDefinition(definition, 'tv');
