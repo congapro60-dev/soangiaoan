@@ -1,6 +1,7 @@
 import type {
   ActivityExportBundle,
   ActivityPurpose,
+  ClassSheetSync,
   DeliveryMode,
   GradeState,
   GradingPolicy,
@@ -40,6 +41,8 @@ export interface TeacherClass {
   tone: 'primary' | 'secondary' | 'tertiary' | 'warning';
   students: Student[];
   assignments?: ClassAssignment[];
+  /** Tab Google Sheet đã nối để đồng bộ BTVN; vắng là lớp không đồng bộ. */
+  sheetSync?: ClassSheetSync | null;
 }
 
 export interface Subject {

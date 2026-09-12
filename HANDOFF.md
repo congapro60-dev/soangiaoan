@@ -16,6 +16,29 @@ Handoff ngắn cho lô V4 live lesson. Lịch sử dài đã chuyển vào [`doc
 - Không chạy QA/test/build theo yêu cầu chủ sở hữu. Các số test PASS bên dưới thuộc phiên bản cũ, không chứng minh lô này. Không tự chia nhóm, không tự đánh giá đúng/sai hoặc chiếu bài làm.
 - Chi tiết và hướng dẫn: docs/features/2026-09-11-live-activity-results.md.
 
+## Đồng bộ BTVN sang Google Sheet — 2026-09-11
+
+Nút trong app, chỉ chạy khi giáo viên bấm. Tuỳ chọn theo lớp, mặc định tắt. Kế hoạch đầy đủ và khảo sát hai file thật của chủ dự án nằm ở `tasks/todo.md`.
+
+**Kiến trúc:**
+
+- Đồng bộ chạy **trong trình duyệt giáo viên**, bằng quyền Google của chính giáo viên — dùng lại `getDriveAccessToken()` của tính năng "Đẩy giáo án lên Drive". Không email robot, không token Google trên máy chủ, giáo viên này không chạm được sheet của giáo viên khác.
+- Máy chủ chỉ thêm action `setClassSheetSync` (lưu `classes/{id}.sheetSync`) trên `/api/classroom` hiện có. Không thêm Vercel function.
+- `src/lib/classroom/sheetSync.ts` là toàn bộ phần quyết định (thuần, 36 test). `sheetsApi.ts` chỉ đọc ảnh chụp tab và gửi lệnh đã dựng. `SheetSyncPanel.tsx` là giao diện.
+
+**Ngưỡng sắp cắn người:**
+
+- **Cam kết "không động vào tab liên lạc phụ huynh, ghi chú học sinh, quỹ lớp, hạnh kiểm" nằm ở CODE**, không ở Google (Google cấp quyền theo cả file). Mọi lệnh ghi đi qua `assertWriteAllowed` + `applySheetRequests` kiểm `sheetId`. Ai thêm loại ghi mới phải thêm vào cổng này, không gọi `batchUpdate` thẳng.
+- **Người sửa luôn thắng**: ghi chú `SmartPlan: <giá trị> · <giờ>` trên ô là trí nhớ của app. Ô khác giá trị ghi chú hoặc không có ghi chú = người đã chọn, không bao giờ ghi đè. Đừng đổi sang lưu toạ độ ô trong Firestore — chèn cột là lệch.
+- **Không chèn cột**: hết cột trống đã định dạng sẵn (có danh sách chọn ở dòng 12) thì báo. Chèn cột làm lệch công thức Hạnh kiểm của file 11 Columbus.
+- Chuỗi trạng thái phải đúng từng ký tự kể cả biểu tượng (`SHEET_STATUS`) — công thức đếm và công thức Hạnh kiểm so chuỗi y hệt.
+- "Chưa làm" chỉ ghi **sau** giờ ở dòng 5; không bao giờ ghi "Thiếu".
+- Tab `11. COLUMBUS (LINK)` của file theo dõi 3 lớp là bản `IMPORTRANGE` — app từ chối nối, phải nối file gốc.
+- v1 chỉ bài giao nộp ảnh/file (`type !== 'exam'`, `purpose` = assignment). Đề online chưa lên sheet.
+- **Phải bật Google Sheets API** trong dự án GCP `smartplan-ai-14200` (số `1030734458631`). QA đầu tiên trên production (11/09) báo `SERVICE_DISABLED`: Drive API đã bật từ trước cho tính năng đẩy giáo án, nhưng Sheets API là API riêng. `sheetsErrorMessage` giờ báo đúng nguyên nhân kèm link bật, không còn đổ cho quyền của file.
+- **Deploy làm hỏng tab đang mở** ("Failed to fetch dynamically imported module"): Vercel xoá file JS của bản cũ, tab cũ bấm sang mục chưa tải là hỏng. `src/lib/staleChunkReload.ts` + `main.tsx` giờ tự tải lại MỘT lần (nghe `vite:preloadError` và bắt ở ErrorBoundary), có chặn vòng lặp 30 giây. Chỉ bảo vệ những tab mở SAU bản `fix/chunk-reload`; tab mở trước đó vẫn gặp một lần.
+- Nghiệm thu: `lint` 0, `lint:api` 0, full Vitest **158 files / 1948 tests PASS**, `build` PASS.
+
 ## TV thành slide trình chiếu điều khiển tại chỗ — 2026-09-10 (lịch sử)
 
 Chủ sở hữu báo ba việc trên production: TV không có Trước/Sau/đồng hồ nên phải chạy về laptop; chữ trên TV đầy tốc ký kỹ thuật; TV không giống một file slide gắn với màn hình học sinh.
