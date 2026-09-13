@@ -469,6 +469,23 @@ const isPendingServerWriteSnapshot = (snapshot: { metadata?: { hasPendingWrites?
   snapshot.metadata?.hasPendingWrites === true
 );
 
+export const subscribeToStudentLiveResponse = (
+  sessionId: string,
+  participantUid: string,
+  stepId: string,
+  onChange: (response: LiveResponse | null) => void,
+  onError: (error: Error) => void,
+): (() => void) => subscribeSafely(() => {
+  assertIdentifier(sessionId, 'sessionId');
+  assertIdentifier(participantUid, 'participantUid');
+  assertIdentifier(stepId, 'stepId');
+  return onSnapshot(doc(db, SESSIONS_COL, sessionId, RESPONSES_SUB, `${participantUid}__${stepId}`), snapshot => {
+    if (isPendingServerWriteSnapshot(snapshot)) return;
+    try { onChange(snapshot.exists() ? normalizeResponse(snapshot.id, snapshot.data()) : null); }
+    catch (error) { onError(asError(error)); }
+  }, error => onError(asError(error)));
+}, onError);
+
 export const subscribeToTeacherResponses = (
   sessionId: string,
   stepId: string,

@@ -6,14 +6,14 @@
 // contract vốn cũng chỉ có bản EN đã duyệt). ja/ko/zh CHƯA có gói đã rà soát ⇒
 // fail-closed về tiếng Việt (song ngữ, neo tiếng Việt), không tuyên bố dịch đầy đủ.
 
-import type { LocalizedStudentCopy, StudentLanguagePack, V4NonViLanguage } from './types';
+import type { GlossaryItem, LocalizedStudentCopy, StudentLanguagePack, V4Language, V4NonViLanguage } from './types';
 
 // Bản EN đã rà soát cho P31. Khóa theo id màn hình HS (HS0..HS10) và id checkpoint
 // (cp-*). Với checkpoint, dùng trường `label` làm nội dung prompt phản hồi.
 const P31_EN_COPY: Record<string, LocalizedStudentCopy> = {
   HS0: { label: 'Ready', action: 'Watch the TV and wait for the teacher to open a response step.' },
   HS1: { label: 'Guiding question', action: 'Choose or write what you want to find out from the situation.' },
-  HS2: { label: 'Personal goal', action: 'Pick 1–2 goals and the evidence you want to produce.' },
+  HS2: { label: 'Personal goal', action: 'Write one personal goal and the work that will show you have achieved it.' },
   HS3: { label: 'Starting-point check', action: 'Answer briefly; open the glossary or sentence frames if you need them.' },
   HS4: { label: 'AI Error', action: 'Find the error, classify it, fix the solution, and prove it in your notebook.' },
   HS5: { label: 'Group product', action: 'Talk face to face; put devices down while you explain together.' },
@@ -49,6 +49,21 @@ export function getStudentLanguagePack(
   return packIndex.get(`${definitionKey}::${language}`) ?? null;
 }
 
+export function getStudentLanguageCoverage(definitionKey: string | undefined, language: V4Language, glossary: readonly GlossaryItem[]) {
+  if (language === 'vi') return { available: true, content: true, glossary: true, description: 'Tiếng Việt · có thuật ngữ và khung diễn đạt mở theo nhu cầu.' };
+  const pack = getStudentLanguagePack(definitionKey, language);
+  const content = Boolean(pack?.reviewed && Object.keys(pack.copyByKey).length);
+  const terms = glossary.some(item => item.status === 'approved' && Boolean(item.translations[language]?.trim()));
+  return {
+    available: content || terms || language === 'en', content, glossary: terms,
+    description: content
+      ? `Hỗ trợ ${language.toUpperCase()} cho hướng dẫn và câu hỏi đã có bản dịch${terms ? ', cùng thuật ngữ' : ''}. Nhiệm vụ tuyến, tiêu chí và phần chưa dịch giữ tiếng Việt.`
+      : terms ? `Hỗ trợ ${language.toUpperCase()} cho một số thuật ngữ; nội dung còn lại giữ tiếng Việt.`
+        : language === 'en' ? 'Có khung diễn đạt hỗ trợ bằng tiếng Anh; nội dung bài, nhiệm vụ tuyến và tiêu chí vẫn bằng tiếng Việt.'
+          : `Chưa có nội dung hỗ trợ ${language.toUpperCase()} cho bài này. Hiện đang dùng tiếng Việt.`,
+  };
+}
+
 /**
  * Bản dịch HS cho một khóa (id màn hình hoặc checkpoint). Fail-closed: trả null
  * nếu không có gói/khóa ⇒ caller dùng nguyên bản tiếng Việt.
@@ -64,8 +79,8 @@ export function getLocalizedStudentCopy(
 }
 
 /**
- * Bài P31 có gói HS đã rà soát đầy đủ cho ngôn ngữ này không (đủ mọi màn hình +
- * checkpoint chính). Chỉ true mới được phép tuyên bố "Dịch đầy đủ".
+ * Kiểm tra phần nhãn/hướng dẫn/checkpoint của pack. Không bao gồm route tasks,
+ * criteria hoặc toàn bộ giao diện; kết quả này không chứng minh bản dịch đầy đủ.
  */
 const REQUIRED_PACK_KEYS = [
   'HS0', 'HS1', 'HS2', 'HS3', 'HS4', 'HS5', 'HS6', 'HS7', 'HS8', 'HS9', 'HS10',

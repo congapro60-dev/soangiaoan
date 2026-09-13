@@ -1,7 +1,11 @@
 import './liveClassroom.css';
 import { StudentActivityGuide } from './StudentActivityGuide';
 import { StudentGroupPicker } from './StudentGroupPicker';
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
+import { StudentWritingSupport } from './StudentWritingSupport';
+import { StudentGoalReflection } from './StudentGoalReflection';
+import { useStudentDraft } from './useStudentDraft';
+import { getStudentLanguageCoverage } from '../../lib/liveLesson/v4/languagePack';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
 import type { StudentDefinitionProjection } from '../../pages/LiveLessonPage';
@@ -22,17 +26,12 @@ import {
 import { getG10P31V4Contract } from '../../data/liveLessonPackages/g10_w5_p31_bpt_tiet1.v4';
 import {
   buildStudentGlossaryPopup,
-  buildStudentSupportModeOptions,
   changeStudentLanguageView,
   getLocalizedStudentCopy,
-  hasApprovedFullTranslationPack,
-  hasReviewedStudentLanguagePack,
   resolveStudentLanguageView,
   type StudentGlossaryPopupPayload,
   type StudentLanguageView,
-  type SupportMode,
   type V4Language,
-  type V4NonViLanguage,
   type V4Route,
 } from '../../lib/liveLesson/v4';
 import { getBanToanV4ContractForLiveDefinitionId } from '../../lib/liveLesson/v4';
@@ -162,8 +161,8 @@ export const buildStudentLanguageChoiceState = (savedPreference: unknown): { vie
   return { view: resolved.view, needsFirstRunChoice: resolved.source === 'default' };
 };
 
-export const buildStudentLanguageChip = (view: StudentLanguageView): { label: string; actionLabel: string } => ({
-  label: view.language === 'vi' ? 'Tiếng Việt' : `Tiếng Việt + ${languageLabels[view.language]}`,
+export const buildStudentLanguageChip = (view: StudentLanguageView, available = true): { label: string; actionLabel: string } => ({
+  label: view.language === 'vi' ? 'Tiếng Việt' : available ? `Tiếng Việt + ${languageLabels[view.language]}` : `Tiếng Việt · ${languageLabels[view.language]} chưa có hỗ trợ`,
   actionLabel: 'Đổi ngôn ngữ',
 });
 
@@ -241,27 +240,23 @@ const ResponseControl = ({
   return null;
 };
 
-const LanguageChoicePanel = ({
-  view,
-  fullTranslationAvailable,
-  onPick,
-}: {
-  view: StudentLanguageView;
-  fullTranslationAvailable: boolean;
-  onPick: (language: V4Language, supportMode: SupportMode) => void;
+const LanguageChoicePanel = ({ view, availableLanguages, description, onPick }: {
+  view: StudentLanguageView; availableLanguages: readonly V4Language[]; description: string;
+  onPick: (language: V4Language) => void;
 }) => (
-  <section className="rounded-3xl border border-cyan-200 bg-cyan-50 p-4 shadow-sm">
-    <p className="text-xs font-black uppercase tracking-widest text-cyan-700">Chọn hỗ trợ ngôn ngữ</p>
-    <p className="mt-2 text-sm font-semibold leading-6 text-cyan-950">Tiếng Việt và ký hiệu Toán là mỏ neo. Lựa chọn này chỉ đổi giao diện/khung hỗ trợ, không phải nhãn năng lực.</p>
-    <div className="mt-3 flex flex-wrap gap-2">
-      {(['vi', 'en', 'ja', 'ko', 'zh'] as const).map(language => <button key={language} type="button" onClick={() => onPick(language, language === 'vi' ? 'vi_anchor' : 'bilingual')} className={`rounded-full border px-3 py-2 text-xs font-black ${view.language === language ? 'border-cyan-700 bg-white text-cyan-900' : 'border-cyan-200 bg-cyan-100 text-cyan-800'}`}>{languageLabels[language]}</button>)}
+  <section className="student-language-panel" aria-label="Chọn ngôn ngữ hỗ trợ">
+    <h2>Em muốn đọc phần hỗ trợ bằng ngôn ngữ nào?</h2>
+    <p>Tiếng Việt và ký hiệu Toán vẫn đi cùng bài học. Chọn ngôn ngữ để xem phần hỗ trợ đã có.</p>
+    <div className="student-language-options" role="group" aria-label="Ngôn ngữ">
+      {(['vi', 'en', 'ja', 'ko', 'zh'] as const).map(language => {
+        const available = availableLanguages.includes(language);
+        return <button type="button" key={language} disabled={!available} aria-pressed={view.language === language} onClick={() => onPick(language)}>
+          <strong>{({ vi: 'Tiếng Việt', en: 'English', ja: '日本語', ko: '한국어', zh: '中文' })[language]}</strong>
+          <small>{!available ? 'Chưa có hỗ trợ cho bài này' : language === 'vi' ? 'Ngôn ngữ bài học' : 'Hỗ trợ một phần'}</small>
+        </button>;
+      })}
     </div>
-    <div className="mt-4 space-y-2">
-      <p className="text-xs font-black uppercase tracking-widest text-cyan-700">Hình thức hỗ trợ</p>
-      {buildStudentSupportModeOptions(view.language, fullTranslationAvailable).map(option => option.enabled
-        ? <button key={option.mode} type="button" onClick={() => onPick(view.language, option.mode)} className={`block w-full rounded-2xl border px-3 py-3 text-left ${view.supportMode === option.mode ? 'border-cyan-700 bg-white' : 'border-cyan-200 bg-cyan-100'}`}><span className="block text-sm font-black text-cyan-950">{option.label}</span><span className="mt-1 block text-xs font-semibold text-cyan-800">{option.description}</span></button>
-        : <div key={option.mode} aria-disabled="true" className="rounded-2xl border border-dashed border-cyan-200 bg-cyan-100/60 px-3 py-3"><span className="block text-sm font-black text-cyan-700">{option.label}</span><span className="mt-1 block text-xs font-semibold text-cyan-700">{option.disabledReason}</span></div>)}
-    </div>
+    <p className="student-language-coverage">{description}</p>
   </section>
 );
 
@@ -275,8 +270,8 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
   const [rosterError, setRosterError] = useState<string | null>(null);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [loginBusy, setLoginBusy] = useState(false);
-  const [selectedValue, setSelectedValue] = useState('');
-  const [textValue, setTextValue] = useState('');
+  const answerInputRef = useRef<HTMLTextAreaElement>(null);
+  const [insertionNotice, setInsertionNotice] = useState<string | null>(null);
   const [stepStatuses, setStepStatuses] = useState<StepStatus>({});
   const [queueCount, setQueueCount] = useState(0);
   const [blockedQueueCount, setBlockedQueueCount] = useState(0);
@@ -332,16 +327,20 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
 
   const currentCue = definition.studentCues.find(cue => cue.id === publicState.cueId);
   const step = currentCue?.responseStepId ? definition.responseSteps.find(item => item.id === currentCue.responseStepId) ?? null : null;
-  const hasSubmitted = Boolean(step && stepStatuses[step.id]?.tone === 'success');
-  useEffect(() => {
-    setSelectedValue('');
-    setTextValue('');
-  }, [step?.id]);
   const studentScreen = definition.studentScreens.find(screen => screen.id === currentCue?.studentScreenId) ?? definition.studentScreens[0];
   const tvScreen = definition.tvScreens.find(screen => screen.id === publicState.tvScreenId) ?? null;
   const activeSafetyMessage = activeUserSafetyMessage(user);
   const identity = resolveStudentLiveIdentity(user, student, expectedClassId);
   const participantUid = identity?.participantUid ?? null;
+  const responseDraft = useStudentDraft(sessionId, participantUid, step?.id);
+  const { selectedValue, setSelectedValue, textValue, setTextValue } = responseDraft;
+  const previousDrafts = useMemo(() => {
+    if (!participantUid) return [];
+    return definition.responseSteps.filter(item => item.id !== step?.id).map(item => ({
+      step: item, draft: responseDraft.readForStep(item.id),
+    })).filter(item => item.draft.textValue.trim() || item.draft.selectedValue);
+  }, [definition.responseSteps, sessionId, participantUid, step?.id]);
+  const hasSubmitted = Boolean(step && stepStatuses[step.id]?.tone === 'success' && !responseDraft.hasUnsentChanges);
   const v4Contract = useMemo(() => getBanToanV4ContractForLiveDefinitionId(definition.id) ?? getG10P31V4Contract(), [definition.id]);
   // Chỉ dịch phần chữ HS; công thức/ký hiệu Toán giữ nguyên trong nội dung gốc.
   // Màn hình chung (TV) luôn tiếng Việt — không đổi theo lựa chọn của HS.
@@ -350,24 +349,16 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
   const studentScreenLabel = !step ? (tvScreen?.title ?? 'Cùng theo dõi') : localizedScreen?.label ?? studentScreen?.label ?? 'Theo dõi hướng dẫn';
   const studentScreenAction = localizedScreen?.action ?? studentScreen?.action ?? 'Chờ giáo viên chuyển sang bước phản hồi.';
   const stepLabel = localizedStep?.label ?? step?.label ?? '';
-  // "Dịch đầy đủ" chỉ bật khi vừa có glossary đã duyệt vừa có gói HS đã rà soát.
-  const fullTranslationAvailable = languageView.language !== 'vi'
-    && hasApprovedFullTranslationPack(languageView.language, v4Contract.glossary, hasReviewedStudentLanguagePack(definitionKey, languageView.language as V4NonViLanguage));
-  const languageChip = buildStudentLanguageChip(languageView);
+  const languageCoverage = getStudentLanguageCoverage(definitionKey, languageView.language, v4Contract.glossary);
+  const availableLanguages = (['vi', 'en', 'ja', 'ko', 'zh'] as V4Language[])
+    .filter(language => getStudentLanguageCoverage(definitionKey, language, v4Contract.glossary).available);
+  const languageChip = buildStudentLanguageChip(languageView, languageCoverage.available);
   const offlineStatusText = buildOfflineStatusText(typeof navigator === 'undefined' ? true : navigator.onLine, retryableQueueCount, blockedQueueCount, hasSubmitted);
   const routedTask: RoutedTask | null = currentRoute ? getRoutedVariant(v4Contract, currentRoute) : null;
   const revealedHints = routedTask ? getRevealedHints(routedTask.orderedHints, hintState.revealedCount) : [];
 
-  const makeRuntimeLanguageView = useCallback((view: StudentLanguageView): StudentLanguageView => {
-    if (view.language === 'vi' && view.supportMode !== 'vi_anchor') {
-      return changeStudentLanguageView(view, { supportMode: 'vi_anchor', showSentenceFrames: false });
-    }
-    if (view.language !== 'vi' && view.supportMode === 'approved_full_translation') {
-      const available = hasApprovedFullTranslationPack(view.language, v4Contract.glossary, hasReviewedStudentLanguagePack(definitionKey, view.language));
-      if (!available) return changeStudentLanguageView(view, { supportMode: 'bilingual', showSentenceFrames: true });
-    }
-    return view;
-  }, [v4Contract.glossary, definitionKey]);
+  const makeRuntimeLanguageView = useCallback((view: StudentLanguageView): StudentLanguageView =>
+    changeStudentLanguageView(view, { supportMode: view.language === 'vi' ? 'vi_anchor' : 'bilingual' }), []);
 
   const syncStudentLanguagePreference = useCallback(async (preferredView?: StudentLanguageView) => {
     const classId = identity?.classId;
@@ -411,13 +402,12 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
     return () => { active = false; };
   }, [identity?.classId, makeRuntimeLanguageView, participantUid, sessionId, syncStudentLanguagePreference]);
 
-  const pickLanguage = (language: V4Language, requestedMode: SupportMode = language === 'vi' ? 'vi_anchor' : 'bilingual') => {
-    const requestedFullTranslation = requestedMode === 'approved_full_translation';
-    const selectedFullTranslationAvailable = language !== 'vi'
-      && hasApprovedFullTranslationPack(language, v4Contract.glossary, hasReviewedStudentLanguagePack(definitionKey, language as V4NonViLanguage));
+  const pickLanguage = (language: V4Language) => {
+    const coverage = getStudentLanguageCoverage(definitionKey, language, v4Contract.glossary);
+    if (!coverage.available) { setLanguageChangeNote(coverage.description); return; }
     const next = changeStudentLanguageView(languageView, {
       language,
-      supportMode: requestedFullTranslation && !selectedFullTranslationAvailable ? 'bilingual' : requestedMode,
+      supportMode: language === 'vi' ? 'vi_anchor' : 'bilingual',
       showGlossary: true,
       showSentenceFrames: language !== 'vi',
     });
@@ -427,16 +417,16 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
     savePendingLanguageView(sessionId, participantUid, runtimeView);
     void syncStudentLanguagePreference(runtimeView);
     setLanguageChoiceOpen(false);
-    if (language === 'vi') {
-      setLanguageChangeNote('Đã chuyển về tiếng Việt (neo tiếng Việt).');
-    } else if (hasReviewedStudentLanguagePack(definitionKey, language as V4NonViLanguage)) {
-      setLanguageChangeNote(`Đã đổi sang ${language.toUpperCase()}: nhãn/việc/prompt của em + thuật ngữ (công thức giữ nguyên).`);
-    } else {
-      setLanguageChangeNote(`Song ngữ Tiếng Việt + ${language.toUpperCase()}: thêm thuật ngữ/khung câu đã duyệt; nội dung chính giữ tiếng Việt (chưa có gói dịch đầy đủ).`);
-    }
+    setLanguageChangeNote(coverage.description);
   };
 
   useEffect(() => { setLanguageChangeNote(null); }, [publicState.cueId]);
+  useEffect(() => { setInsertionNotice(null); }, [step?.id, participantUid]);
+  useEffect(() => {
+    if (step?.responseTypes.includes('route')) {
+      setCurrentRoute(['M', 'S', 'C'].includes(selectedValue) ? selectedValue as V4Route : null);
+    }
+  }, [step, selectedValue]);
 
   useEffect(() => {
     if (!currentRoute) return;
@@ -523,7 +513,7 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
       : responseType === 'boolean' ? rawValue === true || rawValue === 'true' : rawValue;
     if (typeof value === 'string' && value.trim().length === 0) return;
     if (typeof value === 'string' && value.length > (step.maxTextLength ?? 2000)) {
-      setStepStatuses(current => ({ ...current, [step.id]: { tone: 'error', message: `Câu trả lời tối đa ${step.maxTextLength} ký tự.` } }));
+      setStepStatuses(current => ({ ...current, [step.id]: { tone: 'error', message: `Câu trả lời tối đa ${step.maxTextLength ?? 2000} ký tự, gồm loại lỗi nếu có.` } }));
       return;
     }
     const savedState = getLiveResponseStepState(sessionId, identity.participantUid, step.id);
@@ -539,6 +529,7 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
     };
     try {
       enqueueLiveResponse(payload);
+      responseDraft.recordSubmission();
       if (responseType === 'route') {
         const route = String(value).trim().toUpperCase() as V4Route;
         if (['M', 'S', 'C'].includes(route)) setCurrentRoute(route);
@@ -577,6 +568,22 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
 
   const status = step ? stepStatuses[step.id] : null;
   const textControl = useMemo(() => step && (step.responseTypes.includes('text') || step.responseTypes.includes('exit_ticket')), [step]);
+  const goalStep = definition.responseSteps.find(item => item.id === 'cp-student-goal' || item.id === 'goals');
+  const reflectionMoment = publicState.cueId === 'P35' || Boolean(step?.responseTypes.includes('exit_ticket')) || studentScreen?.id === 'HS9';
+  const insertIntoAnswer = (content: string) => {
+    if (!step || !textControl) return;
+    const field = answerInputRef.current;
+    const start = field?.selectionStart ?? textValue.length;
+    // Insert without replacing a selected portion of the student's draft.
+    const addition = `${start > 0 && textValue[start - 1] !== '\n' ? '\n' : ''}${content}${start < textValue.length ? '\n' : ''}`;
+    const next = textValue.slice(0, start) + addition + textValue.slice(start);
+    if (next.length > (step.maxTextLength ?? 2000)) {
+      setInsertionNotice('Khung này vượt phần ký tự còn lại. Em hãy viết ngắn theo gợi ý; nháp hiện tại được giữ nguyên.');
+      return;
+    }
+    setTextValue(next); setInsertionNotice(null);
+    requestAnimationFrame(() => { field?.focus(); field?.setSelectionRange(start + addition.length, start + addition.length); });
+  };
   const glossaryTerms = v4Contract.glossary.filter(item => item.status === 'approved').slice(0, 4);
 
   if (!expectedJoinCode) return <main className="flex min-h-screen items-center justify-center bg-slate-100 p-4 text-slate-900"><section className="w-full max-w-xl rounded-[2rem] bg-white p-7 text-center shadow-xl"><p className="text-xs font-black uppercase tracking-[0.2em] text-red-600">Học sinh · liên kết cũ</p><h1 className="mt-2 text-2xl font-black">Không thể vào phiên học</h1><div className="mt-4"><LiveLessonStatus tone="error">Liên kết cũ thiếu ngữ cảnh lớp. Hãy yêu cầu giáo viên mở phiên mới.</LiveLessonStatus></div></section></main>;
@@ -586,5 +593,5 @@ export const StudentLiveView = ({ definition, sessionId, expectedClassId, expect
   if (student && !identity) return <main className="flex min-h-screen items-center justify-center bg-slate-100 p-4 text-slate-900"><section className="w-full max-w-xl rounded-[2rem] bg-white p-7 text-center shadow-xl"><p className="text-xs font-black uppercase tracking-[0.2em] text-red-600">Học sinh · danh tính bị chặn</p><h1 className="mt-2 text-2xl font-black">Không thể gửi phản hồi</h1><div className="mt-4"><LiveLessonStatus tone="error">{activeSafetyMessage ?? 'Phiên đăng nhập hoặc mã lớp không khớp liên kết này. Hãy đăng nhập lại từ đúng liên kết học sinh.'}</LiveLessonStatus></div></section></main>;
   if (!student) return <main className="flex min-h-screen items-center justify-center bg-slate-100 p-4 text-slate-900"><form onSubmit={login} className="w-full max-w-md rounded-[2rem] bg-white p-6 shadow-xl sm:p-8"><p className="text-xs font-black uppercase tracking-[0.2em] text-indigo-600">SmartPlan · Học sinh</p><h1 className="mt-2 text-2xl font-black">Vào tiết học trực tiếp</h1><p className="mt-2 text-sm font-semibold leading-6 text-slate-500">Chọn tên của em trong lớp rồi nhập PIN. PIN chỉ được gửi để xác thực, không lưu trên thiết bị.</p>{activeSafetyMessage && <LiveLessonStatus tone="error">{activeSafetyMessage}</LiveLessonStatus>}{loginError && <div className="mt-4"><LiveLessonStatus tone="error">{loginError}</LiveLessonStatus></div>}<div className="mt-5 space-y-3"><label className="block text-sm font-black text-slate-700">Lớp {roster.className}<select required value={selectedStudentId} onChange={event => setSelectedStudentId(event.target.value)} autoComplete="off" className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 font-semibold"><option value="">Chọn tên của em</option>{roster.students.map(item => <option key={item.studentId} value={item.studentId}>{item.name}</option>)}</select></label><input required value={pin} onChange={event => setPin(event.target.value)} placeholder="PIN" inputMode="numeric" type="password" autoComplete="off" className="w-full rounded-xl border border-slate-200 px-4 py-3 font-semibold" /></div><button disabled={loginBusy || Boolean(activeSafetyMessage) || !selectedStudentId} className="mt-5 w-full rounded-xl bg-indigo-600 px-4 py-3 font-black text-white disabled:opacity-50">{loginBusy ? 'Đang xác thực…' : 'Vào lớp'}</button></form></main>;
 
-  return <main className="live-student"><div className="student-shell"><header className="student-lesson-header"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">Học sinh · tiết trực tiếp</p><h1 className="student-lesson-title">{definition.title}</h1><p className="mt-2 text-sm font-semibold text-slate-300">{student.studentName} · {student.className}</p></div><div className="flex flex-col items-end gap-2"><span className="rounded-full border border-emerald-400/50 px-3 py-1 text-xs font-black uppercase text-emerald-300">{{ lobby: 'Sẵn sàng', running: 'Đang học', paused: 'Tạm dừng', closed: 'Đã kết thúc' }[publicState.status]}</span><button type="button" onClick={() => setLanguageChoiceOpen(true)} className="rounded-full border border-cyan-300/60 px-3 py-1 text-xs font-black text-cyan-100">{languageChip.label} · {languageChip.actionLabel}</button></div></div>{publicStateError && <div className="mt-4"><LiveLessonStatus tone="warning">Mất kết nối trạng thái. Đang giữ màn hình cuối; sẽ tự kết nối lại.</LiveLessonStatus></div>}</header>{languageChoiceOpen && <LanguageChoicePanel view={languageView} fullTranslationAvailable={fullTranslationAvailable} onPick={pickLanguage} />}{languageChangeNote && <LiveLessonStatus tone="neutral">{languageChangeNote}</LiveLessonStatus>}<LiveLessonStatus tone={blockedQueueCount > 0 ? 'error' : retryableQueueCount > 0 ? 'warning' : hasSubmitted ? 'success' : 'neutral'}>{offlineStatusText}</LiveLessonStatus>{assignedGroup && <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm"><p className="text-xs font-black uppercase tracking-widest text-emerald-700">Nhóm đã phân công</p><p className="mt-2 text-lg font-black text-emerald-900">{assignedGroup.groupId}</p><p className="mt-1 text-sm font-semibold text-emerald-800">{assignedGroup.scaffold}</p><p className="mt-1 text-xs text-emerald-600">Bắt đầu: {new Date(assignedGroup.startedAt).toLocaleTimeString()}</p></section>}{routedTask && step?.responseTypes.includes('route') && <section className="rounded-3xl border border-indigo-200 bg-indigo-50 p-5 shadow-sm"><p className="text-xs font-black uppercase tracking-widest text-indigo-700">Nhiệm vụ tuyến {currentRoute}</p><LiveLessonRichText text={routedTask.variant.prompt} className="mt-2 text-sm font-semibold leading-6 text-indigo-950" />{routedTask.variant.extension && <LiveLessonRichText text={`Mở rộng: ${routedTask.variant.extension}`} className="mt-2 text-xs font-semibold text-indigo-700" />}{revealedHints.length > 0 && <div className="mt-3 space-y-2">{revealedHints.map((hint, idx) => <LiveLessonRichText key={idx} text={hint} className="rounded-lg bg-white/80 px-3 py-2 text-xs font-semibold text-indigo-800" />)}</div>}{hasMoreHints(hintState) && <button type="button" onClick={revealHint} className="mt-3 rounded-xl border border-indigo-300 bg-white px-4 py-2 text-xs font-black text-indigo-700 hover:bg-indigo-100">Gợi ý tiếp theo ({hintState.revealedCount + 1}/{hintState.totalHints})</button>}</section>}{step?.id === 'cp-group-product' && participantUid && <StudentGroupPicker key={participantUid} sessionId={sessionId} participantUid={participantUid} />}<StudentActivityGuide key={publicState.cueId} contract={v4Contract} cueId={publicState.cueId} label={studentScreenLabel} action={languageView.language === "vi" ? (v4Contract.timeline.find(item => item.id === publicState.cueId)?.studentAction ?? studentScreenAction) : studentScreenAction} route={currentRoute} /><details key={publicState.cueId} className="student-tv-reference" open={step?.id === 'cp-ai-error' || step?.id === 'ai-error-w01'}><summary>Đề bài và nội dung chung</summary><p className="text-xs font-black uppercase tracking-widest text-cyan-700">Màn hình chung (trên TV)</p><h2 className="mt-3 text-xl font-black">{tvScreen?.title ?? 'Đang chờ màn hình'}</h2><LiveLessonRichText text={tvScreen?.body ?? 'Chưa có nội dung công khai.'} className="mt-3 text-sm font-semibold leading-6 text-slate-600" /></details>{step && <section className="student-response-card"><p className="text-xs font-black uppercase tracking-widest text-slate-500">Phản hồi nhanh</p><LiveLessonRichText text={stepLabel} className="mt-2 text-xl font-black" /><div className="mt-4 space-y-4"><ResponseControl responseTypes={step.responseTypes} stepId={step.id} options={step.options} value={selectedValue} routeOptions={v4Contract.taskVariants.map(item => ({ route: item.route, prompt: item.prompt }))} onChange={(value, type) => { setSelectedValue(value); void submit(type, value); }} />{textControl && <div className="space-y-2"><textarea value={textValue} onChange={event => setTextValue(event.target.value)} maxLength={step.maxTextLength ?? 2000} placeholder="Viết câu trả lời ngắn" className="student-answer-input" /><button type="button" onClick={() => void submit(step.responseTypes.includes('exit_ticket') ? 'exit_ticket' : 'text', textValue)} className="rounded-xl bg-indigo-600 px-4 py-3 text-sm font-black text-white">Gửi câu trả lời</button></div>}{status && <LiveLessonStatus tone={status.tone}>{status.message}</LiveLessonStatus>}{hasSubmitted && <aside className="student-after-submit"><strong>Tiếp theo</strong><p>Giữ lại phép kiểm hoặc bước giải trong vở. Khi thầy cô mời, giải thích vì sao em chọn câu trả lời này và đối chiếu với tiêu chí.</p><p className="mt-2">Nếu đổi ý, em có thể gửi lại câu trả lời ở bước này.</p></aside>}</div></section>}<section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-black uppercase tracking-widest text-slate-500">Thuật ngữ</p><div className="mt-3 flex flex-wrap gap-2">{glossaryTerms.map(term => <button key={term.id} type="button" onClick={() => setGlossaryPopup(buildStudentGlossaryPopup(v4Contract.glossary, term.id, languageView))} className="rounded-full bg-slate-100 px-3 py-2 text-xs font-black text-slate-700">{term.vietnamese}</button>)}</div>{glossaryPopup && <div className="mt-4 rounded-2xl border border-indigo-100 bg-indigo-50 p-4"><div className="flex items-start justify-between gap-3"><div><LiveLessonRichText text={`${glossaryPopup.vietnamese}${glossaryPopup.translation ? ` · ${glossaryPopup.translation}` : ''}`} className="font-black text-indigo-950" /><LiveLessonRichText text={glossaryPopup.explanation} className="mt-2 text-sm font-semibold leading-6 text-indigo-900" />{glossaryPopup.notation && <LiveLessonRichText text={glossaryPopup.notation} className="mt-2 font-mono text-sm font-black text-indigo-950" />}{glossaryPopup.example && <LiveLessonRichText text={`Ví dụ: ${glossaryPopup.example}`} className="mt-2 text-sm font-semibold text-indigo-900" />}</div><button type="button" onClick={() => setGlossaryPopup(null)} className="rounded-full bg-white px-3 py-1 text-xs font-black text-indigo-700">Đóng</button></div></div>}</section>{queueCount > 0 && <LiveLessonStatus tone={blockedQueueCount > 0 ? 'error' : 'warning'}>{blockedQueueCount > 0 ? `${blockedQueueCount} phản hồi bị chặn; hãy gửi câu trả lời mới.` : `${queueCount} phản hồi đã lưu trên máy.`}</LiveLessonStatus>}</div></main>;
+  return <main className="live-student"><div className="student-shell"><header className="student-lesson-header"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">Học sinh · tiết trực tiếp</p><h1 className="student-lesson-title">{definition.title}</h1><p className="mt-2 text-sm font-semibold text-slate-300">{student.studentName} · {student.className}</p></div><div className="flex flex-col items-end gap-2"><span className="rounded-full border border-emerald-400/50 px-3 py-1 text-xs font-black uppercase text-emerald-300">{{ lobby: 'Sẵn sàng', running: 'Đang học', paused: 'Tạm dừng', closed: 'Đã kết thúc' }[publicState.status]}</span><button type="button" onClick={() => setLanguageChoiceOpen(true)} className="rounded-full border border-cyan-300/60 px-3 py-1 text-xs font-black text-cyan-100">{languageChip.label} · {languageChip.actionLabel}</button></div></div>{publicStateError && <div className="mt-4"><LiveLessonStatus tone="warning">Mất kết nối trạng thái. Đang giữ màn hình cuối; sẽ tự kết nối lại.</LiveLessonStatus></div>}</header>{languageChoiceOpen && <LanguageChoicePanel view={languageView} availableLanguages={availableLanguages} description={languageCoverage.description} onPick={pickLanguage} />}{!languageChoiceOpen && languageView.language !== 'vi' && <p className="student-language-coverage">{languageCoverage.description}</p>}{languageChangeNote && <LiveLessonStatus tone="neutral">{languageChangeNote}</LiveLessonStatus>}<LiveLessonStatus tone={blockedQueueCount > 0 ? 'error' : retryableQueueCount > 0 ? 'warning' : hasSubmitted ? 'success' : 'neutral'}>{offlineStatusText}</LiveLessonStatus>{assignedGroup && <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm"><p className="text-xs font-black uppercase tracking-widest text-emerald-700">Nhóm đã phân công</p><p className="mt-2 text-lg font-black text-emerald-900">{assignedGroup.groupId}</p><p className="mt-1 text-sm font-semibold text-emerald-800">{assignedGroup.scaffold}</p><p className="mt-1 text-xs text-emerald-600">Bắt đầu: {new Date(assignedGroup.startedAt).toLocaleTimeString()}</p></section>}{routedTask && step?.responseTypes.includes('route') && <section className="rounded-3xl border border-indigo-200 bg-indigo-50 p-5 shadow-sm"><p className="text-xs font-black uppercase tracking-widest text-indigo-700">Nhiệm vụ tuyến {currentRoute}</p><LiveLessonRichText text={routedTask.variant.prompt} className="mt-2 text-sm font-semibold leading-6 text-indigo-950" />{routedTask.variant.extension && <LiveLessonRichText text={`Mở rộng: ${routedTask.variant.extension}`} className="mt-2 text-xs font-semibold text-indigo-700" />}{revealedHints.length > 0 && <div className="mt-3 space-y-2">{revealedHints.map((hint, idx) => <LiveLessonRichText key={idx} text={hint} className="rounded-lg bg-white/80 px-3 py-2 text-xs font-semibold text-indigo-800" />)}</div>}{hasMoreHints(hintState) && <button type="button" onClick={revealHint} className="mt-3 rounded-xl border border-indigo-300 bg-white px-4 py-2 text-xs font-black text-indigo-700 hover:bg-indigo-100">Gợi ý tiếp theo ({hintState.revealedCount + 1}/{hintState.totalHints})</button>}</section>}{step?.id === 'cp-group-product' && participantUid && <StudentGroupPicker key={participantUid} sessionId={sessionId} participantUid={participantUid} />}<StudentActivityGuide key={publicState.cueId} contract={v4Contract} cueId={publicState.cueId} label={studentScreenLabel} action={v4Contract.timeline.find(item => item.id === publicState.cueId)?.studentAction ?? studentScreen?.action} supportingAction={languageCoverage.content && languageView.language !== 'vi' ? localizedScreen?.action : undefined} route={currentRoute} />{reflectionMoment && goalStep && participantUid && <StudentGoalReflection key={`${sessionId}:${participantUid}:${goalStep.id}`} sessionId={sessionId} participantUid={participantUid} goalStep={goalStep} draft={responseDraft.readForStep(goalStep.id)} onInsert={textControl && publicState.status !== 'closed' ? insertIntoAnswer : undefined} />}<details key={publicState.cueId} className="student-tv-reference" open={step?.id === 'cp-ai-error' || step?.id === 'ai-error-w01'}><summary>Đề bài và nội dung chung</summary><p className="text-xs font-black uppercase tracking-widest text-cyan-700">Màn hình chung (trên TV)</p><h2 className="mt-3 text-xl font-black">{tvScreen?.title ?? 'Đang chờ màn hình'}</h2><LiveLessonRichText text={tvScreen?.body ?? 'Chưa có nội dung công khai.'} className="mt-3 text-sm font-semibold leading-6 text-slate-600" /></details>{step && <section className="student-response-card"><p className="text-xs font-black uppercase tracking-widest text-slate-500">Phản hồi nhanh</p><LiveLessonRichText text={stepLabel} className="mt-2 text-xl font-black" /><div className="mt-4 space-y-4"><StudentWritingSupport key={`${sessionId}:${participantUid}:${step.id}:${currentRoute}:${languageView.language}`} contract={v4Contract} cueId={publicState.cueId} stepId={step.id} route={currentRoute} languageView={languageView} onInsert={textControl && publicState.status !== 'closed' ? insertIntoAnswer : undefined} /><ResponseControl responseTypes={step.responseTypes} stepId={step.id} options={step.options} value={selectedValue} routeOptions={v4Contract.taskVariants.map(item => ({ route: item.route, prompt: item.prompt }))} onChange={(value, type) => { setSelectedValue(value); void submit(type, value); }} />{textControl && <div className="space-y-2"><textarea ref={answerInputRef} aria-label="Câu trả lời của em" value={textValue} onChange={event => setTextValue(event.target.value)} maxLength={step.maxTextLength ?? 2000} placeholder="Viết câu trả lời ngắn" className="student-answer-input" /><div className="student-draft-meta"><span role="status">{responseDraft.storageFailed ? 'Chưa lưu được nháp trên máy; hãy giữ tab mở và chép phần cần giữ vào vở.' : responseDraft.hasDraft ? responseDraft.hasUnsentChanges ? 'Nháp đã lưu trên máy · chưa gửi' : 'Nháp đã lưu trên máy' : 'Bài em viết được giữ khi thầy cô chuyển hoạt động.'}</span><span>{textValue.length}/{step.maxTextLength ?? 2000}</span></div>{insertionNotice && <p role="alert" className="student-insert-notice">{insertionNotice}</p>}<button type="button" onClick={() => void submit(step.responseTypes.includes('exit_ticket') ? 'exit_ticket' : 'text', textValue)} className="rounded-xl bg-indigo-600 px-4 py-3 text-sm font-black text-white">Gửi câu trả lời</button></div>}{status && (status.tone !== 'success' || !responseDraft.hasUnsentChanges) && <LiveLessonStatus tone={status.tone}>{status.message}</LiveLessonStatus>}{hasSubmitted && <aside className="student-after-submit"><strong>Tiếp theo</strong><p>Giữ lại phép kiểm hoặc bước giải trong vở. Khi thầy cô mời, giải thích vì sao em chọn câu trả lời này và đối chiếu với tiêu chí.</p><p className="mt-2">Nếu đổi ý, em có thể gửi lại câu trả lời ở bước này.</p></aside>}</div></section>}<section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-black uppercase tracking-widest text-slate-500">Thuật ngữ</p><div className="mt-3 flex flex-wrap gap-2">{glossaryTerms.map(term => <button key={term.id} type="button" onClick={() => setGlossaryPopup(buildStudentGlossaryPopup(v4Contract.glossary, term.id, languageView))} className="rounded-full bg-slate-100 px-3 py-2 text-xs font-black text-slate-700">{term.vietnamese}</button>)}</div>{glossaryPopup && <div className="mt-4 rounded-2xl border border-indigo-100 bg-indigo-50 p-4"><div className="flex items-start justify-between gap-3"><div><LiveLessonRichText text={`${glossaryPopup.vietnamese}${glossaryPopup.translation ? ` · ${glossaryPopup.translation}` : ''}`} className="font-black text-indigo-950" /><LiveLessonRichText text={glossaryPopup.explanation} className="mt-2 text-sm font-semibold leading-6 text-indigo-900" />{glossaryPopup.notation && <LiveLessonRichText text={glossaryPopup.notation} className="mt-2 font-mono text-sm font-black text-indigo-950" />}{glossaryPopup.example && <LiveLessonRichText text={`Ví dụ: ${glossaryPopup.example}`} className="mt-2 text-sm font-semibold text-indigo-900" />}</div><button type="button" onClick={() => setGlossaryPopup(null)} className="rounded-full bg-white px-3 py-1 text-xs font-black text-indigo-700">Đóng</button></div></div>}</section>{previousDrafts.length > 0 && <details className="student-draft-history"><summary>Nháp các hoạt động trước ({previousDrafts.length})</summary><p>Nháp riêng trên thiết bị này. Xem để tiếp tục ghi vở; mở nháp không gửi lại bài và không đổi nhịp của lớp.</p>{previousDrafts.map(item => <article key={item.step.id}><h3>{item.step.label}</h3>{item.draft.selectedValue && <p>Lựa chọn: {item.step.options?.find(option => option.value === item.draft.selectedValue)?.label ?? getStudentChoiceLabel(item.step.id, item.draft.selectedValue)}</p>}{item.draft.textValue && <LiveLessonRichText text={item.draft.textValue} />}</article>)}</details>}{queueCount > 0 && <LiveLessonStatus tone={blockedQueueCount > 0 ? 'error' : 'warning'}>{blockedQueueCount > 0 ? `${blockedQueueCount} phản hồi bị chặn; hãy gửi câu trả lời mới.` : `${queueCount} phản hồi đã lưu trên máy.`}</LiveLessonStatus>}</div></main>;
 };

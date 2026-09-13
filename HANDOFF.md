@@ -16,6 +16,7 @@ Handoff ngắn cho lô V4 live lesson. Lịch sử dài đã chuyển vào [`doc
 - Không chạy QA/test/build theo yêu cầu chủ sở hữu. Các số test PASS bên dưới thuộc phiên bản cũ, không chứng minh lô này. Không tự chia nhóm, không tự đánh giá đúng/sai hoặc chiếu bài làm.
 - Chi tiết và hướng dẫn: docs/features/2026-09-11-live-activity-results.md.
 - Bổ sung ngày 13/09: lựa chọn P08 có nhãn dấu cùng nghĩa, dùng chung ở HS và biểu đồ TV; bài P20 có dữ kiện, phân vai và yêu cầu nộp kết luận riêng. P05 chỉ nghe/chốt mục tiêu, bỏ bước phản hồi không có ý nghĩa. Đề bài chung đặt trước ô trả lời, mặc định mở trong hoạt động AI Error.
+- Bổ sung luồng HS: nháp riêng theo session/uid/step, hỗ trợ diễn đạt theo 3 mức từ khóa → khung câu → tự diễn đạt, đọc lại mục tiêu cá nhân cuối tiết, và hiển thị mức hỗ trợ ngôn ngữ đúng theo nội dung đã có. Nháp không tự đồng bộ hoặc tự gửi; không gọi đây là bản dịch đầy đủ.
 - Triển khai 13/09: Firebase CLI đã phát hành firestore.rules tới smartplan-ai-14200 thành công từ mã 161a4d7. Chỉ deploy firestore:rules, không cập nhật index hay dữ liệu lớp. Chưa xác nhận Vercel Ready hoặc QA tiết học thực tế.
 
 ## Đồng bộ BTVN sang Google Sheet — 2026-09-11
