@@ -326,6 +326,9 @@
 .student-answer-input { width: 100%; min-height: 140px; resize: vertical; padding: 16px; border: 1px solid #b9c9de; border-radius: 12px; background: #fbfdff; font-size: 18px; line-height: 1.6; }
 .student-tv-reference { padding: 20px 24px; background: #fff; border: 1px solid #dce4ef; border-radius: 16px; }
 .student-tv-reference h2 { font-size: 19px; line-height: 1.4; }
+.student-tv-reference summary { cursor: pointer; font-weight: 700; color: #285a7d; min-height: 28px; }
+.student-tv-reference[open] summary { margin-bottom: 14px; }
+.student-tv-reference summary:focus-visible { outline: 3px solid #3b82f6; outline-offset: 3px; }
 .student-tv-reference > div { font-size: 16px; line-height: 1.6; }
 .live-student [role="status"] { line-height: 1.5; }
 @media (max-width: 600px) {

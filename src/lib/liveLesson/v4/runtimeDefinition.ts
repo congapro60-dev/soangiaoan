@@ -95,6 +95,14 @@ function buildResponseSteps(contract: LiveLessonV4Contract): LiveResponseStep[] 
       label: checkpoint.prompt,
       screenId: checkpointScreenMap[checkpoint.id] ?? 'HS0',
       responseTypes,
+      ...(contract.id === 'g10_w5_p31_bpt_tiet1_v4' && checkpoint.id === 'cp-model' ? {
+        options: [
+          { value: 'A', label: '≤ · Không vượt quá' },
+          { value: 'B', label: '< · Ít hơn' },
+          { value: 'C', label: '≥ · Ít nhất' },
+          { value: 'D', label: '= · Bằng đúng' },
+        ],
+      } : {}),
       ...(checkpoint.responseType === 'text' || checkpoint.responseType === 'exit_ticket' ? { maxTextLength: 500 } : {}),
     };
   });

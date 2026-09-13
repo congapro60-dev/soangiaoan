@@ -1,5 +1,5 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-09-12
+**Cập nhật:** 2026-09-13
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
@@ -15,6 +15,7 @@ Handoff ngắn cho lô V4 live lesson. Lịch sử dài đã chuyển vào [`doc
 - Phải triển khai firestore.rules cùng ứng dụng: clock có trường optional tương thích session cũ; thêm hai đường dữ liệu nhóm giới hạn quyền.
 - Không chạy QA/test/build theo yêu cầu chủ sở hữu. Các số test PASS bên dưới thuộc phiên bản cũ, không chứng minh lô này. Không tự chia nhóm, không tự đánh giá đúng/sai hoặc chiếu bài làm.
 - Chi tiết và hướng dẫn: docs/features/2026-09-11-live-activity-results.md.
+- Bổ sung ngày 13/09: lựa chọn P08 có nhãn dấu cùng nghĩa, dùng chung ở HS và biểu đồ TV; bài P20 có dữ kiện, phân vai và yêu cầu nộp kết luận riêng. P05 chỉ nghe/chốt mục tiêu, bỏ bước phản hồi không có ý nghĩa. Đề bài chung đặt trước ô trả lời, mặc định mở trong hoạt động AI Error.
 
 ## Đồng bộ BTVN sang Google Sheet — 2026-09-11
 

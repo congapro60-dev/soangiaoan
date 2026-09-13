@@ -73,6 +73,7 @@ export interface TvStatsPanelProps {
   sessionId?: string;
   cueId?: string;
   stepId?: string;
+  options?: Array<{ value: string; label: string }>;
 }
 
 const PUBLIC_LABELS: Record<string, string> = {
@@ -81,7 +82,7 @@ const PUBLIC_LABELS: Record<string, string> = {
   G3: 'Giải thích', true: 'Đúng', false: 'Chưa đúng', Yes: 'Có', No: 'Không',
 };
 
-export const TvStatsPanel = ({ stats, showStats, sessionId, cueId, stepId }: TvStatsPanelProps) => {
+export const TvStatsPanel = ({ stats, showStats, sessionId, cueId, stepId, options }: TvStatsPanelProps) => {
   const [groups, setGroups] = useState<LiveGroupProgress | null>(null);
   const [groupError, setGroupError] = useState(false);
   useEffect(() => {
@@ -94,7 +95,7 @@ export const TvStatsPanel = ({ stats, showStats, sessionId, cueId, stepId }: TvS
   const view = stats ? getTvStatsView(stats) : null;
   const items = view && view.kind !== 'counts' ? view.items : [];
   const total = items.reduce((sum, item) => sum + item.count, 0);
-  const groupRows = groups?.cueId === cueId && groups.stepId === stepId
+  const groupRows = groups && groups.cueId === cueId && groups.stepId === stepId
     ? CLASS_GROUPS.filter(key => groups.members[key] > 0) : [];
   return <section className="tv-results-panel" aria-label="Kết quả hoạt động">
     <header className="tv-results-header">
@@ -106,7 +107,7 @@ export const TvStatsPanel = ({ stats, showStats, sessionId, cueId, stepId }: TvS
       {items.length > 0 && <div className="tv-result-bars">{items.map(item => {
         const percent = total ? Math.round(item.count / total * 100) : 0;
         return <div key={item.label} className="tv-result-row">
-          <div className="tv-result-row-label"><span>{PUBLIC_LABELS[item.label] ?? item.label}</span><strong>{item.count}</strong></div>
+          <div className="tv-result-row-label"><span>{options?.find(option => option.value === item.label)?.label ?? PUBLIC_LABELS[item.label] ?? item.label}</span><strong>{item.count}</strong></div>
           <div className="tv-result-track" aria-hidden="true"><span style={{ width: `${percent}%` }} /></div>
         </div>;
       })}</div>}

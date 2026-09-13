@@ -10,7 +10,7 @@ import './liveClassroom.css';
 export type TvLiveDefinition = Pick<LiveLessonDefinition, 'title' | 'tvScreens'>;
 
 /** Lịch cue rút gọn — chỉ dữ liệu công khai đủ để TV đếm giờ và vẽ thanh tiến trình. */
-export interface TvCueTiming { id: string; tvScreenId: string; atSeconds: number; responseStepId?: string }
+export interface TvCueTiming { id: string; tvScreenId: string; atSeconds: number; responseStepId?: string; responseOptions?: Array<{ value: string; label: string }> }
 
 export interface TvListenerState { publicState: LivePublicState; publicStateError: string | null; statsError: string | null; }
 
@@ -274,7 +274,7 @@ export const TvLiveView = ({ definition, sessionId, publicState, publicStateErro
             </div>
           </section>
         )}
-        {activeStepId && <div className="tv-stats-region"><TvStatsPanel key={`${sessionId}:${publicState.cueId}`} sessionId={sessionId} cueId={publicState.cueId} stepId={activeStepId} stats={currentStats} showStats={publicState.showStats} /></div>}
+        {activeStepId && <div className="tv-stats-region"><TvStatsPanel key={`${sessionId}:${publicState.cueId}`} sessionId={sessionId} cueId={publicState.cueId} stepId={activeStepId} options={cueTimeline.find(cue => cue.id === publicState.cueId)?.responseOptions} stats={currentStats} showStats={publicState.showStats} /></div>}
         </div>
         {intent && (
           <section className="tv-intent-frame" aria-label="Mục tiêu và tiêu chí thành công">

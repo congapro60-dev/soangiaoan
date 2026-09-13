@@ -47,7 +47,7 @@ export function projectLiveLessonDefinition(definition: LiveLessonDefinition, mo
   if (mode === 'teacher') return definition;
   // tvCues chỉ mang mốc thời gian và id màn hình công khai — đủ để TV tự đếm giờ
   // và vẽ thanh tiến trình, không kèm kịch bản giáo viên hay nội dung bảng.
-  if (mode === 'tv') return { id: definition.id, lessonId: definition.lessonId, title: definition.title, durationSeconds: definition.durationSeconds, tvScreens: definition.tvScreens.map(screen => ({ ...screen })), tvCues: definition.cues.map(cue => ({ id: cue.id, tvScreenId: cue.tvScreenId, atSeconds: cue.atSeconds, ...(cue.responseStepId ? { responseStepId: cue.responseStepId } : {}) })), ...(definition.intent ? { intent: definition.intent } : {}) };
+  if (mode === 'tv') return { id: definition.id, lessonId: definition.lessonId, title: definition.title, durationSeconds: definition.durationSeconds, tvScreens: definition.tvScreens.map(screen => ({ ...screen })), tvCues: definition.cues.map(cue => ({ id: cue.id, tvScreenId: cue.tvScreenId, atSeconds: cue.atSeconds, ...(cue.responseStepId ? { responseStepId: cue.responseStepId, ...(definition.responseSteps.find(step => step.id === cue.responseStepId)?.options ? { responseOptions: definition.responseSteps.find(step => step.id === cue.responseStepId)!.options!.map(option => ({ ...option })) } : {}) } : {}) })), ...(definition.intent ? { intent: definition.intent } : {}) };
   const stepScreenIds = new Map(definition.responseSteps.map(step => [step.id, step.screenId ?? 'HS0']));
   return {
     id: definition.id,
