@@ -326,6 +326,7 @@ export const SheetSyncPanel = ({ classId, teacherId, sheetSync, onChanged, showT
         <div className="mt-4 space-y-3 text-xs font-semibold leading-5 text-slate-700">
           <p className="rounded-xl bg-slate-50 px-3 py-2 font-black text-slate-800">
             Xem trước: gắn link {plan.counts.attached} cột có sẵn · tạo {plan.counts.created} cột mới · điền {plan.counts.statusWrites} ô ·
+            {plan.counts.deadlineWrites > 0 ? ` sửa ${plan.counts.deadlineWrites} hạn · ` : ' '}
             bỏ qua {plan.counts.keptHuman} ô người đã chọn.
           </p>
 
