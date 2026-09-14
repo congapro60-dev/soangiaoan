@@ -5,6 +5,15 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## CI đỏ #540–#542 — test liveLesson cũ, đã sửa — 2026-09-14
+
+Quality Gate hỏng từ `dc1f29c` (kéo theo `161a4d7`/`aafd7c7`): **lint qua, 6 test fail**. Mã nguồn đúng, test chưa theo kịp:
+
+- `liveLessonService.test.ts` (4): `updateLiveLessonState` giờ chạy **transaction** đọc phiên + ghi `cueStartedAt`/`cueElapsedSeconds` (đồng hồ cue giữ được khi tạm dừng; rules đã có 2 trường). Mock `tx.get` cũ luôn trả "không tồn tại" → sửa mock định tuyến theo path, cập nhật kỳ vọng payload.
+- `languagePack.test.ts` (2): bản EN cố ý **giấu dấu `≤`** ở `cp-model` (HS tự chọn dấu) và HS2 đổi thành "one personal goal" → cập nhật assertion.
+- Phần sửa lấy từ bản dở của Codex trong worktree `codex-classroom-grading` (nhánh `codex/p31-classroom-ready`), **bỏ** test mới về nhiệm vụ nhóm P31 vì phụ thuộc nội dung chưa commit. Khi Codex commit, hai file test này sẽ trùng hunk — merge sạch hoặc lấy bản Codex.
+- Nghiệm thu: full Vitest **1961/1961**, `lint` 0.
+
 ## Hạn BTVN lấy từ app + chống #ERROR! khi ghi hạn — 2026-09-14
 
 QA production tính năng đồng bộ BTVN phát hiện: **hạn ở dòng 5 hiện `#ERROR!`** trên cả 7 cột tab `10. OLINDA`. Nguyên nhân gốc: app ghi hạn bằng công thức `=DATE(2026,9,16)+TIME(8,0,0)` dùng dấu **phẩy**, nhưng file đặt ngôn ngữ Việt lại đòi dấu **chấm phẩy** → công thức vỡ. App đọc lại ra "không có hạn" → **không tính được Nộp muộn / Chưa làm**, chỉ điền Đủ cho em nộp đúng hạn.
@@ -19,7 +28,7 @@ QA production tính năng đồng bộ BTVN phát hiện: **hạn ở dòng 5 hi
 - Ghi hạn là **số + numberFormat**, KHÔNG phải công thức nữa. Ai đổi lại sang `formulaValue` sẽ tái hiện `#ERROR!` trên file ngôn ngữ Việt.
 - Ghi đè hạn dòng 5 chỉ khi app có hạn và ô lệch >1 phút — hạn app là chuẩn (chủ dự án chốt). Nếu tổ trưởng tự đặt hạn khác trong sheet thì sẽ bị hạn app ghi đè; đây là ý muốn.
 - File 1 (11 Columbus) nếu dòng 5 đang là công thức chạy được và trùng hạn app thì **không** bị ghi đè (surgical).
-- Nghiệm thu bản này: `sheetSync.test.ts` **41 tests PASS**, `lint` 0, `lint:api` 0, `build` PASS. (Full Vitest có 6 fail **thuộc liveLesson** — có sẵn trên `origin/main` từ commit `aafd7c7`, ngoài phạm vi lô này.)
+- Nghiệm thu bản này: `sheetSync.test.ts` **41 tests PASS**, `lint` 0, `lint:api` 0, `build` PASS. (6 fail liveLesson lúc đó đã sửa ở mục CI phía trên.)
 
 ## Đồng bộ BTVN sang Google Sheet — 2026-09-11 (đã QA production 09-14)
 

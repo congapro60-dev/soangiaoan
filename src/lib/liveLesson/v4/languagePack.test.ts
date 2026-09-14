@@ -9,7 +9,7 @@ import type { V4NonViLanguage } from './types';
 describe('student language pack — P31', () => {
   it('returns reviewed English copy for student screens and checkpoints', () => {
     expect(getLocalizedStudentCopy('10-5-31', 'en', 'HS2')?.label).toBe('Personal goal');
-    expect(getLocalizedStudentCopy('10-5-31', 'en', 'HS2')?.action).toContain('goals');
+    expect(getLocalizedStudentCopy('10-5-31', 'en', 'HS2')?.action).toContain('one personal goal');
     expect(getLocalizedStudentCopy('10-5-31', 'en', 'cp-ai-error')?.label).toContain('AI');
   });
 
@@ -39,8 +39,9 @@ describe('student language pack — P31', () => {
   });
 
   it('keeps math notation unchanged in localized copy (formula invariance)', () => {
-    // The model prompt must keep the ≤ symbol; the post-check keeps its expression.
-    expect(getLocalizedStudentCopy('10-5-31', 'en', 'cp-model')?.label).toContain('≤');
+    // Keep the unknown sign unknown: the English support must not give the answer.
+    expect(getLocalizedStudentCopy('10-5-31', 'en', 'cp-model')?.label).toContain('15x + 10y … 150');
+    expect(getLocalizedStudentCopy('10-5-31', 'en', 'cp-model')?.label).not.toContain('≤');
     expect(getLocalizedStudentCopy('10-5-31', 'en', 'cp-postcheck')?.label).toContain('2x + y ≤ 12');
   });
 

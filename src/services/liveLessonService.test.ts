@@ -134,6 +134,7 @@ const login: LoginResponse = {
 const liveTx = {
   exists: false,
   data: {} as Record<string, unknown>,
+  session: sessionData(),
   calls: [] as Array<{ kind: 'set' | 'update'; ref: { path: string }; data: Record<string, unknown> }>,
 };
 
@@ -142,12 +143,13 @@ beforeEach(() => {
   vi.unstubAllGlobals();
   liveTx.exists = false;
   liveTx.data = {};
+  liveTx.session = sessionData();
   liveTx.calls = [];
   firestoreMocks.runTransaction.mockImplementation(async (_db: unknown, fn: (tx: unknown) => Promise<void>) => {
     const tx = {
-      get: vi.fn(async () => ({
-        exists: () => liveTx.exists,
-        data: () => liveTx.data,
+      get: vi.fn(async (ref: {path:string}) => ({
+        exists: () => ref.path.includes('/responses/') ? liveTx.exists : true,
+        data: () => ref.path.includes('/responses/') ? liveTx.data : liveTx.session,
         id: 'student-1__warmup',
       })),
       set: (ref: { path: string }, data: Record<string, unknown>) => {
@@ -186,7 +188,7 @@ describe('liveLessonService Firestore boundary', () => {
     expect(Object.keys(payload).sort()).toEqual([
       'allowedStepIds', 'classId', 'createdAt', 'currentCueId', 'currentTvScreenId', 'expiresAt',
       'lessonId', 'publicStateEnabled', 'publicStatsEnabled', 'schemaVersion', 'status', 'teacherUid',
-      'title', 'updatedAt',
+      'title', 'updatedAt', 'cueStartedAt', 'cueElapsedSeconds',
     ].sort());
     expect(payload).not.toHaveProperty('id');
     expect(payload).not.toHaveProperty('mode');
@@ -293,33 +295,22 @@ describe('liveLessonService Firestore boundary', () => {
         data: () => sessionData({ status: 'closed', currentCueId: 'P01', currentTvScreenId: 'S1', publicStatsEnabled: false }),
       });
     await updateLiveLessonState('session-1', { status: 'running', currentCueId: 'P01', currentTvScreenId: 'S1' });
-    expect(firestoreMocks.updateDoc).toHaveBeenCalledWith(
-      expect.objectContaining({ path: '/liveLessonSessions/session-1' }),
-      { status: 'running', currentCueId: 'P01', currentTvScreenId: 'S1', updatedAt: { __type: 'serverTimestamp' } },
-    );
-    expect(firestoreMocks.setDoc).toHaveBeenNthCalledWith(
-      1,
-      expect.anything(),
-      {
-        cueId: 'P01',
-        tvScreenId: 'S1',
-        status: 'running',
-        showStats: true,
-        updatedAt: { __type: 'serverTimestamp' },
-      },
-    );
+    expect(liveTx.calls).toEqual([
+      {kind:'update', ref:expect.objectContaining({path:'/liveLessonSessions/session-1'}),
+        data:{status:'running',currentCueId:'P01',currentTvScreenId:'S1',cueStartedAt:expect.any(Number),cueElapsedSeconds:0,updatedAt:{__type:'serverTimestamp'}}},
+      {kind:'set', ref:expect.objectContaining({path:'/liveLessonSessions/session-1/public/state'}),
+        data:{status:'running',cueId:'P01',tvScreenId:'S1',showStats:true,cueStartedAt:expect.any(Number),cueElapsedSeconds:0,updatedAt:{__type:'serverTimestamp'}}},
+    ]);
 
     await closeLiveLessonSession('session-1');
     expect(firestoreMocks.updateDoc).toHaveBeenLastCalledWith(
       expect.objectContaining({ path: '/liveLessonSessions/session-1' }),
       { status: 'closed', publicStateEnabled: false, publicStatsEnabled: false, updatedAt: { __type: 'serverTimestamp' } },
     );
-    // After close, setDoc is called twice: (1) the closed marker written to
-    // public/state BEFORE the parent update, and (2) the earlier writePublicState
-    // call from updateLiveLessonState. writePublicState skips the closed session
-    // itself, so no third setDoc occurs.
-    expect(firestoreMocks.setDoc).toHaveBeenCalledTimes(2);
-    const closeMarkerPayload = firestoreMocks.setDoc.mock.calls[1][1] as Record<string, unknown>;
+    // The update publishes atomically in its transaction; close writes its
+    // public marker before revoking the parent in a separate operation.
+    expect(firestoreMocks.setDoc).toHaveBeenCalledTimes(1);
+    const closeMarkerPayload = firestoreMocks.setDoc.mock.calls[0][1] as Record<string, unknown>;
     expect(closeMarkerPayload).toMatchObject({ status: 'closed', showStats: false });
     await expect(updateLiveLessonState('session-1', { unknown: 'field' } as never)).rejects.toThrow(/unknown/i);
     await expect(updateLiveLessonState('session-1', { status: undefined })).rejects.toThrow(/undefined/i);
