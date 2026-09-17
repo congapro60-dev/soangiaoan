@@ -5,6 +5,18 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Hồ sơ năng lực — GĐ2 + GĐ3: khung + AI gắn nhãn + giao diện xem — 2026-09-17
+
+Tiếp GĐ1. Toàn bộ ở `src/lib/classroom/competency/` (thuần, có test) + một view.
+
+- **Khung (GĐ2a):** `framework.ts` — 29 năng lực Toán 10/11/12 trích template trường (`id` ổn định, KHOÁ; đổi id = vỡ nhãn/hồ sơ). App chỉ giữ CẤU TRÚC; 4 mô tả mức nằm trong file trường, chỉ điền khi xuất.
+- **Tổng hợp (GĐ2a):** `competencyModel.ts` `aggregateCompetencies` — chỉ tính bài **teacherApproved**, quy điểm về thang 10, lấy tối đa 3 bài gần nhất tính mức (4 bậc, ngưỡng mặc định 9/7/5), giữ đủ minh chứng. **Bổ sung** `profileMerge`, KHÔNG thay.
+- **AI gắn nhãn (GĐ2b):** mở rộng `buildQuestionCatalog` (`api/grade-homework.ts` + `gradingPrompt.ts`) — CÙNG lượt đọc đề, AI đề xuất `competencyTags` cho cả bài từ đúng khung khối (đọc `grade` của lớp). Chỉ nhận id trong khung (loại id bịa), kèm `confidence`+`reason`. Lưu `assignments/{id}.competencyTags`. **Không thêm Vercel function.**
+- **Giao diện (GĐ3):** `portfolioModel.ts` nối bài nộp × nhãn của bài giao → `aggregateCompetencies`; `CompetencyPortfolio.tsx` hiện trong khung xem 1 học sinh (`StudentReport`, bản giáo viên) theo mảng→chủ đề→năng lực, badge mức + minh chứng; năng lực chưa có bài vẫn hiện.
+- **Ngưỡng sắp cắn người:** nhãn hiện **chỉ AI** — chưa có nút cho giáo viên duyệt/sửa (GĐ3b). `competencyTags` chỉ sinh khi giáo viên bấm "đọc danh mục câu" (hoặc mở báo cáo) SAU deploy này; bài cũ chưa có nhãn → hồ sơ trống cho tới khi build lại catalog. Ràng buộc giữ nguyên: chỉ đụng BTVN.
+- **Chưa làm:** GĐ3b giáo viên duyệt/sửa nhãn trong màn bài giao; GĐ4 xuất file Drive "Sxxxxx - Tên.xlsx".
+- Nghiệm thu: competency 19 test + gradingPrompt 97 + full `lint`(tsc) 0, `build` PASS.
+
 ## Hồ sơ năng lực — GĐ1: Mã HS trong danh sách lớp — 2026-09-17
 
 Bước nền cho tính năng **hồ sơ năng lực Toán** (tích luỹ từ BTVN + nhận xét, xuất ra file mẫu trường "Sxxxxx - Tên.xlsx" khi cần). GĐ1 chỉ làm **khoá cố định = Mã học sinh**.
@@ -14,7 +26,7 @@ Bước nền cho tính năng **hồ sơ năng lực Toán** (tích luỹ từ B
 - **Quyết định thiết kế (owner chốt):** dùng luôn `code` làm Mã HS (Hướng 1), không thêm field mới. Kho chính = app/Firestore khoá theo mã HS; Drive chỉ là nơi **xuất** khi trường kiểm tra.
 - **Backup mã:** đổi Mã HS thì mã cũ được dồn vào `StudentDoc.previousCodes` (dedup, giữ 20 mã gần nhất) để giáo viên xem/khôi phục sau; đặt lại đúng mã đang dùng thì no-op (`updated:false`). Nhập Excel tạo **lớp mới** nên không ghi đè mã lớp cũ.
 - **Ngưỡng sắp cắn người:** đổi Mã HS cũng là đổi **tên đăng nhập** của em (PIN giữ nguyên) — lớp đang để mã tự sinh, đổi sang `Sxxxxx` thì phải báo mã mới cho em. Mã phải **duy nhất trong lớp**.
-- **Chưa làm (giai đoạn sau):** GĐ2 khung năng lực Toán 10/11/12 (trích từ template "Mẫu … Discover 26-27") + AI gắn nhãn bài↔năng lực; GĐ3 giao diện hồ sơ; GĐ4 xuất file Drive. Khung + folder K10/K11/K12 + template đã khảo sát, xem `tasks/todo.md`.
+- **Tiếp theo:** GĐ2/GĐ3 đã xong (xem mục trên); còn GĐ3b duyệt nhãn + GĐ4 xuất file Drive. Khung + folder K10/K11/K12 + template đã khảo sát, xem `tasks/todo.md`.
 - **OpenCode:** dispatch worktree của Desk đang lỗi (session tạo nhưng không gửi prompt; CLI bám nhầm server thư mục chính) — Codex đang vá ở source Desk. GĐ1 này Claude tự làm + tự review; giai đoạn sau trả lại OpenCode khi đã vá.
 - Nghiệm thu: full Vitest **1964/1964 PASS** (thêm 3 test `setStudentCode`), `lint` 0, `lint:api` 0, `build` PASS, `git diff --check` sạch.
 
