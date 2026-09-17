@@ -922,12 +922,18 @@ export const handleSetStudentCode = async (db: Db, body: Body, res: VercelRespon
   const studentRef = studentsRef.doc(studentId);
   const snapshot = await studentRef.get();
   if (!snapshot.exists) return void res.status(404).json({ error: 'Không tìm thấy học sinh trong lớp.' });
+  const existing = snapshot.data() || {};
+  const oldCode = typeof existing.code === 'string' ? existing.code : '';
+  if (oldCode === code) return void res.status(200).json({ updated: false, classId: context.classId, studentId, code });
   const clash = await studentsRef.where('code', '==', code).get();
   if (clash.docs.some(doc => doc.id !== studentId)) {
     return void res.status(409).json({ error: 'Mã học sinh này đã có em khác dùng trong lớp.' });
   }
-  await studentRef.update({ code, updatedAt: nowIso(), updatedBy: context.uid });
-  return void res.status(200).json({ updated: true, classId: context.classId, studentId, code });
+  // BACKUP: giữ lại mã cũ để giáo viên xem/khôi phục sau này (đổi mã cũng là đổi tên đăng nhập).
+  const priorCodes = Array.isArray(existing.previousCodes) ? existing.previousCodes.filter((item: unknown): item is string => typeof item === 'string' && !!item) : [];
+  const previousCodes = oldCode && !priorCodes.includes(oldCode) ? [...priorCodes, oldCode].slice(-20) : priorCodes;
+  await studentRef.update({ code, previousCodes, updatedAt: nowIso(), updatedBy: context.uid });
+  return void res.status(200).json({ updated: true, classId: context.classId, studentId, code, previousCodes });
 };
 
 export const handleAddStudent = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {

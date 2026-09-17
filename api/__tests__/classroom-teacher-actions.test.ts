@@ -317,7 +317,37 @@ describe('POST /api/classroom · teacher collaboration', () => {
     expect(res.statusCode).toBe(200);
     expect(harness.store['classes/shared-class/students']['student-1']).toEqual(expect.objectContaining({
       code: 'S23050141', name: 'Đỗ Hải Phong', updatedBy: 'owner-1',
+      previousCodes: ['10OLINDA-1'],
     }));
+  });
+
+  it('sao lưu dồn mã cũ, không thêm trùng khi đổi đi đổi lại', async () => {
+    const harness = buildHarness();
+    harness.store.classes = { 'shared-class': { teacherId: 'owner-1', name: '10 Olinda' } };
+    harness.store['classes/shared-class/students'] = {
+      'student-1': { id: 'student-1', classId: 'shared-class', name: 'A', code: 'C1', previousCodes: ['C0'] },
+    };
+
+    await call({ action: 'setStudentCode', classId: 'shared-class', studentId: 'student-1', code: 'C0' }); // C1 -> backup ['C0','C1']
+    const res = await call({ action: 'setStudentCode', classId: 'shared-class', studentId: 'student-1', code: 'C1' }); // C0 da co trong backup, khong them lai
+
+    expect(res.statusCode).toBe(200);
+    expect(harness.store['classes/shared-class/students']['student-1'].code).toBe('C1');
+    expect(harness.store['classes/shared-class/students']['student-1'].previousCodes).toEqual(['C0', 'C1']);
+  });
+
+  it('đặt lại đúng mã đang dùng thì không đổi, không ghi backup thừa', async () => {
+    const harness = buildHarness();
+    harness.store.classes = { 'shared-class': { teacherId: 'owner-1', name: '10 Olinda' } };
+    harness.store['classes/shared-class/students'] = {
+      'student-1': { id: 'student-1', classId: 'shared-class', name: 'A', code: 'S001' },
+    };
+
+    const res = await call({ action: 'setStudentCode', classId: 'shared-class', studentId: 'student-1', code: 's001' });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.payload).toEqual(expect.objectContaining({ updated: false }));
+    expect(harness.store['classes/shared-class/students']['student-1']).not.toHaveProperty('previousCodes');
   });
 
   it('từ chối mã học sinh trùng với em khác trong lớp', async () => {

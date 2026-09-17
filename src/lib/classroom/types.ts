@@ -99,6 +99,8 @@ export interface StudentDoc {
   name: string;
   /** Mã học sinh của trường, dùng làm tên đăng nhập. */
   code: string;
+  /** Sao lưu các mã cũ mỗi lần đổi mã — để giáo viên xem/khôi phục sau này. */
+  previousCodes?: string[];
   status: StudentStatus;
   progress: number;
   createdAt: string;
