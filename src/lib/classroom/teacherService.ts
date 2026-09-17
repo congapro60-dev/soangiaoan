@@ -105,6 +105,11 @@ export const renameStudent = async (classId: string, studentId: string, name: st
   await callTeacherApi({ action: 'renameStudent', classId, studentId, name });
 };
 
+/** Sửa mã học sinh (Mã HS) — cũng là tên đăng nhập, phải duy nhất trong lớp; PIN giữ nguyên. */
+export const setStudentCode = async (classId: string, studentId: string, code: string): Promise<void> => {
+  await callTeacherApi({ action: 'setStudentCode', classId, studentId, code });
+};
+
 export const renameAssignment = async (assignmentId: string, title: string): Promise<void> => {
   await callTeacherApi({ action: 'renameAssignment', assignmentId, title });
 };

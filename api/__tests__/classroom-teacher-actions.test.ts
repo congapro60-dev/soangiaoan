@@ -304,4 +304,43 @@ describe('POST /api/classroom · teacher collaboration', () => {
 
     expect(res.statusCode).toBe(403);
   });
+
+  it('owner sửa mã học sinh: tự viết hoa, chỉ đổi field code', async () => {
+    const harness = buildHarness();
+    harness.store.classes = { 'shared-class': { teacherId: 'owner-1', name: '10 Olinda' } };
+    harness.store['classes/shared-class/students'] = {
+      'student-1': { id: 'student-1', classId: 'shared-class', name: 'Đỗ Hải Phong', code: '10OLINDA-1' },
+    };
+
+    const res = await call({ action: 'setStudentCode', classId: 'shared-class', studentId: 'student-1', code: ' s23050141 ' });
+
+    expect(res.statusCode).toBe(200);
+    expect(harness.store['classes/shared-class/students']['student-1']).toEqual(expect.objectContaining({
+      code: 'S23050141', name: 'Đỗ Hải Phong', updatedBy: 'owner-1',
+    }));
+  });
+
+  it('từ chối mã học sinh trùng với em khác trong lớp', async () => {
+    const harness = buildHarness();
+    harness.store.classes = { 'shared-class': { teacherId: 'owner-1', name: '10 Olinda' } };
+    harness.store['classes/shared-class/students'] = {
+      'student-1': { id: 'student-1', classId: 'shared-class', name: 'A', code: 'S001' },
+      'student-2': { id: 'student-2', classId: 'shared-class', name: 'B', code: 'S002' },
+    };
+
+    const res = await call({ action: 'setStudentCode', classId: 'shared-class', studentId: 'student-2', code: 's001' });
+
+    expect(res.statusCode).toBe(409);
+    expect(harness.store['classes/shared-class/students']['student-2'].code).toBe('S002');
+  });
+
+  it('người không thuộc lớp bị từ chối sửa mã học sinh', async () => {
+    const harness = buildHarness();
+    h.uid = 'outsider';
+    harness.store.classes = { 'shared-class': { teacherId: 'root-2', ownerId: 'root-2', name: '10A' } };
+
+    const res = await call({ action: 'setStudentCode', classId: 'shared-class', studentId: 'student-1', code: 'S999' });
+
+    expect(res.statusCode).toBe(403);
+  });
 });

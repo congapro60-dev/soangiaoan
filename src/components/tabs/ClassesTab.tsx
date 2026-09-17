@@ -7,7 +7,7 @@ import { useExams } from '../../hooks/useExams';
 import { parseRosterRows } from '../../utils/classRosterImport';
 import { countUnmigratedClasses, getClassDoc, listAccessibleClasses, migrateLegacyClasses, themHocSinhLenServer, type AccessibleClassDoc } from '../../lib/classroom/classroomService';
 import { listAssignmentsForClass, listSubmissionsForClass } from '../../lib/classroom/submissionService';
-import { acceptTeacherInvitation, createExamAssignment, declineTeacherInvitation, listAccessibleExams, listPendingTeacherInvitations, renameClass as renameClassOnServer, renameStudent as renameStudentOnServer, type PendingTeacherInvitation } from '../../lib/classroom/teacherService';
+import { acceptTeacherInvitation, createExamAssignment, declineTeacherInvitation, listAccessibleExams, listPendingTeacherInvitations, renameClass as renameClassOnServer, renameStudent as renameStudentOnServer, setStudentCode as setStudentCodeOnServer, type PendingTeacherInvitation } from '../../lib/classroom/teacherService';
 import { issueClassPins, resetStudentPin, revokeClassData, revokeStudentAccessServer, viewClassPins, viewStudentPin } from '../../services/studentPortalApi';
 import { AssignmentPanel } from '../features/classroom/AssignmentPanel';
 import { SheetSyncPanel } from '../features/classroom/SheetSyncPanel';
@@ -446,38 +446,56 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
   };
 
   const doiTenHocSinh = async (cls: TeacherClass, student: Student) => {
-    const { value: name } = await Swal.fire({
-      title: `Đổi tên ${student.name}`,
-      input: 'text',
-      inputValue: student.name,
-      inputPlaceholder: 'Họ và tên học sinh',
+    const { value } = await Swal.fire({
+      title: 'Sửa học sinh',
+      html:
+        `<input id="edit-student-name" class="swal2-input" placeholder="Họ và tên học sinh" value="${escapeHtml(student.name)}">` +
+        `<input id="edit-student-code" class="swal2-input" placeholder="Mã HS (dùng để đăng nhập)" value="${escapeHtml(student.code)}">`,
       showCancelButton: true,
-      confirmButtonText: 'Lưu tên mới',
+      confirmButtonText: 'Lưu',
       cancelButtonText: 'Hủy',
-      inputValidator: value => value.trim() ? undefined : 'Tên học sinh không được để trống.',
+      focusConfirm: false,
+      preConfirm: () => ({
+        name: (document.getElementById('edit-student-name') as HTMLInputElement).value.trim(),
+        code: (document.getElementById('edit-student-code') as HTMLInputElement).value.trim(),
+      }),
     });
-    const normalized = typeof name === 'string' ? name.trim() : '';
-    if (!normalized || normalized === student.name) return;
+    if (!value) return;
+    const newName = typeof value.name === 'string' ? value.name.trim() : '';
+    const newCode = typeof value.code === 'string' ? value.code.trim().toUpperCase() : '';
+    if (!newName) { await Swal.fire({ icon: 'error', title: 'Thiếu tên', text: 'Tên học sinh không được để trống.', confirmButtonColor: '#3085d6' }); return; }
+    if (!newCode) { await Swal.fire({ icon: 'error', title: 'Thiếu mã HS', text: 'Mã học sinh không được để trống.', confirmButtonColor: '#3085d6' }); return; }
+
+    const nameChanged = newName !== student.name;
+    const codeChanged = newCode !== student.code.trim().toUpperCase();
+    if (!nameChanged && !codeChanged) return;
+
+    // Mã HS cũng là tên đăng nhập → phải duy nhất trong lớp. Chặn sớm để báo rõ trước khi gọi máy chủ.
+    if (codeChanged && cls.students.some(s => s.id !== student.id && s.code.trim().toUpperCase() === newCode)) {
+      await Swal.fire({ icon: 'error', title: 'Mã HS trùng', text: `Mã "${newCode}" đã có em khác trong lớp dùng.`, confirmButtonColor: '#3085d6' });
+      return;
+    }
 
     let synced = false;
     try {
-      await renameStudentOnServer(cls.id, student.id, normalized);
+      if (nameChanged) await renameStudentOnServer(cls.id, student.id, newName);
+      if (codeChanged) await setStudentCodeOnServer(cls.id, student.id, newCode);
       synced = true;
     } catch (error) {
       const serverClass = await getClassDoc(cls.id).catch(() => null);
       if (serverClass) {
-        await Swal.fire({ icon: 'error', title: 'Chưa đổi được tên học sinh', text: error instanceof Error ? error.message : 'Thử lại sau.', confirmButtonColor: '#3085d6' });
+        await Swal.fire({ icon: 'error', title: 'Chưa lưu được thay đổi', text: error instanceof Error ? error.message : 'Thử lại sau.', confirmButtonColor: '#3085d6' });
         return;
       }
     }
     setData((prev: AppData) => ({
       ...prev,
       classes: (prev.classes || []).map(item => item.id === cls.id
-        ? { ...item, students: item.students.map(current => current.id === student.id ? { ...current, name: normalized } : current) }
+        ? { ...item, students: item.students.map(current => current.id === student.id ? { ...current, name: newName, code: newCode } : current) }
         : item),
     }));
-    setViewingStudent(current => current?.id === student.id ? { ...current, name: normalized } : current);
-    showToast(synced ? 'Đã đổi tên học sinh trên máy chủ.' : 'Đã đổi tên học sinh trên máy này; đồng bộ lớp để tài khoản khác thấy thay đổi.', synced ? 'success' : 'warning');
+    setViewingStudent(current => current?.id === student.id ? { ...current, name: newName, code: newCode } : current);
+    showToast(synced ? 'Đã lưu thay đổi học sinh trên máy chủ.' : 'Đã lưu trên máy này; đồng bộ lớp để tài khoản khác thấy thay đổi.', synced ? 'success' : 'warning');
   };
 
   const addClass = async () => {
@@ -1134,7 +1152,10 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
                 <div key={student.id} className="grid gap-3 border-t border-slate-100 px-5 py-4 text-sm md:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr_auto] md:items-center">
                   <button onClick={() => setViewingStudent(student)} title={`Xem trang của ${student.name}`} className="flex items-center gap-3 text-left transition hover:opacity-70">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-50 font-black text-blue-700">{student.name.charAt(0)}</div>
-                    <div><p className="font-black text-slate-900 underline decoration-slate-200 underline-offset-4">{student.name}</p></div>
+                    <div>
+                      <p className="font-black text-slate-900 underline decoration-slate-200 underline-offset-4">{student.name}</p>
+                      <p className="text-[11px] font-semibold text-slate-400">Mã HS: {student.code}</p>
+                    </div>
                   </button>
                   <button onClick={() => xemPinHienTai(selectedClass, student)} title={`Xem mã PIN đang dùng của ${student.name} — muốn đổi thì bấm "Cấp mã mới" trong hộp thoại`} className="w-fit rounded-full bg-blue-50 px-3 py-1.5 text-xs font-black text-blue-700 transition hover:bg-blue-100">
                     <KeyRound className="mr-1 inline h-3.5 w-3.5" /> Xem PIN
@@ -1154,7 +1175,7 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
                   </div>
                   <span className={`w-fit rounded-full px-3 py-1 text-xs font-black ${status.className}`}>{status.label}</span>
                    <div className="flex items-center gap-1">
-                     <button onClick={() => void doiTenHocSinh(selectedClass, student)} title={`Đổi tên ${student.name}`} aria-label={`Đổi tên ${student.name}`} className="w-fit rounded-full p-2 text-slate-300 transition hover:bg-indigo-50 hover:text-indigo-600"><Pencil className="h-4 w-4" /></button>
+                     <button onClick={() => void doiTenHocSinh(selectedClass, student)} title={`Sửa học sinh ${student.name} (tên, Mã HS)`} aria-label={`Sửa học sinh ${student.name}`} className="w-fit rounded-full p-2 text-slate-300 transition hover:bg-indigo-50 hover:text-indigo-600"><Pencil className="h-4 w-4" /></button>
                      <button onClick={() => deleteStudent(selectedClass, student)} title={`Xoá ${student.name} khỏi lớp`} aria-label={`Xoá ${student.name} khỏi lớp`} className="w-fit rounded-full p-2 text-slate-300 transition hover:bg-red-50 hover:text-red-600"><Trash2 className="h-4 w-4" /></button>
                    </div>
                 </div>
