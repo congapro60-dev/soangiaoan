@@ -1302,16 +1302,65 @@ const handleBuildQuestionCatalog = async (db: FirebaseFirestore.Firestore, body:
   const catalog = await readAssignmentQuestionCatalog(db, uid, assignment);
   if ('error' in catalog) return res.status(catalog.status).json({ error: catalog.error });
 
+  // Giáo viên đã duyệt nhãn thì GIỮ NGUYÊN — đọc lại đề chỉ làm mới danh mục câu, không đè nhãn tay.
+  const nextTags = assignment.competencyTagsApproved === true ? existingTags : catalog.competencyTags;
   await ref.update({
     questionCatalog: catalog.questionCatalog,
-    competencyTags: catalog.competencyTags,
+    competencyTags: nextTags,
     updatedAt: new Date().toISOString(),
   });
   return res.status(200).json({
     questionCatalog: catalog.questionCatalog,
-    competencyTags: catalog.competencyTags,
+    competencyTags: nextTags,
     cached: false,
   });
+};
+
+/**
+ * Giáo viên DUYỆT/SỬA nhãn năng lực của một bài (GĐ3b). Chốt danh sách nhãn tay, khoá lại
+ * (`competencyTagsApproved`) để lần đọc đề sau không đè. Chỉ nhận id có trong khung của khối lớp.
+ */
+const handleSetAssignmentCompetencyTags = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Cần đăng nhập tài khoản giáo viên.' });
+
+  const assignmentId = typeof body.assignmentId === 'string' ? body.assignmentId : '';
+  const ref = db.collection('assignments').doc(assignmentId);
+  const snap = await ref.get();
+  if (!snap.exists) return res.status(404).json({ error: 'Không tìm thấy bài đã giao.' });
+
+  const assignment = snap.data() as FirebaseFirestore.DocumentData;
+  const assignmentTeacherId = typeof assignment.teacherId === 'string' ? assignment.teacherId.trim() : '';
+  const assignmentClassId = typeof assignment.classId === 'string' ? assignment.classId.trim() : '';
+  if (!assignmentTeacherId || !await canTeacherAccessLegacyNamespace(db, uid, assignmentClassId, assignmentTeacherId)) {
+    return res.status(403).json({ error: 'Chỉ giáo viên thuộc lớp được cấp quyền mới dùng được chức năng này.' });
+  }
+
+  const grade = await resolveAssignmentGrade(db, assignment);
+  if (!grade) return res.status(400).json({ error: 'Lớp chưa rõ khối 10/11/12 nên chưa gắn được nhãn năng lực.' });
+  const allowed = competencyIdSet(grade);
+
+  const rawTags = Array.isArray(body.tags) ? body.tags : [];
+  const seen = new Set<string>();
+  const competencyTags: CompetencyTag[] = [];
+  for (const item of rawTags) {
+    if (!item || typeof item !== 'object') continue;
+    const record = item as Record<string, unknown>;
+    const competencyId = String(record.competencyId ?? '').trim();
+    if (!competencyId || !allowed.has(competencyId) || seen.has(competencyId)) continue;
+    seen.add(competencyId);
+    const rawConfidence = Number(record.confidence);
+    const confidence = Number.isFinite(rawConfidence) ? Math.max(0, Math.min(1, rawConfidence)) : 1;
+    competencyTags.push({ competencyId, confidence, reason: String(record.reason ?? '').trim() });
+  }
+
+  await ref.update({
+    competencyTags,
+    competencyTagsApproved: true,
+    updatedAt: new Date().toISOString(),
+    updatedBy: uid,
+  });
+  return res.status(200).json({ competencyTags });
 };
 
 /** Đọc đề bằng vision và trả danh mục câu; dùng chung cho action riêng và cho lượt giải đáp án. */
@@ -1511,6 +1560,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (action === 'solveAnswerKey') return await handleSolveAnswerKey(db, body, res);
     if (action === 'solveAnswerKeyForAssignment') return await handleSolveAnswerKeyForAssignment(db, body, res);
     if (action === 'buildQuestionCatalog') return await handleBuildQuestionCatalog(db, body, res);
+    if (action === 'setAssignmentCompetencyTags') return await handleSetAssignmentCompetencyTags(db, body, res);
     if (action === 'suggestRubric') return await handleSuggestRubric(db, body, res);
     if (action === 'rewriteFeedback') return await handleRewriteFeedback(db, body, res);
     return res.status(400).json({ error: `Hành động không hợp lệ: ${action}`, limits: QUOTA_LIMITS });

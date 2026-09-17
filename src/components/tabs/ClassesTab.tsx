@@ -1244,6 +1244,7 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
                 className={selectedClass.name}
                 showToast={showToast}
                 view={showSubmissions ? 'submissions' : 'assignments'}
+                classGrade={selectedClass.grade}
               />
             </div>
           )}

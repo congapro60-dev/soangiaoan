@@ -240,6 +240,8 @@ export interface AssignmentDoc {
    * mỗi bài đã duyệt trở thành bằng chứng cho các năng lực này. Giáo viên duyệt/sửa sau.
    */
   competencyTags?: AssignmentCompetencyTag[];
+  /** true khi giáo viên đã duyệt nhãn năng lực — đọc lại đề không đè nhãn tay nữa. */
+  competencyTagsApproved?: boolean;
   /** Ảnh đề/ảnh PDF scan đã chuẩn hoá, gửi một lần làm ngữ cảnh chấm. */
   sourceImageUrls?: string[];
   /** Lệnh nội bộ của giáo viên cho AI: phạm vi câu/bài, phần cần bỏ qua, cách xử lý đặc biệt. */
