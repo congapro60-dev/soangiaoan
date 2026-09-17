@@ -1,5 +1,5 @@
 import { auth } from '../lib/firebase';
-import type { AssignmentQuestionCatalogItem } from '../lib/classroom/types';
+import type { AssignmentCompetencyTag, AssignmentQuestionCatalogItem } from '../lib/classroom/types';
 
 export interface GradeBatchResult {
   graded: number;
@@ -237,7 +237,7 @@ export const solveAnswerKeyForAssignment = async (
 export const buildQuestionCatalog = async (
   assignmentId: string,
   force = false,
-): Promise<{ questionCatalog: AssignmentQuestionCatalogItem[]; cached: boolean }> => {
+): Promise<{ questionCatalog: AssignmentQuestionCatalogItem[]; competencyTags: AssignmentCompetencyTag[]; cached: boolean }> => {
   const user = auth.currentUser;
   if (!user) throw new Error('Phiên đăng nhập đã hết hạn.');
 
@@ -255,6 +255,7 @@ export const buildQuestionCatalog = async (
   if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
   return {
     questionCatalog: Array.isArray(data?.questionCatalog) ? data.questionCatalog : [],
+    competencyTags: Array.isArray(data?.competencyTags) ? data.competencyTags : [],
     cached: data?.cached === true,
   };
 };

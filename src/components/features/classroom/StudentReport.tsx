@@ -6,8 +6,10 @@ import { STUDENT_PROFILES_COL, type AssignmentDoc, type StudentProfileDoc, type 
 import { listAssignmentsForClass, listSubmissionsForStudent } from '../../../lib/classroom/submissionService';
 import { NhanXetMarkdown } from './NhanXetMarkdown';
 import { QuestionResultsList } from './QuestionResultsList';
+import { CompetencyPortfolio } from './CompetencyPortfolio';
 import { buildStudentReportModel } from '../../../lib/classroom/reportModel';
 import { buildParentSafeReport, type ParentSafeAssignmentStatus } from '../../../lib/classroom/parentSafeReport';
+import { asCompetencyGrade } from '../../../lib/classroom/competency/framework';
 
 interface Props {
   classId: string;
@@ -16,6 +18,8 @@ interface Props {
   studentName: string;
   className: string;
   studentCode: string;
+  /** Khối lớp ("10"/"11"/"12") để dựng hồ sơ năng lực; vắng thì ẩn phần đó. */
+  classGrade?: string;
   /** true = bản cho người lớn đọc (giáo viên, phụ huynh). false = bản học sinh tự đọc. */
   forAdult?: boolean;
 }
@@ -43,7 +47,7 @@ const parentScore = (score: number | null, maxScore: number | null): string => (
  * bản cho học sinh chỉ nói việc cần làm tiếp. Đưa nguyên văn bản người lớn cho trẻ đọc là
  * biến một nhận xét kỹ thuật thành lời phán về chính nó.
  */
-export const StudentReport = ({ classId, studentId, teacherId, studentName, className, studentCode, forAdult = true }: Props) => {
+export const StudentReport = ({ classId, studentId, teacherId, studentName, className, studentCode, classGrade, forAdult = true }: Props) => {
   const [submissions, setSubmissions] = useState<SubmissionDoc[]>([]);
   const [assignments, setAssignments] = useState<AssignmentDoc[]>([]);
   const [profile, setProfile] = useState<StudentProfileDoc | null>(null);
@@ -85,6 +89,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
   const diemTB = model.averagePercent === null ? '—' : `${model.averagePercent.toFixed(1)}%`;
   const yeu = (profile?.topics || []).filter(t => t.level === 'weak');
   const dangLen = (profile?.topics || []).filter(t => t.level === 'developing');
+  const competencyGrade = asCompetencyGrade(classGrade);
 
   const taiCsv = () => {
     const rows: string[][] = [[
@@ -223,6 +228,10 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
           ))}
         </div>
       </div>
+
+      {forAdult && competencyGrade && (
+        <CompetencyPortfolio grade={competencyGrade} submissions={submissions} assignments={assignments} />
+      )}
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-2xl border border-slate-100 p-4">

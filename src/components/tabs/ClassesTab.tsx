@@ -1208,6 +1208,7 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
                     studentName={viewingStudent.name}
                     studentCode={viewingStudent.code}
                     className={selectedClass.name}
+                    classGrade={selectedClass.grade}
                   />
                 </div>
               </div>
