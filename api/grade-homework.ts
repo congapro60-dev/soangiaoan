@@ -32,6 +32,7 @@ import {
   parseHomeworkGradeForCommit,
   buildQuestionCatalogPrompt,
   parseQuestionCatalog,
+  parseCompetencyTags,
   type QuestionCatalogEntry,
   parsePracticeAssessment,
   parsePracticeQuestions,
@@ -43,6 +44,12 @@ import {
   type HomeworkGradeParseResult,
 } from '../src/lib/classroom/gradingPrompt.js';
 import { JsonRecoveryError } from '../src/utils/jsonRepair.js';
+import {
+  asCompetencyGrade,
+  competencyIdSet,
+  competencyOptionsForPrompt,
+  type CompetencyTag,
+} from '../src/lib/classroom/competency/framework.js';
 import { applyPracticeEvidence } from '../src/lib/classroom/profileMerge.js';
 import {
   buildHomeworkSkillEvidence,
@@ -1287,15 +1294,24 @@ const handleBuildQuestionCatalog = async (db: FirebaseFirestore.Firestore, body:
 
   // Đã có danh mục thì dùng lại, trừ khi giáo viên chủ động bấm đọc lại.
   const existing = Array.isArray(assignment.questionCatalog) ? assignment.questionCatalog : [];
+  const existingTags = Array.isArray(assignment.competencyTags) ? assignment.competencyTags : [];
   if (existing.length > 0 && body.force !== true) {
-    return res.status(200).json({ questionCatalog: existing, cached: true });
+    return res.status(200).json({ questionCatalog: existing, competencyTags: existingTags, cached: true });
   }
 
   const catalog = await readAssignmentQuestionCatalog(db, uid, assignment);
   if ('error' in catalog) return res.status(catalog.status).json({ error: catalog.error });
 
-  await ref.update({ questionCatalog: catalog.questionCatalog, updatedAt: new Date().toISOString() });
-  return res.status(200).json({ questionCatalog: catalog.questionCatalog, cached: false });
+  await ref.update({
+    questionCatalog: catalog.questionCatalog,
+    competencyTags: catalog.competencyTags,
+    updatedAt: new Date().toISOString(),
+  });
+  return res.status(200).json({
+    questionCatalog: catalog.questionCatalog,
+    competencyTags: catalog.competencyTags,
+    cached: false,
+  });
 };
 
 /** Đọc đề bằng vision và trả danh mục câu; dùng chung cho action riêng và cho lượt giải đáp án. */
@@ -1303,7 +1319,7 @@ const readAssignmentQuestionCatalog = async (
   db: FirebaseFirestore.Firestore,
   uid: string,
   assignment: FirebaseFirestore.DocumentData,
-): Promise<{ questionCatalog: QuestionCatalogEntry[] } | { error: string; status: number }> => {
+): Promise<{ questionCatalog: QuestionCatalogEntry[]; competencyTags: CompetencyTag[] } | { error: string; status: number }> => {
   const examText = String(assignment.sourceText || '');
   const examImages = await loadAssignmentSourceImages(assignment);
   if (!examText.trim() && examImages.length === 0) {
@@ -1314,11 +1330,15 @@ const readAssignmentQuestionCatalog = async (
   const verdict = remainingQuota(quota, 'teacher', '');
   if (verdict.allowed <= 0) return { error: verdict.reason, status: 429 };
 
+  // Khối của lớp → chỉ đưa AI đúng danh sách năng lực khối đó để gắn nhãn (Toán 10/11/12).
+  const grade = await resolveAssignmentGrade(db, assignment);
+
   const raw = await callGeminiVision(
     buildQuestionCatalogPrompt({
       examText,
       examImageCount: examImages.length,
       maxScore: Number(assignment.maxScore) || 10,
+      ...(grade ? { competencyOptions: competencyOptionsForPrompt(grade) } : {}),
     }),
     examImages,
     getGradingApiKey(),
@@ -1331,7 +1351,20 @@ const readAssignmentQuestionCatalog = async (
   if (questionCatalog.length === 0) {
     return { error: 'Chưa tách được câu hỏi nào từ đề gốc. Thử đính kèm file đề rõ hơn.', status: 422 };
   }
-  return { questionCatalog };
+  const competencyTags = grade ? parseCompetencyTags(raw, competencyIdSet(grade)) : [];
+  return { questionCatalog, competencyTags };
+};
+
+/** Khối lớp của bài giao (đọc từ lớp), hoặc null nếu lớp không rõ khối 10/11/12. */
+const resolveAssignmentGrade = async (
+  db: FirebaseFirestore.Firestore,
+  assignment: FirebaseFirestore.DocumentData,
+): Promise<10 | 11 | 12 | null> => {
+  const classId = typeof assignment.classId === 'string' ? assignment.classId.trim() : '';
+  if (!classId) return null;
+  const classSnap = await db.collection('classes').doc(classId).get();
+  if (!classSnap.exists) return null;
+  return asCompetencyGrade(classSnap.data()?.grade);
 };
 
 /**

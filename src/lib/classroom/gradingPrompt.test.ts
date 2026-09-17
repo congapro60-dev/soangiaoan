@@ -8,6 +8,8 @@ import {
   buildRubricPrompt,
   buildSolveExamPrompt,
   buildTranscriptionPrompt,
+  buildQuestionCatalogPrompt,
+  parseCompetencyTags,
   parseTranscription,
   isReadTooUncertain,
   parseHomeworkGrade,
@@ -831,5 +833,55 @@ describe('isReadTooUncertain — AI chưa chắc thì không chấm bừa', () =
     expect(isReadTooUncertain([
       { status: 'correct', confidence: 0.9 }, { status: 'incorrect', confidence: 0.8 },
     ])).toBe(false);
+  });
+});
+
+describe('buildQuestionCatalogPrompt — nhánh gắn năng lực', () => {
+  it('không truyền competencyOptions thì prompt không đả động năng lực', () => {
+    const p = buildQuestionCatalogPrompt({ examText: 'x^2', examImageCount: 0, maxScore: 10 });
+    expect(p).not.toContain('GẮN NHÃN NĂNG LỰC');
+    expect(p).not.toContain('competencyTags');
+  });
+
+  it('có competencyOptions thì thêm mục gắn nhãn và schema competencyTags', () => {
+    const p = buildQuestionCatalogPrompt({
+      examText: 'x^2', examImageCount: 0, maxScore: 10,
+      competencyOptions: '- g10-ham-so-bac-hai | Đại số > Hàm số bậc hai: Vẽ đồ thị',
+    });
+    expect(p).toContain('GẮN NHÃN NĂNG LỰC');
+    expect(p).toContain('g10-ham-so-bac-hai');
+    expect(p).toContain('"competencyTags"');
+  });
+});
+
+describe('parseCompetencyTags', () => {
+  const allowed = new Set(['g10-ham-so-bac-hai', 'g10-vecto-va-phep-toan']);
+
+  it('lấy nhãn id hợp lệ, kẹp confidence 0..1, xếp chắc trước', () => {
+    const raw = JSON.stringify({ questions: [], competencyTags: [
+      { competencyId: 'g10-vecto-va-phep-toan', confidence: 0.4, reason: 'có vectơ' },
+      { competencyId: 'g10-ham-so-bac-hai', confidence: 1.9, reason: 'đồ thị bậc hai' },
+    ] });
+    const tags = parseCompetencyTags(raw, allowed);
+    expect(tags.map(t => t.competencyId)).toEqual(['g10-ham-so-bac-hai', 'g10-vecto-va-phep-toan']);
+    expect(tags[0].confidence).toBe(1); // kẹp về 1
+  });
+
+  it('loại id AI bịa ngoài khung và id trùng', () => {
+    const raw = JSON.stringify({ competencyTags: [
+      { competencyId: 'g10-ham-so-bac-hai', confidence: 0.8, reason: 'a' },
+      { competencyId: 'g10-ham-so-bac-hai', confidence: 0.9, reason: 'trùng' },
+      { competencyId: 'g99-bia-dat', confidence: 0.9, reason: 'bịa' },
+    ] });
+    const tags = parseCompetencyTags(raw, allowed);
+    expect(tags).toHaveLength(1);
+    expect(tags[0]).toMatchObject({ competencyId: 'g10-ham-so-bac-hai', confidence: 0.8 });
+  });
+
+  it('confidence thiếu/không hợp lệ về 0; không có mảng thì trả rỗng', () => {
+    expect(parseCompetencyTags('{"competencyTags":[{"competencyId":"g10-vecto-va-phep-toan"}]}', allowed))
+      .toEqual([{ competencyId: 'g10-vecto-va-phep-toan', confidence: 0, reason: '' }]);
+    expect(parseCompetencyTags('không phải json', allowed)).toEqual([]);
+    expect(parseCompetencyTags('{"questions":[]}', allowed)).toEqual([]);
   });
 });

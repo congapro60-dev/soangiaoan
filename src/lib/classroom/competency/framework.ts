@@ -75,3 +75,31 @@ export const competencyById = (id: string): Competency | undefined => BY_ID.get(
 /** Các năng lực của một khối, giữ nguyên thứ tự trong template. */
 export const competenciesByGrade = (grade: CompetencyGrade): Competency[] =>
   MATH_COMPETENCIES.filter(item => item.grade === grade);
+
+/**
+ * Nhãn năng lực AI gợi ý cho MỘT bài BTVN. `confidence` để giáo viên biết chỗ nào nên soát kỹ;
+ * `reason` là căn cứ ngắn (bài rơi vào chủ đề nào). Giáo viên duyệt/sửa trước khi tính vào hồ sơ.
+ */
+export interface CompetencyTag {
+  competencyId: string;
+  /** Độ chắc 0..1 do AI tự đánh giá. */
+  confidence: number;
+  /** Vì sao gắn — một câu ngắn. */
+  reason: string;
+}
+
+/** Ép khối lớp (số hoặc chuỗi "10"/"Lớp 11"...) về 10/11/12, hoặc null nếu không nhận ra. */
+export const asCompetencyGrade = (value: unknown): CompetencyGrade | null => {
+  const n = Number(String(value ?? '').match(/\d+/)?.[0]);
+  return n === 10 || n === 11 || n === 12 ? n : null;
+};
+
+/** Tập id hợp lệ của một khối — để loại nhãn AI bịa id ngoài khung. */
+export const competencyIdSet = (grade: CompetencyGrade): Set<string> =>
+  new Set(competenciesByGrade(grade).map(item => item.id));
+
+/** Danh sách năng lực của khối, định dạng cho prompt: mỗi dòng "id | mảng > chủ đề: năng lực". */
+export const competencyOptionsForPrompt = (grade: CompetencyGrade): string =>
+  competenciesByGrade(grade)
+    .map(item => `- ${item.id} | ${item.area} > ${item.topic}: ${item.competency}`)
+    .join('\n');
