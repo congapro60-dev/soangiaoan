@@ -242,7 +242,7 @@ const classTeacherIds = (data: FirebaseFirestore.DocumentData): string[] => [...
   classOwnerId(data),
 ].filter(Boolean))];
 
-const teacherAssignmentProjection = (id: string, data: FirebaseFirestore.DocumentData): AssignmentDoc => {
+export const teacherAssignmentProjection = (id: string, data: FirebaseFirestore.DocumentData): AssignmentDoc => {
   const allowed = compact({
     id,
     teacherId: data.teacherId,
@@ -259,6 +259,9 @@ const teacherAssignmentProjection = (id: string, data: FirebaseFirestore.Documen
     sourceText: data.sourceText,
     // Báo cáo theo câu đọc thẳng danh mục này; thiếu nó là quay lại cảnh OCR trong trình duyệt.
     questionCatalog: data.questionCatalog,
+    // Nhãn năng lực + cờ đã duyệt — nền cho hồ sơ năng lực; thiếu là hồ sơ luôn trống.
+    competencyTags: data.competencyTags,
+    competencyTagsApproved: data.competencyTagsApproved,
     sourceImageUrls: data.sourceImageUrls,
     gradingInstructions: data.gradingInstructions,
     answerKeyImageUrls: data.answerKeyImageUrls,

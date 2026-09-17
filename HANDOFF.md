@@ -15,8 +15,9 @@ Tiếp GĐ1. Toàn bộ ở `src/lib/classroom/competency/` (thuần, có test) 
 - **Giao diện xem (GĐ3):** `portfolioModel.ts` nối bài nộp × nhãn của bài giao → `aggregateCompetencies`; `CompetencyPortfolio.tsx` hiện trong khung xem 1 học sinh (`StudentReport`, bản giáo viên) theo mảng→chủ đề→năng lực, badge mức + minh chứng; năng lực chưa có bài vẫn hiện. **QA production**: view render đúng (Lớp 10, nhóm mảng, badge, đếm tiến độ).
 - **Duyệt nhãn (GĐ3b):** `CompetencyTagEditor.tsx` trong khung mở rộng bài giao (`AssignmentPanel`): "Gắn nhãn bằng AI" (buildQuestionCatalog force) + thêm/bỏ tay + "Lưu nhãn". Lưu → `handleSetAssignmentCompetencyTags` lọc id theo khung, đặt `competencyTagsApproved=true`. Đọc đề lại KHÔNG đè nhãn đã duyệt (guard). **Chỉ nhãn đã lưu mới vào hồ sơ HS.**
 - **Ngưỡng sắp cắn người:** `competencyTags` tự sinh khi `buildQuestionCatalog` chạy MỚI (bài mới, hoặc bấm "Gắn nhãn bằng AI"); bài cũ đã có danh mục câu → phải bấm nút mới sinh. Trang **Báo cáo lớp đông** (19HS×9 bài) có thể treo renderer khi tải (nặng có sẵn, KHÔNG do lô này) — dùng nút trong bài giao để gắn nhãn thay vì đi qua report. Ràng buộc giữ nguyên: chỉ đụng BTVN.
-- **Chưa làm:** QA live phần sinh nhãn AI thật (Gemini) + hồ sơ điền mức; GĐ4 xuất file Drive "Sxxxxx - Tên.xlsx".
-- Nghiệm thu: competency/portfolio 25 test + gradingPrompt 97 + grade-homework.competency 4 + full `lint`(tsc) 0, `build` PASS.
+- **QA production (đã chạy)**: bấm "Gắn nhãn bằng AI" trên bài vectơ → AI trả đúng "Vectơ và các phép toán" (id khối 10) → "Lưu nhãn" OK. **Lỗi lộ khi QA**: `teacherAssignmentProjection` (api/_classroom-teacher.ts) BỎ SÓT `competencyTags` → editor tải lại + hồ sơ luôn trống dù đã lưu. Đã thêm `competencyTags`+`competencyTagsApproved` vào projection (+ test khoá). Lỗi này lọt hết test cũ — chỉ lộ khi QA thật.
+- **Chưa làm:** GĐ4 xuất file Drive "Sxxxxx - Tên.xlsx".
+- Nghiệm thu: competency/portfolio 25 test + gradingPrompt 97 + grade-homework.competency 4 + projection 2 + full `lint`(tsc) 0, `build` PASS.
 
 ## Hồ sơ năng lực — GĐ1: Mã HS trong danh sách lớp — 2026-09-17
 
