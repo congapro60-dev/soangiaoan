@@ -2,9 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { getPilotLiveLessonDefinition } from '../../lib/liveLesson/definition';
 import type { LivePublicState, LivePublicStats } from '../../lib/liveLesson/types';
 import { lookupTvMedia } from '../../lib/liveLesson/v4/mediaManifest';
-import { getStatCards, getTvListenerNotice, getTvMediaPlaybackState, getTvPresentation, getTvStatsItems, shouldSubscribeToLivePublicStats } from './TvLiveView';
+import { getStatCards, getTvIntentMode, getTvListenerNotice, getTvMediaPlaybackState, getTvPresentation, getTvStatsItems, shouldSubscribeToLivePublicStats } from './TvLiveView';
 
 describe('TvLiveView public projection', () => {
+  it('shows the shared objectives only at the synthesis and reflection activities', () => {
+    expect(getTvIntentMode('P05')).toBe('goals');
+    expect(getTvIntentMode('P38')).toBe('reflection');
+    expect(getTvIntentMode('P20')).toBeNull();
+  });
+
   it('renders only the public screen and aggregate stats', () => {
     const definition = getPilotLiveLessonDefinition();
     const state: LivePublicState = { cueId: 'P12', tvScreenId: 'S8A', status: 'running', showStats: true, updatedAt: 10 };

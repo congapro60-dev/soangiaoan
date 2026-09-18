@@ -45,6 +45,15 @@ describe('getTvStatsView', () => {
     expect(view.submittedCount).toBe(6);
   });
 
+  it('keeps choice bars in the lesson option order instead of response arrival order', () => {
+    const view = getTvStatsView(makeStats({ stepId: 'cp-model', choiceCounts: { B: 1, A: 2 } }), [
+      { value: 'A', label: '≤' },
+      { value: 'B', label: '<' },
+    ]);
+    expect(view.kind).toBe('choice');
+    if (view.kind === 'choice') expect(view.items.map(item => item.label)).toEqual(['A', 'B']);
+  });
+
   it('sanitizes malformed/negative counts to zero', () => {
     const view = getTvStatsView(makeStats({
       stepId: 'cp-route',

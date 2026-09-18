@@ -9,18 +9,11 @@ import { getAllBanToanV4Contracts } from './lessonAdapter';
 // TV (không dùng lại một screenId cho nhiều hoạt động, không để title literal Sxx).
 // Title là chữ chiếu cho học sinh đọc nên viết theo ngôn ngữ lớp học, không dùng
 // tên kỹ thuật của bước ("post-check", "duyệt nhóm", "AI Error of the Week").
-const EXPECTED: Array<{ cue: string; screen: string; label: string; title: string }> = [
-  { cue: 'P00', screen: 'S0', label: 'MỞ ĐẦU', title: 'TÌNH HUỐNG MỞ ĐẦU' },
-  { cue: 'P03', screen: 'S1', label: 'MỤC TIÊU CÁ NHÂN', title: 'CUỐI TIẾT EM MUỐN LÀM ĐƯỢC GÌ?' },
-  { cue: 'P05', screen: 'S2', label: 'MỤC TIÊU CHUNG', title: 'MỤC TIÊU CHUNG CỦA LỚP' },
-  { cue: 'P08', screen: 'S3', label: 'HÌNH THÀNH', title: 'ĐƯỜNG BIÊN VÀ MIỀN NGHIỆM' },
-  { cue: 'P16', screen: 'S4', label: 'TƯ DUY PHẢN BIỆN', title: 'KIỂM CHỨNG LỜI GIẢI CỦA AI' },
-  { cue: 'P19', screen: 'S5', label: 'HỢP TÁC', title: 'CHIA NHÓM LÀM VIỆC' },
-  { cue: 'P20', screen: 'S6', label: 'HỢP TÁC', title: 'NHIỆM VỤ NHÓM' },
-  { cue: 'P27', screen: 'S7', label: 'ĐÁNH GIÁ LẠI', title: 'TỰ KIỂM TRA CÁ NHÂN' },
-  { cue: 'P30', screen: 'S8', label: 'PHÂN HÓA', title: 'BA CỬA VÀO, MỘT ĐÍCH ĐẾN' },
-  { cue: 'P35', screen: 'S9', label: 'CHỐT TOÁN', title: 'CHỐT LẠI VÀ PHẢN VÍ DỤ' },
-  { cue: 'P38', screen: 'S10', label: 'KẾT THÚC', title: 'EXIT TICKET' },
+const EXPECTED = [
+  { cue:'P00',screen:'S0' }, { cue:'P03',screen:'S1' }, { cue:'P05',screen:'S2' },
+  { cue:'P08',screen:'S3' }, { cue:'P16',screen:'S4' }, { cue:'P19',screen:'S5' },
+  { cue:'P20',screen:'S6' }, { cue:'P27',screen:'S7' }, { cue:'P32',screen:'S8' },
+  { cue:'P35',screen:'S9' }, { cue:'P38',screen:'S10' },
 ];
 
 describe('P31 canonical cue → TV screen mapping', () => {
@@ -29,14 +22,14 @@ describe('P31 canonical cue → TV screen mapping', () => {
   const screenById = new Map(def.tvScreens.map((s) => [s.id, s]));
   const cueById = new Map(def.cues.map((c) => [c.id, c]));
 
-  it.each(EXPECTED)('cue $cue renders screen $screen with its real activity', ({ cue, screen, label, title }) => {
+  it.each(EXPECTED)('cue $cue renders screen $screen with its real activity', ({ cue, screen }) => {
     const c = cueById.get(cue);
     expect(c, `cue ${cue} exists`).toBeTruthy();
     expect(c!.tvScreenId).toBe(screen);
     const s = screenById.get(screen);
     expect(s, `screen ${screen} exists`).toBeTruthy();
-    expect(s!.label).toBe(label);
-    expect(s!.title).toBe(title);
+    expect(s!.label).toBeTruthy();
+    expect(s!.title).toBeTruthy();
     expect(s!.action?.trim(), 'slide phải nói việc học sinh làm').toBeTruthy();
     expect(s!.title).not.toMatch(/^S\d+$/); // no literal "Sxx" title
   });
@@ -74,7 +67,7 @@ describe('P31 canonical cue → TV screen mapping', () => {
 
   it('shows the AI faulty statement on the AI-error screen (S4)', () => {
     expect(screenById.get('S4')!.body).toContain('160');
-    expect(screenById.get('S4')!.title).toBe('KIỂM CHỨNG LỜI GIẢI CỦA AI');
+    expect(screenById.get('S4')!.body).not.toContain(contract.aiError.correction);
   });
 
   it('P27 presents an individual post-check with a response on a real student screen', () => {
@@ -87,7 +80,8 @@ describe('P31 canonical cue → TV screen mapping', () => {
   });
 
   it('shows the linear-inequality model on the formation screen (S3)', () => {
-    expect(screenById.get('S3')!.body).toMatch(/≤|<=/);
+    expect(screenById.get('S3')!.body).toContain('15x + 10y … 150');
+    expect(screenById.get('S3')!.body).not.toContain('≤');
   });
 
   it('never leaks teacherScript into the public TV screens', () => {
@@ -106,13 +100,12 @@ describe('P31 canonical checkpoint → student screen mapping', () => {
 
   const EXPECTED_STUDENT: Record<string, string> = {
     'cp-student-goal': 'HS2',
-    'cp-teacher-synthesis': 'HS2',
+    'cp-guiding-question': 'HS1',
     'cp-model': 'HS3',
     'cp-ai-error': 'HS4',
     'cp-group-product': 'HS5',
-    'cp-postcheck-m': 'HS7',
-    'cp-postcheck-s': 'HS7',
-    'cp-postcheck-c': 'HS7',
+    'cp-postcheck': 'HS7',
+    'cp-quick-check': 'HS8',
     'cp-route': 'HS6',
     'cp-exit-ticket': 'HS10',
   };

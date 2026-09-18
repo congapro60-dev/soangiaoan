@@ -366,7 +366,7 @@ service cloud.firestore {
                && data.get('teacherUid', '').size() <= 128
                && data.get('allowedStepIds', []) is list
                && data.get('allowedStepIds', []).size() > 0
-               && data.get('allowedStepIds', []).size() <= 11
+                && data.get('allowedStepIds', []).size() <= 16
                && data.get('allowedStepIds', []).hasOnly([
                     'warmup', 'notice-wonder', 'goals', 'route', 'model',
                     'ai-think-w01', 'ai-error-w01', 'quick-check', 'exit-ticket',
@@ -374,7 +374,10 @@ service cloud.firestore {
                     // allowlist: a teacher cannot add arbitrary response channels.
                     'cp-student-goal', 'cp-teacher-synthesis', 'cp-model', 'cp-ai-error',
                     'cp-group-product', 'cp-postcheck', 'cp-postcheck-m', 'cp-postcheck-s', 'cp-postcheck-c',
-                    'cp-route', 'cp-exit-ticket',
+                     'cp-route', 'cp-exit-ticket',
+                     'cp-diagnostic-1', 'cp-diagnostic-2',
+                     'cp-practice-a', 'cp-practice-b', 'cp-practice-c', 'cp-practice-d', 'cp-practice-challenge',
+                     'cp-compare', 'cp-self-assessment',
                     // Legacy V4 checkpoint ids — existing sessions still reference these.
                     'cp-guiding-question', 'cp-diagnostic', 'cp-route-choice',
                     'cp-post-check', 'cp-quick-check'
@@ -653,7 +656,8 @@ service cloud.firestore {
                     && request.resource.data.diff(resource.data).affectedKeys()
                          .hasOnly([
                            'status', 'currentCueId', 'currentTvScreenId',
-                           'publicStateEnabled', 'publicStatsEnabled', 'updatedAt'
+                           'publicStateEnabled', 'publicStatsEnabled',
+                           'cueStartedAt', 'cueElapsedSeconds', 'updatedAt'
                          ])
                     && request.resource.data.get('updatedAt', null) == request.time;
       allow delete: if llv3SessionOwner();
@@ -817,7 +821,7 @@ service cloud.firestore {
       function validGroupProgress(data) {
         return data is map && data.keys().hasOnly(['cueId', 'stepId', 'members', 'submitted', 'updatedAt'])
           && data.get('cueId', '') is string && data.get('cueId', '').size() > 0 && data.get('cueId', '').size() <= 128
-          && data.get('stepId', '') == 'cp-group-product'
+          && data.get('stepId', '') in ['cp-group-product', 'cp-practice-a']
           && data.get('members', null) is map && data.get('submitted', null) is map
           && data.members.keys().hasOnly(['1','2','3','4','5','6','7','8','9','10','11','12'])
           && data.submitted.keys().hasOnly(['1','2','3','4','5','6','7','8','9','10','11','12'])

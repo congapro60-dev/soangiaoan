@@ -378,3 +378,21 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 
 - Khi một bài demo đã có người dùng/URL thật và trùng source key, không tạo document mới chỉ vì id kỹ thuật khác. Resolve bằng identity rõ ràng (grade/week/period hoặc alias đã biết), audit lại nội dung theo source, rồi nâng cấp tại chỗ để giữ liên kết cũ.
 - Runtime live cũng phải dùng cùng identity canonical; nếu chỉ sửa publisher mà launcher vẫn special-case id cũ, danh sách sẽ “một bài” nhưng giờ dạy chạy definition khác.
+
+## Activity-first reset from shared V7.1 review (2026-09-17)
+
+- Một lesson đẹp nhưng tổ chức như chuỗi slide vẫn chưa phải lớp học tương tác. Mỗi activity phải có mục đích, một hành động chính, một sản phẩm, và một quyết định tiếp theo cho GV.
+- Không bê nguyên một prototype môn khác sang P31. Chỉ lấy nguyên tắc Presenter/Student tách shell, objective “Tôi có thể…”, aggregate công khai, bằng chứng riêng tư, progressive support và regression matrix; nội dung P31 vẫn theo PPCT và thời lượng thật.
+- Số lượt gửi hoặc lựa chọn route không phải bằng chứng năng lực. Đúng/sai chỉ tự động khi contract có đáp án; lời giải thích để GV xem.
+- Không nuốt lỗi `removeChild`/`insertBefore` của React bằng monkey patch toàn cục. Nó có thể che lỗi lifecycle và giữ lại DOM cũ, biểu hiện thành một hoạt động lặp nhiều lần; phải sửa lifecycle/reconciliation ở gốc.
+
+## V7.2 Week 6 source expansion (2026-09-18)
+
+- V7.2 practice phải tách A/B/C/D/Challenge thành question ID riêng; không gộp bốn bài vào một ô trả lời nếu GV cần biết HS dừng ở đâu, dùng Hint/Tool nào và sửa bài nào.
+- Giáo án/snapshot là nguồn dữ kiện và chuẩn Toán. `screenPlan` không phải giao diện bắt buộc; các nhắc QR/Slido phải được chuyển thành activity public/private phù hợp với runtime hiện tại.
+- Khi mở rộng Firestore allowlist cho question ID mới, phải sửa cả Rules, public group-progress key và test cap; nếu chỉ sửa adapter, nút Chạy hoặc aggregate TV sẽ bị Rules rollback.
+
+## V7.2 Week 5 rollout (2026-09-18)
+
+- Mở rộng V7.2 theo `spec.week` phải bao phủ cả Week 5 và Week 6; không để response options hoặc QA harness chỉ nhận diện Week 6.
+- P31 là alias/demo có contract thủ công; các bài Week 5 còn lại dùng adapter generic nhưng vẫn phải giữ đúng source key và nội dung nguồn.

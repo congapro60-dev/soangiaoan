@@ -713,3 +713,31 @@ Kế hoạch: `docs/superpowers/plans/2026-08-30-live-lesson-v4-all-ban-toan-pla
 - [x] Full unit 145 files / 1.731 tests, Rules 8 files / 301 tests, service pilot 13/13, build và lint PASS sau thay đổi.
 - [x] QA browser production sau deploy: xuất bản 48 document thật, bảng có 48 V4 + 3 bài cũ, P31 đúng 1 dòng; 48/48 có nút live, gồm Ôn tập/Tự chọn.
 - [x] Chạy gate cuối, commit và push `main`; deployment `dpl_4Y5atCwE2sW2aUxMFWLtafsivYi5` READY.
+
+## Active P31 direction reset — 2026-09-17
+
+Kế hoạch mới: `docs/superpowers/plans/2026-09-17-p31-activity-first.md`.
+
+- [x] Dùng mô hình activity-first từ brief V7.1 đã đọc trong link chia sẻ; không tiếp tục vá P31 như một bộ slide.
+- [x] Giữ riêng nội dung P31: 40 phút, mục tiêu HS trước mục tiêu chung, không dạy miền nghiệm ở tiết 31.
+- [x] Tách rõ vai trò GV điều phối, TV hiển thị công khai, HS thao tác và nhận hỗ trợ cá nhân.
+- [x] Hoàn tất content/data/visual regression trước khi kết luận hoặc push.
+
+## Active Week 6 V7.2 rollout — 2026-09-18
+
+Kế hoạch: `docs/superpowers/plans/2026-09-18-week6-v72-rollout.md`.
+
+- [x] Kiểm 24 source key Tuần 6: 10-6-39..46, 11-6-34..41, 12-6-34..41.
+- [x] Nâng adapter thành activity-first V7.2, dùng source lesson làm bằng chứng chứ không ép màn hình giống giáo án.
+- [x] Tạo response/evidence/public-private projection source-aware cho cả 24 gói.
+- [x] Chạy contract, Rules/pilot, browser representative và full release gates trước khi push/deploy.
+
+## Active Week 5 V7.2 rollout — 2026-09-18
+
+Kế hoạch: `docs/superpowers/plans/2026-09-18-week5-v72-rollout.md`.
+
+- [x] Kiểm 24 source key Tuần 5: 10-5-31..38, 11-5-26..33, 12-5-26..33.
+- [x] Chuyển adapter generic Tuần 5 sang timeline activity-first V7.2 14 nhịp; giữ P31 trên contract thủ công.
+- [x] Tạo catalog, preview/privacy coverage và response wiring riêng cho cả 24 gói.
+- [x] Chạy full release gates và smoke đại diện Tuần 5.
+- [ ] Commit, push `main`, deploy web và triển khai Firestore Rules.

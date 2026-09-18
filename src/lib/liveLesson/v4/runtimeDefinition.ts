@@ -25,6 +25,10 @@ const responseTypeMap: Record<V4ResponseType, LiveResponseType> = {
   exit_ticket: 'exit_ticket',
 };
 
+function isV72Contract(contract: LiveLessonV4Contract): boolean {
+  return contract.version.includes('v7.2') || contract.source?.week === 5 || contract.source?.week === 6;
+}
+
 const checkpointScreenMap: Record<string, string> = {
   // IDs legacy (48 bài adapter Ban Toán)
   'cp-guiding-question': 'HS1',
@@ -33,6 +37,15 @@ const checkpointScreenMap: Record<string, string> = {
   'cp-ai-error': 'HS4',
   'cp-group-product': 'HS5',
   'cp-route-choice': 'HS6',
+  'cp-diagnostic-1': 'HS3',
+  'cp-diagnostic-2': 'HS3',
+  'cp-practice-a': 'HS5',
+  'cp-practice-b': 'HS5',
+  'cp-practice-c': 'HS5',
+  'cp-practice-d': 'HS5',
+  'cp-practice-challenge': 'HS5',
+  'cp-compare': 'HS9',
+  'cp-self-assessment': 'HS10',
   'cp-post-check': 'HS7',
   'cp-quick-check': 'HS8',
   'cp-exit-ticket': 'HS10',
@@ -101,6 +114,44 @@ function buildResponseSteps(contract: LiveLessonV4Contract): LiveResponseStep[] 
           { value: 'B', label: '< · Ít hơn' },
           { value: 'C', label: '≥ · Ít nhất' },
           { value: 'D', label: '= · Bằng đúng' },
+        ],
+      } : {}),
+      ...(contract.id === 'g10_w5_p31_bpt_tiet1_v4' && checkpoint.id === 'cp-quick-check' ? {
+        options: [
+          { value: 'A', label: 'A · (6; 6)' },
+          { value: 'B', label: 'B · (8; 4)' },
+          { value: 'C', label: 'C · (10; 1)' },
+          { value: 'D', label: 'D · (5; 8)' },
+        ],
+      } : {}),
+      ...(contract.id === 'g10_w5_p31_bpt_tiet1_v4' && checkpoint.id === 'cp-ai-error' ? {
+        options: [
+          { value: 'Conceptual', label: 'Khái niệm' },
+          { value: 'Algebraic', label: 'Tính toán / biến đổi' },
+          { value: 'Logical', label: 'Lập luận' },
+          { value: 'Missing condition', label: 'Điều kiện' },
+        ],
+      } : {}),
+      ...(contract.id === 'g10_w5_p31_bpt_tiet1_v4' && checkpoint.id === 'cp-route' ? {
+        options: [
+          { value: 'M', label: 'M · Củng cố phép kiểm' },
+          { value: 'S', label: 'S · Tự lập mô hình' },
+          { value: 'C', label: 'C · Phản ví dụ và điều kiện' },
+        ],
+      } : {}),
+      ...(isV72Contract(contract) && checkpoint.id === 'cp-ai-error' ? {
+        options: [
+          { value: 'Conceptual', label: 'Khái niệm' },
+          { value: 'Algebraic', label: 'Tính toán / biến đổi' },
+          { value: 'Logical', label: 'Lập luận' },
+          { value: 'Missing condition', label: 'Điều kiện' },
+        ],
+      } : {}),
+      ...(isV72Contract(contract) && checkpoint.id === 'cp-route-choice' ? {
+        options: [
+          { value: 'M', label: 'M · Củng cố' },
+          { value: 'S', label: 'S · Chuẩn' },
+          { value: 'C', label: 'C · Mở rộng' },
         ],
       } : {}),
       ...(checkpoint.responseType === 'text' || checkpoint.responseType === 'exit_ticket' ? { maxTextLength: 500 } : {}),
@@ -199,7 +250,10 @@ function notebookText(block: TimelineBlock): string {
 
 function buildCues(contract: LiveLessonV4Contract, responseSteps: LiveResponseStep[]): LiveCue[] {
   const stepIds = new Set(responseSteps.map((step) => step.id));
-  const cues = contract.timeline.map((block): LiveCue => ({
+  const cues = contract.timeline.map((block): LiveCue => {
+    const checkpointIds = block.checkpointIds ?? (block.checkpointId ? [block.checkpointId] : []);
+    const responseStepIds = checkpointIds.filter(stepId => stepIds.has(stepId));
+    return {
     id: block.id,
     atSeconds: block.startSeconds,
     label: block.label,
@@ -209,9 +263,11 @@ function buildCues(contract: LiveLessonV4Contract, responseSteps: LiveResponseSt
     boardLarge: block.boardLarge ?? '',
     boardSide: block.boardSide ?? '',
     notebook: notebookText(block),
-    observerEvidence: getCheckpointById(contract, block.checkpointId ?? '')?.evidenceSignal ?? 'Nhịp học được giữ theo timeline 40 phút.',
-    ...(block.checkpointId && stepIds.has(block.checkpointId) ? { responseStepId: block.checkpointId } : {}),
-  }));
+    observerEvidence: getCheckpointById(contract, block.checkpointId ?? block.checkpointIds?.[0] ?? '')?.evidenceSignal ?? 'Nhịp học được giữ theo timeline 40 phút.',
+    ...(responseStepIds[0] ? { responseStepId: responseStepIds[0] } : {}),
+    ...(responseStepIds.length > 0 ? { responseStepIds } : {}),
+  };
+  });
   const last = contract.timeline[contract.timeline.length - 1];
   if (!last || last.endSeconds !== contract.durationSeconds) {
     throw new LiveLessonDefinitionError('V4_TIMELINE_INVALID', 'Timeline V4 phải kết thúc đúng 2400 giây.');
@@ -248,9 +304,16 @@ export function buildLiveLessonDefinitionFromV4(
     durationSeconds: contract.durationSeconds,
     cues: buildCues(contract, responseSteps),
     tvScreens: buildTvScreens(contract),
-    studentScreens: studentScreens.map((screen) => ({ ...screen })),
+    studentScreens: studentScreens.map((screen) => {
+      if (contract.id !== 'g10_w5_p31_bpt_tiet1_v4') return { ...screen };
+      const checkpoint = contract.checkpoints.find(item => checkpointScreenMap[item.id] === screen.id);
+      const block = contract.timeline.find(item => item.id === checkpoint?.stepId);
+      return { ...screen, ...(block ? { action: block.studentAction } : {}) };
+    }),
     allowedStepIds: responseSteps.map((step) => step.id),
-    aiErrorStepId: contract.aiError.stepId === 'P16' ? 'cp-ai-error' : contract.aiError.stepId,
+    aiErrorStepId: contract.aiError.stepId === 'P15' || contract.aiError.stepId === 'P16'
+      ? 'cp-ai-error'
+      : contract.aiError.stepId,
     aiErrorOfTheWeek: {
       id: contract.aiError.id,
       category: contract.aiError.category,

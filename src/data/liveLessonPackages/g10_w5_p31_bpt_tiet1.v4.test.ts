@@ -28,7 +28,7 @@ describe('getG10P31V4Contract', () => {
       'P19',
       'P20',
       'P27',
-      'P30',
+      'P32',
       'P35',
       'P38',
     ]);
@@ -42,5 +42,15 @@ describe('getG10P31V4Contract', () => {
     expect(contract.aiError.stepId).toBe('P16');
     expect(aiErrorBlock?.teacherScript).toContain('AI Error of the Week');
     expect(aiErrorBlock?.checkpointId).toBe('cp-ai-error');
+  });
+
+  it('uses student-readable MUST/SHOULD/COULD objectives for the shared goal loop', () => {
+    const contract = getG10P31V4Contract();
+    expect(contract.objectives.math.map(objective => objective.text)).toEqual([
+      expect.stringContaining('MUST · Tôi có thể'),
+      expect.stringContaining('SHOULD · Tôi có thể'),
+      expect.stringContaining('COULD · Tôi có thể'),
+    ]);
+    expect(contract.objectives.math.every(objective => objective.text.includes('Tôi có thể'))).toBe(true);
   });
 });

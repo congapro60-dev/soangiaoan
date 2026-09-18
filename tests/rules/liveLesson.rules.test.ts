@@ -300,15 +300,15 @@ describe('liveLessonSessions · parent session', () => {
     })));
   });
 
-  it('exceeding 11 allowedStepIds → DENY (all ids valid; only the size cap is violated)', async () => {
-    await assertFails(setDoc(sessionRef(dbTeacherA(), 'session-12-steps'), sessionData('session-12-steps', {
-      allowedStepIds: [...V4_ALLOWED_STEP_IDS, 'warmup'],
+  it('exceeding 16 allowedStepIds → DENY (all ids valid; only the size cap is violated)', async () => {
+    await assertFails(setDoc(sessionRef(dbTeacherA(), 'session-17-steps'), sessionData('session-17-steps', {
+      allowedStepIds: [...V4_ALLOWED_STEP_IDS, 'warmup', 'notice-wonder', 'goals', 'route', 'model', 'quick-check'],
     })));
   });
 
   it('owner can update state and delete; student and other teacher cannot mutate → ALLOW/DENY', async () => {
     await assertSucceeds(updateDoc(sessionRef(dbTeacherA()), {
-      status: 'paused', currentCueId: 'cue-2', updatedAt: serverTimestamp(),
+      status: 'paused', currentCueId: 'cue-2', cueStartedAt: 1789687625000, cueElapsedSeconds: 12, updatedAt: serverTimestamp(),
     }));
     await assertFails(updateDoc(sessionRef(dbTeacherA()), {
       status: 'running', updatedAt: CREATED,

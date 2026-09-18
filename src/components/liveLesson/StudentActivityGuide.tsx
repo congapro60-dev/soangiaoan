@@ -12,7 +12,7 @@ export function StudentActivityGuide({ contract, cueId, label, action, supportin
     <h2>{label ?? cue.label}</h2>
     <LiveLessonRichText text={action ?? cue.studentAction ?? 'Theo dõi hướng dẫn của thầy cô.'} className="mt-2 text-lg leading-relaxed" />
     {supportingAction && <LiveLessonRichText text={supportingAction} className="student-support-translation" />}
-    {criteria.length > 0 && <details className="mt-4 rounded-xl border border-indigo-200 bg-white/70 p-4">
+    {cue.startSeconds >= 480 && criteria.length > 0 && <details className="mt-4 rounded-xl border border-indigo-200 bg-white/70 p-4">
       <summary className="cursor-pointer font-bold">Tiêu chí để tự đối chiếu bài làm</summary>
       <ul className="mt-3 list-disc space-y-2 pl-5">{criteria.map(item => <li key={item}>{item}</li>)}</ul>
       <p className="mt-3 text-sm text-slate-600">Đối chiếu với mục tiêu em chọn đầu tiết. Chỉ ra một bước làm, hình vẽ hoặc phép kiểm làm bằng chứng.</p>

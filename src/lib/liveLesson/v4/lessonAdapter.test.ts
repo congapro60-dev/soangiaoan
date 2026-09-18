@@ -25,7 +25,7 @@ describe('Ban Toán W5–W6 → V4 lesson adapter', () => {
     expect(formation.sourceContent?.formulas[0]).toBeTruthy();
     expect(formation.sourceContent?.mistakes.length).toBeGreaterThan(0);
     expect(elective.choicePolicy?.enabled).toBe(true);
-    expect(elective.choicePolicy?.commonPostCheckId).toBe('cp-post-check');
+    expect(elective.choicePolicy?.commonPostCheckId).toBe('cp-exit-ticket');
   });
 
   it('keeps the common 40-minute spine and all route/post-check evidence', () => {
@@ -35,8 +35,9 @@ describe('Ban Toán W5–W6 → V4 lesson adapter', () => {
       expect(contract.timeline[0].startSeconds).toBe(0);
       expect(contract.timeline.at(-1)?.endSeconds).toBe(2400);
       expect(contract.taskVariants.map((task) => task.route)).toEqual(['M', 'S', 'C']);
-      expect(contract.taskVariants.every((task) => task.postCheckId === 'cp-post-check')).toBe(true);
-      expect(contract.groupingCheckpoints[0]?.postCheckId).toBe('cp-post-check');
+      const checkpointIds = new Set(contract.checkpoints.map(checkpoint => checkpoint.id));
+      expect(contract.taskVariants.every((task) => checkpointIds.has(task.postCheckId))).toBe(true);
+      expect(checkpointIds.has(contract.groupingCheckpoints[0]?.postCheckId ?? '')).toBe(true);
       expect(contract.taskVariants.every((task) => task.prompt.length > 12)).toBe(true);
       expect(validateV4Contract(contract)).toEqual({ ok: true, errors: [] });
     }

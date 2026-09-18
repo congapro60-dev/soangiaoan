@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getG10P31V4Contract } from '../../../data/liveLessonPackages/g10_w5_p31_bpt_tiet1.v4';
+import { getBanToanV4Contract } from './lessonAdapter';
 import { buildLiveLessonDefinitionFromV4 } from './runtimeDefinition';
 import {
   assertPreviewPrivacy,
@@ -7,12 +8,15 @@ import {
   buildPreviewModel,
   buildPreviewZipEntries,
   buildSyntheticCueStats,
+  buildTeacherGuideMarkdown,
   formulaToText,
   renderPreviewHtml,
 } from './previewBundle';
 
 const def = buildLiveLessonDefinitionFromV4(getG10P31V4Contract());
 const model = buildPreviewModel(def, '10-5-31');
+const week6Def = buildLiveLessonDefinitionFromV4(getBanToanV4Contract('10-6-39'));
+const week6Model = buildPreviewModel(week6Def, '10-6-39');
 
 describe('formulaToText', () => {
   it('converts common LaTeX commands to Unicode and strips $ delimiters', () => {
@@ -29,11 +33,11 @@ describe('buildPreviewModel (from live runtime definition)', () => {
     model.cues.forEach((c, i) => expect(c.order).toBe(i));
   });
 
-  it('carries the corrected per-cue TV titles', () => {
+  it('carries one activity title per cue from the canonical runtime', () => {
     const byCue = new Map(model.cues.map((c) => [c.cueId, c]));
-    expect(byCue.get('P00')!.tv.title).toBe('TÌNH HUỐNG MỞ ĐẦU');
-    expect(byCue.get('P16')!.tv.title).toBe('KIỂM CHỨNG LỜI GIẢI CỦA AI');
-    expect(byCue.get('P38')!.tv.title).toBe('EXIT TICKET');
+    expect(byCue.get('P00')!.tv.title).toBe('150 nghìn: nhóm em sẽ chọn gì?');
+    expect(byCue.get('P16')!.tv.title).toBe('Em có tin kết luận này không?');
+    expect(byCue.get('P38')!.tv.title).toBe('Em đã tiến được bước nào?');
   });
 
   it('attaches media only to the opening cue P00', () => {
@@ -92,10 +96,10 @@ describe('renderPreviewHtml self-containment', () => {
 
 describe('buildSyntheticCueStats (illustrative preview-only fixture)', () => {
   const byCue = new Map(model.cues.map((c) => [c.cueId, c]));
-  it('shows AI error categories at P16 and routes at P30', () => {
+  it('shows AI error categories at P16 and routes at the route activity', () => {
     expect(buildSyntheticCueStats(byCue.get('P16')!)?.label).toBe('Phân loại lỗi AI');
     expect(buildSyntheticCueStats(byCue.get('P16')!)?.rows).toHaveLength(4);
-    expect(buildSyntheticCueStats(byCue.get('P30')!)?.label).toBe('Tuyến M / S / C');
+    expect(buildSyntheticCueStats(byCue.get('P19')!)?.label).toBe('Tuyến M / S / C');
   });
   it('returns null for cues without a response step (e.g. P00 opening)', () => {
     expect(buildSyntheticCueStats(byCue.get('P00')!)).toBeNull();
@@ -132,6 +136,24 @@ describe('buildPreviewZipEntries', () => {
     expect(html.startsWith('<!doctype html>')).toBe(true);
     const manifest = JSON.parse(entries.find((e) => e.name === 'manifest.json')!.content as string);
     expect(manifest.cueCount).toBe(model.cues.length);
+  });
+
+  it('keeps all V7.2 practice question IDs in the offline preview', () => {
+    const practice = week6Model.cues.find(cue => cue.cueId === 'P22');
+    expect(practice?.student.responseStepIds).toEqual([
+      'cp-practice-a', 'cp-practice-b', 'cp-practice-c', 'cp-practice-d', 'cp-practice-challenge',
+    ]);
+    expect(practice?.student.responseSteps).toHaveLength(5);
+  });
+
+  it('adds a separate teacher guide only when the canonical contract is supplied', () => {
+    const contract = getG10P31V4Contract();
+    const entries = buildPreviewZipEntries(model, null, contract);
+    const guide = entries.find(entry => entry.name === 'GV/huong-dan.md');
+    expect(guide?.content).toContain('Hướng dẫn GV');
+    expect(String(guide?.content)).toContain(contract.aiError.correction);
+    expect(renderPreviewHtml(model)).not.toContain(contract.aiError.correction);
+    expect(buildTeacherGuideMarkdown(contract)).toContain('MUST · Tôi có thể');
   });
 
   it('adds a decoded poster file when a data URI is supplied', () => {

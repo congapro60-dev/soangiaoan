@@ -25,6 +25,15 @@ export const shouldSubscribeToLivePublicStats = (publicState: Pick<LivePublicSta
 
 export const getTvPresentation = (definition: TvLiveDefinition, state: LivePublicState | null, stats: LivePublicStats | null) => ({ screen: state ? definition.tvScreens.find(screen => screen.id === state.tvScreenId) ?? null : null, stats: state?.showStats ? stats : null });
 
+export type TvIntentMode = 'goals' | 'reflection' | null;
+
+/** Mục tiêu chỉ chiếm không gian TV ở hai nhịp cần nhìn lại. */
+export const getTvIntentMode = (cueId: string): TvIntentMode => {
+  if (cueId === 'P05') return 'goals';
+  if (cueId === 'P38') return 'reflection';
+  return null;
+};
+
 export interface TvStatsItem { label: string; value: number; }
 
 export const getTvStatsItems = (stats: LivePublicStats): TvStatsItem[] => [
@@ -169,6 +178,7 @@ export const TvLiveView = ({ definition, sessionId, publicState, publicStateErro
   const activeStepId = cueTimeline.find(cue => cue.id === publicState.cueId)?.responseStepId;
   const currentStats = activeStepId && presentation.stats?.stepId === activeStepId ? presentation.stats : null;
   const screen = presentation.screen;
+  const intentMode = getTvIntentMode(publicState.cueId);
   const listenerNotice = getTvListenerNotice({ publicState, publicStateError, statsError });
   const pacing = getTvPacing({
     cues: cueTimeline,
@@ -276,15 +286,15 @@ export const TvLiveView = ({ definition, sessionId, publicState, publicStateErro
         )}
         {activeStepId && <div className="tv-stats-region"><TvStatsPanel key={`${sessionId}:${publicState.cueId}`} sessionId={sessionId} cueId={publicState.cueId} stepId={activeStepId} options={cueTimeline.find(cue => cue.id === publicState.cueId)?.responseOptions} stats={currentStats} showStats={publicState.showStats} /></div>}
         </div>
-        {intent && (
-          <section className="tv-intent-frame" aria-label="Mục tiêu và tiêu chí thành công">
+        {intent && intentMode && (
+          <section className={`tv-intent-frame is-${intentMode}`} aria-label={intentMode === 'goals' ? 'Đích đến của lớp' : 'Đối chiếu mục tiêu cuối tiết'}>
             <div className="tv-intent-col">
-              <p className="tv-intent-tag">Mục tiêu chung</p>
+              <p className="tv-intent-tag">{intentMode === 'goals' ? 'Đích đến của lớp' : 'Đối chiếu mục tiêu'}</p>
               <p className="tv-intent-text">{intent.walt}</p>
               {intent.waltEn && <p className="tv-intent-en">{intent.waltEn}</p>}
             </div>
             <div className="tv-intent-col">
-              <p className="tv-intent-tag">Bằng chứng thành công</p>
+              <p className="tv-intent-tag">{intentMode === 'goals' ? 'Ba năng lực cần tạo bằng chứng' : 'Bằng chứng em đã tạo'}</p>
               <ol className="tv-intent-list">
                 {intent.wilf.map((item, itemIndex) => <li key={item}>{itemIndex + 1}. {item}</li>)}
               </ol>

@@ -44,7 +44,7 @@ describe('validateGlossaryApproved', () => {
     contract.glossary[1].status = 'retired';
     const unapproved = validateGlossaryApproved(contract);
     expect(unapproved).toContain('term-inequality');
-    expect(unapproved).toContain('term-boundary-line');
+    expect(unapproved).toContain('term-variable');
     expect(unapproved).toHaveLength(2);
   });
 });

@@ -10,6 +10,7 @@ export interface LiveCue {
   notebook: string;
   observerEvidence: string;
   responseStepId?: string;
+  responseStepIds?: string[];
 }
 
 export const g10W5P31BptTiet1Cues: LiveCue[] = [

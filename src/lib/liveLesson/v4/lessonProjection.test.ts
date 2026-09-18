@@ -57,7 +57,7 @@ describe('lessonProjection', () => {
 
     expect(student.scaffoldSets.map((set) => set.id)).toEqual(['scaffold-M', 'scaffold-S', 'scaffold-C']);
     expect(student.languageView).toEqual(STUDENT_LANGUAGE_VIEW);
-    expect(teacher.script).toContain('cùng câu hỏi lớn');
-    expect(teacher.board.large).toContain('3 tiêu chí');
+    expect(teacher.script).toContain('Đáp án chung');
+    expect(teacher.board.large).toContain('Ví dụ dùng hết tiền');
   });
 });

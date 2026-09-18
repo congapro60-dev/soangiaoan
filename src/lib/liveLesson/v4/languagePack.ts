@@ -23,11 +23,12 @@ const P31_EN_COPY: Record<string, LocalizedStudentCopy> = {
   HS9: { label: 'Self-assessment', action: 'Compare your personal goal with your final product.' },
   HS10: { label: 'Exit ticket', action: 'Write one evidence-based conclusion and one thing left to verify.' },
   'cp-student-goal': { label: 'What is one thing you want to be able to do by the end of the lesson?' },
-  'cp-teacher-synthesis': { label: 'The teacher synthesizes the shared goals from your personal goals.' },
+  'cp-guiding-question': { label: 'What would you like to know to check every possible purchase? Write one short question.' },
   'cp-model': { label: 'Complete 15x + 10y … 150 to express “not exceeding 150 thousand dong”. Choose a sign, then explain in your notebook.' },
   'cp-ai-error': { label: "Which line in the AI's solution is suspicious? Pick the error type and give evidence." },
-  'cp-group-product': { label: 'With your group, draw the boundary of 3x + 2y ≤ 30 and check (6;5) and (6;7). Submit your own conclusion about both points with one calculation as evidence.' },
-  'cp-postcheck': { label: 'For 2x + y ≤ 12, check the point (5;3) and state an evidence-based conclusion.' },
+  'cp-group-product': { label: 'Check (4;8) and (8;4) against the budget of 150 thousand dong. Find a purchase that spends exactly the budget. Submit your own calculations and conclusions after the group discussion.' },
+  'cp-postcheck': { label: 'For 2x + y ≤ 12, check (5;3). Find a pair of non-negative integers that makes both sides equal. Show your calculations.' },
+  'cp-quick-check': { label: 'For 3x + 2y ≤ 30, which pair is a solution? A (6;6), B (8;4), C (10;1), D (5;8).' },
   'cp-route': { label: 'Choose or accept route M/S/C and use at most one hint.' },
   'cp-exit-ticket': { label: 'One thing you understood, and one thing still to verify.' },
 };
@@ -84,8 +85,8 @@ export function getLocalizedStudentCopy(
  */
 const REQUIRED_PACK_KEYS = [
   'HS0', 'HS1', 'HS2', 'HS3', 'HS4', 'HS5', 'HS6', 'HS7', 'HS8', 'HS9', 'HS10',
-  'cp-student-goal', 'cp-teacher-synthesis', 'cp-model', 'cp-ai-error',
-  'cp-group-product', 'cp-postcheck', 'cp-route', 'cp-exit-ticket',
+  'cp-student-goal', 'cp-guiding-question', 'cp-model', 'cp-ai-error',
+  'cp-group-product', 'cp-postcheck', 'cp-route', 'cp-quick-check', 'cp-exit-ticket',
 ];
 
 export function hasReviewedStudentLanguagePack(

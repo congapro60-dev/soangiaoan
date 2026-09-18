@@ -15,6 +15,7 @@ export function LiveActivityPublisher({ sessionId, cueId, stepId, enabled }: { s
     let timer: ReturnType<typeof setTimeout> | undefined;
     let writing = false;
     let dirty = false;
+    const isGroupActivity = cueId === 'P20' || cueId === 'P22' || stepId === 'cp-group-product';
     const report = (err: Error) => { if (active) setError(err.message); };
     const write = async () => {
       if (!active || responses === null) return;
@@ -22,7 +23,7 @@ export function LiveActivityPublisher({ sessionId, cueId, stepId, enabled }: { s
       writing = true;
       dirty = false;
       try {
-        await publishLiveActivity(sessionId, cueId, stepId, responses, stepId === 'cp-group-product' ? memberships : null);
+        await publishLiveActivity(sessionId, cueId, stepId, responses, isGroupActivity ? memberships : null);
         if (active) setError(null);
       } catch (err) { report(err instanceof Error ? err : new Error('Không thể công bố thống kê.')); }
       finally { writing = false; if (active && dirty) schedule(); }
@@ -30,7 +31,7 @@ export function LiveActivityPublisher({ sessionId, cueId, stepId, enabled }: { s
     const schedule = () => { clearTimeout(timer); timer = setTimeout(() => { void write(); }, 200); };
     setError(null);
     const stopResponses = subscribeToTeacherResponses(sessionId, stepId, rows => { responses = rows; schedule(); }, report);
-    const stopGroups = stepId === 'cp-group-product'
+    const stopGroups = isGroupActivity
       ? subscribeToLiveGroupMemberships(sessionId, rows => { memberships = rows; schedule(); }, report) : () => {};
     const retry = () => schedule();
     window.addEventListener('online', retry);

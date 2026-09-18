@@ -27,7 +27,7 @@ const sumRecord = (record: Record<string, unknown> | undefined | null): number =
  * Chọn cách trình bày theo bước hiện tại. Ưu tiên tín hiệu stepId (ai-error/route),
  * sau đó theo trường đếm nào có dữ liệu. Text/exit chỉ hiện participant/submitted.
  */
-export function getTvStatsView(stats: LivePublicStats): TvStatsView {
+export function getTvStatsView(stats: LivePublicStats, options: Array<{ value: string; label: string }> = []): TvStatsView {
   const participantCount = safeInt(stats.participantCount);
   const submittedCount = safeInt(stats.submittedCount);
   const stepId = typeof stats.stepId === 'string' ? stats.stepId : '';
@@ -54,12 +54,15 @@ export function getTvStatsView(stats: LivePublicStats): TvStatsView {
     };
   }
   if (choiceKeys.length > 0) {
+    const orderedKeys = options.length > 0
+      ? options.map(option => option.value).filter(key => choiceKeys.includes(key))
+      : choiceKeys;
     return {
       kind: 'choice',
       title: 'Lựa chọn của lớp',
       participantCount,
       submittedCount,
-      items: choiceKeys
+      items: orderedKeys
         .map((key) => ({ label: key, count: safeInt((stats.choiceCounts as Record<string, unknown>)[key]) }))
         .filter((item) => item.count > 0),
     };
@@ -83,16 +86,17 @@ const PUBLIC_LABELS: Record<string, string> = {
 };
 
 export const TvStatsPanel = ({ stats, showStats, sessionId, cueId, stepId, options }: TvStatsPanelProps) => {
+  const isGroupActivity = cueId === 'P20' || cueId === 'P22' || stepId === 'cp-group-product';
   const [groups, setGroups] = useState<LiveGroupProgress | null>(null);
   const [groupError, setGroupError] = useState(false);
   useEffect(() => {
     setGroups(null); setGroupError(false);
-    if (!showStats || stepId !== 'cp-group-product' || !sessionId) return;
+    if (!showStats || !isGroupActivity || !sessionId) return;
     return subscribeToLiveGroupProgress(sessionId, value => { setGroups(value); setGroupError(false); }, () => setGroupError(true));
-  }, [showStats, sessionId, cueId, stepId]);
+  }, [showStats, sessionId, cueId, stepId, isGroupActivity]);
 
   if (!showStats) return <footer className="tv-results-hidden"><span aria-hidden="true">◌</span> Cùng suy nghĩ · Kết quả chờ thầy cô mở</footer>;
-  const view = stats ? getTvStatsView(stats) : null;
+  const view = stats ? getTvStatsView(stats, options) : null;
   const items = view && view.kind !== 'counts' ? view.items : [];
   const total = items.reduce((sum, item) => sum + item.count, 0);
   const groupRows = groups && groups.cueId === cueId && groups.stepId === stepId
@@ -100,7 +104,7 @@ export const TvStatsPanel = ({ stats, showStats, sessionId, cueId, stepId, optio
   return <section className="tv-results-panel" aria-label="Kết quả hoạt động">
     <header className="tv-results-header">
       <span className="tv-results-live"><span aria-hidden="true" /> Theo phản hồi đã nhận</span>
-      <h3>{stepId === 'cp-group-product' ? 'Nhịp làm việc của các nhóm' : view?.title ?? 'Kết quả của lớp'}</h3>
+      <h3>{isGroupActivity ? 'Nhịp làm việc của các nhóm' : view?.title ?? 'Kết quả của lớp'}</h3>
     </header>
     {!view ? <p className="tv-results-empty">Đang chờ phản hồi của hoạt động này…</p> : <>
       <div className="tv-response-total"><strong>{view.submittedCount}</strong><span>học sinh đã gửi</span></div>
@@ -113,7 +117,7 @@ export const TvStatsPanel = ({ stats, showStats, sessionId, cueId, stepId, optio
       })}</div>}
       {view.submittedCount === 0 && <p className="tv-results-empty">Chưa có phản hồi. Hãy dành thời gian suy nghĩ trước khi gửi.</p>}
     </>}
-    {stepId === 'cp-group-product' && <div className="tv-group-progress">
+    {isGroupActivity && <div className="tv-group-progress">
       {groupError ? <p className="tv-results-empty">Chưa kết nối được tiến độ nhóm.</p>
         : groupRows.length === 0 ? <p className="tv-results-empty">HS chọn số nhóm thầy cô đã phân công trên thiết bị.</p>
         : groupRows.map(key => <div className="tv-group-tile" key={key}>
@@ -121,7 +125,7 @@ export const TvStatsPanel = ({ stats, showStats, sessionId, cueId, stepId, optio
           <div className="tv-result-track" aria-hidden="true"><span style={{ width: `${Math.min(100, (groups!.submitted[key] ?? 0) / groups!.members[key] * 100)}%` }} /></div>
         </div>)}
     </div>}
-    <p className="tv-results-caption">{stepId === 'cp-group-product'
+    <p className="tv-results-caption">{isGroupActivity
       ? 'Theo số thành viên đã chọn nhóm. Lượt gửi là tín hiệu tiến độ, chưa phải đánh giá chất lượng.'
       : items.length ? 'Số lượt chọn để cùng thảo luận, không phải bảng xếp hạng.' : 'Thầy cô đọc bài và chọn điểm cần trao đổi. Số lượt gửi không phải số câu đúng.'}</p>
   </section>;

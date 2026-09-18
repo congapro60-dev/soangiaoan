@@ -3,7 +3,8 @@
 // mạng. Chỉ chứa nội dung công khai — không teacherScript, không đáp án riêng,
 // không PII/PIN/UID/response của học sinh.
 
-import type { LiveLessonDefinition } from '../types';
+import type { LiveLessonDefinition, LiveResponseType } from '../types';
+import type { LiveLessonV4Contract } from './types';
 import { lookupTvMedia } from './mediaManifest';
 
 export interface PreviewCue {
@@ -11,7 +12,16 @@ export interface PreviewCue {
   cueId: string;
   atSeconds: number;
   tv: { screenId: string; label: string; title: string; body: string };
-  student: { screenId: string; label: string; action: string; responsePrompt?: string };
+  student: {
+    screenId: string;
+    label: string;
+    action: string;
+    responsePrompt?: string;
+    responseType?: LiveResponseType;
+    responseOptions?: Array<{ value: string; label: string }>;
+    responseStepIds?: string[];
+    responseSteps?: Array<{ id: string; label: string; responseType: LiveResponseType; options: Array<{ value: string; label: string }> }>;
+  };
   media: { poster: string; alt: string } | null;
 }
 
@@ -38,6 +48,9 @@ export interface PreviewManifest {
     tvTitle: string;
     studentScreenId: string;
     hasResponse: boolean;
+    responseType: LiveResponseType | null;
+    responseOptions: Array<{ value: string; label: string }>;
+    responseStepIds: string[];
     media: string | null;
   }>;
 }
@@ -69,7 +82,9 @@ export function buildPreviewModel(
 
   const cues: PreviewCue[] = definition.cues.map((cue, index) => {
     const tv = tvById.get(cue.tvScreenId);
-    const step = cue.responseStepId ? stepById.get(cue.responseStepId) : undefined;
+    const responseStepIds = cue.responseStepIds ?? (cue.responseStepId ? [cue.responseStepId] : []);
+    const steps = responseStepIds.map(stepId => stepById.get(stepId)).filter((item): item is NonNullable<typeof item> => Boolean(item));
+    const step = steps[0];
     const studentScreenId = step?.screenId ?? 'HS0';
     const student = studentById.get(studentScreenId) ?? studentById.get('HS0');
     const mediaEntry = lookupTvMedia(definitionKey, cue.tvScreenId);
@@ -87,7 +102,13 @@ export function buildPreviewModel(
         screenId: studentScreenId,
         label: student?.label ?? 'Theo dõi hướng dẫn',
         action: student?.action ?? '',
-        ...(step ? { responsePrompt: formulaToText(step.label) } : {}),
+        ...(step ? {
+          responsePrompt: formulaToText(step.label),
+          responseType: step.responseTypes[0],
+          responseOptions: step.options?.map(option => ({ ...option })),
+          responseStepIds: steps.map(responseStep => responseStep.id),
+          responseSteps: steps.map(responseStep => ({ id: responseStep.id, label: formulaToText(responseStep.label), responseType: responseStep.responseTypes[0], options: responseStep.options?.map(option => ({ ...option })) ?? [] })),
+        } : {}),
       },
       media: mediaEntry ? { poster: mediaEntry.posterSrc, alt: mediaEntry.altText } : null,
     };
@@ -118,6 +139,9 @@ export function buildPreviewManifest(model: PreviewModel): PreviewManifest {
       tvTitle: cue.tv.title,
       studentScreenId: cue.student.screenId,
       hasResponse: Boolean(cue.student.responsePrompt),
+      responseType: cue.student.responseType ?? null,
+      responseOptions: cue.student.responseOptions ?? [],
+      responseStepIds: cue.student.responseSteps?.map(step => step.id) ?? [],
       media: cue.media ? cue.media.poster : null,
     })),
   };
@@ -178,6 +202,7 @@ function base64ToBytes(base64: string): Uint8Array {
 export function buildPreviewZipEntries(
   model: PreviewModel,
   posterDataUri?: string | null,
+  contract?: LiveLessonV4Contract,
 ): PreviewZipEntry[] {
   const html = renderPreviewHtml(model, { posterDataUri });
   const manifest = buildPreviewManifest(model);
@@ -187,11 +212,40 @@ export function buildPreviewZipEntries(
     { name: 'preview.html', content: html },
     { name: 'manifest.json', content: JSON.stringify(manifest, null, 2) },
   ];
+  if (contract) entries.push({ name: 'GV/huong-dan.md', content: buildTeacherGuideMarkdown(contract) });
   if (posterDataUri && posterDataUri.startsWith('data:')) {
     const base64 = posterDataUri.split(',')[1] ?? '';
     if (base64) entries.push({ name: 'media/preview-poster.png', content: base64ToBytes(base64) });
   }
   return entries;
+}
+
+/** Tài liệu riêng cho GV; preview.html vẫn chỉ chứa TV/HS công khai. */
+export function buildTeacherGuideMarkdown(contract: LiveLessonV4Contract): string {
+  const lines = [
+    `# Hướng dẫn GV · ${contract.title}`,
+    '',
+    `- Thời lượng: ${Math.round(contract.durationSeconds / 60)} phút`,
+    `- Câu hỏi định hướng: ${contract.objectives.teacherSynthesisPrompt}`,
+    '',
+    '## Đích đến chung',
+    ...contract.objectives.math.map(objective => `- ${objective.text}`),
+    '',
+    '## Nhịp dạy và can thiệp',
+    '| Thời gian | Hoạt động | GV dẫn/quan sát | Bảng và minh chứng |',
+    '|---|---|---|---|',
+    ...contract.timeline.map(block => `| ${Math.floor(block.startSeconds / 60)}:${String(block.startSeconds % 60).padStart(2, '0')}–${Math.floor(block.endSeconds / 60)}:${String(block.endSeconds % 60).padStart(2, '0')} | ${block.label} | ${block.teacherScript.replace(/\n/g, ' ')} | ${(block.boardLarge ?? '').replace(/\n/g, ' ')} |`),
+    '',
+    '## Đáp án và điểm cần chốt',
+    `- Lỗi AI: ${contract.aiError.correction}`,
+    `- Phép chứng minh: ${contract.aiError.proof}`,
+    ...contract.taskVariants.map(task => `- Tuyến ${task.route}: ${task.prompt} · Sau hoạt động: ${task.postCheckId}`),
+    '',
+    '## Ghi chú sử dụng',
+    '- `preview.html` là bản xem trước nội dung công khai, không phải ảnh chụp DOM runtime.',
+    '- Số liệu trong preview có nhãn dữ liệu minh họa; khi dạy, TV chỉ nhận aggregate realtime sau khi GV bật kết quả.',
+  ];
+  return `${lines.join('\n')}\n`;
 }
 
 export interface RenderPreviewOptions {
@@ -203,25 +257,21 @@ export interface SyntheticCueStats {
   rows: Array<{ label: string; count: number }>;
 }
 
-// Số liệu MINH HỌA (không phải dữ liệu Firestore thật) cho các cue có bước phản
-// hồi, để GV hình dung bảng thống kê TV. Tất định theo cueId; luôn gắn nhãn rõ.
+// Số liệu MINH HỌA (không phải dữ liệu Firestore thật) cho các hoạt động có bước
+// phản hồi, để GV hình dung bảng thống kê TV. Dựa vào responseType/options của
+// chính activity, không dựa vào mã cue.
 export function buildSyntheticCueStats(cue: PreviewCue): SyntheticCueStats | null {
-  if (!cue.student.responsePrompt) return null;
-  if (cue.cueId === 'P16') {
-    return { label: 'Phân loại lỗi AI', rows: [
-      { label: 'Conceptual', count: 4 }, { label: 'Algebraic', count: 3 },
-      { label: 'Logical', count: 9 }, { label: 'Missing condition', count: 2 },
-    ] };
-  }
-  if (cue.cueId === 'P30') {
-    return { label: 'Tuyến M / S / C', rows: [
-      { label: 'Tuyến M', count: 7 }, { label: 'Tuyến S', count: 11 }, { label: 'Tuyến C', count: 6 },
-    ] };
-  }
-  if (cue.cueId === 'P03') {
-    return { label: 'Lựa chọn mục tiêu', rows: [
-      { label: 'G1', count: 8 }, { label: 'G2', count: 10 }, { label: 'G3', count: 6 },
-    ] };
+  if (!cue.student.responsePrompt || !cue.student.responseType) return null;
+  const options = cue.student.responseOptions ?? [];
+  if (options.length > 0) {
+    const values = new Set(options.map(option => option.value));
+    const errorValues = new Set(['Conceptual', 'Algebraic', 'Logical', 'Missing condition']);
+    const isAiError = options.length === errorValues.size && [...values].every(value => errorValues.has(value));
+    const isRoute = options.length === 3 && ['M', 'S', 'C'].every(value => values.has(value));
+    return {
+      label: isAiError ? 'Phân loại lỗi AI' : isRoute ? 'Tuyến M / S / C' : 'Lựa chọn của hoạt động',
+      rows: options.map((option, index) => ({ label: option.label, count: [8, 5, 11, 3][index] ?? 2 })),
+    };
   }
   return { label: 'Tiến độ gửi', rows: [{ label: 'Tham gia', count: 24 }, { label: 'Đã gửi', count: 18 }] };
 }
@@ -240,6 +290,9 @@ export function renderPreviewHtml(model: PreviewModel, options: RenderPreviewOpt
       studentLabel: cue.student.label,
       studentAction: cue.student.action,
       responsePrompt: cue.student.responsePrompt ?? '',
+      responseType: cue.student.responseType ?? null,
+      responseOptions: cue.student.responseOptions ?? [],
+      responseSteps: cue.student.responseSteps ?? [],
       hasMedia: Boolean(cue.media),
       stats: buildSyntheticCueStats(cue),
     })),
@@ -348,7 +401,8 @@ export function renderPreviewHtml(model: PreviewModel, options: RenderPreviewOpt
     document.getElementById('hsLabel').textContent = c.studentLabel;
     document.getElementById('hsAction').textContent = c.studentAction;
     var resp = document.getElementById('hsResp');
-    if(c.responsePrompt){ resp.hidden=false; resp.textContent='Ô phản hồi: '+c.responsePrompt; } else { resp.hidden=true; }
+    if(c.responseSteps && c.responseSteps.length>1){ resp.hidden=false; resp.innerHTML=''; c.responseSteps.forEach(function(step){var d=document.createElement('div');d.textContent=step.id+': '+step.label;resp.appendChild(d);}); }
+    else if(c.responsePrompt){ resp.hidden=false; resp.textContent='Ô phản hồi: '+c.responsePrompt; } else { resp.hidden=true; }
     document.getElementById('hsTvTitle').textContent = c.tvTitle;
     document.getElementById('hsTvBody').textContent = c.tvBody.split('\\n').filter(Boolean).join(' · ');
     var st = document.getElementById('tvStats');

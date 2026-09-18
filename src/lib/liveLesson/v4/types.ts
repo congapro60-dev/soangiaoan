@@ -39,6 +39,8 @@ export interface TimelineBlock {
   boardLarge?: string;
   boardSide?: string;
   checkpointId?: string;   // liên kết tới checkpoint thu bằng chứng ở block này
+  /** Nhiều câu hỏi cùng thuộc một activity (V7.2 practice A–D/challenge). */
+  checkpointIds?: string[];
 }
 
 // --- Ngôn ngữ ---

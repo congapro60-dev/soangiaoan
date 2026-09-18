@@ -12,8 +12,8 @@ import { StudentLiveView } from '../components/liveLesson/StudentLiveView';
 import { LiveActivityPublisher } from '../components/liveLesson/LiveActivityPublisher';
 
 export type TvDefinitionProjection = Pick<LiveLessonDefinition, 'id' | 'lessonId' | 'title' | 'durationSeconds' | 'tvScreens' | 'intent'> & { tvCues: TvCueTiming[] };
-export type StudentCueProjection = { id: string; studentScreenId: string; responseStepId?: string };
-export type StudentDefinitionProjection = Pick<LiveLessonDefinition, 'id' | 'lessonId' | 'title' | 'durationSeconds' | 'tvScreens' | 'studentScreens' | 'allowedStepIds' | 'responseSteps'> & { studentCues: StudentCueProjection[] };
+export type StudentCueProjection = { id: string; studentScreenId: string; responseStepId?: string; responseStepIds?: string[] };
+export type StudentDefinitionProjection = Pick<LiveLessonDefinition, 'id' | 'lessonId' | 'title' | 'durationSeconds' | 'tvScreens' | 'studentScreens' | 'allowedStepIds' | 'responseSteps' | 'intent'> & { studentCues: StudentCueProjection[] };
 export type LiveLessonDefinitionProjection = LiveLessonDefinition | TvDefinitionProjection | StudentDefinitionProjection;
 
 export const parseLiveLessonMode = (value: string | null): LiveLessonMode | null => value === 'teacher' || value === 'tv' || value === 'student' || value === 'tv-control' ? value : null;
@@ -58,7 +58,13 @@ export function projectLiveLessonDefinition(definition: LiveLessonDefinition, mo
     studentScreens: definition.studentScreens.map(screen => ({ ...screen })),
     allowedStepIds: [...definition.allowedStepIds],
     responseSteps: definition.responseSteps.map(step => ({ ...step, responseTypes: [...step.responseTypes] })),
-    studentCues: definition.cues.map(cue => ({ id: cue.id, studentScreenId: cue.responseStepId ? (stepScreenIds.get(cue.responseStepId) ?? 'HS0') : 'HS0', ...(cue.responseStepId ? { responseStepId: cue.responseStepId } : {}) })),
+    ...(definition.intent ? { intent: { ...definition.intent, wilf: [...definition.intent.wilf], ...(definition.intent.waltEn ? { waltEn: definition.intent.waltEn } : {}), ...(definition.intent.wilfEn ? { wilfEn: [...definition.intent.wilfEn] } : {}) } } : {}),
+    studentCues: definition.cues.map(cue => ({
+      id: cue.id,
+      studentScreenId: cue.responseStepId ? (stepScreenIds.get(cue.responseStepId) ?? 'HS0') : 'HS0',
+      ...(cue.responseStepId ? { responseStepId: cue.responseStepId } : {}),
+      ...(cue.responseStepIds && cue.responseStepIds.length > 0 ? { responseStepIds: [...cue.responseStepIds] } : {}),
+    })),
   };
 }
 
@@ -158,7 +164,7 @@ export const LiveLessonPage = () => {
           setSession(found);
           setLoading(false);
           if (found) {
-            stopTeacherSession = subscribeToTeacherSession(sessionId, nextSession => {
+            const unsubscribe = subscribeToTeacherSession(sessionId, nextSession => {
               if (!active) return;
               if (!nextSession) {
                 setSession(null);
@@ -171,10 +177,12 @@ export const LiveLessonPage = () => {
               if (!active) return;
               setTeacherSessionError(`Không thể cập nhật trạng thái phiên realtime. (${error.message})`);
             });
+            if (active) stopTeacherSession = unsubscribe;
+            else unsubscribe();
           }
         } else {
           waitingForPublicState = true;
-          stopPublicState = subscribeToLivePublicState(sessionId, state => {
+          const unsubscribe = subscribeToLivePublicState(sessionId, state => {
             if (!active) return;
             if (state) {
               hasSeenPublicState = true;
@@ -193,6 +201,8 @@ export const LiveLessonPage = () => {
             else setLoadError(message);
             setLoading(false);
           });
+          if (active) stopPublicState = unsubscribe;
+          else unsubscribe();
         }
       } catch (error) {
         if (active) setLoadError(error instanceof Error ? error.message : 'Không tải được phiên tiết trực tiếp.');

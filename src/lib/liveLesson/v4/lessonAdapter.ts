@@ -7,6 +7,7 @@ import type {
   GlossaryItem,
   LanguageDemand,
   LiveLessonV4Contract,
+  PublicTvScreen,
   Objective,
   ScaffoldSet,
   TaskVariant,
@@ -116,6 +117,30 @@ const TIMELINE: ReadonlyArray<readonly [string, number, number, string, string]>
   ['P35', 2100, 2280, 'S9', 'summary'],
   ['P38', 2280, 2400, 'S10', 'exitTicket'],
 ];
+
+// V7.2 keeps the lesson at 40 minutes but gives practice its own questions
+// and enough time to move from core work to extension.
+const V72_TIMELINE: ReadonlyArray<readonly [string, number, number, string, string]> = [
+  ['P00', 0, 180, 'S0', 'opening'],
+  ['P02', 180, 300, 'S1', 'prediction'],
+  ['P04', 300, 420, 'S2', 'goals'],
+  ['P07', 420, 660, 'S3', 'explore'],
+  ['P09', 660, 780, 'S4', 'quick1'],
+  ['P11', 780, 960, 'S5', 'generalize'],
+  ['P13', 960, 1080, 'S6', 'quick2'],
+  ['P15', 1080, 1320, 'S7', 'verify'],
+  ['P18', 1320, 1500, 'S8', 'anchor'],
+  ['P20', 1500, 1620, 'S9', 'example'],
+  ['P22', 1620, 2040, 'S10', 'practice'],
+  ['P34', 2040, 2160, 'S11', 'compare'],
+  ['P36', 2160, 2340, 'S12', 'exit'],
+  ['P39', 2340, 2400, 'S13', 'selfAssessment'],
+];
+
+// V7.2 is the activity-first classroom contract for the two rollout weeks.
+// P31 still has a separate hand-authored runtime contract; this predicate only
+// controls the generic adapter used by the other source packages.
+const isV72 = (spec: SourceLessonSpec): boolean => spec.week === 5 || spec.week === 6;
 
 const TERM_LIBRARY: ReadonlyArray<{
   id: string;
@@ -266,8 +291,15 @@ function buildGlossary(spec: SourceLessonSpec): GlossaryItem[] {
 }
 
 function buildTimeline(spec: SourceLessonSpec, error: SourceAiError, postCheckId: string): TimelineBlock[] {
-  return TIMELINE.map(([id, startSeconds, endSeconds, tvScreenId, phase]) => {
-    const activity = activityFor(spec, phase);
+  const beats = isV72(spec) ? V72_TIMELINE : TIMELINE;
+  return beats.map(([id, startSeconds, endSeconds, tvScreenId, phase]) => {
+    const sourcePhase: Record<string, string> = {
+      opening: 'Khởi động', prediction: 'Khởi động', goals: 'Xác định mục tiêu',
+      explore: 'HĐ1', quick1: 'Kiểm tra nhanh', generalize: 'HĐ1', quick2: 'Kiểm tra nhanh',
+      verify: 'HĐ1', anchor: 'HĐ1', example: 'HĐ2', practice: 'HĐ2', compare: 'Kiểm tra nhanh',
+      exit: 'Sơ kết', selfAssessment: 'Sơ kết',
+    };
+    const activity = activityFor(spec, sourcePhase[phase] ?? phase);
     const phaseLabel = phase === 'aiError' ? 'THINK → AI → VERIFY' : phase;
     const teacherScript = phase === 'aiError'
       ? `${error.teacherPrompt} ${error.studentProduct}`
@@ -282,15 +314,29 @@ function buildTimeline(spec: SourceLessonSpec, error: SourceAiError, postCheckId
       ? boardTextFor(spec, 'BẢNG PHỤ', undefined, error.boardPrompt)
       : boardTextFor(spec, 'BẢNG PHỤ', phase, phase === 'goals' ? 'CÂU HỎI ĐỊNH HƯỚNG\nMỤC TIÊU CỦA HS' : 'TỪ KHÓA / KHUNG CÂU');
     let checkpointId: string | undefined;
-    if (id === 'P03') checkpointId = 'cp-guiding-question';
-    if (id === 'P05') checkpointId = 'cp-student-goal';
-    if (id === 'P08') checkpointId = 'cp-diagnostic';
-    if (id === 'P16') checkpointId = 'cp-ai-error';
-    if (id === 'P19') checkpointId = 'cp-route-choice';
-    if (id === 'P20') checkpointId = 'cp-group-product';
-    if (id === 'P27') checkpointId = postCheckId;
-    if (id === 'P30') checkpointId = 'cp-quick-check';
-    if (id === 'P38') checkpointId = 'cp-exit-ticket';
+    let checkpointIds: string[] | undefined;
+    if (isV72(spec)) {
+      if (id === 'P02') checkpointId = 'cp-guiding-question';
+      if (id === 'P04') checkpointId = 'cp-student-goal';
+      if (id === 'P09') checkpointId = 'cp-diagnostic-1';
+      if (id === 'P13') checkpointId = 'cp-diagnostic-2';
+      if (id === 'P15') checkpointId = 'cp-ai-error';
+      if (id === 'P18') checkpointId = 'cp-route-choice';
+      if (id === 'P22') checkpointIds = ['cp-practice-a', 'cp-practice-b', 'cp-practice-c', 'cp-practice-d', 'cp-practice-challenge'];
+      if (id === 'P34') checkpointId = 'cp-compare';
+      if (id === 'P36') checkpointId = 'cp-exit-ticket';
+      if (id === 'P39') checkpointId = 'cp-self-assessment';
+    } else {
+      if (id === 'P03') checkpointId = 'cp-guiding-question';
+      if (id === 'P05') checkpointId = 'cp-student-goal';
+      if (id === 'P08') checkpointId = 'cp-diagnostic';
+      if (id === 'P16') checkpointId = 'cp-ai-error';
+      if (id === 'P19') checkpointId = 'cp-route-choice';
+      if (id === 'P20') checkpointId = 'cp-group-product';
+      if (id === 'P27') checkpointId = postCheckId;
+      if (id === 'P30') checkpointId = 'cp-quick-check';
+      if (id === 'P38') checkpointId = 'cp-exit-ticket';
+    }
     return {
       id,
       label: `${id} · ${phaseLabel}`,
@@ -301,7 +347,8 @@ function buildTimeline(spec: SourceLessonSpec, error: SourceAiError, postCheckId
       studentAction,
       boardLarge,
       boardSide,
-      checkpointId,
+      ...(checkpointId ? { checkpointId } : {}),
+      ...(checkpointIds ? { checkpointIds } : {}),
     };
   });
 }
@@ -344,11 +391,44 @@ function buildScreens(spec: SourceLessonSpec, error: SourceAiError): { tv: LiveL
   };
 }
 
+function buildV72PublicScreens(spec: SourceLessonSpec, error: SourceAiError): PublicTvScreen[] {
+  const activity = (phase: string): SourceScreenActivity | undefined => activityFor(spec, phase);
+  const practice = [0, 1, 2, 4].map((index, itemIndex) => {
+    const exercise = spec.exercises[index] ?? spec.exercises[itemIndex];
+    return `${String.fromCharCode(65 + itemIndex)} · ${exercise?.question ?? spec.focus}`;
+  });
+  const challenge = spec.exercises[5]?.question ?? 'Thử một dữ kiện mới và nêu điều kiện cần kiểm.';
+  const firstPrompt = activity('Khởi động')?.prompt ?? spec.guidingQuestion ?? `Em dự đoán bước đầu cho ${spec.focus} là gì?`;
+  const goalPrompt = activity('Xác định mục tiêu')?.prompt ?? 'Em muốn tự làm được điều gì và sẽ tạo bằng chứng nào?';
+  const explorePrompt = activity('HĐ1')?.prompt ?? spec.formulas.slice(0, 2).join('\n');
+  const quickPrompt = activity('Kiểm tra nhanh')?.prompt ?? spec.quick[0]?.question ?? 'Trả lời nhanh rồi tự kiểm.';
+  const groupPrompt = activity('HĐ2')?.prompt ?? `Cùng kiểm chứng ${spec.focus} bằng một sản phẩm có căn cứ.`;
+  const summaryPrompt = activity('Sơ kết')?.prompt ?? `Đối chiếu bằng chứng cuối tiết với ${spec.focus}.`;
+  const screens: PublicTvScreen[] = [
+    { screenId: 'S0', label: 'KHỞI ĐỘNG · TÌNH HUỐNG', title: spec.title, body: firstPrompt, action: 'Quan sát, dự đoán và nói với bạn một căn cứ ban đầu.' },
+    { screenId: 'S1', label: 'DỰ ĐOÁN', title: 'Em dự đoán điều gì?', body: firstPrompt, action: 'Gửi một dự đoán ngắn; chưa cần biết đáp án.' },
+    { screenId: 'S2', label: 'MỤC TIÊU · TIẾNG NÓI HỌC SINH', title: 'Em muốn tự làm được gì?', body: goalPrompt, action: 'Chọn một mục tiêu và một sản phẩm sẽ chứng minh mục tiêu đó.' },
+    { screenId: 'S3', label: 'KHÁM PHÁ', title: 'Nhìn dữ kiện trước khi dùng công thức', body: explorePrompt, action: 'Nêu dữ kiện, công cụ và điều kiện cần giữ.' },
+    { screenId: 'S4', label: 'KIỂM TRA NHANH 1', title: 'Chọn bước tiếp theo', body: quickPrompt, action: 'Trả lời riêng rồi nói vì sao em chọn bước đó.' },
+    { screenId: 'S5', label: 'KHÁI QUÁT', title: 'Từ ví dụ đến quy tắc', body: spec.formulas.slice(0, 3).join('\n') || spec.focus, action: 'Nói điều luôn đúng và điều kiện đi kèm.' },
+    { screenId: 'S6', label: 'KIỂM TRA NHANH 2', title: 'Kiểm tra điều kiện', body: spec.quick[1]?.question ?? quickPrompt, action: 'Thế một trường hợp hoặc kiểm miền xác định.' },
+    { screenId: 'S7', label: 'THINK → AI → VERIFY', title: 'Lời giải AI cần được kiểm chứng', body: `${error.wrongSolution}\n\n${error.teacherPrompt}`, action: 'Tìm lỗi, sửa, rồi ghi phép chứng minh.' },
+    { screenId: 'S8', label: 'CHỐT CÔNG CỤ', title: 'Chọn cửa vào phù hợp', body: 'M · Củng cố\nS · Chuẩn\nC · Mở rộng\n\nCùng một chuẩn đích; mức hỗ trợ khác nhau.', action: 'Chọn theo nhu cầu hiện tại, không phải nhãn năng lực.' },
+    { screenId: 'S9', label: 'VÍ DỤ NHANH', title: 'Thử một ví dụ có hướng dẫn', body: spec.examples[0]?.question ?? spec.focus, action: 'Làm từng bước; dừng để kiểm tra căn cứ.' },
+    { screenId: 'S10', label: 'LUYỆN TẬP · 7 PHÚT', title: 'A → B → C → D', body: `${practice.join('\n')}\nChallenge · ${challenge}`, action: 'A và B là cốt lõi; xong thì sang C, sẵn sàng thì mở D và Challenge.' },
+    { screenId: 'S11', label: 'SO SÁNH · PHẢN BIỆN', title: 'Hai cách viết có cùng ý nghĩa không?', body: spec.quick[0]?.question ?? spec.formulas[0] ?? spec.focus, action: 'Đối chiếu điều kiện, phép biến đổi và kết luận.' },
+    { screenId: 'S12', label: 'EXIT TICKET', title: 'Bằng chứng cuối tiết', body: summaryPrompt, action: 'Viết một kết luận có căn cứ và một điều cần hỗ trợ.' },
+    { screenId: 'S13', label: 'TỰ ĐÁNH GIÁ', title: 'Em đã tiến được bước nào?', body: 'Đọc lại MUST · SHOULD · COULD và chọn mức phù hợp với bằng chứng của em.', action: 'Chọn mức tự đánh giá; giữ nguyên câu mục tiêu để đối chiếu.' },
+  ];
+  return screens;
+}
+
 function buildContract(spec: SourceLessonSpec): LiveLessonV4Contract {
   const error = SNAPSHOT.aiErrors[spec.key];
-  const postCheckId = 'cp-post-check';
+  const postCheckId = isV72(spec) ? 'cp-exit-ticket' : 'cp-post-check';
   const successCriteria = commonSuccessCriteria(spec);
   const screens = buildScreens(spec, error);
+  const v72Screens = isV72(spec) ? buildV72PublicScreens(spec, error) : undefined;
   const taskVariants: TaskVariant[] = (['M', 'S', 'C'] as const).map((route, index) => {
     const level: SourceExerciseLevel = route === 'M' ? 'NB' : route === 'S' ? 'TH' : 'VD';
     const exercise = sourceExerciseFor(spec, level, index);
@@ -375,23 +455,45 @@ function buildContract(spec: SourceLessonSpec): LiveLessonV4Contract {
   }));
   const aiError: AiErrorOfTheWeek = {
     id: `ai-error-${spec.key}`,
-    stepId: 'P16',
+    stepId: isV72(spec) ? 'P15' : 'P16',
     category: aiErrorCategory(error.category),
     faultyStatement: error.wrongSolution,
     correction: error.correction,
     proof: error.proof,
   };
-  const mathObjectives: Objective[] = [
+  const mathObjectives: Objective[] = isV72(spec) ? [
+    { id: 'math-must', kind: 'math', text: `MUST · Tôi có thể nhận diện công cụ và dữ kiện cần dùng cho ${spec.focus}.` },
+    { id: 'math-should', kind: 'math', text: `SHOULD · Tôi có thể giải quyết một nhiệm vụ về ${spec.focus} và trình bày một bước có căn cứ.` },
+    { id: 'math-could', kind: 'math', text: 'COULD · Tôi có thể kiểm chứng kết quả, phát hiện một điều kiện bị bỏ sót và giải thích kết luận.' },
+  ] : [
     { id: 'math-1', kind: 'math', text: `Nhận diện dữ kiện và công cụ cần dùng trong ${spec.focus}.` },
     { id: 'math-2', kind: 'math', text: `Vận dụng kiến thức để giải quyết một nhiệm vụ về ${spec.focus}.` },
     { id: 'math-3', kind: 'math', text: 'Kiểm chứng kết quả và giải thích kết luận bằng căn cứ.' },
   ];
   const languageDemands: LanguageDemand[] = [
-    { stepId: 'P03', terms: ['dữ kiện', 'điều kiện'], sentenceFrames: spec.languageSupport?.frames?.slice(0, 2) ?? ['Em nhận thấy ___ vì ___.'] },
-    { stepId: 'P16', terms: ['lập luận', 'phép kiểm'], sentenceFrames: ['Bước ___ chưa đúng vì ___.', 'Em kiểm chứng bằng ___.'] },
-    { stepId: 'P27', terms: ['nghiệm', 'kết luận'], sentenceFrames: ['Kết quả ___ đúng/sai vì ___.'] },
+    { stepId: isV72(spec) ? 'P02' : 'P03', terms: ['dữ kiện', 'điều kiện'], sentenceFrames: spec.languageSupport?.frames?.slice(0, 2) ?? ['Em nhận thấy ___ vì ___.'] },
+    { stepId: isV72(spec) ? 'P15' : 'P16', terms: ['lập luận', 'phép kiểm'], sentenceFrames: ['Bước ___ chưa đúng vì ___.', 'Em kiểm chứng bằng ___.'] },
+    { stepId: isV72(spec) ? 'P22' : 'P27', terms: ['nghiệm', 'kết luận'], sentenceFrames: ['Kết quả ___ đúng/sai vì ___.'] },
   ];
-  const checkpoints: Checkpoint[] = [
+  const v72Practice = [
+    ['cp-practice-a', 'A · CỐT LÕI', spec.exercises[0]?.question ?? spec.focus],
+    ['cp-practice-b', 'B · CỐT LÕI', spec.exercises[1]?.question ?? spec.focus],
+    ['cp-practice-c', 'C · TRƯỜNG HỢP ĐẶC BIỆT', spec.exercises[2]?.question ?? spec.focus],
+    ['cp-practice-d', 'D · MỞ RỘNG', spec.exercises[4]?.question ?? spec.focus],
+    ['cp-practice-challenge', 'CHALLENGE', spec.exercises[5]?.question ?? spec.focus],
+  ] as const;
+  const checkpoints: Checkpoint[] = isV72(spec) ? [
+    { id: 'cp-guiding-question', stepId: 'P02', kind: 'in_class', prompt: spec.guidingQuestion ?? `Câu hỏi nào giúp giải thích ${spec.focus}?`, responseType: 'text', evidenceSignal: 'HS nêu dự đoán/câu hỏi gắn với nội dung Toán.', teacherNextActions: ['Chọn 2–3 câu hỏi để tổng hợp thành câu hỏi chung.'] },
+    { id: 'cp-student-goal', stepId: 'P04', kind: 'in_class', prompt: 'Em muốn tự làm được điều gì và sẽ chứng minh bằng sản phẩm nào?', responseType: 'text', evidenceSignal: 'HS chọn mục tiêu cá nhân và minh chứng.', teacherNextActions: ['Tổng hợp mục tiêu chung sau lượt HS tự đặt mục tiêu.'] },
+    { id: 'cp-diagnostic-1', stepId: 'P09', kind: 'in_class', prompt: `Bước đầu tiên nào giúp xử lý ${spec.focus}? Viết một lý do ngắn.`, responseType: 'text', evidenceSignal: 'HS bộc lộ điểm xuất phát về khái niệm/quy trình.', teacherNextActions: ['Đọc tín hiệu và chọn scaffold phù hợp.'] },
+    { id: 'cp-diagnostic-2', stepId: 'P13', kind: 'in_class', prompt: spec.quick[0]?.question ?? `Kiểm tra một trường hợp của ${spec.focus}.`, responseType: 'text', evidenceSignal: 'HS kiểm một trường hợp trước khi khái quát.', teacherNextActions: ['Mở thảo luận ngắn về điều kiện hoặc bước hay nhầm.'] },
+    { id: 'cp-ai-error', stepId: 'P15', kind: 'in_class', prompt: error.teacherPrompt, responseType: 'choice', evidenceSignal: 'HS phân loại lỗi, sửa lời giải và nêu phép chứng minh.', teacherNextActions: ['Ghi thẻ lỗi vào thư viện AI Error; hỏi vì sao AI có thể mắc lỗi.'] },
+    { id: 'cp-route-choice', stepId: 'P18', kind: 'in_class', prompt: 'Chọn cửa vào M/S/C phù hợp với bằng chứng hiện tại; em có thể đổi tuyến.', responseType: 'route', evidenceSignal: 'HS tự chọn tuyến theo nhu cầu hiện tại, không bị gắn nhãn năng lực.', teacherNextActions: ['Dùng dữ liệu để điều phối hỗ trợ, không xếp hạng HS.'] },
+    ...v72Practice.map(([id, label, prompt]) => ({ id, stepId: 'P22', kind: 'in_class' as const, prompt: `${label}: ${prompt}`, responseType: 'text' as const, evidenceSignal: `Sản phẩm ${label} được chấm riêng; ghi nhận Hint/Tool/revision.`, teacherNextActions: ['Xem đúng/sai theo từng bài; mời HS giải thích khi cần.'] })),
+    { id: 'cp-compare', stepId: 'P34', kind: 'in_class', prompt: 'Hai cách viết có cùng ý nghĩa không? Nêu điều kiện cần kiểm.', responseType: 'text', evidenceSignal: 'HS phản biện cách viết và kiểm điều kiện.', teacherNextActions: ['Chốt một điểm giống và một điểm cần phân biệt.'] },
+    { id: 'cp-exit-ticket', stepId: 'P36', kind: 'post_check', prompt: `Viết một kết luận có căn cứ về ${spec.focus}.`, responseType: 'exit_ticket', evidenceSignal: 'Exit ticket nối mục tiêu cá nhân với bằng chứng cuối tiết.', teacherNextActions: ['Lưu bằng chứng cho tiết sau hoặc phản hồi ngắn.'] },
+    { id: 'cp-self-assessment', stepId: 'P39', kind: 'post_check', prompt: 'Đọc lại MUST · SHOULD · COULD và chọn mức phù hợp với bằng chứng của em.', responseType: 'exit_ticket', evidenceSignal: 'Tự đánh giá được đối chiếu với bài A–D và exit ticket.', teacherNextActions: ['Gắn cờ trường hợp tự đánh giá lệch với bằng chứng.'] },
+  ] : [
     { id: 'cp-guiding-question', stepId: 'P03', kind: 'in_class', prompt: spec.guidingQuestion ?? `Câu hỏi nào giúp giải thích ${spec.focus}?`, responseType: 'text', evidenceSignal: 'HS nêu một câu hỏi hoặc điều muốn biết gắn với nội dung Toán.', teacherNextActions: ['Chọn 2–3 câu hỏi để tổng hợp thành câu hỏi chung.'] },
     { id: 'cp-student-goal', stepId: 'P05', kind: 'in_class', prompt: 'Em muốn tự làm được điều gì và sẽ chứng minh bằng sản phẩm nào?', responseType: 'choice', evidenceSignal: 'HS chọn mục tiêu cá nhân và minh chứng, không bắt buộc giống nhau.', teacherNextActions: ['Tổng hợp mục tiêu chung trên bảng phụ.'] },
     { id: 'cp-diagnostic', stepId: 'P08', kind: 'in_class', prompt: `Chọn công cụ/bước đầu tiên để xử lý ${spec.focus}.`, responseType: 'choice', evidenceSignal: 'Tín hiệu điểm xuất phát về khái niệm hoặc quy trình.', teacherNextActions: ['Đọc thống kê ẩn danh và chọn scaffold.'] },
@@ -403,7 +505,7 @@ function buildContract(spec: SourceLessonSpec): LiveLessonV4Contract {
     { id: 'cp-exit-ticket', stepId: 'P38', kind: 'post_check', prompt: `Viết một kết luận có căn cứ về ${spec.focus}.`, responseType: 'exit_ticket', evidenceSignal: 'Exit ticket nối mục tiêu cá nhân với bằng chứng cuối tiết.', teacherNextActions: ['Lưu bằng chứng cho tiết sau hoặc phản hồi ngắn.'] },
   ];
   const routePolicy = {
-    enabled: spec.selfChoice,
+    enabled: isV72(spec) || spec.selfChoice,
     prompt: 'Chọn cửa vào phù hợp với bằng chứng hiện tại; đây không phải nhãn năng lực và có thể đổi tuyến.',
     allowedRoutes: ['M', 'S', 'C'] as V4Route[],
     commonSuccessCriteria: [...successCriteria],
@@ -430,6 +532,7 @@ function buildContract(spec: SourceLessonSpec): LiveLessonV4Contract {
     },
     sourceContent: buildSourceContent(spec),
     selfChoice: spec.selfChoice,
+    ...(v72Screens ? { publicTvScreens: v72Screens } : {}),
     choicePolicy: routePolicy,
     timeline: buildTimeline(spec, error, postCheckId),
     objectives: {
@@ -450,20 +553,20 @@ function buildContract(spec: SourceLessonSpec): LiveLessonV4Contract {
     } satisfies CurriculumBridge],
     scaffoldSets,
     fading: [
-      { stepId: 'P20', maxHints: 2, note: spec.languageSupport?.fading ?? 'Giảm dần gợi ý sau khi HS nêu được bước có căn cứ.' },
-      { stepId: 'P27', maxHints: 1, note: 'Post-check cá nhân chỉ mở tối đa một gợi ý ngắn.' },
+      { stepId: isV72(spec) ? 'P22' : 'P20', maxHints: 2, note: spec.languageSupport?.fading ?? 'Giảm dần gợi ý sau khi HS nêu được bước có căn cứ.' },
+      { stepId: isV72(spec) ? 'P36' : 'P27', maxHints: 1, note: 'Post-check cá nhân chỉ mở tối đa một gợi ý ngắn.' },
     ],
     evidenceRules: [
-      { id: 'evidence-diagnostic', sourceStepId: 'P08', dimension: 'concept', minConfidence: 0.6 },
-      { id: 'evidence-ai-error', sourceStepId: 'P16', dimension: 'reasoning', minConfidence: 0.6 },
-      { id: 'evidence-group', sourceStepId: 'P20', dimension: 'autonomyCollaboration', minConfidence: 0.6 },
-      { id: 'evidence-post-check', sourceStepId: 'P27', dimension: 'procedure', minConfidence: 0.6 },
+      { id: 'evidence-diagnostic', sourceStepId: isV72(spec) ? 'P09' : 'P08', dimension: 'concept', minConfidence: 0.6 },
+      { id: 'evidence-ai-error', sourceStepId: isV72(spec) ? 'P15' : 'P16', dimension: 'reasoning', minConfidence: 0.6 },
+      { id: 'evidence-group', sourceStepId: isV72(spec) ? 'P22' : 'P20', dimension: 'autonomyCollaboration', minConfidence: 0.6 },
+      { id: 'evidence-post-check', sourceStepId: isV72(spec) ? 'P36' : 'P27', dimension: 'procedure', minConfidence: 0.6 },
     ],
     checkpoints,
     taskVariants,
     groupingCheckpoints: [{
       id: 'group-checkpoint',
-      stepId: 'P20',
+      stepId: isV72(spec) ? 'P22' : 'P20',
       purpose: 'same_need_workshop',
       minGroupSize: 3,
       maxGroupSize: 4,
@@ -492,7 +595,7 @@ function buildContract(spec: SourceLessonSpec): LiveLessonV4Contract {
       offlineReady: true,
       reviewedBy: 'v4-source-structure-review',
     },
-    version: `2026-08-30-${SNAPSHOT.source.fingerprint.slice(0, 12)}`,
+    version: isV72(spec) ? `2026-09-18-v7.2-${SNAPSHOT.source.fingerprint.slice(0, 12)}` : `2026-08-30-${SNAPSHOT.source.fingerprint.slice(0, 12)}`,
   };
 }
 
