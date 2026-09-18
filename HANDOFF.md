@@ -5,6 +5,14 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Bản phụ huynh: thêm nhận xét vĩ mô + phương án đồng hành — 2026-09-18
+
+Phụ huynh không rành Toán thì danh sách tên chủ đề vẫn khó hiểu. Thêm 3 phần dựng THUẦN từ số liệu (không AI, không lọt số bài) vào `parentSafeReport.ts` (bỏ `nextSteps` cũ):
+- `overallSummary`: nhận xét tổng quan ngôn ngữ đời thường, theo band điểm trung bình chính thức (≥80/≥65/≥50/<50) + xu hướng lên/xuống.
+- `parentActions`: việc phụ huynh làm ở nhà (hỏi con mỗi ngày, cùng con luyện phần "Cần rèn thêm", nhắc nộp bài, khích lệ khi tiến bộ…) — điều kiện theo weakCount/missing/trend.
+- `teacherActions`: việc thầy cô sẽ làm (giao bài luyện đúng phần yếu, chấm-phản hồi, hoàn tất bài đang xử lý, trao đổi PH…).
+UI `StudentReport` bản phụ huynh: thêm khối "Nhận xét chung về con", câu bắc cầu "hai mục trên là tên phần Toán, PH không cần hiểu sâu", và 2 khối "Phụ huynh có thể đồng hành" + "Thầy cô sẽ hỗ trợ". Nghiệm thu: parentSafeReport 6 test, `lint`+`build` OK.
+
 ## Bản phụ huynh + hồ sơ: 5 lỗi làm chặt — 2026-09-18
 
 Nối tiếp lô bản phụ huynh. Fix 5 lỗi người dùng nêu:

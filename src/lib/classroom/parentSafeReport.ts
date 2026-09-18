@@ -45,7 +45,12 @@ export interface ParentSafeReport {
     firstPercent: number | null;
     latestPercent: number | null;
   };
-  nextSteps: string[];
+  /** Nhận xét tổng quan bằng ngôn ngữ đời thường — cho phụ huynh KHÔNG rành Toán vẫn hiểu con đang thế nào. */
+  overallSummary: string;
+  /** Việc phụ huynh có thể làm ở nhà để đồng hành, không cần biết Toán. */
+  parentActions: string[];
+  /** Việc thầy cô/nhà trường sẽ làm để giúp con khắc phục điểm yếu. */
+  teacherActions: string[];
 }
 
 const timestamp = (value: unknown): number => {
@@ -144,16 +149,50 @@ const trendOf = (percents: readonly number[]): { trend: ParentSafeTrend; firstPe
   };
 };
 
-const buildNextSteps = (
-  areasToPractice: readonly string[],
-  pendingCount: number,
-  missingCount: number,
-): string[] => {
-  const steps = areasToPractice.slice(0, 3).map(topic => `Luyện thêm “${topic}” bằng một nhiệm vụ ngắn và kiểm tra lại ở bài tiếp theo.`);
-  if (pendingCount > 0) steps.push(`Chờ thầy cô hoàn tất ${pendingCount} bài đang được xử lý hoặc duyệt.`);
-  if (missingCount > 0) steps.push(`Hoàn thành ${missingCount} bài chưa nộp theo danh sách bài được giao.`);
-  if (steps.length === 0) steps.push('Tiếp tục duy trì việc làm bài và tự kiểm tra cách trình bày ở bài tiếp theo.');
-  return steps;
+/**
+ * Nhận xét tổng quan VĨ MÔ, ngôn ngữ đời thường — không nêu tên chủ đề Toán, để phụ huynh không
+ * rành môn vẫn nắm được con đang học thế nào và cần quan tâm ra sao. Suy ra từ điểm chính thức +
+ * xu hướng, không nhờ AI (để nhất quán, không lọt nhận xét theo bài).
+ */
+const buildOverallSummary = (average: number | null, trend: ParentSafeTrend, officialCount: number): string => {
+  if (average === null || officialCount === 0) {
+    return 'Hiện chưa đủ bài được chấm chính thức để nhận định tổng quan. Thầy cô sẽ cập nhật ngay khi có kết quả để phụ huynh cùng nắm.';
+  }
+  const base = average >= 80
+    ? 'Nhìn chung con đang học rất tốt, nắm vững phần lớn kiến thức và làm bài chắc chắn.'
+    : average >= 65
+      ? 'Nhìn chung con nắm được kiến thức cơ bản và làm bài khá ổn, chỉ còn một vài phần cần củng cố cho chắc hơn.'
+      : average >= 50
+        ? 'Con đã có nền tảng nhưng còn một số phần chưa vững, cần luyện thêm đều đặn để tiến bộ.'
+        : 'Con đang gặp khó ở khá nhiều phần và rất cần được đồng hành, hỗ trợ thêm cả ở nhà lẫn ở lớp.';
+  const trendClause = trend === 'up'
+    ? ' Đáng mừng là gần đây con đang tiến bộ rõ rệt — nên tiếp tục khích lệ con.'
+    : trend === 'down'
+      ? ' Gần đây kết quả có phần đi xuống, phụ huynh nên chú ý theo dõi con thêm.'
+      : '';
+  return base + trendClause;
+};
+
+const buildParentActions = (weakCount: number, missingCount: number, trend: ParentSafeTrend): string[] => {
+  const actions = [
+    'Mỗi ngày hỏi con một câu ngắn: “Hôm nay con học phần nào, có chỗ nào chưa hiểu không?” — không cần biết Toán, chỉ cần con nói lại được là đã giúp con ôn.',
+  ];
+  if (weakCount > 0) actions.push('Dành 15–20 phút mỗi tối cho con tự luyện lại đúng những phần thầy cô ghi ở mục “Cần rèn thêm”. Phụ huynh không cần dạy, chỉ cần nhắc con làm và tự kiểm tra.');
+  if (missingCount > 0) actions.push(`Nhắc con hoàn thành ${missingCount} bài còn chưa nộp — nộp đều giúp thầy cô nắm đúng sức học của con.`);
+  if (trend === 'down') actions.push('Trong 2–3 tuần tới theo dõi sát hơn, động viên con và báo thầy cô nếu con có dấu hiệu nản.');
+  if (trend === 'up') actions.push('Ghi nhận và khen sự tiến bộ của con để giữ động lực học tập.');
+  actions.push('Giữ liên lạc với thầy cô qua nhóm lớp hoặc sổ liên lạc để cùng đồng hành với con.');
+  return actions;
+};
+
+const buildTeacherActions = (weakCount: number, pendingCount: number): string[] => {
+  const actions: string[] = [];
+  if (weakCount > 0) actions.push('Giao bài luyện tập ngắn đúng những phần con còn yếu, chấm và phản hồi cụ thể để con biết cách sửa.');
+  actions.push('Theo dõi tiến độ từng bài của con và cập nhật kết quả chính thức ngay khi chấm xong.');
+  if (pendingCount > 0) actions.push(`Hoàn tất chấm và duyệt ${pendingCount} bài đang xử lý của con.`);
+  actions.push('Ghi nhận điểm mạnh để khích lệ, xây dựng sự tự tin cho con.');
+  actions.push('Chủ động trao đổi với phụ huynh nếu con cần được hỗ trợ thêm.');
+  return actions;
 };
 
 export const buildParentSafeReport = (input: ParentSafeReportInput): ParentSafeReport => {
@@ -213,7 +252,9 @@ export const buildParentSafeReport = (input: ParentSafeReportInput): ParentSafeR
   const strengths = uniqueText(profileStrengths);
   const areasToPractice = uniqueText(profileWeaknesses);
   const pendingCount = results.filter(result => ['pending', 'grading', 'error'].includes(result.status)).length;
+  const missingCount = results.filter(result => result.status === 'not_submitted').length;
   const officialAveragePercent = percents.length > 0 ? percents.reduce((sum, value) => sum + value, 0) / percents.length : null;
+  const trend = trendOf(percents);
 
   return {
     studentId: input.studentId,
@@ -223,11 +264,13 @@ export const buildParentSafeReport = (input: ParentSafeReportInput): ParentSafeR
     officialCount: officialResults.length,
     officialAveragePercent,
     pendingCount,
-    missingCount: results.filter(result => result.status === 'not_submitted').length,
+    missingCount,
     strengths,
     areasToPractice,
-    progress: trendOf(percents),
-    nextSteps: buildNextSteps(areasToPractice, pendingCount, results.filter(result => result.status === 'not_submitted').length),
+    progress: trend,
+    overallSummary: buildOverallSummary(officialAveragePercent, trend.trend, officialResults.length),
+    parentActions: buildParentActions(areasToPractice.length, missingCount, trend.trend),
+    teacherActions: buildTeacherActions(areasToPractice.length, pendingCount),
   };
 };
 

@@ -107,8 +107,12 @@ describe('buildParentSafeReport', () => {
     expect(report.areasToPractice).not.toContain('Cần trình bày kết luận');
     expect(report.areasToPractice).not.toContain('Nhầm công thức');
     // Bước tiếp theo cũng phải theo chủ đề chung, không nêu số bài.
-    expect(report.nextSteps.join(' ')).toContain('Xác suất');
-    expect(report.nextSteps.join(' ')).not.toMatch(/Bài\s*\d|Nhầm công thức/i);
+    // Nhận xét vĩ mô + phương án hỗ trợ: ngôn ngữ đời thường, KHÔNG nêu số bài/nhận xét theo bài.
+    expect(report.overallSummary).not.toBe('');
+    expect(report.parentActions.length).toBeGreaterThan(0);
+    expect(report.teacherActions.length).toBeGreaterThan(0);
+    const macroBlob = [report.overallSummary, ...report.parentActions, ...report.teacherActions].join(' ');
+    expect(macroBlob).not.toMatch(/Bài\s*\d|Nhầm công thức/i);
   });
 
   it('tách bài chưa nộp, không lộ dữ liệu thô hoặc ghi chú nội bộ', () => {
@@ -135,7 +139,19 @@ describe('buildParentSafeReport', () => {
     expect(report.officialCount).toBe(0);
     expect(report.officialAveragePercent).toBeNull();
     expect(report.progress.trend).toBe('not_enough_data');
-    expect(report.nextSteps.join(' ')).toMatch(/chờ thầy cô/i);
+    expect(report.overallSummary).toMatch(/chưa đủ bài/i); // chưa có điểm chính thức
+    expect(report.teacherActions.join(' ')).toMatch(/đang xử lý/i); // GV sẽ hoàn tất bài đang chờ
+  });
+
+  it('nhận xét vĩ mô đổi theo điểm trung bình và xu hướng', () => {
+    const cao = buildParentSafeReport(input([
+      baseSubmission({ id: 's1', assignmentId: 'assignment-1', createdAt: '2026-08-20T08:00:00.000Z', grade: { ...baseSubmission().grade, score: 8, teacherApproved: true } }),
+      baseSubmission({ id: 's2', assignmentId: 'assignment-2', createdAt: '2026-08-28T08:00:00.000Z', grade: { ...baseSubmission().grade, score: 9.5, teacherApproved: true } }),
+    ]));
+    expect(cao.officialAveragePercent).toBeGreaterThanOrEqual(80);
+    expect(cao.overallSummary).toMatch(/rất tốt/i);
+    expect(cao.overallSummary).toMatch(/tiến bộ/i); // 80% -> 95% là xu hướng lên
+    expect(cao.parentActions.join(' ')).toMatch(/khen|khích lệ/i);
   });
 
   it('chủ đề hồ sơ mất bằng chứng đã duyệt thì KHÔNG hiện cho phụ huynh', () => {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
-import { Download, Printer, Target, TrendingUp } from 'lucide-react';
+import { Download, GraduationCap, HeartHandshake, Lightbulb, Printer, Target, TrendingUp } from 'lucide-react';
 import { db } from '../../../lib/firebase';
 import { STUDENT_PROFILES_COL, type AssignmentDoc, type StudentProfileDoc, type SubmissionDoc } from '../../../lib/classroom/types';
 import { listAssignmentsForClass, listSubmissionsForStudent } from '../../../lib/classroom/submissionService';
@@ -150,6 +150,11 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
           ].map(item => <div key={item.label} className="rounded-2xl bg-slate-50 p-4"><p className="text-xs font-bold text-slate-500">{item.label}</p><p className="mt-1 text-2xl font-black text-slate-900">{item.value}</p></div>)}
         </div>
 
+        <div className="rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4">
+          <p className="mb-1 flex items-center gap-2 text-sm font-black text-indigo-950"><Lightbulb className="h-4 w-4" /> Nhận xét chung về con</p>
+          <p className="text-sm font-semibold leading-6 text-indigo-950">{parentReport.overallSummary}</p>
+        </div>
+
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
             <p className="mb-2 flex items-center gap-2 text-sm font-black text-emerald-800"><TrendingUp className="h-4 w-4" /> Điểm mạnh</p>
@@ -160,6 +165,9 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
             {parentReport.areasToPractice.length === 0 ? <p className="text-sm font-semibold text-slate-500">Chưa có nội dung cần rèn được xác nhận.</p> : <ul className="list-disc space-y-1 pl-5 text-sm font-semibold text-slate-700">{parentReport.areasToPractice.map(item => <li key={item}>{item}</li>)}</ul>}
           </div>
         </div>
+        {(parentReport.strengths.length > 0 || parentReport.areasToPractice.length > 0) && (
+          <p className="text-xs font-semibold leading-5 text-slate-500">Hai mục trên là tên các phần trong môn Toán. Phụ huynh không cần hiểu sâu — chỉ cần phối hợp nhắc con luyện đúng những phần thầy cô đánh dấu ở “Cần rèn thêm”.</p>
+        )}
 
         <div className="rounded-2xl border border-slate-100 p-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2"><p className="text-sm font-black text-slate-900">Kết quả theo bài</p><span className="text-xs font-semibold text-slate-500">Xu hướng: {parentReport.progress.trend === 'up' ? 'Tiến bộ' : parentReport.progress.trend === 'down' ? 'Cần theo dõi' : parentReport.progress.trend === 'flat' ? 'Ổn định' : 'Chưa đủ dữ liệu'}</span></div>
@@ -173,9 +181,15 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
           </div>
         </div>
 
-        <div className="rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4">
-          <p className="text-sm font-black text-indigo-950">Bước tiếp theo</p>
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm font-semibold leading-6 text-indigo-950">{parentReport.nextSteps.map(step => <li key={step}>{step}</li>)}</ul>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="rounded-2xl border border-sky-100 bg-sky-50/60 p-4">
+            <p className="mb-2 flex items-center gap-2 text-sm font-black text-sky-900"><HeartHandshake className="h-4 w-4" /> Phụ huynh có thể đồng hành cùng con</p>
+            <ul className="list-disc space-y-1.5 pl-5 text-sm font-semibold leading-6 text-slate-700">{parentReport.parentActions.map(step => <li key={step}>{step}</li>)}</ul>
+          </div>
+          <div className="rounded-2xl border border-violet-100 bg-violet-50/60 p-4">
+            <p className="mb-2 flex items-center gap-2 text-sm font-black text-violet-900"><GraduationCap className="h-4 w-4" /> Thầy cô sẽ hỗ trợ con</p>
+            <ul className="list-disc space-y-1.5 pl-5 text-sm font-semibold leading-6 text-slate-700">{parentReport.teacherActions.map(step => <li key={step}>{step}</li>)}</ul>
+          </div>
         </div>
         <p className="rounded-2xl bg-slate-50 px-4 py-3 text-xs font-semibold leading-5 text-slate-500">Bản này chỉ sử dụng kết quả đã được thầy cô xem và duyệt. Bài đang chờ xử lý không hiển thị điểm, đáp án hoặc ghi chú nội bộ.</p>
         <button type="button" onClick={inBaoCaoPhuHuynh} className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-black text-slate-700 transition hover:bg-slate-50"><Printer className="h-4 w-4" /> In / lưu PDF bản phụ huynh</button>
