@@ -5,6 +5,23 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## V7.2 live classroom — Tuần 5 + Tuần 6 — 2026-09-18
+
+Đã hoàn tất mã nguồn trên nhánh `codex/p31-classroom-ready`, commit triển khai chính `b25e740` và merge với `origin/main` hiện tại. Mục tiêu là đưa mô hình activity-first V7.2 vào 24 bài Tuần 5 và 24 bài Tuần 6 của khối 10/11/12.
+
+- Adapter generic dùng timeline 14 nhịp/40 phút, nội dung source-aware, mục tiêu MUST/SHOULD/COULD, route M/S/C, AI Error, post-check, exit ticket, preview riêng tư và practice A/B/C/D/Challenge.
+- P31 `10-5-31` vẫn dùng contract thủ công để giữ media/kịch bản đặc thù; phần practice và dashboard đã theo V7.2 nhưng timeline P31 vẫn là timeline custom 11 nhịp.
+- Firestore Rules đã mở allowlist cho checkpoint V7.2, giới hạn 16 step, clock fields và group-progress `cp-practice-a`.
+- QA: full Vitest **171 files / 2.016 tests PASS**, `lint` PASS, `lint:api` PASS, build PASS; Rules **8 files / 303 tests PASS**, pilot **1/1 PASS**. Browser smoke local pass P31 và đại diện `10-5-32`, `11-5-26`, `12-5-26` với GV–TV–3 HS, practice aggregate, privacy và browser-error gate.
+
+**Giới hạn cần giữ:** chưa chạy browser choreography riêng cho toàn bộ 48 bài; contract/privacy matrix bao phủ 48 source keys và browser smoke đại diện mỗi khối. Giáo án/snapshot chỉ là nguồn nội dung; không dùng để ép UI thành chuỗi slide.
+
+**Ngưỡng sắp cắn người:** QA harness phải chạy Firebase Emulator bằng project demo, ví dụ `firebase emulators:exec --project demo-p31-classroom --only firestore,auth "node scripts/qa/p31-classroom.mjs"`; nếu bỏ `--project`, Auth Emulator lấy project mặc định `smartplan-ai-14200` và token bị Rules fixture từ chối. Artifact QA nằm trong `artifacts/`, không đưa vào commit.
+
+**Lệnh nghiệm thu:** `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" test`; `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" run test:rules`; `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" run test:pilot`; `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" run lint`; `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" run lint:api`; `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" run build`.
+
+Push `main`, Vercel production deploy và Firestore Rules production vẫn là bước release tiếp theo sau khi hook handoff được thỏa mãn.
+
 ## Bản phụ huynh: nhận xét CHUNG theo chủ đề, bỏ nhận xét theo bài — 2026-09-18
 
 QA production phát hiện: mục "Điểm mạnh / Cần rèn thêm / Bước tiếp theo" của **bản phụ huynh** (`parentSafeReport.ts`) bê thẳng `grade.strengths`/`grade.weaknesses` — văn AI theo TỪNG BÀI ("Bài 2 và Bài 4a thiếu nêu mặt phẳng…") → phụ huynh không cầm đề, đọc không hiểu. Đã sửa: các mục này chỉ lấy từ **chủ đề tích luỹ trong hồ sơ** (`profile.topics` — kiến thức Toán chung); nhận xét theo bài của AI chỉ còn ở bản giáo viên. Bỏ luôn field `strengths`/`areasToPractice` theo bài khỏi `ParentSafeAssignmentResult` (đã thành code chết + là text theo bài không được phép ở bản phụ huynh). **Ngưỡng:** nếu hồ sơ chưa tích được chủ đề yếu (cần `grade.weakTopics` + GV duyệt) thì "Cần rèn thêm" để trống — đúng ý (thà trống còn hơn text theo bài). Nâng cấp sau: rút nhận xét chung từ khung năng lực (khi nhãn năng lực phủ rộng). Nghiệm thu: `parentSafeReport.test.ts` 3 pass, `lint`+`build` OK.
