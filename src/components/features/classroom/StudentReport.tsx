@@ -230,7 +230,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
       </div>
 
       {forAdult && competencyGrade && (
-        <CompetencyPortfolio grade={competencyGrade} submissions={submissions} assignments={assignments} />
+        <CompetencyPortfolio grade={competencyGrade} submissions={submissions} assignments={assignments} studentName={studentName} studentCode={studentCode} />
       )}
 
       <div className="grid gap-3 sm:grid-cols-2">
