@@ -10,6 +10,7 @@
 - **Không để env override một hằng số mà code đã có ý kiến rõ ràng** — `GRADING_MODEL` từng được đặt pro trên Vercel rồi quên gỡ; code đã revert về flash mà production vẫn chạy pro, đọc code không thấy gì sai. Trạng thái thật phải nằm trong git. *(2026-09-08)*
 - **Một hằng số "giới hạn" không tự nó giới hạn cái gì** — `BATCH_SIZE = 2` có comment giải thích, có cả commit hạ 4→2 để chống timeout, nhưng chỗ cắt batch lại dùng hạn mức ngày nên một request cố chấm 22 bài. Sửa hằng số xong phải đọc lại nơi dùng nó. *(2026-09-08)*
 - **`MAX_TOKENS` từng bị chẩn đoán nhầm thành lỗi parser** — `callGeminiVision` ném lỗi TRƯỚC khi parser chạy, nên nới lỏng parser không cứu được ca bị cắt cụt. Đọc `errorMessage` thật trong Firestore trước khi đoán tầng nào hỏng. *(2026-09-08)*
+- **Thêm field mới vào AssignmentDoc phải thêm luôn vào `teacherAssignmentProjection` (api/_classroom-teacher.ts)** — projection này là ALLOWLIST: chỉ field liệt kê mới ra client. Ghi field vào Firestore rồi mà quên projection thì write "thành công" (toast xanh) nhưng đọc lại luôn trống. `competencyTags` bị đúng lỗi này: editor tải lại + hồ sơ năng lực luôn 0 dù đã lưu; unit test write-side + model đều xanh, chỉ QA production mới lộ. Sửa xong khoá bằng test gọi thẳng `teacherAssignmentProjection`. *(2026-09-17)*
 
 ---
 

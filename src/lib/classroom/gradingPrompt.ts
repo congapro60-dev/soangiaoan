@@ -1,5 +1,6 @@
 import { parseJsonWithRecovery, parseLooseJson } from '../../utils/jsonRepair.js';
 import type { JsonParseMode, JsonRepairKind } from '../../utils/jsonRepair.js';
+import type { CompetencyTag } from './competency/framework.js';
 import type {
   PracticeQuestionPublic,
   PracticeQuestionResult,
@@ -923,7 +924,15 @@ export interface QuestionCatalogEntry {
  * Nhãn câu phải chép NGUYÊN VĂN theo đề: đây chính là thứ dùng để khớp với nhãn mà lượt chấm
  * đặt cho từng câu, đặt tên khác đi là danh mục vô dụng.
  */
-export const buildQuestionCatalogPrompt = (input: { examText: string; examImageCount: number; maxScore: number }): string => `
+export const buildQuestionCatalogPrompt = (input: {
+  examText: string;
+  examImageCount: number;
+  maxScore: number;
+  /** Danh sách năng lực của khối (định dạng từ competencyOptionsForPrompt). Có thì AI gắn thêm nhãn. */
+  competencyOptions?: string;
+}): string => {
+  const wantTags = Boolean(input.competencyOptions?.trim());
+  return `
 Bạn đọc ĐỀ BÀI và lập danh mục từng câu hỏi cho giáo viên tra cứu. KHÔNG giải, KHÔNG chấm, KHÔNG bình luận.
 
 NGUỒN ĐỀ:
@@ -937,10 +946,19 @@ YÊU CẦU:
 - "maxScore" chỉ ghi khi đề ghi rõ điểm của câu đó; không có thì bỏ trống. Thang điểm cả bài là ${input.maxScore}.
 - Chỗ nào mờ không đọc chắc thì ghi [không đọc rõ] ngay tại chỗ đó, TUYỆT ĐỐI không đoán.
 - Không bịa thêm câu không có trong đề.
+${wantTags ? `
+GẮN NHÃN NĂNG LỰC (cho cả bài, KHÔNG bắt buộc từng câu):
+- Chọn từ ĐÚNG danh sách dưới đây, dùng CHÍNH XÁC phần "id" ở đầu mỗi dòng. TUYỆT ĐỐI không tự bịa id.
+- Chỉ gắn năng lực mà bài này THỰC SỰ đo được; bài lệch khỏi mọi mục thì trả mảng rỗng, không gắn gượng.
+- Mỗi nhãn kèm "confidence" 0..1 (độ chắc) và "reason" một câu ngắn (căn cứ). Tối đa 3 nhãn, xếp confidence cao trước.
 
+DANH SÁCH NĂNG LỰC (khối này):
+${input.competencyOptions!.trim()}
+` : ''}
 CHỈ TRẢ VỀ JSON THUẦN, không code fence, không lời dẫn:
-{"questions":[{"questionNumber":"Bài 1","content":"...","maxScore":2.0}]}
+{"questions":[{"questionNumber":"Bài 1","content":"...","maxScore":2.0}]${wantTags ? ',"competencyTags":[{"competencyId":"g10-ham-so-bac-hai","confidence":0.9,"reason":"..."}]' : ''}}
 `.trim();
+};
 
 /**
  * Đọc danh mục câu hỏi. Khoan dung có kiểm soát: bỏ qua phần tử hỏng thay vì ném lỗi làm mất cả
@@ -982,6 +1000,42 @@ export const parseQuestionCatalog = (raw: string): QuestionCatalogEntry[] => {
     });
   }
   return entries;
+};
+
+/**
+ * Đọc nhãn năng lực từ cùng blob JSON của danh mục câu (một lượt gọi Gemini, không thêm function).
+ * Khoan dung như parseQuestionCatalog nhưng CHẶT về id: chỉ nhận id có trong `allowedIds` của khối,
+ * loại thẳng id AI bịa — id sai sẽ khoá nhầm hồ sơ, tệ hơn là bỏ trống. Giáo viên vẫn duyệt sau.
+ */
+export const parseCompetencyTags = (raw: string, allowedIds: ReadonlySet<string>): CompetencyTag[] => {
+  const text = String(raw || '');
+  const inCodeBlock = text.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
+  const jsonStr = inCodeBlock ? inCodeBlock[1] : text.match(/\{[\s\S]*\}/)?.[0];
+  if (!jsonStr) return [];
+
+  let parsed: Record<string, unknown>;
+  try {
+    parsed = parseLooseJson<Record<string, unknown>>(jsonStr);
+  } catch {
+    return [];
+  }
+
+  const rows = Array.isArray(parsed.competencyTags) ? parsed.competencyTags : [];
+  const seen = new Set<string>();
+  const tags: CompetencyTag[] = [];
+  for (const row of rows) {
+    if (!row || typeof row !== 'object' || Array.isArray(row)) continue;
+    const record = row as Record<string, unknown>;
+    const competencyId = String(record.competencyId ?? record.id ?? '').trim();
+    if (!competencyId || !allowedIds.has(competencyId) || seen.has(competencyId)) continue;
+    seen.add(competencyId);
+    const rawConfidence = Number(record.confidence);
+    const confidence = Number.isFinite(rawConfidence) ? Math.max(0, Math.min(1, rawConfidence)) : 0;
+    const reason = String(record.reason ?? '').trim();
+    tags.push({ competencyId, confidence, reason });
+  }
+  // Chắc trước để giáo viên soát cái yếu; mốc bằng nhau giữ theo id cho ổn định.
+  return tags.sort((a, b) => b.confidence - a.confidence || a.competencyId.localeCompare(b.competencyId));
 };
 
 /**

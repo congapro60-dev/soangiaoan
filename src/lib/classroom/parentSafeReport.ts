@@ -27,8 +27,6 @@ export interface ParentSafeAssignmentResult {
   score: number | null;
   maxScore: number | null;
   feedback?: string;
-  strengths: string[];
-  areasToPractice: string[];
 }
 
 export interface ParentSafeReport {
@@ -114,8 +112,6 @@ const resultFromSubmission = (
     score: official ? pair.score : null,
     maxScore: official ? pair.maxScore : null,
     ...(official && normalizedText(grade?.feedback) ? { feedback: normalizedText(grade?.feedback) } : {}),
-    strengths: official ? uniqueText(grade?.strengths || []) : [],
-    areasToPractice: official ? uniqueText(grade?.weaknesses || []) : [],
   };
 };
 
@@ -170,8 +166,6 @@ export const buildParentSafeReport = (input: ParentSafeReportInput): ParentSafeR
         status: 'not_submitted' as const,
         score: null,
         maxScore: null,
-        strengths: [],
-        areasToPractice: [],
       };
   });
 
@@ -184,10 +178,13 @@ export const buildParentSafeReport = (input: ParentSafeReportInput): ParentSafeR
   const percents = officialResults
     .sort((left, right) => timestamp(left.submittedAt) - timestamp(right.submittedAt))
     .map(result => (result.score! / result.maxScore!) * 100);
+  // Bản phụ huynh chỉ nói CHUNG theo chủ đề/năng lực Toán (chủ đề tích luỹ trong hồ sơ), KHÔNG
+  // bê nhận xét theo từng bài ("Bài 2a thiếu…") vì phụ huynh không cầm đề, đọc vào không hiểu.
+  // Nhận xét theo bài của AI (`grade.strengths`/`grade.weaknesses`) chỉ dành cho bản giáo viên.
   const profileStrengths = profileTopics(input.profile, 'solid');
   const profileWeaknesses = [...profileTopics(input.profile, 'weak'), ...profileTopics(input.profile, 'developing')];
-  const strengths = uniqueText([...officialResults.flatMap(result => result.strengths), ...profileStrengths]);
-  const areasToPractice = uniqueText([...officialResults.flatMap(result => result.areasToPractice), ...profileWeaknesses]);
+  const strengths = uniqueText(profileStrengths);
+  const areasToPractice = uniqueText(profileWeaknesses);
   const pendingCount = results.filter(result => ['pending', 'grading', 'error'].includes(result.status)).length;
   const officialAveragePercent = percents.length > 0 ? percents.reduce((sum, value) => sum + value, 0) / percents.length : null;
 

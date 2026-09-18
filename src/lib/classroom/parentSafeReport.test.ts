@@ -94,9 +94,16 @@ describe('buildParentSafeReport', () => {
       expect.objectContaining({ assignmentId: 'assignment-2', title: 'Xác suất', status: 'pending', score: null }),
       expect.objectContaining({ assignmentId: 'assignment-3', title: 'Hình học', status: 'official', score: 5 }),
     ]));
-    expect(report.strengths).toContain('Đọc đúng dữ kiện');
-    expect(report.strengths).toContain('Hàm số');
-    expect(report.areasToPractice).toEqual(expect.arrayContaining(['Cần trình bày kết luận', 'Nhầm công thức', 'Xác suất']));
+    // Bản phụ huynh chỉ nói CHUNG theo chủ đề Toán (từ hồ sơ tích luỹ), KHÔNG bê nhận xét theo
+    // từng bài của AI ("Cần trình bày kết luận", "Nhầm công thức") vì phụ huynh không cầm đề.
+    expect(report.strengths).toEqual(['Hàm số']);
+    expect(report.areasToPractice).toEqual(['Xác suất']);
+    expect(report.strengths).not.toContain('Đọc đúng dữ kiện');
+    expect(report.areasToPractice).not.toContain('Cần trình bày kết luận');
+    expect(report.areasToPractice).not.toContain('Nhầm công thức');
+    // Bước tiếp theo cũng phải theo chủ đề chung, không nêu số bài.
+    expect(report.nextSteps.join(' ')).toContain('Xác suất');
+    expect(report.nextSteps.join(' ')).not.toMatch(/Bài\s*\d|Nhầm công thức/i);
   });
 
   it('tách bài chưa nộp, không lộ dữ liệu thô hoặc ghi chú nội bộ', () => {

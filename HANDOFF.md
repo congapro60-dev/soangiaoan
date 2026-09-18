@@ -1,173 +1,104 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-09-13
+**Cập nhật:** 2026-09-17
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
-Handoff ngắn cho lô V4 live lesson. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
+Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
-## TV/HS — kết quả trực tiếp và nhịp 40 phút — 2026-09-12
+## Bản phụ huynh: nhận xét CHUNG theo chủ đề, bỏ nhận xét theo bài — 2026-09-18
 
-- TV có biểu đồ theo hoạt động; GV và tv-control đều có nút công bố/ẩn. Chỉ owner đọc phản hồi để tổng hợp. Số người gửi không được coi là số người làm đúng.
-- Hoạt động nhóm: HS chọn số nhóm 1–12 thầy cô đã thông báo; groupMemberships giữ riêng tư. TV nhận public/groupProgress gồm số thành viên và số người gửi theo nhóm, không tên/UID/bài làm.
-- HS đọc nhiệm vụ từng tuyến trước khi chọn; tiêu chí và khung câu theo nội dung giáo án. Bài AI Error giữ loại lỗi cùng giải thích; mở gợi ý không ghi đè phản hồi tuyến.
-- Đồng hồ dùng cueStartedAt + cueElapsedSeconds: tạm dừng giữ thời gian, tiếp tục cộng tiếp; bật/tắt thống kê không reset. Chuyển cue bắt đầu thời lượng mới. TV/HS hiện khoảng phút dự kiến trong tiết.
-- Chuyển cue và public state ghi cùng transaction; publisher kiểm tra lại cue/cờ công bố trước khi ghi để tránh bảng của bước trước.
-- Phải triển khai firestore.rules cùng ứng dụng: clock có trường optional tương thích session cũ; thêm hai đường dữ liệu nhóm giới hạn quyền.
-- Không chạy QA/test/build theo yêu cầu chủ sở hữu. Các số test PASS bên dưới thuộc phiên bản cũ, không chứng minh lô này. Không tự chia nhóm, không tự đánh giá đúng/sai hoặc chiếu bài làm.
-- Chi tiết và hướng dẫn: docs/features/2026-09-11-live-activity-results.md.
-- Bổ sung ngày 13/09: lựa chọn P08 có nhãn dấu cùng nghĩa, dùng chung ở HS và biểu đồ TV; bài P20 có dữ kiện, phân vai và yêu cầu nộp kết luận riêng. P05 chỉ nghe/chốt mục tiêu, bỏ bước phản hồi không có ý nghĩa. Đề bài chung đặt trước ô trả lời, mặc định mở trong hoạt động AI Error.
-- Bổ sung luồng HS: nháp riêng theo session/uid/step, hỗ trợ diễn đạt theo 3 mức từ khóa → khung câu → tự diễn đạt, đọc lại mục tiêu cá nhân cuối tiết, và hiển thị mức hỗ trợ ngôn ngữ đúng theo nội dung đã có. Nháp không tự đồng bộ hoặc tự gửi; không gọi đây là bản dịch đầy đủ.
-- Triển khai 13/09: Firebase CLI đã phát hành firestore.rules tới smartplan-ai-14200 thành công từ mã 161a4d7. Chỉ deploy firestore:rules, không cập nhật index hay dữ liệu lớp. Chưa xác nhận Vercel Ready hoặc QA tiết học thực tế.
+QA production phát hiện: mục "Điểm mạnh / Cần rèn thêm / Bước tiếp theo" của **bản phụ huynh** (`parentSafeReport.ts`) bê thẳng `grade.strengths`/`grade.weaknesses` — văn AI theo TỪNG BÀI ("Bài 2 và Bài 4a thiếu nêu mặt phẳng…") → phụ huynh không cầm đề, đọc không hiểu. Đã sửa: các mục này chỉ lấy từ **chủ đề tích luỹ trong hồ sơ** (`profile.topics` — kiến thức Toán chung); nhận xét theo bài của AI chỉ còn ở bản giáo viên. Bỏ luôn field `strengths`/`areasToPractice` theo bài khỏi `ParentSafeAssignmentResult` (đã thành code chết + là text theo bài không được phép ở bản phụ huynh). **Ngưỡng:** nếu hồ sơ chưa tích được chủ đề yếu (cần `grade.weakTopics` + GV duyệt) thì "Cần rèn thêm" để trống — đúng ý (thà trống còn hơn text theo bài). Nâng cấp sau: rút nhận xét chung từ khung năng lực (khi nhãn năng lực phủ rộng). Nghiệm thu: `parentSafeReport.test.ts` 3 pass, `lint`+`build` OK.
 
-## Đồng bộ BTVN sang Google Sheet — 2026-09-11
+## Hồ sơ năng lực — GĐ2 + GĐ3: khung + AI gắn nhãn + giao diện xem — 2026-09-17
+
+Tiếp GĐ1. Toàn bộ ở `src/lib/classroom/competency/` (thuần, có test) + một view.
+
+- **Khung (GĐ2a):** `framework.ts` — 29 năng lực Toán 10/11/12 trích template trường (`id` ổn định, KHOÁ; đổi id = vỡ nhãn/hồ sơ). App chỉ giữ CẤU TRÚC; 4 mô tả mức nằm trong file trường, chỉ điền khi xuất.
+- **Tổng hợp (GĐ2a):** `competencyModel.ts` `aggregateCompetencies` — chỉ tính bài **teacherApproved**, quy điểm về thang 10, lấy tối đa 3 bài gần nhất tính mức (4 bậc, ngưỡng mặc định 9/7/5), giữ đủ minh chứng. **Bổ sung** `profileMerge`, KHÔNG thay.
+- **AI gắn nhãn (GĐ2b):** mở rộng `buildQuestionCatalog` (`api/grade-homework.ts` + `gradingPrompt.ts`) — CÙNG lượt đọc đề, AI đề xuất `competencyTags` cho cả bài từ đúng khung khối (đọc `grade` của lớp). Chỉ nhận id trong khung (loại id bịa), kèm `confidence`+`reason`. Lưu `assignments/{id}.competencyTags`. **Không thêm Vercel function.**
+- **Giao diện xem (GĐ3):** `portfolioModel.ts` nối bài nộp × nhãn của bài giao → `aggregateCompetencies`; `CompetencyPortfolio.tsx` hiện trong khung xem 1 học sinh (`StudentReport`, bản giáo viên) theo mảng→chủ đề→năng lực, badge mức + minh chứng; năng lực chưa có bài vẫn hiện. **QA production**: view render đúng (Lớp 10, nhóm mảng, badge, đếm tiến độ).
+- **Duyệt nhãn (GĐ3b):** `CompetencyTagEditor.tsx` trong khung mở rộng bài giao (`AssignmentPanel`): "Gắn nhãn bằng AI" (buildQuestionCatalog force) + thêm/bỏ tay + "Lưu nhãn". Lưu → `handleSetAssignmentCompetencyTags` lọc id theo khung, đặt `competencyTagsApproved=true`. Đọc đề lại KHÔNG đè nhãn đã duyệt (guard). **Chỉ nhãn đã lưu mới vào hồ sơ HS.**
+- **Ngưỡng sắp cắn người:** `competencyTags` tự sinh khi `buildQuestionCatalog` chạy MỚI (bài mới, hoặc bấm "Gắn nhãn bằng AI"); bài cũ đã có danh mục câu → phải bấm nút mới sinh. Trang **Báo cáo lớp đông** (19HS×9 bài) có thể treo renderer khi tải (nặng có sẵn, KHÔNG do lô này) — dùng nút trong bài giao để gắn nhãn thay vì đi qua report. Ràng buộc giữ nguyên: chỉ đụng BTVN.
+- **QA production (đã chạy)**: bấm "Gắn nhãn bằng AI" trên bài vectơ → AI trả đúng "Vectơ và các phép toán" (id khối 10) → "Lưu nhãn" OK. **Lỗi lộ khi QA**: `teacherAssignmentProjection` (api/_classroom-teacher.ts) BỎ SÓT `competencyTags` → editor tải lại + hồ sơ luôn trống dù đã lưu. Đã thêm `competencyTags`+`competencyTagsApproved` vào projection (+ test khoá). Lỗi này lọt hết test cũ — chỉ lộ khi QA thật.
+- **Xuất file (GĐ4):** nút "Xuất hồ sơ ra file trường" trong `CompetencyPortfolio`. `portfolioExport.ts` (thuần + test): **copy file mẫu** (`PORTFOLIO_TEMPLATE_ID`) → Google Sheet mới "Sxxxxx - Tên", điền B1/B2, **bôi vàng** ô mức đạt của từng năng lực (khớp dòng theo cột A "Nội dung", gate theo khối). Dùng Drive token của GV (scope `auth/drive`), không thêm Vercel function. Trường ghi mức bằng bôi vàng (dòng 3 file mẫu), không phải chữ. Mỗi lần xuất tạo bản sao mới, KHÔNG đụng file cũ.
+- **Ngưỡng GĐ4:** `PORTFOLIO_TEMPLATE_ID` hardcode = file mẫu của trường; GV phải có quyền xem file đó (files.copy). Bản sao đổ vào Drive gốc của GV (chưa chọn folder). Chủ đề khớp theo TEXT cột A — đổi tên chủ đề trong file mẫu mà không đổi `framework.ts` thì trượt (báo unmatched, không bôi ẩu).
+- Nghiệm thu: competency 24 test (framework/model/portfolio/export) + gradingPrompt 97 + grade-homework.competency 4 + projection 2 + full `lint`(tsc) 0, `build` PASS.
+
+## Hồ sơ năng lực — GĐ1: Mã HS trong danh sách lớp — 2026-09-17
+
+Bước nền cho tính năng **hồ sơ năng lực Toán** (tích luỹ từ BTVN + nhận xét, xuất ra file mẫu trường "Sxxxxx - Tên.xlsx" khi cần). GĐ1 chỉ làm **khoá cố định = Mã học sinh**.
+
+- App **vốn đã có** field `code` (="Mã học sinh của trường, dùng làm tên đăng nhập") và bộ nhập Excel `classRosterImport.ts` **đã đọc** cột "Mã HS/Mã học sinh/Student code" vào `code` (thiếu cột thì tự sinh `TÊNLỚP-N`). Thiếu là: không hiện + không sửa được mã.
+- Đã thêm: handler `setStudentCode` (`api/_classroom-teacher.ts`, kiểm **trùng mã trong lớp** vì mã = tên đăng nhập; PIN gắn theo studentId nên không đổi), service `teacherService.setStudentCode`, và UI `ClassesTab` (hiện "Mã HS: …" dưới tên; nút bút chì sửa cả Tên + Mã HS, tự viết hoa).
+- **Quyết định thiết kế (owner chốt):** dùng luôn `code` làm Mã HS (Hướng 1), không thêm field mới. Kho chính = app/Firestore khoá theo mã HS; Drive chỉ là nơi **xuất** khi trường kiểm tra.
+- **Backup mã:** đổi Mã HS thì mã cũ được dồn vào `StudentDoc.previousCodes` (dedup, giữ 20 mã gần nhất) để giáo viên xem/khôi phục sau; đặt lại đúng mã đang dùng thì no-op (`updated:false`). Nhập Excel tạo **lớp mới** nên không ghi đè mã lớp cũ.
+- **Ngưỡng sắp cắn người:** đổi Mã HS cũng là đổi **tên đăng nhập** của em (PIN giữ nguyên) — lớp đang để mã tự sinh, đổi sang `Sxxxxx` thì phải báo mã mới cho em. Mã phải **duy nhất trong lớp**.
+- **Tiếp theo:** GĐ2/GĐ3 đã xong (xem mục trên); còn GĐ3b duyệt nhãn + GĐ4 xuất file Drive. Khung + folder K10/K11/K12 + template đã khảo sát, xem `tasks/todo.md`.
+- **OpenCode:** dispatch worktree của Desk đang lỗi (session tạo nhưng không gửi prompt; CLI bám nhầm server thư mục chính) — Codex đang vá ở source Desk. GĐ1 này Claude tự làm + tự review; giai đoạn sau trả lại OpenCode khi đã vá.
+- Nghiệm thu: full Vitest **1964/1964 PASS** (thêm 3 test `setStudentCode`), `lint` 0, `lint:api` 0, `build` PASS, `git diff --check` sạch.
+
+## CI đỏ #540–#542 — test liveLesson cũ, đã sửa — 2026-09-14
+
+Quality Gate hỏng từ `dc1f29c` (kéo theo `161a4d7`/`aafd7c7`): **lint qua, 6 test fail**. Mã nguồn đúng, test chưa theo kịp:
+
+- `liveLessonService.test.ts` (4): `updateLiveLessonState` giờ chạy **transaction** đọc phiên + ghi `cueStartedAt`/`cueElapsedSeconds` (đồng hồ cue giữ được khi tạm dừng; rules đã có 2 trường). Mock `tx.get` cũ luôn trả "không tồn tại" → sửa mock định tuyến theo path, cập nhật kỳ vọng payload.
+- `languagePack.test.ts` (2): bản EN cố ý **giấu dấu `≤`** ở `cp-model` (HS tự chọn dấu) và HS2 đổi thành "one personal goal" → cập nhật assertion.
+- Phần sửa lấy từ bản dở của Codex trong worktree `codex-classroom-grading` (nhánh `codex/p31-classroom-ready`), **bỏ** test mới về nhiệm vụ nhóm P31 vì phụ thuộc nội dung chưa commit. Khi Codex commit, hai file test này sẽ trùng hunk — merge sạch hoặc lấy bản Codex.
+- Nghiệm thu: full Vitest **1961/1961**, `lint` 0.
+
+## Hạn BTVN lấy từ app + chống #ERROR! khi ghi hạn — 2026-09-14
+
+QA production tính năng đồng bộ BTVN phát hiện: **hạn ở dòng 5 hiện `#ERROR!`** trên cả 7 cột tab `10. OLINDA`. Nguyên nhân gốc: app ghi hạn bằng công thức `=DATE(2026,9,16)+TIME(8,0,0)` dùng dấu **phẩy**, nhưng file đặt ngôn ngữ Việt lại đòi dấu **chấm phẩy** → công thức vỡ. App đọc lại ra "không có hạn" → **không tính được Nộp muộn / Chưa làm**, chỉ điền Đủ cho em nộp đúng hạn.
+
+**Đã sửa (commit `c70b290`):**
+
+- `deadlineFormula` → **`deadlineSerial`**: ghi hạn thành **SỐ ngày kiểu Sheets (serial)** kèm định dạng `DATE_TIME` (`buildSheetRequests`). Số không lệ thuộc dấu phân cách nên chạy đúng mọi ngôn ngữ; ô vẫn hiển thị ngày giờ.
+- `planSheetSync` **ưu tiên hạn từ app** cho cả cột đã có sẵn (trước chỉ dùng dòng 5 của sheet). Nếu app có hạn mà ô dòng 5 đang trống/lỗi/khác thì ghi đè bằng hạn app. Thêm đếm `deadlineWrites` + dòng "sửa X hạn" trong bản xem trước.
+
+**Ngưỡng sắp cắn người:**
+
+- Ghi hạn là **số + numberFormat**, KHÔNG phải công thức nữa. Ai đổi lại sang `formulaValue` sẽ tái hiện `#ERROR!` trên file ngôn ngữ Việt.
+- Ghi đè hạn dòng 5 chỉ khi app có hạn và ô lệch >1 phút — hạn app là chuẩn (chủ dự án chốt). Nếu tổ trưởng tự đặt hạn khác trong sheet thì sẽ bị hạn app ghi đè; đây là ý muốn.
+- File 1 (11 Columbus) nếu dòng 5 đang là công thức chạy được và trùng hạn app thì **không** bị ghi đè (surgical).
+- Nghiệm thu bản này: `sheetSync.test.ts` **41 tests PASS**, `lint` 0, `lint:api` 0, `build` PASS. (6 fail liveLesson lúc đó đã sửa ở mục CI phía trên.)
+
+## Đồng bộ BTVN sang Google Sheet — 2026-09-11 (đã QA production 09-14)
 
 Nút trong app, chỉ chạy khi giáo viên bấm. Tuỳ chọn theo lớp, mặc định tắt. Kế hoạch đầy đủ và khảo sát hai file thật của chủ dự án nằm ở `tasks/todo.md`.
 
+**QA production 2026-09-14 — đã nối cả 3 lớp, chưa ghi trạng thái nào cho tới khi chủ duyệt:**
+
+- 10 Olinda → file 2 `1AMNFsVJ…` / tab `10. OLINDA` — khớp **19/19** (sau khi thêm em mới Nguyễn Công Bảo Khánh vào cột B của sheet).
+- 11 Columbus → file 1 `1INWzPG…` / tab `02. BTVN` — khớp **26/26** (ca đặc biệt, file riêng).
+- 12 Toán LT1 → file 2 `1AMNFsVJ…` / tab `12. TOÁN LT1` — khớp **8/8**.
+- Thử nối nhầm tab bản chiếu `11. COLUMBUS (LINK)` → app **từ chối đúng** (IMPORTRANGE).
+
 **Kiến trúc:**
 
-- Đồng bộ chạy **trong trình duyệt giáo viên**, bằng quyền Google của chính giáo viên — dùng lại `getDriveAccessToken()` của tính năng "Đẩy giáo án lên Drive". Không email robot, không token Google trên máy chủ, giáo viên này không chạm được sheet của giáo viên khác.
-- Máy chủ chỉ thêm action `setClassSheetSync` (lưu `classes/{id}.sheetSync`) trên `/api/classroom` hiện có. Không thêm Vercel function.
-- `src/lib/classroom/sheetSync.ts` là toàn bộ phần quyết định (thuần, 36 test). `sheetsApi.ts` chỉ đọc ảnh chụp tab và gửi lệnh đã dựng. `SheetSyncPanel.tsx` là giao diện.
+- Đồng bộ chạy **trong trình duyệt giáo viên**, bằng quyền Google của chính giáo viên — dùng lại `getDriveAccessToken()` của tính năng "Đẩy giáo án lên Drive". Không email robot, không token Google trên máy chủ.
+- Máy chủ chỉ thêm action `setClassSheetSync` (lưu `classes/{id}.sheetSync`) trên `/api/classroom`. Không thêm Vercel function.
+- `src/lib/classroom/sheetSync.ts` là toàn bộ phần quyết định (thuần, 41 test). `sheetsApi.ts` chỉ đọc ảnh chụp tab và gửi lệnh đã dựng. `SheetSyncPanel.tsx` là giao diện.
 
 **Ngưỡng sắp cắn người:**
 
 - **Cam kết "không động vào tab liên lạc phụ huynh, ghi chú học sinh, quỹ lớp, hạnh kiểm" nằm ở CODE**, không ở Google (Google cấp quyền theo cả file). Mọi lệnh ghi đi qua `assertWriteAllowed` + `applySheetRequests` kiểm `sheetId`. Ai thêm loại ghi mới phải thêm vào cổng này, không gọi `batchUpdate` thẳng.
-- **Người sửa luôn thắng**: ghi chú `SmartPlan: <giá trị> · <giờ>` trên ô là trí nhớ của app. Ô khác giá trị ghi chú hoặc không có ghi chú = người đã chọn, không bao giờ ghi đè. Đừng đổi sang lưu toạ độ ô trong Firestore — chèn cột là lệch.
-- **Không chèn cột**: hết cột trống đã định dạng sẵn (có danh sách chọn ở dòng 12) thì báo. Chèn cột làm lệch công thức Hạnh kiểm của file 11 Columbus.
-- Chuỗi trạng thái phải đúng từng ký tự kể cả biểu tượng (`SHEET_STATUS`) — công thức đếm và công thức Hạnh kiểm so chuỗi y hệt.
-- "Chưa làm" chỉ ghi **sau** giờ ở dòng 5; không bao giờ ghi "Thiếu".
-- Tab `11. COLUMBUS (LINK)` của file theo dõi 3 lớp là bản `IMPORTRANGE` — app từ chối nối, phải nối file gốc.
+- **Người sửa luôn thắng**: ghi chú `SmartPlan: <giá trị> · <giờ>` trên ô là trí nhớ của app. Ô khác giá trị ghi chú hoặc không có ghi chú = người đã chọn, không bao giờ ghi đè.
+- **Không chèn/xoá cột**: hết cột trống đã định dạng sẵn thì báo. Chèn/xoá cột làm lệch công thức Hạnh kiểm. App **không tự xoá cột trùng** — chỉ liệt kê cho giáo viên tự xoá.
+- **App KHÔNG tự thêm dòng học sinh**: em mới (có trong app, chưa có dòng trong sheet) bị bỏ qua, phải thêm tên vào cột B của tab trước (đã làm với Bảo Khánh).
+- Chuỗi trạng thái phải đúng từng ký tự kể cả biểu tượng (`SHEET_STATUS`). "Chưa làm" chỉ ghi **sau** giờ ở dòng 5; không bao giờ ghi "Thiếu".
+- **Phải bật Google Sheets API** trong dự án GCP `smartplan-ai-14200` (số `1030734458631`) — đã bật. `sheetsErrorMessage` báo đúng nguyên nhân kèm link nếu chưa bật.
+- **Token Google chỉ sống ~1 giờ**; hết hạn thì app cần cấp quyền lại (popup) — bước này cần thao tác người (đăng nhập). Khi lái tab nền: đưa tab ra trước bằng CDP (`computer` screenshot) rồi bấm "thật" thì `reauthenticateWithPopup` tự xong nếu phiên Google còn.
 - v1 chỉ bài giao nộp ảnh/file (`type !== 'exam'`, `purpose` = assignment). Đề online chưa lên sheet.
-- **Phải bật Google Sheets API** trong dự án GCP `smartplan-ai-14200` (số `1030734458631`). QA đầu tiên trên production (11/09) báo `SERVICE_DISABLED`: Drive API đã bật từ trước cho tính năng đẩy giáo án, nhưng Sheets API là API riêng. `sheetsErrorMessage` giờ báo đúng nguyên nhân kèm link bật, không còn đổ cho quyền của file.
-- **Deploy làm hỏng tab đang mở** ("Failed to fetch dynamically imported module"): Vercel xoá file JS của bản cũ, tab cũ bấm sang mục chưa tải là hỏng. `src/lib/staleChunkReload.ts` + `main.tsx` giờ tự tải lại MỘT lần (nghe `vite:preloadError` và bắt ở ErrorBoundary), có chặn vòng lặp 30 giây. Chỉ bảo vệ những tab mở SAU bản `fix/chunk-reload`; tab mở trước đó vẫn gặp một lần.
-- Nghiệm thu: `lint` 0, `lint:api` 0, full Vitest **158 files / 1948 tests PASS**, `build` PASS.
+- Deploy làm hỏng tab đang mở → đã có `staleChunkReload.ts` tự tải lại một lần (chặn vòng lặp 30s).
 
-## TV thành slide trình chiếu điều khiển tại chỗ — 2026-09-10 (lịch sử)
+## TV/HS — kết quả trực tiếp và nhịp 40 phút — 2026-09-13
 
-Chủ sở hữu báo ba việc trên production: TV không có Trước/Sau/đồng hồ nên phải chạy về laptop; chữ trên TV đầy tốc ký kỹ thuật; TV không giống một file slide gắn với màn hình học sinh.
-
-**Nguyên nhân gốc, không phải lỗi hiển thị.**
-
-- `mode=tv-control` (đã có nút điều khiển) **chưa bao giờ được `buildLiveLessonUrls` sinh ra** — hộp mở tiết chỉ đưa GV/TV/HS, nên nút có mà không có đường vào. Đồng hồ thì chưa từng tồn tại trên TV.
-- `buildPublicTvScreens` của gói P31 nối `boardLarge` + `boardSide` làm nội dung slide. Đó là **tốc ký cho GV viết bảng**, nên TV chiếu ra "Giữ mô hình + định nghĩa + tiêu chí." và "LỖI CẦN SOI: dấu ≤; thay cặp". `title` lấy từ `block.label` viết hoa nên ra tên kỹ thuật của bước ("POST-CHECK CÁ NHÂN", "DUYỆT NHÓM").
-- Trường `action` của `LiveLessonScreen` có sẵn nhưng nhánh V4 **không bao giờ điền**, nên TV chưa từng nói cho lớp biết phải làm gì trên máy.
-
-**Đã đổi và vì sao.**
-
-- 11 slide P31 viết lại thành chữ trình chiếu qua bảng `TV_SLIDES` tường minh; mỗi slide kèm một câu "việc của em". 48 bài Ban Toán sinh tự động lấy `publicScreenAction` trong `runtimeDefinition.ts`.
-- TV có đồng hồ **đếm ngược hoạt động** (quá giờ đổi vàng, hiện `+m:ss`), thanh tiến trình theo cue và bộ đếm "Hoạt động k/n". Mốc đếm là `publicState.updatedAt` — TV, laptop GV và máy HS cùng một mốc, không máy nào chạy đồng hồ riêng.
-- Thanh Trước/Chạy/Sau **tự ẩn sau 3,5 giây**, hiện lại khi có chuột hoặc phím; phím tắt ← → Space F. Đây là cách hoà giải với thiết kế cũ vốn cấm nút trên TV vì sợ học sinh nhìn thấy.
-- Khung **WALT/WILF cố định dưới mọi slide** (`LiveLessonDefinition.intent`, dựng từ `contract.objectives.math`) là lựa chọn thiết kế hỗ trợ đối chiếu mục tiêu; không phải xác nhận tuân thủ một điều khoản CIS.
-- Cỡ chữ bám cả `vw` lẫn `vh` để màn 16:9 không còn cảnh chữ bé giữa khoảng trống, và slide luôn gói gọn trong một màn hình.
-- `docs/features/08-live-lesson-realtime.md` sửa lại: câu cũ dạy rằng "TV hiện nút điều khiển là đang chiếu nhầm cửa sổ" nay đã sai.
-
-**Ngưỡng sắp cắn người.**
-
-- `waltEn`/`wilfEn` cố ý để trống. Không dịch máy mục tiêu bài học rồi chiếu lên tường trong buổi kiểm định; ai có bản dịch đã duyệt thì điền vào gói bài.
-- `showStats` vẫn mặc định tắt và chỉ bật được từ màn giáo viên, nên vòng phản hồi TV↔HS còn đứt một nhịp. Đây là quyết định sư phạm của chủ sở hữu, không phải lỗi.
-- **Chưa nhìn thấy bằng mắt trên app thật**: `mode=tv` cần phiên Firestore và tài khoản GV; `main` không có đường tắt `qa-v4-preview`. Đã dựng bản HTML tĩnh đúng markup và đúng file CSS thật, đo ở 1600×900 tới khi mọi dải nằm gọn một màn và chữ thân slide đạt 37,8px. **KaTeX trên nền slide mới chưa được kiểm.**
-- Test chặn hồi quy trong `runtimeDefinition.p31.test.ts`: mọi màn TV bị cấm chứa `LỖI CẦN SOI`, `KHUNG CÂU:`, `TỪ KHÓA:`, `Giữ mô hình`, và bắt buộc có `action`. Ai đổi nội dung slide phải giữ hai điều kiện này.
-- 13 fixture ghim tiêu đề TV cũ đã được sửa theo. Đó là tiêu đề cố ý đổi, không phải test hỏng.
-- Nghiệm thu: `npm run lint` 0, `npm run build` PASS, full Vitest **156 files / 1907 tests PASS**.
-
-## Chuông thông báo cho học sinh — 2026-09-09
-
-Giáo viên xoá bài nộp thì bài biến mất khỏi màn hình em mà không một lời nào. Nửa "yêu cầu nộp lại" vốn đã chạy sẵn (document biến mất → `portalViewModel` trả `todo` → "Nộp ảnh"); thiếu đúng phần nói cho em biết **vì sao**.
-
-**Quyết định thiết kế quan trọng — chỉ lưu MỘT loại sự kiện.** `studentNotifications` chỉ nhận `submission_deleted`. Bốn loại còn lại (nộp xong, chấm xong, chấm lỗi, giáo viên duyệt điểm) suy thẳng từ bài nộp trong `buildStudentFeed` — giữ thêm bản sao trong Firestore chỉ tạo cơ hội cho hai nguồn nói khác nhau. Ai định thêm loại thông báo mới: hỏi trước "việc này có suy ra được từ dữ liệu em đã có không?", suy được thì **đừng lưu**.
-
-**Đã làm:**
-
-- `handleDeleteSubmission` ghi thông báo **SAU KHI** xoá xong (ghi trước mà lỗi giữa chừng là báo em bài đã bị xoá trong khi nó còn nguyên), kèm tên bài và lý do giáo viên gõ. Best-effort — lỗi ở bước này chỉ log, không được biến một lượt xoá đã thành công thành lỗi.
-- Action `studentNotifications` trên `/api/classroom` (không thêm Vercel function): lọc theo `studentId` lấy từ `studentLinks` **của phiên**, không theo tham số client gửi lên.
-- Hộp thoại xoá của giáo viên có ô "Lý do cho học sinh (tuỳ chọn)".
-- Cổng học sinh: nút chuông + huy hiệu chưa đọc + bảng thông báo, và dải nhắc đỏ ngay trên thẻ bài vừa bị xoá.
-
-**Ngưỡng sắp cắn người:**
-
-- Mốc "đã đọc" nằm ở **localStorage theo máy**, không theo tài khoản — đổi máy thì đếm lại từ đầu. Cố ý: huy hiệu chưa đọc không đáng thêm một lượt ghi máy chủ mỗi lần bấm chuông.
-- Đánh dấu đã đọc bằng mốc của **mục mới nhất**, không phải `Date.now()` — thông báo đến trong lúc bảng đang mở vẫn tính là chưa đọc ở lần sau. Đừng "sửa" thành `Date.now()`.
-- Test `classroom-delete-handlers` khẳng định **đúng thứ tự** thao tác xoá; thêm bước ghi nào vào `handleDeleteSubmission` là phải cập nhật kỳ vọng ở đó.
-- Chưa có chỗ dọn thông báo cũ. Mỗi lượt xoá bài sinh một document, action đọc `limit(100)` rồi cắt còn 50 — lớp dùng vài năm thì nên thêm dọn định kỳ.
-- **Chưa kiểm bằng mắt**: cổng học sinh cần mã lớp + PIN thật mới vào dashboard. Trang nạp sạch, không lỗi console; phần tính toán có test đủ. Phần nhìn thấy cần mở bằng tài khoản học sinh thật.
-- Nghiệm thu: `lint` 0, `lint:api` 0, full Vitest **156 files / 1906 tests PASS**, `build` PASS.
-
-## Báo cáo theo câu: gộp đúng câu + nội dung câu hỏi lưu sẵn — 2026-09-08
-
-Giáo viên báo bảng thống kê theo câu "lộn xộn", bấm vào ra một khối chữ khó hiểu. Ba lỗi riêng, nuôi nhau:
-
-1. **Một câu đếm thành nhiều câu.** `buildQuestionStats` gộp theo đúng chuỗi chữ AI tự đặt. Model mỗi lượt chấm đặt tên một kiểu → `Bài 3.5 – Ý 1`, `Bài 3.5 (Ý 1)`, `Bài 3.5 – Ý 1: Tính cos A` thành ba dòng, mẫu số bị xé nên **cùng một câu ra 100% ở dòng này và 50% ở dòng kia**.
-2. **Nội dung câu hỏi không được lưu ở đâu.** Mỗi lần bấm xem một câu, trình duyệt mới tải đề gốc về rồi OCR tại chỗ → CORS chặn → `Failed to fetch`. Máy chủ thì vốn đã đọc trọn cái đề đó ở nút "AI giải đề" rồi vứt đi.
-3. **Khối cảnh báo in hai lần** + liệt kê đủ hơn 20 nhãn câu.
-
-**Đã sửa:**
-
-- `questionGroupKey()` trong `questionCatalog.ts`: đọc nhãn từ trái sang, giữ giá trị token cấu trúc (`bài/câu/ý` + số), **dừng ở từ mô tả đầu tiên**. Giữ nguyên ngữ cảnh `Phần II` / `Tự luận`. Nhãn không có số thì lùi về `normalizeQuestionKey` — trả khoá rỗng sẽ dồn mọi nhãn mô tả vào một dòng, sai nặng hơn.
-- `buildQuestionStats` gộp theo khoá đó; nhãn hiển thị lấy bản dùng nhiều nhất, hoà thì lấy bản gọn nhất.
-- Action **`buildQuestionCatalog`** trên `/api/grade-homework` (không thêm Vercel function — đang chạm trần 12): máy chủ đọc đề bằng vision, tách từng câu kèm LaTeX, lưu `assignments/{id}.questionCatalog`. Đã có thì trả lại luôn (`cached: true`), chỉ đọc lại khi `force`.
-- Báo cáo đọc thẳng danh mục đã lưu; "Đọc lại đề gốc" gọi máy chủ. Đề online (`exam:*`) không có bài giao để đọc nên vẫn dùng nguồn sẵn có.
-
-**Ngưỡng sắp cắn người:**
-
-- **KHÔNG gộp việc đọc danh mục vào "AI giải đề"** — thêm một lượt gọi Gemini vào request đó là đẩy nó chạm trần 60s. Nếu sau này muốn gộp thì phải mở rộng schema của `buildSolveExamPrompt` để lấy cả hai trong MỘT lượt, đừng gọi hai lần.
-- Bài giao **cũ** chưa có danh mục: lần đầu mở báo cáo sẽ tốn một lượt Gemini để đọc đề, sau đó là miễn phí. Đây là lý do có `cached`.
-- Chưa cắt ảnh từng câu (cần toạ độ, vision trả khung không đủ chắc trên đề scan nghiêng). Chưa cần sửa CORS Storage vì trình duyệt không còn tải file đề.
-- Nghiệm thu: `lint` 0, `lint:api` 0, full Vitest **154 files / 1894 tests PASS**, `build` PASS, `git diff --check` sạch.
-
-## SEV chấm bài: kẹt "Đang chấm" + MAX_TOKENS — 2026-09-08
-
-Sự cố thật 06–08/09: 15/50 bài nộp gần nhất nằm ở `status='grading'` với `gradingRunId` còn nguyên, vài em hiện "Lỗi", nút "Chấm AI" đếm ra 0 nên giáo viên không gỡ được.
-
-**Nguyên nhân gốc — đọc thẳng Firestore production, không phải suy đoán:**
-
-1. **Khoá chỉ do chính worker mở.** Không `fetch` nào trong luồng chấm có timeout, nên worker bị Vercel giết ở 60s (hoặc học sinh tắt máy giữa chừng) là khoá nằm lại vĩnh viễn.
-2. **`maxOutputTokens: 8192` quá chật.** Token "suy nghĩ" cũng tính vào trần này; `errorMessage` thật ghi *"AI trả lời dài quá trần cho phép nên bị cắt giữa chừng"* — tức `MAX_TOKENS`, KHÔNG phải lỗi parser như lô `7fda9fe` đã đoán.
-3. **`BATCH_SIZE = 2` không hề được áp dụng** — batch cắt theo hạn mức ngày, một request cố chấm tới 22 bài.
-4. **Bulk "Chấm AI" lọc `submitted|error`** nên bỏ sót đúng nhóm bài đang kẹt.
-
-**Đã sửa:**
-
-- `GRADING_BUDGET_MS = 45s` tính từ lúc đặt khoá; thời gian còn lại truyền xuống từng lượt gọi Gemini và từng lần tải ảnh qua `AbortSignal.timeout`; bỏ lượt thử lại khi không còn đủ giờ. Đây là mảnh chặn tận gốc — worker chết kiểu gì cũng không để lại khoá.
-- Đường chấm bài **không gửi `maxOutputTokens`** nữa (`'model-max'`), để model dùng trần tối đa của chính nó.
-- `STALE_GRADING_MS` 10 phút → **2 phút**, đồng bộ cả `api/grade-homework.ts` lẫn `src/lib/classroom/submissionSelection.ts`. Hai mốc này phải luôn khớp nhau.
-- `BATCH_SIZE` được áp thật; trả thêm `recovered` để một lần bấm "Chấm cả lớp" là vừa gỡ vừa chấm.
-- `isGradableNow`: bài `grading` quá hạn cũng là bài chấm được. Các nút từng dòng chỉ khoá khi máy ĐANG thật sự chấm.
-- `GRADING_MODEL` **ghim cứng** `gemini-3.8-flash`, bỏ env override — từng bị đặt pro trên Vercel rồi quên gỡ, làm bản revert trong code vô hiệu mà đọc code không thấy gì sai.
-- Thông điệp lỗi HTTP của Gemini kèm mã trạng thái (429/400/503 đòi ba cách xử lý khác nhau).
-- **Học sinh tự chấm chạy ngầm**: server trả `202 { pending: true }` ngay, chấm tiếp bằng `waitUntil`; em tắt máy vẫn ra điểm. Giáo viên vẫn chấm đồng bộ. `chayNgam()` đọc request context của Vercel qua `Symbol.for('@vercel/request-context')`, không thêm dependency; nền tảng không cung cấp thì tự lùi về chờ xong rồi trả lời.
-
-**Ngưỡng sắp cắn người:**
-
-- `waitUntil` **KHÔNG vượt được `maxDuration`** — vẫn 60s trên gói Hobby. Nó chỉ bỏ phụ thuộc vào máy học sinh. Muốn "đợi bao lâu cũng được" thật thì phải rời khỏi trần 60s: Vercel Pro (300s) hoặc chuyển riêng worker chấm sang Cloud Run / Firebase Functions v2. Chủ dự án đã chốt KHÔNG mua Pro.
-- Chưa đặt `thinkingConfig` để chặn token suy nghĩ — máy dev không có khoá Gemini để thử, mà tham số sai là API trả 400 và chết TOÀN BỘ đường chấm. Nếu còn `MAX_TOKENS` sau lô này thì đây là bước kế, và phải thử trên preview trước.
-- Nghiệm thu: `lint` 0, `lint:api` 0, full Vitest **153 files / 1875 tests PASS**, `build` PASS, `git diff --check` sạch.
-
-## V4 TV/HS QA, language, stats — 2026-09-07
-
-- Đã merge vào `main`: mapping canonical P31 TV/HS, rich-text/formula line breaks, HS task-first layout, P27 `cp-postcheck`/HS7, EN student copy và fail-closed JA/KO/ZH fallback.
-- TV có density typography, cue transition, owner-auth `tv-control`, public TV read-only và step-aware anonymous stats. Anonymous không được vào teacher/control branch.
-- Preview offline có `Trước`/`Sau`, counter và stats minh họa có nhãn; không chứa teacherScript/PII/private fields.
-- Chưa deploy hoặc re-seed production. Production cần canonical P31 identity + Rules deploy; browser smoke `tv-control` bằng tài khoản GV non-anonymous còn phải chạy.
-- Nghiệm thu sau merge trên `main`: full Vitest **152 files / 1866 tests PASS**, `npm run lint`, `npm run lint:api`, `npm run build`, `git diff --check`; Rules Emulator **8 files / 303 tests PASS**; service pilot **1/1 PASS**.
-
-### Lệnh nghiệm thu V4
-
-```powershell
-$worktree = "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading"
-npm --prefix $worktree test
-npm --prefix $worktree run lint
-npm --prefix $worktree run lint:api
-npm --prefix $worktree run test:rules
-npm --prefix $worktree run test:pilot
-npm --prefix $worktree run build
-git -C $worktree diff --check
-```
-
-## Tinh chỉnh giao diện TV/HS — 2026-09-10
-
-- TV dùng bố cục theo chiều ngang, tiêu đề gọn hơn, nội dung đặt trong khối tương phản, slide có media dùng hai cột trên màn rộng, stats dễ đọc hơn.
-- HS hiển thị theo thứ tự `Việc em cần làm` → `Phản hồi nhanh` → `Màn hình chung` → `Thuật ngữ`; nút và ô nhập có kích thước/focus rõ hơn trên máy tính và điện thoại.
-- CSS dùng chung ở `src/components/liveLesson/liveClassroom.css`; import từ `TvLiveView.tsx` và `StudentLiveView.tsx`.
-- HS có hướng dẫn nhịp học, tiêu chí tự đối chiếu và khung câu mở theo nhu cầu; mục tiêu G1/G2/G3 và loại lỗi AI đã đổi thành nhãn có nghĩa.
-- TV P16 giữ câu hỏi kiểm chứng, trao đổi cặp đôi và yêu cầu ghi bằng chứng; không lộ sẵn phần chốt lỗi trước khi HS suy nghĩ.
-- Đưa lên `main` để chủ sở hữu tự QA giao diện; chưa chạy thêm test/QA theo yêu cầu phiên này.
+- TV có biểu đồ theo hoạt động; GV và tv-control đều có nút công bố/ẩn. Chỉ owner đọc phản hồi để tổng hợp. Số người gửi không được coi là số người làm đúng.
+- Hoạt động nhóm: HS chọn số nhóm 1–12; groupMemberships giữ riêng tư. TV nhận public/groupProgress gồm số thành viên và số người gửi theo nhóm, không tên/UID/bài làm.
+- Đồng hồ dùng cueStartedAt + cueElapsedSeconds: tạm dừng giữ thời gian, tiếp tục cộng tiếp; bật/tắt thống kê không reset. TV/HS hiện khoảng phút dự kiến trong tiết.
+- Chuyển cue và public state ghi cùng transaction; publisher kiểm tra lại cue/cờ công bố trước khi ghi.
+- Phải triển khai firestore.rules cùng ứng dụng: clock có trường optional tương thích session cũ; thêm hai đường dữ liệu nhóm giới hạn quyền.
+- Bổ sung luồng HS: nháp riêng theo session/uid/step, hỗ trợ diễn đạt 3 mức (từ khóa → khung câu → tự diễn đạt), đọc lại mục tiêu cá nhân cuối tiết. Nháp không tự đồng bộ/tự gửi.
+- Triển khai 13/09: Firebase CLI đã phát hành firestore.rules tới smartplan-ai-14200 từ mã `161a4d7` (chỉ `firestore:rules`). Chưa xác nhận QA tiết học thực tế.
+- ⚠ 6 test liveLesson (`languagePack`, `liveLessonService`) đang FAIL trên `origin/main` — cần chủ sở hữu xử lý riêng.
+- Chi tiết: `docs/features/2026-09-11-live-activity-results.md`.

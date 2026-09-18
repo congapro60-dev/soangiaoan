@@ -1,5 +1,5 @@
 import { auth } from '../lib/firebase';
-import type { AssignmentQuestionCatalogItem } from '../lib/classroom/types';
+import type { AssignmentCompetencyTag, AssignmentQuestionCatalogItem } from '../lib/classroom/types';
 
 export interface GradeBatchResult {
   graded: number;
@@ -237,7 +237,7 @@ export const solveAnswerKeyForAssignment = async (
 export const buildQuestionCatalog = async (
   assignmentId: string,
   force = false,
-): Promise<{ questionCatalog: AssignmentQuestionCatalogItem[]; cached: boolean }> => {
+): Promise<{ questionCatalog: AssignmentQuestionCatalogItem[]; competencyTags: AssignmentCompetencyTag[]; cached: boolean }> => {
   const user = auth.currentUser;
   if (!user) throw new Error('Phiên đăng nhập đã hết hạn.');
 
@@ -255,8 +255,32 @@ export const buildQuestionCatalog = async (
   if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
   return {
     questionCatalog: Array.isArray(data?.questionCatalog) ? data.questionCatalog : [],
+    competencyTags: Array.isArray(data?.competencyTags) ? data.competencyTags : [],
     cached: data?.cached === true,
   };
+};
+
+/** Lưu nhãn năng lực do giáo viên DUYỆT/SỬA cho một bài — khoá lại để đọc đề sau không đè. */
+export const setAssignmentCompetencyTags = async (
+  assignmentId: string,
+  tags: AssignmentCompetencyTag[],
+): Promise<{ competencyTags: AssignmentCompetencyTag[] }> => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Phiên đăng nhập đã hết hạn.');
+
+  const res = await fetch('/api/grade-homework', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'setAssignmentCompetencyTags',
+      idToken: await user.getIdToken(),
+      assignmentId,
+      tags,
+    }),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
+  return { competencyTags: Array.isArray(data?.competencyTags) ? data.competencyTags : [] };
 };
 
 /** Nhờ AI đề xuất hướng dẫn chấm từ đáp án đã có. */

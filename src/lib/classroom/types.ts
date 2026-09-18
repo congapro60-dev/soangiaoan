@@ -99,6 +99,8 @@ export interface StudentDoc {
   name: string;
   /** Mã học sinh của trường, dùng làm tên đăng nhập. */
   code: string;
+  /** Sao lưu các mã cũ mỗi lần đổi mã — để giáo viên xem/khôi phục sau này. */
+  previousCodes?: string[];
   status: StudentStatus;
   progress: number;
   createdAt: string;
@@ -195,6 +197,16 @@ export interface AssignmentQuestionCatalogItem {
   expectedAnswer?: string;
 }
 
+/** Nhãn năng lực AI gợi ý cho bài (khớp CompetencyTag của competency/framework). Giáo viên duyệt. */
+export interface AssignmentCompetencyTag {
+  /** id trong MATH_COMPETENCIES; đã lọc theo khung khối nên không có id lạ. */
+  competencyId: string;
+  /** Độ chắc 0..1 do AI tự đánh giá — chỗ thấp thì soát kỹ. */
+  confidence: number;
+  /** Căn cứ ngắn AI đưa ra. */
+  reason: string;
+}
+
 /** Một bài giáo viên giao cho lớp. */
 export interface AssignmentDoc {
   id: string;
@@ -223,6 +235,13 @@ export interface AssignmentDoc {
    * một câu — chậm, lặp vô ích, và hỏng ngay ở bước tải file.
    */
   questionCatalog?: AssignmentQuestionCatalogItem[];
+  /**
+   * Năng lực AI gắn cho bài (một lượt cùng lúc đọc questionCatalog). Nền cho hồ sơ năng lực:
+   * mỗi bài đã duyệt trở thành bằng chứng cho các năng lực này. Giáo viên duyệt/sửa sau.
+   */
+  competencyTags?: AssignmentCompetencyTag[];
+  /** true khi giáo viên đã duyệt nhãn năng lực — đọc lại đề không đè nhãn tay nữa. */
+  competencyTagsApproved?: boolean;
   /** Ảnh đề/ảnh PDF scan đã chuẩn hoá, gửi một lần làm ngữ cảnh chấm. */
   sourceImageUrls?: string[];
   /** Lệnh nội bộ của giáo viên cho AI: phạm vi câu/bài, phần cần bỏ qua, cách xử lý đặc biệt. */

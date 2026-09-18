@@ -242,7 +242,7 @@ const classTeacherIds = (data: FirebaseFirestore.DocumentData): string[] => [...
   classOwnerId(data),
 ].filter(Boolean))];
 
-const teacherAssignmentProjection = (id: string, data: FirebaseFirestore.DocumentData): AssignmentDoc => {
+export const teacherAssignmentProjection = (id: string, data: FirebaseFirestore.DocumentData): AssignmentDoc => {
   const allowed = compact({
     id,
     teacherId: data.teacherId,
@@ -259,6 +259,9 @@ const teacherAssignmentProjection = (id: string, data: FirebaseFirestore.Documen
     sourceText: data.sourceText,
     // Báo cáo theo câu đọc thẳng danh mục này; thiếu nó là quay lại cảnh OCR trong trình duyệt.
     questionCatalog: data.questionCatalog,
+    // Nhãn năng lực + cờ đã duyệt — nền cho hồ sơ năng lực; thiếu là hồ sơ luôn trống.
+    competencyTags: data.competencyTags,
+    competencyTagsApproved: data.competencyTagsApproved,
     sourceImageUrls: data.sourceImageUrls,
     gradingInstructions: data.gradingInstructions,
     answerKeyImageUrls: data.answerKeyImageUrls,
@@ -908,6 +911,34 @@ export const handleRenameStudent = async (db: Db, body: Body, res: VercelRespons
   return void res.status(200).json({ updated: true, classId: context.classId, studentId, name });
 };
 
+/**
+ * Sửa MÃ HỌC SINH của một em đã có. `code` cũng là tên đăng nhập nên phải là DUY NHẤT trong lớp;
+ * đổi mã không đụng PIN (PIN gắn theo studentId ở studentSecrets), em đăng nhập bằng mã mới + PIN cũ.
+ */
+export const handleSetStudentCode = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
+  const studentId = typeof body.studentId === 'string' ? body.studentId.trim() : '';
+  const context = await teacherContext(db, body, res);
+  if (!context) return;
+  const code = typeof body.code === 'string' ? body.code.trim().toUpperCase() : '';
+  if (!studentId || !code) return void res.status(422).json({ error: 'Mã học sinh không được để trống.' });
+  const studentsRef = context.classRef.collection('students');
+  const studentRef = studentsRef.doc(studentId);
+  const snapshot = await studentRef.get();
+  if (!snapshot.exists) return void res.status(404).json({ error: 'Không tìm thấy học sinh trong lớp.' });
+  const existing = snapshot.data() || {};
+  const oldCode = typeof existing.code === 'string' ? existing.code : '';
+  if (oldCode === code) return void res.status(200).json({ updated: false, classId: context.classId, studentId, code });
+  const clash = await studentsRef.where('code', '==', code).get();
+  if (clash.docs.some(doc => doc.id !== studentId)) {
+    return void res.status(409).json({ error: 'Mã học sinh này đã có em khác dùng trong lớp.' });
+  }
+  // BACKUP: giữ lại mã cũ để giáo viên xem/khôi phục sau này (đổi mã cũng là đổi tên đăng nhập).
+  const priorCodes = Array.isArray(existing.previousCodes) ? existing.previousCodes.filter((item: unknown): item is string => typeof item === 'string' && !!item) : [];
+  const previousCodes = oldCode && !priorCodes.includes(oldCode) ? [...priorCodes, oldCode].slice(-20) : priorCodes;
+  await studentRef.update({ code, previousCodes, updatedAt: nowIso(), updatedBy: context.uid });
+  return void res.status(200).json({ updated: true, classId: context.classId, studentId, code, previousCodes });
+};
+
 export const handleAddStudent = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
   const context = await teacherContext(db, body, res);
   if (!context) return;
@@ -1129,6 +1160,7 @@ export const handleTeacherAction = async (db: Db, body: Body, res: VercelRespons
   if (action === 'renameClass') { await handleRenameClass(db, body, res); return true; }
   if (action === 'setClassSheetSync') { await handleSetClassSheetSync(db, body, res); return true; }
   if (action === 'renameStudent') { await handleRenameStudent(db, body, res); return true; }
+  if (action === 'setStudentCode') { await handleSetStudentCode(db, body, res); return true; }
   if (action === 'addStudent') { await handleAddStudent(db, body, res); return true; }
   if (action === 'teacherMembers') { await handleTeacherMembers(db, body, res); return true; }
   if (action === 'teacherInvitations') { await handleTeacherInvitations(db, body, res); return true; }

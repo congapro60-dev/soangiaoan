@@ -265,13 +265,19 @@ export const sheetDeadlineMs = (cell: SheetCell | undefined, timeZone: string): 
   return wallClockToUtcMs(wallMs, timeZone);
 };
 
-/** Hạn của bài trong app → công thức ngày y hệt kiểu file 11 Columbus đang dùng ở dòng 5. */
-export const deadlineFormula = (iso: string | undefined, timeZone: string): string | null => {
+/**
+ * Hạn của bài trong app → SỐ ngày kiểu Sheets (serial), KHÔNG phải công thức.
+ *
+ * Trước đây ghi `=DATE(2026,9,16)+TIME(8,0,0)` dùng dấu PHẨY, nhưng file đặt ngôn ngữ Việt lại đòi
+ * dấu CHẤM PHẨY nên công thức báo #ERROR!, app đọc lại ra "không có hạn" → không tính được muộn/chưa
+ * nộp. Số ngày không phụ thuộc dấu phân cách nên chạy đúng ở mọi ngôn ngữ; khi ghi kèm định dạng ngày
+ * (buildSheetRequests) thì ô vẫn hiển thị ra ngày giờ như thường.
+ */
+export const deadlineSerial = (iso: string | undefined, timeZone: string): number | null => {
   const utcMs = Date.parse(String(iso ?? ''));
   if (!Number.isFinite(utcMs)) return null;
-  const local = new Date(utcMs + timeZoneOffsetMs(utcMs, timeZone));
-  return `=DATE(${local.getUTCFullYear()},${local.getUTCMonth() + 1},${local.getUTCDate()})`
-    + `+TIME(${local.getUTCHours()},${local.getUTCMinutes()},0)`;
+  const wallMs = utcMs + timeZoneOffsetMs(utcMs, timeZone);
+  return (wallMs - SERIAL_EPOCH_MS) / 86_400_000;
 };
 
 // ── Trạng thái và quy tắc ghi ───────────────────────────────────────────────
@@ -338,7 +344,7 @@ export const decideStatusCell = (cell: SheetCell | undefined, desired: string | 
 export type SheetWrite =
   | { kind: 'status'; row: number; column: number; value: string; note: string }
   | { kind: 'content'; row: number; column: number; value: string }
-  | { kind: 'deadline'; row: number; column: number; formula: string }
+  | { kind: 'deadline'; row: number; column: number; serial: number }
   | { kind: 'link'; row: number; column: number; value: string }
   | { kind: 'countFormula'; row: number; column: number; formula: string };
 
@@ -355,7 +361,7 @@ export interface SheetSyncPlan {
   writes: SheetWrite[];
   /** Danh sách chọn mới khi tab còn thiếu "Nộp muộn" và giáo viên đồng ý bổ sung. */
   upgradedStatusOptions: string[] | null;
-  counts: { attached: number; created: number; statusWrites: number; keptHuman: number };
+  counts: { attached: number; created: number; statusWrites: number; keptHuman: number; deadlineWrites: number };
   students: StudentMatch;
 }
 
@@ -410,7 +416,7 @@ export const planSheetSync = (input: {
     skipped: [],
     writes: [],
     upgradedStatusOptions,
-    counts: { attached: 0, created: 0, statusWrites: 0, keptHuman: 0 },
+    counts: { attached: 0, created: 0, statusWrites: 0, keptHuman: 0, deadlineWrites: 0 },
     students,
   };
 
@@ -459,8 +465,8 @@ export const planSheetSync = (input: {
     }
     taken.add(column);
     plan.writes.push({ kind: 'content', row: SHEET_LAYOUT.contentRow, column, value: assignment.title });
-    const deadline = deadlineFormula(assignment.dueAt, snapshot.timeZone);
-    if (deadline) plan.writes.push({ kind: 'deadline', row: SHEET_LAYOUT.deadlineRow, column, formula: deadline });
+    const deadline = deadlineSerial(assignment.dueAt, snapshot.timeZone);
+    if (deadline !== null) plan.writes.push({ kind: 'deadline', row: SHEET_LAYOUT.deadlineRow, column, serial: deadline });
     plan.writes.push({ kind: 'link', row: SHEET_LAYOUT.linkRow, column, value: assignmentLink(input.appOrigin, assignment.id) });
     plan.columns.push({ assignmentId: assignment.id, title: assignment.title, column, source: 'created' });
     plan.counts.created += 1;
@@ -482,9 +488,19 @@ export const planSheetSync = (input: {
     const assignment = assignmentById.get(planned.assignmentId);
     if (!assignment) continue;
     const header = headers.find(item => item.column === planned.column);
-    const deadlineMs = planned.source === 'created'
-      ? (Number.isFinite(Date.parse(String(assignment.dueAt ?? ''))) ? Date.parse(String(assignment.dueAt)) : null)
-      : sheetDeadlineMs(header?.deadline, snapshot.timeZone);
+    // Hạn của app là chuẩn. Cột đã có sẵn trong sheet trước đây lấy hạn từ dòng 5 — nếu dòng đó trống
+    // hoặc lỗi (#ERROR! do công thức sai dấu) thì không tính được muộn/chưa nộp. Nên ưu tiên hạn app,
+    // và ghi hạn app (số ngày) đè lên ô đang trống/lỗi/khác để dòng 5 chuẩn theo app.
+    const appDeadlineMs = Number.isFinite(Date.parse(String(assignment.dueAt ?? ''))) ? Date.parse(String(assignment.dueAt)) : null;
+    const sheetMs = sheetDeadlineMs(header?.deadline, snapshot.timeZone);
+    const deadlineMs = appDeadlineMs ?? sheetMs;
+    if (appDeadlineMs !== null && planned.source !== 'created') {
+      const serial = deadlineSerial(assignment.dueAt, snapshot.timeZone);
+      if (serial !== null && (sheetMs === null || Math.abs(sheetMs - appDeadlineMs) > 60_000)) {
+        plan.writes.push({ kind: 'deadline', row: SHEET_LAYOUT.deadlineRow, column: planned.column, serial });
+        plan.counts.deadlineWrites += 1;
+      }
+    }
     const targets = assignment.targetStudentIds && assignment.targetStudentIds.length > 0
       ? new Set(assignment.targetStudentIds)
       : null;
@@ -583,7 +599,12 @@ export const buildSheetRequests = (plan: SheetSyncPlan, snapshot: SheetSnapshot)
     assertWriteAllowed(write, snapshot);
     const cell: Record<string, unknown> = {};
     let fields = 'userEnteredValue';
-    if (write.kind === 'deadline' || write.kind === 'countFormula') {
+    if (write.kind === 'deadline') {
+      // Số ngày + định dạng ngày giờ: hiển thị ra ngày, không lệ thuộc dấu phân cách như công thức.
+      cell.userEnteredValue = { numberValue: write.serial };
+      cell.userEnteredFormat = { numberFormat: { type: 'DATE_TIME', pattern: 'dd/mm/yyyy hh:mm' } };
+      fields = 'userEnteredValue,userEnteredFormat.numberFormat';
+    } else if (write.kind === 'countFormula') {
       cell.userEnteredValue = { formulaValue: write.formula };
     } else {
       cell.userEnteredValue = { stringValue: write.value };

@@ -32,6 +32,7 @@ import {
   parseHomeworkGradeForCommit,
   buildQuestionCatalogPrompt,
   parseQuestionCatalog,
+  parseCompetencyTags,
   type QuestionCatalogEntry,
   parsePracticeAssessment,
   parsePracticeQuestions,
@@ -43,6 +44,12 @@ import {
   type HomeworkGradeParseResult,
 } from '../src/lib/classroom/gradingPrompt.js';
 import { JsonRecoveryError } from '../src/utils/jsonRepair.js';
+import {
+  asCompetencyGrade,
+  competencyIdSet,
+  competencyOptionsForPrompt,
+  type CompetencyTag,
+} from '../src/lib/classroom/competency/framework.js';
 import { applyPracticeEvidence } from '../src/lib/classroom/profileMerge.js';
 import {
   buildHomeworkSkillEvidence,
@@ -1287,15 +1294,73 @@ const handleBuildQuestionCatalog = async (db: FirebaseFirestore.Firestore, body:
 
   // Đã có danh mục thì dùng lại, trừ khi giáo viên chủ động bấm đọc lại.
   const existing = Array.isArray(assignment.questionCatalog) ? assignment.questionCatalog : [];
+  const existingTags = Array.isArray(assignment.competencyTags) ? assignment.competencyTags : [];
   if (existing.length > 0 && body.force !== true) {
-    return res.status(200).json({ questionCatalog: existing, cached: true });
+    return res.status(200).json({ questionCatalog: existing, competencyTags: existingTags, cached: true });
   }
 
   const catalog = await readAssignmentQuestionCatalog(db, uid, assignment);
   if ('error' in catalog) return res.status(catalog.status).json({ error: catalog.error });
 
-  await ref.update({ questionCatalog: catalog.questionCatalog, updatedAt: new Date().toISOString() });
-  return res.status(200).json({ questionCatalog: catalog.questionCatalog, cached: false });
+  // Giáo viên đã duyệt nhãn thì GIỮ NGUYÊN — đọc lại đề chỉ làm mới danh mục câu, không đè nhãn tay.
+  const nextTags = assignment.competencyTagsApproved === true ? existingTags : catalog.competencyTags;
+  await ref.update({
+    questionCatalog: catalog.questionCatalog,
+    competencyTags: nextTags,
+    updatedAt: new Date().toISOString(),
+  });
+  return res.status(200).json({
+    questionCatalog: catalog.questionCatalog,
+    competencyTags: nextTags,
+    cached: false,
+  });
+};
+
+/**
+ * Giáo viên DUYỆT/SỬA nhãn năng lực của một bài (GĐ3b). Chốt danh sách nhãn tay, khoá lại
+ * (`competencyTagsApproved`) để lần đọc đề sau không đè. Chỉ nhận id có trong khung của khối lớp.
+ */
+const handleSetAssignmentCompetencyTags = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Cần đăng nhập tài khoản giáo viên.' });
+
+  const assignmentId = typeof body.assignmentId === 'string' ? body.assignmentId : '';
+  const ref = db.collection('assignments').doc(assignmentId);
+  const snap = await ref.get();
+  if (!snap.exists) return res.status(404).json({ error: 'Không tìm thấy bài đã giao.' });
+
+  const assignment = snap.data() as FirebaseFirestore.DocumentData;
+  const assignmentTeacherId = typeof assignment.teacherId === 'string' ? assignment.teacherId.trim() : '';
+  const assignmentClassId = typeof assignment.classId === 'string' ? assignment.classId.trim() : '';
+  if (!assignmentTeacherId || !await canTeacherAccessLegacyNamespace(db, uid, assignmentClassId, assignmentTeacherId)) {
+    return res.status(403).json({ error: 'Chỉ giáo viên thuộc lớp được cấp quyền mới dùng được chức năng này.' });
+  }
+
+  const grade = await resolveAssignmentGrade(db, assignment);
+  if (!grade) return res.status(400).json({ error: 'Lớp chưa rõ khối 10/11/12 nên chưa gắn được nhãn năng lực.' });
+  const allowed = competencyIdSet(grade);
+
+  const rawTags = Array.isArray(body.tags) ? body.tags : [];
+  const seen = new Set<string>();
+  const competencyTags: CompetencyTag[] = [];
+  for (const item of rawTags) {
+    if (!item || typeof item !== 'object') continue;
+    const record = item as Record<string, unknown>;
+    const competencyId = String(record.competencyId ?? '').trim();
+    if (!competencyId || !allowed.has(competencyId) || seen.has(competencyId)) continue;
+    seen.add(competencyId);
+    const rawConfidence = Number(record.confidence);
+    const confidence = Number.isFinite(rawConfidence) ? Math.max(0, Math.min(1, rawConfidence)) : 1;
+    competencyTags.push({ competencyId, confidence, reason: String(record.reason ?? '').trim() });
+  }
+
+  await ref.update({
+    competencyTags,
+    competencyTagsApproved: true,
+    updatedAt: new Date().toISOString(),
+    updatedBy: uid,
+  });
+  return res.status(200).json({ competencyTags });
 };
 
 /** Đọc đề bằng vision và trả danh mục câu; dùng chung cho action riêng và cho lượt giải đáp án. */
@@ -1303,7 +1368,7 @@ const readAssignmentQuestionCatalog = async (
   db: FirebaseFirestore.Firestore,
   uid: string,
   assignment: FirebaseFirestore.DocumentData,
-): Promise<{ questionCatalog: QuestionCatalogEntry[] } | { error: string; status: number }> => {
+): Promise<{ questionCatalog: QuestionCatalogEntry[]; competencyTags: CompetencyTag[] } | { error: string; status: number }> => {
   const examText = String(assignment.sourceText || '');
   const examImages = await loadAssignmentSourceImages(assignment);
   if (!examText.trim() && examImages.length === 0) {
@@ -1314,11 +1379,15 @@ const readAssignmentQuestionCatalog = async (
   const verdict = remainingQuota(quota, 'teacher', '');
   if (verdict.allowed <= 0) return { error: verdict.reason, status: 429 };
 
+  // Khối của lớp → chỉ đưa AI đúng danh sách năng lực khối đó để gắn nhãn (Toán 10/11/12).
+  const grade = await resolveAssignmentGrade(db, assignment);
+
   const raw = await callGeminiVision(
     buildQuestionCatalogPrompt({
       examText,
       examImageCount: examImages.length,
       maxScore: Number(assignment.maxScore) || 10,
+      ...(grade ? { competencyOptions: competencyOptionsForPrompt(grade) } : {}),
     }),
     examImages,
     getGradingApiKey(),
@@ -1331,7 +1400,20 @@ const readAssignmentQuestionCatalog = async (
   if (questionCatalog.length === 0) {
     return { error: 'Chưa tách được câu hỏi nào từ đề gốc. Thử đính kèm file đề rõ hơn.', status: 422 };
   }
-  return { questionCatalog };
+  const competencyTags = grade ? parseCompetencyTags(raw, competencyIdSet(grade)) : [];
+  return { questionCatalog, competencyTags };
+};
+
+/** Khối lớp của bài giao (đọc từ lớp), hoặc null nếu lớp không rõ khối 10/11/12. */
+const resolveAssignmentGrade = async (
+  db: FirebaseFirestore.Firestore,
+  assignment: FirebaseFirestore.DocumentData,
+): Promise<10 | 11 | 12 | null> => {
+  const classId = typeof assignment.classId === 'string' ? assignment.classId.trim() : '';
+  if (!classId) return null;
+  const classSnap = await db.collection('classes').doc(classId).get();
+  if (!classSnap.exists) return null;
+  return asCompetencyGrade(classSnap.data()?.grade);
 };
 
 /**
@@ -1478,6 +1560,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (action === 'solveAnswerKey') return await handleSolveAnswerKey(db, body, res);
     if (action === 'solveAnswerKeyForAssignment') return await handleSolveAnswerKeyForAssignment(db, body, res);
     if (action === 'buildQuestionCatalog') return await handleBuildQuestionCatalog(db, body, res);
+    if (action === 'setAssignmentCompetencyTags') return await handleSetAssignmentCompetencyTags(db, body, res);
     if (action === 'suggestRubric') return await handleSuggestRubric(db, body, res);
     if (action === 'rewriteFeedback') return await handleRewriteFeedback(db, body, res);
     return res.status(400).json({ error: `Hành động không hợp lệ: ${action}`, limits: QUOTA_LIMITS });

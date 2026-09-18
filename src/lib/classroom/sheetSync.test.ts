@@ -7,7 +7,7 @@ import {
   assignmentLink,
   buildSheetRequests,
   checkSheetLayout,
-  deadlineFormula,
+  deadlineSerial,
   decideStatusCell,
   desiredStatus,
   matchStudents,
@@ -131,9 +131,9 @@ describe('giờ giấc theo múi giờ của sheet', () => {
     expect(sheetDeadlineMs(cell('chưa đặt'), TZ)).toBeNull();
   });
 
-  it('hạn của bài ghi ra thành công thức ngày, đúng kiểu file 11 Columbus đang dùng', () => {
-    expect(deadlineFormula('2026-09-07T01:00:00.000Z', TZ)).toBe('=DATE(2026,9,7)+TIME(8,0,0)');
-    expect(deadlineFormula(undefined, TZ)).toBeNull();
+  it('hạn của bài ghi ra thành SỐ ngày (serial) chống lỗi #ERROR! do dấu phân cách theo ngôn ngữ', () => {
+    expect(deadlineSerial('2026-09-07T01:00:00.000Z', TZ)).toBe(serial(2026, 9, 7, 8, 0));
+    expect(deadlineSerial(undefined, TZ)).toBeNull();
   });
 });
 
@@ -235,7 +235,7 @@ describe('planSheetSync — dựng lại tình huống sheet thật', () => {
   it('bài chưa có cột được tạo ở cột trống đầu tiên, điền tên, hạn và link; ô Môn để trống', () => {
     expect(plan.columns.find(column => column.assignmentId === 'a3')).toMatchObject({ column: 6, source: 'created' });
     expect(writeAt(4, 6)).toMatchObject({ kind: 'content', value: 'BTVN Hình học 03/09/2026' });
-    expect(writeAt(5, 6)).toMatchObject({ kind: 'deadline', formula: '=DATE(2026,9,3)+TIME(8,0,0)' });
+    expect(writeAt(5, 6)).toMatchObject({ kind: 'deadline', serial: serial(2026, 9, 3, 8, 0) });
     expect(writeAt(6, 6)).toMatchObject({ kind: 'link' });
     expect(writeAt(3, 6)).toBeUndefined();
   });
@@ -259,7 +259,42 @@ describe('planSheetSync — dựng lại tình huống sheet thật', () => {
   });
 
   it('đếm đúng cho bản xem trước', () => {
-    expect(plan.counts).toEqual({ attached: 1, created: 1, statusWrites: 8, keptHuman: 1 });
+    expect(plan.counts).toEqual({ attached: 1, created: 1, statusWrites: 8, keptHuman: 1, deadlineWrites: 0 });
+  });
+});
+
+describe('planSheetSync — hạn lấy từ app cho cột đã có sẵn', () => {
+  // Cột đã gắn link (col 3) nhưng ô hạn đang lỗi #ERROR! (công thức sai dấu phân cách theo ngôn ngữ).
+  const base = {
+    submissions: [{ studentId: 's1', assignmentId: 'a1', createdAt: '2026-09-08T00:00:00.000Z' }],
+    roster,
+    appOrigin: ORIGIN,
+    nowMs: Date.UTC(2026, 8, 10),
+    addLateOption: false,
+  };
+  const planWith = (deadlineCell: SheetCell | undefined) => planSheetSync({
+    ...base,
+    snapshot: snapshotOf({
+      headers: [{ column: 3, link: cell(assignmentLink(ORIGIN, 'a1')), deadline: deadlineCell }],
+      lastColumn: 3,
+    }),
+    assignments: [{ id: 'a1', title: 'BTVN', dueAt: '2026-09-07T01:00:00.000Z' }],
+  });
+
+  it('ô hạn lỗi/trống thì ghi hạn của app (số ngày) đè vào, và tính được nộp muộn', () => {
+    const plan = planWith(cell('#ERROR!'));
+    expect(plan.writes.find(w => w.kind === 'deadline' && w.column === 3))
+      .toMatchObject({ row: 5, column: 3, serial: serial(2026, 9, 7, 8, 0) });
+    expect(plan.counts.deadlineWrites).toBe(1);
+    // Nộp 08/09 sau hạn 07/09 08:00 (giờ app) → Nộp muộn; trước đây hạn #ERROR! nên chỉ ra Đủ.
+    expect(plan.writes.find(w => w.kind === 'status' && w.row === 12 && w.column === 3))
+      .toMatchObject({ value: SHEET_STATUS.muon });
+  });
+
+  it('ô hạn đã trùng hạn app thì không ghi đè (giữ nguyên, không tạo lệnh thừa)', () => {
+    const plan = planWith(cell(serial(2026, 9, 7, 8, 0)));
+    expect(plan.writes.find(w => w.kind === 'deadline')).toBeUndefined();
+    expect(plan.counts.deadlineWrites).toBe(0);
   });
 });
 

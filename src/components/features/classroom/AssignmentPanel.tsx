@@ -29,6 +29,8 @@ import { QuestionResultsList } from './QuestionResultsList';
 import { currentSubmissionsForAssignment, hasUncertainRead, isGradableNow, isStaleGradingTimestamp, selectedCurrentSubmissions, selectedSubmissionsForAssignment, submissionsForHistoryMode, summarizeSelection, type SubmissionHistoryMode } from '../../../lib/classroom/submissionSelection';
 import { renameAssignment } from '../../../lib/classroom/teacherService';
 import { OnlineAssignmentReview } from './OnlineAssignmentReview';
+import { CompetencyTagEditor } from './CompetencyTagEditor';
+import { asCompetencyGrade } from '../../../lib/classroom/competency/framework';
 
 interface Props {
   classId: string;
@@ -36,6 +38,8 @@ interface Props {
   className: string;
   showToast: (msg: string, icon?: any) => void;
   view?: 'assignments' | 'submissions';
+  /** Khối lớp ("10"/"11"/"12") để gắn nhãn năng lực; vắng thì ẩn phần đó. */
+  classGrade?: string;
 }
 
 const trangThai: Record<SubmissionDoc['status'], { nhan: string; mau: string }> = {
@@ -467,8 +471,9 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
   );
 };
 
-export const AssignmentPanel = ({ classId, teacherId, className, showToast, view = 'assignments' }: Props) => {
+export const AssignmentPanel = ({ classId, teacherId, className, showToast, view = 'assignments', classGrade }: Props) => {
   const submissionsOnly = view === 'submissions';
+  const competencyGrade = asCompetencyGrade(classGrade);
   const [assignments, setAssignments] = useState<AssignmentDoc[]>([]);
   const [openId, setOpenId] = useState('');
   // Nạp MỘT lần toàn bộ bài nộp của lớp: đếm "x/y đã nộp" trên từng bài, lọc khi mở bài,
@@ -1530,6 +1535,10 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                       </button>
                     </div>
                   </div>}
+
+                  {!submissionsOnly && competencyGrade && (
+                    <CompetencyTagEditor assignment={a} grade={competencyGrade} showToast={showToast} onSaved={taiBai} />
+                  )}
 
                   <BaiNopTheoLop
                     baiNop={baiNopCua(a.id)}
