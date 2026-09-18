@@ -9,6 +9,7 @@ import { QuestionResultsList } from './QuestionResultsList';
 import { CompetencyPortfolio } from './CompetencyPortfolio';
 import { buildStudentReportModel } from '../../../lib/classroom/reportModel';
 import { buildParentSafeReport, type ParentSafeAssignmentStatus } from '../../../lib/classroom/parentSafeReport';
+import { openParentReportPrint } from '../../../lib/classroom/parentReportPrintDoc';
 import { asCompetencyGrade } from '../../../lib/classroom/competency/framework';
 
 interface Props {
@@ -121,11 +122,10 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
   };
 
   const inBaoCaoPhuHuynh = () => {
-    const title = `Bao cao hoc tap ${studentName} - ${className}`;
-    const previousTitle = document.title;
-    document.title = title;
-    window.print();
-    document.title = previousTitle;
+    const opened = openParentReportPrint({ report: parentReport, studentName, className, studentCode });
+    if (!opened) {
+      alert('Trình duyệt đang chặn cửa sổ in. Vui lòng cho phép popup rồi bấm lại.');
+    }
   };
 
   if (dangTai) {

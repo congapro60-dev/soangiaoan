@@ -13,6 +13,8 @@ Phụ huynh không rành Toán thì danh sách tên chủ đề vẫn khó hiể
 - `teacherActions`: việc thầy cô sẽ làm (giao bài luyện đúng phần yếu, chấm-phản hồi, hoàn tất bài đang xử lý, trao đổi PH…).
 UI `StudentReport` bản phụ huynh: thêm khối "Nhận xét chung về con", câu bắc cầu "hai mục trên là tên phần Toán, PH không cần hiểu sâu", và 2 khối "Phụ huynh có thể đồng hành" + "Thầy cô sẽ hỗ trợ". Nghiệm thu: parentSafeReport 6 test, `lint`+`build` OK.
 
+**In/lưu PDF bản phụ huynh** (nối tiếp): nút cũ gọi `window.print()` nên in cả app (giống ảnh chụp màn hình). Thay bằng `parentReportPrintDoc.ts::openParentReportPrint` — mở cửa sổ in riêng, dựng 1 trang A4 sạch (header HS/lớp/mã/ngày, 4 số liệu, nhận xét chung, điểm mạnh/cần rèn, bảng kết quả theo bài, 2 cột đồng hành, ô ký PH+GV) chỉ từ `ParentSafeReport` (escape HTML, không lọt đáp án/ghi chú nội bộ). Nghiệm thu thêm: parentReportPrintDoc 3 test.
+
 ## Bản phụ huynh + hồ sơ: 5 lỗi làm chặt — 2026-09-18
 
 Nối tiếp lô bản phụ huynh. Fix 5 lỗi người dùng nêu:
