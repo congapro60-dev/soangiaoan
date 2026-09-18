@@ -92,10 +92,12 @@ describe('buildParentSafeReport', () => {
       progress: { trend: 'down' },
     });
     expect(report.results).toEqual(expect.arrayContaining([
-      expect.objectContaining({ assignmentId: 'assignment-1', title: 'Hàm số', status: 'official', score: 8, feedback: 'Em đã nắm được cách làm chính.' }),
+      expect.objectContaining({ assignmentId: 'assignment-1', title: 'Hàm số', status: 'official', score: 8 }),
       expect.objectContaining({ assignmentId: 'assignment-2', title: 'Xác suất', status: 'pending', score: null }),
       expect.objectContaining({ assignmentId: 'assignment-3', title: 'Hình học', status: 'official', score: 5 }),
     ]));
+    // Không đưa nhận xét cho học sinh (grade.feedback) vào DTO phụ huynh.
+    expect(JSON.stringify(report)).not.toContain('Em đã nắm được cách làm chính');
     // Bản phụ huynh chỉ nói CHUNG theo chủ đề Toán (từ hồ sơ tích luỹ), KHÔNG bê nhận xét theo
     // từng bài của AI ("Cần trình bày kết luận", "Nhầm công thức") vì phụ huynh không cầm đề.
     expect(report.strengths).toEqual(['Hàm số']); // chủ đề "…Bài 2" bị lọc, chỉ còn chủ đề chung
@@ -134,5 +136,39 @@ describe('buildParentSafeReport', () => {
     expect(report.officialAveragePercent).toBeNull();
     expect(report.progress.trend).toBe('not_enough_data');
     expect(report.nextSteps.join(' ')).toMatch(/chờ thầy cô/i);
+  });
+
+  it('chủ đề hồ sơ mất bằng chứng đã duyệt thì KHÔNG hiện cho phụ huynh', () => {
+    // 'Hàm số' solid nhưng bằng chứng trỏ submission không có/chưa duyệt trong lượt tải này.
+    const withStaleTopic: ParentSafeReportInput = {
+      ...input([baseSubmission()]),
+      profile: {
+        studentId: 'student-1', classId: 'class-1', teacherId: 'teacher-1', updatedAt: '2026-08-28T08:00:00.000Z',
+        topics: [
+          { topic: 'Hàm số', level: 'solid', evidenceSubmissionIds: ['submission-1'], updatedAt: '2026-08-28T08:00:00.000Z' },
+          { topic: 'Đại số tổ hợp', level: 'solid', evidenceSubmissionIds: ['da-bi-xoa'], updatedAt: '2026-08-28T08:00:00.000Z' },
+        ],
+      },
+    };
+    const report = buildParentSafeReport(withStaleTopic);
+    expect(report.strengths).toContain('Hàm số'); // submission-1 đã duyệt → giữ
+    expect(report.strengths).not.toContain('Đại số tổ hợp'); // bằng chứng không còn/không duyệt → bỏ
+  });
+
+  it('lượt mới error/grading không làm mất điểm chính thức của lượt cũ đã duyệt', () => {
+    const oldApproved = baseSubmission({
+      id: 'sub-old', assignmentId: 'assignment-1', createdAt: '2026-08-28T08:00:00.000Z',
+      grade: { ...baseSubmission().grade, score: 7, teacherApproved: true },
+    });
+    const newerError = baseSubmission({
+      id: 'sub-new', assignmentId: 'assignment-1', createdAt: '2026-08-29T08:00:00.000Z',
+      status: 'error' as const, grade: undefined,
+    });
+    const report = buildParentSafeReport(input([oldApproved, newerError]));
+
+    const result = report.results.find(r => r.assignmentId === 'assignment-1');
+    expect(result).toMatchObject({ status: 'official', score: 7, maxScore: 10 });
+    expect(report.officialCount).toBe(1);
+    expect(report.officialAveragePercent).toBe(70);
   });
 });

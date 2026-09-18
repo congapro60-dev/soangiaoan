@@ -5,6 +5,16 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Bản phụ huynh + hồ sơ: 5 lỗi làm chặt — 2026-09-18
+
+Nối tiếp lô bản phụ huynh. Fix 5 lỗi người dùng nêu:
+1. `parentSafeReport` bỏ hẳn `grade.feedback` khỏi DTO phụ huynh (nhận xét cho HỌC SINH, hay nhắc số câu) — xoá field `feedback` khỏi `ParentSafeAssignmentResult`.
+2. `profileTopics()` giờ yêu cầu bằng chứng THẬT: chủ đề chỉ hiện nếu có ≥1 `evidenceSubmissionId` là submission còn tồn tại, đúng học sinh, đã `teacherApproved` (dựng `approvedSubmissionIds` từ input).
+3. Tách helper `topicHygiene.ts::namesSpecificProblem` (bắt `Bài 2`, `Bài số 2`, `Câu hỏi 4`, `BT2`, `2a`, `ý a`…). Dùng ở CẢ hai tầng: **gốc** trong `profileMerge` (mergeTopics/addEvidence lọc tên theo số bài khỏi weakTopics/strengths + hồ sơ cũ) và **hiển thị** trong parent report.
+4. Prompt (`gradingPrompt`): `feedbackForStudent` ghi rõ CHỈ học sinh đọc (bản phụ huynh tổng hợp theo chủ đề, không dùng chữ này); thêm hướng dẫn `strengths` là cụm danh từ chung, không nêu số bài.
+5. `buildParentSafeReport`: chọn lượt ĐÃ DUYỆT gần nhất cho từng bài — lượt mới error/grading không xoá điểm chính thức của lượt cũ đã duyệt.
+Nghiệm thu: parentSafeReport 5 + profileMerge 38 + topicHygiene 2 + gradingPrompt 97 + skill-profile 5 pass; `lint`+`build` OK. **Còn:** hồ sơ cũ đã lưu tên xấu chỉ sạch khi bài được gộp lại (chấm/duyệt lại); tầng hiển thị vẫn lọc để an toàn.
+
 ## V7.2 live classroom — Tuần 5 + Tuần 6 — 2026-09-18
 
 Đã hoàn tất mã nguồn trên nhánh `codex/p31-classroom-ready`, commit triển khai chính `b25e740` và merge với `origin/main` hiện tại. Mục tiêu là đưa mô hình activity-first V7.2 vào 24 bài Tuần 5 và 24 bài Tuần 6 của khối 10/11/12.

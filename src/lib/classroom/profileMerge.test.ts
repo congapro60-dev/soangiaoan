@@ -7,6 +7,31 @@ const chuDe = (topic: string, evidence: string[], level: ProfileTopic['level'] =
   topic, level, evidenceSubmissionIds: evidence, updatedAt: '2026-08-19T00:00:00.000Z',
 });
 
+describe('mergeTopics — không nhận tên chủ đề theo số bài (dọn tận gốc)', () => {
+  it('bỏ tên tham chiếu số bài ở cả strengths, weakTopics và hồ sơ cũ', () => {
+    const existing = [chuDe('Giải đúng và trọn vẹn Bài 2', ['b0'], 'solid')];
+    const ket = mergeTopics({
+      existing,
+      weakTopics: ['Bài 4a thiếu mặt phẳng', 'phép toán vectơ'],
+      strengths: ['Giải đúng Câu 3', 'đọc đồ thị'],
+      submissionId: 'b1', assignmentId: 'a1', now: NOW,
+    });
+    const names = ket.map(t => t.topic);
+    expect(names).toEqual(expect.arrayContaining(['phép toán vectơ', 'đọc đồ thị']));
+    expect(names.some(n => /Bài|Câu/.test(n))).toBe(false); // không còn tên theo số bài
+  });
+
+  it('applyEvidence cũng lọc tên theo số bài', () => {
+    const seeded = mergeTopics({ existing: [], weakTopics: ['tích vô hướng'], submissionId: 'b1', assignmentId: 'a1', now: NOW });
+    const ket = applyEvidence({
+      existing: seeded, weakTopics: ['tích vô hướng'], strengths: ['Câu 2a làm tốt', 'vẽ hình chính xác'],
+      submissionId: 'b1', assignmentId: 'a1', approved: true, now: NOW,
+    });
+    expect(ket.map(t => t.topic).some(n => /Câu|Bài/.test(n))).toBe(false);
+    expect(ket.map(t => t.topic)).toContain('vẽ hình chính xác');
+  });
+});
+
 describe('mergeTopics — một bài KHÔNG đủ để dán nhãn em yếu', () => {
   it('bài đầu tiên nêu chủ đề thì chỉ là developing, chưa phải weak', () => {
     const ket = mergeTopics({ existing: [], weakTopics: ['phương trình đường thẳng'], submissionId: 'b1', now: NOW });

@@ -1,4 +1,5 @@
 import type { MasteryLevel, ProfileEvidenceRef, ProfileEvidenceType, ProfileTopic } from './types.js';
+import { namesSpecificProblem } from './topicHygiene.js';
 
 /**
  * Gộp kết quả một bài đã chấm vào hồ sơ tích luỹ của học sinh.
@@ -98,13 +99,15 @@ export interface MergeInput {
 }
 
 export const mergeTopics = ({ existing, weakTopics, strengths = [], submissionId, assignmentId, evidenceType = 'homework', now }: MergeInput): ProfileTopic[] => {
-  const moi = new Set(weakTopics.map(chuanHoaChuDe).filter(Boolean));
-  const diemManh = new Set(strengths.map(chuanHoaChuDe).filter(topic => topic && !moi.has(topic)));
+  // Không cho tên tham chiếu số bài/câu ("Bài 2", "Câu 4a") trở thành chủ đề — hồ sơ chỉ giữ kiến
+  // thức/năng lực chung. Đây là gốc bệnh của việc "…Bài 2" lọt sang bản phụ huynh.
+  const moi = new Set(weakTopics.map(chuanHoaChuDe).filter(topic => topic && !namesSpecificProblem(topic)));
+  const diemManh = new Set(strengths.map(chuanHoaChuDe).filter(topic => topic && !moi.has(topic) && !namesSpecificProblem(topic)));
   const theoTen = new Map<string, ProfileTopic>();
 
   for (const topic of existing) {
     const ten = chuanHoaChuDe(topic.topic);
-    if (!ten) continue;
+    if (!ten || namesSpecificProblem(ten)) continue; // dọn luôn tên xấu của hồ sơ cũ khi gộp lại
     const refs = normalizeEvidenceRefs(topic);
     if (refs.length > 0) theoTen.set(ten, buildTopic(ten, refs, topic.updatedAt || now));
   }
@@ -173,15 +176,17 @@ export interface ApplyEvidenceInput {
  * không có bài mới nào cả, làm tụt kết luận rút từ bài khác là bịa.
  */
 const addEvidence = (existing: ProfileTopic[], weakTopics: string[], strengths: string[], submissionId: string, assignmentId: string | undefined, now: string): ProfileTopic[] => {
-  const theoTen = new Map(existing.map(t => [chuanHoaChuDe(t.topic), t]));
+  const theoTen = new Map(existing
+    .filter(t => { const ten = chuanHoaChuDe(t.topic); return ten && !namesSpecificProblem(ten); })
+    .map(t => [chuanHoaChuDe(t.topic), t]));
 
-  for (const ten of new Set(weakTopics.map(chuanHoaChuDe).filter(Boolean))) {
+  for (const ten of new Set(weakTopics.map(chuanHoaChuDe).filter(topic => topic && !namesSpecificProblem(topic)))) {
     const cu = theoTen.get(ten);
     const refs = normalizeEvidenceRefs(cu || { topic: ten, level: 'solid', evidenceSubmissionIds: [], updatedAt: now });
     const key = evidenceKey({ submissionId, assignmentId, assessedAt: now });
     theoTen.set(ten, buildTopic(ten, [...refs.filter(ref => evidenceKey(ref) !== key), { submissionId, assignmentId, evidenceType: 'homework', assessedAt: now }], now));
   }
-  for (const ten of new Set(strengths.map(chuanHoaChuDe).filter(topic => topic && !weakTopics.map(chuanHoaChuDe).includes(topic)))) {
+  for (const ten of new Set(strengths.map(chuanHoaChuDe).filter(topic => topic && !namesSpecificProblem(topic) && !weakTopics.map(chuanHoaChuDe).includes(topic)))) {
     const cu = theoTen.get(ten);
     const refs = normalizeEvidenceRefs(cu || { topic: ten, level: 'solid', evidenceSubmissionIds: [], updatedAt: now });
     const key = evidenceKey({ submissionId, assignmentId, assessedAt: now });

@@ -1,4 +1,5 @@
 import type { AssignmentDoc, StudentProfileDoc, SubmissionDoc } from './types';
+import { namesSpecificProblem } from './topicHygiene';
 
 export type ParentSafeAssignmentStatus = 'official' | 'pending' | 'grading' | 'error' | 'not_submitted';
 export type ParentSafeTrend = 'up' | 'flat' | 'down' | 'not_enough_data';
@@ -26,7 +27,6 @@ export interface ParentSafeAssignmentResult {
   submittedAt?: string;
   score: number | null;
   maxScore: number | null;
-  feedback?: string;
 }
 
 export interface ParentSafeReport {
@@ -101,8 +101,9 @@ const resultFromSubmission = (
   assignment: ParentSafeAssignmentInput | undefined,
   submission: SubmissionDoc,
 ): ParentSafeAssignmentResult => {
+  // KHÔNG kèm `grade.feedback`: đó là nhận xét cho HỌC SINH đọc, thường nhắc số câu/bài cụ thể
+  // ("**Câu 3** sai vì…"), không dành cho bản phụ huynh. Bản phụ huynh chỉ có điểm + trạng thái.
   const pair = validScorePair(submission);
-  const grade = submission.grade;
   const official = pair !== null;
   return {
     assignmentId: assignment?.id || submission.assignmentId || `self:${submission.id}`,
@@ -111,20 +112,23 @@ const resultFromSubmission = (
     submittedAt: submission.createdAt,
     score: official ? pair.score : null,
     maxScore: official ? pair.maxScore : null,
-    ...(official && normalizedText(grade?.feedback) ? { feedback: normalizedText(grade?.feedback) } : {}),
   };
 };
 
 /**
- * Nhãn tham chiếu SỐ BÀI/CÂU cụ thể ("Bài 2", "Câu 4a", "phần 2") — vô nghĩa với phụ huynh vì
- * họ không cầm đề. Một số chủ đề trong hồ sơ lại bị đặt tên từ nhận xét theo bài của AI, nên chặn
- * ở đây để bản phụ huynh chỉ còn chủ đề CHUNG, dù dữ liệu hồ sơ có lẫn.
+ * Chủ đề hồ sơ đưa vào bản phụ huynh phải: đúng MỨC, tên là kiến thức CHUNG (không phải "Bài 2"),
+ * và có bằng chứng THẬT — ít nhất một submission còn tồn tại, đúng học sinh này và đã `teacherApproved`.
+ * Không kiểm bằng chứng thì một chủ đề cũ (bài đã bị xoá/bỏ duyệt) vẫn trơ lại trong hồ sơ phụ huynh.
  */
-const namesSpecificProblem = (topic: string): boolean => /\b(bài|câu|phần|ý)\s*\d/iu.test(topic);
-
-const profileTopics = (profile: StudentProfileDoc | null | undefined, level: 'solid' | 'weak' | 'developing'): string[] => (
+const profileTopics = (
+  profile: StudentProfileDoc | null | undefined,
+  level: 'solid' | 'weak' | 'developing',
+  approvedSubmissionIds: ReadonlySet<string>,
+): string[] => (
   (profile?.topics || [])
-    .filter(topic => topic.level === level && topic.evidenceSubmissionIds.length > 0 && !namesSpecificProblem(topic.topic))
+    .filter(topic => topic.level === level
+      && !namesSpecificProblem(topic.topic)
+      && (topic.evidenceSubmissionIds || []).some(id => approvedSubmissionIds.has(id)))
     .map(topic => topic.topic)
 );
 
@@ -156,15 +160,28 @@ export const buildParentSafeReport = (input: ParentSafeReportInput): ParentSafeR
   const assignments = [...(input.assignments || [])];
   const assignmentById = new Map(assignments.map(assignment => [assignment.id, assignment]));
   const latestByAssignment = new Map<string, SubmissionDoc>();
+  // Lượt ĐÃ DUYỆT gần nhất theo từng bài. Nếu lượt mới nhất đang error/grading mà một lượt cũ đã
+  // được duyệt, phụ huynh KHÔNG được mất điểm chính thức gần nhất — ưu tiên bản đã duyệt để hiện.
+  const latestApprovedByAssignment = new Map<string, SubmissionDoc>();
+  const approvedSubmissionIds = new Set<string>();
 
   for (const submission of [...input.submissions].sort(newestFirst)) {
     if (submission.studentId !== input.studentId) continue;
     const key = submission.assignmentId || `self:${submission.id}`;
     if (!latestByAssignment.has(key)) latestByAssignment.set(key, submission);
+    if (validScorePair(submission)) {
+      approvedSubmissionIds.add(submission.id);
+      if (!latestApprovedByAssignment.has(key)) latestApprovedByAssignment.set(key, submission);
+    }
+  }
+  // Lượt hiện dùng cho từng bài: bản đã duyệt gần nhất nếu có, không thì lượt mới nhất.
+  const chosenByAssignment = new Map<string, SubmissionDoc>();
+  for (const [key, submission] of latestByAssignment) {
+    chosenByAssignment.set(key, latestApprovedByAssignment.get(key) ?? submission);
   }
 
   const results: ParentSafeAssignmentResult[] = assignments.map(assignment => {
-    const submission = latestByAssignment.get(assignment.id);
+    const submission = chosenByAssignment.get(assignment.id);
     return submission
       ? resultFromSubmission(assignment, submission)
       : {
@@ -176,7 +193,7 @@ export const buildParentSafeReport = (input: ParentSafeReportInput): ParentSafeR
       };
   });
 
-  for (const [key, submission] of latestByAssignment) {
+  for (const [key, submission] of chosenByAssignment) {
     if (key.startsWith('self:') || !assignmentById.has(key)) results.push(resultFromSubmission(assignmentById.get(key), submission));
   }
   results.sort((left, right) => timestamp(right.submittedAt) - timestamp(left.submittedAt) || left.title.localeCompare(right.title, 'vi'));
@@ -188,8 +205,11 @@ export const buildParentSafeReport = (input: ParentSafeReportInput): ParentSafeR
   // Bản phụ huynh chỉ nói CHUNG theo chủ đề/năng lực Toán (chủ đề tích luỹ trong hồ sơ), KHÔNG
   // bê nhận xét theo từng bài ("Bài 2a thiếu…") vì phụ huynh không cầm đề, đọc vào không hiểu.
   // Nhận xét theo bài của AI (`grade.strengths`/`grade.weaknesses`) chỉ dành cho bản giáo viên.
-  const profileStrengths = profileTopics(input.profile, 'solid');
-  const profileWeaknesses = [...profileTopics(input.profile, 'weak'), ...profileTopics(input.profile, 'developing')];
+  const profileStrengths = profileTopics(input.profile, 'solid', approvedSubmissionIds);
+  const profileWeaknesses = [
+    ...profileTopics(input.profile, 'weak', approvedSubmissionIds),
+    ...profileTopics(input.profile, 'developing', approvedSubmissionIds),
+  ];
   const strengths = uniqueText(profileStrengths);
   const areasToPractice = uniqueText(profileWeaknesses);
   const pendingCount = results.filter(result => ['pending', 'grading', 'error'].includes(result.status)).length;

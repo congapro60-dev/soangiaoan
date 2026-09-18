@@ -173,8 +173,12 @@ CÁCH VIẾT NHẬN XÉT — quan trọng:
 - "weakTopics" chỉ ghi chủ đề có CĂN CỨ trong bài này, mỗi chủ đề là một cụm danh từ ngắn
   (ví dụ "phương trình đường thẳng", "quy tắc dấu khi thay toạ độ"). Không chắc thì để mảng rỗng.
   Chủ đề này sẽ vào hồ sơ học tập lâu dài của em, ghi bừa là làm hỏng hồ sơ.
+- "strengths" cũng là các cụm danh từ ngắn về KIẾN THỨC/KỸ NĂNG em làm tốt (ví dụ "phép toán vectơ",
+  "đọc đồ thị"), KHÔNG nêu số bài/câu ("Bài 2", "Câu 4a"). Nó cũng vào hồ sơ lâu dài như weakTopics.
+- "weaknesses" mới là nơi được nhắc số câu cụ thể ("Câu 3 sai vì…") — chỉ để giáo viên/học sinh soát.
 
-CÁCH TRÌNH BÀY NHẬN XÉT (áp dụng cho "feedbackForStudent") — học sinh và phụ huynh đọc:
+CÁCH TRÌNH BÀY NHẬN XÉT (áp dụng cho "feedbackForStudent") — CHỈ HỌC SINH đọc (bản gửi phụ huynh
+KHÔNG dùng chữ này, mà tổng hợp chung theo chủ đề từ weakTopics/strengths):
 - Viết bằng Markdown. Mỗi ý một đoạn ngắn, có dòng trống giữa các đoạn. KHÔNG dồn thành một khối chữ dài.
 - Chỗ nào liệt kê lỗi hay việc cần làm thì dùng gạch đầu dòng, mỗi dòng một ý.
 - Công thức toán BẮT BUỘC viết LaTeX: trong dòng dùng $...$, tách riêng dùng $$...$$.
