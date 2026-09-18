@@ -54,6 +54,8 @@ const input = (submissions: ParentSafeReportInput['submissions']): ParentSafeRep
     teacherId: 'teacher-1',
     topics: [
       { topic: 'Hàm số', level: 'solid', evidenceSubmissionIds: ['submission-1'], updatedAt: '2026-08-28T08:00:00.000Z' },
+      // Chủ đề bị đặt tên theo số bài — phải bị lọc khỏi bản phụ huynh dù nằm trong hồ sơ.
+      { topic: 'Giải đúng và trọn vẹn Bài 2', level: 'solid', evidenceSubmissionIds: ['submission-1'], updatedAt: '2026-08-28T08:00:00.000Z' },
       { topic: 'Xác suất', level: 'weak', evidenceSubmissionIds: ['submission-3'], updatedAt: '2026-08-28T08:00:00.000Z' },
     ],
     updatedAt: '2026-08-28T08:00:00.000Z',
@@ -96,8 +98,9 @@ describe('buildParentSafeReport', () => {
     ]));
     // Bản phụ huynh chỉ nói CHUNG theo chủ đề Toán (từ hồ sơ tích luỹ), KHÔNG bê nhận xét theo
     // từng bài của AI ("Cần trình bày kết luận", "Nhầm công thức") vì phụ huynh không cầm đề.
-    expect(report.strengths).toEqual(['Hàm số']);
+    expect(report.strengths).toEqual(['Hàm số']); // chủ đề "…Bài 2" bị lọc, chỉ còn chủ đề chung
     expect(report.areasToPractice).toEqual(['Xác suất']);
+    expect(report.strengths.join(' ')).not.toMatch(/Bài\s*\d/);
     expect(report.strengths).not.toContain('Đọc đúng dữ kiện');
     expect(report.areasToPractice).not.toContain('Cần trình bày kết luận');
     expect(report.areasToPractice).not.toContain('Nhầm công thức');

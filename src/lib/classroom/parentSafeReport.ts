@@ -115,9 +115,16 @@ const resultFromSubmission = (
   };
 };
 
+/**
+ * Nhãn tham chiếu SỐ BÀI/CÂU cụ thể ("Bài 2", "Câu 4a", "phần 2") — vô nghĩa với phụ huynh vì
+ * họ không cầm đề. Một số chủ đề trong hồ sơ lại bị đặt tên từ nhận xét theo bài của AI, nên chặn
+ * ở đây để bản phụ huynh chỉ còn chủ đề CHUNG, dù dữ liệu hồ sơ có lẫn.
+ */
+const namesSpecificProblem = (topic: string): boolean => /\b(bài|câu|phần|ý)\s*\d/iu.test(topic);
+
 const profileTopics = (profile: StudentProfileDoc | null | undefined, level: 'solid' | 'weak' | 'developing'): string[] => (
   (profile?.topics || [])
-    .filter(topic => topic.level === level && topic.evidenceSubmissionIds.length > 0)
+    .filter(topic => topic.level === level && topic.evidenceSubmissionIds.length > 0 && !namesSpecificProblem(topic.topic))
     .map(topic => topic.topic)
 );
 
