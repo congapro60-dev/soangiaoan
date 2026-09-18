@@ -174,16 +174,37 @@ export const buildParentReportPrintDoc = ({ report, studentName, className, stud
 };
 
 /**
- * Mở một cửa sổ in độc lập với báo cáo phụ huynh rồi kích hoạt hộp thoại in/lưu PDF của trình duyệt.
- * Trả về false nếu trình duyệt chặn popup để nơi gọi báo cho người dùng.
+ * Dựng báo cáo phụ huynh vào một iframe ẩn rồi kích hoạt hộp thoại in/lưu PDF của trình duyệt.
+ * Dùng iframe thay vì window.open để không bị trình chặn popup và không mở tab trắng.
+ * Trình duyệt in RIÊNG nội dung iframe, độc lập với giao diện app. Trả về false nếu không tạo được iframe.
  */
 export const openParentReportPrint = (input: ParentReportPrintInput): boolean => {
-  const win = window.open('', '_blank', 'noopener,noreferrer,width=880,height=1000');
-  if (!win) return false;
-  const doc = buildParentReportPrintDoc(input) +
-    '<script>window.onload=function(){window.focus();window.print();};window.onafterprint=function(){window.close();};</' + 'script>';
-  win.document.open();
-  win.document.write(doc);
-  win.document.close();
+  const iframe = document.createElement('iframe');
+  iframe.setAttribute('aria-hidden', 'true');
+  iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
+  document.body.appendChild(iframe);
+
+  const frameWindow = iframe.contentWindow;
+  const frameDoc = frameWindow?.document;
+  if (!frameWindow || !frameDoc) {
+    iframe.remove();
+    return false;
+  }
+
+  const cleanup = () => {
+    if (iframe.parentNode) iframe.remove();
+  };
+
+  frameWindow.addEventListener('load', () => {
+    frameWindow.onafterprint = cleanup;
+    frameWindow.focus();
+    frameWindow.print();
+    // Chromium in iframe là đồng bộ; dọn iframe sau khi hộp thoại đóng, kèm timeout dự phòng.
+    setTimeout(cleanup, 60_000);
+  });
+
+  frameDoc.open();
+  frameDoc.write(buildParentReportPrintDoc(input));
+  frameDoc.close();
   return true;
 };
