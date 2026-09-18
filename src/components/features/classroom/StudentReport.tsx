@@ -9,7 +9,7 @@ import { QuestionResultsList } from './QuestionResultsList';
 import { CompetencyPortfolio } from './CompetencyPortfolio';
 import { buildStudentReportModel } from '../../../lib/classroom/reportModel';
 import { buildParentSafeReport, type ParentSafeAssignmentStatus } from '../../../lib/classroom/parentSafeReport';
-import { openParentReportPrint } from '../../../lib/classroom/parentReportPrintDoc';
+import { exportParentReportToPdf } from '../../../lib/classroom/parentReportPrintDoc';
 import { asCompetencyGrade } from '../../../lib/classroom/competency/framework';
 
 interface Props {
@@ -54,6 +54,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
   const [profile, setProfile] = useState<StudentProfileDoc | null>(null);
   const [dangTai, setDangTai] = useState(true);
   const [viewMode, setViewMode] = useState<'teacher' | 'parent'>(forAdult ? 'teacher' : 'parent');
+  const [dangXuatPdf, setDangXuatPdf] = useState(false);
 
   useEffect(() => {
     let huy = false;
@@ -121,10 +122,16 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
     URL.revokeObjectURL(url);
   };
 
-  const inBaoCaoPhuHuynh = () => {
-    const opened = openParentReportPrint({ report: parentReport, studentName, className, studentCode });
-    if (!opened) {
-      alert('Trình duyệt đang chặn cửa sổ in. Vui lòng cho phép popup rồi bấm lại.');
+  const inBaoCaoPhuHuynh = async () => {
+    if (dangXuatPdf) return;
+    setDangXuatPdf(true);
+    try {
+      await exportParentReportToPdf({ report: parentReport, studentName, className, studentCode });
+    } catch (error) {
+      console.error('Xuất PDF bản phụ huynh thất bại:', error);
+      alert('Không tạo được PDF. Vui lòng thử lại.');
+    } finally {
+      setDangXuatPdf(false);
     }
   };
 
@@ -192,7 +199,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
           </div>
         </div>
         <p className="rounded-2xl bg-slate-50 px-4 py-3 text-xs font-semibold leading-5 text-slate-500">Bản này chỉ sử dụng kết quả đã được thầy cô xem và duyệt. Bài đang chờ xử lý không hiển thị điểm, đáp án hoặc ghi chú nội bộ.</p>
-        <button type="button" onClick={inBaoCaoPhuHuynh} className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-black text-slate-700 transition hover:bg-slate-50"><Printer className="h-4 w-4" /> In / lưu PDF bản phụ huynh</button>
+        <button type="button" onClick={inBaoCaoPhuHuynh} disabled={dangXuatPdf} className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-black text-slate-700 transition hover:bg-slate-50 disabled:opacity-60"><Printer className="h-4 w-4" /> {dangXuatPdf ? 'Đang tạo PDF…' : 'Tải PDF bản phụ huynh'}</button>
       </div>
     );
   }

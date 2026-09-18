@@ -23,9 +23,9 @@ const report: ParentSafeReport = {
 };
 
 describe('buildParentReportPrintDoc', () => {
-  it('dựng trang HTML hoàn chỉnh với thông tin học sinh và mọi mục an toàn', () => {
+  it('dựng nội dung báo cáo với thông tin học sinh và mọi mục an toàn', () => {
     const html = buildParentReportPrintDoc({ report, studentName: 'Nguyễn Minh An', className: '11 Columbus', studentCode: 'GB0117', generatedOn: '18/09/2026' });
-    expect(html).toContain('<!DOCTYPE html>');
+    expect(html).toContain('parent-report-pdf-root'); // style đã scope
     expect(html).toContain('Nguyễn Minh An');
     expect(html).toContain('GB0117');
     expect(html).toContain('18/09/2026');
