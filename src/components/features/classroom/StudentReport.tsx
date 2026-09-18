@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
-import { Download, GraduationCap, HeartHandshake, Lightbulb, Printer, Target, TrendingUp } from 'lucide-react';
+import { Award, Download, GraduationCap, HeartHandshake, Lightbulb, Printer, Target, TrendingUp } from 'lucide-react';
 import { db } from '../../../lib/firebase';
 import { STUDENT_PROFILES_COL, type AssignmentDoc, type StudentProfileDoc, type SubmissionDoc } from '../../../lib/classroom/types';
 import { listAssignmentsForClass, listSubmissionsForStudent } from '../../../lib/classroom/submissionService';
@@ -9,8 +9,9 @@ import { QuestionResultsList } from './QuestionResultsList';
 import { CompetencyPortfolio } from './CompetencyPortfolio';
 import { buildStudentReportModel } from '../../../lib/classroom/reportModel';
 import { buildParentSafeReport, type ParentSafeAssignmentStatus } from '../../../lib/classroom/parentSafeReport';
-import { exportParentReportToPdf } from '../../../lib/classroom/parentReportPrintDoc';
-import { asCompetencyGrade } from '../../../lib/classroom/competency/framework';
+import { exportParentReportToPdf, type ParentCompetencyItem, type ParentCompetencySummary } from '../../../lib/classroom/parentReportPrintDoc';
+import { buildStudentCompetencyPortfolio, portfolioProgress } from '../../../lib/classroom/competency/portfolioModel';
+import { asCompetencyGrade, COMPETENCY_LEVELS, type CompetencyLevel } from '../../../lib/classroom/competency/framework';
 
 interface Props {
   classId: string;
@@ -35,6 +36,13 @@ const parentStatusLabel: Record<ParentSafeAssignmentStatus, string> = {
   grading: 'Đang được chấm',
   error: 'Cần được xử lý lại',
   not_submitted: 'Chưa nộp',
+};
+
+const parentLevelBadge: Record<CompetencyLevel, string> = {
+  'Xuất sắc': 'bg-emerald-100 text-emerald-800',
+  'Tốt': 'bg-blue-100 text-blue-800',
+  'Đạt yêu cầu': 'bg-amber-100 text-amber-800',
+  'Chưa đạt yêu cầu': 'bg-rose-100 text-rose-800',
 };
 
 const parentScore = (score: number | null, maxScore: number | null): string => (
@@ -93,6 +101,28 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
   const dangLen = (profile?.topics || []).filter(t => t.level === 'developing');
   const competencyGrade = asCompetencyGrade(classGrade);
 
+  // Hồ sơ năng lực rút gọn cho bản phụ huynh — chỉ tên năng lực + mức (đã qua cổng "bài đã duyệt").
+  const parentCompetency = useMemo<ParentCompetencySummary | null>(() => {
+    if (!competencyGrade) return null;
+    const subs = submissions.filter(s => s.grade).map(s => ({
+      assignmentId: s.assignmentId ?? '',
+      score: s.grade!.score,
+      maxScore: s.grade!.maxScore,
+      approved: Boolean(s.grade!.teacherApproved),
+      submittedAt: s.createdAt,
+    }));
+    const asgs = assignments.map(a => ({ id: a.id, competencyTags: a.competencyTags }));
+    const areas = buildStudentCompetencyPortfolio(competencyGrade, subs, asgs);
+    const { assessed, total } = portfolioProgress(areas);
+    const items: ParentCompetencyItem[] = [];
+    for (const area of areas) {
+      for (const row of area.rows) {
+        if (row.result?.level) items.push({ area: area.area, topic: row.competency.topic, level: row.result.level });
+      }
+    }
+    return { grade: String(competencyGrade), assessed, total, items };
+  }, [competencyGrade, submissions, assignments]);
+
   const taiCsv = () => {
     const rows: string[][] = [[
       'Học sinh', 'Mã học sinh', 'Submission ID', 'Bài giao', 'Ngày nộp', 'Điểm', 'Thang điểm',
@@ -126,7 +156,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
     if (dangXuatPdf) return;
     setDangXuatPdf(true);
     try {
-      await exportParentReportToPdf({ report: parentReport, studentName, className, studentCode });
+      await exportParentReportToPdf({ report: parentReport, studentName, className, studentCode, competency: parentCompetency });
     } catch (error) {
       console.error('Xuất PDF bản phụ huynh thất bại:', error);
       alert('Không tạo được PDF. Vui lòng thử lại.');
@@ -174,6 +204,27 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
         </div>
         {(parentReport.strengths.length > 0 || parentReport.areasToPractice.length > 0) && (
           <p className="text-xs font-semibold leading-5 text-slate-500">Hai mục trên là tên các phần trong môn Toán. Phụ huynh không cần hiểu sâu — chỉ cần phối hợp nhắc con luyện đúng những phần thầy cô đánh dấu ở “Cần rèn thêm”.</p>
+        )}
+
+        {parentCompetency && parentCompetency.total > 0 && (
+          <div className="rounded-2xl border border-indigo-100 bg-indigo-50/40 p-4">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <p className="flex items-center gap-2 text-sm font-black text-indigo-950"><Award className="h-4 w-4" /> Năng lực Toán học</p>
+              <span className="text-xs font-bold text-indigo-700">Đã đánh giá {parentCompetency.assessed}/{parentCompetency.total} năng lực</span>
+            </div>
+            {parentCompetency.items.length === 0 ? (
+              <p className="mt-2 text-sm font-semibold text-slate-500">Chưa có năng lực nào đủ bài đã duyệt để kết luận.</p>
+            ) : (
+              <div className="mt-3 space-y-2">
+                {COMPETENCY_LEVELS.filter(level => parentCompetency.items.some(item => item.level === level)).map(level => (
+                  <div key={level} className="flex items-start gap-2">
+                    <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black ${parentLevelBadge[level]}`}>{level}</span>
+                    <p className="text-sm font-semibold leading-6 text-slate-700">{parentCompetency.items.filter(item => item.level === level).map(item => item.topic).join(' · ')}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
 
         <div className="rounded-2xl border border-slate-100 p-4">

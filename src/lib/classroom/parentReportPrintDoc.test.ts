@@ -53,4 +53,27 @@ describe('buildParentReportPrintDoc', () => {
     expect(html).not.toContain('noteForTeacher');
     expect(html).not.toContain('expectedAnswer');
   });
+
+  it('hiện mục Năng lực Toán học khi có hồ sơ, nhóm theo mức', () => {
+    const html = buildParentReportPrintDoc({
+      report, studentName: 'Nguyễn Minh An', className: '11 Columbus',
+      competency: {
+        grade: '11', assessed: 2, total: 5,
+        items: [
+          { area: 'Đại số', topic: 'Hàm số', level: 'Tốt' },
+          { area: 'Xác suất', topic: 'Biến cố', level: 'Đạt yêu cầu' },
+        ],
+      },
+    });
+    expect(html).toContain('Năng lực Toán học');
+    expect(html).toContain('2/5'); // tiến độ đánh giá
+    expect(html).toContain('Tốt');
+    expect(html).toContain('Hàm số');
+    expect(html).toContain('Đạt yêu cầu');
+  });
+
+  it('bỏ mục Năng lực Toán học khi không có hồ sơ (competency vắng)', () => {
+    const html = buildParentReportPrintDoc({ report, studentName: 'Nguyễn Minh An', className: '11 Columbus' });
+    expect(html).not.toContain('Năng lực Toán học');
+  });
 });
