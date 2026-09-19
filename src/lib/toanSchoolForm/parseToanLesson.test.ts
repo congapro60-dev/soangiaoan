@@ -17,9 +17,9 @@ Sau tiết học, tôi có thể:
 
 | Mức độ | Mục tiêu |
 |---|---|
-| Cơ bản | Viết được phương trình tổng quát [Bloom: Hiểu] |
-| Trọng tâm | Áp dụng vào bài toán [Bloom: Áp dụng] |
-| Nâng cao | Chứng minh trường hợp tổng quát [Bloom: Phân tích] |
+| Must (Cơ bản) | Tôi có thể viết được phương trình tổng quát [Bloom: Hiểu] |
+| Should (Trọng tâm) | Tôi có thể áp dụng vào bài toán [Bloom: Áp dụng] |
+| Could (Nâng cao) | Tôi có thể chứng minh trường hợp tổng quát [Bloom: Phân tích] |
 
 **3. Phân hóa mục tiêu**
 
@@ -30,6 +30,13 @@ Sau tiết học, tôi có thể:
 **4. Tài liệu dạy học**
 - SGK trang 70
 - Phiếu số 1
+
+## MINH CHỨNG HQT / CIS
+
+| Minh chứng | HS làm gì → GV thu được gì → mục đích sư phạm | Vị trí |
+|---|---|---|
+| [PHÂN HÓA] | HS chọn nhánh NB/TH/VD rồi thực hiện | HĐ2 P5–P20 |
+| Danielson 1c | Mục tiêu 3 mức Must/Should/Could | Bảng mục tiêu |
 
 ## II. TIẾN TRÌNH HOẠT ĐỘNG
 
@@ -68,9 +75,17 @@ describe('parseToanLesson', () => {
   it('THÔNG TIN CHUNG: năng lực, mục tiêu, phân hóa, tài liệu', () => {
     expect(m.nangLuc).toContain('Tư duy và lập luận toán học');
     expect(m.mucTieu).toHaveLength(3);
-    expect(m.mucTieu[0].muc).toBe('Cơ bản');
+    expect(m.mucTieu[0].muc).toBe('Must (Cơ bản)');
+    expect(m.mucTieu[0].noiDung).toMatch(/^Tôi có thể/);
     expect(m.phanHoa.join(' ')).toMatch(/Bài 1 SGK/);
     expect(m.taiLieu).toContain('SGK trang 70');
+  });
+
+  it('MINH CHỨNG HQT/CIS → minhChung (gồm cả dòng Danielson)', () => {
+    expect(m.minhChung).toHaveLength(2);
+    expect(m.minhChung[0].nhan).toBe('[PHÂN HÓA]');
+    expect(m.minhChung[0].viTri).toMatch(/P5–P20/);
+    expect(m.minhChung[1].nhan).toBe('Danielson 1c');
   });
 
   it('các hoạt động + bảng 3 cột', () => {

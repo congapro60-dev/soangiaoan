@@ -7,7 +7,8 @@ import type { ToanKeHoach } from '../types';
  *
  * HỢP ĐỒNG CẤU TRÚC (Pha 2 xuất Word có style nhận diện đúng các chuỗi này):
  * - Bảng hoạt động 3 cột: `| Thời gian | Giáo viên và Học sinh | Nội dung ghi bảng |`
- * - Bảng mục tiêu có nhãn hàng đúng chữ: Cơ bản / Trọng tâm / Nâng cao
+ * - Bảng mục tiêu có nhãn hàng đúng chữ: Must (Cơ bản) / Should (Trọng tâm) / Could (Nâng cao)
+ * - Bảng MINH CHỨNG HQT/CIS + 6 dòng Danielson 1a–1f (nhãn `[..]` + `Danielson 1x`)
  * - Câu hỏi gắn nhãn `**[NHÃN VIẾT HOA]**`
  * → Đổi các chuỗi này là VỠ nhận diện style khi xuất Word (có test chặn).
  */
@@ -36,12 +37,12 @@ Liệt kê gạch đầu dòng 3-5 năng lực đúng với tiết này (Tư duy
 
 **2. Mục tiêu học tập**
 Sau tiết học, tôi có thể:
-rồi bảng 3 hàng, nhãn hàng ĐÚNG CHỮ, mỗi mục tiêu đo được + thẻ Bloom:
+rồi bảng ĐÚNG 3 hàng phân hóa, nhãn hàng ĐÚNG CHỮ; mỗi mục tiêu là MỘT khẳng định bắt đầu bằng "Tôi có thể…", đo được, bám nội dung Toán thật của tiết + thẻ Bloom. KHÔNG thêm mục tiêu thứ 4, KHÔNG viết dòng DOK/"Đích của tiết" riêng:
 | Mức độ | Mục tiêu |
 |---|---|
-| Cơ bản | [mọi HS đạt — động từ đo được: mô tả/lập/nhận biết...] [Bloom: Nhớ – Hiểu] |
-| Trọng tâm | [mục tiêu chính tiết học] [Bloom: Áp dụng] |
-| Nâng cao | [thử thách: chứng minh/thiết kế/liên hệ] [Bloom: Phân tích – Sáng tạo] |
+| Must (Cơ bản) | Tôi có thể [mọi HS đạt — động từ đo được: mô tả/lập/nhận biết...] [Bloom: Nhớ – Hiểu] |
+| Should (Trọng tâm) | Tôi có thể [mục tiêu chính tiết học] [Bloom: Áp dụng] |
+| Could (Nâng cao) | Tôi có thể [thử thách: chứng minh/thiết kế/liên hệ] [Bloom: Phân tích – Sáng tạo] |
 
 **3. Phân hóa mục tiêu** — bảng:
 | Mức Trung bình | Mức Khá | Mức Giỏi |
@@ -51,6 +52,24 @@ rồi bảng 3 hàng, nhãn hàng ĐÚNG CHỮ, mỗi mục tiêu đo được +
 **4. Tài liệu dạy học** — SGK (kèm trang), phiếu học tập cần in (đặt tên rõ: "Phiếu số 1 — ..."), bảng con/bút lông, học liệu số.
 
 **Căn cứ điều chỉnh từ đánh giá tiết trước:** 3-4 gạch đầu dòng GIẢ ĐỊNH THỰC TẾ (vd "70% nắm X; 40% nhầm Y") và mũi tên → hành động điều chỉnh trong tiết này. KHÔNG viết chung chung.
+
+## MINH CHỨNG HQT / CIS
+
+Bảng tổng hợp minh chứng để người dự giờ (HQT/CIS) nhìn thấy NGAY, đặt ngay sau THÔNG TIN CHUNG. ĐÚNG 3 cột:
+| Minh chứng | HS làm gì → GV thu được gì → mục đích sư phạm | Vị trí |
+|---|---|---|
+- Cột 1 "Minh chứng": nhãn trong ngoặc vuông, CHỈ gán khi tiết thật sự có — dùng khi phù hợp: **[PHÂN HÓA]** **[ĐGTX]** **[CÔNG DÂN SỐ]** **[CÔNG DÂN TOÀN CẦU]** **[KIỂM ĐỊNH AI]** **[TỰ ĐỊNH HƯỚNG]** **[PHẢN TƯ]** **[TRẢI NGHIỆM]**. Một nhãn một dòng, KHÔNG nhồi cho đủ màu.
+- Cột 2: nêu ĐỦ HS LÀM GÌ → GV THU MINH CHỨNG GÌ → MỤC ĐÍCH SƯ PHẠM; cấm câu chung chung ("có phân hóa", "GV đánh giá thường xuyên").
+- Cột 3 "Vị trí": mốc phút + hoạt động cụ thể (vd "HĐ2 P18–P32; Phiếu 1").
+- Ngay dưới, thêm ĐÚNG 6 dòng Danielson (cột 1 ghi "Danielson 1a" … "Danielson 1f"), mỗi dòng nêu minh chứng KHDH đáp ứng tiêu chí đó + vị trí:
+| Danielson 1a | [nội dung & ngôn ngữ toán chuẩn hóa: định nghĩa/công thức có ví dụ + phép kiểm] | [vị trí] |
+| Danielson 1b | [thấu hiểu HS: nhánh NB–TH–VD, thẻ gợi ý, quyền chọn mức] | [vị trí] |
+| Danielson 1c | [mục tiêu 3 mức Must/Should/Could + dấu hiệu đạt] | [vị trí] |
+| Danielson 1d | [học liệu/công cụ dùng để tạo bằng chứng] | [vị trí] |
+| Danielson 1e | [mạch tiến trình P0–P40 mạch lạc] | [vị trí] |
+| Danielson 1f | [đánh giá thường xuyên + phản hồi hướng bước tiếp theo] | [vị trí] |
+
+(Bảng này CHỈ tổng hợp; các nhãn minh chứng vẫn xuất hiện đúng vị trí trong tiến trình theo quy tắc mục 7 phần B.)
 
 ## II. TIẾN TRÌNH HOẠT ĐỘNG
 [Các hoạt động theo kế hoạch chỉ định — mục C. Heading mỗi hoạt động PHẢI kèm thời lượng + mốc phút: "### 1. KHỞI ĐỘNG — [tên] (5 phút, P0–P5)".]
@@ -294,9 +313,13 @@ export const TOAN_KE_HOACH_LABELS: Record<ToanKeHoach, string> = {
 export const TOAN_ADDITIONAL_REQUIREMENTS = `===== YÊU CẦU RIÊNG CHO GIÁO ÁN BAN TOÁN (TUYỆT ĐỐI TUÂN THỦ) =====
 - Soạn ĐÚNG MỘT tiết theo kế hoạch đã chỉ định — đủ MỌI hoạt động trong kế hoạch, không thêm/bớt, không gộp nhiều tiết.
 - Bảng hoạt động dùng ĐÚNG header: | Thời gian | Giáo viên và Học sinh | Nội dung ghi bảng |
-- KHÔNG dùng khung Dewey/WALT-WILF/Danielson trong loại giáo án này.
+- KHÔNG dùng khung Dewey/WALT-WILF trong loại giáo án này. Khung Danielson 1a–1f CHỈ dùng ở bảng MINH CHỨNG HQT/CIS (ngay sau THÔNG TIN CHUNG), KHÔNG rải WALT-WILF trong tiến trình.
 - Nội dung toán THẬT, đúng chương trình + SGK: số liệu cụ thể, tham chiếu bài tập SGK khi phù hợp, mọi lời giải tính ra KẾT QUẢ CUỐI. Không placeholder, không "...".
 - ĐỘ CHI TIẾT: mỗi hoạt động chính viết như kịch bản thật GV cầm dạy được ngay — lời GV trong ngoặc kép, đủ các BƯỚC, đủ nhãn câu hỏi, đủ kỹ thuật chờ, đủ đáp án.
+- CẤM CÂU KHUÔN/GENERIC: mục tiêu và nhiệm vụ phải nêu ĐÚNG nội dung Toán cụ thể của tiết. Cấm cụm rỗng như "tạo sản phẩm cốt lõi tối thiểu", "giải một nhiệm vụ chuẩn", "vận dụng trong trường hợp mở rộng", "cần đa dạng hơn". Mỗi mục tiêu Must/Should/Could phải đọc ra được HS làm được thao tác Toán gì trên đối tượng nào.
+- NGUỒN BÀI TẬP: mọi ví dụ/bài tập ghi rõ nguồn ngay sau đề — "(SBT tr. __)" / "(SGK bài __)" hoặc "(GV tự thiết kế)". KHÔNG để đề thiếu nguồn.
+- HÌNH ẢNH THEO VAI TRÒ: chỉ đưa hình khi phục vụ một mục đích học tập cụ thể (quan sát để hình thành khái niệm; cho sẵn hình → xác định miền nghiệm/đọc đồ thị hoặc ngược lại; minh họa bối cảnh CDTC/liên văn hóa/công dân số). KHÔNG chèn hình cho đủ định mức, KHÔNG dùng một hình cho nhiều bài; mỗi hình khớp đúng bài của nó.
+- VĂN PHONG TỰ NHIÊN NHƯ NGƯỜI SOẠN: viết như một GIÁO VIÊN TOÁN giàu kinh nghiệm đang soạn giáo án thật, KHÔNG máy móc kiểu AI. Câu chữ đa dạng, cụ thể vào bài, đọc lên phải mượt. TRÁNH: cụm sáo rỗng ("nhằm giúp học sinh", "thông qua đó", "một cách hiệu quả", "nhằm mục đích", "từ đó giúp các em"); mọi hoạt động mở đầu bằng cùng một mẫu câu; lặp cấu trúc câu đều đều; liệt kê rập khuôn. Ưu tiên câu ngắn, lời GV nói tự nhiên như trên lớp.
 
 VÍ DỤ MẪU MỘT HÀNG BẢNG HOẠT ĐỘNG — TRÍCH TỪ BẢN MẪU CHUẨN, BẮT CHƯỚC ĐÚNG MẬT ĐỘ CHI TIẾT NÀY:
 \`\`\`markdown

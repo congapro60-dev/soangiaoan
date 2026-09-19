@@ -644,9 +644,99 @@ const checkGroupModelCoherence = (t: string): StandardsFinding => {
   };
 };
 
+// ── Bộ kiểm nội dung 2026-09: chốt theo 6 góp ý chuyên gia CIS (yêu cầu mới ban Toán) ──
+// Mục tiêu: nội dung KHÔNG khuôn/generic, có bảng minh chứng CIS+Danielson, bài tập có nguồn,
+// và tích hợp công dân toàn cầu khi phù hợp. Đưa vào cùng vòng audit+repair như các luật khác.
+
+/** Các cụm mục tiêu/nhiệm vụ "khuôn" AI hay sinh — dấu hiệu nội dung chung chung, chán. */
+const GENERIC_OBJECTIVE_RE =
+  /sản\s*phẩm\s*cốt\s*lõi\s*tối\s*thiểu|sản\s*phẩm\s*tối\s*thiểu|tạo\s*sản\s*phẩm\s*cốt\s*lõi|giải\s*(?:một\s*)?nhiệm\s*vụ\s*chuẩn|nhiệm\s*vụ\s*chuẩn\s*về|trong\s*trường\s*hợp\s*mở\s*rộng|cần\s*đa\s*dạng\s*hơn/;
+
+const checkNoGenericObjective = (t: string): StandardsFinding => {
+  const m = t.match(GENERIC_OBJECTIVE_RE);
+  return {
+    id: 'no-generic-objective',
+    danielson: '1c',
+    title: 'Mục tiêu/nhiệm vụ cụ thể, không dùng câu khuôn generic',
+    status: m ? 'fail' : 'pass',
+    severity: 'high',
+    evidence: m ? `Phát hiện câu khuôn generic: "${m[0].trim()}".` : 'Không thấy câu mục tiêu/nhiệm vụ khuôn generic.',
+    suggestion:
+      'Thay câu khuôn ("tạo sản phẩm cốt lõi tối thiểu", "giải một nhiệm vụ chuẩn", "trong trường hợp mở rộng", "cần đa dạng hơn") bằng nội dung Toán CỤ THỂ của tiết: nêu rõ HS làm được thao tác gì trên đối tượng/công thức nào.',
+    scope: 'all',
+  };
+};
+
+const checkCisEvidenceTable = (t: string): StandardsFinding => {
+  const hasTable = has(t, /minh\s*chứng\s*(?:hqt|cis)|hqt\s*\/?\s*cis/);
+  const danielson = new Set((t.match(/danielson\s*1[a-f]/g) || []).map((s) => s.slice(-2)));
+  const missing = ['1a', '1b', '1c', '1d', '1e', '1f'].filter((d) => !danielson.has(d));
+  const ok = hasTable && missing.length === 0;
+  return {
+    id: 'cis-evidence-table',
+    danielson: '1f',
+    title: 'Có bảng MINH CHỨNG HQT/CIS + đủ 6 dòng Danielson 1a–1f',
+    status: ok ? 'pass' : 'fail',
+    severity: 'high',
+    evidence: !hasTable
+      ? 'Chưa thấy bảng MINH CHỨNG HQT/CIS.'
+      : missing.length
+        ? `Có bảng MINH CHỨNG nhưng thiếu dòng Danielson: ${missing.join(', ')}.`
+        : 'Có bảng MINH CHỨNG + đủ 6 dòng Danielson.',
+    suggestion:
+      'Thêm bảng "MINH CHỨNG HQT / CIS" ngay sau THÔNG TIN CHUNG: cột Minh chứng (nhãn [PHÂN HÓA]/[ĐGTX]/[CÔNG DÂN SỐ]/...) | HS làm gì → GV thu được gì → mục đích | Vị trí; kèm ĐỦ 6 dòng Danielson 1a đến 1f, mỗi dòng nêu minh chứng + vị trí.',
+    scope: 'all',
+  };
+};
+
+const checkExerciseSource = (t: string): StandardsFinding => {
+  const hasExercises = has(t, /bài\s*\d|ví\s*dụ\s*\d|câu\s*\d|bài\s*tập\s*\d/);
+  const hasSource = has(t, /\bsgk\b|\bsbt\b|gv\s*tự\s*thiết\s*kế|giáo\s*viên\s*tự\s*thiết\s*kế|tự\s*biên\s*soạn|trang\s*\d/);
+  const ok = !hasExercises || hasSource;
+  return {
+    id: 'exercise-source',
+    danielson: '1d',
+    title: 'Bài tập/ví dụ ghi rõ nguồn (SGK/SBT/GV tự thiết kế)',
+    status: ok ? 'pass' : 'fail',
+    severity: 'medium',
+    evidence: !hasExercises
+      ? 'Chưa có bài tập được đánh số để kiểm.'
+      : hasSource
+        ? 'Có ghi nguồn bài tập (SGK/SBT/GV tự thiết kế).'
+        : 'Có bài tập nhưng không ghi nguồn.',
+    suggestion: 'Ghi nguồn ngay sau mỗi đề: "(SGK bài __)" / "(SBT tr. __)" hoặc "(GV tự thiết kế)". Không để đề thiếu nguồn.',
+    scope: 'all',
+  };
+};
+
+const checkGlobalCitizenship = (t: string): StandardsFinding => {
+  const hasCdtc = has(t, /công\s*dân\s*toàn\s*cầu|liên\s*văn\s*hóa|liên\s*văn\s*hoá|công\s*dân\s*(?:số|kỹ\s*thuật\s*số)|global\s*citizen/);
+  const explicitlyNA = has(t, /không\s*phải\s*tiết\s*trọng\s*tâm/);
+  const ok = hasCdtc || explicitlyNA;
+  return {
+    id: 'cdtc-integration',
+    danielson: '1a',
+    title: 'Tích hợp Công dân toàn cầu/số (hoặc ghi rõ không phải tiết trọng tâm)',
+    status: ok ? 'pass' : 'fail',
+    severity: 'medium',
+    evidence: hasCdtc
+      ? 'Có yếu tố công dân toàn cầu/liên văn hóa/công dân số.'
+      : explicitlyNA
+        ? 'Đã ghi rõ không phải tiết trọng tâm CDTC.'
+        : 'Chưa tích hợp CDTC và cũng chưa ghi "Không phải tiết trọng tâm".',
+    suggestion:
+      'Nếu tiết phù hợp: gắn bối cảnh công dân toàn cầu/liên văn hóa/công dân số vào một hoạt động hoặc bảng MINH CHỨNG. Nếu KHÔNG phù hợp: ghi rõ "Không phải tiết trọng tâm" — tuyệt đối không nhồi cho đủ.',
+    scope: 'all',
+  };
+};
+
 const GENERAL_CHECKS = [
   checkFourPhases,
   checkDifferentiatedObjectives,
+  checkNoGenericObjective,
+  checkCisEvidenceTable,
+  checkExerciseSource,
+  checkGlobalCitizenship,
   checkGuidingQuestions,
   checkPracticeMinThree,
   checkExpectedProducts,

@@ -72,6 +72,17 @@ const mucTieuHtml = (m: ToanLessonModel): string => {
   return `<table class="grid"><colgroup><col style="width:${w1}"><col style="width:${w2}"></colgroup>${rows}</table>`;
 };
 
+const minhChungHtml = (m: ToanLessonModel): string => {
+  const w = ['18%', '62%', '20%'];
+  const head = ['Minh chứng', 'HS làm gì → GV thu được gì → mục đích sư phạm', 'Vị trí']
+    .map((t, i) => `<th style="width:${w[i]};background:#${FILL.ttc}">${esc(t)}</th>`)
+    .join('');
+  const body = m.minhChung
+    .map((r) => `<tr><td class="b">${inlineHtml(r.nhan)}</td><td>${inlineHtml(r.noiDung)}</td><td>${inlineHtml(r.viTri)}</td></tr>`)
+    .join('');
+  return `<table class="grid"><colgroup>${w.map((x) => `<col style="width:${x}">`).join('')}</colgroup><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+};
+
 const activityHtml = (a: ToanLessonModel['activities'][number]): string => {
   const w = toPercents(ACTIVITY_COL_RATIOS);
   const head = ['Thời gian thực', 'Giáo viên và Học sinh', 'Nội dung']
@@ -158,6 +169,11 @@ export const buildSchoolFormHtml = (m: ToanLessonModel): string => {
   }
   out.push(bandHtml('3. Tài liệu dạy học', FILL.sub));
   out.push(bulletsHtml(m.taiLieu.length ? m.taiLieu : ['(chưa có)']));
+
+  if (m.minhChung.length) {
+    out.push(bandHtml('MINH CHỨNG HQT / CIS', FILL.ttc));
+    out.push(minhChungHtml(m));
+  }
 
   out.push(bandHtml('II. TIẾN TRÌNH HOẠT ĐỘNG', FILL.tienTrinh));
   out.push(bandHtml('3. CÁC HOẠT ĐỘNG HỌC TẬP CHÍNH', FILL.hoatDongChinh));

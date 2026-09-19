@@ -19,6 +19,11 @@ export const CIS_COLORS = {
   dgtx: '7030A0', // Tím    — Formative Assessment / Đánh giá thường xuyên
   congDanSo: '0070C0', // Xanh dương — Digital Citizenship / Công dân số
   congDanToanCau: '00B050', // Xanh lá — Global Citizenship / Công dân toàn cầu
+  // Nhãn mở rộng theo mẫu vàng TDS (bảng MINH CHỨNG HQT/CIS).
+  kiemDinhAi: 'C55A11', // Cam đậm — Kiểm định / phản biện lời giải AI
+  tuDinhHuong: '2E75B6', // Xanh dương nhạt — Tự định hướng / quyền tự chủ HS
+  phanTu: '843C0C', // Nâu — Phản tư / phiếu thoát
+  traiNghiem: '538135', // Xanh lá đậm — Trải nghiệm / dự đoán mở đầu
 } as const;
 
 export type CisColor = (typeof CIS_COLORS)[keyof typeof CIS_COLORS];
@@ -32,6 +37,10 @@ const LABEL_RULES: ReadonlyArray<{ re: RegExp; color: CisColor }> = [
   { re: /^\s*\[\s*(?:🟣\s*)?(?:ĐGTX|ĐÁNH\s*GIÁ\s*THƯỜNG\s*XUYÊN)\s*\]/iu, color: CIS_COLORS.dgtx },
   { re: /^\s*\[\s*(?:🔵\s*)?CÔNG\s*DÂN\s*SỐ\s*\]/iu, color: CIS_COLORS.congDanSo },
   { re: /^\s*\[\s*(?:🟢\s*)?CÔNG\s*DÂN\s*TOÀN\s*CẦU\s*\]/iu, color: CIS_COLORS.congDanToanCau },
+  { re: /^\s*\[\s*KIỂM\s*ĐỊNH\s*AI\s*\]/iu, color: CIS_COLORS.kiemDinhAi },
+  { re: /^\s*\[\s*TỰ\s*ĐỊNH\s*HƯỚNG\s*\]/iu, color: CIS_COLORS.tuDinhHuong },
+  { re: /^\s*\[\s*PHẢN\s*TƯ\s*\]/iu, color: CIS_COLORS.phanTu },
+  { re: /^\s*\[\s*TRẢI\s*NGHIỆM\s*\]/iu, color: CIS_COLORS.traiNghiem },
 ];
 
 /**

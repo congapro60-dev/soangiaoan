@@ -120,6 +120,35 @@ const mucTieuTable = (m: ToanLessonModel): Table =>
     ),
   });
 
+// Bảng MINH CHỨNG HQT/CIS + Danielson 1a–1f (Minh chứng | HS làm gì → GV thu → mục đích | Vị trí).
+// Cột 1 giữ nhãn `[..]`/`Danielson 1x`; runs() tự tô màu cả câu nhãn CIS qua detectCisColor.
+const MINHCHUNG_COL_RATIOS = [0.18, 0.62, 0.2] as const;
+const minhChungTable = (m: ToanLessonModel): Table => {
+  const headerCell = (t: string) =>
+    new TableCell({
+      children: [para(t, { bold: true })],
+      shading: { fill: FILL.ttc, type: 'clear', color: 'auto' },
+      margins: { top: 40, bottom: 40, left: 100, right: 100 },
+    });
+  const dataCell = (t: string, bold = false) =>
+    new TableCell({ children: [para(t, { bold })], margins: { top: 40, bottom: 40, left: 100, right: 100 } });
+  const rows: TableRow[] = [
+    new TableRow({
+      tableHeader: true,
+      children: [headerCell('Minh chứng'), headerCell('HS làm gì → GV thu được gì → mục đích sư phạm'), headerCell('Vị trí')],
+    }),
+  ];
+  for (const r of m.minhChung) {
+    rows.push(new TableRow({ children: [dataCell(r.nhan, true), dataCell(r.noiDung), dataCell(r.viTri)] }));
+  }
+  return new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    columnWidths: MINHCHUNG_COL_RATIOS.map((x) => Math.floor(PRINTABLE * x)),
+    borders: tableBorders,
+    rows,
+  });
+};
+
 // Bảng hoạt động 3 cột (Thời gian thực | Giáo viên và Học sinh | Nội dung).
 // Tỉ lệ 15/45/40 và bộ twip đều nằm ở schoolFormLayout.ts, dùng chung với đường HTML→PDF.
 const COL3 = ACTIVITY_COL_TWIP as unknown as number[];
@@ -209,6 +238,12 @@ export const buildSchoolFormDocument = (m: ToanLessonModel): Document => {
   body.push(band('3. Tài liệu dạy học', FILL.sub));
   body.push(...bullets(m.taiLieu.length ? m.taiLieu : ['(chưa có)']));
   body.push(spacer());
+
+  if (m.minhChung.length) {
+    body.push(band('MINH CHỨNG HQT / CIS', FILL.ttc));
+    body.push(minhChungTable(m));
+    body.push(spacer());
+  }
 
   body.push(band('II. TIẾN TRÌNH HOẠT ĐỘNG', FILL.tienTrinh));
   body.push(band('3. CÁC HOẠT ĐỘNG HỌC TẬP CHÍNH', FILL.hoatDongChinh));

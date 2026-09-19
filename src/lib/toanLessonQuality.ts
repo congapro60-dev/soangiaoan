@@ -35,6 +35,10 @@ const REPAIRABLE_MEDIUM_IDS = new Set<string>([
   'no-duplicate-block',
   'self-selection-fallback',
   'group-model-coherence',
+  // Bổ sung 2026-09 (yêu cầu mới ban Toán): nội dung bám nguồn + tích hợp CDTC — AI vá 1 lượt.
+  // ('no-generic-objective', 'cis-evidence-table' là 'high' nên đã tự vào diện auto-repair.)
+  'exercise-source',
+  'cdtc-integration',
 ]);
 
 /**

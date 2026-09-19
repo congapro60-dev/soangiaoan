@@ -6,11 +6,22 @@ import { validateToanLesson, buildToanRepairBrief } from './toanLessonQuality';
 const COMPLETE_KNOWLEDGE = `
 # Khởi động (trải nghiệm thực tế) (5 phút, P0–P5)
 Mục tiêu: Must do cơ bản, Should do trọng tâm, Could do nâng cao (🌶🌶🌶).
+## MINH CHỨNG HQT / CIS
+| Minh chứng | HS làm gì → GV thu được gì → mục đích | Vị trí |
+|---|---|---|
+| [PHÂN HÓA] | HS chọn nhánh NB/TH/VD | Luyện tập |
+| [CÔNG DÂN TOÀN CẦU] | HS phân tích số liệu khí thải giữa các quốc gia | Khởi động |
+| Danielson 1a | Định nghĩa có ví dụ + phép kiểm | Hình thành |
+| Danielson 1b | Phân nhánh NB/TH/VD theo mức | Luyện tập |
+| Danielson 1c | Mục tiêu 3 mức Must/Should/Could | Bảng mục tiêu |
+| Danielson 1d | SGK/SBT, học liệu số | Tài liệu |
+| Danielson 1e | Mạch tiến trình mạch lạc | Tiến trình |
+| Danielson 1f | Phiếu thoát + tiêu chí | Sơ kết |
 # Hình thành kiến thức mới — định lý (20 phút, P5–P25)
 GV hỏi: vì sao cần công thức này? Có cách khác không? Phản ví dụ là gì?
 Năng lực tư duy và lập luận, mô hình hóa, giải quyết vấn đề.
 # Luyện tập củng cố (10 phút, P25–P35)
-Bài 1, Bài 2, Bài 3 từ dễ đến nâng cao. Sản phẩm dự kiến: đáp án đầy đủ.
+Bài 1, Bài 2, Bài 3 (SGK) từ dễ đến nâng cao. Sản phẩm dự kiến: đáp án đầy đủ.
 HĐ (10:49 - 11:00).
 # Sơ kết (5 phút, P35–P40)
 ## BTVN

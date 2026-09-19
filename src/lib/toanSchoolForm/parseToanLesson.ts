@@ -57,6 +57,8 @@ export interface ToanLessonModel {
   mucTieu: { muc: string; noiDung: string }[];
   phanHoa: string[];
   taiLieu: string[];
+  /** Bảng MINH CHỨNG HQT/CIS + 6 dòng Danielson 1a–1f (đặt giữa THÔNG TIN CHUNG và TIẾN TRÌNH). */
+  minhChung: { nhan: string; noiDung: string; viTri: string }[];
   activities: ToanActivity[];
   btvn: string[];
   soKet: string[];
@@ -106,6 +108,7 @@ const parseHeaderTable = (table: Tokens.Table): Partial<ToanLessonModel['header'
 
 const SECTION = {
   ttc: /thông\s*tin\s*chung/i,
+  minhChung: /minh\s*chứng|hqt\s*[\/|]?\s*cis|cis\s*[\/|]?\s*hqt/i,
   tienTrinh: /tiến\s*trình/i,
   btvn: /btvn|về\s*nhà/i,
   soKet: /sơ\s*kết|rút\s*kinh\s*nghiệm/i,
@@ -167,11 +170,11 @@ export const parseToanLesson = (markdown: string): ToanLessonModel => {
   const model: ToanLessonModel = {
     title: '',
     header: { lop: '', tenBai: '', mon: 'Toán', giaoVien: '', tuan: '', namHoc: '' },
-    nangLuc: [], mucTieu: [], phanHoa: [], taiLieu: [], activities: [], btvn: [], soKet: [], phuLuc: [],
+    nangLuc: [], mucTieu: [], phanHoa: [], taiLieu: [], minhChung: [], activities: [], btvn: [], soKet: [], phuLuc: [],
   };
 
   const tokens = marked.lexer(markdown || '');
-  let section: 'none' | 'ttc' | 'tienTrinh' | 'btvn' | 'soKet' | 'phuLuc' = 'none';
+  let section: 'none' | 'ttc' | 'minhChung' | 'tienTrinh' | 'btvn' | 'soKet' | 'phuLuc' = 'none';
   let ttcSub: keyof typeof TTC_SUB | null = null;
   let headerTableTaken = false;
   let current: ToanActivity | null = null;
@@ -200,6 +203,7 @@ export const parseToanLesson = (markdown: string): ToanLessonModel => {
       const txt = headingText(h);
       if (h.depth === 1 && !model.title) { model.title = txt; continue; }
       if (SECTION.ttc.test(txt)) { pushActivity(); section = 'ttc'; ttcSub = null; continue; }
+      if (SECTION.minhChung.test(txt)) { pushActivity(); section = 'minhChung'; continue; }
       if (SECTION.tienTrinh.test(txt)) { pushActivity(); section = 'tienTrinh'; continue; }
       if (SECTION.btvn.test(txt)) { pushActivity(); pushPhieu(); section = 'btvn'; continue; }
       if (SECTION.soKet.test(txt)) { pushActivity(); pushPhieu(); section = 'soKet'; continue; }
@@ -250,7 +254,7 @@ export const parseToanLesson = (markdown: string): ToanLessonModel => {
         const bodyText = table.rows.map(r => r.map(cellText).join(' ')).join(' ');
         if (ttcSub === 'phanHoa') {
           for (const row of table.rows) model.phanHoa.push(row.map(cellText).filter(Boolean).join(' — '));
-        } else if (ttcSub === 'mucTieu' || (!ttcSub && /cơ\s*bản|trọng\s*tâm/i.test(bodyText))) {
+        } else if (ttcSub === 'mucTieu' || (!ttcSub && /cơ\s*bản|trọng\s*tâm|must|should|could/i.test(bodyText))) {
           for (const row of table.rows) {
             if (row.length >= 2) model.mucTieu.push({ muc: cellText(row[0]), noiDung: cellText(row[1]) });
             else if (row.length === 1) model.mucTieu.push({ muc: '', noiDung: cellText(row[0]) });
@@ -261,6 +265,23 @@ export const parseToanLesson = (markdown: string): ToanLessonModel => {
       if (ttcSub === 'nangLuc') model.nangLuc.push(...listItems(tok));
       else if (ttcSub === 'taiLieu') model.taiLieu.push(...listItems(tok));
       else if (ttcSub === 'phanHoa') model.phanHoa.push(...listItems(tok));
+      continue;
+    }
+
+    if (section === 'minhChung') {
+      // Gom mọi bảng dưới heading MINH CHỨNG (bảng CIS + bảng Danielson 1a–1f) vào một danh sách.
+      if (tok.type === 'table') {
+        const table = tok as Tokens.Table;
+        for (const row of table.rows) {
+          const nhan = cellText(row[0] || { text: '' });
+          if (!nhan) continue;
+          model.minhChung.push({
+            nhan,
+            noiDung: cellText(row[1] || { text: '' }),
+            viTri: cellText(row[2] || { text: '' }),
+          });
+        }
+      }
       continue;
     }
 

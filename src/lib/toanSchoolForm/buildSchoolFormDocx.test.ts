@@ -10,9 +10,10 @@ const baseModel = (): ToanLessonModel => ({
   title: 'KHDH',
   header: { lop: '10A', tenBai: 'PT đường thẳng', mon: 'Toán', giaoVien: 'GV A', tuan: '20', namHoc: '2025 - 2026' },
   nangLuc: ['Tư duy và lập luận toán học'],
-  mucTieu: [{ muc: 'Cơ bản', noiDung: 'Viết PTTQ' }],
+  mucTieu: [{ muc: 'Must (Cơ bản)', noiDung: 'Tôi có thể viết PTTQ' }],
   phanHoa: ['Bài 1 SGK — Bài 2 — Bài 5'],
   taiLieu: ['SGK trang 70'],
+  minhChung: [],
   activities: [
     { title: 'KHỞI ĐỘNG', thoiLuong: '5 phút', rows: [{ thoiGian: '8h00', gvHs: '**GV:** nêu bài toán', noiDung: 'Định lý: $ax+by+c=0$' }] },
     { title: 'HOẠT ĐỘNG 2', thoiLuong: '15 phút', rows: [{ thoiGian: '8h05', gvHs: 'GV hỏi', noiDung: 'Ví dụ' }] },
@@ -168,6 +169,21 @@ describe('buildSchoolFormDocx', () => {
     expect(xml).toContain('Thời gian thực');
     expect(xml).toContain('Giáo viên và Học sinh');
     expect(xml).toContain('Nội dung');
+  });
+
+  it('bảng MINH CHỨNG HQT/CIS chỉ dựng khi có dữ liệu, tô màu nhãn CIS + giữ dòng Danielson', async () => {
+    const empty = await buildXml(baseModel());
+    expect(empty).not.toContain('MINH CHỨNG HQT / CIS');
+
+    const m = baseModel();
+    m.minhChung = [
+      { nhan: '[PHÂN HÓA]', noiDung: 'HS chọn nhánh NB/TH/VD', viTri: 'HĐ2 P18–P32' },
+      { nhan: 'Danielson 1c', noiDung: 'Mục tiêu 3 mức Must/Should/Could', viTri: 'Bảng mục tiêu' },
+    ];
+    const xml = await buildXml(m);
+    expect(xml).toContain('MINH CHỨNG HQT / CIS');
+    expect(xml).toContain('Danielson 1c');
+    expect(xml.toUpperCase()).toContain('C00000'); // nhãn [PHÂN HÓA] tô đỏ CIS
   });
 
   it('số con dấu digit trong text KHÔNG bị nuốt thành công thức', async () => {

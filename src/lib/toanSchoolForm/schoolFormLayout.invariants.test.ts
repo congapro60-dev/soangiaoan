@@ -17,9 +17,10 @@ const model = (): ToanLessonModel => ({
   title: 'KHDH',
   header: { lop: '10A', tenBai: 'Hàm số bậc hai', mon: 'Toán', giaoVien: 'GV A', tuan: '20', namHoc: '2025 - 2026' },
   nangLuc: ['Tư duy và lập luận toán học'],
-  mucTieu: [{ muc: 'Cơ bản', noiDung: 'Xác định hệ số' }],
+  mucTieu: [{ muc: 'Must (Cơ bản)', noiDung: 'Tôi có thể xác định hệ số' }],
   phanHoa: ['Nhóm giỏi làm bài ngược'],
   taiLieu: ['SGK trang 70'],
+  minhChung: [],
   activities: [
     { title: 'KHỞI ĐỘNG', thoiLuong: '5 phút', rows: [{ thoiGian: 'P0–P5', gvHs: '**GV:** nêu bài toán', noiDung: 'Đỉnh $I(-b/2a)$' }] },
     { title: 'RÈN LUYỆN', thoiLuong: '12 phút', rows: [{ thoiGian: 'P24–P36', gvHs: 'GV giao bài', noiDung: 'Ý 1' }] },
@@ -72,6 +73,19 @@ describe('buildSchoolFormHtml — soi gương bản Word', () => {
       expect(at, `sai thứ tự tại: ${label}`).toBeGreaterThan(prev);
       prev = at;
     }
+  });
+
+  it('bảng MINH CHỨNG HQT/CIS nằm giữa THÔNG TIN CHUNG và TIẾN TRÌNH khi có dữ liệu', () => {
+    const m = model();
+    m.minhChung = [{ nhan: '[PHÂN HÓA]', noiDung: 'HS chọn nhánh', viTri: 'HĐ2' }];
+    const html = buildSchoolFormHtml(m);
+    const taiLieu = html.indexOf('3. Tài liệu dạy học');
+    const minh = html.indexOf('MINH CHỨNG HQT / CIS');
+    const tienTrinh = html.indexOf('II. TIẾN TRÌNH HOẠT ĐỘNG');
+    expect(minh).toBeGreaterThan(taiLieu);
+    expect(tienTrinh).toBeGreaterThan(minh);
+    // Không có dữ liệu thì không render band.
+    expect(buildSchoolFormHtml(model())).not.toContain('MINH CHỨNG HQT / CIS');
   });
 
   it('dùng đúng bộ màu pastel của template', () => {
