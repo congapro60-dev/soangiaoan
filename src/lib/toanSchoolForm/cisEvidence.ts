@@ -19,6 +19,7 @@ export const CIS_COLORS = {
   dgtx: '7030A0', // Tím    — Formative Assessment / Đánh giá thường xuyên
   congDanSo: '0070C0', // Xanh dương — Digital Citizenship / Công dân số
   congDanToanCau: '00B050', // Xanh lá — Global Citizenship / Công dân toàn cầu
+  lienVanHoa: '00A99D', // Xanh ngọc — Intercultural Learning / Học tập liên văn hóa
   // Nhãn mở rộng theo mẫu vàng TDS (bảng MINH CHỨNG HQT/CIS).
   kiemDinhAi: 'C55A11', // Cam đậm — Kiểm định / phản biện lời giải AI
   tuDinhHuong: '2E75B6', // Xanh dương nhạt — Tự định hướng / quyền tự chủ HS
@@ -37,6 +38,7 @@ const LABEL_RULES: ReadonlyArray<{ re: RegExp; color: CisColor }> = [
   { re: /^\s*\[\s*(?:🟣\s*)?(?:ĐGTX|ĐÁNH\s*GIÁ\s*THƯỜNG\s*XUYÊN)\s*\]/iu, color: CIS_COLORS.dgtx },
   { re: /^\s*\[\s*(?:🔵\s*)?CÔNG\s*DÂN\s*SỐ\s*\]/iu, color: CIS_COLORS.congDanSo },
   { re: /^\s*\[\s*(?:🟢\s*)?CÔNG\s*DÂN\s*TOÀN\s*CẦU\s*\]/iu, color: CIS_COLORS.congDanToanCau },
+  { re: /^\s*\[\s*LIÊN\s*VĂN\s*HÓA\s*\]/iu, color: CIS_COLORS.lienVanHoa },
   { re: /^\s*\[\s*KIỂM\s*ĐỊNH\s*AI\s*\]/iu, color: CIS_COLORS.kiemDinhAi },
   { re: /^\s*\[\s*TỰ\s*ĐỊNH\s*HƯỚNG\s*\]/iu, color: CIS_COLORS.tuDinhHuong },
   { re: /^\s*\[\s*PHẢN\s*TƯ\s*\]/iu, color: CIS_COLORS.phanTu },

@@ -33,10 +33,10 @@ Sau tiết học, tôi có thể:
 
 ## MINH CHỨNG HQT / CIS
 
-| Minh chứng | HS làm gì → GV thu được gì → mục đích sư phạm | Vị trí |
-|---|---|---|
-| [PHÂN HÓA] | HS chọn nhánh NB/TH/VD rồi thực hiện | HĐ2 P5–P20 |
-| Danielson 1c | Mục tiêu 3 mức Must/Should/Could | Bảng mục tiêu |
+| Minh chứng | HS làm gì → GV thu được gì | Observer nhìn thấy gì | Vị trí |
+|---|---|---|---|
+| [PHÂN HÓA] | HS chọn nhánh NB/TH/VD rồi thực hiện | HS cầm phiếu 3 màu khác nhau | HĐ2 P5–P20 |
+| Danielson 1c | Mục tiêu 3 mức Must/Should/Could | Bảng mục tiêu chiếu trên TV | Bảng mục tiêu |
 
 ## II. TIẾN TRÌNH HOẠT ĐỘNG
 
@@ -81,9 +81,10 @@ describe('parseToanLesson', () => {
     expect(m.taiLieu).toContain('SGK trang 70');
   });
 
-  it('MINH CHỨNG HQT/CIS → minhChung (gồm cả dòng Danielson)', () => {
+  it('MINH CHỨNG HQT/CIS → minhChung 4 cột (gồm cột Observer + dòng Danielson)', () => {
     expect(m.minhChung).toHaveLength(2);
     expect(m.minhChung[0].nhan).toBe('[PHÂN HÓA]');
+    expect(m.minhChung[0].quanSat).toMatch(/3 màu/);
     expect(m.minhChung[0].viTri).toMatch(/P5–P20/);
     expect(m.minhChung[1].nhan).toBe('Danielson 1c');
   });

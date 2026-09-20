@@ -7,6 +7,7 @@ describe('cisEvidence — nhãn minh chứng HQT/CIS', () => {
     expect(detectCisColor('[ĐGTX] GV thu phiếu thoát')).toBe(CIS_COLORS.dgtx);
     expect(detectCisColor('[CÔNG DÂN SỐ] HS kiểm chứng nguồn')).toBe(CIS_COLORS.congDanSo);
     expect(detectCisColor('[CÔNG DÂN TOÀN CẦU] bối cảnh CO2')).toBe(CIS_COLORS.congDanToanCau);
+    expect(detectCisColor('[LIÊN VĂN HÓA] so sánh cách trình bày')).toBe(CIS_COLORS.lienVanHoa);
   });
 
   it('4 nhãn mở rộng theo mẫu vàng TDS', () => {

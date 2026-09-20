@@ -58,7 +58,7 @@ export interface ToanLessonModel {
   phanHoa: string[];
   taiLieu: string[];
   /** Bảng MINH CHỨNG HQT/CIS + 6 dòng Danielson 1a–1f (đặt giữa THÔNG TIN CHUNG và TIẾN TRÌNH). */
-  minhChung: { nhan: string; noiDung: string; viTri: string }[];
+  minhChung: { nhan: string; noiDung: string; quanSat: string; viTri: string }[];
   activities: ToanActivity[];
   btvn: string[];
   soKet: string[];
@@ -275,10 +275,14 @@ export const parseToanLesson = (markdown: string): ToanLessonModel => {
         for (const row of table.rows) {
           const nhan = cellText(row[0] || { text: '' });
           if (!nhan) continue;
+          // Chuẩn 4 cột: Minh chứng | HS làm gì → GV thu | Observer nhìn thấy gì | Vị trí.
+          // Bảng cũ 3 cột (không có cột Observer) vẫn đọc được: quanSat để trống, vị trí lấy cột 3.
+          const has4 = row.length >= 4;
           model.minhChung.push({
             nhan,
             noiDung: cellText(row[1] || { text: '' }),
-            viTri: cellText(row[2] || { text: '' }),
+            quanSat: has4 ? cellText(row[2] || { text: '' }) : '',
+            viTri: cellText(row[has4 ? 3 : 2] || { text: '' }),
           });
         }
       }

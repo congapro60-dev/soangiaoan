@@ -35,15 +35,22 @@ describe('TOAN_COMMON_FORMAT — hợp đồng cấu trúc (theo v13)', () => {
     expect(TOAN_COMMON_FORMAT).toContain('[Bloom:');
   });
 
-  it('có bảng MINH CHỨNG HQT/CIS + 6 dòng Danielson 1a–1f + nhãn CIS mở rộng', () => {
+  it('có bảng MINH CHỨNG HQT/CIS 4 cột (cột Observer) + 6 dòng Danielson + nhãn CIS mở rộng', () => {
     expect(TOAN_COMMON_FORMAT).toContain('MINH CHỨNG HQT / CIS');
     expect(TOAN_COMMON_FORMAT).toContain('| Minh chứng | HS làm gì');
+    expect(TOAN_COMMON_FORMAT).toContain('Observer nhìn thấy gì');
     for (const d of ['Danielson 1a', 'Danielson 1c', 'Danielson 1f']) {
       expect(TOAN_COMMON_FORMAT).toContain(d);
     }
-    for (const n of ['[KIỂM ĐỊNH AI]', '[TỰ ĐỊNH HƯỚNG]', '[PHẢN TƯ]', '[TRẢI NGHIỆM]']) {
+    for (const n of ['[LIÊN VĂN HÓA]', '[KIỂM ĐỊNH AI]', '[TỰ ĐỊNH HƯỚNG]', '[PHẢN TƯ]', '[TRẢI NGHIỆM]']) {
       expect(TOAN_COMMON_FORMAT).toContain(n);
     }
+  });
+
+  it('bắt buộc tích hợp CDTC/CDKTS/liên văn hóa có minh họa quan sát được', () => {
+    expect(TOAN_COMMON_FORMAT).toContain('CÔNG DÂN TOÀN CẦU / LIÊN VĂN HÓA / CÔNG DÂN SỐ');
+    expect(TOAN_COMMON_FORMAT).toContain('MINH HỌA QUAN SÁT ĐƯỢC');
+    expect(TOAN_COMMON_FORMAT).toContain('Không phải tiết trọng tâm');
   });
 
   it('có đủ các thành phần v13: căn cứ điều chỉnh, mốc phút, 4 BƯỚC, kỹ thuật chờ, dự kiến khó khăn, lỗi phổ biến', () => {

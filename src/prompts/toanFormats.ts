@@ -55,19 +55,26 @@ rồi bảng ĐÚNG 3 hàng phân hóa, nhãn hàng ĐÚNG CHỮ; mỗi mục ti
 
 ## MINH CHỨNG HQT / CIS
 
-Bảng tổng hợp minh chứng để người dự giờ (HQT/CIS) nhìn thấy NGAY, đặt ngay sau THÔNG TIN CHUNG. ĐÚNG 3 cột:
-| Minh chứng | HS làm gì → GV thu được gì → mục đích sư phạm | Vị trí |
-|---|---|---|
-- Cột 1 "Minh chứng": nhãn trong ngoặc vuông, CHỈ gán khi tiết thật sự có — dùng khi phù hợp: **[PHÂN HÓA]** **[ĐGTX]** **[CÔNG DÂN SỐ]** **[CÔNG DÂN TOÀN CẦU]** **[KIỂM ĐỊNH AI]** **[TỰ ĐỊNH HƯỚNG]** **[PHẢN TƯ]** **[TRẢI NGHIỆM]**. Một nhãn một dòng, KHÔNG nhồi cho đủ màu.
-- Cột 2: nêu ĐỦ HS LÀM GÌ → GV THU MINH CHỨNG GÌ → MỤC ĐÍCH SƯ PHẠM; cấm câu chung chung ("có phân hóa", "GV đánh giá thường xuyên").
-- Cột 3 "Vị trí": mốc phút + hoạt động cụ thể (vd "HĐ2 P18–P32; Phiếu 1").
-- Ngay dưới, thêm ĐÚNG 6 dòng Danielson (cột 1 ghi "Danielson 1a" … "Danielson 1f"), mỗi dòng nêu minh chứng KHDH đáp ứng tiêu chí đó + vị trí:
-| Danielson 1a | [nội dung & ngôn ngữ toán chuẩn hóa: định nghĩa/công thức có ví dụ + phép kiểm] | [vị trí] |
-| Danielson 1b | [thấu hiểu HS: nhánh NB–TH–VD, thẻ gợi ý, quyền chọn mức] | [vị trí] |
-| Danielson 1c | [mục tiêu 3 mức Must/Should/Could + dấu hiệu đạt] | [vị trí] |
-| Danielson 1d | [học liệu/công cụ dùng để tạo bằng chứng] | [vị trí] |
-| Danielson 1e | [mạch tiến trình P0–P40 mạch lạc] | [vị trí] |
-| Danielson 1f | [đánh giá thường xuyên + phản hồi hướng bước tiếp theo] | [vị trí] |
+Bảng tổng hợp minh chứng theo chuẩn CIS Evidence Map để người dự giờ (HQT/CIS) đột xuất vào lớp nhìn thấy NGAY, đặt ngay sau THÔNG TIN CHUNG. ĐÚNG 4 cột:
+| Minh chứng | HS làm gì → GV thu được gì | Observer nhìn thấy gì (CIS dự giờ) | Vị trí |
+|---|---|---|---|
+- Cột 1 "Minh chứng": nhãn trong ngoặc vuông, CHỈ gán khi tiết thật sự có — dùng khi phù hợp: **[PHÂN HÓA]** **[ĐGTX]** **[CÔNG DÂN SỐ]** **[CÔNG DÂN TOÀN CẦU]** **[LIÊN VĂN HÓA]** **[KIỂM ĐỊNH AI]** **[TỰ ĐỊNH HƯỚNG]** **[PHẢN TƯ]** **[TRẢI NGHIỆM]**. Một nhãn một dòng, KHÔNG nhồi cho đủ màu.
+- Cột 2 "HS làm gì → GV thu được gì": nhiệm vụ HS + bằng chứng GV thu; cấm câu chung chung ("có phân hóa", "GV đánh giá thường xuyên").
+- Cột 3 "Observer nhìn thấy gì": mô tả thứ QUAN SÁT ĐƯỢC BẰNG MẮT khi dự giờ (vd "HS cầm phiếu 3 màu khác nhau"; "bảng số liệu CO₂ chiếu trên TV"; "HS giơ bảng con đồng loạt"). Cột quyết định: nhãn nào bật mà không nêu được cái nhìn thấy → BỎ nhãn đó.
+- Cột 4 "Vị trí": mốc phút + hoạt động cụ thể (vd "HĐ2 P18–P32; Phiếu 1").
+- Ngay dưới, thêm ĐÚNG 6 dòng Danielson (cột 1 ghi "Danielson 1a" … "Danielson 1f"):
+| Danielson 1a | [nội dung & ngôn ngữ toán chuẩn hóa: định nghĩa/công thức có ví dụ + phép kiểm] | [quan sát được] | [vị trí] |
+| Danielson 1b | [thấu hiểu HS: nhánh NB–TH–VD, quyền chọn mức] | [quan sát được] | [vị trí] |
+| Danielson 1c | [mục tiêu 3 mức Must/Should/Could + dấu hiệu đạt] | [quan sát được] | [vị trí] |
+| Danielson 1d | [học liệu/công cụ dùng để tạo bằng chứng] | [quan sát được] | [vị trí] |
+| Danielson 1e | [mạch tiến trình P0–P40 mạch lạc] | [quan sát được] | [vị trí] |
+| Danielson 1f | [đánh giá thường xuyên + phản hồi hướng bước tiếp theo] | [quan sát được] | [vị trí] |
+
+BẮT BUỘC — CÔNG DÂN TOÀN CẦU / LIÊN VĂN HÓA / CÔNG DÂN SỐ (CIS dễ "nhìn" thấy nhất):
+- Mỗi giáo án PHẢI có ít nhất MỘT hoạt động (hoặc một chuỗi xuyên tiết) tích hợp một trong ba yếu tố này BẰNG NHIỆM VỤ THẬT, KÈM MINH HỌA QUAN SÁT ĐƯỢC: bảng số liệu quốc tế / biểu đồ so sánh / bản đồ / sơ đồ kiểm chứng bằng công cụ số.
+  - Công dân toàn cầu & liên văn hóa: bối cảnh dữ liệu góc nhìn rộng (nhiều quốc gia/nền văn hóa), hoặc dùng ký hiệu Toán như ngôn ngữ chung, tôn trọng khác biệt.
+  - Công dân số: hành vi số có trách nhiệm — DỰ ĐOÁN trước khi dùng công cụ, dùng công cụ để KIỂM CHỨNG chứ không thay suy nghĩ, phân biệt kết quả công cụ với kết luận của mình.
+- Tiết thật sự KHÔNG phù hợp thì ghi rõ "Không phải tiết trọng tâm" — TUYỆT ĐỐI không nhồi cho đủ.
 
 (Bảng này CHỈ tổng hợp; các nhãn minh chứng vẫn xuất hiện đúng vị trí trong tiến trình theo quy tắc mục 7 phần B.)
 

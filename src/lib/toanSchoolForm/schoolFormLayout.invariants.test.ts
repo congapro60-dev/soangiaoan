@@ -77,7 +77,7 @@ describe('buildSchoolFormHtml — soi gương bản Word', () => {
 
   it('bảng MINH CHỨNG HQT/CIS nằm giữa THÔNG TIN CHUNG và TIẾN TRÌNH khi có dữ liệu', () => {
     const m = model();
-    m.minhChung = [{ nhan: '[PHÂN HÓA]', noiDung: 'HS chọn nhánh', viTri: 'HĐ2' }];
+    m.minhChung = [{ nhan: '[PHÂN HÓA]', noiDung: 'HS chọn nhánh', quanSat: 'HS cầm phiếu 3 màu', viTri: 'HĐ2' }];
     const html = buildSchoolFormHtml(m);
     const taiLieu = html.indexOf('3. Tài liệu dạy học');
     const minh = html.indexOf('MINH CHỨNG HQT / CIS');

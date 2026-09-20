@@ -673,12 +673,18 @@ QUY TẮC NGHIÊM NGẶT:
 - Cách thực hiện: Chỉ sử dụng ngôn ngữ LaTeX/TikZ. Bọc trong khối code \`\`\`tikz \\begin{tikzpicture} ... \\end{tikzpicture} \`\`\`.
 - VỊ TRÍ: Đặt NGOÀI bảng Markdown (trước hoặc sau bảng). TUYỆT ĐỐI KHÔNG chèn khối code vào trong ô bảng vì Markdown không hỗ trợ code fence nhiều dòng trong ô bảng — sẽ bị vỡ hiển thị.
 - BẮT BUỘC CHỈ DÙNG CÁC MÀU CƠ BẢN CỦA LaTeX (black, white, red, green, blue, cyan, magenta, yellow, gray, lightgray) hoặc các màu từ gói dvipsnames (như NavyBlue, ForestGreen, BrickRed). TUYỆT ĐỐI KHÔNG tự sáng tạo tên màu lạ để tránh lỗi biên dịch.
-- GIỚI HẠN ĐỘ PHỨC TẠP: tối đa 2 hình TikZ trong một giáo án; mỗi hình không quá khoảng 40 dòng; chỉ dùng các lệnh TikZ cơ bản (\\draw, \\node, \\fill, \\path, \\foreach đơn giản). TUYỆT ĐỐI không dùng ảnh nền, external file, package/thư viện lạ (như tkz-euclide). Nếu hình quá phức tạp, hãy chuyển sang gợi ý ảnh (xem mục 2).
+- GIỚI HẠN ĐỘ PHỨC TẠP: mỗi hình không quá khoảng 40 dòng; chỉ dùng các lệnh TikZ cơ bản (\\draw, \\node, \\fill, \\path, \\foreach đơn giản). TUYỆT ĐỐI không dùng ảnh nền, external file, package/thư viện lạ (như tkz-euclide). Nếu hình quá phức tạp, hãy chuyển sang bảng biểu (mục 3) hoặc mô tả bằng một câu tiếng Việt.
+- SỐ LƯỢNG: ưu tiên MỖI HOẠT ĐỘNG CHÍNH có ít nhất một minh họa (hình TikZ HOẶC bảng biểu/biểu đồ) khi nội dung cho phép; khoảng 3–5 hình TikZ/giáo án là hợp lý. Hình phải gắn ĐÚNG ví dụ/bài tập/hoạt động cụ thể, KHÔNG trang trí, KHÔNG dùng một hình cho nhiều bài.
 
 2. Bối cảnh thực tế (cây cầu, thanh dầm, quỹ đạo...):
 - Vẫn VẼ bằng TikZ, ở mức sơ đồ đơn giản hoá: chỉ giữ những nét cần cho ý toán học.
 - TUYỆT ĐỐI KHÔNG viết mô tả ảnh bằng tiếng Anh (dạng "Image Prompt", "prompt: ...", "2D flat vector illustration..."). Giáo án là văn bản tiếng Việt đưa cho giáo viên, không phải chỗ đặt lệnh cho máy vẽ ảnh.
 - Nếu một hình thật sự không vẽ nổi bằng TikZ: BỎ HÌNH, và mô tả bằng một câu tiếng Việt ngắn trong nội dung (VD: "GV chiếu ảnh thanh dầm ngang song song với mặt sàn").
+
+3. Bảng biểu & biểu đồ số liệu (cho bối cảnh thực tế, dữ liệu, và yếu tố Công dân toàn cầu/số):
+- Dữ liệu thực tế (dân số, khí thải CO₂ theo quốc gia, giá cả, thống kê...) trình bày bằng BẢNG MARKDOWN THƯỜNG (Word dựng được ngay, không cần TikZ) — có tiêu đề cột, số liệu cụ thể, ghi NGUỒN dưới bảng.
+- Cần so sánh trực quan thì vẽ BIỂU ĐỒ CỘT ĐƠN GIẢN bằng TikZ (\\draw các cột chữ nhật + nhãn), tối đa ~6 cột, đặt ngoài bảng.
+- Đây là kênh chính để yếu tố Công dân toàn cầu/liên văn hóa/công dân số "nhìn thấy được" khi CIS dự giờ: bảng số liệu quốc tế, biểu đồ so sánh, sơ đồ quy trình kiểm chứng bằng công cụ số.
 
 LƯU Ý QUAN TRỌNG:
 - KHÔNG BAO GIỜ đặt khối code nhiều dòng (\`\`\`tikz) vào bên trong ô bảng Markdown. Markdown không hỗ trợ và sẽ hiển thị mã thô.

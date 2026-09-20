@@ -177,11 +177,12 @@ describe('buildSchoolFormDocx', () => {
 
     const m = baseModel();
     m.minhChung = [
-      { nhan: '[PHÂN HÓA]', noiDung: 'HS chọn nhánh NB/TH/VD', viTri: 'HĐ2 P18–P32' },
-      { nhan: 'Danielson 1c', noiDung: 'Mục tiêu 3 mức Must/Should/Could', viTri: 'Bảng mục tiêu' },
+      { nhan: '[PHÂN HÓA]', noiDung: 'HS chọn nhánh NB/TH/VD', quanSat: 'HS cầm phiếu 3 màu', viTri: 'HĐ2 P18–P32' },
+      { nhan: 'Danielson 1c', noiDung: 'Mục tiêu 3 mức Must/Should/Could', quanSat: 'Bảng mục tiêu trên TV', viTri: 'Bảng mục tiêu' },
     ];
     const xml = await buildXml(m);
     expect(xml).toContain('MINH CHỨNG HQT / CIS');
+    expect(xml).toContain('Observer nhìn thấy gì');
     expect(xml).toContain('Danielson 1c');
     expect(xml.toUpperCase()).toContain('C00000'); // nhãn [PHÂN HÓA] tô đỏ CIS
   });

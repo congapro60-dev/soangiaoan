@@ -122,7 +122,7 @@ const mucTieuTable = (m: ToanLessonModel): Table =>
 
 // Bảng MINH CHỨNG HQT/CIS + Danielson 1a–1f (Minh chứng | HS làm gì → GV thu → mục đích | Vị trí).
 // Cột 1 giữ nhãn `[..]`/`Danielson 1x`; runs() tự tô màu cả câu nhãn CIS qua detectCisColor.
-const MINHCHUNG_COL_RATIOS = [0.18, 0.62, 0.2] as const;
+const MINHCHUNG_COL_RATIOS = [0.14, 0.33, 0.33, 0.2] as const;
 const minhChungTable = (m: ToanLessonModel): Table => {
   const headerCell = (t: string) =>
     new TableCell({
@@ -135,11 +135,16 @@ const minhChungTable = (m: ToanLessonModel): Table => {
   const rows: TableRow[] = [
     new TableRow({
       tableHeader: true,
-      children: [headerCell('Minh chứng'), headerCell('HS làm gì → GV thu được gì → mục đích sư phạm'), headerCell('Vị trí')],
+      children: [
+        headerCell('Minh chứng'),
+        headerCell('HS làm gì → GV thu được gì'),
+        headerCell('Observer nhìn thấy gì (CIS dự giờ)'),
+        headerCell('Vị trí'),
+      ],
     }),
   ];
   for (const r of m.minhChung) {
-    rows.push(new TableRow({ children: [dataCell(r.nhan, true), dataCell(r.noiDung), dataCell(r.viTri)] }));
+    rows.push(new TableRow({ children: [dataCell(r.nhan, true), dataCell(r.noiDung), dataCell(r.quanSat), dataCell(r.viTri)] }));
   }
   return new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
