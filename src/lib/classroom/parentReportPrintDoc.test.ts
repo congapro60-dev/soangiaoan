@@ -76,4 +76,24 @@ describe('buildParentReportPrintDoc', () => {
     const html = buildParentReportPrintDoc({ report, studentName: 'Nguyễn Minh An', className: '11 Columbus' });
     expect(html).not.toContain('Năng lực Toán học');
   });
+
+  it('hiện mục Điểm thi định kì với MOET (thang 10) + TDS (kèm điểm chữ)', () => {
+    const html = buildParentReportPrintDoc({
+      report, studentName: 'Nguyễn Minh An', className: '11 Columbus',
+      exams: {
+        moet: [{ label: 'Khảo sát đầu năm', score: 2.35 }, { label: 'Giữa học kì I', score: 6 }],
+        tds: [{ label: 'Quý 1', score: 7, letter: 'B' }],
+      },
+    });
+    expect(html).toContain('Điểm thi định kì');
+    expect(html).toContain('Khảo sát đầu năm');
+    expect(html).toContain('2.35/10');
+    expect(html).toContain('Quý 1');
+    expect(html).toContain('>B<'); // điểm chữ
+  });
+
+  it('bỏ mục Điểm thi định kì khi không có điểm', () => {
+    const html = buildParentReportPrintDoc({ report, studentName: 'Nguyễn Minh An', className: '11 Columbus', exams: { moet: [], tds: [] } });
+    expect(html).not.toContain('Điểm thi định kì');
+  });
 });

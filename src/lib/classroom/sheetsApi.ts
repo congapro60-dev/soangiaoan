@@ -72,6 +72,23 @@ export const readSpreadsheetInfo = async (spreadsheetId: string): Promise<Spread
   };
 };
 
+/**
+ * Đọc giá trị THÔ của nhiều vùng trong một lần gọi (values:batchGet, UNFORMATTED_VALUE).
+ * Dùng cho việc CHỈ ĐỌC ngoài BTVN (vd điểm thi ở tab MOET/TDS): trả mảng ô đúng như trong ô,
+ * số ra số, chữ ra chữ (Mã HS chữ không bị ép kiểu). Không ghi gì.
+ */
+export const readSheetValues = async (
+  spreadsheetId: string,
+  ranges: readonly string[],
+): Promise<unknown[][][]> => {
+  const params = new URLSearchParams({ valueRenderOption: 'UNFORMATTED_VALUE', dateTimeRenderOption: 'FORMATTED_STRING' });
+  for (const range of ranges) params.append('ranges', range);
+  const data = await sheetsFetch(`${SHEETS_BASE}/${encodeURIComponent(spreadsheetId)}/values:batchGet?${params.toString()}`) as {
+    valueRanges?: Array<{ values?: unknown[][] }>;
+  };
+  return ranges.map((_, index) => data.valueRanges?.[index]?.values ?? []);
+};
+
 interface GridValue {
   userEnteredValue?: { formulaValue?: string };
   effectiveValue?: { stringValue?: string; numberValue?: number; boolValue?: boolean };

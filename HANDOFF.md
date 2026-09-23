@@ -5,17 +5,14 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
-## Bản phụ huynh: thêm nhận xét vĩ mô + phương án đồng hành — 2026-09-18
+## Bản phụ huynh: báo cáo PDF chuyên nghiệp + điểm thi định kì — 2026-09-23
 
-Phụ huynh không rành Toán thì danh sách tên chủ đề vẫn khó hiểu. Thêm 3 phần dựng THUẦN từ số liệu (không AI, không lọt số bài) vào `parentSafeReport.ts` (bỏ `nextSteps` cũ):
-- `overallSummary`: nhận xét tổng quan ngôn ngữ đời thường, theo band điểm trung bình chính thức (≥80/≥65/≥50/<50) + xu hướng lên/xuống.
-- `parentActions`: việc phụ huynh làm ở nhà (hỏi con mỗi ngày, cùng con luyện phần "Cần rèn thêm", nhắc nộp bài, khích lệ khi tiến bộ…) — điều kiện theo weakCount/missing/trend.
-- `teacherActions`: việc thầy cô sẽ làm (giao bài luyện đúng phần yếu, chấm-phản hồi, hoàn tất bài đang xử lý, trao đổi PH…).
-UI `StudentReport` bản phụ huynh: thêm khối "Nhận xét chung về con", câu bắc cầu "hai mục trên là tên phần Toán, PH không cần hiểu sâu", và 2 khối "Phụ huynh có thể đồng hành" + "Thầy cô sẽ hỗ trợ". Nghiệm thu: parentSafeReport 6 test, `lint`+`build` OK.
-
-**Tải PDF bản phụ huynh** (nối tiếp): nút cũ gọi `window.print()` nên in cả app (giống ảnh chụp màn hình); bản iframe/`window.open` từng ra tab trắng. Chốt: dùng ĐÚNG cơ chế xuất PDF của giáo án — `parentReportPrintDoc.ts::exportParentReportToPdf` dựng báo cáo vào node ẩn ngoài màn hình rồi gọi `utils/pdfExport.ts::exportElementToPdf` (html2canvas-pro + jsPDF → `pdf.save()`). **Tải thẳng file .pdf**, không tab/không hộp thoại in.
-
-**Thiết kế lại theo phiếu tiến độ IB (mẫu The Dewey)** + **liên hệ hồ sơ năng lực**: bố cục chuyên nghiệp, đề mục đánh số in đậm, 3 biểu đồ SVG/CSS thuần (đồng hồ điểm TB có thang mức, đường xu hướng, thanh tiến độ nộp), bảng thông tin đầu trang, dải tổng kết màu theo mức, kết quả từng bài kiểu dòng môn học (tên · điểm · thanh mức). Mục **"Năng lực Toán học"**: rút từ `buildStudentCompetencyPortfolio` (chỉ bài đã duyệt), nhóm theo 4 mức khung trường (Xuất sắc/Tốt/Đạt yêu cầu/Chưa đạt yêu cầu) → `ParentCompetencySummary` truyền vào print doc; bản trên màn hình cũng có khối này. Style scope `#parent-report-pdf-root`, escape HTML, chỉ dữ liệu an toàn. Nghiệm thu: parentReportPrintDoc 5 test; smoke live: xuất blob application/pdf ~540KB (có năng lực), no error; `lint`+`build` OK.
+Bản gửi phụ huynh (`StudentReport` viewMode=parent + `parentReportPrintDoc.ts`):
+- **Nội dung an toàn** từ `parentSafeReport.ts` (chỉ bài đã duyệt, không lọt số bài/đáp án): `overallSummary` (band điểm + xu hướng), điểm mạnh/cần rèn theo chủ đề, `parentActions`/`teacherActions` thuần số liệu.
+- **Xuất PDF như giáo án**: `exportParentReportToPdf` dựng node ẩn → `utils/pdfExport.ts::exportElementToPdf` (html2canvas-pro+jsPDF, `pdf.save()`) tải thẳng .pdf. KHÔNG `window.print()`/`window.open`.
+- **Thiết kế phiếu tiến độ IB** (mẫu The Dewey): bảng thông tin, dải tổng kết màu, đề mục đánh số in đậm, 3 biểu đồ SVG/CSS thuần (đồng hồ điểm có thang mức, xu hướng, tiến độ), kết quả từng bài kiểu dòng môn học. Style scope `#parent-report-pdf-root`, escape HTML.
+- **Mục "Năng lực Toán học"**: `buildStudentCompetencyPortfolio` (bài đã duyệt) → nhóm 4 mức khung trường → `ParentCompetencySummary`.
+- **Mục "Điểm thi định kì"** (mới): `examService.ts::fetchStudentExamScores` đọc 2 tab MOET/TDS trong file điểm của lớp (`class.sheetSync.spreadsheetId`) qua Sheets API `values:batchGet` UNFORMATTED (quyền Google GV như BTVN). `examScores.ts` khớp **Mã HS**, chỉ lấy cột "Điểm…" (MOET thang 10: KSĐN/giữa-cuối HKI-HKII; TDS Quý 1-4 + điểm chữ), BỎ cột công thức/kế hoạch nội bộ. GV bấm nút "Tải điểm thi" (tránh popup OAuth bất ngờ) → hiện mục + vào PDF. Nghiệm thu: examScores 6 + parentReportPrintDoc 7 test; smoke live PDF có điểm thi; `lint`+`build` OK. **Còn:** giả định file điểm = file đã nối BTVN của lớp; nếu lớp nối BTVN sang file khác thì cần thêm link điểm riêng.
 
 ## Bản phụ huynh + hồ sơ: 5 lỗi làm chặt — 2026-09-18
 

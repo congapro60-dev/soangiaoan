@@ -1,5 +1,6 @@
 import type { ParentSafeReport, ParentSafeAssignmentStatus, ParentSafeTrend } from './parentSafeReport';
 import { COMPETENCY_LEVELS, type CompetencyLevel } from './competency/framework';
+import type { StudentExamScores } from './examScores';
 import { exportElementToPdf } from '../../utils/pdfExport';
 
 /** Một năng lực Toán đã được đánh giá (đã có bài duyệt), rút từ hồ sơ năng lực cho bản phụ huynh. */
@@ -27,6 +28,8 @@ export interface ParentReportPrintInput {
   generatedOn?: string;
   /** Hồ sơ năng lực rút gọn; vắng thì bỏ mục "Năng lực Toán học". */
   competency?: ParentCompetencySummary | null;
+  /** Điểm thi định kì (MOET + TDS); vắng/rỗng thì bỏ mục "Điểm thi định kì". */
+  exams?: StudentExamScores | null;
 }
 
 const ROOT_ID = 'parent-report-pdf-root';
@@ -139,6 +142,28 @@ const buildCompetencySection = (c: ParentCompetencySummary): string => {
   return head + `<div class="comp-wrap">${buckets}</div>`;
 };
 
+const fmtScore = (value: number): string => (Number.isInteger(value) ? String(value) : String(value));
+
+/** Mục "Điểm thi định kì": MOET (thang 10, có thanh mức) + TDS (điểm quý kèm điểm chữ). */
+const buildExamSection = (exams: StudentExamScores): string => {
+  const blocks: string[] = [];
+  if (exams.moet.length > 0) {
+    const rows = exams.moet.map(mark => {
+      const pct = Math.max(0, Math.min(100, mark.score * 10));
+      const band = scoreBand(pct);
+      return `<div class="subject"><div class="subj-top"><div class="subj-name"><span class="dot" style="background:${band.color}"></span>${esc(mark.label)}</div><div class="subj-grade" style="color:${band.color}">${esc(fmtScore(mark.score))}/10</div></div><div class="subj-bar"><span style="width:${pct}%;background:${band.color}"></span></div></div>`;
+    }).join('');
+    blocks.push(`<div class="exam-block"><p class="exam-cap">Đánh giá định kì (thang 10)</p>${rows}</div>`);
+  }
+  if (exams.tds.length > 0) {
+    const rows = exams.tds.map(mark =>
+      `<div class="subject"><div class="subj-top"><div class="subj-name"><span class="dot" style="background:#6366f1"></span>${esc(mark.label)}</div><div class="subj-grade" style="color:#4338ca">${esc(fmtScore(mark.score))}${mark.letter ? `<span class="tds-letter">${esc(mark.letter)}</span>` : ''}</div></div></div>`
+    ).join('');
+    blocks.push(`<div class="exam-block"><p class="exam-cap">Điểm theo quý (hệ TDS)</p>${rows}</div>`);
+  }
+  return `<div class="exam-wrap">${blocks.join('')}</div>`;
+};
+
 /** Mỗi bài một hàng theo phong cách phiếu điểm IB: tên đậm trái · điểm phải · thanh mức bên dưới. */
 const buildSubjectRows = (results: ParentSafeReport['results']): string => {
   if (results.length === 0) return '<p class="muted">Chưa có bài được ghi nhận.</p>';
@@ -199,6 +224,10 @@ const styleBlock = `
 #${ROOT_ID} .subj-status { font-size:11.5px; font-weight:700; color:#64748b; background:#f1f5f9; padding:3px 10px; border-radius:999px; white-space:nowrap; }
 #${ROOT_ID} .subj-bar { margin-top:8px; height:7px; border-radius:4px; background:#eef2f7; overflow:hidden; }
 #${ROOT_ID} .subj-bar > span { display:block; height:100%; }
+#${ROOT_ID} .exam-wrap { display:flex; gap:14px; }
+#${ROOT_ID} .exam-block { flex:1; min-width:0; }
+#${ROOT_ID} .exam-cap { font-size:12px; font-weight:800; color:#334155; text-transform:uppercase; letter-spacing:.02em; margin:0 0 8px; }
+#${ROOT_ID} .tds-letter { display:inline-block; margin-left:8px; font-size:12px; font-weight:800; color:#4338ca; background:#e0e7ff; border-radius:6px; padding:1px 9px; }
 #${ROOT_ID} .comp-progress { font-size:12px; color:#475569; margin:0 0 11px; }
 #${ROOT_ID} .comp-wrap { display:flex; flex-direction:column; gap:8px; }
 #${ROOT_ID} .comp-row { display:flex; align-items:flex-start; gap:10px; border:1px solid #dbe4ec; border-radius:8px; padding:8px 12px; }
@@ -225,7 +254,7 @@ const styleBlock = `
  * tiến độ IB: bảng thông tin, dải tổng kết, biểu đồ thống kê, mục điểm từng bài, phương án đồng hành.
  * Chỉ dùng dữ liệu đã an toàn trong ParentSafeReport — không có đáp án, ghi chú nội bộ hay điểm bài chưa duyệt.
  */
-export const buildParentReportPrintDoc = ({ report, studentName, className, studentCode, generatedOn, competency }: ParentReportPrintInput): string => {
+export const buildParentReportPrintDoc = ({ report, studentName, className, studentCode, generatedOn, competency, exams }: ParentReportPrintInput): string => {
   const ngay = generatedOn ?? new Date().toLocaleDateString('vi-VN');
   const avg = report.officialAveragePercent;
   const band = avg === null ? { label: 'Chưa đủ dữ liệu', color: '#64748b' } : scoreBand(avg);
@@ -241,6 +270,7 @@ export const buildParentReportPrintDoc = ({ report, studentName, className, stud
   let sectionNo = 0;
   const secHead = (title: string) => `<div class="sec-head"><span class="n">${++sectionNo}</span><h2>${title}</h2></div>`;
   const hasCompetency = Boolean(competency && competency.total > 0);
+  const hasExams = Boolean(exams && (exams.moet.length > 0 || exams.tds.length > 0));
 
   return `<style>${styleBlock}</style>
 <table class="info-table">
@@ -269,6 +299,8 @@ ${secHead('Tổng quan bằng số')}
   <div class="tile"><div class="cap">Xu hướng điểm</div>${buildSparkline(officialSeries, trend)}</div>
   <div class="tile"><div class="cap">Tiến độ nộp bài</div>${buildCompletion(report.officialCount, report.pendingCount, report.missingCount)}</div>
 </div>
+
+${hasExams ? `${secHead('Điểm thi định kì')}${buildExamSection(exams as StudentExamScores)}` : ''}
 
 ${secHead('Điểm mạnh &amp; phần cần rèn')}
 <div class="cards2">
@@ -314,7 +346,7 @@ export const exportParentReportToPdf = async (input: ParentReportPrintInput): Pr
     await exportElementToPdf(root, {
       filename: pdfFileName(input),
       // Giữ nguyên khối, không cắt ngang thẻ/biểu đồ khi sang trang.
-      noBreakSelectors: ['h1', 'h2', 'h3', 'svg', 'table', 'tr', '.subject', '.tile', '.card', '.verdict', '.lead', '.sec-head'],
+      noBreakSelectors: ['h1', 'h2', 'h3', 'svg', 'table', 'tr', '.subject', '.tile', '.card', '.verdict', '.lead', '.sec-head', '.exam-block', '.comp-row'],
     });
   } finally {
     root.remove();
