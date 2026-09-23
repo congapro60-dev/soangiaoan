@@ -18,6 +18,7 @@ import {
   normalizeGatewayPrompt,
   resolveGatewayApiKey,
 } from './_ai-gateway-core.js';
+import { openAiUsageCounts, recordAiUsage } from './_ai-usage.js';
 
 interface GatewayBody {
   prompt?: unknown;
@@ -74,10 +75,13 @@ const handleStream = async (
     const completion = await client.chat.completions.create(buildGatewayChatRequest(prompt, true));
     // SDK trả về union ChatCompletion | Stream; khi stream=true kiểu union không tự hẹp được
     // nên phải đi qua unknown — cast thẳng là TS2352.
-    for await (const chunk of (completion as unknown as AsyncIterable<{ choices?: Array<{ delta?: { content?: string } }> }>)) {
+    let usage: unknown = null;
+    for await (const chunk of (completion as unknown as AsyncIterable<{ choices?: Array<{ delta?: { content?: string } }>; usage?: unknown }>)) {
       const text = chunk.choices?.[0]?.delta?.content || '';
       if (text) writeStreamEvent(res, { text });
+      if (chunk.usage) usage = chunk.usage;
     }
+    await recordAiUsage('ai-gateway', AI_GATEWAY_MODEL, openAiUsageCounts(usage));
     writeStreamEvent(res, { done: true });
     // Sentinel kết thúc theo đúng quy ước client: ghi THÔ không JSON.stringify —
     // stringify biến nó thành "[DONE]" (kèm ngoặc kép) và parser phía client bỏ qua.
@@ -146,6 +150,9 @@ export const handleAiGateway = async (req: VercelRequest, res: VercelResponse): 
 
   try {
     const completion = await client.chat.completions.create(buildGatewayChatRequest(prompt, false));
+    await recordAiUsage('ai-gateway', AI_GATEWAY_MODEL, openAiUsageCounts(completion.usage), {
+      finishReason: completion.choices[0]?.finish_reason ?? undefined,
+    });
     const choice = completion.choices[0];
     const text = choice?.message?.content || '';
     if (!text) {

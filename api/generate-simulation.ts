@@ -4,6 +4,7 @@ import { GoogleGenAI } from '@google/genai';
 import { cert, getApps, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
+import { createAiUsageContext, geminiUsageCounts, recordAiUsage, runWithAiUsage } from './_ai-usage.js';
 
 const GEMINI_MODEL = 'gemini-3.7-flash';
 const MAX_PROBLEM_TEXT_LENGTH = 2000;
@@ -149,10 +150,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   let teacherId: string;
+  let teacherEmail: string | null = null;
   try {
     initializeAdmin();
     const decodedToken = await getAuth().verifyIdToken(token);
     teacherId = decodedToken.uid;
+    teacherEmail = typeof decodedToken.email === 'string' ? decodedToken.email : null;
   } catch (error) {
     console.error('Simulation auth failed:', error);
     return sendError(res, 401, 'unauthorized', 'Invalid Firebase ID token');
@@ -214,6 +217,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         temperature: 0.2,
       },
     });
+    // Đếm token (khoá chung của chủ dự án) — ghi trước mọi nhánh báo lỗi vì lượt này đã tính tiền.
+    const identity = { uid: teacherId, email: teacherEmail, anonymous: false };
+    await runWithAiUsage(
+      createAiUsageContext(null, 'generateSimulation', { lessonId: normalizedLessonId }, async () => identity),
+      () => recordAiUsage('gemini', GEMINI_MODEL, geminiUsageCounts(result.usageMetadata)),
+    );
 
     const html = (result.text || '').trim();
     if (!isValidHtmlSimulation(html)) {

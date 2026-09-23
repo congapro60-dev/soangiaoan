@@ -71,6 +71,8 @@ import {
   type SubmissionGrade,
 } from '../src/lib/classroom/types.js';
 import { handleAiGateway } from './_ai-gateway-handler.js';
+import { getBearerToken } from './_ai-gateway-core.js';
+import { createAiUsageContext, runWithAiUsage } from './_ai-usage.js';
 import { commitAiGradeIfClaimed, removeSubmissionGradeEvidence } from './_grade-lifecycle.js';
 import { replaceSkillEvidenceAndRebuild } from './_skill-profile.js';
 import { canTeacherAccessLegacyNamespace } from './_classroom-access.js';
@@ -1547,7 +1549,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const body = readBody(req);
   const action = String(body.action || '');
+  // Ngữ cảnh đếm token: mọi lượt gọi AI bằng khoá chung bên trong (kể cả chấm chạy nền) được ghi
+  // kèm người gọi + mã lớp/bài. Gateway gửi token qua header Bearer thay vì body.
+  const usageToken = action === 'aiGateway' ? getBearerToken(req.headers.authorization) : body.idToken;
+  const usageContext = createAiUsageContext(usageToken, action, body as Record<string, unknown>);
+  return runWithAiUsage(usageContext, () => dispatchGradeHomework(req, res, body, action));
+}
 
+async function dispatchGradeHomework(req: VercelRequest, res: VercelResponse, body: ReturnType<typeof readBody>, action: string) {
   try {
     // Gateway đặt TRƯỚC khi init Admin: lỗi cấu hình Firebase phải trả lỗi của gateway
     // (nó tự khởi tạo Admin khi cần), chứ không nuốt vào 500 chung của route chấm bài.

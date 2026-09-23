@@ -5,6 +5,10 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Đếm token AI (khoá chung) để tính tiền — GĐ1 — 2026-09-24
+
+Kế hoạch 3 GĐ ở `tasks/todo.md` (GĐ2 trang quản trị congapro60@gmail.com + bảng kê tiền; GĐ3 sổ điểm). GĐ1 xong: `api/_ai-usage.ts` ghi mỗi lượt gọi AI bằng KHOÁ CHUNG vào collection `aiUsage` (client bị rules mặc định chặn): token vào/ra/suy nghĩ/cache + model + feature + uid/email/ẩn danh + refs (classId/submissionId/assignmentId…) + day/month giờ VN. Chỉ lưu token thô — tiền tính lúc hiển thị theo bảng giá. Ngữ cảnh qua AsyncLocalStorage, token giải mã LƯỜI (chỉ khi có lượt AI). Gắn: `callGeminiVision` (ghi TRƯỚC khi ném lỗi — Google tính cả lượt bị cắt), handler `grade-homework` + `classroom`, `generate-simulation`, cổng GLM (stream bật `include_usage`). Ghi hỏng không làm hỏng lượt chấm. **Trước 2026-09-24 KHÔNG có số theo người** — chỉ ước tính từ quota/bài đã chấm, đối chiếu tổng AI Studio (project Albot, trần ₫1tr/tháng). Test: `ai-usage` 6 + toàn bộ API 257 pass.
+
 ## Bản phụ huynh: báo cáo PDF chuyên nghiệp + điểm thi định kì — 2026-09-23
 
 Bản gửi phụ huynh (`StudentReport` viewMode=parent + `parentReportPrintDoc.ts`):

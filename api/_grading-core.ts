@@ -1,5 +1,6 @@
 /// <reference types="node" />
 // File prefix "_" → không thành Serverless Function. Gồm: hạn mức chống đốt tiền + gọi Gemini.
+import { geminiUsageCounts, recordAiUsage } from './_ai-usage.js';
 
 /**
  * Đường chấm bài này dùng KHOÁ AI CỦA CHỦ DỰ ÁN, không phải khoá giáo viên
@@ -312,8 +313,13 @@ export const callGeminiVision = async (
   const data = rawData as {
     candidates?: Array<{ finishReason?: string; content?: { parts?: Array<{ text?: string }> } }>;
     promptFeedback?: { blockReason?: string };
+    usageMetadata?: unknown;
     error?: unknown;
   };
+  // Ghi token TRƯỚC mọi nhánh ném lỗi: Google tính tiền cả lượt bị cắt/bị chặn.
+  await recordAiUsage('gemini', model, geminiUsageCounts(data.usageMetadata), {
+    finishReason: data.candidates?.[0]?.finishReason || data.promptFeedback?.blockReason,
+  });
   if (data.error) {
     throw new GeminiResponseError('provider', 'Gemini không hoàn tất yêu cầu. Thử lại sau ít phút.');
   }

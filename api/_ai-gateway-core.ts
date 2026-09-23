@@ -43,5 +43,7 @@ export function buildGatewayChatRequest(
     messages: [{ role: 'user', content: prompt }],
     max_tokens: AI_GATEWAY_MAX_OUTPUT_TOKENS,
     stream,
+    // Chunk cuối của stream mang `usage` để đếm token tính tiền (không có thì stream không báo gì).
+    ...(stream ? { stream_options: { include_usage: true } } : {}),
   } as ChatCompletionCreateParamsNonStreaming | ChatCompletionCreateParamsStreaming;
 }

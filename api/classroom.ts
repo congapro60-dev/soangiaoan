@@ -2,6 +2,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
 import { getAdminDb, getAdminStorage } from './_exam-core.js';
+import { createAiUsageContext, runWithAiUsage } from './_ai-usage.js';
 import { FieldValue } from 'firebase-admin/firestore';
 import { uniqueStoragePaths } from './_classroom-storage.js';
 import { removeEvidence } from '../src/lib/classroom/profileMerge.js';
@@ -1413,7 +1414,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const body = readBody(req);
   const action = String(body.action || '');
+  // Ngữ cảnh đếm token (chấm bài thi online dùng khoá chung). Không tốn gì với action không gọi AI.
+  return runWithAiUsage(
+    createAiUsageContext(body.idToken, action, body as Record<string, unknown>),
+    () => dispatchClassroom(res, body, action),
+  );
+}
 
+async function dispatchClassroom(res: VercelResponse, body: ReturnType<typeof readBody>, action: string) {
   try {
     const db = getAdminDb();
     if (await handleTeacherAction(db, body, res)) return;
