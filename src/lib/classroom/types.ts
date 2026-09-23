@@ -25,6 +25,17 @@ export interface ClassSheetSync {
   linkedBy: string;
 }
 
+/**
+ * File điểm thi của lớp (Google Sheet có tab MOET/TDS) — KHÁC file đồng bộ BTVN.
+ * Chỉ để ĐỌC điểm thi định kì vào báo cáo phụ huynh; máy chủ chỉ lưu mã file.
+ */
+export interface ClassExamSheet {
+  spreadsheetId: string;
+  spreadsheetTitle: string;
+  linkedAt: string;
+  linkedBy: string;
+}
+
 /** Lớp học của một giáo viên. */
 export interface ClassDoc {
   id: string;
@@ -46,6 +57,8 @@ export interface ClassDoc {
   studentCount: number;
   /** Tab Google Sheet đã nối để đồng bộ BTVN; vắng hoặc null là lớp không đồng bộ. */
   sheetSync?: ClassSheetSync | null;
+  /** File điểm thi định kì (tab MOET/TDS); vắng là chưa nối. */
+  examSheet?: ClassExamSheet | null;
   createdAt: string;
   updatedAt: string;
 }

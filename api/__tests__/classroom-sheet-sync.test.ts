@@ -122,3 +122,41 @@ describe('setClassSheetSync', () => {
     expect(classes[0].sheetSync).toMatchObject(validSheet);
   });
 });
+
+describe('setClassExamSheet (file điểm thi, tách khỏi file BTVN)', () => {
+  let store: Record<string, Record<string, DocData>>;
+  const examSheet = { spreadsheetId: '1W-gEc8_UW1Y7ktmsNm15IW0R7hNvkXbpGb_JHupAy4o', spreadsheetTitle: '26-27-12 VN Toán 1-Vũ Việt Cường' };
+
+  beforeEach(() => {
+    h.uid = 'owner-1';
+    store = { classes: { 'lop-1': { teacherId: 'owner-1', name: '12LoTrinh1', sheetSync: validSheet } } };
+    h.db = makeDb(store);
+  });
+
+  it('lưu file điểm riêng, không đụng cấu hình đồng bộ BTVN', async () => {
+    const res = await call({ action: 'setClassExamSheet', classId: 'lop-1', examSheet });
+
+    expect(res.statusCode).toBe(200);
+    expect(store.classes['lop-1'].examSheet).toMatchObject({ ...examSheet, linkedBy: 'owner-1' });
+    expect(store.classes['lop-1'].sheetSync).toMatchObject(validSheet);
+  });
+
+  it('giáo viên ngoài lớp không nối được; mã file sai bị từ chối', async () => {
+    const bad = await call({ action: 'setClassExamSheet', classId: 'lop-1', examSheet: { ...examSheet, spreadsheetId: 'ngan' } });
+    h.uid = 'nguoi-khac';
+    const other = await call({ action: 'setClassExamSheet', classId: 'lop-1', examSheet });
+
+    expect(bad.statusCode).toBe(422);
+    expect(other.statusCode).toBe(403);
+    expect(store.classes['lop-1'].examSheet).toBeUndefined();
+  });
+
+  it('bỏ nối thì xoá; danh sách lớp trả file điểm về giao diện', async () => {
+    await call({ action: 'setClassExamSheet', classId: 'lop-1', examSheet });
+    const list = await call({ action: 'listAccessibleClasses' });
+    expect((list.payload?.classes as DocData[])[0].examSheet).toMatchObject(examSheet);
+
+    await call({ action: 'setClassExamSheet', classId: 'lop-1', examSheet: null });
+    expect(store.classes['lop-1'].examSheet).toBeNull();
+  });
+});

@@ -2,8 +2,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { Award, ClipboardList, Download, GraduationCap, HeartHandshake, Lightbulb, Loader2, Printer, Target, TrendingUp } from 'lucide-react';
 import { db } from '../../../lib/firebase';
-import { CLASSES_COL, STUDENT_PROFILES_COL, type AssignmentDoc, type ClassDoc, type StudentProfileDoc, type SubmissionDoc } from '../../../lib/classroom/types';
-import { fetchStudentExamScores } from '../../../lib/classroom/examService';
+import { STUDENT_PROFILES_COL, type AssignmentDoc, type StudentProfileDoc, type SubmissionDoc } from '../../../lib/classroom/types';
+import { fetchStudentExamScores, inspectExamSheet } from '../../../lib/classroom/examService';
+import { getClassDoc } from '../../../lib/classroom/classroomService';
+import { setClassExamSheet } from '../../../lib/classroom/teacherService';
+import { spreadsheetIdFromUrl } from '../../../lib/classroom/sheetsApi';
 import { hasAnyExamScore, type StudentExamScores } from '../../../lib/classroom/examScores';
 import { DriveAuthError } from '../../../lib/googleDrive';
 import { listAssignmentsForClass, listSubmissionsForStudent } from '../../../lib/classroom/submissionService';
@@ -70,6 +73,8 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
   const [examScores, setExamScores] = useState<StudentExamScores | null>(null);
   const [dangTaiDiem, setDangTaiDiem] = useState(false);
   const [loiDiem, setLoiDiem] = useState<string | null>(null);
+  const [linkDiem, setLinkDiem] = useState('');
+  const [dangLuuLink, setDangLuuLink] = useState(false);
 
   useEffect(() => {
     let huy = false;
@@ -79,14 +84,14 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
         listSubmissionsForStudent(studentId, teacherId, classId).catch(() => null),
         getDoc(doc(db, STUDENT_PROFILES_COL, studentId)).catch(() => null),
         listAssignmentsForClass(classId, teacherId).catch(() => []),
-        getDoc(doc(db, CLASSES_COL, classId)).catch(() => null),
+        getClassDoc(classId).catch(() => null),
       ]);
       if (huy) return;
       setSubmissions(nop || []);
       setAssignments(baiGiao || []);
       setProfile(hoSo?.exists() ? (hoSo.data() as StudentProfileDoc) : null);
-      const lop = lopDoc?.exists() ? (lopDoc.data() as ClassDoc) : null;
-      setExamSpreadsheetId(lop?.sheetSync?.spreadsheetId ?? null);
+      // File điểm thi nối riêng — KHÔNG dùng file đồng bộ BTVN (thường là file chung, không có tab MOET/TDS).
+      setExamSpreadsheetId(lopDoc?.examSheet?.spreadsheetId ?? null);
       setExamScores(null);
       setLoiDiem(null);
       setDangTai(false);
@@ -164,12 +169,38 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
     URL.revokeObjectURL(url);
   };
 
-  const taiDiemThi = async () => {
-    if (dangTaiDiem || !examSpreadsheetId) return;
+  const luuLinkDiem = async () => {
+    if (dangLuuLink) return;
+    const id = spreadsheetIdFromUrl(linkDiem);
+    if (!id) {
+      setLoiDiem('Link chưa đúng. Dán link Google Sheet điểm của lớp (dạng docs.google.com/spreadsheets/d/…).');
+      return;
+    }
+    setDangLuuLink(true);
+    setLoiDiem(null);
+    try {
+      const info = await inspectExamSheet(id);
+      if (!info.hasMoet && !info.hasTds) {
+        setLoiDiem(`File "${info.title}" không có tab MOET hay TDS — có thể dán nhầm file.`);
+        return;
+      }
+      await setClassExamSheet(classId, { spreadsheetId: id, spreadsheetTitle: info.title });
+      setExamSpreadsheetId(id);
+      setLinkDiem('');
+      await taiDiemThi(id);
+    } catch (error) {
+      setLoiDiem(error instanceof Error ? error.message : 'Không lưu được link file điểm.');
+    } finally {
+      setDangLuuLink(false);
+    }
+  };
+
+  const taiDiemThi = async (spreadsheetId: string | null = examSpreadsheetId) => {
+    if (dangTaiDiem || !spreadsheetId) return;
     setDangTaiDiem(true);
     setLoiDiem(null);
     try {
-      const scores = await fetchStudentExamScores(examSpreadsheetId, studentCode);
+      const scores = await fetchStudentExamScores(spreadsheetId, studentCode);
       setExamScores(scores);
       if (!hasAnyExamScore(scores)) setLoiDiem('Chưa có điểm thi định kì cho học sinh này trong file lớp.');
     } catch (error) {
@@ -222,15 +253,31 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
           <p className="text-sm font-semibold leading-6 text-indigo-950">{parentReport.overallSummary}</p>
         </div>
 
-        {forAdult && examSpreadsheetId && (
+        {forAdult && (
           <div className="rounded-2xl border border-violet-100 bg-violet-50/40 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="flex items-center gap-2 text-sm font-black text-violet-950"><ClipboardList className="h-4 w-4" /> Điểm thi định kì</p>
-              <button type="button" onClick={taiDiemThi} disabled={dangTaiDiem} className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-3 py-2 text-xs font-black text-white transition hover:bg-violet-700 disabled:opacity-50">
-                {dangTaiDiem ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ClipboardList className="h-3.5 w-3.5" />}
-                {dangTaiDiem ? 'Đang tải…' : examScores ? 'Tải lại điểm thi' : 'Tải điểm thi từ Google Sheet'}
-              </button>
+              {examSpreadsheetId && (
+                <button type="button" onClick={() => void taiDiemThi()} disabled={dangTaiDiem} className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-3 py-2 text-xs font-black text-white transition hover:bg-violet-700 disabled:opacity-50">
+                  {dangTaiDiem ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ClipboardList className="h-3.5 w-3.5" />}
+                  {dangTaiDiem ? 'Đang tải…' : examScores ? 'Tải lại điểm thi' : 'Tải điểm thi từ Google Sheet'}
+                </button>
+              )}
             </div>
+            {!examSpreadsheetId && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                <input
+                  value={linkDiem}
+                  onChange={event => setLinkDiem(event.target.value)}
+                  placeholder="Dán link Google Sheet điểm của lớp (file có tab MOET/TDS)"
+                  className="min-w-0 flex-1 rounded-xl border border-violet-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 outline-none focus:border-violet-400"
+                />
+                <button type="button" onClick={() => void luuLinkDiem()} disabled={dangLuuLink || !linkDiem.trim()} className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-3 py-2 text-xs font-black text-white transition hover:bg-violet-700 disabled:opacity-50">
+                  {dangLuuLink && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                  {dangLuuLink ? 'Đang kiểm tra…' : 'Lưu link & tải điểm'}
+                </button>
+              </div>
+            )}
             {loiDiem && <p className="mt-2 text-xs font-semibold text-rose-600">{loiDiem}</p>}
             {examScores && hasAnyExamScore(examScores) && (
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -252,7 +299,11 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
                 )}
               </div>
             )}
-            <p className="mt-2 text-[11px] font-semibold text-slate-400">Lấy từ file điểm của lớp (Google Sheet). Bấm tải để đưa điểm vào bản PDF gửi phụ huynh.</p>
+            <p className="mt-2 text-[11px] font-semibold text-slate-400">
+              {examSpreadsheetId
+                ? <>Lấy từ file điểm đã nối cho lớp. Bấm tải để đưa điểm vào bản PDF gửi phụ huynh. <button type="button" onClick={() => { setExamSpreadsheetId(null); setExamScores(null); }} className="font-black text-violet-700 underline">Đổi file</button></>
+                : 'Nối 1 lần cho mỗi lớp: file "26-27-<lớp>" trong folder "Lộ trình Toán THPT" (khác file đồng bộ BTVN).'}
+            </p>
           </div>
         )}
 

@@ -101,6 +101,14 @@ export const setClassSheetSync = async (classId: string, sheetSync: ClassSheetSy
   await callTeacherApi({ action: 'setClassSheetSync', classId, sheetSync });
 };
 
+/** Lưu file điểm thi (tab MOET/TDS) của lớp; truyền null để bỏ nối. */
+export const setClassExamSheet = async (
+  classId: string,
+  examSheet: { spreadsheetId: string; spreadsheetTitle: string } | null,
+): Promise<void> => {
+  await callTeacherApi({ action: 'setClassExamSheet', classId, examSheet });
+};
+
 export const renameStudent = async (classId: string, studentId: string, name: string): Promise<void> => {
   await callTeacherApi({ action: 'renameStudent', classId, studentId, name });
 };

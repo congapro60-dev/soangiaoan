@@ -898,6 +898,31 @@ export const handleSetClassSheetSync = async (db: Db, body: Body, res: VercelRes
   return void res.status(200).json({ updated: true, classId: context.classId, sheetSync });
 };
 
+/**
+ * Nối hoặc bỏ nối FILE ĐIỂM THI của lớp (Google Sheet có tab MOET/TDS), tách khỏi file đồng bộ BTVN.
+ * Chỉ lưu mã file; việc đọc điểm chạy trong trình duyệt bằng quyền Google của giáo viên.
+ */
+export const handleSetClassExamSheet = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
+  const context = await teacherContext(db, body, res);
+  if (!context) return;
+  const now = nowIso();
+  if (body.examSheet === null) {
+    await context.classRef.update({ examSheet: null, updatedAt: now, updatedBy: context.uid });
+    return void res.status(200).json({ updated: true, classId: context.classId, examSheet: null });
+  }
+
+  const raw = (body.examSheet && typeof body.examSheet === 'object' ? body.examSheet : {}) as Record<string, unknown>;
+  const spreadsheetId = typeof raw.spreadsheetId === 'string' ? raw.spreadsheetId.trim() : '';
+  const spreadsheetTitle = typeof raw.spreadsheetTitle === 'string' ? raw.spreadsheetTitle.trim().slice(0, 200) : '';
+  if (!/^[A-Za-z0-9_-]{20,200}$/.test(spreadsheetId)) {
+    return void res.status(422).json({ error: 'Link file điểm không hợp lệ.' });
+  }
+
+  const examSheet = { spreadsheetId, spreadsheetTitle, linkedAt: now, linkedBy: context.uid };
+  await context.classRef.update({ examSheet, updatedAt: now, updatedBy: context.uid });
+  return void res.status(200).json({ updated: true, classId: context.classId, examSheet });
+};
+
 export const handleRenameStudent = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
   const studentId = typeof body.studentId === 'string' ? body.studentId.trim() : '';
   const context = await teacherContext(db, body, res);
@@ -1159,6 +1184,7 @@ export const handleTeacherAction = async (db: Db, body: Body, res: VercelRespons
   if (action === 'updateActivityExportBundle') { await handleUpdateActivityExportBundle(db, body, res); return true; }
   if (action === 'renameClass') { await handleRenameClass(db, body, res); return true; }
   if (action === 'setClassSheetSync') { await handleSetClassSheetSync(db, body, res); return true; }
+  if (action === 'setClassExamSheet') { await handleSetClassExamSheet(db, body, res); return true; }
   if (action === 'renameStudent') { await handleRenameStudent(db, body, res); return true; }
   if (action === 'setStudentCode') { await handleSetStudentCode(db, body, res); return true; }
   if (action === 'addStudent') { await handleAddStudent(db, body, res); return true; }

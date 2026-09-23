@@ -10,6 +10,13 @@ const EMPTY: StudentExamScores = { moet: [], tds: [] };
 
 const quote = (title: string): string => `'${title.replace(/'/g, "''")}'`;
 
+/** Kiểm file giáo viên dán vào có đúng là file điểm (có tab MOET hoặc TDS) trước khi lưu. */
+export const inspectExamSheet = async (spreadsheetId: string): Promise<{ title: string; hasMoet: boolean; hasTds: boolean }> => {
+  const info = await readSpreadsheetInfo(spreadsheetId);
+  const has = (name: string) => info.tabs.some(tab => tab.title.trim().toUpperCase() === name);
+  return { title: info.title, hasMoet: has(MOET_TAB), hasTds: has(TDS_TAB) };
+};
+
 export const fetchStudentExamScores = async (
   spreadsheetId: string,
   studentCode: string,
