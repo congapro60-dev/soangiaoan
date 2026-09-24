@@ -8,6 +8,15 @@ Mục còn hiệu lực (1.0q, 1.0r trở đi) nằm ở `HANDOFF.md`, KHÔNG l�
 
 ---
 
+## CI đỏ #540–#542 — test liveLesson cũ, đã sửa — 2026-09-14
+
+Quality Gate hỏng từ `dc1f29c` (kéo theo `161a4d7`/`aafd7c7`): **lint qua, 6 test fail**. Mã nguồn đúng, test chưa theo kịp:
+
+- `liveLessonService.test.ts` (4): `updateLiveLessonState` giờ chạy **transaction** đọc phiên + ghi `cueStartedAt`/`cueElapsedSeconds` (đồng hồ cue giữ được khi tạm dừng; rules đã có 2 trường). Mock `tx.get` cũ luôn trả "không tồn tại" → sửa mock định tuyến theo path, cập nhật kỳ vọng payload.
+- `languagePack.test.ts` (2): bản EN cố ý **giấu dấu `≤`** ở `cp-model` (HS tự chọn dấu) và HS2 đổi thành "one personal goal" → cập nhật assertion.
+- Phần sửa lấy từ bản dở của Codex trong worktree `codex-classroom-grading` (nhánh `codex/p31-classroom-ready`), **bỏ** test mới về nhiệm vụ nhóm P31 vì phụ thuộc nội dung chưa commit. Khi Codex commit, hai file test này sẽ trùng hunk — merge sạch hoặc lấy bản Codex.
+- Nghiệm thu: full Vitest **1961/1961**, `lint` 0.
+
 ## Chấm nhanh / chấm kĩ — 2026-09-07
 
 - Tách lựa chọn cho giáo viên: `quick` gọi Flash trực tiếp một pha; `thorough` chép bài từ ảnh trước rồi chấm hai pha. Lý do: giữ chất lượng đọc khi cần nhưng không để chấm cả lớp chạm trần 60 giây Vercel.

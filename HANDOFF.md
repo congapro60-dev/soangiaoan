@@ -1,9 +1,18 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-09-17
+**Cập nhật:** 2026-09-24
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
+
+## Sổ điểm lớp (GĐ3) — 2026-09-24
+
+Một document `scoreBooks/{classId}` (`src/lib/classroom/scoreBook.ts` thuần + `api/_score-book.ts`), **chỉ máy chủ đọc/ghi** — rules mặc định chặn nên KHÔNG phải phát hành lại `firestore.rules`. Vì sao 1 document/lớp: lớp ≤ vài chục HS, xa trần 1MB, đọc 1 lần ra cả bảng. Giáo viên thuộc lớp (`teacherContext`, cả đồng chủ lớp): `teacherScoreBook`, `saveHs1Column` (tạo/sửa 1 cột + điểm cả lớp, ô trống = xoá, 0–10 tối đa 2 số lẻ, sai 1 ô là từ chối cả lô), `deleteHs1Column`, `saveExamScores` (THAY toàn bộ phần thi — Sheet là nguồn gốc). Học sinh: `studentScoreBook` lấy classId/studentId từ `studentLinks`, KHÔNG nhận từ client. studentId ngoài danh sách lớp bị bỏ qua khi ghi.
+- GV: tab **Sổ điểm** (`ScoreBookPanel`) — đồng bộ đọc file điểm MỘT lần cho cả lớp (`examService.fetchClassExamScores`, khớp Mã HS, báo tên em không khớp), nối file ngay tại đây nếu lớp chưa nối; bảng MOET | TDS | hệ số 1 + TB, bấm tiêu đề cột để sửa/xoá.
+- HS: mục **Bảng điểm của em** (`StudentScoreBoard`): BTVN/đề online = `officialActivities` (đã duyệt, không chép vào sổ), thi định kì, điểm quý, hệ số 1. Lỗi tải sổ điểm không chặn nộp bài.
+- Báo cáo PH: `StudentReport` + PDF đọc thi định kì + hệ số 1 từ sổ điểm (bỏ đọc Sheet từng em); mục đổi tên "Điểm kiểm tra & thi định kì" khi có hệ số 1.
+- **Bẫy:** điểm thi HS thấy là bản CHÉP lúc GV bấm đồng bộ — sửa Sheet xong phải bấm lại. Ghi sổ là đọc-sửa-ghi cả document (không transaction): 2 GV lưu cùng lúc thì bản sau thắng.
+- Nghiệm thu: `npx vitest run src/lib/classroom/scoreBook.test.ts api/__tests__/score-book.test.ts src/lib/classroom/parentReportPrintDoc.test.ts`; toàn bộ `npm test` 180 file/2.080 test; `npm run lint`, `npm run lint:api`, `npm run build`.
 
 ## Trang quản trị (GĐ2) — 2026-09-24
 
@@ -20,7 +29,7 @@ Bản gửi phụ huynh (`StudentReport` viewMode=parent + `parentReportPrintDoc
 - **Xuất PDF như giáo án**: `exportParentReportToPdf` dựng node ẩn → `utils/pdfExport.ts::exportElementToPdf` (html2canvas-pro+jsPDF, `pdf.save()`) tải thẳng .pdf. KHÔNG `window.print()`/`window.open`.
 - **Thiết kế phiếu tiến độ IB** (mẫu The Dewey): bảng thông tin, dải tổng kết màu, đề mục đánh số in đậm, 3 biểu đồ SVG/CSS thuần (đồng hồ điểm có thang mức, xu hướng, tiến độ), kết quả từng bài kiểu dòng môn học. Style scope `#parent-report-pdf-root`, escape HTML.
 - **Mục "Năng lực Toán học"**: `buildStudentCompetencyPortfolio` (bài đã duyệt) → nhóm 4 mức khung trường → `ParentCompetencySummary`.
-- **Mục "Điểm thi định kì"** (mới): `examService.ts::fetchStudentExamScores` đọc 2 tab MOET/TDS trong **file điểm riêng của lớp** (`class.examSheet.spreadsheetId`, nối qua action `setClassExamSheet`; KHÔNG dùng `sheetSync` vì BTVN 10/12 nối file chung không có MOET/TDS — lỗi bản đầu) qua Sheets API `values:batchGet` UNFORMATTED (quyền Google GV như BTVN). `examScores.ts` khớp **Mã HS**, chỉ lấy cột "Điểm…" (MOET thang 10: KSĐN/giữa-cuối HKI-HKII; TDS Quý 1-4 + điểm chữ), BỎ cột công thức/kế hoạch nội bộ. GV bấm nút "Tải điểm thi" (tránh popup OAuth bất ngờ) → hiện mục + vào PDF. Nghiệm thu: examScores 6 + parentReportPrintDoc 7 test; smoke live PDF có điểm thi; `lint`+`build` OK. GV dán link file `26-27-<lớp>` 1 lần/lớp (app kiểm có tab MOET/TDS mới lưu). Test API `classroom-sheet-sync` +3.
+- **Mục "Điểm thi định kì"** (từ GĐ3 đọc qua Sổ điểm, xem trên; phần dưới là cách đọc file): đọc 2 tab MOET/TDS trong **file điểm riêng của lớp** (`class.examSheet.spreadsheetId`, nối qua action `setClassExamSheet`; KHÔNG dùng `sheetSync` vì BTVN 10/12 nối file chung không có MOET/TDS — lỗi bản đầu) qua Sheets API `values:batchGet` UNFORMATTED (quyền Google GV như BTVN). `examScores.ts` khớp **Mã HS**, chỉ lấy cột "Điểm…" (MOET thang 10: KSĐN/giữa-cuối HKI-HKII; TDS Quý 1-4 + điểm chữ), BỎ cột công thức/kế hoạch nội bộ. GV bấm nút "Tải điểm thi" (tránh popup OAuth bất ngờ) → hiện mục + vào PDF. Nghiệm thu: examScores 6 + parentReportPrintDoc 7 test; smoke live PDF có điểm thi; `lint`+`build` OK. GV dán link file `26-27-<lớp>` 1 lần/lớp (app kiểm có tab MOET/TDS mới lưu). Test API `classroom-sheet-sync` +3.
 
 ## Bản phụ huynh + hồ sơ: 5 lỗi làm chặt — 2026-09-18
 
@@ -80,15 +89,6 @@ Bước nền cho tính năng **hồ sơ năng lực Toán** (tích luỹ từ B
 - **Tiếp theo:** GĐ2/GĐ3 đã xong (xem mục trên); còn GĐ3b duyệt nhãn + GĐ4 xuất file Drive. Khung + folder K10/K11/K12 + template đã khảo sát, xem `tasks/todo.md`.
 - **OpenCode:** dispatch worktree của Desk đang lỗi (session tạo nhưng không gửi prompt; CLI bám nhầm server thư mục chính) — Codex đang vá ở source Desk. GĐ1 này Claude tự làm + tự review; giai đoạn sau trả lại OpenCode khi đã vá.
 - Nghiệm thu: full Vitest **1964/1964 PASS** (thêm 3 test `setStudentCode`), `lint` 0, `lint:api` 0, `build` PASS, `git diff --check` sạch.
-
-## CI đỏ #540–#542 — test liveLesson cũ, đã sửa — 2026-09-14
-
-Quality Gate hỏng từ `dc1f29c` (kéo theo `161a4d7`/`aafd7c7`): **lint qua, 6 test fail**. Mã nguồn đúng, test chưa theo kịp:
-
-- `liveLessonService.test.ts` (4): `updateLiveLessonState` giờ chạy **transaction** đọc phiên + ghi `cueStartedAt`/`cueElapsedSeconds` (đồng hồ cue giữ được khi tạm dừng; rules đã có 2 trường). Mock `tx.get` cũ luôn trả "không tồn tại" → sửa mock định tuyến theo path, cập nhật kỳ vọng payload.
-- `languagePack.test.ts` (2): bản EN cố ý **giấu dấu `≤`** ở `cp-model` (HS tự chọn dấu) và HS2 đổi thành "one personal goal" → cập nhật assertion.
-- Phần sửa lấy từ bản dở của Codex trong worktree `codex-classroom-grading` (nhánh `codex/p31-classroom-ready`), **bỏ** test mới về nhiệm vụ nhóm P31 vì phụ thuộc nội dung chưa commit. Khi Codex commit, hai file test này sẽ trùng hunk — merge sạch hoặc lấy bản Codex.
-- Nghiệm thu: full Vitest **1961/1961**, `lint` 0.
 
 ## Hạn BTVN lấy từ app + chống #ERROR! khi ghi hạn — 2026-09-14
 
