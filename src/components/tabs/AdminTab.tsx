@@ -6,6 +6,7 @@ import {
 } from '../../lib/admin/adminApi';
 import { allocateByCount, buildBillingCsv, type BillingLine } from '../../lib/admin/billing';
 import { modelLabel, PRICE_SOURCES, usdToVnd } from '../../lib/admin/aiPricing';
+import { ClassSetupPanel } from '../features/admin/ClassSetupPanel';
 
 const vnd = (n: number) => `${Math.round(n).toLocaleString('vi-VN')} đ`;
 const num = (n: number) => Math.round(n).toLocaleString('vi-VN');
@@ -257,6 +258,9 @@ export const AdminTab = () => {
               </div>
             )}
           </section>
+
+          {/* 5. Chuẩn bị lớp cho giáo viên từ folder Drive */}
+          <ClassSetupPanel overview={overview} onChanged={async () => { setOverview(await loadAdminOverview()); }} />
         </>
       )}
     </div>

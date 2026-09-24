@@ -12,3 +12,6 @@ export const isAdminEmail = (email: string | null | undefined): boolean =>
  * Trước ngày này app KHÔNG có số token theo người — chỉ phân bổ ƯỚC TÍNH từ tổng Google thực thu.
  */
 export const METERING_START_DAY = '2026-09-24';
+
+/** Folder Drive "Lộ trình Toán THPT": mỗi lớp 1 Google Sheet "26-27-<Lớp>-<Giáo viên>" (tab MOET/TDS). */
+export const CLASS_FILES_FOLDER_ID = '1D4kbvNEPJhk63G98AYhdcGCqUnaZRv0c';

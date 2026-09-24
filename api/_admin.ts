@@ -10,6 +10,8 @@ import type { VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
 import { isAdminEmail, METERING_START_DAY } from '../src/lib/admin/adminConfig.js';
 import { aggregateUsage, type OwnerMaps, type UsageRecord } from '../src/lib/admin/billing.js';
+import { classKey } from '../src/lib/admin/classSetup.js';
+import { createJoinCode } from '../src/lib/classroom/joinCode.js';
 import { AI_USAGE_COL } from './_ai-usage.js';
 
 type Db = FirebaseFirestore.Firestore;
@@ -127,6 +129,7 @@ const handleOverview = async (db: Db, res: VercelResponse) => {
       studentCount: Number(data.studentCount || 0),
       createdAt: data.createdAt ?? null,
       hasExamSheet: Boolean(data.examSheet?.spreadsheetId),
+      examSheetId: data.examSheet?.spreadsheetId ?? null,
       hasSheetSync: Boolean(data.sheetSync?.spreadsheetId),
       assignmentCount: assignmentsByClass[doc.id] ?? 0,
       submissionCount: submissionsByClass[doc.id] ?? 0,
@@ -226,15 +229,109 @@ const handleFetchVcbRate = async (res: VercelResponse) => {
   }
 };
 
+const readExamSheet = (raw: unknown): { spreadsheetId: string; spreadsheetTitle: string } | null => {
+  const value = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+  const spreadsheetId = typeof value.spreadsheetId === 'string' ? value.spreadsheetId.trim() : '';
+  if (!/^[A-Za-z0-9_-]{20,200}$/.test(spreadsheetId)) return null;
+  return { spreadsheetId, spreadsheetTitle: String(value.spreadsheetTitle || '').slice(0, 200) };
+};
+
+const uniqueJoinCode = async (db: Db): Promise<string> => {
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const code = createJoinCode();
+    const taken = await db.collection('classes').where('joinCode', '==', code).limit(1).get();
+    if (taken.size === 0) return code;
+  }
+  throw new Error('Không tạo được mã lớp không trùng. Thử lại.');
+};
+
+/**
+ * Tạo lớp MỚI cho một giáo viên (uid của giáo viên đó) kèm danh sách học sinh + file điểm.
+ * KHÔNG BAO GIỜ ghi đè: giáo viên đã có lớp trùng tên (khoá lớp) hoặc lớp đã nối file này → 409.
+ */
+const handleCreateClassForTeacher = async (db: Db, body: Body, adminUid: string, res: VercelResponse) => {
+  const teacherUid = String(body.teacherUid || '').trim();
+  const name = String(body.name || '').normalize('NFC').trim();
+  const examSheet = readExamSheet(body.examSheet);
+  const rawStudents = Array.isArray(body.students) ? body.students : [];
+  if (!teacherUid || !name || name.length > 80 || !examSheet) return res.status(422).json({ error: 'Thiếu giáo viên, tên lớp hoặc file điểm.' });
+  if (rawStudents.length === 0 || rawStudents.length > 80) return res.status(422).json({ error: 'Danh sách học sinh phải có 1–80 em.' });
+  const students: Array<{ code: string; name: string }> = [];
+  const codes = new Set<string>();
+  for (const raw of rawStudents) {
+    const item = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+    const code = String(item.code || '').trim().toUpperCase();
+    const studentName = String(item.name || '').normalize('NFC').trim();
+    if (!/^[A-Z0-9_-]{2,40}$/.test(code) || !studentName || studentName.length > 100 || codes.has(code)) {
+      return res.status(422).json({ error: `Học sinh không hợp lệ hoặc trùng mã: ${code || '(trống)'}.` });
+    }
+    codes.add(code);
+    students.push({ code, name: studentName });
+  }
+
+  let teacher;
+  try { teacher = await getAuth().getUser(teacherUid); } catch { teacher = null; }
+  if (!teacher || teacher.providerData.length === 0) return res.status(404).json({ error: 'Không tìm thấy tài khoản giáo viên này.' });
+
+  const owned = await db.collection('classes').where('teacherId', '==', teacherUid).get();
+  const key = classKey(name);
+  const clash = owned.docs.find(doc => classKey(String(doc.get('name') ?? '')) === key || doc.get('examSheet.spreadsheetId') === examSheet.spreadsheetId);
+  if (clash) return res.status(409).json({ error: `Giáo viên đã có lớp "${clash.get('name')}" — không tạo trùng. Hãy nối file điểm vào lớp đó.`, existingClassId: clash.id });
+
+  const now = nowIsoAdmin();
+  const classId = `lop_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+  const grade = /\d+/.exec(name)?.[0] ?? '';
+  const classRef = db.collection('classes').doc(classId);
+  // Ghi lớp TRƯỚC rồi mới ghi học sinh (giống luồng chuyển lớp cũ) — nếu học sinh hỏng giữa chừng,
+  // gọi lại sẽ bị chặn trùng; khi đó thêm học sinh bằng giao diện lớp như thường.
+  await classRef.set({
+    id: classId, teacherId: teacherUid, name, track: String(body.track || '').slice(0, 80), grade,
+    joinCode: await uniqueJoinCode(db), studentCount: students.length,
+    examSheet: { ...examSheet, linkedAt: now, linkedBy: adminUid },
+    createdAt: now, updatedAt: now, createdBy: adminUid,
+  });
+  const batch = db.batch();
+  for (const student of students) {
+    const studentId = `hs_${student.code.toLowerCase()}`;
+    batch.set(classRef.collection('students').doc(studentId), {
+      id: studentId, classId, teacherId: teacherUid, name: student.name, code: student.code,
+      status: 'active', progress: 0, createdAt: now,
+    });
+  }
+  await batch.commit();
+  return res.status(200).json({ created: true, classId, studentCount: students.length });
+};
+
+/** Nối file điểm vào lớp ĐÃ CÓ — chỉ thêm liên kết, không đụng học sinh/bài/tên lớp. */
+const handleLinkExamSheet = async (db: Db, body: Body, adminUid: string, res: VercelResponse) => {
+  const classId = String(body.classId || '').trim();
+  const examSheet = readExamSheet(body.examSheet);
+  if (!classId || !examSheet) return res.status(422).json({ error: 'Thiếu lớp hoặc file điểm.' });
+  const ref = db.collection('classes').doc(classId);
+  const snap = await ref.get();
+  if (!snap.exists) return res.status(404).json({ error: 'Không tìm thấy lớp.' });
+  const current = snap.get('examSheet.spreadsheetId');
+  if (current === examSheet.spreadsheetId) return res.status(200).json({ linked: true, unchanged: true });
+  if (current) return res.status(409).json({ error: 'Lớp đã nối một file điểm khác — giáo viên tự đổi trong báo cáo lớp.' });
+  const now = nowIsoAdmin();
+  await ref.update({ examSheet: { ...examSheet, linkedAt: now, linkedBy: adminUid }, updatedAt: now });
+  return res.status(200).json({ linked: true });
+};
+
+const nowIsoAdmin = () => new Date().toISOString();
+
 /** Trả true nếu đã xử lý (action của trang quản trị). */
 export const handleAdminAction = async (db: Db, body: Body, res: VercelResponse): Promise<boolean> => {
   const action = String(body.action || '');
   if (!action.startsWith('admin')) return false;
-  if (!await requireAdmin(body, res)) return true;
+  const admin = await requireAdmin(body, res);
+  if (!admin) return true;
   if (action === 'adminOverview') { await handleOverview(db, res); return true; }
   if (action === 'adminUsage') { await handleUsage(db, body, res); return true; }
   if (action === 'adminSaveSettings') { await handleSaveSettings(db, body, res); return true; }
   if (action === 'adminFetchVcbRate') { await handleFetchVcbRate(res); return true; }
+  if (action === 'adminCreateClassForTeacher') { await handleCreateClassForTeacher(db, body, admin.uid, res); return true; }
+  if (action === 'adminLinkExamSheet') { await handleLinkExamSheet(db, body, admin.uid, res); return true; }
   res.status(400).json({ error: `Hành động quản trị không hợp lệ: ${action}` });
   return true;
 };

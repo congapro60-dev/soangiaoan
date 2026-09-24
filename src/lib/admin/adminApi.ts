@@ -21,6 +21,7 @@ export interface AdminClass {
   studentCount: number;
   createdAt: string | null;
   hasExamSheet: boolean;
+  examSheetId: string | null;
   hasSheetSync: boolean;
   assignmentCount: number;
   submissionCount: number;
@@ -74,6 +75,16 @@ export const saveAdminSettings = (settings: AdminBillingSettings) =>
   callAdmin<{ settings: AdminBillingSettings }>({ action: 'adminSaveSettings', ...settings });
 
 export const fetchVcbUsdRate = () => callAdmin<{ sell: number; dateTime: string }>({ action: 'adminFetchVcbRate' });
+
+export const createClassForTeacher = (input: {
+  teacherUid: string;
+  name: string;
+  students: Array<{ code: string; name: string }>;
+  examSheet: { spreadsheetId: string; spreadsheetTitle: string };
+}) => callAdmin<{ created: boolean; classId: string; studentCount: number }>({ action: 'adminCreateClassForTeacher', ...input });
+
+export const linkExamSheetToClass = (classId: string, examSheet: { spreadsheetId: string; spreadsheetTitle: string }) =>
+  callAdmin<{ linked: boolean; unchanged?: boolean }>({ action: 'adminLinkExamSheet', classId, examSheet });
 
 /** Ngày hôm nay theo giờ Việt Nam (YYYY-MM-DD). */
 export const todayVn = (): string =>

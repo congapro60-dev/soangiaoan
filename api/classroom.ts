@@ -1298,6 +1298,9 @@ const handleRevokeStudentAccess = async (db: FirebaseFirestore.Firestore, body: 
   // Firestore delete trên document không tồn tại vẫn thành công — khỏi kiểm exists từng cái.
   await classSnap.ref.collection('students').doc(studentId).delete();
   await classSnap.ref.collection('studentSecrets').doc(studentId).delete();
+  // Đếm LẠI sĩ số từ danh sách thật (trước đây xoá không trừ, sĩ số lệch dần — vd 12LoTrinh1 hiện 9, thật 8).
+  const remaining = await classSnap.ref.collection('students').get();
+  await classSnap.ref.update({ studentCount: remaining.size, updatedAt: new Date().toISOString() });
 
   const links = await db.collection('studentLinks').where('studentId', '==', studentId).get();
   let batch = db.batch();
