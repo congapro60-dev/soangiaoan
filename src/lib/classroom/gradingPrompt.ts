@@ -619,6 +619,8 @@ Bài đầu phải làm được ngay sau khi đọc gợi ý. Mỗi câu làm �
 
 Lời giải viết từng bước, nói rõ chỗ học sinh hay nhầm. HINT chỉ gợi ý phương pháp;
 tuyệt đối không ghi đáp án cuối, số kết quả cuối, hay câu kết luận có thể dùng để suy ra ngay đáp án.
+Với câu nhiều ý (a, b, c), HINT cũng KHÔNG được viết sẵn kết quả của bất kỳ ý nào (phương trình, bất phương trình,
+toạ độ, biểu thức cần lập) — chỉ nói em cần xét đại lượng nào, dùng công thức/định lí nào.
 Không dùng lời khen sáo rỗng, không nhắc tới việc em từng làm sai trong đề/gợi ý/lời giải.
 "basis" là một câu ngắn trung tính cho học sinh đọc: kỹ năng câu này luyện + nguồn, vd
 "Luyện: đổi dấu khi chuyển vế (từ BTVN Đại số 18/09/2026 · Câu 2)". Không chép nguyên đáp án vào basis.
