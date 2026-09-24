@@ -410,6 +410,7 @@ describe('bài bổ trợ', () => {
     expect(p).toContain('1 câu mức "van_dung_cao"');
     expect(p).toContain('trắc nghiệm 4 lựa chọn');
     expect(p).toContain('HINT cũng KHÔNG được viết sẵn kết quả của bất kỳ ý nào');
+    expect(p).toContain('MỖI\nphương án một đoạn riêng: cách nhau bằng một dòng trống "\\n\\n"');
     expect(p).toContain('$\\frac{1}{2}$');
     expect(p).toContain('viết "\\\\frac" chứ không viết "\\frac"');
   });

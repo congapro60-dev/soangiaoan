@@ -615,7 +615,8 @@ ${topics.map(t => `- ${t}`).join('\n')}
 ${avoidQuestions.map(q => `- ${q}`).join('\n')}
 ` : ''}
 Ra ĐÚNG ${count} bài, xếp từ dễ đến khó: ${levelPlan(count)}.
-Đa dạng dạng bài trong cùng một đề: tính toán trực tiếp, trắc nghiệm 4 lựa chọn (ghi A. B. C. D. ngay trong đề),
+Đa dạng dạng bài trong cùng một đề: tính toán trực tiếp, trắc nghiệm 4 lựa chọn (ghi A. B. C. D. ngay trong đề, MỖI
+phương án một đoạn riêng: cách nhau bằng một dòng trống "\\n\\n"; ý a) b) c) và các bước trong lời giải cũng vậy),
 đúng/sai kèm giải thích, tìm và sửa chỗ sai trong một lời giải có sẵn, bài có ngữ cảnh thực tế. Không lặp một khuôn.
 Bài đầu phải làm được ngay sau khi đọc gợi ý. Mỗi câu làm được trên điện thoại (không cần vẽ hình phức tạp).
 
