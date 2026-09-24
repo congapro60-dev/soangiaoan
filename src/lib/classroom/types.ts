@@ -483,6 +483,8 @@ export interface PracticeQuestionPublic {
   level?: string;
   /** Căn cứ ra câu này (kỹ năng + nguồn lỗi), cho học sinh đọc. */
   basis?: string;
+  /** Gợi ý giàn giáo từng bước, học sinh mở dần. */
+  steps?: string[];
   skillIds?: string[];
 }
 

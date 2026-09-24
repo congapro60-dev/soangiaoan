@@ -71,6 +71,7 @@ export interface PracticeQuestion {
   hint: string;
   level?: string;
   basis?: string;
+  steps?: string[];
 }
 
 export interface PracticeAttemptQuestionResult {

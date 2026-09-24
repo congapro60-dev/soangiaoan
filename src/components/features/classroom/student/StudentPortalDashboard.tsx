@@ -10,6 +10,7 @@ import { StudentAssignmentCard } from './StudentAssignmentCard';
 import { StudentNotificationBell } from './StudentNotificationBell';
 import { StudentScoreBoard } from './StudentScoreBoard';
 import { NhanXetMarkdown } from '../NhanXetMarkdown';
+import { PracticeScaffold } from './PracticeScaffold';
 
 const PRACTICE_LEVEL_LABEL: Record<string, { label: string; className: string }> = {
   nhan_biet: { label: 'Nhận biết · Thông hiểu', className: 'bg-emerald-50 text-emerald-700' },
@@ -606,6 +607,7 @@ export const StudentPortalDashboard = ({
                             <NhanXetMarkdown>{question.hint}</NhanXetMarkdown>
                           </div>
                         )}
+                        {question.steps && question.steps.length > 0 && <PracticeScaffold key={`${practiceSet?.setId}-${question.id}`} steps={question.steps} />}
                         <label className="mt-3 block">
                           <span className="mb-1.5 block text-xs font-black uppercase tracking-wide text-slate-400">Câu trả lời của em</span>
                           <textarea

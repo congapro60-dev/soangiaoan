@@ -873,6 +873,7 @@ const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<stri
         hint: String(question.hint || ''),
         ...(isPracticeLevel(question.level) ? { level: question.level } : {}),
         ...(question.basis ? { basis: String(question.basis) } : {}),
+        ...(Array.isArray(question.steps) && question.steps.length > 0 ? { steps: question.steps.map(String) } : {}),
       }))
       .filter(question => question.id && question.question);
     const storedKeyQuestions = Array.isArray(key.questions) ? key.questions : [];
@@ -958,7 +959,7 @@ const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<stri
       [],
       getGradingApiKey(),
       GRADING_MODEL,
-      { maxOutputTokens: 12288, jsonMode: true },
+      { maxOutputTokens: 16384, jsonMode: true },
     );
   } catch (error) {
     console.error('[grade-homework] practice generation failed', error);

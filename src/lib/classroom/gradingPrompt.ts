@@ -574,6 +574,8 @@ export interface PracticeQuestion {
   level?: PracticeLevel;
   /** Căn cứ ra câu này, cho học sinh đọc: kỹ năng được luyện + nguồn (bài BTVN / lượt luyện trước). */
   basis?: string;
+  /** Gợi ý giàn giáo từng bước — học sinh mở dần khi chưa biết làm; không bước nào chứa kết quả. */
+  steps?: string[];
 }
 
 export interface PracticePromptInput {
@@ -622,6 +624,9 @@ tuyệt đối không ghi đáp án cuối, số kết quả cuối, hay câu k�
 Với câu nhiều ý (a, b, c), HINT cũng KHÔNG được viết sẵn kết quả của bất kỳ ý nào (phương trình, bất phương trình,
 toạ độ, biểu thức cần lập) — chỉ nói em cần xét đại lượng nào, dùng công thức/định lí nào.
 Không dùng lời khen sáo rỗng, không nhắc tới việc em từng làm sai trong đề/gợi ý/lời giải.
+"steps" là GIÀN GIÁO cho em chưa biết làm: 3–4 bước nối tiếp, mỗi bước là một câu hỏi dẫn dắt hoặc một việc cụ thể
+cần làm (vd "Viết lại điều kiện để mẫu khác 0", "Thay toạ độ O(0;0) vào vế trái, so sánh với 4"). Bước sau đi sâu hơn bước
+trước; bước cuối dừng NGAY TRƯỚC kết quả — không bước nào được ghi đáp án cuối hay kết quả của một ý.
 "basis" là một câu ngắn trung tính cho học sinh đọc: kỹ năng câu này luyện + nguồn, vd
 "Luyện: đổi dấu khi chuyển vế (từ BTVN Đại số 18/09/2026 · Câu 2)". Không chép nguyên đáp án vào basis.
 
@@ -629,7 +634,7 @@ CÔNG THỨC: mọi biểu thức toán viết LaTeX trong $...$ (vd $\\frac{1}{
 Trong chuỗi JSON PHẢI nhân đôi mọi dấu gạch chéo ngược: viết "\\\\frac" chứ không viết "\\frac".
 
 CHỈ TRẢ VỀ JSON THUẦN:
-{"questions":[{"id":"q1","level":"nhan_biet","basis":"...","question":"...","hint":"...","solution":"..."}]}`;
+{"questions":[{"id":"q1","level":"nhan_biet","basis":"...","question":"...","hint":"...","steps":["...","...","..."],"solution":"..."}]}`;
 };
 
 export const parsePracticeQuestions = (raw: string): PracticeQuestion[] => {
@@ -645,6 +650,9 @@ export const parsePracticeQuestions = (raw: string): PracticeQuestion[] => {
       const q = item as Record<string, unknown>;
       const level = PRACTICE_LEVELS.find(value => value === String(q.level || '').trim());
       const basis = String(q.basis || '').trim().slice(0, 300);
+      const steps = Array.isArray(q.steps)
+        ? q.steps.map(step => String(step ?? '').trim().slice(0, 500)).filter(Boolean).slice(0, 5)
+        : [];
       return {
         id: String(q.id || `q${index + 1}`).trim(),
         question: String(q.question || '').trim(),
@@ -652,6 +660,7 @@ export const parsePracticeQuestions = (raw: string): PracticeQuestion[] => {
         solution: String(q.solution || '').trim(),
         ...(level ? { level } : {}),
         ...(basis ? { basis } : {}),
+        ...(steps.length > 0 ? { steps } : {}),
       };
     })
     .filter(q => q.id && q.question && q.solution);
@@ -696,6 +705,7 @@ export const toPublicPracticeQuestions = (questions: PracticeQuestion[]): Practi
       hint: q.hint,
       ...(q.level ? { level: q.level } : {}),
       ...(q.basis ? { basis: q.basis } : {}),
+      ...(q.steps && q.steps.length > 0 ? { steps: q.steps } : {}),
     }))
     .filter(q => q.id && q.question);
 
@@ -703,7 +713,8 @@ export const toPublicPracticeQuestions = (questions: PracticeQuestion[]): Practi
     if (!publicQuestions[index]) continue;
     if (containsPracticeAnswer(question.question, question.solution)
       || containsPracticeAnswer(question.hint, question.solution)
-      || containsPracticeAnswer(question.basis ?? '', question.solution)) {
+      || containsPracticeAnswer(question.basis ?? '', question.solution)
+      || (question.steps ?? []).some(step => containsPracticeAnswer(step, question.solution))) {
       throw new Error('AI tạo câu luyện có nguy cơ lộ đáp án; bài luyện chưa được phát hành.');
     }
   }

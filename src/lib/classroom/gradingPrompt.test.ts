@@ -439,6 +439,17 @@ describe('bài bổ trợ', () => {
     expect(q).toMatchObject({ level: 'van_dung', basis: 'Luyện: phân số' });
   });
 
+  it('giàn giáo từng bước: prompt đòi 3–4 bước dừng trước kết quả; parse giữ bước, bỏ bước rỗng; bước lộ đáp án thì chặn', () => {
+    expect(practiceInput()).toContain('"steps" là GIÀN GIÁO');
+    const [q] = parsePracticeQuestions(JSON.stringify({ questions: [{
+      question: 'Giải $2x - 3 = 5$', hint: 'Chuyển vế', solution: 'x = 4',
+      steps: ['Chuyển $-3$ sang vế phải, nhớ đổi dấu', '', 'Chia hai vế cho hệ số của $x$'],
+    }] }));
+    expect(q.steps).toEqual(['Chuyển $-3$ sang vế phải, nhớ đổi dấu', 'Chia hai vế cho hệ số của $x$']);
+    expect(toPublicPracticeQuestions([q])[0].steps).toEqual(q.steps);
+    expect(() => toPublicPracticeQuestions([{ ...q, steps: ['Được $2x = 8$', 'Vậy x = 4'] }])).toThrow(/lộ đáp án/);
+  });
+
   it('mức độ lạ bị bỏ, căn cứ lộ đáp án thì không phát hành', () => {
     const [q] = parsePracticeQuestions(JSON.stringify({ questions: [{ level: 'rat_kho', question: 'Tính 2+3', hint: 'Cộng', solution: '5' }] }));
     expect(q.level).toBeUndefined();
