@@ -15,7 +15,8 @@ import {
   Eye,
   Globe,
   WandSparkles,
-  Users
+  Users,
+  ShieldCheck
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -27,6 +28,8 @@ interface SidebarProps {
   setIsSidebarOpen: (val: boolean) => void;
   setIsSettingsOpen: (val: boolean) => void;
   handleLogout: () => void;
+  /** Tài khoản chủ dự án — hiện thêm mục Quản trị (quyền thật kiểm ở máy chủ). */
+  isAdmin?: boolean;
 }
 
 export const Sidebar = ({
@@ -36,7 +39,8 @@ export const Sidebar = ({
   isSidebarOpen,
   setIsSidebarOpen,
   setIsSettingsOpen,
-  handleLogout
+  handleLogout,
+  isAdmin = false
 }: SidebarProps) => {
   const menuItems = [
     { id: 'dashboard', label: 'Tổng quan', icon: LayoutDashboard },
@@ -54,6 +58,7 @@ export const Sidebar = ({
     { id: 'library', label: 'Thư viện', icon: FileText },
     { id: 'templates', label: 'Mẫu giáo án', icon: Layout },
     { id: 'chat', label: 'AI Tutor', icon: MessageSquare },
+    ...(isAdmin ? [{ id: 'admin', label: 'Quản trị', icon: ShieldCheck }] : []),
   ];
 
   return (

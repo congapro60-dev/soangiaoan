@@ -11,6 +11,7 @@ import { useLessonPlanActions } from './hooks/useLessonPlanActions';
 import { usePpctQueue } from './hooks/usePpctQueue';
 import { PpctBulkPanel } from './components/features/creator/PpctBulkPanel';
 import { useSavedExams, estimateQuestionCount } from './hooks/useSavedExams';
+import { isAdminEmail } from './lib/admin/adminConfig';
 
 // Components
 import { Sidebar } from './components/layout/Sidebar';
@@ -37,6 +38,7 @@ const DuGioPage = lazy(() => import('./pages/DuGioPage').then(m => ({ default: m
 const AIToolsTab = lazy(() => import('./components/tabs/AIToolsTab').then(m => ({ default: m.AIToolsTab })));
 const ClassesTab = lazy(() => import('./components/tabs/ClassesTab').then(m => ({ default: m.ClassesTab })));
 const LessonUpgradeTab = lazy(() => import('./components/tabs/LessonUpgradeTab').then(m => ({ default: m.LessonUpgradeTab })));
+const AdminTab = lazy(() => import('./components/tabs/AdminTab').then(m => ({ default: m.AdminTab })));
 
 // Utils
 import { processUploadedFile } from './utils/fileUtils';
@@ -57,7 +59,9 @@ export default function App() {
     saveGradingSession, deleteGradingSession, deleteGradingResult,
   } = useAppState(user, showToast);
   
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'classes' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading' | 'exams' | 'adaptiveLessons' | 'aiTools' | 'lessonUpgrade' | 'duGio'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'classes' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading' | 'exams' | 'adaptiveLessons' | 'aiTools' | 'lessonUpgrade' | 'duGio' | 'admin'>('dashboard');
+  // Chỉ để hiện mục Quản trị; quyền thật kiểm lại ở máy chủ (email Google đã xác minh).
+  const isAdmin = Boolean(user && !user.isAnonymous && user.emailVerified && isAdminEmail(user.email));
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth >= 768);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [libraryTab, setLibraryTab] = useState<'personal' | 'community'>('personal');
@@ -350,6 +354,7 @@ export default function App() {
         }}
         isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}
         setIsSettingsOpen={setIsSettingsOpen} handleLogout={handleLogout}
+        isAdmin={isAdmin}
       />
 
       <main className="flex-1 flex flex-col overflow-hidden relative">
@@ -534,6 +539,7 @@ export default function App() {
             )}
 
             {activeTab === 'chat' && <ChatTab {...chat} isLoading={isLoading} />}
+            {activeTab === 'admin' && isAdmin && <AdminTab />}
           </AnimatePresence>
           </Suspense>
         </div>

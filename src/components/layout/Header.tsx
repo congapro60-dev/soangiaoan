@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { Search, History, BookOpen, FileText, GraduationCap, Menu } from 'lucide-react';
 import { AppData } from '../../types';
 
-type ActiveTab = 'dashboard' | 'classes' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading' | 'exams' | 'adaptiveLessons' | 'aiTools';
+type ActiveTab = 'dashboard' | 'classes' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading' | 'exams' | 'adaptiveLessons' | 'aiTools' | 'admin';
 
 interface HeaderProps {
   activeTab: string;
@@ -94,6 +94,7 @@ export const Header = ({ activeTab, data, setIsSettingsOpen, setActiveTab, onMen
       case 'exams': return 'Thi online';
       case 'adaptiveLessons': return 'Quản lý bài học';
       case 'aiTools': return 'Công cụ AI';
+      case 'admin': return 'Quản trị hệ thống';
       default: return 'SmartPlan AI';
     }
   };

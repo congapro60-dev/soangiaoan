@@ -3,6 +3,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
 import { getAdminDb, getAdminStorage } from './_exam-core.js';
 import { createAiUsageContext, runWithAiUsage } from './_ai-usage.js';
+import { handleAdminAction } from './_admin.js';
 import { FieldValue } from 'firebase-admin/firestore';
 import { uniqueStoragePaths } from './_classroom-storage.js';
 import { removeEvidence } from '../src/lib/classroom/profileMerge.js';
@@ -1424,6 +1425,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 async function dispatchClassroom(res: VercelResponse, body: ReturnType<typeof readBody>, action: string) {
   try {
     const db = getAdminDb();
+    if (await handleAdminAction(db, body, res)) return;
     if (await handleTeacherAction(db, body, res)) return;
     if (await handleClassroomOnlineAction(db, body, res)) return;
     if (action === 'roster') return await handleRoster(db, body, res);
