@@ -140,6 +140,49 @@ describe('practice set/attempt privacy and persistence', () => {
     ]);
   });
 
+  it('đề mới căn cứ lỗi BTVN + câu sai lượt luyện trước, cấm lặp đề cũ; không lấy dữ liệu lớp khác', async () => {
+    const db = seedStudentDb();
+    db.state.assignments = { 'bai-1': { title: 'BTVN Đại số' } };
+    db.state.submissions = {
+      'homework-1': {
+        studentId: 'student-1', classId: 'class-1', teacherId: 'teacher-1', assignmentId: 'bai-1', status: 'graded', createdAt: '2026-09-18T02:00:00.000Z',
+        grade: { questionResults: [{ questionNumber: 'Câu 2', status: 'incorrect', errorType: 'Sai dấu', explanation: 'Chuyển vế quên đổi dấu', correction: 'Đổi dấu', nextPractice: '' }] },
+      },
+      'lop-khac': {
+        studentId: 'student-1', classId: 'class-cu', teacherId: 'teacher-9', status: 'graded', createdAt: '2026-09-19T02:00:00.000Z',
+        grade: { questionResults: [{ questionNumber: 'Câu 9', status: 'incorrect', errorType: 'LỖI LỚP CŨ', explanation: 'x' }] },
+      },
+    };
+    db.state.practiceSets = {
+      'set-old': { studentId: 'student-1', classId: 'class-1', teacherId: 'teacher-1', createdAt: '2026-09-20T00:00:00.000Z', questions: [{ id: 'q1', question: 'Giải $2x-3=5$', hint: '' }] },
+    };
+    db.state.practiceKeys = {
+      'set-old': { setId: 'set-old', questions: [{ id: 'q1', question: 'Giải $2x-3=5$', hint: '', expectedAnswer: 'x = 4', maxScore: 1 }] },
+    };
+    db.state.practiceAttempts = {
+      'attempt-old': {
+        setId: 'set-old', studentId: 'student-1', classId: 'class-1', teacherId: 'teacher-1', status: 'graded', updatedAt: '2026-09-20T01:00:00.000Z',
+        questionResults: [{ id: 'q1', score: 0, maxScore: 1, feedback: 'Quên chia cả hai vế' }],
+      },
+    };
+    initializeAdmin.mockReturnValue(db);
+    const { response, state } = makeResponse();
+
+    await handler(makeRequest({ action: 'practice', idToken: 'token-dung' }), response);
+
+    expect(state.statusCode).toBe(200);
+    const fetchMock = vi.mocked(fetch);
+    const prompt = JSON.parse(String(fetchMock.mock.calls.at(-1)?.[1]?.body)).contents[0].parts[0].text as string;
+    expect(prompt).toContain('Nguồn: BTVN Đại số 18/9/2026 · Câu 2');
+    expect(prompt).toContain('Vì sao sai: Chuyển vế quên đổi dấu');
+    expect(prompt).toContain('Nguồn: Lượt luyện trước · Câu 1');
+    expect(prompt).toContain('Quên chia cả hai vế');
+    expect(prompt).toContain('TUYỆT ĐỐI KHÔNG lặp lại');
+    expect(prompt).toContain('- Giải $2x-3=5$');
+    expect(prompt).not.toContain('LỖI LỚP CŨ');
+    expect(prompt).toContain('ĐÚNG 6 bài');
+  });
+
   it('submitPractice ghi attempt graded và trả kết quả có evidenceType practice', async () => {
     const db = seedStudentDb();
     db.state.practiceSets = {

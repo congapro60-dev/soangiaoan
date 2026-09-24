@@ -9,6 +9,14 @@ import { buildStudentSkillCards } from '../../../../lib/classroom/skillViewModel
 import { StudentAssignmentCard } from './StudentAssignmentCard';
 import { StudentNotificationBell } from './StudentNotificationBell';
 import { StudentScoreBoard } from './StudentScoreBoard';
+import { NhanXetMarkdown } from '../NhanXetMarkdown';
+import { PracticeScaffold } from './PracticeScaffold';
+
+const PRACTICE_LEVEL_LABEL: Record<string, { label: string; className: string }> = {
+  nhan_biet: { label: 'Nhận biết · Thông hiểu', className: 'bg-emerald-50 text-emerald-700' },
+  van_dung: { label: 'Vận dụng', className: 'bg-blue-50 text-blue-700' },
+  van_dung_cao: { label: 'Vận dụng cao', className: 'bg-violet-50 text-violet-700' },
+};
 import type { StudentScoreView } from '../../../../lib/classroom/scoreBook';
 import type { StudentFeedItem } from '../../../../lib/classroom/studentNotifications';
 
@@ -570,7 +578,7 @@ export const StudentPortalDashboard = ({
           <div className="mt-3 rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
             {practiceQuestions.length === 0 ? (
               <>
-                <p className="text-sm font-medium leading-6 text-slate-500">Máy sẽ ra bài luyện bám đúng chủ đề em còn vướng, dựa trên các bài đã chấm.</p>
+                <p className="text-sm font-medium leading-6 text-slate-500">Máy ra 6 câu từ dễ đến khó, nhắm đúng những lỗi em mắc trong các bài BTVN đã chấm. Làm xong bấm "Tạo đề tiếp" để nhận đề khác, không trùng đề cũ.</p>
                 {practiceError && <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-bold text-red-700" role="alert">{practiceError}</p>}
                 <button type="button" onClick={onLoadPractice} disabled={loadingPractice} className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-black text-white shadow-md shadow-indigo-200 hover:bg-indigo-700 disabled:opacity-60">
                   {loadingPractice && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -585,8 +593,21 @@ export const StudentPortalDashboard = ({
                     const result = practiceResults.get(question.id);
                     return (
                       <li key={question.id} className="rounded-2xl bg-slate-50 p-4">
-                        <p className="break-words font-bold text-slate-900">Câu {index + 1}. {question.question}</p>
-                        {question.hint && <p className="mt-1 break-words text-sm font-semibold text-slate-500">Gợi ý: {question.hint}</p>}
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-sm font-black text-slate-900">Câu {index + 1}</span>
+                          {question.level && PRACTICE_LEVEL_LABEL[question.level] && (
+                            <span className={`rounded-full px-2 py-0.5 text-[11px] font-black ${PRACTICE_LEVEL_LABEL[question.level].className}`}>{PRACTICE_LEVEL_LABEL[question.level].label}</span>
+                          )}
+                        </div>
+                        {question.basis && <p className="mt-1 break-words text-xs font-semibold text-indigo-600">{question.basis}</p>}
+                        <div className="mt-2 break-words font-semibold text-slate-900"><NhanXetMarkdown>{question.question}</NhanXetMarkdown></div>
+                        {question.hint && (
+                          <div className="mt-2 break-words rounded-xl bg-white/70 px-3 py-2 text-slate-500">
+                            <span className="text-xs font-black uppercase tracking-wide text-slate-400">Gợi ý</span>
+                            <NhanXetMarkdown>{question.hint}</NhanXetMarkdown>
+                          </div>
+                        )}
+                        {question.steps && question.steps.length > 0 && <PracticeScaffold key={`${practiceSet?.setId}-${question.id}`} steps={question.steps} />}
                         <label className="mt-3 block">
                           <span className="mb-1.5 block text-xs font-black uppercase tracking-wide text-slate-400">Câu trả lời của em</span>
                           <textarea
@@ -600,8 +621,14 @@ export const StudentPortalDashboard = ({
                         </label>
                         {practiceAttempt?.status === 'graded' && result && (
                           <div className="mt-3 space-y-2 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-3 text-sm">
-                            <p className="font-black text-emerald-800">{result.score}/{result.maxScore} điểm · {result.feedback}</p>
-                            {result.expectedAnswer && <p className="whitespace-pre-line break-words font-semibold leading-6 text-slate-700"><span className="font-black text-indigo-700">Đáp án tham khảo:</span> {result.expectedAnswer}</p>}
+                            <p className="font-black text-emerald-800">{result.score}/{result.maxScore} điểm</p>
+                            <NhanXetMarkdown tone="sang">{result.feedback}</NhanXetMarkdown>
+                            {result.expectedAnswer && (
+                              <div className="break-words">
+                                <p className="font-black text-indigo-700">Đáp án tham khảo</p>
+                                <NhanXetMarkdown>{result.expectedAnswer}</NhanXetMarkdown>
+                              </div>
+                            )}
                           </div>
                         )}
                       </li>
@@ -616,7 +643,7 @@ export const StudentPortalDashboard = ({
                   {submittingPractice && <Loader2 className="h-4 w-4 animate-spin" />}
                   {submittingPractice ? 'Đang chấm...' : practiceAttempt?.status === 'error' ? 'Thử chấm lại' : 'Nộp bài luyện'}
                 </button>
-                {practiceAttempt?.status === 'graded' && <button type="button" onClick={onLoadPractice} disabled={loadingPractice} className="ml-2 mt-4 inline-flex min-h-11 items-center gap-2 rounded-2xl border border-indigo-200 px-4 py-3 text-sm font-black text-indigo-700 hover:bg-indigo-50 disabled:opacity-60">Luyện lượt mới</button>}
+                {practiceAttempt?.status === 'graded' && <button type="button" onClick={onLoadPractice} disabled={loadingPractice} className="ml-2 mt-4 inline-flex min-h-11 items-center gap-2 rounded-2xl border border-indigo-200 px-4 py-3 text-sm font-black text-indigo-700 hover:bg-indigo-50 disabled:opacity-60">{loadingPractice && <Loader2 className="h-4 w-4 animate-spin" />}{loadingPractice ? 'Đang soạn đề mới...' : 'Tạo đề tiếp'}</button>}
               </>
             )}
           </div>

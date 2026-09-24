@@ -389,8 +389,12 @@ describe('parseHomeworkGradeForCommit — strict homework contract', () => {
 });
 
 describe('bài bổ trợ', () => {
+  const practiceInput = (over: Partial<Parameters<typeof buildPracticePrompt>[0]> = {}) => buildPracticePrompt({
+    grade: '10', topics: [], mistakes: [], avoidQuestions: [], ...over,
+  });
+
   it('prompt bám đúng chủ đề yếu và cấm lan sang chủ đề khác', () => {
-    const p = buildPracticePrompt(['phương trình đường thẳng', 'dấu toạ độ'], '10', 3);
+    const p = practiceInput({ topics: ['phương trình đường thẳng', 'dấu toạ độ'], count: 3 });
 
     expect(p).toContain('phương trình đường thẳng');
     expect(p).toContain('dấu toạ độ');
@@ -398,8 +402,59 @@ describe('bài bổ trợ', () => {
     expect(p).toContain('ĐÚNG 3 bài');
   });
 
+  it('mặc định 6 câu chia 3 mức, đa dạng dạng bài, bắt LaTeX và nhân đôi dấu gạch chéo', () => {
+    const p = practiceInput({ topics: ['đạo hàm'] });
+    expect(p).toContain('ĐÚNG 6 bài');
+    expect(p).toContain('2 câu mức "nhan_biet"');
+    expect(p).toContain('3 câu mức "van_dung"');
+    expect(p).toContain('1 câu mức "van_dung_cao"');
+    expect(p).toContain('trắc nghiệm 4 lựa chọn');
+    expect(p).toContain('HINT cũng KHÔNG được viết sẵn kết quả của bất kỳ ý nào');
+    expect(p).toContain('MỖI\nphương án một đoạn riêng: cách nhau bằng một dòng trống "\\n\\n"');
+    expect(p).toContain('$\\frac{1}{2}$');
+    expect(p).toContain('viết "\\\\frac" chứ không viết "\\frac"');
+  });
+
+  it('căn cứ chính là lỗi cụ thể; đề trước bị cấm lặp', () => {
+    const p = practiceInput({
+      mistakes: [{ source: 'BTVN Đại số 18/09/2026 · Câu 2', errorType: 'Sai dấu', explanation: 'Chuyển vế quên đổi dấu', correction: 'Đổi dấu khi chuyển vế', nextPractice: '' }],
+      avoidQuestions: ['Giải $2x - 3 = 5$'],
+    });
+    expect(p).toContain('LỖI CỤ THỂ EM ĐÃ MẮC');
+    expect(p).toContain('[L1] Nguồn: BTVN Đại số 18/09/2026 · Câu 2');
+    expect(p).toContain('Vì sao sai: Chuyển vế quên đổi dấu');
+    expect(p).toContain('TUYỆT ĐỐI KHÔNG lặp lại');
+    expect(p).toContain('- Giải $2x - 3 = 5$');
+    expect(p).not.toContain('CHỦ ĐỀ EM CÒN YẾU');
+  });
+
   it('prompt KHÔNG nhắc lại việc em từng làm sai', () => {
-    expect(buildPracticePrompt(['đạo hàm'], '11')).toContain('không nhắc tới việc em từng làm sai');
+    expect(practiceInput({ topics: ['đạo hàm'], grade: '11' })).toContain('không nhắc tới việc em từng làm sai');
+  });
+
+  it('AI quên nhân đôi \\ trong JSON: \\frac/\\times không bị biến thành ký tự điều khiển; xuống dòng thật giữ nguyên', () => {
+    const raw = '{"questions":[{"level":"van_dung","basis":"Luyện: phân số","question":"Tính $\\frac{1}{2} \\times 4$\\nTa có gì?","hint":"Rút gọn $\\sqrt{4}$","solution":"$2$"}]}';
+    const [q] = parsePracticeQuestions(raw);
+    expect(q.question).toBe('Tính $\\frac{1}{2} \\times 4$\nTa có gì?');
+    expect(q.hint).toBe('Rút gọn $\\sqrt{4}$');
+    expect(q).toMatchObject({ level: 'van_dung', basis: 'Luyện: phân số' });
+  });
+
+  it('giàn giáo từng bước: prompt đòi 3–4 bước dừng trước kết quả; parse giữ bước, bỏ bước rỗng; bước lộ đáp án thì chặn', () => {
+    expect(practiceInput()).toContain('"steps" là GIÀN GIÁO');
+    const [q] = parsePracticeQuestions(JSON.stringify({ questions: [{
+      question: 'Giải $2x - 3 = 5$', hint: 'Chuyển vế', solution: 'x = 4',
+      steps: ['Chuyển $-3$ sang vế phải, nhớ đổi dấu', '', 'Chia hai vế cho hệ số của $x$'],
+    }] }));
+    expect(q.steps).toEqual(['Chuyển $-3$ sang vế phải, nhớ đổi dấu', 'Chia hai vế cho hệ số của $x$']);
+    expect(toPublicPracticeQuestions([q])[0].steps).toEqual(q.steps);
+    expect(() => toPublicPracticeQuestions([{ ...q, steps: ['Được $2x = 8$', 'Vậy x = 4'] }])).toThrow(/lộ đáp án/);
+  });
+
+  it('mức độ lạ bị bỏ, căn cứ lộ đáp án thì không phát hành', () => {
+    const [q] = parsePracticeQuestions(JSON.stringify({ questions: [{ level: 'rat_kho', question: 'Tính 2+3', hint: 'Cộng', solution: '5' }] }));
+    expect(q.level).toBeUndefined();
+    expect(() => toPublicPracticeQuestions([{ id: 'q1', question: 'Tính 2+3', hint: 'Cộng', solution: '17', basis: 'Luyện cộng, đáp án 17' }])).toThrow(/lộ đáp án/);
   });
 
   it('đọc được danh sách bài và bỏ bài rỗng', () => {
