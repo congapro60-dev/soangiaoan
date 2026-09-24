@@ -54,3 +54,6 @@ manus huong dan/
 
 # Local brainstorming companion screens — never release artifacts.
 .superpowers/
+
+# Sinh lúc build từ extension/ssm-bridge (scripts/pack-ssm-bridge.mjs) — không commit bản zip.
+public/downloads/ssm-bridge.zip

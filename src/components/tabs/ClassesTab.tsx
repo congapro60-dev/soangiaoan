@@ -12,6 +12,7 @@ import { issueClassPins, resetStudentPin, revokeClassData, revokeStudentAccessSe
 import { AssignmentPanel } from '../features/classroom/AssignmentPanel';
 import { SheetSyncPanel } from '../features/classroom/SheetSyncPanel';
 import { ScoreBookPanel } from '../features/classroom/ScoreBookPanel';
+import { SsmLinkPanel } from '../features/classroom/SsmLinkPanel';
 import { ClassAssignmentReport } from '../features/classroom/ClassAssignmentReport';
 import { ClassTeacherMembersPanel } from '../features/classroom/ClassTeacherMembersPanel';
 import { StudentReport } from '../features/classroom/StudentReport';
@@ -1128,6 +1129,15 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
         <section className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           {showRoster && (
             <>
+          {workspaceView === 'students' && (
+            <SsmLinkPanel
+              key={selectedClass.id}
+              classId={selectedClass.id}
+              className={selectedClass.name}
+              students={selectedClass.students}
+              userEmail={user?.email ?? null}
+            />
+          )}
           <div className="flex flex-col gap-4 border-b border-slate-100 pb-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-600">Danh sách học sinh</p>

@@ -5,6 +5,15 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Cầu nối SSM Edufit (đợt 1: chỉ đọc) — 2026-09-24
+
+SSM (`ssm.edufit.vn`) là hệ thống nội bộ Edufit của trường, không có API công khai; chủ dự án báo lãnh đạo đã cho phép đồng bộ. Hướng đã chọn: **tiện ích Edge** `extension/ssm-bridge/` (MV3), dùng phiên SSM của chính giáo viên ngay trong trình duyệt. Vé SSM KHÔNG lên app/Vercel/Firestore (lộ vé = vào SSM với quyền GV tới ~2027).
+- Đường đi: app `postMessage` → `app-relay.js` (chỉ `giaoandewey.vercel.app` + `localhost:3000`) → `background.js` (danh sách lệnh GET cố định: ping/profile/schoolYears/teacherClasses/classStudents) → `ssm-session.js` trong tab SSM đang mở → `api-ssm.edufit.vn/api/`.
+- App: `src/lib/ssm/ssmBridge.ts` (gọi tiện ích, lưu lớp đã ghép ở localStorage theo từng GV), `ssmModel.ts` (thuần: đọc phòng thủ, so Mã HS), `SsmLinkPanel` ở tab **Học sinh**: kiểm mail SSM = mail app → chọn lớp SSM (đoán theo tên) → so danh sách theo Mã HS. **Chỉ so, không sửa lớp.** Chưa cài → hiện nút tải `/downloads/ssm-bridge.zip` (sinh bởi `prebuild` = `scripts/pack-ssm-bridge.mjs`, không commit zip).
+- **Bẫy đã dính:** vé đúng là localStorage `access_token` (KHÔNG phải `sso_access_token` → 401) và BẮT BUỘC header `workspace` (= localStorage `workspace`, vd `branch_23`); thiếu header thì API trả danh sách RỖNG, không báo lỗi. Header HTTP chỉ nhận ASCII. Mã HS SSM = ô `student_code` (dạng `GB…`/8 số/`S…`, trùng file Drive). API SSM phân trang 20 dòng mặc định → `classStudents` xin `skipPagination=true&limit=500`.
+- **Chưa làm:** điểm LO/TDS theo Quarter (SSM tự tính điểm quý từ LO; app phải LẤY NGUYÊN số SSM, không tự tính) — chờ Q1 có điểm để xem cấu trúc `/api/v2|v3/evaluation/...`; ghi báo giảng/BTVN (đợt 2); điểm danh theo tiết (đợt 3). Kế hoạch: `tasks/todo-ssm-bridge.md`. Mọi lệnh GHI lên SSM phải có xem trước + GV xác nhận (phụ huynh nhận ngay).
+- Nghiệm thu: `npx vitest run extension src/lib/ssm` (20 test); E2E Edge thật (headless, vé giả → SSM thật trả 401): `npm run dev` rồi `node scripts/qa/e2e-ssm-bridge.mjs` (7 PASS). Chưa chạy luồng có dữ liệu thật trọn vẹn từ Edge của GV.
+
 ## Sổ điểm lớp (GĐ3) — 2026-09-24
 
 Một document `scoreBooks/{classId}` (`src/lib/classroom/scoreBook.ts` thuần + `api/_score-book.ts`), **chỉ máy chủ đọc/ghi** — rules mặc định chặn nên KHÔNG phải phát hành lại `firestore.rules`. Vì sao 1 document/lớp: lớp ≤ vài chục HS, xa trần 1MB, đọc 1 lần ra cả bảng. Giáo viên thuộc lớp (`teacherContext`, cả đồng chủ lớp): `teacherScoreBook`, `saveHs1Column` (tạo/sửa 1 cột + điểm cả lớp, ô trống = xoá, 0–10 tối đa 2 số lẻ, sai 1 ô là từ chối cả lô), `deleteHs1Column`, `saveExamScores` (THAY toàn bộ phần thi — Sheet là nguồn gốc). Học sinh: `studentScoreBook` lấy classId/studentId từ `studentLinks`, KHÔNG nhận từ client. studentId ngoài danh sách lớp bị bỏ qua khi ghi.
@@ -57,10 +66,6 @@ Nghiệm thu: parentSafeReport 5 + profileMerge 38 + topicHygiene 2 + gradingPro
 **Lệnh nghiệm thu:** `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" test`; `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" run test:rules`; `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" run test:pilot`; `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" run lint`; `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" run lint:api`; `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" run build`.
 
 Release đã hoàn tất: `main` đã nhận `994bd59` (sau đó `origin/main` có thêm follow-up `248634f`), Firestore Rules đã release vào `smartplan-ai-14200`, và Vercel production `https://giaoandewey.vercel.app` đang trỏ deployment `giaoandewey-qx94sd69v` ở trạng thái READY. QA artifact giữ cục bộ trong `artifacts/`, không commit.
-
-## Bản phụ huynh: nhận xét CHUNG theo chủ đề, bỏ nhận xét theo bài — 2026-09-18
-
-QA production phát hiện: mục "Điểm mạnh / Cần rèn thêm / Bước tiếp theo" của **bản phụ huynh** (`parentSafeReport.ts`) bê thẳng `grade.strengths`/`grade.weaknesses` — văn AI theo TỪNG BÀI ("Bài 2 và Bài 4a thiếu nêu mặt phẳng…") → phụ huynh không cầm đề, đọc không hiểu. Đã sửa: các mục này chỉ lấy từ **chủ đề tích luỹ trong hồ sơ** (`profile.topics` — kiến thức Toán chung); nhận xét theo bài của AI chỉ còn ở bản giáo viên. Bỏ luôn field `strengths`/`areasToPractice` theo bài khỏi `ParentSafeAssignmentResult` (code chết + text theo bài không được phép ở bản phụ huynh). **QA lần 2 lộ tiếp:** vài chủ đề trong hồ sơ bị ĐẶT TÊN theo số bài (vd "Giải đúng và trọn vẹn Bài 2") nên vẫn lọt vào "Điểm mạnh" → thêm bộ lọc `namesSpecificProblem` (regex `Bài|Câu|phần|ý` + số) loại mọi chủ đề tên theo số bài khỏi bản phụ huynh. **Ngưỡng:** hồ sơ chưa tích chủ đề yếu (cần `grade.weakTopics`+GV duyệt) thì "Cần rèn thêm" để trống — đúng ý. Gốc bệnh sâu hơn (profileMerge đặt tên chủ đề từ `grade.strengths` thô) chưa đụng vì ngoài phạm vi; nâng cấp sau: nhận xét chung từ khung năng lực. Nghiệm thu: `parentSafeReport.test.ts` 3 pass, `lint`+`build` OK, QA production: Cần rèn thêm/Bước tiếp theo/Điểm mạnh đều chủ đề chung.
 
 ## Hồ sơ năng lực — GĐ2 + GĐ3: khung + AI gắn nhãn + giao diện xem — 2026-09-17
 
@@ -134,15 +139,3 @@ Nút trong app, chỉ chạy khi giáo viên bấm. Tuỳ chọn theo lớp, m�
 - **Token Google chỉ sống ~1 giờ**; hết hạn thì app cần cấp quyền lại (popup) — bước này cần thao tác người (đăng nhập). Khi lái tab nền: đưa tab ra trước bằng CDP (`computer` screenshot) rồi bấm "thật" thì `reauthenticateWithPopup` tự xong nếu phiên Google còn.
 - v1 chỉ bài giao nộp ảnh/file (`type !== 'exam'`, `purpose` = assignment). Đề online chưa lên sheet.
 - Deploy làm hỏng tab đang mở → đã có `staleChunkReload.ts` tự tải lại một lần (chặn vòng lặp 30s).
-
-## TV/HS — kết quả trực tiếp và nhịp 40 phút — 2026-09-13
-
-- TV có biểu đồ theo hoạt động; GV và tv-control đều có nút công bố/ẩn. Chỉ owner đọc phản hồi để tổng hợp. Số người gửi không được coi là số người làm đúng.
-- Hoạt động nhóm: HS chọn số nhóm 1–12; groupMemberships giữ riêng tư. TV nhận public/groupProgress gồm số thành viên và số người gửi theo nhóm, không tên/UID/bài làm.
-- Đồng hồ dùng cueStartedAt + cueElapsedSeconds: tạm dừng giữ thời gian, tiếp tục cộng tiếp; bật/tắt thống kê không reset. TV/HS hiện khoảng phút dự kiến trong tiết.
-- Chuyển cue và public state ghi cùng transaction; publisher kiểm tra lại cue/cờ công bố trước khi ghi.
-- Phải triển khai firestore.rules cùng ứng dụng: clock có trường optional tương thích session cũ; thêm hai đường dữ liệu nhóm giới hạn quyền.
-- Bổ sung luồng HS: nháp riêng theo session/uid/step, hỗ trợ diễn đạt 3 mức (từ khóa → khung câu → tự diễn đạt), đọc lại mục tiêu cá nhân cuối tiết. Nháp không tự đồng bộ/tự gửi.
-- Triển khai 13/09: Firebase CLI đã phát hành firestore.rules tới smartplan-ai-14200 từ mã `161a4d7` (chỉ `firestore:rules`). Chưa xác nhận QA tiết học thực tế.
-- ⚠ 6 test liveLesson (`languagePack`, `liveLessonService`) đang FAIL trên `origin/main` — cần chủ sở hữu xử lý riêng.
-- Chi tiết: `docs/features/2026-09-11-live-activity-results.md`.

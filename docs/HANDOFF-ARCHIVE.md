@@ -1609,3 +1609,23 @@ git -C $worktree diff --check
 - HS có hướng dẫn nhịp học, tiêu chí tự đối chiếu và khung câu mở theo nhu cầu; mục tiêu G1/G2/G3 và loại lỗi AI đã đổi thành nhãn có nghĩa.
 - TV P16 giữ câu hỏi kiểm chứng, trao đổi cặp đôi và yêu cầu ghi bằng chứng; không lộ sẵn phần chốt lỗi trước khi HS suy nghĩ.
 - Đưa lên `main` để chủ sở hữu tự QA giao diện; chưa chạy thêm test/QA theo yêu cầu phiên này.
+
+---
+
+# Cắt khỏi HANDOFF.md ngày 2026-09-24
+
+## Bản phụ huynh: nhận xét CHUNG theo chủ đề, bỏ nhận xét theo bài — 2026-09-18
+
+QA production phát hiện: mục "Điểm mạnh / Cần rèn thêm / Bước tiếp theo" của **bản phụ huynh** (`parentSafeReport.ts`) bê thẳng `grade.strengths`/`grade.weaknesses` — văn AI theo TỪNG BÀI ("Bài 2 và Bài 4a thiếu nêu mặt phẳng…") → phụ huynh không cầm đề, đọc không hiểu. Đã sửa: các mục này chỉ lấy từ **chủ đề tích luỹ trong hồ sơ** (`profile.topics` — kiến thức Toán chung); nhận xét theo bài của AI chỉ còn ở bản giáo viên. Bỏ luôn field `strengths`/`areasToPractice` theo bài khỏi `ParentSafeAssignmentResult` (code chết + text theo bài không được phép ở bản phụ huynh). **QA lần 2 lộ tiếp:** vài chủ đề trong hồ sơ bị ĐẶT TÊN theo số bài (vd "Giải đúng và trọn vẹn Bài 2") nên vẫn lọt vào "Điểm mạnh" → thêm bộ lọc `namesSpecificProblem` (regex `Bài|Câu|phần|ý` + số) loại mọi chủ đề tên theo số bài khỏi bản phụ huynh. **Ngưỡng:** hồ sơ chưa tích chủ đề yếu (cần `grade.weakTopics`+GV duyệt) thì "Cần rèn thêm" để trống — đúng ý. Gốc bệnh sâu hơn (profileMerge đặt tên chủ đề từ `grade.strengths` thô) chưa đụng vì ngoài phạm vi; nâng cấp sau: nhận xét chung từ khung năng lực. Nghiệm thu: `parentSafeReport.test.ts` 3 pass, `lint`+`build` OK, QA production: Cần rèn thêm/Bước tiếp theo/Điểm mạnh đều chủ đề chung.
+
+## TV/HS — kết quả trực tiếp và nhịp 40 phút — 2026-09-13
+
+- TV có biểu đồ theo hoạt động; GV và tv-control đều có nút công bố/ẩn. Chỉ owner đọc phản hồi để tổng hợp. Số người gửi không được coi là số người làm đúng.
+- Hoạt động nhóm: HS chọn số nhóm 1–12; groupMemberships giữ riêng tư. TV nhận public/groupProgress gồm số thành viên và số người gửi theo nhóm, không tên/UID/bài làm.
+- Đồng hồ dùng cueStartedAt + cueElapsedSeconds: tạm dừng giữ thời gian, tiếp tục cộng tiếp; bật/tắt thống kê không reset. TV/HS hiện khoảng phút dự kiến trong tiết.
+- Chuyển cue và public state ghi cùng transaction; publisher kiểm tra lại cue/cờ công bố trước khi ghi.
+- Phải triển khai firestore.rules cùng ứng dụng: clock có trường optional tương thích session cũ; thêm hai đường dữ liệu nhóm giới hạn quyền.
+- Bổ sung luồng HS: nháp riêng theo session/uid/step, hỗ trợ diễn đạt 3 mức (từ khóa → khung câu → tự diễn đạt), đọc lại mục tiêu cá nhân cuối tiết. Nháp không tự đồng bộ/tự gửi.
+- Triển khai 13/09: Firebase CLI đã phát hành firestore.rules tới smartplan-ai-14200 từ mã `161a4d7` (chỉ `firestore:rules`). Chưa xác nhận QA tiết học thực tế.
+- ⚠ 6 test liveLesson (`languagePack`, `liveLessonService`) đang FAIL trên `origin/main` — cần chủ sở hữu xử lý riêng.
+- Chi tiết: `docs/features/2026-09-11-live-activity-results.md`.
