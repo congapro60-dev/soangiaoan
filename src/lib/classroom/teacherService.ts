@@ -7,6 +7,8 @@ import type {
   ClassMemberDoc,
 } from './types';
 import type { TeacherOnlineGradeEdit } from './onlineGradeLifecycle';
+import type { StudentExamScores } from './examScores';
+import { normalizeScoreBook, type ScoreBookDoc } from './scoreBook';
 
 export interface CreateSupportActivityInput {
   classId: string;
@@ -107,6 +109,36 @@ export const setClassExamSheet = async (
   examSheet: { spreadsheetId: string; spreadsheetTitle: string } | null,
 ): Promise<void> => {
   await callTeacherApi({ action: 'setClassExamSheet', classId, examSheet });
+};
+
+export const loadScoreBook = async (classId: string): Promise<ScoreBookDoc> => {
+  const { scoreBook } = await callTeacherApi<{ scoreBook: unknown }>({ action: 'teacherScoreBook', classId });
+  return normalizeScoreBook(classId, scoreBook);
+};
+
+/** Tạo (không truyền columnId) hoặc sửa một cột điểm hệ số 1. `scores`: studentId → điểm gõ, '' = xoá. */
+export const saveHs1Column = async (
+  classId: string,
+  columnId: string | null,
+  column: { label: string; date: string },
+  scores: Record<string, string>,
+): Promise<ScoreBookDoc> => {
+  const { scoreBook } = await callTeacherApi<{ scoreBook: unknown }>({ action: 'saveHs1Column', classId, columnId, column, scores });
+  return normalizeScoreBook(classId, scoreBook);
+};
+
+export const deleteHs1Column = async (classId: string, columnId: string): Promise<ScoreBookDoc> => {
+  const { scoreBook } = await callTeacherApi<{ scoreBook: unknown }>({ action: 'deleteHs1Column', classId, columnId });
+  return normalizeScoreBook(classId, scoreBook);
+};
+
+export const saveExamScores = async (
+  classId: string,
+  spreadsheetTitle: string,
+  exams: Record<string, StudentExamScores>,
+): Promise<ScoreBookDoc> => {
+  const { scoreBook } = await callTeacherApi<{ scoreBook: unknown }>({ action: 'saveExamScores', classId, spreadsheetTitle, exams });
+  return normalizeScoreBook(classId, scoreBook);
 };
 
 export const renameStudent = async (classId: string, studentId: string, name: string): Promise<void> => {

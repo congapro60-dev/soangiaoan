@@ -1,7 +1,7 @@
-import { BarChart3, BookOpenCheck, ClipboardList, Eye, KeyRound, Plus, Send, Users } from 'lucide-react';
+import { BarChart3, BookOpenCheck, ClipboardList, Eye, KeyRound, NotebookPen, Plus, Send, Users } from 'lucide-react';
 import type { TeacherClass } from '../../../types';
 
-export type WorkspaceView = 'overview' | 'students' | 'assignments' | 'submissions' | 'reports';
+export type WorkspaceView = 'overview' | 'students' | 'assignments' | 'submissions' | 'scores' | 'reports';
 
 interface Props {
   selectedClass: TeacherClass;
@@ -18,6 +18,7 @@ const tabs: Array<{ view: WorkspaceView; label: string; icon: typeof Eye }> = [
   { view: 'students', label: 'Học sinh', icon: Users },
   { view: 'assignments', label: 'Bài giao', icon: ClipboardList },
   { view: 'submissions', label: 'Bài nộp', icon: BookOpenCheck },
+  { view: 'scores', label: 'Sổ điểm', icon: NotebookPen },
   { view: 'reports', label: 'Báo cáo', icon: BarChart3 },
 ];
 

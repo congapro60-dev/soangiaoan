@@ -44,6 +44,7 @@ import { stripUndefinedDeep } from './_firestore-sanitize.js';
 import { handleTeacherAction } from './_classroom-teacher.js';
 import { readClassAccess } from './_classroom-access.js';
 import { handleClassroomOnlineAction } from './_classroom-online.js';
+import { handleScoreBookAction } from './_score-book.js';
 
 /**
  * Một hàm phục vụ các việc sau, để không vượt trần 12 Serverless Function của Vercel:
@@ -63,6 +64,8 @@ import { handleClassroomOnlineAction } from './_classroom-online.js';
  *   POST { action: 'deleteSubmissionGrade', submissionId, idToken } → xoá kết quả chấm, giữ bài nộp
  *   POST { action: 'approveSubmissionGrade', submissionId, approved, idToken } → duyệt/bỏ duyệt
  *   POST { action: 'deleteAssignment', assignmentId, idToken } → xoá bài giao và file đề
+ *   Sổ điểm (xem `_score-book.ts`): teacherScoreBook / saveHs1Column / deleteHs1Column / saveExamScores
+ *   cho giáo viên thuộc lớp, studentScoreBook cho học sinh (chỉ dòng của chính mình).
  *
  * Vì sao phải đi qua server thay vì để client đọc thẳng Firestore:
  *  - PIN nằm ở `studentSecrets`, rules cấm MỌI client đọc. Chỉ Admin SDK kiểm được.
@@ -1431,6 +1434,7 @@ async function dispatchClassroom(res: VercelResponse, body: ReturnType<typeof re
     if (await handleAdminAction(db, body, res)) return;
     if (await handleTeacherAction(db, body, res)) return;
     if (await handleClassroomOnlineAction(db, body, res)) return;
+    if (await handleScoreBookAction(db, body, res)) return;
     if (action === 'roster') return await handleRoster(db, body, res);
     if (action === 'login') return await handleLogin(db, body, res);
     if (action === 'studentAssignments') return await handleStudentAssignments(db, body, res);

@@ -1,6 +1,7 @@
 import type {
   ActivityExportBundle,
   ActivityPurpose,
+  ClassExamSheet,
   ClassSheetSync,
   DeliveryMode,
   GradeState,
@@ -43,6 +44,8 @@ export interface TeacherClass {
   assignments?: ClassAssignment[];
   /** Tab Google Sheet đã nối để đồng bộ BTVN; vắng là lớp không đồng bộ. */
   sheetSync?: ClassSheetSync | null;
+  /** File điểm thi (tab MOET/TDS) đã nối cho lớp; vắng là chưa nối. */
+  examSheet?: ClassExamSheet | null;
 }
 
 export interface Subject {

@@ -2,6 +2,7 @@ import { signInAnonymously } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import type { StudentAssignmentView, SubmissionDoc } from '../lib/classroom/types';
 import type { ExamSubmission } from '../types';
+import type { StudentScoreView } from '../lib/classroom/scoreBook';
 
 export interface RosterEntry {
   studentId: string;
@@ -154,6 +155,15 @@ export const fetchStudentOnlineSubmissions = async (): Promise<ExamSubmission[]>
   const idToken = await current.getIdToken();
   const response = await call<{ submissions: ExamSubmission[] }>({ action: 'studentOnlineSubmissions', idToken });
   return response.submissions || [];
+};
+
+/** Bảng điểm (điểm thi định kì + hệ số 1) của chính học sinh; máy chủ lọc theo phiên, không nhận studentId. */
+export const fetchStudentScoreBook = async (): Promise<StudentScoreView> => {
+  const current = auth.currentUser;
+  if (!current || !current.isAnonymous) throw new Error('Cần phiên đăng nhập học sinh.');
+  const idToken = await current.getIdToken();
+  const response = await call<{ scores: StudentScoreView }>({ action: 'studentScoreBook', idToken });
+  return response.scores;
 };
 
 /**

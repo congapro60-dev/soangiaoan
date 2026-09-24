@@ -1,14 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
-import { Award, ClipboardList, Download, GraduationCap, HeartHandshake, Lightbulb, Loader2, Printer, Target, TrendingUp } from 'lucide-react';
+import { Award, ClipboardList, Download, GraduationCap, HeartHandshake, Lightbulb, Printer, Target, TrendingUp } from 'lucide-react';
 import { db } from '../../../lib/firebase';
 import { STUDENT_PROFILES_COL, type AssignmentDoc, type StudentProfileDoc, type SubmissionDoc } from '../../../lib/classroom/types';
-import { fetchStudentExamScores, inspectExamSheet } from '../../../lib/classroom/examService';
-import { getClassDoc } from '../../../lib/classroom/classroomService';
-import { setClassExamSheet } from '../../../lib/classroom/teacherService';
-import { spreadsheetIdFromUrl } from '../../../lib/classroom/sheetsApi';
-import { hasAnyExamScore, type StudentExamScores } from '../../../lib/classroom/examScores';
-import { DriveAuthError } from '../../../lib/googleDrive';
+import { loadScoreBook } from '../../../lib/classroom/teacherService';
+import { hs1Average, studentScoreView, type StudentScoreView } from '../../../lib/classroom/scoreBook';
 import { listAssignmentsForClass, listSubmissionsForStudent } from '../../../lib/classroom/submissionService';
 import { NhanXetMarkdown } from './NhanXetMarkdown';
 import { QuestionResultsList } from './QuestionResultsList';
@@ -69,31 +65,24 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
   const [dangTai, setDangTai] = useState(true);
   const [viewMode, setViewMode] = useState<'teacher' | 'parent'>(forAdult ? 'teacher' : 'parent');
   const [dangXuatPdf, setDangXuatPdf] = useState(false);
-  const [examSpreadsheetId, setExamSpreadsheetId] = useState<string | null>(null);
-  const [examScores, setExamScores] = useState<StudentExamScores | null>(null);
-  const [dangTaiDiem, setDangTaiDiem] = useState(false);
-  const [loiDiem, setLoiDiem] = useState<string | null>(null);
-  const [linkDiem, setLinkDiem] = useState('');
-  const [dangLuuLink, setDangLuuLink] = useState(false);
+  // Điểm thi định kì + hệ số 1 lấy từ Sổ điểm của lớp (một nguồn cho giáo viên, học sinh, phụ huynh).
+  const [soDiem, setSoDiem] = useState<StudentScoreView | null>(null);
 
   useEffect(() => {
     let huy = false;
     const tai = async () => {
       setDangTai(true);
-      const [nop, hoSo, baiGiao, lopDoc] = await Promise.all([
+      const [nop, hoSo, baiGiao, soDiemLop] = await Promise.all([
         listSubmissionsForStudent(studentId, teacherId, classId).catch(() => null),
         getDoc(doc(db, STUDENT_PROFILES_COL, studentId)).catch(() => null),
         listAssignmentsForClass(classId, teacherId).catch(() => []),
-        getClassDoc(classId).catch(() => null),
+        loadScoreBook(classId).catch(() => null),
       ]);
       if (huy) return;
       setSubmissions(nop || []);
       setAssignments(baiGiao || []);
       setProfile(hoSo?.exists() ? (hoSo.data() as StudentProfileDoc) : null);
-      // File điểm thi nối riêng — KHÔNG dùng file đồng bộ BTVN (thường là file chung, không có tab MOET/TDS).
-      setExamSpreadsheetId(lopDoc?.examSheet?.spreadsheetId ?? null);
-      setExamScores(null);
-      setLoiDiem(null);
+      setSoDiem(soDiemLop ? studentScoreView(soDiemLop, studentId) : null);
       setDangTai(false);
     };
     void tai();
@@ -169,55 +158,11 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
     URL.revokeObjectURL(url);
   };
 
-  const luuLinkDiem = async () => {
-    if (dangLuuLink) return;
-    const id = spreadsheetIdFromUrl(linkDiem);
-    if (!id) {
-      setLoiDiem('Link chưa đúng. Dán link Google Sheet điểm của lớp (dạng docs.google.com/spreadsheets/d/…).');
-      return;
-    }
-    setDangLuuLink(true);
-    setLoiDiem(null);
-    try {
-      const info = await inspectExamSheet(id);
-      if (!info.hasMoet && !info.hasTds) {
-        setLoiDiem(`File "${info.title}" không có tab MOET hay TDS — có thể dán nhầm file.`);
-        return;
-      }
-      await setClassExamSheet(classId, { spreadsheetId: id, spreadsheetTitle: info.title });
-      setExamSpreadsheetId(id);
-      setLinkDiem('');
-      await taiDiemThi(id);
-    } catch (error) {
-      setLoiDiem(error instanceof Error ? error.message : 'Không lưu được link file điểm.');
-    } finally {
-      setDangLuuLink(false);
-    }
-  };
-
-  const taiDiemThi = async (spreadsheetId: string | null = examSpreadsheetId) => {
-    if (dangTaiDiem || !spreadsheetId) return;
-    setDangTaiDiem(true);
-    setLoiDiem(null);
-    try {
-      const scores = await fetchStudentExamScores(spreadsheetId, studentCode);
-      setExamScores(scores);
-      if (!hasAnyExamScore(scores)) setLoiDiem('Chưa có điểm thi định kì cho học sinh này trong file lớp.');
-    } catch (error) {
-      const message = error instanceof DriveAuthError
-        ? error.message
-        : (error instanceof Error ? error.message : 'Không đọc được điểm thi từ Google Sheet.');
-      setLoiDiem(message);
-    } finally {
-      setDangTaiDiem(false);
-    }
-  };
-
   const inBaoCaoPhuHuynh = async () => {
     if (dangXuatPdf) return;
     setDangXuatPdf(true);
     try {
-      await exportParentReportToPdf({ report: parentReport, studentName, className, studentCode, competency: parentCompetency, exams: examScores });
+      await exportParentReportToPdf({ report: parentReport, studentName, className, studentCode, competency: parentCompetency, exams: soDiem?.exams, hs1: soDiem?.hs1 });
     } catch (error) {
       console.error('Xuất PDF bản phụ huynh thất bại:', error);
       alert('Không tạo được PDF. Vui lòng thử lại.');
@@ -255,54 +200,39 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
 
         {forAdult && (
           <div className="rounded-2xl border border-violet-100 bg-violet-50/40 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="flex items-center gap-2 text-sm font-black text-violet-950"><ClipboardList className="h-4 w-4" /> Điểm thi định kì</p>
-              {examSpreadsheetId && (
-                <button type="button" onClick={() => void taiDiemThi()} disabled={dangTaiDiem} className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-3 py-2 text-xs font-black text-white transition hover:bg-violet-700 disabled:opacity-50">
-                  {dangTaiDiem ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ClipboardList className="h-3.5 w-3.5" />}
-                  {dangTaiDiem ? 'Đang tải…' : examScores ? 'Tải lại điểm thi' : 'Tải điểm thi từ Google Sheet'}
-                </button>
-              )}
-            </div>
-            {!examSpreadsheetId && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                <input
-                  value={linkDiem}
-                  onChange={event => setLinkDiem(event.target.value)}
-                  placeholder="Dán link Google Sheet điểm của lớp (file có tab MOET/TDS)"
-                  className="min-w-0 flex-1 rounded-xl border border-violet-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 outline-none focus:border-violet-400"
-                />
-                <button type="button" onClick={() => void luuLinkDiem()} disabled={dangLuuLink || !linkDiem.trim()} className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-3 py-2 text-xs font-black text-white transition hover:bg-violet-700 disabled:opacity-50">
-                  {dangLuuLink && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                  {dangLuuLink ? 'Đang kiểm tra…' : 'Lưu link & tải điểm'}
-                </button>
-              </div>
-            )}
-            {loiDiem && <p className="mt-2 text-xs font-semibold text-rose-600">{loiDiem}</p>}
-            {examScores && hasAnyExamScore(examScores) && (
+            <p className="flex items-center gap-2 text-sm font-black text-violet-950"><ClipboardList className="h-4 w-4" /> Điểm kiểm tra &amp; thi định kì</p>
+            {soDiem && (soDiem.exams.moet.length > 0 || soDiem.exams.tds.length > 0 || soDiem.hs1.length > 0) ? (
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                {examScores.moet.length > 0 && (
+                {soDiem.exams.moet.length > 0 && (
                   <div>
                     <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-500">Đánh giá định kì (thang 10)</p>
                     <ul className="space-y-1 text-sm font-semibold text-slate-700">
-                      {examScores.moet.map(mark => <li key={mark.label} className="flex justify-between gap-3"><span>{mark.label}</span><span className="font-black text-slate-900">{mark.score}/10</span></li>)}
+                      {soDiem.exams.moet.map(mark => <li key={mark.label} className="flex justify-between gap-3"><span>{mark.label}</span><span className="font-black text-slate-900">{mark.score}/10</span></li>)}
                     </ul>
                   </div>
                 )}
-                {examScores.tds.length > 0 && (
+                {soDiem.exams.tds.length > 0 && (
                   <div>
                     <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-500">Điểm theo quý (TDS)</p>
                     <ul className="space-y-1 text-sm font-semibold text-slate-700">
-                      {examScores.tds.map(mark => <li key={mark.label} className="flex justify-between gap-3"><span>{mark.label}</span><span className="font-black text-slate-900">{mark.score}{mark.letter ? ` · ${mark.letter}` : ''}</span></li>)}
+                      {soDiem.exams.tds.map(mark => <li key={mark.label} className="flex justify-between gap-3"><span>{mark.label}</span><span className="font-black text-slate-900">{mark.score}{mark.letter ? ` · ${mark.letter}` : ''}</span></li>)}
+                    </ul>
+                  </div>
+                )}
+                {soDiem.hs1.length > 0 && (
+                  <div>
+                    <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-500">Hệ số 1 (thang 10) · TB {hs1Average(soDiem.hs1)}</p>
+                    <ul className="space-y-1 text-sm font-semibold text-slate-700">
+                      {soDiem.hs1.map((mark, index) => <li key={`${mark.label}-${index}`} className="flex justify-between gap-3"><span>{mark.label}</span><span className="font-black text-slate-900">{mark.score}/10</span></li>)}
                     </ul>
                   </div>
                 )}
               </div>
+            ) : (
+              <p className="mt-2 text-sm font-semibold text-slate-500">Chưa có điểm của em trong Sổ điểm lớp.</p>
             )}
             <p className="mt-2 text-[11px] font-semibold text-slate-400">
-              {examSpreadsheetId
-                ? <>Lấy từ file điểm đã nối cho lớp. Bấm tải để đưa điểm vào bản PDF gửi phụ huynh. <button type="button" onClick={() => { setExamSpreadsheetId(null); setExamScores(null); }} className="font-black text-violet-700 underline">Đổi file</button></>
-                : 'Nối 1 lần cho mỗi lớp: file "26-27-<lớp>" trong folder "Lộ trình Toán THPT" (khác file đồng bộ BTVN).'}
+              Lấy từ tab <span className="font-black text-violet-700">Sổ điểm</span> của lớp{soDiem?.examsSyncedAt ? ` (điểm thi đồng bộ ${new Date(soDiem.examsSyncedAt).toLocaleString('vi-VN')})` : ''}. Đồng bộ điểm thi hoặc nhập điểm hệ số 1 ở tab đó — bản PDF gửi phụ huynh tự dùng số mới nhất.
             </p>
           </div>
         )}

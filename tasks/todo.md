@@ -24,10 +24,19 @@ Chủ dự án chốt: (1) làm trang quản trị cho tài khoản congapro60@g
 - [ ] Xuất bảng kê (CSV) từng người để thu tiền.
 - [ ] Chuẩn bị lớp cho các cô: xem lớp đã có; tạo lớp mới từ danh sách file Drive — BỎ QUA lớp đã tồn tại.
 
-## GĐ3 — Sổ điểm (HS xem, báo cáo PH dùng chung)
-- [ ] Mô hình `gradebook` theo lớp: cột điểm (loại: HS1 / MOET / TDS, tên, ngày, thang) + điểm theo học sinh.
-- [ ] GV: bảng nhập điểm HS1; nút "Đồng bộ điểm thi" kéo MOET/TDS từ file điểm lớp vào app.
-- [ ] Trang HS: mục thống kê điểm (BTVN, điểm thi, HS1). Báo cáo PH đọc từ sổ điểm.
+## GĐ3 — Sổ điểm (HS xem, báo cáo PH dùng chung) — kế hoạch chi tiết 2026-09-24
+Quyết định: 1 document `scoreBooks/{classId}` (≤ vài chục HS, xa trần 1MB), CHỈ máy chủ đọc/ghi (rules mặc định chặn →
+KHÔNG phải phát hành lại firestore.rules). HS đọc qua action `studentScoreBook` (lọc đúng dòng của mình theo studentLinks,
+như `studentSubmissions`). BTVN KHÔNG chép vào sổ — lấy thẳng từ bài đã duyệt (một nguồn sự thật).
+- [ ] `src/lib/classroom/scoreBook.ts` (thuần): kiểu dữ liệu, kiểm điểm HS1 (0–10, ≤2 số lẻ), làm sạch điểm thi,
+      `studentScoreView`, `homeworkMarks` (BTVN đã duyệt quy thang 10). Test.
+- [ ] `examService.fetchClassExamScores(sheet, roster)`: đọc file điểm 1 lần cho cả lớp, khớp Mã HS.
+- [ ] `api/_score-book.ts`: `teacherScoreBook`, `saveHs1Column`, `deleteHs1Column`, `saveExamScores` (GV thuộc lớp,
+      studentId phải có trong danh sách lớp), `studentScoreBook` (HS). Định tuyến trong `api/classroom.ts`. Test.
+- [ ] GV: tab "Sổ điểm" trong lớp — đồng bộ MOET/TDS từ file điểm lớp, bảng nhập/sửa/xoá cột điểm hệ số 1.
+- [ ] HS: mục "Bảng điểm của em" (BTVN, thi định kì MOET, điểm quý TDS, hệ số 1).
+- [ ] Báo cáo PH (màn hình + PDF) đọc điểm thi + HS1 từ sổ điểm, bỏ đọc Sheet riêng lẻ từng em.
+- [ ] Nghiệm thu: test + lint + build; chạy thật trên production với lớp của chủ dự án.
 
 ## Cần chủ dự án chốt trước GĐ2
 - Tính tiền cho ai khi HỌC SINH nộp bài được chấm: giáo viên chủ lớp (đề xuất).

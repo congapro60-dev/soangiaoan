@@ -93,7 +93,20 @@ describe('buildParentReportPrintDoc', () => {
   });
 
   it('bỏ mục Điểm thi định kì khi không có điểm', () => {
-    const html = buildParentReportPrintDoc({ report, studentName: 'Nguyễn Minh An', className: '11 Columbus', exams: { moet: [], tds: [] } });
+    const html = buildParentReportPrintDoc({ report, studentName: 'Nguyễn Minh An', className: '11 Columbus', exams: { moet: [], tds: [] }, hs1: [] });
     expect(html).not.toContain('Điểm thi định kì');
+    expect(html).not.toContain('hệ số 1');
+  });
+
+  it('điểm hệ số 1 vào cùng mục, kèm ngày và điểm trung bình — kể cả khi chưa có điểm thi', () => {
+    const html = buildParentReportPrintDoc({
+      report, studentName: 'Nguyễn Minh An', className: '11 Columbus',
+      hs1: [{ label: 'KT 15 phút lần 1', date: '2026-09-20', score: 8 }, { label: 'Miệng', date: '2026-09-22', score: 9.5 }],
+    });
+    expect(html).toContain('Điểm kiểm tra &amp; thi định kì');
+    expect(html).toContain('Điểm hệ số 1 trên lớp (thang 10) · TB 8.75');
+    expect(html).toContain('KT 15 phút lần 1');
+    expect(html).toContain('20/09/2026');
+    expect(html).toContain('9.5/10');
   });
 });

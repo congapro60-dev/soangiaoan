@@ -11,6 +11,7 @@ import { acceptTeacherInvitation, createExamAssignment, declineTeacherInvitation
 import { issueClassPins, resetStudentPin, revokeClassData, revokeStudentAccessServer, viewClassPins, viewStudentPin } from '../../services/studentPortalApi';
 import { AssignmentPanel } from '../features/classroom/AssignmentPanel';
 import { SheetSyncPanel } from '../features/classroom/SheetSyncPanel';
+import { ScoreBookPanel } from '../features/classroom/ScoreBookPanel';
 import { ClassAssignmentReport } from '../features/classroom/ClassAssignmentReport';
 import { ClassTeacherMembersPanel } from '../features/classroom/ClassTeacherMembersPanel';
 import { StudentReport } from '../features/classroom/StudentReport';
@@ -93,6 +94,7 @@ const teacherClassFromServer = (remote: AccessibleClassDoc, local?: TeacherClass
     students,
     assignments: onlineAssignments,
     sheetSync: remote.sheetSync ?? null,
+    examSheet: remote.examSheet ?? null,
   };
 };
 
@@ -1213,6 +1215,16 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
                 </div>
               </div>
             </div>
+          )}
+
+          {workspaceView === 'scores' && (
+            <ScoreBookPanel
+              classId={selectedClass.id}
+              students={selectedClass.students}
+              examSheet={selectedClass.examSheet}
+              onExamSheetChanged={refreshAccessibleClasses}
+              showToast={showToast}
+            />
           )}
 
           {workspaceView === 'reports' && user?.uid && (

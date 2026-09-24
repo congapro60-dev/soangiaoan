@@ -17,7 +17,8 @@ import {
 } from '../lib/classroom/types';
 import type { ExamSubmission } from '../types';
 import { dichLoiNopBai, nenAnhBaiLam } from '../utils/imageCompress';
-import { fetchRoster, fetchStudentAssignments, fetchStudentOnlineSubmissions, fetchStudentSubmissions, loginStudent, type RosterEntry } from '../services/studentPortalApi';
+import { fetchRoster, fetchStudentAssignments, fetchStudentOnlineSubmissions, fetchStudentScoreBook, fetchStudentSubmissions, loginStudent, type RosterEntry } from '../services/studentPortalApi';
+import type { StudentScoreView } from '../lib/classroom/scoreBook';
 import { layThongBaoHocSinh, submitHomework } from '../lib/classroom/submissionService';
 import { buildStudentFeed } from '../lib/classroom/studentNotifications';
 import type { StudentNotificationDoc } from '../lib/classroom/types';
@@ -150,6 +151,7 @@ export const StudentPortalPage = () => {
   const [submissions, setSubmissions] = useState<SubmissionDoc[]>([]);
   const [onlineSubmissions, setOnlineSubmissions] = useState<ExamSubmission[]>([]);
   const [profile, setProfile] = useState<StudentProfileDoc | null>(null);
+  const [scores, setScores] = useState<StudentScoreView | null>(null);
   const [notifications, setNotifications] = useState<StudentNotificationDoc[]>([]);
   const [notificationsSeenAt, setNotificationsSeenAt] = useState<string | null>(null);
   const [dangTaiDu, setDangTaiDu] = useState(true);
@@ -251,6 +253,7 @@ export const StudentPortalPage = () => {
     setSubmissions([]);
     setOnlineSubmissions([]);
     setProfile(null);
+    setScores(null);
     setChosenId('');
     setPracticeSet(null);
     setPracticeAnswers({});
@@ -338,19 +341,22 @@ export const StudentPortalPage = () => {
     if (!phien) return;
     setDangTaiDu(true);
     try {
-      const [bai, nop, baiOnline, hoSo, thongBao] = await Promise.all([
+      const [bai, nop, baiOnline, hoSo, thongBao, soDiem] = await Promise.all([
         fetchStudentAssignments(),
         fetchStudentSubmissions(),
         fetchStudentOnlineSubmissions(),
         getDoc(doc(db, STUDENT_PROFILES_COL, phien.studentId)),
         // Chuông hỏng không được làm hỏng cả màn hình bài tập.
         layThongBaoHocSinh().catch(() => [] as StudentNotificationDoc[]),
+        // Bảng điểm cũng vậy: lỗi thì ẩn điểm thi, không chặn việc nộp bài.
+        fetchStudentScoreBook().catch(() => null),
       ]);
       setAssignments(bai);
       setSubmissions(nop);
       setOnlineSubmissions(baiOnline);
       setProfile(hoSo.exists() ? (hoSo.data() as StudentProfileDoc) : null);
       setNotifications(thongBao);
+      setScores(soDiem);
       setLoiDuLieu('');
 
       const stored = readStoredPractice(phien);
@@ -622,6 +628,7 @@ export const StudentPortalPage = () => {
       submissions={submissions}
       onlineSubmissions={onlineSubmissions}
       profile={profile}
+      scores={scores}
       loading={dangTaiDu}
       uploadingId={dangNop}
       uploadStep={buocNop}

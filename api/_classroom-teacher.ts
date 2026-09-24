@@ -68,7 +68,7 @@ const identityFromIdToken = async (idToken: unknown): Promise<AuthIdentity | nul
   }
 };
 
-const teacherContext = async (
+export const teacherContext = async (
   db: Db,
   body: Body,
   res: VercelResponse,

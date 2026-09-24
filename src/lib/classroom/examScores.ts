@@ -114,7 +114,3 @@ export const parseStudentExamScores = (
   moet: parseMoet(moetRows, studentCode),
   tds: parseTds(tdsRows, studentCode),
 });
-
-/** Có ít nhất một điểm để hiển thị không. */
-export const hasAnyExamScore = (scores: StudentExamScores | null | undefined): boolean =>
-  Boolean(scores && (scores.moet.length > 0 || scores.tds.length > 0));

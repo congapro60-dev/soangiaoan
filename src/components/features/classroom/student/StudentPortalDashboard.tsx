@@ -8,6 +8,8 @@ import { buildStudentProgressSummary, studentActivityNextActionLabel, studentAct
 import { buildStudentSkillCards } from '../../../../lib/classroom/skillViewModel';
 import { StudentAssignmentCard } from './StudentAssignmentCard';
 import { StudentNotificationBell } from './StudentNotificationBell';
+import { StudentScoreBoard } from './StudentScoreBoard';
+import type { StudentScoreView } from '../../../../lib/classroom/scoreBook';
 import type { StudentFeedItem } from '../../../../lib/classroom/studentNotifications';
 
 interface SessionInfo {
@@ -22,6 +24,8 @@ interface Props {
   submissions: SubmissionDoc[];
   onlineSubmissions: ExamSubmission[];
   profile: StudentProfileDoc | null;
+  /** Sổ điểm của em (thi định kì + hệ số 1); null khi chưa tải được. */
+  scores: StudentScoreView | null;
   loading: boolean;
   uploadingId: string;
   uploadStep: string;
@@ -105,6 +109,7 @@ export const StudentPortalDashboard = ({
   submissions,
   onlineSubmissions,
   profile,
+  scores,
   loading,
   uploadingId,
   uploadStep,
@@ -178,6 +183,11 @@ export const StudentPortalDashboard = ({
       : { assignment, submission, state: getStudentAssignmentState(assignment, submission) };
   }), [activityByAssignment, assignments, latest]);
   const visibleRows = useMemo(() => rows.filter(row => statusFilterMatch(row.state.status, filter)), [filter, rows]);
+  const homeworkScores = useMemo(() => progressSummary.officialActivities.flatMap(activity => (
+    activity.officialScore !== null && typeof activity.maxScore === 'number' && activity.maxScore > 0
+      ? [{ id: activity.id, title: activity.title, score: activity.officialScore, maxScore: activity.maxScore }]
+      : []
+  )), [progressSummary.officialActivities]);
   const selfSubmissions = useMemo(() => submissions
     .filter(submission => !submission.assignmentId)
     .sort((left, right) => right.createdAt.localeCompare(left.createdAt)), [submissions]);
@@ -493,6 +503,8 @@ export const StudentPortalDashboard = ({
             </div>
           </section>
         )}
+
+        <StudentScoreBoard scores={scores} homework={homeworkScores} />
 
         <section>
           <div className="flex items-end justify-between gap-3">

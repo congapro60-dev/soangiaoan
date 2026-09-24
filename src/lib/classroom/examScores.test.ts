@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseStudentExamScores, hasAnyExamScore } from './examScores';
+import { parseStudentExamScores } from './examScores';
 
 // Mô phỏng đúng cấu trúc file lớp thật: dòng 1 trống, dòng 2 tiêu đề phụ, dòng 3 header, dòng 4 số
 // cột, dữ liệu từ dòng 5. Cột "Phân loại điểm"/"Điểm chữ" là CÔNG THỨC nội bộ — phải bị bỏ.
@@ -50,7 +50,6 @@ describe('parseStudentExamScores', () => {
   it('không khớp học sinh thì trả rỗng', () => {
     const scores = parseStudentExamScores(MOET, TDS, 'KHONG-CO');
     expect(scores).toEqual({ moet: [], tds: [] });
-    expect(hasAnyExamScore(scores)).toBe(false);
   });
 
   it('KHÔNG lộ cột công thức / phân loại nội bộ', () => {
@@ -58,9 +57,5 @@ describe('parseStudentExamScores', () => {
     expect(blob).not.toContain('Phân loại điểm');
     expect(blob).not.toContain('CÔNG THỨC');
     expect(blob).not.toContain('x<5');
-  });
-
-  it('hasAnyExamScore đúng khi có điểm', () => {
-    expect(hasAnyExamScore(parseStudentExamScores(MOET, TDS, 'GB0117010125'))).toBe(true);
   });
 });
