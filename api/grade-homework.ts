@@ -23,6 +23,7 @@ import {
   buildHomeworkGradingRetryPrompt,
   buildPracticeGradingPrompt,
   buildPracticePrompt,
+  isPracticeLevel,
   buildRewriteFeedbackPrompt,
   buildRubricPrompt,
   buildSolveExamPrompt,
@@ -51,6 +52,12 @@ import {
   type CompetencyTag,
 } from '../src/lib/classroom/competency/framework.js';
 import { applyPracticeEvidence } from '../src/lib/classroom/profileMerge.js';
+import {
+  collectHomeworkMistakes,
+  collectPracticeMistakes,
+  recentPracticeQuestions,
+  type PracticeMistake,
+} from '../src/lib/classroom/practiceBasis.js';
 import {
   buildHomeworkSkillEvidence,
   buildPracticeSkillEvidence,
@@ -788,6 +795,49 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
  * Bài luyện thêm từ chủ đề còn yếu trong hồ sơ. Tính vào cùng hạn mức đường học sinh —
  * đây cũng là một lượt gọi AI trả bằng tiền của chủ dự án.
  */
+/**
+ * Căn cứ ra bài luyện: lỗi từng câu trong BTVN đã chấm của chính em + câu em chưa làm trọn ở lượt
+ * luyện đã chấm gần nhất; kèm câu hỏi các đề luyện gần đây để AI không ra lại.
+ */
+const loadPracticeBasis = async (
+  db: FirebaseFirestore.Firestore,
+  link: { studentId: string; classId: string; teacherId: string },
+): Promise<{ mistakes: PracticeMistake[]; avoidQuestions: string[] }> => {
+  const mine = <T extends { classId?: unknown; teacherId?: unknown }>(data: T) =>
+    data.classId === link.classId && data.teacherId === link.teacherId;
+  const [submissionSnap, setSnap, attemptSnap] = await Promise.all([
+    db.collection('submissions').where('studentId', '==', link.studentId).get(),
+    db.collection(PRACTICE_SETS_COL).where('studentId', '==', link.studentId).get(),
+    db.collection(PRACTICE_ATTEMPTS_COL).where('studentId', '==', link.studentId).get(),
+  ]);
+
+  const submissions = submissionSnap.docs.map(d => d.data() as SubmissionDoc).filter(mine);
+  const assignmentIds = [...new Set(submissions
+    .filter(s => s.status === 'graded' && s.assignmentId)
+    .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
+    .slice(0, 10)
+    .map(s => s.assignmentId as string))];
+  const titles = new Map<string, string>();
+  await Promise.all(assignmentIds.map(async id => {
+    const snap = await db.collection('assignments').doc(id).get();
+    const title = snap.exists ? String(snap.data()?.title || '') : '';
+    if (title) titles.set(id, title);
+  }));
+  const homework = collectHomeworkMistakes(submissions, id => titles.get(id) ?? '', 6);
+
+  const latestAttempt = attemptSnap.docs
+    .map(d => d.data() as PracticeAttemptDoc)
+    .filter(a => mine(a) && a.status === 'graded')
+    .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)))[0] ?? null;
+  const latestKey = latestAttempt
+    ? await db.collection(PRACTICE_KEYS_COL).doc(latestAttempt.setId).get().then(s => (s.exists ? s.data() as PracticeKeyDoc : null))
+    : null;
+  const practice = collectPracticeMistakes(latestAttempt, latestKey, 3);
+
+  const sets = setSnap.docs.map(d => d.data() as PracticeSetDoc).filter(mine);
+  return { mistakes: [...practice, ...homework], avoidQuestions: recentPracticeQuestions(sets) };
+};
+
 const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
   const uid = await uidFromIdToken(body.idToken);
   if (!uid) return res.status(401).json({ error: 'Phiên đăng nhập không hợp lệ.' });
@@ -814,13 +864,15 @@ const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<stri
       return res.status(403).json({ error: 'Đáp án bài luyện không thuộc tài khoản học sinh này.' });
     }
 
-    // Chỉ project đúng ba trường công khai và kiểm lại hint bằng private key, kể cả khi
+    // Chỉ project đúng các trường công khai và kiểm lại hint/basis bằng private key, kể cả khi
     // document public cũ bị ghi thêm solution hoặc bị AI tạo rò rỉ trước khi có validator.
     const publicQuestions = (Array.isArray(set.questions) ? set.questions : [])
       .map(question => ({
         id: String(question.id || ''),
         question: String(question.question || ''),
         hint: String(question.hint || ''),
+        ...(isPracticeLevel(question.level) ? { level: question.level } : {}),
+        ...(question.basis ? { basis: String(question.basis) } : {}),
       }))
       .filter(question => question.id && question.question);
     const storedKeyQuestions = Array.isArray(key.questions) ? key.questions : [];
@@ -885,8 +937,9 @@ const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<stri
     .map(t => t.topic)
     .slice(0, 3);
 
-  if (topics.length === 0) {
-    return res.status(200).json({ setId: '', questions: [], topics: [], createdAt: '', reason: 'Hồ sơ chưa ghi nhận chủ đề nào cần luyện thêm.' });
+  const basis = await loadPracticeBasis(db, link);
+  if (topics.length === 0 && basis.mistakes.length === 0) {
+    return res.status(200).json({ setId: '', questions: [], topics: [], createdAt: '', reason: 'Chưa có bài BTVN nào được chấm ra lỗi để luyện thêm.' });
   }
 
   const reservation = await reserveQuota(db, link.teacherId, 'self', link.studentId);
@@ -896,11 +949,16 @@ const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<stri
   let raw: string;
   try {
     raw = await callGeminiVision(
-      buildPracticePrompt(topics, String(classSnap.data()?.grade || '')),
+      buildPracticePrompt({
+        grade: String(classSnap.data()?.grade || ''),
+        topics,
+        mistakes: basis.mistakes,
+        avoidQuestions: basis.avoidQuestions,
+      }),
       [],
       getGradingApiKey(),
       GRADING_MODEL,
-      { maxOutputTokens: 6144, jsonMode: true },
+      { maxOutputTokens: 12288, jsonMode: true },
     );
   } catch (error) {
     console.error('[grade-homework] practice generation failed', error);

@@ -479,6 +479,10 @@ export interface PracticeQuestionPublic {
   id: string;
   question: string;
   hint: string;
+  /** 'nhan_biet' | 'van_dung' | 'van_dung_cao'; đề cũ không có. */
+  level?: string;
+  /** Căn cứ ra câu này (kỹ năng + nguồn lỗi), cho học sinh đọc. */
+  basis?: string;
   skillIds?: string[];
 }
 

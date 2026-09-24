@@ -1,6 +1,7 @@
 import { parseJsonWithRecovery, parseLooseJson } from '../../utils/jsonRepair.js';
 import type { JsonParseMode, JsonRepairKind } from '../../utils/jsonRepair.js';
 import type { CompetencyTag } from './competency/framework.js';
+import { repairLatexEscapes, type PracticeMistake } from './practiceBasis.js';
 import type {
   PracticeQuestionPublic,
   PracticeQuestionResult,
@@ -557,26 +558,77 @@ export const parseHomeworkGradeForCommit = (
 
 // ── Bài bổ trợ theo chủ đề còn yếu ───────────────────────────────────────────
 
+export type PracticeLevel = 'nhan_biet' | 'van_dung' | 'van_dung_cao';
+
+const PRACTICE_LEVELS: readonly PracticeLevel[] = ['nhan_biet', 'van_dung', 'van_dung_cao'];
+
+export const isPracticeLevel = (value: unknown): value is PracticeLevel =>
+  PRACTICE_LEVELS.some(level => level === value);
+
 export interface PracticeQuestion {
   id: string;
   question: string;
   hint: string;
   solution: string;
+  /** Mức độ; rỗng nếu AI trả nhãn lạ. */
+  level?: PracticeLevel;
+  /** Căn cứ ra câu này, cho học sinh đọc: kỹ năng được luyện + nguồn (bài BTVN / lượt luyện trước). */
+  basis?: string;
 }
 
-export const buildPracticePrompt = (topics: string[], grade: string, count = 3): string =>
-  `Bạn là giáo viên ra bài luyện thêm cho một học sinh lớp ${grade || 'phổ thông'} ở Việt Nam.
+export interface PracticePromptInput {
+  grade: string;
+  /** Chủ đề còn yếu trong hồ sơ. */
+  topics: string[];
+  /** Lỗi cụ thể từ BTVN đã chấm và từ lượt luyện trước — căn cứ CHÍNH để ra bài. */
+  mistakes: PracticeMistake[];
+  /** Câu hỏi các đề luyện gần đây — không được lặp lại. */
+  avoidQuestions: string[];
+  /** Số câu; mặc định 6 (2 nhận biết/thông hiểu + 3 vận dụng + 1 vận dụng cao). */
+  count?: number;
+}
 
-CHỦ ĐỀ EM CÒN YẾU (chỉ ra bài trong phạm vi này, không lan sang chủ đề khác):
+const levelPlan = (count: number): string => {
+  const high = Math.max(1, Math.round(count / 6));
+  const low = Math.max(1, Math.round(count / 3));
+  return `${low} câu mức "nhan_biet" (nhận biết/thông hiểu), ${count - low - high} câu mức "van_dung", ${high} câu mức "van_dung_cao"`;
+};
+
+export const buildPracticePrompt = ({ grade, topics, mistakes, avoidQuestions, count = 6 }: PracticePromptInput): string => {
+  const mistakeLines = mistakes.map((m, i) => [
+    `[L${i + 1}] Nguồn: ${m.source}`,
+    m.errorType && `  Loại lỗi: ${m.errorType}`,
+    m.explanation && `  Vì sao sai: ${m.explanation}`,
+    m.correction && `  Cách sửa: ${m.correction}`,
+    m.nextPractice && `  Gợi ý luyện: ${m.nextPractice}`,
+  ].filter(Boolean).join('\n')).join('\n');
+
+  return `Bạn là giáo viên Toán ra bài luyện thêm cho một học sinh lớp ${grade || 'phổ thông'} ở Việt Nam.
+
+${mistakeLines ? `LỖI CỤ THỂ EM ĐÃ MẮC (căn cứ CHÍNH — mỗi câu luyện phải nhắm vào ít nhất một lỗi dưới đây):
+${mistakeLines}
+` : ''}${topics.length > 0 ? `CHỦ ĐỀ EM CÒN YẾU (chỉ ra bài trong phạm vi này và các lỗi trên, không lan sang chủ đề khác):
 ${topics.map(t => `- ${t}`).join('\n')}
+` : ''}${avoidQuestions.length > 0 ? `CÁC CÂU EM ĐÃ LÀM Ở ĐỀ TRƯỚC — TUYỆT ĐỐI KHÔNG lặp lại, không chỉ đổi số liệu; phải là tình huống/dạng khác:
+${avoidQuestions.map(q => `- ${q}`).join('\n')}
+` : ''}
+Ra ĐÚNG ${count} bài, xếp từ dễ đến khó: ${levelPlan(count)}.
+Đa dạng dạng bài trong cùng một đề: tính toán trực tiếp, trắc nghiệm 4 lựa chọn (ghi A. B. C. D. ngay trong đề),
+đúng/sai kèm giải thích, tìm và sửa chỗ sai trong một lời giải có sẵn, bài có ngữ cảnh thực tế. Không lặp một khuôn.
+Bài đầu phải làm được ngay sau khi đọc gợi ý. Mỗi câu làm được trên điện thoại (không cần vẽ hình phức tạp).
 
-Ra ĐÚNG ${count} bài, xếp từ dễ đến khó. Bài đầu phải làm được ngay sau khi đọc gợi ý.
-Lời giải viết từng bước, nói rõ chỗ học sinh hay nhầm ở chủ đề này. HINT chỉ gợi ý phương pháp;
+Lời giải viết từng bước, nói rõ chỗ học sinh hay nhầm. HINT chỉ gợi ý phương pháp;
 tuyệt đối không ghi đáp án cuối, số kết quả cuối, hay câu kết luận có thể dùng để suy ra ngay đáp án.
-Không dùng lời khen sáo rỗng, không nhắc tới việc em từng làm sai.
+Không dùng lời khen sáo rỗng, không nhắc tới việc em từng làm sai trong đề/gợi ý/lời giải.
+"basis" là một câu ngắn trung tính cho học sinh đọc: kỹ năng câu này luyện + nguồn, vd
+"Luyện: đổi dấu khi chuyển vế (từ BTVN Đại số 18/09/2026 · Câu 2)". Không chép nguyên đáp án vào basis.
+
+CÔNG THỨC: mọi biểu thức toán viết LaTeX trong $...$ (vd $\\frac{1}{2}$, $x^2-3x+2$, $\\sqrt{3}$).
+Trong chuỗi JSON PHẢI nhân đôi mọi dấu gạch chéo ngược: viết "\\\\frac" chứ không viết "\\frac".
 
 CHỈ TRẢ VỀ JSON THUẦN:
-{"questions":[{"id":"q1","question":"...","hint":"...","solution":"..."}]}`;
+{"questions":[{"id":"q1","level":"nhan_biet","basis":"...","question":"...","hint":"...","solution":"..."}]}`;
+};
 
 export const parsePracticeQuestions = (raw: string): PracticeQuestion[] => {
   const text = String(raw || '');
@@ -584,16 +636,20 @@ export const parsePracticeQuestions = (raw: string): PracticeQuestion[] => {
   const jsonStr = inCodeBlock ? inCodeBlock[1] : text.match(/\{[\s\S]*\}/)?.[0];
   if (!jsonStr) throw new Error('AI trả về nội dung không đọc được. Thử lại một lần nữa.');
 
-  const parsed = parseLooseJson<{ questions?: unknown }>(jsonStr);
+  const parsed = parseLooseJson<{ questions?: unknown }>(repairLatexEscapes(jsonStr));
   const list = Array.isArray(parsed.questions) ? parsed.questions : [];
   const cleaned = list
     .map((item, index) => {
       const q = item as Record<string, unknown>;
+      const level = PRACTICE_LEVELS.find(value => value === String(q.level || '').trim());
+      const basis = String(q.basis || '').trim().slice(0, 300);
       return {
         id: String(q.id || `q${index + 1}`).trim(),
         question: String(q.question || '').trim(),
         hint: String(q.hint || '').trim(),
         solution: String(q.solution || '').trim(),
+        ...(level ? { level } : {}),
+        ...(basis ? { basis } : {}),
       };
     })
     .filter(q => q.id && q.question && q.solution);
@@ -632,13 +688,20 @@ const containsPracticeAnswer = (text: string, solution: string): boolean => {
 /** Chỉ phần này đi ra Firestore document mà học sinh đọc được. */
 export const toPublicPracticeQuestions = (questions: PracticeQuestion[]): PracticeQuestionPublic[] => {
   const publicQuestions = questions
-    .map(q => ({ id: q.id, question: q.question, hint: q.hint }))
+    .map(q => ({
+      id: q.id,
+      question: q.question,
+      hint: q.hint,
+      ...(q.level ? { level: q.level } : {}),
+      ...(q.basis ? { basis: q.basis } : {}),
+    }))
     .filter(q => q.id && q.question);
 
   for (const [index, question] of questions.entries()) {
     if (!publicQuestions[index]) continue;
     if (containsPracticeAnswer(question.question, question.solution)
-      || containsPracticeAnswer(question.hint, question.solution)) {
+      || containsPracticeAnswer(question.hint, question.solution)
+      || containsPracticeAnswer(question.basis ?? '', question.solution)) {
       throw new Error('AI tạo câu luyện có nguy cơ lộ đáp án; bài luyện chưa được phát hành.');
     }
   }

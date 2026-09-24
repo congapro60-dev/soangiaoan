@@ -5,6 +5,14 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Bài luyện thêm của học sinh: căn cứ lỗi BTVN, 6 câu 3 mức, đề nối tiếp — 2026-09-24
+
+Chủ dự án báo: công thức vỡ nặng, ít bài, không đa dạng, không rõ căn cứ. Gốc: prompt cũ chỉ gửi ≤3 TÊN chủ đề yếu, ra 3 câu, KHÔNG dặn LaTeX/nhân đôi `\` → `JSON.parse` biến `\frac`→form-feed+"rac", `\times`→tab (không báo lỗi); trang HS in câu hỏi chữ thô. Sửa:
+- `practiceBasis.ts` (thuần): `collectHomeworkMistakes` (câu sai/đúng một phần trong BTVN đã chấm của CHÍNH lớp/GV hiện tại, mới nhất trước, gộp lỗi trùng, ≤6), `collectPracticeMistakes` (câu chưa trọn điểm ở lượt luyện đã chấm gần nhất, ≤3), `recentPracticeQuestions` (3 đề gần nhất → cấm lặp), `repairLatexEscapes` (chỉ sửa khi cả từ là lệnh LaTeX quen thuộc; `\nTa`, `\\frac` giữ nguyên).
+- `buildPracticePrompt({grade,topics,mistakes,avoidQuestions,count=6})`: 2 nhận biết/thông hiểu + 3 vận dụng + 1 vận dụng cao, đa dạng dạng bài, bắt LaTeX + nhân đôi `\`; mỗi câu có `level` + `basis` (câu trung tính "Luyện: … (từ BTVN … · Câu …)", kiểm lộ đáp án như hint). `loadPracticeBasis` ở `api/grade-homework.ts`; maxOutputTokens 12288. Không có chủ đề lẫn lỗi → không tạo.
+- Trang HS: câu hỏi/gợi ý/nhận xét/đáp án dựng bằng `NhanXetMarkdown` (KaTeX), nhãn mức + dòng căn cứ; nút sau khi chấm đổi tên "Tạo đề tiếp".
+- **Bẫy:** đề đã tạo TRƯỚC bản này vẫn còn ký tự hỏng trong Firestore — HS bấm "Tạo đề tiếp" là có đề mới sạch. Test: practiceBasis 4, gradingPrompt +4, practice API +1. `ai-gateway-handler` SSE đôi khi quá 5s khi chạy cả bộ (chạy riêng pass) — không liên quan.
+
 ## Sổ điểm lớp (GĐ3) — 2026-09-24
 
 Một document `scoreBooks/{classId}` (`src/lib/classroom/scoreBook.ts` thuần + `api/_score-book.ts`), **chỉ máy chủ đọc/ghi** — rules mặc định chặn nên KHÔNG phải phát hành lại `firestore.rules`. Vì sao 1 document/lớp: lớp ≤ vài chục HS, xa trần 1MB, đọc 1 lần ra cả bảng. Giáo viên thuộc lớp (`teacherContext`, cả đồng chủ lớp): `teacherScoreBook`, `saveHs1Column` (tạo/sửa 1 cột + điểm cả lớp, ô trống = xoá, 0–10 tối đa 2 số lẻ, sai 1 ô là từ chối cả lô), `deleteHs1Column`, `saveExamScores` (THAY toàn bộ phần thi — Sheet là nguồn gốc). Học sinh: `studentScoreBook` lấy classId/studentId từ `studentLinks`, KHÔNG nhận từ client. studentId ngoài danh sách lớp bị bỏ qua khi ghi.
@@ -76,19 +84,6 @@ Tiếp GĐ1. Toàn bộ ở `src/lib/classroom/competency/` (thuần, có test) 
 - **Xuất file (GĐ4):** nút "Xuất hồ sơ ra file trường" trong `CompetencyPortfolio`. `portfolioExport.ts` (thuần + test): **copy file mẫu** (`PORTFOLIO_TEMPLATE_ID`) → Google Sheet mới "Sxxxxx - Tên", điền B1/B2, **bôi vàng** ô mức đạt của từng năng lực (khớp dòng theo cột A "Nội dung", gate theo khối). Dùng Drive token của GV (scope `auth/drive`), không thêm Vercel function. Trường ghi mức bằng bôi vàng (dòng 3 file mẫu), không phải chữ. Mỗi lần xuất tạo bản sao mới, KHÔNG đụng file cũ.
 - **Ngưỡng GĐ4:** `PORTFOLIO_TEMPLATE_ID` hardcode = file mẫu của trường; GV phải có quyền xem file đó (files.copy). Bản sao đổ vào Drive gốc của GV (chưa chọn folder). Chủ đề khớp theo TEXT cột A — đổi tên chủ đề trong file mẫu mà không đổi `framework.ts` thì trượt (báo unmatched, không bôi ẩu).
 - Nghiệm thu: competency 24 test (framework/model/portfolio/export) + gradingPrompt 97 + grade-homework.competency 4 + projection 2 + full `lint`(tsc) 0, `build` PASS.
-
-## Hồ sơ năng lực — GĐ1: Mã HS trong danh sách lớp — 2026-09-17
-
-Bước nền cho tính năng **hồ sơ năng lực Toán** (tích luỹ từ BTVN + nhận xét, xuất ra file mẫu trường "Sxxxxx - Tên.xlsx" khi cần). GĐ1 chỉ làm **khoá cố định = Mã học sinh**.
-
-- App **vốn đã có** field `code` (="Mã học sinh của trường, dùng làm tên đăng nhập") và bộ nhập Excel `classRosterImport.ts` **đã đọc** cột "Mã HS/Mã học sinh/Student code" vào `code` (thiếu cột thì tự sinh `TÊNLỚP-N`). Thiếu là: không hiện + không sửa được mã.
-- Đã thêm: handler `setStudentCode` (`api/_classroom-teacher.ts`, kiểm **trùng mã trong lớp** vì mã = tên đăng nhập; PIN gắn theo studentId nên không đổi), service `teacherService.setStudentCode`, và UI `ClassesTab` (hiện "Mã HS: …" dưới tên; nút bút chì sửa cả Tên + Mã HS, tự viết hoa).
-- **Quyết định thiết kế (owner chốt):** dùng luôn `code` làm Mã HS (Hướng 1), không thêm field mới. Kho chính = app/Firestore khoá theo mã HS; Drive chỉ là nơi **xuất** khi trường kiểm tra.
-- **Backup mã:** đổi Mã HS thì mã cũ được dồn vào `StudentDoc.previousCodes` (dedup, giữ 20 mã gần nhất) để giáo viên xem/khôi phục sau; đặt lại đúng mã đang dùng thì no-op (`updated:false`). Nhập Excel tạo **lớp mới** nên không ghi đè mã lớp cũ.
-- **Ngưỡng sắp cắn người:** đổi Mã HS cũng là đổi **tên đăng nhập** của em (PIN giữ nguyên) — lớp đang để mã tự sinh, đổi sang `Sxxxxx` thì phải báo mã mới cho em. Mã phải **duy nhất trong lớp**.
-- **Tiếp theo:** GĐ2/GĐ3 đã xong (xem mục trên); còn GĐ3b duyệt nhãn + GĐ4 xuất file Drive. Khung + folder K10/K11/K12 + template đã khảo sát, xem `tasks/todo.md`.
-- **OpenCode:** dispatch worktree của Desk đang lỗi (session tạo nhưng không gửi prompt; CLI bám nhầm server thư mục chính) — Codex đang vá ở source Desk. GĐ1 này Claude tự làm + tự review; giai đoạn sau trả lại OpenCode khi đã vá.
-- Nghiệm thu: full Vitest **1964/1964 PASS** (thêm 3 test `setStudentCode`), `lint` 0, `lint:api` 0, `build` PASS, `git diff --check` sạch.
 
 ## Hạn BTVN lấy từ app + chống #ERROR! khi ghi hạn — 2026-09-14
 

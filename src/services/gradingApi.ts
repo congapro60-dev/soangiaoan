@@ -69,6 +69,8 @@ export interface PracticeQuestion {
   id: string;
   question: string;
   hint: string;
+  level?: string;
+  basis?: string;
 }
 
 export interface PracticeAttemptQuestionResult {
@@ -102,7 +104,7 @@ export interface PracticeSetResult {
   attempt?: PracticeAttemptResult;
 }
 
-/** Bài luyện thêm sinh từ chủ đề còn yếu trong hồ sơ của chính học sinh đang đăng nhập. */
+/** Bài luyện thêm sinh từ lỗi BTVN + chủ đề còn yếu của chính học sinh đang đăng nhập; không trùng đề trước. */
 export const fetchPractice = async (setId?: string, attemptId?: string): Promise<PracticeSetResult> => {
   const user = auth.currentUser;
   if (!user) throw new Error('Phiên đăng nhập đã hết hạn.');
