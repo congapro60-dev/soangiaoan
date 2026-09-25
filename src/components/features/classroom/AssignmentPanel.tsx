@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Swal from 'sweetalert2';
 import { AlertTriangle, CalendarClock, CheckCircle2, ChevronLeft, ChevronRight, ClipboardList, FileText, Hourglass, Loader2, PenLine, Play, Plus, RefreshCw, Save, ShieldCheck, Sparkles, Trash2, UserRound, X } from 'lucide-react';
 import {
@@ -26,7 +26,7 @@ import { AssignmentFormModal, type AssignmentFormValue } from './AssignmentFormM
 import { NhanXetMarkdown } from './NhanXetMarkdown';
 import { GradeReviewModal, type GradeReviewValue } from './GradeReviewModal';
 import { QuestionResultsList } from './QuestionResultsList';
-import { currentSubmissionsForAssignment, hasUncertainRead, isGradableNow, isStaleGradingTimestamp, selectedCurrentSubmissions, selectedSubmissionsForAssignment, submissionsForHistoryMode, summarizeSelection, type SubmissionHistoryMode } from '../../../lib/classroom/submissionSelection';
+import { classBacklog, currentSubmissionsForAssignment, hasUncertainRead, isGradableNow, isStaleGradingTimestamp, selectedCurrentSubmissions, selectedSubmissionsForAssignment, submissionsForHistoryMode, summarizeSelection, type SubmissionHistoryMode } from '../../../lib/classroom/submissionSelection';
 import { renameAssignment } from '../../../lib/classroom/teacherService';
 import { OnlineAssignmentReview } from './OnlineAssignmentReview';
 import { CompetencyTagEditor } from './CompetencyTagEditor';
@@ -504,6 +504,10 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   const [dangGiaiLai, setDangGiaiLai] = useState(false);
   const [dangGoiYRubric, setDangGoiYRubric] = useState(false);
   const [choChuaChac, setChoChuaChac] = useState<string[]>([]);
+  const [tienDoTatCa, setTienDoTatCa] = useState('');
+  // Việc tồn của cả lớp qua MỌI bài giao nộp ảnh — kể cả bài cũ học sinh nộp muộn.
+  const idsBaiNopAnh = useMemo(() => new Set(assignments.filter(a => a.type !== 'exam').map(a => a.id)), [assignments]);
+  const tonDong = useMemo(() => classBacklog(tatCaBaiNop, idsBaiNopAnh), [tatCaBaiNop, idsBaiNopAnh]);
 
   const taiBai = useCallback(async () => {
     setDangTai(true);
@@ -783,6 +787,85 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
       }
     } finally {
       setDangBulk('');
+    }
+  };
+
+  /**
+   * Chấm AI mọi lượt mới nhất còn chờ chấm, rồi duyệt mọi bài đã chấm chưa duyệt — trên TẤT CẢ bài giao
+   * của lớp. Bài máy đọc chưa chắc giữ lại cho giáo viên xem, trừ khi giáo viên tick duyệt luôn.
+   * Chạy tuần tự như các nút loạt khác để hồ sơ tích luỹ không ghi đè nhau.
+   */
+  const chamDuyetTatCa = async () => {
+    if (loiBaiNop !== null) {
+      await Swal.fire({ icon: 'warning', title: 'Chưa tải chắc danh sách bài nộp', text: 'Bấm "Làm mới" rồi thử lại.', confirmButtonColor: '#3085d6' });
+      return;
+    }
+    const { toGrade, toApprove, uncertain, assignmentCount } = tonDong;
+    const result = await Swal.fire({
+      icon: 'question',
+      title: 'Chấm & duyệt tất cả bài còn tồn?',
+      html: `<p>Áp dụng cho <b>${assignmentCount} bài giao</b> của lớp ${className} (chỉ lượt nộp mới nhất của mỗi em):</p>
+        <ul style="text-align:left;margin:8px 0 0 18px;list-style:disc">
+          ${toGrade.length > 0 ? `<li>Chấm AI <b>${toGrade.length}</b> bài chưa chấm (mỗi bài một lượt AI).</li>` : ''}
+          <li>Duyệt <b>${toApprove.length}</b> bài đã chấm${toGrade.length > 0 ? ' và các bài vừa chấm xong' : ''} — học sinh, phụ huynh thấy điểm chính thức.</li>
+          ${uncertain.length > 0 ? `<li><b>${uncertain.length}</b> bài máy đọc chưa chắc được giữ lại để thầy cô xem, trừ khi tick ô bên dưới.</li>` : ''}
+        </ul>
+        <p style="margin-top:8px;font-size:12px;color:#64748b">Bài đã duyệt giữ nguyên. Bài chấm xong mà máy đọc chưa chắc cũng được giữ lại như trên.</p>`,
+      ...(uncertain.length > 0 || toGrade.length > 0 ? {
+        input: 'checkbox' as const,
+        inputValue: 0,
+        inputPlaceholder: 'Duyệt luôn cả bài máy đọc chưa chắc',
+      } : {}),
+      showCancelButton: true,
+      confirmButtonText: 'Chấm & duyệt',
+      cancelButtonText: 'Thôi',
+      confirmButtonColor: '#4f46e5',
+    });
+    if (!result.isConfirmed) return;
+    const duyetCaChuaChac = result.value === 1;
+
+    setDangBulk('all');
+    let daCham = 0;
+    let loiCham = 0;
+    let daDuyet = 0;
+    let loiDuyet = 0;
+    try {
+      for (let i = 0; i < toGrade.length; i += 1) {
+        setTienDoTatCa(`Đang chấm ${i + 1}/${toGrade.length}...`);
+        try {
+          await gradeOneSubmission(toGrade[i].id, 'quick');
+          daCham += 1;
+        } catch {
+          loiCham += 1;
+        }
+      }
+      // Lấy lại danh sách để duyệt luôn cả các bài vừa chấm xong.
+      const sauCham = await listSubmissionsForClass(classId, teacherId);
+      setTatCaBaiNop(sauCham);
+      setLoiBaiNop(null);
+      const tonSau = classBacklog(sauCham, idsBaiNopAnh);
+      const canDuyet = duyetCaChuaChac ? [...tonSau.toApprove, ...tonSau.uncertain] : tonSau.toApprove;
+      for (let i = 0; i < canDuyet.length; i += 1) {
+        setTienDoTatCa(`Đang duyệt ${i + 1}/${canDuyet.length}...`);
+        try {
+          await approveGrade(canDuyet[i], true);
+          daDuyet += 1;
+        } catch {
+          loiDuyet += 1;
+        }
+      }
+      const conChuaChac = duyetCaChuaChac ? 0 : tonSau.uncertain.length;
+      showToast(
+        `Đã chấm ${daCham} bài, duyệt ${daDuyet} bài${loiCham + loiDuyet > 0 ? `; ${loiCham + loiDuyet} bài lỗi cần thử lại` : ''}${conChuaChac > 0 ? `; ${conChuaChac} bài máy đọc chưa chắc đang chờ thầy cô xem` : ''}.`,
+        loiCham + loiDuyet > 0 ? 'warning' : 'success',
+      );
+      setTatCaBaiNop(await listSubmissionsForClass(classId, teacherId));
+    } catch (error) {
+      console.error('Chấm & duyệt tất cả chưa xong', error);
+      setLoiBaiNop('Chấm/duyệt chưa xong hết — bấm "Làm mới" để xem bài nào còn tồn rồi bấm lại.');
+    } finally {
+      setDangBulk('');
+      setTienDoTatCa('');
     }
   };
 
@@ -1313,6 +1396,27 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
             className="mt-2 inline-flex items-center gap-1.5 rounded-2xl bg-red-600 px-3 py-1.5 text-xs font-black text-white transition hover:bg-red-700 disabled:opacity-50"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${dangTai ? 'animate-spin' : ''}`} /> Tải lại bài nộp
+          </button>
+        </div>
+      )}
+
+      {!dangTai && (tienDoTatCa !== '' || tonDong.toGrade.length + tonDong.toApprove.length + tonDong.uncertain.length > 0) && (
+        <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-sm font-black text-slate-900">Việc tồn của cả lớp — mọi bài giao, kể cả bài cũ nộp muộn</p>
+            <p className="mt-0.5 text-xs font-semibold text-slate-600">
+              {tonDong.toGrade.length} bài chưa chấm · {tonDong.toApprove.length} bài chờ duyệt
+              {tonDong.uncertain.length > 0 ? ` · ${tonDong.uncertain.length} bài máy đọc chưa chắc (nên xem)` : ''} — trong {tonDong.assignmentCount} bài giao.
+            </p>
+            {tienDoTatCa && <p className="mt-1 text-xs font-black text-indigo-700">{tienDoTatCa}</p>}
+          </div>
+          <button
+            type="button"
+            onClick={() => void chamDuyetTatCa()}
+            disabled={dangBulk !== '' || tienDo !== ''}
+            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-2.5 text-sm font-black text-white hover:bg-indigo-700 disabled:opacity-50"
+          >
+            {dangBulk === 'all' ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />} Chấm & duyệt tất cả
           </button>
         </div>
       )}

@@ -110,3 +110,41 @@ export const summarizeSelection = (submissions: readonly SubmissionDoc[]): Selec
     && Boolean(submission.grade)
     && submission.grade?.editedByTeacher !== true).length,
 });
+
+export interface ClassBacklog {
+  /** Lượt mới nhất chưa chấm (chờ chấm / lỗi / khoá chấm đã chết). */
+  toGrade: SubmissionDoc[];
+  /** Đã chấm, chưa duyệt, máy đọc chắc chắn — duyệt loạt được. */
+  toApprove: SubmissionDoc[];
+  /** Đã chấm, chưa duyệt nhưng máy đọc chưa chắc — mặc định giữ lại cho giáo viên xem. */
+  uncertain: SubmissionDoc[];
+  /** Số bài giao đang có việc tồn. */
+  assignmentCount: number;
+}
+
+/**
+ * Việc tồn của CẢ LỚP qua mọi bài giao (kể cả bài cũ học sinh nộp muộn), chỉ tính lượt nộp
+ * mới nhất của mỗi em — để giáo viên chấm + duyệt một lần thay vì dò từng bài.
+ */
+export const classBacklog = (
+  submissions: readonly SubmissionDoc[],
+  assignmentIds: ReadonlySet<string>,
+  nowMs = Date.now(),
+): ClassBacklog => {
+  const byAssignment = new Map<string, SubmissionDoc[]>();
+  for (const submission of submissions) {
+    if (!submission.assignmentId || !assignmentIds.has(submission.assignmentId)) continue;
+    byAssignment.set(submission.assignmentId, [...(byAssignment.get(submission.assignmentId) ?? []), submission]);
+  }
+  const current = [...byAssignment.values()].flatMap(list => currentSubmissionsForAssignment(list));
+  const toGrade = current.filter(submission => isGradableNow(submission, nowMs));
+  const waiting = current.filter(submission => submission.status === 'graded'
+    && Boolean(submission.grade)
+    && submission.grade?.teacherApproved !== true);
+  return {
+    toGrade,
+    toApprove: waiting.filter(submission => !hasUncertainRead(submission.grade)),
+    uncertain: waiting.filter(submission => hasUncertainRead(submission.grade)),
+    assignmentCount: new Set([...toGrade, ...waiting].map(submission => submission.assignmentId)).size,
+  };
+};

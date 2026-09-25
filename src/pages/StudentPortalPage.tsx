@@ -167,6 +167,17 @@ export const StudentPortalPage = () => {
   const [dangNopLuyen, setDangNopLuyen] = useState(false);
   const [loiLuyen, setLoiLuyen] = useState('');
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  // Ảnh mới chọn chỉ nằm trên máy em: đóng tab/tải lại lúc chưa nộp (hoặc đang tải lên) là mất bài → trình duyệt hỏi lại.
+  const coBaiChuaGui = pendingFiles.length > 0 || dangNop !== '';
+  useEffect(() => {
+    if (!coBaiChuaGui) return;
+    const giuLai = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', giuLai);
+    return () => window.removeEventListener('beforeunload', giuLai);
+  }, [coBaiChuaGui]);
   // Gộp thông báo đã lưu (bị xoá bài) với các việc suy ra từ chính bài nộp.
   const notificationFeed = useMemo(
     () => buildStudentFeed({ submissions, assignments, notifications }),
@@ -478,13 +489,13 @@ export const StudentPortalPage = () => {
           setBuocNop('');
           const { isConfirmed } = await Swal.fire({
             icon: 'success',
-            title: supplementOf ? 'Đã bổ sung ảnh!' : 'Nộp bài thành công!',
+            title: supplementOf ? 'Thầy cô đã nhận ảnh bổ sung ✓' : 'Thầy cô đã nhận bài của em ✓',
             text: supplementOf
-              ? 'Hệ thống đã ghép ảnh cũ và ảnh mới. Em muốn máy chấm lại toàn bộ bài để xem kết quả, hay gửi cho thầy cô chấm?'
-              : 'Bài này thầy cô đã soạn đáp án và hướng dẫn chấm. Em muốn máy chấm luôn để xem kết quả, hay gửi cho thầy cô chấm?',
+              ? 'Ảnh cũ và ảnh mới đã được ghép. Em muốn máy chấm lại ngay để xem điểm không? Đóng hộp này cũng không sao — bài vẫn đã nộp, thầy cô sẽ chấm.'
+              : 'Bài đã nộp xong. Em muốn máy chấm ngay để xem điểm không? Đóng hộp này cũng không sao — bài vẫn đã nộp, thầy cô sẽ chấm.',
             showDenyButton: true,
-            confirmButtonText: 'Tự chấm ngay',
-            denyButtonText: 'Gửi thầy cô chấm',
+            confirmButtonText: 'Xem điểm ngay (máy chấm)',
+            denyButtonText: 'Để thầy cô chấm',
             confirmButtonColor: '#4f46e5',
             denyButtonColor: '#64748b',
             allowOutsideClick: false,

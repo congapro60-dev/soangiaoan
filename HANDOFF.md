@@ -16,6 +16,11 @@ Chủ dự án chốt: nhóm (chủ dự án + cô Hạnh, Vân, Hồng) dùng t
 - QR giáo viên quét do web tự tạo (qr.sepay.vn, điền sẵn số tiền + nội dung SPAI…); ảnh QR tải lên là dự phòng (tự gõ nội dung), QR tự tạo lỗi thì tự chuyển sang ảnh. Tài khoản nhận PHẢI đã liên kết SePay. Web không đọc tài khoản từ SePay (cần token API SePay — không đáng).
 - **Chủ dự án tự làm** (AI không nhập khoá/số tài khoản): webhook SePay + biến Vercel `SEPAY_WEBHOOK_KEY` + Redeploy; nhập tài khoản nhận tiền.
 - Test: aiKeyPolicy, aiWallet 9, ai-keys 7, ai-wallet 5, gateway 8, aiKeyGate 4; toàn bộ 186 file/2.121 test; lint, lint:api, build pass.
+## Nộp bài HS an toàn hơn + "Chấm & duyệt tất cả" cho cả lớp — 2026-09-25
+
+- Trang HS: ảnh đã chọn mà chưa bấm "Nộp N tệp" chỉ nằm trên máy em → khung đỏ "Ảnh chưa gửi", trình duyệt hỏi lại khi đóng/tải lại (`beforeunload`). Hộp sau khi nộp đổi thành "Thầy cô đã nhận bài ✓" — đóng hộp vẫn là đã nộp (bài lưu TRƯỚC khi hộp hiện; trạng thái Chờ chấm).
+- GV (tab Bài nộp/Bài giao): khung "Việc tồn của cả lớp" + nút **Chấm & duyệt tất cả** — `classBacklog` (thuần, `submissionSelection.ts`) gom lượt MỚI NHẤT của mọi bài giao nộp ảnh: chấm AI bài chưa chấm rồi duyệt; bài máy đọc chưa chắc giữ lại trừ khi tick. Chạy tuần tự trên client (đóng tab giữa chừng thì phần còn lại vẫn tồn, bấm lại được).
+
 ## Cầu nối SSM Edufit (đợt 1: chỉ đọc) — 2026-09-24
 
 SSM (`ssm.edufit.vn`) là hệ thống nội bộ Edufit của trường, không có API công khai; chủ dự án báo lãnh đạo đã cho phép đồng bộ. Hướng đã chọn: **tiện ích Edge** `extension/ssm-bridge/` (MV3), dùng phiên SSM của chính giáo viên ngay trong trình duyệt. Vé SSM KHÔNG lên app/Vercel/Firestore (lộ vé = vào SSM với quyền GV tới ~2027).

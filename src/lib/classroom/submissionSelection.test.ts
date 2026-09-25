@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { SubmissionDoc } from './types';
 import {
+  classBacklog,
   currentSubmissionsForAssignment,
   hasUncertainRead,
   isGradableNow,
@@ -168,5 +169,33 @@ describe('hasUncertainRead — nhắc soát khi máy đọc chưa chắc', () =>
 
   it('đọc rõ, confidence cao thì không cảnh báo', () => {
     expect(hasUncertainRead(grade([qr({ confidence: 0.95 })]))).toBe(false);
+  });
+});
+
+describe('classBacklog — việc tồn của cả lớp', () => {
+  const graded = (approved: boolean, confidence = 0.95): SubmissionGrade => ({
+    score: 7, maxScore: 10, feedback: '', teacherApproved: approved,
+    questionResults: [{ confidence } as QuestionResult],
+  } as SubmissionGrade);
+
+  it('gom mọi bài giao, chỉ lượt mới nhất; tách bài máy đọc chưa chắc; bỏ bài giao ngoài danh sách', () => {
+    const list = [
+      // Bài tuần trước: em A nộp muộn, chưa chấm; lượt cũ của A đã chấm không được tính.
+      submission('a-cu', 'A', '2026-09-10T08:00:00.000Z', { assignmentId: 'tuan-truoc', status: 'graded', grade: graded(false) }),
+      submission('a-moi', 'A', '2026-09-20T08:00:00.000Z', { assignmentId: 'tuan-truoc', status: 'submitted' }),
+      submission('b', 'B', '2026-09-11T08:00:00.000Z', { assignmentId: 'tuan-truoc', status: 'graded', grade: graded(false) }),
+      submission('c', 'C', '2026-09-21T08:00:00.000Z', { assignmentId: 'tuan-nay', status: 'graded', grade: graded(false, 0.3) }),
+      submission('d', 'D', '2026-09-21T08:00:00.000Z', { assignmentId: 'tuan-nay', status: 'graded', grade: graded(true) }),
+      submission('e', 'E', '2026-09-21T08:00:00.000Z', { assignmentId: 'da-xoa', status: 'submitted' }),
+    ];
+    const backlog = classBacklog(list, new Set(['tuan-truoc', 'tuan-nay']));
+    expect(backlog.toGrade.map(s => s.id)).toEqual(['a-moi']);
+    expect(backlog.toApprove.map(s => s.id)).toEqual(['b']);
+    expect(backlog.uncertain.map(s => s.id)).toEqual(['c']);
+    expect(backlog.assignmentCount).toBe(2);
+  });
+
+  it('lớp không còn việc tồn', () => {
+    expect(classBacklog([], new Set(['x']))).toEqual({ toGrade: [], toApprove: [], uncertain: [], assignmentCount: 0 });
   });
 });
