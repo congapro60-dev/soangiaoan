@@ -1,4 +1,4 @@
-import type { SubmissionDoc, SubmissionGrade } from './types';
+import type { SubmissionDoc, SubmissionGrade } from './types.js';
 
 /** Dưới ngưỡng này coi là máy đọc chữ chưa chắc, nên nhắc giáo viên soát lại. */
 export const READ_CONFIDENCE_FLOOR = 0.6;

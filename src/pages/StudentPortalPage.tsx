@@ -580,7 +580,7 @@ export const StudentPortalPage = () => {
     const isErrorNoGrade = submission?.status === 'error' && !grade;
     const isErrorWithGrade = submission?.status === 'graded' && grade && submission.lastGradingError;
     const approvalLabel = grade?.teacherApproved
-      ? (grade.approvalSource === 'student_ai' ? ' (AI tự duyệt)' : ' (Đã duyệt GV)')
+      ? (grade.approvalSource === 'student_ai' || grade.approvalSource === 'auto_timeout' ? ' (AI tự duyệt)' : ' (Đã duyệt GV)')
       : (grade ? ' (Chờ GV duyệt)' : '');
     const text = isGraded
       ? `${grade.score ?? 0}/${grade.maxScore ?? 10} điểm${approvalLabel}${grade.feedback ? `\n\n${grade.feedback}` : ''}`

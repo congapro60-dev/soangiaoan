@@ -64,6 +64,7 @@ import {
   skillIdsForTopics,
 } from '../src/lib/learning/skillProfile.js';
 import { syncApprovedGradeEvidence } from './_skill-profile.js';
+import { autoGradeEnabledFor, canAutoApproveFreshGrade, planAutoSweep } from '../src/lib/classroom/autoGrade.js';
 import {
   PRACTICE_ATTEMPTS_COL,
   PRACTICE_KEYS_COL,
@@ -605,6 +606,19 @@ const recoverStaleGradingSubmissions = async (
   return recovered;
 };
 
+/** Ngữ cảnh chấm (đáp án, hướng dẫn, ảnh đề) của một bài giao. */
+const gradeContextFor = async (assignment: FirebaseFirestore.DocumentData): Promise<GradeContext> => ({
+  answerKey: String(assignment.answerKey || ''),
+  rubric: String(assignment.rubric || ''),
+  maxScore: Number(assignment.maxScore) || 10,
+  assignmentTitle: String(assignment.title || ''),
+  assignmentText: String(assignment.sourceText || ''),
+  // Ảnh generated xử lý PDF scan đã nằm trong sourceImageUrls; ảnh đính kèm cũ dùng fallback.
+  gradingInstructions: String(assignment.gradingInstructions || ''),
+  assignmentImages: await loadAssignmentSourceImages(assignment),
+  answerKeyImages: await loadAnswerKeyImages(assignment),
+});
+
 const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
   const uid = await uidFromIdToken(body.idToken);
   if (!uid) return res.status(401).json({ error: 'Cần đăng nhập tài khoản giáo viên.' });
@@ -654,17 +668,7 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
   // BATCH_SIZE phải nằm trong phép cắt này. Thiếu nó thì một request cố chấm tới 22 bài liền
   // trong khi Vercel giết hàm ở 60s — chấm được vài bài rồi chết, bài đang dở kẹt "Đang chấm".
   const batch = hopLe.slice(0, Math.min(BATCH_SIZE, verdict.allowed));
-  const ctx: GradeContext = {
-    answerKey: String(assignment.answerKey || ''),
-    rubric: String(assignment.rubric || ''),
-    maxScore: Number(assignment.maxScore) || 10,
-    assignmentTitle: String(assignment.title || ''),
-    assignmentText: String(assignment.sourceText || ''),
-    // Ảnh generated xử lý PDF scan đã nằm trong sourceImageUrls; ảnh đính kèm cũ dùng fallback.
-    gradingInstructions: String(assignment.gradingInstructions || ''),
-    assignmentImages: await loadAssignmentSourceImages(assignment),
-    answerKeyImages: await loadAnswerKeyImages(assignment),
-  };
+  const ctx = await gradeContextFor(assignment);
   const apiKey = getGradingApiKey();
 
   let graded = 0;
@@ -1638,10 +1642,127 @@ const handleRewriteFeedback = async (db: FirebaseFirestore.Firestore, body: Reco
   return res.status(200).json({ feedback: parseRewrittenFeedback(raw) });
 };
 
+// ── Tự chấm + tự duyệt sau 60 phút (bộ hẹn giờ GitHub Actions gọi 30 phút/lần) ──────────────
+
+const AUTO_ACTOR = 'system:auto-60';
+/** Hàm sống tối đa 60s; một lượt chấm được tiêu tới GRADING_BUDGET_MS → chỉ bắt đầu chấm khi còn đủ giờ. */
+const AUTO_SWEEP_START_GRADING_BEFORE_MS = 60_000 - GRADING_BUDGET_MS - 6_000;
+const AUTO_SWEEP_APPROVE_BEFORE_MS = 50_000;
+
+/** Duyệt thay giáo viên (quá 60 phút chưa duyệt) — chỉ khi bài vẫn đúng trạng thái lúc đọc. */
+const approveBySystem = async (db: FirebaseFirestore.Firestore, submissionId: string): Promise<boolean> => {
+  const ref = db.collection('submissions').doc(submissionId);
+  const now = new Date().toISOString();
+  let approvedSubmission: SubmissionDoc | null = null;
+  await db.runTransaction(async transaction => {
+    const snapshot = await transaction.get(ref);
+    if (!snapshot.exists) return;
+    const current = { id: submissionId, ...snapshot.data() } as SubmissionDoc;
+    if (!canAutoApproveFreshGrade(current)) return;
+    transaction.update(ref, { 'grade.teacherApproved': true, 'grade.approvalSource': 'auto_timeout', updatedAt: now });
+    approvedSubmission = current;
+  });
+  const approved = approvedSubmission as SubmissionDoc | null;
+  if (!approved?.grade) return false;
+  try {
+    await syncApprovedGradeEvidence(db, {
+      submissionId,
+      assignmentId: approved.assignmentId,
+      grade: { ...approved.grade, teacherApproved: true, approvalSource: 'auto_timeout' },
+      owner: { studentId: approved.studentId, classId: approved.classId, teacherId: approved.teacherId },
+      now,
+      approved: true,
+    });
+  } catch (error) {
+    // Điểm đã duyệt; hồ sơ tích luỹ đồng bộ sau (giáo viên có nút thử lại đồng bộ).
+    await ref.update({ evidenceSyncError: error instanceof Error ? error.message : 'Đồng bộ minh chứng thất bại' }).catch(() => undefined);
+  }
+  return true;
+};
+
+const handleAutoGradeSweep = async (req: VercelRequest, res: VercelResponse) => {
+  const secret = (process.env.AUTO_GRADE_CRON_SECRET || '').trim();
+  if (!secret) return res.status(503).json({ error: 'Chưa cấu hình AUTO_GRADE_CRON_SECRET.' });
+  if (getBearerToken(req.headers.authorization) !== secret) return res.status(401).json({ error: 'Sai khoá.' });
+
+  const db = getAdminDb();
+  const startedAt = Date.now();
+  const elapsed = () => Date.now() - startedAt;
+  const [pendingSnap, unapprovedSnap] = await Promise.all([
+    db.collection('submissions').where('status', 'in', ['submitted', 'grading']).get(),
+    db.collection('submissions').where('grade.teacherApproved', '==', false).get(),
+  ]);
+  const assignmentIds = new Set([...pendingSnap.docs, ...unapprovedSnap.docs]
+    .map(d => String(d.data().assignmentId || ''))
+    .filter(Boolean));
+
+  const classEnabled = new Map<string, boolean>();
+  const apiKey = getGradingApiKey();
+  let approved = 0;
+  let graded = 0;
+  let failed = 0;
+  let remaining = 0;
+  for (const assignmentId of assignmentIds) {
+    const assignmentSnap = await db.collection('assignments').doc(assignmentId).get();
+    const assignment = assignmentSnap.exists ? assignmentSnap.data() as FirebaseFirestore.DocumentData : null;
+    if (!assignment || assignment.type === 'exam') continue;
+    const classId = String(assignment.classId || '');
+    if (!classEnabled.has(classId)) {
+      const classSnap = await db.collection('classes').doc(classId).get();
+      classEnabled.set(classId, classSnap.exists && autoGradeEnabledFor(classSnap.data()));
+    }
+    if (!classEnabled.get(classId)) continue;
+
+    // Chỉ bài nộp thật sự thuộc bài giao này (cùng giáo viên + lớp), như đường "Chấm cả lớp".
+    const submissions = (await db.collection('submissions').where('assignmentId', '==', assignmentId).get()).docs
+      .map(d => ({ id: d.id, ...d.data() }) as SubmissionDoc)
+      .filter(submission => submission.teacherId === assignment.teacherId && submission.classId === classId);
+    const plan = planAutoSweep(submissions);
+
+    for (const submission of plan.toApprove) {
+      if (elapsed() > AUTO_SWEEP_APPROVE_BEFORE_MS) { remaining += 1; continue; }
+      if (await approveBySystem(db, submission.id)) approved += 1;
+    }
+
+    let ctx: GradeContext | null = null;
+    for (const submission of plan.toGrade) {
+      if (elapsed() > AUTO_SWEEP_START_GRADING_BEFORE_MS) { remaining += 1; continue; }
+      ctx ??= await gradeContextFor(assignment);
+      const gradeCtx = ctx;
+      // Mỗi bài một ngữ cảnh đếm token riêng: tiền tính cho giáo viên chủ bài, sao kê ghi đúng lớp/bài/em.
+      const usage = createAiUsageContext(null, 'autoGrade', { submissionId: submission.id, classId, assignmentId, studentId: submission.studentId },
+        async () => ({ uid: null, email: null, anonymous: false }));
+      try {
+        const result = await runWithAiUsage(usage, async () => {
+          setAiKeyOwner(submission.teacherId);
+          return gradeOneSubmission(db, submission.id, gradeCtx, apiKey, AUTO_ACTOR, true, 'quick');
+        });
+        if (!result.success) { failed += 1; continue; }
+        graded += 1;
+        const fresh = await db.collection('submissions').doc(submission.id).get();
+        if (fresh.exists && canAutoApproveFreshGrade({ id: fresh.id, ...fresh.data() } as SubmissionDoc) && await approveBySystem(db, submission.id)) approved += 1;
+      } catch (error) {
+        // Ví/khoá của giáo viên đang chặn: bài đã được gắn cờ chờ; lượt sau thử lại.
+        if (!(error instanceof AiKeyRequiredError)) console.error('[auto-grade] lỗi chấm', submission.id, error);
+        failed += 1;
+      }
+    }
+  }
+  return res.status(200).json({ approved, graded, failed, remaining });
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Chỉ nhận POST' });
+  }
+  if (req.query?.cron === 'auto') {
+    try {
+      return await handleAutoGradeSweep(req, res);
+    } catch (error) {
+      console.error('[auto-grade] lỗi', error);
+      return res.status(500).json({ error: error instanceof Error ? error.message : 'Lỗi quét tự chấm.' });
+    }
   }
 
   const body = readBody(req);

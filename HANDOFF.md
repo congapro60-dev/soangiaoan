@@ -16,6 +16,13 @@ Chủ dự án chốt: nhóm (chủ dự án + cô Hạnh, Vân, Hồng) dùng t
 - QR giáo viên quét do web tự tạo (qr.sepay.vn, điền sẵn số tiền + nội dung SPAI…); ảnh QR tải lên là dự phòng (tự gõ nội dung), QR tự tạo lỗi thì tự chuyển sang ảnh. Tài khoản nhận PHẢI đã liên kết SePay. Web không đọc tài khoản từ SePay (cần token API SePay — không đáng).
 - **Chủ dự án tự làm** (AI không nhập khoá/số tài khoản): webhook SePay + biến Vercel `SEPAY_WEBHOOK_KEY` + Redeploy; nhập tài khoản nhận tiền.
 - Test: aiKeyPolicy, aiWallet 9, ai-keys 7, ai-wallet 5, gateway 8, aiKeyGate 4; toàn bộ 186 file/2.121 test; lint, lint:api, build pass.
+## Tự chấm + tự duyệt sau 60 phút — 2026-09-25
+
+Chủ dự án chốt: bài nộp quá 60 phút GV chưa chấm → AI tự chấm; đã chấm quá 60 phút chưa duyệt → tự duyệt (`approvalSource: 'auto_timeout'`, nhãn "Tự duyệt sau 60 phút"). Mọi lớp, GV chủ lớp TẮT được (checkbox trong tab Bài giao/Bài nộp → `classes/{id}.autoGradeAfterHour=false`). Bài máy đọc chưa chắc KHÔNG tự duyệt; bài lỗi (`error`) để GV xử lý.
+- Thuần `autoGrade.ts` (`planAutoSweep`: chỉ lượt mới nhất; 60 phút tính từ lúc nộp / lúc chấm). Máy chủ: `POST /api/grade-homework?cron=auto` + `Authorization: Bearer <AUTO_GRADE_CRON_SECRET>` (thiếu biến → 503). Mỗi lần gọi: duyệt hết bài quá hạn + chấm tối đa 1 bài (hàm 60s, ngân sách chấm 45s); tiền tính cho GV chủ lớp (ngữ cảnh `autoGrade`).
+- Hẹn giờ: `.github/workflows/auto-grade.yml` 30 phút/lần, gọi lặp ≤20 lần tới khi `remaining:0`. Chưa có secret thì bỏ qua (không lỗi).
+- **Chủ dự án tự làm**: tạo chuỗi bí mật → GitHub repo Settings → Secrets → Actions `AUTO_GRADE_CRON_SECRET`; Vercel env cùng tên + Redeploy. Test `grade-homework.auto.test.ts` 3, `autoGrade.test.ts` 4.
+
 ## Nộp bài HS an toàn hơn + "Chấm & duyệt tất cả" cho cả lớp — 2026-09-25
 
 - Trang HS: ảnh đã chọn mà chưa bấm "Nộp N tệp" chỉ nằm trên máy em → khung đỏ "Ảnh chưa gửi", trình duyệt hỏi lại khi đóng/tải lại (`beforeunload`). Hộp sau khi nộp đổi thành "Thầy cô đã nhận bài ✓" — đóng hộp vẫn là đã nộp (bài lưu TRƯỚC khi hộp hiện; trạng thái Chờ chấm).

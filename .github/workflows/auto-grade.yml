@@ -1,0 +1,40 @@
+# Tự chấm + tự duyệt bài quá 60 phút giáo viên chưa xử lý (xem src/lib/classroom/autoGrade.ts).
+# Mỗi lần gọi máy chủ chấm tối đa 1 bài (hàm Vercel sống 60s) + duyệt các bài quá hạn duyệt,
+# nên gọi lặp tới khi hết việc hoặc không còn tiến triển.
+name: Tu cham va duyet sau 60 phut
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: auto-grade
+  cancel-in-progress: false
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Goi may chu quet bai qua 60 phut
+        env:
+          SECRET: ${{ secrets.AUTO_GRADE_CRON_SECRET }}
+        run: |
+          if [ -z "$SECRET" ]; then
+            echo "Chua co secret AUTO_GRADE_CRON_SECRET - bo qua."
+            exit 0
+          fi
+          for i in $(seq 1 20); do
+            out=$(curl -sS -X POST --max-time 75 \
+              -H "Authorization: Bearer $SECRET" \
+              "https://giaoandewey.vercel.app/api/grade-homework?cron=auto" || echo '{"error":"curl"}')
+            echo "Luot $i: $out"
+            case "$out" in
+              *'"remaining":0'*) break ;;
+              *'"error"'*) exit 1 ;;
+            esac
+            case "$out" in
+              *'"approved":0,"graded":0'*) break ;;
+            esac
+          done

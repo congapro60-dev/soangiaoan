@@ -28,6 +28,8 @@ import { GradeReviewModal, type GradeReviewValue } from './GradeReviewModal';
 import { QuestionResultsList } from './QuestionResultsList';
 import { classBacklog, currentSubmissionsForAssignment, hasUncertainRead, isGradableNow, isStaleGradingTimestamp, selectedCurrentSubmissions, selectedSubmissionsForAssignment, submissionsForHistoryMode, summarizeSelection, type SubmissionHistoryMode } from '../../../lib/classroom/submissionSelection';
 import { renameAssignment } from '../../../lib/classroom/teacherService';
+import { getClassDoc, setClassAutoGrade } from '../../../lib/classroom/classroomService';
+import { autoGradeEnabledFor } from '../../../lib/classroom/autoGrade';
 import { OnlineAssignmentReview } from './OnlineAssignmentReview';
 import { CompetencyTagEditor } from './CompetencyTagEditor';
 import { asCompetencyGrade } from '../../../lib/classroom/competency/framework';
@@ -56,6 +58,9 @@ const getApprovalLabel = (grade?: SubmissionDoc['grade']): { label: string; clas
   }
   if (grade.approvalSource === 'student_ai') {
     return { label: 'AI tự duyệt', className: 'bg-indigo-50 text-indigo-700' };
+  }
+  if (grade.approvalSource === 'auto_timeout') {
+    return { label: 'Tự duyệt sau 60 phút', className: 'bg-violet-50 text-violet-700' };
   }
   return { label: 'GV đã duyệt', className: 'bg-emerald-50 text-emerald-700' };
 };
@@ -505,6 +510,24 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   const [dangGoiYRubric, setDangGoiYRubric] = useState(false);
   const [choChuaChac, setChoChuaChac] = useState<string[]>([]);
   const [tienDoTatCa, setTienDoTatCa] = useState('');
+  // Công tắc lớp: bài quá 60 phút chưa chấm/duyệt thì máy tự chấm + tự duyệt (null = chưa đọc được).
+  const [tuChamSau60, setTuChamSau60] = useState<boolean | null>(null);
+  useEffect(() => {
+    let huy = false;
+    getClassDoc(classId)
+      .then(lop => { if (!huy) setTuChamSau60(lop ? autoGradeEnabledFor(lop as unknown as Record<string, unknown>) : null); })
+      .catch(() => { if (!huy) setTuChamSau60(null); });
+    return () => { huy = true; };
+  }, [classId]);
+  const doiTuChamSau60 = async (bat: boolean) => {
+    try {
+      await setClassAutoGrade(classId, bat);
+      setTuChamSau60(bat);
+      showToast(bat ? 'Đã bật: bài quá 60 phút chưa chấm/duyệt sẽ được máy tự chấm và tự duyệt.' : 'Đã tắt tự chấm/tự duyệt sau 60 phút cho lớp này.', 'success');
+    } catch {
+      showToast('Chỉ giáo viên chủ lớp đổi được cài đặt này.', 'error');
+    }
+  };
   // Việc tồn của cả lớp qua MỌI bài giao nộp ảnh — kể cả bài cũ học sinh nộp muộn.
   const idsBaiNopAnh = useMemo(() => new Set(assignments.filter(a => a.type !== 'exam').map(a => a.id)), [assignments]);
   const tonDong = useMemo(() => classBacklog(tatCaBaiNop, idsBaiNopAnh), [tatCaBaiNop, idsBaiNopAnh]);
@@ -1380,6 +1403,13 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
           </button>}
         </div>
       </div>
+
+      {tuChamSau60 !== null && (
+        <label className="mt-3 flex items-start gap-2 text-xs font-semibold leading-5 text-slate-600">
+          <input type="checkbox" checked={tuChamSau60} onChange={event => void doiTuChamSau60(event.target.checked)} className="mt-0.5 h-4 w-4 accent-indigo-600" />
+          <span><b className="text-slate-800">Tự chấm & duyệt sau 60 phút</b> — bài học sinh nộp quá 60 phút mà thầy cô chưa chấm/duyệt thì máy tự chấm và tự duyệt (bài máy đọc chưa chắc vẫn giữ lại cho thầy cô xem).</span>
+        </label>
+      )}
 
       {loiTai && (
         <p className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-800">{loiTai}</p>

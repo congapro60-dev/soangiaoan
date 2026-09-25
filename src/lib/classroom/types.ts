@@ -377,7 +377,8 @@ export interface SubmissionGrade {
 
 export type SubmissionGradeRevisionAction = 'manual_edit' | 'approve' | 'delete' | 'automatic_regrade' | 'ai_regrade' | 'student_ai';
 
-export type ApprovalSource = 'student_ai' | 'teacher';
+/** 'auto_timeout' = máy tự duyệt vì quá 60 phút giáo viên chưa duyệt. */
+export type ApprovalSource = 'student_ai' | 'teacher' | 'auto_timeout';
 
 /**
  * Bản chụp bất biến của một kết quả chấm trước khi giáo viên sửa/xóa hoặc AI chấm lại.
