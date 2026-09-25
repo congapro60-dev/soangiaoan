@@ -21,7 +21,8 @@ Chủ dự án chốt: nhóm (chủ dự án + cô Hạnh, Vân, Hồng) dùng t
 Chủ dự án chốt: bài nộp quá 60 phút GV chưa chấm → AI tự chấm; đã chấm quá 60 phút chưa duyệt → tự duyệt (`approvalSource: 'auto_timeout'`, nhãn "Tự duyệt sau 60 phút"). Mọi lớp, GV chủ lớp TẮT được (checkbox trong tab Bài giao/Bài nộp → `classes/{id}.autoGradeAfterHour=false`). Bài máy đọc chưa chắc KHÔNG tự duyệt; bài lỗi (`error`) để GV xử lý.
 - Thuần `autoGrade.ts` (`planAutoSweep`: chỉ lượt mới nhất; 60 phút tính từ lúc nộp / lúc chấm). Máy chủ: `POST /api/grade-homework?cron=auto` + `Authorization: Bearer <AUTO_GRADE_CRON_SECRET>` (thiếu biến → 503). Mỗi lần gọi: duyệt hết bài quá hạn + chấm tối đa 1 bài (hàm 60s, ngân sách chấm 45s); tiền tính cho GV chủ lớp (ngữ cảnh `autoGrade`).
 - Hẹn giờ: `.github/workflows/auto-grade.yml` 30 phút/lần, gọi lặp ≤20 lần tới khi `remaining:0`. Chưa có secret thì bỏ qua (không lỗi).
-- **Chủ dự án tự làm**: tạo chuỗi bí mật → GitHub repo Settings → Secrets → Actions `AUTO_GRADE_CRON_SECRET`; Vercel env cùng tên + Redeploy. Test `grade-homework.auto.test.ts` 3, `autoGrade.test.ts` 4.
+- Secret `AUTO_GRADE_CRON_SECRET` ĐÃ cài (GitHub + Vercel, 25/09 — máy chủ trả 401 khi sai khoá); lượt chạy tay 14:45 UTC thành công. Test `grade-homework.auto.test.ts` 3, `autoGrade.test.ts` 4.
+- **CI Quality Gate đỏ `f467a91`→`90f4dfe`** (gradeAssignment đòi khoá AI trước khi xem có bài cần chấm; CI không có biến khoá) — đã sửa, xem `tasks/lessons.md`.
 
 ## Nộp bài HS an toàn hơn + "Chấm & duyệt tất cả" cho cả lớp — 2026-09-25
 

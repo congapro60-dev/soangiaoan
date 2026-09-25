@@ -634,10 +634,6 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
     return res.status(403).json({ error: 'Chỉ giáo viên thuộc lớp được cấp quyền mới chấm được.' });
   }
 
-  // Khoá/tiền tính cho giáo viên CHỦ bài giao; kiểm trước khi khoá bài nào để bị chặn thì báo ngay.
-  setAiKeyOwner(assignmentTeacherId);
-  await ensureGeminiKey(getGradingApiKey());
-
   const recovered = await recoverStaleGradingSubmissions(db, assignmentId, assignmentTeacherId, assignmentClassId);
 
   const pending = await db.collection('submissions')
@@ -660,6 +656,11 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
   });
 
   if (hopLe.length === 0) return res.status(200).json({ graded: 0, failed: 0, recovered: recovered.size, remaining: recovered.size });
+
+  // Khoá/tiền tính cho giáo viên CHỦ bài giao. Chỉ kiểm khi THẬT có bài phải chấm (không có việc thì
+  // không đòi khoá), và kiểm TRƯỚC khi khoá bài nào để bị chặn thì báo ngay, không bài nào kẹt.
+  setAiKeyOwner(assignmentTeacherId);
+  await ensureGeminiKey(getGradingApiKey());
 
   const [quota, quotaRef] = await loadQuotaDoc(db, uid);
   const verdict = remainingQuota(quota, 'teacher', '');
