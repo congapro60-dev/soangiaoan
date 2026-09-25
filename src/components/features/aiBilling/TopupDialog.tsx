@@ -13,12 +13,15 @@ interface Props {
 /**
  * Nạp tiền ví AI: QR chuyển khoản (SePay/VietQR) điền sẵn số tiền + NỘI DUNG riêng của giáo viên. Tiền vào tài
  * khoản thì SePay báo máy chủ, máy chủ cộng ví theo mã trong nội dung — hộp này tự hỏi lại mỗi 5 giây để báo ngay.
+ * Tài khoản có ảnh QR do quản trị tải lên thì cho chọn ảnh đó (phải tự gõ số tiền + nội dung); QR tự tạo lỗi thì
+ * tự chuyển sang ảnh này.
  */
 export const TopupDialog = ({ status, onClose, onUpdated }: Props) => {
   const [amount, setAmount] = useState<number>(TOPUP_PRESETS_VND[1]);
   const [custom, setCustom] = useState('');
   const [credited, setCredited] = useState<number | null>(null);
   const [copied, setCopied] = useState('');
+  const [qrMode, setQrMode] = useState<'auto' | 'uploaded'>('auto');
   const startBalance = useRef(status.balanceVnd);
   const onUpdatedRef = useRef(onUpdated);
   onUpdatedRef.current = onUpdated;
@@ -34,6 +37,7 @@ export const TopupDialog = ({ status, onClose, onUpdated }: Props) => {
   }, []);
 
   const account = status.paymentAccount;
+  const showUploaded = qrMode === 'uploaded' && Boolean(account?.qrImageUrl);
   const chosen = custom ? Math.round(Number(custom.replace(/[^\d]/g, ''))) : amount;
   const validAmount = Number.isFinite(chosen) && chosen >= TOPUP_MIN_VND;
   const copy = (text: string, label: string) => {
@@ -74,8 +78,19 @@ export const TopupDialog = ({ status, onClose, onUpdated }: Props) => {
             </div>
             {!validAmount && <p className="mt-2 text-xs font-semibold text-rose-600">Tối thiểu {vnd(TOPUP_MIN_VND)}.</p>}
             {validAmount && (
-              <div className="mt-4 grid gap-4 sm:grid-cols-[180px_1fr] sm:items-center">
-                <img src={sepayQrUrl(account, chosen, status.topupCode)} alt="Mã QR chuyển khoản" className="mx-auto h-44 w-44 rounded-xl border border-slate-200" />
+              <div className="mt-4 grid gap-4 sm:grid-cols-[180px_1fr] sm:items-start">
+                <div>
+                  {account.qrImageUrl && (
+                    <div className="mb-2 grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1 text-[11px] font-black">
+                      <button type="button" onClick={() => setQrMode('auto')} className={`rounded-md px-2 py-1 ${showUploaded ? 'text-slate-500' : 'bg-white text-slate-900 shadow-sm'}`}>QR điền sẵn</button>
+                      <button type="button" onClick={() => setQrMode('uploaded')} className={`rounded-md px-2 py-1 ${showUploaded ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`}>QR ngân hàng</button>
+                    </div>
+                  )}
+                  {showUploaded
+                    ? <img src={account.qrImageUrl} alt="Ảnh QR tài khoản" className="mx-auto h-44 w-44 rounded-xl border border-slate-200 bg-white object-contain" />
+                    : <img src={sepayQrUrl(account, chosen, status.topupCode)} alt="Mã QR chuyển khoản" onError={() => { if (account.qrImageUrl) setQrMode('uploaded'); }} className="mx-auto h-44 w-44 rounded-xl border border-slate-200" />}
+                  {showUploaded && <p className="mt-1 text-center text-[11px] font-bold leading-4 text-amber-700">Quét ảnh này thì tự gõ số tiền và nội dung bên cạnh.</p>}
+                </div>
                 <dl className="space-y-1.5 text-sm">
                   <div><dt className="text-xs font-bold text-slate-400">Ngân hàng</dt><dd className="font-black text-slate-800">{account.bank}</dd></div>
                   <div><dt className="text-xs font-bold text-slate-400">Số tài khoản</dt><dd className="flex items-center gap-2 font-black text-slate-800">{account.accountNumber}<button type="button" onClick={() => copy(account.accountNumber, 'stk')} aria-label="Chép số tài khoản" className="text-slate-400 hover:text-slate-700"><Copy className="h-3.5 w-3.5" /></button></dd></div>

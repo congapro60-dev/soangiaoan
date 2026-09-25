@@ -1,15 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import {
+  activePaymentAccount,
   bestActiveVoucher,
   canAffordUsage,
   canRedeemVoucher,
   chargeForCall,
   extractTopupCode,
+  isPaymentQrUrl,
   makeTopupCode,
   monthsBetween,
+  normalizePaymentSettings,
   sepayQrUrl,
   statementForMonth,
   statementTotals,
+  validatePaymentAccount,
   validateVoucherInput,
 } from './aiWallet';
 
@@ -80,5 +84,28 @@ describe('ví AI + mã giảm giá', () => {
   it('QR SePay điền sẵn số tiền + nội dung', () => {
     expect(sepayQrUrl({ bank: 'Vietcombank', accountNumber: '0123456789' }, 100_000, 'SPAI7K2QX9'))
       .toBe('https://qr.sepay.vn/img?acc=0123456789&bank=Vietcombank&amount=100000&des=SPAI7K2QX9');
+  });
+});
+
+describe('tài khoản nhận tiền nạp', () => {
+  it('kiểm dữ liệu tài khoản; ảnh QR chỉ nhận link Storage payment-qr của web', () => {
+    expect(validatePaymentAccount({ bank: 'MBBank', accountNumber: '0123 456 789', accountName: ' NGUYEN VAN A ' }))
+      .toEqual({ ok: true, account: { bank: 'MBBank', accountNumber: '0123456789', accountName: 'NGUYEN VAN A', qrImageUrl: '' } });
+    expect(validatePaymentAccount({ bank: '', accountNumber: '0123456789' }).ok).toBe(false);
+    expect(validatePaymentAccount({ bank: 'MBBank', accountNumber: '12-34' }).ok).toBe(false);
+    expect(validatePaymentAccount({ bank: 'MBBank', accountNumber: '0123456789', qrImageUrl: 'https://la.example/qr.png' }).ok).toBe(false);
+    expect(isPaymentQrUrl('https://firebasestorage.googleapis.com/v0/b/x.appspot.com/o/payment-qr%2Fab12.png?alt=media&token=1f2a-9c')).toBe(true);
+    expect(isPaymentQrUrl('https://firebasestorage.googleapis.com/v0/b/x.appspot.com/o/homework%2Fab12.png?alt=media&token=1f2a')).toBe(false);
+  });
+
+  it('bỏ dữ liệu hỏng; tài khoản đang dùng không còn thì lấy tài khoản đầu', () => {
+    const settings = normalizePaymentSettings({
+      accounts: [{ id: 'a', bank: 'MBBank', accountNumber: '0123456789' }, { id: 'b', bank: 'ACB', accountNumber: 'xx' }, 'rác'],
+      activeId: 'khong-con',
+    });
+    expect(settings.accounts.map(a => a.id)).toEqual(['a']);
+    expect(settings.activeId).toBe('a');
+    expect(activePaymentAccount(settings)?.bank).toBe('MBBank');
+    expect(activePaymentAccount(normalizePaymentSettings(undefined))).toBeNull();
   });
 });

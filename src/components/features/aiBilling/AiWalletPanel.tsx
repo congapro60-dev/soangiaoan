@@ -81,9 +81,17 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
 
   const usesOwnKeyFirst = status.gateEnabled && !status.shared;
   const capPct = status.capVnd ? Math.min(100, Math.round((status.spentVnd / status.capVnd) * 100)) : null;
+  // Nói rõ ví có đang bị trừ không — tránh giáo viên thấy "0đ" đỏ mà tưởng bị dừng.
+  const modeNote = !status.gateEnabled
+    ? 'Web chưa bật tính phí: mọi lượt AI dùng khoá chung hiện đều miễn phí, ví chưa bị trừ.'
+    : status.exempt ? ''
+      : status.shared ? 'Thầy/cô dùng thẳng khoá AI chung của web (không cần khoá riêng); mỗi lượt trừ ví theo giá Google, có mã giảm giá thì trừ theo mã.'
+        : status.consent ? ''
+          : 'Ví chỉ bị trừ khi thầy/cô đồng ý dùng khoá chung của web (ô cuối trang). Chạy bằng khoá riêng thì không trừ ví.';
 
   return (
     <div className="space-y-4">
+      {modeNote && <p className="rounded-xl bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">{modeNote}</p>}
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
           <p className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-emerald-700"><Wallet className="h-4 w-4" /> Số dư ví</p>

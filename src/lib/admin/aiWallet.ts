@@ -171,3 +171,60 @@ export const monthsBetween = (from: string, to: string): string[] => {
 /** Link ảnh QR chuyển khoản của SePay (VietQR) — số tiền + nội dung điền sẵn. */
 export const sepayQrUrl = (account: { bank: string; accountNumber: string }, amountVnd: number, description: string): string =>
   `https://qr.sepay.vn/img?acc=${encodeURIComponent(account.accountNumber)}&bank=${encodeURIComponent(account.bank)}&amount=${Math.round(amountVnd)}&des=${encodeURIComponent(description)}`;
+
+// ── Tài khoản nhận tiền nạp (chủ dự án có nhiều tài khoản, chọn MỘT tài khoản đang dùng) ──────────
+
+/**
+ * Ngân hàng SePay liên kết được — tên viết tắt dùng để dựng QR (nguồn qr.sepay.vn/banks.json, supported=true).
+ * Tài khoản nhận tiền PHẢI đã liên kết trong SePay thì SePay mới thấy tiền về để báo máy chủ cộng ví.
+ */
+export const SEPAY_BANKS: readonly string[] = [
+  'MBBank', 'Vietcombank', 'VietinBank', 'BIDV', 'Techcombank', 'ACB', 'VPBank', 'TPBank', 'MSB', 'Sacombank', 'VIB',
+  'HDBank', 'SeABank', 'OCB', 'LienVietPostBank', 'VietCapitalBank', 'ShinhanBank', 'Agribank', 'BacABank', 'ABBANK',
+  'Eximbank', 'PublicBank', 'KienLongBank',
+];
+
+export interface PaymentAccount {
+  id: string;
+  bank: string;
+  accountNumber: string;
+  accountName: string;
+  /** Ảnh QR của chính tài khoản do chủ dự án tải lên; '' = chưa có. */
+  qrImageUrl: string;
+}
+
+export interface PaymentSettings {
+  accounts: PaymentAccount[];
+  activeId: string;
+}
+
+/** Ảnh QR chỉ được là file do máy chủ lưu trong Firebase Storage của web (thư mục payment-qr/). */
+export const isPaymentQrUrl = (url: string): boolean =>
+  /^https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/[^/]+\/o\/payment-qr%2F[^?]+\?alt=media&token=[\w-]+$/.test(url);
+
+export const validatePaymentAccount = (raw: Record<string, unknown>): { ok: true; account: Omit<PaymentAccount, 'id'> } | { ok: false; error: string } => {
+  const bank = String(raw.bank ?? '').trim();
+  const accountNumber = String(raw.accountNumber ?? '').replace(/\s+/g, '');
+  const accountName = String(raw.accountName ?? '').trim().slice(0, 80);
+  const qrImageUrl = String(raw.qrImageUrl ?? '').trim();
+  if (!bank || bank.length > 40) return { ok: false, error: 'Chọn ngân hàng (tên viết tắt như trong SePay, vd MBBank).' };
+  if (!/^\d{6,20}$/.test(accountNumber)) return { ok: false, error: 'Số tài khoản chỉ gồm 6–20 chữ số.' };
+  if (qrImageUrl && !isPaymentQrUrl(qrImageUrl)) return { ok: false, error: 'Ảnh QR không hợp lệ — tải ảnh lên lại.' };
+  return { ok: true, account: { bank, accountNumber, accountName, qrImageUrl } };
+};
+
+/** Đọc document cài đặt thô → danh sách sạch + tài khoản đang dùng (mất tài khoản đang dùng thì lấy cái đầu). */
+export const normalizePaymentSettings = (data: Record<string, unknown> | undefined): PaymentSettings => {
+  const accounts = (Array.isArray(data?.accounts) ? data.accounts : [])
+    .map(item => (item && typeof item === 'object' ? item as Record<string, unknown> : {}))
+    .flatMap(item => {
+      const checked = validatePaymentAccount(item);
+      const id = String(item.id ?? '');
+      return checked.ok && id ? [{ id, ...checked.account }] : [];
+    });
+  const wanted = String(data?.activeId ?? '');
+  return { accounts, activeId: accounts.some(a => a.id === wanted) ? wanted : accounts[0]?.id ?? '' };
+};
+
+export const activePaymentAccount = (settings: PaymentSettings): PaymentAccount | null =>
+  settings.accounts.find(a => a.id === settings.activeId) ?? null;

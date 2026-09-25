@@ -1,7 +1,7 @@
 /** Client cho khoá AI riêng, ví trả trước, mã giảm giá, sao kê (giáo viên) + phần quản trị tương ứng. */
 import { auth } from '../firebase';
 import type { AiKeyBlockReason } from '../admin/aiKeyPolicy';
-import type { VoucherDef, VoucherRedemption } from '../admin/aiWallet';
+import type { PaymentAccount, PaymentSettings, VoucherDef, VoucherRedemption } from '../admin/aiWallet';
 
 const call = async <T>(payload: Record<string, unknown>): Promise<T> => {
   const user = auth.currentUser;
@@ -16,11 +16,7 @@ const call = async <T>(payload: Record<string, unknown>): Promise<T> => {
   return data as T;
 };
 
-export interface PaymentAccount {
-  bank: string;
-  accountNumber: string;
-  accountName: string;
-}
+export type { PaymentAccount };
 
 export interface AiKeyStatus {
   month: string;
@@ -144,8 +140,17 @@ export interface UnmatchedTopup extends Omit<StatementTopup, 'at'> {
 export const adminGetWallets = () => call<{ wallets: AdminWalletRow[]; unmatched: UnmatchedTopup[] }>({ action: 'adminWallets' });
 export const adminAdjustWallet = (uid: string, amountVnd: number, reason: string) => call<{ wallet: { balanceVnd: number } }>({ action: 'adminAdjustWallet', uid, amountVnd, reason });
 export const adminAssignUnmatchedTopup = (id: string, uid: string) => call<{ credited: boolean }>({ action: 'adminAssignUnmatchedTopup', id, uid });
-export const adminPaymentAccount = (account?: PaymentAccount) =>
-  call<{ account: PaymentAccount | null; webhookReady: boolean }>({ action: 'adminPaymentAccount', ...(account ? { account } : {}) });
+export interface AdminPaymentSettings extends PaymentSettings {
+  /** Máy chủ đã có biến SEPAY_WEBHOOK_KEY (tiền nạp tự cộng ví). */
+  webhookReady: boolean;
+}
+
+export const adminGetPaymentAccounts = () => call<AdminPaymentSettings>({ action: 'adminPaymentAccount' });
+/** Thêm/sửa tài khoản (có `id` là sửa). `qrDataUrl` = ảnh QR mới; `removeQr` = bỏ ảnh đang có. */
+export const adminSavePaymentAccount = (account: Partial<PaymentAccount>, qr: { dataUrl?: string; remove?: boolean } = {}) =>
+  call<AdminPaymentSettings>({ action: 'adminPaymentAccount', op: 'save', account, ...(qr.dataUrl ? { qrDataUrl: qr.dataUrl } : {}), ...(qr.remove ? { removeQr: true } : {}) });
+export const adminActivatePaymentAccount = (id: string) => call<AdminPaymentSettings>({ action: 'adminPaymentAccount', op: 'activate', id });
+export const adminDeletePaymentAccount = (id: string) => call<AdminPaymentSettings>({ action: 'adminPaymentAccount', op: 'delete', id });
 
 export interface MonthOverviewRow {
   uid: string;

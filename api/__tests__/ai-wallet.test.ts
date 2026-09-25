@@ -3,7 +3,20 @@ import { vi } from 'vitest';
 
 type DocData = Record<string, any>;
 
-const h = vi.hoisted(() => ({ store: {} as Record<string, DocData>, seq: 0 }));
+const h = vi.hoisted(() => {
+  const bucket = {
+    name: 'demo.appspot.com',
+    saved: [] as Array<{ path: string; metadata: any }>,
+    deleted: [] as string[],
+    file: (path: string) => ({
+      save: async (_bytes: Buffer, opts: any) => { bucket.saved.push({ path, metadata: opts.metadata }); },
+      delete: async () => { bucket.deleted.push(path); },
+    }),
+  };
+  return { store: {} as Record<string, DocData>, seq: 0, bucket };
+});
+
+vi.mock('../_exam-core.js', () => ({ getAdminStorage: () => h.bucket }));
 
 vi.mock('firebase-admin/auth', () => ({
   getAuth: () => ({
@@ -61,7 +74,7 @@ const fakeDb = (): any => {
   };
 };
 
-import { adminWalletAction, handleSepayWebhook, redeemVoucher } from '../_ai-wallet';
+import { adminWalletAction, handleSepayWebhook, loadPaymentAccount, redeemVoucher } from '../_ai-wallet';
 import { statementFor } from '../_ai-billing';
 
 const webhook = async (body: DocData, auth = 'Apikey bi-mat') => {
@@ -139,5 +152,52 @@ describe('ví AI trả trước', () => {
     const nov = await statementFor(fakeDb(), 'gv-lan', '2026-11');
     expect(nov).toMatchObject({ openingVnd: 97_300, topupVnd: 50_000, chargeVnd: 500, closingVnd: 146_800, ownKeyCalls: 1 });
     expect((nov.items as unknown[]).length).toBe(1);
+  });
+});
+
+describe('tài khoản nhận tiền nạp (quản trị)', () => {
+  beforeEach(() => {
+    h.store = {};
+    h.bucket.saved = [];
+    h.bucket.deleted = [];
+  });
+  const pay = async (body: DocData) => (await adminWalletAction(fakeDb(), 'adminPaymentAccount', body, 'chu'))!;
+  const PNG = `data:image/png;base64,${Buffer.from('anh-qr').toString('base64')}`;
+
+  it('nhiều tài khoản kèm ảnh QR, chọn tài khoản đang dùng, xoá thì dọn ảnh', async () => {
+    const first = await pay({ op: 'save', account: { bank: 'MBBank', accountNumber: '0123 456 789', accountName: 'NGUYEN VAN A' }, qrDataUrl: PNG });
+    expect(first.status).toBe(200);
+    const a = first.payload.accounts[0];
+    expect(a).toMatchObject({ bank: 'MBBank', accountNumber: '0123456789' });
+    expect(a.qrImageUrl).toMatch(/^https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/demo\.appspot\.com\/o\/payment-qr%2F.+\.png\?alt=media&token=/);
+    expect(h.bucket.saved[0].metadata.metadata.firebaseStorageDownloadTokens).toBeTruthy();
+    expect(first.payload.activeId).toBe(a.id);
+
+    const second = await pay({ op: 'save', account: { bank: 'Vietcombank', accountNumber: '9988776655' } });
+    expect(second.payload.accounts).toHaveLength(2);
+    expect(second.payload.activeId).toBe(a.id);
+    const b = second.payload.accounts[1];
+    expect((await pay({ op: 'activate', id: b.id })).payload.activeId).toBe(b.id);
+    expect(await loadPaymentAccount(fakeDb())).toMatchObject({ bank: 'Vietcombank', accountNumber: '9988776655' });
+
+    expect((await pay({ op: 'save', account: { bank: 'MBBank', accountNumber: '0123456789' } })).status).toBe(422);
+    expect((await pay({ op: 'save', account: { bank: 'MBBank', accountNumber: '12ab' } })).status).toBe(422);
+    expect((await pay({ op: 'save', account: { bank: 'ACB', accountNumber: '1234567' }, qrDataUrl: 'data:text/html;base64,PGgxPg==' })).status).toBe(422);
+    expect(h.bucket.saved).toHaveLength(1);
+
+    expect((await pay({ op: 'delete', id: b.id })).payload.activeId).toBe(a.id);
+    await pay({ op: 'delete', id: a.id });
+    expect(h.bucket.deleted).toEqual([h.bucket.saved[0].path]);
+    expect(await loadPaymentAccount(fakeDb())).toBeNull();
+  });
+
+  it('thay ảnh QR thì xoá ảnh cũ; bỏ ảnh thì tài khoản không còn ảnh', async () => {
+    const created = await pay({ op: 'save', account: { bank: 'ACB', accountNumber: '1234567' }, qrDataUrl: PNG });
+    const id = created.payload.accounts[0].id;
+    await pay({ op: 'save', account: { id, bank: 'ACB', accountNumber: '1234567' }, qrDataUrl: PNG });
+    expect(h.bucket.deleted).toEqual([h.bucket.saved[0].path]);
+    const cleared = await pay({ op: 'save', account: { id, bank: 'ACB', accountNumber: '1234567' }, removeQr: true });
+    expect(cleared.payload.accounts[0].qrImageUrl).toBe('');
+    expect(h.bucket.deleted).toEqual([h.bucket.saved[0].path, h.bucket.saved[1].path]);
   });
 });

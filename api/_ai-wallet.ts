@@ -8,20 +8,28 @@
  *  aiAdjustments/{autoId}          chủ dự án cộng/trừ tay (bắt buộc ghi lý do, hiện trên sao kê)
  *  aiVouchers/{CODE}               mã giảm giá
  *  aiVoucherRedemptions/{uid}_{CODE}
- *  adminSettings/payment           tài khoản nhận tiền (ngân hàng, số TK, tên) để dựng QR
+ *  adminSettings/payment           { accounts[], activeId } — các tài khoản nhận tiền (+ ảnh QR tự tải) và tài khoản đang dùng
+ *  Storage payment-qr/…            ảnh QR tài khoản do chủ dự án tải lên (link tải có token, máy chủ ghi)
  */
+import { randomUUID } from 'node:crypto';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
 import { FieldValue } from 'firebase-admin/firestore';
 import { vnDate } from './_ai-usage.js';
+import { getAdminStorage } from './_exam-core.js';
 import {
+  activePaymentAccount,
   bestActiveVoucher,
   canAffordUsage,
   canRedeemVoucher,
   extractTopupCode,
   makeTopupCode,
+  normalizePaymentSettings,
   normalizeVoucherCode,
+  validatePaymentAccount,
   validateVoucherInput,
+  type PaymentAccount,
+  type PaymentSettings,
   type VoucherDef,
   type VoucherRedemption,
 } from '../src/lib/admin/aiWallet.js';
@@ -48,18 +56,78 @@ export const loadUsdVnd = async (db: Db): Promise<number> => {
   return Number.isFinite(rate) && rate > 1000 ? rate : DEFAULT_USD_VND;
 };
 
-export interface PaymentAccount {
-  bank: string;
-  accountNumber: string;
-  accountName: string;
-}
-
-export const loadPaymentAccount = async (db: Db): Promise<PaymentAccount | null> => {
+export const loadPaymentSettings = async (db: Db): Promise<PaymentSettings> => {
   const snap = await PAYMENT_REF(db).get();
-  const data = snap.exists ? snap.data() ?? {} : {};
-  return data.bank && data.accountNumber
-    ? { bank: String(data.bank), accountNumber: String(data.accountNumber), accountName: String(data.accountName || '') }
-    : null;
+  return normalizePaymentSettings(snap.exists ? snap.data() : undefined);
+};
+
+/** Tài khoản giáo viên thấy khi nạp tiền (tài khoản chủ dự án đang chọn dùng). */
+export const loadPaymentAccount = async (db: Db): Promise<PaymentAccount | null> => activePaymentAccount(await loadPaymentSettings(db));
+
+const PAYMENT_QR_MAX_BYTES = 1_500_000;
+const MAX_PAYMENT_ACCOUNTS = 20;
+
+/** Lưu ảnh QR (data URL) vào Storage của web → link tải có token, trang giáo viên hiện thẳng được. */
+const savePaymentQrImage = async (dataUrl: string): Promise<string | { error: string }> => {
+  const match = /^data:image\/(png|jpeg|webp);base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl);
+  if (!match) return { error: 'Ảnh QR phải là ảnh PNG, JPG hoặc WEBP.' };
+  const bytes = Buffer.from(match[2], 'base64');
+  if (bytes.length === 0 || bytes.length > PAYMENT_QR_MAX_BYTES) return { error: 'Ảnh QR tối đa 1,5MB.' };
+  const bucket = getAdminStorage();
+  const token = randomUUID();
+  const path = `payment-qr/${randomUUID()}.${match[1] === 'jpeg' ? 'jpg' : match[1]}`;
+  await bucket.file(path).save(bytes, {
+    resumable: false,
+    metadata: { contentType: `image/${match[1]}`, metadata: { firebaseStorageDownloadTokens: token } },
+  });
+  return `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(path)}?alt=media&token=${token}`;
+};
+
+/** Dọn ảnh QR cũ (thay ảnh / xoá tài khoản). Hỏng thì bỏ qua — chỉ là file mồ côi. */
+const deletePaymentQrImage = async (url: string): Promise<void> => {
+  const match = /\/o\/(payment-qr%2F[^?]+)\?/.exec(url);
+  if (!match) return;
+  await getAdminStorage().file(decodeURIComponent(match[1])).delete().catch(() => undefined);
+};
+
+/** Chủ dự án quản lý tài khoản nhận tiền: xem / lưu (kèm ảnh QR) / chọn tài khoản đang dùng / xoá. */
+const paymentAccountAction = async (db: Db, body: Body, adminUid: string): Promise<{ status: number; payload: Record<string, unknown> }> => {
+  const op = String(body.op || 'get');
+  const settings = await loadPaymentSettings(db);
+  const write = (accounts: PaymentAccount[], activeId: string) =>
+    PAYMENT_REF(db).set({ accounts, activeId, updatedAt: nowIso(), updatedBy: adminUid });
+
+  if (op === 'save') {
+    const raw = (body.account && typeof body.account === 'object' ? body.account : {}) as Record<string, unknown>;
+    const previous = settings.accounts.find(a => a.id === String(raw.id || ''));
+    const checked = validatePaymentAccount({ ...raw, qrImageUrl: '' });
+    if (!checked.ok) return { status: 422, payload: { error: checked.error } };
+    const duplicate = settings.accounts.some(a => a.id !== previous?.id && a.bank === checked.account.bank && a.accountNumber === checked.account.accountNumber);
+    if (duplicate) return { status: 422, payload: { error: 'Tài khoản này đã có trong danh sách.' } };
+    if (!previous && settings.accounts.length >= MAX_PAYMENT_ACCOUNTS) return { status: 422, payload: { error: `Tối đa ${MAX_PAYMENT_ACCOUNTS} tài khoản.` } };
+    let qrImageUrl = body.removeQr === true ? '' : previous?.qrImageUrl ?? '';
+    if (typeof body.qrDataUrl === 'string' && body.qrDataUrl) {
+      const saved = await savePaymentQrImage(body.qrDataUrl);
+      if (typeof saved !== 'string') return { status: 422, payload: saved };
+      qrImageUrl = saved;
+    }
+    const account: PaymentAccount = { ...checked.account, id: previous?.id ?? randomUUID().slice(0, 8), qrImageUrl };
+    const accounts = previous ? settings.accounts.map(a => (a.id === account.id ? account : a)) : [...settings.accounts, account];
+    await write(accounts, settings.activeId || account.id);
+    if (previous?.qrImageUrl && previous.qrImageUrl !== qrImageUrl) await deletePaymentQrImage(previous.qrImageUrl);
+  } else if (op === 'activate' || op === 'delete') {
+    const target = settings.accounts.find(a => a.id === String(body.id || ''));
+    if (!target) return { status: 404, payload: { error: 'Không tìm thấy tài khoản.' } };
+    if (op === 'activate') {
+      await write(settings.accounts, target.id);
+    } else {
+      const accounts = settings.accounts.filter(a => a.id !== target.id);
+      await write(accounts, settings.activeId === target.id ? accounts[0]?.id ?? '' : settings.activeId);
+      if (target.qrImageUrl) await deletePaymentQrImage(target.qrImageUrl);
+    }
+  }
+  const current = op === 'get' ? settings : await loadPaymentSettings(db);
+  return { status: 200, payload: { ...current, webhookReady: Boolean((process.env.SEPAY_WEBHOOK_KEY || '').trim()) } };
 };
 
 export const loadRedemptions = async (db: Db, uid: string): Promise<VoucherRedemption[]> =>
@@ -232,15 +300,7 @@ export const adminWalletAction = async (db: Db, action: string, body: Body, admi
     await db.collection(AI_WALLETS_COL).doc(uid).set({ uid, balanceVnd: FieldValue.increment(amount), updatedAt: at }, { merge: true });
     return { status: 200, payload: { wallet: await loadWallet(db, uid) } };
   }
-  if (action === 'adminPaymentAccount') {
-    if (body.account && typeof body.account === 'object') {
-      const raw = body.account as Record<string, unknown>;
-      const account = { bank: String(raw.bank || '').trim(), accountNumber: String(raw.accountNumber || '').replace(/\s+/g, ''), accountName: String(raw.accountName || '').trim() };
-      if (!account.bank || !/^\d{6,20}$/.test(account.accountNumber)) return { status: 422, payload: { error: 'Nhập tên ngân hàng và số tài khoản (chỉ gồm số).' } };
-      await PAYMENT_REF(db).set({ ...account, updatedAt: nowIso(), updatedBy: adminUid });
-    }
-    return { status: 200, payload: { account: await loadPaymentAccount(db), webhookReady: Boolean((process.env.SEPAY_WEBHOOK_KEY || '').trim()) } };
-  }
+  if (action === 'adminPaymentAccount') return paymentAccountAction(db, body, adminUid);
   if (action === 'adminWallets') {
     const [wallets, unmatched] = await Promise.all([
       db.collection(AI_WALLETS_COL).get(),

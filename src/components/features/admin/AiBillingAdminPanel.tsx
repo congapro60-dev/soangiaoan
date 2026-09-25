@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { BadgePercent, KeyRound, Landmark, Loader2, ReceiptText, Wallet } from 'lucide-react';
+import { BadgePercent, KeyRound, Loader2, ReceiptText, Wallet } from 'lucide-react';
 import {
   adminAdjustWallet, adminAssignUnmatchedTopup, adminAssignVoucher, adminGetAiAccess, adminGetStatement, adminGetVouchers,
-  adminGetWallets, adminMonthOverview, adminPaymentAccount, adminSaveAiAccess, adminSaveVoucher,
-  type AdminAiAccess, type AdminWalletRow, type MonthOverviewRow, type PaymentAccount, type UnmatchedTopup,
+  adminGetWallets, adminMonthOverview, adminSaveAiAccess, adminSaveVoucher,
+  type AdminAiAccess, type AdminWalletRow, type MonthOverviewRow, type UnmatchedTopup,
 } from '../../../lib/ai/aiBillingApi';
 import { VOUCHER_MAX_PERCENT, VOUCHER_MIN_PERCENT, type VoucherDef } from '../../../lib/admin/aiWallet';
 import { monthLabel, vnd } from '../../../lib/ai/statementPrintDoc';
 import { AiStatementView } from '../aiBilling/AiStatementView';
+import { PaymentAccountsSection } from './PaymentAccountsSection';
 
 interface Teacher {
   uid: string;
@@ -15,9 +16,11 @@ interface Teacher {
   displayName?: string | null;
 }
 
-/** Nhóm dùng khoá chung không tính tiền mà chủ dự án đã chốt (chủ dự án luôn được máy chủ tự thêm). */
+/**
+ * Nhóm dùng THẲNG khoá chung mà chủ dự án đã chốt: không cần khoá riêng hay bấm đồng ý, nhưng VẪN trừ ví khi bật
+ * tính phí (miễn phí thì gán mã giảm giá 100%). Chủ dự án luôn được máy chủ tự thêm và là người duy nhất miễn ví.
+ */
 const DEFAULT_GROUP = ['hanh.nguyenthi01@thedeweyschools.edu.vn', 'van.vucam@thedeweyschools.edu.vn', 'hong.tranminh@thedeweyschools.edu.vn'];
-const WEBHOOK_URL = 'https://giaoandewey.vercel.app/api/classroom?hook=sepay';
 
 const card = 'rounded-3xl border border-slate-100 bg-white p-5 shadow-sm';
 const input = 'rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-indigo-400';
@@ -39,8 +42,6 @@ export const AiBillingAdminPanel = ({ teachers }: { teachers: Teacher[] }) => {
 
   const [access, setAccess] = useState<AdminAiAccess | null>(null);
   const [groupText, setGroupText] = useState('');
-  const [payment, setPayment] = useState<{ account: PaymentAccount | null; webhookReady: boolean } | null>(null);
-  const [accountForm, setAccountForm] = useState<PaymentAccount>({ bank: '', accountNumber: '', accountName: '' });
   const [vouchers, setVouchers] = useState<Array<VoucherDef & { createdAt?: string }>>([]);
   const [voucherForm, setVoucherForm] = useState({ code: '', percent: '100', validFrom: today(), validTo: today(), maxUses: '0', allowedEmails: '', note: '' });
   const [assignForm, setAssignForm] = useState({ code: '', emails: '' });
@@ -73,11 +74,9 @@ export const AiBillingAdminPanel = ({ teachers }: { teachers: Teacher[] }) => {
   };
 
   const loadAll = useCallback(async () => {
-    const [a, p, v, w] = await Promise.all([adminGetAiAccess(), adminPaymentAccount(), adminGetVouchers(), adminGetWallets()]);
+    const [a, v, w] = await Promise.all([adminGetAiAccess(), adminGetVouchers(), adminGetWallets()]);
     setAccess(a);
     setGroupText((a.sharedEmails.length ? a.sharedEmails : DEFAULT_GROUP).join('\n'));
-    setPayment(p);
-    if (p.account) setAccountForm(p.account);
     setVouchers(v.vouchers);
     setWallets(w.wallets);
     setUnmatched(w.unmatched);
@@ -106,21 +105,25 @@ export const AiBillingAdminPanel = ({ teachers }: { teachers: Teacher[] }) => {
       {/* 6. Khoá AI chung */}
       {access && (
         <section className={card}>
-          <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-slate-800"><KeyRound className="h-4 w-4" /> 6. Ai được dùng khoá AI chung miễn phí</h2>
-          <p className="mt-1 text-xs font-semibold text-slate-500">Bật công tắc thì giáo viên ngoài nhóm phải dùng khoá Gemini riêng, hoặc đồng ý dùng khoá chung và trả tiền từ ví. Tắt thì mọi người dùng khoá chung như trước (chưa tính tiền).</p>
+          <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-slate-800"><KeyRound className="h-4 w-4" /> 6. Tính phí khoá AI chung</h2>
+          <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">
+            <b>Tắt</b>: mọi người dùng khoá chung miễn phí như trước. <b>Bật</b>: mỗi lượt dùng khoá chung trừ ví của giáo viên chịu phí (chỉ tài khoản của thầy/cô không bị trừ).
+            Nhóm bên dưới dùng thẳng khoá chung, không cần khoá riêng — vẫn trừ ví, muốn miễn phí thì gán mã giảm giá 100% (mục 8).
+            Giáo viên ngoài nhóm phải nhập khoá Gemini riêng, hoặc đồng ý dùng khoá chung và trả từ ví.
+          </p>
           <div className="mt-3 grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-sm font-bold text-slate-800">
                 <input type="checkbox" checked={access.enabled} onChange={event => setAccess({ ...access, enabled: event.target.checked })} className="h-4 w-4" />
-                Bật cổng khoá AI (tính tiền giáo viên ngoài nhóm)
+                Bật tính phí khoá AI chung
               </label>
-              <p className="text-xs font-semibold text-slate-500">Email nhóm dùng miễn phí (mỗi dòng một email; tài khoản của thầy/cô luôn có sẵn):</p>
+              <p className="text-xs font-semibold text-slate-500">Email nhóm dùng thẳng khoá chung (mỗi dòng một email; tài khoản của thầy/cô luôn có sẵn):</p>
               <textarea value={groupText} onChange={event => setGroupText(event.target.value)} rows={4} className={`${input} w-full font-mono text-xs`} />
               <button type="button" disabled={busy !== null} className={btn} onClick={() => void run('access', async () => {
                 const next = await adminSaveAiAccess(access.enabled, parseEmails(groupText));
                 setAccess(next);
                 setGroupText(next.sharedEmails.join('\n'));
-                return next.enabled ? 'Đã lưu — cổng khoá AI đang BẬT.' : 'Đã lưu — cổng khoá AI đang tắt.';
+                return next.enabled ? 'Đã lưu — đang BẬT tính phí khoá AI chung.' : 'Đã lưu — đang tắt tính phí (mọi người dùng miễn phí).';
               })}>{busy === 'access' && <Loader2 className="h-4 w-4 animate-spin" />} Lưu</button>
             </div>
             <div className="overflow-x-auto">
@@ -144,34 +147,7 @@ export const AiBillingAdminPanel = ({ teachers }: { teachers: Teacher[] }) => {
       )}
 
       {/* 7. Tài khoản nhận tiền */}
-      {payment && (
-        <section className={card}>
-          <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wide text-slate-800"><Landmark className="h-4 w-4" /> 7. Tài khoản nhận tiền nạp (SePay)</h2>
-          <div className="mt-3 grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <input className={`${input} w-full`} placeholder="Ngân hàng (mã SePay, vd: MBBank, Vietcombank)" value={accountForm.bank} onChange={e => setAccountForm({ ...accountForm, bank: e.target.value })} />
-              <input className={`${input} w-full`} placeholder="Số tài khoản" value={accountForm.accountNumber} onChange={e => setAccountForm({ ...accountForm, accountNumber: e.target.value })} />
-              <input className={`${input} w-full`} placeholder="Tên chủ tài khoản" value={accountForm.accountName} onChange={e => setAccountForm({ ...accountForm, accountName: e.target.value })} />
-              <button type="button" disabled={busy !== null} className={btn} onClick={() => void run('payment', async () => {
-                setPayment(await adminPaymentAccount(accountForm));
-                return 'Đã lưu tài khoản nhận tiền — mã QR nạp tiền của giáo viên dùng tài khoản này.';
-              })}>{busy === 'payment' && <Loader2 className="h-4 w-4 animate-spin" />} Lưu tài khoản</button>
-            </div>
-            <div className="rounded-2xl bg-slate-50 p-3 text-xs font-semibold leading-5 text-slate-600">
-              <p className={payment.webhookReady ? 'font-black text-emerald-700' : 'font-black text-amber-700'}>
-                {payment.webhookReady ? '✓ Máy chủ đã có khoá webhook — tiền nạp được cộng tự động.' : '⚠ Chưa có biến SEPAY_WEBHOOK_KEY trên Vercel — tiền nạp CHƯA tự cộng.'}
-              </p>
-              <p className="mt-2 font-black text-slate-700">Thầy/cô tự làm (một lần):</p>
-              <ol className="ml-4 list-decimal">
-                <li>SePay → Tích hợp Webhooks → Thêm: URL <code className="break-all">{WEBHOOK_URL}</code>, kiểu chứng thực API Key, chỉ nhận tiền vào.</li>
-                <li>Vercel → Settings → Environment Variables: <code>SEPAY_WEBHOOK_KEY</code> = đúng API Key vừa đặt ở SePay, rồi Redeploy.</li>
-                <li>Nhập tài khoản nhận tiền ở bên trái.</li>
-              </ol>
-              <p className="mt-2">Nội dung chuyển khoản phải có mã nạp của giáo viên (dạng SPAI…). Chuyển thiếu mã → nằm ở mục “Giao dịch chưa khớp” để thầy/cô gán tay.</p>
-            </div>
-          </div>
-        </section>
-      )}
+      <PaymentAccountsSection />
 
       {/* 8. Mã giảm giá */}
       <section className={card}>
