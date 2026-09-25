@@ -13,6 +13,7 @@ import { AssignmentPanel } from '../features/classroom/AssignmentPanel';
 import { SheetSyncPanel } from '../features/classroom/SheetSyncPanel';
 import { ScoreBookPanel } from '../features/classroom/ScoreBookPanel';
 import { SsmLinkPanel } from '../features/classroom/SsmLinkPanel';
+import { SsmPanel } from '../features/classroom/SsmPanel';
 import { ClassAssignmentReport } from '../features/classroom/ClassAssignmentReport';
 import { ClassTeacherMembersPanel } from '../features/classroom/ClassTeacherMembersPanel';
 import { StudentReport } from '../features/classroom/StudentReport';
@@ -1233,6 +1234,17 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
               students={selectedClass.students}
               examSheet={selectedClass.examSheet}
               onExamSheetChanged={refreshAccessibleClasses}
+              showToast={showToast}
+            />
+          )}
+
+          {workspaceView === 'ssm' && user?.uid && (
+            <SsmPanel
+              classId={selectedClass.id}
+              teacherId={user.uid}
+              classGrade={selectedClass.grade}
+              students={selectedClass.students}
+              settings={data.settings}
               showToast={showToast}
             />
           )}
