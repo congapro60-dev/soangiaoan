@@ -61,4 +61,8 @@ Hoá đơn TỰ PHÁT HÀNH ngày 1 (lập khi có người mở lần đầu sa
       hộp chọn khi bị chặn (tự thử lại), banner khi có bài chờ / ví cạn.
 - [x] Quản trị mục 6–10: công tắc + nhóm, tài khoản nhận tiền + webhook, mã giảm giá, ví + điều chỉnh, giao dịch chưa khớp, sao kê.
 - [x] Test + lint + build (186 file / 2.121 test).
-- [ ] QA production với công tắc TẮT (không đổi gì với người dùng hiện tại); chủ dự án tự cài webhook SePay + biến Vercel.
+- [x] QA production 25/09: tab Chi phí AI + Quản trị mục 1–10 chạy; lưu nhóm (Hạnh, Hồng, 3 tài khoản của Vân);
+      mã THANG10 100% 25/09–31/10 gán 5 tài khoản; BẬT tính phí; "Chấm cả lớp" của chủ dự án qua cổng bình thường.
+- [x] Mục 7 làm lại theo ý chủ dự án: nhiều tài khoản nhận tiền + ảnh QR tự tải, chọn tài khoản đang dùng.
+- [x] Sửa: khoá riêng luôn chạy trước kể cả người trong nhóm (trước đây bị bỏ qua → trừ ví oan).
+- [ ] Chủ dự án tự làm: thêm tài khoản nhận tiền (mục 7), webhook SePay + biến Vercel `SEPAY_WEBHOOK_KEY` — xong trước 01/11.
