@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Swal from 'sweetalert2';
 import { AlertTriangle, CalendarClock, CheckCircle2, ChevronLeft, ChevronRight, ClipboardList, FileText, Hourglass, Loader2, PenLine, Play, Plus, RefreshCw, Save, ShieldCheck, Sparkles, Trash2, UserRound, X } from 'lucide-react';
 import {
@@ -42,7 +42,21 @@ interface Props {
   view?: 'assignments' | 'submissions';
   /** Khối lớp ("10"/"11"/"12") để gắn nhãn năng lực; vắng thì ẩn phần đó. */
   classGrade?: string;
+  /** Đổi giá trị (vd từ ô "Việc cần xử lý" ở Bảng điều khiển) → bung danh sách việc tồn và cuộn tới. */
+  openBacklogNonce?: number;
 }
+
+type NhomTon = 'toGrade' | 'errored' | 'toApprove' | 'uncertain';
+const NHOM_TON: Array<{ key: NhomTon; nhan: string; mau: string }> = [
+  { key: 'toGrade', nhan: 'chưa chấm', mau: 'border-amber-200 bg-amber-50 text-amber-800' },
+  { key: 'errored', nhan: 'chấm lỗi', mau: 'border-rose-200 bg-rose-50 text-rose-800' },
+  { key: 'toApprove', nhan: 'chờ duyệt', mau: 'border-emerald-200 bg-emerald-50 text-emerald-800' },
+  { key: 'uncertain', nhan: 'máy đọc chưa chắc', mau: 'border-violet-200 bg-violet-50 text-violet-800' },
+];
+const gioNgan = (iso?: string): string => {
+  const d = new Date(String(iso || ''));
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', hour12: false });
+};
 
 const trangThai: Record<SubmissionDoc['status'], { nhan: string; mau: string }> = {
   submitted: { nhan: 'Chờ chấm', mau: 'bg-amber-50 text-amber-700' },
@@ -283,7 +297,7 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
         const dangMo = moRongId === s.id;
         const gradingLockFresh = s.status === 'grading' && !isStaleGradingTimestamp(s.updatedAt);
         return (
-          <div key={s.id} className="border-b border-slate-100 last:border-b-0">
+          <div key={s.id} id={`bai-nop-${s.id}`} className="scroll-mt-24 border-b border-slate-100 last:border-b-0">
             <div className="flex items-center gap-2 px-3 py-3">
               <input
                 type="checkbox"
@@ -476,7 +490,7 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
   );
 };
 
-export const AssignmentPanel = ({ classId, teacherId, className, showToast, view = 'assignments', classGrade }: Props) => {
+export const AssignmentPanel = ({ classId, teacherId, className, showToast, view = 'assignments', classGrade, openBacklogNonce }: Props) => {
   const submissionsOnly = view === 'submissions';
   const competencyGrade = asCompetencyGrade(classGrade);
   const [assignments, setAssignments] = useState<AssignmentDoc[]>([]);
@@ -531,6 +545,26 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   // Việc tồn của cả lớp qua MỌI bài giao nộp ảnh — kể cả bài cũ học sinh nộp muộn.
   const idsBaiNopAnh = useMemo(() => new Set(assignments.filter(a => a.type !== 'exam').map(a => a.id)), [assignments]);
   const tonDong = useMemo(() => classBacklog(tatCaBaiNop, idsBaiNopAnh), [tatCaBaiNop, idsBaiNopAnh]);
+  const tongTon = tonDong.toGrade.length + tonDong.errored.length + tonDong.toApprove.length + tonDong.uncertain.length;
+  const [nhomMo, setNhomMo] = useState<NhomTon | ''>('');
+  const khungTonRef = useRef<HTMLDivElement>(null);
+  // Mở từ Bảng điều khiển: bung nhóm đầu tiên còn việc rồi cuộn tới khung việc tồn.
+  const daMoNonce = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    // Mỗi yêu cầu mở chỉ xử lý MỘT lần, sau khi danh sách đã tải xong.
+    if (!openBacklogNonce || dangTai || daMoNonce.current === openBacklogNonce) return;
+    daMoNonce.current = openBacklogNonce;
+    const dau = NHOM_TON.find(nhom => tonDong[nhom.key].length > 0);
+    if (dau) setNhomMo(dau.key);
+    window.setTimeout(() => khungTonRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  }, [openBacklogNonce, dangTai, tonDong]);
+  /** Mở đúng bài nộp trong danh sách của bài giao để xem ảnh, chấm, duyệt. */
+  const moBaiTon = (submission: SubmissionDoc) => {
+    setOpenId(submission.assignmentId || '');
+    setNhap(null);
+    setMoRongId(submission.id);
+    window.setTimeout(() => document.getElementById(`bai-nop-${submission.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 250);
+  };
 
   const taiBai = useCallback(async () => {
     setDangTai(true);
@@ -823,13 +857,15 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
       await Swal.fire({ icon: 'warning', title: 'Chưa tải chắc danh sách bài nộp', text: 'Bấm "Làm mới" rồi thử lại.', confirmButtonColor: '#3085d6' });
       return;
     }
-    const { toGrade, toApprove, uncertain, assignmentCount } = tonDong;
+    const { toApprove, uncertain, assignmentCount } = tonDong;
+    // Bài chấm lỗi cũng được thử chấm lại trong lượt này.
+    const toGrade = [...tonDong.toGrade, ...tonDong.errored];
     const result = await Swal.fire({
       icon: 'question',
       title: 'Chấm & duyệt tất cả bài còn tồn?',
       html: `<p>Áp dụng cho <b>${assignmentCount} bài giao</b> của lớp ${className} (chỉ lượt nộp mới nhất của mỗi em):</p>
         <ul style="text-align:left;margin:8px 0 0 18px;list-style:disc">
-          ${toGrade.length > 0 ? `<li>Chấm AI <b>${toGrade.length}</b> bài chưa chấm (mỗi bài một lượt AI).</li>` : ''}
+          ${toGrade.length > 0 ? `<li>Chấm AI <b>${toGrade.length}</b> bài chưa chấm${tonDong.errored.length > 0 ? ` (gồm ${tonDong.errored.length} bài chấm lỗi — thử lại)` : ''} (mỗi bài một lượt AI).</li>` : ''}
           <li>Duyệt <b>${toApprove.length}</b> bài đã chấm${toGrade.length > 0 ? ' và các bài vừa chấm xong' : ''} — học sinh, phụ huynh thấy điểm chính thức.</li>
           ${uncertain.length > 0 ? `<li><b>${uncertain.length}</b> bài máy đọc chưa chắc được giữ lại để thầy cô xem, trừ khi tick ô bên dưới.</li>` : ''}
         </ul>
@@ -1430,24 +1466,58 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
         </div>
       )}
 
-      {!dangTai && (tienDoTatCa !== '' || tonDong.toGrade.length + tonDong.toApprove.length + tonDong.uncertain.length > 0) && (
-        <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            <p className="text-sm font-black text-slate-900">Việc tồn của cả lớp — mọi bài giao, kể cả bài cũ nộp muộn</p>
-            <p className="mt-0.5 text-xs font-semibold text-slate-600">
-              {tonDong.toGrade.length} bài chưa chấm · {tonDong.toApprove.length} bài chờ duyệt
-              {tonDong.uncertain.length > 0 ? ` · ${tonDong.uncertain.length} bài máy đọc chưa chắc (nên xem)` : ''} — trong {tonDong.assignmentCount} bài giao.
-            </p>
-            {tienDoTatCa && <p className="mt-1 text-xs font-black text-indigo-700">{tienDoTatCa}</p>}
+      {!dangTai && (tienDoTatCa !== '' || tongTon > 0) && (
+        <div ref={khungTonRef} className="mt-4 scroll-mt-6 rounded-2xl border border-indigo-100 bg-indigo-50/70 p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-sm font-black text-slate-900">Việc tồn của cả lớp — mọi bài giao, kể cả bài cũ nộp muộn</p>
+              <p className="mt-0.5 text-xs font-semibold text-slate-600">Trong {tonDong.assignmentCount} bài giao. Bấm từng mục để xem danh sách, bấm một dòng để mở đúng bài đó.</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {NHOM_TON.map(nhom => (
+                  <button
+                    key={nhom.key}
+                    type="button"
+                    onClick={() => setNhomMo(nhomMo === nhom.key ? '' : nhom.key)}
+                    disabled={tonDong[nhom.key].length === 0}
+                    aria-expanded={nhomMo === nhom.key}
+                    className={`rounded-xl border px-3 py-1.5 text-xs font-black transition disabled:opacity-40 ${nhom.mau} ${nhomMo === nhom.key ? 'ring-2 ring-indigo-400' : ''}`}
+                  >
+                    {tonDong[nhom.key].length} {nhom.nhan}
+                  </button>
+                ))}
+              </div>
+              {tienDoTatCa && <p className="mt-2 text-xs font-black text-indigo-700">{tienDoTatCa}</p>}
+            </div>
+            <button
+              type="button"
+              onClick={() => void chamDuyetTatCa()}
+              disabled={dangBulk !== '' || tienDo !== ''}
+              className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-2.5 text-sm font-black text-white hover:bg-indigo-700 disabled:opacity-50"
+            >
+              {dangBulk === 'all' ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />} Chấm & duyệt tất cả
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => void chamDuyetTatCa()}
-            disabled={dangBulk !== '' || tienDo !== ''}
-            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-2.5 text-sm font-black text-white hover:bg-indigo-700 disabled:opacity-50"
-          >
-            {dangBulk === 'all' ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />} Chấm & duyệt tất cả
-          </button>
+          {nhomMo !== '' && tonDong[nhomMo].length > 0 && (
+            <ul className="mt-3 max-h-80 divide-y divide-indigo-100 overflow-y-auto rounded-xl border border-indigo-100 bg-white">
+              {tonDong[nhomMo].map(submission => {
+                const ten = lopHocSinh.find(hs => hs.studentId === submission.studentId)?.name || 'Học sinh';
+                const bai = assignments.find(a => a.id === submission.assignmentId)?.title || 'Bài giao';
+                const moc = nhomMo === 'toApprove' || nhomMo === 'uncertain' ? `chấm ${gioNgan(submission.grade?.gradedAt)}` : `nộp ${gioNgan(submission.createdAt)}`;
+                return (
+                  <li key={submission.id}>
+                    <button type="button" onClick={() => moBaiTon(submission)} className="flex w-full flex-wrap items-center gap-x-2 gap-y-0.5 px-3 py-2 text-left text-xs hover:bg-indigo-50">
+                      <span className="font-black text-slate-900">{ten}</span>
+                      <span className="font-semibold text-slate-500">· {bai}</span>
+                      <span className="font-semibold text-slate-400">· {moc}</span>
+                      {submission.grade && <span className="font-black text-slate-700">· {submission.grade.score}/{submission.grade.maxScore}</span>}
+                      {nhomMo === 'errored' && submission.errorMessage && <span className="w-full font-semibold text-rose-700">{submission.errorMessage}</span>}
+                      <span className="ml-auto font-black text-indigo-600">Mở →</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
       )}
 

@@ -67,6 +67,8 @@ export default function App() {
   // Chỉ để hiện mục Quản trị; quyền thật kiểm lại ở máy chủ (email Google đã xác minh).
   const isAdmin = Boolean(user && !user.isAnonymous && user.emailVerified && isAdminEmail(user.email));
   const isTeacherSignedIn = Boolean(user && !user.isAnonymous);
+  // Bảng điều khiển → "Việc cần xử lý" → mở lớp ở tab Bài nộp, bung khung việc tồn.
+  const [classFocus, setClassFocus] = useState<{ classId: string; nonce: number } | null>(null);
   // Máy chủ trả 402 khi AI của giáo viên tạm dừng → mở hộp xử lý rồi tự gửi lại yêu cầu.
   useEffect(() => { if (isTeacherSignedIn) installAiKeyFetchGate(); }, [isTeacherSignedIn]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth >= 768);
@@ -393,11 +395,14 @@ export default function App() {
           <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" /></div>}>
           <AnimatePresence mode="wait">
             {activeTab === 'dashboard' && (
-              <DashboardTab data={data} setCurrentPlan={creator.setCurrentPlan} setActiveTab={setActiveTab} />
+              <DashboardTab
+                data={data} setCurrentPlan={creator.setCurrentPlan} setActiveTab={setActiveTab}
+                onOpenClassBacklog={isTeacherSignedIn ? (classId) => { setClassFocus({ classId, nonce: Date.now() }); setActiveTab('classes'); } : undefined}
+              />
             )}
 
             {activeTab === 'classes' && (
-              <ClassesTab data={data} setData={setData} user={user} showToast={showToast} />
+              <ClassesTab data={data} setData={setData} user={user} showToast={showToast} focus={classFocus} />
             )}
 
             {activeTab === 'creator' && (

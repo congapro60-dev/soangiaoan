@@ -112,8 +112,10 @@ export const summarizeSelection = (submissions: readonly SubmissionDoc[]): Selec
 });
 
 export interface ClassBacklog {
-  /** Lượt mới nhất chưa chấm (chờ chấm / lỗi / khoá chấm đã chết). */
+  /** Lượt mới nhất chưa chấm (chờ chấm / khoá chấm đã chết). */
   toGrade: SubmissionDoc[];
+  /** Lượt mới nhất máy chấm lỗi (ảnh mờ, không đọc được…) — tách riêng để giáo viên thấy lý do. */
+  errored: SubmissionDoc[];
   /** Đã chấm, chưa duyệt, máy đọc chắc chắn — duyệt loạt được. */
   toApprove: SubmissionDoc[];
   /** Đã chấm, chưa duyệt nhưng máy đọc chưa chắc — mặc định giữ lại cho giáo viên xem. */
@@ -137,14 +139,16 @@ export const classBacklog = (
     byAssignment.set(submission.assignmentId, [...(byAssignment.get(submission.assignmentId) ?? []), submission]);
   }
   const current = [...byAssignment.values()].flatMap(list => currentSubmissionsForAssignment(list));
-  const toGrade = current.filter(submission => isGradableNow(submission, nowMs));
+  const errored = current.filter(submission => submission.status === 'error');
+  const toGrade = current.filter(submission => submission.status !== 'error' && isGradableNow(submission, nowMs));
   const waiting = current.filter(submission => submission.status === 'graded'
     && Boolean(submission.grade)
     && submission.grade?.teacherApproved !== true);
   return {
     toGrade,
+    errored,
     toApprove: waiting.filter(submission => !hasUncertainRead(submission.grade)),
     uncertain: waiting.filter(submission => hasUncertainRead(submission.grade)),
-    assignmentCount: new Set([...toGrade, ...waiting].map(submission => submission.assignmentId)).size,
+    assignmentCount: new Set([...toGrade, ...errored, ...waiting].map(submission => submission.assignmentId)).size,
   };
 };

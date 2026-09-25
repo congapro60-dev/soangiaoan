@@ -17,14 +17,17 @@ import { AppData, LessonPlan } from '../../types';
 import { cn } from '../../lib/utils';
 import dayjs from 'dayjs';
 import { LearningAnalytics } from '../features/LearningAnalytics';
+import { TeacherBacklogCard } from '../features/classroom/TeacherBacklogCard';
 
 interface DashboardTabProps {
   data: AppData;
   setCurrentPlan: (plan: Partial<LessonPlan>) => void;
   setActiveTab: (tab: any) => void;
+  /** Mở lớp ở tab Lớp học, đi thẳng tới khung việc tồn. Vắng = không hiện ô "Việc cần xử lý". */
+  onOpenClassBacklog?: (classId: string) => void;
 }
 
-export const DashboardTab = ({ data, setCurrentPlan, setActiveTab }: DashboardTabProps) => {
+export const DashboardTab = ({ data, setCurrentPlan, setActiveTab, onOpenClassBacklog }: DashboardTabProps) => {
   const totalGraded = (data.gradingSessions || []).reduce(
     (sum, s) => sum + s.results.filter(r => r.status === 'completed').length,
     0
@@ -112,6 +115,10 @@ export const DashboardTab = ({ data, setCurrentPlan, setActiveTab }: DashboardTa
           </div>
         </div>
       </section>
+
+      {onOpenClassBacklog && (data.classes?.length ?? 0) > 0 && (
+        <TeacherBacklogCard classes={(data.classes || []).map(c => ({ id: c.id, name: c.name }))} onOpenClass={onOpenClassBacklog} />
+      )}
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {stats.map((stat, idx) => (

@@ -28,6 +28,7 @@ Chủ dự án chốt: bài nộp quá 60 phút GV chưa chấm → AI tự ch�
 
 - Trang HS: ảnh đã chọn mà chưa bấm "Nộp N tệp" chỉ nằm trên máy em → khung đỏ "Ảnh chưa gửi", trình duyệt hỏi lại khi đóng/tải lại (`beforeunload`). Hộp sau khi nộp đổi thành "Thầy cô đã nhận bài ✓" — đóng hộp vẫn là đã nộp (bài lưu TRƯỚC khi hộp hiện; trạng thái Chờ chấm).
 - GV (tab Bài nộp/Bài giao): khung "Việc tồn của cả lớp" + nút **Chấm & duyệt tất cả** — `classBacklog` (thuần, `submissionSelection.ts`) gom lượt MỚI NHẤT của mọi bài giao nộp ảnh: chấm AI bài chưa chấm rồi duyệt; bài máy đọc chưa chắc giữ lại trừ khi tick. Chạy tuần tự trên client (đóng tab giữa chừng thì phần còn lại vẫn tồn, bấm lại được).
+- Tổng hợp việc tồn (25/09): khung việc tồn có 4 nút đếm — chưa chấm / **chấm lỗi** (tách riêng, kèm lý do) / chờ duyệt / máy đọc chưa chắc — bấm để bung danh sách tên em · bài · giờ, bấm dòng là mở đúng bài (`bai-nop-<id>`). Bảng điều khiển có ô **Việc cần xử lý** (`TeacherBacklogCard`) gom mọi lớp; bấm lớp → tab Lớp học, view Bài nộp, tự bung khung (`classFocus` ở App → `ClassesTab.focus` → `AssignmentPanel.openBacklogNonce`).
 
 ## Cầu nối SSM Edufit (đợt 1: chỉ đọc) — 2026-09-24
 

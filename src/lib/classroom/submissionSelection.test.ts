@@ -187,15 +187,17 @@ describe('classBacklog — việc tồn của cả lớp', () => {
       submission('c', 'C', '2026-09-21T08:00:00.000Z', { assignmentId: 'tuan-nay', status: 'graded', grade: graded(false, 0.3) }),
       submission('d', 'D', '2026-09-21T08:00:00.000Z', { assignmentId: 'tuan-nay', status: 'graded', grade: graded(true) }),
       submission('e', 'E', '2026-09-21T08:00:00.000Z', { assignmentId: 'da-xoa', status: 'submitted' }),
+      submission('f', 'F', '2026-09-22T08:00:00.000Z', { assignmentId: 'tuan-nay', status: 'error', errorMessage: 'Ảnh mờ' }),
     ];
     const backlog = classBacklog(list, new Set(['tuan-truoc', 'tuan-nay']));
     expect(backlog.toGrade.map(s => s.id)).toEqual(['a-moi']);
+    expect(backlog.errored.map(s => s.id)).toEqual(['f']);
     expect(backlog.toApprove.map(s => s.id)).toEqual(['b']);
     expect(backlog.uncertain.map(s => s.id)).toEqual(['c']);
     expect(backlog.assignmentCount).toBe(2);
   });
 
   it('lớp không còn việc tồn', () => {
-    expect(classBacklog([], new Set(['x']))).toEqual({ toGrade: [], toApprove: [], uncertain: [], assignmentCount: 0 });
+    expect(classBacklog([], new Set(['x']))).toEqual({ toGrade: [], errored: [], toApprove: [], uncertain: [], assignmentCount: 0 });
   });
 });

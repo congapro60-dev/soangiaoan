@@ -23,6 +23,8 @@ interface ClassesTabProps {
   setData: (data: any) => void;
   user: User | null;
   showToast: (msg: string, icon?: any) => void;
+  /** Yêu cầu mở một lớp ở tab Bài nộp và bung khung việc tồn (từ Bảng điều khiển). */
+  focus?: { classId: string; nonce: number } | null;
 }
 
 const escapeHtml = (value: string) => value.replace(/[<>&"]/g, ch => (
@@ -99,11 +101,16 @@ const teacherClassFromServer = (remote: AccessibleClassDoc, local?: TeacherClass
   };
 };
 
-export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) => {
+export const ClassesTab = ({ data, setData, user, showToast, focus }: ClassesTabProps) => {
   const classes = data.classes || [];
   const { exams } = useExams(user);
   const [selectedClassId, setSelectedClassId] = useState(classes[0]?.id || '');
   const [workspaceView, setWorkspaceView] = useState<WorkspaceView>('overview');
+  useEffect(() => {
+    if (!focus) return;
+    setSelectedClassId(focus.classId);
+    setWorkspaceView('submissions');
+  }, [focus]);
   const [managingClassId, setManagingClassId] = useState('');
   const [pendingInvitations, setPendingInvitations] = useState<PendingTeacherInvitation[]>([]);
 
@@ -1267,6 +1274,7 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
                 showToast={showToast}
                 view={showSubmissions ? 'submissions' : 'assignments'}
                 classGrade={selectedClass.grade}
+                openBacklogNonce={focus?.classId === selectedClass.id ? focus.nonce : undefined}
               />
             </div>
           )}
