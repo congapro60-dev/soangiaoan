@@ -79,13 +79,12 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
       : <p className="flex items-center gap-2 py-6 text-sm font-semibold text-slate-400"><Loader2 className="h-4 w-4 animate-spin" /> Đang tải ví AI…</p>;
   }
 
-  const usesOwnKeyFirst = status.gateEnabled && !status.shared;
   const capPct = status.capVnd ? Math.min(100, Math.round((status.spentVnd / status.capVnd) * 100)) : null;
   // Nói rõ ví có đang bị trừ không — tránh giáo viên thấy "0đ" đỏ mà tưởng bị dừng.
   const modeNote = !status.gateEnabled
     ? 'Web chưa bật tính phí: mọi lượt AI dùng khoá chung hiện đều miễn phí, ví chưa bị trừ.'
     : status.exempt ? ''
-      : status.shared ? 'Thầy/cô dùng thẳng khoá AI chung của web (không cần khoá riêng); mỗi lượt trừ ví theo giá Google, có mã giảm giá thì trừ theo mã.'
+      : status.shared ? 'Thầy/cô dùng thẳng khoá AI chung của web (không cần khoá riêng); mỗi lượt trừ ví theo giá Google, có mã giảm giá thì trừ theo mã. Có khoá riêng thì khoá riêng chạy trước, không trừ ví.'
         : status.consent ? ''
           : 'Ví chỉ bị trừ khi thầy/cô đồng ý dùng khoá chung của web (ô cuối trang). Chạy bằng khoá riêng thì không trừ ví.';
 
@@ -95,7 +94,7 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
           <p className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-emerald-700"><Wallet className="h-4 w-4" /> Số dư ví</p>
-          <p className={`mt-1 text-2xl font-black ${status.balanceVnd > 0 ? 'text-emerald-900' : 'text-rose-700'}`}>{status.exempt ? 'Không trừ' : vnd(status.balanceVnd)}</p>
+          <p className={`mt-1 text-2xl font-black ${status.exempt || status.balanceVnd > 0 ? 'text-emerald-900' : 'text-rose-700'}`}>{status.exempt ? 'Không trừ' : vnd(status.balanceVnd)}</p>
           {!status.exempt && (
             <button type="button" onClick={() => setShowTopup(true)} className="mt-2 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-black text-white hover:bg-emerald-700">
               <QrCode className="h-4 w-4" /> Nạp tiền (QR)
@@ -153,9 +152,11 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
       <div className="rounded-2xl border border-slate-200 bg-white p-4">
         <p className="flex items-center gap-2 text-sm font-black text-slate-900"><KeyRound className="h-4 w-4" /> Khoá AI (Gemini) riêng của thầy/cô</p>
         <p className="mt-0.5 text-xs font-semibold text-slate-500">
-          {usesOwnKeyFirst
-            ? 'Có khoá riêng thì chấm bài bằng khoá riêng trước — thầy/cô tự trả Google, không trừ ví. Khoá hết thì mới dùng khoá chung (nếu đã đồng ý bên dưới).'
-            : 'Không bắt buộc. Có khoá riêng thì phần chấm bài chạy bằng khoá riêng khi web bật chế độ khoá riêng.'}
+          {status.exempt
+            ? 'Không cần: tài khoản của thầy/cô dùng khoá chung không bị trừ ví.'
+            : !status.gateEnabled
+              ? 'Không bắt buộc. Khi web bật tính phí, có khoá riêng thì AI chạy bằng khoá riêng trước (thầy/cô tự trả Google, không trừ ví).'
+              : `Có khoá riêng thì AI chạy bằng khoá riêng trước — thầy/cô tự trả Google, không trừ ví. Khoá hết thì ${status.shared ? 'tự chuyển sang khoá chung của web (trừ ví).' : 'mới dùng khoá chung (nếu đã đồng ý bên dưới).'}`}
         </p>
         {status.hasKey ? (
           <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">

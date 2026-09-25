@@ -83,6 +83,9 @@ describe('khoá AI + trần chi tiêu', () => {
     await expect(inRequest('gv-ngoai', () => ensureGeminiKey(OWNER_KEY))).rejects.toMatchObject({ reason: 'no_key' });
     h.store['teacherAiKeys/gv-ngoai'] = { geminiKey: OWN_KEY, keyStatus: 'ok' };
     expect(await inRequest('gv-ngoai', () => ensureGeminiKey(OWNER_KEY))).toMatchObject({ key: OWN_KEY, source: 'own' });
+    // Người trong nhóm nhập khoá riêng → khoá riêng chạy trước, không trừ ví
+    h.store['teacherAiKeys/gv-nhom'] = { geminiKey: OWN_KEY, keyStatus: 'ok' };
+    expect(await inRequest('gv-nhom', () => ensureGeminiKey(OWNER_KEY))).toMatchObject({ key: OWN_KEY, source: 'own', billing: null });
   });
 
   it('chạm trần tự đặt thì dừng (kể cả khi chưa bật kiểm soát)', async () => {

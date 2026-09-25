@@ -9,6 +9,11 @@ describe('chọn khoá AI', () => {
     expect(decideAiKey({ gateEnabled: true, isShared: true, ownKey: null, consent: false })).toEqual({ use: 'shared' });
   });
 
+  it('người trong nhóm có khoá riêng thì dùng khoá riêng trước (không trừ ví); khoá hỏng thì về khoá chung', () => {
+    expect(decideAiKey({ gateEnabled: true, isShared: true, ownKey: { status: 'ok' }, consent: false })).toEqual({ use: 'own' });
+    expect(decideAiKey({ gateEnabled: true, isShared: true, ownKey: { status: 'invalid' }, consent: false })).toEqual({ use: 'shared' });
+  });
+
   it('người ngoài nhóm: khoá riêng trước; hết thì đã đồng ý mới sang khoá chung; chưa đồng ý thì chặn', () => {
     const base = { gateEnabled: true, isShared: false, now: NOW };
     expect(decideAiKey({ ...base, ownKey: { status: 'ok' }, consent: true })).toEqual({ use: 'own' });

@@ -2,10 +2,12 @@
  * CHỌN KHOÁ AI cho một lượt gọi — thuần, dùng chung máy chủ + giao diện.
  *
  * Chủ dự án chốt (2026-09-24):
- *  - Nhóm dùng khoá chung (chủ dự án + các cô trong danh sách) chạy như cũ.
+ *  - Nhóm (chủ dự án + các cô trong danh sách) dùng thẳng khoá chung, không cần khoá riêng hay bấm đồng ý
+ *    (vẫn trừ ví, trừ chủ dự án).
  *  - Giáo viên khác dùng KHOÁ GEMINI RIÊNG. Khoá hết/hỏng hoặc chưa có khoá thì bị chặn — bài học sinh
  *    nằm chờ — trừ khi giáo viên đã ĐỒNG Ý dùng khoá chung và chịu tính tiền theo mức dùng.
- *  - Có khoá riêng thì luôn dùng khoá riêng trước; khoá chung chỉ là dự phòng khi đã đồng ý.
+ *  - Có khoá riêng thì luôn dùng khoá riêng trước — KỂ CẢ người trong nhóm (tự trả Google, không trừ ví);
+ *    khoá chung chỉ là dự phòng: người trong nhóm tự chuyển, người ngoài nhóm phải đã đồng ý.
  *  - Chưa bật kiểm soát trong trang Quản trị thì ai cũng dùng khoá chung (hành vi trước đây).
  */
 
@@ -39,8 +41,9 @@ export const ownKeyUsable = (own: AiKeyPolicyInput['ownKey'], now = Date.now()):
 };
 
 export const decideAiKey = ({ gateEnabled, isShared, ownKey, consent, now = Date.now() }: AiKeyPolicyInput): AiKeyDecision => {
-  if (!gateEnabled || isShared) return { use: 'shared' };
+  if (!gateEnabled) return { use: 'shared' };
   if (ownKeyUsable(ownKey, now)) return { use: 'own' };
+  if (isShared) return { use: 'shared' };
   if (consent) return { use: 'owner_consent' };
   return { use: 'blocked', reason: ownKey ? (ownKey.status === 'invalid' ? 'invalid' : 'exhausted') : 'no_key' };
 };

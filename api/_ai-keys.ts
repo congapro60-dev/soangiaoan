@@ -144,8 +144,8 @@ export const ensureGeminiKey = async (fallbackKey: string): Promise<AiKeyChoice>
 };
 
 /**
- * Khoá RIÊNG vừa bị Google từ chối (hết hạn mức / hỏng): ghi trạng thái để lần sau khỏi thử; đã đồng ý
- * thì chuyển request này sang khoá chung, chưa thì chặn.
+ * Khoá RIÊNG vừa bị Google từ chối (hết hạn mức / hỏng): ghi trạng thái để lần sau khỏi thử. Người trong nhóm
+ * hoặc đã đồng ý thì chuyển request này sang khoá chung (trừ ví), còn lại thì chặn.
  */
 export const onOwnKeyFailure = async (choice: AiKeyChoice, status: AiKeyStatus, detail: string, fallbackKey: string): Promise<AiKeyChoice> => {
   const uid = choice.ownerUid;
@@ -156,11 +156,12 @@ export const onOwnKeyFailure = async (choice: AiKeyChoice, status: AiKeyStatus, 
     keyStatusAt: new Date().toISOString(),
     keyStatusMessage: detail.slice(0, 300),
   }, { merge: true });
-  const keyDoc = await loadKeyDoc(db, uid);
-  if (keyDoc?.consent?.accepted !== true) throw new AiKeyRequiredError(status === 'invalid' ? 'invalid' : 'exhausted', uid);
-  const billing = await billingFor(db, await loadAiAccess(db), uid);
+  const [keyDoc, access] = await Promise.all([loadKeyDoc(db, uid), loadAiAccess(db)]);
+  const isShared = access.sharedUids.includes(uid);
+  if (!isShared && keyDoc?.consent?.accepted !== true) throw new AiKeyRequiredError(status === 'invalid' ? 'invalid' : 'exhausted', uid);
+  const billing = await billingFor(db, access, uid);
   await assertUnderCap(db, uid, keyDoc, Boolean(billing));
-  const next: AiKeyChoice = { key: fallbackKey, source: 'owner_consent', ownerUid: uid, billing };
+  const next: AiKeyChoice = { key: fallbackKey, source: isShared ? 'shared' : 'owner_consent', ownerUid: uid, billing };
   const context = currentAiUsageContext();
   if (context) context.keyChoice = next;
   return next;
