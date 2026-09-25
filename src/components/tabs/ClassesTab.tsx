@@ -14,6 +14,7 @@ import { SheetSyncPanel } from '../features/classroom/SheetSyncPanel';
 import { ScoreBookPanel } from '../features/classroom/ScoreBookPanel';
 import { SsmLinkPanel } from '../features/classroom/SsmLinkPanel';
 import { SsmPanel } from '../features/classroom/SsmPanel';
+import { SsmDraftCards } from '../features/classroom/SsmDraftCards';
 import { ClassAssignmentReport } from '../features/classroom/ClassAssignmentReport';
 import { ClassTeacherMembersPanel } from '../features/classroom/ClassTeacherMembersPanel';
 import { StudentReport } from '../features/classroom/StudentReport';
@@ -1239,14 +1240,24 @@ export const ClassesTab = ({ data, setData, user, showToast }: ClassesTabProps) 
           )}
 
           {workspaceView === 'ssm' && user?.uid && (
-            <SsmPanel
-              classId={selectedClass.id}
-              teacherId={user.uid}
-              classGrade={selectedClass.grade}
-              students={selectedClass.students}
-              settings={data.settings}
-              showToast={showToast}
-            />
+            <div className="space-y-4">
+              <SsmPanel
+                classId={selectedClass.id}
+                teacherId={user.uid}
+                classGrade={selectedClass.grade}
+                students={selectedClass.students}
+                settings={data.settings}
+                showToast={showToast}
+              />
+              <SsmDraftCards
+                classId={selectedClass.id}
+                teacherId={user.uid}
+                className={selectedClass.name}
+                classGrade={selectedClass.grade}
+                students={selectedClass.students}
+                showToast={showToast}
+              />
+            </div>
           )}
 
           {workspaceView === 'reports' && user?.uid && (
