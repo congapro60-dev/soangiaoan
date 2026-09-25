@@ -8,6 +8,35 @@ Mục còn hiệu lực (1.0q, 1.0r trở đi) nằm ở `HANDOFF.md`, KHÔNG l�
 
 ---
 
+## Đồng bộ BTVN sang Google Sheet — 2026-09-11 (đã QA production 09-14)
+
+Nút trong app, chỉ chạy khi giáo viên bấm. Tuỳ chọn theo lớp, mặc định tắt. Kế hoạch đầy đủ và khảo sát hai file thật của chủ dự án nằm ở `tasks/todo.md`.
+
+**QA production 2026-09-14 — đã nối cả 3 lớp, chưa ghi trạng thái nào cho tới khi chủ duyệt:**
+
+- 10 Olinda → file 2 `1AMNFsVJ…` / tab `10. OLINDA` — khớp **19/19** (sau khi thêm em mới Nguyễn Công Bảo Khánh vào cột B của sheet).
+- 11 Columbus → file 1 `1INWzPG…` / tab `02. BTVN` — khớp **26/26** (ca đặc biệt, file riêng).
+- 12 Toán LT1 → file 2 `1AMNFsVJ…` / tab `12. TOÁN LT1` — khớp **8/8**.
+- Thử nối nhầm tab bản chiếu `11. COLUMBUS (LINK)` → app **từ chối đúng** (IMPORTRANGE).
+
+**Kiến trúc:**
+
+- Đồng bộ chạy **trong trình duyệt giáo viên**, bằng quyền Google của chính giáo viên — dùng lại `getDriveAccessToken()` của tính năng "Đẩy giáo án lên Drive". Không email robot, không token Google trên máy chủ.
+- Máy chủ chỉ thêm action `setClassSheetSync` (lưu `classes/{id}.sheetSync`) trên `/api/classroom`. Không thêm Vercel function.
+- `src/lib/classroom/sheetSync.ts` là toàn bộ phần quyết định (thuần, 41 test). `sheetsApi.ts` chỉ đọc ảnh chụp tab và gửi lệnh đã dựng. `SheetSyncPanel.tsx` là giao diện.
+
+**Ngưỡng sắp cắn người:**
+
+- **Cam kết "không động vào tab liên lạc phụ huynh, ghi chú học sinh, quỹ lớp, hạnh kiểm" nằm ở CODE**, không ở Google (Google cấp quyền theo cả file). Mọi lệnh ghi đi qua `assertWriteAllowed` + `applySheetRequests` kiểm `sheetId`. Ai thêm loại ghi mới phải thêm vào cổng này, không gọi `batchUpdate` thẳng.
+- **Người sửa luôn thắng**: ghi chú `SmartPlan: <giá trị> · <giờ>` trên ô là trí nhớ của app. Ô khác giá trị ghi chú hoặc không có ghi chú = người đã chọn, không bao giờ ghi đè.
+- **Không chèn/xoá cột**: hết cột trống đã định dạng sẵn thì báo. Chèn/xoá cột làm lệch công thức Hạnh kiểm. App **không tự xoá cột trùng** — chỉ liệt kê cho giáo viên tự xoá.
+- **App KHÔNG tự thêm dòng học sinh**: em mới (có trong app, chưa có dòng trong sheet) bị bỏ qua, phải thêm tên vào cột B của tab trước (đã làm với Bảo Khánh).
+- Chuỗi trạng thái phải đúng từng ký tự kể cả biểu tượng (`SHEET_STATUS`). "Chưa làm" chỉ ghi **sau** giờ ở dòng 5; không bao giờ ghi "Thiếu".
+- **Phải bật Google Sheets API** trong dự án GCP `smartplan-ai-14200` (số `1030734458631`) — đã bật. `sheetsErrorMessage` báo đúng nguyên nhân kèm link nếu chưa bật.
+- **Token Google chỉ sống ~1 giờ**; hết hạn thì app cần cấp quyền lại (popup) — bước này cần thao tác người (đăng nhập). Khi lái tab nền: đưa tab ra trước bằng CDP (`computer` screenshot) rồi bấm "thật" thì `reauthenticateWithPopup` tự xong nếu phiên Google còn.
+- v1 chỉ bài giao nộp ảnh/file (`type !== 'exam'`, `purpose` = assignment). Đề online chưa lên sheet.
+- Deploy làm hỏng tab đang mở → đã có `staleChunkReload.ts` tự tải lại một lần (chặn vòng lặp 30s).
+
 ## Hồ sơ năng lực — GĐ1: Mã HS trong danh sách lớp — 2026-09-17
 
 Bước nền cho tính năng **hồ sơ năng lực Toán** (tích luỹ từ BTVN + nhận xét, xuất ra file mẫu trường "Sxxxxx - Tên.xlsx" khi cần). GĐ1 chỉ làm **khoá cố định = Mã học sinh**.

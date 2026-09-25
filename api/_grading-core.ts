@@ -1,6 +1,8 @@
 /// <reference types="node" />
 // File prefix "_" → không thành Serverless Function. Gồm: hạn mức chống đốt tiền + gọi Gemini.
 import { geminiUsageCounts, recordAiUsage } from './_ai-usage.js';
+import { ensureGeminiKey, onOwnKeyFailure } from './_ai-keys.js';
+import { classifyGeminiKeyFailure } from '../src/lib/admin/aiKeyPolicy.js';
 
 /**
  * Đường chấm bài này dùng KHOÁ AI CỦA CHỦ DỰ ÁN, không phải khoá giáo viên
@@ -261,35 +263,46 @@ export const callGeminiVision = async (
   if (maxOutputTokens !== 'model-max') generationConfig.maxOutputTokens = maxOutputTokens;
   if (options.jsonMode) generationConfig.responseMimeType = 'application/json';
 
+  // Khoá theo request: nhóm dùng khoá chung / khoá riêng của giáo viên / khoá chung đã đồng ý tính phí.
+  let keyChoice = await ensureGeminiKey(apiKey);
   let res: Response;
-  try {
-    res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{
-            role: 'user',
-            parts: [
-              { text: prompt },
-              ...images.map(img => ({ inlineData: { mimeType: img.mimeType, data: img.data } })),
-            ],
-          }],
-          generationConfig,
-        }),
-        ...(options.timeoutMs ? { signal: AbortSignal.timeout(options.timeoutMs) } : {}),
-      },
-    );
-  } catch (error) {
-    // Hết giờ chờ thì phải ném ra để nhánh gọi kịp mở khoá bài nộp trước khi Vercel giết hàm.
-    const timedOut = error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError');
-    throw new GeminiResponseError(
-      'provider',
-      timedOut
-        ? 'AI xử lý quá lâu nên máy chủ phải dừng lượt chấm này. Thử lại, hoặc chụp gọn lại bài (ít ảnh hơn).'
-        : 'Không gọi được Gemini lúc này. Thử lại sau ít phút.',
-    );
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(keyChoice.key)}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              role: 'user',
+              parts: [
+                { text: prompt },
+                ...images.map(img => ({ inlineData: { mimeType: img.mimeType, data: img.data } })),
+              ],
+            }],
+            generationConfig,
+          }),
+          ...(options.timeoutMs ? { signal: AbortSignal.timeout(options.timeoutMs) } : {}),
+        },
+      );
+    } catch (error) {
+      // Hết giờ chờ thì phải ném ra để nhánh gọi kịp mở khoá bài nộp trước khi Vercel giết hàm.
+      const timedOut = error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError');
+      throw new GeminiResponseError(
+        'provider',
+        timedOut
+          ? 'AI xử lý quá lâu nên máy chủ phải dừng lượt chấm này. Thử lại, hoặc chụp gọn lại bài (ít ảnh hơn).'
+          : 'Không gọi được Gemini lúc này. Thử lại sau ít phút.',
+      );
+    }
+    if (res.ok || keyChoice.source !== 'own' || attempt > 0) break;
+    // Khoá RIÊNG của giáo viên bị từ chối vì chính khoá (hết hạn mức / hỏng): ghi lại, rồi hoặc chuyển
+    // sang khoá chung (đã đồng ý tính phí) và gọi lại MỘT lần, hoặc ném AiKeyRequiredError.
+    const detail = await res.clone().text().catch(() => '');
+    const keyFailure = classifyGeminiKeyFailure(res.status, detail);
+    if (!keyFailure) break;
+    keyChoice = await onOwnKeyFailure(keyChoice, keyFailure, detail, apiKey);
   }
 
   if (!res.ok) {

@@ -20,6 +20,9 @@ import { FloatingChatWidget } from './components/layout/FloatingChatWidget';
 import { DashboardTab } from './components/tabs/DashboardTab';
 import { SettingsModal } from './components/modals/SettingsModal';
 import { LatexModal } from './components/modals/LatexModal';
+import { AiKeyGateModal } from './components/features/aiBilling/AiKeyGateModal';
+import { AiBlockedBanner } from './components/features/aiBilling/AiBlockedBanner';
+import { installAiKeyFetchGate } from './lib/ai/aiKeyGate';
 
 // Lazy-loaded tabs (splits heavy chunks, loaded on first visit)
 const CreatorTab = lazy(() => import('./components/tabs/CreatorTab').then(m => ({ default: m.CreatorTab })));
@@ -39,6 +42,7 @@ const AIToolsTab = lazy(() => import('./components/tabs/AIToolsTab').then(m => (
 const ClassesTab = lazy(() => import('./components/tabs/ClassesTab').then(m => ({ default: m.ClassesTab })));
 const LessonUpgradeTab = lazy(() => import('./components/tabs/LessonUpgradeTab').then(m => ({ default: m.LessonUpgradeTab })));
 const AdminTab = lazy(() => import('./components/tabs/AdminTab').then(m => ({ default: m.AdminTab })));
+const AiBillingTab = lazy(() => import('./components/tabs/AiBillingTab').then(m => ({ default: m.AiBillingTab })));
 
 // Utils
 import { processUploadedFile } from './utils/fileUtils';
@@ -59,9 +63,12 @@ export default function App() {
     saveGradingSession, deleteGradingSession, deleteGradingResult,
   } = useAppState(user, showToast);
   
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'classes' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading' | 'exams' | 'adaptiveLessons' | 'aiTools' | 'lessonUpgrade' | 'duGio' | 'admin'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'classes' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading' | 'exams' | 'adaptiveLessons' | 'aiTools' | 'lessonUpgrade' | 'duGio' | 'aiBilling' | 'admin'>('dashboard');
   // Chỉ để hiện mục Quản trị; quyền thật kiểm lại ở máy chủ (email Google đã xác minh).
   const isAdmin = Boolean(user && !user.isAnonymous && user.emailVerified && isAdminEmail(user.email));
+  const isTeacherSignedIn = Boolean(user && !user.isAnonymous);
+  // Máy chủ trả 402 khi AI của giáo viên tạm dừng → mở hộp xử lý rồi tự gửi lại yêu cầu.
+  useEffect(() => { if (isTeacherSignedIn) installAiKeyFetchGate(); }, [isTeacherSignedIn]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth >= 768);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [libraryTab, setLibraryTab] = useState<'personal' | 'community'>('personal');
@@ -382,6 +389,7 @@ export default function App() {
         })()}
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-8">
+          {isTeacherSignedIn && activeTab !== 'aiBilling' && <AiBlockedBanner onOpen={() => setActiveTab('aiBilling')} />}
           <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" /></div>}>
           <AnimatePresence mode="wait">
             {activeTab === 'dashboard' && (
@@ -539,6 +547,7 @@ export default function App() {
             )}
 
             {activeTab === 'chat' && <ChatTab {...chat} isLoading={isLoading} />}
+            {activeTab === 'aiBilling' && <AiBillingTab user={user} />}
             {activeTab === 'admin' && isAdmin && <AdminTab />}
           </AnimatePresence>
           </Suspense>
@@ -555,6 +564,7 @@ export default function App() {
         showToast={showToast}
       />
       <FloatingChatWidget {...chat} isLoading={isLoading} />
+      {isTeacherSignedIn && <AiKeyGateModal />}
     </div>
   );
 }

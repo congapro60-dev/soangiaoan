@@ -1,10 +1,20 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-09-24
+**Cập nhật:** 2026-09-25
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Ví AI trả trước + khoá AI riêng + mã giảm giá — 2026-09-25
+
+Chủ dự án chốt: nhóm (chủ dự án + cô Hạnh, Vân, Hồng) dùng thẳng khoá chung; GV khác dùng khoá Gemini RIÊNG (cất `teacherAiKeys`, chỉ máy chủ đọc). Không có/hết khoá → AI dừng, bài HS nằm chờ (`aiBlocked`), GV được báo khi đăng nhập; bất kỳ lúc nào GV có thể đồng ý dùng khoá chung và TRẢ TRƯỚC qua ví (SePay), trừ dần theo đúng giá Google. Trần tiền/tháng tuỳ chọn cho mọi GV. Mã giảm giá 10–100%.
+- **Công tắc** `adminSettings/aiAccess.enabled` MẶC ĐỊNH TẮT → mọi người vẫn dùng khoá chung miễn phí như cũ. Chủ dự án bật ở Quản trị mục 6. Chủ dự án luôn thuộc nhóm + miễn ví (`exemptUids`).
+- Thuần: `aiKeyPolicy.ts` (chọn khoá, phân loại lỗi khoá Gemini: 429/quota = hết lượt 60 phút, 400/401/403 khoá sai = hỏng; 503/500 KHÔNG đẩy sang trả tiền), `aiWallet.ts` (mã nạp `SPAI…`, tính tiền từng lượt `round(costUsd×tỷ giá)×(100−%giảm)`, sao kê tháng = đầu kỳ + nạp + điều chỉnh − trừ).
+- Máy chủ: `_ai-keys.ts` (`ensureGeminiKey` → 402 `AI_KEY_REQUIRED{reason}`), `_ai-wallet.ts` (webhook `POST /api/classroom?hook=sepay`, header `Authorization: Apikey <SEPAY_WEBHOOK_KEY>`, chống cộng trùng theo id giao dịch, sai mã → `aiTopupsUnmatched` để gán tay), `_ai-billing.ts` (sao kê kèm minh chứng: lớp · bài · HS · token · tỷ giá lưu trên TỪNG lượt). `_ai-usage.ts` trừ ví ngay khi ghi lượt.
+- Giao diện GV: tab **Chi phí AI** (`AiBillingTab`: ví + QR nạp tự dò 5 giây, mã giảm giá, trần, khoá riêng, đồng ý trả phí, chấm lại bài đang chờ, sao kê + PDF). `aiKeyGate.ts` bọc `fetch` cho `/api/grade-homework|classroom|generate-simulation`: gặp 402 → mở `AiKeyGateModal`, xử lý xong bấm "Thử lại" là yêu cầu cũ tự gửi lại; nhiều yêu cầu chỉ mở 1 hộp. `AiBlockedBanner` báo bài chờ/ví cạn.
+- Quản trị mục 6–10 (`AiBillingAdminPanel`): nhóm dùng khoá chung + công tắc, tài khoản nhận tiền + trạng thái webhook, mã giảm giá (tạo/tắt/gán theo email), ví + điều chỉnh (lý do ≥5 ký tự, GV thấy trên sao kê), giao dịch chưa khớp, sao kê tháng từng GV.
+- **Chủ dự án tự làm** (không để AI đụng tiền/khoá): webhook SePay + biến Vercel `SEPAY_WEBHOOK_KEY` + Redeploy; nhập tài khoản nhận tiền; tạo mã THANG10 100% 01–31/10 gán các cô; bật công tắc khi sẵn sàng.
+- Test: aiKeyPolicy, aiWallet 9, ai-keys 7, ai-wallet 5, gateway 8, aiKeyGate 4; toàn bộ 186 file/2.121 test; lint, lint:api, build pass.
 ## Cầu nối SSM Edufit (đợt 1: chỉ đọc) — 2026-09-24
 
 SSM (`ssm.edufit.vn`) là hệ thống nội bộ Edufit của trường, không có API công khai; chủ dự án báo lãnh đạo đã cho phép đồng bộ. Hướng đã chọn: **tiện ích Edge** `extension/ssm-bridge/` (MV3), dùng phiên SSM của chính giáo viên ngay trong trình duyệt. Vé SSM KHÔNG lên app/Vercel/Firestore (lộ vé = vào SSM với quyền GV tới ~2027).
@@ -107,32 +117,3 @@ QA production tính năng đồng bộ BTVN phát hiện: **hạn ở dòng 5 hi
 - Ghi đè hạn dòng 5 chỉ khi app có hạn và ô lệch >1 phút — hạn app là chuẩn (chủ dự án chốt). Nếu tổ trưởng tự đặt hạn khác trong sheet thì sẽ bị hạn app ghi đè; đây là ý muốn.
 - File 1 (11 Columbus) nếu dòng 5 đang là công thức chạy được và trùng hạn app thì **không** bị ghi đè (surgical).
 - Nghiệm thu bản này: `sheetSync.test.ts` **41 tests PASS**, `lint` 0, `lint:api` 0, `build` PASS. (6 fail liveLesson lúc đó đã sửa ở mục CI phía trên.)
-
-## Đồng bộ BTVN sang Google Sheet — 2026-09-11 (đã QA production 09-14)
-
-Nút trong app, chỉ chạy khi giáo viên bấm. Tuỳ chọn theo lớp, mặc định tắt. Kế hoạch đầy đủ và khảo sát hai file thật của chủ dự án nằm ở `tasks/todo.md`.
-
-**QA production 2026-09-14 — đã nối cả 3 lớp, chưa ghi trạng thái nào cho tới khi chủ duyệt:**
-
-- 10 Olinda → file 2 `1AMNFsVJ…` / tab `10. OLINDA` — khớp **19/19** (sau khi thêm em mới Nguyễn Công Bảo Khánh vào cột B của sheet).
-- 11 Columbus → file 1 `1INWzPG…` / tab `02. BTVN` — khớp **26/26** (ca đặc biệt, file riêng).
-- 12 Toán LT1 → file 2 `1AMNFsVJ…` / tab `12. TOÁN LT1` — khớp **8/8**.
-- Thử nối nhầm tab bản chiếu `11. COLUMBUS (LINK)` → app **từ chối đúng** (IMPORTRANGE).
-
-**Kiến trúc:**
-
-- Đồng bộ chạy **trong trình duyệt giáo viên**, bằng quyền Google của chính giáo viên — dùng lại `getDriveAccessToken()` của tính năng "Đẩy giáo án lên Drive". Không email robot, không token Google trên máy chủ.
-- Máy chủ chỉ thêm action `setClassSheetSync` (lưu `classes/{id}.sheetSync`) trên `/api/classroom`. Không thêm Vercel function.
-- `src/lib/classroom/sheetSync.ts` là toàn bộ phần quyết định (thuần, 41 test). `sheetsApi.ts` chỉ đọc ảnh chụp tab và gửi lệnh đã dựng. `SheetSyncPanel.tsx` là giao diện.
-
-**Ngưỡng sắp cắn người:**
-
-- **Cam kết "không động vào tab liên lạc phụ huynh, ghi chú học sinh, quỹ lớp, hạnh kiểm" nằm ở CODE**, không ở Google (Google cấp quyền theo cả file). Mọi lệnh ghi đi qua `assertWriteAllowed` + `applySheetRequests` kiểm `sheetId`. Ai thêm loại ghi mới phải thêm vào cổng này, không gọi `batchUpdate` thẳng.
-- **Người sửa luôn thắng**: ghi chú `SmartPlan: <giá trị> · <giờ>` trên ô là trí nhớ của app. Ô khác giá trị ghi chú hoặc không có ghi chú = người đã chọn, không bao giờ ghi đè.
-- **Không chèn/xoá cột**: hết cột trống đã định dạng sẵn thì báo. Chèn/xoá cột làm lệch công thức Hạnh kiểm. App **không tự xoá cột trùng** — chỉ liệt kê cho giáo viên tự xoá.
-- **App KHÔNG tự thêm dòng học sinh**: em mới (có trong app, chưa có dòng trong sheet) bị bỏ qua, phải thêm tên vào cột B của tab trước (đã làm với Bảo Khánh).
-- Chuỗi trạng thái phải đúng từng ký tự kể cả biểu tượng (`SHEET_STATUS`). "Chưa làm" chỉ ghi **sau** giờ ở dòng 5; không bao giờ ghi "Thiếu".
-- **Phải bật Google Sheets API** trong dự án GCP `smartplan-ai-14200` (số `1030734458631`) — đã bật. `sheetsErrorMessage` báo đúng nguyên nhân kèm link nếu chưa bật.
-- **Token Google chỉ sống ~1 giờ**; hết hạn thì app cần cấp quyền lại (popup) — bước này cần thao tác người (đăng nhập). Khi lái tab nền: đưa tab ra trước bằng CDP (`computer` screenshot) rồi bấm "thật" thì `reauthenticateWithPopup` tự xong nếu phiên Google còn.
-- v1 chỉ bài giao nộp ảnh/file (`type !== 'exam'`, `purpose` = assignment). Đề online chưa lên sheet.
-- Deploy làm hỏng tab đang mở → đã có `staleChunkReload.ts` tự tải lại một lần (chặn vòng lặp 30s).

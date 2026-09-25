@@ -9,7 +9,13 @@
 import type { VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
 import { isAdminEmail, METERING_START_DAY } from '../src/lib/admin/adminConfig.js';
-import { aggregateUsage, type OwnerMaps, type UsageRecord } from '../src/lib/admin/billing.js';
+import { aggregateUsage, type UsageRecord } from '../src/lib/admin/billing.js';
+import { fetchVcbUsdSell, isStatementMonth, monthOverview, ownerMapsFor, statementFor, usageRecordFromDoc } from './_ai-billing.js';
+import { adminWalletAction } from './_ai-wallet.js';
+
+/** Giữ export cũ cho test/nơi gọi trước đây. */
+export { parseVcbUsdSell } from './_ai-billing.js';
+import { adminAiAccessView, adminSaveAiAccess } from './_ai-keys.js';
 import { classKey } from '../src/lib/admin/classSetup.js';
 import { createJoinCode } from '../src/lib/classroom/joinCode.js';
 import { AI_USAGE_COL } from './_ai-usage.js';
@@ -144,23 +150,6 @@ const handleOverview = async (db: Db, res: VercelResponse) => {
 
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
-/** Đọc nhiều doc theo id, trả map id → teacherId (ownerId ưu tiên cho lớp). */
-const ownersOf = async (db: Db, collection: string, ids: Iterable<string>): Promise<Map<string, string>> => {
-  const map = new Map<string, string>();
-  const unique = [...new Set(ids)].filter(Boolean);
-  for (let i = 0; i < unique.length; i += 100) {
-    const refs = unique.slice(i, i + 100).map(id => db.collection(collection).doc(id));
-    const snaps = await db.getAll(...refs);
-    for (const snap of snaps) {
-      if (!snap.exists) continue;
-      const data = snap.data() || {};
-      const owner = data.ownerId || data.teacherId;
-      if (typeof owner === 'string' && owner) map.set(snap.id, owner);
-    }
-  }
-  return map;
-};
-
 const handleUsage = async (db: Db, body: Body, res: VercelResponse) => {
   const fromDay = String(body.fromDay || '');
   const toDay = String(body.toDay || '');
@@ -168,26 +157,8 @@ const handleUsage = async (db: Db, body: Body, res: VercelResponse) => {
     return res.status(422).json({ error: 'Khoảng ngày không hợp lệ.' });
   }
   const snap = await db.collection(AI_USAGE_COL).where('day', '>=', fromDay).where('day', '<=', toDay).get();
-  const records: UsageRecord[] = snap.docs.map(doc => {
-    const d = doc.data() || {};
-    const n = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
-    return {
-      day: String(d.day || ''),
-      model: String(d.model || ''),
-      feature: String(d.feature || ''),
-      uid: typeof d.uid === 'string' ? d.uid : null,
-      anonymous: d.anonymous === true,
-      refs: d.refs && typeof d.refs === 'object' ? d.refs as Record<string, string> : {},
-      inputTokens: n(d.inputTokens), outputTokens: n(d.outputTokens), thoughtsTokens: n(d.thoughtsTokens), cachedTokens: n(d.cachedTokens),
-    };
-  });
-
-  const maps: OwnerMaps = {
-    submissionOwner: await ownersOf(db, 'submissions', records.map(r => r.refs.submissionId)),
-    assignmentOwner: await ownersOf(db, 'assignments', records.map(r => r.refs.assignmentId)),
-    classOwner: await ownersOf(db, 'classes', records.map(r => r.refs.classId)),
-    studentLinkOwner: await ownersOf(db, 'studentLinks', records.filter(r => r.anonymous && r.uid).map(r => r.uid as string)),
-  };
+  const records: UsageRecord[] = snap.docs.map(doc => usageRecordFromDoc(doc.id, doc.data() || {}));
+  const maps = await ownerMapsFor(db, records);
   return res.status(200).json({ rows: aggregateUsage(records, maps), recordCount: records.length, fromDay, toDay });
 };
 
@@ -209,24 +180,10 @@ const handleSaveSettings = async (db: Db, body: Body, res: VercelResponse) => {
   return res.status(200).json({ settings });
 };
 
-/** Tỷ giá USD BÁN RA của Vietcombank (feed XML công khai). */
-export const parseVcbUsdSell = (xml: string): { sell: number; dateTime: string } | null => {
-  const sell = /CurrencyCode="USD"[^>]*?Sell="([\d.,]+)"/.exec(xml)?.[1];
-  if (!sell) return null;
-  const value = Number(sell.replace(/,/g, ''));
-  if (!Number.isFinite(value) || value <= 0) return null;
-  return { sell: value, dateTime: /<DateTime>([^<]+)<\/DateTime>/.exec(xml)?.[1]?.trim() ?? '' };
-};
-
 const handleFetchVcbRate = async (res: VercelResponse) => {
-  try {
-    const response = await fetch('https://portal.vietcombank.com.vn/Usercontrols/TVPortal.TyGia/pXML.aspx', { signal: AbortSignal.timeout(10_000) });
-    const parsed = response.ok ? parseVcbUsdSell(await response.text()) : null;
-    if (!parsed) return res.status(502).json({ error: 'Không đọc được tỷ giá Vietcombank. Nhập tay giúp.' });
-    return res.status(200).json(parsed);
-  } catch {
-    return res.status(502).json({ error: 'Không kết nối được Vietcombank. Nhập tay giúp.' });
-  }
+  const parsed = await fetchVcbUsdSell();
+  if (!parsed) return res.status(502).json({ error: 'Không đọc được tỷ giá Vietcombank. Nhập tay giúp.' });
+  return res.status(200).json(parsed);
 };
 
 const readExamSheet = (raw: unknown): { spreadsheetId: string; spreadsheetTitle: string } | null => {
@@ -332,6 +289,24 @@ export const handleAdminAction = async (db: Db, body: Body, res: VercelResponse)
   if (action === 'adminFetchVcbRate') { await handleFetchVcbRate(res); return true; }
   if (action === 'adminCreateClassForTeacher') { await handleCreateClassForTeacher(db, body, admin.uid, res); return true; }
   if (action === 'adminLinkExamSheet') { await handleLinkExamSheet(db, body, admin.uid, res); return true; }
+  if (action === 'adminMonthOverview') {
+    if (!isStatementMonth(body.month)) { res.status(422).json({ error: 'Tháng không hợp lệ.' }); return true; }
+    res.status(200).json(await monthOverview(db, body.month));
+    return true;
+  }
+  if (action === 'adminStatement') {
+    if (!isStatementMonth(body.month) || typeof body.uid !== 'string' || !body.uid) { res.status(422).json({ error: 'Thiếu giáo viên hoặc tháng.' }); return true; }
+    res.status(200).json(await statementFor(db, body.uid, body.month));
+    return true;
+  }
+  const walletResult = await adminWalletAction(db, action, body, admin.uid);
+  if (walletResult) { res.status(walletResult.status).json(walletResult.payload); return true; }
+  if (action === 'adminAiAccess') { res.status(200).json(await adminAiAccessView(db)); return true; }
+  if (action === 'adminSaveAiAccess') {
+    const { status, payload } = await adminSaveAiAccess(db, body, admin.uid);
+    res.status(status).json(payload);
+    return true;
+  }
   res.status(400).json({ error: `Hành động quản trị không hợp lệ: ${action}` });
   return true;
 };

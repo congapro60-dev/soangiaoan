@@ -79,7 +79,11 @@ import {
 } from '../src/lib/classroom/types.js';
 import { handleAiGateway } from './_ai-gateway-handler.js';
 import { getBearerToken } from './_ai-gateway-core.js';
-import { createAiUsageContext, runWithAiUsage } from './_ai-usage.js';
+import { createAiUsageContext, runWithAiUsage, setAiKeyOwner } from './_ai-usage.js';
+import { AiKeyRequiredError, aiKeyRequiredPayload, ensureGeminiKey } from './_ai-keys.js';
+
+/** Học sinh không tự xử lý được chuyện khoá của thầy cô — nói nhẹ, không lộ chuyện tiền. */
+const STUDENT_AI_PAUSED_MESSAGE = 'AI chấm của lớp đang tạm dừng. Bài của em đã được lưu, thầy cô sẽ chấm sau.';
 import { commitAiGradeIfClaimed, removeSubmissionGradeEvidence } from './_grade-lifecycle.js';
 import { replaceSkillEvidenceAndRebuild } from './_skill-profile.js';
 import { canTeacherAccessLegacyNamespace } from './_classroom-access.js';
@@ -145,6 +149,7 @@ const claimSubmissionForGrading = async (
       status: 'grading',
       gradingRunId,
       errorMessage: '',
+      aiBlocked: false,
       updatedAt: claimedAt,
     });
   });
@@ -517,6 +522,18 @@ const gradeOneSubmission = async (
     }
     return { success: true };
   } catch (error) {
+    // Khoá AI bị chặn: KHÔNG phải lỗi bài làm. Trả bài về trạng thái cũ + cờ "chờ khoá" để giáo viên
+    // thấy khi đăng nhập, rồi ném tiếp cho handler quyết định (giáo viên: hộp chọn; học sinh: báo chờ).
+    if (error instanceof AiKeyRequiredError) {
+      await restoreClaimIfOwned(db, claim, {
+        status: hadPreviousGrade ? 'graded' : 'submitted',
+        errorMessage: '',
+        aiBlocked: true,
+        aiBlockedReason: error.reason,
+        aiBlockedAt: new Date().toISOString(),
+      });
+      throw error;
+    }
     const safeMessage = safeGradeErrorMessage(error);
     const rawMessage = error instanceof Error ? error.message : String(error);
     // Regrade lỗi không được làm mất grade hợp lệ đang có. Luôn giữ status='graded'
@@ -602,6 +619,10 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
   if (!assignmentTeacherId || !await canTeacherAccessLegacyNamespace(db, uid, assignmentClassId, assignmentTeacherId)) {
     return res.status(403).json({ error: 'Chỉ giáo viên thuộc lớp được cấp quyền mới chấm được.' });
   }
+
+  // Khoá/tiền tính cho giáo viên CHỦ bài giao; kiểm trước khi khoá bài nào để bị chặn thì báo ngay.
+  setAiKeyOwner(assignmentTeacherId);
+  await ensureGeminiKey(getGradingApiKey());
 
   const recovered = await recoverStaleGradingSubmissions(db, assignmentId, assignmentTeacherId, assignmentClassId);
 
@@ -691,6 +712,16 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
   const mode: HomeworkGradingMode = isTeacher && !isOwnerStudent ? requestedMode : 'quick';
   if (isOwnerStudent && submission.grade?.teacherApproved === true) {
     return res.status(403).json({ error: 'Kết quả đã được giáo viên duyệt; chỉ giáo viên mới được chấm lại.' });
+  }
+
+  // Khoá AI thuộc giáo viên chủ lớp. Học sinh nộp đúng lúc khoá bị chặn: bài nằm chờ, giáo viên được báo.
+  setAiKeyOwner(String(submission.teacherId || '') || null);
+  try {
+    await ensureGeminiKey(getGradingApiKey());
+  } catch (error) {
+    if (!(error instanceof AiKeyRequiredError) || !isOwnerStudent || isTeacher) throw error;
+    await ref.update({ aiBlocked: true, aiBlockedReason: error.reason, aiBlockedAt: new Date().toISOString() });
+    return res.status(202).json({ graded: 0, failed: 0, remaining: 0, pending: true, waitingTeacher: true, message: STUDENT_AI_PAUSED_MESSAGE });
   }
 
   const kind: GradeKind = isTeacher ? 'teacher' : 'self';
@@ -792,10 +823,6 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
 };
 
 /**
- * Bài luyện thêm từ chủ đề còn yếu trong hồ sơ. Tính vào cùng hạn mức đường học sinh —
- * đây cũng là một lượt gọi AI trả bằng tiền của chủ dự án.
- */
-/**
  * Căn cứ ra bài luyện: lỗi từng câu trong BTVN đã chấm của chính em + câu em chưa làm trọn ở lượt
  * luyện đã chấm gần nhất; kèm câu hỏi các đề luyện gần đây để AI không ra lại.
  */
@@ -838,6 +865,10 @@ const loadPracticeBasis = async (
   return { mistakes: [...practice, ...homework], avoidQuestions: recentPracticeQuestions(sets) };
 };
 
+/**
+ * Bài luyện thêm từ lỗi BTVN + chủ đề còn yếu trong hồ sơ. Tính vào cùng hạn mức đường học sinh —
+ * đây cũng là một lượt gọi AI bằng khoá của giáo viên chủ lớp (hoặc khoá chung).
+ */
 const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
   const uid = await uidFromIdToken(body.idToken);
   if (!uid) return res.status(401).json({ error: 'Phiên đăng nhập không hợp lệ.' });
@@ -947,6 +978,7 @@ const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<stri
   if (reservation.verdict.allowed <= 0) return res.status(429).json({ error: reservation.verdict.reason });
 
   const classSnap = await db.collection('classes').doc(link.classId).get();
+  setAiKeyOwner(link.teacherId);
   let raw: string;
   try {
     raw = await callGeminiVision(
@@ -962,6 +994,9 @@ const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<stri
       { maxOutputTokens: 16384, jsonMode: true },
     );
   } catch (error) {
+    if (error instanceof AiKeyRequiredError) {
+      return res.status(409).json({ error: 'Bài luyện AI của lớp đang tạm dừng. Em quay lại sau khi thầy cô bật lại nhé.' });
+    }
     console.error('[grade-homework] practice generation failed', error);
     return res.status(502).json({ error: 'AI chưa tạo được bài luyện. Thử lại sau.' });
   }
@@ -1067,6 +1102,7 @@ const handleSubmitPractice = async (db: FirebaseFirestore.Firestore, body: Recor
   const linkSnap = await db.collection('studentLinks').doc(uid).get();
   if (!linkSnap.exists) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới nộp bài luyện.' });
   const link = linkSnap.data() as { studentId: string; classId: string; teacherId: string };
+  setAiKeyOwner(link.teacherId);
 
   const setId = typeof body.setId === 'string' ? body.setId.trim() : '';
   if (!setId) return res.status(400).json({ error: 'Thiếu mã bài luyện.' });
@@ -1259,7 +1295,9 @@ const handleSubmitPractice = async (db: FirebaseFirestore.Firestore, body: Recor
     const failed: PracticeAttemptDoc = {
       ...baseAttempt,
       status: 'error',
-      errorMessage: error instanceof Error ? error.message : 'Chấm bài luyện thất bại.',
+      errorMessage: error instanceof AiKeyRequiredError
+        ? STUDENT_AI_PAUSED_MESSAGE
+        : error instanceof Error ? error.message : 'Chấm bài luyện thất bại.',
       updatedAt: new Date().toISOString(),
     };
     const persisted = await db.runTransaction(async transaction => {
@@ -1633,6 +1671,8 @@ async function dispatchGradeHomework(req: VercelRequest, res: VercelResponse, bo
     if (action === 'rewriteFeedback') return await handleRewriteFeedback(db, body, res);
     return res.status(400).json({ error: `Hành động không hợp lệ: ${action}`, limits: QUOTA_LIMITS });
   } catch (error) {
+    // Khoá AI của giáo viên hết/chưa có và chưa đồng ý dùng khoá chung → client mở hộp chọn.
+    if (error instanceof AiKeyRequiredError) return res.status(402).json(aiKeyRequiredPayload(error));
     console.error('[grade-homework] lỗi', error);
     return res.status(500).json({
       error: error instanceof Error ? error.message : 'Máy chủ gặp lỗi khi chấm bài.',

@@ -19,6 +19,7 @@ import {
   resolveGatewayApiKey,
 } from './_ai-gateway-core.js';
 import { openAiUsageCounts, recordAiUsage } from './_ai-usage.js';
+import { AiKeyRequiredError, aiKeyRequiredPayload, assertSharedAiAllowed } from './_ai-keys.js';
 
 interface GatewayBody {
   prompt?: unknown;
@@ -135,6 +136,17 @@ export const handleAiGateway = async (req: VercelRequest, res: VercelResponse): 
   if (verdict.allowed <= 0) {
     void sendError(res, 429, verdict.reason);
     return;
+  }
+
+  // GLM chỉ chạy bằng khoá chung: ngoài nhóm thì phải đồng ý tính phí (khoá Gemini riêng không thay được).
+  try {
+    await assertSharedAiAllowed(user.uid);
+  } catch (error) {
+    if (error instanceof AiKeyRequiredError) {
+      res.status(402).json(aiKeyRequiredPayload(error));
+      return;
+    }
+    throw error;
   }
 
   // Timeout tường minh NGẮN hơn trần function (60s): SDK mặc định 10 phút sẽ bị Vercel

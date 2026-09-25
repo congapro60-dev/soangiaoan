@@ -45,6 +45,9 @@ import { handleTeacherAction } from './_classroom-teacher.js';
 import { readClassAccess } from './_classroom-access.js';
 import { handleClassroomOnlineAction } from './_classroom-online.js';
 import { handleScoreBookAction } from './_score-book.js';
+import { AiKeyRequiredError, aiKeyRequiredPayload, handleAiKeyAction } from './_ai-keys.js';
+import { handleAiBillingAction } from './_ai-billing.js';
+import { handleSepayWebhook } from './_ai-wallet.js';
 
 /**
  * Một hàm phục vụ các việc sau, để không vượt trần 12 Serverless Function của Vercel:
@@ -66,6 +69,9 @@ import { handleScoreBookAction } from './_score-book.js';
  *   POST { action: 'deleteAssignment', assignmentId, idToken } → xoá bài giao và file đề
  *   Sổ điểm (xem `_score-book.ts`): teacherScoreBook / saveHs1Column / deleteHs1Column / saveExamScores
  *   cho giáo viên thuộc lớp, studentScoreBook cho học sinh (chỉ dòng của chính mình).
+ *   Khoá AI (xem `_ai-keys.ts`): aiKeyStatus / saveAiKey / deleteAiKey / setAiConsent / setAiSpendCap cho giáo viên;
+ *   redeemVoucher (mã giảm giá); sao kê ví AI (xem `_ai-billing.ts`): aiStatement (chỉ của chính mình).
+ *   POST /api/classroom?hook=sepay → webhook SePay cộng tiền nạp vào ví (xác thực `Apikey SEPAY_WEBHOOK_KEY`).
  *
  * Vì sao phải đi qua server thay vì để client đọc thẳng Firestore:
  *  - PIN nằm ở `studentSecrets`, rules cấm MỌI client đọc. Chỉ Admin SDK kiểm được.
@@ -1419,6 +1425,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Chỉ nhận POST' });
   }
 
+  // Webhook SePay (tiền nạp ví AI vào tài khoản ngân hàng) đi chung function để không vượt trần 12 function.
+  if (req.query?.hook === 'sepay') {
+    try {
+      return await handleSepayWebhook(getAdminDb(), req, res);
+    } catch (error) {
+      console.error('[classroom] webhook SePay lỗi', error);
+      return res.status(500).json({ success: false });
+    }
+  }
+
   const body = readBody(req);
   const action = String(body.action || '');
   // Ngữ cảnh đếm token (chấm bài thi online dùng khoá chung). Không tốn gì với action không gọi AI.
@@ -1435,6 +1451,8 @@ async function dispatchClassroom(res: VercelResponse, body: ReturnType<typeof re
     if (await handleTeacherAction(db, body, res)) return;
     if (await handleClassroomOnlineAction(db, body, res)) return;
     if (await handleScoreBookAction(db, body, res)) return;
+    if (await handleAiKeyAction(db, body, res)) return;
+    if (await handleAiBillingAction(db, body, res)) return;
     if (action === 'roster') return await handleRoster(db, body, res);
     if (action === 'login') return await handleLogin(db, body, res);
     if (action === 'studentAssignments') return await handleStudentAssignments(db, body, res);
@@ -1456,6 +1474,7 @@ async function dispatchClassroom(res: VercelResponse, body: ReturnType<typeof re
     if (action === 'deleteAssignment') return await handleDeleteAssignment(db, body, res);
     return res.status(400).json({ error: `Hành động không hợp lệ: ${action}` });
   } catch (error) {
+    if (error instanceof AiKeyRequiredError) return res.status(402).json(aiKeyRequiredPayload(error));
     console.error('[classroom] lỗi', error);
     return res.status(500).json({ error: 'Máy chủ gặp lỗi. Thử lại sau ít phút.' });
   }
