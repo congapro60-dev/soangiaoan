@@ -5,6 +5,7 @@ import {defineConfig, loadEnv} from 'vite';
 
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
+  const apiTarget = env.VITE_API_TARGET || 'https://giaoandewey.vercel.app';
   return {
     plugins: [react(), tailwindcss()],
     resolve: {
@@ -19,7 +20,7 @@ export default defineConfig(({mode}) => {
       // localhost (E2E, demo mode).
       proxy: {
         '/api': {
-          target: 'https://giaoandewey.vercel.app',
+          target: apiTarget,
           changeOrigin: true,
         },
       },

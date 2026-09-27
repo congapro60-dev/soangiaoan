@@ -1,15 +1,13 @@
-import { collection, deleteDoc, deleteField, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
-import { getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
+import { doc, setDoc } from 'firebase/firestore';
+import { deleteObject, getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
 import { auth, db, removeUndefinedFields, storage } from '../firebase';
-import { applyEvidence, mergeTopics, removeEvidence } from './profileMerge';
+import type { ManualGradeInput } from './manualGrade';
 import {
-  ASSIGNMENTS_COL,
-  CLASSES_COL,
-  STUDENT_PROFILES_COL,
   SUBMISSIONS_COL,
   type AssignmentAttachment,
   type AssignmentDoc,
-  type StudentProfileDoc,
+  type StudentNotificationDoc,
+  type SubmissionAttachment,
   type SubmissionDoc,
 } from './types';
 
@@ -33,6 +31,9 @@ export interface NewAssignment {
   maxScore?: number;
   dueAt?: string;
   attachments?: AssignmentAttachment[];
+  sourceText?: string;
+  sourceImageUrls?: string[];
+  gradingInstructions?: string;
   answerKeyImageUrls?: string[];
   answerKeyByAi?: boolean;
 }
@@ -52,22 +53,64 @@ export const uploadAssignmentFiles = async (
     const an = file.name.replace(/[^\w.\-]+/g, '_');
     const fileRef = ref(storage, `assignments/${teacherUid}/${newId('de')}-${an}`);
     await uploadBytes(fileRef, file, { contentType: file.type || 'application/octet-stream' });
-    ket.push({ name: file.name, url: await getDownloadURL(fileRef) });
+    ket.push({ name: file.name, url: await getDownloadURL(fileRef), mimeType: file.type || undefined, size: file.size });
   }
   return ket;
 };
 
-/** Ảnh đáp án (data URL) lên Storage. Chỉ dùng khi file gốc không rút được chữ. */
-export const uploadAnswerKeyImages = async (teacherUid: string, images: string[]): Promise<string[]> => {
+/** Ảnh tham chiếu (data URL) lên Storage. Dùng cho ảnh đề/ảnh đáp án/PDF scan. */
+export const uploadAssignmentImages = async (teacherUid: string, images: string[], prefix: string): Promise<string[]> => {
   const urls: string[] = [];
   for (const dataUrl of images) {
     const mime = /^data:([^;,]+);/.exec(dataUrl)?.[1] || 'image/jpeg';
-    const fileRef = ref(storage, `assignments/${teacherUid}/${newId('dapan')}.${mime.split('/')[1] || 'jpg'}`);
+    const fileRef = ref(storage, `assignments/${teacherUid}/${newId(prefix)}.${mime.split('/')[1] || 'jpg'}`);
     await uploadString(fileRef, dataUrl, 'data_url', { contentType: mime });
     urls.push(await getDownloadURL(fileRef));
   }
   return urls;
 };
+
+const callClassroomTeacherApi = async <T>(payload: Record<string, unknown>): Promise<T> => {
+  const currentUser = auth.currentUser;
+  if (!currentUser || currentUser.isAnonymous) {
+    throw new Error('Cần đăng nhập bằng tài khoản giáo viên để thực hiện thao tác này.');
+  }
+
+  const idToken = await currentUser.getIdToken();
+  const response = await fetch('/api/classroom', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...payload, idToken }),
+  });
+  const data = await response.json().catch(() => null) as { error?: unknown } | null;
+  if (!response.ok) {
+    throw new Error(typeof data?.error === 'string' ? data.error : `Máy chủ trả lỗi ${response.status}.`);
+  }
+  return data as T;
+};
+
+const callClassroomStudentApi = async <T>(payload: Record<string, unknown>): Promise<T> => {
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    throw new Error('Phiên đăng nhập đã hết hạn. Tải lại trang rồi đăng nhập lại.');
+  }
+
+  const idToken = await currentUser.getIdToken();
+  const response = await fetch('/api/classroom', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...payload, idToken }),
+  });
+  const data = await response.json().catch(() => null) as { error?: unknown } | null;
+  if (!response.ok) {
+    throw new Error(typeof data?.error === 'string' ? data.error : `Máy chủ trả lỗi ${response.status}.`);
+  }
+  return data as T;
+};
+
+/** Ảnh đáp án (data URL) lên Storage. Chỉ dùng khi file gốc không rút được chữ. */
+export const uploadAnswerKeyImages = async (teacherUid: string, images: string[]): Promise<string[]> =>
+  uploadAssignmentImages(teacherUid, images, 'dapan');
 
 export const createAssignment = async (input: NewAssignment): Promise<AssignmentDoc> => {
   const now = new Date().toISOString();
@@ -80,6 +123,9 @@ export const createAssignment = async (input: NewAssignment): Promise<Assignment
     type: 'upload',
     dueAt: input.dueAt,
     attachments: input.attachments || [],
+    sourceText: input.sourceText?.trim() || undefined,
+    sourceImageUrls: input.sourceImageUrls || [],
+    gradingInstructions: input.gradingInstructions?.trim() || undefined,
     answerKeyImageUrls: input.answerKeyImageUrls || [],
     answerKeyByAi: input.answerKeyByAi === true,
     isOpen: true,
@@ -89,8 +135,11 @@ export const createAssignment = async (input: NewAssignment): Promise<Assignment
     rubric: input.rubric || '',
     maxScore: input.maxScore ?? 10,
   };
-  await setDoc(doc(db, ASSIGNMENTS_COL, assignment.id), removeUndefinedFields(assignment));
-  return assignment;
+  const result = await callClassroomTeacherApi<{ assignment: AssignmentDoc }>({
+    action: 'createAssignment',
+    assignment: removeUndefinedFields(assignment),
+  });
+  return result.assignment;
 };
 
 /**
@@ -109,12 +158,9 @@ const moiNhatTruoc = <T extends { createdAt?: string }>(ds: T[]): T[] =>
   [...ds].sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
 
 export const listAssignmentsForClass = async (classId: string, teacherId: string): Promise<AssignmentDoc[]> => {
-  const snap = await getDocs(query(
-    collection(db, ASSIGNMENTS_COL),
-    where('teacherId', '==', teacherId),
-    where('classId', '==', classId),
-  ));
-  return moiNhatTruoc(snap.docs.map(d => d.data() as AssignmentDoc));
+  void teacherId;
+  const result = await callClassroomTeacherApi<{ assignments: AssignmentDoc[] }>({ action: 'teacherAssignments', classId });
+  return moiNhatTruoc(result.assignments || []);
 };
 
 /**
@@ -126,21 +172,18 @@ export const listAssignmentsForClass = async (classId: string, teacherId: string
  */
 export const updateAssignmentContent = async (
   assignmentId: string,
-  patch: { answerKey?: string; rubric?: string },
+  patch: { answerKey?: string; rubric?: string; gradingInstructions?: string },
 ): Promise<void> => {
-  await updateDoc(doc(db, ASSIGNMENTS_COL, assignmentId), {
-    ...patch,
-    updatedAt: new Date().toISOString(),
-  });
+  await callClassroomTeacherApi({ action: 'updateAssignmentContent', assignmentId, patch });
 };
 
-/** Xoá bài giao. Nơi gọi phải chặn khi đã có bài nộp, để không bỏ lại bài nộp mồ côi. */
+/** Xoá bài giao và toàn bộ file đề/ảnh đáp án trên Storage qua Admin SDK. */
 export const deleteAssignment = async (assignmentId: string): Promise<void> => {
-  await deleteDoc(doc(db, ASSIGNMENTS_COL, assignmentId));
+  await callClassroomTeacherApi({ action: 'deleteAssignment', assignmentId });
 };
 
 export const setAssignmentOpen = async (assignmentId: string, isOpen: boolean): Promise<void> => {
-  await updateDoc(doc(db, ASSIGNMENTS_COL, assignmentId), { isOpen, updatedAt: new Date().toISOString() });
+  await callClassroomTeacherApi({ action: 'setAssignmentOpen', assignmentId, isOpen });
 };
 
 /**
@@ -151,29 +194,24 @@ export const updateAssignmentDeadline = async (
   assignmentId: string,
   dueAt: string | null,
 ): Promise<void> => {
-  await updateDoc(doc(db, ASSIGNMENTS_COL, assignmentId), {
-    dueAt: dueAt ? dueAt : deleteField(),
-    updatedAt: new Date().toISOString(),
-  });
+  await callClassroomTeacherApi({ action: 'updateAssignmentDeadline', assignmentId, dueAt });
 };
 
 export const listSubmissionsForAssignment = async (assignmentId: string, teacherId: string): Promise<SubmissionDoc[]> => {
-  const snap = await getDocs(query(
-    collection(db, SUBMISSIONS_COL),
-    where('teacherId', '==', teacherId),
-    where('assignmentId', '==', assignmentId),
-  ));
-  return moiNhatTruoc(snap.docs.map(d => d.data() as SubmissionDoc));
+  void teacherId;
+  const result = await callClassroomTeacherApi<{ submissions: SubmissionDoc[] }>({ action: 'teacherSubmissions', assignmentId });
+  return moiNhatTruoc(result.submissions || []);
 };
 
-/** Bài nộp của một học sinh, dùng cho báo cáo phía giáo viên. */
-export const listSubmissionsForStudent = async (studentId: string, teacherId: string): Promise<SubmissionDoc[]> => {
-  const snap = await getDocs(query(
-    collection(db, SUBMISSIONS_COL),
-    where('teacherId', '==', teacherId),
-    where('studentId', '==', studentId),
-  ));
-  return moiNhatTruoc(snap.docs.map(d => d.data() as SubmissionDoc));
+/** Bài nộp của một học sinh trong đúng lớp, dùng cho báo cáo phía giáo viên. */
+export const listSubmissionsForStudent = async (studentId: string, teacherId: string, classId?: string): Promise<SubmissionDoc[]> => {
+  void teacherId;
+  const result = await callClassroomTeacherApi<{ submissions: SubmissionDoc[] }>({
+    action: 'teacherSubmissions',
+    studentId,
+    ...(classId ? { classId } : {}),
+  });
+  return moiNhatTruoc(result.submissions || []);
 };
 
 /**
@@ -182,12 +220,9 @@ export const listSubmissionsForStudent = async (studentId: string, teacherId: st
  * Hai ràng buộc bằng nhau (teacherId + classId) nên không cần index tổ hợp.
  */
 export const listSubmissionsForClass = async (classId: string, teacherId: string): Promise<SubmissionDoc[]> => {
-  const snap = await getDocs(query(
-    collection(db, SUBMISSIONS_COL),
-    where('teacherId', '==', teacherId),
-    where('classId', '==', classId),
-  ));
-  return moiNhatTruoc(snap.docs.map(d => d.data() as SubmissionDoc));
+  void teacherId;
+  const result = await callClassroomTeacherApi<{ submissions: SubmissionDoc[] }>({ action: 'teacherSubmissions', classId });
+  return moiNhatTruoc(result.submissions || []);
 };
 
 /** Danh sách tên học sinh của lớp — để gắn tên vào từng bài nộp và liệt kê em nào chưa nộp. */
@@ -197,34 +232,37 @@ export interface RosterStudent {
 }
 
 export const listClassRoster = async (classId: string): Promise<RosterStudent[]> => {
-  const snap = await getDocs(collection(db, CLASSES_COL, classId, 'students'));
-  return snap.docs
-    .map(d => ({ studentId: d.id, name: String(d.data()?.name || '') }))
-    .filter(s => s.name)
-    .sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+  const result = await callClassroomTeacherApi<{ students: RosterStudent[] }>({ action: 'teacherRoster', classId });
+  return (result.students || []).sort((a, b) => a.name.localeCompare(b.name, 'vi'));
 };
 
 /**
- * GV xoá HẲN một bài nộp — học sinh quay về trạng thái CHƯA NỘP và nộp lại từ đầu được
- * (khác với "Nộp lại" tạo attempt mới chồng lên lịch sử). Bài đã duyệt thì gỡ bằng chứng
- * khỏi hồ sơ tích luỹ TRƯỚC khi xoá document, không để lại nhãn mồ côi trỏ vào bài không tồn tại.
- * Ảnh trên Storage cố ý giữ lại: storage.rules chỉ cho chính chủ ảnh xoá — dọn hàng loạt là việc của backlog.
+ * GV xoá HẲN một lượt nộp. Nếu còn attempt cũ, attempt cũ vẫn là lịch sử để đối chiếu;
+ * học sinh vẫn có thể nộp attempt mới. (Khác với "Nộp lại" tạo attempt mới chồng lên lịch sử.)
+ * Bài đã duyệt thì gỡ bằng chứng
+ * khỏi hồ sơ tích luỹ và dọn file Storage qua server TRƯỚC khi xoá document. Nếu Storage lỗi,
+ * API giữ nguyên document để giáo viên thử lại, không tạo trạng thái xoá nửa chừng trên giao diện.
  */
-export const xoaBaiNopHocSinh = async (submission: SubmissionDoc): Promise<void> => {
-  if (submission.grade?.teacherApproved) {
-    const now = new Date().toISOString();
-    const profileRef = doc(db, STUDENT_PROFILES_COL, submission.studentId);
-    const snap = await getDoc(profileRef);
-    const existing = snap.exists() ? ((snap.data() as StudentProfileDoc).topics || []) : [];
-    await setDoc(profileRef, removeUndefinedFields({
-      studentId: submission.studentId,
-      classId: submission.classId,
-      teacherId: submission.teacherId,
-      topics: removeEvidence(existing, submission.id, now),
-      updatedAt: now,
-    } as StudentProfileDoc));
-  }
-  await deleteDoc(doc(db, SUBMISSIONS_COL, submission.id));
+export const xoaBaiNopHocSinh = async (submission: SubmissionDoc, reason = ''): Promise<void> => {
+  // `reason` đi kèm vào thông báo gửi học sinh, để em biết phải sửa gì khi nộp lại.
+  await callClassroomTeacherApi({
+    action: 'deleteSubmission',
+    submissionId: submission.id,
+    ...(reason.trim() ? { reason: reason.trim() } : {}),
+  });
+};
+
+/** Thông báo gửi riêng cho học sinh đang đăng nhập; máy chủ lọc theo phiên, không theo tham số. */
+export const layThongBaoHocSinh = async (): Promise<StudentNotificationDoc[]> => {
+  const result = await callClassroomStudentApi<{ notifications: StudentNotificationDoc[] }>({
+    action: 'studentNotifications',
+  });
+  return Array.isArray(result.notifications) ? result.notifications : [];
+};
+
+/** Xóa riêng kết quả chấm; bài nộp, file và lịch sử vẫn được giữ để chấm lại. */
+export const xoaDiemBaiNopHocSinh = async (submission: SubmissionDoc): Promise<void> => {
+  await callClassroomTeacherApi({ action: 'deleteSubmissionGrade', submissionId: submission.id });
 };
 
 /**
@@ -233,37 +271,9 @@ export const xoaBaiNopHocSinh = async (submission: SubmissionDoc): Promise<void>
  */
 export const updateSubmissionGradeManually = async (
   submission: SubmissionDoc,
-  patch: { score: number; maxScore: number; feedback: string; weakTopics: string[]; teacherNote?: string },
+  patch: ManualGradeInput,
 ): Promise<void> => {
-  const now = new Date().toISOString();
-
-  await updateDoc(doc(db, SUBMISSIONS_COL, submission.id), {
-    'grade.score': patch.score,
-    'grade.maxScore': patch.maxScore,
-    'grade.feedback': patch.feedback,
-    'grade.weakTopics': patch.weakTopics,
-    'grade.teacherNote': patch.teacherNote || '',
-    'grade.editedByTeacher': true,
-    'grade.gradedAt': now,
-    updatedAt: now,
-  });
-
-  // Bài đã duyệt thì hồ sơ tích luỹ phải chạy theo danh sách chủ đề MỚI.
-  // Thiếu bước này: giáo viên bỏ nhãn "yếu phương trình" trên màn hình, nhưng hồ sơ vẫn giữ
-  // nhãn đó và bài bổ trợ vẫn ra theo chủ đề giáo viên vừa bác bỏ.
-  if (submission.grade?.teacherApproved) {
-    const profileRef = doc(db, STUDENT_PROFILES_COL, submission.studentId);
-    const snap = await getDoc(profileRef);
-    const existing = snap.exists() ? ((snap.data() as StudentProfileDoc).topics || []) : [];
-
-    await setDoc(profileRef, removeUndefinedFields({
-      studentId: submission.studentId,
-      classId: submission.classId,
-      teacherId: submission.teacherId,
-      topics: applyEvidence({ existing, weakTopics: patch.weakTopics, submissionId: submission.id, approved: true, now }),
-      updatedAt: now,
-    } as StudentProfileDoc));
-  }
+  await callClassroomTeacherApi({ action: 'saveSubmissionGrade', submissionId: submission.id, grade: patch });
 };
 
 /**
@@ -271,33 +281,7 @@ export const updateSubmissionGradeManually = async (
  * bỏ duyệt thì bằng chứng của bài đó cũng bị gỡ ra, không để lại nhãn mồ côi.
  */
 export const approveGrade = async (submission: SubmissionDoc, approved: boolean): Promise<void> => {
-  const now = new Date().toISOString();
-  await updateDoc(doc(db, SUBMISSIONS_COL, submission.id), {
-    'grade.teacherApproved': approved,
-    updatedAt: now,
-  });
-
-  const profileRef = doc(db, STUDENT_PROFILES_COL, submission.studentId);
-  const snap = await getDoc(profileRef);
-  const existing = snap.exists() ? ((snap.data() as StudentProfileDoc).topics || []) : [];
-
-  const topics = approved
-    ? mergeTopics({
-        existing,
-        weakTopics: (submission.grade as { weakTopics?: string[] } | undefined)?.weakTopics || [],
-        submissionId: submission.id,
-        now,
-      })
-    : removeEvidence(existing, submission.id, now);
-
-  const profile: StudentProfileDoc = {
-    studentId: submission.studentId,
-    classId: submission.classId,
-    teacherId: submission.teacherId,
-    topics,
-    updatedAt: now,
-  };
-  await setDoc(profileRef, removeUndefinedFields(profile));
+  await callClassroomTeacherApi({ action: 'approveSubmissionGrade', submissionId: submission.id, approved });
 };
 
 // ── Học sinh: nộp bài ────────────────────────────────────────────────────────
@@ -310,40 +294,90 @@ export interface SubmitInput {
   assignmentId: string | null;
   /** Ảnh dạng data URL. */
   images: string[];
+  /** File giữ nguyên (PDF/DOCX) để giáo viên mở bản gốc. */
+  rawFiles?: File[];
+  /** Chữ rút từ DOCX — đường chấm dùng khi không có ảnh. */
+  textContent?: string;
   note?: string;
+  /** Nếu có, tạo revision mới ghép với lượt này thay vì ghi một bài độc lập. */
+  supplementOf?: string;
 }
+
+const attachmentKind = (file: File): SubmissionAttachment['kind'] => {
+  const type = file.type.toLowerCase();
+  if (type.startsWith('image/') || /\.(png|jpe?g|webp|gif)$/i.test(file.name)) return 'image';
+  if (type === 'application/pdf' || /\.pdf$/i.test(file.name)) return 'pdf';
+  if (type.includes('word') || /\.docx?$/i.test(file.name)) return 'document';
+  return 'unknown';
+};
 
 export const submitHomework = async (input: SubmitInput): Promise<SubmissionDoc> => {
   const uid = auth.currentUser?.uid;
   if (!uid) throw new Error('Phiên đăng nhập đã hết hạn. Tải lại trang rồi đăng nhập lại.');
-  if (input.images.length === 0) throw new Error('Chưa chọn ảnh bài làm.');
+  if (input.images.length === 0 && (input.rawFiles || []).length === 0) throw new Error('Chưa chọn bài làm để nộp.');
 
   const submissionId = newId('sub');
   const fileUrls: string[] = [];
+  const attachments: SubmissionAttachment[] = [];
+  const uploadedRefs: ReturnType<typeof ref>[] = [];
 
-  for (let i = 0; i < input.images.length; i += 1) {
-    const dataUrl = input.images[i];
-    const mime = /^data:([^;,]+);/.exec(dataUrl)?.[1] || 'image/jpeg';
-    // Đường dẫn gắn theo uid vì storage.rules không đọc được Firestore để kiểm studentLinks.
-    const path = `homework/${uid}/${submissionId}-${i}.${mime.split('/')[1] || 'jpg'}`;
-    const fileRef = ref(storage, path);
-    await uploadString(fileRef, dataUrl, 'data_url', { contentType: mime });
-    fileUrls.push(await getDownloadURL(fileRef));
+  try {
+    for (let i = 0; i < input.images.length; i += 1) {
+      const dataUrl = input.images[i];
+      const mime = /^data:([^;,]+);/.exec(dataUrl)?.[1] || 'image/jpeg';
+      // Đường dẫn gắn theo uid vì storage.rules không đọc được Firestore để kiểm studentLinks.
+      const path = `homework/${uid}/${submissionId}-${i}.${mime.split('/')[1] || 'jpg'}`;
+      const fileRef = ref(storage, path);
+      uploadedRefs.push(fileRef);
+      await uploadString(fileRef, dataUrl, 'data_url', { contentType: mime });
+      const url = await getDownloadURL(fileRef);
+      fileUrls.push(url);
+      attachments.push({ name: `Ảnh bài làm ${i + 1}`, url, mimeType: mime, kind: 'image' });
+    }
+
+    for (const file of input.rawFiles || []) {
+      const an = file.name.replace(/[^\w.\-]+/g, '_');
+      const fileRef = ref(storage, `homework/${uid}/${submissionId}-${an}`);
+      uploadedRefs.push(fileRef);
+      await uploadBytes(fileRef, file, { contentType: file.type || 'application/octet-stream' });
+      const url = await getDownloadURL(fileRef);
+      fileUrls.push(url);
+      attachments.push({ name: file.name, url, mimeType: file.type || undefined, size: file.size, kind: attachmentKind(file) });
+    }
+
+    const now = new Date().toISOString();
+    const submission: SubmissionDoc = {
+      id: submissionId,
+      teacherId: input.teacherId,
+      classId: input.classId,
+      studentId: input.studentId,
+      assignmentId: input.assignmentId,
+      ...(input.supplementOf ? { supplementOf: input.supplementOf } : {}),
+      fileUrls,
+      textContent: input.textContent?.trim() || '',
+      attachments,
+      note: input.note || '',
+      status: 'submitted',
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    if (input.supplementOf) {
+      const result = await callClassroomStudentApi<{ submission: SubmissionDoc }>({
+        action: 'createSupplementSubmission',
+        submission: removeUndefinedFields(submission),
+      });
+      return result.submission;
+    }
+
+    await setDoc(doc(db, SUBMISSIONS_COL, submissionId), removeUndefinedFields(submission));
+    return submission;
+  } catch (error) {
+    // Action revision có thể bị từ chối sau khi Storage đã nhận file (parent sai, quá 12 tệp,
+    // hoặc mạng lỗi). Dọn các object vừa tạo để không để rác mồ côi; lượt nộp cũ vẫn nguyên.
+    if (input.supplementOf && uploadedRefs.length > 0) {
+      await Promise.allSettled(uploadedRefs.map(fileRef => deleteObject(fileRef)));
+    }
+    throw error;
   }
-
-  const now = new Date().toISOString();
-  const submission: SubmissionDoc = {
-    id: submissionId,
-    teacherId: input.teacherId,
-    classId: input.classId,
-    studentId: input.studentId,
-    assignmentId: input.assignmentId,
-    fileUrls,
-    note: input.note || '',
-    status: 'submitted',
-    createdAt: now,
-    updatedAt: now,
-  };
-  await setDoc(doc(db, SUBMISSIONS_COL, submissionId), removeUndefinedFields(submission));
-  return submission;
 };

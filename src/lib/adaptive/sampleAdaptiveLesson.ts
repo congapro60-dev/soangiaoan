@@ -109,6 +109,7 @@ export const sampleAdaptiveLesson: AdaptiveLesson = {
     {
       id: 'obj-common-difference',
       code: 'O2',
+      skillId: 'math.arithmetic-sequence',
       title: 'Xác định công sai',
       description: 'Học sinh tính đúng công sai d = u_{n+1} - u_n và hiểu công sai có thể âm, dương hoặc bằng 0.',
       bloomLevel: 'apply',

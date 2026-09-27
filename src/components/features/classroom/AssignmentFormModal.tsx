@@ -11,6 +11,12 @@ export interface AssignmentFormValue {
   rubric: string;
   /** File đề gửi cho học sinh xem. */
   deFiles: File[];
+  /** Chữ rút từ file đề để AI dùng làm nguồn tham chiếu khi chấm. */
+  sourceText: string;
+  /** Ảnh đề/PDF scan chuẩn hoá để AI có thể đối chiếu khi chấm. */
+  sourceImages: string[];
+  /** Lệnh nội bộ của giáo viên cho AI khi chấm. */
+  gradingInstructions: string;
   /** Ảnh đáp án khi không rút được chữ — gửi kèm mỗi lượt chấm. */
   answerKeyImages: string[];
   /** Đáp án do AI giải ra, ghi lại để sau này còn truy được nguồn. */
@@ -34,6 +40,9 @@ export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSu
   const [answerKey, setAnswerKey] = useState('');
   const [rubric, setRubric] = useState('');
   const [deFiles, setDeFiles] = useState<File[]>([]);
+  const [sourceText, setSourceText] = useState('');
+  const [sourceImages, setSourceImages] = useState<string[]>([]);
+  const [gradingInstructions, setGradingInstructions] = useState('');
   const [answerKeyImages, setAnswerKeyImages] = useState<string[]>([]);
   const [ghiChu, setGhiChu] = useState<Record<string, string>>({});
   const [dangDoc, setDangDoc] = useState('');
@@ -46,10 +55,34 @@ export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSu
   const dapAnRef = useRef<HTMLInputElement>(null);
   const rubricRef = useRef<HTMLInputElement>(null);
 
+  const docDeVaoBoNho = async (files: File[]) => {
+    setDangDoc('de');
+    try {
+      const docs = await Promise.all(files.map(f => readSourceFile(f, { renderPdfPages: true })));
+      const text = docs.map(d => d.text).filter(Boolean).join('\n\n').trim();
+      setSourceText(text.slice(0, 60000));
+      // Ảnh gốc đã nằm trong attachments; chỉ upload bản ảnh chuẩn hoá bổ sung cho PDF scan,
+      // tránh gửi cùng một ảnh hai lần khi AI đọc ngữ cảnh.
+      const scanImages = docs.flatMap((d, index) => {
+        const isImage = /\.(png|jpe?g|webp)$/i.test(files[index]?.name || '');
+        return isImage ? [] : d.images;
+      });
+      setSourceImages(scanImages.slice(0, 6));
+      const notes = docs.map(d => d.note).filter(Boolean).join(' ');
+      setGhiChu(truoc => ({ ...truoc, de: notes }));
+    } catch (error) {
+      setSourceText('');
+      setSourceImages([]);
+      setGhiChu(truoc => ({ ...truoc, de: error instanceof Error ? error.message : 'Không đọc được file đề.' }));
+    } finally {
+      setDangDoc('');
+    }
+  };
+
   const docFileVaoO = async (file: File, o: 'dapAn' | 'rubric') => {
     setDangDoc(o);
     try {
-      const ket = await readSourceFile(file);
+      const ket = await readSourceFile(file, { renderPdfPages: true });
       if (ket.text) {
         if (o === 'dapAn') setAnswerKey(truoc => (truoc ? `${truoc}\n\n${ket.text}` : ket.text));
         else setRubric(truoc => (truoc ? `${truoc}\n\n${ket.text}` : ket.text));
@@ -75,7 +108,7 @@ export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSu
     setDangGiai(true);
     setChoChuaChac([]);
     try {
-      const doc = await Promise.all(deFiles.map(readSourceFile));
+      const doc = await Promise.all(deFiles.map(f => readSourceFile(f, { renderPdfPages: true })));
       const examText = doc.map(d => d.text).filter(Boolean).join('\n\n');
       const examImages = doc.flatMap(d => d.images);
 
@@ -84,7 +117,7 @@ export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSu
         return;
       }
 
-      const ket = await solveAnswerKey(classId, examText, examImages, maxScore);
+      const ket = await solveAnswerKey(classId, examText, examImages, maxScore, gradingInstructions);
       setAnswerKey(ket.answerKey);
       setChoChuaChac(ket.uncertainties);
       setDapAnDoAi(true);
@@ -103,7 +136,7 @@ export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSu
   const nhoAiSoanHuongDan = async () => {
     setDangSoanRubric(true);
     try {
-      const ket = await suggestRubric(classId, answerKey, maxScore);
+      const ket = await suggestRubric(classId, answerKey, maxScore, gradingInstructions);
       setRubric(ket);
       setGhiChu(truoc => ({ ...truoc, rubric: 'AI soạn từ đáp án ở trên. Soát lại cách chia điểm cho khớp cách thầy cô vẫn chấm.' }));
     } catch (error) {
@@ -150,11 +183,19 @@ export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSu
           <div className="rounded-2xl border border-slate-200 p-4">
             <p className="text-sm font-black text-slate-800">1. Đề gửi học sinh</p>
             <p className="mb-3 mt-1 text-xs font-semibold text-slate-500">
-              PDF, ảnh hoặc Word. Học sinh mở được ngay trên điện thoại. Bỏ trống nếu đề đã phát bản giấy.
+              PDF, ảnh hoặc Word. Học sinh mở được ngay trên điện thoại; phần chữ đọc được cũng trở thành nguồn tham chiếu cho AI.
+              Bỏ trống nếu đề đã phát bản giấy.
             </p>
             <input ref={deRef} type="file" multiple accept=".pdf,.doc,.docx,image/*" className="hidden"
-              onChange={e => { setDeFiles(Array.from(e.target.files || [])); e.target.value = ''; }} />
-            <NutTaiFile onClick={() => deRef.current?.click()} label="Chọn file đề" />
+              onChange={e => {
+                const files = Array.from(e.target.files ?? []);
+                e.target.value = '';
+                setDeFiles(files);
+                setSourceText('');
+                setSourceImages([]);
+                if (files.length > 0) void docDeVaoBoNho(files);
+              }} />
+            <NutTaiFile onClick={() => deRef.current?.click()} label={dangDoc === 'de' ? 'Đang đọc file đề...' : 'Chọn file đề'} />
             {deFiles.length > 0 && (
               <ul className="mt-2 space-y-1">
                 {deFiles.map(f => (
@@ -162,8 +203,26 @@ export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSu
                     <FileText className="h-3.5 w-3.5" /> {f.name}
                   </li>
                 ))}
-              </ul>
+                </ul>
             )}
+            {ghiChu.de && <p className="mt-2 text-xs font-bold text-amber-700">{ghiChu.de}</p>}
+            {sourceText && <p className="mt-2 text-xs font-bold text-emerald-700">Đã rút được phần chữ của đề để AI đối chiếu khi chấm.</p>}
+            <div className="mt-3 rounded-xl border border-blue-100 bg-blue-50/50 p-3">
+              <p className="text-sm font-black text-slate-800">Lệnh riêng cho AI khi chấm (không bắt buộc)</p>
+              <p className="mb-2 mt-1 text-xs font-semibold text-slate-600">
+                Viết thật rõ phạm vi: “Bỏ bài 4.3, chỉ giao 4.1, 4.2 và 4.4”, “Chỉ chấm Câu 1, 3”, “Không trừ điểm phần bị bỏ qua”.
+                Lệnh này chỉ dành cho giáo viên, không hiện cho học sinh, được lưu cùng bài giao
+                và áp dụng cho mọi lần nộp, nộp lại, chấm lại về sau.
+                Hai nút “Để AI giải đề” và “Để AI đề xuất” bên dưới cũng dùng đúng lệnh này tại thời điểm bấm.
+              </p>
+              <textarea
+                value={gradingInstructions}
+                onChange={e => setGradingInstructions(e.target.value)}
+                rows={3}
+                placeholder="Ví dụ: Chỉ dùng Câu 1 và Câu 3; bỏ qua phần trắc nghiệm; không tự suy ra câu ngoài đề."
+                className={`${O} bg-white font-normal`}
+              />
+            </div>
           </div>
 
           <div className="rounded-2xl border border-slate-200 p-4">
@@ -244,7 +303,7 @@ export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSu
         <div className="mt-5 flex justify-end gap-3 border-t border-slate-100 pt-4">
           <button onClick={onClose} className="rounded-2xl px-5 py-3 text-sm font-black text-slate-500 transition hover:bg-slate-50">Hủy</button>
           <button
-            onClick={() => onSubmit({ title: title.trim(), dueAt, maxScore, answerKey: answerKey.trim(), rubric: rubric.trim(), deFiles, answerKeyImages, answerKeyByAi: dapAnDoAi })}
+            onClick={() => onSubmit({ title: title.trim(), dueAt, maxScore, answerKey: answerKey.trim(), rubric: rubric.trim(), deFiles, sourceText, sourceImages, gradingInstructions: gradingInstructions.trim(), answerKeyImages, answerKeyByAi: dapAnDoAi })}
             disabled={!title.trim() || dangGui || dangDoc !== ''}
             className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-black text-white transition hover:bg-blue-700 disabled:opacity-50"
           >

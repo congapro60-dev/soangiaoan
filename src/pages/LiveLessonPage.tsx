@@ -1,0 +1,269 @@
+import { useEffect, useMemo, useState } from 'react';
+import { onAuthStateChanged, type User } from 'firebase/auth';
+import { useLocation, useParams } from 'react-router-dom';
+import { auth } from '../lib/firebase';
+import { getLiveLessonDefinitionForRoute } from '../lib/liveLesson/routeDefinition';
+import type { LiveLessonDefinition, LiveLessonMode, LiveLessonSession, LivePublicState } from '../lib/liveLesson/types';
+import { getLiveLessonSession, subscribeToLivePublicState, subscribeToTeacherSession, updateLiveLessonState } from '../services/liveLessonService';
+import { TeacherLiveView } from '../components/liveLesson/TeacherLiveView';
+import { TvLiveView, type TvCueTiming } from '../components/liveLesson/TvLiveView';
+import { TvPresenterControls } from '../components/liveLesson/TvPresenterControls';
+import { StudentLiveView } from '../components/liveLesson/StudentLiveView';
+import { LiveActivityPublisher } from '../components/liveLesson/LiveActivityPublisher';
+
+export type TvDefinitionProjection = Pick<LiveLessonDefinition, 'id' | 'lessonId' | 'title' | 'durationSeconds' | 'tvScreens' | 'intent'> & { tvCues: TvCueTiming[] };
+export type StudentCueProjection = { id: string; studentScreenId: string; responseStepId?: string; responseStepIds?: string[] };
+export type StudentDefinitionProjection = Pick<LiveLessonDefinition, 'id' | 'lessonId' | 'title' | 'durationSeconds' | 'tvScreens' | 'studentScreens' | 'allowedStepIds' | 'responseSteps' | 'intent'> & { studentCues: StudentCueProjection[] };
+export type LiveLessonDefinitionProjection = LiveLessonDefinition | TvDefinitionProjection | StudentDefinitionProjection;
+
+export const parseLiveLessonMode = (value: string | null): LiveLessonMode | null => value === 'teacher' || value === 'tv' || value === 'student' || value === 'tv-control' ? value : null;
+// Chế độ dựa trên phiên GV (cần đăng nhập + sở hữu): teacher và tv-control.
+export const isOwnerLiveLessonMode = (mode: LiveLessonMode): boolean => mode === 'teacher' || mode === 'tv-control';
+export const getStudentLiveContext = (search: string): { expectedClassId: string | null; expectedJoinCode: string | null } => {
+  const params = new URLSearchParams(search);
+  if (params.get('mode') !== 'student') return { expectedClassId: null, expectedJoinCode: null };
+  return {
+    expectedClassId: params.get('classId')?.trim() || null,
+    expectedJoinCode: params.get('joinCode')?.trim() || null,
+  };
+};
+export const getLiveLessonDefinitionContext = (search: string): { definitionKey: string | null; lessonId: string | null } => {
+  const params = new URLSearchParams(search);
+  return {
+    definitionKey: params.get('definitionKey')?.trim() || null,
+    lessonId: params.get('lessonId')?.trim() || null,
+  };
+};
+export const shouldLoadParentLiveLessonSession = (mode: LiveLessonMode): boolean => isOwnerLiveLessonMode(mode);
+export const canLoadParentLiveLessonSession = ({ mode, authReady, userUid, userIsAnonymous = false }: { mode: LiveLessonMode; authReady: boolean; userUid: string | null | undefined; userIsAnonymous?: boolean }): boolean => shouldLoadParentLiveLessonSession(mode) && authReady && Boolean(userUid) && !userIsAnonymous;
+
+export const isTeacherSessionOwner = (session: Pick<LiveLessonSession, 'teacherUid'>, uid: string | null | undefined): boolean => Boolean(uid && session.teacherUid === uid);
+
+export function projectLiveLessonDefinition(definition: LiveLessonDefinition, mode: 'teacher'): LiveLessonDefinition;
+export function projectLiveLessonDefinition(definition: LiveLessonDefinition, mode: 'tv'): TvDefinitionProjection;
+export function projectLiveLessonDefinition(definition: LiveLessonDefinition, mode: 'student'): StudentDefinitionProjection;
+export function projectLiveLessonDefinition(definition: LiveLessonDefinition, mode: LiveLessonMode): LiveLessonDefinitionProjection;
+export function projectLiveLessonDefinition(definition: LiveLessonDefinition, mode: LiveLessonMode): LiveLessonDefinitionProjection {
+  if (mode === 'teacher') return definition;
+  // tvCues chỉ mang mốc thời gian và id màn hình công khai — đủ để TV tự đếm giờ
+  // và vẽ thanh tiến trình, không kèm kịch bản giáo viên hay nội dung bảng.
+  if (mode === 'tv') return { id: definition.id, lessonId: definition.lessonId, title: definition.title, durationSeconds: definition.durationSeconds, tvScreens: definition.tvScreens.map(screen => ({ ...screen })), tvCues: definition.cues.map(cue => ({ id: cue.id, tvScreenId: cue.tvScreenId, atSeconds: cue.atSeconds, ...(cue.responseStepId ? { responseStepId: cue.responseStepId, ...(definition.responseSteps.find(step => step.id === cue.responseStepId)?.options ? { responseOptions: definition.responseSteps.find(step => step.id === cue.responseStepId)!.options!.map(option => ({ ...option })) } : {}) } : {}) })), ...(definition.intent ? { intent: definition.intent } : {}) };
+  const stepScreenIds = new Map(definition.responseSteps.map(step => [step.id, step.screenId ?? 'HS0']));
+  return {
+    id: definition.id,
+    lessonId: definition.lessonId,
+    title: definition.title,
+    durationSeconds: definition.durationSeconds,
+    tvScreens: definition.tvScreens.map(screen => ({ ...screen })),
+    studentScreens: definition.studentScreens.map(screen => ({ ...screen })),
+    allowedStepIds: [...definition.allowedStepIds],
+    responseSteps: definition.responseSteps.map(step => ({ ...step, responseTypes: [...step.responseTypes] })),
+    ...(definition.intent ? { intent: { ...definition.intent, wilf: [...definition.intent.wilf], ...(definition.intent.waltEn ? { waltEn: definition.intent.waltEn } : {}), ...(definition.intent.wilfEn ? { wilfEn: [...definition.intent.wilfEn] } : {}) } } : {}),
+    studentCues: definition.cues.map(cue => ({
+      id: cue.id,
+      studentScreenId: cue.responseStepId ? (stepScreenIds.get(cue.responseStepId) ?? 'HS0') : 'HS0',
+      ...(cue.responseStepId ? { responseStepId: cue.responseStepId } : {}),
+      ...(cue.responseStepIds && cue.responseStepIds.length > 0 ? { responseStepIds: [...cue.responseStepIds] } : {}),
+    })),
+  };
+}
+
+export const mergeTeacherSessionSnapshot = (current: LiveLessonSession | null, incoming: LiveLessonSession): LiveLessonSession => (
+  !current || incoming.updatedAt >= current.updatedAt ? incoming : current
+);
+
+export const getPublicListenerFailureMode = (hasSeenPublicState: boolean): 'initial' | 'reconnect' => hasSeenPublicState ? 'reconnect' : 'initial';
+
+export const getLiveLessonRouteError = ({ mode, session, publicState, definition, userUid, userIsAnonymous = false }: { mode: string | null; session: LiveLessonSession | null; publicState?: LivePublicState | null; definition?: LiveLessonDefinition | null; userUid?: string | null; userIsAnonymous?: boolean }): string | null => {
+  const parsedMode = parseLiveLessonMode(mode);
+  if (!parsedMode) return 'Chế độ tiết trực tiếp không hợp lệ. Hãy dùng mode=teacher, mode=tv, mode=student hoặc mode=tv-control.';
+  const ownerMode = isOwnerLiveLessonMode(parsedMode);
+  if (ownerMode) {
+    if (!session) return 'Không tìm thấy phiên tiết trực tiếp này. Bạn có thể quay lại và mở một phiên mới.';
+    if (session.expiresAt <= Date.now()) return 'Phiên tiết trực tiếp đã hết hạn. Hãy yêu cầu giáo viên mở phiên mới.';
+  } else {
+    if (!publicState) return 'Không tìm thấy trạng thái công khai của phiên. Phiên có thể đã đóng hoặc hết hạn; hãy yêu cầu giáo viên mở phiên mới.';
+  }
+  if (!definition) return 'Không tải được định nghĩa bài học của phiên. Phiên chưa sẵn sàng để hiển thị.';
+  if (ownerMode) {
+    if (definition.lessonId !== session!.lessonId) return 'Định nghĩa bài học không khớp với bài học của phiên; phiên bị chặn để tránh hiển thị sai nội dung.';
+    if (!userUid || userIsAnonymous) return 'Chế độ điều khiển yêu cầu đăng nhập bằng tài khoản giáo viên chủ phiên.';
+    if (!isTeacherSessionOwner(session!, userUid)) return 'Tài khoản hiện tại không sở hữu phiên tiết trực tiếp này.';
+  }
+  return null;
+};
+
+const RouteError = ({ message }: { message: string }) => <main className="flex min-h-screen items-center justify-center bg-slate-50 p-6 text-slate-900"><section className="w-full max-w-xl rounded-[2rem] border border-amber-200 bg-white p-8 text-center shadow-sm"><p className="text-4xl">⚠️</p><h1 className="mt-3 text-2xl font-black">Không thể mở tiết trực tiếp</h1><p className="mt-3 text-sm font-semibold leading-6 text-slate-600">{message}</p><div className="mt-6 flex justify-center gap-3"><button type="button" onClick={() => window.history.back()} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-black text-slate-600 hover:bg-slate-50">Quay lại</button><button type="button" onClick={() => window.location.reload()} className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-black text-white hover:bg-indigo-700">Thử lại</button></div></section></main>;
+
+const PlaceholderPanel = ({ mode, projection }: { mode: LiveLessonMode; projection: LiveLessonDefinitionProjection }) => {
+  const label = mode === 'teacher' ? 'Giáo viên' : mode === 'tv' ? 'Màn hình TV' : 'Học sinh';
+  const screenCount = mode === 'teacher' ? (projection as LiveLessonDefinition).cues.length : mode === 'tv' ? (projection as TvDefinitionProjection).tvScreens.length : (projection as StudentDefinitionProjection).studentScreens.length;
+  return <main className="min-h-screen bg-slate-950 p-6 text-white sm:p-10"><section className="mx-auto max-w-5xl rounded-[2rem] border border-white/10 bg-slate-900 p-8 shadow-2xl"><p className="text-xs font-black uppercase tracking-[0.2em] text-indigo-300">Task 5 placeholder</p><h1 className="mt-3 text-3xl font-black">{projection.title}</h1><p className="mt-2 text-sm font-semibold text-slate-300">Chế độ: {label} · {screenCount} màn hình runtime an toàn đã tải.</p><div className="mt-8 rounded-2xl border border-dashed border-slate-600 bg-slate-950/60 p-8 text-center"><p className="text-lg font-black">Giao diện realtime của chế độ {label} sẽ được bổ sung ở Task 6/7.</p><p className="mt-2 text-sm font-semibold text-slate-400">Session đã được kiểm tra quyền sở hữu, trạng thái và thời hạn.</p></div></section></main>;
+};
+
+export const LiveLessonPage = () => {
+  const { sessionId = '' } = useParams<{ sessionId: string }>();
+  const location = useLocation();
+  const modeParam = useMemo(() => new URLSearchParams(location.search).get('mode'), [location.search]);
+  const mode = parseLiveLessonMode(modeParam);
+  const studentContext = useMemo(() => getStudentLiveContext(location.search), [location.search]);
+  const definitionContext = useMemo(() => getLiveLessonDefinitionContext(location.search), [location.search]);
+  const [user, setUser] = useState<User | null>(auth.currentUser);
+  const [authReady, setAuthReady] = useState(false);
+  const [session, setSession] = useState<LiveLessonSession | null>(null);
+  const [publicState, setPublicState] = useState<LivePublicState | null>(null);
+  const [publicStateError, setPublicStateError] = useState<string | null>(null);
+  const [teacherSessionError, setTeacherSessionError] = useState<string | null>(null);
+  const [definition, setDefinition] = useState<LiveLessonDefinition | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [presenterBusy, setPresenterBusy] = useState(false);
+  const [presenterError, setPresenterError] = useState<string | null>(null);
+  const authDependency = mode && isOwnerLiveLessonMode(mode) ? `${authReady}:${user?.uid ?? ''}:${user?.isAnonymous ? 'anonymous' : 'account'}` : 'public';
+
+  useEffect(() => onAuthStateChanged(auth, nextUser => {
+    setUser(nextUser);
+    setAuthReady(true);
+  }), []);
+
+  useEffect(() => {
+    let active = true;
+    let stopPublicState = () => {};
+    let stopTeacherSession = () => {};
+    let waitingForPublicState = false;
+    let hasSeenPublicState = false;
+    const load = async () => {
+      setLoading(true);
+      setLoadError(null);
+      setSession(null);
+      setDefinition(null);
+      setPublicState(null);
+      setPublicStateError(null);
+      setTeacherSessionError(null);
+      if (!mode) {
+        setLoading(false);
+        return;
+      }
+      if (!sessionId) {
+        setLoadError('Không có session ID trong liên kết.');
+        setLoading(false);
+        return;
+      }
+      const ownerMode = isOwnerLiveLessonMode(mode);
+      if (ownerMode && !authReady) return;
+      if (ownerMode && (!user?.uid || user.isAnonymous)) {
+        setLoadError('Chế độ điều khiển yêu cầu đăng nhập bằng tài khoản giáo viên chủ phiên.');
+        setLoading(false);
+        return;
+      }
+      try {
+        setDefinition(getLiveLessonDefinitionForRoute(definitionContext.definitionKey, definitionContext.lessonId));
+        if (canLoadParentLiveLessonSession({ mode, authReady, userUid: user?.uid, userIsAnonymous: user?.isAnonymous })) {
+          const found = await getLiveLessonSession(sessionId);
+          if (!active) return;
+          setSession(found);
+          setLoading(false);
+          if (found) {
+            const unsubscribe = subscribeToTeacherSession(sessionId, nextSession => {
+              if (!active) return;
+              if (!nextSession) {
+                setSession(null);
+                setTeacherSessionError('Phiên tiết trực tiếp không còn tồn tại.');
+                return;
+              }
+              setSession(current => mergeTeacherSessionSnapshot(current, nextSession));
+              setTeacherSessionError(null);
+            }, error => {
+              if (!active) return;
+              setTeacherSessionError(`Không thể cập nhật trạng thái phiên realtime. (${error.message})`);
+            });
+            if (active) stopTeacherSession = unsubscribe;
+            else unsubscribe();
+          }
+        } else {
+          waitingForPublicState = true;
+          const unsubscribe = subscribeToLivePublicState(sessionId, state => {
+            if (!active) return;
+            if (state) {
+              hasSeenPublicState = true;
+              setPublicState(state);
+              setPublicStateError(null);
+            } else if (hasSeenPublicState) {
+              setPublicStateError('Không còn đọc được trạng thái công khai. Phiên có thể đã đóng hoặc hết hạn.');
+            } else {
+              setPublicState(null);
+            }
+            setLoading(false);
+          }, error => {
+            if (!active) return;
+            const message = `Không thể đọc trạng thái công khai của phiên. Phiên có thể đã đóng hoặc hết hạn. (${error.message})`;
+            if (getPublicListenerFailureMode(hasSeenPublicState) === 'reconnect') setPublicStateError(message);
+            else setLoadError(message);
+            setLoading(false);
+          });
+          if (active) stopPublicState = unsubscribe;
+          else unsubscribe();
+        }
+      } catch (error) {
+        if (active) setLoadError(error instanceof Error ? error.message : 'Không tải được phiên tiết trực tiếp.');
+      } finally {
+        if (active && !waitingForPublicState) setLoading(false);
+      }
+    };
+    void load();
+    return () => { active = false; stopPublicState(); stopTeacherSession(); };
+  }, [authDependency, definitionContext.definitionKey, definitionContext.lessonId, mode, sessionId]);
+
+  if (loading) return <main className="flex min-h-screen items-center justify-center bg-slate-950 p-6 text-white"><p className="text-sm font-black">Đang tải phiên tiết trực tiếp...</p></main>;
+  if (loadError) return <RouteError message={loadError} />;
+  const routeError = getLiveLessonRouteError({ mode: modeParam, session, publicState, definition, userUid: user?.uid, userIsAnonymous: user?.isAnonymous });
+  if (routeError || !mode || !definition || (isOwnerLiveLessonMode(mode) && !session) || (!isOwnerLiveLessonMode(mode) && !publicState)) return <RouteError message={routeError || 'Phiên tiết trực tiếp chưa sẵn sàng.'} />;
+  if (mode === 'teacher' && session) {
+    return <TeacherLiveView definition={definition} session={session} sessionError={teacherSessionError} onSessionChange={setSession} definitionKey={definitionContext.definitionKey ?? undefined} />;
+  }
+  if (mode === 'tv-control' && session) {
+    const responseStepId = definition.cues.find(cue => cue.id === session.currentCueId)?.responseStepId;
+    const controlTvDefinition = projectLiveLessonDefinition(definition, 'tv');
+    const presenterPublicState: LivePublicState = {
+      cueId: session.currentCueId,
+      tvScreenId: session.currentTvScreenId,
+      status: session.status,
+      showStats: session.publicStatsEnabled,
+      updatedAt: session.updatedAt,
+      cueStartedAt: session.cueStartedAt,
+      cueElapsedSeconds: session.cueElapsedSeconds,
+    };
+    const applyPresenterPatch = async (patch: Parameters<typeof updateLiveLessonState>[1]) => {
+      setPresenterBusy(true);
+      setPresenterError(null);
+      try {
+        setSession(await updateLiveLessonState(sessionId, patch));
+      } catch (patchError) {
+        setPresenterError(patchError instanceof Error ? patchError.message : 'Không cập nhật được phiên.');
+      } finally {
+        setPresenterBusy(false);
+      }
+    };
+    return <TvLiveView definition={controlTvDefinition} sessionId={sessionId} publicState={presenterPublicState} publicStateError={teacherSessionError} definitionKey={definitionContext.definitionKey ?? undefined} cueTimeline={controlTvDefinition.tvCues} durationSeconds={controlTvDefinition.durationSeconds} intent={controlTvDefinition.intent} presenterControls={<>
+      {responseStepId && <LiveActivityPublisher key={`${session.id}:${session.currentCueId}`} sessionId={session.id} cueId={session.currentCueId} stepId={responseStepId} enabled={session.publicStatsEnabled && session.status !== 'closed'} />}
+      <TvPresenterControls
+        definition={definition}
+        session={session}
+        busy={presenterBusy}
+        error={presenterError}
+        onNavigate={(patch) => { void applyPresenterPatch(patch); }}
+        onToggleStatus={() => { void applyPresenterPatch({ status: session.status === 'running' ? 'paused' : 'running' }); }}
+        showStats={session.publicStatsEnabled}
+        onToggleStats={() => { void applyPresenterPatch({ publicStatsEnabled: !session.publicStatsEnabled }); }}
+      />
+    </>} />;
+  }
+  if (mode === 'tv' && publicState) {
+    const tvDefinition = projectLiveLessonDefinition(definition, 'tv');
+    return <TvLiveView definition={tvDefinition} sessionId={sessionId} publicState={publicState} publicStateError={publicStateError} definitionKey={definitionContext.definitionKey ?? undefined} cueTimeline={tvDefinition.tvCues} durationSeconds={tvDefinition.durationSeconds} intent={tvDefinition.intent} />;
+  }
+  if (mode === 'student' && publicState) {
+    return <StudentLiveView definition={projectLiveLessonDefinition(definition, 'student')} sessionId={sessionId} expectedClassId={studentContext.expectedClassId} expectedJoinCode={studentContext.expectedJoinCode} publicState={publicState} publicStateError={publicStateError} definitionKey={definitionContext.definitionKey ?? undefined} />;
+  }
+  return <PlaceholderPanel mode={mode} projection={projectLiveLessonDefinition(definition, mode)} />;
+};

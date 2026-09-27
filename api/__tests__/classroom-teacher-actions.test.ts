@@ -1,0 +1,376 @@
+import handler from '../classroom';
+import { classMemberId } from '../_classroom-access';
+
+type DocData = Record<string, unknown>;
+
+const h = vi.hoisted(() => ({
+  uid: 'owner-1',
+  email: 'owner@example.com',
+  db: null as unknown,
+}));
+
+vi.mock('firebase-admin/auth', () => ({
+  getAuth: () => ({
+    verifyIdToken: async () => ({ uid: h.uid, email: h.email }),
+    getUserByEmail: async (email: string) => ({ uid: email === 'co@example.com' ? 'co-1' : 'unknown', email }),
+    getUser: async (uid: string) => ({ uid, email: uid === 'owner-1' ? 'owner@example.com' : `${uid}@example.com` }),
+  }),
+}));
+
+vi.mock('../_exam-core.js', () => ({
+  getAdminDb: () => h.db,
+  getAdminStorage: () => ({ name: 'bucket', file: () => ({ delete: async () => undefined }) }),
+}));
+
+interface Harness {
+  store: Record<string, Record<string, DocData>>;
+}
+
+const keyFor = (collection: string, id: string, sub?: string): string => sub ? `${collection}/${id}/${sub}` : collection;
+
+const makeDb = (harness: Harness) => {
+  const makeCollection = (collectionName: string) => {
+    const ensure = () => { harness.store[collectionName] ||= {}; return harness.store[collectionName]; };
+    const makeDoc = (id: string) => {
+      const data = () => ensure()[id];
+      const ref = {
+        id,
+        get: async () => ({ exists: data() !== undefined, data: () => data() ? { ...data() } : undefined }),
+        set: async (payload: DocData, options?: { merge?: boolean }) => {
+          ensure()[id] = options?.merge ? { ...ensure()[id], ...payload } : { ...payload };
+        },
+        update: async (payload: DocData) => { ensure()[id] = { ...ensure()[id], ...payload }; },
+        delete: async () => { delete ensure()[id]; },
+        collection: (subCollection: string) => makeCollection(keyFor(collectionName, id, subCollection)),
+      };
+      return ref;
+    };
+    const makeQuery = (constraints: Array<{ field: string; value: unknown }>) => ({
+      where: (field: string, _operator: string, value: unknown) => makeQuery([...constraints, { field, value }]),
+      get: async () => {
+        const docs = Object.entries(ensure())
+          .filter(([, value]) => constraints.every(constraint => value[constraint.field] === constraint.value))
+          .map(([id, value]) => ({ id, data: () => ({ ...value }) }));
+        return { docs, empty: docs.length === 0, size: docs.length };
+      },
+    });
+    return {
+      doc: makeDoc,
+      where: (field: string, _operator: string, value: unknown) => makeQuery([{ field, value }]),
+      get: async () => makeQuery([]).get(),
+    };
+  };
+
+  return {
+    collection: (name: string) => makeCollection(name),
+    runTransaction: async (callback: (transaction: { get: (ref: { get: () => Promise<unknown> }) => Promise<unknown>; set: (ref: { set: (payload: DocData, options?: { merge?: boolean }) => Promise<void> }, payload: DocData) => Promise<void>; update: (ref: { update: (payload: DocData) => Promise<void> }, payload: DocData) => Promise<void> }) => Promise<unknown>) => {
+      const transaction = {
+        get: (ref: { get: () => Promise<unknown> }) => ref.get(),
+        set: (ref: { set: (payload: DocData, options?: { merge?: boolean }) => Promise<void> }, payload: DocData) => ref.set(payload),
+        update: (ref: { update: (payload: DocData) => Promise<void> }, payload: DocData) => ref.update(payload),
+      };
+      await callback(transaction);
+    },
+  };
+};
+
+const buildHarness = (): Harness => {
+  const harness: Harness = { store: {} };
+  h.db = makeDb(harness);
+  return harness;
+};
+
+const call = async (body: DocData) => {
+  const res = {
+    statusCode: 0,
+    payload: null as DocData | null,
+    status(code: number) { res.statusCode = code; return res; },
+    json(payload: DocData) { res.payload = payload; return res; },
+  };
+  await handler({ method: 'POST', body: { idToken: 'id-token', ...body } } as never, res as never);
+  return res;
+};
+
+describe('POST /api/classroom · teacher collaboration', () => {
+  beforeEach(() => {
+    h.uid = 'owner-1';
+    h.email = 'owner@example.com';
+  });
+
+  it('liệt kê lớp legacy của owner và lớp có membership active', async () => {
+    const harness = buildHarness();
+    harness.store.classes = {
+      'legacy-class': { teacherId: 'owner-1', name: '11 Columbus', track: 'Toán', grade: '11', studentCount: 1 },
+      'shared-class': { teacherId: 'root-2', ownerId: 'root-2', name: '10A', track: 'Toán', grade: '10', studentCount: 1 },
+    };
+    harness.store.classMembers = {
+      [classMemberId('shared-class', 'owner-1')]: {
+        classId: 'shared-class', uid: 'owner-1', role: 'co_owner', status: 'active',
+      },
+    };
+
+    const res = await call({ action: 'listAccessibleClasses' });
+
+    expect(res.statusCode).toBe(200);
+    expect((res.payload?.classes as DocData[]).map(item => item.id)).toEqual(['shared-class', 'legacy-class']);
+  });
+
+  it('cho phép co-owner đọc bài giao trong lớp chung', async () => {
+    const harness = buildHarness();
+    h.uid = 'co-1';
+    harness.store.classes = { 'shared-class': { teacherId: 'root-2', ownerId: 'root-2', name: '10A' } };
+    harness.store.classMembers = {
+      [classMemberId('shared-class', 'co-1')]: { classId: 'shared-class', uid: 'co-1', role: 'co_owner', status: 'active' },
+    };
+    harness.store.assignments = {
+      'assignment-1': { id: 'assignment-1', classId: 'shared-class', teacherId: 'root-2', title: 'Bài chung', type: 'upload' },
+    };
+
+    const res = await call({ action: 'teacherAssignments', classId: 'shared-class' });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.payload?.assignments).toEqual([expect.objectContaining({ id: 'assignment-1', title: 'Bài chung' })]);
+  });
+
+  it('owner mời giáo viên bằng email và lưu role co-owner', async () => {
+    const harness = buildHarness();
+    harness.store.classes = { 'shared-class': { teacherId: 'owner-1', name: '11 Columbus' } };
+
+    const res = await call({ action: 'inviteTeacher', classId: 'shared-class', email: ' CO@EXAMPLE.COM ', role: 'co_owner' });
+
+    expect(res.statusCode).toBe(200);
+    const invites = Object.values(harness.store.classInvitations || {});
+    expect(invites).toHaveLength(1);
+    expect(invites[0]).toEqual(expect.objectContaining({
+      classId: 'shared-class', inviteeEmail: 'co@example.com', inviteeUid: 'co-1', role: 'co_owner', status: 'pending',
+    }));
+  });
+
+  it('owner đổi tên lớp mà không đổi id hoặc namespace dữ liệu', async () => {
+    const harness = buildHarness();
+    harness.store.classes = { 'shared-class': { teacherId: 'owner-1', name: '11 Columbus', track: 'Toán' } };
+    harness.store.assignments = { 'assignment-1': { id: 'assignment-1', classId: 'shared-class', teacherId: 'owner-1', title: 'Bài cũ' } };
+
+    const res = await call({ action: 'renameClass', classId: 'shared-class', name: '11 Columbus · Toán nâng cao' });
+
+    expect(res.statusCode).toBe(200);
+    expect(harness.store.classes['shared-class']).toEqual(expect.objectContaining({
+      name: '11 Columbus · Toán nâng cao',
+      previousNames: ['11 Columbus'],
+    }));
+    expect(harness.store.assignments['assignment-1']).toEqual(expect.objectContaining({ id: 'assignment-1', classId: 'shared-class' }));
+  });
+
+  it('co-owner đổi tên bài giao trong lớp chung', async () => {
+    const harness = buildHarness();
+    h.uid = 'co-1';
+    harness.store.classes = { 'shared-class': { teacherId: 'root-2', ownerId: 'root-2', name: '10A' } };
+    harness.store.classMembers = {
+      [classMemberId('shared-class', 'co-1')]: { classId: 'shared-class', uid: 'co-1', role: 'co_owner', status: 'active' },
+    };
+    harness.store.assignments = { 'assignment-1': { id: 'assignment-1', classId: 'shared-class', teacherId: 'root-2', title: 'Bài cũ' } };
+
+    const res = await call({ action: 'renameAssignment', assignmentId: 'assignment-1', title: 'Bài luyện tập mới' });
+
+    expect(res.statusCode).toBe(200);
+    expect(harness.store.assignments['assignment-1']).toEqual(expect.objectContaining({ id: 'assignment-1', title: 'Bài luyện tập mới', updatedBy: 'co-1' }));
+  });
+
+  it('tạo projection bài online theo lớp, không sao chép đáp án vào bài giao', async () => {
+    const harness = buildHarness();
+    harness.store.classes = { 'shared-class': { teacherId: 'owner-1', name: '11 Columbus' } };
+    harness.store.exams = { 'exam-1': { id: 'exam-1', teacherId: 'owner-1', title: 'Đề Hình', maxScore: 10, questions: [{ id: 'q1', correctAnswer: 'A' }] } };
+
+    const res = await call({ action: 'createExamAssignment', classId: 'shared-class', examId: 'exam-1', title: 'Đề Hình tuần này', maxScore: 10 });
+
+    expect(res.statusCode).toBe(200);
+    const assignment = Object.values(harness.store.assignments || {})[0];
+    expect(assignment).toEqual(expect.objectContaining({ type: 'exam', examId: 'exam-1', classId: 'shared-class' }));
+    expect(assignment).not.toHaveProperty('questions');
+    expect(assignment).not.toHaveProperty('answerKey');
+  });
+
+  it('tạo hoạt động hỗ trợ từ báo cáo với cùng snapshot cho đề và bài giao', async () => {
+    const harness = buildHarness();
+    harness.store.classes = { 'shared-class': { teacherId: 'owner-1', name: '11 Columbus', track: 'Toán', grade: '11' } };
+    harness.store.classMembers = {};
+    harness.store['classes/shared-class/students'] = {
+      'student-1': { name: 'Nguyễn An' },
+      'student-2': { name: 'Trần Bình' },
+    };
+
+    const res = await call({
+      action: 'createSupportActivity',
+      classId: 'shared-class',
+      sourceReportId: 'assignment-1',
+      purpose: 'remediation',
+      title: 'Phiếu hỗ trợ phương trình',
+      objective: 'Sửa lỗi nhầm công thức.',
+      durationMinutes: 20,
+      targetStudentIds: ['student-1', 'student-2', 'student-1'],
+      questions: [
+        { id: 'support-q1', type: 'essay', content: 'Giải phương trình tương tự.', points: 2 },
+        { id: 'support-q2', type: 'multiple_choice', content: 'Chọn quy tắc đúng.', options: ['A', 'B', 'C', 'D'], correctAnswer: 'A', points: 1 },
+      ],
+    });
+
+    expect(res.statusCode).toBe(200);
+    const exams = Object.values(harness.store.exams || {});
+    const assignments = Object.values(harness.store.assignments || {});
+    expect(exams).toHaveLength(1);
+    expect(assignments).toHaveLength(1);
+    expect(exams[0]).toEqual(expect.objectContaining({ sourceReportId: 'assignment-1', contentVersion: expect.any(String) }));
+    expect(assignments[0]).toEqual(expect.objectContaining({
+      type: 'exam',
+      purpose: 'remediation',
+      sourceReportId: 'assignment-1',
+      targetStudentIds: ['student-1', 'student-2'],
+      contentVersion: exams[0].contentVersion,
+    }));
+    expect(assignments[0]).not.toHaveProperty('answerKey');
+  });
+
+  it('từ chối hoạt động hỗ trợ có học sinh ngoài lớp hoặc câu hỏi rỗng', async () => {
+    const harness = buildHarness();
+    harness.store.classes = { 'shared-class': { teacherId: 'owner-1', name: '11 Columbus' } };
+    harness.store['classes/shared-class/students'] = { 'student-1': { name: 'Nguyễn An' } };
+
+    const res = await call({
+      action: 'createSupportActivity',
+      classId: 'shared-class',
+      sourceReportId: 'assignment-1',
+      purpose: 'practice',
+      title: 'Phiếu hỗ trợ',
+      questions: [{ id: 'support-q1', type: 'essay', content: '   ', points: 1 }],
+      targetStudentIds: ['outside-class'],
+    });
+
+    expect(res.statusCode).toBe(422);
+    expect(Object.values(harness.store.exams || {})).toHaveLength(0);
+  });
+
+  it('chấp nhận lời mời chuyển quyền trong transaction và giữ chủ cũ làm đồng giáo viên', async () => {
+    const harness = buildHarness();
+    h.uid = 'co-1';
+    h.email = 'co@example.com';
+    harness.store.classes = { 'shared-class': { teacherId: 'owner-1', ownerId: 'owner-1', originalOwnerId: 'owner-1', name: '11 Columbus' } };
+    harness.store.classInvitations = {
+      'invite-1': { id: 'invite-1', classId: 'shared-class', inviterUid: 'owner-1', inviteeUid: 'co-1', inviteeEmail: 'co@example.com', role: 'transfer_owner', status: 'pending' },
+    };
+
+    const res = await call({ action: 'acceptTeacherInvitation', invitationId: 'invite-1' });
+
+    expect(res.statusCode).toBe(200);
+    expect(harness.store.classes['shared-class']).toEqual(expect.objectContaining({ ownerId: 'co-1', teacherIds: ['owner-1', 'co-1'] }));
+    expect(harness.store.classMembers[classMemberId('shared-class', 'owner-1')]).toEqual(expect.objectContaining({ role: 'co_owner', status: 'active' }));
+    expect(harness.store.classMembers[classMemberId('shared-class', 'co-1')]).toEqual(expect.objectContaining({ role: 'owner', status: 'active' }));
+  });
+
+  it('tài khoản được mời thấy lời mời chờ xử lý theo đúng email', async () => {
+    const harness = buildHarness();
+    h.uid = 'co-1';
+    h.email = 'co@example.com';
+    harness.store.classes = { 'shared-class': { teacherId: 'owner-1', name: '11 Columbus' } };
+    harness.store.classInvitations = {
+      'invite-1': { id: 'invite-1', classId: 'shared-class', inviterUid: 'owner-1', inviteeUid: 'co-1', inviteeEmail: 'co@example.com', role: 'co_owner', status: 'pending' },
+    };
+
+    const res = await call({ action: 'teacherInvitations' });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.payload?.invitations).toEqual([expect.objectContaining({ id: 'invite-1', className: '11 Columbus' })]);
+  });
+
+  it('danh sách thành viên đang hoạt động không hiện giáo viên đã bị xóa quyền', async () => {
+    const harness = buildHarness();
+    harness.store.classes = { 'shared-class': { teacherId: 'owner-1', name: '11 Columbus' } };
+    harness.store.classMembers = {
+      [classMemberId('shared-class', 'owner-1')]: { classId: 'shared-class', uid: 'owner-1', role: 'owner', status: 'active' },
+      [classMemberId('shared-class', 'co-1')]: { classId: 'shared-class', uid: 'co-1', role: 'co_owner', status: 'removed' },
+    };
+
+    const res = await call({ action: 'teacherMembers', classId: 'shared-class' });
+
+    expect(res.statusCode).toBe(200);
+    expect((res.payload?.members as DocData[]).map(member => member.uid)).toEqual(['owner-1']);
+  });
+
+  it('người không thuộc lớp bị từ chối đổi tên học sinh', async () => {
+    const harness = buildHarness();
+    h.uid = 'outsider';
+    harness.store.classes = { 'shared-class': { teacherId: 'root-2', ownerId: 'root-2', name: '10A' } };
+
+    const res = await call({ action: 'renameStudent', classId: 'shared-class', studentId: 'student-1', name: 'Tên khác' });
+
+    expect(res.statusCode).toBe(403);
+  });
+
+  it('owner sửa mã học sinh: tự viết hoa, chỉ đổi field code', async () => {
+    const harness = buildHarness();
+    harness.store.classes = { 'shared-class': { teacherId: 'owner-1', name: '10 Olinda' } };
+    harness.store['classes/shared-class/students'] = {
+      'student-1': { id: 'student-1', classId: 'shared-class', name: 'Đỗ Hải Phong', code: '10OLINDA-1' },
+    };
+
+    const res = await call({ action: 'setStudentCode', classId: 'shared-class', studentId: 'student-1', code: ' s23050141 ' });
+
+    expect(res.statusCode).toBe(200);
+    expect(harness.store['classes/shared-class/students']['student-1']).toEqual(expect.objectContaining({
+      code: 'S23050141', name: 'Đỗ Hải Phong', updatedBy: 'owner-1',
+      previousCodes: ['10OLINDA-1'],
+    }));
+  });
+
+  it('sao lưu dồn mã cũ, không thêm trùng khi đổi đi đổi lại', async () => {
+    const harness = buildHarness();
+    harness.store.classes = { 'shared-class': { teacherId: 'owner-1', name: '10 Olinda' } };
+    harness.store['classes/shared-class/students'] = {
+      'student-1': { id: 'student-1', classId: 'shared-class', name: 'A', code: 'C1', previousCodes: ['C0'] },
+    };
+
+    await call({ action: 'setStudentCode', classId: 'shared-class', studentId: 'student-1', code: 'C0' }); // C1 -> backup ['C0','C1']
+    const res = await call({ action: 'setStudentCode', classId: 'shared-class', studentId: 'student-1', code: 'C1' }); // C0 da co trong backup, khong them lai
+
+    expect(res.statusCode).toBe(200);
+    expect(harness.store['classes/shared-class/students']['student-1'].code).toBe('C1');
+    expect(harness.store['classes/shared-class/students']['student-1'].previousCodes).toEqual(['C0', 'C1']);
+  });
+
+  it('đặt lại đúng mã đang dùng thì không đổi, không ghi backup thừa', async () => {
+    const harness = buildHarness();
+    harness.store.classes = { 'shared-class': { teacherId: 'owner-1', name: '10 Olinda' } };
+    harness.store['classes/shared-class/students'] = {
+      'student-1': { id: 'student-1', classId: 'shared-class', name: 'A', code: 'S001' },
+    };
+
+    const res = await call({ action: 'setStudentCode', classId: 'shared-class', studentId: 'student-1', code: 's001' });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.payload).toEqual(expect.objectContaining({ updated: false }));
+    expect(harness.store['classes/shared-class/students']['student-1']).not.toHaveProperty('previousCodes');
+  });
+
+  it('từ chối mã học sinh trùng với em khác trong lớp', async () => {
+    const harness = buildHarness();
+    harness.store.classes = { 'shared-class': { teacherId: 'owner-1', name: '10 Olinda' } };
+    harness.store['classes/shared-class/students'] = {
+      'student-1': { id: 'student-1', classId: 'shared-class', name: 'A', code: 'S001' },
+      'student-2': { id: 'student-2', classId: 'shared-class', name: 'B', code: 'S002' },
+    };
+
+    const res = await call({ action: 'setStudentCode', classId: 'shared-class', studentId: 'student-2', code: 's001' });
+
+    expect(res.statusCode).toBe(409);
+    expect(harness.store['classes/shared-class/students']['student-2'].code).toBe('S002');
+  });
+
+  it('người không thuộc lớp bị từ chối sửa mã học sinh', async () => {
+    const harness = buildHarness();
+    h.uid = 'outsider';
+    harness.store.classes = { 'shared-class': { teacherId: 'root-2', ownerId: 'root-2', name: '10A' } };
+
+    const res = await call({ action: 'setStudentCode', classId: 'shared-class', studentId: 'student-1', code: 'S999' });
+
+    expect(res.statusCode).toBe(403);
+  });
+});

@@ -1,22 +1,55 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
-import { Printer, Target, TrendingUp } from 'lucide-react';
+import { Award, ClipboardList, Download, GraduationCap, HeartHandshake, Lightbulb, Printer, Target, TrendingUp } from 'lucide-react';
 import { db } from '../../../lib/firebase';
-import { STUDENT_PROFILES_COL, type StudentProfileDoc, type SubmissionDoc } from '../../../lib/classroom/types';
-import { listSubmissionsForStudent } from '../../../lib/classroom/submissionService';
+import { STUDENT_PROFILES_COL, type AssignmentDoc, type StudentProfileDoc, type SubmissionDoc } from '../../../lib/classroom/types';
+import { loadScoreBook } from '../../../lib/classroom/teacherService';
+import { hs1Average, studentScoreView, type StudentScoreView } from '../../../lib/classroom/scoreBook';
+import { listAssignmentsForClass, listSubmissionsForStudent } from '../../../lib/classroom/submissionService';
 import { NhanXetMarkdown } from './NhanXetMarkdown';
+import { QuestionResultsList } from './QuestionResultsList';
+import { CompetencyPortfolio } from './CompetencyPortfolio';
+import { buildStudentReportModel } from '../../../lib/classroom/reportModel';
+import { buildParentSafeReport, type ParentSafeAssignmentStatus } from '../../../lib/classroom/parentSafeReport';
+import { exportParentReportToPdf, type ParentCompetencyItem, type ParentCompetencySummary } from '../../../lib/classroom/parentReportPrintDoc';
+import { buildStudentCompetencyPortfolio, portfolioProgress } from '../../../lib/classroom/competency/portfolioModel';
+import { asCompetencyGrade, COMPETENCY_LEVELS, type CompetencyLevel } from '../../../lib/classroom/competency/framework';
 
 interface Props {
+  classId: string;
   studentId: string;
   teacherId: string;
   studentName: string;
   className: string;
   studentCode: string;
+  /** Khối lớp ("10"/"11"/"12") để dựng hồ sơ năng lực; vắng thì ẩn phần đó. */
+  classGrade?: string;
   /** true = bản cho người lớn đọc (giáo viên, phụ huynh). false = bản học sinh tự đọc. */
   forAdult?: boolean;
 }
 
 const ngay = (iso?: string) => (iso ? new Date(iso).toLocaleDateString('vi-VN') : '');
+
+const csvCell = (value: unknown): string => `"${String(value ?? '').replace(/"/g, '""')}"`;
+
+const parentStatusLabel: Record<ParentSafeAssignmentStatus, string> = {
+  official: 'Đã có kết quả chính thức',
+  pending: 'Chờ thầy cô duyệt',
+  grading: 'Đang được chấm',
+  error: 'Cần được xử lý lại',
+  not_submitted: 'Chưa nộp',
+};
+
+const parentLevelBadge: Record<CompetencyLevel, string> = {
+  'Xuất sắc': 'bg-emerald-100 text-emerald-800',
+  'Tốt': 'bg-blue-100 text-blue-800',
+  'Đạt yêu cầu': 'bg-amber-100 text-amber-800',
+  'Chưa đạt yêu cầu': 'bg-rose-100 text-rose-800',
+};
+
+const parentScore = (score: number | null, maxScore: number | null): string => (
+  score === null || maxScore === null ? '—' : `${score}/${maxScore}`
+);
 
 /**
  * Báo cáo học tập của một học sinh.
@@ -25,47 +58,255 @@ const ngay = (iso?: string) => (iso ? new Date(iso).toLocaleDateString('vi-VN') 
  * bản cho học sinh chỉ nói việc cần làm tiếp. Đưa nguyên văn bản người lớn cho trẻ đọc là
  * biến một nhận xét kỹ thuật thành lời phán về chính nó.
  */
-export const StudentReport = ({ studentId, teacherId, studentName, className, studentCode, forAdult = true }: Props) => {
+export const StudentReport = ({ classId, studentId, teacherId, studentName, className, studentCode, classGrade, forAdult = true }: Props) => {
   const [submissions, setSubmissions] = useState<SubmissionDoc[]>([]);
+  const [assignments, setAssignments] = useState<AssignmentDoc[]>([]);
   const [profile, setProfile] = useState<StudentProfileDoc | null>(null);
   const [dangTai, setDangTai] = useState(true);
+  const [viewMode, setViewMode] = useState<'teacher' | 'parent'>(forAdult ? 'teacher' : 'parent');
+  const [dangXuatPdf, setDangXuatPdf] = useState(false);
+  // Điểm thi định kì + hệ số 1 lấy từ Sổ điểm của lớp (một nguồn cho giáo viên, học sinh, phụ huynh).
+  const [soDiem, setSoDiem] = useState<StudentScoreView | null>(null);
 
   useEffect(() => {
     let huy = false;
     const tai = async () => {
       setDangTai(true);
-      const [nop, hoSo] = await Promise.all([
-        listSubmissionsForStudent(studentId, teacherId).catch(() => null),
+      const [nop, hoSo, baiGiao, soDiemLop] = await Promise.all([
+        listSubmissionsForStudent(studentId, teacherId, classId).catch(() => null),
         getDoc(doc(db, STUDENT_PROFILES_COL, studentId)).catch(() => null),
+        listAssignmentsForClass(classId, teacherId).catch(() => []),
+        loadScoreBook(classId).catch(() => null),
       ]);
       if (huy) return;
       setSubmissions(nop || []);
+      setAssignments(baiGiao || []);
       setProfile(hoSo?.exists() ? (hoSo.data() as StudentProfileDoc) : null);
+      setSoDiem(soDiemLop ? studentScoreView(soDiemLop, studentId) : null);
       setDangTai(false);
     };
     void tai();
     return () => { huy = true; };
-  }, [studentId, teacherId]);
+  }, [classId, className, studentId, teacherId]);
 
-  const daCham = submissions.filter(s => s.status === 'graded' && s.grade);
-  const daDuyet = daCham.filter(s => s.grade?.teacherApproved);
-  const diemTB = daCham.length > 0
-    ? (daCham.reduce((sum, s) => sum + (s.grade?.score ?? 0), 0) / daCham.length).toFixed(1)
-    : '—';
+  useEffect(() => {
+    setViewMode(forAdult ? 'teacher' : 'parent');
+  }, [forAdult]);
+
+  const model = buildStudentReportModel(submissions);
+  const parentReport = buildParentSafeReport({
+    studentId,
+    studentName,
+    className,
+    assignments,
+    submissions,
+    profile,
+  });
+  const diemTB = model.averagePercent === null ? '—' : `${model.averagePercent.toFixed(1)}%`;
   const yeu = (profile?.topics || []).filter(t => t.level === 'weak');
   const dangLen = (profile?.topics || []).filter(t => t.level === 'developing');
+  const competencyGrade = asCompetencyGrade(classGrade);
+
+  // Hồ sơ năng lực rút gọn cho bản phụ huynh — chỉ tên năng lực + mức (đã qua cổng "bài đã duyệt").
+  const parentCompetency = useMemo<ParentCompetencySummary | null>(() => {
+    if (!competencyGrade) return null;
+    const subs = submissions.filter(s => s.grade).map(s => ({
+      assignmentId: s.assignmentId ?? '',
+      score: s.grade!.score,
+      maxScore: s.grade!.maxScore,
+      approved: Boolean(s.grade!.teacherApproved),
+      submittedAt: s.createdAt,
+    }));
+    const asgs = assignments.map(a => ({ id: a.id, competencyTags: a.competencyTags }));
+    const areas = buildStudentCompetencyPortfolio(competencyGrade, subs, asgs);
+    const { assessed, total } = portfolioProgress(areas);
+    const items: ParentCompetencyItem[] = [];
+    for (const area of areas) {
+      for (const row of area.rows) {
+        if (row.result?.level) items.push({ area: area.area, topic: row.competency.topic, level: row.result.level });
+      }
+    }
+    return { grade: String(competencyGrade), assessed, total, items };
+  }, [competencyGrade, submissions, assignments]);
+
+  const taiCsv = () => {
+    const rows: string[][] = [[
+      'Học sinh', 'Mã học sinh', 'Submission ID', 'Bài giao', 'Ngày nộp', 'Điểm', 'Thang điểm',
+      'Đã duyệt', 'Trạng thái câu', 'Câu', 'Bài làm của học sinh', 'Đáp án / mốc cần đạt',
+      'Loại lỗi', 'Giải thích', 'Cách sửa', 'Luyện tiếp theo', 'Cần GV xem lại',
+    ]];
+    for (const submission of model.currentSubmissions) {
+      const grade = submission.grade;
+      const details = grade?.questionResults || [];
+      const base: string[] = [studentName, studentCode, submission.id, submission.assignmentId || 'Bài tự nộp', ngay(submission.createdAt),
+        grade?.score ?? '', grade?.maxScore ?? '', grade?.teacherApproved ? 'Có' : 'Chưa', submission.status].map(value => String(value));
+      if (details.length === 0) {
+        rows.push([...base, '', '', '', '', '', '', '', '', '']);
+      } else {
+        for (const detail of details) {
+          rows.push([...base, detail.status, detail.questionNumber, detail.studentAnswer, detail.expectedAnswer,
+            detail.errorType, detail.explanation, detail.correction, detail.nextPractice, detail.needsTeacherReview ? 'Có' : 'Không']);
+        }
+      }
+    }
+    const csv = '\uFEFF' + rows.map(row => row.map(csvCell).join(',')).join('\r\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `bao-cao-${studentCode || studentName}.csv`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const inBaoCaoPhuHuynh = async () => {
+    if (dangXuatPdf) return;
+    setDangXuatPdf(true);
+    try {
+      await exportParentReportToPdf({ report: parentReport, studentName, className, studentCode, competency: parentCompetency, exams: soDiem?.exams, hs1: soDiem?.hs1 });
+    } catch (error) {
+      console.error('Xuất PDF bản phụ huynh thất bại:', error);
+      alert('Không tạo được PDF. Vui lòng thử lại.');
+    } finally {
+      setDangXuatPdf(false);
+    }
+  };
 
   if (dangTai) {
     return <p className="py-8 text-center text-sm font-semibold text-slate-400">Đang tải dữ liệu học tập...</p>;
+  }
+
+  if (viewMode === 'parent') {
+    return (
+      <div className="space-y-4" data-report-view="parent-safe">
+        {forAdult && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/70 p-3">
+            <p className="text-sm font-black text-indigo-950">Đang xem bản an toàn để gửi phụ huynh</p>
+            <button type="button" onClick={() => setViewMode('teacher')} className="rounded-xl bg-white px-3 py-2 text-xs font-black text-indigo-700 shadow-sm hover:bg-indigo-100">Về bản giáo viên</button>
+          </div>
+        )}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            { label: 'Bài đã có kết quả', value: String(parentReport.officialCount) },
+            { label: 'Điểm trung bình', value: parentReport.officialAveragePercent === null ? '—' : `${parentReport.officialAveragePercent.toFixed(1)}%` },
+            { label: 'Chờ xử lý', value: String(parentReport.pendingCount) },
+            { label: 'Chưa nộp', value: String(parentReport.missingCount) },
+          ].map(item => <div key={item.label} className="rounded-2xl bg-slate-50 p-4"><p className="text-xs font-bold text-slate-500">{item.label}</p><p className="mt-1 text-2xl font-black text-slate-900">{item.value}</p></div>)}
+        </div>
+
+        <div className="rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4">
+          <p className="mb-1 flex items-center gap-2 text-sm font-black text-indigo-950"><Lightbulb className="h-4 w-4" /> Nhận xét chung về con</p>
+          <p className="text-sm font-semibold leading-6 text-indigo-950">{parentReport.overallSummary}</p>
+        </div>
+
+        {forAdult && (
+          <div className="rounded-2xl border border-violet-100 bg-violet-50/40 p-4">
+            <p className="flex items-center gap-2 text-sm font-black text-violet-950"><ClipboardList className="h-4 w-4" /> Điểm kiểm tra &amp; thi định kì</p>
+            {soDiem && (soDiem.exams.moet.length > 0 || soDiem.exams.tds.length > 0 || soDiem.hs1.length > 0) ? (
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                {soDiem.exams.moet.length > 0 && (
+                  <div>
+                    <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-500">Đánh giá định kì (thang 10)</p>
+                    <ul className="space-y-1 text-sm font-semibold text-slate-700">
+                      {soDiem.exams.moet.map(mark => <li key={mark.label} className="flex justify-between gap-3"><span>{mark.label}</span><span className="font-black text-slate-900">{mark.score}/10</span></li>)}
+                    </ul>
+                  </div>
+                )}
+                {soDiem.exams.tds.length > 0 && (
+                  <div>
+                    <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-500">Điểm theo quý (TDS)</p>
+                    <ul className="space-y-1 text-sm font-semibold text-slate-700">
+                      {soDiem.exams.tds.map(mark => <li key={mark.label} className="flex justify-between gap-3"><span>{mark.label}</span><span className="font-black text-slate-900">{mark.score}{mark.letter ? ` · ${mark.letter}` : ''}</span></li>)}
+                    </ul>
+                  </div>
+                )}
+                {soDiem.hs1.length > 0 && (
+                  <div>
+                    <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-500">Hệ số 1 (thang 10) · TB {hs1Average(soDiem.hs1)}</p>
+                    <ul className="space-y-1 text-sm font-semibold text-slate-700">
+                      {soDiem.hs1.map((mark, index) => <li key={`${mark.label}-${index}`} className="flex justify-between gap-3"><span>{mark.label}</span><span className="font-black text-slate-900">{mark.score}/10</span></li>)}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="mt-2 text-sm font-semibold text-slate-500">Chưa có điểm của em trong Sổ điểm lớp.</p>
+            )}
+            <p className="mt-2 text-[11px] font-semibold text-slate-400">
+              Lấy từ tab <span className="font-black text-violet-700">Sổ điểm</span> của lớp{soDiem?.examsSyncedAt ? ` (điểm thi đồng bộ ${new Date(soDiem.examsSyncedAt).toLocaleString('vi-VN')})` : ''}. Đồng bộ điểm thi hoặc nhập điểm hệ số 1 ở tab đó — bản PDF gửi phụ huynh tự dùng số mới nhất.
+            </p>
+          </div>
+        )}
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
+            <p className="mb-2 flex items-center gap-2 text-sm font-black text-emerald-800"><TrendingUp className="h-4 w-4" /> Điểm mạnh</p>
+            {parentReport.strengths.length === 0 ? <p className="text-sm font-semibold text-slate-500">Chưa đủ bằng chứng chính thức.</p> : <ul className="list-disc space-y-1 pl-5 text-sm font-semibold text-slate-700">{parentReport.strengths.map(item => <li key={item}>{item}</li>)}</ul>}
+          </div>
+          <div className="rounded-2xl border border-amber-100 bg-amber-50/60 p-4">
+            <p className="mb-2 flex items-center gap-2 text-sm font-black text-amber-800"><Target className="h-4 w-4" /> Cần rèn thêm</p>
+            {parentReport.areasToPractice.length === 0 ? <p className="text-sm font-semibold text-slate-500">Chưa có nội dung cần rèn được xác nhận.</p> : <ul className="list-disc space-y-1 pl-5 text-sm font-semibold text-slate-700">{parentReport.areasToPractice.map(item => <li key={item}>{item}</li>)}</ul>}
+          </div>
+        </div>
+        {(parentReport.strengths.length > 0 || parentReport.areasToPractice.length > 0) && (
+          <p className="text-xs font-semibold leading-5 text-slate-500">Hai mục trên là tên các phần trong môn Toán. Phụ huynh không cần hiểu sâu — chỉ cần phối hợp nhắc con luyện đúng những phần thầy cô đánh dấu ở “Cần rèn thêm”.</p>
+        )}
+
+        {parentCompetency && parentCompetency.total > 0 && (
+          <div className="rounded-2xl border border-indigo-100 bg-indigo-50/40 p-4">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <p className="flex items-center gap-2 text-sm font-black text-indigo-950"><Award className="h-4 w-4" /> Năng lực Toán học</p>
+              <span className="text-xs font-bold text-indigo-700">Đã đánh giá {parentCompetency.assessed}/{parentCompetency.total} năng lực</span>
+            </div>
+            {parentCompetency.items.length === 0 ? (
+              <p className="mt-2 text-sm font-semibold text-slate-500">Chưa có năng lực nào đủ bài đã duyệt để kết luận.</p>
+            ) : (
+              <div className="mt-3 space-y-2">
+                {COMPETENCY_LEVELS.filter(level => parentCompetency.items.some(item => item.level === level)).map(level => (
+                  <div key={level} className="flex items-start gap-2">
+                    <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black ${parentLevelBadge[level]}`}>{level}</span>
+                    <p className="text-sm font-semibold leading-6 text-slate-700">{parentCompetency.items.filter(item => item.level === level).map(item => item.topic).join(' · ')}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="rounded-2xl border border-slate-100 p-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-2"><p className="text-sm font-black text-slate-900">Kết quả theo bài</p><span className="text-xs font-semibold text-slate-500">Xu hướng: {parentReport.progress.trend === 'up' ? 'Tiến bộ' : parentReport.progress.trend === 'down' ? 'Cần theo dõi' : parentReport.progress.trend === 'flat' ? 'Ổn định' : 'Chưa đủ dữ liệu'}</span></div>
+          <div className="mt-3 space-y-2">
+            {parentReport.results.length === 0 ? <p className="text-sm font-semibold text-slate-500">Chưa có bài được ghi nhận.</p> : parentReport.results.map(result => (
+              <div key={result.assignmentId} className="flex flex-col gap-1 rounded-xl bg-slate-50 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <div><p className="text-sm font-black text-slate-800">{result.title}</p><p className="text-xs font-semibold text-slate-500">{parentStatusLabel[result.status]}</p></div>
+                <span className="text-sm font-black text-slate-800">{parentScore(result.score, result.maxScore)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="rounded-2xl border border-sky-100 bg-sky-50/60 p-4">
+            <p className="mb-2 flex items-center gap-2 text-sm font-black text-sky-900"><HeartHandshake className="h-4 w-4" /> Phụ huynh có thể đồng hành cùng con</p>
+            <ul className="list-disc space-y-1.5 pl-5 text-sm font-semibold leading-6 text-slate-700">{parentReport.parentActions.map(step => <li key={step}>{step}</li>)}</ul>
+          </div>
+          <div className="rounded-2xl border border-violet-100 bg-violet-50/60 p-4">
+            <p className="mb-2 flex items-center gap-2 text-sm font-black text-violet-900"><GraduationCap className="h-4 w-4" /> Thầy cô sẽ hỗ trợ con</p>
+            <ul className="list-disc space-y-1.5 pl-5 text-sm font-semibold leading-6 text-slate-700">{parentReport.teacherActions.map(step => <li key={step}>{step}</li>)}</ul>
+          </div>
+        </div>
+        <p className="rounded-2xl bg-slate-50 px-4 py-3 text-xs font-semibold leading-5 text-slate-500">Bản này chỉ sử dụng kết quả đã được thầy cô xem và duyệt. Bài đang chờ xử lý không hiển thị điểm, đáp án hoặc ghi chú nội bộ.</p>
+        <button type="button" onClick={inBaoCaoPhuHuynh} disabled={dangXuatPdf} className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-black text-slate-700 transition hover:bg-slate-50 disabled:opacity-60"><Printer className="h-4 w-4" /> {dangXuatPdf ? 'Đang tạo PDF…' : 'Tải PDF bản phụ huynh'}</button>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Bài đã nộp', value: String(submissions.length) },
+          { label: 'Bài hiện hành', value: String(model.currentSubmissions.length) },
           { label: 'Điểm trung bình', value: diemTB },
-          { label: 'Đã duyệt', value: `${daDuyet.length}/${daCham.length}` },
+          { label: 'Đã duyệt', value: `${model.approvedSubmissions.length}/${model.gradedSubmissions.length}` },
         ].map(item => (
           <div key={item.label} className="rounded-2xl bg-slate-50 p-4">
             <p className="text-xs font-bold text-slate-500">{item.label}</p>
@@ -74,14 +315,16 @@ export const StudentReport = ({ studentId, teacherId, studentName, className, st
         ))}
       </div>
 
+      {forAdult && <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-3"><p className="text-sm font-black text-slate-700">Bản giáo viên: có thể xem đầy đủ chi tiết để rà soát.</p><button type="button" onClick={() => setViewMode('parent')} className="rounded-xl bg-white px-3 py-2 text-xs font-black text-indigo-700 shadow-sm hover:bg-indigo-50">Xem trước bản phụ huynh</button></div>}
+
       <div>
         <p className="text-xs font-black uppercase tracking-wide text-slate-400">Bài đã chấm</p>
         <div className="mt-2 space-y-2">
-          {daCham.length === 0 ? (
+          {model.gradedSubmissions.length === 0 ? (
             <p className="rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm font-semibold text-slate-400">
               Chưa có bài nào được chấm.
             </p>
-          ) : daCham.slice(0, 8).map(s => (
+          ) : model.gradedSubmissions.map(s => (
             <div key={s.id} className="rounded-2xl border border-slate-100 px-4 py-3">
               <div className="flex items-baseline gap-2">
                 <span className="text-sm font-black text-slate-900">{s.grade?.score} / {s.grade?.maxScore}</span>
@@ -94,6 +337,7 @@ export const StudentReport = ({ studentId, teacherId, studentName, className, st
                 )}
               </div>
               <NhanXetMarkdown>{s.grade?.feedback || ''}</NhanXetMarkdown>
+              <QuestionResultsList results={s.grade?.questionResults} />
               {forAdult && s.grade?.noteForTeacher && (
                 <p className="mt-1 text-xs font-semibold italic leading-5 text-slate-500">Ghi chú: {s.grade.noteForTeacher}</p>
               )}
@@ -101,6 +345,10 @@ export const StudentReport = ({ studentId, teacherId, studentName, className, st
           ))}
         </div>
       </div>
+
+      {forAdult && competencyGrade && (
+        <CompetencyPortfolio grade={competencyGrade} submissions={submissions} assignments={assignments} studentName={studentName} studentCode={studentCode} />
+      )}
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-2xl border border-slate-100 p-4">
@@ -140,16 +388,19 @@ export const StudentReport = ({ studentId, teacherId, studentName, className, st
           </p>
           <button
             onClick={() => {
-              const ten = `Bao cao ${studentName} - ${className}`;
-              const cu = document.title;
-              document.title = ten;
-              window.print();
-              document.title = cu;
+              inBaoCaoPhuHuynh();
             }}
             className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-black text-slate-700 transition hover:bg-slate-50"
           >
-            <Printer className="h-4 w-4" /> In báo cáo
+            <Printer className="h-4 w-4" /> In / lưu PDF
           </button>
+          <button
+            onClick={taiCsv}
+            className="ml-2 inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-black text-slate-700 transition hover:bg-slate-50"
+          >
+            <Download className="h-4 w-4" /> Tải CSV chi tiết
+          </button>
+          <p className="mt-2 text-[11px] font-semibold text-slate-400">CSV gồm từng câu; điểm trung bình chỉ tính bài đã duyệt.</p>
           <p className="text-[11px] font-semibold text-slate-400">Mã học sinh: {studentCode}</p>
         </>
       )}

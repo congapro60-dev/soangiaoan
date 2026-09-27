@@ -2,15 +2,32 @@
 
 > Updated after every correction. Reviewed at session start.
 
+- **Live lesson close mapping must separate roster IDs from adaptive IDs** — `studentLinks/{uid}.studentId` points to an arbitrary roster document ID (for example `student-a`), while adaptive records use `${teacherUid}_${normalizeStudentCode(roster.code)}`. Always verify the link against the roster document first, then derive the adaptive ID from the server roster code; never copy the roster ID into `StudentLearningProfile`/`StudentSessionProgressRecord`. *(2026-08-25)*
+- **Never infer live route from G1/G2/G3 or default it during close** — route must come from a server-confirmed `route` response or a trusted adaptive profile; mark a participant incomplete when neither exists. *(2026-08-25)*
+- **A V4 field is not implemented until its whole boundary agrees** — adding `languagePreference` required the shared type, student payload, sanitizer, Firestore allowlist/validation, privacy tests, and a real emulator write. Keep it separate from the teacher-verified `languageSupportPlan`; a UI-only field creates a false sense of completion. *(2026-08-28)*
+- **`getDocFromServer` alone does not prove a server timestamp is resolved immediately after a browser write** — the browser/emulator pilot reproduced a transient `updatedAt` normalization failure that skipped the public TV projection. Retry only the timestamp-normalization case with a short bounded backoff, and keep a browser regression step after unit tests. *(2026-08-28)*
+- **Khoá trạng thái trong Firestore phải có ngân sách thời gian NGẮN HƠN trần của runtime** — `status='grading'` chỉ được mở bởi chính worker đặt nó, mà worker bị Vercel giết ở 60s thì không nhánh nào chạy: 15 bài nộp nằm lại "Đang chấm" nhiều giờ, giáo viên hết đường gỡ. Mỗi lượt phải tự đếm ngược (45s), truyền thời gian còn lại xuống từng `fetch` qua `AbortSignal.timeout`, và bỏ lượt thử lại khi không còn đủ giờ. Ngưỡng "khoá chết" phải khớp tuổi thọ thật của worker, không phải 10 phút cho có. *(2026-09-08)*
+- **Không để env override một hằng số mà code đã có ý kiến rõ ràng** — `GRADING_MODEL` từng được đặt pro trên Vercel rồi quên gỡ; code đã revert về flash mà production vẫn chạy pro, đọc code không thấy gì sai. Trạng thái thật phải nằm trong git. *(2026-09-08)*
+- **Một hằng số "giới hạn" không tự nó giới hạn cái gì** — `BATCH_SIZE = 2` có comment giải thích, có cả commit hạ 4→2 để chống timeout, nhưng chỗ cắt batch lại dùng hạn mức ngày nên một request cố chấm 22 bài. Sửa hằng số xong phải đọc lại nơi dùng nó. *(2026-09-08)*
+- **`MAX_TOKENS` từng bị chẩn đoán nhầm thành lỗi parser** — `callGeminiVision` ném lỗi TRƯỚC khi parser chạy, nên nới lỏng parser không cứu được ca bị cắt cụt. Đọc `errorMessage` thật trong Firestore trước khi đoán tầng nào hỏng. *(2026-09-08)*
+- **Thêm field mới vào AssignmentDoc phải thêm luôn vào `teacherAssignmentProjection` (api/_classroom-teacher.ts)** — projection này là ALLOWLIST: chỉ field liệt kê mới ra client. Ghi field vào Firestore rồi mà quên projection thì write "thành công" (toast xanh) nhưng đọc lại luôn trống. `competencyTags` bị đúng lỗi này: editor tải lại + hồ sơ năng lực luôn 0 dù đã lưu; unit test write-side + model đều xanh, chỉ QA production mới lộ. Sửa xong khoá bằng test gọi thẳng `teacherAssignmentProjection`. *(2026-09-17)*
+- **Tự nghiệm thu đến cùng, không đẩy việc thử sang chủ dự án** — bản đầu cầu nối SSM đoán tên ô dữ liệu rồi bảo người dùng "cài tiện ích, chụp màn hình gửi lại"; người dùng phản đối vì phải tự check/sửa. Tự kiểm thì lộ ngay 2 lỗi chí mạng mà test giả không bắt được: sai khoá vé (`sso_access_token` → 401) và thiếu header `workspace` (API trả rỗng, không báo lỗi). Quy tắc: với hệ thống ngoài không tài liệu, (1) đọc mã JS công khai của chính trang đó để biết header/ô dữ liệu thật, (2) chạy E2E trình duyệt thật (Edge headless + `enableExtensions`, vé giả để chạm API thật) trước khi báo xong. Chỉ nhờ người dùng việc máy không làm được (đăng nhập, cấp quyền). *(2026-09-24)*
+
 ---
 
 ## TypeScript
+
+- **V4 media phải bám `cue.tvScreenId`, không đoán `S0` từ tên P00** — P00 của gói `10-5-31` thực tế chiếu trên `S1`; mapping nhầm làm build và unit helper vẫn xanh nhưng TV không hiện media. *(2026-09-02)*
+
+- **Whiteboard asset phải kiểm tra frame thật, không chỉ source PNG** — tài nguyên bàn tay mặc định có chữ Trung; kiểm tra đầu/giữa/cuối MP4, dùng đầu bút không chữ và fallback poster trước khi đưa lên TV. *(2026-09-02)*
 
 - **setBulkProgress reset must include all fields** — `{ current: 0, total: 0, currentTitle: '' }` not just `{ current: 0, total: 0 }`. Local Vite build passes but GitHub CI (strict tsc) catches it. Always run `npx tsc --noEmit` before committing. *(2026-04-21)*
 
 - **`replace_all: false` fails when string appears twice** — When using Edit tool, if `old_string` matches more than once the edit fails. Add more surrounding context to make it unique. *(2026-04-21)*
 
 ## Firebase
+
+- **Đóng live session phải phát marker public `closed` trước khi thu hồi quyền đọc** — nếu chỉ đóng parent, listener TV có thể giữ `publicState=running` và tiếp tục phát media; marker phải an toàn, không PII, rồi mới revoke parent. *(2026-09-02)*
 
 - **`browserSessionPersistence` logs users out on tab close** — Use `browserLocalPersistence` (Firebase default) unless logout-on-close is intentional. *(2026-04-21)*
 
@@ -281,6 +298,12 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 
 - **938 unit test xanh mà không bắt được lỗi nào người dùng gặp** — vì tôi chọn phép kiểm theo cái nào DỄ VIẾT, không theo cái nào giống việc người dùng làm. Test hàm thuần rẻ nên viết được 938 cái; phép kiểm đắt và phiền (tạo lớp → giao bài → xem lại → nộp → chấm) thì né mọi lần, và toàn bộ lỗi đến tay người dùng đều nằm đúng ở đó. Có sẵn phiên trình duyệt thật của người dùng mà chỉ dùng để tra dữ liệu, không dùng để đi thử luồng. *(2026-08-21)*
 
+## Phạm vi lệnh AI phải nhất quán ở mọi điểm sinh/chấm — 2026-08-24
+
+- **Một lệnh lưu trên assignment phải đi qua cả ba đường: tạo đáp án, tạo hướng dẫn chấm và chấm các submission về sau.** Không được chỉ nối vào `buildHomeworkGradingPrompt`; nếu hai nút chuẩn bị đáp án/rubric bỏ sót trường này, giáo viên sẽ lưu một cấu hình nhưng AI đã sinh dữ liệu nền theo phạm vi khác.
+- **Prompt có lệnh không được giữ lại mệnh lệnh tổng quát mâu thuẫn ở phía sau.** Các câu như “giải từng câu” hoặc “chia điểm cho từng câu” phải đổi thành “từng câu/phần thuộc phạm vi được giao” khi có lệnh; test phải kiểm cả cụm bắt buộc và sự vắng mặt của cụm cũ, không chỉ kiểm lệnh được chèn vào.
+- **Lệnh là cấu hình dài hạn, không phải gọi AI theo từng phím gõ.** Form giữ một state/property duy nhất, truyền giá trị mới nhất lúc bấm nút, lưu cùng assignment; mọi lần nộp lại/chấm lại đọc bản mới nhất. Lệnh mơ hồ phải chuyển thành cảnh báo để giáo viên soát, không dùng regex hậu xử lý để cắt nhầm đáp án.
+
 ## Quyền push của app OpenCode (2026-08-22)
 
 - **"Không tự push" không có nghĩa là cấm push** — app phải cho phép commit/push khi người dùng yêu cầu hoặc bấm nút xác nhận. Chỉ tự động dừng trước bước push; vẫn phải stage đúng file của task, không dùng `git add .` để kéo theo thay đổi ngoài phạm vi. *(2026-08-22)*
@@ -294,6 +317,90 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 
 - **Thiết kế hash-only cho mã 4 số khiến giáo viên không xem lại được PIN, user phải yêu cầu ba lần mới nghe** — lần đầu tôi thay bằng nút "cấp lại", user nhắc lại; lần hai tôi vẫn giữ hash-only và chỉ đổi chỗ nút, user bực: "sao ấn vào nó lại hiện đổi mã PIN? Tôi muốn NHÌN THẤY mã pin hiện tại". Sự thật kỹ thuật: scrypt băm mã 4 số KHÔNG chống nổi vét cạn (10.000 khả năng), giá trị thật của hash chỉ là không lộ trong console DB — lưu thêm bản thô (`pinPlain`) cạnh hash trong `studentSecrets`, trả về qua API xác thực chủ lớp (`viewPin`), client vẫn bị rules chặn đọc trực tiếp. Rủi ro cộng thêm ~0, giá trị sử dụng lớn (GV phát mã, hỗ trợ học sinh quên mã ngay tại lớp). QUY TẮC: (1) cân bằng bảo mật theo GIÁ TRỊ THỰC của bí mật — mã 4 số dùng trong lớp học không phải mật khẩu ngân hàng; (2) khi user yêu cầu một hành vi mà thiết kế hiện tại chặn, đừng chỉ giải thích giới hạn rồi vá quanh — hỏi lại "chủ dự án có chấp nhận đánh đổi này không", được chốt thì sửa TẦNG LƯU TRỮ chứ đừng vá UI; (3) mã cấp trước ngày chuyển đổi không đọc ngược được → UI phải có đường mời cấp lại một lần.
 
+## Vietnamese education copy — cổng chốt nhận xét và báo cáo (2026-08-24)
+
+- Khi soạn nhận xét/báo cáo/đánh giá bằng tiếng Việt, phải xác định đúng register trước khi viết: giáo viên nói với học sinh THCS/THPT dùng “em”, không dùng “bạn” để gọi học sinh; báo cáo chỉ kết luận từ minh chứng cụ thể đã được giáo viên duyệt.
+- Chạy `C:\Users\ADMIN\.codex\skills\vietnamese-education-copy\scripts\validate_copy.py` trên artifact copy giáo dục với đúng `--doctype` và `--register`; không áp validator của văn bản hành chính lên toàn bộ UI e-learning.
+- Khi full QA có nhiều tiến trình nặng, chạy unit suite độc lập để phân biệt timeout do tranh chấp tài nguyên với lỗi logic; một ca timeout khi chạy song song không đủ căn cứ để sửa code.
+
+## Xuất bản tuần tự V4 và QA màn hình chiếu (2026-08-31)
+
+- Không biến kiểm tra cấu trúc 48/48 thành giấy phép publish. Publication gate phải đối chiếu exact source key, câu hỏi/đáp án diagnostic, quick-check, exit-ticket, ví dụ tuyến, AI Error và teacher ownership; bài published phải idempotent và không ghi đè.
+- Khi chạy batch publish, một bài save lỗi phải thành report lỗi rồi tiếp tục bài sau; UI phải hiện sourceKey hiện tại, tiến độ và thống kê audit fail/lỗi để giáo viên không tưởng batch đã hoàn tất.
+- Với màn hình TV 16:9, kiểm tra ở stage 1280×720 và “3-metre test”: một ý chính/màn hình, tương phản cao, lề an toàn, không thu nhỏ chữ để nhét nội dung; công thức phải render chứ không in raw LaTeX. Chi tiết lời GV để ở cổng GV, không đưa lên TV.
+
 ## FileList gắn sống với ô input — gốc rễ thật của cả chuỗi "nộp ảnh không được" (2026-08-22)
 
 - **`const files = e.target.files; e.target.value = '';` là XOÁ SẠCH files trước khi kịp dùng** — FileList trả về từ `input.files` là view SỐNG theo control: reset `value` là `length` về 0 ngay, handler sau đó không bao giờ chạy. Đây mới là nguyên nhân "bấm nộp xong không thấy gì" ở cổng học sinh; tôi đã chẩn đoán sai HAI LẦN trước khi người khác soi ra: lần 1 đổ cho storage.rules chặn 6MB/thiếu nén, lần 2 đổ cho thiếu trạng thái xác nhận. Dấu hiệu lẽ ra phơi sớm: user nói "không thấy gì cả" — kể cả thanh tiến trình cũng không hiện nghĩa là HÀM XỬ LÝ chưa từng chạy, chứ không phải chạy mà UI không phản ánh. QUY TẮC: trong onChange của input file, SAO CHÉP `Array.from(e.target.files ?? [])` thành mảng TRƯỚC khi đụng vào `value` (đối tượng `File` độc lập với input nên vẫn dùng tốt); và khi user báo "không có gì xảy ra", kiểm chứng hàm xử lý có được gọi tới không (log đầu hàm) TRƯỚC khi đi soi tầng dưới như rules/mạng.
+
+## Bài học pilot realtime — 2026-08-26
+
+- Gói runtime trong `src/data/liveLessonPackages/` chỉ là mã nội dung; trang Quản lý bài học phân hoá chỉ hiển thị document từ `adaptiveLessons` có `teacherId` đúng tài khoản. Deploy source không đồng nghĩa đã seed dữ liệu cho giáo viên.
+- Khi mở một pilot từ danh sách, phải kiểm đồng thời `lesson.id`, tiêu đề, thời lượng và trạng thái `published`; dùng nhầm bài mẫu khác chủ đề sẽ làm cổng học sinh hiển thị sai nội dung dù nút live vẫn mở được.
+- API tiến trình mới phải thử document canonical theo `lessonId` trước, nhưng giữ fallback document legacy theo `teacherId`; mọi nhánh đều phải kiểm `teacherId`, `lesson.id` và `portalEnabled`.
+
+## Luật phải bám hợp đồng runtime canonical — 2026-08-26
+
+- Test Rules với fixture rút gọn có thể xanh nhưng vẫn chặn luồng thật: fixture cũ chỉ có 7 bước, còn định nghĩa pilot runtime có 8 bước và thêm `route`.
+- Khi một document có allowlist bước, phải có ít nhất một ca test lấy đủ danh sách canonical từ luồng runtime; không chỉ test bước lạ và kiểu dữ liệu.
+
+## Listener public tùy chọn phải mở đúng thời điểm — 2026-08-26
+
+- TV không nên subscribe document thống kê khi giáo viên chưa bật `showStats`; nếu không, document chưa tồn tại sẽ bị Rules từ chối và listener đã lỗi thì không tự hồi phục khi stats xuất hiện.
+- Với document public được tạo muộn, Rules phải cho phép đọc trạng thái "chưa tồn tại" trong đúng điều kiện audience/active/feature-flag, nhưng vẫn validate toàn bộ schema khi document đã tồn tại.
+
+## Server timestamp sau mutation — 2026-08-26
+
+- Sau `updateDoc` có `serverTimestamp()`, snapshot đọc từ cache có thể tạm thời chứa `updatedAt:null`. Không được chuẩn hoá snapshot đó ngay như dữ liệu đã xác nhận.
+- Các mutation điều khiển phiên phải đọc lại bằng `getDocFromServer` trước khi ghi public state; nếu không, giao diện có thể đã đổi nút nhưng public state không được cập nhật và báo lỗi giả cho giáo viên.
+- Các listener `onSnapshot` cũng nhận bản cục bộ có `metadata.hasPendingWrites=true`; phải bỏ qua bản này và chờ snapshot server, nếu không listener sẽ tự hiển thị lỗi dù mutation cuối cùng thành công.
+- Nếu `getDocFromServer` vẫn trả snapshot chưa có timestamp ngay sau mutation, retry ngắn có điều kiện cho đúng lỗi `updatedAt`; không nuốt hoặc retry vô hạn các lỗi schema/quyền khác.
+
+## Live lesson: link học sinh phải mang đủ ngữ cảnh lớp — 2026-08-26
+
+- Khi giáo viên đã chọn lớp lúc tạo phiên, URL học sinh phải mang cả `classId` và `joinCode`; cổng học sinh dùng `joinCode` để tải đúng roster rồi kiểm lại `roster.classId` trước khi cho chọn tên.
+- Nếu lớp thiếu `joinCode`, phải chặn ngay lúc tạo phiên với hướng dẫn đồng bộ/cấp mã lớp; không tạo một link HS trông hợp lệ nhưng không thể đăng nhập.
+
+- **Rules/fixture QA phải tách seed hợp lệ khỏi tài liệu malformed** — ownership rule cần đọc `teacherUid` để bảo vệ dữ liệu; một parent document thiếu schema có thể làm Rules Emulator ghi evaluator trace trên deny-path dù mọi allow-path hợp lệ. Không coi fixture malformed là bằng chứng app runtime hỏng; chặn từ contract/service/seed và kiểm tra allow-path thật. Đồng thời session đóng không được publish public projection sau khi Rules đã revoke public access. *(2026-08-29)*
+
+## V4 ba cổng — public listener, công thức và thứ tự nghiệm thu (2026-08-31)
+
+- Nghiệm thu V4 phải bắt đầu bằng nhịp GV → TV → HS cùng một session; cổng adaptive tự học không thay thế browser choreography của giờ dạy trực tiếp.
+- `public/state` đã cho phép người chưa đăng nhập đọc projection thì không nên chặn người vừa đăng nhập nếu projection vẫn được bật và đã redact. Chặn theo `request.auth` tạo race: HS đăng nhập trước khi `studentLinks/{uid}` được server ghi, listener chết và không tự hồi phục. Giữ private data ở Rules riêng; kiểm chứng bằng test trước/sau authentication.
+- Raw LaTeX trong `LiveLessonScreen.body` không tự render khi dùng React text node. Với nguồn công thức không có delimiter, phải chuẩn hóa đường công thức trước khi đưa qua `remark-math`/`rehype-katex`, rồi kiểm cả screenshot và kích thước scroll TV.
+- Nút GV nhận phản hồi chưa đủ bằng chứng. Pilot phải chuyển ít nhất qua diagnostic, AI Error, route M/S/C, group product và post-check; kiểm TV chỉ nhận aggregate, HS nhận trạng thái/câu hỏi riêng, GV nhận count.
+
+## Cổng tự học phải được QA như một sản phẩm riêng (2026-08-31)
+
+- V4 live classroom và cổng tự học dùng chung lesson data nhưng không dùng chung đường kiểm thử. Phải chạy riêng identify → diagnostic → knowledge → practice → application → summary → save; một live pilot xanh không chứng minh cổng tự học xanh.
+- Khi lesson đã có route foundation/standard/challenge nhưng chưa có `practiceSet`, converter không được tự lấp gói thiếu bằng placeholder. Ưu tiên route task đã được kiểm tra nguồn; nếu không đủ dữ liệu thì báo thiếu nội dung trước publish.
+- Chuỗi nhiều công thức nối bằng newline phải tách thành các vùng MathJax riêng trước render. Đồng thời chặn overflow ở card/note cục bộ để một công thức dài không kéo tràn toàn trang.
+
+## Demo cũ phải được coi là alias của source canonical (2026-08-31)
+
+- Khi một bài demo đã có người dùng/URL thật và trùng source key, không tạo document mới chỉ vì id kỹ thuật khác. Resolve bằng identity rõ ràng (grade/week/period hoặc alias đã biết), audit lại nội dung theo source, rồi nâng cấp tại chỗ để giữ liên kết cũ.
+- Runtime live cũng phải dùng cùng identity canonical; nếu chỉ sửa publisher mà launcher vẫn special-case id cũ, danh sách sẽ “một bài” nhưng giờ dạy chạy definition khác.
+
+## Activity-first reset from shared V7.1 review (2026-09-17)
+
+- Một lesson đẹp nhưng tổ chức như chuỗi slide vẫn chưa phải lớp học tương tác. Mỗi activity phải có mục đích, một hành động chính, một sản phẩm, và một quyết định tiếp theo cho GV.
+- Không bê nguyên một prototype môn khác sang P31. Chỉ lấy nguyên tắc Presenter/Student tách shell, objective “Tôi có thể…”, aggregate công khai, bằng chứng riêng tư, progressive support và regression matrix; nội dung P31 vẫn theo PPCT và thời lượng thật.
+- Số lượt gửi hoặc lựa chọn route không phải bằng chứng năng lực. Đúng/sai chỉ tự động khi contract có đáp án; lời giải thích để GV xem.
+- Không nuốt lỗi `removeChild`/`insertBefore` của React bằng monkey patch toàn cục. Nó có thể che lỗi lifecycle và giữ lại DOM cũ, biểu hiện thành một hoạt động lặp nhiều lần; phải sửa lifecycle/reconciliation ở gốc.
+
+## V7.2 Week 6 source expansion (2026-09-18)
+
+- V7.2 practice phải tách A/B/C/D/Challenge thành question ID riêng; không gộp bốn bài vào một ô trả lời nếu GV cần biết HS dừng ở đâu, dùng Hint/Tool nào và sửa bài nào.
+- Giáo án/snapshot là nguồn dữ kiện và chuẩn Toán. `screenPlan` không phải giao diện bắt buộc; các nhắc QR/Slido phải được chuyển thành activity public/private phù hợp với runtime hiện tại.
+- Khi mở rộng Firestore allowlist cho question ID mới, phải sửa cả Rules, public group-progress key và test cap; nếu chỉ sửa adapter, nút Chạy hoặc aggregate TV sẽ bị Rules rollback.
+
+## V7.2 Week 5 rollout (2026-09-18)
+
+- Mở rộng V7.2 theo `spec.week` phải bao phủ cả Week 5 và Week 6; không để response options hoặc QA harness chỉ nhận diện Week 6.
+- P31 là alias/demo có contract thủ công; các bài Week 5 còn lại dùng adapter generic nhưng vẫn phải giữ đúng source key và nội dung nguồn.
+
+## CI đỏ vì máy local có sẵn biến khoá AI (2026-09-25)
+
+- Máy này có sẵn `GEMINI_API_KEY`/`GOOGLE_API_KEY` trong môi trường Windows → test gọi `getGradingApiKey()` qua ở local nhưng 500 trên CI (Quality Gate đỏ từ `f467a91` tới `90f4dfe`, không ai để ý vì chỉ xem test local).
+- Trước khi push phần API: chạy `env -u GEMINI_API_KEY -u GOOGLE_API_KEY npx vitest run` để giống CI; sau push kiểm run "Quality Gate" (API công khai: `api.github.com/repos/congapro60-dev/soangiaoan/actions/runs`, lỗi chi tiết ở `check-runs/<job id>/annotations`).
+- Không đòi khoá/tài nguyên khi request không có việc thật phải làm (kiểm khoá SAU bước "có bài cần chấm không").

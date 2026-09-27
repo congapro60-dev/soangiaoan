@@ -1,10 +1,20 @@
 import { auth } from '../lib/firebase';
+import type { AssignmentCompetencyTag, AssignmentQuestionCatalogItem } from '../lib/classroom/types';
 
 export interface GradeBatchResult {
   graded: number;
   failed: number;
   remaining: number;
+  /** Số bài vừa được gỡ khỏi khoá "đang chấm" chết. Cũng là tiến độ, dù chưa chấm được bài nào. */
+  recovered?: number;
+  /**
+   * Máy chủ đã nhận bài và đang chấm ngầm; chưa có điểm ngay lúc trả lời. Học sinh tắt máy vẫn
+   * ra điểm, chỉ cần quay lại xem sau.
+   */
+  pending?: boolean;
 }
+
+export type HomeworkGradingMode = 'quick' | 'thorough';
 
 const call = async (payload: Record<string, unknown>): Promise<GradeBatchResult> => {
   const user = auth.currentUser;
@@ -37,41 +47,116 @@ export const gradeAssignmentAll = async (
   for (let round = 0; round < 60; round += 1) {
     if (shouldStop?.()) break;
 
-    const result = await call({ action: 'gradeAssignment', assignmentId });
+    const result = await call({ action: 'gradeAssignment', assignmentId, mode: 'quick' });
     total.graded += result.graded;
     total.failed += result.failed;
     total.remaining = result.remaining;
     onProgress?.(total.graded + total.failed, result.remaining);
 
     if (result.remaining <= 0) break;
-    if (result.graded + result.failed === 0) break; // không tiến thêm được thì dừng, tránh lặp vô hạn
+    // Một vòng chỉ gỡ khoá chết mà chưa chấm được bài nào VẪN là tiến thêm — dừng ở đây là bắt
+    // giáo viên bấm "Chấm cả lớp" lần thứ hai mới thật sự chấm.
+    if (result.graded + result.failed + (result.recovered ?? 0) === 0) break; // đứng yên thì dừng, tránh lặp vô hạn
   }
   return total;
 };
 
-/** Chấm một bài — dùng cho luồng học sinh tự nộp. */
-export const gradeOneSubmission = (submissionId: string): Promise<GradeBatchResult> =>
-  call({ action: 'gradeOne', submissionId });
+/** Chấm một bài — mặc định để server chọn quick; teacher UI có thể yêu cầu thorough. */
+export const gradeOneSubmission = (submissionId: string, mode?: HomeworkGradingMode): Promise<GradeBatchResult> =>
+  call({ action: 'gradeOne', submissionId, ...(mode ? { mode } : {}) });
 
 export interface PracticeQuestion {
+  id: string;
   question: string;
   hint: string;
-  solution: string;
+  level?: string;
+  basis?: string;
+  steps?: string[];
 }
 
-/** Bài luyện thêm sinh từ chủ đề còn yếu trong hồ sơ của chính học sinh đang đăng nhập. */
-export const fetchPractice = async (): Promise<{ questions: PracticeQuestion[]; reason?: string }> => {
+export interface PracticeAttemptQuestionResult {
+  id: string;
+  score: number;
+  maxScore: number;
+  feedback: string;
+  expectedAnswer?: string;
+}
+
+export interface PracticeAttemptResult {
+  attemptId: string;
+  setId: string;
+  status: 'grading' | 'graded' | 'error';
+  score?: number;
+  maxScore?: number;
+  feedback?: string;
+  questionResults?: PracticeAttemptQuestionResult[];
+  evidenceType: 'practice';
+  skillIds?: string[];
+  errorMessage?: string;
+}
+
+export interface PracticeSetResult {
+  setId: string;
+  questions: PracticeQuestion[];
+  topics: string[];
+  skillIds?: string[];
+  createdAt: string;
+  reason?: string;
+  attempt?: PracticeAttemptResult;
+}
+
+/** Bài luyện thêm sinh từ lỗi BTVN + chủ đề còn yếu của chính học sinh đang đăng nhập; không trùng đề trước. */
+export const fetchPractice = async (setId?: string, attemptId?: string): Promise<PracticeSetResult> => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Phiên đăng nhập đã hết hạn.');
+
+  const payload = {
+    action: 'practice',
+    idToken: await user.getIdToken(),
+    ...(setId ? { setId } : {}),
+    ...(attemptId ? { attemptId } : {}),
+  };
+  const res = await fetch('/api/grade-homework', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) {
+    const error = new Error(data?.error || `Máy chủ trả lỗi ${res.status}`) as Error & { status?: number };
+    error.status = res.status;
+    throw error;
+  }
+  return data as PracticeSetResult;
+};
+
+/** Nộp câu trả lời bài luyện; đáp án chuẩn chỉ xuất hiện trong kết quả sau khi server chấm. */
+export const submitPractice = async (
+  setId: string,
+  answers: Record<string, string>,
+  attemptId?: string,
+): Promise<PracticeAttemptResult> => {
   const user = auth.currentUser;
   if (!user) throw new Error('Phiên đăng nhập đã hết hạn.');
 
   const res = await fetch('/api/grade-homework', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'practice', idToken: await user.getIdToken() }),
+    body: JSON.stringify({
+      action: 'submitPractice',
+      idToken: await user.getIdToken(),
+      setId,
+      answers,
+      ...(attemptId ? { attemptId } : {}),
+    }),
   });
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
-  return data as { questions: PracticeQuestion[]; reason?: string };
+  if (!res.ok) {
+    const error = new Error(data?.error || `Máy chủ trả lỗi ${res.status}`) as Error & { status?: number };
+    error.status = res.status;
+    throw error;
+  }
+  return data as PracticeAttemptResult;
 };
 
 export interface SolvedAnswerKeyResult {
@@ -88,6 +173,7 @@ export const solveAnswerKey = async (
   examText: string,
   examImages: string[],
   maxScore: number,
+  gradingInstructions?: string,
 ): Promise<SolvedAnswerKeyResult> => {
   const user = auth.currentUser;
   if (!user) throw new Error('Phiên đăng nhập đã hết hạn.');
@@ -102,22 +188,125 @@ export const solveAnswerKey = async (
       examText,
       examImages,
       maxScore,
+      gradingInstructions: gradingInstructions || '',
     }),
   });
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
+  if (!res.ok) {
+    const error = new Error(data?.error || `Máy chủ trả lỗi ${res.status}`) as Error & { status?: number };
+    error.status = res.status;
+    throw error;
+  }
   return data as SolvedAnswerKeyResult;
 };
 
-/** Nhờ AI đề xuất hướng dẫn chấm từ đáp án đã có. */
-export const suggestRubric = async (classId: string, answerKey: string, maxScore: number): Promise<string> => {
+/**
+ * Nhờ AI giải LẠI đáp án cho một bài ĐÃ GIAO, dùng đề đã lưu trên máy chủ (không phải tải lại
+ * file). `gradingInstructions` truyền bản nháp giáo viên đang gõ để giải đúng phạm vi. Kết quả
+ * là nháp để giáo viên soát rồi mới lưu.
+ */
+export const solveAnswerKeyForAssignment = async (
+  assignmentId: string,
+  gradingInstructions?: string,
+): Promise<SolvedAnswerKeyResult> => {
   const user = auth.currentUser;
   if (!user) throw new Error('Phiên đăng nhập đã hết hạn.');
 
   const res = await fetch('/api/grade-homework', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'suggestRubric', idToken: await user.getIdToken(), classId, answerKey, maxScore }),
+    body: JSON.stringify({
+      action: 'solveAnswerKeyForAssignment',
+      idToken: await user.getIdToken(),
+      assignmentId,
+      gradingInstructions: gradingInstructions || '',
+    }),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) {
+    const error = new Error(data?.error || `Máy chủ trả lỗi ${res.status}`) as Error & { status?: number };
+    error.status = res.status;
+    throw error;
+  }
+  return data as SolvedAnswerKeyResult;
+};
+
+/**
+ * Nhờ MÁY CHỦ đọc đề thành danh mục câu hỏi rồi lưu vào bài giao.
+ *
+ * Thay cho việc tải đề gốc về trình duyệt rồi OCR tại chỗ mỗi lần mở báo cáo — cách cũ vừa lặp
+ * vô ích vừa hỏng ở bước tải file. Máy chủ đọc một lần, lưu lại, các lần sau chỉ đọc ra.
+ */
+export const buildQuestionCatalog = async (
+  assignmentId: string,
+  force = false,
+): Promise<{ questionCatalog: AssignmentQuestionCatalogItem[]; competencyTags: AssignmentCompetencyTag[]; cached: boolean }> => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Phiên đăng nhập đã hết hạn.');
+
+  const res = await fetch('/api/grade-homework', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'buildQuestionCatalog',
+      idToken: await user.getIdToken(),
+      assignmentId,
+      force,
+    }),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
+  return {
+    questionCatalog: Array.isArray(data?.questionCatalog) ? data.questionCatalog : [],
+    competencyTags: Array.isArray(data?.competencyTags) ? data.competencyTags : [],
+    cached: data?.cached === true,
+  };
+};
+
+/** Lưu nhãn năng lực do giáo viên DUYỆT/SỬA cho một bài — khoá lại để đọc đề sau không đè. */
+export const setAssignmentCompetencyTags = async (
+  assignmentId: string,
+  tags: AssignmentCompetencyTag[],
+): Promise<{ competencyTags: AssignmentCompetencyTag[] }> => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Phiên đăng nhập đã hết hạn.');
+
+  const res = await fetch('/api/grade-homework', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'setAssignmentCompetencyTags',
+      idToken: await user.getIdToken(),
+      assignmentId,
+      tags,
+    }),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
+  return { competencyTags: Array.isArray(data?.competencyTags) ? data.competencyTags : [] };
+};
+
+/** Nhờ AI đề xuất hướng dẫn chấm từ đáp án đã có. */
+export const suggestRubric = async (
+  classId: string,
+  answerKey: string,
+  maxScore: number,
+  gradingInstructions?: string,
+): Promise<string> => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Phiên đăng nhập đã hết hạn.');
+
+  const res = await fetch('/api/grade-homework', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'suggestRubric',
+      idToken: await user.getIdToken(),
+      classId,
+      answerKey,
+      maxScore,
+      gradingInstructions: gradingInstructions || '',
+    }),
   });
   const data = await res.json().catch(() => null);
   if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);

@@ -242,6 +242,10 @@ service cloud.firestore {
                && request.resource.data.tabSwitches is number
                && request.resource.data.clientNonce is string
                && request.resource.data.clientNonce.size() >= 24
+               // Bài làm gắn lớp phải đi qua API server để xác minh studentLink,
+               // assignment, hạn nộp và số lần làm; không cho client giả mạo trực tiếp.
+               && !('classId' in request.resource.data)
+               && !('assignmentId' in request.resource.data)
                && examDoc(request.resource.data.examId).data.isActive == true
                && examDoc(request.resource.data.examId).data.code == request.resource.data.examCode;
       }
@@ -253,6 +257,8 @@ service cloud.firestore {
                && keepsSubmissionIdentity()
                && request.resource.data.status in ['in_progress', 'submitted']
                && request.resource.data.answers is list
+               && !('classId' in request.resource.data)
+               && !('assignmentId' in request.resource.data)
                && (!('submittedAt' in request.resource.data) || request.resource.data.submittedAt is string)
                && (!('totalScore' in request.resource.data)
                    || (request.resource.data.totalScore is number
@@ -312,6 +318,549 @@ service cloud.firestore {
     match /gradingSessions/{sessionId} {
       allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+    }
+
+    // Live lesson sessions — teacher-owned control plane, class-linked student responses,
+    // and deliberately redacted public projections.
+    match /liveLessonSessions/{sessionId} {
+      function llv3SessionExists() {
+        return exists(/databases/$(database)/documents/liveLessonSessions/$(sessionId));
+      }
+
+      function llv3SessionOwner() {
+        return request.auth != null
+               && llv3SessionExists()
+               && get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('teacherUid', '') == request.auth.uid;
+      }
+
+      function llv3ClassOwnedBy(data) {
+        return request.auth != null
+               && data.get('teacherUid', '') == request.auth.uid
+               && exists(/databases/$(database)/documents/classes/$(data.get('classId', '')))
+               && get(/databases/$(database)/documents/classes/$(data.get('classId', ''))).data.get('teacherId', '') == data.get('teacherUid', '');
+      }
+
+      function llv3ValidSession(data) {
+        return data.keys().hasOnly([
+                 'schemaVersion', 'lessonId', 'title', 'classId', 'teacherUid', 'allowedStepIds',
+                 'expiresAt', 'status', 'currentCueId', 'currentTvScreenId',
+                 'publicStateEnabled', 'publicStatsEnabled', 'createdAt', 'updatedAt', 'cueStartedAt', 'cueElapsedSeconds'
+               ])
+               && data.keys().hasAll([
+                    'schemaVersion', 'lessonId', 'title', 'classId', 'teacherUid', 'allowedStepIds',
+                    'expiresAt', 'status', 'currentCueId', 'currentTvScreenId',
+                    'publicStateEnabled', 'publicStatsEnabled', 'createdAt', 'updatedAt'
+                  ])
+               && data.get('schemaVersion', 0) == 1
+               && data.get('lessonId', '') is string
+               && data.get('lessonId', '').size() > 0
+               && data.get('lessonId', '').size() <= 128
+               && data.get('title', '') is string
+               && data.get('title', '').size() > 0
+               && data.get('title', '').size() <= 240
+               && data.get('classId', '') is string
+               && data.get('classId', '').size() > 0
+               && data.get('classId', '').size() <= 128
+               && data.get('teacherUid', '') is string
+               && data.get('teacherUid', '').size() > 0
+               && data.get('teacherUid', '').size() <= 128
+               && data.get('allowedStepIds', []) is list
+               && data.get('allowedStepIds', []).size() > 0
+                && data.get('allowedStepIds', []).size() <= 16
+               && data.get('allowedStepIds', []).hasOnly([
+                    'warmup', 'notice-wonder', 'goals', 'route', 'model',
+                    'ai-think-w01', 'ai-error-w01', 'quick-check', 'exit-ticket',
+                    // V4 packages use reviewed checkpoint ids. Keep this an exact
+                    // allowlist: a teacher cannot add arbitrary response channels.
+                    'cp-student-goal', 'cp-teacher-synthesis', 'cp-model', 'cp-ai-error',
+                    'cp-group-product', 'cp-postcheck', 'cp-postcheck-m', 'cp-postcheck-s', 'cp-postcheck-c',
+                     'cp-route', 'cp-exit-ticket',
+                     'cp-diagnostic-1', 'cp-diagnostic-2',
+                     'cp-practice-a', 'cp-practice-b', 'cp-practice-c', 'cp-practice-d', 'cp-practice-challenge',
+                     'cp-compare', 'cp-self-assessment',
+                    // Legacy V4 checkpoint ids — existing sessions still reference these.
+                    'cp-guiding-question', 'cp-diagnostic', 'cp-route-choice',
+                    'cp-post-check', 'cp-quick-check'
+                  ])
+               && data.get('expiresAt', null) is timestamp
+               && data.get('status', '') in ['lobby', 'running', 'paused', 'closed']
+               && data.get('currentCueId', '') is string
+               && data.get('currentCueId', '').size() > 0
+               && data.get('currentCueId', '').size() <= 128
+               && data.get('currentTvScreenId', '') is string
+               && data.get('currentTvScreenId', '').size() > 0
+               && data.get('currentTvScreenId', '').size() <= 128
+               && data.get('publicStateEnabled', false) is bool
+               && data.get('publicStatsEnabled', false) is bool
+               && llv3ValidCueClock(data)
+               && data.get('createdAt', null) is timestamp
+               && data.get('updatedAt', null) is timestamp;
+      }
+
+      function llv3SessionIdentityUnchanged() {
+        return request.resource.data.get('schemaVersion', null) == resource.data.get('schemaVersion', null)
+               && request.resource.data.get('lessonId', '') == resource.data.get('lessonId', '')
+               && request.resource.data.get('title', '') == resource.data.get('title', '')
+               && request.resource.data.get('classId', '') == resource.data.get('classId', '')
+               && request.resource.data.get('teacherUid', '') == resource.data.get('teacherUid', '')
+               && request.resource.data.get('allowedStepIds', []) == resource.data.get('allowedStepIds', [])
+               && request.resource.data.get('expiresAt', null) == resource.data.get('expiresAt', null)
+               && request.resource.data.get('createdAt', null) == resource.data.get('createdAt', null);
+      }
+
+      function llv3ActiveSession() {
+        return llv3SessionExists()
+               && get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('status', 'closed') in ['lobby', 'running', 'paused']
+               && request.time < get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('expiresAt', request.time);
+      }
+
+      function llv3StudentLinkedToSession() {
+        return request.auth != null
+               && exists(/databases/$(database)/documents/studentLinks/$(request.auth.uid))
+               && llv3SessionExists()
+               && get(/databases/$(database)/documents/studentLinks/$(request.auth.uid)).data.get('classId', '')
+                    == get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('classId', '');
+      }
+
+      function llv3PublicAudience() {
+        // This subtree is the deliberately redacted public projection. Anyone
+        // can already read it while signed out, so signing in must never revoke
+        // the listener during student identity linking.
+        return true;
+      }
+
+      function llv3FiniteNumber(data) {
+        return data is number
+               && data == data
+               && data > -1000000000000
+               && data < 1000000000000;
+      }
+
+      function llv3SafeCount(data) {
+        // The int type excludes fractional, NaN and +/-Infinity values before bounds apply.
+        return data is int && data >= 0 && data <= 10000;
+      }
+
+      function llv3SafeChoiceCounts(data) {
+        return data is map
+               && data.keys().hasOnly([
+                    'A', 'B', 'C', 'D', 'G1', 'G2', 'G3', 'Yes', 'No',
+                    'Unsure', 'true', 'false'
+                  ])
+               && (!('A' in data) || llv3SafeCount(data.get('A', 0)))
+               && (!('B' in data) || llv3SafeCount(data.get('B', 0)))
+               && (!('C' in data) || llv3SafeCount(data.get('C', 0)))
+               && (!('D' in data) || llv3SafeCount(data.get('D', 0)))
+               && (!('G1' in data) || llv3SafeCount(data.get('G1', 0)))
+               && (!('G2' in data) || llv3SafeCount(data.get('G2', 0)))
+               && (!('G3' in data) || llv3SafeCount(data.get('G3', 0)))
+               && (!('Yes' in data) || llv3SafeCount(data.get('Yes', 0)))
+               && (!('No' in data) || llv3SafeCount(data.get('No', 0)))
+               && (!('Unsure' in data) || llv3SafeCount(data.get('Unsure', 0)))
+               && (!('true' in data) || llv3SafeCount(data.get('true', 0)))
+               && (!('false' in data) || llv3SafeCount(data.get('false', 0)));
+      }
+
+      function llv3SafeRouteCounts(data) {
+               return data is map
+               && data.keys().hasOnly(['M', 'S', 'C'])
+               && llv3SafeCount(data.get('M', 0))
+               && llv3SafeCount(data.get('S', 0))
+               && llv3SafeCount(data.get('C', 0));
+      }
+
+      function llv3SafeErrorCounts(data) {
+               return data is map
+               && data.keys().hasOnly(['Conceptual', 'Algebraic', 'Logical', 'Missing condition'])
+               && llv3SafeCount(data.get('Conceptual', 0))
+               && llv3SafeCount(data.get('Algebraic', 0))
+               && llv3SafeCount(data.get('Logical', 0))
+               && llv3SafeCount(data.get('Missing condition', 0));
+      }
+
+      function llv3ValidCueClock(data) {
+        return data.get('cueStartedAt', 0) is number && data.get('cueStartedAt', 0) >= 0 && data.get('cueStartedAt', 0) < 100000000000000
+          && data.get('cueElapsedSeconds', 0) is number && data.get('cueElapsedSeconds', 0) >= 0 && data.get('cueElapsedSeconds', 0) <= 86400;
+      }
+      function llv3ValidPublicState(data) {
+        return data.keys().hasOnly(['cueId', 'tvScreenId', 'status', 'showStats', 'updatedAt', 'cueStartedAt', 'cueElapsedSeconds'])
+               && data.keys().hasAll(['cueId', 'tvScreenId', 'status', 'showStats', 'updatedAt'])
+               && data.get('cueId', '') is string
+               && data.get('cueId', '').size() > 0
+               && data.get('cueId', '').size() <= 128
+               && data.get('tvScreenId', '') is string
+               && data.get('tvScreenId', '').size() > 0
+               && data.get('tvScreenId', '').size() <= 128
+               && data.get('status', '') in ['lobby', 'running', 'paused', 'closed']
+               && data.get('showStats', false) is bool
+               && llv3ValidCueClock(data)
+               && data.get('updatedAt', null) is timestamp;
+      }
+
+      function llv3ValidPublicStats(data) {
+        return data.keys().hasOnly([
+                 'stepId', 'participantCount', 'submittedCount', 'choiceCounts',
+                 'routeCounts', 'errorCategoryCounts', 'hintUseCount', 'updatedAt'
+               ])
+               && data.keys().hasAll([
+                    'stepId', 'participantCount', 'submittedCount', 'choiceCounts',
+                    'routeCounts', 'errorCategoryCounts', 'hintUseCount', 'updatedAt'
+                  ])
+               && data.get('stepId', '') is string
+               && data.get('stepId', '').size() > 0
+               && data.get('stepId', '').size() <= 128
+               && llv3SafeCount(data.get('participantCount', -1))
+               && llv3SafeCount(data.get('submittedCount', -1))
+               && llv3SafeChoiceCounts(data.get('choiceCounts', {}))
+               && llv3SafeRouteCounts(data.get('routeCounts', {}))
+               && llv3SafeErrorCounts(data.get('errorCategoryCounts', {}))
+               && llv3SafeCount(data.get('hintUseCount', -1))
+               && data.get('updatedAt', null) is timestamp;
+      }
+
+      // Public reads only need a cheap redaction/integrity boundary. The write
+      // path above performs the full numeric validation; repeating every
+      // count check on an unauthenticated TV read can exceed Firestore's
+      // expression budget for an otherwise harmless aggregate document.
+      function llv3ReadablePublicStats(data) {
+        return data is map
+               && data.keys().hasOnly([
+                    'stepId', 'participantCount', 'submittedCount', 'choiceCounts',
+                    'routeCounts', 'errorCategoryCounts', 'hintUseCount', 'updatedAt'
+                  ])
+               && data.keys().hasAll([
+                    'stepId', 'participantCount', 'submittedCount', 'choiceCounts',
+                    'routeCounts', 'errorCategoryCounts', 'hintUseCount', 'updatedAt'
+                  ])
+               && data.get('stepId', '') is string
+               && data.get('participantCount', -1) is int
+               && data.get('submittedCount', -1) is int
+               && data.get('choiceCounts', null) is map
+               && data.get('choiceCounts', {}).keys().hasOnly([
+                    'A', 'B', 'C', 'D', 'G1', 'G2', 'G3', 'Yes', 'No',
+                    'true', 'false', 'x', 'y', '=', '<=', '>=',
+                    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+                  ])
+               && data.get('routeCounts', null) is map
+               && data.get('routeCounts', {}).keys().hasOnly(['M', 'S', 'C'])
+               && data.get('errorCategoryCounts', null) is map
+               && data.get('errorCategoryCounts', {}).keys().hasOnly([
+                    'Conceptual', 'Algebraic', 'Logical', 'Missing condition'
+                  ])
+               && data.get('hintUseCount', -1) is int
+               && data.get('updatedAt', null) is timestamp;
+      }
+
+      function llv3ValidLanguagePreference(lp) {
+        // Optional map: language, supportMode, showGlossary, showSentenceFrames, curriculumBridgeIds only.
+        // No languageSupportPlan, no private fields, no raw text.
+        return lp is map
+               && lp.keys().hasOnly([
+                    'language', 'supportMode', 'showGlossary', 'showSentenceFrames', 'curriculumBridgeIds'
+                  ])
+               && lp.keys().hasAll([
+                    'language', 'supportMode', 'showGlossary', 'showSentenceFrames', 'curriculumBridgeIds'
+                  ])
+               && lp.get('language', '') is string
+               && lp.get('language', '') in ['vi', 'en', 'ja', 'ko', 'zh']
+               && lp.get('supportMode', '') is string
+               && lp.get('supportMode', '') in ['vi_anchor', 'bilingual', 'approved_full_translation']
+               && lp.get('showGlossary', false) is bool
+               && lp.get('showSentenceFrames', false) is bool
+               && lp.get('curriculumBridgeIds', []) is list
+               && lp.get('curriculumBridgeIds', []).size() <= 8
+               // The current V4 pilot has one reviewed bridge. Add new IDs only with
+               // a reviewed contract/rules change; never accept arbitrary payloads.
+               && lp.get('curriculumBridgeIds', []).hasOnly(['bridge-halfplane']);
+      }
+
+      function llv3ValidResponse(data, responseId) {
+        return data.keys().hasOnly([
+                 'participantUid', 'classId', 'stepId', 'responseType', 'value',
+                 'clientNonce', 'submittedAt', 'updatedAt', 'languagePreference'
+               ])
+               && data.keys().hasAll([
+                    'participantUid', 'classId', 'stepId', 'responseType', 'value',
+                    'clientNonce', 'submittedAt', 'updatedAt'
+                  ])
+               && data.get('participantUid', '') is string
+               && data.get('participantUid', '').size() > 0
+               && data.get('participantUid', '').size() <= 128
+               && data.get('classId', '') is string
+               && data.get('classId', '').size() > 0
+               && data.get('classId', '').size() <= 128
+               && data.get('stepId', '') is string
+               && data.get('stepId', '').size() > 0
+               && data.get('stepId', '').size() <= 128
+               && responseId == data.get('participantUid', '') + '__' + data.get('stepId', '')
+               && data.get('responseType', '') in ['choice', 'text', 'boolean', 'route', 'hint', 'exit_ticket']
+               && ((data.get('value', null) is string && data.get('value', '').size() <= 2000)
+                   || (data.get('value', null) is number && llv3FiniteNumber(data.get('value', null)))
+                   || data.get('value', null) is bool)
+               && (data.get('responseType', '') != 'route'
+                   || (data.get('value', null) is string && data.get('value', '') in ['M', 'S', 'C']))
+               && (data.get('responseType', '') != 'boolean' || data.get('value', null) is bool)
+               && data.get('clientNonce', '') is string
+               && data.get('clientNonce', '').size() > 0
+               && data.get('clientNonce', '').size() <= 128
+               && data.get('submittedAt', null) is timestamp
+               && data.get('updatedAt', null) is timestamp
+               && (!('languagePreference' in data) || llv3ValidLanguagePreference(data.get('languagePreference', null)));
+      }
+
+      function llv3LinkedStudentCanWriteResponse(data) {
+        return request.auth != null
+               && request.auth.uid == data.get('participantUid', '')
+               && exists(/databases/$(database)/documents/studentLinks/$(request.auth.uid))
+               && get(/databases/$(database)/documents/studentLinks/$(request.auth.uid)).data.get('classId', '')
+                    == get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('classId', '')
+               && data.get('classId', '') == get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('classId', '')
+               && data.get('stepId', '') in get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('allowedStepIds', [])
+               && (data.get('stepId', '') != 'ai-error-w01'
+                   || exists(/databases/$(database)/documents/liveLessonSessions/$(sessionId)/responses/$(request.auth.uid + '__ai-think-w01')))
+               && llv3ActiveSession();
+      }
+
+      function llv3ValidStudentPreference(data, participantUid) {
+        return data is map
+               && data.keys().hasOnly(['participantUid', 'classId', 'languagePreference', 'updatedAt'])
+               && data.keys().hasAll(['participantUid', 'classId', 'languagePreference', 'updatedAt'])
+               && data.get('participantUid', '') == participantUid
+               && data.get('classId', '') == get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('classId', '')
+               && llv3ValidLanguagePreference(data.get('languagePreference', null))
+               && data.get('updatedAt', null) is timestamp;
+      }
+
+      function llv3StudentPreferenceOwner(participantUid) {
+        return request.auth != null
+               && request.auth.uid == participantUid
+               && llv3StudentLinkedToSession()
+               && llv3ActiveSession();
+      }
+
+      // Parent reads can compare the existing document directly. Re-reading
+      // the same parent with get() is unnecessary and can turn malformed
+      // session documents into evaluator errors instead of a clean DENY.
+      allow get: if (request.auth != null
+                     && resource.data.get('teacherUid', '') == request.auth.uid)
+                   || (llv3StudentLinkedToSession() && llv3ActiveSession());
+      allow list: if request.auth != null && resource.data.get('teacherUid', '') == request.auth.uid;
+      allow create: if llv3ValidSession(request.resource.data)
+                    && request.resource.data.get('expiresAt', request.time) > request.time
+                    && request.resource.data.get('createdAt', null) == request.time
+                    && request.resource.data.get('updatedAt', null) == request.time
+                    && llv3ClassOwnedBy(request.resource.data);
+      allow update: if llv3SessionOwner()
+                    && llv3ValidSession(request.resource.data)
+                    && llv3SessionIdentityUnchanged()
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly([
+                           'status', 'currentCueId', 'currentTvScreenId',
+                           'publicStateEnabled', 'publicStatsEnabled',
+                           'cueStartedAt', 'cueElapsedSeconds', 'updatedAt'
+                         ])
+                    && request.resource.data.get('updatedAt', null) == request.time;
+      allow delete: if llv3SessionOwner();
+
+      // V4 — student can only create/update their own response; class/step/session validated.
+      match /responses/{responseId} {
+        // Teacher owner can read any response. A linked student may read ONLY their
+        // own response doc (derived from responseId = participantUid__stepId) so the
+        // submit transaction can distinguish a new doc from a resubmission. The existence
+        // check must not depend on resource.data (it is null on a missing doc). Other
+        // students, the TV (unauthenticated) and other teachers are denied.
+        allow get: if llv3SessionOwner()
+                   || (request.auth != null
+                       && llv3StudentLinkedToSession()
+                       && llv3ActiveSession()
+                       && responseId.matches(request.auth.uid + '__[^/]{1,128}'));
+        allow list: if llv3SessionOwner();
+        allow create: if llv3ValidResponse(request.resource.data, responseId)
+                      && request.resource.data.get('submittedAt', null) == request.time
+                      && request.resource.data.get('updatedAt', null) == request.time
+                      && llv3LinkedStudentCanWriteResponse(request.resource.data);
+        allow update: if llv3ValidResponse(request.resource.data, responseId)
+                      && llv3LinkedStudentCanWriteResponse(request.resource.data)
+                      && request.resource.data.get('participantUid', '') == resource.data.get('participantUid', '')
+                      && request.resource.data.get('classId', '') == resource.data.get('classId', '')
+                      && request.resource.data.get('stepId', '') == resource.data.get('stepId', '')
+                      && request.resource.data.get('clientNonce', '') == resource.data.get('clientNonce', '')
+                      && request.resource.data.get('submittedAt', null) == resource.data.get('submittedAt', null)
+                      && request.resource.data.get('updatedAt', null) == request.time
+                      && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['responseType', 'value', 'clientNonce', 'languagePreference', 'updatedAt']);
+        allow delete: if false;
+      }
+
+      // V4 — languagePreference is durable but remains private to the student.
+      // It is deliberately separate from any verified school language-support plan.
+      match /preferences/{participantUid} {
+        allow get: if llv3StudentPreferenceOwner(participantUid)
+                   && llv3ValidStudentPreference(resource.data, participantUid);
+        allow list: if false;
+        allow create: if llv3StudentPreferenceOwner(participantUid)
+                      && llv3ValidStudentPreference(request.resource.data, participantUid)
+                      && request.resource.data.get('updatedAt', null) == request.time;
+        allow update: if llv3StudentPreferenceOwner(participantUid)
+                      && llv3ValidStudentPreference(request.resource.data, participantUid)
+                      && request.resource.data.get('participantUid', '') == resource.data.get('participantUid', '')
+                      && request.resource.data.get('classId', '') == resource.data.get('classId', '')
+                      && request.resource.data.get('updatedAt', null) == request.time
+                      && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['languagePreference', 'updatedAt']);
+        allow delete: if false;
+      }
+
+      // V4 — evidence: readable/writable ONLY by the session teacher. Students and TV cannot read.
+      // Write requires active session (not closed/expired).
+      match /evidence/{evidenceId} {
+        allow get, list: if llv3SessionOwner();
+        allow create, update: if llv3SessionOwner()
+                              && llv3ActiveSession()
+                              && request.resource.data.keys().hasOnly([
+                                   'studentId', 'stepId', 'confidence', 'signal',
+                                   'privateReason', 'createdAt', 'updatedAt'
+                                 ])
+                              && request.resource.data.keys().hasAll([
+                                   'studentId', 'stepId', 'confidence', 'signal',
+                                   'privateReason', 'createdAt', 'updatedAt'
+                                 ])
+                              && request.resource.data.get('studentId', '') is string
+                              && request.resource.data.get('studentId', '').size() > 0
+                              && request.resource.data.get('studentId', '').size() <= 128
+                              && request.resource.data.get('stepId', '') is string
+                              && request.resource.data.get('stepId', '').size() > 0
+                              && request.resource.data.get('stepId', '').size() <= 128
+                              && request.resource.data.get('confidence', -1) is number
+                              && request.resource.data.get('confidence', -1) >= 0
+                              && request.resource.data.get('confidence', -1) <= 1
+                              && request.resource.data.get('signal', '') is string
+                              && request.resource.data.get('signal', '').size() > 0
+                              && request.resource.data.get('signal', '').size() <= 500
+                              && request.resource.data.get('privateReason', '') is string
+                              && request.resource.data.get('privateReason', '').size() <= 1000
+                              && request.resource.data.get('createdAt', null) is timestamp
+                              && request.resource.data.get('updatedAt', null) == request.time;
+        allow delete: if llv3SessionOwner();
+      }
+
+      // V4 — groupProposals: readable/writable ONLY by the session teacher. Students and TV cannot read.
+      // Write requires active session.
+      match /groupProposals/{docId} {
+        allow get, list: if llv3SessionOwner();
+        allow create, update: if llv3SessionOwner()
+                              && llv3ActiveSession()
+                              && request.resource.data.keys().hasOnly(['proposals', 'updatedAt'])
+                              && request.resource.data.keys().hasAll(['proposals', 'updatedAt'])
+                              && request.resource.data.get('proposals', []) is list
+                              && request.resource.data.get('proposals', []).size() <= 10
+                              && request.resource.data.get('updatedAt', null) == request.time;
+        allow delete: if llv3SessionOwner();
+      }
+
+      // V4 — groups: teacher reads/writes all; student reads ONLY their own approved group.
+      // Write requires active session.
+      match /groups/{groupId} {
+        allow get, list: if llv3SessionOwner();
+        allow create, update: if llv3SessionOwner()
+                              && llv3ActiveSession()
+                              && request.resource.data.keys().hasOnly([
+                                   'groupId', 'memberIds', 'scaffold', 'startedAt', 'updatedAt'
+                                 ])
+                              && request.resource.data.keys().hasAll([
+                                   'groupId', 'memberIds', 'scaffold', 'startedAt', 'updatedAt'
+                                 ])
+                              && request.resource.data.get('groupId', '') == groupId
+                              && request.resource.data.get('memberIds', []) is list
+                              && request.resource.data.get('memberIds', []).size() <= 12
+                              && request.resource.data.get('scaffold', '') is string
+                              && request.resource.data.get('scaffold', '').size() <= 2000
+                              && request.resource.data.get('startedAt', -1) is number
+                              && request.resource.data.get('startedAt', -1) >= 0
+                              && request.resource.data.get('updatedAt', null) == request.time;
+        allow delete: if llv3SessionOwner();
+        // Student can read their own group assignment (not other groups).
+        match /students/{assignedStudentId} {
+          allow get: if request.auth != null
+                     && request.auth.uid == assignedStudentId
+                     && llv3ActiveSession();
+          allow list, create, update, delete: if false;
+        }
+      }
+
+        match /public/state {
+        allow get: if llv3ValidPublicState(resource.data)
+                   && llv3PublicAudience()
+                   && llv3ActiveSession()
+                   && get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('publicStateEnabled', false) == true;
+        allow create, update: if llv3SessionOwner()
+                              && request.resource.data.keys().hasOnly(['cueId', 'tvScreenId', 'status', 'showStats', 'updatedAt', 'cueStartedAt', 'cueElapsedSeconds'])
+                              && llv3ValidPublicState(request.resource.data)
+                              && request.resource.data.get('updatedAt', null) == request.time;
+        allow delete: if false;
+      }
+
+      // Students select the numbered group announced in class; membership is private.
+      match /groupMemberships/{participantUid} {
+        allow get: if llv3SessionOwner() || (request.auth != null
+          && request.auth.uid == participantUid && llv3StudentLinkedToSession() && llv3ActiveSession());
+        allow list: if llv3SessionOwner();
+        allow create, update: if request.auth != null && request.auth.uid == participantUid
+          && llv3StudentLinkedToSession() && llv3ActiveSession()
+          && request.resource.data.keys().hasOnly(['groupNumber', 'updatedAt'])
+          && request.resource.data.get('groupNumber', '') in ['1','2','3','4','5','6','7','8','9','10','11','12']
+          && request.resource.data.get('updatedAt', null) == request.time;
+        allow delete: if false;
+      }
+
+      function validGroupCount(members, submitted, key) {
+        return members.get(key, 0) is int && members.get(key, 0) >= 0 && members.get(key, 0) <= 500
+          && submitted.get(key, 0) is int && submitted.get(key, 0) >= 0
+          && submitted.get(key, 0) <= members.get(key, 0);
+      }
+      function validGroupProgress(data) {
+        return data is map && data.keys().hasOnly(['cueId', 'stepId', 'members', 'submitted', 'updatedAt'])
+          && data.get('cueId', '') is string && data.get('cueId', '').size() > 0 && data.get('cueId', '').size() <= 128
+          && data.get('stepId', '') in ['cp-group-product', 'cp-practice-a']
+          && data.get('members', null) is map && data.get('submitted', null) is map
+          && data.members.keys().hasOnly(['1','2','3','4','5','6','7','8','9','10','11','12'])
+          && data.submitted.keys().hasOnly(['1','2','3','4','5','6','7','8','9','10','11','12'])
+          && validGroupCount(data.members, data.submitted, '1') && validGroupCount(data.members, data.submitted, '2')
+          && validGroupCount(data.members, data.submitted, '3') && validGroupCount(data.members, data.submitted, '4')
+          && validGroupCount(data.members, data.submitted, '5') && validGroupCount(data.members, data.submitted, '6')
+          && validGroupCount(data.members, data.submitted, '7') && validGroupCount(data.members, data.submitted, '8')
+          && validGroupCount(data.members, data.submitted, '9') && validGroupCount(data.members, data.submitted, '10')
+          && validGroupCount(data.members, data.submitted, '11') && validGroupCount(data.members, data.submitted, '12')
+          && data.get('updatedAt', null) is timestamp;
+      }
+      match /public/groupProgress {
+        allow get: if llv3ActiveSession()
+          && get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('publicStateEnabled', false) == true
+          && get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('publicStatsEnabled', false) == true
+          && (resource == null || validGroupProgress(resource.data));
+        allow create, update: if llv3SessionOwner() && llv3ActiveSession()
+          && validGroupProgress(request.resource.data)
+          && request.resource.data.cueId == get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.currentCueId
+          && request.resource.data.stepId in get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.allowedStepIds
+          && request.resource.data.updatedAt == request.time;
+        allow list, delete: if false;
+      }
+
+      match /public/stats {
+        allow get: if resource == null || (llv3ReadablePublicStats(resource.data)
+                   && llv3PublicAudience()
+                   && llv3ActiveSession()
+                   && get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('publicStatsEnabled', false) == true);
+        allow create, update: if llv3SessionOwner()
+                              && request.resource.data.keys().hasOnly([
+                                   'stepId', 'participantCount', 'submittedCount', 'choiceCounts',
+                                   'routeCounts', 'errorCategoryCounts', 'hintUseCount', 'updatedAt'
+                                 ])
+                              && llv3ValidPublicStats(request.resource.data)
+                              && request.resource.data.get('stepId', '') in get(/databases/$(database)/documents/liveLessonSessions/$(sessionId)).data.get('allowedStepIds', [])
+                              && request.resource.data.get('updatedAt', null) == request.time;
+        allow delete: if false;
+      }
     }
 
     // ────────────────────────────────────────────────────────────────
@@ -506,20 +1055,62 @@ service cloud.firestore {
     }
 
     match /assignments/{assignmentId} {
-      allow list, get: if (request.auth != null && resource.data.teacherId == request.auth.uid)
-                       || (thuocLop(resource.data.classId) && resource.data.isOpen == true);
+      // Học sinh nhận projection từ /api/classroom studentAssignments. Cho đọc document gốc
+      // sẽ làm lộ answerKey/rubric vì Firestore rules không che được từng field.
+      allow list, get: if request.auth != null && resource.data.teacherId == request.auth.uid;
 
       allow create: if request.auth != null
                     && request.resource.data.teacherId == request.auth.uid
                     && laChuLop(request.resource.data.classId)
-                    && request.resource.data.keys().hasAll(['teacherId', 'classId', 'title', 'type', 'isOpen']);
+                    && request.resource.data.keys().hasAll(['teacherId', 'classId', 'title', 'type', 'isOpen'])
+                    && (!('sourceText' in request.resource.data)
+                        || (request.resource.data.sourceText is string && request.resource.data.sourceText.size() <= 60000))
+                    && (!('sourceImageUrls' in request.resource.data)
+                        || (request.resource.data.sourceImageUrls is list && request.resource.data.sourceImageUrls.size() <= 6))
+                    && (!('gradingInstructions' in request.resource.data)
+                        || (request.resource.data.gradingInstructions is string && request.resource.data.gradingInstructions.size() <= 6000))
+                    && (!('attachments' in request.resource.data)
+                        || (request.resource.data.attachments is list && request.resource.data.attachments.size() <= 12));
 
       allow update: if request.auth != null
                     && resource.data.teacherId == request.auth.uid
                     && request.resource.data.teacherId == resource.data.teacherId
-                    && request.resource.data.classId == resource.data.classId;
+                    && request.resource.data.classId == resource.data.classId
+                    && (!('sourceText' in request.resource.data)
+                        || (request.resource.data.sourceText is string && request.resource.data.sourceText.size() <= 60000))
+                    && (!('sourceImageUrls' in request.resource.data)
+                        || (request.resource.data.sourceImageUrls is list && request.resource.data.sourceImageUrls.size() <= 6))
+                    && (!('gradingInstructions' in request.resource.data)
+                        || (request.resource.data.gradingInstructions is string && request.resource.data.gradingInstructions.size() <= 6000));
 
       allow delete: if request.auth != null && resource.data.teacherId == request.auth.uid;
+    }
+
+    // Practice đi qua Admin SDK ở /api/grade-homework để tách public question khỏi private key.
+    // Cấm client đọc/ghi trực tiếp cả ba collection: không thể lách API để lấy đáp án hoặc tự
+    // sửa điểm formative.
+    match /practiceSets/{setId} {
+      allow read, write: if false;
+    }
+
+    match /practiceKeys/{setId} {
+      allow read, write: if false;
+    }
+
+    match /practiceAttempts/{attemptId} {
+      allow read, write: if false;
+    }
+
+    // Evidence canonical của skill chỉ do Admin/API ghi và đọc để rebuild summary.
+    // Không đưa raw evidence vào studentProfiles vì học sinh được phép đọc summary của mình.
+    match /studentSkillEvidence/{evidenceId} {
+      allow read, write: if false;
+    }
+
+    // Lịch sử điểm là audit trail server-only. Client không được đọc, sửa hoặc xoá
+    // để học sinh/giáo viên không thể làm mất dấu các lần chấm trước.
+    match /submissionGradeHistory/{historyId} {
+      allow read, write: if false;
     }
 
     match /submissions/{submissionId} {
@@ -528,14 +1119,26 @@ service cloud.firestore {
       function hocSinhNopHopLe() {
         let d = request.resource.data;
         return coLienKetHocSinh()
+               && d.keys().hasOnly([
+                    'id', 'teacherId', 'classId', 'studentId', 'assignmentId', 'fileUrls',
+                    'supplementOf', 'textContent', 'attachments', 'note', 'status', 'createdAt', 'updatedAt'
+                  ])
+               && d.id == submissionId
                && d.studentId == lienKetHocSinh().studentId
                && d.classId == lienKetHocSinh().classId
                && d.teacherId == lienKetHocSinh().teacherId
+               && (d.assignmentId == null || d.assignmentId is string)
+               && (!('supplementOf' in d)
+                   || (d.supplementOf is string && d.supplementOf.size() <= 150))
                && d.status == 'submitted'
                && !('grade' in d)
                && d.fileUrls is list
                && d.fileUrls.size() >= 1
-               && d.fileUrls.size() <= 10;
+               && d.fileUrls.size() <= 12
+               && (!('textContent' in d)
+                   || (d.textContent is string && d.textContent.size() <= 60000))
+               && (!('attachments' in d)
+                   || (d.attachments is list && d.attachments.size() >= 1 && d.attachments.size() <= 12));
       }
 
       // Nộp lại khi chưa chấm: chỉ được đổi file và ghi chú, không đụng gì khác.
@@ -543,11 +1146,12 @@ service cloud.firestore {
         return laHocSinh(resource.data.studentId)
                && resource.data.status == 'submitted'
                && request.resource.data.diff(resource.data).affectedKeys()
-                    .hasOnly(['fileUrls', 'note', 'updatedAt']);
+                    .hasOnly(['fileUrls', 'textContent', 'attachments', 'note', 'updatedAt']);
       }
 
-      allow list, get: if (request.auth != null && resource.data.teacherId == request.auth.uid)
-                       || laHocSinh(resource.data.studentId);
+      // Học sinh nhận projection từ /api/classroom studentSubmissions để loại teacherNote/noteForTeacher;
+      // Firestore rules không redaction theo field nên không cho đọc document gốc trực tiếp.
+      allow list, get: if request.auth != null && resource.data.teacherId == request.auth.uid;
 
       allow create: if hocSinhNopHopLe()
                     || (request.auth != null && request.resource.data.teacherId == request.auth.uid);

@@ -11,6 +11,7 @@ import { useLessonPlanActions } from './hooks/useLessonPlanActions';
 import { usePpctQueue } from './hooks/usePpctQueue';
 import { PpctBulkPanel } from './components/features/creator/PpctBulkPanel';
 import { useSavedExams, estimateQuestionCount } from './hooks/useSavedExams';
+import { isAdminEmail } from './lib/admin/adminConfig';
 
 // Components
 import { Sidebar } from './components/layout/Sidebar';
@@ -19,6 +20,9 @@ import { FloatingChatWidget } from './components/layout/FloatingChatWidget';
 import { DashboardTab } from './components/tabs/DashboardTab';
 import { SettingsModal } from './components/modals/SettingsModal';
 import { LatexModal } from './components/modals/LatexModal';
+import { AiKeyGateModal } from './components/features/aiBilling/AiKeyGateModal';
+import { AiBlockedBanner } from './components/features/aiBilling/AiBlockedBanner';
+import { installAiKeyFetchGate } from './lib/ai/aiKeyGate';
 
 // Lazy-loaded tabs (splits heavy chunks, loaded on first visit)
 const CreatorTab = lazy(() => import('./components/tabs/CreatorTab').then(m => ({ default: m.CreatorTab })));
@@ -31,11 +35,14 @@ const ExamsTab = lazy(() => import('./components/tabs/ExamsTab').then(m => ({ de
 const AdaptiveLearningTab = lazy(() => import('./components/tabs/AdaptiveLearningTab').then(m => ({ default: m.AdaptiveLearningTab })));
 const AdaptiveLessonListPage = lazy(() => import('./pages/AdaptiveLessonListPage').then(m => ({ default: m.AdaptiveLessonListPage })));
 const AdaptiveLessonBuilderPage = lazy(() => import('./pages/AdaptiveLessonBuilderPage').then(m => ({ default: m.AdaptiveLessonBuilderPage })));
+const LiveLessonLauncher = lazy(() => import('./components/liveLesson/LiveLessonLauncher').then(m => ({ default: m.LiveLessonLauncher })));
 // Trang dự giờ kéo theo xlsx + jszip nên tách gói riêng, đừng nhồi vào bundle chính.
 const DuGioPage = lazy(() => import('./pages/DuGioPage').then(m => ({ default: m.DuGioPage })));
 const AIToolsTab = lazy(() => import('./components/tabs/AIToolsTab').then(m => ({ default: m.AIToolsTab })));
 const ClassesTab = lazy(() => import('./components/tabs/ClassesTab').then(m => ({ default: m.ClassesTab })));
 const LessonUpgradeTab = lazy(() => import('./components/tabs/LessonUpgradeTab').then(m => ({ default: m.LessonUpgradeTab })));
+const AdminTab = lazy(() => import('./components/tabs/AdminTab').then(m => ({ default: m.AdminTab })));
+const AiBillingTab = lazy(() => import('./components/tabs/AiBillingTab').then(m => ({ default: m.AiBillingTab })));
 
 // Utils
 import { processUploadedFile } from './utils/fileUtils';
@@ -44,6 +51,7 @@ import { downloadBlob, safeFilename } from './utils/fileUtils';
 
 // Types
 import { TemplateFile } from './types';
+import type { AdaptiveLesson } from './lib/adaptive/types';
 
 export default function App() {
   const { user, isAuthLoading, handleLogin, handleLogout, handleDemoLogin, showToast } = useAuth();
@@ -55,7 +63,14 @@ export default function App() {
     saveGradingSession, deleteGradingSession, deleteGradingResult,
   } = useAppState(user, showToast);
   
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'classes' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading' | 'exams' | 'adaptiveLessons' | 'aiTools' | 'lessonUpgrade' | 'duGio'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'classes' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading' | 'exams' | 'adaptiveLessons' | 'aiTools' | 'lessonUpgrade' | 'duGio' | 'aiBilling' | 'admin'>('dashboard');
+  // Chỉ để hiện mục Quản trị; quyền thật kiểm lại ở máy chủ (email Google đã xác minh).
+  const isAdmin = Boolean(user && !user.isAnonymous && user.emailVerified && isAdminEmail(user.email));
+  const isTeacherSignedIn = Boolean(user && !user.isAnonymous);
+  // Bảng điều khiển → "Việc cần xử lý" → mở lớp ở tab Bài nộp, bung khung việc tồn.
+  const [classFocus, setClassFocus] = useState<{ classId: string; nonce: number } | null>(null);
+  // Máy chủ trả 402 khi AI của giáo viên tạm dừng → mở hộp xử lý rồi tự gửi lại yêu cầu.
+  useEffect(() => { if (isTeacherSignedIn) installAiKeyFetchGate(); }, [isTeacherSignedIn]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth >= 768);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [libraryTab, setLibraryTab] = useState<'personal' | 'community'>('personal');
@@ -64,6 +79,7 @@ export default function App() {
   const [latexContent, setLatexContent] = useState('');
   const [testingInitialContent, setTestingInitialContent] = useState<string | undefined>();
   const [adaptiveWorkspaceLessonId, setAdaptiveWorkspaceLessonId] = useState<string | null>(null);
+  const [liveLessonToLaunch, setLiveLessonToLaunch] = useState<AdaptiveLesson | null>(null);
   const [isAdaptiveStatsOpen, setIsAdaptiveStatsOpen] = useState(false);
 
   const navigateToTesting = (lessonContent: string, lessonTitle: string) => {
@@ -329,6 +345,7 @@ export default function App() {
   return (
     <div className="h-screen w-full flex bg-slate-50 font-sans overflow-hidden">
       <input type="file" ref={fileInputRef} onChange={handleFileUpload} multiple className="hidden" />
+      {liveLessonToLaunch && <LiveLessonLauncher lesson={liveLessonToLaunch} user={user} classes={data.classes} onClose={() => setLiveLessonToLaunch(null)} />}
       
       {/* Mobile backdrop — closes sidebar when tapping outside */}
       {isSidebarOpen && (
@@ -346,6 +363,7 @@ export default function App() {
         }}
         isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}
         setIsSettingsOpen={setIsSettingsOpen} handleLogout={handleLogout}
+        isAdmin={isAdmin}
       />
 
       <main className="flex-1 flex flex-col overflow-hidden relative">
@@ -373,14 +391,18 @@ export default function App() {
         })()}
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-8">
+          {isTeacherSignedIn && activeTab !== 'aiBilling' && <AiBlockedBanner onOpen={() => setActiveTab('aiBilling')} />}
           <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" /></div>}>
           <AnimatePresence mode="wait">
             {activeTab === 'dashboard' && (
-              <DashboardTab data={data} setCurrentPlan={creator.setCurrentPlan} setActiveTab={setActiveTab} />
+              <DashboardTab
+                data={data} setCurrentPlan={creator.setCurrentPlan} setActiveTab={setActiveTab}
+                onOpenClassBacklog={isTeacherSignedIn ? (classId) => { setClassFocus({ classId, nonce: Date.now() }); setActiveTab('classes'); } : undefined}
+              />
             )}
 
             {activeTab === 'classes' && (
-              <ClassesTab data={data} setData={setData} user={user} showToast={showToast} />
+              <ClassesTab data={data} setData={setData} user={user} showToast={showToast} focus={classFocus} />
             )}
 
             {activeTab === 'creator' && (
@@ -463,6 +485,8 @@ export default function App() {
                   onCreateLesson={() => setAdaptiveWorkspaceLessonId('new')}
                   onOpenLesson={setAdaptiveWorkspaceLessonId}
                   onPreviewLesson={(lessonId) => window.open(`/adaptive-portal/${encodeURIComponent(lessonId)}`, '_blank', 'noopener,noreferrer')}
+                  onOpenLiveLesson={setLiveLessonToLaunch}
+                  classes={data.classes}
                   onOpenLearnerStats={() => setIsAdaptiveStatsOpen(true)}
                 />
               )
@@ -528,6 +552,8 @@ export default function App() {
             )}
 
             {activeTab === 'chat' && <ChatTab {...chat} isLoading={isLoading} />}
+            {activeTab === 'aiBilling' && <AiBillingTab user={user} />}
+            {activeTab === 'admin' && isAdmin && <AdminTab />}
           </AnimatePresence>
           </Suspense>
         </div>
@@ -543,6 +569,7 @@ export default function App() {
         showToast={showToast}
       />
       <FloatingChatWidget {...chat} isLoading={isLoading} />
+      {isTeacherSignedIn && <AiKeyGateModal />}
     </div>
   );
 }

@@ -1,5 +1,6 @@
-import { AlertTriangle, CalendarClock, Camera, CheckCircle2, Clock3, FileText, Loader2, MessageCircle, RotateCcw } from 'lucide-react';
+import { AlertTriangle, CalendarClock, Camera, CheckCircle2, Clock3, FileText, Loader2, MessageCircle, RotateCcw, BookOpen } from 'lucide-react';
 import { NhanXetMarkdown } from '../NhanXetMarkdown';
+import { QuestionResultsList } from '../QuestionResultsList';
 import type { AssignmentDoc, SubmissionDoc } from '../../../../lib/classroom/types';
 import type { StudentAssignmentState } from '../../../../lib/classroom/portalViewModel';
 
@@ -7,8 +8,10 @@ interface Props {
   assignment: AssignmentDoc;
   submission?: SubmissionDoc;
   state: StudentAssignmentState;
+  /** Lời nhắc khi thầy cô vừa xoá bài nộp của em. Không có thì không hiện gì. */
+  deletedNotice?: string;
   uploading: boolean;
-  onUpload: (assignmentId: string) => void;
+  onUpload: (assignmentId: string, supplementOf?: string) => void;
   onOpen: (assignment: AssignmentDoc, submission?: SubmissionDoc) => void;
 }
 
@@ -31,14 +34,18 @@ const dueLabel = (iso?: string): { label: string; className: string } => {
   return { label, className: 'text-slate-500' };
 };
 
-export const StudentAssignmentCard = ({ assignment, submission, state, uploading, onUpload, onOpen }: Props) => {
+const STUDENT_GRADING_ERROR_COPY = 'Bài đã được nhận nhưng kết quả chấm chưa hoàn tất. Em chưa cần nộp lại ảnh; thầy/cô sẽ chấm lại hoặc kiểm tra bài.';
+
+export const StudentAssignmentCard = ({ assignment, submission, state, deletedNotice, uploading, onUpload, onOpen }: Props) => {
   const meta = statusMeta[state.status];
   const StatusIcon = meta.icon;
   const due = dueLabel(assignment.dueAt);
-  const isUploadAction = state.action === 'submit' || state.action === 'retry';
+  const isOnlineExam = assignment.type === 'exam';
+  const isUploadAction = !isOnlineExam && (state.action === 'submit' || state.action === 'retry');
+  const canSupplement = !isOnlineExam && state.canResubmit && Boolean(submission?.id);
   const handleAction = () => {
-    if (isUploadAction) onUpload(assignment.id);
-    else onOpen(assignment, submission);
+    if (isOnlineExam || !isUploadAction) onOpen(assignment, submission);
+    else onUpload(assignment.id);
   };
 
   return (
@@ -55,6 +62,14 @@ export const StudentAssignmentCard = ({ assignment, submission, state, uploading
           <CalendarClock className="h-3.5 w-3.5" /> {due.label}
         </span>
       </div>
+
+      {/* Bài tự nhiên quay về "Cần nộp" mà không lời nào thì em tưởng máy nuốt mất bài. */}
+      {deletedNotice && (
+        <p className="mt-3 flex items-start gap-2 rounded-2xl bg-red-50 px-3 py-2 text-xs font-bold leading-5 text-red-800">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{deletedNotice}</span>
+        </p>
+      )}
 
       <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0 flex-1">
@@ -88,7 +103,7 @@ export const StudentAssignmentCard = ({ assignment, submission, state, uploading
           {state.status === 'retry' && (
             <p className="mt-3 flex items-start gap-2 text-sm font-bold text-red-700">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-              {state.detail || 'Lần nộp trước chưa xử lý được. Em có thể chụp lại và nộp lại.'}
+              {STUDENT_GRADING_ERROR_COPY}
             </p>
           )}
           {state.status === 'graded' && submission?.grade && (
@@ -99,6 +114,7 @@ export const StudentAssignmentCard = ({ assignment, submission, state, uploading
               {submission.grade.feedback && (
                 <div className="mt-1"><NhanXetMarkdown tone="sang">{submission.grade.feedback}</NhanXetMarkdown></div>
               )}
+              <QuestionResultsList results={submission.grade.questionResults} compact />
             </div>
           )}
         </div>
@@ -114,19 +130,19 @@ export const StudentAssignmentCard = ({ assignment, submission, state, uploading
                 : 'border border-slate-200 bg-white text-slate-700 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700'
             }`}
           >
-            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : isUploadAction ? <Camera className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />}
-            {uploading ? 'Đang nộp...' : state.label}
+            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : isOnlineExam ? <BookOpen className="h-4 w-4" /> : isUploadAction ? <Camera className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />}
+            {uploading ? 'Đang nộp...' : isOnlineExam ? (state.status === 'graded' ? 'Xem kết quả' : state.status === 'todo' ? 'Làm bài online' : state.label) : state.label}
           </button>
           {/* Nút phụ nộp lại: bài đã chấm/đang chờ vẫn phải tạo được lần nộp mới khi phản
               hồi yêu cầu chụp lại — đây chính là P1 của báo cáo QA cổng học sinh 22/08. */}
-          {state.canResubmit && (
+          {state.canResubmit && !isOnlineExam && (
             <button
               type="button"
-              onClick={() => onUpload(assignment.id)}
+              onClick={() => onUpload(assignment.id, canSupplement ? submission?.id : undefined)}
               disabled={uploading}
               className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-indigo-200 bg-white px-4 py-3 text-sm font-black text-indigo-700 transition hover:bg-indigo-50 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 sm:w-auto"
             >
-              <Camera className="h-4 w-4" /> Nộp lại bài này
+              <Camera className="h-4 w-4" /> {canSupplement ? 'Bổ sung ảnh và chấm lại' : 'Bổ sung ảnh'}
             </button>
           )}
         </div>

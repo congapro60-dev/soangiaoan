@@ -1,5 +1,8 @@
 import { signInAnonymously } from 'firebase/auth';
 import { auth } from '../lib/firebase';
+import type { StudentAssignmentView, SubmissionDoc } from '../lib/classroom/types';
+import type { ExamSubmission } from '../types';
+import type { StudentScoreView } from '../lib/classroom/scoreBook';
 
 export interface RosterEntry {
   studentId: string;
@@ -19,6 +22,86 @@ export interface LoginResponse {
   className: string;
   studentName: string;
 }
+
+export interface StudentLoginSession extends LoginResponse {
+  anonymousUid: string;
+}
+
+const STUDENT_LOGIN_SESSION_KEY = 'smartplan-ai:live-student-session';
+const LOGIN_RESPONSE_KEYS: (keyof LoginResponse)[] = [
+  'studentId',
+  'classId',
+  'teacherId',
+  'className',
+  'studentName',
+];
+
+const isLoginResponse = (value: unknown): value is LoginResponse => (
+  typeof value === 'object'
+  && value !== null
+  && LOGIN_RESPONSE_KEYS.every((key) => typeof (value as Record<string, unknown>)[key] === 'string'
+    && ((value as Record<string, unknown>)[key] as string).trim().length > 0)
+);
+
+const isStudentLoginSession = (value: unknown): value is StudentLoginSession => (
+  isLoginResponse(value)
+  && typeof (value as unknown as { anonymousUid?: unknown }).anonymousUid === 'string'
+  && ((value as unknown as { anonymousUid: string }).anonymousUid).trim().length > 0
+);
+
+const getSessionStorage = (): Storage | null => {
+  try {
+    return typeof sessionStorage === 'undefined' ? null : sessionStorage;
+  } catch {
+    return null;
+  }
+};
+
+export const saveStudentLoginSession = (value: LoginResponse, anonymousUid: string): StudentLoginSession | null => {
+  if (!isLoginResponse(value) || typeof anonymousUid !== 'string' || !anonymousUid.trim()) return null;
+  const payload: StudentLoginSession = {
+    studentId: value.studentId,
+    classId: value.classId,
+    teacherId: value.teacherId,
+    className: value.className,
+    studentName: value.studentName,
+    anonymousUid,
+  };
+  try {
+    getSessionStorage()?.setItem(STUDENT_LOGIN_SESSION_KEY, JSON.stringify(payload));
+  } catch {
+    // Storage is optional; login behavior must not depend on it.
+  }
+  return payload;
+};
+
+export const getStudentLoginSession = (anonymousUid: string | null | undefined): StudentLoginSession | null => {
+  if (typeof anonymousUid !== 'string' || !anonymousUid.trim()) return null;
+  try {
+    const raw = getSessionStorage()?.getItem(STUDENT_LOGIN_SESSION_KEY);
+    if (!raw) return null;
+    const parsed: unknown = JSON.parse(raw);
+    if (!isStudentLoginSession(parsed) || parsed.anonymousUid !== anonymousUid) return null;
+    return {
+      studentId: parsed.studentId,
+      classId: parsed.classId,
+      teacherId: parsed.teacherId,
+      className: parsed.className,
+      studentName: parsed.studentName,
+      anonymousUid: parsed.anonymousUid,
+    };
+  } catch {
+    return null;
+  }
+};
+
+export const clearStudentLoginSession = (): void => {
+  try {
+    getSessionStorage()?.removeItem(STUDENT_LOGIN_SESSION_KEY);
+  } catch {
+    // Storage is optional; clearing it must remain best-effort.
+  }
+};
 
 export interface IssuedPin {
   studentId: string;
@@ -44,8 +127,44 @@ const call = async <T,>(payload: Record<string, unknown>): Promise<T> => {
   return data as T;
 };
 
-export const fetchRoster = (joinCode: string) =>
-  call<RosterResponse>({ action: 'roster', joinCode });
+export const fetchRoster = (joinCode: string): Promise<RosterResponse> =>
+  call<RosterResponse>({ action: 'roster', joinCode: joinCode.trim() });
+
+/** Assignment của học sinh qua projection server-side; không đọc document gốc chứa đáp án. */
+export const fetchStudentAssignments = async (): Promise<StudentAssignmentView[]> => {
+  const current = auth.currentUser;
+  if (!current || !current.isAnonymous) throw new Error('Cần phiên đăng nhập học sinh.');
+  const idToken = await current.getIdToken();
+  const response = await call<{ assignments: StudentAssignmentView[] }>({ action: 'studentAssignments', idToken });
+  return response.assignments || [];
+};
+
+/** Bài nộp của học sinh qua projection server-side, không tải grade.noteForTeacher/teacherNote. */
+export const fetchStudentSubmissions = async (): Promise<SubmissionDoc[]> => {
+  const current = auth.currentUser;
+  if (!current || !current.isAnonymous) throw new Error('Cần phiên đăng nhập học sinh.');
+  const idToken = await current.getIdToken();
+  const response = await call<{ submissions: SubmissionDoc[] }>({ action: 'studentSubmissions', idToken });
+  return response.submissions || [];
+};
+
+/** Lượt làm bài online của chính học sinh; server đã bỏ đáp án, câu trả lời và ghi chú nội bộ. */
+export const fetchStudentOnlineSubmissions = async (): Promise<ExamSubmission[]> => {
+  const current = auth.currentUser;
+  if (!current || !current.isAnonymous) throw new Error('Cần phiên đăng nhập học sinh.');
+  const idToken = await current.getIdToken();
+  const response = await call<{ submissions: ExamSubmission[] }>({ action: 'studentOnlineSubmissions', idToken });
+  return response.submissions || [];
+};
+
+/** Bảng điểm (điểm thi định kì + hệ số 1) của chính học sinh; máy chủ lọc theo phiên, không nhận studentId. */
+export const fetchStudentScoreBook = async (): Promise<StudentScoreView> => {
+  const current = auth.currentUser;
+  if (!current || !current.isAnonymous) throw new Error('Cần phiên đăng nhập học sinh.');
+  const idToken = await current.getIdToken();
+  const response = await call<{ scores: StudentScoreView }>({ action: 'studentScoreBook', idToken });
+  return response.scores;
+};
 
 /**
  * Đăng nhập ẩn danh rồi nhờ máy chủ gắn phiên đó với đúng một học sinh.

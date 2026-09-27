@@ -1,5 +1,8 @@
 /// <reference types="node" />
 // File prefix "_" → không thành Serverless Function. Gồm: hạn mức chống đốt tiền + gọi Gemini.
+import { geminiUsageCounts, recordAiUsage } from './_ai-usage.js';
+import { ensureGeminiKey, onOwnKeyFailure } from './_ai-keys.js';
+import { classifyGeminiKeyFailure } from '../src/lib/admin/aiKeyPolicy.js';
 
 /**
  * Đường chấm bài này dùng KHOÁ AI CỦA CHỦ DỰ ÁN, không phải khoá giáo viên
@@ -107,6 +110,46 @@ export const loadQuotaDoc = async (
   return [rollQuota(snap.exists ? (snap.data() as Partial<QuotaDoc>) : null, today()), ref];
 };
 
+/** Reserve exactly one AI call atomically so concurrent practice requests cannot share one stale read. */
+export const reserveQuota = async (
+  db: FirebaseFirestore.Firestore,
+  uid: string,
+  kind: GradeKind,
+  studentId: string,
+): Promise<{ quota: QuotaDoc; verdict: QuotaVerdict }> => {
+  const ref = db.collection('gradingQuota').doc(uid);
+  return db.runTransaction(async transaction => {
+    const snap = await transaction.get(ref);
+    const quota = rollQuota(snap.exists ? (snap.data() as Partial<QuotaDoc>) : null, today());
+    const verdict = remainingQuota(quota, kind, studentId);
+    if (verdict.allowed > 0) transaction.set(ref, bumpQuota(quota, kind, studentId, 1));
+    return { quota, verdict };
+  });
+};
+
+// ── Chạy ngầm sau khi đã trả lời client ──────────────────────────────────────
+
+/**
+ * Giữ việc chạy tiếp trên máy chủ SAU KHI đã trả lời client.
+ *
+ * Học sinh nộp bài bằng điện thoại rồi tắt máy là chuyện bình thường; nếu việc chấm nằm trong
+ * chính request của em thì request đứt là worker chết giữa chừng và bài kẹt "Đang chấm". Có
+ * `waitUntil` thì trả lời ngay "máy đang chấm, em cứ tắt máy" mà việc chấm vẫn chạy nốt.
+ *
+ * Vercel đặt hàm này vào request context toàn cục (`@vercel/functions` cũng đọc đúng chỗ này).
+ * Nền tảng không cung cấp — chạy local, chạy test — thì trả `false` để nhánh gọi tự lùi về cách
+ * cũ là chờ xong rồi mới trả lời. LƯU Ý: `waitUntil` KHÔNG vượt được `maxDuration`; nó bỏ được
+ * phụ thuộc vào máy học sinh, không nới thêm được giây nào.
+ */
+export const chayNgam = (work: Promise<unknown>): boolean => {
+  const store = (globalThis as Record<symbol, unknown>)[Symbol.for('@vercel/request-context')] as
+    { get?: () => { waitUntil?: (promise: Promise<unknown>) => void } | undefined } | undefined;
+  const waitUntil = store?.get?.()?.waitUntil;
+  if (typeof waitUntil !== 'function') return false;
+  waitUntil(work);
+  return true;
+};
+
 // ── Gọi Gemini bằng khoá của chủ dự án ───────────────────────────────────────
 
 export interface InlineImage {
@@ -121,8 +164,11 @@ export const getGradingApiKey = (): string => {
   return key;
 };
 
-// Doi model khong can sua code: dat bien GRADING_MODEL tren Vercel roi redeploy.
-export const GRADING_MODEL = process.env.GRADING_MODEL || 'gemini-3.7-flash';
+// Ghim trong code, KHONG doc env nua. Truoc day env GRADING_MODEL override duoc: mot lan dat pro
+// (gemini-3.1-pro-preview) roi quen go la production am tham chay model vuot tran 60s cua Vercel
+// Hobby, trong khi code da revert ve flash -> ca lop ket "Dang cham" ma doc code khong thay gi sai.
+// Doi model = sua dong nay roi deploy, de trang thai that luon nam trong git.
+export const GRADING_MODEL = 'gemini-3.8-flash';
 
 /** Tách "data:image/jpeg;base64,xxx" thành phần Gemini nhận được. */
 export const parseDataUrl = (dataUrl: string): InlineImage | null => {
@@ -133,13 +179,46 @@ export const parseDataUrl = (dataUrl: string): InlineImage | null => {
 
 export interface GeminiOptions {
   /**
-   * Trần token đầu ra. Với Gemini 2.5, token "suy nghĩ" của model CŨNG tính vào trần này, nên
-   * đặt chặt là câu trả lời thật bị cắt cụt hoặc rỗng. Giải cả một đề cần rộng hơn hẳn chấm
-   * một bài.
+   * Trần token đầu ra. Token "suy nghĩ" của model CŨNG tính vào trần này, nên đặt chặt là câu
+   * trả lời thật bị cắt cụt hoặc rỗng. Giải cả một đề cần rộng hơn hẳn chấm một bài.
+   *
+   * `'model-max'` = KHÔNG gửi trần nào cả, để model dùng trần tối đa của chính nó. Dùng cho
+   * đường chấm bài: ở đó bị cắt giữa chừng là hỏng nguyên lượt chấm của một em, mà tự đoán một
+   * con số thì hoặc vẫn chật, hoặc vượt trần model rồi bị từ chối thẳng.
    */
-  maxOutputTokens?: number;
+  maxOutputTokens?: number | 'model-max';
   /** Bật chế độ JSON của Gemini: model bị ràng buộc trả JSON hợp lệ, khỏi bọc trong ```json. */
   jsonMode?: boolean;
+  /**
+   * Nhiệt độ sinh. Mặc định 0.2. Tác vụ ĐỌC/chấm nên đặt 0 để mỗi lần chấm lại đọc chữ và công
+   * thức ổn định hơn, không "mỗi lần một kiểu". Tác vụ cần đa dạng (sinh bài luyện) giữ >0.
+   */
+  temperature?: number;
+  /**
+   * Trần thời gian chờ Gemini, mili giây. Không đặt là chờ vô hạn — mà hàm serverless bị Vercel
+   * giết ở 60s thì bài nộp nằm lại "đang chấm" mãi vì không nhánh nào kịp mở khoá. Luôn truyền
+   * phần thời gian còn lại của lượt chấm vào đây.
+   */
+  timeoutMs?: number;
+}
+
+export type GeminiFailureKind =
+  | 'http'
+  | 'empty'
+  | 'max_tokens'
+  | 'safety'
+  | 'recitation'
+  | 'provider';
+
+export class GeminiResponseError extends Error {
+  constructor(
+    readonly kind: GeminiFailureKind,
+    message: string,
+    readonly finishReason?: string,
+  ) {
+    super(message);
+    this.name = 'GeminiResponseError';
+  }
 }
 
 /**
@@ -176,42 +255,124 @@ export const callGeminiVision = async (
   options: GeminiOptions = {},
 ): Promise<string> => {
   const generationConfig: Record<string, unknown> = {
-    temperature: 0.2,
-    maxOutputTokens: options.maxOutputTokens ?? 4096,
+    temperature: options.temperature ?? 0.2,
   };
+  const maxOutputTokens = options.maxOutputTokens ?? 4096;
+  // Bỏ hẳn field khi gọi 'model-max': Gemini không nhận field này thì tự lấy trần lớn nhất của
+  // model. An toàn hơn tự điền một con số — điền quá tay là bị từ chối, điền dè là lại bị cắt.
+  if (maxOutputTokens !== 'model-max') generationConfig.maxOutputTokens = maxOutputTokens;
   if (options.jsonMode) generationConfig.responseMimeType = 'application/json';
 
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{
-          role: 'user',
-          parts: [
-            { text: prompt },
-            ...images.map(img => ({ inlineData: { mimeType: img.mimeType, data: img.data } })),
-          ],
-        }],
-        generationConfig,
-      }),
-    },
-  );
-
-  if (!res.ok) {
-    const detail = await res.text().catch(() => '');
-    throw new Error(`Gemini trả lỗi ${res.status}: ${detail.slice(0, 200)}`);
+  // Khoá theo request: nhóm dùng khoá chung / khoá riêng của giáo viên / khoá chung đã đồng ý tính phí.
+  let keyChoice = await ensureGeminiKey(apiKey);
+  let res: Response;
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(keyChoice.key)}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              role: 'user',
+              parts: [
+                { text: prompt },
+                ...images.map(img => ({ inlineData: { mimeType: img.mimeType, data: img.data } })),
+              ],
+            }],
+            generationConfig,
+          }),
+          ...(options.timeoutMs ? { signal: AbortSignal.timeout(options.timeoutMs) } : {}),
+        },
+      );
+    } catch (error) {
+      // Hết giờ chờ thì phải ném ra để nhánh gọi kịp mở khoá bài nộp trước khi Vercel giết hàm.
+      const timedOut = error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError');
+      throw new GeminiResponseError(
+        'provider',
+        timedOut
+          ? 'AI xử lý quá lâu nên máy chủ phải dừng lượt chấm này. Thử lại, hoặc chụp gọn lại bài (ít ảnh hơn).'
+          : 'Không gọi được Gemini lúc này. Thử lại sau ít phút.',
+      );
+    }
+    if (res.ok || keyChoice.source !== 'own' || attempt > 0) break;
+    // Khoá RIÊNG của giáo viên bị từ chối vì chính khoá (hết hạn mức / hỏng): ghi lại, rồi hoặc chuyển
+    // sang khoá chung (đã đồng ý tính phí) và gọi lại MỘT lần, hoặc ném AiKeyRequiredError.
+    const detail = await res.clone().text().catch(() => '');
+    const keyFailure = classifyGeminiKeyFailure(res.status, detail);
+    if (!keyFailure) break;
+    keyChoice = await onOwnKeyFailure(keyChoice, keyFailure, detail, apiKey);
   }
 
-  const data = await res.json() as {
+  if (!res.ok) {
+    // Kèm mã HTTP: 429 (hết hạn mức), 400 (payload sai), 503 (Gemini quá tải) đòi ba cách xử lý
+    // hoàn toàn khác nhau, mà thông điệp chung chung thì giáo viên lẫn người sửa lỗi đều mù.
+    throw new GeminiResponseError(
+      'http',
+      `Gemini không thể xử lý yêu cầu lúc này (mã ${res.status}). Thử lại sau ít phút.`,
+    );
+  }
+
+  let rawData: unknown;
+  try {
+    rawData = await res.json();
+  } catch {
+    throw new GeminiResponseError('provider', 'Gemini trả về phản hồi không hợp lệ. Thử lại sau ít phút.');
+  }
+  if (!rawData || typeof rawData !== 'object' || Array.isArray(rawData)) {
+    throw new GeminiResponseError('provider', 'Gemini trả về phản hồi không hợp lệ. Thử lại sau ít phút.');
+  }
+  const data = rawData as {
     candidates?: Array<{ finishReason?: string; content?: { parts?: Array<{ text?: string }> } }>;
+    promptFeedback?: { blockReason?: string };
+    usageMetadata?: unknown;
+    error?: unknown;
   };
+  // Ghi token TRƯỚC mọi nhánh ném lỗi: Google tính tiền cả lượt bị cắt/bị chặn.
+  await recordAiUsage('gemini', model, geminiUsageCounts(data.usageMetadata), {
+    finishReason: data.candidates?.[0]?.finishReason || data.promptFeedback?.blockReason,
+  });
+  if (data.error) {
+    throw new GeminiResponseError('provider', 'Gemini không hoàn tất yêu cầu. Thử lại sau ít phút.');
+  }
+
   const candidate = data.candidates?.[0];
   const text = candidate?.content?.parts?.map(p => p.text || '').join('') || '';
+  const finishReason = candidate?.finishReason || data.promptFeedback?.blockReason;
+  const hasText = text.trim().length > 0;
 
-  const loi = moTaFinishReason(candidate?.finishReason, text.trim().length > 0);
-  if (loi) throw new Error(loi);
+  if (finishReason === 'MAX_TOKENS') {
+    throw new GeminiResponseError(
+      'max_tokens',
+      moTaFinishReason(finishReason, hasText) || 'AI trả lời dài quá trần cho phép. Thử lại với đề ngắn hơn.',
+      finishReason,
+    );
+  }
+  if (finishReason === 'SAFETY' || finishReason === 'PROHIBITED_CONTENT') {
+    throw new GeminiResponseError(
+      'safety',
+      moTaFinishReason(finishReason, hasText) || 'Gemini từ chối xử lý nội dung này. Kiểm tra lại ảnh đề.',
+      finishReason,
+    );
+  }
+  if (finishReason === 'RECITATION') {
+    throw new GeminiResponseError(
+      'recitation',
+      moTaFinishReason(finishReason, hasText) || 'Gemini dừng vì nội dung trùng tài liệu có bản quyền. Thử ảnh đề khác.',
+      finishReason,
+    );
+  }
+  if (finishReason && finishReason !== 'STOP') {
+    throw new GeminiResponseError('provider', 'Gemini dừng bất thường. Thử lại sau ít phút.', finishReason);
+  }
+  if (!hasText) {
+    throw new GeminiResponseError(
+      'empty',
+      moTaFinishReason(finishReason, false) || 'Gemini không trả về kết quả. Thử lại sau ít phút.',
+      finishReason,
+    );
+  }
 
   return text;
 };

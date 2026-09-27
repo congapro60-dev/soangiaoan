@@ -19,6 +19,10 @@ describe('sanitizeDisplayText — F2: không phá vùng $...$ có sẵn', () => 
     expect(out).toBe('$a^2 = b^2 + c^2$');
     expect(assertClean(out)).toBe(true);
   });
+
+  it('giữ nguyên delimiter display math $$...$$, không bọc thành nhiều dấu $', () => {
+    expect(sanitizeDisplayText('$$\\frac{x}{2}$$')).toBe('$$\\displaystyle \\frac{x}{2}$$');
+  });
 });
 
 describe('sanitizeDisplayText — F1: option thiếu $ mở, LaTeX + unicode trộn lẫn', () => {
@@ -124,5 +128,103 @@ describe('an toàn tổng quát', () => {
   it('chuỗi rỗng/undefined trả rỗng', () => {
     expect(sanitizeDisplayText(undefined)).toBe('');
     expect(sanitizeDisplayText('   ')).toBe('');
+  });
+});
+
+describe('sanitizeDisplayText — production-like hình học không có delimiter', () => {
+  it('tách các dòng công thức trần thành từng vùng math để kết luận dài không tràn một dòng', () => {
+    const input = [
+      'ax+by\\le c\\quad(\\text{hoặc }<,\\ge,>)\\quad a,b\\ \\text{không đồng thời bằng }0',
+      '(x_0;y_0)\\ \\text{là nghiệm nếu thay vào làm bất phương trình đúng}',
+      '15x+10y\\le150',
+      '3x+2y\\le30',
+    ].join('\n');
+
+    const out = sanitizeDisplayText(input);
+    const lines = out.split('\n').map(line => line.trim()).filter(Boolean);
+
+    expect(lines).toHaveLength(4);
+    expect(lines.every(line => line.startsWith('$') && line.endsWith('$'))).toBe(true);
+    expect(lines[2]).toBe('$15x+10y\\le150$');
+    expect(lines[3]).toBe('$3x+2y\\le30$');
+    expect(assertClean(out)).toBe(true);
+  });
+
+  it('giữ trọn luỹ thừa trước lệnh LaTeX trong công thức trần', () => {
+    const out = sanitizeDisplayText(String.raw`a^2=b^2+c^2-2bc\cos A`);
+
+    expect(out).toBe(String.raw`$a^2=b^2+c^2-2bc\cos A$`);
+    expect(assertClean(out)).toBe(true);
+  });
+
+  it('bọc từng đoạn công thức và giữ liên từ tiếng Việt ngoài vùng math', () => {
+    const input = 'D \\in (CDE) và AB \\in (SAB) => DE \\cap AB = {F} => F là điểm chung của (CDE) và (SAB)';
+
+    const out = sanitizeDisplayText(input);
+
+    expect(out).toContain('$D \\in (CDE)$');
+    expect(out).toContain('$AB \\in (SAB)$');
+    expect(out).toContain('$DE \\cap AB = {F}$');
+    expect(out).toContain('F là điểm chung');
+    expect(assertClean(out)).toBe(true);
+  });
+
+  it('giữ delimiter LaTeX hiện có và chỉ đổi => bên trong vùng math', () => {
+    const input = 'Kết luận \\(a => b\\) và \\[\\frac{1}{2}\\]';
+
+    expect(sanitizeDisplayText(input)).toBe('Kết luận $a \\Rightarrow b$ và $$\\displaystyle \\frac{1}{2}$$');
+  });
+
+  it('giữ lệnh LaTeX không hỗ trợ ở fallback text mà không chèn HTML', () => {
+    const out = sanitizeDisplayText('Ký hiệu \\unknown{x} vẫn giữ nội dung');
+
+    expect(out).toContain('\\unknown{x}');
+    expect(out).not.toContain('<');
+  });
+
+  it('đưa => vào một đoạn math riêng và đổi thành \\Rightarrow', () => {
+    const out = sanitizeDisplayText('DE \\in (CDE) và AB \\in (SAB) => DE \\cap AB = {F} => F là điểm chung');
+
+    expect(out).toContain('$\\Rightarrow$');
+    expect(out).not.toContain('=>');
+    expect(out).toContain('$DE \\in (CDE)$ và $AB \\in (SAB)$');
+    expect(out).toContain('$DE \\cap AB = {F}$');
+    expect(out).toContain('F là điểm chung');
+  });
+
+  it('không nuốt phần văn bản tiếng Việt trước công thức có lệnh LaTeX', () => {
+    const out = sanitizeDisplayText('Vì ta có \\frac{x}{y} = 1 nên kết luận đúng.');
+
+    expect(out).toContain('Vì ta có ');
+    expect(out).toContain('$\\frac{x}{y} = 1$');
+    expect(out).toContain(' nên kết luận đúng.');
+    expect(out).not.toContain('$Vì');
+  });
+
+  it('nhận diện đủ nhóm lệnh hình học và đại số dùng trong lớp học', () => {
+    const input = 'D \\notin A \\subset B \\supset C \\cap D \\cup E \\Rightarrow F \\Leftrightarrow G \\to H \\le I \\ge J \\ne K \\frac{x}{y} + \\sqrt{x} + \\underline{x} + \\text{và} + \\mathrm{AB} + \\mathbf{x}';
+    const out = sanitizeDisplayText(input);
+
+    expect(out.startsWith('$')).toBe(true);
+    expect(out.endsWith('$')).toBe(true);
+    for (const command of ['\\notin', '\\subset', '\\supset', '\\cap', '\\cup', '\\Rightarrow', '\\Leftrightarrow', '\\to', '\\le', '\\ge', '\\ne', '\\frac', '\\sqrt', '\\underline', '\\text', '\\mathrm', '\\mathbf']) {
+      expect(out).toContain(command);
+    }
+    expect(assertClean(out)).toBe(true);
+    expect(out).not.toContain('<');
+  });
+
+  it('khôi phục toán tử dạng chữ từ dữ liệu chấm cũ nhưng không đổi câu tiếng Việt', () => {
+    const input = 'D in SA, SA subset (SAB) => D in (SAB); E in SB, SB subset (SAB) => E in (SAB); Suy ra DE subset (SAB).';
+
+    const out = sanitizeDisplayText(input);
+
+    expect(out).toContain('$D \\in SA, SA \\subset (SAB)$');
+    expect(out).toContain('D \\in (SAB)');
+    expect(out).toContain('E \\in SB, SB \\subset (SAB)');
+    expect(out).toContain('E \\in (SAB)');
+    expect(out).toContain('DE \\subset (SAB)');
+    expect(out).toContain('$\\Rightarrow$');
+    expect(sanitizeDisplayText('Học sinh in bài rồi.')).toBe('Học sinh in bài rồi.');
   });
 });

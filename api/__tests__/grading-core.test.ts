@@ -1,11 +1,14 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
+  callGeminiVision,
+  GeminiResponseError,
   QUOTA_LIMITS,
   bumpQuota,
   emptyQuota,
   moTaFinishReason,
   parseDataUrl,
   remainingQuota,
+  reserveQuota,
   rollQuota,
   today,
 } from '../_grading-core.js';
@@ -102,6 +105,43 @@ describe('bumpQuota', () => {
   });
 });
 
+describe('reserveQuota', () => {
+  it('đọc và cộng một lượt trong cùng transaction', async () => {
+    const state: Record<string, Record<string, unknown>> = {};
+    const db = {
+      collection: (name: string) => ({
+        doc: (id: string) => ({
+          get: async () => ({
+            exists: state[name]?.[id] !== undefined,
+            data: () => state[name]?.[id] as Record<string, unknown> | undefined,
+          }),
+          set: async (payload: Record<string, unknown>) => {
+            state[name] ||= {};
+            state[name][id] = payload;
+          },
+        }),
+      }),
+      runTransaction: async (work: (transaction: {
+        get: (ref: { get: () => Promise<{ exists: boolean; data: () => Record<string, unknown> | undefined }> }) => Promise<{ exists: boolean; data: () => Record<string, unknown> | undefined }>;
+        set: (ref: { set: (payload: Record<string, unknown>) => Promise<void> }, payload: Record<string, unknown>) => void;
+      }) => Promise<unknown>) => {
+        const writes: Promise<void>[] = [];
+        const result = await work({
+          get: ref => ref.get(),
+          set: (ref, payload) => { writes.push(ref.set(payload)); },
+        });
+        await Promise.all(writes);
+        return result;
+      },
+    } as never;
+
+    const result = await reserveQuota(db, 'teacher-1', 'self', 'student-1');
+
+    expect(result.verdict.allowed).toBeGreaterThan(0);
+    expect(state.gradingQuota['teacher-1']).toMatchObject({ selfCount: 1, byStudent: { 'student-1': 1 } });
+  });
+});
+
 describe('parseDataUrl', () => {
   it('tách được mime và phần base64', () => {
     expect(parseDataUrl('data:image/jpeg;base64,QUJD')).toEqual({ mimeType: 'image/jpeg', data: 'QUJD' });
@@ -143,4 +183,62 @@ describe('moTaFinishReason — không đổ oan cho khâu đọc JSON', () => {
   it('lý do lạ thì nêu nguyên văn để còn lần ra', () => {
     expect(moTaFinishReason('OTHER', true)).toMatch(/OTHER/);
   });
+});
+
+describe('callGeminiVision — phân loại lỗi provider bằng type', () => {
+  const responseFor = (finishReason: string | undefined, text = '') => ({
+    ok: true,
+    json: async () => ({
+      candidates: [{
+        ...(finishReason ? { finishReason } : {}),
+        ...(text ? { content: { parts: [{ text }] } } : {}),
+      }],
+    }),
+  });
+
+  it.each([
+    ['STOP', '', 'empty'],
+    ['MAX_TOKENS', '{', 'max_tokens'],
+    ['SAFETY', '', 'safety'],
+    ['PROHIBITED_CONTENT', '', 'safety'],
+    ['RECITATION', '', 'recitation'],
+    ['OTHER', 'provider text', 'provider'],
+  ] as const)('maps finishReason %s to %s', async (finishReason, text, kind) => {
+    vi.stubGlobal('fetch', vi.fn(async () => responseFor(finishReason, text)));
+
+    const failure = await callGeminiVision('prompt', [], 'key').catch(error => error);
+
+    expect(failure).toBeInstanceOf(GeminiResponseError);
+    expect(failure).toMatchObject({ kind });
+  });
+
+  it('maps HTTP failures without exposing provider response text', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: false,
+      status: 503,
+      text: async () => 'provider down with sensitive details',
+    })));
+
+    const failure = await callGeminiVision('prompt', [], 'key').catch(error => error);
+
+    expect(failure).toBeInstanceOf(GeminiResponseError);
+    expect(failure).toMatchObject({ kind: 'http' });
+    expect(String(failure.message)).not.toContain('provider down');
+  });
+
+  it.each([null, [], 'provider raw payload', 42])(
+    'normalizes non-object response JSON (%s) to a safe provider error',
+    async payload => {
+      vi.stubGlobal('fetch', vi.fn(async () => ({
+        ok: true,
+        json: async () => payload,
+      })));
+
+      const failure = await callGeminiVision('prompt', [], 'key').catch(error => error);
+
+      expect(failure).toBeInstanceOf(GeminiResponseError);
+      expect(failure).toMatchObject({ kind: 'provider' });
+      expect(failure.message).toBe('Gemini trả về phản hồi không hợp lệ. Thử lại sau ít phút.');
+    },
+  );
 });

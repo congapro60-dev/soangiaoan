@@ -33,7 +33,10 @@ describe('AI Gateway core contract', () => {
       messages: [{ role: 'user', content: 'Xin chào' }],
       max_tokens: AI_GATEWAY_MAX_OUTPUT_TOKENS,
       stream: true,
+      // Chunk cuối mang `usage` để đếm token tính tiền.
+      stream_options: { include_usage: true },
     });
+    expect(buildGatewayChatRequest('Xin chào', false)).not.toHaveProperty('stream_options');
   });
 
   it('reads and trims the server-side API key without providing a fallback', () => {

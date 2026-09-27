@@ -1,65 +1,68 @@
-# Plan — Update generator Ban Toán trong app theo "yêu cầu mới"
+# Kế hoạch 2026-09-23: Quản trị + đếm token/chi phí + sổ điểm
 
-> Nguồn yêu cầu: folder `các yêu cầu về Toán cần đạt/` + phiên Codex `01a0745a` (6 lỗi chuyên gia CIS).
-> Quyết định user: chuyển hẳn **Must/Should/Could + "Tôi có thể…"** và thêm **bảng MINH CHỨNG HQT/CIS + Danielson 1a–1f**.
+Chủ dự án chốt: (1) làm trang quản trị cho tài khoản congapro60@gmail.com, (2) sổ điểm đủ (đồng bộ điểm thi + nhập điểm HS1),
+(3) rà soát + chuẩn bị lớp cho cô Vân/Hạnh/Hồng qua trang quản trị, KHÔNG ghi đè dữ liệu có sẵn (cô Hạnh).
 
-## Scope
-- CHỈ sửa app `src/` (đường generate + xuất Word school-form).
-- KHÔNG đụng 48 DOCX `giao an manus tao/`, PPCT, Drive, không commit/push khi chưa được yêu cầu.
-- Làm trên feature branch hiện tại (`feat/toan-final-template`).
+## Sự thật đã kiểm (không đoán)
+- Chưa có ghi token ở đâu cả. Gọi AI bằng KEY CHUNG của chủ dự án (tốn tiền chủ): `_grading-core.ts` (chấm BTVN,
+  GRADING_GEMINI_API_KEY/GEMINI_API_KEY), `generate-simulation.ts` (GEMINI_API_KEY), `_ai-gateway-core.ts` (AI_GATEWAY_API_KEY, GLM 5.2).
+  Soạn giáo án/tạo đề chạy ở trình duyệt bằng key riêng người dùng → người dùng tự trả.
+- Lịch sử đăng nhập có sẵn trong Firebase Auth (metadata createdAt/lastSignIn) → đọc bằng Admin SDK phía máy chủ.
+- Không có trang quản trị nào; giới hạn 12 Vercel Function → thêm action vào endpoint có sẵn.
 
-## A. Đổi mục tiêu → Must / Should / Could + "Tôi có thể…"
-- [ ] `src/prompts/toanFormats.ts` (TOAN_COMMON_FORMAT §2, dòng ~37-44): bảng mục tiêu 3 hàng nhãn `Must (Cơ bản)` / `Should (Trọng tâm)` / `Could (Nâng cao)`; mỗi ô bắt đầu `Tôi có thể…` + thẻ Bloom; giữ ĐÚNG 3 mục tiêu; cập nhật comment hợp đồng (dòng ~8-12).
-  - verify: câu "Tôi có thể…" + 3 nhãn Must/Should/Could xuất hiện trong prompt.
-- [ ] `src/utils/toanStyleRules.ts` `matchToanObjectiveRowFill` (60-66): nhận `^must/^should/^could` (giữ tương thích cũ `co ban/trong tam/nang cao`). Map màu Must→D9EAD3, Should→FCE5CD, Could→FFF2CC.
-  - verify: unit test tô đúng 3 màu cho nhãn mới.
-- [ ] `src/lib/toanSchoolForm/parseToanLesson.ts` (dòng ~253): bổ sung `must|should|could` vào regex nhận bảng mục tiêu (nội dung "Must (Cơ bản)" vẫn chứa "cơ bản" nên vẫn parse; thêm để chắc). `mucTieu[].muc` giữ nguyên chuỗi nhãn.
+## GĐ1 — Bộ đếm token (làm trước: mỗi ngày trễ là mất dữ liệu)
+- [ ] `api/_ai-usage.ts`: `recordAiUsage({uid,email,role,classId,ownerTeacherId,feature,model,inputTokens,outputTokens,cachedTokens})`
+      → collection `aiUsage` (chỉ máy chủ ghi; rules chặn client). Lỗi ghi KHÔNG làm hỏng lượt chấm.
+- [ ] Gắn vào 3 chỗ gọi key chung, lấy số từ `usageMetadata` (Gemini) / `usage` (gateway). Lượt HS nộp → tính cho GV chủ lớp.
+- [ ] Test: ghi đúng số token, thiếu usage vẫn không vỡ; rules chặn client đọc/ghi `aiUsage`.
 
-## B. Thêm bảng MINH CHỨNG HQT/CIS + Danielson 1a–1f
-- [ ] `src/prompts/toanFormats.ts`: thêm spec khối "MINH CHỨNG HQT / CIS" (đặt sau I. THÔNG TIN CHUNG, trước II. TIẾN TRÌNH) — bảng 3 cột `Minh chứng | HS làm gì → GV thu được gì → mục đích sư phạm | Vị trí` + **6 dòng Danielson 1a–1f**; mở rộng nhãn CIS: `[KIỂM ĐỊNH AI] [TỰ ĐỊNH HƯỚNG] [PHẢN TƯ] [TRẢI NGHIỆM]`.
-- [ ] `src/prompts/toanFormats.ts` (TOAN_ADDITIONAL_REQUIREMENTS, dòng ~297): gỡ "Danielson" khỏi câu cấm — GIỮ cấm Dewey/WALT-WILF, CHO PHÉP khung Danielson/CIS mới.
-- [ ] `src/lib/toanSchoolForm/cisEvidence.ts`: thêm 4 nhãn + màu (`kiemDinhAi`, `tuDinhHuong`, `phanTu`, `traiNghiem`); giữ 4 nhãn cũ.
-- [ ] `src/lib/toanSchoolForm/parseToanLesson.ts`: thêm SECTION `minhChung` (regex `minh\s*chứng|hqt|cis`); parse bảng → `model.minhChung: {nhan,noiDung,viTri}[]`; thêm field vào `ToanLessonModel`.
-- [ ] `src/lib/toanSchoolForm/buildSchoolFormDocx.ts`: render bảng MINH CHỨNG (band + table 3 cột) chèn giữa THÔNG TIN CHUNG và TIẾN TRÌNH; tô màu nhãn bằng `detectCisColor`; hàng Danielson in đậm.
-- [ ] `src/lib/toanSchoolForm/buildSchoolFormHtml.ts`: mirror bảng MINH CHỨNG cho đường HTML→PDF (giữ đồng bộ 2 đường xuất).
-- [ ] `src/utils/toanStyleRules.ts`: thêm banner matcher `minh chung|hqt|cis`.
+## GĐ2 — Trang quản trị (chỉ congapro60@gmail.com, email Google đã xác minh, kiểm ở MÁY CHỦ)
+- [ ] Người dùng: email, vai trò, ngày tạo, lần đăng nhập cuối (Auth listUsers).
+- [ ] Lớp theo giáo viên: sĩ số, số bài giao, số bài nộp/đã chấm AI (đọc-only).
+- [ ] Token & tiền theo người/lớp/tháng: USD theo bảng giá chính thức (ghi nguồn + ngày), quy VND theo tỷ giá (sửa được, ghi ngày).
+      Có cả dòng của chủ dự án. Quá khứ trước GĐ1: dòng "ƯỚC TÍNH" = số bài đã chấm × token TB đo được.
+- [ ] Xuất bảng kê (CSV) từng người để thu tiền.
+- [ ] Chuẩn bị lớp cho các cô: xem lớp đã có; tạo lớp mới từ danh sách file Drive — BỎ QUA lớp đã tồn tại.
 
-## C. Nội dung "chán" → cụ thể (prompt-only)
-- [ ] `src/prompts/toanFormats.ts` TOAN_ADDITIONAL_REQUIREMENTS: cấm câu mục tiêu/nhiệm vụ khuôn generic ("tạo sản phẩm cốt lõi tối thiểu", "nhiệm vụ chuẩn", "trường hợp mở rộng"…); buộc mọi mục tiêu/bài tập bám nội dung Toán thật của tiết; củng cố luật nguồn SBT/SGK/"GV tự thiết kế"; luật hình theo VAI TRÒ (không định mức mỗi tiết 1 hình, không tái dùng 1 hình cho nhiều bài).
+## GĐ3 — Sổ điểm (HS xem, báo cáo PH dùng chung) — kế hoạch chi tiết 2026-09-24
+Quyết định: 1 document `scoreBooks/{classId}` (≤ vài chục HS, xa trần 1MB), CHỈ máy chủ đọc/ghi (rules mặc định chặn →
+KHÔNG phải phát hành lại firestore.rules). HS đọc qua action `studentScoreBook` (lọc đúng dòng của mình theo studentLinks,
+như `studentSubmissions`). BTVN KHÔNG chép vào sổ — lấy thẳng từ bài đã duyệt (một nguồn sự thật).
+- [x] `src/lib/classroom/scoreBook.ts` (thuần): kiểu dữ liệu, kiểm điểm HS1 (0–10, ≤2 số lẻ), làm sạch điểm thi,
+      `studentScoreView`. BTVN dùng thẳng `officialActivities` (không cần hàm riêng). Test 6.
+- [x] `examService.fetchClassExamScores(sheet, roster)`: đọc file điểm 1 lần cho cả lớp, khớp Mã HS.
+- [x] `api/_score-book.ts`: `teacherScoreBook`, `saveHs1Column`, `deleteHs1Column`, `saveExamScores`, `studentScoreBook`. Test 5.
+- [x] GV: tab "Sổ điểm" trong lớp — đồng bộ MOET/TDS, bảng nhập/sửa/xoá cột điểm hệ số 1.
+- [x] HS: mục "Bảng điểm của em" (BTVN, thi định kì MOET, điểm quý TDS, hệ số 1).
+- [x] Báo cáo PH (màn hình + PDF) đọc điểm thi + HS1 từ sổ điểm.
+- [x] Nghiệm thu: 180 file/2.080 test, lint, lint:api, build; production `a423c72`.
 
-## D. Cập nhật test đang khóa format cũ
-- [ ] `src/prompts/toanFormats.test.ts`: đổi assert `| Cơ bản |`→`Must (Cơ bản)`… (30-33); sửa assert cấm-Danielson (175) → còn cấm Dewey/WALT nhưng KHÔNG cấm Danielson; thêm assert có khối MINH CHỨNG + Danielson 1a-1f; giữ assert "2 BỘ CÂU HỎI GỢI Ý PHÂN HÓA" (147).
-- [ ] `src/utils/renderWordCore.toan.test.ts` (19-23,61,64): fixture mục tiêu → Must/Should/Could; cập nhật assert màu.
-- [ ] `src/lib/toanSchoolForm/parseToanLesson.test.ts` (18-22,70-71): fixture + `mucTieu[0].muc` nhãn mới; thêm test parse bảng MINH CHỨNG.
-- [ ] `src/lib/toanSchoolForm/buildSchoolFormDocx.test.ts` (13): fixture nhãn mới; thêm assert render MINH CHỨNG/Danielson.
-- [ ] Thêm test cho `matchToanObjectiveRowFill` (must/should/could) và `cisEvidence` (4 nhãn mới).
+### Review GĐ3 (production 24/09)
+- 11Columbus: đồng bộ 26/26 em khớp Mã HS (Khảo sát đầu năm). 12LoTrinh1: 8/8, có Tuấn Nam (3.6) sau chuyển lớp.
+- Cột HS1 thử: ô "11" bị tô đỏ + chặn lưu; sửa 9 lưu được, TB đúng; bản phụ huynh hiện MOET + HS1; mở lại cột điền sẵn điểm; xoá cột sạch trên máy chủ.
+- 10Olinda: 18/19 — sửa Mã HS tạm `10OLINDA-19` của Bảo Khánh thành GB0120040234 (theo Sheet) rồi đồng bộ lại → 7. Trần Hữu Bảo Nam: ô KSĐN trên Sheet trống.
+- CHƯA: cổng học sinh chưa thử bằng phiên HS thật (đăng nhập HS sẽ đá phiên GV) — dựa test API.
 
-## E. Verify (bắt buộc trước khi báo done)
-- [ ] `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai" run build` → 0 lỗi TS.
-- [ ] `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai" run test` (hoặc scoped các file toan/schoolForm) → pass.
-- [ ] Sinh thử 1 KHDH mẫu (kien_thuc + luyen_tap) → xuất DOCX → mở kiểm: mục tiêu Must/Should/Could, có bảng MINH CHỨNG+Danielson, Polya 2 lộ trình (luyện tập) còn nguyên.
+## Cần chủ dự án chốt trước GĐ2
+- Tính tiền cho ai khi HỌC SINH nộp bài được chấm: giáo viên chủ lớp (đề xuất).
+- Tỷ giá: Vietcombank bán ra ngày chốt (đề xuất), sửa tay được.
 
-## Ghi chú / giả định
-- Giữ NHÃN CIS inline trong tiến trình (bổ sung, không bỏ) — mẫu vàng có cả hai.
-- Đường `renderWordCore` generic sẽ render bảng MINH CHỨNG kiểu thường (không style riêng); đường school-form `buildSchoolFormDocx` mới style đầy đủ — chấp nhận, ghi lại limitation.
-- Cập nhật `tasks/lessons.md` nếu phát sinh bug/pattern mới.
-
-## Review (hoàn thành 2026-09-19)
-- A. Mục tiêu → Must/Should/Could + "Tôi có thể…": `toanFormats.ts` (bảng + comment), `toanStyleRules.ts` (`matchToanObjectiveRowFill` nhận nhãn mới, giữ tương thích cũ), `parseToanLesson.ts` (regex). ✓
-- B. Bảng MINH CHỨNG HQT/CIS + Danielson 1a–1f: prompt spec + gỡ "Danielson" khỏi câu cấm (`toanFormats.ts`); +4 nhãn/màu (`cisEvidence.ts`); model field + parse section `minhChung` (`parseToanLesson.ts`); render docx (`buildSchoolFormDocx.ts`) + html (`buildSchoolFormHtml.ts`); banner matcher (`toanStyleRules.ts`). ✓
-- C. Chống nội dung khuôn: 3 luật mới trong `TOAN_ADDITIONAL_REQUIREMENTS` (cấm câu generic, nguồn bài tập, hình theo vai trò). ✓
-- D. Test: cập nhật `toanFormats.test.ts`, `parseToanLesson.test.ts`, `buildSchoolFormDocx.test.ts`, `renderWordCore.toan.test.ts`, `schoolFormLayout.invariants.test.ts`; thêm `cisEvidence.test.ts` + test `matchToanObjectiveRowFill`. ✓
-- E. Verify: `npm run build` PASS (0 lỗi TS); vitest các file toan/schoolForm 112/112 PASS; render DOCX→PDF→PNG mẫu BPT: layout đúng (Must/Should/Could, bảng MINH CHỨNG tô màu nhãn, cột Nội dung đánh số, OMML). ✓
-- Giữ nguyên: Polya 2 lộ trình (luyện tập), bảng 3 cột, P0–P40, nhãn câu hỏi, nhãn CIS inline.
-- Chưa làm: đường `renderWordCore` generic không style riêng bảng MINH CHỨNG (chỉ school-form style đủ) — chấp nhận theo plan. Chưa commit/push (chờ yêu cầu).
-
-## Bổ sung — Cổng chất lượng NỘI DUNG (2026-09-19)
-- Thêm 4 check vào `mathStandards.ts` (vào vòng audit `validateToanLesson`→AI tự sửa):
-  - `no-generic-objective` (high) — bắt câu khuôn ("tạo sản phẩm cốt lõi tối thiểu", "nhiệm vụ chuẩn", "trường hợp mở rộng", "cần đa dạng hơn").
-  - `cis-evidence-table` (high) — bắt buộc có bảng MINH CHỨNG + đủ 6 dòng Danielson 1a–1f.
-  - `exercise-source` (medium, whitelist repair) — bài tập phải ghi nguồn SGK/SBT/GV tự thiết kế.
-  - `cdtc-integration` (medium, whitelist repair) — có CDTC hoặc ghi rõ "Không phải tiết trọng tâm" (đổi tên từ global-citizenship để tránh trùng id với generalStandards).
-- `toanLessonQuality.ts`: +2 id vào `REPAIRABLE_MEDIUM_IDS` (2 high tự vào theo severity).
-- `toanFormats.ts`: thêm luật **VĂN PHONG TỰ NHIÊN NHƯ NGƯỜI SOẠN** (chống văn AI máy móc/sáo rỗng).
-- Test: +8 case trong `mathStandards.test.ts`, cập nhật fixture `toanLessonQuality.test.ts`, +1 assert `toanFormats.test.ts`.
-- Verify: full suite **1046/1046 pass**; `npm run build` PASS.
+# Kế hoạch 2026-09-24 (tiếp): khoá AI riêng + trần chi tiêu + hoá đơn tháng
+Chủ dự án chốt: nhóm (chủ dự án + Hạnh, Vân, Hồng) dùng thẳng khoá chung; GV khác dùng khoá Gemini riêng, hết/không có
+khoá → AI dừng, bài HS nằm chờ + báo khi đăng nhập; bất kỳ lúc nào GV có thể đồng ý dùng khoá chung và bị tính tiền.
+Khoá cất vùng chỉ máy chủ. Trần tiền/tháng TUỲ CHỌN với mọi GV (chạm trần → AI dừng, GV nâng trần là chạy tiếp).
+Hoá đơn TỰ PHÁT HÀNH ngày 1 (lập khi có người mở lần đầu sau khi hết tháng), xem trong app + tải PDF, kèm minh chứng từng lượt.
+- [x] `aiKeyPolicy.ts` (thuần) + test; `_ai-keys.ts`; chọn khoá trong `callGeminiVision`/mô phỏng/cổng GLM; 402 AI_KEY_REQUIRED.
+- [x] Bài HS bị chặn → `aiBlocked` giữ trạng thái cũ; bảng kê bỏ lượt khoá riêng (`keySource`).
+- [x] Bộ đếm chi tiêu tháng `aiSpend/{uid}_{YYYY-MM}` + trần `monthlyCapVnd` (lý do chặn `cap_reached`).
+- [x] ĐỔI MÔ HÌNH (chủ dự án chốt 09-24): trả trước qua ví SePay, trừ dần từng lượt; sao kê tháng thay hoá đơn trả sau
+      (đầu kỳ + nạp + điều chỉnh − trừ, minh chứng từng lượt, tỷ giá lưu trên từng lượt); mã giảm giá 10–100%.
+- [x] Giao diện GV: tab "Chi phí AI" (ví + QR, mã giảm giá, trần, khoá riêng, đồng ý, chấm lại bài chờ, sao kê + PDF),
+      hộp chọn khi bị chặn (tự thử lại), banner khi có bài chờ / ví cạn.
+- [x] Quản trị mục 6–10: công tắc + nhóm, tài khoản nhận tiền + webhook, mã giảm giá, ví + điều chỉnh, giao dịch chưa khớp, sao kê.
+- [x] Test + lint + build (186 file / 2.121 test).
+- [x] QA production 25/09: tab Chi phí AI + Quản trị mục 1–10 chạy; lưu nhóm (Hạnh, Hồng, 3 tài khoản của Vân);
+      mã THANG10 100% 25/09–31/10 gán 5 tài khoản; BẬT tính phí; "Chấm cả lớp" của chủ dự án qua cổng bình thường.
+- [x] Mục 7 làm lại theo ý chủ dự án: nhiều tài khoản nhận tiền + ảnh QR tự tải, chọn tài khoản đang dùng.
+- [x] Sửa: khoá riêng luôn chạy trước kể cả người trong nhóm (trước đây bị bỏ qua → trừ ví oan).
+- [ ] Chủ dự án tự làm: thêm tài khoản nhận tiền (mục 7), webhook SePay + biến Vercel `SEPAY_WEBHOOK_KEY` — xong trước 01/11.

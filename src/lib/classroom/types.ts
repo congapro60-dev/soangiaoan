@@ -1,3 +1,5 @@
+import type { StudentSkillState } from '../learning/skillTypes.js';
+
 /**
  * Mô hình dữ liệu lớp học — bộ xương dùng chung cho cả hai cửa vào:
  * giáo viên giao bài cho lớp, và học sinh tự nộp bài ("máy chấm bài về nhà").
@@ -7,10 +9,45 @@
  * đọc được phần của mình mà không đọc được của bạn khác.
  */
 
+/**
+ * Tab Google Sheet theo dõi BTVN mà giáo viên đã nối cho lớp.
+ *
+ * Máy chủ chỉ lưu cấu hình này. Việc đọc và ghi sheet chạy trong trình duyệt bằng quyền Google
+ * của chính giáo viên — không có token hay khoá Google nào nằm trên máy chủ.
+ */
+export interface ClassSheetSync {
+  spreadsheetId: string;
+  spreadsheetTitle: string;
+  /** `gid` của tab — giữ đúng tab kể cả khi giáo viên đổi tên tab. */
+  sheetId: number;
+  sheetTitle: string;
+  linkedAt: string;
+  linkedBy: string;
+}
+
+/**
+ * File điểm thi của lớp (Google Sheet có tab MOET/TDS) — KHÁC file đồng bộ BTVN.
+ * Chỉ để ĐỌC điểm thi định kì vào báo cáo phụ huynh; máy chủ chỉ lưu mã file.
+ */
+export interface ClassExamSheet {
+  spreadsheetId: string;
+  spreadsheetTitle: string;
+  linkedAt: string;
+  linkedBy: string;
+}
+
 /** Lớp học của một giáo viên. */
 export interface ClassDoc {
   id: string;
   teacherId: string;
+  /** Chủ sở hữu hiện tại; fallback về teacherId cho lớp legacy. */
+  ownerId?: string;
+  /** UID người tạo lớp, chỉ dùng để audit/bảo vệ quyền gốc. */
+  originalOwnerId?: string;
+  /** Projection UID giáo viên đang có quyền vận hành lớp. */
+  teacherIds?: string[];
+  /** Tên lớp cũ, chỉ để ghép bài online legacy sau khi đổi tên; không phải định danh quyền. */
+  previousNames?: string[];
   name: string;
   /** Ghi chú tự do: "Lớp chủ nhiệm", "Lộ trình Toán 1"... */
   track: string;
@@ -18,8 +55,47 @@ export interface ClassDoc {
   /** Mã học sinh gõ vào để vào lớp. Không chứa ký tự dễ nhìn nhầm. */
   joinCode: string;
   studentCount: number;
+  /** Tab Google Sheet đã nối để đồng bộ BTVN; vắng hoặc null là lớp không đồng bộ. */
+  sheetSync?: ClassSheetSync | null;
+  /** File điểm thi định kì (tab MOET/TDS); vắng là chưa nối. */
+  examSheet?: ClassExamSheet | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export type ClassTeacherRole = 'owner' | 'co_owner';
+export type ClassTeacherStatus = 'active' | 'removed';
+
+/** Thành viên giáo viên dùng bởi API; không để client tự quyết định quyền. */
+export interface ClassMemberDoc {
+  id: string;
+  classId: string;
+  uid: string;
+  email: string;
+  displayName?: string;
+  role: ClassTeacherRole;
+  status: ClassTeacherStatus;
+  invitedBy?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ClassInvitationRole = 'co_owner' | 'transfer_owner';
+export type ClassInvitationStatus = 'pending' | 'accepted' | 'declined' | 'revoked';
+
+/** Lời mời lưu email chuẩn hóa; không phụ thuộc email service bên ngoài. */
+export interface ClassInvitationDoc {
+  id: string;
+  classId: string;
+  inviterUid: string;
+  inviterEmail: string;
+  inviteeEmail: string;
+  inviteeUid?: string;
+  role: ClassInvitationRole;
+  status: ClassInvitationStatus;
+  createdAt: string;
+  updatedAt: string;
+  acceptedAt?: string;
 }
 
 export type StudentStatus = 'active' | 'needs_support' | 'excellent';
@@ -36,9 +112,13 @@ export interface StudentDoc {
   name: string;
   /** Mã học sinh của trường, dùng làm tên đăng nhập. */
   code: string;
+  /** Sao lưu các mã cũ mỗi lần đổi mã — để giáo viên xem/khôi phục sau này. */
+  previousCodes?: string[];
   status: StudentStatus;
   progress: number;
   createdAt: string;
+  updatedAt?: string;
+  updatedBy?: string;
 }
 
 /** PIN đã băm. Chỉ server (Admin SDK) đọc/ghi — rules từ chối mọi client. */
@@ -65,9 +145,80 @@ export interface StudentLinkDoc {
 export interface AssignmentAttachment {
   name: string;
   url: string;
+  mimeType?: string;
+  size?: number;
 }
 
 export type AssignmentType = 'upload' | 'exam';
+
+export type ActivityPurpose = 'practice' | 'remediation' | 'assignment' | 'assessment';
+export type DeliveryMode = 'online' | 'file' | 'both';
+export type GradingPolicy = 'automatic' | 'mixed' | 'teacher_review';
+export type GradeState = 'provisional' | 'pending_teacher_review' | 'official';
+export type GradingSource = 'automatic' | 'ai' | 'teacher' | 'mixed';
+
+export type ActivityExportStatus = 'pending' | 'ready' | 'error';
+
+/** Metadata chung cho các file dẫn xuất từ đúng một snapshot nội dung. */
+export interface ActivityExportBundle {
+  status: ActivityExportStatus;
+  contentVersion: string;
+  contentHash: string;
+  studentPdfUrl?: string;
+  studentDocxUrl?: string;
+  teacherKeyPdfUrl?: string;
+  teacherKeyDocxUrl?: string;
+  generatedAt?: string;
+  errorMessage?: string;
+}
+
+/** Phần export an toàn có thể gửi vào projection học sinh. */
+export type StudentActivityExportBundle = Pick<
+  ActivityExportBundle,
+  'status' | 'contentVersion' | 'contentHash' | 'studentPdfUrl' | 'studentDocxUrl' | 'generatedAt'
+>;
+
+/**
+ * Thông báo gửi tới một học sinh.
+ *
+ * CHỈ lưu những việc không suy ra được từ dữ liệu em đã có. Bài bị giáo viên xoá là ca duy nhất
+ * như vậy: document bài nộp biến mất nên không còn dấu vết nào để cổng học sinh dựng lại. Các
+ * việc khác (nộp xong, chấm xong, chấm lỗi, giáo viên duyệt điểm) đọc thẳng từ bài nộp — lưu
+ * thêm một bản sao chỉ tạo cơ hội cho hai nguồn lệch nhau.
+ */
+export interface StudentNotificationDoc {
+  id: string;
+  studentId: string;
+  classId: string;
+  teacherId: string;
+  type: 'submission_deleted';
+  assignmentId?: string;
+  /** Tên bài lúc xoá — giữ lại vì bài giao có thể bị đổi tên hoặc xoá sau đó. */
+  assignmentTitle?: string;
+  /** Lời giáo viên gõ khi xoá. Bỏ trống thì cổng học sinh dùng câu mặc định. */
+  reason?: string;
+  createdAt: string;
+}
+
+/** Nội dung một câu của đề, do máy chủ đọc một lần rồi lưu cùng bài giao. */
+export interface AssignmentQuestionCatalogItem {
+  /** Nhãn chép nguyên văn theo đề, dùng để khớp với nhãn từng câu của lượt chấm. */
+  questionNumber: string;
+  /** Đề bài của câu đó, công thức đã ở dạng LaTeX để hiển thị được ngay. */
+  content: string;
+  maxScore?: number;
+  expectedAnswer?: string;
+}
+
+/** Nhãn năng lực AI gợi ý cho bài (khớp CompetencyTag của competency/framework). Giáo viên duyệt. */
+export interface AssignmentCompetencyTag {
+  /** id trong MATH_COMPETENCIES; đã lọc theo khung khối nên không có id lạ. */
+  competencyId: string;
+  /** Độ chắc 0..1 do AI tự đánh giá — chỗ thấp thì soát kỹ. */
+  confidence: number;
+  /** Căn cứ ngắn AI đưa ra. */
+  reason: string;
+}
 
 /** Một bài giáo viên giao cho lớp. */
 export interface AssignmentDoc {
@@ -88,16 +239,110 @@ export interface AssignmentDoc {
   maxScore?: number;
   /** File đề giáo viên đính kèm để học sinh mở ra xem (PDF, ảnh, Word). */
   attachments?: AssignmentAttachment[];
+  /** Chữ rút từ file đề, dùng làm nguồn tham chiếu chung khi AI chấm cả lớp. */
+  sourceText?: string;
+  /**
+   * Nội dung từng câu của đề, máy chủ đọc MỘT LẦN rồi lưu lại.
+   *
+   * Thiếu nó thì báo cáo phải tải đề gốc về trình duyệt và OCR lại mỗi lần giáo viên bấm xem
+   * một câu — chậm, lặp vô ích, và hỏng ngay ở bước tải file.
+   */
+  questionCatalog?: AssignmentQuestionCatalogItem[];
+  /**
+   * Năng lực AI gắn cho bài (một lượt cùng lúc đọc questionCatalog). Nền cho hồ sơ năng lực:
+   * mỗi bài đã duyệt trở thành bằng chứng cho các năng lực này. Giáo viên duyệt/sửa sau.
+   */
+  competencyTags?: AssignmentCompetencyTag[];
+  /** true khi giáo viên đã duyệt nhãn năng lực — đọc lại đề không đè nhãn tay nữa. */
+  competencyTagsApproved?: boolean;
+  /** Ảnh đề/ảnh PDF scan đã chuẩn hoá, gửi một lần làm ngữ cảnh chấm. */
+  sourceImageUrls?: string[];
+  /** Lệnh nội bộ của giáo viên cho AI: phạm vi câu/bài, phần cần bỏ qua, cách xử lý đặc biệt. */
+  gradingInstructions?: string;
   /** Ảnh đáp án khi không rút được chữ — gửi kèm MỖI lượt chấm nên tốn hơn bản có chữ. */
   answerKeyImageUrls?: string[];
   /** true khi đáp án do AI giải ra (giáo viên vẫn soát và sửa được trước khi giao). */
   answerKeyByAi?: boolean;
+  /** Người tạo/cập nhật gần nhất; không thay đổi namespace teacherId legacy. */
+  createdBy?: string;
+  updatedBy?: string;
+  /** Ghi chú nguồn dành cho giáo viên khi tổng hợp báo cáo. */
+  teacherNote?: string;
+  /** Chỉ là cờ an toàn cho cổng học sinh; không chứa nội dung đáp án. */
+  hasAnswerKey?: boolean;
+  /** Mục đích sư phạm; bài legacy được adapter mặc định là assignment. */
+  purpose?: ActivityPurpose;
+  /** Kênh phát hành; upload legacy mặc định là file, exam legacy là online. */
+  deliveryMode?: DeliveryMode;
+  /** Kỹ năng mà hoạt động nhắm tới. */
+  skillIds?: string[];
+  /** Báo cáo đã sinh ra hoạt động này, nếu có. */
+  sourceReportId?: string;
+  /** Chính sách xác định điểm chính thức. */
+  gradingPolicy?: GradingPolicy;
+  /** Phiên nội dung bất biến mà bài giao đang trỏ tới. */
+  contentVersion?: string;
+  /** File dẫn xuất từ đúng snapshot nội dung. */
+  exportBundle?: ActivityExportBundle;
+  /** Nhóm học sinh đích; vắng field nghĩa là cả lớp. */
+  targetStudentIds?: string[];
   isOpen: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
+/** Projection cổng học sinh nhận từ server; không chứa answerKey/rubric/instructions. */
+export type StudentAssignmentView = Pick<
+  AssignmentDoc,
+  'id' | 'teacherId' | 'classId' | 'title' | 'description' | 'type' | 'examId'
+  | 'dueAt' | 'maxScore' | 'attachments' | 'isOpen' | 'createdAt' | 'updatedAt'
+  | 'purpose' | 'deliveryMode' | 'skillIds' | 'sourceReportId' | 'gradingPolicy' | 'contentVersion'
+> & {
+  hasAnswerKey: boolean;
+  exportBundle?: StudentActivityExportBundle;
+};
+
 export type SubmissionStatus = 'submitted' | 'grading' | 'graded' | 'error';
+
+export type QuestionResultStatus =
+  | 'correct'
+  | 'partially_correct'
+  | 'incorrect'
+  | 'unreadable'
+  | 'not_attempted';
+
+/** Chi tiết có cấu trúc của một câu — để học sinh biết mình sai ở đâu, không chỉ nhận một điểm tổng. */
+export interface QuestionResult {
+  /** Giữ đúng số câu trong đề: "Câu 1", "Bài 2a"... */
+  questionNumber: string;
+  status: QuestionResultStatus;
+  score: number;
+  maxScore: number;
+  /** Trích phần học sinh đã làm; không được AI tự bịa nếu ảnh/chữ không đọc được. */
+  studentAnswer: string;
+  /** Đáp án hoặc mốc chấm tương ứng của câu. */
+  expectedAnswer: string;
+  /** Ví dụ: "Sai dấu", "Thiếu bước biến đổi", "Chưa trả lời". */
+  errorType: string;
+  /** Vì sao phần làm đó đúng/sai. */
+  explanation: string;
+  /** Một chỉ dẫn sửa cụ thể, có thể làm theo. */
+  correction: string;
+  /** Bài luyện tiếp theo, không phải một nhãn yếu chung chung. */
+  nextPractice: string;
+  /** 0..1; chỉ có khi AI tự đánh giá được độ chắc chắn. */
+  confidence?: number;
+  /** true khi phần này được bỏ qua có chủ đích theo lệnh riêng của giáo viên. */
+  ignoredByTeacherInstruction?: boolean;
+  /** true khi giáo viên cần xem lại vì dữ liệu mờ, thiếu hoặc AI không chắc. */
+  needsTeacherReview: boolean;
+}
+
+export interface GradingRecovery {
+  mode: 'syntax_repaired' | 'retry_recovered';
+  retryCount: 0 | 1;
+  repairKinds: string[];
+}
 
 /** Kết quả AI chấm, tách riêng để phân biệt rõ phần học sinh ghi và phần máy ghi. */
 export interface SubmissionGrade {
@@ -109,6 +354,8 @@ export interface SubmissionGrade {
   noteForTeacher?: string;
   strengths: string[];
   weaknesses: string[];
+  /** Chi tiết từng câu; optional để đọc được các bài chấm trước khi có schema này. */
+  questionResults?: QuestionResult[];
   /** Chủ đề còn yếu, chỉ vào hồ sơ sau khi giáo viên duyệt. */
   weakTopics?: string[];
   /** true khi chấm mà không có đáp án chuẩn — kết quả kém tin cậy hơn. */
@@ -118,8 +365,36 @@ export interface SubmissionGrade {
   teacherNote?: string;
   /** true khi giáo viên đã xem và đồng ý — điều kiện để vào hồ sơ tích luỹ. */
   teacherApproved: boolean;
+  /** Nguồn duyệt điểm: 'student_ai' khi học sinh tự chấm AI thành công, 'teacher' khi giáo viên duyệt. */
+  approvalSource?: ApprovalSource;
   /** true khi giáo viên sửa tay điểm/nhận xét sau khi máy chấm. */
   editedByTeacher?: boolean;
+  /** Metadata tối thiểu để giáo viên biết kết quả đã được hệ thống phục hồi. */
+  gradingRecovery?: GradingRecovery;
+  /** Bản máy CHÉP LẠI bài làm từ ảnh ở pha 1 (chấm 2 pha) — để giáo viên soát máy đọc ra gì. */
+  transcription?: string;
+}
+
+export type SubmissionGradeRevisionAction = 'manual_edit' | 'approve' | 'delete' | 'automatic_regrade' | 'ai_regrade' | 'student_ai';
+
+/** 'auto_timeout' = máy tự duyệt vì quá 60 phút giáo viên chưa duyệt. */
+export type ApprovalSource = 'student_ai' | 'teacher' | 'auto_timeout';
+
+/**
+ * Bản chụp bất biến của một kết quả chấm trước khi giáo viên sửa/xóa hoặc AI chấm lại.
+ * Collection này chỉ do Admin SDK dùng; không đưa vào projection cho học sinh.
+ */
+export interface SubmissionGradeHistoryDoc {
+  id: string;
+  submissionId: string;
+  teacherId: string;
+  classId: string;
+  studentId: string;
+  assignmentId: string | null;
+  action: SubmissionGradeRevisionAction;
+  actorUid: string;
+  grade: SubmissionGrade;
+  createdAt: string;
 }
 
 /**
@@ -132,24 +407,61 @@ export interface SubmissionDoc {
   classId: string;
   studentId: string;
   assignmentId: string | null;
-  /** Đường dẫn ảnh/PDF trên Firebase Storage. */
+  /** Revision này bổ sung vào submission trước; bản trước vẫn là lịch sử bất biến. */
+  supplementOf?: string;
+  /** Đường dẫn ảnh/PDF/Word trên Firebase Storage. */
   fileUrls: string[];
+  /** Chữ rút từ file Word — đường AI dùng khi bài không phải ảnh. */
+  textContent?: string;
+  /** Metadata để giao diện mở đúng loại file thay vì cố render mọi file thành ảnh. */
+  attachments?: SubmissionAttachment[];
   note: string;
   status: SubmissionStatus;
+  /** Token nội bộ của worker AI đang giữ lượt chấm; không do client tự đặt. */
+  gradingRunId?: string | null;
   grade?: SubmissionGrade;
   errorMessage?: string;
+  /** Lỗi xử lý gần nhất khi chấm lại thất bại nhưng grade cũ vẫn hợp lệ — không dùng làm fatal error. */
+  lastGradingError?: string;
+  /** Lỗi đồng bộ minh chứng sau khi duyệt điểm — grade vẫn được duyệt, chỉ sync pending. */
+  evidenceSyncError?: string;
   createdAt: string;
   updatedAt: string;
 }
 
+export type SubmissionAttachmentKind = 'image' | 'pdf' | 'document' | 'unknown';
+
+export interface SubmissionAttachment {
+  name: string;
+  url: string;
+  mimeType?: string;
+  size?: number;
+  kind?: SubmissionAttachmentKind;
+}
+
 export type MasteryLevel = 'weak' | 'developing' | 'solid';
+
+export type ProfileEvidenceType = 'homework' | 'strength' | 'practice' | 'transfer';
+
+/** Bằng chứng có định danh ổn định hơn submissionId để phân biệt nộp lại cùng một bài. */
+export interface ProfileEvidenceRef {
+  submissionId: string;
+  assignmentId?: string;
+  skillId?: string;
+  evidenceType?: ProfileEvidenceType;
+  assessedAt: string;
+  confidence?: number;
+}
 
 /** Một chủ đề trong hồ sơ, kèm bài làm làm bằng chứng. */
 export interface ProfileTopic {
   topic: string;
+  skillId?: string;
   level: MasteryLevel;
   /** Bài nộp đã dẫn tới kết luận này. Không có bằng chứng thì không được ghi. */
   evidenceSubmissionIds: string[];
+  /** Optional để giữ tương thích với hồ sơ cũ chỉ có evidenceSubmissionIds. */
+  evidenceRefs?: ProfileEvidenceRef[];
   updatedAt: string;
 }
 
@@ -159,13 +471,131 @@ export interface StudentProfileDoc {
   classId: string;
   teacherId: string;
   topics: ProfileTopic[];
+  /** Summary canonical; optional để đọc được hồ sơ legacy chưa có skill layer. */
+  skills?: StudentSkillState[];
+  updatedAt: string;
+}
+
+export interface PracticeQuestionPublic {
+  id: string;
+  question: string;
+  hint: string;
+  /** 'nhan_biet' | 'van_dung' | 'van_dung_cao'; đề cũ không có. */
+  level?: string;
+  /** Căn cứ ra câu này (kỹ năng + nguồn lỗi), cho học sinh đọc. */
+  basis?: string;
+  /** Gợi ý giàn giáo từng bước, học sinh mở dần. */
+  steps?: string[];
+  skillIds?: string[];
+}
+
+/** Bản chỉ máy chủ được đọc; không ghi vào response gửi học sinh. */
+export interface PracticeQuestionKey {
+  id: string;
+  question: string;
+  hint: string;
+  expectedAnswer: string;
+  maxScore: number;
+  skillIds?: string[];
+}
+
+export interface PracticeSetDoc {
+  id: string;
+  studentId: string;
+  classId: string;
+  teacherId: string;
+  topics: string[];
+  skillIds?: string[];
+  questions: PracticeQuestionPublic[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PracticeKeyDoc {
+  setId: string;
+  studentId: string;
+  classId: string;
+  teacherId: string;
+  skillIds?: string[];
+  questions: PracticeQuestionKey[];
+  createdAt: string;
+}
+
+export type PracticeAttemptStatus = 'grading' | 'graded' | 'error';
+
+export interface PracticeQuestionResult {
+  id: string;
+  score: number;
+  maxScore: number;
+  feedback: string;
+  expectedAnswer?: string;
+  skillIds?: string[];
+}
+
+export interface PracticeAttemptDoc {
+  id: string;
+  setId: string;
+  studentId: string;
+  classId: string;
+  teacherId: string;
+  skillIds?: string[];
+  answers: Record<string, string>;
+  status: PracticeAttemptStatus;
+  score?: number;
+  maxScore?: number;
+  feedback?: string;
+  questionResults?: PracticeQuestionResult[];
+  /** Bằng chứng formative, không phải điểm chính thức hay teacher-approved grade. */
+  evidenceType: 'practice';
+  errorMessage?: string;
+  createdAt: string;
   updatedAt: string;
 }
 
 export const CLASSES_COL = 'classes';
+export const CLASS_MEMBERS_COL = 'classMembers';
+export const CLASS_INVITATIONS_COL = 'classInvitations';
 export const STUDENTS_SUB = 'students';
 export const STUDENT_SECRETS_SUB = 'studentSecrets';
 export const STUDENT_LINKS_COL = 'studentLinks';
 export const ASSIGNMENTS_COL = 'assignments';
 export const SUBMISSIONS_COL = 'submissions';
 export const STUDENT_PROFILES_COL = 'studentProfiles';
+export const PRACTICE_SETS_COL = 'practiceSets';
+export const PRACTICE_KEYS_COL = 'practiceKeys';
+export const PRACTICE_ATTEMPTS_COL = 'practiceAttempts';
+
+export type ActivitySourceType = 'assignment' | 'online_exam' | 'practice';
+
+export type StudentActivityStatus =
+  | 'not_started'
+  | 'in_progress'
+  | 'submitted'
+  | 'grading'
+  | 'pending_teacher'
+  | 'official'
+  | 'formative_complete'
+  | 'error';
+
+/** Projection dùng chung cho dashboard học sinh và ma trận tiến trình. */
+export interface StudentActivityView {
+  id: string;
+  sourceType: ActivitySourceType;
+  assignmentId?: string;
+  examId?: string;
+  practiceSetId?: string;
+  title: string;
+  purpose: ActivityPurpose;
+  deliveryMode: DeliveryMode;
+  gradingPolicy?: GradingPolicy;
+  skillIds: string[];
+  contentVersion: string;
+  dueAt?: string;
+  maxScore?: number;
+  attemptCount: number;
+  latestAttemptAt?: string;
+  provisionalScore: number | null;
+  officialScore: number | null;
+  status: StudentActivityStatus;
+  nextAction: 'start' | 'resume' | 'view_feedback' | 'wait_teacher' | 'retry' | 'practice_again';
+}

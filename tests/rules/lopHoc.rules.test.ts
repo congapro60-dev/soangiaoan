@@ -109,6 +109,14 @@ beforeEach(async () => {
       description: '', type: 'upload', isOpen: false,
       createdAt: '2026-08-20T00:00:00.000Z', updatedAt: '2026-08-20T00:00:00.000Z',
     });
+    await setDoc(doc(db, 'practiceKeys/set-1'), {
+      setId: 'set-1', studentId: HS_A, classId: LOP, teacherId: UID_GV,
+      questions: [{ id: 'q1', expectedAnswer: 'x = 2' }],
+    });
+    await setDoc(doc(db, 'practiceSets/set-1'), {
+      id: 'set-1', studentId: HS_A, classId: LOP, teacherId: UID_GV,
+      questions: [{ id: 'q1', question: 'Giải x + 1 = 3', hint: '' }],
+    });
 
     await setDoc(doc(db, 'submissions/bai-1'), baiNopMau());
     await setDoc(doc(db, 'submissions/bai-da-cham'), baiNopMau({
@@ -204,8 +212,8 @@ describe('studentLinks · phiên đăng nhập học sinh', () => {
 });
 
 describe('assignments · bài được giao', () => {
-  it('17. Học sinh đọc bài đang mở của lớp mình → ALLOW', async () => {
-    await assertSucceeds(getDoc(doc(dbHsA(), 'assignments/bt-1')));
+  it('17. Học sinh không đọc document assignment gốc nữa → DENY (dùng projection server)', async () => {
+    await assertFails(getDoc(doc(dbHsA(), 'assignments/bt-1')));
   });
 
   it('18. Học sinh đọc bài CHƯA phát hành → DENY', async () => {
@@ -215,6 +223,15 @@ describe('assignments · bài được giao', () => {
   it('19. Học sinh lớp khác đọc bài của lớp này → DENY', async () => {
     await assertFails(getDoc(doc(dbHsB(), 'assignments/bt-1')));
   });
+
+  it('19a. Học sinh không đọc được practice key chứa expectedAnswer → DENY', async () => {
+    await assertFails(getDoc(doc(dbHsA(), 'practiceKeys/set-1')));
+  });
+
+  it('19b. Học sinh không đọc trực tiếp practice set/attempt → DENY (đi qua API)', async () => {
+    await assertFails(getDoc(doc(dbHsA(), 'practiceSets/set-1')));
+    await assertFails(getDoc(doc(dbHsA(), 'practiceAttempts/attempt-1')));
+  });
 });
 
 describe('submissions · bài nộp', () => {
@@ -222,8 +239,8 @@ describe('submissions · bài nộp', () => {
     await assertFails(getDoc(doc(dbHsB(), 'submissions/bai-1')));
   });
 
-  it('21. Học sinh đọc bài nộp của chính mình → ALLOW', async () => {
-    await assertSucceeds(getDoc(doc(dbHsA(), 'submissions/bai-1')));
+  it('21. Học sinh không đọc raw submission vì có note nội bộ → DENY (dùng projection API)', async () => {
+    await assertFails(getDoc(doc(dbHsA(), 'submissions/bai-1')));
   });
 
   it('22. Học sinh nộp bài hợp lệ → ALLOW', async () => {
@@ -310,5 +327,39 @@ describe('studentProfiles · hồ sơ tích luỹ', () => {
 
   it('35. Giáo viên xoá lớp của mình → ALLOW', async () => {
     await assertSucceeds(deleteDoc(doc(dbGV(), `classes/${LOP}`)));
+  });
+});
+
+describe('studentSkillEvidence · ledger server-only', () => {
+  it('36. Mọi client đọc/ghi ledger skill trực tiếp → DENY', async () => {
+    const payload = {
+      studentId: HS_A,
+      classId: LOP,
+      teacherId: UID_GV,
+      evidenceId: 'submission-1:math.line-equation',
+      skillId: 'math.line-equation',
+      source: 'homework',
+    };
+
+    await assertFails(getDoc(doc(dbGV(), 'studentSkillEvidence/e-1')));
+    await assertFails(getDocs(collection(dbHsA(), 'studentSkillEvidence')));
+    await assertFails(setDoc(doc(dbGV(), 'studentSkillEvidence/e-1'), payload));
+    await assertFails(deleteDoc(doc(dbGV(), 'studentSkillEvidence/e-1')));
+  });
+});
+
+describe('submissionGradeHistory · audit server-only', () => {
+  it('client không đọc/ghi/xóa được lịch sử điểm', async () => {
+    const payload = {
+      id: 'history-1', submissionId: 'bai-da-cham', teacherId: UID_GV,
+      classId: LOP, studentId: HS_A, assignmentId: 'bt-1', action: 'manual_edit',
+      actorUid: UID_GV, grade: { score: 8, maxScore: 10 }, createdAt: '2026-08-24T10:00:00.000Z',
+    };
+
+    await assertFails(getDoc(doc(dbGV(), 'submissionGradeHistory/history-1')));
+    await assertFails(getDocs(collection(dbHsA(), 'submissionGradeHistory')));
+    await assertFails(setDoc(doc(dbGV(), 'submissionGradeHistory/history-1'), payload));
+    await assertFails(updateDoc(doc(dbGV(), 'submissionGradeHistory/history-1'), { action: 'delete' }));
+    await assertFails(deleteDoc(doc(dbGV(), 'submissionGradeHistory/history-1')));
   });
 });

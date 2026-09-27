@@ -1,3 +1,14 @@
+import type {
+  ActivityExportBundle,
+  ActivityPurpose,
+  ClassExamSheet,
+  ClassSheetSync,
+  DeliveryMode,
+  GradeState,
+  GradingPolicy,
+  GradingSource,
+} from './lib/classroom/types.js';
+
 export interface Student {
   id: string;
   name: string;
@@ -11,11 +22,18 @@ export interface ClassAssignment {
   examCode: string;
   examTitle: string;
   assignedAt: string;
+  purpose?: ActivityPurpose;
+  deliveryMode?: DeliveryMode;
+  skillIds?: string[];
+  contentVersion?: string;
+  exportBundle?: ActivityExportBundle;
 }
 
 export interface TeacherClass {
   id: string;
   name: string;
+  /** Tên lớp cũ để ghép các bài online legacy sau khi giáo viên đổi tên lớp. */
+  previousNames?: string[];
   track: string;
   grade: string;
   studentCount: number;
@@ -24,6 +42,10 @@ export interface TeacherClass {
   tone: 'primary' | 'secondary' | 'tertiary' | 'warning';
   students: Student[];
   assignments?: ClassAssignment[];
+  /** Tab Google Sheet đã nối để đồng bộ BTVN; vắng là lớp không đồng bộ. */
+  sheetSync?: ClassSheetSync | null;
+  /** File điểm thi (tab MOET/TDS) đã nối cho lớp; vắng là chưa nối. */
+  examSheet?: ClassExamSheet | null;
 }
 
 export interface Subject {
@@ -78,7 +100,7 @@ export interface TemplateFile {
   content: string;
   category: 'sample' | 'criteria' | 'lesson_doc' | 'distribution' | 'test' | 'matrix';
   /** Phase 2A MVP: Markdown Skeleton trích từ mẫu để giữ heading/bảng/placeholder khi gọi AI. */
-  skeleton?: import('./lib/documentSkeleton').DocumentSkeleton;
+  skeleton?: import('./lib/documentSkeleton.js').DocumentSkeleton;
 }
 
 export interface LessonTemplate {
@@ -158,6 +180,13 @@ export interface Exam {
   hideLeaderboard?: boolean;
   preExamNotice?: string;
   tfScoringMode?: 'all_or_nothing' | 'thpt2025';
+  purpose?: ActivityPurpose;
+  contentVersion?: string;
+  parentExamId?: string;
+  skillIds?: string[];
+  sourceReportId?: string;
+  exportBundle?: ActivityExportBundle;
+  isImmutableAfterPublish?: boolean;
 }
 
 export interface StudentAnswer {
@@ -166,6 +195,9 @@ export interface StudentAnswer {
   autoScore?: number;
   aiScore?: number;
   aiFeedback?: string;
+  /** Điểm/nhận xét giáo viên sửa cho riêng câu; khác với đề xuất AI. */
+  teacherScore?: number;
+  teacherFeedback?: string;
   // Server nhúng đáp án + giải thích vào bài nộp khi chấm (chỉ khi giáo viên bật allowReview),
   // để trang kết quả xem lại được mà không cần đọc đề gốc (đề gửi học sinh đã lược đáp án).
   correctAnswer?: string;
@@ -185,9 +217,20 @@ export interface ExamSubmission {
   totalScore?: number;
   maxScore: number;
   status: 'in_progress' | 'submitted' | 'graded';
+  /** Kết quả chấm online có vòng đời provisional → teacher review → official. */
+  grade?: import('./lib/classroom/types.js').SubmissionGrade;
   tabSwitches?: number;
   /** Unauthenticated student submissions are protected primarily by an unguessable document id. */
   clientNonce?: string;
+  classId?: string;
+  assignmentId?: string;
+  attemptNumber?: number;
+  activityPurpose?: ActivityPurpose;
+  gradeState?: GradeState;
+  gradingSource?: GradingSource;
+  approvalMode?: 'automatic_policy' | 'teacher';
+  teacherApprovedAt?: string;
+  supersedesSubmissionId?: string;
 }
 
 export type GradeLevel = 'cap2' | 'lop1011' | 'lop12';

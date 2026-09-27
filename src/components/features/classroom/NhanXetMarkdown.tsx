@@ -3,6 +3,7 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
+import { sanitizeDisplayText } from '../../../lib/adaptive/mathText';
 
 interface Props {
   children: string;
@@ -19,7 +20,7 @@ interface Props {
  * cũng không tới được người cần nghe.
  */
 export const NhanXetMarkdown = ({ children, tone = 'thuong' }: Props) => {
-  const text = String(children || '').trim();
+  const text = sanitizeDisplayText(String(children || ''));
   if (!text) return null;
 
   const mau = tone === 'sang'

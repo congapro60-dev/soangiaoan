@@ -1,4 +1,4 @@
-import type { AdaptiveSimulationSpec } from './simulationTypes';
+import type { AdaptiveSimulationSpec } from './simulationTypes.js';
 
 export type LearningRoute = 'foundation' | 'standard' | 'challenge';
 export type LessonStatus = 'draft' | 'published' | 'archived';
@@ -73,6 +73,10 @@ export interface CommonMisconception {
 export interface LearningObjective {
   id: string;
   code: string;
+  /** Phân biệt mục tiêu nội dung và mục tiêu ngôn ngữ khi có nguồn tách riêng. */
+  kind?: 'math' | 'language';
+  /** Khóa năng lực dùng chung; objective cũ không có thì bridge không tự đoán. */
+  skillId?: string;
   title: string;
   description: string;
   bloomLevel: BloomLevel;
@@ -306,6 +310,8 @@ export interface TeacherFlag {
 export interface StudentObjectiveMemory {
   objectiveId: string;
   objectiveCode: string;
+  /** Khóa năng lực dùng chung; chỉ có khi objective nguồn đã gắn explicit. */
+  skillId?: string;
   title: string;
   attempts: number;
   masteryEstimate: number;

@@ -50,3 +50,10 @@ Danh s*ch l*p d*y*/
 giao an manus tao/
 giáo án định hướng/
 manus huong dan/
+.vercel
+
+# Local brainstorming companion screens — never release artifacts.
+.superpowers/
+
+# Sinh lúc build từ extension/ssm-bridge (scripts/pack-ssm-bridge.mjs) — không commit bản zip.
+public/downloads/ssm-bridge.zip

@@ -1,4 +1,6 @@
 import type { StudentLearningProfile, StudentSessionProgressRecord } from '../lib/adaptive/types';
+import { auth } from '../lib/firebase';
+import type { LiveLessonDefinition } from '../lib/liveLesson/types';
 
 export interface SaveAdaptiveProgressPayload {
   teacherId: string;
@@ -19,6 +21,14 @@ export interface OfflineAdaptiveProgressSyncResult {
   attempted: number;
   synced: number;
   failed: number;
+}
+
+export interface LiveLessonProgressSaveSummary {
+  ok: true;
+  eligible: number;
+  saved: number;
+  failed: number;
+  incomplete: number;
 }
 
 const ADAPTIVE_PROGRESS_STORAGE_PREFIX = 'adaptive-progress-';
@@ -63,6 +73,23 @@ export const saveAdaptiveProgressViaApi = async (payload: SaveAdaptiveProgressPa
   }
 
   return data as { ok: true; profile: StudentLearningProfile };
+};
+
+export const saveClosedLiveLessonProgressViaApi = async (
+  sessionId: string,
+  definition: LiveLessonDefinition,
+): Promise<LiveLessonProgressSaveSummary> => {
+  const current = auth.currentUser;
+  if (!current || current.isAnonymous) throw new Error('Cần đăng nhập tài khoản giáo viên để ghi tiến trình.');
+  const idToken = await current.getIdToken();
+  const response = await fetch('/api/adaptive-progress', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'saveLiveLessonProgress', sessionId, definition, idToken }),
+  });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(data?.error || 'Không ghi được tiến trình sau khi đóng phiên.');
+  return data as LiveLessonProgressSaveSummary;
 };
 
 export const saveAdaptiveProgressOffline = (

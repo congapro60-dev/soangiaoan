@@ -1,11 +1,27 @@
-import { type ChangeEventHandler, type RefObject, useMemo, useState } from 'react';
+import { type ChangeEventHandler, type RefObject, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, BookOpenCheck, Camera, CheckCircle2, Clock3, GraduationCap, Info, Loader2, LogOut, RefreshCw, Sparkles, Target, TrendingUp, X } from 'lucide-react';
-import type { PracticeQuestion } from '../../../../services/gradingApi';
-import type { AssignmentDoc, StudentProfileDoc, SubmissionDoc } from '../../../../lib/classroom/types';
-import { getStudentAssignmentState, latestSubmissionByAssignment, type StudentAssignmentStatus } from '../../../../lib/classroom/portalViewModel';
+import type { PracticeAttemptResult, PracticeSetResult } from '../../../../services/gradingApi';
+import type { ExamSubmission } from '../../../../types';
+import type { AssignmentDoc, StudentActivityView, StudentProfileDoc, SubmissionDoc } from '../../../../lib/classroom/types';
+import { getStudentAssignmentState, latestSubmissionByAssignment, type StudentAssignmentState, type StudentAssignmentStatus } from '../../../../lib/classroom/portalViewModel';
+import { buildStudentProgressSummary, studentActivityNextActionLabel, studentActivityStatusLabel } from '../../../../lib/classroom/studentProgressModel';
+import { buildStudentSkillCards } from '../../../../lib/classroom/skillViewModel';
 import { StudentAssignmentCard } from './StudentAssignmentCard';
+import { StudentNotificationBell } from './StudentNotificationBell';
+import { StudentScoreBoard } from './StudentScoreBoard';
+import { NhanXetMarkdown } from '../NhanXetMarkdown';
+import { PracticeScaffold } from './PracticeScaffold';
+
+const PRACTICE_LEVEL_LABEL: Record<string, { label: string; className: string }> = {
+  nhan_biet: { label: 'Nhận biết · Thông hiểu', className: 'bg-emerald-50 text-emerald-700' },
+  van_dung: { label: 'Vận dụng', className: 'bg-blue-50 text-blue-700' },
+  van_dung_cao: { label: 'Vận dụng cao', className: 'bg-violet-50 text-violet-700' },
+};
+import type { StudentScoreView } from '../../../../lib/classroom/scoreBook';
+import type { StudentFeedItem } from '../../../../lib/classroom/studentNotifications';
 
 interface SessionInfo {
+  studentId: string;
   studentName: string;
   className: string;
 }
@@ -14,7 +30,10 @@ interface Props {
   session: SessionInfo;
   assignments: AssignmentDoc[];
   submissions: SubmissionDoc[];
+  onlineSubmissions: ExamSubmission[];
   profile: StudentProfileDoc | null;
+  /** Sổ điểm của em (thi định kì + hệ số 1); null khi chưa tải được. */
+  scores: StudentScoreView | null;
   loading: boolean;
   uploadingId: string;
   uploadStep: string;
@@ -22,15 +41,31 @@ interface Props {
   warningMessage: string;
   actionError: string;
   dataError: string;
-  practice: PracticeQuestion[];
+  practiceSet: PracticeSetResult | null;
+  practiceAnswers: Record<string, string>;
+  practiceAttempt: PracticeAttemptResult | null;
   loadingPractice: boolean;
+  submittingPractice: boolean;
+  practiceError: string;
   uploadRef: RefObject<HTMLInputElement | null>;
+  pendingFiles: readonly File[];
+  pendingAssignmentTitle: string | null;
+  maxPendingFiles: number;
   onFileChange: ChangeEventHandler<HTMLInputElement>;
-  onChooseImage: (assignmentId: string | null) => void;
+  onChooseImage: (assignmentId: string | null, supplementOf?: string) => void;
+  onAddMoreImages: () => void;
+  onRemovePendingFile: (index: number) => void;
+  onSubmitPendingFiles: () => void;
   onOpenAssignment: (assignment: AssignmentDoc | undefined, submission?: SubmissionDoc) => void;
+  /** Dòng thời gian thông báo đã gộp sẵn ở trang cha. */
+  notifications: readonly StudentFeedItem[];
+  notificationsLastSeenAt: string | null;
+  onNotificationsOpened: (seenAt: string) => void;
   onSignOut: () => void;
   onReload: () => void;
   onLoadPractice: () => void;
+  onPracticeAnswerChange: (questionId: string, answer: string) => void;
+  onSubmitPractice: () => void;
   onDismissSuccess: () => void;
 }
 
@@ -57,11 +92,32 @@ const statusLabel = (status: StudentAssignmentStatus): string => {
   return 'Đang xử lý';
 };
 
+const onlineAssignmentState = (activity?: StudentActivityView): StudentAssignmentState => {
+  if (!activity || activity.status === 'not_started') {
+    return { status: 'todo', action: 'submit', label: 'Làm bài online' };
+  }
+  if (activity.status === 'in_progress') {
+    return { status: 'waiting', action: 'status', label: 'Tiếp tục làm', detail: 'Bài đang được lưu dở.' };
+  }
+  if (activity.status === 'error') {
+    return { status: 'retry', action: 'retry', label: 'Thử lại', detail: 'Lượt làm trước chưa hoàn tất.' };
+  }
+  if (activity.status === 'official') {
+    return { status: 'graded', action: 'review', label: 'Xem kết quả' };
+  }
+  if (activity.status === 'grading') {
+    return { status: 'grading', action: 'status', label: 'Đang chấm' };
+  }
+  return { status: 'waiting', action: 'status', label: 'Chờ kết quả' };
+};
+
 export const StudentPortalDashboard = ({
   session,
   assignments,
   submissions,
+  onlineSubmissions,
   profile,
+  scores,
   loading,
   uploadingId,
   uploadStep,
@@ -69,42 +125,93 @@ export const StudentPortalDashboard = ({
   warningMessage,
   actionError,
   dataError,
-  practice,
+  practiceSet,
+  practiceAnswers,
+  practiceAttempt,
   loadingPractice,
+  submittingPractice,
+  practiceError,
   uploadRef,
+  pendingFiles,
+  pendingAssignmentTitle,
+  maxPendingFiles,
   onFileChange,
   onChooseImage,
+  onAddMoreImages,
+  onRemovePendingFile,
+  onSubmitPendingFiles,
   onOpenAssignment,
+  notifications,
+  notificationsLastSeenAt,
+  onNotificationsOpened,
   onSignOut,
   onReload,
   onLoadPractice,
+  onPracticeAnswerChange,
+  onSubmitPractice,
   onDismissSuccess,
 }: Props) => {
   const [filter, setFilter] = useState<FilterKey>('all');
+  // Khối "đang chờ nộp" nằm ở đầu trang; học sinh bấm bổ sung ảnh ở thẻ bài giữa/dưới trang nên
+  // chọn xong không thấy gì trên điện thoại. Cuộn khối đó vào tầm mắt ngay khi có tệp được chọn.
+  const pendingSectionRef = useRef<HTMLElement>(null);
+  const soTepChoNop = pendingFiles.length;
+  useEffect(() => {
+    if (soTepChoNop > 0) {
+      pendingSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [soTepChoNop]);
+  const pendingPreviewUrls = useMemo(() => pendingFiles.map(file => (
+    file.type.startsWith('image/') && typeof URL.createObjectURL === 'function'
+      ? URL.createObjectURL(file)
+      : null
+  )), [pendingFiles]);
+  useEffect(() => () => {
+    pendingPreviewUrls.forEach(url => {
+      if (url) URL.revokeObjectURL(url);
+    });
+  }, [pendingPreviewUrls]);
   const latest = useMemo(() => latestSubmissionByAssignment(submissions), [submissions]);
+  const progressSummary = useMemo(() => buildStudentProgressSummary({
+    studentId: session.studentId,
+    assignments,
+    submissions,
+    examSubmissions: onlineSubmissions,
+    profile,
+  }), [assignments, onlineSubmissions, profile, session.studentId, submissions]);
+  const activityByAssignment = useMemo(() => new Map(
+    progressSummary.assignmentActivities
+      .filter(activity => Boolean(activity.assignmentId))
+      .map(activity => [activity.assignmentId as string, activity]),
+  ), [progressSummary.assignmentActivities]);
   const rows = useMemo(() => assignments.map(assignment => {
     const submission = latest.get(assignment.id);
-    return { assignment, submission, state: getStudentAssignmentState(assignment, submission) };
-  }), [assignments, latest]);
+    return assignment.type === 'exam'
+      ? { assignment, submission: undefined, state: onlineAssignmentState(activityByAssignment.get(assignment.id)) }
+      : { assignment, submission, state: getStudentAssignmentState(assignment, submission) };
+  }), [activityByAssignment, assignments, latest]);
   const visibleRows = useMemo(() => rows.filter(row => statusFilterMatch(row.state.status, filter)), [filter, rows]);
+  const homeworkScores = useMemo(() => progressSummary.officialActivities.flatMap(activity => (
+    activity.officialScore !== null && typeof activity.maxScore === 'number' && activity.maxScore > 0
+      ? [{ id: activity.id, title: activity.title, score: activity.officialScore, maxScore: activity.maxScore }]
+      : []
+  )), [progressSummary.officialActivities]);
   const selfSubmissions = useMemo(() => submissions
     .filter(submission => !submission.assignmentId)
     .sort((left, right) => right.createdAt.localeCompare(left.createdAt)), [submissions]);
-  const assignedGraded = useMemo(() => rows
-    .filter(row => row.state.status === 'graded')
-    .map(row => row.submission)
-    .filter((item): item is SubmissionDoc => Boolean(item)), [rows]);
-  const allGraded = useMemo(() => [
-    ...assignedGraded,
-    ...selfSubmissions.filter(submission => submission.status === 'graded'),
-  ], [assignedGraded, selfSubmissions]);
-  const scoredAverage = allGraded.length > 0
-    ? (allGraded.reduce((sum, submission) => sum + (submission.grade?.score ?? 0), 0) / allGraded.length).toFixed(1)
-    : '—';
-  const completedCount = rows.filter(row => row.state.status !== 'todo').length;
-  const progress = assignments.length > 0 ? Math.round((completedCount / assignments.length) * 100) : 0;
-  const weakTopics = (profile?.topics || []).filter(topic => topic.level === 'weak');
-  const strongTopics = (profile?.topics || []).filter(topic => topic.level === 'solid');
+  const scoredAverage = progressSummary.officialAveragePercent === null
+    ? '—'
+    : `${progressSummary.officialAveragePercent.toFixed(1)}%`;
+  const progress = Math.round(progressSummary.completionRate * 100);
+  const legacyTopics = profile?.topics || [];
+  const weakTopics = progressSummary.weakTopics.length > 0
+    ? progressSummary.weakTopics
+    : legacyTopics.filter(topic => topic.level === 'weak').map(topic => topic.topic);
+  const strongTopics = progressSummary.strongTopics.length > 0
+    ? progressSummary.strongTopics
+    : legacyTopics.filter(topic => topic.level === 'solid').map(topic => topic.topic);
+  const skillCards = buildStudentSkillCards(profile?.skills);
+  const hasProfileData = skillCards.length > 0 || legacyTopics.length > 0;
   const counts = useMemo(() => ({
     all: rows.length,
     todo: rows.filter(row => row.state.status === 'todo').length,
@@ -112,6 +219,21 @@ export const StudentPortalDashboard = ({
     retry: rows.filter(row => row.state.status === 'retry').length,
     graded: rows.filter(row => row.state.status === 'graded').length,
   }), [rows]);
+  // Việc CẦN LÀM ngay: bài chưa nộp trước, rồi tới bài cần nộp lại. Đây là hành động chính của
+  // trang — làm nổi bật để HS không bấm nhầm nút "chấm thử" tưởng là nộp bài.
+  const viecCanLam = useMemo(
+    () => rows.find(row => row.state.status === 'todo') || rows.find(row => row.state.status === 'retry') || null,
+    [rows],
+  );
+  // Bài vừa bị thầy cô xoá thì quay về "Cần nộp"; kèm luôn lời nhắc ngay trên thẻ bài để em
+  // không phải mở chuông mới hiểu vì sao bài biến mất.
+  const deletedNotices = useMemo(() => new Map(
+    notifications
+      .filter(item => item.kind === 'submission_deleted' && item.assignmentId)
+      .map(item => [item.assignmentId as string, item.body] as const),
+  ), [notifications]);
+  const practiceQuestions = practiceSet?.questions ?? [];
+  const practiceResults = new Map((practiceAttempt?.questionResults ?? []).map(result => [result.id, result]));
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-slate-50 pb-10">
@@ -124,6 +246,12 @@ export const StudentPortalDashboard = ({
             <p className="truncate text-sm font-black leading-tight text-slate-900">{session.studentName}</p>
             <p className="truncate text-xs font-semibold text-slate-400">{session.className}</p>
           </div>
+          <StudentNotificationBell
+            items={notifications}
+            lastSeenAt={notificationsLastSeenAt}
+            onOpened={onNotificationsOpened}
+            onSelectAssignment={assignmentId => onOpenAssignment(assignments.find(item => item.id === assignmentId), latestSubmissionByAssignment(submissions).get(assignmentId))}
+          />
           <button type="button" onClick={onSignOut} title="Đăng xuất" aria-label="Đăng xuất" className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-2xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-700">
             <LogOut className="h-5 w-5" />
           </button>
@@ -134,19 +262,52 @@ export const StudentPortalDashboard = ({
         {/* KHONG dat capture="environment": tren dien thoai capture THANG multiple, may mo thang
             camera va tra ve DUNG MOT anh. Bo di thi trinh chon cho phep chup moi lan nhieu tam
             va lay tu thu vien. Nhan them PDF vi nhieu em nop ban scan nhieu trang. */}
-        <input ref={uploadRef} type="file" accept="image/*,application/pdf,.pdf" multiple className="hidden" onChange={onFileChange} />
+        <input ref={uploadRef} type="file" accept="image/*,application/pdf,.pdf,.docx" multiple className="hidden" onChange={onFileChange} />
 
         <section className="overflow-hidden rounded-[1.75rem] bg-slate-900 p-5 text-white shadow-xl shadow-slate-200 sm:p-7">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-            <div className="min-w-0">
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-indigo-300">Bảng việc của em</p>
-              <h1 className="mt-2 break-words text-2xl font-black tracking-tight sm:text-3xl">Hôm nay em cần làm gì?</h1>
-              <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-300">Mỗi bài chỉ có một bước tiếp theo rõ ràng. Em có thể nộp ảnh bằng điện thoại và xem ngay bài đang chờ chấm ở đây.</p>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-indigo-300">Bảng việc của em</p>
+          <h1 className="mt-2 break-words text-2xl font-black tracking-tight sm:text-3xl">Hôm nay em cần làm gì?</h1>
+
+          {viecCanLam ? (
+            <div className="mt-4 rounded-2xl bg-white/10 p-4 ring-1 ring-white/15 sm:p-5">
+              <p className="text-[11px] font-black uppercase tracking-[0.16em] text-indigo-300">
+                {viecCanLam.state.status === 'retry' ? 'Cần nộp lại' : 'Việc cần làm ngay'}
+              </p>
+              <p className="mt-1 break-words text-lg font-black leading-6">{viecCanLam.assignment.title}</p>
+              <p className="mt-1 text-sm font-semibold text-slate-300">{viecCanLam.state.label}</p>
+              <button
+                type="button"
+                onClick={() => onChooseImage(viecCanLam.assignment.id)}
+                disabled={uploadingId !== ''}
+                className="mt-3 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-indigo-500 px-5 py-3 text-base font-black text-white shadow-lg shadow-indigo-950/40 transition hover:bg-indigo-400 disabled:opacity-60 sm:w-auto"
+              >
+                {uploadingId === viecCanLam.assignment.id ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
+                {uploadingId === viecCanLam.assignment.id ? 'Đang xử lý...' : 'Chụp & nộp bài này'}
+              </button>
+              {counts.todo + counts.retry > 1 && (
+                <p className="mt-2 text-xs font-semibold text-slate-400">Còn {counts.todo + counts.retry - 1} bài nữa cần làm — cuộn xuống danh sách bên dưới.</p>
+              )}
             </div>
-            <button type="button" onClick={() => onChooseImage(null)} disabled={uploadingId !== ''} className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-2xl bg-indigo-500 px-5 py-3 text-sm font-black text-white shadow-lg shadow-indigo-950/40 transition hover:bg-indigo-400 disabled:opacity-60">
-              {uploadingId === 'tu-do' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
-              {uploadingId === 'tu-do' ? 'Đang xử lý...' : 'Tự chấm bài'}
+          ) : (
+            <div className="mt-4 flex items-center gap-2 rounded-2xl bg-white/10 p-4 ring-1 ring-white/15">
+              <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-300" />
+              <p className="text-sm font-bold text-slate-100">Em đã nộp hết bài được giao. Làm tốt lắm!</p>
+            </div>
+          )}
+
+          {/* Nút PHỤ, cố ý nhỏ/nhạt hơn hẳn nút nộp: HS hay bấm nhầm nút này tưởng là nộp bài.
+              Đây chỉ là chấm thử để tự kiểm, KHÔNG tính điểm và KHÔNG phải nộp. */}
+          <div className="mt-4 flex flex-col gap-1 border-t border-white/10 pt-3 sm:flex-row sm:items-center sm:gap-3">
+            <button
+              type="button"
+              onClick={() => onChooseImage(null)}
+              disabled={uploadingId !== ''}
+              className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-white/25 bg-transparent px-4 py-2 text-sm font-bold text-slate-200 transition hover:bg-white/10 disabled:opacity-60"
+            >
+              {uploadingId === 'tu-do' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+              {uploadingId === 'tu-do' ? 'Đang xử lý...' : 'Chấm thử (không tính điểm)'}
             </button>
+            <span className="text-xs font-medium text-slate-400">Chụp bài cho AI xem thử đúng/sai trước — KHÔNG phải nộp bài.</span>
           </div>
         </section>
 
@@ -157,12 +318,51 @@ export const StudentPortalDashboard = ({
           </div>
           <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-5">
             <p className="text-xl font-black text-emerald-600 sm:text-2xl">{scoredAverage}</p>
-            <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-slate-400 sm:text-xs">Điểm trung bình</p>
+            <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-slate-400 sm:text-xs">Điểm đã duyệt</p>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-5">
-            <p className="text-xl font-black text-slate-900 sm:text-2xl">{assignedGraded.length}<span className="text-sm font-bold text-slate-300">/{assignments.length}</span></p>
+            <p className="text-xl font-black text-slate-900 sm:text-2xl">{progressSummary.officialCount}<span className="text-sm font-bold text-slate-300">/{assignments.length}</span></p>
             <p className="mt-1 text-[10px] font-black uppercase tracking-wide text-slate-400 sm:text-xs">Đã chấm</p>
           </div>
+        </section>
+
+        <section aria-labelledby="student-progress-heading">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">Theo dõi quá trình</p>
+              <h2 id="student-progress-heading" className="mt-1 text-xl font-black text-slate-900">Tiến trình học của em</h2>
+            </div>
+            <span className="text-xs font-bold text-slate-400">{progressSummary.assignmentCount} bài được giao</span>
+          </div>
+          {progressSummary.timeline.length === 0 ? (
+            <div className="mt-3 rounded-[1.5rem] border border-dashed border-slate-300 bg-white px-5 py-8 text-center shadow-sm">
+              <Clock3 className="mx-auto mb-2 h-7 w-7 text-slate-300" />
+              <p className="text-sm font-semibold text-slate-500">Chưa có hoạt động học tập để hiển thị.</p>
+            </div>
+          ) : (
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              {progressSummary.timeline.slice(0, 6).map(item => (
+                <article key={item.id} className="rounded-[1.25rem] border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="min-w-0 break-words text-sm font-black leading-5 text-slate-900">{item.title}</h3>
+                    <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black ${item.official ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                      {studentActivityStatusLabel(item.status)}
+                    </span>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold text-slate-500">
+                    {item.score !== null && item.maxScore !== null && <span>{item.score}/{item.maxScore} điểm</span>}
+                    <span>{item.attemptCount} lượt làm</span>
+                    <span>{studentActivityNextActionLabel(item.nextAction)}</span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+          {progressSummary.nextAction && (
+            <p className="mt-3 rounded-2xl bg-indigo-50 px-4 py-3 text-sm font-bold leading-6 text-indigo-800">
+              Việc tiếp theo: <span className="font-black">{progressSummary.nextAction.title}</span> · {studentActivityNextActionLabel(progressSummary.nextAction.nextAction)}.
+            </p>
+          )}
         </section>
 
         {uploadStep && (
@@ -185,6 +385,52 @@ export const StudentPortalDashboard = ({
             <p className="flex items-start gap-2 text-sm font-bold text-red-800"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /> <span>{dataError}</span></p>
             <button type="button" onClick={onReload} className="mt-2 inline-flex min-h-11 items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-xs font-black text-white hover:bg-red-700"><RefreshCw className="h-3.5 w-3.5" /> Thử lại</button>
           </div>
+        )}
+
+        {pendingFiles.length > 0 && (
+          <section ref={pendingSectionRef} aria-labelledby="pending-upload-heading" className="scroll-mt-20 rounded-[1.5rem] border-2 border-rose-300 bg-rose-50 p-4 shadow-sm sm:p-5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-rose-600">Ảnh chưa gửi cho thầy cô</p>
+                <h2 id="pending-upload-heading" className="mt-1 break-words text-lg font-black text-slate-900">{pendingAssignmentTitle || 'Bài của em'}</h2>
+                <p className="mt-1 text-sm font-semibold leading-6 text-slate-600">Đã chụp/chọn {pendingFiles.length}/{maxPendingFiles} tệp. Em có thể chụp tiếp các trang còn lại rồi nộp một lần.</p>
+                <p className="mt-1 text-sm font-black leading-6 text-rose-700">Phải bấm “Nộp {pendingFiles.length} tệp” bên dưới thì thầy cô mới nhận được bài. Thoát bây giờ là mất ảnh.</p>
+              </div>
+              <span className="inline-flex shrink-0 items-center rounded-full bg-rose-600 px-3 py-1.5 text-xs font-black text-white">Chưa gửi</span>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4" role="list" aria-label="Các tệp đang chờ nộp">
+              {pendingFiles.map((file, index) => {
+                const previewUrl = pendingPreviewUrls[index];
+                return (
+                  <div key={`${file.name}-${file.lastModified}-${index}`} role="listitem" className="overflow-hidden rounded-2xl border border-indigo-100 bg-white shadow-sm">
+                    <div className="flex aspect-square items-center justify-center bg-slate-100">
+                      {previewUrl ? (
+                        <img src={previewUrl} alt={`Ảnh ${index + 1}: ${file.name}`} className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="px-3 text-center text-xs font-black leading-5 text-slate-500">{file.name}</div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 p-2">
+                      <p className="min-w-0 flex-1 truncate text-[11px] font-bold text-slate-600" title={file.name}>Trang {index + 1}</p>
+                      <button type="button" onClick={() => onRemovePendingFile(index)} disabled={uploadingId !== ''} aria-label={`Xóa tệp ${index + 1}`} className="inline-flex min-h-9 min-w-9 shrink-0 items-center justify-center rounded-xl text-slate-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"><X className="h-4 w-4" /></button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+              <button type="button" onClick={onAddMoreImages} disabled={uploadingId !== '' || pendingFiles.length >= maxPendingFiles} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-indigo-200 bg-white px-4 py-3 text-sm font-black text-indigo-700 transition hover:bg-indigo-100 disabled:opacity-50">
+                <Camera className="h-4 w-4" />
+                {pendingFiles.length >= maxPendingFiles ? 'Đã đủ số tệp' : 'Chụp/chọn thêm'}
+              </button>
+              <button type="button" onClick={onSubmitPendingFiles} disabled={uploadingId !== ''} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-black text-white shadow-md shadow-indigo-200 transition hover:bg-indigo-700 disabled:opacity-60">
+                {uploadingId !== '' ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                {uploadingId !== '' ? 'Đang nộp...' : `Nộp ${pendingFiles.length} tệp`}
+              </button>
+            </div>
+          </section>
         )}
 
         <section aria-labelledby="assignments-heading">
@@ -233,6 +479,7 @@ export const StudentPortalDashboard = ({
                   assignment={row.assignment}
                   submission={row.submission}
                   state={row.state}
+                  deletedNotice={row.state.status === 'todo' ? deletedNotices.get(row.assignment.id) : undefined}
                   uploading={uploadingId !== ''}
                   onUpload={onChooseImage}
                   onOpen={onOpenAssignment}
@@ -266,6 +513,8 @@ export const StudentPortalDashboard = ({
           </section>
         )}
 
+        <StudentScoreBoard scores={scores} homework={homeworkScores} />
+
         <section>
           <div className="flex items-end justify-between gap-3">
             <div>
@@ -274,15 +523,47 @@ export const StudentPortalDashboard = ({
             </div>
             <Target className="h-5 w-5 text-indigo-400" />
           </div>
-          {!profile || profile.topics.length === 0 ? (
+          {!hasProfileData ? (
             <div className="mt-3 rounded-[1.5rem] border border-slate-200 bg-white px-5 py-9 text-center shadow-sm">
               <Sparkles className="mx-auto mb-2 h-8 w-8 text-indigo-200" />
               <p className="text-sm font-medium leading-6 text-slate-500">Sau vài bài đã chấm, chỗ này sẽ ghi em đang vững phần nào và nên luyện thêm phần nào.</p>
             </div>
           ) : (
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm"><p className="mb-3 flex items-center gap-2 text-sm font-black text-emerald-700"><TrendingUp className="h-4 w-4" /> Em đang vững</p><div className="flex flex-wrap gap-2">{strongTopics.map(topic => <span key={topic.topic} className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">{topic.topic}</span>)}{strongTopics.length === 0 && <span className="text-sm font-semibold text-slate-400">Chưa đủ dữ liệu.</span>}</div></div>
-              <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm"><p className="mb-3 flex items-center gap-2 text-sm font-black text-amber-700"><Target className="h-4 w-4" /> Nên luyện thêm</p><div className="flex flex-wrap gap-2">{weakTopics.map(topic => <span key={topic.topic} className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700">{topic.topic}</span>)}{weakTopics.length === 0 && <span className="text-sm font-semibold text-slate-400">Chưa đủ dữ liệu.</span>}</div></div>
+            <div className="mt-3 space-y-3">
+              {skillCards.length > 0 && (
+                <div className="rounded-[1.5rem] border border-indigo-100 bg-white p-5 shadow-sm">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="flex items-center gap-2 text-sm font-black text-indigo-700"><Target className="h-4 w-4" /> Kỹ năng đã theo dõi</p>
+                    <span className="text-xs font-bold text-slate-400">{skillCards.length} kỹ năng</span>
+                  </div>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    {skillCards.map(card => (
+                      <article key={card.skillId} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <h3 className="min-w-0 text-sm font-black leading-5 text-slate-900">{card.title}</h3>
+                          <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-[11px] font-black text-indigo-700 ring-1 ring-indigo-100">{card.statusLabel}</span>
+                        </div>
+                        <div className="mt-3" aria-label={`Mức độ hiện tại ${card.masteryPercent}%`}>
+                          <div className="flex items-center justify-between text-[11px] font-bold text-slate-500"><span>Mức độ hiện tại</span><span>{card.masteryPercent}%</span></div>
+                          <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-200"><div className="h-full rounded-full bg-indigo-500 transition-all" style={{ width: `${card.masteryPercent}%` }} /></div>
+                        </div>
+                        <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs font-bold text-slate-500">
+                          <span>{card.trendLabel}</span>
+                          <span>Độ tin cậy {card.confidencePercent}%</span>
+                        </div>
+                        <p className="mt-2 text-[11px] font-semibold leading-5 text-slate-400">{card.sourceLabel} · {card.evidenceCount} minh chứng</p>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {legacyTopics.length > 0 && (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm"><p className="mb-3 flex items-center gap-2 text-sm font-black text-emerald-700"><TrendingUp className="h-4 w-4" /> Em đang vững</p><div className="flex flex-wrap gap-2">{strongTopics.map(topic => <span key={topic} className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700">{topic}</span>)}{strongTopics.length === 0 && <span className="text-sm font-semibold text-slate-400">Chưa đủ dữ liệu.</span>}</div></div>
+                  <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm"><p className="mb-3 flex items-center gap-2 text-sm font-black text-amber-700"><Target className="h-4 w-4" /> Nên luyện thêm</p><div className="flex flex-wrap gap-2">{weakTopics.map(topic => <span key={topic} className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700">{topic}</span>)}{weakTopics.length === 0 && <span className="text-sm font-semibold text-slate-400">Chưa đủ dữ liệu.</span>}</div></div>
+                </div>
+              )}
             </div>
           )}
         </section>
@@ -296,20 +577,75 @@ export const StudentPortalDashboard = ({
             <BookOpenCheck className="h-5 w-5 text-indigo-400" />
           </div>
           <div className="mt-3 rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
-            {practice.length === 0 ? (
+            {practiceQuestions.length === 0 ? (
               <>
-                <p className="text-sm font-medium leading-6 text-slate-500">Máy sẽ ra bài luyện bám đúng chủ đề em còn vướng, dựa trên các bài đã chấm.</p>
+                <p className="text-sm font-medium leading-6 text-slate-500">Máy ra 6 câu từ dễ đến khó, nhắm đúng những lỗi em mắc trong các bài BTVN đã chấm. Làm xong bấm "Tạo đề tiếp" để nhận đề khác, không trùng đề cũ.</p>
+                {practiceError && <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-bold text-red-700" role="alert">{practiceError}</p>}
                 <button type="button" onClick={onLoadPractice} disabled={loadingPractice} className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-black text-white shadow-md shadow-indigo-200 hover:bg-indigo-700 disabled:opacity-60">
                   {loadingPractice && <Loader2 className="h-4 w-4 animate-spin" />}
                   {loadingPractice ? 'Đang soạn bài...' : 'Lấy bài luyện'}
                 </button>
               </>
             ) : (
-              <ol className="space-y-3">
-                {practice.map((question, index) => (
-                  <li key={`${index}-${question.question.slice(0, 20)}`} className="rounded-2xl bg-slate-50 p-4"><p className="break-words font-bold text-slate-900">Câu {index + 1}. {question.question}</p>{question.hint && <p className="mt-1 break-words text-sm font-semibold text-slate-500">Gợi ý: {question.hint}</p>}{question.solution && <details className="mt-1"><summary className="min-h-11 cursor-pointer py-3 text-sm font-bold text-indigo-600">Xem lời giải</summary><p className="whitespace-pre-line break-words text-sm font-semibold leading-6 text-slate-600">{question.solution}</p></details>}</li>
-                ))}
-              </ol>
+              <>
+                {practiceSet?.topics && practiceSet.topics.length > 0 && <p className="mb-4 text-xs font-black uppercase tracking-wide text-indigo-600">Chủ đề: {practiceSet.topics.join(' · ')}</p>}
+                <ol className="space-y-3">
+                  {practiceQuestions.map((question, index) => {
+                    const result = practiceResults.get(question.id);
+                    return (
+                      <li key={question.id} className="rounded-2xl bg-slate-50 p-4">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-sm font-black text-slate-900">Câu {index + 1}</span>
+                          {question.level && PRACTICE_LEVEL_LABEL[question.level] && (
+                            <span className={`rounded-full px-2 py-0.5 text-[11px] font-black ${PRACTICE_LEVEL_LABEL[question.level].className}`}>{PRACTICE_LEVEL_LABEL[question.level].label}</span>
+                          )}
+                        </div>
+                        {question.basis && <p className="mt-1 break-words text-xs font-semibold text-indigo-600">{question.basis}</p>}
+                        <div className="mt-2 break-words font-semibold text-slate-900"><NhanXetMarkdown>{question.question}</NhanXetMarkdown></div>
+                        {question.hint && (
+                          <div className="mt-2 break-words rounded-xl bg-white/70 px-3 py-2 text-slate-500">
+                            <span className="text-xs font-black uppercase tracking-wide text-slate-400">Gợi ý</span>
+                            <NhanXetMarkdown>{question.hint}</NhanXetMarkdown>
+                          </div>
+                        )}
+                        {question.steps && question.steps.length > 0 && <PracticeScaffold key={`${practiceSet?.setId}-${question.id}`} steps={question.steps} />}
+                        <label className="mt-3 block">
+                          <span className="mb-1.5 block text-xs font-black uppercase tracking-wide text-slate-400">Câu trả lời của em</span>
+                          <textarea
+                            value={practiceAnswers[question.id] || ''}
+                            onChange={event => onPracticeAnswerChange(question.id, event.target.value)}
+                            disabled={submittingPractice || practiceAttempt?.status === 'graded'}
+                            rows={3}
+                            className="w-full resize-y rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium leading-6 text-slate-800 outline-none transition focus:border-indigo-400 disabled:bg-slate-100"
+                            placeholder="Viết cách làm hoặc đáp án của em..."
+                          />
+                        </label>
+                        {practiceAttempt?.status === 'graded' && result && (
+                          <div className="mt-3 space-y-2 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-3 text-sm">
+                            <p className="font-black text-emerald-800">{result.score}/{result.maxScore} điểm</p>
+                            <NhanXetMarkdown tone="sang">{result.feedback}</NhanXetMarkdown>
+                            {result.expectedAnswer && (
+                              <div className="break-words">
+                                <p className="font-black text-indigo-700">Đáp án tham khảo</p>
+                                <NhanXetMarkdown>{result.expectedAnswer}</NhanXetMarkdown>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ol>
+                {practiceError && <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-bold text-red-700" role="alert">{practiceError}</p>}
+                {practiceAttempt?.status === 'graded' && (
+                  <p className="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800">Tổng: {practiceAttempt.score}/{practiceAttempt.maxScore} điểm. Đây là kết quả luyện tập, không thay thế điểm chính thức.</p>
+                )}
+                <button type="button" onClick={onSubmitPractice} disabled={submittingPractice || practiceAttempt?.status === 'graded'} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-black text-white shadow-md shadow-indigo-200 hover:bg-indigo-700 disabled:opacity-60">
+                  {submittingPractice && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {submittingPractice ? 'Đang chấm...' : practiceAttempt?.status === 'error' ? 'Thử chấm lại' : 'Nộp bài luyện'}
+                </button>
+                {practiceAttempt?.status === 'graded' && <button type="button" onClick={onLoadPractice} disabled={loadingPractice} className="ml-2 mt-4 inline-flex min-h-11 items-center gap-2 rounded-2xl border border-indigo-200 px-4 py-3 text-sm font-black text-indigo-700 hover:bg-indigo-50 disabled:opacity-60">{loadingPractice && <Loader2 className="h-4 w-4 animate-spin" />}{loadingPractice ? 'Đang soạn đề mới...' : 'Tạo đề tiếp'}</button>}
+              </>
             )}
           </div>
         </section>

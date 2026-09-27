@@ -18,6 +18,8 @@ import {
   normalizeGatewayPrompt,
   resolveGatewayApiKey,
 } from './_ai-gateway-core.js';
+import { openAiUsageCounts, recordAiUsage } from './_ai-usage.js';
+import { AiKeyRequiredError, aiKeyRequiredPayload, assertSharedAiAllowed } from './_ai-keys.js';
 
 interface GatewayBody {
   prompt?: unknown;
@@ -74,10 +76,13 @@ const handleStream = async (
     const completion = await client.chat.completions.create(buildGatewayChatRequest(prompt, true));
     // SDK trả về union ChatCompletion | Stream; khi stream=true kiểu union không tự hẹp được
     // nên phải đi qua unknown — cast thẳng là TS2352.
-    for await (const chunk of (completion as unknown as AsyncIterable<{ choices?: Array<{ delta?: { content?: string } }> }>)) {
+    let usage: unknown = null;
+    for await (const chunk of (completion as unknown as AsyncIterable<{ choices?: Array<{ delta?: { content?: string } }>; usage?: unknown }>)) {
       const text = chunk.choices?.[0]?.delta?.content || '';
       if (text) writeStreamEvent(res, { text });
+      if (chunk.usage) usage = chunk.usage;
     }
+    await recordAiUsage('ai-gateway', AI_GATEWAY_MODEL, openAiUsageCounts(usage));
     writeStreamEvent(res, { done: true });
     // Sentinel kết thúc theo đúng quy ước client: ghi THÔ không JSON.stringify —
     // stringify biến nó thành "[DONE]" (kèm ngoặc kép) và parser phía client bỏ qua.
@@ -133,6 +138,17 @@ export const handleAiGateway = async (req: VercelRequest, res: VercelResponse): 
     return;
   }
 
+  // GLM chỉ chạy bằng khoá chung: ngoài nhóm thì phải đồng ý tính phí (khoá Gemini riêng không thay được).
+  try {
+    await assertSharedAiAllowed(user.uid);
+  } catch (error) {
+    if (error instanceof AiKeyRequiredError) {
+      res.status(402).json(aiKeyRequiredPayload(error));
+      return;
+    }
+    throw error;
+  }
+
   // Timeout tường minh NGẮN hơn trần function (60s): SDK mặc định 10 phút sẽ bị Vercel
   // cắt giữa đường mà client còn treo đợi; maxRetries 0 để một lượt hỏng không tự nhân đôi.
   const client = new OpenAI({ apiKey, baseURL: AI_GATEWAY_BASE_URL, timeout: 45_000, maxRetries: 0 });
@@ -146,6 +162,9 @@ export const handleAiGateway = async (req: VercelRequest, res: VercelResponse): 
 
   try {
     const completion = await client.chat.completions.create(buildGatewayChatRequest(prompt, false));
+    await recordAiUsage('ai-gateway', AI_GATEWAY_MODEL, openAiUsageCounts(completion.usage), {
+      finishReason: completion.choices[0]?.finish_reason ?? undefined,
+    });
     const choice = completion.choices[0];
     const text = choice?.message?.content || '';
     if (!text) {
