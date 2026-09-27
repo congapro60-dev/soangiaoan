@@ -17,7 +17,7 @@ import { getAuth } from 'firebase-admin/auth';
 import { getAdminDb } from './_exam-core.js';
 import { FieldValue } from 'firebase-admin/firestore';
 import type { AiKeySource } from '../src/lib/admin/aiKeyPolicy.js';
-import { costUsdOfCall } from '../src/lib/admin/aiPricing.js';
+import { costUsdOfCall, costUsdOfImage } from '../src/lib/admin/aiPricing.js';
 import { chargeForCall, type VoucherRedemption } from '../src/lib/admin/aiWallet.js';
 
 export const AI_USAGE_COL = 'aiUsage';
@@ -197,6 +197,71 @@ export const recordAiUsage = async (
     }
   } catch (error) {
     console.error('[ai-usage] không ghi được lượt dùng AI:', error);
+  }
+};
+
+/**
+ * Ghi một lượt SINH ẢNH (Imagen) — tính tiền theo SỐ ẢNH, không theo token.
+ * ⚠ GIỮ ĐỒNG BỘ logic tính phí/trừ ví với recordAiUsage: chỉ khoá chung (ownerUid + keySource≠'own')
+ * mới trừ ví; khoá riêng của giáo viên ('own') không vào bảng kê. KHÔNG bao giờ ném lỗi ra ngoài.
+ */
+export const recordImageUsage = async (
+  model: string,
+  imageCount: number,
+  extra: { finishReason?: string } = {},
+): Promise<void> => {
+  const images = Math.max(0, Math.round(imageCount));
+  if (images <= 0) return;
+  try {
+    const context = currentAiUsageContext();
+    const identity = context ? await context.identity() : ANONYMOUS_UNKNOWN;
+    const now = new Date();
+    const record: Record<string, unknown> = {
+      at: now.toISOString(),
+      ...vnDate(now),
+      provider: 'gemini' as AiProvider,
+      model,
+      feature: context?.feature || 'generateImage',
+      uid: identity.uid,
+      email: identity.email,
+      anonymous: identity.anonymous,
+      refs: context?.refs ?? {},
+      keySource: context?.keyChoice?.source ?? 'shared',
+      ...(context?.keyChoice?.ownerUid ? { keyOwnerUid: context.keyChoice.ownerUid } : {}),
+      // Lượt ảnh không có token: ghi 0 cho các cột token + số ảnh để sao kê phân biệt token/ảnh.
+      inputTokens: 0, outputTokens: 0, thoughtsTokens: 0, cachedTokens: 0, totalTokens: 0,
+      images,
+      ...(extra.finishReason ? { finishReason: extra.finishReason } : {}),
+    };
+    const db = getAdminDb();
+    const choice = context?.keyChoice;
+    const ownerUid = choice?.ownerUid;
+    const billable = Boolean(ownerUid) && record.keySource !== 'own';
+    const costUsd = billable ? costUsdOfImage(model, String(record.day), images) ?? 0 : 0;
+    const charge = billable && choice?.billing ? chargeForCall(costUsd, choice.billing.usdVnd, choice.billing.voucher) : null;
+    if (charge && choice?.billing) {
+      Object.assign(record, { costUsd, usdVnd: choice.billing.usdVnd, ...charge });
+    }
+    await db.collection(AI_USAGE_COL).add(record);
+    if (!billable || !ownerUid) return;
+    await db.collection(AI_SPEND_COL).doc(aiSpendDocId(ownerUid, String(record.month))).set({
+      uid: ownerUid,
+      month: record.month,
+      costUsd: FieldValue.increment(costUsd),
+      calls: FieldValue.increment(1),
+      images: FieldValue.increment(images),
+      ...(charge ? { chargeVnd: FieldValue.increment(charge.chargeVnd) } : {}),
+      updatedAt: record.at,
+    }, { merge: true });
+    if (charge && charge.chargeVnd > 0) {
+      await db.collection('aiWallets').doc(ownerUid).set({
+        uid: ownerUid,
+        balanceVnd: FieldValue.increment(-charge.chargeVnd),
+        updatedAt: record.at,
+      }, { merge: true });
+    }
+  } catch (error) {
+    console.error('[ai-usage] không ghi được lượt sinh ảnh:', error);
   }
 };
 
