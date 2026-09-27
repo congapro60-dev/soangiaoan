@@ -45,6 +45,7 @@ import { handleTeacherAction } from './_classroom-teacher.js';
 import { readClassAccess } from './_classroom-access.js';
 import { handleClassroomOnlineAction } from './_classroom-online.js';
 import { handleScoreBookAction } from './_score-book.js';
+import { handleSsmTemplateAction } from './_ssm-template.js';
 
 /**
  * Một hàm phục vụ các việc sau, để không vượt trần 12 Serverless Function của Vercel:
@@ -1435,6 +1436,7 @@ async function dispatchClassroom(res: VercelResponse, body: ReturnType<typeof re
     if (await handleTeacherAction(db, body, res)) return;
     if (await handleClassroomOnlineAction(db, body, res)) return;
     if (await handleScoreBookAction(db, body, res)) return;
+    if (await handleSsmTemplateAction(body, res)) return;
     if (action === 'roster') return await handleRoster(db, body, res);
     if (action === 'login') return await handleLogin(db, body, res);
     if (action === 'studentAssignments') return await handleStudentAssignments(db, body, res);

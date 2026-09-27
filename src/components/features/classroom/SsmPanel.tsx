@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { saveAs } from 'file-saver';
-import { Download, Loader2, Sparkles, Upload } from 'lucide-react';
+import { Download, Link as LinkIcon, Loader2, Sparkles, Upload } from 'lucide-react';
 import type { AppData, Student } from '../../../types';
 
 type Settings = AppData['settings'];
@@ -12,6 +12,7 @@ import { readLoWorkbook, fillLoWorkbook } from '../../../lib/ssm/loWorkbook';
 import { parseLoInfo, suggestGrid, type LoInfo, type LoMapping } from '../../../lib/ssm/loMapping';
 import { buildLoMappingPrompt, parseLoMappingResponse } from '../../../lib/ssm/loMappingPrompt';
 import { buildClassLoScores } from '../../../lib/ssm/loClassScores';
+import { fetchSsmTemplateByLink } from '../../../lib/classroom/teacherService';
 
 interface Props {
   classId: string;
@@ -41,6 +42,7 @@ export const SsmPanel = ({ classId, teacherId, classGrade, students, settings, s
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
   const [note, setNote] = useState('');
+  const [link, setLink] = useState('');
 
   const grade = asCompetencyGrade(Number(classGrade));
   const nameByCode = useMemo(() => {
@@ -55,16 +57,15 @@ export const SsmPanel = ({ classId, teacherId, classGrade, students, settings, s
     return g;
   };
 
-  const onPickFile = async (file: File) => {
+  const loadBytes = async (bytes: ArrayBuffer, name: string) => {
     setError('');
     setNote('');
     setMapping({});
     try {
-      const bytes = await file.arrayBuffer();
       const info = await readLoWorkbook(bytes);
       const loList = info.loHeaders.map(parseLoInfo).filter((x): x is LoInfo => x !== null);
       setFileBytes(bytes);
-      setFileName(file.name);
+      setFileName(name);
       setLos(loList);
       setFileMaHS(info.maHSList);
       setGrid(emptyGrid(info.maHSList, loList));
@@ -73,6 +74,22 @@ export const SsmPanel = ({ classId, teacherId, classGrade, students, settings, s
       setFileBytes(null);
       setLos([]);
       setError(errorText(e));
+    }
+  };
+
+  const onPickFile = (file: File) => file.arrayBuffer().then((b) => loadBytes(b, file.name));
+
+  const onPickLink = async () => {
+    if (!link.trim()) return;
+    setBusy('Đang tải file từ SSM…');
+    setError('');
+    try {
+      const { bytes, filename } = await fetchSsmTemplateByLink(link.trim());
+      await loadBytes(bytes, filename);
+    } catch (e) {
+      setError(errorText(e));
+    } finally {
+      setBusy('');
     }
   };
 
@@ -151,6 +168,13 @@ export const SsmPanel = ({ classId, teacherId, classGrade, students, settings, s
           <button type="button" onClick={() => fileInput.current?.click()} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-black text-slate-700 hover:bg-slate-100">
             <Upload className="h-4 w-4" /> Chọn file SSM (.xlsx)
           </button>
+          <div className="flex min-w-[16rem] flex-1 items-center gap-1">
+            <input type="text" value={link} onChange={(e) => setLink(e.target.value)} placeholder="…hoặc dán link file điểm LO từ SSM"
+              className="min-h-10 flex-1 rounded-xl border border-slate-200 bg-white px-3 text-sm" />
+            <button type="button" disabled={!!busy || !link.trim()} onClick={() => void onPickLink()} className="inline-flex min-h-10 items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 text-sm font-black text-slate-700 hover:bg-slate-100 disabled:opacity-60">
+              <LinkIcon className="h-4 w-4" /> Tải
+            </button>
+          </div>
           {los.length > 0 && (
             <button type="button" disabled={!!busy || !grade} onClick={() => void suggestWithAi()} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-indigo-600 px-3 py-2 text-sm font-black text-white hover:bg-indigo-700 disabled:opacity-60">
               <Sparkles className="h-4 w-4" /> Gợi ý điểm bằng AI
