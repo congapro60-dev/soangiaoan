@@ -1,6 +1,6 @@
 import pako from 'pako';
 
-export type DiagramType = 'tikz' | 'mermaid' | 'svg' | 'geogebra';
+export type DiagramType = 'tikz' | 'mermaid' | 'svg' | 'geogebra' | 'aiimg';
 
 export interface DiagramImage {
   data: Uint8Array;
@@ -35,7 +35,35 @@ export function classifyDiagram(text: string, lang?: string): { type: DiagramTyp
     return { type: 'geogebra', clean: cleanGeogebra };
   }
 
+  // Ảnh raster AI — chỉ render khi block ĐÃ được bước hậu-sinh thay directive bằng URL ảnh đã cache.
+  // Block còn là directive tiếng Việt (chưa sinh được ảnh) thì bỏ qua, để lúc xuất không vỡ.
+  if (lowerLang === 'aiimg' && /^https:\/\/\S+$/.test(trimmed)) {
+    return { type: 'aiimg', clean: trimmed };
+  }
+
   return null;
+}
+
+/** Tải ảnh raster đã cache (URL trong block `aiimg`) về PNG để nhúng Word/PDF như các diagram khác. */
+export async function fetchAiImagePng(url: string): Promise<DiagramImage | null> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12000);
+    let response: Response;
+    try {
+      response = await fetch(url, { signal: controller.signal });
+    } finally {
+      clearTimeout(timeout);
+    }
+    if (!response.ok) return null;
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    const size = readPngSize(bytes);
+    if (!size) return null;
+    return { data: bytes, width: size.width, height: size.height };
+  } catch (error) {
+    console.error('AI image fetch error:', error);
+    return null;
+  }
 }
 
 /**
