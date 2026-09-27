@@ -69,3 +69,21 @@ Không tự ghi vào SSM. Mọi thẻ: app soạn/điền sẵn → cô tự t�
 - File: `src/lib/ssm/lo*.ts`, `ssmDrafts.ts` (thuần, 47 test); `SsmPanel.tsx` (LO) + `SsmDraftCards.tsx`; tab "ssm" trong `ClassWorkspaceNav`.
 - **Chưa đẩy main** — chờ user test 1 vòng thật (đăng nhập GV + upload file lên SSM xem SSM nhận). BTVN/Nhận xét cần đăng nhập GV mới có dữ liệu (demo chặn API — đúng như thiết kế).
 - **Bẫy dev**: sau khi thêm import vào ClassesTab, Vite HMR kẹt bản cũ ("SsmDraftCards is not defined") — xóa `node_modules/.vite` + tải lại kèm query cache-bust; production build không dính.
+
+## Đợt 3 — nghiên cứu (2026-09-27), CHƯA code, chờ user duyệt + file mẫu
+Nguyên tắc chung: GV đưa vào bất cứ thứ gì đang có (file xlsx/docx/pdf, link Sheet/Docs/Office) → app đọc → bảng xem-sửa → chép/tải → GV tự đưa lên SSM. App vẫn KHÔNG tự ghi SSM.
+Lỗ hổng hiện tại: thẻ báo giảng chỉ theo "Tuần N" của PPCT, không có ngày/thứ/giờ; SSM thật ghi theo từng ngày + khung giờ ("Thứ Hai 21/9 — Từ 10h00 đến 10h40: …"). PPCT đóng cứng qua scripts/build-ppct.mjs → năm mới phải nhờ dev.
+1. [ ] Lịch báo giảng cả năm = PPCT + lịch năm học (ngày bắt đầu tuần 1, tuần nghỉ lễ/thi) + TKB lớp (thứ/tiết/giờ) → xếp từng tiết PPCT vào ô thật → xem/sửa/kéo dời → mỗi tuần chép đúng khuôn SSM; tải Excel cả năm. TKB: GV tải file lên, hoặc (tuỳ chọn) đọc qua tiện ích op chỉ-đọc `v1/class-time-table-lessons` — phải hỏi user trước khi thêm op.
+2. [ ] Nhập PPCT mới bằng file/link thay cho build script (AI đọc cấu trúc lạ, GV soát bảng).
+3. [ ] Gói tuần: báo giảng + BTVN của tuần đó chép một lần.
+4. [ ] Nhận xét quý dựa trên điểm LO + năng lực (đã có khung buildSubjectComment).
+5. [ ] Bản tin tuần cho PH (đã học gì, BTVN, lịch kiểm tra) → chép sang Truyền thông.
+6. [ ] (hỏi) Hồ sơ đầu năm KH giáo dục môn học từ PPCT, nếu trường yêu cầu.
+Cần user: file/link lịch năm học 2026-27, TKB 1 lớp, 1 ô báo giảng tuần đã điền mẫu, file PPCT tổ gửi (nếu khác bản trong app).
+
+### Khảo sát nguồn thật (2026-09-27) — user nhấn mạnh: web sẽ PUBLIC, mọi thứ phải chung cho mọi trường
+- **TKB Prime Timetable** (link publish): JSON công khai `GET primetimetable.com/api/v2/timetables/{uuid}/` (không đăng nhập, KHÔNG có CORS → cần máy chủ tải hộ, allowlist). Có `name` kèm khoảng ngày ("Q1 (19/08/26 - 23/10/26)"), `days`, `periods` (giờ thật theo cấp nằm trong tên: "MHS:8:10-8:50"), `teachers` (TDS: shortName = mail trường; MOET: chỉ tên), `classes`+groupSets, `activities{subjectId, teacherIds, groupIds, cards[{dayId, periodId}], length (2 = tiết đôi)}`. Lớp ghép (12Denver+12Detroit) = 1 activity nhiều lớp. TDS và MOET là 2 TKB khác khoảng ngày (TDS 19/8–23/10, MOET 7/9–7/11), tên lớp khác ("10Olinda" vs "10Olinda (Dis)"). Mỗi quý 1 TKB mới, đổi bất kỳ lúc nào.
+- **Lịch năm học** (Google Sheet nội bộ, ẩn danh 401 → đọc bằng quyền Google của GV như sheet-sync, hoặc GV tải file): lưới tháng, cột W1..W36, quý (Q1=W1, Q2=W11…), sự kiện là chữ tự do "15: Rằm Trung thu (-2 tiết)", "2: PD DAY HS nghỉ", "31: Nghỉ lễ", "3: Family Day (làm bù)". Màu ô mất khi xuất → phải AI trích + GV soát.
+- **Mẫu LBG gửi PH** (ảnh ChatGPT, 10Olinda W5): theo ngày "Thứ Ba 15/9" → "Từ 8h10 đến 8h50: Hình học: <bài> – Tiết 6: <nội dung>"; Tự chọn ghi "Tự chọn". Chỉ tiết TDS.
+- **Quy tắc xếp tiết thật** (so ảnh với PPCT tds-g10 tuần 5): KHÔNG theo thứ tự periodNo. Mỗi phân môn đi riêng theo thứ tự của nó, ngày cố định cho phân môn (T3/T5 Hình, T4/T6 Đại), hết bài của phân môn trong tuần → Tự chọn. PPCT tuần N ↔ tuần lịch WN (TDS); MOET bắt đầu muộn hơn → cần "tuần 1 PPCT = ngày …" riêng từng chương trình. Số tiết PPCT/tuần không khớp hẳn số ô TKB (tuần lễ) → phải báo thừa/thiếu cho GV quyết.
+- Drive LBG MOET: tài khoản browser không có quyền (không bấm xin quyền).

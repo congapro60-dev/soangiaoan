@@ -27,7 +27,7 @@ export const toScale4 = (scoreOutOf10: number | null | undefined): LoMark => {
   if (scoreOutOf10 < 0 || scoreOutOf10 > 10) return 'N';
   const raw = scoreOutOf10 / DIVISOR;
   // Thang xếp giảm dần; duyệt từ cao xuống, hoà (chênh bằng nhau) giữ mức cao đang xét trước.
-  let best = SSM_SCALE_4[0];
+  let best: (typeof SSM_SCALE_4)[number] = SSM_SCALE_4[0];
   let bestGap = Math.abs(SSM_SCALE_4[0] - raw);
   for (const mark of SSM_SCALE_4) {
     const gap = Math.abs(mark - raw);
