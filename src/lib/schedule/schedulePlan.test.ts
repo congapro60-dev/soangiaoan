@@ -14,7 +14,7 @@ const course = (subject: string, slots: ReturnType<typeof slot>[], classNames = 
   ({ key: `${classNames.join('+')}|${subject}`, classNames, subject, slots });
 
 const tt = (id: string, from: string, to: string, courses: Course[]): SavedTimetable =>
-  ({ id, link: '', title: id, from, to, level: null, teacherId: 't', teacherName: 'GV', courses });
+  ({ id, link: '', title: id, from, to, level: null, teacherId: 't', teacherName: 'GV', courses, periods: [] });
 
 const lessons: PpctLesson[] = [1, 2, 3, 4].map((n) => ({
   id: `L${n}`, title: `Bài ${n}`, subject: '', isElective: false, week: n <= 2 ? 1 : 2, weeks: [n <= 2 ? 1 : 2],

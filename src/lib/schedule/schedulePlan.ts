@@ -23,7 +23,24 @@ export interface SavedTimetable {
   teacherName: string;
   /** Chỉ các môn/lớp của GV này — không lưu cả TKB trường. */
   courses: Course[];
+  /** Các tiết đánh số trong ngày (khung sổ báo giảng, kể cả tiết GV không dạy). */
+  periods: { periodNo: number; start: string; end: string }[];
 }
+
+/** Khung tiết suy từ chính các tiết của GV (khi TKB không có khung tiết, vd tự nhập). */
+export const periodsFromCourses = (courses: readonly Course[]): SavedTimetable['periods'] => {
+  const map = new Map<number, { periodNo: number; start: string; end: string }>();
+  for (const c of courses) for (const s of c.slots) if (s.periodNo !== null && !map.has(s.periodNo)) map.set(s.periodNo, { periodNo: s.periodNo, start: s.start, end: s.end });
+  return [...map.values()].sort((a, b) => a.periodNo - b.periodNo);
+};
+
+/** Khung tiết cho sổ báo giảng; TKB không đánh số tiết thì đánh theo thứ tự giờ bắt đầu. */
+export const registerPeriods = (t: SavedTimetable): SavedTimetable['periods'] => {
+  if (t.periods.length) return t.periods;
+  const byStart = new Map<string, string>();
+  for (const c of t.courses) for (const s of c.slots) if (!byStart.has(s.start)) byStart.set(s.start, s.end);
+  return [...byStart.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([start, end], i) => ({ periodNo: i + 1, start, end }));
+};
 
 export type PlanPpct =
   | { kind: 'builtin'; source: PpctSource; grade: number }
@@ -49,6 +66,8 @@ export interface SchedulePlan {
   skippedWeeks: string[];
   /** Tên môn trong tin gửi phụ huynh (vd "Toán"). */
   messageSubject: string;
+  /** Ký tên cuối tin / đầu sổ; trống thì dùng tên tài khoản. */
+  signature?: string;
   /** Tên môn TKB → tên ghi sổ (vd "Chuyên đề Toán" → "CĐ Toán"). */
   subjectLabels: Record<string, string>;
   timetables: SavedTimetable[];

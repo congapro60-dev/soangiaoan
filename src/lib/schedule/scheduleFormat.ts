@@ -54,7 +54,9 @@ export const describeLesson = (lesson: PpctLesson | null, chains: Map<string, { 
   if (lesson.isElective) return 'Tự chọn.';
   const chain = chains.get(lesson.id);
   const detail = firstLine(lesson.detail);
-  return `${lesson.subject ? `${lesson.subject}: ` : ''}${cleanTitle(lesson.title)}` +
+  const title = cleanTitle(lesson.title);
+  const subject = lesson.subject && lesson.subject.trim().toLowerCase() !== title.toLowerCase() ? `${lesson.subject}: ` : '';
+  return `${subject}${title}` +
     `${chain && chain.index > 1 ? ' (tiếp)' : ''}${detail ? ` – ${detail}` : ''}.`;
 };
 
@@ -138,7 +140,10 @@ export const buildRegisterWeek = (
     const date = addDays(monday, day - 1);
     for (const p of dayPeriods) {
       const base = { date, dayLabel: DAY_SHORT[day], session: (p.start < '12:00' ? 'Buổi sáng' : 'Buổi chiều') as RegisterRow['session'], periodNo: p.periodNo };
-      const hits = courses.flatMap((c) => c.slots.filter((s) => s.date === date && s.periodNo === p.periodNo).map((s) => ({ c, s })));
+      // TKB không đánh số tiết thì khớp theo giờ bắt đầu.
+      const hits = courses.flatMap((c) => c.slots
+        .filter((s) => s.date === date && (s.periodNo !== null ? s.periodNo === p.periodNo : s.start === p.start))
+        .map((s) => ({ c, s })));
       if (hits.length === 0) rows.push({ ...base, ppctNo: null, subject: '', className: '', title: '' });
       for (const { c, s } of hits) {
         rows.push({ ...base, ppctNo: s.lesson?.periodNo ?? null, subject: c.subjectLabels?.[s.subject] ?? s.subject, className: c.className, title: registerTitle(s.lesson, c.chains) });

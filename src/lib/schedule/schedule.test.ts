@@ -215,3 +215,10 @@ describe('định dạng', () => {
     expect(rows[3].title).toBe('');
   });
 });
+
+describe('describeLesson — phân môn trùng tên bài', () => {
+  it('không ghi lặp "Tự chọn: Tự chọn"', () => {
+    const l = { id: 'x', title: 'Tự chọn', subject: 'Tự chọn', isElective: false, week: 1, weeks: [1], periodNo: 1, periodIndex: 1, periodCount: 1, lessonPeriods: [1], detail: '', objectives: '', notes: '' };
+    expect(describeLesson(l, new Map())).toBe('Tự chọn.');
+  });
+});

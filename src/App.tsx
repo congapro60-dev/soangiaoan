@@ -38,6 +38,7 @@ const DuGioPage = lazy(() => import('./pages/DuGioPage').then(m => ({ default: m
 const AIToolsTab = lazy(() => import('./components/tabs/AIToolsTab').then(m => ({ default: m.AIToolsTab })));
 const ClassesTab = lazy(() => import('./components/tabs/ClassesTab').then(m => ({ default: m.ClassesTab })));
 const LessonUpgradeTab = lazy(() => import('./components/tabs/LessonUpgradeTab').then(m => ({ default: m.LessonUpgradeTab })));
+const LessonScheduleTab = lazy(() => import('./components/tabs/LessonScheduleTab').then(m => ({ default: m.LessonScheduleTab })));
 const AdminTab = lazy(() => import('./components/tabs/AdminTab').then(m => ({ default: m.AdminTab })));
 
 // Utils
@@ -59,7 +60,7 @@ export default function App() {
     saveGradingSession, deleteGradingSession, deleteGradingResult,
   } = useAppState(user, showToast);
   
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'classes' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading' | 'exams' | 'adaptiveLessons' | 'aiTools' | 'lessonUpgrade' | 'duGio' | 'admin'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'classes' | 'creator' | 'library' | 'chat' | 'templates' | 'testing' | 'grading' | 'exams' | 'adaptiveLessons' | 'aiTools' | 'lessonUpgrade' | 'duGio' | 'lessonSchedule' | 'admin'>('dashboard');
   // Chỉ để hiện mục Quản trị; quyền thật kiểm lại ở máy chủ (email Google đã xác minh).
   const isAdmin = Boolean(user && !user.isAnonymous && user.emailVerified && isAdminEmail(user.email));
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth >= 768);
@@ -442,6 +443,8 @@ export default function App() {
             )}
 
             {activeTab === 'duGio' && <DuGioPage embedded user={user} />}
+
+            {activeTab === 'lessonSchedule' && <LessonScheduleTab data={data} user={user} showToast={showToast} />}
 
             {activeTab === 'adaptiveLessons' && (
               isAdaptiveStatsOpen ? (

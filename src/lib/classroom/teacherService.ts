@@ -163,6 +163,12 @@ export const fetchSsmTemplateByLink = async (link: string): Promise<{ bytes: Arr
   return { bytes: arr.buffer, filename: r.filename };
 };
 
+/** Máy chủ tải hộ thời khoá biểu Prime Timetable từ LINK xem (trình duyệt bị chặn đọc chéo trang). */
+export const fetchPrimeTimetableByLink = async (link: string): Promise<unknown> => {
+  const r = await callTeacherApi<{ timetable: unknown }>({ action: 'fetchPrimeTimetable', link });
+  return r.timetable;
+};
+
 export const createExamAssignment = async (input: {
   classId: string;
   examId: string;
