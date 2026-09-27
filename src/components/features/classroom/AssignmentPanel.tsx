@@ -503,7 +503,8 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   // Id bài nộp đang bị xoá — khoá nút trong lúc gọi để không bấm đúp xoá hai lần.
   const [dangXoaNop, setDangXoaNop] = useState('');
   const [dangXoaDiem, setDangXoaDiem] = useState('');
-  const [dangTai, setDangTai] = useState(false);
+  // Bắt đầu ở trạng thái đang tải: panel luôn tải ngay khi mở, và yêu cầu mở khung việc tồn phải chờ dữ liệu thật.
+  const [dangTai, setDangTai] = useState(true);
   const [tienDo, setTienDo] = useState('');
   const [moForm, setMoForm] = useState(false);
   const [dangGui, setDangGui] = useState(false);
@@ -549,15 +550,20 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   const [nhomMo, setNhomMo] = useState<NhomTon | ''>('');
   const khungTonRef = useRef<HTMLDivElement>(null);
   // Mở từ Bảng điều khiển: bung nhóm đầu tiên còn việc rồi cuộn tới khung việc tồn.
+  // Lớp đang mở — lượt tải của lớp cũ về muộn (đổi lớp giữa chừng) không được ghi đè dữ liệu lớp mới.
+  const lopHienTai = useRef(classId);
+  lopHienTai.current = classId;
+  const [lopDaTai, setLopDaTai] = useState('');
+
   const daMoNonce = useRef<number | undefined>(undefined);
   useEffect(() => {
     // Mỗi yêu cầu mở chỉ xử lý MỘT lần, sau khi danh sách đã tải xong.
-    if (!openBacklogNonce || dangTai || daMoNonce.current === openBacklogNonce) return;
+    if (!openBacklogNonce || dangTai || lopDaTai !== classId || daMoNonce.current === openBacklogNonce) return;
     daMoNonce.current = openBacklogNonce;
     const dau = NHOM_TON.find(nhom => tonDong[nhom.key].length > 0);
     if (dau) setNhomMo(dau.key);
     window.setTimeout(() => khungTonRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-  }, [openBacklogNonce, dangTai, tonDong]);
+  }, [openBacklogNonce, dangTai, lopDaTai, classId, tonDong]);
   /** Mở đúng bài nộp trong danh sách của bài giao để xem ảnh, chấm, duyệt. */
   const moBaiTon = (submission: SubmissionDoc) => {
     setOpenId(submission.assignmentId || '');
@@ -587,16 +593,18 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
       } catch (error) {
         console.error('Không tải được danh sách học sinh trên máy chủ', error);
       }
+      if (lopHienTai.current !== classId) return;
       setAssignments(dsBai);
       setTatCaBaiNop(dsNop);
       setLopHocSinh(dsHocSinh);
+      setLopDaTai(classId);
     } catch (error) {
       // Nuốt lỗi vào console là kiểu hỏng khó lần nhất: giáo viên giao bài xong, mở ra thấy
       // bảng trống, tưởng bài không được lưu. Phải hiện ra màn hình.
       console.error('Không tải được danh sách bài giao', error);
       setLoiTai(error instanceof Error ? error.message : 'Không tải được danh sách bài giao.');
     } finally {
-      setDangTai(false);
+      if (lopHienTai.current === classId) setDangTai(false);
     }
   }, [classId, teacherId]);
 
