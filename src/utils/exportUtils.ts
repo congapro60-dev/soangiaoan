@@ -8,6 +8,17 @@ import { auditSlides, buildSlideRepairBrief } from '../lib/slideQuality';
 
 export type PdfOrientation = 'portrait' | 'landscape';
 
+/** Chờ mọi thẻ img trong khối in tải xong hoặc lỗi; quá hạn thì in luôn. */
+const waitForImages = (root: HTMLElement, timeoutMs: number): Promise<void> => {
+  const pending = Array.from(root.querySelectorAll('img')).filter((img) => !img.complete);
+  if (pending.length === 0) return Promise.resolve();
+  const loaded = Promise.all(pending.map((img) => new Promise<void>((resolve) => {
+    img.addEventListener('load', () => resolve(), { once: true });
+    img.addEventListener('error', () => resolve(), { once: true });
+  })));
+  return Promise.race([loaded.then(() => undefined), new Promise<void>((resolve) => setTimeout(resolve, timeoutMs))]);
+};
+
 // API Server exports have been removed. All exports are now Local-first.
 
 export const exportToPDF = async (
@@ -79,6 +90,10 @@ export const exportToPDF = async (
     // Dùng đúng `safeFilename` mà đường xuất Word dùng để hai file trùng tên nhau.
     const previousTitle = document.title;
     document.title = pdfName;
+
+    // Hình (Kroki SVG / ảnh AI đã cache) tải từ xa: chờ tải xong (tối đa 10s) rồi mới in,
+    // không thì trang in ra ô hình trống.
+    await waitForImages(clone, 10_000);
 
     // Wait for any async rendering
     setTimeout(() => {

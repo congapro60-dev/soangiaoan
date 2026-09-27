@@ -1,6 +1,6 @@
 # Kế hoạch — Ảnh raster AI cho giáo án (minh họa bối cảnh & CDTC)
 
-> Trạng thái: **ĐỀ XUẤT, chưa code.** Cần owner chốt các quyết định ở mục 9 trước khi triển khai.
+> Trạng thái: **ĐÃ TRIỂN KHAI (2026-09-28)** trên nhánh `feat/toan-images` theo quyết định mục 11 — xem mục "Ảnh minh họa AI" trong HANDOFF.md. Phát sinh ngoài kế hoạch: form trường Toán trước đó bỏ mọi hình khi xuất, nên đã thêm nhúng hình (cả TikZ) vào `buildSchoolFormDocx`/`buildSchoolFormHtml`.
 > Nền tảng đã khảo sát: DOCX đã nhúng PNG qua `krokiRender.renderDiagramToPng` → `renderWordCore`; `api/generate-simulation.ts` là mẫu endpoint owner-key Gemini (`@google/genai`) có rate-limit; api/ còn ~2 slot (trần 12 Vercel).
 
 ## 1. Mục tiêu & phạm vi (RANH GIỚI QUAN TRỌNG)

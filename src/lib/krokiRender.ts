@@ -44,6 +44,27 @@ export function classifyDiagram(text: string, lang?: string): { type: DiagramTyp
   return null;
 }
 
+/** Render MỘT diagram đã phân loại ra PNG — dùng chung cho đường Word chung và form trường Toán. */
+export async function renderDiagramImage(type: DiagramType, clean: string): Promise<DiagramImage | null> {
+  if (type === 'svg') return rasterizeSvgToPng(clean);
+  if (type === 'geogebra') return rasterizeGeogebraToPng(clean);
+  if (type === 'aiimg') return fetchAiImagePng(clean);
+  return renderDiagramToPng(type, clean);
+}
+
+/**
+ * Nguồn `<img src>` cho bản in HTML (PDF). Trình duyệt tự tải nên không cần rasterize:
+ * TikZ/Mermaid → SVG từ Kroki, SVG → data URL (thẻ img không chạy script trong SVG),
+ * aiimg → URL ảnh đã cache. GeoGebra cần applet → '' (bản in bỏ qua, bản Word vẫn có).
+ */
+export function diagramImgSrc(type: DiagramType, clean: string): string {
+  if (type === 'aiimg') return clean;
+  if (type === 'tikz') return buildTikzKrokiUrl(clean);
+  if (type === 'mermaid') return `https://kroki.io/mermaid/svg/${encodeKroki(clean)}`;
+  if (type === 'svg') return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(clean)))}`;
+  return '';
+}
+
 /** Tải ảnh raster đã cache (URL trong block `aiimg`) về PNG để nhúng Word/PDF như các diagram khác. */
 export async function fetchAiImagePng(url: string): Promise<DiagramImage | null> {
   try {

@@ -8,6 +8,7 @@
 
 import { marked } from 'marked';
 import type { Token, Tokens } from 'marked';
+import { classifyDiagram, type DiagramType } from '../krokiRender';
 
 export interface ActivityRow {
   thoiGian: string;
@@ -15,10 +16,18 @@ export interface ActivityRow {
   noiDung: string;
 }
 
+/** Hình đặt NGOÀI bảng (TikZ, sơ đồ, ảnh AI `aiimg` đã resolve) — builder render ra ảnh. */
+export interface ToanFigure {
+  type: DiagramType;
+  clean: string;
+}
+
 export interface ToanActivity {
   title: string;
   thoiLuong: string;
   rows: ActivityRow[];
+  /** Hình của hoạt động, in ngay dưới bảng hoạt động theo thứ tự xuất hiện. */
+  hinh?: ToanFigure[];
 }
 
 /** Một khối nội dung trong phiếu. Giữ nguyên loại để dựng lại đúng ở file Word. */
@@ -26,7 +35,15 @@ export type PhieuBlock =
   | { kind: 'heading'; text: string }
   | { kind: 'para'; text: string }
   | { kind: 'bullets'; items: string[] }
-  | { kind: 'table'; header: string[]; rows: string[][] };
+  | { kind: 'table'; header: string[]; rows: string[][] }
+  | { kind: 'figure'; figure: ToanFigure };
+
+/** Khối code là hình (TikZ/sơ đồ/aiimg đã resolve)? Khối code khác (hoặc aiimg chưa resolve) → null. */
+const figureOf = (tok: Token): ToanFigure | null => {
+  if (tok.type !== 'code') return null;
+  const c = tok as Tokens.Code;
+  return classifyDiagram(c.text || '', c.lang);
+};
 
 /**
  * Một phiếu học tập trong phụ lục — in ra phát cho học sinh, mỗi phiếu MỘT TRANG riêng.
@@ -290,7 +307,10 @@ export const parseToanLesson = (markdown: string): ToanLessonModel => {
     }
 
     if (section === 'tienTrinh') {
-      if (tok.type === 'table' && current) {
+      const fig = figureOf(tok);
+      if (fig && current) {
+        (current.hinh ??= []).push(fig);
+      } else if (tok.type === 'table' && current) {
         const table = tok as Tokens.Table;
         for (const row of table.rows) {
           model && current.rows.push({
@@ -309,6 +329,8 @@ export const parseToanLesson = (markdown: string): ToanLessonModel => {
 
     if (section === 'phuLuc') {
       if (!phieu) continue; // nội dung trước phiếu đầu tiên (lời dẫn phụ lục) — bỏ qua
+      const fig = figureOf(tok);
+      if (fig) { phieu.khoi.push({ kind: 'figure', figure: fig }); continue; }
       if (tok.type === 'table') { phieu.khoi.push(tableBlock(tok as Tokens.Table)); continue; }
       if (tok.type === 'list') {
         const items = listItems(tok);

@@ -676,10 +676,17 @@ QUY TẮC NGHIÊM NGẶT:
 - GIỚI HẠN ĐỘ PHỨC TẠP: mỗi hình không quá khoảng 40 dòng; chỉ dùng các lệnh TikZ cơ bản (\\draw, \\node, \\fill, \\path, \\foreach đơn giản). TUYỆT ĐỐI không dùng ảnh nền, external file, package/thư viện lạ (như tkz-euclide). Nếu hình quá phức tạp, hãy chuyển sang bảng biểu (mục 3) hoặc mô tả bằng một câu tiếng Việt.
 - SỐ LƯỢNG: ưu tiên MỖI HOẠT ĐỘNG CHÍNH có ít nhất một minh họa (hình TikZ HOẶC bảng biểu/biểu đồ) khi nội dung cho phép; khoảng 3–5 hình TikZ/giáo án là hợp lý. Hình phải gắn ĐÚNG ví dụ/bài tập/hoạt động cụ thể, KHÔNG trang trí, KHÔNG dùng một hình cho nhiều bài.
 
-2. Bối cảnh thực tế (cây cầu, thanh dầm, quỹ đạo...):
-- Vẫn VẼ bằng TikZ, ở mức sơ đồ đơn giản hoá: chỉ giữ những nét cần cho ý toán học.
-- TUYỆT ĐỐI KHÔNG viết mô tả ảnh bằng tiếng Anh (dạng "Image Prompt", "prompt: ...", "2D flat vector illustration..."). Giáo án là văn bản tiếng Việt đưa cho giáo viên, không phải chỗ đặt lệnh cho máy vẽ ảnh.
-- Nếu một hình thật sự không vẽ nổi bằng TikZ: BỎ HÌNH, và mô tả bằng một câu tiếng Việt ngắn trong nội dung (VD: "GV chiếu ảnh thanh dầm ngang song song với mặt sàn").
+2. Bối cảnh thực tế & Công dân toàn cầu/liên văn hóa (ảnh minh họa AI — khối \`\`\`aiimg):
+- Phần CÓ Ý TOÁN (cây cầu parabol, thanh dầm, quỹ đạo có số đo...) vẫn VẼ bằng TikZ ở mức sơ đồ.
+- Ảnh BỐI CẢNH không mang số liệu (khu chợ, sân trường, dây chuyền sản xuất, khung cảnh các nước, bản đồ thế giới đơn giản, nhóm HS đa văn hóa...) dùng khối ảnh AI:
+  \`\`\`aiimg
+  <MỘT câu mô tả TIẾNG VIỆT cụ thể: đối tượng, bối cảnh, góc nhìn — VD: khu chợ ngoài trời có ba quầy bán trái cây, nhìn từ trên cao>
+  \`\`\`
+  Hệ thống sẽ tự sinh ảnh và nhúng vào giáo án/Word/PDF.
+- ẢNH AI CHỈ ĐỂ MINH HỌA BỐI CẢNH: TUYỆT ĐỐI KHÔNG dùng cho đồ thị, hình học, miền nghiệm, hệ trục, biểu đồ, bảng số liệu (ảnh AI hay vẽ sai số/chữ — những thứ đó dùng TikZ hoặc bảng). Mô tả KHÔNG yêu cầu chữ/số trong ảnh, KHÔNG người thật nổi tiếng, KHÔNG logo/thương hiệu, KHÔNG nội dung nhạy cảm tôn giáo/chính trị.
+- SỐ LƯỢNG: tối đa 3 khối aiimg/giáo án, mỗi khối gắn ĐÚNG một tình huống/ví dụ cụ thể (ưu tiên phần khởi động bối cảnh và hoạt động CDTC/liên văn hóa); không trang trí cho đủ.
+- VỊ TRÍ: như TikZ — NGOÀI bảng, ngay dưới bảng của hoạt động dùng ảnh; trong ô bảng ghi "Xem Hình ... bên dưới".
+- TUYỆT ĐỐI KHÔNG viết mô tả ảnh bằng tiếng Anh hay dạng "Image Prompt", "prompt: ...". Chỉ viết đúng khối \`\`\`aiimg với một câu tiếng Việt.
 
 3. Bảng biểu & biểu đồ số liệu (cho bối cảnh thực tế, dữ liệu, và yếu tố Công dân toàn cầu/số):
 - Dữ liệu thực tế (dân số, khí thải CO₂ theo quốc gia, giá cả, thống kê...) trình bày bằng BẢNG MARKDOWN THƯỜNG (Word dựng được ngay, không cần TikZ) — có tiêu đề cột, số liệu cụ thể, ghi NGUỒN dưới bảng.
@@ -872,6 +879,21 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
             } catch (qErr) {
               console.warn('Bỏ qua cổng chất lượng Toán:', qErr);
             }
+          }
+
+          // Ảnh minh họa AI (block ```aiimg```): sinh ảnh → thay bằng URL đã cache. Lỗi từng ảnh
+          // thì thành dòng chú thích — ảnh không bao giờ làm hỏng giáo án.
+          try {
+            const { hasUnresolvedAiImages, resolveAiImagesInMarkdown } = await import('../lib/aiImage');
+            if (hasUnresolvedAiImages(ketQua)) {
+              if (!job) showToast('Đang sinh ảnh minh họa...', 'info');
+              const { generateLessonImage } = await import('../services/aiImageApi');
+              const withImages = await resolveAiImagesInMarkdown(ketQua, generateLessonImage);
+              ketQua = withImages;
+              if (!job) setCurrentPlan(prev => ({ ...prev, content: withImages }));
+            }
+          } catch (imgErr) {
+            console.warn('Bỏ qua bước sinh ảnh minh họa:', imgErr);
           }
           if (job) return ketQua;
         } catch (e: any) {
