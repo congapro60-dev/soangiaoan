@@ -5,6 +5,10 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Quy trình làm việc với nhiều AI — 2026-09-29
+
+Tài liệu [`docs/QUY_TRINH_DA_AI.md`](docs/QUY_TRINH_DA_AI.md): vai của từng gói (Claude Code chủ trì, Codex làm task có brief, Gemini đọc tài liệu dài), mẫu brief giao việc Claude → Codex qua cầu nối `@minhspark/codex-mcp-bridge`, nghiệm thu, nội dung nên làm sẵn để bớt gọi API, theo dõi tiền qua `aiUsage`. Gói ChatGPT/Claude/Gemini **không** được nối vào app.
+
 ## Lịch báo giảng + SSM đợt 2 (điểm LO, soạn sẵn nội dung) — 2026-09-29
 
 Chủ dự án muốn: GV đưa tài liệu sẵn có (file/link) → app viết hộ → GV tự chép/tải, tự đưa lên SSM. Web sẽ PUBLIC nên mọi thứ phải chung cho mọi trường (dữ liệu Dewey chỉ là mẫu thử).
