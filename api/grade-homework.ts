@@ -79,6 +79,7 @@ import {
   type SubmissionGrade,
 } from '../src/lib/classroom/types.js';
 import { handleAiGateway } from './_ai-gateway-handler.js';
+import { handleGenerateImage } from './_ai-image-handler.js';
 import { getBearerToken } from './_ai-gateway-core.js';
 import { createAiUsageContext, runWithAiUsage, setAiKeyOwner } from './_ai-usage.js';
 import { AiKeyRequiredError, aiKeyRequiredPayload, ensureGeminiKey } from './_ai-keys.js';
@@ -1791,6 +1792,7 @@ async function dispatchGradeHomework(req: VercelRequest, res: VercelResponse, bo
     if (action === 'setAssignmentCompetencyTags') return await handleSetAssignmentCompetencyTags(db, body, res);
     if (action === 'suggestRubric') return await handleSuggestRubric(db, body, res);
     if (action === 'rewriteFeedback') return await handleRewriteFeedback(db, body, res);
+    if (action === 'generateImage') return await handleGenerateImage(db, body, res);
     return res.status(400).json({ error: `Hành động không hợp lệ: ${action}`, limits: QUOTA_LIMITS });
   } catch (error) {
     // Khoá AI của giáo viên hết/chưa có và chưa đồng ý dùng khoá chung → client mở hộp chọn.
