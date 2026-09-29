@@ -18,7 +18,7 @@ Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/
 Hoà nhánh `feat/toan-final-template` vào main (CHỈ đụng generator Toán, không đụng billing/lớp học). Nguồn: folder `các yêu cầu về Toán cần đạt` + 6 góp ý chuyên gia CIS (phiên Codex `01a0745a`).
 - Mục tiêu **Must (Cơ bản)/Should (Trọng tâm)/Could (Nâng cao)** dạng "Tôi có thể…"; bảng **MINH CHỨNG HQT/CIS 4 cột** (thêm "Observer nhìn thấy gì" theo CIS Evidence Map) + 6 dòng **Danielson 1a–1f**; nhãn CIS mở rộng (`cisEvidence.ts`: +KIỂM ĐỊNH AI/TỰ ĐỊNH HƯỚNG/PHẢN TƯ/TRẢI NGHIỆM/LIÊN VĂN HÓA).
 - Cổng chất lượng nội dung `mathStandards.ts` (vòng audit+repair `toanLessonQuality`): `no-generic-objective`, `cis-evidence-table` (high), `exercise-source`, `cdtc-integration` (medium). Prompt thêm **VĂN PHONG TỰ NHIÊN NHƯ NGƯỜI SOẠN** + luật hình (bỏ trần 2 TikZ, thêm bảng số liệu/biểu đồ) + **bắt buộc ≥1 hoạt động CDTC/liên văn hóa/số có minh họa quan sát được**.
-- **Định hướng tiếp:** (a) ảnh raster AI — ĐÃ LÀM (mục trên); (b) **rút gọn mẫu** còn `toan`+`cv5512` (bỏ `claude`+`default`) — task riêng, RÀ blast-radius `default` (adaptive/PPCT) trước khi xóa.
+- **Định hướng tiếp:** (a) ảnh raster AI — ĐÃ LÀM (mục trên); (b) rút gọn mẫu — ĐÃ LÀM 2026-09-29: `BuiltinFormat` chỉ còn `toan`+`cv5512` (mặc định `toan`), xoá prompt Dewey/WALT-WILF (`claude`) và "Bài học phân hoá" (`default`, owner duyệt; tab phân hoá vẫn chạy vì builder tự chuyển từ mọi giáo án). Mẫu tùy chỉnh tải lên nay GHI ĐÈ mẫu dựng sẵn và không mang nhãn Toán. Giáo án cũ còn nhãn `default`/`claude` vẫn xuất đường chung. ⚠ Khối yêu cầu phụ của CV5512 vẫn chứa WALT/WILF + "3 tuyên ngôn Dewey" (có từ trước) — chờ owner quyết.
 
 ## Ví AI trả trước + khoá AI riêng + mã giảm giá — 2026-09-25
 
