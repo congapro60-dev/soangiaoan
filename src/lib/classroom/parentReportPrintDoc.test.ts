@@ -109,4 +109,30 @@ describe('buildParentReportPrintDoc', () => {
     expect(html).toContain('20/09/2026');
     expect(html).toContain('9.5/10');
   });
+
+  it('báo cáo theo kì: tiêu đề + khoảng, nhận xét giáo viên (đã escape), so sánh, biểu đồ theo tháng', () => {
+    const html = buildParentReportPrintDoc({
+      report,
+      studentName: 'An',
+      className: '10A',
+      period: { title: 'Báo cáo cuối học kì I — năm học 2026–2027', range: 'Từ 01/09/2026 đến 15/01/2027', kind: 'ck1' },
+      comparison: { before: { label: 'Nửa đầu', avgPercent: 60, count: 3 }, after: { label: 'Nửa sau', avgPercent: 75, count: 4 } },
+      monthly: [{ month: '2026-09', label: 'T9', avgPercent: 60, count: 3 }, { month: '2026-10', label: 'T10', avgPercent: 75, count: 4 }],
+      teacherComment: 'Con tiến bộ <rõ>.' + String.fromCharCode(10) + 'Cần luyện thêm.',
+    });
+    expect(html).toContain('Báo cáo cuối học kì I — năm học 2026–2027');
+    expect(html).toContain('Từ 01/09/2026 đến 15/01/2027');
+    expect(html).toContain('Nhận xét của giáo viên');
+    expect(html).toContain('Con tiến bộ &lt;rõ&gt;.<br/>Cần luyện thêm.');
+    expect(html).toContain('Tiến bộ 15.0 điểm phần trăm');
+    expect(html).toContain('Điểm trung bình theo tháng');
+  });
+
+  it('không có kì / nhận xét thì giữ bản chung như trước', () => {
+    const html = buildParentReportPrintDoc({ report, studentName: 'An', className: '10A' });
+    expect(html).toContain('Báo cáo học tập môn Toán');
+    expect(html).not.toContain('Nhận xét của giáo viên');
+    expect(html).not.toContain('So sánh để thấy tiến bộ');
+  });
 });
+
