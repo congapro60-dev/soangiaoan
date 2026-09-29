@@ -27,12 +27,20 @@ Chủ dự án chốt: mốc thời gian CHỌN TAY mỗi lần xuất (khoảng
 - Máy chủ `_parent-report.ts` (route trong classroom.ts): `parentReportNote` / `saveParentReportNote` / `draftParentReportComment` — `parentReportNotes/{classId}_{studentId}_{kind}_{from}_{to}`, chỉ GV thuộc lớp, AI tính cho GV chủ lớp.
 - Giao diện: học sinh → Bản phụ huynh (chọn loại + ngày, AI soạn nháp, Lưu, Tải PDF); tab Báo cáo của lớp → "Xuất báo cáo phụ huynh cả lớp" (tuỳ chọn AI soạn cho em chưa có nhận xét). Test: reportPeriod 4, builder 3, printDoc +2, parent-report API 3.
 
+## Ảnh minh họa AI (Imagen) + hình trong form trường Toán — 2026-09-28
+
+- AI soạn viết khối ` ```aiimg ` (MỘT câu tiếng Việt, chỉ bối cảnh/CDTC, ≤3/giáo án) → bước hậu-sinh (`lib/aiImage.ts`, `services/aiImageApi.ts`) gọi `grade-homework` `action:'generateImage'` (`api/_ai-image-handler.ts`, Imagen 4 `imagen-4.0-generate-001`) → thay bằng URL Storage `ai-images/{hash}.png`, cache Firestore `aiImages/{hash}` (sinh lại cùng directive = miễn phí). Lỗi → dòng chú thích, không bao giờ hỏng giáo án.
+- **Tiền:** dùng NGUYÊN cổng khoá/ví: `setAiKeyOwner(uid)`+`ensureGeminiKey` → khoá riêng GV (Google tính thẳng) hoặc khoá chung (trừ ví theo ảnh: `recordImageUsage` + `aiPricing` giá/ảnh $0.04/0.06/0.02). 402 → `aiKeyGate` tự mở hộp nạp/nhập khoá. Không tốn slot Vercel.
+- Chặn cứng ở máy chủ directive hình Toán (đồ thị/hình học/biểu đồ…) → 422 `USE_TIKZ`; Imagen `personGeneration=DONT_ALLOW`, không chữ/số/logo.
+- **Form trường Toán trước đây BỎ MỌI HÌNH** (cả TikZ) khi xuất Word/PDF. Nay `parseToanLesson` gom khối hình ngoài bảng vào `activity.hinh`/phiếu (`kind:'figure'`), `buildSchoolFormDocx` nhúng PNG (`renderFigureImages`, trần 480×360px), `buildSchoolFormHtml` dùng `<img>` (Kroki SVG/URL ảnh), in PDF chờ ảnh tải (≤10s). Đã render QA bằng LibreOffice.
+- **Nghiệm thu còn lại (cần máy thật + khoá):** sinh 1 giáo án có `aiimg` trên preview Vercel để xác nhận Imagen trả ảnh + trừ ví đúng.
+
 ## Mẫu giáo án ban Toán: yêu cầu mới + cổng nội dung + ảnh/CDTC — 2026-09-27
 
 Hoà nhánh `feat/toan-final-template` vào main (CHỈ đụng generator Toán, không đụng billing/lớp học). Nguồn: folder `các yêu cầu về Toán cần đạt` + 6 góp ý chuyên gia CIS (phiên Codex `01a0745a`).
 - Mục tiêu **Must (Cơ bản)/Should (Trọng tâm)/Could (Nâng cao)** dạng "Tôi có thể…"; bảng **MINH CHỨNG HQT/CIS 4 cột** (thêm "Observer nhìn thấy gì" theo CIS Evidence Map) + 6 dòng **Danielson 1a–1f**; nhãn CIS mở rộng (`cisEvidence.ts`: +KIỂM ĐỊNH AI/TỰ ĐỊNH HƯỚNG/PHẢN TƯ/TRẢI NGHIỆM/LIÊN VĂN HÓA).
 - Cổng chất lượng nội dung `mathStandards.ts` (vòng audit+repair `toanLessonQuality`): `no-generic-objective`, `cis-evidence-table` (high), `exercise-source`, `cdtc-integration` (medium). Prompt thêm **VĂN PHONG TỰ NHIÊN NHƯ NGƯỜI SOẠN** + luật hình (bỏ trần 2 TikZ, thêm bảng số liệu/biểu đồ) + **bắt buộc ≥1 hoạt động CDTC/liên văn hóa/số có minh họa quan sát được**.
-- **Định hướng tiếp:** (a) **ảnh raster AI (Imagen)** cho bối cảnh/CDTC — kế hoạch `tasks/ke-hoach-anh-raster-ai.md`, cắm vào ví/billing sẵn có (`_ai-usage`/`aiPricing`/`aiWallet`); (b) **rút gọn mẫu** còn `toan`+`cv5512` (bỏ `claude`+`default`) — task riêng, RÀ blast-radius `default` (adaptive/PPCT) trước khi xóa.
+- **Định hướng tiếp:** (a) ảnh raster AI — ĐÃ LÀM (mục trên); (b) rút gọn mẫu — ĐÃ LÀM 2026-09-29: `BuiltinFormat` chỉ còn `toan`+`cv5512` (mặc định `toan`), xoá prompt Dewey/WALT-WILF (`claude`) và "Bài học phân hoá" (`default`, owner duyệt; tab phân hoá vẫn chạy vì builder tự chuyển từ mọi giáo án). Mẫu tùy chỉnh tải lên nay GHI ĐÈ mẫu dựng sẵn và không mang nhãn Toán. Giáo án cũ còn nhãn `default`/`claude` vẫn xuất đường chung. CV5512 đã lọc về đúng Phụ lục IV (owner duyệt): 4 hoạt động (không HĐ5; dặn dò cuối HĐ4), d) Tổ chức thực hiện theo 4 bước trong bảng 3 cột, tiết 45 phút, `CV5512_REQUIREMENTS` cấm WALT/WILF/🌶️/tuyên ngôn/CIS/Danielson. Khối Dewey cũ CHỈ còn áp cho mẫu tùy chỉnh (giữ nguyên hành vi).
 
 ## Ví AI trả trước + khoá AI riêng + mã giảm giá — 2026-09-25
 

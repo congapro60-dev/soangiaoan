@@ -10,7 +10,8 @@
 // chồng hai file lên nhau thì không trùng khít — muốn trùng khít phải chuyển đổi ở máy chủ.
 
 import katex from 'katex';
-import type { ToanLessonModel } from './parseToanLesson';
+import type { ToanFigure, ToanLessonModel } from './parseToanLesson';
+import { diagramImgSrc } from '../krokiRender';
 import { tokenizeInline } from './inlineTokens';
 import { detectCisColor } from './cisEvidence';
 import {
@@ -95,6 +96,13 @@ const activityHtml = (a: ToanLessonModel['activities'][number]): string => {
   return `<table class="grid act"><colgroup>${w.map((x) => `<col style="width:${x}">`).join('')}</colgroup><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
 };
 
+/** Hình: trình duyệt tự tải ảnh (Kroki SVG / ảnh AI đã cache) — soi gương `figureParagraph` bản Word. */
+const figureHtml = (f: ToanFigure): string => {
+  const src = diagramImgSrc(f.type, f.clean);
+  if (!src) return '<p class="fig fig-miss">[Hình minh họa — xem bản Word]</p>';
+  return `<p class="fig"><img src="${esc(src)}" alt="Hình minh họa"></p>`;
+};
+
 const inch = (twip: number): string => `${twipToInch(twip).toFixed(4)}in`;
 
 /**
@@ -146,6 +154,10 @@ export const SCHOOL_FORM_PRINT_CSS = `
 #print-temp-container.school-form .phieu-muc { font-weight: 700; margin: 6pt 0 3pt; }
 /* Vùng trả lời phải đủ cao để học sinh viết tay. */
 #print-temp-container.school-form table.phieu-bang td:empty { height: 48pt; }
+/* Hình: cùng trần kích thước với bản Word (480×360px ≈ 5×3.75in). */
+#print-temp-container.school-form .fig { text-align: center; margin: 4pt 0 6pt; break-inside: avoid; page-break-inside: avoid; }
+#print-temp-container.school-form .fig img { max-width: 5in; max-height: 3.75in; }
+#print-temp-container.school-form .fig-miss { font-style: italic; color: #718096; }
 `;
 
 /**
@@ -181,6 +193,7 @@ export const buildSchoolFormHtml = (m: ToanLessonModel): string => {
     const label = `${a.title}${a.thoiLuong ? `  —  Thời lượng: ${a.thoiLuong}` : ''}`;
     out.push(bandHtml(label, i === 0 ? FILL.khoiDong : FILL.hoatDong));
     out.push(activityHtml(a));
+    for (const f of a.hinh ?? []) out.push(figureHtml(f));
   });
 
   out.push(bandHtml('5. SƠ KẾT', FILL.soKet));
@@ -207,6 +220,8 @@ export const buildSchoolFormHtml = (m: ToanLessonModel): string => {
         out.push(bulletsHtml(b.items));
       } else if (b.kind === 'heading') {
         out.push(`<p class="phieu-muc">${inlineHtml(b.text)}</p>`);
+      } else if (b.kind === 'figure') {
+        out.push(figureHtml(b.figure));
       } else {
         out.push(`<p>${inlineHtml(b.text)}</p>`);
       }

@@ -93,3 +93,49 @@ export const costUsdOfCall = (model: string, day: string, tokens: UsageTokens): 
 
 /** Quy USD ra VNĐ, làm tròn tới đồng. */
 export const usdToVnd = (usd: number, usdVnd: number): number => Math.round(usd * usdVnd);
+
+// ── Giá SINH ẢNH (Imagen) — tính theo MỖI ẢNH, không theo token ────────────────
+// Nguồn: ai.google.dev/gemini-api/docs/imagen (tra 2026-09-27). Imagen 4: Standard $0.04/ảnh,
+// Ultra $0.06/ảnh, Fast $0.02/ảnh. Giá đổi thì cập nhật bảng + ngày như phần token ở trên.
+
+interface ImagePricePeriod {
+  from?: string;
+  to?: string;
+  /** USD cho MỖI ảnh sinh ra. */
+  usdPerImage: number;
+}
+
+interface ImagePriceRule {
+  label: string;
+  matches: (model: string) => boolean;
+  periods: ImagePricePeriod[];
+}
+
+const IMAGE_RULES: ImagePriceRule[] = [
+  { label: 'Imagen 4 Ultra', matches: m => m.startsWith('imagen-4') && m.includes('ultra'), periods: [{ usdPerImage: 0.06 }] },
+  { label: 'Imagen 4 Fast', matches: m => m.startsWith('imagen-4') && m.includes('fast'), periods: [{ usdPerImage: 0.02 }] },
+  { label: 'Imagen 4', matches: m => m.startsWith('imagen-4') || m.startsWith('imagen'), periods: [{ usdPerImage: 0.04 }] },
+];
+
+/** Nhãn model ảnh (Imagen…) để hiện trong sao kê; trả nguyên model nếu chưa có trong bảng. */
+export const imageModelLabel = (model: string): string =>
+  IMAGE_RULES.find(rule => rule.matches(normalizeModel(model)))?.label ?? model;
+
+/** Có phải model sinh ảnh (tính tiền theo ảnh) không. */
+export const isImageModel = (model: string): boolean =>
+  IMAGE_RULES.some(rule => rule.matches(normalizeModel(model)));
+
+/** Giá USD/ảnh áp dụng theo model + ngày. null = model ảnh chưa có trong bảng. */
+export const imagePriceFor = (model: string, day: string): number | null => {
+  const rule = IMAGE_RULES.find(item => item.matches(normalizeModel(model)));
+  if (!rule) return null;
+  const period = rule.periods.find(p => (!p.from || day >= p.from) && (!p.to || day <= p.to));
+  return period ? period.usdPerImage : null;
+};
+
+/** Tiền USD của một lượt sinh ảnh = giá/ảnh × số ảnh. null khi model chưa có giá. */
+export const costUsdOfImage = (model: string, day: string, imageCount: number): number | null => {
+  const per = imagePriceFor(model, day);
+  if (per == null) return null;
+  return per * Math.max(0, Math.round(imageCount));
+};

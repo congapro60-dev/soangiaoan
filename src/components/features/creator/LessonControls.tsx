@@ -170,10 +170,8 @@ export const LessonControls = ({
             <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Định dạng giáo án</label>
             <div className="grid grid-cols-2 gap-2">
               {([
-                { value: 'default', label: 'Bài học phân hoá', sub: 'Pre-test · 3 tuyến · học liệu tương tác' },
-                { value: 'claude', label: 'Mẫu giáo án Dewey', sub: 'WALT/WILF · Phân hóa 🌶️🌶️🌶️' },
-                { value: 'cv5512', label: 'Công văn 5512', sub: 'Chuẩn Bộ GD&ĐT 2020' },
                 { value: 'toan', label: 'Giáo án ban Toán', sub: 'KHDH · Socratic · phân hóa TB/Khá/Giỏi' },
+                { value: 'cv5512', label: 'Công văn 5512', sub: 'Chuẩn Bộ GD&ĐT 2020' },
               ] as const).map(opt => (
                 <button
                   key={opt.value}
