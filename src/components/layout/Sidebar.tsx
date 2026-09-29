@@ -17,6 +17,7 @@ import {
   WandSparkles,
   Users,
   ShieldCheck,
+  CalendarRange,
   Wallet
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
@@ -46,6 +47,7 @@ export const Sidebar = ({
   const menuItems = [
     { id: 'dashboard', label: 'Tổng quan', icon: LayoutDashboard },
     { id: 'classes', label: 'Lớp học', icon: Users },
+    { id: 'lessonSchedule', label: 'Lịch báo giảng', icon: CalendarRange },
     { id: 'creator', label: 'Soạn giáo án', icon: Plus },
     { id: 'lessonUpgrade', label: 'Nâng cấp giáo án', icon: WandSparkles },
     { id: 'testing', label: 'Bảng Kiểm tra', icon: GraduationCap },

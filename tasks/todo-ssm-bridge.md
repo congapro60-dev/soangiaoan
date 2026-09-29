@@ -41,3 +41,59 @@ Tiện ích Edge — content script trên domain app  ──►  service worker
 ## Chưa khảo sát (đợt sau)
 - Form ghi lịch báo giảng, BTVN (API POST).
 - Điểm danh theo tiết (phải xem lúc có tiết đang diễn ra).
+
+## Khảo sát API GHI (2026-09-24, từ mã JS công khai SSM bản umi.a90344e0)
+Header như đợt 1: `Authorization: Bearer <access_token>`, `workspace`, `Accept-Language`.
+- **Báo giảng tuần** — `POST /v1/lecture-schedules`, sửa `PUT /v1/lecture-schedules/{id}`; đọc `GET /v1/lecture-schedules` (+ `/subjects /grades /classes /teachers /class-types`).
+  Payload JSON: `{start_date, end_date (đầu/cuối tuần, "YYYY-MM-DD"), subject_id, class_ids: [..], content, files: []}`.
+- **BTVN** — `POST v1/homeworks`, sửa `POST v1/homeworks/{id}`, xoá `DELETE /v1/homeworks/{id}`; đọc `GET v1/homeworks`, `v1/class-teacher`, `v1/subject-class?class_id&school_year_id`.
+  Payload **FormData**, mỗi giá trị `JSON.stringify` trừ `deadline`: `name` ({vi}), `class_ids`, `subject_id`, `is_all_student` (1/0), `student_ids` (khi 0), `deadline` ("YYYY-MM-DD HH:mm:ss"), `content` (JSON {vi: html}).
+- **Điểm LO (TDS V2)** — ghi `POST /v2/evaluation/grading-student-by-assessment-form/{id}`, `POST /v2/evaluation/update-result-grading-student/{id}`; nháp `POST /v1/evaluation/grading-student-draft-by-assessment-form/{id}`; duyệt `POST /v2/evaluation/approve-assessment-form`; đọc `GET /v3/evaluation/classes/{classId}/subjects/{subjectId}/quarters`, `/v2/evaluation/class-subject-assessment?assessment_form_id&criteria_id&class_id`. Nhận xét môn: `PUT /v2/evaluation/subject-comments`.
+- **Điểm danh** — `GET v1/attendances/getClassTimeTableLessonAttendance/{..}`, `POST v1/attendances/saveAttendanceData/{..}`, `POST v1/attendances/updateAttendanceDataTds/{..}`.
+Công cụ: tải toàn bộ chunk (map `return""+({...})[id]...".async.js"` trong umi) rồi lần endpoint → hàm → export → chỗ gọi.
+
+## Dữ liệu THẬT đã đọc (2026-09-24, tài khoản chủ dự án, chỉ GET)
+- `GET v1/subject-class?class_id=9681&school_year_id=6` → `{data:[{id,name,total}]}`; 11Columbus: 12 = VN TOÁN, 6730 = ĐỊNH HƯỚNG, 6956 = GDCXXH. `class-teacher` trả `{data:[{id,name}]}` (46 lớp).
+- **Báo giảng**: SSM TẠO SẴN ô cho mỗi lớp×môn×tuần (content rỗng = "Trống") → điền = `PUT /v1/lecture-schedules/{id}`. Tìm ô: `GET v1/lecture-schedules?brand_has_school_year_id=10&start_date=YYYY-MM-DD(thứ Hai)&end_date=(Chủ nhật)&class_id=&subject_id=&page=1&limit=50` (lọc bằng `class_id`, KHÔNG phải `class_ids`). Dòng: `{id, class{id,name,code}, subject{subject_id,subject_name}, content (HTML), start_date, end_date, is_allow_edit, is_later, teacher{...}}`. Nội dung mẫu: `<h3>11Columbus – VN TOÁN Chính khoá</h3><p><strong>Thứ Hai 21/9</strong></p><ul><li>Từ 10h00 đến 10h40: …</li></ul>…`.
+- **Thời khoá biểu** của GV đang đăng nhập theo ngày: `GET v1/class-time-table-lessons?date=YYYY-MM-DD&skipPagination=true&search=is_active:1&branchType=TDS` → `{data:[{id (mã tiết), subject_name, class_time_table_lesson_attendance_count, classTimeTables:{data:{date, time "10:00-10:40", from, to, name, class:{data:{id,name}}}}}]}` (có cả Sinh hoạt đầu/cuối giờ, subject_name null).
+- **Điểm danh 1 tiết**: `GET v1/attendances/getClassTimeTableLessonAttendance/{lessonId}` → `data:{class_id, date, from, to, subject_name, status_attendance (đã điểm danh?), not_time_for_attendance_yet, attendance_time_is_over, students:[{student_id, student_code, full_name{vi}, attendance_status_id, attendance_comment, previous_attendance_status, is_uniform, class_time_table_lesson_id, …}]}`. Ghi: chưa điểm danh → `POST v1/attendances/saveAttendanceData/{lessonId}`, đã có → `POST v1/attendances/updateAttendanceDataTds/{lessonId}`; body `{attendance_data:[bản ghi học sinh (nguyên object GET) đã sửa attendance_status_id + attendance_date "YYYY-MM-DD hh:mm:ss"], attendance_compensation:null}`. Mã: có mặt 1, vắng 2, muộn 3, có phép 6, không phép 7.
+- **Điểm LO**: `GET v3/evaluation/classes/{classId}/subjects/{subjectId}/quarters?school_year_id=6` → 4 quý `{id, name, status, assessment_forms:[{id, assessment_name F1/IA1…, radio (trọng số %), status, total_student_graded, total_student, criteria_id}]}`. `GET v2/evaluation/class-subject-assessment?assessment_form_id&criteria_id&class_id` → `{quarter_has_branch_id, result_assessment_form_id (null = chưa chấm), can_edit, is_approved, is_draft_set, …}`. LO + thang điểm: `GET /v2/evaluation/criteria-has-assessment-form/{assessmentFormId}` (CHƯA đọc được — bị chặn), HS: `GET /v2/evaluation/student-by-subject`. Ghi: chưa có kết quả → `POST /v2/evaluation/grading-student-by-assessment-form/{assessmentFormId}`, đã có → `POST /v2/evaluation/update-result-grading-student/{result_assessment_form_id}`; body `{class_id, criteria_id, quarter_has_branch_id, students:[{id,name,result:[{learning_outcome_id, scoring_setting_id, is_number, point:"", grading_student_id}]}]}` (LO có focal_point_id + power_standard_id; điểm = MỨC trong thang `scoring_setting_id`).
+- **LO thật (xem qua giao diện SSM, 11Columbus · VN TOÁN · Q1, cả F1 lẫn IA1 cùng bộ)**: trang chấm `/academic/student-assessment-v2/tds/6/evaluate/{classId}/criteria/{criteriaId}/assessment-form/{formId}/subject/{subjectId}/quarter/{quarterId}`. Cây FP (focal point) → PS (power standard) → LO: FP_DIS_TO_8774, 8775; PS 20478 (HSLG + PTLG), 20479 (dãy số, CSC, CSN), 20483 (quan hệ song song); LO 34745 (giá trị LG, công thức LG, hàm số LG), 34746 (PTLG cơ bản), 34747 (dãy số), 34748 (CSC, CSN), 34756 (đường thẳng & mặt phẳng song song). Thang: **N** (chưa đánh giá), 4, 3.5, 3, 2.5, 2, 1.5, 1, 0. Mỗi HS × mỗi LO một ô; nút "Lưu" và "Gửi Phê Duyệt". Cấu trúc JSON của `criteria-has-assessment-form` CHƯA đọc được (auto-mode chặn).
+
+## Đợt 2 — tab SSM trong workspace lớp (2026-09-25) — XONG code, chờ user test
+Không tự ghi vào SSM. Mọi thẻ: app soạn/điền sẵn → cô tự tải lên / dán / bấm nút cuối trên SSM.
+- **Điểm LO**: tải file mẫu SSM xuất (`Template_Export_Score_*.xlsx`, CDN cdn-ssm.edufit.vn/export/evaluation/, tĩnh, không cần đăng nhập) → `loWorkbook` đọc (cột A=Mã HS, dòng 6=mã LO, D..=ô điểm) → lưới HS×LO (ô N,4,3.5..0) → "Gợi ý điểm bằng AI" (`callAI` client, ghép LO↔năng lực `loMapping`+`loMappingPrompt` 1 lần/bài, điểm từ bài đã duyệt `loClassScores`, quy thang `loScore` điểm/2,5 khớp mức gần nhất — thang KHÔNG có 0,5) → cô sửa tay → "Tải file đã điền" (`fillLoWorkbook` giữ nguyên data validation). Đã kiểm trên file thật + giao diện thật.
+- **Lịch báo giảng** (`ssmDrafts.buildScheduleContent`): từ PPCT (`loadPpct('TDS',grade)`) tuần N → HTML kiểu ô báo giảng → nút Chép (rich html+text). Đã kiểm khối 11 tuần 1.
+- **BTVN** (`buildHomeworkDraft`): mỗi bài giao (type≠exam) → tên/hạn(YYYY-MM-DD HH:mm:ss)/nội dung, nút chép.
+- **Nhận xét PH** (`buildSubjectComment` từ `buildParentSafeReport`): mỗi em một đoạn, nút chép.
+- File: `src/lib/ssm/lo*.ts`, `ssmDrafts.ts` (thuần, 47 test); `SsmPanel.tsx` (LO) + `SsmDraftCards.tsx`; tab "ssm" trong `ClassWorkspaceNav`.
+- **Chưa đẩy main** — chờ user test 1 vòng thật (đăng nhập GV + upload file lên SSM xem SSM nhận). BTVN/Nhận xét cần đăng nhập GV mới có dữ liệu (demo chặn API — đúng như thiết kế).
+- **Bẫy dev**: sau khi thêm import vào ClassesTab, Vite HMR kẹt bản cũ ("SsmDraftCards is not defined") — xóa `node_modules/.vite` + tải lại kèm query cache-bust; production build không dính.
+
+## Đợt 3 — nghiên cứu (2026-09-27), CHƯA code, chờ user duyệt + file mẫu
+Nguyên tắc chung: GV đưa vào bất cứ thứ gì đang có (file xlsx/docx/pdf, link Sheet/Docs/Office) → app đọc → bảng xem-sửa → chép/tải → GV tự đưa lên SSM. App vẫn KHÔNG tự ghi SSM.
+Lỗ hổng hiện tại: thẻ báo giảng chỉ theo "Tuần N" của PPCT, không có ngày/thứ/giờ; SSM thật ghi theo từng ngày + khung giờ ("Thứ Hai 21/9 — Từ 10h00 đến 10h40: …"). PPCT đóng cứng qua scripts/build-ppct.mjs → năm mới phải nhờ dev.
+1. [x] Lịch báo giảng cả năm = PPCT + lịch năm học (ngày bắt đầu tuần 1, tuần nghỉ lễ/thi) + TKB lớp (thứ/tiết/giờ) → xếp từng tiết PPCT vào ô thật → xem/sửa/kéo dời → mỗi tuần chép đúng khuôn SSM; tải Excel cả năm. TKB: GV tải file lên, hoặc (tuỳ chọn) đọc qua tiện ích op chỉ-đọc `v1/class-time-table-lessons` — phải hỏi user trước khi thêm op.
+2. [x] Nhập PPCT mới bằng file/link thay cho build script (AI đọc cấu trúc lạ, GV soát bảng).
+3. [ ] Gói tuần: báo giảng + BTVN của tuần đó chép một lần.
+4. [ ] Nhận xét quý dựa trên điểm LO + năng lực (đã có khung buildSubjectComment).
+5. [ ] Bản tin tuần cho PH (đã học gì, BTVN, lịch kiểm tra) → chép sang Truyền thông.
+6. [ ] (hỏi) Hồ sơ đầu năm KH giáo dục môn học từ PPCT, nếu trường yêu cầu.
+Cần user: file/link lịch năm học 2026-27, TKB 1 lớp, 1 ô báo giảng tuần đã điền mẫu, file PPCT tổ gửi (nếu khác bản trong app).
+
+### Khảo sát nguồn thật (2026-09-27) — user nhấn mạnh: web sẽ PUBLIC, mọi thứ phải chung cho mọi trường
+- **TKB Prime Timetable** (link publish): JSON công khai `GET primetimetable.com/api/v2/timetables/{uuid}/` (không đăng nhập, KHÔNG có CORS → cần máy chủ tải hộ, allowlist). Có `name` kèm khoảng ngày ("Q1 (19/08/26 - 23/10/26)"), `days`, `periods` (giờ thật theo cấp nằm trong tên: "MHS:8:10-8:50"), `teachers` (TDS: shortName = mail trường; MOET: chỉ tên), `classes`+groupSets, `activities{subjectId, teacherIds, groupIds, cards[{dayId, periodId}], length (2 = tiết đôi)}`. Lớp ghép (12Denver+12Detroit) = 1 activity nhiều lớp. TDS và MOET là 2 TKB khác khoảng ngày (TDS 19/8–23/10, MOET 7/9–7/11), tên lớp khác ("10Olinda" vs "10Olinda (Dis)"). Mỗi quý 1 TKB mới, đổi bất kỳ lúc nào.
+- **Lịch năm học** (Google Sheet nội bộ, ẩn danh 401 → đọc bằng quyền Google của GV như sheet-sync, hoặc GV tải file): lưới tháng, cột W1..W36, quý (Q1=W1, Q2=W11…), sự kiện là chữ tự do "15: Rằm Trung thu (-2 tiết)", "2: PD DAY HS nghỉ", "31: Nghỉ lễ", "3: Family Day (làm bù)". Màu ô mất khi xuất → phải AI trích + GV soát.
+- **Mẫu LBG gửi PH** (ảnh ChatGPT, 10Olinda W5): theo ngày "Thứ Ba 15/9" → "Từ 8h10 đến 8h50: Hình học: <bài> – Tiết 6: <nội dung>"; Tự chọn ghi "Tự chọn". Chỉ tiết TDS.
+- **Quy tắc xếp tiết thật** (so ảnh với PPCT tds-g10 tuần 5): KHÔNG theo thứ tự periodNo. Mỗi phân môn đi riêng theo thứ tự của nó, ngày cố định cho phân môn (T3/T5 Hình, T4/T6 Đại), hết bài của phân môn trong tuần → Tự chọn. PPCT tuần N ↔ tuần lịch WN (TDS); MOET bắt đầu muộn hơn → cần "tuần 1 PPCT = ngày …" riêng từng chương trình. Số tiết PPCT/tuần không khớp hẳn số ô TKB (tuần lễ) → phải báo thừa/thiếu cho GV quyết.
+- Drive LBG MOET: tài khoản browser không có quyền (không bấm xin quyền).
+
+### Đợt 3 — ĐÃ CODE (2026-09-28), nhánh feat/ssm-bridge, CHƯA lên production
+Mục mới "Lịch báo giảng" trên thanh bên (`src/components/tabs/LessonScheduleTab.tsx` + `features/lessonSchedule/*`), lõi thuần `src/lib/schedule/*` (38 test), máy chủ `api/_timetable.ts` (action `fetchPrimeTimetable`, chỉ primetimetable.com, cần đăng nhập GV).
+- Bộ lịch (TDS/MOET… tuỳ GV đặt tên) = nhiều TKB theo quý + lớp + PPCT (có sẵn hoặc AI đọc file/link của trường) + phân môn từng ô.
+- Lịch năm học dùng chung: AI đọc file/link Google → bảng sự kiện, chỉ "HS nghỉ" làm mất tiết; tuần nghỉ trọn tự bỏ đánh số.
+- Kết quả: tin tuần gửi PH (sửa được, chép) + sổ báo giảng Excel (tuần / cả năm, khuôn MOET).
+- Lưu cấu hình trên trình duyệt (localStorage theo uid) — đổi máy phải nhập lại.
+- Kiểm: TDS 10Olinda tuần 5 trùng ảnh mẫu; MOET tuần 1/4/5/6 trùng file LBG thầy Cường; Excel đọc lại đúng; UI thử trên dev (demo) + mobile width.
+- Chưa kiểm được trên dev: nút "Tải" link Prime (dev proxy sang production chưa có action) và luồng AI (demo không có key) → kiểm sau khi lên production với tài khoản trường.
+- Bẫy dữ liệu: PPCT tds-g10 có 6 tiết subject "Tự chọn" nhưng isElective=false (tds-g12 có 1) — UI đã bỏ khỏi danh sách phân môn.
