@@ -1,9 +1,22 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-09-28
+**Cập nhật:** 2026-09-29
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
+
+## Lịch báo giảng + SSM đợt 2 (điểm LO, soạn sẵn nội dung) — 2026-09-29
+
+Chủ dự án muốn: GV đưa tài liệu sẵn có (file/link) → app viết hộ → GV tự chép/tải, tự đưa lên SSM. Web sẽ PUBLIC nên mọi thứ phải chung cho mọi trường (dữ liệu Dewey chỉ là mẫu thử).
+- **Mục "Lịch báo giảng"** (thanh bên; `LessonScheduleTab` + `components/features/lessonSchedule/*`, lõi thuần `src/lib/schedule/*`): bộ lịch (TDS/MOET… GV tự đặt tên, TKB + PPCT riêng) = nhiều TKB theo quý + lớp + PPCT + phân môn từng ô → tin tuần gửi PH (sửa được, chép) + sổ báo giảng Excel khuôn MOET (tuần / cả năm).
+  - TKB: link Prime Timetable → `api/_timetable.ts` (action `fetchPrimeTimetable`; chỉ `primetimetable.com/api/v2/timetables/{uuid}/`; cần đăng nhập GV; trang không có CORS nên máy chủ tải hộ). GV nhận theo mail rồi theo tên bỏ dấu; giờ thật lấy từ TÊN tiết theo cấp ("MHS:8:10-8:50"), tiết đôi `length:2`. Không dùng Prime → nhập tay.
+  - Lịch năm học + PPCT của trường: file Excel/Word/PDF hoặc link Google (đọc bằng quyền Drive của GV, `sourceText.ts`) → AI (`callAI`) → bảng GV soát. Chỉ loại "HS nghỉ" làm mất tiết; tuần nghỉ trọn T2–T6 tự không đánh số.
+  - Luật xếp (`lessonCalendar.ts`, khớp cách GV làm tay): tuần N nhận tiết PPCT tuần N + tiết dồn; ô gán phân môn lấy đúng mạch, hết thì Tự chọn; **Tự chọn là tiết đệm — không xếp được thì BỎ, không dồn** (PPCT đặt Tự chọn vào tuần có lễ); bài học bị dồn thì báo GV. Nhãn "(tiết N)"/"(tiếp)": các lần cùng tên cách ≤1 tuần PPCT là một chuỗi.
+  - Cấu hình lưu **localStorage theo uid** (`lich-bao-giang:v1:<uid>`) — đổi máy/trình duyệt phải nhập lại.
+- **Tab SSM trong lớp** (`SsmPanel` + `SsmDraftCards`): điểm LO — file hoặc LINK file mẫu SSM (`api/_ssm-template.ts` tải hộ `cdn-ssm.edufit.vn/export/evaluation/*.xlsx`) → AI ghép LO↔năng lực → gợi ý thang 4 (điểm/2,5, khớp mức gần nhất) → GV sửa → tải file đã điền (SSM đã nhận file này); 3 thẻ soạn sẵn báo giảng/BTVN/nhận xét để chép. App KHÔNG ghi gì vào SSM.
+- **Bẫy:** PPCT `tds-g10` có 6 tiết (g12: 1) phân môn "Tự chọn" nhưng `isElective=false` — UI đã loại khỏi danh sách phân môn, file gốc chưa sửa. Dev proxy `/api` sang production nên nút tải TKB chỉ thử được sau deploy. Máy dev: Git for Windows 2.56 cài dở (thiếu `usr\bin`, bash) → tạm dùng `C:\Program Files\Git\ucrt64\bin\git.exe`.
+- Kiểm trên dữ liệu thật: tin TDS 10Olinda tuần 5 trùng ảnh mẫu GV; sổ MOET tuần 1/4/5/6 trùng file LBG của GV (10Olinda + 11Columbus); Excel đọc lại đúng. `ai-gateway-handler` vẫn chập chờn khi chạy cả bộ (chạy riêng pass).
+- Nghiệm thu: `npx vitest run src/lib/schedule src/lib/ssm api/__tests__/timetable.test.ts api/__tests__/ssm-template.test.ts`; `npm run lint`, `npm run lint:api`, `npm run build`.
 
 ## Ảnh minh họa AI (Imagen) + hình trong form trường Toán — 2026-09-28
 
@@ -131,19 +144,3 @@ Tiếp GĐ1. Toàn bộ ở `src/lib/classroom/competency/` (thuần, có test) 
 - **Xuất file (GĐ4):** nút "Xuất hồ sơ ra file trường" trong `CompetencyPortfolio`. `portfolioExport.ts` (thuần + test): **copy file mẫu** (`PORTFOLIO_TEMPLATE_ID`) → Google Sheet mới "Sxxxxx - Tên", điền B1/B2, **bôi vàng** ô mức đạt của từng năng lực (khớp dòng theo cột A "Nội dung", gate theo khối). Dùng Drive token của GV (scope `auth/drive`), không thêm Vercel function. Trường ghi mức bằng bôi vàng (dòng 3 file mẫu), không phải chữ. Mỗi lần xuất tạo bản sao mới, KHÔNG đụng file cũ.
 - **Ngưỡng GĐ4:** `PORTFOLIO_TEMPLATE_ID` hardcode = file mẫu của trường; GV phải có quyền xem file đó (files.copy). Bản sao đổ vào Drive gốc của GV (chưa chọn folder). Chủ đề khớp theo TEXT cột A — đổi tên chủ đề trong file mẫu mà không đổi `framework.ts` thì trượt (báo unmatched, không bôi ẩu).
 - Nghiệm thu: competency 24 test (framework/model/portfolio/export) + gradingPrompt 97 + grade-homework.competency 4 + projection 2 + full `lint`(tsc) 0, `build` PASS.
-
-## Hạn BTVN lấy từ app + chống #ERROR! khi ghi hạn — 2026-09-14
-
-QA production tính năng đồng bộ BTVN phát hiện: **hạn ở dòng 5 hiện `#ERROR!`** trên cả 7 cột tab `10. OLINDA`. Nguyên nhân gốc: app ghi hạn bằng công thức `=DATE(2026,9,16)+TIME(8,0,0)` dùng dấu **phẩy**, nhưng file đặt ngôn ngữ Việt lại đòi dấu **chấm phẩy** → công thức vỡ. App đọc lại ra "không có hạn" → **không tính được Nộp muộn / Chưa làm**, chỉ điền Đủ cho em nộp đúng hạn.
-
-**Đã sửa (commit `c70b290`):**
-
-- `deadlineFormula` → **`deadlineSerial`**: ghi hạn thành **SỐ ngày kiểu Sheets (serial)** kèm định dạng `DATE_TIME` (`buildSheetRequests`). Số không lệ thuộc dấu phân cách nên chạy đúng mọi ngôn ngữ; ô vẫn hiển thị ngày giờ.
-- `planSheetSync` **ưu tiên hạn từ app** cho cả cột đã có sẵn (trước chỉ dùng dòng 5 của sheet). Nếu app có hạn mà ô dòng 5 đang trống/lỗi/khác thì ghi đè bằng hạn app. Thêm đếm `deadlineWrites` + dòng "sửa X hạn" trong bản xem trước.
-
-**Ngưỡng sắp cắn người:**
-
-- Ghi hạn là **số + numberFormat**, KHÔNG phải công thức nữa. Ai đổi lại sang `formulaValue` sẽ tái hiện `#ERROR!` trên file ngôn ngữ Việt.
-- Ghi đè hạn dòng 5 chỉ khi app có hạn và ô lệch >1 phút — hạn app là chuẩn (chủ dự án chốt). Nếu tổ trưởng tự đặt hạn khác trong sheet thì sẽ bị hạn app ghi đè; đây là ý muốn.
-- File 1 (11 Columbus) nếu dòng 5 đang là công thức chạy được và trùng hạn app thì **không** bị ghi đè (surgical).
-- Nghiệm thu bản này: `sheetSync.test.ts` **41 tests PASS**, `lint` 0, `lint:api` 0, `build` PASS. (6 fail liveLesson lúc đó đã sửa ở mục CI phía trên.)
