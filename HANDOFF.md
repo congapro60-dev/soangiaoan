@@ -25,7 +25,7 @@ Chủ dự án chốt: mốc thời gian CHỌN TAY mỗi lần xuất (khoảng
 - Thuần: `reportKinds.ts` (loại, máy chủ dùng), `reportPeriod.ts` (khoảng mặc định, lọc bài giao theo hạn nộp/ngày giao giờ VN, bài nộp tới hết ngày cuối, HS1 theo ngày; điểm theo tháng; so sánh tháng trước / hai nửa kì / HK1–HK2 tính trên dữ liệu cả năm), `parentReportBuilder.ts` (một hàm dựng cho cả hai đường xuất; năng lực tích luỹ TỚI HẾT khoảng; `facts` gửi AI không có họ tên/mã HS).
 - Bản in: tiêu đề + "Thời gian báo cáo", mục Nhận xét của giáo viên, So sánh, cột điểm theo tháng (kì/năm). `exportParentReportToPdf(input, 'blob')` cho ZIP (`pdfExport` có `output: 'blob'`).
 - Máy chủ `_parent-report.ts` (route trong classroom.ts): `parentReportNote` / `saveParentReportNote` / `draftParentReportComment` — `parentReportNotes/{classId}_{studentId}_{kind}_{from}_{to}`, chỉ GV thuộc lớp, AI tính cho GV chủ lớp.
-- Giao diện: học sinh → Bản phụ huynh (chọn loại + ngày, AI soạn nháp, Lưu, Tải PDF); tab Báo cáo của lớp → "Xuất báo cáo phụ huynh cả lớp" (tuỳ chọn AI soạn cho em chưa có nhận xét). Test: reportPeriod 4, builder 3, printDoc +2, parent-report API 3.
+- Giao diện: học sinh → Bản phụ huynh (chọn loại + ngày, AI soạn nháp, Lưu, Tải PDF); tab Báo cáo của lớp → "Xuất báo cáo phụ huynh cả lớp" (tuỳ chọn AI soạn cho em chưa có nhận xét). Test: reportPeriod 4, builder 3, printDoc +2, parent-report API 3. QA production 29/09 (Bảo Khánh 10Olinda, tháng 9): lọc đúng, AI soạn nháp bám số liệu, PDF 4 trang; sửa tiêu đề mục rơi cuối trang (`.sec-keep` gói tiêu đề + nội dung).
 
 ## Ảnh minh họa AI (Imagen) + hình trong form trường Toán — 2026-09-28
 

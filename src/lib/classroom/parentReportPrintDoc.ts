@@ -338,6 +338,8 @@ export const buildParentReportPrintDoc = ({ report, studentName, className, stud
 
   let sectionNo = 0;
   const secHead = (title: string) => `<div class="sec-head"><span class="n">${++sectionNo}</span><h2>${title}</h2></div>`;
+  // Tiêu đề mục luôn đi cùng nội dung (khối không bị cắt khi sang trang) — không để tiêu đề trơ trọi cuối trang.
+  const section = (title: string, body: string, rest = '') => `<div class="sec-keep">${secHead(title)}${body}</div>${rest}`;
   const hasCompetency = Boolean(competency && competency.total > 0);
   const examScores: StudentExamScores = exams ?? { moet: [], tds: [] };
   const hs1Marks = hs1 ?? [];
@@ -366,38 +368,39 @@ export const buildParentReportPrintDoc = ({ report, studentName, className, stud
 
 <div class="lead">${esc(report.overallSummary)}</div>
 
-${teacherComment?.trim() ? `${secHead('Nhận xét của giáo viên')}<div class="teacher-note">${teacherComment.trim().split(/\n+/).map(line => esc(line)).join('<br/>')}</div>` : ''}
+${teacherComment?.trim() ? section('Nhận xét của giáo viên', `<div class="teacher-note">${teacherComment.trim().split(/\n+/).map(line => esc(line)).join('<br/>')}</div>`) : ''}
 
-${secHead('Tổng quan bằng số')}
-<div class="tiles">
+${section('Tổng quan bằng số', `<div class="tiles">
   <div class="tile"><div class="cap">Điểm trung bình</div>${buildMeter(avg)}</div>
   <div class="tile"><div class="cap">Xu hướng điểm</div>${buildSparkline(officialSeries, trend)}</div>
   <div class="tile"><div class="cap">Tiến độ nộp bài</div>${buildCompletion(report.officialCount, report.pendingCount, report.missingCount)}</div>
-</div>
+</div>`)}
 
-${comparison ? `${secHead('So sánh để thấy tiến bộ')}${buildComparison(comparison)}` : ''}
+${comparison ? section('So sánh để thấy tiến bộ', buildComparison(comparison)) : ''}
 
-${monthly && monthly.length >= 2 && period?.kind !== 'month' ? `${secHead('Điểm trung bình theo tháng')}${buildMonthlyChart(monthly)}` : ''}
+${monthly && monthly.length >= 2 && period?.kind !== 'month' ? section('Điểm trung bình theo tháng', buildMonthlyChart(monthly)) : ''}
 
-${hasExams || hs1Marks.length > 0 ? `${secHead(examTitle)}${buildExamSection(examScores, hs1Marks)}` : ''}
+${hasExams || hs1Marks.length > 0 ? section(examTitle, buildExamSection(examScores, hs1Marks)) : ''}
 
-${secHead('Điểm mạnh &amp; phần cần rèn')}
-<div class="cards2">
+${section('Điểm mạnh &amp; phần cần rèn', `<div class="cards2">
   <div class="card good"><h3>✅ Điểm mạnh</h3>${listItems(report.strengths, 'Chưa đủ bằng chứng chính thức.')}</div>
   <div class="card warn"><h3>🎯 Cần rèn thêm</h3>${listItems(report.areasToPractice, 'Chưa có nội dung cần rèn được xác nhận.')}</div>
-</div>
+</div>`)}
 ${bridgeNote}
 
-${hasCompetency ? `${secHead('Năng lực Toán học')}${buildCompetencySection(competency as ParentCompetencySummary)}` : ''}
+${hasCompetency ? section('Năng lực Toán học', buildCompetencySection(competency as ParentCompetencySummary)) : ''}
 
-${secHead('Kết quả từng bài')}
-${buildSubjectRows(report.results)}
+${(() => {
+    // Danh sách bài có thể dài hơn một trang: chỉ giữ tiêu đề đi cùng bài ĐẦU, phần còn lại chảy tự nhiên.
+    const rows = buildSubjectRows(report.results);
+    const cut = rows.indexOf('<div class="subject">', 1);
+    return cut > 0 ? section('Kết quả từng bài', rows.slice(0, cut), rows.slice(cut)) : section('Kết quả từng bài', rows);
+  })()}
 
-${secHead('Cùng đồng hành với con')}
-<div class="cards2">
+${section('Cùng đồng hành với con', `<div class="cards2">
   <div class="card home"><h3>🤝 Phụ huynh có thể làm ở nhà</h3>${listItems(report.parentActions, 'Chưa có gợi ý cụ thể.')}</div>
   <div class="card school"><h3>🎓 Thầy cô sẽ hỗ trợ</h3>${listItems(report.teacherActions, 'Chưa có gợi ý cụ thể.')}</div>
-</div>
+</div>`)}
 
 <div class="note">${period ? 'Chỉ tính các bài có hạn nộp trong thời gian báo cáo; điểm thi định kì hiện tất cả cột đã có. ' : ''}Báo cáo chỉ dùng kết quả đã được thầy cô xem và duyệt; bài đang chờ xử lý không hiển thị điểm. Điểm từng bài theo thang điểm của bài; điểm trung bình quy về phần trăm để so sánh. Không hiển thị đáp án hay ghi chú nội bộ.</div>
 
@@ -428,7 +431,7 @@ export async function exportParentReportToPdf(input: ParentReportPrintInput, out
       output,
       filename: parentReportFileName(input),
       // Giữ nguyên khối, không cắt ngang thẻ/biểu đồ khi sang trang.
-      noBreakSelectors: ['h1', 'h2', 'h3', 'svg', 'table', 'tr', '.subject', '.tile', '.card', '.verdict', '.lead', '.sec-head', '.exam-block', '.comp-row', '.cmp', '.teacher-note'],
+      noBreakSelectors: ['h1', 'h2', 'h3', 'svg', 'table', 'tr', '.subject', '.tile', '.card', '.verdict', '.lead', '.sec-head', '.exam-block', '.comp-row', '.cmp', '.teacher-note', '.sec-keep'],
     });
   } finally {
     root.remove();
