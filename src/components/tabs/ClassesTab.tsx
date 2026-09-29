@@ -10,6 +10,7 @@ import { listAssignmentsForClass, listSubmissionsForClass } from '../../lib/clas
 import { acceptTeacherInvitation, createExamAssignment, declineTeacherInvitation, listAccessibleExams, listPendingTeacherInvitations, renameClass as renameClassOnServer, renameStudent as renameStudentOnServer, setStudentCode as setStudentCodeOnServer, type PendingTeacherInvitation } from '../../lib/classroom/teacherService';
 import { issueClassPins, resetStudentPin, revokeClassData, revokeStudentAccessServer, viewClassPins, viewStudentPin } from '../../services/studentPortalApi';
 import { AssignmentPanel } from '../features/classroom/AssignmentPanel';
+import { ClassParentReportExport } from '../features/classroom/ClassParentReportExport';
 import { SheetSyncPanel } from '../features/classroom/SheetSyncPanel';
 import { ScoreBookPanel } from '../features/classroom/ScoreBookPanel';
 import { SsmLinkPanel } from '../features/classroom/SsmLinkPanel';
@@ -1265,6 +1266,16 @@ export const ClassesTab = ({ data, setData, user, showToast, focus }: ClassesTab
                 showToast={showToast}
               />
             </div>
+          )}
+
+          {workspaceView === 'reports' && user?.uid && (
+            <ClassParentReportExport
+              classId={selectedClass.id}
+              className={selectedClass.name}
+              classGrade={selectedClass.grade}
+              students={selectedClass.students}
+              showToast={showToast}
+            />
           )}
 
           {workspaceView === 'reports' && user?.uid && (

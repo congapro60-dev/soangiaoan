@@ -4,6 +4,7 @@ import { CalendarRange, Plus, Settings2, Trash2, X } from 'lucide-react';
 import type { AppData } from '../../types';
 import { loadPpct, type PpctLesson } from '../../data/ppct';
 import { mondayOf } from '../../lib/schedule/lessonCalendar';
+import { titleCaseName } from '../../lib/schedule/primeTimetable';
 import {
   loadScheduleState, saveScheduleState,
   type ScheduleState, type SchedulePlan,
@@ -85,7 +86,8 @@ export const LessonScheduleTab = ({ data, user, showToast }: Props) => {
   };
 
   const subjects = plan ? [...new Set(plan.classes.flatMap((c) => c.subjects))].sort((a, b) => a.localeCompare(b, 'vi')) : [];
-  const defaultSignature = user?.displayName || plan?.timetables.find((t) => t.teacherName)?.teacherName || '';
+  const ttName = plan?.timetables.find((t) => t.teacherName)?.teacherName;
+  const defaultSignature = ttName ? titleCaseName(ttName) : user?.displayName || '';
   const teacherName = plan?.signature?.trim() || defaultSignature;
 
   return (

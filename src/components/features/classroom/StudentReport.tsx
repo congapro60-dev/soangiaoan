@@ -1,19 +1,20 @@
 import { useEffect, useMemo, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
-import { Award, ClipboardList, Download, GraduationCap, HeartHandshake, Lightbulb, Printer, Target, TrendingUp } from 'lucide-react';
+import { Award, CalendarRange, ClipboardList, Download, GraduationCap, HeartHandshake, Lightbulb, Loader2, PenLine, Printer, Save, Sparkles, Target, TrendingUp } from 'lucide-react';
 import { db } from '../../../lib/firebase';
 import { STUDENT_PROFILES_COL, type AssignmentDoc, type StudentProfileDoc, type SubmissionDoc } from '../../../lib/classroom/types';
-import { loadScoreBook } from '../../../lib/classroom/teacherService';
+import { draftParentReportComment, loadParentReportNote, loadScoreBook, saveParentReportNote } from '../../../lib/classroom/teacherService';
 import { hs1Average, studentScoreView, type StudentScoreView } from '../../../lib/classroom/scoreBook';
 import { listAssignmentsForClass, listSubmissionsForStudent } from '../../../lib/classroom/submissionService';
 import { NhanXetMarkdown } from './NhanXetMarkdown';
 import { QuestionResultsList } from './QuestionResultsList';
 import { CompetencyPortfolio } from './CompetencyPortfolio';
 import { buildStudentReportModel } from '../../../lib/classroom/reportModel';
-import { buildParentSafeReport, type ParentSafeAssignmentStatus } from '../../../lib/classroom/parentSafeReport';
-import { exportParentReportToPdf, type ParentCompetencyItem, type ParentCompetencySummary } from '../../../lib/classroom/parentReportPrintDoc';
-import { buildStudentCompetencyPortfolio, portfolioProgress } from '../../../lib/classroom/competency/portfolioModel';
+import type { ParentSafeAssignmentStatus } from '../../../lib/classroom/parentSafeReport';
+import { exportParentReportToPdf } from '../../../lib/classroom/parentReportPrintDoc';
 import { asCompetencyGrade, COMPETENCY_LEVELS, type CompetencyLevel } from '../../../lib/classroom/competency/framework';
+import { buildPeriodParentReport } from '../../../lib/classroom/parentReportBuilder';
+import { REPORT_KINDS, defaultPeriod, periodError, rangeLabel, vnDay, type ReportKind, type ReportPeriod } from '../../../lib/classroom/reportPeriod';
 
 interface Props {
   classId: string;
@@ -67,6 +68,13 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
   const [dangXuatPdf, setDangXuatPdf] = useState(false);
   // Điểm thi định kì + hệ số 1 lấy từ Sổ điểm của lớp (một nguồn cho giáo viên, học sinh, phụ huynh).
   const [soDiem, setSoDiem] = useState<StudentScoreView | null>(null);
+  // Báo cáo theo tháng/kì/năm (chỉ bản người lớn): null = tổng hợp từ đầu năm như trước.
+  const [kyBaoCao, setKyBaoCao] = useState<ReportPeriod | null>(null);
+  const [nhanXet, setNhanXet] = useState('');
+  const [nhanXetDaLuu, setNhanXetDaLuu] = useState('');
+  const [dangSoan, setDangSoan] = useState(false);
+  const [dangLuuNX, setDangLuuNX] = useState(false);
+  const [loiNX, setLoiNX] = useState('');
 
   useEffect(() => {
     let huy = false;
@@ -94,41 +102,62 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
   }, [forAdult]);
 
   const model = buildStudentReportModel(submissions);
-  const parentReport = buildParentSafeReport({
-    studentId,
-    studentName,
-    className,
-    assignments,
-    submissions,
-    profile,
-  });
+  const loiKy = kyBaoCao ? periodError(kyBaoCao) : null;
+  const kyHopLe = kyBaoCao && !loiKy ? kyBaoCao : null;
+  const baoCaoPH = useMemo(() => buildPeriodParentReport({
+    studentId, studentName, className, studentCode, classGrade, assignments, submissions, profile, scoreView: soDiem,
+  }, forAdult ? kyHopLe : null), [studentId, studentName, className, studentCode, classGrade, assignments, submissions, profile, soDiem, forAdult, kyHopLe]);
+  const parentReport = baoCaoPH.report;
+  const parentCompetency = baoCaoPH.printInput.competency ?? null;
+  const hs1HienThi = baoCaoPH.printInput.hs1 ?? [];
+  const khoaNhanXet = kyHopLe ? { classId, studentId, kind: kyHopLe.kind, from: kyHopLe.from, to: kyHopLe.to } : null;
+  const khoaNhanXetStr = khoaNhanXet ? JSON.stringify(khoaNhanXet) : '';
+
+  // Đổi kì → nạp nhận xét đã lưu của đúng kì đó.
+  useEffect(() => {
+    let huy = false;
+    setLoiNX('');
+    if (!khoaNhanXetStr || !forAdult) { setNhanXet(''); setNhanXetDaLuu(''); return; }
+    loadParentReportNote(JSON.parse(khoaNhanXetStr))
+      .then(r => { if (!huy) { setNhanXet(r.text); setNhanXetDaLuu(r.text); } })
+      .catch(() => { if (!huy) { setNhanXet(''); setNhanXetDaLuu(''); } });
+    return () => { huy = true; };
+  }, [khoaNhanXetStr, forAdult]);
+
+  const chonLoai = (value: string) => {
+    const today = vnDay(new Date().toISOString());
+    setKyBaoCao(value === 'all' ? null : defaultPeriod(value as ReportKind, today));
+  };
+  const soanNhapAI = async () => {
+    if (!khoaNhanXet) return;
+    setDangSoan(true);
+    setLoiNX('');
+    try {
+      setNhanXet((await draftParentReportComment(khoaNhanXet, baoCaoPH.facts)).text);
+    } catch (error) {
+      setLoiNX(error instanceof Error ? error.message : 'AI chưa soạn được, thử lại.');
+    } finally {
+      setDangSoan(false);
+    }
+  };
+  const luuNhanXet = async () => {
+    if (!khoaNhanXet) return;
+    setDangLuuNX(true);
+    setLoiNX('');
+    try {
+      const r = await saveParentReportNote(khoaNhanXet, nhanXet);
+      setNhanXet(r.text);
+      setNhanXetDaLuu(r.text);
+    } catch (error) {
+      setLoiNX(error instanceof Error ? error.message : 'Chưa lưu được nhận xét.');
+    } finally {
+      setDangLuuNX(false);
+    }
+  };
   const diemTB = model.averagePercent === null ? '—' : `${model.averagePercent.toFixed(1)}%`;
   const yeu = (profile?.topics || []).filter(t => t.level === 'weak');
   const dangLen = (profile?.topics || []).filter(t => t.level === 'developing');
   const competencyGrade = asCompetencyGrade(classGrade);
-
-  // Hồ sơ năng lực rút gọn cho bản phụ huynh — chỉ tên năng lực + mức (đã qua cổng "bài đã duyệt").
-  const parentCompetency = useMemo<ParentCompetencySummary | null>(() => {
-    if (!competencyGrade) return null;
-    const subs = submissions.filter(s => s.grade).map(s => ({
-      assignmentId: s.assignmentId ?? '',
-      score: s.grade!.score,
-      maxScore: s.grade!.maxScore,
-      approved: Boolean(s.grade!.teacherApproved),
-      submittedAt: s.createdAt,
-    }));
-    const asgs = assignments.map(a => ({ id: a.id, competencyTags: a.competencyTags }));
-    const areas = buildStudentCompetencyPortfolio(competencyGrade, subs, asgs);
-    const { assessed, total } = portfolioProgress(areas);
-    const items: ParentCompetencyItem[] = [];
-    for (const area of areas) {
-      for (const row of area.rows) {
-        if (row.result?.level) items.push({ area: area.area, topic: row.competency.topic, level: row.result.level });
-      }
-    }
-    return { grade: String(competencyGrade), assessed, total, items };
-  }, [competencyGrade, submissions, assignments]);
-
   const taiCsv = () => {
     const rows: string[][] = [[
       'Học sinh', 'Mã học sinh', 'Submission ID', 'Bài giao', 'Ngày nộp', 'Điểm', 'Thang điểm',
@@ -162,7 +191,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
     if (dangXuatPdf) return;
     setDangXuatPdf(true);
     try {
-      await exportParentReportToPdf({ report: parentReport, studentName, className, studentCode, competency: parentCompetency, exams: soDiem?.exams, hs1: soDiem?.hs1 });
+      await exportParentReportToPdf({ ...baoCaoPH.printInput, teacherComment: kyHopLe ? nhanXet : undefined });
     } catch (error) {
       console.error('Xuất PDF bản phụ huynh thất bại:', error);
       alert('Không tạo được PDF. Vui lòng thử lại.');
@@ -184,6 +213,47 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
             <button type="button" onClick={() => setViewMode('teacher')} className="rounded-xl bg-white px-3 py-2 text-xs font-black text-indigo-700 shadow-sm hover:bg-indigo-100">Về bản giáo viên</button>
           </div>
         )}
+        {forAdult && (
+          <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
+            <p className="flex items-center gap-2 text-sm font-black text-slate-900"><CalendarRange className="h-4 w-4 text-indigo-600" /> Loại báo cáo &amp; thời gian</p>
+            <div className="flex flex-wrap items-end gap-2">
+              <select value={kyBaoCao?.kind ?? 'all'} onChange={event => chonLoai(event.target.value)} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold">
+                <option value="all">Tổng hợp từ đầu năm tới nay</option>
+                {REPORT_KINDS.map(item => <option key={item.kind} value={item.kind}>{item.label}</option>)}
+              </select>
+              {kyBaoCao?.kind === 'month' && (
+                <input type="month" value={kyBaoCao.from.slice(0, 7)} onChange={event => event.target.value && setKyBaoCao(defaultPeriod('month', kyBaoCao.from, event.target.value))} className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold" />
+              )}
+              {kyBaoCao && kyBaoCao.kind !== 'month' && (
+                <>
+                  <label className="text-xs font-bold text-slate-500">Từ<input type="date" value={kyBaoCao.from} onChange={event => setKyBaoCao({ ...kyBaoCao, from: event.target.value })} className="ml-1 rounded-xl border border-slate-200 px-2 py-2 text-sm font-bold text-slate-800" /></label>
+                  <label className="text-xs font-bold text-slate-500">đến<input type="date" value={kyBaoCao.to} onChange={event => setKyBaoCao({ ...kyBaoCao, to: event.target.value })} className="ml-1 rounded-xl border border-slate-200 px-2 py-2 text-sm font-bold text-slate-800" /></label>
+                  {kyBaoCao.kind === 'year' && (
+                    <label className="text-xs font-bold text-slate-500">HK2 bắt đầu<input type="date" value={kyBaoCao.hk2From ?? ''} onChange={event => setKyBaoCao({ ...kyBaoCao, hk2From: event.target.value })} className="ml-1 rounded-xl border border-slate-200 px-2 py-2 text-sm font-bold text-slate-800" /></label>
+                  )}
+                </>
+              )}
+            </div>
+            {loiKy ? <p className="text-xs font-bold text-rose-600">{loiKy}</p> : kyHopLe && <p className="text-xs font-semibold text-slate-500">{rangeLabel(kyHopLe)} — chỉ tính các bài có hạn nộp trong khoảng này. Sửa ngày cho khớp lịch trường mình.</p>}
+            {kyHopLe && (
+              <div className="rounded-xl border border-violet-100 bg-violet-50/50 p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="flex items-center gap-2 text-sm font-black text-violet-950"><PenLine className="h-4 w-4" /> Nhận xét của giáo viên (in vào báo cáo)</p>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => void soanNhapAI()} disabled={dangSoan} className="inline-flex items-center gap-1.5 rounded-xl bg-violet-600 px-3 py-1.5 text-xs font-black text-white hover:bg-violet-700 disabled:opacity-60">
+                      {dangSoan ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />} {nhanXet ? 'AI soạn lại' : 'AI soạn nháp'}
+                    </button>
+                    <button type="button" onClick={() => void luuNhanXet()} disabled={dangLuuNX || nhanXet === nhanXetDaLuu} className="inline-flex items-center gap-1.5 rounded-xl border border-violet-200 bg-white px-3 py-1.5 text-xs font-black text-violet-800 hover:bg-violet-100 disabled:opacity-50">
+                      {dangLuuNX ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />} Lưu
+                    </button>
+                  </div>
+                </div>
+                <textarea value={nhanXet} onChange={event => setNhanXet(event.target.value)} rows={4} placeholder="Bấm “AI soạn nháp” để AI viết dựa trên số liệu của kì này, rồi sửa lại cho đúng ý thầy cô. Để trống thì báo cáo không có mục này." className="mt-2 w-full rounded-xl border border-violet-100 bg-white px-3 py-2 text-sm font-semibold leading-6 text-slate-800 outline-none focus:border-violet-300" />
+                <p className="text-[11px] font-semibold text-slate-500">{loiNX ? <span className="text-rose-600">{loiNX}</span> : nhanXet !== nhanXetDaLuu ? 'Chưa lưu — bản PDF vẫn dùng nội dung đang gõ.' : nhanXetDaLuu ? 'Đã lưu cho đúng học sinh và kì này.' : 'AI chỉ dùng số liệu đã duyệt trong kì, không dùng họ tên của em.'}</p>
+              </div>
+            )}
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
             { label: 'Bài đã có kết quả', value: String(parentReport.officialCount) },
@@ -201,7 +271,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
         {forAdult && (
           <div className="rounded-2xl border border-violet-100 bg-violet-50/40 p-4">
             <p className="flex items-center gap-2 text-sm font-black text-violet-950"><ClipboardList className="h-4 w-4" /> Điểm kiểm tra &amp; thi định kì</p>
-            {soDiem && (soDiem.exams.moet.length > 0 || soDiem.exams.tds.length > 0 || soDiem.hs1.length > 0) ? (
+            {soDiem && (soDiem.exams.moet.length > 0 || soDiem.exams.tds.length > 0 || hs1HienThi.length > 0) ? (
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 {soDiem.exams.moet.length > 0 && (
                   <div>
@@ -219,11 +289,11 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
                     </ul>
                   </div>
                 )}
-                {soDiem.hs1.length > 0 && (
+                {hs1HienThi.length > 0 && (
                   <div>
-                    <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-500">Hệ số 1 (thang 10) · TB {hs1Average(soDiem.hs1)}</p>
+                    <p className="mb-1 text-xs font-black uppercase tracking-wide text-slate-500">Hệ số 1 (thang 10) · TB {hs1Average(hs1HienThi)}</p>
                     <ul className="space-y-1 text-sm font-semibold text-slate-700">
-                      {soDiem.hs1.map((mark, index) => <li key={`${mark.label}-${index}`} className="flex justify-between gap-3"><span>{mark.label}</span><span className="font-black text-slate-900">{mark.score}/10</span></li>)}
+                      {hs1HienThi.map((mark, index) => <li key={`${mark.label}-${index}`} className="flex justify-between gap-3"><span>{mark.label}</span><span className="font-black text-slate-900">{mark.score}/10</span></li>)}
                     </ul>
                   </div>
                 )}
