@@ -182,85 +182,75 @@ export const useLessonCreator = (
       const CV5512_FORMAT = `
 ===== MẪU GIÁO ÁN THEO CÔNG VĂN 5512/BGDĐT-GDTrH (BẮT BUỘC TUÂN THỦ) =====
 
-BỐ CỤC BẮT BUỘC:
-Trường: ...          Họ và tên GV: [Tên giáo viên]
-Tổ: ...              Ngày soạn: ...
+BỐ CỤC BẮT BUỘC (theo Phụ lục IV — Kế hoạch bài dạy, Công văn 5512/BGDĐT-GDTrH ngày 18/12/2020):
+Trường: ...
+Tổ: ...
+Họ và tên giáo viên: [Tên giáo viên]
 
-BÀI [Số bài]: [TÊN BÀI HỌC]
-Thời lượng: [X] tiết
+TÊN BÀI DẠY: [TÊN BÀI HỌC]
+Môn học: [Tên môn]; lớp: [Lớp]
+Thời gian thực hiện: [X] tiết
 
 I. MỤC TIÊU
 1. Về kiến thức:
-   - [Học sinh biết/hiểu/vận dụng được...]
+   - [Nêu được / giải thích được / vận dụng được... — theo yêu cầu cần đạt của Chương trình GDPT 2018]
 2. Về năng lực:
    a. Năng lực đặc thù môn [Tên môn]:
-      - [Năng lực cụ thể theo môn]
+      - [Tên năng lực đúng theo chương trình môn + biểu hiện cụ thể trong bài]
    b. Năng lực chung:
-      - Tự học, giao tiếp, hợp tác, giải quyết vấn đề và sáng tạo.
+      - [Tự chủ và tự học / Giao tiếp và hợp tác / Giải quyết vấn đề và sáng tạo — kèm biểu hiện trong bài]
 3. Về phẩm chất:
-   - Chăm chỉ, trung thực, trách nhiệm với bản thân và cộng đồng.
+   - [Chăm chỉ / Trung thực / Trách nhiệm... — kèm biểu hiện trong bài]
 
 II. THIẾT BỊ DẠY HỌC VÀ HỌC LIỆU
-1. Giáo viên: [Bảng, máy chiếu, phiếu học tập, ...]
-2. Học sinh: [SGK, vở ghi, dụng cụ học tập, ...]
+1. Giáo viên: [Thiết bị, học liệu, phiếu học tập...]
+2. Học sinh: [SGK, vở ghi, dụng cụ học tập...]
 
 III. TIẾN TRÌNH DẠY HỌC
 
-A. HOẠT ĐỘNG 1: MỞ ĐẦU (~ 5 phút)
-a) Mục tiêu: Tạo hứng thú, kết nối kiến thức cũ với bài mới.
-b) Nội dung: [Mô tả tình huống/câu hỏi khởi động]
-c) Sản phẩm: [Câu trả lời / ý kiến của HS]
+1. Hoạt động 1: Mở đầu (Xác định vấn đề / nhiệm vụ học tập) (~ [X] phút)
+a) Mục tiêu: [Mục tiêu HS cần đạt trong hoạt động]
+b) Nội dung: [Nhiệm vụ / câu hỏi / tình huống cụ thể HS phải thực hiện]
+c) Sản phẩm: [Yêu cầu về nội dung và hình thức sản phẩm học tập của HS]
 d) Tổ chức thực hiện:
 | Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
 |---|---|---|
-| ... | ... | ... |
+| **Bước 1: Chuyển giao nhiệm vụ** ... | ... | ... |
+| **Bước 2: Thực hiện nhiệm vụ** ... | ... | ... |
+| **Bước 3: Báo cáo, thảo luận** ... | ... | ... |
+| **Bước 4: Kết luận, nhận định** ... | ... | ... |
 
-B. HOẠT ĐỘNG 2: HÌNH THÀNH KIẾN THỨC MỚI (~ [X] phút)
-a) Mục tiêu: [Học sinh nắm được ...]
-b) Nội dung: [Nội dung kiến thức cần hình thành]
-c) Sản phẩm: [Ghi chép / bài làm / sơ đồ tư duy của HS]
-d) Tổ chức thực hiện:
-| Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
-|---|---|---|
-| ... | ... | ... |
+2. Hoạt động 2: Hình thành kiến thức mới (~ [X] phút)
+[a) Mục tiêu, b) Nội dung, c) Sản phẩm, d) Tổ chức thực hiện — cùng khung 4 bước như trên. Nhiều đơn vị kiến thức thì chia 2.1, 2.2..., mỗi đơn vị đủ a–d]
 
-C. HOẠT ĐỘNG 3: LUYỆN TẬP (~ [X] phút)
-a) Mục tiêu: [Củng cố, rèn kỹ năng vận dụng kiến thức vừa học]
-b) Nội dung: [Bài tập / câu hỏi luyện tập cụ thể]
-c) Sản phẩm: [Kết quả bài tập của HS]
-d) Tổ chức thực hiện:
-| Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
-|---|---|---|
-| ... | ... | ... |
+3. Hoạt động 3: Luyện tập (~ [X] phút)
+[a–d như trên; b) nêu bài tập cụ thể, cột 3 có đáp án / lời giải]
 
-D. HOẠT ĐỘNG 4: VẬN DỤNG (~ [X] phút)
-a) Mục tiêu: [Giúp HS vận dụng kiến thức vào thực tiễn]
-b) Nội dung: [Bài toán thực tiễn / dự án mini]
-c) Sản phẩm: [Bài trình bày / sản phẩm của HS]
-d) Tổ chức thực hiện:
-| Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
-|---|---|---|
-| ... | ... | ... |
+4. Hoạt động 4: Vận dụng (~ [X] phút)
+[a–d như trên; b) là tình huống / vấn đề thực tiễn gắn với bài; Bước 4 kết thúc bằng giao nhiệm vụ học ở nhà]
 
-E. HOẠT ĐỘNG 5: SƠ KẾT — DẶN DÒ (~ 5 phút)
-a) Mục tiêu: [Tổng kết bài học, giao bài tập về nhà]
-b) Nội dung: [Hệ thống hóa kiến thức]
-c) Sản phẩm: [Ghi chép của HS]
-d) Tổ chức thực hiện:
-| Hoạt động của GV | Hoạt động của HS | Nội dung ghi bảng / Sản phẩm dự kiến |
-|---|---|---|
-| ... | ... | ... |
-
-IV. PHỤ LỤC (nếu có)
-[Phiếu học tập, bảng kiểm, bài tập về nhà, ...]
+PHỤ LỤC (nếu có): [Phiếu học tập, bảng kiểm, rubric đánh giá...]
 
 QUY TẮC NGHIÊM NGẶT:
+- ĐÚNG 4 hoạt động như trên (Mở đầu, Hình thành kiến thức mới, Luyện tập, Vận dụng). KHÔNG thêm "Hoạt động 5", phần dặn dò nằm ở cuối Hoạt động 4.
 - Mỗi hoạt động PHẢI có đủ 4 mục: a) Mục tiêu, b) Nội dung, c) Sản phẩm, d) Tổ chức thực hiện.
-- Bảng "Tổ chức thực hiện" BẮT BUỘC có 3 cột: "Hoạt động của GV", "Hoạt động của HS" và "Nội dung ghi bảng / Sản phẩm dự kiến".
+- Bảng "Tổ chức thực hiện" BẮT BUỘC có 3 cột: "Hoạt động của GV", "Hoạt động của HS" và "Nội dung ghi bảng / Sản phẩm dự kiến"; cột GV đi lần lượt 4 bước (Chuyển giao nhiệm vụ → Thực hiện nhiệm vụ → Báo cáo, thảo luận → Kết luận, nhận định), mỗi bước ít nhất một hàng.
 - Thời lượng mỗi hoạt động phải được ghi rõ.
 - KHÔNG rút gọn hoặc bỏ bất kỳ mục nào trong bố cục trên.
 ===== KẾT THÚC MẪU CÔNG VĂN 5512 =====
 `;
+
+      // Yêu cầu nội dung riêng của mẫu CV5512 — thuần chuẩn Bộ, KHÔNG mang khung của trường quốc tế
+      // (WALT/WILF, thang 🌶️, thẻ tuyên ngôn Dewey, CIS, Danielson) vốn thuộc mẫu Dewey đã bỏ.
+      const CV5512_REQUIREMENTS = `===== YÊU CẦU NỘI DUNG CHO GIÁO ÁN CV5512 (TUYỆT ĐỐI TUÂN THỦ) =====
+          1. Bám đúng bố cục Phụ lục IV CV5512 ở trên, chỉ thêm chi tiết; một tiết = 45 phút, tổng thời lượng các hoạt động khớp số tiết.
+          2. Mục tiêu viết bằng động từ đo được theo yêu cầu cần đạt của Chương trình GDPT 2018 (nêu được, giải thích được, vận dụng được...); năng lực đặc thù dùng đúng tên trong chương trình môn.
+          3. Tổ chức thực hiện là KỊCH BẢN CỤ THỂ: câu hỏi / yêu cầu GV đưa ra, câu trả lời / hoạt động dự kiến của HS, sản phẩm dự kiến. Không placeholder, không tóm tắt chung chung.
+          4. Cột 1 chỉ lời nói / hành động của GV; cột 2 chỉ lời nói / hành động của HS; đề bài, kiến thức chốt, lời giải nằm ở cột 3.
+          5. Luyện tập có bài tập cụ thể từ dễ đến khó kèm đáp án / lời giải; Vận dụng có tình huống thực tiễn gắn với bài.
+          6. Bước "Kết luận, nhận định" của mỗi hoạt động: GV nhận xét sản phẩm của HS và chốt kiến thức (ghi ở cột 3).
+          7. KHÔNG dùng WALT/WILF, thang 🌶️, thẻ "[💡 Tuyên ngôn...]", nhãn CIS/Dewey/Danielson, và KHÔNG viết phần "Đánh giá của tổ trưởng chuyên môn" — những thứ đó không thuộc mẫu của Bộ.
+          ===== HẾT YÊU CẦU CV5512 =====`;
 
       const VISUAL_AIDS_PROMPT = `
 ===========================================================
@@ -307,6 +297,7 @@ LƯU Ý QUAN TRỌNG:
       // Chỉ còn 2 mẫu dựng sẵn (Ban Toán, CV5512). Mẫu tùy chỉnh tải lên GHI ĐÈ mẫu dựng sẵn —
       // đúng như dòng nhắc trên giao diện — và khi đó KHÔNG áp luật/cổng chất lượng/form xuất của Toán.
       const isToan = builtinFormat === 'toan' && !selectedTemplate;
+      const laCv5512 = builtinFormat === 'cv5512' && !selectedTemplate;
       let templateContext = '';
       if (selectedTemplate) {
         const samples = selectedTemplate.files.filter(f => f.category === 'sample').map(f => f.content).join('\n---\n');
@@ -371,7 +362,7 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
           requirement: job?.requirement ?? singleRequirement,
           templateFormat: selectedTemplate ? 'Custom' : isToan ? 'Toan' : 'CV5512',
           templateContext: templateContext + '\n' + skeletonPromptSection,
-          additionalRequirements: isToan ? TOAN_ADDITIONAL_REQUIREMENTS : `===== YÊU CẦU ĐỊNH DẠNG NỘI DUNG BÊN TRONG <lesson_content> (TUYỆT ĐỐI TUÂN THỦ) =====
+          additionalRequirements: isToan ? TOAN_ADDITIONAL_REQUIREMENTS : laCv5512 ? CV5512_REQUIREMENTS : `===== YÊU CẦU ĐỊNH DẠNG NỘI DUNG BÊN TRONG <lesson_content> (TUYỆT ĐỐI TUÂN THỦ) =====
           A. CẤU TRÚC GIÁO ÁN (GIỮ NGUYÊN BẢN MẪU, CHỈ THÊM CHI TIẾT):
           - Phần đầu: WALT và WILF phải chia làm 3 tiêu chí KHÁC NHAU tương ứng 3 mức độ (🌶️ Cơ bản, 🌶️🌶️ Nâng cao, 🌶️🌶️🌶️ Thách thức). TUYỆT ĐỐI KHÔNG lặp lại 1 tiêu chí 3 lần.
           - TỔNG THỜI LƯỢNG: 40 PHÚT. TẤT CẢ 5 HĐ (HĐ1 đến HĐ5) đều PHẢI có kịch bản đối thoại chi tiết (5-8 lượt thoại), KHÔNG ĐƯỢC viết sơ sài ở HĐ1, HĐ4, HĐ5:
@@ -553,7 +544,7 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
               
               BỐ CỤC PHẢN HỒI:
               1. <thinking>: Phân tích ngắn mục tiêu bài, đặc điểm HS, phương pháp phù hợp.
-              2. <lesson_content>: TOÀN BỘ giáo án (Markdown), BAO GỒM đánh giá Danielson ở cuối.
+              2. <lesson_content>: TOÀN BỘ giáo án (Markdown)${laCv5512 ? '' : ', BAO GỒM đánh giá Danielson ở cuối'}.
 
               HÃY SOẠN GIÁO ÁN CHI TIẾT CHO BÀI: "${lesson.title}"
               THÔNG TIN TỪ PHÂN PHỐI CHƯƠNG TRÌNH:
@@ -566,7 +557,11 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
               ${skeletonPromptSection}
               </format_skeleton>
 
-              ===== YÊU CẦU ĐỊNH DẠNG BÊN TRONG <lesson_content> (TUYỆT ĐỐI TUÂN THỦ) =====
+              ${laCv5512 ? `1. NỘI DUNG PHẢI TUÂN THỦ HOÀN TOÀN THEO "MỤC TIÊU/KIẾN THỨC TRỌNG TÂM" ĐÃ TRÍCH XUẤT TRÊN.
+              2. Tiêu đề bài soạn phải khớp 100% với tên bài được cung cấp.
+              ${CV5512_REQUIREMENTS}
+              ${mathRestrictions}
+              ` : `===== YÊU CẦU ĐỊNH DẠNG BÊN TRONG <lesson_content> (TUYỆT ĐỐI TUÂN THỦ) =====
               A. YÊU CẦU NGHIÊM NGẶT:
               1. NỘI DUNG PHẢI TUÂN THỦ HOÀN TOÀN THEO "MỤC TIÊU/KIẾN THỨC TRỌNG TÂM" ĐÃ TRÍCH XUẤT TRÊN.
               2. Tiêu đề bài soạn phải khớp 100% với tên bài được cung cấp.
@@ -611,7 +606,7 @@ III. QUY TẮC LATEX & FONT CHỮ — BẮT BUỘC:
               |---|---|---|
               | **[Quét Radar]** *Quan sát biểu cảm học sinh để xem mức độ hiểu bài.* <br/><br/> **GV:** "Các em hãy nhìn vào bảng hệ số ta vừa lập ở HĐ1. Ai phát hiện ra quy luật của các con số này?" <br/><br/> **[💡 Tuyên ngôn Dạy và học chất lượng cao: GV đóng vai trò người xúc tác, không áp đặt kiến thức]** <br/><br/> **GV:** "Tuyệt vời! Vậy hệ số của số hạng thứ $k+1$ chính là gì?" | **HS1:** "Thưa thầy, các hệ số này chính là các số trong tam giác Pascal ạ!" <br/><br/> **HS2:** "Nó tương ứng với tổ hợp $C_n^k$ ạ!" <br/><br/> **HS:** Ghi chép công thức tổng quát vào vở một cách hào hứng. | **1. Định lý:** <br/> Công thức tổng quát: <br/> $(a+b)^n = \sum_{k=0}^{n} C_n^k a^{n-k} b^k$ <br/><br/> *Lưu ý:* Có $(n+1)$ số hạng. |
               \`\`\`
-              ===== HẾT YÊU CẦU =====
+              ===== HẾT YÊU CẦU =====`}
             `;
             try {
               if (cancelBulkRef.current) return null;
