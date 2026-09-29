@@ -154,6 +154,21 @@ export const renameAssignment = async (assignmentId: string, title: string): Pro
   await callTeacherApi({ action: 'renameAssignment', assignmentId, title });
 };
 
+/** Máy chủ tải hộ file mẫu điểm LO của SSM từ LINK (browser bị CORS chặn cdn-ssm). */
+export const fetchSsmTemplateByLink = async (link: string): Promise<{ bytes: ArrayBuffer; filename: string }> => {
+  const r = await callTeacherApi<{ base64: string; filename: string }>({ action: 'ssmFetchTemplate', link });
+  const bin = atob(r.base64);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return { bytes: arr.buffer, filename: r.filename };
+};
+
+/** Máy chủ tải hộ thời khoá biểu Prime Timetable từ LINK xem (trình duyệt bị chặn đọc chéo trang). */
+export const fetchPrimeTimetableByLink = async (link: string): Promise<unknown> => {
+  const r = await callTeacherApi<{ timetable: unknown }>({ action: 'fetchPrimeTimetable', link });
+  return r.timetable;
+};
+
 export const createExamAssignment = async (input: {
   classId: string;
   examId: string;
