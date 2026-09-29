@@ -12,6 +12,8 @@ const LABELS: Record<string, string> = {
   aiGateway: 'Soạn/nâng cấp bằng GLM',
   generateSimulation: 'Tạo mô phỏng',
   teacherOnlineAiRegrade: 'Chấm lại đề online',
+  draftParentReportComment: 'Soạn nhận xét báo cáo phụ huynh',
+  autoGrade: 'Tự chấm bài quá 60 phút',
 };
 
 export const featureLabel = (feature: string): string => LABELS[feature] ?? feature;

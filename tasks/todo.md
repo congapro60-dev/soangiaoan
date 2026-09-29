@@ -66,3 +66,13 @@ Hoá đơn TỰ PHÁT HÀNH ngày 1 (lập khi có người mở lần đầu sa
 - [x] Mục 7 làm lại theo ý chủ dự án: nhiều tài khoản nhận tiền + ảnh QR tự tải, chọn tài khoản đang dùng.
 - [x] Sửa: khoá riêng luôn chạy trước kể cả người trong nhóm (trước đây bị bỏ qua → trừ ví oan).
 - [ ] Chủ dự án tự làm: thêm tài khoản nhận tiền (mục 7), webhook SePay + biến Vercel `SEPAY_WEBHOOK_KEY` — xong trước 01/11.
+
+# Kế hoạch 2026-09-29: báo cáo PH theo kì (tháng / GK1 / CK1 / GK2 / CK2 / cả năm)
+Chủ dự án chốt: chọn tay "từ ngày … đến ngày …" mỗi lần xuất; điểm thi định kì hiện TẤT CẢ cột (không phân kì →
+không tính ĐTB môn TT22); nhận xét GV = AI soạn nháp, GV sửa, lưu lại; xuất từng em + cả lớp (ZIP).
+- [x] `reportPeriod.ts` (thuần): loại báo cáo, khoảng mặc định (chỉ để điền sẵn), lọc bài giao/bài nộp/HS1 theo khoảng,
+      chuỗi điểm theo tháng, so sánh (tháng trước / nửa đầu–nửa sau / HK1–HK2) + test.
+- [x] Bản in: tiêu đề + khoảng thời gian, khối so sánh, biểu đồ theo tháng (kì/năm), mục "Nhận xét của giáo viên".
+- [x] Máy chủ: `draftParentComment` (AI, tính cho GV chủ lớp) + lưu/đọc nhận xét `parentReportNotes` (chỉ qua API).
+- [x] Giao diện từng em (chọn loại + khoảng, AI soạn nháp, sửa, lưu, tải PDF) + xuất cả lớp ZIP ở tab Báo cáo.
+- [x] Test + lint + build + QA production.

@@ -45,6 +45,7 @@ import { handleTeacherAction } from './_classroom-teacher.js';
 import { readClassAccess } from './_classroom-access.js';
 import { handleClassroomOnlineAction } from './_classroom-online.js';
 import { handleScoreBookAction } from './_score-book.js';
+import { handleParentReportAction } from './_parent-report.js';
 import { handleSsmTemplateAction } from './_ssm-template.js';
 import { handleTimetableAction } from './_timetable.js';
 import { AiKeyRequiredError, aiKeyRequiredPayload, handleAiKeyAction } from './_ai-keys.js';
@@ -1453,6 +1454,7 @@ async function dispatchClassroom(res: VercelResponse, body: ReturnType<typeof re
     if (await handleTeacherAction(db, body, res)) return;
     if (await handleClassroomOnlineAction(db, body, res)) return;
     if (await handleScoreBookAction(db, body, res)) return;
+    if (await handleParentReportAction(db, body, res)) return;
     if (await handleSsmTemplateAction(body, res)) return;
     if (await handleTimetableAction(body, res)) return;
     if (await handleAiKeyAction(db, body, res)) return;

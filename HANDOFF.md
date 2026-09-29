@@ -19,6 +19,14 @@ Chủ dự án muốn: GV đưa tài liệu sẵn có (file/link) → app viết
 - Kiểm trên dữ liệu thật: tin TDS 10Olinda tuần 5 trùng ảnh mẫu GV; sổ MOET tuần 1/4/5/6 trùng file LBG của GV (10Olinda + 11Columbus); Excel đọc lại đúng. `ai-gateway-handler` vẫn chập chờn khi chạy cả bộ (chạy riêng pass).
 - Nghiệm thu: `npx vitest run src/lib/schedule src/lib/ssm api/__tests__/timetable.test.ts api/__tests__/ssm-template.test.ts`; `npm run lint`, `npm run lint:api`, `npm run build`.
 
+## Báo cáo phụ huynh theo tháng / GK1 / CK1 / GK2 / CK2 / cả năm — 2026-09-29
+
+Chủ dự án chốt: mốc thời gian CHỌN TAY mỗi lần xuất (khoảng mặc định chỉ để điền sẵn — web dùng cho mọi trường); điểm thi định kì hiện MỌI cột (không phân kì → không tính ĐTB môn TT22); nhận xét GV = AI soạn nháp, GV sửa, lưu; xuất từng em + cả lớp ZIP.
+- Thuần: `reportKinds.ts` (loại, máy chủ dùng), `reportPeriod.ts` (khoảng mặc định, lọc bài giao theo hạn nộp/ngày giao giờ VN, bài nộp tới hết ngày cuối, HS1 theo ngày; điểm theo tháng; so sánh tháng trước / hai nửa kì / HK1–HK2 tính trên dữ liệu cả năm), `parentReportBuilder.ts` (một hàm dựng cho cả hai đường xuất; năng lực tích luỹ TỚI HẾT khoảng; `facts` gửi AI không có họ tên/mã HS).
+- Bản in: tiêu đề + "Thời gian báo cáo", mục Nhận xét của giáo viên, So sánh, cột điểm theo tháng (kì/năm). `exportParentReportToPdf(input, 'blob')` cho ZIP (`pdfExport` có `output: 'blob'`).
+- Máy chủ `_parent-report.ts` (route trong classroom.ts): `parentReportNote` / `saveParentReportNote` / `draftParentReportComment` — `parentReportNotes/{classId}_{studentId}_{kind}_{from}_{to}`, chỉ GV thuộc lớp, AI tính cho GV chủ lớp.
+- Giao diện: học sinh → Bản phụ huynh (chọn loại + ngày, AI soạn nháp, Lưu, Tải PDF); tab Báo cáo của lớp → "Xuất báo cáo phụ huynh cả lớp" (tuỳ chọn AI soạn cho em chưa có nhận xét). Test: reportPeriod 4, builder 3, printDoc +2, parent-report API 3.
+
 ## Ví AI trả trước + khoá AI riêng + mã giảm giá — 2026-09-25
 
 Chủ dự án chốt: nhóm (chủ dự án + cô Hạnh, Vân, Hồng) dùng thẳng khoá chung — **các cô VẪN trừ ví** (chỉ chủ dự án miễn), tháng 10 miễn phí bằng mã THANG10 100%, từ 11/2026 thu bình thường; GV khác dùng khoá Gemini RIÊNG (cất `teacherAiKeys`, chỉ máy chủ đọc). Không có/hết khoá → AI dừng, bài HS nằm chờ (`aiBlocked`), GV được báo khi đăng nhập; bất kỳ lúc nào GV có thể đồng ý dùng khoá chung và TRẢ TRƯỚC qua ví (SePay), trừ dần theo đúng giá Google. Trần tiền/tháng tuỳ chọn cho mọi GV. Mã giảm giá 10–100%.

@@ -274,3 +274,23 @@ export const autoGradeOnline = async (attemptId: string, classId?: string): Prom
   });
   return result.attempt;
 };
+
+// ── Nhận xét giáo viên trong báo cáo phụ huynh theo tháng/kì/năm ──
+
+export interface ParentReportNoteKey {
+  classId: string;
+  studentId: string;
+  kind: string;
+  from: string;
+  to: string;
+}
+
+export const loadParentReportNote = (key: ParentReportNoteKey) =>
+  callTeacherApi<{ text: string; updatedAt: string | null }>({ action: 'parentReportNote', ...key });
+
+export const saveParentReportNote = (key: ParentReportNoteKey, text: string) =>
+  callTeacherApi<{ text: string; updatedAt: string }>({ action: 'saveParentReportNote', ...key, text });
+
+/** AI soạn nháp nhận xét từ số liệu bản phụ huynh (đã an toàn); giáo viên sửa rồi mới lưu. */
+export const draftParentReportComment = (key: ParentReportNoteKey, facts: Record<string, unknown>) =>
+  callTeacherApi<{ text: string }>({ action: 'draftParentReportComment', ...key, facts });
