@@ -17,7 +17,8 @@ import {
   WandSparkles,
   Users,
   ShieldCheck,
-  CalendarRange
+  CalendarRange,
+  Wallet
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -60,6 +61,7 @@ export const Sidebar = ({
     { id: 'library', label: 'Thư viện', icon: FileText },
     { id: 'templates', label: 'Mẫu giáo án', icon: Layout },
     { id: 'chat', label: 'AI Tutor', icon: MessageSquare },
+    { id: 'aiBilling', label: 'Chi phí AI', icon: Wallet },
     ...(isAdmin ? [{ id: 'admin', label: 'Quản trị', icon: ShieldCheck }] : []),
   ];
 

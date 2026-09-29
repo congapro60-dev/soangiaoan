@@ -5,6 +5,8 @@ import { cert, getApps, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 import { createAiUsageContext, geminiUsageCounts, recordAiUsage, runWithAiUsage } from './_ai-usage.js';
+import { AiKeyRequiredError, aiKeyRequiredPayload, ensureGeminiKey, onOwnKeyFailure } from './_ai-keys.js';
+import { classifyGeminiKeyFailure } from '../src/lib/admin/aiKeyPolicy.js';
 
 const GEMINI_MODEL = 'gemini-3.7-flash';
 const MAX_PROBLEM_TEXT_LENGTH = 2000;
@@ -208,8 +210,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return sendError(res, 500, 'gemini_error', 'Gemini API key is not configured');
     }
 
-    const ai = new GoogleGenAI({ apiKey });
-    const result = await ai.models.generateContent({
+    const generate = (key: string) => new GoogleGenAI({ apiKey: key }).models.generateContent({
       model: GEMINI_MODEL,
       contents: [{ role: 'user', parts: [{ text: buildUserPrompt({ problemText: normalizedProblemText, style }) }] }],
       config: {
@@ -217,12 +218,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         temperature: 0.2,
       },
     });
-    // Đếm token (khoá chung của chủ dự án) — ghi trước mọi nhánh báo lỗi vì lượt này đã tính tiền.
     const identity = { uid: teacherId, email: teacherEmail, anonymous: false };
-    await runWithAiUsage(
-      createAiUsageContext(null, 'generateSimulation', { lessonId: normalizedLessonId }, async () => identity),
-      () => recordAiUsage('gemini', GEMINI_MODEL, geminiUsageCounts(result.usageMetadata)),
-    );
+    const usageContext = createAiUsageContext(null, 'generateSimulation', { lessonId: normalizedLessonId }, async () => identity);
+    usageContext.keyOwnerUid = teacherId;
+    let result: Awaited<ReturnType<typeof generate>>;
+    try {
+      result = await runWithAiUsage(usageContext, async () => {
+        // Cùng quy tắc với chấm bài: nhóm dùng khoá chung / khoá riêng giáo viên / khoá chung đã đồng ý.
+        let choice = await ensureGeminiKey(apiKey);
+        let generated: Awaited<ReturnType<typeof generate>>;
+        try {
+          generated = await generate(choice.key);
+        } catch (error) {
+          const detail = error instanceof Error ? error.message : String(error);
+          const keyFailure = classifyGeminiKeyFailure(Number((error as { status?: unknown }).status) || 0, detail);
+          if (choice.source !== 'own' || !keyFailure) throw error;
+          choice = await onOwnKeyFailure(choice, keyFailure, detail, apiKey);
+          generated = await generate(choice.key);
+        }
+        // Đếm token — ghi trước mọi nhánh báo lỗi vì lượt này đã tính tiền.
+        await recordAiUsage('gemini', GEMINI_MODEL, geminiUsageCounts(generated.usageMetadata));
+        return generated;
+      });
+    } catch (error) {
+      if (error instanceof AiKeyRequiredError) return res.status(402).json(aiKeyRequiredPayload(error));
+      throw error;
+    }
 
     const html = (result.text || '').trim();
     if (!isValidHtmlSimulation(html)) {

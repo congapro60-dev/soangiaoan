@@ -15,8 +15,15 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { getAuth } from 'firebase-admin/auth';
 import { getAdminDb } from './_exam-core.js';
+import { FieldValue } from 'firebase-admin/firestore';
+import type { AiKeySource } from '../src/lib/admin/aiKeyPolicy.js';
+import { costUsdOfCall } from '../src/lib/admin/aiPricing.js';
+import { chargeForCall, type VoucherRedemption } from '../src/lib/admin/aiWallet.js';
 
 export const AI_USAGE_COL = 'aiUsage';
+/** Sổ chi tiêu khoá chung theo giáo viên + tháng (`{uid}_{YYYY-MM}`), chỉ máy chủ đọc/ghi. */
+export const AI_SPEND_COL = 'aiSpend';
+export const aiSpendDocId = (uid: string, month: string): string => `${uid}_${month}`;
 
 export interface AiUsageIdentity {
   uid: string | null;
@@ -35,6 +42,22 @@ export interface AiUsageContext {
    * cảnh cho cả endpoint nhiều request (điểm danh, đăng nhập…) không tốn thêm gì.
    */
   identity: () => Promise<AiUsageIdentity>;
+  /**
+   * Giáo viên CHỊU khoá/tiền của lượt này (chủ lớp). Handler đặt khi biết chắc; vắng thì suy từ người gọi.
+   * Đổi người chịu thì chọn lại khoá.
+   */
+  keyOwnerUid?: string | null;
+  /** Khoá đã chọn cho request này (xem `_ai-keys.ts`); cache để mọi lượt gọi trong request dùng chung. */
+  keyChoice?: AiKeyChoice | null;
+}
+
+/** Khoá Gemini dùng cho một request + nguồn của nó — nguồn quyết định lượt đó có vào bảng kê không. */
+export interface AiKeyChoice {
+  key: string;
+  source: AiKeySource;
+  ownerUid: string | null;
+  /** Có trừ ví trả trước không (null = không trừ: chưa bật kiểm soát / khoá riêng / chủ dự án). */
+  billing?: { usdVnd: number; voucher: VoucherRedemption | null } | null;
 }
 
 export interface AiTokenCounts {
@@ -54,6 +77,14 @@ const storage = new AsyncLocalStorage<AiUsageContext>();
 export const runWithAiUsage = <T>(context: AiUsageContext, fn: () => Promise<T>): Promise<T> => storage.run(context, fn);
 
 export const currentAiUsageContext = (): AiUsageContext | null => storage.getStore() ?? null;
+
+/** Handler gắn giáo viên chịu khoá/tiền cho lượt này (vd chủ lớp khi học sinh tự nộp). */
+export const setAiKeyOwner = (uid: string | null): void => {
+  const context = currentAiUsageContext();
+  if (!context) return;
+  context.keyOwnerUid = uid;
+  context.keyChoice = null;
+};
 
 const count = (value: unknown): number => (typeof value === 'number' && Number.isFinite(value) && value > 0 ? Math.round(value) : 0);
 
@@ -89,7 +120,7 @@ export const openAiUsageCounts = (usage: unknown): AiTokenCounts | null => {
 };
 
 /** Ngày/tháng theo giờ Việt Nam để gom bảng kê đúng tháng thu tiền. */
-const vnDate = (now: Date): { day: string; month: string } => {
+export const vnDate = (now: Date): { day: string; month: string } => {
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' })
     .formatToParts(now);
   const get = (type: string) => parts.find(part => part.type === type)?.value ?? '00';
@@ -99,7 +130,7 @@ const vnDate = (now: Date): { day: string; month: string } => {
 const ANONYMOUS_UNKNOWN: AiUsageIdentity = { uid: null, email: null, anonymous: false };
 
 export const buildAiUsageRecord = (
-  context: { feature: string; refs: Record<string, string> } | null,
+  context: { feature: string; refs: Record<string, string>; keyChoice?: AiKeyChoice | null } | null,
   identity: AiUsageIdentity,
   provider: AiProvider,
   model: string,
@@ -116,6 +147,9 @@ export const buildAiUsageRecord = (
   email: identity.email,
   anonymous: identity.anonymous,
   refs: context?.refs ?? {},
+  // 'own' = giáo viên tự trả Google, KHÔNG vào bảng kê. Lượt cũ (trước khi có trường này) là khoá chung.
+  keySource: context?.keyChoice?.source ?? 'shared',
+  ...(context?.keyChoice?.ownerUid ? { keyOwnerUid: context.keyChoice.ownerUid } : {}),
   ...counts,
   ...(extra.finishReason ? { finishReason: extra.finishReason } : {}),
 });
@@ -132,7 +166,35 @@ export const recordAiUsage = async (
     const context = currentAiUsageContext();
     const identity = context ? await context.identity() : ANONYMOUS_UNKNOWN;
     const record = buildAiUsageRecord(context, identity, provider, model, counts, extra);
-    await getAdminDb().collection(AI_USAGE_COL).add(record);
+    const db = getAdminDb();
+    const choice = context?.keyChoice;
+    const ownerUid = choice?.ownerUid;
+    const billable = Boolean(ownerUid) && record.keySource !== 'own';
+    const costUsd = billable ? costUsdOfCall(model, String(record.day), counts) ?? 0 : 0;
+    // Ví trả trước: lượt này bị trừ bao nhiêu — ghi luôn giá gốc, tỷ giá, % giảm để sao kê tự giải thích.
+    const charge = billable && choice?.billing ? chargeForCall(costUsd, choice.billing.usdVnd, choice.billing.voucher) : null;
+    if (charge && choice?.billing) {
+      Object.assign(record, { costUsd, usdVnd: choice.billing.usdVnd, ...charge });
+    }
+    await db.collection(AI_USAGE_COL).add(record);
+    if (!billable || !ownerUid) return;
+    // Sổ chi tiêu tháng của giáo viên chịu phí — để hiện "đã dùng" và chặn khi chạm trần tự đặt.
+    // Lượt khoá riêng (giáo viên tự trả Google) không cộng vào.
+    await db.collection(AI_SPEND_COL).doc(aiSpendDocId(ownerUid, String(record.month))).set({
+      uid: ownerUid,
+      month: record.month,
+      costUsd: FieldValue.increment(costUsd),
+      calls: FieldValue.increment(1),
+      ...(charge ? { chargeVnd: FieldValue.increment(charge.chargeVnd) } : {}),
+      updatedAt: record.at,
+    }, { merge: true });
+    if (charge && charge.chargeVnd > 0) {
+      await db.collection('aiWallets').doc(ownerUid).set({
+        uid: ownerUid,
+        balanceVnd: FieldValue.increment(-charge.chargeVnd),
+        updatedAt: record.at,
+      }, { merge: true });
+    }
   } catch (error) {
     console.error('[ai-usage] không ghi được lượt dùng AI:', error);
   }

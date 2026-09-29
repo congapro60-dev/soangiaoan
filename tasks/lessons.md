@@ -398,3 +398,9 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 
 - Mở rộng V7.2 theo `spec.week` phải bao phủ cả Week 5 và Week 6; không để response options hoặc QA harness chỉ nhận diện Week 6.
 - P31 là alias/demo có contract thủ công; các bài Week 5 còn lại dùng adapter generic nhưng vẫn phải giữ đúng source key và nội dung nguồn.
+
+## CI đỏ vì máy local có sẵn biến khoá AI (2026-09-25)
+
+- Máy này có sẵn `GEMINI_API_KEY`/`GOOGLE_API_KEY` trong môi trường Windows → test gọi `getGradingApiKey()` qua ở local nhưng 500 trên CI (Quality Gate đỏ từ `f467a91` tới `90f4dfe`, không ai để ý vì chỉ xem test local).
+- Trước khi push phần API: chạy `env -u GEMINI_API_KEY -u GOOGLE_API_KEY npx vitest run` để giống CI; sau push kiểm run "Quality Gate" (API công khai: `api.github.com/repos/congapro60-dev/soangiaoan/actions/runs`, lỗi chi tiết ở `check-runs/<job id>/annotations`).
+- Không đòi khoá/tài nguyên khi request không có việc thật phải làm (kiểm khoá SAU bước "có bài cần chấm không").

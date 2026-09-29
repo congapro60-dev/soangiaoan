@@ -388,14 +388,15 @@ export const StudentPortalDashboard = ({
         )}
 
         {pendingFiles.length > 0 && (
-          <section ref={pendingSectionRef} aria-labelledby="pending-upload-heading" className="scroll-mt-20 rounded-[1.5rem] border-2 border-indigo-200 bg-indigo-50 p-4 shadow-sm sm:p-5">
+          <section ref={pendingSectionRef} aria-labelledby="pending-upload-heading" className="scroll-mt-20 rounded-[1.5rem] border-2 border-rose-300 bg-rose-50 p-4 shadow-sm sm:p-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0">
-                <p className="text-xs font-black uppercase tracking-[0.16em] text-indigo-600">Bộ tệp đang chờ nộp</p>
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-rose-600">Ảnh chưa gửi cho thầy cô</p>
                 <h2 id="pending-upload-heading" className="mt-1 break-words text-lg font-black text-slate-900">{pendingAssignmentTitle || 'Bài của em'}</h2>
                 <p className="mt-1 text-sm font-semibold leading-6 text-slate-600">Đã chụp/chọn {pendingFiles.length}/{maxPendingFiles} tệp. Em có thể chụp tiếp các trang còn lại rồi nộp một lần.</p>
+                <p className="mt-1 text-sm font-black leading-6 text-rose-700">Phải bấm “Nộp {pendingFiles.length} tệp” bên dưới thì thầy cô mới nhận được bài. Thoát bây giờ là mất ảnh.</p>
               </div>
-              <span className="inline-flex shrink-0 items-center rounded-full bg-white px-3 py-1.5 text-xs font-black text-indigo-700 ring-1 ring-indigo-200">Chưa nộp</span>
+              <span className="inline-flex shrink-0 items-center rounded-full bg-rose-600 px-3 py-1.5 text-xs font-black text-white">Chưa gửi</span>
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4" role="list" aria-label="Các tệp đang chờ nộp">

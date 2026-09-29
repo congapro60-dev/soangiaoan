@@ -1,8 +1,9 @@
-import { collection, deleteDoc, doc, getDoc, getDocs, limit, query, setDoc, where, writeBatch } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDoc, getDocs, limit, query, setDoc, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { auth, db, removeUndefinedFields } from '../firebase';
 import { TeacherClass } from '../../types';
 import { planLegacyClassMigration } from './migrateLegacyClasses';
 import { CLASSES_COL, STUDENTS_SUB, type AssignmentDoc, type ClassDoc, type StudentDoc } from './types';
+import { AUTO_GRADE_CLASS_FIELD } from './autoGrade';
 
 const callTeacherApi = async <T>(payload: Record<string, unknown>): Promise<T> => {
   const currentUser = auth.currentUser;
@@ -33,6 +34,11 @@ export const getClassDoc = async (classId: string): Promise<ClassDoc | null> => 
     const result = await callTeacherApi<{ class?: ClassDoc }>({ action: 'getAccessibleClass', classId });
     return result.class || null;
   }
+};
+
+/** Công tắc "tự chấm + tự duyệt sau 60 phút" của lớp — rules chỉ cho giáo viên chủ lớp ghi. */
+export const setClassAutoGrade = async (classId: string, enabled: boolean): Promise<void> => {
+  await updateDoc(doc(db, CLASSES_COL, classId), { [AUTO_GRADE_CLASS_FIELD]: enabled });
 };
 
 /**

@@ -34,6 +34,9 @@ vi.mock('../_grading-core.js', () => ({
 
 import { handleAiGateway as handler } from '../_ai-gateway-handler.js';
 
+/** Firestore giả tối thiểu cho phần kiểm quyền khoá chung (`adminSettings/aiAccess`, `teacherAiKeys/{uid}`). */
+let firestoreDocs: Record<string, Record<string, unknown>> = {};
+
 interface ResponseState {
   statusCode: number;
   jsonBody?: unknown;
@@ -76,6 +79,15 @@ const makeRequest = (body: unknown, authorization?: string): VercelRequest => ({
 describe('AI Gateway handler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    firestoreDocs = {};
+    initializeAdmin.mockReturnValue({
+      collection: (name: string) => ({
+        doc: (id: string) => ({
+          get: async () => ({ exists: Boolean(firestoreDocs[`${name}/${id}`]), data: () => firestoreDocs[`${name}/${id}`] }),
+        }),
+        where: () => ({ get: async () => ({ docs: [], empty: true }) }),
+      }),
+    });
     process.env.AI_GATEWAY_API_KEY = 'test-gateway-key';
     verifyIdToken.mockResolvedValue({ uid: 'teacher-1', firebase: { sign_in_provider: 'google.com' } });
     loadQuotaDoc.mockResolvedValue([
@@ -150,6 +162,23 @@ describe('AI Gateway handler', () => {
       model: 'zai/glm-5.2',
       truncated: false,
     });
+  });
+
+  it('bật kiểm soát khoá: GV ngoài nhóm chưa đồng ý tính phí thì 402, không gọi GLM; đồng ý rồi thì chạy', async () => {
+    firestoreDocs['adminSettings/aiAccess'] = { enabled: true, sharedUids: ['chu-du-an'] };
+    createCompletion.mockResolvedValue({ choices: [{ message: { content: 'ok' }, finish_reason: 'stop' }] });
+
+    const blocked = makeResponse();
+    await handler(makeRequest({ prompt: 'Xin chào' }, 'Bearer firebase-token'), blocked.response);
+    expect(blocked.state.statusCode).toBe(402);
+    expect(blocked.state.jsonBody).toMatchObject({ code: 'AI_KEY_REQUIRED', reason: 'consent_required' });
+    expect(createCompletion).not.toHaveBeenCalled();
+
+    firestoreDocs['teacherAiKeys/teacher-1'] = { consent: { accepted: true } };
+    firestoreDocs['aiWallets/teacher-1'] = { balanceVnd: 5_000 };
+    const allowed = makeResponse();
+    await handler(makeRequest({ prompt: 'Xin chào' }, 'Bearer firebase-token'), allowed.response);
+    expect(allowed.state.statusCode).toBe(200);
   });
 
   it('rejects an empty prompt before calling the provider', async () => {

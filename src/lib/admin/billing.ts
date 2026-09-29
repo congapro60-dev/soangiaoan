@@ -15,6 +15,13 @@ export interface UsageRecord extends UsageTokens {
   uid: string | null;
   anonymous: boolean;
   refs: Record<string, string>;
+  /** Nguồn khoá: 'own' = giáo viên tự trả Google → KHÔNG vào bảng kê. Vắng = khoá chung (lượt cũ). */
+  keySource?: string;
+  /** Giáo viên chịu khoá do máy chủ xác định lúc gọi — tin hơn suy từ mã tham chiếu. */
+  keyOwnerUid?: string;
+  /** Mã document + thời điểm — để hoá đơn dẫn tới đúng từng lượt (minh chứng). */
+  id?: string;
+  at?: string;
 }
 
 export interface OwnerMaps {
@@ -29,7 +36,8 @@ export interface OwnerMaps {
  * Ai chịu tiền lượt này. Lượt của HỌC SINH (nộp bài được chấm) tính cho GIÁO VIÊN CHỦ LỚP.
  * Ưu tiên mã cụ thể nhất: bài nộp → bài giao → lớp → liên kết học sinh → chính người gọi (giáo viên).
  */
-export const resolveBillTo = (record: Pick<UsageRecord, 'uid' | 'anonymous' | 'refs'>, maps: OwnerMaps): string | null => {
+export const resolveBillTo = (record: Pick<UsageRecord, 'uid' | 'anonymous' | 'refs' | 'keyOwnerUid'>, maps: OwnerMaps): string | null => {
+  if (record.keyOwnerUid) return record.keyOwnerUid;
   const { refs } = record;
   const fromRef = (refs.submissionId && maps.submissionOwner.get(refs.submissionId))
     || (refs.assignmentId && maps.assignmentOwner.get(refs.assignmentId))
@@ -67,6 +75,8 @@ const addTokens = (target: UsageTokens, source: UsageTokens) => {
 export const aggregateUsage = (records: readonly UsageRecord[], maps: OwnerMaps): TeacherUsage[] => {
   const byTeacher = new Map<string, TeacherUsage>();
   for (const record of records) {
+    // Lượt chạy bằng khoá RIÊNG của giáo viên: họ đã tự trả Google, không thu lại.
+    if (record.keySource === 'own') continue;
     const billTo = resolveBillTo(record, maps) ?? 'unknown';
     const row = byTeacher.get(billTo) ?? { billTo, calls: 0, costUsd: 0, unpricedCalls: 0, byModel: {}, ...emptyTokens() };
     const cost = costUsdOfCall(record.model, record.day, record);
