@@ -18,9 +18,9 @@ const FIXTURE = `# KẾ HOẠCH DẠY HỌC — Phương trình đường thẳn
 
 | Mức độ | Mục tiêu |
 |---|---|
-| Cơ bản | Nhận diện VPT từ PT tổng quát [Bloom: Hiểu] |
-| Trọng tâm | Lập PT tổng quát $ax+by+c=0$ [Bloom: Áp dụng] |
-| Nâng cao | Chứng minh trường hợp mở rộng [Bloom: Phân tích] |
+| Must (Cơ bản) | Tôi có thể nhận diện VPT từ PT tổng quát [Bloom: Hiểu] |
+| Should (Trọng tâm) | Tôi có thể lập PT tổng quát $ax+by+c=0$ [Bloom: Áp dụng] |
+| Could (Nâng cao) | Tôi có thể chứng minh trường hợp mở rộng [Bloom: Phân tích] |
 
 ## 🚀 HOẠT ĐỘNG 2: hình thành KIẾN THỨC (~15 phút)
 
@@ -61,7 +61,7 @@ describe('renderWordCore styleProfile=toan — golden fixture', () => {
     expect(xml).toMatch(/fce5cd/i); // mục tiêu (banner) — và FCE5CD (hàng Trọng tâm)
   });
 
-  it('bảng mục tiêu tô màu 3 hàng Cơ bản/Trọng tâm/Nâng cao', async () => {
+  it('bảng mục tiêu tô màu 3 hàng Must/Should/Could (Cơ bản/Trọng tâm/Nâng cao)', async () => {
     const xml = await renderXml('toan');
     expect(xml).toContain('D9EAD3');
     expect(xml).toContain('FFF2CC');

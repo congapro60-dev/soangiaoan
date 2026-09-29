@@ -99,3 +99,43 @@ describe('auditMathStandards — mục C (tiết luyện tập)', () => {
     expect(res.criticalFailures).toBeGreaterThan(0);
   });
 });
+
+describe('auditMathStandards — bộ kiểm nội dung mới (yêu cầu ban Toán 2026-09)', () => {
+  it('no-generic-objective FAIL với câu khuôn generic', () => {
+    const content = 'Tôi có thể tạo sản phẩm cốt lõi tối thiểu về bất phương trình.';
+    expect(find(content, 'no-generic-objective').status).toBe('fail');
+  });
+
+  it('no-generic-objective PASS với mục tiêu Toán cụ thể', () => {
+    const content = 'Tôi có thể kiểm tra một cặp số có là nghiệm của bất phương trình bậc nhất hai ẩn.';
+    expect(find(content, 'no-generic-objective').status).toBe('pass');
+  });
+
+  it('cis-evidence-table FAIL khi thiếu bảng/đủ 6 Danielson', () => {
+    expect(find('Giáo án không có bảng minh chứng.', 'cis-evidence-table').status).toBe('fail');
+    const only5 = 'MINH CHỨNG HQT / CIS. Danielson 1a, 1b, 1c, 1d, 1e.';
+    expect(find(only5, 'cis-evidence-table').evidence).toMatch(/1f/);
+  });
+
+  it('cis-evidence-table PASS khi có bảng + đủ 6 Danielson', () => {
+    const content = 'MINH CHỨNG HQT / CIS. Danielson 1a; Danielson 1b; Danielson 1c; Danielson 1d; Danielson 1e; Danielson 1f.';
+    expect(find(content, 'cis-evidence-table').status).toBe('pass');
+  });
+
+  it('exercise-source FAIL khi có bài tập nhưng không nguồn', () => {
+    expect(find('Bài 1: giải. Bài 2: tính.', 'exercise-source').status).toBe('fail');
+  });
+
+  it('exercise-source PASS khi ghi nguồn', () => {
+    expect(find('Bài 1 (SGK bài 3). Bài 2 (GV tự thiết kế).', 'exercise-source').status).toBe('pass');
+  });
+
+  it('cdtc-integration PASS khi có CDTC hoặc ghi rõ không phải tiết trọng tâm', () => {
+    expect(find('Bối cảnh công dân toàn cầu về khí thải.', 'cdtc-integration').status).toBe('pass');
+    expect(find('CDTC: Không phải tiết trọng tâm.', 'cdtc-integration').status).toBe('pass');
+  });
+
+  it('cdtc-integration FAIL khi không tích hợp và không ghi NA', () => {
+    expect(find('Tiết dạy công thức nghiệm, không nhắc gì thêm.', 'cdtc-integration').status).toBe('fail');
+  });
+});
