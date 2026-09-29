@@ -3,6 +3,7 @@ import { COMPETENCY_LEVELS, type CompetencyLevel } from './competency/framework'
 import type { StudentExamScores } from './examScores';
 import { hs1Average, type Hs1Mark } from './scoreBook';
 import { exportElementToPdf } from '../../utils/pdfExport';
+import type { MonthPoint, PeriodComparison, ReportKind } from './reportPeriod';
 
 /** Một năng lực Toán đã được đánh giá (đã có bài duyệt), rút từ hồ sơ năng lực cho bản phụ huynh. */
 export interface ParentCompetencyItem {
@@ -33,6 +34,14 @@ export interface ParentReportPrintInput {
   exams?: StudentExamScores | null;
   /** Điểm hệ số 1 giáo viên nhập trên lớp. Vắng cả hai thì bỏ mục điểm kiểm tra/thi. */
   hs1?: Hs1Mark[] | null;
+  /** Báo cáo theo tháng/kì/năm; vắng = báo cáo chung từ đầu năm như trước. */
+  period?: { title: string; range: string; kind: ReportKind } | null;
+  /** So sánh tháng trước / hai nửa kì / hai học kì. */
+  comparison?: PeriodComparison | null;
+  /** Điểm trung bình theo từng tháng (báo cáo kì/năm). */
+  monthly?: MonthPoint[] | null;
+  /** Nhận xét riêng của giáo viên (AI soạn nháp, giáo viên đã sửa). */
+  teacherComment?: string;
 }
 
 const ROOT_ID = 'parent-report-pdf-root';
@@ -194,6 +203,42 @@ const buildSubjectRows = (results: ParentSafeReport['results']): string => {
   }).join('');
 };
 
+/** Hai cột so sánh điểm trung bình (trước → sau) + câu kết luận tăng/giảm. */
+const buildComparison = (c: PeriodComparison): string => {
+  const bar = (s: PeriodComparison['before']) => {
+    if (s.avgPercent === null) return `<div class="cmp-side"><p class="cmp-lab">${esc(s.label)}</p><p class="muted">Chưa có bài chấm chính thức.</p></div>`;
+    const band = scoreBand(s.avgPercent);
+    return `<div class="cmp-side"><p class="cmp-lab">${esc(s.label)} · ${s.count} bài</p><div class="subj-bar"><span style="width:${Math.max(0, Math.min(100, s.avgPercent))}%;background:${band.color}"></span></div><p class="cmp-num" style="color:${band.color}">${s.avgPercent.toFixed(1)}%</p></div>`;
+  };
+  const { before, after } = c;
+  let verdict = '';
+  if (before.avgPercent !== null && after.avgPercent !== null) {
+    const diff = after.avgPercent - before.avgPercent;
+    verdict = Math.abs(diff) < 3
+      ? 'Kết quả giữ ổn định giữa hai giai đoạn.'
+      : diff > 0 ? `Tiến bộ ${diff.toFixed(1)} điểm phần trăm so với giai đoạn trước.` : `Giảm ${Math.abs(diff).toFixed(1)} điểm phần trăm so với giai đoạn trước — cần theo dõi thêm.`;
+  }
+  return `<div class="cmp">${bar(before)}<div class="cmp-arrow">→</div>${bar(after)}</div>${verdict ? `<p class="cmp-verdict">${esc(verdict)}</p>` : ''}`;
+};
+
+/** Cột điểm trung bình theo tháng (SVG). */
+const buildMonthlyChart = (points: readonly MonthPoint[]): string => {
+  const W = 700, H = 150, padB = 24, padT = 18, gap = 14;
+  const barW = Math.min(64, (W - gap * (points.length + 1)) / points.length);
+  const total = points.length * barW + (points.length + 1) * gap;
+  const x0 = (W - total) / 2;
+  const bars = points.map((p, i) => {
+    const h = (Math.max(0, Math.min(100, p.avgPercent)) / 100) * (H - padB - padT);
+    const x = x0 + gap + i * (barW + gap);
+    const y = H - padB - h;
+    const color = scoreBand(p.avgPercent).color;
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="5" fill="${color}"/>
+<text x="${(x + barW / 2).toFixed(1)}" y="${(y - 4).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="800" fill="#334155">${Math.round(p.avgPercent)}%</text>
+<text x="${(x + barW / 2).toFixed(1)}" y="${H - 7}" text-anchor="middle" font-size="11" font-weight="700" fill="#64748b">${esc(p.label)} (${p.count})</text>`;
+  }).join('');
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><line x1="0" y1="${H - padB}" x2="${W}" y2="${H - padB}" stroke="#dbe4ec"/>${bars}</svg><p class="muted" style="font-size:11.5px">Mỗi cột là điểm trung bình các bài đã chấm chính thức trong tháng (trong ngoặc: số bài).</p>`;
+};
+
 /** CSS scope theo #ROOT_ID để không rò rỉ style ra phần còn lại của app khi node được gắn tạm vào DOM. */
 const styleBlock = `
 #${ROOT_ID} { width: 780px; box-sizing: border-box; padding: 30px 34px; background:#fff; color:#1e293b; font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif; font-size:13px; line-height:1.55; }
@@ -264,6 +309,13 @@ const styleBlock = `
 #${ROOT_ID} .signature { display:flex; gap:16px; margin-top:22px; }
 #${ROOT_ID} .signature div { flex:1; text-align:center; font-size:11.5px; color:#475569; font-weight:700; }
 #${ROOT_ID} .sig-line { margin-top:46px; border-top:1px dotted #94a3b8; padding-top:5px; }
+#${ROOT_ID} .cmp { display:flex; align-items:center; gap:14px; }
+#${ROOT_ID} .cmp-side { flex:1; border:1px solid #dbe4ec; border-radius:10px; padding:10px 14px; }
+#${ROOT_ID} .cmp-lab { margin:0 0 6px; font-size:12px; font-weight:800; color:#334155; }
+#${ROOT_ID} .cmp-num { margin:6px 0 0; font-size:18px; font-weight:800; }
+#${ROOT_ID} .cmp-arrow { font-size:22px; font-weight:800; color:#94a3b8; }
+#${ROOT_ID} .cmp-verdict { margin:8px 0 0; font-size:12.5px; font-weight:700; color:#334155; }
+#${ROOT_ID} .teacher-note { border:1px solid #dbe4ec; border-left:5px solid #7c3aed; border-radius:8px; padding:12px 16px; font-size:13px; color:#1e293b; white-space:normal; }
 `;
 
 /**
@@ -271,7 +323,7 @@ const styleBlock = `
  * tiến độ IB: bảng thông tin, dải tổng kết, biểu đồ thống kê, mục điểm từng bài, phương án đồng hành.
  * Chỉ dùng dữ liệu đã an toàn trong ParentSafeReport — không có đáp án, ghi chú nội bộ hay điểm bài chưa duyệt.
  */
-export const buildParentReportPrintDoc = ({ report, studentName, className, studentCode, generatedOn, competency, exams, hs1 }: ParentReportPrintInput): string => {
+export const buildParentReportPrintDoc = ({ report, studentName, className, studentCode, generatedOn, competency, exams, hs1, period, comparison, monthly, teacherComment }: ParentReportPrintInput): string => {
   const ngay = generatedOn ?? new Date().toLocaleDateString('vi-VN');
   const avg = report.officialAveragePercent;
   const band = avg === null ? { label: 'Chưa đủ dữ liệu', color: '#64748b' } : scoreBand(avg);
@@ -297,13 +349,14 @@ export const buildParentReportPrintDoc = ({ report, studentName, className, stud
   <tr><td class="k">Học sinh</td><td>${esc(studentName)}</td></tr>
   <tr><td class="k">Lớp</td><td>${esc(className)}</td></tr>
   ${studentCode ? `<tr><td class="k">Mã học sinh</td><td>${esc(studentCode)}</td></tr>` : ''}
+  ${period ? `<tr><td class="k">Thời gian báo cáo</td><td>${esc(period.range)}</td></tr>` : ''}
   <tr><td class="k">Ngày lập</td><td>${esc(ngay)}</td></tr>
 </table>
 
 <div class="title-wrap">
   <div class="kicker">SmartPlan AI · Trợ lý sư phạm</div>
-  <h1>Báo cáo học tập môn Toán</h1>
-  <p class="prep">Bản gửi phụ huynh · Lập ngày ${esc(ngay)}</p>
+  <h1>${esc(period?.title ?? 'Báo cáo học tập môn Toán')}</h1>
+  <p class="prep">Bản gửi phụ huynh${period ? ` · ${esc(period.range)}` : ''} · Lập ngày ${esc(ngay)}</p>
 </div>
 
 <div class="verdict" style="background:${band.color}">
@@ -313,12 +366,18 @@ export const buildParentReportPrintDoc = ({ report, studentName, className, stud
 
 <div class="lead">${esc(report.overallSummary)}</div>
 
+${teacherComment?.trim() ? `${secHead('Nhận xét của giáo viên')}<div class="teacher-note">${teacherComment.trim().split(/\n+/).map(line => esc(line)).join('<br/>')}</div>` : ''}
+
 ${secHead('Tổng quan bằng số')}
 <div class="tiles">
   <div class="tile"><div class="cap">Điểm trung bình</div>${buildMeter(avg)}</div>
   <div class="tile"><div class="cap">Xu hướng điểm</div>${buildSparkline(officialSeries, trend)}</div>
   <div class="tile"><div class="cap">Tiến độ nộp bài</div>${buildCompletion(report.officialCount, report.pendingCount, report.missingCount)}</div>
 </div>
+
+${comparison ? `${secHead('So sánh để thấy tiến bộ')}${buildComparison(comparison)}` : ''}
+
+${monthly && monthly.length >= 2 && period?.kind !== 'month' ? `${secHead('Điểm trung bình theo tháng')}${buildMonthlyChart(monthly)}` : ''}
 
 ${hasExams || hs1Marks.length > 0 ? `${secHead(examTitle)}${buildExamSection(examScores, hs1Marks)}` : ''}
 
@@ -340,7 +399,7 @@ ${secHead('Cùng đồng hành với con')}
   <div class="card school"><h3>🎓 Thầy cô sẽ hỗ trợ</h3>${listItems(report.teacherActions, 'Chưa có gợi ý cụ thể.')}</div>
 </div>
 
-<div class="note">Báo cáo chỉ dùng kết quả đã được thầy cô xem và duyệt; bài đang chờ xử lý không hiển thị điểm. Điểm từng bài theo thang điểm của bài; điểm trung bình quy về phần trăm để so sánh. Không hiển thị đáp án hay ghi chú nội bộ.</div>
+<div class="note">${period ? 'Chỉ tính các bài có hạn nộp trong thời gian báo cáo; điểm thi định kì hiện tất cả cột đã có. ' : ''}Báo cáo chỉ dùng kết quả đã được thầy cô xem và duyệt; bài đang chờ xử lý không hiển thị điểm. Điểm từng bài theo thang điểm của bài; điểm trung bình quy về phần trăm để so sánh. Không hiển thị đáp án hay ghi chú nội bộ.</div>
 
 <div class="signature">
   <div><div class="sig-line">Phụ huynh (ký, ghi rõ họ tên)</div></div>
@@ -348,14 +407,16 @@ ${secHead('Cùng đồng hành với con')}
 </div>`;
 };
 
-const pdfFileName = ({ studentName, className }: ParentReportPrintInput): string =>
-  `Bao cao PH - ${studentName} - ${className}.pdf`.replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim();
+export const parentReportFileName = ({ studentName, className, period }: ParentReportPrintInput): string =>
+  `${period ? period.title.split(' — ')[0] : 'Bao cao PH'} - ${studentName} - ${className}.pdf`.replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim();
 
 /**
  * Xuất bản phụ huynh thành file PDF tải về (giống cách giáo án xuất PDF): dựng báo cáo vào một node
  * ẩn ngoài màn hình, chụp bằng html2canvas-pro + jsPDF rồi `pdf.save()`. Không mở tab, không hộp thoại in.
  */
-export const exportParentReportToPdf = async (input: ParentReportPrintInput): Promise<void> => {
+export function exportParentReportToPdf(input: ParentReportPrintInput): Promise<void>;
+export function exportParentReportToPdf(input: ParentReportPrintInput, output: 'blob'): Promise<Blob>;
+export async function exportParentReportToPdf(input: ParentReportPrintInput, output: 'save' | 'blob' = 'save'): Promise<Blob | void> {
   const root = document.createElement('div');
   root.id = ROOT_ID;
   // Đặt ngoài màn hình nhưng vẫn được layout để html2canvas chụp đúng.
@@ -363,12 +424,13 @@ export const exportParentReportToPdf = async (input: ParentReportPrintInput): Pr
   root.innerHTML = buildParentReportPrintDoc(input);
   document.body.appendChild(root);
   try {
-    await exportElementToPdf(root, {
-      filename: pdfFileName(input),
+    return await exportElementToPdf(root, {
+      output,
+      filename: parentReportFileName(input),
       // Giữ nguyên khối, không cắt ngang thẻ/biểu đồ khi sang trang.
-      noBreakSelectors: ['h1', 'h2', 'h3', 'svg', 'table', 'tr', '.subject', '.tile', '.card', '.verdict', '.lead', '.sec-head', '.exam-block', '.comp-row'],
+      noBreakSelectors: ['h1', 'h2', 'h3', 'svg', 'table', 'tr', '.subject', '.tile', '.card', '.verdict', '.lead', '.sec-head', '.exam-block', '.comp-row', '.cmp', '.teacher-note'],
     });
   } finally {
     root.remove();
   }
-};
+}

@@ -11,6 +11,8 @@ export interface PdfExportOptions {
   noBreakSelectors?: string[];
   /** Page orientation. Default: 'portrait' */
   orientation?: 'portrait' | 'landscape';
+  /** 'save' (mặc định) tải file về; 'blob' trả file để gói nhiều báo cáo vào một ZIP. */
+  output?: 'save' | 'blob';
 }
 
 interface Zone {
@@ -152,7 +154,7 @@ const markExamQuestionBlocks = (element: HTMLElement): (() => void) => {
 export const exportElementToPdf = async (
   element: HTMLElement,
   options: PdfExportOptions
-): Promise<void> => {
+): Promise<Blob | void> => {
   const {
     filename,
     marginMm = [15, 12, 15, 12],
@@ -162,6 +164,7 @@ export const exportElementToPdf = async (
     // the exporter still allows a safe split to avoid infinite blank pages.
     noBreakSelectors = ['.pdf-no-break-question', '.exam-question', '.question-block', '.exam-figure', '.exam-svg', '.variation-table', 'img', 'svg', 'table', 'tr', 'h1', 'h2', 'h3', 'h4'],
     orientation = 'portrait',
+    output = 'save',
   } = options;
 
   const cleanupMarkedQuestions = markExamQuestionBlocks(element);
@@ -271,6 +274,7 @@ export const exportElementToPdf = async (
     // Use jsPDF's built-in save() — cross-browser tested. Chrome sometimes ignores
     // the `download` attribute on <a> elements with Blob URLs and falls back to
     // the UUID in the blob URL as filename; pdf.save() avoids that path.
+    if (output === 'blob') return pdf.output('blob');
     pdf.save(filename);
   } finally {
     cleanupMarkedQuestions();
