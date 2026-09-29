@@ -1,6 +1,6 @@
 /** Gọi các action quản trị ở /api/classroom. Quyền được kiểm lại ở máy chủ. */
 import { auth } from '../firebase';
-import type { TeacherUsage } from './billing';
+import type { FeatureUsage, TeacherUsage } from './billing';
 
 export interface AdminUser {
   uid: string;
@@ -48,6 +48,7 @@ export interface AdminOverview {
 
 export interface AdminUsage {
   rows: TeacherUsage[];
+  byFeature: FeatureUsage[];
   recordCount: number;
   fromDay: string;
   toDay: string;

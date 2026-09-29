@@ -9,7 +9,7 @@
 import type { VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
 import { isAdminEmail, METERING_START_DAY } from '../src/lib/admin/adminConfig.js';
-import { aggregateUsage, type UsageRecord } from '../src/lib/admin/billing.js';
+import { aggregateByFeature, aggregateUsage, type UsageRecord } from '../src/lib/admin/billing.js';
 import { fetchVcbUsdSell, isStatementMonth, monthOverview, ownerMapsFor, statementFor, usageRecordFromDoc } from './_ai-billing.js';
 import { adminWalletAction } from './_ai-wallet.js';
 
@@ -159,7 +159,7 @@ const handleUsage = async (db: Db, body: Body, res: VercelResponse) => {
   const snap = await db.collection(AI_USAGE_COL).where('day', '>=', fromDay).where('day', '<=', toDay).get();
   const records: UsageRecord[] = snap.docs.map(doc => usageRecordFromDoc(doc.id, doc.data() || {}));
   const maps = await ownerMapsFor(db, records);
-  return res.status(200).json({ rows: aggregateUsage(records, maps), recordCount: records.length, fromDay, toDay });
+  return res.status(200).json({ rows: aggregateUsage(records, maps), byFeature: aggregateByFeature(records), recordCount: records.length, fromDay, toDay });
 };
 
 const handleSaveSettings = async (db: Db, body: Body, res: VercelResponse) => {

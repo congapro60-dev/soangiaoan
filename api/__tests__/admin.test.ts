@@ -97,7 +97,7 @@ describe('trang quản trị', () => {
       },
       submissionGradeHistory: { 'h1': { teacherId: 'gv-hanh', action: 'ai_regrade', createdAt: '2026-09-01T00:00:00Z' } },
       aiUsage: {
-        u1: { day: '2026-09-25', model: 'gemini-3.8-flash', uid: 'hs-1', anonymous: true, refs: { submissionId: 'sub-2' }, inputTokens: 1_000_000, outputTokens: 0, thoughtsTokens: 0, cachedTokens: 0 },
+        u1: { day: '2026-09-25', model: 'gemini-3.8-flash', feature: 'gradeOne', uid: 'hs-1', anonymous: true, refs: { submissionId: 'sub-2' }, inputTokens: 1_000_000, outputTokens: 0, thoughtsTokens: 0, cachedTokens: 0 },
         u2: { day: '2026-08-01', model: 'gemini-3.8-flash', uid: 'gv-cuong', anonymous: false, refs: {}, inputTokens: 5, outputTokens: 0, thoughtsTokens: 0, cachedTokens: 0 },
       },
     };
@@ -128,6 +128,10 @@ describe('trang quản trị', () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({ billTo: 'gv-hanh', calls: 1 });
     expect(rows[0].costUsd as number).toBeCloseTo(0.75, 10);
+    const byFeature = res.payload?.byFeature as Array<DocData>;
+    expect(byFeature).toHaveLength(1);
+    expect(byFeature[0]).toMatchObject({ feature: 'gradeOne', calls: 1 });
+    expect(byFeature[0].costUsd as number).toBeCloseTo(0.75, 10);
   });
 
   it('lưu tỷ giá / tổng Google trước bộ đếm, từ chối số vô lý', async () => {

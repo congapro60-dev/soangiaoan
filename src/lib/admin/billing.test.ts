@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { costUsdOfCall, priceFor, usdToVnd } from './aiPricing';
-import { aggregateUsage, allocateByCount, buildBillingCsv, resolveBillTo, type OwnerMaps, type UsageRecord } from './billing';
+import { aggregateByFeature, aggregateUsage, allocateByCount, buildBillingCsv, resolveBillTo, type OwnerMaps, type UsageRecord } from './billing';
 import { isAdminEmail } from './adminConfig';
 
 const maps: OwnerMaps = {
@@ -59,6 +59,30 @@ describe('ai chịu tiền', () => {
     expect(cuong.costUsd).toBeCloseTo(0.75, 10);
     expect(cuong.unpricedCalls).toBe(1);
     expect(rows.find(r => r.billTo === 'unknown')?.calls).toBe(1);
+  });
+});
+
+describe('chi phí theo tính năng', () => {
+  const records = [
+    rec({ refs: { submissionId: 'sub-1' } }),
+    rec({ refs: { submissionId: 'sub-1' }, model: 'model-la' }),
+    rec({ feature: 'lessonPlan', inputTokens: 2_000_000 }),
+    rec({ feature: '' }),
+    rec({ feature: 'lessonPlan', keySource: 'own' }),
+  ];
+
+  it('gom theo tính năng, bỏ lượt khoá riêng, lượt không ghi tính năng vào unknown, sắp tiền giảm dần', () => {
+    const rows = aggregateByFeature(records);
+    expect(rows.map(r => r.feature)).toEqual(['lessonPlan', 'gradeOne', 'unknown']);
+    expect(rows[0]).toMatchObject({ calls: 1, inputTokens: 2_000_000, unpricedCalls: 0 });
+    expect(rows[0].costUsd).toBeCloseTo(1.5, 10);
+    expect(rows[1]).toMatchObject({ calls: 2, unpricedCalls: 1 });
+    expect(rows[1].costUsd).toBeCloseTo(0.75, 10);
+  });
+
+  it('tổng tiền theo tính năng khớp tổng tiền theo giáo viên', () => {
+    const sum = (xs: Array<{ costUsd: number }>) => xs.reduce((s, x) => s + x.costUsd, 0);
+    expect(sum(aggregateByFeature(records))).toBeCloseTo(sum(aggregateUsage(records, maps)), 10);
   });
 });
 

@@ -5,6 +5,14 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Chi phí AI theo tính năng (tab Quản trị) — 2026-09-29
+
+Chủ dự án muốn biết tiền AI tốn vào tính năng nào để chọn chỗ cắt giảm (quy trình đa AI, mục "giảm tiền API").
+- `aggregateByFeature` (`src/lib/admin/billing.ts`) gom `aiUsage` theo `feature`, cùng quy tắc với `aggregateUsage`: bỏ lượt `keySource==='own'`, `feature` trống → `unknown`, model chưa có giá → `unpricedCalls`. `adminUsage` (`api/_admin.ts`) trả thêm `byFeature`, không thêm endpoint. Mục 4 `AdminTab` có bảng "Theo tính năng" (tên qua `featureLabel`, VNĐ theo tỷ giá đang lưu, % trên tổng đo thật).
+- **Cố ý bỏ:** không đổi cách ghi `aiUsage`, không backfill lượt cũ, không đưa vào CSV/sao kê GV. Chỉ số ĐO THẬT; phần ước tính trước bộ đếm không chia theo tính năng được.
+- **Bẫy:** lượt cũ không ghi `feature` hiện là "Không ghi tính năng". Chưa QA trên giao diện thật vì tab Quản trị cần đăng nhập tài khoản chủ dự án.
+- Nghiệm thu: `npx vitest run src/lib/admin/billing.test.ts api/__tests__/admin.test.ts`; `npm run lint`, `npm run lint:api`, `npm run build`.
+
 ## Lịch báo giảng + SSM đợt 2 (điểm LO, soạn sẵn nội dung) — 2026-09-29
 
 Chủ dự án muốn: GV đưa tài liệu sẵn có (file/link) → app viết hộ → GV tự chép/tải, tự đưa lên SSM. Web sẽ PUBLIC nên mọi thứ phải chung cho mọi trường (dữ liệu Dewey chỉ là mẫu thử).

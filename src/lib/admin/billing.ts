@@ -94,6 +94,31 @@ export const aggregateUsage = (records: readonly UsageRecord[], maps: OwnerMaps)
   return [...byTeacher.values()].sort((a, b) => b.costUsd - a.costUsd);
 };
 
+export interface FeatureUsage extends UsageTokens {
+  /** Tên tính năng ghi trong aiUsage; 'unknown' khi lượt cũ không ghi. */
+  feature: string;
+  calls: number;
+  costUsd: number;
+  unpricedCalls: number;
+}
+
+/** Gom các lượt dùng theo tính năng (cùng quy tắc bỏ khoá riêng như aggregateUsage), sắp tiền giảm dần. */
+export const aggregateByFeature = (records: readonly UsageRecord[]): FeatureUsage[] => {
+  const byFeature = new Map<string, FeatureUsage>();
+  for (const record of records) {
+    if (record.keySource === 'own') continue;
+    const feature = record.feature || 'unknown';
+    const row = byFeature.get(feature) ?? { feature, calls: 0, costUsd: 0, unpricedCalls: 0, ...emptyTokens() };
+    const cost = costUsdOfCall(record.model, record.day, record);
+    row.calls += 1;
+    addTokens(row, record);
+    if (cost === null) row.unpricedCalls += 1;
+    else row.costUsd += cost;
+    byFeature.set(feature, row);
+  }
+  return [...byFeature.values()].sort((a, b) => b.costUsd - a.costUsd);
+};
+
 /**
  * Chia một tổng tiền (VNĐ) theo tỷ lệ số lượt, làm tròn tới đồng mà TỔNG vẫn khớp đúng
  * (phương pháp phần dư lớn nhất). Không có lượt nào thì trả rỗng.

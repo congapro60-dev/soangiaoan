@@ -6,6 +6,7 @@ import {
 } from '../../lib/admin/adminApi';
 import { allocateByCount, buildBillingCsv, type BillingLine } from '../../lib/admin/billing';
 import { modelLabel, PRICE_SOURCES, usdToVnd } from '../../lib/admin/aiPricing';
+import { featureLabel } from '../../lib/ai/featureLabels';
 import { ClassSetupPanel } from '../features/admin/ClassSetupPanel';
 import { AiBillingAdminPanel } from '../features/admin/AiBillingAdminPanel';
 
@@ -79,6 +80,7 @@ export const AdminTab = () => {
 
   const unpriced = (usage?.rows ?? []).reduce((acc, r) => acc + r.unpricedCalls, 0);
   const totalVnd = lines.reduce((acc, l) => acc + l.measuredVnd + l.estimatedVnd, 0);
+  const featureTotalUsd = (usage?.byFeature ?? []).reduce((acc, f) => acc + f.costUsd, 0);
 
   const exportCsv = () => {
     if (!settings) return;
@@ -254,6 +256,27 @@ export const AdminTab = () => {
                       ))}
                     </ul>
                   </details>
+                )}
+                {settings && usage.byFeature.length > 0 && (
+                  <>
+                    <h3 className="mt-4 text-xs font-black uppercase tracking-wide text-slate-600">Theo tính năng</h3>
+                    <table className="mt-1 w-full text-left text-sm">
+                      <thead><tr className="text-[11px] font-black uppercase tracking-wide text-slate-400">
+                        <th className="py-2 pr-3">Tính năng</th><th className="py-2 pr-3 text-right">Lượt AI</th><th className="py-2 pr-3 text-right">Token</th><th className="py-2 pr-3 text-right">Đo thật</th><th className="py-2 pr-3 text-right">Tỷ lệ</th>
+                      </tr></thead>
+                      <tbody>
+                        {usage.byFeature.map(f => (
+                          <tr key={f.feature} className="border-t border-slate-100">
+                            <td className="py-2 pr-3 font-bold text-slate-800">{f.feature === 'unknown' ? 'Không ghi tính năng' : featureLabel(f.feature)}{f.unpricedCalls > 0 && <span className="block text-[11px] font-semibold text-amber-700">{f.unpricedCalls} lượt chưa có giá</span>}</td>
+                            <td className="py-2 pr-3 text-right">{num(f.calls)}</td>
+                            <td className="py-2 pr-3 text-right">{num(f.inputTokens + f.outputTokens + f.thoughtsTokens)}</td>
+                            <td className="py-2 pr-3 text-right">{vnd(usdToVnd(f.costUsd, settings.usdVnd))}<span className="block text-[11px] text-slate-400">${f.costUsd.toFixed(4)}</span></td>
+                            <td className="py-2 pr-3 text-right">{featureTotalUsd > 0 ? `${Math.round((f.costUsd / featureTotalUsd) * 100)}%` : '—'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </>
                 )}
                 <p className="mt-2 text-[11px] font-semibold text-slate-400">{usage.recordCount} lượt dùng AI được đo trong khoảng {usage.fromDay} → {usage.toDay}.</p>
               </div>
