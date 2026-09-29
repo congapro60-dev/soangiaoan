@@ -108,16 +108,23 @@ export const parsePrimeTimetable = (json: unknown): PrimeTimetable => {
 
 const fold = (s: string): string => s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/gi, 'd').toLowerCase().replace(/\s+/g, ' ').trim();
 
-/** Tìm GV theo mail (chính xác) rồi theo tên (bỏ dấu, không phân biệt hoa thường). */
+/** Tên để so: bỏ dấu, chữ thường, các chữ xếp theo thứ tự ("việt cường vũ" = "Vũ Việt Cường"). */
+const nameKey = (s: string): string => fold(s).split(' ').filter(Boolean).sort().join(' ');
+
+/** Tìm GV theo mail (chính xác) rồi theo tên (bỏ dấu, không phân biệt hoa thường, không kể thứ tự chữ). */
 export const findTeacher = (tt: PrimeTimetable, query: { email?: string | null; name?: string | null }): TtTeacher | null => {
   const email = query.email?.trim().toLowerCase();
   if (email) {
     const byMail = tt.teachers.find((t) => t.email === email);
     if (byMail) return byMail;
   }
-  const name = query.name ? fold(query.name) : '';
-  return name ? tt.teachers.find((t) => fold(t.name) === name) ?? null : null;
+  const name = query.name ? nameKey(query.name) : '';
+  return name ? tt.teachers.find((t) => nameKey(t.name) === name) ?? null : null;
 };
+
+/** "VŨ VIỆT CƯỜNG" → "Vũ Việt Cường" (tên trong TKB hay viết hoa toàn bộ). */
+export const titleCaseName = (s: string): string =>
+  s.trim().toLocaleLowerCase('vi').replace(/(^|\s)(\S)/g, (_, sp: string, c: string) => sp + c.toLocaleUpperCase('vi'));
 
 /**
  * Các môn/lớp GV dạy trong TKB, mỗi cái kèm các tiết trong tuần (tiết đôi tách thành từng tiết).

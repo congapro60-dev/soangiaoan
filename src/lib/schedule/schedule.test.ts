@@ -222,3 +222,14 @@ describe('describeLesson — phân môn trùng tên bài', () => {
     expect(describeLesson(l, new Map())).toBe('Tự chọn.');
   });
 });
+
+describe('tên giáo viên', async () => {
+  const { findTeacher, parsePrimeTimetable, titleCaseName } = await import('./primeTimetable');
+  it('so tên không kể thứ tự chữ; viết hoa chữ đầu', () => {
+    const tt = parsePrimeTimetable({ id: 'x', name: '', days: [], periods: [], subjects: [], classes: [], activities: [],
+      teachers: [{ id: 't', name: 'VŨ VIỆT CƯỜNG', shortName: 'V' }] });
+    expect(findTeacher(tt, { email: 'khac@gmail.com', name: 'việt cường vũ' })?.id).toBe('t');
+    expect(findTeacher(tt, { name: 'Vũ Cường' })).toBeNull();
+    expect(titleCaseName('VŨ VIỆT CƯỜNG')).toBe('Vũ Việt Cường');
+  });
+});
