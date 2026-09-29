@@ -7,7 +7,11 @@ Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/
 
 ## Quy trình làm việc với nhiều AI — 2026-09-29
 
-Tài liệu [`docs/QUY_TRINH_DA_AI.md`](docs/QUY_TRINH_DA_AI.md): vai của từng gói (Claude Code chủ trì, Codex làm task có brief, Gemini đọc tài liệu dài), mẫu brief giao việc Claude → Codex qua cầu nối `@minhspark/codex-mcp-bridge`, nghiệm thu, nội dung nên làm sẵn để bớt gọi API, theo dõi tiền qua `aiUsage`. Gói ChatGPT/Claude/Gemini **không** được nối vào app.
+Tài liệu [`docs/QUY_TRINH_DA_AI.md`](docs/QUY_TRINH_DA_AI.md): vai của từng gói (Claude Code chủ trì, Codex làm task có brief, Gemini đọc tài liệu dài), mẫu brief giao việc Claude → Codex qua cầu nối `@minhspark/codex-mcp-bridge`, nghiệm thu, nội dung làm sẵn, theo dõi tiền qua `aiUsage`. **Vì sao:** chủ dự án có nhiều gói ChatGPT/Claude/Gemini nhưng gói tiêu dùng KHÔNG nối vào app được — dồn việc nặng vào lúc xây app, lúc chạy bớt lượt gọi và token. Chỉ đổi tài liệu, không đổi code.
+- Đã review chéo bằng Codex qua cầu nối (thread `01a0eaa7-5496-73f2-a62a-cd6326368d80`, 12 phát hiện; tự kiểm lại trên code rồi mới sửa).
+- **Còn dở:** tab Quản trị chưa có báo cáo chi phí AI theo `feature` — làm ở lô riêng.
+- **Bẫy:** `toanFormats`/`toanClassroomMoves` là tài sản prompt, ghép vào mọi prompt → KHÔNG bớt lượt gọi, còn tăng token; mô phỏng đã cache ở `lessonSimulations`. Cầu nối chỉ chạy từ tab Code; lệnh giao việc hết ~40s chờ thì chưa chắc task đã tạo — tìm file phiên trong `~/.codex/sessions` trước, không gửi lại. Sandbox Windows của Codex lỗi `helper_sandbox_lock_failed` → đổi tên `~/.codex/.sandbox-bin` rồi bấm "Thiết lập lại".
+- **Nghiệm thu:** `git diff --stat origin/main...docs/quy-trinh-da-ai` chỉ có `docs/QUY_TRINH_DA_AI.md`, `HANDOFF.md`, `tasks/ke-hoach-quy-trinh-da-ai.md`.
 
 ## Lịch báo giảng + SSM đợt 2 (điểm LO, soạn sẵn nội dung) — 2026-09-29
 
