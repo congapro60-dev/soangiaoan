@@ -1,5 +1,7 @@
-import { GoogleAuthProvider, reauthenticateWithPopup, signInWithPopup } from 'firebase/auth';
+import { getApps, initializeApp } from 'firebase/app';
+import { GoogleAuthProvider, browserPopupRedirectResolver, getAuth, inMemoryPersistence, initializeAuth, reauthenticateWithPopup, signInWithPopup } from 'firebase/auth';
 import { auth } from './firebase';
+import { getLinkedGoogleEmail } from './adminLink';
 
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive';
 const API_BASE = 'https://www.googleapis.com/drive/v3';
@@ -24,6 +26,17 @@ export const clearDriveAccessToken = (): void => {
   cachedToken = null;
 };
 
+/**
+ * Auth phụ, chỉ để lấy token Google cho Drive mà KHÔNG đổi phiên đang đăng nhập — dùng khi phiên là
+ * tài khoản đã gộp (uid chính) nhưng file nằm ở mail Google khác (mail trường).
+ */
+const driveTokenAuth = () => {
+  const existing = getApps().find(a => a.name === 'drive-token');
+  return existing
+    ? getAuth(existing)
+    : initializeAuth(initializeApp(auth.app.options, 'drive-token'), { persistence: inMemoryPersistence, popupRedirectResolver: browserPopupRedirectResolver });
+};
+
 export const getDriveAccessToken = async (): Promise<string> => {
   if (cachedToken && cachedToken.expiresAt > Date.now() + 60_000) return cachedToken.value;
 
@@ -40,11 +53,16 @@ export const getDriveAccessToken = async (): Promise<string> => {
   // tài khoản mặc định, chọn nhầm là Firebase trả auth/user-mismatch.
   if (user?.email) provider.setCustomParameters({ login_hint: user.email });
 
+  const linkedEmail = getLinkedGoogleEmail();
+  if (linkedEmail) provider.setCustomParameters({ login_hint: linkedEmail });
+
   const isGoogleUser = user?.providerData.some(p => p.providerId === 'google.com') ?? false;
 
   let result;
   try {
-    result = user && isGoogleUser
+    result = linkedEmail
+      ? await signInWithPopup(driveTokenAuth(), provider)
+      : user && isGoogleUser
       ? await reauthenticateWithPopup(user, provider)
       : await signInWithPopup(auth, provider);
   } catch (err: unknown) {

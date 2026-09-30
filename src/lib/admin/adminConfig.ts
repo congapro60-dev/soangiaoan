@@ -5,6 +5,9 @@
 /** Hai tài khoản của CÙNG chủ dự án (mail cá nhân + mail trường) — quyền như nhau, kể cả miễn trừ ví AI. */
 export const ADMIN_EMAILS: readonly string[] = ['congapro60@gmail.com', 'cuong.vuviet@thedeweyschools.edu.vn'];
 
+/** Tài khoản chính: mọi mail admin khác được gộp phiên vào uid của mail này (xem api/_admin-link.ts). */
+export const PRIMARY_ADMIN_EMAIL: string = ADMIN_EMAILS[0];
+
 export const isAdminEmail = (email: string | null | undefined): boolean =>
   typeof email === 'string' && ADMIN_EMAILS.includes(email.trim().toLowerCase());
 

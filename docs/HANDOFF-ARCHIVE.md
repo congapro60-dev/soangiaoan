@@ -1732,3 +1732,17 @@ QA production phát hiện: mục "Điểm mạnh / Cần rèn thêm / Bước t
 - Triển khai 13/09: Firebase CLI đã phát hành firestore.rules tới smartplan-ai-14200 từ mã `161a4d7` (chỉ `firestore:rules`). Chưa xác nhận QA tiết học thực tế.
 - ⚠ 6 test liveLesson (`languagePack`, `liveLessonService`) đang FAIL trên `origin/main` — cần chủ sở hữu xử lý riêng.
 - Chi tiết: `docs/features/2026-09-11-live-activity-results.md`.
+
+## Đếm token AI (khoá chung) để tính tiền — GĐ1 — 2026-09-24
+
+Kế hoạch 3 GĐ ở `tasks/todo.md` (GĐ2 trang quản trị congapro60@gmail.com + bảng kê tiền; GĐ3 sổ điểm). GĐ1 xong: `api/_ai-usage.ts` ghi mỗi lượt gọi AI bằng KHOÁ CHUNG vào collection `aiUsage` (client bị rules mặc định chặn): token vào/ra/suy nghĩ/cache + model + feature + uid/email/ẩn danh + refs (classId/submissionId/assignmentId…) + day/month giờ VN. Chỉ lưu token thô — tiền tính lúc hiển thị theo bảng giá. Ngữ cảnh qua AsyncLocalStorage, token giải mã LƯỜI (chỉ khi có lượt AI). Gắn: `callGeminiVision` (ghi TRƯỚC khi ném lỗi — Google tính cả lượt bị cắt), handler `grade-homework` + `classroom`, `generate-simulation`, cổng GLM (stream bật `include_usage`). Ghi hỏng không làm hỏng lượt chấm. **Trước 2026-09-24 KHÔNG có số theo người** — chỉ ước tính từ quota/bài đã chấm, đối chiếu tổng AI Studio (project Albot, trần ₫1tr/tháng). Test: `ai-usage` 6 + toàn bộ API 257 pass.
+
+## Bản phụ huynh: báo cáo PDF chuyên nghiệp + điểm thi định kì — 2026-09-23
+
+Bản gửi phụ huynh (`StudentReport` viewMode=parent + `parentReportPrintDoc.ts`):
+- **Nội dung an toàn** từ `parentSafeReport.ts` (chỉ bài đã duyệt, không lọt số bài/đáp án): `overallSummary` (band điểm + xu hướng), điểm mạnh/cần rèn theo chủ đề, `parentActions`/`teacherActions` thuần số liệu.
+- **Xuất PDF như giáo án**: `exportParentReportToPdf` dựng node ẩn → `utils/pdfExport.ts::exportElementToPdf` (html2canvas-pro+jsPDF, `pdf.save()`) tải thẳng .pdf. KHÔNG `window.print()`/`window.open`.
+- **Thiết kế phiếu tiến độ IB** (mẫu The Dewey): bảng thông tin, dải tổng kết màu, đề mục đánh số in đậm, 3 biểu đồ SVG/CSS thuần (đồng hồ điểm có thang mức, xu hướng, tiến độ), kết quả từng bài kiểu dòng môn học. Style scope `#parent-report-pdf-root`, escape HTML.
+- **Mục "Năng lực Toán học"**: `buildStudentCompetencyPortfolio` (bài đã duyệt) → nhóm 4 mức khung trường → `ParentCompetencySummary`.
+- **Mục "Điểm thi định kì"** (từ GĐ3 đọc qua Sổ điểm, xem trên; phần dưới là cách đọc file): đọc 2 tab MOET/TDS trong **file điểm riêng của lớp** (`class.examSheet.spreadsheetId`, nối qua action `setClassExamSheet`; KHÔNG dùng `sheetSync` vì BTVN 10/12 nối file chung không có MOET/TDS — lỗi bản đầu) qua Sheets API `values:batchGet` UNFORMATTED (quyền Google GV như BTVN). `examScores.ts` khớp **Mã HS**, chỉ lấy cột "Điểm…" (MOET thang 10: KSĐN/giữa-cuối HKI-HKII; TDS Quý 1-4 + điểm chữ), BỎ cột công thức/kế hoạch nội bộ. GV bấm nút "Tải điểm thi" (tránh popup OAuth bất ngờ) → hiện mục + vào PDF. Nghiệm thu: examScores 6 + parentReportPrintDoc 7 test; smoke live PDF có điểm thi; `lint`+`build` OK. GV dán link file `26-27-<lớp>` 1 lần/lớp (app kiểm có tab MOET/TDS mới lưu). Test API `classroom-sheet-sync` +3.
+

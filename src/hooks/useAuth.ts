@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { User, onAuthStateChanged, signInAnonymously, signInWithPopup, signOut, updateProfile } from 'firebase/auth';
 import { auth, googleProvider } from '../lib/firebase';
+import { linkAdminSession, needsAdminLink, rememberLinkedEmail } from '../lib/adminLink';
 import Swal from 'sweetalert2';
 
 export const useAuth = () => {
@@ -20,7 +21,22 @@ export const useAuth = () => {
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      // Mail admin phụ → đổi sang phiên tài khoản chính (gộp dữ liệu); listener chạy lại với uid chính.
+      if (currentUser && needsAdminLink(currentUser)) {
+        try {
+          const result = await linkAdminSession(currentUser);
+          const orphanTotal = Object.values(result.orphans).reduce((a, b) => a + b, 0);
+          if (orphanTotal > 0) {
+            const detail = Object.entries(result.orphans).map(([name, n]) => `${name}: ${n}`).join(', ');
+            showToast(`Đã gộp với ${result.primaryEmail}. Mail này còn dữ liệu cũ chưa chuyển (${detail}) — nhờ Claude gộp giúp.`, 'warning');
+          }
+          return;
+        } catch (err) {
+          console.warn('Không gộp được phiên admin, dùng phiên riêng của mail này', err);
+        }
+      }
+      await rememberLinkedEmail(currentUser);
       setUser(currentUser);
       setIsAuthLoading(false);
     });
