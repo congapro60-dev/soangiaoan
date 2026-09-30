@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { PpctLesson } from '../../data/ppct';
+import type { PpctLesson, PpctProgram } from '../../data/ppct';
+import tdsG10 from '../../data/ppct/tds-g10.json';
 import { findTeacher, numberedPeriods, parseDateRange, parsePrimeTimetable, primeTimetableId, teacherCourses } from './primeTimetable';
 import { addDays, buildLessonCalendar, mondayOf, slotKey, weekday } from './lessonCalendar';
 import { buildParentWeekMessage, buildRegisterWeek, describeLesson, lessonChains, registerTitle } from './scheduleFormat';
@@ -176,9 +177,14 @@ describe('định dạng', () => {
   ];
   const chains = lessonChains(L);
 
-  it('đánh số tiết cùng bài; bài trùng tên nhưng cách xa là bài khác', () => {
-    expect(registerTitle(L[0], chains)).toBe('Hệ thức lượng trong tam giác (tiết 1)');
-    expect(registerTitle(L[1], chains)).toBe('Hệ thức lượng trong tam giác (tiết 2)');
+  it('đánh số tiết: ưu tiên "Tiết N" ghi trong PPCT; không ghi thì đếm chuỗi cùng tên; cách xa là bài khác', () => {
+    expect(registerTitle(L[0], chains)).toBe('Hệ thức lượng trong tam giác (tiết 5)');
+    expect(registerTitle(L[1], chains)).toBe('Hệ thức lượng trong tam giác (tiết 6)');
+    const noDetail = [L[0], L[1]].map(l => ({ ...l, detail: '' }));
+    const noDetailChains = lessonChains(noDetail);
+    expect(noDetail.map(l => registerTitle(l, noDetailChains))).toEqual([
+      'Hệ thức lượng trong tam giác (tiết 1)', 'Hệ thức lượng trong tam giác (tiết 2)',
+    ]);
     expect(registerTitle(L[2], chains)).toBe('Ôn tập chương III');
     expect(registerTitle(L[3], chains)).toBe('Hoạt động dự án');
     expect(registerTitle(L[4], chains)).toBe('Hoạt động dự án');
@@ -213,6 +219,15 @@ describe('định dạng', () => {
     expect(rows[2]).toEqual({ date: '2026-09-15', dayLabel: 'Thứ 3', session: 'Buổi sáng', periodNo: 1, ppctNo: 3, subject: 'CĐ Toán', className: '10A', title: 'Ôn tập chương III' });
     expect(rows[3].session).toBe('Buổi chiều');
     expect(rows[3].title).toBe('');
+  });
+
+  it('registerTitle khớp số tiết trong detail của PPCT thật (tds-g10)', () => {
+    const lessons = (tdsG10 as unknown as PpctProgram).lessons;
+    const chains = lessonChains(lessons);
+    const p34 = lessons.find((l) => l.periodNo === 34)!;
+    const p35 = lessons.find((l) => l.periodNo === 35)!;
+    expect(registerTitle(p34, chains)).toBe('Hệ thức lượng trong tam giác (tiết 6)');
+    expect(registerTitle(p35, chains)).toBe('Hệ thức lượng trong tam giác (tiết 7)');
   });
 });
 
