@@ -9,9 +9,9 @@ import {
 } from './framework';
 
 describe('MATH_COMPETENCIES — khung năng lực Toán trích từ template trường', () => {
-  it('đủ 29 năng lực, chia đúng 8/10/11 theo khối 10/11/12', () => {
-    expect(MATH_COMPETENCIES).toHaveLength(29);
-    expect(competenciesByGrade(10)).toHaveLength(8);
+  it('đủ 38 năng lực, chia đúng 17/10/11 theo khối 10/11/12', () => {
+    expect(MATH_COMPETENCIES).toHaveLength(38);
+    expect(competenciesByGrade(10)).toHaveLength(17);
     expect(competenciesByGrade(11)).toHaveLength(10);
     expect(competenciesByGrade(12)).toHaveLength(11);
   });
@@ -27,6 +27,18 @@ describe('MATH_COMPETENCIES — khung năng lực Toán trích từ template tr�
       expect(item.area.trim()).not.toBe('');
       expect(item.topic.trim()).not.toBe('');
       expect(item.competency.trim()).not.toBe('');
+    }
+  });
+
+  it('9 năng lực app bổ sung cho khối 10 đều có đủ 4 mô tả mức (để chèn vào file mẫu khi xuất)', () => {
+    const added = MATH_COMPETENCIES.filter(item => item.rubric);
+    expect(added.map(item => item.id)).toEqual([
+      'g10-ham-so-va-do-thi', 'g10-dau-tam-thuc-bpt-bac-hai', 'g10-quy-tac-dem-to-hop', 'g10-nhi-thuc-newton',
+      'g10-gia-tri-luong-giac-0-180', 'g10-vecto-mat-phang-toa-do', 'g10-pt-duong-thang', 'g10-pt-duong-tron', 'g10-ba-duong-conic',
+    ]);
+    for (const item of added) {
+      expect(item.rubric).toHaveLength(4);
+      expect(item.rubric!.every(text => text.trim().length > 0)).toBe(true);
     }
   });
 
@@ -48,7 +60,7 @@ describe('helper gắn nhãn theo khối', () => {
 
   it('competencyIdSet chỉ chứa id của khối đó', () => {
     const set10 = competencyIdSet(10);
-    expect(set10.size).toBe(8);
+    expect(set10.size).toBe(17);
     expect(set10.has('g10-ham-so-bac-hai')).toBe(true);
     expect(set10.has('g11-ham-va-pt-luong-giac')).toBe(false);
   });

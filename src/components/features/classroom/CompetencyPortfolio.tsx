@@ -8,7 +8,7 @@ import {
   type PortfolioAssignment,
   type PortfolioSubmission,
 } from '../../../lib/classroom/competency/portfolioModel';
-import { exportPortfolioToDrive, type PortfolioMark } from '../../../lib/classroom/competency/portfolioExport';
+import { downloadPortfolioXlsx, exportPortfolioToDrive, type PortfolioMark } from '../../../lib/classroom/competency/portfolioExport';
 import { DriveAuthError } from '../../../lib/googleDrive';
 import type { CompetencyGrade, CompetencyLevel } from '../../../lib/classroom/competency/framework';
 
@@ -72,13 +72,20 @@ export const CompetencyPortfolio = ({ grade, submissions, assignments, studentNa
   const xuatHoSo = async () => {
     setDangXuat(true);
     try {
-      const { url, matched, unmatched } = await exportPortfolioToDrive({ grade, studentCode, studentName, marks });
-      await Swal.fire({
+      const { url, spreadsheetId, fileName, matched, unmatched, added } = await exportPortfolioToDrive({ grade, studentCode, studentName, marks });
+      const choice = await Swal.fire({
         icon: 'success',
         title: 'Đã xuất hồ sơ ra Drive',
-        html: `Bôi vàng <b>${matched}</b> năng lực vào bản sao file mẫu.${unmatched.length ? `<br/><span style="font-size:12px;color:#b45309">Chưa khớp: ${unmatched.join(', ')}</span>` : ''}<br/><a href="${url}" target="_blank" rel="noreferrer" style="color:#4f46e5;font-weight:800">Mở file trên Google Sheets →</a>`,
+        html: `Bôi vàng <b>${matched}</b> năng lực vào bản sao file mẫu.`
+          + `${added.length ? `<br/><span style="font-size:12px;color:#4338ca">Bổ sung ${added.length} năng lực file mẫu chưa có: ${added.join(', ')}</span>` : ''}`
+          + `${unmatched.length ? `<br/><span style="font-size:12px;color:#b45309">Chưa khớp: ${unmatched.join(', ')}</span>` : ''}`
+          + `<br/><a href="${url}" target="_blank" rel="noreferrer" style="color:#4f46e5;font-weight:800">Mở file trên Google Sheets →</a>`,
         confirmButtonText: 'Xong',
+        showDenyButton: true,
+        denyButtonText: 'Tải file .xlsx về máy',
+        denyButtonColor: '#059669',
       });
+      if (choice.isDenied) await downloadPortfolioXlsx(spreadsheetId, fileName);
     } catch (error) {
       const message = error instanceof DriveAuthError
         ? error.message

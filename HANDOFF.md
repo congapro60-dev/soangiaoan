@@ -5,6 +5,13 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Khung năng lực khối 10 đủ theo LO SSM + xuất hồ sơ bổ sung dòng + tải .xlsx — 2026-09-30
+
+Chủ dự án chốt: SSM khối 10 có 19 LO mà khung chỉ 8 năng lực (AI ghép LO được 10/19) → thêm 9 năng lực `g10-*` (hàm số & đồ thị, BPT bậc hai, đếm/tổ hợp, Newton, GTLG 0–180°, vectơ tọa độ, PT đường thẳng, đường tròn, conic), mỗi cái có `rubric` 4 mức (file mẫu trường CHƯA có các dòng này). Sau đó AI ghép 19/19 (khối 11: 19/20 — thiếu "Hoạt động thực hành và trải nghiệm"; khối 12: 17/17).
+- Xuất hồ sơ (`portfolioExport.ts`): `buildPortfolioAddRowsRequests` chèn dòng cho năng lực bản sao chưa có — đúng mảng, sau năng lực đứng trước trong khung, `copyPaste` định dạng/danh sách chọn của dòng bên cạnh, điền A..F — rồi mới bôi vàng (1 batchUpdate). File mẫu gốc KHÔNG đụng. Hộp kết quả có nút "Tải file .xlsx về máy" (`downloadPortfolioXlsx`, Drive export) để GV thay file trên Drive trường.
+- BTVN: gắn nhãn AI/tay tự dùng khung mới. **Bẫy:** bài khối 10 đã DUYỆT nhãn trước đây giữ nguyên nhãn cũ (guard `competencyTagsApproved`) — muốn thêm năng lực mới phải sửa tay trong ô nhãn.
+- Chưa chạy xuất thật trên production (cần GV bấm, popup Google). Test: framework, portfolioExport +4.
+
 ## Model Gemini mặc định = gemini-3.8-flash — 2026-09-30
 
 Chủ dự án chốt (3.7 hay 503 quá tải). `DEFAULT_GEMINI_RUNTIME_MODEL` + `DEFAULT_DATA.settings` + FormatAgent + khoá HS + tạo mô phỏng (client & `api/generate-simulation.ts`) → 3.8; `GEMINI_RUNTIME_MODELS` giữ 3.7 ngay sau làm dự phòng (`callGeminiAIRaw` tự lùi model khi lỗi). **Bẫy:** cài đặt GV lưu cả `selectedModel` → `withCurrentDefaultModel` (useAppState) chuyển đúng giá trị mặc định cũ `gemini-3.7-flash` sang 3.8 khi nạp (không phân biệt được ai CỐ Ý chọn 3.7). Bảng giá đã có 3.8. 3.8 cũng lúc lúc 503. Test `useAppState.defaultModel.test.ts`.
