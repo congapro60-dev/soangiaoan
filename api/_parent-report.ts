@@ -72,26 +72,33 @@ export const buildParentCommentPrompt = (factsJson: string): string => [
 ].join('\n');
 
 /**
- * Bản có yêu cầu cần đạt: một lượt AI trả JSON gồm nhận xét + ghép câu → YCCĐ + ghi chú chính xác cho từng YCCĐ.
+ * Bản có yêu cầu cần đạt: một lượt AI trả JSON gồm nhận xét + mỗi YCCĐ một mục (các câu căn cứ và ghi chú đi cùng nhau).
  * Mức không do AI quyết: máy tính từ điểm các câu làm căn cứ (`aggregateRequirementLines`).
  */
 export const buildParentReportDraftPrompt = (factsJson: string, yccdOptions: string): string => [
   'Bạn là giáo viên môn Toán THPT ở Việt Nam, soạn báo cáo học tập gửi phụ huynh của một học sinh.',
-  'Dữ liệu (JSON, chỉ gồm kết quả đã được giáo viên duyệt). "baiDaDuyet" liệt kê từng câu: mã câu, điểm/tối đa, kết quả, loại lỗi, giải thích của lượt chấm, đáp án/mốc chấm:',
+  'Dữ liệu (JSON, chỉ gồm kết quả đã được giáo viên duyệt). "baiDaDuyet" liệt kê từng câu: mã câu, điểm/tối đa, kết quả, loại lỗi,',
+  'giải thích của lượt chấm, đáp án/mốc chấm, trích bài làm của em:',
   factsJson,
   '',
   'Danh sách YÊU CẦU CẦN ĐẠT của khối (Chương trình GDPT 2018 môn Toán) — mỗi dòng "mã | chủ đề: yêu cầu":',
   yccdOptions,
   '',
-  'Làm 3 việc, trả về DUY NHẤT một JSON đúng dạng:',
-  '{"nhanXet": "...", "ghep": [{"cau": "b1q2", "yccd": "T10.05"}], "ghiChu": [{"yccd": "T10.05", "ghiChu": "..."}]}',
+  'Trả về DUY NHẤT một JSON đúng dạng:',
+  '{"nhanXet": "...", "yccd": [{"ma": "T10.05", "cau": ["b1q2", "b3q1"], "ghiChu": "..."}]}',
   '',
-  '1) "ghep": với MỖI câu trong baiDaDuyet, xác định yêu cầu cần đạt mà câu đó trực tiếp kiểm tra (thường 1, tối đa 2).',
-  '   Căn cứ vào giải thích, loại lỗi, đáp án và tên bài. Câu không đủ thông tin để biết kiểm tra gì thì BỎ QUA, không đoán.',
-  '   Chỉ dùng mã có trong danh sách; không tạo mã mới.',
-  '2) "ghiChu": cho mỗi yêu cầu đã được ghép, một câu (≤ 30 chữ) chỉ ra CHÍNH XÁC em làm tốt hoặc sai ở đâu, dùng thuật ngữ Toán học',
-  '   chuẩn để gia sư/giáo viên khác đọc là biết cần dạy lại gì. Ví dụ: "Nhầm chiều khi áp dụng quy tắc hiệu: viết vectơ AB − vectơ AC = vectơ BC',
+  '1) "yccd": mỗi yêu cầu cần đạt mà các câu trong baiDaDuyet kiểm tra là MỘT mục; "cau" là mọi câu trực tiếp kiểm tra yêu cầu đó.',
+  '   - Ghép cả câu làm ĐÚNG/đạt điểm tối đa, không chỉ câu sai: bỏ sót câu đúng làm mức của em bị thấp oan.',
+  '     Câu đúng thường có giải thích ngắn — dựa vào đáp án, bài làm và tên bài để biết nó kiểm tra gì.',
+  '   - Chọn đúng MỨC của yêu cầu: câu phải giải/tính/biểu diễn/vận dụng thì ghép vào yêu cầu "giải được/biểu diễn được/vận dụng được",',
+  '     KHÔNG ghép vào yêu cầu "nhận biết được" chỉ vì cùng chủ đề. Một câu thường thuộc 1 yêu cầu, tối đa 2.',
+  '   - Câu thật sự không biết kiểm tra gì thì bỏ qua. Chỉ dùng mã có trong danh sách; không tạo mã mới.',
+  '   - Làm xong, rà lại từng mục: còn câu nào (nhất là câu làm đúng) cùng nội dung mà chưa có trong "cau" không.',
+  '2) "ghiChu" của mỗi mục: một câu (≤ 30 chữ) chỉ ra CHÍNH XÁC em làm tốt hoặc sai ở đâu, dùng thuật ngữ Toán học chuẩn để',
+  '   gia sư/giáo viên khác đọc là biết cần dạy lại gì. Ví dụ: "Nhầm chiều khi áp dụng quy tắc hiệu: viết vectơ AB − vectơ AC = vectơ BC',
   '   thay vì vectơ CB." hoặc "Lập đúng bảng biến thiên, xác định đúng đỉnh và trục đối xứng của parabol."',
+  '   Ghi chú PHẢI KHỚP kết quả chính các câu trong "cau" của mục đó: phần lớn điểm bị mất → nêu lỗi cụ thể (không khen);',
+  '   phần lớn đạt điểm → nêu điều làm tốt; lẫn lộn → nêu cả hai, lỗi trước. Không viết "tốt" khi các câu đó đa số sai.',
   '   Không nhắc số câu/số bài, không nêu đáp án đầy đủ, không dùng LaTeX hay markdown (viết kí hiệu bằng chữ hoặc Unicode: √, ², ≤, ∈, °).',
   '   Chỉ viết điều có trong dữ liệu; không có gì cụ thể thì để chuỗi rỗng.',
   '3) "nhanXet": 3–5 câu gửi phụ huynh, giọng ấm áp, dễ hiểu với người không rành Toán; gọi học sinh là "con", phụ huynh là "gia đình";',

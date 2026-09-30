@@ -4,7 +4,7 @@ import type { StudentExamScores } from './examScores';
 import { hs1Average, type Hs1Mark } from './scoreBook';
 import { exportElementToPdf } from '../../utils/pdfExport';
 import type { MonthPoint, PeriodComparison, ReportKind } from './reportPeriod';
-import { groupRequirementLines, requirementLevelLabel, type ParentRequirementLine, type RequirementLevel } from './parentRequirements';
+import { groupRequirementLines, parentActionsForRequirements, requirementLevelLabel, type ParentRequirementLine, type RequirementLevel } from './parentRequirements';
 
 /** Một năng lực Toán đã được đánh giá (đã có bài duyệt), rút từ hồ sơ năng lực cho bản phụ huynh. */
 export interface ParentCompetencyItem {
@@ -440,7 +440,7 @@ ${(() => {
   })()}
 
 ${section('Cùng đồng hành với con', `<div class="cards2">
-  <div class="card home"><h3>🤝 Phụ huynh có thể làm ở nhà</h3>${listItems(report.parentActions, 'Chưa có gợi ý cụ thể.')}</div>
+  <div class="card home"><h3>🤝 Phụ huynh có thể làm ở nhà</h3>${listItems(parentActionsForRequirements(report.parentActions, requirements), 'Chưa có gợi ý cụ thể.')}</div>
   <div class="card school"><h3>🎓 Thầy cô sẽ hỗ trợ</h3>${listItems(report.teacherActions, 'Chưa có gợi ý cụ thể.')}</div>
 </div>`)}
 

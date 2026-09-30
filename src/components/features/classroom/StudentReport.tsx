@@ -16,7 +16,7 @@ import { exportParentReportToPdf } from '../../../lib/classroom/parentReportPrin
 import { asCompetencyGrade, COMPETENCY_LEVELS, type CompetencyLevel } from '../../../lib/classroom/competency/framework';
 import { buildPeriodParentReport } from '../../../lib/classroom/parentReportBuilder';
 import { REPORT_KINDS, defaultPeriod, periodError, rangeLabel, vnDay, type ReportKind, type ReportPeriod } from '../../../lib/classroom/reportPeriod';
-import type { ParentRequirementLine } from '../../../lib/classroom/parentRequirements';
+import { parentActionsForRequirements, type ParentRequirementLine } from '../../../lib/classroom/parentRequirements';
 import { RequirementLinesEditor } from './RequirementLinesEditor';
 
 interface Props {
@@ -381,7 +381,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-2xl border border-sky-100 bg-sky-50/60 p-4">
             <p className="mb-2 flex items-center gap-2 text-sm font-black text-sky-900"><HeartHandshake className="h-4 w-4" /> Phụ huynh có thể đồng hành cùng con</p>
-            <ul className="list-disc space-y-1.5 pl-5 text-sm font-semibold leading-6 text-slate-700">{parentReport.parentActions.map(step => <li key={step}>{step}</li>)}</ul>
+            <ul className="list-disc space-y-1.5 pl-5 text-sm font-semibold leading-6 text-slate-700">{parentActionsForRequirements(parentReport.parentActions, yccd).map(step => <li key={step}>{step}</li>)}</ul>
           </div>
           <div className="rounded-2xl border border-violet-100 bg-violet-50/60 p-4">
             <p className="mb-2 flex items-center gap-2 text-sm font-black text-violet-900"><GraduationCap className="h-4 w-4" /> Thầy cô sẽ hỗ trợ con</p>

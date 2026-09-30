@@ -80,13 +80,11 @@ describe('nhận xét giáo viên trong báo cáo phụ huynh', () => {
     h.grade = '10';
     h.reply = JSON.stringify({
       nhanXet: 'Con tiến bộ ở phần vectơ.',
-      ghep: [
-        { cau: 'b1q1', yccd: 'T10.30' },
-        { cau: 'b1q2', yccd: 'T10.30' },
-        { cau: 'b1q2', yccd: 'T99.01' },
-        { cau: 'b9q9', yccd: 'T10.01' },
+      yccd: [
+        { ma: 'T10.30', cau: ['b1q1', 'b1q2'], ghiChu: 'Nhầm chiều khi áp dụng **quy tắc hiệu**.' },
+        { ma: 'T99.01', cau: ['b1q2'], ghiChu: 'mã bịa' },
+        { ma: 'T10.01', cau: ['b9q9'], ghiChu: 'câu bịa' },
       ],
-      ghiChu: [{ yccd: 'T10.30', ghiChu: 'Nhầm chiều khi áp dụng **quy tắc hiệu**.' }],
     });
     const facts = { baiDaDuyet: [{ ma: 'b1', ten: 'BTVN', ngay: '2026-09-20', cau: [
       { ma: 'b1q1', diem: 1, toiDa: 2, ketQua: 'đúng một phần' },
