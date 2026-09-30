@@ -10,6 +10,7 @@ import type { TeacherOnlineGradeEdit } from './onlineGradeLifecycle';
 import type { StudentExamScores } from './examScores';
 import { normalizeScoreBook, type ScoreBookDoc } from './scoreBook';
 import { normalizePortfolio, type CompetencyPortfolioDoc, type PortfolioEntry } from './competency/studentPortfolio';
+import type { ParentRequirementLine } from './parentRequirements';
 
 export interface CreateSupportActivityInput {
   classId: string;
@@ -302,12 +303,18 @@ export interface ParentReportNoteKey {
   to: string;
 }
 
+export interface ParentReportNote {
+  text: string;
+  /** Dòng "kết quả theo yêu cầu cần đạt" (rỗng = báo cáo dùng danh sách chủ đề cũ). */
+  requirements: ParentRequirementLine[];
+}
+
 export const loadParentReportNote = (key: ParentReportNoteKey) =>
-  callTeacherApi<{ text: string; updatedAt: string | null }>({ action: 'parentReportNote', ...key });
+  callTeacherApi<ParentReportNote & { updatedAt: string | null }>({ action: 'parentReportNote', ...key });
 
-export const saveParentReportNote = (key: ParentReportNoteKey, text: string) =>
-  callTeacherApi<{ text: string; updatedAt: string }>({ action: 'saveParentReportNote', ...key, text });
+export const saveParentReportNote = (key: ParentReportNoteKey, note: ParentReportNote) =>
+  callTeacherApi<ParentReportNote & { updatedAt: string }>({ action: 'saveParentReportNote', ...key, ...note });
 
-/** AI soạn nháp nhận xét từ số liệu bản phụ huynh (đã an toàn); giáo viên sửa rồi mới lưu. */
+/** AI soạn nháp nhận xét + ghép bài đã duyệt vào yêu cầu cần đạt; giáo viên sửa rồi mới lưu. */
 export const draftParentReportComment = (key: ParentReportNoteKey, facts: Record<string, unknown>) =>
-  callTeacherApi<{ text: string }>({ action: 'draftParentReportComment', ...key, facts });
+  callTeacherApi<ParentReportNote>({ action: 'draftParentReportComment', ...key, facts });

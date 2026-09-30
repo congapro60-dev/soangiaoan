@@ -61,12 +61,12 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
             profile: profileSnap?.exists() ? (profileSnap.data() as StudentProfileDoc) : null,
             scoreView: scoreBook ? studentScoreView(scoreBook, hs.id) : null,
           }, ky);
-          let nhanXet = (await loadParentReportNote(key(hs.id)).catch(() => ({ text: '' }))).text;
-          if (!nhanXet && aiChoEmChuaCo) {
-            nhanXet = (await draftParentReportComment(key(hs.id), built.facts)).text;
-            await saveParentReportNote(key(hs.id), nhanXet).catch(() => undefined);
+          let ghi = await loadParentReportNote(key(hs.id)).catch(() => ({ text: '', requirements: [] }));
+          if (!ghi.text && aiChoEmChuaCo) {
+            ghi = await draftParentReportComment(key(hs.id), built.facts);
+            await saveParentReportNote(key(hs.id), ghi).catch(() => undefined);
           }
-          const input = { ...built.printInput, teacherComment: nhanXet };
+          const input = { ...built.printInput, teacherComment: ghi.text, requirements: ghi.requirements ?? [] };
           zip.file(parentReportFileName(input), await exportParentReportToPdf(input, 'blob'));
           daXuat += 1;
         } catch (error) {
@@ -115,7 +115,7 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
       </div>
       <label className="mt-2 flex items-start gap-2 text-xs font-semibold text-slate-600">
         <input type="checkbox" checked={aiChoEmChuaCo} onChange={event => setAiChoEmChuaCo(event.target.checked)} className="mt-0.5 h-4 w-4 accent-indigo-600" />
-        Em nào chưa có nhận xét đã lưu cho kì này thì để AI soạn (mỗi em một lượt AI; nhận xét được lưu để thầy cô sửa sau).
+        Em nào chưa có nhận xét đã lưu cho kì này thì để AI soạn nhận xét và kết quả theo yêu cầu cần đạt (mỗi em một lượt AI; được lưu để thầy cô soát sau).
       </label>
       <p className="mt-1 text-xs font-semibold text-slate-500">{loi ? <span className="text-rose-600">{loi}</span> : tienDo || `${rangeLabel(ky)} — sửa ngày cho khớp lịch trường mình.`}</p>
     </section>

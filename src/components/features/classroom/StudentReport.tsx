@@ -16,6 +16,8 @@ import { exportParentReportToPdf } from '../../../lib/classroom/parentReportPrin
 import { asCompetencyGrade, COMPETENCY_LEVELS, type CompetencyLevel } from '../../../lib/classroom/competency/framework';
 import { buildPeriodParentReport } from '../../../lib/classroom/parentReportBuilder';
 import { REPORT_KINDS, defaultPeriod, periodError, rangeLabel, vnDay, type ReportKind, type ReportPeriod } from '../../../lib/classroom/reportPeriod';
+import type { ParentRequirementLine } from '../../../lib/classroom/parentRequirements';
+import { RequirementLinesEditor } from './RequirementLinesEditor';
 
 interface Props {
   classId: string;
@@ -75,6 +77,9 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
   const [kyBaoCao, setKyBaoCao] = useState<ReportPeriod | null>(null);
   const [nhanXet, setNhanXet] = useState('');
   const [nhanXetDaLuu, setNhanXetDaLuu] = useState('');
+  // Kết quả theo yêu cầu cần đạt (AI ghép, giáo viên soát) — lưu cùng nhận xét, theo đúng kì.
+  const [yccd, setYccd] = useState<ParentRequirementLine[]>([]);
+  const [yccdDaLuu, setYccdDaLuu] = useState<ParentRequirementLine[]>([]);
   const [dangSoan, setDangSoan] = useState(false);
   const [dangLuuNX, setDangLuuNX] = useState(false);
   const [loiNX, setLoiNX] = useState('');
@@ -120,10 +125,13 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
   useEffect(() => {
     let huy = false;
     setLoiNX('');
-    if (!khoaNhanXetStr || !forAdult) { setNhanXet(''); setNhanXetDaLuu(''); return; }
+    const datLai = (text: string, lines: ParentRequirementLine[]) => {
+      setNhanXet(text); setNhanXetDaLuu(text); setYccd(lines); setYccdDaLuu(lines);
+    };
+    if (!khoaNhanXetStr || !forAdult) { datLai('', []); return; }
     loadParentReportNote(JSON.parse(khoaNhanXetStr))
-      .then(r => { if (!huy) { setNhanXet(r.text); setNhanXetDaLuu(r.text); } })
-      .catch(() => { if (!huy) { setNhanXet(''); setNhanXetDaLuu(''); } });
+      .then(r => { if (!huy) datLai(r.text, r.requirements ?? []); })
+      .catch(() => { if (!huy) datLai('', []); });
     return () => { huy = true; };
   }, [khoaNhanXetStr, forAdult]);
 
@@ -136,7 +144,9 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
     setDangSoan(true);
     setLoiNX('');
     try {
-      setNhanXet((await draftParentReportComment(khoaNhanXet, baoCaoPH.facts)).text);
+      const nhap = await draftParentReportComment(khoaNhanXet, baoCaoPH.facts);
+      setNhanXet(nhap.text);
+      setYccd(nhap.requirements ?? []);
     } catch (error) {
       setLoiNX(error instanceof Error ? error.message : 'AI chưa soạn được, thử lại.');
     } finally {
@@ -148,15 +158,18 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
     setDangLuuNX(true);
     setLoiNX('');
     try {
-      const r = await saveParentReportNote(khoaNhanXet, nhanXet);
+      const r = await saveParentReportNote(khoaNhanXet, { text: nhanXet, requirements: yccd });
       setNhanXet(r.text);
       setNhanXetDaLuu(r.text);
+      setYccd(r.requirements);
+      setYccdDaLuu(r.requirements);
     } catch (error) {
       setLoiNX(error instanceof Error ? error.message : 'Chưa lưu được nhận xét.');
     } finally {
       setDangLuuNX(false);
     }
   };
+  const chuaLuu = nhanXet !== nhanXetDaLuu || JSON.stringify(yccd) !== JSON.stringify(yccdDaLuu);
   const diemTB = model.averagePercent === null ? '—' : `${model.averagePercent.toFixed(1)}%`;
   const yeu = (profile?.topics || []).filter(t => t.level === 'weak');
   const dangLen = (profile?.topics || []).filter(t => t.level === 'developing');
@@ -194,7 +207,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
     if (dangXuatPdf) return;
     setDangXuatPdf(true);
     try {
-      await exportParentReportToPdf({ ...baoCaoPH.printInput, teacherComment: kyHopLe ? nhanXet : undefined });
+      await exportParentReportToPdf({ ...baoCaoPH.printInput, teacherComment: kyHopLe ? nhanXet : undefined, requirements: kyHopLe ? yccd : null });
     } catch (error) {
       console.error('Xuất PDF bản phụ huynh thất bại:', error);
       alert('Không tạo được PDF. Vui lòng thử lại.');
@@ -246,13 +259,19 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
                     <button type="button" onClick={() => void soanNhapAI()} disabled={dangSoan} className="inline-flex items-center gap-1.5 rounded-xl bg-violet-600 px-3 py-1.5 text-xs font-black text-white hover:bg-violet-700 disabled:opacity-60">
                       {dangSoan ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />} {nhanXet ? 'AI soạn lại' : 'AI soạn nháp'}
                     </button>
-                    <button type="button" onClick={() => void luuNhanXet()} disabled={dangLuuNX || nhanXet === nhanXetDaLuu} className="inline-flex items-center gap-1.5 rounded-xl border border-violet-200 bg-white px-3 py-1.5 text-xs font-black text-violet-800 hover:bg-violet-100 disabled:opacity-50">
+                    <button type="button" onClick={() => void luuNhanXet()} disabled={dangLuuNX || !chuaLuu} className="inline-flex items-center gap-1.5 rounded-xl border border-violet-200 bg-white px-3 py-1.5 text-xs font-black text-violet-800 hover:bg-violet-100 disabled:opacity-50">
                       {dangLuuNX ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />} Lưu
                     </button>
                   </div>
                 </div>
                 <textarea value={nhanXet} onChange={event => setNhanXet(event.target.value)} rows={4} placeholder="Bấm “AI soạn nháp” để AI viết dựa trên số liệu của kì này, rồi sửa lại cho đúng ý thầy cô. Để trống thì báo cáo không có mục này." className="mt-2 w-full rounded-xl border border-violet-100 bg-white px-3 py-2 text-sm font-semibold leading-6 text-slate-800 outline-none focus:border-violet-300" />
-                <p className="text-[11px] font-semibold text-slate-500">{loiNX ? <span className="text-rose-600">{loiNX}</span> : nhanXet !== nhanXetDaLuu ? 'Chưa lưu — bản PDF vẫn dùng nội dung đang gõ.' : nhanXetDaLuu ? 'Đã lưu cho đúng học sinh và kì này.' : 'AI chỉ dùng số liệu đã duyệt trong kì, không dùng họ tên của em.'}</p>
+                <p className="text-[11px] font-semibold text-slate-500">{loiNX ? <span className="text-rose-600">{loiNX}</span> : chuaLuu ? 'Chưa lưu — bản PDF vẫn dùng nội dung đang gõ.' : nhanXetDaLuu || yccdDaLuu.length > 0 ? 'Đã lưu cho đúng học sinh và kì này.' : 'AI chỉ dùng số liệu đã duyệt trong kì, không dùng họ tên của em.'}</p>
+                {yccd.length > 0 && (
+                  <div className="mt-3 rounded-xl border border-violet-100 bg-white p-3">
+                    <p className="mb-2 text-xs font-black text-violet-950">Kết quả theo yêu cầu cần đạt ({yccd.length} yêu cầu) — soát mức và ghi chú, bỏ dòng AI ghép sai</p>
+                    <RequirementLinesEditor lines={yccd} onChange={setYccd} />
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -310,19 +329,21 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
           </div>
         )}
 
+        {yccd.length === 0 && (<>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
             <p className="mb-2 flex items-center gap-2 text-sm font-black text-emerald-800"><TrendingUp className="h-4 w-4" /> Điểm mạnh</p>
-            {parentReport.strengths.length === 0 ? <p className="text-sm font-semibold text-slate-500">Chưa đủ bằng chứng chính thức.</p> : <ul className="list-disc space-y-1 pl-5 text-sm font-semibold text-slate-700">{parentReport.strengths.map(item => <li key={item}>{item}</li>)}</ul>}
+            {parentReport.strengths.length === 0 ? <p className="text-sm font-semibold text-slate-500">Chưa đủ bằng chứng chính thức.</p> : <ul className="list-disc space-y-1 pl-5 text-sm font-semibold text-slate-700">{parentReport.strengths.slice(0, 6).map(item => <li key={item}>{item}</li>)}</ul>}
           </div>
           <div className="rounded-2xl border border-amber-100 bg-amber-50/60 p-4">
             <p className="mb-2 flex items-center gap-2 text-sm font-black text-amber-800"><Target className="h-4 w-4" /> Cần rèn thêm</p>
-            {parentReport.areasToPractice.length === 0 ? <p className="text-sm font-semibold text-slate-500">Chưa có nội dung cần rèn được xác nhận.</p> : <ul className="list-disc space-y-1 pl-5 text-sm font-semibold text-slate-700">{parentReport.areasToPractice.map(item => <li key={item}>{item}</li>)}</ul>}
+            {parentReport.areasToPractice.length === 0 ? <p className="text-sm font-semibold text-slate-500">Chưa có nội dung cần rèn được xác nhận.</p> : <ul className="list-disc space-y-1 pl-5 text-sm font-semibold text-slate-700">{parentReport.areasToPractice.slice(0, 6).map(item => <li key={item}>{item}</li>)}</ul>}
           </div>
         </div>
         {(parentReport.strengths.length > 0 || parentReport.areasToPractice.length > 0) && (
           <p className="text-xs font-semibold leading-5 text-slate-500">Hai mục trên là tên các phần trong môn Toán. Phụ huynh không cần hiểu sâu — chỉ cần phối hợp nhắc con luyện đúng những phần thầy cô đánh dấu ở “Cần rèn thêm”.</p>
         )}
+        </>)}
 
         {parentCompetency && parentCompetency.total > 0 && (
           <div className="rounded-2xl border border-indigo-100 bg-indigo-50/40 p-4">

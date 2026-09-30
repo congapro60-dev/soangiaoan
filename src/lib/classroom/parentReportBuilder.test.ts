@@ -34,6 +34,24 @@ describe('dựng báo cáo phụ huynh theo kì', () => {
     expect(facts).toContain('KSĐN: 6/10');
   });
 
+  it('bằng chứng YCCĐ: lượt đã duyệt mới nhất mỗi bài, từng câu có mã; bài không có chi tiết câu thì cả bài là một câu', () => {
+    const detailed = graded('n9b', 'a9', '2026-09-19T05:00:00Z', 6);
+    detailed.grade!.questionResults = [
+      { questionNumber: 'Câu 1', status: 'correct', score: 4, maxScore: 4, studentAnswer: 'x', expectedAnswer: 'A = {1; 2}', errorType: '', explanation: 'Đúng', correction: '', nextPractice: '', needsTeacherReview: false },
+      { questionNumber: 'Câu 2', status: 'incorrect', score: 2, maxScore: 6, studentAnswer: 'y', expectedAnswer: 'B', errorType: 'Nhầm giao với hợp', explanation: 'Lấy hợp thay vì giao', correction: '', nextPractice: '', needsTeacherReview: false },
+    ];
+    const unapproved = graded('n10b', 'a10', '2026-10-09T09:00:00Z', 10);
+    unapproved.grade!.teacherApproved = false;
+    const out = buildPeriodParentReport({ ...src, submissions: [...src.submissions, detailed, unapproved] }, { kind: 'gk1', from: '2026-09-01', to: '2026-10-31' });
+    expect(out.evidence.map(e => [e.ma, e.ten, e.cau.map(q => [q.ma, q.diem, q.toiDa])])).toEqual([
+      ['b1', 'BTVN tháng 9', [['b1q1', 4, 4], ['b1q2', 2, 6]]],
+      ['b2', 'BTVN tháng 10', [['b2', 8, 10]]],
+    ]);
+    expect(out.evidence[0].cau[1]).toMatchObject({ ketQua: 'sai', loi: 'Nhầm giao với hợp' });
+    expect(out.facts.baiDaDuyet).toBe(out.evidence);
+    expect(JSON.stringify(out.evidence)).not.toContain('Nguyễn Văn An');
+  });
+
   it('không chọn kì thì giữ báo cáo chung như trước', () => {
     const out = buildPeriodParentReport(src, null);
     expect(out.report.results).toHaveLength(2);
