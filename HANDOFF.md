@@ -13,7 +13,7 @@ Chủ dự án chốt: token/ví web dùng được cho mọi tính năng AI. Tr
 - Trình duyệt (`aiProviders.ts`, cả text/ảnh/stream): `geminiRouteFor(có khoá?, chế độ)` — `own` khoá riêng như cũ · `wallet` relay · `both` khoá riêng trước, CHỈ lỗi của khoá (429/quota/khoá hỏng) mới sang ví, quá tải 503 thì KHÔNG (tránh đốt tiền oan). Chế độ đến từ `aiModeStore` (chip + trang ví cập nhật); chưa biết hoặc web chưa bật phí thì giữ hành vi cũ. Stream sang relay chỉ khi chưa có chữ nào hiện (khỏi lặp). Ảnh nén dần cho lọt thân request 4,5MB.
 - **Bẫy:** relay KHÔNG stream — bài dài hiện một cục sau khi xong (tới vài chục giây). `EXAM_FORMAT_SYSTEM_INSTRUCTION` (chỉ dẫn soạn đề Toán) vốn được gửi cho MỌI lượt Gemini text của trình duyệt; relay giữ đúng như vậy để kết quả giống nhau. Model chưa có giá không đi qua ví được. Lượt relay KHÔNG ghi vào bộ đếm token cục bộ (`useTokenTracker`) — đã có ở sao kê ví.
 - **Cố ý chưa làm:** stream từ relay; Claude/OpenAI/Grok/DeepSeek qua ví; `src/utils/examOnlineParser.ts` (gọi Gemini trực tiếp).
-- **CHƯA kiểm với thực tế:** deploy preview có nhận hàm mới + `maxDuration` 300 không; một lượt relay thật bằng tài khoản thật; giáo án dài thật mất bao lâu.
+- **Đã kiểm (30/09):** preview của commit `9e1e995` build XANH → Vercel nhận hàm mới với `maxDuration` 300; gọi `/api/ai-relay` không khoá → 401, GET → 405, khoá sai → 401. **CHƯA kiểm:** một lượt relay thật bằng tài khoản thật; giáo án dài thật mất bao lâu. QA độc lập giao cho Codex (brief: `tasks/qa-codex-vi-ai.md`).
 - Nghiệm thu: `npm run lint`, `npm run lint:api`, `npm run test -- --run`, `npm run build`.
 
 ## Cập nhật model mới nhất + hướng dẫn "nên mua gì" trong Cài đặt — 2026-09-30
