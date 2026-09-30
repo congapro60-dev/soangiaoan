@@ -1,9 +1,13 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-09-29
+**Cập nhật:** 2026-09-30
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
+
+## Model Gemini mặc định = gemini-3.8-flash — 2026-09-30
+
+Chủ dự án chốt (3.7 hay 503 quá tải). `DEFAULT_GEMINI_RUNTIME_MODEL` + `DEFAULT_DATA.settings` + FormatAgent + khoá HS + tạo mô phỏng (client & `api/generate-simulation.ts`) → 3.8; `GEMINI_RUNTIME_MODELS` giữ 3.7 ngay sau làm dự phòng (`callGeminiAIRaw` tự lùi model khi lỗi). **Bẫy:** cài đặt GV lưu cả `selectedModel` → `withCurrentDefaultModel` (useAppState) chuyển đúng giá trị mặc định cũ `gemini-3.7-flash` sang 3.8 khi nạp (không phân biệt được ai CỐ Ý chọn 3.7). Bảng giá đã có 3.8. 3.8 cũng lúc lúc 503. Test `useAppState.defaultModel.test.ts`.
 
 ## Lịch báo giảng + SSM đợt 2 (điểm LO, soạn sẵn nội dung) — 2026-09-29
 
