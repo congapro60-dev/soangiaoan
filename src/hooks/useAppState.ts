@@ -8,6 +8,11 @@ import { normalizePlanTitle } from '../utils/fileUtils';
 const PAGE_SIZE = 20;
 const LOCAL_CACHE_KEY = 'smart_lesson_plan_data';
 
+/** Model mặc định cũ: cài đặt còn lưu đúng giá trị này (hầu hết là chưa từng tự chọn) → lên model mặc định mới. */
+const LEGACY_DEFAULT_MODEL = 'gemini-3.7-flash';
+export const withCurrentDefaultModel = (settings: AppData['settings']): AppData['settings'] =>
+  settings.selectedModel === LEGACY_DEFAULT_MODEL ? { ...settings, selectedModel: DEFAULT_DATA.settings.selectedModel } : settings;
+
 const buildLocalCache = (data: AppData) => ({
   settings: data.settings,
   authorName: data.authorName,
@@ -38,7 +43,7 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
           templates: parsed.templates || DEFAULT_DATA.templates,
           distributions: parsed.distributions || [],
           classes: parsed.classes || [],
-          settings: { ...DEFAULT_DATA.settings, ...(parsed.settings || {}) },
+          settings: withCurrentDefaultModel({ ...DEFAULT_DATA.settings, ...(parsed.settings || {}) }),
           authorName: parsed.authorName || ''
         };
       } catch (e) {
@@ -161,7 +166,7 @@ export const useAppState = (user: User | null, showToast: (msg: string, icon?: a
               distributions: cloudDist,
               classes: cloudSettingsResult.cloudClasses ?? prev.classes,
               authorName: cloudSettingsResult.cloudAuthorName,
-              settings: { ...prev.settings, ...cloudSettingsResult.cloudSettings },
+              settings: withCurrentDefaultModel({ ...prev.settings, ...cloudSettingsResult.cloudSettings }),
               gradingSessions: [...cloudSessions, ...localOnlySessions],
             };
           });
