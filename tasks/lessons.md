@@ -408,3 +408,7 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 ## 2026-09-30 — Nói "chưa có dữ liệu" mà user đã gửi rồi
 - Sai: trả lời "khối 12 mới có Quý 1" trong khi user đã gửi đủ 8 link LO khối 12 — bản tóm tắt sau khi nén hội thoại làm rơi các link đó.
 - Luật: trước khi khẳng định user CHƯA gửi/chưa có file, link, dữ liệu gì → grep transcript `~/.claude/projects/<dự án>/*.jsonl` (mọi phiên), không dựa vào bản tóm tắt. Dữ liệu user đã gửi mà quan trọng thì ghi ngay vào memory.
+
+## 2026-09-30 — Chèn code bằng Python heredoc làm hỏng regex
+- Chuỗi Python thường (và printf trong bash) biến \b trong code chèn thành ký tự backspace (0x08) → regex /Lớp\s*(10|11|12)\b/ hỏng âm thầm, chỉ test mới lộ.
+- Luật: chèn code có dấu gạch ngược thì dùng Edit/Write hoặc node với String.fromCharCode; sau khi chèn đếm ký tự 0x08 trong file để dò.

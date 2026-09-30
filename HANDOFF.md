@@ -5,6 +5,15 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Hồ sơ năng lực HS tự điền cùng GV (+ AI soạn nháp cho GV) — 2026-09-30
+
+Chủ dự án chốt: tab "Năng lực toán học" của file mẫu đưa lên trang HS (mục riêng dưới Bảng điểm); HS sửa phần mình, GV sửa tất; xuất file: HS nền vàng, GV nền xanh (trùng mức: vàng viền xanh, chú thích ở ghi chú ô A3).
+- Dữ liệu `competencyPortfolios/{classId}__{studentId}` chỉ qua `api/_portfolio.ts` (gộp vào `classroom`): `studentPortfolio`/`saveStudentPortfolio` (lớp + mã HS lấy từ `studentLinks`, chỉ nhận ô HS), `teacherPortfolio`/`saveTeacherPortfolio` (GV thuộc lớp, HS phải có trong lớp). Lọc chung `sanitizePortfolioPatch` (đúng khối, đúng ô, chữ ≤500). Lưu đọc-sửa-ghi, không transaction: HS và GV lưu cùng lúc thì bản sau thắng (theo từng năng lực gửi lên).
+- Mỗi năng lực: mức HS tự đánh giá, Mục tiêu, Phương án, Thời gian (tháng năm học), Khó khăn, Tiến độ (Đã hoàn thành/Đang thực hiện/Chưa thực hiện — đúng danh sách chọn file mẫu), mức GV chốt (trống = mức app tính từ bài đã duyệt), Ý kiến GV.
+- Hướng dẫn: mô tả 4 mức NGUYÊN VĂN file mẫu (`levelDescriptions.ts`, 29 cái chép 30/09 + `rubric` 9 cái app bổ sung), gợi ý từng ô + nút "Gợi ý" (`portfolioGuide.ts`, không AI, chỉ điền ô trống). GV: "AI soạn nháp" (`portfolioDraftPrompt.ts`, `callAI` bằng cài đặt của GV) điền mức chốt + ý kiến + ô HS còn trống, KHÔNG đè chữ HS; GV soát rồi "Lưu hồ sơ". Đã thử Gemini thật: nháp hợp lý.
+- Xuất (`portfolioExport.ts`): thêm cột G..L, đặt lại danh sách chọn cột "Thời gian" theo năm học (file mẫu còn ghi tháng 2024–2025). Nút xuất khoá khi còn thay đổi chưa lưu.
+- **Chưa E2E trên trình duyệt**: trang HS cần phiên HS thật, trang GV cần đăng nhập GV (máy chủ mới chỉ có sau deploy). Đã render test `PortfolioEntryEditor` + test API/lõi. Nghiệm thu: `npx vitest run src/lib/classroom/competency api/__tests__/portfolio.test.ts src/components/features/classroom/PortfolioEntryEditor.test.tsx`.
+
 ## Khung năng lực khối 10 đủ theo LO SSM + xuất hồ sơ bổ sung dòng + tải .xlsx — 2026-09-30
 
 Chủ dự án chốt: SSM khối 10 có 19 LO mà khung chỉ 8 năng lực (AI ghép LO được 10/19) → thêm 9 năng lực `g10-*` (hàm số & đồ thị, BPT bậc hai, đếm/tổ hợp, Newton, GTLG 0–180°, vectơ tọa độ, PT đường thẳng, đường tròn, conic), mỗi cái có `rubric` 4 mức (file mẫu trường CHƯA có các dòng này). Sau đó AI ghép 19/19 (khối 11: 19/20 — thiếu "Hoạt động thực hành và trải nghiệm"; khối 12: 17/17).
@@ -122,30 +131,3 @@ Bản gửi phụ huynh (`StudentReport` viewMode=parent + `parentReportPrintDoc
 - **Thiết kế phiếu tiến độ IB** (mẫu The Dewey): bảng thông tin, dải tổng kết màu, đề mục đánh số in đậm, 3 biểu đồ SVG/CSS thuần (đồng hồ điểm có thang mức, xu hướng, tiến độ), kết quả từng bài kiểu dòng môn học. Style scope `#parent-report-pdf-root`, escape HTML.
 - **Mục "Năng lực Toán học"**: `buildStudentCompetencyPortfolio` (bài đã duyệt) → nhóm 4 mức khung trường → `ParentCompetencySummary`.
 - **Mục "Điểm thi định kì"** (từ GĐ3 đọc qua Sổ điểm, xem trên; phần dưới là cách đọc file): đọc 2 tab MOET/TDS trong **file điểm riêng của lớp** (`class.examSheet.spreadsheetId`, nối qua action `setClassExamSheet`; KHÔNG dùng `sheetSync` vì BTVN 10/12 nối file chung không có MOET/TDS — lỗi bản đầu) qua Sheets API `values:batchGet` UNFORMATTED (quyền Google GV như BTVN). `examScores.ts` khớp **Mã HS**, chỉ lấy cột "Điểm…" (MOET thang 10: KSĐN/giữa-cuối HKI-HKII; TDS Quý 1-4 + điểm chữ), BỎ cột công thức/kế hoạch nội bộ. GV bấm nút "Tải điểm thi" (tránh popup OAuth bất ngờ) → hiện mục + vào PDF. Nghiệm thu: examScores 6 + parentReportPrintDoc 7 test; smoke live PDF có điểm thi; `lint`+`build` OK. GV dán link file `26-27-<lớp>` 1 lần/lớp (app kiểm có tab MOET/TDS mới lưu). Test API `classroom-sheet-sync` +3.
-
-## Bản phụ huynh + hồ sơ: 5 lỗi làm chặt — 2026-09-18
-
-Nối tiếp lô bản phụ huynh. Fix 5 lỗi người dùng nêu:
-1. `parentSafeReport` bỏ hẳn `grade.feedback` khỏi DTO phụ huynh (nhận xét cho HỌC SINH, hay nhắc số câu) — xoá field `feedback` khỏi `ParentSafeAssignmentResult`.
-2. `profileTopics()` giờ yêu cầu bằng chứng THẬT: chủ đề chỉ hiện nếu có ≥1 `evidenceSubmissionId` là submission còn tồn tại, đúng học sinh, đã `teacherApproved` (dựng `approvedSubmissionIds` từ input).
-3. Tách helper `topicHygiene.ts::namesSpecificProblem` (bắt `Bài 2`, `Bài số 2`, `Câu hỏi 4`, `BT2`, `2a`, `ý a`…). Dùng ở CẢ hai tầng: **gốc** trong `profileMerge` (mergeTopics/addEvidence lọc tên theo số bài khỏi weakTopics/strengths + hồ sơ cũ) và **hiển thị** trong parent report.
-4. Prompt (`gradingPrompt`): `feedbackForStudent` ghi rõ CHỈ học sinh đọc (bản phụ huynh tổng hợp theo chủ đề, không dùng chữ này); thêm hướng dẫn `strengths` là cụm danh từ chung, không nêu số bài.
-5. `buildParentSafeReport`: chọn lượt ĐÃ DUYỆT gần nhất cho từng bài — lượt mới error/grading không xoá điểm chính thức của lượt cũ đã duyệt.
-Nghiệm thu: parentSafeReport 5 + profileMerge 38 + topicHygiene 2 + gradingPrompt 97 + skill-profile 5 pass; `lint`+`build` OK. **Còn:** hồ sơ cũ đã lưu tên xấu chỉ sạch khi bài được gộp lại (chấm/duyệt lại); tầng hiển thị vẫn lọc để an toàn.
-
-## V7.2 live classroom — Tuần 5 + Tuần 6 — 2026-09-18
-
-Đã hoàn tất mã nguồn trên nhánh `codex/p31-classroom-ready`, commit triển khai chính `b25e740` và merge với `origin/main` hiện tại. Mục tiêu là đưa mô hình activity-first V7.2 vào 24 bài Tuần 5 và 24 bài Tuần 6 của khối 10/11/12.
-
-- Adapter generic dùng timeline 14 nhịp/40 phút, nội dung source-aware, mục tiêu MUST/SHOULD/COULD, route M/S/C, AI Error, post-check, exit ticket, preview riêng tư và practice A/B/C/D/Challenge.
-- P31 `10-5-31` vẫn dùng contract thủ công để giữ media/kịch bản đặc thù; phần practice và dashboard đã theo V7.2 nhưng timeline P31 vẫn là timeline custom 11 nhịp.
-- Firestore Rules đã mở allowlist cho checkpoint V7.2, giới hạn 16 step, clock fields và group-progress `cp-practice-a`.
-- QA: full Vitest **171 files / 2.016 tests PASS**, `lint` PASS, `lint:api` PASS, build PASS; Rules **8 files / 303 tests PASS**, pilot **1/1 PASS**. Browser smoke local pass P31 và đại diện `10-5-32`, `11-5-26`, `12-5-26` với GV–TV–3 HS, practice aggregate, privacy và browser-error gate.
-
-**Giới hạn cần giữ:** chưa chạy browser choreography riêng cho toàn bộ 48 bài; contract/privacy matrix bao phủ 48 source keys và browser smoke đại diện mỗi khối. Giáo án/snapshot chỉ là nguồn nội dung; không dùng để ép UI thành chuỗi slide.
-
-**Ngưỡng sắp cắn người:** QA harness phải chạy Firebase Emulator bằng project demo, ví dụ `firebase emulators:exec --project demo-p31-classroom --only firestore,auth "node scripts/qa/p31-classroom.mjs"`; nếu bỏ `--project`, Auth Emulator lấy project mặc định `smartplan-ai-14200` và token bị Rules fixture từ chối. Artifact QA nằm trong `artifacts/`, không đưa vào commit.
-
-**Lệnh nghiệm thu:** `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" test`; `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" run test:rules`; `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" run test:pilot`; `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" run lint`; `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" run lint:api`; `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" run build`.
-
-Release đã hoàn tất: `main` đã nhận `994bd59` (sau đó `origin/main` có thêm follow-up `248634f`), Firestore Rules đã release vào `smartplan-ai-14200`, và Vercel production `https://giaoandewey.vercel.app` đang trỏ deployment `giaoandewey-qx94sd69v` ở trạng thái READY. QA artifact giữ cục bộ trong `artifacts/`, không commit.

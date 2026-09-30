@@ -13,7 +13,7 @@ import { COMPETENCY_LEVELS, competenciesByGrade, type CompetencyGrade, type Comp
  *  1. Drive copy file mẫu → Google Sheet mới "Sxxxxx - Tên" (giữ nguyên 4 cột mô tả — "y hệt").
  *  2. Đọc lưới tab "Năng lực toán học" để khớp từng năng lực về đúng DÒNG.
  *  3. batchUpdate: chèn dòng cho năng lực file mẫu còn thiếu (đủ khung), điền Mã HS + Họ tên,
- *     bôi vàng ô mức của từng năng lực đã có kết luận.
+ *     bôi màu mức (vàng = HS tự đánh giá, xanh = GV chốt), điền kế hoạch + ý kiến GV (cột G..L).
  *
  * KHÔNG đụng file học sinh cũ: mỗi lần xuất tạo một bản sao mới, trả link.
  */
@@ -25,15 +25,30 @@ export const COMPETENCY_TAB_TITLE = 'Năng lực toán học';
 const SHEETS_BASE = 'https://sheets.googleapis.com/v4/spreadsheets';
 const DRIVE_FILES = 'https://www.googleapis.com/drive/v3/files';
 const GSHEET_MIME = 'application/vnd.google-apps.spreadsheet';
-/** Vàng "bôi" giống thao tác tay trong file trường. */
+/** Vàng "bôi" giống thao tác tay trong file trường — mức HS tự đánh giá. */
 const HIGHLIGHT = { red: 1, green: 1, blue: 0 };
+/** Xanh — mức GV chốt. Trùng ô với HS thì giữ nền vàng, thêm viền xanh đậm. */
+const TEACHER_FILL = { red: 0.714, green: 0.843, blue: 0.659 };
+const TEACHER_BORDER = { style: 'SOLID_THICK', color: { red: 0.22, green: 0.46, blue: 0.11 } };
 /** Cột A "Nội dung", B "Năng lực cần đạt", rồi C..F là 4 mức — khớp COMPETENCY_LEVELS. */
 const FIRST_LEVEL_COLUMN = 2;
+/** G..L: Mục tiêu, Phương án tự đề xuất, Thời gian thực hiện, Khó khăn, Tiến độ, Ý kiến GV hướng dẫn. */
+const PLAN_COLUMNS = ['goal', 'plan', 'timeframe', 'difficulty', 'progress', 'teacherComment'] as const;
+const PLAN_FIRST_COLUMN = 6;
+const TIMEFRAME_COLUMN = 8;
+export const COLOR_LEGEND = 'Nền vàng: HS tự đánh giá · Nền xanh: mức GV chốt · Vàng viền xanh: HS và GV cùng mức.';
 
 export interface PortfolioMark {
   /** Chủ đề (cột A "Nội dung") — khoá khớp dòng trong file mẫu. */
   topic: string;
-  level: CompetencyLevel;
+  selfLevel?: CompetencyLevel | null;
+  teacherLevel?: CompetencyLevel | null;
+  goal?: string;
+  plan?: string;
+  timeframe?: string;
+  difficulty?: string;
+  progress?: string;
+  teacherComment?: string;
 }
 
 const levelColumn = (level: CompetencyLevel): number => FIRST_LEVEL_COLUMN + COMPETENCY_LEVELS.indexOf(level);
@@ -41,6 +56,7 @@ const levelColumn = (level: CompetencyLevel): number => FIRST_LEVEL_COLUMN + COM
 /**
  * Dựng lệnh batchUpdate từ ảnh cột A của tab. THUẦN để test được:
  * chỉ khớp năng lực trong ĐÚNG khối (đi theo mốc "Lớp 10/11/12"), tránh trùng chủ đề giữa các khối.
+ * `months`: danh sách chọn cột "Thời gian thực hiện" theo năm học hiện tại (file mẫu còn ghi năm cũ).
  */
 export const buildPortfolioExportRequests = (input: {
   sheetId: number;
@@ -50,8 +66,9 @@ export const buildPortfolioExportRequests = (input: {
   studentCode: string;
   studentName: string;
   marks: readonly PortfolioMark[];
+  months?: readonly string[];
 }): { requests: Array<Record<string, unknown>>; matched: string[]; unmatched: string[] } => {
-  const { sheetId, columnA, grade, studentCode, studentName, marks } = input;
+  const { sheetId, columnA, grade, studentCode, studentName, marks, months = [] } = input;
 
   // Dòng của từng chủ đề, chỉ trong phần khối đang xuất.
   const rowByTopic = new Map<string, number>();
@@ -62,28 +79,50 @@ export const buildPortfolioExportRequests = (input: {
     if (current === grade && cell) rowByTopic.set(cell, row);
   });
 
+  const range = (row: number, column: number, width = 1) =>
+    ({ sheetId, startRowIndex: row, endRowIndex: row + 1, startColumnIndex: column, endColumnIndex: column + width });
   const setValue = (row: number, value: string): Record<string, unknown> => ({
-    updateCells: {
-      range: { sheetId, startRowIndex: row, endRowIndex: row + 1, startColumnIndex: 1, endColumnIndex: 2 },
-      rows: [{ values: [{ userEnteredValue: { stringValue: value } }] }],
-      fields: 'userEnteredValue',
-    },
+    updateCells: { range: range(row, 1), rows: [{ values: [{ userEnteredValue: { stringValue: value } }] }], fields: 'userEnteredValue' },
   });
-  const paint = (row: number, column: number): Record<string, unknown> => ({
-    repeatCell: {
-      range: { sheetId, startRowIndex: row, endRowIndex: row + 1, startColumnIndex: column, endColumnIndex: column + 1 },
-      cell: { userEnteredFormat: { backgroundColor: HIGHLIGHT } },
-      fields: 'userEnteredFormat.backgroundColor',
-    },
+  const format = (row: number, column: number, userEnteredFormat: Record<string, unknown>, fields: string): Record<string, unknown> => ({
+    repeatCell: { range: range(row, column), cell: { userEnteredFormat }, fields },
   });
 
-  const requests: Array<Record<string, unknown>> = [setValue(0, studentCode), setValue(1, studentName)];
+  const requests: Array<Record<string, unknown>> = [
+    setValue(0, studentCode),
+    setValue(1, studentName),
+    // Chú thích màu vào ô hướng dẫn dòng 3.
+    { updateCells: { range: range(2, 0), rows: [{ values: [{ note: COLOR_LEGEND }] }], fields: 'note' } },
+  ];
   const matched: string[] = [];
   const unmatched: string[] = [];
   for (const mark of marks) {
     const row = rowByTopic.get(mark.topic);
     if (row === undefined) { unmatched.push(mark.topic); continue; }
-    requests.push(paint(row, levelColumn(mark.level)));
+    if (mark.selfLevel) requests.push(format(row, levelColumn(mark.selfLevel), { backgroundColor: HIGHLIGHT }, 'userEnteredFormat.backgroundColor'));
+    if (mark.teacherLevel) {
+      requests.push(mark.teacherLevel === mark.selfLevel
+        ? format(row, levelColumn(mark.teacherLevel), { borders: { top: TEACHER_BORDER, bottom: TEACHER_BORDER, left: TEACHER_BORDER, right: TEACHER_BORDER } }, 'userEnteredFormat.borders')
+        : format(row, levelColumn(mark.teacherLevel), { backgroundColor: TEACHER_FILL }, 'userEnteredFormat.backgroundColor'));
+    }
+    const plan = PLAN_COLUMNS.map(field => mark[field]);
+    if (plan.some(value => value)) {
+      requests.push({
+        updateCells: {
+          range: range(row, PLAN_FIRST_COLUMN, PLAN_COLUMNS.length),
+          rows: [{ values: plan.map(value => (value ? { userEnteredValue: { stringValue: value } } : {})) }],
+          fields: 'userEnteredValue',
+        },
+      });
+    }
+    if (months.length) {
+      requests.push({
+        setDataValidation: {
+          range: range(row, TIMEFRAME_COLUMN),
+          rule: { condition: { type: 'ONE_OF_LIST', values: months.map(userEnteredValue => ({ userEnteredValue })) }, showCustomUi: true, strict: false },
+        },
+      });
+    }
     matched.push(mark.topic);
   }
   return { requests, matched, unmatched };
@@ -201,6 +240,8 @@ export const exportPortfolioToDrive = async (input: {
   studentCode: string;
   studentName: string;
   marks: readonly PortfolioMark[];
+  /** Danh sách tháng năm học hiện tại cho cột "Thời gian thực hiện". */
+  months?: readonly string[];
 }): Promise<PortfolioExportResult> => {
   const fileName = `${input.studentCode || 'HS'} - ${input.studentName}`.trim();
 
@@ -234,6 +275,7 @@ export const exportPortfolioToDrive = async (input: {
     studentCode: input.studentCode,
     studentName: input.studentName,
     marks: input.marks,
+    months: input.months,
   });
 
   await authedFetch(`${SHEETS_BASE}/${spreadsheetId}:batchUpdate`, {

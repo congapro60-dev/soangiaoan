@@ -9,6 +9,7 @@ import { buildStudentSkillCards } from '../../../../lib/classroom/skillViewModel
 import { StudentAssignmentCard } from './StudentAssignmentCard';
 import { StudentNotificationBell } from './StudentNotificationBell';
 import { StudentScoreBoard } from './StudentScoreBoard';
+import { StudentCompetencyPortfolio } from './StudentCompetencyPortfolio';
 import { NhanXetMarkdown } from '../NhanXetMarkdown';
 import { PracticeScaffold } from './PracticeScaffold';
 
@@ -514,6 +515,8 @@ export const StudentPortalDashboard = ({
         )}
 
         <StudentScoreBoard scores={scores} homework={homeworkScores} />
+
+        <StudentCompetencyPortfolio />
 
         <section>
           <div className="flex items-end justify-between gap-3">

@@ -9,6 +9,7 @@ import type {
 import type { TeacherOnlineGradeEdit } from './onlineGradeLifecycle';
 import type { StudentExamScores } from './examScores';
 import { normalizeScoreBook, type ScoreBookDoc } from './scoreBook';
+import { normalizePortfolio, type CompetencyPortfolioDoc, type PortfolioEntry } from './competency/studentPortfolio';
 
 export interface CreateSupportActivityInput {
   classId: string;
@@ -152,6 +153,22 @@ export const setStudentCode = async (classId: string, studentId: string, code: s
 
 export const renameAssignment = async (assignmentId: string, title: string): Promise<void> => {
   await callTeacherApi({ action: 'renameAssignment', assignmentId, title });
+};
+
+/** Hồ sơ năng lực một HS (phần HS tự điền + mức/ý kiến GV). */
+export const loadTeacherPortfolio = async (classId: string, studentId: string): Promise<CompetencyPortfolioDoc> => {
+  const { portfolio } = await callTeacherApi<{ portfolio: unknown }>({ action: 'teacherPortfolio', classId, studentId });
+  return normalizePortfolio(classId, studentId, portfolio);
+};
+
+/** GV lưu hồ sơ: sửa được mọi ô (kể cả của HS), thêm mức chốt + ý kiến. */
+export const saveTeacherPortfolio = async (
+  classId: string,
+  studentId: string,
+  entries: Record<string, PortfolioEntry>,
+): Promise<CompetencyPortfolioDoc> => {
+  const { portfolio } = await callTeacherApi<{ portfolio: unknown }>({ action: 'saveTeacherPortfolio', classId, studentId, entries });
+  return normalizePortfolio(classId, studentId, portfolio);
 };
 
 /** Máy chủ tải hộ file mẫu điểm LO của SSM từ LINK (browser bị CORS chặn cdn-ssm). */
