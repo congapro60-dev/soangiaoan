@@ -404,3 +404,7 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - Máy này có sẵn `GEMINI_API_KEY`/`GOOGLE_API_KEY` trong môi trường Windows → test gọi `getGradingApiKey()` qua ở local nhưng 500 trên CI (Quality Gate đỏ từ `f467a91` tới `90f4dfe`, không ai để ý vì chỉ xem test local).
 - Trước khi push phần API: chạy `env -u GEMINI_API_KEY -u GOOGLE_API_KEY npx vitest run` để giống CI; sau push kiểm run "Quality Gate" (API công khai: `api.github.com/repos/congapro60-dev/soangiaoan/actions/runs`, lỗi chi tiết ở `check-runs/<job id>/annotations`).
 - Không đòi khoá/tài nguyên khi request không có việc thật phải làm (kiểm khoá SAU bước "có bài cần chấm không").
+
+## 2026-09-30 — Nói "chưa có dữ liệu" mà user đã gửi rồi
+- Sai: trả lời "khối 12 mới có Quý 1" trong khi user đã gửi đủ 8 link LO khối 12 — bản tóm tắt sau khi nén hội thoại làm rơi các link đó.
+- Luật: trước khi khẳng định user CHƯA gửi/chưa có file, link, dữ liệu gì → grep transcript `~/.claude/projects/<dự án>/*.jsonl` (mọi phiên), không dựa vào bản tóm tắt. Dữ liệu user đã gửi mà quan trọng thì ghi ngay vào memory.
