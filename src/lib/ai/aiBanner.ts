@@ -12,7 +12,7 @@ export const LOW_BALANCE_VND = 20_000;
 
 /**
  * Thông báo AI hiện khi giáo viên đăng nhập, hoặc null nếu không có gì phải làm.
- * Ví chỉ đáng nhắc khi nó thật sự bị trừ: thuộc nhóm dùng thẳng khoá chung, hoặc đã đồng ý dùng khoá chung.
+ * Ví chỉ đáng nhắc khi nó thật sự bị trừ: chế độ "chỉ ví" hoặc "cả hai".
  * Người chỉ dùng khoá riêng thì không bao giờ bị báo "hết tiền".
  */
 export const aiBannerMessage = (status: AiKeyStatus): AiBannerMessage | null => {
@@ -21,20 +21,21 @@ export const aiBannerMessage = (status: AiKeyStatus): AiBannerMessage | null => 
   if (!status.gateEnabled || status.exempt) return null;
 
   const ownKeyOk = status.hasKey && status.keyStatus === 'ok';
-  if (!status.shared && !status.consent && !ownKeyOk) {
+  // Chế độ "chỉ khoá riêng" mà khoá không dùng được → AI dừng; nhắc sửa khoá hoặc chuyển sang ví web.
+  if (status.mode === 'own' && !ownKeyOk) {
     return {
       text: status.hasKey
-        ? 'Khoá Gemini riêng của thầy/cô đang không dùng được. Thay khoá khác, hoặc đồng ý dùng khoá của web (trừ ví theo mức dùng).'
-        : 'Chấm bài, bài luyện bằng AI cần khoá: nhập khoá Gemini riêng (lấy miễn phí ở Google AI Studio), hoặc đồng ý dùng khoá của web (trừ ví theo mức dùng).',
+        ? 'Khoá Gemini riêng của thầy/cô đang không dùng được. Thay khoá khác, hoặc chuyển sang dùng ví web (trừ theo mức dùng) ở mục AI của tôi.'
+        : 'Chấm bài, bài luyện bằng AI cần khoá: nhập khoá Gemini riêng (lấy miễn phí ở Google AI Studio), hoặc chuyển sang dùng ví web (trừ theo mức dùng) ở mục AI của tôi.',
       urgent: false,
     };
   }
 
-  const walletUsed = status.shared || status.consent;
+  const walletUsed = status.mode !== 'own';
   if (!walletUsed || (status.activeVoucher?.percent ?? 0) >= 100) return null;
   if (status.balanceVnd <= 0) {
     return {
-      text: ownKeyOk ? 'Ví AI đã hết tiền — khi khoá riêng hết lượt, AI sẽ tạm dừng.' : 'Ví AI đã hết tiền — chấm bài bằng AI sẽ tạm dừng.',
+      text: ownKeyOk && status.mode === 'both' ? 'Ví AI đã hết tiền — khi khoá riêng hết lượt, AI sẽ tạm dừng.' : 'Ví AI đã hết tiền — chấm bài bằng AI sẽ tạm dừng.',
       urgent: true,
     };
   }

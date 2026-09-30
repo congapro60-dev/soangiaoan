@@ -1,7 +1,7 @@
 /** Client cho khoá AI riêng, ví trả trước, mã giảm giá, sao kê (giáo viên) + phần quản trị tương ứng. */
 import { auth } from '../firebase';
 import { AI_QUIET_HEADER } from './aiKeyGate';
-import type { AiKeyBlockReason } from '../admin/aiKeyPolicy';
+import type { AiKeyBlockReason, AiKeyMode } from '../admin/aiKeyPolicy';
 import type { PaymentAccount, PaymentSettings, VoucherDef, VoucherRedemption } from '../admin/aiWallet';
 
 const call = async <T>(payload: Record<string, unknown>, quiet = false): Promise<T> => {
@@ -40,6 +40,8 @@ export interface AiKeyStatus {
   keyStatusAt: string | null;
   consent: boolean;
   consentAt: string | null;
+  /** Nguồn khoá THỰC SỰ áp dụng: chỉ khoá riêng / chỉ ví web / cả hai (khoá riêng trước). */
+  mode: AiKeyMode;
   blockedSubmissionIds: string[];
   balanceVnd: number;
   topupCode: string;
@@ -51,7 +53,8 @@ export interface AiKeyStatus {
 export const getAiKeyStatus = (options: { quiet?: boolean } = {}) => call<AiKeyStatus>({ action: 'aiKeyStatus' }, options.quiet);
 export const saveAiKey = (key: string) => call<AiKeyStatus>({ action: 'saveAiKey', key });
 export const deleteAiKey = () => call<AiKeyStatus>({ action: 'deleteAiKey' });
-export const setAiConsent = (accepted: boolean) => call<AiKeyStatus>({ action: 'setAiConsent', accepted });
+/** `accepted` = giáo viên đã tích đồng ý tính phí (bắt buộc lần đầu chọn ví/cả hai, trừ người trong nhóm). */
+export const setAiMode = (mode: AiKeyMode, accepted = false) => call<AiKeyStatus>({ action: 'setAiMode', mode, ...(accepted ? { accepted: true } : {}) });
 export const setAiSpendCap = (capVnd: number | null) => call<AiKeyStatus>({ action: 'setAiSpendCap', capVnd });
 export const redeemAiVoucher = (code: string) => call<AiKeyStatus>({ action: 'redeemVoucher', code });
 

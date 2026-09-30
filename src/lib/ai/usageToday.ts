@@ -36,9 +36,9 @@ export const chipView = (status: AiKeyStatus): ChipView => {
   if (!status.gateEnabled) return { wallet: 'Chưa tính phí', today: `hôm nay ~${formatVnd(status.todayVnd)}`, tone: 'info' };
   if (status.exempt) return { wallet: 'Không trừ ví', today: `hôm nay ~${formatVnd(status.todayVnd)}`, tone: 'info' };
   const balance = Math.round(status.balanceVnd);
-  // Có khoá riêng đang dùng được thì khoá riêng chạy trước; ví hết chỉ là dự phòng nên không báo động đỏ.
-  const ownKeyWorks = status.hasKey && status.keyStatus === 'ok';
-  const tone: ChipTone = ownKeyWorks && balance < LOW_BALANCE_VND ? 'info' : balance <= 0 ? 'empty' : balance < LOW_BALANCE_VND ? 'low' : 'ok';
+  // Chế độ "chỉ khoá riêng", hoặc có khoá riêng đang dùng được thì ví chỉ là dự phòng: ví hết không báo động đỏ.
+  const walletIsBackup = status.mode === 'own' || (status.hasKey && status.keyStatus === 'ok' && status.mode !== 'wallet');
+  const tone: ChipTone = walletIsBackup && balance < LOW_BALANCE_VND ? 'info' : balance <= 0 ? 'empty' : balance < LOW_BALANCE_VND ? 'low' : 'ok';
   return { wallet: `Ví ${formatVnd(Math.max(0, balance))}`, today: status.todayVnd > 0 ? `hôm nay −${formatVnd(status.todayVnd)}` : 'hôm nay 0đ', tone };
 };
 

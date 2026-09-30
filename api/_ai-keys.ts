@@ -15,13 +15,16 @@ import { getAdminDb } from './_exam-core.js';
 import { AI_SPEND_COL, aiSpendDocId, currentAiUsageContext, vnDate, type AiKeyChoice } from './_ai-usage.js';
 import { billingPlanFor, loadUsdVnd, redeemVoucher, walletView } from './_ai-wallet.js';
 import {
+  AI_KEY_MODES,
   blockReasonText,
   capReached,
   decideAiKey,
+  effectiveAiMode,
   looksLikeGeminiKey,
   maskKey,
   usdToVndRounded,
   type AiKeyBlockReason,
+  type AiKeyMode,
   type AiKeyStatus,
 } from '../src/lib/admin/aiKeyPolicy.js';
 
@@ -53,6 +56,8 @@ interface TeacherKeyDoc {
   keyStatusAt?: string;
   keyStatusMessage?: string;
   consent?: { accepted?: boolean; acceptedAt?: string; email?: string };
+  /** Nguồn khoá giáo viên chọn (xem `aiKeyPolicy.ts`); vắng = suy từ nhóm/đồng ý như trước. */
+  mode?: AiKeyMode;
   /** Trần chi tiêu khoá chung mỗi tháng (VNĐ) do giáo viên tự đặt; vắng/0 = không giới hạn. */
   monthlyCapVnd?: number | null;
 }
@@ -145,6 +150,7 @@ export const ensureGeminiKey = async (fallbackKey: string): Promise<AiKeyChoice>
     isShared: access.sharedUids.includes(ownerUid),
     ownKey: keyDoc?.geminiKey ? { status: keyDoc.keyStatus ?? 'ok', statusAt: keyDoc.keyStatusAt } : null,
     consent: keyDoc?.consent?.accepted === true,
+    mode: keyDoc?.mode,
   });
   if (decision.use === 'blocked') throw new AiKeyRequiredError(decision.reason, ownerUid);
   if (decision.use === 'own') return (context.keyChoice = { key: String(keyDoc?.geminiKey), source: 'own', ownerUid, billing: null });
@@ -168,7 +174,10 @@ export const onOwnKeyFailure = async (choice: AiKeyChoice, status: AiKeyStatus, 
   }, { merge: true });
   const [keyDoc, access] = await Promise.all([loadKeyDoc(db, uid), loadAiAccess(db)]);
   const isShared = access.sharedUids.includes(uid);
-  if (!isShared && keyDoc?.consent?.accepted !== true) throw new AiKeyRequiredError(status === 'invalid' ? 'invalid' : 'exhausted', uid);
+  // Chỉ chế độ "cả hai" mới được chuyển sang ví khi khoá riêng hỏng; "chỉ khoá riêng" thì chặn dù đã đồng ý tính phí.
+  if (effectiveAiMode({ mode: keyDoc?.mode, isShared, consent: keyDoc?.consent?.accepted === true }) !== 'both') {
+    throw new AiKeyRequiredError(status === 'invalid' ? 'invalid' : 'exhausted', uid);
+  }
   const billing = await billingFor(db, access, uid);
   await assertUnderCap(db, uid, keyDoc, Boolean(billing));
   const next: AiKeyChoice = { key: fallbackKey, source: isShared ? 'shared' : 'owner_consent', ownerUid: uid, billing };
@@ -182,15 +191,18 @@ export const onOwnKeyFailure = async (choice: AiKeyChoice, status: AiKeyStatus, 
  */
 export const assertSharedAiAllowed = async (uid: string): Promise<'shared' | 'owner_consent'> => {
   const db = getAdminDb();
-  const access = await loadAiAccess(db);
+  const [access, keyDoc] = await Promise.all([loadAiAccess(db), loadKeyDoc(db, uid).catch(() => null)]);
   let source: 'shared' | 'owner_consent' = 'shared';
-  if (access.enabled && !access.sharedUids.includes(uid)) {
-    const keyDoc = await loadKeyDoc(db, uid);
-    if (keyDoc?.consent?.accepted !== true) throw new AiKeyRequiredError('consent_required', uid);
-    source = 'owner_consent';
+  if (access.enabled) {
+    const isShared = access.sharedUids.includes(uid);
+    // "Chỉ khoá riêng" (kể cả người trong nhóm đã chọn vậy) thì tính năng chỉ-khoá-chung này không được chạy.
+    if (effectiveAiMode({ mode: keyDoc?.mode, isShared, consent: keyDoc?.consent?.accepted === true }) === 'own') {
+      throw new AiKeyRequiredError('consent_required', uid);
+    }
+    if (!isShared) source = 'owner_consent';
   }
   const billing = await billingFor(db, access, uid);
-  await assertUnderCap(db, uid, await loadKeyDoc(db, uid).catch(() => null), Boolean(billing));
+  await assertUnderCap(db, uid, keyDoc, Boolean(billing));
   // Ghi nguồn vào ngữ cảnh để lượt dùng GLM vào bảng kê/trừ ví đúng người (khoá GLM nằm ở biến môi trường riêng).
   const context = currentAiUsageContext();
   if (context) context.keyChoice = { key: '', source, ownerUid: uid, billing };
@@ -264,13 +276,15 @@ const statusPayload = async (db: Db, uid: string, email: string): Promise<Record
     keyStatusAt: keyDoc?.keyStatusAt ?? null,
     consent: keyDoc?.consent?.accepted === true,
     consentAt: keyDoc?.consent?.acceptedAt ?? null,
+    /** Chế độ THỰC SỰ áp dụng (chọn ví mà chưa đồng ý tính phí thì vẫn là 'own'). */
+    mode: effectiveAiMode({ mode: keyDoc?.mode, isShared: access.sharedUids.includes(uid), consent: keyDoc?.consent?.accepted === true }),
     blockedSubmissionIds: blocked.docs.map(d => d.id).slice(0, 100),
   };
 };
 
 export const handleAiKeyAction = async (db: Db, body: Body, res: VercelResponse): Promise<boolean> => {
   const action = String(body.action || '');
-  if (!['aiKeyStatus', 'saveAiKey', 'deleteAiKey', 'setAiConsent', 'setAiSpendCap', 'redeemVoucher'].includes(action)) return false;
+  if (!['aiKeyStatus', 'saveAiKey', 'deleteAiKey', 'setAiConsent', 'setAiMode', 'setAiSpendCap', 'redeemVoucher'].includes(action)) return false;
   const me = await teacherIdentity(body);
   if (!me) {
     res.status(401).json({ error: 'Cần đăng nhập tài khoản giáo viên.' });
@@ -308,13 +322,33 @@ export const handleAiKeyAction = async (db: Db, body: Body, res: VercelResponse)
       return true;
     }
   } else if (action === 'setAiConsent') {
+    // Đường cũ: đồng ý = "cả hai", thu hồi = "chỉ khoá riêng". Giao diện mới dùng setAiMode.
     const accepted = body.accepted === true;
     await ref.set({
       uid: me.uid,
       email: me.email,
       consent: accepted ? { accepted: true, acceptedAt: now, email: me.email } : { accepted: false, revokedAt: now },
+      mode: accepted ? 'both' : 'own',
       updatedAt: now,
     }, { merge: true });
+  } else if (action === 'setAiMode') {
+    const mode = body.mode as AiKeyMode;
+    if (!AI_KEY_MODES.includes(mode)) {
+      res.status(422).json({ error: 'Chế độ không hợp lệ (own / wallet / both).' });
+      return true;
+    }
+    const patch: Record<string, unknown> = { uid: me.uid, email: me.email, mode, modeUpdatedAt: now, updatedAt: now };
+    if (mode !== 'own') {
+      // Dùng ví = bị trừ tiền → phải đã đồng ý (hoặc thuộc nhóm dùng thẳng khoá chung). Chọn lần đầu thì ghi luôn sự đồng ý.
+      const [access, keyDoc] = await Promise.all([loadAiAccess(db), loadKeyDoc(db, me.uid)]);
+      const allowed = access.sharedUids.includes(me.uid) || keyDoc?.consent?.accepted === true;
+      if (!allowed && body.accepted !== true) {
+        res.status(422).json({ error: 'Cần đồng ý tính phí theo mức dùng trước khi dùng ví web.' });
+        return true;
+      }
+      if (!allowed) patch.consent = { accepted: true, acceptedAt: now, email: me.email };
+    }
+    await ref.set(patch, { merge: true });
   }
   res.status(200).json(await statusPayload(db, me.uid, me.email));
   return true;

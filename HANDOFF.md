@@ -5,6 +5,16 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Chọn nguồn khoá AI: Riêng / Ví web / Cả hai (giai đoạn 2 của kế hoạch Ví AI) — 2026-09-30
+
+Giáo viên tự chọn AI chạy bằng gì (`teacherAiKeys/{uid}.mode`). LÕI TÍNH TIỀN đang chạy thật — đừng nới mà chưa đọc test kèm theo.
+- Luật (`src/lib/admin/aiKeyPolicy.ts`, dùng chung máy chủ + giao diện): `own` = chỉ khoá riêng, hết/hỏng/không có thì CHẶN (kể cả đã đồng ý tính phí, kể cả người trong nhóm); `wallet` = bỏ qua khoá riêng, dùng khoá web + trừ ví; `both` = khoá riêng trước, hết mới sang ví. `effectiveAiMode`: chưa chọn thì suy như cũ (nhóm hoặc đã đồng ý = `both`, còn lại = `own`) → KHÔNG ai đổi hành vi lúc triển khai; chọn ví/cả hai mà chưa đồng ý tính phí (ngoài nhóm) thì thực tế vẫn `own` — ví không bao giờ bị trừ khi chưa đồng ý.
+- Máy chủ (`api/_ai-keys.ts`): `ensureGeminiKey` truyền `mode`; `onOwnKeyFailure` chỉ tự sang ví ở `both`; `assertSharedAiAllowed` (GLM, tính năng chỉ-khoá-chung) chặn `own` với lý do `consent_required` (câu chữ đã sửa: chọn Ví web/Cả hai); action `setAiMode` (chọn ví lần đầu ngoài nhóm bắt buộc `accepted:true`, ghi luôn đồng ý); `aiKeyStatus` trả `mode` thực áp dụng. `setAiConsent` đường cũ còn (đồng ý = `both`, thu hồi = `own`).
+- Giao diện: `AiWalletPanel` vẽ lại (3 lựa chọn + thẻ Khoá riêng / Ví web có nhãn Đang dùng · Ưu tiên 1 · Dự phòng · Tắt), chữ hiển thị ở `src/lib/ai/aiModeView.ts`. `aiBanner` và chip Header đọc `mode` (chế độ chỉ-khoá-riêng thì ví hết không báo động).
+- **Cố ý chưa làm:** chế độ này chỉ điều khiển luồng CHẠY TRÊN MÁY CHỦ (chấm bài, bài luyện, ảnh AI, GLM…). Soạn giáo án/nâng cấp/dự giờ/ra đề vẫn gọi thẳng từ trình duyệt bằng khoá trong Cài đặt; trang ví ghi rõ dòng này. Khoá trình duyệt chưa gộp vào cùng trang — làm ở GĐ3 khi ví phục vụ được các tính năng đó.
+- **Bẫy:** người trong nhóm chọn `own` mà không có khoá riêng sẽ bị chặn (đúng ý người chọn, nhưng khác hành vi cũ "nhóm luôn có khoá chung dự phòng"). Chế độ mặc định của họ vẫn là `both` nên chỉ đổi khi họ tự chọn.
+- QA: bấm thử trên trang tạm với dữ liệu giả (chọn ví → hiện ô đồng ý → tích → gọi `setAiMode` kèm `accepted`; người trong nhóm không hỏi đồng ý). CHƯA thử với tài khoản thật + Firestore thật. Nghiệm thu: `npm run lint`, `npm run lint:api`, `npm run test -- --run`, `npm run build`.
+
 ## Chip Ví AI ở Header + popup chi tiết (giai đoạn 1 của kế hoạch Ví AI) — 2026-09-30
 
 Chủ dự án chốt: chip hiện **tiền** ("Ví 48.200đ · hôm nay −1.300đ"), token nằm trong popup; khoá riêng hiện "còn lại" kiểu 9Router; **token/ví web sẽ dùng cho MỌI tính năng AI** (giai đoạn 3, CHƯA làm). Kế hoạch đủ 3 giai đoạn: `tasks/ke-hoach-vi-ai-chip-popup.md`. Nhánh `feat/vi-ai-chip-popup` (worktree riêng dựng từ `origin/main`), chưa merge.

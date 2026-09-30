@@ -4,7 +4,7 @@ import type { TokenUsageSnapshot } from '../../hooks/useTokenTracker';
 import { chipView, itemsOfDay, quotaRow, quotaTone, summarizeDay, vnDayOf } from './usageToday';
 
 const status = (patch: Partial<AiKeyStatus>): AiKeyStatus => ({
-  gateEnabled: true, exempt: false, balanceVnd: 48_200, todayVnd: 1_300, todayCalls: 4, ...patch,
+  gateEnabled: true, exempt: false, balanceVnd: 48_200, todayVnd: 1_300, todayCalls: 4, mode: 'both', ...patch,
 }) as AiKeyStatus;
 
 const item = (patch: Partial<StatementItem>): StatementItem => ({
@@ -32,6 +32,9 @@ describe('chip Ví AI', () => {
     expect(chipView(status({ balanceVnd: 0, hasKey: true, keyStatus: 'ok' })).tone).toBe('info');
     expect(chipView(status({ balanceVnd: 0, hasKey: true, keyStatus: 'exhausted' })).tone).toBe('empty');
     expect(chipView(status({ balanceVnd: 50_000, hasKey: true, keyStatus: 'ok' })).tone).toBe('ok');
+    // Chỉ khoá riêng: ví không dùng nên không báo động; chỉ ví web: ví hết là dừng thật dù có khoá riêng
+    expect(chipView(status({ balanceVnd: 0, mode: 'own' })).tone).toBe('info');
+    expect(chipView(status({ balanceVnd: 0, mode: 'wallet', hasKey: true, keyStatus: 'ok' })).tone).toBe('empty');
   });
 
   it('chưa bật tính phí hoặc được miễn: không nói "Ví", số hôm nay là giá gốc tham khảo', () => {

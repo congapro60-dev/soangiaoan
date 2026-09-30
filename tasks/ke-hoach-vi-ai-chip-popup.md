@@ -31,11 +31,13 @@
 - [x] `AiWalletChip` (Header, chỉ hiện khi đăng nhập giáo viên) + `AiUsagePopup` (ví web: 4 ô số + "lượt gần đây" có tên lớp/bài/học sinh; khoá riêng: thanh còn lại theo model).
 - [x] Nghiệm thu: `npm run lint`, `npm run lint:api`, `npm run test -- --run` (214 file / 2317 test), `npm run build`. Chưa thử với tài khoản giáo viên thật (cần đăng nhập Google).
 
-### GĐ2 — Chọn nguồn khoá + vẽ lại trang cài đặt (sau GĐ1)
-- [ ] `decideAiKey` nhận `mode: 'own' | 'wallet' | 'both'`. Ánh xạ hành vi hiện tại: `both` = có khoá riêng thì chạy trước, hết mới sang ví (đúng `consent=true` hôm nay); `own` = `consent=false`; `wallet` = MỚI, bỏ qua khoá riêng.
-  - Tương thích ngược: chưa có `mode` thì suy từ `consent`.
-- [ ] Gộp giao diện: một trang "AI của tôi" thay cho hai chỗ nhập khoá rời (Cài đặt = khoá trình duyệt; Ví AI = khoá máy chủ), thiết kế theo Quota Tracker của 9Router (thẻ theo nguồn, công tắc, thanh còn lại).
-- [ ] Đây là LÕI TÍNH TIỀN đang chạy thật (bật phí từ 25/09) → test đủ ma trận (3 chế độ × có/không khoá × nhóm/ngoài nhóm × số dư/trần).
+### GĐ2 — Chọn nguồn khoá + vẽ lại trang ví (XONG phần máy chủ + trang ví 2026-09-30, chưa merge)
+- [x] `decideAiKey` nhận `mode: 'own' | 'wallet' | 'both'`. Ánh xạ hành vi hiện tại: `both` = có khoá riêng thì chạy trước, hết mới sang ví (đúng `consent=true` hôm nay); `own` = `consent=false`; `wallet` = MỚI, bỏ qua khoá riêng.
+  - Tương thích ngược: chưa có `mode` thì suy từ nhóm/`consent` (`effectiveAiMode`). Chọn ví/cả hai mà chưa đồng ý (ngoài nhóm) thì thực tế vẫn là `own`.
+  - Cũng đổi: `onOwnKeyFailure` (chỉ `both` mới tự sang ví), `assertSharedAiAllowed` (GLM: chế độ `own` bị chặn, kể cả người trong nhóm), action mới `setAiMode` (chọn ví lần đầu bắt buộc `accepted: true`, ghi luôn đồng ý), `aiKeyStatus` trả `mode`. `setAiConsent` (đường cũ) còn, đồng ý = `both`, thu hồi = `own`.
+- [x] Trang ví `AiWalletPanel` (dùng cả ở tab Chi phí AI lẫn hộp "AI đang tạm dừng") vẽ lại: chọn 1 trong 3 chế độ + hai thẻ nguồn (khoá riêng · ví web) có nhãn Đang dùng / Ưu tiên 1 / Dự phòng / Tắt, theo Quota Tracker của 9Router. Banner và chip đọc `mode`.
+- [ ] CHƯA gộp khoá trình duyệt (Cài đặt) vào cùng trang: các tính năng soạn giáo án/nâng cấp/dự giờ/ra đề vẫn dùng khoá nhập trong Cài đặt cho tới GĐ3; trang ví ghi rõ điều này. Gộp một trang duy nhất khi GĐ3 đưa ví vào các tính năng đó.
+- [x] Đây là LÕI TÍNH TIỀN đang chạy thật (bật phí từ 25/09) → test ma trận: `aiKeyPolicy.test.ts` (chế độ × khoá ok/hết/hỏng/không có × nhóm/ngoài nhóm × chưa bật phí), `ai-keys.test.ts` (ví bỏ qua khoá riêng, chỉ-khoá-riêng không âm thầm sang ví, GLM, API `setAiMode`), `aiBanner`/`usageToday`/`aiModeView`.
 
 ### GĐ3 — Ví web cho MỌI tính năng (lớn nhất, làm cuối)
 Hiện soạn giáo án / nâng cấp / dự giờ / đề thi gọi Gemini THẲNG từ trình duyệt bằng khoá giáo viên. Muốn ví trả cho chúng thì phải có đường máy chủ:

@@ -55,7 +55,7 @@ const fakeDb = () => {
 vi.mock('../_exam-core.js', () => ({ getAdminDb: () => fakeDb() }));
 
 import { createAiUsageContext, runWithAiUsage, setAiKeyOwner } from '../_ai-usage';
-import { AiKeyRequiredError, ensureGeminiKey, handleAiKeyAction } from '../_ai-keys';
+import { AiKeyRequiredError, assertSharedAiAllowed, ensureGeminiKey, handleAiKeyAction } from '../_ai-keys';
 import { callGeminiVision } from '../_grading-core';
 
 const OWNER_KEY = 'OWNER-KEY';
@@ -175,6 +175,81 @@ describe('khoá AI + trần chi tiêu', () => {
     // Ngày mới chưa có lượt nào
     delete h.store[`aiSpend/gv-ngoai_${month}`].days[day];
     expect(await status()).toMatchObject({ todayVnd: 0, todayCalls: 0 });
+  });
+
+  describe('chế độ nguồn khoá giáo viên chọn', () => {
+    const callApi = async (body: DocData) => {
+      const res: any = { statusCode: 0, payload: null, status(c: number) { res.statusCode = c; return res; }, json(p: any) { res.payload = p; return res; } };
+      await handleAiKeyAction(fakeDb() as never, { idToken: 't', ...body }, res);
+      return res;
+    };
+    const setup = (keyDoc: DocData, access: DocData = { enabled: true, sharedUids: [], exemptUids: [] }) => {
+      h.store['adminSettings/aiAccess'] = access;
+      h.store['adminSettings/billing'] = { usdVnd: 26_000 };
+      h.store['aiWallets/gv-ngoai'] = { balanceVnd: 50_000 };
+      h.store['teacherAiKeys/gv-ngoai'] = keyDoc;
+    };
+
+    it('CHỈ VÍ WEB: bỏ qua khoá riêng đang dùng tốt và trừ ví', async () => {
+      setup({ geminiKey: OWN_KEY, keyStatus: 'ok', consent: { accepted: true }, mode: 'wallet' });
+      const choice = await inRequest('gv-ngoai', () => ensureGeminiKey(OWNER_KEY));
+      expect(choice).toMatchObject({ key: OWNER_KEY, source: 'owner_consent', ownerUid: 'gv-ngoai' });
+      expect(choice.billing).not.toBeNull();
+    });
+
+    it('CẢ HAI: khoá riêng chạy trước; CHỈ KHOÁ RIÊNG: không có khoá thì chặn dù đã đồng ý tính phí', async () => {
+      setup({ geminiKey: OWN_KEY, keyStatus: 'ok', consent: { accepted: true }, mode: 'both' });
+      expect(await inRequest('gv-ngoai', () => ensureGeminiKey(OWNER_KEY))).toMatchObject({ key: OWN_KEY, source: 'own' });
+      setup({ consent: { accepted: true }, mode: 'own' });
+      await expect(inRequest('gv-ngoai', () => ensureGeminiKey(OWNER_KEY))).rejects.toMatchObject({ reason: 'no_key' });
+    });
+
+    it('CHỈ KHOÁ RIÊNG: Google báo khoá hết hạn mức thì chặn, KHÔNG âm thầm sang ví dù đã đồng ý', async () => {
+      setup({ geminiKey: OWN_KEY, keyStatus: 'ok', consent: { accepted: true }, mode: 'own' });
+      const fetchMock = vi.fn(async () => ({ ok: false, status: 429, clone: () => ({ text: async () => 'RESOURCE_EXHAUSTED' }) }));
+      vi.stubGlobal('fetch', fetchMock);
+      await expect(inRequest('gv-ngoai', () => callGeminiVision('chấm', [], OWNER_KEY))).rejects.toMatchObject({ reason: 'exhausted' });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(h.store['teacherAiKeys/gv-ngoai']).toMatchObject({ keyStatus: 'exhausted' });
+      expect(h.store['aiWallets/gv-ngoai'].balanceVnd).toBe(50_000);
+    });
+
+    it('tính năng chỉ chạy bằng khoá chung (GLM): chế độ chỉ-khoá-riêng bị chặn, kể cả người trong nhóm; ví/cả hai thì qua', async () => {
+      setup({ consent: { accepted: true }, mode: 'own' });
+      await expect(assertSharedAiAllowed('gv-ngoai')).rejects.toMatchObject({ reason: 'consent_required' });
+      setup({ mode: 'own' }, { enabled: true, sharedUids: ['gv-ngoai'], exemptUids: [] });
+      await expect(assertSharedAiAllowed('gv-ngoai')).rejects.toMatchObject({ reason: 'consent_required' });
+      setup({ consent: { accepted: true }, mode: 'wallet' });
+      expect(await assertSharedAiAllowed('gv-ngoai')).toBe('owner_consent');
+      setup({}, { enabled: true, sharedUids: ['gv-ngoai'], exemptUids: [] });
+      expect(await assertSharedAiAllowed('gv-ngoai')).toBe('shared');
+    });
+
+    it('API: chọn ví lần đầu bắt buộc tích đồng ý (và ghi luôn sự đồng ý); chế độ lạ bị từ chối; trạng thái trả chế độ thực áp dụng', async () => {
+      setup({ geminiKey: OWN_KEY, keyStatus: 'ok' });
+      expect((await callApi({ action: 'aiKeyStatus' })).payload).toMatchObject({ mode: 'own', consent: false });
+      expect((await callApi({ action: 'setAiMode', mode: 'giữa' })).statusCode).toBe(422);
+      expect((await callApi({ action: 'setAiMode', mode: 'wallet' })).statusCode).toBe(422);
+      expect(h.store['teacherAiKeys/gv-ngoai'].mode).toBeUndefined();
+
+      const chosen = await callApi({ action: 'setAiMode', mode: 'wallet', accepted: true });
+      expect(chosen.payload).toMatchObject({ mode: 'wallet', consent: true });
+      // Đã đồng ý rồi thì đổi qua lại không cần tích lại
+      expect((await callApi({ action: 'setAiMode', mode: 'both' })).payload).toMatchObject({ mode: 'both' });
+      expect((await callApi({ action: 'setAiMode', mode: 'own' })).payload).toMatchObject({ mode: 'own', consent: true });
+    });
+
+    it('thu hồi đồng ý (đường cũ) đưa về chỉ-khoá-riêng; chọn ví mà consent đã mất thì vẫn là chỉ-khoá-riêng', async () => {
+      setup({ geminiKey: OWN_KEY, keyStatus: 'ok', consent: { accepted: true }, mode: 'wallet' });
+      expect((await callApi({ action: 'setAiConsent', accepted: false })).payload).toMatchObject({ mode: 'own', consent: false });
+      setup({ consent: { accepted: false }, mode: 'wallet' });
+      expect((await callApi({ action: 'aiKeyStatus' })).payload).toMatchObject({ mode: 'own' });
+    });
+
+    it('người trong nhóm chọn ví không cần đồng ý', async () => {
+      setup({}, { enabled: true, sharedUids: ['gv-ngoai'], exemptUids: [] });
+      expect((await callApi({ action: 'setAiMode', mode: 'wallet' })).payload).toMatchObject({ mode: 'wallet', shared: true });
+    });
   });
 
   it('lượt dùng khoá riêng KHÔNG cộng vào sổ chi tiêu', async () => {
