@@ -4,7 +4,8 @@
  */
 import type { AssignmentDoc, StudentProfileDoc, SubmissionDoc } from './types';
 import type { StudentScoreView } from './scoreBook';
-import { buildParentSafeReport, type ParentSafeReport } from './parentSafeReport';
+import { buildParentSafeReport, validScorePair, type ParentSafeReport } from './parentSafeReport';
+import type { EvidenceQuestion, EvidenceSubmission } from './parentRequirements';
 import type { ParentCompetencyItem, ParentCompetencySummary, ParentReportPrintInput } from './parentReportPrintDoc';
 import { buildStudentCompetencyPortfolio, portfolioProgress } from './competency/portfolioModel';
 import { asCompetencyGrade } from './competency/framework';
@@ -53,9 +54,83 @@ export interface PeriodParentReport {
   report: ParentSafeReport;
   /** Đầu vào bản in (chưa có nhận xét giáo viên). */
   printInput: Omit<ParentReportPrintInput, 'teacherComment'>;
-  /** Số liệu an toàn gửi AI soạn nháp nhận xét — không có họ tên, đáp án hay ghi chú nội bộ. */
+  /** Số liệu an toàn gửi AI soạn nháp nhận xét — không có họ tên hay ghi chú nội bộ. */
   facts: Record<string, unknown>;
+  /** Từng câu của các bài đã duyệt trong kì — căn cứ để ghép vào yêu cầu cần đạt. */
+  evidence: EvidenceSubmission[];
 }
+
+// Trần để một lượt AI xong trong ~50s và dữ liệu gửi đi < 60k kí tự (tháng thực tế ~90 câu mất ~25s).
+const MAX_EVIDENCE_SUBMISSIONS = 16;
+const MAX_QUESTIONS_PER_SUBMISSION = 12;
+const MAX_EVIDENCE_QUESTIONS = 120;
+const MAX_EVIDENCE_CHARS = 45_000;
+const QUESTION_RESULT_LABEL: Record<string, string> = {
+  correct: 'đúng', partially_correct: 'đúng một phần', incorrect: 'sai', unreadable: 'không đọc được', not_attempted: 'bỏ trống',
+};
+/** Lấy `count` phần tử rải đều từ đầu tới cuối (giữ thứ tự) — báo cáo kì/năm không chỉ nhìn mấy bài cuối. */
+const spreadEvenly = <T,>(items: readonly T[], count: number): T[] => {
+  if (items.length <= count) return [...items];
+  if (count <= 1) return items.slice(-1);
+  return Array.from({ length: count }, (_, i) => items[Math.round((i * (items.length - 1)) / (count - 1))]);
+};
+
+const clip = (value: unknown, max: number): string | undefined => {
+  const text = typeof value === 'string' ? value.replace(/\s+/g, ' ').trim() : '';
+  return text ? text.slice(0, max) : undefined;
+};
+
+/**
+ * Lượt ĐÃ DUYỆT gần nhất của mỗi bài trong kì → danh sách câu có điểm. Bài chấm trước khi có chi tiết câu
+ * thì cả bài là một "câu". Không có tên học sinh; ghi chú nội bộ của giáo viên không đưa vào.
+ */
+export const buildRequirementEvidence = (
+  submissions: readonly SubmissionDoc[],
+  assignments: readonly AssignmentDoc[],
+): EvidenceSubmission[] => {
+  const titles = new Map(assignments.map(a => [a.id, a.title]));
+  const latest = new Map<string, SubmissionDoc>();
+  for (const submission of [...submissions].sort((l, r) => String(r.createdAt).localeCompare(String(l.createdAt)))) {
+    if (!validScorePair(submission)) continue;
+    const key = submission.assignmentId || `self:${submission.id}`;
+    if (!latest.has(key)) latest.set(key, submission);
+  }
+  const questionCount = (s: SubmissionDoc) => Math.min(MAX_QUESTIONS_PER_SUBMISSION, Math.max(1, s.grade?.questionResults?.length ?? 1));
+  const ordered = [...latest.values()].sort((l, r) => String(l.createdAt).localeCompare(String(r.createdAt)));
+  let chosen = spreadEvenly(ordered, MAX_EVIDENCE_SUBMISSIONS);
+  while (chosen.length > 1 && chosen.reduce((sum, s) => sum + questionCount(s), 0) > MAX_EVIDENCE_QUESTIONS) {
+    chosen = spreadEvenly(ordered, chosen.length - 1);
+  }
+  // Dữ liệu vẫn quá dài thì cắt ngắn chữ từng câu dần, thay vì để máy chủ từ chối cả lượt.
+  for (const scale of [1, 0.6, 0.35]) {
+    const built = buildEvidenceRows(chosen, titles, scale);
+    if (JSON.stringify(built).length <= MAX_EVIDENCE_CHARS || scale === 0.35) return built;
+  }
+  return [];
+};
+
+const buildEvidenceRows = (chosen: readonly SubmissionDoc[], titles: ReadonlyMap<string, string>, scale: number): EvidenceSubmission[] => {
+  const n = (max: number) => Math.max(40, Math.round(max * scale));
+  return chosen
+    .map((submission, index) => {
+      const ma = `b${index + 1}`;
+      const grade = submission.grade!;
+      const details = (grade.questionResults ?? []).filter(q => Number.isFinite(q.score) && Number.isFinite(q.maxScore) && q.maxScore > 0);
+      const cau: EvidenceQuestion[] = details.length > 0
+        ? details.slice(0, MAX_QUESTIONS_PER_SUBMISSION).map((q, qi) => ({
+          ma: `${ma}q${qi + 1}`,
+          diem: q.score,
+          toiDa: q.maxScore,
+          ketQua: QUESTION_RESULT_LABEL[q.status] ?? q.status,
+          loi: clip(q.errorType, 80),
+          giaiThich: clip(q.explanation, n(200)),
+          dapAn: clip(q.expectedAnswer, n(110)),
+          baiLam: scale === 1 ? clip(q.studentAnswer, 110) : undefined,
+        }))
+        : [{ ma, diem: grade.score, toiDa: grade.maxScore, ketQua: 'cả bài', giaiThich: clip([...(grade.strengths ?? []), ...(grade.weaknesses ?? [])].join('; '), 300) }];
+      return { ma, ten: (submission.assignmentId && titles.get(submission.assignmentId)) || 'Bài tự nộp', ngay: vnDay(submission.createdAt), cau };
+    });
+};
 
 const round1 = (value: number | null): number | null => (value === null ? null : Math.round(value * 10) / 10);
 
@@ -94,6 +169,7 @@ export const buildPeriodParentReport = (src: ParentReportSource, period: ReportP
     monthly,
   };
 
+  const evidence = buildRequirementEvidence(scoped.submissions, scoped.assignments);
   const facts: Record<string, unknown> = {
     loaiBaoCao: title,
     thoiGian: period ? rangeLabel(period) : 'Từ đầu năm học tới nay',
@@ -110,5 +186,7 @@ export const buildPeriodParentReport = (src: ParentReportSource, period: ReportP
     ...(competency && competency.items.length > 0 ? { nangLuc: competency.items.slice(0, 12).map(i => `${i.topic}: ${i.level}`) } : {}),
   };
 
-  return { report, printInput, facts };
+  if (evidence.length > 0) facts.baiDaDuyet = evidence;
+
+  return { report, printInput, facts, evidence };
 };

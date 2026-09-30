@@ -134,5 +134,28 @@ describe('buildParentReportPrintDoc', () => {
     expect(html).not.toContain('Nhận xét của giáo viên');
     expect(html).not.toContain('So sánh để thấy tiến bộ');
   });
+
+  it('có kết quả theo YCCĐ thì thay danh sách chủ đề: nhóm theo chủ đề, mức, ghi chú đã escape, số câu căn cứ', () => {
+    const html = buildParentReportPrintDoc({
+      report, studentName: 'An', className: '10A',
+      requirements: [
+        { id: 'T10.03', level: 'chua', evidence: 3, percent: 33.3, note: 'Nhầm giao với hợp <b>' },
+        { id: 'T10.01', level: 'vung', evidence: 2, percent: 100, note: '' },
+      ],
+    });
+    expect(html).toContain('Kết quả theo yêu cầu cần đạt');
+    expect(html).not.toContain('✅ Điểm mạnh');
+    expect(html.indexOf('Đại số · Mệnh đề')).toBeLessThan(html.indexOf('Đại số · Tập hợp và các phép toán trên tập hợp'));
+    expect(html).toContain('Nhầm giao với hợp &lt;b&gt;');
+    expect(html).toContain('Căn cứ: 3 câu · đạt 33%');
+    expect(html).toContain('Chưa đạt: 1');
+  });
+
+  it('chưa có kết quả theo YCCĐ: danh sách chủ đề cũ, mỗi cột tối đa 6 dòng', () => {
+    const many = { ...report, strengths: Array.from({ length: 10 }, (_, i) => `Mạnh ${i}`), areasToPractice: [] };
+    const html = buildParentReportPrintDoc({ report: many, studentName: 'An', className: '10A', requirements: [] });
+    expect(html).toContain('Mạnh 5');
+    expect(html).not.toContain('Mạnh 6');
+  });
 });
 

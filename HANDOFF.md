@@ -5,6 +5,28 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Hai mail admin = MỘT tài khoản (gộp phiên) — 2026-09-30
+
+Chủ dự án chốt: `congapro60@gmail.com` (chính, `PRIMARY_ADMIN_EMAIL`) và `cuong.vuviet@thedeweyschools.edu.vn` đồng bộ hết. Đăng nhập Google bằng mail phụ → `useAuth` gọi action `linkAdminSession` (`api/_admin-link.ts`, gộp trong `classroom`) → máy chủ xác minh (email_verified, provider google.com, email trong `ADMIN_EMAILS`, không phải mail chính) rồi cấp custom token của uid chính → `signInWithCustomToken`; mọi dữ liệu/quy tắc/API theo uid chạy nguyên, không sao chép.
+- Claim `linkedEmail` = mail Google thật; `src/lib/adminLink.ts` nhớ nó, `googleDrive.getDriveAccessToken` dùng Auth phụ `drive-token` (không đổi phiên) với login_hint mail đó — file Drive/Sheet của trường nằm ở mail trường.
+- Dữ liệu đã tạo dưới uid riêng của mail trường trước ngày này: chủ dự án chốt BỎ (không chuyển). Chưa E2E trên production (cần đăng nhập Google thật bằng mail trường). Test: `admin-link.test.ts`, `adminLink.test.ts`.
+
+## Báo cáo PH: "Kết quả theo yêu cầu cần đạt" thay danh sách chủ đề — 2026-09-30
+
+Chủ dự án: rút gọn, viết chính xác bằng ngôn ngữ Toán học; số dòng phụ thuộc YCCĐ; căn cứ CT GDPT 2018 + SGK Kết nối tri thức + LO TDS.
+- `src/lib/curriculum/yccdToan.ts`: YCCĐ lớp 10 (75 mục, lời Chương trình TT 32/2018; mục phép toán vectơ tách theo bài SGK; `sgk` = bài KNTT, không chép chữ sách). **Lớp 11, 12 chưa có** → báo cáo khối đó vẫn chỉ soạn nhận xét như cũ.
+- Bằng chứng = từng câu của bài ĐÃ DUYỆT trong kì (`buildRequirementEvidence`, mã `b2q3`). "AI soạn nháp" (một lượt, JSON) trả nhận xét + ghép câu→YCCĐ + ghi chú; máy chủ bỏ mã bịa và TỰ TÍNH mức (≥80% Vững, ≥50% Đang hình thành) — `parentRequirements.ts`.
+- Lưu cùng nhận xét ở `parentReportNotes.requirements`; GV đổi mức/sửa ghi chú/bỏ dòng (`RequirementLinesEditor`). PDF + xuất cả lớp dùng bản đã lưu; chưa có thì danh sách chủ đề cũ cắt còn 6.
+- **Bẫy đã sửa (QA Codex 30/09):** lượt AI JSON có từng câu + 75 YCCĐ chạy lâu hơn 15s → Vercel 504. `api/classroom.ts` maxDuration 15→60; gọi AI có `timeoutMs` 50s, quá giờ trả 504 kèm lời dặn (lỗi khoá/ví vẫn ném lên như cũ).
+- QA Codex 30/09 (`.qa/yccd-report-2026-09-30/CODEX-QA-RESULT.md`): 6/9 dòng đúng; sửa 3 lỗi — ghi chú trái mức (T10.06), bỏ sót câu làm ĐÚNG → mức thấp oan (T10.29), PDF còn trỏ "Cần rèn thêm". AI trả mỗi YCCĐ một mục {ma, cau[], ghiChu}; bằng chứng rải đều cả kì, ≤120 câu, ≤45k kí tự. Bản đó chạy 51,7s → 504 nên **chia lượt**: 1 lượt nhận xét + các lượt ghép (≤30 câu/lượt) chạy SONG SONG, gộp câu và nối ghi chú cùng YCCĐ. **Chưa chạy lại AI thật sau bản chia lượt.**
+- Dữ liệu rút từ PDF Chương trình (pdftotext; kí hiệu font Symbol U+F022 ∀, F024 ∃, F0CC ⊂, F0C9 ⊃, F0C6 ∅, F0B0 ° phải đổi tay) rồi soát tay; nguồn: memory `nguon-yccd-lo-sgk`. Test: parentRequirements 6, builder +1, printDoc +2, API +2.
+
+## Cổng HS mở được khi trình duyệt đang đăng nhập GV/admin + 2 tài khoản admin + đọc Excel nhiều trang — 2026-09-30
+
+- **Cổng /lop chạy trên app Firebase riêng** (`STUDENT_PORTAL_APP` trong `src/lib/firebase.ts`, chọn theo `location.pathname` lúc nạp module): phiên ẩn danh HS lưu ở khoá `firebase:authUser:<apiKey>:student-portal`, không đè phiên Google GV. Phiên HS cũ (ẩn danh ở `[DEFAULT]`) được chép sang một lần → HS không phải nhập lại PIN. Vào /lop bằng điều hướng trong app → `StudentPortalPage` tự tải lại 1 lần. Đã thử dev: tách khoá đúng, chép phiên đúng, reload 1 lần không lặp. **Chưa làm:** chế độ HS của live lesson (`StudentLiveView`) vẫn chặn phiên GV (chung đường dẫn với GV nên không tách theo path được).
+- **Admin = 2 tài khoản của chủ dự án**: `ADMIN_EMAILS` thêm `cuong.vuviet@thedeweyschools.edu.vn`; `_ai-keys.ts` tra uid của mọi email admin (cache mỗi phiên máy chủ) → dùng khoá chung + miễn trừ ví như `exemptUids`. Dữ liệu (lớp, giáo án, cài đặt) VẪN tách theo từng tài khoản.
+- **Đọc Excel cho lịch năm học/PPCT** (`sheetText.ts` + `readWorkbookText`): ô lấy dạng hiển thị (ngày ra ngày, không ra số 46297), trang liên quan xếp trước rồi mới cắt theo giới hạn. File lịch thật 15 trang: AI (3.7-flash) ra 48 mục, tuần 1 = 17/8, đủ ngày nghỉ (31/8–2/9, 2/10, 24/11, 23/12–1/1, 22/1, Tết 3–10/2, 22/3, 16/4, 30/4, 3/5).
+
 ## QA độc lập của Codex trên nhánh `feat/vi-ai-chip-popup` (10 lỗi) — 2026-09-30
 
 Codex QA commit `d6174de`: 4 lệnh kiểm tra qua, kết luận CHƯA duyệt, 10 lỗi. Đã sửa hết trừ F3 (ghi rõ bên dưới), mỗi lỗi có test tái hiện.
@@ -60,6 +82,7 @@ Chủ dự án chốt: chip hiện **tiền** ("Ví 48.200đ · hôm nay −1.30
 - **Bẫy:** chip là `null` cho tới khi `aiKeyStatus` trả về (không hiện chip giả). Popup `fixed` trên điện thoại vì `Header` có `backdrop-blur` (tạo khung chứa cho phần tử `fixed`) — đừng bỏ `top-[5.25rem]`. Fake Firestore trong `ai-keys.test.ts` giờ trộn map lồng nhau như `set(merge)` thật.
 - **Chưa làm / cố ý để sau:** chế độ nguồn khoá Riêng/Ví/Cả hai + gộp trang cài đặt (GĐ2, đụng lõi tính tiền `decideAiKey`); ví cho soạn giáo án/nâng cấp/dự giờ/đề thi (GĐ3: cần đường máy chủ cho Gemini, đo giới hạn thân request 4,5MB + `maxDuration` 60s trước khi hứa); Claude/OpenAI/Grok/DeepSeek chưa có bảng giá. Cổng phụ huynh: để sau khi cổng học sinh ổn.
 - QA: popup dựng thử bằng trang tạm với dữ liệu giả ở 1100px và 375px (đã xoá trang tạm); CHƯA thử với tài khoản GV thật vì cần đăng nhập Google. Nghiệm thu: `npm run lint`, `npm run lint:api`, `npm run test -- --run` (214 file / 2317 test), `npm run build`.
+
 ## Hồ sơ năng lực HS tự điền cùng GV (+ AI soạn nháp cho GV) — 2026-09-30
 
 Chủ dự án chốt: tab "Năng lực toán học" của file mẫu đưa lên trang HS (mục riêng dưới Bảng điểm); HS sửa phần mình, GV sửa tất; xuất file: HS nền vàng, GV nền xanh (trùng mức: vàng viền xanh, chú thích ở ghi chú ô A3).
@@ -67,7 +90,8 @@ Chủ dự án chốt: tab "Năng lực toán học" của file mẫu đưa lên
 - Mỗi năng lực: mức HS tự đánh giá, Mục tiêu, Phương án, Thời gian (tháng năm học), Khó khăn, Tiến độ (Đã hoàn thành/Đang thực hiện/Chưa thực hiện — đúng danh sách chọn file mẫu), mức GV chốt (trống = mức app tính từ bài đã duyệt), Ý kiến GV.
 - Hướng dẫn: mô tả 4 mức NGUYÊN VĂN file mẫu (`levelDescriptions.ts`, 29 cái chép 30/09 + `rubric` 9 cái app bổ sung), gợi ý từng ô + nút "Gợi ý" (`portfolioGuide.ts`, không AI, chỉ điền ô trống). GV: "AI soạn nháp" (`portfolioDraftPrompt.ts`, `callAI` bằng cài đặt của GV) điền mức chốt + ý kiến + ô HS còn trống, KHÔNG đè chữ HS; GV soát rồi "Lưu hồ sơ". Đã thử Gemini thật: nháp hợp lý.
 - Xuất (`portfolioExport.ts`): thêm cột G..L, đặt lại danh sách chọn cột "Thời gian" theo năm học (file mẫu còn ghi tháng 2024–2025). Nút xuất khoá khi còn thay đổi chưa lưu.
-- **Chưa E2E trên trình duyệt**: trang HS cần phiên HS thật, trang GV cần đăng nhập GV (máy chủ mới chỉ có sau deploy). Đã render test `PortfolioEntryEditor` + test API/lõi. Nghiệm thu: `npx vitest run src/lib/classroom/competency api/__tests__/portfolio.test.ts src/components/features/classroom/PortfolioEntryEditor.test.tsx`.
+- **QA production bởi Codex (30/09)**: hồ sơ GV (nháp AI, lưu, xuất 2 màu + 9 dòng bổ sung + .xlsx) PASS; hồ sơ HS (PIN, Gợi ý, Lưu) PASS; SSM điểm LO 10Olinda F1 PASS; lịch báo giảng FAIL → đã sửa: sổ ghi "(tiết 5/6)" trong khi tin ghi "Tiết 6/7" vì tds-g10 tiết 17 ("Tiết 1: Định lý cosin") mang nhầm tên bài → `lessonPeriodNumber` ưu tiên "Tiết N" trong nội dung tiết, đếm chuỗi cùng tên chỉ là dự phòng (MOET không ghi). Còn BLOCKED: AI đọc lịch năm học (Sheet trường chặn congapro60@gmail.com — dùng tài khoản trường), fallback 3.8→3.7 chưa gặp 503 thật.
+- Trước QA: chưa E2E trên trình duyệt (trang HS cần phiên HS thật, trang GV cần đăng nhập GV). Đã render test `PortfolioEntryEditor` + test API/lõi. Nghiệm thu: `npx vitest run src/lib/classroom/competency api/__tests__/portfolio.test.ts src/components/features/classroom/PortfolioEntryEditor.test.tsx`.
 
 ## Khung năng lực khối 10 đủ theo LO SSM + xuất hồ sơ bổ sung dòng + tải .xlsx — 2026-09-30
 
@@ -173,16 +197,3 @@ Một document `scoreBooks/{classId}` (`src/lib/classroom/scoreBook.ts` thuần 
 ## Trang quản trị (GĐ2) — 2026-09-24
 
 Tab **Quản trị** chỉ hiện với `congapro60@gmail.com` (`src/lib/admin/adminConfig.ts`); máy chủ kiểm lại (email Google đã xác minh) trong `api/_admin.ts`, gắn vào endpoint `classroom` (action `admin*`, không thêm function). Chỉ ĐỌC dữ liệu giáo viên khác. Gồm: người dùng (Auth listUsers; học sinh ẩn danh chỉ đếm), lớp theo GV (bài giao/nộp/AI đã chấm, nối Sheet), cài đặt tính tiền (`adminSettings/billing`: tỷ giá — nút lấy VCB bán ra từ feed XML; tổng Google thực thu TRƯỚC bộ đếm), chi phí AI theo GV + CSV. Bảng giá `aiPricing.ts` theo NGÀY (nguồn chính thức, Flash ×2 từ 2027-01-01, 3.1 Pro >200k). `billing.ts`: quy lượt về GV chịu tiền (bài nộp→bài giao→lớp→studentLinks→người gọi), ước tính = chia tổng Google trước bộ đếm theo số lượt AI chấm (largest remainder). Test: billing 9 + admin 8 + classSetup 7. **Mục 5 "Chuẩn bị lớp từ folder Drive"** (`ClassSetupPanel`, `classSetup.ts`): quét folder `CLASS_FILES_FOLDER_ID` bằng quyền Google chủ dự án, khớp file "26-27-<Lớp>-<GV>" ↔ tài khoản (ưu tiên TK đã có lớp/đã nối file, rồi email trường), lớp đã có → `adminLinkExamSheet` (chỉ nối file), chưa có → `adminCreateClassForTeacher` (roster từ tab MOET, joinCode không trùng, chặn 409 trùng khoá lớp). Sửa kèm: thu hồi học sinh ĐẾM LẠI `studentCount`.
-
-## Đếm token AI (khoá chung) để tính tiền — GĐ1 — 2026-09-24
-
-Kế hoạch 3 GĐ ở `tasks/todo.md` (GĐ2 trang quản trị congapro60@gmail.com + bảng kê tiền; GĐ3 sổ điểm). GĐ1 xong: `api/_ai-usage.ts` ghi mỗi lượt gọi AI bằng KHOÁ CHUNG vào collection `aiUsage` (client bị rules mặc định chặn): token vào/ra/suy nghĩ/cache + model + feature + uid/email/ẩn danh + refs (classId/submissionId/assignmentId…) + day/month giờ VN. Chỉ lưu token thô — tiền tính lúc hiển thị theo bảng giá. Ngữ cảnh qua AsyncLocalStorage, token giải mã LƯỜI (chỉ khi có lượt AI). Gắn: `callGeminiVision` (ghi TRƯỚC khi ném lỗi — Google tính cả lượt bị cắt), handler `grade-homework` + `classroom`, `generate-simulation`, cổng GLM (stream bật `include_usage`). Ghi hỏng không làm hỏng lượt chấm. **Trước 2026-09-24 KHÔNG có số theo người** — chỉ ước tính từ quota/bài đã chấm, đối chiếu tổng AI Studio (project Albot, trần ₫1tr/tháng). Test: `ai-usage` 6 + toàn bộ API 257 pass.
-
-## Bản phụ huynh: báo cáo PDF chuyên nghiệp + điểm thi định kì — 2026-09-23
-
-Bản gửi phụ huynh (`StudentReport` viewMode=parent + `parentReportPrintDoc.ts`):
-- **Nội dung an toàn** từ `parentSafeReport.ts` (chỉ bài đã duyệt, không lọt số bài/đáp án): `overallSummary` (band điểm + xu hướng), điểm mạnh/cần rèn theo chủ đề, `parentActions`/`teacherActions` thuần số liệu.
-- **Xuất PDF như giáo án**: `exportParentReportToPdf` dựng node ẩn → `utils/pdfExport.ts::exportElementToPdf` (html2canvas-pro+jsPDF, `pdf.save()`) tải thẳng .pdf. KHÔNG `window.print()`/`window.open`.
-- **Thiết kế phiếu tiến độ IB** (mẫu The Dewey): bảng thông tin, dải tổng kết màu, đề mục đánh số in đậm, 3 biểu đồ SVG/CSS thuần (đồng hồ điểm có thang mức, xu hướng, tiến độ), kết quả từng bài kiểu dòng môn học. Style scope `#parent-report-pdf-root`, escape HTML.
-- **Mục "Năng lực Toán học"**: `buildStudentCompetencyPortfolio` (bài đã duyệt) → nhóm 4 mức khung trường → `ParentCompetencySummary`.
-- **Mục "Điểm thi định kì"** (từ GĐ3 đọc qua Sổ điểm, xem trên; phần dưới là cách đọc file): đọc 2 tab MOET/TDS trong **file điểm riêng của lớp** (`class.examSheet.spreadsheetId`, nối qua action `setClassExamSheet`; KHÔNG dùng `sheetSync` vì BTVN 10/12 nối file chung không có MOET/TDS — lỗi bản đầu) qua Sheets API `values:batchGet` UNFORMATTED (quyền Google GV như BTVN). `examScores.ts` khớp **Mã HS**, chỉ lấy cột "Điểm…" (MOET thang 10: KSĐN/giữa-cuối HKI-HKII; TDS Quý 1-4 + điểm chữ), BỎ cột công thức/kế hoạch nội bộ. GV bấm nút "Tải điểm thi" (tránh popup OAuth bất ngờ) → hiện mục + vào PDF. Nghiệm thu: examScores 6 + parentReportPrintDoc 7 test; smoke live PDF có điểm thi; `lint`+`build` OK. GV dán link file `26-27-<lớp>` 1 lần/lớp (app kiểm có tab MOET/TDS mới lưu). Test API `classroom-sheet-sync` +3.

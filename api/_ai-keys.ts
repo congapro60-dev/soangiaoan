@@ -27,6 +27,7 @@ import {
   type AiKeyMode,
   type AiKeyStatus,
 } from '../src/lib/admin/aiKeyPolicy.js';
+import { ADMIN_EMAILS } from '../src/lib/admin/adminConfig.js';
 
 type Db = FirebaseFirestore.Firestore;
 type Body = Record<string, unknown>;
@@ -108,9 +109,23 @@ const assertUnderCap = async (db: Db, uid: string, keyDoc: TeacherKeyDoc | null,
 const withCap = (billing: AiKeyChoice['billing'], keyDoc: TeacherKeyDoc | null): AiKeyChoice['billing'] =>
   (billing ? { ...billing, capVnd: typeof keyDoc?.monthlyCapVnd === 'number' && keyDoc.monthlyCapVnd > 0 ? keyDoc.monthlyCapVnd : null } : billing);
 
+/**
+ * uid các tài khoản admin (chủ dự án, `ADMIN_EMAILS`) — tra theo email một lần mỗi phiên máy chủ.
+ * Chủ dự án có nhiều tài khoản thì tài khoản nào cũng dùng khoá chung và miễn trừ ví, khỏi nhập uid tay.
+ */
+let adminUidsCache: Promise<Set<string>> | null = null;
+const adminUids = (): Promise<Set<string>> => {
+  // Bọc trong `then` để lỗi ném đồng bộ (vd môi trường không có getUserByEmail) cũng thành "không có admin".
+  adminUidsCache ??= Promise.resolve()
+    .then(() => Promise.all(ADMIN_EMAILS.map(email => getAuth().getUserByEmail(email).then(u => u.uid).catch(() => null))))
+    .then(uids => new Set(uids.filter((uid): uid is string => Boolean(uid))))
+    .catch(() => new Set<string>());
+  return adminUidsCache;
+};
+
 /** Lượt dùng khoá chung có bị trừ ví không: chỉ khi đã bật kiểm soát và người chịu phí không phải chủ dự án. */
 const billingFor = async (db: Db, access: AiAccessSettings, uid: string): Promise<AiKeyChoice['billing']> => {
-  if (!access.enabled || access.exemptUids.includes(uid)) return null;
+  if (!access.enabled || access.exemptUids.includes(uid) || (await adminUids()).has(uid)) return null;
   const plan = await billingPlanFor(db, uid);
   if (!plan) throw new AiKeyRequiredError('no_balance', uid);
   return plan;
@@ -155,7 +170,7 @@ export const ensureGeminiKey = async (fallbackKey: string): Promise<AiKeyChoice>
 
   const decision = decideAiKey({
     gateEnabled: true,
-    isShared: access.sharedUids.includes(ownerUid),
+    isShared: access.sharedUids.includes(ownerUid) || (await adminUids()).has(ownerUid),
     ownKey: keyDoc?.geminiKey ? { status: keyDoc.keyStatus ?? 'ok', statusAt: keyDoc.keyStatusAt } : null,
     consent: keyDoc?.consent?.accepted === true,
     mode: keyDoc?.mode,

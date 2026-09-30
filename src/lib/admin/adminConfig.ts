@@ -2,7 +2,11 @@
  * Quyền quản trị của CHỦ DỰ ÁN. Dùng chung cho giao diện (ẩn/hiện tab) và máy chủ (kiểm thật).
  * Giao diện chỉ để ẩn tab — quyền thật luôn được kiểm lại ở máy chủ bằng token Google đã xác minh.
  */
-export const ADMIN_EMAILS: readonly string[] = ['congapro60@gmail.com'];
+/** Hai tài khoản của CÙNG chủ dự án (mail cá nhân + mail trường) — quyền như nhau, kể cả miễn trừ ví AI. */
+export const ADMIN_EMAILS: readonly string[] = ['congapro60@gmail.com', 'cuong.vuviet@thedeweyschools.edu.vn'];
+
+/** Tài khoản chính: mọi mail admin khác được gộp phiên vào uid của mail này (xem api/_admin-link.ts). */
+export const PRIMARY_ADMIN_EMAIL: string = ADMIN_EMAILS[0];
 
 export const isAdminEmail = (email: string | null | undefined): boolean =>
   typeof email === 'string' && ADMIN_EMAILS.includes(email.trim().toLowerCase());

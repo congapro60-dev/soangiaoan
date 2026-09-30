@@ -15,6 +15,7 @@ vi.mock('firebase-admin/auth', () => ({
     verifyIdToken: async () => h.claims,
     getUserByEmail: async (email: string) => {
       if (email === 'co.lan@truong.vn') return { uid: 'gv-lan' };
+      if (email === 'cuong.vuviet@thedeweyschools.edu.vn') return { uid: 'admin-truong' };
       throw new Error('not found');
     },
   }),
@@ -161,6 +162,13 @@ describe('khoá AI + trần chi tiêu', () => {
     fetchMock.mockClear();
     await expect(inRequest('gv-ngoai', () => callGeminiVision('chấm', [], OWNER_KEY))).rejects.toMatchObject({ reason: 'exhausted' });
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('tài khoản admin thứ hai (mail trường) = chủ dự án: dùng khoá chung, không trừ ví, dù chưa có trong nhóm/miễn trừ', async () => {
+    h.store['adminSettings/aiAccess'] = { enabled: true, sharedUids: [], exemptUids: [] };
+    h.store['aiWallets/admin-truong'] = { balanceVnd: 0 };
+    expect(await inRequest('admin-truong', () => ensureGeminiKey(OWNER_KEY))).toEqual({ key: OWNER_KEY, source: 'shared', ownerUid: 'admin-truong', billing: null });
+    await expect(inRequest('gv-ngoai', () => ensureGeminiKey(OWNER_KEY))).rejects.toMatchObject({ reason: 'no_key' });
   });
 
   it('ví: hết số dư thì chặn; mã 100% đang hiệu lực thì dùng miễn phí (0đ); chủ dự án được miễn', async () => {

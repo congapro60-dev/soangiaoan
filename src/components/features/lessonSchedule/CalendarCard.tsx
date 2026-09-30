@@ -2,9 +2,12 @@ import { useRef, useState } from 'react';
 import { CalendarDays, Loader2, Plus, Sparkles, Trash2, Upload } from 'lucide-react';
 import type { AppData } from '../../../types';
 import { callAI } from '../../../lib/aiProviders';
-import { buildCalendarPrompt, CALENDAR_KIND_LABELS, parseCalendarResponse, type CalendarEvent, type CalendarEventKind } from '../../../lib/schedule/calendarImport';
+import { buildCalendarPrompt, CALENDAR_KIND_LABELS, MAX_CALENDAR_CHARS, parseCalendarResponse, type CalendarEvent, type CalendarEventKind } from '../../../lib/schedule/calendarImport';
 import { parseGoogleLink } from '../../../lib/schedule/googleLink';
 import { readFileText, readGoogleLinkText } from '../../../lib/schedule/sourceText';
+import { CALENDAR_SHEET_HINT } from '../../../lib/schedule/sheetText';
+
+const HINT = { sheetHint: CALENDAR_SHEET_HINT, budget: MAX_CALENDAR_CHARS };
 import { Card, Notice, btn, btnPrimary, errorText, input, small, todayIso, vnDate, type ShowToast } from './ui';
 
 interface Props {
@@ -51,7 +54,7 @@ export const CalendarCard = ({ events, sourceName, settings, onChange, onSuggest
   const onPickLink = () => {
     const g = parseGoogleLink(link);
     if (!g) { setError('Link chưa đúng — dán link Google Sheet, Google Docs hoặc file trên Google Drive.'); return; }
-    void readWithAi(() => readGoogleLinkText(g));
+    void readWithAi(() => readGoogleLinkText(g, HINT));
   };
 
   const patch = (i: number, p: Partial<CalendarEvent>) =>
@@ -65,7 +68,7 @@ export const CalendarCard = ({ events, sourceName, settings, onChange, onSuggest
       right={events.length > 0 ? <button type="button" className={btn} onClick={() => setOpen(!open)}>{open ? 'Thu gọn' : `Xem ${events.length} mục`}</button> : undefined}>
       <div className="flex flex-wrap gap-2">
         <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv,.ods,.docx,.pdf,.txt" className="hidden"
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) void readWithAi(async () => ({ name: f.name, text: await readFileText(f) })); e.target.value = ''; }} />
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) void readWithAi(async () => ({ name: f.name, text: await readFileText(f, HINT) })); e.target.value = ''; }} />
         <button type="button" className={btn} disabled={!!busy} onClick={() => fileRef.current?.click()}><Upload className="h-4 w-4" /> Tải file lịch</button>
         <div className="flex min-w-[16rem] flex-1 gap-1">
           <input className={`${input} flex-1`} value={link} onChange={(e) => setLink(e.target.value)} placeholder="…hoặc dán link Google Sheet / Docs / Drive" />

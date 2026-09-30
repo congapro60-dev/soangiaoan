@@ -10,14 +10,33 @@ import { teacherContext } from './_classroom-teacher.js';
 import { setAiKeyOwner } from './_ai-usage.js';
 import { callGeminiVision, getGradingApiKey, GRADING_MODEL } from './_grading-core.js';
 import { REPORT_KINDS, type ReportKind } from '../src/lib/classroom/reportKinds.js';
+import {
+  aggregateRequirementLines, sanitizeRequirementLines, yccdOptionsForPrompt,
+  type EvidenceSubmission, type ParentRequirementLine,
+} from '../src/lib/classroom/parentRequirements.js';
 
 type Db = FirebaseFirestore.Firestore;
 type Body = Record<string, unknown>;
 
 export const PARENT_REPORT_NOTES_COL = 'parentReportNotes';
 const MAX_NOTE_CHARS = 3000;
-const MAX_FACTS_CHARS = 5000;
+// Có từng câu của các bài đã duyệt (căn cứ ghép yêu cầu cần đạt) nên dài hơn bản chỉ có số tổng.
+const MAX_FACTS_CHARS = 60000;
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+// Hàm `classroom` bị Vercel dừng ở 60s (vercel.json); chừa ~10s để trả lời rõ ràng thay vì lỗi 504 trần.
+const AI_TIMEOUT_MS = 50_000;
+const AI_SLOW_MESSAGE = 'AI soạn báo cáo quá lâu nên máy chủ đã dừng. Bấm "AI soạn nháp" lại một lần nữa.';
+
+/** Gọi AI; hết giờ chờ thì trả null (để báo lỗi rõ), lỗi khác (khoá, ví, Gemini) vẫn ném lên như mọi action. */
+const callWithinTime = async (call: () => Promise<string>): Promise<string | null> => {
+  const startedAt = Date.now();
+  try {
+    return await call();
+  } catch (error) {
+    if (Date.now() - startedAt >= AI_TIMEOUT_MS - 1000) return null;
+    throw error;
+  }
+};
 
 interface NoteKey {
   studentId: string;
@@ -52,6 +71,86 @@ export const buildParentCommentPrompt = (factsJson: string): string => [
   '- Chỉ trả về đoạn văn thuần: không tiêu đề, không gạch đầu dòng, không markdown, không lời chào/ký tên.',
 ].join('\n');
 
+/**
+ * Ghép câu → YCCĐ cho MỘT nhóm bài (các nhóm chạy song song để cả lượt xong trong trần thời gian của hàm).
+ * Mỗi YCCĐ một mục: câu căn cứ và ghi chú đi cùng nhau. Mức không do AI quyết (`aggregateRequirementLines`).
+ */
+export const buildRequirementMappingPrompt = (evidenceJson: string, yccdOptions: string): string => [
+  'Bạn là giáo viên môn Toán THPT ở Việt Nam, đối chiếu bài làm đã chấm của một học sinh với YÊU CẦU CẦN ĐẠT.',
+  'Bài đã duyệt (JSON) — mỗi câu có: mã câu, điểm/tối đa, kết quả, loại lỗi, giải thích của lượt chấm, đáp án/mốc chấm, trích bài làm:',
+  evidenceJson,
+  '',
+  'Danh sách YÊU CẦU CẦN ĐẠT của khối (Chương trình GDPT 2018 môn Toán) — mỗi dòng "mã | chủ đề: yêu cầu":',
+  yccdOptions,
+  '',
+  'Trả về DUY NHẤT một JSON đúng dạng: {"yccd": [{"ma": "T10.05", "cau": ["b1q2", "b3q1"], "ghiChu": "..."}]}',
+  '',
+  '1) Mỗi yêu cầu cần đạt mà các câu trên kiểm tra là MỘT mục; "cau" là mọi câu trực tiếp kiểm tra yêu cầu đó.',
+  '   - Ghép cả câu làm ĐÚNG/đạt điểm tối đa, không chỉ câu sai: bỏ sót câu đúng làm mức của em bị thấp oan.',
+  '     Câu đúng thường có giải thích ngắn — dựa vào đáp án, bài làm và tên bài để biết nó kiểm tra gì.',
+  '   - Chọn đúng MỨC của yêu cầu: câu phải giải/tính/biểu diễn/vận dụng thì ghép vào yêu cầu "giải được/biểu diễn được/vận dụng được",',
+  '     KHÔNG ghép vào yêu cầu "nhận biết được" chỉ vì cùng chủ đề. Một câu thường thuộc 1 yêu cầu, tối đa 2.',
+  '   - Câu thật sự không biết kiểm tra gì thì bỏ qua. Chỉ dùng mã có trong danh sách; không tạo mã mới.',
+  '2) "ghiChu" của mỗi mục: một câu (≤ 30 chữ) chỉ ra CHÍNH XÁC em làm tốt hoặc sai ở đâu, dùng thuật ngữ Toán học chuẩn để',
+  '   gia sư/giáo viên khác đọc là biết cần dạy lại gì. Ví dụ: "Nhầm chiều khi áp dụng quy tắc hiệu: viết vectơ AB − vectơ AC = vectơ BC',
+  '   thay vì vectơ CB." hoặc "Lập đúng bảng biến thiên, xác định đúng đỉnh và trục đối xứng của parabol."',
+  '   Ghi chú PHẢI KHỚP kết quả chính các câu trong "cau" của mục đó: phần lớn điểm bị mất → nêu lỗi cụ thể (không khen);',
+  '   phần lớn đạt điểm → nêu điều làm tốt; lẫn lộn → nêu cả hai, lỗi trước. Không viết "tốt" khi các câu đó đa số sai.',
+  '   Không nhắc số câu/số bài, không nêu đáp án đầy đủ, không dùng LaTeX hay markdown (viết kí hiệu bằng chữ hoặc Unicode: √, ², ≤, ∈, °).',
+  '   Chỉ viết điều có trong dữ liệu; không có gì cụ thể thì để chuỗi rỗng.',
+].join('\n');
+
+/** Mỗi lượt ghép tối đa chừng này câu — ~90 câu một lượt mất ~25–50s, chia nhỏ chạy song song còn ~15s. */
+const QUESTIONS_PER_MAPPING_CALL = 30;
+
+export const chunkEvidence = (evidence: readonly EvidenceSubmission[], maxQuestions = QUESTIONS_PER_MAPPING_CALL): EvidenceSubmission[][] => {
+  const chunks: EvidenceSubmission[][] = [];
+  let current: EvidenceSubmission[] = [];
+  let count = 0;
+  for (const submission of evidence) {
+    if (current.length > 0 && count + submission.cau.length > maxQuestions) {
+      chunks.push(current);
+      current = [];
+      count = 0;
+    }
+    current.push(submission);
+    count += submission.cau.length;
+  }
+  if (current.length > 0) chunks.push(current);
+  return chunks;
+};
+
+const readEvidence = (facts: unknown): EvidenceSubmission[] => {
+  const rows = facts && typeof facts === 'object' ? (facts as Record<string, unknown>).baiDaDuyet : null;
+  if (!Array.isArray(rows)) return [];
+  return rows.flatMap(row => {
+    if (!row || typeof row !== 'object' || !Array.isArray((row as EvidenceSubmission).cau)) return [];
+    const submission = row as EvidenceSubmission;
+    return [{
+      ma: String(submission.ma ?? ''),
+      ten: String(submission.ten ?? ''),
+      ngay: String(submission.ngay ?? ''),
+      cau: submission.cau.map(q => ({ ...q, ma: String(q?.ma ?? ''), diem: Number(q?.diem), toiDa: Number(q?.toiDa), ketQua: String(q?.ketQua ?? '') })),
+    }];
+  });
+};
+
+const parseDraftJson = (raw: string): Record<string, unknown> | null => {
+  const start = raw.indexOf('{');
+  const end = raw.lastIndexOf('}');
+  if (start < 0 || end <= start) return null;
+  try {
+    const parsed = JSON.parse(raw.slice(start, end + 1));
+    return parsed && typeof parsed === 'object' ? parsed as Record<string, unknown> : null;
+  } catch {
+    return null;
+  }
+};
+
+const cleanComment = (value: unknown): string => (
+  typeof value === 'string' ? value.replace(/^#+\s.*$/gm, '').replace(/\*\*/g, '').trim().slice(0, MAX_NOTE_CHARS) : ''
+);
+
 const handleGetNote = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
   const context = await teacherContext(db, body, res);
   if (!context) return;
@@ -59,7 +158,11 @@ const handleGetNote = async (db: Db, body: Body, res: VercelResponse): Promise<v
   if ('error' in key) return void res.status(422).json({ error: key.error });
   const snap = await db.collection(PARENT_REPORT_NOTES_COL).doc(noteDocId(context.classId, key)).get();
   const data = snap.exists ? snap.data() ?? {} : {};
-  res.status(200).json({ text: typeof data.text === 'string' ? data.text : '', updatedAt: data.updatedAt ?? null });
+  res.status(200).json({
+    text: typeof data.text === 'string' ? data.text : '',
+    requirements: sanitizeRequirementLines(context.classData.grade, data.requirements),
+    updatedAt: data.updatedAt ?? null,
+  });
 };
 
 const handleSaveNote = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
@@ -68,11 +171,12 @@ const handleSaveNote = async (db: Db, body: Body, res: VercelResponse): Promise<
   const key = readKey(body);
   if ('error' in key) return void res.status(422).json({ error: key.error });
   const text = typeof body.text === 'string' ? body.text.trim().slice(0, MAX_NOTE_CHARS) : '';
+  const requirements = sanitizeRequirementLines(context.classData.grade, body.requirements);
   const updatedAt = new Date().toISOString();
   await db.collection(PARENT_REPORT_NOTES_COL).doc(noteDocId(context.classId, key)).set({
-    classId: context.classId, ...key, text, updatedAt, updatedBy: context.uid,
+    classId: context.classId, ...key, text, requirements, updatedAt, updatedBy: context.uid,
   });
-  res.status(200).json({ text, updatedAt });
+  res.status(200).json({ text, requirements, updatedAt });
 };
 
 const handleDraft = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
@@ -84,13 +188,45 @@ const handleDraft = async (db: Db, body: Body, res: VercelResponse): Promise<voi
   if (factsJson.length > MAX_FACTS_CHARS) return void res.status(422).json({ error: 'Dữ liệu báo cáo quá dài.' });
   // Lượt AI tính cho giáo viên chủ lớp (như chấm bài), không phải người bấm.
   setAiKeyOwner(String(context.classData.teacherId || context.uid));
-  const raw = await callGeminiVision(buildParentCommentPrompt(factsJson), [], getGradingApiKey(), GRADING_MODEL, {
-    temperature: 0.4,
-    maxOutputTokens: 'model-max',
-  });
-  const text = raw.replace(/^#+\s.*$/gm, '').replace(/\*\*/g, '').trim().slice(0, MAX_NOTE_CHARS);
-  if (!text) return void res.status(502).json({ error: 'AI chưa soạn được nhận xét, thử lại.' });
-  res.status(200).json({ text });
+  const grade = context.classData.grade;
+  const yccdOptions = yccdOptionsForPrompt(grade);
+  const evidence = readEvidence(body.facts);
+  // Khối chưa có bảng yêu cầu cần đạt hoặc kì không có bài đã duyệt → chỉ soạn nhận xét như cũ.
+  if (!yccdOptions || evidence.length === 0) {
+    const raw = await callWithinTime(() => callGeminiVision(buildParentCommentPrompt(factsJson), [], getGradingApiKey(), GRADING_MODEL, {
+      temperature: 0.4,
+      maxOutputTokens: 'model-max',
+      timeoutMs: AI_TIMEOUT_MS,
+    }));
+    if (raw === null) return void res.status(504).json({ error: AI_SLOW_MESSAGE });
+    const text = cleanComment(raw);
+    if (!text) return void res.status(502).json({ error: 'AI chưa soạn được nhận xét, thử lại.' });
+    return void res.status(200).json({ text, requirements: [] as ParentRequirementLine[] });
+  }
+  // Nhận xét (lượt ngắn, không kèm từng câu) + ghép từng nhóm bài — tất cả chạy song song.
+  const overview = { ...(body.facts as Record<string, unknown>) };
+  delete overview.baiDaDuyet;
+  const [commentRaw, ...mappingRaws] = await Promise.all([
+    callWithinTime(() => callGeminiVision(buildParentCommentPrompt(JSON.stringify(overview)), [], getGradingApiKey(), GRADING_MODEL, {
+      temperature: 0.4,
+      maxOutputTokens: 'model-max',
+      timeoutMs: AI_TIMEOUT_MS,
+    })),
+    ...chunkEvidence(evidence).map(chunk => callWithinTime(() => callGeminiVision(
+      buildRequirementMappingPrompt(JSON.stringify(chunk), yccdOptions), [], getGradingApiKey(), GRADING_MODEL, {
+        temperature: 0.2,
+        maxOutputTokens: 'model-max',
+        jsonMode: true,
+        timeoutMs: AI_TIMEOUT_MS,
+      }))),
+  ]);
+  if (commentRaw === null || mappingRaws.some(raw => raw === null)) return void res.status(504).json({ error: AI_SLOW_MESSAGE });
+  const text = cleanComment(commentRaw);
+  const mappings = mappingRaws.map(raw => parseDraftJson(raw as string));
+  // Một nhóm hỏng thì thiếu hẳn một phần bằng chứng → báo thử lại, không in báo cáo thiếu mà trông như đủ.
+  if (!text || mappings.some(m => m === null)) return void res.status(502).json({ error: 'AI chưa soạn được báo cáo, thử lại.' });
+  const merged = { yccd: mappings.flatMap(m => (Array.isArray(m!.yccd) ? m!.yccd : [])) };
+  res.status(200).json({ text, requirements: aggregateRequirementLines(grade, evidence, merged) });
 };
 
 export const handleParentReportAction = async (db: Db, body: Body, res: VercelResponse): Promise<boolean> => {

@@ -81,7 +81,7 @@ const uniqueText = (values: readonly unknown[]): string[] => {
   return output;
 };
 
-const validScorePair = (submission: SubmissionDoc): { score: number; maxScore: number } | null => {
+export const validScorePair = (submission: SubmissionDoc): { score: number; maxScore: number } | null => {
   const grade = submission.grade;
   if (submission.status !== 'graded' || grade?.teacherApproved !== true) return null;
   const score = typeof grade.score === 'number' && Number.isFinite(grade.score) ? grade.score : null;

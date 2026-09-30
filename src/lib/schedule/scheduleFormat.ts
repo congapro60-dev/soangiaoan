@@ -49,15 +49,27 @@ const ddmmyyyy = (iso: string): string => `${iso.slice(8, 10)}/${iso.slice(5, 7)
 const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 /** "Hình học: Hệ thức lượng trong tam giác (tiếp) – Tiết 6: Công thức tính diện tích tam giác." */
+/**
+ * Tiết thứ mấy của bài: PPCT ghi sẵn "Tiết N: …" ở nội dung tiết thì lấy đúng số đó (tên bài trong
+ * PPCT có khi ghi lệch — vd tds-g10 tiết 17 "Tiết 1: Định lý cosin" lại mang tên bài khác), không có
+ * thì đếm theo chuỗi cùng tên. Null = không đánh số (bài một tiết).
+ */
+export const lessonPeriodNumber = (lesson: PpctLesson, chains: Map<string, { index: number; count: number }>): number | null => {
+  const fromDetail = /^Tiết\s*(\d+)\b/i.exec(firstLine(lesson.detail))?.[1];
+  if (fromDetail) return Number(fromDetail);
+  const chain = chains.get(lesson.id);
+  return chain && chain.count > 1 ? chain.index : null;
+};
+
 export const describeLesson = (lesson: PpctLesson | null, chains: Map<string, { index: number; count: number }>): string => {
   if (!lesson) return '(chưa xếp bài).';
   if (lesson.isElective) return 'Tự chọn.';
-  const chain = chains.get(lesson.id);
   const detail = firstLine(lesson.detail);
   const title = cleanTitle(lesson.title);
   const subject = lesson.subject && lesson.subject.trim().toLowerCase() !== title.toLowerCase() ? `${lesson.subject}: ` : '';
+  const period = lessonPeriodNumber(lesson, chains);
   return `${subject}${title}` +
-    `${chain && chain.index > 1 ? ' (tiếp)' : ''}${detail ? ` – ${detail}` : ''}.`;
+    `${period !== null && period > 1 ? ' (tiếp)' : ''}${detail ? ` – ${detail}` : ''}.`;
 };
 
 export interface ParentWeekMessageInput {
@@ -121,8 +133,8 @@ export interface RegisterCourse {
 export const registerTitle = (lesson: PpctLesson | null, chains: Map<string, { index: number; count: number }>): string => {
   if (!lesson) return '';
   if (lesson.isElective) return 'Tự chọn';
-  const chain = chains.get(lesson.id);
-  return `${cleanTitle(lesson.title)}${chain && chain.count > 1 ? ` (tiết ${chain.index})` : ''}`;
+  const period = lessonPeriodNumber(lesson, chains);
+  return `${cleanTitle(lesson.title)}${period !== null ? ` (tiết ${period})` : ''}`;
 };
 
 /**

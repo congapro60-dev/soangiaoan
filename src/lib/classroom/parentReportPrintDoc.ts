@@ -4,6 +4,7 @@ import type { StudentExamScores } from './examScores';
 import { hs1Average, type Hs1Mark } from './scoreBook';
 import { exportElementToPdf } from '../../utils/pdfExport';
 import type { MonthPoint, PeriodComparison, ReportKind } from './reportPeriod';
+import { groupRequirementLines, parentActionsForRequirements, requirementLevelLabel, type ParentRequirementLine, type RequirementLevel } from './parentRequirements';
 
 /** Một năng lực Toán đã được đánh giá (đã có bài duyệt), rút từ hồ sơ năng lực cho bản phụ huynh. */
 export interface ParentCompetencyItem {
@@ -42,6 +43,8 @@ export interface ParentReportPrintInput {
   monthly?: MonthPoint[] | null;
   /** Nhận xét riêng của giáo viên (AI soạn nháp, giáo viên đã sửa). */
   teacherComment?: string;
+  /** Kết quả theo yêu cầu cần đạt (giáo viên đã soát). Có thì thay cho danh sách "Điểm mạnh / Cần rèn thêm". */
+  requirements?: ParentRequirementLine[] | null;
 }
 
 const ROOT_ID = 'parent-report-pdf-root';
@@ -80,6 +83,31 @@ const listItems = (items: readonly string[], emptyText: string): string =>
   items.length === 0
     ? `<p class="muted">${esc(emptyText)}</p>`
     : `<ul>${items.map(item => `<li>${esc(item)}</li>`).join('')}</ul>`;
+
+/** Danh sách chủ đề cũ (khi chưa có kết quả theo YCCĐ) chỉ in tối đa chừng này dòng mỗi cột. */
+const MAX_TOPIC_ITEMS = 6;
+
+const LEVEL_ORDER: readonly RequirementLevel[] = ['vung', 'dang', 'chua'];
+
+/**
+ * Kết quả theo yêu cầu cần đạt, nhóm theo chủ đề. Mỗi nhóm (tên chủ đề + dòng đầu) không bị cắt khi sang trang.
+ * Trả về [phần đầu giữ cùng tiêu đề mục, phần còn lại].
+ */
+const buildRequirementSection = (lines: readonly ParentRequirementLine[]): [string, string] => {
+  const groups = groupRequirementLines(lines);
+  const count = (level: RequirementLevel) => lines.filter(line => line.level === level).length;
+  const summary = `<div class="req-sum">${LEVEL_ORDER.map(level => `<span class="req-lv lv-${level}">${requirementLevelLabel(level)}: ${count(level)}</span>`).join('')}</div>
+<p class="muted" style="margin:6px 0 10px;font-size:11.5px">Đối chiếu Chương trình GDPT 2018 môn Toán. Mức do thầy cô xác nhận, gợi ý từ tỉ lệ điểm các câu đã duyệt trong kì: Vững ≥ 80% · Đang hình thành 50–79% · Chưa đạt &lt; 50%.</p>`;
+  const row = (line: ParentRequirementLine, text: string) => `<div class="req-row">
+  <span class="req-lv lv-${line.level}">${requirementLevelLabel(line.level)}</span>
+  <div class="req-body"><div class="req-text">${esc(text)}</div>${line.note ? `<div class="req-note">${esc(line.note)}</div>` : ''}<div class="req-ev">Căn cứ: ${line.evidence} câu · đạt ${Math.round(line.percent)}%</div></div>
+</div>`;
+  const blocks = groups.map(group => {
+    const [first, ...rest] = group.rows;
+    return `<div class="req-keep"><div class="req-topic">${esc(group.strand)} · ${esc(group.topic)}</div>${row(first.line, first.item.text)}</div>${rest.map(r => row(r.line, r.item.text)).join('')}`;
+  });
+  return [summary + (blocks[0] ?? ''), blocks.slice(1).join('')];
+};
 
 /** Đồng hồ điểm TB dạng thanh có thang mức (Cần cố gắng / TB / Khá / Tốt) + con trỏ tại vị trí điểm. */
 const buildMeter = (avg: number | null): string => {
@@ -315,6 +343,17 @@ const styleBlock = `
 #${ROOT_ID} .cmp-num { margin:6px 0 0; font-size:18px; font-weight:800; }
 #${ROOT_ID} .cmp-arrow { font-size:22px; font-weight:800; color:#94a3b8; }
 #${ROOT_ID} .cmp-verdict { margin:8px 0 0; font-size:12.5px; font-weight:700; color:#334155; }
+#${ROOT_ID} .req-sum { display:flex; gap:8px; flex-wrap:wrap; }
+#${ROOT_ID} .req-topic { margin:12px 0 4px; font-size:12.5px; font-weight:800; color:#1e3a8a; border-bottom:1px solid #dbe4ec; padding-bottom:3px; }
+#${ROOT_ID} .req-row { display:flex; gap:10px; align-items:flex-start; padding:6px 0; border-bottom:1px dashed #e2e8f0; }
+#${ROOT_ID} .req-lv { flex:none; display:inline-block; min-width:92px; text-align:center; border-radius:999px; padding:2px 8px; font-size:11px; font-weight:800; }
+#${ROOT_ID} .lv-vung { background:#dcfce7; color:#166534; }
+#${ROOT_ID} .lv-dang { background:#fef3c7; color:#92400e; }
+#${ROOT_ID} .lv-chua { background:#fee2e2; color:#991b1b; }
+#${ROOT_ID} .req-body { flex:1; }
+#${ROOT_ID} .req-text { font-size:12.5px; color:#1e293b; }
+#${ROOT_ID} .req-note { margin-top:3px; font-size:12px; color:#334155; font-style:italic; }
+#${ROOT_ID} .req-ev { margin-top:2px; font-size:10.5px; color:#64748b; }
 #${ROOT_ID} .teacher-note { border:1px solid #dbe4ec; border-left:5px solid #7c3aed; border-radius:8px; padding:12px 16px; font-size:13px; color:#1e293b; white-space:normal; }
 `;
 
@@ -323,7 +362,7 @@ const styleBlock = `
  * tiến độ IB: bảng thông tin, dải tổng kết, biểu đồ thống kê, mục điểm từng bài, phương án đồng hành.
  * Chỉ dùng dữ liệu đã an toàn trong ParentSafeReport — không có đáp án, ghi chú nội bộ hay điểm bài chưa duyệt.
  */
-export const buildParentReportPrintDoc = ({ report, studentName, className, studentCode, generatedOn, competency, exams, hs1, period, comparison, monthly, teacherComment }: ParentReportPrintInput): string => {
+export const buildParentReportPrintDoc = ({ report, studentName, className, studentCode, generatedOn, competency, exams, hs1, period, comparison, monthly, teacherComment, requirements }: ParentReportPrintInput): string => {
   const ngay = generatedOn ?? new Date().toLocaleDateString('vi-VN');
   const avg = report.officialAveragePercent;
   const band = avg === null ? { label: 'Chưa đủ dữ liệu', color: '#64748b' } : scoreBand(avg);
@@ -332,7 +371,8 @@ export const buildParentReportPrintDoc = ({ report, studentName, className, stud
     .filter(r => r.status === 'official' && r.score !== null && r.maxScore !== null && r.maxScore > 0)
     .map(r => (r.score as number) / (r.maxScore as number) * 100);
 
-  const bridgeNote = report.strengths.length > 0 || report.areasToPractice.length > 0
+  const hasRequirements = Boolean(requirements && requirements.length > 0);
+  const bridgeNote = !hasRequirements && (report.strengths.length > 0 || report.areasToPractice.length > 0)
     ? '<p class="muted" style="margin:10px 0 0;font-size:11.5px">Hai mục trên là tên các phần trong môn Toán. Phụ huynh không cần hiểu sâu — chỉ cần phối hợp nhắc con luyện đúng những phần thầy cô đánh dấu ở “Cần rèn thêm”.</p>'
     : '';
 
@@ -382,9 +422,11 @@ ${monthly && monthly.length >= 2 && period?.kind !== 'month' ? section('Điểm 
 
 ${hasExams || hs1Marks.length > 0 ? section(examTitle, buildExamSection(examScores, hs1Marks)) : ''}
 
-${section('Điểm mạnh &amp; phần cần rèn', `<div class="cards2">
-  <div class="card good"><h3>✅ Điểm mạnh</h3>${listItems(report.strengths, 'Chưa đủ bằng chứng chính thức.')}</div>
-  <div class="card warn"><h3>🎯 Cần rèn thêm</h3>${listItems(report.areasToPractice, 'Chưa có nội dung cần rèn được xác nhận.')}</div>
+${hasRequirements
+    ? section('Kết quả theo yêu cầu cần đạt', ...buildRequirementSection(requirements as ParentRequirementLine[]))
+    : section('Điểm mạnh &amp; phần cần rèn', `<div class="cards2">
+  <div class="card good"><h3>✅ Điểm mạnh</h3>${listItems(report.strengths.slice(0, MAX_TOPIC_ITEMS), 'Chưa đủ bằng chứng chính thức.')}</div>
+  <div class="card warn"><h3>🎯 Cần rèn thêm</h3>${listItems(report.areasToPractice.slice(0, MAX_TOPIC_ITEMS), 'Chưa có nội dung cần rèn được xác nhận.')}</div>
 </div>`)}
 ${bridgeNote}
 
@@ -398,7 +440,7 @@ ${(() => {
   })()}
 
 ${section('Cùng đồng hành với con', `<div class="cards2">
-  <div class="card home"><h3>🤝 Phụ huynh có thể làm ở nhà</h3>${listItems(report.parentActions, 'Chưa có gợi ý cụ thể.')}</div>
+  <div class="card home"><h3>🤝 Phụ huynh có thể làm ở nhà</h3>${listItems(parentActionsForRequirements(report.parentActions, requirements), 'Chưa có gợi ý cụ thể.')}</div>
   <div class="card school"><h3>🎓 Thầy cô sẽ hỗ trợ</h3>${listItems(report.teacherActions, 'Chưa có gợi ý cụ thể.')}</div>
 </div>`)}
 
@@ -431,7 +473,7 @@ export async function exportParentReportToPdf(input: ParentReportPrintInput, out
       output,
       filename: parentReportFileName(input),
       // Giữ nguyên khối, không cắt ngang thẻ/biểu đồ khi sang trang.
-      noBreakSelectors: ['h1', 'h2', 'h3', 'svg', 'table', 'tr', '.subject', '.tile', '.card', '.verdict', '.lead', '.sec-head', '.exam-block', '.comp-row', '.cmp', '.teacher-note', '.sec-keep'],
+      noBreakSelectors: ['h1', 'h2', 'h3', 'svg', 'table', 'tr', '.subject', '.tile', '.card', '.verdict', '.lead', '.sec-head', '.exam-block', '.comp-row', '.cmp', '.teacher-note', '.sec-keep', '.req-keep', '.req-row'],
     });
   } finally {
     root.remove();

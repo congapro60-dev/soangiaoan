@@ -5,7 +5,8 @@ import { PPCT_GRADES, PPCT_SOURCE_LABELS, type PpctLesson, type PpctSource } fro
 import { callAI } from '../../../lib/aiProviders';
 import { slotKey } from '../../../lib/schedule/lessonCalendar';
 import { parseGoogleLink } from '../../../lib/schedule/googleLink';
-import { buildPpctPrompt, parsePpctResponse } from '../../../lib/schedule/ppctImport';
+import { MAX_PPCT_CHARS, buildPpctPrompt, parsePpctResponse } from '../../../lib/schedule/ppctImport';
+import { PPCT_SHEET_HINT } from '../../../lib/schedule/sheetText';
 import { classOptions, classTimetables, defaultClassLabel, guessGrade, type PlanClass, type PlanPpct, type SchedulePlan } from '../../../lib/schedule/schedulePlan';
 import { readFileText, readGoogleLinkText } from '../../../lib/schedule/sourceText';
 import { Card, Notice, btn, btnPrimary, dayName, errorText, input, small, todayIso, type ShowToast } from './ui';
@@ -20,6 +21,8 @@ interface Props {
 }
 
 /** Môn không thuộc PPCT (chủ nhiệm, sinh hoạt…) — chỉ để bỏ tick mặc định, GV tick lại được. */
+const HINT = { sheetHint: PPCT_SHEET_HINT, budget: MAX_PPCT_CHARS };
+
 const NON_TEACHING = /chủ nhiệm|sinh hoạt|chào cờ|homeroom|morning|wrap|meeting|lunch|nap|\bsel\b/i;
 
 const ppctValue = (p: PlanPpct | null): string => (p?.kind === 'builtin' ? `${p.source}:${p.grade}` : p?.kind === 'custom' ? 'custom' : '');
@@ -50,14 +53,14 @@ const PpctImport = ({ settings, onDone }: { settings: AppData['settings']; onDon
     <div className="space-y-2 rounded-xl bg-slate-50 p-2">
       <div className="flex flex-wrap gap-2">
         <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv,.ods,.docx,.pdf,.txt" className="hidden"
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) void run(async () => ({ name: f.name, text: await readFileText(f) })); e.target.value = ''; }} />
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) void run(async () => ({ name: f.name, text: await readFileText(f, HINT) })); e.target.value = ''; }} />
         <button type="button" className={btn} disabled={!!busy} onClick={() => fileRef.current?.click()}><Upload className="h-4 w-4" /> Tải file PPCT</button>
         <div className="flex min-w-[14rem] flex-1 gap-1">
           <input className={`${input} flex-1`} value={link} onChange={(e) => setLink(e.target.value)} placeholder="…hoặc link Google Sheet / Docs / Drive" />
           <button type="button" className={btnPrimary} disabled={!!busy || !link.trim()} onClick={() => {
             const g = parseGoogleLink(link);
             if (!g) { setError('Link chưa đúng — dán link Google Sheet, Docs hoặc Drive.'); return; }
-            void run(() => readGoogleLinkText(g));
+            void run(() => readGoogleLinkText(g, HINT));
           }}><Sparkles className="h-4 w-4" /> Đọc</button>
         </div>
       </div>
