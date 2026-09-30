@@ -1231,6 +1231,7 @@ export const ClassesTab = ({ data, setData, user, showToast, focus }: ClassesTab
                     studentCode={viewingStudent.code}
                     className={selectedClass.name}
                     classGrade={selectedClass.grade}
+                    settings={data.settings}
                   />
                 </div>
               </div>

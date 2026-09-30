@@ -1,3 +1,4 @@
+import type { AppData } from '../../../types';
 import { useEffect, useMemo, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { Award, CalendarRange, ClipboardList, Download, GraduationCap, HeartHandshake, Lightbulb, Loader2, PenLine, Printer, Save, Sparkles, Target, TrendingUp } from 'lucide-react';
@@ -27,6 +28,8 @@ interface Props {
   classGrade?: string;
   /** true = bản cho người lớn đọc (giáo viên, phụ huynh). false = bản học sinh tự đọc. */
   forAdult?: boolean;
+  /** Cài đặt AI của GV — bật nút "AI soạn nháp" hồ sơ năng lực. */
+  settings?: AppData['settings'];
 }
 
 const ngay = (iso?: string) => (iso ? new Date(iso).toLocaleDateString('vi-VN') : '');
@@ -59,7 +62,7 @@ const parentScore = (score: number | null, maxScore: number | null): string => (
  * bản cho học sinh chỉ nói việc cần làm tiếp. Đưa nguyên văn bản người lớn cho trẻ đọc là
  * biến một nhận xét kỹ thuật thành lời phán về chính nó.
  */
-export const StudentReport = ({ classId, studentId, teacherId, studentName, className, studentCode, classGrade, forAdult = true }: Props) => {
+export const StudentReport = ({ classId, studentId, teacherId, studentName, className, studentCode, classGrade, forAdult = true, settings }: Props) => {
   const [submissions, setSubmissions] = useState<SubmissionDoc[]>([]);
   const [assignments, setAssignments] = useState<AssignmentDoc[]>([]);
   const [profile, setProfile] = useState<StudentProfileDoc | null>(null);
@@ -417,7 +420,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
       </div>
 
       {forAdult && competencyGrade && (
-        <CompetencyPortfolio grade={competencyGrade} submissions={submissions} assignments={assignments} studentName={studentName} studentCode={studentCode} />
+        <CompetencyPortfolio classId={classId} studentId={studentId} grade={competencyGrade} submissions={submissions} assignments={assignments} studentName={studentName} studentCode={studentCode} settings={settings} />
       )}
 
       <div className="grid gap-3 sm:grid-cols-2">

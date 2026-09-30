@@ -8,7 +8,7 @@ import { createAiUsageContext, geminiUsageCounts, recordAiUsage, runWithAiUsage 
 import { AiKeyRequiredError, aiKeyRequiredPayload, ensureGeminiKey, onOwnKeyFailure } from './_ai-keys.js';
 import { classifyGeminiKeyFailure } from '../src/lib/admin/aiKeyPolicy.js';
 
-const GEMINI_MODEL = 'gemini-3.7-flash';
+const GEMINI_MODEL = 'gemini-3.8-flash';
 const MAX_PROBLEM_TEXT_LENGTH = 2000;
 const MAX_HTML_SIZE_BYTES = 200000;
 const RATE_LIMIT_WINDOW_MS = 60_000;

@@ -48,6 +48,7 @@ import { handleScoreBookAction } from './_score-book.js';
 import { handleParentReportAction } from './_parent-report.js';
 import { handleSsmTemplateAction } from './_ssm-template.js';
 import { handleTimetableAction } from './_timetable.js';
+import { handlePortfolioAction } from './_portfolio.js';
 import { AiKeyRequiredError, aiKeyRequiredPayload, handleAiKeyAction } from './_ai-keys.js';
 import { handleAiBillingAction } from './_ai-billing.js';
 import { handleSepayWebhook } from './_ai-wallet.js';
@@ -1457,6 +1458,7 @@ async function dispatchClassroom(res: VercelResponse, body: ReturnType<typeof re
     if (await handleParentReportAction(db, body, res)) return;
     if (await handleSsmTemplateAction(body, res)) return;
     if (await handleTimetableAction(body, res)) return;
+    if (await handlePortfolioAction(db, body, res)) return;
     if (await handleAiKeyAction(db, body, res)) return;
     if (await handleAiBillingAction(db, body, res)) return;
     if (action === 'roster') return await handleRoster(db, body, res);

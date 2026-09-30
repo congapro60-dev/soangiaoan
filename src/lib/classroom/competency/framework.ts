@@ -28,6 +28,11 @@ export interface Competency {
   topic: string;
   /** Năng lực cần đạt — cột "Năng lực cần đạt" trong template. */
   competency: string;
+  /**
+   * Chỉ có ở năng lực APP BỔ SUNG (file mẫu trường chưa có dòng): 4 mô tả mức theo thứ tự
+   * COMPETENCY_LEVELS, để khi xuất hồ sơ chèn dòng mới vào bản sao cho đủ khung.
+   */
+  rubric?: readonly [string, string, string, string];
 }
 
 export const MATH_COMPETENCIES: readonly Competency[] = [
@@ -35,9 +40,100 @@ export const MATH_COMPETENCIES: readonly Competency[] = [
   { id: 'g10-tap-hop-va-menh-de', grade: 10, area: 'Đại số', topic: 'Tập hợp và mệnh đề', competency: 'Thiết lập và phát biểu các mệnh đề toán học, mệnh đề phủ định, mệnh đề đảo, điều kiện cần và đủ' },
   { id: 'g10-phep-toan-tren-tap-hop', grade: 10, area: 'Đại số', topic: 'Phép toán trên tập hợp', competency: 'Thực hiện phép toán trên các tập hợp và biểu diễn bằng biểu đồ Ven' },
   { id: 'g10-bpt-bac-nhat-hai-an', grade: 10, area: 'Đại số', topic: 'Bất phương trình bậc nhất hai ẩn', competency: 'Giải và biểu diễn miền nghiệm trên mặt phẳng tọa độ' },
+  // App bổ sung (2026-09-30) cho khớp đủ LO khối 10 trên SSM — file mẫu trường chưa có các dòng này.
+  {
+    id: 'g10-ham-so-va-do-thi', grade: 10, area: 'Đại số', topic: 'Hàm số và đồ thị',
+    competency: 'Nhận biết hàm số, tìm tập xác định, xét tính đồng biến, nghịch biến và đọc được đồ thị hàm số',
+    rubric: [
+      'Tìm đúng tập xác định, xét đúng tính đơn điệu và khai thác linh hoạt đồ thị vào bài toán thực tiễn',
+      'Tìm đúng tập xác định và tính đơn điệu nhưng khai thác đồ thị chưa đầy đủ',
+      'Hiểu khái niệm hàm số nhưng còn mắc lỗi nhỏ khi tìm tập xác định hoặc đọc đồ thị',
+      'Không nhận biết được hàm số và không đọc được đồ thị',
+    ],
+  },
   { id: 'g10-ham-so-bac-hai', grade: 10, area: 'Đại số', topic: 'Hàm số bậc hai', competency: 'Vẽ đồ thị hàm bậc hai và giải quyết bài toán thực tiễn' },
+  {
+    id: 'g10-dau-tam-thuc-bpt-bac-hai', grade: 10, area: 'Đại số', topic: 'Dấu của tam thức bậc hai và bất phương trình bậc hai',
+    competency: 'Xét dấu tam thức bậc hai, giải bất phương trình bậc hai một ẩn và phương trình quy về phương trình bậc hai',
+    rubric: [
+      'Xét dấu chính xác, giải đúng và đầy đủ bất phương trình và phương trình quy về bậc hai, vận dụng vào bài toán thực tiễn',
+      'Xét dấu và giải đúng bất phương trình nhưng trình bày chưa chặt chẽ',
+      'Hiểu cách xét dấu nhưng còn mắc lỗi khi kết luận tập nghiệm',
+      'Không xét được dấu tam thức và không giải được bất phương trình',
+    ],
+  },
+  {
+    id: 'g10-quy-tac-dem-to-hop', grade: 10, area: 'Đại số', topic: 'Quy tắc đếm, hoán vị, chỉnh hợp, tổ hợp',
+    competency: 'Vận dụng quy tắc cộng, quy tắc nhân, hoán vị, chỉnh hợp, tổ hợp để giải bài toán đếm',
+    rubric: [
+      'Phân biệt rõ và vận dụng chính xác các quy tắc, hoán vị, chỉnh hợp, tổ hợp trong bài toán đếm phức tạp',
+      'Vận dụng đúng quy tắc đếm trong bài toán cơ bản nhưng còn lúng túng khi phối hợp',
+      'Hiểu các quy tắc nhưng còn nhầm lẫn giữa chỉnh hợp và tổ hợp',
+      'Không vận dụng được quy tắc đếm vào bài toán',
+    ],
+  },
+  {
+    id: 'g10-nhi-thuc-newton', grade: 10, area: 'Đại số', topic: 'Nhị thức Newton',
+    competency: 'Khai triển nhị thức Newton với số mũ nhỏ và giải các bài toán liên quan',
+    rubric: [
+      'Khai triển chính xác và giải đúng các bài toán tìm hệ số, số hạng',
+      'Khai triển đúng nhưng giải bài toán liên quan chưa đầy đủ',
+      'Hiểu công thức nhưng còn mắc lỗi khi tính hệ số',
+      'Không khai triển được nhị thức Newton',
+    ],
+  },
+  {
+    id: 'g10-gia-tri-luong-giac-0-180', grade: 10, area: 'Hình học', topic: 'Giá trị lượng giác của góc từ 0° đến 180°',
+    competency: 'Xác định giá trị lượng giác của góc từ 0° đến 180° và vận dụng các hệ thức liên quan',
+    rubric: [
+      'Xác định chính xác giá trị lượng giác và vận dụng linh hoạt các hệ thức trong bài toán',
+      'Xác định đúng giá trị lượng giác nhưng vận dụng hệ thức chưa đầy đủ',
+      'Hiểu định nghĩa nhưng còn mắc lỗi về dấu hoặc giá trị đặc biệt',
+      'Không xác định được giá trị lượng giác của góc',
+    ],
+  },
   { id: 'g10-he-thuc-luong-tam-giac', grade: 10, area: 'Hình học', topic: 'Hệ thức lượng trong tam giác', competency: 'Áp dụng định lý sin, cos để giải tam giác' },
   { id: 'g10-vecto-va-phep-toan', grade: 10, area: 'Hình học', topic: 'Vectơ và các phép toán', competency: 'Thực hiện phép toán vectơ và giải quyết bài toán thực tiễn' },
+  {
+    id: 'g10-vecto-mat-phang-toa-do', grade: 10, area: 'Hình học', topic: 'Vectơ trong mặt phẳng tọa độ',
+    competency: 'Biểu diễn vectơ bằng tọa độ và giải các bài toán liên quan trên mặt phẳng tọa độ',
+    rubric: [
+      'Biểu diễn chính xác và giải đúng các bài toán tọa độ, kể cả bài toán thực tiễn',
+      'Tính đúng tọa độ vectơ nhưng giải bài toán liên quan chưa đầy đủ',
+      'Hiểu cách biểu diễn nhưng còn mắc lỗi khi tính toán',
+      'Không biểu diễn được vectơ bằng tọa độ',
+    ],
+  },
+  {
+    id: 'g10-pt-duong-thang', grade: 10, area: 'Hình học', topic: 'Phương trình đường thẳng',
+    competency: 'Viết phương trình đường thẳng, xác định vị trí tương đối, tính góc và khoảng cách',
+    rubric: [
+      'Viết đúng mọi dạng phương trình và giải chính xác bài toán về vị trí tương đối, góc, khoảng cách',
+      'Viết đúng phương trình nhưng giải bài toán góc, khoảng cách chưa đầy đủ',
+      'Hiểu cách viết phương trình nhưng còn mắc lỗi nhỏ',
+      'Không viết được phương trình đường thẳng',
+    ],
+  },
+  {
+    id: 'g10-pt-duong-tron', grade: 10, area: 'Hình học', topic: 'Phương trình đường tròn',
+    competency: 'Viết phương trình đường tròn, xác định tâm, bán kính và viết phương trình tiếp tuyến',
+    rubric: [
+      'Viết đúng phương trình đường tròn, tiếp tuyến và vận dụng vào bài toán thực tiễn',
+      'Viết đúng phương trình đường tròn nhưng phương trình tiếp tuyến chưa chính xác',
+      'Xác định được tâm, bán kính nhưng còn mắc lỗi khi viết phương trình',
+      'Không xác định được tâm, bán kính và không viết được phương trình',
+    ],
+  },
+  {
+    id: 'g10-ba-duong-conic', grade: 10, area: 'Hình học', topic: 'Ba đường conic',
+    competency: 'Nhận biết elip, hypebol, parabol qua phương trình chính tắc và vận dụng vào bài toán thực tiễn',
+    rubric: [
+      'Nhận biết chính xác ba đường conic, xác định đúng các yếu tố và vận dụng vào bài toán thực tiễn',
+      'Nhận biết đúng và xác định được các yếu tố cơ bản của ba đường conic',
+      'Nhận biết được nhưng còn nhầm lẫn các yếu tố',
+      'Không nhận biết được ba đường conic',
+    ],
+  },
   { id: 'g10-so-gan-dung-sai-so', grade: 10, area: 'Thống kê - Xác suất', topic: 'Số gần đúng và sai số', competency: 'Tính toán và giải thích sai số' },
   { id: 'g10-xac-suat-co-dien', grade: 10, area: 'Thống kê - Xác suất', topic: 'Xác suất cổ điển', competency: 'Tính xác suất các biến cố đơn giản' },
 

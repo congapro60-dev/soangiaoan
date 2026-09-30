@@ -10,7 +10,7 @@ Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/
 Chủ dự án: thầy cô dùng nhiều hãng AI, cần model mới nhất và biết hãng nào có API miễn phí, hãng nào phải mua API riêng, giá bao nhiêu. Nguồn: trang giá/model chính thức của từng hãng, tra 30/09/2026 (`src/data/providerGuide.ts` ghi ngày; giá đổi thường xuyên).
 - **Phát hiện chính:** KHÔNG gói tiêu dùng nào (ChatGPT Plus, Claude Pro/Max, SuperGrok, Google AI Pro) kèm API — luôn phải lấy khoá API riêng. Chỉ Gemini (AI Studio) và NVIDIA có bản miễn phí; Claude/OpenAI nạp trước tối thiểu 5 USD, DeepSeek ~2 USD, Grok trả theo mức dùng.
 - Model (`src/data/models.ts`): Claude → Sonnet 5.5 (mặc định) / Opus 5.5 / Fable 5.1 / Haiku 4.5 (+2 bản cũ); OpenAI → GPT-6.1 Sol / 6 Luna / 6 Astra / 6 Sol + 5.4 mini/nano; Grok → 4.3 / 4.7 / 4.6 / 4.5 / 4.20 / Build 0.1; DeepSeek → `deepseek-flash` / `deepseek-v4-pro` (tên `deepseek-v4-flash` cũ hãng vẫn nhận nhưng đã ngừng); NVIDIA thêm Kimi K3 / GLM 5.3 / DeepSeek V4.1 Flash. Model đã lưu trong cài đặt cũ nhưng không còn trong danh sách vẫn gọi được (id dùng nguyên văn).
-- **Lỗi thật đã sửa:** `gemini-3.8-flash` có trong danh sách Cài đặt nhưng KHÔNG có trong `GEMINI_RUNTIME_MODELS` → chọn 3.8 vẫn chạy 3.7 âm thầm. Đã thêm (đứng thứ 2, danh sách cũng là chuỗi dự phòng khi quá tải). Test `providerGuide.test.ts` khoá: mọi model Gemini hiện ra đều có trong danh sách chạy.
+- **Lỗi thật:** `gemini-3.8-flash` có trong danh sách Cài đặt nhưng KHÔNG có trong `GEMINI_RUNTIME_MODELS` → chọn 3.8 vẫn chạy 3.7 âm thầm. Phiên khác cũng vừa sửa trên `main` (3.8 làm mặc định, 3.7 dự phòng) — khi gộp đã lấy bản của `main`. Test `providerGuide.test.ts` khoá: mọi model Gemini hiện ra đều có trong danh sách chạy.
 - Sửa gọi API cho model đời mới (`aiProviders.ts`): OpenAI dùng `max_completion_tokens` (model gpt-5+ từ chối `max_tokens`); Claude lấy TẤT CẢ khối chữ thay vì chỉ khối đầu (model suy luận có thể trả khối "thinking" trước); DeepSeek trần đầu ra 32K cho cả hai model (trần 8K cũ là của V3).
 - Giao diện: `ProviderCompareTable` (mục xổ "Nên chọn AI nào?") và `ProviderGuideCard` (dưới ô nhập khoá của từng hãng: có miễn phí không, gói app có kèm API không, nạp tối thiểu, các bước lấy khoá, model nên chọn + ≈ đồng/giáo án, cảnh báo). Ước tính giáo án: 8.000 token vào + 10.000 ra, 26.000đ/USD.
 - **CHƯA kiểm với khoá thật:** id model mới (GPT-6.x, Grok 4.7, Claude 5.x, DeepSeek Flash, NVIDIA Kimi/GLM) lấy từ trang chính thức nhưng chưa gọi thử bằng khoá nào; NVIDIA lấy từ danh sách công khai `integrate.api.nvidia.com/v1/models` và catalog của họ đổi liên tục. Hạn mức rpm/rpd/tpm của các hãng ngoài Google chỉ là số tham chiếu. Cần một thầy/cô thử mỗi hãng một lượt trước khi tin.
@@ -36,6 +36,25 @@ Chủ dự án chốt: chip hiện **tiền** ("Ví 48.200đ · hôm nay −1.30
 - **Bẫy:** chip là `null` cho tới khi `aiKeyStatus` trả về (không hiện chip giả). Popup `fixed` trên điện thoại vì `Header` có `backdrop-blur` (tạo khung chứa cho phần tử `fixed`) — đừng bỏ `top-[5.25rem]`. Fake Firestore trong `ai-keys.test.ts` giờ trộn map lồng nhau như `set(merge)` thật.
 - **Chưa làm / cố ý để sau:** chế độ nguồn khoá Riêng/Ví/Cả hai + gộp trang cài đặt (GĐ2, đụng lõi tính tiền `decideAiKey`); ví cho soạn giáo án/nâng cấp/dự giờ/đề thi (GĐ3: cần đường máy chủ cho Gemini, đo giới hạn thân request 4,5MB + `maxDuration` 60s trước khi hứa); Claude/OpenAI/Grok/DeepSeek chưa có bảng giá. Cổng phụ huynh: để sau khi cổng học sinh ổn.
 - QA: popup dựng thử bằng trang tạm với dữ liệu giả ở 1100px và 375px (đã xoá trang tạm); CHƯA thử với tài khoản GV thật vì cần đăng nhập Google. Nghiệm thu: `npm run lint`, `npm run lint:api`, `npm run test -- --run` (214 file / 2317 test), `npm run build`.
+## Hồ sơ năng lực HS tự điền cùng GV (+ AI soạn nháp cho GV) — 2026-09-30
+
+Chủ dự án chốt: tab "Năng lực toán học" của file mẫu đưa lên trang HS (mục riêng dưới Bảng điểm); HS sửa phần mình, GV sửa tất; xuất file: HS nền vàng, GV nền xanh (trùng mức: vàng viền xanh, chú thích ở ghi chú ô A3).
+- Dữ liệu `competencyPortfolios/{classId}__{studentId}` chỉ qua `api/_portfolio.ts` (gộp vào `classroom`): `studentPortfolio`/`saveStudentPortfolio` (lớp + mã HS lấy từ `studentLinks`, chỉ nhận ô HS), `teacherPortfolio`/`saveTeacherPortfolio` (GV thuộc lớp, HS phải có trong lớp). Lọc chung `sanitizePortfolioPatch` (đúng khối, đúng ô, chữ ≤500). Lưu đọc-sửa-ghi, không transaction: HS và GV lưu cùng lúc thì bản sau thắng (theo từng năng lực gửi lên).
+- Mỗi năng lực: mức HS tự đánh giá, Mục tiêu, Phương án, Thời gian (tháng năm học), Khó khăn, Tiến độ (Đã hoàn thành/Đang thực hiện/Chưa thực hiện — đúng danh sách chọn file mẫu), mức GV chốt (trống = mức app tính từ bài đã duyệt), Ý kiến GV.
+- Hướng dẫn: mô tả 4 mức NGUYÊN VĂN file mẫu (`levelDescriptions.ts`, 29 cái chép 30/09 + `rubric` 9 cái app bổ sung), gợi ý từng ô + nút "Gợi ý" (`portfolioGuide.ts`, không AI, chỉ điền ô trống). GV: "AI soạn nháp" (`portfolioDraftPrompt.ts`, `callAI` bằng cài đặt của GV) điền mức chốt + ý kiến + ô HS còn trống, KHÔNG đè chữ HS; GV soát rồi "Lưu hồ sơ". Đã thử Gemini thật: nháp hợp lý.
+- Xuất (`portfolioExport.ts`): thêm cột G..L, đặt lại danh sách chọn cột "Thời gian" theo năm học (file mẫu còn ghi tháng 2024–2025). Nút xuất khoá khi còn thay đổi chưa lưu.
+- **Chưa E2E trên trình duyệt**: trang HS cần phiên HS thật, trang GV cần đăng nhập GV (máy chủ mới chỉ có sau deploy). Đã render test `PortfolioEntryEditor` + test API/lõi. Nghiệm thu: `npx vitest run src/lib/classroom/competency api/__tests__/portfolio.test.ts src/components/features/classroom/PortfolioEntryEditor.test.tsx`.
+
+## Khung năng lực khối 10 đủ theo LO SSM + xuất hồ sơ bổ sung dòng + tải .xlsx — 2026-09-30
+
+Chủ dự án chốt: SSM khối 10 có 19 LO mà khung chỉ 8 năng lực (AI ghép LO được 10/19) → thêm 9 năng lực `g10-*` (hàm số & đồ thị, BPT bậc hai, đếm/tổ hợp, Newton, GTLG 0–180°, vectơ tọa độ, PT đường thẳng, đường tròn, conic), mỗi cái có `rubric` 4 mức (file mẫu trường CHƯA có các dòng này). Sau đó AI ghép 19/19 (khối 11: 19/20 — thiếu "Hoạt động thực hành và trải nghiệm"; khối 12: 17/17).
+- Xuất hồ sơ (`portfolioExport.ts`): `buildPortfolioAddRowsRequests` chèn dòng cho năng lực bản sao chưa có — đúng mảng, sau năng lực đứng trước trong khung, `copyPaste` định dạng/danh sách chọn của dòng bên cạnh, điền A..F — rồi mới bôi vàng (1 batchUpdate). File mẫu gốc KHÔNG đụng. Hộp kết quả có nút "Tải file .xlsx về máy" (`downloadPortfolioXlsx`, Drive export) để GV thay file trên Drive trường.
+- BTVN: gắn nhãn AI/tay tự dùng khung mới. **Bẫy:** bài khối 10 đã DUYỆT nhãn trước đây giữ nguyên nhãn cũ (guard `competencyTagsApproved`) — muốn thêm năng lực mới phải sửa tay trong ô nhãn.
+- Chưa chạy xuất thật trên production (cần GV bấm, popup Google). Test: framework, portfolioExport +4.
+
+## Model Gemini mặc định = gemini-3.8-flash — 2026-09-30
+
+Chủ dự án chốt (3.7 hay 503 quá tải). `DEFAULT_GEMINI_RUNTIME_MODEL` + `DEFAULT_DATA.settings` + FormatAgent + khoá HS + tạo mô phỏng (client & `api/generate-simulation.ts`) → 3.8; `GEMINI_RUNTIME_MODELS` giữ 3.7 ngay sau làm dự phòng (`callGeminiAIRaw` tự lùi model khi lỗi). **Bẫy:** cài đặt GV lưu cả `selectedModel` → `withCurrentDefaultModel` (useAppState) chuyển đúng giá trị mặc định cũ `gemini-3.7-flash` sang 3.8 khi nạp (không phân biệt được ai CỐ Ý chọn 3.7). Bảng giá đã có 3.8. 3.8 cũng lúc lúc 503. Test `useAppState.defaultModel.test.ts`.
 
 ## Lịch báo giảng + SSM đợt 2 (điểm LO, soạn sẵn nội dung) — 2026-09-29
 
@@ -143,30 +162,3 @@ Bản gửi phụ huynh (`StudentReport` viewMode=parent + `parentReportPrintDoc
 - **Thiết kế phiếu tiến độ IB** (mẫu The Dewey): bảng thông tin, dải tổng kết màu, đề mục đánh số in đậm, 3 biểu đồ SVG/CSS thuần (đồng hồ điểm có thang mức, xu hướng, tiến độ), kết quả từng bài kiểu dòng môn học. Style scope `#parent-report-pdf-root`, escape HTML.
 - **Mục "Năng lực Toán học"**: `buildStudentCompetencyPortfolio` (bài đã duyệt) → nhóm 4 mức khung trường → `ParentCompetencySummary`.
 - **Mục "Điểm thi định kì"** (từ GĐ3 đọc qua Sổ điểm, xem trên; phần dưới là cách đọc file): đọc 2 tab MOET/TDS trong **file điểm riêng của lớp** (`class.examSheet.spreadsheetId`, nối qua action `setClassExamSheet`; KHÔNG dùng `sheetSync` vì BTVN 10/12 nối file chung không có MOET/TDS — lỗi bản đầu) qua Sheets API `values:batchGet` UNFORMATTED (quyền Google GV như BTVN). `examScores.ts` khớp **Mã HS**, chỉ lấy cột "Điểm…" (MOET thang 10: KSĐN/giữa-cuối HKI-HKII; TDS Quý 1-4 + điểm chữ), BỎ cột công thức/kế hoạch nội bộ. GV bấm nút "Tải điểm thi" (tránh popup OAuth bất ngờ) → hiện mục + vào PDF. Nghiệm thu: examScores 6 + parentReportPrintDoc 7 test; smoke live PDF có điểm thi; `lint`+`build` OK. GV dán link file `26-27-<lớp>` 1 lần/lớp (app kiểm có tab MOET/TDS mới lưu). Test API `classroom-sheet-sync` +3.
-
-## Bản phụ huynh + hồ sơ: 5 lỗi làm chặt — 2026-09-18
-
-Nối tiếp lô bản phụ huynh. Fix 5 lỗi người dùng nêu:
-1. `parentSafeReport` bỏ hẳn `grade.feedback` khỏi DTO phụ huynh (nhận xét cho HỌC SINH, hay nhắc số câu) — xoá field `feedback` khỏi `ParentSafeAssignmentResult`.
-2. `profileTopics()` giờ yêu cầu bằng chứng THẬT: chủ đề chỉ hiện nếu có ≥1 `evidenceSubmissionId` là submission còn tồn tại, đúng học sinh, đã `teacherApproved` (dựng `approvedSubmissionIds` từ input).
-3. Tách helper `topicHygiene.ts::namesSpecificProblem` (bắt `Bài 2`, `Bài số 2`, `Câu hỏi 4`, `BT2`, `2a`, `ý a`…). Dùng ở CẢ hai tầng: **gốc** trong `profileMerge` (mergeTopics/addEvidence lọc tên theo số bài khỏi weakTopics/strengths + hồ sơ cũ) và **hiển thị** trong parent report.
-4. Prompt (`gradingPrompt`): `feedbackForStudent` ghi rõ CHỈ học sinh đọc (bản phụ huynh tổng hợp theo chủ đề, không dùng chữ này); thêm hướng dẫn `strengths` là cụm danh từ chung, không nêu số bài.
-5. `buildParentSafeReport`: chọn lượt ĐÃ DUYỆT gần nhất cho từng bài — lượt mới error/grading không xoá điểm chính thức của lượt cũ đã duyệt.
-Nghiệm thu: parentSafeReport 5 + profileMerge 38 + topicHygiene 2 + gradingPrompt 97 + skill-profile 5 pass; `lint`+`build` OK. **Còn:** hồ sơ cũ đã lưu tên xấu chỉ sạch khi bài được gộp lại (chấm/duyệt lại); tầng hiển thị vẫn lọc để an toàn.
-
-## V7.2 live classroom — Tuần 5 + Tuần 6 — 2026-09-18
-
-Đã hoàn tất mã nguồn trên nhánh `codex/p31-classroom-ready`, commit triển khai chính `b25e740` và merge với `origin/main` hiện tại. Mục tiêu là đưa mô hình activity-first V7.2 vào 24 bài Tuần 5 và 24 bài Tuần 6 của khối 10/11/12.
-
-- Adapter generic dùng timeline 14 nhịp/40 phút, nội dung source-aware, mục tiêu MUST/SHOULD/COULD, route M/S/C, AI Error, post-check, exit ticket, preview riêng tư và practice A/B/C/D/Challenge.
-- P31 `10-5-31` vẫn dùng contract thủ công để giữ media/kịch bản đặc thù; phần practice và dashboard đã theo V7.2 nhưng timeline P31 vẫn là timeline custom 11 nhịp.
-- Firestore Rules đã mở allowlist cho checkpoint V7.2, giới hạn 16 step, clock fields và group-progress `cp-practice-a`.
-- QA: full Vitest **171 files / 2.016 tests PASS**, `lint` PASS, `lint:api` PASS, build PASS; Rules **8 files / 303 tests PASS**, pilot **1/1 PASS**. Browser smoke local pass P31 và đại diện `10-5-32`, `11-5-26`, `12-5-26` với GV–TV–3 HS, practice aggregate, privacy và browser-error gate.
-
-**Giới hạn cần giữ:** chưa chạy browser choreography riêng cho toàn bộ 48 bài; contract/privacy matrix bao phủ 48 source keys và browser smoke đại diện mỗi khối. Giáo án/snapshot chỉ là nguồn nội dung; không dùng để ép UI thành chuỗi slide.
-
-**Ngưỡng sắp cắn người:** QA harness phải chạy Firebase Emulator bằng project demo, ví dụ `firebase emulators:exec --project demo-p31-classroom --only firestore,auth "node scripts/qa/p31-classroom.mjs"`; nếu bỏ `--project`, Auth Emulator lấy project mặc định `smartplan-ai-14200` và token bị Rules fixture từ chối. Artifact QA nằm trong `artifacts/`, không đưa vào commit.
-
-**Lệnh nghiệm thu:** `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" test`; `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" run test:rules`; `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" run test:pilot`; `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" run lint`; `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" run lint:api`; `npm --prefix "C:\Users\ADMIN\Downloads\smart-lesson-plan-ai-codex-classroom-grading" run build`.
-
-Release đã hoàn tất: `main` đã nhận `994bd59` (sau đó `origin/main` có thêm follow-up `248634f`), Firestore Rules đã release vào `smartplan-ai-14200`, và Vercel production `https://giaoandewey.vercel.app` đang trỏ deployment `giaoandewey-qx94sd69v` ở trạng thái READY. QA artifact giữ cục bộ trong `artifacts/`, không commit.

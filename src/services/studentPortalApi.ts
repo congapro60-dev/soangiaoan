@@ -3,6 +3,7 @@ import { auth } from '../lib/firebase';
 import type { StudentAssignmentView, SubmissionDoc } from '../lib/classroom/types';
 import type { ExamSubmission } from '../types';
 import type { StudentScoreView } from '../lib/classroom/scoreBook';
+import type { CompetencyPortfolioDoc, PortfolioEntry } from '../lib/classroom/competency/studentPortfolio';
 
 export interface RosterEntry {
   studentId: string;
@@ -164,6 +165,23 @@ export const fetchStudentScoreBook = async (): Promise<StudentScoreView> => {
   const idToken = await current.getIdToken();
   const response = await call<{ scores: StudentScoreView }>({ action: 'studentScoreBook', idToken });
   return response.scores;
+};
+
+/** Hồ sơ năng lực của chính học sinh (+ khối lớp); máy chủ lọc theo phiên. */
+export const fetchStudentPortfolio = async (): Promise<{ grade: number | null; portfolio: CompetencyPortfolioDoc }> => {
+  const current = auth.currentUser;
+  if (!current || !current.isAnonymous) throw new Error('Cần phiên đăng nhập học sinh.');
+  const idToken = await current.getIdToken();
+  return call<{ grade: number | null; portfolio: CompetencyPortfolioDoc }>({ action: 'studentPortfolio', idToken });
+};
+
+/** Lưu phần HS tự điền (máy chủ bỏ ô của GV nếu có). */
+export const saveStudentPortfolio = async (entries: Record<string, PortfolioEntry>): Promise<CompetencyPortfolioDoc> => {
+  const current = auth.currentUser;
+  if (!current || !current.isAnonymous) throw new Error('Cần phiên đăng nhập học sinh.');
+  const idToken = await current.getIdToken();
+  const response = await call<{ portfolio: CompetencyPortfolioDoc }>({ action: 'saveStudentPortfolio', idToken, entries });
+  return response.portfolio;
 };
 
 /**
