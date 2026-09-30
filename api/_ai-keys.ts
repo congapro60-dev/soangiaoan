@@ -104,6 +104,10 @@ const assertUnderCap = async (db: Db, uid: string, keyDoc: TeacherKeyDoc | null,
   if (capReached(spent, cap)) throw new AiKeyRequiredError('cap_reached', uid);
 };
 
+/** Gắn trần tháng của giáo viên vào kế hoạch tính tiền để `acquireCallHold` kiểm cùng lúc với số dư. */
+const withCap = (billing: AiKeyChoice['billing'], keyDoc: TeacherKeyDoc | null): AiKeyChoice['billing'] =>
+  (billing ? { ...billing, capVnd: typeof keyDoc?.monthlyCapVnd === 'number' && keyDoc.monthlyCapVnd > 0 ? keyDoc.monthlyCapVnd : null } : billing);
+
 /** Lượt dùng khoá chung có bị trừ ví không: chỉ khi đã bật kiểm soát và người chịu phí không phải chủ dự án. */
 const billingFor = async (db: Db, access: AiAccessSettings, uid: string): Promise<AiKeyChoice['billing']> => {
   if (!access.enabled || access.exemptUids.includes(uid)) return null;
@@ -158,7 +162,7 @@ export const ensureGeminiKey = async (fallbackKey: string): Promise<AiKeyChoice>
   });
   if (decision.use === 'blocked') throw new AiKeyRequiredError(decision.reason, ownerUid);
   if (decision.use === 'own') return (context.keyChoice = { key: String(keyDoc?.geminiKey), source: 'own', ownerUid, billing: null });
-  const billing = await billingFor(db, access, ownerUid);
+  const billing = withCap(await billingFor(db, access, ownerUid), keyDoc);
   await assertUnderCap(db, ownerUid, keyDoc, Boolean(billing));
   return (context.keyChoice = { key: fallbackKey, source: decision.use, ownerUid, billing });
 };
@@ -182,7 +186,7 @@ export const onOwnKeyFailure = async (choice: AiKeyChoice, status: AiKeyStatus, 
   if (effectiveAiMode({ mode: keyDoc?.mode, isShared, consent: keyDoc?.consent?.accepted === true }) !== 'both') {
     throw new AiKeyRequiredError(status === 'invalid' ? 'invalid' : 'exhausted', uid);
   }
-  const billing = await billingFor(db, access, uid);
+  const billing = withCap(await billingFor(db, access, uid), keyDoc);
   await assertUnderCap(db, uid, keyDoc, Boolean(billing));
   const next: AiKeyChoice = { key: fallbackKey, source: isShared ? 'shared' : 'owner_consent', ownerUid: uid, billing };
   const context = currentAiUsageContext();

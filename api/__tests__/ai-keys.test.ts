@@ -6,6 +6,8 @@ const h = vi.hoisted(() => ({
   store: {} as Record<string, DocData>,
   claims: {} as Record<string, unknown>,
   failPaths: [] as string[],
+  txCount: 0,
+  failTxAt: 0,
 }));
 
 vi.mock('firebase-admin/auth', () => ({
@@ -31,6 +33,9 @@ const applyMerge = (current: DocData, patch: DocData): DocData => {
   return next;
 };
 
+// Khoá dùng chung mọi lần `getAdminDb()`: Firestore thật chỉ có một, các giao dịch chạy NỐI TIẾP nhau.
+let txLock: Promise<unknown> = Promise.resolve();
+
 const fakeDb = () => {
   const docRef = (path: string): any => ({
     id: path.split('/').pop(),
@@ -51,7 +56,20 @@ const fakeDb = () => {
       return { docs, empty: docs.length === 0 };
     },
   });
+  const runTransaction = <T,>(work: (tx: { get: (ref: any) => Promise<any>; set: (ref: any, data: DocData, opts?: { merge?: boolean }) => void }) => Promise<T>): Promise<T> => {
+    const run = txLock.then(async () => {
+      h.txCount += 1;
+      const writes: Array<() => Promise<unknown>> = [];
+      const result = await work({ get: ref => ref.get(), set: (ref, data, opts) => { writes.push(() => ref.set(data, opts)); } });
+      if (h.failTxAt === h.txCount) throw new Error('giao dịch bị huỷ');
+      for (const write of writes) await write();
+      return result;
+    });
+    txLock = run.catch(() => undefined);
+    return run;
+  };
   return {
+    runTransaction,
     collection: (col: string) => ({ ...query(col, []), doc: (id: string) => docRef(`${col}/${id}`), add: async (d: DocData) => { h.store[`${col}/auto${Object.keys(h.store).length}`] = d; } }),
   };
 };
@@ -76,6 +94,9 @@ describe('khoá AI + trần chi tiêu', () => {
   beforeEach(() => {
     h.store = {};
     h.failPaths = [];
+    h.txCount = 0;
+    h.failTxAt = 0;
+    process.env.AI_HOLD_RETRY_MS = '5';
     h.claims = { uid: 'gv-ngoai', email: 'ngoai@x.vn', firebase: { sign_in_provider: 'google.com' } };
   });
   afterEach(() => vi.unstubAllGlobals());
@@ -159,6 +180,105 @@ describe('khoá AI + trần chi tiêu', () => {
     expect(usage).toMatchObject({ discountPct: 100, voucherCode: 'MIENPHI', chargeVnd: 0 });
     expect(usage?.grossVnd).toBeGreaterThan(0);
     expect(h.store['aiWallets/gv-nhom'].balanceVnd).toBe(0);
+  });
+
+  describe('QA F3: giữ chỗ tiền + trừ tiền một giao dịch', () => {
+    const usageOf = (input: number) => ({ promptTokenCount: input, candidatesTokenCount: 0, totalTokenCount: input });
+    const ok = (input: number) => ({ ok: true, status: 200, json: async () => ({ candidates: [{ finishReason: 'STOP', content: { parts: [{ text: 'ok' }] } }], usageMetadata: usageOf(input) }) });
+    const setup = (balanceVnd: number, key: DocData = {}) => {
+      h.store['adminSettings/aiAccess'] = { enabled: true, sharedUids: [], exemptUids: [] };
+      h.store['adminSettings/billing'] = { usdVnd: 26_000 };
+      h.store['teacherAiKeys/gv-ngoai'] = { consent: { accepted: true }, mode: 'wallet', ...key };
+      h.store['aiWallets/gv-ngoai'] = { balanceVnd };
+    };
+    const callOnce = (owner = 'gv-ngoai') => inRequest(owner, () => callGeminiVision('x', [], OWNER_KEY, 'gemini-3.8-flash'));
+
+    it('hai lượt song song, ví 1.000đ: chỉ MỘT lượt được gọi Google (trước đây cả hai → ví âm gấp đôi), lượt kia bị chặn hết số dư', async () => {
+      setup(1_000);
+      let release: () => void = () => undefined;
+      const gate = new Promise<void>(resolve => { release = resolve; });
+      const fetchMock = vi.fn(async () => { await gate; return ok(1_000_000); }); // 1 triệu token vào = 19.500đ
+      vi.stubGlobal('fetch', fetchMock);
+      const first = callOnce();
+      await vi.waitFor(() => expect(h.store['aiWallets/gv-ngoai'].heldVnd).toBe(1_000)); // giữ đúng phần còn lại, không quá số dư
+      await expect(callOnce()).rejects.toMatchObject({ reason: 'no_balance' });
+      release();
+      await first;
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      // Âm đúng MỘT lượt (không nhân theo số lượt song song); giữ chỗ đã được thay bằng số tiền thật
+      expect(h.store['aiWallets/gv-ngoai']).toMatchObject({ balanceVnd: 1_000 - 19_500, heldVnd: 0 });
+    });
+
+    it('trần tháng cũng tính phần đang giữ chỗ: trần 1.000đ thì lượt song song thứ hai bị chặn, không cùng lọt qua', async () => {
+      setup(50_000, { monthlyCapVnd: 1_000 });
+      let release: () => void = () => undefined;
+      const gate = new Promise<void>(resolve => { release = resolve; });
+      vi.stubGlobal('fetch', vi.fn(async () => { await gate; return ok(10_000); }));
+      const first = callOnce();
+      await vi.waitFor(() => expect(h.store['aiWallets/gv-ngoai'].heldVnd).toBe(1_000));
+      await expect(callOnce()).rejects.toMatchObject({ reason: 'cap_reached' });
+      release();
+      await first;
+    });
+
+    it('chỉ bị chặn vì lượt khác đang giữ chỗ thì CHỜ rồi chạy tiếp, không báo hết tiền oan (hai bài nộp cùng lúc, ví vừa đủ cả hai)', async () => {
+      setup(1_000);
+      let release: () => void = () => undefined;
+      const gate = new Promise<void>(resolve => { release = resolve; });
+      let calls = 0;
+      vi.stubGlobal('fetch', vi.fn(async () => { calls += 1; if (calls === 1) await gate; return ok(100); })); // mỗi lượt chỉ ~2đ
+      const first = callOnce();
+      await vi.waitFor(() => expect(h.store['aiWallets/gv-ngoai'].heldVnd).toBe(1_000));
+      const second = callOnce(); // ví còn 1.000đ nhưng đang bị lượt đầu giữ hết → phải chờ
+      await new Promise(resolve => setTimeout(resolve, 20));
+      release();
+      await expect(Promise.all([first, second])).resolves.toEqual(['ok', 'ok']);
+      expect(calls).toBe(2);
+      expect(h.store['aiWallets/gv-ngoai'].heldVnd).toBe(0);
+      expect(h.store['aiWallets/gv-ngoai'].balanceVnd).toBeGreaterThan(990);
+    });
+
+    it('lượt xong: giữ chỗ được THAY bằng số tiền thật trong cùng giao dịch — sổ lượt, sổ chi tiêu, ví khớp nhau', async () => {
+      setup(50_000);
+      vi.stubGlobal('fetch', vi.fn(async () => ok(1_000_000)));
+      await callOnce();
+      expect(h.store['aiWallets/gv-ngoai']).toMatchObject({ balanceVnd: 30_500, heldVnd: 0 });
+      const month = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit' }).format(new Date()).slice(0, 7);
+      expect(h.store[`aiSpend/gv-ngoai_${month}`]).toMatchObject({ calls: 1, chargeVnd: 19_500 });
+      expect(Object.keys(h.store).filter(path => path.startsWith('aiUsage/'))).toHaveLength(1);
+    });
+
+    it('lượt hỏng trước khi tính tiền (Google 503) thì TRẢ LẠI phần giữ chỗ, ví không đổi', async () => {
+      setup(50_000);
+      vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 503, clone: () => ({ text: async () => 'overloaded' }) })));
+      await expect(callOnce()).rejects.toThrow('503');
+      expect(h.store['aiWallets/gv-ngoai']).toMatchObject({ balanceVnd: 50_000, heldVnd: 0 });
+    });
+
+    it('giao dịch ghi sổ hỏng thì KHÔNG ghi nửa vời: không có sổ lượt, không cộng chi tiêu, ví không trừ, giữ chỗ được trả', async () => {
+      setup(50_000);
+      vi.stubGlobal('fetch', vi.fn(async () => ok(1_000_000)));
+      h.failTxAt = 2; // giao dịch thứ 1 = giữ chỗ, thứ 2 = ghi sổ + trừ ví
+      await expect(callOnce()).resolves.toBe('ok'); // lỗi ghi sổ không được làm hỏng câu trả lời
+      expect(Object.keys(h.store).filter(path => path.startsWith('aiUsage/') || path.startsWith('aiSpend/'))).toEqual([]);
+      expect(h.store['aiWallets/gv-ngoai']).toMatchObject({ balanceVnd: 50_000, heldVnd: 0 });
+    });
+
+    it('giữ chỗ bị treo quá lâu (hàm bị giết) hết hiệu lực — không khoá ví mãi', async () => {
+      setup(50_000);
+      h.store['aiWallets/gv-ngoai'] = { balanceVnd: 50_000, heldVnd: 50_000, heldAt: Date.now() - 20 * 60_000 };
+      vi.stubGlobal('fetch', vi.fn(async () => ok(100)));
+      await expect(callOnce()).resolves.toBe('ok');
+    });
+
+    it('không giữ chỗ khi không trừ ví: khoá riêng, chủ dự án, mã giảm 100%', async () => {
+      h.store['adminSettings/aiAccess'] = { enabled: true, sharedUids: [], exemptUids: ['gv-ngoai'] };
+      h.store['teacherAiKeys/gv-ngoai'] = { mode: 'wallet', consent: { accepted: true } };
+      h.store['aiWallets/gv-ngoai'] = { balanceVnd: 0 };
+      vi.stubGlobal('fetch', vi.fn(async () => ok(100)));
+      await expect(callOnce()).resolves.toBe('ok'); // chủ dự án: ví 0đ vẫn chạy, không giữ chỗ
+      expect(h.store['aiWallets/gv-ngoai'].heldVnd ?? 0).toBe(0);
+    });
   });
 
   it('QA F1: đã bật kiểm soát mà đọc hồ sơ khoá bị lỗi thì ĐÓNG CỬA — người trong nhóm chọn "chỉ khoá riêng" không bị trừ ví trái ý', async () => {

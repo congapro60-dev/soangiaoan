@@ -1,7 +1,8 @@
 /// <reference types="node" />
 // File prefix "_" → không thành Serverless Function. Gồm: hạn mức chống đốt tiền + gọi Gemini.
-import { geminiUsageCounts, recordAiUsage } from './_ai-usage.js';
-import { ensureGeminiKey, onOwnKeyFailure } from './_ai-keys.js';
+import { HOLD_MAX_WAITS, acquireCallHold, geminiUsageCounts, holdRetryMs, recordAiUsage, releaseWalletHold } from './_ai-usage.js';
+import { AiKeyRequiredError, ensureGeminiKey, onOwnKeyFailure } from './_ai-keys.js';
+import { getAdminDb } from './_exam-core.js';
 import { classifyGeminiKeyFailure } from '../src/lib/admin/aiKeyPolicy.js';
 
 /**
@@ -261,6 +262,32 @@ export const callGeminiRaw = async (
   model: string = GRADING_MODEL,
   options: GeminiOptions = {},
 ): Promise<{ text: string; finishReason?: string }> => {
+  const hold: CallHold = { vnd: 0, ownerUid: null, handedOver: false };
+  try {
+    return await callGeminiRawHeld(prompt, images, apiKey, model, options, hold);
+  } finally {
+    // Đã giữ chỗ tiền mà lượt gọi hỏng TRƯỚC khi tới bước ghi/trừ tiền (lỗi mạng, Google từ chối…) thì trả lại phần giữ.
+    if (hold.vnd > 0 && !hold.handedOver && hold.ownerUid) {
+      await releaseWalletHold(getAdminDb(), hold.ownerUid, hold.vnd).catch(error => console.error('[grading] không trả được chỗ giữ tiền:', error));
+    }
+  }
+};
+
+interface CallHold {
+  vnd: number;
+  ownerUid: string | null;
+  /** `recordAiUsage` đã nhận phần giữ chỗ (nó tự thay bằng số tiền thật hoặc tự trả lại) — không được trả lần nữa. */
+  handedOver: boolean;
+}
+
+const callGeminiRawHeld = async (
+  prompt: string,
+  images: InlineImage[],
+  apiKey: string,
+  model: string,
+  options: GeminiOptions,
+  hold: CallHold,
+): Promise<{ text: string; finishReason?: string }> => {
   const generationConfig: Record<string, unknown> = {
     temperature: options.temperature ?? 0.2,
   };
@@ -283,6 +310,21 @@ export const callGeminiRaw = async (
   for (let attempt = 0; ; attempt += 1) {
     const remainingMs = deadline === null ? null : deadline - Date.now();
     if (remainingMs !== null && remainingMs <= 0) throw timedOutError();
+    // Giữ chỗ tiền TRƯỚC khi gọi (chỉ lượt bị trừ ví): chặn các lượt song song cùng lọt qua kiểm số dư/trần (QA F3).
+    if (hold.vnd === 0) {
+      let held = await acquireCallHold(keyChoice);
+      // Chỉ bị chặn vì lượt khác đang giữ chỗ → chờ chúng xong (trả/đổi chỗ) rồi thử lại, thay vì báo hết tiền oan.
+      for (let waited = 0; !held.ok && held.contended && waited < HOLD_MAX_WAITS; waited += 1) {
+        await new Promise(resolve => setTimeout(resolve, holdRetryMs()));
+        if (deadline !== null && deadline - Date.now() <= 0) throw timedOutError();
+        held = await acquireCallHold(keyChoice);
+      }
+      if (!held.ok) throw new AiKeyRequiredError(held.reason, keyChoice.ownerUid);
+      if (held.holdVnd > 0) {
+        hold.vnd = held.holdVnd;
+        hold.ownerUid = keyChoice.ownerUid;
+      }
+    }
     try {
       res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(keyChoice.key)}`,
@@ -342,8 +384,10 @@ export const callGeminiRaw = async (
     error?: unknown;
   };
   // Ghi token TRƯỚC mọi nhánh ném lỗi: Google tính tiền cả lượt bị cắt/bị chặn.
+  hold.handedOver = true;
   await recordAiUsage('gemini', model, geminiUsageCounts(data.usageMetadata), {
     finishReason: data.candidates?.[0]?.finishReason || data.promptFeedback?.blockReason,
+    holdVnd: hold.vnd,
   });
   if (data.error) {
     throw new GeminiResponseError('provider', 'Gemini không hoàn tất yêu cầu. Thử lại sau ít phút.');
