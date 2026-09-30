@@ -4,8 +4,11 @@ export const DEFAULT_GEMINI_RUNTIME_MODEL = 'gemini-3.7-flash';
 
 // Runtime model list for Gemini generateContent on v1beta.
 // Keep the exact API IDs here; display labels can be shorter in src/data/models.ts.
+// Thứ tự cũng là chuỗi DỰ PHÒNG khi model quá tải: lỗi thì thử model kế tiếp bên dưới.
+// 'gemini-3.8-flash' phải có ở đây thì chọn nó trong Cài đặt mới chạy đúng (trước đây rơi về mặc định 3.7).
 export const GEMINI_RUNTIME_MODELS = [
   DEFAULT_GEMINI_RUNTIME_MODEL,
+  'gemini-3.8-flash',
   'gemini-3.6-flash',
   'gemini-3.5-flash',
   'gemini-3.1-pro-preview',

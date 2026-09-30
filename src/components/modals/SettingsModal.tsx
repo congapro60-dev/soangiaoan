@@ -24,6 +24,7 @@ import { useTokenTracker } from '../../hooks/useTokenTracker';
 import { parseFolderId } from '../../lib/googleDrive';
 import type { DriveFolderKey } from '../../services/pushLessonToDrive';
 import type { ApiProvider } from '../../config/apiLimits';
+import { ProviderCompareTable, ProviderGuideCard } from '../features/settings/ProviderGuide';
 
 const DRIVE_FOLDER_FIELDS: { key: DriveFolderKey; label: string }[] = [
   { key: 'tdsG10', label: 'TDS · Lớp 10' },
@@ -283,6 +284,11 @@ export const SettingsModal = ({
                     ))}
                   </div>
 
+                  <details className="group mt-4 rounded-2xl border border-blue-100 bg-white">
+                    <summary className="cursor-pointer select-none px-4 py-3 text-sm font-black text-[var(--dewey-blue)]">Nên chọn AI nào? Cái nào miễn phí, cái nào phải mua API riêng</summary>
+                    <div className="px-4 pb-4"><ProviderCompareTable /></div>
+                  </details>
+
                   <div className="mt-5 space-y-2">
                     <label className="flex flex-wrap items-center justify-between gap-2 text-sm font-bold text-slate-700">
                       <span className="flex items-center gap-2">{activeTab === 'vercel-gateway' ? <Server className="h-4 w-4" /> : <Key className="h-4 w-4" />} {activeTab === 'vercel-gateway' ? 'Kết nối server' : `API Key — ${providerName(activeTab)}`}</span>
@@ -313,6 +319,8 @@ export const SettingsModal = ({
                       </>
                     )}
                   </div>
+
+                  {activeTab !== 'vercel-gateway' && <div className="mt-4"><ProviderGuideCard provider={activeTab} /></div>}
                 </section>
 
                 <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">

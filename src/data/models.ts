@@ -35,47 +35,52 @@ export const GEMINI_MODELS: ProviderModel[] = [
   { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash-Lite', contextWindow: 1_048_576, rpdLimit: 1_500, tpmLimit: 1_000_000, rpmLimit: 30, tags: ['fast', 'cheap', 'generateContent'] },
 ];
 
+// Danh sách model + giá tra ngày 2026-09-30 từ trang chính thức của từng hãng (giá trong `providerGuide.ts`).
+// rpm/rpd/tpm của các hãng ngoài Google là mức THAM CHIẾU theo tài khoản mới, chưa xác minh từng model;
+// chỉ dùng để hiện thanh "đã dùng" trong Cài đặt, không ảnh hưởng lúc gọi API.
+// Model còn lưu trong cài đặt cũ nhưng không còn ở đây vẫn được gọi bình thường (id được dùng nguyên văn).
 export const CLAUDE_MODELS: ProviderModel[] = [
-  { id: 'claude-opus-4-8', name: 'Claude Opus 4.8', contextWindow: 1_000_000, rpdLimit: 1_000, tpmLimit: 100_000, rpmLimit: 50, isLatest: true, tags: ['reasoning', 'vision', 'coding', 'flagship', '1M-ctx'] },
-  { id: 'claude-opus-4-7', name: 'Claude Opus 4.7', contextWindow: 1_000_000, rpdLimit: 1_000, tpmLimit: 100_000, rpmLimit: 50, tags: ['reasoning', 'vision', 'coding', '1M-ctx'] },
-  { id: 'claude-opus-4-6', name: 'Claude Opus 4.6', contextWindow: 1_000_000, rpdLimit: 1_000, tpmLimit: 100_000, rpmLimit: 50, tags: ['reasoning', 'vision', 'coding', '1M-ctx'] },
-  { id: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6', contextWindow: 1_000_000, rpdLimit: 2_000, tpmLimit: 200_000, rpmLimit: 50, tags: ['fast', 'vision', 'coding', '1M-ctx'] },
+  { id: 'claude-sonnet-5-5', name: 'Claude Sonnet 5.5', contextWindow: 1_000_000, rpdLimit: 2_000, tpmLimit: 200_000, rpmLimit: 50, isLatest: true, tags: ['fast', 'reasoning', 'vision', 'coding', '1M-ctx'] },
+  { id: 'claude-opus-5-5', name: 'Claude Opus 5.5', contextWindow: 1_000_000, rpdLimit: 1_000, tpmLimit: 100_000, rpmLimit: 50, isLatest: true, tags: ['reasoning', 'vision', 'coding', 'flagship', '1M-ctx'] },
+  { id: 'claude-fable-5-1', name: 'Claude Fable 5.1', contextWindow: 1_000_000, rpdLimit: 500, tpmLimit: 100_000, rpmLimit: 50, isLatest: true, tags: ['reasoning', 'vision', 'premium', '1M-ctx'] },
   { id: 'claude-haiku-4-5-20251001', name: 'Claude Haiku 4.5', contextWindow: 200_000, rpdLimit: 5_000, tpmLimit: 400_000, rpmLimit: 50, tags: ['fast', 'vision', 'cheap'] },
+  { id: 'claude-opus-4-8', name: 'Claude Opus 4.8', contextWindow: 1_000_000, rpdLimit: 1_000, tpmLimit: 100_000, rpmLimit: 50, tags: ['legacy', 'reasoning', 'vision', 'coding', '1M-ctx'] },
+  { id: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6', contextWindow: 1_000_000, rpdLimit: 2_000, tpmLimit: 200_000, rpmLimit: 50, tags: ['legacy', 'fast', 'vision', 'coding', '1M-ctx'] },
 ];
 
 export const OPENAI_MODELS: ProviderModel[] = [
-  { id: 'gpt-5.5', name: 'GPT-5.5', contextWindow: 400_000, rpdLimit: 500, tpmLimit: 40_000, rpmLimit: 20, isLatest: true, tags: ['reasoning', 'vision', 'coding', 'flagship'] },
-  { id: 'gpt-5.5-pro', name: 'GPT-5.5 Pro', contextWindow: 400_000, rpdLimit: 200, tpmLimit: 20_000, rpmLimit: 10, tags: ['reasoning', 'vision', 'coding', 'premium'] },
-  { id: 'gpt-5.4-thinking', name: 'GPT-5.4 Thinking', contextWindow: 400_000, rpdLimit: 500, tpmLimit: 40_000, rpmLimit: 20, tags: ['reasoning', 'vision', 'coding'] },
+  { id: 'gpt-6.1-sol', name: 'GPT-6.1 Sol', contextWindow: 400_000, rpdLimit: 500, tpmLimit: 200_000, rpmLimit: 100, isLatest: true, tags: ['reasoning', 'vision', 'coding'] },
+  { id: 'gpt-6-luna', name: 'GPT-6 Luna', contextWindow: 400_000, rpdLimit: 2_000, tpmLimit: 500_000, rpmLimit: 500, isLatest: true, tags: ['fast', 'vision', 'cheap'] },
+  { id: 'gpt-6-astra', name: 'GPT-6 Astra', contextWindow: 400_000, rpdLimit: 200, tpmLimit: 100_000, rpmLimit: 50, isLatest: true, tags: ['reasoning', 'vision', 'coding', 'premium'] },
+  { id: 'gpt-6-sol', name: 'GPT-6 Sol', contextWindow: 400_000, rpdLimit: 500, tpmLimit: 200_000, rpmLimit: 100, tags: ['reasoning', 'vision', 'coding'] },
   { id: 'gpt-5.4-mini', name: 'GPT-5.4 mini', contextWindow: 200_000, rpdLimit: 2_000, tpmLimit: 200_000, rpmLimit: 500, tags: ['fast', 'vision', 'cheap'] },
   { id: 'gpt-5.4-nano', name: 'GPT-5.4 nano', contextWindow: 200_000, rpdLimit: 5_000, tpmLimit: 500_000, rpmLimit: 1_000, tags: ['fast', 'cheap'] },
-  { id: 'gpt-4.1-2025-04-14', name: 'GPT-4.1', contextWindow: 1_000_000, rpdLimit: 500, tpmLimit: 40_000, rpmLimit: 30, tags: ['coding', 'vision', '1M-ctx'] },
-  { id: 'gpt-4.1-mini-2025-04-14', name: 'GPT-4.1 mini', contextWindow: 1_000_000, rpdLimit: 2_000, tpmLimit: 200_000, rpmLimit: 500, tags: ['fast', 'vision', 'cheap', '1M-ctx'] },
-  { id: 'gpt-4.1-nano-2025-04-14', name: 'GPT-4.1 nano', contextWindow: 1_000_000, rpdLimit: 5_000, tpmLimit: 1_000_000, rpmLimit: 1_000, tags: ['fast', 'cheap', '1M-ctx'] },
-  { id: 'gpt-4o', name: 'GPT-4o', contextWindow: 128_000, rpdLimit: 500, tpmLimit: 40_000, rpmLimit: 30, tags: ['vision', 'audio', 'multimodal'] },
-  { id: 'o3-2025-04-16', name: 'o3', contextWindow: 200_000, rpdLimit: 200, tpmLimit: 40_000, rpmLimit: 20, tags: ['reasoning', 'vision'] },
-  { id: 'o3-pro', name: 'o3-pro', contextWindow: 200_000, rpdLimit: 100, tpmLimit: 20_000, rpmLimit: 10, tags: ['reasoning', 'premium'] },
+  { id: 'gpt-4.1-2025-04-14', name: 'GPT-4.1', contextWindow: 1_000_000, rpdLimit: 500, tpmLimit: 40_000, rpmLimit: 30, tags: ['legacy', 'coding', 'vision', '1M-ctx'] },
+  { id: 'gpt-4.1-mini-2025-04-14', name: 'GPT-4.1 mini', contextWindow: 1_000_000, rpdLimit: 2_000, tpmLimit: 200_000, rpmLimit: 500, tags: ['legacy', 'fast', 'vision', 'cheap', '1M-ctx'] },
 ];
 
 export const GROK_MODELS: ProviderModel[] = [
-  { id: 'grok-4.3', name: 'Grok 4.3', contextWindow: 1_000_000, rpdLimit: 1_000, tpmLimit: 500_000, rpmLimit: 60, isLatest: true, tags: ['reasoning', 'vision', 'video', 'flagship'] },
-  { id: 'grok-4.20', name: 'Grok 4.20', contextWindow: 2_000_000, rpdLimit: 500, tpmLimit: 200_000, rpmLimit: 30, tags: ['reasoning', 'vision', '2M-ctx'] },
-  { id: 'grok-4-0709', name: 'Grok 4', contextWindow: 256_000, rpdLimit: 1_000, tpmLimit: 500_000, rpmLimit: 60, tags: ['reasoning', 'vision'] },
-  { id: 'grok-3-beta', name: 'Grok 3 Beta', contextWindow: 131_000, rpdLimit: 2_000, tpmLimit: 500_000, rpmLimit: 60, tags: ['vision', 'search'] },
-  { id: 'grok-3-mini-beta', name: 'Grok 3 Mini', contextWindow: 131_000, rpdLimit: 5_000, tpmLimit: 1_000_000, rpmLimit: 120, tags: ['fast', 'cheap'] },
+  { id: 'grok-4.3', name: 'Grok 4.3', contextWindow: 1_000_000, rpdLimit: 1_000, tpmLimit: 500_000, rpmLimit: 60, isLatest: true, tags: ['reasoning', 'vision', 'cheap', '1M-ctx'] },
+  { id: 'grok-4.7', name: 'Grok 4.7', contextWindow: 500_000, rpdLimit: 500, tpmLimit: 200_000, rpmLimit: 30, isLatest: true, tags: ['reasoning', 'vision', 'flagship'] },
+  { id: 'grok-4.6', name: 'Grok 4.6', contextWindow: 500_000, rpdLimit: 500, tpmLimit: 200_000, rpmLimit: 30, tags: ['reasoning', 'vision'] },
+  { id: 'grok-4.5', name: 'Grok 4.5', contextWindow: 500_000, rpdLimit: 500, tpmLimit: 200_000, rpmLimit: 30, tags: ['reasoning', 'vision'] },
+  { id: 'grok-4.20-0309-reasoning', name: 'Grok 4.20 (suy luận)', contextWindow: 1_000_000, rpdLimit: 500, tpmLimit: 200_000, rpmLimit: 30, tags: ['reasoning', 'vision', '1M-ctx'] },
+  { id: 'grok-4.20-0309-non-reasoning', name: 'Grok 4.20 (nhanh)', contextWindow: 1_000_000, rpdLimit: 1_000, tpmLimit: 500_000, rpmLimit: 60, tags: ['fast', 'vision', '1M-ctx'] },
+  { id: 'grok-build-0.1', name: 'Grok Build 0.1', contextWindow: 256_000, rpdLimit: 500, tpmLimit: 200_000, rpmLimit: 30, tags: ['coding'] },
 ];
 
 export const DEEPSEEK_MODELS: ProviderModel[] = [
-  { id: 'deepseek-v4-flash', name: 'DeepSeek V4 Flash', contextWindow: 1_000_000, rpdLimit: 2_000, tpmLimit: 500_000, rpmLimit: 60, isLatest: true, tags: ['fast', 'coding', '1M-ctx', 'cheap'] },
+  { id: 'deepseek-flash', name: 'DeepSeek Flash', contextWindow: 1_000_000, rpdLimit: 2_000, tpmLimit: 500_000, rpmLimit: 60, isLatest: true, tags: ['fast', 'coding', '1M-ctx', 'cheap'] },
   { id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro', contextWindow: 1_000_000, rpdLimit: 500, tpmLimit: 200_000, rpmLimit: 20, isLatest: true, tags: ['reasoning', 'coding', '1M-ctx'] },
-  { id: 'deepseek-v3-2', name: 'DeepSeek V3.2', contextWindow: 128_000, rpdLimit: 2_000, tpmLimit: 500_000, rpmLimit: 60, tags: ['coding', 'fast'] },
-  { id: 'deepseek-r1', name: 'DeepSeek R1', contextWindow: 128_000, rpdLimit: 1_000, tpmLimit: 200_000, rpmLimit: 30, tags: ['reasoning', 'math'] },
 ];
 
+// contextWindow 0 = chưa rõ (danh mục NVIDIA đổi liên tục) → không hiện dòng "Ngữ cảnh".
 export const NVIDIA_MODELS: ProviderModel[] = [
-  { id: 'meta/llama-3.3-70b-instruct', name: 'Llama 3.3 70B Instruct', contextWindow: 128_000, rpdLimit: 1_000, tpmLimit: 100_000, rpmLimit: 60, isLatest: true, tags: ['reasoning', 'coding', 'fast'] },
+  { id: 'moonshotai/kimi-k3', name: 'Kimi K3', contextWindow: 0, rpdLimit: 1_000, tpmLimit: 100_000, rpmLimit: 40, isLatest: true, tags: ['reasoning', 'coding'] },
+  { id: 'z-ai/glm-5.3', name: 'GLM 5.3', contextWindow: 0, rpdLimit: 1_000, tpmLimit: 100_000, rpmLimit: 40, isLatest: true, tags: ['reasoning', 'coding'] },
+  { id: 'deepseek-ai/deepseek-v4.1-flash', name: 'DeepSeek V4.1 Flash', contextWindow: 0, rpdLimit: 1_000, tpmLimit: 100_000, rpmLimit: 40, isLatest: true, tags: ['fast', 'coding'] },
+  { id: 'meta/llama-3.3-70b-instruct', name: 'Llama 3.3 70B Instruct', contextWindow: 128_000, rpdLimit: 1_000, tpmLimit: 100_000, rpmLimit: 60, tags: ['reasoning', 'coding', 'fast'] },
   { id: 'nvidia/nemotron-4-340b-instruct', name: 'Nemotron 4 340B', contextWindow: 4_096, rpdLimit: 500, tpmLimit: 40_000, rpmLimit: 30, tags: ['reasoning', 'coding'] },
-  { id: 'nvidia/nemotron-3.5-content-safety', name: 'Nemotron Content Safety', contextWindow: 8_192, rpdLimit: 1_000, tpmLimit: 40_000, rpmLimit: 60, tags: ['safety', 'fast'] },
 ];
 
 export const PROVIDER_CONFIGS: ProviderConfig[] = [
@@ -103,6 +108,7 @@ const TAG_TRANSLATIONS: Record<string, string> = {
   'cheap': 'tiết kiệm',
   'generateContent': 'viết bài',
   'premium': 'bản Pro',
+  'legacy': 'bản cũ',
   'multimodal': 'đa phương tiện',
   'audio': 'âm thanh',
   'video': 'video',
@@ -120,6 +126,6 @@ export const toModelOption = (model: ProviderModel) => ({
     model.isLatest ? 'Mới nhất' : undefined,
     model.isPreview ? 'Bản thử nghiệm' : undefined,
     model.tags?.filter(tag => tag !== 'tracker').map(tag => TAG_TRANSLATIONS[tag] || tag).slice(0, 4).join(' · '),
-    `Ngữ cảnh: ${model.contextWindow.toLocaleString('vi-VN')} token`,
+    model.contextWindow > 0 ? `Ngữ cảnh: ${model.contextWindow.toLocaleString('vi-VN')} token` : undefined,
   ].filter(Boolean).join(' · '),
 });

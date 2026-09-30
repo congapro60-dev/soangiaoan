@@ -12,15 +12,14 @@ type Settings = AppData['settings'];
 const CLAUDE_MAX_TOKENS = 32768;
 const OPENAI_MAX_TOKENS = 16384;
 const GROK_MAX_TOKENS = 16384;
-const DEEPSEEK_CHAT_MAX_TOKENS = 8192;       // hard cap của deepseek-chat (V3)
-const DEEPSEEK_REASONER_MAX_TOKENS = 32768;  // deepseek-reasoner (R1) hỗ trợ tới 64K
+const DEEPSEEK_MAX_TOKENS = 32768;           // deepseek-flash / v4-pro cho phép tới 384K; 32K đủ cho một giáo án dài
 
 // Số lần auto-continue tối đa khi output bị cắt (an toàn ngân sách)
 const MAX_CONTINUATIONS = 3;
 
-function deepseekMaxTokens(model: string | undefined): number {
-  return model === 'deepseek-v4-pro' || model === 'deepseek-r1' ? DEEPSEEK_REASONER_MAX_TOKENS : DEEPSEEK_CHAT_MAX_TOKENS;
-}
+/** Phần chữ của phản hồi Claude: model suy luận có thể trả khối "thinking" trước khối chữ nên không được chỉ đọc khối đầu. */
+const claudeText = (blocks: ReadonlyArray<{ type: string; text?: string }>): string =>
+  blocks.filter(block => block.type === 'text').map(block => block.text ?? '').join('');
 
 interface RawResult {
   text: string;
@@ -164,7 +163,7 @@ async function callAIOnce(prompt: string, settings: Settings): Promise<RawResult
         max_tokens: CLAUDE_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
       });
-      const text = msg.content[0]?.type === 'text' ? msg.content[0].text : '';
+      const text = claudeText(msg.content);
       recordExactUsage(provider, model, {
         promptTokens: msg.usage?.input_tokens,
         completionTokens: msg.usage?.output_tokens,
@@ -178,7 +177,7 @@ async function callAIOnce(prompt: string, settings: Settings): Promise<RawResult
       const model = getActiveModelId(provider, settings);
       const res = await client.chat.completions.create({
         model,
-        max_tokens: OPENAI_MAX_TOKENS,
+        max_completion_tokens: OPENAI_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
       });
       const choice = res.choices[0];
@@ -214,7 +213,7 @@ async function callAIOnce(prompt: string, settings: Settings): Promise<RawResult
       const model = getActiveModelId(provider, settings);
       const res = await client.chat.completions.create({
         model,
-        max_tokens: deepseekMaxTokens(model),
+        max_tokens: DEEPSEEK_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
       });
       const choice = res.choices[0];
@@ -352,7 +351,7 @@ export async function callAIWithVision(
           content: [...imageBlocks, { type: 'text' as const, text: prompt }],
         }],
       });
-      const text = msg.content[0].type === 'text' ? msg.content[0].text : '';
+      const text = claudeText(msg.content);
       recordExactUsage(provider, model, {
         promptTokens: msg.usage?.input_tokens,
         completionTokens: msg.usage?.output_tokens,
@@ -370,7 +369,7 @@ export async function callAIWithVision(
       const model = getActiveModelId(provider, settings);
       const res = await client.chat.completions.create({
         model,
-        max_tokens: OPENAI_MAX_TOKENS,
+        max_completion_tokens: OPENAI_MAX_TOKENS,
         messages: [{
           role: 'user',
           content: [...imageBlocks, { type: 'text' as const, text: prompt }],
@@ -563,7 +562,7 @@ export async function callAIStream(
       const model = getActiveModelId(provider, settings, modelOverride);
       const stream = await client.chat.completions.create({
         model,
-        max_tokens: OPENAI_MAX_TOKENS,
+        max_completion_tokens: OPENAI_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
         stream: true,
       });
@@ -607,7 +606,7 @@ export async function callAIStream(
       const model = getActiveModelId(provider, settings, modelOverride);
       const stream = await client.chat.completions.create({
         model,
-        max_tokens: deepseekMaxTokens(model),
+        max_tokens: DEEPSEEK_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
         stream: true,
       });

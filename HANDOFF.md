@@ -5,6 +5,17 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Cập nhật model mới nhất + hướng dẫn "nên mua gì" trong Cài đặt — 2026-09-30
+
+Chủ dự án: thầy cô dùng nhiều hãng AI, cần model mới nhất và biết hãng nào có API miễn phí, hãng nào phải mua API riêng, giá bao nhiêu. Nguồn: trang giá/model chính thức của từng hãng, tra 30/09/2026 (`src/data/providerGuide.ts` ghi ngày; giá đổi thường xuyên).
+- **Phát hiện chính:** KHÔNG gói tiêu dùng nào (ChatGPT Plus, Claude Pro/Max, SuperGrok, Google AI Pro) kèm API — luôn phải lấy khoá API riêng. Chỉ Gemini (AI Studio) và NVIDIA có bản miễn phí; Claude/OpenAI nạp trước tối thiểu 5 USD, DeepSeek ~2 USD, Grok trả theo mức dùng.
+- Model (`src/data/models.ts`): Claude → Sonnet 5.5 (mặc định) / Opus 5.5 / Fable 5.1 / Haiku 4.5 (+2 bản cũ); OpenAI → GPT-6.1 Sol / 6 Luna / 6 Astra / 6 Sol + 5.4 mini/nano; Grok → 4.3 / 4.7 / 4.6 / 4.5 / 4.20 / Build 0.1; DeepSeek → `deepseek-flash` / `deepseek-v4-pro` (tên `deepseek-v4-flash` cũ hãng vẫn nhận nhưng đã ngừng); NVIDIA thêm Kimi K3 / GLM 5.3 / DeepSeek V4.1 Flash. Model đã lưu trong cài đặt cũ nhưng không còn trong danh sách vẫn gọi được (id dùng nguyên văn).
+- **Lỗi thật đã sửa:** `gemini-3.8-flash` có trong danh sách Cài đặt nhưng KHÔNG có trong `GEMINI_RUNTIME_MODELS` → chọn 3.8 vẫn chạy 3.7 âm thầm. Đã thêm (đứng thứ 2, danh sách cũng là chuỗi dự phòng khi quá tải). Test `providerGuide.test.ts` khoá: mọi model Gemini hiện ra đều có trong danh sách chạy.
+- Sửa gọi API cho model đời mới (`aiProviders.ts`): OpenAI dùng `max_completion_tokens` (model gpt-5+ từ chối `max_tokens`); Claude lấy TẤT CẢ khối chữ thay vì chỉ khối đầu (model suy luận có thể trả khối "thinking" trước); DeepSeek trần đầu ra 32K cho cả hai model (trần 8K cũ là của V3).
+- Giao diện: `ProviderCompareTable` (mục xổ "Nên chọn AI nào?") và `ProviderGuideCard` (dưới ô nhập khoá của từng hãng: có miễn phí không, gói app có kèm API không, nạp tối thiểu, các bước lấy khoá, model nên chọn + ≈ đồng/giáo án, cảnh báo). Ước tính giáo án: 8.000 token vào + 10.000 ra, 26.000đ/USD.
+- **CHƯA kiểm với khoá thật:** id model mới (GPT-6.x, Grok 4.7, Claude 5.x, DeepSeek Flash, NVIDIA Kimi/GLM) lấy từ trang chính thức nhưng chưa gọi thử bằng khoá nào; NVIDIA lấy từ danh sách công khai `integrate.api.nvidia.com/v1/models` và catalog của họ đổi liên tục. Hạn mức rpm/rpd/tpm của các hãng ngoài Google chỉ là số tham chiếu. Cần một thầy/cô thử mỗi hãng một lượt trước khi tin.
+- Nghiệm thu: `npm run lint`, `npm run test -- --run`, `npm run build`.
+
 ## Chọn nguồn khoá AI: Riêng / Ví web / Cả hai (giai đoạn 2 của kế hoạch Ví AI) — 2026-09-30
 
 Giáo viên tự chọn AI chạy bằng gì (`teacherAiKeys/{uid}.mode`). LÕI TÍNH TIỀN đang chạy thật — đừng nới mà chưa đọc test kèm theo.
