@@ -3,7 +3,7 @@ import { aiBannerMessage } from './aiBanner';
 import type { AiKeyStatus } from './aiBillingApi';
 
 const base: AiKeyStatus = {
-  month: '2026-10', charged: true, exempt: false, spentVnd: 0, grossVnd: 0, spentCalls: 0, usdVnd: 26190, capVnd: null,
+  month: '2026-10', charged: true, exempt: false, spentVnd: 0, grossVnd: 0, spentCalls: 0, today: '2026-10-01', todayVnd: 0, todayCalls: 0, usdVnd: 26190, capVnd: null,
   gateEnabled: true, shared: false, hasKey: false, last4: '', keyStatus: null, keyStatusAt: null, consent: false, consentAt: null,
   blockedSubmissionIds: [], balanceVnd: 0, topupCode: 'SPAI123456', paymentAccount: null, vouchers: [], activeVoucher: null,
 };

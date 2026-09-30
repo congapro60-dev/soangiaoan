@@ -154,6 +154,20 @@ export const buildAiUsageRecord = (
   ...(extra.finishReason ? { finishReason: extra.finishReason } : {}),
 });
 
+/**
+ * Cộng dồn theo NGÀY (giờ Việt Nam) ngay trong document tháng của `aiSpend`, để chip ở Header hiện
+ * "hôm nay" mà chỉ đọc MỘT document — không phải quét lại toàn bộ `aiUsage` mỗi lần làm mới.
+ */
+const spendByDay = (day: unknown, costUsd: number, charge: { chargeVnd: number } | null) => ({
+  days: {
+    [String(day)]: {
+      costUsd: FieldValue.increment(costUsd),
+      calls: FieldValue.increment(1),
+      ...(charge ? { chargeVnd: FieldValue.increment(charge.chargeVnd) } : {}),
+    },
+  },
+});
+
 /** Ghi một lượt dùng. KHÔNG bao giờ ném lỗi ra ngoài. */
 export const recordAiUsage = async (
   provider: AiProvider,
@@ -186,6 +200,7 @@ export const recordAiUsage = async (
       costUsd: FieldValue.increment(costUsd),
       calls: FieldValue.increment(1),
       ...(charge ? { chargeVnd: FieldValue.increment(charge.chargeVnd) } : {}),
+      ...spendByDay(record.day, costUsd, charge),
       updatedAt: record.at,
     }, { merge: true });
     if (charge && charge.chargeVnd > 0) {
@@ -251,6 +266,7 @@ export const recordImageUsage = async (
       calls: FieldValue.increment(1),
       images: FieldValue.increment(images),
       ...(charge ? { chargeVnd: FieldValue.increment(charge.chargeVnd) } : {}),
+      ...spendByDay(record.day, costUsd, charge),
       updatedAt: record.at,
     }, { merge: true });
     if (charge && charge.chargeVnd > 0) {

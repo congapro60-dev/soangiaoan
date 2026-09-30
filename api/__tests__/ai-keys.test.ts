@@ -19,10 +19,13 @@ vi.mock('firebase-admin/auth', () => ({
 
 vi.mock('firebase-admin/firestore', () => ({ FieldValue: { increment: (n: number) => ({ __inc: n }) } }));
 
+// Giống `set(..., { merge: true })` của Firestore thật: map lồng nhau được trộn từng trường (cần cho `aiSpend.days`).
 const applyMerge = (current: DocData, patch: DocData): DocData => {
   const next = { ...current };
   for (const [k, v] of Object.entries(patch)) {
-    next[k] = v && typeof v === 'object' && '__inc' in v ? (Number(current[k]) || 0) + v.__inc : v;
+    if (v && typeof v === 'object' && '__inc' in v) next[k] = (Number(current[k]) || 0) + v.__inc;
+    else if (v && typeof v === 'object' && !Array.isArray(v)) next[k] = applyMerge(current[k] && typeof current[k] === 'object' ? current[k] : {}, v);
+    else next[k] = v;
   }
   return next;
 };
@@ -63,6 +66,7 @@ const inRequest = <T>(owner: string, fn: () => Promise<T>) => {
 };
 
 const month = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit' }).format(new Date()).slice(0, 7);
+const day = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
 
 describe('khoá AI + trần chi tiêu', () => {
   beforeEach(() => {
@@ -122,6 +126,9 @@ describe('khoá AI + trần chi tiêu', () => {
     expect(h.store['aiWallets/gv-ngoai'].balanceVnd).toBe(30_500);
     expect(h.store[`aiSpend/gv-ngoai_${month}`]).toMatchObject({ calls: 1 });
     expect(h.store[`aiSpend/gv-ngoai_${month}`].costUsd).toBeCloseTo(0.75, 6);
+    // Cùng lượt đó cũng được cộng vào ô của NGÀY (giờ VN) để chip Header hiện "hôm nay"
+    expect(h.store[`aiSpend/gv-ngoai_${month}`].days[day]).toMatchObject({ calls: 1, chargeVnd: 19_500 });
+    expect(h.store[`aiSpend/gv-ngoai_${month}`].days[day].costUsd).toBeCloseTo(0.75, 6);
 
     // Chưa đồng ý: khoá "hết" đang trong thời gian nghỉ → chặn ngay, không gọi Google
     h.store['teacherAiKeys/gv-ngoai'].consent = { accepted: false };
@@ -147,6 +154,27 @@ describe('khoá AI + trần chi tiêu', () => {
     expect(usage).toMatchObject({ discountPct: 100, voucherCode: 'MIENPHI', chargeVnd: 0 });
     expect(usage?.grossVnd).toBeGreaterThan(0);
     expect(h.store['aiWallets/gv-nhom'].balanceVnd).toBe(0);
+  });
+
+  it('trạng thái ví: "hôm nay" chỉ lấy ô của ngày hiện tại; đang trừ ví thì là tiền đã trừ, chưa bật phí thì là giá gốc quy đổi', async () => {
+    const status = async () => {
+      const res: any = { statusCode: 0, payload: null, status(c: number) { res.statusCode = c; return res; }, json(p: any) { res.payload = p; return res; } };
+      await handleAiKeyAction(fakeDb() as never, { idToken: 't', action: 'aiKeyStatus' }, res);
+      return res.payload;
+    };
+    h.store['adminSettings/billing'] = { usdVnd: 26_000 };
+    h.store[`aiSpend/gv-ngoai_${month}`] = {
+      costUsd: 3, calls: 9, chargeVnd: 78_000,
+      days: { [day]: { costUsd: 0.5, calls: 2, chargeVnd: 13_000 }, '2000-01-01': { costUsd: 2.5, calls: 7, chargeVnd: 65_000 } },
+    };
+    // Chưa bật kiểm soát: không trừ ví → giá gốc quy đổi 0,5 × 26.000
+    expect(await status()).toMatchObject({ today: day, todayVnd: 13_000, todayCalls: 2, charged: false });
+    h.store['adminSettings/aiAccess'] = { enabled: true, sharedUids: [], exemptUids: [] };
+    h.store[`aiSpend/gv-ngoai_${month}`].days[day].chargeVnd = 9_100; // mã giảm giá: trừ ít hơn giá gốc
+    expect(await status()).toMatchObject({ todayVnd: 9_100, todayCalls: 2, charged: true });
+    // Ngày mới chưa có lượt nào
+    delete h.store[`aiSpend/gv-ngoai_${month}`].days[day];
+    expect(await status()).toMatchObject({ todayVnd: 0, todayCalls: 0 });
   });
 
   it('lượt dùng khoá riêng KHÔNG cộng vào sổ chi tiêu', async () => {

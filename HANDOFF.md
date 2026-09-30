@@ -1,9 +1,20 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-09-29
+**Cập nhật:** 2026-09-30
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
+
+## Chip Ví AI ở Header + popup chi tiết (giai đoạn 1 của kế hoạch Ví AI) — 2026-09-30
+
+Chủ dự án chốt: chip hiện **tiền** ("Ví 48.200đ · hôm nay −1.300đ"), token nằm trong popup; khoá riêng hiện "còn lại" kiểu 9Router; **token/ví web sẽ dùng cho MỌI tính năng AI** (giai đoạn 3, CHƯA làm). Kế hoạch đủ 3 giai đoạn: `tasks/ke-hoach-vi-ai-chip-popup.md`. Nhánh `feat/vi-ai-chip-popup` (worktree riêng dựng từ `origin/main`), chưa merge.
+- `AiWalletChip` (Header, chỉ khi GV đăng nhập) + `AiUsagePopup`: ví web (số dư, hôm nay/tháng, trần, 4 ô lượt/tiền/token vào/token ra, "lượt gần đây" có tên lớp/bài/học sinh) và khoá riêng (thanh còn lại theo model).
+- Máy chủ: `aiSpend/{uid}_{tháng}` ghi thêm `days.{YYYY-MM-DD}.{costUsd,calls,chargeVnd}` (cùng lần ghi ở `recordAiUsage` + `recordImageUsage`); `aiKeyStatus` trả `today/todayVnd/todayCalls`. "Hôm nay" chỉ đếm từ lúc triển khai, không bù lượt cũ.
+- Làm mới chip: `aiKeyGate` phát `ai-billing-updated` sau mỗi phản hồi của 3 đường AI (bỏ qua request có header `X-Ai-Quiet` — lượt đọc số liệu ví, nếu không chip tự kích chính nó); `useAiBillingStatus` gộp 3 giây, tối đa 1 lần/15 giây, thêm 90 giây/lần, bỏ qua khi tab ẩn. Mỗi lần đọc ≈ 6 lượt đọc Firestore. Popup gọi `aiStatement` (đọc TOÀN BỘ `aiUsage` của GV) chỉ khi mở hoặc bấm làm mới.
+- **Giới hạn phải nói thật:** Google KHÔNG trả số dư khoá API. Thanh "còn lại" = lượt đã gọi từ TRÌNH DUYỆT NÀY (`useTokenTracker`, localStorage) so với `rpd` tham chiếu của model; khoá trả phí hoặc dùng nơi khác sẽ lệch, và ngày của bộ đếm là ngày giờ máy còn Google reset theo giờ Thái Bình Dương. Popup có ghi chú "Ước tính". Sao kê chỉ có lượt ĐÃ TRỪ VÍ → khi web chưa bật phí hoặc tài khoản được miễn, popup chỉ có số tổng, không có danh sách lượt.
+- **Bẫy:** chip là `null` cho tới khi `aiKeyStatus` trả về (không hiện chip giả). Popup `fixed` trên điện thoại vì `Header` có `backdrop-blur` (tạo khung chứa cho phần tử `fixed`) — đừng bỏ `top-[5.25rem]`. Fake Firestore trong `ai-keys.test.ts` giờ trộn map lồng nhau như `set(merge)` thật.
+- **Chưa làm / cố ý để sau:** chế độ nguồn khoá Riêng/Ví/Cả hai + gộp trang cài đặt (GĐ2, đụng lõi tính tiền `decideAiKey`); ví cho soạn giáo án/nâng cấp/dự giờ/đề thi (GĐ3: cần đường máy chủ cho Gemini, đo giới hạn thân request 4,5MB + `maxDuration` 60s trước khi hứa); Claude/OpenAI/Grok/DeepSeek chưa có bảng giá. Cổng phụ huynh: để sau khi cổng học sinh ổn.
+- QA: popup dựng thử bằng trang tạm với dữ liệu giả ở 1100px và 375px (đã xoá trang tạm); CHƯA thử với tài khoản GV thật vì cần đăng nhập Google. Nghiệm thu: `npm run lint`, `npm run lint:api`, `npm run test -- --run` (214 file / 2317 test), `npm run build`.
 
 ## Lịch báo giảng + SSM đợt 2 (điểm LO, soạn sẵn nội dung) — 2026-09-29
 

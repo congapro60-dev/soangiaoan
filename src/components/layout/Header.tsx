@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, type ReactNode } from 'react';
 import { Search, History, BookOpen, FileText, GraduationCap, Menu } from 'lucide-react';
 import { AppData } from '../../types';
 
@@ -10,6 +10,8 @@ interface HeaderProps {
   setIsSettingsOpen: (val: boolean) => void;
   setActiveTab: (tab: ActiveTab) => void;
   onMenuClick?: () => void;
+  /** Chip Ví AI (chỉ có khi giáo viên đã đăng nhập). */
+  aiChip?: ReactNode;
 }
 
 const timeAgo = (ts: number) => {
@@ -21,7 +23,7 @@ const timeAgo = (ts: number) => {
   return `${Math.floor(h / 24)} ngày trước`;
 };
 
-export const Header = ({ activeTab, data, setIsSettingsOpen, setActiveTab, onMenuClick }: HeaderProps) => {
+export const Header = ({ activeTab, data, setIsSettingsOpen, setActiveTab, onMenuClick, aiChip }: HeaderProps) => {
   const [showHistory, setShowHistory] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -130,6 +132,7 @@ export const Header = ({ activeTab, data, setIsSettingsOpen, setActiveTab, onMen
         </div>
 
         <div className="flex items-center gap-3">
+          {aiChip}
           {/* History button */}
           <div className="relative" ref={ref}>
             <button

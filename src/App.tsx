@@ -22,6 +22,7 @@ import { SettingsModal } from './components/modals/SettingsModal';
 import { LatexModal } from './components/modals/LatexModal';
 import { AiKeyGateModal } from './components/features/aiBilling/AiKeyGateModal';
 import { AiBlockedBanner } from './components/features/aiBilling/AiBlockedBanner';
+import { AiWalletChip } from './components/features/aiBilling/AiWalletChip';
 import { installAiKeyFetchGate } from './lib/ai/aiKeyGate';
 
 // Lazy-loaded tabs (splits heavy chunks, loaded on first visit)
@@ -368,7 +369,10 @@ export default function App() {
       />
 
       <main className="flex-1 flex flex-col overflow-hidden relative">
-        <Header activeTab={activeTab} data={data} setIsSettingsOpen={setIsSettingsOpen} setActiveTab={setActiveTab} onMenuClick={() => setIsSidebarOpen(true)} />
+        <Header
+          activeTab={activeTab} data={data} setIsSettingsOpen={setIsSettingsOpen} setActiveTab={setActiveTab} onMenuClick={() => setIsSidebarOpen(true)}
+          aiChip={isTeacherSignedIn ? <AiWalletChip onOpenBilling={() => setActiveTab('aiBilling')} /> : undefined}
+        />
         {/* Banner nhắc nhập API Key khi chưa cấu hình */}
         {user && (() => {
           const s = data.settings;

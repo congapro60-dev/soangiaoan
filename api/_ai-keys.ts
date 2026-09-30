@@ -70,11 +70,21 @@ const loadKeyDoc = async (db: Db, uid: string): Promise<TeacherKeyDoc | null> =>
   return snap.exists ? (snap.data() as TeacherKeyDoc) : null;
 };
 
-/** Chi tiêu khoá chung của giáo viên trong tháng (theo sổ `aiSpend`). */
-export const monthSpend = async (db: Db, uid: string, month: string): Promise<{ costUsd: number; calls: number; chargeVnd: number }> => {
+interface SpendTotals { costUsd: number; calls: number; chargeVnd: number }
+
+const spendTotals = (raw: unknown): SpendTotals => {
+  const data = raw && typeof raw === 'object' ? raw as Record<string, unknown> : {};
+  return { costUsd: Number(data.costUsd) || 0, calls: Number(data.calls) || 0, chargeVnd: Number(data.chargeVnd) || 0 };
+};
+
+/**
+ * Chi tiêu khoá chung của giáo viên trong tháng (theo sổ `aiSpend`), kèm phần của ngày `day` (giờ Việt Nam).
+ * Phần "hôm nay" chỉ có từ lúc sổ bắt đầu ghi `days` — lượt trước đó không bù.
+ */
+export const monthSpend = async (db: Db, uid: string, month: string, day: string = vnDate(new Date()).day): Promise<SpendTotals & { today: SpendTotals }> => {
   const snap = await db.collection(AI_SPEND_COL).doc(aiSpendDocId(uid, month)).get();
   const data = snap.exists ? snap.data() ?? {} : {};
-  return { costUsd: Number(data.costUsd) || 0, calls: Number(data.calls) || 0, chargeVnd: Number(data.chargeVnd) || 0 };
+  return { ...spendTotals(data), today: spendTotals(data.days?.[day]) };
 };
 
 /**
@@ -221,12 +231,12 @@ const probeGeminiKey = async (key: string): Promise<{ ok: true } | { ok: false; 
 };
 
 const statusPayload = async (db: Db, uid: string, email: string): Promise<Record<string, unknown>> => {
-  const month = vnDate(new Date()).month;
+  const { day, month } = vnDate(new Date());
   const [access, keyDoc, blocked, spend, usdVnd, wallet] = await Promise.all([
     loadAiAccess(db),
     loadKeyDoc(db, uid),
     db.collection('submissions').where('teacherId', '==', uid).where('aiBlocked', '==', true).get(),
-    monthSpend(db, uid, month),
+    monthSpend(db, uid, month, day),
     loadUsdVnd(db),
     walletView(db, uid, email),
   ]);
@@ -240,6 +250,10 @@ const statusPayload = async (db: Db, uid: string, email: string): Promise<Record
     spentVnd: charged ? spend.chargeVnd : usdToVndRounded(spend.costUsd, usdVnd),
     grossVnd: usdToVndRounded(spend.costUsd, usdVnd),
     spentCalls: spend.calls,
+    /** Ngày (giờ VN) của các số "hôm nay" bên dưới — cùng cách tính với `spentVnd`. */
+    today: day,
+    todayVnd: charged ? spend.today.chargeVnd : usdToVndRounded(spend.today.costUsd, usdVnd),
+    todayCalls: spend.today.calls,
     usdVnd,
     capVnd: typeof keyDoc?.monthlyCapVnd === 'number' && keyDoc.monthlyCapVnd > 0 ? keyDoc.monthlyCapVnd : null,
     gateEnabled: access.enabled,
