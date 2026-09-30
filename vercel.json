@@ -25,7 +25,7 @@
       "memory": 512
     },
     "api/classroom.ts": {
-      "maxDuration": 15,
+      "maxDuration": 60,
       "memory": 512
     },
     "api/grade-homework.ts": {

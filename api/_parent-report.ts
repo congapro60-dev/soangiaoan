@@ -23,6 +23,20 @@ const MAX_NOTE_CHARS = 3000;
 // Có từng câu của các bài đã duyệt (căn cứ ghép yêu cầu cần đạt) nên dài hơn bản chỉ có số tổng.
 const MAX_FACTS_CHARS = 60000;
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+// Hàm `classroom` bị Vercel dừng ở 60s (vercel.json); chừa ~10s để trả lời rõ ràng thay vì lỗi 504 trần.
+const AI_TIMEOUT_MS = 50_000;
+const AI_SLOW_MESSAGE = 'AI soạn báo cáo quá lâu nên máy chủ đã dừng. Bấm "AI soạn nháp" lại một lần nữa.';
+
+/** Gọi AI; hết giờ chờ thì trả null (để báo lỗi rõ), lỗi khác (khoá, ví, Gemini) vẫn ném lên như mọi action. */
+const callWithinTime = async (call: () => Promise<string>): Promise<string | null> => {
+  const startedAt = Date.now();
+  try {
+    return await call();
+  } catch (error) {
+    if (Date.now() - startedAt >= AI_TIMEOUT_MS - 1000) return null;
+    throw error;
+  }
+};
 
 interface NoteKey {
   studentId: string;
@@ -158,19 +172,23 @@ const handleDraft = async (db: Db, body: Body, res: VercelResponse): Promise<voi
   const evidence = readEvidence(body.facts);
   // Khối chưa có bảng yêu cầu cần đạt hoặc kì không có bài đã duyệt → chỉ soạn nhận xét như cũ.
   if (!yccdOptions || evidence.length === 0) {
-    const raw = await callGeminiVision(buildParentCommentPrompt(factsJson), [], getGradingApiKey(), GRADING_MODEL, {
+    const raw = await callWithinTime(() => callGeminiVision(buildParentCommentPrompt(factsJson), [], getGradingApiKey(), GRADING_MODEL, {
       temperature: 0.4,
       maxOutputTokens: 'model-max',
-    });
+      timeoutMs: AI_TIMEOUT_MS,
+    }));
+    if (raw === null) return void res.status(504).json({ error: AI_SLOW_MESSAGE });
     const text = cleanComment(raw);
     if (!text) return void res.status(502).json({ error: 'AI chưa soạn được nhận xét, thử lại.' });
     return void res.status(200).json({ text, requirements: [] as ParentRequirementLine[] });
   }
-  const raw = await callGeminiVision(buildParentReportDraftPrompt(factsJson, yccdOptions), [], getGradingApiKey(), GRADING_MODEL, {
+  const raw = await callWithinTime(() => callGeminiVision(buildParentReportDraftPrompt(factsJson, yccdOptions), [], getGradingApiKey(), GRADING_MODEL, {
     temperature: 0.2,
     maxOutputTokens: 'model-max',
     jsonMode: true,
-  });
+    timeoutMs: AI_TIMEOUT_MS,
+  }));
+  if (raw === null) return void res.status(504).json({ error: AI_SLOW_MESSAGE });
   const parsed = parseDraftJson(raw);
   const text = cleanComment(parsed?.nhanXet);
   if (!parsed || !text) return void res.status(502).json({ error: 'AI chưa soạn được báo cáo, thử lại.' });

@@ -8,6 +8,7 @@ const h = vi.hoisted(() => ({
   grade: '' as string,
   reply: '**Con** học chăm, cần luyện thêm hàm số.',
   jsonMode: false as boolean | undefined,
+  fail: '' as '' | 'slow' | 'fast',
 }));
 
 vi.mock('../_classroom-teacher.js', () => ({
@@ -23,6 +24,8 @@ vi.mock('../_grading-core.js', () => ({
   callGeminiVision: async (prompt: string, _files: unknown, _key: string, _model: string, options: { jsonMode?: boolean }) => {
     h.prompt = prompt;
     h.jsonMode = options.jsonMode;
+    if (h.fail === 'slow') { vi.setSystemTime(Date.now() + 55_000); throw new Error('AI xử lý quá lâu'); }
+    if (h.fail === 'fast') throw new Error('Chưa có khoá Gemini');
     return h.reply;
   },
 }));
@@ -50,7 +53,18 @@ const key = { studentId: 'hs1', kind: 'gk1', from: '2026-09-01', to: '2026-10-31
 describe('nhận xét giáo viên trong báo cáo phụ huynh', () => {
   beforeEach(() => {
     h.store = {}; h.owner = ''; h.prompt = ''; h.allowed = true; h.grade = '';
-    h.reply = '**Con** học chăm, cần luyện thêm hàm số.'; h.jsonMode = undefined;
+    h.reply = '**Con** học chăm, cần luyện thêm hàm số.'; h.jsonMode = undefined; h.fail = '';
+    vi.useRealTimers();
+  });
+
+  it('AI quá giờ chờ → 504 kèm lời dặn rõ ràng; lỗi khác (khoá, ví) vẫn ném lên như cũ', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    h.fail = 'slow';
+    const slow = await call({ action: 'draftParentReportComment', ...key, facts: {} });
+    expect(slow.status).toBe(504);
+    expect(String(slow.body.error)).toContain('quá lâu');
+    h.fail = 'fast';
+    await expect(call({ action: 'draftParentReportComment', ...key, facts: {} })).rejects.toThrow('Chưa có khoá Gemini');
   });
 
   it('AI soạn nháp từ số liệu, bỏ markdown, tính tiền cho giáo viên chủ lớp', async () => {
