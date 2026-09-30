@@ -403,6 +403,61 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
     expect(harness.state.submissionGradeHistory).toBeUndefined();
   });
 
+  describe('bài chưa từng có điểm mà chấm hỏng', () => {
+    const seedChuaCham = (): Harness => {
+      const harness = seed();
+      const { grade: _bo, ...khongDiem } = harness.state.submissions['sub-1'];
+      harness.state.submissions['sub-1'] = { ...khongDiem, status: 'submitted' };
+      return harness;
+    };
+
+    it('hai response schema-invalid: nhãn định dạng đúng chỗ, lỗi thô được giữ và có log', async () => {
+      const harness = seedChuaCham();
+      h.db = makeDb(harness);
+      const logLoi = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      stubGeminiResponses(
+        makeGeminiResponse(JSON.stringify({ score: 6, maxScore: 10, noteForTeacher: 'Thiếu feedback.' })),
+        makeGeminiResponse(JSON.stringify({ score: 6, maxScore: 10, noteForTeacher: 'Vẫn thiếu feedback.' })),
+      );
+
+      const result = await call({ action: 'gradeOne', submissionId: 'sub-1' });
+
+      expect(result.statusCode).toBe(422);
+      expect(harness.state.submissions['sub-1']).toMatchObject({
+        status: 'error',
+        errorMessage: expect.stringMatching(/lỗi định dạng/),
+        lastGradingErrorRaw: expect.stringContaining('feedbackForStudent'),
+      });
+      expect(logLoi).toHaveBeenCalledWith('[grade-homework] lượt chấm hỏng', expect.objectContaining({ submissionId: 'sub-1', hadPreviousGrade: false }));
+      logLoi.mockRestore();
+    });
+
+    it('lỗi hệ thống ngoài AI không bị gắn nhãn lỗi định dạng', async () => {
+      const harness = seedChuaCham();
+      const db = makeDb(harness);
+      let soGiaoDich = 0;
+      h.db = {
+        ...db,
+        runTransaction: async (work: Parameters<typeof db.runTransaction>[0]) => {
+          soGiaoDich += 1;
+          if (soGiaoDich === 2) throw new Error('10 ABORTED: Too much contention');
+          return db.runTransaction(work);
+        },
+      };
+      const logLoi = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      stubGeminiResponses(makeGeminiResponse(validGradeJson(7)));
+
+      const result = await call({ action: 'gradeOne', submissionId: 'sub-1' });
+
+      expect(result.statusCode).toBe(422);
+      const luu = harness.state.submissions['sub-1'];
+      expect(luu).toMatchObject({ status: 'error', lastGradingErrorRaw: expect.stringContaining('ABORTED') });
+      expect(String(luu.errorMessage)).toMatch(/lỗi hệ thống/);
+      expect(String(luu.errorMessage)).not.toMatch(/định dạng/);
+      logLoi.mockRestore();
+    });
+  });
+
   it('worker AI cũ không được ghi đè điểm mới sau khi mất claim', async () => {
     const harness = seed();
     h.db = makeDb(harness);

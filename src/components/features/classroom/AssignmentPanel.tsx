@@ -392,7 +392,7 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                 {s.grade?.gradedWithoutAnswerKey && (
                   <p className="text-xs font-bold text-amber-700">Bài chấm khi chưa đối chiếu đáp án chuẩn — nên soát lại giúp.</p>
                 )}
-                {s.status === 'error' && !s.grade && <p className="text-sm font-semibold text-red-700">{TEACHER_GRADING_ERROR_COPY}</p>}
+                {s.status === 'error' && !s.grade && <p className="text-sm font-semibold text-red-700">{s.errorMessage || TEACHER_GRADING_ERROR_COPY}</p>}
                 {s.status === 'graded' && s.grade && s.lastGradingError && (
                   <div className="rounded-xl bg-amber-50 p-3 ring-1 ring-amber-100">
                     <p className="text-sm font-bold text-amber-800">⚠️ Lần chấm lại chưa thành công; điểm hiện tại vẫn được giữ nguyên.</p>
