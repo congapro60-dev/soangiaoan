@@ -31,6 +31,10 @@
     "api/grade-homework.ts": {
       "maxDuration": 60,
       "memory": 1024
+    },
+    "api/ai-relay.ts": {
+      "maxDuration": 300,
+      "memory": 1024
     }
   },
   "rewrites": [

@@ -1,7 +1,8 @@
 /// <reference types="node" />
 // File prefix "_" → không thành Serverless Function. Gồm: hạn mức chống đốt tiền + gọi Gemini.
-import { geminiUsageCounts, recordAiUsage } from './_ai-usage.js';
-import { ensureGeminiKey, onOwnKeyFailure } from './_ai-keys.js';
+import { HOLD_MAX_WAITS, acquireCallHold, geminiUsageCounts, holdRetryMs, recordAiUsage, releaseWalletHold } from './_ai-usage.js';
+import { AiKeyRequiredError, ensureGeminiKey, onOwnKeyFailure } from './_ai-keys.js';
+import { getAdminDb } from './_exam-core.js';
 import { classifyGeminiKeyFailure } from '../src/lib/admin/aiKeyPolicy.js';
 
 /**
@@ -189,6 +190,8 @@ export interface GeminiOptions {
   maxOutputTokens?: number | 'model-max';
   /** Bật chế độ JSON của Gemini: model bị ràng buộc trả JSON hợp lệ, khỏi bọc trong ```json. */
   jsonMode?: boolean;
+  /** Chỉ dẫn hệ thống (đường relay giữ đúng chỉ dẫn mà trình duyệt vốn gửi khi gọi Gemini bằng khoá của giáo viên). */
+  systemInstruction?: string;
   /**
    * Nhiệt độ sinh. Mặc định 0.2. Tác vụ ĐỌC/chấm nên đặt 0 để mỗi lần chấm lại đọc chữ và công
    * thức ổn định hơn, không "mỗi lần một kiểu". Tác vụ cần đa dạng (sinh bài luyện) giữ >0.
@@ -247,13 +250,44 @@ export const moTaFinishReason = (reason: string | undefined, coChu: boolean): st
   return null;
 };
 
-export const callGeminiVision = async (
+/**
+ * Gọi Gemini (chọn khoá, chuyển khoá khi khoá riêng hết, ghi token) và trả nguyên văn + lý do dừng, KHÔNG ném lỗi vì
+ * lý do dừng — nơi gọi tự quyết. Đường chấm dùng `callGeminiVision` (ném lỗi khi bị cắt/chặn); đường relay soạn bài
+ * cần giữ phần chữ dở dang để tự nối tiếp nên dùng thẳng hàm này.
+ */
+export const callGeminiRaw = async (
   prompt: string,
   images: InlineImage[],
   apiKey: string,
   model: string = GRADING_MODEL,
   options: GeminiOptions = {},
-): Promise<string> => {
+): Promise<{ text: string; finishReason?: string }> => {
+  const hold: CallHold = { vnd: 0, ownerUid: null, handedOver: false };
+  try {
+    return await callGeminiRawHeld(prompt, images, apiKey, model, options, hold);
+  } finally {
+    // Đã giữ chỗ tiền mà lượt gọi hỏng TRƯỚC khi tới bước ghi/trừ tiền (lỗi mạng, Google từ chối…) thì trả lại phần giữ.
+    if (hold.vnd > 0 && !hold.handedOver && hold.ownerUid) {
+      await releaseWalletHold(getAdminDb(), hold.ownerUid, hold.vnd).catch(error => console.error('[grading] không trả được chỗ giữ tiền:', error));
+    }
+  }
+};
+
+interface CallHold {
+  vnd: number;
+  ownerUid: string | null;
+  /** `recordAiUsage` đã nhận phần giữ chỗ (nó tự thay bằng số tiền thật hoặc tự trả lại) — không được trả lần nữa. */
+  handedOver: boolean;
+}
+
+const callGeminiRawHeld = async (
+  prompt: string,
+  images: InlineImage[],
+  apiKey: string,
+  model: string,
+  options: GeminiOptions,
+  hold: CallHold,
+): Promise<{ text: string; finishReason?: string }> => {
   const generationConfig: Record<string, unknown> = {
     temperature: options.temperature ?? 0.2,
   };
@@ -266,7 +300,31 @@ export const callGeminiVision = async (
   // Khoá theo request: nhóm dùng khoá chung / khoá riêng của giáo viên / khoá chung đã đồng ý tính phí.
   let keyChoice = await ensureGeminiKey(apiKey);
   let res: Response;
+  // MỘT hạn chót cho cả lượt (kể cả lần gọi lại sau khi khoá riêng hỏng): mỗi lần gọi chỉ được dùng phần thời gian còn lại,
+  // nếu không hai lần cộng lại vượt trần thời gian của hàm và Vercel giết hàm giữa chừng (QA F4).
+  const deadline = options.timeoutMs ? Date.now() + options.timeoutMs : null;
+  const timedOutError = () => new GeminiResponseError(
+    'provider',
+    'AI xử lý quá lâu nên máy chủ phải dừng lượt chấm này. Thử lại, hoặc chụp gọn lại bài (ít ảnh hơn).',
+  );
   for (let attempt = 0; ; attempt += 1) {
+    const remainingMs = deadline === null ? null : deadline - Date.now();
+    if (remainingMs !== null && remainingMs <= 0) throw timedOutError();
+    // Giữ chỗ tiền TRƯỚC khi gọi (chỉ lượt bị trừ ví): chặn các lượt song song cùng lọt qua kiểm số dư/trần (QA F3).
+    if (hold.vnd === 0) {
+      let held = await acquireCallHold(keyChoice);
+      // Chỉ bị chặn vì lượt khác đang giữ chỗ → chờ chúng xong (trả/đổi chỗ) rồi thử lại, thay vì báo hết tiền oan.
+      for (let waited = 0; !held.ok && held.contended && waited < HOLD_MAX_WAITS; waited += 1) {
+        await new Promise(resolve => setTimeout(resolve, holdRetryMs()));
+        if (deadline !== null && deadline - Date.now() <= 0) throw timedOutError();
+        held = await acquireCallHold(keyChoice);
+      }
+      if (!held.ok) throw new AiKeyRequiredError(held.reason, keyChoice.ownerUid);
+      if (held.holdVnd > 0) {
+        hold.vnd = held.holdVnd;
+        hold.ownerUid = keyChoice.ownerUid;
+      }
+    }
     try {
       res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(keyChoice.key)}`,
@@ -282,19 +340,15 @@ export const callGeminiVision = async (
               ],
             }],
             generationConfig,
+            ...(options.systemInstruction ? { systemInstruction: { parts: [{ text: options.systemInstruction }] } } : {}),
           }),
-          ...(options.timeoutMs ? { signal: AbortSignal.timeout(options.timeoutMs) } : {}),
+          ...(remainingMs !== null ? { signal: AbortSignal.timeout(remainingMs) } : {}),
         },
       );
     } catch (error) {
       // Hết giờ chờ thì phải ném ra để nhánh gọi kịp mở khoá bài nộp trước khi Vercel giết hàm.
       const timedOut = error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError');
-      throw new GeminiResponseError(
-        'provider',
-        timedOut
-          ? 'AI xử lý quá lâu nên máy chủ phải dừng lượt chấm này. Thử lại, hoặc chụp gọn lại bài (ít ảnh hơn).'
-          : 'Không gọi được Gemini lúc này. Thử lại sau ít phút.',
-      );
+      throw timedOut ? timedOutError() : new GeminiResponseError('provider', 'Không gọi được Gemini lúc này. Thử lại sau ít phút.');
     }
     if (res.ok || keyChoice.source !== 'own' || attempt > 0) break;
     // Khoá RIÊNG của giáo viên bị từ chối vì chính khoá (hết hạn mức / hỏng): ghi lại, rồi hoặc chuyển
@@ -330,8 +384,10 @@ export const callGeminiVision = async (
     error?: unknown;
   };
   // Ghi token TRƯỚC mọi nhánh ném lỗi: Google tính tiền cả lượt bị cắt/bị chặn.
+  hold.handedOver = true;
   await recordAiUsage('gemini', model, geminiUsageCounts(data.usageMetadata), {
     finishReason: data.candidates?.[0]?.finishReason || data.promptFeedback?.blockReason,
+    holdVnd: hold.vnd,
   });
   if (data.error) {
     throw new GeminiResponseError('provider', 'Gemini không hoàn tất yêu cầu. Thử lại sau ít phút.');
@@ -340,6 +396,17 @@ export const callGeminiVision = async (
   const candidate = data.candidates?.[0];
   const text = candidate?.content?.parts?.map(p => p.text || '').join('') || '';
   const finishReason = candidate?.finishReason || data.promptFeedback?.blockReason;
+  return { text, finishReason };
+};
+
+export const callGeminiVision = async (
+  prompt: string,
+  images: InlineImage[],
+  apiKey: string,
+  model: string = GRADING_MODEL,
+  options: GeminiOptions = {},
+): Promise<string> => {
+  const { text, finishReason } = await callGeminiRaw(prompt, images, apiKey, model, options);
   const hasText = text.trim().length > 0;
 
   if (finishReason === 'MAX_TOKENS') {

@@ -6,11 +6,15 @@ const blocked = () => json(402, { code: 'AI_KEY_REQUIRED', reason: 'no_balance' 
 const setup = async (responses: Response[]) => {
   vi.resetModules();
   const fetchMock = vi.fn(async () => responses.shift() ?? json(200, { ok: true }));
-  (globalThis as { window?: unknown }).window = { fetch: fetchMock };
+  const dispatchEvent = vi.fn();
+  (globalThis as { window?: unknown }).window = { fetch: fetchMock, dispatchEvent };
   const gate = await import('./aiKeyGate');
   gate.installAiKeyFetchGate();
   const win = (globalThis as unknown as { window: { fetch: typeof fetch } }).window;
-  return { gate, fetchMock, call: (url: string) => win.fetch(url, { method: 'POST', body: '{}' }) };
+  return {
+    gate, fetchMock, dispatchEvent,
+    call: (url: string, headers?: Record<string, string>) => win.fetch(url, { method: 'POST', body: '{}', ...(headers ? { headers } : {}) }),
+  };
 };
 
 afterEach(() => { delete (globalThis as { window?: unknown }).window; });
@@ -45,6 +49,23 @@ describe('aiKeyGate', () => {
     const results = await both;
     expect(resolver).toHaveBeenCalledTimes(1);
     expect(results.map(r => r.status)).toEqual([200, 200]);
+  });
+
+  it('báo cho chip Ví AI làm mới sau mỗi lượt gọi đường AI, trừ lượt chỉ đọc số liệu ví và đường khác', async () => {
+    const { gate, dispatchEvent, call } = await setup([]);
+    await call('/api/grade-homework');
+    expect(dispatchEvent).toHaveBeenCalledTimes(1);
+    expect(dispatchEvent.mock.calls[0][0].type).toBe(gate.AI_BILLING_UPDATED_EVENT);
+    await call('/api/classroom', { [gate.AI_QUIET_HEADER]: '1' });
+    await call('/api/other');
+    expect(dispatchEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('bị chặn rồi xử lý xong và gửi lại thì báo thêm một lần khi lượt gửi lại xong', async () => {
+    const { gate, dispatchEvent, call } = await setup([blocked(), json(200, { graded: true })]);
+    gate.setAiKeyGateResolver(async () => true);
+    await call('/api/grade-homework');
+    expect(dispatchEvent).toHaveBeenCalledTimes(2);
   });
 
   it('bỏ qua 402 của đường khác hoặc không phải AI_KEY_REQUIRED', async () => {

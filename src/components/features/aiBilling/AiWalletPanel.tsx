@@ -1,14 +1,17 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { KeyRound, Loader2, QrCode, RefreshCw, Ticket, Wallet } from 'lucide-react';
 import {
   deleteAiKey,
   getAiKeyStatus,
   redeemAiVoucher,
   saveAiKey,
-  setAiConsent,
+  setAiMode,
   setAiSpendCap,
   type AiKeyStatus,
 } from '../../../lib/ai/aiBillingApi';
+import type { AiKeyMode } from '../../../lib/admin/aiKeyPolicy';
+import { setAiModeSnapshot } from '../../../lib/ai/aiModeStore';
+import { aiModeOptions, needsConsent, sourceStates, type SourceState } from '../../../lib/ai/aiModeView';
 import { gradeOneSubmission } from '../../../services/gradingApi';
 import { PRICE_SOURCES } from '../../../lib/admin/aiPricing';
 import { vnd, monthLabel } from '../../../lib/ai/statementPrintDoc';
@@ -22,9 +25,20 @@ interface Props {
 
 const errorText = (error: unknown): string => (error instanceof Error ? error.message : 'Có lỗi, thử lại sau.');
 
+const KEY_PILL = {
+  ok: { text: 'Đang dùng được', className: 'bg-emerald-50 text-emerald-700' },
+  exhausted: { text: 'Hết hạn mức (thử lại sau 60 phút)', className: 'bg-amber-50 text-amber-700' },
+  invalid: { text: 'Khoá không dùng được', className: 'bg-rose-50 text-rose-700' },
+} as const;
+
+/** Nhãn trạng thái của một nguồn: xanh khi đang chạy, xám khi bị tắt bởi chế độ đã chọn. */
+const StateBadge = ({ state }: { state: SourceState }) => (
+  <span className={`rounded-full px-2 py-0.5 text-[11px] font-black ${state.active ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-100 text-slate-500'}`}>{state.label}</span>
+);
+
 /**
- * Ví AI của giáo viên: số dư + nạp QR, mã giảm giá, trần tự đặt, khoá Gemini riêng, đồng ý dùng khoá chung,
- * bài học sinh đang chờ vì AI tạm dừng, và cách tính tiền (công khai).
+ * "AI của tôi": chọn dùng khoá riêng, ví web hay cả hai; mỗi nguồn một thẻ (khoá Gemini riêng · ví web gồm số dư, nạp QR,
+ * mã giảm giá, trần tháng); bài học sinh đang chờ vì AI tạm dừng; và cách tính tiền (công khai).
  */
 export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
   const [status, setStatus] = useState<AiKeyStatus | null>(null);
@@ -34,11 +48,14 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
   const [keyInput, setKeyInput] = useState('');
   const [voucherInput, setVoucherInput] = useState('');
   const [capInput, setCapInput] = useState('');
+  const [pendingMode, setPendingMode] = useState<AiKeyMode | null>(null);
   const [consentTick, setConsentTick] = useState(false);
   const [showTopup, setShowTopup] = useState(false);
   const [regrade, setRegrade] = useState<{ done: number; total: number } | null>(null);
+  const radioRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const apply = useCallback((next: AiKeyStatus) => {
+    setAiModeSnapshot({ mode: next.mode, gateEnabled: next.gateEnabled });
     setStatus(next);
     onStatus?.(next);
   }, [onStatus]);
@@ -79,51 +96,90 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
       : <p className="flex items-center gap-2 py-6 text-sm font-semibold text-slate-400"><Loader2 className="h-4 w-4 animate-spin" /> Đang tải ví AI…</p>;
   }
 
+  const options = aiModeOptions(status.exempt);
+  const states = sourceStates(status.mode);
   const capPct = status.capVnd ? Math.min(100, Math.round((status.spentVnd / status.capVnd) * 100)) : null;
-  // Nói rõ ví có đang bị trừ không — tránh giáo viên thấy "0đ" đỏ mà tưởng bị dừng.
-  const modeNote = !status.gateEnabled
-    ? 'Web chưa bật tính phí: mọi lượt AI dùng khoá chung hiện đều miễn phí, ví chưa bị trừ.'
-    : status.exempt ? ''
-      : status.shared ? 'Thầy/cô dùng thẳng khoá AI chung của web (không cần khoá riêng); mỗi lượt trừ ví theo giá Google, có mã giảm giá thì trừ theo mã. Có khoá riêng thì khoá riêng chạy trước, không trừ ví.'
-        : status.consent ? ''
-          : 'Ví chỉ bị trừ khi thầy/cô đồng ý dùng khoá chung của web (ô cuối trang). Chạy bằng khoá riêng thì không trừ ví.';
+  const keyPill = status.keyStatus ? KEY_PILL[status.keyStatus] : null;
+
+  const chooseMode = (mode: AiKeyMode) => {
+    if (mode === status.mode || busy) return;
+    if (needsConsent(status, mode)) {
+      setPendingMode(mode);
+      setConsentTick(false);
+      return;
+    }
+    setPendingMode(null);
+    void run('mode', () => setAiMode(mode), 'Đã đổi nguồn khoá AI.');
+  };
+
+  // Nhóm radio theo chuẩn ARIA: chỉ một nút nằm trong thứ tự Tab, phím mũi tên đổi lựa chọn (QA F9).
+  const onRadioKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    const step = ({ ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 } as Record<string, number>)[event.key];
+    if (!step) return;
+    event.preventDefault();
+    const next = (index + step + options.length) % options.length;
+    radioRefs.current[next]?.focus();
+    chooseMode(options[next].id);
+  };
+
+  const confirmPending = () => {
+    if (!pendingMode) return;
+    const mode = pendingMode;
+    void run('mode', () => setAiMode(mode, true), 'Đã đồng ý và đổi nguồn khoá AI.').then(() => setPendingMode(null));
+  };
+
+  const cardClass = (state: SourceState) => `rounded-2xl border bg-white p-4 ${state.active ? 'border-slate-200' : 'border-slate-200 opacity-60'}`;
 
   return (
     <div className="space-y-4">
-      {modeNote && <p className="rounded-xl bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">{modeNote}</p>}
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
-          <p className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-emerald-700"><Wallet className="h-4 w-4" /> Số dư ví</p>
-          <p className={`mt-1 text-2xl font-black ${status.exempt || status.balanceVnd > 0 ? 'text-emerald-900' : 'text-rose-700'}`}>{status.exempt ? 'Không trừ' : vnd(status.balanceVnd)}</p>
-          {!status.exempt && (
-            <button type="button" onClick={() => setShowTopup(true)} className="mt-2 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-black text-white hover:bg-emerald-700">
-              <QrCode className="h-4 w-4" /> Nạp tiền (QR)
-            </button>
-          )}
+      {!status.gateEnabled && (
+        <p className="rounded-xl bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">Web chưa bật tính phí: mọi lượt AI dùng khoá chung hiện đều miễn phí, ví chưa bị trừ. Lựa chọn bên dưới có hiệu lực khi web bật tính phí.</p>
+      )}
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-4">
+        <p className="text-sm font-black text-slate-900">AI của thầy/cô chạy bằng gì?</p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Nguồn khoá AI">
+          {options.map((option, index) => {
+            const selected = (pendingMode ?? status.mode) === option.id;
+            return (
+              <button
+                key={option.id}
+                ref={node => { radioRefs.current[index] = node; }}
+                type="button"
+                role="radio"
+                tabIndex={selected ? 0 : -1}
+                onKeyDown={event => onRadioKeyDown(event, index)}
+                aria-checked={selected}
+                disabled={Boolean(busy)}
+                onClick={() => chooseMode(option.id)}
+                className={`rounded-xl border p-3 text-left transition-colors disabled:opacity-60 ${selected ? 'border-indigo-500 bg-indigo-50/60 ring-1 ring-indigo-500' : 'border-slate-200 hover:bg-slate-50'}`}
+              >
+                <span className="flex items-center gap-2 text-sm font-black text-slate-900">
+                  <span className={`flex h-4 w-4 items-center justify-center rounded-full border ${selected ? 'border-indigo-600' : 'border-slate-300'}`}>
+                    {selected && <span className="h-2 w-2 rounded-full bg-indigo-600" />}
+                  </span>
+                  {option.title}
+                </span>
+                <span className="mt-1 block text-xs font-semibold leading-5 text-slate-500">{option.desc}</span>
+              </button>
+            );
+          })}
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="text-xs font-black uppercase tracking-wide text-slate-500">Đã dùng {monthLabel(status.month)}</p>
-          <p className="mt-1 text-2xl font-black text-slate-900">{vnd(status.spentVnd)}</p>
-          <p className="text-xs font-semibold text-slate-500">
-            {status.spentCalls} lượt dùng khoá chung{status.charged && status.grossVnd > status.spentVnd ? ` · giá gốc ${vnd(status.grossVnd)}, đã giảm ${vnd(status.grossVnd - status.spentVnd)}` : ''}
-          </p>
-          {capPct !== null && (
-            <div className="mt-2">
-              <div className="h-2 overflow-hidden rounded-full bg-slate-100"><div className={`h-full rounded-full ${capPct >= 90 ? 'bg-rose-500' : 'bg-indigo-500'}`} style={{ width: `${capPct}%` }} /></div>
-              <p className="mt-1 text-[11px] font-bold text-slate-500">{capPct}% trần {vnd(status.capVnd ?? 0)}</p>
+        {pendingMode && (
+          <div className="mt-3 rounded-xl border border-indigo-100 bg-indigo-50/50 p-3">
+            <label className="flex items-start gap-2 text-xs font-semibold leading-5 text-slate-600">
+              <input type="checkbox" checked={consentTick} onChange={event => setConsentTick(event.target.checked)} className="mt-1" />
+              Tôi đồng ý: khi AI chạy bằng khoá chung của web, mỗi lượt trừ ví đúng giá niêm yết của Google (quy đổi VNĐ theo tỷ giá Vietcombank), trừ mã giảm giá nếu có; sao kê chi tiết từng lượt có trong trang này.
+            </label>
+            <div className="mt-2 flex gap-2">
+              <button type="button" disabled={!consentTick || Boolean(busy)} onClick={confirmPending} className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-black text-white hover:bg-indigo-700 disabled:opacity-50">Đồng ý và dùng</button>
+              <button type="button" onClick={() => setPendingMode(null)} className="rounded-lg px-3 py-1.5 text-xs font-black text-slate-500 hover:bg-slate-100">Bỏ qua</button>
             </div>
-          )}
-        </div>
-        <div className="rounded-2xl border border-violet-100 bg-violet-50/50 p-4">
-          <p className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-violet-700"><Ticket className="h-4 w-4" /> Mã giảm giá</p>
-          <p className="mt-1 text-lg font-black text-violet-900">{status.activeVoucher ? `Giảm ${status.activeVoucher.percent}%` : 'Chưa có mã đang áp dụng'}</p>
-          {status.activeVoucher && <p className="text-xs font-semibold text-violet-700">{status.activeVoucher.code} · đến {status.activeVoucher.validTo.split('-').reverse().join('/')}</p>}
-          <div className="mt-2 flex gap-2">
-            <input value={voucherInput} onChange={event => setVoucherInput(event.target.value)} placeholder="Nhập mã" className="min-w-0 flex-1 rounded-lg border border-violet-200 bg-white px-2 py-1.5 text-xs font-bold uppercase outline-none focus:border-violet-400" />
-            <button type="button" disabled={!voucherInput.trim() || Boolean(busy)} onClick={() => void run('voucher', () => redeemAiVoucher(voucherInput), 'Đã áp dụng mã giảm giá.').then(() => setVoucherInput(''))}
-              className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-black text-white hover:bg-violet-700 disabled:opacity-50">Áp dụng</button>
           </div>
-        </div>
+        )}
+        <p className="mt-3 text-[11px] font-semibold leading-4 text-slate-400">
+          Áp dụng cho mọi tính năng AI dùng Gemini: chấm bài, bài luyện, soạn giáo án, nâng cấp, dự giờ, ra đề… Chọn hãng khác (Claude, ChatGPT, Grok, DeepSeek) ở Cài đặt thì vẫn dùng khoá của hãng đó, ví web không trả cho các hãng này.
+        </p>
       </div>
 
       {error && <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">{error}</p>}
@@ -138,64 +194,81 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
         </div>
       )}
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-4">
-        <p className="text-sm font-black text-slate-900">Trần chi tiêu mỗi tháng (tự đặt)</p>
-        <p className="mt-0.5 text-xs font-semibold text-slate-500">Giống ngân sách của Google: chạm trần thì AI dùng khoá chung tạm dừng tới khi thầy/cô nâng trần hoặc sang tháng. Để trống = không giới hạn.</p>
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          <input value={capInput} onChange={event => setCapInput(event.target.value)} inputMode="numeric" placeholder={status.capVnd ? String(status.capVnd) : 'VD 200000'} className="w-40 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold outline-none focus:border-indigo-400" />
-          <button type="button" disabled={Boolean(busy)} onClick={() => void run('cap', () => setAiSpendCap(capInput.trim() ? Number(capInput.replace(/[^\d]/g, '')) : null), 'Đã lưu trần chi tiêu.').then(() => setCapInput(''))}
-            className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-black text-white hover:bg-indigo-700 disabled:opacity-50">Lưu trần</button>
-          {status.capVnd && <button type="button" disabled={Boolean(busy)} onClick={() => void run('cap', () => setAiSpendCap(null), 'Đã bỏ trần.')} className="rounded-lg px-3 py-1.5 text-xs font-black text-slate-500 hover:bg-slate-100">Bỏ trần</button>}
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-slate-200 bg-white p-4">
-        <p className="flex items-center gap-2 text-sm font-black text-slate-900"><KeyRound className="h-4 w-4" /> Khoá AI (Gemini) riêng của thầy/cô</p>
-        <p className="mt-0.5 text-xs font-semibold text-slate-500">
-          {status.exempt
-            ? 'Không cần: tài khoản của thầy/cô dùng khoá chung không bị trừ ví.'
-            : !status.gateEnabled
-              ? 'Không bắt buộc. Khi web bật tính phí, có khoá riêng thì AI chạy bằng khoá riêng trước (thầy/cô tự trả Google, không trừ ví).'
-              : `Có khoá riêng thì AI chạy bằng khoá riêng trước — thầy/cô tự trả Google, không trừ ví. Khoá hết thì ${status.shared ? 'tự chuyển sang khoá chung của web (trừ ví).' : 'mới dùng khoá chung (nếu đã đồng ý bên dưới).'}`}
-        </p>
-        {status.hasKey ? (
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
-            <span className="font-mono font-black text-slate-800">AIza…{status.last4}</span>
-            <span className={`rounded-full px-2 py-0.5 text-[11px] font-black ${status.keyStatus === 'ok' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
-              {status.keyStatus === 'ok' ? 'Đang dùng được' : status.keyStatus === 'exhausted' ? 'Hết hạn mức (thử lại sau 60 phút)' : 'Khoá không dùng được'}
-            </span>
-            <button type="button" disabled={Boolean(busy)} onClick={() => void run('delkey', deleteAiKey, 'Đã gỡ khoá riêng.')} className="rounded-lg px-2 py-1 text-xs font-black text-slate-500 hover:bg-slate-100">Gỡ khoá</button>
+      <div className="grid gap-3 lg:grid-cols-2">
+        <section className={cardClass(states.own)}>
+          <div className="flex items-center justify-between gap-2">
+            <p className="flex items-center gap-2 text-sm font-black text-slate-900"><KeyRound className="h-4 w-4" /> Khoá Gemini riêng</p>
+            <StateBadge state={states.own} />
           </div>
-        ) : null}
-        <div className="mt-2 flex flex-wrap gap-2">
-          <input value={keyInput} onChange={event => setKeyInput(event.target.value)} placeholder="Dán khoá AIza… lấy ở aistudio.google.com" type="password" autoComplete="off" className="min-w-0 flex-1 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold outline-none focus:border-indigo-400" />
-          <button type="button" disabled={!keyInput.trim() || Boolean(busy)} onClick={() => void run('key', () => saveAiKey(keyInput), 'Đã lưu khoá riêng (máy chủ giữ, không hiện lại).').then(() => setKeyInput(''))}
-            className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-black text-white hover:bg-slate-900 disabled:opacity-50">
-            {busy === 'key' && <Loader2 className="h-3.5 w-3.5 animate-spin" />} {status.hasKey ? 'Thay khoá' : 'Lưu khoá'}
-          </button>
-        </div>
-      </div>
-
-      {!status.shared && !status.exempt && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="text-sm font-black text-slate-900">Dùng khoá AI chung của web (tính phí theo mức dùng)</p>
-          {status.consent ? (
-            <div className="mt-1 flex flex-wrap items-center gap-2">
-              <p className="text-xs font-semibold text-emerald-700">Đã đồng ý {status.consentAt ? `lúc ${new Date(status.consentAt).toLocaleString('vi-VN')}` : ''}. Khi khoá riêng hết (hoặc không có), AI dùng khoá chung và trừ ví.</p>
-              <button type="button" disabled={Boolean(busy)} onClick={() => void run('consent', () => setAiConsent(false), 'Đã tắt dùng khoá chung.')} className="rounded-lg px-2 py-1 text-xs font-black text-slate-500 hover:bg-slate-100">Tắt</button>
+          <p className="mt-1 text-xs font-semibold text-slate-500">Lấy miễn phí ở aistudio.google.com. Khoá lưu trên máy chủ, không hiện lại; thầy/cô tự trả Google, không trừ ví.</p>
+          {status.hasKey && keyPill ? (
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+              <span className="font-mono font-black text-slate-800">AIza…{status.last4}</span>
+              <span className={`rounded-full px-2 py-0.5 text-[11px] font-black ${keyPill.className}`}>{keyPill.text}</span>
+              <button type="button" disabled={Boolean(busy)} onClick={() => void run('delkey', deleteAiKey, 'Đã gỡ khoá riêng.')} className="rounded-lg px-2 py-1 text-xs font-black text-slate-500 hover:bg-slate-100">Gỡ khoá</button>
             </div>
           ) : (
-            <>
-              <label className="mt-2 flex items-start gap-2 text-xs font-semibold leading-5 text-slate-600">
-                <input type="checkbox" checked={consentTick} onChange={event => setConsentTick(event.target.checked)} className="mt-1" />
-                Tôi đồng ý: khi không có hoặc hết khoá riêng, AI chạy bằng khoá chung; mỗi lượt trừ ví đúng giá niêm yết của Google (quy đổi VNĐ theo tỷ giá Vietcombank), trừ mã giảm giá nếu có; sao kê chi tiết từng lượt có trong trang này.
-              </label>
-              <button type="button" disabled={!consentTick || Boolean(busy)} onClick={() => void run('consent', () => setAiConsent(true), 'Đã đồng ý dùng khoá chung.')}
-                className="mt-2 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-black text-white hover:bg-indigo-700 disabled:opacity-50">Đồng ý dùng khoá chung</button>
-            </>
+            <p className="mt-2 text-xs font-bold text-slate-400">Chưa có khoá riêng.</p>
           )}
-        </div>
-      )}
+          <div className="mt-2 flex flex-wrap gap-2">
+            <input value={keyInput} onChange={event => setKeyInput(event.target.value)} placeholder="Dán khoá AIza…" type="password" autoComplete="off" className="min-w-0 flex-1 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold outline-none focus:border-indigo-400" />
+            <button type="button" disabled={!keyInput.trim() || Boolean(busy)} onClick={() => void run('key', () => saveAiKey(keyInput), 'Đã lưu khoá riêng (máy chủ giữ, không hiện lại).').then(() => setKeyInput(''))}
+              className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-black text-white hover:bg-slate-900 disabled:opacity-50">
+              {busy === 'key' && <Loader2 className="h-3.5 w-3.5 animate-spin" />} {status.hasKey ? 'Thay khoá' : 'Lưu khoá'}
+            </button>
+          </div>
+        </section>
+
+        <section className={cardClass(states.wallet)}>
+          <div className="flex items-center justify-between gap-2">
+            <p className="flex items-center gap-2 text-sm font-black text-slate-900"><Wallet className="h-4 w-4" /> Ví web</p>
+            <StateBadge state={states.wallet} />
+          </div>
+          <div className="mt-2 flex flex-wrap items-end justify-between gap-2">
+            <div>
+              <p className={`text-2xl font-black ${status.exempt || status.balanceVnd > 0 ? 'text-slate-900' : 'text-rose-700'}`}>{status.exempt ? 'Không trừ' : vnd(status.balanceVnd)}</p>
+              <p className="text-xs font-semibold text-slate-500">
+                Đã dùng {monthLabel(status.month)}: {vnd(status.spentVnd)} · {status.spentCalls} lượt
+                {status.charged && status.grossVnd > status.spentVnd ? ` · giá gốc ${vnd(status.grossVnd)}, đã giảm ${vnd(status.grossVnd - status.spentVnd)}` : ''}
+              </p>
+            </div>
+            {!status.exempt && (
+              <button type="button" onClick={() => setShowTopup(true)} className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-black text-white hover:bg-emerald-700">
+                <QrCode className="h-4 w-4" /> Nạp tiền (QR)
+              </button>
+            )}
+          </div>
+          {capPct !== null && (
+            <div className="mt-2">
+              <div className="h-2 overflow-hidden rounded-full bg-slate-100"><div className={`h-full rounded-full ${capPct >= 90 ? 'bg-rose-500' : 'bg-indigo-500'}`} style={{ width: `${capPct}%` }} /></div>
+              <p className="mt-1 text-[11px] font-bold text-slate-500">{capPct}% trần {vnd(status.capVnd ?? 0)}</p>
+            </div>
+          )}
+
+          <div className="mt-3 border-t border-slate-100 pt-3">
+            <p className="flex items-center gap-2 text-xs font-black text-violet-700"><Ticket className="h-4 w-4" /> Mã giảm giá</p>
+            <p className="mt-0.5 text-xs font-semibold text-slate-600">
+              {status.activeVoucher ? `Giảm ${status.activeVoucher.percent}% · ${status.activeVoucher.code} · đến ${status.activeVoucher.validTo.split('-').reverse().join('/')}` : 'Chưa có mã đang áp dụng'}
+            </p>
+            <div className="mt-1.5 flex gap-2">
+              <input value={voucherInput} onChange={event => setVoucherInput(event.target.value)} placeholder="Nhập mã" className="min-w-0 flex-1 rounded-lg border border-violet-200 bg-white px-2 py-1.5 text-xs font-bold uppercase outline-none focus:border-violet-400" />
+              <button type="button" disabled={!voucherInput.trim() || Boolean(busy)} onClick={() => void run('voucher', () => redeemAiVoucher(voucherInput), 'Đã áp dụng mã giảm giá.').then(() => setVoucherInput(''))}
+                className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-black text-white hover:bg-violet-700 disabled:opacity-50">Áp dụng</button>
+            </div>
+          </div>
+
+          <div className="mt-3 border-t border-slate-100 pt-3">
+            <p className="text-xs font-black text-slate-900">Trần chi tiêu mỗi tháng (tự đặt)</p>
+            <p className="mt-0.5 text-xs font-semibold text-slate-500">Chạm trần thì AI dùng khoá web tạm dừng tới khi nâng trần hoặc sang tháng. Để trống = không giới hạn.</p>
+            <div className="mt-1.5 flex flex-wrap items-center gap-2">
+              <input value={capInput} onChange={event => setCapInput(event.target.value)} inputMode="numeric" placeholder={status.capVnd ? String(status.capVnd) : 'VD 200000'} className="w-36 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-semibold outline-none focus:border-indigo-400" />
+              <button type="button" disabled={Boolean(busy)} onClick={() => void run('cap', () => setAiSpendCap(capInput.trim() ? Number(capInput.replace(/[^\d]/g, '')) : null), 'Đã lưu trần chi tiêu.').then(() => setCapInput(''))}
+                className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-black text-white hover:bg-indigo-700 disabled:opacity-50">Lưu trần</button>
+              {status.capVnd && <button type="button" disabled={Boolean(busy)} onClick={() => void run('cap', () => setAiSpendCap(null), 'Đã bỏ trần.')} className="rounded-lg px-3 py-1.5 text-xs font-black text-slate-500 hover:bg-slate-100">Bỏ trần</button>}
+            </div>
+          </div>
+        </section>
+      </div>
 
       {!compact && (
         <details className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs font-semibold leading-6 text-slate-600">

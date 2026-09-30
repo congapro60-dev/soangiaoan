@@ -60,11 +60,21 @@ export interface PeriodParentReport {
   evidence: EvidenceSubmission[];
 }
 
-const MAX_EVIDENCE_SUBMISSIONS = 25;
-const MAX_QUESTIONS_PER_SUBMISSION = 15;
+// Trần để một lượt AI xong trong ~50s và dữ liệu gửi đi < 60k kí tự (tháng thực tế ~90 câu mất ~25s).
+const MAX_EVIDENCE_SUBMISSIONS = 16;
+const MAX_QUESTIONS_PER_SUBMISSION = 12;
+const MAX_EVIDENCE_QUESTIONS = 120;
+const MAX_EVIDENCE_CHARS = 45_000;
 const QUESTION_RESULT_LABEL: Record<string, string> = {
   correct: 'đúng', partially_correct: 'đúng một phần', incorrect: 'sai', unreadable: 'không đọc được', not_attempted: 'bỏ trống',
 };
+/** Lấy `count` phần tử rải đều từ đầu tới cuối (giữ thứ tự) — báo cáo kì/năm không chỉ nhìn mấy bài cuối. */
+const spreadEvenly = <T,>(items: readonly T[], count: number): T[] => {
+  if (items.length <= count) return [...items];
+  if (count <= 1) return items.slice(-1);
+  return Array.from({ length: count }, (_, i) => items[Math.round((i * (items.length - 1)) / (count - 1))]);
+};
+
 const clip = (value: unknown, max: number): string | undefined => {
   const text = typeof value === 'string' ? value.replace(/\s+/g, ' ').trim() : '';
   return text ? text.slice(0, max) : undefined;
@@ -85,9 +95,23 @@ export const buildRequirementEvidence = (
     const key = submission.assignmentId || `self:${submission.id}`;
     if (!latest.has(key)) latest.set(key, submission);
   }
-  return [...latest.values()]
-    .sort((l, r) => String(l.createdAt).localeCompare(String(r.createdAt)))
-    .slice(-MAX_EVIDENCE_SUBMISSIONS)
+  const questionCount = (s: SubmissionDoc) => Math.min(MAX_QUESTIONS_PER_SUBMISSION, Math.max(1, s.grade?.questionResults?.length ?? 1));
+  const ordered = [...latest.values()].sort((l, r) => String(l.createdAt).localeCompare(String(r.createdAt)));
+  let chosen = spreadEvenly(ordered, MAX_EVIDENCE_SUBMISSIONS);
+  while (chosen.length > 1 && chosen.reduce((sum, s) => sum + questionCount(s), 0) > MAX_EVIDENCE_QUESTIONS) {
+    chosen = spreadEvenly(ordered, chosen.length - 1);
+  }
+  // Dữ liệu vẫn quá dài thì cắt ngắn chữ từng câu dần, thay vì để máy chủ từ chối cả lượt.
+  for (const scale of [1, 0.6, 0.35]) {
+    const built = buildEvidenceRows(chosen, titles, scale);
+    if (JSON.stringify(built).length <= MAX_EVIDENCE_CHARS || scale === 0.35) return built;
+  }
+  return [];
+};
+
+const buildEvidenceRows = (chosen: readonly SubmissionDoc[], titles: ReadonlyMap<string, string>, scale: number): EvidenceSubmission[] => {
+  const n = (max: number) => Math.max(40, Math.round(max * scale));
+  return chosen
     .map((submission, index) => {
       const ma = `b${index + 1}`;
       const grade = submission.grade!;
@@ -99,8 +123,9 @@ export const buildRequirementEvidence = (
           toiDa: q.maxScore,
           ketQua: QUESTION_RESULT_LABEL[q.status] ?? q.status,
           loi: clip(q.errorType, 80),
-          giaiThich: clip(q.explanation, 220),
-          dapAn: clip(q.expectedAnswer, 120),
+          giaiThich: clip(q.explanation, n(200)),
+          dapAn: clip(q.expectedAnswer, n(110)),
+          baiLam: scale === 1 ? clip(q.studentAnswer, 110) : undefined,
         }))
         : [{ ma, diem: grade.score, toiDa: grade.maxScore, ketQua: 'cả bài', giaiThich: clip([...(grade.strengths ?? []), ...(grade.weaknesses ?? [])].join('; '), 300) }];
       return { ma, ten: (submission.assignmentId && titles.get(submission.assignmentId)) || 'Bài tự nộp', ngay: vnDay(submission.createdAt), cau };

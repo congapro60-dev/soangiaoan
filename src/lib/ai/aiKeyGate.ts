@@ -14,10 +14,20 @@ let resolver: Resolver | null = null;
 let pending: Promise<boolean> | null = null;
 let installed = false;
 
-const GATED_PATHS = ['/api/grade-homework', '/api/classroom', '/api/generate-simulation'];
+const GATED_PATHS = ['/api/grade-homework', '/api/classroom', '/api/generate-simulation', '/api/ai-relay'];
+
+/** Phát sau mỗi phản hồi của các đường AI — chip Ví AI ở Header nghe để làm mới số dư. */
+export const AI_BILLING_UPDATED_EVENT = 'ai-billing-updated';
+
+/** Header đánh dấu lượt ĐỌC số liệu ví: không coi là lượt dùng AI (nếu không chip sẽ tự làm mới chính nó mãi). */
+export const AI_QUIET_HEADER = 'X-Ai-Quiet';
 
 const urlOf = (input: RequestInfo | URL): string =>
   typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+
+const isQuiet = (init?: RequestInit): boolean => {
+  try { return new Headers(init?.headers).has(AI_QUIET_HEADER); } catch { return false; }
+};
 
 /** Hộp chọn đăng ký cách xử lý; trả `true` khi giáo viên đã xử lý xong và muốn thử lại. */
 export const setAiKeyGateResolver = (next: Resolver | null): void => {
@@ -37,10 +47,15 @@ export const installAiKeyFetchGate = (): void => {
   const original = window.fetch.bind(window);
   window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
     const response = await original(input, init);
-    if (response.status !== 402 || !GATED_PATHS.some(path => urlOf(input).includes(path))) return response;
+    const gated = GATED_PATHS.some(path => urlOf(input).includes(path));
+    if (gated && !isQuiet(init)) window.dispatchEvent(new Event(AI_BILLING_UPDATED_EVENT));
+    if (response.status !== 402 || !gated) return response;
     const data = await response.clone().json().catch(() => null) as { code?: string; reason?: AiKeyBlockReason } | null;
     if (data?.code !== 'AI_KEY_REQUIRED' || !data.reason) return response;
     const retry = await resolveOnce(data.reason);
-    return retry ? original(input, init) : response;
+    if (!retry) return response;
+    const retried = await original(input, init);
+    window.dispatchEvent(new Event(AI_BILLING_UPDATED_EVENT));
+    return retried;
   };
 };

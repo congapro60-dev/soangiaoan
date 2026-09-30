@@ -38,7 +38,7 @@ interface StoredTokenUsage {
 
 const STORAGE_PREFIX = 'api_usage';
 const ONE_MINUTE_MS = 60_000;
-const USAGE_UPDATED_EVENT = 'api-usage-updated';
+export const USAGE_UPDATED_EVENT = 'api-usage-updated';
 
 const todayKey = (): string => {
   const now = new Date();
@@ -154,6 +154,29 @@ export const getTokenUsageSnapshot = (provider: ApiProvider, model: string): Tok
     isMinuteLimited: Boolean(limit && requestsLastMinute >= limit.rpm),
     isTokenMinuteLimited: Boolean(limit && tokensLastMinute >= limit.tpm),
   };
+};
+
+/** Tách khoá localStorage `api_usage_{provider}_{model}_{YYYY_MM_DD}` — tên nhà cung cấp không chứa '_' nên cắt ở dấu '_' đầu tiên. */
+export const parseUsageStorageKey = (key: string): { provider: ApiProvider; model: string; dateKey: string } | null => {
+  const match = /^api_usage_([^_]+)_(.+)_(\d{4}_\d{2}_\d{2})$/.exec(key);
+  return match ? { provider: match[1] as ApiProvider, model: match[2], dateKey: match[3] } : null;
+};
+
+/**
+ * Mọi model đã dùng HÔM NAY bằng khoá riêng ở trình duyệt này, nhiều lượt nhất trước.
+ * Bỏ `vercel-gateway`: khoá do máy chủ giữ, đã tính tiền ở ví.
+ */
+export const listTodayTokenUsage = (): TokenUsageSnapshot[] => {
+  if (!isBrowser()) return [];
+  const today = todayKey();
+  const rows: TokenUsageSnapshot[] = [];
+  for (let index = 0; index < window.localStorage.length; index += 1) {
+    const parsed = parseUsageStorageKey(window.localStorage.key(index) ?? '');
+    if (!parsed || parsed.dateKey !== today || parsed.provider === 'vercel-gateway') continue;
+    const snapshot = getTokenUsageSnapshot(parsed.provider, parsed.model);
+    if (snapshot.requestsToday > 0) rows.push(snapshot);
+  }
+  return rows.sort((a, b) => b.requestsToday - a.requestsToday);
 };
 
 export const resetTokenUsage = (provider?: ApiProvider): void => {

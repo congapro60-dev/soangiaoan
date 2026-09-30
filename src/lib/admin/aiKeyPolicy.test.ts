@@ -1,7 +1,53 @@
 import { describe, expect, it } from 'vitest';
-import { EXHAUSTED_COOLDOWN_MS, classifyGeminiKeyFailure, decideAiKey, looksLikeGeminiKey } from './aiKeyPolicy';
+import { AI_KEY_MODES, EXHAUSTED_COOLDOWN_MS, classifyGeminiKeyFailure, decideAiKey, effectiveAiMode, looksLikeGeminiKey, type AiKeyMode, type AiKeyPolicyInput } from './aiKeyPolicy';
 
 const NOW = Date.parse('2026-09-24T10:00:00Z');
+
+describe('chế độ nguồn khoá do giáo viên chọn', () => {
+  const OK = { status: 'ok' as const };
+  const HET = { status: 'exhausted' as const, statusAt: new Date(NOW - 5 * 60_000).toISOString() };
+  const HONG = { status: 'invalid' as const };
+  const decide = (patch: Partial<AiKeyPolicyInput>) => decideAiKey({ gateEnabled: true, isShared: false, ownKey: null, consent: true, now: NOW, ...patch });
+
+  it('chưa chọn thì suy từ hành vi cũ: nhóm hoặc đã đồng ý = cả hai; còn lại = chỉ khoá riêng', () => {
+    expect(effectiveAiMode({ isShared: true, consent: false })).toBe('both');
+    expect(effectiveAiMode({ isShared: false, consent: true })).toBe('both');
+    expect(effectiveAiMode({ isShared: false, consent: false })).toBe('own');
+    expect(effectiveAiMode({ mode: null, isShared: false, consent: true })).toBe('both');
+  });
+
+  it('chọn ví/cả hai nhưng chưa đồng ý tính phí (ngoài nhóm) thì vẫn là chỉ khoá riêng — không bao giờ trừ ví khi chưa đồng ý', () => {
+    expect(effectiveAiMode({ mode: 'wallet', isShared: false, consent: false })).toBe('own');
+    expect(effectiveAiMode({ mode: 'both', isShared: false, consent: false })).toBe('own');
+    expect(effectiveAiMode({ mode: 'wallet', isShared: true, consent: false })).toBe('wallet');
+    expect(effectiveAiMode({ mode: 'own', isShared: true, consent: true })).toBe('own');
+  });
+
+  it('CHỈ KHOÁ RIÊNG: khoá dùng được thì dùng; không thì chặn — kể cả người trong nhóm và đã đồng ý', () => {
+    for (const patch of [{ isShared: false, consent: true }, { isShared: true, consent: true }]) {
+      expect(decide({ ...patch, mode: 'own', ownKey: OK })).toEqual({ use: 'own' });
+      expect(decide({ ...patch, mode: 'own', ownKey: null })).toEqual({ use: 'blocked', reason: 'no_key' });
+      expect(decide({ ...patch, mode: 'own', ownKey: HET })).toEqual({ use: 'blocked', reason: 'exhausted' });
+      expect(decide({ ...patch, mode: 'own', ownKey: HONG })).toEqual({ use: 'blocked', reason: 'invalid' });
+    }
+  });
+
+  it('CHỈ VÍ WEB: bỏ qua khoá riêng dù đang dùng tốt; người trong nhóm ghi nguồn "shared", người ngoài "owner_consent"', () => {
+    expect(decide({ mode: 'wallet', ownKey: OK })).toEqual({ use: 'owner_consent' });
+    expect(decide({ mode: 'wallet', ownKey: null })).toEqual({ use: 'owner_consent' });
+    expect(decide({ mode: 'wallet', isShared: true, consent: false, ownKey: OK })).toEqual({ use: 'shared' });
+  });
+
+  it('CẢ HAI: khoá riêng trước; hết/hỏng/không có thì sang ví', () => {
+    expect(decide({ mode: 'both', ownKey: OK })).toEqual({ use: 'own' });
+    for (const ownKey of [null, HET, HONG]) expect(decide({ mode: 'both', ownKey })).toEqual({ use: 'owner_consent' });
+    expect(decide({ mode: 'both', isShared: true, consent: false, ownKey: HET })).toEqual({ use: 'shared' });
+  });
+
+  it('chưa bật kiểm soát thì mọi chế độ đều dùng khoá chung như trước', () => {
+    for (const mode of AI_KEY_MODES as readonly AiKeyMode[]) expect(decide({ gateEnabled: false, mode, ownKey: OK })).toEqual({ use: 'shared' });
+  });
+});
 
 describe('chọn khoá AI', () => {
   it('chưa bật kiểm soát, hoặc thuộc nhóm dùng khoá chung → khoá chung', () => {

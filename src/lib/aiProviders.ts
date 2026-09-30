@@ -1,4 +1,6 @@
-import { callGeminiAIRaw, callGeminiAIStream, DEFAULT_GEMINI_RUNTIME_MODEL, GEMINI_RUNTIME_MODELS } from './gemini';
+import { callGeminiAIRaw, callGeminiAIStream, DEFAULT_GEMINI_RUNTIME_MODEL, EXAM_FORMAT_SYSTEM_INSTRUCTION, GEMINI_RUNTIME_MODELS } from './gemini';
+import { callAiRelay, relayModelFor } from './aiRelay';
+import { geminiRouteFor, getAiModeSnapshot, isOwnKeyFailure } from './ai/aiModeStore';
 import { estimateTokenCount, recordTokenUsage } from '../hooks/useTokenTracker';
 import { CLAUDE_MODELS as TRACKER_CLAUDE_MODELS, DEEPSEEK_MODELS as TRACKER_DEEPSEEK_MODELS, GEMINI_MODELS as TRACKER_GEMINI_MODELS, GROK_MODELS as TRACKER_GROK_MODELS, OPENAI_MODELS as TRACKER_OPENAI_MODELS, NVIDIA_MODELS as TRACKER_NVIDIA_MODELS, toModelOption } from '../data/models';
 import type { ApiProvider } from '../config/apiLimits';
@@ -12,15 +14,14 @@ type Settings = AppData['settings'];
 const CLAUDE_MAX_TOKENS = 32768;
 const OPENAI_MAX_TOKENS = 16384;
 const GROK_MAX_TOKENS = 16384;
-const DEEPSEEK_CHAT_MAX_TOKENS = 8192;       // hard cap của deepseek-chat (V3)
-const DEEPSEEK_REASONER_MAX_TOKENS = 32768;  // deepseek-reasoner (R1) hỗ trợ tới 64K
+const DEEPSEEK_MAX_TOKENS = 32768;           // deepseek-flash / v4-pro cho phép tới 384K; 32K đủ cho một giáo án dài
 
 // Số lần auto-continue tối đa khi output bị cắt (an toàn ngân sách)
 const MAX_CONTINUATIONS = 3;
 
-function deepseekMaxTokens(model: string | undefined): number {
-  return model === 'deepseek-v4-pro' || model === 'deepseek-r1' ? DEEPSEEK_REASONER_MAX_TOKENS : DEEPSEEK_CHAT_MAX_TOKENS;
-}
+/** Phần chữ của phản hồi Claude: model suy luận có thể trả khối "thinking" trước khối chữ nên không được chỉ đọc khối đầu. */
+const claudeText = (blocks: ReadonlyArray<{ type: string; text?: string }>): string =>
+  blocks.filter(block => block.type === 'text').map(block => block.text ?? '').join('');
 
 interface RawResult {
   text: string;
@@ -59,6 +60,8 @@ export function isMissingApiKeyError(err: unknown): boolean {
 function assertOwnApiKey(settings: Settings): void {
   const provider = (settings.selectedProvider ?? 'gemini') as string;
   if (provider === 'vercel-gateway') return;
+  // Ví web trả thay cho khoá: chế độ "chỉ ví" (hoặc "cả hai" khi chưa có khoá riêng) thì không cần khoá trên trình duyệt.
+  if (provider === 'gemini' && geminiRouteFor(Boolean(settings.geminiApiKey), getAiModeSnapshot()) === 'relay') return;
 
   const message = provider === 'free-router'
     ? `Chế độ "Router Free" (key dùng chung) đã ngừng hỗ trợ. ${NO_KEY_MESSAGE}`
@@ -164,7 +167,7 @@ async function callAIOnce(prompt: string, settings: Settings): Promise<RawResult
         max_tokens: CLAUDE_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
       });
-      const text = msg.content[0]?.type === 'text' ? msg.content[0].text : '';
+      const text = claudeText(msg.content);
       recordExactUsage(provider, model, {
         promptTokens: msg.usage?.input_tokens,
         completionTokens: msg.usage?.output_tokens,
@@ -178,7 +181,7 @@ async function callAIOnce(prompt: string, settings: Settings): Promise<RawResult
       const model = getActiveModelId(provider, settings);
       const res = await client.chat.completions.create({
         model,
-        max_tokens: OPENAI_MAX_TOKENS,
+        max_completion_tokens: OPENAI_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
       });
       const choice = res.choices[0];
@@ -214,7 +217,7 @@ async function callAIOnce(prompt: string, settings: Settings): Promise<RawResult
       const model = getActiveModelId(provider, settings);
       const res = await client.chat.completions.create({
         model,
-        max_tokens: deepseekMaxTokens(model),
+        max_tokens: DEEPSEEK_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
       });
       const choice = res.choices[0];
@@ -270,18 +273,34 @@ async function callAIOnce(prompt: string, settings: Settings): Promise<RawResult
     const idx = GEMINI_RUNTIME_MODELS.indexOf(settings.selectedModel);
     const model = idx >= 0 ? GEMINI_RUNTIME_MODELS[idx] : DEFAULT_GEMINI_RUNTIME_MODEL;
 
-    const result = await callGeminiAIRaw(prompt, settings.geminiApiKey, idx >= 0 ? idx : 0);
+    const viaOwnKey = async (): Promise<RawResult> => {
+      const result = await callGeminiAIRaw(prompt, settings.geminiApiKey, idx >= 0 ? idx : 0);
 
-    if (!result) {
-      throw new Error('Gemini không trả về kết quả. Kiểm tra API key trong Cài đặt hoặc thử lại sau.');
-    }
+      if (!result) {
+        throw new Error('Gemini không trả về kết quả. Kiểm tra API key trong Cài đặt hoặc thử lại sau.');
+      }
 
-    if (result.usage) {
-      recordExactUsage(provider, model, result.usage);
-    } else {
-      recordEstimatedUsage(provider, model, prompt, result.text || '');
+      if (result.usage) {
+        recordExactUsage(provider, model, result.usage);
+      } else {
+        recordEstimatedUsage(provider, model, prompt, result.text || '');
+      }
+      return result;
+    };
+    // Ví web: chạy qua máy chủ (chế độ "chỉ ví", hoặc "cả hai" khi khoá riêng hết hạn mức). Tiền ghi ở máy chủ.
+    const viaWallet = async (): Promise<RawResult> => {
+      const relayed = await callAiRelay({ prompt, model: relayModelFor(settings.selectedModel), system: EXAM_FORMAT_SYSTEM_INSTRUCTION });
+      return { text: relayed.text, truncated: relayed.truncated };
+    };
+    const route = geminiRouteFor(Boolean(settings.geminiApiKey), getAiModeSnapshot());
+    if (route === 'relay') return await viaWallet();
+    if (route === 'own') return await viaOwnKey();
+    try {
+      return await viaOwnKey();
+    } catch (ownKeyError) {
+      if (!isOwnKeyFailure(ownKeyError)) throw ownKeyError;
+      return await viaWallet();
     }
-    return result;
   } catch (err) {
     console.error('[aiProviders] AI call failed:', err);
     throw err;
@@ -352,7 +371,7 @@ export async function callAIWithVision(
           content: [...imageBlocks, { type: 'text' as const, text: prompt }],
         }],
       });
-      const text = msg.content[0].type === 'text' ? msg.content[0].text : '';
+      const text = claudeText(msg.content);
       recordExactUsage(provider, model, {
         promptTokens: msg.usage?.input_tokens,
         completionTokens: msg.usage?.output_tokens,
@@ -370,7 +389,7 @@ export async function callAIWithVision(
       const model = getActiveModelId(provider, settings);
       const res = await client.chat.completions.create({
         model,
-        max_tokens: OPENAI_MAX_TOKENS,
+        max_completion_tokens: OPENAI_MAX_TOKENS,
         messages: [{
           role: 'user',
           content: [...imageBlocks, { type: 'text' as const, text: prompt }],
@@ -464,7 +483,12 @@ export async function callAIWithVision(
       return res.choices[0]?.message?.content ?? '';
     }
 
-    // Gemini
+    // Gemini — ví web đi qua máy chủ (ảnh được nén cho lọt trần thân request 4,5MB của Vercel)
+    const visionRoute = geminiRouteFor(Boolean(settings.geminiApiKey), getAiModeSnapshot());
+    const visionViaWallet = async (): Promise<string> =>
+      (await callAiRelay({ prompt, model: relayModelFor(settings.selectedModel), images: urls })).text;
+    if (visionRoute === 'relay') return await visionViaWallet();
+
     const { GoogleGenAI } = await import('@google/genai');
     const ai = new GoogleGenAI({ apiKey: settings.geminiApiKey, httpOptions: { apiVersion: 'v1beta' } });
     const idx = GEMINI_RUNTIME_MODELS.indexOf(settings.selectedModel);
@@ -509,7 +533,13 @@ export async function callAIWithVision(
       }
     }
 
-    return executeVisionCall();
+    if (visionRoute === 'own') return await executeVisionCall();
+    try {
+      return await executeVisionCall();
+    } catch (ownKeyError) {
+      if (!isOwnKeyFailure(ownKeyError)) throw ownKeyError;
+      return await visionViaWallet();
+    }
   } catch (err) {
     console.error('[aiProviders] Vision call failed:', err);
     throw err;
@@ -563,7 +593,7 @@ export async function callAIStream(
       const model = getActiveModelId(provider, settings, modelOverride);
       const stream = await client.chat.completions.create({
         model,
-        max_tokens: OPENAI_MAX_TOKENS,
+        max_completion_tokens: OPENAI_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
         stream: true,
       });
@@ -607,7 +637,7 @@ export async function callAIStream(
       const model = getActiveModelId(provider, settings, modelOverride);
       const stream = await client.chat.completions.create({
         model,
-        max_tokens: deepseekMaxTokens(model),
+        max_tokens: DEEPSEEK_MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
         stream: true,
       });
@@ -675,11 +705,28 @@ export async function callAIStream(
     const idx = GEMINI_RUNTIME_MODELS.indexOf(settings.selectedModel);
     const model = getActiveModelId(provider, settings, modelOverride);
     let output = '';
-    await callGeminiAIStream(prompt, settings.geminiApiKey, (chunk) => {
-      output += chunk;
-      onChunk(chunk);
-    }, idx >= 0 ? idx : 0, modelOverride);
-    recordEstimatedUsage(provider, model, prompt, output);
+    // Ví web không có luồng: máy chủ trả trọn một lần, hiện một cục.
+    const viaWallet = async () => {
+      const relayed = await callAiRelay({ prompt, model: relayModelFor(modelOverride, settings.selectedModel), system: EXAM_FORMAT_SYSTEM_INSTRUCTION });
+      output += relayed.text;
+      onChunk(relayed.text);
+    };
+    const route = geminiRouteFor(Boolean(settings.geminiApiKey), getAiModeSnapshot());
+    if (route === 'relay') {
+      await viaWallet();
+      return;
+    }
+    try {
+      await callGeminiAIStream(prompt, settings.geminiApiKey, (chunk) => {
+        output += chunk;
+        onChunk(chunk);
+      }, idx >= 0 ? idx : 0, modelOverride);
+      recordEstimatedUsage(provider, model, prompt, output);
+    } catch (ownKeyError) {
+      // Chỉ chuyển sang ví khi chưa có chữ nào hiện ra — nếu không nội dung bị lặp hai lần.
+      if (route === 'own' || output || !isOwnKeyFailure(ownKeyError)) throw ownKeyError;
+      await viaWallet();
+    }
     return;
   } catch (err) {
     console.error('[aiProviders] Stream call failed:', err);

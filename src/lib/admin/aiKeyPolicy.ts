@@ -9,6 +9,10 @@
  *  - Có khoá riêng thì luôn dùng khoá riêng trước — KỂ CẢ người trong nhóm (tự trả Google, không trừ ví);
  *    khoá chung chỉ là dự phòng: người trong nhóm tự chuyển, người ngoài nhóm phải đã đồng ý.
  *  - Chưa bật kiểm soát trong trang Quản trị thì ai cũng dùng khoá chung (hành vi trước đây).
+ *
+ * Chủ dự án chốt thêm (2026-09-30): giáo viên TỰ CHỌN nguồn — `own` chỉ khoá riêng · `wallet` chỉ ví web (bỏ qua
+ * khoá riêng) · `both` khoá riêng trước, hết mới sang ví. Chưa chọn thì suy từ hành vi cũ (nhóm hoặc đã đồng ý = `both`,
+ * còn lại = `own`) để không ai đổi hành vi khi triển khai. Dùng ví vẫn cần đã ĐỒNG Ý tính phí (trừ nhóm).
  */
 
 export type AiKeySource = 'shared' | 'own' | 'owner_consent';
@@ -19,13 +23,30 @@ export type AiKeyBlockReason = 'no_key' | 'exhausted' | 'invalid' | 'consent_req
 /** Khoá riêng bị Google báo hết hạn mức thì nghỉ chừng này rồi thử lại (429 có thể chỉ là quá tải theo phút). */
 export const EXHAUSTED_COOLDOWN_MS = 60 * 60 * 1000;
 
+/** Nguồn khoá giáo viên chọn: chỉ khoá riêng · chỉ ví web · cả hai (khoá riêng trước). */
+export type AiKeyMode = 'own' | 'wallet' | 'both';
+export const AI_KEY_MODES: readonly AiKeyMode[] = ['own', 'wallet', 'both'];
+
 export interface AiKeyPolicyInput {
   gateEnabled: boolean;
   isShared: boolean;
   ownKey: { status: AiKeyStatus; statusAt?: string } | null;
   consent: boolean;
+  /** Lựa chọn đã lưu của giáo viên; vắng thì suy từ hành vi cũ. */
+  mode?: AiKeyMode | null;
   now?: number;
 }
+
+/**
+ * Chế độ THỰC SỰ áp dụng. Chọn ví/cả hai mà chưa đồng ý tính phí (và ngoài nhóm) thì vẫn là `own` — ví chỉ bị
+ * trừ khi giáo viên đã đồng ý; thu hồi đồng ý là tự về `own`.
+ */
+export const effectiveAiMode = ({ mode, isShared, consent }: Pick<AiKeyPolicyInput, 'mode' | 'isShared' | 'consent'>): AiKeyMode => {
+  const walletAllowed = isShared || consent;
+  if (mode === 'own') return 'own';
+  if (mode === 'wallet' || mode === 'both') return walletAllowed ? mode : 'own';
+  return walletAllowed ? 'both' : 'own';
+};
 
 export type AiKeyDecision =
   | { use: 'shared' | 'own' | 'owner_consent' }
@@ -40,11 +61,13 @@ export const ownKeyUsable = (own: AiKeyPolicyInput['ownKey'], now = Date.now()):
   return !Number.isFinite(at) || now - at >= EXHAUSTED_COOLDOWN_MS;
 };
 
-export const decideAiKey = ({ gateEnabled, isShared, ownKey, consent, now = Date.now() }: AiKeyPolicyInput): AiKeyDecision => {
+export const decideAiKey = ({ gateEnabled, isShared, ownKey, consent, mode, now = Date.now() }: AiKeyPolicyInput): AiKeyDecision => {
   if (!gateEnabled) return { use: 'shared' };
+  const effective = effectiveAiMode({ mode, isShared, consent });
+  const wallet = { use: isShared ? 'shared' : 'owner_consent' } as const;
+  if (effective === 'wallet') return wallet;
   if (ownKeyUsable(ownKey, now)) return { use: 'own' };
-  if (isShared) return { use: 'shared' };
-  if (consent) return { use: 'owner_consent' };
+  if (effective === 'both') return wallet;
   return { use: 'blocked', reason: ownKey ? (ownKey.status === 'invalid' ? 'invalid' : 'exhausted') : 'no_key' };
 };
 
@@ -72,7 +95,7 @@ export const blockReasonText = (reason: AiKeyBlockReason): string => ({
   no_key: 'Tài khoản của thầy/cô chưa có khoá AI (Gemini) để chấm bài.',
   exhausted: 'Khoá AI (Gemini) của thầy/cô đã hết hạn mức hoặc hết tiền.',
   invalid: 'Khoá AI (Gemini) của thầy/cô không dùng được (sai khoá, bị khoá hoặc chưa bật thanh toán).',
-  consent_required: 'Tính năng này chạy bằng khoá AI chung của web, cần thầy/cô đồng ý tính phí theo mức dùng (hoặc dùng khoá cá nhân trong Cài đặt).',
+  consent_required: 'Tính năng này chỉ chạy bằng khoá AI chung của web (khoá riêng không thay được). Thầy/cô chọn “Ví web” hoặc “Cả hai” ở mục AI của tôi, và đồng ý tính phí theo mức dùng.',
   cap_reached: 'Thầy/cô đã dùng hết trần chi tiêu AI tháng này do chính thầy/cô đặt. Nâng trần hoặc nhập khoá riêng để dùng tiếp.',
   no_balance: 'Số dư AI của thầy/cô đã hết. Nạp thêm bằng mã QR chuyển khoản, nhập mã giảm giá, hoặc dùng khoá Gemini riêng để dùng tiếp.',
 }[reason]);

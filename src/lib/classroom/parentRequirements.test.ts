@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { aggregateRequirementLines, groupRequirementLines, levelOf, sanitizeRequirementLines, type EvidenceSubmission } from './parentRequirements';
+import { aggregateRequirementLines, groupRequirementLines, levelOf, parentActionsForRequirements, sanitizeRequirementLines, type EvidenceSubmission } from './parentRequirements';
 import { yccdForGrade } from '../curriculum/yccdToan';
 
 const evidence: EvidenceSubmission[] = [
@@ -34,17 +34,14 @@ describe('kết quả theo yêu cầu cần đạt', () => {
 
   it('gộp bản ghép của AI: bỏ mã YCCĐ ngoài khối, mã câu lạ, câu thang 0; ghi chú bỏ markdown', () => {
     const lines = aggregateRequirementLines(10, evidence, {
-      ghep: [
-        { cau: 'b1q1', yccd: 'T10.03' },
-        { cau: 'b1q2', yccd: 'T10.03' },
-        { cau: 'b1q2', yccd: 'T10.03' },
-        { cau: 'b1q3', yccd: 'T10.04' },
-        { cau: 'b2', yccd: 'T10.01' },
-        { cau: 'b7q1', yccd: 'T10.01' },
-        { cau: 'b1q1', yccd: 'T11.01' },
+      yccd: [
+        { ma: 'T10.03', cau: ['b1q1', 'b1q2', 'b1q2'], ghiChu: '  Dùng **đúng** biểu đồ Ven  ' },
+        { ma: 'T10.04', cau: ['b1q3'], ghiChu: 'thang 0' },
+        { ma: 'T10.01', cau: ['b2', 'b7q1'] },
+        { ma: 'T11.01', cau: ['b1q1'], ghiChu: 'khối khác' },
+        { ma: 'T10.40', cau: [], ghiChu: 'không có câu nào' },
         'rác',
       ],
-      ghiChu: [{ yccd: 'T10.03', ghiChu: '  Dùng **đúng** biểu đồ Ven  ' }, { yccd: 'T10.40', ghiChu: 'không có câu nào' }],
     });
     expect(lines).toEqual([
       { id: 'T10.01', level: 'chua', evidence: 1, percent: 30, note: '' },
@@ -53,8 +50,9 @@ describe('kết quả theo yêu cầu cần đạt', () => {
   });
 
   it('AI trả sai dạng thì không có dòng nào', () => {
-    expect(aggregateRequirementLines(10, evidence, { ghep: 'x', ghiChu: null })).toEqual([]);
-    expect(aggregateRequirementLines(12, evidence, { ghep: [{ cau: 'b1q1', yccd: 'T10.03' }] })).toEqual([]);
+    expect(aggregateRequirementLines(10, evidence, { yccd: 'x' })).toEqual([]);
+    expect(aggregateRequirementLines(10, evidence, { yccd: [{ ma: 'T10.03', cau: 'b1q1' }] })).toEqual([]);
+    expect(aggregateRequirementLines(12, evidence, { yccd: [{ ma: 'T10.03', cau: ['b1q1'] }] })).toEqual([]);
   });
 
   it('dòng giáo viên sửa: kiểm khối, mức, trùng; xếp theo thứ tự Chương trình', () => {
@@ -67,6 +65,16 @@ describe('kết quả theo yêu cầu cần đạt', () => {
     expect(lines.map(line => [line.id, line.level, line.evidence, line.percent])).toEqual([['T10.02', 'chua', 0, 10], ['T10.20', 'vung', 2, 100]]);
     expect(lines[1].note).toHaveLength(300);
     expect(sanitizeRequirementLines('10', 'không phải mảng')).toEqual([]);
+  });
+
+  it('gợi ý ở nhà: có dòng YCCĐ thì không trỏ tới "Cần rèn thêm" nữa', () => {
+    const actions = ['Hỏi con mỗi ngày.', 'Luyện lại phần ở mục “Cần rèn thêm”.', 'Giữ liên lạc.'];
+    const weak = [{ id: 'T10.01', level: 'chua' as const, evidence: 1, percent: 10, note: '' }];
+    const out = parentActionsForRequirements(actions, weak);
+    expect(out.join(' ')).not.toContain('Cần rèn thêm');
+    expect(out[1]).toContain('“Chưa đạt” hoặc “Đang hình thành”');
+    expect(parentActionsForRequirements(actions, [{ ...weak[0], level: 'vung' }])).toEqual(['Hỏi con mỗi ngày.', 'Giữ liên lạc.']);
+    expect(parentActionsForRequirements(actions, [])).toEqual(actions);
   });
 
   it('nhóm theo chủ đề, giữ thứ tự Chương trình', () => {

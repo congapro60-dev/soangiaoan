@@ -13,6 +13,7 @@
  * Collection `aiUsage` chỉ máy chủ ghi/đọc (rules chặn client).
  */
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { randomUUID } from 'node:crypto';
 import { getAuth } from 'firebase-admin/auth';
 import { getAdminDb } from './_exam-core.js';
 import { FieldValue } from 'firebase-admin/firestore';
@@ -57,7 +58,7 @@ export interface AiKeyChoice {
   source: AiKeySource;
   ownerUid: string | null;
   /** Có trừ ví trả trước không (null = không trừ: chưa bật kiểm soát / khoá riêng / chủ dự án). */
-  billing?: { usdVnd: number; voucher: VoucherRedemption | null } | null;
+  billing?: { usdVnd: number; voucher: VoucherRedemption | null; /** Trần tháng giáo viên tự đặt (VNĐ), để kiểm cùng lúc với giữ chỗ tiền. */ capVnd?: number | null } | null;
 }
 
 export interface AiTokenCounts {
@@ -154,18 +155,140 @@ export const buildAiUsageRecord = (
   ...(extra.finishReason ? { finishReason: extra.finishReason } : {}),
 });
 
+/**
+ * Cộng dồn theo NGÀY (giờ Việt Nam) ngay trong document tháng của `aiSpend`, để chip ở Header hiện
+ * "hôm nay" mà chỉ đọc MỘT document — không phải quét lại toàn bộ `aiUsage` mỗi lần làm mới.
+ */
+const spendByDay = (day: unknown, costUsd: number, charge: { chargeVnd: number } | null) => ({
+  days: {
+    [String(day)]: {
+      costUsd: FieldValue.increment(costUsd),
+      calls: FieldValue.increment(1),
+      ...(charge ? { chargeVnd: FieldValue.increment(charge.chargeVnd) } : {}),
+    },
+  },
+});
+
+
+const AI_WALLETS_COL = 'aiWallets';
+
+/**
+ * GIỮ CHỖ TIỀN cho một lượt gọi: ví chỉ bị trừ SAU khi Google trả lời, nên nhiều lượt chạy song song cùng qua kiểm số dư rồi
+ * cùng trừ → ví/trần âm sâu (QA F3: hai lượt, ví 1.000đ → −38.000đ). Trước khi gọi, lượt này giữ `min(HOLD_VND, còn lại)`
+ * trong ví (`aiWallets.heldVnd`), lượt sau chỉ thấy phần CÒN LẠI; xong thì giữ chỗ được thay bằng số tiền thật trong CÙNG
+ * giao dịch trừ ví. Lượt vượt quá phần giữ chỉ làm ví âm đúng phần vượt (thường 0), không còn nhân theo số lượt song song.
+ */
+export const HOLD_VND = 1_000;
+/** Giữ chỗ quá lâu (hàm bị giết, không kịp trả) thì hết hiệu lực — sau một chu kỳ tối đa của hàm dài nhất. */
+export const HOLD_STALE_MS = 10 * 60_000;
+
+/**
+ * `contended` = bị chặn chỉ vì các lượt KHÁC đang giữ chỗ (còn tiền/còn trần nếu họ xong sớm) → đáng chờ rồi thử lại, khác với
+ * hết tiền thật. Không có nó, hai bài học sinh nộp cùng lúc khi ví sắp hết sẽ bị chặn oan dù cả hai cộng lại vẫn trả nổi.
+ */
+export type HoldResult = { ok: true; holdVnd: number } | { ok: false; reason: 'no_balance' | 'cap_reached'; contended: boolean };
+
+/** Số lần chờ tối đa và thời gian mỗi lần chờ khi bị chặn vì lượt khác đang giữ chỗ. */
+export const HOLD_MAX_WAITS = 8;
+export const holdRetryMs = (env: NodeJS.ProcessEnv = process.env): number => Number(env.AI_HOLD_RETRY_MS) || 1_000;
+
+/** Chỉ lượt bị TRỪ VÍ mới giữ chỗ (không khoá riêng, không chủ dự án, không mã giảm 100%); các lượt khác trả `holdVnd: 0`. */
+export const acquireCallHold = async (choice: AiKeyChoice, now: number = Date.now()): Promise<HoldResult> => {
+  const ownerUid = choice.ownerUid;
+  const billing = choice.billing;
+  if (!ownerUid || !billing || choice.source === 'own' || (billing.voucher?.percent ?? 0) >= 100) return { ok: true, holdVnd: 0 };
+  const db = getAdminDb();
+  const walletRef = db.collection(AI_WALLETS_COL).doc(ownerUid);
+  const capVnd = typeof billing.capVnd === 'number' && billing.capVnd > 0 ? billing.capVnd : 0;
+  const spendRef = capVnd ? db.collection(AI_SPEND_COL).doc(aiSpendDocId(ownerUid, vnDate(new Date(now)).month)) : null;
+  return db.runTransaction(async (transaction): Promise<HoldResult> => {
+    const walletSnap = await transaction.get(walletRef);
+    const spendSnap = spendRef ? await transaction.get(spendRef) : null;
+    const wallet = walletSnap.exists ? walletSnap.data() ?? {} : {};
+    const held = Number(wallet.heldAt) > now - HOLD_STALE_MS ? Math.max(0, Number(wallet.heldVnd) || 0) : 0;
+    const available = (Number(wallet.balanceVnd) || 0) - held;
+    if (available <= 0) return { ok: false, reason: 'no_balance', contended: (Number(wallet.balanceVnd) || 0) > 0 && held > 0 };
+    // Trần tháng: đã trừ + đang giữ chỗ. Kiểm cùng giao dịch nên các lượt song song không cùng lọt qua.
+    const spentVnd = Number(spendSnap?.data()?.chargeVnd) || 0;
+    if (capVnd && spentVnd + held >= capVnd) return { ok: false, reason: 'cap_reached', contended: spentVnd < capVnd };
+    const holdVnd = Math.min(HOLD_VND, available);
+    transaction.set(walletRef, { uid: ownerUid, heldVnd: held + holdVnd, heldAt: now }, { merge: true });
+    return { ok: true, holdVnd };
+  });
+};
+
+/** Trả lại phần giữ chỗ khi lượt gọi KHÔNG đi tới bước trừ tiền (lỗi mạng, Google từ chối…). */
+export const releaseWalletHold = (db: FirebaseFirestore.Firestore, ownerUid: string, holdVnd: number): Promise<unknown> =>
+  db.collection(AI_WALLETS_COL).doc(ownerUid).set({ heldVnd: FieldValue.increment(-holdVnd) }, { merge: true });
+
+const releaseCurrentHold = async (holdVnd: number | undefined): Promise<void> => {
+  const ownerUid = currentAiUsageContext()?.keyChoice?.ownerUid;
+  if (!holdVnd || !ownerUid) return;
+  await releaseWalletHold(getAdminDb(), ownerUid, holdVnd).catch(error => console.error('[ai-usage] không trả được chỗ giữ tiền:', error));
+};
+
+interface Settlement {
+  ownerUid?: string | null;
+  billable: boolean;
+  costUsd: number;
+  charge: { chargeVnd: number } | null;
+  images?: number;
+  holdVnd?: number;
+}
+
+/**
+ * Ghi lượt dùng + cộng sổ chi tiêu + trừ ví trong MỘT giao dịch: trước đây ba lần ghi rời nhau, lỗi giữa chừng để lại sổ
+ * đã ghi mà ví chưa trừ (hoặc ngược lại). Lượt không tính tiền (khoá riêng, chưa bật kiểm soát) chỉ cần ghi sổ lượt dùng.
+ */
+const settleUsage = async (db: FirebaseFirestore.Firestore, record: Record<string, unknown>, o: Settlement): Promise<void> => {
+  const { ownerUid } = o;
+  if (!o.billable || !ownerUid) {
+    await db.collection(AI_USAGE_COL).add(record);
+    return;
+  }
+  const usageRef = db.collection(AI_USAGE_COL).doc(randomUUID());
+  const spendRef = db.collection(AI_SPEND_COL).doc(aiSpendDocId(ownerUid, String(record.month)));
+  const walletRef = db.collection(AI_WALLETS_COL).doc(ownerUid);
+  const debit = o.charge?.chargeVnd ?? 0;
+  await db.runTransaction(async transaction => {
+    transaction.set(usageRef, record);
+    // Sổ chi tiêu tháng của giáo viên chịu phí — để hiện "đã dùng" và chặn khi chạm trần tự đặt.
+    transaction.set(spendRef, {
+      uid: ownerUid,
+      month: record.month,
+      costUsd: FieldValue.increment(o.costUsd),
+      calls: FieldValue.increment(1),
+      ...(o.images ? { images: FieldValue.increment(o.images) } : {}),
+      ...(o.charge ? { chargeVnd: FieldValue.increment(o.charge.chargeVnd) } : {}),
+      ...spendByDay(record.day, o.costUsd, o.charge),
+      updatedAt: record.at,
+    }, { merge: true });
+    if (debit > 0 || o.holdVnd) {
+      transaction.set(walletRef, {
+        uid: ownerUid,
+        ...(debit > 0 ? { balanceVnd: FieldValue.increment(-debit) } : {}),
+        ...(o.holdVnd ? { heldVnd: FieldValue.increment(-o.holdVnd) } : {}),
+        updatedAt: record.at,
+      }, { merge: true });
+    }
+  });
+};
+
 /** Ghi một lượt dùng. KHÔNG bao giờ ném lỗi ra ngoài. */
 export const recordAiUsage = async (
   provider: AiProvider,
   model: string,
   counts: AiTokenCounts | null,
-  extra: { finishReason?: string } = {},
+  extra: { finishReason?: string; /** Phần tiền đã giữ chỗ cho lượt này (`acquireCallHold`) — được thay bằng số tiền thật khi trừ ví. */ holdVnd?: number } = {},
 ): Promise<void> => {
-  if (!counts) return;
+  if (!counts) {
+    await releaseCurrentHold(extra.holdVnd);
+    return;
+  }
   try {
     const context = currentAiUsageContext();
     const identity = context ? await context.identity() : ANONYMOUS_UNKNOWN;
-    const record = buildAiUsageRecord(context, identity, provider, model, counts, extra);
+    const record = buildAiUsageRecord(context, identity, provider, model, counts, { finishReason: extra.finishReason });
     const db = getAdminDb();
     const choice = context?.keyChoice;
     const ownerUid = choice?.ownerUid;
@@ -176,27 +299,11 @@ export const recordAiUsage = async (
     if (charge && choice?.billing) {
       Object.assign(record, { costUsd, usdVnd: choice.billing.usdVnd, ...charge });
     }
-    await db.collection(AI_USAGE_COL).add(record);
-    if (!billable || !ownerUid) return;
-    // Sổ chi tiêu tháng của giáo viên chịu phí — để hiện "đã dùng" và chặn khi chạm trần tự đặt.
-    // Lượt khoá riêng (giáo viên tự trả Google) không cộng vào.
-    await db.collection(AI_SPEND_COL).doc(aiSpendDocId(ownerUid, String(record.month))).set({
-      uid: ownerUid,
-      month: record.month,
-      costUsd: FieldValue.increment(costUsd),
-      calls: FieldValue.increment(1),
-      ...(charge ? { chargeVnd: FieldValue.increment(charge.chargeVnd) } : {}),
-      updatedAt: record.at,
-    }, { merge: true });
-    if (charge && charge.chargeVnd > 0) {
-      await db.collection('aiWallets').doc(ownerUid).set({
-        uid: ownerUid,
-        balanceVnd: FieldValue.increment(-charge.chargeVnd),
-        updatedAt: record.at,
-      }, { merge: true });
-    }
+    await settleUsage(db, record, { ownerUid, billable, costUsd, charge, holdVnd: extra.holdVnd });
   } catch (error) {
     console.error('[ai-usage] không ghi được lượt dùng AI:', error);
+    // Giao dịch hỏng thì chưa ai trừ tiền: trả lại phần giữ chỗ để ví không bị kẹt.
+    await releaseCurrentHold(extra.holdVnd);
   }
 };
 
@@ -242,24 +349,7 @@ export const recordImageUsage = async (
     if (charge && choice?.billing) {
       Object.assign(record, { costUsd, usdVnd: choice.billing.usdVnd, ...charge });
     }
-    await db.collection(AI_USAGE_COL).add(record);
-    if (!billable || !ownerUid) return;
-    await db.collection(AI_SPEND_COL).doc(aiSpendDocId(ownerUid, String(record.month))).set({
-      uid: ownerUid,
-      month: record.month,
-      costUsd: FieldValue.increment(costUsd),
-      calls: FieldValue.increment(1),
-      images: FieldValue.increment(images),
-      ...(charge ? { chargeVnd: FieldValue.increment(charge.chargeVnd) } : {}),
-      updatedAt: record.at,
-    }, { merge: true });
-    if (charge && charge.chargeVnd > 0) {
-      await db.collection('aiWallets').doc(ownerUid).set({
-        uid: ownerUid,
-        balanceVnd: FieldValue.increment(-charge.chargeVnd),
-        updatedAt: record.at,
-      }, { merge: true });
-    }
+    await settleUsage(db, record, { ownerUid, billable, costUsd, charge, images });
   } catch (error) {
     console.error('[ai-usage] không ghi được lượt sinh ảnh:', error);
   }

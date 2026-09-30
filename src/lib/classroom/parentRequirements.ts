@@ -28,6 +28,8 @@ export interface EvidenceQuestion {
   loi?: string;
   giaiThich?: string;
   dapAn?: string;
+  /** Trích ngắn bài làm của em — để biết câu làm ĐÚNG kiểm tra gì (giải thích của câu đúng thường rất ngắn). */
+  baiLam?: string;
 }
 
 export interface EvidenceSubmission {
@@ -48,9 +50,12 @@ export interface ParentRequirementLine {
   note: string;
 }
 
+/**
+ * Kết quả AI: mỗi YCCĐ một mục, câu căn cứ và ghi chú đi CÙNG nhau — để ghi chú viết đúng theo kết quả chính
+ * những câu đó (tách rời hai danh sách thì AI hay khen một yêu cầu mà các câu căn cứ đa số sai).
+ */
 export interface AiRequirementDraft {
-  ghep?: unknown;
-  ghiChu?: unknown;
+  yccd?: unknown;
 }
 
 export const MAX_REQUIREMENT_NOTE_CHARS = 300;
@@ -87,18 +92,20 @@ export const aggregateRequirementLines = (
     }
   }
   const byRequirement = new Map<string, Set<string>>();
-  for (const pair of asArray(draft.ghep)) {
-    const id = String(pair.yccd ?? '').trim();
-    const ma = String(pair.cau ?? '').trim();
-    if (!known.has(id) || !questions.has(ma)) continue;
-    if (!byRequirement.has(id)) byRequirement.set(id, new Set());
-    byRequirement.get(id)!.add(ma);
-  }
   const notes = new Map<string, string>();
-  for (const row of asArray(draft.ghiChu)) {
-    const id = String(row.yccd ?? '').trim();
+  for (const row of asArray(draft.yccd)) {
+    const id = String(row.ma ?? '').trim();
+    if (!known.has(id)) continue;
+    const codes = byRequirement.get(id) ?? new Set<string>();
+    for (const code of Array.isArray(row.cau) ? row.cau : []) {
+      const ma = String(code ?? '').trim();
+      if (questions.has(ma)) codes.add(ma);
+    }
+    byRequirement.set(id, codes);
+    // Cùng một YCCĐ có thể đến từ nhiều lượt ghép (mỗi lượt một nhóm bài) → nối các ghi chú khác nhau.
     const note = cleanNote(row.ghiChu);
-    if (known.has(id) && note) notes.set(id, note);
+    const before = notes.get(id);
+    if (note && note !== before) notes.set(id, before ? cleanNote(`${before} ${note}`) : note);
   }
   const lines: ParentRequirementLine[] = [];
   for (const item of list) {
@@ -151,6 +158,19 @@ export const groupRequirementLines = (lines: readonly ParentRequirementLine[]): 
     else groups.push({ strand: item.strand, topic: item.topic, rows: [{ line, item }] });
   }
   return groups;
+};
+
+/**
+ * Gợi ý "Phụ huynh có thể làm ở nhà" khi báo cáo dùng YCCĐ: bỏ câu trỏ tới mục "Cần rèn thêm" (không còn in),
+ * thay bằng câu trỏ tới các dòng Chưa đạt / Đang hình thành. Không có dòng YCCĐ thì giữ nguyên.
+ */
+export const parentActionsForRequirements = (actions: readonly string[], lines: readonly ParentRequirementLine[] | null | undefined): string[] => {
+  if (!lines || lines.length === 0) return [...actions];
+  const kept = actions.filter(action => !action.includes('“Cần rèn thêm”'));
+  if (lines.some(line => line.level !== 'vung')) {
+    kept.splice(1, 0, 'Dành 15–20 phút mỗi tối cho con tự luyện lại đúng những yêu cầu thầy cô đánh dấu “Chưa đạt” hoặc “Đang hình thành” ở mục “Kết quả theo yêu cầu cần đạt”. Phụ huynh không cần dạy, chỉ cần nhắc con làm và tự kiểm tra.');
+  }
+  return kept;
 };
 
 /** Danh sách YCCĐ của khối, định dạng cho prompt: mỗi dòng "id | chủ đề: yêu cầu". */
