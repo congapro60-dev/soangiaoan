@@ -412,3 +412,7 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 ## 2026-09-30 — Chèn code bằng Python heredoc làm hỏng regex
 - Chuỗi Python thường (và printf trong bash) biến \b trong code chèn thành ký tự backspace (0x08) → regex /Lớp\s*(10|11|12)\b/ hỏng âm thầm, chỉ test mới lộ.
 - Luật: chèn code có dấu gạch ngược thì dùng Edit/Write hoặc node với String.fromCharCode; sau khi chèn đếm ký tự 0x08 trong file để dò.
+
+## 2026-09-30 — Thêm lượt AI vào action của một hàm có maxDuration ngắn
+- Sai: gộp lượt AI mới (prompt dài, JSON, `model-max`) vào `api/classroom.ts` mà không xem `vercel.json` — hàm này trần 15s → production 504, test/CI không bắt được vì AI bị giả lập.
+- Luật: thêm/đổi lượt gọi AI trong `api/*` thì mở `vercel.json` xem `maxDuration` của hàm chứa nó; luôn truyền `timeoutMs` nhỏ hơn trần ~10s để trả lỗi rõ, và nghiệm thu bằng MỘT lượt thật trên production trước khi báo xong.
