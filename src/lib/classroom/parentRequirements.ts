@@ -102,8 +102,10 @@ export const aggregateRequirementLines = (
       if (questions.has(ma)) codes.add(ma);
     }
     byRequirement.set(id, codes);
+    // Cùng một YCCĐ có thể đến từ nhiều lượt ghép (mỗi lượt một nhóm bài) → nối các ghi chú khác nhau.
     const note = cleanNote(row.ghiChu);
-    if (note) notes.set(id, note);
+    const before = notes.get(id);
+    if (note && note !== before) notes.set(id, before ? cleanNote(`${before} ${note}`) : note);
   }
   const lines: ParentRequirementLine[] = [];
   for (const item of list) {

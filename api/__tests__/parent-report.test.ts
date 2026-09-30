@@ -9,6 +9,8 @@ const h = vi.hoisted(() => ({
   reply: '**Con** học chăm, cần luyện thêm hàm số.',
   jsonMode: false as boolean | undefined,
   fail: '' as '' | 'slow' | 'fast',
+  mapReply: '{"yccd": []}',
+  calls: [] as string[],
 }));
 
 vi.mock('../_classroom-teacher.js', () => ({
@@ -24,9 +26,10 @@ vi.mock('../_grading-core.js', () => ({
   callGeminiVision: async (prompt: string, _files: unknown, _key: string, _model: string, options: { jsonMode?: boolean }) => {
     h.prompt = prompt;
     h.jsonMode = options.jsonMode;
+    h.calls.push(prompt);
     if (h.fail === 'slow') { vi.setSystemTime(Date.now() + 55_000); throw new Error('AI xử lý quá lâu'); }
     if (h.fail === 'fast') throw new Error('Chưa có khoá Gemini');
-    return h.reply;
+    return prompt.includes('đối chiếu bài làm') ? h.mapReply : h.reply;
   },
 }));
 
@@ -53,7 +56,7 @@ const key = { studentId: 'hs1', kind: 'gk1', from: '2026-09-01', to: '2026-10-31
 describe('nhận xét giáo viên trong báo cáo phụ huynh', () => {
   beforeEach(() => {
     h.store = {}; h.owner = ''; h.prompt = ''; h.allowed = true; h.grade = '';
-    h.reply = '**Con** học chăm, cần luyện thêm hàm số.'; h.jsonMode = undefined; h.fail = '';
+    h.reply = '**Con** học chăm, cần luyện thêm hàm số.'; h.jsonMode = undefined; h.fail = ''; h.mapReply = '{"yccd": []}'; h.calls = [];
     vi.useRealTimers();
   });
 
@@ -76,10 +79,10 @@ describe('nhận xét giáo viên trong báo cáo phụ huynh', () => {
     expect(h.prompt).toContain('không bịa');
   });
 
-  it('khối có YCCĐ + có bài đã duyệt: một lượt AI trả JSON, máy tự tính mức và bỏ mã bịa', async () => {
+  it('khối có YCCĐ + có bài đã duyệt: nhận xét + ghép YCCĐ (JSON), máy tự tính mức và bỏ mã bịa', async () => {
     h.grade = '10';
-    h.reply = JSON.stringify({
-      nhanXet: 'Con tiến bộ ở phần vectơ.',
+    h.reply = 'Con tiến bộ ở phần vectơ.';
+    h.mapReply = JSON.stringify({
       yccd: [
         { ma: 'T10.30', cau: ['b1q1', 'b1q2'], ghiChu: 'Nhầm chiều khi áp dụng **quy tắc hiệu**.' },
         { ma: 'T99.01', cau: ['b1q2'], ghiChu: 'mã bịa' },
@@ -92,12 +95,24 @@ describe('nhận xét giáo viên trong báo cáo phụ huynh', () => {
     ] }] };
     const out = await call({ action: 'draftParentReportComment', ...key, facts });
     expect(out.status).toBe(200);
-    expect(h.jsonMode).toBe(true);
-    expect(h.prompt).toContain('T10.30 |');
+    expect(h.calls).toHaveLength(2);
+    const mappingPrompt = h.calls.find(p => p.includes('đối chiếu bài làm'))!;
+    expect(mappingPrompt).toContain('T10.30 |');
+    expect(h.calls.find(p => !p.includes('đối chiếu bài làm'))).not.toContain('b1q1');
     expect(out.body.text).toBe('Con tiến bộ ở phần vectơ.');
     expect(out.body.requirements).toEqual([
       { id: 'T10.30', level: 'chua', evidence: 2, percent: 25, note: 'Nhầm chiều khi áp dụng quy tắc hiệu.' },
     ]);
+  });
+
+  it('nhiều bài: chia nhóm ≤30 câu chạy song song, gộp câu căn cứ và nối ghi chú của cùng một YCCĐ', async () => {
+    h.grade = '10';
+    h.reply = 'Nhận xét.';
+    const bai = (n: number) => ({ ma: `b${n}`, ten: 'BTVN', ngay: '2026-09-20', cau: Array.from({ length: 20 }, (_, i) => ({ ma: `b${n}q${i + 1}`, diem: n === 1 ? 1 : 0, toiDa: 1, ketQua: 'x' })) });
+    h.mapReply = JSON.stringify({ yccd: [{ ma: 'T10.03', cau: ['b1q1', 'b2q1'], ghiChu: 'Ý chung.' }] });
+    const out = await call({ action: 'draftParentReportComment', ...key, facts: { baiDaDuyet: [bai(1), bai(2)] } });
+    expect(h.calls.filter(p => p.includes('đối chiếu bài làm'))).toHaveLength(2);
+    expect(out.body.requirements).toEqual([{ id: 'T10.03', level: 'dang', evidence: 2, percent: 50, note: 'Ý chung.' }]);
   });
 
   it('lưu kèm dòng YCCĐ: chỉ giữ mã đúng khối, mức hợp lệ', async () => {
