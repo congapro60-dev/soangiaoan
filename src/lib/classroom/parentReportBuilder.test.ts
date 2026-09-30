@@ -52,6 +52,17 @@ describe('dựng báo cáo phụ huynh theo kì', () => {
     expect(JSON.stringify(out.evidence)).not.toContain('Nguyễn Văn An');
   });
 
+  it('phiếu dài (Phần I/II/III) giữ đủ câu — câu làm đúng ở cuối phiếu không bị cắt mất', () => {
+    const long = graded('dai', 'a9', '2026-09-19T05:00:00Z', 9);
+    long.grade!.questionResults = Array.from({ length: 20 }, (_, q) => ({
+      questionNumber: `Câu ${q + 1}`, status: 'correct' as const, score: 1, maxScore: 1, studentAnswer: '', expectedAnswer: '',
+      errorType: '', explanation: '', correction: '', nextPractice: '', needsTeacherReview: false,
+    }));
+    const out = buildPeriodParentReport({ ...src, submissions: [long] }, { kind: 'month', from: '2026-09-01', to: '2026-09-30' });
+    expect(out.evidence[0].cau).toHaveLength(20);
+    expect(out.evidence[0].cau.at(-1)!.ma).toBe('b1q20');
+  });
+
   it('bằng chứng kì dài: rải đều cả kì, không quá 120 câu, dữ liệu gửi AI không vượt trần', () => {
     const many = Array.from({ length: 30 }, (_, i) => {
       const day = `2026-${String(9 + Math.floor(i / 10)).padStart(2, '0')}-${String(1 + (i % 10) * 2).padStart(2, '0')}T02:00:00Z`;

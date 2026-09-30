@@ -13,6 +13,13 @@ export interface PdfExportOptions {
   orientation?: 'portrait' | 'landscape';
   /** 'save' (mặc định) tải file về; 'blob' trả file để gói nhiều báo cáo vào một ZIP. */
   output?: 'save' | 'blob';
+  /**
+   * Trang được "giãn" tối đa bao nhiêu lần chiều cao để không cắt ngang một khối nhỏ (mặc định 1.05).
+   * Phần giãn lấn vào lề dưới — muốn số trang không bị đè thì giữ phần giãn nhỏ hơn khoảng trống lề trên số trang.
+   */
+  maxStretch?: number;
+  /** Khoảng cách từ mép dưới giấy tới chân số trang, mm (mặc định: giữa lề dưới). */
+  pageNumberFromBottomMm?: number;
 }
 
 interface Zone {
@@ -92,7 +99,8 @@ function findBreakPoint(
   naturalBreak: number,
   pageStart: number,
   sliceHeightPx: number,
-  zones: Zone[]
+  zones: Zone[],
+  maxStretch = 1.05,
 ): number {
   if (naturalBreak <= 0) return naturalBreak;
 
@@ -112,7 +120,7 @@ function findBreakPoint(
       const extendedTotal = extendedEnd - pageStart;
 
       // Priority 1: Stretch page to fit small zone — avoids whitespace
-      if (zoneHeight <= sliceHeightPx * 0.4 && extendedTotal <= sliceHeightPx * 1.05) {
+      if (zoneHeight <= sliceHeightPx * 0.4 && extendedTotal <= sliceHeightPx * maxStretch) {
         return extendedEnd;
       }
 
@@ -165,6 +173,8 @@ export const exportElementToPdf = async (
     noBreakSelectors = ['.pdf-no-break-question', '.exam-question', '.question-block', '.exam-figure', '.exam-svg', '.variation-table', 'img', 'svg', 'table', 'tr', 'h1', 'h2', 'h3', 'h4'],
     orientation = 'portrait',
     output = 'save',
+    maxStretch = 1.05,
+    pageNumberFromBottomMm,
   } = options;
 
   const cleanupMarkedQuestions = markExamQuestionBlocks(element);
@@ -225,7 +235,7 @@ export const exportElementToPdf = async (
       while (pageStart < canvas.height) {
         const naturalBreak = pageStart + sliceHeightPx;
         const breakAt = Math.min(
-          findBreakPoint(naturalBreak, pageStart, sliceHeightPx, zones),
+          findBreakPoint(naturalBreak, pageStart, sliceHeightPx, zones, maxStretch),
           canvas.height
         );
 
@@ -267,7 +277,7 @@ export const exportElementToPdf = async (
       pdf.setFontSize(13);
       for (let i = 2; i <= totalPages; i++) {
         pdf.setPage(i);
-        pdf.text(String(i), pageWidth / 2, pageHeight - mBottom / 2, { align: 'center' });
+        pdf.text(String(i), pageWidth / 2, pageHeight - (pageNumberFromBottomMm ?? mBottom / 2), { align: 'center' });
       }
     }
 

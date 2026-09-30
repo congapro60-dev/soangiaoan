@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { aggregateRequirementLines, groupRequirementLines, levelOf, parentActionsForRequirements, sanitizeRequirementLines, type EvidenceSubmission } from './parentRequirements';
+import { aggregateRequirementLines, applyRequirementNotes, groupRequirementLines, levelOf, parentActionsForRequirements, sanitizeRequirementLines, type EvidenceSubmission } from './parentRequirements';
 import { yccdForGrade } from '../curriculum/yccdToan';
 
 const evidence: EvidenceSubmission[] = [
@@ -47,6 +47,12 @@ describe('kết quả theo yêu cầu cần đạt', () => {
       { id: 'T10.01', level: 'chua', evidence: 1, percent: 30, note: '' },
       { id: 'T10.03', level: 'dang', evidence: 2, percent: 75, note: 'Dùng đúng biểu đồ Ven' },
     ]);
+  });
+
+  it('ghi chú bước sau: gắn đúng mã, bỏ mã lạ, làm sạch markdown', () => {
+    const lines = [{ id: 'T10.03', level: 'dang' as const, evidence: 2, percent: 60, note: '' }];
+    expect(applyRequirementNotes(lines, { ghiChu: [{ ma: 'T10.03', ghiChu: '**Nhầm** giao với hợp' }, { ma: 'T10.09', ghiChu: 'x' }] })[0].note).toBe('Nhầm giao với hợp');
+    expect(applyRequirementNotes(lines, null)).toEqual(lines);
   });
 
   it('AI trả sai dạng thì không có dòng nào', () => {

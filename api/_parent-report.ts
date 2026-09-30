@@ -11,7 +11,7 @@ import { setAiKeyOwner } from './_ai-usage.js';
 import { callGeminiVision, getGradingApiKey, GRADING_MODEL } from './_grading-core.js';
 import { REPORT_KINDS, type ReportKind } from '../src/lib/classroom/reportKinds.js';
 import {
-  aggregateRequirementLines, sanitizeRequirementLines, yccdOptionsForPrompt,
+  aggregateRequirementLines, applyRequirementNotes, mapRequirementQuestions, sanitizeRequirementLines, yccdOptionsForPrompt,
   type EvidenceSubmission, type ParentRequirementLine,
 } from '../src/lib/classroom/parentRequirements.js';
 
@@ -28,12 +28,12 @@ const AI_TIMEOUT_MS = 50_000;
 const AI_SLOW_MESSAGE = 'AI soạn báo cáo quá lâu nên máy chủ đã dừng. Bấm "AI soạn nháp" lại một lần nữa.';
 
 /** Gọi AI; hết giờ chờ thì trả null (để báo lỗi rõ), lỗi khác (khoá, ví, Gemini) vẫn ném lên như mọi action. */
-const callWithinTime = async (call: () => Promise<string>): Promise<string | null> => {
+const callWithinTime = async (call: () => Promise<string>, timeoutMs = AI_TIMEOUT_MS): Promise<string | null> => {
   const startedAt = Date.now();
   try {
     return await call();
   } catch (error) {
-    if (Date.now() - startedAt >= AI_TIMEOUT_MS - 1000) return null;
+    if (Date.now() - startedAt >= timeoutMs - 1000) return null;
     throw error;
   }
 };
@@ -72,8 +72,8 @@ export const buildParentCommentPrompt = (factsJson: string): string => [
 ].join('\n');
 
 /**
- * Ghép câu → YCCĐ cho MỘT nhóm bài (các nhóm chạy song song để cả lượt xong trong trần thời gian của hàm).
- * Mỗi YCCĐ một mục: câu căn cứ và ghi chú đi cùng nhau. Mức không do AI quyết (`aggregateRequirementLines`).
+ * Bước 1 — ghép câu → YCCĐ cho MỘT nhóm bài (các nhóm chạy song song). Chỉ ghép, không viết ghi chú: ghi chú viết ở
+ * bước 2 khi đã thấy MỌI câu của một YCCĐ (ghép từ nhiều nhóm thì ghi chú từng nhóm hay mâu thuẫn nhau).
  */
 export const buildRequirementMappingPrompt = (evidenceJson: string, yccdOptions: string): string => [
   'Bạn là giáo viên môn Toán THPT ở Việt Nam, đối chiếu bài làm đã chấm của một học sinh với YÊU CẦU CẦN ĐẠT.',
@@ -83,21 +83,31 @@ export const buildRequirementMappingPrompt = (evidenceJson: string, yccdOptions:
   'Danh sách YÊU CẦU CẦN ĐẠT của khối (Chương trình GDPT 2018 môn Toán) — mỗi dòng "mã | chủ đề: yêu cầu":',
   yccdOptions,
   '',
-  'Trả về DUY NHẤT một JSON đúng dạng: {"yccd": [{"ma": "T10.05", "cau": ["b1q2", "b3q1"], "ghiChu": "..."}]}',
+  'Trả về DUY NHẤT một JSON đúng dạng: {"yccd": [{"ma": "T10.05", "cau": ["b1q2", "b3q1"]}]}',
+  'Mỗi yêu cầu cần đạt mà các câu trên kiểm tra là MỘT mục; "cau" là mọi câu trực tiếp kiểm tra yêu cầu đó.',
+  '- Ghép cả câu làm ĐÚNG/đạt điểm tối đa, không chỉ câu sai: bỏ sót câu đúng làm mức của em bị thấp oan.',
+  '  Câu đúng thường có giải thích ngắn — dựa vào đáp án, bài làm và tên bài để biết nó kiểm tra gì.',
+  '- Chọn đúng MỨC của yêu cầu: câu phải giải/tính/biểu diễn/vận dụng thì ghép vào yêu cầu "giải được/biểu diễn được/vận dụng được",',
+  '  KHÔNG ghép vào yêu cầu "nhận biết được" chỉ vì cùng chủ đề. Một câu thường thuộc 1 yêu cầu, tối đa 2.',
+  '- Câu thật sự không biết kiểm tra gì thì bỏ qua. Chỉ dùng mã có trong danh sách; không tạo mã mới.',
+].join('\n');
+
+/**
+ * Bước 2 — viết ghi chú cho từng YCCĐ, nhìn TẤT CẢ câu căn cứ của yêu cầu đó (kèm tỉ lệ điểm đã tính sẵn).
+ */
+export const buildRequirementNotesPrompt = (groupsJson: string): string => [
+  'Bạn là giáo viên môn Toán THPT ở Việt Nam. Dưới đây là từng YÊU CẦU CẦN ĐẠT kèm MỌI câu (đã chấm, đã duyệt) của một học sinh',
+  'dùng làm căn cứ cho yêu cầu đó, và tỉ lệ điểm đạt trên các câu ấy:',
+  groupsJson,
   '',
-  '1) Mỗi yêu cầu cần đạt mà các câu trên kiểm tra là MỘT mục; "cau" là mọi câu trực tiếp kiểm tra yêu cầu đó.',
-  '   - Ghép cả câu làm ĐÚNG/đạt điểm tối đa, không chỉ câu sai: bỏ sót câu đúng làm mức của em bị thấp oan.',
-  '     Câu đúng thường có giải thích ngắn — dựa vào đáp án, bài làm và tên bài để biết nó kiểm tra gì.',
-  '   - Chọn đúng MỨC của yêu cầu: câu phải giải/tính/biểu diễn/vận dụng thì ghép vào yêu cầu "giải được/biểu diễn được/vận dụng được",',
-  '     KHÔNG ghép vào yêu cầu "nhận biết được" chỉ vì cùng chủ đề. Một câu thường thuộc 1 yêu cầu, tối đa 2.',
-  '   - Câu thật sự không biết kiểm tra gì thì bỏ qua. Chỉ dùng mã có trong danh sách; không tạo mã mới.',
-  '2) "ghiChu" của mỗi mục: một câu (≤ 30 chữ) chỉ ra CHÍNH XÁC em làm tốt hoặc sai ở đâu, dùng thuật ngữ Toán học chuẩn để',
-  '   gia sư/giáo viên khác đọc là biết cần dạy lại gì. Ví dụ: "Nhầm chiều khi áp dụng quy tắc hiệu: viết vectơ AB − vectơ AC = vectơ BC',
-  '   thay vì vectơ CB." hoặc "Lập đúng bảng biến thiên, xác định đúng đỉnh và trục đối xứng của parabol."',
-  '   Ghi chú PHẢI KHỚP kết quả chính các câu trong "cau" của mục đó: phần lớn điểm bị mất → nêu lỗi cụ thể (không khen);',
-  '   phần lớn đạt điểm → nêu điều làm tốt; lẫn lộn → nêu cả hai, lỗi trước. Không viết "tốt" khi các câu đó đa số sai.',
-  '   Không nhắc số câu/số bài, không nêu đáp án đầy đủ, không dùng LaTeX hay markdown (viết kí hiệu bằng chữ hoặc Unicode: √, ², ≤, ∈, °).',
-  '   Chỉ viết điều có trong dữ liệu; không có gì cụ thể thì để chuỗi rỗng.',
+  'Trả về DUY NHẤT một JSON đúng dạng: {"ghiChu": [{"ma": "T10.05", "ghiChu": "..."}]} — mỗi yêu cầu trên một mục.',
+  '"ghiChu": một câu (≤ 30 chữ) chỉ ra CHÍNH XÁC em làm tốt hoặc sai ở đâu, dùng thuật ngữ Toán học chuẩn để gia sư/giáo viên khác',
+  'đọc là biết cần dạy lại gì. Ví dụ: "Nhầm chiều khi áp dụng quy tắc hiệu: viết vectơ AB − vectơ AC = vectơ BC thay vì vectơ CB."',
+  'hoặc "Lập đúng bảng biến thiên, xác định đúng đỉnh và trục đối xứng của parabol."',
+  '- PHẢI KHỚP tỉ lệ điểm: dưới 50% → nêu lỗi cụ thể, không khen; từ 80% → nêu điều làm tốt (có thể thêm lỗi nhỏ còn lại);',
+  '  ở giữa → nêu cả hai, lỗi trước. Một câu nhất quán, không tự mâu thuẫn.',
+  '- Không nhắc số câu/số bài, không nêu đáp án đầy đủ, không dùng LaTeX hay markdown (viết kí hiệu bằng chữ hoặc Unicode: √, ², ≤, ∈, °).',
+  '- Chỉ viết điều có trong dữ liệu; không có gì cụ thể thì để chuỗi rỗng.',
 ].join('\n');
 
 /** Mỗi lượt ghép tối đa chừng này câu — ~90 câu một lượt mất ~25–50s, chia nhỏ chạy song song còn ~15s. */
@@ -203,7 +213,8 @@ const handleDraft = async (db: Db, body: Body, res: VercelResponse): Promise<voi
     if (!text) return void res.status(502).json({ error: 'AI chưa soạn được nhận xét, thử lại.' });
     return void res.status(200).json({ text, requirements: [] as ParentRequirementLine[] });
   }
-  // Nhận xét (lượt ngắn, không kèm từng câu) + ghép từng nhóm bài — tất cả chạy song song.
+  // Bước 1: nhận xét (lượt ngắn, không kèm từng câu) + ghép từng nhóm bài — tất cả chạy song song.
+  const startedAt = Date.now();
   const overview = { ...(body.facts as Record<string, unknown>) };
   delete overview.baiDaDuyet;
   const [commentRaw, ...mappingRaws] = await Promise.all([
@@ -226,7 +237,27 @@ const handleDraft = async (db: Db, body: Body, res: VercelResponse): Promise<voi
   // Một nhóm hỏng thì thiếu hẳn một phần bằng chứng → báo thử lại, không in báo cáo thiếu mà trông như đủ.
   if (!text || mappings.some(m => m === null)) return void res.status(502).json({ error: 'AI chưa soạn được báo cáo, thử lại.' });
   const merged = { yccd: mappings.flatMap(m => (Array.isArray(m!.yccd) ? m!.yccd : [])) };
-  res.status(200).json({ text, requirements: aggregateRequirementLines(grade, evidence, merged) });
+  const grouped = mapRequirementQuestions(grade, evidence, merged);
+  let requirements = aggregateRequirementLines(grade, evidence, merged);
+
+  // Bước 2: ghi chú cho từng YCCĐ trong phần thời gian còn lại. Hết giờ → vẫn trả các dòng (mức đúng), ghi chú để trống.
+  const remainingMs = startedAt + AI_TIMEOUT_MS - Date.now();
+  if (grouped.length > 0 && remainingMs > 8000) {
+    const groupsJson = JSON.stringify(grouped.map(({ item, questions }, index) => ({
+      ma: item.id,
+      yeuCau: item.text,
+      tiLeDiem: `${Math.round(requirements[index].percent)}%`,
+      cau: questions,
+    })));
+    const notesRaw = await callWithinTime(() => callGeminiVision(buildRequirementNotesPrompt(groupsJson), [], getGradingApiKey(), GRADING_MODEL, {
+      temperature: 0.2,
+      maxOutputTokens: 'model-max',
+      jsonMode: true,
+      timeoutMs: remainingMs,
+    }), remainingMs);
+    if (notesRaw !== null) requirements = applyRequirementNotes(requirements, parseDraftJson(notesRaw));
+  }
+  res.status(200).json({ text, requirements });
 };
 
 export const handleParentReportAction = async (db: Db, body: Body, res: VercelResponse): Promise<boolean> => {
