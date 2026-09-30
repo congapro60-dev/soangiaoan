@@ -45,7 +45,7 @@ Soạn giáo án / nâng cấp / dự giờ / ra đề gọi Gemini THẲNG từ
 - [x] Chỉ nhận 3 model có giá (Gemini 3.8 Flash, 3.7 Flash, 3.1 Pro) — model chưa có giá sẽ bị tính 0đ. Ảnh: PNG/JPEG/WebP/GIF, tối đa 8, ≤3,6M ký tự base64. Hạn mức 400 lượt/giáo viên/ngày (`AI_RELAY_DAILY_LIMIT`), bảng `aiRelayQuota`.
 - [x] `aiProviders.ts` (text, ảnh, stream): `geminiRouteFor` — `own` → khoá riêng như cũ; `wallet` → relay; `both` → khoá riêng trước, lỗi CỦA KHOÁ (429/quota/khoá hỏng) mới sang relay; quá tải 503 thì KHÔNG sang ví. Chế độ lấy từ `aiModeStore` (chip + trang ví cập nhật). Chưa biết chế độ hoặc web chưa bật phí thì giữ hành vi cũ.
 - [x] Ảnh nén dần (1600→1280→1024px) cho lọt trần 4,5MB; banner "chưa có API Key" ẩn khi ví đã trả thay khoá Gemini; `aiKeyGate` bắt 402 của `/api/ai-relay` để mở hộp nạp tiền rồi gửi lại.
-- [ ] CHƯA đo/kiểm với thực tế: (1) Vercel có nhận `maxDuration: 300` cho hàm mới và tổng hàm ≤ 12 không — xem trạng thái deploy preview; (2) một lượt relay thật bằng tài khoản thật (cần đăng nhập Google); (3) giáo án dài thật mất bao lâu.
+- [ ] CHƯA đo/kiểm với thực tế: (1) ~~tổng hàm ≤ 12~~ — lần đầu LỖI (13 hàm, xem `tasks/lessons.md`), đã sửa và có test khoá; còn phải xem Vercel có nhận `maxDuration: 300` cho hàm mới không (deploy lại của commit sau); (2) một lượt relay thật bằng tài khoản thật (cần đăng nhập Google); (3) giáo án dài thật mất bao lâu.
 - Cố ý CHƯA làm: streaming từ relay (hiện trả trọn một lần rồi hiện một cục); Claude/OpenAI/Grok/DeepSeek qua ví; `examOnlineParser.ts` (gọi Gemini trực tiếp).
 - Ràng buộc còn nguyên: nhiều lượt cùng lúc qua kiểm số dư trước khi trừ → có thể âm nhẹ (chặn `no_balance` + trần là đủ); người trong nhóm dùng mã 100% (THANG10) → chi phí do chủ dự án gánh.
 

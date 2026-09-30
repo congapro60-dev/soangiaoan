@@ -4,7 +4,7 @@ import {
   splitBannerRowsFromTables,
   stripImagePromptLines,
   normalizeVietnamesePunctuation,
-} from './render-word-core';
+} from '../render-word-core';
 
 describe('stripImagePromptLines', () => {
   it('gỡ mô tả ảnh tiếng Anh khỏi bản xuất', () => {

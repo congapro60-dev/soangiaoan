@@ -412,3 +412,7 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 ## 2026-09-30 — Chèn code bằng Python heredoc làm hỏng regex
 - Chuỗi Python thường (và printf trong bash) biến \b trong code chèn thành ký tự backspace (0x08) → regex /Lớp\s*(10|11|12)\b/ hỏng âm thầm, chỉ test mới lộ.
 - Luật: chèn code có dấu gạch ngược thì dùng Edit/Write hoặc node với String.fromCharCode; sau khi chèn đếm ký tự 0x08 trong file để dò.
+
+## Vercel / Deploy
+
+- **Vercel Hobby đếm MỌI file `.ts` trong `api/` có tên KHÔNG bắt đầu bằng `_` là một Function — kể cả file test và file phụ trợ `*-core.ts`.** 2026-09-30: `main` đã đứng đúng 12/12 vì `api/render-word-core.test.ts` (test nằm thẳng trong `api/`) và `api/external-tool-rag-core.ts` (không ai import) bị đếm oan; thêm `api/ai-relay.ts` là thứ 13 → CẢ deployment lỗi `exceeded_serverless_functions_per_deployment` (lỗi hiện ở bước cuối `patchBuild`, còn log build chỉ thấy toàn TS2339 vô hại nên rất dễ chẩn đoán nhầm). Tôi đã ghi "đếm lại trước khi thêm hàm" mà vẫn chỉ đếm bằng `ls` thô rồi đoán 11+1=12 — phải đếm đúng luật của Vercel. Quy tắc: test vào `api/__tests__/`, helper đặt tên `_...`, và `api/__tests__/function-count.test.ts` khoá tối đa 12 (đỏ ngay ở CI thay vì lỗi lúc deploy). Chẩn đoán deploy lỗi: đọc `errorCode`/`errorMessage` trong `get_deployment`, đừng chỉ đọc log build. Lỗi `TS2339 ... ok: true | ok: false` trong `_ai-keys.ts`/`_ai-wallet.ts` ở log build là nhiễu có sẵn (bản `main` READY cũng có), không phải nguyên nhân. *(2026-09-30)*
