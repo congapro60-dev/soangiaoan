@@ -9,7 +9,23 @@
  *    thành 2 nửa surrogate → không bao giờ khớp.
  */
 import { describe, it, expect } from 'vitest';
-import { matchToanLineKind, matchToanLineStyle, TOAN_LINE_STYLES } from './toanStyleRules';
+import { matchToanLineKind, matchToanLineStyle, matchToanObjectiveRowFill, TOAN_LINE_STYLES } from './toanStyleRules';
+
+describe('matchToanObjectiveRowFill — nhãn Must/Should/Could (giữ tương thích Cơ bản/Trọng tâm/Nâng cao)', () => {
+  it('nhãn mới Must/Should/Could tô đúng 3 màu', () => {
+    expect(matchToanObjectiveRowFill('Must (Cơ bản)')).toBe('D9EAD3');
+    expect(matchToanObjectiveRowFill('Should (Trọng tâm)')).toBe('FCE5CD');
+    expect(matchToanObjectiveRowFill('Could (Nâng cao)')).toBe('FFF2CC');
+  });
+  it('nhãn cũ vẫn tô đúng', () => {
+    expect(matchToanObjectiveRowFill('Cơ bản')).toBe('D9EAD3');
+    expect(matchToanObjectiveRowFill('Trọng tâm')).toBe('FCE5CD');
+    expect(matchToanObjectiveRowFill('Nâng cao')).toBe('FFF2CC');
+  });
+  it('chuỗi lạ → undefined', () => {
+    expect(matchToanObjectiveRowFill('Ghi chú')).toBeUndefined();
+  });
+});
 
 describe('matchToanLineKind — cảnh báo lỗi (đỏ đậm)', () => {
   it.each([

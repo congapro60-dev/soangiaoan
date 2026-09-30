@@ -87,7 +87,7 @@ describe('grade-homework dispatcher', () => {
     expect(state.jsonBody).toMatchObject({ error: expect.stringContaining('đăng nhập') });
   });
 
-  it.each(['gradeAssignment', 'gradeOne', 'practice', 'solveAnswerKey', 'suggestRubric'])(
+  it.each(['gradeAssignment', 'gradeOne', 'practice', 'solveAnswerKey', 'suggestRubric', 'generateImage'])(
     'action %s tới đúng handler và bị chặn 401 khi thiếu token',
     async (action) => {
       const { response, state } = makeResponse();

@@ -10,6 +10,7 @@ import { LessonPlan } from '../../../types';
 import { auth, storage } from '../../../lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { DiagramRenderer } from './DiagramRenderer';
+import { AiImageBlock } from './AiImageBlock';
 import { imagePromptBlockquote, imagePromptParagraph, imagePromptTd } from './imagePromptHelpers';
 
 interface LessonContentBoardProps {
@@ -204,6 +205,8 @@ export const LessonContentBoard = ({
                       const lang = match ? match[1] : '';
                       const codeString = String(children).replace(/\n$/, '');
 
+                      if (lang === 'aiimg') return <AiImageBlock body={codeString} />;
+
                       const isSvg = codeString.trim().startsWith('<svg') || codeString.trim().startsWith('xml <svg') || codeString.trim().startsWith('html <svg');
                       if (isSvg) {
                          const cleanSvg = codeString.replace(/^(xml|html)\s*/i, '').trim();
@@ -317,6 +320,8 @@ export const LessonContentBoard = ({
                         const lang = match ? match[1] : '';
                         const codeString = String(children).replace(/\n$/, '');
 
+                        if (lang === 'aiimg') return <AiImageBlock body={codeString} />;
+
                         const isSvg = codeString.trim().startsWith('<svg') || codeString.trim().startsWith('xml <svg') || codeString.trim().startsWith('html <svg');
                         if (isSvg) {
                            const cleanSvg = codeString.replace(/^(xml|html)\s*/i, '').trim();
@@ -383,6 +388,7 @@ export const LessonContentBoard = ({
                         const match = /language-(\w+)/.exec(className || '');
                         const lang = match?.[1]?.toLowerCase();
                         const codeString = String(children).replace(/\n$/, '');
+                        if (lang === 'aiimg') return <AiImageBlock body={codeString} />;
                         const isSvg = codeString.trim().startsWith('<svg') || codeString.trim().startsWith('xml <svg') || codeString.trim().startsWith('html <svg');
                         if (isSvg) {
                            const cleanSvg = codeString.replace(/^(xml|html)\s*/i, '').trim();

@@ -29,6 +29,7 @@ export const phieuToMarkdown = (p: ToanPhieu): string => {
     if (b.kind === 'table') out.push(bangMarkdown(b.header, b.rows));
     else if (b.kind === 'bullets') out.push(b.items.map((i) => `- ${i}`).join('\n'));
     else if (b.kind === 'heading') out.push(`### ${b.text}`);
+    else if (b.kind === 'figure') out.push('```' + b.figure.type + '\n' + b.figure.clean + '\n```');
     else out.push(b.text);
   }
   return out.join('\n\n');

@@ -8,6 +8,7 @@
 
 import { marked } from 'marked';
 import type { Token, Tokens } from 'marked';
+import { classifyDiagram, type DiagramType } from '../krokiRender';
 
 export interface ActivityRow {
   thoiGian: string;
@@ -15,10 +16,18 @@ export interface ActivityRow {
   noiDung: string;
 }
 
+/** Hình đặt NGOÀI bảng (TikZ, sơ đồ, ảnh AI `aiimg` đã resolve) — builder render ra ảnh. */
+export interface ToanFigure {
+  type: DiagramType;
+  clean: string;
+}
+
 export interface ToanActivity {
   title: string;
   thoiLuong: string;
   rows: ActivityRow[];
+  /** Hình của hoạt động, in ngay dưới bảng hoạt động theo thứ tự xuất hiện. */
+  hinh?: ToanFigure[];
 }
 
 /** Một khối nội dung trong phiếu. Giữ nguyên loại để dựng lại đúng ở file Word. */
@@ -26,7 +35,15 @@ export type PhieuBlock =
   | { kind: 'heading'; text: string }
   | { kind: 'para'; text: string }
   | { kind: 'bullets'; items: string[] }
-  | { kind: 'table'; header: string[]; rows: string[][] };
+  | { kind: 'table'; header: string[]; rows: string[][] }
+  | { kind: 'figure'; figure: ToanFigure };
+
+/** Khối code là hình (TikZ/sơ đồ/aiimg đã resolve)? Khối code khác (hoặc aiimg chưa resolve) → null. */
+const figureOf = (tok: Token): ToanFigure | null => {
+  if (tok.type !== 'code') return null;
+  const c = tok as Tokens.Code;
+  return classifyDiagram(c.text || '', c.lang);
+};
 
 /**
  * Một phiếu học tập trong phụ lục — in ra phát cho học sinh, mỗi phiếu MỘT TRANG riêng.
@@ -57,6 +74,8 @@ export interface ToanLessonModel {
   mucTieu: { muc: string; noiDung: string }[];
   phanHoa: string[];
   taiLieu: string[];
+  /** Bảng MINH CHỨNG HQT/CIS + 6 dòng Danielson 1a–1f (đặt giữa THÔNG TIN CHUNG và TIẾN TRÌNH). */
+  minhChung: { nhan: string; noiDung: string; quanSat: string; viTri: string }[];
   activities: ToanActivity[];
   btvn: string[];
   soKet: string[];
@@ -106,6 +125,7 @@ const parseHeaderTable = (table: Tokens.Table): Partial<ToanLessonModel['header'
 
 const SECTION = {
   ttc: /thông\s*tin\s*chung/i,
+  minhChung: /minh\s*chứng|hqt\s*[\/|]?\s*cis|cis\s*[\/|]?\s*hqt/i,
   tienTrinh: /tiến\s*trình/i,
   btvn: /btvn|về\s*nhà/i,
   soKet: /sơ\s*kết|rút\s*kinh\s*nghiệm/i,
@@ -167,11 +187,11 @@ export const parseToanLesson = (markdown: string): ToanLessonModel => {
   const model: ToanLessonModel = {
     title: '',
     header: { lop: '', tenBai: '', mon: 'Toán', giaoVien: '', tuan: '', namHoc: '' },
-    nangLuc: [], mucTieu: [], phanHoa: [], taiLieu: [], activities: [], btvn: [], soKet: [], phuLuc: [],
+    nangLuc: [], mucTieu: [], phanHoa: [], taiLieu: [], minhChung: [], activities: [], btvn: [], soKet: [], phuLuc: [],
   };
 
   const tokens = marked.lexer(markdown || '');
-  let section: 'none' | 'ttc' | 'tienTrinh' | 'btvn' | 'soKet' | 'phuLuc' = 'none';
+  let section: 'none' | 'ttc' | 'minhChung' | 'tienTrinh' | 'btvn' | 'soKet' | 'phuLuc' = 'none';
   let ttcSub: keyof typeof TTC_SUB | null = null;
   let headerTableTaken = false;
   let current: ToanActivity | null = null;
@@ -200,6 +220,7 @@ export const parseToanLesson = (markdown: string): ToanLessonModel => {
       const txt = headingText(h);
       if (h.depth === 1 && !model.title) { model.title = txt; continue; }
       if (SECTION.ttc.test(txt)) { pushActivity(); section = 'ttc'; ttcSub = null; continue; }
+      if (SECTION.minhChung.test(txt)) { pushActivity(); section = 'minhChung'; continue; }
       if (SECTION.tienTrinh.test(txt)) { pushActivity(); section = 'tienTrinh'; continue; }
       if (SECTION.btvn.test(txt)) { pushActivity(); pushPhieu(); section = 'btvn'; continue; }
       if (SECTION.soKet.test(txt)) { pushActivity(); pushPhieu(); section = 'soKet'; continue; }
@@ -250,7 +271,7 @@ export const parseToanLesson = (markdown: string): ToanLessonModel => {
         const bodyText = table.rows.map(r => r.map(cellText).join(' ')).join(' ');
         if (ttcSub === 'phanHoa') {
           for (const row of table.rows) model.phanHoa.push(row.map(cellText).filter(Boolean).join(' — '));
-        } else if (ttcSub === 'mucTieu' || (!ttcSub && /cơ\s*bản|trọng\s*tâm/i.test(bodyText))) {
+        } else if (ttcSub === 'mucTieu' || (!ttcSub && /cơ\s*bản|trọng\s*tâm|must|should|could/i.test(bodyText))) {
           for (const row of table.rows) {
             if (row.length >= 2) model.mucTieu.push({ muc: cellText(row[0]), noiDung: cellText(row[1]) });
             else if (row.length === 1) model.mucTieu.push({ muc: '', noiDung: cellText(row[0]) });
@@ -264,8 +285,32 @@ export const parseToanLesson = (markdown: string): ToanLessonModel => {
       continue;
     }
 
+    if (section === 'minhChung') {
+      // Gom mọi bảng dưới heading MINH CHỨNG (bảng CIS + bảng Danielson 1a–1f) vào một danh sách.
+      if (tok.type === 'table') {
+        const table = tok as Tokens.Table;
+        for (const row of table.rows) {
+          const nhan = cellText(row[0] || { text: '' });
+          if (!nhan) continue;
+          // Chuẩn 4 cột: Minh chứng | HS làm gì → GV thu | Observer nhìn thấy gì | Vị trí.
+          // Bảng cũ 3 cột (không có cột Observer) vẫn đọc được: quanSat để trống, vị trí lấy cột 3.
+          const has4 = row.length >= 4;
+          model.minhChung.push({
+            nhan,
+            noiDung: cellText(row[1] || { text: '' }),
+            quanSat: has4 ? cellText(row[2] || { text: '' }) : '',
+            viTri: cellText(row[has4 ? 3 : 2] || { text: '' }),
+          });
+        }
+      }
+      continue;
+    }
+
     if (section === 'tienTrinh') {
-      if (tok.type === 'table' && current) {
+      const fig = figureOf(tok);
+      if (fig && current) {
+        (current.hinh ??= []).push(fig);
+      } else if (tok.type === 'table' && current) {
         const table = tok as Tokens.Table;
         for (const row of table.rows) {
           model && current.rows.push({
@@ -284,6 +329,8 @@ export const parseToanLesson = (markdown: string): ToanLessonModel => {
 
     if (section === 'phuLuc') {
       if (!phieu) continue; // nội dung trước phiếu đầu tiên (lời dẫn phụ lục) — bỏ qua
+      const fig = figureOf(tok);
+      if (fig) { phieu.khoi.push({ kind: 'figure', figure: fig }); continue; }
       if (tok.type === 'table') { phieu.khoi.push(tableBlock(tok as Tokens.Table)); continue; }
       if (tok.type === 'list') {
         const items = listItems(tok);

@@ -55,8 +55,12 @@ export interface Subject {
   lessonCount: number;
 }
 
-/** Định dạng giáo án built-in trong tab Soạn giáo án. */
-export type BuiltinFormat = 'default' | 'cv5512' | 'claude' | 'toan';
+/**
+ * Định dạng giáo án built-in trong tab Soạn giáo án — chỉ còn Ban Toán + CV5512 (2026-09-29).
+ * Giáo án cũ đã lưu có thể còn nhãn 'default'/'claude': mọi đường xuất chỉ so === 'toan',
+ * nên nhãn cũ tự đi đường xuất chung như trước.
+ */
+export type BuiltinFormat = 'toan' | 'cv5512';
 
 /** Kế hoạch bài dạy của loại "Giáo án ban Toán" (KHDH kiểu v13). */
 export type ToanKeHoach = 'kien_thuc' | 'luyen_tap' | 'dao_nguoc';

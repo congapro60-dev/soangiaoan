@@ -6,12 +6,13 @@
 // renderWordCore) với đúng font/cỡ chữ của form.
 
 import {
-  Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+  Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, ImageRun,
   WidthType, BorderStyle, AlignmentType, PageOrientation,
 } from 'docx';
 import type { ParagraphChild } from 'docx';
-import type { ToanLessonModel, ToanPhieu } from './parseToanLesson';
+import type { ToanFigure, ToanLessonModel, ToanPhieu } from './parseToanLesson';
 import { latexToOmml, ommlToParagraphChild } from '../../utils/renderWordCore';
+import { renderDiagramImage, type DiagramImage } from '../krokiRender';
 import { tokenizeInline } from './inlineTokens';
 import { detectCisColor } from './cisEvidence';
 import {
@@ -86,6 +87,52 @@ const band = (label: string, fill: string): Table =>
 
 const spacer = (): Paragraph => new Paragraph({ children: [], spacing: { before: 20, after: 20 } });
 
+// ── Hình (TikZ / sơ đồ / ảnh AI) ─────────────────────────────────────────────
+/** Ảnh đã render sẵn, khoá theo `figureKey`. Vắng ảnh → dòng chú thích thay vì làm hỏng file. */
+export type FigureImages = Map<string, DiagramImage | null>;
+export const figureKey = (f: ToanFigure): string => `${f.type}\n${f.clean}`;
+
+const FIG_MAX_W = 480;
+const FIG_MAX_H = 360;
+
+const figureParagraph = (f: ToanFigure, images: FigureImages): Paragraph => {
+  const img = images.get(figureKey(f));
+  if (!img) {
+    return new Paragraph({
+      children: [textRun('[Hình minh họa chưa tải được — thử xuất lại]', false, undefined, true, 0, '718096')],
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 60, after: 60 },
+    });
+  }
+  const scale = Math.min(1, FIG_MAX_W / img.width, FIG_MAX_H / img.height);
+  return new Paragraph({
+    children: [new ImageRun({
+      type: 'png',
+      data: img.data,
+      transformation: { width: Math.round(img.width * scale), height: Math.round(img.height * scale) },
+    })],
+    alignment: AlignmentType.CENTER,
+    spacing: { before: 80, after: 80 },
+  });
+};
+
+/** Mọi hình trong giáo án (hoạt động + phiếu), không trùng. */
+const allFigures = (m: ToanLessonModel): ToanFigure[] => {
+  const seen = new Map<string, ToanFigure>();
+  for (const a of m.activities) for (const f of a.hinh ?? []) seen.set(figureKey(f), f);
+  for (const p of m.phuLuc) for (const b of p.khoi) if (b.kind === 'figure') seen.set(figureKey(b.figure), b.figure);
+  return [...seen.values()];
+};
+
+/** Render song song mọi hình ra PNG (Kroki / tải ảnh AI đã cache). Lỗi từng hình → null. */
+export const renderFigureImages = async (m: ToanLessonModel): Promise<FigureImages> => {
+  const images: FigureImages = new Map();
+  await Promise.all(allFigures(m).map(async (f) => {
+    images.set(figureKey(f), await renderDiagramImage(f.type, f.clean).catch(() => null));
+  }));
+  return images;
+};
+
 // Bảng hành chính 6 cột.
 const adminTable = (m: ToanLessonModel): Table => {
   const labelCell = (t: string) =>
@@ -119,6 +166,40 @@ const mucTieuTable = (m: ToanLessonModel): Table =>
       }),
     ),
   });
+
+// Bảng MINH CHỨNG HQT/CIS + Danielson 1a–1f (Minh chứng | HS làm gì → GV thu → mục đích | Vị trí).
+// Cột 1 giữ nhãn `[..]`/`Danielson 1x`; runs() tự tô màu cả câu nhãn CIS qua detectCisColor.
+const MINHCHUNG_COL_RATIOS = [0.14, 0.33, 0.33, 0.2] as const;
+const minhChungTable = (m: ToanLessonModel): Table => {
+  const headerCell = (t: string) =>
+    new TableCell({
+      children: [para(t, { bold: true })],
+      shading: { fill: FILL.ttc, type: 'clear', color: 'auto' },
+      margins: { top: 40, bottom: 40, left: 100, right: 100 },
+    });
+  const dataCell = (t: string, bold = false) =>
+    new TableCell({ children: [para(t, { bold })], margins: { top: 40, bottom: 40, left: 100, right: 100 } });
+  const rows: TableRow[] = [
+    new TableRow({
+      tableHeader: true,
+      children: [
+        headerCell('Minh chứng'),
+        headerCell('HS làm gì → GV thu được gì'),
+        headerCell('Observer nhìn thấy gì (CIS dự giờ)'),
+        headerCell('Vị trí'),
+      ],
+    }),
+  ];
+  for (const r of m.minhChung) {
+    rows.push(new TableRow({ children: [dataCell(r.nhan, true), dataCell(r.noiDung), dataCell(r.quanSat), dataCell(r.viTri)] }));
+  }
+  return new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    columnWidths: MINHCHUNG_COL_RATIOS.map((x) => Math.floor(PRINTABLE * x)),
+    borders: tableBorders,
+    rows,
+  });
+};
 
 // Bảng hoạt động 3 cột (Thời gian thực | Giáo viên và Học sinh | Nội dung).
 // Tỉ lệ 15/45/40 và bộ twip đều nằm ở schoolFormLayout.ts, dùng chung với đường HTML→PDF.
@@ -177,7 +258,7 @@ const phieuTable = (block: { header: string[]; rows: string[][] }, khoGiay: 'doc
   });
 };
 
-const phieuBody = (p: ToanPhieu): (Paragraph | Table)[] => {
+const phieuBody = (p: ToanPhieu, images: FigureImages): (Paragraph | Table)[] => {
   const out: (Paragraph | Table)[] = [];
   out.push(para(`PHIẾU ${p.so}${p.ten ? ` — ${p.ten}` : ''}`, { bold: true, size: SZ_TITLE, align: AlignmentType.CENTER }));
   if (p.phuDe) out.push(para(p.phuDe, { align: AlignmentType.CENTER }));
@@ -188,12 +269,13 @@ const phieuBody = (p: ToanPhieu): (Paragraph | Table)[] => {
     if (b.kind === 'table') out.push(phieuTable(b, p.khoGiay));
     else if (b.kind === 'bullets') out.push(...bullets(b.items));
     else if (b.kind === 'heading') out.push(para(b.text, { bold: true, size: SZ_BAND }));
+    else if (b.kind === 'figure') out.push(figureParagraph(b.figure, images));
     else out.push(para(b.text));
   }
   return out;
 };
 
-export const buildSchoolFormDocument = (m: ToanLessonModel): Document => {
+export const buildSchoolFormDocument = (m: ToanLessonModel, images: FigureImages = new Map()): Document => {
   const body: (Paragraph | Table)[] = [];
   body.push(new Paragraph({ children: runs('KẾ HOẠCH DẠY HỌC', { bold: true, size: SZ_TITLE }), alignment: AlignmentType.CENTER, spacing: { before: 60, after: 120 } }));
   body.push(adminTable(m));
@@ -210,12 +292,19 @@ export const buildSchoolFormDocument = (m: ToanLessonModel): Document => {
   body.push(...bullets(m.taiLieu.length ? m.taiLieu : ['(chưa có)']));
   body.push(spacer());
 
+  if (m.minhChung.length) {
+    body.push(band('MINH CHỨNG HQT / CIS', FILL.ttc));
+    body.push(minhChungTable(m));
+    body.push(spacer());
+  }
+
   body.push(band('II. TIẾN TRÌNH HOẠT ĐỘNG', FILL.tienTrinh));
   body.push(band('3. CÁC HOẠT ĐỘNG HỌC TẬP CHÍNH', FILL.hoatDongChinh));
   m.activities.forEach((a, i) => {
     const label = `${a.title}${a.thoiLuong ? `  —  Thời lượng: ${a.thoiLuong}` : ''}`;
     body.push(band(label, i === 0 ? FILL.khoiDong : FILL.hoatDong));
     body.push(activityTable(a));
+    for (const f of a.hinh ?? []) body.push(figureParagraph(f, images));
     body.push(spacer());
   });
 
@@ -252,11 +341,11 @@ export const buildSchoolFormDocument = (m: ToanLessonModel): Document => {
             margin: PHIEU_MARGIN_TWIP,
           },
         },
-        children: phieuBody(p),
+        children: phieuBody(p, images),
       })),
     ],
   });
 };
 
 export const buildSchoolFormBlob = async (m: ToanLessonModel): Promise<Blob> =>
-  Packer.toBlob(buildSchoolFormDocument(m));
+  Packer.toBlob(buildSchoolFormDocument(m, await renderFigureImages(m)));

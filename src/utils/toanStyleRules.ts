@@ -28,6 +28,8 @@ export const TOAN_BANNER_MATCHERS: Array<{ re: RegExp; fill: string }> = [
   { re: /so ket|rut kinh nghiem|tong hop|tong ket/, fill: 'b4a7d6' },
   { re: /btvn|ve nha|huong dan ve nha/, fill: 'ead1dc' },
   { re: /truoc gio hoc/, fill: 'cfe2f3' },
+  // Bảng MINH CHỨNG HQT/CIS — đặt trước "hoat dong" (không trùng), banner tím nhạt.
+  { re: /minh chung|hqt|cis/, fill: 'd9d2e9' },
   // hoat dong đặt SAU các mục cụ thể (khởi động/mở rộng/sơ kết cũng là "hoạt động n")
   { re: /hoat dong|hinh thanh|luyen tap|tic.?tac.?toe|jigsaw|chuyen gia|vong ghep|kiem tra chuan bi/, fill: 'b6d7a8' },
 ];
@@ -56,12 +58,16 @@ export const TOAN_ACTIVITY_COL_RATIOS = [0.15, 0.45, 0.4] as const;
 /** Fill header bảng hoạt động. */
 export const TOAN_ACT_HEADER_FILL = 'cfe2f3';
 
-/** Bảng mục tiêu: fill theo nhãn hàng ở cột đầu (đã chuẩn hóa). */
+/**
+ * Bảng mục tiêu: fill theo nhãn hàng ở cột đầu (đã chuẩn hóa).
+ * Chuẩn mới: nhãn "Must (Cơ bản)" / "Should (Trọng tâm)" / "Could (Nâng cao)"
+ * (normalize → "must co ban"…). Giữ khớp cả nhãn cũ chỉ có "Cơ bản/Trọng tâm/Nâng cao".
+ */
 export const matchToanObjectiveRowFill = (firstCellText: string): string | undefined => {
   const norm = normalizeViHeading(firstCellText);
-  if (/^co ban\b/.test(norm)) return 'D9EAD3';
-  if (/^trong tam\b/.test(norm)) return 'FCE5CD';
-  if (/^nang cao\b/.test(norm)) return 'FFF2CC';
+  if (/^must\b|^co ban\b/.test(norm)) return 'D9EAD3';
+  if (/^should\b|^trong tam\b/.test(norm)) return 'FCE5CD';
+  if (/^could\b|^nang cao\b/.test(norm)) return 'FFF2CC';
   return undefined;
 };
 

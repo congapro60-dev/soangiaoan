@@ -27,11 +27,30 @@ describe('TOAN_COMMON_FORMAT — hợp đồng cấu trúc (theo v13)', () => {
     expect(TOAN_COMMON_FORMAT).toContain('| Giáo viên |');
   });
 
-  it('bảng mục tiêu có đủ 3 nhãn hàng Cơ bản/Trọng tâm/Nâng cao + Bloom', () => {
-    expect(TOAN_COMMON_FORMAT).toContain('| Cơ bản |');
-    expect(TOAN_COMMON_FORMAT).toContain('| Trọng tâm |');
-    expect(TOAN_COMMON_FORMAT).toContain('| Nâng cao |');
+  it('bảng mục tiêu 3 nhãn Must/Should/Could + câu "Tôi có thể" + Bloom', () => {
+    expect(TOAN_COMMON_FORMAT).toContain('| Must (Cơ bản) |');
+    expect(TOAN_COMMON_FORMAT).toContain('| Should (Trọng tâm) |');
+    expect(TOAN_COMMON_FORMAT).toContain('| Could (Nâng cao) |');
+    expect(TOAN_COMMON_FORMAT).toContain('Tôi có thể');
     expect(TOAN_COMMON_FORMAT).toContain('[Bloom:');
+  });
+
+  it('có bảng MINH CHỨNG HQT/CIS 4 cột (cột Observer) + 6 dòng Danielson + nhãn CIS mở rộng', () => {
+    expect(TOAN_COMMON_FORMAT).toContain('MINH CHỨNG HQT / CIS');
+    expect(TOAN_COMMON_FORMAT).toContain('| Minh chứng | HS làm gì');
+    expect(TOAN_COMMON_FORMAT).toContain('Observer nhìn thấy gì');
+    for (const d of ['Danielson 1a', 'Danielson 1c', 'Danielson 1f']) {
+      expect(TOAN_COMMON_FORMAT).toContain(d);
+    }
+    for (const n of ['[LIÊN VĂN HÓA]', '[KIỂM ĐỊNH AI]', '[TỰ ĐỊNH HƯỚNG]', '[PHẢN TƯ]', '[TRẢI NGHIỆM]']) {
+      expect(TOAN_COMMON_FORMAT).toContain(n);
+    }
+  });
+
+  it('bắt buộc tích hợp CDTC/CDKTS/liên văn hóa có minh họa quan sát được', () => {
+    expect(TOAN_COMMON_FORMAT).toContain('CÔNG DÂN TOÀN CẦU / LIÊN VĂN HÓA / CÔNG DÂN SỐ');
+    expect(TOAN_COMMON_FORMAT).toContain('MINH HỌA QUAN SÁT ĐƯỢC');
+    expect(TOAN_COMMON_FORMAT).toContain('Không phải tiết trọng tâm');
   });
 
   it('có đủ các thành phần v13: căn cứ điều chỉnh, mốc phút, 4 BƯỚC, kỹ thuật chờ, dự kiến khó khăn, lỗi phổ biến', () => {
@@ -174,5 +193,12 @@ describe('TOAN_ADDITIONAL_REQUIREMENTS', () => {
     expect(TOAN_ADDITIONAL_REQUIREMENTS).toContain('Chờ ≥ 3 giây');
     expect(TOAN_ADDITIONAL_REQUIREMENTS).toContain('KHÔNG dùng khung Dewey');
     expect(TOAN_ADDITIONAL_REQUIREMENTS).toContain('KẾT QUẢ CUỐI');
+  });
+
+  it('luật chống nội dung khuôn: cấm câu generic + nguồn bài tập + hình theo vai trò + văn phong tự nhiên', () => {
+    expect(TOAN_ADDITIONAL_REQUIREMENTS).toContain('CẤM CÂU KHUÔN');
+    expect(TOAN_ADDITIONAL_REQUIREMENTS).toContain('GV tự thiết kế');
+    expect(TOAN_ADDITIONAL_REQUIREMENTS).toContain('HÌNH ẢNH THEO VAI TRÒ');
+    expect(TOAN_ADDITIONAL_REQUIREMENTS).toContain('VĂN PHONG TỰ NHIÊN');
   });
 });
