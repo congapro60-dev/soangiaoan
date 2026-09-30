@@ -10,13 +10,18 @@ import { teacherContext } from './_classroom-teacher.js';
 import { setAiKeyOwner } from './_ai-usage.js';
 import { callGeminiVision, getGradingApiKey, GRADING_MODEL } from './_grading-core.js';
 import { REPORT_KINDS, type ReportKind } from '../src/lib/classroom/reportKinds.js';
+import {
+  aggregateRequirementLines, sanitizeRequirementLines, yccdOptionsForPrompt,
+  type EvidenceSubmission, type ParentRequirementLine,
+} from '../src/lib/classroom/parentRequirements.js';
 
 type Db = FirebaseFirestore.Firestore;
 type Body = Record<string, unknown>;
 
 export const PARENT_REPORT_NOTES_COL = 'parentReportNotes';
 const MAX_NOTE_CHARS = 3000;
-const MAX_FACTS_CHARS = 5000;
+// Có từng câu của các bài đã duyệt (căn cứ ghép yêu cầu cần đạt) nên dài hơn bản chỉ có số tổng.
+const MAX_FACTS_CHARS = 60000;
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 interface NoteKey {
@@ -52,6 +57,65 @@ export const buildParentCommentPrompt = (factsJson: string): string => [
   '- Chỉ trả về đoạn văn thuần: không tiêu đề, không gạch đầu dòng, không markdown, không lời chào/ký tên.',
 ].join('\n');
 
+/**
+ * Bản có yêu cầu cần đạt: một lượt AI trả JSON gồm nhận xét + ghép câu → YCCĐ + ghi chú chính xác cho từng YCCĐ.
+ * Mức không do AI quyết: máy tính từ điểm các câu làm căn cứ (`aggregateRequirementLines`).
+ */
+export const buildParentReportDraftPrompt = (factsJson: string, yccdOptions: string): string => [
+  'Bạn là giáo viên môn Toán THPT ở Việt Nam, soạn báo cáo học tập gửi phụ huynh của một học sinh.',
+  'Dữ liệu (JSON, chỉ gồm kết quả đã được giáo viên duyệt). "baiDaDuyet" liệt kê từng câu: mã câu, điểm/tối đa, kết quả, loại lỗi, giải thích của lượt chấm, đáp án/mốc chấm:',
+  factsJson,
+  '',
+  'Danh sách YÊU CẦU CẦN ĐẠT của khối (Chương trình GDPT 2018 môn Toán) — mỗi dòng "mã | chủ đề: yêu cầu":',
+  yccdOptions,
+  '',
+  'Làm 3 việc, trả về DUY NHẤT một JSON đúng dạng:',
+  '{"nhanXet": "...", "ghep": [{"cau": "b1q2", "yccd": "T10.05"}], "ghiChu": [{"yccd": "T10.05", "ghiChu": "..."}]}',
+  '',
+  '1) "ghep": với MỖI câu trong baiDaDuyet, xác định yêu cầu cần đạt mà câu đó trực tiếp kiểm tra (thường 1, tối đa 2).',
+  '   Căn cứ vào giải thích, loại lỗi, đáp án và tên bài. Câu không đủ thông tin để biết kiểm tra gì thì BỎ QUA, không đoán.',
+  '   Chỉ dùng mã có trong danh sách; không tạo mã mới.',
+  '2) "ghiChu": cho mỗi yêu cầu đã được ghép, một câu (≤ 30 chữ) chỉ ra CHÍNH XÁC em làm tốt hoặc sai ở đâu, dùng thuật ngữ Toán học',
+  '   chuẩn để gia sư/giáo viên khác đọc là biết cần dạy lại gì. Ví dụ: "Nhầm chiều khi áp dụng quy tắc hiệu: viết vectơ AB − vectơ AC = vectơ BC',
+  '   thay vì vectơ CB." hoặc "Lập đúng bảng biến thiên, xác định đúng đỉnh và trục đối xứng của parabol."',
+  '   Không nhắc số câu/số bài, không nêu đáp án đầy đủ, không dùng LaTeX hay markdown (viết kí hiệu bằng chữ hoặc Unicode: √, ², ≤, ∈, °).',
+  '   Chỉ viết điều có trong dữ liệu; không có gì cụ thể thì để chuỗi rỗng.',
+  '3) "nhanXet": 3–5 câu gửi phụ huynh, giọng ấm áp, dễ hiểu với người không rành Toán; gọi học sinh là "con", phụ huynh là "gia đình";',
+  '   nêu 1 điểm tích cực cụ thể, 1–2 điều con cần cố gắng, 1 việc gia đình có thể làm ở nhà. Bám đúng số liệu, không bịa.',
+  '   Dữ liệu quá ít thì nói thẳng là chưa đủ bài để nhận xét sâu và nhắc con nộp bài đầy đủ. Văn xuôi thuần, không tiêu đề, không lời chào.',
+].join('\n');
+
+const readEvidence = (facts: unknown): EvidenceSubmission[] => {
+  const rows = facts && typeof facts === 'object' ? (facts as Record<string, unknown>).baiDaDuyet : null;
+  if (!Array.isArray(rows)) return [];
+  return rows.flatMap(row => {
+    if (!row || typeof row !== 'object' || !Array.isArray((row as EvidenceSubmission).cau)) return [];
+    const submission = row as EvidenceSubmission;
+    return [{
+      ma: String(submission.ma ?? ''),
+      ten: String(submission.ten ?? ''),
+      ngay: String(submission.ngay ?? ''),
+      cau: submission.cau.map(q => ({ ...q, ma: String(q?.ma ?? ''), diem: Number(q?.diem), toiDa: Number(q?.toiDa), ketQua: String(q?.ketQua ?? '') })),
+    }];
+  });
+};
+
+const parseDraftJson = (raw: string): Record<string, unknown> | null => {
+  const start = raw.indexOf('{');
+  const end = raw.lastIndexOf('}');
+  if (start < 0 || end <= start) return null;
+  try {
+    const parsed = JSON.parse(raw.slice(start, end + 1));
+    return parsed && typeof parsed === 'object' ? parsed as Record<string, unknown> : null;
+  } catch {
+    return null;
+  }
+};
+
+const cleanComment = (value: unknown): string => (
+  typeof value === 'string' ? value.replace(/^#+\s.*$/gm, '').replace(/\*\*/g, '').trim().slice(0, MAX_NOTE_CHARS) : ''
+);
+
 const handleGetNote = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
   const context = await teacherContext(db, body, res);
   if (!context) return;
@@ -59,7 +123,11 @@ const handleGetNote = async (db: Db, body: Body, res: VercelResponse): Promise<v
   if ('error' in key) return void res.status(422).json({ error: key.error });
   const snap = await db.collection(PARENT_REPORT_NOTES_COL).doc(noteDocId(context.classId, key)).get();
   const data = snap.exists ? snap.data() ?? {} : {};
-  res.status(200).json({ text: typeof data.text === 'string' ? data.text : '', updatedAt: data.updatedAt ?? null });
+  res.status(200).json({
+    text: typeof data.text === 'string' ? data.text : '',
+    requirements: sanitizeRequirementLines(context.classData.grade, data.requirements),
+    updatedAt: data.updatedAt ?? null,
+  });
 };
 
 const handleSaveNote = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
@@ -68,11 +136,12 @@ const handleSaveNote = async (db: Db, body: Body, res: VercelResponse): Promise<
   const key = readKey(body);
   if ('error' in key) return void res.status(422).json({ error: key.error });
   const text = typeof body.text === 'string' ? body.text.trim().slice(0, MAX_NOTE_CHARS) : '';
+  const requirements = sanitizeRequirementLines(context.classData.grade, body.requirements);
   const updatedAt = new Date().toISOString();
   await db.collection(PARENT_REPORT_NOTES_COL).doc(noteDocId(context.classId, key)).set({
-    classId: context.classId, ...key, text, updatedAt, updatedBy: context.uid,
+    classId: context.classId, ...key, text, requirements, updatedAt, updatedBy: context.uid,
   });
-  res.status(200).json({ text, updatedAt });
+  res.status(200).json({ text, requirements, updatedAt });
 };
 
 const handleDraft = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
@@ -84,13 +153,28 @@ const handleDraft = async (db: Db, body: Body, res: VercelResponse): Promise<voi
   if (factsJson.length > MAX_FACTS_CHARS) return void res.status(422).json({ error: 'Dữ liệu báo cáo quá dài.' });
   // Lượt AI tính cho giáo viên chủ lớp (như chấm bài), không phải người bấm.
   setAiKeyOwner(String(context.classData.teacherId || context.uid));
-  const raw = await callGeminiVision(buildParentCommentPrompt(factsJson), [], getGradingApiKey(), GRADING_MODEL, {
-    temperature: 0.4,
+  const grade = context.classData.grade;
+  const yccdOptions = yccdOptionsForPrompt(grade);
+  const evidence = readEvidence(body.facts);
+  // Khối chưa có bảng yêu cầu cần đạt hoặc kì không có bài đã duyệt → chỉ soạn nhận xét như cũ.
+  if (!yccdOptions || evidence.length === 0) {
+    const raw = await callGeminiVision(buildParentCommentPrompt(factsJson), [], getGradingApiKey(), GRADING_MODEL, {
+      temperature: 0.4,
+      maxOutputTokens: 'model-max',
+    });
+    const text = cleanComment(raw);
+    if (!text) return void res.status(502).json({ error: 'AI chưa soạn được nhận xét, thử lại.' });
+    return void res.status(200).json({ text, requirements: [] as ParentRequirementLine[] });
+  }
+  const raw = await callGeminiVision(buildParentReportDraftPrompt(factsJson, yccdOptions), [], getGradingApiKey(), GRADING_MODEL, {
+    temperature: 0.2,
     maxOutputTokens: 'model-max',
+    jsonMode: true,
   });
-  const text = raw.replace(/^#+\s.*$/gm, '').replace(/\*\*/g, '').trim().slice(0, MAX_NOTE_CHARS);
-  if (!text) return void res.status(502).json({ error: 'AI chưa soạn được nhận xét, thử lại.' });
-  res.status(200).json({ text });
+  const parsed = parseDraftJson(raw);
+  const text = cleanComment(parsed?.nhanXet);
+  if (!parsed || !text) return void res.status(502).json({ error: 'AI chưa soạn được báo cáo, thử lại.' });
+  res.status(200).json({ text, requirements: aggregateRequirementLines(grade, evidence, parsed) });
 };
 
 export const handleParentReportAction = async (db: Db, body: Body, res: VercelResponse): Promise<boolean> => {

@@ -5,6 +5,14 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Báo cáo PH: "Kết quả theo yêu cầu cần đạt" thay danh sách chủ đề — 2026-09-30
+
+Chủ dự án: rút gọn, viết chính xác bằng ngôn ngữ Toán học; số dòng phụ thuộc YCCĐ; căn cứ CT GDPT 2018 + SGK Kết nối tri thức + LO TDS.
+- `src/lib/curriculum/yccdToan.ts`: YCCĐ lớp 10 (75 mục, lời Chương trình TT 32/2018; mục phép toán vectơ tách theo bài SGK; `sgk` = bài KNTT, không chép chữ sách). **Lớp 11, 12 chưa có** → báo cáo khối đó vẫn chỉ soạn nhận xét như cũ.
+- Bằng chứng = từng câu của bài ĐÃ DUYỆT trong kì (`buildRequirementEvidence`, mã `b2q3`). "AI soạn nháp" (một lượt, JSON) trả nhận xét + ghép câu→YCCĐ + ghi chú; máy chủ bỏ mã bịa và TỰ TÍNH mức (≥80% Vững, ≥50% Đang hình thành) — `parentRequirements.ts`.
+- Lưu cùng nhận xét ở `parentReportNotes.requirements`; GV đổi mức/sửa ghi chú/bỏ dòng (`RequirementLinesEditor`). PDF + xuất cả lớp dùng bản đã lưu; chưa có thì danh sách chủ đề cũ cắt còn 6.
+- Dữ liệu rút từ PDF Chương trình (pdftotext; kí hiệu font Symbol U+F022 ∀, F024 ∃, F0CC ⊂, F0C9 ⊃, F0C6 ∅, F0B0 ° phải đổi tay) rồi soát tay; nguồn: memory `nguon-yccd-lo-sgk`. Test: parentRequirements 6, builder +1, printDoc +2, API +2.
+
 ## Hồ sơ năng lực HS tự điền cùng GV (+ AI soạn nháp cho GV) — 2026-09-30
 
 Chủ dự án chốt: tab "Năng lực toán học" của file mẫu đưa lên trang HS (mục riêng dưới Bảng điểm); HS sửa phần mình, GV sửa tất; xuất file: HS nền vàng, GV nền xanh (trùng mức: vàng viền xanh, chú thích ở ghi chú ô A3).
