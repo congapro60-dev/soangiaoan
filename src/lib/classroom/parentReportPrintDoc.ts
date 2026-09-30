@@ -47,7 +47,9 @@ export interface ParentReportPrintInput {
   requirements?: ParentRequirementLine[] | null;
 }
 
-const ROOT_ID = 'parent-report-pdf-root';
+/** id của node chứa bản báo cáo — CSS của bản in được scope theo id này, trang phụ huynh cũng phải dùng đúng id. */
+export const PARENT_REPORT_ROOT_ID = 'parent-report-pdf-root';
+const ROOT_ID = PARENT_REPORT_ROOT_ID;
 
 const STATUS_LABEL: Record<ParentSafeAssignmentStatus, string> = {
   official: 'Đã có kết quả',

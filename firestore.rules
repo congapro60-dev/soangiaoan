@@ -1052,6 +1052,14 @@ service cloud.firestore {
       match /studentSecrets/{studentId} {
         allow read, write: if false;
       }
+
+      // Cổng phụ huynh (/ph): PIN phụ huynh + báo cáo đã công bố — chỉ qua API máy chủ.
+      match /parentSecrets/{studentId} {
+        allow read, write: if false;
+      }
+      match /parentReports/{reportId} {
+        allow read, write: if false;
+      }
     }
 
     match /assignments/{assignmentId} {

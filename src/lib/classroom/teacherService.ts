@@ -11,6 +11,7 @@ import type { StudentExamScores } from './examScores';
 import { normalizeScoreBook, type ScoreBookDoc } from './scoreBook';
 import { normalizePortfolio, type CompetencyPortfolioDoc, type PortfolioEntry } from './competency/studentPortfolio';
 import type { ParentRequirementLine } from './parentRequirements';
+import type { PublishedParentGroup } from './parentAccess';
 
 export interface CreateSupportActivityInput {
   classId: string;
@@ -318,3 +319,20 @@ export const saveParentReportNote = (key: ParentReportNoteKey, note: ParentRepor
 /** AI soạn nháp nhận xét + ghép bài đã duyệt vào yêu cầu cần đạt; giáo viên sửa rồi mới lưu. */
 export const draftParentReportComment = (key: ParentReportNoteKey, facts: Record<string, unknown>) =>
   callTeacherApi<ParentReportNote>({ action: 'draftParentReportComment', ...key, facts });
+
+/** Cổng phụ huynh (/ph): cấp PIN riêng cho phụ huynh — gọi lại thì giữ PIN cũ, chỉ cấp cho em chưa có. */
+export const issueParentPins = (classId: string) =>
+  callTeacherApi<{ joinCode: string; className: string; rows: Array<{ studentId: string; name: string; pin: string }> }>({ action: 'issueParentPins', classId });
+
+export const resetParentPin = (classId: string, studentId: string) =>
+  callTeacherApi<{ studentId: string; pin: string }>({ action: 'resetParentPin', classId, studentId });
+
+/** Công bố báo cáo một kì cho các em (mỗi lượt vài em); công bố lại cùng kì thì ghi đè. */
+export const publishParentReports = (classId: string, period: { kind: string; from: string; to: string }, reports: Array<{ studentId: string; input: unknown }>) =>
+  callTeacherApi<{ saved: number; skipped: string[] }>({ action: 'publishParentReports', classId, ...period, reports });
+
+export const listParentPublished = async (classId: string): Promise<PublishedParentGroup[]> =>
+  (await callTeacherApi<{ groups: PublishedParentGroup[] }>({ action: 'listParentPublished', classId })).groups;
+
+export const unpublishParentReports = (classId: string, period: { kind: string; from: string; to: string }) =>
+  callTeacherApi<{ removed: number }>({ action: 'unpublishParentReports', classId, ...period });

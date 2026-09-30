@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
-import { FileArchive, Loader2 } from 'lucide-react';
+import { FileArchive, Loader2, Send } from 'lucide-react';
 import { db } from '../../../lib/firebase';
 import { STUDENT_PROFILES_COL, type StudentProfileDoc } from '../../../lib/classroom/types';
 import { listAssignmentsForClass, listSubmissionsForClass } from '../../../lib/classroom/submissionService';
-import { draftParentReportComment, loadParentReportNote, loadScoreBook, saveParentReportNote } from '../../../lib/classroom/teacherService';
+import { draftParentReportComment, loadParentReportNote, loadScoreBook, publishParentReports, saveParentReportNote } from '../../../lib/classroom/teacherService';
+import { PUBLISH_CHUNK } from '../../../lib/classroom/parentAccess';
+import { ClassParentAccessPanel } from './ClassParentAccessPanel';
 import { studentScoreView } from '../../../lib/classroom/scoreBook';
 import { buildPeriodParentReport } from '../../../lib/classroom/parentReportBuilder';
 import { exportParentReportToPdf, parentReportFileName } from '../../../lib/classroom/parentReportPrintDoc';
@@ -22,16 +24,18 @@ interface Props {
 const today = () => vnDay(new Date().toISOString());
 
 /**
- * Xuất báo cáo phụ huynh CẢ LỚP một lần: mỗi em một PDF (cùng nội dung với xuất từng em), gói trong một ZIP.
+ * Xuất báo cáo phụ huynh CẢ LỚP một lần: mỗi em một PDF (cùng nội dung với xuất từng em), gói trong một ZIP —
+ * hoặc CÔNG BỐ thẳng lên cổng phụ huynh (/ph) để phụ huynh tự xem trên màn hình, khỏi gửi file.
  * Dùng nhận xét giáo viên đã lưu cho đúng kì; tuỳ chọn cho AI soạn nhận xét cho em chưa có (lưu lại để sửa sau).
  */
 export const ClassParentReportExport = ({ classId, className, classGrade, students, showToast }: Props) => {
   const [ky, setKy] = useState<ReportPeriod>(() => defaultPeriod('month', today()));
   const [aiChoEmChuaCo, setAiChoEmChuaCo] = useState(false);
   const [tienDo, setTienDo] = useState('');
+  const [lanCongBo, setLanCongBo] = useState(0);
   const loi = periodError(ky);
 
-  const xuat = async () => {
+  const chay = async (cheDo: 'zip' | 'congBo') => {
     if (loi || tienDo) return;
     const key = (studentId: string) => ({ classId, studentId, kind: ky.kind, from: ky.from, to: ky.to });
     setTienDo('Đang tải dữ liệu lớp…');
@@ -43,6 +47,14 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
       ]);
       const { default: JSZip } = await import('jszip');
       const zip = new JSZip();
+      const choCongBo: Array<{ studentId: string; input: unknown }> = [];
+      let daDang = 0;
+      const dayLen = async () => {
+        if (choCongBo.length === 0) return;
+        const lot = choCongBo.splice(0, choCongBo.length);
+        const { saved } = await publishParentReports(classId, ky, lot);
+        daDang += saved;
+      };
       let daXuat = 0;
       let loiEm = 0;
       for (let i = 0; i < students.length; i += 1) {
@@ -67,12 +79,24 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
             await saveParentReportNote(key(hs.id), ghi).catch(() => undefined);
           }
           const input = { ...built.printInput, teacherComment: ghi.text, requirements: ghi.requirements ?? [] };
-          zip.file(parentReportFileName(input), await exportParentReportToPdf(input, 'blob'));
+          if (cheDo === 'zip') {
+            zip.file(parentReportFileName(input), await exportParentReportToPdf(input, 'blob'));
+          } else {
+            choCongBo.push({ studentId: hs.id, input });
+            if (choCongBo.length >= PUBLISH_CHUNK) await dayLen();
+          }
           daXuat += 1;
         } catch (error) {
           console.error('Không xuất được báo cáo của', hs.name, error);
           loiEm += 1;
         }
+      }
+      if (cheDo === 'congBo') {
+        setTienDo('Đang gửi lên cổng phụ huynh…');
+        await dayLen();
+        setLanCongBo(n => n + 1);
+        showToast(`Đã công bố ${daDang} báo cáo cho phụ huynh${loiEm > 0 ? `; ${loiEm} em lỗi, thử lại riêng từng em` : ''}.`, loiEm > 0 ? 'warning' : 'success');
+        return;
       }
       setTienDo('Đang đóng gói ZIP…');
       const blob = await zip.generateAsync({ type: 'blob' });
@@ -91,6 +115,7 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
   };
 
   return (
+    <>
     <section className="mt-5 rounded-3xl border border-indigo-100 bg-indigo-50/50 p-4 sm:p-5">
       <p className="flex items-center gap-2 text-sm font-black text-slate-900"><FileArchive className="h-4 w-4 text-indigo-600" /> Xuất báo cáo phụ huynh cả lớp</p>
       <p className="mt-1 text-xs font-semibold text-slate-500">Mỗi em một file PDF, gói chung một ZIP. Muốn xem trước hoặc sửa nhận xét từng em: mở học sinh → Bản phụ huynh.</p>
@@ -109,8 +134,11 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
             )}
           </>
         )}
-        <button type="button" onClick={() => void xuat()} disabled={Boolean(loi) || tienDo !== '' || students.length === 0} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-black text-white hover:bg-indigo-700 disabled:opacity-50">
+        <button type="button" onClick={() => void chay('zip')} disabled={Boolean(loi) || tienDo !== '' || students.length === 0} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-black text-white hover:bg-indigo-700 disabled:opacity-50">
           {tienDo ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileArchive className="h-4 w-4" />} Xuất {students.length} báo cáo
+        </button>
+        <button type="button" onClick={() => void chay('congBo')} disabled={Boolean(loi) || tienDo !== '' || students.length === 0} className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-black text-white hover:bg-emerald-700 disabled:opacity-50">
+          <Send className="h-4 w-4" /> Công bố cho phụ huynh
         </button>
       </div>
       <label className="mt-2 flex items-start gap-2 text-xs font-semibold text-slate-600">
@@ -119,5 +147,7 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
       </label>
       <p className="mt-1 text-xs font-semibold text-slate-500">{loi ? <span className="text-rose-600">{loi}</span> : tienDo || `${rangeLabel(ky)} — sửa ngày cho khớp lịch trường mình.`}</p>
     </section>
+    <ClassParentAccessPanel classId={classId} className={className} refreshKey={lanCongBo} showToast={showToast} />
+    </>
   );
 };

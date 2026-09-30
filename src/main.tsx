@@ -10,6 +10,7 @@ import { ExamConfigPage } from './pages/ExamConfigPage';
 import { AdaptiveStudentPortalPage } from './pages/AdaptiveStudentPortalPage';
 import { DuGioPage } from './pages/DuGioPage';
 import { StudentPortalPage } from './pages/StudentPortalPage';
+import { ParentPortalPage } from './pages/ParentPortalPage';
 import { StudentClassExamPage } from './pages/StudentClassExamPage';
 import './index.css';
 import 'katex/dist/katex.min.css';
@@ -96,6 +97,8 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/lop" element={<StudentPortalPage />} />
           <Route path="/lop/:joinCode/exam/:assignmentId" element={<StudentClassExamPage />} />
           <Route path="/lop/:joinCode" element={<StudentPortalPage />} />
+          <Route path="/ph" element={<ParentPortalPage />} />
+          <Route path="/ph/:joinCode" element={<ParentPortalPage />} />
           <Route path="/du-gio" element={<DuGioPage />} />
           <Route path="/du-gio/:id" element={<DuGioPage />} />
           <Route path="/adaptive-lessons" element={<Suspense fallback={<RouteLoading />}><AdaptiveLessonListPage /></Suspense>} />

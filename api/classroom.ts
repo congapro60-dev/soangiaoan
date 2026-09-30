@@ -52,6 +52,7 @@ import { handlePortfolioAction } from './_portfolio.js';
 import { AiKeyRequiredError, aiKeyRequiredPayload, handleAiKeyAction } from './_ai-keys.js';
 import { handleAiBillingAction } from './_ai-billing.js';
 import { handleAdminLinkAction } from './_admin-link.js';
+import { handleParentPortalAction } from './_parent-portal.js';
 import { handleSepayWebhook } from './_ai-wallet.js';
 
 /**
@@ -1463,6 +1464,7 @@ async function dispatchClassroom(res: VercelResponse, body: ReturnType<typeof re
     if (await handleAiKeyAction(db, body, res)) return;
     if (await handleAiBillingAction(db, body, res)) return;
     if (await handleAdminLinkAction(body, res)) return;
+    if (await handleParentPortalAction(db, body, res)) return;
     if (action === 'roster') return await handleRoster(db, body, res);
     if (action === 'login') return await handleLogin(db, body, res);
     if (action === 'studentAssignments') return await handleStudentAssignments(db, body, res);
