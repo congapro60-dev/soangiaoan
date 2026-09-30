@@ -5,6 +5,7 @@ type DocData = Record<string, any>;
 const h = vi.hoisted(() => ({
   store: {} as Record<string, DocData>,
   claims: {} as Record<string, unknown>,
+  failPaths: [] as string[],
 }));
 
 vi.mock('firebase-admin/auth', () => ({
@@ -33,7 +34,10 @@ const applyMerge = (current: DocData, patch: DocData): DocData => {
 const fakeDb = () => {
   const docRef = (path: string): any => ({
     id: path.split('/').pop(),
-    get: async () => ({ exists: h.store[path] !== undefined, id: path.split('/').pop(), data: () => (h.store[path] ? { ...h.store[path] } : undefined) }),
+    get: async () => {
+      if (h.failPaths.some(prefix => path.startsWith(prefix))) throw new Error('firestore down');
+      return { exists: h.store[path] !== undefined, id: path.split('/').pop(), data: () => (h.store[path] ? { ...h.store[path] } : undefined) };
+    },
     set: async (data: DocData, opts?: { merge?: boolean }) => { h.store[path] = opts?.merge ? applyMerge(h.store[path] ?? {}, data) : applyMerge({}, data); },
     update: async (data: DocData) => { h.store[path] = applyMerge(h.store[path] ?? {}, data); },
   });
@@ -71,6 +75,7 @@ const day = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).f
 describe('khoá AI + trần chi tiêu', () => {
   beforeEach(() => {
     h.store = {};
+    h.failPaths = [];
     h.claims = { uid: 'gv-ngoai', email: 'ngoai@x.vn', firebase: { sign_in_provider: 'google.com' } };
   });
   afterEach(() => vi.unstubAllGlobals());
@@ -154,6 +159,42 @@ describe('khoá AI + trần chi tiêu', () => {
     expect(usage).toMatchObject({ discountPct: 100, voucherCode: 'MIENPHI', chargeVnd: 0 });
     expect(usage?.grossVnd).toBeGreaterThan(0);
     expect(h.store['aiWallets/gv-nhom'].balanceVnd).toBe(0);
+  });
+
+  it('QA F1: đã bật kiểm soát mà đọc hồ sơ khoá bị lỗi thì ĐÓNG CỬA — người trong nhóm chọn "chỉ khoá riêng" không bị trừ ví trái ý', async () => {
+    h.store['adminSettings/aiAccess'] = { enabled: true, sharedUids: ['gv-nhom'], exemptUids: [] };
+    h.store['adminSettings/billing'] = { usdVnd: 26_000 };
+    h.store['aiWallets/gv-nhom'] = { balanceVnd: 50_000 };
+    h.store['teacherAiKeys/gv-nhom'] = { mode: 'own' };
+    h.failPaths = ['teacherAiKeys/'];
+    await expect(inRequest('gv-nhom', () => ensureGeminiKey(OWNER_KEY))).rejects.toThrow('firestore down');
+    await expect(assertSharedAiAllowed('gv-nhom')).rejects.toThrow('firestore down');
+    expect(h.store['aiWallets/gv-nhom'].balanceVnd).toBe(50_000);
+    // Chưa bật kiểm soát thì giữ cách cũ: lỗi đọc hồ sơ không làm hỏng lượt gọi
+    h.store['adminSettings/aiAccess'] = { enabled: false };
+    expect((await inRequest('gv-nhom', () => ensureGeminiKey(OWNER_KEY))).source).toBe('shared');
+  });
+
+  it('QA F4: MỘT hạn chót cho cả lượt — lần gọi lại sau khi khoá riêng hỏng chỉ được dùng phần thời gian còn lại', async () => {
+    h.store['adminSettings/aiAccess'] = { enabled: true, sharedUids: [], exemptUids: [] };
+    h.store['adminSettings/billing'] = { usdVnd: 26_000 };
+    h.store['teacherAiKeys/gv-ngoai'] = { geminiKey: OWN_KEY, keyStatus: 'ok', consent: { accepted: true }, mode: 'both' };
+    h.store['aiWallets/gv-ngoai'] = { balanceVnd: 50_000 };
+    const timeouts: number[] = [];
+    const realTimeout = AbortSignal.timeout.bind(AbortSignal);
+    vi.spyOn(AbortSignal, 'timeout').mockImplementation((ms: number) => { timeouts.push(ms); return realTimeout(ms); });
+    let clock = 1_000_000;
+    vi.spyOn(Date, 'now').mockImplementation(() => clock);
+    const fetchMock = vi.fn(async (url: string) => {
+      clock += 200_000; // mỗi lần gọi "mất" 200 giây
+      return String(url).includes(encodeURIComponent(OWN_KEY))
+        ? { ok: false, status: 429, clone: () => ({ text: async () => 'RESOURCE_EXHAUSTED' }) }
+        : { ok: true, status: 200, json: async () => ({ candidates: [{ finishReason: 'STOP', content: { parts: [{ text: 'ok' }] } }], usageMetadata: { promptTokenCount: 1, candidatesTokenCount: 1, totalTokenCount: 2 } }) };
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    await inRequest('gv-ngoai', () => callGeminiVision('x', [], OWNER_KEY, 'gemini-3.8-flash', { timeoutMs: 270_000 }));
+    expect(timeouts).toEqual([270_000, 70_000]); // lần hai chỉ còn 270s − 200s
+    vi.restoreAllMocks();
   });
 
   it('trạng thái ví: "hôm nay" chỉ lấy ô của ngày hiện tại; đang trừ ví thì là tiền đã trừ, chưa bật phí thì là giá gốc quy đổi', async () => {

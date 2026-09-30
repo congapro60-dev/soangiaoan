@@ -5,6 +5,19 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## QA độc lập của Codex trên nhánh `feat/vi-ai-chip-popup` (10 lỗi) — 2026-09-30
+
+Codex QA commit `d6174de`: 4 lệnh kiểm tra qua, kết luận CHƯA duyệt, 10 lỗi. Đã sửa hết trừ F3 (ghi rõ bên dưới), mỗi lỗi có test tái hiện.
+- **F1 (cao) `_ai-keys.ts`:** đã bật kiểm soát mà đọc hồ sơ `teacherAiKeys` lỗi → trước đây nuốt thành `null` → người trong nhóm chọn "chỉ khoá riêng" bị coi như chưa chọn → suy ra "cả hai" → TRỪ VÍ trái ý. Nay ĐÓNG CỬA (ném lỗi) ở `ensureGeminiKey` và `assertSharedAiAllowed`; chưa bật kiểm soát thì giữ cách cũ.
+- **F2 (cao) relay:** kiểm hạn mức rồi mới cộng là hai bước rời → 3 lượt song song cùng qua. Nay GIỮ CHỖ trong `runTransaction` trước khi gọi Google, hoàn lại khi bị chặn 402, kèm **tối đa 3 lượt chạy cùng lúc/giáo viên** (`RELAY_MAX_INFLIGHT`; lượt treo quá 310s tự hết hiệu lực).
+- **F3 (cao, CÒN LẠI, có từ trước):** ví chỉ bị trừ SAU khi Google trả lời và kiểm số dư/trần không giữ chỗ → các lượt song song có thể làm ví/trần âm (Codex tái hiện: hai lượt, ví 1.000đ → −38.000đ). Với relay mức âm tối đa nay bị chặn bởi giới hạn 3 lượt song song; các luồng cũ (chấm bài) vẫn chưa. Sửa gốc = giữ chỗ tiền + ghi sổ/trừ ví/cộng chi tiêu trong một giao dịch — làm riêng.
+- **F4 `_grading-core.ts`:** hạn chót MỘT lần cho cả lượt (kể cả lần gọi lại sau khi khoá riêng hỏng): trước đây mỗi lần gọi có đủ 270s nên hai lần vượt trần 300s của hàm.
+- **F5 Header:** ở 375px chip làm tràn ngang 399px → đã gọn (đệm nhỏ, tiêu đề cắt `…`, bỏ vạch ngăn ở màn nhỏ); đo lại `scrollWidth` = 375.
+- **F6 `aiModeStore`:** chế độ lạ/thiếu → `own` (trước đây suy ra `both` → relay). **F7 `useAiBillingStatus`:** phản hồi đến muộn/sau khi gỡ chip không được ghi đè chế độ mới (mốc `performance.now()` + số thứ tự yêu cầu).
+- **F8 `gemini.ts` (có từ trước):** luồng lỗi giữa chừng thử lại/đổi model từ đầu → in lặp cùng đoạn ~10 lần; nay đã có chữ thì ném lỗi ngay.
+- **F9 `AiWalletPanel`:** nhóm radio ARIA có bàn phím (mũi tên đổi lựa chọn, một điểm Tab). **F10 `models.ts`:** ngữ cảnh GPT-6.1 Sol / 6 Luna / 6 Astra = 1.050.000 (trang OpenAI), không phải 400.000.
+- Codex chưa kiểm được: số nạp tối thiểu và tín dụng thử NVIDIA (trang hỗ trợ chặn), các câu "gói tiêu dùng không kèm API" của từng hãng, contrast đầy đủ. Bundle chính 1.303 kB (Codex ghi baseline cũ 1.209 kB) — cảnh báo hiệu năng, chưa xử lý.
+
 ## Ví web cho MỌI tính năng Gemini — relay máy chủ (giai đoạn 3 của kế hoạch Ví AI) — 2026-09-30
 
 Chủ dự án chốt: token/ví web dùng được cho mọi tính năng AI. Trước đây soạn giáo án/nâng cấp/dự giờ/ra đề gọi Gemini thẳng từ trình duyệt bằng khoá giáo viên nên ví không trả được. ĐẢO một phần quyết định 21/07 (bỏ relay) và 20/08 (chỉ chấm bài) — có kiểm soát: ví trả trước, đăng nhập thật, trần ngày.

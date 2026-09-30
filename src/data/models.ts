@@ -49,9 +49,9 @@ export const CLAUDE_MODELS: ProviderModel[] = [
 ];
 
 export const OPENAI_MODELS: ProviderModel[] = [
-  { id: 'gpt-6.1-sol', name: 'GPT-6.1 Sol', contextWindow: 400_000, rpdLimit: 500, tpmLimit: 200_000, rpmLimit: 100, isLatest: true, tags: ['reasoning', 'vision', 'coding'] },
-  { id: 'gpt-6-luna', name: 'GPT-6 Luna', contextWindow: 400_000, rpdLimit: 2_000, tpmLimit: 500_000, rpmLimit: 500, isLatest: true, tags: ['fast', 'vision', 'cheap'] },
-  { id: 'gpt-6-astra', name: 'GPT-6 Astra', contextWindow: 400_000, rpdLimit: 200, tpmLimit: 100_000, rpmLimit: 50, isLatest: true, tags: ['reasoning', 'vision', 'coding', 'premium'] },
+  { id: 'gpt-6.1-sol', name: 'GPT-6.1 Sol', contextWindow: 1_050_000, rpdLimit: 500, tpmLimit: 200_000, rpmLimit: 100, isLatest: true, tags: ['reasoning', 'vision', 'coding'] },
+  { id: 'gpt-6-luna', name: 'GPT-6 Luna', contextWindow: 1_050_000, rpdLimit: 2_000, tpmLimit: 500_000, rpmLimit: 500, isLatest: true, tags: ['fast', 'vision', 'cheap'] },
+  { id: 'gpt-6-astra', name: 'GPT-6 Astra', contextWindow: 1_050_000, rpdLimit: 200, tpmLimit: 100_000, rpmLimit: 50, isLatest: true, tags: ['reasoning', 'vision', 'coding', 'premium'] },
   { id: 'gpt-6-sol', name: 'GPT-6 Sol', contextWindow: 400_000, rpdLimit: 500, tpmLimit: 200_000, rpmLimit: 100, tags: ['reasoning', 'vision', 'coding'] },
   { id: 'gpt-5.4-mini', name: 'GPT-5.4 mini', contextWindow: 200_000, rpdLimit: 2_000, tpmLimit: 200_000, rpmLimit: 500, tags: ['fast', 'vision', 'cheap'] },
   { id: 'gpt-5.4-nano', name: 'GPT-5.4 nano', contextWindow: 200_000, rpdLimit: 5_000, tpmLimit: 500_000, rpmLimit: 1_000, tags: ['fast', 'cheap'] },

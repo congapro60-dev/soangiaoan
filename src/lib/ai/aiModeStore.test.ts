@@ -24,6 +24,24 @@ describe('Gemini đi đường nào theo chế độ nguồn khoá', () => {
     expect(geminiRouteFor(false, on('both'))).toBe('relay');
   });
 
+  it('QA F6: chế độ lạ hoặc thiếu trong kho → coi như chưa biết, đi khoá riêng (không suy ra ví)', () => {
+    expect(geminiRouteFor(false, { mode: undefined, gateEnabled: true } as never)).toBe('own');
+    expect(geminiRouteFor(true, { mode: 'khac', gateEnabled: true } as never)).toBe('own');
+  });
+
+  it('QA F7: phản hồi đến MUỘN (yêu cầu bắt đầu trước khi giáo viên đổi chế độ / đăng xuất) bị bỏ, không đè chế độ mới', () => {
+    const startedAt = performance.now();
+    setAiModeSnapshot({ mode: 'wallet', gateEnabled: true }); // giáo viên vừa đổi ở trang ví
+    setAiModeSnapshot({ mode: 'own', gateEnabled: true }, startedAt); // phản hồi cũ của chip tới sau
+    expect(getAiModeSnapshot()?.mode).toBe('wallet');
+    const earlier = performance.now();
+    setAiModeSnapshot(null); // đăng xuất
+    setAiModeSnapshot({ mode: 'both', gateEnabled: true }, earlier); // phản hồi của phiên cũ
+    expect(getAiModeSnapshot()).toBeNull();
+    setAiModeSnapshot({ mode: 'both', gateEnabled: true }, performance.now()); // yêu cầu mới, bắt đầu sau → nhận
+    expect(getAiModeSnapshot()?.mode).toBe('both');
+  });
+
   it('kho lưu chỉ phát tin khi thật sự đổi', () => {
     setAiModeSnapshot(on('both'));
     const first = getAiModeSnapshot();

@@ -20,12 +20,20 @@ const POLL_MS = 90_000;
 export const useAiBillingStatus = (): { status: AiKeyStatus | null; refresh: () => Promise<void> } => {
   const [status, setStatus] = useState<AiKeyStatus | null>(null);
   const lastFetchAt = useRef(0);
+  const mounted = useRef(true);
+  /** Thứ tự các yêu cầu: phản hồi của yêu cầu CŨ hơn cái đã áp dụng thì bỏ (mạng có thể trả lộn thứ tự). */
+  const seq = useRef({ issued: 0, applied: 0 });
 
   const refresh = useCallback(async () => {
     lastFetchAt.current = Date.now();
+    const startedAt = performance.now();
+    const ticket = ++seq.current.issued;
     try {
       const next = await getAiKeyStatus({ quiet: true });
-      setAiModeSnapshot({ mode: next.mode, gateEnabled: next.gateEnabled });
+      // Đã gỡ chip (đăng xuất) hoặc có phản hồi mới hơn rồi thì không được ghi lại chế độ cũ (QA F7).
+      if (!mounted.current || ticket < seq.current.applied) return;
+      seq.current.applied = ticket;
+      setAiModeSnapshot({ mode: next.mode, gateEnabled: next.gateEnabled }, startedAt);
       setStatus(next);
     } catch {
       // Giữ số cũ.
@@ -33,6 +41,7 @@ export const useAiBillingStatus = (): { status: AiKeyStatus | null; refresh: () 
   }, []);
 
   useEffect(() => {
+    mounted.current = true;
     let settleTimer: number | undefined;
     const refreshIfVisible = () => { if (!document.hidden) void refresh(); };
     const onAiCall = () => {
@@ -47,6 +56,7 @@ export const useAiBillingStatus = (): { status: AiKeyStatus | null; refresh: () 
     document.addEventListener('visibilitychange', onVisible);
     const poll = window.setInterval(refreshIfVisible, POLL_MS);
     return () => {
+      mounted.current = false;
       window.clearTimeout(settleTimer);
       window.clearInterval(poll);
       window.removeEventListener(AI_BILLING_UPDATED_EVENT, onAiCall);

@@ -20,6 +20,14 @@ export const RELAY_DEFAULT_MODEL = RELAY_MODELS[0];
 export const RELAY_TEMPERATURE = 0.1;
 export const RELAY_MAX_OUTPUT_TOKENS = 65_536;
 
+/**
+ * Số lượt relay chạy CÙNG LÚC tối đa cho một giáo viên. Ví chỉ bị trừ SAU khi Google trả lời, nên các lượt chạy song song
+ * cùng qua được kiểm số dư và có thể làm ví âm; giới hạn đồng thời chặn mức âm tối đa ≈ số lượt × giá một lượt lớn nhất.
+ */
+export const RELAY_MAX_INFLIGHT = 3;
+/** Lượt "đang chạy" quá lâu (hàm bị giết, không kịp trả chỗ) thì coi như đã hết — sau một chu kỳ tối đa của hàm. */
+export const RELAY_INFLIGHT_STALE_MS = (RELAY_MAX_DURATION_S + 10) * 1000;
+
 export const RELAY_MAX_PROMPT_CHARS = 1_000_000;
 export const RELAY_MAX_SYSTEM_CHARS = 8_000;
 export const RELAY_MAX_IMAGES = 8;

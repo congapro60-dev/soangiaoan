@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { KeyRound, Loader2, QrCode, RefreshCw, Ticket, Wallet } from 'lucide-react';
 import {
   deleteAiKey,
@@ -52,6 +52,7 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
   const [consentTick, setConsentTick] = useState(false);
   const [showTopup, setShowTopup] = useState(false);
   const [regrade, setRegrade] = useState<{ done: number; total: number } | null>(null);
+  const radioRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const apply = useCallback((next: AiKeyStatus) => {
     setAiModeSnapshot({ mode: next.mode, gateEnabled: next.gateEnabled });
@@ -111,6 +112,16 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
     void run('mode', () => setAiMode(mode), 'Đã đổi nguồn khoá AI.');
   };
 
+  // Nhóm radio theo chuẩn ARIA: chỉ một nút nằm trong thứ tự Tab, phím mũi tên đổi lựa chọn (QA F9).
+  const onRadioKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    const step = ({ ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 } as Record<string, number>)[event.key];
+    if (!step) return;
+    event.preventDefault();
+    const next = (index + step + options.length) % options.length;
+    radioRefs.current[next]?.focus();
+    chooseMode(options[next].id);
+  };
+
   const confirmPending = () => {
     if (!pendingMode) return;
     const mode = pendingMode;
@@ -128,13 +139,16 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
       <div className="rounded-2xl border border-slate-200 bg-white p-4">
         <p className="text-sm font-black text-slate-900">AI của thầy/cô chạy bằng gì?</p>
         <div className="mt-3 grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Nguồn khoá AI">
-          {options.map(option => {
+          {options.map((option, index) => {
             const selected = (pendingMode ?? status.mode) === option.id;
             return (
               <button
                 key={option.id}
+                ref={node => { radioRefs.current[index] = node; }}
                 type="button"
                 role="radio"
+                tabIndex={selected ? 0 : -1}
+                onKeyDown={event => onRadioKeyDown(event, index)}
                 aria-checked={selected}
                 disabled={Boolean(busy)}
                 onClick={() => chooseMode(option.id)}

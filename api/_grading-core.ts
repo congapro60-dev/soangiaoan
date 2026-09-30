@@ -273,7 +273,16 @@ export const callGeminiRaw = async (
   // Khoá theo request: nhóm dùng khoá chung / khoá riêng của giáo viên / khoá chung đã đồng ý tính phí.
   let keyChoice = await ensureGeminiKey(apiKey);
   let res: Response;
+  // MỘT hạn chót cho cả lượt (kể cả lần gọi lại sau khi khoá riêng hỏng): mỗi lần gọi chỉ được dùng phần thời gian còn lại,
+  // nếu không hai lần cộng lại vượt trần thời gian của hàm và Vercel giết hàm giữa chừng (QA F4).
+  const deadline = options.timeoutMs ? Date.now() + options.timeoutMs : null;
+  const timedOutError = () => new GeminiResponseError(
+    'provider',
+    'AI xử lý quá lâu nên máy chủ phải dừng lượt chấm này. Thử lại, hoặc chụp gọn lại bài (ít ảnh hơn).',
+  );
   for (let attempt = 0; ; attempt += 1) {
+    const remainingMs = deadline === null ? null : deadline - Date.now();
+    if (remainingMs !== null && remainingMs <= 0) throw timedOutError();
     try {
       res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(keyChoice.key)}`,
@@ -291,18 +300,13 @@ export const callGeminiRaw = async (
             generationConfig,
             ...(options.systemInstruction ? { systemInstruction: { parts: [{ text: options.systemInstruction }] } } : {}),
           }),
-          ...(options.timeoutMs ? { signal: AbortSignal.timeout(options.timeoutMs) } : {}),
+          ...(remainingMs !== null ? { signal: AbortSignal.timeout(remainingMs) } : {}),
         },
       );
     } catch (error) {
       // Hết giờ chờ thì phải ném ra để nhánh gọi kịp mở khoá bài nộp trước khi Vercel giết hàm.
       const timedOut = error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError');
-      throw new GeminiResponseError(
-        'provider',
-        timedOut
-          ? 'AI xử lý quá lâu nên máy chủ phải dừng lượt chấm này. Thử lại, hoặc chụp gọn lại bài (ít ảnh hơn).'
-          : 'Không gọi được Gemini lúc này. Thử lại sau ít phút.',
-      );
+      throw timedOut ? timedOutError() : new GeminiResponseError('provider', 'Không gọi được Gemini lúc này. Thử lại sau ít phút.');
     }
     if (res.ok || keyChoice.source !== 'own' || attempt > 0) break;
     // Khoá RIÊNG của giáo viên bị từ chối vì chính khoá (hết hạn mức / hỏng): ghi lại, rồi hoặc chuyển

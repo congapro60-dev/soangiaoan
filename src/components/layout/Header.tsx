@@ -104,8 +104,8 @@ export const Header = ({ activeTab, data, setIsSettingsOpen, setActiveTab, onMen
   };
 
   return (
-    <header className="h-20 bg-white border-b border-slate-100 flex items-center justify-between px-8 sticky top-0 z-20 backdrop-blur-md bg-white/80">
-      <div className="flex items-center gap-4">
+    <header className="h-20 bg-white border-b border-slate-100 flex items-center justify-between gap-2 px-3 sm:px-8 sticky top-0 z-20 backdrop-blur-md bg-white/80">
+      <div className="flex min-w-0 items-center gap-2 sm:gap-4">
         <button
           onClick={onMenuClick}
           className="p-2 text-slate-500 hover:bg-slate-50 rounded-xl transition-all md:hidden"
@@ -113,7 +113,7 @@ export const Header = ({ activeTab, data, setIsSettingsOpen, setActiveTab, onMen
         >
           <Menu className="w-5 h-5" />
         </button>
-        <h1 className="text-xl font-black text-slate-800 tracking-tight">{getTitle()}</h1>
+        <h1 className="truncate text-base sm:text-xl font-black text-slate-800 tracking-tight">{getTitle()}</h1>
         {activeTab === 'creator' && (
           <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-green-50 text-green-600 rounded-full text-[10px] font-bold uppercase tracking-widest border border-green-100">
             <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> AI Online
@@ -121,7 +121,7 @@ export const Header = ({ activeTab, data, setIsSettingsOpen, setActiveTab, onMen
         )}
       </div>
 
-      <div className="flex items-center gap-6">
+      <div className="flex shrink-0 items-center gap-2 sm:gap-6">
         <div className="hidden lg:flex items-center relative group">
           <Search className="absolute left-3 w-4 h-4 text-slate-400 group-focus-within:text-blue-500" />
           <input
@@ -131,7 +131,7 @@ export const Header = ({ activeTab, data, setIsSettingsOpen, setActiveTab, onMen
           />
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3">
           {aiChip}
           {/* History button */}
           <div className="relative" ref={ref}>
@@ -178,11 +178,11 @@ export const Header = ({ activeTab, data, setIsSettingsOpen, setActiveTab, onMen
             )}
           </div>
 
-          <div className="h-8 w-[1px] bg-slate-100 mx-2" />
+          <div className="hidden sm:block h-8 w-[1px] bg-slate-100 mx-2" />
 
           <button
             onClick={() => setIsSettingsOpen(true)}
-            className="flex items-center gap-3 p-1 pl-4 rounded-xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100"
+            className="flex items-center gap-3 p-1 sm:pl-4 rounded-xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100"
           >
             <div className="text-right hidden sm:block">
               <p className="text-xs font-bold text-slate-700">{data.authorName || 'Thầy Cô'}</p>

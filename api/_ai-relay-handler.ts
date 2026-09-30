@@ -19,6 +19,8 @@ import { AiKeyRequiredError, aiKeyRequiredPayload } from './_ai-keys.js';
 import { getBearerToken } from './_ai-gateway-core.js';
 import {
   RELAY_GEMINI_TIMEOUT_MS,
+  RELAY_INFLIGHT_STALE_MS,
+  RELAY_MAX_INFLIGHT,
   RELAY_MAX_OUTPUT_TOKENS,
   RELAY_TEMPERATURE,
   parseRelayBody,
@@ -79,20 +81,35 @@ export const handleAiRelay = async (req: VercelRequest, res: VercelResponse): Pr
   const db = getAdminDb();
   const day = vnDate(new Date()).day;
   const quotaRef = db.collection(AI_RELAY_QUOTA_COL).doc(user.uid);
-  const quotaSnap = await quotaRef.get();
-  const sameDay = quotaSnap.exists && quotaSnap.data()?.day === day;
-  const used = sameDay ? Number(quotaSnap.data()?.count) || 0 : 0;
   const limit = relayDailyLimit();
-  if (used >= limit) {
-    void sendError(res, 429, `Hôm nay tài khoản này đã dùng hết ${limit} lượt AI qua ví web. Thử lại vào ngày mai.`);
+
+  // GIỮ CHỖ trước khi gọi Google, trong một giao dịch: đọc-rồi-ghi tách rời thì ba lượt song song cùng thấy "còn chỗ"
+  // và cùng đi qua (QA F2). Đồng thời giữ tối đa RELAY_MAX_INFLIGHT lượt chạy cùng lúc để chặn ví âm quá sâu.
+  const now = Date.now();
+  const reserved = await db.runTransaction(async transaction => {
+    const snap = await transaction.get(quotaRef);
+    const data = snap.exists ? snap.data() ?? {} : {};
+    const count = data.day === day ? Number(data.count) || 0 : 0;
+    const inflight = Number(data.inflightAt) > now - RELAY_INFLIGHT_STALE_MS ? Number(data.inflight) || 0 : 0;
+    if (count >= limit) return `Hôm nay tài khoản này đã dùng hết ${limit} lượt AI qua ví web. Thử lại vào ngày mai.`;
+    if (inflight >= RELAY_MAX_INFLIGHT) return `Đang có ${RELAY_MAX_INFLIGHT} lượt AI chạy cùng lúc. Chờ một lượt xong rồi thử lại.`;
+    transaction.set(quotaRef, { day, count: count + 1, inflight: inflight + 1, inflightAt: now }, { merge: true });
+    return null;
+  });
+  if (reserved) {
+    void sendError(res, 429, reserved);
     return;
   }
+  // Trả chỗ khi xong. Lượt bị chặn TRƯỚC khi gọi Google (402) thì hoàn luôn cả lượt trong ngày.
+  let refund = false;
+  const release = () => quotaRef.set(
+    { inflight: FieldValue.increment(-1), ...(refund ? { count: FieldValue.increment(-1) } : {}) },
+    { merge: true },
+  );
 
   // Người chịu khoá/tiền = chính giáo viên gọi; feature cố định để sao kê gọi tên "AI của web".
   const context = createAiUsageContext(getBearerToken(req.headers.authorization), 'aiRelay', {});
   context.keyOwnerUid = user.uid;
-
-  const bumpQuota = () => quotaRef.set({ day, count: sameDay ? FieldValue.increment(1) : 1 }, { merge: true });
 
   try {
     const result = await runWithAiUsage(context, () => callGeminiRaw(prompt, images, getGradingApiKey(), model, {
@@ -101,7 +118,6 @@ export const handleAiRelay = async (req: VercelRequest, res: VercelResponse): Pr
       timeoutMs: RELAY_GEMINI_TIMEOUT_MS,
       ...(system ? { systemInstruction: system } : {}),
     }));
-    await bumpQuota();
 
     const hasText = result.text.trim().length > 0;
     if (result.finishReason === 'SAFETY' || result.finishReason === 'PROHIBITED_CONTENT' || result.finishReason === 'RECITATION' || !hasText) {
@@ -112,10 +128,10 @@ export const handleAiRelay = async (req: VercelRequest, res: VercelResponse): Pr
   } catch (error) {
     if (error instanceof AiKeyRequiredError) {
       // Bị chặn trước khi gọi Google: không tính vào hạn mức ngày.
+      refund = true;
       res.status(402).json(aiKeyRequiredPayload(error));
       return;
     }
-    await bumpQuota().catch(() => undefined);
     if (error instanceof GeminiResponseError) {
       console.error('[ai-relay] Gemini failed:', error.kind, error.message);
       void sendError(res, 502, error.message);
@@ -123,5 +139,7 @@ export const handleAiRelay = async (req: VercelRequest, res: VercelResponse): Pr
     }
     console.error('[ai-relay] Unexpected failure:', error);
     void sendError(res, 500, 'Máy chủ gặp lỗi khi gọi AI. Thử lại sau ít phút.');
+  } finally {
+    await release().catch(error => console.error('[ai-relay] không trả được chỗ giữ:', error));
   }
 };

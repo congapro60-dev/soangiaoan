@@ -120,6 +120,8 @@ export async function callGeminiAIStream(
   const ai = new GoogleGenAI({ apiKey, httpOptions: { apiVersion: 'v1beta' } });
   const maxRetries = 2;
   let retryCount = 0;
+  // Đã đưa chữ cho người dùng rồi thì KHÔNG được thử lại/đổi model: bắt đầu lại từ đầu sẽ in lặp phần đã hiện (QA F8).
+  let emitted = false;
 
   async function executeStream(idx: number): Promise<void> {
     const modelName = modelOverride ? modelOverride : (idx >= 0 && idx < MODELS.length ? MODELS[idx] : MODELS[0]);
@@ -137,10 +139,14 @@ export async function callGeminiAIStream(
 
       for await (const chunk of result) {
         const chunkText = chunk.text;
-        if (chunkText) onChunk(chunkText);
+        if (chunkText) {
+          emitted = true;
+          onChunk(chunkText);
+        }
       }
     } catch (error: any) {
       console.error(`Stream error with model ${modelName}:`, error);
+      if (emitted) throw error instanceof Error ? error : new Error(String(error));
 
       const isOverloaded = error.message?.includes('503') || error.message?.includes('high demand') || error.message?.includes('UNAVAILABLE');
 

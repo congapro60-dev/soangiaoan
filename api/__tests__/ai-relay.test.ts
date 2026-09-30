@@ -30,6 +30,9 @@ const applyMerge = (current: DocData, patch: DocData): DocData => {
   return next;
 };
 
+// Khoá dùng chung mọi lần `getAdminDb()` (mỗi lần gọi tạo một fakeDb mới nhưng Firestore thật chỉ có một).
+let lock: Promise<unknown> = Promise.resolve();
+
 const fakeDb = () => {
   const docRef = (path: string): any => ({
     id: path.split('/').pop(),
@@ -46,7 +49,19 @@ const fakeDb = () => {
       return { docs, empty: docs.length === 0 };
     },
   });
+  // Giao dịch chạy NỐI TIẾP nhau (mô phỏng tính tuần tự của Firestore transaction): đọc-rồi-ghi của lượt này không bị lượt khác chen vào.
+  const runTransaction = <T,>(work: (tx: { get: (ref: any) => Promise<any>; set: (ref: any, data: DocData, opts?: { merge?: boolean }) => void }) => Promise<T>): Promise<T> => {
+    const run = lock.then(async () => {
+      const writes: Array<() => Promise<unknown>> = [];
+      const result = await work({ get: ref => ref.get(), set: (ref, data, opts) => { writes.push(() => ref.set(data, opts)); } });
+      for (const write of writes) await write();
+      return result;
+    });
+    lock = run.catch(() => undefined);
+    return run;
+  };
   return {
+    runTransaction,
     collection: (col: string) => ({ ...query(col, []), doc: (id: string) => docRef(`${col}/${id}`), add: async (d: DocData) => { h.store[`${col}/auto${Object.keys(h.store).length}`] = d; } }),
   };
 };
@@ -175,7 +190,8 @@ describe('relay Gemini cho ví web — máy chủ', () => {
     expect(res.statusCode).toBe(402);
     expect(res.payload).toMatchObject({ code: 'AI_KEY_REQUIRED', reason: 'no_key' });
     expect(fetchMock).not.toHaveBeenCalled();
-    expect(h.store['aiRelayQuota/gv-1']).toBeUndefined();
+    // Đã giữ chỗ rồi hoàn lại: hạn mức ngày không bị tính, không còn lượt "đang chạy"
+    expect(h.store['aiRelayQuota/gv-1']).toMatchObject({ count: 0, inflight: 0 });
   });
 
   it('hết số dư: 402 no_balance', async () => {
@@ -208,7 +224,7 @@ describe('relay Gemini cho ví web — máy chủ', () => {
     const res = await call({ prompt: 'x' });
     expect(res.statusCode).toBe(502);
     expect(String(res.payload.error)).toContain('503');
-    expect(h.store['aiRelayQuota/gv-1']).toMatchObject({ day: today, count: 1 });
+    expect(h.store['aiRelayQuota/gv-1']).toMatchObject({ day: today, count: 1, inflight: 0 });
   });
 
   it('hạn mức lượt mỗi ngày: đủ thì 429, sang ngày mới thì về 0', async () => {
@@ -224,5 +240,41 @@ describe('relay Gemini cho ví web — máy chủ', () => {
     h.store['aiRelayQuota/gv-1'] = { day: '2000-01-01', count: 2 };
     expect((await call({ prompt: 'd' })).statusCode).toBe(200);
     expect(h.store['aiRelayQuota/gv-1']).toMatchObject({ day: today, count: 1 });
+  });
+
+  it('QA F2: ba lượt cùng lúc khi chỉ còn 1 lượt/ngày → đúng MỘT lượt gọi Google, hai lượt kia 429', async () => {
+    process.env.AI_RELAY_DAILY_LIMIT = '1';
+    const fetchMock = geminiOk();
+    vi.stubGlobal('fetch', fetchMock);
+    const results = await Promise.all([call({ prompt: 'a' }), call({ prompt: 'b' }), call({ prompt: 'c' })]);
+    expect(results.map(r => r.statusCode).sort()).toEqual([200, 429, 429]);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(h.store['aiRelayQuota/gv-1']).toMatchObject({ day: today, count: 1, inflight: 0 });
+  });
+
+  it('giới hạn số lượt chạy CÙNG LÚC (chặn ví âm sâu): 5 lượt song song chỉ 3 lượt được chạy, xong thì chỗ được trả', async () => {
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>(resolve => { release = resolve; });
+    const fetchMock = vi.fn(async () => {
+      await gate;
+      return { ok: true, status: 200, json: async () => ({ candidates: [{ finishReason: 'STOP', content: { parts: [{ text: 'ok' }] } }], usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 10, totalTokenCount: 20 } }) };
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const running = Array.from({ length: 5 }, (_, i) => call({ prompt: `p${i}` }));
+    await vi.waitFor(() => expect(h.store['aiRelayQuota/gv-1']?.inflight).toBe(3));
+    release();
+    const results = await Promise.all(running);
+    expect(results.map(r => r.statusCode).sort()).toEqual([200, 200, 200, 429, 429]);
+    expect(results.find(r => r.statusCode === 429)?.payload.error).toContain('cùng lúc');
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(h.store['aiRelayQuota/gv-1'].inflight).toBe(0);
+    expect((await call({ prompt: 'sau đó' })).statusCode).toBe(200);
+  });
+
+  it('lượt "đang chạy" bị treo quá lâu (hàm bị giết) thì hết hiệu lực, không khoá giáo viên mãi', async () => {
+    h.store['aiRelayQuota/gv-1'] = { day: today, count: 5, inflight: 3, inflightAt: Date.now() - 20 * 60_000 };
+    vi.stubGlobal('fetch', geminiOk());
+    expect((await call({ prompt: 'x' })).statusCode).toBe(200);
+    expect(h.store['aiRelayQuota/gv-1']).toMatchObject({ count: 6, inflight: 0 });
   });
 });

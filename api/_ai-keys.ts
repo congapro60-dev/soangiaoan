@@ -138,7 +138,11 @@ export const ensureGeminiKey = async (fallbackKey: string): Promise<AiKeyChoice>
   const access = await loadAiAccess(db);
   // Người chịu phí cần biết cả khi CHƯA bật kiểm soát: để cộng sổ chi tiêu và giữ trần tự đặt.
   const ownerUid = await resolveKeyOwner(db).catch(() => null);
-  const keyDoc = ownerUid ? await loadKeyDoc(db, ownerUid).catch(() => null) : null;
+  // Đã bật kiểm soát thì hồ sơ khoá đọc hỏng phải làm hỏng lượt gọi (đóng cửa). Nuốt lỗi thành `null` khiến người chọn
+  // "chỉ khoá riêng" bị coi như chưa chọn gì → suy ra "cả hai" → trừ ví trái ý (QA F1). Chưa bật kiểm soát thì giữ cách cũ.
+  const keyDoc = ownerUid
+    ? await (access.enabled ? loadKeyDoc(db, ownerUid) : loadKeyDoc(db, ownerUid).catch(() => null))
+    : null;
   if (!access.enabled) {
     if (ownerUid) await assertUnderCap(db, ownerUid, keyDoc, false);
     return (context.keyChoice = { key: fallbackKey, source: 'shared', ownerUid, billing: null });
@@ -191,7 +195,9 @@ export const onOwnKeyFailure = async (choice: AiKeyChoice, status: AiKeyStatus, 
  */
 export const assertSharedAiAllowed = async (uid: string): Promise<'shared' | 'owner_consent'> => {
   const db = getAdminDb();
-  const [access, keyDoc] = await Promise.all([loadAiAccess(db), loadKeyDoc(db, uid).catch(() => null)]);
+  const access = await loadAiAccess(db);
+  // Cùng nguyên tắc đóng cửa như `ensureGeminiKey`: đã bật kiểm soát mà không đọc được hồ sơ khoá thì không chạy.
+  const keyDoc = await (access.enabled ? loadKeyDoc(db, uid) : loadKeyDoc(db, uid).catch(() => null));
   let source: 'shared' | 'owner_consent' = 'shared';
   if (access.enabled) {
     const isShared = access.sharedUids.includes(uid);

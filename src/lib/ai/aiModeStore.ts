@@ -6,7 +6,7 @@
  * Chế độ đến từ `aiKeyStatus` (chip Ví AI và trang ví cập nhật vào đây); chưa biết thì giữ hành vi cũ (khoá riêng).
  */
 import { useSyncExternalStore } from 'react';
-import type { AiKeyMode } from '../admin/aiKeyPolicy';
+import { AI_KEY_MODES, type AiKeyMode } from '../admin/aiKeyPolicy';
 
 export interface AiModeSnapshot {
   mode: AiKeyMode;
@@ -15,11 +15,19 @@ export interface AiModeSnapshot {
 }
 
 let snapshot: AiModeSnapshot | null = null;
+/** Mốc (đơn điệu) của lần đặt gần nhất — để bỏ phản hồi ĐẾN MUỘN của một yêu cầu đã bắt đầu trước thay đổi mới hơn. */
+let lastSetAt = 0;
 const listeners = new Set<() => void>();
 
 export const getAiModeSnapshot = (): AiModeSnapshot | null => snapshot;
 
-export const setAiModeSnapshot = (next: AiModeSnapshot | null): void => {
+/**
+ * `requestedAt` = `performance.now()` lúc BẮT ĐẦU yêu cầu đọc trạng thái. Nếu từ đó tới giờ đã có lần đặt khác (giáo viên vừa
+ * đổi chế độ ở trang ví, hoặc đăng xuất → null) thì phản hồi này cũ hơn, bỏ đi — không thì chế độ cũ đè lên chế độ mới (QA F7).
+ */
+export const setAiModeSnapshot = (next: AiModeSnapshot | null, requestedAt?: number): void => {
+  if (requestedAt !== undefined && requestedAt <= lastSetAt) return;
+  lastSetAt = performance.now();
   const unchanged = snapshot === next || (snapshot && next && snapshot.mode === next.mode && snapshot.gateEnabled === next.gateEnabled);
   if (unchanged) return;
   snapshot = next;
@@ -37,7 +45,8 @@ export const useAiModeSnapshot = (): AiModeSnapshot | null => useSyncExternalSto
 export type GeminiRoute = 'own' | 'relay' | 'own-then-relay';
 
 export const geminiRouteFor = (hasOwnKey: boolean, current: AiModeSnapshot | null): GeminiRoute => {
-  if (!current || !current.gateEnabled || current.mode === 'own') return 'own';
+  // Chế độ lạ/thiếu (máy chủ cũ, dữ liệu hỏng) coi như chưa biết → hành vi cũ, KHÔNG suy ra ví (QA F6).
+  if (!current || !current.gateEnabled || !AI_KEY_MODES.includes(current.mode) || current.mode === 'own') return 'own';
   if (current.mode === 'wallet') return 'relay';
   return hasOwnKey ? 'own-then-relay' : 'relay';
 };
