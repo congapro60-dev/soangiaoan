@@ -4,7 +4,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import Swal from 'sweetalert2';
 import { AlertTriangle, ArrowLeft, GraduationCap, Loader2 } from 'lucide-react';
-import { auth, db } from '../lib/firebase';
+import { STUDENT_PORTAL_APP, auth, db } from '../lib/firebase';
 import { normalizeJoinCode } from '../lib/classroom/joinCode';
 import {
   CLASSES_COL,
@@ -135,6 +135,9 @@ const KhungDangNhap = ({ children }: { children: ReactNode }) => (
 );
 
 export const StudentPortalPage = () => {
+  // Vào /lop bằng điều hướng trong app (Firebase đã khởi tạo ở app mặc định của GV) → tải lại một lần
+  // để chạy trên app riêng của HS; không thì đăng nhập HS sẽ đè phiên Google của GV.
+  useEffect(() => { if (auth.app.name !== STUDENT_PORTAL_APP) window.location.reload(); }, []);
   const { joinCode: joinCodeParam } = useParams<{ joinCode?: string }>();
   const navigate = useNavigate();
   const [stage, setStage] = useState<Stage>('dang-tai');

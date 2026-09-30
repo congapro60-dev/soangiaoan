@@ -13,6 +13,12 @@ Chủ dự án: rút gọn, viết chính xác bằng ngôn ngữ Toán học; s
 - Lưu cùng nhận xét ở `parentReportNotes.requirements`; GV đổi mức/sửa ghi chú/bỏ dòng (`RequirementLinesEditor`). PDF + xuất cả lớp dùng bản đã lưu; chưa có thì danh sách chủ đề cũ cắt còn 6.
 - Dữ liệu rút từ PDF Chương trình (pdftotext; kí hiệu font Symbol U+F022 ∀, F024 ∃, F0CC ⊂, F0C9 ⊃, F0C6 ∅, F0B0 ° phải đổi tay) rồi soát tay; nguồn: memory `nguon-yccd-lo-sgk`. Test: parentRequirements 6, builder +1, printDoc +2, API +2.
 
+## Cổng HS mở được khi trình duyệt đang đăng nhập GV/admin + 2 tài khoản admin + đọc Excel nhiều trang — 2026-09-30
+
+- **Cổng /lop chạy trên app Firebase riêng** (`STUDENT_PORTAL_APP` trong `src/lib/firebase.ts`, chọn theo `location.pathname` lúc nạp module): phiên ẩn danh HS lưu ở khoá `firebase:authUser:<apiKey>:student-portal`, không đè phiên Google GV. Phiên HS cũ (ẩn danh ở `[DEFAULT]`) được chép sang một lần → HS không phải nhập lại PIN. Vào /lop bằng điều hướng trong app → `StudentPortalPage` tự tải lại 1 lần. Đã thử dev: tách khoá đúng, chép phiên đúng, reload 1 lần không lặp. **Chưa làm:** chế độ HS của live lesson (`StudentLiveView`) vẫn chặn phiên GV (chung đường dẫn với GV nên không tách theo path được).
+- **Admin = 2 tài khoản của chủ dự án**: `ADMIN_EMAILS` thêm `cuong.vuviet@thedeweyschools.edu.vn`; `_ai-keys.ts` tra uid của mọi email admin (cache mỗi phiên máy chủ) → dùng khoá chung + miễn trừ ví như `exemptUids`. Dữ liệu (lớp, giáo án, cài đặt) VẪN tách theo từng tài khoản.
+- **Đọc Excel cho lịch năm học/PPCT** (`sheetText.ts` + `readWorkbookText`): ô lấy dạng hiển thị (ngày ra ngày, không ra số 46297), trang liên quan xếp trước rồi mới cắt theo giới hạn. File lịch thật 15 trang: AI (3.7-flash) ra 48 mục, tuần 1 = 17/8, đủ ngày nghỉ (31/8–2/9, 2/10, 24/11, 23/12–1/1, 22/1, Tết 3–10/2, 22/3, 16/4, 30/4, 3/5).
+
 ## Hồ sơ năng lực HS tự điền cùng GV (+ AI soạn nháp cho GV) — 2026-09-30
 
 Chủ dự án chốt: tab "Năng lực toán học" của file mẫu đưa lên trang HS (mục riêng dưới Bảng điểm); HS sửa phần mình, GV sửa tất; xuất file: HS nền vàng, GV nền xanh (trùng mức: vàng viền xanh, chú thích ở ghi chú ô A3).

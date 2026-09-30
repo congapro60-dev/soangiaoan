@@ -187,14 +187,13 @@ export const saveStudentPortfolio = async (entries: Record<string, PortfolioEntr
 /**
  * Đăng nhập ẩn danh rồi nhờ máy chủ gắn phiên đó với đúng một học sinh.
  *
- * CHẶN phiên giáo viên: `signInAnonymously` sẽ THAY phiên Google đang có, kéo theo mọi dữ liệu
- * app gắn với uid cũ. Cùng họ với bẫy đã ghi ở đường đẩy Drive — nên ở đây từ chối thẳng thay vì
- * âm thầm đổi phiên.
+ * Cổng /lop chạy trên app Firebase riêng (`firebase.ts`) nên phiên GV không bị đè. Vẫn giữ lưới chặn:
+ * nếu lỡ gọi ở app mặc định đang có phiên Google, `signInAnonymously` sẽ THAY phiên đó — từ chối thẳng.
  */
 export const loginStudent = async (joinCode: string, studentId: string, pin: string): Promise<LoginResponse> => {
   const current = auth.currentUser;
   if (current && !current.isAnonymous) {
-    throw new Error('Trình duyệt này đang đăng nhập tài khoản giáo viên. Hãy đăng xuất trước khi vào cổng học sinh.');
+    throw new Error('Trang học sinh cần mở lại — bấm tải lại trang (F5) rồi đăng nhập.');
   }
 
   const credential = current ?? (await signInAnonymously(auth)).user;

@@ -13,8 +13,28 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-JQ4QX69VL6"
 };
 
+/**
+ * Cổng học sinh (/lop…) chạy trên app Firebase RIÊNG: phiên ẩn danh của HS lưu dưới khoá riêng,
+ * không thay phiên Google của GV/admin trong cùng trình duyệt (trước đây phải đăng xuất mới vào được).
+ */
+export const STUDENT_PORTAL_APP = 'student-portal';
+export const isStudentPortalPath = (path: string): boolean => /^\/lop(\/|$)/.test(path);
+const onStudentPortal = typeof window !== 'undefined' && isStudentPortalPath(window.location.pathname);
+
+// HS đang đăng nhập (phiên ẩn danh ở app mặc định, bản cũ) → chép sang khoá của app riêng một lần,
+// để khỏi bắt cả trường nhập lại PIN sau bản cập nhật. Phiên GV (không ẩn danh) không đụng.
+if (onStudentPortal) {
+  try {
+    const base = `firebase:authUser:${firebaseConfig.apiKey}:`;
+    const legacy = localStorage.getItem(`${base}[DEFAULT]`);
+    if (legacy && !localStorage.getItem(`${base}${STUDENT_PORTAL_APP}`) && JSON.parse(legacy)?.isAnonymous === true) {
+      localStorage.setItem(`${base}${STUDENT_PORTAL_APP}`, legacy);
+    }
+  } catch { /* trình duyệt chặn lưu trữ → HS đăng nhập lại như thường */ }
+}
+
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+const app = onStudentPortal ? initializeApp(firebaseConfig, STUDENT_PORTAL_APP) : initializeApp(firebaseConfig);
 
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
