@@ -217,6 +217,23 @@ export const acquireCallHold = async (choice: AiKeyChoice, now: number = Date.no
   });
 };
 
+/**
+ * Giữ chỗ có CHỜ: bị chặn chỉ vì lượt khác đang giữ chỗ thì chờ rồi thử lại (tối đa `HOLD_MAX_WAITS` lần), thay vì báo hết tiền oan.
+ * `deadline` (mốc thời gian, ms) là hạn chót của cả lượt gọi — quá hạn trong lúc chờ thì trả `timeout` để nơi gọi tự báo lỗi.
+ */
+export const acquireCallHoldWaiting = async (
+  choice: AiKeyChoice,
+  deadline: number | null = null,
+): Promise<HoldResult | { ok: false; reason: 'timeout' }> => {
+  let held = await acquireCallHold(choice);
+  for (let waited = 0; !held.ok && held.contended && waited < HOLD_MAX_WAITS; waited += 1) {
+    await new Promise(resolve => setTimeout(resolve, holdRetryMs()));
+    if (deadline !== null && deadline - Date.now() <= 0) return { ok: false, reason: 'timeout' };
+    held = await acquireCallHold(choice);
+  }
+  return held;
+};
+
 /** Trả lại phần giữ chỗ khi lượt gọi KHÔNG đi tới bước trừ tiền (lỗi mạng, Google từ chối…). */
 export const releaseWalletHold = (db: FirebaseFirestore.Firestore, ownerUid: string, holdVnd: number): Promise<unknown> =>
   db.collection(AI_WALLETS_COL).doc(ownerUid).set({ heldVnd: FieldValue.increment(-holdVnd) }, { merge: true });
@@ -315,10 +332,13 @@ export const recordAiUsage = async (
 export const recordImageUsage = async (
   model: string,
   imageCount: number,
-  extra: { finishReason?: string } = {},
+  extra: { finishReason?: string; /** Phần tiền đã giữ chỗ cho lượt này — được thay bằng số tiền thật khi trừ ví. */ holdVnd?: number } = {},
 ): Promise<void> => {
   const images = Math.max(0, Math.round(imageCount));
-  if (images <= 0) return;
+  if (images <= 0) {
+    await releaseCurrentHold(extra.holdVnd);
+    return;
+  }
   try {
     const context = currentAiUsageContext();
     const identity = context ? await context.identity() : ANONYMOUS_UNKNOWN;
@@ -349,9 +369,10 @@ export const recordImageUsage = async (
     if (charge && choice?.billing) {
       Object.assign(record, { costUsd, usdVnd: choice.billing.usdVnd, ...charge });
     }
-    await settleUsage(db, record, { ownerUid, billable, costUsd, charge, images });
+    await settleUsage(db, record, { ownerUid, billable, costUsd, charge, images, holdVnd: extra.holdVnd });
   } catch (error) {
     console.error('[ai-usage] không ghi được lượt sinh ảnh:', error);
+    await releaseCurrentHold(extra.holdVnd);
   }
 };
 

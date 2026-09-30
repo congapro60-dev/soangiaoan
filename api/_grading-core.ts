@@ -1,6 +1,6 @@
 /// <reference types="node" />
 // File prefix "_" → không thành Serverless Function. Gồm: hạn mức chống đốt tiền + gọi Gemini.
-import { HOLD_MAX_WAITS, acquireCallHold, geminiUsageCounts, holdRetryMs, recordAiUsage, releaseWalletHold } from './_ai-usage.js';
+import { acquireCallHoldWaiting, geminiUsageCounts, recordAiUsage, releaseWalletHold } from './_ai-usage.js';
 import { AiKeyRequiredError, ensureGeminiKey, onOwnKeyFailure } from './_ai-keys.js';
 import { getAdminDb } from './_exam-core.js';
 import { classifyGeminiKeyFailure } from '../src/lib/admin/aiKeyPolicy.js';
@@ -312,13 +312,8 @@ const callGeminiRawHeld = async (
     if (remainingMs !== null && remainingMs <= 0) throw timedOutError();
     // Giữ chỗ tiền TRƯỚC khi gọi (chỉ lượt bị trừ ví): chặn các lượt song song cùng lọt qua kiểm số dư/trần (QA F3).
     if (hold.vnd === 0) {
-      let held = await acquireCallHold(keyChoice);
-      // Chỉ bị chặn vì lượt khác đang giữ chỗ → chờ chúng xong (trả/đổi chỗ) rồi thử lại, thay vì báo hết tiền oan.
-      for (let waited = 0; !held.ok && held.contended && waited < HOLD_MAX_WAITS; waited += 1) {
-        await new Promise(resolve => setTimeout(resolve, holdRetryMs()));
-        if (deadline !== null && deadline - Date.now() <= 0) throw timedOutError();
-        held = await acquireCallHold(keyChoice);
-      }
+      const held = await acquireCallHoldWaiting(keyChoice, deadline);
+      if (!held.ok && held.reason === 'timeout') throw timedOutError();
       if (!held.ok) throw new AiKeyRequiredError(held.reason, keyChoice.ownerUid);
       if (held.holdVnd > 0) {
         hold.vnd = held.holdVnd;
