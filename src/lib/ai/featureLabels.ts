@@ -14,6 +14,7 @@ const LABELS: Record<string, string> = {
   teacherOnlineAiRegrade: 'Chấm lại đề online',
   draftParentReportComment: 'Soạn nhận xét báo cáo phụ huynh',
   autoGrade: 'Tự chấm bài quá 60 phút',
+  aiRelay: 'Soạn bài / ra đề bằng ví web',
 };
 
 export const featureLabel = (feature: string): string => LABELS[feature] ?? feature;

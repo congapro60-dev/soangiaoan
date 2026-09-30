@@ -5,6 +5,17 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Ví web cho MỌI tính năng Gemini — relay máy chủ (giai đoạn 3 của kế hoạch Ví AI) — 2026-09-30
+
+Chủ dự án chốt: token/ví web dùng được cho mọi tính năng AI. Trước đây soạn giáo án/nâng cấp/dự giờ/ra đề gọi Gemini thẳng từ trình duyệt bằng khoá giáo viên nên ví không trả được. ĐẢO một phần quyết định 21/07 (bỏ relay) và 20/08 (chỉ chấm bài) — có kiểm soát: ví trả trước, đăng nhập thật, trần ngày.
+- **Hàm mới `api/ai-relay.ts`** (POST `{model?, prompt, system?, images?}` + Bearer → `{text, model, truncated}`), `maxDuration` 300 khai ở `vercel.json`, hằng `RELAY_MAX_DURATION_S` trong `_ai-relay-core.ts` PHẢI khớp (test khoá). Hàm RIÊNG, không nhét vào `grade-homework`: khoá chấm bài giả định hàm bị giết ở 60s — nới thời gian ở đó là làm hỏng giả định. Trần 12 Vercel Function: đếm lại trước khi thêm hàm nữa.
+- Dùng NGUYÊN luật khoá/ví/trần của chấm bài qua `callGeminiRaw` (tách từ `callGeminiVision`; hàm cũ giữ hành vi, ném lỗi khi bị cắt/chặn). Chưa đồng ý tính phí / hết số dư / chạm trần → 402 `AI_KEY_REQUIRED` và không tốn hạn mức ngày; khoá riêng lưu ở máy chủ vẫn chạy trước nếu chế độ cho phép. Chỉ 3 model có giá (3.8 Flash, 3.7 Flash, 3.1 Pro); ẩn danh (học sinh) bị chặn 403; 400 lượt/giáo viên/ngày (`AI_RELAY_DAILY_LIMIT`, bảng `aiRelayQuota`).
+- Trình duyệt (`aiProviders.ts`, cả text/ảnh/stream): `geminiRouteFor(có khoá?, chế độ)` — `own` khoá riêng như cũ · `wallet` relay · `both` khoá riêng trước, CHỈ lỗi của khoá (429/quota/khoá hỏng) mới sang ví, quá tải 503 thì KHÔNG (tránh đốt tiền oan). Chế độ đến từ `aiModeStore` (chip + trang ví cập nhật); chưa biết hoặc web chưa bật phí thì giữ hành vi cũ. Stream sang relay chỉ khi chưa có chữ nào hiện (khỏi lặp). Ảnh nén dần cho lọt thân request 4,5MB.
+- **Bẫy:** relay KHÔNG stream — bài dài hiện một cục sau khi xong (tới vài chục giây). `EXAM_FORMAT_SYSTEM_INSTRUCTION` (chỉ dẫn soạn đề Toán) vốn được gửi cho MỌI lượt Gemini text của trình duyệt; relay giữ đúng như vậy để kết quả giống nhau. Model chưa có giá không đi qua ví được. Lượt relay KHÔNG ghi vào bộ đếm token cục bộ (`useTokenTracker`) — đã có ở sao kê ví.
+- **Cố ý chưa làm:** stream từ relay; Claude/OpenAI/Grok/DeepSeek qua ví; `src/utils/examOnlineParser.ts` (gọi Gemini trực tiếp).
+- **CHƯA kiểm với thực tế:** deploy preview có nhận hàm mới + `maxDuration` 300 không; một lượt relay thật bằng tài khoản thật; giáo án dài thật mất bao lâu.
+- Nghiệm thu: `npm run lint`, `npm run lint:api`, `npm run test -- --run`, `npm run build`.
+
 ## Cập nhật model mới nhất + hướng dẫn "nên mua gì" trong Cài đặt — 2026-09-30
 
 Chủ dự án: thầy cô dùng nhiều hãng AI, cần model mới nhất và biết hãng nào có API miễn phí, hãng nào phải mua API riêng, giá bao nhiêu. Nguồn: trang giá/model chính thức của từng hãng, tra 30/09/2026 (`src/data/providerGuide.ts` ghi ngày; giá đổi thường xuyên).

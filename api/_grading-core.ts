@@ -189,6 +189,8 @@ export interface GeminiOptions {
   maxOutputTokens?: number | 'model-max';
   /** Bật chế độ JSON của Gemini: model bị ràng buộc trả JSON hợp lệ, khỏi bọc trong ```json. */
   jsonMode?: boolean;
+  /** Chỉ dẫn hệ thống (đường relay giữ đúng chỉ dẫn mà trình duyệt vốn gửi khi gọi Gemini bằng khoá của giáo viên). */
+  systemInstruction?: string;
   /**
    * Nhiệt độ sinh. Mặc định 0.2. Tác vụ ĐỌC/chấm nên đặt 0 để mỗi lần chấm lại đọc chữ và công
    * thức ổn định hơn, không "mỗi lần một kiểu". Tác vụ cần đa dạng (sinh bài luyện) giữ >0.
@@ -247,13 +249,18 @@ export const moTaFinishReason = (reason: string | undefined, coChu: boolean): st
   return null;
 };
 
-export const callGeminiVision = async (
+/**
+ * Gọi Gemini (chọn khoá, chuyển khoá khi khoá riêng hết, ghi token) và trả nguyên văn + lý do dừng, KHÔNG ném lỗi vì
+ * lý do dừng — nơi gọi tự quyết. Đường chấm dùng `callGeminiVision` (ném lỗi khi bị cắt/chặn); đường relay soạn bài
+ * cần giữ phần chữ dở dang để tự nối tiếp nên dùng thẳng hàm này.
+ */
+export const callGeminiRaw = async (
   prompt: string,
   images: InlineImage[],
   apiKey: string,
   model: string = GRADING_MODEL,
   options: GeminiOptions = {},
-): Promise<string> => {
+): Promise<{ text: string; finishReason?: string }> => {
   const generationConfig: Record<string, unknown> = {
     temperature: options.temperature ?? 0.2,
   };
@@ -282,6 +289,7 @@ export const callGeminiVision = async (
               ],
             }],
             generationConfig,
+            ...(options.systemInstruction ? { systemInstruction: { parts: [{ text: options.systemInstruction }] } } : {}),
           }),
           ...(options.timeoutMs ? { signal: AbortSignal.timeout(options.timeoutMs) } : {}),
         },
@@ -340,6 +348,17 @@ export const callGeminiVision = async (
   const candidate = data.candidates?.[0];
   const text = candidate?.content?.parts?.map(p => p.text || '').join('') || '';
   const finishReason = candidate?.finishReason || data.promptFeedback?.blockReason;
+  return { text, finishReason };
+};
+
+export const callGeminiVision = async (
+  prompt: string,
+  images: InlineImage[],
+  apiKey: string,
+  model: string = GRADING_MODEL,
+  options: GeminiOptions = {},
+): Promise<string> => {
+  const { text, finishReason } = await callGeminiRaw(prompt, images, apiKey, model, options);
   const hasText = text.trim().length > 0;
 
   if (finishReason === 'MAX_TOKENS') {

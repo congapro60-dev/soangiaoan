@@ -24,6 +24,7 @@ import { AiKeyGateModal } from './components/features/aiBilling/AiKeyGateModal';
 import { AiBlockedBanner } from './components/features/aiBilling/AiBlockedBanner';
 import { AiWalletChip } from './components/features/aiBilling/AiWalletChip';
 import { installAiKeyFetchGate } from './lib/ai/aiKeyGate';
+import { useAiModeSnapshot } from './lib/ai/aiModeStore';
 
 // Lazy-loaded tabs (splits heavy chunks, loaded on first visit)
 const CreatorTab = lazy(() => import('./components/tabs/CreatorTab').then(m => ({ default: m.CreatorTab })));
@@ -69,6 +70,9 @@ export default function App() {
   // Chỉ để hiện mục Quản trị; quyền thật kiểm lại ở máy chủ (email Google đã xác minh).
   const isAdmin = Boolean(user && !user.isAnonymous && user.emailVerified && isAdminEmail(user.email));
   const isTeacherSignedIn = Boolean(user && !user.isAnonymous);
+  // Ví web đang trả thay cho khoá Gemini (chế độ "chỉ ví"/"cả hai", web đã bật tính phí) → không nhắc nhập khoá Gemini.
+  const aiMode = useAiModeSnapshot();
+  const walletCoversGemini = Boolean(aiMode?.gateEnabled && aiMode.mode !== 'own');
   // Bảng điều khiển → "Việc cần xử lý" → mở lớp ở tab Bài nộp, bung khung việc tồn.
   const [classFocus, setClassFocus] = useState<{ classId: string; nonce: number } | null>(null);
   // Máy chủ trả 402 khi AI của giáo viên tạm dừng → mở hộp xử lý rồi tự gửi lại yêu cầu.
@@ -378,6 +382,7 @@ export default function App() {
           const s = data.settings;
           const activeProvider = s.selectedProvider || 'gemini';
           if (activeProvider === 'vercel-gateway') return null;
+          if (activeProvider === 'gemini' && walletCoversGemini) return null;
           const allEmpty = !s.geminiApiKey && !s.claudeApiKey && !s.openaiApiKey && !s.grokApiKey && !s.deepseekApiKey && !s.openaiCompatibleApiKey;
           const providerKey: Record<string, string | undefined> = { gemini: s.geminiApiKey, claude: s.claudeApiKey, openai: s.openaiApiKey, grok: s.grokApiKey, deepseek: s.deepseekApiKey, 'openai-compatible': s.openaiCompatibleApiKey };
           const providerLabel: Record<string, string> = { gemini: 'Google Gemini', claude: 'Claude', openai: 'OpenAI', grok: 'Grok', deepseek: 'DeepSeek', 'openai-compatible': 'Custom API' };

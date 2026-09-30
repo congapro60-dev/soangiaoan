@@ -39,16 +39,15 @@
 - [ ] CHƯA gộp khoá trình duyệt (Cài đặt) vào cùng trang: các tính năng soạn giáo án/nâng cấp/dự giờ/ra đề vẫn dùng khoá nhập trong Cài đặt cho tới GĐ3; trang ví ghi rõ điều này. Gộp một trang duy nhất khi GĐ3 đưa ví vào các tính năng đó.
 - [x] Đây là LÕI TÍNH TIỀN đang chạy thật (bật phí từ 25/09) → test ma trận: `aiKeyPolicy.test.ts` (chế độ × khoá ok/hết/hỏng/không có × nhóm/ngoài nhóm × chưa bật phí), `ai-keys.test.ts` (ví bỏ qua khoá riêng, chỉ-khoá-riêng không âm thầm sang ví, GLM, API `setAiMode`), `aiBanner`/`usageToday`/`aiModeView`.
 
-### GĐ3 — Ví web cho MỌI tính năng (lớn nhất, làm cuối)
-Hiện soạn giáo án / nâng cấp / dự giờ / đề thi gọi Gemini THẲNG từ trình duyệt bằng khoá giáo viên. Muốn ví trả cho chúng thì phải có đường máy chủ:
-- [ ] Mở rộng `_ai-gateway-handler.ts` (đã có: xác thực Firebase, chặn ẩn danh, JSON/SSE, ghi lượt, hạn mức ngày) để nhận danh sách model cho phép (Gemini 3.8/3.7 Flash, 3.1 Pro, GLM 5.2) thay vì cố định GLM.
-- [ ] `aiProviders.ts` (điểm nghẽn duy nhất của mọi lời gọi phía trình duyệt): khi chế độ = ví (hoặc `both` và khoá riêng hết) → gửi qua đường máy chủ.
-- [ ] Ràng buộc cần đo trước khi hứa:
-  - Thân request tối đa ~4,5MB trên Vercel → ảnh/PDF phải nén hoặc đẩy Storage.
-  - `maxDuration` đang 60 giây → bài sinh dài (Gemini Pro suy nghĩ) có thể quá; cần streaming + đo thật.
-  - Nhiều lượt cùng lúc qua kiểm số dư trước khi trừ → có thể âm nhẹ; chặn `no_balance` + trần là đủ, ghi rõ.
-  - Người trong nhóm dùng mã 100% (THANG10) → chi phí do chủ dự án gánh.
-- [ ] Cập nhật `HANDOFF.md`, memory `api-key-backup-co-y`.
+### GĐ3 — Ví web cho MỌI tính năng Gemini (code xong 2026-09-30, chờ thử với khoá thật)
+Soạn giáo án / nâng cấp / dự giờ / ra đề gọi Gemini THẲNG từ trình duyệt bằng khoá giáo viên, nên ví không trả được. Đã dựng đường máy chủ:
+- [x] `api/ai-relay.ts` — HÀM RIÊNG (không nhồi vào `grade-homework`): giữ nguyên giả định 60 giây của khoá chấm bài, có `maxDuration` 300 trong `vercel.json`. Logic ở `_ai-relay-handler.ts` + `_ai-relay-core.ts`. Gọi `callGeminiRaw` (tách từ `callGeminiVision` ở `_grading-core.ts`) nên dùng NGUYÊN luật khoá/ví/trần của chấm bài.
+- [x] Chỉ nhận 3 model có giá (Gemini 3.8 Flash, 3.7 Flash, 3.1 Pro) — model chưa có giá sẽ bị tính 0đ. Ảnh: PNG/JPEG/WebP/GIF, tối đa 8, ≤3,6M ký tự base64. Hạn mức 400 lượt/giáo viên/ngày (`AI_RELAY_DAILY_LIMIT`), bảng `aiRelayQuota`.
+- [x] `aiProviders.ts` (text, ảnh, stream): `geminiRouteFor` — `own` → khoá riêng như cũ; `wallet` → relay; `both` → khoá riêng trước, lỗi CỦA KHOÁ (429/quota/khoá hỏng) mới sang relay; quá tải 503 thì KHÔNG sang ví. Chế độ lấy từ `aiModeStore` (chip + trang ví cập nhật). Chưa biết chế độ hoặc web chưa bật phí thì giữ hành vi cũ.
+- [x] Ảnh nén dần (1600→1280→1024px) cho lọt trần 4,5MB; banner "chưa có API Key" ẩn khi ví đã trả thay khoá Gemini; `aiKeyGate` bắt 402 của `/api/ai-relay` để mở hộp nạp tiền rồi gửi lại.
+- [ ] CHƯA đo/kiểm với thực tế: (1) Vercel có nhận `maxDuration: 300` cho hàm mới và tổng hàm ≤ 12 không — xem trạng thái deploy preview; (2) một lượt relay thật bằng tài khoản thật (cần đăng nhập Google); (3) giáo án dài thật mất bao lâu.
+- Cố ý CHƯA làm: streaming từ relay (hiện trả trọn một lần rồi hiện một cục); Claude/OpenAI/Grok/DeepSeek qua ví; `examOnlineParser.ts` (gọi Gemini trực tiếp).
+- Ràng buộc còn nguyên: nhiều lượt cùng lúc qua kiểm số dư trước khi trừ → có thể âm nhẹ (chặn `no_balance` + trần là đủ); người trong nhóm dùng mã 100% (THANG10) → chi phí do chủ dự án gánh.
 
 ## Ngoài phạm vi
 - Không đổi cách ghi `aiUsage`, không bù dữ liệu cũ: "hôm nay" bắt đầu đếm từ lúc triển khai.

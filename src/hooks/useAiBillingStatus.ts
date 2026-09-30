@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getAiKeyStatus, type AiKeyStatus } from '../lib/ai/aiBillingApi';
 import { AI_BILLING_UPDATED_EVENT } from '../lib/ai/aiKeyGate';
+import { setAiModeSnapshot } from '../lib/ai/aiModeStore';
 
 /** Sau một lượt gọi AI chờ chừng này (gộp các lượt liên tiếp) rồi mới đọc lại số dư. */
 const SETTLE_MS = 3_000;
@@ -23,7 +24,9 @@ export const useAiBillingStatus = (): { status: AiKeyStatus | null; refresh: () 
   const refresh = useCallback(async () => {
     lastFetchAt.current = Date.now();
     try {
-      setStatus(await getAiKeyStatus({ quiet: true }));
+      const next = await getAiKeyStatus({ quiet: true });
+      setAiModeSnapshot({ mode: next.mode, gateEnabled: next.gateEnabled });
+      setStatus(next);
     } catch {
       // Giữ số cũ.
     }
@@ -48,6 +51,7 @@ export const useAiBillingStatus = (): { status: AiKeyStatus | null; refresh: () 
       window.clearInterval(poll);
       window.removeEventListener(AI_BILLING_UPDATED_EVENT, onAiCall);
       document.removeEventListener('visibilitychange', onVisible);
+      setAiModeSnapshot(null);
     };
   }, [refresh]);
 

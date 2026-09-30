@@ -14,9 +14,9 @@ let resolver: Resolver | null = null;
 let pending: Promise<boolean> | null = null;
 let installed = false;
 
-const GATED_PATHS = ['/api/grade-homework', '/api/classroom', '/api/generate-simulation'];
+const GATED_PATHS = ['/api/grade-homework', '/api/classroom', '/api/generate-simulation', '/api/ai-relay'];
 
-/** Phát sau mỗi phản hồi của ba đường AI — chip Ví AI ở Header nghe để làm mới số dư. */
+/** Phát sau mỗi phản hồi của các đường AI — chip Ví AI ở Header nghe để làm mới số dư. */
 export const AI_BILLING_UPDATED_EVENT = 'ai-billing-updated';
 
 /** Header đánh dấu lượt ĐỌC số liệu ví: không coi là lượt dùng AI (nếu không chip sẽ tự làm mới chính nó mãi). */

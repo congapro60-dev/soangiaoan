@@ -10,6 +10,7 @@ import {
   type AiKeyStatus,
 } from '../../../lib/ai/aiBillingApi';
 import type { AiKeyMode } from '../../../lib/admin/aiKeyPolicy';
+import { setAiModeSnapshot } from '../../../lib/ai/aiModeStore';
 import { aiModeOptions, needsConsent, sourceStates, type SourceState } from '../../../lib/ai/aiModeView';
 import { gradeOneSubmission } from '../../../services/gradingApi';
 import { PRICE_SOURCES } from '../../../lib/admin/aiPricing';
@@ -53,6 +54,7 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
   const [regrade, setRegrade] = useState<{ done: number; total: number } | null>(null);
 
   const apply = useCallback((next: AiKeyStatus) => {
+    setAiModeSnapshot({ mode: next.mode, gateEnabled: next.gateEnabled });
     setStatus(next);
     onStatus?.(next);
   }, [onStatus]);
@@ -162,7 +164,7 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
           </div>
         )}
         <p className="mt-3 text-[11px] font-semibold leading-4 text-slate-400">
-          Áp dụng cho chấm bài, bài luyện, ảnh AI và các tính năng chạy trên máy chủ. Soạn giáo án, nâng cấp, dự giờ, ra đề hiện vẫn dùng khoá nhập trong Cài đặt; ví web cho các tính năng đó sẽ có sau.
+          Áp dụng cho mọi tính năng AI dùng Gemini: chấm bài, bài luyện, soạn giáo án, nâng cấp, dự giờ, ra đề… Chọn hãng khác (Claude, ChatGPT, Grok, DeepSeek) ở Cài đặt thì vẫn dùng khoá của hãng đó, ví web không trả cho các hãng này.
         </p>
       </div>
 

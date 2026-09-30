@@ -22,7 +22,7 @@ export const MODELS = GEMINI_RUNTIME_MODELS;
 
 const GEMINI_MAX_OUTPUT_TOKENS = 65536;
 
-const EXAM_FORMAT_SYSTEM_INSTRUCTION = `Bạn là chuyên gia soạn đề thi Toán THPT. BẮT BUỘC tuân thủ định dạng Markdown sau:
+export const EXAM_FORMAT_SYSTEM_INSTRUCTION = `Bạn là chuyên gia soạn đề thi Toán THPT. BẮT BUỘC tuân thủ định dạng Markdown sau:
 1. Trắc nghiệm: 4 đáp án trên 4 dòng, dùng list \`- **A.** \`, \`- **B.** \`...
 2. Đúng/Sai: 4 ý a, b, c, d trên 4 dòng riêng biệt, dùng list \`- a) \`, \`- b) \`... Tuyệt đối không viết liền 1 dòng.
 3. Trả lời ngắn: Mỗi câu cách nhau 1 dòng trống.
