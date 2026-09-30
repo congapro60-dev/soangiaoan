@@ -31,8 +31,6 @@ export const needsAdminLink = (user: User | null): boolean =>
 export interface AdminLinkResult {
   linkedEmail: string;
   primaryEmail: string;
-  /** Tài liệu còn nằm ở uid riêng của mail phụ (trước khi gộp), theo collection. */
-  orphans: Record<string, number>;
 }
 
 /** Đổi phiên mail phụ sang phiên tài khoản chính. Ném lỗi nếu máy chủ từ chối. */
@@ -46,5 +44,5 @@ export const linkAdminSession = async (user: User): Promise<AdminLinkResult> => 
   if (!response.ok || !data?.customToken) throw new Error(data?.error || `Máy chủ trả lỗi ${response.status}.`);
   await signInWithCustomToken(auth, data.customToken);
   linkedGoogleEmail = data.linkedEmail ?? null;
-  return { linkedEmail: data.linkedEmail ?? '', primaryEmail: data.primaryEmail ?? PRIMARY_ADMIN_EMAIL, orphans: data.orphans ?? {} };
+  return { linkedEmail: data.linkedEmail ?? '', primaryEmail: data.primaryEmail ?? PRIMARY_ADMIN_EMAIL };
 };

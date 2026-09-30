@@ -1462,7 +1462,7 @@ async function dispatchClassroom(res: VercelResponse, body: ReturnType<typeof re
     if (await handlePortfolioAction(db, body, res)) return;
     if (await handleAiKeyAction(db, body, res)) return;
     if (await handleAiBillingAction(db, body, res)) return;
-    if (await handleAdminLinkAction(db, body, res)) return;
+    if (await handleAdminLinkAction(body, res)) return;
     if (action === 'roster') return await handleRoster(db, body, res);
     if (action === 'login') return await handleLogin(db, body, res);
     if (action === 'studentAssignments') return await handleStudentAssignments(db, body, res);

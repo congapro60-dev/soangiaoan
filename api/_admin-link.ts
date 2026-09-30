@@ -9,33 +9,9 @@ import type { VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
 import { PRIMARY_ADMIN_EMAIL, isAdminEmail } from '../src/lib/admin/adminConfig.js';
 
-type Db = FirebaseFirestore.Firestore;
 type Body = Record<string, unknown>;
 
-/** Nơi dữ liệu người dùng nằm theo uid: [collection, field chủ sở hữu]. Chỉ để đếm dữ liệu mồ côi ở uid phụ. */
-const OWNED: ReadonlyArray<readonly [string, string]> = [
-  ['lessonPlans', 'userId'],
-  ['classes', 'teacherId'],
-  ['exams', 'teacherId'],
-  ['savedExams', 'userId'],
-  ['distributions', 'userId'],
-  ['userTemplates', 'userId'],
-  ['adaptiveLessons', 'teacherId'],
-];
-
-/** Số tài liệu còn nằm ở uid phụ (trước khi gộp) — để báo cho chủ dự án biết cần chuyển sang uid chính. */
-const orphanCounts = async (db: Db, secondaryUid: string): Promise<Record<string, number>> => {
-  const out: Record<string, number> = {};
-  await Promise.all(OWNED.map(async ([col, field]) => {
-    try {
-      const snap = await db.collection(col).where(field, '==', secondaryUid).count().get();
-      if (snap.data().count > 0) out[col] = snap.data().count;
-    } catch { /* đếm chỉ để báo; lỗi thì bỏ qua */ }
-  }));
-  return out;
-};
-
-export const handleAdminLinkAction = async (db: Db, body: Body, res: VercelResponse): Promise<boolean> => {
+export const handleAdminLinkAction = async (body: Body, res: VercelResponse): Promise<boolean> => {
   if (body.action !== 'linkAdminSession') return false;
   try {
     const decoded = await getAuth().verifyIdToken(String(body.idToken || ''));
@@ -51,7 +27,7 @@ export const handleAdminLinkAction = async (db: Db, body: Body, res: VercelRespo
       return true;
     }
     const customToken = await getAuth().createCustomToken(primary.uid, { linkedEmail: email });
-    res.status(200).json({ customToken, linkedEmail: email, primaryEmail: PRIMARY_ADMIN_EMAIL, orphans: await orphanCounts(db, decoded.uid) });
+    res.status(200).json({ customToken, linkedEmail: email, primaryEmail: PRIMARY_ADMIN_EMAIL });
   } catch (error) {
     console.error('[admin-link] lỗi', error);
     res.status(401).json({ error: 'Không gộp được phiên đăng nhập.' });

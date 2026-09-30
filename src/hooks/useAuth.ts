@@ -25,12 +25,7 @@ export const useAuth = () => {
       // Mail admin phụ → đổi sang phiên tài khoản chính (gộp dữ liệu); listener chạy lại với uid chính.
       if (currentUser && needsAdminLink(currentUser)) {
         try {
-          const result = await linkAdminSession(currentUser);
-          const orphanTotal = Object.values(result.orphans).reduce((a, b) => a + b, 0);
-          if (orphanTotal > 0) {
-            const detail = Object.entries(result.orphans).map(([name, n]) => `${name}: ${n}`).join(', ');
-            showToast(`Đã gộp với ${result.primaryEmail}. Mail này còn dữ liệu cũ chưa chuyển (${detail}) — nhờ Claude gộp giúp.`, 'warning');
-          }
+          await linkAdminSession(currentUser);
           return;
         } catch (err) {
           console.warn('Không gộp được phiên admin, dùng phiên riêng của mail này', err);

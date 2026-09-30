@@ -9,7 +9,7 @@ Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/
 
 Chủ dự án chốt: `congapro60@gmail.com` (chính, `PRIMARY_ADMIN_EMAIL`) và `cuong.vuviet@thedeweyschools.edu.vn` đồng bộ hết. Đăng nhập Google bằng mail phụ → `useAuth` gọi action `linkAdminSession` (`api/_admin-link.ts`, gộp trong `classroom`) → máy chủ xác minh (email_verified, provider google.com, email trong `ADMIN_EMAILS`, không phải mail chính) rồi cấp custom token của uid chính → `signInWithCustomToken`; mọi dữ liệu/quy tắc/API theo uid chạy nguyên, không sao chép.
 - Claim `linkedEmail` = mail Google thật; `src/lib/adminLink.ts` nhớ nó, `googleDrive.getDriveAccessToken` dùng Auth phụ `drive-token` (không đổi phiên) với login_hint mail đó — file Drive/Sheet của trường nằm ở mail trường.
-- **Bẫy:** dữ liệu ĐÃ tạo dưới uid riêng của mail trường (trước ngày này) không hiện sau khi gộp. Máy chủ đếm giáo án/lớp/đề… còn nằm ở uid phụ (`orphans`), app báo toast; chưa có công cụ chuyển — cần viết nếu có. Chưa E2E trên production (cần đăng nhập Google thật bằng mail trường). Test: `admin-link.test.ts`, `adminLink.test.ts`.
+- Dữ liệu đã tạo dưới uid riêng của mail trường trước ngày này: chủ dự án chốt BỎ (không chuyển). Chưa E2E trên production (cần đăng nhập Google thật bằng mail trường). Test: `admin-link.test.ts`, `adminLink.test.ts`.
 
 ## Báo cáo PH: "Kết quả theo yêu cầu cần đạt" thay danh sách chủ đề — 2026-09-30
 
