@@ -191,7 +191,7 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
       </label>
       <p className="mt-1 text-xs font-semibold text-slate-500">{loi ? <span className="text-rose-600">{loi}</span> : tienDo || `${rangeLabel(ky)} — sửa ngày cho khớp lịch trường mình.`}</p>
     </section>
-    <ClassParentAccessPanel classId={classId} className={className} refreshKey={lanCongBo} showToast={showToast} />
+    <ClassParentAccessPanel classId={classId} className={className} students={students} refreshKey={lanCongBo} showToast={showToast} />
     </>
   );
 };

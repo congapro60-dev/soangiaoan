@@ -4,10 +4,14 @@ import { ClipboardCopy, FileSpreadsheet, KeyRound, Loader2, RefreshCw, Send, Tra
 import { listParentPublished, issueParentPins, resetParentPin, unpublishParentReports } from '../../../lib/classroom/teacherService';
 import { DEFAULT_PARENT_MESSAGE, parentPortalLink, renderParentMessage, type PublishedParentGroup } from '../../../lib/classroom/parentAccess';
 import { REPORT_KINDS } from '../../../lib/classroom/reportKinds';
+import { SSM_MERGE_MESSAGE, buildSsmMergeWorkbook, missingCodeCount } from '../../../lib/classroom/ssmMailMerge';
+import type { Student } from '../../../types';
 
 interface Props {
   classId: string;
   className: string;
+  /** Danh sách lớp — lấy mã học sinh (khớp mã trên SSM) cho file Mail merge. */
+  students: readonly Student[];
   /** Tăng lên mỗi khi vừa công bố báo cáo để danh sách "Đã công bố" tải lại. */
   refreshKey: number;
   showToast: (msg: string, icon?: any) => void;
@@ -28,7 +32,7 @@ const copy = async (text: string): Promise<boolean> => {
  * Cổng phụ huynh phía giáo viên: cấp PIN riêng, soạn sẵn tin nhắn (link + PIN) cho từng phụ huynh để chép/Excel,
  * và danh sách kì đã công bố (gỡ được). Giáo viên chỉ phát PIN MỘT LẦN đầu năm; mỗi tháng chỉ cần bấm "Công bố".
  */
-export const ClassParentAccessPanel = ({ classId, className, refreshKey, showToast }: Props) => {
+export const ClassParentAccessPanel = ({ classId, className, students, refreshKey, showToast }: Props) => {
   const [rows, setRows] = useState<PinRow[] | null>(null);
   const [joinCode, setJoinCode] = useState('');
   const [template, setTemplate] = useState(readTemplate);
@@ -90,6 +94,18 @@ export const ClassParentAccessPanel = ({ classId, className, refreshKey, showToa
     XLSX.writeFile(book, `PIN phu huynh - ${className}.xlsx`.replace(/[\\/:*?"<>|]+/g, ' '));
   };
 
+  /** File Excel Mail merge cho SSM Edufit: mỗi phụ huynh nhận tin riêng có PIN + link của con qua app Edufit Parents. */
+  const taiExcelSsm = () => {
+    if (!rows) return;
+    const codeOf = new Map(students.map(student => [student.id, student.code ?? '']));
+    const input = rows.map(row => ({ code: codeOf.get(row.studentId) ?? '', name: row.name, pin: row.pin }));
+    const thieu = missingCodeCount(input);
+    XLSX.writeFile(buildSsmMergeWorkbook(input, link), `Mail merge SSM - ${className}.xlsx`.replace(/[\\/:*?"<>|]+/g, ' '));
+    showToast(thieu > 0
+      ? `Đã tải file. ${thieu} em chưa có mã học sinh — SSM sẽ tô đỏ dòng đó, ghép lớp với SSM hoặc nhập mã rồi tải lại.`
+      : 'Đã tải file Mail merge — vào SSM → Thông tin → Mail merge để tải lên.', thieu > 0 ? 'warning' : 'success');
+  };
+
   const go = async (group: PublishedParentGroup) => {
     if (!window.confirm(`Gỡ "${group.title || group.range}" của ${group.count} em khỏi cổng phụ huynh? Phụ huynh sẽ không xem được nữa (công bố lại được).`)) return;
     try {
@@ -119,6 +135,8 @@ export const ClassParentAccessPanel = ({ classId, className, refreshKey, showToa
             <button type="button" onClick={() => void chep(link, 'Đã chép link lớp.')} className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-50"><ClipboardCopy className="h-4 w-4" /> Chép link lớp</button>
             <button type="button" onClick={() => void chep(rows.map(messageOf).join('\n\n— — —\n\n'), `Đã chép ${rows.length} tin nhắn.`)} className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-50"><ClipboardCopy className="h-4 w-4" /> Chép tất cả tin nhắn</button>
             <button type="button" onClick={taiExcel} className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-50"><FileSpreadsheet className="h-4 w-4" /> Tải Excel</button>
+            <button type="button" onClick={taiExcelSsm} title="Gửi PIN + link tới từng phụ huynh qua SSM (app Edufit Parents) bằng tính năng Mail merge" className="inline-flex items-center gap-2 rounded-xl border border-indigo-200 bg-white px-3 py-2 text-xs font-black text-indigo-800 hover:bg-indigo-50"><FileSpreadsheet className="h-4 w-4" /> Excel cho SSM (Mail merge)</button>
+            <button type="button" onClick={() => void chep(SSM_MERGE_MESSAGE, 'Đã chép nội dung tin cho SSM — dán vào ô nội dung, giữ nguyên các chỗ {…}.')} className="inline-flex items-center gap-2 rounded-xl border border-indigo-200 bg-white px-3 py-2 text-xs font-black text-indigo-800 hover:bg-indigo-50"><ClipboardCopy className="h-4 w-4" /> Chép nội dung tin SSM</button>
           </>
         )}
       </div>
@@ -150,6 +168,7 @@ export const ClassParentAccessPanel = ({ classId, className, refreshKey, showToa
               </tbody>
             </table>
           </div>
+          <p className="rounded-xl bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-900">Gửi qua SSM: bấm "Excel cho SSM" → trên SSM vào <b>Thông tin → Mail merge</b>, tải file lên, bấm "Chép nội dung tin SSM" rồi dán vào ô nội dung. <b>Xem bản demo của SSM trước khi gửi</b> để chắc các chỗ {'{…}'} đã thay đúng PIN và link của từng em.</p>
           <p className="text-xs font-semibold text-slate-500">PIN là mã riêng từng em — gửi riêng cho từng phụ huynh, đừng gửi cả bảng vào nhóm chung. Chỉ link lớp mới gửi chung được.</p>
         </div>
       )}
