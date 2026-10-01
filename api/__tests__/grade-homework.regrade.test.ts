@@ -432,6 +432,43 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
       logLoi.mockRestore();
     });
 
+    it('RECITATION lần đầu thì thử lại kèm lời dặn riêng và chấm được', async () => {
+      const harness = seedChuaCham();
+      h.db = makeDb(harness);
+      const promptTexts = stubGeminiResponses(makeGeminiResponse('', 'RECITATION'), makeGeminiResponse(validGradeJson(7)));
+
+      const result = await call({ action: 'gradeOne', submissionId: 'sub-1' });
+
+      expect(result.statusCode).toBe(200);
+      expect(h.fetch).toHaveBeenCalledTimes(2);
+      expect(promptTexts[0]).not.toContain('NGHI NỘI DUNG GIỐNG TÀI LIỆU CÓ SẴN');
+      expect(promptTexts[1]).toContain('NGHI NỘI DUNG GIỐNG TÀI LIỆU CÓ SẴN');
+      expect(harness.state.submissions['sub-1']).toMatchObject({
+        status: 'graded',
+        grade: expect.objectContaining({
+          score: 7,
+          gradingRecovery: expect.objectContaining({ retryCount: 1, repairKinds: expect.arrayContaining(['recitation_retry']) }),
+        }),
+      });
+    });
+
+    it('RECITATION cả hai lần: báo đúng mã, trả lỗi thô cho giáo viên, không chấm bừa', async () => {
+      const harness = seedChuaCham();
+      h.db = makeDb(harness);
+      const logLoi = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      stubGeminiResponses(makeGeminiResponse('', 'RECITATION'), makeGeminiResponse('', 'RECITATION'));
+
+      const result = await call({ action: 'gradeOne', submissionId: 'sub-1' });
+
+      expect(result.statusCode).toBe(422);
+      expect(h.fetch).toHaveBeenCalledTimes(2);
+      expect(String(result.body?.error)).toMatch(/RECITATION/);
+      expect(String(result.body?.lastGradingErrorRaw)).toMatch(/RECITATION/);
+      expect(harness.state.submissions['sub-1']).toMatchObject({ status: 'error' });
+      expect((harness.state.submissions['sub-1'] as DocData).grade).toBeUndefined();
+      logLoi.mockRestore();
+    });
+
     it('lỗi mạng khi gọi Gemini: lỗi thô giữ nguyên nhân gốc, thông báo vẫn là câu an toàn', async () => {
       const harness = seedChuaCham();
       h.db = makeDb(harness);

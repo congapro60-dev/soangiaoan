@@ -21,6 +21,7 @@ import {
 import {
   buildHomeworkGradingPrompt,
   buildHomeworkGradingRetryPrompt,
+  HOMEWORK_GRADING_RECITATION_NOTE,
   buildPracticeGradingPrompt,
   buildPracticePrompt,
   isPracticeLevel,
@@ -74,6 +75,7 @@ import {
   type PracticeQuestionPublic,
   type PracticeQuestionKey,
   type PracticeSetDoc,
+  RECITATION_RETRY_KIND,
   type ProfileTopic,
   type SubmissionDoc,
   type SubmissionGrade,
@@ -312,6 +314,7 @@ const attemptHomeworkGrade = async (
   isStudentActor: boolean,
   transcription: string,
   timeoutMs: number,
+  afterRecitation = false,
 ): Promise<GradeAttemptResult> => {
   // Tiêm bản chép của pha 1 vào ô "bài làm dạng chữ": pha chấm suy luận trên văn bản sạch,
   // vẫn còn ảnh để đối chiếu khi nghi ngờ. Không có bản chép thì chấm thẳng như một pha.
@@ -332,7 +335,7 @@ const attemptHomeworkGrade = async (
   const basePrompt = buildHomeworkGradingPrompt(promptInput);
   const prompt = retryCount === 0
     ? basePrompt
-    : `${basePrompt}\n\n${buildHomeworkGradingRetryPrompt(promptInput)}`;
+    : `${basePrompt}\n\n${buildHomeworkGradingRetryPrompt(promptInput)}${afterRecitation ? HOMEWORK_GRADING_RECITATION_NOTE : ''}`;
   const raw = await callGeminiVision(
     prompt,
     [...ctx.assignmentImages, ...ctx.answerKeyImages, ...images],
@@ -353,7 +356,7 @@ const attemptHomeworkGrade = async (
     ? {
         mode: recovery.retryCount === 0 ? 'syntax_repaired' as const : 'retry_recovered' as const,
         retryCount: recovery.retryCount,
-        repairKinds: recovery.repairKinds,
+        repairKinds: afterRecitation ? [...recovery.repairKinds, RECITATION_RETRY_KIND] : recovery.repairKinds,
       }
     : undefined;
 
@@ -381,7 +384,7 @@ const attemptHomeworkGrade = async (
 const isRetryableGradeAttemptError = (error: unknown): boolean =>
   error instanceof HomeworkGradeContractError
   || error instanceof JsonRecoveryError
-  || (error instanceof GeminiResponseError && (error.kind === 'empty' || error.kind === 'max_tokens'));
+  || (error instanceof GeminiResponseError && (error.kind === 'empty' || error.kind === 'max_tokens' || error.kind === 'recitation'));
 
 const safeGradeErrorMessage = (error: unknown): string => {
   if (error instanceof GeminiResponseError) return error.message;
@@ -446,7 +449,10 @@ const gradeOneSubmission = async (
       // Không còn đủ giờ cho lượt thử lại thì báo lỗi luôn. Cố thêm một lượt nữa là chắc chắn bị
       // Vercel giết giữa chừng, và bài nộp sẽ nằm lại "Đang chấm" không ai gỡ được.
       if (conLaiMs() < MIN_GEMINI_BUDGET_MS) throw error;
-      attempt = await attemptHomeworkGrade(ctx, images, studentText, apiKey, 1, isStudentActor, transcription, conLaiMs());
+      attempt = await attemptHomeworkGrade(
+        ctx, images, studentText, apiKey, 1, isStudentActor, transcription, conLaiMs(),
+        error instanceof GeminiResponseError && error.kind === 'recitation',
+      );
     }
     const { grade } = attempt;
 
@@ -823,10 +829,10 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
       response.gradePreserved = true;
       // Safe message for student-facing callers
       response.lastGradingError = latestData?.lastGradingError || 'Lần chấm lại trước chưa thành công; điểm hiện tại vẫn được giữ nguyên.';
-      // Raw error for teacher-facing callers only (actionable detail)
-      if (isTeacher && latestData?.lastGradingErrorRaw) {
-        response.lastGradingErrorRaw = latestData.lastGradingErrorRaw;
-      }
+    }
+    // Raw error for teacher-facing callers only (actionable detail) — cả khi bài chưa từng có điểm.
+    if (isTeacher && latestData?.lastGradingErrorRaw) {
+      response.lastGradingErrorRaw = latestData.lastGradingErrorRaw;
     }
     return res.status(422).json(response);
   }

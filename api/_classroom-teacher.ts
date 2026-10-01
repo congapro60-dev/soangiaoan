@@ -116,7 +116,8 @@ const submissionFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData
   const lastGradingError = hasValidGrade && typeof data.lastGradingError === 'string'
     ? data.lastGradingError
     : undefined;
-  const lastGradingErrorRaw = hasValidGrade && typeof data.lastGradingErrorRaw === 'string'
+  // Bài chưa từng có điểm mà chấm hỏng (status error) cũng cần lỗi thô: đó là ca duy nhất không có gì khác để lần ra.
+  const lastGradingErrorRaw = (hasValidGrade || normalizedStatus === 'error') && typeof data.lastGradingErrorRaw === 'string'
     ? data.lastGradingErrorRaw
     : undefined;
   // For status error without grade, teacher sees the actual error message

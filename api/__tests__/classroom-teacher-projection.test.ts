@@ -186,6 +186,37 @@ describe('POST /api/classroom · teacher projection (submissions)', () => {
     expect(sub).not.toHaveProperty('grade');
   });
 
+  it('giáo viên thấy lastGradingErrorRaw của bài lỗi chưa từng có điểm', async () => {
+    const harness = seed();
+    harness.store.submissions['sub-1'] = {
+      ...harness.store.submissions['sub-1'],
+      status: 'error',
+      errorMessage: 'Không gọi được Gemini lúc này. Thử lại sau ít phút.',
+      lastGradingErrorRaw: 'Không gọi được Gemini lúc này. ← TypeError: getaddrinfo ENOTFOUND',
+      grade: undefined,
+    };
+
+    const result = await call({ action: 'teacherSubmissions', classId: 'lop-1', assignmentId: 'asg-1' });
+
+    const sub = (result.payload?.submissions as DocData[])[0];
+    expect(sub.status).toBe('error');
+    expect(sub.lastGradingErrorRaw).toBe('Không gọi được Gemini lúc này. ← TypeError: getaddrinfo ENOTFOUND');
+  });
+
+  it('lỗi thô cũ còn sót không lộ ra khi bài không ở trạng thái lỗi và chưa có điểm', async () => {
+    const harness = seed();
+    harness.store.submissions['sub-1'] = {
+      ...harness.store.submissions['sub-1'],
+      status: 'submitted',
+      lastGradingErrorRaw: 'cũ',
+      grade: undefined,
+    };
+
+    const result = await call({ action: 'teacherSubmissions', classId: 'lop-1', assignmentId: 'asg-1' });
+
+    expect((result.payload?.submissions as DocData[])[0]).not.toHaveProperty('lastGradingErrorRaw');
+  });
+
   it('giáo viên thấy evidenceSyncError (teacher/internal-only)', async () => {
     const harness = seed();
     harness.store.submissions['sub-1'].evidenceSyncError = 'Sync failed internal error';
