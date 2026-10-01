@@ -254,6 +254,19 @@ describe('POST /api/classroom · grade lifecycle', () => {
     expect(rows[1]).toEqual(row('Câu 2'));
   });
 
+  it('ô đáp án/giải thích rỗng gửi lên không xoá chữ đã lưu, không gắn đã soát', async () => {
+    const harness = seed();
+    harness.store.submissions['sub-1'].grade = { ...oldGrade, questionResults: [row('Câu 1')] };
+
+    const result = await call({
+      action: 'saveSubmissionGrade', submissionId: 'sub-1',
+      grade: { score: 8, maxScore: 10, feedback: 'x', weakTopics: [], questionResults: [{ ...row('Câu 1'), expectedAnswer: '', explanation: '' }] },
+    });
+
+    expect(result.statusCode).toBe(200);
+    expect(harness.store.submissions['sub-1'].grade.questionResults).toEqual([row('Câu 1')]);
+  });
+
   it('sửa đáp án một câu cho cả lớp: tính lại mọi bài, bài đã duyệt giữ duyệt, có lịch sử', async () => {
     const harness = seed();
     harness.store.submissions['sub-1'].grade = {

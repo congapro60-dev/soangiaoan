@@ -29,7 +29,11 @@ export const mergeTeacherQuestionResults = (
       byNumber.set((item as Record<string, string>).questionNumber, item as Record<string, unknown>);
     }
   }
-  const text = (raw: unknown, fallback: string) => (typeof raw === 'string' ? raw.slice(0, MAX_FIELD) : fallback);
+  // Ô rỗng gửi lên KHÔNG xoá chữ đã lưu: bản chiếu cũ từng ẩn đáp án/giải thích (gửi về chuỗi rỗng),
+  // nhận rỗng là xoá đáp án thật của cả bảng chỉ vì thầy cô bấm Lưu.
+  const text = (raw: unknown, fallback: string, keepIfEmpty = false) => (
+    typeof raw === 'string' && !(keepIfEmpty && raw.trim() === '') ? raw.slice(0, MAX_FIELD) : fallback
+  );
   return previous.map(old => {
     const raw = byNumber.get(old.questionNumber);
     if (!raw) return old;
@@ -40,9 +44,9 @@ export const mergeTeacherQuestionResults = (
       score: Number.isFinite(score) ? Math.min(Math.max(score, 0), old.maxScore) : old.score,
       status,
       studentAnswer: text(raw.studentAnswer, old.studentAnswer),
-      expectedAnswer: text(raw.expectedAnswer, old.expectedAnswer),
+      expectedAnswer: text(raw.expectedAnswer, old.expectedAnswer, true),
       errorType: text(raw.errorType, old.errorType),
-      explanation: text(raw.explanation, old.explanation),
+      explanation: text(raw.explanation, old.explanation, true),
       correction: text(raw.correction, old.correction),
       nextPractice: text(raw.nextPractice, old.nextPractice),
     };
