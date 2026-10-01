@@ -46,6 +46,9 @@ export interface AiKeyStatus {
   relayVendors?: Array<'claude' | 'openai'>;
   /** GLM 5.2 đã bật trên máy chủ chưa. Máy chủ cũ không gửi trường này. */
   gatewayReady?: boolean;
+  /** Chủ dự án: có công tắc "Thử trừ ví" không / đang bật không (bị tính tiền như giáo viên thường). */
+  canTestCharge?: boolean;
+  testCharge?: boolean;
   blockedSubmissionIds: string[];
   balanceVnd: number;
   topupCode: string;
@@ -59,6 +62,8 @@ export const saveAiKey = (key: string) => call<AiKeyStatus>({ action: 'saveAiKey
 export const deleteAiKey = () => call<AiKeyStatus>({ action: 'deleteAiKey' });
 /** `accepted` = giáo viên đã tích đồng ý tính phí (bắt buộc lần đầu chọn ví/cả hai, trừ người trong nhóm). */
 export const setAiMode = (mode: AiKeyMode, accepted = false) => call<AiKeyStatus>({ action: 'setAiMode', mode, ...(accepted ? { accepted: true } : {}) });
+/** Chủ dự án bật/tắt "Thử trừ ví": bị tính tiền như giáo viên thường để tự kiểm thử. Người khác gọi thì máy chủ trả 403. */
+export const setAiTestCharge = (enabled: boolean) => call<AiKeyStatus>({ action: 'setAiTestCharge', enabled });
 export const setAiSpendCap = (capVnd: number | null) => call<AiKeyStatus>({ action: 'setAiSpendCap', capVnd });
 export const redeemAiVoucher = (code: string) => call<AiKeyStatus>({ action: 'redeemVoucher', code });
 

@@ -63,6 +63,8 @@ interface TeacherKeyDoc {
   mode?: AiKeyMode;
   /** Trần chi tiêu khoá chung mỗi tháng (VNĐ) do giáo viên tự đặt; vắng/0 = không giới hạn. */
   monthlyCapVnd?: number | null;
+  /** Chỉ chủ dự án: bật để bị tính tiền như giáo viên thường (kiểm thử ví bằng chính tài khoản của mình). */
+  testCharge?: boolean;
 }
 
 const strings = (value: unknown): string[] => (Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : []);
@@ -125,9 +127,16 @@ const adminUids = (): Promise<Set<string>> => {
   return adminUidsCache;
 };
 
-/** Lượt dùng khoá chung có bị trừ ví không: chỉ khi đã bật kiểm soát và người chịu phí không phải chủ dự án. */
-const billingFor = async (db: Db, access: AiAccessSettings, uid: string): Promise<AiKeyChoice['billing']> => {
-  if (!access.enabled || access.exemptUids.includes(uid) || (await adminUids()).has(uid)) return null;
+/** Tài khoản chủ dự án (miễn trừ ví): nằm trong `exemptUids` hoặc là một trong các `ADMIN_EMAILS`. */
+const isExemptUid = async (access: AiAccessSettings, uid: string): Promise<boolean> =>
+  access.exemptUids.includes(uid) || (await adminUids()).has(uid);
+
+/**
+ * Lượt dùng khoá chung có bị trừ ví không: chỉ khi đã bật kiểm soát và người chịu phí không phải chủ dự án.
+ * Chủ dự án bật `testCharge` (công tắc "Thử trừ ví") thì bị tính như giáo viên thường để tự kiểm thử ví.
+ */
+const billingFor = async (db: Db, access: AiAccessSettings, uid: string, keyDoc: TeacherKeyDoc | null): Promise<AiKeyChoice['billing']> => {
+  if (!access.enabled || (await isExemptUid(access, uid) && keyDoc?.testCharge !== true)) return null;
   const plan = await billingPlanFor(db, uid);
   if (!plan) throw new AiKeyRequiredError('no_balance', uid);
   return plan;
@@ -181,7 +190,7 @@ export const ensureGeminiKey = async (fallbackKey: string, options: { vendor?: b
   });
   if (decision.use === 'blocked') throw new AiKeyRequiredError(decision.reason, ownerUid);
   if (decision.use === 'own') return (context.keyChoice = { key: String(keyDoc?.geminiKey), source: 'own', ownerUid, billing: null });
-  const billing = withCap(await billingFor(db, access, ownerUid), keyDoc);
+  const billing = withCap(await billingFor(db, access, ownerUid, keyDoc), keyDoc);
   await assertUnderCap(db, ownerUid, keyDoc, Boolean(billing));
   return (context.keyChoice = { key: fallbackKey, source: decision.use, ownerUid, billing });
 };
@@ -205,7 +214,7 @@ export const onOwnKeyFailure = async (choice: AiKeyChoice, status: AiKeyStatus, 
   if (effectiveAiMode({ mode: keyDoc?.mode, isShared, consent: keyDoc?.consent?.accepted === true }) !== 'both') {
     throw new AiKeyRequiredError(status === 'invalid' ? 'invalid' : 'exhausted', uid);
   }
-  const billing = withCap(await billingFor(db, access, uid), keyDoc);
+  const billing = withCap(await billingFor(db, access, uid, keyDoc), keyDoc);
   await assertUnderCap(db, uid, keyDoc, Boolean(billing));
   const next: AiKeyChoice = { key: fallbackKey, source: isShared ? 'shared' : 'owner_consent', ownerUid: uid, billing };
   const context = currentAiUsageContext();
@@ -230,7 +239,7 @@ export const assertSharedAiAllowed = async (uid: string): Promise<'shared' | 'ow
     }
     if (!isShared) source = 'owner_consent';
   }
-  const billing = await billingFor(db, access, uid);
+  const billing = await billingFor(db, access, uid, keyDoc);
   await assertUnderCap(db, uid, keyDoc, Boolean(billing));
   // Ghi nguồn vào ngữ cảnh để lượt dùng GLM vào bảng kê/trừ ví đúng người (khoá GLM nằm ở biến môi trường riêng).
   const context = currentAiUsageContext();
@@ -281,13 +290,18 @@ const statusPayload = async (db: Db, uid: string, email: string): Promise<Record
     loadUsdVnd(db),
     walletView(db, uid, email),
   ]);
-  const charged = access.enabled && !access.exemptUids.includes(uid);
+  const exemptAccount = await isExemptUid(access, uid);
+  const testing = exemptAccount && keyDoc?.testCharge === true;
+  const charged = access.enabled && (!exemptAccount || testing);
   return {
     ...wallet,
     month,
     /** Đang trừ ví theo từng lượt (đã bật kiểm soát, không phải chủ dự án). */
     charged,
-    exempt: access.exemptUids.includes(uid),
+    exempt: exemptAccount && !testing,
+    /** Chủ dự án mới có công tắc "Thử trừ ví"; `testCharge` = đang bật (bị tính tiền như giáo viên thường). */
+    canTestCharge: exemptAccount,
+    testCharge: testing,
     spentVnd: charged ? spend.chargeVnd : usdToVndRounded(spend.costUsd, usdVnd),
     grossVnd: usdToVndRounded(spend.costUsd, usdVnd),
     spentCalls: spend.calls,
@@ -317,7 +331,7 @@ const statusPayload = async (db: Db, uid: string, email: string): Promise<Record
 
 export const handleAiKeyAction = async (db: Db, body: Body, res: VercelResponse): Promise<boolean> => {
   const action = String(body.action || '');
-  if (!['aiKeyStatus', 'saveAiKey', 'deleteAiKey', 'setAiConsent', 'setAiMode', 'setAiSpendCap', 'redeemVoucher'].includes(action)) return false;
+  if (!['aiKeyStatus', 'saveAiKey', 'deleteAiKey', 'setAiConsent', 'setAiMode', 'setAiSpendCap', 'redeemVoucher', 'setAiTestCharge'].includes(action)) return false;
   const me = await teacherIdentity(body);
   if (!me) {
     res.status(401).json({ error: 'Cần đăng nhập tài khoản giáo viên.' });
@@ -354,6 +368,13 @@ export const handleAiKeyAction = async (db: Db, body: Body, res: VercelResponse)
       res.status(422).json({ error: result.error });
       return true;
     }
+  } else if (action === 'setAiTestCharge') {
+    // Chỉ chủ dự án: người thường không được tự đổi cách tính tiền của mình.
+    if (!(await isExemptUid(await loadAiAccess(db), me.uid))) {
+      res.status(403).json({ error: 'Chỉ chủ dự án dùng được chế độ thử trừ ví.' });
+      return true;
+    }
+    await ref.set({ uid: me.uid, email: me.email, testCharge: body.enabled === true, updatedAt: now }, { merge: true });
   } else if (action === 'setAiConsent') {
     // Đường cũ: đồng ý = "cả hai", thu hồi = "chỉ khoá riêng". Giao diện mới dùng setAiMode.
     const accepted = body.accepted === true;

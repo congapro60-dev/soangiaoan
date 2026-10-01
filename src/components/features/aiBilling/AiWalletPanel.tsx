@@ -7,6 +7,7 @@ import {
   saveAiKey,
   setAiMode,
   setAiSpendCap,
+  setAiTestCharge,
   type AiKeyStatus,
 } from '../../../lib/ai/aiBillingApi';
 import type { AiKeyMode } from '../../../lib/admin/aiKeyPolicy';
@@ -132,6 +133,21 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
 
   return (
     <div className="space-y-4">
+      {status.canTestCharge && (
+        <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-xs font-semibold text-amber-900">
+          <input
+            type="checkbox"
+            className="mt-0.5 h-4 w-4"
+            checked={Boolean(status.testCharge)}
+            disabled={Boolean(busy)}
+            onChange={event => void run('testCharge', () => setAiTestCharge(event.target.checked), event.target.checked ? 'Đã bật thử trừ ví: tài khoản này bị tính tiền như giáo viên thường.' : 'Đã tắt thử trừ ví.')}
+          />
+          <span>
+            <span className="block font-black">Thử trừ ví (chỉ chủ dự án)</span>
+            Bật để chính tài khoản này bị tính tiền như giáo viên thường, kiểm tra chip, sao kê và số dư. Cần có số dư: cộng thử ở tab Quản trị → điều chỉnh ví. Tắt đi là lại miễn trừ.
+          </span>
+        </label>
+      )}
       {!status.gateEnabled && (
         <p className="rounded-xl bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">Web chưa bật tính phí: mọi lượt AI dùng khoá chung hiện đều miễn phí, ví chưa bị trừ. Lựa chọn bên dưới có hiệu lực khi web bật tính phí.</p>
       )}
