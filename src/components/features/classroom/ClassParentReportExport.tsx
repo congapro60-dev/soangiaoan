@@ -8,8 +8,9 @@ import { draftParentReportComment, loadParentReportNote, loadScoreBook, publishP
 import { PUBLISH_CHUNK } from '../../../lib/classroom/parentAccess';
 import { requirementsInStage } from '../../../lib/classroom/parentRequirements';
 import { stageForPeriod, type Program } from '../../../lib/classroom/reportStage';
-import { loadClassProgram, saveClassProgram } from '../../../lib/classroom/classProgram';
-import { brandingForReport, fileToLogoDataUrl, loadParentBranding, saveParentBranding, type ParentBranding } from '../../../lib/classroom/parentBranding';
+import { saveClassProgram } from '../../../lib/classroom/classProgram';
+import { effectiveBranding, effectiveClassProgram } from '../../../lib/classroom/ownerDefaults';
+import { brandingForReport, fileToLogoDataUrl, saveParentBranding, type ParentBranding } from '../../../lib/classroom/parentBranding';
 import { ClassParentAccessPanel } from './ClassParentAccessPanel';
 import { studentScoreView } from '../../../lib/classroom/scoreBook';
 import { buildPeriodParentReport } from '../../../lib/classroom/parentReportBuilder';
@@ -37,8 +38,8 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
   const [aiChoEmChuaCo, setAiChoEmChuaCo] = useState(false);
   const [tienDo, setTienDo] = useState('');
   const [lanCongBo, setLanCongBo] = useState(0);
-  const [nhanDien, setNhanDien] = useState<ParentBranding>(loadParentBranding);
-  const [chuongTrinh, setChuongTrinh] = useState<Program | null>(() => loadClassProgram(classId));
+  const [nhanDien, setNhanDien] = useState<ParentBranding>(effectiveBranding);
+  const [chuongTrinh, setChuongTrinh] = useState<Program | null>(() => effectiveClassProgram(classId, className));
   const doiChuongTrinh = (value: string) => {
     const next: Program | null = value === 'TDS' || value === 'MOET' ? value : null;
     setChuongTrinh(next);
