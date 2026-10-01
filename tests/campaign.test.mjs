@@ -4,7 +4,7 @@ import {createCampaign,campaignPublic,mathQuestion,numericAnswer,TOPICS,THEMES} 
 import {stationLogic} from '../lib/station-logic.js';
 import {safePuzzle,checkPuzzle} from '../lib/challenges.js';
 import {initRace,roll,finishStation,advanceMath,racePublic} from '../lib/race.js';
-assert.equal(TOPICS.length,21);assert.equal(Object.keys(THEMES).length,4);
+assert.equal(TOPICS.length,21);assert.equal(Object.keys(THEMES).length,5);
 assert.throws(()=>createCampaign({grade:10,topics:['integral']}));assert.throws(()=>createCampaign({topics:[]}));assert.throws(()=>createCampaign({minLevel:3,maxLevel:2}));assert.throws(()=>createCampaign({stationMax:9}));
 assert(numericAnswer('2/3',2/3));assert(numericAnswer('0,5',.5));assert(!numericAnswer('1/0',1));assert(!numericAnswer('1+1',2));assert(!numericAnswer('',0));
 let total=0;
