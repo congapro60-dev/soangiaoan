@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Trạm mất tín hiệu · Escape Toán 10",
-  description: "Escape game theo nhóm: Toán 10, suy luận logic và gợi ý giàn giáo tự tính phạt.",
+  title: "Cuộc đua cứu hộ Trạm 07 · Toán 10",
+  description: "Cuộc đua theo nhóm với linh vật, xúc xắc cân bằng, thử thách Toán 10 và logic, sự kiện và kỹ năng tự tính điểm.",
   other: {
     "codex-preview": "development",
   },

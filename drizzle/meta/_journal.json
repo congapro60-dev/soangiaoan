@@ -22,6 +22,13 @@
       "when": 1790837389934,
       "tag": "0002_big_ogun",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1790842266501,
+      "tag": "0003_dazzling_rockslide",
+      "breakpoints": true
     }
   ]
 }
