@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AlertTriangle, Users } from 'lucide-react';
 import type { QuestionResult, QuestionResultStatus } from '../../../lib/classroom/types';
+import { NhanXetMarkdown } from './NhanXetMarkdown';
 import { isBlankAnswer, parseExpectedAnswer, rescoreQuestion, type ObjectiveAnswer } from '../../../lib/classroom/questionRescore';
 
 interface Props {
@@ -62,7 +63,10 @@ const ScoreInput = ({ value, max, label, onCommit }: { value: number; max: numbe
  * Câu trắc nghiệm / Đúng-Sai / trả lời ngắn tự tính lại điểm, không tốn lượt AI.
  */
 export const QuestionResultsEditor = ({ rows, original, canFixForClass, classFixes, onChange, onToggleClassFix }: Props) => {
-  const capNhat = (index: number, next: QuestionResult) => onChange(rows.map((q, i) => (i === index ? next : q)));
+  // Thầy cô đã đụng tay vào câu nào thì câu đó coi như đã soát: bỏ cờ "cần soát" ngay trên màn hình
+  // (máy chủ cũng làm vậy khi lưu).
+  const capNhat = (index: number, next: QuestionResult) =>
+    onChange(rows.map((q, i) => (i === index ? { ...next, needsTeacherReview: false } : q)));
 
   const suaChu = (index: number, field: 'studentAnswer' | 'expectedAnswer', value: string) => {
     const edited = { ...rows[index], [field]: value };
@@ -154,7 +158,9 @@ export const QuestionResultsEditor = ({ rows, original, canFixForClass, classFix
                 </label>
               )}
               {q.explanation.trim() && (
-                <p className="mt-2 line-clamp-2 text-xs font-semibold text-slate-500" title={q.explanation}>{q.explanation}</p>
+                <div className="mt-2 line-clamp-3 text-xs text-slate-500">
+                  <NhanXetMarkdown>{q.explanation}</NhanXetMarkdown>
+                </div>
               )}
             </div>
           );
