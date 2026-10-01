@@ -104,11 +104,13 @@ const LEVEL_ORDER: readonly RequirementLevel[] = ['vung', 'dang', 'chua'];
  */
 const buildRequirementSection = (lines: readonly ParentRequirementLine[]): [string, string] => {
   const groups = groupRequirementLines(lines);
-  const count = (level: RequirementLevel) => lines.filter(line => line.level === level).length;
-  const summary = `<div class="req-sum">${LEVEL_ORDER.map(level => `<span class="req-lv lv-${level}">${requirementLevelLabel(level)}: ${count(level)}</span>`).join('')}</div>
+  const thin = (line: ParentRequirementLine) => line.evidence < MIN_REQUIREMENT_EVIDENCE;
+  const count = (level: RequirementLevel) => lines.filter(line => !thin(line) && line.level === level).length;
+  const thinCount = lines.filter(thin).length;
+  const summary = `<div class="req-sum">${LEVEL_ORDER.filter(level => level === 'vung' || count(level) > 0).map(level => `<span class="req-lv lv-${level}">${requirementLevelLabel(level)}: ${count(level)}</span>`).join('')}${thinCount > 0 ? `<span class="req-lv lv-thieu">Chưa đủ căn cứ: ${thinCount}</span>` : ''}</div>
 <p class="muted" style="margin:6px 0 10px;font-size:11.5px">Đối chiếu Chương trình GDPT 2018 môn Toán. Mức do thầy cô xác nhận, gợi ý từ tỉ lệ điểm các câu đã duyệt trong kì: Vững ≥ 80% · Đang hình thành 50–79% · Chưa đạt &lt; 50%.</p>`;
   const row = (line: ParentRequirementLine, text: string) => `<div class="req-row">
-  <span class="req-lv lv-${line.level}">${requirementLevelLabel(line.level)}</span>
+  <span class="req-lv lv-${thin(line) ? 'thieu' : line.level}">${thin(line) ? 'Chưa đủ căn cứ' : requirementLevelLabel(line.level)}</span>
   <div class="req-body">${line.note
     ? `<div class="req-main">${esc(line.note)}</div><div class="req-text">Theo chương trình: ${esc(text)}</div>`
     : `<div class="req-main">${esc(text)}</div>`}<div class="req-ev">Căn cứ: ${line.evidence} câu · đạt ${Math.round(line.percent)}%</div></div>
@@ -140,8 +142,8 @@ const buildMeter = (avg: number | null): string => {
 
 /** Đường xu hướng điểm qua các bài đã chấm (SVG). */
 const buildSparkline = (series: readonly number[], trend: TrendMeta): string => {
-  if (series.length < 2) {
-    return `<p class="muted">Cần ít nhất 2 bài đã chấm để vẽ xu hướng.</p><p class="trend-line" style="color:${trend.color}">${trend.arrow} ${esc(trend.label)}</p>`;
+  if (series.length < MIN_GRADED_FOR_TREND) {
+    return `<p class="muted">Cần ít nhất ${MIN_GRADED_FOR_TREND} bài đã chấm để vẽ xu hướng.</p>`;
   }
   const W = 232, H = 66, pad = 9;
   const stepX = (W - 2 * pad) / (series.length - 1);
@@ -162,6 +164,18 @@ const buildSparkline = (series: readonly number[], trend: TrendMeta): string => 
   <p class="trend-line" style="color:${trend.color}">${trend.arrow} ${esc(trend.label)}</p>`;
 };
 
+/** Dưới ngần này thì "xu hướng" chưa đáng tin: chỉ 1–2 điểm không vẽ được đường, dễ kết luận sai về con. */
+const MIN_GRADED_FOR_TREND = 3;
+/** Một yêu cầu cần đạt dựa trên ít hơn ngần này câu thì không gắn mức Vững/Đang hình thành/Chưa đạt — ghi "Chưa đủ căn cứ". */
+export const MIN_REQUIREMENT_EVIDENCE = 3;
+
+/** Chữ cái đầu của họ và tên cuối ("Vũ Việt Cường" → "VC") cho ảnh đại diện ở cuối báo cáo. */
+const initialsOf = (name: string): string => {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return '';
+  return (words[0][0] + (words.length > 1 ? words[words.length - 1][0] : '')).toUpperCase();
+};
+
 interface Takeaway { tone: 'good' | 'focus' | 'home'; label: string; text: string }
 
 /**
@@ -173,8 +187,8 @@ export const keyTakeaways = (
   requirements?: readonly ParentRequirementLine[] | null,
 ): Takeaway[] => {
   const lines = requirements ?? [];
-  const good = lines.filter(line => line.level === 'vung' && line.note).sort((a, b) => b.percent - a.percent)[0];
-  const focus = lines.filter(line => line.level !== 'vung' && line.note).sort((a, b) => a.percent - b.percent)[0];
+  const good = lines.filter(line => line.evidence >= MIN_REQUIREMENT_EVIDENCE && line.level === 'vung' && line.note).sort((a, b) => b.percent - a.percent)[0];
+  const focus = lines.filter(line => line.evidence >= MIN_REQUIREMENT_EVIDENCE && line.level !== 'vung' && line.note).sort((a, b) => a.percent - b.percent)[0];
   const out: Takeaway[] = [];
   const goodText = good?.note || report.strengths[0];
   if (goodText) out.push({ tone: 'good', label: 'Điểm mạnh', text: goodText });
@@ -407,6 +421,25 @@ const printStyle = `
 #${ROOT_ID} .cmp-verdict { margin:8px 0 0; font-size:12.5px; font-weight:700; color:#334155; }
 #${ROOT_ID} .req-sum { display:flex; gap:8px; flex-wrap:wrap; }
 #${ROOT_ID} .req-sum .req-lv { width:auto; padding:3px 12px; }
+#${ROOT_ID} .chips { display:flex; flex-wrap:wrap; gap:8px; margin:-4px 0 14px; }
+#${ROOT_ID} .chip { display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:5px 13px; font-size:12.5px; font-weight:700; }
+#${ROOT_ID} .chip b { font-size:14px; }
+#${ROOT_ID} .chip-ok { background:#dcfce7; color:#166534; } #${ROOT_ID} .chip-wait { background:#fef3c7; color:#92400e; } #${ROOT_ID} .chip-miss { background:#ffe4e6; color:#9f1239; }
+#${ROOT_ID} .verdict .basis { display:block; margin-top:3px; font-size:11.5px; opacity:.92; font-weight:600; }
+#${ROOT_ID} .more-sum { display:flex; align-items:center; gap:12px; padding:13px 16px; border:1px solid #cfe0ee; background:#f1f7fc; border-radius:12px; margin:24px 0 4px; color:#17375e; list-style:none; cursor:pointer; }
+#${ROOT_ID} .more-sum::-webkit-details-marker { display:none; }
+#${ROOT_ID} .more-sum .ico { display:inline-flex; width:32px; height:32px; border-radius:10px; background:#fff; border:1px solid #cfe0ee; align-items:center; justify-content:center; flex:none; }
+#${ROOT_ID} .more-t b { display:block; font-size:15px; font-weight:800; text-transform:uppercase; letter-spacing:.02em; }
+#${ROOT_ID} .more-t small { display:block; font-size:12px; color:#475569; font-weight:600; margin-top:2px; }
+#${ROOT_ID} .more-sum .chev { margin-left:auto; font-size:16px; transition:transform .2s; }
+#${ROOT_ID} .more[open] > .more-sum .chev { transform:rotate(180deg); }
+#${ROOT_ID} .lv-thieu { background:#e2e8f0; color:#475569; }
+#${ROOT_ID} .sig-name { margin-top:3px; font-size:13.5px; font-weight:800; color:#17375e; text-align:center; }
+#${ROOT_ID} .teacher-foot { display:flex; align-items:center; gap:14px; margin-top:20px; padding:14px 16px; border:1px solid #cfe0ee; border-radius:14px; background:linear-gradient(135deg,#f1f7fc,#ffffff); }
+#${ROOT_ID} .avatar { width:46px; height:46px; border-radius:50%; background:linear-gradient(135deg,#17375e,#14a3a3); color:#fff; font-weight:800; font-size:16px; display:flex; align-items:center; justify-content:center; flex:none; }
+#${ROOT_ID} .teacher-foot b { display:block; font-size:15px; color:#17375e; }
+#${ROOT_ID} .teacher-foot small { display:block; font-size:12.5px; color:#475569; font-weight:600; }
+#${ROOT_ID} .teacher-foot p { margin:4px 0 0; font-size:13px; color:#334155; }
 #${ROOT_ID} .req-topic { margin:12px 0 4px; font-size:12.5px; font-weight:800; color:#1e3a8a; border-bottom:1px solid #dbe4ec; padding-bottom:3px; }
 #${ROOT_ID} .req-row { display:flex; gap:10px; align-items:flex-start; padding:6px 0; border-bottom:1px dashed #e2e8f0; }
 #${ROOT_ID} .req-lv { flex:none; display:inline-block; width:112px; text-align:center; border-radius:999px; padding:2px 8px; font-size:11px; font-weight:800; }
@@ -483,41 +516,36 @@ export const buildParentReportPrintDoc = (
   const schoolName = branding?.schoolName?.trim();
   const teacherName = branding?.teacherName?.trim();
   const logo = safeLogoDataUrl(branding?.logoDataUrl);
-  const takeaways = buildTakeaways(keyTakeaways(report, requirements));
+  const takeawayItems = keyTakeaways(report, requirements);
+  const takeaways = buildTakeaways(takeawayItems);
   // Mức thấp không dùng nền đỏ chói: phụ huynh đọc dòng đầu tiên này như một lời phán xét về con.
   const verdictBg = avg !== null && avg < 50 ? '#9a3412' : band.color;
-  // Gọi đúng chỗ muốn đặt trong bản dựng (section() đánh số theo thứ tự gọi).
+
+  // Mức và xu hướng chỉ đáng tin khi đủ bài: ít bài thì nói rõ là tham khảo, không khẳng định.
+  const gradedCount = officialSeries.length;
+  const enoughForTrend = gradedCount >= MIN_GRADED_FOR_TREND;
+  const basis = avg === null ? ''
+    : gradedCount < MIN_GRADED_FOR_TREND ? `Mới có ${gradedCount} bài đã chấm — kết quả chỉ mang tính tham khảo.`
+      : `Dựa trên ${gradedCount} bài đã chấm.`;
+  const chips = ([
+    [report.officialCount, 'bài đã chấm', 'ok'],
+    [report.pendingCount, 'bài chờ thầy cô duyệt', 'wait'],
+    [report.missingCount, 'bài chưa nộp', 'miss'],
+  ] as const).filter(([count]) => count > 0)
+    .map(([count, label, tone]) => `<span class="chip chip-${tone}"><b>${count}</b> ${label}</span>`).join('');
+
+  // Gợi ý đầu đã nằm ở ô "Phụ huynh có thể làm" của Tóm tắt nhanh → mục đồng hành không nhắc lại.
+  const homeActions = parentActionsForRequirements(report.parentActions, requirements);
+  const homeList = takeawayItems.some(item => item.tone === 'home') && homeActions.length > 1 ? homeActions.slice(1) : homeActions;
   const actionsSection = () => section('Cùng đồng hành với con', `<div class="cards2">
-  <div class="card home"><h3>Phụ huynh có thể làm ở nhà</h3>${listItems(parentActionsForRequirements(report.parentActions, requirements), 'Chưa có gợi ý cụ thể.')}</div>
+  <div class="card home"><h3>Phụ huynh có thể làm ở nhà</h3>${listItems(homeList, 'Chưa có gợi ý cụ thể.')}</div>
   <div class="card school"><h3>Thầy cô sẽ hỗ trợ</h3>${listItems(report.teacherActions, 'Chưa có gợi ý cụ thể.')}</div>
 </div>`);
 
-  return `<style>${styleBlock(variant)}</style>
-<div class="head-row">${logo ? `<img class="logo" src="${logo}" alt="Logo ${esc(schoolName ?? 'trường')}"/>` : ''}<div class="head-text">
-  <div class="brandbar">${schoolName ? `<span class="school-name">${esc(schoolName)}</span>` : ''}<span class="kicker">Báo cáo gửi phụ huynh</span></div>
-  <h1 style="margin-top:2px">${esc(period?.title ?? 'Báo cáo học tập môn Toán')}</h1></div></div>
-${heroSvg()}
-<div class="title-wrap" style="padding-top:0">
-  <p class="who"><b>${esc(studentName)}</b> · Lớp ${esc(className)}${studentCode ? ` · Mã HS ${esc(studentCode)}` : ''}</p>
-  <p class="prep">${period ? `Thời gian báo cáo: ${esc(period.range)} · ` : ''}Lập ngày ${esc(ngay)}${teacherName ? ` · Giáo viên: ${esc(teacherName)}` : ''}</p>
-</div>
-
-<div class="verdict" style="background:${verdictBg}">
-  <div class="v-l"><small>Kết quả chung</small><b>${avg === null ? 'Chưa đủ dữ liệu' : `Mức ${band.label} · ${avg.toFixed(1)}%`}</b></div>
-  <div class="v-r"><small>Xu hướng gần đây</small><b>${trend.arrow} ${esc(trend.label)}</b></div>
-</div>
-
-<div class="lead">${esc(report.overallSummary)}</div>
-
-${takeaways}
-
-${teacherComment?.trim() ? section('Nhận xét của giáo viên', `<div class="teacher-note">${teacherComment.trim().split(/\n+/).map(line => esc(line)).join('<br/>')}</div>`) : ''}
-
-${actionsSection()}
-
-${section('Tổng quan bằng số', `<div class="tiles">
+  // ── Tầng chi tiết (phía dưới): số liệu, so sánh, điểm thi, yêu cầu cần đạt, năng lực, từng bài ──
+  const detailBody = `${section('Tổng quan bằng số', `<div class="tiles">
   <div class="tile"><div class="cap">Điểm trung bình</div>${buildMeter(avg)}</div>
-  <div class="tile"><div class="cap">Xu hướng điểm</div>${buildSparkline(officialSeries, trend)}</div>
+  <div class="tile"><div class="cap">Xu hướng điểm</div>${buildSparkline(enoughForTrend ? officialSeries : [], trend)}</div>
   <div class="tile"><div class="cap">Tiến độ nộp bài</div>${buildCompletion(report.officialCount, report.pendingCount, report.missingCount)}</div>
 </div>`)}
 
@@ -544,12 +572,51 @@ ${(() => {
     return cut > 0 ? section('Kết quả từng bài', rows.slice(0, cut), rows.slice(cut)) : section('Kết quả từng bài', rows);
   })()}
 
-<div class="note">${period ? 'Chỉ tính các bài có hạn nộp trong thời gian báo cáo; điểm thi định kì hiện tất cả cột đã có. ' : ''}Báo cáo chỉ dùng kết quả đã được thầy cô xem và duyệt; bài đang chờ xử lý không hiển thị điểm. Điểm từng bài theo thang điểm của bài; điểm trung bình quy về phần trăm để so sánh. Không hiển thị đáp án hay ghi chú nội bộ.</div>
+<div class="note">${period ? 'Chỉ tính các bài có hạn nộp trong thời gian báo cáo; điểm thi định kì hiện tất cả cột đã có. ' : ''}Báo cáo chỉ dùng kết quả đã được thầy cô xem và duyệt; bài đang chờ xử lý không hiển thị điểm. Điểm từng bài theo thang điểm của bài; điểm trung bình quy về phần trăm để so sánh. Không hiển thị đáp án hay ghi chú nội bộ.</div>`;
 
-${variant === 'print' ? `<div class="signature">
+  const moreHead = `<span class="ico">${sectionIcon('list', 18)}</span><span class="more-t"><b>Chi tiết báo cáo</b><small>Điểm số, so sánh, yêu cầu cần đạt, năng lực, từng bài</small></span>`;
+  // Bản web: tầng chi tiết thu gọn, phụ huynh bấm để mở. Bản in/PDF: in đủ, ngăn cách bằng dải tiêu đề.
+  const detail = variant === 'web'
+    ? `<details class="more"><summary class="more-sum">${moreHead}<span class="chev">▾</span></summary>${detailBody}</details>`
+    : `<div class="more-sum more-banner">${moreHead}</div>${detailBody}`;
+
+  // Tên giáo viên (GV tự nhập một lần) đứng ở CUỐI báo cáo.
+  const footer = variant === 'print'
+    ? `<div class="signature">
   <div><div class="sig-line">Phụ huynh (ký, ghi rõ họ tên)</div></div>
-  <div><div class="sig-line">Giáo viên (ký, ghi rõ họ tên)</div></div>
-</div>` : ''}`;
+  <div><div class="sig-line">${teacherName ? 'Giáo viên' : 'Giáo viên (ký, ghi rõ họ tên)'}</div>${teacherName ? `<div class="sig-name">${esc(teacherName)}</div>` : ''}</div>
+</div>`
+    : teacherName
+      ? `<div class="teacher-foot"><span class="avatar">${esc(initialsOf(teacherName))}</span><div><b>${esc(teacherName)}</b><small>Giáo viên${schoolName ? ` · ${esc(schoolName)}` : ''}</small><p>Cảm ơn quý phụ huynh đã đồng hành cùng con.</p></div></div>`
+      : '';
+
+  return `<style>${styleBlock(variant)}</style>
+<div class="head-row">${logo ? `<img class="logo" src="${logo}" alt="Logo ${esc(schoolName ?? 'trường')}"/>` : ''}<div class="head-text">
+  <div class="brandbar">${schoolName ? `<span class="school-name">${esc(schoolName)}</span>` : ''}<span class="kicker">Báo cáo gửi phụ huynh</span></div>
+  <h1 style="margin-top:2px">${esc(period?.title ?? 'Báo cáo học tập môn Toán')}</h1></div></div>
+${heroSvg()}
+<div class="title-wrap" style="padding-top:0">
+  <p class="who"><b>${esc(studentName)}</b> · Lớp ${esc(className)}${studentCode ? ` · Mã HS ${esc(studentCode)}` : ''}</p>
+  <p class="prep">${period ? `Thời gian báo cáo: ${esc(period.range)} · ` : ''}Lập ngày ${esc(ngay)}</p>
+</div>
+
+<div class="verdict" style="background:${verdictBg}">
+  <div class="v-l"><small>Kết quả chung</small><b>${avg === null ? 'Chưa đủ dữ liệu' : `Mức ${band.label} · ${avg.toFixed(1)}%`}</b>${basis ? `<span class="basis">${esc(basis)}</span>` : ''}</div>
+  <div class="v-r"><small>Xu hướng gần đây</small><b>${enoughForTrend ? `${trend.arrow} ${esc(trend.label)}` : 'Cần thêm bài để nhận định'}</b></div>
+</div>
+${chips ? `<div class="chips">${chips}</div>` : ''}
+
+<div class="lead">${esc(report.overallSummary)}</div>
+
+${takeaways}
+
+${teacherComment?.trim() ? section('Nhận xét của giáo viên', `<div class="teacher-note">${teacherComment.trim().split(/\n+/).map(line => esc(line)).join('<br/>')}</div>`) : ''}
+
+${actionsSection()}
+
+${detail}
+
+${footer}`;
 };
 
 export const parentReportFileName = ({ studentName, className, period }: ParentReportPrintInput): string =>

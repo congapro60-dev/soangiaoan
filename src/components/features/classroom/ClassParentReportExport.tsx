@@ -137,7 +137,7 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
       <div className="mt-3 flex flex-wrap items-end gap-2 rounded-2xl border border-indigo-100 bg-white p-3">
         <p className="w-full text-xs font-black uppercase tracking-wide text-slate-500">Đầu báo cáo (nhập một lần, lưu trên máy này)</p>
         <input value={nhanDien.schoolName} onChange={event => doiNhanDien({ schoolName: event.target.value })} maxLength={120} placeholder="Tên trường" className="min-w-[180px] flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold" />
-        <input value={nhanDien.teacherName} onChange={event => doiNhanDien({ teacherName: event.target.value })} maxLength={80} placeholder="Tên giáo viên" className="min-w-[160px] flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold" />
+        <input value={nhanDien.teacherName} onChange={event => doiNhanDien({ teacherName: event.target.value })} maxLength={80} placeholder="Tên giáo viên (in cuối báo cáo)" className="min-w-[160px] flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold" />
         <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50">
           {nhanDien.logoDataUrl ? <img src={nhanDien.logoDataUrl} alt="Logo trường" className="h-6 w-6 object-contain" /> : <ImagePlus className="h-4 w-4" />} {nhanDien.logoDataUrl ? 'Đổi logo' : 'Tải logo trường'}
           <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={event => { void chonLogo(event.target.files?.[0]); event.target.value = ''; }} />
