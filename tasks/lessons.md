@@ -436,3 +436,8 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 ## 2026-10-01 — Bấm tab nhà cung cấp trong Cài đặt để "xem" làm đổi nhà cung cấp thật
 - Sai: khi QA bằng Chrome của chủ dự án, bấm tab "GLM 5.2" trong Cài đặt chỉ để đọc lời nhắc → `selectedProvider` đổi ngay (chưa cần bấm Lưu), mọi lượt AI sau đó đi GLM. Phải bấm lại Gemini mới về.
 - Luật: QA trên phiên thật của chủ dự án thì ghi lại trạng thái trước khi bấm và khôi phục xong rồi mới báo; muốn xem lời nhắc theo nhà cung cấp thì dùng test thuần (`glmWalletNotice`) thay vì bấm giao diện.
+
+## 2026-10-01 — Lái Chrome bằng CDP để tự QA
+- Sai: cửa sổ Chrome bị che → trang `visibilityState: hidden` → `page.click()` treo; tưởng web lỗi. Đánh dấu nút bằng thuộc tính mà không xoá dấu cũ → bấm nhầm nút khác, tưởng nút "Xuất" hỏng.
+- Luật: mở Chrome QA kèm `--disable-backgrounding-occluded-windows --disable-renderer-backgrounding --disable-background-timer-throttling --disable-features=CalculateNativeWinOcclusion`; trước mỗi lần đánh dấu phần tử thì xoá mọi dấu cũ; trang báo dữ liệu "không phản hồi" thì thử Chrome mới trước khi kết luận lỗi web.
+
