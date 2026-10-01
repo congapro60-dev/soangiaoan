@@ -5,9 +5,10 @@ export const READ_CONFIDENCE_FLOOR = 0.6;
 
 /**
  * Khóa grading cũ hơn ngần này là worker đã chết giữa chừng. Phải khớp `STALE_GRADING_MS` bên
- * `api/grade-homework.ts`: máy chủ giết hàm chấm ở 60s nên không worker lành nào giữ khoá lâu hơn.
+ * `api/grade-homework.ts`: máy chủ giết hàm chấm ở 300s nên không worker lành nào giữ khoá lâu hơn
+ * (6 phút = trần 5 phút + 1 phút dự phòng). Test khoá hai bản bằng nhau.
  */
-export const STALE_GRADING_MS = 2 * 60 * 1000;
+export const STALE_GRADING_MS = 6 * 60 * 1000;
 
 export const isStaleGradingTimestamp = (updatedAt?: string, nowMs = Date.now()): boolean => {
   const timestamp = Date.parse(String(updatedAt || ''));

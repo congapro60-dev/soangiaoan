@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import { Download, Link2, Loader2, RefreshCw, Unlink } from 'lucide-react';
 import type { Student } from '../../../types';
-import { readSsmLink, saveSsmLink, ssmRequest } from '../../../lib/ssm/ssmBridge';
+import { pingSsmBridge, readSsmLink, saveSsmLink, ssmRequest } from '../../../lib/ssm/ssmBridge';
+import { getLinkedGoogleEmail } from '../../../lib/adminLink';
 import {
-  emailsMatch,
   guessSsmClass,
   matchRoster,
   parseClasses,
   parseProfileEmail,
   parseStudents,
   pickCurrentSchoolYear,
+  ssmAccountAllowed,
   type RosterMatch,
   type SsmClass,
 } from '../../../lib/ssm/ssmModel';
@@ -50,7 +51,7 @@ export const SsmLinkPanel = ({ classId, className, students, userEmail }: Props)
 
   const loadClasses = () => run('Đang đọc lớp trên SSM…', async () => {
     try {
-      await ssmRequest('ping');
+      await pingSsmBridge();
       setNeedInstall(false);
     } catch (err) {
       setNeedInstall(true);
@@ -58,7 +59,7 @@ export const SsmLinkPanel = ({ classId, className, students, userEmail }: Props)
     }
     if (!userEmail) throw new Error('Đăng nhập app bằng mail trường trước khi ghép với SSM.');
     const email = parseProfileEmail(await ssmRequest('profile'));
-    if (!emailsMatch(email, userEmail)) {
+    if (!ssmAccountAllowed(email, userEmail, getLinkedGoogleEmail())) {
       throw new Error(`Tab SSM đang đăng nhập ${email || 'tài khoản không rõ'}, khác tài khoản app ${userEmail || ''}. Đăng nhập SSM đúng mail trường của bạn.`);
     }
     const year = pickCurrentSchoolYear(await ssmRequest('schoolYears'));

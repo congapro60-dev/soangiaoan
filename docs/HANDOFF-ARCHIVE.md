@@ -8,6 +8,19 @@ Mục còn hiệu lực (1.0q, 1.0r trở đi) nằm ở `HANDOFF.md`, KHÔNG l�
 
 ---
 
+## QA độc lập của Codex trên nhánh `feat/vi-ai-chip-popup` (10 lỗi) — 2026-09-30
+
+Codex QA commit `d6174de`: 4 lệnh kiểm tra qua, kết luận CHƯA duyệt, 10 lỗi. Đã sửa hết trừ F3 (ghi rõ bên dưới), mỗi lỗi có test tái hiện.
+- **F1 (cao) `_ai-keys.ts`:** đã bật kiểm soát mà đọc hồ sơ `teacherAiKeys` lỗi → trước đây nuốt thành `null` → người trong nhóm chọn "chỉ khoá riêng" bị coi như chưa chọn → suy ra "cả hai" → TRỪ VÍ trái ý. Nay ĐÓNG CỬA (ném lỗi) ở `ensureGeminiKey` và `assertSharedAiAllowed`; chưa bật kiểm soát thì giữ cách cũ.
+- **F2 (cao) relay:** kiểm hạn mức rồi mới cộng là hai bước rời → 3 lượt song song cùng qua. Nay GIỮ CHỖ trong `runTransaction` trước khi gọi Google, hoàn lại khi bị chặn 402, kèm **tối đa 3 lượt chạy cùng lúc/giáo viên** (`RELAY_MAX_INFLIGHT`; lượt treo quá 310s tự hết hiệu lực).
+- **F3 (cao, có từ trước) — ĐÃ SỬA cho mọi lượt Gemini đi qua `callGeminiRaw` (chấm bài + relay):** (a) **Giữ chỗ tiền** (`acquireCallHold`, `_ai-usage.ts`): trước khi gọi Google, lượt bị trừ ví giữ `min(1.000đ, còn lại)` trong `aiWallets.heldVnd` (giao dịch); lượt sau chỉ thấy phần còn lại; kiểm trần tháng cũng cộng phần đang giữ. Xong thì giữ chỗ được THAY bằng số tiền thật; lượt hỏng trước khi tính tiền thì trả lại; giữ chỗ treo quá 10 phút tự hết hiệu lực. Chỉ bị chặn vì lượt khác đang giữ chỗ (còn tiền thật) → CHỜ tối đa 8×1s rồi thử lại, không báo hết tiền oan (`AI_HOLD_RETRY_MS` chỉnh được). Ví chỉ âm đúng phần lượt VƯỢT quá phần giữ (thường 0), không còn nhân theo số lượt song song. (b) **Trừ tiền một giao dịch** (`settleUsage`): sổ lượt dùng + cộng chi tiêu + trừ ví ghi CÙNG LÚC — không còn trạng thái nửa vời khi lỗi giữa chừng (giao dịch hỏng thì không ai bị trừ, câu trả lời vẫn trả về, log lỗi). **Còn lại:** `generate-simulation`, cổng GLM (`_ai-gateway-handler`) và sinh ảnh (`_ai-image-handler`) chưa giữ chỗ (đã có hạn mức riêng: 10 lượt/phút, 100 lượt GLM/ngày…) nhưng ĐÃ trừ tiền bằng giao dịch mới; ví/trần vẫn có thể âm nhẹ ở ba đường này nếu chạy song song.
+- **F4 `_grading-core.ts`:** hạn chót MỘT lần cho cả lượt (kể cả lần gọi lại sau khi khoá riêng hỏng): trước đây mỗi lần gọi có đủ 270s nên hai lần vượt trần 300s của hàm.
+- **F5 Header:** ở 375px chip làm tràn ngang 399px → đã gọn (đệm nhỏ, tiêu đề cắt `…`, bỏ vạch ngăn ở màn nhỏ); đo lại `scrollWidth` = 375.
+- **F6 `aiModeStore`:** chế độ lạ/thiếu → `own` (trước đây suy ra `both` → relay). **F7 `useAiBillingStatus`:** phản hồi đến muộn/sau khi gỡ chip không được ghi đè chế độ mới (mốc `performance.now()` + số thứ tự yêu cầu).
+- **F8 `gemini.ts` (có từ trước):** luồng lỗi giữa chừng thử lại/đổi model từ đầu → in lặp cùng đoạn ~10 lần; nay đã có chữ thì ném lỗi ngay.
+- **F9 `AiWalletPanel`:** nhóm radio ARIA có bàn phím (mũi tên đổi lựa chọn, một điểm Tab). **F10 `models.ts`:** ngữ cảnh GPT-6.1 Sol / 6 Luna / 6 Astra = 1.050.000 (trang OpenAI), không phải 400.000.
+- Codex chưa kiểm được: số nạp tối thiểu và tín dụng thử NVIDIA (trang hỗ trợ chặn), các câu "gói tiêu dùng không kèm API" của từng hãng, contrast đầy đủ. Bundle chính 1.303 kB (Codex ghi baseline cũ 1.209 kB) — cảnh báo hiệu năng, chưa xử lý.
+
 ## Bản phụ huynh + hồ sơ: 5 lỗi làm chặt — 2026-09-18
 
 Nối tiếp lô bản phụ huynh. Fix 5 lỗi người dùng nêu:
@@ -1846,3 +1859,11 @@ Chủ dự án muốn: GV đưa tài liệu sẵn có (file/link) → app viết
 - QA production 29/09 (tài khoản GV thật): tải TKB TDS qua máy chủ OK, tin tuần 5 trùng ảnh mẫu. Sửa sau QA: so tên GV không kể thứ tự chữ (tên Google "việt cường vũ" ↔ TKB "VŨ VIỆT CƯỜNG"), chữ ký mặc định = tên TKB viết hoa chữ đầu. Bước AI đọc Google Sheet cần popup cấp quyền Google — chỉ người dùng bấm tay mới mở được.
 - Kiểm trên dữ liệu thật: tin TDS 10Olinda tuần 5 trùng ảnh mẫu GV; sổ MOET tuần 1/4/5/6 trùng file LBG của GV (10Olinda + 11Columbus); Excel đọc lại đúng. `ai-gateway-handler` vẫn chập chờn khi chạy cả bộ (chạy riêng pass).
 - Nghiệm thu: `npx vitest run src/lib/schedule src/lib/ssm api/__tests__/timetable.test.ts api/__tests__/ssm-template.test.ts`; `npm run lint`, `npm run lint:api`, `npm run build`.
+
+## Khung năng lực khối 10 đủ theo LO SSM + xuất hồ sơ bổ sung dòng + tải .xlsx — 2026-09-30
+
+Chủ dự án chốt: SSM khối 10 có 19 LO mà khung chỉ 8 năng lực (AI ghép LO được 10/19) → thêm 9 năng lực `g10-*` (hàm số & đồ thị, BPT bậc hai, đếm/tổ hợp, Newton, GTLG 0–180°, vectơ tọa độ, PT đường thẳng, đường tròn, conic), mỗi cái có `rubric` 4 mức (file mẫu trường CHƯA có các dòng này). Sau đó AI ghép 19/19 (khối 11: 19/20 — thiếu "Hoạt động thực hành và trải nghiệm"; khối 12: 17/17).
+- Xuất hồ sơ (`portfolioExport.ts`): `buildPortfolioAddRowsRequests` chèn dòng cho năng lực bản sao chưa có — đúng mảng, sau năng lực đứng trước trong khung, `copyPaste` định dạng/danh sách chọn của dòng bên cạnh, điền A..F — rồi mới bôi vàng (1 batchUpdate). File mẫu gốc KHÔNG đụng. Hộp kết quả có nút "Tải file .xlsx về máy" (`downloadPortfolioXlsx`, Drive export) để GV thay file trên Drive trường.
+- BTVN: gắn nhãn AI/tay tự dùng khung mới. **Bẫy:** bài khối 10 đã DUYỆT nhãn trước đây giữ nguyên nhãn cũ (guard `competencyTagsApproved`) — muốn thêm năng lực mới phải sửa tay trong ô nhãn.
+- Chưa chạy xuất thật trên production (cần GV bấm, popup Google). Test: framework, portfolioExport +4.
+

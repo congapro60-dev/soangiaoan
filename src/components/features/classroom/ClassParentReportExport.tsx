@@ -1,11 +1,16 @@
 import { useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
-import { FileArchive, Loader2, Send } from 'lucide-react';
+import { FileArchive, ImagePlus, Loader2, Send, X } from 'lucide-react';
 import { db } from '../../../lib/firebase';
 import { STUDENT_PROFILES_COL, type StudentProfileDoc } from '../../../lib/classroom/types';
 import { listAssignmentsForClass, listSubmissionsForClass } from '../../../lib/classroom/submissionService';
 import { draftParentReportComment, loadParentReportNote, loadScoreBook, publishParentReports, saveParentReportNote } from '../../../lib/classroom/teacherService';
 import { PUBLISH_CHUNK } from '../../../lib/classroom/parentAccess';
+import { requirementsInStage } from '../../../lib/classroom/parentRequirements';
+import { stageForPeriod, type Program } from '../../../lib/classroom/reportStage';
+import { saveClassProgram } from '../../../lib/classroom/classProgram';
+import { effectiveBranding, effectiveClassProgram } from '../../../lib/classroom/ownerDefaults';
+import { brandingForReport, fileToLogoDataUrl, saveParentBranding, type ParentBranding } from '../../../lib/classroom/parentBranding';
 import { ClassParentAccessPanel } from './ClassParentAccessPanel';
 import { studentScoreView } from '../../../lib/classroom/scoreBook';
 import { buildPeriodParentReport } from '../../../lib/classroom/parentReportBuilder';
@@ -33,6 +38,26 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
   const [aiChoEmChuaCo, setAiChoEmChuaCo] = useState(false);
   const [tienDo, setTienDo] = useState('');
   const [lanCongBo, setLanCongBo] = useState(0);
+  const [nhanDien, setNhanDien] = useState<ParentBranding>(effectiveBranding);
+  const [chuongTrinh, setChuongTrinh] = useState<Program | null>(() => effectiveClassProgram(classId, className));
+  const doiChuongTrinh = (value: string) => {
+    const next: Program | null = value === 'TDS' || value === 'MOET' ? value : null;
+    setChuongTrinh(next);
+    saveClassProgram(classId, next);
+  };
+  const doiNhanDien = (patch: Partial<ParentBranding>) => {
+    const next = { ...nhanDien, ...patch };
+    setNhanDien(next);
+    saveParentBranding(next);
+  };
+  const chonLogo = async (file: File | undefined) => {
+    if (!file) return;
+    try {
+      doiNhanDien({ logoDataUrl: await fileToLogoDataUrl(file) });
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Không đọc được logo.', 'error');
+    }
+  };
   const loi = periodError(ky);
 
   const chay = async (cheDo: 'zip' | 'congBo') => {
@@ -68,6 +93,7 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
             className,
             studentCode: hs.code,
             classGrade,
+            program: chuongTrinh,
             assignments,
             submissions: submissions.filter(s => s.studentId === hs.id),
             profile: profileSnap?.exists() ? (profileSnap.data() as StudentProfileDoc) : null,
@@ -75,10 +101,10 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
           }, ky);
           let ghi = await loadParentReportNote(key(hs.id)).catch(() => ({ text: '', requirements: [] }));
           if (!ghi.text && aiChoEmChuaCo) {
-            ghi = await draftParentReportComment(key(hs.id), built.facts);
+            ghi = await draftParentReportComment(key(hs.id), built.facts, chuongTrinh);
             await saveParentReportNote(key(hs.id), ghi).catch(() => undefined);
           }
-          const input = { ...built.printInput, teacherComment: ghi.text, requirements: ghi.requirements ?? [] };
+          const input = { ...built.printInput, teacherComment: ghi.text, requirements: requirementsInStage(ghi.requirements ?? [], classGrade, stageForPeriod(ky, chuongTrinh)), branding: brandingForReport(nhanDien) };
           if (cheDo === 'zip') {
             zip.file(parentReportFileName(input), await exportParentReportToPdf(input, 'blob'));
           } else {
@@ -119,6 +145,24 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
     <section className="mt-5 rounded-3xl border border-indigo-100 bg-indigo-50/50 p-4 sm:p-5">
       <p className="flex items-center gap-2 text-sm font-black text-slate-900"><FileArchive className="h-4 w-4 text-indigo-600" /> Xuất báo cáo phụ huynh cả lớp</p>
       <p className="mt-1 text-xs font-semibold text-slate-500">Mỗi em một file PDF, gói chung một ZIP. Muốn xem trước hoặc sửa nhận xét từng em: mở học sinh → Bản phụ huynh.</p>
+      <div className="mt-3 flex flex-wrap items-end gap-2 rounded-2xl border border-indigo-100 bg-white p-3">
+        <p className="w-full text-xs font-black uppercase tracking-wide text-slate-500">Đầu báo cáo (nhập một lần, lưu trên máy này)</p>
+        <input value={nhanDien.schoolName} onChange={event => doiNhanDien({ schoolName: event.target.value })} maxLength={120} placeholder="Tên trường" className="min-w-[180px] flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold" />
+        <input value={nhanDien.teacherName} onChange={event => doiNhanDien({ teacherName: event.target.value })} maxLength={80} placeholder="Tên giáo viên (in cuối báo cáo)" className="min-w-[160px] flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold" />
+        <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50">
+          {nhanDien.logoDataUrl ? <img src={nhanDien.logoDataUrl} alt="Logo trường" className="h-6 w-6 object-contain" /> : <ImagePlus className="h-4 w-4" />} {nhanDien.logoDataUrl ? 'Đổi logo' : 'Tải logo trường'}
+          <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={event => { void chonLogo(event.target.files?.[0]); event.target.value = ''; }} />
+        </label>
+        <label className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700">
+          Chương trình lớp
+          <select value={chuongTrinh ?? ''} onChange={event => doiChuongTrinh(event.target.value)} className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm font-bold">
+            <option value="">Chưa chọn</option>
+            <option value="TDS">TDS</option>
+            <option value="MOET">MOET</option>
+          </select>
+        </label>
+        {nhanDien.logoDataUrl && <button type="button" onClick={() => doiNhanDien({ logoDataUrl: '' })} title="Bỏ logo" className="rounded-xl p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600"><X className="h-4 w-4" /></button>}
+      </div>
       <div className="mt-3 flex flex-wrap items-end gap-2">
         <select value={ky.kind} onChange={event => setKy(defaultPeriod(event.target.value as ReportKind, today()))} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold">
           {REPORT_KINDS.map(item => <option key={item.kind} value={item.kind}>{item.label}</option>)}
@@ -147,7 +191,7 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
       </label>
       <p className="mt-1 text-xs font-semibold text-slate-500">{loi ? <span className="text-rose-600">{loi}</span> : tienDo || `${rangeLabel(ky)} — sửa ngày cho khớp lịch trường mình.`}</p>
     </section>
-    <ClassParentAccessPanel classId={classId} className={className} refreshKey={lanCongBo} showToast={showToast} />
+    <ClassParentAccessPanel classId={classId} className={className} students={students} refreshKey={lanCongBo} showToast={showToast} />
     </>
   );
 };

@@ -412,6 +412,7 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 ## 2026-09-30 — Chèn code bằng Python heredoc làm hỏng regex
 - Chuỗi Python thường (và printf trong bash) biến \b trong code chèn thành ký tự backspace (0x08) → regex /Lớp\s*(10|11|12)\b/ hỏng âm thầm, chỉ test mới lộ.
 - Luật: chèn code có dấu gạch ngược thì dùng Edit/Write hoặc node với String.fromCharCode; sau khi chèn đếm ký tự 0x08 trong file để dò.
+- Tái phạm 01/10: `.join('\\n')` trong heredoc Python ra dòng mới thật trong `gradingPrompt.ts`. Đoạn chèn nào có `\` → BẮT BUỘC dùng Edit/Write, kể cả khi phần còn lại chèn bằng Python.
 
 ## Vercel / Deploy
 
@@ -433,6 +434,23 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - Sai: cổng phụ huynh (và cổng HS có từ trước) đọc số lần sai → kiểm PIN → ghi lại ở 3 bước rời nhau. Gửi nhiều lượt đoán CÙNG LÚC thì mọi lượt cùng đọc "0 lần sai", bộ đếm chỉ lên 1, PIN 4 số dò hết được. Bản review của phiên khác bắt được, test tuần tự của mình không bắt.
 - Luật: mọi "đọc trạng thái → quyết định → ghi trạng thái" bảo vệ thứ nhạy cảm (khoá đăng nhập, hạn mức, số dư) dùng `db.runTransaction` — đã có `attemptPin` trong `api/_classroom-core.ts`. Test phải bắn song song bằng `Promise.all` (≥ ngưỡng + vài lượt) với giao dịch giả xếp hàng, không chỉ gọi lần lượt.
 
+## 2026-10-01 — Tên class CSS trong HTML dựng sẵn dễ trùng
+- Sai: thêm `.school` (tên trường ở đầu báo cáo) trong khi báo cáo đã có `.card.school` ("Thầy cô sẽ hỗ trợ") → danh sách trong thẻ đó bỗng đậm, navy, to. Chỉ lộ khi chụp ảnh thật.
+- Luật: thêm class vào bản dựng HTML có sẵn thì `grep` tên đó trong cả file CSS lẫn markup trước; đặt tên có tiền tố rõ (`school-name`). Sửa giao diện báo cáo thì dựng ảnh thật (tsx + puppeteer) và nhìn, đừng chỉ chạy test chuỗi.
+
 ## 2026-10-01 — Bấm tab nhà cung cấp trong Cài đặt để "xem" làm đổi nhà cung cấp thật
 - Sai: khi QA bằng Chrome của chủ dự án, bấm tab "GLM 5.2" trong Cài đặt chỉ để đọc lời nhắc → `selectedProvider` đổi ngay (chưa cần bấm Lưu), mọi lượt AI sau đó đi GLM. Phải bấm lại Gemini mới về.
 - Luật: QA trên phiên thật của chủ dự án thì ghi lại trạng thái trước khi bấm và khôi phục xong rồi mới báo; muốn xem lời nhắc theo nhà cung cấp thì dùng test thuần (`glmWalletNotice`) thay vì bấm giao diện.
+
+## 2026-10-01 — Lái Chrome bằng CDP để tự QA
+- Sai: cửa sổ Chrome bị che → trang `visibilityState: hidden` → `page.click()` treo; tưởng web lỗi. Đánh dấu nút bằng thuộc tính mà không xoá dấu cũ → bấm nhầm nút khác, tưởng nút "Xuất" hỏng.
+- Luật: mở Chrome QA kèm `--disable-backgrounding-occluded-windows --disable-renderer-backgrounding --disable-background-timer-throttling --disable-features=CalculateNativeWinOcclusion`; trước mỗi lần đánh dấu phần tử thì xoá mọi dấu cũ; trang báo dữ liệu "không phản hồi" thì thử Chrome mới trước khi kết luận lỗi web.
+
+## 2026-10-01 — Dữ liệu mẫu/báo cáo phải đúng giai đoạn dạy (đối chiếu PPCT + file Chiều dọc)
+- Sai: dựng báo cáo mẫu "tháng 9 lớp 10" với bài "Hàm số bậc hai" và mục "đã đánh giá 3/17 năng lực" — Hàm số bậc hai là Bài 16 (HK2); mẫu số 17 đếm cả năng lực chưa học. Chủ dự án bắt được ngay.
+- Luật: đặt nội dung mẫu/giới hạn hiển thị theo giai đoạn thì đối chiếu `src/data/ppct/*.json` (tuần dạy) + file trường "Chiều dọc Toán THPT" (bài HK1) + số Bài trong `yccdToan.ts`; đừng đoán theo trí nhớ. TDS và MOET xếp khác nhau ở vài bài biên → tính cho cả hai học kì. Logic ở `src/lib/classroom/reportStage.ts` (có test đếm 8 + 9 = 17 năng lực lớp 10).
+
+## 2026-10-01 — Dựng giao diện sửa dữ liệu trên một bản chiếu đã lọc
+- Hộp "Sửa điểm" mới gửi lại cả bảng câu; dữ liệu nó nhận từ bản chiếu GV vốn ẩn `expectedAnswer`/`explanation` khi chưa duyệt (chép từ luật bản HS) → bấm Lưu là xoá đáp án thật. Chỉ lộ ra khi QA trên dữ liệu thật, test đơn vị không bắt được vì test dựng dữ liệu đầy đủ.
+- Luật: trước khi cho client GỬI LẠI một object để lưu, đọc bản chiếu (projection) mà client nhận — trường nào bị lọc/ẩn thì máy chủ phải giữ giá trị cũ khi nhận rỗng. Và QA đọc giá trị thật trong ô (không chỉ chụp màn hình) trước khi bấm Lưu.
+

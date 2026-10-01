@@ -317,8 +317,8 @@ export const saveParentReportNote = (key: ParentReportNoteKey, note: ParentRepor
   callTeacherApi<ParentReportNote & { updatedAt: string }>({ action: 'saveParentReportNote', ...key, ...note });
 
 /** AI soạn nháp nhận xét + ghép bài đã duyệt vào yêu cầu cần đạt; giáo viên sửa rồi mới lưu. */
-export const draftParentReportComment = (key: ParentReportNoteKey, facts: Record<string, unknown>) =>
-  callTeacherApi<ParentReportNote>({ action: 'draftParentReportComment', ...key, facts });
+export const draftParentReportComment = (key: ParentReportNoteKey, facts: Record<string, unknown>, program?: string | null) =>
+  callTeacherApi<ParentReportNote>({ action: 'draftParentReportComment', ...key, facts, ...(program ? { program } : {}) });
 
 /** Cổng phụ huynh (/ph): cấp PIN riêng cho phụ huynh — gọi lại thì giữ PIN cũ, chỉ cấp cho em chưa có. */
 export const issueParentPins = (classId: string) =>

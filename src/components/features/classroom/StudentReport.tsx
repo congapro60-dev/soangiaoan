@@ -13,10 +13,13 @@ import { CompetencyPortfolio } from './CompetencyPortfolio';
 import { buildStudentReportModel } from '../../../lib/classroom/reportModel';
 import type { ParentSafeAssignmentStatus } from '../../../lib/classroom/parentSafeReport';
 import { exportParentReportToPdf } from '../../../lib/classroom/parentReportPrintDoc';
+import { brandingForReport } from '../../../lib/classroom/parentBranding';
 import { asCompetencyGrade, COMPETENCY_LEVELS, type CompetencyLevel } from '../../../lib/classroom/competency/framework';
 import { buildPeriodParentReport } from '../../../lib/classroom/parentReportBuilder';
 import { REPORT_KINDS, defaultPeriod, periodError, rangeLabel, vnDay, type ReportKind, type ReportPeriod } from '../../../lib/classroom/reportPeriod';
-import { parentActionsForRequirements, type ParentRequirementLine } from '../../../lib/classroom/parentRequirements';
+import { parentActionsForRequirements, requirementsInStage, type ParentRequirementLine } from '../../../lib/classroom/parentRequirements';
+import { stageForPeriod } from '../../../lib/classroom/reportStage';
+import { effectiveBranding, effectiveClassProgram } from '../../../lib/classroom/ownerDefaults';
 import { RequirementLinesEditor } from './RequirementLinesEditor';
 
 interface Props {
@@ -113,8 +116,8 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
   const loiKy = kyBaoCao ? periodError(kyBaoCao) : null;
   const kyHopLe = kyBaoCao && !loiKy ? kyBaoCao : null;
   const baoCaoPH = useMemo(() => buildPeriodParentReport({
-    studentId, studentName, className, studentCode, classGrade, assignments, submissions, profile, scoreView: soDiem,
-  }, forAdult ? kyHopLe : null), [studentId, studentName, className, studentCode, classGrade, assignments, submissions, profile, soDiem, forAdult, kyHopLe]);
+    studentId, studentName, className, studentCode, classGrade, program: effectiveClassProgram(classId, className), assignments, submissions, profile, scoreView: soDiem,
+  }, forAdult ? kyHopLe : null), [classId, studentId, studentName, className, studentCode, classGrade, assignments, submissions, profile, soDiem, forAdult, kyHopLe]);
   const parentReport = baoCaoPH.report;
   const parentCompetency = baoCaoPH.printInput.competency ?? null;
   const hs1HienThi = baoCaoPH.printInput.hs1 ?? [];
@@ -130,7 +133,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
     };
     if (!khoaNhanXetStr || !forAdult) { datLai('', []); return; }
     loadParentReportNote(JSON.parse(khoaNhanXetStr))
-      .then(r => { if (!huy) datLai(r.text, r.requirements ?? []); })
+      .then(r => { if (!huy) datLai(r.text, requirementsInStage(r.requirements ?? [], classGrade, stageForPeriod(JSON.parse(khoaNhanXetStr), effectiveClassProgram(classId, className)))); })
       .catch(() => { if (!huy) datLai('', []); });
     return () => { huy = true; };
   }, [khoaNhanXetStr, forAdult]);
@@ -144,9 +147,9 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
     setDangSoan(true);
     setLoiNX('');
     try {
-      const nhap = await draftParentReportComment(khoaNhanXet, baoCaoPH.facts);
+      const nhap = await draftParentReportComment(khoaNhanXet, baoCaoPH.facts, effectiveClassProgram(classId, className));
       setNhanXet(nhap.text);
-      setYccd(nhap.requirements ?? []);
+      setYccd(requirementsInStage(nhap.requirements ?? [], classGrade, stageForPeriod(khoaNhanXet, effectiveClassProgram(classId, className))));
     } catch (error) {
       setLoiNX(error instanceof Error ? error.message : 'AI chưa soạn được, thử lại.');
     } finally {
@@ -207,7 +210,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
     if (dangXuatPdf) return;
     setDangXuatPdf(true);
     try {
-      await exportParentReportToPdf({ ...baoCaoPH.printInput, teacherComment: kyHopLe ? nhanXet : undefined, requirements: kyHopLe ? yccd : null });
+      await exportParentReportToPdf({ ...baoCaoPH.printInput, teacherComment: kyHopLe ? nhanXet : undefined, requirements: kyHopLe ? yccd : null, branding: brandingForReport(effectiveBranding()) });
     } catch (error) {
       console.error('Xuất PDF bản phụ huynh thất bại:', error);
       alert('Không tạo được PDF. Vui lòng thử lại.');

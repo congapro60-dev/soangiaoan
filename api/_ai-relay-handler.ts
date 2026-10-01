@@ -6,8 +6,8 @@
  *  - chế độ "chỉ khoá riêng" và khoá riêng có sẵn trên máy chủ thì chạy khoá riêng (không trừ ví);
  *  - chưa đồng ý tính phí / hết số dư / chạm trần thì trả 402 `AI_KEY_REQUIRED` để trình duyệt mở hộp nạp tiền.
  *
- * Hàm riêng (`api/ai-relay.ts`) để có `maxDuration` dài hơn hàm chấm bài (60s) mà không đụng giả định thời gian của
- * khoá chấm. Không stream: trả nguyên văn một lần.
+ * Hàm riêng (`api/ai-relay.ts`) để không dùng chung khoá/hạn mức thời gian của hàm chấm bài (`api/grade-homework.ts`,
+ * cũng 300s nhưng kèm khoá "đang chấm" và vòng chấm theo lô). Không stream: trả nguyên văn một lần.
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { FieldValue } from 'firebase-admin/firestore';

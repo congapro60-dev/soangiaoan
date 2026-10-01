@@ -34,6 +34,8 @@ export interface HomeworkGradingInput {
   gradingInstructions?: string;
   /** Bài em đánh máy (thường rút từ DOCX). Có thì AI phải chấm phần chữ này cùng ảnh nếu có. */
   studentText?: string;
+  /** Đáp án từng câu thầy cô sửa sau khi chấm; đè đáp án chuẩn ở đúng các câu đó. */
+  answerKeyFixes?: { questionNumber: string; expectedAnswer: string }[];
 }
 
 export interface HomeworkGrade {
@@ -123,6 +125,9 @@ ${danAnh}${assignmentTextSection}${gradingInstructionsSection}${coDapAn
       : 'ĐÁP ÁN CHUẨN nằm trong các ảnh đầu tiên nói trên. Dùng làm mốc chấm, không tự nghĩ ra đáp án khác.')
   : KHONG_CO_DAP_AN}
 
+${input.answerKeyFixes?.length ? `ĐÁP ÁN THẦY CÔ ĐÃ SỬA SAU KHI CHẤM (ưu tiên hơn đáp án chuẩn ở trên, đúng các câu này):
+${input.answerKeyFixes.map(f => `- ${f.questionNumber}: ${f.expectedAnswer}`).join('\n')}
+` : ''}
 ${input.rubric?.trim() ? `HƯỚNG DẪN CHẤM CỦA GIÁO VIÊN:\n${input.rubric.trim()}\n` : ''}
 ${studentTextSection}
 THANG ĐIỂM: tối đa ${input.maxScore} điểm. Quy đổi về đúng thang này.
@@ -157,6 +162,15 @@ CÁCH PHÂN TÍCH THEO TỪNG CÂU — bắt buộc:
   "nextPractice" phải là một việc luyện cụ thể. Nếu thiếu dữ kiện để kết luận, đánh dấu cần giáo viên soát.
 - Điểm từng câu nằm trong khoảng 0..maxScore của chính câu đó. Tổng các câu nên khớp điểm tổng theo hướng dẫn chấm.
 - Không bịa câu hỏi, đáp án hoặc lỗi không có bằng chứng trong ảnh/chữ.
+
+CÂU TRẮC NGHIỆM / ĐÚNG-SAI / TRẢ LỜI NGẮN — ghi đúng khuôn để máy đối chiếu lại được:
+- Trắc nghiệm: "studentAnswer" và "expectedAnswer" chỉ ghi MỘT chữ cái in hoa (A, B, C hoặc D).
+- Đúng/Sai: MỖI câu (gồm các ý a, b, c, d) là MỘT phần tử, ghi dạng "a) Đ; b) S; c) Đ; d) S".
+  Điểm theo thang thi THPT: đúng 1 ý được 0,1 điểm của câu; 2 ý 0,25; 3 ý 0,5; cả 4 ý trọn điểm câu.
+- Trả lời ngắn: chỉ ghi con số kết quả (ví dụ "-1,5").
+- Phiếu tô/khoanh: ô đã tẩy, gạch chéo, hoặc khoanh rồi gạch đi là HUỶ — chỉ tính lựa chọn cuối còn nguyên.
+  Thấy từ hai lựa chọn còn nguyên, hoặc không chắc đâu là lựa chọn cuối → KHÔNG đoán: ghi các lựa chọn nhìn
+  thấy (ví dụ "B hoặc D (D có vết tẩy)") và đặt "needsTeacherReview" = true.
 
 ĐỌC BÀI LÀM CHO ĐÚNG — quan trọng vì ảnh chụp tay dễ đọc nhầm:
 - "studentAnswer" phải CHÉP LẠI TRUNG THỰC đúng những gì em viết, KHÔNG diễn giải, KHÔNG sửa hộ.
@@ -223,6 +237,12 @@ Dùng đúng schema đã yêu cầu, gồm các field "score", "maxScore", "feed
 Trong mọi chuỗi JSON, escape mọi dấu gạch chéo ngược trước khi trả về; vẫn giữ nguyên công thức LaTeX và không đổi phạm vi chấm, đề, đáp án hay thang điểm tối đa ${input.maxScore}.
 Không đưa raw output lỗi của lần trước vào câu trả lời.
 Lần trước rất có thể hỏng vì câu trả lời quá dài và bị cắt giữa chừng: viết GỌN lại. Mỗi field chữ của từng câu giữ trong một hai câu ngắn, không nhắc lại đề, không diễn giải dài dòng. Chấm đúng vẫn quan trọng hơn lời văn hay.
+`;
+
+/** Chỉ nối thêm vào lượt thử lại sau khi Gemini dừng với RECITATION (nghi câu trả lời trích nguyên văn tài liệu có sẵn). */
+export const HOMEWORK_GRADING_RECITATION_NOTE = `
+LẦN TRƯỚC BỊ DỪNG VÌ NGHI NỘI DUNG GIỐNG TÀI LIỆU CÓ SẴN:
+Tuyệt đối không chép nguyên văn đề, lời giải hay đáp án chuẩn. Ở "studentAnswer" và "expectedAnswer" chỉ ghi kết quả hoặc biểu thức cuối cùng; "explanation" và "correction" tối đa một câu ngắn do chính bạn diễn đạt lại.
 `;
 
 const toStringArray = (value: unknown): string[] =>

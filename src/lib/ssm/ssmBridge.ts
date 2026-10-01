@@ -5,15 +5,19 @@
 
 export type SsmOp = 'ping' | 'profile' | 'schoolYears' | 'teacherClasses' | 'classStudents';
 
-const PING_TIMEOUT_MS = 1500;
+// Service worker của tiện ích (MV3) NGỦ khi rảnh; lần đầu đánh thức trên máy chậm có thể mất vài giây → thử 2 lần, lần sau chờ lâu hơn.
+const PING_TIMEOUTS_MS = [2000, 8000] as const;
 const REQUEST_TIMEOUT_MS = 20000;
 
 let seq = 0;
 
-export const ssmRequest = (op: SsmOp, params?: Record<string, unknown>): Promise<unknown> =>
+const NO_EXTENSION_MESSAGE =
+  'Chưa thấy tiện ích "SmartPlan ↔ SSM" trả lời. Nếu đã cài: mở edge://extensions, kiểm tra tiện ích đang BẬT, bấm nút tải lại (↻) của nó, rồi bấm F5 trang app này.';
+
+export const ssmRequest = (op: SsmOp, params?: Record<string, unknown>, timeoutOverrideMs?: number): Promise<unknown> =>
   new Promise((resolve, reject) => {
     const id = `ssm-${Date.now()}-${++seq}`;
-    const timeoutMs = op === 'ping' ? PING_TIMEOUT_MS : REQUEST_TIMEOUT_MS;
+    const timeoutMs = timeoutOverrideMs ?? REQUEST_TIMEOUT_MS;
 
     const onMessage = (event: MessageEvent) => {
       if (event.source !== window || event.origin !== window.location.origin) return;
@@ -25,9 +29,7 @@ export const ssmRequest = (op: SsmOp, params?: Record<string, unknown>): Promise
     };
     const timer = window.setTimeout(() => {
       cleanup();
-      reject(new Error(op === 'ping'
-        ? 'Chưa cài tiện ích "SmartPlan ↔ SSM" trên Edge, hoặc cần tải lại trang app.'
-        : 'SSM không phản hồi — thử lại sau.'));
+      reject(new Error(op === 'ping' ? NO_EXTENSION_MESSAGE : 'SSM không phản hồi — thử lại sau.'));
     }, timeoutMs);
     const cleanup = () => {
       window.clearTimeout(timer);
@@ -37,6 +39,20 @@ export const ssmRequest = (op: SsmOp, params?: Record<string, unknown>): Promise
     window.addEventListener('message', onMessage);
     window.postMessage({ source: 'smartplan-app', kind: 'ssm-request', id, op, params }, window.location.origin);
   });
+
+/** Hỏi xem tiện ích có đang chạy không. Lần đầu không trả lời thì thử lại với thời gian chờ dài hơn (đánh thức service worker). */
+export const pingSsmBridge = async (): Promise<void> => {
+  let lastError: unknown;
+  for (const timeoutMs of PING_TIMEOUTS_MS) {
+    try {
+      await ssmRequest('ping', undefined, timeoutMs);
+      return;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError;
+};
 
 const LINK_KEY = (classId: string) => `ssmClassLink:${classId}`;
 

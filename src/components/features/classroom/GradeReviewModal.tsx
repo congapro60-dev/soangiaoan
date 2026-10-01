@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Loader2, Save, Sparkles, X } from 'lucide-react';
-import type { SubmissionDoc } from '../../../lib/classroom/types';
+import type { QuestionResult, SubmissionDoc } from '../../../lib/classroom/types';
+import { recomputeTotal } from '../../../lib/classroom/questionRescore';
 import { rewriteFeedback } from '../../../services/gradingApi';
 import { NhanXetMarkdown } from './NhanXetMarkdown';
-import { QuestionResultsList } from './QuestionResultsList';
+import { QuestionResultsEditor } from './QuestionResultsEditor';
 
 export interface GradeReviewValue {
   score: number;
@@ -11,6 +12,9 @@ export interface GradeReviewValue {
   feedback: string;
   weakTopics: string[];
   teacherNote: string;
+  questionResults: QuestionResult[];
+  /** Câu thầy cô sửa đáp án và muốn áp cho cả lớp. */
+  classFixes: { questionNumber: string; expectedAnswer: string }[];
 }
 
 interface Props {
@@ -45,6 +49,19 @@ export const GradeReviewModal = ({ classId, studentName, submission, dangLuu, on
   const [feedback, setFeedback] = useState(g?.feedback || '');
   const [topics, setTopics] = useState((g?.weakTopics || []).join('\n'));
   const [teacherNote, setTeacherNote] = useState(g?.teacherNote || '');
+  const [rows, setRows] = useState<QuestionResult[]>(g?.questionResults || []);
+  const [classFixes, setClassFixes] = useState<ReadonlySet<string>>(new Set());
+
+  /** Sửa câu nào thì điểm tổng tự cộng lại — thầy cô vẫn sửa tay điểm tổng được sau đó. */
+  const doiCau = (next: QuestionResult[]) => {
+    setRows(next);
+    if (g) setScore(String(recomputeTotal(g, next)));
+  };
+  const batTatCaLop = (questionNumber: string) => setClassFixes(prev => {
+    const next = new Set(prev);
+    if (next.has(questionNumber)) next.delete(questionNumber); else next.add(questionNumber);
+    return next;
+  });
 
   const [dangViet, setDangViet] = useState(false);
   const [ghiChu, setGhiChu] = useState('');
@@ -86,9 +103,20 @@ export const GradeReviewModal = ({ classId, studentName, submission, dangLuu, on
         </div>
 
         <div className="mt-4 space-y-5">
-          <QuestionResultsList results={g?.questionResults} title="Kết quả AI theo từng câu (chỉ xem)" />
+          {rows.length > 0 && (
+            <QuestionResultsEditor
+              rows={rows}
+              original={g?.questionResults || []}
+              canFixForClass={Boolean(submission.assignmentId)}
+              classFixes={classFixes}
+              onChange={doiCau}
+              onToggleClassFix={batTatCaLop}
+            />
+          )}
           <div>
-            <label className="mb-1 block text-sm font-black text-slate-700">Điểm (tối đa {maxScore})</label>
+            <label className="mb-1 block text-sm font-black text-slate-700">
+              Điểm (tối đa {maxScore}){rows.length > 0 && <span className="font-semibold text-slate-500"> — tự cộng từ các câu, vẫn sửa tay được</span>}
+            </label>
             <input type="number" min={0} max={maxScore} step={0.25} value={score}
               onChange={e => setScore(e.target.value)} className={`${O} font-semibold`} />
             {!diemHopLe && score !== '' && (
@@ -158,6 +186,10 @@ export const GradeReviewModal = ({ classId, studentName, submission, dangLuu, on
               feedback: feedback.trim(),
               weakTopics: tachDong(topics),
               teacherNote: teacherNote.trim(),
+              questionResults: rows,
+              classFixes: rows
+                .filter(q => classFixes.has(q.questionNumber) && q.expectedAnswer.trim())
+                .map(q => ({ questionNumber: q.questionNumber, expectedAnswer: q.expectedAnswer.trim() })),
             })}
             disabled={!diemHopLe || dangLuu || dangViet}
             className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-black text-white transition hover:bg-blue-700 disabled:opacity-50"

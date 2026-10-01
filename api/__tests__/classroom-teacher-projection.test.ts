@@ -165,6 +165,24 @@ describe('POST /api/classroom · teacher projection (submissions)', () => {
     expect(sub.grade).toMatchObject({ score: 8, teacherApproved: false, approvalSource: 'student_ai' });
   });
 
+  it('giáo viên thấy đáp án + giải thích từng câu kể cả khi chưa duyệt (lúc cần soát)', async () => {
+    const harness = seed();
+    harness.store.submissions['sub-1'].grade = {
+      ...oldGrade, teacherApproved: false,
+      questionResults: [{
+        questionNumber: 'Câu 1', status: 'incorrect', score: 0, maxScore: 1, studentAnswer: 'A', expectedAnswer: 'B',
+        errorType: 'Sai', explanation: 'Em chọn A', correction: '', nextPractice: '', needsTeacherReview: false, teacherEdited: true,
+      }],
+    };
+
+    const result = await call({ action: 'teacherSubmissions', classId: 'lop-1', assignmentId: 'asg-1' });
+
+    const sub = (result.payload?.submissions as DocData[])[0];
+    expect((sub.grade as DocData).questionResults).toEqual([
+      expect.objectContaining({ expectedAnswer: 'B', explanation: 'Em chọn A', teacherEdited: true }),
+    ]);
+  });
+
   it('giáo viên thấy errorMessage khi status error không có grade', async () => {
     const harness = seed();
     harness.store.submissions['sub-1'] = {
@@ -184,6 +202,37 @@ describe('POST /api/classroom · teacher projection (submissions)', () => {
     // Teacher sees the actual errorMessage for debugging
     expect(sub.errorMessage).toBe('AI provider down');
     expect(sub).not.toHaveProperty('grade');
+  });
+
+  it('giáo viên thấy lastGradingErrorRaw của bài lỗi chưa từng có điểm', async () => {
+    const harness = seed();
+    harness.store.submissions['sub-1'] = {
+      ...harness.store.submissions['sub-1'],
+      status: 'error',
+      errorMessage: 'Không gọi được Gemini lúc này. Thử lại sau ít phút.',
+      lastGradingErrorRaw: 'Không gọi được Gemini lúc này. ← TypeError: getaddrinfo ENOTFOUND',
+      grade: undefined,
+    };
+
+    const result = await call({ action: 'teacherSubmissions', classId: 'lop-1', assignmentId: 'asg-1' });
+
+    const sub = (result.payload?.submissions as DocData[])[0];
+    expect(sub.status).toBe('error');
+    expect(sub.lastGradingErrorRaw).toBe('Không gọi được Gemini lúc này. ← TypeError: getaddrinfo ENOTFOUND');
+  });
+
+  it('lỗi thô cũ còn sót không lộ ra khi bài không ở trạng thái lỗi và chưa có điểm', async () => {
+    const harness = seed();
+    harness.store.submissions['sub-1'] = {
+      ...harness.store.submissions['sub-1'],
+      status: 'submitted',
+      lastGradingErrorRaw: 'cũ',
+      grade: undefined,
+    };
+
+    const result = await call({ action: 'teacherSubmissions', classId: 'lop-1', assignmentId: 'asg-1' });
+
+    expect((result.payload?.submissions as DocData[])[0]).not.toHaveProperty('lastGradingErrorRaw');
   });
 
   it('giáo viên thấy evidenceSyncError (teacher/internal-only)', async () => {

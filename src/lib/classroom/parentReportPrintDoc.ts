@@ -4,6 +4,7 @@ import type { StudentExamScores } from './examScores';
 import { hs1Average, type Hs1Mark } from './scoreBook';
 import { exportElementToPdf } from '../../utils/pdfExport';
 import type { MonthPoint, PeriodComparison, ReportKind } from './reportPeriod';
+import { heroSvg, safeLogoDataUrl, sectionIcon, strandIcon, type SectionIconName } from './parentReportArt';
 import { groupRequirementLines, parentActionsForRequirements, requirementLevelLabel, type ParentRequirementLine, type RequirementLevel } from './parentRequirements';
 
 /** Một năng lực Toán đã được đánh giá (đã có bài duyệt), rút từ hồ sơ năng lực cho bản phụ huynh. */
@@ -45,7 +46,12 @@ export interface ParentReportPrintInput {
   teacherComment?: string;
   /** Kết quả theo yêu cầu cần đạt (giáo viên đã soát). Có thì thay cho danh sách "Điểm mạnh / Cần rèn thêm". */
   requirements?: ParentRequirementLine[] | null;
+  /** Nhận diện trường/giáo viên ở đầu báo cáo; vắng thì chỉ hiện tiêu đề báo cáo. */
+  branding?: { schoolName?: string; teacherName?: string; /** data URL png/jpeg/webp của logo trường */ logoDataUrl?: string } | null;
 }
+
+/** `print`: khổ A4 cố định 780px cho PDF/in. `web`: tự co giãn, chữ lớn, cho phụ huynh xem trên điện thoại. */
+export type ParentReportVariant = 'print' | 'web';
 
 /** id của node chứa bản báo cáo — CSS của bản in được scope theo id này, trang phụ huynh cũng phải dùng đúng id. */
 export const PARENT_REPORT_ROOT_ID = 'parent-report-pdf-root';
@@ -98,16 +104,20 @@ const LEVEL_ORDER: readonly RequirementLevel[] = ['vung', 'dang', 'chua'];
  */
 const buildRequirementSection = (lines: readonly ParentRequirementLine[]): [string, string] => {
   const groups = groupRequirementLines(lines);
-  const count = (level: RequirementLevel) => lines.filter(line => line.level === level).length;
-  const summary = `<div class="req-sum">${LEVEL_ORDER.map(level => `<span class="req-lv lv-${level}">${requirementLevelLabel(level)}: ${count(level)}</span>`).join('')}</div>
+  const thin = (line: ParentRequirementLine) => line.evidence < MIN_REQUIREMENT_EVIDENCE;
+  const count = (level: RequirementLevel) => lines.filter(line => !thin(line) && line.level === level).length;
+  const thinCount = lines.filter(thin).length;
+  const summary = `<div class="req-sum">${LEVEL_ORDER.filter(level => level === 'vung' || count(level) > 0).map(level => `<span class="req-lv lv-${level}">${requirementLevelLabel(level)}: ${count(level)}</span>`).join('')}${thinCount > 0 ? `<span class="req-lv lv-thieu">Chưa đủ căn cứ: ${thinCount}</span>` : ''}</div>
 <p class="muted" style="margin:6px 0 10px;font-size:11.5px">Đối chiếu Chương trình GDPT 2018 môn Toán. Mức do thầy cô xác nhận, gợi ý từ tỉ lệ điểm các câu đã duyệt trong kì: Vững ≥ 80% · Đang hình thành 50–79% · Chưa đạt &lt; 50%.</p>`;
   const row = (line: ParentRequirementLine, text: string) => `<div class="req-row">
-  <span class="req-lv lv-${line.level}">${requirementLevelLabel(line.level)}</span>
-  <div class="req-body"><div class="req-text">${esc(text)}</div>${line.note ? `<div class="req-note">${esc(line.note)}</div>` : ''}<div class="req-ev">Căn cứ: ${line.evidence} câu · đạt ${Math.round(line.percent)}%</div></div>
+  <span class="req-lv lv-${thin(line) ? 'thieu' : line.level}">${thin(line) ? 'Chưa đủ căn cứ' : requirementLevelLabel(line.level)}</span>
+  <div class="req-body">${line.note
+    ? `<div class="req-main">${esc(line.note)}</div><div class="req-text">Theo chương trình: ${esc(text)}</div>`
+    : `<div class="req-main">${esc(text)}</div>`}<div class="req-ev">Căn cứ: ${line.evidence} câu · đạt ${Math.round(line.percent)}%</div></div>
 </div>`;
   const blocks = groups.map(group => {
     const [first, ...rest] = group.rows;
-    return `<div class="req-keep"><div class="req-topic">${esc(group.strand)} · ${esc(group.topic)}</div>${row(first.line, first.item.text)}</div>${rest.map(r => row(r.line, r.item.text)).join('')}`;
+    return `<div class="req-keep"><div class="req-topic"><span class="req-ico">${strandIcon(group.strand, 16)}</span>${esc(group.strand)} · ${esc(group.topic)}</div>${row(first.line, first.item.text)}</div>${rest.map(r => row(r.line, r.item.text)).join('')}`;
   });
   return [summary + (blocks[0] ?? ''), blocks.slice(1).join('')];
 };
@@ -132,8 +142,8 @@ const buildMeter = (avg: number | null): string => {
 
 /** Đường xu hướng điểm qua các bài đã chấm (SVG). */
 const buildSparkline = (series: readonly number[], trend: TrendMeta): string => {
-  if (series.length < 2) {
-    return `<p class="muted">Cần ít nhất 2 bài đã chấm để vẽ xu hướng.</p><p class="trend-line" style="color:${trend.color}">${trend.arrow} ${esc(trend.label)}</p>`;
+  if (series.length < MIN_GRADED_FOR_TREND) {
+    return `<p class="muted">Cần ít nhất ${MIN_GRADED_FOR_TREND} bài đã chấm để vẽ xu hướng.</p>`;
   }
   const W = 232, H = 66, pad = 9;
   const stepX = (W - 2 * pad) / (series.length - 1);
@@ -145,9 +155,52 @@ const buildSparkline = (series: readonly number[], trend: TrendMeta): string => 
   const line = pts.map(p => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
   const area = `${pad.toFixed(1)},${(H - pad).toFixed(1)} ${line} ${(pad + (series.length - 1) * stepX).toFixed(1)},${(H - pad).toFixed(1)}`;
   const dots = pts.map((p, i) => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.2" fill="${i === pts.length - 1 ? '#1d4ed8' : '#93c5fd'}"/>`).join('');
-  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><polyline points="${area}" fill="#eff6ff" stroke="none"/><polyline points="${line}" fill="none" stroke="#1d4ed8" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>${dots}</svg>
+  // Ghi giá trị điểm đầu và điểm cuối để đường xu hướng đọc được, không chỉ là hình trang trí.
+  const endLabel = (index: number, anchor: 'start' | 'end') => {
+    const [x, y] = pts[index];
+    return `<text x="${x.toFixed(1)}" y="${Math.max(10, y - 7).toFixed(1)}" text-anchor="${anchor}" font-size="11" font-weight="700" fill="#334155">${Math.round(series[index])}%</text>`;
+  };
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><polyline points="${area}" fill="#eff6ff" stroke="none"/><polyline points="${line}" fill="none" stroke="#1d4ed8" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>${dots}${endLabel(0, 'start')}${endLabel(series.length - 1, 'end')}</svg>
   <p class="trend-line" style="color:${trend.color}">${trend.arrow} ${esc(trend.label)}</p>`;
 };
+
+/** Dưới ngần này thì "xu hướng" chưa đáng tin: chỉ 1–2 điểm không vẽ được đường, dễ kết luận sai về con. */
+const MIN_GRADED_FOR_TREND = 3;
+/** Một yêu cầu cần đạt dựa trên ít hơn ngần này câu thì không gắn mức Vững/Đang hình thành/Chưa đạt — ghi "Chưa đủ căn cứ". */
+export const MIN_REQUIREMENT_EVIDENCE = 3;
+
+/** Chữ cái đầu của họ và tên cuối ("Vũ Việt Cường" → "VC") cho ảnh đại diện ở cuối báo cáo. */
+const initialsOf = (name: string): string => {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return '';
+  return (words[0][0] + (words.length > 1 ? words[words.length - 1][0] : '')).toUpperCase();
+};
+
+interface Takeaway { tone: 'good' | 'focus' | 'home'; label: string; text: string }
+
+/**
+ * "Tóm tắt nhanh" cho phụ huynh chỉ đọc 10 giây: một điểm mạnh, một điều cần chú ý, một việc có thể làm ở nhà.
+ * Ưu tiên nhận xét theo yêu cầu cần đạt (đã viết cho phụ huynh đọc); chưa có thì lấy chủ đề chung của báo cáo.
+ */
+export const keyTakeaways = (
+  report: Pick<ParentSafeReport, 'strengths' | 'areasToPractice' | 'parentActions'>,
+  requirements?: readonly ParentRequirementLine[] | null,
+): Takeaway[] => {
+  const lines = requirements ?? [];
+  const good = lines.filter(line => line.evidence >= MIN_REQUIREMENT_EVIDENCE && line.level === 'vung' && line.note).sort((a, b) => b.percent - a.percent)[0];
+  const focus = lines.filter(line => line.evidence >= MIN_REQUIREMENT_EVIDENCE && line.level !== 'vung' && line.note).sort((a, b) => a.percent - b.percent)[0];
+  const out: Takeaway[] = [];
+  const goodText = good?.note || report.strengths[0];
+  if (goodText) out.push({ tone: 'good', label: 'Điểm mạnh', text: goodText });
+  const focusText = focus?.note || (report.areasToPractice[0] ? `Cần rèn thêm: ${report.areasToPractice[0]}.` : '');
+  if (focusText) out.push({ tone: 'focus', label: 'Cần chú ý', text: focusText });
+  if (report.parentActions[0]) out.push({ tone: 'home', label: 'Phụ huynh có thể làm', text: report.parentActions[0] });
+  return out;
+};
+
+const buildTakeaways = (items: readonly Takeaway[]): string =>
+  items.length === 0 ? '' : `<div class="takeaways"><div class="tk-title">Tóm tắt nhanh</div><div class="tk-grid">${items.map(item =>
+    `<div class="tk tk-${item.tone}"><b><span class="tk-ico">${sectionIcon(item.tone === 'good' ? 'star' : item.tone === 'focus' ? 'flag' : 'home', 15)}</span>${esc(item.label)}</b><p>${esc(item.text)}</p></div>`).join('')}</div></div>`;
 
 /** Thanh tiến độ nộp bài (đã chấm / chờ duyệt / chưa nộp). */
 const buildCompletion = (official: number, pending: number, missing: number): string => {
@@ -161,9 +214,10 @@ const buildCompletion = (official: number, pending: number, missing: number): st
   <div class="legend"><span><i style="background:#22c55e"></i>Đã chấm ${official}</span><span><i style="background:#f59e0b"></i>Chờ duyệt ${pending}</span><span><i style="background:#cbd5e1"></i>Chưa nộp ${missing}</span></div>`;
 };
 
+// Mức năng lực là thứ tự: hai mức cao cùng tông xanh lá, đậm dần theo mức (Xuất sắc nền đặc, Tốt nền nhạt).
 const LEVEL_STYLE: Record<CompetencyLevel, { color: string; soft: string }> = {
-  'Xuất sắc': { color: '#15803d', soft: '#dcfce7' },
-  'Tốt': { color: '#1d4ed8', soft: '#dbeafe' },
+  'Xuất sắc': { color: '#ffffff', soft: '#15803d' },
+  'Tốt': { color: '#166534', soft: '#dcfce7' },
   'Đạt yêu cầu': { color: '#b45309', soft: '#fef3c7' },
   'Chưa đạt yêu cầu': { color: '#b91c1c', soft: '#fee2e2' },
 };
@@ -271,7 +325,7 @@ const buildMonthlyChart = (points: readonly MonthPoint[]): string => {
 };
 
 /** CSS scope theo #ROOT_ID để không rò rỉ style ra phần còn lại của app khi node được gắn tạm vào DOM. */
-const styleBlock = `
+const printStyle = `
 #${ROOT_ID} { width: 780px; box-sizing: border-box; padding: 30px 34px; background:#fff; color:#1e293b; font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif; font-size:13px; line-height:1.55; }
 #${ROOT_ID} * { box-sizing: border-box; }
 #${ROOT_ID} .info-table { width:100%; border-collapse:collapse; margin-bottom:20px; }
@@ -279,17 +333,36 @@ const styleBlock = `
 #${ROOT_ID} .info-table td.k { background:#f1f5f9; font-weight:800; width:150px; color:#334155; }
 #${ROOT_ID} .title-wrap { border-bottom:3px solid #17375e; padding-bottom:14px; margin-bottom:18px; }
 #${ROOT_ID} .kicker { font-size:11.5px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:#1d4ed8; }
-#${ROOT_ID} .title-wrap h1 { font-size:24px; font-weight:800; color:#17375e; margin:5px 0 2px; }
-#${ROOT_ID} .title-wrap .prep { font-size:12px; color:#94a3b8; margin:0; }
+#${ROOT_ID} .head-text h1 { font-size:24px; font-weight:800; color:#17375e; margin:5px 0 2px; }
+#${ROOT_ID} .brandbar { display:flex; justify-content:space-between; align-items:baseline; gap:12px; margin-bottom:8px; }
+#${ROOT_ID} .school-name { font-size:14px; font-weight:800; color:#17375e; }
+#${ROOT_ID} .who { margin:4px 0 0; font-size:15px; color:#0f172a; }
+#${ROOT_ID} .who b { font-weight:800; }
+#${ROOT_ID} .title-wrap .prep { font-size:12.5px; color:#64748b; margin:2px 0 0; }
 #${ROOT_ID} .verdict { border-radius:10px; padding:14px 18px; color:#fff; display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
 #${ROOT_ID} .verdict .v-l small, #${ROOT_ID} .verdict .v-r small { display:block; font-size:11px; font-weight:700; opacity:.85; letter-spacing:.04em; text-transform:uppercase; }
 #${ROOT_ID} .verdict .v-l b { font-size:22px; font-weight:800; }
 #${ROOT_ID} .verdict .v-r { text-align:right; }
 #${ROOT_ID} .verdict .v-r b { font-size:15px; font-weight:800; }
 #${ROOT_ID} .sec-head { display:flex; align-items:center; gap:10px; margin:22px 0 11px; }
-#${ROOT_ID} .sec-head .n { display:inline-flex; width:25px; height:25px; border-radius:7px; background:#17375e; color:#fff; font-weight:800; font-size:13px; align-items:center; justify-content:center; }
+#${ROOT_ID} .sec-head .ico { display:inline-flex; width:32px; height:32px; border-radius:10px; border:1px solid #cfe0ee; background:#f1f7fc; color:#17375e; align-items:center; justify-content:center; flex:none; }
+#${ROOT_ID} .hero { display:block; width:100%; height:auto; margin:0 0 16px; border-radius:14px; }
+#${ROOT_ID} .head-row { display:flex; align-items:center; gap:16px; margin-bottom:12px; }
+#${ROOT_ID} .logo { height:62px; max-width:150px; object-fit:contain; flex:none; }
+#${ROOT_ID} .head-text { min-width:0; }
+#${ROOT_ID} .req-ico, #${ROOT_ID} .tk-ico { display:inline-flex; vertical-align:middle; margin-right:6px; color:#1d6fa5; }
+#${ROOT_ID} .tk-ico { margin-right:5px; }
 #${ROOT_ID} .sec-head h2 { font-size:15px; font-weight:800; color:#17375e; margin:0; text-transform:uppercase; letter-spacing:.02em; }
 #${ROOT_ID} .lead { border:1px solid #dbe4ec; border-left:5px solid #1d4ed8; border-radius:8px; padding:12px 16px; font-size:13.5px; font-weight:600; color:#334155; }
+#${ROOT_ID} .takeaways { margin:16px 0 2px; }
+#${ROOT_ID} .tk-title { font-size:12px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:#475569; margin-bottom:8px; }
+#${ROOT_ID} .tk-grid { display:flex; gap:10px; }
+#${ROOT_ID} .tk { flex:1; border:1px solid #dbe4ec; border-top:4px solid #94a3b8; border-radius:10px; padding:10px 13px; }
+#${ROOT_ID} .tk b { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.03em; }
+#${ROOT_ID} .tk p { margin:5px 0 0; font-size:13px; color:#1e293b; }
+#${ROOT_ID} .tk-good { border-top-color:#16a34a; } #${ROOT_ID} .tk-good b { color:#166534; }
+#${ROOT_ID} .tk-focus { border-top-color:#d97706; } #${ROOT_ID} .tk-focus b { color:#92400e; }
+#${ROOT_ID} .tk-home { border-top-color:#0284c7; } #${ROOT_ID} .tk-home b { color:#075985; }
 #${ROOT_ID} .tiles { display:flex; gap:12px; }
 #${ROOT_ID} .tile { flex:1; border:1px solid #dbe4ec; border-radius:10px; padding:12px 14px; }
 #${ROOT_ID} .tile .cap { font-size:11px; font-weight:800; color:#475569; text-transform:uppercase; letter-spacing:.03em; margin-bottom:9px; }
@@ -301,7 +374,7 @@ const styleBlock = `
 #${ROOT_ID} .meter-bar > span { display:block; height:100%; }
 #${ROOT_ID} .meter-mark { position:absolute; top:-3px; width:3px; height:20px; background:#0f172a; border-radius:2px; transform:translateX(-50%); }
 #${ROOT_ID} .meter-scale { display:flex; margin-top:4px; }
-#${ROOT_ID} .meter-scale > span { font-size:9px; color:#94a3b8; text-align:center; font-weight:600; }
+#${ROOT_ID} .meter-scale > span { font-size:10.5px; color:#64748b; text-align:center; font-weight:600; }
 #${ROOT_ID} .trend-line { margin:4px 0 0; font-size:13px; font-weight:800; }
 #${ROOT_ID} .stack { display:flex; height:16px; border-radius:8px; overflow:hidden; background:#eef2f7; }
 #${ROOT_ID} .stack > span { display:block; height:100%; }
@@ -318,7 +391,7 @@ const styleBlock = `
 #${ROOT_ID} .subj-bar > span { display:block; height:100%; }
 #${ROOT_ID} .exam-wrap { display:flex; flex-wrap:wrap; gap:14px; }
 #${ROOT_ID} .exam-block { flex:1 1 300px; min-width:0; }
-#${ROOT_ID} .subj-sub { font-size:11px; font-weight:600; color:#94a3b8; }
+#${ROOT_ID} .subj-sub { font-size:11.5px; font-weight:600; color:#64748b; }
 #${ROOT_ID} .exam-cap { font-size:12px; font-weight:800; color:#334155; text-transform:uppercase; letter-spacing:.02em; margin:0 0 8px; }
 #${ROOT_ID} .tds-letter { display:inline-block; margin-left:8px; font-size:12px; font-weight:800; color:#4338ca; background:#e0e7ff; border-radius:6px; padding:1px 9px; }
 #${ROOT_ID} .comp-progress { font-size:12px; color:#475569; margin:0 0 11px; }
@@ -335,8 +408,8 @@ const styleBlock = `
 #${ROOT_ID} .card h3 { font-size:13.5px; font-weight:800; color:#1e293b; margin:0 0 8px; }
 #${ROOT_ID} ul { margin:0; padding-left:18px; }
 #${ROOT_ID} li { margin-bottom:5px; }
-#${ROOT_ID} .muted { color:#64748b; font-style:italic; margin:0; }
-#${ROOT_ID} .note { border:1px solid #dbe4ec; background:#f8fafc; border-radius:8px; padding:10px 14px; font-size:11.5px; color:#64748b; margin-top:16px; }
+#${ROOT_ID} .muted { color:#475569; font-style:italic; margin:0; }
+#${ROOT_ID} .note { border:1px solid #dbe4ec; background:#f8fafc; border-radius:8px; padding:10px 14px; font-size:12px; color:#475569; margin-top:16px; }
 #${ROOT_ID} .signature { display:flex; gap:16px; margin-top:22px; }
 #${ROOT_ID} .signature div { flex:1; text-align:center; font-size:11.5px; color:#475569; font-weight:700; }
 #${ROOT_ID} .sig-line { margin-top:46px; border-top:1px dotted #94a3b8; padding-top:5px; }
@@ -347,25 +420,72 @@ const styleBlock = `
 #${ROOT_ID} .cmp-arrow { font-size:22px; font-weight:800; color:#94a3b8; }
 #${ROOT_ID} .cmp-verdict { margin:8px 0 0; font-size:12.5px; font-weight:700; color:#334155; }
 #${ROOT_ID} .req-sum { display:flex; gap:8px; flex-wrap:wrap; }
+#${ROOT_ID} .req-sum .req-lv { width:auto; padding:3px 12px; }
+#${ROOT_ID} .chips { display:flex; flex-wrap:wrap; gap:8px; margin:-4px 0 14px; }
+#${ROOT_ID} .chip { display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:5px 13px; font-size:12.5px; font-weight:700; }
+#${ROOT_ID} .chip b { font-size:14px; }
+#${ROOT_ID} .chip-ok { background:#dcfce7; color:#166534; } #${ROOT_ID} .chip-wait { background:#fef3c7; color:#92400e; } #${ROOT_ID} .chip-miss { background:#ffe4e6; color:#9f1239; }
+#${ROOT_ID} .verdict .basis { display:block; margin-top:3px; font-size:11.5px; opacity:.92; font-weight:600; }
+#${ROOT_ID} .more-sum { display:flex; align-items:center; gap:12px; padding:13px 16px; border:1px solid #cfe0ee; background:#f1f7fc; border-radius:12px; margin:24px 0 4px; color:#17375e; list-style:none; cursor:pointer; }
+#${ROOT_ID} .more-sum::-webkit-details-marker { display:none; }
+#${ROOT_ID} .more-sum .ico { display:inline-flex; width:32px; height:32px; border-radius:10px; background:#fff; border:1px solid #cfe0ee; align-items:center; justify-content:center; flex:none; }
+#${ROOT_ID} .more-t b { display:block; font-size:15px; font-weight:800; text-transform:uppercase; letter-spacing:.02em; }
+#${ROOT_ID} .more-t small { display:block; font-size:12px; color:#475569; font-weight:600; margin-top:2px; }
+#${ROOT_ID} .more-sum .chev { margin-left:auto; font-size:16px; transition:transform .2s; }
+#${ROOT_ID} .more[open] > .more-sum .chev { transform:rotate(180deg); }
+#${ROOT_ID} .lv-thieu { background:#e2e8f0; color:#475569; }
+#${ROOT_ID} .sig-name { margin-top:3px; font-size:13.5px; font-weight:800; color:#17375e; text-align:center; }
+#${ROOT_ID} .teacher-foot { display:flex; align-items:center; gap:14px; margin-top:20px; padding:14px 16px; border:1px solid #cfe0ee; border-radius:14px; background:linear-gradient(135deg,#f1f7fc,#ffffff); }
+#${ROOT_ID} .avatar { width:46px; height:46px; border-radius:50%; background:linear-gradient(135deg,#17375e,#14a3a3); color:#fff; font-weight:800; font-size:16px; display:flex; align-items:center; justify-content:center; flex:none; }
+#${ROOT_ID} .teacher-foot b { display:block; font-size:15px; color:#17375e; }
+#${ROOT_ID} .teacher-foot small { display:block; font-size:12.5px; color:#475569; font-weight:600; }
+#${ROOT_ID} .teacher-foot p { margin:4px 0 0; font-size:13px; color:#334155; }
 #${ROOT_ID} .req-topic { margin:12px 0 4px; font-size:12.5px; font-weight:800; color:#1e3a8a; border-bottom:1px solid #dbe4ec; padding-bottom:3px; }
 #${ROOT_ID} .req-row { display:flex; gap:10px; align-items:flex-start; padding:6px 0; border-bottom:1px dashed #e2e8f0; }
-#${ROOT_ID} .req-lv { flex:none; display:inline-block; min-width:92px; text-align:center; border-radius:999px; padding:2px 8px; font-size:11px; font-weight:800; }
+#${ROOT_ID} .req-lv { flex:none; display:inline-block; width:112px; text-align:center; border-radius:999px; padding:2px 8px; font-size:11px; font-weight:800; }
 #${ROOT_ID} .lv-vung { background:#dcfce7; color:#166534; }
 #${ROOT_ID} .lv-dang { background:#fef3c7; color:#92400e; }
 #${ROOT_ID} .lv-chua { background:#fee2e2; color:#991b1b; }
 #${ROOT_ID} .req-body { flex:1; }
-#${ROOT_ID} .req-text { font-size:12.5px; color:#1e293b; }
-#${ROOT_ID} .req-note { margin-top:3px; font-size:12px; color:#334155; font-style:italic; }
-#${ROOT_ID} .req-ev { margin-top:2px; font-size:10.5px; color:#64748b; }
+#${ROOT_ID} .req-text { margin-top:3px; font-size:11.5px; color:#64748b; }
+#${ROOT_ID} .req-main { font-size:13.5px; font-weight:700; color:#0f172a; }
+#${ROOT_ID} .req-ev { margin-top:3px; font-size:11.5px; color:#475569; }
 #${ROOT_ID} .teacher-note { border:1px solid #dbe4ec; border-left:5px solid #7c3aed; border-radius:8px; padding:12px 16px; font-size:13px; color:#1e293b; white-space:normal; }
 `;
+
+/** Bản web (điện thoại): bỏ khổ A4 cố định; chữ to hơn, các cột xếp dọc khi màn hẹp. Dữ liệu và nội dung giữ nguyên. */
+const webStyle = `
+#${ROOT_ID} { width:auto; max-width:820px; margin:0 auto; padding:18px 16px 26px; font-size:15px; line-height:1.6; }
+#${ROOT_ID} svg { max-width:100%; height:auto; }
+#${ROOT_ID} .head-text h1 { font-size:22px; line-height:1.25; }
+#${ROOT_ID} .who { font-size:16px; }
+#${ROOT_ID} .title-wrap .prep { font-size:13px; }
+#${ROOT_ID} .lead, #${ROOT_ID} .teacher-note, #${ROOT_ID} .req-main, #${ROOT_ID} .tk p { font-size:15px; }
+#${ROOT_ID} .req-text { font-size:13px; } #${ROOT_ID} .req-ev, #${ROOT_ID} .legend, #${ROOT_ID} .tile .cap, #${ROOT_ID} .note { font-size:12.5px; }
+#${ROOT_ID} .subj-name, #${ROOT_ID} .card h3 { font-size:15px; } #${ROOT_ID} .comp-list, #${ROOT_ID} .cmp-verdict, #${ROOT_ID} .comp-progress, #${ROOT_ID} li { font-size:14.5px; }
+#${ROOT_ID} .meter-scale > span { font-size:11px; } #${ROOT_ID} .tk b { font-size:12.5px; }
+@media (max-width: 640px) {
+  #${ROOT_ID} .tiles, #${ROOT_ID} .cards2, #${ROOT_ID} .tk-grid, #${ROOT_ID} .cmp { flex-direction:column; }
+  #${ROOT_ID} .verdict { flex-direction:column; align-items:flex-start; gap:10px; } #${ROOT_ID} .verdict .v-r { text-align:left; }
+  #${ROOT_ID} .cmp-arrow { transform:rotate(90deg); align-self:center; }
+  #${ROOT_ID} .req-row { flex-direction:column; gap:6px; } #${ROOT_ID} .req-lv { width:auto; align-self:flex-start; padding:3px 12px; }
+  #${ROOT_ID} .exam-block { flex-basis:100%; } #${ROOT_ID} .brandbar { flex-direction:column; gap:2px; }
+  #${ROOT_ID} .head-row { flex-direction:column; align-items:flex-start; gap:8px; } #${ROOT_ID} .logo { height:50px; }
+  #${ROOT_ID} .head-text h1 { font-size:20px; }
+}
+`;
+
+const styleBlock = (variant: ParentReportVariant): string => (variant === 'web' ? printStyle + webStyle : printStyle);
 
 /**
  * Dựng phần thân báo cáo phụ huynh (style + markup, đã scope theo #ROOT_ID) theo phong cách phiếu
  * tiến độ IB: bảng thông tin, dải tổng kết, biểu đồ thống kê, mục điểm từng bài, phương án đồng hành.
  * Chỉ dùng dữ liệu đã an toàn trong ParentSafeReport — không có đáp án, ghi chú nội bộ hay điểm bài chưa duyệt.
  */
-export const buildParentReportPrintDoc = ({ report, studentName, className, studentCode, generatedOn, competency, exams, hs1, period, comparison, monthly, teacherComment, requirements }: ParentReportPrintInput): string => {
+export const buildParentReportPrintDoc = (
+  { report, studentName, className, studentCode, generatedOn, competency, exams, hs1, period, comparison, monthly, teacherComment, requirements, branding }: ParentReportPrintInput,
+  variant: ParentReportVariant = 'print',
+): string => {
   const ngay = generatedOn ?? new Date().toLocaleDateString('vi-VN');
   const avg = report.officialAveragePercent;
   const band = avg === null ? { label: 'Chưa đủ dữ liệu', color: '#64748b' } : scoreBand(avg);
@@ -379,8 +499,12 @@ export const buildParentReportPrintDoc = ({ report, studentName, className, stud
     ? '<p class="muted" style="margin:10px 0 0;font-size:11.5px">Hai mục trên là tên các phần trong môn Toán. Phụ huynh không cần hiểu sâu — chỉ cần phối hợp nhắc con luyện đúng những phần thầy cô đánh dấu ở “Cần rèn thêm”.</p>'
     : '';
 
-  let sectionNo = 0;
-  const secHead = (title: string) => `<div class="sec-head"><span class="n">${++sectionNo}</span><h2>${title}</h2></div>`;
+  const SECTION_ICON: Record<string, SectionIconName> = {
+    'Nhận xét của giáo viên': 'comment', 'Tổng quan bằng số': 'chart', 'So sánh để thấy tiến bộ': 'trend', 'Điểm trung bình theo tháng': 'chart',
+    'Điểm kiểm tra &amp; thi định kì': 'exam', 'Điểm thi định kì': 'exam', 'Kết quả theo yêu cầu cần đạt': 'target', 'Điểm mạnh &amp; phần cần rèn': 'star',
+    'Năng lực Toán học': 'medal', 'Kết quả từng bài': 'list', 'Cùng đồng hành với con': 'heart',
+  };
+  const secHead = (title: string) => `<div class="sec-head"><span class="ico">${sectionIcon(SECTION_ICON[title] ?? 'list', 18)}</span><h2>${title}</h2></div>`;
   // Tiêu đề mục luôn đi cùng nội dung (khối không bị cắt khi sang trang) — không để tiêu đề trơ trọi cuối trang.
   const section = (title: string, body: string, rest = '') => `<div class="sec-keep">${secHead(title)}${body}</div>${rest}`;
   const hasCompetency = Boolean(competency && competency.total > 0);
@@ -389,33 +513,39 @@ export const buildParentReportPrintDoc = ({ report, studentName, className, stud
   const hasExams = examScores.moet.length > 0 || examScores.tds.length > 0;
   const examTitle = hs1Marks.length > 0 ? 'Điểm kiểm tra &amp; thi định kì' : 'Điểm thi định kì';
 
-  return `<style>${styleBlock}</style>
-<table class="info-table">
-  <tr><td class="k">Học sinh</td><td>${esc(studentName)}</td></tr>
-  <tr><td class="k">Lớp</td><td>${esc(className)}</td></tr>
-  ${studentCode ? `<tr><td class="k">Mã học sinh</td><td>${esc(studentCode)}</td></tr>` : ''}
-  ${period ? `<tr><td class="k">Thời gian báo cáo</td><td>${esc(period.range)}</td></tr>` : ''}
-  <tr><td class="k">Ngày lập</td><td>${esc(ngay)}</td></tr>
-</table>
+  const schoolName = branding?.schoolName?.trim();
+  const teacherName = branding?.teacherName?.trim();
+  const logo = safeLogoDataUrl(branding?.logoDataUrl);
+  const takeawayItems = keyTakeaways(report, requirements);
+  const takeaways = buildTakeaways(takeawayItems);
+  // Mức thấp không dùng nền đỏ chói: phụ huynh đọc dòng đầu tiên này như một lời phán xét về con.
+  const verdictBg = avg !== null && avg < 50 ? '#9a3412' : band.color;
 
-<div class="title-wrap">
-  <div class="kicker">SmartPlan AI · Trợ lý sư phạm</div>
-  <h1>${esc(period?.title ?? 'Báo cáo học tập môn Toán')}</h1>
-  <p class="prep">Bản gửi phụ huynh${period ? ` · ${esc(period.range)}` : ''} · Lập ngày ${esc(ngay)}</p>
-</div>
+  // Mức và xu hướng chỉ đáng tin khi đủ bài: ít bài thì nói rõ là tham khảo, không khẳng định.
+  const gradedCount = officialSeries.length;
+  const enoughForTrend = gradedCount >= MIN_GRADED_FOR_TREND;
+  const basis = avg === null ? ''
+    : gradedCount < MIN_GRADED_FOR_TREND ? `Mới có ${gradedCount} bài đã chấm — kết quả chỉ mang tính tham khảo.`
+      : `Dựa trên ${gradedCount} bài đã chấm.`;
+  const chips = ([
+    [report.officialCount, 'bài đã chấm', 'ok'],
+    [report.pendingCount, 'bài chờ thầy cô duyệt', 'wait'],
+    [report.missingCount, 'bài chưa nộp', 'miss'],
+  ] as const).filter(([count]) => count > 0)
+    .map(([count, label, tone]) => `<span class="chip chip-${tone}"><b>${count}</b> ${label}</span>`).join('');
 
-<div class="verdict" style="background:${band.color}">
-  <div class="v-l"><small>Kết quả chung</small><b>${avg === null ? 'Chưa đủ dữ liệu' : `Mức ${band.label} · ${avg.toFixed(1)}%`}</b></div>
-  <div class="v-r"><small>Xu hướng gần đây</small><b>${trend.arrow} ${esc(trend.label)}</b></div>
-</div>
+  // Gợi ý đầu đã nằm ở ô "Phụ huynh có thể làm" của Tóm tắt nhanh → mục đồng hành không nhắc lại.
+  const homeActions = parentActionsForRequirements(report.parentActions, requirements);
+  const homeList = takeawayItems.some(item => item.tone === 'home') && homeActions.length > 1 ? homeActions.slice(1) : homeActions;
+  const actionsSection = () => section('Cùng đồng hành với con', `<div class="cards2">
+  <div class="card home"><h3>Phụ huynh có thể làm ở nhà</h3>${listItems(homeList, 'Chưa có gợi ý cụ thể.')}</div>
+  <div class="card school"><h3>Thầy cô sẽ hỗ trợ</h3>${listItems(report.teacherActions, 'Chưa có gợi ý cụ thể.')}</div>
+</div>`);
 
-<div class="lead">${esc(report.overallSummary)}</div>
-
-${teacherComment?.trim() ? section('Nhận xét của giáo viên', `<div class="teacher-note">${teacherComment.trim().split(/\n+/).map(line => esc(line)).join('<br/>')}</div>`) : ''}
-
-${section('Tổng quan bằng số', `<div class="tiles">
+  // ── Tầng chi tiết (phía dưới): số liệu, so sánh, điểm thi, yêu cầu cần đạt, năng lực, từng bài ──
+  const detailBody = `${section('Tổng quan bằng số', `<div class="tiles">
   <div class="tile"><div class="cap">Điểm trung bình</div>${buildMeter(avg)}</div>
-  <div class="tile"><div class="cap">Xu hướng điểm</div>${buildSparkline(officialSeries, trend)}</div>
+  <div class="tile"><div class="cap">Xu hướng điểm</div>${buildSparkline(enoughForTrend ? officialSeries : [], trend)}</div>
   <div class="tile"><div class="cap">Tiến độ nộp bài</div>${buildCompletion(report.officialCount, report.pendingCount, report.missingCount)}</div>
 </div>`)}
 
@@ -428,8 +558,8 @@ ${hasExams || hs1Marks.length > 0 ? section(examTitle, buildExamSection(examScor
 ${hasRequirements
     ? section('Kết quả theo yêu cầu cần đạt', ...buildRequirementSection(requirements as ParentRequirementLine[]))
     : section('Điểm mạnh &amp; phần cần rèn', `<div class="cards2">
-  <div class="card good"><h3>✅ Điểm mạnh</h3>${listItems(report.strengths.slice(0, MAX_TOPIC_ITEMS), 'Chưa đủ bằng chứng chính thức.')}</div>
-  <div class="card warn"><h3>🎯 Cần rèn thêm</h3>${listItems(report.areasToPractice.slice(0, MAX_TOPIC_ITEMS), 'Chưa có nội dung cần rèn được xác nhận.')}</div>
+  <div class="card good"><h3>Điểm mạnh</h3>${listItems(report.strengths.slice(0, MAX_TOPIC_ITEMS), 'Chưa đủ bằng chứng chính thức.')}</div>
+  <div class="card warn"><h3>Cần rèn thêm</h3>${listItems(report.areasToPractice.slice(0, MAX_TOPIC_ITEMS), 'Chưa có nội dung cần rèn được xác nhận.')}</div>
 </div>`)}
 ${bridgeNote}
 
@@ -442,17 +572,51 @@ ${(() => {
     return cut > 0 ? section('Kết quả từng bài', rows.slice(0, cut), rows.slice(cut)) : section('Kết quả từng bài', rows);
   })()}
 
-${section('Cùng đồng hành với con', `<div class="cards2">
-  <div class="card home"><h3>🤝 Phụ huynh có thể làm ở nhà</h3>${listItems(parentActionsForRequirements(report.parentActions, requirements), 'Chưa có gợi ý cụ thể.')}</div>
-  <div class="card school"><h3>🎓 Thầy cô sẽ hỗ trợ</h3>${listItems(report.teacherActions, 'Chưa có gợi ý cụ thể.')}</div>
-</div>`)}
+<div class="note">${period ? 'Chỉ tính các bài có hạn nộp trong thời gian báo cáo; điểm thi định kì hiện tất cả cột đã có. ' : ''}Báo cáo chỉ dùng kết quả đã được thầy cô xem và duyệt; bài đang chờ xử lý không hiển thị điểm. Điểm từng bài theo thang điểm của bài; điểm trung bình quy về phần trăm để so sánh. Không hiển thị đáp án hay ghi chú nội bộ.</div>`;
 
-<div class="note">${period ? 'Chỉ tính các bài có hạn nộp trong thời gian báo cáo; điểm thi định kì hiện tất cả cột đã có. ' : ''}Báo cáo chỉ dùng kết quả đã được thầy cô xem và duyệt; bài đang chờ xử lý không hiển thị điểm. Điểm từng bài theo thang điểm của bài; điểm trung bình quy về phần trăm để so sánh. Không hiển thị đáp án hay ghi chú nội bộ.</div>
+  const moreHead = `<span class="ico">${sectionIcon('list', 18)}</span><span class="more-t"><b>Chi tiết báo cáo</b><small>Điểm số, so sánh, yêu cầu cần đạt, năng lực, từng bài</small></span>`;
+  // Bản web: tầng chi tiết thu gọn, phụ huynh bấm để mở. Bản in/PDF: in đủ, ngăn cách bằng dải tiêu đề.
+  const detail = variant === 'web'
+    ? `<details class="more"><summary class="more-sum">${moreHead}<span class="chev">▾</span></summary>${detailBody}</details>`
+    : `<div class="more-sum more-banner">${moreHead}</div>${detailBody}`;
 
-<div class="signature">
+  // Tên giáo viên (GV tự nhập một lần) đứng ở CUỐI báo cáo.
+  const footer = variant === 'print'
+    ? `<div class="signature">
   <div><div class="sig-line">Phụ huynh (ký, ghi rõ họ tên)</div></div>
-  <div><div class="sig-line">Giáo viên (ký, ghi rõ họ tên)</div></div>
-</div>`;
+  <div><div class="sig-line">${teacherName ? 'Giáo viên' : 'Giáo viên (ký, ghi rõ họ tên)'}</div>${teacherName ? `<div class="sig-name">${esc(teacherName)}</div>` : ''}</div>
+</div>`
+    : teacherName
+      ? `<div class="teacher-foot"><span class="avatar">${esc(initialsOf(teacherName))}</span><div><b>${esc(teacherName)}</b><small>Giáo viên${schoolName ? ` · ${esc(schoolName)}` : ''}</small><p>Cảm ơn quý phụ huynh đã đồng hành cùng con.</p></div></div>`
+      : '';
+
+  return `<style>${styleBlock(variant)}</style>
+<div class="head-row">${logo ? `<img class="logo" src="${logo}" alt="Logo ${esc(schoolName ?? 'trường')}"/>` : ''}<div class="head-text">
+  <div class="brandbar">${schoolName ? `<span class="school-name">${esc(schoolName)}</span>` : ''}<span class="kicker">Báo cáo gửi phụ huynh</span></div>
+  <h1 style="margin-top:2px">${esc(period?.title ?? 'Báo cáo học tập môn Toán')}</h1></div></div>
+${heroSvg()}
+<div class="title-wrap" style="padding-top:0">
+  <p class="who"><b>${esc(studentName)}</b> · Lớp ${esc(className)}${studentCode ? ` · Mã HS ${esc(studentCode)}` : ''}</p>
+  <p class="prep">${period ? `Thời gian báo cáo: ${esc(period.range)} · ` : ''}Lập ngày ${esc(ngay)}</p>
+</div>
+
+<div class="verdict" style="background:${verdictBg}">
+  <div class="v-l"><small>Kết quả chung</small><b>${avg === null ? 'Chưa đủ dữ liệu' : `Mức ${band.label} · ${avg.toFixed(1)}%`}</b>${basis ? `<span class="basis">${esc(basis)}</span>` : ''}</div>
+  <div class="v-r"><small>Xu hướng gần đây</small><b>${enoughForTrend ? `${trend.arrow} ${esc(trend.label)}` : 'Cần thêm bài để nhận định'}</b></div>
+</div>
+${chips ? `<div class="chips">${chips}</div>` : ''}
+
+<div class="lead">${esc(report.overallSummary)}</div>
+
+${takeaways}
+
+${teacherComment?.trim() ? section('Nhận xét của giáo viên', `<div class="teacher-note">${teacherComment.trim().split(/\n+/).map(line => esc(line)).join('<br/>')}</div>`) : ''}
+
+${actionsSection()}
+
+${detail}
+
+${footer}`;
 };
 
 export const parentReportFileName = ({ studentName, className, period }: ParentReportPrintInput): string =>

@@ -9,6 +9,7 @@ import type { EvidenceQuestion, EvidenceSubmission } from './parentRequirements'
 import type { ParentCompetencyItem, ParentCompetencySummary, ParentReportPrintInput } from './parentReportPrintDoc';
 import { buildStudentCompetencyPortfolio, portfolioProgress } from './competency/portfolioModel';
 import { asCompetencyGrade } from './competency/framework';
+import { competencyTerms, inStage, stageForPeriod, type Program, type ReportStage } from './reportStage';
 import { dmy, filterForPeriod, monthlyAverages, periodComparison, rangeLabel, reportTitle, vnDay, type ReportPeriod } from './reportPeriod';
 
 export interface ParentReportSource {
@@ -17,6 +18,8 @@ export interface ParentReportSource {
   className: string;
   studentCode?: string;
   classGrade?: string;
+  /** Chương trình của lớp (TDS/MOET) — lọc đúng các bài biên mà hai chương trình xếp khác học kì. Chưa chọn = null. */
+  program?: Program | null;
   assignments: readonly AssignmentDoc[];
   /** Bài nộp của CHÍNH học sinh này. */
   submissions: readonly SubmissionDoc[];
@@ -29,6 +32,7 @@ export const parentCompetencyFor = (
   classGrade: string | undefined,
   submissions: readonly SubmissionDoc[],
   assignments: readonly AssignmentDoc[],
+  stage?: ReportStage | null,
 ): ParentCompetencySummary | null => {
   const grade = asCompetencyGrade(classGrade);
   if (!grade) return null;
@@ -40,10 +44,15 @@ export const parentCompetencyFor = (
     submittedAt: s.createdAt,
   }));
   const areas = buildStudentCompetencyPortfolio(grade, subs, assignments.map(a => ({ id: a.id, competencyTags: a.competencyTags })));
-  const { assessed, total } = portfolioProgress(areas);
+  // Chỉ năng lực cùng giai đoạn (học kì) với kì báo cáo: không đếm "x/y" cả những năng lực chưa/không học trong giai đoạn này.
   const items: ParentCompetencyItem[] = [];
+  let assessed = 0;
+  let total = 0;
   for (const area of areas) {
     for (const row of area.rows) {
+      if (!inStage(competencyTerms(row.competency.id, stage?.program ?? null), stage)) continue;
+      total += 1;
+      if (row.result) assessed += 1;
       if (row.result?.level) items.push({ area: area.area, topic: row.competency.topic, level: row.result.level });
     }
   }
@@ -154,7 +163,7 @@ export const buildPeriodParentReport = (src: ParentReportSource, period: ReportP
   }
   // Năng lực là thứ tích luỹ: tính tới hết khoảng báo cáo (không cắt đầu khoảng).
   const upToEnd = period ? src.submissions.filter(s => { const day = vnDay(s.createdAt); return day !== '' && day <= period.to; }) : src.submissions;
-  const competency = parentCompetencyFor(src.classGrade, upToEnd, src.assignments);
+  const competency = parentCompetencyFor(src.classGrade, upToEnd, src.assignments, period ? stageForPeriod(period, src.program) : null);
   const exams = src.scoreView?.exams ?? null;
   const title = period ? reportTitle(period) : 'Báo cáo học tập môn Toán';
 

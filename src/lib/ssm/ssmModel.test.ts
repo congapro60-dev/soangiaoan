@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Student } from '../../types';
 import {
   emailsMatch,
+  ssmAccountAllowed,
   guessSsmClass,
   listOf,
   matchRoster,
@@ -104,5 +105,24 @@ describe('matchRoster', () => {
     expect(result.matched.map(m => m.app.id)).toEqual(['a']);
     expect(result.onlyInApp.map(s => s.id)).toEqual(['b', 'c']);
     expect(result.onlyInSsm.map(s => s.code)).toEqual(['GB003']);
+  });
+});
+
+describe('ssmAccountAllowed', () => {
+  const MAIL_TRUONG = 'cuong.vuviet@thedeweyschools.edu.vn';
+  const GMAIL = 'congapro60@gmail.com';
+
+  it('chủ dự án: app đã gộp về Gmail nhưng SSM đăng nhập mail trường (hoặc ngược lại) → hợp lệ', () => {
+    expect(ssmAccountAllowed(MAIL_TRUONG, GMAIL)).toBe(true);
+    expect(ssmAccountAllowed(GMAIL, MAIL_TRUONG)).toBe(true);
+    expect(ssmAccountAllowed(MAIL_TRUONG, GMAIL, MAIL_TRUONG)).toBe(true);
+  });
+
+  it('giáo viên khác: phải đúng mail của chính mình; mail lạ hoặc rỗng bị từ chối', () => {
+    expect(ssmAccountAllowed('co.lan@truong.vn', 'co.lan@truong.vn')).toBe(true);
+    expect(ssmAccountAllowed('co.khac@truong.vn', 'co.lan@truong.vn')).toBe(false);
+    expect(ssmAccountAllowed(MAIL_TRUONG, 'co.lan@truong.vn')).toBe(false);
+    expect(ssmAccountAllowed('', GMAIL)).toBe(false);
+    expect(ssmAccountAllowed(null, null)).toBe(false);
   });
 });
