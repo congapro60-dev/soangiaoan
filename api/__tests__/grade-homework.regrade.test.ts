@@ -432,6 +432,27 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
       logLoi.mockRestore();
     });
 
+    it('lỗi mạng khi gọi Gemini: lỗi thô giữ nguyên nhân gốc, thông báo vẫn là câu an toàn', async () => {
+      const harness = seedChuaCham();
+      h.db = makeDb(harness);
+      const logLoi = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      const canhBao = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      h.fetch = vi.fn(async () => { throw new TypeError('getaddrinfo ENOTFOUND generativelanguage.googleapis.com'); });
+      vi.stubGlobal('fetch', h.fetch);
+
+      const result = await call({ action: 'gradeOne', submissionId: 'sub-1' });
+
+      expect(result.statusCode).toBe(422);
+      const luu = harness.state.submissions['sub-1'];
+      expect(luu).toMatchObject({
+        status: 'error',
+        errorMessage: 'Không gọi được Gemini lúc này. Thử lại sau ít phút.',
+        lastGradingErrorRaw: expect.stringContaining('ENOTFOUND'),
+      });
+      logLoi.mockRestore();
+      canhBao.mockRestore();
+    });
+
     it('lỗi hệ thống ngoài AI không bị gắn nhãn lỗi định dạng', async () => {
       const harness = seedChuaCham();
       const db = makeDb(harness);

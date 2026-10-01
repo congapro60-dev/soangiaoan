@@ -1,9 +1,18 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-09-30
+**Cập nhật:** 2026-10-01
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
+
+## Bài chấm lỗi: hiện đúng nguyên nhân + có dấu vết để đo — 2026-10-01
+
+Chủ dự án báo "rất nhiều bài lỗi định dạng, chấm lại không được". Kiểm trên production (lớp 10, 11): chỉ 2 bài ở trạng thái Lỗi, **hai nguyên nhân khác nhau** — Gemini quá 45s (`timeoutMs`) và `finishReason=RECITATION` — nhưng cả hai đều hiện cùng câu "AI gặp lỗi định dạng…".
+- **Gốc nhãn sai:** `AssignmentPanel.tsx` in cứng `TEACHER_GRADING_ERROR_COPY` cho mọi bài `status==='error'`, bỏ qua `errorMessage` thật (thẻ tổng hợp đầu trang dùng `errorMessage` nên hiện đúng — đó là chỗ lộ ra). Nay hiện `s.errorMessage`, chuỗi cũ chỉ còn làm dự phòng. Nhãn "lỗi định dạng" chỉ dành cho `HomeworkGradeContractError`/`JsonRecoveryError`; lỗi lạ khác ("lỗi hệ thống").
+- **Dấu vết:** `gradeOneSubmission` giờ `console.error('[grade-homework] lượt chấm hỏng')` và lưu `lastGradingErrorRaw` cả với bài chưa từng có điểm (trước chỉ khi đã có điểm cũ → log Vercel trống). `callGeminiVision` ghi `[gemini] gọi xong` (số ảnh, ms, finishReason, token gồm `thoughtsTokenCount`) và `[gemini] lượt gọi hỏng`; `GeminiResponseError` giữ `cause` (lỗi mạng gốc không còn bị nuốt). Lỗi thô nối `← <cause>`.
+- **Cố ý chưa làm:** (1) hạ mức "suy nghĩ" của Gemini — chưa chứng minh timeout do thinking (còn nghi 6 ảnh đề + 4 đáp án + tới 12 ảnh bài, không thu nhỏ); đợi 1–2 ngày log `[gemini] gọi xong` rồi quyết, vì đụng độ chính xác chấm. (2) Lỗi thô CHƯA hiện trên giao diện cho bài chưa có điểm: `_classroom-teacher.ts` chỉ trả `lastGradingErrorRaw` khi có điểm hợp lệ — xem qua log Vercel/Firestore. (3) RECITATION vẫn là lỗi cuối, chưa thử lại; đã đổi chữ thành "mã RECITATION" (mã này không chứng minh vi phạm bản quyền).
+- **Bẫy:** bộ đọc JSON chặt (`parseHomeworkGradeForCommit`) ném cả lượt nếu có hai mục trùng `questionNumber` hoặc thiếu trường bắt buộc ở phần đầu — dễ gặp với bài viết tay nhiều ảnh; chưa có số liệu tần suất. Lượt chấm thất bại vẫn bị trừ hạn mức.
+- **Nghiệm thu:** `npx vitest run api/__tests__/grading-core.test.ts api/__tests__/grade-homework.regrade.test.ts`; sau deploy mở bài Hà Chi (lớp 10) — hàng phải hiện "AI xử lý quá lâu…" thay vì "định dạng"; log Vercel tìm `lượt chấm hỏng` / `[gemini]`.
 
 ## Cổng phụ huynh /ph: xem báo cáo trực tuyến bằng tên con + PIN riêng — 2026-10-01
 

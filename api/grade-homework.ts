@@ -541,7 +541,10 @@ const gradeOneSubmission = async (
       throw error;
     }
     const safeMessage = safeGradeErrorMessage(error);
-    const rawMessage = error instanceof Error ? error.message : String(error);
+    // Kèm nguyên nhân gốc (lỗi mạng bị bọc thành câu chung ở lớp gọi Gemini) để lỗi thô còn lần ra được.
+    const rawMessage = error instanceof Error
+      ? `${error.message}${error.cause instanceof Error ? ` ← ${error.cause.name}: ${error.cause.message}` : ''}`
+      : String(error);
     // Không có dòng này thì lượt chấm hỏng không để lại dấu vết nào: thông báo cho giáo viên là câu
     // chung, còn nguyên nhân thật chỉ nằm trong biến `error` rồi mất.
     console.error('[grade-homework] lượt chấm hỏng', { submissionId, hadPreviousGrade, error });

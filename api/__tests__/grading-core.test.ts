@@ -166,8 +166,10 @@ describe('moTaFinishReason — không đổ oan cho khâu đọc JSON', () => {
     expect(moTaFinishReason('PROHIBITED_CONTENT', false)).toMatch(/từ chối/);
   });
 
-  it('trùng tài liệu bản quyền', () => {
-    expect(moTaFinishReason('RECITATION', true)).toMatch(/bản quyền/);
+  it('RECITATION nêu đúng mã, không khẳng định bài vi phạm bản quyền', () => {
+    const loi = String(moTaFinishReason('RECITATION', true));
+    expect(loi).toMatch(/RECITATION/);
+    expect(loi).not.toMatch(/bản quyền/);
   });
 
   it('trả lời bình thường và có chữ thì KHÔNG báo lỗi', () => {
@@ -224,6 +226,57 @@ describe('callGeminiVision — phân loại lỗi provider bằng type', () => {
     expect(failure).toBeInstanceOf(GeminiResponseError);
     expect(failure).toMatchObject({ kind: 'http' });
     expect(String(failure.message)).not.toContain('provider down');
+  });
+
+  it('lỗi mạng giữ nguyên nhân gốc trong cause và ghi log kèm số ảnh, thời gian', async () => {
+    const goc = Object.assign(new Error('getaddrinfo ENOTFOUND generativelanguage.googleapis.com'), { name: 'TypeError' });
+    vi.stubGlobal('fetch', vi.fn(async () => { throw goc; }));
+    const canhBao = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    const failure = await callGeminiVision('prompt', [{ mimeType: 'image/jpeg', data: 'AAAA' }], 'key').catch(error => error);
+
+    expect(failure).toBeInstanceOf(GeminiResponseError);
+    expect(failure.message).toBe('Không gọi được Gemini lúc này. Thử lại sau ít phút.');
+    expect(failure.cause).toBe(goc);
+    expect(canhBao).toHaveBeenCalledWith('[gemini] lượt gọi hỏng', expect.objectContaining({
+      images: 1,
+      timedOut: false,
+      cause: expect.stringContaining('ENOTFOUND'),
+    }));
+    canhBao.mockRestore();
+  });
+
+  it('hết giờ chờ báo "quá lâu", giữ cause và ghi timedOut=true', async () => {
+    const hetGio = Object.assign(new Error('The operation was aborted due to timeout'), { name: 'TimeoutError' });
+    vi.stubGlobal('fetch', vi.fn(async () => { throw hetGio; }));
+    const canhBao = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    const failure = await callGeminiVision('prompt', [], 'key', undefined, { timeoutMs: 45_000 }).catch(error => error);
+
+    expect(failure.message).toMatch(/quá lâu/);
+    expect(failure.cause).toBe(hetGio);
+    expect(canhBao).toHaveBeenCalledWith('[gemini] lượt gọi hỏng', expect.objectContaining({ timedOut: true }));
+    canhBao.mockRestore();
+  });
+
+  it('gọi thành công thì ghi log số ảnh, thời gian, finishReason và token', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        candidates: [{ finishReason: 'STOP', content: { parts: [{ text: '{}' }] } }],
+        usageMetadata: { promptTokenCount: 1200, candidatesTokenCount: 80, thoughtsTokenCount: 900 },
+      }),
+    })));
+    const thongTin = vi.spyOn(console, 'info').mockImplementation(() => undefined);
+
+    await callGeminiVision('prompt', [{ mimeType: 'image/jpeg', data: 'AAAA' }, { mimeType: 'image/jpeg', data: 'BBBB' }], 'key');
+
+    expect(thongTin).toHaveBeenCalledWith('[gemini] gọi xong', expect.objectContaining({
+      images: 2,
+      finishReason: 'STOP',
+      usage: expect.objectContaining({ thoughtsTokenCount: 900 }),
+    }));
+    thongTin.mockRestore();
   });
 
   it.each([null, [], 'provider raw payload', 42])(
