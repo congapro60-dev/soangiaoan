@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defaultMaxStretch, findBreakPoint, snapBreakToRowGap } from './pdfExport';
+import { defaultMaxStretch, findBreakPoint, mergeZones, snapBreakToRowGap } from './pdfExport';
 
 const PAGE = 1000;
 
@@ -80,5 +80,27 @@ describe('lùi chỗ cắt lên khe giữa hai dòng', () => {
   it('khe quá hẹp (nét chữ ngang) hoặc không có khe → giữ nguyên chỗ cắt', () => {
     expect(snapBreakToRowGap(image([...Array(5).fill('ink'), 'gap', 'gap', ...Array(5).fill('ink')]), W, 500, 4)).toBe(500);
     expect(snapBreakToRowGap(image(Array(12).fill('ink')), W, 500, 4)).toBe(500);
+  });
+});
+
+describe('gộp vùng cấm ngắt trang', () => {
+  it('các câu nằm sát nhau (chỉ lệch làm tròn 1–3px) vẫn là từng vùng riêng, không gộp cả đề thành một khối', () => {
+    const questions = Array.from({ length: 20 }, (_, i) => ({ start: i * 100 + (i % 2), end: (i + 1) * 100 + 1 }));
+    expect(mergeZones(questions)).toHaveLength(20);
+  });
+
+  it('khối con nằm trong khối cha, hoặc tiêu đề kéo sang khối liền sau (chồng thật) thì gộp', () => {
+    expect(mergeZones([{ start: 0, end: 500 }, { start: 100, end: 200 }, { start: 450, end: 520 }])).toEqual([{ start: 0, end: 520 }]);
+  });
+
+  it('sắp xếp theo vị trí trước khi gộp, không sửa mảng đầu vào', () => {
+    const raw = [{ start: 300, end: 400 }, { start: 0, end: 100 }];
+    expect(mergeZones(raw)).toEqual([{ start: 0, end: 100 }, { start: 300, end: 400 }]);
+    expect(raw[0]).toEqual({ start: 300, end: 400 });
+  });
+
+  it('3 câu cao 0.6 trang liền nhau: trước khi sửa gộp thành một vùng 1.8 trang → cắt ngang câu; nay đẩy cả câu 2 sang trang sau', () => {
+    const zs = mergeZones([{ start: 0, end: 600 }, { start: 600, end: 1200 }, { start: 1199, end: 1800 }]);
+    expect(findBreakPoint(PAGE, 0, PAGE, zs, 1.05)).toBe(600);
   });
 });

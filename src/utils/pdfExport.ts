@@ -70,13 +70,20 @@ function buildForbiddenZones(
     });
   });
 
-  raw.sort((a, b) => a.start - b.start);
+  return mergeZones(raw);
+}
 
-  // Merge overlapping/adjacent zones
+/** Hai khối kề nhau chỉ lệch làm tròn floor/ceil (vài pixel) KHÔNG phải một khối: gộp chúng thì cả đề thành một vùng cấm khổng lồ. */
+const ZONE_TOUCH_TOLERANCE_PX = 3;
+
+/** Gộp các vùng lồng/chồng nhau thật (khối con trong khối cha, tiêu đề + khối liền sau); vùng chỉ chạm mép thì giữ riêng. */
+export function mergeZones(raw: Zone[]): Zone[] {
+  const sorted = [...raw].sort((a, b) => a.start - b.start);
   const merged: Zone[] = [];
-  for (const z of raw) {
-    if (merged.length && z.start <= merged[merged.length - 1].end) {
-      merged[merged.length - 1].end = Math.max(merged[merged.length - 1].end, z.end);
+  for (const z of sorted) {
+    const last = merged[merged.length - 1];
+    if (last && z.start < last.end - ZONE_TOUCH_TOLERANCE_PX) {
+      last.end = Math.max(last.end, z.end);
     } else {
       merged.push({ ...z });
     }
