@@ -1,0 +1,45 @@
+Original AI-generated game background assets
+
+Generated with built-in imagegen on 2026-10-01, exactly two requests, one output per request. No input image or third-party asset was used. No Site/repo files were edited.
+
+Both outputs are RGB PNG at 1672 x 941 pixels (roughly 16:9). Prompts requested 2048 x 1152 and 1600 x 900 respectively, but the built-in tool returned 1672 x 941 for both. Files were copied without resizing or other edits.
+
+vietnam-strategy-terrain.png: 3,421,552 bytes. Five outposts, muted realistic textures, central river/bridge, sparse lower terraces. View is close to overhead but has visible relief and slightly oblique roof faces. Approximate outpost center percentages observed from upper left: (15,74), (30,40), (61,51), (78,33), (91,14); bridge about (46,49). Generated placements differ from requested percentages; align code markers to the observed compounds if desired.
+
+bach-dang-river-background.png: 2,258,571 bytes. Broad empty river center, detailed side forests/roots, misty distant limestone and dawn light. The camera is more cinematic oblique with a horizon than the requested top-down slightly oblique view. No boats, units, weapons, text or UI are present.
+
+Final prompts
+
+ASSET 1
+Use case: stylized-concept
+Asset type: terrain background texture for a serious classroom math strategy game, for teenage students.
+Output: one original 2048 x 1152 pixel landscape image, 16:9.
+Primary request: a premium realistic strategy game board representing an original northern Vietnamese inspired river valley. Completely overhead top-down ORTHOGRAPHIC camera looking straight down at the ground; no perspective, no horizon, no visible vertical side of a diorama, no boxed display. The whole image is continuous usable terrain.
+Composition: mountains along the top border and side edges; valley playable terrain in the middle and bottom. A calm winding river runs from approximately x=50% at the top edge down to approximately x=50% at the bottom edge. One modest stone-and-wood crossing bridge near the image center. EXACTLY five modest old Vietnamese fortified outposts whose centers are near these image-relative coordinates, counted from upper left: (15%,78%), (30%,45%), (57%,55%), (76%,38%), (85%,21%). They are small square or irregular stone/earth compounds with understated roofs, readable from overhead, integrated into terrain. A narrow plausible dirt trail connects the five outposts and meets the central bridge, following natural contours. Very sparse rice terraces near the bottom; scattered pines, rock, grass and small foliage on the rest.
+Style and textures: detailed physical PBR-like textures, granite ridges, slate rock, weathered stone, rough earth, pine canopy, riverbank sediment, realistic calm river water. Serious premium historical strategy artwork comparable in polish to large strategy games but wholly original. Terrain texture, not a cinematic illustration.
+Palette and lighting: muted olive and pine greens, slate gray, granite, dark wet earth, subtle desaturated green-gray water. Soft overhead daylight, restrained shadows, clear spatial legibility.
+Constraints: TRUE overhead orthographic top-down map, even terrain scale throughout. No labels, text, numbers, symbols, UI, borders, grid, hexgrid, people, units, soldiers, animals, boats or flags. No neon, cartoon, candy colors, chibi, oversized landmarks. Do not copy any other game's art. No extra outposts.
+
+ASSET 2
+Use case: stylized-concept
+Asset type: original river minigame background for live code-rendered boats and markers.
+Output: one original 1600 x 900 pixel landscape image, 16:9.
+Primary request: an atmospheric Vietnamese river background inspired by the calm mood of the Bạch Đằng river, cinematic painterly realism, top-down slightly oblique game camera.
+Composition: a broad calm green-gray river occupies the central 70% of the image width, leaving ample uninterrupted empty water across the center and foreground for gameplay. Detailed dark forest, tangled roots, and soft riverbanks frame only the left and right edges, without obstructing the center. Subtle distant limestone formations in dawn mist near the upper edge. The water extends down to the lower edge. Scene should work as a game background with meaningful usable empty water.
+Style and mood: mature, quiet, detailed cinematic painterly realism, restrained desaturated dawn colors. Very subtle mist, soft dawn lighting, natural water ripples. Vietnamese river atmosphere, wholly original.
+Palette: deep muted olive vegetation, desaturated gray-green river water, cool slate-gray limestone, pale dawn mist, subtle earth brown roots and banks.
+Constraints: no boats, people, characters, soldiers, units, UI, text, logos, weapons, stakes, projectiles, markers or grid. No neon, cartoon, candy color, chibi, exaggerated fantasy. Keep center water clear and broadly navigable. Do not copy any other game's art.
+
+
+
+BOAT
+Built-in imagegen, one request, transparent_background=true. No input/reference images. Original generated artwork. No repo edits.
+
+Use case: stylized-concept
+Asset type: transparent game sprite for an original Vietnamese river minigame.
+Output: one small wooden rowing boat with a neutral cream sail, centered on a transparent canvas; target 512 x 1024 pixels, portrait.
+Primary request: a single original modest wooden river boat, viewed directly from above, with the pointed bow pointing straight UP toward the top of the image and the stern at the bottom. The entire boat is visible, including a small neutral cream triangular sail and simple rowing fittings. No passengers or crew. Clearly readable at small game-sprite size.
+Style and materials: painterly realism matching a calm desaturated Vietnamese river background. Weathered dark warm-brown wooden hull, restrained realistic timber grain, understated cream canvas sail, subdued gray-brown fittings. Natural believable small river craft proportions. Soft neutral daylight, subtle shading only on the boat itself.
+Composition: pure overhead top-down orthographic view, vertically aligned, bow up. Single boat centered. Transparent background with real alpha, no water, ground, scenery, horizon, framing, vignette or backdrop; no detached cast shadow outside the boat.
+Constraints: no people, characters, soldiers, weapons, text, numbers, logos, UI, flags, neon, cartoon style, candy color or chibi. No duplicate boats. No water wake or ripples. Entire artwork stays inside the canvas with transparent margin. Original art, no copied game assets.
+

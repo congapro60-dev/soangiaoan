@@ -36,3 +36,20 @@ A future imported game must map participant identity to the classroom session, u
 ## Validation scope
 
 Automated API integration simulates 26 separate learners concurrently: independent rolls, one community trigger, private answer data, concurrent grading, countdown and deadline, one attempt per question, cooldown, retry deduplication, late spectators, a single reward, virtual time pause/resume, individual pass pact and room reset. This is an integration test, not measured network load from 26 physical classroom devices.
+
+
+## Update — 2026-10-01: Twelve Warlords and river reference
+
+Inspected the supplied Firebase game in the browser. Its live start screen reported build 0.1.659, rather than the pasted devlog 0.1.653. Entered a local campaign as Đinh Bộ Lĩnh, observed the actual terrain map, road network, subdued HUD, province flags, mini-map, zoom controls and 2D/3D switch. The creator's itch.io page confirms its strategic/terrain/diplomatic views. No source, art or audio was copied. The supplied phone image shows a separate Bạch Đằng-themed river combat mini-game; mechanics beyond that still image have not been verified.
+
+Implemented an original, restrained strategy map for the Math game: new valley terrain for historical/pastoral worlds, shared navigation and smaller mascot unit flags for all worlds, a mini-map, path-following movement through intermediate cells, clustering for 26+ participants, optional WebGL orthographic terrain relief, and visual day/night controls. Campus and other illustrated worlds remain authored 2.5D artwork displayed as a plane in the optional 3D camera; they are not architectural 3D models. Dice, gate eligibility, scores and fairness remain server controlled.
+
+The community regatta is still a server-scored Math encounter, with an original river scene and transparent wooden-boat sprite. Correct answers animate boats forward; a wrong answer advances to a new question; it is not a combat game or a free-driving simulator. Public labels avoid claiming a historically accurate reconstruction.
+
+Asset prompts/provenance: original built-in image generation, three requests total (terrain, river, boat), no variants/retries. Generated at 1672×941 (terrain/river) and 887×1774 RGBA (boat), converted to WebP for hosting.
+
+Verification: syntax and TypeScript checks; terrain interpolation test covers intermediate route bends, queued movement, stale position, reduced motion and finite relief heights; existing 26-player API integration covers scoring, automatic pause/resume, privacy and reset. A pre-existing concurrency test incorrectly assumed the wrong answer always wins a race; it now asserts whichever one wins is scored, and tests wrong-answer advancement separately.
+
+Browser review environment did not initialize WebGL; verified that 3D selection safely retains 2D and displays the device limitation. The 3D rendering path is implemented but not visually verified in that browser.
+
+Managed-preview UI verification used a named, non-production room with one student entered through the actual join flow and 25 synthetic participants. Solved the initial logic gate, rolled into cell 6, displayed all 26 map units, tested Find me (180% zoom), fit/reset (100%), day/night and full-screen fallback. A consistent preview fixture at cell 17 triggered the shared regatta through the real dice button. All 26 boat images loaded; a short-answer Math submission (3 common multiples of 2 and 3 in 1..20) was marked correct, shown as 1/6 and +35 points, with the worked solution available only in the teacher panel. The student view automatically returned to cell 18 when the event ended. Boats are spread across a formation to avoid overlapping at 26 participants; six correct answers reach the finish line. No application-script console errors were observed. These are simulated participants and a UI walkthrough, not a measured test on 26 physical devices.

@@ -64,7 +64,8 @@ assert.equal((await post('community-answer',{id:first.id,step:1,answer:'0',round
 clock+=2500;
 let concurrent=await Promise.all([post('community-answer',{id:first.id,step:1,answer:'-99999',round:1},first.token),post('community-answer',{id:first.id,step:1,answer:communityQuestion(c,raw(first).campaign,entry(first)).answer,round:1},first.token)]);
 assert.equal(concurrent.filter(x=>x.status===200).length,1,'One submission per question under concurrency');
-assert.equal(entry(first).step,2);assert.equal(entry(first).wrong,1,'Wrong advances the question, prevents guessing');
+assert.equal(entry(first).step,2);assert.equal(entry(first).wrong,concurrent.find(x=>x.status===200).data.result.correct?0:1,'Only the winning concurrent submission is scored');
+let wrongPlayer=players[1],wrongEntry=entry(wrongPlayer);let wrongResult=await post('community-answer',{id:wrongPlayer.id,step:wrongEntry.step,answer:'-99999',round:1},wrongPlayer.token);assert.equal(wrongResult.status,200);assert.equal(wrongResult.data.result.correct,false);assert.equal(entry(wrongPlayer).step,wrongEntry.step+1,'Wrong advances the question, prevents guessing');assert.equal(entry(wrongPlayer).wrong,1);
 clock+=2500;
 for(let step=2;step<6;step++){
  let r=await Promise.all(players.map(p=>{let e=entry(p);return post('community-answer',{id:p.id,step:e.step,answer:communityQuestion(c,raw(p).campaign,e).answer,round:1},p.token);}));
