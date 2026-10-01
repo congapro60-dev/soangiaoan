@@ -73,14 +73,15 @@ const asArray = (value: unknown): Record<string, unknown>[] => (
 );
 
 /**
- * Gộp bản ghép của AI thành các dòng báo cáo. Bỏ mọi thứ không kiểm được: id YCCĐ ngoài khối, mã câu không có
- * trong bằng chứng, câu có thang điểm hỏng. YCCĐ không còn câu căn cứ nào thì không thành dòng.
+ * Câu căn cứ của từng YCCĐ theo bản ghép của AI. Bỏ mọi thứ không kiểm được: id YCCĐ ngoài khối, mã câu không có
+ * trong bằng chứng, câu có thang điểm hỏng. Cùng một YCCĐ đến từ nhiều lượt ghép (mỗi lượt một nhóm bài) thì gộp câu.
+ * Trả theo thứ tự Chương trình; YCCĐ không còn câu căn cứ nào thì bỏ.
  */
-export const aggregateRequirementLines = (
+export const mapRequirementQuestions = (
   grade: unknown,
   evidence: readonly EvidenceSubmission[],
   draft: AiRequirementDraft,
-): ParentRequirementLine[] => {
+): { item: YccdItem; questions: EvidenceQuestion[]; note: string }[] => {
   const list = yccdForGrade(grade);
   const known = new Set(list.map(item => item.id));
   const questions = new Map<string, EvidenceQuestion>();
@@ -102,26 +103,40 @@ export const aggregateRequirementLines = (
       if (questions.has(ma)) codes.add(ma);
     }
     byRequirement.set(id, codes);
-    // Cùng một YCCĐ có thể đến từ nhiều lượt ghép (mỗi lượt một nhóm bài) → nối các ghi chú khác nhau.
     const note = cleanNote(row.ghiChu);
-    const before = notes.get(id);
-    if (note && note !== before) notes.set(id, before ? cleanNote(`${before} ${note}`) : note);
+    if (note && !notes.has(id)) notes.set(id, note);
   }
-  const lines: ParentRequirementLine[] = [];
-  for (const item of list) {
+  return list.flatMap(item => {
     const codes = byRequirement.get(item.id);
-    if (!codes || codes.size === 0) continue;
-    let got = 0;
-    let max = 0;
-    for (const code of codes) {
-      const question = questions.get(code)!;
-      got += Math.min(question.diem, question.toiDa);
-      max += question.toiDa;
-    }
-    const percent = Math.round((got / max) * 1000) / 10;
-    lines.push({ id: item.id, level: levelOf(percent), evidence: codes.size, percent, note: notes.get(item.id) ?? '' });
+    return codes && codes.size > 0 ? [{ item, questions: [...codes].map(code => questions.get(code)!), note: notes.get(item.id) ?? '' }] : [];
+  });
+};
+
+/** Gộp bản ghép của AI thành các dòng báo cáo; mức tính từ điểm các câu căn cứ. */
+export const aggregateRequirementLines = (
+  grade: unknown,
+  evidence: readonly EvidenceSubmission[],
+  draft: AiRequirementDraft,
+): ParentRequirementLine[] => mapRequirementQuestions(grade, evidence, draft).map(({ item, questions, note }) => {
+  let got = 0;
+  let max = 0;
+  for (const question of questions) {
+    got += Math.min(question.diem, question.toiDa);
+    max += question.toiDa;
   }
-  return lines;
+  const percent = Math.round((got / max) * 1000) / 10;
+  return { id: item.id, level: levelOf(percent), evidence: questions.length, percent, note };
+});
+
+/** Gắn ghi chú AI viết ở bước sau (`{"ghiChu": [{"ma", "ghiChu"}]}`) vào các dòng; mã lạ bị bỏ. */
+export const applyRequirementNotes = (lines: readonly ParentRequirementLine[], raw: unknown): ParentRequirementLine[] => {
+  const notes = new Map<string, string>();
+  const rows = raw && typeof raw === 'object' ? (raw as Record<string, unknown>).ghiChu : null;
+  for (const row of asArray(rows)) {
+    const note = cleanNote(row.ghiChu);
+    if (note) notes.set(String(row.ma ?? '').trim(), note);
+  }
+  return lines.map(line => ({ ...line, note: notes.get(line.id) ?? line.note }));
 };
 
 /** Kiểm các dòng giáo viên đã sửa trước khi lưu: đúng khối, đúng mức, số hợp lệ, ghi chú không quá dài. */

@@ -13,6 +13,14 @@ export interface PdfExportOptions {
   orientation?: 'portrait' | 'landscape';
   /** 'save' (mặc định) tải file về; 'blob' trả file để gói nhiều báo cáo vào một ZIP. */
   output?: 'save' | 'blob';
+  /**
+   * Trang được "giãn" tối đa bao nhiêu lần chiều cao để không cắt ngang một khối nhỏ (mặc định 1.05).
+   * Phần giãn lấn vào lề dưới — muốn số trang không bị đè thì giữ phần giãn nhỏ hơn khoảng trống lề trên số trang.
+   * Khi đặt, trần này áp cho CẢ trang bắt đầu giữa một khối (mặc định cũ cho kéo tới 2 lần trang → tràn khỏi giấy).
+   */
+  maxStretch?: number;
+  /** Khoảng cách từ mép dưới giấy tới chân số trang, mm (mặc định: giữa lề dưới). */
+  pageNumberFromBottomMm?: number;
 }
 
 interface Zone {
@@ -88,11 +96,14 @@ function buildForbiddenZones(
  * 4. If zone started before this page (we're mid-zone) → extend to z.end if reasonable.
  * 5. Zone larger than 1.5 pages — can't keep whole, accept natural break.
  */
-function findBreakPoint(
+export function findBreakPoint(
   naturalBreak: number,
   pageStart: number,
   sliceHeightPx: number,
-  zones: Zone[]
+  zones: Zone[],
+  maxStretch = 1.05,
+  /** Trang bắt đầu GIỮA một khối được kéo tới cuối khối nếu không quá chừng này lần chiều cao trang. */
+  midZoneMax = 2.0,
 ): number {
   if (naturalBreak <= 0) return naturalBreak;
 
@@ -112,7 +123,7 @@ function findBreakPoint(
       const extendedTotal = extendedEnd - pageStart;
 
       // Priority 1: Stretch page to fit small zone — avoids whitespace
-      if (zoneHeight <= sliceHeightPx * 0.4 && extendedTotal <= sliceHeightPx * 1.05) {
+      if (zoneHeight <= sliceHeightPx * 0.4 && extendedTotal <= sliceHeightPx * maxStretch) {
         return extendedEnd;
       }
 
@@ -127,7 +138,8 @@ function findBreakPoint(
       // Zone started before current page (we're already inside it — pushed here from prev break).
       // Extend to z.end to avoid splitting a row mid-content.
       // Allow up to 2x page height so tall multi-paragraph rows are not cut.
-      if (z.end - pageStart <= sliceHeightPx * 2.0) {
+      // Lưu ý: lát cao hơn trang thì phần dưới bị cắt khỏi giấy — người gọi muốn chắc chắn thì đặt `maxStretch`.
+      if (z.end - pageStart <= sliceHeightPx * midZoneMax) {
         return z.end;
       }
       return naturalBreak;
@@ -165,6 +177,8 @@ export const exportElementToPdf = async (
     noBreakSelectors = ['.pdf-no-break-question', '.exam-question', '.question-block', '.exam-figure', '.exam-svg', '.variation-table', 'img', 'svg', 'table', 'tr', 'h1', 'h2', 'h3', 'h4'],
     orientation = 'portrait',
     output = 'save',
+    maxStretch = 1.05,
+    pageNumberFromBottomMm,
   } = options;
 
   const cleanupMarkedQuestions = markExamQuestionBlocks(element);
@@ -225,7 +239,7 @@ export const exportElementToPdf = async (
       while (pageStart < canvas.height) {
         const naturalBreak = pageStart + sliceHeightPx;
         const breakAt = Math.min(
-          findBreakPoint(naturalBreak, pageStart, sliceHeightPx, zones),
+          findBreakPoint(naturalBreak, pageStart, sliceHeightPx, zones, maxStretch, options.maxStretch === undefined ? 2.0 : maxStretch),
           canvas.height
         );
 
@@ -267,7 +281,7 @@ export const exportElementToPdf = async (
       pdf.setFontSize(13);
       for (let i = 2; i <= totalPages; i++) {
         pdf.setPage(i);
-        pdf.text(String(i), pageWidth / 2, pageHeight - mBottom / 2, { align: 'center' });
+        pdf.text(String(i), pageWidth / 2, pageHeight - (pageNumberFromBottomMm ?? mBottom / 2), { align: 'center' });
       }
     }
 

@@ -47,8 +47,21 @@ const collectionRef = (path: string): Record<string, any> => ({
   doc: (id: string) => docRef(path, id),
 });
 
+// Giao dịch giả: xếp hàng tuần tự như Firestore thật khi tranh chấp cùng một tài liệu.
+let txChain: Promise<unknown> = Promise.resolve();
+
 const fakeDb = () => ({
   ...collectionRefRoot(),
+  runTransaction: <T,>(fn: (tx: { get: (ref: Record<string, any>) => Promise<unknown>; set: (ref: Record<string, any>, data: DocData, options?: { merge?: boolean }) => void }) => Promise<T>): Promise<T> => {
+    const writes: Array<() => Promise<void>> = [];
+    const run = txChain.then(async () => {
+      const result = await fn({ get: ref => ref.get(), set: (ref, data, options) => { writes.push(() => ref.set(data, options)); } });
+      for (const write of writes) await write();
+      return result;
+    });
+    txChain = run.catch(() => undefined);
+    return run;
+  },
   batch: () => {
     const ops: Array<() => Promise<void>> = [];
     return {
@@ -61,6 +74,7 @@ const fakeDb = () => ({
 const collectionRefRoot = () => ({ collection: (path: string) => collectionRef(path) });
 
 import handler from '../classroom';
+import { hashPin } from '../_classroom-core';
 
 const call = async (body: DocData) => {
   const res = { statusCode: 0, payload: null as any, status(c: number) { res.statusCode = c; return res; }, json(p: unknown) { res.payload = p; return res; } };
@@ -163,5 +177,29 @@ describe('công bố + phụ huynh xem', () => {
 
     const all = await call({ action: 'unpublishParentReports', classId: 'lop-1', kind: 'month', from: '2026-09-01', to: '2026-09-30' });
     expect(all.payload.removed).toBe(1);
+  });
+});
+
+describe('đoán PIN song song không né được khoá (giao dịch)', () => {
+  const guess = (pin: string) => call({ action: 'parentReports', idToken: undefined, joinCode: 'ABCD23', studentId: 'a', pin });
+
+  it('PIN phụ huynh: 12 lượt sai gửi cùng lúc → đúng 5 lượt 401, 7 lượt còn lại bị khoá; PIN đúng cũng bị chặn', async () => {
+    const pins = (await call({ action: 'issueParentPins', classId: 'lop-1' })).payload.rows as Array<{ studentId: string; pin: string }>;
+    const dung = pins.find(r => r.studentId === 'a')!.pin;
+    const sai = dung === '0000' ? '0001' : '0000';
+    const codes = (await Promise.all(Array.from({ length: 12 }, () => guess(sai)))).map(r => r.statusCode);
+    expect(codes.filter(c => c === 401)).toHaveLength(5);
+    expect(codes.filter(c => c === 429)).toHaveLength(7);
+    expect((await guess(dung)).statusCode).toBe(429);
+  });
+
+  it('PIN học sinh (cổng /lop): cùng lỗi đã sửa — 12 lượt sai song song vẫn khoá sau 5', async () => {
+    h.claims = { uid: 'anon-x', firebase: { sign_in_provider: 'anonymous' } };
+    h.store['classes/lop-1/studentSecrets'] = { a: { pinHash: hashPin('4321') } };
+    const login = (pin: string) => call({ action: 'login', joinCode: 'ABCD23', studentId: 'a', pin });
+    const codes = (await Promise.all(Array.from({ length: 12 }, () => login('1234')))).map(r => r.statusCode);
+    expect(codes.filter(c => c === 401)).toHaveLength(5);
+    expect(codes.filter(c => c === 429)).toHaveLength(7);
+    expect((await login('4321')).statusCode).toBe(429);
   });
 });

@@ -50,6 +50,7 @@ export interface ParentReportPrintInput {
 /** id của node chứa bản báo cáo — CSS của bản in được scope theo id này, trang phụ huynh cũng phải dùng đúng id. */
 export const PARENT_REPORT_ROOT_ID = 'parent-report-pdf-root';
 const ROOT_ID = PARENT_REPORT_ROOT_ID;
+const PDF_BOTTOM_MARGIN_MM = 20;
 
 const STATUS_LABEL: Record<ParentSafeAssignmentStatus, string> = {
   official: 'Đã có kết quả',
@@ -476,6 +477,11 @@ export async function exportParentReportToPdf(input: ParentReportPrintInput, out
       filename: parentReportFileName(input),
       // Giữ nguyên khối, không cắt ngang thẻ/biểu đồ khi sang trang.
       noBreakSelectors: ['h1', 'h2', 'h3', 'svg', 'table', 'tr', '.subject', '.tile', '.card', '.verdict', '.lead', '.sec-head', '.exam-block', '.comp-row', '.cmp', '.teacher-note', '.sec-keep', '.req-keep', '.req-row'],
+      // Số trang không được đè nội dung: lề dưới 20mm, số trang cách mép 6mm (chữ cao ~4.5mm, tới 10.5mm),
+      // trang chỉ được giãn thêm 8mm (20−12) — nội dung luôn dừng cách mép ≥ 12mm.
+      marginMm: [15, 12, PDF_BOTTOM_MARGIN_MM, 12],
+      pageNumberFromBottomMm: 6,
+      maxStretch: 1 + (PDF_BOTTOM_MARGIN_MM - 12) / (297 - 15 - PDF_BOTTOM_MARGIN_MM),
     });
   } finally {
     root.remove();

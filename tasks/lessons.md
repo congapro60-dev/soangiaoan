@@ -428,3 +428,7 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 ## 2026-10-01 — Khẳng định hành vi tính tiền chỉ nhờ grep tên hàm quen
 - Sai: nói "GLM đang miễn phí" vì `grep ensureGeminiKey` không thấy trong cổng GLM; thực tế `assertSharedAiAllowed` đặt `context.keyChoice` kèm kế hoạch tính tiền nên GLM bị trừ ví. Chủ dự án ra quyết định dựa trên câu sai đó.
 - Luật: trước khi nói một đường có/không bị tính tiền, lần theo nơi ĐẶT `keyChoice` / gọi `recordAiUsage` và đọc test của đường đó (hoặc chạy thử), đừng suy từ việc không thấy một tên hàm.
+
+## 2026-10-01 — Bộ đếm khoá PIN phải nằm trong giao dịch
+- Sai: cổng phụ huynh (và cổng HS có từ trước) đọc số lần sai → kiểm PIN → ghi lại ở 3 bước rời nhau. Gửi nhiều lượt đoán CÙNG LÚC thì mọi lượt cùng đọc "0 lần sai", bộ đếm chỉ lên 1, PIN 4 số dò hết được. Bản review của phiên khác bắt được, test tuần tự của mình không bắt.
+- Luật: mọi "đọc trạng thái → quyết định → ghi trạng thái" bảo vệ thứ nhạy cảm (khoá đăng nhập, hạn mức, số dư) dùng `db.runTransaction` — đã có `attemptPin` trong `api/_classroom-core.ts`. Test phải bắn song song bằng `Promise.all` (≥ ngưỡng + vài lượt) với giao dịch giả xếp hàng, không chỉ gọi lần lượt.
