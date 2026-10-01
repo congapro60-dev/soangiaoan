@@ -31,9 +31,9 @@ describe('submissionSelection', () => {
   it('nhận diện khóa grading cũ để UI cho giáo viên chấm lại', () => {
     const now = Date.parse('2026-09-07T12:00:00.000Z');
 
-    // Máy chủ giết hàm chấm ở 60s, nên khoá quá 2 phút chắc chắn là khoá chết.
-    expect(isStaleGradingTimestamp('2026-09-07T11:58:01.000Z', now)).toBe(false);
-    expect(isStaleGradingTimestamp('2026-09-07T11:57:59.000Z', now)).toBe(true);
+    // Máy chủ giết hàm chấm ở 300s, nên khoá quá 6 phút chắc chắn là khoá chết.
+    expect(isStaleGradingTimestamp('2026-09-07T11:54:01.000Z', now)).toBe(false);
+    expect(isStaleGradingTimestamp('2026-09-07T11:53:59.000Z', now)).toBe(true);
     expect(isStaleGradingTimestamp('not-a-date', now)).toBe(true);
   });
 

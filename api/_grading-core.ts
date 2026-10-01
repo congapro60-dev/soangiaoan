@@ -199,7 +199,7 @@ export interface GeminiOptions {
   temperature?: number;
   /**
    * Trần thời gian chờ Gemini, mili giây. Không đặt là chờ vô hạn — mà hàm serverless bị Vercel
-   * giết ở 60s thì bài nộp nằm lại "đang chấm" mãi vì không nhánh nào kịp mở khoá. Luôn truyền
+   * giết ở `maxDuration` thì bài nộp nằm lại "đang chấm" mãi vì không nhánh nào kịp mở khoá. Luôn truyền
    * phần thời gian còn lại của lượt chấm vào đây.
    */
   timeoutMs?: number;

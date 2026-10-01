@@ -104,17 +104,19 @@ import { canTeacherAccessLegacyNamespace } from './_classroom-access.js';
  * gian chạy còn một lớp 40 em thì không kịp trong một lượt. Client gọi lại đến khi hết —
  * đổi lại được thanh tiến độ thật thay vì một lượt chờ dài rồi timeout mất trắng.
  */
-// Chấm 2 pha (chép + chấm) làm mỗi bài tốn ~gấp đôi thời gian; hạ batch xuống 2 để một lượt
-// "Chấm cả lớp" không chạm trần 60s của Vercel (client tự gọi lại nhiều lượt cho tới hết).
+// Chấm 2 pha (chép + chấm) làm mỗi bài tốn ~gấp đôi thời gian; batch chỉ 2 bài, và vòng chấm còn tự dừng
+// khi hết giờ (xem `handleGradeAssignment`); client tự gọi lại nhiều lượt cho tới hết.
 const BATCH_SIZE = 2;
 /**
  * Sau bao lâu thì coi khoá "đang chấm" là khoá chết và cho giành lại.
  *
- * Hàm chấm bị Vercel giết ở 60s (`maxDuration`), nên không worker LÀNH nào giữ khoá quá chừng
- * đó. Để 10 phút như trước là bài nộp treo "Đang chấm" gần cả buổi rồi mới có ai gỡ được —
- * đúng cảnh cả lớp kẹt từ 20h. Hai phút đã rộng gấp đôi tuổi thọ tối đa của một worker.
+ * Hàm chấm bị Vercel giết ở `maxDuration` (300s), nên không worker LÀNH nào giữ khoá quá chừng đó:
+ * khoá PHẢI cũ hơn trần này, nếu không một worker còn sống bị giành khoá giữa chừng. Để 10 phút như
+ * trước là bài nộp treo "Đang chấm" gần cả buổi rồi mới có ai gỡ được — đúng cảnh cả lớp kẹt từ 20h.
+ * Sáu phút = trần 5 phút + 1 phút dự phòng. Phải khớp `STALE_GRADING_MS` ở `submissionSelection.ts`
+ * (bản sao phía trình duyệt); test khoá cả hai và quan hệ với `maxDuration`.
  */
-export const STALE_GRADING_MS = 2 * 60 * 1000;
+export const STALE_GRADING_MS = 6 * 60 * 1000;
 const isStaleGradingTimestamp = (updatedAt: unknown, nowMs = Date.now()): boolean => {
   const timestamp = Date.parse(String(updatedAt || ''));
   return !Number.isFinite(timestamp) || nowMs - timestamp > STALE_GRADING_MS;
@@ -184,14 +186,24 @@ const UNREADABLE_HOMEWORK_MESSAGE = 'Không đọc được bài làm. Em thử 
 const UNCERTAIN_READ_MESSAGE = 'AI đọc chưa rõ bài này nên chưa chấm để tránh chấm sai. Em chụp lại rõ hơn (đủ sáng, chụp thẳng, mỗi trang một ảnh) rồi nộp lại, hoặc chờ thầy cô chấm tay.';
 const SAFE_GRADING_ERROR_MESSAGE = 'AI gặp lỗi định dạng khi đọc kết quả chấm. Bài và ảnh vẫn được giữ nguyên; hệ thống đã tự thử phục hồi. Thầy/cô có thể chấm lại bằng AI hoặc sửa điểm bằng tay.';
 const SYSTEM_GRADING_ERROR_MESSAGE = 'Chấm bài chưa thành công vì lỗi hệ thống. Bài và ảnh vẫn được giữ nguyên. Thầy/cô chấm lại sau ít phút hoặc sửa điểm bằng tay.';
-/** Khai tường minh thay vì dựa default của Vercel — Hobby cap ở 60s. */
-export const maxDuration = 60;
 /**
- * Ngân sách cho MỘT bài: hết ngân sách là dừng và mở khoá, thay vì để Vercel giết hàm ở 60s.
- * Bị giết thì không nhánh nào chạy, bài nộp nằm lại `status='grading'` vĩnh viễn — đây chính là
- * cách 15 bài trong lớp kẹt "Đang chấm". Chừa ~10s cuối để kịp ghi Firestore và trả lời client.
+ * Khai tường minh thay vì dựa default của Vercel. PHẢI khớp `functions["api/grade-homework.ts"].maxDuration`
+ * trong vercel.json (test khoá). Gói hiện tại chạy được hàm 300s (`api/ai-relay.ts` đã chạy ở mức này).
  */
-const GRADING_BUDGET_MS = 45_000;
+export const maxDuration = 300;
+const FUNCTION_MAX_MS = maxDuration * 1000;
+/**
+ * Ngân sách cho MỘT bài: hết ngân sách là dừng và mở khoá, thay vì để Vercel giết hàm.
+ * Bị giết thì không nhánh nào chạy, bài nộp nằm lại `status='grading'` vĩnh viễn — đây chính là
+ * cách 15 bài trong lớp kẹt "Đang chấm". Chừa phần còn lại của trần 300s cho việc TRƯỚC khi khoá
+ * (xác thực, tải ảnh đề/đáp án, tối đa ~12s) và SAU khi chấm (ghi Firestore, trả lời client).
+ * 45s cũ làm bài viết tay nhiều ảnh hết giờ dù Gemini vẫn đang trả lời đúng.
+ */
+export const GRADING_BUDGET_MS = 240_000;
+/** Biên an toàn cuối: không bắt đầu một bài mới khi phần giờ còn lại không chứa trọn ngân sách + biên này. */
+const FINISH_MARGIN_MS = 15_000;
+/** Các lượt gọi AI đơn lẻ khác (không phải chấm một bài) vẫn giữ trần 45s như trước. */
+const SINGLE_CALL_BUDGET_MS = 45_000;
 /** Tải một ảnh không được phép ngốn hết ngân sách của cả lượt chấm. */
 const IMAGE_FETCH_TIMEOUT_MS = 10_000;
 /** Dưới mức này thì không còn đủ giờ cho một lượt gọi Gemini nữa; thà báo lỗi còn hơn bị giết. */
@@ -637,6 +649,7 @@ const gradeContextFor = async (assignment: FirebaseFirestore.DocumentData): Prom
 });
 
 const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
+  const startedAt = Date.now();
   const uid = await uidFromIdToken(body.idToken);
   if (!uid) return res.status(401).json({ error: 'Cần đăng nhập tài khoản giáo viên.' });
 
@@ -684,7 +697,7 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
   if (verdict.allowed <= 0) return res.status(429).json({ error: verdict.reason });
 
   // BATCH_SIZE phải nằm trong phép cắt này. Thiếu nó thì một request cố chấm tới 22 bài liền
-  // trong khi Vercel giết hàm ở 60s — chấm được vài bài rồi chết, bài đang dở kẹt "Đang chấm".
+  // trong khi Vercel giết hàm ở `maxDuration` — chấm được vài bài rồi chết, bài đang dở kẹt "Đang chấm".
   const batch = hopLe.slice(0, Math.min(BATCH_SIZE, verdict.allowed));
   const ctx = await gradeContextFor(assignment);
   const apiKey = getGradingApiKey();
@@ -692,6 +705,10 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
   let graded = 0;
   let failed = 0;
   for (const doc of batch) {
+    // Mỗi bài được tiêu tới GRADING_BUDGET_MS: chỉ bắt đầu bài kế tiếp khi phần giờ còn lại của hàm chứa
+    // trọn ngân sách đó + biên an toàn. Bỏ sót thì bài đầu chậm (240s) kéo bài thứ hai vượt trần 300s,
+    // hàm bị giết và bài thứ hai kẹt "Đang chấm". Bài bỏ qua được tính vào `remaining` để client gọi lại.
+    if (graded + failed > 0 && Date.now() - startedAt > FUNCTION_MAX_MS - GRADING_BUDGET_MS - FINISH_MARGIN_MS) break;
     const result = await gradeOneSubmission(db, doc.id, ctx, apiKey, uid, true, 'quick');
     if (result.success) graded += 1; else failed += 1;
   }
@@ -701,7 +718,7 @@ const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Reco
     graded,
     failed,
     recovered: recovered.size,
-    remaining: Math.max(0, hopLe.length - batch.length) + recovered.size,
+    remaining: Math.max(0, hopLe.length - graded - failed) + recovered.size,
   });
 };
 
@@ -717,7 +734,7 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
   const submission = snap.data() as FirebaseFirestore.DocumentData;
   const requestedMode = parseHomeworkGradingMode(body.mode);
   // Chỉ chặn khi bài ĐANG thật sự được chấm (khoá còn tươi). Khoá "grading" quá cũ là do worker
-  // trước chết giữa chừng (Vercel kill ở 60s / timeout) chưa kịp mở khoá — phải cho chấm lại,
+  // trước chết giữa chừng (Vercel kill ở 300s / timeout) chưa kịp mở khoá — phải cho chấm lại,
   // không thì bài kẹt "Đang chấm" vĩnh viễn, không ai gỡ được.
   if (submission.status === 'grading' && !isStaleGradingTimestamp(submission.updatedAt)) {
     return res.status(409).json({ error: 'Bài đang được chấm. Chờ lượt hiện tại kết thúc rồi thử lại.' });
@@ -1513,7 +1530,7 @@ const readAssignmentQuestionCatalog = async (
     examImages,
     getGradingApiKey(),
     GRADING_MODEL,
-    { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: GRADING_BUDGET_MS },
+    { maxOutputTokens: 'model-max', jsonMode: true, temperature: 0, timeoutMs: SINGLE_CALL_BUDGET_MS },
   );
   await quotaRef.set(bumpQuota(quota, 'teacher', '', 1));
 
@@ -1663,9 +1680,9 @@ const handleRewriteFeedback = async (db: FirebaseFirestore.Firestore, body: Reco
 // ── Tự chấm + tự duyệt sau 60 phút (bộ hẹn giờ GitHub Actions gọi 30 phút/lần) ──────────────
 
 const AUTO_ACTOR = 'system:auto-60';
-/** Hàm sống tối đa 60s; một lượt chấm được tiêu tới GRADING_BUDGET_MS → chỉ bắt đầu chấm khi còn đủ giờ. */
-const AUTO_SWEEP_START_GRADING_BEFORE_MS = 60_000 - GRADING_BUDGET_MS - 6_000;
-const AUTO_SWEEP_APPROVE_BEFORE_MS = 50_000;
+/** Hàm sống tối đa `maxDuration`; một lượt chấm được tiêu tới GRADING_BUDGET_MS → chỉ bắt đầu chấm khi còn đủ giờ. */
+const AUTO_SWEEP_START_GRADING_BEFORE_MS = FUNCTION_MAX_MS - GRADING_BUDGET_MS - FINISH_MARGIN_MS;
+const AUTO_SWEEP_APPROVE_BEFORE_MS = FUNCTION_MAX_MS - 10_000;
 
 /** Duyệt thay giáo viên (quá 60 phút chưa duyệt) — chỉ khi bài vẫn đúng trạng thái lúc đọc. */
 const approveBySystem = async (db: FirebaseFirestore.Firestore, submissionId: string): Promise<boolean> => {

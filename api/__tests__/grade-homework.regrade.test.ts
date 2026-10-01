@@ -627,6 +627,38 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
     expect(harness.state.gradingQuota?.['gv-1']).toMatchObject({ teacherCount: 2, selfCount: 0 });
   });
 
+  it('gradeAssignment: bài đầu chậm tới mức bài sau không còn đủ giờ thì dừng lô, không bắt đầu bài mới', async () => {
+    const baiNop = (id: string, hs: string, gio: string) => ({
+      id, teacherId: 'gv-1', classId: 'lop-1', studentId: hs, assignmentId: 'asg-1',
+      fileUrls: [], textContent: 'Bài làm', note: '', status: 'submitted',
+      createdAt: `2026-08-25T${gio}:00.000Z`, updatedAt: `2026-08-25T${gio}:00.000Z`,
+    });
+    const harness: Harness = {
+      state: {
+        assignments: { 'asg-1': { id: 'asg-1', teacherId: 'gv-1', classId: 'lop-1', title: 'Bài kiểm tra', maxScore: 10 } },
+        submissions: { 'sub-cham': baiNop('sub-cham', 'hs-1', '09:00'), 'sub-sau': baiNop('sub-sau', 'hs-2', '09:01') },
+        gradingQuota: { 'gv-1': { day: quotaDay, teacherCount: 0, selfCount: 0, gatewayCount: 0, byStudent: {} } },
+      },
+    };
+    h.db = makeDb(harness);
+    // Bài đầu "mất" 60s: hàm đã dùng quá phần giờ cho phép bắt đầu thêm một bài tốn tới GRADING_BUDGET_MS.
+    let troiQua = 0;
+    const thatNow = Date.now.bind(Date);
+    const dongHo = vi.spyOn(Date, 'now').mockImplementation(() => thatNow() + troiQua);
+    h.fetch = vi.fn(async () => { troiQua += 60_000; return makeGeminiResponse(validGradeJson(7)); });
+    vi.stubGlobal('fetch', h.fetch);
+
+    const result = await call({ action: 'gradeAssignment', assignmentId: 'asg-1' });
+    dongHo.mockRestore();
+
+    expect(result.statusCode).toBe(200);
+    expect(h.fetch).toHaveBeenCalledTimes(1);
+    expect(result.body).toMatchObject({ graded: 1, failed: 0, remaining: 1 });
+    expect(harness.state.submissions['sub-cham']).toMatchObject({ status: 'graded' });
+    expect(harness.state.submissions['sub-sau']).toMatchObject({ status: 'submitted' });
+    expect(harness.state.gradingQuota?.['gv-1']).toMatchObject({ teacherCount: 1 });
+  });
+
 it('co-owner được chấm AI cả lớp và quota ghi theo actor đang thao tác', async () => {
     const harness: Harness = {
       state: {

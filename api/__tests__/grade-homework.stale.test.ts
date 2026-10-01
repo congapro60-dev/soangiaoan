@@ -112,7 +112,29 @@ describe('gradeAssignment · stale grading recovery', () => {
     expect(state.jsonBody).toEqual({ graded: 0, failed: 0, recovered: 1, remaining: 1 });
   });
 
-  it('khoá chết sau 2 phút đã được gỡ — không bắt lớp treo "Đang chấm" tới 10 phút', async () => {
+  it('khoá 3 phút tuổi vẫn là khoá TƯƠI — hàm chấm được sống tới 300s nên worker có thể còn chạy', async () => {
+    const now = Date.now();
+    const db = makeDb({
+      assignments: {
+        'assignment-1': { teacherId: 'teacher-1', classId: 'class-1', title: 'Bài 11 Columbus', answerKey: 'x = 2', maxScore: 10 },
+      },
+      submissions: {
+        'dang-chay-1': {
+          assignmentId: 'assignment-1', teacherId: 'teacher-1', classId: 'class-1', studentId: 'student-1',
+          status: 'grading', updatedAt: new Date(now - 3 * 60 * 1000).toISOString(), fileUrls: [],
+        },
+      },
+    });
+    initializeAdmin.mockReturnValue(db);
+    const { response, state } = makeResponse();
+
+    await handler(makeRequest({ action: 'gradeAssignment', idToken: 'teacher-token', assignmentId: 'assignment-1' }), response);
+
+    expect(state.statusCode).toBe(200);
+    expect(db.state.submissions['dang-chay-1']).toMatchObject({ status: 'grading' });
+  });
+
+  it('khoá chết sau 6 phút đã được gỡ — không bắt lớp treo "Đang chấm" tới 10 phút', async () => {
     const now = Date.now();
     const db = makeDb({
       assignments: {
@@ -121,8 +143,8 @@ describe('gradeAssignment · stale grading recovery', () => {
       submissions: {
         'chet-1': {
           assignmentId: 'assignment-1', teacherId: 'teacher-1', classId: 'class-1', studentId: 'student-1',
-          // Hàm chấm bị Vercel giết ở 60s, nên khoá 3 phút tuổi chắc chắn là khoá chết.
-          status: 'grading', updatedAt: new Date(now - 3 * 60 * 1000).toISOString(), fileUrls: [],
+          // Hàm chấm bị Vercel giết ở 300s, nên khoá 7 phút tuổi chắc chắn là khoá chết.
+          status: 'grading', updatedAt: new Date(now - 7 * 60 * 1000).toISOString(), fileUrls: [],
         },
       },
     });
