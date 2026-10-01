@@ -15,6 +15,13 @@
       "when": 1790834869772,
       "tag": "0001_organic_aqueduct",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1790837389934,
+      "tag": "0002_big_ogun",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,64 @@
+import assert from 'node:assert/strict';
+import {DatabaseSync} from 'node:sqlite';
+import {SourceTextModule,SyntheticModule,createContext} from 'node:vm';
+import {readFile} from 'node:fs/promises';
+import {resolve,dirname} from 'node:path';
+const database=new DatabaseSync(':memory:');
+for(const file of ['0000_boring_pete_wisdom.sql','0001_organic_aqueduct.sql','0002_big_ogun.sql'])database.exec(await readFile(resolve('drizzle',file),'utf8'));
+database.exec('PRAGMA foreign_keys=ON');
+function stmt(sql,...params){const query=database.prepare(sql);return {first:()=>query.get(...params)??null,all:()=>({results:query.all(...params)}),run:()=>{const result=query.run(...params);return {meta:{changes:Number(result.changes)}};}};}
+const storage={stmt,db:()=>({batch:queries=>{database.exec('BEGIN');try{const result=queries.map(q=>q.run());database.exec('COMMIT');return result;}catch(e){database.exec('ROLLBACK');throw e;}}})};
+const context=createContext({crypto:globalThis.crypto,Request,Response,URL,TextEncoder,console});
+const cache=new Map();
+async function moduleAt(path){if(cache.has(path))return cache.get(path);let module;if(path.endsWith('/lib/storage.js'))module=new SyntheticModule(['stmt','db'],function(){this.setExport('stmt',storage.stmt);this.setExport('db',storage.db);},{context,identifier:path});else module=new SourceTextModule(await readFile(path,'utf8'),{context,identifier:path});cache.set(path,module);await module.link((specifier,parent)=>moduleAt(resolve(dirname(parent.identifier),specifier)));return module;}
+const module=await moduleAt(resolve('app/api/escape/route.js'));await module.evaluate();
+const route=module.namespace;
+async function post(action,body={},token=''){let response=await route.POST(new Request('https://game.test/api/escape',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'Origin':'https://game.test'},body:JSON.stringify({action,requestId:crypto.randomUUID(),...body})}));return {status:response.status,data:await response.json()};}
+async function get(kind,id,token){let response=await route.GET(new Request(`https://game.test/api/escape?kind=${kind}&id=${id}`,{headers:{Authorization:'Bearer '+token}}));return {status:response.status,data:await response.json()};}
+const admin=crypto.randomUUID()+crypto.randomUUID(),id=crypto.randomUUID();
+const room=(await post('create-room',{id,adminKey:admin,title:'Test room'})).data.room;
+const otherId=crypto.randomUUID(),otherAdmin=crypto.randomUUID()+crypto.randomUUID();
+await post('create-room',{id:otherId,adminKey:otherAdmin,title:'Other room'});
+const team=(await post('join',{code:room.code,name:'Đội A'})).data.session;
+const second=(await post('join',{code:room.code,name:'Đội B'})).data.session;
+assert.equal((await post('reset-room',{id,revision:0,confirmCode:room.code},team.token)).status,403,'Students cannot reset a room');
+assert.equal((await post('delete-room',{id,revision:0,confirmCode:room.code},'wrong')).status,403);
+await post('begin',{id},admin);
+await post('choose-level',{id:team.id,level:0,round:1},team.token);
+await post('draft',{id:team.id,lock:0,input:{cabinet:'A'},round:1},team.token);
+await post('hint',{id:team.id,level:1,round:1},team.token);
+let record=JSON.parse(database.prepare('SELECT data FROM teams WHERE id=?').get(team.id).data);
+record.score=100;record.solved=[8];record.effects=null;
+database.prepare('UPDATE teams SET data=? WHERE id=?').run(JSON.stringify(record),team.id);
+assert.equal((await post('skill',{id:team.id,skill:'shield'},team.token)).status,200);
+let board=(await get('board',id,admin)).data;
+assert.equal(board.teams.find(t=>t.id===team.id).score,60);
+assert.equal((await post('reset-room',{id,revision:board.room.revision,confirmCode:'WRONG'},admin)).status,400,'Confirmation code is checked on the server');
+const requestId=crypto.randomUUID(),revision=board.room.revision;
+assert.equal((await post('reset-room',{id,revision,confirmCode:room.code,requestId},admin)).status,200);
+assert.equal((await post('reset-room',{id,revision,confirmCode:room.code,requestId},admin)).status,200,'Retry does not reset twice');
+board=(await get('board',id,admin)).data;
+assert.equal(board.room.round,2);assert.equal(board.room.code,room.code);assert.equal(board.room.started,null);
+assert.equal(board.teams.length,2);assert.equal(board.skills.length,0);
+for(const t of board.teams){assert.equal(t.status,'waiting');assert.equal(t.score,0);assert.equal(t.completed,0);assert.equal(t.penaltyMs,0);assert.equal(t.wrong,0);assert.deepEqual(JSON.parse(JSON.stringify(t.hints)),[0,0,0,0,0]);assert.equal(t.events.length,0);assert.equal(t.submissions.length,0);assert.equal(Object.keys(t.drafts).length,0);}
+assert.equal((await get('state',team.id,team.token)).data.state.round,2,'Existing student token survives reset');
+assert.equal((await post('draft',{id:team.id,lock:0,input:{cabinet:'OLD'},round:1},team.token)).data.code,'SESSION_RESET');
+assert.equal((await post('reset-room',{id,revision,confirmCode:room.code},admin)).status,409,'Stale teacher confirmation is rejected');
+assert.equal((await get('board',otherId,otherAdmin)).data.room.round,1,'Other rooms are unaffected');
+await post('begin',{id},admin);
+assert.equal((await get('state',team.id,team.token)).data.state.status,'active');
+board=(await get('board',id,admin)).data;
+assert.equal((await post('remove-team',{id,revision:board.room.revision,teamId:team.id},second.token)).status,403);
+assert.equal((await post('remove-team',{id,revision:board.room.revision,teamId:team.id},admin)).status,200);
+assert.equal((await get('state',team.id,team.token)).status,410);assert.equal((await get('state',team.id,team.token)).data.code,'TEAM_REMOVED');
+assert.equal((await get('state',second.id,second.token)).data.state.status,'active');
+const replacement=await post('join',{code:room.code,name:'Đội A'});assert.equal(replacement.status,200,'A removed name can rejoin');
+assert.notEqual(replacement.data.session.id,team.id);
+board=(await get('board',id,admin)).data;
+assert.equal(board.teams.length,2);
+assert.equal((await post('delete-room',{id,revision:board.room.revision,confirmCode:room.code},admin)).status,200);
+assert.equal((await get('state',second.id,second.token)).data.code,'ROOM_DELETED');
+assert.equal((await get('board',id,admin)).status,410);
+assert.equal((await post('join',{code:room.code,name:'New team'})).status,400);
+assert.equal((await get('board',otherId,otherAdmin)).status,200);
+console.log('Room-management integration passed: permissions, reset, retry, stale rounds, removal, name reuse, room closure, and room isolation.');
