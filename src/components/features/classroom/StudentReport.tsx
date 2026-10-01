@@ -13,6 +13,7 @@ import { CompetencyPortfolio } from './CompetencyPortfolio';
 import { buildStudentReportModel } from '../../../lib/classroom/reportModel';
 import type { ParentSafeAssignmentStatus } from '../../../lib/classroom/parentSafeReport';
 import { exportParentReportToPdf } from '../../../lib/classroom/parentReportPrintDoc';
+import { brandingForReport, loadParentBranding } from '../../../lib/classroom/parentBranding';
 import { asCompetencyGrade, COMPETENCY_LEVELS, type CompetencyLevel } from '../../../lib/classroom/competency/framework';
 import { buildPeriodParentReport } from '../../../lib/classroom/parentReportBuilder';
 import { REPORT_KINDS, defaultPeriod, periodError, rangeLabel, vnDay, type ReportKind, type ReportPeriod } from '../../../lib/classroom/reportPeriod';
@@ -207,7 +208,7 @@ export const StudentReport = ({ classId, studentId, teacherId, studentName, clas
     if (dangXuatPdf) return;
     setDangXuatPdf(true);
     try {
-      await exportParentReportToPdf({ ...baoCaoPH.printInput, teacherComment: kyHopLe ? nhanXet : undefined, requirements: kyHopLe ? yccd : null });
+      await exportParentReportToPdf({ ...baoCaoPH.printInput, teacherComment: kyHopLe ? nhanXet : undefined, requirements: kyHopLe ? yccd : null, branding: brandingForReport(loadParentBranding()) });
     } catch (error) {
       console.error('Xuất PDF bản phụ huynh thất bại:', error);
       alert('Không tạo được PDF. Vui lòng thử lại.');

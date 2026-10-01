@@ -424,3 +424,7 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 ## 2026-10-01 — Bộ đếm khoá PIN phải nằm trong giao dịch
 - Sai: cổng phụ huynh (và cổng HS có từ trước) đọc số lần sai → kiểm PIN → ghi lại ở 3 bước rời nhau. Gửi nhiều lượt đoán CÙNG LÚC thì mọi lượt cùng đọc "0 lần sai", bộ đếm chỉ lên 1, PIN 4 số dò hết được. Bản review của phiên khác bắt được, test tuần tự của mình không bắt.
 - Luật: mọi "đọc trạng thái → quyết định → ghi trạng thái" bảo vệ thứ nhạy cảm (khoá đăng nhập, hạn mức, số dư) dùng `db.runTransaction` — đã có `attemptPin` trong `api/_classroom-core.ts`. Test phải bắn song song bằng `Promise.all` (≥ ngưỡng + vài lượt) với giao dịch giả xếp hàng, không chỉ gọi lần lượt.
+
+## 2026-10-01 — Tên class CSS trong HTML dựng sẵn dễ trùng
+- Sai: thêm `.school` (tên trường ở đầu báo cáo) trong khi báo cáo đã có `.card.school` ("Thầy cô sẽ hỗ trợ") → danh sách trong thẻ đó bỗng đậm, navy, to. Chỉ lộ khi chụp ảnh thật.
+- Luật: thêm class vào bản dựng HTML có sẵn thì `grep` tên đó trong cả file CSS lẫn markup trước; đặt tên có tiền tố rõ (`school-name`). Sửa giao diện báo cáo thì dựng ảnh thật (tsx + puppeteer) và nhìn, đừng chỉ chạy test chuỗi.

@@ -5,6 +5,15 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Thiết kế lại mẫu báo cáo phụ huynh (bản in + bản web điện thoại + minh họa) — 2026-10-01
+
+Chủ dự án nhờ đánh giá như chuyên gia thiết kế đồ họa giáo dục rồi sửa; thích kiểu phiếu IB của Dewey (logo trường + tiêu đề + hình minh họa lớn + biểu tượng từng mục). Nguồn: `parentReportPrintDoc.ts` (`buildParentReportPrintDoc(input, variant)`), `parentReportArt.ts` (SVG nhúng), `parentBranding.ts`.
+- **Hai biến thể cùng dữ liệu:** `print` (A4 780px, có ô ký tên, dùng cho PDF) và `web` (tự co giãn, chữ ≥15px, cột xếp dọc ≤640px, bỏ ô ký tên). Trang `/ph` dùng `web` — bản cũ thu nhỏ cả khổ A4 nên trên điện thoại chữ chỉ còn ~6px.
+- Nội dung: dải "Tóm tắt nhanh" (điểm mạnh / cần chú ý / việc nhà, `keyTakeaways`) ngay sau ô kết quả; "Cùng đồng hành" đưa lên sau nhận xét GV; mục yêu cầu cần đạt đặt nhận xét dễ hiểu LÊN TRƯỚC, câu chữ chương trình xuống dưới, nhãn mức cố định bề rộng; chữ phụ đậm hơn (tương phản); bỏ emoji, bỏ ô số mục; sparkline có giá trị đầu/cuối; mức "Xuất sắc" nền đặc, "Tốt" nền nhạt; nền banner điểm <50% dùng cam nâu thay đỏ chói.
+- Minh họa: dải vector đầu báo cáo (parabol, Ven, tam giác vuông, cột tăng dần, π ∑), biểu tượng nét ở đầu mỗi mục và mỗi mảng kiến thức (Đại số x², Hình học tam giác, Thống kê cột). Không dùng ảnh ngoài nên PDF/web đều đúng, không cần mạng.
+- Nhận diện trường (`branding`: tên trường, tên GV, logo): GV nhập MỘT lần ở khung "Đầu báo cáo" trên tab Báo cáo của lớp, lưu localStorage, đi kèm mỗi bản công bố/ZIP/PDF từng em. Logo chỉ nhận data URL png/jpeg/webp ≤150KB (`safeLogoDataUrl`, chặn chèn mã), tự thu nhỏ ≤360px. KHÔNG gán sẵn logo/tên trường nào vì web dùng cho mọi trường — logo Dewey do GV tải lên.
+- Chưa làm: ảnh minh họa theo chủ đề từng bài, bớt thanh tiến độ lặp, rút gọn báo cáo còn 1–1,5 trang, màu nhấn theo trường. Bản đã công bố trước ngày này vẫn hiện bản cũ trong `inputJson` nhưng dựng bằng mẫu mới (không có tên trường/logo) — công bố lại để có đầu trang mới.
+
 ## Cổng phụ huynh /ph: xem báo cáo trực tuyến bằng tên con + PIN riêng — 2026-10-01
 
 Chủ dự án chốt: phụ huynh có luồng riêng cạnh luồng HS; chọn tên + PIN → xem các báo cáo GV đã công bố, hiện như bản PDF (GV khỏi tải file gửi từng người). GV có vài trăm HS: link CHUNG cả lớp `/ph/<mã lớp>` (gửi nhóm), PIN riêng từng em phát MỘT lần đầu năm.

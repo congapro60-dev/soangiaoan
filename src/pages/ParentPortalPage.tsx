@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
 import { AlertTriangle, ArrowLeft, Download, FileText, HeartHandshake, Loader2 } from 'lucide-react';
 import { normalizeJoinCode } from '../lib/classroom/joinCode';
@@ -7,33 +7,12 @@ import type { PublishedParentReport } from '../lib/classroom/parentAccess';
 import { PARENT_REPORT_ROOT_ID, buildParentReportPrintDoc, type ParentReportPrintInput } from '../lib/classroom/parentReportPrintDoc';
 import { fetchParentReports, fetchParentRoster, type ParentRoster } from '../services/parentPortalApi';
 
-/** Bản báo cáo rộng cố định 780px (khổ in) — thu nhỏ vừa màn hình điện thoại để phụ huynh đọc không phải kéo ngang. */
-const REPORT_WIDTH = 780;
-
+/** Bản web của báo cáo (`variant: web`): tự co giãn theo màn hình, chữ ≥15px, cột xếp dọc trên điện thoại. Bản A4 chỉ dùng khi tải PDF. */
 const ReportViewer = ({ input }: { input: ParentReportPrintInput }) => {
-  const frameRef = useRef<HTMLDivElement>(null);
-  const innerRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-  const [height, setHeight] = useState<number | undefined>(undefined);
-  const html = useMemo(() => buildParentReportPrintDoc(input), [input]);
-
-  useLayoutEffect(() => {
-    const measure = () => {
-      const width = frameRef.current?.clientWidth ?? REPORT_WIDTH;
-      const next = Math.min(1, width / REPORT_WIDTH);
-      setScale(next);
-      setHeight((innerRef.current?.scrollHeight ?? 0) * next || undefined);
-    };
-    measure();
-    const observer = new ResizeObserver(measure);
-    if (frameRef.current) observer.observe(frameRef.current);
-    if (innerRef.current) observer.observe(innerRef.current);
-    return () => observer.disconnect();
-  }, [html]);
-
+  const html = useMemo(() => buildParentReportPrintDoc(input, 'web'), [input]);
   return (
-    <div ref={frameRef} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" style={{ height }}>
-      <div ref={innerRef} id={PARENT_REPORT_ROOT_ID} style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }} dangerouslySetInnerHTML={{ __html: html }} />
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div id={PARENT_REPORT_ROOT_ID} dangerouslySetInnerHTML={{ __html: html }} />
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildParentReportPrintDoc } from './parentReportPrintDoc';
+import { buildParentReportPrintDoc, keyTakeaways } from './parentReportPrintDoc';
 import type { ParentSafeReport } from './parentSafeReport';
 
 const report: ParentSafeReport = {
@@ -159,3 +159,59 @@ describe('buildParentReportPrintDoc', () => {
   });
 });
 
+
+describe('báo cáo phụ huynh — bản web, tóm tắt nhanh, nhận diện trường, minh họa', () => {
+  const base = { studentName: 'An', className: '10A' };
+  const requirements = [
+    { id: 'T10.01', level: 'vung', evidence: 3, percent: 92, note: 'Phát biểu đúng mệnh đề đảo.' },
+    { id: 'T10.04', level: 'dang', evidence: 4, percent: 65, note: 'Còn nhầm khi tìm phần bù.' },
+    { id: 'T10.05', level: 'chua', evidence: 2, percent: 30, note: 'Chưa lập được sơ đồ Ven.' },
+  ] as const;
+
+  it('tóm tắt nhanh: điểm mạnh = dòng Vững cao nhất, cần chú ý = dòng yếu nhất, việc nhà = gợi ý đầu', () => {
+    expect(keyTakeaways(report, requirements)).toEqual([
+      { tone: 'good', label: 'Điểm mạnh', text: 'Phát biểu đúng mệnh đề đảo.' },
+      { tone: 'focus', label: 'Cần chú ý', text: 'Chưa lập được sơ đồ Ven.' },
+      { tone: 'home', label: 'Phụ huynh có thể làm', text: 'Hỏi con mỗi ngày' },
+    ]);
+  });
+
+  it('chưa có yêu cầu cần đạt thì lấy chủ đề chung của báo cáo; thiếu dữ liệu thì bỏ ô đó', () => {
+    expect(keyTakeaways(report, null).map(item => item.text)).toEqual(['Hàm số', 'Cần rèn thêm: Xác suất.', 'Hỏi con mỗi ngày']);
+    expect(keyTakeaways({ strengths: [], areasToPractice: [], parentActions: [] }, null)).toEqual([]);
+  });
+
+  it('bản in có ô ký tên; bản web thì không, và có luật co giãn cho điện thoại', () => {
+    const print = buildParentReportPrintDoc({ ...base, report });
+    const web = buildParentReportPrintDoc({ ...base, report }, 'web');
+    expect(print).toContain('class="signature"');
+    expect(print).not.toContain('@media (max-width: 640px)');
+    expect(web).not.toContain('class="signature"');
+    expect(web).toContain('@media (max-width: 640px)');
+    expect(web).toContain('Tóm tắt nhanh');
+  });
+
+  it('yêu cầu cần đạt: nhận xét dễ hiểu đứng trước, câu chữ chương trình đứng sau', () => {
+    const html = buildParentReportPrintDoc({ ...base, report, requirements: [...requirements] });
+    expect(html.indexOf('Phát biểu đúng mệnh đề đảo.')).toBeLessThan(html.indexOf('Theo chương trình:'));
+  });
+
+  it('nhận diện trường: tên trường, giáo viên, logo hợp lệ hiện ra; logo lạ bị bỏ, không chèn được mã', () => {
+    const logo = 'data:image/png;base64,iVBORw0KGgo=';
+    const ok = buildParentReportPrintDoc({ ...base, report, branding: { schoolName: 'Trường <A>', teacherName: 'Cô Lan', logoDataUrl: logo } });
+    expect(ok).toContain('Trường &lt;A&gt;');
+    expect(ok).toContain('Giáo viên: Cô Lan');
+    expect(ok).toContain(`src="${logo}"`);
+    const bad = buildParentReportPrintDoc({ ...base, report, branding: { schoolName: 'T', logoDataUrl: 'javascript:alert(1)' } });
+    expect(bad).not.toContain('<img');
+    const evil = buildParentReportPrintDoc({ ...base, report, branding: { logoDataUrl: 'data:image/png;base64,AAA" onerror="x' } });
+    expect(evil).not.toContain('<img');
+  });
+
+  it('có dải minh họa đầu báo cáo và biểu tượng ở đầu mục; không còn emoji', () => {
+    const html = buildParentReportPrintDoc({ ...base, report, teacherComment: 'Tốt' });
+    expect(html).toContain('class="hero"');
+    expect(html).toContain('class="ico"');
+    expect(html).not.toMatch(/[✅🎯🤝🎓]/u);
+  });
+});
