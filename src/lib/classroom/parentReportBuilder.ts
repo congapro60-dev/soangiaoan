@@ -9,7 +9,7 @@ import type { EvidenceQuestion, EvidenceSubmission } from './parentRequirements'
 import type { ParentCompetencyItem, ParentCompetencySummary, ParentReportPrintInput } from './parentReportPrintDoc';
 import { buildStudentCompetencyPortfolio, portfolioProgress } from './competency/portfolioModel';
 import { asCompetencyGrade } from './competency/framework';
-import { filterForPeriod, monthlyAverages, periodComparison, rangeLabel, reportTitle, vnDay, type ReportPeriod } from './reportPeriod';
+import { dmy, filterForPeriod, monthlyAverages, periodComparison, rangeLabel, reportTitle, vnDay, type ReportPeriod } from './reportPeriod';
 
 export interface ParentReportSource {
   studentId: string;
@@ -136,7 +136,8 @@ const buildEvidenceRows = (chosen: readonly SubmissionDoc[], titles: ReadonlyMap
 const round1 = (value: number | null): number | null => (value === null ? null : Math.round(value * 10) / 10);
 
 /** `period` null = báo cáo chung từ đầu năm như trước. */
-export const buildPeriodParentReport = (src: ParentReportSource, period: ReportPeriod | null): PeriodParentReport => {
+/** `today` (yyyy-mm-dd, giờ VN) để biết kì đã kết thúc chưa — mặc định hôm nay. */
+export const buildPeriodParentReport = (src: ParentReportSource, period: ReportPeriod | null, today = vnDay(new Date().toISOString())): PeriodParentReport => {
   const base = { studentId: src.studentId, studentName: src.studentName, className: src.className, profile: src.profile };
   const hs1All = src.scoreView?.hs1 ?? [];
   const scoped = period
@@ -174,6 +175,8 @@ export const buildPeriodParentReport = (src: ParentReportSource, period: ReportP
   const facts: Record<string, unknown> = {
     loaiBaoCao: title,
     thoiGian: period ? rangeLabel(period) : 'Từ đầu năm học tới nay',
+    // Kì chưa hết (vd. báo cáo giữa kì lập giữa chừng) thì AI không được viết như kì đã qua.
+    ...(period && period.to > today ? { kiDangDienRa: `Kì báo cáo chưa kết thúc — số liệu mới tính đến ngày ${dmy(today)}` } : {}),
     diemTrungBinhPhanTram: round1(report.officialAveragePercent),
     xuHuong: report.progress.trend,
     soBaiDaCoKetQua: report.officialCount,

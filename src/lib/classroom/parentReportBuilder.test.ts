@@ -82,6 +82,12 @@ describe('dựng báo cáo phụ huynh theo kì', () => {
     expect(JSON.stringify(out.evidence).length).toBeLessThanOrEqual(45_000);
   });
 
+  it('kì chưa kết thúc: báo AI số liệu mới tính đến hôm nay (không viết như kì đã qua)', () => {
+    const gk1 = { kind: 'gk1' as const, from: '2026-09-01', to: '2026-10-31' };
+    expect(buildPeriodParentReport(src, gk1, '2026-10-01').facts.kiDangDienRa).toContain('01/10/2026');
+    expect(buildPeriodParentReport(src, gk1, '2026-11-02').facts.kiDangDienRa).toBeUndefined();
+  });
+
   it('không chọn kì thì giữ báo cáo chung như trước', () => {
     const out = buildPeriodParentReport(src, null);
     expect(out.report.results).toHaveLength(2);
