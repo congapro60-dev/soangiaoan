@@ -69,7 +69,7 @@ const fakeDb = () => {
 vi.mock('../_exam-core.js', () => ({ getAdminDb: () => fakeDb() }));
 
 import { handleAiRelay } from '../_ai-relay-handler';
-import { RELAY_MAX_DURATION_S, RELAY_MODELS, parseRelayBody } from '../_ai-relay-core';
+import { RELAY_MAX_DURATION_S, RELAY_MODELS, RELAY_VENDOR_MODELS, enabledRelayVendors, parseRelayBody } from '../_ai-relay-core';
 import { priceFor } from '../../src/lib/admin/aiPricing';
 
 const OWNER_KEY = 'OWNER-KEY';
@@ -276,5 +276,159 @@ describe('relay Gemini cho ví web — máy chủ', () => {
     vi.stubGlobal('fetch', geminiOk());
     expect((await call({ prompt: 'x' })).statusCode).toBe(200);
     expect(h.store['aiRelayQuota/gv-1']).toMatchObject({ count: 6, inflight: 0 });
+  });
+});
+
+describe('relay cho Claude / ChatGPT (ví web trả cho hãng khác Gemini)', () => {
+  const ANTHROPIC_KEY = 'sk-ant-OWNER';
+  const OPENAI_KEY = 'sk-OWNER-OPENAI';
+  const anthropicOk = (text = 'Xin chào', stop = 'end_turn', usage: Record<string, number> = { input_tokens: 500_000, output_tokens: 0 }) =>
+    vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ content: text ? [{ type: 'text', text }] : [], stop_reason: stop, usage }) }));
+  const openaiOk = (text = 'Xin chào', finish = 'stop', usage: Record<string, number> = { prompt_tokens: 1_000_000, completion_tokens: 0, total_tokens: 1_000_000 }) =>
+    vi.fn(async () => ({ ok: true, status: 200, json: async () => ({ choices: [{ message: { content: text }, finish_reason: finish }], usage }) }));
+  const wallet = (mode: string, extra: DocData = {}) => {
+    h.store['adminSettings/aiAccess'] = { enabled: true, sharedUids: [], exemptUids: [] };
+    h.store['adminSettings/billing'] = { usdVnd: 26_000 };
+    h.store['aiWallets/gv-1'] = { balanceVnd: 50_000 };
+    h.store['teacherAiKeys/gv-1'] = { consent: { accepted: true }, mode, ...extra };
+  };
+
+  beforeEach(() => {
+    h.store = {};
+    h.verifyFails = false;
+    h.claims = { uid: 'gv-1', email: 'gv1@x.vn', firebase: { sign_in_provider: 'google.com' } };
+    process.env.GRADING_GEMINI_API_KEY = OWNER_KEY;
+    process.env.ANTHROPIC_API_KEY = ANTHROPIC_KEY;
+    process.env.OPENAI_API_KEY = OPENAI_KEY;
+    delete process.env.AI_RELAY_DAILY_LIMIT;
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    delete process.env.ANTHROPIC_API_KEY;
+    delete process.env.OPENAI_API_KEY;
+  });
+
+  it('kiểm đầu vào: model phải thuộc đúng hãng và có giá; hãng lạ bị từ chối; vắng provider = Gemini như cũ', () => {
+    for (const [vendor, models] of Object.entries(RELAY_VENDOR_MODELS)) {
+      for (const model of models) {
+        expect(priceFor(model, today), model).not.toBeNull();
+        expect(parseRelayBody({ provider: vendor, model, prompt: 'x' })).toMatchObject({ ok: true, value: { provider: vendor, model } });
+      }
+    }
+    expect(parseRelayBody({ provider: 'claude', prompt: 'x' })).toMatchObject({ ok: true, value: { provider: 'claude', model: 'claude-sonnet-5-5' } });
+    expect(parseRelayBody({ provider: 'openai', prompt: 'x' })).toMatchObject({ ok: true, value: { provider: 'openai', model: 'gpt-6.1-sol' } });
+    expect(parseRelayBody({ provider: 'claude', model: 'gemini-3.8-flash', prompt: 'x' })).toMatchObject({ ok: false, status: 400 });
+    expect(parseRelayBody({ provider: 'claude', model: 'claude-fable-5-1', prompt: 'x' })).toMatchObject({ ok: false, status: 400 }); // đắt nhất: cố ý chưa nhận
+    expect(parseRelayBody({ provider: 'grok', model: 'grok-4', prompt: 'x' })).toMatchObject({ ok: false, status: 400 });
+    expect(parseRelayBody({ prompt: 'x' })).toMatchObject({ ok: true, value: { provider: 'gemini' } });
+  });
+
+  it('chỉ hãng đã đặt khoá trên máy chủ mới được bật', () => {
+    expect(enabledRelayVendors({ ANTHROPIC_API_KEY: ' k ' } as never)).toEqual(['claude']);
+    expect(enabledRelayVendors({ OPENAI_API_KEY: 'k', ANTHROPIC_API_KEY: '' } as never)).toEqual(['openai']);
+    expect(enabledRelayVendors({} as never)).toEqual([]);
+  });
+
+  it('chưa đặt khoá của hãng trên máy chủ: 503, không gọi hãng, không tốn hạn mức ngày', async () => {
+    delete process.env.ANTHROPIC_API_KEY;
+    const fetchMock = anthropicOk();
+    vi.stubGlobal('fetch', fetchMock);
+    const res = await call({ provider: 'claude', prompt: 'x' });
+    expect(res.statusCode).toBe(503);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(h.store['aiRelayQuota/gv-1']).toBeUndefined();
+  });
+
+  it('Claude: gọi đúng API Anthropic bằng KHOÁ MÁY CHỦ (không phải khoá Gemini riêng), chuyển chỉ dẫn + ảnh, TRỪ VÍ đúng giá, ghi lượt provider "claude"', async () => {
+    wallet('both', { geminiKey: OWN_KEY, keyStatus: 'ok' }); // có khoá Gemini riêng nhưng nó không dùng được cho Claude
+    const fetchMock = anthropicOk('Giáo án Toán');
+    vi.stubGlobal('fetch', fetchMock);
+
+    const res = await call({ provider: 'claude', model: 'claude-sonnet-5-5', prompt: 'Soạn bài', system: 'Trợ lý soạn bài', images: [IMG] });
+    expect(res.statusCode).toBe(200);
+    expect(res.payload).toEqual({ text: 'Giáo án Toán', model: 'claude-sonnet-5-5', truncated: false });
+
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, { headers: Record<string, string>; body: string }];
+    expect(url).toBe('https://api.anthropic.com/v1/messages');
+    expect(init.headers['x-api-key']).toBe(ANTHROPIC_KEY);
+    const sent = JSON.parse(init.body);
+    expect(sent).toMatchObject({ model: 'claude-sonnet-5-5', max_tokens: 16_000, system: 'Trợ lý soạn bài' });
+    expect(sent.messages[0].content).toEqual([
+      { type: 'image', source: { type: 'base64', media_type: 'image/png', data: 'iVBORw0KGgo=' } },
+      { type: 'text', text: 'Soạn bài' },
+    ]);
+    // 500.000 token vào × $2/1M × 26.000 = 26.000đ
+    expect(h.store['aiWallets/gv-1']).toMatchObject({ balanceVnd: 24_000 });
+    expect(h.store['aiWallets/gv-1'].heldVnd ?? 0).toBe(0);
+    const usage = Object.entries(h.store).find(([path]) => path.startsWith('aiUsage/'))?.[1];
+    expect(usage).toMatchObject({ provider: 'claude', model: 'claude-sonnet-5-5', keySource: 'owner_consent', chargeVnd: 26_000, feature: 'aiRelay' });
+  });
+
+  it('Claude bị cắt vì hết trần đầu ra → truncated để trình duyệt tự viết tiếp; hãng từ chối → 422', async () => {
+    vi.stubGlobal('fetch', anthropicOk('Phần đầu…', 'max_tokens'));
+    expect((await call({ provider: 'claude', prompt: 'x' })).payload).toMatchObject({ truncated: true });
+    vi.stubGlobal('fetch', anthropicOk('', 'refusal'));
+    expect((await call({ provider: 'claude', prompt: 'x' })).statusCode).toBe(422);
+  });
+
+  it('ChatGPT: gọi đúng API OpenAI, token vào/ra tính theo bảng giá, finish "length" → truncated', async () => {
+    wallet('wallet');
+    const fetchMock = openaiOk('Đề kiểm tra', 'length');
+    vi.stubGlobal('fetch', fetchMock);
+    const res = await call({ provider: 'openai', model: 'gpt-6-luna', prompt: 'Ra đề', system: 'Trợ lý ra đề' });
+    expect(res.statusCode).toBe(200);
+    expect(res.payload).toEqual({ text: 'Đề kiểm tra', model: 'gpt-6-luna', truncated: true });
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, { headers: Record<string, string>; body: string }];
+    expect(url).toBe('https://api.openai.com/v1/chat/completions');
+    expect(init.headers.authorization).toBe(`Bearer ${OPENAI_KEY}`);
+    const sent = JSON.parse(init.body);
+    expect(sent).toMatchObject({ model: 'gpt-6-luna', max_completion_tokens: 16_384 });
+    expect(sent.messages[0]).toEqual({ role: 'system', content: 'Trợ lý ra đề' });
+    // 1.000.000 token vào × $0,1/1M × 26.000 = 2.600đ
+    expect(h.store['aiWallets/gv-1']).toMatchObject({ balanceVnd: 47_400 });
+    const usage = Object.entries(h.store).find(([path]) => path.startsWith('aiUsage/'))?.[1];
+    expect(usage).toMatchObject({ provider: 'openai', chargeVnd: 2_600 });
+  });
+
+  it('chế độ "chỉ khoá riêng" thì ví không trả cho hãng khác: 402, không gọi hãng; chưa đồng ý tính phí cũng 402', async () => {
+    wallet('own');
+    const fetchMock = anthropicOk();
+    vi.stubGlobal('fetch', fetchMock);
+    expect((await call({ provider: 'claude', prompt: 'x' })).statusCode).toBe(402);
+    h.store['teacherAiKeys/gv-1'] = { mode: 'wallet' }; // chưa đồng ý
+    expect((await call({ provider: 'claude', prompt: 'x' })).statusCode).toBe(402);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(h.store['aiRelayQuota/gv-1']).toMatchObject({ count: 0, inflight: 0 });
+  });
+
+  it('hết số dư: 402 no_balance, không gọi hãng', async () => {
+    wallet('wallet');
+    h.store['aiWallets/gv-1'] = { balanceVnd: 0 };
+    const fetchMock = openaiOk();
+    vi.stubGlobal('fetch', fetchMock);
+    const res = await call({ provider: 'openai', prompt: 'x' });
+    expect(res.statusCode).toBe(402);
+    expect(res.payload).toMatchObject({ reason: 'no_balance' });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('hãng lỗi (529 quá tải): 502 kèm mã, ví không đổi và phần giữ chỗ được TRẢ LẠI', async () => {
+    wallet('wallet');
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 529 })));
+    const res = await call({ provider: 'claude', prompt: 'x' });
+    expect(res.statusCode).toBe(502);
+    expect(String(res.payload.error)).toContain('529');
+    expect(h.store['aiWallets/gv-1']).toMatchObject({ balanceVnd: 50_000, heldVnd: 0 });
+    expect(Object.keys(h.store).filter(path => path.startsWith('aiUsage/'))).toEqual([]);
+  });
+
+  it('chủ dự án (miễn ví) dùng khoá máy chủ không bị trừ ví', async () => {
+    h.store['adminSettings/aiAccess'] = { enabled: true, sharedUids: [], exemptUids: ['gv-1'] };
+    h.store['teacherAiKeys/gv-1'] = { consent: { accepted: true }, mode: 'wallet' };
+    h.store['aiWallets/gv-1'] = { balanceVnd: 0 };
+    vi.stubGlobal('fetch', anthropicOk());
+    const res = await call({ provider: 'claude', prompt: 'x' });
+    expect(res.statusCode).toBe(200);
+    expect(h.store['aiWallets/gv-1'].balanceVnd).toBe(0);
   });
 });

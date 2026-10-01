@@ -12,17 +12,25 @@ const evidence: EvidenceSubmission[] = [
 ];
 
 describe('kết quả theo yêu cầu cần đạt', () => {
-  it('bảng YCCĐ lớp 10: mã duy nhất, đánh số liền theo thứ tự, không có chữ rác', () => {
-    const list = yccdForGrade('Lớp 10');
-    expect(list).toHaveLength(75);
-    expect(list.map(item => item.id)).toEqual(list.map((_, index) => `T10.${String(index + 1).padStart(2, '0')}`));
+  it.each([[10, 75], [11, 128], [12, 46]])('bảng YCCĐ lớp %i: %i mục, mã đánh số liền, không chữ rác, chủ đề không bị tách', (grade, count) => {
+    const list = yccdForGrade(`Lớp ${grade}`);
+    expect(list).toHaveLength(count);
+    expect(list.map(item => item.id)).toEqual(list.map((_, index) => `T${grade}.${String(index + 1).padStart(2, '0')}`));
     for (const item of list) {
       expect(item.text.length).toBeGreaterThan(20);
       expect(item.text).toMatch(/[.)]$/);
-      expect(item.text).not.toMatch(/\s{2,}|Thực hành trong phòng máy/);
+      expect(item.text).not.toMatch(/\s{2,}|Thực hành trong phòng máy|được được|[-]/);
     }
-    expect(list[0].text).toContain('∀, ∃');
-    expect(yccdForGrade('12')).toEqual([]);
+    // Một chủ đề chỉ xuất hiện thành một khối liền (báo cáo nhóm theo chủ đề liên tiếp).
+    const topics = list.map(item => item.topic).filter((topic, i, all) => i === 0 || all[i - 1] !== topic);
+    expect(new Set(topics).size).toBe(topics.length);
+  });
+
+  it('kí hiệu và công thức đã khôi phục đúng', () => {
+    expect(yccdForGrade(10)[0].text).toContain('∀, ∃');
+    expect(yccdForGrade(11).find(item => item.text.startsWith('Nhận biết được khái niệm lôgarit'))!.text).toContain('a ≠ 1');
+    expect(yccdForGrade(12).some(item => item.text.startsWith('Vận dụng được đạo hàm và khảo sát hàm số'))).toBe(true);
+    expect(yccdForGrade(9)).toEqual([]);
   });
 
   it('mức theo tỉ lệ điểm các câu căn cứ', () => {

@@ -1,7 +1,39 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { geminiRouteFor, getAiModeSnapshot, isOwnKeyFailure, setAiModeSnapshot } from './aiModeStore';
+import { geminiRouteFor, getAiModeSnapshot, isOwnKeyFailure, setAiModeSnapshot, vendorRouteFor } from './aiModeStore';
 
 afterEach(() => setAiModeSnapshot(null));
+
+describe('Claude / ChatGPT đi đường nào', () => {
+  const snap = (mode: 'own' | 'wallet' | 'both', relayVendors?: string[]) => ({ mode, gateEnabled: true, relayVendors });
+
+  it('máy chủ chưa bật ví cho hãng đó (hoặc máy chủ cũ không báo) → luôn khoá riêng', () => {
+    expect(vendorRouteFor('claude', false, snap('wallet'))).toBe('own');
+    expect(vendorRouteFor('claude', true, snap('wallet', ['openai']))).toBe('own');
+    expect(vendorRouteFor('claude', false, null)).toBe('own');
+  });
+
+  it('hãng đã bật: theo đúng chế độ như Gemini', () => {
+    expect(vendorRouteFor('claude', true, snap('own', ['claude']))).toBe('own');
+    expect(vendorRouteFor('claude', true, snap('wallet', ['claude']))).toBe('relay');
+    expect(vendorRouteFor('openai', true, snap('both', ['openai']))).toBe('own-then-relay');
+    expect(vendorRouteFor('openai', false, snap('both', ['openai']))).toBe('relay');
+  });
+
+  it('danh sách hãng đổi thì kho phát tin (để giao diện cập nhật)', () => {
+    setAiModeSnapshot(snap('wallet', []));
+    const first = getAiModeSnapshot();
+    setAiModeSnapshot(snap('wallet', ['claude']));
+    expect(getAiModeSnapshot()).not.toBe(first);
+  });
+
+  it('nhận ra lỗi của khoá Anthropic/OpenAI (hết tiền nạp, khoá sai) nhưng không coi quá tải 529 là lỗi khoá', () => {
+    expect(isOwnKeyFailure(new Error('400 Your credit balance is too low to access the Anthropic API'))).toBe(true);
+    expect(isOwnKeyFailure(new Error('401 {"type":"authentication_error"}'))).toBe(true);
+    expect(isOwnKeyFailure(new Error('Incorrect API key provided'))).toBe(true);
+    expect(isOwnKeyFailure(new Error('You exceeded your current quota (insufficient_quota)'))).toBe(true);
+    expect(isOwnKeyFailure(new Error('529 overloaded_error'))).toBe(false);
+  });
+});
 
 describe('Gemini đi đường nào theo chế độ nguồn khoá', () => {
   const on = (mode: 'own' | 'wallet' | 'both') => ({ mode, gateEnabled: true });

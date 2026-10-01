@@ -17,6 +17,28 @@ export const RELAY_GEMINI_TIMEOUT_MS = (RELAY_MAX_DURATION_S - 30) * 1000;
 export const RELAY_MODELS = ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.1-pro-preview'] as const;
 export const RELAY_DEFAULT_MODEL = RELAY_MODELS[0];
 
+/**
+ * Hãng khác Gemini mà ví web trả được (chủ dự án chốt 2026-10-01: chỉ Claude và ChatGPT). Mỗi hãng chỉ nhận model đã có giá
+ * trong `aiPricing.ts`; model đắt nhất (Claude Fable 5.1) cố ý để ngoài. Trùng `RELAY_VENDOR_MODEL_IDS` ở `src/lib/aiRelay.ts`
+ * (có test khoá hai bên). Khoá của máy chủ nằm ở biến môi trường `RELAY_VENDOR_ENV`; chưa đặt biến thì hãng đó chưa bật.
+ */
+export const RELAY_VENDORS = ['claude', 'openai'] as const;
+export type RelayVendor = (typeof RELAY_VENDORS)[number];
+export type RelayProvider = 'gemini' | RelayVendor;
+export const RELAY_VENDOR_MODELS: Record<RelayVendor, readonly string[]> = {
+  claude: ['claude-sonnet-5-5', 'claude-haiku-4-5-20251001', 'claude-opus-5-5'],
+  openai: ['gpt-6.1-sol', 'gpt-6-luna', 'gpt-6-astra'],
+};
+export const RELAY_VENDOR_ENV: Record<RelayVendor, string> = { claude: 'ANTHROPIC_API_KEY', openai: 'OPENAI_API_KEY' };
+
+/** Khoá của máy chủ cho hãng đó (null = chưa cấu hình → hãng đó chưa dùng được bằng ví). */
+export const relayVendorKey = (vendor: RelayVendor, env: NodeJS.ProcessEnv = process.env): string | null => env[RELAY_VENDOR_ENV[vendor]]?.trim() || null;
+/** Các hãng đã cấu hình khoá trên máy chủ — client chỉ chuyển sang ví cho những hãng này. */
+export const enabledRelayVendors = (env: NodeJS.ProcessEnv = process.env): RelayVendor[] => RELAY_VENDORS.filter(vendor => relayVendorKey(vendor, env));
+
+/** Trần đầu ra mỗi lượt: dưới ngưỡng 10 phút của Anthropic cho lời gọi không stream; bị cắt thì client tự xin viết tiếp. */
+export const RELAY_VENDOR_MAX_OUTPUT_TOKENS: Record<RelayVendor, number> = { claude: 16_000, openai: 16_384 };
+
 export const RELAY_TEMPERATURE = 0.1;
 export const RELAY_MAX_OUTPUT_TOKENS = 65_536;
 
@@ -38,6 +60,7 @@ export const RELAY_MAX_IMAGE_BASE64_CHARS = 3_600_000;
 export const relayDailyLimit = (env: NodeJS.ProcessEnv = process.env): number => Number(env.AI_RELAY_DAILY_LIMIT) || 400;
 
 export interface RelayRequest {
+  provider: RelayProvider;
   model: string;
   prompt: string;
   system?: string;
@@ -51,9 +74,14 @@ const DATA_URL = /^data:(image\/(?:png|jpeg|webp|gif));base64,([A-Za-z0-9+/]+={0
 export const parseRelayBody = (body: unknown): RelayParse => {
   const source = (body && typeof body === 'object' ? body : {}) as Record<string, unknown>;
 
-  const model = source.model === undefined ? RELAY_DEFAULT_MODEL : source.model;
-  if (typeof model !== 'string' || !(RELAY_MODELS as readonly string[]).includes(model)) {
-    return { ok: false, status: 400, error: 'Model này chưa dùng được bằng ví web. Chọn Gemini 3.8 Flash, 3.7 Flash hoặc 3.1 Pro.' };
+  const provider = source.provider === undefined ? 'gemini' : source.provider;
+  if (provider !== 'gemini' && !(RELAY_VENDORS as readonly string[]).includes(provider as string)) {
+    return { ok: false, status: 400, error: 'Hãng AI này chưa dùng được bằng ví web.' };
+  }
+  const allowed: readonly string[] = provider === 'gemini' ? RELAY_MODELS : RELAY_VENDOR_MODELS[provider as RelayVendor];
+  const model = source.model === undefined ? allowed[0] : source.model;
+  if (typeof model !== 'string' || !allowed.includes(model)) {
+    return { ok: false, status: 400, error: 'Model này chưa dùng được bằng ví web. Chọn một model có trong danh sách của ví web.' };
   }
 
   const prompt = source.prompt;
@@ -85,5 +113,5 @@ export const parseRelayBody = (body: unknown): RelayParse => {
     images.push({ mimeType: match[1], data: match[2] });
   }
 
-  return { ok: true, value: { model, prompt, ...(system ? { system } : {}), images } };
+  return { ok: true, value: { provider: provider as RelayProvider, model, prompt, ...(system ? { system } : {}), images } };
 };

@@ -2,12 +2,26 @@ import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('../../src/lib/firebase', () => ({ auth: { currentUser: null } }));
 
-import { RELAY_MODELS } from '../_ai-relay-core';
-import { RELAY_MODEL_IDS, callAiRelay, relayModelFor } from '../../src/lib/aiRelay';
+import { RELAY_MODELS, RELAY_VENDOR_MODELS } from '../_ai-relay-core';
+import { RELAY_MODEL_IDS, RELAY_VENDOR_MODEL_IDS, callAiRelay, relayModelFor, relayVendorModelFor } from '../../src/lib/aiRelay';
 
 describe('relay ví web — trình duyệt và máy chủ phải thống nhất', () => {
   it('danh sách model trình duyệt được phép gửi = danh sách máy chủ chấp nhận (lệch là lượt gọi bị 400)', () => {
     expect([...RELAY_MODEL_IDS]).toEqual([...RELAY_MODELS]);
+  });
+
+  it('hãng khác Gemini: hãng và model trình duyệt được gửi = máy chủ chấp nhận', () => {
+    expect(Object.keys(RELAY_VENDOR_MODEL_IDS).sort()).toEqual(Object.keys(RELAY_VENDOR_MODELS).sort());
+    for (const vendor of Object.keys(RELAY_VENDOR_MODELS) as Array<keyof typeof RELAY_VENDOR_MODELS>) {
+      expect([...RELAY_VENDOR_MODEL_IDS[vendor]]).toEqual([...RELAY_VENDOR_MODELS[vendor]]);
+    }
+  });
+
+  it('model đang chọn của Claude/ChatGPT nếu ví trả được, không thì model "nên dùng" của hãng', () => {
+    expect(relayVendorModelFor('claude', 'claude-haiku-4-5-20251001')).toBe('claude-haiku-4-5-20251001');
+    expect(relayVendorModelFor('claude', undefined, 'claude-opus-5-5')).toBe('claude-opus-5-5');
+    expect(relayVendorModelFor('claude', 'claude-fable-5-1')).toBe('claude-sonnet-5-5');
+    expect(relayVendorModelFor('openai', 'gemini-3.8-flash')).toBe('gpt-6.1-sol');
   });
 
   it('model đang chọn nếu ví trả được, không thì Gemini 3.8 Flash', () => {

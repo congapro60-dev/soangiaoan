@@ -4,7 +4,7 @@ import { GoogleGenAI } from '@google/genai';
 import { cert, getApps, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
-import { createAiUsageContext, geminiUsageCounts, recordAiUsage, runWithAiUsage } from './_ai-usage.js';
+import { acquireCallHoldWaiting, createAiUsageContext, geminiUsageCounts, recordAiUsage, releaseWalletHold, runWithAiUsage } from './_ai-usage.js';
 import { AiKeyRequiredError, aiKeyRequiredPayload, ensureGeminiKey, onOwnKeyFailure } from './_ai-keys.js';
 import { classifyGeminiKeyFailure } from '../src/lib/admin/aiKeyPolicy.js';
 
@@ -226,19 +226,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       result = await runWithAiUsage(usageContext, async () => {
         // Cùng quy tắc với chấm bài: nhóm dùng khoá chung / khoá riêng giáo viên / khoá chung đã đồng ý.
         let choice = await ensureGeminiKey(apiKey);
-        let generated: Awaited<ReturnType<typeof generate>>;
+        // Giữ chỗ tiền trước khi gọi (chỉ lượt bị trừ ví) để các lượt song song không cùng lọt qua kiểm số dư (QA F3).
+        const acquire = async (): Promise<number> => {
+          const held = await acquireCallHoldWaiting(choice);
+          if (!held.ok) throw new AiKeyRequiredError(held.reason === 'timeout' ? 'no_balance' : held.reason, choice.ownerUid);
+          return held.holdVnd;
+        };
+        let holdVnd = await acquire();
+        let handedOver = false;
         try {
-          generated = await generate(choice.key);
-        } catch (error) {
-          const detail = error instanceof Error ? error.message : String(error);
-          const keyFailure = classifyGeminiKeyFailure(Number((error as { status?: unknown }).status) || 0, detail);
-          if (choice.source !== 'own' || !keyFailure) throw error;
-          choice = await onOwnKeyFailure(choice, keyFailure, detail, apiKey);
-          generated = await generate(choice.key);
+          let generated: Awaited<ReturnType<typeof generate>>;
+          try {
+            generated = await generate(choice.key);
+          } catch (error) {
+            const detail = error instanceof Error ? error.message : String(error);
+            const keyFailure = classifyGeminiKeyFailure(Number((error as { status?: unknown }).status) || 0, detail);
+            if (choice.source !== 'own' || !keyFailure) throw error;
+            choice = await onOwnKeyFailure(choice, keyFailure, detail, apiKey);
+            holdVnd = await acquire();
+            generated = await generate(choice.key);
+          }
+          // Đếm token — ghi trước mọi nhánh báo lỗi vì lượt này đã tính tiền. `recordAiUsage` nhận luôn phần giữ chỗ.
+          handedOver = true;
+          await recordAiUsage('gemini', GEMINI_MODEL, geminiUsageCounts(generated.usageMetadata), { holdVnd });
+          return generated;
+        } finally {
+          if (holdVnd > 0 && !handedOver && choice.ownerUid) {
+            await releaseWalletHold(db, choice.ownerUid, holdVnd).catch(error => console.error('[simulation] không trả được chỗ giữ tiền:', error));
+          }
         }
-        // Đếm token — ghi trước mọi nhánh báo lỗi vì lượt này đã tính tiền.
-        await recordAiUsage('gemini', GEMINI_MODEL, geminiUsageCounts(generated.usageMetadata));
-        return generated;
       });
     } catch (error) {
       if (error instanceof AiKeyRequiredError) return res.status(402).json(aiKeyRequiredPayload(error));

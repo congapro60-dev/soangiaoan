@@ -6,8 +6,8 @@
  *  - chế độ "chỉ khoá riêng" và khoá riêng có sẵn trên máy chủ thì chạy khoá riêng (không trừ ví);
  *  - chưa đồng ý tính phí / hết số dư / chạm trần thì trả 402 `AI_KEY_REQUIRED` để trình duyệt mở hộp nạp tiền.
  *
- * Hàm riêng (`api/ai-relay.ts`) để có `maxDuration` dài hơn hàm chấm bài (60s) mà không đụng giả định thời gian của
- * khoá chấm. Không stream: trả nguyên văn một lần.
+ * Hàm riêng (`api/ai-relay.ts`) để không dùng chung khoá/hạn mức thời gian của hàm chấm bài (`api/grade-homework.ts`,
+ * cũng 300s nhưng kèm khoá "đang chấm" và vòng chấm theo lô). Không stream: trả nguyên văn một lần.
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { FieldValue } from 'firebase-admin/firestore';
@@ -17,6 +17,7 @@ import { GeminiResponseError, callGeminiRaw, getGradingApiKey, moTaFinishReason 
 import { createAiUsageContext, runWithAiUsage, vnDate } from './_ai-usage.js';
 import { AiKeyRequiredError, aiKeyRequiredPayload } from './_ai-keys.js';
 import { getBearerToken } from './_ai-gateway-core.js';
+import { callVendor } from './_ai-relay-vendors.js';
 import {
   RELAY_GEMINI_TIMEOUT_MS,
   RELAY_INFLIGHT_STALE_MS,
@@ -25,6 +26,7 @@ import {
   RELAY_TEMPERATURE,
   parseRelayBody,
   relayDailyLimit,
+  relayVendorKey,
 } from './_ai-relay-core.js';
 
 export const AI_RELAY_QUOTA_COL = 'aiRelayQuota';
@@ -76,7 +78,13 @@ export const handleAiRelay = async (req: VercelRequest, res: VercelResponse): Pr
     void sendError(res, parsed.status, parsed.error);
     return;
   }
-  const { model, prompt, system, images } = parsed.value;
+  const { provider, model, prompt, system, images } = parsed.value;
+  // Hãng khác Gemini chỉ chạy khi chủ dự án đã đặt khoá của hãng đó trên máy chủ — kiểm TRƯỚC khi giữ chỗ/đếm hạn mức ngày.
+  const vendorKey = provider === 'gemini' ? null : relayVendorKey(provider);
+  if (provider !== 'gemini' && !vendorKey) {
+    void sendError(res, 503, 'Ví web chưa bật cho hãng AI này. Thầy/cô dùng khoá riêng của hãng trong Cài đặt, hoặc chọn Gemini.');
+    return;
+  }
 
   const db = getAdminDb();
   const day = vnDate(new Date()).day;
@@ -112,12 +120,18 @@ export const handleAiRelay = async (req: VercelRequest, res: VercelResponse): Pr
   context.keyOwnerUid = user.uid;
 
   try {
-    const result = await runWithAiUsage(context, () => callGeminiRaw(prompt, images, getGradingApiKey(), model, {
-      temperature: RELAY_TEMPERATURE,
-      maxOutputTokens: RELAY_MAX_OUTPUT_TOKENS,
-      timeoutMs: RELAY_GEMINI_TIMEOUT_MS,
-      ...(system ? { systemInstruction: system } : {}),
-    }));
+    const result = await runWithAiUsage(context, async (): Promise<{ text: string; finishReason?: string }> => {
+      if (provider !== 'gemini' && vendorKey) {
+        const vendor = await callVendor({ vendor: provider, apiKey: vendorKey, model, prompt, system, images, timeoutMs: RELAY_GEMINI_TIMEOUT_MS });
+        return { text: vendor.text, finishReason: vendor.refused ? 'SAFETY' : vendor.truncated ? 'MAX_TOKENS' : 'STOP' };
+      }
+      return callGeminiRaw(prompt, images, getGradingApiKey(), model, {
+        temperature: RELAY_TEMPERATURE,
+        maxOutputTokens: RELAY_MAX_OUTPUT_TOKENS,
+        timeoutMs: RELAY_GEMINI_TIMEOUT_MS,
+        ...(system ? { systemInstruction: system } : {}),
+      });
+    });
 
     const hasText = result.text.trim().length > 0;
     if (result.finishReason === 'SAFETY' || result.finishReason === 'PROHIBITED_CONTENT' || result.finishReason === 'RECITATION' || !hasText) {

@@ -403,6 +403,119 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
     expect(harness.state.submissionGradeHistory).toBeUndefined();
   });
 
+  describe('bài chưa từng có điểm mà chấm hỏng', () => {
+    const seedChuaCham = (): Harness => {
+      const harness = seed();
+      const { grade: _bo, ...khongDiem } = harness.state.submissions['sub-1'];
+      harness.state.submissions['sub-1'] = { ...khongDiem, status: 'submitted' };
+      return harness;
+    };
+
+    it('hai response schema-invalid: nhãn định dạng đúng chỗ, lỗi thô được giữ và có log', async () => {
+      const harness = seedChuaCham();
+      h.db = makeDb(harness);
+      const logLoi = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      stubGeminiResponses(
+        makeGeminiResponse(JSON.stringify({ score: 6, maxScore: 10, noteForTeacher: 'Thiếu feedback.' })),
+        makeGeminiResponse(JSON.stringify({ score: 6, maxScore: 10, noteForTeacher: 'Vẫn thiếu feedback.' })),
+      );
+
+      const result = await call({ action: 'gradeOne', submissionId: 'sub-1' });
+
+      expect(result.statusCode).toBe(422);
+      expect(harness.state.submissions['sub-1']).toMatchObject({
+        status: 'error',
+        errorMessage: expect.stringMatching(/lỗi định dạng/),
+        lastGradingErrorRaw: expect.stringContaining('feedbackForStudent'),
+      });
+      expect(logLoi).toHaveBeenCalledWith('[grade-homework] lượt chấm hỏng', expect.objectContaining({ submissionId: 'sub-1', hadPreviousGrade: false }));
+      logLoi.mockRestore();
+    });
+
+    it('RECITATION lần đầu thì thử lại kèm lời dặn riêng và chấm được', async () => {
+      const harness = seedChuaCham();
+      h.db = makeDb(harness);
+      const promptTexts = stubGeminiResponses(makeGeminiResponse('', 'RECITATION'), makeGeminiResponse(validGradeJson(7)));
+
+      const result = await call({ action: 'gradeOne', submissionId: 'sub-1' });
+
+      expect(result.statusCode).toBe(200);
+      expect(h.fetch).toHaveBeenCalledTimes(2);
+      expect(promptTexts[0]).not.toContain('NGHI NỘI DUNG GIỐNG TÀI LIỆU CÓ SẴN');
+      expect(promptTexts[1]).toContain('NGHI NỘI DUNG GIỐNG TÀI LIỆU CÓ SẴN');
+      expect(harness.state.submissions['sub-1']).toMatchObject({
+        status: 'graded',
+        grade: expect.objectContaining({
+          score: 7,
+          gradingRecovery: expect.objectContaining({ retryCount: 1, repairKinds: expect.arrayContaining(['recitation_retry']) }),
+        }),
+      });
+    });
+
+    it('RECITATION cả hai lần: báo đúng mã, trả lỗi thô cho giáo viên, không chấm bừa', async () => {
+      const harness = seedChuaCham();
+      h.db = makeDb(harness);
+      const logLoi = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      stubGeminiResponses(makeGeminiResponse('', 'RECITATION'), makeGeminiResponse('', 'RECITATION'));
+
+      const result = await call({ action: 'gradeOne', submissionId: 'sub-1' });
+
+      expect(result.statusCode).toBe(422);
+      expect(h.fetch).toHaveBeenCalledTimes(2);
+      expect(String(result.body?.error)).toMatch(/RECITATION/);
+      expect(String(result.body?.lastGradingErrorRaw)).toMatch(/RECITATION/);
+      expect(harness.state.submissions['sub-1']).toMatchObject({ status: 'error' });
+      expect((harness.state.submissions['sub-1'] as DocData).grade).toBeUndefined();
+      logLoi.mockRestore();
+    });
+
+    it('lỗi mạng khi gọi Gemini: lỗi thô giữ nguyên nhân gốc, thông báo vẫn là câu an toàn', async () => {
+      const harness = seedChuaCham();
+      h.db = makeDb(harness);
+      const logLoi = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      const canhBao = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      h.fetch = vi.fn(async () => { throw new TypeError('getaddrinfo ENOTFOUND generativelanguage.googleapis.com'); });
+      vi.stubGlobal('fetch', h.fetch);
+
+      const result = await call({ action: 'gradeOne', submissionId: 'sub-1' });
+
+      expect(result.statusCode).toBe(422);
+      const luu = harness.state.submissions['sub-1'];
+      expect(luu).toMatchObject({
+        status: 'error',
+        errorMessage: 'Không gọi được Gemini lúc này. Thử lại sau ít phút.',
+        lastGradingErrorRaw: expect.stringContaining('ENOTFOUND'),
+      });
+      logLoi.mockRestore();
+      canhBao.mockRestore();
+    });
+
+    it('lỗi hệ thống ngoài AI không bị gắn nhãn lỗi định dạng', async () => {
+      const harness = seedChuaCham();
+      const db = makeDb(harness);
+      let soGiaoDich = 0;
+      h.db = {
+        ...db,
+        runTransaction: async (work: Parameters<typeof db.runTransaction>[0]) => {
+          soGiaoDich += 1;
+          if (soGiaoDich === 2) throw new Error('10 ABORTED: Too much contention');
+          return db.runTransaction(work);
+        },
+      };
+      const logLoi = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      stubGeminiResponses(makeGeminiResponse(validGradeJson(7)));
+
+      const result = await call({ action: 'gradeOne', submissionId: 'sub-1' });
+
+      expect(result.statusCode).toBe(422);
+      const luu = harness.state.submissions['sub-1'];
+      expect(luu).toMatchObject({ status: 'error', lastGradingErrorRaw: expect.stringContaining('ABORTED') });
+      expect(String(luu.errorMessage)).toMatch(/lỗi hệ thống/);
+      expect(String(luu.errorMessage)).not.toMatch(/định dạng/);
+      logLoi.mockRestore();
+    });
+  });
+
   it('worker AI cũ không được ghi đè điểm mới sau khi mất claim', async () => {
     const harness = seed();
     h.db = makeDb(harness);
@@ -512,6 +625,38 @@ describe('POST /api/grade-homework · gradeOne regrade safety', () => {
       grade: expect.objectContaining({ score: 7, teacherApproved: false }),
     });
     expect(harness.state.gradingQuota?.['gv-1']).toMatchObject({ teacherCount: 2, selfCount: 0 });
+  });
+
+  it('gradeAssignment: bài đầu chậm tới mức bài sau không còn đủ giờ thì dừng lô, không bắt đầu bài mới', async () => {
+    const baiNop = (id: string, hs: string, gio: string) => ({
+      id, teacherId: 'gv-1', classId: 'lop-1', studentId: hs, assignmentId: 'asg-1',
+      fileUrls: [], textContent: 'Bài làm', note: '', status: 'submitted',
+      createdAt: `2026-08-25T${gio}:00.000Z`, updatedAt: `2026-08-25T${gio}:00.000Z`,
+    });
+    const harness: Harness = {
+      state: {
+        assignments: { 'asg-1': { id: 'asg-1', teacherId: 'gv-1', classId: 'lop-1', title: 'Bài kiểm tra', maxScore: 10 } },
+        submissions: { 'sub-cham': baiNop('sub-cham', 'hs-1', '09:00'), 'sub-sau': baiNop('sub-sau', 'hs-2', '09:01') },
+        gradingQuota: { 'gv-1': { day: quotaDay, teacherCount: 0, selfCount: 0, gatewayCount: 0, byStudent: {} } },
+      },
+    };
+    h.db = makeDb(harness);
+    // Bài đầu "mất" 60s: hàm đã dùng quá phần giờ cho phép bắt đầu thêm một bài tốn tới GRADING_BUDGET_MS.
+    let troiQua = 0;
+    const thatNow = Date.now.bind(Date);
+    const dongHo = vi.spyOn(Date, 'now').mockImplementation(() => thatNow() + troiQua);
+    h.fetch = vi.fn(async () => { troiQua += 60_000; return makeGeminiResponse(validGradeJson(7)); });
+    vi.stubGlobal('fetch', h.fetch);
+
+    const result = await call({ action: 'gradeAssignment', assignmentId: 'asg-1' });
+    dongHo.mockRestore();
+
+    expect(result.statusCode).toBe(200);
+    expect(h.fetch).toHaveBeenCalledTimes(1);
+    expect(result.body).toMatchObject({ graded: 1, failed: 0, remaining: 1 });
+    expect(harness.state.submissions['sub-cham']).toMatchObject({ status: 'graded' });
+    expect(harness.state.submissions['sub-sau']).toMatchObject({ status: 'submitted' });
+    expect(harness.state.gradingQuota?.['gv-1']).toMatchObject({ teacherCount: 1 });
   });
 
 it('co-owner được chấm AI cả lớp và quota ghi theo actor đang thao tác', async () => {

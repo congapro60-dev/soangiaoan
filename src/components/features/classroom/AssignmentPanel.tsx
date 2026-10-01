@@ -19,7 +19,7 @@ import {
   uploadAssignmentImages,
   type RosterStudent,
 } from '../../../lib/classroom/submissionService';
-import type { AssignmentDoc, SubmissionDoc } from '../../../lib/classroom/types';
+import { RECITATION_RETRY_KIND, type AssignmentDoc, type SubmissionDoc } from '../../../lib/classroom/types';
 import { laNopQuaHan } from '../../../lib/classroom/hanNop';
 import { gradeAssignmentAll, gradeOneSubmission, solveAnswerKeyForAssignment, suggestRubric, type HomeworkGradingMode } from '../../../services/gradingApi';
 import { AssignmentFormModal, type AssignmentFormValue } from './AssignmentFormModal';
@@ -320,7 +320,9 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                 <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[11px] font-bold text-violet-700">GV sửa điểm</span>
               )}
               {s.grade?.gradingRecovery && (
-                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700">AI đã tự phục hồi định dạng</span>
+                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-700">
+                  {s.grade.gradingRecovery.repairKinds.includes(RECITATION_RETRY_KIND) ? 'AI đã tự thử lại sau khi bị dừng' : 'AI đã tự phục hồi định dạng'}
+                </span>
               )}
               {s.grade && hasUncertainRead(s.grade) && (
                 <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700" title="AI báo có câu đọc chưa chắc — mở ra soát mục 'Bài làm của em'">Máy đọc chưa chắc</span>
@@ -392,7 +394,13 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                 {s.grade?.gradedWithoutAnswerKey && (
                   <p className="text-xs font-bold text-amber-700">Bài chấm khi chưa đối chiếu đáp án chuẩn — nên soát lại giúp.</p>
                 )}
-                {s.status === 'error' && !s.grade && <p className="text-sm font-semibold text-red-700">{TEACHER_GRADING_ERROR_COPY}</p>}
+                {s.status === 'error' && !s.grade && <p className="text-sm font-semibold text-red-700">{s.errorMessage || TEACHER_GRADING_ERROR_COPY}</p>}
+                {s.status === 'error' && !s.grade && s.lastGradingErrorRaw && (
+                  <details className="text-xs text-slate-500">
+                    <summary className="cursor-pointer font-bold">Chi tiết kỹ thuật (gửi người sửa lỗi)</summary>
+                    <p className="mt-1 break-words font-mono">{s.lastGradingErrorRaw}</p>
+                  </details>
+                )}
                 {s.status === 'graded' && s.grade && s.lastGradingError && (
                   <div className="rounded-xl bg-amber-50 p-3 ring-1 ring-amber-100">
                     <p className="text-sm font-bold text-amber-800">⚠️ Lần chấm lại chưa thành công; điểm hiện tại vẫn được giữ nguyên.</p>

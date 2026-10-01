@@ -12,6 +12,10 @@ export interface AiModeSnapshot {
   mode: AiKeyMode;
   /** Web đã bật tính phí. Chưa bật thì ví chưa dùng cho việc gì, mọi thứ chạy như trước. */
   gateEnabled: boolean;
+  /** Hãng khác Gemini (claude, openai) mà máy chủ đã bật ví cho. Vắng = không hãng nào. */
+  relayVendors?: readonly string[];
+  /** GLM 5.2 đã có khoá trên máy chủ chưa (vắng = chưa biết). */
+  gatewayReady?: boolean;
 }
 
 let snapshot: AiModeSnapshot | null = null;
@@ -28,7 +32,8 @@ export const getAiModeSnapshot = (): AiModeSnapshot | null => snapshot;
 export const setAiModeSnapshot = (next: AiModeSnapshot | null, requestedAt?: number): void => {
   if (requestedAt !== undefined && requestedAt <= lastSetAt) return;
   lastSetAt = performance.now();
-  const unchanged = snapshot === next || (snapshot && next && snapshot.mode === next.mode && snapshot.gateEnabled === next.gateEnabled);
+  const vendorsKey = (value: AiModeSnapshot | null) => (value?.relayVendors ?? []).join(',');
+  const unchanged = snapshot === next || (snapshot && next && snapshot.mode === next.mode && snapshot.gateEnabled === next.gateEnabled && vendorsKey(snapshot) === vendorsKey(next) && snapshot.gatewayReady === next.gatewayReady);
   if (unchanged) return;
   snapshot = next;
   listeners.forEach(listener => listener());
@@ -51,13 +56,18 @@ export const geminiRouteFor = (hasOwnKey: boolean, current: AiModeSnapshot | nul
   return hasOwnKey ? 'own-then-relay' : 'relay';
 };
 
+/** Claude/ChatGPT đi đường nào: như Gemini, nhưng chỉ khi máy chủ đã bật ví cho hãng đó — chưa bật thì luôn khoá riêng. */
+export const vendorRouteFor = (vendor: string, hasOwnKey: boolean, current: AiModeSnapshot | null): GeminiRoute =>
+  (current?.relayVendors?.includes(vendor) ? geminiRouteFor(hasOwnKey, current) : 'own');
+
 /**
- * Lỗi gọi Gemini có phải lỗi CỦA KHOÁ (hết hạn mức / khoá hỏng) không — chỉ khi đó mới đáng chuyển sang ví.
+ * Lỗi gọi AI (Gemini, Claude, ChatGPT) có phải lỗi CỦA KHOÁ (hết hạn mức / khoá hỏng) không — chỉ khi đó mới đáng chuyển sang ví.
  * Quá tải (503), mạng đứt, prompt sai KHÔNG phải lỗi khoá: chuyển sang ví lúc đó là đốt tiền oan.
  * Trùng ý `classifyGeminiKeyFailure` ở máy chủ, nhưng ở đây chỉ còn thông điệp lỗi của SDK để xét.
  */
 export const isOwnKeyFailure = (error: unknown): boolean => {
   const text = error instanceof Error ? error.message : String(error ?? '');
   if (/\b503\b|high demand|UNAVAILABLE|overloaded/i.test(text)) return false;
-  return /\b429\b|RESOURCE_EXHAUSTED|quota|API key not valid|API_KEY_INVALID|API key expired|PERMISSION_DENIED|\b401\b/i.test(text);
+  // Gồm cả lời báo của Anthropic/OpenAI: khoá sai, hết hạn mức, hết tiền nạp trước.
+  return /\b429\b|RESOURCE_EXHAUSTED|quota|API key not valid|API_KEY_INVALID|API key expired|PERMISSION_DENIED|\b401\b|authentication_error|invalid[_ ]api[_ ]key|incorrect api key|insufficient_quota|credit balance/i.test(text);
 };

@@ -1,6 +1,6 @@
 /// <reference types="node" />
 // File prefix "_" → không thành Serverless Function. Gồm: hạn mức chống đốt tiền + gọi Gemini.
-import { HOLD_MAX_WAITS, acquireCallHold, geminiUsageCounts, holdRetryMs, recordAiUsage, releaseWalletHold } from './_ai-usage.js';
+import { acquireCallHoldWaiting, geminiUsageCounts, recordAiUsage, releaseWalletHold } from './_ai-usage.js';
 import { AiKeyRequiredError, ensureGeminiKey, onOwnKeyFailure } from './_ai-keys.js';
 import { getAdminDb } from './_exam-core.js';
 import { classifyGeminiKeyFailure } from '../src/lib/admin/aiKeyPolicy.js';
@@ -199,7 +199,7 @@ export interface GeminiOptions {
   temperature?: number;
   /**
    * Trần thời gian chờ Gemini, mili giây. Không đặt là chờ vô hạn — mà hàm serverless bị Vercel
-   * giết ở 60s thì bài nộp nằm lại "đang chấm" mãi vì không nhánh nào kịp mở khoá. Luôn truyền
+   * giết ở `maxDuration` thì bài nộp nằm lại "đang chấm" mãi vì không nhánh nào kịp mở khoá. Luôn truyền
    * phần thời gian còn lại của lượt chấm vào đây.
    */
   timeoutMs?: number;
@@ -218,11 +218,15 @@ export class GeminiResponseError extends Error {
     readonly kind: GeminiFailureKind,
     message: string,
     readonly finishReason?: string,
+    cause?: unknown,
   ) {
-    super(message);
+    super(message, cause === undefined ? undefined : { cause });
     this.name = 'GeminiResponseError';
   }
 }
+
+// Mã RECITATION chỉ cho biết Gemini dừng vì thấy giống nội dung đã có; không chứng minh bài vi phạm bản quyền.
+const RECITATION_MESSAGE = 'Gemini dừng với mã RECITATION (nghi nội dung giống tài liệu có sẵn) nên chưa trả được kết quả. Thử lại một lần; nếu vẫn lỗi, thử ảnh khác hoặc xử lý thủ công.';
 
 /**
  * Dịch `finishReason` sang câu người dùng đọc hiểu.
@@ -239,7 +243,7 @@ export const moTaFinishReason = (reason: string | undefined, coChu: boolean): st
     return 'Gemini từ chối xử lý nội dung này. Kiểm tra lại ảnh đề xem có gì bất thường không.';
   }
   if (reason === 'RECITATION') {
-    return 'Gemini dừng vì nội dung trùng tài liệu có bản quyền. Thử ảnh đề khác.';
+    return RECITATION_MESSAGE;
   }
   if (!coChu) {
     return `Gemini không trả về chữ nào${reason ? ` (dừng vì ${reason})` : ''}.`;
@@ -302,23 +306,21 @@ const callGeminiRawHeld = async (
   let res: Response;
   // MỘT hạn chót cho cả lượt (kể cả lần gọi lại sau khi khoá riêng hỏng): mỗi lần gọi chỉ được dùng phần thời gian còn lại,
   // nếu không hai lần cộng lại vượt trần thời gian của hàm và Vercel giết hàm giữa chừng (QA F4).
-  const deadline = options.timeoutMs ? Date.now() + options.timeoutMs : null;
-  const timedOutError = () => new GeminiResponseError(
+  const startedAt = Date.now();
+  const deadline = options.timeoutMs ? startedAt + options.timeoutMs : null;
+  const timedOutError = (cause?: unknown) => new GeminiResponseError(
     'provider',
     'AI xử lý quá lâu nên máy chủ phải dừng lượt chấm này. Thử lại, hoặc chụp gọn lại bài (ít ảnh hơn).',
+    undefined,
+    cause,
   );
   for (let attempt = 0; ; attempt += 1) {
     const remainingMs = deadline === null ? null : deadline - Date.now();
     if (remainingMs !== null && remainingMs <= 0) throw timedOutError();
     // Giữ chỗ tiền TRƯỚC khi gọi (chỉ lượt bị trừ ví): chặn các lượt song song cùng lọt qua kiểm số dư/trần (QA F3).
     if (hold.vnd === 0) {
-      let held = await acquireCallHold(keyChoice);
-      // Chỉ bị chặn vì lượt khác đang giữ chỗ → chờ chúng xong (trả/đổi chỗ) rồi thử lại, thay vì báo hết tiền oan.
-      for (let waited = 0; !held.ok && held.contended && waited < HOLD_MAX_WAITS; waited += 1) {
-        await new Promise(resolve => setTimeout(resolve, holdRetryMs()));
-        if (deadline !== null && deadline - Date.now() <= 0) throw timedOutError();
-        held = await acquireCallHold(keyChoice);
-      }
+      const held = await acquireCallHoldWaiting(keyChoice, deadline);
+      if (!held.ok && held.reason === 'timeout') throw timedOutError();
       if (!held.ok) throw new AiKeyRequiredError(held.reason, keyChoice.ownerUid);
       if (held.holdVnd > 0) {
         hold.vnd = held.holdVnd;
@@ -348,7 +350,17 @@ const callGeminiRawHeld = async (
     } catch (error) {
       // Hết giờ chờ thì phải ném ra để nhánh gọi kịp mở khoá bài nộp trước khi Vercel giết hàm.
       const timedOut = error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError');
-      throw timedOut ? timedOutError() : new GeminiResponseError('provider', 'Không gọi được Gemini lúc này. Thử lại sau ít phút.');
+      // Số ảnh + thời gian chờ là thứ cần để biết timeout do bài nặng hay do Gemini chậm; không có thì không đo được.
+      console.warn('[gemini] lượt gọi hỏng', {
+        model,
+        images: images.length,
+        ms: Date.now() - startedAt,
+        timedOut,
+        cause: error instanceof Error ? `${error.name}: ${error.message}` : String(error),
+      });
+      throw timedOut
+        ? timedOutError(error)
+        : new GeminiResponseError('provider', 'Không gọi được Gemini lúc này. Thử lại sau ít phút.', undefined, error);
     }
     if (res.ok || keyChoice.source !== 'own' || attempt > 0) break;
     // Khoá RIÊNG của giáo viên bị từ chối vì chính khoá (hết hạn mức / hỏng): ghi lại, rồi hoặc chuyển
@@ -389,6 +401,13 @@ const callGeminiRawHeld = async (
     finishReason: data.candidates?.[0]?.finishReason || data.promptFeedback?.blockReason,
     holdVnd: hold.vnd,
   });
+  console.info('[gemini] gọi xong', {
+    model,
+    images: images.length,
+    ms: Date.now() - startedAt,
+    finishReason: data.candidates?.[0]?.finishReason || data.promptFeedback?.blockReason,
+    usage: data.usageMetadata,
+  });
   if (data.error) {
     throw new GeminiResponseError('provider', 'Gemini không hoàn tất yêu cầu. Thử lại sau ít phút.');
   }
@@ -426,7 +445,7 @@ export const callGeminiVision = async (
   if (finishReason === 'RECITATION') {
     throw new GeminiResponseError(
       'recitation',
-      moTaFinishReason(finishReason, hasText) || 'Gemini dừng vì nội dung trùng tài liệu có bản quyền. Thử ảnh đề khác.',
+      moTaFinishReason(finishReason, hasText) || RECITATION_MESSAGE,
       finishReason,
     );
   }

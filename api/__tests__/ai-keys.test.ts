@@ -419,6 +419,46 @@ describe('khoá AI + trần chi tiêu', () => {
       setup({}, { enabled: true, sharedUids: ['gv-ngoai'], exemptUids: [] });
       expect((await callApi({ action: 'setAiMode', mode: 'wallet' })).payload).toMatchObject({ mode: 'wallet', shared: true });
     });
+
+    describe('chủ dự án thử trừ ví bằng chính tài khoản của mình', () => {
+      const owner = { enabled: true, sharedUids: [], exemptUids: ['gv-ngoai'] };
+
+      it('mặc định được miễn trừ; bật "thử trừ ví" thì bị tính như giáo viên thường, tắt thì lại được miễn', async () => {
+        setup({ consent: { accepted: true }, mode: 'wallet' }, owner);
+        expect((await callApi({ action: 'aiKeyStatus' })).payload).toMatchObject({ exempt: true, canTestCharge: true, testCharge: false, charged: false });
+        expect((await inRequest('gv-ngoai', () => ensureGeminiKey(OWNER_KEY))).billing).toBeNull();
+
+        const on = await callApi({ action: 'setAiTestCharge', enabled: true });
+        expect(on.payload).toMatchObject({ exempt: false, canTestCharge: true, testCharge: true, charged: true });
+        expect((await inRequest('gv-ngoai', () => ensureGeminiKey(OWNER_KEY))).billing).not.toBeNull();
+
+        const off = await callApi({ action: 'setAiTestCharge', enabled: false });
+        expect(off.payload).toMatchObject({ exempt: true, testCharge: false, charged: false });
+        expect((await inRequest('gv-ngoai', () => ensureGeminiKey(OWNER_KEY))).billing).toBeNull();
+      });
+
+      it('đang bật thì lượt AI thật bị TRỪ VÍ đúng giá và vào sổ chi tiêu; chưa bật thì ví nguyên', async () => {
+        setup({ consent: { accepted: true }, mode: 'wallet' }, owner);
+        vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, status: 200, json: async () => ({
+          candidates: [{ finishReason: 'STOP', content: { parts: [{ text: 'ok' }] } }],
+          usageMetadata: { promptTokenCount: 1_000_000, candidatesTokenCount: 0, totalTokenCount: 1_000_000 },
+        }) })));
+        await inRequest('gv-ngoai', () => callGeminiVision('x', [], OWNER_KEY, 'gemini-3.8-flash'));
+        expect(h.store['aiWallets/gv-ngoai'].balanceVnd).toBe(50_000);
+        await callApi({ action: 'setAiTestCharge', enabled: true });
+        await inRequest('gv-ngoai', () => callGeminiVision('x', [], OWNER_KEY, 'gemini-3.8-flash'));
+        expect(h.store['aiWallets/gv-ngoai'].balanceVnd).toBe(30_500); // 1 triệu token × $0,75 × 26.000đ = 19.500đ
+        expect((await callApi({ action: 'aiKeyStatus' })).payload).toMatchObject({ charged: true, todayVnd: 19_500 });
+      });
+
+      it('giáo viên thường KHÔNG tự bật được: 403 và hồ sơ không đổi', async () => {
+        setup({ consent: { accepted: true }, mode: 'wallet' });
+        const res = await callApi({ action: 'setAiTestCharge', enabled: true });
+        expect(res.statusCode).toBe(403);
+        expect(h.store['teacherAiKeys/gv-ngoai'].testCharge).toBeUndefined();
+        expect((await callApi({ action: 'aiKeyStatus' })).payload).toMatchObject({ canTestCharge: false, testCharge: false });
+      });
+    });
   });
 
   it('lượt dùng khoá riêng KHÔNG cộng vào sổ chi tiêu', async () => {

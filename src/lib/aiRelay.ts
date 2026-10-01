@@ -8,6 +8,17 @@ import { auth } from './firebase';
 /** Trùng `RELAY_MODELS` ở `api/_ai-relay-core.ts` (có test khoá hai danh sách bằng nhau). */
 export const RELAY_MODEL_IDS = ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.1-pro-preview'] as const;
 
+/** Hãng khác Gemini mà ví web trả được + model nhận. Trùng `RELAY_VENDOR_MODELS` ở `api/_ai-relay-core.ts` (có test khoá hai bên). */
+export const RELAY_VENDOR_MODEL_IDS = {
+  claude: ['claude-sonnet-5-5', 'claude-haiku-4-5-20251001', 'claude-opus-5-5'],
+  openai: ['gpt-6.1-sol', 'gpt-6-luna', 'gpt-6-astra'],
+} as const;
+export type RelayVendorId = keyof typeof RELAY_VENDOR_MODEL_IDS;
+
+/** Model giáo viên đang chọn của hãng đó nếu ví trả được, không thì model "nên dùng" của hãng. */
+export const relayVendorModelFor = (vendor: RelayVendorId, ...candidates: Array<string | undefined>): string =>
+  candidates.find(model => model && (RELAY_VENDOR_MODEL_IDS[vendor] as readonly string[]).includes(model)) ?? RELAY_VENDOR_MODEL_IDS[vendor][0];
+
 /** Model giáo viên đang chọn nếu ví trả được, không thì Gemini 3.8 Flash. */
 export const relayModelFor = (...candidates: Array<string | undefined>): string =>
   candidates.find(model => model && (RELAY_MODEL_IDS as readonly string[]).includes(model)) ?? RELAY_MODEL_IDS[0];
@@ -50,7 +61,7 @@ export const fitImagesForRelay = async (urls: readonly string[]): Promise<string
   throw new Error(TOO_HEAVY);
 };
 
-export const callAiRelay = async (input: { prompt: string; model: string; system?: string; images?: readonly string[] }): Promise<RelayResult> => {
+export const callAiRelay = async (input: { prompt: string; model: string; provider?: RelayVendorId; system?: string; images?: readonly string[] }): Promise<RelayResult> => {
   const user = auth.currentUser;
   if (!user || user.isAnonymous) throw new Error('Cần đăng nhập tài khoản giáo viên để dùng AI bằng ví web.');
 
@@ -59,6 +70,7 @@ export const callAiRelay = async (input: { prompt: string; model: string; system
     method: 'POST',
     headers: { Authorization: `Bearer ${await user.getIdToken()}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
+      ...(input.provider ? { provider: input.provider } : {}),
       model: input.model,
       prompt: input.prompt,
       ...(input.system ? { system: input.system } : {}),

@@ -12,6 +12,8 @@ const m = vi.hoisted(() => ({
   onOwnKeyFailure: vi.fn(),
   recordImageUsage: vi.fn(),
   setAiKeyOwner: vi.fn(),
+  acquireCallHoldWaiting: vi.fn(),
+  releaseWalletHold: vi.fn(),
 }));
 
 vi.mock('firebase-admin/auth', () => ({ getAuth: () => ({ verifyIdToken: m.verifyIdToken }) }));
@@ -23,8 +25,19 @@ vi.mock('../_exam-core.js', () => ({
   getAdminStorage: () => ({ name: 'demo.appspot.com', file: () => ({ save: m.save }) }),
 }));
 vi.mock('../_grading-core.js', () => ({ getGradingApiKey: () => 'shared-key' }));
-vi.mock('../_ai-usage.js', () => ({ recordImageUsage: m.recordImageUsage, setAiKeyOwner: m.setAiKeyOwner }));
-vi.mock('../_ai-keys.js', () => ({ ensureGeminiKey: m.ensureGeminiKey, onOwnKeyFailure: m.onOwnKeyFailure }));
+vi.mock('../_ai-usage.js', () => ({
+  recordImageUsage: m.recordImageUsage,
+  setAiKeyOwner: m.setAiKeyOwner,
+  acquireCallHoldWaiting: m.acquireCallHoldWaiting,
+  releaseWalletHold: m.releaseWalletHold,
+}));
+vi.mock('../_ai-keys.js', () => ({
+  ensureGeminiKey: m.ensureGeminiKey,
+  onOwnKeyFailure: m.onOwnKeyFailure,
+  AiKeyRequiredError: class AiKeyRequiredError extends Error {
+    constructor(public reason: string, public ownerUid?: string | null) { super(reason); }
+  },
+}));
 
 import { handleGenerateImage } from '../_ai-image-handler.js';
 
@@ -52,6 +65,8 @@ beforeEach(() => {
   // Mỗi test một uid để hạn mức 10 lượt/phút (map trong module) không dính giữa các test.
   m.verifyIdToken.mockResolvedValue({ uid: `gv-${++uidSeq}` });
   m.ensureGeminiKey.mockResolvedValue({ key: 'k', source: 'shared', ownerUid: 'gv', billing: null });
+  m.acquireCallHoldWaiting.mockResolvedValue({ ok: true, holdVnd: 0 });
+  m.releaseWalletHold.mockResolvedValue(undefined);
   m.generateImages.mockResolvedValue({ generatedImages: [{ image: { imageBytes: Buffer.from('png').toString('base64') } }] });
 });
 
@@ -95,7 +110,7 @@ describe('handleGenerateImage', () => {
     expect(call.model).toBe('imagen-4.0-generate-001');
     expect(call.prompt).toContain('khu chợ ngoài trời có ba quầy bánh');
     expect(call.config).toMatchObject({ numberOfImages: 1, aspectRatio: '4:3', personGeneration: 'DONT_ALLOW' });
-    expect(m.recordImageUsage).toHaveBeenCalledWith('imagen-4.0-generate-001', 1);
+    expect(m.recordImageUsage).toHaveBeenCalledWith('imagen-4.0-generate-001', 1, { holdVnd: 0 });
     expect(m.save).toHaveBeenCalledTimes(1);
     expect(set).toHaveBeenCalledTimes(1);
     expect(state.statusCode).toBe(200);
@@ -111,5 +126,37 @@ describe('handleGenerateImage', () => {
     expect(m.recordImageUsage).not.toHaveBeenCalled();
     expect(m.save).not.toHaveBeenCalled();
     expect(set).not.toHaveBeenCalled();
+  });
+
+  describe('giữ chỗ tiền ví (QA F3)', () => {
+    it('lượt trừ ví: giữ chỗ TRƯỚC khi gọi Imagen và chuyển phần giữ cho recordImageUsage (không tự trả lại)', async () => {
+      m.acquireCallHoldWaiting.mockResolvedValue({ ok: true, holdVnd: 1_000 });
+      const { db } = makeDb();
+      const { response, state } = makeResponse();
+      await handleGenerateImage(db, body(), response);
+      expect(m.acquireCallHoldWaiting.mock.invocationCallOrder[0]).toBeLessThan(m.generateImages.mock.invocationCallOrder[0]);
+      expect(m.recordImageUsage).toHaveBeenCalledWith('imagen-4.0-generate-001', 1, { holdVnd: 1_000 });
+      expect(m.releaseWalletHold).not.toHaveBeenCalled();
+      expect(state.statusCode).toBe(200);
+    });
+
+    it('Imagen lỗi sau khi đã giữ chỗ → TRẢ LẠI phần giữ, không ghi tiền', async () => {
+      m.acquireCallHoldWaiting.mockResolvedValue({ ok: true, holdVnd: 1_000 });
+      m.generateImages.mockRejectedValue(new Error('quota'));
+      const { db } = makeDb();
+      const { response, state } = makeResponse();
+      await handleGenerateImage(db, body(), response);
+      expect(state.statusCode).toBe(502);
+      expect(m.recordImageUsage).not.toHaveBeenCalled();
+      expect(m.releaseWalletHold).toHaveBeenCalledWith(db, 'gv', 1_000);
+    });
+
+    it('hết số dư hoặc chạm trần → không gọi Imagen (ném AiKeyRequiredError để tầng ngoài trả 402)', async () => {
+      m.acquireCallHoldWaiting.mockResolvedValue({ ok: false, reason: 'no_balance', contended: false });
+      const { db } = makeDb();
+      const { response } = makeResponse();
+      await expect(handleGenerateImage(db, body(), response)).rejects.toMatchObject({ reason: 'no_balance' });
+      expect(m.generateImages).not.toHaveBeenCalled();
+    });
   });
 });

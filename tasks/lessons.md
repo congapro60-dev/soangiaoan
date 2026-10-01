@@ -421,6 +421,14 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 - Sai: gộp lượt AI mới (prompt dài, JSON, `model-max`) vào `api/classroom.ts` mà không xem `vercel.json` — hàm này trần 15s → production 504, test/CI không bắt được vì AI bị giả lập.
 - Luật: thêm/đổi lượt gọi AI trong `api/*` thì mở `vercel.json` xem `maxDuration` của hàm chứa nó; luôn truyền `timeoutMs` nhỏ hơn trần ~10s để trả lỗi rõ, và nghiệm thu bằng MỘT lượt thật trên production trước khi báo xong.
 
+## 2026-10-01 — "Ví trả cho mọi tính năng" nhưng giao diện vẫn chặn người không có khoá
+- Sai: GĐ3 làm đường relay máy chủ + định tuyến trong `aiProviders.ts` và test từng lớp, nhưng hơn 20 nơi gọi AI đã kiểm `getActiveApiKey(settings)` rỗng → "Vui lòng nhập API Key" TRƯỚC khi tới đường relay. Chưa ai thử đi từ nút bấm thật bằng tài khoản không có khoá nên không thấy.
+- Luật: thêm một nguồn thay thế cho khoá/quyền thì grep MỌI nơi kiểm điều kiện cũ (ở đây `getActiveApiKey`) và nghiệm thu từ điểm vào của giao diện, không chỉ từ hàm gọi API.
+
+## 2026-10-01 — Khẳng định hành vi tính tiền chỉ nhờ grep tên hàm quen
+- Sai: nói "GLM đang miễn phí" vì `grep ensureGeminiKey` không thấy trong cổng GLM; thực tế `assertSharedAiAllowed` đặt `context.keyChoice` kèm kế hoạch tính tiền nên GLM bị trừ ví. Chủ dự án ra quyết định dựa trên câu sai đó.
+- Luật: trước khi nói một đường có/không bị tính tiền, lần theo nơi ĐẶT `keyChoice` / gọi `recordAiUsage` và đọc test của đường đó (hoặc chạy thử), đừng suy từ việc không thấy một tên hàm.
+
 ## 2026-10-01 — Bộ đếm khoá PIN phải nằm trong giao dịch
 - Sai: cổng phụ huynh (và cổng HS có từ trước) đọc số lần sai → kiểm PIN → ghi lại ở 3 bước rời nhau. Gửi nhiều lượt đoán CÙNG LÚC thì mọi lượt cùng đọc "0 lần sai", bộ đếm chỉ lên 1, PIN 4 số dò hết được. Bản review của phiên khác bắt được, test tuần tự của mình không bắt.
 - Luật: mọi "đọc trạng thái → quyết định → ghi trạng thái" bảo vệ thứ nhạy cảm (khoá đăng nhập, hạn mức, số dư) dùng `db.runTransaction` — đã có `attemptPin` trong `api/_classroom-core.ts`. Test phải bắn song song bằng `Promise.all` (≥ ngưỡng + vài lượt) với giao dịch giả xếp hàng, không chỉ gọi lần lượt.
@@ -428,3 +436,11 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 ## 2026-10-01 — Tên class CSS trong HTML dựng sẵn dễ trùng
 - Sai: thêm `.school` (tên trường ở đầu báo cáo) trong khi báo cáo đã có `.card.school` ("Thầy cô sẽ hỗ trợ") → danh sách trong thẻ đó bỗng đậm, navy, to. Chỉ lộ khi chụp ảnh thật.
 - Luật: thêm class vào bản dựng HTML có sẵn thì `grep` tên đó trong cả file CSS lẫn markup trước; đặt tên có tiền tố rõ (`school-name`). Sửa giao diện báo cáo thì dựng ảnh thật (tsx + puppeteer) và nhìn, đừng chỉ chạy test chuỗi.
+
+## 2026-10-01 — Bấm tab nhà cung cấp trong Cài đặt để "xem" làm đổi nhà cung cấp thật
+- Sai: khi QA bằng Chrome của chủ dự án, bấm tab "GLM 5.2" trong Cài đặt chỉ để đọc lời nhắc → `selectedProvider` đổi ngay (chưa cần bấm Lưu), mọi lượt AI sau đó đi GLM. Phải bấm lại Gemini mới về.
+- Luật: QA trên phiên thật của chủ dự án thì ghi lại trạng thái trước khi bấm và khôi phục xong rồi mới báo; muốn xem lời nhắc theo nhà cung cấp thì dùng test thuần (`glmWalletNotice`) thay vì bấm giao diện.
+
+## 2026-10-01 — Lái Chrome bằng CDP để tự QA
+- Sai: cửa sổ Chrome bị che → trang `visibilityState: hidden` → `page.click()` treo; tưởng web lỗi. Đánh dấu nút bằng thuộc tính mà không xoá dấu cũ → bấm nhầm nút khác, tưởng nút "Xuất" hỏng.
+- Luật: mở Chrome QA kèm `--disable-backgrounding-occluded-windows --disable-renderer-backgrounding --disable-background-timer-throttling --disable-features=CalculateNativeWinOcclusion`; trước mỗi lần đánh dấu phần tử thì xoá mọi dấu cũ; trang báo dữ liệu "không phản hồi" thì thử Chrome mới trước khi kết luận lỗi web.

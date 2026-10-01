@@ -49,6 +49,12 @@ Soạn giáo án / nâng cấp / dự giờ / ra đề gọi Gemini THẲNG từ
 - Cố ý CHƯA làm: streaming từ relay (hiện trả trọn một lần rồi hiện một cục); Claude/OpenAI/Grok/DeepSeek qua ví; `examOnlineParser.ts` (gọi Gemini trực tiếp).
 - Ràng buộc còn nguyên: nhiều lượt cùng lúc qua kiểm số dư trước khi trừ → có thể âm nhẹ (chặn `no_balance` + trần là đủ); người trong nhóm dùng mã 100% (THANG10) → chi phí do chủ dự án gánh.
 
+### GĐ4 — Ví web cho Claude + ChatGPT (code xong 2026-10-01, chưa gọi hãng thật)
+- [x] `api/ai-relay.ts` nhận `provider` (`gemini` mặc định | `claude` | `openai`); `_ai-relay-vendors.ts` gọi API hãng, cùng giữ chỗ/trừ ví/trần. Không thêm Function.
+- [x] Chỉ model có giá (Sonnet 5.5, Haiku 4.5, Opus 5.5 · GPT-6.1 Sol, 6 Luna, 6 Astra); bảng giá trong `aiPricing.ts`; hãng chỉ bật khi có `ANTHROPIC_API_KEY`/`OPENAI_API_KEY` trên Vercel (`relayVendors` trong `aiKeyStatus`).
+- [x] Trình duyệt: `vendorRouteFor`, bọc 3 hàm gọi AI; `getActiveApiKey` trả dấu hiệu "ví trả thay" để gỡ chặn "nhập API Key" (sửa lỗi GĐ3).
+- [ ] CHƯA: đặt khoá hãng trên Vercel + gọi thật 1 lượt mỗi hãng; Grok/DeepSeek/NVIDIA vẫn khoá riêng; không stream.
+
 ## Ngoài phạm vi
 - Không đổi cách ghi `aiUsage`, không bù dữ liệu cũ: "hôm nay" bắt đầu đếm từ lúc triển khai.
 - Cổng phụ huynh (ý 3 của chủ dự án): để sau khi cổng học sinh + chấm bài ổn định; xem ghi chú riêng.

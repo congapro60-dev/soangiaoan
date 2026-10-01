@@ -68,6 +68,7 @@ export const buildParentCommentPrompt = (factsJson: string): string => [
   '- Bám ĐÚNG số liệu: không bịa bài, điểm hay sự việc không có trong dữ liệu. Không nêu đáp án hay lời giải.',
   '- Nêu 1 điểm tích cực cụ thể, 1–2 điều con cần cố gắng (dùng tên chủ đề trong dữ liệu nếu có), và 1 việc gia đình có thể làm ở nhà.',
   '- Nếu dữ liệu quá ít (ít hoặc không có bài đã chấm), nói thẳng là chưa đủ bài để nhận xét sâu và nhắc con nộp bài đầy đủ.',
+  '- Nếu dữ liệu có "kiDangDienRa" (kì chưa kết thúc): nói "từ đầu kì đến nay"/"tính đến thời điểm này", KHÔNG viết như kì đã qua ("vừa qua", "cả năm học").',
   '- Chỉ trả về đoạn văn thuần: không tiêu đề, không gạch đầu dòng, không markdown, không lời chào/ký tên.',
 ].join('\n');
 
@@ -106,6 +107,8 @@ export const buildRequirementNotesPrompt = (groupsJson: string): string => [
   'hoặc "Lập đúng bảng biến thiên, xác định đúng đỉnh và trục đối xứng của parabol."',
   '- PHẢI KHỚP tỉ lệ điểm: dưới 50% → nêu lỗi cụ thể, không khen; từ 80% → nêu điều làm tốt (có thể thêm lỗi nhỏ còn lại);',
   '  ở giữa → nêu cả hai, lỗi trước. Một câu nhất quán, không tự mâu thuẫn.',
+  '- Chỉ khen kĩ năng/định lí có câu làm ĐÚNG chứng minh. Không khen chung chung ("áp dụng tốt các định lí…"), và không khen',
+  '  một kĩ năng mà có câu căn cứ bị mất điểm chính vì kĩ năng đó (vd. câu bị trừ vì chưa dùng định lí sin thì không được khen định lí sin).',
   '- Không nhắc số câu/số bài, không nêu đáp án đầy đủ, không dùng LaTeX hay markdown (viết kí hiệu bằng chữ hoặc Unicode: √, ², ≤, ∈, °).',
   '- Chỉ viết điều có trong dữ liệu; không có gì cụ thể thì để chuỗi rỗng.',
 ].join('\n');

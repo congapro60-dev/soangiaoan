@@ -71,7 +71,7 @@ export interface AiTokenCounts {
   totalTokens: number;
 }
 
-export type AiProvider = 'gemini' | 'ai-gateway';
+export type AiProvider = 'gemini' | 'ai-gateway' | 'claude' | 'openai';
 
 const storage = new AsyncLocalStorage<AiUsageContext>();
 
@@ -118,6 +118,21 @@ export const openAiUsageCounts = (usage: unknown): AiTokenCounts | null => {
   if (totalTokens === 0) return null;
   // OpenAI gộp reasoning vào completion_tokens; tách ra để cột "đầu ra" không bị đếm hai lần.
   return { inputTokens, outputTokens: Math.max(0, completion - thoughtsTokens), thoughtsTokens, cachedTokens, totalTokens };
+};
+
+/**
+ * `usage` của Anthropic Messages API → số token. `input_tokens` KHÔNG gồm phần đọc/ghi cache, nên cộng vào đầu vào
+ * (phần đọc cache ghi riêng để tính theo cột cache; giá cache hiện bằng giá đầu vào nên không lệch).
+ */
+export const anthropicUsageCounts = (usage: unknown): AiTokenCounts | null => {
+  if (!usage || typeof usage !== 'object') return null;
+  const u = usage as Record<string, unknown>;
+  const cachedTokens = count(u.cache_read_input_tokens);
+  const inputTokens = count(u.input_tokens) + cachedTokens + count(u.cache_creation_input_tokens);
+  const outputTokens = count(u.output_tokens);
+  const totalTokens = inputTokens + outputTokens;
+  if (totalTokens === 0) return null;
+  return { inputTokens, outputTokens, thoughtsTokens: 0, cachedTokens, totalTokens };
 };
 
 /** Ngày/tháng theo giờ Việt Nam để gom bảng kê đúng tháng thu tiền. */
@@ -215,6 +230,23 @@ export const acquireCallHold = async (choice: AiKeyChoice, now: number = Date.no
     transaction.set(walletRef, { uid: ownerUid, heldVnd: held + holdVnd, heldAt: now }, { merge: true });
     return { ok: true, holdVnd };
   });
+};
+
+/**
+ * Giữ chỗ có CHỜ: bị chặn chỉ vì lượt khác đang giữ chỗ thì chờ rồi thử lại (tối đa `HOLD_MAX_WAITS` lần), thay vì báo hết tiền oan.
+ * `deadline` (mốc thời gian, ms) là hạn chót của cả lượt gọi — quá hạn trong lúc chờ thì trả `timeout` để nơi gọi tự báo lỗi.
+ */
+export const acquireCallHoldWaiting = async (
+  choice: AiKeyChoice,
+  deadline: number | null = null,
+): Promise<HoldResult | { ok: false; reason: 'timeout' }> => {
+  let held = await acquireCallHold(choice);
+  for (let waited = 0; !held.ok && held.contended && waited < HOLD_MAX_WAITS; waited += 1) {
+    await new Promise(resolve => setTimeout(resolve, holdRetryMs()));
+    if (deadline !== null && deadline - Date.now() <= 0) return { ok: false, reason: 'timeout' };
+    held = await acquireCallHold(choice);
+  }
+  return held;
 };
 
 /** Trả lại phần giữ chỗ khi lượt gọi KHÔNG đi tới bước trừ tiền (lỗi mạng, Google từ chối…). */
@@ -315,10 +347,13 @@ export const recordAiUsage = async (
 export const recordImageUsage = async (
   model: string,
   imageCount: number,
-  extra: { finishReason?: string } = {},
+  extra: { finishReason?: string; /** Phần tiền đã giữ chỗ cho lượt này — được thay bằng số tiền thật khi trừ ví. */ holdVnd?: number } = {},
 ): Promise<void> => {
   const images = Math.max(0, Math.round(imageCount));
-  if (images <= 0) return;
+  if (images <= 0) {
+    await releaseCurrentHold(extra.holdVnd);
+    return;
+  }
   try {
     const context = currentAiUsageContext();
     const identity = context ? await context.identity() : ANONYMOUS_UNKNOWN;
@@ -349,9 +384,10 @@ export const recordImageUsage = async (
     if (charge && choice?.billing) {
       Object.assign(record, { costUsd, usdVnd: choice.billing.usdVnd, ...charge });
     }
-    await settleUsage(db, record, { ownerUid, billable, costUsd, charge, images });
+    await settleUsage(db, record, { ownerUid, billable, costUsd, charge, images, holdVnd: extra.holdVnd });
   } catch (error) {
     console.error('[ai-usage] không ghi được lượt sinh ảnh:', error);
+    await releaseCurrentHold(extra.holdVnd);
   }
 };
 

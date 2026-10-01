@@ -25,6 +25,8 @@ import { parseFolderId } from '../../lib/googleDrive';
 import type { DriveFolderKey } from '../../services/pushLessonToDrive';
 import type { ApiProvider } from '../../config/apiLimits';
 import { ProviderCompareTable, ProviderGuideCard } from '../features/settings/ProviderGuide';
+import { useAiModeSnapshot } from '../../lib/ai/aiModeStore';
+import { glmWalletNotice, vendorWalletHint } from '../../lib/ai/aiModeView';
 
 const DRIVE_FOLDER_FIELDS: { key: DriveFolderKey; label: string }[] = [
   { key: 'tdsG10', label: 'TDS · Lớp 10' },
@@ -169,6 +171,9 @@ export const SettingsModal = ({
   const tokenPercent = usagePercent(usage.tokensLastMinute, usage.limit?.tpm);
   const isRateLimited = usage.isMinuteLimited || usage.isTokenMinuteLimited;
   const activeApiKey = getApiKey(activeTab);
+  const modeSnapshot = useAiModeSnapshot();
+  const walletHint = vendorWalletHint(activeTab, modeSnapshot?.relayVendors);
+  const glmNotice = glmWalletNotice(modeSnapshot?.gatewayReady);
 
   return (
     <AnimatePresence>
@@ -301,7 +306,10 @@ export const SettingsModal = ({
                     {activeTab === 'vercel-gateway' ? (
                       <div className="flex items-start gap-3 rounded-2xl border border-pink-100 bg-pink-50/70 px-4 py-3 text-sm font-semibold text-pink-800">
                         <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-pink-600" />
-                        <span>GLM 5.2 dùng key chung được quản lý trên biến môi trường Vercel. Người dùng không cần và không được dán key vào trình duyệt.</span>
+                        <span>
+                          {glmNotice.text}
+                          {glmNotice.warning && <span className="mt-2 block rounded-lg bg-amber-100 px-2 py-1 text-amber-800">{glmNotice.warning}</span>}
+                        </span>
                       </div>
                     ) : (
                       <>
@@ -316,6 +324,7 @@ export const SettingsModal = ({
                           />
                         </div>
                         <p className="text-[11px] font-medium text-slate-400">API Key chỉ lưu cục bộ trong trình duyệt, không gửi lên máy chủ của chúng tôi.</p>
+                        {walletHint && <p className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-[11px] font-semibold leading-4 text-emerald-700">{walletHint}</p>}
                       </>
                     )}
                   </div>

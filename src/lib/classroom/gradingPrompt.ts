@@ -225,6 +225,12 @@ Không đưa raw output lỗi của lần trước vào câu trả lời.
 Lần trước rất có thể hỏng vì câu trả lời quá dài và bị cắt giữa chừng: viết GỌN lại. Mỗi field chữ của từng câu giữ trong một hai câu ngắn, không nhắc lại đề, không diễn giải dài dòng. Chấm đúng vẫn quan trọng hơn lời văn hay.
 `;
 
+/** Chỉ nối thêm vào lượt thử lại sau khi Gemini dừng với RECITATION (nghi câu trả lời trích nguyên văn tài liệu có sẵn). */
+export const HOMEWORK_GRADING_RECITATION_NOTE = `
+LẦN TRƯỚC BỊ DỪNG VÌ NGHI NỘI DUNG GIỐNG TÀI LIỆU CÓ SẴN:
+Tuyệt đối không chép nguyên văn đề, lời giải hay đáp án chuẩn. Ở "studentAnswer" và "expectedAnswer" chỉ ghi kết quả hoặc biểu thức cuối cùng; "explanation" và "correction" tối đa một câu ngắn do chính bạn diễn đạt lại.
+`;
+
 const toStringArray = (value: unknown): string[] =>
   Array.isArray(value) ? value.map(v => String(v).trim()).filter(Boolean) : [];
 

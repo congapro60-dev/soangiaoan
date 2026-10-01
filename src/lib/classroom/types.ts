@@ -344,6 +344,9 @@ export interface GradingRecovery {
   repairKinds: string[];
 }
 
+/** Dấu trong `GradingRecovery.repairKinds`: lượt chấm bị Gemini dừng với RECITATION rồi được thử lại thành công. */
+export const RECITATION_RETRY_KIND = 'recitation_retry';
+
 /** Kết quả AI chấm, tách riêng để phân biệt rõ phần học sinh ghi và phần máy ghi. */
 export interface SubmissionGrade {
   score: number;
@@ -423,6 +426,8 @@ export interface SubmissionDoc {
   errorMessage?: string;
   /** Lỗi xử lý gần nhất khi chấm lại thất bại nhưng grade cũ vẫn hợp lệ — không dùng làm fatal error. */
   lastGradingError?: string;
+  /** Lỗi thô của lượt chấm hỏng gần nhất (kèm nguyên nhân gốc) — chỉ giáo viên thấy, để người sửa lỗi lần ra. */
+  lastGradingErrorRaw?: string;
   /** Lỗi đồng bộ minh chứng sau khi duyệt điểm — grade vẫn được duyệt, chỉ sync pending. */
   evidenceSyncError?: string;
   createdAt: string;

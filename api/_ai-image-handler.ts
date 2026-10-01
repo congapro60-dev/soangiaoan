@@ -20,8 +20,8 @@ import { GoogleGenAI, PersonGeneration } from '@google/genai';
 import { getAuth } from 'firebase-admin/auth';
 import { getAdminStorage } from './_exam-core.js';
 import { getGradingApiKey } from './_grading-core.js';
-import { recordImageUsage, setAiKeyOwner } from './_ai-usage.js';
-import { ensureGeminiKey, onOwnKeyFailure } from './_ai-keys.js';
+import { acquireCallHoldWaiting, recordImageUsage, releaseWalletHold, setAiKeyOwner } from './_ai-usage.js';
+import { AiKeyRequiredError, ensureGeminiKey, onOwnKeyFailure } from './_ai-keys.js';
 import { classifyGeminiKeyFailure } from '../src/lib/admin/aiKeyPolicy.js';
 
 /** Imagen 4 (bản chuẩn) — giá/ảnh niêm yết trong `aiPricing.ts` để sao kê quy ra tiền. */
@@ -149,26 +149,42 @@ export const handleGenerateImage = async (
   let choice = await ensureGeminiKey(fallbackKey);
   const prompt = buildImagePrompt(directive, style);
 
+  // Giữ chỗ tiền trước khi gọi (chỉ lượt bị trừ ví): chặn các lượt song song cùng lọt qua kiểm số dư (QA F3).
+  const acquire = async (): Promise<number> => {
+    const held = await acquireCallHoldWaiting(choice);
+    if (!held.ok) throw new AiKeyRequiredError(held.reason === 'timeout' ? 'no_balance' : held.reason, choice.ownerUid);
+    return held.holdVnd;
+  };
+  let holdVnd = await acquire();
+  let handedOver = false;
   let bytes: Buffer | null;
   try {
-    bytes = await generateImagen(choice.key, prompt, aspectRatio);
-  } catch (error) {
-    const detail = error instanceof Error ? error.message : String(error);
-    const keyFailure = classifyGeminiKeyFailure(Number((error as { status?: unknown }).status) || 0, detail);
-    if (choice.source !== 'own' || !keyFailure) {
+    try {
+      bytes = await generateImagen(choice.key, prompt, aspectRatio);
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      const keyFailure = classifyGeminiKeyFailure(Number((error as { status?: unknown }).status) || 0, detail);
+      if (choice.source !== 'own' || !keyFailure) {
+        return res.status(502).json({ error: 'Không sinh được ảnh. Thử lại sau hoặc bỏ ảnh cho lượt này.' });
+      }
+      // Khoá riêng của giáo viên bị Google từ chối → chuyển khoá chung (nếu được phép) rồi thử lại.
+      choice = await onOwnKeyFailure(choice, keyFailure, detail, fallbackKey);
+      holdVnd = await acquire();
+      bytes = await generateImagen(choice.key, prompt, aspectRatio).catch(() => null);
+    }
+
+    if (!bytes) {
       return res.status(502).json({ error: 'Không sinh được ảnh. Thử lại sau hoặc bỏ ảnh cho lượt này.' });
     }
-    // Khoá riêng của giáo viên bị Google từ chối → chuyển khoá chung (nếu được phép) rồi thử lại.
-    choice = await onOwnKeyFailure(choice, keyFailure, detail, fallbackKey);
-    bytes = await generateImagen(choice.key, prompt, aspectRatio).catch(() => null);
-  }
 
-  if (!bytes) {
-    return res.status(502).json({ error: 'Không sinh được ảnh. Thử lại sau hoặc bỏ ảnh cho lượt này.' });
+    // Ghi lượt + trừ ví TRƯỚC khi trả về (lượt này đã tính tiền dù bước lưu có lỗi). `recordImageUsage` nhận luôn phần giữ chỗ.
+    handedOver = true;
+    await recordImageUsage(IMAGE_MODEL, 1, { holdVnd });
+  } finally {
+    if (holdVnd > 0 && !handedOver && choice.ownerUid) {
+      await releaseWalletHold(db, choice.ownerUid, holdVnd).catch(error => console.error('[ai-image] không trả được chỗ giữ tiền:', error));
+    }
   }
-
-  // Ghi lượt + trừ ví TRƯỚC khi trả về (lượt này đã tính tiền dù bước lưu có lỗi).
-  await recordImageUsage(IMAGE_MODEL, 1);
 
   const url = await saveImagePng(hash, bytes);
   await cacheRef.set({
