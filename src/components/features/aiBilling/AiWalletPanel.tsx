@@ -11,7 +11,7 @@ import {
 } from '../../../lib/ai/aiBillingApi';
 import type { AiKeyMode } from '../../../lib/admin/aiKeyPolicy';
 import { setAiModeSnapshot } from '../../../lib/ai/aiModeStore';
-import { aiModeOptions, needsConsent, sourceStates, type SourceState } from '../../../lib/ai/aiModeView';
+import { aiModeOptions, needsConsent, sourceStates, walletScopeText, type SourceState } from '../../../lib/ai/aiModeView';
 import { gradeOneSubmission } from '../../../services/gradingApi';
 import { PRICE_SOURCES } from '../../../lib/admin/aiPricing';
 import { vnd, monthLabel } from '../../../lib/ai/statementPrintDoc';
@@ -55,7 +55,7 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
   const radioRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const apply = useCallback((next: AiKeyStatus) => {
-    setAiModeSnapshot({ mode: next.mode, gateEnabled: next.gateEnabled });
+    setAiModeSnapshot({ mode: next.mode, gateEnabled: next.gateEnabled, relayVendors: next.relayVendors });
     setStatus(next);
     onStatus?.(next);
   }, [onStatus]);
@@ -178,7 +178,7 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
           </div>
         )}
         <p className="mt-3 text-[11px] font-semibold leading-4 text-slate-400">
-          Áp dụng cho mọi tính năng AI dùng Gemini: chấm bài, bài luyện, soạn giáo án, nâng cấp, dự giờ, ra đề… Chọn hãng khác (Claude, ChatGPT, Grok, DeepSeek) ở Cài đặt thì vẫn dùng khoá của hãng đó, ví web không trả cho các hãng này.
+          {walletScopeText(status.relayVendors)}
         </p>
       </div>
 

@@ -70,6 +70,16 @@ Chủ dự án: thầy cô dùng nhiều hãng AI, cần model mới nhất và 
 - **CHƯA kiểm với khoá thật:** id model mới (GPT-6.x, Grok 4.7, Claude 5.x, DeepSeek Flash, NVIDIA Kimi/GLM) lấy từ trang chính thức nhưng chưa gọi thử bằng khoá nào; NVIDIA lấy từ danh sách công khai `integrate.api.nvidia.com/v1/models` và catalog của họ đổi liên tục. Hạn mức rpm/rpd/tpm của các hãng ngoài Google chỉ là số tham chiếu. Cần một thầy/cô thử mỗi hãng một lượt trước khi tin.
 - Nghiệm thu: `npm run lint`, `npm run test -- --run`, `npm run build`.
 
+## Ví web cho Claude + ChatGPT, giữ chỗ tiền cho mô phỏng/ảnh, sửa chặn nhầm "nhập API Key" — 2026-10-01
+
+Chủ dự án chốt: ví web trả thêm Claude và ChatGPT (Grok/DeepSeek/NVIDIA không). KHÔNG thêm Vercel Function (còn 10/12): dùng chung `api/ai-relay.ts`, thân request có `provider` (vắng = `gemini`).
+- Máy chủ: `_ai-relay-vendors.ts` gọi thẳng API Anthropic/OpenAI bằng `fetch`, cùng luật nhóm/đồng ý/chế độ/ví/trần/giữ chỗ như Gemini (`ensureGeminiKey(…, { vendor: true })` — khoá Gemini riêng trên máy chủ KHÔNG dùng cho hãng khác). Model nhận: Claude Sonnet 5.5/Haiku 4.5/Opus 5.5, GPT-6.1 Sol/6 Luna/6 Astra (Claude Fable 5.1 cố ý để ngoài, đắt nhất). Giá từ `providerGuide.ts` (tra 30/09/2026), giá cache = giá đầu vào. Đầu ra tối đa 16.000/16.384 token (dưới ngưỡng không-stream của Anthropic); bị cắt thì trình duyệt tự xin viết tiếp.
+- **Hãng chỉ bật khi chủ dự án đặt `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` trên Vercel** (CHƯA đặt lúc ghi). `aiKeyStatus` trả `relayVendors`; trình duyệt chỉ relay cho hãng có trong đó, nên chưa đặt khoá thì mọi thứ chạy như cũ. Test chỉ dùng `fetch` giả — CHƯA gọi hãng thật.
+- Trình duyệt: `vendorRouteFor` (như Gemini), bọc `callAIOnce/callAIWithVision/callAIStream`; "cả hai" chỉ sang ví khi lỗi CỦA KHOÁ (hết tiền nạp, 401, 429), không phải quá tải.
+- **Lỗi từ GĐ3 đã sửa:** hơn 20 nơi (soạn giáo án, chấm bài, ra đề, chat…) chặn bằng "Vui lòng nhập API Key" khi `getActiveApiKey` rỗng → giáo viên chỉ dùng ví không bắt đầu được. Nay `getActiveApiKey` trả `WALLET_MANAGED_API_KEY` khi ví trả thay (chỉ để kiểm có/không, đừng dùng làm khoá gọi API).
+- Mô phỏng HTML + sinh ảnh nay giữ chỗ tiền như chấm bài (`acquireCallHoldWaiting`). GLM gateway CHƯA giữ chỗ.
+- **GLM 5.2 KHÔNG miễn phí như đã tưởng:** `assertSharedAiAllowed` gắn kế hoạch tính tiền nên lượt GLM bị trừ ví và đòi đồng ý tính phí. Và production CHƯA có `AI_GATEWAY_API_KEY` → GLM trả 500 "chưa được cấu hình". Chờ chủ dự án chốt chính sách.
+
 ## Chọn nguồn khoá AI: Riêng / Ví web / Cả hai (giai đoạn 2 của kế hoạch Ví AI) — 2026-09-30
 
 Giáo viên tự chọn AI chạy bằng gì (`teacherAiKeys/{uid}.mode`). LÕI TÍNH TIỀN đang chạy thật — đừng nới mà chưa đọc test kèm theo.

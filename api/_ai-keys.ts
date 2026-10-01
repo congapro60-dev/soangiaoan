@@ -28,6 +28,7 @@ import {
   type AiKeyStatus,
 } from '../src/lib/admin/aiKeyPolicy.js';
 import { ADMIN_EMAILS } from '../src/lib/admin/adminConfig.js';
+import { enabledRelayVendors } from './_ai-relay-core.js';
 
 type Db = FirebaseFirestore.Firestore;
 type Body = Record<string, unknown>;
@@ -147,8 +148,10 @@ const resolveKeyOwner = async (db: Db): Promise<string | null> => {
 /**
  * Khoá Gemini cho lượt gọi hiện tại. Không có ngữ cảnh request (test, script) → khoá truyền vào.
  * Bị chặn thì ném `AiKeyRequiredError` — handler trả 402 cho giáo viên, hoặc để bài học sinh nằm chờ.
+ * `vendor`: hãng KHÁC Gemini (Claude/ChatGPT qua relay) — khoá Gemini riêng lưu trên máy chủ không dùng được cho hãng đó, nên
+ * coi như không có khoá riêng; còn lại cùng luật nhóm/đồng ý/chế độ/ví/trần.
  */
-export const ensureGeminiKey = async (fallbackKey: string): Promise<AiKeyChoice> => {
+export const ensureGeminiKey = async (fallbackKey: string, options: { vendor?: boolean } = {}): Promise<AiKeyChoice> => {
   const context = currentAiUsageContext();
   if (!context) return { key: fallbackKey, source: 'shared', ownerUid: null };
   if (context.keyChoice) return context.keyChoice;
@@ -171,7 +174,7 @@ export const ensureGeminiKey = async (fallbackKey: string): Promise<AiKeyChoice>
   const decision = decideAiKey({
     gateEnabled: true,
     isShared: access.sharedUids.includes(ownerUid) || (await adminUids()).has(ownerUid),
-    ownKey: keyDoc?.geminiKey ? { status: keyDoc.keyStatus ?? 'ok', statusAt: keyDoc.keyStatusAt } : null,
+    ownKey: !options.vendor && keyDoc?.geminiKey ? { status: keyDoc.keyStatus ?? 'ok', statusAt: keyDoc.keyStatusAt } : null,
     consent: keyDoc?.consent?.accepted === true,
     mode: keyDoc?.mode,
   });
@@ -299,6 +302,8 @@ const statusPayload = async (db: Db, uid: string, email: string): Promise<Record
     last4: keyDoc?.last4 ?? '',
     keyStatus: keyDoc?.geminiKey ? keyDoc.keyStatus ?? 'ok' : null,
     keyStatusAt: keyDoc?.keyStatusAt ?? null,
+    /** Hãng khác Gemini mà ví web trả được (đã cấu hình khoá trên máy chủ). */
+    relayVendors: enabledRelayVendors(),
     consent: keyDoc?.consent?.accepted === true,
     consentAt: keyDoc?.consent?.acceptedAt ?? null,
     /** Chế độ THỰC SỰ áp dụng (chọn ví mà chưa đồng ý tính phí thì vẫn là 'own'). */

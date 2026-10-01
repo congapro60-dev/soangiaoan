@@ -25,6 +25,8 @@ import { parseFolderId } from '../../lib/googleDrive';
 import type { DriveFolderKey } from '../../services/pushLessonToDrive';
 import type { ApiProvider } from '../../config/apiLimits';
 import { ProviderCompareTable, ProviderGuideCard } from '../features/settings/ProviderGuide';
+import { useAiModeSnapshot } from '../../lib/ai/aiModeStore';
+import { vendorWalletHint } from '../../lib/ai/aiModeView';
 
 const DRIVE_FOLDER_FIELDS: { key: DriveFolderKey; label: string }[] = [
   { key: 'tdsG10', label: 'TDS · Lớp 10' },
@@ -169,6 +171,7 @@ export const SettingsModal = ({
   const tokenPercent = usagePercent(usage.tokensLastMinute, usage.limit?.tpm);
   const isRateLimited = usage.isMinuteLimited || usage.isTokenMinuteLimited;
   const activeApiKey = getApiKey(activeTab);
+  const walletHint = vendorWalletHint(activeTab, useAiModeSnapshot()?.relayVendors);
 
   return (
     <AnimatePresence>
@@ -316,6 +319,7 @@ export const SettingsModal = ({
                           />
                         </div>
                         <p className="text-[11px] font-medium text-slate-400">API Key chỉ lưu cục bộ trong trình duyệt, không gửi lên máy chủ của chúng tôi.</p>
+                        {walletHint && <p className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-[11px] font-semibold leading-4 text-emerald-700">{walletHint}</p>}
                       </>
                     )}
                   </div>

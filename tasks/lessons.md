@@ -420,3 +420,11 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 ## 2026-09-30 — Thêm lượt AI vào action của một hàm có maxDuration ngắn
 - Sai: gộp lượt AI mới (prompt dài, JSON, `model-max`) vào `api/classroom.ts` mà không xem `vercel.json` — hàm này trần 15s → production 504, test/CI không bắt được vì AI bị giả lập.
 - Luật: thêm/đổi lượt gọi AI trong `api/*` thì mở `vercel.json` xem `maxDuration` của hàm chứa nó; luôn truyền `timeoutMs` nhỏ hơn trần ~10s để trả lỗi rõ, và nghiệm thu bằng MỘT lượt thật trên production trước khi báo xong.
+
+## 2026-10-01 — "Ví trả cho mọi tính năng" nhưng giao diện vẫn chặn người không có khoá
+- Sai: GĐ3 làm đường relay máy chủ + định tuyến trong `aiProviders.ts` và test từng lớp, nhưng hơn 20 nơi gọi AI đã kiểm `getActiveApiKey(settings)` rỗng → "Vui lòng nhập API Key" TRƯỚC khi tới đường relay. Chưa ai thử đi từ nút bấm thật bằng tài khoản không có khoá nên không thấy.
+- Luật: thêm một nguồn thay thế cho khoá/quyền thì grep MỌI nơi kiểm điều kiện cũ (ở đây `getActiveApiKey`) và nghiệm thu từ điểm vào của giao diện, không chỉ từ hàm gọi API.
+
+## 2026-10-01 — Khẳng định hành vi tính tiền chỉ nhờ grep tên hàm quen
+- Sai: nói "GLM đang miễn phí" vì `grep ensureGeminiKey` không thấy trong cổng GLM; thực tế `assertSharedAiAllowed` đặt `context.keyChoice` kèm kế hoạch tính tiền nên GLM bị trừ ví. Chủ dự án ra quyết định dựa trên câu sai đó.
+- Luật: trước khi nói một đường có/không bị tính tiền, lần theo nơi ĐẶT `keyChoice` / gọi `recordAiUsage` và đọc test của đường đó (hoặc chạy thử), đừng suy từ việc không thấy một tên hàm.

@@ -1,6 +1,6 @@
 import { callGeminiAIRaw, callGeminiAIStream, DEFAULT_GEMINI_RUNTIME_MODEL, EXAM_FORMAT_SYSTEM_INSTRUCTION, GEMINI_RUNTIME_MODELS } from './gemini';
-import { callAiRelay, relayModelFor } from './aiRelay';
-import { geminiRouteFor, getAiModeSnapshot, isOwnKeyFailure } from './ai/aiModeStore';
+import { callAiRelay, relayModelFor, relayVendorModelFor, type RelayVendorId } from './aiRelay';
+import { geminiRouteFor, getAiModeSnapshot, isOwnKeyFailure, vendorRouteFor } from './ai/aiModeStore';
 import { estimateTokenCount, recordTokenUsage } from '../hooks/useTokenTracker';
 import { CLAUDE_MODELS as TRACKER_CLAUDE_MODELS, DEEPSEEK_MODELS as TRACKER_DEEPSEEK_MODELS, GEMINI_MODELS as TRACKER_GEMINI_MODELS, GROK_MODELS as TRACKER_GROK_MODELS, OPENAI_MODELS as TRACKER_OPENAI_MODELS, NVIDIA_MODELS as TRACKER_NVIDIA_MODELS, toModelOption } from '../data/models';
 import type { ApiProvider } from '../config/apiLimits';
@@ -57,16 +57,28 @@ export function isMissingApiKeyError(err: unknown): boolean {
   return err instanceof Error && err.name === MISSING_KEY_ERROR_NAME;
 }
 
+/**
+ * Claude / ChatGPT có chạy qua ví web không (khác Gemini: khoá riêng của hãng chỉ nằm ở trình duyệt, máy chủ dùng khoá chung).
+ * null = đi đường khoá riêng như cũ (chế độ chỉ-khoá-riêng, web chưa bật phí, hoặc máy chủ chưa bật ví cho hãng này).
+ */
+const walletVendor = (settings: Settings): { vendor: RelayVendorId; route: 'relay' | 'own-then-relay' } | null => {
+  const provider = settings.selectedProvider ?? 'gemini';
+  if (provider !== 'claude' && provider !== 'openai') return null;
+  const route = vendorRouteFor(provider, Boolean(ownApiKey(settings)), getAiModeSnapshot());
+  return route === 'own' ? null : { vendor: provider, route };
+};
+
 function assertOwnApiKey(settings: Settings): void {
   const provider = (settings.selectedProvider ?? 'gemini') as string;
   if (provider === 'vercel-gateway') return;
   // Ví web trả thay cho khoá: chế độ "chỉ ví" (hoặc "cả hai" khi chưa có khoá riêng) thì không cần khoá trên trình duyệt.
   if (provider === 'gemini' && geminiRouteFor(Boolean(settings.geminiApiKey), getAiModeSnapshot()) === 'relay') return;
+  if (walletVendor(settings)?.route === 'relay') return;
 
   const message = provider === 'free-router'
     ? `Chế độ "Router Free" (key dùng chung) đã ngừng hỗ trợ. ${NO_KEY_MESSAGE}`
     : NO_KEY_MESSAGE;
-  if (provider === 'free-router' || !getActiveApiKey(settings)) {
+  if (provider === 'free-router' || !ownApiKey(settings)) {
     const err = new Error(message);
     err.name = MISSING_KEY_ERROR_NAME;
     throw err;
@@ -97,7 +109,8 @@ export const GEMINI_MODELS = TRACKER_GEMINI_MODELS.map(model => ({
   ].filter(Boolean).join(' · '),
 }));
 
-export function getActiveApiKey(settings: Settings): string {
+/** Khoá thật của provider đang chọn, đúng như giáo viên nhập trong Cài đặt ('' = chưa có). */
+function ownApiKey(settings: Settings): string {
   const provider = settings.selectedProvider ?? 'gemini';
   if (provider === 'vercel-gateway') return SERVER_MANAGED_API_KEY;
   if (provider === 'claude') return settings.claudeApiKey || '';
@@ -109,6 +122,25 @@ export function getActiveApiKey(settings: Settings): string {
   // 'free-router' (đã ngừng hỗ trợ) rơi xuống đây → trả '' để mọi nơi coi là thiếu key.
   if ((provider as string) === 'free-router') return '';
   return settings.geminiApiKey || '';
+}
+
+/** Đánh dấu "không có khoá trên trình duyệt nhưng ví web đang trả thay" — để các nơi chỉ kiểm có/không khoá không chặn nhầm. */
+export const WALLET_MANAGED_API_KEY = 'wallet-managed-ai';
+
+/**
+ * Khoá dùng cho provider đang chọn. Khi ví web trả thay khoá (chế độ "chỉ ví", hoặc "cả hai" mà chưa có khoá riêng) thì trả
+ * `WALLET_MANAGED_API_KEY`: hơn hai chục nơi (soạn giáo án, chấm bài, ra đề, chat…) chặn người dùng bằng "Vui lòng nhập API Key"
+ * khi kết quả rỗng, nên người chỉ dùng ví không bắt đầu được. Đừng dùng giá trị này làm khoá gọi API — chỉ để kiểm có/không.
+ */
+export function getActiveApiKey(settings: Settings): string {
+  const key = ownApiKey(settings);
+  if (key) return key;
+  const provider = settings.selectedProvider ?? 'gemini';
+  const snapshot = getAiModeSnapshot();
+  const viaWallet = provider === 'gemini'
+    ? geminiRouteFor(false, snapshot) === 'relay'
+    : (provider === 'claude' || provider === 'openai') && vendorRouteFor(provider, false, snapshot) === 'relay';
+  return viaWallet ? WALLET_MANAGED_API_KEY : '';
 }
 
 const getActiveModelId = (provider: ApiProvider, settings: Settings, override?: string): string => {
@@ -147,7 +179,7 @@ const recordEstimatedUsage = (provider: ApiProvider, model: string, prompt: stri
   });
 };
 
-async function callAIOnce(prompt: string, settings: Settings): Promise<RawResult> {
+async function callAIOnceDirect(prompt: string, settings: Settings): Promise<RawResult> {
   const provider = settings.selectedProvider ?? 'gemini';
   assertOwnApiKey(settings);
 
@@ -307,6 +339,22 @@ async function callAIOnce(prompt: string, settings: Settings): Promise<RawResult
   }
 }
 
+async function callAIOnce(prompt: string, settings: Settings): Promise<RawResult> {
+  const wallet = walletVendor(settings);
+  if (!wallet) return callAIOnceDirect(prompt, settings);
+  const viaWallet = async (): Promise<RawResult> => {
+    const relayed = await callAiRelay({ provider: wallet.vendor, prompt, model: relayVendorModelFor(wallet.vendor, settings.selectedModel) });
+    return { text: relayed.text, truncated: relayed.truncated };
+  };
+  if (wallet.route === 'relay') return viaWallet();
+  try {
+    return await callAIOnceDirect(prompt, settings);
+  } catch (ownKeyError) {
+    if (!isOwnKeyFailure(ownKeyError)) throw ownKeyError;
+    return viaWallet();
+  }
+}
+
 export async function callAI(prompt: string, settings: Settings): Promise<string> {
   let combined = '';
   let nextPrompt = prompt;
@@ -335,6 +383,25 @@ export async function callAI(prompt: string, settings: Settings): Promise<string
  * Nếu provider không hỗ trợ vision, fallback về text-only.
  */
 export async function callAIWithVision(
+  prompt: string,
+  imageDataUrls: string | string[],
+  settings: Settings
+): Promise<string> {
+  const wallet = walletVendor(settings);
+  if (!wallet) return callAIWithVisionDirect(prompt, imageDataUrls, settings);
+  const urls = Array.isArray(imageDataUrls) ? imageDataUrls : [imageDataUrls];
+  const viaWallet = async (): Promise<string> =>
+    (await callAiRelay({ provider: wallet.vendor, prompt, model: relayVendorModelFor(wallet.vendor, settings.selectedModel), images: urls })).text;
+  if (wallet.route === 'relay') return viaWallet();
+  try {
+    return await callAIWithVisionDirect(prompt, imageDataUrls, settings);
+  } catch (ownKeyError) {
+    if (!isOwnKeyFailure(ownKeyError)) throw ownKeyError;
+    return viaWallet();
+  }
+}
+
+async function callAIWithVisionDirect(
   prompt: string,
   imageDataUrls: string | string[],
   settings: Settings
@@ -547,6 +614,30 @@ export async function callAIWithVision(
 }
 
 export async function callAIStream(
+  prompt: string,
+  settings: Settings,
+  onChunk: (chunk: string) => void,
+  modelOverride?: string
+): Promise<void> {
+  const wallet = walletVendor(settings);
+  if (!wallet) return callAIStreamDirect(prompt, settings, onChunk, modelOverride);
+  // Ví web không có luồng: máy chủ trả trọn một lần, hiện một cục.
+  const viaWallet = async (): Promise<void> => {
+    const relayed = await callAiRelay({ provider: wallet.vendor, prompt, model: relayVendorModelFor(wallet.vendor, modelOverride, settings.selectedModel) });
+    onChunk(relayed.text);
+  };
+  if (wallet.route === 'relay') return viaWallet();
+  let emitted = false;
+  try {
+    await callAIStreamDirect(prompt, settings, chunk => { emitted = true; onChunk(chunk); }, modelOverride);
+  } catch (ownKeyError) {
+    // Chỉ chuyển sang ví khi chưa có chữ nào hiện ra — nếu không nội dung bị lặp hai lần.
+    if (emitted || !isOwnKeyFailure(ownKeyError)) throw ownKeyError;
+    await viaWallet();
+  }
+}
+
+async function callAIStreamDirect(
   prompt: string,
   settings: Settings,
   onChunk: (chunk: string) => void,

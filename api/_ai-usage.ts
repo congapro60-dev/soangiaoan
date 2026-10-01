@@ -71,7 +71,7 @@ export interface AiTokenCounts {
   totalTokens: number;
 }
 
-export type AiProvider = 'gemini' | 'ai-gateway';
+export type AiProvider = 'gemini' | 'ai-gateway' | 'claude' | 'openai';
 
 const storage = new AsyncLocalStorage<AiUsageContext>();
 
@@ -118,6 +118,21 @@ export const openAiUsageCounts = (usage: unknown): AiTokenCounts | null => {
   if (totalTokens === 0) return null;
   // OpenAI gộp reasoning vào completion_tokens; tách ra để cột "đầu ra" không bị đếm hai lần.
   return { inputTokens, outputTokens: Math.max(0, completion - thoughtsTokens), thoughtsTokens, cachedTokens, totalTokens };
+};
+
+/**
+ * `usage` của Anthropic Messages API → số token. `input_tokens` KHÔNG gồm phần đọc/ghi cache, nên cộng vào đầu vào
+ * (phần đọc cache ghi riêng để tính theo cột cache; giá cache hiện bằng giá đầu vào nên không lệch).
+ */
+export const anthropicUsageCounts = (usage: unknown): AiTokenCounts | null => {
+  if (!usage || typeof usage !== 'object') return null;
+  const u = usage as Record<string, unknown>;
+  const cachedTokens = count(u.cache_read_input_tokens);
+  const inputTokens = count(u.input_tokens) + cachedTokens + count(u.cache_creation_input_tokens);
+  const outputTokens = count(u.output_tokens);
+  const totalTokens = inputTokens + outputTokens;
+  if (totalTokens === 0) return null;
+  return { inputTokens, outputTokens, thoughtsTokens: 0, cachedTokens, totalTokens };
 };
 
 /** Ngày/tháng theo giờ Việt Nam để gom bảng kê đúng tháng thu tiền. */

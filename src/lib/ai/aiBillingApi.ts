@@ -42,6 +42,8 @@ export interface AiKeyStatus {
   consentAt: string | null;
   /** Nguồn khoá THỰC SỰ áp dụng: chỉ khoá riêng / chỉ ví web / cả hai (khoá riêng trước). */
   mode: AiKeyMode;
+  /** Hãng khác Gemini (claude, openai) mà ví web đã bật. Máy chủ cũ không gửi trường này → coi như rỗng. */
+  relayVendors?: Array<'claude' | 'openai'>;
   blockedSubmissionIds: string[];
   balanceVnd: number;
   topupCode: string;

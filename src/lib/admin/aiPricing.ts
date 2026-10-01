@@ -37,7 +37,12 @@ interface PriceRule {
 export const PRICE_SOURCES = {
   gemini: 'ai.google.dev/gemini-api/docs/pricing (cập nhật 2026-09-23)',
   gateway: 'vercel.com/ai-gateway/models/glm-5.2 (tra 2026-09-24)',
+  claude: 'trang giá Anthropic (tra 2026-09-30, xem src/data/providerGuide.ts)',
+  openai: 'trang giá OpenAI (tra 2026-09-30, xem src/data/providerGuide.ts)',
 } as const;
+
+/** Claude/OpenAI: các trang giá không nêu giá cache nên tính cache bằng giá đầu vào — không bao giờ tính thấp hơn thực tế. */
+const flatPrice = (input: number, output: number): PricePeriod[] => [{ price: { input, output, cached: input } }];
 
 const FLASH_PERIODS: PricePeriod[] = [
   { to: '2026-12-31', price: { input: 0.75, output: 3.75, cached: 0.075 } },
@@ -55,6 +60,12 @@ const RULES: PriceRule[] = [
       longPrompt: { thresholdTokens: 200_000, price: { input: 4, output: 18, cached: 0.4 } },
     }],
   },
+  { label: 'Claude Sonnet 5.5', matches: m => m.startsWith('claude-sonnet-5-5'), periods: flatPrice(2, 10) },
+  { label: 'Claude Haiku 4.5', matches: m => m.startsWith('claude-haiku-4-5'), periods: flatPrice(1, 5) },
+  { label: 'Claude Opus 5.5', matches: m => m.startsWith('claude-opus-5-5'), periods: flatPrice(4, 20) },
+  { label: 'GPT-6.1 Sol', matches: m => m.startsWith('gpt-6.1-sol'), periods: flatPrice(2, 10) },
+  { label: 'GPT-6 Luna', matches: m => m.startsWith('gpt-6-luna'), periods: flatPrice(0.1, 0.5) },
+  { label: 'GPT-6 Astra', matches: m => m.startsWith('gpt-6-astra'), periods: flatPrice(10, 50) },
   { label: 'GLM 5.2 (Vercel AI Gateway)', matches: m => m === 'zai/glm-5.2', periods: [{ price: { input: 0.5625, output: 1.8, cached: 0.5625 } }] },
 ];
 
