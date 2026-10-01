@@ -8,7 +8,8 @@ const h = vi.hoisted(() => ({
   grade: '' as string,
   reply: '**Con** học chăm, cần luyện thêm hàm số.',
   jsonMode: false as boolean | undefined,
-  fail: '' as '' | 'slow' | 'fast',
+  fail: '' as '' | 'slow' | 'fast' | 'notesSlow',
+  notesReply: '{"ghiChu": []}',
   mapReply: '{"yccd": []}',
   calls: [] as string[],
 }));
@@ -29,6 +30,10 @@ vi.mock('../_grading-core.js', () => ({
     h.calls.push(prompt);
     if (h.fail === 'slow') { vi.setSystemTime(Date.now() + 55_000); throw new Error('AI xử lý quá lâu'); }
     if (h.fail === 'fast') throw new Error('Chưa có khoá Gemini');
+    if (prompt.includes('tỉ lệ điểm đạt')) {
+      if (h.fail === 'notesSlow') { vi.setSystemTime(Date.now() + 55_000); throw new Error('AI xử lý quá lâu'); }
+      return h.notesReply;
+    }
     return prompt.includes('đối chiếu bài làm') ? h.mapReply : h.reply;
   },
 }));
@@ -56,7 +61,7 @@ const key = { studentId: 'hs1', kind: 'gk1', from: '2026-09-01', to: '2026-10-31
 describe('nhận xét giáo viên trong báo cáo phụ huynh', () => {
   beforeEach(() => {
     h.store = {}; h.owner = ''; h.prompt = ''; h.allowed = true; h.grade = '';
-    h.reply = '**Con** học chăm, cần luyện thêm hàm số.'; h.jsonMode = undefined; h.fail = ''; h.mapReply = '{"yccd": []}'; h.calls = [];
+    h.reply = '**Con** học chăm, cần luyện thêm hàm số.'; h.jsonMode = undefined; h.fail = ''; h.mapReply = '{"yccd": []}'; h.notesReply = '{"ghiChu": []}'; h.calls = [];
     vi.useRealTimers();
   });
 
@@ -84,20 +89,23 @@ describe('nhận xét giáo viên trong báo cáo phụ huynh', () => {
     h.reply = 'Con tiến bộ ở phần vectơ.';
     h.mapReply = JSON.stringify({
       yccd: [
-        { ma: 'T10.30', cau: ['b1q1', 'b1q2'], ghiChu: 'Nhầm chiều khi áp dụng **quy tắc hiệu**.' },
-        { ma: 'T99.01', cau: ['b1q2'], ghiChu: 'mã bịa' },
-        { ma: 'T10.01', cau: ['b9q9'], ghiChu: 'câu bịa' },
+        { ma: 'T10.30', cau: ['b1q1', 'b1q2'] },
+        { ma: 'T99.01', cau: ['b1q2'] },
+        { ma: 'T10.01', cau: ['b9q9'] },
       ],
     });
+    h.notesReply = JSON.stringify({ ghiChu: [{ ma: 'T10.30', ghiChu: 'Nhầm chiều khi áp dụng **quy tắc hiệu**.' }, { ma: 'T10.01', ghiChu: 'không có dòng' }] });
     const facts = { baiDaDuyet: [{ ma: 'b1', ten: 'BTVN', ngay: '2026-09-20', cau: [
       { ma: 'b1q1', diem: 1, toiDa: 2, ketQua: 'đúng một phần' },
       { ma: 'b1q2', diem: 0, toiDa: 2, ketQua: 'sai' },
     ] }] };
     const out = await call({ action: 'draftParentReportComment', ...key, facts });
     expect(out.status).toBe(200);
-    expect(h.calls).toHaveLength(2);
+    expect(h.calls).toHaveLength(3);
     const mappingPrompt = h.calls.find(p => p.includes('đối chiếu bài làm'))!;
     expect(mappingPrompt).toContain('T10.30 |');
+    const notesPrompt = h.calls.find(p => p.includes('tỉ lệ điểm đạt'))!;
+    expect(notesPrompt).toContain('"tiLeDiem":"25%"');
     expect(h.calls.find(p => !p.includes('đối chiếu bài làm'))).not.toContain('b1q1');
     expect(out.body.text).toBe('Con tiến bộ ở phần vectơ.');
     expect(out.body.requirements).toEqual([
@@ -109,10 +117,24 @@ describe('nhận xét giáo viên trong báo cáo phụ huynh', () => {
     h.grade = '10';
     h.reply = 'Nhận xét.';
     const bai = (n: number) => ({ ma: `b${n}`, ten: 'BTVN', ngay: '2026-09-20', cau: Array.from({ length: 20 }, (_, i) => ({ ma: `b${n}q${i + 1}`, diem: n === 1 ? 1 : 0, toiDa: 1, ketQua: 'x' })) });
-    h.mapReply = JSON.stringify({ yccd: [{ ma: 'T10.03', cau: ['b1q1', 'b2q1'], ghiChu: 'Ý chung.' }] });
+    h.mapReply = JSON.stringify({ yccd: [{ ma: 'T10.03', cau: ['b1q1', 'b2q1'] }] });
+    h.notesReply = JSON.stringify({ ghiChu: [{ ma: 'T10.03', ghiChu: 'Ý chung.' }] });
     const out = await call({ action: 'draftParentReportComment', ...key, facts: { baiDaDuyet: [bai(1), bai(2)] } });
     expect(h.calls.filter(p => p.includes('đối chiếu bài làm'))).toHaveLength(2);
+    expect(h.calls.filter(p => p.includes('tỉ lệ điểm đạt'))).toHaveLength(1);
     expect(out.body.requirements).toEqual([{ id: 'T10.03', level: 'dang', evidence: 2, percent: 50, note: 'Ý chung.' }]);
+  });
+
+  it('bước ghi chú hết giờ: vẫn trả các dòng với mức đúng, ghi chú để trống cho giáo viên điền', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    h.grade = '10';
+    h.reply = 'Nhận xét.';
+    h.fail = 'notesSlow';
+    h.mapReply = JSON.stringify({ yccd: [{ ma: 'T10.03', cau: ['b1q1'] }] });
+    const facts = { baiDaDuyet: [{ ma: 'b1', ten: 'BTVN', ngay: '2026-09-20', cau: [{ ma: 'b1q1', diem: 2, toiDa: 2, ketQua: 'đúng' }] }] };
+    const out = await call({ action: 'draftParentReportComment', ...key, facts });
+    expect(out.status).toBe(200);
+    expect(out.body.requirements).toEqual([{ id: 'T10.03', level: 'vung', evidence: 1, percent: 100, note: '' }]);
   });
 
   it('lưu kèm dòng YCCĐ: chỉ giữ mã đúng khối, mức hợp lệ', async () => {

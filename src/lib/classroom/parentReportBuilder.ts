@@ -62,7 +62,8 @@ export interface PeriodParentReport {
 
 // Trần để một lượt AI xong trong ~50s và dữ liệu gửi đi < 60k kí tự (tháng thực tế ~90 câu mất ~25s).
 const MAX_EVIDENCE_SUBMISSIONS = 16;
-const MAX_QUESTIONS_PER_SUBMISSION = 12;
+// Không cắt ít câu mỗi bài: phiếu dài (Phần I/II/III) có câu làm ĐÚNG ở cuối — cắt là mất bằng chứng, mức bị thấp oan.
+const MAX_QUESTIONS_PER_SUBMISSION = 60;
 const MAX_EVIDENCE_QUESTIONS = 120;
 const MAX_EVIDENCE_CHARS = 45_000;
 const QUESTION_RESULT_LABEL: Record<string, string> = {
