@@ -432,3 +432,7 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 ## 2026-10-01 — Bộ đếm khoá PIN phải nằm trong giao dịch
 - Sai: cổng phụ huynh (và cổng HS có từ trước) đọc số lần sai → kiểm PIN → ghi lại ở 3 bước rời nhau. Gửi nhiều lượt đoán CÙNG LÚC thì mọi lượt cùng đọc "0 lần sai", bộ đếm chỉ lên 1, PIN 4 số dò hết được. Bản review của phiên khác bắt được, test tuần tự của mình không bắt.
 - Luật: mọi "đọc trạng thái → quyết định → ghi trạng thái" bảo vệ thứ nhạy cảm (khoá đăng nhập, hạn mức, số dư) dùng `db.runTransaction` — đã có `attemptPin` trong `api/_classroom-core.ts`. Test phải bắn song song bằng `Promise.all` (≥ ngưỡng + vài lượt) với giao dịch giả xếp hàng, không chỉ gọi lần lượt.
+
+## 2026-10-01 — Bấm tab nhà cung cấp trong Cài đặt để "xem" làm đổi nhà cung cấp thật
+- Sai: khi QA bằng Chrome của chủ dự án, bấm tab "GLM 5.2" trong Cài đặt chỉ để đọc lời nhắc → `selectedProvider` đổi ngay (chưa cần bấm Lưu), mọi lượt AI sau đó đi GLM. Phải bấm lại Gemini mới về.
+- Luật: QA trên phiên thật của chủ dự án thì ghi lại trạng thái trước khi bấm và khôi phục xong rồi mới báo; muốn xem lời nhắc theo nhà cung cấp thì dùng test thuần (`glmWalletNotice`) thay vì bấm giao diện.
