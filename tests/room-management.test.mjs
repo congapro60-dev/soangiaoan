@@ -4,14 +4,14 @@ import {SourceTextModule,SyntheticModule,createContext} from 'node:vm';
 import {readFile} from 'node:fs/promises';
 import {resolve,dirname} from 'node:path';
 const database=new DatabaseSync(':memory:');
-for(const file of ['0000_boring_pete_wisdom.sql','0001_organic_aqueduct.sql','0002_big_ogun.sql','0003_dazzling_rockslide.sql'])database.exec(await readFile(resolve('drizzle',file),'utf8'));
+for(const file of ['0000_boring_pete_wisdom.sql','0001_organic_aqueduct.sql','0002_big_ogun.sql','0003_dazzling_rockslide.sql','0004_classy_wolf_cub.sql'])database.exec(await readFile(resolve('drizzle',file),'utf8'));
 database.exec('PRAGMA foreign_keys=ON');
 function stmt(sql,...params){const query=database.prepare(sql);return {first:()=>query.get(...params)??null,all:()=>({results:query.all(...params)}),run:()=>{const result=query.run(...params);return {meta:{changes:Number(result.changes)}};}};}
 const storage={stmt,db:()=>({batch:queries=>{database.exec('BEGIN');try{const result=queries.map(q=>q.run());database.exec('COMMIT');return result;}catch(e){database.exec('ROLLBACK');throw e;}}})};
 const context=createContext({crypto:globalThis.crypto,Request,Response,URL,TextEncoder,console});
 const cache=new Map();
-async function moduleAt(path){if(cache.has(path))return cache.get(path);let module;if(path.endsWith('/lib/storage.js'))module=new SyntheticModule(['stmt','db'],function(){this.setExport('stmt',storage.stmt);this.setExport('db',storage.db);},{context,identifier:path});else module=new SourceTextModule(await readFile(path,'utf8'),{context,identifier:path});cache.set(path,module);await module.link((specifier,parent)=>moduleAt(resolve(dirname(parent.identifier),specifier)));return module;}
-const module=await moduleAt(resolve('app/api/escape/route.js'));await module.evaluate();
+async function moduleAt(path){if(cache.has(path))return cache.get(path);let module;if(path.endsWith('/lib/storage.js'))module=new SyntheticModule(['stmt','db'],function(){this.setExport('stmt',storage.stmt);this.setExport('db',storage.db);},{context,identifier:path});else module=new SourceTextModule(await readFile(path,'utf8'),{context,identifier:path});cache.set(path,module);return module;}
+const module=await moduleAt(resolve('app/api/escape/route.js'));await module.link((specifier,parent)=>moduleAt(resolve(dirname(parent.identifier),specifier)));await module.evaluate();
 const route=module.namespace;
 async function post(action,body={},token=''){let response=await route.POST(new Request('https://game.test/api/escape',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'Origin':'https://game.test'},body:JSON.stringify({action,requestId:crypto.randomUUID(),...body})}));return {status:response.status,data:await response.json()};}
 async function get(kind,id,token){let response=await route.GET(new Request(`https://game.test/api/escape?kind=${kind}&id=${id}`,{headers:{Authorization:'Bearer '+token}}));return {status:response.status,data:await response.json()};}

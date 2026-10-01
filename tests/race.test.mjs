@@ -4,15 +4,15 @@ import {SourceTextModule,SyntheticModule,createContext} from 'node:vm';
 import {readFile} from 'node:fs/promises';
 import {resolve,dirname} from 'node:path';
 const database=new DatabaseSync(':memory:');
-for(const file of ['0000_boring_pete_wisdom.sql','0001_organic_aqueduct.sql','0002_big_ogun.sql','0003_dazzling_rockslide.sql'])database.exec(await readFile(resolve('drizzle',file),'utf8'));
+for(const file of ['0000_boring_pete_wisdom.sql','0001_organic_aqueduct.sql','0002_big_ogun.sql','0003_dazzling_rockslide.sql','0004_classy_wolf_cub.sql'])database.exec(await readFile(resolve('drizzle',file),'utf8'));
 database.exec('PRAGMA foreign_keys=ON');
 function stmt(sql,...params){const query=database.prepare(sql);return {first:()=>query.get(...params)??null,all:()=>({results:query.all(...params)}),run:()=>{const result=query.run(...params);return {meta:{changes:Number(result.changes)}};}};}
 const storage={stmt,db:()=>({batch:queries=>{database.exec('BEGIN');try{const result=queries.map(q=>q.run());database.exec('COMMIT');return result;}catch(e){database.exec('ROLLBACK');throw e;}}})};
 let clock=Date.now();class TestDate extends Date{static now(){return clock;}}
 const context=createContext({Date:TestDate,crypto:globalThis.crypto,Request,Response,URL,TextEncoder,console});
 const cache=new Map();
-async function moduleAt(path){if(cache.has(path))return cache.get(path);let module;if(path.endsWith('/lib/storage.js'))module=new SyntheticModule(['stmt','db'],function(){this.setExport('stmt',storage.stmt);this.setExport('db',storage.db);},{context,identifier:path});else module=new SourceTextModule(await readFile(path,'utf8'),{context,identifier:path});cache.set(path,module);await module.link((specifier,parent)=>moduleAt(resolve(dirname(parent.identifier),specifier)));return module;}
-const module=await moduleAt(resolve('app/api/escape/route.js'));await module.evaluate();
+async function moduleAt(path){if(cache.has(path))return cache.get(path);let module;if(path.endsWith('/lib/storage.js'))module=new SyntheticModule(['stmt','db'],function(){this.setExport('stmt',storage.stmt);this.setExport('db',storage.db);},{context,identifier:path});else module=new SourceTextModule(await readFile(path,'utf8'),{context,identifier:path});cache.set(path,module);return module;}
+const module=await moduleAt(resolve('app/api/escape/route.js'));await module.link((specifier,parent)=>moduleAt(resolve(dirname(parent.identifier),specifier)));await module.evaluate();
 const route=module.namespace;
 async function post(action,body={},token=''){let response=await route.POST(new Request('https://game.test/api/escape',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'Origin':'https://game.test'},body:JSON.stringify({action,requestId:crypto.randomUUID(),...body})}));return {status:response.status,data:await response.json()};}
 async function get(kind,id,token){let response=await route.GET(new Request(`https://game.test/api/escape?kind=${kind}&id=${id}`,{headers:{Authorization:'Bearer '+token}}));return {status:response.status,data:await response.json()};}
@@ -75,3 +75,44 @@ let hint=await post('hint',{id:hintTeam.id,level:1,round:1},hintTeam.token);asse
 let frozen=await post('submit',{id:hintTeam.id,input:answer(raw(hintTeam),0),round:1},hintTeam.token);assert.equal(frozen.data.result.reason,'frozen');
 clock+=8001;let unlocked=await post('submit',{id:hintTeam.id,input:answer(raw(hintTeam),0),round:1},hintTeam.token);assert.equal(unlocked.data.result.ok,true);
 console.log('Concurrent turn/card guards, deadline auto-pass, and hint freeze passed.');
+// Teacher-created thematic campaigns are enforced by the same authoritative API.
+const themedId=crypto.randomUUID(),themedAdmin=crypto.randomUUID()+crypto.randomUUID();
+let invalid=await post('create-room',{id:crypto.randomUUID(),adminKey:themedAdmin,campaign:{grade:10,topics:['integral']}});assert.equal(invalid.status,400);
+let themed=(await post('create-room',{id:themedId,adminKey:themedAdmin,title:'Aurora QA',campaign:{theme:'future',grade:12,topics:['integral','conditional'],minLevel:0,maxLevel:2,stationMax:2}})).data.room;
+const T=(await post('join',{code:themed.code,name:'Phi đội QA',mascot:6})).data.session;
+let publicT=await state(T);assert.equal(publicT.state.race.campaign.theme,'future');assert(!('seed'in publicT.state.race.campaign));
+await post('begin',{id:themedId},themedAdmin);
+assert.equal((await post('choose-level',{id:T.id,level:4,round:1},T.token)).status,400,'Teacher maximum cannot be bypassed');
+const {stationLogic}=await import('../lib/station-logic.js');
+let maths=0;
+for(let guard=0;guard<55&&raw(T).race.phase!=='gate';guard++){
+ clock+=16000;let s=raw(T);
+ if(s.race.reward){let awarded=await post('reward',{id:T.id,choice:'points',round:1},T.token);assert.equal(awarded.status,200);continue;}
+ if(s.race.bonus&&!s.race.bonus.done){let q=s.race.bonus;let reply=await post('bonus',{id:T.id,answer:String(q.answer),round:1},T.token);assert.equal(reply.status,200);assert(reply.data.result.ok);assert(!('answer'in (reply.data.state.race.bonus||{})));maths++;continue;}
+ if(s.race.phase==='challenge'){let i=s.race.outcomes.length;await post('choose-level',{id:T.id,level:0,round:1},T.token);let p=stationLogic(i,0,s.seed),input={...p.expected};if(i===2)input.circuit='1,0,0,0,0,0,0,0,1';let reply=await post('submit',{id:T.id,input,round:1},T.token);assert.equal(reply.status,200,JSON.stringify(reply.data));assert(reply.data.result.ok);continue;}
+ clock+=16000;let d=await state(T);let reply=await post('roll',{id:T.id,sequence:d.map.turn.sequence,round:1},T.token);assert.equal(reply.status,200,JSON.stringify(reply.data));
+}
+assert.equal(maths,5);assert.equal(raw(T).race.outcomes.length,5);
+let tc=raw(T).race.outcomes.map(o=>o.digit).join('');assert((await post('unlock',{id:T.id,code:tc,round:1},T.token)).data.result.ok);
+let themedBoard=(await get('board',themedId,themedAdmin)).data;assert.equal(themedBoard.room.campaign.grade,12);assert.equal(themedBoard.teams[0].mathHistory.length,5);assert(themedBoard.teams[0].mathHistory.every(q=>q.steps.length&&Number.isFinite(q.answer)));
+await post('reset-room',{id:themedId,revision:themedBoard.room.revision,confirmCode:themed.code},themedAdmin);
+let resetThemed=await state(T);assert.equal(resetThemed.state.race.campaign.theme,'future');assert.equal(resetThemed.state.race.position,0);assert.equal(resetThemed.state.score,0);assert(!('mathHistory'in resetThemed.state.race));
+console.log('Thematic campaign API passed: teacher matrix, maximum level, private solutions, 5 queued questions, all gates, final unlock, reset configuration.');
+// Single-attempt choices, concurrent reward redemption, limited self-trades and movement skills.
+const U=(await post('join',{code:themed.code,name:'QA Trade',mascot:2})).data.session;
+await post('begin',{id:themedId},themedAdmin);
+edit(U,s=>{finishStation(s,1,clock);s.score=500;});
+const {contextQuestion}=await import('../lib/context-questions.js');
+edit(U,s=>{s.race.bonus=contextQuestion({topic:'integral',level:0,category:'digital',format:'mcq'},27);s.race.bonus.serial=99;});
+let uq=raw(U).race.bonus,wrongOption=String((Number(uq.answer)+1)%4);
+let wrongChoice=await post('bonus',{id:U.id,answer:wrongOption,round:2},U.token);assert(!wrongChoice.data.result.ok);assert(wrongChoice.data.state.race.bonus.done);assert.equal((await post('bonus',{id:U.id,answer:uq.answer,round:2},U.token)).status,400,'Cannot guess another option');
+edit(U,s=>{s.cooldown=0;s.race.bonus=contextQuestion({topic:'quadratic',level:1,category:'theory',format:'tf'},33);s.race.bonus.serial=100;});
+let correctTF=await post('bonus',{id:U.id,answer:raw(U).race.bonus.answer,round:2},U.token);assert(correctTF.data.result.ok);assert(correctTF.data.state.race.reward);
+let rewardReplies=await Promise.all([post('reward',{id:U.id,choice:'points',round:2},U.token),post('reward',{id:U.id,choice:'points',round:2},U.token)]);assert.equal(rewardReplies.filter(r=>r.status===200).length,1);assert.equal(raw(U).score,560);
+assert.equal((await post('pact',{id:U.id,choice:'pass',round:2},U.token)).status,200);let um=await state(U);clock+=11000;um=await state(U);assert.equal(um.map.turn.skipLedger[U.id],1,'Exactly one eligible slot pays the pact');let repeated=await state(U);assert.equal(repeated.map.turn.skipLedger[U.id],1);
+assert.equal((await post('pact',{id:U.id,choice:'delay',round:2},U.token)).status,200);assert.equal(raw(U).penalty,45000);assert.equal((await post('pact',{id:U.id,choice:'delay',round:2},U.token)).status,400);
+for(const skill of ['time','boost','double'])assert.equal((await post('skill',{id:U.id,skill,round:2},U.token)).status,200);
+assert.equal((await post('skill',{id:U.id,skill:'double',free:true,round:2},U.token)).status,400,'Free card cannot buy premium movement');
+let skillState=await state(U);assert.equal(skillState.state.race.timeBonus,30000);let ur=await post('roll',{id:U.id,sequence:skillState.map.turn.sequence,round:2},U.token);assert.equal(ur.status,200);assert(ur.data.result.extra>=1&&ur.data.result.extra<=6);assert.equal(raw(U).race.usedBoosts,1);assert.equal(raw(U).race.usedDoubles,1);
+assert.equal((await post('skill',{id:U.id,skill:'double',round:2},U.token)).status,200);assert.equal((await post('skill',{id:U.id,skill:'double',round:2},U.token)).status,400,'Two-purchase cap');
+console.log('Extended mechanics passed: one-shot choices, one reward under concurrency, exact pact pass, trade caps, time credit, extra dice/steps, premium card exclusion.');
