@@ -4,6 +4,7 @@ import type { StudentAssignmentView, SubmissionDoc } from '../lib/classroom/type
 import type { ExamSubmission } from '../types';
 import type { StudentScoreView } from '../lib/classroom/scoreBook';
 import type { CompetencyPortfolioDoc, PortfolioEntry } from '../lib/classroom/competency/studentPortfolio';
+import type { StudentAiCostView } from '../lib/classroom/studentAiCost';
 
 export interface RosterEntry {
   studentId: string;
@@ -156,6 +157,14 @@ export const fetchStudentOnlineSubmissions = async (): Promise<ExamSubmission[]>
   const idToken = await current.getIdToken();
   const response = await call<{ submissions: ExamSubmission[] }>({ action: 'studentOnlineSubmissions', idToken });
   return response.submissions || [];
+};
+
+/** Chi phí AI của chính học sinh (token + tiền ước tính) — chỉ để em biết; máy chủ lọc theo phiên, không nhận studentId. */
+export const fetchStudentAiCost = async (): Promise<StudentAiCostView> => {
+  const current = auth.currentUser;
+  if (!current || !current.isAnonymous) throw new Error('Cần phiên đăng nhập học sinh.');
+  const idToken = await current.getIdToken();
+  return call<StudentAiCostView>({ action: 'studentAiCost', idToken });
 };
 
 /** Bảng điểm (điểm thi định kì + hệ số 1) của chính học sinh; máy chủ lọc theo phiên, không nhận studentId. */

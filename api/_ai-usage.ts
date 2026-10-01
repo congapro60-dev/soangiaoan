@@ -393,6 +393,19 @@ export const recordImageUsage = async (
 
 const REF_KEYS = ['classId', 'submissionId', 'assignmentId', 'setId', 'studentId', 'examId', 'attemptId'] as const;
 
+/**
+ * Bổ sung mã tham chiếu cho lượt AI ĐANG chạy khi chỉ biết sau lúc đọc dữ liệu (vd bài nộp → học sinh). Không đè giá trị đã có.
+ * Nhờ vậy mọi lượt AI của một em đều tra lại được theo `refs.studentId` — cổng học sinh hiện chi phí AI của chính em từ đây.
+ */
+export const tagAiUsageRefs = (refs: Partial<Record<(typeof REF_KEYS)[number], unknown>>): void => {
+  const context = currentAiUsageContext();
+  if (!context) return;
+  for (const key of REF_KEYS) {
+    const value = refs[key];
+    if (typeof value === 'string' && value.trim() && value.length <= 200 && !context.refs[key]) context.refs[key] = value.trim();
+  }
+};
+
 /** Rút mã tham chiếu có trong body (không tin để phân quyền — chỉ để quy về lớp khi lập bảng kê). */
 export const refsFromBody = (body: Record<string, unknown>): Record<string, string> => {
   const refs: Record<string, string> = {};

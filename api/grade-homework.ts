@@ -81,7 +81,7 @@ import {
 import { handleAiGateway } from './_ai-gateway-handler.js';
 import { handleGenerateImage } from './_ai-image-handler.js';
 import { getBearerToken } from './_ai-gateway-core.js';
-import { createAiUsageContext, runWithAiUsage, setAiKeyOwner } from './_ai-usage.js';
+import { createAiUsageContext, runWithAiUsage, setAiKeyOwner, tagAiUsageRefs } from './_ai-usage.js';
 import { AiKeyRequiredError, aiKeyRequiredPayload, ensureGeminiKey } from './_ai-keys.js';
 
 /** Học sinh không tự xử lý được chuyện khoá của thầy cô — nói nhẹ, không lộ chuyện tiền. */
@@ -407,6 +407,8 @@ const gradeOneSubmission = async (
   if (!claim) return { success: false };
 
   const previous = claim.previous;
+  // Mọi lượt AI chấm bài này gắn với đúng em/lớp/bài — để em xem chi phí AI của mình ở cổng học sinh.
+  tagAiUsageRefs({ studentId: previous.studentId, classId: previous.classId, assignmentId: previous.assignmentId, submissionId });
   const previousStatus = previous.status;
   const hadPreviousGrade = Boolean(previous.grade);
   const isStudentActor = !isTeacher;
@@ -892,6 +894,7 @@ const handlePractice = async (db: FirebaseFirestore.Firestore, body: Record<stri
   const linkSnap = await db.collection('studentLinks').doc(uid).get();
   if (!linkSnap.exists) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới lấy được bài luyện.' });
   const link = linkSnap.data() as { studentId: string; classId: string; teacherId: string };
+  tagAiUsageRefs({ studentId: link.studentId, classId: link.classId });
 
   const requestedSetId = typeof body.setId === 'string' ? body.setId.trim() : '';
   if (requestedSetId) {
@@ -1119,6 +1122,7 @@ const handleSubmitPractice = async (db: FirebaseFirestore.Firestore, body: Recor
   if (!linkSnap.exists) return res.status(403).json({ error: 'Chỉ học sinh đã đăng nhập mới nộp bài luyện.' });
   const link = linkSnap.data() as { studentId: string; classId: string; teacherId: string };
   setAiKeyOwner(link.teacherId);
+  tagAiUsageRefs({ studentId: link.studentId, classId: link.classId });
 
   const setId = typeof body.setId === 'string' ? body.setId.trim() : '';
   if (!setId) return res.status(400).json({ error: 'Thiếu mã bài luyện.' });

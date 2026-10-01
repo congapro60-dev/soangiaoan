@@ -8,6 +8,7 @@ import { buildStudentProgressSummary, studentActivityNextActionLabel, studentAct
 import { buildStudentSkillCards } from '../../../../lib/classroom/skillViewModel';
 import { StudentAssignmentCard } from './StudentAssignmentCard';
 import { StudentNotificationBell } from './StudentNotificationBell';
+import { StudentAiCostChip } from './StudentAiCostChip';
 import { StudentScoreBoard } from './StudentScoreBoard';
 import { StudentCompetencyPortfolio } from './StudentCompetencyPortfolio';
 import { NhanXetMarkdown } from '../NhanXetMarkdown';
@@ -247,6 +248,7 @@ export const StudentPortalDashboard = ({
             <p className="truncate text-sm font-black leading-tight text-slate-900">{session.studentName}</p>
             <p className="truncate text-xs font-semibold text-slate-400">{session.className}</p>
           </div>
+          <StudentAiCostChip />
           <StudentNotificationBell
             items={notifications}
             lastSeenAt={notificationsLastSeenAt}
