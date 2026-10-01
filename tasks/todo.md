@@ -1,3 +1,27 @@
+# Kế hoạch 2026-10-01: Sửa chấm sai từng câu (BTVN)
+
+Chủ dự án chốt: bài đã duyệt GIỮ đã duyệt khi sửa đáp án cả lớp; Đúng/Sai theo thang THPT
+(đúng 1 ý 0,1 · 2 ý 0,25 · 3 ý 0,5 · 4 ý trọn điểm câu).
+
+## Sự thật đã kiểm
+- "Sửa điểm" cũ chỉ sửa điểm tổng; bảng từng câu chỉ xem → em thấy bảng câu mâu thuẫn điểm tổng.
+- `grade.score` là điểm AI tự cộng, KHÔNG luôn bằng tổng điểm các câu (có bài AI quy đổi thang).
+- Chấm lại (nhanh/kĩ) ghi đè toàn bộ kết quả câu, kể cả chỗ GV đã sửa.
+
+## Làm
+- [x] `src/lib/classroom/questionRescore.ts` (thuần): nhận dạng trắc nghiệm / Đúng-Sai (1 ý hoặc cả câu) / trả lời ngắn,
+      chấm lại không cần AI; tính lại điểm tổng (bằng tổng câu, hoặc cộng phần chênh theo tỉ lệ khi AI quy đổi thang);
+      áp đáp án đã sửa; giữ câu GV đã sửa khi AI chấm lại. Test đủ ca.
+- [x] Hộp "Sửa điểm": bảng từng câu sửa được (Em làm / Đáp án / Điểm), câu khách quan tự chấm lại, tổng tự cộng.
+- [x] Máy chủ `saveSubmissionGrade` nhận `questionResults` (kiểm khớp câu, kẹp điểm), đánh dấu `teacherEdited`.
+- [x] "Sửa đáp án câu này cho cả lớp": lưu `answerKeyFixes` trên bài giao, chấm lại tất định câu đó ở mọi bài đã chấm,
+      câu tự luận → gắn cờ cần soát; bài đã duyệt giữ duyệt + đồng bộ lại hồ sơ; có lịch sử.
+- [x] AI chấm (lần sau/bài nộp muộn): prompt nhận đáp án đã sửa + áp lại tất định; giữ câu GV đã sửa.
+- [x] Prompt phòng ngừa: ô tô bị tẩy/gạch là huỷ, không chắc → needsTeacherReview; định dạng chuẩn
+      trắc nghiệm "C", Đúng/Sai "a) Đ; b) S; c) Đ; d) S", trả lời ngắn chỉ ghi số; thang THPT cho Đúng/Sai.
+- [ ] Test + lint + lint:api + build; HANDOFF; đẩy main; tự QA trên web thật.
+- [ ] (Sau) "AI chấm lại câu này" kèm lời dặn của GV cho câu tự luận.
+
 # Kế hoạch 2026-09-30: Báo cáo PH — "Điểm mạnh & cần rèn" theo YÊU CẦU CẦN ĐẠT
 
 Chủ dự án: rút gọn, viết chính xác bằng ngôn ngữ Toán học (gia sư/cố vấn đọc là biết con kém/tốt ở đâu);

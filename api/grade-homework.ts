@@ -76,6 +76,7 @@ import {
   type PracticeQuestionKey,
   type PracticeSetDoc,
   RECITATION_RETRY_KIND,
+  type AnswerKeyFix,
   type ProfileTopic,
   type SubmissionDoc,
   type SubmissionGrade,
@@ -91,6 +92,7 @@ const STUDENT_AI_PAUSED_MESSAGE = 'AI chấm của lớp đang tạm dừng. Bà
 import { commitAiGradeIfClaimed, removeSubmissionGradeEvidence } from './_grade-lifecycle.js';
 import { replaceSkillEvidenceAndRebuild } from './_skill-profile.js';
 import { canTeacherAccessLegacyNamespace } from './_classroom-access.js';
+import { reconcileAiGrade } from '../src/lib/classroom/questionRescore.js';
 
 /**
  * Chấm bài tập bằng khoá AI của chủ dự án + gateway GLM 5.2 (gộp chung một function để
@@ -282,6 +284,8 @@ interface GradeContext {
   assignmentImages: InlineImage[];
   /** Ảnh đáp án của giáo viên, gửi TRƯỚC ảnh bài làm. Tải một lần rồi dùng cho cả lô. */
   answerKeyImages: InlineImage[];
+  /** Đáp án từng câu thầy cô đã sửa sau khi chấm — đè đáp án gốc. */
+  answerKeyFixes: AnswerKeyFix[];
 }
 
 type GradingRecovery = {
@@ -343,6 +347,7 @@ const attemptHomeworkGrade = async (
     answerKeyImageCount: ctx.answerKeyImages.length,
     gradingInstructions: ctx.gradingInstructions,
     studentText: studentTextForGrading,
+    answerKeyFixes: ctx.answerKeyFixes,
   };
   const basePrompt = buildHomeworkGradingPrompt(promptInput);
   const prompt = retryCount === 0
@@ -466,7 +471,9 @@ const gradeOneSubmission = async (
         error instanceof GeminiResponseError && error.kind === 'recitation',
       );
     }
-    const { grade } = attempt;
+    // Hậu kiểm tất định: trắc nghiệm/Đúng-Sai tính lại theo đáp án, áp đáp án thầy cô đã sửa,
+    // giữ nguyên câu thầy cô đã soát tay ở lần trước.
+    const grade = reconcileAiGrade(attempt.grade, ctx.answerKeyFixes, previous.grade?.questionResults);
 
     // (a) AI chưa chắc thì KHÔNG chấm bừa: khi đọc quá không chắc (đa số câu không đọc được, hoặc
     // độ chắc chắn trung bình quá thấp) thì báo chụp lại / thầy cô chấm tay, KHÔNG phọt điểm sai.
@@ -635,6 +642,10 @@ const recoverStaleGradingSubmissions = async (
   return recovered;
 };
 
+const answerKeyFixesOf = (assignment: FirebaseFirestore.DocumentData): AnswerKeyFix[] => (
+  Array.isArray(assignment.answerKeyFixes) ? assignment.answerKeyFixes as AnswerKeyFix[] : []
+);
+
 /** Ngữ cảnh chấm (đáp án, hướng dẫn, ảnh đề) của một bài giao. */
 const gradeContextFor = async (assignment: FirebaseFirestore.DocumentData): Promise<GradeContext> => ({
   answerKey: String(assignment.answerKey || ''),
@@ -646,6 +657,7 @@ const gradeContextFor = async (assignment: FirebaseFirestore.DocumentData): Prom
   gradingInstructions: String(assignment.gradingInstructions || ''),
   assignmentImages: await loadAssignmentSourceImages(assignment),
   answerKeyImages: await loadAnswerKeyImages(assignment),
+  answerKeyFixes: answerKeyFixesOf(assignment),
 });
 
 const handleGradeAssignment = async (db: FirebaseFirestore.Firestore, body: Record<string, unknown>, res: VercelResponse) => {
@@ -777,6 +789,7 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
     gradingInstructions: '',
     assignmentImages: [],
     answerKeyImages: [],
+    answerKeyFixes: [],
   };
   if (submission.assignmentId) {
     const aSnap = await db.collection('assignments').doc(String(submission.assignmentId)).get();
@@ -798,6 +811,7 @@ const handleGradeOne = async (db: FirebaseFirestore.Firestore, body: Record<stri
         gradingInstructions: String(a.gradingInstructions || ''),
         assignmentImages: await loadAssignmentSourceImages(a),
         answerKeyImages: await loadAnswerKeyImages(a),
+        answerKeyFixes: answerKeyFixesOf(a),
       };
     }
   }

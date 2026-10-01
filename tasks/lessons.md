@@ -412,6 +412,7 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 ## 2026-09-30 — Chèn code bằng Python heredoc làm hỏng regex
 - Chuỗi Python thường (và printf trong bash) biến \b trong code chèn thành ký tự backspace (0x08) → regex /Lớp\s*(10|11|12)\b/ hỏng âm thầm, chỉ test mới lộ.
 - Luật: chèn code có dấu gạch ngược thì dùng Edit/Write hoặc node với String.fromCharCode; sau khi chèn đếm ký tự 0x08 trong file để dò.
+- Tái phạm 01/10: `.join('\\n')` trong heredoc Python ra dòng mới thật trong `gradingPrompt.ts`. Đoạn chèn nào có `\` → BẮT BUỘC dùng Edit/Write, kể cả khi phần còn lại chèn bằng Python.
 
 ## Vercel / Deploy
 

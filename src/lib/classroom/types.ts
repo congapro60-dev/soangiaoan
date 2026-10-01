@@ -263,6 +263,8 @@ export interface AssignmentDoc {
   answerKeyImageUrls?: string[];
   /** true khi đáp án do AI giải ra (giáo viên vẫn soát và sửa được trước khi giao). */
   answerKeyByAi?: boolean;
+  /** Đáp án từng câu thầy cô đã sửa sau khi chấm — đè lên đáp án gốc ở mọi lượt chấm sau. */
+  answerKeyFixes?: AnswerKeyFix[];
   /** Người tạo/cập nhật gần nhất; không thay đổi namespace teacherId legacy. */
   createdBy?: string;
   updatedBy?: string;
@@ -336,6 +338,15 @@ export interface QuestionResult {
   ignoredByTeacherInstruction?: boolean;
   /** true khi giáo viên cần xem lại vì dữ liệu mờ, thiếu hoặc AI không chắc. */
   needsTeacherReview: boolean;
+  /** true khi thầy cô đã soát tay câu này — AI chấm lại không được đè. */
+  teacherEdited?: boolean;
+}
+
+/** Thầy cô sửa đáp án MỘT câu sau khi đã chấm, áp cho cả lớp. */
+export interface AnswerKeyFix {
+  questionNumber: string;
+  expectedAnswer: string;
+  fixedAt: string;
 }
 
 export interface GradingRecovery {
@@ -378,7 +389,7 @@ export interface SubmissionGrade {
   transcription?: string;
 }
 
-export type SubmissionGradeRevisionAction = 'manual_edit' | 'approve' | 'delete' | 'automatic_regrade' | 'ai_regrade' | 'student_ai';
+export type SubmissionGradeRevisionAction = 'manual_edit' | 'approve' | 'delete' | 'automatic_regrade' | 'ai_regrade' | 'student_ai' | 'answer_key_fix';
 
 /** 'auto_timeout' = máy tự duyệt vì quá 60 phút giáo viên chưa duyệt. */
 export type ApprovalSource = 'student_ai' | 'teacher' | 'auto_timeout';

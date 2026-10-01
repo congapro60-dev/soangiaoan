@@ -5,6 +5,15 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+## Sửa chấm sai từng câu: GV soát bảng câu + sửa đáp án cho cả lớp — 2026-10-01
+
+Chủ dự án hỏi cách sửa khi máy chấm sai (tô rồi tẩy, đáp án máy sai, cả hướng dẫn chấm). Chốt: bài đã duyệt GIỮ duyệt khi sửa đáp án cả lớp; Đúng/Sai theo thang THPT (1 ý 0,1 · 2 ý 0,25 · 3 ý 0,5 · 4 ý trọn câu).
+- Lõi thuần `questionRescore.ts`: nhận dạng trắc nghiệm ("C") / Đúng-Sai ("a) Đ; b) S; …" hoặc 1 ý) / trả lời ngắn (một số) theo khuôn CHẶT — không khớp khuôn là tự luận, để người chấm. `recomputeTotal`: bảng câu đủ thang thì tổng = cộng câu, AI có quy đổi thang thì cộng phần chênh theo tỉ lệ.
+- Hộp "Sửa điểm" (`GradeReviewModal` + `QuestionResultsEditor`): mỗi câu sửa được Em làm / Đáp án / Điểm; câu khách quan tự tính lại, tổng tự cộng (vẫn sửa tay được). Câu GV đổi → `teacherEdited` (máy chủ `mergeTeacherQuestionResults` chỉ nhận trên khung bảng cũ, kẹp điểm). Sửa tay vẫn bỏ duyệt như cũ.
+- Đổi đáp án + tick "cả lớp" → action `fixAnswerKeyForClass`: lưu `assignment.answerKeyFixes`, tính lại câu đó ở mọi bài đã chấm (song song 6), câu không tự tính được → giữ điểm + `needsTeacherReview`; lịch sử `answer_key_fix`; bài đã duyệt đồng bộ lại hồ sơ. Khung đáp án bài giao hiện danh sách "Đáp án đã sửa sau khi chấm".
+- Lượt AI chấm sau đó: prompt có mục "ĐÁP ÁN THẦY CÔ ĐÃ SỬA", luật ô tô bị tẩy/gạch = huỷ (không chắc → ghi các lựa chọn + cần GV soát), khuôn ghi đáp án; `reconcileAiGrade` tính lại trắc nghiệm + Đúng/Sai 4 ý tất định, áp đáp án đã sửa, GIỮ câu GV đã soát.
+- Giới hạn: khớp câu theo tên (bỏ hoa/thường, dấu câu) — "Phần I - Câu 2" ≠ "Câu 2". Trả lời ngắn / Đúng-Sai 1 ý không tự tính sau lượt AI (bài tự luận hay có đáp số một con số mà vẫn đáng điểm cách làm). Chưa có "AI chấm lại một câu kèm lời dặn" cho tự luận.
+
 ## Thiết kế lại mẫu báo cáo phụ huynh (bản in + bản web điện thoại + minh họa) — 2026-10-01
 
 Chủ dự án nhờ đánh giá như chuyên gia thiết kế đồ họa giáo dục rồi sửa; thích kiểu phiếu IB của Dewey (logo trường + tiêu đề + hình minh họa lớn + biểu tượng từng mục). Nguồn: `parentReportPrintDoc.ts` (`buildParentReportPrintDoc(input, variant)`), `parentReportArt.ts` (SVG nhúng), `parentBranding.ts`.
@@ -63,19 +72,6 @@ Chủ dự án: rút gọn, viết chính xác bằng ngôn ngữ Toán học; s
 - **Cổng /lop chạy trên app Firebase riêng** (`STUDENT_PORTAL_APP` trong `src/lib/firebase.ts`, chọn theo `location.pathname` lúc nạp module): phiên ẩn danh HS lưu ở khoá `firebase:authUser:<apiKey>:student-portal`, không đè phiên Google GV. Phiên HS cũ (ẩn danh ở `[DEFAULT]`) được chép sang một lần → HS không phải nhập lại PIN. Vào /lop bằng điều hướng trong app → `StudentPortalPage` tự tải lại 1 lần. Đã thử dev: tách khoá đúng, chép phiên đúng, reload 1 lần không lặp. **Chưa làm:** chế độ HS của live lesson (`StudentLiveView`) vẫn chặn phiên GV (chung đường dẫn với GV nên không tách theo path được).
 - **Admin = 2 tài khoản của chủ dự án**: `ADMIN_EMAILS` thêm `cuong.vuviet@thedeweyschools.edu.vn`; `_ai-keys.ts` tra uid của mọi email admin (cache mỗi phiên máy chủ) → dùng khoá chung + miễn trừ ví như `exemptUids`. Dữ liệu (lớp, giáo án, cài đặt) VẪN tách theo từng tài khoản.
 - **Đọc Excel cho lịch năm học/PPCT** (`sheetText.ts` + `readWorkbookText`): ô lấy dạng hiển thị (ngày ra ngày, không ra số 46297), trang liên quan xếp trước rồi mới cắt theo giới hạn. File lịch thật 15 trang: AI (3.7-flash) ra 48 mục, tuần 1 = 17/8, đủ ngày nghỉ (31/8–2/9, 2/10, 24/11, 23/12–1/1, 22/1, Tết 3–10/2, 22/3, 16/4, 30/4, 3/5).
-
-## QA độc lập của Codex trên nhánh `feat/vi-ai-chip-popup` (10 lỗi) — 2026-09-30
-
-Codex QA commit `d6174de`: 4 lệnh kiểm tra qua, kết luận CHƯA duyệt, 10 lỗi. Đã sửa hết trừ F3 (ghi rõ bên dưới), mỗi lỗi có test tái hiện.
-- **F1 (cao) `_ai-keys.ts`:** đã bật kiểm soát mà đọc hồ sơ `teacherAiKeys` lỗi → trước đây nuốt thành `null` → người trong nhóm chọn "chỉ khoá riêng" bị coi như chưa chọn → suy ra "cả hai" → TRỪ VÍ trái ý. Nay ĐÓNG CỬA (ném lỗi) ở `ensureGeminiKey` và `assertSharedAiAllowed`; chưa bật kiểm soát thì giữ cách cũ.
-- **F2 (cao) relay:** kiểm hạn mức rồi mới cộng là hai bước rời → 3 lượt song song cùng qua. Nay GIỮ CHỖ trong `runTransaction` trước khi gọi Google, hoàn lại khi bị chặn 402, kèm **tối đa 3 lượt chạy cùng lúc/giáo viên** (`RELAY_MAX_INFLIGHT`; lượt treo quá 310s tự hết hiệu lực).
-- **F3 (cao, có từ trước) — ĐÃ SỬA cho mọi lượt Gemini đi qua `callGeminiRaw` (chấm bài + relay):** (a) **Giữ chỗ tiền** (`acquireCallHold`, `_ai-usage.ts`): trước khi gọi Google, lượt bị trừ ví giữ `min(1.000đ, còn lại)` trong `aiWallets.heldVnd` (giao dịch); lượt sau chỉ thấy phần còn lại; kiểm trần tháng cũng cộng phần đang giữ. Xong thì giữ chỗ được THAY bằng số tiền thật; lượt hỏng trước khi tính tiền thì trả lại; giữ chỗ treo quá 10 phút tự hết hiệu lực. Chỉ bị chặn vì lượt khác đang giữ chỗ (còn tiền thật) → CHỜ tối đa 8×1s rồi thử lại, không báo hết tiền oan (`AI_HOLD_RETRY_MS` chỉnh được). Ví chỉ âm đúng phần lượt VƯỢT quá phần giữ (thường 0), không còn nhân theo số lượt song song. (b) **Trừ tiền một giao dịch** (`settleUsage`): sổ lượt dùng + cộng chi tiêu + trừ ví ghi CÙNG LÚC — không còn trạng thái nửa vời khi lỗi giữa chừng (giao dịch hỏng thì không ai bị trừ, câu trả lời vẫn trả về, log lỗi). **Còn lại:** `generate-simulation`, cổng GLM (`_ai-gateway-handler`) và sinh ảnh (`_ai-image-handler`) chưa giữ chỗ (đã có hạn mức riêng: 10 lượt/phút, 100 lượt GLM/ngày…) nhưng ĐÃ trừ tiền bằng giao dịch mới; ví/trần vẫn có thể âm nhẹ ở ba đường này nếu chạy song song.
-- **F4 `_grading-core.ts`:** hạn chót MỘT lần cho cả lượt (kể cả lần gọi lại sau khi khoá riêng hỏng): trước đây mỗi lần gọi có đủ 270s nên hai lần vượt trần 300s của hàm.
-- **F5 Header:** ở 375px chip làm tràn ngang 399px → đã gọn (đệm nhỏ, tiêu đề cắt `…`, bỏ vạch ngăn ở màn nhỏ); đo lại `scrollWidth` = 375.
-- **F6 `aiModeStore`:** chế độ lạ/thiếu → `own` (trước đây suy ra `both` → relay). **F7 `useAiBillingStatus`:** phản hồi đến muộn/sau khi gỡ chip không được ghi đè chế độ mới (mốc `performance.now()` + số thứ tự yêu cầu).
-- **F8 `gemini.ts` (có từ trước):** luồng lỗi giữa chừng thử lại/đổi model từ đầu → in lặp cùng đoạn ~10 lần; nay đã có chữ thì ném lỗi ngay.
-- **F9 `AiWalletPanel`:** nhóm radio ARIA có bàn phím (mũi tên đổi lựa chọn, một điểm Tab). **F10 `models.ts`:** ngữ cảnh GPT-6.1 Sol / 6 Luna / 6 Astra = 1.050.000 (trang OpenAI), không phải 400.000.
-- Codex chưa kiểm được: số nạp tối thiểu và tín dụng thử NVIDIA (trang hỗ trợ chặn), các câu "gói tiêu dùng không kèm API" của từng hãng, contrast đầy đủ. Bundle chính 1.303 kB (Codex ghi baseline cũ 1.209 kB) — cảnh báo hiệu năng, chưa xử lý.
 
 ## Ví web cho MỌI tính năng Gemini — relay máy chủ (giai đoạn 3 của kế hoạch Ví AI) — 2026-09-30
 
