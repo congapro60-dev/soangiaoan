@@ -19,15 +19,11 @@ import type {
 } from '../src/lib/classroom/types.js';
 import {
   EMPTY_LOCK,
+  attemptPin,
   createPin,
   hashPin,
-  isLocked,
   isValidPinShape,
-  minutesUntilUnlock,
-  nextLockState,
   normalizeJoinCode,
-  verifyPin,
-  type LockState,
 } from './_classroom-core.js';
 import {
   removeSkillEvidenceAndRebuild,
@@ -1139,29 +1135,18 @@ const handleLogin = async (db: FirebaseFirestore.Firestore, body: Record<string,
   const studentSnap = await studentRef.get();
   if (!studentSnap.exists) return res.status(404).json({ error: 'Không tìm thấy học sinh trong lớp này.' });
 
-  const secretRef = classDoc.ref.collection('studentSecrets').doc(studentId);
-  const secretSnap = await secretRef.get();
-  if (!secretSnap.exists) {
+  const now = new Date();
+  // Đọc khoá + kiểm PIN + ghi khoá trong một giao dịch (xem attemptPin) — đoán PIN song song không né được khoá.
+  const attempt = await attemptPin(db, classDoc.ref.collection('studentSecrets').doc(studentId), pin, now);
+  if (attempt.status === 'missing') {
     return res.status(409).json({ error: 'Thầy cô chưa cấp mã PIN cho em. Báo thầy cô bấm "Cấp mã PIN" trong lớp.' });
   }
-
-  const secret = secretSnap.data() as { pinHash?: string } & Partial<LockState>;
-  const lock: LockState = {
-    failedAttempts: secret.failedAttempts ?? 0,
-    lockedUntil: secret.lockedUntil ?? null,
-  };
-  const now = new Date();
-
-  if (isLocked(lock, now)) {
+  if (attempt.status === 'locked') {
     return res.status(429).json({
-      error: `Sai mã PIN nhiều lần. Thử lại sau ${minutesUntilUnlock(lock, now)} phút, hoặc nhờ thầy cô cấp lại PIN.`,
+      error: `Sai mã PIN nhiều lần. Thử lại sau ${attempt.minutes} phút, hoặc nhờ thầy cô cấp lại PIN.`,
     });
   }
-
-  const ok = verifyPin(pin, String(secret.pinHash || ''));
-  await secretRef.set({ ...nextLockState(lock, ok, now), updatedAt: now.toISOString() }, { merge: true });
-
-  if (!ok) return res.status(401).json({ error: 'Mã PIN không đúng.' });
+  if (attempt.status === 'wrong') return res.status(401).json({ error: 'Mã PIN không đúng.' });
 
   const classData = classDoc.data();
   await db.collection('studentLinks').doc(uid).set({

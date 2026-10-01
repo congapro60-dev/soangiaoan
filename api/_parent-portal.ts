@@ -9,8 +9,7 @@
 import type { VercelResponse } from '@vercel/node';
 import { teacherContext } from './_classroom-teacher.js';
 import {
-  EMPTY_LOCK, createPin, hashPin, isLocked, isValidPinShape, minutesUntilUnlock, nextLockState, normalizeJoinCode, verifyPin,
-  type LockState,
+  EMPTY_LOCK, attemptPin, createPin, hashPin, isValidPinShape, normalizeJoinCode,
 } from './_classroom-core.js';
 import { REPORT_KINDS } from '../src/lib/classroom/reportKinds.js';
 import {
@@ -167,19 +166,13 @@ const handleParentReports = async (db: Db, body: Body, res: VercelResponse): Pro
   const studentSnap = await classDoc.ref.collection('students').doc(studentId).get();
   if (!studentSnap.exists) return void res.status(404).json({ error: 'Không tìm thấy học sinh trong lớp này.' });
 
-  const secretRef = classDoc.ref.collection(PARENT_SECRETS_SUB).doc(studentId);
-  const secretSnap = await secretRef.get();
-  if (!secretSnap.exists) return void res.status(409).json({ error: 'Thầy cô chưa cấp mã PIN phụ huynh cho em này. Nhờ thầy cô cấp mã.' });
-
-  const secret = secretSnap.data() as { pinHash?: string } & Partial<LockState>;
-  const lock: LockState = { failedAttempts: secret.failedAttempts ?? 0, lockedUntil: secret.lockedUntil ?? null };
-  const now = new Date();
-  if (isLocked(lock, now)) {
-    return void res.status(429).json({ error: `Nhập sai mã PIN nhiều lần. Thử lại sau ${minutesUntilUnlock(lock, now)} phút, hoặc nhờ thầy cô cấp lại mã.` });
+  // Đọc khoá + kiểm PIN + ghi khoá trong MỘT giao dịch: đoán PIN song song không né được khoá sai 5 lần.
+  const attempt = await attemptPin(db, classDoc.ref.collection(PARENT_SECRETS_SUB).doc(studentId), pin, new Date());
+  if (attempt.status === 'missing') return void res.status(409).json({ error: 'Thầy cô chưa cấp mã PIN phụ huynh cho em này. Nhờ thầy cô cấp mã.' });
+  if (attempt.status === 'locked') {
+    return void res.status(429).json({ error: `Nhập sai mã PIN nhiều lần. Thử lại sau ${attempt.minutes} phút, hoặc nhờ thầy cô cấp lại mã.` });
   }
-  const ok = verifyPin(pin, String(secret.pinHash || ''));
-  await secretRef.set({ ...nextLockState(lock, ok, now), updatedAt: now.toISOString() }, { merge: true });
-  if (!ok) return void res.status(401).json({ error: 'Mã PIN không đúng.' });
+  if (attempt.status === 'wrong') return void res.status(401).json({ error: 'Mã PIN không đúng.' });
 
   const reports = await classDoc.ref.collection(PARENT_REPORTS_SUB).where('studentId', '==', studentId).get();
   const items = reports.docs

@@ -420,3 +420,7 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 ## 2026-09-30 — Thêm lượt AI vào action của một hàm có maxDuration ngắn
 - Sai: gộp lượt AI mới (prompt dài, JSON, `model-max`) vào `api/classroom.ts` mà không xem `vercel.json` — hàm này trần 15s → production 504, test/CI không bắt được vì AI bị giả lập.
 - Luật: thêm/đổi lượt gọi AI trong `api/*` thì mở `vercel.json` xem `maxDuration` của hàm chứa nó; luôn truyền `timeoutMs` nhỏ hơn trần ~10s để trả lỗi rõ, và nghiệm thu bằng MỘT lượt thật trên production trước khi báo xong.
+
+## 2026-10-01 — Bộ đếm khoá PIN phải nằm trong giao dịch
+- Sai: cổng phụ huynh (và cổng HS có từ trước) đọc số lần sai → kiểm PIN → ghi lại ở 3 bước rời nhau. Gửi nhiều lượt đoán CÙNG LÚC thì mọi lượt cùng đọc "0 lần sai", bộ đếm chỉ lên 1, PIN 4 số dò hết được. Bản review của phiên khác bắt được, test tuần tự của mình không bắt.
+- Luật: mọi "đọc trạng thái → quyết định → ghi trạng thái" bảo vệ thứ nhạy cảm (khoá đăng nhập, hạn mức, số dư) dùng `db.runTransaction` — đã có `attemptPin` trong `api/_classroom-core.ts`. Test phải bắn song song bằng `Promise.all` (≥ ngưỡng + vài lượt) với giao dịch giả xếp hàng, không chỉ gọi lần lượt.

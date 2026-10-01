@@ -75,3 +75,33 @@ export const minutesUntilUnlock = (state: LockState, now: Date): number => {
 /** Mã vào lớp — phải khớp bảng chữ cái ở src/lib/classroom/joinCode.ts. */
 export const normalizeJoinCode = (raw: unknown): string =>
   String(raw ?? '').replace(/\s+/g, '').toUpperCase();
+
+export type PinAttempt =
+  | { status: 'missing' }
+  | { status: 'locked'; minutes: number }
+  | { status: 'wrong' }
+  | { status: 'ok' };
+
+/**
+ * Một lượt thử PIN: đọc khoá → kiểm PIN → ghi khoá trong MỘT giao dịch.
+ *
+ * Không có giao dịch thì nhiều lượt đoán gửi cùng lúc cùng đọc "0 lần sai", mỗi lượt chỉ ghi lên 1 —
+ * bộ đếm không bao giờ tới ngưỡng và PIN 4 số dò hết được. Giao dịch buộc các lượt xếp hàng; quá tải
+ * quá số lần thử lại thì ném lỗi (đóng cửa, không bao giờ cho qua).
+ */
+export const attemptPin = (
+  db: FirebaseFirestore.Firestore,
+  secretRef: FirebaseFirestore.DocumentReference,
+  pin: string,
+  now: Date,
+): Promise<PinAttempt> =>
+  db.runTransaction(async (tx): Promise<PinAttempt> => {
+    const snap = await tx.get(secretRef);
+    if (!snap.exists) return { status: 'missing' };
+    const secret = snap.data() as { pinHash?: string } & Partial<LockState>;
+    const lock: LockState = { failedAttempts: secret.failedAttempts ?? 0, lockedUntil: secret.lockedUntil ?? null };
+    if (isLocked(lock, now)) return { status: 'locked', minutes: minutesUntilUnlock(lock, now) };
+    const ok = verifyPin(pin, String(secret.pinHash || ''));
+    tx.set(secretRef, { ...nextLockState(lock, ok, now), updatedAt: now.toISOString() }, { merge: true });
+    return { status: ok ? 'ok' : 'wrong' };
+  });
