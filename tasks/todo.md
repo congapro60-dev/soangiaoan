@@ -9,14 +9,14 @@ số dòng phụ thuộc YCCĐ; tra CT GDPT 2018 + SGK Kết nối tri thức + 
 - Hiện tại danh sách lấy từ `profile.topics` (chữ tự do AI ghi mỗi lần chấm) → trùng ý, lẫn tầng, ~26 dòng.
 - Bằng chứng thật có sẵn: `grade.questionResults` (từng câu: status/score/errorType/explanation).
 
-## Làm
-- [ ] `src/lib/curriculum/yccdToan.ts` — YCCĐ lớp 10 (75 mục, lời CT; mục phép toán vectơ tách theo bài SGK). Lớp 11, 12 sau.
-- [ ] Facts gửi AI: bài đã duyệt trong kì → từng câu (token b1q2, % điểm, loại lỗi, giải thích ngắn).
-- [ ] AI (chung một lượt với nhận xét) trả JSON: nhận xét + ghép câu→YCCĐ + ghi chú lỗi/điểm mạnh bằng thuật ngữ.
+## Làm (xong 01/10 — QA Codex PASS; còn: YCCĐ lớp 11, 12)
+- [x] `src/lib/curriculum/yccdToan.ts` — YCCĐ lớp 10 (75 mục, lời CT; mục phép toán vectơ tách theo bài SGK). Lớp 11, 12 sau.
+- [x] Facts gửi AI: bài đã duyệt trong kì → từng câu (token b1q2, % điểm, loại lỗi, giải thích ngắn).
+- [x] AI (chung một lượt với nhận xét) trả JSON: nhận xét + ghép câu→YCCĐ + ghi chú lỗi/điểm mạnh bằng thuật ngữ.
       Máy chủ kiểm id YCCĐ/token, TỰ TÍNH mức từ điểm các câu làm căn cứ (≥80% vững, ≥50% đang hình thành, còn lại chưa đạt).
-- [ ] Lưu cùng nhận xét (`parentReportNotes`), GV sửa mức/ghi chú/xoá dòng; xuất cả lớp dùng bản đã lưu.
-- [ ] PDF: mục "Kết quả theo yêu cầu cần đạt" nhóm theo chủ đề; chưa có bản AI → danh sách cũ gộp trùng, tối đa 6.
-- [ ] Test + build + nghiệm thu trên web thật (Bảo Khánh, 10Olinda, tháng 9).
+- [x] Lưu cùng nhận xét (`parentReportNotes`), GV sửa mức/ghi chú/xoá dòng; xuất cả lớp dùng bản đã lưu.
+- [x] PDF: mục "Kết quả theo yêu cầu cần đạt" nhóm theo chủ đề; chưa có bản AI → danh sách cũ gộp trùng, tối đa 6.
+- [x] Test + build + nghiệm thu trên web thật (Bảo Khánh, 10Olinda, tháng 9).
 
 # Kế hoạch 2026-09-23: Quản trị + đếm token/chi phí + sổ điểm
 

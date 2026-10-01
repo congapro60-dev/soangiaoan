@@ -181,6 +181,7 @@ const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
 const UNREADABLE_HOMEWORK_MESSAGE = 'Không đọc được bài làm. Em thử chụp lại hoặc nộp lại file.';
 const UNCERTAIN_READ_MESSAGE = 'AI đọc chưa rõ bài này nên chưa chấm để tránh chấm sai. Em chụp lại rõ hơn (đủ sáng, chụp thẳng, mỗi trang một ảnh) rồi nộp lại, hoặc chờ thầy cô chấm tay.';
 const SAFE_GRADING_ERROR_MESSAGE = 'AI gặp lỗi định dạng khi đọc kết quả chấm. Bài và ảnh vẫn được giữ nguyên; hệ thống đã tự thử phục hồi. Thầy/cô có thể chấm lại bằng AI hoặc sửa điểm bằng tay.';
+const SYSTEM_GRADING_ERROR_MESSAGE = 'Chấm bài chưa thành công vì lỗi hệ thống. Bài và ảnh vẫn được giữ nguyên. Thầy/cô chấm lại sau ít phút hoặc sửa điểm bằng tay.';
 /** Khai tường minh thay vì dựa default của Vercel — Hobby cap ở 60s. */
 export const maxDuration = 60;
 /**
@@ -385,7 +386,10 @@ const isRetryableGradeAttemptError = (error: unknown): boolean =>
 const safeGradeErrorMessage = (error: unknown): string => {
   if (error instanceof GeminiResponseError) return error.message;
   if (error instanceof Error && (error.message === UNREADABLE_HOMEWORK_MESSAGE || error.message === UNCERTAIN_READ_MESSAGE)) return error.message;
-  return SAFE_GRADING_ERROR_MESSAGE;
+  // Nhãn "lỗi định dạng" chỉ đúng khi bộ đọc kết quả AI từ chối; mọi lỗi lạ khác (ghi Firestore,
+  // mạng...) mà mang nhãn này là đẩy giáo viên đi tìm sai hướng.
+  if (error instanceof HomeworkGradeContractError || error instanceof JsonRecoveryError) return SAFE_GRADING_ERROR_MESSAGE;
+  return SYSTEM_GRADING_ERROR_MESSAGE;
 };
 
 const gradeOneSubmission = async (
@@ -537,13 +541,19 @@ const gradeOneSubmission = async (
       throw error;
     }
     const safeMessage = safeGradeErrorMessage(error);
-    const rawMessage = error instanceof Error ? error.message : String(error);
+    // Kèm nguyên nhân gốc (lỗi mạng bị bọc thành câu chung ở lớp gọi Gemini) để lỗi thô còn lần ra được.
+    const rawMessage = error instanceof Error
+      ? `${error.message}${error.cause instanceof Error ? ` ← ${error.cause.name}: ${error.cause.message}` : ''}`
+      : String(error);
+    // Không có dòng này thì lượt chấm hỏng không để lại dấu vết nào: thông báo cho giáo viên là câu
+    // chung, còn nguyên nhân thật chỉ nằm trong biến `error` rồi mất.
+    console.error('[grade-homework] lượt chấm hỏng', { submissionId, hadPreviousGrade, error });
     // Regrade lỗi không được làm mất grade hợp lệ đang có. Luôn giữ status='graded'
     // khi đã có grade trước đó; chỉ chuyển sang error khi chưa từng có grade.
     const newStatus = hadPreviousGrade ? 'graded' : 'error';
     const newErrorMessage = hadPreviousGrade ? '' : safeMessage;
     const newLastGradingError = hadPreviousGrade ? safeMessage : undefined;
-    const newLastGradingErrorRaw = hadPreviousGrade ? rawMessage : undefined;
+    const newLastGradingErrorRaw = rawMessage;
     await restoreClaimIfOwned(db, claim, {
       status: newStatus,
       errorMessage: newErrorMessage,
