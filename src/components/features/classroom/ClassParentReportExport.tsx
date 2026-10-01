@@ -7,7 +7,8 @@ import { listAssignmentsForClass, listSubmissionsForClass } from '../../../lib/c
 import { draftParentReportComment, loadParentReportNote, loadScoreBook, publishParentReports, saveParentReportNote } from '../../../lib/classroom/teacherService';
 import { PUBLISH_CHUNK } from '../../../lib/classroom/parentAccess';
 import { requirementsInStage } from '../../../lib/classroom/parentRequirements';
-import { termsForPeriod } from '../../../lib/classroom/reportStage';
+import { stageForPeriod, type Program } from '../../../lib/classroom/reportStage';
+import { loadClassProgram, saveClassProgram } from '../../../lib/classroom/classProgram';
 import { brandingForReport, fileToLogoDataUrl, loadParentBranding, saveParentBranding, type ParentBranding } from '../../../lib/classroom/parentBranding';
 import { ClassParentAccessPanel } from './ClassParentAccessPanel';
 import { studentScoreView } from '../../../lib/classroom/scoreBook';
@@ -37,6 +38,12 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
   const [tienDo, setTienDo] = useState('');
   const [lanCongBo, setLanCongBo] = useState(0);
   const [nhanDien, setNhanDien] = useState<ParentBranding>(loadParentBranding);
+  const [chuongTrinh, setChuongTrinh] = useState<Program | null>(() => loadClassProgram(classId));
+  const doiChuongTrinh = (value: string) => {
+    const next: Program | null = value === 'TDS' || value === 'MOET' ? value : null;
+    setChuongTrinh(next);
+    saveClassProgram(classId, next);
+  };
   const doiNhanDien = (patch: Partial<ParentBranding>) => {
     const next = { ...nhanDien, ...patch };
     setNhanDien(next);
@@ -85,6 +92,7 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
             className,
             studentCode: hs.code,
             classGrade,
+            program: chuongTrinh,
             assignments,
             submissions: submissions.filter(s => s.studentId === hs.id),
             profile: profileSnap?.exists() ? (profileSnap.data() as StudentProfileDoc) : null,
@@ -92,10 +100,10 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
           }, ky);
           let ghi = await loadParentReportNote(key(hs.id)).catch(() => ({ text: '', requirements: [] }));
           if (!ghi.text && aiChoEmChuaCo) {
-            ghi = await draftParentReportComment(key(hs.id), built.facts);
+            ghi = await draftParentReportComment(key(hs.id), built.facts, chuongTrinh);
             await saveParentReportNote(key(hs.id), ghi).catch(() => undefined);
           }
-          const input = { ...built.printInput, teacherComment: ghi.text, requirements: requirementsInStage(ghi.requirements ?? [], classGrade, termsForPeriod(ky)), branding: brandingForReport(nhanDien) };
+          const input = { ...built.printInput, teacherComment: ghi.text, requirements: requirementsInStage(ghi.requirements ?? [], classGrade, stageForPeriod(ky, chuongTrinh)), branding: brandingForReport(nhanDien) };
           if (cheDo === 'zip') {
             zip.file(parentReportFileName(input), await exportParentReportToPdf(input, 'blob'));
           } else {
@@ -143,6 +151,14 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
         <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50">
           {nhanDien.logoDataUrl ? <img src={nhanDien.logoDataUrl} alt="Logo trường" className="h-6 w-6 object-contain" /> : <ImagePlus className="h-4 w-4" />} {nhanDien.logoDataUrl ? 'Đổi logo' : 'Tải logo trường'}
           <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={event => { void chonLogo(event.target.files?.[0]); event.target.value = ''; }} />
+        </label>
+        <label className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700">
+          Chương trình lớp
+          <select value={chuongTrinh ?? ''} onChange={event => doiChuongTrinh(event.target.value)} className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm font-bold">
+            <option value="">Chưa chọn</option>
+            <option value="TDS">TDS</option>
+            <option value="MOET">MOET</option>
+          </select>
         </label>
         {nhanDien.logoDataUrl && <button type="button" onClick={() => doiNhanDien({ logoDataUrl: '' })} title="Bỏ logo" className="rounded-xl p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600"><X className="h-4 w-4" /></button>}
       </div>

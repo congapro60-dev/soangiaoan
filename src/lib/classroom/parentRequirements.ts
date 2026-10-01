@@ -7,7 +7,7 @@
  * Module thuần — máy chủ (api/) và trình duyệt dùng chung.
  */
 import { yccdById, yccdForGrade, type YccdItem, type YccdStrand } from '../curriculum/yccdToan.js';
-import { inStage, termsOfSgk, type Term } from './reportStage.js';
+import { inStage, termsOfSgk, type ReportStage } from './reportStage.js';
 
 export type RequirementLevel = 'vung' | 'dang' | 'chua';
 
@@ -82,9 +82,9 @@ export const mapRequirementQuestions = (
   grade: unknown,
   evidence: readonly EvidenceSubmission[],
   draft: AiRequirementDraft,
-  terms?: readonly Term[] | null,
+  stage?: ReportStage | null,
 ): { item: YccdItem; questions: EvidenceQuestion[]; note: string }[] => {
-  const list = yccdInStage(grade, terms);
+  const list = yccdInStage(grade, stage);
   const known = new Set(list.map(item => item.id));
   const questions = new Map<string, EvidenceQuestion>();
   for (const submission of evidence) {
@@ -119,8 +119,8 @@ export const aggregateRequirementLines = (
   grade: unknown,
   evidence: readonly EvidenceSubmission[],
   draft: AiRequirementDraft,
-  terms?: readonly Term[] | null,
-): ParentRequirementLine[] => mapRequirementQuestions(grade, evidence, draft, terms).map(({ item, questions, note }) => {
+  stage?: ReportStage | null,
+): ParentRequirementLine[] => mapRequirementQuestions(grade, evidence, draft, stage).map(({ item, questions, note }) => {
   let got = 0;
   let max = 0;
   for (const question of questions) {
@@ -194,20 +194,20 @@ export const parentActionsForRequirements = (actions: readonly string[], lines: 
 /** Danh sách YCCĐ của khối, định dạng cho prompt: mỗi dòng "id | chủ đề: yêu cầu". */
 const gradeNumber = (grade: unknown): number => Number(String(grade ?? '').match(/\d+/)?.[0]);
 
-/** YCCĐ của khối thuộc giai đoạn (học kì) `terms`; `terms` null = không lọc. Xem `reportStage.ts`. */
-export const yccdInStage = (grade: unknown, terms?: readonly Term[] | null): readonly YccdItem[] => {
+/** YCCĐ của khối thuộc giai đoạn `stage` (học kì + chương trình); `stage` null = không lọc. Xem `reportStage.ts`. */
+export const yccdInStage = (grade: unknown, stage?: ReportStage | null): readonly YccdItem[] => {
   const list = yccdForGrade(grade);
-  return terms ? list.filter(item => inStage(termsOfSgk(gradeNumber(grade), item.sgk), terms)) : list;
+  return stage ? list.filter(item => inStage(termsOfSgk(gradeNumber(grade), item.sgk, stage.program), stage)) : list;
 };
 
 /** Bỏ các dòng yêu cầu cần đạt của giai đoạn khác (vd Hàm số bậc hai trong báo cáo tháng 9 lớp 10). */
-export const requirementsInStage = (lines: readonly ParentRequirementLine[], grade: unknown, terms?: readonly Term[] | null): ParentRequirementLine[] => {
-  if (!terms) return [...lines];
+export const requirementsInStage = (lines: readonly ParentRequirementLine[], grade: unknown, stage?: ReportStage | null): ParentRequirementLine[] => {
+  if (!stage) return [...lines];
   return lines.filter(line => {
     const item = yccdById(line.id);
-    return !item || inStage(termsOfSgk(gradeNumber(grade), item.sgk), terms);
+    return !item || inStage(termsOfSgk(gradeNumber(grade), item.sgk, stage.program), stage);
   });
 };
 
-export const yccdOptionsForPrompt = (grade: unknown, terms?: readonly Term[] | null): string =>
-  yccdInStage(grade, terms).map(item => `${item.id} | ${item.topic}: ${item.text}`).join('\n');
+export const yccdOptionsForPrompt = (grade: unknown, stage?: ReportStage | null): string =>
+  yccdInStage(grade, stage).map(item => `${item.id} | ${item.topic}: ${item.text}`).join('\n');

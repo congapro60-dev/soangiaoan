@@ -4,12 +4,22 @@
  *
  * Căn cứ (đối chiếu 01/10/2026): "26-27 Chiều dọc Toán THPT" (các bài của HK1 từng khối) và PPCT đóng sẵn trong app
  * `src/data/ppct/{tds,moet}-g{10,11,12}.json` (tuần dạy từng bài; mốc "Kiểm tra cuối HK1" ở tuần 18).
- * TDS và MOET xếp KHÁC nhau ở vài bài biên (khối 11: Bài 18–19; khối 12: Bài 12–14) → các bài đó tính cho CẢ hai học kì,
- * không ẩn nhầm cái lớp thực sự đã học. Bài không rõ bài số → không lọc.
+ * TDS và MOET xếp KHÁC nhau ở vài bài biên (khối 11: Bài 18–19; khối 12: Bài 12–14). Lớp đã chọn chương trình thì lọc
+ * theo chương trình đó; chưa chọn thì các bài biên tính cho CẢ hai học kì (không ẩn nhầm cái lớp thực sự đã học).
+ * Bài không rõ bài số → không lọc.
  */
 // Cố ý không import `reportPeriod` (kéo cả chuỗi file client vào máy chủ): chỉ cần kind + hai ngày.
 
 export type Term = 'HK1' | 'HK2';
+export type Program = 'TDS' | 'MOET';
+
+/** Giai đoạn để lọc: các học kì kì báo cáo chạm tới + chương trình của lớp (null = chưa chọn). */
+export interface ReportStage {
+  terms: readonly Term[];
+  program: Program | null;
+}
+
+export const asProgram = (value: unknown): Program | null => (value === 'TDS' || value === 'MOET' ? value : null);
 
 /** Năm bắt đầu năm học: từ tháng 8 tính là năm học mới (khớp `schoolYearStart` trong reportPeriod). */
 const schoolYearStart = (day: string): number => {
@@ -17,32 +27,37 @@ const schoolYearStart = (day: string): number => {
   return m >= 8 ? y : y - 1;
 };
 
-/** Bài SGK ≤ hk1Max chỉ thuộc HK1; ≥ hk2Min chỉ thuộc HK2; ở giữa là chương trình TDS/MOET xếp khác nhau → cả hai. */
-const BOUNDARY: Readonly<Record<number, { hk1Max: number; hk2Min: number }>> = {
-  10: { hk1Max: 14, hk2Min: 15 },
-  11: { hk1Max: 17, hk2Min: 20 },
-  12: { hk1Max: 11, hk2Min: 15 },
+const range = (from: number, to: number): number[] => Array.from({ length: to - from + 1 }, (_, i) => from + i);
+
+/** Các Bài SGK dạy trong HK1 theo PPCT từng chương trình (bài còn lại thuộc HK2). */
+const HK1_BAI: Readonly<Record<Program, Readonly<Record<number, readonly number[]>>>> = {
+  TDS: { 10: range(1, 14), 11: range(1, 19), 12: range(1, 13) },
+  // MOET khối 12 dạy Phương trình mặt phẳng (Bài 14) ở HK1 nhưng Tích phân (Bài 12–13) ở HK2.
+  MOET: { 10: range(1, 14), 11: range(1, 17), 12: [...range(1, 11), 14] },
 };
 
-const termsOfBai = (grade: number, bai: number): Term[] => {
-  const b = BOUNDARY[grade];
-  if (!b) return ['HK1', 'HK2'];
-  if (bai <= b.hk1Max) return ['HK1'];
-  if (bai >= b.hk2Min) return ['HK2'];
-  return ['HK1', 'HK2'];
-};
-
-const unionTerms = (grade: number, from: number, to: number): Term[] => {
+const termsOfBai = (grade: number, bai: number, program: Program | null): Term[] => {
+  const termIn = (p: Program): Term | null => {
+    const hk1 = HK1_BAI[p][grade];
+    return hk1 ? (hk1.includes(bai) ? 'HK1' : 'HK2') : null;
+  };
+  const wanted: readonly Program[] = program ? [program] : ['TDS', 'MOET'];
   const set = new Set<Term>();
-  for (let bai = Math.min(from, to); bai <= Math.max(from, to); bai += 1) termsOfBai(grade, bai).forEach(term => set.add(term));
+  for (const p of wanted) { const term = termIn(p); if (term) set.add(term); }
+  return set.size > 0 ? [...set] : ['HK1', 'HK2'];
+};
+
+const unionTerms = (grade: number, from: number, to: number, program: Program | null): Term[] => {
+  const set = new Set<Term>();
+  for (let bai = Math.min(from, to); bai <= Math.max(from, to); bai += 1) termsOfBai(grade, bai, program).forEach(term => set.add(term));
   return [...set];
 };
 
 /** "Bài 3–4" → học kì của các bài 3..4. Không có số bài (vd "Chương V") → null = không xác định. */
-export const termsOfSgk = (grade: number, sgk: string): Term[] | null => {
+export const termsOfSgk = (grade: number, sgk: string, program: Program | null = null): Term[] | null => {
   const numbers = [...String(sgk).matchAll(/\d+/g)].map(match => Number(match[0]));
   if (numbers.length === 0 || !/B[aà]i/i.test(sgk)) return null;
-  return unionTerms(grade, Math.min(...numbers), Math.max(...numbers));
+  return unionTerms(grade, Math.min(...numbers), Math.max(...numbers), program);
 };
 
 /** Phạm vi bài SGK của từng năng lực (khung năng lực `framework.ts`). Năng lực không có ở đây (vd ôn lớp dưới) → không lọc. */
@@ -67,9 +82,9 @@ const COMPETENCY_BAI: Readonly<Record<string, readonly [number, number]>> = {
 const gradeOfCompetencyId = (id: string): number => Number(id.match(/^g(\d+)-/)?.[1]);
 
 /** Học kì của một năng lực; null = không xác định (không bị lọc). */
-export const competencyTerms = (id: string): Term[] | null => {
-  const range = COMPETENCY_BAI[id];
-  return range ? unionTerms(gradeOfCompetencyId(id), range[0], range[1]) : null;
+export const competencyTerms = (id: string, program: Program | null = null): Term[] | null => {
+  const bai = COMPETENCY_BAI[id];
+  return bai ? unionTerms(gradeOfCompetencyId(id), bai[0], bai[1], program) : null;
 };
 
 /** Ngày cuối HK1 mặc định (khớp `defaultPeriod`): 15/1. GV có thể sửa ngày trong báo cáo kì; báo cáo cả năm không lọc. */
@@ -86,6 +101,12 @@ export const termsForPeriod = (period: { kind: string; from: string; to: string 
   return [...new Set<Term>([term(period.from), term(period.to)])];
 };
 
+/** Giai đoạn để lọc cho một kì báo cáo; `null` = không lọc gì (báo cáo cả năm). */
+export const stageForPeriod = (period: { kind: string; from: string; to: string } | null | undefined, program?: Program | null): ReportStage | null => {
+  const terms = termsForPeriod(period);
+  return terms ? { terms, program: program ?? null } : null;
+};
+
 /** `itemTerms` null (không xác định) hoặc không có giới hạn → luôn nằm trong giai đoạn. */
-export const inStage = (itemTerms: readonly Term[] | null, wanted: readonly Term[] | null | undefined): boolean =>
-  !wanted || !itemTerms || itemTerms.some(term => wanted.includes(term));
+export const inStage = (itemTerms: readonly Term[] | null, stage: ReportStage | null | undefined): boolean =>
+  !stage || !itemTerms || itemTerms.some(term => stage.terms.includes(term));
