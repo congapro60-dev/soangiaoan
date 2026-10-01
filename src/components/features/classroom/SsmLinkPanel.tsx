@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Download, Link2, Loader2, RefreshCw, Unlink } from 'lucide-react';
 import type { Student } from '../../../types';
-import { readSsmLink, saveSsmLink, ssmRequest } from '../../../lib/ssm/ssmBridge';
+import { pingSsmBridge, readSsmLink, saveSsmLink, ssmRequest } from '../../../lib/ssm/ssmBridge';
 import { getLinkedGoogleEmail } from '../../../lib/adminLink';
 import {
   guessSsmClass,
@@ -51,7 +51,7 @@ export const SsmLinkPanel = ({ classId, className, students, userEmail }: Props)
 
   const loadClasses = () => run('Đang đọc lớp trên SSM…', async () => {
     try {
-      await ssmRequest('ping');
+      await pingSsmBridge();
       setNeedInstall(false);
     } catch (err) {
       setNeedInstall(true);
