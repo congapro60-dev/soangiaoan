@@ -106,6 +106,8 @@ export const buildRequirementNotesPrompt = (groupsJson: string): string => [
   'hoặc "Lập đúng bảng biến thiên, xác định đúng đỉnh và trục đối xứng của parabol."',
   '- PHẢI KHỚP tỉ lệ điểm: dưới 50% → nêu lỗi cụ thể, không khen; từ 80% → nêu điều làm tốt (có thể thêm lỗi nhỏ còn lại);',
   '  ở giữa → nêu cả hai, lỗi trước. Một câu nhất quán, không tự mâu thuẫn.',
+  '- Chỉ khen kĩ năng/định lí có câu làm ĐÚNG chứng minh. Không khen chung chung ("áp dụng tốt các định lí…"), và không khen',
+  '  một kĩ năng mà có câu căn cứ bị mất điểm chính vì kĩ năng đó (vd. câu bị trừ vì chưa dùng định lí sin thì không được khen định lí sin).',
   '- Không nhắc số câu/số bài, không nêu đáp án đầy đủ, không dùng LaTeX hay markdown (viết kí hiệu bằng chữ hoặc Unicode: √, ², ≤, ∈, °).',
   '- Chỉ viết điều có trong dữ liệu; không có gì cụ thể thì để chuỗi rỗng.',
 ].join('\n');
