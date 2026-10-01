@@ -78,7 +78,7 @@ Chủ dự án chốt: ví web trả thêm Claude và ChatGPT (Grok/DeepSeek/NVI
 - Trình duyệt: `vendorRouteFor` (như Gemini), bọc `callAIOnce/callAIWithVision/callAIStream`; "cả hai" chỉ sang ví khi lỗi CỦA KHOÁ (hết tiền nạp, 401, 429), không phải quá tải.
 - **Lỗi từ GĐ3 đã sửa:** hơn 20 nơi (soạn giáo án, chấm bài, ra đề, chat…) chặn bằng "Vui lòng nhập API Key" khi `getActiveApiKey` rỗng → giáo viên chỉ dùng ví không bắt đầu được. Nay `getActiveApiKey` trả `WALLET_MANAGED_API_KEY` khi ví trả thay (chỉ để kiểm có/không, đừng dùng làm khoá gọi API).
 - Mô phỏng HTML + sinh ảnh nay giữ chỗ tiền như chấm bài (`acquireCallHoldWaiting`). GLM gateway CHƯA giữ chỗ.
-- **GLM 5.2 KHÔNG miễn phí như đã tưởng:** `assertSharedAiAllowed` gắn kế hoạch tính tiền nên lượt GLM bị trừ ví và đòi đồng ý tính phí. Và production CHƯA có `AI_GATEWAY_API_KEY` → GLM trả 500 "chưa được cấu hình". Chờ chủ dự án chốt chính sách.
+- **GLM 5.2 (chủ dự án chốt 01/10: GIỮ trừ ví):** `assertSharedAiAllowed` gắn kế hoạch tính tiền nên lượt GLM bị trừ ví và đòi đồng ý tính phí. Cài đặt nay nói rõ giá (≈590đ/giáo án) + `aiKeyStatus.gatewayReady` để báo thẳng khi máy chủ chưa bật. **Production CHƯA có `AI_GATEWAY_API_KEY`** → GLM trả 500 "chưa được cấu hình" (chủ dự án phải tạo khoá AI Gateway trên Vercel rồi gọi thử một lượt). GLM chưa giữ chỗ tiền.
 
 ## Chọn nguồn khoá AI: Riêng / Ví web / Cả hai (giai đoạn 2 của kế hoạch Ví AI) — 2026-09-30
 

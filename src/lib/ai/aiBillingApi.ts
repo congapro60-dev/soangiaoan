@@ -44,6 +44,8 @@ export interface AiKeyStatus {
   mode: AiKeyMode;
   /** Hãng khác Gemini (claude, openai) mà ví web đã bật. Máy chủ cũ không gửi trường này → coi như rỗng. */
   relayVendors?: Array<'claude' | 'openai'>;
+  /** GLM 5.2 đã bật trên máy chủ chưa. Máy chủ cũ không gửi trường này. */
+  gatewayReady?: boolean;
   blockedSubmissionIds: string[];
   balanceVnd: number;
   topupCode: string;

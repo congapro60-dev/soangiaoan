@@ -14,6 +14,8 @@ export interface AiModeSnapshot {
   gateEnabled: boolean;
   /** Hãng khác Gemini (claude, openai) mà máy chủ đã bật ví cho. Vắng = không hãng nào. */
   relayVendors?: readonly string[];
+  /** GLM 5.2 đã có khoá trên máy chủ chưa (vắng = chưa biết). */
+  gatewayReady?: boolean;
 }
 
 let snapshot: AiModeSnapshot | null = null;
@@ -31,7 +33,7 @@ export const setAiModeSnapshot = (next: AiModeSnapshot | null, requestedAt?: num
   if (requestedAt !== undefined && requestedAt <= lastSetAt) return;
   lastSetAt = performance.now();
   const vendorsKey = (value: AiModeSnapshot | null) => (value?.relayVendors ?? []).join(',');
-  const unchanged = snapshot === next || (snapshot && next && snapshot.mode === next.mode && snapshot.gateEnabled === next.gateEnabled && vendorsKey(snapshot) === vendorsKey(next));
+  const unchanged = snapshot === next || (snapshot && next && snapshot.mode === next.mode && snapshot.gateEnabled === next.gateEnabled && vendorsKey(snapshot) === vendorsKey(next) && snapshot.gatewayReady === next.gatewayReady);
   if (unchanged) return;
   snapshot = next;
   listeners.forEach(listener => listener());

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { aiModeOptions, needsConsent, sourceStates, vendorWalletHint, walletScopeText } from './aiModeView';
+import { aiModeOptions, glmWalletNotice, needsConsent, sourceStates, vendorWalletHint, walletScopeText } from './aiModeView';
 
 describe('chế độ nguồn khoá — phần hiển thị', () => {
   it('ba lựa chọn theo đúng thứ tự, mô tả ví khác cho tài khoản được miễn', () => {
@@ -45,5 +45,26 @@ describe('ví web trả cho hãng AI nào — câu chữ', () => {
     expect(vendorWalletHint('openai', ['claude'])).toBeNull();
     expect(vendorWalletHint('grok', ['claude', 'openai'])).toBeNull();
     expect(vendorWalletHint('claude', undefined)).toBeNull();
+  });
+});
+
+describe('GLM 5.2 — lời nhắc giá ở Cài đặt', () => {
+  it('nói rõ trừ ví, giá theo bảng giá và ước tính một giáo án; không còn câu "key chung trên biến môi trường"', () => {
+    const { text, warning } = glmWalletNotice(true, '2026-10-01');
+    expect(text).toContain('TRỪ VÍ');
+    expect(text).toContain('$0.5625 vào · $1.8 ra');
+    expect(text).toContain('khoảng 590đ cho một giáo án'); // 8.000 vào + 10.000 ra, 26.000đ/USD = 585đ, làm tròn chục
+    expect(text).toContain('đồng ý tính phí');
+    expect(warning).toBeNull();
+  });
+
+  it('máy chủ chưa bật GLM thì cảnh báo thẳng; chưa biết (máy chủ cũ) thì không cảnh báo nhầm', () => {
+    expect(glmWalletNotice(false).warning).toContain('chưa bật GLM 5.2');
+    expect(glmWalletNotice(undefined).warning).toBeNull();
+  });
+
+  it('trang ví nhắc GLM cũng trừ ví', () => {
+    expect(walletScopeText(undefined)).toContain('GLM 5.2');
+    expect(walletScopeText(['claude'])).toContain('GLM 5.2');
   });
 });

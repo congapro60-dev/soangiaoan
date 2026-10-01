@@ -55,7 +55,7 @@ export const AiWalletPanel = ({ compact = false, onStatus }: Props) => {
   const radioRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const apply = useCallback((next: AiKeyStatus) => {
-    setAiModeSnapshot({ mode: next.mode, gateEnabled: next.gateEnabled, relayVendors: next.relayVendors });
+    setAiModeSnapshot({ mode: next.mode, gateEnabled: next.gateEnabled, relayVendors: next.relayVendors, gatewayReady: next.gatewayReady });
     setStatus(next);
     onStatus?.(next);
   }, [onStatus]);

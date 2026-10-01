@@ -33,7 +33,7 @@ export const useAiBillingStatus = (): { status: AiKeyStatus | null; refresh: () 
       // Đã gỡ chip (đăng xuất) hoặc có phản hồi mới hơn rồi thì không được ghi lại chế độ cũ (QA F7).
       if (!mounted.current || ticket < seq.current.applied) return;
       seq.current.applied = ticket;
-      setAiModeSnapshot({ mode: next.mode, gateEnabled: next.gateEnabled, relayVendors: next.relayVendors }, startedAt);
+      setAiModeSnapshot({ mode: next.mode, gateEnabled: next.gateEnabled, relayVendors: next.relayVendors, gatewayReady: next.gatewayReady }, startedAt);
       setStatus(next);
     } catch {
       // Giữ số cũ.

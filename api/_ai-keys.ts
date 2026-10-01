@@ -29,6 +29,7 @@ import {
 } from '../src/lib/admin/aiKeyPolicy.js';
 import { ADMIN_EMAILS } from '../src/lib/admin/adminConfig.js';
 import { enabledRelayVendors } from './_ai-relay-core.js';
+import { resolveGatewayApiKey } from './_ai-gateway-core.js';
 
 type Db = FirebaseFirestore.Firestore;
 type Body = Record<string, unknown>;
@@ -304,6 +305,8 @@ const statusPayload = async (db: Db, uid: string, email: string): Promise<Record
     keyStatusAt: keyDoc?.keyStatusAt ?? null,
     /** Hãng khác Gemini mà ví web trả được (đã cấu hình khoá trên máy chủ). */
     relayVendors: enabledRelayVendors(),
+    /** GLM 5.2 (Vercel AI Gateway) đã có khoá trên máy chủ chưa — chưa có thì GLM trả lỗi "chưa được cấu hình". */
+    gatewayReady: Boolean(resolveGatewayApiKey()),
     consent: keyDoc?.consent?.accepted === true,
     consentAt: keyDoc?.consent?.acceptedAt ?? null,
     /** Chế độ THỰC SỰ áp dụng (chọn ví mà chưa đồng ý tính phí thì vẫn là 'own'). */
