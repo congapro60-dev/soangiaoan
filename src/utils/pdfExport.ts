@@ -14,9 +14,9 @@ export interface PdfExportOptions {
   /** 'save' (mặc định) tải file về; 'blob' trả file để gói nhiều báo cáo vào một ZIP. */
   output?: 'save' | 'blob';
   /**
-   * Trang được "giãn" tối đa bao nhiêu lần chiều cao để không cắt ngang một khối nhỏ (mặc định 1.05).
-   * Phần giãn lấn vào lề dưới — muốn số trang không bị đè thì giữ phần giãn nhỏ hơn khoảng trống lề trên số trang.
-   * Khi đặt, trần này áp cho CẢ trang bắt đầu giữa một khối (mặc định cũ cho kéo tới 2 lần trang → tràn khỏi giấy).
+   * Trang được "giãn" tối đa bao nhiêu lần chiều cao để không cắt ngang một khối (áp cho mọi lát, kể cả trang bắt đầu giữa khối).
+   * Phần giãn lấn vào lề dưới. Bỏ trống: tự tính phần lề còn trống phía trên số trang (tối đa 1.05),
+   * và chỗ cắt rơi đúng giới hạn trang (vd. giữa khối cao quá trang) được lùi lên khe trống giữa hai dòng.
    */
   maxStretch?: number;
   /** Khoảng cách từ mép dưới giấy tới chân số trang, mm (mặc định: giữa lề dưới). */
@@ -93,7 +93,8 @@ function buildForbiddenZones(
  * 2. If page is already ≥ 60% full → break before the zone (push to next page).
  * 3. If page is < 60% full and stretch isn't viable → accept natural break.
  *    Better to clip a row than to throw away half a page of paper.
- * 4. If zone started before this page (we're mid-zone) → extend to z.end if reasonable.
+ * 4. If zone started before this page (we're mid-zone) → extend to z.end if it fits within maxStretch,
+ *    otherwise split inside it (a slice taller than the page would be cropped off the paper).
  * 5. Zone larger than 1.5 pages — can't keep whole, accept natural break.
  */
 export function findBreakPoint(
@@ -102,8 +103,6 @@ export function findBreakPoint(
   sliceHeightPx: number,
   zones: Zone[],
   maxStretch = 1.05,
-  /** Trang bắt đầu GIỮA một khối được kéo tới cuối khối nếu không quá chừng này lần chiều cao trang. */
-  midZoneMax = 2.0,
 ): number {
   if (naturalBreak <= 0) return naturalBreak;
 
@@ -136,10 +135,9 @@ export function findBreakPoint(
       return naturalBreak;
     } else {
       // Zone started before current page (we're already inside it — pushed here from prev break).
-      // Extend to z.end to avoid splitting a row mid-content.
-      // Allow up to 2x page height so tall multi-paragraph rows are not cut.
-      // Lưu ý: lát cao hơn trang thì phần dưới bị cắt khỏi giấy — người gọi muốn chắc chắn thì đặt `maxStretch`.
-      if (z.end - pageStart <= sliceHeightPx * midZoneMax) {
+      // Extend to z.end only within maxStretch: một lát cao hơn trang bị vẽ tràn khỏi giấy, mất phần dưới
+      // và đè số trang (trước đây cho kéo tới 2 lần trang). Khối cao hơn thế thì đành cắt trong khối.
+      if (z.end - pageStart <= sliceHeightPx * maxStretch) {
         return z.end;
       }
       return naturalBreak;
@@ -147,6 +145,36 @@ export function findBreakPoint(
   }
 
   return naturalBreak;
+}
+
+/**
+ * Lùi điểm cắt `breakAt` lên giữa khe trống gần nhất (≥ `minRun` hàng pixel giống hệt nhau liên tiếp — khoảng
+ * giữa hai dòng chữ; viền dọc của khung/bảng không làm hỏng vì mọi hàng trong khe đều có cùng viền).
+ * `rows` là RGBA của các hàng [breakAt − rows.length/(4·width), breakAt). Không có khe → giữ `breakAt`.
+ */
+export function snapBreakToRowGap(rows: Uint8ClampedArray, width: number, breakAt: number, minRun: number): number {
+  const px = new Uint32Array(rows.buffer, rows.byteOffset, rows.byteLength >> 2);
+  const height = px.length / width;
+  const sameAsBelow = (r: number) => {
+    for (let x = 0, a = r * width, b = a + width; x < width; x++) if (px[a + x] !== px[b + x]) return false;
+    return true;
+  };
+  // run = số hàng liên tiếp giống hàng ngay dưới, đếm từ dưới lên; khe gồm run + 1 hàng.
+  let run = 0;
+  for (let r = height - 2; r >= 0; r--) {
+    if (sameAsBelow(r)) run++;
+    else {
+      if (run + 1 >= minRun) return breakAt - height + r + 1 + Math.floor((run + 1) / 2);
+      run = 0;
+    }
+  }
+  return breakAt;
+}
+
+/** Trần giãn mặc định: phần lề dưới còn trống phía trên số trang (chữ cỡ 13 cao ~4.5mm + 1.5mm hở), tối đa 1.05. */
+export function defaultMaxStretch(usableHeightMm: number, bottomMarginMm: number, pageNumberFromBottomMm: number): number {
+  const room = bottomMarginMm - (pageNumberFromBottomMm + 6);
+  return Math.min(1.05, 1 + Math.max(0, room) / usableHeightMm);
 }
 
 const markExamQuestionBlocks = (element: HTMLElement): (() => void) => {
@@ -177,7 +205,7 @@ export const exportElementToPdf = async (
     noBreakSelectors = ['.pdf-no-break-question', '.exam-question', '.question-block', '.exam-figure', '.exam-svg', '.variation-table', 'img', 'svg', 'table', 'tr', 'h1', 'h2', 'h3', 'h4'],
     orientation = 'portrait',
     output = 'save',
-    maxStretch = 1.05,
+    maxStretch,
     pageNumberFromBottomMm,
   } = options;
 
@@ -222,9 +250,24 @@ export const exportElementToPdf = async (
     const [mTop, mRight, mBottom, mLeft] = marginMm;
     const usableWidth = pageWidth - mLeft - mRight;
     const usableHeight = pageHeight - mTop - mBottom;
+    const numberFromBottom = pageNumberFromBottomMm ?? mBottom / 2;
+    const stretch = maxStretch ?? defaultMaxStretch(usableHeight, mBottom, numberFromBottom);
 
     // How many canvas pixels correspond to one PDF page of usable height
     const sliceHeightPx = Math.floor(usableHeight * (canvas.width / usableWidth));
+
+    // Chỗ cắt rơi đúng giới hạn trang (không phải mép một khối) có thể cắt đôi một dòng chữ → lùi lên khe giữa hai dòng.
+    // Báo cáo PH tự đặt `maxStretch` và đã nghiệm thu riêng, giữ nguyên cách cắt của nó.
+    const snapToLineGap = (breakAt: number): number => {
+      if (maxStretch !== undefined || breakAt >= canvas.height) return breakAt;
+      const windowPx = Math.floor(sliceHeightPx * 0.15);
+      try {
+        const rows = canvas.getContext('2d')!.getImageData(0, breakAt - windowPx, canvas.width, windowPx).data;
+        return snapBreakToRowGap(rows, canvas.width, breakAt, Math.max(2, Math.round(3 * scale)));
+      } catch {
+        return breakAt; // canvas bẩn (ảnh khác nguồn) → không đọc được điểm ảnh
+      }
+    };
 
     if (canvas.height <= sliceHeightPx) {
       // Everything fits on one page
@@ -238,10 +281,8 @@ export const exportElementToPdf = async (
 
       while (pageStart < canvas.height) {
         const naturalBreak = pageStart + sliceHeightPx;
-        const breakAt = Math.min(
-          findBreakPoint(naturalBreak, pageStart, sliceHeightPx, zones, maxStretch, options.maxStretch === undefined ? 2.0 : maxStretch),
-          canvas.height
-        );
+        const chosen = findBreakPoint(naturalBreak, pageStart, sliceHeightPx, zones, stretch);
+        const breakAt = Math.min(chosen === naturalBreak ? snapToLineGap(chosen) : chosen, canvas.height);
 
         let sliceHeight = breakAt - pageStart;
         if (sliceHeight <= 0) {
@@ -281,7 +322,7 @@ export const exportElementToPdf = async (
       pdf.setFontSize(13);
       for (let i = 2; i <= totalPages; i++) {
         pdf.setPage(i);
-        pdf.text(String(i), pageWidth / 2, pageHeight - (pageNumberFromBottomMm ?? mBottom / 2), { align: 'center' });
+        pdf.text(String(i), pageWidth / 2, pageHeight - numberFromBottom, { align: 'center' });
       }
     }
 
