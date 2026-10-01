@@ -10,7 +10,9 @@ import { removeEvidence } from '../src/lib/classroom/profileMerge.js';
 import { mergeSubmissionEvidence } from '../src/lib/classroom/submissionRevision.js';
 import { buildHomeworkSkillEvidence } from '../src/lib/learning/skillProfile.js';
 import { buildManualGrade, type ManualGradeInput } from '../src/lib/classroom/manualGrade.js';
+import { applyAnswerKeyFixes, questionKey, recomputeTotal } from '../src/lib/classroom/questionRescore.js';
 import type {
+  AnswerKeyFix,
   ProfileTopic,
   StudentActivityExportBundle,
   StudentAssignmentView,
@@ -66,6 +68,7 @@ import { handleSepayWebhook } from './_ai-wallet.js';
  *   POST { action: 'createSupplementSubmission', submission, idToken } → tạo revision ghép bài
  *   POST { action: 'deleteSubmission', submissionId, idToken } → xoá bài nộp và file Storage
  *   POST { action: 'saveSubmissionGrade', submissionId, grade, idToken } → lưu chấm tay
+ *   POST { action: 'fixAnswerKeyForClass', assignmentId, questionNumber, expectedAnswer, idToken } → sửa đáp án 1 câu, tính lại cả lớp
  *   POST { action: 'deleteSubmissionGrade', submissionId, idToken } → xoá kết quả chấm, giữ bài nộp
  *   POST { action: 'approveSubmissionGrade', submissionId, approved, idToken } → duyệt/bỏ duyệt
  *   POST { action: 'deleteAssignment', assignmentId, idToken } → xoá bài giao và file đề
@@ -348,7 +351,11 @@ const gradeInputFromBody = (value: unknown): ManualGradeInput | null => {
   const teacherNote = typeof raw.teacherNote === 'string' ? raw.teacherNote.trim() : '';
   if (!Number.isFinite(score) || !Number.isFinite(maxScore) || maxScore <= 0 || score < 0 || score > maxScore) return null;
   if (feedback.length > 12000 || teacherNote.length > 6000 || weakTopics.length > 50 || weakTopics.some(topic => topic.length > 200)) return null;
-  return { score, maxScore, feedback, weakTopics, teacherNote };
+  // Bảng câu chỉ được đè lên khung bảng cũ (xem mergeTeacherQuestionResults) — ở đây chỉ chặn cỡ.
+  const questionResults = Array.isArray(raw.questionResults) && raw.questionResults.length <= 300
+    ? raw.questionResults as ManualGradeInput['questionResults']
+    : undefined;
+  return { score, maxScore, feedback, weakTopics, teacherNote, ...(questionResults ? { questionResults } : {}) };
 };
 
 const readOwnedSubmission = async (
@@ -468,6 +475,92 @@ const handleSaveSubmissionGrade = async (
     }
   }
   return res.status(200).json({ saved: true, submissionId: owned.submissionId, historyId });
+};
+
+/**
+ * Thầy cô sửa đáp án MỘT câu cho cả lớp. Lưu vào bài giao (lượt chấm sau và bài nộp muộn dùng
+ * luôn), rồi tính lại câu đó ở mọi bài đã chấm — trắc nghiệm / Đúng-Sai / trả lời ngắn tính tất
+ * định, câu tự luận giữ điểm và gắn cờ cần soát. Bài đã duyệt GIỮ duyệt (chủ dự án chốt 01/10)
+ * và hồ sơ được đồng bộ lại theo điểm mới.
+ */
+const FIX_CONCURRENCY = 6;
+
+const handleFixAnswerKeyForClass = async (
+  db: FirebaseFirestore.Firestore,
+  body: Record<string, unknown>,
+  res: VercelResponse,
+) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Cần đăng nhập bằng tài khoản giáo viên.' });
+  const assignmentId = typeof body.assignmentId === 'string' ? body.assignmentId.trim() : '';
+  const questionNumber = typeof body.questionNumber === 'string' ? body.questionNumber.trim() : '';
+  const expectedAnswer = typeof body.expectedAnswer === 'string' ? body.expectedAnswer.trim() : '';
+  if (!assignmentId || !questionNumber || questionNumber.length > 200 || !expectedAnswer || expectedAnswer.length > 4000) {
+    return res.status(422).json({ error: 'Thiếu bài giao, số câu hoặc đáp án mới.' });
+  }
+  const assignmentRef = db.collection('assignments').doc(assignmentId);
+  const assignmentSnap = await assignmentRef.get();
+  const assignment = assignmentSnap.exists ? assignmentSnap.data() || {} : null;
+  if (!assignment) return res.status(404).json({ error: 'Không tìm thấy bài giao.' });
+  if (!await teacherCanAccessClass(db, uid, assignment.classId, assignment.teacherId)) {
+    return res.status(403).json({ error: 'Bạn không có quyền sửa đáp án bài này.' });
+  }
+
+  const now = new Date().toISOString();
+  const fix: AnswerKeyFix = { questionNumber, expectedAnswer, fixedAt: now };
+  const key = questionKey(questionNumber);
+  const previousFixes = Array.isArray(assignment.answerKeyFixes) ? assignment.answerKeyFixes as AnswerKeyFix[] : [];
+  await assignmentRef.update({
+    answerKeyFixes: [...previousFixes.filter(f => questionKey(f.questionNumber) !== key), fix],
+    updatedAt: now,
+    updatedBy: uid,
+  });
+
+  const snap = await db.collection('submissions').where('assignmentId', '==', assignmentId).get();
+  let updated = 0;
+  let needsReview = 0;
+  let busy = 0;
+  let syncFailed = 0;
+  const fixOne = async (doc: FirebaseFirestore.QueryDocumentSnapshot) => {
+    const submission = { ...doc.data(), id: doc.id } as SubmissionDoc;
+    if (submission.classId !== assignment.classId || !submission.grade?.questionResults?.length) return;
+    if (submission.status === 'grading') { busy += 1; return; }
+    const out = applyAnswerKeyFixes(submission.grade.questionResults, [fix]);
+    if (!out.changed) return;
+    const grade: SubmissionGrade = {
+      ...submission.grade,
+      questionResults: out.rows,
+      score: recomputeTotal(submission.grade, out.rows),
+      gradedAt: now,
+    };
+    try {
+      await commitSubmissionGradeChange(db, doc.ref, submission, 'answer_key_fix', uid, { ...submission, grade, updatedAt: now }, now);
+    } catch (error) {
+      if (error instanceof GradeLifecycleConflictError) { busy += 1; return; }
+      throw error;
+    }
+    updated += 1;
+    needsReview += out.needsReview;
+    if (grade.teacherApproved !== true) return;
+    try {
+      await syncApprovedGradeEvidence(db, {
+        submissionId: doc.id,
+        assignmentId,
+        grade,
+        owner: { studentId: submission.studentId, classId: submission.classId, teacherId: submission.teacherId },
+        now,
+        approved: true,
+      });
+    } catch (error) {
+      syncFailed += 1;
+      const message = error instanceof Error ? error.message : 'Đồng bộ minh chứng thất bại';
+      await doc.ref.update({ evidenceSyncError: message }).catch(() => undefined);
+    }
+  };
+  for (let i = 0; i < snap.docs.length; i += FIX_CONCURRENCY) {
+    await Promise.all(snap.docs.slice(i, i + FIX_CONCURRENCY).map(fixOne));
+  }
+  return res.status(200).json({ updated, needsReview, busy, syncFailed });
 };
 
 const handleDeleteSubmissionGrade = async (
@@ -1464,6 +1557,7 @@ async function dispatchClassroom(res: VercelResponse, body: ReturnType<typeof re
     if (action === 'createSupplementSubmission') return await handleCreateSupplementSubmission(db, body, res);
     if (action === 'deleteSubmission') return await handleDeleteSubmission(db, body, res);
     if (action === 'saveSubmissionGrade') return await handleSaveSubmissionGrade(db, body, res);
+    if (action === 'fixAnswerKeyForClass') return await handleFixAnswerKeyForClass(db, body, res);
     if (action === 'deleteSubmissionGrade') return await handleDeleteSubmissionGrade(db, body, res);
     if (action === 'approveSubmissionGrade') return await handleApproveSubmissionGrade(db, body, res);
     if (action === 'retryEvidenceSync') return await handleRetryEvidenceSync(db, body, res);

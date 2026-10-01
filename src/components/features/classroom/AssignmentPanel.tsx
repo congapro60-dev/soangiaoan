@@ -14,6 +14,7 @@ import {
   updateAssignmentContent,
   updateAssignmentDeadline,
   updateSubmissionGradeManually,
+  suaDapAnCaLop,
   uploadAnswerKeyImages,
   uploadAssignmentFiles,
   uploadAssignmentImages,
@@ -1324,8 +1325,21 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
         feedback: value.feedback,
         weakTopics: value.weakTopics,
         teacherNote: value.teacherNote,
+        questionResults: value.questionResults,
       });
-      showToast(`Đã lưu chấm tay cho ${dang.tenHocSinh}; cần duyệt lại kết quả.`, 'success');
+      // Đáp án gốc sai thì cả lớp cùng bị: tính lại câu đó ở mọi bài, không bắt thầy cô mở từng bài.
+      const assignmentId = dang.submission.assignmentId;
+      const caLop: string[] = [];
+      for (const fix of assignmentId ? value.classFixes : []) {
+        const kq = await suaDapAnCaLop(assignmentId as string, fix.questionNumber, fix.expectedAnswer);
+        caLop.push(`${fix.questionNumber}: tính lại ${kq.updated} bài`
+          + (kq.needsReview > 0 ? `, ${kq.needsReview} bài cần soát tay` : '')
+          + (kq.busy > 0 ? `, ${kq.busy} bài đang chấm nên chưa áp` : ''));
+      }
+      showToast(
+        `Đã lưu chấm tay cho ${dang.tenHocSinh}; cần duyệt lại kết quả.${caLop.length ? ` Sửa đáp án cả lớp — ${caLop.join('; ')}.` : ''}`,
+        'success',
+      );
       setDangChamLai(null);
       await taiBai();
     } catch (error) {
@@ -1678,6 +1692,14 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                         placeholder="Chưa có đáp án. AI sẽ phải tự đọc đề trong ảnh từng em rồi tự giải."
                         className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
                       />
+                      {(a.answerKeyFixes || []).length > 0 && (
+                        <div className="mt-2 rounded-2xl bg-violet-50 px-3 py-2 ring-1 ring-violet-100">
+                          <p className="text-xs font-black text-violet-800">Đáp án đã sửa sau khi chấm (đè lên đáp án trên ở mọi lượt chấm):</p>
+                          <ul className="mt-1 list-disc space-y-0.5 pl-5 text-xs font-semibold text-violet-800">
+                            {(a.answerKeyFixes || []).map(f => <li key={f.questionNumber}>{f.questionNumber}: {f.expectedAnswer}</li>)}
+                          </ul>
+                        </div>
+                      )}
                       {choChuaChac.length > 0 && (
                         <div className="mt-2 rounded-2xl bg-amber-50 px-3 py-2 ring-1 ring-amber-100">
                           <p className="text-xs font-black text-amber-800">AI báo chưa chắc ở {choChuaChac.length} chỗ — soát kỹ trước khi lưu:</p>

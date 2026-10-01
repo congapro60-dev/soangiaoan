@@ -142,14 +142,17 @@ const submissionFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData
             score: Number(item.score) || 0,
             maxScore: Number(item.maxScore) || 0,
             studentAnswer: String(item.studentAnswer || ''),
-            expectedAnswer: rawGrade?.teacherApproved === true ? String(item.expectedAnswer || '') : '',
+            // Giáo viên phải thấy đáp án + giải thích của máy ĐÚNG LÚC chưa duyệt — đó là lúc soát.
+            // (Ẩn trước khi duyệt là luật của bản chiếu HỌC SINH, xem projectStudentSubmission.)
+            expectedAnswer: String(item.expectedAnswer || ''),
             errorType: String(item.errorType || ''),
-            explanation: rawGrade?.teacherApproved === true ? String(item.explanation || '') : '',
+            explanation: String(item.explanation || ''),
             correction: String(item.correction || ''),
             nextPractice: String(item.nextPractice || ''),
             ...(typeof item.confidence === 'number' ? { confidence: item.confidence } : {}),
             ...(typeof item.ignoredByTeacherInstruction === 'boolean' ? { ignoredByTeacherInstruction: item.ignoredByTeacherInstruction } : {}),
             needsTeacherReview: Boolean(item.needsTeacherReview),
+            ...(item.teacherEdited === true ? { teacherEdited: true } : {}),
           }))
         : undefined,
       weakTopics: Array.isArray(rawGrade.weakTopics) ? rawGrade.weakTopics.map(String) : [],

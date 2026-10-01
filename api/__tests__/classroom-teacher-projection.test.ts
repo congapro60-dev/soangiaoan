@@ -165,6 +165,24 @@ describe('POST /api/classroom · teacher projection (submissions)', () => {
     expect(sub.grade).toMatchObject({ score: 8, teacherApproved: false, approvalSource: 'student_ai' });
   });
 
+  it('giáo viên thấy đáp án + giải thích từng câu kể cả khi chưa duyệt (lúc cần soát)', async () => {
+    const harness = seed();
+    harness.store.submissions['sub-1'].grade = {
+      ...oldGrade, teacherApproved: false,
+      questionResults: [{
+        questionNumber: 'Câu 1', status: 'incorrect', score: 0, maxScore: 1, studentAnswer: 'A', expectedAnswer: 'B',
+        errorType: 'Sai', explanation: 'Em chọn A', correction: '', nextPractice: '', needsTeacherReview: false, teacherEdited: true,
+      }],
+    };
+
+    const result = await call({ action: 'teacherSubmissions', classId: 'lop-1', assignmentId: 'asg-1' });
+
+    const sub = (result.payload?.submissions as DocData[])[0];
+    expect((sub.grade as DocData).questionResults).toEqual([
+      expect.objectContaining({ expectedAnswer: 'B', explanation: 'Em chọn A', teacherEdited: true }),
+    ]);
+  });
+
   it('giáo viên thấy errorMessage khi status error không có grade', async () => {
     const harness = seed();
     harness.store.submissions['sub-1'] = {

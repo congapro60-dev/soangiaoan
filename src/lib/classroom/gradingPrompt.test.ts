@@ -23,6 +23,23 @@ import {
 } from './gradingPrompt';
 
 describe('buildHomeworkGradingPrompt', () => {
+  it('đưa đáp án thầy cô đã sửa vào prompt và dặn khuôn trắc nghiệm / Đúng-Sai / ô tẩy', () => {
+    const prompt = buildHomeworkGradingPrompt({
+      answerKey: 'Câu 2: A',
+      maxScore: 10,
+      answerKeyFixes: [{ questionNumber: 'Câu 2', expectedAnswer: 'B' }],
+    });
+    expect(prompt).toContain('ĐÁP ÁN THẦY CÔ ĐÃ SỬA SAU KHI CHẤM');
+    expect(prompt).toContain('- Câu 2: B');
+    expect(prompt).toContain('a) Đ; b) S; c) Đ; d) S');
+    expect(prompt).toContain('2 ý 0,25');
+    expect(prompt).toContain('là HUỶ');
+  });
+
+  it('không có đáp án sửa thì không có mục đó', () => {
+    expect(buildHomeworkGradingPrompt({ answerKey: 'x', maxScore: 10 })).not.toContain('ĐÃ SỬA SAU KHI CHẤM');
+  });
+
   it('có đáp án thì bảo AI dùng làm mốc, không tự nghĩ đáp án khác', () => {
     const prompt = buildHomeworkGradingPrompt({ answerKey: 'Câu 1: x = 2', maxScore: 10 });
 

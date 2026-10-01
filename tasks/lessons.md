@@ -412,6 +412,7 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 ## 2026-09-30 — Chèn code bằng Python heredoc làm hỏng regex
 - Chuỗi Python thường (và printf trong bash) biến \b trong code chèn thành ký tự backspace (0x08) → regex /Lớp\s*(10|11|12)\b/ hỏng âm thầm, chỉ test mới lộ.
 - Luật: chèn code có dấu gạch ngược thì dùng Edit/Write hoặc node với String.fromCharCode; sau khi chèn đếm ký tự 0x08 trong file để dò.
+- Tái phạm 01/10: `.join('\\n')` trong heredoc Python ra dòng mới thật trong `gradingPrompt.ts`. Đoạn chèn nào có `\` → BẮT BUỘC dùng Edit/Write, kể cả khi phần còn lại chèn bằng Python.
 
 ## Vercel / Deploy
 
@@ -448,3 +449,8 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 ## 2026-10-01 — Dữ liệu mẫu/báo cáo phải đúng giai đoạn dạy (đối chiếu PPCT + file Chiều dọc)
 - Sai: dựng báo cáo mẫu "tháng 9 lớp 10" với bài "Hàm số bậc hai" và mục "đã đánh giá 3/17 năng lực" — Hàm số bậc hai là Bài 16 (HK2); mẫu số 17 đếm cả năng lực chưa học. Chủ dự án bắt được ngay.
 - Luật: đặt nội dung mẫu/giới hạn hiển thị theo giai đoạn thì đối chiếu `src/data/ppct/*.json` (tuần dạy) + file trường "Chiều dọc Toán THPT" (bài HK1) + số Bài trong `yccdToan.ts`; đừng đoán theo trí nhớ. TDS và MOET xếp khác nhau ở vài bài biên → tính cho cả hai học kì. Logic ở `src/lib/classroom/reportStage.ts` (có test đếm 8 + 9 = 17 năng lực lớp 10).
+
+## 2026-10-01 — Dựng giao diện sửa dữ liệu trên một bản chiếu đã lọc
+- Hộp "Sửa điểm" mới gửi lại cả bảng câu; dữ liệu nó nhận từ bản chiếu GV vốn ẩn `expectedAnswer`/`explanation` khi chưa duyệt (chép từ luật bản HS) → bấm Lưu là xoá đáp án thật. Chỉ lộ ra khi QA trên dữ liệu thật, test đơn vị không bắt được vì test dựng dữ liệu đầy đủ.
+- Luật: trước khi cho client GỬI LẠI một object để lưu, đọc bản chiếu (projection) mà client nhận — trường nào bị lọc/ẩn thì máy chủ phải giữ giá trị cũ khi nhận rỗng. Và QA đọc giá trị thật trong ô (không chỉ chụp màn hình) trước khi bấm Lưu.
+

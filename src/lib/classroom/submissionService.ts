@@ -276,6 +276,20 @@ export const updateSubmissionGradeManually = async (
   await callClassroomTeacherApi({ action: 'saveSubmissionGrade', submissionId: submission.id, grade: patch });
 };
 
+export interface ClassAnswerFixResult {
+  /** Số bài đã tính lại câu đó. */
+  updated: number;
+  /** Câu tự luận / bài em không theo khuôn: giữ điểm, gắn cờ cần soát. */
+  needsReview: number;
+  /** Bài đang được AI chấm hoặc vừa đổi giữa chừng — chưa áp được. */
+  busy: number;
+  syncFailed: number;
+}
+
+/** Sửa đáp án một câu cho cả lớp: lưu vào bài giao và tính lại câu đó ở mọi bài đã chấm. */
+export const suaDapAnCaLop = (assignmentId: string, questionNumber: string, expectedAnswer: string) =>
+  callClassroomTeacherApi<ClassAnswerFixResult>({ action: 'fixAnswerKeyForClass', assignmentId, questionNumber, expectedAnswer });
+
 /**
  * Giáo viên duyệt điểm. Đây là CỬA DUY NHẤT để kết luận của máy đi vào hồ sơ tích luỹ —
  * bỏ duyệt thì bằng chứng của bài đó cũng bị gỡ ra, không để lại nhãn mồ côi.

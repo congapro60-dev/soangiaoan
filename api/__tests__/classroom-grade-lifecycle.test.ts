@@ -36,7 +36,7 @@ const makeDb = (harness: Harness) => {
     get: async () => {
       const docs = Object.entries(ensure(name))
         .filter(([, data]) => constraints.every(item => data[item.field] === item.value))
-        .map(([id, data]) => ({ id, data: () => ({ ...data }) }));
+        .map(([id, data]) => ({ id, ref: collection(name).doc(id), data: () => ({ ...data }) }));
       return { empty: docs.length === 0, docs };
     },
   });
@@ -225,6 +225,82 @@ describe('POST /api/classroom · grade lifecycle', () => {
     expect(harness.store.studentProfiles['hs-1'].topics).toEqual(expect.arrayContaining([
       expect.objectContaining({ topic: 'Dấu trong phương trình', evidenceSubmissionIds: ['sub-1'] }),
     ]));
+  });
+
+  const row = (questionNumber: string, over: DocData = {}) => ({
+    questionNumber, status: 'incorrect', score: 0, maxScore: 1, studentAnswer: 'A', expectedAnswer: 'B',
+    errorType: 'Sai', explanation: 'cũ', correction: '', nextPractice: '', needsTeacherReview: false, ...over,
+  });
+
+  it('sửa tay bảng từng câu: chỉ sửa trên khung cũ, kẹp điểm, gắn teacherEdited', async () => {
+    const harness = seed();
+    harness.store.submissions['sub-1'].grade = { ...oldGrade, questionResults: [row('Câu 1'), row('Câu 2')] };
+
+    const result = await call({
+      action: 'saveSubmissionGrade', submissionId: 'sub-1',
+      grade: {
+        score: 1, maxScore: 10, feedback: 'x', weakTopics: [],
+        questionResults: [
+          { ...row('Câu 1'), studentAnswer: 'B', score: 5, status: 'correct' },
+          row('Câu 9', { score: 1 }),
+        ],
+      },
+    });
+
+    expect(result.statusCode).toBe(200);
+    const rows = harness.store.submissions['sub-1'].grade.questionResults;
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ studentAnswer: 'B', score: 1, maxScore: 1, status: 'correct', teacherEdited: true });
+    expect(rows[1]).toEqual(row('Câu 2'));
+  });
+
+  it('ô đáp án/giải thích rỗng gửi lên không xoá chữ đã lưu, không gắn đã soát', async () => {
+    const harness = seed();
+    harness.store.submissions['sub-1'].grade = { ...oldGrade, questionResults: [row('Câu 1')] };
+
+    const result = await call({
+      action: 'saveSubmissionGrade', submissionId: 'sub-1',
+      grade: { score: 8, maxScore: 10, feedback: 'x', weakTopics: [], questionResults: [{ ...row('Câu 1'), expectedAnswer: '', explanation: '' }] },
+    });
+
+    expect(result.statusCode).toBe(200);
+    expect(harness.store.submissions['sub-1'].grade.questionResults).toEqual([row('Câu 1')]);
+  });
+
+  it('sửa đáp án một câu cho cả lớp: tính lại mọi bài, bài đã duyệt giữ duyệt, có lịch sử', async () => {
+    const harness = seed();
+    harness.store.submissions['sub-1'].grade = {
+      ...oldGrade, score: 1, maxScore: 2, teacherApproved: true,
+      questionResults: [row('Câu 1', { studentAnswer: 'C', score: 1, status: 'correct', expectedAnswer: 'C' }), row('Câu 2')],
+    };
+    harness.store.submissions['sub-2'] = {
+      id: 'sub-2', teacherId: 'gv-1', classId: 'lop-1', studentId: 'hs-2', assignmentId: 'asg-1', status: 'graded',
+      grade: { ...oldGrade, score: 0, maxScore: 2, teacherApproved: false,
+        questionResults: [row('Câu 1', { expectedAnswer: 'C' }), row('Câu 2', { studentAnswer: 'Không đọc rõ', score: 0.5 })] },
+      updatedAt: '2026-08-24T10:00:00.000Z',
+    };
+
+    const result = await call({ action: 'fixAnswerKeyForClass', assignmentId: 'asg-1', questionNumber: 'Câu 2', expectedAnswer: 'A' });
+
+    expect(result.statusCode).toBe(200);
+    expect(result.payload).toMatchObject({ updated: 2, needsReview: 1, busy: 0 });
+    expect(harness.store.assignments['asg-1'].answerKeyFixes).toEqual([
+      expect.objectContaining({ questionNumber: 'Câu 2', expectedAnswer: 'A' }),
+    ]);
+    expect(harness.store.submissions['sub-1'].grade).toMatchObject({ score: 2, teacherApproved: true });
+    expect(harness.store.submissions['sub-1'].grade.questionResults[1]).toMatchObject({ score: 1, status: 'correct', expectedAnswer: 'A' });
+    expect(harness.store.submissions['sub-2'].grade.questionResults[1]).toMatchObject({ score: 0.5, needsTeacherReview: true });
+    expect(Object.values(harness.store.submissionGradeHistory || {})).toEqual(expect.arrayContaining([
+      expect.objectContaining({ action: 'answer_key_fix', submissionId: 'sub-1' }),
+    ]));
+  });
+
+  it('không cho giáo viên khác sửa đáp án cả lớp', async () => {
+    const harness = seed();
+    h.uid = 'gv-khac';
+    const result = await call({ action: 'fixAnswerKeyForClass', assignmentId: 'asg-1', questionNumber: 'Câu 2', expectedAnswer: 'A' });
+    expect(result.statusCode).toBe(403);
+    expect(harness.store.assignments['asg-1'].answerKeyFixes).toBeUndefined();
   });
 
   it('không duyệt điểm trong lúc worker đang grading', async () => {
