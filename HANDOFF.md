@@ -1,9 +1,15 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-09-30
+**Cập nhật:** 2026-10-01
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
+
+## PDF đề thi / phiếu làm bài / sao kê: không còn lát cao hơn tờ A4 — 2026-10-01
+
+- Lỗi (tái hiện bằng Puppeteer + `pdftoppm`): câu/bảng cao 1–1.5 trang bị đẩy sang trang mới → `findBreakPoint` kéo lát tới cuối khối (tới 2 trang) → phần dưới bị cắt khỏi giấy (mất 4 ý + dòng kết), chữ đè số trang. Áp cho mọi nơi gọi `exportElementToPdf` KHÔNG truyền `maxStretch`: phiếu làm bài (`answerSheetExport.ts`), sao kê ví AI (`statementPrintDoc.ts`). Xem trước đề (`StudentPreviewModal`) dùng html2pdf/`window.print`, không qua đường này.
+- Sửa: bỏ `midZoneMax` — trang bắt đầu giữa khối cũng chịu trần `maxStretch`, khối cao hơn thì cắt trong khối. Bỏ trống `maxStretch` → `defaultMaxStretch` chỉ giãn trong phần lề dưới còn trống phía trên số trang (lề 15mm: 1.5mm; phiếu lề 5mm: 0 — 1.05 cũ vẽ tràn 14mm khỏi mép). Chỗ cắt rơi đúng giới hạn trang được `snapBreakToRowGap` lùi lên khe trống giữa hai dòng (đọc điểm ảnh canvas, ≤15% trang; canvas bẩn → giữ nguyên).
+- Báo cáo PH (truyền `maxStretch`) giữ nguyên hoàn toàn: cùng trần, không lùi khe. Có thể bật lùi khe cho nó sau nếu muốn. Test `pdfExport.test.ts` (7).
 
 ## Cổng phụ huynh /ph: xem báo cáo trực tuyến bằng tên con + PIN riêng — 2026-10-01
 
@@ -27,7 +33,7 @@ Chủ dự án: rút gọn, viết chính xác bằng ngôn ngữ Toán học; s
 - Bằng chứng = từng câu của bài ĐÃ DUYỆT trong kì (`buildRequirementEvidence`, mã `b2q3`). "AI soạn nháp" (một lượt, JSON) trả nhận xét + ghép câu→YCCĐ + ghi chú; máy chủ bỏ mã bịa và TỰ TÍNH mức (≥80% Vững, ≥50% Đang hình thành) — `parentRequirements.ts`.
 - Lưu cùng nhận xét ở `parentReportNotes.requirements`; GV đổi mức/sửa ghi chú/bỏ dòng (`RequirementLinesEditor`). PDF + xuất cả lớp dùng bản đã lưu; chưa có thì danh sách chủ đề cũ cắt còn 6.
 - **Bẫy đã sửa (QA Codex 30/09):** lượt AI JSON có từng câu + 75 YCCĐ chạy lâu hơn 15s → Vercel 504. `api/classroom.ts` maxDuration 15→60; gọi AI có `timeoutMs` 50s, quá giờ trả 504 kèm lời dặn (lỗi khoá/ví vẫn ném lên như cũ).
-- QA Codex 30/09 (`.qa/yccd-report-2026-09-30/CODEX-QA-RESULT.md`): 6/9 dòng đúng; sửa 3 lỗi — ghi chú trái mức (T10.06), bỏ sót câu làm ĐÚNG → mức thấp oan (T10.29), PDF còn trỏ "Cần rèn thêm". AI trả mỗi YCCĐ một mục {ma, cau[], ghiChu}; bằng chứng rải đều cả kì, ≤120 câu, ≤45k kí tự. Bản đó chạy 51,7s → 504 nên chia 2 bước: (1) 1 lượt nhận xét + các lượt ghép câu→YCCĐ (≤30 câu/lượt) chạy SONG SONG (~20s); (2) 1 lượt viết ghi chú nhìn MỌI câu của từng YCCĐ (hết giờ → dòng vẫn có mức, ghi chú trống). Bỏ trần 12 câu/bài (phiếu dài mất câu đúng ở cuối → T10.29 0% oan). PDF: số trang đè nội dung do trang "giãn" 5% lấn lề — báo cáo PH dùng lề dưới 20mm, số trang cách mép 6mm, giãn ≤ 8mm (`maxStretch`, `pageNumberFromBottomMm` mới trong `pdfExport`, mặc định giữ nguyên cho đề thi). QA 01/10 sau 5b4e26d: 21,5s, T10.29 3 câu/83%, 15/15 ghi chú một câu khớp mức; T10.31 còn khen sai định lí sin → thêm luật "chỉ khen kĩ năng có câu làm đúng chứng minh". **PDF (số trang) chưa kiểm trên production** (Chrome 9222 bị đóng); đã tìm thêm đường tràn: trang bắt đầu giữa một khối bị kéo tới 2 trang → `findBreakPoint` có `midZoneMax`, báo cáo PH giới hạn theo `maxStretch` (test `pdfExport.test.ts`). **Bẫy còn ở đề thi:** mặc định vẫn kéo tới 2 trang → khối > 1 trang có thể tràn khỏi giấy.
+- QA Codex 30/09 (`.qa/yccd-report-2026-09-30/CODEX-QA-RESULT.md`): 6/9 dòng đúng; sửa 3 lỗi — ghi chú trái mức (T10.06), bỏ sót câu làm ĐÚNG → mức thấp oan (T10.29), PDF còn trỏ "Cần rèn thêm". AI trả mỗi YCCĐ một mục {ma, cau[], ghiChu}; bằng chứng rải đều cả kì, ≤120 câu, ≤45k kí tự. Bản đó chạy 51,7s → 504 nên chia 2 bước: (1) 1 lượt nhận xét + các lượt ghép câu→YCCĐ (≤30 câu/lượt) chạy SONG SONG (~20s); (2) 1 lượt viết ghi chú nhìn MỌI câu của từng YCCĐ (hết giờ → dòng vẫn có mức, ghi chú trống). Bỏ trần 12 câu/bài (phiếu dài mất câu đúng ở cuối → T10.29 0% oan). PDF: số trang đè nội dung do trang "giãn" 5% lấn lề — báo cáo PH dùng lề dưới 20mm, số trang cách mép 6mm, giãn ≤ 8mm (`maxStretch`, `pageNumberFromBottomMm` mới trong `pdfExport`). QA 01/10 sau 5b4e26d: 21,5s, T10.29 3 câu/83%, 15/15 ghi chú một câu khớp mức; T10.31 còn khen sai định lí sin → thêm luật "chỉ khen kĩ năng có câu làm đúng chứng minh". **PDF (số trang) chưa kiểm trên production** (Chrome 9222 bị đóng); đã tìm thêm đường tràn: trang bắt đầu giữa một khối bị kéo tới 2 trang → báo cáo PH giới hạn theo `maxStretch`; đề thi sửa ở mục "PDF đề thi" bên trên.
 - Dữ liệu rút từ PDF Chương trình (pdftotext; kí hiệu font Symbol U+F022 ∀, F024 ∃, F0CC ⊂, F0C9 ⊃, F0C6 ∅, F0B0 ° phải đổi tay) rồi soát tay; nguồn: memory `nguon-yccd-lo-sgk`. Test: parentRequirements 6, builder +1, printDoc +2, API +2.
 
 ## Cổng HS mở được khi trình duyệt đang đăng nhập GV/admin + 2 tài khoản admin + đọc Excel nhiều trang — 2026-09-30
