@@ -10,6 +10,7 @@ import { teacherContext } from './_classroom-teacher.js';
 import { setAiKeyOwner } from './_ai-usage.js';
 import { callGeminiVision, getGradingApiKey, GRADING_MODEL } from './_grading-core.js';
 import { REPORT_KINDS, type ReportKind } from '../src/lib/classroom/reportKinds.js';
+import { termsForPeriod } from '../src/lib/classroom/reportStage.js';
 import {
   aggregateRequirementLines, applyRequirementNotes, mapRequirementQuestions, sanitizeRequirementLines, yccdOptionsForPrompt,
   type EvidenceSubmission, type ParentRequirementLine,
@@ -202,7 +203,9 @@ const handleDraft = async (db: Db, body: Body, res: VercelResponse): Promise<voi
   // Lượt AI tính cho giáo viên chủ lớp (như chấm bài), không phải người bấm.
   setAiKeyOwner(String(context.classData.teacherId || context.uid));
   const grade = context.classData.grade;
-  const yccdOptions = yccdOptionsForPrompt(grade);
+  // Chỉ đưa cho AI các YCCĐ cùng giai đoạn (học kì) với kì báo cáo — AI không ghép nhầm sang bài của học kì khác.
+  const terms = termsForPeriod(key);
+  const yccdOptions = yccdOptionsForPrompt(grade, terms);
   const evidence = readEvidence(body.facts);
   // Khối chưa có bảng yêu cầu cần đạt hoặc kì không có bài đã duyệt → chỉ soạn nhận xét như cũ.
   if (!yccdOptions || evidence.length === 0) {
@@ -240,8 +243,8 @@ const handleDraft = async (db: Db, body: Body, res: VercelResponse): Promise<voi
   // Một nhóm hỏng thì thiếu hẳn một phần bằng chứng → báo thử lại, không in báo cáo thiếu mà trông như đủ.
   if (!text || mappings.some(m => m === null)) return void res.status(502).json({ error: 'AI chưa soạn được báo cáo, thử lại.' });
   const merged = { yccd: mappings.flatMap(m => (Array.isArray(m!.yccd) ? m!.yccd : [])) };
-  const grouped = mapRequirementQuestions(grade, evidence, merged);
-  let requirements = aggregateRequirementLines(grade, evidence, merged);
+  const grouped = mapRequirementQuestions(grade, evidence, merged, terms);
+  let requirements = aggregateRequirementLines(grade, evidence, merged, terms);
 
   // Bước 2: ghi chú cho từng YCCĐ trong phần thời gian còn lại. Hết giờ → vẫn trả các dòng (mức đúng), ghi chú để trống.
   const remainingMs = startedAt + AI_TIMEOUT_MS - Date.now();

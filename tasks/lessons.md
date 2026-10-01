@@ -444,3 +444,7 @@ Khi người dùng yêu cầu đồng nhất theo mẫu Toán local, không đư
 ## 2026-10-01 — Lái Chrome bằng CDP để tự QA
 - Sai: cửa sổ Chrome bị che → trang `visibilityState: hidden` → `page.click()` treo; tưởng web lỗi. Đánh dấu nút bằng thuộc tính mà không xoá dấu cũ → bấm nhầm nút khác, tưởng nút "Xuất" hỏng.
 - Luật: mở Chrome QA kèm `--disable-backgrounding-occluded-windows --disable-renderer-backgrounding --disable-background-timer-throttling --disable-features=CalculateNativeWinOcclusion`; trước mỗi lần đánh dấu phần tử thì xoá mọi dấu cũ; trang báo dữ liệu "không phản hồi" thì thử Chrome mới trước khi kết luận lỗi web.
+
+## 2026-10-01 — Dữ liệu mẫu/báo cáo phải đúng giai đoạn dạy (đối chiếu PPCT + file Chiều dọc)
+- Sai: dựng báo cáo mẫu "tháng 9 lớp 10" với bài "Hàm số bậc hai" và mục "đã đánh giá 3/17 năng lực" — Hàm số bậc hai là Bài 16 (HK2); mẫu số 17 đếm cả năng lực chưa học. Chủ dự án bắt được ngay.
+- Luật: đặt nội dung mẫu/giới hạn hiển thị theo giai đoạn thì đối chiếu `src/data/ppct/*.json` (tuần dạy) + file trường "Chiều dọc Toán THPT" (bài HK1) + số Bài trong `yccdToan.ts`; đừng đoán theo trí nhớ. TDS và MOET xếp khác nhau ở vài bài biên → tính cho cả hai học kì. Logic ở `src/lib/classroom/reportStage.ts` (có test đếm 8 + 9 = 17 năng lực lớp 10).

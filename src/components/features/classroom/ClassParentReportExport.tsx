@@ -6,6 +6,8 @@ import { STUDENT_PROFILES_COL, type StudentProfileDoc } from '../../../lib/class
 import { listAssignmentsForClass, listSubmissionsForClass } from '../../../lib/classroom/submissionService';
 import { draftParentReportComment, loadParentReportNote, loadScoreBook, publishParentReports, saveParentReportNote } from '../../../lib/classroom/teacherService';
 import { PUBLISH_CHUNK } from '../../../lib/classroom/parentAccess';
+import { requirementsInStage } from '../../../lib/classroom/parentRequirements';
+import { termsForPeriod } from '../../../lib/classroom/reportStage';
 import { brandingForReport, fileToLogoDataUrl, loadParentBranding, saveParentBranding, type ParentBranding } from '../../../lib/classroom/parentBranding';
 import { ClassParentAccessPanel } from './ClassParentAccessPanel';
 import { studentScoreView } from '../../../lib/classroom/scoreBook';
@@ -93,7 +95,7 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
             ghi = await draftParentReportComment(key(hs.id), built.facts);
             await saveParentReportNote(key(hs.id), ghi).catch(() => undefined);
           }
-          const input = { ...built.printInput, teacherComment: ghi.text, requirements: ghi.requirements ?? [], branding: brandingForReport(nhanDien) };
+          const input = { ...built.printInput, teacherComment: ghi.text, requirements: requirementsInStage(ghi.requirements ?? [], classGrade, termsForPeriod(ky)), branding: brandingForReport(nhanDien) };
           if (cheDo === 'zip') {
             zip.file(parentReportFileName(input), await exportParentReportToPdf(input, 'blob'));
           } else {
