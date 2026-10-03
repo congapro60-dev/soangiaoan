@@ -355,8 +355,8 @@ export async function POST(req) {
             const {user, isRootUser} = resolveIdentity(req, env);
             if (!user) return fail('Cần đăng nhập để tạo phòng.', 401, 'AUTH_REQUIRED');
             // Fetch system host status to determine create privilege.
-            const {authority, systemHost} = await fetchAuthority(stmt, {user, isRootUser, roomId: null});
-            if (!canCreateRoom(authority, systemHost))
+            const {authority} = await fetchAuthority(stmt, {user, isRootUser, roomId: null});
+            if (!canCreateRoom(authority, user))
                 return fail('Chỉ tài khoản giáo viên đang hoạt động mới được tạo phòng.', 403, 'FORBIDDEN');
             if (typeof b.id !== 'string' || b.id.length > 60 || b.id.length < 1 || ['__proto__', 'constructor', 'prototype'].includes(b.id))
                 return fail('Thông tin phòng không hợp lệ.');
@@ -394,7 +394,7 @@ export async function POST(req) {
             const auditId = crypto.randomUUID();
             const mutationId = crypto.randomUUID();
             // Atomic: room INSERT + membership + audit in one batch.
-            const insertRoom = stmt("INSERT INTO rooms (id,code,admin_hash,title,created,started,mode,config,owner_account_id) SELECT ?,?,?,?,?,NULL,'race',?,? WHERE ?=1 OR EXISTS(SELECT 1 FROM system_hosts WHERE account_id=? AND role='host' AND revoked_at IS NULL)", b.id, code, await hash(b.adminKey), title, now, config ? JSON.stringify(config) : null, user.userId, isRootUser ? 1 : 0, user.userId);
+            const insertRoom = stmt("INSERT INTO rooms (id,code,admin_hash,title,created,started,mode,config,owner_account_id) SELECT ?,?,?,?, ?,NULL,'race',?,? WHERE NOT EXISTS(SELECT 1 FROM system_hosts WHERE account_id=? AND revoked_at IS NOT NULL)", b.id, code, await hash(b.adminKey), title, now, config ? JSON.stringify(config) : null, user.userId, user.userId);
             // Account upsert ensures the FK parent exists before room ownership is written.
             const upsertAccount = stmt('INSERT INTO accounts(id,email,display_name,created_at) VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET display_name=excluded.display_name', user.userId, user.email, user.displayName ?? null, now);
             const ownershipStatements = createRoomOwnershipStatements(stmt, {roomId: b.id, accountId: user.userId, auditId, mutationId, now});

@@ -153,9 +153,10 @@ test('root and active host create rooms; anon/nohost fail', async () => {
   assert.equal(anonR.status, 401, 'anonymous must be 401: ' + JSON.stringify(anonR.data));
   assert.equal(anonR.data.code, 'AUTH_REQUIRED');
 
-  const nohostR = await post(users.nohost, 'create-room', {id: crypto.randomUUID(), adminKey, title: 'NoHost room'});
-  assert.equal(nohostR.status, 403, 'nohost must be 403: ' + JSON.stringify(nohostR.data));
-  assert.equal(nohostR.data.code, 'FORBIDDEN');
+  const nohostId = crypto.randomUUID();
+  const nohostR = await post(users.nohost, 'create-room', {id: nohostId, adminKey, title: 'NoHost room'});
+  assert.equal(nohostR.status, 200, 'any signed-in account may create its own room: ' + JSON.stringify(nohostR.data));
+  assert.equal(database.prepare('SELECT owner_account_id FROM rooms WHERE id=?').get(nohostId).owner_account_id, users.nohost.id);
 
   const rootId = crypto.randomUUID();
   const rootR = await post(users.root, 'create-room', {id: rootId, adminKey, title: 'Root room'});
@@ -386,7 +387,7 @@ test('after claim, old bearer is rejected; identity works', async () => {
 });
 
 // --- Test: room-scope cohost without global host has no create privilege ---
-test('room-scope cohost without global host cannot create rooms', async () => {
+test('room-scope cohost without global host can create its own room', async () => {
   const cohostOnlyUser = {id: 'cohost-only-id', email: 'cohostonly@access.test'};
   database.prepare('INSERT INTO accounts(id,email,display_name,created_at) VALUES(?,?,?,?)').run(cohostOnlyUser.id, cohostOnlyUser.email, cohostOnlyUser.email, clock);
   // No system_hosts row for this user.
@@ -395,8 +396,7 @@ test('room-scope cohost without global host cannot create rooms', async () => {
 
   const adminKey = crypto.randomUUID() + crypto.randomUUID();
   const r = await post(cohostOnlyUser, 'create-room', {id: crypto.randomUUID(), adminKey, title: 'Cohost room'});
-  assert.equal(r.status, 403, 'room-scope cohost without global host must not create: ' + JSON.stringify(r.data));
-  assert.equal(r.data.code, 'FORBIDDEN');
+  assert.equal(r.status, 200, 'room-scope cohost may create a separate own room: ' + JSON.stringify(r.data));
 });
 
 // --- Test: new ownership atomic: membership + audit both present or neither ---

@@ -69,7 +69,7 @@ async function hostRequest<T extends JsonRecord>(method: "GET" | "POST", params:
   return payload as T;
 }
 
-function roleLabel(role: string | null | undefined) { return (({root: "Root", host: "Host", owner: "Chủ phòng", cohost: "Đồng host", observer: "Quan sát viên"} as Record<string, string>)[role || ""] || "Chưa cấp vai trò"); }
+function roleLabel(role: string | null | undefined) { return (({root: "Root", host: "Host hệ thống", owner: "Chủ phòng", cohost: "Đồng host", observer: "Quan sát viên"} as Record<string, string>)[role || ""] || "Chủ tài khoản"); }
 
 export default function HostDashboard({user}: {user: ChatGPTUser}) {
   const [identityResponse, setIdentity] = useState<Identity | null>(null);

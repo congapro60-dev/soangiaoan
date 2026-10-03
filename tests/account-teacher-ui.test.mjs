@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { createContext, runInContext } from "node:vm";
 
 const appCode = readFileSync("public/app.js", "utf8");
+const campaignCode = readFileSync("public/campaign-data.js", "utf8");
 
 function createMockContext(query = "") {
     const logs = [];
@@ -64,7 +65,7 @@ function createMockContext(query = "") {
         elements, 
         fetchHistory, 
         setFetchResponse: (res) => currentFetchResponse = res,
-        runApp: () => runInContext(appCode, context)
+        runApp: () => {runInContext(campaignCode, context);return runInContext(appCode, context);}
     };
 }
 
@@ -127,9 +128,9 @@ test("forged stored root not creator", async () => {
     runApp(); await new Promise(r => setTimeout(r, 50));
     
     const appHtml = elements.get("app").innerHTML;
-    // Should show "Không có quyền tạo phòng" instead of roomForm
-    assert.match(appHtml, /Không có quyền tạo phòng/);
-    assert.doesNotMatch(appHtml, /id="roomForm"/);
+    // A signed-in account may create its own room; stored root role alone does not
+    // grant global admin UI, but it also does not block personal room creation.
+    assert.match(appHtml, /id="roomForm"/);
 });
 
 test("revoked refresh", async () => {
