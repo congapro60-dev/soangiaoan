@@ -12,7 +12,7 @@ function mount(host,options){
  const mini=section.querySelector('.strategy-minimap'),miniCtx=mini.getContext('2d');image.src=options.image;
  image.onload=()=>{dirty=true;schedule();};image.onerror=()=>{section.querySelector('.strategy-status').textContent='Chưa tải được địa hình. Tải lại trang khi có kết nối.';};
  let pointers=new Map(),last=null,pinch=0,dragMode='pan';
- const reduced=()=>document.body.classList.contains('reduced-motion')||matchMedia('(prefers-reduced-motion: reduce)').matches;
+ const reduced=()=>window.SignalFeedback?window.SignalFeedback.settings().reducedMotion||!window.SignalFeedback.settings().effects:document.body.classList.contains('reduced-motion')||matchMedia('(prefers-reduced-motion: reduce)').matches;
  function basis(){let c=Math.cos(camera.yaw),s=Math.sin(camera.yaw),p=Math.sin(camera.pitch),q=Math.cos(camera.pitch);return {right:[c,0,-s],up:[-s*p,q,-c*p],depth:[s*q,p,c*q]};}
  function xyz(point){let x=point[0]*1.6-80,z=point[1]*.9-45;return [x,model.relief?K.elevation(x,z):0,z];}
  function project(point){if(camera.mode!=='3d')return {x:w/2+camera.x+(point[0]*16-800)*fit*camera.zoom,y:h/2+camera.y+(point[1]*9-450)*fit*camera.zoom};let v=xyz(point),b=basis(),scale=fit*10*camera.zoom;return {x:w/2+camera.x+v.reduce((a,n,i)=>a+n*b.right[i],0)*scale,y:h/2+camera.y-v.reduce((a,n,i)=>a+n*b.up[i],0)*scale};}

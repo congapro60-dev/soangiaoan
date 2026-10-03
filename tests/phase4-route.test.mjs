@@ -1,0 +1,87 @@
+import assert from 'node:assert/strict';
+import {DatabaseSync} from 'node:sqlite';
+import {SourceTextModule,SyntheticModule,createContext} from 'node:vm';
+import {readFile} from 'node:fs/promises';
+import {resolve,dirname} from 'node:path';
+const database=new DatabaseSync(':memory:');
+for(const file of ['0000_boring_pete_wisdom.sql','0001_organic_aqueduct.sql','0002_big_ogun.sql','0003_dazzling_rockslide.sql','0004_classy_wolf_cub.sql','0005_reflective_hellion.sql','0006_empty_harry_osborn.sql','0007_rapid_ezekiel.sql'])database.exec(await readFile(resolve('drizzle',file),'utf8'));
+database.exec('PRAGMA foreign_keys=ON');
+function stmt(sql,...params){const query=database.prepare(sql);return {first:()=>query.get(...params)??null,all:()=>({results:query.all(...params)}),run:()=>({meta:{changes:Number(query.run(...params).changes)}})};};
+const testEnv={SITE_OWNER_EMAIL:'root@phase4.test',SITE_OWNER_USER_ID:'root-phase4-id'};
+const storage={stmt,db:()=>({batch:queries=>{database.exec('BEGIN');try{const result=queries.map(q=>q.run());database.exec('COMMIT');return result;}catch(e){database.exec('ROLLBACK');throw e;}}}),getEnv:()=>testEnv};
+// Seed root account + system_host for create-room identity auth.
+database.prepare('INSERT INTO accounts(id,email,display_name,created_at) VALUES(?,?,?,?)').run(testEnv.SITE_OWNER_USER_ID,testEnv.SITE_OWNER_EMAIL,'Root',1800000000000);
+database.prepare('INSERT INTO system_hosts(account_id,role,created_at,created_by) VALUES(?,?,?,?)').run(testEnv.SITE_OWNER_USER_ID,'root',1800000000000,testEnv.SITE_OWNER_USER_ID);
+let clock=1800000000000;class TestDate extends Date{static now(){return clock;}}
+const context=createContext({Date:TestDate,crypto:globalThis.crypto,Request,Response,URL,TextEncoder,console});
+const cache=new Map();
+async function moduleAt(path){if(cache.has(path))return cache.get(path);let loadedModule;if(resolve(path)===resolve('lib/storage.js'))loadedModule=new SyntheticModule(['stmt','db','getEnv'],function(){this.setExport('stmt',storage.stmt);this.setExport('db',storage.db);this.setExport('getEnv',storage.getEnv);},{context,identifier:path});else loadedModule=new SourceTextModule(await readFile(path,'utf8'),{context,identifier:path});cache.set(path,loadedModule);return loadedModule;}
+const entryModule=await moduleAt(resolve('app/api/escape/route.js'));await entryModule.link((specifier,parent)=>moduleAt(resolve(dirname(parent.identifier),specifier)));await entryModule.evaluate();
+const route=entryModule.namespace;
+// rootHeaders: identity headers for the env-configured root (for teacher actions on account-owned rooms).
+const rootHeaders={'oai-authenticated-user-id':testEnv.SITE_OWNER_USER_ID,'oai-authenticated-user-email':testEnv.SITE_OWNER_EMAIL};
+async function post(action,body={},token='',extraHeaders={}){let response=await route.POST(new Request('https://game.test/api/escape',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'Origin':'https://game.test',...extraHeaders},body:JSON.stringify({action,requestId:crypto.randomUUID(),...body})}));return {status:response.status,data:await response.json()};}
+async function get(kind,id,token,extraHeaders={}){let response=await route.GET(new Request(`https://game.test/api/escape?kind=${kind}&id=${id}`,{headers:{Authorization:'Bearer '+token,...extraHeaders}}));return {status:response.status,data:await response.json()};}
+// teacher: shorthand for post/get with root identity for account-owned room management.
+const teacher=(action,body={})=>post(action,body,'',rootHeaders);
+const teacherGet=(kind,id)=>get(kind,id,'',rootHeaders);
+const id=crypto.randomUUID(),admin=crypto.randomUUID()+crypto.randomUUID();
+const room=(await teacher('create-room',{id,adminKey:admin,campaign:{playMode:'individual',community:'boat',grade:10,maxLevel:3}})).data.room;
+const team=(await post('join',{code:room.code,name:'Recovery QA'})).data.session;
+await teacher('begin',{id});
+const send=(action,body={})=>post(action,{id:team.id,round:1,stage:0,questionRevision:raw().recovery?.questionRevision??0,...body},team.token);
+const raw=()=>JSON.parse(database.prepare('SELECT data FROM teams WHERE id=?').get(team.id).data);
+let r=await send('choose-level',{level:2});assert.equal(r.status,200,JSON.stringify(r.data));
+assert.equal((await post('teacher-help',{id:team.id,round:1})).status,403);
+const requestId=crypto.randomUUID(),payload={requestId,stage:0,questionRevision:0,input:{answer:'draft'},revision:r.data.state.revision,deadline:clock+1000};
+r=await send('save-draft',payload);assert.equal(r.status,200,JSON.stringify(r.data));
+const saved=JSON.stringify(raw());
+clock+=1001;
+assert.equal((await send('save-draft',payload)).status,200,'Accepted request replays after deadline and revision advance');
+assert.equal(JSON.stringify(raw()),saved,'Replay is not a second mutation');
+assert.equal((await send('save-draft',{...payload,input:{answer:'different'}})).data.code,'REQUEST_ID_CONFLICT');
+assert.equal((await send('teacher-help',{requestId})).data.code,'REQUEST_ID_CONFLICT','Action is part of payload');
+assert.equal((await send('teacher-help',{round:0})).data.code,'SESSION_RESET');
+assert.equal((await send('teacher-help',{revision:0})).data.code,'REVISION_MISMATCH');
+assert.equal((await send('teacher-help',{deadline:clock-1})).data.code,'DEADLINE_EXPIRED');
+assert.equal((await send('save-draft',{questionRevision:8})).data.code,'DRAFT_REVISION_MISMATCH');
+const oldKey=raw().recovery.draft.key;
+r=await send('downgrade-question',{questionRevision:0});assert.equal(r.status,200,JSON.stringify(r.data));
+assert.equal(r.data.state.levels[0],1);assert.equal(r.data.state.recovery.questionRevision,1);
+assert.notEqual(r.data.state.recovery.draft.key,oldKey);assert.equal(r.data.state.recovery.draft.answer,null);assert.deepEqual(raw().drafts[0],{});
+assert.equal((await send('save-draft',{questionRevision:0})).data.code,'DRAFT_REVISION_MISMATCH');
+assert.equal((await send('draft',{lock:0,questionRevision:undefined,input:{answer:'old'}})).data.code,'DRAFT_REVISION_MISMATCH');
+assert.equal((await send('submit',{questionRevision:0,input:{}})).data.code,'DRAFT_REVISION_MISMATCH');
+r=await send('draft',{lock:0,questionRevision:1,input:{answer:'new'}});assert.equal(r.status,200);
+assert.equal(raw().recovery.draft.answer.answer,'new');
+const helpId=crypto.randomUUID();r=await send('teacher-help',{requestId:helpId,questionRevision:1});assert.equal(r.status,200);
+assert.equal((await send('teacher-help',{requestId:helpId,questionRevision:1})).status,200);
+assert.equal((await send('report-question',{questionRevision:1})).status,200);
+assert.equal((await send('abandon-station',{phase:'middle',questionRevision:1})).data.code,'GUIDED_GATE_REQUIRED','Client cannot bypass starting gate');
+const student=(await get('state',team.id,team.token)).data;
+for(const secret of ['expected','steps','guide','eventHistory','requestCache','payloadFingerprint'])assert(!JSON.stringify(student).includes(`"${secret}"`),secret);
+assert.equal(student.state.recovery.state,'broken-question');
+assert.equal((await get('board',id,team.token)).status,403);
+const teacher2=(await teacherGet('board',id)).data.teams[0];
+assert(teacher2.guide[0].expected);assert(teacher2.guide[0].steps.length);
+assert.equal(teacher2.recovery.state,'broken-question');
+assert.equal(teacher2.eventHistory.filter(e=>e.requestId===helpId).length,1);
+assert(teacher2.eventHistory.some(e=>e.type==='report-question'));
+assert(teacher2.events.some(e=>e.type==='teacher-help'));
+const hintId=crypto.randomUUID();r=await send('request-hint',{requestId:hintId,tier:'nudge',questionRevision:1});assert.equal(r.status,200);assert.equal(r.data.state.hints[0].length,1);
+const penalty=r.data.state.penalty;assert.equal((await send('request-hint',{requestId:hintId,tier:'nudge',questionRevision:1})).data.state.penalty,penalty);
+assert.equal((await send('request-hint',{requestId:hintId,tier:'method',questionRevision:1})).data.code,'REQUEST_ID_CONFLICT');
+assert.equal(database.prepare("SELECT COUNT(*) AS n FROM sqlite_master WHERE name='room_events'").get().n,0,'JSON history works without an event table or writes to a missing migration');
+console.log('Phase 4 VM: migrations 0000-0007, authenticated recovery, replay/conflict, stale round/revision/deadline, downgrade drafts, hint costs, gate protection, teacher guides/history and student secrets passed.');
+const beforeMissing=JSON.stringify(raw());
+assert.equal((await send('save-draft',{stage:undefined,questionRevision:undefined,input:{answer:'delayed'}})).status,409,'Missing canonical stage/revision must not mutate a downgraded question');
+assert.equal(JSON.stringify(raw()),beforeMissing);
+let roomRevision=database.prepare('SELECT revision FROM rooms WHERE id=?').get(id).revision;
+assert.equal((await teacher('reset-room',{id,revision:roomRevision,confirmCode:room.code})).status,200);
+await teacher('begin',{id});
+let round2=(await post('choose-level',{id:team.id,round:2,level:0},team.token)).data.state;
+assert.equal(round2.recovery.round,2);
+assert.equal(round2.recovery.questionRevision,0);
+assert.equal(round2.recovery.draft.answer,null);
+assert.deepEqual(raw().recoveryHistory,[]);
+assert(!raw().eventHistory.some(e=>e.round===1));

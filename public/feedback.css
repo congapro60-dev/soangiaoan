@@ -1,0 +1,13 @@
+#settingsDialog{max-width:32rem;width:calc(100% - 3rem);max-height:85vh;overflow:auto;background:#102436;color:#fff;border:1px solid #b5d7e8;border-radius:12px;padding:24px}
+#settingsDialog label{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:12px 0}
+#settingsDialog input{width:auto;accent-color:#f7d88b}
+#settingsDialog input[type=range]{width:45%}
+#settingsDialog pre{white-space:pre-wrap;font:inherit;font-size:.8rem}
+#mediaReaction{position:fixed;bottom:8px;left:8px;max-width:min(360px,calc(100vw - 16px));display:flex;align-items:center;gap:10px;background:#102436;color:#fff;border:1px solid #b5d7e8;border-radius:12px;padding:8px;z-index:50;pointer-events:none;font-size:12px}
+#mediaReaction .mascot{width:28px;height:28px;flex-shrink:0}
+body:has(#mediaReaction){padding-bottom:75px}
+.phase-story{margin:0 0 20px;border-left:3px solid #e7bd71;padding:8px 18px;max-width:75ch}
+.phase-story h2{font-size:1rem;margin:0 0 6px}
+.phase-story p{font-size:.9rem;margin:0}
+.reduced-motion *, .media-effects-off *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+button:focus-visible,input:focus-visible{outline:3px solid #ffdb7a;outline-offset:4px}

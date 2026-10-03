@@ -1,0 +1,9 @@
+# Phase 2 Runtime Security Model & Boundaries
+
+Sites dispatch provides verified identity headers (`oai-authenticated-*`) on incoming server requests. The authentication model operates under the following rules:
+
+- **Trust only Sites-dispatched server Request/next headers:** Server Components and API routes must trust only headers originating from Sites-dispatched server `Request` or `next/headers()`.
+- **Pure parser without fake proof:** `lib/access-control.js` exports `extractSIWCUser(headers)`, a deterministic parser for a Headers-compatible interface. It contains no `dispatchProof` argument or artificial guard because dispatch validity is a hosting-platform boundary, not an internal fake proof object. The parser cannot establish provenance: even query containers can expose `.get()`. Never pass them to this helper; production callers must use the server request boundary. Mocked headers in unit tests test extraction and adapter wiring, not live dispatch security.
+- **Server-side resolution:** `app/chatgpt-auth.ts` invokes `extractSIWCUser(requestHeaders)` directly from `await headers()` and exposes the authenticated user. API routes resolve user identity server-side using `getChatGPTUser()`.
+- **No body, query, cookie, or local role identity:** Identity is never accepted or decoded from request bodies, query strings, local roles, or cookies.
+- **Direct curl spoofing is not Sites dispatch evidence:** External clients or `curl` sending spoofed `oai-authenticated-*` headers are not equivalent to a request received through the Sites dispatch boundary. The application relies on the Sites hosting platform to prevent untrusted clients from reaching this server boundary with forged identity headers; private vs. public access is enforced there before requests reach application workers.

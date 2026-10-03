@@ -43,6 +43,20 @@
       "when": 1790852035220,
       "tag": "0005_reflective_hellion",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1790887802016,
+      "tag": "0006_empty_harry_osborn",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1790887879846,
+      "tag": "0007_rapid_ezekiel",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,1 @@
+ALTER TABLE `rooms` ADD `owner_account_id` text;

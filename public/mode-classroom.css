@@ -1,0 +1,36 @@
+.mode-classroom { font-size: 1rem; }
+.mode-classroom h1 { max-width: 24ch; line-height: 1.16; }
+.mode-classroom .eyebrow { font-size: .875rem; letter-spacing: .08em; }
+.mode-status { padding: 12px 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel2); }
+.mode-roster { line-height: 1.7; }
+.mode-metrics { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: 10px; margin: 20px 0; }
+.mode-metrics span { padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+.mode-metrics b { display: block; margin-bottom: 7px; color: var(--gold); }
+.mode-challenge { margin: 24px 0; padding: 24px; border: 1px solid var(--gold); border-radius: 12px; background: var(--panel); }
+.mode-prompt { margin: 16px 0; line-height: 1.75; }
+.mode-classroom fieldset { padding: 18px; margin: 20px 0; border: 1px solid var(--line); border-radius: 10px; }
+.mode-classroom legend { padding: 0 8px; font-weight: 700; color: var(--gold); }
+.mode-classroom label { display: block; margin: 12px 0; line-height: 1.5; }
+.mode-classroom input[type=radio] { width: 20px; min-height: 20px; vertical-align: middle; margin-right: 10px; }
+.mode-classroom select { display: block; width: 100%; margin-top: 6px; padding: 12px; min-height: 46px; font: inherit; color: var(--text); background: var(--panel2); border: 1px solid var(--line); border-radius: 7px; }
+.mode-classroom select:focus-visible { outline: 3px solid var(--purple); outline-offset: 2px; }
+.mode-options > div { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.mode-options > div > label { display: inline-flex; margin-right: 20px; align-items: center; }
+.mode-actions .flex { margin-top: 14px; }
+.mode-actions .flex button { flex: 1 1 160px; }
+.mode-ranking { margin: 30px 0; }
+.mode-ranking ol { padding-left: 26px; }
+.mode-ranking li { margin: 12px 0; padding: 10px 14px; background: var(--panel); border-radius: 6px; line-height: 1.6; }
+.mode-teacher table { font-size: .875rem; }
+.mode-dossier { border: 1px solid var(--line); border-radius: 8px; padding: 16px; margin: 12px 0; }
+.mode-dossier summary { cursor: pointer; line-height: 1.6; }
+.mode-dossier p { margin-top: 14px; }
+.mode-dossier h4 { font-size: 1rem; color: var(--gold); }
+.mode-dossier .mode-metrics { margin: 12px 0; }
+@media (max-width: 600px) {
+  .mode-classroom h1 { font-size: 1.9rem; }
+  .mode-challenge { padding: 18px; }
+  .mode-classroom fieldset { padding: 14px; }
+  .mode-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .mode-actions .flex button { flex-basis: 100%; }
+}

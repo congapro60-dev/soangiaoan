@@ -1,0 +1,12 @@
+# Phase 4 — nối mode/recovery/event/arena vào route
+
+Mục tiêu: đưa contract Phase 3 vào API D1 với compatibility V7, bảo đảm host auth tin cậy qua Sites dispatch headers.
+
+- Room config additive: `participation` + `rule` + `factionSeed` + `arenaEnabled`, validate via `validateMode`; legacy `campaign.playMode` maps `teams -> group`, `individual -> individual`, `pairs` new. Host UI can select group/individual/pairs and rule; if missing use V7 campaign mode.
+- Persist canonical assignment in room/teams JSON for old schema compatibility; add event history in `room_events` migration for queryable events, `arena_matches`/`arena_actions` migration for arena. Use CAS room revision/round; no client state authority.
+- POST actions: `save-draft`, `request-hint`, `downgrade-question`, `teacher-help`, `report-question`, `abandon-station` call recovery; `event` wrapper validates requestId/payload fingerprint/round/revision/deadline and maps structured conflict codes. Existing `draft`, `hint`, `submit`, `roll`, `abandon`, `bonus`, skill actions remain compatible and route through guards where possible.
+- Arena: `arena-open` from ancient theme / host action, `arena-action` math answer/guard/assist/stun, `arena-state`, `arena-finish`. Store deterministic seed/bracket and per-player return marker; pause main-game clock using same event offset primitive as regatta; reward exact once; student serializer excludes answer/guide; teacher serializer includes answer/steps/history.
+- Student public response: mode/assignment/status/recovery/arena state only; no expected/teacher answer. Teacher board response: canonical answer/steps, drafts, help/broken-question history, mode/faction/rank, event history. Existing CSV extends rows without breaking old columns.
+- Host auth ở API routes dùng `getChatGPTUser` phía server từ request headers do Sites dispatch, không chấp nhận danh tính từ body, query, cookie hay curl giả mạo. Legacy admin duy trì tương thích cho các phòng chưa gán owner; các hành động quản trị mới đánh dấu `TODO auth gate` và từ chối anonymous.
+
+Tests: route integration VM for legacy group/individual config, pairs 26/13, each rule field, mode mismatch; draft revision mismatch, downgrade/abandon gates, help/report, same requestId different payload 409, stale round 409, deadline, reward once; arena 26 bracket/odd bye/timeout/retry/no elimination/pause/resume; student secret absence and teacher guide presence; migration 0000→0007. Run npm test/typecheck/build/lint. No publish until browser QA and independent review.

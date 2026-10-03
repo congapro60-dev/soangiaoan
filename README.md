@@ -98,6 +98,13 @@ SIWC establishes identity only; it does not prove workspace membership. Use the 
 
 Use SIWC for account pages, user-specific dashboards, saved records, and write actions tied to the current ChatGPT user. Leave public content anonymous.
 
+### Security & Trust Model
+
+- **Trust only Sites-dispatched server headers:** Server Components and API routes must trust only incoming server `Request` or `next/headers()` injected by Sites dispatch.
+- **Server-side identity resolution:** API routes use `getChatGPTUser()` server-side to resolve authenticated users.
+- **No body/query/cookie/role identity:** Never accept user identity, user ID, email, or role claims from request bodies, query strings, local roles, or cookies.
+- **Direct curl spoofing is not Sites dispatch:** External clients or `curl` sending `oai-authenticated-*` headers directly do not constitute verified Sites dispatch. Private and public access boundaries are enforced by the Sites hosting platform at the edge.
+
 ## Local D1 migrations
 
 For a D1-backed local preview, generate SQL with `npm run db:generate`. Build once through the Sites skill's build entrypoint (or `npm run build` for standalone use) to generate `dist/server/wrangler.json`, rebuilding if bindings change. From the project root, apply each pending migration in order:

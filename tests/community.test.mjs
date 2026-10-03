@@ -4,32 +4,38 @@ import {SourceTextModule,SyntheticModule,createContext} from 'node:vm';
 import {readFile} from 'node:fs/promises';
 import {resolve,dirname} from 'node:path';
 const database=new DatabaseSync(':memory:');
-for(const file of ['0000_boring_pete_wisdom.sql','0001_organic_aqueduct.sql','0002_big_ogun.sql','0003_dazzling_rockslide.sql','0004_classy_wolf_cub.sql','0005_reflective_hellion.sql'])database.exec(await readFile(resolve('drizzle',file),'utf8'));
+for(const file of ['0000_boring_pete_wisdom.sql','0001_organic_aqueduct.sql','0002_big_ogun.sql','0003_dazzling_rockslide.sql','0004_classy_wolf_cub.sql','0005_reflective_hellion.sql','0006_empty_harry_osborn.sql','0007_rapid_ezekiel.sql'])database.exec(await readFile(resolve('drizzle',file),'utf8'));
 database.exec('PRAGMA foreign_keys=ON');
 function stmt(sql,...params){const query=database.prepare(sql);return {first:()=>query.get(...params)??null,all:()=>({results:query.all(...params)}),run:()=>{const result=query.run(...params);return {meta:{changes:Number(result.changes)}};}};}
-const storage={stmt,db:()=>({batch:queries=>{database.exec('BEGIN');try{const result=queries.map(q=>q.run());database.exec('COMMIT');return result;}catch(e){database.exec('ROLLBACK');throw e;}}})};
+const testEnv={SITE_OWNER_EMAIL:'root@community.test',SITE_OWNER_USER_ID:'root-community-id'};
+const storage={stmt,db:()=>({batch:queries=>{database.exec('BEGIN');try{const result=queries.map(q=>q.run());database.exec('COMMIT');return result;}catch(e){database.exec('ROLLBACK');throw e;}}}),getEnv:()=>testEnv};
 let clock=Date.now();class TestDate extends Date{static now(){return clock;}}
+database.prepare('INSERT INTO accounts(id,email,display_name,created_at) VALUES(?,?,?,?)').run(testEnv.SITE_OWNER_USER_ID,testEnv.SITE_OWNER_EMAIL,'Root',clock);
+database.prepare('INSERT INTO system_hosts(account_id,role,created_at,created_by) VALUES(?,?,?,?)').run(testEnv.SITE_OWNER_USER_ID,'root',clock,testEnv.SITE_OWNER_USER_ID);
 const context=createContext({Date:TestDate,crypto:globalThis.crypto,Request,Response,URL,TextEncoder,console});
 const cache=new Map();
-async function moduleAt(path){if(cache.has(path))return cache.get(path);let module;if(path.endsWith('/lib/storage.js'))module=new SyntheticModule(['stmt','db'],function(){this.setExport('stmt',storage.stmt);this.setExport('db',storage.db);},{context,identifier:path});else module=new SourceTextModule(await readFile(path,'utf8'),{context,identifier:path});cache.set(path,module);return module;}
-const module=await moduleAt(resolve('app/api/escape/route.js'));await module.link((specifier,parent)=>moduleAt(resolve(dirname(parent.identifier),specifier)));await module.evaluate();
-const route=module.namespace;
-async function post(action,body={},token=''){let response=await route.POST(new Request('https://game.test/api/escape',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'Origin':'https://game.test'},body:JSON.stringify({action,requestId:crypto.randomUUID(),...body})}));return {status:response.status,data:await response.json()};}
-async function get(kind,id,token){let response=await route.GET(new Request(`https://game.test/api/escape?kind=${kind}&id=${id}`,{headers:{Authorization:'Bearer '+token}}));return {status:response.status,data:await response.json()};}
+async function moduleAt(path){if(cache.has(path))return cache.get(path);let loadedModule;if(resolve(path)===resolve('lib/storage.js'))loadedModule=new SyntheticModule(['stmt','db','getEnv'],function(){this.setExport('stmt',storage.stmt);this.setExport('db',storage.db);this.setExport('getEnv',storage.getEnv);},{context,identifier:path});else loadedModule=new SourceTextModule(await readFile(path,'utf8'),{context,identifier:path});cache.set(path,loadedModule);return loadedModule;}
+const entryModule=await moduleAt(resolve('app/api/escape/route.js'));await entryModule.link((specifier,parent)=>moduleAt(resolve(dirname(parent.identifier),specifier)));await entryModule.evaluate();
+const route=entryModule.namespace;
+const rootH={'oai-authenticated-user-id':testEnv.SITE_OWNER_USER_ID,'oai-authenticated-user-email':testEnv.SITE_OWNER_EMAIL};
+async function post(action,body={},token='',extraH={}){let response=await route.POST(new Request('https://game.test/api/escape',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'Origin':'https://game.test',...extraH},body:JSON.stringify({action,requestId:crypto.randomUUID(),...body})}));return {status:response.status,data:await response.json()};}
+async function get(kind,id,token,extraH={}){let response=await route.GET(new Request(`https://game.test/api/escape?kind=${kind}&id=${id}`,{headers:{Authorization:'Bearer '+token,...extraH}}));return {status:response.status,data:await response.json()};}
+const teacher=(action,body={})=>post(action,body,'',rootH);
+const teacherGet=(kind,id)=>get(kind,id,'',rootH);
 
 import {stationLogic} from '../lib/station-logic.js';
 import {finishStation} from '../lib/race.js';
 import {communityQuestion,gameNow} from '../lib/community.js';
 const id=crypto.randomUUID(),admin=crypto.randomUUID()+crypto.randomUUID();
-const room=(await post('create-room',{id,adminKey:admin,title:'26 learners',campaign:{playMode:'individual',community:'boat',theme:'dewey',grade:10,topics:['quadratic','vectors'],minLevel:0,maxLevel:1}})).data.room;
-await get('board',id,admin); // Initial room metadata is stable before concurrent joins.
+const room=(await teacher('create-room',{id,adminKey:admin,title:'26 learners',campaign:{playMode:'individual',community:'boat',theme:'dewey',grade:10,topics:['quadratic','vectors'],minLevel:0,maxLevel:1}})).data.room;
+await teacherGet('board',id); // Initial room metadata is stable before concurrent joins.
 const joined=await Promise.all(Array.from({length:26},(_,i)=>post('join',{code:room.code,name:'Học sinh '+(i+1),mascot:i%8})));
 assert(joined.every(x=>x.status===200),JSON.stringify(joined.filter(x=>x.status!==200)));
 const players=joined.map(x=>x.data.session);
 const raw=p=>JSON.parse(database.prepare('SELECT data FROM teams WHERE id=?').get(p.id).data);
 const edit=(p,fn)=>{let s=raw(p);fn(s);database.prepare('UPDATE teams SET data=?,revision=revision+1 WHERE id=?').run(JSON.stringify(s),p.id);};
 const currentRoom=()=>database.prepare('SELECT * FROM rooms WHERE id=?').get(id);
-await post('begin',{id},admin);
+await teacher('begin',{id});
 let levels=await Promise.all(players.map(p=>post('choose-level',{id:p.id,round:1,level:0},p.token)));
 assert(levels.every(x=>x.status===200));
 let solved=await Promise.all(players.map(p=>post('submit',{id:p.id,round:1,input:stationLogic(0,0,raw(p).seed).expected},p.token)));
@@ -76,7 +82,7 @@ let snap=(await get('state',first.id,first.token)).data;
 assert.equal(snap.state.community.own.question,null);assert(!JSON.stringify(snap.map).includes('"seed"'));
 assert(!JSON.stringify(snap.state.community).includes('"expected"'));assert(!JSON.stringify(snap.state.community).includes('"guides"'));
 assert.equal(gameNow(currentRoom(),clock),paused,'Main game clock is stopped');let frozen=(await get('state',players[25].id,players[25].token)).data.state;assert.equal(frozen.effects.freezeUntil-gameNow(currentRoom(),clock),20000,'Existing freeze duration pauses with the main game');
-let teacher=(await get('board',id,admin)).data;assert(teacher.community.guides[0].attempts[0].steps.length);assert(Number.isFinite(teacher.community.guides[0].attempts[0].expected));
+let teacherBoard=(await teacherGet('board',id)).data;assert(teacherBoard.community.guides[0].attempts[0].steps.length);assert(Number.isFinite(teacherBoard.community.guides[0].attempts[0].expected));
 clock=c.finishAt;
 assert.equal((await post('community-answer',{id:players[1].id,step:5,answer:'1',round:1},players[1].token)).status,409,'No answers after the deadline');
 assert.equal((await get('state',first.id,first.token)).data.state.community.phase,'results');
@@ -86,7 +92,7 @@ assert.equal(returned.state.community.phase,'done');assert.equal(raw(first).scor
 let score=raw(first).score;await get('state',first.id,first.token);assert.equal(raw(first).score,score,'Reward awarded once, including refresh');
 assert.equal(gameNow(currentRoom(),clock),paused+1,'Clock resumes after exactly 65 seconds');let thawing=(await get('state',players[25].id,players[25].token)).data.state;assert.equal(thawing.effects.freezeUntil-gameNow(currentRoom(),clock),19999,'Existing freeze retains its remaining duration after the regatta');
 let cfg=returned.state.race.campaign;assert.equal(cfg.theme,'dewey');assert.equal(cfg.playMode,'individual');assert(!cfg.cells.includes(18));
-let board=(await get('board',id,admin)).data;assert.equal(board.teams.length,27);assert.equal(board.teams.find(x=>x.id===first.id).elapsedMs,gameNow(currentRoom(),clock)-raw(first).start);
+let board=(await teacherGet('board',id)).data;assert.equal(board.teams.length,27);assert.equal(board.teams.find(x=>x.id===first.id).elapsedMs,gameNow(currentRoom(),clock)-raw(first).start);
 // Individual pass pact is consumed once, without consuming dice, then enforces cadence.
 edit(first,s=>{s.race.phase='travel';s.race.bonus=null;s.race.reward=null;s.race.lastRollAt=0;s.race.promisedPasses=1;s.race.paidPasses=0;});
 let rcount=raw(first).race.rolls,position=raw(first).race.position;
@@ -95,7 +101,7 @@ assert.equal((await post('roll',{id:first.id,sequence:rcount,round:1},first.toke
 let next=await post('roll',{id:first.id,sequence:rcount,round:1},first.token);assert.equal(next.status,200);assert(!next.data.result.skipped);
 // Reset interrupts a community event and invalidates its old requests.
 let revision=currentRoom().revision;
-let reset=await post('reset-room',{id,revision,confirmCode:room.code},admin);assert.equal(reset.status,200);
+let reset=await teacher('reset-room',{id,revision,confirmCode:room.code});assert.equal(reset.status,200);
 assert.equal(JSON.parse(currentRoom().race),null);
 assert.equal((await post('community-answer',{id:first.id,step:6,answer:1,round:1},first.token)).data.code,'SESSION_RESET');
 let clean=(await get('state',first.id,first.token)).data;assert.equal(clean.state.community,null);assert.equal(clean.state.status,'waiting');assert.equal(clean.state.score,0);

@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Cuộc đua cứu hộ Trạm 07 · Toán 10",
-  description: "Cuộc đua theo nhóm với linh vật, xúc xắc cân bằng, thử thách Toán 10 và logic, sự kiện và kỹ năng tự tính điểm.",
+  title: "Mật Mã Đa Giới · Toán 10–12",
+  description: "Hành trình Toán học qua mười hai thế giới, với cốt truyện, bản đồ và phản hồi tương tác.",
   other: {
     "codex-preview": "development",
   },
