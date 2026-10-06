@@ -153,22 +153,23 @@ describe('công bố + phụ huynh xem', () => {
     expect(res.payload.reports[0].title).toContain('tháng 9/2026');
   });
 
-  it('PIN học sinh hoặc PIN của em khác không vào được; sai 5 lần thì khoá, đúng PIN cũng bị chặn', async () => {
+  it('PIN học sinh hoặc PIN của em khác không vào được; sai bao nhiêu lần cũng KHÔNG bị khoá', async () => {
     const pins = await setup();
-    // PIN học sinh (1111) không phải PIN phụ huynh: nếu tình cờ trùng số thì đổi sang số khác cho phép thử còn ý nghĩa.
-    const khac = (pin: string) => (pin === '1111' ? '2222' : '1111');
-    expect((await parentCall({ studentId: 'a', pin: khac(pins.a) })).statusCode).toBe(401);
-    const sai = pins.b === '9999' ? '9998' : '9999';
-    for (let i = 0; i < 6; i += 1) await parentCall({ studentId: 'b', pin: sai });
-    const locked = await parentCall({ studentId: 'b', pin: pins.b });
-    expect(locked.statusCode).toBe(429);
+    // PIN học sinh (1111) không phải PIN phụ huynh.
+    expect((await parentCall({ studentId: 'a', pin: '1111' })).statusCode).toBe(401);
+    expect((await parentCall({ studentId: 'a', pin: pins.b })).statusCode).toBe(401);
+    for (let i = 0; i < 20; i += 1) expect((await parentCall({ studentId: 'b', pin: 'zzzz' })).statusCode).toBe(401);
+    const ok = await parentCall({ studentId: 'b', pin: pins.b });
+    expect(ok.statusCode).toBe(200);
+    expect(ok.payload.reports).toHaveLength(1);
   });
 
-  it('chưa cấp PIN → 409; lớp/em không có → 404; PIN sai dạng → 400', async () => {
+  it('chưa cấp PIN → 409; lớp/em không có → 404; PIN sai dạng (không đủ 4 ký tự / có dấu cách) → 400', async () => {
     expect((await parentCall({ studentId: 'a', pin: '1234' })).statusCode).toBe(409);
     expect((await parentCall({ joinCode: 'ZZZZZZ', studentId: 'a', pin: '1234' })).statusCode).toBe(404);
     expect((await parentCall({ studentId: 'khong-co', pin: '1234' })).statusCode).toBe(404);
-    expect((await parentCall({ studentId: 'a', pin: 'abcd' })).statusCode).toBe(400);
+    expect((await parentCall({ studentId: 'a', pin: '12' })).statusCode).toBe(400);
+    expect((await parentCall({ studentId: 'a', pin: '12 4' })).statusCode).toBe(400);
   });
 
   it('gỡ công bố: cả lớp hoặc một em; danh sách theo kì đếm đúng', async () => {
@@ -226,34 +227,42 @@ describe('phụ huynh tự đặt PIN', () => {
     expect(h.store['classes/lop-1/parentSecrets'].a.pinPlain).toBe('7413');
   });
 
-  it('từ chối: PIN hiện tại sai (tính vào khoá), PIN mới trùng cũ / dễ đoán / sai dạng, chưa cấp PIN', async () => {
+  it('PIN mới là 4 ký tự bất kỳ: chữ, ký tự đặc biệt, chữ có dấu đều được; đăng nhập đúng chữ hoa/thường', async () => {
+    const pins = await issue();
+    expect((await change({ studentId: 'a', pin: pins.a, newPin: 'aB#9' })).statusCode).toBe(200);
+    expect(h.store['classes/lop-1/parentSecrets'].a.pinPlain).toBe('aB#9');
+    expect((await parentCall({ studentId: 'a', pin: 'aB#9' })).payload.mustChange).toBe(false);
+    expect((await parentCall({ studentId: 'a', pin: 'ab#9' })).statusCode).toBe(401);
+    // Chữ có dấu gõ ở dạng tổ hợp (NFD) vẫn khớp bản đã đặt (NFC).
+    expect((await change({ studentId: 'a', pin: 'aB#9', newPin: 'ắẹ1!' })).statusCode).toBe(200);
+    expect((await parentCall({ studentId: 'a', pin: 'ắẹ1!'.normalize('NFD') })).statusCode).toBe(200);
+    // Số giống nhau / dãy số không còn bị chặn.
+    expect((await change({ studentId: 'a', pin: 'ắẹ1!', newPin: '1111' })).statusCode).toBe(200);
+    expect((await change({ studentId: 'a', pin: '1111', newPin: '1234' })).statusCode).toBe(200);
+  });
+
+  it('từ chối: PIN hiện tại sai (nhập lại thoải mái, không khoá), PIN mới trùng cũ / sai độ dài / có dấu cách, chưa cấp PIN', async () => {
     expect((await change({ studentId: 'a', pin: '1357', newPin: '2580' })).statusCode).toBe(409);
     const pins = await issue();
     const sai = pins.a === '1357' ? '1358' : '1357';
-    expect((await change({ studentId: 'a', pin: sai, newPin: '2580' })).statusCode).toBe(401);
+    for (let i = 0; i < 10; i += 1) expect((await change({ studentId: 'a', pin: sai, newPin: '2580' })).statusCode).toBe(401);
     expect((await change({ studentId: 'a', pin: pins.a, newPin: pins.a })).statusCode).toBe(400);
-    expect((await change({ studentId: 'a', pin: pins.a, newPin: '1111' })).statusCode).toBe(400);
-    expect((await change({ studentId: 'a', pin: pins.a, newPin: '1234' })).statusCode).toBe(400);
-    expect((await change({ studentId: 'a', pin: pins.a, newPin: '25a0' })).statusCode).toBe(400);
+    expect((await change({ studentId: 'a', pin: pins.a, newPin: '123' })).statusCode).toBe(400);
+    expect((await change({ studentId: 'a', pin: pins.a, newPin: '12345' })).statusCode).toBe(400);
+    expect((await change({ studentId: 'a', pin: pins.a, newPin: '12 4' })).statusCode).toBe(400);
     expect(h.store['classes/lop-1/parentSecrets'].a.pinSetBy).toBe('teacher');
-    for (let i = 0; i < 6; i += 1) await change({ studentId: 'b', pin: sai, newPin: '2580' });
-    expect((await change({ studentId: 'b', pin: pins.b, newPin: '2580' })).statusCode).toBe(429);
+    expect((await change({ studentId: 'a', pin: pins.a, newPin: '2580' })).statusCode).toBe(200);
+  });
+
+  it('giáo viên đặt lại → PIN ngẫu nhiên 4 số để gửi lại cho phụ huynh', async () => {
+    await issue();
+    const reset = await call({ action: 'resetParentPin', classId: 'lop-1', studentId: 'a' });
+    expect(reset.payload.pin).toMatch(/^\d{4}$/);
+    expect(h.store['classes/lop-1/parentSecrets'].a).toMatchObject({ pinPlain: reset.payload.pin, pinSetBy: 'teacher' });
   });
 });
 
-describe('đoán PIN song song không né được khoá (giao dịch)', () => {
-  const guess = (pin: string) => call({ action: 'parentReports', idToken: undefined, joinCode: 'ABCD23', studentId: 'a', pin });
-
-  it('PIN phụ huynh: 12 lượt sai gửi cùng lúc → đúng 5 lượt 401, 7 lượt còn lại bị khoá; PIN đúng cũng bị chặn', async () => {
-    const pins = (await call({ action: 'issueParentPins', classId: 'lop-1' })).payload.rows as Array<{ studentId: string; pin: string }>;
-    const dung = pins.find(r => r.studentId === 'a')!.pin;
-    const sai = dung === '0000' ? '0001' : '0000';
-    const codes = (await Promise.all(Array.from({ length: 12 }, () => guess(sai)))).map(r => r.statusCode);
-    expect(codes.filter(c => c === 401)).toHaveLength(5);
-    expect(codes.filter(c => c === 429)).toHaveLength(7);
-    expect((await guess(dung)).statusCode).toBe(429);
-  });
-
+describe('đoán PIN học sinh song song không né được khoá (giao dịch)', () => {
   it('PIN học sinh (cổng /lop): cùng lỗi đã sửa — 12 lượt sai song song vẫn khoá sau 5', async () => {
     h.claims = { uid: 'anon-x', firebase: { sign_in_provider: 'anonymous' } };
     h.store['classes/lop-1/studentSecrets'] = { a: { pinHash: hashPin('4321') } };

@@ -164,7 +164,7 @@ export const ClassParentAccessPanel = ({ classId, className, students, refreshKe
                     <td className="px-3 py-2">
                       <div className="flex justify-end gap-1.5">
                         <button type="button" onClick={() => void chep(messageOf(row), `Đã chép tin nhắn cho phụ huynh ${row.name}.`)} className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-black text-white hover:bg-emerald-700"><ClipboardCopy className="h-3.5 w-3.5" /> Chép</button>
-                        <button type="button" onClick={() => void capLai(row)} title="Đặt lại PIN (quên PIN / bị khoá) — phụ huynh sẽ phải tự đặt PIN riêng khi vào" className="inline-flex items-center rounded-lg border border-slate-200 px-2 py-1.5 text-slate-500 hover:bg-slate-100"><RefreshCw className="h-3.5 w-3.5" /></button>
+                        <button type="button" onClick={() => void capLai(row)} title="Đặt lại PIN (quên PIN) — ra mã ngẫu nhiên 4 số để gửi lại; phụ huynh sẽ phải tự đặt PIN riêng khi vào" className="inline-flex items-center rounded-lg border border-slate-200 px-2 py-1.5 text-slate-500 hover:bg-slate-100"><RefreshCw className="h-3.5 w-3.5" /></button>
                       </div>
                     </td>
                   </tr>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_PARENT_MESSAGE, parentPortalLink, parentReportDocId, renderParentMessage, weakParentPinReason } from './parentAccess';
+import { DEFAULT_PARENT_MESSAGE, parentPortalLink, parentReportDocId, renderParentMessage, isValidParentPin, normalizeParentPin } from './parentAccess';
 
 describe('parentAccess', () => {
   it('link cổng phụ huynh theo mã lớp', () => {
@@ -19,12 +19,11 @@ describe('parentAccess', () => {
     expect(renderParentMessage('Xin chào {ten} {khac}', { ten: 'An', lop: '', link: '', pin: '' })).toBe('Xin chào An {khac}');
   });
 
-  it('PIN phụ huynh tự chọn: chặn 4 số giống nhau và dãy liên tiếp, cho phép số thường', () => {
-    expect(weakParentPinReason('0000')).toBeTruthy();
-    expect(weakParentPinReason('7777')).toBeTruthy();
-    expect(weakParentPinReason('1234')).toBeTruthy();
-    expect(weakParentPinReason('4321')).toBeTruthy();
-    expect(weakParentPinReason('2580')).toBeNull();
-    expect(weakParentPinReason('1357')).toBeNull();
+  it('PIN phụ huynh: đúng 4 ký tự bất kỳ (số, chữ, ký tự đặc biệt), không dấu cách; chữ có dấu tính 1 ký tự', () => {
+    for (const ok of ['2580', 'abcd', 'Ab#9', '!@#$', 'ắẹ12', '1111', '1234']) expect(isValidParentPin(ok)).toBe(true);
+    for (const bad of ['123', '12345', '12 4', ' 123', '', 'ab\t1']) expect(isValidParentPin(bad)).toBe(false);
+    expect(isValidParentPin(1234)).toBe(false);
+    expect(normalizeParentPin('e\u0301')).toBe('\u00e9');
+    expect(isValidParentPin('e\u0301ab1')).toBe(true);
   });
 });

@@ -6,7 +6,7 @@
  */
 import type { ReportKind } from './reportKinds.js';
 
-/** `classes/{classId}/parentSecrets/{studentId}` — bản băm + bản hiển thị PIN, trạng thái khoá. */
+/** `classes/{classId}/parentSecrets/{studentId}` — bản băm + bản hiển thị PIN + `pinSetBy` (không còn khoá khi nhập sai). */
 export const PARENT_SECRETS_SUB = 'parentSecrets';
 /** `classes/{classId}/parentReports/{studentId}__{kind}__{from}__{to}` — bản chụp báo cáo giáo viên đã công bố. */
 export const PARENT_REPORTS_SUB = 'parentReports';
@@ -21,12 +21,12 @@ export const parentReportDocId = (studentId: string, kind: ReportKind | string, 
 /** Người đặt PIN hiện tại: giáo viên cấp (phụ huynh phải đặt lại ở lần vào đầu tiên) hoặc chính phụ huynh. */
 export type ParentPinSetBy = 'teacher' | 'parent';
 
-/** Lý do PIN do phụ huynh tự chọn quá dễ đoán (4 số giống nhau, dãy tăng/giảm); `null` nếu chấp nhận được. */
-export const weakParentPinReason = (pin: string): string | null => {
-  if (/^(\d)\1{3}$/.test(pin)) return 'Mã PIN không được là 4 số giống nhau.';
-  if ('0123456789'.includes(pin) || '9876543210'.includes(pin)) return 'Mã PIN không được là dãy số liên tiếp (như 1234).';
-  return null;
-};
+/** PIN phụ huynh: đúng 4 ký tự bất kỳ (số, chữ, ký tự đặc biệt), không có khoảng trắng. Chuẩn hoá NFC để chữ có dấu gõ ở máy nào cũng khớp. */
+export const PARENT_PIN_LENGTH = 4;
+export const normalizeParentPin = (raw: string): string => raw.normalize('NFC');
+export const isValidParentPin = (pin: unknown): pin is string =>
+  typeof pin === 'string' && [...normalizeParentPin(pin)].length === PARENT_PIN_LENGTH && !/[\s\u0000-\u001f\u007f]/.test(pin);
+export const PARENT_PIN_RULE = 'Mã PIN gồm đúng 4 ký tự (số, chữ hoặc ký tự đặc biệt), không có dấu cách.';
 
 export const parentPortalLink =(origin: string, joinCode: string): string => `${origin}/ph/${joinCode}`;
 

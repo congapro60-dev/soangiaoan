@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { AlertTriangle, ArrowLeft, CheckCircle2, Download, FileText, HeartHandshake, KeyRound, Loader2 } from 'lucide-react';
 import { normalizeJoinCode } from '../lib/classroom/joinCode';
 import { REPORT_KINDS, type ReportKind } from '../lib/classroom/reportKinds';
-import { weakParentPinReason, type PublishedParentReport } from '../lib/classroom/parentAccess';
+import { PARENT_PIN_LENGTH, isValidParentPin, type PublishedParentReport } from '../lib/classroom/parentAccess';
 import { PARENT_REPORT_ROOT_ID, buildParentReportPrintDoc, type ParentReportPrintInput } from '../lib/classroom/parentReportPrintDoc';
 import { changeParentPin, fetchParentReports, fetchParentRoster, type ParentRoster } from '../services/parentPortalApi';
 
@@ -26,7 +26,8 @@ const dayLabel = (iso: string): string => {
 type Stage = 'nhap-ma-lop' | 'chon-ten' | 'doi-pin' | 'xem';
 
 const pinInput = 'w-full rounded-2xl border border-slate-200 px-4 py-3 text-center text-2xl font-black tracking-[0.5em] outline-none focus:border-emerald-500';
-const soPin = (value: string) => value.replace(/\D/g, '').slice(0, 4);
+/** PIN gồm đúng 4 ký tự bất kỳ (đếm theo ký tự, không phải byte); bỏ khoảng trắng. */
+const gotPin = (value: string) => [...value.replace(/\s/g, '')].slice(0, PARENT_PIN_LENGTH).join('');
 
 /**
  * Đặt PIN riêng của phụ huynh. `batBuoc` = lần đầu vào (mã do thầy cô cấp) → không có nút bỏ qua;
@@ -41,17 +42,16 @@ export const ParentPinChangeForm = ({ batBuoc, dangGoi, loiMay, onSubmit, onCanc
 }) => {
   const [moi, setMoi] = useState('');
   const [lai, setLai] = useState('');
-  const loiNhap = moi.length === 4 ? weakParentPinReason(moi) : null;
-  const khongKhop = lai.length === 4 && lai !== moi;
-  const hopLe = moi.length === 4 && lai === moi && !loiNhap;
-  const loi = loiNhap || (khongKhop ? 'Hai lần nhập chưa giống nhau.' : loiMay);
+  const khongKhop = isValidParentPin(lai) && lai !== moi;
+  const hopLe = isValidParentPin(moi) && lai === moi;
+  const loi = khongKhop ? 'Hai lần nhập chưa giống nhau.' : loiMay;
   return (
     <>
       <h1 className="flex items-center gap-2 text-xl font-black text-slate-900"><KeyRound className="h-5 w-5 text-emerald-600" /> {batBuoc ? 'Đặt mã PIN riêng của bạn' : 'Đổi mã PIN'}</h1>
       <p className="mt-1 text-sm font-semibold text-slate-500">
         {batBuoc
-          ? 'Đây là lần đầu vào. Vì an toàn, hãy đặt mã PIN 4 số do chính bạn chọn — các lần sau dùng mã này để xem báo cáo.'
-          : 'Chọn mã PIN 4 số mới. Từ lần sau dùng mã mới này để vào xem báo cáo.'}
+          ? 'Đây là lần đầu vào. Vì an toàn, hãy đặt mã PIN do chính bạn chọn — đúng 4 ký tự, có thể là số, chữ hoặc ký tự đặc biệt. Các lần sau dùng mã này để xem báo cáo.'
+          : 'Chọn mã PIN mới gồm đúng 4 ký tự (số, chữ hoặc ký tự đặc biệt). Từ lần sau dùng mã mới này để vào xem báo cáo.'}
       </p>
       {loi && (
         <p className="mt-4 flex items-start gap-2 rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-800 ring-1 ring-red-100">
@@ -60,12 +60,12 @@ export const ParentPinChangeForm = ({ batBuoc, dangGoi, loiMay, onSubmit, onCanc
       )}
       <div className="mt-5 space-y-4">
         <label className="block">
-          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-400">Mã PIN mới (4 số)</span>
-          <input value={moi} onChange={event => setMoi(soPin(event.target.value))} inputMode="numeric" autoComplete="new-password" placeholder="••••" className={pinInput} />
+          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-400">Mã PIN mới (4 ký tự)</span>
+          <input type="password" value={moi} onChange={event => setMoi(gotPin(event.target.value))} autoComplete="new-password" autoCapitalize="off" autoCorrect="off" spellCheck={false} placeholder="••••" className={pinInput} />
         </label>
         <label className="block">
           <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-400">Nhập lại mã PIN mới</span>
-          <input value={lai} onChange={event => setLai(soPin(event.target.value))} inputMode="numeric" autoComplete="new-password" placeholder="••••" className={pinInput} />
+          <input type="password" value={lai} onChange={event => setLai(gotPin(event.target.value))} autoComplete="new-password" autoCapitalize="off" autoCorrect="off" spellCheck={false} placeholder="••••" className={pinInput} />
         </label>
         <button type="button" onClick={() => onSubmit(moi)} disabled={dangGoi || !hopLe} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3.5 text-sm font-black text-white transition hover:bg-emerald-700 disabled:opacity-50">
           {dangGoi ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Lưu mã PIN mới'}
@@ -233,10 +233,10 @@ export const ParentPortalPage = () => {
               </select>
             </label>
             <label className="block">
-              <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-400">Mã PIN phụ huynh (4 số)</span>
-              <input value={pin} onChange={event => setPin(event.target.value.replace(/\D/g, '').slice(0, 4))} inputMode="numeric" autoComplete="off" placeholder="••••" className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-center text-2xl font-black tracking-[0.5em] outline-none focus:border-emerald-500" />
+              <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-400">Mã PIN phụ huynh (4 ký tự)</span>
+              <input type="password" value={pin} onChange={event => setPin(gotPin(event.target.value))} autoComplete="off" autoCapitalize="off" autoCorrect="off" spellCheck={false} placeholder="••••" className={pinInput} />
             </label>
-            <button type="button" onClick={() => void xem()} disabled={dangGoi || !studentId || pin.length !== 4} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3.5 text-sm font-black text-white transition hover:bg-emerald-700 disabled:opacity-50">
+            <button type="button" onClick={() => void xem()} disabled={dangGoi || !studentId || !isValidParentPin(pin)} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3.5 text-sm font-black text-white transition hover:bg-emerald-700 disabled:opacity-50">
               {dangGoi ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Xem báo cáo'}
             </button>
           </div>
