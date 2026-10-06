@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
-import { AlertTriangle, ArrowLeft, Download, FileText, HeartHandshake, Loader2 } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, CheckCircle2, Download, FileText, HeartHandshake, KeyRound, Loader2 } from 'lucide-react';
 import { normalizeJoinCode } from '../lib/classroom/joinCode';
 import { REPORT_KINDS, type ReportKind } from '../lib/classroom/reportKinds';
-import type { PublishedParentReport } from '../lib/classroom/parentAccess';
+import { weakParentPinReason, type PublishedParentReport } from '../lib/classroom/parentAccess';
 import { PARENT_REPORT_ROOT_ID, buildParentReportPrintDoc, type ParentReportPrintInput } from '../lib/classroom/parentReportPrintDoc';
-import { fetchParentReports, fetchParentRoster, type ParentRoster } from '../services/parentPortalApi';
+import { changeParentPin, fetchParentReports, fetchParentRoster, type ParentRoster } from '../services/parentPortalApi';
 
 /** Bản web của báo cáo (`variant: web`): tự co giãn theo màn hình, chữ ≥15px, cột xếp dọc trên điện thoại. Bản A4 chỉ dùng khi tải PDF. */
 const ReportViewer = ({ input }: { input: ParentReportPrintInput }) => {
@@ -23,7 +23,61 @@ const dayLabel = (iso: string): string => {
   return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('vi-VN');
 };
 
-type Stage = 'nhap-ma-lop' | 'chon-ten' | 'xem';
+type Stage = 'nhap-ma-lop' | 'chon-ten' | 'doi-pin' | 'xem';
+
+const pinInput = 'w-full rounded-2xl border border-slate-200 px-4 py-3 text-center text-2xl font-black tracking-[0.5em] outline-none focus:border-emerald-500';
+const soPin = (value: string) => value.replace(/\D/g, '').slice(0, 4);
+
+/**
+ * Đặt PIN riêng của phụ huynh. `batBuoc` = lần đầu vào (mã do thầy cô cấp) → không có nút bỏ qua;
+ * ngược lại là phụ huynh chủ động đổi và có nút quay lại.
+ */
+export const ParentPinChangeForm = ({ batBuoc, dangGoi, loiMay, onSubmit, onCancel }: {
+  batBuoc: boolean;
+  dangGoi: boolean;
+  loiMay: string;
+  onSubmit: (newPin: string) => void;
+  onCancel?: () => void;
+}) => {
+  const [moi, setMoi] = useState('');
+  const [lai, setLai] = useState('');
+  const loiNhap = moi.length === 4 ? weakParentPinReason(moi) : null;
+  const khongKhop = lai.length === 4 && lai !== moi;
+  const hopLe = moi.length === 4 && lai === moi && !loiNhap;
+  const loi = loiNhap || (khongKhop ? 'Hai lần nhập chưa giống nhau.' : loiMay);
+  return (
+    <>
+      <h1 className="flex items-center gap-2 text-xl font-black text-slate-900"><KeyRound className="h-5 w-5 text-emerald-600" /> {batBuoc ? 'Đặt mã PIN riêng của bạn' : 'Đổi mã PIN'}</h1>
+      <p className="mt-1 text-sm font-semibold text-slate-500">
+        {batBuoc
+          ? 'Đây là lần đầu vào. Vì an toàn, hãy đặt mã PIN 4 số do chính bạn chọn — các lần sau dùng mã này để xem báo cáo.'
+          : 'Chọn mã PIN 4 số mới. Từ lần sau dùng mã mới này để vào xem báo cáo.'}
+      </p>
+      {loi && (
+        <p className="mt-4 flex items-start gap-2 rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-800 ring-1 ring-red-100">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /> {loi}
+        </p>
+      )}
+      <div className="mt-5 space-y-4">
+        <label className="block">
+          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-400">Mã PIN mới (4 số)</span>
+          <input value={moi} onChange={event => setMoi(soPin(event.target.value))} inputMode="numeric" autoComplete="new-password" placeholder="••••" className={pinInput} />
+        </label>
+        <label className="block">
+          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-400">Nhập lại mã PIN mới</span>
+          <input value={lai} onChange={event => setLai(soPin(event.target.value))} inputMode="numeric" autoComplete="new-password" placeholder="••••" className={pinInput} />
+        </label>
+        <button type="button" onClick={() => onSubmit(moi)} disabled={dangGoi || !hopLe} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3.5 text-sm font-black text-white transition hover:bg-emerald-700 disabled:opacity-50">
+          {dangGoi ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Lưu mã PIN mới'}
+        </button>
+        {!batBuoc && onCancel && (
+          <button type="button" onClick={onCancel} className="min-h-11 w-full rounded-2xl py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50">Để sau</button>
+        )}
+        <p className="text-center text-xs font-semibold text-slate-400">Thầy cô xem được mã PIN này để hỗ trợ khi bạn quên, nên đừng dùng mã trùng với mật khẩu ngân hàng hay thẻ.</p>
+      </div>
+    </>
+  );
+};
 
 /**
  * Cổng phụ huynh: mã lớp (trên link) → chọn tên con → PIN riêng của phụ huynh → xem các báo cáo giáo viên đã công bố,
@@ -43,6 +97,9 @@ export const ParentPortalPage = () => {
   const [kind, setKind] = useState<ReportKind | 'all'>('all');
   const [openId, setOpenId] = useState('');
   const [dangTaiPdf, setDangTaiPdf] = useState(false);
+  const [thongBao, setThongBao] = useState('');
+  /** Lần đầu vào (PIN còn là mã thầy cô cấp) → màn đặt PIN không có nút bỏ qua. */
+  const [batBuocDoi, setBatBuocDoi] = useState(false);
 
   const moLop = useCallback(async (ma: string) => {
     setLoi('');
@@ -72,9 +129,33 @@ export const ParentPortalPage = () => {
       setReports(data.reports);
       setOpenId(data.reports[0]?.id ?? '');
       setKind('all');
-      setStage('xem');
+      setBatBuocDoi(data.mustChange);
+      setThongBao('');
+      setStage(data.mustChange ? 'doi-pin' : 'xem');
     } catch (error) {
       setLoi(error instanceof Error ? error.message : 'Không xem được báo cáo.');
+    } finally {
+      setDangGoi(false);
+    }
+  };
+
+  /** Đặt PIN mới rồi vào xem luôn bằng PIN mới (không bắt gõ lại). */
+  const luuPinMoi = async (newPin: string) => {
+    setLoi('');
+    setDangGoi(true);
+    try {
+      await changeParentPin(joinCode, studentId, pin, newPin);
+      setPin(newPin);
+      const data = await fetchParentReports(joinCode, studentId, newPin);
+      setStudentName(data.studentName);
+      setReports(data.reports);
+      setOpenId(data.reports[0]?.id ?? '');
+      setKind('all');
+      setBatBuocDoi(false);
+      setThongBao('Đã đổi mã PIN. Từ lần sau, dùng mã PIN mới để vào xem báo cáo.');
+      setStage('xem');
+    } catch (error) {
+      setLoi(error instanceof Error ? error.message : 'Không đổi được mã PIN.');
     } finally {
       setDangGoi(false);
     }
@@ -164,11 +245,23 @@ export const ParentPortalPage = () => {
     );
   }
 
+  if (stage === 'doi-pin') {
+    return khung(
+      <ParentPinChangeForm
+        batBuoc={batBuocDoi}
+        dangGoi={dangGoi}
+        loiMay={loi}
+        onSubmit={newPin => void luuPinMoi(newPin)}
+        onCancel={() => { setLoi(''); setStage('xem'); }}
+      />,
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 pb-10">
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur">
         <div className="mx-auto flex max-w-[840px] items-center gap-3">
-          <button type="button" onClick={() => { setStage('chon-ten'); setPin(''); setReports([]); }} aria-label="Quay lại" className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100"><ArrowLeft className="h-5 w-5" /></button>
+          <button type="button" onClick={() => { setStage('chon-ten'); setPin(''); setReports([]); setThongBao(''); }} aria-label="Quay lại" className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100"><ArrowLeft className="h-5 w-5" /></button>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-black text-slate-900">{studentName}</p>
             <p className="truncate text-xs font-semibold text-slate-500">{roster?.className ? `Lớp ${roster.className} · ` : ''}Báo cáo học tập của con</p>
@@ -182,6 +275,17 @@ export const ParentPortalPage = () => {
       </header>
 
       <main className="mx-auto max-w-[840px] px-4 pt-4">
+        {thongBao && (
+          <p className="mb-3 flex items-start gap-2 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800 ring-1 ring-emerald-100">
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /> {thongBao}
+          </p>
+        )}
+        <div className="mb-3 flex items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <p className="min-w-0 text-xs font-bold text-amber-900">Bảo mật: bạn có thể tự đổi mã PIN bất cứ lúc nào.</p>
+          <button type="button" onClick={() => { setLoi(''); setThongBao(''); setBatBuocDoi(false); setStage('doi-pin'); }} className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-xl bg-amber-500 px-3.5 py-2 text-xs font-black text-white shadow-sm hover:bg-amber-600">
+            <KeyRound className="h-4 w-4" /> Đổi mã PIN
+          </button>
+        </div>
         {loiBox}
         {reports.length === 0 ? (
           <div className="mt-6 rounded-3xl border border-dashed border-slate-300 bg-white p-8 text-center">

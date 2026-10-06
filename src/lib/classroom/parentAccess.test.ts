@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_PARENT_MESSAGE, parentPortalLink, parentReportDocId, renderParentMessage } from './parentAccess';
+import { DEFAULT_PARENT_MESSAGE, parentPortalLink, parentReportDocId, renderParentMessage, weakParentPinReason } from './parentAccess';
 
 describe('parentAccess', () => {
   it('link cổng phụ huynh theo mã lớp', () => {
@@ -17,5 +17,14 @@ describe('parentAccess', () => {
     expect(text).toContain('mã PIN: 4821');
     expect(text).not.toMatch(/\{(ten|lop|link|pin)\}/);
     expect(renderParentMessage('Xin chào {ten} {khac}', { ten: 'An', lop: '', link: '', pin: '' })).toBe('Xin chào An {khac}');
+  });
+
+  it('PIN phụ huynh tự chọn: chặn 4 số giống nhau và dãy liên tiếp, cho phép số thường', () => {
+    expect(weakParentPinReason('0000')).toBeTruthy();
+    expect(weakParentPinReason('7777')).toBeTruthy();
+    expect(weakParentPinReason('1234')).toBeTruthy();
+    expect(weakParentPinReason('4321')).toBeTruthy();
+    expect(weakParentPinReason('2580')).toBeNull();
+    expect(weakParentPinReason('1357')).toBeNull();
   });
 });

@@ -27,8 +27,14 @@ export const fetchParentRoster = (joinCode: string): Promise<ParentRoster> =>
 export interface ParentReportsResponse {
   studentName: string;
   className: string;
+  /** PIN vẫn là mã giáo viên cấp → phải đặt PIN riêng trước khi xem (khi đó `reports` rỗng). */
+  mustChange: boolean;
   reports: PublishedParentReport[];
 }
 
 export const fetchParentReports = (joinCode: string, studentId: string, pin: string): Promise<ParentReportsResponse> =>
   call<ParentReportsResponse>({ action: 'parentReports', joinCode, studentId, pin });
+
+/** Phụ huynh tự đặt PIN mới (cần PIN hiện tại). Máy chủ lưu để giáo viên xem/cấp lại được. */
+export const changeParentPin = (joinCode: string, studentId: string, pin: string, newPin: string): Promise<{ ok: true }> =>
+  call<{ ok: true }>({ action: 'changeParentPin', joinCode, studentId, pin, newPin });

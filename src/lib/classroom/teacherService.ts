@@ -322,7 +322,7 @@ export const draftParentReportComment = (key: ParentReportNoteKey, facts: Record
 
 /** Cổng phụ huynh (/ph): cấp PIN riêng cho phụ huynh — gọi lại thì giữ PIN cũ, chỉ cấp cho em chưa có. */
 export const issueParentPins = (classId: string) =>
-  callTeacherApi<{ joinCode: string; className: string; rows: Array<{ studentId: string; name: string; pin: string }> }>({ action: 'issueParentPins', classId });
+  callTeacherApi<{ joinCode: string; className: string; rows: Array<{ studentId: string; name: string; pin: string; parentSet: boolean }> }>({ action: 'issueParentPins', classId });
 
 export const resetParentPin = (classId: string, studentId: string) =>
   callTeacherApi<{ studentId: string; pin: string }>({ action: 'resetParentPin', classId, studentId });

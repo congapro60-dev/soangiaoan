@@ -18,7 +18,17 @@ export const PUBLISH_CHUNK = 12;
 export const parentReportDocId = (studentId: string, kind: ReportKind | string, from: string, to: string): string =>
   `${studentId}__${kind}__${from}__${to}`;
 
-export const parentPortalLink = (origin: string, joinCode: string): string => `${origin}/ph/${joinCode}`;
+/** Người đặt PIN hiện tại: giáo viên cấp (phụ huynh phải đặt lại ở lần vào đầu tiên) hoặc chính phụ huynh. */
+export type ParentPinSetBy = 'teacher' | 'parent';
+
+/** Lý do PIN do phụ huynh tự chọn quá dễ đoán (4 số giống nhau, dãy tăng/giảm); `null` nếu chấp nhận được. */
+export const weakParentPinReason = (pin: string): string | null => {
+  if (/^(\d)\1{3}$/.test(pin)) return 'Mã PIN không được là 4 số giống nhau.';
+  if ('0123456789'.includes(pin) || '9876543210'.includes(pin)) return 'Mã PIN không được là dãy số liên tiếp (như 1234).';
+  return null;
+};
+
+export const parentPortalLink =(origin: string, joinCode: string): string => `${origin}/ph/${joinCode}`;
 
 export const DEFAULT_PARENT_MESSAGE = [
   'Kính gửi phụ huynh em {ten} ({lop}),',

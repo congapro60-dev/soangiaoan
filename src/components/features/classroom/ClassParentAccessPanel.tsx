@@ -17,7 +17,8 @@ interface Props {
   showToast: (msg: string, icon?: any) => void;
 }
 
-interface PinRow { studentId: string; name: string; pin: string }
+/** `parentSet`: phụ huynh đã tự đặt PIN (PIN trong bảng là PIN của họ); false = còn là mã thầy cô cấp, họ sẽ phải đặt lại khi vào. */
+interface PinRow { studentId: string; name: string; pin: string; parentSet: boolean }
 
 const TEMPLATE_KEY = 'smartplan.parentMessageTemplate';
 const readTemplate = (): string => {
@@ -75,7 +76,7 @@ export const ClassParentAccessPanel = ({ classId, className, students, refreshKe
   const capLai = async (row: PinRow) => {
     try {
       const { pin } = await resetParentPin(classId, row.studentId);
-      setRows(current => current?.map(r => (r.studentId === row.studentId ? { ...r, pin } : r)) ?? null);
+      setRows(current => current?.map(r => (r.studentId === row.studentId ? { ...r, pin, parentSet: false } : r)) ?? null);
       showToast(`Đã cấp PIN mới cho phụ huynh ${row.name}.`);
     } catch (error) {
       showToast(error instanceof Error ? error.message : 'Không cấp lại được PIN.', 'error');
@@ -156,11 +157,14 @@ export const ClassParentAccessPanel = ({ classId, className, students, refreshKe
                 {rows.map(row => (
                   <tr key={row.studentId} className="border-t border-slate-100">
                     <td className="px-3 py-2 font-bold text-slate-800">{row.name}</td>
-                    <td className="px-3 py-2 font-black tracking-widest text-slate-900">{row.pin}</td>
+                    <td className="px-3 py-2 font-black tracking-widest text-slate-900">
+                      {row.pin}
+                      <span className={`ml-2 rounded-full px-2 py-0.5 align-middle text-[10px] font-black tracking-normal ${row.parentSet ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>{row.parentSet ? 'PH tự đặt' : 'Thầy cô cấp'}</span>
+                    </td>
                     <td className="px-3 py-2">
                       <div className="flex justify-end gap-1.5">
                         <button type="button" onClick={() => void chep(messageOf(row), `Đã chép tin nhắn cho phụ huynh ${row.name}.`)} className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-black text-white hover:bg-emerald-700"><ClipboardCopy className="h-3.5 w-3.5" /> Chép</button>
-                        <button type="button" onClick={() => void capLai(row)} title="Cấp PIN mới (quên PIN / bị khoá)" className="inline-flex items-center rounded-lg border border-slate-200 px-2 py-1.5 text-slate-500 hover:bg-slate-100"><RefreshCw className="h-3.5 w-3.5" /></button>
+                        <button type="button" onClick={() => void capLai(row)} title="Đặt lại PIN (quên PIN / bị khoá) — phụ huynh sẽ phải tự đặt PIN riêng khi vào" className="inline-flex items-center rounded-lg border border-slate-200 px-2 py-1.5 text-slate-500 hover:bg-slate-100"><RefreshCw className="h-3.5 w-3.5" /></button>
                       </div>
                     </td>
                   </tr>
@@ -169,6 +173,7 @@ export const ClassParentAccessPanel = ({ classId, className, students, refreshKe
             </table>
           </div>
           <p className="rounded-xl bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-900">Gửi qua SSM: bấm "Excel cho SSM" → trên SSM vào <b>Thông tin → Mail merge</b>, tải file lên, bấm "Chép nội dung tin SSM" rồi dán vào ô nội dung. <b>Xem bản demo của SSM trước khi gửi</b> để chắc các chỗ {'{…}'} đã thay đúng PIN và link của từng em.</p>
+          <p className="text-xs font-semibold text-slate-500">Lần đầu vào, phụ huynh phải tự đặt PIN riêng; PIN mới hiện ở đây sau khi bấm “Tải lại bảng PIN”. Bấm biểu tượng làm mới ở từng dòng để đặt lại PIN (phụ huynh lại phải đặt PIN mới).</p>
           <p className="text-xs font-semibold text-slate-500">PIN là mã riêng từng em — gửi riêng cho từng phụ huynh, đừng gửi cả bảng vào nhóm chung. Chỉ link lớp mới gửi chung được.</p>
         </div>
       )}

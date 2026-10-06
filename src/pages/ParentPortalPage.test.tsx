@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { ParentPortalPage } from './ParentPortalPage';
+import { ParentPinChangeForm, ParentPortalPage } from './ParentPortalPage';
 
 const render = (path: string) => renderToStaticMarkup(
   <MemoryRouter initialEntries={[path]}>
@@ -23,5 +23,16 @@ describe('ParentPortalPage', () => {
     const html = render('/ph/ABCD23');
     expect(html).toContain('Chọn tên con và nhập mã PIN dành cho phụ huynh');
     expect(html).not.toContain('Nhập mã lớp của con');
+  });
+
+  it('đặt PIN lần đầu: bắt buộc, không có nút "Để sau"; đổi PIN chủ động thì có', () => {
+    const first = renderToStaticMarkup(<ParentPinChangeForm batBuoc dangGoi={false} loiMay="" onSubmit={() => undefined} onCancel={() => undefined} />);
+    expect(first).toContain('Đặt mã PIN riêng của bạn');
+    expect(first).toContain('Nhập lại mã PIN mới');
+    expect(first).not.toContain('Để sau');
+    const later = renderToStaticMarkup(<ParentPinChangeForm batBuoc={false} dangGoi={false} loiMay="Mã PIN không đúng." onSubmit={() => undefined} onCancel={() => undefined} />);
+    expect(later).toContain('Đổi mã PIN');
+    expect(later).toContain('Để sau');
+    expect(later).toContain('Mã PIN không đúng.');
   });
 });

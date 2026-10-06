@@ -5,6 +5,16 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+
+## Cổng phụ huynh: PH tự đặt PIN riêng — 2026-10-06
+
+- `parentSecrets/{studentId}.pinSetBy`: `'teacher'` (GV cấp / cấp lại) | `'parent'` (PH tự đặt). Thiếu trường (PIN cấp trước bản này) = coi như `'teacher'`.
+- Vào bằng PIN `'teacher'` → `parentReports` trả `mustChange: true` + `reports: []` (CHƯA lộ báo cáo) → trang `/ph` mở màn **Đặt mã PIN riêng** (không có "Để sau"). Action mới `changeParentPin` (`pin` hiện tại + `newPin`): PIN hiện tại đi qua cùng khoá sai 5 lần; chặn PIN mới trùng cũ, 4 số giống nhau, dãy liên tiếp (`weakParentPinReason`). Xong vào xem luôn bằng PIN mới.
+- Trong màn xem báo cáo có khung vàng + nút **Đổi mã PIN** (PH đã vào từ trước tự đổi được). PH quên PIN → GV bấm làm mới ở dòng đó: PIN mới `'teacher'`, PH lại phải tự đặt.
+- Đồng bộ lên web GV: PIN mới ghi vào `pinPlain` ngay; bảng PIN ở panel "Phụ huynh xem báo cáo trực tuyến" hiện PIN hiện hành + nhãn "PH tự đặt" / "Thầy cô cấp" (bấm "Tải lại bảng PIN" để thấy cập nhật). Rules KHÔNG đổi (collection chỉ qua API).
+- **Bẫy:** tin nhắn / file Mail merge SSM đã gửi chứa PIN cũ của GV cấp — sau khi PH đổi thì PIN đó hết dùng; PH quên thì nhờ GV cấp lại. PIN PH tự chọn được lưu dạng đọc được (`pinPlain`) để GV xem — đã nhắc PH đừng dùng trùng mật khẩu ngân hàng.
+- Test: `api/__tests__/parent-portal.test.ts` +4, `parentAccess.test.ts` +1, `ParentPortalPage.test.tsx` +1; toàn bộ 245 file/2.635 test, lint, lint:api, build pass.
+
 ## Sửa chấm sai từng câu: GV soát bảng câu + sửa đáp án cho cả lớp — 2026-10-01
 
 Chủ dự án hỏi cách sửa khi máy chấm sai (tô rồi tẩy, đáp án máy sai, cả hướng dẫn chấm). Chốt: bài đã duyệt GIỮ duyệt khi sửa đáp án cả lớp; Đúng/Sai theo thang THPT (1 ý 0,1 · 2 ý 0,25 · 3 ý 0,5 · 4 ý trọn câu).

@@ -126,7 +126,12 @@ describe('công bố + phụ huynh xem', () => {
   const setup = async () => {
     const pins = (await call({ action: 'issueParentPins', classId: 'lop-1' })).payload.rows as Array<{ studentId: string; pin: string }>;
     await call({ ...PUBLISH, reports: [{ studentId: 'a', input: INPUT('An') }, { studentId: 'b', input: INPUT('Bình') }, { studentId: 'lạ', input: INPUT('Ai đó') }] });
-    return Object.fromEntries(pins.map(p => [p.studentId, p.pin]));
+    // Lần đầu vào phụ huynh phải tự đặt PIN riêng mới xem được báo cáo → các em còn lại dùng PIN do phụ huynh đặt.
+    const own: Record<string, string> = { a: '2580', b: '7413' };
+    for (const row of pins) {
+      expect((await call({ action: 'changeParentPin', idToken: undefined, joinCode: 'ABCD23', studentId: row.studentId, pin: row.pin, newPin: own[row.studentId] })).statusCode).toBe(200);
+    }
+    return own;
   };
   const parentCall = (extra: DocData) => call({ action: 'parentReports', idToken: undefined, joinCode: 'abcd23', ...extra });
 
@@ -177,6 +182,62 @@ describe('công bố + phụ huynh xem', () => {
 
     const all = await call({ action: 'unpublishParentReports', classId: 'lop-1', kind: 'month', from: '2026-09-01', to: '2026-09-30' });
     expect(all.payload.removed).toBe(1);
+  });
+});
+
+describe('phụ huynh tự đặt PIN', () => {
+  const parentCall = (extra: DocData) => call({ action: 'parentReports', idToken: undefined, joinCode: 'ABCD23', ...extra });
+  const change = (extra: DocData) => call({ action: 'changeParentPin', idToken: undefined, joinCode: 'ABCD23', ...extra });
+  const issue = async () => Object.fromEntries(((await call({ action: 'issueParentPins', classId: 'lop-1' })).payload.rows as Array<{ studentId: string; pin: string }>).map(r => [r.studentId, r.pin]));
+
+  it('lần đầu vào bằng PIN thầy cô cấp → mustChange, CHƯA thấy báo cáo; đặt PIN riêng xong mới thấy', async () => {
+    const pins = await issue();
+    await call({ ...PUBLISH, reports: [{ studentId: 'a', input: INPUT('An') }] });
+    const first = await parentCall({ studentId: 'a', pin: pins.a });
+    expect(first.statusCode).toBe(200);
+    expect(first.payload).toMatchObject({ mustChange: true, reports: [], studentName: 'An' });
+
+    expect((await change({ studentId: 'a', pin: pins.a, newPin: '2580' })).statusCode).toBe(200);
+    const after = await parentCall({ studentId: 'a', pin: '2580' });
+    expect(after.payload.mustChange).toBe(false);
+    expect(after.payload.reports).toHaveLength(1);
+    // PIN cũ do thầy cô cấp không còn dùng được.
+    expect((await parentCall({ studentId: 'a', pin: pins.a })).statusCode).toBe(401);
+  });
+
+  it('PIN mới đồng bộ ngay lên bảng PIN của giáo viên (đánh dấu PH tự đặt); đặt lại thì bắt phụ huynh đặt PIN mới', async () => {
+    const pins = await issue();
+    await change({ studentId: 'a', pin: pins.a, newPin: '2580' });
+    const table = (await call({ action: 'issueParentPins', classId: 'lop-1' })).payload.rows;
+    expect(table.find((r: any) => r.studentId === 'a')).toMatchObject({ pin: '2580', parentSet: true });
+    expect(table.find((r: any) => r.studentId === 'b')).toMatchObject({ pin: pins.b, parentSet: false });
+
+    const reset = await call({ action: 'resetParentPin', classId: 'lop-1', studentId: 'a' });
+    const again = await parentCall({ studentId: 'a', pin: reset.payload.pin });
+    expect(again.payload.mustChange).toBe(true);
+    expect((await parentCall({ studentId: 'a', pin: '2580' })).statusCode).toBe(401);
+  });
+
+  it('PH đã đặt PIN riêng vẫn đổi lại được bất cứ lúc nào (nút đổi PIN trong màn xem báo cáo)', async () => {
+    const pins = await issue();
+    await change({ studentId: 'a', pin: pins.a, newPin: '2580' });
+    expect((await change({ studentId: 'a', pin: '2580', newPin: '7413' })).statusCode).toBe(200);
+    expect((await parentCall({ studentId: 'a', pin: '7413' })).payload.mustChange).toBe(false);
+    expect(h.store['classes/lop-1/parentSecrets'].a.pinPlain).toBe('7413');
+  });
+
+  it('từ chối: PIN hiện tại sai (tính vào khoá), PIN mới trùng cũ / dễ đoán / sai dạng, chưa cấp PIN', async () => {
+    expect((await change({ studentId: 'a', pin: '1357', newPin: '2580' })).statusCode).toBe(409);
+    const pins = await issue();
+    const sai = pins.a === '1357' ? '1358' : '1357';
+    expect((await change({ studentId: 'a', pin: sai, newPin: '2580' })).statusCode).toBe(401);
+    expect((await change({ studentId: 'a', pin: pins.a, newPin: pins.a })).statusCode).toBe(400);
+    expect((await change({ studentId: 'a', pin: pins.a, newPin: '1111' })).statusCode).toBe(400);
+    expect((await change({ studentId: 'a', pin: pins.a, newPin: '1234' })).statusCode).toBe(400);
+    expect((await change({ studentId: 'a', pin: pins.a, newPin: '25a0' })).statusCode).toBe(400);
+    expect(h.store['classes/lop-1/parentSecrets'].a.pinSetBy).toBe('teacher');
+    for (let i = 0; i < 6; i += 1) await change({ studentId: 'b', pin: sai, newPin: '2580' });
+    expect((await change({ studentId: 'b', pin: pins.b, newPin: '2580' })).statusCode).toBe(429);
   });
 });
 
