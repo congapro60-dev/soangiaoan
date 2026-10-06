@@ -52,4 +52,16 @@ describe('tự chấm + tự duyệt sau 60 phút', () => {
     expect(autoGradeEnabledFor({ autoGradeAfterHour: false })).toBe(false);
     expect(AUTO_GRADE_AFTER_MS).toBe(3_600_000);
   });
+
+  it('bài kiểm tra định kì lệch điểm giáo viên (sổ điểm) không tự duyệt; khớp thì duyệt như thường', () => {
+    const lech = { ...grade(false, ago(70)), examCheck: { sheetLabel: 'Giữa học kì I', sheetScore: 8, diff: 1.5, mismatch: true } };
+    const khop = { ...grade(false, ago(70)), examCheck: { sheetLabel: 'Giữa học kì I', sheetScore: 7, diff: 0, mismatch: false } };
+    const plan = planAutoSweep([
+      sub('lech', 'A', ago(300), { status: 'graded', grade: lech }),
+      sub('khop', 'B', ago(300), { status: 'graded', grade: khop }),
+    ], NOW);
+    expect(plan.toApprove.map(s => s.id)).toEqual(['khop']);
+    expect(canAutoApproveFreshGrade(sub('x', 'A', ago(70), { status: 'graded', grade: lech }))).toBe(false);
+  });
 });
+

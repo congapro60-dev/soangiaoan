@@ -6,10 +6,12 @@ import {
   SUBMISSIONS_COL,
   type AssignmentAttachment,
   type AssignmentDoc,
+  type PeriodicTestInfo,
   type StudentNotificationDoc,
   type SubmissionAttachment,
   type SubmissionDoc,
 } from './types';
+import type { ExamVariant } from './examVariants';
 
 const newId = (prefix: string): string => {
   const rand = typeof globalThis.crypto?.randomUUID === 'function'
@@ -36,6 +38,9 @@ export interface NewAssignment {
   gradingInstructions?: string;
   answerKeyImageUrls?: string[];
   answerKeyByAi?: boolean;
+  /** Bài kiểm tra định kì + các mã đề (đề, đáp án) — xem `AssignmentDoc.periodicTest`. */
+  periodicTest?: PeriodicTestInfo;
+  examVariants?: ExamVariant[];
 }
 
 /**
@@ -128,6 +133,7 @@ export const createAssignment = async (input: NewAssignment): Promise<Assignment
     gradingInstructions: input.gradingInstructions?.trim() || undefined,
     answerKeyImageUrls: input.answerKeyImageUrls || [],
     answerKeyByAi: input.answerKeyByAi === true,
+    ...(input.periodicTest ? { periodicTest: input.periodicTest, examVariants: input.examVariants ?? [] } : {}),
     isOpen: true,
     createdAt: now,
     updatedAt: now,
@@ -287,8 +293,13 @@ export interface ClassAnswerFixResult {
 }
 
 /** Sửa đáp án một câu cho cả lớp: lưu vào bài giao và tính lại câu đó ở mọi bài đã chấm. */
-export const suaDapAnCaLop = (assignmentId: string, questionNumber: string, expectedAnswer: string) =>
-  callClassroomTeacherApi<ClassAnswerFixResult>({ action: 'fixAnswerKeyForClass', assignmentId, questionNumber, expectedAnswer });
+/** `examCode`: bài nhiều mã đề — sửa đáp án của đúng mã đó (bắt buộc với bài kiểm tra định kì nhiều mã). */
+export const suaDapAnCaLop = (assignmentId: string, questionNumber: string, expectedAnswer: string, examCode?: string) =>
+  callClassroomTeacherApi<ClassAnswerFixResult>({ action: 'fixAnswerKeyForClass', assignmentId, questionNumber, expectedAnswer, ...(examCode ? { examCode } : {}) });
+
+/** Giáo viên chọn mã đề cho một bài nộp (khi AI không đọc được hoặc đọc sai) — chấm lại sau đó theo mã này. */
+export const chonMaDeBaiNop = (submissionId: string, examCode: string) =>
+  callClassroomTeacherApi<{ examCode: string }>({ action: 'setSubmissionExamCode', submissionId, examCode });
 
 /**
  * Giáo viên duyệt điểm. Đây là CỬA DUY NHẤT để kết luận của máy đi vào hồ sơ tích luỹ —

@@ -232,6 +232,29 @@ export const solveAnswerKeyForAssignment = async (
 };
 
 /**
+ * Bài kiểm tra định kì nhiều mã: AI rút đáp án TỪNG mã từ tư liệu đáp án (một lượt cho mọi mã).
+ * Kết quả chỉ đổ vào bảng xác nhận — giáo viên soát rồi mới giao.
+ */
+export const extractExamVariantKeys = async (
+  classId: string,
+  codes: string[],
+  answerMaterial: string,
+  hints: Record<string, string>,
+): Promise<Record<string, string>> => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Phiên đăng nhập đã hết hạn.');
+
+  const res = await fetch('/api/grade-homework', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'extractExamVariantKeys', idToken: await user.getIdToken(), classId, codes, answerMaterial, hints }),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.error || `Máy chủ trả lỗi ${res.status}`);
+  return data?.keys && typeof data.keys === 'object' ? data.keys as Record<string, string> : {};
+};
+
+/**
  * Nhờ MÁY CHỦ đọc đề thành danh mục câu hỏi rồi lưu vào bài giao.
  *
  * Thay cho việc tải đề gốc về trình duyệt rồi OCR tại chỗ mỗi lần mở báo cáo — cách cũ vừa lặp

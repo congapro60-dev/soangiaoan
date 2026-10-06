@@ -22,6 +22,7 @@ import type {
   SubmissionDoc,
 } from '../src/lib/classroom/types.js';
 import { buildExamContentSnapshot } from '../src/lib/classroom/activitySnapshot.js';
+import { sanitizeExamVariants } from '../src/lib/classroom/examVariants.js';
 import type { ActivityPurpose, GradingPolicy } from '../src/lib/classroom/types.js';
 import type { Exam, ExamQuestion, QuestionType } from '../src/types.js';
 
@@ -163,6 +164,8 @@ const submissionFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData
       editedByTeacher: rawGrade.editedByTeacher === true,
       noteForTeacher: typeof rawGrade.noteForTeacher === 'string' ? rawGrade.noteForTeacher : undefined,
       gradingRecovery: rawGrade.gradingRecovery,
+      // Bài định kì: khớp/lệch điểm giáo viên — thiếu ở đây thì nhãn "Lệch điểm GV" không bao giờ hiện.
+      ...(rawGrade.examCheck && typeof rawGrade.examCheck === 'object' ? { examCheck: rawGrade.examCheck } : {}),
     } : undefined;
 
   return {
@@ -183,6 +186,8 @@ const submissionFromSnapshot = (id: string, data: FirebaseFirestore.DocumentData
     ...(lastGradingErrorRaw ? { lastGradingErrorRaw } : {}),
     ...(errorMessage ? { errorMessage } : {}),
     ...(typeof data.evidenceSyncError === 'string' && data.evidenceSyncError ? { evidenceSyncError: data.evidenceSyncError } : {}),
+    ...(typeof data.examCode === 'string' && data.examCode ? { examCode: data.examCode } : {}),
+    ...(data.examCodeSource === 'ai' || data.examCodeSource === 'teacher' ? { examCodeSource: data.examCodeSource } : {}),
     createdAt: String(data.createdAt || ''),
     updatedAt: String(data.updatedAt || ''),
   } as SubmissionDoc;
@@ -285,6 +290,9 @@ export const teacherAssignmentProjection = (id: string, data: FirebaseFirestore.
     contentVersion: data.contentVersion,
     exportBundle: data.exportBundle,
     targetStudentIds: data.targetStudentIds,
+    // Bài kiểm tra định kì: thiếu ở đây thì giáo viên mở lại bài sẽ thấy như BTVN thường, mất các mã đề.
+    periodicTest: data.periodicTest,
+    examVariants: data.examVariants,
   });
   return allowed as AssignmentDoc;
 };
@@ -546,8 +554,21 @@ export const handleCreateAssignment = async (db: Db, body: Body, res: VercelResp
   if (!title) return void res.status(422).json({ error: 'Tên bài giao không được để trống.' });
   const id = safeId(input.id, `asg_${Date.now()}_${Math.random().toString(16).slice(2)}`);
   const now = nowIso();
+  // Bài kiểm tra định kì: chỉ nhận mã đề hợp lệ, mã nào cũng phải có đáp án (thiếu là cả lớp mã đó bị chấm mò).
+  const periodic = input.periodicTest && typeof input.periodicTest === 'object' && !Array.isArray(input.periodicTest);
+  const examVariants = periodic ? sanitizeExamVariants(input.examVariants) : [];
+  if (periodic) {
+    if (examVariants.length === 0) return void res.status(422).json({ error: 'Bài kiểm tra định kì cần ít nhất một mã đề có đáp án.' });
+    const missing = examVariants.filter(variant => !variant.answerKey).map(variant => variant.code);
+    if (missing.length > 0) return void res.status(422).json({ error: `Mã ${missing.join(', ')} chưa có đáp án.` });
+  }
+  const sheetLabel = periodic && typeof (input.periodicTest as Body).sheetLabel === 'string'
+    ? String((input.periodicTest as Body).sheetLabel).normalize('NFC').replace(/\s+/gu, ' ').trim().slice(0, 80)
+    : '';
   const assignment = compact({
     ...input,
+    periodicTest: periodic ? (sheetLabel ? { sheetLabel } : {}) : undefined,
+    examVariants: periodic ? examVariants : undefined,
     id,
     teacherId: String(context.classData.teacherId || context.uid),
     classId: context.classId,

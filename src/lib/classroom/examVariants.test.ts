@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildDetectExamCodePrompt, buildExtractVariantKeysPrompt, codeFromFileName, countKeyQuestions, docxXmlToText, examMarkLabels, examScoreCheck,
-  parseDetectedExamCode, parseExtractedVariantKeys, sanitizeExamVariants, splitVariantSources,
+  parseDetectedExamCode, parseExtractedVariantKeys, pdfItemsToText, sanitizeExamVariants, splitVariantSources,
 } from './examVariants';
 
 const p = (text: string) => `<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:b/></w:rPr><w:t xml:space="preserve">${text}</w:t></w:r></w:p>`;
@@ -174,6 +174,14 @@ describe('đối chiếu với điểm giáo viên chấm tay', () => {
   it('danh sách cột điểm thi của lớp để giáo viên chọn: không trùng, theo thứ tự gặp', () => {
     expect(examMarkLabels({ a: marks, b: { moet: [{ label: 'giữa học kì i', score: 8 }, { label: 'Cuối học kì I', score: 9 }], tds: [] } }))
       .toEqual(['Giữa học kì I', 'Quý 1', 'Cuối học kì I']);
+  });
+});
+
+describe('đọc PDF giữ xuống dòng', () => {
+  it('xuống dòng theo cờ hết dòng hoặc khi chữ nhảy hàng; cùng hàng thì nối', () => {
+    const at = (str: string, y: number, hasEOL = false) => ({ str, transform: [1, 0, 0, 1, 50, y], hasEOL });
+    expect(pdfItemsToText([at('Mã đề', 800), at(' 1201', 800.5), at('Câu 1. Cho', 780), at(' hàm số', 780, true), at('BẢNG ĐÁP ÁN', 700), { str: '' }]))
+      .toBe('Mã đề 1201\nCâu 1. Cho hàm số\nBẢNG ĐÁP ÁN');
   });
 });
 

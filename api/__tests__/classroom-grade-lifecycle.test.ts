@@ -295,6 +295,44 @@ describe('POST /api/classroom · grade lifecycle', () => {
     ]));
   });
 
+  it('bài nhiều mã đề: sửa đáp án phải nêu mã, chỉ tính lại bài cùng mã', async () => {
+    const harness = seed();
+    harness.store.assignments['asg-1'] = { ...harness.store.assignments['asg-1'], periodicTest: {}, examVariants: [
+      { code: '101', sourceText: 'x', answerKey: 'Câu 2: B' }, { code: '102', sourceText: 'x', answerKey: 'Câu 2: D' },
+    ] };
+    const graded = (studentAnswer: string) => ({ ...oldGrade, score: 0, maxScore: 2, teacherApproved: false,
+      questionResults: [row('Câu 1', { expectedAnswer: 'C' }), row('Câu 2', { studentAnswer, expectedAnswer: 'B' })] });
+    harness.store.submissions['sub-1'] = { ...harness.store.submissions['sub-1'], examCode: '101', grade: graded('A') };
+    harness.store.submissions['sub-2'] = { ...harness.store.submissions['sub-1'], id: 'sub-2', studentId: 'hs-2', examCode: '102', grade: graded('A') };
+
+    const thieuMa = await call({ action: 'fixAnswerKeyForClass', assignmentId: 'asg-1', questionNumber: 'Câu 2', expectedAnswer: 'A' });
+    expect(thieuMa.statusCode).toBe(422);
+
+    const result = await call({ action: 'fixAnswerKeyForClass', assignmentId: 'asg-1', questionNumber: 'Câu 2', expectedAnswer: 'A', examCode: '101' });
+    expect(result.statusCode).toBe(200);
+    expect(result.payload).toMatchObject({ updated: 1 });
+    expect(harness.store.assignments['asg-1'].answerKeyFixes).toEqual([expect.objectContaining({ questionNumber: 'Câu 2', expectedAnswer: 'A', examCode: '101' })]);
+    expect(harness.store.submissions['sub-1'].grade.questionResults[1]).toMatchObject({ status: 'correct', expectedAnswer: 'A' });
+    expect(harness.store.submissions['sub-2'].grade.questionResults[1]).toMatchObject({ expectedAnswer: 'B' });
+  });
+
+  it('giáo viên chọn mã đề cho bài nộp: chỉ mã có trong bài, không khi đang chấm, không giáo viên lớp khác', async () => {
+    const harness = seed();
+    harness.store.assignments['asg-1'] = { ...harness.store.assignments['asg-1'], periodicTest: {}, examVariants: [
+      { code: '101', sourceText: 'x', answerKey: 'y' }, { code: '102', sourceText: 'x', answerKey: 'y' },
+    ] };
+    expect((await call({ action: 'setSubmissionExamCode', submissionId: 'sub-1', examCode: '999' })).statusCode).toBe(422);
+    const ok = await call({ action: 'setSubmissionExamCode', submissionId: 'sub-1', examCode: '102' });
+    expect(ok.statusCode).toBe(200);
+    expect(harness.store.submissions['sub-1']).toMatchObject({ examCode: '102', examCodeSource: 'teacher' });
+    harness.store.submissions['sub-1'].status = 'grading';
+    expect((await call({ action: 'setSubmissionExamCode', submissionId: 'sub-1', examCode: '101' })).statusCode).toBe(409);
+    harness.store.submissions['sub-1'].status = 'graded';
+    h.uid = 'gv-khac';
+    expect((await call({ action: 'setSubmissionExamCode', submissionId: 'sub-1', examCode: '101' })).statusCode).toBe(403);
+    expect(harness.store.submissions['sub-1'].examCode).toBe('102');
+  });
+
   it('không cho giáo viên khác sửa đáp án cả lớp', async () => {
     const harness = seed();
     h.uid = 'gv-khac';

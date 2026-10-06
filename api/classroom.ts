@@ -506,13 +506,22 @@ const handleFixAnswerKeyForClass = async (
   if (!await teacherCanAccessClass(db, uid, assignment.classId, assignment.teacherId)) {
     return res.status(403).json({ error: 'Bạn không có quyền sửa đáp án bài này.' });
   }
+  // Bài nhiều mã đề: câu 5 mã 101 khác câu 5 mã 102 → bản sửa chỉ áp cho bài nộp của đúng mã.
+  const variantCodes = Array.isArray(assignment.examVariants)
+    ? (assignment.examVariants as { code?: unknown }[]).map(variant => String(variant?.code ?? '')).filter(Boolean)
+    : [];
+  const examCode = typeof body.examCode === 'string' ? body.examCode.trim() : '';
+  if (variantCodes.length > 0 && !variantCodes.includes(examCode)) {
+    return res.status(422).json({ error: 'Bài này có nhiều mã đề — chọn mã đề của bài trước khi sửa đáp án.' });
+  }
 
   const now = new Date().toISOString();
-  const fix: AnswerKeyFix = { questionNumber, expectedAnswer, fixedAt: now };
+  const fix: AnswerKeyFix = { questionNumber, expectedAnswer, fixedAt: now, ...(variantCodes.length > 0 ? { examCode } : {}) };
   const key = questionKey(questionNumber);
+  const sameTarget = (f: AnswerKeyFix) => questionKey(f.questionNumber) === key && (f.examCode ?? '') === (fix.examCode ?? '');
   const previousFixes = Array.isArray(assignment.answerKeyFixes) ? assignment.answerKeyFixes as AnswerKeyFix[] : [];
   await assignmentRef.update({
-    answerKeyFixes: [...previousFixes.filter(f => questionKey(f.questionNumber) !== key), fix],
+    answerKeyFixes: [...previousFixes.filter(f => !sameTarget(f)), fix],
     updatedAt: now,
     updatedBy: uid,
   });
@@ -525,6 +534,7 @@ const handleFixAnswerKeyForClass = async (
   const fixOne = async (doc: FirebaseFirestore.QueryDocumentSnapshot) => {
     const submission = { ...doc.data(), id: doc.id } as SubmissionDoc;
     if (submission.classId !== assignment.classId || !submission.grade?.questionResults?.length) return;
+    if (fix.examCode && submission.examCode !== fix.examCode) return;
     if (submission.status === 'grading') { busy += 1; return; }
     const out = applyAnswerKeyFixes(submission.grade.questionResults, [fix]);
     if (!out.changed) return;
@@ -562,6 +572,39 @@ const handleFixAnswerKeyForClass = async (
     await Promise.all(snap.docs.slice(i, i + FIX_CONCURRENCY).map(fixOne));
   }
   return res.status(200).json({ updated, needsReview, busy, syncFailed });
+};
+
+/**
+ * Giáo viên chọn mã đề cho một bài nộp của bài kiểm tra nhiều mã (AI không đọc được hoặc đọc sai mã).
+ * Chỉ ghi mã; lượt chấm lại sau đó dùng mã giáo viên chọn, không đọc lại trên ảnh.
+ */
+const handleSetSubmissionExamCode = async (
+  db: FirebaseFirestore.Firestore,
+  body: Record<string, unknown>,
+  res: VercelResponse,
+) => {
+  const uid = await uidFromIdToken(body.idToken);
+  if (!uid) return res.status(401).json({ error: 'Cần đăng nhập bằng tài khoản giáo viên.' });
+  const submissionId = typeof body.submissionId === 'string' ? body.submissionId.trim() : '';
+  const examCode = typeof body.examCode === 'string' ? body.examCode.trim() : '';
+  if (!submissionId || !examCode) return res.status(422).json({ error: 'Thiếu bài nộp hoặc mã đề.' });
+  const submissionRef = db.collection('submissions').doc(submissionId);
+  const submissionSnap = await submissionRef.get();
+  const submission = submissionSnap.exists ? submissionSnap.data() || {} : null;
+  if (!submission?.assignmentId) return res.status(404).json({ error: 'Không tìm thấy bài nộp.' });
+  const assignmentSnap = await db.collection('assignments').doc(String(submission.assignmentId)).get();
+  const assignment = assignmentSnap.exists ? assignmentSnap.data() || {} : null;
+  if (!assignment) return res.status(404).json({ error: 'Không tìm thấy bài giao.' });
+  if (submission.classId !== assignment.classId || !await teacherCanAccessClass(db, uid, assignment.classId, assignment.teacherId)) {
+    return res.status(403).json({ error: 'Bạn không có quyền sửa bài nộp này.' });
+  }
+  const codes = Array.isArray(assignment.examVariants)
+    ? (assignment.examVariants as { code?: unknown }[]).map(variant => String(variant?.code ?? '')).filter(Boolean)
+    : [];
+  if (!codes.includes(examCode)) return res.status(422).json({ error: `Mã đề phải là một trong: ${codes.join(', ') || '(bài này không có mã đề)'}.` });
+  if (submission.status === 'grading') return res.status(409).json({ error: 'Bài đang được chấm, thử lại sau ít phút.' });
+  await submissionRef.update({ examCode, examCodeSource: 'teacher', updatedAt: new Date().toISOString() });
+  return res.status(200).json({ examCode });
 };
 
 const handleDeleteSubmissionGrade = async (
@@ -1560,6 +1603,7 @@ async function dispatchClassroom(res: VercelResponse, body: ReturnType<typeof re
     if (action === 'deleteSubmission') return await handleDeleteSubmission(db, body, res);
     if (action === 'saveSubmissionGrade') return await handleSaveSubmissionGrade(db, body, res);
     if (action === 'fixAnswerKeyForClass') return await handleFixAnswerKeyForClass(db, body, res);
+    if (action === 'setSubmissionExamCode') return await handleSetSubmissionExamCode(db, body, res);
     if (action === 'deleteSubmissionGrade') return await handleDeleteSubmissionGrade(db, body, res);
     if (action === 'approveSubmissionGrade') return await handleApproveSubmissionGrade(db, body, res);
     if (action === 'retryEvidenceSync') return await handleRetryEvidenceSync(db, body, res);

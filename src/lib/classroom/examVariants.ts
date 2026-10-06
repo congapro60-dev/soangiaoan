@@ -131,6 +131,35 @@ export const docxXmlToText = (xml: string): string => {
   return nfc(out.join('\n'));
 };
 
+/** Một mẩu chữ pdf.js (`getTextContent().items`): chuỗi, ma trận vị trí (y ở phần tử 5), cờ hết dòng. */
+export interface PdfTextItem { str?: string; transform?: number[]; hasEOL?: boolean }
+
+/**
+ * Mẩu chữ một trang PDF → các dòng: xuống dòng khi pdf.js báo hết dòng hoặc chữ nhảy sang hàng khác (y lệch > 2).
+ * Nối cả trang thành một dòng (như `extractTextFromPDF`) thì không còn thấy dòng "Mã đề …" hay "ĐÁP ÁN" riêng rẽ.
+ */
+export const pdfItemsToText = (items: readonly PdfTextItem[]): string => {
+  const lines: string[] = [];
+  let line = '';
+  let lineY: number | null = null;
+  for (const item of items) {
+    const y = Array.isArray(item.transform) && Number.isFinite(item.transform[5]) ? item.transform[5] : null;
+    if (line && y !== null && lineY !== null && Math.abs(y - lineY) > 2) {
+      lines.push(line);
+      line = '';
+    }
+    if (y !== null && !line) lineY = y;
+    line += item.str ?? '';
+    if (item.hasEOL) {
+      lines.push(line);
+      line = '';
+      lineY = null;
+    }
+  }
+  if (line) lines.push(line);
+  return nfc(lines.map(text => text.replace(/[ \t]+/gu, ' ').trim()).filter(Boolean).join('\n'));
+};
+
 // ── Nhận mã đề ────────────────────────────────────────────────────────────────
 
 /** "Mã đề 101", "MÃ ĐỀ THI: 1201", "Mã đề kiểm tra – 102", "Ma de 103". */
