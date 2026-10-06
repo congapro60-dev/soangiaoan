@@ -30,9 +30,28 @@ dễ nhìn trên điện thoại, iPad, laptop; xuống dòng theo cụm nghĩa.
 - Dữ liệu chương trình: YCCĐ lớp 12 Bài 16 mang tên chủ đề "Phương trình đường thẳng trong không gian" (trùng Bài 15)
   — tên bài theo chủ đề CT, chưa có bảng tên bài SGK.
 
-## Sau (chờ duyệt thiết kế)
-- [ ] Bài định kì: đánh dấu riêng, không cộng vào điểm TB BTVN; điểm Sheet là chính thức; đối chiếu lệch → cờ soát.
-- [ ] Mã đề: khối 12 có 4–8 mã, khối khác 1–4; mã do người ra đề làm sẵn → thiết kế đẩy lên một lần cho tiện.
+## Sau: bài kiểm tra định kì có mã đề (chờ duyệt)
+Chủ dự án (06/10): khối 12 có 4–8 mã, MỘT file gộp hết các mã; khối khác 1–4 mã, MỖI mã MỘT file.
+GV chấm tay trước, HS chụp bài đã chấm nộp lên luồng HS như BTVN.
+
+### Sự thật đã kiểm
+- Mỗi bài giao chỉ có MỘT `answerKey` + MỘT `sourceText`; ngữ cảnh chấm dựng một lần cho cả bài (`gradeContextFor`).
+- HS nộp bài ghi thẳng Firestore, rules giới hạn đúng danh sách trường → thêm "mã đề" vào bài nộp = sửa rules
+  + chủ dự án chạy `firebase deploy --only firestore:rules`.
+- Báo cáo PH không phân biệt loại bài: bài KT nộp lên sẽ vào điểm TB BTVN, "Kết quả từng bài", "bài chưa nộp",
+  hồ sơ năng lực — trong khi điểm thi đã có ở mục "Điểm thi định kì" (Sheet).
+- Ghép câu → YCCĐ dựa trên kết quả chấm từng câu (giải thích, đáp án, bài làm), không cần nội dung đề từng mã.
+- Bài đã chấm tay có nét bút giáo viên (chữa đáp án đúng cạnh câu sai) → AI dễ đọc nhầm thành bài làm của em.
+
+### Giai đoạn
+- [ ] P1 Dữ liệu + báo cáo: bài giao đánh dấu "Kiểm tra định kì" (gắn cột điểm Sheet tương ứng) + danh sách mã đề
+      (mã, đề, đáp án). Projection GV/HS. Báo cáo: không vào điểm TB BTVN / từng bài / chưa nộp / hồ sơ năng lực;
+      vào bản đồ theo bài với nguồn "KT".
+- [ ] P2 GV đẩy đề: một ô kéo-thả mọi file; tách theo mã (đầu mục "Mã đề …" trong file gộp, hoặc mỗi file một mã);
+      AI rút đáp án từng mã; bảng xác nhận (mã · số câu · đáp án) sửa được trước khi giao.
+- [ ] P3 HS nộp + chấm: mã đề của bài nộp; chấm theo đúng đề/đáp án của mã đó; lời dặn AI bỏ qua nét chấm của GV;
+      điểm GV trong Sheet là chính thức, tổng AI lệch > 0,5 → cờ soát.
+- [ ] P4 Test + QA trình duyệt (file gộp 8 mã, 4 file rời) + lint/build.
 
 # Kế hoạch 2026-10-01: Sửa chấm sai từng câu (BTVN)
 
