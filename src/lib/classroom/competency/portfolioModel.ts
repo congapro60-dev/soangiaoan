@@ -4,12 +4,12 @@ import {
   type CompetencyEvidenceInput,
   type CompetencyResult,
   type LevelThresholds,
-} from './competencyModel';
+} from './competencyModel.js';
 import {
   competenciesByGrade,
   type Competency,
   type CompetencyGrade,
-} from './framework';
+} from './framework.js';
 
 /**
  * Dựng HỒ SƠ NĂNG LỰC đầy đủ của một học sinh theo khung khối, để xem trên app trước khi xuất file.

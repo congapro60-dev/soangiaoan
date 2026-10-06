@@ -5,6 +5,27 @@
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
+
+
+## Cổng phụ huynh: thống kê truy cập + báo cáo tự chọn khoảng ngày — 2026-10-06
+
+- **Thống kê (GV xem):** `classes/{id}/parentStats/{studentId}` (bộ đếm: lần vào, mở báo cáo, tải PDF, xem tự chọn, nhập sai PIN, đổi PIN + mốc giờ) và `.../events/{id}` (dòng thời gian, mới nhất trước, ≤100). Ghi ở `api/_parent-activity.ts` (`recordParentActivity` — lỗi ghi KHÔNG làm hỏng lượt xem). Trang `/ph` gửi `parentEvent` `ping` mỗi 30 giây khi tab đang hiện → "Đang xem" = có tín hiệu ≤75 giây (`PARENT_ONLINE_MS`); `open`/`pdf` ghi tên báo cáo. Chỉ lưu loại thiết bị thô (mobile/desktop), KHÔNG lưu IP. Lần nhập sai PIN chỉ tăng bộ đếm (không tạo dòng) — vì đã bỏ khoá, cột "Sai PIN" tăng bất thường (đỏ từ 10) là dấu hiệu bị dò mã.
+- **GV:** khung "Hoạt động của phụ huynh" trong "Phụ huynh xem báo cáo trực tuyến" (`ParentActivityPanel`, tự làm mới 30 giây, bấm một em xem dòng thời gian). Action `parentActivity` / `parentActivityDetail` (cần là GV của lớp).
+- **Báo cáo tự chọn (PH):** khung "Xem theo khoảng ngày bạn chọn" → action `parentCustomReport` (`api/_parent-self-report.ts`): máy chủ nạp bài giao + bài nộp (cả bài online) + sổ điểm + hồ sơ rồi gọi CÙNG `buildPeriodParentReport` như GV (qua `loadStudentRecordsForClass` trong `_classroom-teacher.ts`). Chỉ bài ĐÃ DUYỆT (`buildParentSafeReport`), không đáp án/ghi chú; KHÔNG có nhận xét GV, không gọi AI (không tốn ví). Khoảng tối đa 400 ngày; PH phải đã tự đặt PIN riêng. Dùng `kind: 'year'` (không lọc theo học kì) nhưng tiêu đề "Báo cáo học tập từ dd/mm/yyyy đến dd/mm/yyyy". Nhận diện trường/GV lấy từ báo cáo GV công bố gần nhất của em (nhận diện chỉ lưu trên máy GV) — chưa công bố lần nào thì không có dải nhận diện. `program` = null.
+- **Refactor kèm:** `parentReportBuilder` và chuỗi import chạy được trên máy chủ → thêm đuôi `.js` vào import tương đối (NodeNext) và tách kiểu thuần sang `parentReportTypes.ts` (`parentReportPrintDoc` vẫn re-export). `api/_parent-auth.ts` gom `resolveParentStudent`/`verifyParentPin`; `readBook` của `_score-book.ts` được export.
+- **Chưa làm / cần biết:** sự kiện không tự xoá (mỗi em tăng chậm); nếu muốn GV tắt tính năng tự chọn theo lớp thì thêm cờ lớp. Tự chọn dùng dữ liệu live nên có thể khác báo cáo GV đã công bố (bản chụp). Hết tín hiệu ping ≠ chắc chắn đã thoát (đóng tab đột ngột vẫn "đang xem" tối đa ~75 giây).
+- Test: `parent-portal.test.ts` 22, `ParentActivityPanel.test.tsx`; QA trình duyệt khổ 390px với API giả 25/25 (gồm ping sau 30 giây); toàn bộ 246 file/2.645 test, lint, lint:api, build.
+
+## Cổng phụ huynh: PH tự đặt PIN riêng — 2026-10-06
+
+- `parentSecrets/{studentId}.pinSetBy`: `'teacher'` (GV cấp / cấp lại) | `'parent'` (PH tự đặt). Thiếu trường (PIN cấp trước bản này) = coi như `'teacher'`.
+- Vào bằng PIN `'teacher'` → `parentReports` trả `mustChange: true` + `reports: []` (CHƯA lộ báo cáo) → trang `/ph` mở màn **Đặt mã PIN riêng** (không có "Để sau"). Action mới `changeParentPin` (`pin` hiện tại + `newPin`); PIN mới chỉ cần khác PIN hiện tại. Xong vào xem luôn bằng PIN mới.
+- **Chủ dự án chốt 06/10: PH nhập sai KHÔNG bị khoá** (cổng /ph không còn `attemptPin`/khoá 5 lần; cổng học sinh /lop vẫn khoá như cũ). PIN phụ huynh = ĐÚNG 4 KÝ TỰ BẤT KỲ (số, chữ hoa/thường phân biệt, ký tự đặc biệt, chữ có dấu — chuẩn hoá NFC), không dấu cách (`isValidParentPin` trong `parentAccess.ts`). GV bấm đặt lại → PIN ngẫu nhiên 4 SỐ (`createPin`) để gửi lại. Hệ quả: PIN toàn số chỉ có 10.000 khả năng và không giới hạn lần thử → ai biết link + tên con có thể dò; nếu cần, thêm giới hạn mềm (vd. chờ vài giây sau mỗi lần sai) mà không khoá hẳn.
+- Trong màn xem báo cáo có khung vàng + nút **Đổi mã PIN** (PH đã vào từ trước tự đổi được). PH quên PIN → GV bấm làm mới ở dòng đó: PIN mới `'teacher'`, PH lại phải tự đặt.
+- Đồng bộ lên web GV: PIN mới ghi vào `pinPlain` ngay; bảng PIN ở panel "Phụ huynh xem báo cáo trực tuyến" hiện PIN hiện hành + nhãn "PH tự đặt" / "Thầy cô cấp" (bấm "Tải lại bảng PIN" để thấy cập nhật). Rules KHÔNG đổi (collection chỉ qua API).
+- **Bẫy:** tin nhắn / file Mail merge SSM đã gửi chứa PIN cũ của GV cấp — sau khi PH đổi thì PIN đó hết dùng; PH quên thì nhờ GV cấp lại. PIN PH tự chọn được lưu dạng đọc được (`pinPlain`) để GV xem — đã nhắc PH đừng dùng trùng mật khẩu ngân hàng.
+- Test: `api/__tests__/parent-portal.test.ts`, `parentAccess.test.ts`, `ParentPortalPage.test.tsx` (đã cập nhật theo luật không khoá + PIN tự do).
+
 ## Sửa chấm sai từng câu: GV soát bảng câu + sửa đáp án cho cả lớp — 2026-10-01
 
 Chủ dự án hỏi cách sửa khi máy chấm sai (tô rồi tẩy, đáp án máy sai, cả hướng dẫn chấm). Chốt: bài đã duyệt GIỮ duyệt khi sửa đáp án cả lớp; Đúng/Sai theo thang THPT (1 ý 0,1 · 2 ý 0,25 · 3 ý 0,5 · 4 ý trọn câu).

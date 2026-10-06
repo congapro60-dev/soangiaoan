@@ -1,4 +1,5 @@
 import type { ParentSafeReport, ParentSafeAssignmentStatus, ParentSafeTrend } from './parentSafeReport';
+import type { ParentCompetencyItem, ParentCompetencySummary, ParentReportPrintInput } from './parentReportTypes';
 import { COMPETENCY_LEVELS, type CompetencyLevel } from './competency/framework';
 import type { StudentExamScores } from './examScores';
 import { hs1Average, type Hs1Mark } from './scoreBook';
@@ -10,48 +11,7 @@ import {
   type LessonSummary, type ParentRequirementLine, type RequirementLevel,
 } from './parentRequirements';
 
-/** Một năng lực Toán đã được đánh giá (đã có bài duyệt), rút từ hồ sơ năng lực cho bản phụ huynh. */
-export interface ParentCompetencyItem {
-  area: string;
-  topic: string;
-  level: CompetencyLevel;
-}
-
-/** Tóm tắt hồ sơ năng lực an toàn để gửi phụ huynh — chỉ tên năng lực + mức, không đáp án/ghi chú. */
-export interface ParentCompetencySummary {
-  /** Khối lớp của khung năng lực ("10"/"11"/"12"). */
-  grade: string;
-  assessed: number;
-  total: number;
-  items: ParentCompetencyItem[];
-}
-
-export interface ParentReportPrintInput {
-  report: ParentSafeReport;
-  studentName: string;
-  className: string;
-  studentCode?: string;
-  /** Ngày lập báo cáo dạng dd/mm/yyyy; mặc định là hôm nay. */
-  generatedOn?: string;
-  /** Hồ sơ năng lực rút gọn; vắng thì bỏ mục "Năng lực Toán học". */
-  competency?: ParentCompetencySummary | null;
-  /** Điểm thi định kì (MOET + TDS) từ sổ điểm lớp. */
-  exams?: StudentExamScores | null;
-  /** Điểm hệ số 1 giáo viên nhập trên lớp. Vắng cả hai thì bỏ mục điểm kiểm tra/thi. */
-  hs1?: Hs1Mark[] | null;
-  /** Báo cáo theo tháng/kì/năm; vắng = báo cáo chung từ đầu năm như trước. */
-  period?: { title: string; range: string; kind: ReportKind } | null;
-  /** So sánh tháng trước / hai nửa kì / hai học kì. */
-  comparison?: PeriodComparison | null;
-  /** Điểm trung bình theo từng tháng (báo cáo kì/năm). */
-  monthly?: MonthPoint[] | null;
-  /** Nhận xét riêng của giáo viên (AI soạn nháp, giáo viên đã sửa). */
-  teacherComment?: string;
-  /** Kết quả theo yêu cầu cần đạt (giáo viên đã soát). Có thì thay cho danh sách "Điểm mạnh / Cần rèn thêm". */
-  requirements?: ParentRequirementLine[] | null;
-  /** Nhận diện trường/giáo viên ở đầu báo cáo; vắng thì chỉ hiện tiêu đề báo cáo. */
-  branding?: { schoolName?: string; teacherName?: string; /** data URL png/jpeg/webp của logo trường */ logoDataUrl?: string } | null;
-}
+export type { ParentCompetencyItem, ParentCompetencySummary, ParentReportPrintInput };
 
 /** `print`: khổ A4 cố định 780px cho PDF/in. `web`: tự co giãn, chữ lớn, cho phụ huynh xem trên điện thoại. */
 export type ParentReportVariant = 'print' | 'web';

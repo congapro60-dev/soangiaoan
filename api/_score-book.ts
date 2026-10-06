@@ -28,7 +28,7 @@ const nowIso = (): string => new Date().toISOString();
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-const readBook = async (db: Db, classId: string): Promise<ScoreBookDoc> => {
+export const readBook = async (db: Db, classId: string): Promise<ScoreBookDoc> => {
   const snap = await db.collection(SCORE_BOOKS_COL).doc(classId).get();
   return normalizeScoreBook(classId, snap.exists ? snap.data() : null);
 };

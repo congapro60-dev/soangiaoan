@@ -1,5 +1,5 @@
-import type { AssignmentDoc, StudentProfileDoc, SubmissionDoc } from './types';
-import { namesSpecificProblem } from './topicHygiene';
+import type { AssignmentDoc, StudentProfileDoc, SubmissionDoc } from './types.js';
+import { namesSpecificProblem } from './topicHygiene.js';
 
 export type ParentSafeAssignmentStatus = 'official' | 'pending' | 'grading' | 'error' | 'not_submitted';
 export type ParentSafeTrend = 'up' | 'flat' | 'down' | 'not_enough_data';

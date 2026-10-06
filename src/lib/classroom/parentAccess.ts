@@ -6,7 +6,7 @@
  */
 import type { ReportKind } from './reportKinds.js';
 
-/** `classes/{classId}/parentSecrets/{studentId}` — bản băm + bản hiển thị PIN, trạng thái khoá. */
+/** `classes/{classId}/parentSecrets/{studentId}` — bản băm + bản hiển thị PIN + `pinSetBy` (không còn khoá khi nhập sai). */
 export const PARENT_SECRETS_SUB = 'parentSecrets';
 /** `classes/{classId}/parentReports/{studentId}__{kind}__{from}__{to}` — bản chụp báo cáo giáo viên đã công bố. */
 export const PARENT_REPORTS_SUB = 'parentReports';
@@ -18,7 +18,17 @@ export const PUBLISH_CHUNK = 12;
 export const parentReportDocId = (studentId: string, kind: ReportKind | string, from: string, to: string): string =>
   `${studentId}__${kind}__${from}__${to}`;
 
-export const parentPortalLink = (origin: string, joinCode: string): string => `${origin}/ph/${joinCode}`;
+/** Người đặt PIN hiện tại: giáo viên cấp (phụ huynh phải đặt lại ở lần vào đầu tiên) hoặc chính phụ huynh. */
+export type ParentPinSetBy = 'teacher' | 'parent';
+
+/** PIN phụ huynh: đúng 4 ký tự bất kỳ (số, chữ, ký tự đặc biệt), không có khoảng trắng. Chuẩn hoá NFC để chữ có dấu gõ ở máy nào cũng khớp. */
+export const PARENT_PIN_LENGTH = 4;
+export const normalizeParentPin = (raw: string): string => raw.normalize('NFC');
+export const isValidParentPin = (pin: unknown): pin is string =>
+  typeof pin === 'string' && [...normalizeParentPin(pin)].length === PARENT_PIN_LENGTH && !/[\s\u0000-\u001f\u007f]/.test(pin);
+export const PARENT_PIN_RULE = 'Mã PIN gồm đúng 4 ký tự (số, chữ hoặc ký tự đặc biệt), không có dấu cách.';
+
+export const parentPortalLink =(origin: string, joinCode: string): string => `${origin}/ph/${joinCode}`;
 
 export const DEFAULT_PARENT_MESSAGE = [
   'Kính gửi phụ huynh em {ten} ({lop}),',
@@ -55,3 +65,42 @@ export interface PublishedParentGroup {
   count: number;
   publishedAt: string;
 }
+
+/** `classes/{classId}/parentStats/{studentId}` — bộ đếm hoạt động của phụ huynh; `.../events/{id}` — dòng thời gian chi tiết. */
+export const PARENT_STATS_SUB = 'parentStats';
+export const PARENT_EVENTS_SUB = 'events';
+/** Trang phụ huynh gửi tín hiệu "còn đây" mỗi chừng này; quá `PARENT_ONLINE_MS` không có tín hiệu = không còn xem. */
+export const PARENT_PING_MS = 30_000;
+export const PARENT_ONLINE_MS = 75_000;
+
+export type ParentEventType = 'login' | 'open' | 'pdf' | 'custom' | 'pinChanged';
+export type ParentDevice = 'mobile' | 'desktop' | 'khac';
+export const parentDeviceOf = (value: unknown): ParentDevice => (value === 'mobile' || value === 'desktop' ? value : 'khac');
+
+/** Một dòng thống kê của một em, phía giáo viên nhìn thấy. */
+export interface ParentActivityRow {
+  studentId: string;
+  name: string;
+  loginCount: number;
+  openCount: number;
+  pdfCount: number;
+  customCount: number;
+  wrongCount: number;
+  firstLoginAt: string;
+  lastLoginAt: string;
+  lastSeenAt: string;
+  lastWrongAt: string;
+  lastDevice: ParentDevice | '';
+  /** Có tín hiệu trong `PARENT_ONLINE_MS` gần nhất (máy chủ tính theo giờ máy chủ). */
+  online: boolean;
+}
+
+export interface ParentActivityEvent {
+  id: string;
+  type: ParentEventType;
+  at: string;
+  device: ParentDevice;
+  /** Báo cáo nào (tiêu đề) hoặc khoảng ngày tự chọn. */
+  detail: string;
+}
+

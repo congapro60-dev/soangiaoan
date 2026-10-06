@@ -1,4 +1,4 @@
-import { COMPETENCY_LEVELS, type CompetencyLevel } from './framework';
+import { COMPETENCY_LEVELS, type CompetencyLevel } from './framework.js';
 
 /**
  * Tổng hợp bằng chứng BTVN → ĐỀ XUẤT mức cho từng năng lực trong rubric trường

@@ -1,19 +1,23 @@
 /**
  * Cổng phụ huynh (/ph): giáo viên cấp PIN riêng cho phụ huynh và CÔNG BỐ báo cáo; phụ huynh chọn tên con + PIN để xem.
  *
- * - `classes/{classId}/parentSecrets/{studentId}`: PIN phụ huynh (băm + bản hiển thị cho giáo viên phát lại), cùng cơ chế khoá như PIN học sinh.
+ * - `classes/{classId}/parentSecrets/{studentId}`: PIN phụ huynh (băm + bản hiển thị cho giáo viên phát lại). KHÔNG khoá khi nhập sai (chủ dự án chốt 06/10).
+ *   `pinSetBy`: 'teacher' (giáo viên cấp/cấp lại → phụ huynh PHẢI tự đặt PIN mới ở lần vào kế tiếp) | 'parent' (phụ huynh đã tự đặt;
+ *   bản hiển thị `pinPlain` cập nhật theo để giáo viên xem được và cấp lại/đặt lại bất cứ lúc nào).
  * - `classes/{classId}/parentReports/{id}`: bản chụp `ParentReportPrintInput` (JSON) đã công bố — phụ huynh xem đúng như bản PDF,
  *   không cần giáo viên tải file. Công bố lại cùng kì thì ghi đè.
  * Chỉ đi qua API (rules mặc định chặn client). Phụ huynh KHÔNG có phiên Firebase: mỗi lượt xem gửi lại PIN để máy chủ kiểm.
  */
 import type { VercelResponse } from '@vercel/node';
 import { teacherContext } from './_classroom-teacher.js';
-import {
-  EMPTY_LOCK, attemptPin, createPin, hashPin, isValidPinShape, normalizeJoinCode,
-} from './_classroom-core.js';
+import { createPin, hashPin } from './_classroom-core.js';
+import { resolveParentStudent, verifyParentPin } from './_parent-auth.js';
+import { handleParentActivityAction, recordParentActivity } from './_parent-activity.js';
+import { handleParentCustomReport } from './_parent-self-report.js';
 import { REPORT_KINDS } from '../src/lib/classroom/reportKinds.js';
 import {
   PARENT_INPUT_MAX_CHARS, PARENT_REPORTS_SUB, PARENT_SECRETS_SUB, parentReportDocId,
+  PARENT_PIN_RULE, isValidParentPin, normalizeParentPin,
 } from '../src/lib/classroom/parentAccess.js';
 
 type Db = FirebaseFirestore.Firestore;
@@ -46,7 +50,7 @@ const handleIssueParentPins = async (db: Db, body: Body, res: VercelResponse): P
   const secrets = context.classRef.collection(PARENT_SECRETS_SUB);
   const regenerate = body.regenerate === true;
   const now = new Date().toISOString();
-  const rows: Array<{ studentId: string; name: string; pin: string }> = [];
+  const rows: Array<{ studentId: string; name: string; pin: string; parentSet: boolean }> = [];
   let batch = db.batch();
   let pending = 0;
   for (const student of students) {
@@ -54,12 +58,12 @@ const handleIssueParentPins = async (db: Db, body: Body, res: VercelResponse): P
     const existing = regenerate ? null : await ref.get();
     const existingPin = existing?.exists ? String(existing.data()?.pinPlain || '') : '';
     if (existingPin) {
-      rows.push({ ...student, pin: existingPin });
+      rows.push({ ...student, pin: existingPin, parentSet: existing?.data()?.pinSetBy === 'parent' });
       continue;
     }
     const pin = createPin();
-    batch.set(ref, { studentId: student.studentId, classId: context.classId, pinHash: hashPin(pin), pinPlain: pin, ...EMPTY_LOCK, updatedAt: now });
-    rows.push({ ...student, pin });
+    batch.set(ref, { studentId: student.studentId, classId: context.classId, pinHash: hashPin(pin), pinPlain: pin, pinSetBy: 'teacher', updatedAt: now });
+    rows.push({ ...student, pin, parentSet: false });
     pending += 1;
     if (pending >= 400) { await batch.commit(); batch = db.batch(); pending = 0; }
   }
@@ -77,7 +81,7 @@ const handleResetParentPin = async (db: Db, body: Body, res: VercelResponse): Pr
   }
   const pin = createPin();
   await context.classRef.collection(PARENT_SECRETS_SUB).doc(studentId).set({
-    studentId, classId: context.classId, pinHash: hashPin(pin), pinPlain: pin, ...EMPTY_LOCK, updatedAt: new Date().toISOString(),
+    studentId, classId: context.classId, pinHash: hashPin(pin), pinPlain: pin, pinSetBy: 'teacher', updatedAt: new Date().toISOString(),
   });
   res.status(200).json({ studentId, pin });
 };
@@ -153,26 +157,24 @@ const handleUnpublishParentReports = async (db: Db, body: Body, res: VercelRespo
 
 /**
  * Phụ huynh: mã lớp + em + PIN → các báo cáo đã công bố của em (mới nhất trước).
- * Sai PIN tính vào khoá riêng của PIN phụ huynh; thông báo lỗi không lộ em nào có PIN hay chưa.
+ * Thông báo sai PIN không lộ em nào có PIN hay chưa.
+ * PIN còn là mã giáo viên cấp (`pinSetBy !== 'parent'`) → `mustChange: true` và CHƯA trả báo cáo nào, tới khi phụ huynh đặt PIN riêng.
  */
 const handleParentReports = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
   const pin = body.pin;
-  if (!isValidPinShape(pin)) return void res.status(400).json({ error: 'Mã PIN phải là 4 chữ số.' });
-  const joinCode = normalizeJoinCode(body.joinCode);
-  const studentId = typeof body.studentId === 'string' ? body.studentId : '';
-  const classes = joinCode ? await db.collection('classes').where('joinCode', '==', joinCode).limit(1).get() : null;
-  const classDoc = classes?.docs[0];
-  if (!classDoc || !studentId || studentId.includes('/')) return void res.status(404).json({ error: 'Không tìm thấy lớp hoặc học sinh.' });
-  const studentSnap = await classDoc.ref.collection('students').doc(studentId).get();
-  if (!studentSnap.exists) return void res.status(404).json({ error: 'Không tìm thấy học sinh trong lớp này.' });
+  if (!isValidParentPin(pin)) return void res.status(400).json({ error: PARENT_PIN_RULE });
+  const target = await resolveParentStudent(db, body, res);
+  if (!target) return;
+  const { classDoc, studentId, studentSnap, secretRef } = target;
+  const device = body.device;
+  if (!(await verifyParentPin(secretRef, pin, res, () => recordParentActivity(db, classDoc.ref, studentId, 'wrong', { device })))) return;
+  await recordParentActivity(db, classDoc.ref, studentId, 'login', { device });
 
-  // Đọc khoá + kiểm PIN + ghi khoá trong MỘT giao dịch: đoán PIN song song không né được khoá sai 5 lần.
-  const attempt = await attemptPin(db, classDoc.ref.collection(PARENT_SECRETS_SUB).doc(studentId), pin, new Date());
-  if (attempt.status === 'missing') return void res.status(409).json({ error: 'Thầy cô chưa cấp mã PIN phụ huynh cho em này. Nhờ thầy cô cấp mã.' });
-  if (attempt.status === 'locked') {
-    return void res.status(429).json({ error: `Nhập sai mã PIN nhiều lần. Thử lại sau ${attempt.minutes} phút, hoặc nhờ thầy cô cấp lại mã.` });
+  const studentName = String(studentSnap.data()?.name || '');
+  const className = String(classDoc.data().name || '');
+  if ((await secretRef.get()).data()?.pinSetBy !== 'parent') {
+    return void res.status(200).json({ studentName, className, mustChange: true, reports: [] });
   }
-  if (attempt.status === 'wrong') return void res.status(401).json({ error: 'Mã PIN không đúng.' });
 
   const reports = await classDoc.ref.collection(PARENT_REPORTS_SUB).where('studentId', '==', studentId).get();
   const items = reports.docs
@@ -184,7 +186,41 @@ const handleParentReports = async (db: Db, body: Body, res: VercelResponse): Pro
     })
     .filter(item => item.input)
     .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
-  res.status(200).json({ studentName: String(studentSnap.data()?.name || ''), className: String(classDoc.data().name || ''), reports: items });
+  res.status(200).json({ studentName, className, mustChange: false, reports: items });
+};
+
+/**
+ * Phụ huynh tự đặt PIN mới: gửi PIN hiện tại + PIN mới (4 ký tự bất kỳ).
+ * Lưu băm để đăng nhập và bản hiển thị `pinPlain` để giáo viên xem/cấp lại (đồng bộ ngay lên bảng PIN của lớp).
+ */
+const handleChangeParentPin = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
+  const pin = body.pin;
+  const newPin = body.newPin;
+  if (!isValidParentPin(pin) || !isValidParentPin(newPin)) return void res.status(400).json({ error: PARENT_PIN_RULE });
+  const next = normalizeParentPin(newPin);
+  if (next === normalizeParentPin(pin)) return void res.status(400).json({ error: 'Mã PIN mới phải khác mã PIN hiện tại.' });
+  const target = await resolveParentStudent(db, body, res);
+  if (!target) return;
+  const device = body.device;
+  if (!(await verifyParentPin(target.secretRef, pin, res, () => recordParentActivity(db, target.classDoc.ref, target.studentId, 'wrong', { device })))) return;
+
+  const now = new Date().toISOString();
+  await target.secretRef.set({ pinHash: hashPin(next), pinPlain: next, pinSetBy: 'parent', pinChangedAt: now, updatedAt: now }, { merge: true });
+  await recordParentActivity(db, target.classDoc.ref, target.studentId, 'pinChanged', { device });
+  res.status(200).json({ ok: true });
+};
+
+/** Phụ huynh báo hiệu đang xem (`ping`), mở một báo cáo (`open`, kèm tên) hoặc tải PDF (`pdf`). Cần PIN đã do phụ huynh tự đặt. */
+const handleParentEvent = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
+  const pin = body.pin;
+  const type = body.type;
+  if (!isValidParentPin(pin)) return void res.status(400).json({ error: PARENT_PIN_RULE });
+  if (type !== 'ping' && type !== 'open' && type !== 'pdf') return void res.status(400).json({ error: 'Loại sự kiện không hợp lệ.' });
+  const target = await resolveParentStudent(db, body, res);
+  if (!target) return;
+  if (!(await verifyParentPin(target.secretRef, pin, res))) return;
+  await recordParentActivity(db, target.classDoc.ref, target.studentId, type, { device: body.device, detail: typeof body.detail === 'string' ? body.detail : '' });
+  res.status(200).json({ ok: true });
 };
 
 export const handleParentPortalAction = async (db: Db, body: Body, res: VercelResponse): Promise<boolean> => {
@@ -195,6 +231,9 @@ export const handleParentPortalAction = async (db: Db, body: Body, res: VercelRe
     case 'listParentPublished': await handleListParentPublished(db, body, res); return true;
     case 'unpublishParentReports': await handleUnpublishParentReports(db, body, res); return true;
     case 'parentReports': await handleParentReports(db, body, res); return true;
-    default: return false;
+    case 'changeParentPin': await handleChangeParentPin(db, body, res); return true;
+    case 'parentEvent': await handleParentEvent(db, body, res); return true;
+    case 'parentCustomReport': await handleParentCustomReport(db, body, res); return true;
+    default: return handleParentActivityAction(db, body, res);
   }
 };
