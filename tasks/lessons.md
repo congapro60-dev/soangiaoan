@@ -103,6 +103,8 @@
 
 - **File upload needs size guard** — No size limit = browser hangs on large files with no feedback. Default max: 20MB with clear error toast. *(2026-04-21)*
 
+- **Xuống dòng phải theo CỤM NGHĨA, không để trình duyệt tự cắt — và nghiệm thu ở 3 khổ màn hình** — Bản mẫu "bản đồ theo bài" viết chú thích thành một dòng chữ liền (`● Vững ≥ 80% ● Đang hình thành 50–79% ● Chưa vững < 50%…`), lên điện thoại bị cắt thành "Chưa / vững < 50%". Chủ dự án nhắc đây là lỗi lặp lại nhiều lần. QUY TẮC: (1) mỗi mục chú thích/chip/nhãn mức là một phần tử riêng `white-space: nowrap`, xếp bằng flex/grid để khi hẹp thì XUỐNG CẢ MỤC, không cắt giữa mục; (2) số đi với đơn vị/dấu so sánh dùng `&nbsp;` ("≥&nbsp;80%", "13&nbsp;câu"), nhãn mức tiếng Việt nhiều chữ ("Đang hình thành", "Chưa vững") không bao giờ bị tách; (3) tiêu đề dùng `text-wrap: balance`, đoạn văn `text-wrap: pretty` để không còn một chữ mồ côi ở dòng cuối; (4) trước khi gửi, chụp ở ~390px (điện thoại), ~820px (iPad dọc), ~1366px (laptop) và kiểm bằng máy rằng mọi phần tử nowrap chỉ chiếm MỘT dòng (`getClientRects().length === 1`), không có cuộn ngang. Nhìn một khổ là chưa xong. *(2026-10-06)*
+
 ## E2E trong Browser pane (Claude Code)
 
 - **Browser pane không chụp được screenshot nhưng DOM tools vẫn sống** — `computer{screenshot}` timeout 30s liên tục, nhưng `read_page`/`get_page_text`/`javascript_tool`/`form_input` hoạt động bình thường. Đừng bỏ cuộc vì screenshot hỏng; verify bằng text/DOM. Click theo `ref` có thể trượt sau khi UI re-render — click qua JS (`[...document.querySelectorAll('button')].find(...)`) ổn định hơn. *(2026-07-16)*
