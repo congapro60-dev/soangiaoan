@@ -1089,6 +1089,8 @@ const projectStudentAssignment = (id: string, data: FirebaseFirestore.DocumentDa
     createdAt: String(data.createdAt || ''),
     updatedAt: String(data.updatedAt || ''),
     hasAnswerKey: Boolean(answerKey || rubric || answerKeyImages.length > 0),
+    // Cờ trống (không lộ tên cột sổ điểm): cổng học sinh dùng để KHÔNG hiện điểm AI chấm lại của bài định kì.
+    ...(data.periodicTest ? { periodicTest: {} } : {}),
     ...(purpose ? { purpose } : {}),
     ...(deliveryMode ? { deliveryMode } : {}),
     ...(skillIds.length > 0 ? { skillIds } : {}),

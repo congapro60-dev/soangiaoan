@@ -31,9 +31,11 @@ const asTime = (value: unknown): string => {
   return text && Number.isFinite(Date.parse(text)) ? text : '';
 };
 
+type FeedAssignment = Pick<AssignmentDoc, 'id' | 'title' | 'periodicTest'>;
+
 const tenBai = (
   submission: Pick<SubmissionDoc, 'assignmentId'>,
-  assignments: readonly Pick<AssignmentDoc, 'id' | 'title'>[],
+  assignments: readonly FeedAssignment[],
 ): string => {
   const title = assignments.find(item => item.id === submission.assignmentId)?.title?.trim();
   return title || 'bài tự nộp';
@@ -52,22 +54,26 @@ const formatScore = (score: unknown, maxScore: unknown): string => {
  */
 const feedFromSubmission = (
   submission: SubmissionDoc,
-  assignments: readonly Pick<AssignmentDoc, 'id' | 'title'>[],
+  assignments: readonly FeedAssignment[],
 ): StudentFeedItem | null => {
   const ten = tenBai(submission, assignments);
+  // Bài kiểm tra định kì: không nêu điểm AI chấm lại (điểm chính thức là điểm thầy cô chấm trên giấy).
+  const periodic = Boolean(assignments.find(item => item.id === submission.assignmentId)?.periodicTest);
   const gradedAt = asTime(submission.grade?.gradedAt);
   const updatedAt = asTime(submission.updatedAt) || asTime(submission.createdAt);
 
   if (submission.status === 'graded' && submission.grade) {
-    const diem = formatScore(submission.grade.score, submission.grade.maxScore);
+    const diem = periodic ? '' : formatScore(submission.grade.score, submission.grade.maxScore);
     const daDuyet = submission.grade.teacherApproved === true;
     return {
       id: `${submission.id}:${daDuyet ? 'approved' : 'graded'}`,
       kind: daDuyet ? 'teacher_approved' : 'graded',
-      title: daDuyet ? 'Thầy cô đã duyệt điểm' : 'Máy đã chấm xong',
-      body: daDuyet
-        ? `Điểm bài "${ten}" đã được thầy cô duyệt${diem ? `: ${diem}` : ''}. Mở ra xem nhận xét nhé.`
-        : `Bài "${ten}" đã có kết quả${diem ? `: ${diem}` : ''}. Mở ra xem nhận xét nhé.`,
+      title: periodic ? 'Đã phân tích bài kiểm tra' : daDuyet ? 'Thầy cô đã duyệt điểm' : 'Máy đã chấm xong',
+      body: periodic
+        ? `Bài "${ten}" đã có phân tích từng câu. Mở ra xem nhận xét nhé.`
+        : daDuyet
+          ? `Điểm bài "${ten}" đã được thầy cô duyệt${diem ? `: ${diem}` : ''}. Mở ra xem nhận xét nhé.`
+          : `Bài "${ten}" đã có kết quả${diem ? `: ${diem}` : ''}. Mở ra xem nhận xét nhé.`,
       at: gradedAt || updatedAt,
       assignmentId: submission.assignmentId || undefined,
     };
@@ -118,7 +124,7 @@ const feedFromNotification = (notification: StudentNotificationDoc): StudentFeed
 /** Gộp hai nguồn thành một dòng thời gian, mới nhất lên trước. */
 export const buildStudentFeed = (input: {
   submissions: readonly SubmissionDoc[];
-  assignments: readonly Pick<AssignmentDoc, 'id' | 'title'>[];
+  assignments: readonly FeedAssignment[];
   notifications: readonly StudentNotificationDoc[];
 }): StudentFeedItem[] => {
   const items: StudentFeedItem[] = [];

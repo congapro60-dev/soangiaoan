@@ -467,6 +467,23 @@ describe('POST /api/classroom · studentAssignments', () => {
     expect(JSON.stringify(res.payload)).not.toContain('https://storage/key.jpg');
   });
 
+  it('bài kiểm tra định kì: học sinh nhận cờ định kì để ẩn điểm AI, KHÔNG nhận mã đề / đáp án / tên cột sổ điểm', async () => {
+    const harness = buildHarness();
+    harness.store['studentLinks'] = { 'hs-uid': { studentId: 'hs-1', classId: 'lop-1', teacherId: 'gv-1' } };
+    harness.store['assignments'] = {
+      'kt-1': {
+        id: 'kt-1', teacherId: 'gv-1', classId: 'lop-1', title: 'Kiểm tra giữa kì I', description: '', type: 'upload', isOpen: true,
+        periodicTest: { sheetLabel: 'Cột-bí-mật' },
+        examVariants: [{ code: '1201', sourceText: 'Đề-mã-1201', answerKey: 'Phần I – Câu 1: A' }],
+        createdAt: '2026-10-06T01:00:00.000Z', updatedAt: '2026-10-06T01:00:00.000Z',
+      },
+    };
+    const res = await call({ action: 'studentAssignments' });
+    expect(res.statusCode).toBe(200);
+    expect(res.payload?.assignments).toEqual([expect.objectContaining({ id: 'kt-1', periodicTest: {}, hasAnswerKey: false })]);
+    for (const secret of ['examVariants', 'Đề-mã-1201', 'Câu 1: A', 'Cột-bí-mật']) expect(JSON.stringify(res.payload)).not.toContain(secret);
+  });
+
   it('không để 100 assignment đóng che mất assignment mở phía sau', async () => {
     const harness = buildHarness();
     harness.store['studentLinks'] = {

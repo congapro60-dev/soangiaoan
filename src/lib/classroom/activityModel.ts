@@ -88,6 +88,9 @@ const toUploadView = (
 ): StudentActivityView => {
   const latest = newest(submissions);
   const status = uploadStatus(latest);
+  // Bài kiểm tra định kì: điểm chính thức là điểm thầy cô chấm trên giấy (sổ điểm). Điểm AI chấm lại để phân tích
+  // từng câu có thể lệch điểm đó → không hiện, không tính vào điểm trung bình / bảng điểm của học sinh.
+  const showScore = !assignment.periodicTest;
   return {
     id: assignment.id,
     sourceType: 'assignment',
@@ -102,8 +105,8 @@ const toUploadView = (
     maxScore: assignment.maxScore ?? latest?.grade?.maxScore,
     attemptCount: submissions.length,
     latestAttemptAt: latest ? attemptTimestamp(latest) : undefined,
-    provisionalScore: finiteScore(latest?.grade?.score),
-    officialScore: latest?.grade?.teacherApproved ? finiteScore(latest.grade.score) : null,
+    provisionalScore: showScore ? finiteScore(latest?.grade?.score) : null,
+    officialScore: showScore && latest?.grade?.teacherApproved ? finiteScore(latest.grade.score) : null,
     status,
     nextAction: nextActionFor(status),
   };

@@ -307,7 +307,7 @@ export type StudentAssignmentView = Pick<
   AssignmentDoc,
   'id' | 'teacherId' | 'classId' | 'title' | 'description' | 'type' | 'examId'
   | 'dueAt' | 'maxScore' | 'attachments' | 'isOpen' | 'createdAt' | 'updatedAt'
-  | 'purpose' | 'deliveryMode' | 'skillIds' | 'sourceReportId' | 'gradingPolicy' | 'contentVersion'
+  | 'purpose' | 'deliveryMode' | 'skillIds' | 'sourceReportId' | 'gradingPolicy' | 'contentVersion' | 'periodicTest'
 > & {
   hasAnswerKey: boolean;
   exportBundle?: StudentActivityExportBundle;

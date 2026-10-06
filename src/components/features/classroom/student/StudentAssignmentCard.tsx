@@ -109,12 +109,15 @@ export const StudentAssignmentCard = ({ assignment, submission, state, deletedNo
           {state.status === 'graded' && submission?.grade && (
             <div className="mt-3 rounded-2xl bg-emerald-50 px-4 py-3">
               <p className="flex items-center gap-2 text-sm font-black text-emerald-800">
-                <CheckCircle2 className="h-4 w-4" /> {submission.grade.score}/{submission.grade.maxScore} điểm
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+                {assignment.periodicTest
+                  ? 'Đã phân tích từng câu — điểm chính thức là điểm thầy cô chấm trên bài giấy'
+                  : `${submission.grade.score}/${submission.grade.maxScore} điểm`}
               </p>
               {submission.grade.feedback && (
                 <div className="mt-1"><NhanXetMarkdown tone="sang">{submission.grade.feedback}</NhanXetMarkdown></div>
               )}
-              <QuestionResultsList results={submission.grade.questionResults} compact />
+              <QuestionResultsList results={submission.grade.questionResults} compact hideScores={Boolean(assignment.periodicTest)} />
             </div>
           )}
         </div>

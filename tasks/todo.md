@@ -59,8 +59,11 @@ GV chấm tay trước, HS chụp bài đã chấm nộp lên luồng HS như BT
   4 file rời (3 .docx + 1 PDF) + file đáp án riêng → đủ 4 mã, đáp án đúng cột; mã thiếu đáp án → chặn giao.
   390 / 820 / 1366 px: không tràn ngang, không nhãn nào bị ngắt dòng.
 - CHƯA kiểm với Gemini thật: AI rút đáp án từ bảng, AI đọc mã đề trên ảnh bài đã chấm bút đỏ. Cần QA trên production.
-- Còn mở (hỏi chủ dự án): học sinh thấy điểm AI "(Chờ GV duyệt)" của bài định kì — có thể khác điểm giấy;
-  báo cáo từng câu của lớp (ClassAssignmentReport) gộp "Câu 5" của mọi mã.
+- [x] (chủ dự án đồng ý) Cổng học sinh: bài định kì không hiện điểm AI (thẻ bài, hộp chi tiết, dòng thời gian,
+      điểm TB, bảng điểm, thông báo, điểm từng câu) — chỉ hiện đúng/sai + nhận xét từng câu.
+- [x] Thống kê từng câu của lớp: bài ≥ 2 mã gom theo (mã, câu), nhãn "Mã 1201 · Câu 5".
+- Giới hạn còn lại: khung "xem đề" của thống kê chưa lấy được nội dung câu dạng "Phần I – Câu 1" (bộ đọc đề
+  `extractQuestionCatalogFromText` chưa hiểu Phần I/II/III đánh số lại) — số liệu không ảnh hưởng.
 
 # Kế hoạch 2026-10-01: Sửa chấm sai từng câu (BTVN)
 

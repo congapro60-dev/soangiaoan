@@ -138,3 +138,14 @@ describe('countUnread', () => {
     expect(countUnread(feed, '2026-09-08T12:00:00.000Z')).toBe(0);
   });
 });
+
+describe('buildStudentFeed · bài kiểm tra định kì', () => {
+  it('không nêu điểm AI chấm lại, chỉ báo đã có phân tích từng câu', () => {
+    const graded = submission({ status: 'graded', grade: { score: 4, maxScore: 10, feedback: '', strengths: [], weaknesses: [], teacherApproved: true, gradedAt: '2026-09-09T10:00:00.000Z' } });
+    const [item] = buildStudentFeed({ submissions: [graded], assignments: [{ id: 'asg-1', title: 'Kiểm tra giữa kì I', periodicTest: {} }], notifications: [] });
+    expect(item.title).toBe('Đã phân tích bài kiểm tra');
+    expect(item.body).toBe('Bài "Kiểm tra giữa kì I" đã có phân tích từng câu. Mở ra xem nhận xét nhé.');
+    expect(item.body).not.toContain('4/10');
+  });
+});
+
