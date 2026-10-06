@@ -76,7 +76,7 @@ const collectionRefRoot = () => ({ collection: (path: string) => collectionRef(p
 import handler from '../classroom';
 import { hashPin } from '../_classroom-core';
 
-const call = async (body: DocData) => {
+const call = async (body: DocData): Promise<any> => {
   const res = { statusCode: 0, payload: null as any, status(c: number) { res.statusCode = c; return res; }, json(p: unknown) { res.payload = p; return res; } };
   await handler({ method: 'POST', body: { idToken: 't', ...body } } as never, res as never);
   return res;
@@ -271,5 +271,118 @@ describe('đoán PIN học sinh song song không né được khoá (giao dịch
     expect(codes.filter(c => c === 401)).toHaveLength(5);
     expect(codes.filter(c => c === 429)).toHaveLength(7);
     expect((await login('4321')).statusCode).toBe(429);
+  });
+});
+
+describe('thống kê hoạt động phụ huynh', () => {
+  const parentCall = (extra: DocData) => call({ idToken: undefined, joinCode: 'ABCD23', ...extra });
+  const issue = async () => Object.fromEntries(((await call({ action: 'issueParentPins', classId: 'lop-1' })).payload.rows as Array<{ studentId: string; pin: string }>).map(r => [r.studentId, r.pin]));
+  const stats = async () => (await call({ action: 'parentActivity', classId: 'lop-1' })).payload.rows as Array<Record<string, any>>;
+
+  it('đếm lần vào, lần sai, lần đổi PIN; em chưa vào vẫn có dòng với số 0', async () => {
+    const pins = await issue();
+    await parentCall({ action: 'parentReports', studentId: 'a', pin: '9999', device: 'mobile' });
+    await parentCall({ action: 'parentReports', studentId: 'a', pin: '9998', device: 'mobile' });
+    await parentCall({ action: 'parentReports', studentId: 'a', pin: pins.a, device: 'mobile' });
+    await parentCall({ action: 'changeParentPin', studentId: 'a', pin: pins.a, newPin: '2580', device: 'desktop' });
+    await parentCall({ action: 'parentReports', studentId: 'a', pin: '2580', device: 'desktop' });
+    const [an, binh] = await stats();
+    expect(an).toMatchObject({ name: 'An', loginCount: 2, wrongCount: 2, lastDevice: 'desktop', online: true });
+    expect(an.firstLoginAt).toBeTruthy();
+    expect(binh).toMatchObject({ name: 'Bình', loginCount: 0, wrongCount: 0, lastSeenAt: '', online: false });
+  });
+
+  it('dòng thời gian: vào, mở báo cáo, tải PDF, đổi PIN — mới nhất trước; "còn đây" và sai PIN không thành dòng', async () => {
+    const pins = await issue();
+    await parentCall({ action: 'changeParentPin', studentId: 'a', pin: pins.a, newPin: '2580' });
+    await parentCall({ action: 'parentReports', studentId: 'a', pin: '2580' });
+    await parentCall({ action: 'parentEvent', studentId: 'a', pin: '2580', type: 'open', detail: 'Báo cáo tháng 9/2026' });
+    await parentCall({ action: 'parentEvent', studentId: 'a', pin: '2580', type: 'ping' });
+    await parentCall({ action: 'parentEvent', studentId: 'a', pin: '2580', type: 'pdf', detail: 'Báo cáo tháng 9/2026' });
+    await parentCall({ action: 'parentReports', studentId: 'a', pin: '0001' });
+    const detail = await call({ action: 'parentActivityDetail', classId: 'lop-1', studentId: 'a' });
+    expect(detail.payload.events.map((e: any) => e.type).sort()).toEqual(['login', 'open', 'pdf', 'pinChanged']);
+    expect(detail.payload.events.find((e: any) => e.type === 'open').detail).toBe('Báo cáo tháng 9/2026');
+    const times = detail.payload.events.map((e: any) => e.at);
+    expect([...times].sort().reverse()).toEqual(times);
+    expect((await stats())[0]).toMatchObject({ openCount: 1, pdfCount: 1, wrongCount: 1 });
+  });
+
+  it('không có PIN đúng thì không ghi được sự kiện; loại sự kiện lạ bị từ chối; GV lớp khác không xem được', async () => {
+    await issue();
+    expect((await parentCall({ action: 'parentEvent', studentId: 'a', pin: '0001', type: 'ping' })).statusCode).toBe(401);
+    expect((await parentCall({ action: 'parentEvent', studentId: 'a', pin: '0001', type: 'xoa' })).statusCode).toBe(400);
+    expect((await stats())[0].lastSeenAt).toBe('');
+    h.claims = OTHER_TEACHER;
+    expect((await call({ action: 'parentActivity', classId: 'lop-1' })).statusCode).toBe(403);
+    expect((await call({ action: 'parentActivityDetail', classId: 'lop-1', studentId: 'a' })).statusCode).toBe(403);
+  });
+
+  it('"đang xem" hết hạn khi quá 75 giây không có tín hiệu', async () => {
+    await issue();
+    h.store['classes/lop-1/parentStats'] = { a: { studentId: 'a', lastSeenAt: new Date(Date.now() - 120_000).toISOString(), loginCount: 1 }, b: { studentId: 'b', lastSeenAt: new Date().toISOString(), loginCount: 1 } };
+    const rows = await stats();
+    expect(rows.map(r => r.online)).toEqual([false, true]);
+  });
+});
+
+describe('phụ huynh tự chọn khoảng ngày', () => {
+  const custom = (extra: DocData = {}) => call({ action: 'parentCustomReport', idToken: undefined, joinCode: 'ABCD23', studentId: 'a', from: '2026-09-01', to: '2026-09-30', ...extra });
+  const grade = (score: number, approved: boolean) => ({ score, maxScore: 10, feedback: 'GHI-CHU-NOI-BO', strengths: [], weaknesses: [], teacherApproved: approved, gradedAt: '2026-09-20T01:00:00Z' });
+
+  beforeEach(async () => {
+    h.store.assignments = {
+      b1: { teacherId: 'gv-cuong', classId: 'lop-1', title: 'Hàm số', type: 'homework', dueAt: '2026-09-15T10:00:00Z', maxScore: 10, answerKey: 'DAP-AN-BI-MAT', createdAt: '2026-09-10T00:00:00Z' },
+      b2: { teacherId: 'gv-cuong', classId: 'lop-1', title: 'Xác suất', type: 'homework', dueAt: '2026-11-15T10:00:00Z', maxScore: 10, createdAt: '2026-11-10T00:00:00Z' },
+    };
+    h.store.submissions = {
+      s1: { teacherId: 'gv-cuong', classId: 'lop-1', studentId: 'a', assignmentId: 'b1', status: 'graded', createdAt: '2026-09-16T01:00:00Z', grade: grade(8, true) },
+      s2: { teacherId: 'gv-cuong', classId: 'lop-1', studentId: 'a', assignmentId: 'b2', status: 'graded', createdAt: '2026-11-16T01:00:00Z', grade: grade(5, true) },
+      // Bài của em khác và bài chưa duyệt không được lọt vào báo cáo của em A.
+      s3: { teacherId: 'gv-cuong', classId: 'lop-1', studentId: 'b', assignmentId: 'b1', status: 'graded', createdAt: '2026-09-16T01:00:00Z', grade: grade(2, true) },
+    };
+    const pins = Object.fromEntries(((await call({ action: 'issueParentPins', classId: 'lop-1' })).payload.rows as Array<{ studentId: string; pin: string }>).map(r => [r.studentId, r.pin]));
+    await call({ action: 'changeParentPin', idToken: undefined, joinCode: 'ABCD23', studentId: 'a', pin: pins.a, newPin: '2580' });
+  });
+
+  it('dựng đúng báo cáo của khoảng ngày đã chọn, chỉ bài đã duyệt của chính em, không lộ đáp án/ghi chú nội bộ', async () => {
+    const res = await custom({ pin: '2580' });
+    expect(res.statusCode).toBe(200);
+    const { input } = res.payload;
+    expect(input.period).toMatchObject({ title: 'Báo cáo học tập từ 01/09/2026 đến 30/09/2026', range: 'Từ 01/09/2026 đến 30/09/2026' });
+    expect(input.report.results.map((r: any) => r.title)).toEqual(['Hàm số']);
+    expect(input.report.results[0]).toMatchObject({ status: 'official', score: 8, maxScore: 10 });
+    expect(input.teacherComment).toBeUndefined();
+    const text = JSON.stringify(res.payload);
+    expect(text).not.toContain('DAP-AN-BI-MAT');
+    expect(text).not.toContain('GHI-CHU-NOI-BO');
+  });
+
+  it('khoảng khác → bài khác; chọn khoảng không có bài thì trả báo cáo trống chứ không lỗi', async () => {
+    const nov = await custom({ pin: '2580', from: '2026-11-01', to: '2026-11-30' });
+    expect(nov.payload.input.report.results.map((r: any) => r.title)).toEqual(['Xác suất']);
+    const empty = await custom({ pin: '2580', from: '2026-01-01', to: '2026-01-31' });
+    expect(empty.statusCode).toBe(200);
+    expect(empty.payload.input.report.results).toEqual([]);
+  });
+
+  it('lấy nhận diện trường từ báo cáo giáo viên đã công bố gần nhất; ghi nhận vào thống kê', async () => {
+    await call({ ...PUBLISH, reports: [{ studentId: 'a', input: { ...INPUT('An'), branding: { schoolName: 'Trường A', teacherName: 'Thầy B' } } }] });
+    const res = await custom({ pin: '2580', device: 'mobile' });
+    expect(res.payload.input.branding).toEqual({ schoolName: 'Trường A', teacherName: 'Thầy B' });
+    const detail = await call({ action: 'parentActivityDetail', classId: 'lop-1', studentId: 'a' });
+    expect(detail.payload.events[0]).toMatchObject({ type: 'custom', detail: '01/09/2026 – 30/09/2026', device: 'mobile' });
+  });
+
+  it('từ chối: PIN sai, PIN còn là mã GV cấp, ngày sai/đảo/quá dài, em khác', async () => {
+    expect((await custom({ pin: '0001' })).statusCode).toBe(401);
+    expect((await custom({ pin: '2580', from: '2026-09-30', to: '2026-09-01' })).statusCode).toBe(400);
+    expect((await custom({ pin: '2580', from: 'abc' })).statusCode).toBe(400);
+    expect((await custom({ pin: '2580', from: '2024-01-01', to: '2026-09-30' })).statusCode).toBe(400);
+    // Em B chưa tự đặt PIN (còn mã GV cấp) → chưa được xem gì, kể cả báo cáo tự chọn.
+    const binhPin = h.store['classes/lop-1/parentSecrets'].b.pinPlain as string;
+    expect((await custom({ studentId: 'b', pin: binhPin })).statusCode).toBe(403);
+    // PIN của em A không mở được dữ liệu em B.
+    expect((await custom({ studentId: 'b', pin: '2580' })).statusCode).toBe(401);
   });
 });

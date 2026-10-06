@@ -6,6 +6,16 @@
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
 
+
+## Cổng phụ huynh: thống kê truy cập + báo cáo tự chọn khoảng ngày — 2026-10-06
+
+- **Thống kê (GV xem):** `classes/{id}/parentStats/{studentId}` (bộ đếm: lần vào, mở báo cáo, tải PDF, xem tự chọn, nhập sai PIN, đổi PIN + mốc giờ) và `.../events/{id}` (dòng thời gian, mới nhất trước, ≤100). Ghi ở `api/_parent-activity.ts` (`recordParentActivity` — lỗi ghi KHÔNG làm hỏng lượt xem). Trang `/ph` gửi `parentEvent` `ping` mỗi 30 giây khi tab đang hiện → "Đang xem" = có tín hiệu ≤75 giây (`PARENT_ONLINE_MS`); `open`/`pdf` ghi tên báo cáo. Chỉ lưu loại thiết bị thô (mobile/desktop), KHÔNG lưu IP. Lần nhập sai PIN chỉ tăng bộ đếm (không tạo dòng) — vì đã bỏ khoá, cột "Sai PIN" tăng bất thường (đỏ từ 10) là dấu hiệu bị dò mã.
+- **GV:** khung "Hoạt động của phụ huynh" trong "Phụ huynh xem báo cáo trực tuyến" (`ParentActivityPanel`, tự làm mới 30 giây, bấm một em xem dòng thời gian). Action `parentActivity` / `parentActivityDetail` (cần là GV của lớp).
+- **Báo cáo tự chọn (PH):** khung "Xem theo khoảng ngày bạn chọn" → action `parentCustomReport` (`api/_parent-self-report.ts`): máy chủ nạp bài giao + bài nộp (cả bài online) + sổ điểm + hồ sơ rồi gọi CÙNG `buildPeriodParentReport` như GV (qua `loadStudentRecordsForClass` trong `_classroom-teacher.ts`). Chỉ bài ĐÃ DUYỆT (`buildParentSafeReport`), không đáp án/ghi chú; KHÔNG có nhận xét GV, không gọi AI (không tốn ví). Khoảng tối đa 400 ngày; PH phải đã tự đặt PIN riêng. Dùng `kind: 'year'` (không lọc theo học kì) nhưng tiêu đề "Báo cáo học tập từ dd/mm/yyyy đến dd/mm/yyyy". Nhận diện trường/GV lấy từ báo cáo GV công bố gần nhất của em (nhận diện chỉ lưu trên máy GV) — chưa công bố lần nào thì không có dải nhận diện. `program` = null.
+- **Refactor kèm:** `parentReportBuilder` và chuỗi import chạy được trên máy chủ → thêm đuôi `.js` vào import tương đối (NodeNext) và tách kiểu thuần sang `parentReportTypes.ts` (`parentReportPrintDoc` vẫn re-export). `api/_parent-auth.ts` gom `resolveParentStudent`/`verifyParentPin`; `readBook` của `_score-book.ts` được export.
+- **Chưa làm / cần biết:** sự kiện không tự xoá (mỗi em tăng chậm); nếu muốn GV tắt tính năng tự chọn theo lớp thì thêm cờ lớp. Tự chọn dùng dữ liệu live nên có thể khác báo cáo GV đã công bố (bản chụp). Hết tín hiệu ping ≠ chắc chắn đã thoát (đóng tab đột ngột vẫn "đang xem" tối đa ~75 giây).
+- Test: `parent-portal.test.ts` 22, `ParentActivityPanel.test.tsx`; QA trình duyệt khổ 390px với API giả 25/25 (gồm ping sau 30 giây); toàn bộ 246 file/2.645 test, lint, lint:api, build.
+
 ## Cổng phụ huynh: PH tự đặt PIN riêng — 2026-10-06
 
 - `parentSecrets/{studentId}.pinSetBy`: `'teacher'` (GV cấp / cấp lại) | `'parent'` (PH tự đặt). Thiếu trường (PIN cấp trước bản này) = coi như `'teacher'`.

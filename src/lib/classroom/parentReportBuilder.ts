@@ -2,15 +2,15 @@
  * Dựng báo cáo phụ huynh cho MỘT học sinh theo khoảng thời gian — dùng chung cho xuất từng em và xuất cả lớp,
  * để hai đường luôn ra cùng một nội dung.
  */
-import type { AssignmentDoc, StudentProfileDoc, SubmissionDoc } from './types';
-import type { StudentScoreView } from './scoreBook';
-import { buildParentSafeReport, validScorePair, type ParentSafeReport } from './parentSafeReport';
-import type { EvidenceQuestion, EvidenceSubmission } from './parentRequirements';
-import type { ParentCompetencyItem, ParentCompetencySummary, ParentReportPrintInput } from './parentReportPrintDoc';
-import { buildStudentCompetencyPortfolio, portfolioProgress } from './competency/portfolioModel';
-import { asCompetencyGrade } from './competency/framework';
-import { competencyTerms, inStage, stageForPeriod, type Program, type ReportStage } from './reportStage';
-import { dmy, filterForPeriod, monthlyAverages, periodComparison, rangeLabel, reportTitle, vnDay, type ReportPeriod } from './reportPeriod';
+import type { AssignmentDoc, StudentProfileDoc, SubmissionDoc } from './types.js';
+import type { StudentScoreView } from './scoreBook.js';
+import { buildParentSafeReport, validScorePair, type ParentSafeReport } from './parentSafeReport.js';
+import type { EvidenceQuestion, EvidenceSubmission } from './parentRequirements.js';
+import type { ParentCompetencyItem, ParentCompetencySummary, ParentReportPrintInput } from './parentReportTypes.js';
+import { buildStudentCompetencyPortfolio, portfolioProgress } from './competency/portfolioModel.js';
+import { asCompetencyGrade } from './competency/framework.js';
+import { competencyTerms, inStage, stageForPeriod, type Program, type ReportStage } from './reportStage.js';
+import { dmy, filterForPeriod, monthlyAverages, periodComparison, rangeLabel, reportTitle, vnDay, type ReportPeriod } from './reportPeriod.js';
 
 export interface ParentReportSource {
   studentId: string;

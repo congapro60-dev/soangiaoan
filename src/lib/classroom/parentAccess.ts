@@ -65,3 +65,42 @@ export interface PublishedParentGroup {
   count: number;
   publishedAt: string;
 }
+
+/** `classes/{classId}/parentStats/{studentId}` — bộ đếm hoạt động của phụ huynh; `.../events/{id}` — dòng thời gian chi tiết. */
+export const PARENT_STATS_SUB = 'parentStats';
+export const PARENT_EVENTS_SUB = 'events';
+/** Trang phụ huynh gửi tín hiệu "còn đây" mỗi chừng này; quá `PARENT_ONLINE_MS` không có tín hiệu = không còn xem. */
+export const PARENT_PING_MS = 30_000;
+export const PARENT_ONLINE_MS = 75_000;
+
+export type ParentEventType = 'login' | 'open' | 'pdf' | 'custom' | 'pinChanged';
+export type ParentDevice = 'mobile' | 'desktop' | 'khac';
+export const parentDeviceOf = (value: unknown): ParentDevice => (value === 'mobile' || value === 'desktop' ? value : 'khac');
+
+/** Một dòng thống kê của một em, phía giáo viên nhìn thấy. */
+export interface ParentActivityRow {
+  studentId: string;
+  name: string;
+  loginCount: number;
+  openCount: number;
+  pdfCount: number;
+  customCount: number;
+  wrongCount: number;
+  firstLoginAt: string;
+  lastLoginAt: string;
+  lastSeenAt: string;
+  lastWrongAt: string;
+  lastDevice: ParentDevice | '';
+  /** Có tín hiệu trong `PARENT_ONLINE_MS` gần nhất (máy chủ tính theo giờ máy chủ). */
+  online: boolean;
+}
+
+export interface ParentActivityEvent {
+  id: string;
+  type: ParentEventType;
+  at: string;
+  device: ParentDevice;
+  /** Báo cáo nào (tiêu đề) hoặc khoảng ngày tự chọn. */
+  detail: string;
+}
+

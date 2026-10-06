@@ -10,7 +10,10 @@
  */
 import type { VercelResponse } from '@vercel/node';
 import { teacherContext } from './_classroom-teacher.js';
-import { createPin, hashPin, normalizeJoinCode, verifyPin } from './_classroom-core.js';
+import { createPin, hashPin } from './_classroom-core.js';
+import { resolveParentStudent, verifyParentPin } from './_parent-auth.js';
+import { handleParentActivityAction, recordParentActivity } from './_parent-activity.js';
+import { handleParentCustomReport } from './_parent-self-report.js';
 import { REPORT_KINDS } from '../src/lib/classroom/reportKinds.js';
 import {
   PARENT_INPUT_MAX_CHARS, PARENT_REPORTS_SUB, PARENT_SECRETS_SUB, parentReportDocId,
@@ -152,32 +155,6 @@ const handleUnpublishParentReports = async (db: Db, body: Body, res: VercelRespo
   res.status(200).json({ removed: targets.length });
 };
 
-/** Mã lớp + em từ thân yêu cầu của phụ huynh; không có thì đã trả 404 và trả `null`. */
-const resolveParentStudent = async (db: Db, body: Body, res: VercelResponse) => {
-  const joinCode = normalizeJoinCode(body.joinCode);
-  const studentId = typeof body.studentId === 'string' ? body.studentId : '';
-  const classes = joinCode ? await db.collection('classes').where('joinCode', '==', joinCode).limit(1).get() : null;
-  const classDoc = classes?.docs[0];
-  if (!classDoc || !studentId || studentId.includes('/')) return void res.status(404).json({ error: 'Không tìm thấy lớp hoặc học sinh.' });
-  const studentSnap = await classDoc.ref.collection('students').doc(studentId).get();
-  if (!studentSnap.exists) return void res.status(404).json({ error: 'Không tìm thấy học sinh trong lớp này.' });
-  return { classDoc, studentId, studentSnap, secretRef: classDoc.ref.collection(PARENT_SECRETS_SUB).doc(studentId) };
-};
-
-/** Kiểm PIN phụ huynh (không khoá, nhập sai bao nhiêu lần cũng được); không qua thì đã trả lỗi và trả `false`. */
-const verifyParentPin = async (secretRef: FirebaseFirestore.DocumentReference, pin: string, res: VercelResponse): Promise<boolean> => {
-  const snap = await secretRef.get();
-  if (!snap.exists) {
-    res.status(409).json({ error: 'Thầy cô chưa cấp mã PIN phụ huynh cho em này. Nhờ thầy cô cấp mã.' });
-    return false;
-  }
-  if (!verifyPin(normalizeParentPin(pin), String(snap.data()?.pinHash || ''))) {
-    res.status(401).json({ error: 'Mã PIN không đúng. Thử lại, hoặc nhờ thầy cô cấp lại mã.' });
-    return false;
-  }
-  return true;
-};
-
 /**
  * Phụ huynh: mã lớp + em + PIN → các báo cáo đã công bố của em (mới nhất trước).
  * Thông báo sai PIN không lộ em nào có PIN hay chưa.
@@ -189,7 +166,9 @@ const handleParentReports = async (db: Db, body: Body, res: VercelResponse): Pro
   const target = await resolveParentStudent(db, body, res);
   if (!target) return;
   const { classDoc, studentId, studentSnap, secretRef } = target;
-  if (!(await verifyParentPin(secretRef, pin, res))) return;
+  const device = body.device;
+  if (!(await verifyParentPin(secretRef, pin, res, () => recordParentActivity(db, classDoc.ref, studentId, 'wrong', { device })))) return;
+  await recordParentActivity(db, classDoc.ref, studentId, 'login', { device });
 
   const studentName = String(studentSnap.data()?.name || '');
   const className = String(classDoc.data().name || '');
@@ -222,10 +201,25 @@ const handleChangeParentPin = async (db: Db, body: Body, res: VercelResponse): P
   if (next === normalizeParentPin(pin)) return void res.status(400).json({ error: 'Mã PIN mới phải khác mã PIN hiện tại.' });
   const target = await resolveParentStudent(db, body, res);
   if (!target) return;
-  if (!(await verifyParentPin(target.secretRef, pin, res))) return;
+  const device = body.device;
+  if (!(await verifyParentPin(target.secretRef, pin, res, () => recordParentActivity(db, target.classDoc.ref, target.studentId, 'wrong', { device })))) return;
 
   const now = new Date().toISOString();
   await target.secretRef.set({ pinHash: hashPin(next), pinPlain: next, pinSetBy: 'parent', pinChangedAt: now, updatedAt: now }, { merge: true });
+  await recordParentActivity(db, target.classDoc.ref, target.studentId, 'pinChanged', { device });
+  res.status(200).json({ ok: true });
+};
+
+/** Phụ huynh báo hiệu đang xem (`ping`), mở một báo cáo (`open`, kèm tên) hoặc tải PDF (`pdf`). Cần PIN đã do phụ huynh tự đặt. */
+const handleParentEvent = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
+  const pin = body.pin;
+  const type = body.type;
+  if (!isValidParentPin(pin)) return void res.status(400).json({ error: PARENT_PIN_RULE });
+  if (type !== 'ping' && type !== 'open' && type !== 'pdf') return void res.status(400).json({ error: 'Loại sự kiện không hợp lệ.' });
+  const target = await resolveParentStudent(db, body, res);
+  if (!target) return;
+  if (!(await verifyParentPin(target.secretRef, pin, res))) return;
+  await recordParentActivity(db, target.classDoc.ref, target.studentId, type, { device: body.device, detail: typeof body.detail === 'string' ? body.detail : '' });
   res.status(200).json({ ok: true });
 };
 
@@ -238,6 +232,8 @@ export const handleParentPortalAction = async (db: Db, body: Body, res: VercelRe
     case 'unpublishParentReports': await handleUnpublishParentReports(db, body, res); return true;
     case 'parentReports': await handleParentReports(db, body, res); return true;
     case 'changeParentPin': await handleChangeParentPin(db, body, res); return true;
-    default: return false;
+    case 'parentEvent': await handleParentEvent(db, body, res); return true;
+    case 'parentCustomReport': await handleParentCustomReport(db, body, res); return true;
+    default: return handleParentActivityAction(db, body, res);
   }
 };

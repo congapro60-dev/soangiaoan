@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
-import { AlertTriangle, ArrowLeft, CheckCircle2, Download, FileText, HeartHandshake, KeyRound, Loader2 } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, CalendarRange, CheckCircle2, Download, FileText, HeartHandshake, KeyRound, Loader2 } from 'lucide-react';
 import { normalizeJoinCode } from '../lib/classroom/joinCode';
 import { REPORT_KINDS, type ReportKind } from '../lib/classroom/reportKinds';
-import { PARENT_PIN_LENGTH, isValidParentPin, type PublishedParentReport } from '../lib/classroom/parentAccess';
+import { PARENT_PIN_LENGTH, PARENT_PING_MS, isValidParentPin, type PublishedParentReport } from '../lib/classroom/parentAccess';
+import { periodError, vnDay } from '../lib/classroom/reportPeriod';
 import { PARENT_REPORT_ROOT_ID, buildParentReportPrintDoc, type ParentReportPrintInput } from '../lib/classroom/parentReportPrintDoc';
-import { changeParentPin, fetchParentReports, fetchParentRoster, type ParentRoster } from '../services/parentPortalApi';
+import { changeParentPin, fetchParentCustomReport, fetchParentReports, fetchParentRoster, sendParentEvent, type ParentRoster } from '../services/parentPortalApi';
 
 /** Bản web của báo cáo (`variant: web`): tự co giãn theo màn hình, chữ ≥15px, cột xếp dọc trên điện thoại. Bản A4 chỉ dùng khi tải PDF. */
 const ReportViewer = ({ input }: { input: ParentReportPrintInput }) => {
@@ -22,6 +23,8 @@ const dayLabel = (iso: string): string => {
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('vi-VN');
 };
+
+const TU_CHON_ID = 'tu-chon';
 
 type Stage = 'nhap-ma-lop' | 'chon-ten' | 'doi-pin' | 'xem';
 
@@ -100,6 +103,12 @@ export const ParentPortalPage = () => {
   const [thongBao, setThongBao] = useState('');
   /** Lần đầu vào (PIN còn là mã thầy cô cấp) → màn đặt PIN không có nút bỏ qua. */
   const [batBuocDoi, setBatBuocDoi] = useState(false);
+  // Báo cáo tự chọn khoảng ngày: phụ huynh chủ động xem ngoài các kì thầy cô công bố.
+  const homNay = vnDay(new Date().toISOString());
+  const [tuNgay, setTuNgay] = useState(`${homNay.slice(0, 8)}01`);
+  const [denNgay, setDenNgay] = useState(homNay);
+  const [tuChon, setTuChon] = useState<PublishedParentReport | null>(null);
+  const [dangTaoTuChon, setDangTaoTuChon] = useState(false);
 
   const moLop = useCallback(async (ma: string) => {
     setLoi('');
@@ -163,7 +172,39 @@ export const ParentPortalPage = () => {
 
   const kinds = useMemo(() => [...new Set(reports.map(r => r.kind))], [reports]);
   const shown = useMemo(() => reports.filter(r => kind === 'all' || r.kind === kind), [reports, kind]);
-  const open = reports.find(r => r.id === openId) ?? null;
+  const open = (tuChon && openId === tuChon.id ? tuChon : reports.find(r => r.id === openId)) ?? null;
+
+  // Báo hiệu "đang xem" cho thầy cô: mỗi 30 giây khi trang đang mở và đang hiện trên màn hình.
+  useEffect(() => {
+    if (stage !== 'xem') return undefined;
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === 'visible') void sendParentEvent(joinCode, studentId, pin, 'ping');
+    }, PARENT_PING_MS);
+    return () => window.clearInterval(timer);
+  }, [stage, joinCode, studentId, pin]);
+
+  // Ghi lại báo cáo phụ huynh đã mở (báo cáo tự chọn được máy chủ ghi riêng khi dựng).
+  useEffect(() => {
+    if (stage !== 'xem' || !open || open.id === TU_CHON_ID) return;
+    void sendParentEvent(joinCode, studentId, pin, 'open', open.title || open.range);
+    // Chỉ ghi khi đổi báo cáo đang mở — không ghi lại vì đổi PIN hay làm mới danh sách.
+  }, [stage, openId]);
+
+  const xemTuChon = async () => {
+    const loiKy = periodError({ kind: 'year', from: tuNgay, to: denNgay });
+    if (loiKy) { setLoi(loiKy); return; }
+    setLoi('');
+    setDangTaoTuChon(true);
+    try {
+      const { input } = await fetchParentCustomReport(joinCode, studentId, pin, tuNgay, denNgay);
+      setTuChon({ id: TU_CHON_ID, kind: 'year', from: tuNgay, to: denNgay, title: input.period?.title ?? 'Báo cáo tự chọn', range: input.period?.range ?? '', publishedAt: new Date().toISOString(), input });
+      setOpenId(TU_CHON_ID);
+    } catch (error) {
+      setLoi(error instanceof Error ? error.message : 'Không dựng được báo cáo.');
+    } finally {
+      setDangTaoTuChon(false);
+    }
+  };
 
   const taiPdf = async () => {
     if (!open) return;
@@ -171,6 +212,7 @@ export const ParentPortalPage = () => {
     try {
       const { exportParentReportToPdf } = await import('../lib/classroom/parentReportPrintDoc');
       await exportParentReportToPdf(open.input as ParentReportPrintInput);
+      void sendParentEvent(joinCode, studentId, pin, 'pdf', open.title || open.range);
     } catch (error) {
       setLoi(error instanceof Error ? error.message : 'Không tải được PDF.');
     } finally {
@@ -261,7 +303,7 @@ export const ParentPortalPage = () => {
     <div className="min-h-screen bg-slate-50 pb-10">
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur">
         <div className="mx-auto flex max-w-[840px] items-center gap-3">
-          <button type="button" onClick={() => { setStage('chon-ten'); setPin(''); setReports([]); setThongBao(''); }} aria-label="Quay lại" className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100"><ArrowLeft className="h-5 w-5" /></button>
+          <button type="button" onClick={() => { setStage('chon-ten'); setPin(''); setReports([]); setTuChon(null); setThongBao(''); }} aria-label="Quay lại" className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100"><ArrowLeft className="h-5 w-5" /></button>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-black text-slate-900">{studentName}</p>
             <p className="truncate text-xs font-semibold text-slate-500">{roster?.className ? `Lớp ${roster.className} · ` : ''}Báo cáo học tập của con</p>
@@ -287,11 +329,26 @@ export const ParentPortalPage = () => {
           </button>
         </div>
         {loiBox}
-        {reports.length === 0 ? (
+        <section className="mb-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <p className="flex items-center gap-2 text-sm font-black text-slate-900"><CalendarRange className="h-4 w-4 text-emerald-600" /> Xem theo khoảng ngày bạn chọn</p>
+          <p className="mt-1 text-xs font-semibold text-slate-500">Ngoài các báo cáo thầy cô gửi, bạn có thể tự xem kết quả của con trong khoảng thời gian bất kỳ.</p>
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            <label className="block text-xs font-bold text-slate-500">Từ ngày
+              <input type="date" value={tuNgay} max={denNgay || undefined} onChange={event => setTuNgay(event.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-800 outline-none focus:border-emerald-500" />
+            </label>
+            <label className="block text-xs font-bold text-slate-500">Đến ngày
+              <input type="date" value={denNgay} min={tuNgay || undefined} onChange={event => setDenNgay(event.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-800 outline-none focus:border-emerald-500" />
+            </label>
+          </div>
+          <button type="button" onClick={() => void xemTuChon()} disabled={dangTaoTuChon || !tuNgay || !denNgay} className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-2.5 text-sm font-black text-white hover:bg-emerald-700 disabled:opacity-50">
+            {dangTaoTuChon ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Xem báo cáo khoảng này'}
+          </button>
+        </section>
+        {reports.length === 0 && !tuChon ? (
           <div className="mt-6 rounded-3xl border border-dashed border-slate-300 bg-white p-8 text-center">
             <FileText className="mx-auto h-8 w-8 text-slate-300" />
             <p className="mt-3 text-sm font-black text-slate-700">Thầy cô chưa gửi báo cáo nào cho con.</p>
-            <p className="mt-1 text-xs font-semibold text-slate-500">Khi có báo cáo mới, xem lại tại cùng đường dẫn này.</p>
+            <p className="mt-1 text-xs font-semibold text-slate-500">Khi có báo cáo mới, xem lại tại cùng đường dẫn này. Bạn vẫn có thể tự chọn khoảng ngày ở trên.</p>
           </div>
         ) : (
           <>
@@ -305,17 +362,21 @@ export const ParentPortalPage = () => {
               </div>
             )}
             <div className="mt-3 flex gap-2 overflow-x-auto pb-2">
-              {shown.map(r => (
+              {[...(tuChon ? [tuChon] : []), ...shown].map(r => (
                 <button key={r.id} type="button" onClick={() => setOpenId(r.id)} className={`min-w-[170px] rounded-2xl border px-4 py-3 text-left transition ${r.id === openId ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white hover:border-emerald-300'}`}>
-                  <p className="text-xs font-black text-emerald-700">{kindLabel(r.kind)}</p>
+                  <p className="text-xs font-black text-emerald-700">{r.id === TU_CHON_ID ? 'Bạn tự chọn' : kindLabel(r.kind)}</p>
                   <p className="mt-0.5 text-sm font-black text-slate-900">{r.range}</p>
-                  <p className="mt-0.5 text-[11px] font-semibold text-slate-400">Gửi ngày {dayLabel(r.publishedAt)}</p>
+                  <p className="mt-0.5 text-[11px] font-semibold text-slate-400">{r.id === TU_CHON_ID ? 'Tính từ kết quả đã duyệt' : `Gửi ngày ${dayLabel(r.publishedAt)}`}</p>
                 </button>
               ))}
             </div>
+            {open && open.id === TU_CHON_ID && (
+              <p className="mt-2 rounded-xl bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-900 ring-1 ring-sky-100">Báo cáo này do bạn tự chọn khoảng ngày, hệ thống tính từ kết quả đã được thầy cô duyệt và chưa có nhận xét riêng của thầy cô.</p>
+            )}
             {open && <div className="mt-3"><ReportViewer input={open.input as ParentReportPrintInput} /></div>}
           </>
         )}
+        <p className="mt-6 text-center text-[11px] font-semibold text-slate-400">Thầy cô có thể xem thời gian bạn truy cập cổng này để hỗ trợ khi cần.</p>
       </main>
     </div>
   );

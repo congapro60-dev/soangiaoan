@@ -6,6 +6,7 @@ import { DEFAULT_PARENT_MESSAGE, parentPortalLink, renderParentMessage, type Pub
 import { REPORT_KINDS } from '../../../lib/classroom/reportKinds';
 import { SSM_MERGE_MESSAGE, buildSsmMergeWorkbook, missingCodeCount } from '../../../lib/classroom/ssmMailMerge';
 import type { Student } from '../../../types';
+import { ParentActivityPanel } from './ParentActivityPanel';
 
 interface Props {
   classId: string;
@@ -177,6 +178,8 @@ export const ClassParentAccessPanel = ({ classId, className, students, refreshKe
           <p className="text-xs font-semibold text-slate-500">PIN là mã riêng từng em — gửi riêng cho từng phụ huynh, đừng gửi cả bảng vào nhóm chung. Chỉ link lớp mới gửi chung được.</p>
         </div>
       )}
+
+      <ParentActivityPanel classId={classId} />
 
       <div className="mt-4 border-t border-emerald-100 pt-3">
         <p className="text-xs font-black uppercase tracking-wide text-slate-500">Đã công bố cho phụ huynh</p>

@@ -11,7 +11,7 @@ import type { StudentExamScores } from './examScores';
 import { normalizeScoreBook, type ScoreBookDoc } from './scoreBook';
 import { normalizePortfolio, type CompetencyPortfolioDoc, type PortfolioEntry } from './competency/studentPortfolio';
 import type { ParentRequirementLine } from './parentRequirements';
-import type { PublishedParentGroup } from './parentAccess';
+import type { ParentActivityEvent, ParentActivityRow, PublishedParentGroup } from './parentAccess';
 
 export interface CreateSupportActivityInput {
   classId: string;
@@ -333,6 +333,14 @@ export const publishParentReports = (classId: string, period: { kind: string; fr
 
 export const listParentPublished = async (classId: string): Promise<PublishedParentGroup[]> =>
   (await callTeacherApi<{ groups: PublishedParentGroup[] }>({ action: 'listParentPublished', classId })).groups;
+
+/** Thống kê hoạt động của phụ huynh cả lớp (số lần vào, lần cuối, đang xem…). */
+export const loadParentActivity = async (classId: string): Promise<ParentActivityRow[]> =>
+  (await callTeacherApi<{ rows: ParentActivityRow[] }>({ action: 'parentActivity', classId })).rows;
+
+/** Dòng thời gian chi tiết của một em (mới nhất trước). */
+export const loadParentActivityDetail = async (classId: string, studentId: string): Promise<ParentActivityEvent[]> =>
+  (await callTeacherApi<{ events: ParentActivityEvent[] }>({ action: 'parentActivityDetail', classId, studentId })).events;
 
 export const unpublishParentReports = (classId: string, period: { kind: string; from: string; to: string }) =>
   callTeacherApi<{ removed: number }>({ action: 'unpublishParentReports', classId, ...period });

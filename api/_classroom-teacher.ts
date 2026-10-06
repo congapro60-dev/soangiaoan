@@ -425,6 +425,45 @@ export const handleTeacherExamSubmissions = async (db: Db, body: Body, res: Verc
   return void res.status(200).json({ submissions });
 };
 
+/**
+ * Bài giao + bài nộp (cả bài online) của MỘT học sinh trong MỘT lớp, không cần phiên giáo viên.
+ * Dùng cho cổng phụ huynh (đã kiểm PIN) dựng báo cáo tự chọn khoảng ngày — cùng quy tắc lọc như nhánh
+ * `teacherSubmissions` theo học sinh: chỉ bản ghi đúng lớp và đúng giáo viên chủ lớp.
+ */
+export const loadStudentRecordsForClass = async (
+  db: Db,
+  classId: string,
+  classData: FirebaseFirestore.DocumentData,
+  studentId: string,
+): Promise<{ assignments: AssignmentDoc[]; submissions: SubmissionDoc[] }> => {
+  const teacherId = String(classData.teacherId || '');
+  const assignmentSnapshot = await db.collection('assignments').where('classId', '==', classId).get();
+  const assignments = assignmentSnapshot.docs
+    .map(document => teacherAssignmentProjection(document.id, document.data() || {}))
+    .filter(assignment => assignment.teacherId === teacherId);
+
+  const submissionSnapshot = await db.collection('submissions').where('studentId', '==', studentId).get();
+  const submissions = submissionSnapshot.docs
+    .map(document => submissionFromSnapshot(document.id, document.data() || {}))
+    .filter(submission => submission.classId === classId && submission.teacherId === teacherId);
+
+  const examAssignments = new Map<string, AssignmentDoc>();
+  for (const document of assignmentSnapshot.docs) {
+    const assignment = assignmentFromSnapshot(document.id, document.data() || {});
+    if (assignment.type === 'exam' && assignment.teacherId === teacherId) examAssignments.set(assignment.id, assignment);
+  }
+  const onlineSnapshot = await db.collection('examSubmissions').where('studentId', '==', studentId).get();
+  for (const document of onlineSnapshot.docs) {
+    const data = document.data() || {};
+    const assignment = examAssignments.get(typeof data.assignmentId === 'string' ? data.assignmentId.trim() : '');
+    if (!assignment || assignment.classId !== classId || data.classId !== classId) continue;
+    const online = onlineSubmissionFromSnapshot(document.id, data, assignment);
+    if (online && online.studentId === studentId) submissions.push(online);
+  }
+  submissions.sort((left, right) => String(right.createdAt || '').localeCompare(String(left.createdAt || '')));
+  return { assignments, submissions };
+};
+
 export const handleTeacherSubmissions = async (db: Db, body: Body, res: VercelResponse): Promise<void> => {
   let classId = typeof body.classId === 'string' ? body.classId.trim() : '';
   const assignmentId = typeof body.assignmentId === 'string' ? body.assignmentId.trim() : '';
