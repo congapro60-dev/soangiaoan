@@ -264,4 +264,39 @@ describe('báo cáo phụ huynh — bản web, tóm tắt nhanh, nhận diện t
     expect(html.split('Gợi ý A').length - 1).toBe(1);
     expect(html).toContain('Gợi ý B');
   });
+
+  it('bản đồ theo bài SGK: ngay dưới đoạn tổng quan, trước nhận xét; thay "Tóm tắt nhanh"; ưu tiên ôn + thẻ từng bài', () => {
+    for (const variant of ['web', 'print'] as const) {
+      const html = buildParentReportPrintDoc({ ...base, report, teacherComment: 'Tốt', requirements: [...requirements] }, variant);
+      expect(html).toContain('Bản đồ theo bài SGK');
+      expect(html.indexOf('class="lead"')).toBeLessThan(html.indexOf('Bản đồ theo bài SGK'));
+      expect(html.indexOf('Bản đồ theo bài SGK')).toBeLessThan(html.indexOf('Nhận xét của giáo viên'));
+      expect(html).not.toContain('Tóm tắt nhanh');
+      expect(html).toContain('SGK Toán 10</span>');
+      expect(html.match(/class="lm-card /g)).toHaveLength(2);
+      expect(html).toContain('<span class="lm-bai nw">Bài 2</span><span class="lm-lv nw">Đang hình thành</span>');
+      expect(html).toMatch(/Ưu tiên ôn trước<\/p><ol><li><b class="nw">Bài 2<\/b> — Tập hợp/);
+      // Gợi ý đầu không còn bị chuyển lên "Tóm tắt nhanh" → mục đồng hành in đủ.
+      expect(html).toContain('Hỏi con mỗi ngày');
+    }
+  });
+
+  it('bản đồ: mọi bài đã đủ căn cứ đều Vững thì báo "chưa có bài nào cần ôn gấp"; không có YCCĐ thì không có bản đồ', () => {
+    const html = buildParentReportPrintDoc({ ...base, report, requirements: [requirements[0]] }, 'web');
+    expect(html).toContain('Chưa có bài nào cần ôn gấp');
+    const none = buildParentReportPrintDoc({ ...base, report, requirements: [] }, 'web');
+    expect(none).not.toContain('Bản đồ theo bài SGK');
+    expect(none).toContain('Tóm tắt nhanh');
+  });
+
+  it('xuống dòng theo cụm: nhãn mức, chú thích, mã học sinh là khối không ngắt; chú thích mỗi mức một mục riêng', () => {
+    const html = buildParentReportPrintDoc({ ...base, studentCode: 'GB0231', report, requirements: [...requirements] }, 'web');
+    expect(html).toContain('<span class="nw">Mã HS GB0231</span>');
+    expect(html).toContain('<span class="nw">Đang hình thành 50–79%</span>');
+    expect(html).toContain('<li><i class="lm-d lm-dang"></i>Đang hình thành: 50–79%</li>');
+    expect(html).toContain('.lm-legend li { display:flex; align-items:center; gap:7px; margin:0; white-space:nowrap;');
+    expect(html).toContain('.lm-legend { flex-direction:column;');
+    expect(html).toContain('.nw { white-space:nowrap; }');
+  });
 });
+

@@ -109,7 +109,10 @@ describe('nhận xét giáo viên trong báo cáo phụ huynh', () => {
     expect(h.calls.find(p => !p.includes('đối chiếu bài làm'))).not.toContain('b1q1');
     expect(out.body.text).toBe('Con tiến bộ ở phần vectơ.');
     expect(out.body.requirements).toEqual([
-      { id: 'T10.30', level: 'chua', evidence: 2, percent: 25, note: 'Nhầm chiều khi áp dụng quy tắc hiệu.' },
+      {
+        id: 'T10.30', level: 'chua', evidence: 2, percent: 25, note: 'Nhầm chiều khi áp dụng quy tắc hiệu.',
+        questions: [{ code: 'b1q1', score: 1, max: 2 }, { code: 'b1q2', score: 0, max: 2 }],
+      },
     ]);
   });
 
@@ -122,7 +125,10 @@ describe('nhận xét giáo viên trong báo cáo phụ huynh', () => {
     const out = await call({ action: 'draftParentReportComment', ...key, facts: { baiDaDuyet: [bai(1), bai(2)] } });
     expect(h.calls.filter(p => p.includes('đối chiếu bài làm'))).toHaveLength(2);
     expect(h.calls.filter(p => p.includes('tỉ lệ điểm đạt'))).toHaveLength(1);
-    expect(out.body.requirements).toEqual([{ id: 'T10.03', level: 'dang', evidence: 2, percent: 50, note: 'Ý chung.' }]);
+    expect(out.body.requirements).toEqual([{
+      id: 'T10.03', level: 'dang', evidence: 2, percent: 50, note: 'Ý chung.',
+      questions: [{ code: 'b1q1', score: 1, max: 1 }, { code: 'b2q1', score: 0, max: 1 }],
+    }]);
   });
 
   it('bước ghi chú hết giờ: vẫn trả các dòng với mức đúng, ghi chú để trống cho giáo viên điền', async () => {
@@ -134,7 +140,7 @@ describe('nhận xét giáo viên trong báo cáo phụ huynh', () => {
     const facts = { baiDaDuyet: [{ ma: 'b1', ten: 'BTVN', ngay: '2026-09-20', cau: [{ ma: 'b1q1', diem: 2, toiDa: 2, ketQua: 'đúng' }] }] };
     const out = await call({ action: 'draftParentReportComment', ...key, facts });
     expect(out.status).toBe(200);
-    expect(out.body.requirements).toEqual([{ id: 'T10.03', level: 'vung', evidence: 1, percent: 100, note: '' }]);
+    expect(out.body.requirements).toEqual([{ id: 'T10.03', level: 'vung', evidence: 1, percent: 100, note: '', questions: [{ code: 'b1q1', score: 2, max: 2 }] }]);
   });
 
   it('lưu kèm dòng YCCĐ: chỉ giữ mã đúng khối, mức hợp lệ', async () => {
@@ -148,6 +154,14 @@ describe('nhận xét giáo viên trong báo cáo phụ huynh', () => {
     await call({ action: 'saveParentReportNote', ...key, text: 'x', requirements });
     const read = await call({ action: 'parentReportNote', ...key });
     expect((read.body.requirements as { id: string }[]).map(r => r.id)).toEqual(['T10.01', 'T10.02']);
+  });
+
+  it('lưu rồi đọc lại giữ danh sách câu căn cứ (để gom theo bài SGK không đếm trùng); câu hỏng bị bỏ', async () => {
+    h.grade = '10';
+    const questions = [{ code: 'b1q1', score: 1, max: 2 }, { code: 'b1q1', score: 2, max: 2 }, { code: 'x', score: 1, max: 1 }, { code: 'b2', score: 9, max: 4 }];
+    await call({ action: 'saveParentReportNote', ...key, text: 'x', requirements: [{ id: 'T10.03', level: 'dang', evidence: 2, percent: 50, note: '', questions }] });
+    const read = await call({ action: 'parentReportNote', ...key });
+    expect(read.body.requirements).toEqual([{ id: 'T10.03', level: 'dang', evidence: 2, percent: 50, note: '', questions: [{ code: 'b1q1', score: 1, max: 2 }, { code: 'b2', score: 4, max: 4 }] }]);
   });
 
   it('lưu rồi đọc lại đúng theo học sinh + loại + khoảng; khoảng khác thì trống', async () => {

@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { aggregateRequirementLines, applyRequirementNotes, groupRequirementLines, levelOf, parentActionsForRequirements, sanitizeRequirementLines, type EvidenceSubmission } from './parentRequirements';
+import {
+  aggregateRequirementLines, applyRequirementNotes, buildLessonMap, groupRequirementLines, lessonPriorities, levelOf, parentActionsForRequirements,
+  sanitizeRequirementLines, type EvidenceSubmission, type ParentRequirementLine,
+} from './parentRequirements';
 import { yccdForGrade } from '../curriculum/yccdToan';
 
 const evidence: EvidenceSubmission[] = [
@@ -52,8 +55,11 @@ describe('kết quả theo yêu cầu cần đạt', () => {
       ],
     });
     expect(lines).toEqual([
-      { id: 'T10.01', level: 'chua', evidence: 1, percent: 30, note: '' },
-      { id: 'T10.03', level: 'dang', evidence: 2, percent: 75, note: 'Dùng đúng biểu đồ Ven' },
+      { id: 'T10.01', level: 'chua', evidence: 1, percent: 30, note: '', questions: [{ code: 'b2', score: 3, max: 10 }] },
+      {
+        id: 'T10.03', level: 'dang', evidence: 2, percent: 75, note: 'Dùng đúng biểu đồ Ven',
+        questions: [{ code: 'b1q1', score: 2, max: 2 }, { code: 'b1q2', score: 1, max: 2 }],
+      },
     ]);
   });
 
@@ -86,7 +92,9 @@ describe('kết quả theo yêu cầu cần đạt', () => {
     const weak = [{ id: 'T10.01', level: 'chua' as const, evidence: 1, percent: 10, note: '' }];
     const out = parentActionsForRequirements(actions, weak);
     expect(out.join(' ')).not.toContain('Cần rèn thêm');
-    expect(out[1]).toContain('“Chưa đạt” hoặc “Đang hình thành”');
+    // Nhãn trong ngoặc giữ dấu cách không ngắt — không bao giờ xuống dòng giữa “Chưa / đạt”.
+    expect(out[1]).toContain('“Chưa\u00a0đạt” hoặc “Đang\u00a0hình\u00a0thành”');
+    expect(out[1]).toContain('“Bản\u00a0đồ\u00a0theo\u00a0bài\u00a0SGK”');
     expect(parentActionsForRequirements(actions, [{ ...weak[0], level: 'vung' }])).toEqual(['Hỏi con mỗi ngày.', 'Giữ liên lạc.']);
     expect(parentActionsForRequirements(actions, [])).toEqual(actions);
   });
@@ -101,5 +109,71 @@ describe('kết quả theo yêu cầu cần đạt', () => {
       ['Mệnh đề', ['T10.01', 'T10.02']],
       ['Tập hợp và các phép toán trên tập hợp', ['T10.03']],
     ]);
+  });
+
+  it('dòng giáo viên sửa: giữ câu căn cứ hợp lệ, bỏ mã lạ/trùng, kẹp điểm; không còn câu nào thì bỏ hẳn trường', () => {
+    const [line] = sanitizeRequirementLines('10', [{ id: 'T10.03', level: 'dang', evidence: 2, percent: 50, note: '', questions: [
+      { code: 'b1q1', score: 1, max: 2 }, { code: 'b1q1', score: 2, max: 2 }, { code: 'b2', score: -1, max: 4 },
+      { code: 'cau 1', score: 1, max: 1 }, { code: 'b3q1', score: 1, max: 0 }, 'rác',
+    ] }]);
+    expect(line.questions).toEqual([{ code: 'b1q1', score: 1, max: 2 }, { code: 'b2', score: 0, max: 4 }]);
+    const [bare] = sanitizeRequirementLines('10', [{ id: 'T10.03', level: 'dang', evidence: 2, percent: 50, note: '', questions: [{ code: 'x', score: 1, max: 1 }] }]);
+    expect(bare).not.toHaveProperty('questions');
+  });
+});
+
+const line = (id: string, level: ParentRequirementLine['level'], evidence: number, percent: number, note = '', codes?: [string, number, number][]): ParentRequirementLine => ({
+  id, level, evidence, percent, note, ...(codes ? { questions: codes.map(([code, score, max]) => ({ code, score, max })) } : {}),
+});
+
+describe('bản đồ theo bài SGK', () => {
+  it('gom theo bài, câu ghép vào hai yêu cầu cùng bài chỉ tính một lần, tỉ lệ cộng trên điểm câu', () => {
+    const [bai1] = buildLessonMap([
+      line('T11.01', 'vung', 3, 100, '', [['b1q1', 1, 1], ['b1q2', 1, 1], ['b1q3', 1, 1]]),
+      line('T11.02', 'chua', 2, 25, '', [['b1q3', 1, 1], ['b1q4', 0, 3]]),
+    ]);
+    expect(bai1).toMatchObject({ lesson: 'Bài 1', title: 'Giá trị lượng giác của góc lượng giác', questions: 4, percent: 50, level: 'dang' });
+  });
+
+  it('bản ghi cũ không có danh sách câu: tỉ lệ trung bình theo số câu, không in số câu, đủ căn cứ xét theo dòng nhiều câu nhất', () => {
+    const [bai1] = buildLessonMap([line('T11.01', 'vung', 4, 90), line('T11.02', 'chua', 1, 40)]);
+    expect(bai1).toMatchObject({ percent: 80, questions: null, level: 'vung' });
+    // 2 + 2 câu có thể chỉ là 2 câu thật (ghép trùng) → chưa đủ 3 câu để kết luận.
+    const [thin] = buildLessonMap([line('T11.01', 'vung', 2, 90), line('T11.02', 'vung', 2, 90)]);
+    expect(thin.level).toBeNull();
+  });
+
+  it('dưới 3 câu khác nhau thì chưa gắn mức', () => {
+    expect(buildLessonMap([line('T11.05', 'chua', 2, 10, '', [['b1q1', 0, 1], ['b1q2', 0, 1]])])[0]).toMatchObject({ level: null, questions: 2 });
+  });
+
+  it('xếp theo thứ tự sách: bài gộp đứng sau bài cuối của nó; "Chương V" đứng sau bài có số ngay trước nó; mã lạ bị bỏ', () => {
+    const order = buildLessonMap([
+      line('T11.14', 'dang', 3, 60), line('T11.06', 'dang', 3, 60), line('T11.05', 'dang', 3, 60),
+      line('T11.07', 'dang', 3, 60), line('T11.01', 'dang', 3, 60), line('T99.01', 'dang', 3, 60),
+    ]).map(lesson => lesson.lesson);
+    expect(order).toEqual(['Bài 1', 'Bài 2', 'Bài 1–2', 'Bài 3', 'Bài 4']);
+    expect(buildLessonMap([line('T10.63', 'dang', 3, 60), line('T10.62', 'dang', 3, 60), line('T10.57', 'dang', 3, 60)]).map(lesson => lesson.lesson))
+      .toEqual(['Bài 12', 'Chương V', 'Bài 13']);
+  });
+
+  it('tên bài lấy theo mục đầu của bài trong Chương trình, không phụ thuộc dòng nào còn lại', () => {
+    expect(buildLessonMap([line('T10.43', 'dang', 3, 60)])[0]).toMatchObject({ lesson: 'Bài 11', title: 'Tích vô hướng của hai vectơ' });
+  });
+
+  it('ghi chú: bài chưa vững lấy dòng yếu nhất đủ căn cứ; bài vững lấy dòng nhiều câu nhất', () => {
+    const [weak] = buildLessonMap([line('T11.07', 'dang', 3, 70, 'lỗi nhẹ'), line('T11.08', 'chua', 1, 0, 'một câu'), line('T11.09', 'chua', 4, 40, 'lỗi chính')]);
+    expect(weak.note).toBe('lỗi chính');
+    const [strong] = buildLessonMap([line('T11.01', 'vung', 6, 90, 'ý chính'), line('T11.04', 'vung', 2, 100, 'bấm máy tính')]);
+    expect(strong.note).toBe('ý chính');
+  });
+
+  it('ưu tiên ôn: Chưa đạt trước, rồi Đang hình thành, tỉ lệ thấp trước; bỏ bài vững và bài chưa đủ căn cứ', () => {
+    const lessons = buildLessonMap([
+      line('T11.01', 'vung', 5, 90), line('T11.05', 'chua', 5, 40), line('T11.07', 'dang', 5, 55),
+      line('T11.14', 'chua', 5, 30), line('T11.18', 'chua', 1, 0), line('T11.06', 'dang', 5, 70),
+    ]);
+    expect(lessonPriorities(lessons).map(lesson => lesson.lesson)).toEqual(['Bài 4', 'Bài 2', 'Bài 3']);
+    expect(lessonPriorities(lessons, 5).map(lesson => lesson.lesson)).toEqual(['Bài 4', 'Bài 2', 'Bài 3', 'Bài 1–2']);
   });
 });

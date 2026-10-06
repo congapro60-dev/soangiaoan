@@ -1,3 +1,39 @@
+# Kế hoạch 2026-10-06: Báo cáo PH — khối "Bản đồ theo bài SGK"
+
+Chủ dự án duyệt bản mẫu: mỗi bài SGK một thẻ màu, "Ưu tiên ôn trước", chú thích mỗi mức một dòng;
+dễ nhìn trên điện thoại, iPad, laptop; xuống dòng theo cụm nghĩa.
+
+## Sự thật đã kiểm
+- Mỗi YCCĐ đã có nhãn `sgk` ("Bài 2", "Bài 3–4", "Chương V") → gom theo bài không cần dữ liệu mới.
+- Thầy cô sửa mức / ghi chú / bỏ dòng YCCĐ trước khi lưu → khối theo bài phải tính TỪ CÁC DÒNG đã soát.
+- Dòng chỉ lưu `evidence` + `percent`: một câu ghép vào 2 YCCĐ cùng bài sẽ bị đếm 2 lần → lưu thêm danh sách câu.
+- Báo cáo công bố lưu nguyên `printInput` (giới hạn 300k ký tự) → trường mới đi theo, cổng PH dựng lại được.
+- Kiểm 3 khổ bản hiện tại: "50–79%" bị cắt ở dấu gạch (iPad/laptop), "“Chưa đạt”" bị tách (điện thoại).
+
+## Làm
+- [x] `parentRequirements.ts`: dòng YCCĐ thêm `questions` (mã câu + điểm); sinh ở `aggregateRequirementLines`,
+      giữ ở `sanitizeRequirementLines`; hàm thuần `buildLessonMap` (gom theo bài, đếm câu không trùng, bài cũ thiếu
+      `questions` thì ước lượng thận trọng) + thứ tự ưu tiên ôn.
+- [x] `parentReportPrintDoc.ts`: khối bản đồ ngay dưới đoạn tổng quan (bản web + PDF); có bản đồ thì bỏ thẻ
+      "Điểm mạnh / Cần chú ý" trùng nội dung; sửa 2 chỗ ngắt dòng; thẻ không bị cắt khi sang trang PDF.
+- [x] Màn soát của giáo viên: xem trước khối theo bài ngay trên danh sách YCCĐ.
+- [x] Test thuần + test bản in; kiểm 3 khổ (390 / 820 / 1366) + PDF 780 bằng trình duyệt thật.
+- [x] test + lint + lint:api + build; commit, đẩy nhánh.
+
+## Kết quả (06/10)
+- Mức của bài tính từ điểm các câu (giống mức từng dòng), KHÔNG theo mức thầy cô đổi tay ở từng dòng —
+  để con số "Đạt x%" luôn khớp chú thích. Thầy cô chỉnh bản đồ bằng cách bỏ dòng ghép sai (xem trước ngay trên màn soát).
+- Báo cáo đã lưu trước hôm nay: bản đồ vẫn hiện, chỉ tỉ lệ (không in số câu vì có thể đếm trùng).
+- Có bản đồ thì bỏ "Tóm tắt nhanh" (trùng nội dung); gợi ý ở nhà trỏ sang "Bản đồ theo bài SGK".
+- Kiểm bằng trình duyệt thật: 390 / 820 / 1366 px + PDF xuất thật (html2canvas): không tràn ngang, mọi nhãn/chip
+  một dòng, thẻ không bị cắt khi sang trang. Sửa luôn "Mã HS" bị tách dòng ở đầu báo cáo, "50–79%" bị cắt ở dấu gạch.
+- Dữ liệu chương trình: YCCĐ lớp 12 Bài 16 mang tên chủ đề "Phương trình đường thẳng trong không gian" (trùng Bài 15)
+  — tên bài theo chủ đề CT, chưa có bảng tên bài SGK.
+
+## Sau (chờ duyệt thiết kế)
+- [ ] Bài định kì: đánh dấu riêng, không cộng vào điểm TB BTVN; điểm Sheet là chính thức; đối chiếu lệch → cờ soát.
+- [ ] Mã đề: khối 12 có 4–8 mã, khối khác 1–4; mã do người ra đề làm sẵn → thiết kế đẩy lên một lần cho tiện.
+
 # Kế hoạch 2026-10-01: Sửa chấm sai từng câu (BTVN)
 
 Chủ dự án chốt: bài đã duyệt GIỮ đã duyệt khi sửa đáp án cả lớp; Đúng/Sai theo thang THPT

@@ -1,6 +1,6 @@
 import { X } from 'lucide-react';
 import {
-  groupRequirementLines, MAX_REQUIREMENT_NOTE_CHARS, REQUIREMENT_LEVELS,
+  buildLessonMap, groupRequirementLines, MAX_REQUIREMENT_NOTE_CHARS, REQUIREMENT_LEVELS, requirementLevelLabel,
   type ParentRequirementLine, type RequirementLevel,
 } from '../../../lib/classroom/parentRequirements';
 
@@ -23,9 +23,22 @@ export const RequirementLinesEditor = ({ lines, onChange }: Props) => {
   const update = (id: string, patch: Partial<ParentRequirementLine>) =>
     onChange(lines.map(line => (line.id === id ? { ...line, ...patch } : line)));
   const remove = (id: string) => onChange(lines.filter(line => line.id !== id));
+  const lessons = buildLessonMap(lines);
 
   return (
     <div className="space-y-3">
+      {lessons.length > 0 && (
+        <div className="rounded-xl border border-slate-200 bg-white p-2.5">
+          <p className="text-[11px] font-black text-slate-500">Phụ huynh thấy ở “Bản đồ theo bài SGK” (tính lại khi thầy cô bỏ dòng ghép sai)</p>
+          <ul className="mt-1.5 flex flex-wrap gap-1.5">
+            {lessons.map(lesson => (
+              <li key={lesson.lesson} className={`whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] font-black ${lesson.level ? LEVEL_CLASS[lesson.level] : 'border-slate-200 bg-slate-50 text-slate-500'}`}>
+                {lesson.lesson} · {lesson.level ? `${requirementLevelLabel(lesson.level)} ${Math.round(lesson.percent)}%` : 'Chưa đủ căn cứ'}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {groupRequirementLines(lines).map(group => (
         <div key={`${group.strand}-${group.topic}`}>
           <p className="border-b border-slate-200 pb-1 text-xs font-black text-indigo-900">{group.strand} · {group.topic}</p>
