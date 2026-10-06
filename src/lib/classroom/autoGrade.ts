@@ -3,10 +3,10 @@
  *
  * Chủ dự án chốt (2026-09-25): bài học sinh nộp mà sau 60 phút giáo viên chưa chấm thì AI tự chấm;
  * bài đã chấm mà sau 60 phút chưa duyệt thì tự duyệt. Áp dụng mọi lớp, giáo viên TẮT được cho lớp
- * mình. Bài máy đọc chưa chắc KHÔNG tự duyệt — giữ lại cho giáo viên xem.
+ * mình. Bài máy đọc chưa chắc, hoặc bài định kì lệch điểm giáo viên, KHÔNG tự duyệt — giữ lại cho giáo viên xem.
  */
 import type { SubmissionDoc } from './types.js';
-import { currentSubmissionsForAssignment, hasUncertainRead, isStaleGradingTimestamp } from './submissionSelection.js';
+import { currentSubmissionsForAssignment, isStaleGradingTimestamp, needsTeacherCheck } from './submissionSelection.js';
 
 export const AUTO_GRADE_AFTER_MS = 60 * 60 * 1000;
 
@@ -47,7 +47,7 @@ export const planAutoSweep = (submissions: readonly SubmissionDoc[], nowMs = Dat
       submission.status === 'graded'
       && Boolean(submission.grade)
       && submission.grade?.teacherApproved !== true
-      && !hasUncertainRead(submission.grade)
+      && !needsTeacherCheck(submission.grade)
       && olderThanWindow(submission.grade?.gradedAt || submission.updatedAt, nowMs)),
   };
 };
@@ -57,4 +57,4 @@ export const canAutoApproveFreshGrade = (submission: SubmissionDoc): boolean =>
   submission.status === 'graded'
   && Boolean(submission.grade)
   && submission.grade?.teacherApproved !== true
-  && !hasUncertainRead(submission.grade);
+  && !needsTeacherCheck(submission.grade);

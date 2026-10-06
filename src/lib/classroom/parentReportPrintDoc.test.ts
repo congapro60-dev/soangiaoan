@@ -298,5 +298,12 @@ describe('báo cáo phụ huynh — bản web, tóm tắt nhanh, nhận diện t
     expect(html).toContain('.lm-legend { flex-direction:column;');
     expect(html).toContain('.nw { white-space:nowrap; }');
   });
+
+  it('thẻ bài ghi rõ số câu đến từ bài kiểm tra định kì', () => {
+    const html = buildParentReportPrintDoc({ ...base, report, requirements: [{ id: 'T10.04', level: 'dang', evidence: 3, percent: 66.7, note: '', questions: [
+      { code: 'b1q1', score: 1, max: 1 }, { code: 'b1q2', score: 1, max: 1 }, { code: 'b2q1', score: 0, max: 1, test: true },
+    ] }] }, 'web');
+    expect(html).toContain('<span class="nw">3&nbsp;câu làm căn cứ</span><span class="nw">trong đó 1&nbsp;câu bài kiểm tra</span>');
+  });
 });
 

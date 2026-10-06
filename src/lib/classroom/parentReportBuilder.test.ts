@@ -94,4 +94,40 @@ describe('dựng báo cáo phụ huynh theo kì', () => {
     expect(out.printInput.period).toBeNull();
     expect(out.printInput.comparison).toBeNull();
   });
+
+  it('bài kiểm tra định kì: không vào điểm TB / từng bài / chưa nộp / năng lực; vẫn là căn cứ YCCĐ, gắn cờ kt', () => {
+    const kt = { ...asg('kt1', '2026-10-20T02:00:00Z', 'Kiểm tra giữa kì I'), periodicTest: { sheetLabel: 'Giữa học kì I' }, competencyTags: [{ competencyId: 'g10-tap-hop-va-menh-de', confidence: 1, reason: '' }] } as AssignmentDoc;
+    const ktChuaNop = { ...asg('kt2', '2026-10-21T02:00:00Z', 'Kiểm tra 2'), periodicTest: {} } as AssignmentDoc;
+    const lam = graded('nkt', 'kt1', '2026-10-21T02:00:00Z', 2);
+    lam.grade!.questionResults = [
+      { questionNumber: 'Phần I – Câu 1', status: 'incorrect', score: 0, maxScore: 0.25, studentAnswer: 'B', expectedAnswer: 'C', errorType: 'Nhầm', explanation: '', correction: '', nextPractice: '', needsTeacherReview: false },
+    ];
+    const out = buildPeriodParentReport({ ...src, classGrade: '10', assignments: [...src.assignments, kt, ktChuaNop], submissions: [...src.submissions, lam] }, { kind: 'month', from: '2026-10-01', to: '2026-10-31' });
+    expect(out.report.results.map(r => r.title)).toEqual(['BTVN tháng 10']);
+    expect(out.report.officialAveragePercent).toBe(80);
+    expect(out.report.missingCount).toBe(0);
+    expect(out.printInput.competency?.assessed).toBe(0);
+    // Đối chứng: cùng bài đó nếu KHÔNG đánh dấu định kì thì đã vào hồ sơ năng lực và điểm TB.
+    const control = buildPeriodParentReport({ ...src, classGrade: '10', assignments: [...src.assignments, { ...kt, periodicTest: undefined }], submissions: [...src.submissions, lam] }, { kind: 'month', from: '2026-10-01', to: '2026-10-31' });
+    expect(control.printInput.competency?.assessed).toBe(1);
+    expect(control.report.officialAveragePercent).toBe(50);
+    expect(out.evidence.map(e => [e.ten, e.cau.map(q => [q.ma, q.kt ?? false])])).toEqual([
+      ['BTVN tháng 10', [['b1', false]]],
+      ['Kiểm tra giữa kì I', [['b2q1', true]]],
+    ]);
+  });
+
+  it('nhiều câu quá trần: bớt BTVN trước, bài kiểm tra định kì luôn được giữ', () => {
+    const many = Array.from({ length: 20 }, (_, i) => {
+      const s = graded(`h${i}`, 'a10', `2026-10-${String(i + 1).padStart(2, '0')}T02:00:00Z`, 5);
+      return { ...s, assignmentId: `hw${i}`, grade: { ...s.grade!, questionResults: Array.from({ length: 10 }, (_, q) => ({ questionNumber: `Câu ${q + 1}`, status: 'correct' as const, score: 1, maxScore: 1, studentAnswer: '', expectedAnswer: '', errorType: '', explanation: '', correction: '', nextPractice: '', needsTeacherReview: false })) } };
+    });
+    const hw = many.map((s, i) => asg(`hw${i}`, s.createdAt, `BTVN ${i}`));
+    const kt = { ...asg('kt1', '2026-10-01T00:00:00Z', 'Kiểm tra giữa kì I'), periodicTest: {} } as AssignmentDoc;
+    const lam = graded('nkt', 'kt1', '2026-10-01T01:00:00Z', 2);
+    const out = buildPeriodParentReport({ ...src, assignments: [...hw, kt], submissions: [...many, lam] }, { kind: 'month', from: '2026-10-01', to: '2026-10-31' });
+    expect(out.evidence.some(e => e.ten === 'Kiểm tra giữa kì I')).toBe(true);
+    expect(out.evidence.reduce((sum, e) => sum + e.cau.length, 0)).toBeLessThanOrEqual(120);
+  });
 });
+

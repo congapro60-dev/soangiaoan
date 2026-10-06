@@ -176,4 +176,16 @@ describe('bản đồ theo bài SGK', () => {
     expect(lessonPriorities(lessons).map(lesson => lesson.lesson)).toEqual(['Bài 4', 'Bài 2', 'Bài 3']);
     expect(lessonPriorities(lessons, 5).map(lesson => lesson.lesson)).toEqual(['Bài 4', 'Bài 2', 'Bài 3', 'Bài 1–2']);
   });
+
+  it('câu của bài kiểm tra định kì: cờ đi trọn vòng (gộp → lưu → bản đồ), bản đồ đếm riêng số câu kiểm tra', () => {
+    const lines = aggregateRequirementLines(11, [
+      { ma: 'b1', ten: 'BTVN', ngay: '2026-10-01', cau: [{ ma: 'b1q1', diem: 1, toiDa: 1, ketQua: 'đúng' }, { ma: 'b1q2', diem: 1, toiDa: 1, ketQua: 'đúng' }] },
+      { ma: 'b2', ten: 'KT', ngay: '2026-10-20', cau: [{ ma: 'b2q1', diem: 0, toiDa: 1, ketQua: 'sai', kt: true }] },
+    ], { yccd: [{ ma: 'T11.05', cau: ['b1q1', 'b1q2', 'b2q1'] }] });
+    expect(lines[0].questions).toEqual([{ code: 'b1q1', score: 1, max: 1 }, { code: 'b1q2', score: 1, max: 1 }, { code: 'b2q1', score: 0, max: 1, test: true }]);
+    const saved = sanitizeRequirementLines('11', lines);
+    expect(saved[0].questions?.[2]).toEqual({ code: 'b2q1', score: 0, max: 1, test: true });
+    expect(buildLessonMap(saved)[0]).toMatchObject({ lesson: 'Bài 2', questions: 3, testQuestions: 1 });
+  });
 });
+

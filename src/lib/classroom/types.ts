@@ -1,4 +1,5 @@
 import type { StudentSkillState } from '../learning/skillTypes.js';
+import type { ExamVariant } from './examVariants.js';
 
 /**
  * Mô hình dữ liệu lớp học — bộ xương dùng chung cho cả hai cửa vào:
@@ -288,6 +289,14 @@ export interface AssignmentDoc {
   exportBundle?: ActivityExportBundle;
   /** Nhóm học sinh đích; vắng field nghĩa là cả lớp. */
   targetStudentIds?: string[];
+  /**
+   * Bài kiểm tra định kì (giữa kì, cuối kì…): giáo viên đã chấm tay, học sinh chụp bài đã chấm nộp lên để
+   * phân tích từng câu. Điểm CHÍNH THỨC là điểm giáo viên nhập trong sổ điểm (Sheet) — bài này không cộng vào
+   * điểm trung bình BTVN, chỉ làm căn cứ cho "Bản đồ theo bài SGK".
+   */
+  periodicTest?: PeriodicTestInfo;
+  /** Các mã đề (đề + đáp án riêng). Có thì máy chủ chấm mỗi bài nộp theo đúng mã AI đọc được trên bài. */
+  examVariants?: ExamVariant[];
   isOpen: boolean;
   createdAt: string;
   updatedAt: string;
@@ -342,11 +351,28 @@ export interface QuestionResult {
   teacherEdited?: boolean;
 }
 
+/** Bài kiểm tra định kì — xem `AssignmentDoc.periodicTest`. */
+export interface PeriodicTestInfo {
+  /** Tên cột điểm trong sổ điểm của lớp (vd "Giữa học kì I") — để đối chiếu tổng điểm AI với điểm giáo viên. */
+  sheetLabel?: string;
+}
+
+/** Đối chiếu tổng điểm AI chấm lại với điểm giáo viên đã chấm tay (sổ điểm). Lệch nhiều thì không tự duyệt. */
+export interface ExamScoreCheck {
+  sheetLabel: string;
+  sheetScore: number;
+  /** |điểm AI − điểm giáo viên|, cùng thang. */
+  diff: number;
+  mismatch: boolean;
+}
+
 /** Thầy cô sửa đáp án MỘT câu sau khi đã chấm, áp cho cả lớp. */
 export interface AnswerKeyFix {
   questionNumber: string;
   expectedAnswer: string;
   fixedAt: string;
+  /** Bài nhiều mã đề: chỉ áp cho bài nộp của đúng mã này (câu 5 mã 101 khác câu 5 mã 102). */
+  examCode?: string;
 }
 
 export interface GradingRecovery {
@@ -387,6 +413,8 @@ export interface SubmissionGrade {
   gradingRecovery?: GradingRecovery;
   /** Bản máy CHÉP LẠI bài làm từ ảnh ở pha 1 (chấm 2 pha) — để giáo viên soát máy đọc ra gì. */
   transcription?: string;
+  /** Bài kiểm tra định kì: đối chiếu với điểm giáo viên trong sổ điểm (khi đã có điểm). */
+  examCheck?: ExamScoreCheck;
 }
 
 export type SubmissionGradeRevisionAction = 'manual_edit' | 'approve' | 'delete' | 'automatic_regrade' | 'ai_regrade' | 'student_ai' | 'answer_key_fix';
@@ -441,6 +469,9 @@ export interface SubmissionDoc {
   lastGradingErrorRaw?: string;
   /** Lỗi đồng bộ minh chứng sau khi duyệt điểm — grade vẫn được duyệt, chỉ sync pending. */
   evidenceSyncError?: string;
+  /** Bài nhiều mã đề: mã của bài này — AI đọc trên ảnh, hoặc giáo viên chọn khi AI không đọc được. Chỉ máy chủ ghi. */
+  examCode?: string;
+  examCodeSource?: 'ai' | 'teacher';
   createdAt: string;
   updatedAt: string;
 }

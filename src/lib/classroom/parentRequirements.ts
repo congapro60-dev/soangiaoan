@@ -31,6 +31,8 @@ export interface EvidenceQuestion {
   dapAn?: string;
   /** Trích ngắn bài làm của em — để biết câu làm ĐÚNG kiểm tra gì (giải thích của câu đúng thường rất ngắn). */
   baiLam?: string;
+  /** Câu thuộc bài kiểm tra định kì (làm tại lớp), không phải BTVN. */
+  kt?: true;
 }
 
 export interface EvidenceSubmission {
@@ -46,6 +48,8 @@ export interface RequirementQuestionRef {
   code: string;
   score: number;
   max: number;
+  /** Câu của bài kiểm tra định kì. */
+  test?: true;
 }
 
 export interface ParentRequirementLine {
@@ -143,7 +147,9 @@ export const aggregateRequirementLines = (
   const percent = Math.round((got / max) * 1000) / 10;
   return {
     id: item.id, level: levelOf(percent), evidence: questions.length, percent, note,
-    questions: questions.map(question => ({ code: question.ma, score: Math.min(question.diem, question.toiDa), max: question.toiDa })),
+    questions: questions.map(question => ({
+      code: question.ma, score: Math.min(question.diem, question.toiDa), max: question.toiDa, ...(question.kt ? { test: true as const } : {}),
+    })),
   };
 });
 
@@ -189,7 +195,7 @@ const sanitizeQuestionRefs = (raw: unknown): RequirementQuestionRef[] | undefine
     const score = Number(row.score);
     if (!QUESTION_CODE.test(code) || seen.has(code) || !Number.isFinite(max) || max <= 0 || max > 1000 || !Number.isFinite(score)) continue;
     seen.add(code);
-    refs.push({ code, score: Math.max(0, Math.min(max, score)), max });
+    refs.push({ code, score: Math.max(0, Math.min(max, score)), max, ...(row.test === true ? { test: true as const } : {}) });
     if (refs.length >= MAX_LINE_QUESTIONS) break;
   }
   return refs.length > 0 ? refs : undefined;
@@ -207,6 +213,8 @@ export interface LessonSummary {
   percent: number;
   /** Số câu căn cứ, đã bỏ câu trùng; null khi bản ghi cũ không lưu danh sách câu. */
   questions: number | null;
+  /** Trong đó bao nhiêu câu của bài kiểm tra định kì; null khi không biết danh sách câu. */
+  testQuestions: number | null;
   /** Ghi chú của dòng YCCĐ tiêu biểu — xem `representativeNote`. */
   note: string;
 }
@@ -238,6 +246,7 @@ export const buildLessonMap = (lines: readonly ParentRequirementLine[]): LessonS
     const title = curriculum.find(item => item.sgk === lesson)?.topic ?? group.items[0].topic;
     let percent: number;
     let questions: number | null;
+    let testQuestions: number | null = null;
     if (group.lines.every(line => line.questions && line.questions.length > 0)) {
       const unique = new Map<string, RequirementQuestionRef>();
       for (const line of group.lines) for (const ref of line.questions!) unique.set(ref.code, ref);
@@ -245,6 +254,7 @@ export const buildLessonMap = (lines: readonly ParentRequirementLine[]): LessonS
       const max = [...unique.values()].reduce((sum, ref) => sum + ref.max, 0);
       percent = Math.round((got / max) * 1000) / 10;
       questions = unique.size;
+      testQuestions = [...unique.values()].filter(ref => ref.test).length;
     } else {
       const weight = group.lines.reduce((sum, line) => sum + line.evidence, 0);
       percent = weight > 0
@@ -263,7 +273,7 @@ export const buildLessonMap = (lines: readonly ParentRequirementLine[]): LessonS
       const anchor = before ? Math.max(...lessonNumbers(before.sgk)) + 0.5 : Number.MAX_SAFE_INTEGER;
       numbers = [anchor];
     }
-    lessons.push({ lesson, title, level, percent, questions, note, sortMax: Math.max(...numbers), sortMin: Math.min(...numbers) });
+    lessons.push({ lesson, title, level, percent, questions, testQuestions, note, sortMax: Math.max(...numbers), sortMin: Math.min(...numbers) });
   }
   return lessons
     .sort((left, right) => left.sortMax - right.sortMax || right.sortMin - left.sortMin)

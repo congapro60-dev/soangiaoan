@@ -109,7 +109,12 @@ const lessonCard = (lesson: LessonSummary): string => {
   const tone = lesson.level ?? 'thieu';
   const label = lesson.level ? requirementLevelLabel(lesson.level) : 'Chưa đủ căn cứ';
   const meta = lesson.level
-    ? [`Đạt ${Math.round(lesson.percent)}%`, ...(lesson.questions !== null ? [`${lesson.questions}&nbsp;câu làm căn cứ`] : [])]
+    ? [
+      `Đạt ${Math.round(lesson.percent)}%`,
+      ...(lesson.questions !== null ? [`${lesson.questions}&nbsp;câu làm căn cứ`] : []),
+      // Câu làm tại lớp (bài kiểm tra định kì) đáng tin hơn BTVN — ghi rõ để phụ huynh biết căn cứ đến từ đâu.
+      ...(lesson.testQuestions ? [`trong đó ${lesson.testQuestions}&nbsp;câu bài kiểm tra`] : []),
+    ]
     : [lesson.questions !== null ? `Mới có ${lesson.questions}&nbsp;câu, chưa đủ để kết luận` : 'Chưa đủ câu để kết luận'];
   return `<div class="lm-card lm-${tone}">
   <div class="lm-top"><span class="lm-bai nw">${esc(lesson.lesson)}</span><span class="lm-lv nw">${label}</span></div>
