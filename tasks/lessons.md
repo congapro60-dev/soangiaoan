@@ -111,6 +111,10 @@
 
 - **Test AI flow trên localhost cần proxy /api → production** — Vite dev KHÔNG serve Vercel Function trong `api/` → relay 404. Đã thêm `server.proxy['/api'] → https://giaoandewey.vercel.app` trong vite.config.ts. Demo mode + đổi `settings.selectedProvider` trong localStorage (`smart_lesson_plan_data`) là đường vào không cần login. Khi relay/pool chết thật sự, stub `window.fetch` cho `/api/gemini-relay` để E2E toàn pipeline (parse → gate → repair → PPTX) mà không phụ thuộc model. *(2026-07-16)*
 
+- **Playwright `setInputFiles` theo ĐƯỜNG DẪN làm rơi file tên tiếng Việt, không báo lỗi** — thử 5 file, trình duyệt chỉ nhận 3: đúng hai file "Mã đề 101.docx", "Mã đề 102.docx" biến mất, nhìn như app tách mã sai. Phải ghi lại `input.files` trong trang mới thấy file không hề tới. Khi E2E có tên file tiếng Việt, nạp dạng `{ name, mimeType, buffer }`. Tương tự: chụp ngay sau cú bấm có `transition` sẽ ra màu giữa chừng — chờ ≥ 300ms rồi mới kết luận "nút sáng sai". *(2026-10-06)*
+
+- **`extractTextFromPDF` nối cả trang PDF thành MỘT dòng; `mammoth` bỏ bảng (dàn phẳng từng ô) và bỏ công thức Word** — đủ cho "rút chữ làm ngữ cảnh", nhưng hỏng mọi xử lý theo dòng/bảng (tách mã đề, bảng đáp án nhiều cột). Cần cấu trúc thì dùng `pdfItemsToText` (giữ xuống dòng theo `hasEOL`/toạ độ y) và `docxXmlToText` (đọc `word/document.xml`, mỗi hàng bảng một dòng "ô | ô", lấy cả `m:t`) trong `src/lib/classroom/examVariants.ts`. *(2026-10-06)*
+
 ## Error UX
 
 - **Catch chung nuốt mất thông báo lỗi có hướng dẫn** — Lỗi chính sách (thiếu API key) throw message tiếng Việt đầy hướng dẫn nhưng user chỉ thấy "Lỗi cấu trúc hoặc kết nối AI" vì catch trong exportUtils hiển thị text cứng. Pattern fix: lỗi policy đặt `err.name` riêng (`MissingApiKeyError`) + export helper `isMissingApiKeyError()`, catch nào hiển thị toast thì surface nguyên văn `e.message` khi match. E2E phải kiểm ĐÚNG text user thấy, không chỉ kiểm console. *(2026-07-21)*

@@ -30,7 +30,7 @@ dễ nhìn trên điện thoại, iPad, laptop; xuống dòng theo cụm nghĩa.
 - Dữ liệu chương trình: YCCĐ lớp 12 Bài 16 mang tên chủ đề "Phương trình đường thẳng trong không gian" (trùng Bài 15)
   — tên bài theo chủ đề CT, chưa có bảng tên bài SGK.
 
-## Sau: bài kiểm tra định kì có mã đề (chờ duyệt)
+## Bài kiểm tra định kì có mã đề (làm 06/10 — AI tự đọc mã đề, chủ dự án chọn)
 Chủ dự án (06/10): khối 12 có 4–8 mã, MỘT file gộp hết các mã; khối khác 1–4 mã, MỖI mã MỘT file.
 GV chấm tay trước, HS chụp bài đã chấm nộp lên luồng HS như BTVN.
 
@@ -44,14 +44,23 @@ GV chấm tay trước, HS chụp bài đã chấm nộp lên luồng HS như BT
 - Bài đã chấm tay có nét bút giáo viên (chữa đáp án đúng cạnh câu sai) → AI dễ đọc nhầm thành bài làm của em.
 
 ### Giai đoạn
-- [ ] P1 Dữ liệu + báo cáo: bài giao đánh dấu "Kiểm tra định kì" (gắn cột điểm Sheet tương ứng) + danh sách mã đề
+- [x] P1 Dữ liệu + báo cáo: bài giao đánh dấu "Kiểm tra định kì" (gắn cột điểm Sheet tương ứng) + danh sách mã đề
       (mã, đề, đáp án). Projection GV/HS. Báo cáo: không vào điểm TB BTVN / từng bài / chưa nộp / hồ sơ năng lực;
       vào bản đồ theo bài với nguồn "KT".
-- [ ] P2 GV đẩy đề: một ô kéo-thả mọi file; tách theo mã (đầu mục "Mã đề …" trong file gộp, hoặc mỗi file một mã);
+- [x] P2 GV đẩy đề: một ô kéo-thả mọi file; tách theo mã (đầu mục "Mã đề …" trong file gộp, hoặc mỗi file một mã);
       AI rút đáp án từng mã; bảng xác nhận (mã · số câu · đáp án) sửa được trước khi giao.
-- [ ] P3 HS nộp + chấm: mã đề của bài nộp; chấm theo đúng đề/đáp án của mã đó; lời dặn AI bỏ qua nét chấm của GV;
+- [x] P3 HS nộp + chấm: mã đề của bài nộp; chấm theo đúng đề/đáp án của mã đó; lời dặn AI bỏ qua nét chấm của GV;
       điểm GV trong Sheet là chính thức, tổng AI lệch > 0,5 → cờ soát.
-- [ ] P4 Test + QA trình duyệt (file gộp 8 mã, 4 file rời) + lint/build.
+- [x] P4 Test + QA trình duyệt (file gộp 8 mã, 4 file rời) + lint/build.
+
+### Kết quả (06/10)
+- Kiểm bằng trình duyệt thật (hộp "Giao bài" thật, chỉ thay lượt AI rút đáp án + sổ điểm bằng bộ giả vì môi trường
+  không có khoá Gemini): file gộp 8 mã khối 12 (.docx) → đủ 8 mã, không đề nào lẫn chữ mã khác/bảng đáp án;
+  4 file rời (3 .docx + 1 PDF) + file đáp án riêng → đủ 4 mã, đáp án đúng cột; mã thiếu đáp án → chặn giao.
+  390 / 820 / 1366 px: không tràn ngang, không nhãn nào bị ngắt dòng.
+- CHƯA kiểm với Gemini thật: AI rút đáp án từ bảng, AI đọc mã đề trên ảnh bài đã chấm bút đỏ. Cần QA trên production.
+- Còn mở (hỏi chủ dự án): học sinh thấy điểm AI "(Chờ GV duyệt)" của bài định kì — có thể khác điểm giấy;
+  báo cáo từng câu của lớp (ClassAssignmentReport) gộp "Câu 5" của mọi mã.
 
 # Kế hoạch 2026-10-01: Sửa chấm sai từng câu (BTVN)
 

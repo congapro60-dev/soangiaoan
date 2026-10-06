@@ -151,7 +151,7 @@ export const PeriodicTestSection = ({ classId, onChange }: Props) => {
         <div className="rounded-2xl border border-slate-200 p-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <p className="text-sm font-black text-slate-800">2. Soát từng mã đề <span className="whitespace-nowrap font-bold text-slate-500">({rows.length} mã)</span></p>
-            <p className="text-[11px] font-bold text-slate-500">Đáp án do AI chép từ file — soát trước khi giao.</p>
+            <p className="text-pretty text-[11px] font-bold text-slate-500">Đáp án do AI chép từ file — <span className="whitespace-nowrap">soát trước khi giao.</span></p>
           </div>
           <ul className="mt-3 space-y-2">
             {rows.map((row, index) => {
@@ -183,7 +183,8 @@ export const PeriodicTestSection = ({ classId, onChange }: Props) => {
                   </div>
                   <p className="mt-1.5 break-words text-xs font-semibold text-slate-500">{firstQuestion(row.sourceText) || 'Chưa có chữ của đề mã này.'}</p>
                   {isOpen && (
-                    <textarea value={row.answerKey} onChange={event => update(index, { answerKey: event.target.value })} rows={8}
+                    // wrap="off": mỗi câu một dòng nguyên vẹn (cuộn ngang trong ô) — ngắt giữa "c) / Đ; d) S" là đọc sai đáp án.
+                    <textarea value={row.answerKey} onChange={event => update(index, { answerKey: event.target.value })} rows={8} wrap="off"
                       placeholder={'Mỗi câu một dòng, vd:\nPhần I – Câu 1: A\nPhần II – Câu 1: a) Đ; b) S; c) Đ; d) S\nPhần III – Câu 1: -1,5'}
                       className={`${O} mt-2 font-mono text-xs font-normal`} />
                   )}
@@ -200,7 +201,7 @@ export const PeriodicTestSection = ({ classId, onChange }: Props) => {
       )}
 
       <div className="rounded-2xl border border-slate-200 p-4">
-        <p className="text-sm font-black text-slate-800">3. Cột điểm trong sổ điểm <span className="font-bold text-slate-500">(không bắt buộc)</span></p>
+        <p className="text-sm font-black text-slate-800">3. Cột điểm trong sổ điểm <span className="whitespace-nowrap font-bold text-slate-500">(không bắt buộc)</span></p>
         <p className="mb-2 mt-1 text-xs font-semibold leading-5 text-slate-500">
           Điểm thầy cô chấm tay là điểm chính thức. Chọn đúng cột để app so với tổng điểm AI chấm lại — lệch quá 0,5 điểm thì bài
           không tự duyệt, chờ thầy cô soát.

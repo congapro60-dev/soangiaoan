@@ -176,7 +176,7 @@ export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSu
           <div role="radiogroup" aria-label="Loại bài" className="grid grid-cols-2 gap-2 rounded-2xl bg-slate-100 p-1">
             {([['btvn', 'Bài tập về nhà'], ['dinhKi', 'Kiểm tra định kì']] as const).map(([value, label]) => (
               <button key={value} type="button" role="radio" aria-checked={loai === value} onClick={() => setLoai(value)}
-                className={`rounded-xl px-3 py-2 text-sm font-black transition ${loai === value ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+                className={`rounded-xl px-2 py-2 text-[13px] font-black transition sm:px-3 sm:text-sm ${loai === value ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
                 <span className="whitespace-nowrap">{label}</span>
               </button>
             ))}
@@ -208,7 +208,7 @@ export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSu
             <>
               <PeriodicTestSection classId={classId} onChange={setDinhKi} />
               <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4">
-                <p className="text-sm font-black text-slate-800">Lệnh riêng cho AI khi chấm (không bắt buộc)</p>
+                <p className="text-sm font-black text-slate-800">Lệnh riêng cho AI khi chấm <span className="whitespace-nowrap">(không bắt buộc)</span></p>
                 <textarea value={gradingInstructions} onChange={e => setGradingInstructions(e.target.value)} rows={2}
                   placeholder="Ví dụ: Phần tự luận chấm theo hướng dẫn chấm; không trừ điểm trình bày." className={`${O} mt-2 bg-white font-normal`} />
               </div>
