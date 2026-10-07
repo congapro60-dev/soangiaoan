@@ -50,7 +50,7 @@ import { handlePortfolioAction } from './_portfolio.js';
 import { AiKeyRequiredError, aiKeyRequiredPayload, handleAiKeyAction } from './_ai-keys.js';
 import { handleAiBillingAction } from './_ai-billing.js';
 import { handleAdminLinkAction } from './_admin-link.js';
-import { handleParentPortalAction } from './_parent-portal.js';
+import { handleParentPortalAction, purgeParentData } from './_parent-portal.js';
 import { handleStudentAiCostAction } from './_student-ai-cost.js';
 import { handleSepayWebhook } from './_ai-wallet.js';
 
@@ -1392,6 +1392,8 @@ const handleRevokeStudentAccess = async (db: FirebaseFirestore.Firestore, body: 
   // Firestore delete trên document không tồn tại vẫn thành công — khỏi kiểm exists từng cái.
   await classSnap.ref.collection('students').doc(studentId).delete();
   await classSnap.ref.collection('studentSecrets').doc(studentId).delete();
+  // PIN phụ huynh (bản đọc được), thống kê và báo cáo đã công bố của em này cũng phải đi theo.
+  await purgeParentData(db, classSnap.ref, studentId);
   // Đếm LẠI sĩ số từ danh sách thật (trước đây xoá không trừ, sĩ số lệch dần — vd 12LoTrinh1 hiện 9, thật 8).
   const remaining = await classSnap.ref.collection('students').get();
   await classSnap.ref.update({ studentCount: remaining.size, updatedAt: new Date().toISOString() });
@@ -1452,6 +1454,8 @@ const handleRevokeClass = async (db: FirebaseFirestore.Firestore, body: Record<s
   for (const d of links.docs) { await xoa(d.ref); revokedLinks += 1; }
   await xoa(classSnap.ref);
   if (pending > 0) await batch.commit();
+  // Dữ liệu cổng phụ huynh của cả lớp (PIN đọc được, báo cáo đã công bố, thống kê).
+  await purgeParentData(db, classSnap.ref);
 
   return res.status(200).json({
     revoked: true,

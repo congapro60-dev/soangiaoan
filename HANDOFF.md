@@ -1,11 +1,27 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-10-01
+**Cập nhật:** 2026-10-07
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
 Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/HANDOFF-ARCHIVE.md`](docs/HANDOFF-ARCHIVE.md); chi tiết commit xem `git log`.
 
 
+
+
+## Cổng phụ huynh: sửa lỗi sau đợt QA đa khía cạnh — 2026-10-07
+
+Đợt QA 9 khía cạnh (có chạy Firestore emulator thật, Node ESM thật, Playwright) ra 86 phát hiện; hết hạn mức tuần nên phần kiểm chứng đối kháng dừng giữa chừng — các lỗi dưới đây đều được tự kiểm lại bằng test (và đã thử phá từng bản sửa để chắc test bắt được).
+- **Đếm sai PIN ở MỌI đường** (trước đây `parentEvent` bỏ sót → dò mã không hiện trên bảng giáo viên): `verifyParentPin(db, target, pin, res, {device, requireParentSet})` trong `_parent-auth.ts`. Ghi "sai" KHÔNG dùng giao dịch và chỉ ghi ≤1 lần/2 giây/em (`WRONG_WRITE_GAP_MS`) — đo trên emulator: 300 lượt dò song song làm chậm phụ huynh thật ~19 giây/lượt và rớt gần hết số đếm; giờ không còn nghẽn. Hệ quả: `wrongCount` là tín hiệu "có người dò", không phải số lượt chính xác; giao diện chỉ tô đỏ khi ≥10 VÀ lần sai gần nhất ≤7 ngày.
+- `parentEvent` (ping/open/pdf) giờ đòi PIN do phụ huynh TỰ đặt (mã tạm → 403). Trang `/ph` dừng ping và hỏi lại mã khi nhận 401/403/404/409.
+- **Chỉ tính "đã vào" sau khi đặt PIN riêng** (mã tạm không còn tăng `loginCount`/`lastSeenAt`; trước đây onboarding đếm 2 lượt).
+- **Báo cáo tự chọn:** kind `custom` (không còn mượn `year`) → năng lực lọc theo học kì mà khoảng ngày chạm tới (mẫu số HK I thay vì cả năm); tiêu đề do `reportTitle`; ngày phải là ngày CÓ THẬT (`isRealDay`: tháng 13/30-02 trước đây vượt trần 400 ngày rồi 500); khoảng 1 ngày bỏ khối so sánh (nhãn "Nửa sau" ngược); bài giao riêng nhóm khác (`targetStudentIds`) không còn bị tính "chưa nộp" — sửa ở `buildPeriodParentReport` nên báo cáo giáo viên cũng hưởng. Nhận diện trường lưu ở `classes/{id}/parentConfig/branding` (đã lọc: chỉ chữ + logo data URL ảnh) khi công bố; lớp công bố trước đó tự quét một lần rồi lưu — không còn đọc mọi báo cáo đã công bố mỗi lần.
+- **Dọn dữ liệu khi thu hồi:** `revokeStudentAccess`/`revokeClass` giờ gỡ `parentSecrets` (PIN đọc được), `parentStats` + events, `parentReports`, `parentConfig` (`purgeParentData`). Trước đây tạo lại cùng mã học sinh làm PIN và báo cáo cũ "sống lại". (Xoá học sinh trực tiếp từ client — không qua `revokeStudentAccess` — vẫn để lại bản ghi mồ côi; vô hại vì cổng yêu cầu học sinh còn tồn tại.)
+- Dòng thời gian chỉ đọc 100 sự kiện mới nhất (`orderBy at desc limit`); báo cáo xem đầu tiên là kì mới nhất theo ngày kết thúc (`compareParentReports`); `studentId` không hợp lệ làm id Firestore → 404 thay vì 500 (`isSafeDocId`); PIN từ chối ký tự vô hình/surrogate lẻ (emoji hợp lệ vẫn được).
+- **Giao diện phụ huynh:** Enter/nút "Đi" gửi biểu mẫu; kết quả báo cáo tự chọn về muộn không lọt sang phiên em khác (token `phien`); đặt PIN xong mà mất mạng/ lỗi tải thì tự vào bằng mã mới hoặc về màn đăng nhập kèm lời nhắn (không kẹt); PIN chuẩn hoá NFC trước khi cắt 4 ký tự; lỗi mạng tiếng Việt; không gửi lại sự kiện "mở" trùng; ô ngày vừa màn 320px; role=alert/status, aria-pressed, nhãn mã lớp; dòng báo "thầy cô có thể xem thời gian truy cập" ngay màn đăng nhập.
+- **Giao diện giáo viên:** nút đặt lại PIN có hộp xác nhận + aria-label; chép tin nhắn/Excel/Mail merge hàng loạt BỎ QUA phụ huynh đã tự đặt PIN riêng (PIN riêng của họ không bị in lại); tin nhắn mặc định nói rõ "mã tạm, lần đầu phải tự đặt mã riêng"; bảng thống kê không còn hiện dữ liệu lớp/em cũ khi đổi giữa chừng, giữ danh sách khi làm mới 30 giây, dòng em bấm được bằng bàn phím; chữ xác nhận gỡ công bố nói đúng (phụ huynh vẫn tự xem theo khoảng ngày).
+- Dọn: hoàn nguyên 228 dòng `package-lock.json` lọt vào commit trước (từ `npm install`, không đổi package.json); bỏ import thừa; sửa comment cũ nhắc "khoá".
+- **CHƯA sửa (đã biết, cần quyết định):** (1) `joinCode` không duy nhất cưỡng bức — bất kỳ ai có phiên Firebase ẩn danh có thể tạo lớp trùng mã có id nhỏ hơn rồi chiếm `/ph` và `/lop` của lớp thật (không lộ PIN, chỉ chặn/giả mạo cổng); có từ trước, cần chuyển tạo lớp qua API hoặc kho mã riêng. (2) Báo cáo tự chọn đọc toàn bộ bài giao của lớp (cả `sourceText` ≤60k ký tự) mỗi lần gọi, không giới hạn tần suất (đo ~600 lượt đọc/1,3 giây CPU/~300MB cho lớp nặng) — chỉ phụ huynh đã đặt PIN riêng gọi được; nên thêm bộ nhớ đệm/giới hạn tần suất. (3) Thành viên đồng chủ lớp bị gỡ vẫn biết các PIN từng thấy. (4) Hai phụ huynh dùng chung một PIN của con: người đổi trước khoá người kia. (5) Điểm AI tự duyệt sau 60 phút hiện cho phụ huynh như điểm chính thức (đúng quy tắc 25/09 nhưng không ai xem). (6) Đăng nhập mất khi tải lại trang (mỗi lần vào lại tính một lượt).
+- Test: `parent-portal.test.ts` 30, `parentAccess.test.ts`; QA trình duyệt khổ 320/360px 14/14; toàn bộ 246 file/2.657 test, lint, lint:api, build.
 
 ## Cổng phụ huynh: thống kê truy cập + báo cáo tự chọn khoảng ngày — 2026-10-06
 

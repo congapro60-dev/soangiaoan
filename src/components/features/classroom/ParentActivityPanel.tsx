@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { Activity, Loader2, RefreshCw, Smartphone, Monitor } from 'lucide-react';
 import { loadParentActivity, loadParentActivityDetail } from '../../../lib/classroom/teacherService';
 import type { ParentActivityEvent, ParentActivityRow } from '../../../lib/classroom/parentAccess';
@@ -21,6 +21,9 @@ const ago = (iso: string, now: number): string => {
   return `${Math.floor(hours / 24)} ngày trước`;
 };
 
+/** Báo đỏ "sai PIN" chỉ khi vụ sai gần nhất còn mới (7 ngày) — bộ đếm cộng dồn cả năm học sẽ nhiễu nếu đỏ mãi. */
+const recent = (iso: string, now: number): boolean => Number.isFinite(Date.parse(iso)) && now - Date.parse(iso) < 7 * 86_400_000;
+
 const EVENT_LABEL: Record<string, string> = {
   login: 'Vào cổng phụ huynh',
   open: 'Mở báo cáo',
@@ -41,23 +44,35 @@ export const ParentActivityPanel = ({ classId, refreshKey = 0 }: { classId: stri
   const [mo, setMo] = useState('');
   const [events, setEvents] = useState<ParentActivityEvent[] | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  /** Đổi lớp / đổi em giữa chừng: phản hồi cũ về muộn bị bỏ (không hiện hoạt động của lớp/em khác). */
+  const classRef = useRef(classId);
+  const moRef = useRef('');
+  classRef.current = classId;
+  moRef.current = mo;
 
   const tai = useCallback(async () => {
     setDangTai(true);
     try {
-      setRows(await loadParentActivity(classId));
+      const list = await loadParentActivity(classId);
+      if (classRef.current !== classId) return;
+      setRows(list);
       setLoi('');
       setNow(Date.now());
     } catch (error) {
-      setLoi(error instanceof Error ? error.message : 'Không tải được thống kê phụ huynh.');
+      if (classRef.current === classId) setLoi(error instanceof Error ? error.message : 'Không tải được thống kê phụ huynh.');
     } finally {
       setDangTai(false);
     }
   }, [classId]);
 
-  const taiChiTiet = useCallback(async (studentId: string) => {
-    setEvents(null);
-    try { setEvents(await loadParentActivityDetail(classId, studentId)); } catch { setEvents([]); }
+  const taiChiTiet = useCallback(async (studentId: string, giuCu = false) => {
+    if (!giuCu) setEvents(null); // làm mới tự động thì giữ danh sách đang xem, không nháy về vòng quay
+    try {
+      const list = await loadParentActivityDetail(classId, studentId);
+      if (classRef.current === classId && moRef.current === studentId) setEvents(list);
+    } catch {
+      if (classRef.current === classId && moRef.current === studentId && !giuCu) setEvents([]);
+    }
   }, [classId]);
 
   useEffect(() => { setRows(null); setMo(''); void tai(); }, [tai, refreshKey]);
@@ -65,7 +80,7 @@ export const ParentActivityPanel = ({ classId, refreshKey = 0 }: { classId: stri
     const timer = window.setInterval(() => {
       if (document.visibilityState !== 'visible') return;
       void tai();
-      if (mo) void taiChiTiet(mo);
+      if (mo) void taiChiTiet(mo, true);
     }, REFRESH_MS);
     return () => window.clearInterval(timer);
   }, [tai, taiChiTiet, mo]);
@@ -73,6 +88,7 @@ export const ParentActivityPanel = ({ classId, refreshKey = 0 }: { classId: stri
   const bam = (studentId: string) => {
     if (mo === studentId) { setMo(''); return; }
     setMo(studentId);
+    moRef.current = studentId;
     void taiChiTiet(studentId);
   };
 
@@ -101,7 +117,7 @@ export const ParentActivityPanel = ({ classId, refreshKey = 0 }: { classId: stri
               {rows.map(row => (
                 <Fragment key={row.studentId}>
                   <tr onClick={() => bam(row.studentId)} className="cursor-pointer border-t border-slate-100 hover:bg-emerald-50/40">
-                    <td className="px-3 py-2 font-bold text-slate-800">{row.name}</td>
+                    <td className="px-3 py-2 font-bold text-slate-800"><button type="button" aria-expanded={mo === row.studentId} aria-label={`Xem hoạt động của phụ huynh ${row.name}`} className="text-left font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">{row.name}</button></td>
                     <td className="px-3 py-2 text-xs font-semibold">
                       {row.online
                         ? <span className="inline-flex items-center gap-1.5 font-black text-emerald-700"><span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" /> Đang xem</span>
@@ -111,7 +127,7 @@ export const ParentActivityPanel = ({ classId, refreshKey = 0 }: { classId: stri
                     <td className="px-3 py-2 text-right text-slate-700">{row.openCount}</td>
                     <td className="px-3 py-2 text-right text-slate-700">{row.pdfCount}</td>
                     <td className="px-3 py-2 text-right text-slate-700">{row.customCount}</td>
-                    <td className={`px-3 py-2 text-right ${row.wrongCount >= 10 ? 'font-black text-red-600' : 'text-slate-700'}`}>{row.wrongCount}</td>
+                    <td title={row.lastWrongAt ? `Lần sai gần nhất: ${when(row.lastWrongAt)}` : undefined} className={`px-3 py-2 text-right ${row.wrongCount >= 10 && recent(row.lastWrongAt, now) ? 'font-black text-red-600' : 'text-slate-700'}`}>{row.wrongCount}</td>
                   </tr>
                   {mo === row.studentId && (
                     <tr className="bg-slate-50/70">

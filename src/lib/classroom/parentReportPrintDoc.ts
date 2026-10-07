@@ -4,7 +4,7 @@ import { COMPETENCY_LEVELS, type CompetencyLevel } from './competency/framework'
 import type { StudentExamScores } from './examScores';
 import { hs1Average, type Hs1Mark } from './scoreBook';
 import { exportElementToPdf } from '../../utils/pdfExport';
-import type { MonthPoint, PeriodComparison, ReportKind } from './reportPeriod';
+import type { MonthPoint, PeriodComparison } from './reportPeriod';
 import { heroSvg, safeLogoDataUrl, sectionIcon, strandIcon, type SectionIconName } from './parentReportArt';
 import { groupRequirementLines, parentActionsForRequirements, requirementLevelLabel, type ParentRequirementLine, type RequirementLevel } from './parentRequirements';
 

@@ -1,5 +1,6 @@
 /** Loại báo cáo phụ huynh — tách riêng, không phụ thuộc gì, để máy chủ dùng chung. */
-export type ReportKind = 'month' | 'gk1' | 'ck1' | 'gk2' | 'ck2' | 'year';
+/** `custom` = phụ huynh tự chọn khoảng ngày trên cổng /ph; KHÔNG nằm trong `REPORT_KINDS` nên giáo viên không chọn/công bố được. */
+export type ReportKind = 'month' | 'gk1' | 'ck1' | 'gk2' | 'ck2' | 'year' | 'custom';
 
 export const REPORT_KINDS: ReadonlyArray<{ kind: ReportKind; label: string }> = [
   { kind: 'month', label: 'Báo cáo tháng' },

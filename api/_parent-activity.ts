@@ -10,7 +10,7 @@ import type { VercelResponse } from '@vercel/node';
 import { randomBytes } from 'node:crypto';
 import { teacherContext } from './_classroom-teacher.js';
 import {
-  PARENT_EVENTS_SUB, PARENT_ONLINE_MS, PARENT_STATS_SUB, parentDeviceOf,
+  PARENT_EVENTS_SUB, PARENT_ONLINE_MS, PARENT_STATS_SUB, isSafeDocId, parentDeviceOf,
   type ParentActivityEvent, type ParentActivityRow, type ParentDevice, type ParentEventType,
 } from '../src/lib/classroom/parentAccess.js';
 
@@ -27,6 +27,9 @@ const MAX_EVENTS = 100;
 const num = (value: unknown): number => (typeof value === 'number' && Number.isFinite(value) ? value : 0);
 const str = (value: unknown): string => (typeof value === 'string' ? value : '');
 
+/** Hai lần ghi "nhập sai" cho cùng một em phải cách nhau tối thiểu chừng này — đợt dò mã không làm nghẽn tài liệu thống kê. */
+export const WRONG_WRITE_GAP_MS = 2_000;
+
 export const recordParentActivity = async (
   db: Db,
   classRef: FirebaseFirestore.DocumentReference,
@@ -38,23 +41,27 @@ export const recordParentActivity = async (
     const now = new Date().toISOString();
     const device = parentDeviceOf(options.device);
     const statsRef = classRef.collection(PARENT_STATS_SUB).doc(studentId);
+    if (kind === 'wrong') {
+      // Không dùng giao dịch: nhiều lượt dò mã song song sẽ tranh khoá một tài liệu, làm chậm cả phụ huynh thật (đo được ~19 giây/lượt).
+      // Đọc một lần; chưa quá WRONG_WRITE_GAP_MS kể từ lần ghi trước thì bỏ qua (số đếm là tín hiệu "có người dò mã", không cần chính xác từng lượt).
+      const current = ((await statsRef.get()).data() || {}) as Record<string, unknown>;
+      const last = Date.parse(str(current.lastWrongAt));
+      if (Number.isFinite(last) && Date.now() - last < WRONG_WRITE_GAP_MS) return;
+      await statsRef.set({ studentId, wrongCount: num(current.wrongCount) + 1, lastWrongAt: now, updatedAt: now }, { merge: true });
+      return;
+    }
     await db.runTransaction(async tx => {
       const current = ((await tx.get(statsRef)).data() || {}) as Record<string, unknown>;
-      const next: Record<string, unknown> = { studentId, updatedAt: now };
+      const next: Record<string, unknown> = { studentId, updatedAt: now, lastSeenAt: now, lastDevice: device };
       const counter = COUNTER[kind];
       if (counter) next[counter] = num(current[counter]) + 1;
-      if (kind === 'wrong') next.lastWrongAt = now;
-      else {
-        next.lastSeenAt = now;
-        next.lastDevice = device;
-      }
       if (kind === 'login') {
         next.lastLoginAt = now;
         if (!str(current.firstLoginAt)) next.firstLoginAt = now;
       }
       tx.set(statsRef, next, { merge: true });
     });
-    if (kind === 'ping' || kind === 'wrong') return;
+    if (kind === 'ping') return;
     const id = `${now}_${randomBytes(3).toString('hex')}`;
     await statsRef.collection(PARENT_EVENTS_SUB).doc(id).set({ type: kind, at: now, device, detail: (options.detail || '').slice(0, 200) });
   } catch (error) {
@@ -103,8 +110,9 @@ const handleParentActivityDetail = async (db: Db, body: Body, res: VercelRespons
   const context = await teacherContext(db, body, res);
   if (!context) return;
   const studentId = typeof body.studentId === 'string' ? body.studentId.trim() : '';
-  if (!studentId || studentId.includes('/')) return void res.status(400).json({ error: 'Thiếu mã học sinh.' });
-  const snap = await context.classRef.collection(PARENT_STATS_SUB).doc(studentId).collection(PARENT_EVENTS_SUB).get();
+  if (!isSafeDocId(studentId)) return void res.status(400).json({ error: 'Thiếu mã học sinh.' });
+  // Chỉ đọc MAX_EVENTS dòng mới nhất (không đọc cả lịch sử mỗi lần bấm hay làm mới 30 giây).
+  const snap = await context.classRef.collection(PARENT_STATS_SUB).doc(studentId).collection(PARENT_EVENTS_SUB).orderBy('at', 'desc').limit(MAX_EVENTS).get();
   const events: ParentActivityEvent[] = snap.docs
     .map(d => {
       const data = d.data() as Record<string, unknown>;

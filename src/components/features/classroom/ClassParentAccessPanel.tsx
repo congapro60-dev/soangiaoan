@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as XLSX from 'xlsx';
 import { ClipboardCopy, FileSpreadsheet, KeyRound, Loader2, RefreshCw, Send, Trash2 } from 'lucide-react';
 import { listParentPublished, issueParentPins, resetParentPin, unpublishParentReports } from '../../../lib/classroom/teacherService';
@@ -40,12 +40,23 @@ export const ClassParentAccessPanel = ({ classId, className, students, refreshKe
   const [template, setTemplate] = useState(readTemplate);
   const [dangGoi, setDangGoi] = useState(false);
   const [groups, setGroups] = useState<PublishedParentGroup[]>([]);
+  /** Đổi lớp giữa chừng: kết quả của lớp cũ về muộn bị bỏ, không hiện bảng PIN/link của lớp cũ dưới lớp mới. */
+  const classRef = useRef(classId);
+  classRef.current = classId;
 
   const link = joinCode ? parentPortalLink(window.location.origin, joinCode) : '';
   const messageOf = (row: PinRow) => renderParentMessage(template, { ten: row.name, lop: className, link, pin: row.pin });
+  // PIN do phụ huynh TỰ đặt là bí mật của họ: không đưa vào tin nhắn / Excel / Mail merge hàng loạt (chỉ hiện cho thầy cô tra cứu trong bảng).
+  const guiDuoc = (rows ?? []).filter(row => !row.parentSet);
+  const daTuDat = (rows?.length ?? 0) - guiDuoc.length;
 
   const taiDanhSach = useCallback(async () => {
-    try { setGroups(await listParentPublished(classId)); } catch { setGroups([]); }
+    try {
+      const list = await listParentPublished(classId);
+      if (classRef.current === classId) setGroups(list);
+    } catch {
+      if (classRef.current === classId) setGroups([]);
+    }
   }, [classId]);
   useEffect(() => { void taiDanhSach(); }, [taiDanhSach, refreshKey]);
   useEffect(() => { setRows(null); setJoinCode(''); }, [classId]);
@@ -54,6 +65,7 @@ export const ClassParentAccessPanel = ({ classId, className, students, refreshKe
     setDangGoi(true);
     try {
       const data = await issueParentPins(classId);
+      if (classRef.current !== classId) return;
       setRows(data.rows);
       setJoinCode(data.joinCode);
       if (!data.joinCode) showToast('Lớp chưa có mã lớp trên máy chủ — bấm "Đồng bộ ngay" rồi thử lại.', 'warning');
@@ -75,8 +87,12 @@ export const ClassParentAccessPanel = ({ classId, className, students, refreshKe
   };
 
   const capLai = async (row: PinRow) => {
+    if (!window.confirm(row.parentSet
+      ? `Đặt lại PIN của phụ huynh ${row.name}? PIN riêng phụ huynh đã đặt sẽ mất; họ phải vào bằng mã mới và đặt lại.`
+      : `Cấp PIN mới cho phụ huynh ${row.name}? Mã cũ trong tin nhắn đã gửi sẽ không dùng được nữa.`)) return;
     try {
       const { pin } = await resetParentPin(classId, row.studentId);
+      if (classRef.current !== classId) return;
       setRows(current => current?.map(r => (r.studentId === row.studentId ? { ...r, pin, parentSet: false } : r)) ?? null);
       showToast(`Đã cấp PIN mới cho phụ huynh ${row.name}.`);
     } catch (error) {
@@ -88,7 +104,7 @@ export const ClassParentAccessPanel = ({ classId, className, students, refreshKe
     if (!rows) return;
     const sheet = XLSX.utils.aoa_to_sheet([
       ['STT', 'Học sinh', 'PIN phụ huynh', 'Link', 'Tin nhắn gửi phụ huynh'],
-      ...rows.map((row, index) => [index + 1, row.name, row.pin, link, messageOf(row)]),
+      ...guiDuoc.map((row, index) => [index + 1, row.name, row.pin, link, messageOf(row)]),
     ]);
     sheet['!cols'] = [{ wch: 5 }, { wch: 26 }, { wch: 14 }, { wch: 40 }, { wch: 90 }];
     const book = XLSX.utils.book_new();
@@ -100,7 +116,7 @@ export const ClassParentAccessPanel = ({ classId, className, students, refreshKe
   const taiExcelSsm = () => {
     if (!rows) return;
     const codeOf = new Map(students.map(student => [student.id, student.code ?? '']));
-    const input = rows.map(row => ({ code: codeOf.get(row.studentId) ?? '', name: row.name, pin: row.pin }));
+    const input = guiDuoc.map(row => ({ code: codeOf.get(row.studentId) ?? '', name: row.name, pin: row.pin }));
     const thieu = missingCodeCount(input);
     XLSX.writeFile(buildSsmMergeWorkbook(input, link), `Mail merge SSM - ${className}.xlsx`.replace(/[\\/:*?"<>|]+/g, ' '));
     showToast(thieu > 0
@@ -109,7 +125,7 @@ export const ClassParentAccessPanel = ({ classId, className, students, refreshKe
   };
 
   const go = async (group: PublishedParentGroup) => {
-    if (!window.confirm(`Gỡ "${group.title || group.range}" của ${group.count} em khỏi cổng phụ huynh? Phụ huynh sẽ không xem được nữa (công bố lại được).`)) return;
+    if (!window.confirm(`Gỡ "${group.title || group.range}" của ${group.count} em khỏi cổng phụ huynh? Báo cáo này sẽ ẩn khỏi danh sách của phụ huynh (công bố lại được). Phụ huynh vẫn tự xem được kết quả của con theo khoảng ngày họ chọn.`)) return;
     try {
       const { removed } = await unpublishParentReports(classId, group);
       showToast(`Đã gỡ ${removed} báo cáo.`);
@@ -135,7 +151,7 @@ export const ClassParentAccessPanel = ({ classId, className, students, refreshKe
         {rows && link && (
           <>
             <button type="button" onClick={() => void chep(link, 'Đã chép link lớp.')} className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-50"><ClipboardCopy className="h-4 w-4" /> Chép link lớp</button>
-            <button type="button" onClick={() => void chep(rows.map(messageOf).join('\n\n— — —\n\n'), `Đã chép ${rows.length} tin nhắn.`)} className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-50"><ClipboardCopy className="h-4 w-4" /> Chép tất cả tin nhắn</button>
+            <button type="button" onClick={() => void chep(guiDuoc.map(messageOf).join('\n\n— — —\n\n'), `Đã chép ${guiDuoc.length} tin nhắn${daTuDat > 0 ? ` (bỏ ${daTuDat} phụ huynh đã tự đặt PIN riêng)` : ''}.`)} className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-50"><ClipboardCopy className="h-4 w-4" /> Chép tất cả tin nhắn</button>
             <button type="button" onClick={taiExcel} className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs font-black text-emerald-800 hover:bg-emerald-50"><FileSpreadsheet className="h-4 w-4" /> Tải Excel</button>
             <button type="button" onClick={taiExcelSsm} title="Gửi PIN + link tới từng phụ huynh qua SSM (app Edufit Parents) bằng tính năng Mail merge" className="inline-flex items-center gap-2 rounded-xl border border-indigo-200 bg-white px-3 py-2 text-xs font-black text-indigo-800 hover:bg-indigo-50"><FileSpreadsheet className="h-4 w-4" /> Excel cho SSM (Mail merge)</button>
             <button type="button" onClick={() => void chep(SSM_MERGE_MESSAGE, 'Đã chép nội dung tin cho SSM — dán vào ô nội dung, giữ nguyên các chỗ {…}.')} className="inline-flex items-center gap-2 rounded-xl border border-indigo-200 bg-white px-3 py-2 text-xs font-black text-indigo-800 hover:bg-indigo-50"><ClipboardCopy className="h-4 w-4" /> Chép nội dung tin SSM</button>
@@ -164,8 +180,10 @@ export const ClassParentAccessPanel = ({ classId, className, students, refreshKe
                     </td>
                     <td className="px-3 py-2">
                       <div className="flex justify-end gap-1.5">
-                        <button type="button" onClick={() => void chep(messageOf(row), `Đã chép tin nhắn cho phụ huynh ${row.name}.`)} className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-black text-white hover:bg-emerald-700"><ClipboardCopy className="h-3.5 w-3.5" /> Chép</button>
-                        <button type="button" onClick={() => void capLai(row)} title="Đặt lại PIN (quên PIN) — ra mã ngẫu nhiên 4 số để gửi lại; phụ huynh sẽ phải tự đặt PIN riêng khi vào" className="inline-flex items-center rounded-lg border border-slate-200 px-2 py-1.5 text-slate-500 hover:bg-slate-100"><RefreshCw className="h-3.5 w-3.5" /></button>
+                        {row.parentSet
+                          ? <span className="self-center text-[11px] font-bold text-slate-400">PIN riêng của phụ huynh</span>
+                          : <button type="button" disabled={!link} title={link ? undefined : 'Lớp chưa có mã lớp — bấm "Tải lại bảng PIN"'} onClick={() => void chep(messageOf(row), `Đã chép tin nhắn cho phụ huynh ${row.name}.`)} className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-black text-white hover:bg-emerald-700 disabled:opacity-40"><ClipboardCopy className="h-3.5 w-3.5" /> Chép</button>}
+                        <button type="button" onClick={() => void capLai(row)} aria-label={`Đặt lại PIN phụ huynh ${row.name}`} title="Đặt lại PIN (quên PIN) — ra mã ngẫu nhiên 4 số để gửi lại; phụ huynh sẽ phải tự đặt PIN riêng khi vào" className="inline-flex min-h-8 min-w-8 items-center justify-center rounded-lg border border-slate-200 px-2 py-1.5 text-slate-500 hover:bg-slate-100"><RefreshCw className="h-3.5 w-3.5" /></button>
                       </div>
                     </td>
                   </tr>
@@ -174,6 +192,7 @@ export const ClassParentAccessPanel = ({ classId, className, students, refreshKe
             </table>
           </div>
           <p className="rounded-xl bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-900">Gửi qua SSM: bấm "Excel cho SSM" → trên SSM vào <b>Thông tin → Mail merge</b>, tải file lên, bấm "Chép nội dung tin SSM" rồi dán vào ô nội dung. <b>Xem bản demo của SSM trước khi gửi</b> để chắc các chỗ {'{…}'} đã thay đúng PIN và link của từng em.</p>
+          {daTuDat > 0 && <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-900">{daTuDat} phụ huynh đã tự đặt PIN riêng — các nút chép tin nhắn / Excel / Mail merge hàng loạt bỏ qua họ để không gửi lại PIN riêng của họ.</p>}
           <p className="text-xs font-semibold text-slate-500">Lần đầu vào, phụ huynh phải tự đặt PIN riêng; PIN mới hiện ở đây sau khi bấm “Tải lại bảng PIN”. Bấm biểu tượng làm mới ở từng dòng để đặt lại PIN (phụ huynh lại phải đặt PIN mới).</p>
           <p className="text-xs font-semibold text-slate-500">PIN là mã riêng từng em — gửi riêng cho từng phụ huynh, đừng gửi cả bảng vào nhóm chung. Chỉ link lớp mới gửi chung được.</p>
         </div>

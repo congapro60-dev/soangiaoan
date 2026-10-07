@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
 import { AlertTriangle, ArrowLeft, CalendarRange, CheckCircle2, Download, FileText, HeartHandshake, KeyRound, Loader2 } from 'lucide-react';
 import { normalizeJoinCode } from '../lib/classroom/joinCode';
@@ -6,7 +6,7 @@ import { REPORT_KINDS, type ReportKind } from '../lib/classroom/reportKinds';
 import { PARENT_PIN_LENGTH, PARENT_PING_MS, isValidParentPin, type PublishedParentReport } from '../lib/classroom/parentAccess';
 import { periodError, vnDay } from '../lib/classroom/reportPeriod';
 import { PARENT_REPORT_ROOT_ID, buildParentReportPrintDoc, type ParentReportPrintInput } from '../lib/classroom/parentReportPrintDoc';
-import { changeParentPin, fetchParentCustomReport, fetchParentReports, fetchParentRoster, sendParentEvent, type ParentRoster } from '../services/parentPortalApi';
+import { ParentApiError, changeParentPin, fetchParentCustomReport, fetchParentReports, fetchParentRoster, sendParentEvent, type ParentRoster } from '../services/parentPortalApi';
 
 /** Bản web của báo cáo (`variant: web`): tự co giãn theo màn hình, chữ ≥15px, cột xếp dọc trên điện thoại. Bản A4 chỉ dùng khi tải PDF. */
 const ReportViewer = ({ input }: { input: ParentReportPrintInput }) => {
@@ -30,7 +30,10 @@ type Stage = 'nhap-ma-lop' | 'chon-ten' | 'doi-pin' | 'xem';
 
 const pinInput = 'w-full rounded-2xl border border-slate-200 px-4 py-3 text-center text-2xl font-black tracking-[0.5em] outline-none focus:border-emerald-500';
 /** PIN gồm đúng 4 ký tự bất kỳ (đếm theo ký tự, không phải byte); bỏ khoảng trắng. */
-const gotPin = (value: string) => [...value.replace(/\s/g, '')].slice(0, PARENT_PIN_LENGTH).join('');
+// Chuẩn hoá NFC TRƯỚC khi cắt: chữ có dấu gõ dạng tổ hợp (e + dấu) vẫn tính là 1 ký tự như máy chủ đếm.
+const gotPin = (value: string) => [...value.normalize('NFC').replace(/\s/g, '')].slice(0, PARENT_PIN_LENGTH).join('');
+/** Enter / nút "Đi" trên bàn phím điện thoại gửi biểu mẫu. */
+const guiForm = (action: () => void) => (event: FormEvent) => { event.preventDefault(); action(); };
 
 /**
  * Đặt PIN riêng của phụ huynh. `batBuoc` = lần đầu vào (mã do thầy cô cấp) → không có nút bỏ qua;
@@ -57,11 +60,11 @@ export const ParentPinChangeForm = ({ batBuoc, dangGoi, loiMay, onSubmit, onCanc
           : 'Chọn mã PIN mới gồm đúng 4 ký tự (số, chữ hoặc ký tự đặc biệt). Từ lần sau dùng mã mới này để vào xem báo cáo.'}
       </p>
       {loi && (
-        <p className="mt-4 flex items-start gap-2 rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-800 ring-1 ring-red-100">
+        <p role="alert" className="mt-4 flex items-start gap-2 rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-800 ring-1 ring-red-100">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /> {loi}
         </p>
       )}
-      <div className="mt-5 space-y-4">
+      <form onSubmit={guiForm(() => { if (hopLe && !dangGoi) onSubmit(moi); })} className="mt-5 space-y-4">
         <label className="block">
           <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-400">Mã PIN mới (4 ký tự)</span>
           <input type="password" value={moi} onChange={event => setMoi(gotPin(event.target.value))} autoComplete="new-password" autoCapitalize="off" autoCorrect="off" spellCheck={false} placeholder="••••" className={pinInput} />
@@ -70,14 +73,14 @@ export const ParentPinChangeForm = ({ batBuoc, dangGoi, loiMay, onSubmit, onCanc
           <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-400">Nhập lại mã PIN mới</span>
           <input type="password" value={lai} onChange={event => setLai(gotPin(event.target.value))} autoComplete="new-password" autoCapitalize="off" autoCorrect="off" spellCheck={false} placeholder="••••" className={pinInput} />
         </label>
-        <button type="button" onClick={() => onSubmit(moi)} disabled={dangGoi || !hopLe} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3.5 text-sm font-black text-white transition hover:bg-emerald-700 disabled:opacity-50">
+        <button type="submit" disabled={dangGoi || !hopLe} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3.5 text-sm font-black text-white transition hover:bg-emerald-700 disabled:opacity-50">
           {dangGoi ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Lưu mã PIN mới'}
         </button>
         {!batBuoc && onCancel && (
           <button type="button" onClick={onCancel} className="min-h-11 w-full rounded-2xl py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50">Để sau</button>
         )}
         <p className="text-center text-xs font-semibold text-slate-400">Thầy cô xem được mã PIN này để hỗ trợ khi bạn quên, nên đừng dùng mã trùng với mật khẩu ngân hàng hay thẻ.</p>
-      </div>
+      </form>
     </>
   );
 };
@@ -109,6 +112,10 @@ export const ParentPortalPage = () => {
   const [denNgay, setDenNgay] = useState(homNay);
   const [tuChon, setTuChon] = useState<PublishedParentReport | null>(null);
   const [dangTaoTuChon, setDangTaoTuChon] = useState(false);
+  /** Tăng mỗi khi đăng nhập lại / quay lại: kết quả của yêu cầu cũ về muộn (của em khác) bị bỏ, không lọt sang phiên mới. */
+  const phien = useRef(0);
+  const daGhiMo = useRef('');
+  const vungXem = useRef<HTMLDivElement>(null);
 
   const moLop = useCallback(async (ma: string) => {
     setLoi('');
@@ -132,8 +139,13 @@ export const ParentPortalPage = () => {
   const xem = async () => {
     setLoi('');
     setDangGoi(true);
+    const luot = phien.current + 1;
+    phien.current = luot;
     try {
       const data = await fetchParentReports(joinCode, studentId, pin);
+      if (phien.current !== luot) return;
+      daGhiMo.current = '';
+      setTuChon(null);
       setStudentName(data.studentName);
       setReports(data.reports);
       setOpenId(data.reports[0]?.id ?? '');
@@ -142,20 +154,24 @@ export const ParentPortalPage = () => {
       setThongBao('');
       setStage(data.mustChange ? 'doi-pin' : 'xem');
     } catch (error) {
-      setLoi(error instanceof Error ? error.message : 'Không xem được báo cáo.');
+      if (phien.current === luot) setLoi(error instanceof Error ? error.message : 'Không xem được báo cáo.');
     } finally {
       setDangGoi(false);
     }
   };
 
-  /** Đặt PIN mới rồi vào xem luôn bằng PIN mới (không bắt gõ lại). */
+  /** Đặt PIN mới rồi vào xem luôn bằng PIN mới (không bắt gõ lại). Lưu xong là ĐÃ ĐỔI — lỗi mạng sau đó không được làm phụ huynh kẹt với mã cũ. */
   const luuPinMoi = async (newPin: string) => {
     setLoi('');
     setDangGoi(true);
-    try {
-      await changeParentPin(joinCode, studentId, pin, newPin);
-      setPin(newPin);
+    const luot = phien.current + 1;
+    phien.current = luot;
+    const vao = async () => {
       const data = await fetchParentReports(joinCode, studentId, newPin);
+      if (phien.current !== luot) return;
+      setPin(newPin);
+      daGhiMo.current = '';
+      setTuChon(null);
       setStudentName(data.studentName);
       setReports(data.reports);
       setOpenId(data.reports[0]?.id ?? '');
@@ -163,8 +179,27 @@ export const ParentPortalPage = () => {
       setBatBuocDoi(false);
       setThongBao('Đã đổi mã PIN. Từ lần sau, dùng mã PIN mới để vào xem báo cáo.');
       setStage('xem');
+    };
+    try {
+      try {
+        await changeParentPin(joinCode, studentId, pin, newPin);
+      } catch (error) {
+        // Lỗi nghiệp vụ (PIN hiện tại sai, PIN mới không hợp lệ…) báo thẳng. Chỉ lỗi mạng/máy chủ mới có khả năng máy chủ ĐÃ lưu mà phản hồi mất —
+        // khi đó thử vào bằng mã mới trước khi báo lỗi.
+        if (error instanceof ParentApiError && error.status >= 400 && error.status < 500) throw error;
+        try { await vao(); return; } catch { throw error; }
+      }
+      try {
+        await vao();
+      } catch {
+        // Đã lưu mã mới nhưng chưa tải được báo cáo → về màn đăng nhập, nói rõ phải dùng mã nào.
+        if (phien.current !== luot) return;
+        setPin('');
+        setStage('chon-ten');
+        setLoi('Mã PIN mới của bạn đã được lưu. Hãy nhập mã PIN mới để vào xem báo cáo.');
+      }
     } catch (error) {
-      setLoi(error instanceof Error ? error.message : 'Không đổi được mã PIN.');
+      if (phien.current === luot) setLoi(error instanceof Error ? error.message : 'Không đổi được mã PIN.');
     } finally {
       setDangGoi(false);
     }
@@ -174,33 +209,50 @@ export const ParentPortalPage = () => {
   const shown = useMemo(() => reports.filter(r => kind === 'all' || r.kind === kind), [reports, kind]);
   const open = (tuChon && openId === tuChon.id ? tuChon : reports.find(r => r.id === openId)) ?? null;
 
-  // Báo hiệu "đang xem" cho thầy cô: mỗi 30 giây khi trang đang mở và đang hiện trên màn hình.
+  // Báo hiệu "đang xem" cho thầy cô: mỗi 30 giây khi trang đang mở và đang hiện trên màn hình. Mã bị đổi/đặt lại ở nơi khác → dừng và hỏi lại mã.
   useEffect(() => {
     if (stage !== 'xem') return undefined;
-    const timer = window.setInterval(() => {
-      if (document.visibilityState === 'visible') void sendParentEvent(joinCode, studentId, pin, 'ping');
+    const timer = window.setInterval(async () => {
+      if (document.visibilityState !== 'visible') return;
+      if ((await sendParentEvent(joinCode, studentId, pin, 'ping')) === 'denied') {
+        window.clearInterval(timer);
+        phien.current += 1;
+        setPin('');
+        setReports([]);
+        setTuChon(null);
+        setStage('chon-ten');
+        setLoi('Mã PIN đã được đổi hoặc đặt lại. Vui lòng nhập lại mã PIN hiện tại.');
+      }
     }, PARENT_PING_MS);
     return () => window.clearInterval(timer);
   }, [stage, joinCode, studentId, pin]);
 
-  // Ghi lại báo cáo phụ huynh đã mở (báo cáo tự chọn được máy chủ ghi riêng khi dựng).
+  // Ghi lại báo cáo phụ huynh đã mở — mỗi báo cáo một lần trong một lượt đăng nhập (báo cáo tự chọn được máy chủ ghi riêng khi dựng).
   useEffect(() => {
-    if (stage !== 'xem' || !open || open.id === TU_CHON_ID) return;
+    if (stage !== 'xem' || !open || open.id === TU_CHON_ID || daGhiMo.current === `${studentId}|${open.id}`) return;
+    daGhiMo.current = `${studentId}|${open.id}`;
     void sendParentEvent(joinCode, studentId, pin, 'open', open.title || open.range);
-    // Chỉ ghi khi đổi báo cáo đang mở — không ghi lại vì đổi PIN hay làm mới danh sách.
+    // Chỉ chạy khi đổi báo cáo đang mở.
   }, [stage, openId]);
 
+  // Báo cáo tự chọn dựng xong thì cuộn tới chỗ hiển thị (điện thoại: nằm dưới khung chọn ngày).
+  useEffect(() => {
+    if (tuChon) vungXem.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+  }, [tuChon]);
+
   const xemTuChon = async () => {
-    const loiKy = periodError({ kind: 'year', from: tuNgay, to: denNgay });
+    const loiKy = periodError({ kind: 'custom', from: tuNgay, to: denNgay });
     if (loiKy) { setLoi(loiKy); return; }
     setLoi('');
     setDangTaoTuChon(true);
+    const luot = phien.current;
     try {
       const { input } = await fetchParentCustomReport(joinCode, studentId, pin, tuNgay, denNgay);
-      setTuChon({ id: TU_CHON_ID, kind: 'year', from: tuNgay, to: denNgay, title: input.period?.title ?? 'Báo cáo tự chọn', range: input.period?.range ?? '', publishedAt: new Date().toISOString(), input });
+      if (phien.current !== luot) return;
+      setTuChon({ id: TU_CHON_ID, kind: 'custom', from: tuNgay, to: denNgay, title: input.period?.title ?? 'Báo cáo tự chọn', range: input.period?.range ?? '', publishedAt: new Date().toISOString(), input });
       setOpenId(TU_CHON_ID);
     } catch (error) {
-      setLoi(error instanceof Error ? error.message : 'Không dựng được báo cáo.');
+      if (phien.current === luot) setLoi(error instanceof Error ? error.message : 'Không dựng được báo cáo.');
     } finally {
       setDangTaoTuChon(false);
     }
@@ -236,7 +288,7 @@ export const ParentPortalPage = () => {
   );
 
   const loiBox = loi && (
-    <p className="mt-4 flex items-start gap-2 rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-800 ring-1 ring-red-100">
+    <p role="alert" className="mt-4 flex items-start gap-2 rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-800 ring-1 ring-red-100">
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /> {loi}
     </p>
   );
@@ -247,12 +299,12 @@ export const ParentPortalPage = () => {
         <h1 className="text-xl font-black text-slate-900">Nhập mã lớp của con</h1>
         <p className="mt-1 text-sm font-semibold text-slate-500">Mã lớp gồm 6 ký tự, thầy cô đã gửi kèm đường dẫn.</p>
         {loiBox}
-        <div className="mt-5 space-y-4">
-          <input value={joinCode} onChange={event => setJoinCode(normalizeJoinCode(event.target.value))} maxLength={8} placeholder="VD: ABCD23" className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-center text-lg font-black uppercase tracking-[0.3em] outline-none focus:border-emerald-500" />
-          <button type="button" onClick={() => void moLop(joinCode)} disabled={dangGoi || joinCode.length < 4} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3.5 text-sm font-black text-white transition hover:bg-emerald-700 disabled:opacity-50">
+        <form onSubmit={guiForm(() => { if (!dangGoi && joinCode.length >= 4) void moLop(joinCode); })} className="mt-5 space-y-4">
+          <input aria-label="Mã lớp" value={joinCode} onChange={event => setJoinCode(normalizeJoinCode(event.target.value))} maxLength={8} placeholder="VD: ABCD23" className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-center text-lg font-black uppercase tracking-[0.3em] outline-none focus:border-emerald-500" />
+          <button type="submit" disabled={dangGoi || joinCode.length < 4} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3.5 text-sm font-black text-white transition hover:bg-emerald-700 disabled:opacity-50">
             {dangGoi ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Tiếp tục'}
           </button>
-        </div>
+        </form>
       </>,
     );
   }
@@ -266,7 +318,7 @@ export const ParentPortalPage = () => {
         {!roster ? (
           <div className="mt-6 flex justify-center"><Loader2 className="h-7 w-7 animate-spin text-emerald-500" /></div>
         ) : (
-          <div className="mt-5 space-y-4">
+          <form onSubmit={guiForm(() => { if (!dangGoi && studentId && isValidParentPin(pin)) void xem(); })} className="mt-5 space-y-4">
             <label className="block">
               <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-400">Tên của con</span>
               <select value={studentId} onChange={event => setStudentId(event.target.value)} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-bold outline-none focus:border-emerald-500">
@@ -278,10 +330,11 @@ export const ParentPortalPage = () => {
               <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-400">Mã PIN phụ huynh (4 ký tự)</span>
               <input type="password" value={pin} onChange={event => setPin(gotPin(event.target.value))} autoComplete="off" autoCapitalize="off" autoCorrect="off" spellCheck={false} placeholder="••••" className={pinInput} />
             </label>
-            <button type="button" onClick={() => void xem()} disabled={dangGoi || !studentId || !isValidParentPin(pin)} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3.5 text-sm font-black text-white transition hover:bg-emerald-700 disabled:opacity-50">
+            <button type="submit" disabled={dangGoi || !studentId || !isValidParentPin(pin)} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-3.5 text-sm font-black text-white transition hover:bg-emerald-700 disabled:opacity-50">
               {dangGoi ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Xem báo cáo'}
             </button>
-          </div>
+            <p className="text-center text-[11px] font-semibold text-slate-400">Thầy cô có thể xem thời gian phụ huynh truy cập cổng này để hỗ trợ khi cần.</p>
+          </form>
         )}
       </>,
     );
@@ -303,7 +356,7 @@ export const ParentPortalPage = () => {
     <div className="min-h-screen bg-slate-50 pb-10">
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur">
         <div className="mx-auto flex max-w-[840px] items-center gap-3">
-          <button type="button" onClick={() => { setStage('chon-ten'); setPin(''); setReports([]); setTuChon(null); setThongBao(''); }} aria-label="Quay lại" className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100"><ArrowLeft className="h-5 w-5" /></button>
+          <button type="button" onClick={() => { phien.current += 1; setStage('chon-ten'); setPin(''); setReports([]); setTuChon(null); setThongBao(''); setLoi(''); setDangTaoTuChon(false); }} aria-label="Quay lại" className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100"><ArrowLeft className="h-5 w-5" /></button>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-black text-slate-900">{studentName}</p>
             <p className="truncate text-xs font-semibold text-slate-500">{roster?.className ? `Lớp ${roster.className} · ` : ''}Báo cáo học tập của con</p>
@@ -318,7 +371,7 @@ export const ParentPortalPage = () => {
 
       <main className="mx-auto max-w-[840px] px-4 pt-4">
         {thongBao && (
-          <p className="mb-3 flex items-start gap-2 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800 ring-1 ring-emerald-100">
+          <p role="status" className="mb-3 flex items-start gap-2 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800 ring-1 ring-emerald-100">
             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /> {thongBao}
           </p>
         )}
@@ -333,11 +386,11 @@ export const ParentPortalPage = () => {
           <p className="flex items-center gap-2 text-sm font-black text-slate-900"><CalendarRange className="h-4 w-4 text-emerald-600" /> Xem theo khoảng ngày bạn chọn</p>
           <p className="mt-1 text-xs font-semibold text-slate-500">Ngoài các báo cáo thầy cô gửi, bạn có thể tự xem kết quả của con trong khoảng thời gian bất kỳ.</p>
           <div className="mt-3 grid grid-cols-2 gap-3">
-            <label className="block text-xs font-bold text-slate-500">Từ ngày
-              <input type="date" value={tuNgay} max={denNgay || undefined} onChange={event => setTuNgay(event.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-800 outline-none focus:border-emerald-500" />
+            <label className="block min-w-0 text-xs font-bold text-slate-500">Từ ngày
+              <input type="date" value={tuNgay} max={denNgay || undefined} onChange={event => { setLoi(''); setTuNgay(event.target.value); }} className="mt-1 w-full min-w-0 rounded-xl border border-slate-200 px-2 py-2 text-sm font-bold text-slate-800 outline-none focus:border-emerald-500" />
             </label>
-            <label className="block text-xs font-bold text-slate-500">Đến ngày
-              <input type="date" value={denNgay} min={tuNgay || undefined} onChange={event => setDenNgay(event.target.value)} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-800 outline-none focus:border-emerald-500" />
+            <label className="block min-w-0 text-xs font-bold text-slate-500">Đến ngày
+              <input type="date" value={denNgay} min={tuNgay || undefined} onChange={event => { setLoi(''); setDenNgay(event.target.value); }} className="mt-1 w-full min-w-0 rounded-xl border border-slate-200 px-2 py-2 text-sm font-bold text-slate-800 outline-none focus:border-emerald-500" />
             </label>
           </div>
           <button type="button" onClick={() => void xemTuChon()} disabled={dangTaoTuChon || !tuNgay || !denNgay} className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-2.5 text-sm font-black text-white hover:bg-emerald-700 disabled:opacity-50">
@@ -355,7 +408,7 @@ export const ParentPortalPage = () => {
             {kinds.length > 1 && (
               <div className="flex flex-wrap gap-2">
                 {(['all', ...kinds] as const).map(item => (
-                  <button key={item} type="button" onClick={() => setKind(item)} className={`rounded-full px-3.5 py-1.5 text-xs font-black transition ${kind === item ? 'bg-emerald-600 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-100'}`}>
+                  <button key={item} type="button" aria-pressed={kind === item} onClick={() => { setKind(item); const first = reports.find(r => item === 'all' || r.kind === item); if (first && !(tuChon && openId === tuChon.id)) setOpenId(first.id); }} className={`rounded-full px-3.5 py-1.5 text-xs font-black transition ${kind === item ? 'bg-emerald-600 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-100'}`}>
                     {item === 'all' ? 'Tất cả' : kindLabel(item)}
                   </button>
                 ))}
@@ -363,7 +416,7 @@ export const ParentPortalPage = () => {
             )}
             <div className="mt-3 flex gap-2 overflow-x-auto pb-2">
               {[...(tuChon ? [tuChon] : []), ...shown].map(r => (
-                <button key={r.id} type="button" onClick={() => setOpenId(r.id)} className={`min-w-[170px] rounded-2xl border px-4 py-3 text-left transition ${r.id === openId ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white hover:border-emerald-300'}`}>
+                <button key={r.id} type="button" aria-pressed={r.id === openId} onClick={() => { setLoi(''); setOpenId(r.id); }} className={`min-w-[170px] rounded-2xl border px-4 py-3 text-left transition ${r.id === openId ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white hover:border-emerald-300'}`}>
                   <p className="text-xs font-black text-emerald-700">{r.id === TU_CHON_ID ? 'Bạn tự chọn' : kindLabel(r.kind)}</p>
                   <p className="mt-0.5 text-sm font-black text-slate-900">{r.range}</p>
                   <p className="mt-0.5 text-[11px] font-semibold text-slate-400">{r.id === TU_CHON_ID ? 'Tính từ kết quả đã duyệt' : `Gửi ngày ${dayLabel(r.publishedAt)}`}</p>
@@ -373,7 +426,7 @@ export const ParentPortalPage = () => {
             {open && open.id === TU_CHON_ID && (
               <p className="mt-2 rounded-xl bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-900 ring-1 ring-sky-100">Báo cáo này do bạn tự chọn khoảng ngày, hệ thống tính từ kết quả đã được thầy cô duyệt và chưa có nhận xét riêng của thầy cô.</p>
             )}
-            {open && <div className="mt-3"><ReportViewer input={open.input as ParentReportPrintInput} /></div>}
+            {open && <div ref={vungXem} className="mt-3 scroll-mt-20"><ReportViewer input={open.input as ParentReportPrintInput} /></div>}
           </>
         )}
         <p className="mt-6 text-center text-[11px] font-semibold text-slate-400">Thầy cô có thể xem thời gian bạn truy cập cổng này để hỗ trợ khi cần.</p>

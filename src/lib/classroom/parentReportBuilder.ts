@@ -7,7 +7,7 @@ import type { StudentScoreView } from './scoreBook.js';
 import { buildParentSafeReport, validScorePair, type ParentSafeReport } from './parentSafeReport.js';
 import type { EvidenceQuestion, EvidenceSubmission } from './parentRequirements.js';
 import type { ParentCompetencyItem, ParentCompetencySummary, ParentReportPrintInput } from './parentReportTypes.js';
-import { buildStudentCompetencyPortfolio, portfolioProgress } from './competency/portfolioModel.js';
+import { buildStudentCompetencyPortfolio } from './competency/portfolioModel.js';
 import { asCompetencyGrade } from './competency/framework.js';
 import { competencyTerms, inStage, stageForPeriod, type Program, type ReportStage } from './reportStage.js';
 import { dmy, filterForPeriod, monthlyAverages, periodComparison, rangeLabel, reportTitle, vnDay, type ReportPeriod } from './reportPeriod.js';
@@ -147,23 +147,25 @@ const round1 = (value: number | null): number | null => (value === null ? null :
 /** `period` null = báo cáo chung từ đầu năm như trước. */
 /** `today` (yyyy-mm-dd, giờ VN) để biết kì đã kết thúc chưa — mặc định hôm nay. */
 export const buildPeriodParentReport = (src: ParentReportSource, period: ReportPeriod | null, today = vnDay(new Date().toISOString())): PeriodParentReport => {
+  // Bài giao riêng cho nhóm khác (targetStudentIds) không phải của em này — không tính "chưa nộp".
+  const assignments = src.assignments.filter(a => !a.targetStudentIds?.length || a.targetStudentIds.includes(src.studentId));
   const base = { studentId: src.studentId, studentName: src.studentName, className: src.className, profile: src.profile };
   const hs1All = src.scoreView?.hs1 ?? [];
   const scoped = period
-    ? filterForPeriod(period, { assignments: src.assignments, submissions: src.submissions, hs1: hs1All })
-    : { assignments: [...src.assignments], submissions: [...src.submissions], hs1: hs1All };
+    ? filterForPeriod(period, { assignments, submissions: src.submissions, hs1: hs1All })
+    : { assignments: [...assignments], submissions: [...src.submissions], hs1: hs1All };
   const report = buildParentSafeReport({ ...base, assignments: scoped.assignments, submissions: scoped.submissions });
 
   let comparison = null;
   let monthly = null;
   if (period) {
-    const full = buildParentSafeReport({ ...base, assignments: src.assignments, submissions: src.submissions });
+    const full = buildParentSafeReport({ ...base, assignments, submissions: src.submissions });
     comparison = periodComparison(period, full.results);
     monthly = monthlyAverages(report.results);
   }
   // Năng lực là thứ tích luỹ: tính tới hết khoảng báo cáo (không cắt đầu khoảng).
   const upToEnd = period ? src.submissions.filter(s => { const day = vnDay(s.createdAt); return day !== '' && day <= period.to; }) : src.submissions;
-  const competency = parentCompetencyFor(src.classGrade, upToEnd, src.assignments, period ? stageForPeriod(period, src.program) : null);
+  const competency = parentCompetencyFor(src.classGrade, upToEnd, assignments, period ? stageForPeriod(period, src.program) : null);
   const exams = src.scoreView?.exams ?? null;
   const title = period ? reportTitle(period) : 'Báo cáo học tập môn Toán';
 
