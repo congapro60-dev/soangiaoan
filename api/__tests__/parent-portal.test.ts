@@ -357,6 +357,11 @@ describe('thống kê hoạt động phụ huynh', () => {
   });
 });
 
+/** Giả lập thời gian trôi qua: lùi mốc dựng của bản đệm để lần gọi kế không vướng giới hạn tần suất. */
+const ageCache = (ms: number) => {
+  for (const doc of Object.values(h.store['classes/lop-1/parentCache'] ?? {})) doc.at = new Date(Date.parse(String(doc.at)) - ms).toISOString();
+};
+
 describe('phụ huynh tự chọn khoảng ngày', () => {
   const custom = (extra: DocData = {}) => call({ action: 'parentCustomReport', idToken: undefined, joinCode: 'ABCD23', studentId: 'a', from: '2026-09-01', to: '2026-09-30', ...extra });
   const grade = (score: number, approved: boolean) => ({ score, maxScore: 10, feedback: 'GHI-CHU-NOI-BO', strengths: [], weaknesses: [], teacherApproved: approved, gradedAt: '2026-09-20T01:00:00Z' });
@@ -390,8 +395,10 @@ describe('phụ huynh tự chọn khoảng ngày', () => {
   });
 
   it('khoảng khác → bài khác; chọn khoảng không có bài thì trả báo cáo trống chứ không lỗi', async () => {
+    ageCache(10_000);
     const nov = await custom({ pin: '2580', from: '2026-11-01', to: '2026-11-30' });
     expect(nov.payload.input.report.results.map((r: any) => r.title)).toEqual(['Xác suất']);
+    ageCache(10_000);
     const empty = await custom({ pin: '2580', from: '2026-01-01', to: '2026-01-31' });
     expect(empty.statusCode).toBe(200);
     expect(empty.payload.input.report.results).toEqual([]);
@@ -448,6 +455,7 @@ describe('sửa lỗi sau đợt QA 06–07/10', () => {
     h.store.submissions = { s1: { teacherId: 'gv-cuong', classId: 'lop-1', studentId: 'a', assignmentId: 'b1', status: 'graded', createdAt: '2026-09-16T01:00:00Z', grade: graded(8) } };
     const pin = await onboard();
     const sept = (await custom({ pin })).payload.input.competency;
+    ageCache(10_000);
     const whole = (await custom({ pin, from: '2026-09-01', to: '2027-05-31' })).payload.input.competency;
     expect(sept.total).toBeLessThan(whole.total);
     expect(sept.items.map((i: any) => i.topic)).not.toContain('Hàm số bậc hai');
@@ -499,6 +507,60 @@ describe('sửa lỗi sau đợt QA 06–07/10', () => {
 
     expect((await call({ action: 'revokeClass', classId: 'lop-1' })).statusCode).toBe(200);
     for (const sub of ['parentSecrets', 'parentReports', 'parentStats', 'parentConfig']) expect(Object.keys(h.store[`classes/lop-1/${sub}`] ?? {})).toEqual([]);
+  });
+});
+
+describe('báo cáo tự chọn: bộ nhớ đệm + giới hạn tần suất; điểm tự duyệt 60 phút', () => {
+  const custom = (extra: DocData = {}) => call({ action: 'parentCustomReport', idToken: undefined, joinCode: 'ABCD23', studentId: 'a', from: '2026-09-01', to: '2026-09-30', pin: '2580', ...extra });
+  const graded = (approvalSource: string) => ({ score: 8, maxScore: 10, feedback: '', strengths: [], weaknesses: [], teacherApproved: true, approvalSource, gradedAt: '2026-09-20T01:00:00Z' });
+  const seed = (approvalSource = 'teacher') => {
+    h.store.assignments = { b1: { teacherId: 'gv-cuong', classId: 'lop-1', title: 'Hàm số', type: 'homework', dueAt: '2026-09-15T10:00:00Z', maxScore: 10, createdAt: '2026-09-10T00:00:00Z' } };
+    h.store.submissions = { s1: { teacherId: 'gv-cuong', classId: 'lop-1', studentId: 'a', assignmentId: 'b1', status: 'graded', createdAt: '2026-09-16T01:00:00Z', grade: graded(approvalSource) } };
+  };
+  beforeEach(async () => {
+    const rows = (await call({ action: 'issueParentPins', classId: 'lop-1' })).payload.rows as Array<{ studentId: string; pin: string }>;
+    await call({ action: 'changeParentPin', idToken: undefined, joinCode: 'ABCD23', studentId: 'a', pin: rows.find(r => r.studentId === 'a')!.pin, newPin: '2580' });
+  });
+
+  it('cùng khoảng ngày xem lại trong 5 phút → trả bản đã dựng (không đọc lại dữ liệu); quá 5 phút → dựng lại thấy dữ liệu mới', async () => {
+    seed();
+    const first = await custom();
+    expect(first.payload.input.report.results[0]).toMatchObject({ status: 'official', score: 8 });
+    expect(h.store['classes/lop-1/parentCache'].a).toMatchObject({ from: '2026-09-01', to: '2026-09-30' });
+    h.store.submissions.s1.grade.score = 3; // dữ liệu đổi sau khi đã dựng
+    const again = await custom();
+    expect(again.statusCode).toBe(200);
+    expect(again.payload.input.report.results[0].score).toBe(8); // vẫn là bản đệm
+    ageCache(6 * 60_000);
+    expect((await custom()).payload.input.report.results[0].score).toBe(3);
+  });
+
+  it('khoảng KHÁC bấm liên tiếp trong vài giây → 429 (chặn bấm liên tục); sau vài giây thì cho', async () => {
+    seed();
+    expect((await custom()).statusCode).toBe(200);
+    const fast = await custom({ from: '2026-08-01', to: '2026-08-31' });
+    expect(fast.statusCode).toBe(429);
+    expect(fast.payload.error).toContain('đợi vài giây');
+    ageCache(10_000);
+    expect((await custom({ from: '2026-08-01', to: '2026-08-31' })).statusCode).toBe(200);
+  });
+
+  it('thu hồi học sinh gỡ luôn bản đệm báo cáo tự chọn', async () => {
+    seed();
+    await custom();
+    expect(h.store['classes/lop-1/parentCache'].a).toBeDefined();
+    await call({ action: 'revokeStudentAccess', classId: 'lop-1', studentId: 'a' });
+    expect(h.store['classes/lop-1/parentCache'].a).toBeUndefined();
+  });
+
+  it('điểm TỰ DUYỆT sau 60 phút không hiện như điểm chính thức cho phụ huynh; thầy cô duyệt thật thì hiện', async () => {
+    seed('auto_timeout');
+    const res = await custom();
+    expect(res.payload.input.report.results[0]).toMatchObject({ status: 'pending', score: null });
+    expect(res.payload.input.report.officialCount).toBe(0);
+    h.store.submissions.s1.grade.approvalSource = 'teacher';
+    ageCache(6 * 60_000);
+    expect((await custom()).payload.input.report.results[0]).toMatchObject({ status: 'official', score: 8 });
   });
 });
 

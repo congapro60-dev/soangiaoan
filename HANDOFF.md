@@ -8,6 +8,15 @@ Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/
 
 
 
+
+## Cổng phụ huynh: đệm báo cáo tự chọn + điểm tự duyệt 60 phút + nhắc người thân — 2026-10-08
+
+- **Báo cáo tự chọn có đệm + giới hạn tần suất** (`api/_parent-self-report.ts`): `classes/{id}/parentCache/{studentId}` giữ bản dựng gần nhất (khoảng ngày + `inputJson` + mốc `at`). Cùng khoảng ngày trong `CUSTOM_CACHE_MS` (5 phút) → trả bản đệm, KHÔNG đọc lại dữ liệu lớp; khoảng khác mà cách lần dựng trước < `CUSTOM_MIN_GAP_MS` (5 giây) → 429 "đợi vài giây". Hệ quả: số liệu có thể chậm tối đa 5 phút so với lúc thầy cô duyệt điểm. `purgeParentData` gỡ luôn bản đệm. Chưa làm: giảm lượng bài giao đọc mỗi lần dựng (vẫn đọc cả lớp khi KHÔNG trúng đệm).
+- **Điểm tự duyệt sau 60 phút (`approvalSource: 'auto_timeout'`) KHÔNG còn hiện như điểm chính thức cho phụ huynh** (`validScorePair` trong `parentSafeReport.ts`): bài hiện "Chờ thầy cô duyệt" cho tới khi giáo viên duyệt thật (khi đó `approvalSource='teacher'`). Áp cả báo cáo giáo viên công bố, báo cáo tự chọn, phần "bằng chứng" gửi AI soạn nhận xét.
+  - **Cố ý CHƯA đụng `approvalSource: 'student_ai'`** (học sinh nộp → AI chấm → duyệt ngay): đây là luồng chính hằng ngày, ẩn đi thì báo cáo gần như trống. Nhưng chữ cuối báo cáo "chỉ dùng kết quả đã được thầy cô xem và duyệt" vẫn chưa đúng với loại này — **chủ dự án quyết**: đổi chữ cho đúng, hay ẩn cả loại này.
+- Màn đặt/đổi PIN và thông báo sau khi đổi nhắc "báo mã mới cho người thân cùng xem (bố/mẹ)" (mỗi em một PIN).
+- Test: `parent-portal.test.ts` 34, `parentSafeReport.test.ts`; đã thử phá từng hành vi (đệm, giới hạn, auto_timeout) test đều bắt.
+
 ## Cổng phụ huynh: sửa lỗi sau đợt QA đa khía cạnh — 2026-10-07
 
 Đợt QA 9 khía cạnh (có chạy Firestore emulator thật, Node ESM thật, Playwright) ra 86 phát hiện; hết hạn mức tuần nên phần kiểm chứng đối kháng dừng giữa chừng — các lỗi dưới đây đều được tự kiểm lại bằng test (và đã thử phá từng bản sửa để chắc test bắt được).

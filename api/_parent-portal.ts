@@ -17,7 +17,7 @@ import { handleParentCustomReport } from './_parent-self-report.js';
 import { REPORT_KINDS } from '../src/lib/classroom/reportKinds.js';
 import { isRealDay } from '../src/lib/classroom/reportPeriod.js';
 import {
-  PARENT_BRANDING_DOC, PARENT_CONFIG_SUB, PARENT_INPUT_MAX_CHARS, PARENT_PIN_RULE, PARENT_REPORTS_SUB, PARENT_SECRETS_SUB, PARENT_STATS_SUB,
+  PARENT_BRANDING_DOC, PARENT_CACHE_SUB, PARENT_CONFIG_SUB, PARENT_INPUT_MAX_CHARS, PARENT_PIN_RULE, PARENT_REPORTS_SUB, PARENT_SECRETS_SUB, PARENT_STATS_SUB,
   compareParentReports, isSafeDocId, isValidParentPin, normalizeParentPin, parentReportDocId, sanitizeBranding, type ParentPinSetBy,
 } from '../src/lib/classroom/parentAccess.js';
 
@@ -239,12 +239,14 @@ export const purgeParentData = async (db: Db, classRef: FirebaseFirestore.Docume
   if (studentId) {
     refs.push(classRef.collection(PARENT_SECRETS_SUB).doc(studentId));
     refs.push(classRef.collection(PARENT_STATS_SUB).doc(studentId));
+    refs.push(classRef.collection(PARENT_CACHE_SUB).doc(studentId));
     pick((await classRef.collection(PARENT_STATS_SUB).doc(studentId).collection('events').get()).docs);
     pick((await classRef.collection(PARENT_REPORTS_SUB).where('studentId', '==', studentId).get()).docs);
   } else {
     pick((await classRef.collection(PARENT_SECRETS_SUB).get()).docs);
     pick((await classRef.collection(PARENT_REPORTS_SUB).get()).docs);
     pick((await classRef.collection(PARENT_CONFIG_SUB).get()).docs);
+    pick((await classRef.collection(PARENT_CACHE_SUB).get()).docs);
     const stats = await classRef.collection(PARENT_STATS_SUB).get();
     for (const stat of stats.docs) pick((await stat.ref.collection('events').get()).docs);
     pick(stats.docs);

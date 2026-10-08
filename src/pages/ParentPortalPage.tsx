@@ -80,6 +80,7 @@ export const ParentPinChangeForm = ({ batBuoc, dangGoi, loiMay, onSubmit, onCanc
           <button type="button" onClick={onCancel} className="min-h-11 w-full rounded-2xl py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50">Để sau</button>
         )}
         <p className="text-center text-xs font-semibold text-slate-400">Thầy cô xem được mã PIN này để hỗ trợ khi bạn quên, nên đừng dùng mã trùng với mật khẩu ngân hàng hay thẻ.</p>
+        <p className="text-center text-xs font-bold text-amber-700">Mỗi em chỉ có một mã PIN: sau khi đổi, hãy báo mã mới cho người thân cùng xem báo cáo (bố/mẹ) để họ vẫn vào được.</p>
       </form>
     </>
   );
@@ -177,7 +178,7 @@ export const ParentPortalPage = () => {
       setOpenId(data.reports[0]?.id ?? '');
       setKind('all');
       setBatBuocDoi(false);
-      setThongBao('Đã đổi mã PIN. Từ lần sau, dùng mã PIN mới để vào xem báo cáo.');
+      setThongBao('Đã đổi mã PIN. Từ lần sau, dùng mã PIN mới để vào xem báo cáo. Nhớ báo mã mới cho người thân cùng xem (bố/mẹ).');
       setStage('xem');
     };
     try {

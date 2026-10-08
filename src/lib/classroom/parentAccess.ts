@@ -11,6 +11,8 @@ export const PARENT_SECRETS_SUB = 'parentSecrets';
 /** `classes/{classId}/parentConfig/branding` — nhận diện trường/GV của lần công bố gần nhất, để báo cáo tự chọn không phải quét mọi báo cáo đã công bố. */
 export const PARENT_CONFIG_SUB = 'parentConfig';
 export const PARENT_BRANDING_DOC = 'branding';
+/** `classes/{classId}/parentCache/{studentId}` — kết quả báo cáo tự chọn gần nhất của em (đệm vài phút) + mốc dựng, để chặn bấm liên tục. */
+export const PARENT_CACHE_SUB = 'parentCache';
 /** `classes/{classId}/parentReports/{studentId}__{kind}__{from}__{to}` — bản chụp báo cáo giáo viên đã công bố. */
 export const PARENT_REPORTS_SUB = 'parentReports';
 /** Trần độ dài JSON một báo cáo (Firestore giới hạn 1MB/tài liệu; chữ Việt tính theo byte UTF-8). */

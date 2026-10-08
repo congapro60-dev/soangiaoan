@@ -187,4 +187,14 @@ describe('buildParentSafeReport', () => {
     expect(report.officialCount).toBe(1);
     expect(report.officialAveragePercent).toBe(70);
   });
+
+  it('điểm tự duyệt sau 60 phút (auto_timeout) chưa phải điểm chính thức với phụ huynh; điểm thầy cô duyệt thì có', () => {
+    const withSource = (approvalSource: string) => baseSubmission({ grade: { ...baseSubmission().grade, approvalSource } });
+    const auto = buildParentSafeReport(input([withSource('auto_timeout') as never]));
+    expect(auto.officialCount).toBe(0);
+    expect(auto.results.find(r => r.assignmentId === 'assignment-1')).toMatchObject({ status: 'pending', score: null });
+    const teacher = buildParentSafeReport(input([withSource('teacher') as never]));
+    expect(teacher.officialCount).toBe(1);
+    expect(teacher.results.find(r => r.assignmentId === 'assignment-1')).toMatchObject({ status: 'official', score: 8 });
+  });
 });

@@ -35,5 +35,6 @@ describe('ParentPortalPage', () => {
     expect(later).toContain('Để sau');
     expect(later).toContain('Mã PIN không đúng.');
     expect(first).toContain('số, chữ hoặc ký tự đặc biệt');
+    expect(first).toContain('báo mã mới cho người thân');
   });
 });

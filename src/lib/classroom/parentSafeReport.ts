@@ -84,6 +84,9 @@ const uniqueText = (values: readonly unknown[]): string[] => {
 export const validScorePair = (submission: SubmissionDoc): { score: number; maxScore: number } | null => {
   const grade = submission.grade;
   if (submission.status !== 'graded' || grade?.teacherApproved !== true) return null;
+  // Tự duyệt sau 60 phút = chưa ai xem: không hiện cho phụ huynh như điểm chính thức cho tới khi thầy cô duyệt thật
+  // (khi giáo viên duyệt, `approvalSource` đổi thành 'teacher' và bài tự hiện lại).
+  if (grade.approvalSource === 'auto_timeout') return null;
   const score = typeof grade.score === 'number' && Number.isFinite(grade.score) ? grade.score : null;
   const maxScore = typeof grade.maxScore === 'number' && Number.isFinite(grade.maxScore) ? grade.maxScore : null;
   if (score === null || maxScore === null || maxScore <= 0 || score < 0 || score > maxScore) return null;

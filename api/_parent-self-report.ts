@@ -4,7 +4,7 @@
  * không đáp án, không ghi chú nội bộ. Không có nhận xét của giáo viên (không gọi AI, không tốn ví).
  */
 import type { VercelResponse } from '@vercel/node';
-import { PARENT_BRANDING_DOC, PARENT_CONFIG_SUB, PARENT_PIN_RULE, PARENT_REPORTS_SUB, isValidParentPin, parentDeviceOf, sanitizeBranding, type ParentBrandingData, type ParentDevice } from '../src/lib/classroom/parentAccess.js';
+import { PARENT_BRANDING_DOC, PARENT_CACHE_SUB, PARENT_CONFIG_SUB, PARENT_PIN_RULE, PARENT_REPORTS_SUB, isValidParentPin, parentDeviceOf, sanitizeBranding, type ParentBrandingData, type ParentDevice } from '../src/lib/classroom/parentAccess.js';
 import { STUDENT_PROFILES_COL, type StudentProfileDoc } from '../src/lib/classroom/types.js';
 import { buildPeriodParentReport } from '../src/lib/classroom/parentReportBuilder.js';
 import { dmy, periodError, type ReportPeriod } from '../src/lib/classroom/reportPeriod.js';
@@ -16,6 +16,13 @@ import { recordParentActivity } from './_parent-activity.js';
 
 type Db = FirebaseFirestore.Firestore;
 type Body = Record<string, unknown>;
+
+/** Cùng một khoảng ngày được xem lại trong chừng này thì trả bản đã dựng (không đọc lại dữ liệu cả lớp). */
+export const CUSTOM_CACHE_MS = 5 * 60_000;
+/** Hai lần DỰNG liên tiếp của cùng một em phải cách nhau tối thiểu chừng này — chặn bấm liên tục / nhiều tab. */
+export const CUSTOM_MIN_GAP_MS = 5_000;
+/** Trần độ dài JSON được đệm (Firestore giới hạn 1MB/tài liệu). */
+const CUSTOM_CACHE_MAX_CHARS = 400_000;
 
 /** Khoảng tối đa một lần xem (≈ một năm học) — chặn yêu cầu quét cả kho dữ liệu. */
 export const MAX_SELF_REPORT_DAYS = 400;
@@ -54,6 +61,20 @@ export const handleParentCustomReport = async (db: Db, body: Body, res: VercelRe
   // PIN còn là mã giáo viên cấp thì phụ huynh chưa được xem gì (phải đặt PIN riêng trước, như các báo cáo đã công bố).
   if (!(await verifyParentPin(db, target, pin, res, { device, requireParentSet: true }))) return;
 
+  const cacheRef = classDoc.ref.collection(PARENT_CACHE_SUB).doc(studentId);
+  const cached = (await cacheRef.get()).data() as { from?: string; to?: string; at?: string; inputJson?: string } | undefined;
+  const age = cached?.at ? Date.now() - Date.parse(cached.at) : Number.POSITIVE_INFINITY;
+  if (cached && cached.from === period.from && cached.to === period.to && typeof cached.inputJson === 'string' && age < CUSTOM_CACHE_MS) {
+    try {
+      const input = JSON.parse(cached.inputJson);
+      await recordParentActivity(db, classDoc.ref, studentId, 'custom', { device, detail: `${dmy(period.from)} – ${dmy(period.to)}` });
+      return void res.status(200).json({ input });
+    } catch { /* bản đệm hỏng → dựng lại */ }
+  }
+  if (age < CUSTOM_MIN_GAP_MS) {
+    return void res.status(429).json({ error: 'Bạn vừa xem báo cáo xong. Vui lòng đợi vài giây rồi thử lại.' });
+  }
+
   const classData = classDoc.data();
   const student = studentSnap.data() || {};
   const [records, book, profileSnap, branding] = await Promise.all([
@@ -77,6 +98,12 @@ export const handleParentCustomReport = async (db: Db, body: Body, res: VercelRe
 
   // kind 'custom' → tiêu đề đúng khoảng phụ huynh chọn, lọc năng lực theo học kì mà khoảng chạm tới (như báo cáo giáo viên).
   const input = { ...built.printInput, ...(branding ? { branding } : {}) };
+  const inputJson = JSON.stringify(input);
+  try {
+    await cacheRef.set({ from: period.from, to: period.to, at: new Date().toISOString(), ...(inputJson.length <= CUSTOM_CACHE_MAX_CHARS ? { inputJson } : {}) });
+  } catch (error) {
+    console.error('[parent-self-report] không đệm được báo cáo tự chọn:', error);
+  }
   await recordParentActivity(db, classDoc.ref, studentId, 'custom', { device, detail: `${dmy(period.from)} – ${dmy(period.to)}` });
   res.status(200).json({ input });
 };
