@@ -585,10 +585,14 @@ export const StudentPortalPage = () => {
     const approvalLabel = grade?.teacherApproved
       ? (grade.approvalSource === 'student_ai' || grade.approvalSource === 'auto_timeout' ? ' (AI tự duyệt)' : ' (Đã duyệt GV)')
       : (grade ? ' (Chờ GV duyệt)' : '');
+    // Bài kiểm tra định kì: không nêu điểm AI chấm lại — điểm chính thức là điểm thầy cô chấm trên bài giấy.
+    const scoreText = grade && assignment?.periodicTest
+      ? 'Đã phân tích từng câu (điểm chính thức là điểm thầy cô chấm trên bài giấy)'
+      : `${grade?.score ?? 0}/${grade?.maxScore ?? 10} điểm`;
     const text = isGraded
-      ? `${grade.score ?? 0}/${grade.maxScore ?? 10} điểm${approvalLabel}${grade.feedback ? `\n\n${grade.feedback}` : ''}`
+      ? `${scoreText}${approvalLabel}${grade.feedback ? `\n\n${grade.feedback}` : ''}`
       : isErrorWithGrade
-        ? `Đã chấm: ${grade.score ?? 0}/${grade.maxScore ?? 10} điểm${approvalLabel}${grade.feedback ? `\n\n${grade.feedback}` : ''}\n\n⚠️ Lần chấm lại chưa thành công; điểm hiện tại vẫn được giữ nguyên.${submission.lastGradingError ? `\nChi tiết: ${submission.lastGradingError}` : ''}`
+        ? `Đã chấm: ${scoreText}${approvalLabel}${grade.feedback ? `\n\n${grade.feedback}` : ''}\n\n⚠️ Lần chấm lại chưa thành công; điểm hiện tại vẫn được giữ nguyên.${submission.lastGradingError ? `\nChi tiết: ${submission.lastGradingError}` : ''}`
       : isErrorNoGrade
         ? submission.errorMessage || 'Lần nộp trước chưa xử lý được. Em có thể nộp lại.'
         : submission?.status === 'grading' ? 'Máy đang chấm bài. Em có thể quay lại sau ít phút.' : 'Bài đã lên máy chủ và đang chờ thầy cô xử lý.';

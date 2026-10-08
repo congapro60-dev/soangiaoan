@@ -7,6 +7,8 @@ interface Props {
   /** Nhãn ngữ cảnh để dùng được cả trong thẻ học sinh và báo cáo người lớn. */
   title?: string;
   compact?: boolean;
+  /** Bài kiểm tra định kì: không hiện điểm từng câu (điểm chính thức là điểm thầy cô chấm trên giấy). */
+  hideScores?: boolean;
 }
 
 const meta: Record<QuestionResultStatus, { label: string; className: string; icon: typeof CheckCircle2 }> = {
@@ -35,7 +37,7 @@ const TextBlock = ({ label, value, markdown = false }: { label: string; value: s
  * Hiển thị bảng phân tích theo câu. Không dùng bảng HTML cứng vì bài làm dài và màn hình điện
  * thoại cần từng câu tự co giãn; mỗi `details` là một điểm chạm rõ ràng để học sinh mở ra xem.
  */
-export const QuestionResultsList = ({ results, title = 'Phân tích từng câu', compact = false }: Props) => {
+export const QuestionResultsList = ({ results, title = 'Phân tích từng câu', compact = false, hideScores = false }: Props) => {
   if (!results || results.length === 0) return null;
 
   return (
@@ -56,7 +58,7 @@ export const QuestionResultsList = ({ results, title = 'Phân tích từng câu'
                 <span className={`rounded-full px-2 py-1 text-[11px] font-black ${result.ignoredByTeacherInstruction ? 'bg-slate-100 text-slate-600' : item.className}`}>
                   {result.ignoredByTeacherInstruction ? 'Bỏ qua theo lệnh GV' : item.label}
                 </span>
-                <span className="shrink-0 text-xs font-black text-slate-700">{result.score}/{result.maxScore}</span>
+                {!hideScores && <span className="shrink-0 text-xs font-black text-slate-700">{result.score}/{result.maxScore}</span>}
                 {result.needsTeacherReview && <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" aria-label="Cần giáo viên xem lại" />}
               </summary>
               <div className="grid gap-3 border-t border-slate-100 bg-slate-50/70 p-3 sm:grid-cols-2">

@@ -72,6 +72,30 @@ describe('buildQuestionStats — gộp nhãn cùng một câu', () => {
   });
 });
 
+describe('buildQuestionStats — bài kiểm tra nhiều mã đề', () => {
+  const ketQua = (status: string) => ({ questionNumber: 'Phần I – Câu 1', status, score: status === 'correct' ? 0.25 : 0, maxScore: 0.25, errorType: null, weakTopics: [] });
+
+  it('"Câu 1" của mỗi mã là một dòng riêng, tỉ lệ tính riêng từng mã; nhãn có tiền tố mã', () => {
+    const report = buildClassAssignmentReport(baseInput([
+      baseSubmission({ id: 's1', studentKey: 'student-1', examCode: '1201', questionResults: [ketQua('correct')] }),
+      baseSubmission({ id: 's2', studentKey: 'student-2', examCode: '1201', questionResults: [ketQua('correct')] }),
+      baseSubmission({ id: 's3', studentKey: 'student-3', examCode: '1202', questionResults: [ketQua('incorrect')] }),
+    ]));
+    expect(report.questionStats.map(q => [q.questionNumber, q.examCode, q.evidenceCount, q.correctRate])).toEqual([
+      ['Mã 1201 · Phần I – Câu 1', '1201', 2, 1],
+      ['Mã 1202 · Phần I – Câu 1', '1202', 1, 0],
+    ]);
+  });
+
+  it('bài không có mã (BTVN) gộp như cũ', () => {
+    const report = buildClassAssignmentReport(baseInput([
+      baseSubmission({ id: 's1', studentKey: 'student-1', questionResults: [ketQua('correct')] }),
+      baseSubmission({ id: 's2', studentKey: 'student-2', questionResults: [ketQua('incorrect')] }),
+    ]));
+    expect(report.questionStats.map(q => [q.questionNumber, q.examCode, q.evidenceCount])).toEqual([['Phần I – Câu 1', undefined, 2]]);
+  });
+});
+
 describe('buildClassAssignmentReport', () => {
   it('chỉ giữ lượt mới nhất và tách các counter theo trạng thái', () => {
     const report = buildClassAssignmentReport(baseInput([

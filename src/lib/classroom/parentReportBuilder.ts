@@ -71,6 +71,8 @@ export interface PeriodParentReport {
 
 // Trần để một lượt AI xong trong ~50s và dữ liệu gửi đi < 60k kí tự (tháng thực tế ~90 câu mất ~25s).
 const MAX_EVIDENCE_SUBMISSIONS = 16;
+// Bài kiểm tra định kì luôn được giữ (làm tại lớp — căn cứ đáng tin nhất), tối đa chừng này bài gần nhất.
+const MAX_TEST_SUBMISSIONS = 3;
 // Không cắt ít câu mỗi bài: phiếu dài (Phần I/II/III) có câu làm ĐÚNG ở cuối — cắt là mất bằng chứng, mức bị thấp oan.
 const MAX_QUESTIONS_PER_SUBMISSION = 60;
 const MAX_EVIDENCE_QUESTIONS = 120;
@@ -99,6 +101,8 @@ export const buildRequirementEvidence = (
   assignments: readonly AssignmentDoc[],
 ): EvidenceSubmission[] => {
   const titles = new Map(assignments.map(a => [a.id, a.title]));
+  const periodic = new Set(assignments.filter(a => a.periodicTest).map(a => a.id));
+  const isTest = (s: SubmissionDoc) => Boolean(s.assignmentId && periodic.has(s.assignmentId));
   const latest = new Map<string, SubmissionDoc>();
   for (const submission of [...submissions].sort((l, r) => String(r.createdAt).localeCompare(String(l.createdAt)))) {
     if (!validScorePair(submission)) continue;
@@ -107,24 +111,36 @@ export const buildRequirementEvidence = (
   }
   const questionCount = (s: SubmissionDoc) => Math.min(MAX_QUESTIONS_PER_SUBMISSION, Math.max(1, s.grade?.questionResults?.length ?? 1));
   const ordered = [...latest.values()].sort((l, r) => String(l.createdAt).localeCompare(String(r.createdAt)));
-  let chosen = spreadEvenly(ordered, MAX_EVIDENCE_SUBMISSIONS);
-  while (chosen.length > 1 && chosen.reduce((sum, s) => sum + questionCount(s), 0) > MAX_EVIDENCE_QUESTIONS) {
-    chosen = spreadEvenly(ordered, chosen.length - 1);
+  const tests = ordered.filter(isTest).slice(-MAX_TEST_SUBMISSIONS);
+  const homework = ordered.filter(s => !isTest(s));
+  const pick = (count: number) => [...tests, ...(count > 0 ? spreadEvenly(homework, count) : [])].sort((l, r) => String(l.createdAt).localeCompare(String(r.createdAt)));
+  let count = Math.min(homework.length, MAX_EVIDENCE_SUBMISSIONS - tests.length);
+  let chosen = pick(count);
+  // Quá nhiều câu thì bớt BTVN trước; bài kiểm tra giữ nguyên.
+  while (count > 0 && chosen.length > 1 && chosen.reduce((sum, s) => sum + questionCount(s), 0) > MAX_EVIDENCE_QUESTIONS) {
+    count -= 1;
+    chosen = pick(count);
   }
   // Dữ liệu vẫn quá dài thì cắt ngắn chữ từng câu dần, thay vì để máy chủ từ chối cả lượt.
   for (const scale of [1, 0.6, 0.35]) {
-    const built = buildEvidenceRows(chosen, titles, scale);
+    const built = buildEvidenceRows(chosen, titles, scale, isTest);
     if (JSON.stringify(built).length <= MAX_EVIDENCE_CHARS || scale === 0.35) return built;
   }
   return [];
 };
 
-const buildEvidenceRows = (chosen: readonly SubmissionDoc[], titles: ReadonlyMap<string, string>, scale: number): EvidenceSubmission[] => {
+const buildEvidenceRows = (
+  chosen: readonly SubmissionDoc[],
+  titles: ReadonlyMap<string, string>,
+  scale: number,
+  isTest: (submission: SubmissionDoc) => boolean,
+): EvidenceSubmission[] => {
   const n = (max: number) => Math.max(40, Math.round(max * scale));
   return chosen
     .map((submission, index) => {
       const ma = `b${index + 1}`;
       const grade = submission.grade!;
+      const kt = isTest(submission) ? { kt: true as const } : {};
       const details = (grade.questionResults ?? []).filter(q => Number.isFinite(q.score) && Number.isFinite(q.maxScore) && q.maxScore > 0);
       const cau: EvidenceQuestion[] = details.length > 0
         ? details.slice(0, MAX_QUESTIONS_PER_SUBMISSION).map((q, qi) => ({
@@ -136,8 +152,9 @@ const buildEvidenceRows = (chosen: readonly SubmissionDoc[], titles: ReadonlyMap
           giaiThich: clip(q.explanation, n(200)),
           dapAn: clip(q.expectedAnswer, n(110)),
           baiLam: scale === 1 ? clip(q.studentAnswer, 110) : undefined,
+          ...kt,
         }))
-        : [{ ma, diem: grade.score, toiDa: grade.maxScore, ketQua: 'cả bài', giaiThich: clip([...(grade.strengths ?? []), ...(grade.weaknesses ?? [])].join('; '), 300) }];
+        : [{ ma, diem: grade.score, toiDa: grade.maxScore, ketQua: 'cả bài', giaiThich: clip([...(grade.strengths ?? []), ...(grade.weaknesses ?? [])].join('; '), 300), ...kt }];
       return { ma, ten: (submission.assignmentId && titles.get(submission.assignmentId)) || 'Bài tự nộp', ngay: vnDay(submission.createdAt), cau };
     });
 };
@@ -154,18 +171,27 @@ export const buildPeriodParentReport = (src: ParentReportSource, period: ReportP
   const scoped = period
     ? filterForPeriod(period, { assignments, submissions: src.submissions, hs1: hs1All })
     : { assignments: [...assignments], submissions: [...src.submissions], hs1: hs1All };
-  const report = buildParentSafeReport({ ...base, assignments: scoped.assignments, submissions: scoped.submissions });
+  // Bài kiểm tra định kì: điểm chính thức đã ở "Điểm thi định kì" (sổ điểm) → không cộng vào số liệu BTVN
+  // (điểm TB, xu hướng, từng bài, chưa nộp) và hồ sơ năng lực; chỉ làm căn cứ từng câu cho "Bản đồ theo bài SGK".
+  const periodicIds = new Set(assignments.filter(a => a.periodicTest).map(a => a.id));
+  const homework = <T extends { assignments: readonly AssignmentDoc[]; submissions: readonly SubmissionDoc[] }>(data: T) => ({
+    assignments: data.assignments.filter(a => !periodicIds.has(a.id)),
+    submissions: data.submissions.filter(s => !s.assignmentId || !periodicIds.has(s.assignmentId)),
+  });
+  const scopedHomework = homework(scoped);
+  const allHomework = homework({ assignments, submissions: src.submissions });
+  const report = buildParentSafeReport({ ...base, ...scopedHomework });
 
   let comparison = null;
   let monthly = null;
   if (period) {
-    const full = buildParentSafeReport({ ...base, assignments, submissions: src.submissions });
+    const full = buildParentSafeReport({ ...base, ...allHomework });
     comparison = periodComparison(period, full.results);
     monthly = monthlyAverages(report.results);
   }
   // Năng lực là thứ tích luỹ: tính tới hết khoảng báo cáo (không cắt đầu khoảng).
-  const upToEnd = period ? src.submissions.filter(s => { const day = vnDay(s.createdAt); return day !== '' && day <= period.to; }) : src.submissions;
-  const competency = parentCompetencyFor(src.classGrade, upToEnd, assignments, period ? stageForPeriod(period, src.program) : null);
+  const upToEnd = period ? allHomework.submissions.filter(s => { const day = vnDay(s.createdAt); return day !== '' && day <= period.to; }) : allHomework.submissions;
+  const competency = parentCompetencyFor(src.classGrade, upToEnd, allHomework.assignments, period ? stageForPeriod(period, src.program) : null);
   const exams = src.scoreView?.exams ?? null;
   const title = period ? reportTitle(period) : 'Báo cáo học tập môn Toán';
 

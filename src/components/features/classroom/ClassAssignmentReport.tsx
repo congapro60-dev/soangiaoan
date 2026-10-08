@@ -161,9 +161,11 @@ const mapQuestionResult = (result: {
 
 export const adaptUploadSubmission = (
   submission: SubmissionDoc,
-  assignment: Pick<AssignmentDoc, 'id' | 'maxScore'>,
+  assignment: Pick<AssignmentDoc, 'id' | 'maxScore' | 'examVariants'>,
 ): ClassReportSubmission => {
   const grade = submission.grade;
+  // Chỉ bài có từ 2 mã đề mới tách thống kê theo mã; bài một đề giữ nguyên như trước.
+  const multiVariant = (assignment.examVariants?.length ?? 0) > 1;
   return {
     id: asText(submission.id),
     studentKey: asText(submission.studentId),
@@ -174,7 +176,26 @@ export const adaptUploadSubmission = (
     official: submission.status === 'graded' && grade?.teacherApproved === true,
     weakTopics: grade?.weakTopics ?? [],
     questionResults: (grade?.questionResults ?? []).map(mapQuestionResult),
+    ...(multiVariant && submission.examCode ? { examCode: submission.examCode } : {}),
   };
+};
+
+/**
+ * Bài nhiều mã đề: nội dung câu lấy từ đề của ĐÚNG mã, nhãn có tiền tố "Mã X · " cho khớp dòng thống kê.
+ * Không có mã nào (bài thường) → undefined, giữ cách cũ.
+ */
+const variantQuestionCatalog = (
+  assignment: Pick<AssignmentDoc, 'examVariants'>,
+  submissions: readonly ClassReportSubmission[],
+): ClassReportQuestionCatalogItem[] | undefined => {
+  if ((assignment.examVariants?.length ?? 0) < 2) return undefined;
+  return (assignment.examVariants ?? []).flatMap(variant => {
+    const numbers = [...new Set(submissions
+      .filter(submission => submission.examCode === variant.code)
+      .flatMap(submission => (submission.questionResults ?? []).map(result => result.questionNumber).filter(Boolean)))];
+    return extractQuestionCatalogFromText(variant.sourceText, numbers)
+      .map(item => ({ ...item, questionNumber: `Mã ${variant.code} · ${item.questionNumber}` }));
+  });
 };
 
 const scoreForAnswer = (answer: ExamSubmission['answers'][number] | undefined): number | null =>
@@ -699,9 +720,9 @@ export const loadClassAssignmentReports = async (
         maxScore: asFiniteNumber(assignment.maxScore),
         // Danh mục máy chủ đã đọc và lưu là nguồn tốt nhất: có công thức LaTeX, không phải dò
         // lại chữ. Bài giao cũ chưa có thì tạm dò trong sourceText cho tới khi giáo viên bấm đọc.
-        questionCatalog: assignment.questionCatalog?.length
+        questionCatalog: variantQuestionCatalog(assignment, submissions) ?? (assignment.questionCatalog?.length
           ? assignment.questionCatalog
-          : extractQuestionCatalogFromText(assignment.sourceText, questionNumbers),
+          : extractQuestionCatalogFromText(assignment.sourceText, questionNumbers)),
         questionSources: buildAssignmentQuestionSources(assignment),
         submissions,
       };

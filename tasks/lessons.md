@@ -103,11 +103,17 @@
 
 - **File upload needs size guard** — No size limit = browser hangs on large files with no feedback. Default max: 20MB with clear error toast. *(2026-04-21)*
 
+- **Xuống dòng phải theo CỤM NGHĨA, không để trình duyệt tự cắt — và nghiệm thu ở 3 khổ màn hình** — Bản mẫu "bản đồ theo bài" viết chú thích thành một dòng chữ liền (`● Vững ≥ 80% ● Đang hình thành 50–79% ● Chưa vững < 50%…`), lên điện thoại bị cắt thành "Chưa / vững < 50%". Chủ dự án nhắc đây là lỗi lặp lại nhiều lần. QUY TẮC: (1) mỗi mục chú thích/chip/nhãn mức là một phần tử riêng `white-space: nowrap`, xếp bằng flex/grid để khi hẹp thì XUỐNG CẢ MỤC, không cắt giữa mục; (2) số đi với đơn vị/dấu so sánh dùng `&nbsp;` ("≥&nbsp;80%", "13&nbsp;câu"), nhãn mức tiếng Việt nhiều chữ ("Đang hình thành", "Chưa vững") không bao giờ bị tách; (3) tiêu đề dùng `text-wrap: balance`, đoạn văn `text-wrap: pretty` để không còn một chữ mồ côi ở dòng cuối; (4) trước khi gửi, chụp ở ~390px (điện thoại), ~820px (iPad dọc), ~1366px (laptop) và kiểm bằng máy rằng mọi phần tử nowrap chỉ chiếm MỘT dòng (`getClientRects().length === 1`), không có cuộn ngang. Nhìn một khổ là chưa xong. *(2026-10-06)*
+
 ## E2E trong Browser pane (Claude Code)
 
 - **Browser pane không chụp được screenshot nhưng DOM tools vẫn sống** — `computer{screenshot}` timeout 30s liên tục, nhưng `read_page`/`get_page_text`/`javascript_tool`/`form_input` hoạt động bình thường. Đừng bỏ cuộc vì screenshot hỏng; verify bằng text/DOM. Click theo `ref` có thể trượt sau khi UI re-render — click qua JS (`[...document.querySelectorAll('button')].find(...)`) ổn định hơn. *(2026-07-16)*
 
 - **Test AI flow trên localhost cần proxy /api → production** — Vite dev KHÔNG serve Vercel Function trong `api/` → relay 404. Đã thêm `server.proxy['/api'] → https://giaoandewey.vercel.app` trong vite.config.ts. Demo mode + đổi `settings.selectedProvider` trong localStorage (`smart_lesson_plan_data`) là đường vào không cần login. Khi relay/pool chết thật sự, stub `window.fetch` cho `/api/gemini-relay` để E2E toàn pipeline (parse → gate → repair → PPTX) mà không phụ thuộc model. *(2026-07-16)*
+
+- **Playwright `setInputFiles` theo ĐƯỜNG DẪN làm rơi file tên tiếng Việt, không báo lỗi** — thử 5 file, trình duyệt chỉ nhận 3: đúng hai file "Mã đề 101.docx", "Mã đề 102.docx" biến mất, nhìn như app tách mã sai. Phải ghi lại `input.files` trong trang mới thấy file không hề tới. Khi E2E có tên file tiếng Việt, nạp dạng `{ name, mimeType, buffer }`. Tương tự: chụp ngay sau cú bấm có `transition` sẽ ra màu giữa chừng — chờ ≥ 300ms rồi mới kết luận "nút sáng sai". *(2026-10-06)*
+
+- **`extractTextFromPDF` nối cả trang PDF thành MỘT dòng; `mammoth` bỏ bảng (dàn phẳng từng ô) và bỏ công thức Word** — đủ cho "rút chữ làm ngữ cảnh", nhưng hỏng mọi xử lý theo dòng/bảng (tách mã đề, bảng đáp án nhiều cột). Cần cấu trúc thì dùng `pdfItemsToText` (giữ xuống dòng theo `hasEOL`/toạ độ y) và `docxXmlToText` (đọc `word/document.xml`, mỗi hàng bảng một dòng "ô | ô", lấy cả `m:t`) trong `src/lib/classroom/examVariants.ts`. *(2026-10-06)*
 
 ## Error UX
 

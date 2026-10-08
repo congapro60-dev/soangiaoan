@@ -39,6 +39,13 @@ export const hasUncertainRead = (grade?: SubmissionGrade): boolean => {
     || (typeof question?.confidence === 'number' && question.confidence < READ_CONFIDENCE_FLOOR));
 };
 
+/**
+ * Bài cần giáo viên tự soát trước khi duyệt: máy đọc chưa chắc, HOẶC (bài kiểm tra định kì) tổng điểm AI lệch
+ * điểm giáo viên đã chấm tay. Hai trường hợp này không được tự duyệt / duyệt hàng loạt.
+ */
+export const needsTeacherCheck = (grade?: SubmissionGrade): boolean =>
+  hasUncertainRead(grade) || grade?.examCheck?.mismatch === true;
+
 const createdAtValue = (value?: string): number => {
   const parsed = Date.parse(String(value || ''));
   return Number.isFinite(parsed) ? parsed : 0;
@@ -148,8 +155,8 @@ export const classBacklog = (
   return {
     toGrade,
     errored,
-    toApprove: waiting.filter(submission => !hasUncertainRead(submission.grade)),
-    uncertain: waiting.filter(submission => hasUncertainRead(submission.grade)),
+    toApprove: waiting.filter(submission => !needsTeacherCheck(submission.grade)),
+    uncertain: waiting.filter(submission => needsTeacherCheck(submission.grade)),
     assignmentCount: new Set([...toGrade, ...errored, ...waiting].map(submission => submission.assignmentId)).size,
   };
 };

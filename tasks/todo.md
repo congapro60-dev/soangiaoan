@@ -1,3 +1,70 @@
+# Kế hoạch 2026-10-06: Báo cáo PH — khối "Bản đồ theo bài SGK"
+
+Chủ dự án duyệt bản mẫu: mỗi bài SGK một thẻ màu, "Ưu tiên ôn trước", chú thích mỗi mức một dòng;
+dễ nhìn trên điện thoại, iPad, laptop; xuống dòng theo cụm nghĩa.
+
+## Sự thật đã kiểm
+- Mỗi YCCĐ đã có nhãn `sgk` ("Bài 2", "Bài 3–4", "Chương V") → gom theo bài không cần dữ liệu mới.
+- Thầy cô sửa mức / ghi chú / bỏ dòng YCCĐ trước khi lưu → khối theo bài phải tính TỪ CÁC DÒNG đã soát.
+- Dòng chỉ lưu `evidence` + `percent`: một câu ghép vào 2 YCCĐ cùng bài sẽ bị đếm 2 lần → lưu thêm danh sách câu.
+- Báo cáo công bố lưu nguyên `printInput` (giới hạn 300k ký tự) → trường mới đi theo, cổng PH dựng lại được.
+- Kiểm 3 khổ bản hiện tại: "50–79%" bị cắt ở dấu gạch (iPad/laptop), "“Chưa đạt”" bị tách (điện thoại).
+
+## Làm
+- [x] `parentRequirements.ts`: dòng YCCĐ thêm `questions` (mã câu + điểm); sinh ở `aggregateRequirementLines`,
+      giữ ở `sanitizeRequirementLines`; hàm thuần `buildLessonMap` (gom theo bài, đếm câu không trùng, bài cũ thiếu
+      `questions` thì ước lượng thận trọng) + thứ tự ưu tiên ôn.
+- [x] `parentReportPrintDoc.ts`: khối bản đồ ngay dưới đoạn tổng quan (bản web + PDF); có bản đồ thì bỏ thẻ
+      "Điểm mạnh / Cần chú ý" trùng nội dung; sửa 2 chỗ ngắt dòng; thẻ không bị cắt khi sang trang PDF.
+- [x] Màn soát của giáo viên: xem trước khối theo bài ngay trên danh sách YCCĐ.
+- [x] Test thuần + test bản in; kiểm 3 khổ (390 / 820 / 1366) + PDF 780 bằng trình duyệt thật.
+- [x] test + lint + lint:api + build; commit, đẩy nhánh.
+
+## Kết quả (06/10)
+- Mức của bài tính từ điểm các câu (giống mức từng dòng), KHÔNG theo mức thầy cô đổi tay ở từng dòng —
+  để con số "Đạt x%" luôn khớp chú thích. Thầy cô chỉnh bản đồ bằng cách bỏ dòng ghép sai (xem trước ngay trên màn soát).
+- Báo cáo đã lưu trước hôm nay: bản đồ vẫn hiện, chỉ tỉ lệ (không in số câu vì có thể đếm trùng).
+- Có bản đồ thì bỏ "Tóm tắt nhanh" (trùng nội dung); gợi ý ở nhà trỏ sang "Bản đồ theo bài SGK".
+- Kiểm bằng trình duyệt thật: 390 / 820 / 1366 px + PDF xuất thật (html2canvas): không tràn ngang, mọi nhãn/chip
+  một dòng, thẻ không bị cắt khi sang trang. Sửa luôn "Mã HS" bị tách dòng ở đầu báo cáo, "50–79%" bị cắt ở dấu gạch.
+- Dữ liệu chương trình: YCCĐ lớp 12 Bài 16 mang tên chủ đề "Phương trình đường thẳng trong không gian" (trùng Bài 15)
+  — tên bài theo chủ đề CT, chưa có bảng tên bài SGK.
+
+## Bài kiểm tra định kì có mã đề (làm 06/10 — AI tự đọc mã đề, chủ dự án chọn)
+Chủ dự án (06/10): khối 12 có 4–8 mã, MỘT file gộp hết các mã; khối khác 1–4 mã, MỖI mã MỘT file.
+GV chấm tay trước, HS chụp bài đã chấm nộp lên luồng HS như BTVN.
+
+### Sự thật đã kiểm
+- Mỗi bài giao chỉ có MỘT `answerKey` + MỘT `sourceText`; ngữ cảnh chấm dựng một lần cho cả bài (`gradeContextFor`).
+- HS nộp bài ghi thẳng Firestore, rules giới hạn đúng danh sách trường → thêm "mã đề" vào bài nộp = sửa rules
+  + chủ dự án chạy `firebase deploy --only firestore:rules`.
+- Báo cáo PH không phân biệt loại bài: bài KT nộp lên sẽ vào điểm TB BTVN, "Kết quả từng bài", "bài chưa nộp",
+  hồ sơ năng lực — trong khi điểm thi đã có ở mục "Điểm thi định kì" (Sheet).
+- Ghép câu → YCCĐ dựa trên kết quả chấm từng câu (giải thích, đáp án, bài làm), không cần nội dung đề từng mã.
+- Bài đã chấm tay có nét bút giáo viên (chữa đáp án đúng cạnh câu sai) → AI dễ đọc nhầm thành bài làm của em.
+
+### Giai đoạn
+- [x] P1 Dữ liệu + báo cáo: bài giao đánh dấu "Kiểm tra định kì" (gắn cột điểm Sheet tương ứng) + danh sách mã đề
+      (mã, đề, đáp án). Projection GV/HS. Báo cáo: không vào điểm TB BTVN / từng bài / chưa nộp / hồ sơ năng lực;
+      vào bản đồ theo bài với nguồn "KT".
+- [x] P2 GV đẩy đề: một ô kéo-thả mọi file; tách theo mã (đầu mục "Mã đề …" trong file gộp, hoặc mỗi file một mã);
+      AI rút đáp án từng mã; bảng xác nhận (mã · số câu · đáp án) sửa được trước khi giao.
+- [x] P3 HS nộp + chấm: mã đề của bài nộp; chấm theo đúng đề/đáp án của mã đó; lời dặn AI bỏ qua nét chấm của GV;
+      điểm GV trong Sheet là chính thức, tổng AI lệch > 0,5 → cờ soát.
+- [x] P4 Test + QA trình duyệt (file gộp 8 mã, 4 file rời) + lint/build.
+
+### Kết quả (06/10)
+- Kiểm bằng trình duyệt thật (hộp "Giao bài" thật, chỉ thay lượt AI rút đáp án + sổ điểm bằng bộ giả vì môi trường
+  không có khoá Gemini): file gộp 8 mã khối 12 (.docx) → đủ 8 mã, không đề nào lẫn chữ mã khác/bảng đáp án;
+  4 file rời (3 .docx + 1 PDF) + file đáp án riêng → đủ 4 mã, đáp án đúng cột; mã thiếu đáp án → chặn giao.
+  390 / 820 / 1366 px: không tràn ngang, không nhãn nào bị ngắt dòng.
+- CHƯA kiểm với Gemini thật: AI rút đáp án từ bảng, AI đọc mã đề trên ảnh bài đã chấm bút đỏ. Cần QA trên production.
+- [x] (chủ dự án đồng ý) Cổng học sinh: bài định kì không hiện điểm AI (thẻ bài, hộp chi tiết, dòng thời gian,
+      điểm TB, bảng điểm, thông báo, điểm từng câu) — chỉ hiện đúng/sai + nhận xét từng câu.
+- [x] Thống kê từng câu của lớp: bài ≥ 2 mã gom theo (mã, câu), nhãn "Mã 1201 · Câu 5".
+- Giới hạn còn lại: khung "xem đề" của thống kê chưa lấy được nội dung câu dạng "Phần I – Câu 1" (bộ đọc đề
+  `extractQuestionCatalogFromText` chưa hiểu Phần I/II/III đánh số lại) — số liệu không ảnh hưởng.
+
 # Kế hoạch 2026-10-01: Sửa chấm sai từng câu (BTVN)
 
 Chủ dự án chốt: bài đã duyệt GIỮ đã duyệt khi sửa đáp án cả lớp; Đúng/Sai theo thang THPT

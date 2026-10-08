@@ -36,7 +36,21 @@ export interface HomeworkGradingInput {
   studentText?: string;
   /** Đáp án từng câu thầy cô sửa sau khi chấm; đè đáp án chuẩn ở đúng các câu đó. */
   answerKeyFixes?: { questionNumber: string; expectedAnswer: string }[];
+  /** Bài kiểm tra định kì: giáo viên đã chấm tay trên giấy trước khi em chụp nộp. */
+  teacherMarkedPaper?: boolean;
+  /** Bài nhiều mã đề: mã của bài này (đề + đáp án ở trên là của đúng mã này). */
+  examCode?: string;
 }
+
+/**
+ * Bài kiểm tra đã chấm tay: trên ảnh có nét bút giáo viên — có khi là ĐÁP ÁN ĐÚNG viết chữa cạnh câu em làm sai.
+ * Đọc nhầm nét đó thành bài làm là cho em điểm oan, nên phải dặn riêng.
+ */
+export const TEACHER_MARKED_PAPER_NOTE = `BÀI KIỂM TRA ĐÃ ĐƯỢC GIÁO VIÊN CHẤM TAY TRƯỚC — ảnh có nét bút của giáo viên (thường màu đỏ):
+dấu đúng/sai, điểm từng câu, tổng điểm, và có khi là ĐÁP ÁN ĐÚNG giáo viên viết chữa cạnh câu em làm sai.
+- Những nét đó KHÔNG phải bài làm của em. "studentAnswer" chỉ chép phần CHÍNH EM làm (bút xanh/đen, ô em tô trên phiếu trả lời).
+- Không chép điểm giáo viên ghi; tự chấm từng câu theo ĐÁP ÁN CHUẨN.
+- Chữ chữa của giáo viên đè lên làm không phân biệt được đâu là của em → "status" = "unreadable", "needsTeacherReview" = true.`;
 
 export interface HomeworkGrade {
   score: number;
@@ -118,7 +132,7 @@ ${gradingInstructions.slice(0, 6000)}${gradingInstructions.length > 6000 ? '\n[L
 
   return `Bạn là giáo viên chấm bài tập về nhà cho học sinh phổ thông Việt Nam.
 
-${input.assignmentTitle ? `TÊN BÀI: ${input.assignmentTitle}\n` : ''}
+${input.assignmentTitle ? `TÊN BÀI: ${input.assignmentTitle}\n` : ''}${input.examCode ? `MÃ ĐỀ CỦA BÀI NÀY: ${input.examCode} — đề và đáp án dưới đây là của đúng mã này.\n` : ''}
 ${danAnh}${assignmentTextSection}${gradingInstructionsSection}${coDapAn
   ? (input.answerKey.trim()
       ? `ĐÁP ÁN CHUẨN (dùng làm mốc chấm, không tự nghĩ ra đáp án khác):\n${input.answerKey.trim()}`
@@ -128,7 +142,7 @@ ${danAnh}${assignmentTextSection}${gradingInstructionsSection}${coDapAn
 ${input.answerKeyFixes?.length ? `ĐÁP ÁN THẦY CÔ ĐÃ SỬA SAU KHI CHẤM (ưu tiên hơn đáp án chuẩn ở trên, đúng các câu này):
 ${input.answerKeyFixes.map(f => `- ${f.questionNumber}: ${f.expectedAnswer}`).join('\n')}
 ` : ''}
-${input.rubric?.trim() ? `HƯỚNG DẪN CHẤM CỦA GIÁO VIÊN:\n${input.rubric.trim()}\n` : ''}
+${input.rubric?.trim() ? `HƯỚNG DẪN CHẤM CỦA GIÁO VIÊN:\n${input.rubric.trim()}\n` : ''}${input.teacherMarkedPaper ? `\n${TEACHER_MARKED_PAPER_NOTE}\n` : ''}
 ${studentTextSection}
 THANG ĐIỂM: tối đa ${input.maxScore} điểm. Quy đổi về đúng thang này.
 

@@ -15,6 +15,7 @@ import {
   updateAssignmentDeadline,
   updateSubmissionGradeManually,
   suaDapAnCaLop,
+  chonMaDeBaiNop,
   uploadAnswerKeyImages,
   uploadAssignmentFiles,
   uploadAssignmentImages,
@@ -29,6 +30,7 @@ import { GradeReviewModal, type GradeReviewValue } from './GradeReviewModal';
 import { QuestionResultsList } from './QuestionResultsList';
 import { classBacklog, currentSubmissionsForAssignment, hasUncertainRead, isGradableNow, isStaleGradingTimestamp, selectedCurrentSubmissions, selectedSubmissionsForAssignment, submissionsForHistoryMode, summarizeSelection, type SubmissionHistoryMode } from '../../../lib/classroom/submissionSelection';
 import { renameAssignment } from '../../../lib/classroom/teacherService';
+import { countKeyQuestions } from '../../../lib/classroom/examVariants';
 import { getClassDoc, setClassAutoGrade } from '../../../lib/classroom/classroomService';
 import { autoGradeEnabledFor } from '../../../lib/classroom/autoGrade';
 import { OnlineAssignmentReview } from './OnlineAssignmentReview';
@@ -197,13 +199,16 @@ interface BaiNopTheoLopProps {
   dangBulk: string;
   retryEvidenceSync: (s: SubmissionDoc) => void | Promise<void>;
   bulkRetrySync: () => void | Promise<void>;
+  /** Bài kiểm tra định kì nhiều mã: các mã đề, và thao tác giáo viên chọn mã cho một bài nộp. */
+  maDe?: string[];
+  chonMaDe?: (s: SubmissionDoc, examCode: string, ten: string) => void | Promise<void>;
 }
 
 /**
  * Danh sách ĐỦ CẢ LỚP theo một bài giao: em nào đã nộp (kèm trạng thái/điểm/hành động),
  * em nào chưa nộp — giáo viên kiểm soát một mắt nhìn thay vì đoán từ số lượng.
  */
-const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet, xoaBaiNop, dangXoaNop, xoaDiem, dangXoaDiem, selectedIds, toggleSelected, toggleAllSubmissions, bulkCham, bulkChamLai, bulkDuyet, bulkXoa, dangBulk, retryEvidenceSync, bulkRetrySync }: BaiNopTheoLopProps) => {
+const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo, chamLai, suaDiem, duyet, xoaBaiNop, dangXoaNop, xoaDiem, dangXoaDiem, selectedIds, toggleSelected, toggleAllSubmissions, bulkCham, bulkChamLai, bulkDuyet, bulkXoa, dangBulk, retryEvidenceSync, bulkRetrySync, maDe, chonMaDe }: BaiNopTheoLopProps) => {
   const [historyMode, setHistoryMode] = useState<SubmissionHistoryMode>('latest');
   const tenTheoId = new Map(lopHocSinh.map(hs => [hs.studentId, hs.name]));
   const daNopIds = new Set(baiNop.map(s => s.studentId));
@@ -334,6 +339,14 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
               {s.evidenceSyncError && (
                 <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[11px] font-bold text-violet-700" title={s.evidenceSyncError}>Đồng bộ minh chứng đang chờ</span>
               )}
+              {s.grade?.examCheck && (
+                <span
+                  className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-bold ${s.grade.examCheck.mismatch ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700'}`}
+                  title={`So với điểm thầy cô chấm tay ở cột “${s.grade.examCheck.sheetLabel}” (thang 10): lệch ${s.grade.examCheck.diff} điểm.`}
+                >
+                  {s.grade.examCheck.mismatch ? `Lệch điểm GV (${s.grade.examCheck.sheetScore})` : `Khớp điểm GV (${s.grade.examCheck.sheetScore})`}
+                </span>
+              )}
               {nhanLanNop.get(s.id) && (
                 <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
                   nhanLanNop.get(s.id) === 'Lần nộp mới nhất' ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-100 text-slate-500'
@@ -354,6 +367,25 @@ const BaiNopTheoLop = ({ baiNop, hanNop, lopHocSinh, moRongId, troMoRong, tienDo
                 {new Date(s.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} · {s.fileUrls.length} tệp
               </span>
               </button>
+              {maDe && maDe.length > 1 && (
+                <label
+                  className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2 py-1 text-[11px] font-bold ${s.examCode ? 'bg-sky-50 text-sky-800' : 'bg-rose-50 text-rose-700'}`}
+                  title={s.examCodeSource === 'teacher' ? 'Thầy cô đã chọn mã này' : s.examCode ? 'Mã AI đọc trên bài — chọn lại nếu sai rồi chấm lại' : 'Chưa có mã đề — chọn mã rồi chấm lại'}
+                >
+                  Mã đề
+                  <select
+                    value={s.examCode ?? ''}
+                    disabled={gradingLockFresh || !chonMaDe}
+                    onChange={event => { if (event.target.value) void chonMaDe?.(s, event.target.value, ten); }}
+                    aria-label={`Mã đề của bài ${ten}`}
+                    className="bg-transparent font-black outline-none disabled:opacity-50"
+                  >
+                    <option value="">?</option>
+                    {maDe.map(code => <option key={code} value={code}>{code}</option>)}
+                  </select>
+                  {s.examCodeSource === 'ai' && <span className="font-semibold text-sky-600">AI đọc</span>}
+                </label>
+              )}
             </div>
 
             {dangMo && (
@@ -659,7 +691,8 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
     selectedSubmissionsForAssignment(baiNopCua(assignmentId), selectedSubmissionIds), [baiNopCua, selectedSubmissionIds]);
 
   const guiBaiMoi = async (value: AssignmentFormValue) => {
-    if (!value.answerKey && value.answerKeyImages.length === 0) {
+    // Bài định kì: đáp án nằm trong từng mã đề (hộp giao bài đã chặn mã thiếu đáp án).
+    if (!value.periodicTest && !value.answerKey && value.answerKeyImages.length === 0) {
       const { isConfirmed } = await Swal.fire({
         icon: 'warning',
         title: 'Giao bài không kèm đáp án?',
@@ -695,6 +728,8 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
         gradingInstructions: value.gradingInstructions,
         answerKeyImageUrls,
         answerKeyByAi: value.answerKeyByAi,
+        periodicTest: value.periodicTest,
+        examVariants: value.examVariants,
       });
       setMoForm(false);
       showToast(`Đã giao "${value.title}" cho ${className}.`, 'success');
@@ -1205,6 +1240,18 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
   };
 
   /** Chạy lại AI cho ĐÚNG MỘT bài nộp — giáo viên xem thấy chấm sai thì không phải đợi cả lớp. */
+  // Bài định kì nhiều mã: thầy cô chọn mã khi AI không đọc được / đọc sai → lưu rồi đề nghị chấm lại theo mã đó.
+  const chonMaDe = async (s: SubmissionDoc, examCode: string, tenHocSinh: string) => {
+    try {
+      await chonMaDeBaiNop(s.id, examCode);
+      const capNhat: SubmissionDoc = { ...s, examCode, examCodeSource: 'teacher' };
+      setTatCaBaiNop(ds => ds.map(item => (item.id === s.id ? capNhat : item)));
+      await chamLaiMotBai(capNhat, tenHocSinh, 'quick');
+    } catch (error) {
+      Swal.fire({ icon: 'error', title: 'Chưa lưu được mã đề', text: error instanceof Error ? error.message : 'Thử lại sau.', confirmButtonColor: '#3085d6' });
+    }
+  };
+
   const chamLaiMotBai = async (s: SubmissionDoc, tenHocSinh: string, mode: HomeworkGradingMode) => {
     const laChamKi = mode === 'thorough';
     const { isConfirmed } = await Swal.fire({
@@ -1331,7 +1378,7 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
       const assignmentId = dang.submission.assignmentId;
       const caLop: string[] = [];
       for (const fix of assignmentId ? value.classFixes : []) {
-        const kq = await suaDapAnCaLop(assignmentId as string, fix.questionNumber, fix.expectedAnswer);
+        const kq = await suaDapAnCaLop(assignmentId as string, fix.questionNumber, fix.expectedAnswer, dang.submission.examCode);
         caLop.push(`${fix.questionNumber}: tính lại ${kq.updated} bài`
           + (kq.needsReview > 0 ? `, ${kq.needsReview} bài cần soát tay` : '')
           + (kq.busy > 0 ? `, ${kq.busy} bài đang chấm nên chưa áp` : ''));
@@ -1566,8 +1613,10 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                 <button onClick={() => moBai(a.id)} className="min-w-0 flex-1 text-left">
                   <p className="truncate font-black text-slate-900">{a.title}</p>
                   <p className="text-xs font-semibold text-slate-500">
-                    {a.isOpen ? 'Đang mở' : 'Đã đóng'} · {a.type === 'exam' ? 'bài kiểm tra online' : ((a.answerKey || (a.answerKeyImageUrls?.length ?? 0) > 0) ? 'có đáp án chuẩn' : 'không có đáp án')}
-                    {(a.attachments?.length ?? 0) > 0 ? ` · ${a.attachments!.length} file đề` : ' · chưa đính kèm đề'}
+                    {a.isOpen ? 'Đang mở' : 'Đã đóng'} · {a.periodicTest
+                      ? `kiểm tra định kì · ${a.examVariants?.length ?? 0} mã đề${a.periodicTest.sheetLabel ? ` · đối chiếu cột “${a.periodicTest.sheetLabel}”` : ''}`
+                      : <>{a.type === 'exam' ? 'bài kiểm tra online' : ((a.answerKey || (a.answerKeyImageUrls?.length ?? 0) > 0) ? 'có đáp án chuẩn' : 'không có đáp án')}
+                    {(a.attachments?.length ?? 0) > 0 ? ` · ${a.attachments!.length} file đề` : ' · chưa đính kèm đề'}</>}
                     {a.gradingInstructions ? ' · có lệnh chấm riêng' : ''}
                     {a.answerKeyByAi ? ' · đáp án do AI giải' : ''}
                   </p>
@@ -1638,7 +1687,24 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                     <>
                   {/* NỘI DUNG ĐÃ GIAO — phải xem lại và sửa được. Đáp án AI giải ra mà không mở
                       lại được thì lời hứa "thầy cô soát trước khi chấm" chỉ đúng đúng một lần. */}
-                  {!submissionsOnly && <div className="mb-5 rounded-2xl bg-slate-50 p-4">
+                  {!submissionsOnly && a.periodicTest && (
+                    <div className="mb-5 rounded-2xl bg-slate-50 p-4">
+                      <p className="text-xs font-black uppercase tracking-wide text-slate-500">Kiểm tra định kì — các mã đề</p>
+                      <ul className="mt-2 flex flex-wrap gap-2">
+                        {(a.examVariants || []).map(variant => (
+                          <li key={variant.code} className="whitespace-nowrap rounded-full bg-white px-3 py-1 text-xs font-black text-slate-700 ring-1 ring-slate-200">
+                            Mã {variant.code} · {countKeyQuestions(variant.answerKey)} câu
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="mt-2 text-xs font-semibold leading-5 text-slate-500">
+                        AI đọc mã đề trên ảnh bài của từng em rồi chấm theo đúng đề + đáp án của mã đó. Đáp án sai một câu thì mở
+                        “Sửa điểm” ở bài của một em mã đó và sửa câu đó cho cả lớp — chỉ bài cùng mã được tính lại.
+                        Điểm chính thức vẫn là điểm trong sổ điểm; bài này không cộng vào điểm BTVN.
+                      </p>
+                    </div>
+                  )}
+                  {!submissionsOnly && !a.periodicTest && <div className="mb-5 rounded-2xl bg-slate-50 p-4">
                     <p className="text-xs font-black uppercase tracking-wide text-slate-500">Nội dung đã giao</p>
 
                     <div className="mt-3">
@@ -1778,13 +1844,15 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                     </div>
                   </div>}
 
-                  {!submissionsOnly && competencyGrade && (
+                  {!submissionsOnly && competencyGrade && !a.periodicTest && (
                     <CompetencyTagEditor assignment={a} grade={competencyGrade} showToast={showToast} onSaved={taiBai} />
                   )}
 
                   <BaiNopTheoLop
                     baiNop={baiNopCua(a.id)}
                     hanNop={a.dueAt}
+                    maDe={a.examVariants?.map(variant => variant.code)}
+                    chonMaDe={chonMaDe}
                     lopHocSinh={lopHocSinh}
                     moRongId={moRongId}
                     troMoRong={setMoRongId}
