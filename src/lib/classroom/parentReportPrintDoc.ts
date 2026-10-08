@@ -628,7 +628,7 @@ ${(() => {
     return cut > 0 ? section('Kết quả từng bài', rows.slice(0, cut), rows.slice(cut)) : section('Kết quả từng bài', rows);
   })()}
 
-<div class="note">${period ? 'Chỉ tính các bài có hạn nộp trong thời gian báo cáo; điểm thi định kì hiện tất cả cột đã có. ' : ''}Báo cáo chỉ dùng kết quả đã được thầy cô xem và duyệt; bài đang chờ xử lý không hiển thị điểm. Điểm từng bài theo thang điểm của bài; điểm trung bình quy về phần trăm để so sánh. Không hiển thị đáp án hay ghi chú nội bộ.</div>`;
+<div class="note">${period ? 'Chỉ tính các bài có hạn nộp trong thời gian báo cáo; điểm thi định kì hiện tất cả cột đã có. ' : ''}Bài đang chờ xử lý không hiển thị điểm. Điểm từng bài theo thang điểm của bài; điểm trung bình quy về phần trăm để so sánh. Không hiển thị đáp án hay ghi chú nội bộ.</div>`;
 
   const moreHead = `<span class="ico">${sectionIcon('list', 18)}</span><span class="more-t"><b>Chi tiết báo cáo</b><small>Điểm số, so sánh, yêu cầu cần đạt, năng lực, từng bài</small></span>`;
   // Bản web: tầng chi tiết thu gọn, phụ huynh bấm để mở. Bản in/PDF: in đủ, ngăn cách bằng dải tiêu đề.

@@ -510,7 +510,7 @@ describe('sửa lỗi sau đợt QA 06–07/10', () => {
   });
 });
 
-describe('báo cáo tự chọn: bộ nhớ đệm + giới hạn tần suất; điểm tự duyệt 60 phút', () => {
+describe('báo cáo tự chọn: bộ nhớ đệm + giới hạn tần suất', () => {
   const custom = (extra: DocData = {}) => call({ action: 'parentCustomReport', idToken: undefined, joinCode: 'ABCD23', studentId: 'a', from: '2026-09-01', to: '2026-09-30', pin: '2580', ...extra });
   const graded = (approvalSource: string) => ({ score: 8, maxScore: 10, feedback: '', strengths: [], weaknesses: [], teacherApproved: true, approvalSource, gradedAt: '2026-09-20T01:00:00Z' });
   const seed = (approvalSource = 'teacher') => {
@@ -552,15 +552,4 @@ describe('báo cáo tự chọn: bộ nhớ đệm + giới hạn tần suất; 
     await call({ action: 'revokeStudentAccess', classId: 'lop-1', studentId: 'a' });
     expect(h.store['classes/lop-1/parentCache'].a).toBeUndefined();
   });
-
-  it('điểm TỰ DUYỆT sau 60 phút không hiện như điểm chính thức cho phụ huynh; thầy cô duyệt thật thì hiện', async () => {
-    seed('auto_timeout');
-    const res = await custom();
-    expect(res.payload.input.report.results[0]).toMatchObject({ status: 'pending', score: null });
-    expect(res.payload.input.report.officialCount).toBe(0);
-    h.store.submissions.s1.grade.approvalSource = 'teacher';
-    ageCache(6 * 60_000);
-    expect((await custom()).payload.input.report.results[0]).toMatchObject({ status: 'official', score: 8 });
-  });
 });
-

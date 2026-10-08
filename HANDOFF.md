@@ -9,13 +9,13 @@ Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/
 
 
 
-## Cổng phụ huynh: đệm báo cáo tự chọn + điểm tự duyệt 60 phút + nhắc người thân — 2026-10-08
+## Cổng phụ huynh: đệm báo cáo tự chọn + bỏ câu "đã duyệt" + nhắc người thân — 2026-10-08
 
 - **Báo cáo tự chọn có đệm + giới hạn tần suất** (`api/_parent-self-report.ts`): `classes/{id}/parentCache/{studentId}` giữ bản dựng gần nhất (khoảng ngày + `inputJson` + mốc `at`). Cùng khoảng ngày trong `CUSTOM_CACHE_MS` (5 phút) → trả bản đệm, KHÔNG đọc lại dữ liệu lớp; khoảng khác mà cách lần dựng trước < `CUSTOM_MIN_GAP_MS` (5 giây) → 429 "đợi vài giây". Hệ quả: số liệu có thể chậm tối đa 5 phút so với lúc thầy cô duyệt điểm. `purgeParentData` gỡ luôn bản đệm. Chưa làm: giảm lượng bài giao đọc mỗi lần dựng (vẫn đọc cả lớp khi KHÔNG trúng đệm).
-- **Điểm tự duyệt sau 60 phút (`approvalSource: 'auto_timeout'`) KHÔNG còn hiện như điểm chính thức cho phụ huynh** (`validScorePair` trong `parentSafeReport.ts`): bài hiện "Chờ thầy cô duyệt" cho tới khi giáo viên duyệt thật (khi đó `approvalSource='teacher'`). Áp cả báo cáo giáo viên công bố, báo cáo tự chọn, phần "bằng chứng" gửi AI soạn nhận xét.
-  - **Cố ý CHƯA đụng `approvalSource: 'student_ai'`** (học sinh nộp → AI chấm → duyệt ngay): đây là luồng chính hằng ngày, ẩn đi thì báo cáo gần như trống. Nhưng chữ cuối báo cáo "chỉ dùng kết quả đã được thầy cô xem và duyệt" vẫn chưa đúng với loại này — **chủ dự án quyết**: đổi chữ cho đúng, hay ẩn cả loại này.
+- **Bỏ câu "Báo cáo chỉ dùng kết quả đã được thầy cô xem và duyệt"** (chủ dự án chốt 08/10) ở bản in/bản web của báo cáo phụ huynh (`parentReportPrintDoc.ts`) và dòng ghi chú trong bản xem trước của giáo viên (`StudentReport.tsx`); còn lại "Bài đang chờ xử lý không hiển thị điểm…".
+- **CHƯA quyết:** điểm AI tự duyệt (`approvalSource: 'auto_timeout'` sau 60 phút, và `'student_ai'` khi học sinh tự nộp) vẫn hiện cho phụ huynh như điểm chính thức. Phương án đã cân nhắc: (a) giữ nguyên (đang áp dụng), (b) gắn nhãn "chấm tự động", (c) loại `auto_timeout` khỏi báo cáo phụ huynh qua `validScorePair` (1 dòng + test, đã làm thử rồi gỡ vì chưa được chọn).
 - Màn đặt/đổi PIN và thông báo sau khi đổi nhắc "báo mã mới cho người thân cùng xem (bố/mẹ)" (mỗi em một PIN).
-- Test: `parent-portal.test.ts` 34, `parentSafeReport.test.ts`; đã thử phá từng hành vi (đệm, giới hạn, auto_timeout) test đều bắt.
+- Test: `parent-portal.test.ts` (đệm + giới hạn tần suất); đã thử phá từng hành vi, test đều bắt.
 
 ## Cổng phụ huynh: sửa lỗi sau đợt QA đa khía cạnh — 2026-10-07
 
