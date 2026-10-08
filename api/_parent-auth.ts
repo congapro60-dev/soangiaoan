@@ -4,7 +4,7 @@
  * (`recordParentActivity('wrong')`, có giới hạn tần suất ghi để một đợt dò mã không làm nghẽn tài liệu thống kê).
  */
 import type { VercelResponse } from '@vercel/node';
-import { normalizeJoinCode, verifyPin } from './_classroom-core.js';
+import { JOIN_CODE_DUPLICATE_MESSAGE, lookupClassByJoinCode, normalizeJoinCode, verifyPin } from './_classroom-core.js';
 import { recordParentActivity } from './_parent-activity.js';
 import { PARENT_SECRETS_SUB, isSafeDocId, normalizeParentPin, type ParentPinSetBy } from '../src/lib/classroom/parentAccess.js';
 
@@ -23,8 +23,9 @@ export const resolveParentStudent = async (db: Db, body: Body, res: VercelRespon
   const joinCode = normalizeJoinCode(body.joinCode);
   const studentId = body.studentId;
   if (!isSafeDocId(studentId)) { res.status(404).json({ error: 'Không tìm thấy lớp hoặc học sinh.' }); return null; }
-  const classes = joinCode ? await db.collection('classes').where('joinCode', '==', joinCode).limit(1).get() : null;
-  const classDoc = classes?.docs[0];
+  const lookup = await lookupClassByJoinCode(db, joinCode);
+  if (lookup.status === 'duplicate') { res.status(409).json({ error: JOIN_CODE_DUPLICATE_MESSAGE }); return null; }
+  const classDoc = lookup.status === 'ok' ? lookup.doc : null;
   if (!classDoc) { res.status(404).json({ error: 'Không tìm thấy lớp hoặc học sinh.' }); return null; }
   const studentSnap = await classDoc.ref.collection('students').doc(studentId).get();
   if (!studentSnap.exists) { res.status(404).json({ error: 'Không tìm thấy học sinh trong lớp này.' }); return null; }

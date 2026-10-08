@@ -1,5 +1,5 @@
 # HANDOFF — Soạn giáo án / lớp học / chấm AI
-**Cập nhật:** 2026-10-07
+**Cập nhật:** 2026-10-08
 **Repo:** `soangiaoan` · **Nhánh chuẩn:** `main`
 **Production URL:** https://giaoandewey.vercel.app
 
@@ -8,6 +8,15 @@ Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/
 
 
 
+
+
+## Mã lớp không được dùng chung (phương án nhẹ B) — 2026-10-08
+
+Chủ dự án yêu cầu: mỗi link vào lớp một mã riêng, không bao giờ chung. Chọn phương án NHẸ (không đổi luật Firestore, không chuyển tạo lớp sang máy chủ — chấp nhận chưa chặn được người cố tình tạo lớp trùng mã).
+- **Tra mã không còn lấy bừa lớp đầu tiên:** `lookupClassByJoinCode` (`api/_classroom-core.ts`) đọc 2 lớp; thấy ≥2 lớp cùng mã → trả `duplicate`, ghi log `[joinCode] …`, và `roster` / `login` (cổng học sinh `/lop`) cùng cổng phụ huynh `/ph` trả **409** "Mã lớp này đang bị trùng… báo thầy cô để được cấp mã mới". Mã duy nhất thì chạy như cũ.
+- **Trang Quản trị tự báo:** `adminOverview` trả `duplicateJoinCodes` (quét mọi lớp đã đọc sẵn); tab Quản trị hiện khung đỏ liệt kê mã + các lớp + giáo viên khi có trùng, hoặc dòng xanh "đã kiểm N lớp, không có mã nào bị dùng chung". Gốc để biết sớm vì client không thấy lớp của giáo viên khác.
+- **Tạo lớp (đường chuyển lớp cũ `migrateLegacyClasses`):** mã mới không trùng nhau trong cùng lượt và không trùng các lớp sẵn có của chính giáo viên (`existingJoinCodes`); bốc 20 lần không được thì báo lỗi thay vì ghi mã trùng. Trang quản trị tạo lớp vẫn dùng `uniqueJoinCode` (kiểm toàn hệ thống). **Giới hạn còn lại:** đường chuyển lớp cũ chạy ở client nên KHÔNG thấy mã lớp của giáo viên khác; luật Firestore vẫn cho client tự đặt `joinCode` → người cố tình vẫn tạo được lớp trùng (khi đó cổng báo 409 thay vì cho vào nhầm lớp, và Quản trị báo đỏ). Muốn chặn hẳn thì làm phương án A (sổ mã `classJoinCodes` do máy chủ giữ + siết rules + tạo lớp qua API).
+- Test: `joinCode.test.ts` (mới), `migrateLegacyClasses.test.ts` +2, `parent-portal.test.ts` +1, `admin.test.ts` +1; đã thử phá từng chốt, test đều bắt.
 
 ## Cổng phụ huynh: đệm báo cáo tự chọn + bỏ câu "đã duyệt" + nhắc người thân — 2026-10-08
 

@@ -32,3 +32,19 @@ export const isValidJoinCode = (raw: string): boolean => {
 
 export const JOIN_CODE_ALPHABET = ALPHABET;
 export const JOIN_CODE_LENGTH = LENGTH;
+
+/**
+ * Các mã lớp đang bị DÙNG CHUNG bởi từ hai lớp trở lên (không phân biệt hoa/thường, bỏ khoảng trắng).
+ * Mỗi link vào lớp phải có mã riêng — trùng là lỗi, phải báo chủ dự án.
+ */
+export interface JoinCodeClass { id: string; name: string; teacherId: string; joinCode: string }
+export const findDuplicateJoinCodes = (classes: readonly JoinCodeClass[]): Array<{ code: string; classes: JoinCodeClass[] }> => {
+  const byCode = new Map<string, JoinCodeClass[]>();
+  for (const item of classes) {
+    const code = normalizeJoinCode(String(item.joinCode ?? ''));
+    if (!code) continue;
+    byCode.set(code, [...(byCode.get(code) ?? []), item]);
+  }
+  return [...byCode.entries()].filter(([, list]) => list.length > 1).map(([code, list]) => ({ code, classes: list }));
+};
+

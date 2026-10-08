@@ -553,3 +553,24 @@ describe('báo cáo tự chọn: bộ nhớ đệm + giới hạn tần suất',
     expect(h.store['classes/lop-1/parentCache'].a).toBeUndefined();
   });
 });
+
+describe('mã lớp bị dùng chung bởi hai lớp: từ chối, không đoán', () => {
+  beforeEach(() => {
+    h.store.classes['lop-gia'] = { name: 'Lớp trùng mã', teacherId: 'gv-khac', joinCode: 'ABCD23' };
+  });
+
+  it('roster (cổng học sinh) và cổng phụ huynh trả 409 kèm lời nhắn báo thầy cô; mã duy nhất thì vẫn vào', async () => {
+    const roster = await call({ action: 'roster', idToken: undefined, joinCode: 'ABCD23' });
+    expect(roster.statusCode).toBe(409);
+    expect(roster.payload.error).toContain('trùng');
+    const parent = await call({ action: 'parentReports', idToken: undefined, joinCode: 'ABCD23', studentId: 'a', pin: '2580' });
+    expect(parent.statusCode).toBe(409);
+    expect(parent.payload.error).toContain('trùng');
+    const student = await call({ action: 'login', idToken: 't', joinCode: 'ABCD23', studentId: 'a', pin: '1234' });
+    expect(student.statusCode).toBe(409);
+
+    delete h.store.classes['lop-gia'];
+    expect((await call({ action: 'roster', idToken: undefined, joinCode: 'ABCD23' })).statusCode).toBe(200);
+  });
+});
+

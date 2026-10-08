@@ -17,7 +17,7 @@ import { adminWalletAction } from './_ai-wallet.js';
 export { parseVcbUsdSell } from './_ai-billing.js';
 import { adminAiAccessView, adminSaveAiAccess } from './_ai-keys.js';
 import { classKey } from '../src/lib/admin/classSetup.js';
-import { createJoinCode } from '../src/lib/classroom/joinCode.js';
+import { createJoinCode, findDuplicateJoinCodes } from '../src/lib/classroom/joinCode.js';
 import { AI_USAGE_COL } from './_ai-usage.js';
 
 type Db = FirebaseFirestore.Firestore;
@@ -143,8 +143,12 @@ const handleOverview = async (db: Db, res: VercelResponse) => {
     };
   });
 
+  // Mỗi link vào lớp phải có mã RIÊNG. Quét mọi lớp (đã đọc sẵn ở trên) để báo ngay nếu có mã bị dùng chung.
+  const duplicateJoinCodes = findDuplicateJoinCodes(classSnap.docs.map(doc => ({
+    id: doc.id, name: String(doc.get('name') ?? ''), teacherId: String(doc.get('ownerId') || doc.get('teacherId') || ''), joinCode: String(doc.get('joinCode') ?? ''),
+  })));
   return res.status(200).json({
-    users, anonymousCount, classes, aiEventsBefore, aiEventsAfter, settings, meteringStartDay: METERING_START_DAY,
+    users, anonymousCount, classes, aiEventsBefore, aiEventsAfter, settings, meteringStartDay: METERING_START_DAY, duplicateJoinCodes,
   });
 };
 
