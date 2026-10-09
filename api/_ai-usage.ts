@@ -311,7 +311,13 @@ export const recordAiUsage = async (
   provider: AiProvider,
   model: string,
   counts: AiTokenCounts | null,
-  extra: { finishReason?: string; /** Phần tiền đã giữ chỗ cho lượt này (`acquireCallHold`) — được thay bằng số tiền thật khi trừ ví. */ holdVnd?: number } = {},
+  extra: {
+    finishReason?: string;
+    /** Phần tiền đã giữ chỗ cho lượt này (`acquireCallHold`) — được thay bằng số tiền thật khi trừ ví. */
+    holdVnd?: number;
+    /** Khoá chung nào phục vụ lượt này: một khoá trong danh sách của chủ dự án (kèm hạng free/paid) hay khoá môi trường. Chỉ để chủ dự án biết đã tiết kiệm được bao nhiêu — KHÔNG đổi số tiền trừ ví. */
+    poolKey?: { id?: string; tier: 'free' | 'paid' | 'env' };
+  } = {},
 ): Promise<void> => {
   if (!counts) {
     await releaseCurrentHold(extra.holdVnd);
@@ -321,6 +327,7 @@ export const recordAiUsage = async (
     const context = currentAiUsageContext();
     const identity = context ? await context.identity() : ANONYMOUS_UNKNOWN;
     const record = buildAiUsageRecord(context, identity, provider, model, counts, { finishReason: extra.finishReason });
+    if (extra.poolKey) Object.assign(record, { keyTier: extra.poolKey.tier, ...(extra.poolKey.id ? { poolKeyId: extra.poolKey.id } : {}) });
     const db = getAdminDb();
     const choice = context?.keyChoice;
     const ownerUid = choice?.ownerUid;

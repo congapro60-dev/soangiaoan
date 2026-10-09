@@ -139,6 +139,18 @@ export interface AdminAiAccess {
 export const adminGetAiAccess = () => call<AdminAiAccess>({ action: 'adminAiAccess' });
 export const adminSaveAiAccess = (enabled: boolean, sharedEmails: string[]) => call<AdminAiAccess>({ action: 'adminSaveAiAccess', enabled, sharedEmails });
 
+export type { PoolKeyView as AdminGeminiKey } from '../admin/geminiKeyPool';
+export interface AdminGeminiKeys {
+  keys: import('../admin/geminiKeyPool').PoolKeyView[];
+  /** Khoá ở biến môi trường (chốt cuối khi mọi khoá trong danh sách đều nghỉ). */
+  envKeyConfigured: boolean;
+  maxKeys: number;
+}
+export const adminGetGeminiKeys = () => call<AdminGeminiKeys>({ action: 'adminGeminiKeys' });
+export const adminSaveGeminiKey = (key: { id?: string; key?: string; label: string; tier: 'free' | 'paid'; enabled: boolean; clearStatus?: boolean }) =>
+  call<AdminGeminiKeys>({ action: 'adminSaveGeminiKey', ...key });
+export const adminDeleteGeminiKey = (id: string) => call<AdminGeminiKeys>({ action: 'adminDeleteGeminiKey', id });
+
 export const adminGetVouchers = () => call<{ vouchers: Array<VoucherDef & { createdAt?: string }> }>({ action: 'adminVouchers' });
 export const adminSaveVoucher = (voucher: Partial<VoucherDef>) => call<{ voucher: VoucherDef }>({ action: 'adminSaveVoucher', voucher });
 export const adminAssignVoucher = (email: string, code: string) => call<{ redemption: VoucherRedemption }>({ action: 'adminAssignVoucher', email, code });

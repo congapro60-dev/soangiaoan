@@ -7,6 +7,7 @@
  * Module thuần — máy chủ (api/) và trình duyệt dùng chung.
  */
 import { yccdById, yccdForGrade, type YccdItem, type YccdStrand } from '../curriculum/yccdToan.js';
+import { SGK_STRAND_ORDER, sgkChapterOf, type SgkChapter, type SgkStrand } from '../curriculum/sgkToanKntt.js';
 import { inStage, termsOfSgk, type ReportStage } from './reportStage.js';
 
 export type RequirementLevel = 'vung' | 'dang' | 'chua';
@@ -207,6 +208,8 @@ export interface LessonSummary {
   lesson: string;
   /** Tên chủ đề của bài (theo mục YCCĐ đầu tiên của bài trong Chương trình). */
   title: string;
+  /** Chương và tập SGK chứa bài; null khi không tra được (lớp hoặc nhãn bài lạ). */
+  chapter: SgkChapter | null;
   /** null = chưa đủ căn cứ để gắn mức. */
   level: RequirementLevel | null;
   /** Tỉ lệ điểm, 0..100. */
@@ -273,7 +276,8 @@ export const buildLessonMap = (lines: readonly ParentRequirementLine[]): LessonS
       const anchor = before ? Math.max(...lessonNumbers(before.sgk)) + 0.5 : Number.MAX_SAFE_INTEGER;
       numbers = [anchor];
     }
-    lessons.push({ lesson, title, level, percent, questions, testQuestions, note, sortMax: Math.max(...numbers), sortMin: Math.min(...numbers) });
+    const grade = Number(group.items[0].id.match(/^T(\d+)\./)?.[1]);
+    lessons.push({ lesson, title, chapter: sgkChapterOf(grade, lesson), level, percent, questions, testQuestions, note, sortMax: Math.max(...numbers), sortMin: Math.min(...numbers) });
   }
   return lessons
     .sort((left, right) => left.sortMax - right.sortMax || right.sortMin - left.sortMin)
@@ -292,6 +296,25 @@ const representativeNote = (lines: readonly ParentRequirementLine[], level: Requ
   const enough = withNotes.filter(line => line.evidence >= MIN_REQUIREMENT_EVIDENCE);
   return [...(enough.length > 0 ? enough : withNotes)].sort((left, right) => left.percent - right.percent)[0]?.note ?? '';
 };
+
+/** Các bài cùng một chương (và tập) liền nhau, đúng thứ tự trong sách. Bài không tra được chương gom vào nhóm riêng, cuối cùng. */
+export interface ChapterGroup { chapter: SgkChapter | null; lessons: LessonSummary[] }
+
+export const groupLessonsByChapter = (lessons: readonly LessonSummary[]): ChapterGroup[] => {
+  const groups: ChapterGroup[] = [];
+  for (const lesson of lessons) {
+    const last = groups[groups.length - 1];
+    if (last && last.chapter?.tap === lesson.chapter?.tap && last.chapter?.code === lesson.chapter?.code) last.lessons.push(lesson);
+    else groups.push({ chapter: lesson.chapter, lessons: [lesson] });
+  }
+  return [...groups.filter(group => group.chapter), ...groups.filter(group => !group.chapter)];
+};
+
+/** Tổng quan theo mạch (Đại số, Giải tích, Hình học, Thống kê, Xác suất): mỗi mạch là danh sách bài của nó theo thứ tự trong sách. */
+export const groupLessonsByStrand = (lessons: readonly LessonSummary[]): { strand: SgkStrand; lessons: LessonSummary[] }[] =>
+  SGK_STRAND_ORDER
+    .map(strand => ({ strand, lessons: lessons.filter(lesson => lesson.chapter?.strand === strand) }))
+    .filter(group => group.lessons.length > 0);
 
 /** "Ưu tiên ôn trước": các bài Chưa đạt rồi Đang hình thành, tỉ lệ thấp trước; tối đa `limit` bài. */
 export const lessonPriorities = (lessons: readonly LessonSummary[], limit = 3): LessonSummary[] => lessons
