@@ -346,7 +346,7 @@ export const resetParentPin = (classId: string, studentId: string) =>
   callTeacherApi<{ studentId: string; pin: string }>({ action: 'resetParentPin', classId, studentId });
 
 /** Công bố báo cáo một kì cho các em (mỗi lượt vài em); công bố lại cùng kì thì ghi đè. */
-export const publishParentReports = (classId: string, period: { kind: string; from: string; to: string }, reports: Array<{ studentId: string; input: unknown }>) =>
+export const publishParentReports = (classId: string, period: { kind: string; from: string; to: string; hk2From?: string; program?: string | null }, reports: Array<{ studentId: string; input: unknown }>) =>
   callTeacherApi<{ saved: number; skipped: string[] }>({ action: 'publishParentReports', classId, ...period, reports });
 
 export const listParentPublished = async (classId: string): Promise<PublishedParentGroup[]> =>

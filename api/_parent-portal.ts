@@ -16,6 +16,10 @@ import { handleParentActivityAction, recordParentActivity } from './_parent-acti
 import { handleParentCustomReport } from './_parent-self-report.js';
 import { noteDocId, PARENT_REPORT_NOTES_COL } from './_parent-report.js';
 import { applyReportOverrides, sanitizeReportOverrides } from '../src/lib/classroom/reportOverrides.js';
+import { mergeLiveInput } from '../src/lib/classroom/parentReportLive.js';
+import { asProgram } from '../src/lib/classroom/reportStage.js';
+import type { ReportPeriod } from '../src/lib/classroom/reportPeriod.js';
+import { buildLiveReport, loadLiveSource } from './_parent-live.js';
 import { REPORT_KINDS } from '../src/lib/classroom/reportKinds.js';
 import { isRealDay } from '../src/lib/classroom/reportPeriod.js';
 import {
@@ -120,6 +124,10 @@ const handlePublishParentReports = async (db: Db, body: Body, res: VercelRespons
       title: String(input?.period?.title || '').slice(0, 200),
       range: String(input?.period?.range || '').slice(0, 100),
       inputJson: json,
+      // Cho phép cổng dựng lại số liệu theo dữ liệu mới nhất (cần đúng chương trình và ngày bắt đầu học kì II của lúc công bố).
+      live: true,
+      program: asProgram(body.program),
+      ...(isRealDay(String(body.hk2From || '')) ? { hk2From: String(body.hk2From) } : {}),
       // Nhận xét và dòng yêu cầu cần đạt đã nằm trong `input` (máy khách lọc theo học kì); ở đây chỉ kèm phần chỉnh tay.
       ...(noteSnaps[index]?.exists ? { overridesJson: JSON.stringify(sanitizeReportOverrides(noteSnaps[index].data()?.overrides, grade)) } : {}),
       publishedAt: now,
@@ -194,11 +202,23 @@ const handleParentReports = async (db: Db, body: Body, res: VercelResponse): Pro
   await recordParentActivity(db, classDoc.ref, studentId, 'login', { device });
 
   const reports = await classDoc.ref.collection(PARENT_REPORTS_SUB).where('studentId', '==', studentId).get();
+  // Báo cáo công bố từ bản có `live`: dựng lại số liệu từ dữ liệu hiện tại (điểm mới duyệt, điểm Sổ điểm mới…) — thầy cô khỏi công bố lại.
+  // Chỉ đọc dữ liệu của em một lần cho mọi báo cáo; lỗi thì dùng bản đã công bố.
+  let live: Awaited<ReturnType<typeof loadLiveSource>>['source'] | null = null;
+  if (reports.docs.some(d => d.data().live === true)) {
+    try { live = (await loadLiveSource(db, classDoc, studentId, studentSnap.data(), Promise.resolve(null))).source; } catch (error) { console.error('[parent-portal] không đọc được dữ liệu mới của em:', error); }
+  }
   const items = reports.docs
     .map(d => {
       const data = d.data();
       let input: unknown = null;
       try { input = JSON.parse(String(data.inputJson || 'null')); } catch { /* bản hỏng → bỏ */ }
+      if (input && live && data.live === true) {
+        try {
+          const period: ReportPeriod = { kind: data.kind, from: data.from, to: data.to, ...(typeof data.hk2From === 'string' ? { hk2From: data.hk2From } : {}) };
+          input = mergeLiveInput(input as never, buildLiveReport(live, period, asProgram(data.program)).printInput);
+        } catch (error) { console.error('[parent-portal] không dựng lại được báo cáo, dùng bản đã công bố:', error); }
+      }
       // Áp bản chỉnh tay của giáo viên (nếu có) mỗi lần mở: thầy cô sửa là phụ huynh thấy ngay, không cần công bố lại.
       if (input && typeof data.overridesJson === 'string') {
         try { input = applyReportOverrides(input as never, JSON.parse(data.overridesJson)); } catch { /* bản chỉnh hỏng → dùng bản gốc */ }

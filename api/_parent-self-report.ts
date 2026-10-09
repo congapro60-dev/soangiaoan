@@ -5,12 +5,8 @@
  */
 import type { VercelResponse } from '@vercel/node';
 import { PARENT_BRANDING_DOC, PARENT_CACHE_SUB, PARENT_CONFIG_SUB, PARENT_PIN_RULE, PARENT_REPORTS_SUB, isValidParentPin, parentDeviceOf, sanitizeBranding, type ParentBrandingData, type ParentDevice } from '../src/lib/classroom/parentAccess.js';
-import { STUDENT_PROFILES_COL, type StudentProfileDoc } from '../src/lib/classroom/types.js';
-import { buildPeriodParentReport } from '../src/lib/classroom/parentReportBuilder.js';
 import { dmy, periodError, type ReportPeriod } from '../src/lib/classroom/reportPeriod.js';
-import { studentScoreView } from '../src/lib/classroom/scoreBook.js';
-import { loadStudentRecordsForClass } from './_classroom-teacher.js';
-import { readBookWithAuto } from './_score-book.js';
+import { buildLiveReport, loadLiveSource } from './_parent-live.js';
 import { resolveParentStudent, verifyParentPin } from './_parent-auth.js';
 import { recordParentActivity } from './_parent-activity.js';
 
@@ -75,26 +71,8 @@ export const handleParentCustomReport = async (db: Db, body: Body, res: VercelRe
     return void res.status(429).json({ error: 'Bạn vừa xem báo cáo xong. Vui lòng đợi vài giây rồi thử lại.' });
   }
 
-  const classData = classDoc.data();
-  const student = studentSnap.data() || {};
-  const [records, book, profileSnap, branding] = await Promise.all([
-    loadStudentRecordsForClass(db, classDoc.id, classData, studentId),
-    readBookWithAuto(db, classDoc.id, { studentIds: [studentId], onlyStudent: studentId }),
-    db.collection(STUDENT_PROFILES_COL).doc(studentId).get(),
-    brandingFor(classDoc.ref, studentId),
-  ]);
-  const built = buildPeriodParentReport({
-    studentId,
-    studentName: String(student.name || ''),
-    className: String(classData.name || ''),
-    studentCode: typeof student.code === 'string' ? student.code : undefined,
-    classGrade: typeof classData.grade === 'string' ? classData.grade : undefined,
-    program: null,
-    assignments: records.assignments,
-    submissions: records.submissions,
-    profile: profileSnap.exists ? (profileSnap.data() as StudentProfileDoc) : null,
-    scoreView: studentScoreView(book, studentId),
-  }, period);
+  const { source, extra: branding } = await loadLiveSource(db, classDoc, studentId, studentSnap.data(), brandingFor(classDoc.ref, studentId));
+  const built = buildLiveReport(source, period, null);
 
   // kind 'custom' → tiêu đề đúng khoảng phụ huynh chọn, lọc năng lực theo học kì mà khoảng chạm tới (như báo cáo giáo viên).
   const input = { ...built.printInput, ...(branding ? { branding } : {}) };

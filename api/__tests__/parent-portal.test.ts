@@ -165,6 +165,26 @@ describe('công bố + phụ huynh xem', () => {
     expect(res.payload.reports[0].title).toContain('tháng 9/2026');
   });
 
+  it('báo cáo đã công bố tự cập nhật số liệu theo dữ liệu mới (không cần công bố lại); nhận xét giữ nguyên; bản cũ không có `live` thì giữ bản chụp', async () => {
+    const pins = await setup();
+    const docs = h.store['classes/lop-1/parentReports'];
+    const idA = Object.keys(docs).find(id => docs[id].studentId === 'a')!;
+    docs[idA].inputJson = JSON.stringify({ ...JSON.parse(String(docs[idA].inputJson)), teacherComment: 'Nhận xét lúc công bố' });
+    expect(docs[idA].live).toBe(true);
+    const before = (await parentCall({ studentId: 'a', pin: pins.a })).payload.reports[0].input;
+    // Giáo viên giao thêm bài hạn nộp trong kì → em chưa nộp: số "chưa nộp" tăng mà không cần công bố lại.
+    h.store.assignments = {
+      b1: { classId: 'lop-1', teacherId: 'gv-cuong', title: 'Bài mới', dueAt: '2026-09-20T12:00:00.000Z', maxScore: 10, createdAt: '2026-09-10T00:00:00.000Z', updatedAt: '2026-09-10T00:00:00.000Z', status: 'active' },
+    };
+    const after = (await parentCall({ studentId: 'a', pin: pins.a })).payload.reports[0].input;
+    expect(before.report.missingCount).toBe(0);
+    expect(after.report.missingCount).toBe(1);
+    expect(after.teacherComment).toBe('Nhận xét lúc công bố');
+    // Bản công bố từ trước khi có `live`: giữ nguyên bản chụp.
+    delete docs[idA].live;
+    expect((await parentCall({ studentId: 'a', pin: pins.a })).payload.reports[0].input.report.missingCount).toBeUndefined();
+  });
+
   it('bản chỉnh tay của giáo viên áp lên báo cáo đã công bố mỗi lần phụ huynh mở; bản hỏng thì dùng bản gốc', async () => {
     const pins = await setup();
     const docs = h.store['classes/lop-1/parentReports'];

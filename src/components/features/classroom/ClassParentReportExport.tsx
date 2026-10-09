@@ -77,7 +77,7 @@ export const ClassParentReportExport = ({ classId, className, classGrade, studen
       const dayLen = async () => {
         if (choCongBo.length === 0) return;
         const lot = choCongBo.splice(0, choCongBo.length);
-        const { saved } = await publishParentReports(classId, ky, lot);
+        const { saved } = await publishParentReports(classId, { ...ky, program: chuongTrinh }, lot);
         daDang += saved;
       };
       let daXuat = 0;
