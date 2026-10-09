@@ -385,7 +385,7 @@ export const ParentPortalPage = () => {
         {loiBox}
         <section className="mb-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <p className="flex items-center gap-2 text-sm font-black text-slate-900"><CalendarRange className="h-4 w-4 text-emerald-600" /> Xem theo khoảng ngày bạn chọn</p>
-          <p className="mt-1 text-xs font-semibold text-slate-500">Ngoài các báo cáo thầy cô gửi, bạn có thể tự xem kết quả của con trong khoảng thời gian bất kỳ.</p>
+          <p className="mt-1 text-xs font-semibold text-slate-500">Ngoài các báo cáo thầy cô gửi, bạn có thể tự xem kết quả của con trong khoảng thời gian bất kỳ. Đây là số liệu hệ thống tự tính, <span className="whitespace-nowrap">chưa có nhận xét</span> hay <span className="whitespace-nowrap">chỉnh sửa của thầy cô</span> — số liệu chính thức xem ở các báo cáo thầy cô gửi.</p>
           <div className="mt-3 grid grid-cols-2 gap-3">
             <label className="block min-w-0 text-xs font-bold text-slate-500">Từ ngày
               <input type="date" value={tuNgay} max={denNgay || undefined} onChange={event => { setLoi(''); setTuNgay(event.target.value); }} className="mt-1 w-full min-w-0 rounded-xl border border-slate-200 px-2 py-2 text-sm font-bold text-slate-800 outline-none focus:border-emerald-500" />
@@ -425,7 +425,7 @@ export const ParentPortalPage = () => {
               ))}
             </div>
             {open && open.id === TU_CHON_ID && (
-              <p className="mt-2 rounded-xl bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-900 ring-1 ring-sky-100">Báo cáo này do bạn tự chọn khoảng ngày, hệ thống tính từ kết quả đã được thầy cô duyệt và chưa có nhận xét riêng của thầy cô.</p>
+              <p className="mt-2 rounded-xl bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-900 ring-1 ring-sky-100">Báo cáo này do bạn tự chọn khoảng ngày, hệ thống tự tính từ kết quả đã được thầy cô duyệt. Báo cáo chưa có <span className="whitespace-nowrap">nhận xét</span> hay <span className="whitespace-nowrap">chỉnh sửa của thầy cô</span>, nên có thể khác báo cáo thầy cô đã gửi cho cùng giai đoạn.</p>
             )}
             {open && <div ref={vungXem} className="mt-3 scroll-mt-20"><ReportViewer input={open.input as ParentReportPrintInput} /></div>}
           </>
