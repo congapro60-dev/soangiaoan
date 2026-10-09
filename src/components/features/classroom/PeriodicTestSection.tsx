@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle, FileText, Loader2, RefreshCw, Sparkles, Trash2, Upload } from 'lucide-react';
 import {
-  countKeyQuestions, examMarkLabels, splitVariantSources, type ExamVariant,
+  countKeyQuestions, examMarkLabels, keyFromMaterial, splitVariantSources, type ExamVariant,
 } from '../../../lib/classroom/examVariants';
 import { readExamSourceFile } from '../../../lib/classroom/readExamSourceFile';
 import { loadScoreBook } from '../../../lib/classroom/teacherService';
@@ -74,6 +74,12 @@ export const PeriodicTestSection = ({ classId, onChange }: Props) => {
 
   const extractKeys = async (current: readonly Row[], answerMaterial: string) => {
     if (current.length === 0 || !answerMaterial.trim()) return;
+    // Một đề + đáp án đã đúng khuôn: dùng thẳng, không qua AI (không tốn lượt, không có cơ hội bị chép sai).
+    const direct = current.length === 1 ? keyFromMaterial(answerMaterial) : null;
+    if (direct) {
+      setRows(previous => previous.map(row => (row.answerKey.trim() ? row : { ...row, answerKey: direct })));
+      return;
+    }
     setBusy(`AI đang rút đáp án ${current.length} mã đề…`);
     setError('');
     try {

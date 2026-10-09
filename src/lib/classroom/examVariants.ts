@@ -42,6 +42,8 @@ export interface VariantPlan {
 }
 
 export const MAX_EXAM_VARIANTS = 12;
+/** Mã đặt cho bài chỉ có MỘT đề và đề đó không ghi mã. */
+export const SINGLE_VARIANT_CODE = '1';
 export const MAX_VARIANT_SOURCE_CHARS = 40_000;
 export const MAX_VARIANT_KEY_CHARS = 12_000;
 export const MAX_ANSWER_MATERIAL_CHARS = 60_000;
@@ -242,6 +244,7 @@ export const splitVariantSources = (files: readonly VariantSourceFile[]): Varian
   const warnings: string[] = [];
   const byCode = new Map<string, VariantDraft>();
   const material: string[] = [];
+  const loose: { file: string; text: string }[] = [];
   for (const file of files) {
     const text = nfc(file.text || '').trim();
     if (!text) {
@@ -254,6 +257,11 @@ export const splitVariantSources = (files: readonly VariantSourceFile[]): Varian
       ? [{ code: fileCode, text, answerOnly: true }]
       : blocksOf(text, fileCode);
     for (const block of blocks) {
+      if (!block.answerOnly && !block.code) {
+        // Đề không ghi mã: giữ riêng — nếu cả đợt chỉ có MỘT đề như vậy thì đó là đề duy nhất (xem bên dưới).
+        loose.push({ file: file.name, text: block.text.trim() });
+        continue;
+      }
       if (block.answerOnly || !block.code) {
         material.push(`--- ${block.code ? `Phần đáp án nằm sau đề mã ${block.code}` : 'Phần không ghi mã đề'} (file "${file.name}") ---\n${block.text.trim()}`);
         continue;
@@ -263,6 +271,12 @@ export const splitVariantSources = (files: readonly VariantSourceFile[]): Varian
       if (!draft.files.includes(file.name)) draft.files.push(file.name);
       byCode.set(block.code, draft);
     }
+  }
+  // Một đề duy nhất, không có mã đề: không bắt giáo viên đặt mã — coi là đề số 1 (chỉ một mã nên chấm khỏi đọc mã trên ảnh).
+  if (byCode.size === 0 && loose.length === 1) {
+    byCode.set(SINGLE_VARIANT_CODE, { code: SINGLE_VARIANT_CODE, sourceText: loose[0].text, files: [loose[0].file] });
+  } else {
+    for (const item of loose) material.push(`--- Phần không ghi mã đề (file "${item.file}") ---\n${item.text}`);
   }
   const variants = [...byCode.values()]
     .sort((left, right) => left.code.localeCompare(right.code, 'vi', { numeric: true }))
@@ -286,6 +300,23 @@ const QUESTION_LINE = /^\s*(?:phần\s+[ivx\d]+\s*[-–—.:]\s*)?(?:câu|bài)\
 /** Số câu trong một đáp án chuẩn hoá (mỗi câu một dòng "Câu N: …" / "Phần II – Câu N: …"). */
 export const countKeyQuestions = (answerKey: string): number =>
   answerKey.split(/\r?\n/u).filter(line => QUESTION_LINE.test(line)).length;
+
+/**
+ * Đáp án đã soạn sẵn đúng khuôn (mỗi câu một dòng "Phần I – Câu 1: A") thì dùng thẳng, khỏi nhờ AI chép lại — AI chép là
+ * cơ hội để một câu bị đổi chữ. Phần mở đầu (tên, thang điểm) bỏ; dòng nối của một câu tự luận ghép vào câu đó.
+ * Chưa đủ `MIN_DIRECT_KEY_QUESTIONS` câu → null (tư liệu là bảng/văn xuôi, để AI đọc).
+ */
+export const MIN_DIRECT_KEY_QUESTIONS = 5;
+export const keyFromMaterial = (material: string): string | null => {
+  const entries: string[] = [];
+  for (const raw of material.split(/\r?\n/u)) {
+    const line = raw.trim();
+    if (!line || line.startsWith('---')) continue;
+    if (QUESTION_LINE.test(line)) entries.push(line);
+    else if (entries.length > 0 && !line.includes('|')) entries[entries.length - 1] += `\n${line}`;
+  }
+  return entries.length >= MIN_DIRECT_KEY_QUESTIONS ? clip(entries.join('\n'), MAX_VARIANT_KEY_CHARS) : null;
+};
 
 const CODE_ID = /^[0-9A-Za-z]{1,8}$/u;
 
