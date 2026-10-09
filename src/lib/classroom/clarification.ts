@@ -11,11 +11,6 @@ import { READ_CONFIDENCE_FLOOR } from './submissionSelection.js';
 import { applyStudentTypedAnswer, parseExpectedAnswer } from './questionRescore.js';
 import type { ClarifyKind, ClarifyState, QuestionClarify, QuestionResult } from './types.js';
 
-/** Trường của lớp: giáo viên bật thì máy mới hỏi lại học sinh. Mặc định TẮT. */
-export const CLARIFY_CLASS_FIELD = 'askStudentClarification';
-export const clarifyEnabledFor = (classData: Record<string, unknown> | null | undefined): boolean =>
-  classData?.[CLARIFY_CLASS_FIELD] === true;
-
 /** Câu máy đọc chưa chắc: không đọc được, tự đánh dấu cần soát, hoặc độ chắc dưới ngưỡng (cùng tiêu chí `hasUncertainRead`). */
 export const isUncertainQuestion = (q: QuestionResult): boolean =>
   q.ignoredByTeacherInstruction !== true

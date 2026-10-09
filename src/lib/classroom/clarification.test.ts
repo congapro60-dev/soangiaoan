@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  answerClarifyRow, awaitsClarification, buildClarifyRows, canonicalAnswer, clarifyEnabledFor, clarifyKindFor, failPhotoRegrade,
+  answerClarifyRow, awaitsClarification, buildClarifyRows, canonicalAnswer, clarifyKindFor, failPhotoRegrade,
   finishPhotoRegrade, isOwnClarifyPhotoUrl, isUncertainQuestion, pendingClarifyCount, skipClarifyRow, startPhotoRegrade,
 } from './clarification';
 import type { QuestionResult } from './types';
@@ -18,12 +18,6 @@ describe('câu máy đọc chưa chắc', () => {
     expect(isUncertainQuestion(row({ confidence: 0.4 }))).toBe(true);
     expect(isUncertainQuestion(row({ confidence: 0.6 }))).toBe(false);
     expect(isUncertainQuestion(row({ status: 'unreadable', ignoredByTeacherInstruction: true }))).toBe(false);
-  });
-
-  it('công tắc của lớp mặc định TẮT', () => {
-    expect(clarifyEnabledFor({})).toBe(false);
-    expect(clarifyEnabledFor(null)).toBe(false);
-    expect(clarifyEnabledFor({ askStudentClarification: true })).toBe(true);
   });
 });
 

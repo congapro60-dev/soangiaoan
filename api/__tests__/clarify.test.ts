@@ -64,7 +64,7 @@ const seed = (extra: Doc = {}): Record<string, Record<string, Doc>> => ({
     'student-uid-1': { studentId: 'student-1', classId: 'class-1', teacherId: 'teacher-1' },
     'student-uid-2': { studentId: 'student-2', classId: 'class-1', teacherId: 'teacher-1' },
   },
-  classes: { 'class-1': { teacherId: 'teacher-1', askStudentClarification: true } },
+  classes: { 'class-1': { teacherId: 'teacher-1' } },
   submissions: {
     'sub-1': {
       teacherId: 'teacher-1', classId: 'class-1', studentId: 'student-1', assignmentId: 'asg-1', fileUrls: [], note: '', status: 'graded',
@@ -181,15 +181,13 @@ describe('student clarification · applyClarification', () => {
   const grade = (rows: Doc[]) => ({ score: 0, maxScore: 1, feedback: '', strengths: [], weaknesses: [], questionResults: rows }) as never;
   const uncertain = row({ status: 'unreadable', needsTeacherReview: true, studentAnswer: 'B hoặc D', expectedAnswer: 'D', score: 0 });
 
-  it('lớp tắt công tắc, hoặc GV chấm → không hỏi lại', async () => {
-    const off = makeDb({ classes: { 'class-1': { askStudentClarification: false } } });
-    expect((await applyClarification(off as never, { classId: 'class-1' }, grade([uncertain]), true)).asked).toBe(0);
-    const on = makeDb({ classes: { 'class-1': { askStudentClarification: true } } });
-    expect((await applyClarification(on as never, { classId: 'class-1' }, grade([uncertain]), false)).asked).toBe(0);
+  it('GV chấm → không hỏi lại (chỉ bài học sinh tự nộp)', async () => {
+    const db = makeDb({ classes: { 'class-1': { teacherId: 'teacher-1' } } });
+    expect((await applyClarification(db as never, { classId: 'class-1' }, grade([uncertain]), false)).asked).toBe(0);
   });
 
-  it('lớp bật + học sinh nộp → đánh dấu câu chưa chắc', async () => {
-    const on = makeDb({ classes: { 'class-1': { askStudentClarification: true } } });
+  it('học sinh nộp → luôn đánh dấu câu chưa chắc để hỏi lại, lớp không cần bật công tắc nào', async () => {
+    const on = makeDb({ classes: { 'class-1': { teacherId: 'teacher-1' } } });
     const result = await applyClarification(on as never, { classId: 'class-1' }, grade([row(), uncertain]), true);
     expect(result.asked).toBe(1);
     expect(result.grade.questionResults?.[1].clarify).toMatchObject({ kind: 'mcq', state: 'open' });

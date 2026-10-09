@@ -11,7 +11,7 @@
 import type { VercelResponse } from '@vercel/node';
 import { getAuth } from 'firebase-admin/auth';
 import {
-  answerClarifyRow, buildClarifyRows, canonicalAnswer, clarifyEnabledFor, failPhotoRegrade, finishPhotoRegrade,
+  answerClarifyRow, buildClarifyRows, canonicalAnswer, failPhotoRegrade, finishPhotoRegrade,
   isOwnClarifyPhotoUrl, pendingClarifyCount, skipClarifyRow, startPhotoRegrade,
 } from '../src/lib/classroom/clarification.js';
 import { recomputeTotal } from '../src/lib/classroom/questionRescore.js';
@@ -47,8 +47,6 @@ export const applyClarification = async (
 ): Promise<{ grade: SubmissionGrade; asked: number }> => {
   const rows = grade.questionResults;
   if (!isStudentActor || !rows || rows.length === 0) return { grade, asked: 0 };
-  const classSnap = await db.collection('classes').doc(String(submission.classId || '')).get();
-  if (!clarifyEnabledFor(classSnap.exists ? classSnap.data() : null)) return { grade, asked: 0 };
   const { rows: marked, asked } = buildClarifyRows(rows);
   return asked === 0 ? { grade, asked: 0 } : { grade: { ...grade, questionResults: marked }, asked };
 };
