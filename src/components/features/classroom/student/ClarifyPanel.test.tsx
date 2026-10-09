@@ -38,4 +38,18 @@ describe('ClarifyPanel', () => {
     // Không có đáp án đúng nào lọt ra màn hình
     expect(html).not.toContain('Đáp án đúng');
   });
+
+  it('câu tự luận: có nút chụp ảnh; đang chấm lại thì báo chờ; chấm lỗi thì có nút "Thử lại"; hết số lần chụp thì chỉ còn "để thầy cô xem"', () => {
+    const html = (clarify: QuestionResult['clarify']) => renderToStaticMarkup(<ClarifyPanel onChanged={() => undefined} items={[{ title: 'KT', submission: submission([q({ questionNumber: 'Bài 1', clarify })]) }]} />);
+    expect(html({ kind: 'photo', state: 'open', reading: '' })).toContain('Chụp / chọn ảnh câu này');
+    expect(html({ kind: 'photo', state: 'open', reading: '', photoUrls: ['a'], message: 'Máy vẫn chưa đọc rõ' })).toContain('Gửi thêm ảnh câu này');
+    expect(html({ kind: 'photo', state: 'open', reading: '', photoUrls: ['a'], message: 'Máy vẫn chưa đọc rõ' })).toContain('Máy vẫn chưa đọc rõ');
+    expect(html({ kind: 'photo', state: 'regrading', reading: '', photoUrls: ['a'] })).toContain('Máy đang đọc lại ảnh em chụp');
+    expect(html({ kind: 'photo', state: 'photo_saved', reading: '', photoUrls: ['a'] })).toContain('Thử lại');
+    const exhausted = html({ kind: 'photo', state: 'open', reading: '', photoUrls: ['a'], tries: 5 });
+    expect(exhausted).not.toContain('Gửi thêm ảnh câu này');
+    expect(exhausted).toContain('Để thầy cô xem');
+    // Câu tự luận không có nút "Xác nhận câu này" (không có gì để gõ)
+    expect(html({ kind: 'photo', state: 'open', reading: '' })).not.toContain('Xác nhận câu này');
+  });
 });
