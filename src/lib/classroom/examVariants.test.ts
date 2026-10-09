@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  buildDetectExamCodePrompt, buildExtractVariantKeysPrompt, codeFromFileName, countKeyQuestions, docxXmlToText, examMarkLabels, examScoreCheck, keyFromMaterial,
+  buildDetectExamCodePrompt, buildExtractVariantKeysPrompt, codeFromFileName, countKeyQuestions, docxXmlToText, examMarkLabels, examScoreCheck, keyFromMaterial, pageCodes,
   parseDetectedExamCode, parseExtractedVariantKeys, pdfItemsToText, sanitizeExamVariants, splitVariantSources,
 } from './examVariants';
 
@@ -222,3 +222,25 @@ describe('đáp án soạn sẵn đúng khuôn', () => {
   });
 });
 
+describe('trang PDF của từng mã đề', () => {
+  it('trang ghi "Mã đề" đổi mã, trang không ghi theo trang trước; trang đáp án bị loại và cắt mạch', () => {
+    const pages = ['Mã đề: 1201\nCâu 1. a', 'Câu 5. tiếp', 'Mã đề: 1202\nCâu 1. b', 'Câu 9. tiếp', 'BẢNG ĐÁP ÁN\nCâu | 1201 | 1202', 'Trang lạc'];
+    expect(pageCodes(pages, null)).toEqual(['1201', '1201', '1202', '1202', null, null]);
+  });
+
+  it('file rời: mã lấy từ tên file cho cả các trang không ghi mã; hàng bảng đáp án không đổi mã', () => {
+    expect(pageCodes(['Câu 1.', 'Mã đề 101 | A | B | C | D | A'], '103')).toEqual(['103', '103']);
+  });
+
+  it('splitVariantSources gom số trang theo mã (file gộp) và theo đề duy nhất (không mã)', () => {
+    const pages = ['Mã đề: 1201\nCâu 1. a', 'Câu 5. tiếp', 'Mã đề: 1202\nCâu 1. b', 'BẢNG ĐÁP ÁN\nCâu | 1201 | 1202'];
+    const plan = splitVariantSources([{ name: 'gop.pdf', text: pages.join('\n'), pages }]);
+    expect(plan.variants.map(v => [v.code, v.pageRefs])).toEqual([
+      ['1201', [{ file: 'gop.pdf', pages: [1, 2] }]],
+      ['1202', [{ file: 'gop.pdf', pages: [3] }]],
+    ]);
+    const single = splitVariantSources([{ name: 'De01.pdf', text: 'Câu 1. a\nCâu 2. b', pages: ['Câu 1. a', 'Câu 2. b'] }]);
+    expect(single.variants[0]).toMatchObject({ code: '1', pageRefs: [{ file: 'De01.pdf', pages: [1, 2] }] });
+    expect(splitVariantSources([{ name: 'Mã đề 101.docx', text: 'Câu 1. a' }]).variants[0].pageRefs).toEqual([]);
+  });
+});

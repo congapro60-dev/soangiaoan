@@ -174,6 +174,8 @@ export const solveAnswerKey = async (
   examImages: string[],
   maxScore: number,
   gradingInstructions?: string,
+  /** Đề kiểm tra định kì: đáp án theo khuôn từng câu một dòng. */
+  periodic?: boolean,
 ): Promise<SolvedAnswerKeyResult> => {
   const user = auth.currentUser;
   if (!user) throw new Error('Phiên đăng nhập đã hết hạn.');
@@ -182,6 +184,7 @@ export const solveAnswerKey = async (
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
+      ...(periodic ? { periodic: true } : {}),
       action: 'solveAnswerKey',
       idToken: await user.getIdToken(),
       classId,

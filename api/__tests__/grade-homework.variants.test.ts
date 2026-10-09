@@ -257,4 +257,22 @@ describe('POST /api/grade-homework · bài kiểm tra định kì nhiều mã đ
     expect(tags.statusCode).toBe(400);
     expect(harness.state.assignments['kt-1'].competencyTags).toBeUndefined();
   });
+
+  it('AI giải đề định kì: câu lệnh có khuôn đáp án + bỏ bước giải câu khách quan; đề thường thì không; trả đáp án + chỗ chưa chắc', async () => {
+    const harness = seed();
+    harness.state.classes = { 'lop-12': { teacherId: 'gv-1', name: '12A', grade: '12' } };
+    h.db = makeDb(harness);
+    const prompts = stubImageThenGeminiResponses(makeGeminiResponse(JSON.stringify({ answerKey: 'Phần I – Câu 1: C', uncertainties: ['CHƯA CHẮC: Câu 6 hình khác chữ'] })));
+
+    const periodic = await call({ action: 'solveAnswerKey', classId: 'lop-12', examText: 'Câu 1. Đề.', examImages: [], maxScore: 10, periodic: true });
+    expect(periodic.statusCode).toBe(200);
+    expect(periodic.body).toMatchObject({ answerKey: 'Phần I – Câu 1: C', uncertainties: ['CHƯA CHẮC: Câu 6 hình khác chữ'] });
+    expect(prompts[0]).toContain('ĐÂY LÀ ĐỀ KIỂM TRA ĐỊNH KÌ');
+    expect(prompts[0]).toContain('Phần II – Câu 1: a) Đ; b) S; c) Đ; d) S');
+    expect(prompts[0]).toContain('KHÔNG nêu các bước giải cho ba dạng này');
+
+    await call({ action: 'solveAnswerKey', classId: 'lop-12', examText: 'Câu 1. Đề.', examImages: [], maxScore: 10 });
+    expect(prompts[1]).not.toContain('ĐÂY LÀ ĐỀ KIỂM TRA ĐỊNH KÌ');
+  });
 });
+

@@ -31,12 +31,17 @@ const PDF_SCALE = 1.0;
 const IMG_QUALITY = 0.4;
 
 /** Convert PDF pages to data URLs */
-export const pdfToImages = async (file: File, onProgress?: (p: number) => void, autoClean?: boolean): Promise<string[]> => {
+/** `pages`: chỉ vẽ các trang này (đánh số từ 1) — vd các trang của một mã đề trong file gộp. Vắng = từ đầu tới trần. */
+export const pdfToImages = async (file: File, onProgress?: (p: number) => void, autoClean?: boolean, pages?: readonly number[]): Promise<string[]> => {
   const ab = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
   const images: string[] = [];
-  const pageCount = Math.min(pdf.numPages, MAX_PDF_PAGES);
-  for (let i = 1; i <= pageCount; i++) {
+  const wanted = pages?.length
+    ? pages.filter(n => Number.isInteger(n) && n >= 1 && n <= pdf.numPages).slice(0, MAX_PDF_PAGES)
+    : Array.from({ length: Math.min(pdf.numPages, MAX_PDF_PAGES) }, (_, k) => k + 1);
+  const pageCount = wanted.length;
+  for (let k = 0; k < pageCount; k++) {
+    const i = wanted[k];
     const page = await pdf.getPage(i);
     const viewport = page.getViewport({ scale: PDF_SCALE }); 
     const canvas = document.createElement('canvas');
@@ -52,7 +57,7 @@ export const pdfToImages = async (file: File, onProgress?: (p: number) => void, 
     
     images.push(canvas.toDataURL('image/jpeg', IMG_QUALITY));
     canvas.width = 0; canvas.height = 0; // release GPU memory
-    if (onProgress) onProgress(Math.round((i / pageCount) * 100));
+    if (onProgress) onProgress(Math.round(((k + 1) / pageCount) * 100));
   }
   return images;
 };

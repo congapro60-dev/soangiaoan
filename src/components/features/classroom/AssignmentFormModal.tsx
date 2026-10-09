@@ -57,7 +57,7 @@ export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSu
   const [dapAnDoAi, setDapAnDoAi] = useState(false);
   const [dangSoanRubric, setDangSoanRubric] = useState(false);
   const [loai, setLoai] = useState<'btvn' | 'dinhKi'>('btvn');
-  const [dinhKi, setDinhKi] = useState<PeriodicTestState>({ variants: [], sheetLabel: '', busy: false, problems: [] });
+  const [dinhKi, setDinhKi] = useState<PeriodicTestState>({ variants: [], sheetLabel: '', rubric: '', answerByAi: false, busy: false, problems: [] });
   const laDinhKi = loai === 'dinhKi';
 
   const deRef = useRef<HTMLInputElement>(null);
@@ -205,14 +205,13 @@ export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSu
           </div>
 
           {laDinhKi ? (
-            <>
-              <PeriodicTestSection classId={classId} onChange={setDinhKi} />
-              <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4">
-                <p className="text-sm font-black text-slate-800">Lệnh riêng cho AI khi chấm <span className="whitespace-nowrap">(không bắt buộc)</span></p>
-                <textarea value={gradingInstructions} onChange={e => setGradingInstructions(e.target.value)} rows={2}
-                  placeholder="Ví dụ: Phần tự luận chấm theo hướng dẫn chấm; không trừ điểm trình bày." className={`${O} mt-2 bg-white font-normal`} />
-              </div>
-            </>
+            <PeriodicTestSection
+              classId={classId}
+              maxScore={maxScore}
+              gradingInstructions={gradingInstructions}
+              onGradingInstructions={setGradingInstructions}
+              onChange={setDinhKi}
+            />
           ) : (
             <>
               <div className="rounded-2xl border border-slate-200 p-4">
@@ -342,8 +341,8 @@ export const AssignmentFormModal = ({ classId, className, dangGui, onClose, onSu
           <button
             onClick={() => onSubmit(laDinhKi
               ? {
-                title: title.trim(), dueAt, maxScore, answerKey: '', rubric: '', deFiles: [], sourceText: '', sourceImages: [],
-                gradingInstructions: gradingInstructions.trim(), answerKeyImages: [], answerKeyByAi: false,
+                title: title.trim(), dueAt, maxScore, answerKey: '', rubric: dinhKi.rubric, deFiles: [], sourceText: '', sourceImages: [],
+                gradingInstructions: gradingInstructions.trim(), answerKeyImages: [], answerKeyByAi: dinhKi.answerByAi,
                 periodicTest: dinhKi.sheetLabel ? { sheetLabel: dinhKi.sheetLabel } : {}, examVariants: dinhKi.variants,
               }
               : { title: title.trim(), dueAt, maxScore, answerKey: answerKey.trim(), rubric: rubric.trim(), deFiles, sourceText, sourceImages, gradingInstructions: gradingInstructions.trim(), answerKeyImages, answerKeyByAi: dapAnDoAi })}
