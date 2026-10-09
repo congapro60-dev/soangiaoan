@@ -1,0 +1,1320 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "g11-sequences-p1",
+  "version": "1.1.0",
+  "status": "needs_review",
+  "contentHash": "e445d4729afca398ea2296e2b6c284ac50174f4d4b6729f52f036fba42884b74",
+  "subject": "math",
+  "grade": 11,
+  "curriculumRefs": [
+    "CT2018-Toan11",
+    "T11.18",
+    "T11.19"
+  ],
+  "sourceRefs": [
+    {
+      "id": "src-sbt-g11",
+      "kind": "external",
+      "locator": "SBT Toán 11 Tập 1 / Bài 5 Dãy số; V8_2_1_11T38_DaySo_SELFHOST.zip",
+      "label": "Sách bài tập Toán 11 Tập 1 và học liệu Dãy số",
+      "verification": "teacher_review_required"
+    },
+    {
+      "id": "src-smartplan-tds",
+      "kind": "external",
+      "locator": "SmartPlan src/data/ppct/tds-g11.json",
+      "label": "Phân phối chương trình Dewey Toán 11",
+      "verification": "teacher_review_required"
+    }
+  ],
+  "essentialQuestion": "Làm thế nào để mô hình hóa quy luật hàng ghế thực tế thành dãy số và chuyển đổi linh hoạt giữa 4 cách biểu diễn?",
+  "prerequisites": [
+    "Tập hợp số tự nhiên và N*",
+    "Khái niệm hàm số và tập xác định"
+  ],
+  "objectives": [
+    {
+      "id": "obj-t11-18",
+      "code": "T11.18",
+      "level": "must",
+      "statement": "Nhận biết dãy số hữu hạn và vô hạn; phân biệt số thứ tự n và số hạng u_n trong mô hình thực tế.",
+      "prerequisiteIds": []
+    },
+    {
+      "id": "obj-t11-19",
+      "code": "T11.19",
+      "level": "must",
+      "statement": "Nhận biết và chuyển đổi giữa 4 cách cho một dãy số: liệt kê các số hạng, công thức tổng quát, hệ thức truy hồi, diễn đạt bằng lời.",
+      "prerequisiteIds": [
+        "obj-t11-18"
+      ]
+    }
+  ],
+  "budget": {
+    "slotMinutes": 40,
+    "coreMinutes": 36,
+    "reserveMinutes": 2,
+    "transitionMinutes": 0,
+    "optionalMinutes": 2
+  },
+  "activities": [
+    {
+      "id": "act-exp",
+      "phase": "experience",
+      "budgetRole": "core",
+      "minutes": 3,
+      "objectiveIds": [
+        "obj-t11-18"
+      ],
+      "taskIds": [
+        "task-exp-predict"
+      ],
+      "participation": "whole_class",
+      "studentAction": "Quan sát sơ đồ hội trường thành phố gồm 25 hàng ghế ($u_1 = 18$). Dự đoán dãy số ghế dừng lại hay kéo dài vô hạn.",
+      "expectedProduct": "Dự đoán về tính hữu hạn của hàng ghế thực tế.",
+      "evidenceIds": [
+        "ev-exp-pred"
+      ],
+      "teacherLookFor": "Nhận biết số hàng ghế thực tế bị giới hạn ở 25 hàng.",
+      "supportIds": [
+        "hint-exp-1"
+      ],
+      "transition": "Chuyển sang kiểm tra cá nhân đầu vào."
+    },
+    {
+      "id": "act-pre",
+      "phase": "guided",
+      "budgetRole": "core",
+      "minutes": 5,
+      "objectiveIds": [
+        "obj-t11-18",
+        "obj-t11-19"
+      ],
+      "taskIds": [
+        "task-pre-finite-inf",
+        "task-pre-three-terms"
+      ],
+      "participation": "individual",
+      "studentAction": "Làm bài precheck cá nhân xác định dãy hữu hạn hay vô hạn và tính 3 số hạng đầu.",
+      "expectedProduct": "Phiếu precheck xác định đúng dãy vô hạn và 3 số hạng 18, 20, 22.",
+      "evidenceIds": [
+        "ev-pre-18",
+        "ev-pre-19"
+      ],
+      "teacherLookFor": "Phân biệt tập chỉ số hữu hạn và vô hạn.",
+      "supportIds": [
+        "hint-pre-1",
+        "hint-pre-2"
+      ],
+      "transition": "Chuẩn bị chuyển sang bài học hình thành kiến thức."
+    },
+    {
+      "id": "act-form-18",
+      "phase": "formation",
+      "budgetRole": "core",
+      "minutes": 7,
+      "objectiveIds": [
+        "obj-t11-18"
+      ],
+      "taskIds": [
+        "task-form-distinguish-n-un"
+      ],
+      "participation": "individual",
+      "studentAction": "Phân tích bảng dữ liệu để phân biệt số thứ tự hàng $n$ và số lượng ghế $u_n$.",
+      "expectedProduct": "Khẳng định n là chỉ số thứ tự, u_n là giá trị phần tử.",
+      "evidenceIds": [
+        "ev-form-18"
+      ],
+      "teacherLookFor": "Không nhầm lẫn giữa chỉ số n và giá trị u_n.",
+      "supportIds": [
+        "hint-form18-1",
+        "hint-form18-2",
+        "hint-form18-3",
+        "hint-form18-4"
+      ],
+      "transition": "Chuyển sang ghép 4 biểu diễn."
+    },
+    {
+      "id": "act-form-19",
+      "phase": "formation",
+      "budgetRole": "core",
+      "minutes": 7,
+      "objectiveIds": [
+        "obj-t11-19"
+      ],
+      "taskIds": [
+        "task-form-four-rep"
+      ],
+      "participation": "group",
+      "studentAction": "Ghép 4 thẻ biểu diễn dãy số ghế hội trường: liệt kê, công thức số hạng tổng quát, hệ thức truy hồi, mô tả bằng lời.",
+      "expectedProduct": "Bộ ghép 4 biểu diễn chuẩn xác.",
+      "evidenceIds": [
+        "ev-form-19"
+      ],
+      "teacherLookFor": "Nhận diện đúng 4 dạng biểu diễn của cùng một dãy số.",
+      "supportIds": [
+        "hint-form19-1"
+      ],
+      "transition": "Chuyển sang hoạt động luyện tập phân hóa."
+    },
+    {
+      "id": "act-prac",
+      "phase": "practice",
+      "budgetRole": "core",
+      "minutes": 8,
+      "objectiveIds": [
+        "obj-t11-18",
+        "obj-t11-19"
+      ],
+      "taskIds": [
+        "task-prac-error-hunt",
+        "task-prac-support-tab",
+        "task-prac-core-calc"
+      ],
+      "participation": "individual",
+      "studentAction": "Phát hiện lỗi sai công thức $18+2n$, sau đó giải quyết nhiệm vụ theo nhánh phân hóa.",
+      "expectedProduct": "Kết quả sửa lỗi và các giá trị tính toán u_7=30, u_25=66.",
+      "evidenceIds": [
+        "ev-prac-reasoning"
+      ],
+      "teacherLookFor": "Chỉ ra lỗi sai tại n=1 của công thức 18+2n.",
+      "supportIds": [
+        "hint-hunt-1",
+        "hint-supp-1",
+        "hint-core-1"
+      ],
+      "transition": "Chuyển sang kiểm tra cá nhân độc lập."
+    },
+    {
+      "id": "act-recheck",
+      "phase": "recheck",
+      "budgetRole": "core",
+      "minutes": 4,
+      "objectiveIds": [
+        "obj-t11-18",
+        "obj-t11-19"
+      ],
+      "taskIds": [
+        "task-recheck-18",
+        "task-recheck-19"
+      ],
+      "participation": "individual",
+      "studentAction": "Làm độc lập 2 bài kiểm tra recheck phân loại dãy số và viết/kiểm chứng 4 biểu diễn của dãy số mới.",
+      "expectedProduct": "Phiếu làm bài cá nhân hoàn toàn độc lập đạt chuẩn.",
+      "evidenceIds": [
+        "ev-recheck-18",
+        "ev-recheck-19"
+      ],
+      "teacherLookFor": "Học sinh làm độc lập không cần hỗ trợ giàn giáo.",
+      "supportIds": [
+        "hint-recheck-1",
+        "hint-recheck-2"
+      ],
+      "transition": "Chuyển sang phiếu exit ticket."
+    },
+    {
+      "id": "act-extension",
+      "phase": "practice",
+      "budgetRole": "optional",
+      "minutes": 2,
+      "objectiveIds": [
+        "obj-t11-18",
+        "obj-t11-19"
+      ],
+      "taskIds": [
+        "task-extension-reflect",
+        "task-prac-ext-rules"
+      ],
+      "participation": "individual",
+      "studentAction": "Sau recheck độc lập, chọn Mật Cảnh Tinh Anh để thử quy luật khác; nếu còn cần hỗ trợ, ghi điều còn vướng và chờ phản hồi của giáo viên.",
+      "expectedProduct": "Ghi chú bước học tiếp hoặc phép kiểm chứng quy luật nâng cao.",
+      "evidenceIds": [
+        "ev-extension-reflect"
+      ],
+      "supportIds": [
+        "hint-extension-reflect",
+        "hint-ext-1"
+      ],
+      "teacherLookFor": "Chỉ mở nhánh nâng cao sau recheck đã được xác nhận; không suy mastery từ kết quả phó bản.",
+      "transition": "Trở về exit bắt buộc khi giáo viên tập hợp."
+    },
+    {
+      "id": "act-exit",
+      "phase": "exit",
+      "budgetRole": "core",
+      "minutes": 2,
+      "objectiveIds": [
+        "obj-t11-18",
+        "obj-t11-19"
+      ],
+      "taskIds": [
+        "task-exit-ticket"
+      ],
+      "participation": "individual",
+      "studentAction": "Hoàn thành phiếu exit ticket: phân biệt n và u_n, nêu một biểu diễn và tự đánh giá.",
+      "expectedProduct": "Phiếu tự đánh giá và phản tư cá nhân.",
+      "evidenceIds": [
+        "ev-exit-mastery"
+      ],
+      "teacherLookFor": "Trình bày rõ ràng khái niệm đã học và bước phát triển tiếp theo.",
+      "supportIds": [
+        "hint-exit-1"
+      ],
+      "transition": "Kết thúc tiết hoặc làm bài tập mở rộng dự phòng."
+    },
+    {
+      "id": "act-reserve",
+      "phase": "reflection",
+      "budgetRole": "reserve",
+      "minutes": 2,
+      "objectiveIds": [
+        "obj-t11-19"
+      ],
+      "taskIds": [
+        "task-reserve-deepen"
+      ],
+      "participation": "individual",
+      "studentAction": "Khám phá mở rộng về hàm số dãy số trên tập số tự nhiên N*.",
+      "expectedProduct": "Ghi chú mở rộng về bản chất hàm số của dãy số.",
+      "evidenceIds": [
+        "ev-reserve-obs"
+      ],
+      "teacherLookFor": "Hiểu mối liên hệ u_n = u(n).",
+      "supportIds": [
+        "hint-reserve-1"
+      ],
+      "transition": "Kết thúc tiết học."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "task-exp-predict",
+      "type": "closed",
+      "objectiveIds": [
+        "obj-t11-18"
+      ],
+      "activityId": "act-exp",
+      "participation": "whole_class",
+      "prompt": "Hội trường thành phố có 25 hàng ghế ($1 \\le n \\le 25$), hàng đầu có 18 ghế ($u_1 = 18$), mỗi hàng sau thêm 2 ghế. Trong thực tế, dãy số ghế này là dãy hữu hạn hay vô hạn?",
+      "sourceRefs": [
+        "src-sbt-g11"
+      ],
+      "evidenceIds": [
+        "ev-exp-pred"
+      ],
+      "inputSchema": {
+        "options": [
+          {
+            "id": "opt_finite_seat",
+            "label": "Dãy số hữu hạn (hội trường thực tế chỉ có 25 hàng ghế)"
+          },
+          {
+            "id": "opt_infinite_seat",
+            "label": "Dãy số vô hạn (hàng ghế tiếp diễn mãi mãi không dừng)"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "options": [
+          "opt_finite_seat",
+          "opt_infinite_seat"
+        ],
+        "answerKey": "opt_finite_seat"
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Hội trường thực tế chỉ có 25 hàng ghế nên là dãy số hữu hạn.",
+      "minutes": 3,
+      "hintIds": [
+        "hint-exp-1"
+      ],
+      "branch": "shared",
+      "sequenceType": "finite"
+    },
+    {
+      "id": "task-pre-finite-inf",
+      "type": "closed",
+      "objectiveIds": [
+        "obj-t11-18"
+      ],
+      "activityId": "act-pre",
+      "participation": "individual",
+      "prompt": "Xét hai mô hình: (A) Dãy số ghế thực tế 25 hàng ($1 \\le n \\le 25$) và (B) Quy luật số ghế tiếp diễn mãi mãi ($n \\in \\mathbb{N}^*$). Mô hình nào là dãy số vô hạn?",
+      "sourceRefs": [
+        "src-sbt-g11"
+      ],
+      "evidenceIds": [
+        "ev-pre-18"
+      ],
+      "inputSchema": {
+        "options": [
+          {
+            "id": "opt_A",
+            "label": "Mô hình A: Dãy 25 hàng ghế hội trường với $1 \\le n \\le 25$"
+          },
+          {
+            "id": "opt_B",
+            "label": "Mô hình B: Quy luật số ghế tiếp diễn mãi mãi với $n \\in \\mathbb{N}^*$"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "options": [
+          "opt_A",
+          "opt_B"
+        ],
+        "answerKey": "opt_B"
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Tập chỉ số N* không có giới hạn trên nên mô hình B là dãy số vô hạn.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-pre-1"
+      ],
+      "branch": "shared",
+      "sequenceType": "infinite"
+    },
+    {
+      "id": "task-pre-three-terms",
+      "type": "closed",
+      "objectiveIds": [
+        "obj-t11-19"
+      ],
+      "activityId": "act-pre",
+      "participation": "individual",
+      "prompt": "Hàng 1 có 18 ghế, mỗi hàng sau thêm 2 ghế. Ba số hạng đầu tiên của dãy số ghế ($u_1, u_2, u_3$) lần lượt là:",
+      "sourceRefs": [
+        "src-sbt-g11"
+      ],
+      "evidenceIds": [
+        "ev-pre-19"
+      ],
+      "inputSchema": {
+        "options": [
+          {
+            "id": "opt_terms_18_20_22",
+            "label": "$u_1 = 18, u_2 = 20, u_3 = 22$"
+          },
+          {
+            "id": "opt_terms_18_19_20",
+            "label": "$u_1 = 18, u_2 = 19, u_3 = 20$"
+          },
+          {
+            "id": "opt_terms_18_21_24",
+            "label": "$u_1 = 18, u_2 = 21, u_3 = 24$"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "options": [
+          "opt_terms_18_20_22",
+          "opt_terms_18_19_20",
+          "opt_terms_18_21_24"
+        ],
+        "answerKey": "opt_terms_18_20_22"
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Tính trực tiếp: u_1=18, u_2=18+2=20, u_3=20+2=22.",
+      "minutes": 3,
+      "hintIds": [
+        "hint-pre-2"
+      ],
+      "branch": "shared",
+      "representation": "list"
+    },
+    {
+      "id": "task-form-distinguish-n-un",
+      "type": "closed",
+      "objectiveIds": [
+        "obj-t11-18"
+      ],
+      "activityId": "act-form-18",
+      "participation": "individual",
+      "prompt": "Trong ký hiệu dãy số $u_n$, phân biệt ý nghĩa: $n$ là gì và $u_n$ là gì?",
+      "sourceRefs": [
+        "src-sbt-g11"
+      ],
+      "evidenceIds": [
+        "ev-form-18"
+      ],
+      "inputSchema": {
+        "options": [
+          {
+            "id": "opt_n_index_un_value",
+            "label": "$n$ là chỉ số thứ tự của hàng ghế; $u_n$ là số lượng ghế ở hàng thứ $n$"
+          },
+          {
+            "id": "opt_n_value_un_index",
+            "label": "$n$ là số lượng ghế của hàng; $u_n$ là chỉ số thứ tự của hàng ghế"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "options": [
+          "opt_n_index_un_value",
+          "opt_n_value_un_index"
+        ],
+        "answerKey": "opt_n_index_un_value"
+      },
+      "isCore": true,
+      "requiresFullScaffold": true,
+      "supportRationale": "Phân biệt chỉ số n và giá trị u_n qua giàn giáo 4 tầng.",
+      "minutes": 7,
+      "hintIds": [
+        "hint-form18-1",
+        "hint-form18-2",
+        "hint-form18-3",
+        "hint-form18-4"
+      ],
+      "branch": "shared",
+      "sequenceType": "finite"
+    },
+    {
+      "id": "task-form-four-rep",
+      "type": "closed",
+      "objectiveIds": [
+        "obj-t11-19"
+      ],
+      "activityId": "act-form-19",
+      "participation": "group",
+      "prompt": "Ghép 4 cách biểu diễn của dãy số ghế ($u_1=18, u_n=18+2(n-1)=2n+16, 1 \\le n \\le 25$): liệt kê, công thức tổng quát, hệ thức truy hồi và diễn đạt bằng lời.",
+      "sourceRefs": [
+        "src-sbt-g11"
+      ],
+      "evidenceIds": [
+        "ev-form-19"
+      ],
+      "inputSchema": {
+        "representations": [
+          {
+            "id": "rep_list",
+            "label": "Cách 1: Liệt kê các số hạng"
+          },
+          {
+            "id": "rep_explicit",
+            "label": "Cách 2: Công thức số hạng tổng quát"
+          },
+          {
+            "id": "rep_recurrence",
+            "label": "Cách 3: Hệ thức truy hồi"
+          },
+          {
+            "id": "rep_verbal",
+            "label": "Cách 4: Diễn đạt bằng lời"
+          }
+        ],
+        "cards": [
+          {
+            "id": "card_list_18_20_22",
+            "label": "$18, 20, 22, 24, \\dots, 66$"
+          },
+          {
+            "id": "card_explicit_formula",
+            "label": "$u_n = 18 + 2(n-1) = 2n + 16$ với $1 \\le n \\le 25$"
+          },
+          {
+            "id": "card_recurrence_rel",
+            "label": "$u_1 = 18; u_n = u_{n-1} + 2$ với $2 \\le n \\le 25$"
+          },
+          {
+            "id": "card_verbal_desc",
+            "label": "Dãy số gồm 25 số hạng, số hạng đầu bằng 18, mỗi số hạng từ số thứ hai bằng số liền trước cộng thêm 2"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "representation_match",
+        "answerKey": {
+          "rep_list": "card_list_18_20_22",
+          "rep_explicit": "card_explicit_formula",
+          "rep_recurrence": "card_recurrence_rel",
+          "rep_verbal": "card_verbal_desc"
+        }
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Bốn biểu diễn tương đương của cùng một quy luật dãy số ghế.",
+      "minutes": 7,
+      "hintIds": [
+        "hint-form19-1"
+      ],
+      "branch": "shared",
+      "representations": [
+        "list",
+        "explicit",
+        "recurrence",
+        "verbal"
+      ]
+    },
+    {
+      "id": "task-prac-error-hunt",
+      "type": "closed",
+      "objectiveIds": [
+        "obj-t11-18",
+        "obj-t11-19"
+      ],
+      "activityId": "act-prac",
+      "participation": "individual",
+      "prompt": "Phát hiện lỗi sai: Một học sinh đề xuất công thức số ghế là $u_n = 18 + 2n$. Thay $n = 1$ để tính số ghế hàng 1 theo công thức này:",
+      "sourceRefs": [
+        "src-sbt-g11"
+      ],
+      "evidenceIds": [
+        "ev-prac-reasoning"
+      ],
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 20
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Với n=1 công thức 18+2n cho ra 20 thay vì 18, vì vậy công thức đúng phải là u_n = 18 + 2(n-1) = 2n + 16.",
+      "minutes": 3,
+      "hintIds": [
+        "hint-hunt-1"
+      ],
+      "branch": "shared",
+      "representation": "explicit"
+    },
+    {
+      "id": "task-prac-support-tab",
+      "type": "closed",
+      "objectiveIds": [
+        "obj-t11-19"
+      ],
+      "activityId": "act-prac",
+      "participation": "individual",
+      "prompt": "Nhánh Hỗ trợ: Cho hệ thức truy hồi $u_1 = 18, u_n = u_{n-1} + 2$ ($n \\ge 2$). Tính số ghế của hàng 2 ($u_2$):",
+      "sourceRefs": [
+        "src-sbt-g11"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 20
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "u_2 = u_1 + 2 = 18 + 2 = 20.",
+      "minutes": 5,
+      "hintIds": [
+        "hint-supp-1"
+      ],
+      "branch": "support",
+      "representation": "recurrence"
+    },
+    {
+      "id": "task-prac-core-calc",
+      "type": "closed",
+      "objectiveIds": [
+        "obj-t11-19"
+      ],
+      "activityId": "act-prac",
+      "participation": "individual",
+      "prompt": "Nhánh Chuẩn: Với công thức $u_n = 18 + 2(n-1)$ ($1 \\le n \\le 25$), tính số ghế hàng thứ 7 ($u_7$) và hàng thứ 25 ($u_{25}$): Chọn cặp giá trị đúng:",
+      "sourceRefs": [
+        "src-sbt-g11"
+      ],
+      "evidenceIds": [],
+      "inputSchema": {
+        "options": [
+          {
+            "id": "opt_u7_30_u25_66",
+            "label": "$u_7 = 30$ và $u_{25} = 66$"
+          },
+          {
+            "id": "opt_u7_32_u25_68",
+            "label": "$u_7 = 32$ và $u_{25} = 68$"
+          },
+          {
+            "id": "opt_u7_30_u25_64",
+            "label": "$u_7 = 30$ và $u_{25} = 64$"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "options": [
+          "opt_u7_30_u25_66",
+          "opt_u7_32_u25_68",
+          "opt_u7_30_u25_64"
+        ],
+        "answerKey": "opt_u7_30_u25_66"
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "u_7 = 18 + 2(7 - 1) = 30; u_{25} = 18 + 2(25 - 1) = 66.",
+      "minutes": 5,
+      "hintIds": [
+        "hint-core-1"
+      ],
+      "branch": "core",
+      "representation": "explicit"
+    },
+    {
+      "id": "task-prac-ext-rules",
+      "type": "closed",
+      "objectiveIds": [
+        "obj-t11-19"
+      ],
+      "activityId": "act-extension",
+      "participation": "individual",
+      "prompt": "Mật Cảnh Tinh Anh: Hai quy luật cùng có ba số hạng đầu 18, 20, 22. Với $v_n=18+2(n-1)+(n-1)(n-2)(n-3)$, tính $v_4$ rồi đối chiếu quy luật $u_n=18+2(n-1)$.",
+      "sourceRefs": [
+        "src-sbt-g11"
+      ],
+      "evidenceIds": [],
+      "evaluation": {
+        "checkerId": "numeric_exact",
+        "answerKey": 30
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "v_4 = 18 + 2(3) + 3*2*1 = 24 + 6 = 30.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-ext-1"
+      ],
+      "branch": "extension",
+      "representation": "explicit"
+    },
+    {
+      "id": "task-recheck-18",
+      "type": "closed",
+      "objectiveIds": [
+        "obj-t11-18"
+      ],
+      "activityId": "act-recheck",
+      "participation": "individual",
+      "prompt": "Kiểm tra cá nhân T11.18: Dãy số $u_n = \\frac{1}{n}$ với $n \\in \\mathbb{N}^*$ là dãy số hữu hạn hay vô hạn?",
+      "sourceRefs": [
+        "src-sbt-g11"
+      ],
+      "evidenceIds": [
+        "ev-recheck-18"
+      ],
+      "inputSchema": {
+        "options": [
+          {
+            "id": "opt_recheck_finite",
+            "label": "Dãy số hữu hạn (tập chỉ số bị chặn trên)"
+          },
+          {
+            "id": "opt_recheck_infinite",
+            "label": "Dãy số vô hạn (tập chỉ số là $\\mathbb{N}^*$ vô tận)"
+          }
+        ]
+      },
+      "evaluation": {
+        "checkerId": "choice_exact",
+        "options": [
+          "opt_recheck_finite",
+          "opt_recheck_infinite"
+        ],
+        "answerKey": "opt_recheck_infinite"
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Tập chỉ số N* vô hạn nên dãy số vô hạn.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-recheck-1"
+      ],
+      "branch": "shared",
+      "sequenceType": "infinite"
+    },
+    {
+      "id": "task-recheck-19",
+      "type": "open",
+      "objectiveIds": [
+        "obj-t11-19"
+      ],
+      "activityId": "act-recheck",
+      "participation": "individual",
+      "prompt": "Kiểm tra cá nhân độc lập T11.19: Cho bài toán que tính mới: Hình 1 cần 4 que tính, mỗi hình tiếp theo ghép thêm 3 que tính ($w_1 = 4$). (1) Hãy viết đủ 4 cách cho dãy số que tính $w_n$ (liệt kê ít nhất 4 số hạng đầu, công thức số hạng tổng quát, hệ thức truy hồi kèm điều kiện chỉ số, diễn đạt bằng lời). (2) Thực hiện phép kiểm chứng tính tương đương giữa công thức tổng quát và hệ thức truy hồi bằng cách tính cụ thể $w_1, w_2, w_3$.",
+      "sourceRefs": [
+        "src-sbt-g11"
+      ],
+      "evidenceIds": [
+        "ev-recheck-19"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Viết chính xác cả 4 cách biểu diễn cho dãy số mới: liệt kê, công thức số hạng tổng quát, hệ thức truy hồi, diễn đạt bằng lời",
+            "Thực hiện phép kiểm chứng tính nhất quán giữa các biểu diễn tại các chỉ số n = 1, 2, 3"
+          ],
+          "lookFor": [
+            "Liệt kê: 4, 7, 10, 13,...; Tổng quát: w_n = 4 + 3(n-1) = 3n + 1 (n >= 1); Truy hồi: w_1 = 4, w_n = w_{n-1} + 3 (n >= 2); Diễn đạt bằng lời đúng quy luật",
+            "Tính đúng w_1 = 4, w_2 = 7, w_3 = 10 khớp nhau ở các cách biểu diễn"
+          ]
+        }
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Độc lập chứng minh hiểu và chuyển đổi thành thạo giữa 4 cách biểu diễn trên một dãy số mới kèm phép kiểm chứng tương đương.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-recheck-2"
+      ],
+      "branch": "shared",
+      "representations": [
+        "list",
+        "explicit",
+        "recurrence",
+        "verbal"
+      ]
+    },
+    {
+      "id": "task-exit-ticket",
+      "type": "open",
+      "objectiveIds": [
+        "obj-t11-18",
+        "obj-t11-19"
+      ],
+      "activityId": "act-exit",
+      "participation": "individual",
+      "prompt": "Phiếu Exit Ticket: (1) Nêu sự khác biệt giữa chỉ số $n$ và số hạng $u_n$. (2) Nêu một cách cho dãy số mà em nắm vững nhất kèm ví dụ minh họa và kiểm chứng.",
+      "sourceRefs": [
+        "src-sbt-g11"
+      ],
+      "evidenceIds": [
+        "ev-exit-mastery"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Phân biệt chính xác chỉ số n và giá trị u_n",
+            "Nêu đúng một cách cho dãy số kèm ví dụ minh họa và kiểm chứng"
+          ],
+          "lookFor": [
+            "n là số thứ tự/vị trí, u_n là giá trị của số hạng",
+            "Ví dụ chính xác và khớp với định dạng biểu diễn đã chọn"
+          ]
+        }
+      },
+      "isCore": true,
+      "requiresFullScaffold": false,
+      "supportRationale": "Đánh giá chuẩn đầu ra độc lập thông qua rubric của giáo viên.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-exit-1"
+      ],
+      "branch": "shared"
+    },
+    {
+      "id": "task-reserve-deepen",
+      "type": "reflection",
+      "objectiveIds": [
+        "obj-t11-19"
+      ],
+      "activityId": "act-reserve",
+      "participation": "individual",
+      "prompt": "Hoạt động củng cố mở rộng: Hãy viết mối liên hệ giữa dãy số và hàm số: dãy số vô hạn là một hàm số xác định trên tập hợp nào?",
+      "sourceRefs": [
+        "src-sbt-g11"
+      ],
+      "evidenceIds": [
+        "ev-reserve-obs"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Xác định đúng tập xác định là tập N*",
+            "Nhận biết u_n = f(n)"
+          ],
+          "lookFor": [
+            "Dãy số vô hạn là hàm số f: N* -> R"
+          ]
+        }
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Hiểu bản chất giải tích của khái niệm dãy số.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-reserve-1"
+      ],
+      "branch": "shared"
+    },
+    {
+      "id": "task-extension-reflect",
+      "type": "reflection",
+      "objectiveIds": [
+        "obj-t11-18",
+        "obj-t11-19"
+      ],
+      "activityId": "act-extension",
+      "participation": "individual",
+      "prompt": "Xem lại phiếu recheck: em còn vướng ở miền chỉ số hoặc cách biểu diễn nào? Ghi một bước kiểm tra tiếp theo và điều muốn hỏi giáo viên.",
+      "sourceRefs": [
+        "src-sbt-g11"
+      ],
+      "evidenceIds": [
+        "ev-extension-reflect"
+      ],
+      "evaluation": {
+        "rubric": {
+          "criteria": [
+            "Nêu điều còn vướng hoặc bước kiểm tra tiếp theo."
+          ],
+          "lookFor": [
+            "Ghi chú dùng để nhận hỗ trợ; không chứng minh mastery."
+          ]
+        }
+      },
+      "isCore": false,
+      "requiresFullScaffold": false,
+      "supportRationale": "Giữ quyền lựa chọn và chuẩn bị phản hồi khi chờ giáo viên.",
+      "minutes": 2,
+      "hintIds": [
+        "hint-extension-reflect"
+      ],
+      "branch": "core"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-exp-1",
+      "tier": "H1",
+      "text": "Chú ý hội trường chỉ có 25 hàng ghế đã xây dựng xong.",
+      "taskId": "task-exp-predict",
+      "objectiveIds": [
+        "obj-t11-18"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi ý giới hạn thực tế."
+    },
+    {
+      "id": "hint-pre-1",
+      "tier": "H1",
+      "text": "Dãy số vô hạn có tập hợp chỉ số kéo dài vô tận không có điểm dừng.",
+      "taskId": "task-pre-finite-inf",
+      "objectiveIds": [
+        "obj-t11-18"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Nhắc lại định nghĩa dãy số vô hạn."
+    },
+    {
+      "id": "hint-pre-2",
+      "tier": "H1",
+      "text": "Hàng 1 là 18 ghế, lấy 18 cộng thêm 2 cho hàng tiếp theo.",
+      "taskId": "task-pre-three-terms",
+      "objectiveIds": [
+        "obj-t11-19"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi ý cộng số hạng liên tiếp."
+    },
+    {
+      "id": "hint-form18-1",
+      "tier": "H1",
+      "text": "Xác định: đâu là số thứ tự hàng, đâu là số lượng ghế trong hàng đó?",
+      "taskId": "task-form-distinguish-n-un",
+      "objectiveIds": [
+        "obj-t11-18"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Tầng 1: Đặt câu hỏi định hướng."
+    },
+    {
+      "id": "hint-form18-2",
+      "tier": "H2",
+      "text": "Ví dụ với hàng thứ 3 có 22 ghế: vị trí 3 là n, số lượng 22 là u_3.",
+      "taskId": "task-form-distinguish-n-un",
+      "objectiveIds": [
+        "obj-t11-18"
+      ],
+      "order": 2,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Tầng 2: Ví dụ trực quan đối chiếu."
+    },
+    {
+      "id": "hint-form18-3",
+      "tier": "H3",
+      "text": "Quy ước Toán học: chỉ số viết dưới n biểu thị thứ tự phần tử; u_n là giá trị của phần tử thứ n.",
+      "taskId": "task-form-distinguish-n-un",
+      "objectiveIds": [
+        "obj-t11-18"
+      ],
+      "order": 3,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Tầng 3: Giải thích quy ước toán học."
+    },
+    {
+      "id": "hint-form18-4",
+      "tier": "H4",
+      "text": "Chọn phương án chỉ rõ n là số thứ tự hàng ghế, u_n là số ghế của hàng đó.",
+      "taskId": "task-form-distinguish-n-un",
+      "objectiveIds": [
+        "obj-t11-18"
+      ],
+      "order": 4,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Tầng 4: Hướng dẫn lựa chọn chính xác."
+    },
+    {
+      "id": "hint-form19-1",
+      "tier": "H1",
+      "text": "Đối chiếu thẻ công thức u_n = 18 + 2(n-1) với dạng tổng quát, u_1=18; u_n=u_{n-1}+2 với dạng truy hồi.",
+      "taskId": "task-form-four-rep",
+      "objectiveIds": [
+        "obj-t11-19"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi ý phân loại biểu diễn."
+    },
+    {
+      "id": "hint-hunt-1",
+      "tier": "H1",
+      "text": "Thay trực tiếp n = 1 vào biểu thức: 18 + 2 * 1.",
+      "taskId": "task-prac-error-hunt",
+      "objectiveIds": [
+        "obj-t11-18",
+        "obj-t11-19"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi ý tính giá trị số học."
+    },
+    {
+      "id": "hint-supp-1",
+      "tier": "H1",
+      "text": "Áp dụng hệ thức truy hồi với n = 2: u_2 = u_1 + 2 = 18 + 2.",
+      "taskId": "task-prac-support-tab",
+      "objectiveIds": [
+        "obj-t11-19"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi ý tính số hạng truy hồi."
+    },
+    {
+      "id": "hint-core-1",
+      "tier": "H1",
+      "text": "Thay n = 7: u_7 = 18 + 2 * (7 - 1) = 18 + 2 * 6 = 30; thay n = 25: u_25 = 18 + 2 * 24 = 66.",
+      "taskId": "task-prac-core-calc",
+      "objectiveIds": [
+        "obj-t11-19"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi ý tính toán theo công thức tổng quát."
+    },
+    {
+      "id": "hint-ext-1",
+      "tier": "H1",
+      "text": "Với n = 4: (n-1)(n-2)(n-3) = 3 * 2 * 1 = 6.",
+      "taskId": "task-prac-ext-rules",
+      "objectiveIds": [
+        "obj-t11-19"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi ý tính biểu thức đa thức."
+    },
+    {
+      "id": "hint-recheck-1",
+      "tier": "H1",
+      "text": "Xem xét tập chỉ số N* của dãy số 1/n có phần tử lớn nhất không.",
+      "taskId": "task-recheck-18",
+      "objectiveIds": [
+        "obj-t11-18"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi mở tính chất vô hạn."
+    },
+    {
+      "id": "hint-recheck-2",
+      "tier": "H1",
+      "text": "Với hình 1 có 4 que và mỗi hình sau thêm 3 que: w_1 = 4, w_2 = 4 + 3 = 7, w_3 = 7 + 3 = 10.",
+      "taskId": "task-recheck-19",
+      "objectiveIds": [
+        "obj-t11-19"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Gợi ý các số hạng đầu của dãy que tính mới."
+    },
+    {
+      "id": "hint-exit-1",
+      "tier": "H1",
+      "text": "Nhớ lại 4 cách cho dãy số: liệt kê, công thức số hạng tổng quát, hệ thức truy hồi, diễn đạt bằng lời.",
+      "taskId": "task-exit-ticket",
+      "objectiveIds": [
+        "obj-t11-18",
+        "obj-t11-19"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Nhắc lại danh sách 4 biểu diễn."
+    },
+    {
+      "id": "hint-reserve-1",
+      "tier": "H1",
+      "text": "Mỗi số tự nhiên n được đặt tương ứng với một số thực u_n duy nhất.",
+      "taskId": "task-reserve-deepen",
+      "objectiveIds": [
+        "obj-t11-19"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Liên hệ định nghĩa hàm số."
+    },
+    {
+      "id": "hint-extension-reflect",
+      "tier": "H1",
+      "text": "Đối chiếu miền chỉ số và cách em kiểm chứng các biểu diễn; chọn một điều cụ thể muốn làm rõ.",
+      "taskId": "task-extension-reflect",
+      "objectiveIds": [
+        "obj-t11-18",
+        "obj-t11-19"
+      ],
+      "order": 1,
+      "notAnswer": true,
+      "penalty": {
+        "time": 0,
+        "score": 0,
+        "freeze": 0
+      },
+      "supportRationale": "Hỗ trợ tự đánh giá và chọn bước tiếp, không đưa đáp án."
+    }
+  ],
+  "evidenceRules": [
+    {
+      "id": "ev-exp-pred",
+      "kind": "precheck",
+      "objectiveIds": [
+        "obj-t11-18"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-exp-predict"
+    },
+    {
+      "id": "ev-pre-18",
+      "kind": "precheck",
+      "objectiveIds": [
+        "obj-t11-18"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-pre-finite-inf"
+    },
+    {
+      "id": "ev-pre-19",
+      "kind": "precheck",
+      "objectiveIds": [
+        "obj-t11-19"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-pre-three-terms"
+    },
+    {
+      "id": "ev-form-18",
+      "kind": "individual_reasoning",
+      "objectiveIds": [
+        "obj-t11-18"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-form-distinguish-n-un"
+    },
+    {
+      "id": "ev-form-19",
+      "kind": "group_product",
+      "objectiveIds": [
+        "obj-t11-19"
+      ],
+      "individual": false,
+      "countsForMastery": false,
+      "taskId": "task-form-four-rep"
+    },
+    {
+      "id": "ev-prac-reasoning",
+      "kind": "individual_reasoning",
+      "objectiveIds": [
+        "obj-t11-18",
+        "obj-t11-19"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-prac-error-hunt"
+    },
+    {
+      "id": "ev-recheck-18",
+      "kind": "individual_recheck",
+      "objectiveIds": [
+        "obj-t11-18"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-recheck-18"
+    },
+    {
+      "id": "ev-recheck-19",
+      "kind": "individual_recheck",
+      "objectiveIds": [
+        "obj-t11-19"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-recheck-19"
+    },
+    {
+      "id": "ev-exit-mastery",
+      "kind": "exit",
+      "objectiveIds": [
+        "obj-t11-18",
+        "obj-t11-19"
+      ],
+      "individual": true,
+      "countsForMastery": true,
+      "taskId": "task-exit-ticket"
+    },
+    {
+      "id": "ev-reserve-obs",
+      "kind": "teacher_observation",
+      "objectiveIds": [
+        "obj-t11-19"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-reserve-deepen"
+    },
+    {
+      "id": "ev-extension-reflect",
+      "kind": "self_assessment",
+      "objectiveIds": [
+        "obj-t11-18",
+        "obj-t11-19"
+      ],
+      "individual": true,
+      "countsForMastery": false,
+      "taskId": "task-extension-reflect"
+    }
+  ],
+  "rubric": {
+    "criteria": [
+      "Nhận biết và phân biệt chính xác dãy số hữu hạn và dãy số vô hạn",
+      "Chuyển đổi thành thạo giữa 4 cách biểu diễn dãy số"
+    ],
+    "lookFor": [
+      "Phân biệt n và u_n; giải thích được miền chỉ số",
+      "Lập được công thức tổng quát và hệ thức truy hồi đúng"
+    ]
+  },
+  "modePolicies": {
+    "classroom": {
+      "enforceIndividualMastery": true,
+      "allowHintAssistance": true
+    }
+  },
+  "masteryPolicy": {
+    "individualEvidencePerObjectiveMin": 2,
+    "masterySources": [
+      "individual_recheck",
+      "exit"
+    ],
+    "forbiddenSources": [
+      "group_product",
+      "map_position",
+      "race_position",
+      "group_score"
+    ]
+  }
+}

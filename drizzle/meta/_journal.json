@@ -57,6 +57,48 @@
       "when": 1790887879846,
       "tag": "0007_rapid_ezekiel",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1791051146853,
+      "tag": "0008_striped_wallflower",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1791051148000,
+      "tag": "0009_approved_session_plans",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1791060000000,
+      "tag": "0010_lesson_sources",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1791381697298,
+      "tag": "0011_unknown_sebastian_shaw",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1791408477652,
+      "tag": "0012_lesson_generation_jobs",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1791477071943,
+      "tag": "0013_exam_rooms",
+      "breakpoints": true
     }
   ]
 }

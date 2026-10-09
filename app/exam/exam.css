@@ -1,0 +1,210 @@
+/* Exam rooms: the pupil's screen (/exam) and the teacher's screen (/exams). Reuses the tokens of lesson.css. */
+.exam-shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--lesson-bg);
+  color: var(--lesson-text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  padding: 12px 12px 96px;
+  box-sizing: border-box;
+}
+.exam-shell * { box-sizing: border-box; }
+.exam-center { text-align: center; padding: 48px 12px; }
+.exam-card {
+  max-width: 880px;
+  margin: 0 auto 14px;
+  padding: 16px;
+  background: var(--lesson-surface);
+  border: 1px solid var(--lesson-border);
+  border-radius: var(--lesson-radius-lg);
+}
+.exam-kicker { margin: 0; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--lesson-primary); }
+.exam-card h1, .exam-card h2 { margin: 4px 0 10px; }
+.exam-card label { display: block; margin-bottom: 12px; }
+.exam-card label > span { display: block; margin-bottom: 4px; font-size: 0.9rem; color: var(--lesson-text-muted); }
+.exam-note { font-size: 0.88rem; color: var(--lesson-text-muted); }
+.exam-error { color: var(--lesson-danger); background: var(--lesson-danger-bg); padding: 8px 12px; border-radius: var(--lesson-radius); max-width: 880px; margin: 8px auto; }
+.exam-warn { color: var(--lesson-warning); }
+.exam-warn-text { color: var(--lesson-warning); }
+.exam-ok-text { color: var(--lesson-success); }
+.exam-big { min-height: 52px; font-size: 1.05rem; }
+.exam-bad { color: var(--lesson-danger); font-weight: 700; }
+
+/* join */
+.exam-join { max-width: 520px; margin-top: 8vh; }
+.exam-code-input { font-size: 1.6rem; letter-spacing: 0.3em; text-align: center; text-transform: uppercase; }
+.exam-mascots { border: 0; padding: 0; margin: 0 0 12px; }
+.exam-mascots legend { font-size: 0.9rem; color: var(--lesson-text-muted); margin-bottom: 6px; }
+.exam-mascot-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.exam-mascot-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 2px;
+  font: inherit; font-size: 0.75rem; color: var(--lesson-text);
+  background: var(--lesson-surface-2); border: 2px solid transparent; border-radius: var(--lesson-radius); cursor: pointer;
+}
+.exam-mascot-btn[aria-pressed="true"] { border-color: var(--lesson-primary); background: rgba(56, 189, 248, 0.16); }
+.exam-mascot-btn .lesson-mascot-sprite { width: 56px; height: 56px; }
+
+/* waiting and done */
+.exam-wait, .exam-done { max-width: 560px; margin-top: 6vh; text-align: center; }
+.exam-wait-mascot, .exam-done-mascot { width: 120px; height: 120px; margin: 0 auto; display: block; animation: exam-bob 1.6s ease-in-out infinite; }
+.exam-done-mascot { animation: exam-hop 0.9s ease-in-out 3; }
+.exam-rules { text-align: left; line-height: 1.7; padding-left: 1.2rem; }
+.exam-pulse { color: var(--lesson-warning); animation: exam-blink 1.4s ease-in-out infinite; }
+.exam-score { font-size: 3rem; font-weight: 800; color: var(--lesson-success); }
+.exam-score small { font-size: 1rem; color: var(--lesson-text-muted); font-weight: 400; }
+@keyframes exam-bob { 50% { transform: translateY(-8px); } }
+@keyframes exam-hop { 40% { transform: translateY(-22px) rotate(-4deg); } }
+@keyframes exam-blink { 50% { opacity: 0.35; } }
+
+/* running: top bar, journey, palette */
+.exam-bar {
+  position: sticky; top: 0; z-index: 20; max-width: 880px; margin: 0 auto 8px; padding: 8px 10px;
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(15, 23, 42, 0.96); border: 1px solid var(--lesson-border); border-radius: var(--lesson-radius-lg); backdrop-filter: blur(6px);
+}
+.exam-bar-name { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.exam-bar-name strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.exam-save { font-size: 0.75rem; color: var(--lesson-success); }
+.exam-save.is-saving { color: var(--lesson-text-muted); }
+.exam-save.is-offline { color: var(--lesson-warning); font-weight: 700; }
+.exam-timer { font-size: 1.5rem; font-weight: 800; font-variant-numeric: tabular-nums; padding: 2px 10px; border-radius: 999px; background: var(--lesson-surface-2); }
+.exam-timer.is-low { background: var(--lesson-danger-bg); color: var(--lesson-danger); animation: exam-blink 1s ease-in-out infinite; }
+.exam-bar-btn { min-height: 40px; }
+.exam-journey { max-width: 880px; margin: 0 auto 10px; padding: 0 6px; }
+.exam-journey small { color: var(--lesson-text-muted); }
+.exam-rail { position: relative; height: 10px; margin: 26px 18px 6px 18px; background: var(--lesson-surface-2); border-radius: 999px; }
+.exam-rail-fill { height: 100%; background: linear-gradient(90deg, var(--lesson-primary), var(--lesson-success)); border-radius: 999px; transition: width 0.5s ease; }
+.exam-rail-mascot { position: absolute; top: -32px; width: 40px; height: 40px; margin-left: -20px; transition: left 0.6s cubic-bezier(0.3, 1.4, 0.5, 1); }
+.exam-gate { position: absolute; top: -4px; width: 4px; height: 18px; margin-left: -2px; background: var(--lesson-warning); border-radius: 2px; }
+.exam-flag { position: absolute; right: -16px; top: -12px; font-size: 1.2rem; }
+.exam-palette { max-width: 880px; margin: 0 auto 10px; padding: 12px; background: var(--lesson-surface); border: 1px solid var(--lesson-border); border-radius: var(--lesson-radius-lg); }
+.exam-palette-group { margin-bottom: 8px; }
+.exam-palette-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.exam-station {
+  width: 44px; height: 44px; font: inherit; font-weight: 700; color: var(--lesson-text);
+  background: var(--lesson-surface-2); border: 2px solid var(--lesson-border-strong); border-radius: 10px; cursor: pointer;
+}
+.exam-station.is-done { background: rgba(52, 211, 153, 0.25); border-color: var(--lesson-success); }
+.exam-station.is-flag { border-color: #fb923c; box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.35); }
+.exam-station.is-here { background: var(--lesson-warning); color: #1b1405; border-color: var(--lesson-warning); }
+
+/* question */
+.exam-question { padding: 12px; }
+.exam-q-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.exam-points { color: var(--lesson-text-muted); font-size: 0.9rem; }
+.exam-flag-btn { margin-left: auto; min-height: 40px; padding: 0 12px; font: inherit; color: var(--lesson-text-muted); background: transparent; border: 1px solid var(--lesson-border-strong); border-radius: 999px; cursor: pointer; }
+.exam-flag-btn.is-on { color: #1b1405; background: #fb923c; border-color: #fb923c; }
+.exam-q-image { display: block; width: 100%; height: auto; background: #fff; border-radius: var(--lesson-radius); margin-bottom: 14px; user-select: none; -webkit-user-drag: none; }
+.exam-q-image-wait { min-height: 160px; display: grid; place-items: center; color: #334155; }
+.exam-q-text { background: #fff; color: #0f172a; padding: 12px; border-radius: var(--lesson-radius); margin-bottom: 14px; line-height: 1.6; }
+.exam-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.exam-option {
+  min-height: 64px; font: inherit; font-size: 1.5rem; font-weight: 800; color: var(--lesson-text);
+  background: var(--lesson-surface-2); border: 2px solid var(--lesson-border-strong); border-radius: 14px; cursor: pointer;
+}
+.exam-option.is-on { color: var(--lesson-primary-fg); background: var(--lesson-primary); border-color: var(--lesson-primary); }
+.exam-tf { display: grid; gap: 8px; }
+.exam-tf-row { display: flex; align-items: center; gap: 8px; }
+.exam-tf-letter { width: 28px; font-weight: 800; font-size: 1.1rem; }
+.exam-tf-btn { flex: 1; min-height: 52px; font: inherit; font-size: 1.05rem; font-weight: 700; color: var(--lesson-text); background: var(--lesson-surface-2); border: 2px solid var(--lesson-border-strong); border-radius: 12px; cursor: pointer; }
+.exam-tf-btn.is-true { background: var(--lesson-success-bg); border-color: var(--lesson-success); color: var(--lesson-success); }
+.exam-tf-btn.is-false { background: var(--lesson-danger-bg); border-color: var(--lesson-danger); color: var(--lesson-danger); }
+.exam-short input { font-size: 1.2rem; min-height: 52px; }
+.exam-essay-help { margin: 0 0 8px; }
+.exam-thumbs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.exam-thumb { position: relative; width: 96px; height: 96px; border-radius: 10px; overflow: hidden; background: var(--lesson-surface-2); display: grid; place-items: center; }
+.exam-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.exam-thumb button { position: absolute; top: 2px; right: 2px; width: 28px; height: 28px; border: 0; border-radius: 50%; color: #fff; background: rgba(0, 0, 0, 0.7); cursor: pointer; }
+.exam-add-photo { display: grid; place-items: center; width: 130px; min-height: 96px; margin: 0 !important; text-align: center; padding: 6px; color: var(--lesson-primary); border: 2px dashed var(--lesson-primary); border-radius: 10px; cursor: pointer; }
+.exam-add-photo.is-busy { opacity: 0.6; }
+.exam-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; display: flex; gap: 8px; justify-content: center; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: rgba(15, 23, 42, 0.97); border-top: 1px solid var(--lesson-border); }
+.exam-nav .lesson-button { min-height: 50px; flex: 1; max-width: 220px; }
+.exam-nav-submit { flex: 0 0 auto !important; }
+.exam-modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; background: rgba(2, 6, 23, 0.75); }
+.exam-modal-box { max-width: 420px; padding: 20px; background: var(--lesson-surface); border: 1px solid var(--lesson-border-strong); border-radius: var(--lesson-radius-lg); }
+.exam-modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px; }
+
+/* teacher */
+.exam-teacher { padding-bottom: 64px; }
+.exam-list { max-width: 880px; margin: 0 auto; }
+.exam-cards { list-style: none; padding: 0; margin: 12px 0 0; }
+.exam-cards .exam-card { display: flex; align-items: center; gap: 12px; justify-content: space-between; flex-wrap: wrap; }
+.exam-import, .exam-import-review, .exam-room { max-width: 980px; margin: 0 auto; }
+.exam-drop { display: grid !important; place-items: center; min-height: 160px; margin: 14px 0; text-align: center; padding: 16px; font-size: 1.1rem; color: var(--lesson-primary); border: 2px dashed var(--lesson-primary); border-radius: var(--lesson-radius-lg); cursor: pointer; }
+.exam-drop.is-busy { opacity: 0.7; cursor: progress; }
+.exam-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.exam-check { display: flex !important; align-items: center; gap: 8px; }
+.exam-summary { font-size: 1.05rem; }
+.exam-keybox { margin: 10px 0; padding: 10px; border: 1px dashed var(--lesson-border-strong); border-radius: var(--lesson-radius); }
+.exam-keybox summary { cursor: pointer; font-weight: 700; }
+.exam-keybox textarea { margin: 8px 0; font-family: var(--lesson-font-mono); }
+.exam-qcard { margin: 0 auto 12px; padding: 12px; background: var(--lesson-surface); border: 1px solid var(--lesson-border); border-radius: var(--lesson-radius-lg); }
+.exam-qcard.is-missing { border-color: var(--lesson-warning); }
+.exam-qcard-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.exam-qcard-head select { width: auto; }
+.exam-points-edit { display: flex !important; align-items: center; gap: 4px; margin: 0 0 0 auto !important; }
+.exam-points-edit input { width: 76px; }
+.exam-crop img, .exam-teacher-img { display: block; max-width: 100%; background: #fff; border-radius: 8px; }
+.exam-crop-tools { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin: 6px 0; font-size: 0.8rem; color: var(--lesson-text-muted); }
+.exam-crop-tools button, .exam-link { padding: 4px 8px; font: inherit; font-size: 0.8rem; color: var(--lesson-primary); background: transparent; border: 1px solid var(--lesson-border-strong); border-radius: 999px; cursor: pointer; }
+.exam-key { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 8px 0 0 !important; }
+.exam-key-label { font-weight: 700; margin: 0 !important; }
+.exam-key-btn { min-width: 40px; min-height: 40px; font: inherit; font-weight: 800; color: var(--lesson-text); background: var(--lesson-surface-2); border: 2px solid var(--lesson-border-strong); border-radius: 10px; cursor: pointer; }
+.exam-key-btn.is-on { background: var(--lesson-success-bg); border-color: var(--lesson-success); color: var(--lesson-success); }
+.exam-key-btn.is-off { background: var(--lesson-danger-bg); border-color: var(--lesson-danger); color: var(--lesson-danger); }
+.exam-key-tf { display: inline-flex; align-items: center; gap: 4px; margin-right: 10px; }
+.exam-key input { flex: 1; min-width: 200px; }
+.exam-sticky { position: sticky; bottom: 0; z-index: 10; display: flex; gap: 10px; justify-content: space-between; padding: 10px; background: rgba(15, 23, 42, 0.96); border-top: 1px solid var(--lesson-border); }
+.exam-room-head { display: grid; gap: 12px; }
+.exam-back { background: none; border: 0; color: var(--lesson-primary); cursor: pointer; padding: 0; font: inherit; }
+.exam-share { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.exam-share small { flex-basis: 100%; color: var(--lesson-text-muted); word-break: break-all; }
+.exam-code-big { font-size: 2.4rem; font-weight: 800; letter-spacing: 0.25em; padding: 4px 16px; color: var(--lesson-warning); background: var(--lesson-surface-2); border-radius: 12px; }
+.exam-controls { display: flex; gap: 10px; flex-wrap: wrap; }
+.exam-room-head .exam-timer { margin-left: 10px; }
+.exam-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 12px; }
+.exam-tab { min-height: 44px; padding: 0 16px; font: inherit; color: var(--lesson-text-muted); background: var(--lesson-surface); border: 1px solid var(--lesson-border); border-radius: 999px; cursor: pointer; }
+.exam-tab.is-on { color: var(--lesson-primary-fg); background: var(--lesson-primary); border-color: var(--lesson-primary); font-weight: 700; }
+.exam-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+.exam-table th, .exam-table td { padding: 8px 6px; text-align: left; border-bottom: 1px solid var(--lesson-border); vertical-align: middle; }
+.exam-bar-mini { width: 120px; height: 8px; background: var(--lesson-surface-2); border-radius: 999px; overflow: hidden; }
+.exam-bar-mini i { display: block; height: 100%; background: var(--lesson-success); }
+.exam-row-actions { text-align: right; white-space: nowrap; }
+.exam-marking-grid { display: grid; grid-template-columns: 220px 1fr; gap: 14px; }
+.exam-pick { list-style: none; margin: 0; padding: 0; max-height: 70vh; overflow: auto; }
+.exam-pick button { width: 100%; text-align: left; padding: 8px 10px; margin-bottom: 4px; font: inherit; color: var(--lesson-text); background: var(--lesson-surface-2); border: 1px solid transparent; border-radius: 10px; cursor: pointer; }
+.exam-pick button.is-on { border-color: var(--lesson-primary); }
+.exam-mark-card { margin-bottom: 14px; padding: 10px; background: var(--lesson-surface-2); border-radius: var(--lesson-radius); }
+.exam-mark-head { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.exam-shots { display: grid; gap: 8px; margin: 8px 0; }
+.exam-typed { white-space: pre-wrap; padding: 8px; background: var(--lesson-surface); border-radius: 8px; }
+.exam-score-row { display: flex; align-items: center; gap: 8px; }
+.exam-score-row input { width: 100px; }
+.exam-results-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.exam-results-head h3 { margin-right: auto; }
+.exam-stats { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.exam-stats li { display: grid; grid-template-columns: 90px 1fr 48px; gap: 8px; align-items: center; }
+.exam-stats small { grid-column: 2 / 4; color: var(--lesson-text-muted); }
+.exam-stat-bar { height: 10px; background: var(--lesson-surface-2); border-radius: 999px; overflow: hidden; }
+.exam-stat-bar i { display: block; height: 100%; background: var(--lesson-success); }
+.exam-stat-bar i.is-mid { background: var(--lesson-warning); }
+.exam-stat-bar i.is-hard { background: var(--lesson-danger); }
+
+@media (max-width: 640px) {
+  .exam-marking-grid { grid-template-columns: 1fr; }
+  .exam-code-big { font-size: 1.8rem; }
+  .exam-options { gap: 8px; }
+  .exam-table { font-size: 0.85rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .exam-wait-mascot, .exam-done-mascot, .exam-pulse, .exam-timer.is-low { animation: none; }
+  .exam-rail-mascot, .exam-rail-fill { transition: none; }
+}
+
+.exam-q-scroll { overflow-x: auto; margin-bottom: 14px; border-radius: var(--lesson-radius); -webkit-overflow-scrolling: touch; }
+.exam-q-scroll .exam-q-image { margin-bottom: 0; }
+.exam-zoom { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-size: 0.85rem; color: var(--lesson-text-muted); }
+.exam-zoom button { min-height: 36px; padding: 0 12px; font: inherit; color: var(--lesson-text); background: var(--lesson-surface-2); border: 1px solid var(--lesson-border-strong); border-radius: 999px; cursor: pointer; }
+.exam-zoom button.is-on { color: var(--lesson-primary-fg); background: var(--lesson-primary); border-color: var(--lesson-primary); font-weight: 700; }
+.exam-map { max-width: 880px; height: 300px; margin: 0 auto 10px; overflow: hidden; border-radius: var(--lesson-radius-lg); border: 1px solid var(--lesson-border); }
+.exam-map-btn { margin-top: 4px; min-height: 36px; padding: 0 12px; font: inherit; font-size: 0.85rem; color: var(--lesson-primary); background: transparent; border: 1px solid var(--lesson-border-strong); border-radius: 999px; cursor: pointer; }

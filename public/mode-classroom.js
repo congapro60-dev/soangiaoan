@@ -86,7 +86,7 @@ function renderChallenge(q, h, disabled) {
   if (!q || q.used) return '';
   const esc = h.esc, math = h.mathText, format = q.format || 'short';
   let answer = '';
-  if (format === 'mcq' && Array.isArray(q.options)) answer = `<fieldset class="mode-options"><legend>Chọn một phương án</legend>${q.options.map((x, i) => `<label><input type="radio" name="mode-answer-option" id="mode-option-${i}" value="${i}" ${disabled ? 'disabled' : ''}> ${esc(x)}</label>`).join('')}</fieldset>`;
+  if (format === 'mcq' && Array.isArray(q.options)) answer = `<fieldset class="mode-options"><legend>Chọn một phương án</legend>${q.options.map((x, i) => `<label><input type="radio" name="mode-answer-option" id="mode-option-${i}" value="${i}" ${disabled ? 'disabled' : ''}> ${math(x)}</label>`).join('')}</fieldset>`;
   else if (format === 'tf' && Array.isArray(q.statements)) answer = `<fieldset class="mode-options"><legend>Chọn Đúng hoặc Sai cho từng mệnh đề</legend>${q.statements.map((x, i) => `<div><span>${i + 1}. ${math(x)}</span><label><input type="radio" name="mode-tf-${i}" value="D" ${disabled ? 'disabled' : ''}> Đúng</label><label><input type="radio" name="mode-tf-${i}" value="S" ${disabled ? 'disabled' : ''}> Sai</label></div>`).join('')}</fieldset>`;
   else if (format === 'puzzle' && Array.isArray(q.fields)) answer = `<div class="mode-puzzle-fields">${q.fields.map(f => `<label>${esc(f.label || f.key)}<input id="mode-field-${esc(f.key)}" data-mode-field="${esc(f.key)}" ${f.text ? '' : 'inputmode="numeric"'} ${disabled ? 'disabled' : ''}></label>`).join('')}</div>`;
   else answer = `<label for="mode-answer">Câu trả lời<input id="mode-answer" autocomplete="off" ${disabled ? 'disabled' : ''}></label>`;

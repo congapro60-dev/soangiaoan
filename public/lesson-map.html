@@ -1,0 +1,660 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Bản đồ chiến dịch</title>
+<link rel="stylesheet" href="/style.css">
+<script type="importmap">{"imports":{"three":"/vendor/three/three.module.min.js","three/addons/":"/vendor/three/addons/"}}</script>
+<style>
+  /* The map is the screen. Only a thin layer of controls floats over it. */
+  html,body{margin:0;height:100%;background:transparent;overflow:hidden}
+  #lessonMap{position:absolute;inset:0}
+  #lessonMap .lm-map{position:absolute;inset:0;margin:0;padding:0;border:0;border-radius:inherit;background:#07120d;box-shadow:none;overflow:hidden}
+  #lessonMap .strategy-stage{position:absolute;inset:0;min-height:0;aspect-ratio:auto;overflow:hidden;background:#07120d}
+  #lessonMap .strategy-stage::before{content:'';position:absolute;inset:-24px;background:var(--map-image) center/cover no-repeat;filter:blur(18px) brightness(.55) saturate(1.1);z-index:0}
+  #lessonMap .strategy-viewport{position:absolute;inset:0;height:auto;min-height:0;aspect-ratio:auto;background:transparent;z-index:1}
+  #lessonMap .strategy-status,#lessonMap .strategy-title{display:none}
+  #lessonMap .strategy-mini{z-index:2;right:10px;bottom:10px;left:auto}
+  .lm-hidden{display:none!important}
+
+  /* Floating controls: three round buttons, everything else lives in the menu. */
+  .lm-controls{position:absolute;z-index:6;top:calc(var(--lm-top,0px) + 10px);right:10px;display:flex;flex-direction:column;gap:8px}
+  .lm-btn{width:44px;height:44px;min-height:44px;padding:0;border-radius:50%;display:grid;place-items:center;color:#f4f1e6;background:rgba(8,15,33,.72);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+  .lm-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .lm-btn:hover{background:rgba(24,38,70,.85)}
+  .lm-btn:focus-visible,.lm-menu button:focus-visible{outline:3px solid #f6d481;outline-offset:2px}
+  .lm-btn[aria-expanded="true"]{background:#f6d481;color:#1b1405;border-color:#fff3c9}
+  .lm-menu{position:absolute;z-index:7;top:calc(var(--lm-top,0px) + 10px);right:64px;width:min(300px,calc(100vw - 84px));max-height:calc(100% - var(--lm-top,0px) - 24px);overflow:auto;padding:10px;display:flex;flex-direction:column;gap:10px;background:rgba(8,15,33,.94);border:1px solid rgba(255,255,255,.22);border-radius:16px;box-shadow:0 12px 32px rgba(0,0,0,.5);color:#eef1f7;font-size:14px}
+  .lm-menu[hidden]{display:none}
+  .lm-row{display:flex;flex-direction:column;gap:5px}
+  .lm-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#aab6cc}
+  .lm-seg{display:flex;gap:4px}
+  .lm-seg>button,.lm-menu>.lm-row>button{flex:1;min-height:40px;padding:6px 8px;font-size:14px;color:#eef1f7;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:10px;cursor:pointer}
+  .lm-seg>button[aria-pressed="true"]{background:#f6d481;color:#1b1405;border-color:#fff3c9;font-weight:700}
+  .lm-seg output{flex:1;display:grid;place-items:center;min-width:3.4em;font-variant-numeric:tabular-nums}
+  .lm-toast{position:absolute;z-index:9;left:50%;bottom:96px;transform:translateX(-50%);max-width:min(92vw,460px);padding:10px 14px;background:rgba(8,15,33,.96);color:#fff;border:1px solid #f6d481;border-radius:12px;font-size:14px;line-height:1.4;text-align:center;pointer-events:none}
+  .lm-toast[hidden]{display:none}
+  .lm-empty{position:absolute;inset:0;display:grid;place-items:center;color:#b4bfd2;text-align:center;padding:24px}
+  @media (max-width:520px){ #lessonMap .strategy-mini{display:none} }
+
+  /* Mascots must stand out on the map: big, full colour, the pupil's own one largest with a glowing ring. */
+  #lessonMap .strategy-unit{width:60px;min-height:60px}
+  #lessonMap .strategy-unit>.mascot{width:58px;height:58px;border-radius:50%;filter:none;background-color:#1d2b22;border:3px solid var(--unit-color);box-shadow:0 3px 10px #000a}
+  #lessonMap .strategy-unit .unit-cell{top:40px;right:-6px}
+  #lessonMap .strategy-unit.own{width:96px;min-height:96px;z-index:9}
+  #lessonMap .strategy-unit.own>.mascot{width:94px;height:94px;border:4px solid #f6d481;box-shadow:0 0 0 4px #f6d48166,0 0 26px 8px #f6d481aa;animation:own-glow 1.6s ease-in-out infinite}
+  #lessonMap .strategy-unit.own .unit-cell{top:66px;right:-8px;font-size:14px}
+  #lessonMap .strategy-unit.own .unit-name{font-size:14px;font-weight:700;background:#f6d481;color:#1b1405;border-color:#fff}
+  @keyframes own-glow{0%,100%{box-shadow:0 0 0 4px #f6d48166,0 0 22px 6px #f6d481aa}50%{box-shadow:0 0 0 8px #f6d48133,0 0 34px 12px #f6d481cc}}
+  @media (max-width:560px){
+    #lessonMap .strategy-unit>.mascot{width:50px;height:50px}
+    #lessonMap .strategy-unit.own{width:80px;min-height:80px}
+    #lessonMap .strategy-unit.own>.mascot{width:78px;height:78px}
+    #lessonMap .strategy-unit.own .unit-cell{top:52px}
+  }
+  @media (prefers-reduced-motion:reduce){#lessonMap .strategy-unit.own>.mascot{animation:none}}
+
+  /* Flat-map die: appears over the map, never at the edge. */
+  .lm-dice{position:absolute;z-index:8;left:62%;top:40%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:18px;pointer-events:none}
+  .lm-dice[hidden]{display:none}
+  .lm-die-scene{width:96px;height:96px;perspective:720px;filter:drop-shadow(0 22px 16px rgba(0,0,0,.55))}
+  .lm-die{position:relative;width:96px;height:96px;transform-style:preserve-3d;transition:transform .75s cubic-bezier(.2,.9,.25,1)}
+  .lm-die.spin{animation:lm-tumble .85s linear infinite}
+  @keyframes lm-tumble{to{transform:rotateX(720deg) rotateY(1080deg) rotateZ(360deg)}}
+  .lm-die-face{position:absolute;inset:0;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:14px;background:linear-gradient(145deg,#fffaf0,#eadfc4);border:2px solid #b59c6b;border-radius:18px;backface-visibility:hidden}
+  .lm-die-face.f1{transform:translateZ(48px)}.lm-die-face.f2{transform:rotateY(90deg) translateZ(48px)}.lm-die-face.f3{transform:rotateX(90deg) translateZ(48px)}.lm-die-face.f4{transform:rotateX(-90deg) translateZ(48px)}.lm-die-face.f5{transform:rotateY(-90deg) translateZ(48px)}.lm-die-face.f6{transform:rotateY(180deg) translateZ(48px)}
+  .lm-pip{place-self:center;width:76%;height:76%;border-radius:50%;background:radial-gradient(circle at 35% 30%,#4a4a55,#14141a)}
+  .lm-die-face.f1 .lm-pip,.lm-die-face.f4 .lm-pip{background:radial-gradient(circle at 35% 30%,#ff6a4d,#a3160d)}
+  .lm-dice-pop{min-width:120px;padding:8px 26px;text-align:center;font-weight:900;font-size:22px;color:#3a2200;background:linear-gradient(180deg,#ffe9a6,#f0b94a);border:3px solid #fff7dc;border-radius:999px;box-shadow:0 8px 22px rgba(0,0,0,.45);transform:scale(.3);opacity:0;transition:transform .4s cubic-bezier(.2,1.5,.4,1),opacity .2s}
+  .lm-dice-pop strong{font-size:40px;line-height:1;margin-right:6px}
+  .lm-dice-pop.show{transform:scale(1);opacity:1}
+  @media (prefers-reduced-motion:reduce){.lm-die,.lm-dice-pop{transition:none}.lm-die.spin{animation:none}}
+  /* Which mascots to show: a row of choices in the menu, a checklist for "pick friends", and a small chip that says what is shown. */
+  .lm-seg-wrap{flex-wrap:wrap}
+  .lm-seg-wrap>button{flex:1 1 calc(33% - 4px)}
+  .lm-pick{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+  .lm-pick[hidden]{display:none}
+  .lm-pick input[type=search]{min-height:40px;padding:6px 10px;font-size:14px;color:#eef1f7;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);border-radius:10px}
+  .lm-pick-list{max-height:210px;overflow:auto;display:flex;flex-direction:column;gap:2px}
+  .lm-pick-list label{display:flex;align-items:center;gap:10px;min-height:40px;padding:2px 8px;border-radius:8px;cursor:pointer}
+  .lm-pick-list label:hover{background:rgba(255,255,255,.08)}
+  .lm-pick-list input{width:22px;height:22px;accent-color:#f6d481}
+  .lm-pick>button{min-height:40px;padding:6px 8px;font-size:14px;color:#eef1f7;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:10px;cursor:pointer}
+  .lm-chip{position:absolute;z-index:6;left:10px;bottom:10px;max-width:calc(100% - 84px);min-height:36px;padding:6px 14px;font:600 13px/1.3 system-ui,sans-serif;color:#fff;background:rgba(8,15,33,.78);border:1px solid rgba(255,255,255,.22);border-radius:999px;cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+  .lm-chip[hidden]{display:none}
+.lm-perf { position: absolute; left: 10px; top: 10px; z-index: 5; max-width: min(340px, calc(100% - 90px)); padding: 8px 10px; font: 600 12px/1.45 system-ui, sans-serif; color: #fff; background: rgba(8, 15, 33, 0.78); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 12px; }
+.lm-perf b { font-size: 15px; color: #f6d481; }
+.lm-perf a { display: inline-block; margin: 4px 6px 0 0; padding: 3px 8px; color: #fff; text-decoration: none; background: rgba(255, 255, 255, 0.14); border-radius: 999px; }
+.lm-perf a.on { color: #1b1405; background: #f6d481; }
+</style>
+</head>
+<body>
+<div id="lessonMap"><div class="lm-empty">Đang tải bản đồ...</div></div>
+<script src="/campaign-data.js"></script>
+<script src="/terrain-core.js"></script>
+<script src="/strategic-map.js"></script>
+<script>
+(function () {
+  'use strict';
+  var CELLS = 32;
+  var root = document.getElementById('lessonMap');
+  var campaign = window.SignalCampaign;
+  var controller = null;
+  var current = null; // { key }
+  var lastInput = null;
+  var pilot = null;
+  var pilotWanted = false;
+  var dragMode = 'orbit';
+
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.body.classList.add('reduced-motion');
+  }
+
+  function esc(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function themeOf(world) { return campaign.themes[world] || campaign.themes.modern; }
+  function sprite(theme, mascot) {
+    var m = Number(mascot) || 0;
+    return '<span class="mascot" style="background-image:url(\'/assets/' + esc(theme.sprites) + '\');--mx:' + ((m % 4) * 100 / 3) + '%;--my:' + (Math.floor(m / 4) * 100) + '%" aria-label="' + esc(theme.mascots[m]) + '" role="img"></span>';
+  }
+  // Opened on its own (?demo) the page talks to itself, so the trial die can roll; inside the lesson it talks to the parent page.
+  var standaloneDemo = /[?&]demo/.test(window.location.search);
+  function post(type, extra) {
+    var target = window.parent === window ? (standaloneDemo ? window : null) : window.parent;
+    if (!target) return;
+    target.postMessage(Object.assign({ type: type }, extra || {}), window.location.origin);
+  }
+
+  // ---- icons (inline, crisp at any density)
+  var ICON_FIND = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="1.6"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/></svg>';
+  var ICON_ALL = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/><rect x="8.5" y="8.5" width="7" height="7" rx="1.5"/></svg>';
+  var ICON_MENU = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/><circle cx="9" cy="7" r="1.8" fill="currentColor"/><circle cx="15" cy="12" r="1.8" fill="currentColor"/><circle cx="8" cy="17" r="1.8" fill="currentColor"/></svg>';
+
+  function dieFaceHtml(n) {
+    var map = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+    var cells = '';
+    for (var i = 0; i < 9; i++) cells += map[n].indexOf(i) >= 0 ? '<span class="lm-pip"></span>' : '<span></span>';
+    return '<div class="lm-die-face f' + n + '">' + cells + '</div>';
+  }
+
+  function fullscreenTarget() {
+    try {
+      if (window.parent !== window && window.parent.document.documentElement.requestFullscreen) return window.parent.document;
+    } catch (e) { /* cross-origin parent: use this page */ }
+    return document;
+  }
+
+  function markup(theme, hasOwn) {
+    var canFull = !!fullscreenTarget().documentElement.requestFullscreen;
+    return '<section class="race-map campaign-map strategy-map lm-map" aria-label="Bản đồ chiến dịch ' + esc(theme.title) + '">' +
+      '<div class="strategy-stage"><div id="terrainViewport" class="terrain-viewport strategy-viewport" tabindex="0" role="region" aria-label="Bản đồ địa hình. Kéo hoặc dùng phím mũi tên để di chuyển. Cộng trừ để phóng to, 0 để xem toàn cảnh."></div>' +
+      '<div class="strategy-mini"><canvas class="strategy-minimap" width="192" height="108" tabindex="0" role="button" aria-label="Bản đồ thu nhỏ. Chạm để di chuyển camera; Enter để xem toàn cảnh."></canvas></div>' +
+      '<div class="strategy-status" role="status"></div></div>' +
+      '<div class="lm-controls" role="toolbar" aria-label="Điều khiển bản đồ">' +
+      (hasOwn ? '<button class="lm-btn" data-action="map-own" title="Tìm linh vật của em" aria-label="Tìm linh vật của em">' + ICON_FIND + '</button>' : '') +
+      '<button class="lm-btn" data-action="map-reset" title="Xem cả bản đồ" aria-label="Xem cả bản đồ">' + ICON_ALL + '</button>' +
+      '<button class="lm-btn" data-action="map-menu" aria-expanded="false" aria-controls="lmMenu" title="Tùy chọn bản đồ" aria-label="Tùy chọn bản đồ">' + ICON_MENU + '</button>' +
+      '</div>' +
+      '<div class="lm-menu" id="lmMenu" hidden>' +
+      '<div class="lm-row"><span class="lm-label">Kiểu xem</span><div class="lm-seg"><button data-action="map-mode" data-mode="2d" aria-pressed="true">2D phẳng</button><button data-action="map-mode" data-mode="3d" aria-pressed="false">3D</button></div></div>' +
+      '<div class="lm-row lm-only3d lm-hidden"><span class="lm-label">Góc nhìn</span><div class="lm-seg"><button data-action="map-view" data-view="1">Sau lưng</button><button data-action="map-view" data-view="2">Chéo</button><button data-action="map-view" data-view="3">Ngang</button><button data-action="map-view" data-view="4">Từ trên</button></div></div>' +
+      '<div class="lm-row lm-only3d lm-hidden"><span class="lm-label">Một ngón kéo để</span><div class="lm-seg"><button data-action="map-drag" data-drag="orbit" aria-pressed="true">Xoay quanh</button><button data-action="map-drag" data-drag="pan" aria-pressed="false">Di chuyển</button></div></div>' +
+      '<div class="lm-row"><span class="lm-label">Phóng to / thu nhỏ</span><div class="lm-seg"><button data-action="map-zoom" data-delta="-0.3" aria-label="Thu nhỏ">−</button><output id="mapZoom" aria-live="off">100%</output><button data-action="map-zoom" data-delta="0.3" aria-label="Phóng to">+</button></div></div>' +
+      '<div class="lm-row"><span class="lm-label">Linh vật trên bản đồ</span><div class="lm-seg lm-seg-wrap" id="lmFilter">' +
+      '<button data-action="map-filter" data-mode="all" aria-pressed="false">Tất cả</button>' +
+      (hasOwn ? '<button data-action="map-filter" data-mode="near" aria-pressed="false">Gần em</button>' : '') +
+      '<button data-action="map-filter" data-mode="lead" aria-pressed="false">Dẫn đầu</button>' +
+      '<button data-action="map-filter" data-mode="pick" aria-pressed="false">Chọn bạn</button>' +
+      (hasOwn ? '<button data-action="map-filter" data-mode="me" aria-pressed="false">Chỉ em</button>' : '') +
+      '</div><div class="lm-pick" id="lmPick" hidden><input type="search" id="lmPickSearch" placeholder="Tìm tên bạn" aria-label="Tìm tên bạn" autocomplete="off"><div class="lm-pick-list" id="lmPickList"></div><button data-action="map-pick-clear">Bỏ chọn hết</button></div></div>' +
+      '<div class="lm-row"><span class="lm-label">Ánh sáng</span><button data-action="map-light" aria-pressed="false">Ánh sáng: Ngày</button></div>' +
+      (canFull ? '<div class="lm-row"><button data-action="map-expand">⛶ Toàn màn hình</button></div>' : '') +
+      '<button data-action="map-rotate" class="lm-hidden" disabled>Xoay</button>' +
+      '</div>' +
+      '<div class="lm-dice" id="lmDice" hidden aria-live="polite"><div class="lm-die-scene" aria-hidden="true"><div class="lm-die" id="lmDie">' + [1, 2, 3, 4, 5, 6].map(dieFaceHtml).join('') + '</div></div><div class="lm-dice-pop" id="lmDicePop"></div></div>' +
+      '<div class="lm-toast" id="lmToast" role="status" hidden></div>' +
+      '<button class="lm-chip" id="lmChip" data-action="map-chip" hidden></button>' +
+      '</section>';
+  }
+
+  // ---- small helpers
+  function toast(text, ms) {
+    var el = document.getElementById('lmToast');
+    if (!el) return;
+    el.textContent = text;
+    el.hidden = false;
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(function () { el.hidden = true; }, ms || 4200);
+  }
+  function setMenuOpen(open) {
+    var menu = document.getElementById('lmMenu');
+    var btn = document.querySelector('[data-action="map-menu"]');
+    if (!menu || !btn) return;
+    menu.hidden = !open;
+    btn.setAttribute('aria-expanded', String(open));
+  }
+  function setModeButtons(mode) {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-action="map-mode"]'), function (b) {
+      b.setAttribute('aria-pressed', String(b.dataset.mode === mode));
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.lm-only3d'), function (row) {
+      row.classList.toggle('lm-hidden', !(mode === '3d' && pilot));
+    });
+  }
+  function setDragButtons(mode) {
+    dragMode = mode;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-action="map-drag"]'), function (b) {
+      b.setAttribute('aria-pressed', String(b.dataset.drag === mode));
+    });
+  }
+
+  function toggleFullscreen() {
+    var doc = fullscreenTarget();
+    var fail = function () { toast('Trình duyệt này không cho bật toàn màn hình. Em dùng nút toàn màn hình của trình duyệt (phím F11 trên máy tính) nhé.'); };
+    try {
+      var result = doc.fullscreenElement ? doc.exitFullscreen() : doc.documentElement.requestFullscreen();
+      if (result && result.catch) result.catch(fail);
+    } catch (e) { fail(); }
+  }
+  function syncFullscreenLabel() {
+    var button = document.querySelector('[data-action="map-expand"]');
+    if (button) button.textContent = fullscreenTarget().fullscreenElement ? '⛶ Thoát toàn màn hình' : '⛶ Toàn màn hình';
+  }
+  document.addEventListener('fullscreenchange', syncFullscreenLabel);
+  try { window.parent.document.addEventListener('fullscreenchange', syncFullscreenLabel); } catch (e) { /* ignore */ }
+
+  // ---- views
+  var PILOT_VIEWS = { 1: [0, 0.84], 2: [Math.PI / 4, 0.8], 3: [Math.PI / 2, 0.3], 4: [0, 1.3] };
+  var FLAT3D_VIEWS = { 1: [0, 1.3], 2: [Math.PI / 4, 0.95], 3: [Math.PI / 2, 0.7], 4: [Math.PI, 0.9] };
+  // Worlds that already have the third-person 3D scene; the others keep the tilted-plane 3D.
+  var PILOT_WORLDS = { historical: true, modern: true, future: true, dewey: true, pastoral: true, cube: true, ring: true, zones: true, academy: true, survival: true, galaxy: true, maze: true };
+  function pilotAvailable(world) { return !!PILOT_WORLDS[world]; }
+
+  function leavePilot(resume) {
+    if (pilot) { pilot.destroy(); pilot = null; }
+    var host = document.getElementById('pilot3d');
+    if (host) host.remove();
+    var viewport = document.getElementById('terrainViewport');
+    if (viewport) viewport.style.visibility = '';
+    var mini = document.querySelector('.strategy-mini');
+    if (mini) mini.style.display = '';
+    if (resume && lastInput && !controller) {
+      controller = window.SignalTerrain.mount(document.getElementById('terrainViewport'), buildModel(lastInput, themeOf(lastInput.world)));
+      controller.mode('2d');
+      followOwn(lastInput, true);
+    }
+    setModeButtons('2d');
+  }
+
+  // Going into 3D is asynchronous (the scene's code loads first). At most one entry is in flight, and choosing 2D in the
+  // meantime cancels it (pilotWanted goes false), so a double tap never builds two scenes and 2D is never overridden.
+  var pilotEntering = null;
+  function enterPilot() {
+    if (!lastInput || !pilotAvailable(lastInput.world)) return Promise.resolve(false);
+    pilotWanted = true;
+    if (pilot) return Promise.resolve(true);
+    if (pilotEntering) return pilotEntering;
+    var attempt = import('/map3d.js').then(function (mod) {
+      if (!pilotWanted) return false;
+      if (!mod.webglAvailable()) throw new Error('no-3d');
+      if (pilot || !lastInput) return Boolean(pilot);
+      var stage = document.querySelector('.strategy-stage');
+      var host = document.createElement('div');
+      host.id = 'pilot3d';
+      host.style.cssText = 'position:absolute;inset:0;z-index:1';
+      stage.insertBefore(host, stage.firstChild.nextSibling);
+      if (controller) { controller.destroy(); controller = null; }
+      document.getElementById('terrainViewport').style.visibility = 'hidden';
+      var mini = document.querySelector('.strategy-mini');
+      if (mini) mini.style.display = 'none';
+      pilot = mod.mount(host, buildModel(lastInput, themeOf(lastInput.world)), {
+        world: lastInput.world,
+        onFallback: function () { fallbackTo2D('Máy chưa theo kịp 3D nên bản đồ đã về 2D.'); },
+        onRollRequest: function () { post('lesson-map:roll'); },
+        onDiceDone: function () { post('lesson-map:dice-done'); }
+      });
+      pilot.dragAs(dragMode);
+      if (/[?&]debug/.test(window.location.search)) window.__pilot = pilot;
+      setModeButtons('3d');
+      applyDice(lastInput.dice);
+      if (!enterPilot.hinted) {
+        enterPilot.hinted = true;
+        toast('Kéo để xoay quanh linh vật. Muốn xem chỗ khác: mở ⚙ rồi chọn "Di chuyển", hoặc dùng hai ngón tay.', 5200);
+      }
+      return true;
+    }).catch(function () {
+      if (pilotWanted) fallbackTo2D('Máy này chưa chạy được 3D nên đang dùng 2D.');
+      return false;
+    }).then(function (entered) {
+      if (pilotEntering === attempt) pilotEntering = null;
+      return entered;
+    });
+    pilotEntering = attempt;
+    return attempt;
+  }
+
+  function fallbackTo2D(message) {
+    pilotWanted = false;
+    leavePilot(true);
+    toast(message);
+  }
+
+  function followOwn(input, first) {
+    if (!first || !controller) return;
+    var route = themeOf(input.world).route;
+    var own = input.map.peers.filter(function (peer) { return peer.own; })[0];
+    var focus = own ? route[Math.min(route.length - 1, cellOf(own.position, input.map.totalPosition))] : null;
+    controller.frame(route, focus);
+  }
+  function cellOf(position, total) {
+    var fraction = total > 0 ? Math.min(1, Math.max(0, position / total)) : 0;
+    return Math.round(fraction * CELLS);
+  }
+
+  // ---- which mascots are shown. A class of 50 would be a crowd, so the pupil can thin the map out: everyone, the nearest
+  // friends, the leaders, only picked friends, or only themselves (their own mascot is always shown). Teachers and the TV
+  // have no "own" mascot and can show everyone, the leaders or picked pupils. The choice is kept on this device.
+  var FILTER_KEY = 'lm-mascot-filter';
+  var NEAR_COUNT = 8;
+  var LEAD_COUNT = 8;
+  var filter = { mode: null, picked: {} }; // mode null = automatic (the nearest friends when the class is big)
+  var shownNow = 0;
+  var rosterKey = '';
+  var autoToastDone = false;
+  try {
+    var savedFilter = JSON.parse(window.localStorage.getItem(FILTER_KEY) || 'null');
+    if (savedFilter && ['all', 'near', 'lead', 'pick', 'me'].indexOf(savedFilter.mode) >= 0) filter.mode = savedFilter.mode;
+    if (savedFilter && savedFilter.picked && typeof savedFilter.picked === 'object') filter.picked = savedFilter.picked;
+  } catch (e) { /* no storage: the choice is simply not kept */ }
+  function saveFilter() {
+    try { window.localStorage.setItem(FILTER_KEY, JSON.stringify(filter)); } catch (e) { /* ignore */ }
+  }
+  function ownOf(input) { return input.map.peers.filter(function (peer) { return peer.own; })[0] || null; }
+  function filterMode(input) {
+    var own = ownOf(input);
+    var mode = filter.mode;
+    if ((mode === 'near' || mode === 'me') && !own) mode = null;
+    if (mode) return mode;
+    return own && input.map.peers.length > 12 ? 'near' : 'all';
+  }
+  function byName(a, b) { return String(a.name || '').localeCompare(String(b.name || ''), 'vi') || (a.id < b.id ? -1 : 1); }
+  function visiblePeers(input) {
+    var all = input.map.peers;
+    var mode = filterMode(input);
+    var own = ownOf(input);
+    var keep = {};
+    var others = all.filter(function (peer) { return !peer.own; });
+    if (own) keep[own.id] = true;
+    if (mode === 'all') { shownNow = all.length; return all; }
+    if (mode === 'near') {
+      others.sort(function (a, b) { return Math.abs(a.position - own.position) - Math.abs(b.position - own.position) || byName(a, b); });
+      others.slice(0, NEAR_COUNT).forEach(function (peer) { keep[peer.id] = true; });
+    } else if (mode === 'lead') {
+      others.sort(function (a, b) { return b.position - a.position || byName(a, b); });
+      others.slice(0, LEAD_COUNT).forEach(function (peer) { keep[peer.id] = true; });
+    } else if (mode === 'pick') {
+      others.forEach(function (peer) { if (filter.picked[peer.id]) keep[peer.id] = true; });
+    }
+    var shown = all.filter(function (peer) { return keep[peer.id]; });
+    shownNow = shown.length;
+    return shown;
+  }
+  function renderPickList(input) {
+    var list = document.getElementById('lmPickList');
+    var search = document.getElementById('lmPickSearch');
+    if (!list) return;
+    var term = String(search && search.value || '').toLowerCase().trim();
+    var rows = input.map.peers.filter(function (peer) { return !peer.own && (!term || String(peer.name || '').toLowerCase().indexOf(term) >= 0); }).sort(byName);
+    list.innerHTML = rows.length ? rows.map(function (peer) {
+      return '<label><input type="checkbox" data-pick="' + esc(peer.id) + '"' + (filter.picked[peer.id] ? ' checked' : '') + '><span>' + esc(peer.name || 'Linh vật') + '</span></label>';
+    }).join('') : '<div class="lm-label">Không có bạn nào khớp</div>';
+  }
+  function renderFilterUi(input) {
+    var mode = filterMode(input);
+    var total = input.map.peers.length;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-action="map-filter"]'), function (button) {
+      button.setAttribute('aria-pressed', String(button.dataset.mode === mode));
+    });
+    var pick = document.getElementById('lmPick');
+    if (pick) pick.hidden = mode !== 'pick';
+    var chip = document.getElementById('lmChip');
+    if (chip) {
+      chip.hidden = !(total > 12 || mode !== 'all');
+      chip.textContent = mode === 'pick' && shownNow <= (ownOf(input) ? 1 : 0) ? 'Chưa chọn bạn nào · Chọn' : 'Đang hiện ' + shownNow + '/' + total + ' linh vật · Đổi';
+    }
+    // the checklist is rebuilt only when the class list changes, so typing and ticking are never interrupted
+    if (mode === 'pick') {
+      var key = input.map.peers.map(function (peer) { return peer.id + ':' + peer.name; }).join('|');
+      if (key !== rosterKey) { rosterKey = key; renderPickList(input); }
+    }
+    if (!autoToastDone && !filter.mode && mode === 'near' && total > 12) {
+      autoToastDone = true;
+      toast('Lớp đông nên bản đồ chỉ hiện ' + NEAR_COUNT + ' bạn gần em. Mở ⚙ để đổi cách hiện.', 6500);
+    }
+  }
+  function applyFilterChange() {
+    saveFilter();
+    if (lastInput) receive(lastInput);
+  }
+
+  function buildModel(input, theme) {
+    var total = input.map.totalPosition;
+    var peers = visiblePeers(input).map(function (peer, index) {
+      return { id: peer.id, name: peer.name || ('Linh vật ' + (index + 1)), mascot: peer.mascot, position: cellOf(peer.position, total), score: 0, status: 'active', freezeUntil: 0 };
+    });
+    var own = input.map.peers.filter(function (peer) { return peer.own; })[0];
+    return {
+      key: input.sessionKey + ':' + input.world,
+      image: '/assets/' + theme.image,
+      imageHi: /.webp$/.test(theme.image) ? '/assets/' + theme.image.replace(/.webp$/, '@2x.webp') : null,
+      relief: input.world === 'historical' || input.world === 'pastoral',
+      route: theme.route,
+      peers: peers,
+      own: own ? own.id : null,
+      focus: null,
+      spot: null,
+      mathCells: [],
+      places: theme.places,
+      community: false,
+      now: Date.now(),
+      spriteUrl: '/assets/' + theme.sprites,
+      sprite: function (m) { return sprite(theme, m); },
+      phase: function () { return 'Đang trên đường'; },
+      onDrag: function () {}
+    };
+  }
+
+  function mount(input) {
+    var theme = themeOf(input.world);
+    leavePilot(false);
+    if (controller) { controller.destroy(); controller = null; }
+    var hasOwn = input.map.peers.some(function (peer) { return peer.own; });
+    root.innerHTML = markup(theme, hasOwn);
+    rosterKey = '';
+    root.style.setProperty('--lm-top', (Number(input.topInset) || 0) + 'px');
+    document.querySelector('.strategy-stage').style.setProperty('--map-image', "url('/assets/" + theme.image + "')");
+    controller = window.SignalTerrain.mount(document.getElementById('terrainViewport'), buildModel(input, theme));
+    current = { key: input.sessionKey + ':' + input.world };
+    followOwn(input, true);
+    if (pilotWanted && pilotAvailable(input.world)) enterPilot();
+    else pilotWanted = false;
+  }
+
+  // ---- the die on the flat map
+  var flat = { key: null, timers: [] };
+  var FACE_ROTATION = { 1: 'rotateX(0deg) rotateY(0deg)', 2: 'rotateX(0deg) rotateY(-90deg)', 3: 'rotateX(-90deg) rotateY(0deg)', 4: 'rotateX(90deg) rotateY(0deg)', 5: 'rotateX(0deg) rotateY(90deg)', 6: 'rotateX(0deg) rotateY(180deg)' };
+  function clearFlatTimers() { flat.timers.forEach(clearTimeout); flat.timers = []; }
+  function flatDice(d) {
+    var box = document.getElementById('lmDice');
+    var die = document.getElementById('lmDie');
+    var pop = document.getElementById('lmDicePop');
+    if (!box || !die || !pop) return;
+    var phase = d && d.phase || 'idle';
+    var reduced = document.body.classList.contains('reduced-motion');
+    if (phase === 'rolling') {
+      clearFlatTimers();
+      box.hidden = false;
+      pop.classList.remove('show');
+      pop.innerHTML = '';
+      die.style.transform = '';
+      die.classList.add('spin');
+      flat.key = null;
+    } else if (phase === 'landed') {
+      var key = d.face + ':' + d.steps + ':' + (d.seq || '');
+      if (flat.key === key) return;
+      flat.key = key;
+      clearFlatTimers();
+      box.hidden = false;
+      die.classList.remove('spin');
+      die.style.transform = FACE_ROTATION[d.face] || FACE_ROTATION[1];
+      flat.timers.push(setTimeout(function () {
+        pop.innerHTML = '<strong>' + esc(d.steps) + '</strong>bước';
+        pop.classList.add('show');
+      }, reduced ? 0 : 650));
+      flat.timers.push(setTimeout(function () { post('lesson-map:dice-done'); }, reduced ? 80 : 1250));
+    } else {
+      clearFlatTimers();
+      flat.key = null;
+      box.hidden = true;
+      die.classList.remove('spin');
+      pop.classList.remove('show');
+    }
+  }
+  function applyDice(d) {
+    if (!d) d = { phase: 'idle', canRoll: false };
+    if (pilot) { flatDice({ phase: 'idle' }); pilot.setDice(d); }
+    else flatDice(d);
+  }
+
+  function receive(input) {
+    if (!input || !input.map || !Array.isArray(input.map.peers) || !campaign || !window.SignalTerrain) return;
+    lastInput = input;
+    root.style.setProperty('--lm-top', (Number(input.topInset) || 0) + 'px');
+    var theme = themeOf(input.world);
+    var key = input.sessionKey + ':' + input.world;
+    if ((!controller && !pilot) || !current || current.key !== key) mount(input);
+    else {
+      var model = buildModel(input, theme);
+      if (pilot) pilot.update(model);
+      else controller.update(model);
+    }
+    renderFilterUi(input);
+    applyDice(input.dice);
+  }
+
+  // ---- clicks
+  root.addEventListener('click', function (event) {
+    var button = event.target.closest('[data-action]');
+    if (!button || (!controller && !pilot)) return;
+    var action = button.dataset.action;
+    if (action === 'map-menu') { setMenuOpen(document.getElementById('lmMenu').hidden); return; }
+    if (action === 'map-chip') { setMenuOpen(true); return; }
+    if (action === 'map-filter') { filter.mode = button.dataset.mode; applyFilterChange(); return; }
+    if (action === 'map-pick-clear') { filter.picked = {}; rosterKey = ''; applyFilterChange(); return; }
+    if (action === 'map-expand') { toggleFullscreen(); return; }
+    if (action === 'map-mode') {
+      if (button.dataset.mode === '3d') {
+        if (lastInput && pilotAvailable(lastInput.world)) { if (!pilot) enterPilot(); }
+        else if (controller) { controller.mode('3d'); setModeButtons('3d'); }
+      } else {
+        pilotWanted = false; // also cancels a 3D entry that is still loading
+        if (pilot) leavePilot(true);
+        else if (controller) controller.mode('2d');
+        setModeButtons('2d');
+      }
+      return;
+    }
+    if (pilot) {
+      if (action === 'map-zoom') pilot.zoom(Number(button.dataset.delta));
+      else if (action === 'map-reset') pilot.overview();
+      else if (action === 'map-own') pilot.reset();
+      else if (action === 'map-view') { var pa = PILOT_VIEWS[button.dataset.view]; pilot.look(pa[0], pa[1]); }
+      else if (action === 'map-drag') { setDragButtons(button.dataset.drag); pilot.dragAs(button.dataset.drag); }
+      else if (action === 'map-light') { var m = pilot.light(); button.setAttribute('aria-pressed', String(m === 'night')); button.textContent = 'Ánh sáng: ' + (m === 'night' ? 'Đêm' : 'Ngày'); }
+      return;
+    }
+    if (action === 'map-zoom') controller.zoom(Number(button.dataset.delta));
+    else if (action === 'map-reset') controller.reset();
+    else if (action === 'map-view') { var a = FLAT3D_VIEWS[button.dataset.view]; controller.look(a[0], a[1]); }
+    else if (action === 'map-light') controller.light();
+    else if (action === 'map-own' && lastInput) {
+      var own = lastInput.map.peers.filter(function (peer) { return peer.own; })[0];
+      if (own) controller.focus(own.id);
+    }
+  });
+
+  root.addEventListener('change', function (event) {
+    var box = event.target;
+    if (!box || !box.dataset || box.dataset.pick === undefined) return;
+    if (box.checked) filter.picked[box.dataset.pick] = true;
+    else delete filter.picked[box.dataset.pick];
+    applyFilterChange();
+  });
+  root.addEventListener('input', function (event) {
+    if (event.target && event.target.id === 'lmPickSearch' && lastInput) renderPickList(lastInput);
+  });
+
+  document.addEventListener('pointerdown', function (event) {
+    var menu = document.getElementById('lmMenu');
+    if (!menu || menu.hidden) return;
+    var node = event.target;
+    if (node && node.closest && (node.closest('#lmMenu') || node.closest('[data-action="map-menu"]'))) return;
+    setMenuOpen(false);
+  });
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') setMenuOpen(false);
+  });
+
+  window.addEventListener('message', function (event) {
+    if (event.origin !== window.location.origin || event.source !== window.parent) return;
+    var data = event.data;
+    if (data && data.type === 'lesson-map:update') receive(data.payload);
+  });
+
+  // ---- trial mode: open this page on its own with ?demo=1 to try the 3D map on any device. It shows eight sample
+  // mascots, a working die and a small meter (frames per second, how sharp the picture is, which quality level).
+  if (/[?&]demo/.test(window.location.search)) {
+    // ?demo=50 shows a class of 50 (mostly bunched up on the early cells, as in a real lesson); ?demo=1 shows eight
+    var DEMO_NAMES = ['Em', 'An', 'Bình', 'Chi', 'Dũng', 'Giang', 'Hà', 'Khoa', 'Lan', 'Minh', 'Nam', 'Oanh', 'Phúc', 'Quân', 'Sơn', 'Thảo', 'Uyên', 'Việt', 'Xuân', 'Yến'];
+    // ?world=future (any world id) previews that world in 3D even before it is listed in PILOT_WORLDS
+    var demoWorld = new URLSearchParams(window.location.search).get('world') || 'historical';
+    if (campaign && campaign.themes[demoWorld]) PILOT_WORLDS[demoWorld] = true; else demoWorld = 'historical';
+    var demoCount = Number(new URLSearchParams(window.location.search).get('demo')) || 0;
+    demoCount = demoCount > 1 ? Math.min(120, demoCount) : 8;
+    var showParam = new URLSearchParams(window.location.search).get('show'); // ?show=all|near|lead|pick|me: force a mode when measuring
+    if (['all', 'near', 'lead', 'pick', 'me'].indexOf(showParam) >= 0) filter.mode = showParam;
+    var demoSeed = 12345;
+    var demoRand = function () { demoSeed = (demoSeed * 1664525 + 1013904223) % 4294967296; return demoSeed / 4294967296; };
+    var DEMO_PEERS = [];
+    for (var di = 0; di < demoCount; di++) {
+      var spread = demoCount === 8 ? 6 + di * 8 : Math.round(Math.max(0, Math.min(100, 8 + (demoRand() + demoRand() + demoRand() - 1.5) * 52)));
+      DEMO_PEERS.push({
+        id: 'demo' + di,
+        name: di < DEMO_NAMES.length ? DEMO_NAMES[di] : DEMO_NAMES[di % DEMO_NAMES.length] + ' ' + (Math.floor(di / DEMO_NAMES.length) + 1),
+        mascot: di % 8,
+        position: di === 0 && demoCount !== 8 ? 22 : spread,
+        own: di === 0
+      });
+    }
+    var demoDice = { phase: 'idle', canRoll: true, seq: 0 };
+    var demoSend = function () {
+      receive({ map: { totalPosition: 100, peers: DEMO_PEERS }, world: demoWorld, sessionKey: 'demo', topInset: 0, dice: demoDice });
+    };
+    var demoTries = 0;
+    var demoStart = function () {
+      if (!window.SignalTerrain || !campaign) { if (demoTries++ < 100) setTimeout(demoStart, 100); return; }
+      pilotWanted = true;
+      demoSend();
+    };
+    var demoSteps = 0;
+    window.addEventListener('message', function (event) {
+      if (event.source !== window || !event.data) return;
+      if (event.data.type === 'lesson-map:roll') {
+        demoDice = { phase: 'rolling', canRoll: false, seq: demoDice.seq + 1 };
+        demoSend();
+        setTimeout(function () {
+          var face = 1 + Math.floor(Math.random() * 6);
+          demoSteps = face;
+          demoDice = { phase: 'landed', face: face, steps: face, canRoll: false, seq: demoDice.seq };
+          demoSend();
+        }, 900);
+      } else if (event.data.type === 'lesson-map:dice-done') {
+        DEMO_PEERS[0].position = Math.min(100, DEMO_PEERS[0].position + demoSteps * (100 / CELLS));
+        demoDice = { phase: 'idle', canRoll: true, seq: demoDice.seq };
+        demoSend();
+      }
+    });
+    var meter = document.createElement('div');
+    meter.className = 'lm-perf';
+    var params = new URLSearchParams(window.location.search);
+    var levelNow = params.has('q') ? params.get('q') : 'auto';
+    var gpuName = '';
+    try {
+      var glCanvas = document.createElement('canvas');
+      var gl = glCanvas.getContext('webgl2') || glCanvas.getContext('webgl');
+      var info = gl && gl.getExtension('WEBGL_debug_renderer_info');
+      gpuName = info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)).replace(/^ANGLE \(/, '').replace(/\)$/, '').slice(0, 70) : '';
+    } catch (e) { /* ignore */ }
+    var link = function (q, label) {
+      var u = new URL(window.location.href);
+      if (q === 'auto') u.searchParams.delete('q'); else u.searchParams.set('q', q);
+      return '<a href="' + u.pathname + u.search + '" class="' + (String(q) === String(levelNow) ? 'on' : '') + '">' + label + '</a>';
+    };
+    document.body.appendChild(meter);
+    setInterval(function () {
+      if (!pilot) { meter.innerHTML = 'Đang tải 3D…'; return; }
+      var st = pilot.stats();
+      meter.innerHTML = '<b>' + pilot.fps() + ' khung/giây</b> · độ nét ' + Math.round(st.scale * 100) + '% · mức ' + st.quality + '<br>' + esc(gpuName) + '<br>Chất lượng: ' + link('auto', 'Tự động') + link(0, 'Cao') + link(1, 'Vừa') + link(2, 'Nhẹ');
+    }, 500);
+    demoStart();
+  }
+
+  post('lesson-map:ready');
+})();
+</script>
+</body>
+</html>

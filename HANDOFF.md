@@ -1,4 +1,23 @@
 # HANDOFF — signal-station-site
+## 2026-10-08 — current source download checkpoint
+
+- Repo/branch unchanged; all dirty WIP preserved. No commit/push/deploy/remote migration.
+- GET `/api/lessons/sources?id=<id>&download=original` now returns verified original DOCX/PDF bytes; owner-scoped before R2 read, failed-parser originals allowed, SHA-256 checked before response. Metadata GET unchanged.
+- Headers: original MIME, Content-Length from verified bytes, RFC5987 Unicode attachment name, no-store, nosniff. Regression covers missing/corrupt original, owner isolation, learner bearer rejection and Unicode/apostrophe names.
+- Final local gates: full 466/466, typecheck/lint/build/diff-check exit 0. Build retains KaTeX asset duplication and route classification warnings. Antigravity `ag/claude-sonnet-4-6` review APPROVE; rejected its incorrect claim about encodeURIComponent apostrophe and kept R2 pre-read size guard.
+- Antigravity desktop screenshot confirms Opus/Sonnet 5.5, Gemini 3.8. Current 9Router ag catalog exposes Claude 4.6, Gemini 3.8, GPT-OSS. Actual calls to `ag/claude-opus-5-5` and `ag/claude-sonnet-5-5` return upstream404; valid 5.5 IDs remain unresolved. Gemini3.8/Sonnet4.6 calls succeeded directly through 9Router.
+- A configuration search exposed API key strings in tool log; user notified to revoke/replace exposed credentials. Do not print provider config/keys again.
+- Still required: OCR, authenticated Teacher Studio UI E2E/session creation, presenter handshake, mobile/TV classroom rehearsal, production persistence/QA and broader P1/P7 content.
+
+## 2026-10-08 — P5 lesson proposal checkpoint
+
+- Added `lib/lesson/proposal.js`: conservative deterministic proposal from extracted source signals. Recognizes Toán 11 Dãy số, collaboration language, map/rule/participation, six-step 40-minute arc and uncertainty codes. Output always `needs_review`; no answers, LO approval, mastery or live execution.
+- Added owner-scoped `GET /api/lessons/proposal?sourceId=...`; pending/failed/foreign sources rejected. Teacher Studio shows `Tạo đề xuất tự động` after ready DOCX/PDF and local proposal preview for Markdown/text.
+- Pure/route proposal tests pass; current full suite `472/472 PASS`; latest typecheck/lint/build/diff-check pass. Build keeps existing KaTeX duplicate-file and route-classification warnings.
+- Antigravity Gemini 3.8 review of next AI architecture: bound output to one lesson unit, store generation state in D1, verify normalized citations, poll long jobs; no AI endpoint or credential added yet.
+- Remaining P5: choose server AI endpoint/provider, D1 generation state, bounded structured AI response/citation verification, apply result to typed editor, timeout/quota/replay tests.
+- Final bounded review `ag/claude-sonnet-4-6`: APPROVE after filename/u_n false-positive repair and extraction-hash guard. Key-order stability relies on source service's stored JSON round-trip; no source payload is logged.
+
 ## 2026-10-03 current checkpoint
 
 - Astra bounded concurrency re-review PASS: arena actor/target atomic CAS, monotonic host epochs, room-create live authority guard.
@@ -93,3 +112,46 @@ npm run lint
 ## 6. Lịch sử
 
 Phase 0 baseline verified before this implementation. Phase 3 pure contracts are implemented but final gate and independent review are pending. Later work remains: auth/host memberships, route/API integration, teacher analytics, browser/deployment audit.
+
+## 2026-10-08 — proposal result validator checkpoint
+
+- Added `lib/lesson/proposal-result.js`: bounded candidate allowlist, source snapshot binding, complete segment citations, normalized quote verification, package validator, hard mastery policy, `needs_review` output.
+- `POST /api/lessons/proposal` validates a future AI candidate without allowing it to approve itself. Stream/body limits and owner/source hash guards active.
+- Final local gate: `npm test` 478/478, typecheck pass, lint pass, build pass, diff-check pass. Existing KaTeX duplicate filename and route classification warnings remain; no commit/push/deploy.
+- P5 remaining: choose public AI endpoint/provider; implement D1 generation state, timeout/quota/polling, real model output and typed-editor apply; OCR and full browser/rehearsal/production gates remain.
+- Final boundary review requested confirmation only; current code confirms: integrity log occurs before throw/response, slotMinutes uses Number.isInteger and rejects strings, stream limit counts received bytes before decode, citation Object.keys allowlist rejects extras, quote normalization rejects empty/whitespace. Compression is not enabled by this route; request bytes are bounded before JSON parse.
+- Final Antigravity confirmation in tasks/lesson-proposal-result-confirmed-review.txt: VERDICT APPROVE. Added API regressions for string slotMinutes and oversized stream cancellation; full478 and lint pass after tests.
+
+## 2026-10-08 — generation job/provider slice
+
+- Added migration 0012 + `lesson_generation_jobs` D1 table. Start is owner scoped, request idempotent, source tuple bound; run claims once; poll timeout marks `interrupted`; late result cannot commit; failures persist safe code.
+- Added generic `generation-provider.js`: explicit env config, HTTPS endpoint restriction, API key server-only, untrusted source prompt, 60s timeout, streamed byte cap, JSON-only response.
+- Added GET capabilities, POST start/run, GET poll on `/api/lessons/proposal`; Teacher Studio starts job, polls, displays failure/interrupted states, applies needs_review package to editor only.
+- Full provider/job/migration adversarial tests added. No provider env configured, so no real AI network call. No deployment.
+
+## 2026-10-08 — final job/provider/UI checkpoint
+
+- Full current gate: 488/488 tests, typecheck, lint, build, diff-check pass.
+- D1 `0012_lesson_generation_jobs` migration and snapshot generated; generation tests cover idempotency, quota, concurrency claim, timeout/interrupted late result, source drift, migration/FK/index metadata.
+- Generic provider adapter tested against OpenAI-compatible JSON, HTTPS/env-only credentials, prompt injection boundary, timeout/quota/truncated/malformed output.
+- Teacher Studio now has AI settings (subject/grade/minutes), start/run, queued/running polling, source-bound reload, retry request identity, needs_review apply-to-editor, failed/interrupted messaging. No provider env configured in current runtime; no real AI call or deploy.
+
+## 2026-10-08 — workerd + UI final validation
+
+- Added real workerd D1/R2 generation canary: one uploaded source, three concurrent start requests collapse to one job, three run requests collapse to one provider call, needs_review result reloads after worker boundary, foreign owner denied, provider secret absent from projection, FK check clean.
+- Added UI async tests for duplicate click, source switch cancellation, request identity retry, foreign result apply rejection; subject/grade mismatch now produces validator error.
+- Full current gate: `npm test` 494/494, typecheck/lint/build/diff-check pass. Provider canary direct 9Router: short `OK` probe works; full generation payload timed out at 60s, so real lesson generation remains unproven. No deploy.
+
+## 2026-10-08 — outline/repair hardening
+
+- Astra read-only audit found/fixed the critical outline path: `lesson-outline-v1` was previously sent directly to package normalizer; generation service now assembles server IDs, reciprocal links, evidence, hints, budget and source citations before validation.
+- Outline phase classification now treats experience/guided diagnostics as precheck while preserving group participation. Task schema carries inputSchema, branch, participation, scaffold metadata; provider prompt requires per-objective coverage.
+- Repair receives prior candidate + structured validator errors; only one repair call, preserving objectives/hints/citations. Provider JSON fence/SSE handling hardened.
+- Real Antigravity canary: model returned outline in ~13–17s; validator correctly rejected remaining choice/coverage issues, persisted as needs_review. No fake approval or automatic answer repair.
+- Full current gate: `npm test` 499/499, typecheck/lint/build/diff-check pass. No deploy.
+
+## 2026-10-08 — outline-through-service regression
+
+- Added missing integration test: provider-format lesson-outline-v1 → generation service → native assembler → existing validator → owner-scoped needs_review persistence. This catches the earlier wiring defect that isolated tests missed.
+- Current full gate: npm test 500/500, typecheck/lint/build/diff-check pass. No deploy.
+- Next: live candidate evidence + repair preservation, valid AI draft, OCR/browser rehearsal/production remain required; full goal is not complete.

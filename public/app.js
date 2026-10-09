@@ -35,7 +35,12 @@
     let pendingCampaign = null;
     let roomDraft = { playMode: 'teams', participation: 'group', rule: 'campaign', community: 'boat', theme: 'modern', grade: 10, topics: ['sets', 'quadratic', 'inequality', 'vectors'], minLevel: 0, maxLevel: 2, stationMax: 2, categories: ['practice', 'real', 'theory', 'history', 'digital', 'global', 'culture', 'wellbeing'], formats: ['short', 'mcq', 'tf'] };
     function theme() { let key = (screen === 'teacher' ? board?.room.campaign : (state?.race?.campaign || pendingCampaign))?.theme || roomDraft.theme || 'modern'; return C.themes[C.resolveThemeId(key)] || C.themes.modern; }
-    function mathText(text) { return String(text ?? '').split(/(\\\([\s\S]*?\\\))/g).map(part => part.startsWith('\\(') && part.endsWith('\\)') ? katex.renderToString(part.slice(2, -2), { throwOnError: false, trust: false, strict: 'ignore', output: 'htmlAndMathml' }) : esc(part)).join(''); }
+    function mathText(text) {
+        if (typeof SignalMath !== 'undefined' && typeof SignalMath.renderMath === 'function') {
+            return SignalMath.renderMath(text, typeof katex !== 'undefined' ? katex : (typeof globalThis !== 'undefined' ? globalThis.katex : undefined));
+        }
+        return esc(text);
+    }
     function community() { return screen === 'teacher' ? board?.community : state?.community || mapState?.community; }
     function communityRunning() { let c = community(); return !!c && wallNow() < c.resumeAt; }
     function communityKey() { let c = community(); return c ? [c.id, c.phase, c.own?.step].join(':') : ''; }
