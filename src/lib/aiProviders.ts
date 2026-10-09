@@ -1,3 +1,4 @@
+import { geminiKeysOf, withGeminiKeys } from './geminiKeyRing';
 import { callGeminiAIRaw, callGeminiAIStream, DEFAULT_GEMINI_RUNTIME_MODEL, EXAM_FORMAT_SYSTEM_INSTRUCTION, GEMINI_RUNTIME_MODELS } from './gemini';
 import { callAiRelay, relayModelFor, relayVendorModelFor, type RelayVendorId } from './aiRelay';
 import { geminiRouteFor, getAiModeSnapshot, isOwnKeyFailure, vendorRouteFor } from './ai/aiModeStore';
@@ -306,7 +307,7 @@ async function callAIOnceDirect(prompt: string, settings: Settings): Promise<Raw
     const model = idx >= 0 ? GEMINI_RUNTIME_MODELS[idx] : DEFAULT_GEMINI_RUNTIME_MODEL;
 
     const viaOwnKey = async (): Promise<RawResult> => {
-      const result = await callGeminiAIRaw(prompt, settings.geminiApiKey, idx >= 0 ? idx : 0);
+      const result = await withGeminiKeys(geminiKeysOf(settings), key => callGeminiAIRaw(prompt, key, idx >= 0 ? idx : 0));
 
       if (!result) {
         throw new Error('Gemini không trả về kết quả. Kiểm tra API key trong Cài đặt hoặc thử lại sau.');
@@ -557,7 +558,6 @@ async function callAIWithVisionDirect(
     if (visionRoute === 'relay') return await visionViaWallet();
 
     const { GoogleGenAI } = await import('@google/genai');
-    const ai = new GoogleGenAI({ apiKey: settings.geminiApiKey, httpOptions: { apiVersion: 'v1beta' } });
     const idx = GEMINI_RUNTIME_MODELS.indexOf(settings.selectedModel);
     const modelName = idx >= 0 ? GEMINI_RUNTIME_MODELS[idx] : DEFAULT_GEMINI_RUNTIME_MODEL;
     
@@ -570,11 +570,11 @@ async function callAIWithVisionDirect(
 
     async function executeVisionCall(): Promise<string> {
       try {
-        const result = await ai.models.generateContent({
+        const result = await withGeminiKeys(geminiKeysOf(settings), key => new GoogleGenAI({ apiKey: key, httpOptions: { apiVersion: 'v1beta' } }).models.generateContent({
           model: modelName,
           contents: [{ parts: [{ text: prompt }, ...imageParts] }],
           config: { temperature: 0.1, maxOutputTokens: 65536 },
-        });
+        }));
         const usageMetadata = (result as any)?.usageMetadata;
         const text = result.text || '';
         if (usageMetadata) {
@@ -808,10 +808,10 @@ async function callAIStreamDirect(
       return;
     }
     try {
-      await callGeminiAIStream(prompt, settings.geminiApiKey, (chunk) => {
+      await withGeminiKeys(geminiKeysOf(settings), key => callGeminiAIStream(prompt, key, (chunk) => {
         output += chunk;
         onChunk(chunk);
-      }, idx >= 0 ? idx : 0, modelOverride);
+      }, idx >= 0 ? idx : 0, modelOverride), { canRotate: () => output === '' });
       recordEstimatedUsage(provider, model, prompt, output);
     } catch (ownKeyError) {
       // Chỉ chuyển sang ví khi chưa có chữ nào hiện ra — nếu không nội dung bị lặp hai lần.

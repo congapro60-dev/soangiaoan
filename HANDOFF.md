@@ -10,7 +10,17 @@ Snapshot trạng thái hiện tại. Lịch sử dài đã chuyển vào [`docs/
 
 
 
-## Danh sách nhiều khoá Gemini của chủ dự án — 2026-10-09 · nhánh `claude/hoi-lai-hoc-sinh`, CHƯA merge main
+## Nhiều khoá Gemini trong Cài đặt (giáo viên tự gom hạn mức free) — 2026-10-09 · nhánh `claude/hoi-lai-hoc-sinh`, CHƯA merge main
+
+Giáo viên có nhiều tài khoản Google dán mỗi tài khoản một khoá ở **Cài đặt → Gemini** (tối đa 10, `GeminiKeysField`). Khác với danh sách khoá của chủ dự án ở tab Quản trị (khoá chung, phía máy chủ).
+- **Lưu:** `settings.geminiApiKeys` (danh sách) + `settings.geminiApiKey` luôn = khoá không-rỗng đầu tiên (các nơi chỉ kiểm "có khoá chưa" không đổi). Người cũ chỉ có khoá đơn vẫn chạy (`geminiKeysOf`). **Chỉ ở trình duyệt**: `stripLocalOnlyKeys` (`src/lib/settingsSecrets.ts`) loại `geminiApiKeys` cùng 5 khoá cũ khỏi cả hai đường đồng bộ Firebase (`useAppState`: đọc + ghi).
+- **Đổi khoá** (`src/lib/geminiKeyRing.ts`, `withGeminiKeys`): lỗi do KHOÁ (`isOwnKeyFailure`: 429/hết hạn mức/sai khoá) → khoá đó nghỉ (sai khoá 6 giờ; hạn mức ngày nghỉ tới 08:00 UTC; còn lại theo `cooldownMsFor`) rồi thử khoá kế; khoá sẵn sàng xoay vòng. Nhớ nghỉ trong localStorage theo dấu vân tay (độ dài + 8 ký tự cuối), KHÔNG lưu khoá thật. Lỗi khác (503, mạng) ném ngay. Hết cả danh sách → ném lỗi cuối → chế độ "khoá riêng trước, hết sang ví" chuyển ví như cũ. Luồng chữ: đã hiện chữ thì không đổi khoá (tránh lặp nội dung).
+- **Đã nối vào:** gọi chữ (`callAIOnceDirect`), đọc ảnh (vision), luồng chữ (stream) trong `aiProviders.ts`, và `parseOnlineExam` (`examOnlineParser.ts`). **Chưa nối** (vẫn chỉ dùng khoá đầu): `src/lib/adaptive/studentAiKey.ts` và mọi nơi khác tự tạo `GoogleGenAI` — grep `new GoogleGenAI` nếu cần.
+- **Còn tồn tại từ trước, KHÔNG sửa trong đợt này:** `nvidiaApiKey` và `openaiCompatibleApiKey` KHÔNG nằm trong danh sách loại khi đồng bộ `userSettings` lên Firebase (tức đang được ghi lên cloud). Muốn đóng thì thêm vào `LOCAL_ONLY_KEYS`, nhưng người dùng đang dựa vào việc nó đồng bộ sang máy khác — cần chủ dự án quyết.
+- Giao diện có cảnh báo: chỉ khoá thuộc dự án Google chưa gắn thanh toán mới có hạn mức free; nội dung qua gói free có thể được Google dùng cải thiện sản phẩm; tự đọc điều khoản về nhiều tài khoản.
+- Test: `geminiKeyRing.test.ts` (10), `aiProviders.wallet.test.ts` (+1: khoá đầu hết hạn mức → khoá hai, không đốt ví; hết hai mới sang ví), `settingsSecrets.test.ts`, `GeminiKeysField.test.tsx`; đã thử phá nhánh đổi khoá, test bắt.
+
+## Danh sách nhiều khoá Gemini của chủ dự án — 2026-10-09 · ĐÃ merge main (b1a6462)
 
 Chủ dự án có nhiều tài khoản Gemini → muốn gom hạn mức miễn phí của API. (Quota gói Pro/Ultra của app Gemini KHÔNG dùng được qua API; chỉ gom được hạn mức free của các khoá AI Studio.)
 - **Lưu & quản trị:** `adminSettings/geminiKeyPool` { keys[] } — chỉ máy chủ đọc/ghi (rules không mở), khoá thật không trả về trình duyệt (chỉ 4 ký tự cuối). Panel "Nhiều khoá Gemini" ở tab Quản trị (`GeminiKeyPoolPanel`): thêm (kiểm dạng `AIza…` + gọi thử một lượt nhỏ trước khi lưu; khoá bị Google từ chối thì không lưu), đổi hạng free/paid, tắt/bật, "Dùng lại ngay", xoá. Action `adminGeminiKeys` / `adminSaveGeminiKey` / `adminDeleteGeminiKey` trong `_admin.ts` (đã qua cổng admin).
