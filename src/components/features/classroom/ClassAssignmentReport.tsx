@@ -24,6 +24,9 @@ import {
 import { buildQuestionCatalog } from '../../../services/gradingApi';
 import type { AppData, ClassAssignment, Exam, ExamSubmission, Student } from '../../../types';
 import { ClassStudentProgressMatrix } from './ClassStudentProgressMatrix';
+import { ClassWeeklyOverview } from './ClassWeeklyOverview';
+import { weekPlanFor } from '../../../lib/schedule/reportWeekPlan';
+import { auth } from '../../../lib/firebase';
 import { NhanXetMarkdown } from './NhanXetMarkdown';
 import { SupportActivityModal } from './SupportActivityModal';
 
@@ -718,6 +721,7 @@ export const loadClassAssignmentReports = async (
         purpose: assignment.purpose ?? 'assignment',
         deliveryMode: assignment.deliveryMode ?? 'file',
         maxScore: asFiniteNumber(assignment.maxScore),
+        weekDate: assignment.dueAt || assignment.createdAt,
         // Danh mục máy chủ đã đọc và lưu là nguồn tốt nhất: có công thức LaTeX, không phải dò
         // lại chữ. Bài giao cũ chưa có thì tạm dò trong sourceText cho tới khi giáo viên bấm đọc.
         questionCatalog: variantQuestionCatalog(assignment, submissions) ?? (assignment.questionCatalog?.length
@@ -753,6 +757,7 @@ export const loadClassAssignmentReports = async (
         purpose: assignment.purpose ?? 'assignment',
         deliveryMode: assignment.deliveryMode ?? 'online',
         maxScore: asFiniteNumber(exam.maxScore),
+        weekDate: assignment.assignedAt,
         questionCatalog: exam.questions.map((question, index) => ({
           questionNumber: String(index + 1),
           content: asText(question.content).trim(),
@@ -998,6 +1003,7 @@ export const ClassAssignmentReport = ({
         </div>
       ) : (
         <>
+          <ClassWeeklyOverview reports={reports} weekPlan={weekPlanFor(teacherId, className, auth.currentUser?.email)} />
           <ClassStudentProgressMatrix students={students} reports={reports} />
           <div className="flex items-center justify-between gap-4">
             <div><p className="text-xs font-black uppercase tracking-wide text-indigo-600">{selectedReport.assignment.type}</p><h3 className="mt-1 text-xl font-black text-slate-900">{selectedReport.assignment.title}</h3></div>

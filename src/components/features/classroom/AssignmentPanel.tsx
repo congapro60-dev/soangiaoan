@@ -35,6 +35,9 @@ import { getClassDoc, setClassAutoGrade, setClassClarify } from '../../../lib/cl
 import { autoGradeEnabledFor } from '../../../lib/classroom/autoGrade';
 import { clarifyEnabledFor } from '../../../lib/classroom/clarification';
 import { OnlineAssignmentReview } from './OnlineAssignmentReview';
+import { groupResultsByWeek, weekTitle } from '../../../lib/classroom/reportWeeks';
+import { weekPlanFor } from '../../../lib/schedule/reportWeekPlan';
+import { auth } from '../../../lib/firebase';
 import { CompetencyTagEditor } from './CompetencyTagEditor';
 import { asCompetencyGrade } from '../../../lib/classroom/competency/framework';
 
@@ -1501,6 +1504,13 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
     }
   };
 
+  // Danh sách bài giao chia theo TUẦN HỌC (tuần đánh số theo Lịch dạy; chưa có thì ghi khoảng ngày), tuần mới nhất trước.
+  const baiTheoId = new Map(assignments.map(a => [a.id, a]));
+  const nhomTuan = groupResultsByWeek(assignments.map(a => ({
+    assignmentId: a.id, title: a.title, status: 'official' as const, score: null, maxScore: null,
+    ...(a.dueAt ? { dueAt: a.dueAt } : {}), ...(a.createdAt ? { submittedAt: a.createdAt } : {}),
+  })), weekPlanFor(teacherId, className, auth.currentUser?.email));
+
   return (
     <section className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
       {dangChamLai && (
@@ -1630,7 +1640,25 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
         </div>
       ) : (
         <div className="mt-4 space-y-3">
-          {assignments.map(a => (
+          {nhomTuan.map(group => (
+            <div key={group.monday || 'khong-ngay'} className="space-y-3">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 border-b-2 border-slate-200 pb-1 pt-1">
+                <p className="whitespace-nowrap text-xs font-black text-indigo-700">{weekTitle(group)}</p>
+                <p className="text-[11px] font-bold text-slate-500">
+                  <span className="whitespace-nowrap">{group.results.length} bài giao</span>
+                  {lopHocSinh.length > 0 && (() => {
+                    // Lượt nộp của cả tuần: mỗi bài đếm theo học sinh (nộp lại nhiều lần chỉ tính một).
+                    const baiTrongTuan = group.results.map(item => baiTheoId.get(item.assignmentId)).filter(a => a && a.type !== 'exam');
+                    if (baiTrongTuan.length === 0) return null;
+                    const daNop = baiTrongTuan.reduce((sum, a) => sum + new Set(baiNopCua(a!.id).map(s => s.studentId)).size, 0);
+                    return <> · <span className="whitespace-nowrap">đã nộp {daNop}/{baiTrongTuan.length * lopHocSinh.length}</span></>;
+                  })()}
+                </p>
+              </div>
+              {group.results.map(item => {
+                const a = baiTheoId.get(item.assignmentId);
+                if (!a) return null;
+                return (
             <div key={a.id} className="rounded-3xl border border-slate-100">
               <div className="flex flex-wrap items-center gap-3 p-4">
                 <button onClick={() => moBai(a.id)} className="min-w-0 flex-1 text-left">
@@ -1905,6 +1933,9 @@ export const AssignmentPanel = ({ classId, teacherId, className, showToast, view
                   )}
                 </div>
               )}
+            </div>
+            );
+              })}
             </div>
           ))}
         </div>

@@ -43,6 +43,8 @@ export interface ClassReportAssignment {
   purpose?: ActivityPurpose;
   deliveryMode?: DeliveryMode;
   maxScore?: number | null;
+  /** Ngày dùng để xếp bài vào tuần học: hạn nộp (bài upload) hoặc ngày giao (đề online). */
+  weekDate?: string;
   /** Nội dung câu hỏi đã chuẩn hóa từ đề online hoặc phần chữ của đề upload. */
   questionCatalog?: readonly ClassReportQuestionCatalogItem[];
   /** File đề gốc để đối chiếu khi bài upload không có cấu trúc câu dạng chữ. */
@@ -116,7 +118,7 @@ export interface ClassReportRecommendation {
 }
 
 export interface ClassAssignmentReport {
-  assignment: Pick<ClassReportAssignment, 'id' | 'title' | 'type' | 'purpose' | 'deliveryMode' | 'maxScore'> & {
+  assignment: Pick<ClassReportAssignment, 'id' | 'title' | 'type' | 'purpose' | 'deliveryMode' | 'maxScore' | 'weekDate'> & {
     questionCatalog?: ClassReportQuestionCatalogItem[];
     questionSources?: ClassReportQuestionSource[];
   };
@@ -589,6 +591,7 @@ export const buildClassAssignmentReport = (input: ClassReportInput): ClassAssign
       title: assignment.title,
       type: assignment.type,
       maxScore: assignment.maxScore,
+      ...(assignment.weekDate ? { weekDate: assignment.weekDate } : {}),
       questionCatalog: projectQuestionCatalog(assignment.questionCatalog),
       questionSources: projectQuestionSources(assignment.questionSources),
     },
